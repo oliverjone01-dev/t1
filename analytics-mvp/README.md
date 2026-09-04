@@ -37,3 +37,12 @@ npm run ping      # S2: проверить связь с OZON
 
 ## Безопасность
 Ключи только в `.env` (vault на проде). После тестов ротировать - сейчас они также в нодах n8n (аудит G4).
+
+## Яндекс Маркет (/market/)
+Тот же конвейер, параметризованный платформой: `DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym`.
+Коннектор только читает Partner API (ключ - секрет `YM_DASHBOARD_1`). Подробно: `YM_MARKET.md`.
+```
+npm run ym:ping      # Этап 0: связь + список campaignId
+npm run ym:orders && npm run ym:catalog && npm run ym:derive && npm run ym:join && npm run ym:reconcile
+npm run ym:build && npm run ym:smoke
+```

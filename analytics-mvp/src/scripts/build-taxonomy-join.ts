@@ -1,12 +1,13 @@
 // Строит sku -> {offer, category, sub, line, model} и отчёт покрытия.
 // sku->offer берём из живого среза (skus_live_30d sku_table), offer->модель из таксономии.
 import { readFileSync, writeFileSync } from "node:fs";
+import { dp, fp } from "../paths.js";
 import { parseTaxonomy, offerIndex } from "../taxonomy.js";
 
 function main() {
-  const tax = parseTaxonomy(readFileSync("fixtures/taxonomy.csv", "utf-8"));
+  const tax = parseTaxonomy(readFileSync(fp("taxonomy.csv"), "utf-8"));
   const oi = offerIndex(tax);
-  const skus = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
+  const skus = JSON.parse(readFileSync(dp("skus_live_30d.json"), "utf-8"));
 
   const map: Record<string, { offer: string; category: string; sub: string; line: string; model: string }> = {};
   let matched = 0, total = 0, revMatched = 0, revTotal = 0;
@@ -20,7 +21,7 @@ function main() {
     }
   }
 
-  writeFileSync("data/sku_taxonomy.json", JSON.stringify(map, null, 0));
+  writeFileSync(dp("sku_taxonomy.json"), JSON.stringify(map, null, 0));
   console.log(`Таксономия: ${tax.length} моделей, ${oi.size} артикулов.`);
   console.log(`Связка sku->модель: ${matched}/${total} SKU (${Math.round((matched / total) * 100)}%), покрытие оборота ${Math.round((revMatched / revTotal) * 100)}%.`);
   // распределение по категориям

@@ -1,0 +1,45 @@
+name: Market ping (Этап 0, только чтение)
+
+# Проверка связи с Яндекс Маркет Partner API: список кампаний (campaignId, тип, домен, бизнес-кабинет)
+# и пробный stats/orders за 7 дней. Ничего не коммитит, кабинет не меняет (в коннекторе нет
+# мутирующих методов). Ключ - секрет YM_DASHBOARD_1 (Api-Key Маркета). YM_TOKEN - Метрика, не он.
+# Итог - в Summary запуска (без ключа); ключ замаскирован ::add-mask::.
+
+on:
+  workflow_dispatch:
+    inputs:
+      business_ids:
+        description: "Бизнес-кабинеты через запятую (пусто = 1023124 GENGLASS зеркала, 74986385 GEN GROUP мебель)"
+        required: false
+      campaign_ids:
+        description: "campaignId через запятую (пусто = все кампании ключа в кабинетах выше)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    env:
+      YM_API_KEY: ${{ secrets.YM_DASHBOARD_1 }}
+      YM_BUSINESS_IDS: ${{ github.event.inputs.business_ids }}
+      YM_CAMPAIGN_IDS: ${{ github.event.inputs.campaign_ids }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Маскировать ключ и проверить наличие
+        run: |
+          set -euo pipefail
+          [ -n "${YM_API_KEY:-}" ] && echo "::add-mask::$YM_API_KEY"
+          if [ -z "${YM_API_KEY:-}" ]; then echo "::error::секрет YM_DASHBOARD_1 не задан (Api-Key Маркета)"; exit 1; fi
+          echo "Ключ Маркета на месте (длина ${#YM_API_KEY})."
+      - name: Ping Partner API (campaigns + stats/orders)
+        run: npm run ym:ping

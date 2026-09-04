@@ -31,7 +31,18 @@
     "pnl:realization": "tsx src/scripts/ozon/pnl-realization.ts",
     "ads:sku:daily": "tsx src/scripts/ozon/ad-sku-daily.ts",
     "offer:sku": "tsx src/scripts/ozon/sku-offer.ts",
-    "import:cards": "tsx src/scripts/ozon/import-card-groups.ts"
+    "import:cards": "tsx src/scripts/ozon/import-card-groups.ts",
+    "ym:ping": "tsx src/scripts/ym/ping.ts",
+    "ym:orders": "tsx src/scripts/ym/orders.ts",
+    "ym:catalog": "tsx src/scripts/ym/catalog.ts",
+    "ym:derive": "tsx src/scripts/ym/derive.ts",
+    "ym:realization": "tsx src/scripts/ym/reports.ts realization",
+    "ym:netting": "tsx src/scripts/ym/reports.ts netting",
+    "ym:shows": "tsx src/scripts/ym/reports.ts shows",
+    "ym:reconcile": "tsx src/scripts/ym/reconcile.ts",
+    "ym:join": "DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-taxonomy-join.ts && DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-cogs-join.ts",
+    "ym:build": "DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-site.ts && DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-katya.ts",
+    "ym:smoke": "OUT_DIR=public/market tsx src/scripts/smoke.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

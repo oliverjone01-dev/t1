@@ -96,9 +96,18 @@ jobs:
           git add -A analytics-mvp/data-ym
           if git diff --staged --quiet; then echo "факт-слой без изменений"; exit 0; fi
           git commit -m "data-ym: заказы и каталог Маркета $(date -u +%F) (промежуточный)"
+          # Снимки - ГЕНЕРИРУЕМЫЕ файлы: их нельзя мержить построчно. Если main уехал, переносим свои
+          # снимки поверх свежего main целиком (последний прогон - истина), а не ребейзим.
           for i in 1 2 3 4 5; do
-            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
-            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+            if git push; then exit 0; fi
+            git fetch origin "$GITHUB_REF_NAME" || { sleep $((2**i)); continue; }
+            rm -rf /tmp/ym-keep && mkdir -p /tmp/ym-keep && cp -r analytics-mvp/data-ym /tmp/ym-keep/
+            git reset --hard "origin/$GITHUB_REF_NAME"
+            rm -rf analytics-mvp/data-ym && cp -r /tmp/ym-keep/data-ym analytics-mvp/
+            git add -A analytics-mvp/data-ym
+            git diff --staged --quiet && exit 0
+            git commit -m "data-ym: заказы и каталог Маркета $(date -u +%F) (промежуточный)"
+            sleep $((2**i))
           done
           echo "::warning::промежуточный push не удался - финальный коммит повторит"
 
@@ -163,8 +172,26 @@ jobs:
           git add -A analytics-mvp/data-ym analytics-mvp/public/market
           if git diff --staged --quiet; then echo "снимки Маркета без изменений"; exit 0; fi
           git commit -m "data-ym: снимки Яндекс Маркета $(date -u +%F)"
+          # И снимки, и страницы /market/ - ГЕНЕРИРУЕМЫЕ: построчный мерж даёт конфликт в каждой
+          # странице и роняет прогон, теряя всё собранное (так упал run 5). Поэтому при уехавшем main
+          # переносим снимки поверх свежего main и ПЕРЕСОБИРАЕМ страницы из его исходников - иначе
+          # в /market/ уедет вёрстка от старого шаблона.
           for i in 1 2 3 4 5; do
-            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
-            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+            if git push; then exit 0; fi
+            git fetch origin "$GITHUB_REF_NAME" || { sleep $((2**i)); continue; }
+            rm -rf /tmp/ym-keep && mkdir -p /tmp/ym-keep && cp -r analytics-mvp/data-ym /tmp/ym-keep/
+            git reset --hard "origin/$GITHUB_REF_NAME"
+            rm -rf analytics-mvp/data-ym && cp -r /tmp/ym-keep/data-ym analytics-mvp/
+            ( cd analytics-mvp && npm run ym:reconcile && npm run ym:build && npm run ym:smoke ) \
+              || { echo "::error::пересборка /market/ на свежем main не прошла - снимки не публикую"; exit 1; }
+            # HTML пересобран заново, поэтому гейт «ключа нет в выдаче» обязан отработать и здесь.
+            for k in "${YM_API_KEY:-}" "${YM_API_KEY_2:-}"; do
+              [ -n "$k" ] && grep -rqF -- "$k" analytics-mvp/public/market analytics-mvp/data-ym \
+                && { echo "::error::после пересборки в public/market или data-ym найден Api-Key"; exit 1; }
+            done
+            git add -A analytics-mvp/data-ym analytics-mvp/public/market
+            git diff --staged --quiet && exit 0
+            git commit -m "data-ym: снимки Яндекс Маркета $(date -u +%F)"
+            sleep $((2**i))
           done
           echo "push не удался"; exit 1

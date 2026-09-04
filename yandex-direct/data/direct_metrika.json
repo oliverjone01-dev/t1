@@ -1,46 +1,46 @@
 {
- "dateFrom": "2026-08-04",
- "dateTo": "2026-09-02",
- "generated_at": "2026-09-03T11:17:45.221Z",
+ "dateFrom": "2026-08-05",
+ "dateTo": "2026-09-03",
+ "generated_at": "2026-09-04T11:20:54.790Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 1384,
-  "ad_visits_30d": 4215,
-  "yd_visits_30d": 4146,
-  "ad_leads_30d": 98
+  "direct_clicks_30d": 1368,
+  "ad_visits_30d": 4220,
+  "yd_visits_30d": 4155,
+  "ad_leads_30d": 102
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4037,
-   "users": 3445,
-   "leads": 96,
-   "contacts": 72
+   "visits": 4048,
+   "users": 3457,
+   "leads": 100,
+   "contacts": 74
   },
   {
    "engine": "Yandex.Direct: Undetermined",
-   "visits": 109,
-   "users": 69,
+   "visits": 107,
+   "users": 67,
+   "leads": 1,
+   "contacts": 1
+  },
+  {
+   "engine": "Other ad: identified by tags",
+   "visits": 32,
+   "users": 19,
    "leads": 1,
    "contacts": 1
   },
   {
    "engine": "Instagram",
-   "visits": 34,
+   "visits": 31,
    "users": 15,
    "leads": 0,
    "contacts": 0
-  },
-  {
-   "engine": "Other ad: identified by tags",
-   "visits": 33,
-   "users": 20,
-   "leads": 1,
-   "contacts": 1
   },
   {
    "engine": "VK",
@@ -53,37 +53,37 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2759,
-   "leads": 52,
-   "contacts": 43
+   "visits": 2790,
+   "leads": 53,
+   "contacts": 44
   },
   {
    "utm": "peregorodki_712877517",
-   "visits": 391,
-   "leads": 22,
+   "visits": 386,
+   "leads": 23,
    "contacts": 13
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 373,
-   "leads": 9,
-   "contacts": 7
+   "visits": 368,
+   "leads": 11,
+   "contacts": 8
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 212,
+   "visits": 223,
    "leads": 6,
    "contacts": 6
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 155,
+   "visits": 154,
    "leads": 8,
    "contacts": 5
   },
   {
    "utm": "peregorodki_712877530",
-   "visits": 109,
+   "visits": 103,
    "leads": 0,
    "contacts": 0
   },
@@ -95,37 +95,31 @@
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 41,
+   "visits": 43,
    "leads": 0,
    "contacts": 1
   },
   {
    "utm": "sale",
-   "visits": 23,
+   "visits": 20,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "peregorodki_710919957",
-   "visits": 16,
+   "visits": 14,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "peregorodki_712877535",
-   "visits": 12,
+   "utm": "obedennyj_razdvizhnoj_stol_quatris",
+   "visits": 10,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "Встречайте_gentris",
    "visits": 9,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "obedennyj_razdvizhnoj_stol_quatris",
-   "visits": 8,
    "leads": 0,
    "contacts": 0
   },
@@ -142,19 +136,13 @@
    "contacts": 0
   },
   {
-   "utm": "news_GENGLASS",
-   "visits": 5,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "utm": "zerkala_s_podsvetkoj",
    "visits": 5,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "vystavka",
+   "utm": "news_GENGLASS",
    "visits": 4,
    "leads": 0,
    "contacts": 0
@@ -166,13 +154,13 @@
    "contacts": 1
   },
   {
-   "utm": "peregorodki_710747853",
+   "utm": "peregorodki_712877535",
    "visits": 3,
    "leads": 0,
    "contacts": 0
   },
   {
-   "utm": "peregorodki_712877541",
+   "utm": "vystavka",
    "visits": 3,
    "leads": 0,
    "contacts": 0
@@ -184,10 +172,22 @@
    "contacts": 0
   },
   {
+   "utm": "peregorodki_710747853",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "poisk_stoli_na_zakaz_701591144",
    "visits": 2,
    "leads": 0,
    "contacts": 0
+  },
+  {
+   "utm": "Новые_станки на нашем производстве. Больше форм, чище металл и умная экономия",
+   "visits": 2,
+   "leads": 1,
+   "contacts": 1
   },
   {
    "utm": "alyuminij_ili_stal",
@@ -272,60 +272,54 @@
    "visits": 1,
    "leads": 0,
    "contacts": 0
-  },
-  {
-   "utm": "Новые_станки на нашем производстве. Больше форм, чище металл и умная экономия",
-   "visits": 1,
-   "leads": 1,
-   "contacts": 1
   }
  ],
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 4215,
-   "users": 3528,
-   "bounce": 22.11150652,
-   "leads": 98,
-   "contacts": 74
+   "visits": 4220,
+   "users": 3538,
+   "bounce": 22.1563981,
+   "leads": 102,
+   "contacts": 76
   },
   {
    "source": "Search engine traffic",
-   "visits": 2812,
-   "users": 2077,
-   "bounce": 17.42532006,
-   "leads": 140,
-   "contacts": 94
+   "visits": 2831,
+   "users": 2098,
+   "bounce": 17.87354292,
+   "leads": 142,
+   "contacts": 98
   },
   {
    "source": "Direct traffic",
-   "visits": 1074,
-   "users": 883,
-   "bounce": 26.44320298,
-   "leads": 30,
-   "contacts": 21
+   "visits": 1078,
+   "users": 886,
+   "bounce": 25.32467532,
+   "leads": 26,
+   "contacts": 20
   },
   {
    "source": "Link traffic",
-   "visits": 726,
-   "users": 506,
-   "bounce": 6.06060606,
+   "visits": 793,
+   "users": 571,
+   "bounce": 5.54854981,
    "leads": 6,
    "contacts": 9
   },
   {
    "source": "Internal traffic",
-   "visits": 280,
-   "users": 183,
-   "bounce": 25.71428571,
-   "leads": 7,
+   "visits": 272,
+   "users": 181,
+   "bounce": 26.47058824,
+   "leads": 6,
    "contacts": 8
   },
   {
    "source": "Social network traffic",
-   "visits": 20,
+   "visits": 22,
    "users": 12,
-   "bounce": 10,
+   "bounce": 9.09090909,
    "leads": 0,
    "contacts": 0
   },
@@ -355,8 +349,8 @@
   },
   {
    "source": "Clicks by QR code",
-   "visits": 4,
-   "users": 3,
+   "visits": 3,
+   "users": 2,
    "bounce": 100,
    "leads": 0,
    "contacts": 0

@@ -1,6 +1,8 @@
 // Собирает страницы сервиса со встроенной историей и клиентским движком.
 // Период и сравнение считаются в браузере. Запуск: npm run build:site
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from "node:fs";
+import { dp, op, OUT_DIR, IS_OZON, platformize } from "../paths.js";
+import { injectCoverage } from "../coverage.js";
 import type { SkuDaily } from "../types.js";
 import { renderTovary, renderOverview, renderFunnel, renderCards, renderMoney, renderAssistant, staticPage } from "../site.js";
 
@@ -22,7 +24,8 @@ function sanitize(html: string): string {
   for (const [re, alias] of HTML_FIX) out = out.replace(re, alias);
   return out;
 }
-const writePage = (path: string, html: string) => writeFileSync(path, sanitize(html));
+// injectCoverage: полоса §15 + бейджи на всех страницах, если есть reconcile.json (ФЕНИКС G3); OZON без файла - identity.
+const writePage = (path: string, html: string) => writeFileSync(path, platformize(sanitize(injectCoverage(html))));
 
 const fixLine = (l: string) => (l === "VIOLUR (перегородки)" ? "VIOLUR (столы)" : l);
 
@@ -32,8 +35,8 @@ const snapNote = (from: string, to: string) =>
 
 // Маркетинг и цена: индекс цены + ДРР канала + доли линий. Снимок 30 дней.
 function buildMarketing(): string {
-  const skus = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
-  const ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
+  const skus = JSON.parse(readFileSync(dp("skus_live_30d.json"), "utf-8"));
+  const ads = JSON.parse(readFileSync(dp("ads_30d.json"), "utf-8"));
   const t = skus.totals;
   let cheaper = 0, even = 0, pricier = 0, noIdx = 0;
   for (const s of skus.sku_table) {
@@ -44,7 +47,7 @@ function buildMarketing(): string {
   }
   const tot = cheaper + even + pricier + noIdx || 1;
   const seg = (n: number, c: string) => `<span style="width:${(100 * n) / tot}%;background:${c};display:block;height:100%"></span>`;
-  const roas = (ads.totals.adRevenue / ads.totals.spend).toFixed(1);
+  const roas = ads.totals.spend ? (ads.totals.adRevenue / ads.totals.spend).toFixed(1) : "0.0"; // без расхода (Маркет: реклама не подключена) - не NaN
   const byLine = skus.by_line.slice(0, 8).map((l: any) =>
     `<tr><td>${l.line}</td><td class="r num">${mln(l.rev)}</td><td class="r num">${Math.round((l.rev / t.rev) * 1000) / 10}%</td></tr>`).join("");
   const adsLine = ads.by_line.map((l: any) =>
@@ -79,7 +82,7 @@ function buildMarketing(): string {
 
 // Кампании: расход, ДРР, сливы, топ по расходу. Снимок 30 дней.
 function buildCampaigns(): string {
-  const ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
+  const ads = JSON.parse(readFileSync(dp("ads_30d.json"), "utf-8"));
   const t = ads.totals;
   const burn = ads.burners.map((b: any) =>
     `<tr><td>${b.off}</td><td class="sub">${b.line}</td><td class="r num">${ru(b.sp)}</td><td class="r num">${b.o}</td><td class="r num ${b.drr === 0 || b.drr > 40 ? "down" : ""}">${b.drr ? b.drr + "%" : "0 заказов"}</td></tr>`).join("");
@@ -112,7 +115,7 @@ function buildCampaigns(): string {
 // Заказы/выручку конкурента OZON не отдаёт - на странице их НЕТ (решение Ивана).
 // Лист переживает «пустой прогон»: если снимков нет или анти-бот всё срезал - показываем
 // честный страж-баннер, а не пустую/выдуманную таблицу.
-const COMP_DIR = "data/competitors";
+const COMP_DIR = dp("competitors");
 const COMP_FILL_MIN = 0.6; // порог заполненности: ниже - считаем прогон подозрительным (анти-бот)
 
 function listCompetitorSnaps(): string[] {
@@ -248,15 +251,17 @@ const CLOSED_FALLBACK = {
     { month: "2026-04", label: "Апрель 2026", realization: 14_660_000, profit: 3_840_000 },
   ],
 };
+// Для не-OZON платформы (Маркет) OZON-фолбэк не годится: без файла честно «нет данных».
+const CLOSED_NONE: { updated: string; months: typeof CLOSED_FALLBACK.months } = { updated: "1970-01-01", months: [] };
 function readClosed(): { updated: string; months: typeof CLOSED_FALLBACK.months } {
   try {
-    const c = JSON.parse(readFileSync("data/closed_pnl.json", "utf-8"));
+    const c = JSON.parse(readFileSync(dp("closed_pnl.json"), "utf-8"));
     if (Array.isArray(c.months) && c.months.length) return c;
-    return CLOSED_FALLBACK;
-  } catch { return CLOSED_FALLBACK; }
+    return IS_OZON ? CLOSED_FALLBACK : CLOSED_NONE;
+  } catch { return IS_OZON ? CLOSED_FALLBACK : CLOSED_NONE; }
 }
 
-const SNAPSHOT = "data/history.ndjson";
+const SNAPSHOT = dp("history.ndjson");
 
 function main() {
   const rows = readFileSync(SNAPSHOT, "utf-8")
@@ -270,7 +275,7 @@ function main() {
   // таксономия: sku -> [category, sub, line, model] (где есть джойн)
   let tax: Record<string, [string, string, string, string]> = {};
   try {
-    const t = JSON.parse(readFileSync("data/sku_taxonomy.json", "utf-8")) as Record<string, { category: string; sub: string; line: string; model: string }>;
+    const t = JSON.parse(readFileSync(dp("sku_taxonomy.json"), "utf-8")) as Record<string, { category: string; sub: string; line: string; model: string }>;
     for (const [sku, v] of Object.entries(t)) tax[sku] = [v.category, v.sub, v.line, v.model];
   } catch { tax = {}; }
 
@@ -281,25 +286,25 @@ function main() {
 
   // себестоимость: sku -> С\С (где сматчено)
   let cogs: Record<string, number> = {};
-  try { cogs = JSON.parse(readFileSync("data/sku_cogs.json", "utf-8")); } catch { cogs = {}; }
+  try { cogs = JSON.parse(readFileSync(dp("sku_cogs.json"), "utf-8")); } catch { cogs = {}; }
 
   // операционный P&L по транзакциям (снимок 30 дней, реальные сборы OZON)
   let opnl: unknown = {};
-  try { opnl = JSON.parse(readFileSync("data/pnl_30d.json", "utf-8")); } catch { opnl = {}; }
+  try { opnl = JSON.parse(readFileSync(dp("pnl_30d.json"), "utf-8")); } catch { opnl = {}; }
 
   // per-SKU транзакции (снимок 30 дней): sku -> {accruals, commission, amount}
   let txsku: Record<string, { accruals: number; commission: number; amount: number }> = {};
-  try { txsku = JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku || {}; } catch { txsku = {}; }
+  try { txsku = JSON.parse(readFileSync(dp("pnl_sku_30d.json"), "utf-8")).bySku || {}; } catch { txsku = {}; }
 
   // реклама (снимок 30 дней) - для ассистента
   let ads: unknown = {};
-  try { ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8")); } catch { ads = {}; }
+  try { ads = JSON.parse(readFileSync(dp("ads_30d.json"), "utf-8")); } catch { ads = {}; }
 
   // снимок живых SKU: артикулы для ссылок в кабинет + OOS-сигнал (TZ v2 1.6/1.7)
   const offers: Record<string, string> = {};
   let oos: Array<{ sku: string; offer: string; name: string; line: string; units: number }> = [];
   try {
-    const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
+    const live = JSON.parse(readFileSync(dp("skus_live_30d.json"), "utf-8"));
     for (const s of live.sku_table || []) {
       if (s.offer && String(s.offer).trim()) offers[String(s.sku)] = String(s.offer).trim();
     }
@@ -326,7 +331,7 @@ function main() {
   const staleDays = Math.round((Date.parse(maxDate) - Date.parse(closedData.updated)) / 86_400_000);
   const closedMeta = {
     updated: closedData.updated,
-    lastLabel: closedData.months[closedData.months.length - 1]!.label,
+    lastLabel: closedData.months.length ? closedData.months[closedData.months.length - 1]!.label : "нет данных (Акты площадки не подключены)",
     staleDays,
     stale: staleDays > 45,
   };
@@ -336,31 +341,35 @@ function main() {
     closedMeta, tax, cogs, opnl, txsku, ads, offers, oos, fresh,
   };
 
-  mkdirSync("public", { recursive: true });
+  mkdirSync(OUT_DIR, { recursive: true });
   // чистим страницы-сироты прошлых сборок (FENIX H1)
   for (const orphan of ["dashboard.html", "styleguide.html", "data.json"]) {
-    try { rmSync(`public/${orphan}`); } catch { /* нет файла - ок */ }
+    try { rmSync(op(orphan)); } catch { /* нет файла - ок */ }
   }
   // index = редирект на канонический obzor.html (TZ v2 1.12): один тяжёлый файл вместо дубля
-  writePage("public/index.html", `<!doctype html><html lang="ru"><head><meta charset="utf-8">
+  writePage(op("index.html"), `<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta http-equiv="refresh" content="0;url=obzor.html"><title>GENGLASS · аналитика OZON</title>
 <style>body{margin:0;background:#0A0A0B;color:#8A8A90;font:14px/1.5 "SF Pro Display",-apple-system,sans-serif;display:grid;place-items:center;height:100vh}a{color:#FF4438}</style>
 </head><body><div>Открываю обзор... <a href="obzor.html">перейти вручную</a></div></body></html>`);
-  writePage("public/tovary.html", renderTovary(model));
-  writePage("public/obzor.html", renderOverview(model));
-  writePage("public/voronka.html", renderFunnel(model));
-  writePage("public/cards.html", renderCards(model));
-  writePage("public/money.html", renderMoney(model));
-  writePage("public/assistant.html", renderAssistant(model));
+  writePage(op("tovary.html"), renderTovary(model));
+  writePage(op("obzor.html"), renderOverview(model));
+  writePage(op("voronka.html"), renderFunnel(model));
+  writePage(op("cards.html"), renderCards(model));
+  writePage(op("money.html"), renderMoney(model));
+  writePage(op("assistant.html"), renderAssistant(model));
 
   const footMkt = `ДРР канала - <b>[ДАННЫЕ]</b>, надёжен. ДРР по линиям - ориентир (G5). Индекс цены - снимок OZON. Реклама/цены не в дневной истории, поэтому страница - снимок за 30 дней, без интерактивного периода.`;
-  writePage("public/marketing.html", staticPage("Маркетинг и цена", "снимок рекламы и цен за 30 дней", buildMarketing(), footMkt));
-  writePage("public/campaigns.html", staticPage("Кампании", "снимок рекламы за 30 дней", buildCampaigns(), footMkt));
+  writePage(op("marketing.html"), staticPage("Маркетинг и цена", "снимок рекламы и цен за 30 дней", buildMarketing(), footMkt));
+  writePage(op("campaigns.html"), staticPage("Кампании", "снимок рекламы за 30 дней", buildCampaigns(), footMkt));
 
   const footComp = `Все поля - <b>[ДАННЫЕ]</b> с публичной карточки OZON (цена / база / рейтинг / отзывы / наличие). Заказы и выручку конкурента OZON не отдаёт - не оцениваем. Лист - снимок последнего прогона пилота; страж заполненности краснеет, если анти-бот срезал сбор.`;
   const compSnaps = listCompetitorSnaps();
   const compLabel = compSnaps.length ? `снимок конкурентов ${compDate(compSnaps[compSnaps.length - 1]!)}` : "конкуренты - данных пока нет";
-  writePage("public/competitors.html", staticPage("Конкуренты", compLabel, buildCompetitors(maxDate), footComp));
+  // Конкуренты: пилот-сборщик работает только с карточками OZON. Для другой платформы - честная заглушка
+  // без чужих ссылок (ФЕНИКС G5), пока нет своего сборщика по market.yandex.ru.
+  const compBody = IS_OZON ? buildCompetitors(maxDate) : `<div class="card"><b>Конкуренты на этой площадке не собираются.</b><div class="note" style="margin-top:8px">Сборщик цен/рейтингов конкурентов есть только для OZON (пилот). Для Яндекс Маркета нужен отдельный сборщик по market.yandex.ru - отдельная задача, решение за Иваном.</div></div>`;
+  const compFoot = IS_OZON ? footComp : "Лист пустой намеренно: источника по конкурентам на этой площадке нет.";
+  writePage(op("competitors.html"), staticPage("Конкуренты", IS_OZON ? compLabel : "нет источника", compBody, compFoot));
 
   console.log(`Готово: obzor · tovary · voronka · cards · money · marketing · campaigns · competitors (+index-redirect)`);
   console.log(`Фактов ${facts.length} · SKU ${Object.keys(skus).length} · ${model.floor}..${model.max} · OOS ${oos.length} · закрытые Акты до ${closedMeta.lastLabel}${closedMeta.stale ? " (УСТАРЕЛИ)" : ""}`);

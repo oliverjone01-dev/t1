@@ -16,16 +16,21 @@ on:
       mgr:
         description: "имя менеджера для личного дайджеста (пусто = сводка по отделу)"
         default: ""
-  # Staged-доставка (пн-пт). Каждый слот идёт СНАЧАЛА в тест-чат (окно на проверку данных Иваном),
-  # затем через +15 мин чистовик в основной чат. МСК: план 09:00→09:15, срез 15:00→15:15, итог 17:30→17:45.
-  # UTC: 06:00→06:15, 12:00→12:15, 14:30→14:45. Режим и чат определяются по времени крона.
-  # Первый (тестовый) прогон делает снимок+деплой (~5-8 мин); чистовой прогон переиспользует те же
-  # свежие данные и уходит быстро - реальное окно на проверку между сообщениями ~7-8 мин.
+  # Staged-доставка (пн-пт). Перед КАЖДЫМ слотом идёт «прогрев» (~60 мин раньше): тяжёлый
+  # снимок Bitrix + деплой считаются ЗАРАНЕЕ и БЕЗ отправки. Затем слот идёт СНАЧАЛА в тест-чат
+  # (окно на проверку данных Иваном), затем через +15 мин чистовик в основной чат.
+  # МСК: план 08:00 / 09:00 → 09:15; срез 14:00 / 15:00 → 15:15; итог 16:30 / 17:30 → 17:45.
+  # UTC: прогрев 05:00 / 11:00 / 13:30; отправка 06:00 → 06:15 / 12:00 → 12:15 / 14:30 → 14:45.
+  # Режим и чат определяются по времени крона. Прогрев (SEND=0) делает снимок+деплой и выходит;
+  # к моменту отправки данные уже свежие, дайджест уходит сразу, не дожидаясь тяжёлого снимка.
   schedule:
+    - cron: "0 5 * * 1-5"   # план · прогрев данных (снимок+деплой заранее, без отправки)
     - cron: "0 6 * * 1-5"    # план · тест
     - cron: "15 6 * * 1-5"   # план · основной
+    - cron: "0 11 * * 1-5"  # срез · прогрев данных
     - cron: "0 12 * * 1-5"   # срез · тест
     - cron: "15 12 * * 1-5"  # срез · основной
+    - cron: "30 13 * * 1-5"  # итог · прогрев данных
     - cron: "30 14 * * 1-5"  # итог · тест
     - cron: "45 14 * * 1-5"  # итог · основной
 
@@ -37,9 +42,13 @@ jobs:
   send:
     runs-on: ubuntu-latest
     env:
-      MODE: ${{ github.event.inputs.mode || ((github.event.schedule == '0 6 * * 1-5' || github.event.schedule == '15 6 * * 1-5') && 'plan') || ((github.event.schedule == '0 12 * * 1-5' || github.event.schedule == '15 12 * * 1-5') && 'srez') || ((github.event.schedule == '30 14 * * 1-5' || github.event.schedule == '45 14 * * 1-5') && 'itogi') || 'plan' }}
+      MODE: ${{ github.event.inputs.mode || ((github.event.schedule == '0 5 * * 1-5' || github.event.schedule == '0 6 * * 1-5' || github.event.schedule == '15 6 * * 1-5') && 'plan') || ((github.event.schedule == '0 11 * * 1-5' || github.event.schedule == '0 12 * * 1-5' || github.event.schedule == '15 12 * * 1-5') && 'srez') || ((github.event.schedule == '30 13 * * 1-5' || github.event.schedule == '30 14 * * 1-5' || github.event.schedule == '45 14 * * 1-5') && 'itogi') || 'plan' }}
+      # Прогревочные слоты (SEND=0) только считают данные заранее и НЕ отправляют дайджест.
+      SEND: ${{ (github.event.schedule == '0 5 * * 1-5' || github.event.schedule == '0 11 * * 1-5' || github.event.schedule == '30 13 * * 1-5') && '0' || '1' }}
       # Чистовые (main) слоты идут в основной чат; тестовые слоты и ручной запуск без chat - в тест-чат.
       CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || (github.event.schedule == '15 6 * * 1-5' && '-1004401671894') || (github.event.schedule == '15 12 * * 1-5' && '-1004401671894') || (github.event.schedule == '45 14 * * 1-5' && '-1004401671894') || '-1003652568523' }}
+      # Признак планового запуска: у GitHub schedule бывают опоздания на часы. Ручной запуск не трогаем.
+      IS_SCHED: ${{ github.event_name == 'schedule' }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
@@ -74,11 +83,12 @@ jobs:
               | tr ',' '\n' | sed -n 's/.*"generated_at":"\([^"]*\)".*/\1/p' | head -1; }
           # Диспатч воркфлоу + ожидание завершения свежего рана (до ~15 мин), не валит job при неудаче.
           dispatch_and_wait() {
-            local wf="$1" nm="$2" t0 code run status concl created cts
+            local wf="$1" nm="$2" inp="${3:-}" body t0 code run status concl created cts
+            if [ -n "$inp" ]; then body="{\"ref\":\"main\",\"inputs\":$inp}"; else body='{"ref":"main"}'; fi
             t0=$(date -u +%s)
             for i in 1 2 3 4 5; do
               code=$(curl -sS -o /tmp/d.out -w '%{http_code}' -X POST -H 'Accept: application/vnd.github+json' \
-                -H "Authorization: Bearer $GH_TOKEN" "$API/actions/workflows/$wf/dispatches" -d '{"ref":"main"}' || echo 000)
+                -H "Authorization: Bearer $GH_TOKEN" "$API/actions/workflows/$wf/dispatches" -d "$body" || echo 000)
               [ "$code" = "204" ] && { echo "$nm: запрос на запуск принят"; break; }
               echo "$nm dispatch попытка $i: HTTP $code $(cat /tmp/d.out 2>/dev/null || true)"; sleep $((3*i))
             done
@@ -97,23 +107,33 @@ jobs:
           GEN="$(gen_of)"; D="${GEN:0:10}"; TODAY="$(date -u +%F)"
           echo "Снимок rop.json: generated_at=$GEN (дата $D) · сегодня(UTC)=$TODAY · MODE=$MODE"
           # 1) Данные 3 раза в день: свежий снимок Bitrix перед КАЖДЫМ дайджестом, чтобы Срез/Итог
-          #    показывали живой прогресс дня. Для слота ждём данные не старше времени слота (UTC):
-          #    план 06:00 (=09:00 МСК), срез 12:00 (=15:00 МСК), итог 14:30 (=17:30 МСК).
+          #    показывали живой прогресс дня. Слоты (UTC): план 06:00 (=09:00 МСК), срез 12:00
+          #    (=15:00 МСК), итог 14:30 (=17:30 МСК). Тяжёлый снимок считается ЗАРАНЕЕ прогревочным
+          #    прогоном (~60 мин до слота), поэтому здесь принимаем данные, снятые не раньше чем за
+          #    LEAD=60 мин до слота: свежий прогрев (снят ~слот-30..слот-5) проходит и дайджест уходит
+          #    сразу, а реально устаревшие данные (ночь/прошлый слот) всё ещё триггерят снимок.
           case "$MODE" in plan) SLOT="06:00";; srez) SLOT="12:00";; itogi) SLOT="14:30";; *) SLOT="06:00";; esac
+          LEAD=3600
           SLOT_TS=$(date -u -d "$TODAY $SLOT" +%s 2>/dev/null || echo 0)
+          ACCEPT_TS=$((SLOT_TS - LEAD))
           GEN_TS=$(date -u -d "$GEN" +%s 2>/dev/null || echo 0)
-          if [ -n "$GEN" ] && [ "$GEN_TS" -lt "$SLOT_TS" ]; then
-            echo "Снимок ($GEN) старше времени слота $SLOT UTC - обновляю данные Bitrix и жду"
-            dispatch_and_wait "b24-snapshots.yml" "Снимок Bitrix"
+          if [ -n "$GEN" ] && [ "$GEN_TS" -lt "$ACCEPT_TS" ]; then
+            echo "Снимок ($GEN) старше порога свежести для слота $SLOT UTC (минус $((LEAD/60)) мин) - обновляю данные Bitrix и жду"
+            # Внутридневной снимок - LIGHT (быстрый ~3-4 мин): сделки/история/лиды свежие, медленное
+            # обогащение из прошлого полного (ночного) снимка. Ночной b24-snapshots остаётся полным.
+            dispatch_and_wait "b24-snapshots.yml" "Снимок Bitrix (light)" '{"mode":"light"}'
             GEN="$(gen_of)"; D="${GEN:0:10}"
             echo "После снимка: generated_at=$GEN"
             # b24-snapshots в конце САМ триггерит deploy-pages. Дожидаемся, пока задеплоенный /rop/
-            # догонит свежий снимок, ПРЕЖДЕ чем решать про свой деплой - иначе второй деплой
-            # конфликтует с первым (concurrency cancel-in-progress) и оба висят. До ~10 мин.
-            for i in $(seq 1 30); do
+            # догонит свежий снимок, ПРЕЖДЕ чем решать про свой деплой. ВАЖНО: полный deploy-pages
+            # идёт ~15-17 мин, поэтому окно ожидания должно быть НЕ короче этого - иначе бот не
+            # дожидается деплой снимка, запускает свой, тот отменяет первый (concurrency
+            # cancel-in-progress), таймер сбрасывается и отправка тормозит. Ждём до ~22 мин: этого
+            # хватает на штатный деплой снимка, и шаг 2 ниже уже не запускает конкурирующий.
+            for i in $(seq 1 66); do
               RB="$(curl -fsS "https://oliverjone01-dev.github.io/t1/rop/v.txt" 2>/dev/null | tr -d '[:space:]' || true)"
               if [ -n "$RB" ] && ! [[ "$RB" < "$GEN" ]]; then echo "Деплой от снимка доехал (bakedAt=$RB)"; break; fi
-              echo "Жду деплой от снимка: /rop/ bakedAt=$RB vs снимок=$GEN (${i}/30)"; sleep 20
+              echo "Жду деплой от снимка: /rop/ bakedAt=$RB vs снимок=$GEN (${i}/66)"; sleep 20
             done
           fi
           # 2) Свежесть деплоя: bakedAt /rop/ должен быть не старше снимка (тот же деплой пересобирает и менеджеров)
@@ -130,12 +150,28 @@ jobs:
           echo "Готово - дашборды актуальны, можно отправлять дайджест."
 
       - name: Build digest and send to Telegram
+        # Прогревочные прогоны (SEND=0) только считают данные заранее и НЕ отправляют дайджест.
+        if: env.SEND != '0'
         env:
           BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
           BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
           MGR_NAME: ${{ github.event.inputs.mgr }}
         run: |
           set -euo pipefail
+          # Защита от опоздавших кронов GitHub: schedule иногда срабатывает на часы позже слота.
+          # Если ПЛАНОВЫЙ крон опоздал больше чем на 90 мин от своего слота - НЕ шлём дайджест,
+          # иначе прилетает «призрак» (напр. утренний план в обед). Ручной запуск не трогаем.
+          if [ "${IS_SCHED:-}" = "true" ]; then
+            case "$MODE" in plan) GSLOT="06:00";; srez) GSLOT="12:00";; itogi) GSLOT="14:30";; *) GSLOT="";; esac
+            if [ -n "$GSLOT" ]; then
+              GSLOT_TS=$(date -u -d "$(date -u +%F) $GSLOT" +%s 2>/dev/null || echo 0)
+              NOW_TS=$(date -u +%s)
+              if [ "$GSLOT_TS" -gt 0 ] && [ $((NOW_TS - GSLOT_TS)) -gt 5400 ]; then
+                echo "Крон слота $GSLOT UTC опоздал на $(((NOW_TS-GSLOT_TS)/60)) мин (>90) - пропускаю отправку (опоздавший дайджест не нужен)."
+                exit 0
+              fi
+            fi
+          fi
           git fetch --depth=1 origin rop-dashboard-v1
           git show FETCH_HEAD:analytics-mvp/rop/data/rop.json > /tmp/rop.json
           git fetch --depth=1 origin dialog-export-v1

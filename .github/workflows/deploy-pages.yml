@@ -14,6 +14,7 @@ name: Deploy to GitHub Pages
 #   /rop-preview/      - РОП-дашборд, ПРЕВЬЮ (из ветки ozon-dashboard-dima-fork, изолированная копия Ивана)
 #   /direct/           - Дашборд Яндекс.Директ, БОЙ (из main, данные direct-snapshots.yml)
 #   /direct-preview/   - Дашборд Яндекс.Директ, ПРЕВЬЮ (из рабочей ветки)
+#   /market/           - Дашборд KATYA для Яндекс Маркета, БОЙ (из main, данные ym-snapshots.yml -> analytics-mvp/data-ym/)
 #   /prod/             - Дашборд Производство, БОЙ (из ветки prod-dashboard-v1)
 #   /op-gm/            - Автоматизация ОП ГМ (из ветки op-gm-automation-v1, статика public/)
 #   /messages/         - GG Message Automation (из ветки claude/gg-message-automation-ffpwpd, статика public/)
@@ -236,6 +237,29 @@ jobs:
           STAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/rop/analytics-mvp/public/rop-command.html | head -1 | cut -d'"' -f4)
           printf '%s' "$STAMP" | tee "$GITHUB_WORKSPACE/_site/rop/v.txt" > "$GITHUB_WORKSPACE/_site/rop2/v.txt"
           echo "РОП опубликован в /rop/ и /rop2/, сборка $STAMP ($(du -h /tmp/rop/analytics-mvp/public/rop-command.html | cut -f1))"
+
+      # === ЯНДЕКС МАРКЕТ (из main, в /market/) ===
+      # Дашборд KATYA на данных Маркета: та же сборка analytics-mvp, параметризованная DATA_DIR=data-ym,
+      # OUT_DIR=public/market, PLATFORM=ym (ключ в HTML не попадает: сборка статическая из снимков,
+      # которые кладёт ym-snapshots.yml). OZON-корень не затрагивается: пишем только в _site/market/.
+      # Свой smoke-гейт; падение НЕ валит остальной сайт (continue-on-error), а /market/ остаётся
+      # с прошлой запечённой версией из public/market, если она есть.
+      - name: Build MARKET dashboard (/market/)
+        continue-on-error: true
+        working-directory: analytics-mvp
+        run: |
+          set -euo pipefail
+          if [ ! -s data-ym/history.ndjson ] || [ ! -s data-ym/skus_live_30d.json ]; then
+            echo "data-ym/ пуст - снимков Маркета ещё нет (запусти ym-snapshots.yml). Пропуск /market/."
+            exit 0
+          fi
+          rm -rf /tmp/market-site && mkdir -p /tmp/market-site
+          DATA_DIR=data-ym OUT_DIR=/tmp/market-site PLATFORM=ym npx tsx src/scripts/build-site.ts
+          DATA_DIR=data-ym OUT_DIR=/tmp/market-site PLATFORM=ym npx tsx src/scripts/build-katya.ts
+          OUT_DIR=/tmp/market-site npx tsx src/scripts/smoke.ts
+          mkdir -p "$GITHUB_WORKSPACE/_site/market"
+          cp -r /tmp/market-site/. "$GITHUB_WORKSPACE/_site/market/"
+          echo "Маркет опубликован в /market/ ($(ls /tmp/market-site | wc -l) страниц)"
 
       # === ДИРЕКТ (из main, в /direct/; многостраничный) ===
       # Дашборд Яндекс.Директ: страницы запечены build.mjs из снимков yandex-direct/data/

@@ -1,0 +1,157 @@
+name: Market snapshots (Яндекс Маркет, прямой)
+
+# Ночной пайплайн Яндекс Маркета по образцу ozon-snapshots.yml / direct-snapshots.yml:
+# Partner API (только чтение) -> факт-слой data-ym/orders.ndjson -> производные снимки в контракте
+# OZON (platform="ym") -> отчёты Маркета (реализация, взаиморасчёты, показы: generate/poll/download)
+# -> джойны СС/таксономии -> дельта-гейт -> сборка /market/ (DATA_DIR=data-ym, OUT_DIR=public/market)
+# -> smoke -> сверка §15 -> commit. OZON-данные (data/, public/*.html) НЕ трогаются.
+# Ключ: секрет YM_DASHBOARD_1 (Api-Key), маскируется; в HTML не попадает (сборка статическая).
+# Мутаций кабинета нет по построению (коннектор без POST-изменений).
+
+on:
+  schedule:
+    - cron: "40 6 * * *" # ~09:40 МСК, после OZON (06:00) и Директа (06:20)
+  workflow_dispatch:
+    inputs:
+      shows_days:
+        description: "Сколько дней показов (shows-sales) добрать за прогон (по 2 отчёта/день, ~1 мин каждый)"
+        required: false
+        default: "7"
+      realization_months:
+        description: "Месяцы реализации через пробел, напр. 2026-07 2026-08 (пусто = текущий + прошлый; первый прогон - все от FLOOR в пределах бюджета)"
+        required: false
+        default: ""
+      report_budget:
+        description: "Максимум отчётов Маркета (generate/poll/download) за прогон; каждый до 15 мин"
+        required: false
+        default: "10"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ym-data
+  cancel-in-progress: false
+
+env:
+  YM_API_KEY: ${{ secrets.YM_DASHBOARD_1 }}
+  YM_BUSINESS_IDS: ${{ secrets.YM_BUSINESS_IDS }}
+  YM_CAMPAIGN_IDS: ${{ secrets.YM_CAMPAIGN_IDS }}
+  SNAPSHOT_MIN_SKUS: "1"
+  YM_REPORT_BUDGET: ${{ github.event.inputs.report_budget || '10' }}
+
+jobs:
+  snapshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - name: Маскировать ключ и проверить наличие (первым шагом, до любых установок)
+        working-directory: . # до checkout каталога analytics-mvp ещё нет
+        run: |
+          set -euo pipefail
+          [ -n "${YM_API_KEY:-}" ] && echo "::add-mask::$YM_API_KEY"
+          if [ -z "${YM_API_KEY:-}" ]; then echo "::error::секрет YM_DASHBOARD_1 не задан (Api-Key Маркета)"; exit 1; fi
+          echo "Ключ Маркета на месте."
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: "Снимок OZON-страниц ДО (гейт: OZON байт-в-байт не меняется)"
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ozon-before
+          md5sum public/*.html > /tmp/ozon-before/public.md5
+          md5sum data/* 2>/dev/null | grep -v "data/competitors" > /tmp/ozon-before/data.md5 || true
+
+      - name: Заказы Маркета (факт-слой, инкремент + перетяжка хвоста)
+        run: npm run ym:orders
+
+      - name: Каталог (имена, marketSku, цены, остатки; накопительно)
+        run: npm run ym:catalog || echo "::warning::каталог не обновлён (прошлый catalog.json остаётся)"
+
+      - name: Промежуточный коммит факт-слоя (заказы+каталог сохраняются даже при обрыве отчётов)
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if grep -rqF -- "$YM_API_KEY" analytics-mvp/data-ym; then echo "::error::в data-ym найден Api-Key"; exit 1; fi
+          git add -A analytics-mvp/data-ym
+          if git diff --staged --quiet; then echo "факт-слой без изменений"; exit 0; fi
+          git commit -m "data-ym: заказы и каталог Маркета $(date -u +%F) (промежуточный)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "::warning::промежуточный push не удался - финальный коммит повторит"
+
+      - name: Отчёт о реализации по месяцам (generate/poll/download; бюджет YM_REPORT_BUDGET)
+        run: |
+          set -euo pipefail
+          npm run ym:realization -- ${{ github.event.inputs.realization_months }} || echo "::warning::реализация не обновлена"
+
+      - name: Отчёт по взаиморасчётам (выплаты ЛК)
+        run: npm run ym:netting || echo "::warning::взаиморасчёты не обновлены"
+
+      - name: Показы/корзина per-SKU по дням (shows-sales)
+        env:
+          YM_SHOWS_DAYS: ${{ github.event.inputs.shows_days || '7' }}
+        run: npm run ym:shows || echo "::warning::показы не обновлены"
+
+      - name: Производные снимки контракта (history/daily_totals/skus_live/pnl_*)
+        run: npm run ym:derive
+
+      - name: "Дельта-гейт перед заменой (FENIX G3: просадка >40% = стоп)"
+        run: |
+          set -euo pipefail
+          # Прошлые снимки - из HEAD; если их нет (первый прогон) - гейт только на валидность.
+          prev () { git show "HEAD:analytics-mvp/data-ym/$1" > "/tmp/prev_$1" 2>/dev/null && echo "/tmp/prev_$1" || echo ""; }
+          npx tsx src/scripts/validate-snapshot.ts skus   data-ym/skus_live_30d.json $(prev skus_live_30d.json)
+          npx tsx src/scripts/validate-snapshot.ts pnl    data-ym/pnl_30d.json       $(prev pnl_30d.json)
+          npx tsx src/scripts/validate-snapshot.ts pnlsku data-ym/pnl_sku_30d.json   $(prev pnl_sku_30d.json)
+
+      - name: Джойны таксономии и СС (ключ - артикул)
+        run: npm run ym:join
+
+      - name: Сверка по CLAUDE.md §15 (реализация, выплаты ЛК, СС; три типа периода)
+        run: npm run ym:reconcile
+
+      - name: Сборка /market/ (DATA_DIR=data-ym, PLATFORM=ym) + smoke
+        run: |
+          set -euo pipefail
+          npm run ym:build
+          npm run ym:smoke
+
+      - name: "Гейт: OZON байт-в-байт не изменился"
+        run: |
+          set -euo pipefail
+          md5sum -c /tmp/ozon-before/public.md5
+          if [ -s /tmp/ozon-before/data.md5 ]; then md5sum -c /tmp/ozon-before/data.md5; fi
+          echo "OZON-страницы и data/ не тронуты."
+
+      - name: Ключ не попал в HTML и в данные
+        run: |
+          set -euo pipefail
+          if grep -rqF -- "$YM_API_KEY" public/market data-ym; then echo "::error::в public/market или data-ym найден Api-Key"; exit 1; fi
+          echo "Ключа в HTML и данных нет."
+
+      - name: Commit (если есть изменения)
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/data-ym analytics-mvp/public/market
+          if git diff --staged --quiet; then echo "снимки Маркета без изменений"; exit 0; fi
+          git commit -m "data-ym: снимки Яндекс Маркета $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1

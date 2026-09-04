@@ -1,3 +1,4 @@
+import { PRODUCT_URL_JS, CABINET_URL_JS } from "./paths.js";
 // Рендер сервиса в Orbi-стиле. История встроена в страницу, клиентский движок
 // витрин считает за выбранный период (7/30/90/Всё/свой) и сравнение - в браузере.
 // Несколько страниц на общем движке: Товары, Обзор, Воронка.
@@ -87,8 +88,8 @@ const NAV: Array<[string, string, string]> = [
 // Общий движок: данные + витрины + период/сравнение. draw(cur,cmp) определяет страница.
 const ENGINE = `
 const F=DATA.facts, SK=DATA.skus, MAX=DATA.max, FLOOR=DATA.floor, TX=DATA.tax||{}, CG=DATA.cogs||{}, TXS=DATA.txsku||{}, OFF=DATA.offers||{};
-const ozUrl=s=>'https://www.ozon.ru/product/'+s;
-const cabUrl=s=>OFF[s]?'https://seller.ozon.ru/app/products?search='+encodeURIComponent(OFF[s]):null;
+const ozUrl=${PRODUCT_URL_JS};
+const cabUrl=${CABINET_URL_JS};
 const skuLinks=s=>' <a class="lnk" target="_blank" rel="noopener" title="публичная карточка OZON" href="'+ozUrl(s)+'">&#8599;</a>'+(cabUrl(s)?' <a class="lnk" target="_blank" rel="noopener" title="поиск по артикулу в кабинете продавца" href="'+cabUrl(s)+'">&#9881;</a>':'');
 const catOf=s=>TX[s]?TX[s][0]:'', subOf=s=>TX[s]?TX[s][1]:'', modelOf=s=>TX[s]?TX[s][3]:SK[s][1];
 const cogsOf=s=>CG[s]||0;

@@ -1,0 +1,208 @@
+{
+  "platform": "ym",
+  "generated_at": "2026-09-04T10:46:21.332Z",
+  "today": "2026-09-04",
+  "periods": [
+    {
+      "kind": "closed_month",
+      "label": "закрытый месяц 2026-08",
+      "dateFrom": "2026-08-01",
+      "dateTo": "2026-08-31",
+      "units": {
+        "orders_delivered_net": 73,
+        "orders_returned": 1,
+        "realization_sold": null,
+        "realization_ret": null,
+        "realization_net": null,
+        "diff": null,
+        "status": "нет отчёта о реализации за месяц (не собран / NO_DATA)"
+      },
+      "money": {
+        "payout_derived": 914591,
+        "payout_matched": 0,
+        "netting_by_order": null,
+        "orders_total": 73,
+        "orders_matched": 0,
+        "diff": null,
+        "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
+        "accruals": 1086071,
+        "fees": 171480,
+        "predicted_share": 0
+      },
+      "revenue": null,
+      "cogs": {
+        "sku_total": 76,
+        "sku_with_cogs": 67,
+        "rev_total": 1684540,
+        "rev_with_cogs": 1523166,
+        "pct_sku": 88.2,
+        "pct_rev": 90.4,
+        "status": "без СС 9 SKU (9.6% оборота) - маржа по ним завышена"
+      }
+    },
+    {
+      "kind": "half_month",
+      "label": "часть месяца 2026-08-01..15",
+      "dateFrom": "2026-08-01",
+      "dateTo": "2026-08-15",
+      "units": {
+        "orders_delivered_net": 41,
+        "orders_returned": 1,
+        "realization_sold": null,
+        "realization_ret": null,
+        "realization_net": null,
+        "diff": null,
+        "status": "частичный месяц: отчёт о реализации помесячный - сверка только по заказам"
+      },
+      "money": {
+        "payout_derived": 551032,
+        "payout_matched": 0,
+        "netting_by_order": null,
+        "orders_total": 41,
+        "orders_matched": 0,
+        "diff": null,
+        "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
+        "accruals": 643867,
+        "fees": 92835,
+        "predicted_share": 0
+      },
+      "revenue": null,
+      "cogs": {
+        "sku_total": 33,
+        "sku_with_cogs": 26,
+        "rev_total": 744699,
+        "rev_with_cogs": 597825,
+        "pct_sku": 78.8,
+        "pct_rev": 80.3,
+        "status": "без СС 7 SKU (19.7% оборота) - маржа по ним завышена"
+      }
+    },
+    {
+      "kind": "current_month",
+      "label": "текущий месяц 2026-09 (по 2026-09-03)",
+      "dateFrom": "2026-09-01",
+      "dateTo": "2026-09-03",
+      "units": {
+        "orders_delivered_net": 14,
+        "orders_returned": 0,
+        "realization_sold": null,
+        "realization_ret": null,
+        "realization_net": null,
+        "diff": null,
+        "status": "частичный месяц: отчёт о реализации помесячный - сверка только по заказам"
+      },
+      "money": {
+        "payout_derived": 78578,
+        "payout_matched": 0,
+        "netting_by_order": null,
+        "orders_total": 14,
+        "orders_matched": 0,
+        "diff": null,
+        "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
+        "accruals": 82262,
+        "fees": 3684,
+        "predicted_share": 0
+      },
+      "revenue": null,
+      "cogs": {
+        "sku_total": 34,
+        "sku_with_cogs": 29,
+        "rev_total": 934122,
+        "rev_with_cogs": 819746,
+        "pct_sku": 85.3,
+        "pct_rev": 87.8,
+        "status": "без СС 5 SKU (12.2% оборота) - маржа по ним завышена"
+      }
+    }
+  ],
+  "cumulative": {
+    "payout_derived": 9722116,
+    "payout_matched": 0,
+    "netting_by_order": null,
+    "orders_total": 779,
+    "orders_matched": 0,
+    "diff": null,
+    "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
+    "netting_account": null
+  },
+  "coverage": {
+    "window": {
+      "dateFrom": "2026-08-05",
+      "dateTo": "2026-09-03"
+    },
+    "sku_total": 86,
+    "cogs": {
+      "sku": 79,
+      "pct_sku": 91.9,
+      "pct_rev": 94.4
+    },
+    "taxonomy": {
+      "sku": 78,
+      "pct_sku": 90.7,
+      "pct_rev": 91.4
+    },
+    "realization": {
+      "months": [],
+      "sku_prev_month": 0
+    },
+    "netting": null,
+    "account_fees": {
+      "rows": 0,
+      "note": "[ГИПОТЕЗА] сборы уровня кабинета не подключены - в pnl_account_daily нули"
+    },
+    "views": {
+      "days": 0,
+      "last": null,
+      "note": "показы не собраны (отчёт shows-sales) - воронка без верха"
+    },
+    "ads": "нет источника (реклама Маркета не подключена)",
+    "bad_cells": 0,
+    "orders_rows": 1201,
+    "orders_fake": 0,
+    "gaps": {
+      "GGT-47-3-5-80": [
+        "нет СС",
+        "нет в таксономии"
+      ],
+      "GGT-47-3-3-90": [
+        "нет в таксономии"
+      ],
+      "GGT-47-1-5-80": [
+        "нет СС",
+        "нет в таксономии"
+      ],
+      "GGT-47-2-2-80": [
+        "нет в таксономии"
+      ],
+      "GGTP-20-1": [
+        "нет СС"
+      ],
+      "GGT-35-5-1-100-180": [
+        "нет в таксономии"
+      ],
+      "GGT-20-1-1-R-110-140-70": [
+        "нет СС",
+        "нет в таксономии"
+      ],
+      "GGTP-03-1-R-500": [
+        "нет СС"
+      ],
+      "GGP-01-2-I-200-100": [
+        "нет СС"
+      ],
+      "GGT-47-3-3-80": [
+        "нет в таксономии"
+      ],
+      "GGT-03-2-4-C-90": [
+        "нет СС",
+        "нет в таксономии"
+      ]
+    }
+  },
+  "verdict": "return",
+  "blockers": [
+    "нет отчёта о реализации (штуки не сверены с УПД-аналогом)",
+    "нет отчёта по взаиморасчётам (выплаты ЛК не сверены)"
+  ],
+  "rule": "CLAUDE.md §15: цифра готова только после сверки с эталоном, трёх типов периода и отчёта о покрытии"
+}

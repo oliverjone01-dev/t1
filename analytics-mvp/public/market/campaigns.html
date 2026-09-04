@@ -1,0 +1,110 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GENGLASS · Кампании</title><style>
+:root{--bg:#0A0A0B;--surface:#161617;--raised:#1E1E20;--line:#2A2A2D;--txt:#F5F5F6;--mut:#8A8A90;--mut2:#5E5E64;--brand:#FF4438;--good:#34D399;--bad:#FF5A5F;--warn:#F2B544;--info:#6AA8FF;--r-card:16px;--r-ctl:10px;--pad:22px;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.55 "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,Inter,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1200px;margin:0 auto;padding:24px;position:relative;z-index:1}
+.aurora{position:fixed;inset:-22% 0 auto 0;height:480px;z-index:0;pointer-events:none;background:radial-gradient(60% 120% at 50% 0%, transparent 40%, rgba(255,120,40,.45) 47%, rgba(255,60,120,.4) 55%, rgba(120,90,255,.36) 63%, rgba(70,170,255,.32) 71%, transparent 80%);filter:blur(40px);opacity:.42;transform:scaleY(.7)}
+header{display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:#1E1E20;border:1px solid #34343a;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;letter-spacing:-.02em}
+h1{font-size:19px;margin:0;font-weight:680;letter-spacing:-.01em}
+.sub{color:var(--mut);font-size:12.5px}
+nav{display:flex;gap:4px;margin:20px 0 6px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tab{padding:9px 14px;border-radius:10px 10px 0 0;color:var(--mut);font-size:13.5px;text-decoration:none;border:1px solid transparent;border-bottom:none}
+.tab.on{color:var(--txt);background:var(--surface);border-color:var(--line)}
+.tab.soon{opacity:.45}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0}
+.chips{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.chip{padding:6px 13px;border-radius:999px;color:var(--mut);font-size:13px;cursor:pointer;border:0;background:transparent;font:inherit}
+.chip.on{background:var(--raised);color:var(--txt)}
+.btn{padding:7px 13px;border-radius:var(--r-ctl);border:1px solid var(--line);background:var(--surface);color:var(--txt);font:inherit;cursor:pointer;font-size:13px}
+.btn.on{border-color:var(--brand);color:#fff}
+.dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mut);font-size:12.5px}
+input[type=date],select{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color-scheme:dark}
+input[type=search]{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px;color-scheme:dark;min-width:230px}
+th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.sc{color:var(--warn);font-weight:700}
+.na{color:var(--mut)}
+.tag{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--mut);font-size:11.5px;font-weight:500}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:30px 0 13px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:var(--pad);position:relative;overflow:hidden}
+.kpi .lab{color:var(--mut);font-size:12px}.kpi .val{font-size:26px;font-weight:680;margin-top:6px;letter-spacing:-.02em}.kpi .d{font-size:12.5px;margin-top:5px}
+.up{color:var(--good)}.down{color:var(--bad)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:13px}@media(max-width:820px){.two{grid-template-columns:1fr}}
+.pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700}
+.matrix{display:grid;grid-template-columns:30px repeat(3,1fr);gap:6px}
+.mcell{border-radius:9px;padding:10px;min-height:62px;border:1px solid var(--line)}.mcell .c{font-size:18px;font-weight:680}.mcell .r{font-size:11px;opacity:.8}
+.maxis{color:var(--mut);font-size:11px;display:grid;place-items:center}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;text-align:left}
+th{color:var(--mut);font-weight:500;font-size:12px}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+tr.line-row{cursor:pointer}tr.line-row:hover{background:var(--raised)}
+tr.sku-row td{background:#121214;font-size:12.5px;color:var(--mut)}tr.sku-row .nm{color:var(--txt)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:9px;vertical-align:middle}
+.b-A{background:rgba(52,211,153,.16);color:var(--good)}.b-B{background:rgba(106,168,255,.16);color:var(--info)}.b-C{background:rgba(138,138,144,.18);color:#a8a8ad}
+.b-X{background:rgba(52,211,153,.16);color:var(--good)}.b-Y{background:rgba(242,181,68,.16);color:var(--warn)}.b-Z{background:rgba(255,90,95,.16);color:var(--bad)}
+.note{color:var(--mut);font-size:12px;margin-top:9px}
+.caret{display:inline-block;width:14px;color:var(--mut);transition:transform .15s}.open .caret{transform:rotate(90deg)}
+.funnel-row{display:grid;grid-template-columns:130px 1fr 150px;align-items:center;gap:12px;margin:8px 0}
+.funnel-bar{height:34px;border-radius:8px;background:linear-gradient(90deg,#FF4438,#b5392f);display:flex;align-items:center;padding-left:12px;color:#fff;font-weight:680;font-size:14px;min-width:46px}
+.funnel-conv{color:var(--mut);font-size:12px}
+footer{margin-top:36px;border-top:1px solid var(--line);padding-top:14px;color:var(--mut);font-size:12px}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.lnk{color:var(--mut);text-decoration:none;font-size:12px}.lnk:hover{color:var(--brand)}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:14px}
+@media(max-width:760px){
+.wrap{padding:14px}:root{--pad:16px}
+.grid{grid-template-columns:1fr 1fr}
+.kpi .val{font-size:21px}
+h1{font-size:16px}
+.tscroll table{min-width:620px}
+th,td{white-space:nowrap;padding:8px 10px}
+.funnel-row{grid-template-columns:84px 1fr 96px}
+.wgrid{grid-template-columns:1fr 1fr}
+}
+</style></head>
+<body>
+<div id="gg-cov" style="background:#141c26;border-bottom:1px solid #2a3a4a;color:#cfe8ef;font:12px/1.6 system-ui;padding:6px 18px"><div style="margin:4px 0 6px;padding:6px 10px;border:1px solid #E5B567;border-radius:8px;color:#ffd27a;font-weight:700">ПРЕДВАРИТЕЛЬНО: цифры этой страницы не сверены по §15 (вердикт RETURN). Причины: нет отчёта о реализации (штуки не сверены с УПД-аналогом); нет отчёта по взаиморасчётам (выплаты ЛК не сверены).</div>
+  <div><b style="color:#E5B567">Сверка §15: RETURN</b> · покрытие за 2026-08-05..2026-09-03, SKU 86:
+  <span style="display:inline-block;border:1px solid #34D399;color:#34D399;border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">СС 91.9% SKU / 94.4% оборота</span><span style="display:inline-block;border:1px solid #34D399;color:#34D399;border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">таксономия 90.7% / 91.4%</span><span style="display:inline-block;border:1px solid #E5B567;color:#E5B567;border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">реализация: нет отчёта</span><span style="display:inline-block;border:1px solid #E5B567;color:#E5B567;border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">выплаты ЛК: нет отчёта</span><span style="display:inline-block;border:1px solid #E5B567;color:#E5B567;border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">сборы уровня кабинета: не подключены (нули)</span><span style="display:inline-block;border:1px solid #E5B567;color:#E5B567;border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">показы: 0 дн</span><span style="display:inline-block;border:1px solid #E5B567;color:#E5B567;border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">реклама: нет источника (реклама Маркета не подключена)</span><span style="display:inline-block;border:1px solid #34D399;color:#34D399;border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">битых ячеек отчётов: 0</span><span style="display:inline-block;border:1px solid #E5B567;color:#E5B567;border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">пробелов по SKU: 11</span>
+  <details style="display:inline-block;margin-left:6px"><summary style="cursor:pointer;color:#22D3EE">три периода и кумулятив</summary><div style="margin-top:4px"><b>закрытый месяц 2026-08</b> (2026-08-01..2026-08-31)
+    <div>штуки: доставлено нетто 73 (возвраты 1) vs реализация нетто — → нет отчёта о реализации за месяц (не собран / NO_DATA)</div>
+    <div>деньги: к выплате по заказам 914 591 ₽ vs выплаты ЛК по тем же заказам — (покрыто 0/73 заказов) → нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены</div>
+    
+    <div>СС: 67/76 SKU, 90.4% оборота → без СС 9 SKU (9.6% оборота) - маржа по ним завышена</div></div><div style="margin-top:4px"><b>часть месяца 2026-08-01..15</b> (2026-08-01..2026-08-15)
+    <div>штуки: доставлено нетто 41 (возвраты 1) vs реализация нетто — → частичный месяц: отчёт о реализации помесячный - сверка только по заказам</div>
+    <div>деньги: к выплате по заказам 551 032 ₽ vs выплаты ЛК по тем же заказам — (покрыто 0/41 заказов) → нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены</div>
+    
+    <div>СС: 26/33 SKU, 80.3% оборота → без СС 7 SKU (19.7% оборота) - маржа по ним завышена</div></div><div style="margin-top:4px"><b>текущий месяц 2026-09 (по 2026-09-03)</b> (2026-09-01..2026-09-03)
+    <div>штуки: доставлено нетто 14 (возвраты 0) vs реализация нетто — → частичный месяц: отчёт о реализации помесячный - сверка только по заказам</div>
+    <div>деньги: к выплате по заказам 78 578 ₽ vs выплаты ЛК по тем же заказам — (покрыто 0/14 заказов) → нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены</div>
+    
+    <div>СС: 29/34 SKU, 87.8% оборота → без СС 5 SKU (12.2% оборота) - маржа по ним завышена</div></div><div style="margin-top:4px"><b>с начала данных</b>: к выплате 9 722 116 ₽ vs выплаты ЛК по заказам — → нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены; сборы уровня кабинета (строки без заказа): —</div></details></div></div><div class="aurora"></div><div class="wrap">
+  <header><div class="brand"><div class="logo">GG</div>
+    <div><h1>GENGLASS · аналитика Яндекс Маркет</h1><div class="sub">снимок рекламы за 30 дней</div></div></div>
+    <span class="tag">оперативный слой · снимок</span></header>
+  <nav><a class="tab" href="obzor.html">Обзор</a><a class="tab" href="tovary.html">Товары</a><a class="tab" href="voronka.html">Воронка</a><a class="tab" href="marketing.html">Маркетинг и цена</a><a class="tab on" href="campaigns.html">Кампании</a><a class="tab" href="competitors.html">Конкуренты</a><a class="tab" href="cards.html">Карточки</a><a class="tab" href="money.html">Деньги</a><a class="tab" href="assistant.html">Ассистент</a><a class="tab" href="katya.html">Вид Кати</a></nav>
+  
+  <div class="card" style="border-color:#3a3a40"><b>Фиксированный снимок 30 дней</b> (2026-08-05..2026-09-03) - период на этой странице не переключается. Интерактивный период - на страницах Обзор / Товары / Воронка / Карточки / Деньги.</div>
+  <h2>Срез периода 2026-08-05..2026-09-03</h2>
+  <div class="grid">
+    <div class="card kpi"><div class="lab">ДРР канала, %</div><div class="val num">0%</div></div>
+    <div class="card kpi"><div class="lab">Расход, ₽</div><div class="val num">0</div></div>
+    <div class="card kpi"><div class="lab">Заказов с рекламы</div><div class="val num">0</div></div>
+    <div class="card kpi"><div class="lab">CPO, ₽</div><div class="val num">0</div></div>
+    <div class="card kpi"><div class="lab">Активных</div><div class="val num">0 / 0</div></div>
+  </div>
+  <h2>Сливы бюджета · кандидаты на отключение</h2>
+  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Кампания (offer)</th><th>Линия</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody></tbody></table></div></div>
+  <div class="note">сливы: расход от 3000 ₽ при нуле заказов или ДРР от 40%. Высвобождение бюджета от отключения нулевых <b>товарных</b> кампаний: <b>0 ₽/мес</b> <span class="pill b-Y">[ГИПОТЕЗА]</span>. Это не «возврат денег», а расход, который прекратится. Допущения: спрос не переедет в органику этих SKU; атрибуция Яндекс Маркет last-click не видит ассистирующих касаний; кампании не включат обратно. Кампания-агрегатор «оплата за заказ» (0 ₽) в слив не включена - она покрывает весь каталог. Пилот: отключение двух нулевых, замер 14 дней, чекпоинт 23.06.</div>
+  <h2>Топ по расходу</h2>
+  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Кампания</th><th>Линия</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th><th class="r">ROAS</th></tr></thead><tbody></tbody></table></div></div>
+  <footer>ДРР канала - <b>[ДАННЫЕ]</b>, надёжен. ДРР по линиям - ориентир (G5). Индекс цены - снимок Яндекс Маркет. Реклама/цены не в дневной истории, поэтому страница - снимок за 30 дней, без интерактивного периода.</footer>
+</div><script>(function(){var G={"GGT-47-3-5-80":["нет СС","нет в таксономии"],"GGT-47-3-3-90":["нет в таксономии"],"GGT-47-1-5-80":["нет СС","нет в таксономии"],"GGT-47-2-2-80":["нет в таксономии"],"GGTP-20-1":["нет СС"],"GGT-35-5-1-100-180":["нет в таксономии"],"GGT-20-1-1-R-110-140-70":["нет СС","нет в таксономии"],"GGTP-03-1-R-500":["нет СС"],"GGP-01-2-I-200-100":["нет СС"],"GGT-47-3-3-80":["нет в таксономии"],"GGT-03-2-4-C-90":["нет СС","нет в таксономии"]};
+function mark(){document.querySelectorAll('td,.pv-name,.model-name,.name').forEach(function(td){if(td.dataset.ggGap)return;var t=(td.textContent||'').trim();var g=G[t];if(!g){var m=t.match(/[A-ZА-Я]{2,4}-[A-Z0-9-]{3,}/);if(m)g=G[m[0]];}if(!g)return;td.dataset.ggGap='1';var b=document.createElement('span');b.textContent='⚠ '+g.join(', ');b.title='Пробел данных по SKU (сверка §15): '+g.join(', ');b.style.cssText='margin-left:6px;font-size:10px;color:#E5B567;border:1px solid #E5B567;border-radius:5px;padding:0 5px;white-space:nowrap';td.appendChild(b);});}
+mark();setInterval(mark,1500);})();</script>
+</body></html>

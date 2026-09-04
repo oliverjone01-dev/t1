@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-04T14:45:31.339Z",
+  "generated_at": "2026-09-04T15:36:30.929Z",
   "today": "2026-09-04",
   "periods": [
     {
@@ -19,12 +19,12 @@
       },
       "money": {
         "payout_derived": 1969372,
-        "payout_matched": 0,
-        "netting_by_order": null,
+        "payout_matched": 914591,
+        "netting_by_order": 4355312,
         "orders_total": 148,
-        "orders_matched": 0,
-        "diff": null,
-        "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
+        "orders_matched": 73,
+        "diff": -3440722,
+        "status": "расхождение -3440722 ₽ по 73/148 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
         "accruals": 2261026,
         "fees": 291654,
         "predicted_share": 0,
@@ -84,12 +84,12 @@
       },
       "money": {
         "payout_derived": 1117252,
-        "payout_matched": 0,
-        "netting_by_order": null,
+        "payout_matched": 551032,
+        "netting_by_order": 3209891,
         "orders_total": 81,
-        "orders_matched": 0,
-        "diff": null,
-        "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
+        "orders_matched": 41,
+        "diff": -2658859,
+        "status": "расхождение -2658859 ₽ по 41/81 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
         "accruals": 1296275,
         "fees": 179023,
         "predicted_share": 0,
@@ -142,12 +142,12 @@
       },
       "money": {
         "payout_derived": 191297,
-        "payout_matched": 0,
-        "netting_by_order": null,
+        "payout_matched": 77920,
+        "netting_by_order": 535789,
         "orders_total": 22,
-        "orders_matched": 0,
-        "diff": null,
-        "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
+        "orders_matched": 14,
+        "diff": -457869,
+        "status": "расхождение -457869 ₽ по 14/22 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
         "accruals": 207813,
         "fees": 16516,
         "predicted_share": 0,
@@ -187,13 +187,13 @@
   ],
   "cumulative": {
     "payout_derived": 13098262,
-    "payout_matched": 0,
-    "netting_by_order": null,
+    "payout_matched": 9774516,
+    "netting_by_order": 36060973,
     "orders_total": 972,
-    "orders_matched": 0,
-    "diff": null,
-    "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
-    "netting_account": null,
+    "orders_matched": 780,
+    "diff": -26286456,
+    "status": "расхождение -26286456 ₽ по 780/972 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
+    "netting_account": 724173,
     "payments": {
       "buyer_leg_derived": 8359862,
       "payments_actual": 8402404,
@@ -259,18 +259,34 @@
       "pct_rev": 95.2
     },
     "realization": {
-      "months": [],
+      "months": [
+        "2026-02"
+      ],
       "sku_prev_month": 0
     },
-    "netting": null,
+    "netting": {
+      "rows": 14153,
+      "months": [
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+        "2026-07",
+        "2026-08",
+        "2026-09"
+      ],
+      "orders_with_number": 1201
+    },
     "account_fees": {
-      "rows": 0,
-      "note": "[ГИПОТЕЗА] сборы уровня кабинета не подключены - в pnl_account_daily нули"
+      "rows": 43,
+      "note": "строки взаиморасчётов без номера заказа -> pnl_account_daily"
     },
     "views": {
-      "days": 0,
-      "last": null,
-      "note": "показы не собраны (отчёт shows-sales) - воронка без верха"
+      "days": 1,
+      "last": "2026-09-03",
+      "note": "показы per-SKU из отчёта shows-sales"
     },
     "ads": "нет источника (реклама Маркета не подключена)",
     "bad_cells": 0,
@@ -360,8 +376,7 @@
   },
   "verdict": "return",
   "blockers": [
-    "нет отчёта о реализации (штуки не сверены с УПД-аналогом)",
-    "нет отчёта по взаиморасчётам (выплаты ЛК не сверены)",
+    "деньги закрытого месяца расходятся с выплатами ЛК на -3440722 ₽",
     "кампания 21985942 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности",
     "кампания 23960471 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности",
     "кампания 40175277 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности"

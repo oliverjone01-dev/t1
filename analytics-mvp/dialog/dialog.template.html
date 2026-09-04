@@ -1428,8 +1428,8 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
     </div>
 
     <div class="sect"><h5>Разбор ИИ</h5>
-      <input id="aiProxy" autocomplete="off" placeholder="URL прокси-разбора (https://…workers.dev)" style="width:100%;box-sizing:border-box" value="${esc(aiProxyGet())}" oninput="aiProxySet(this.value)">
-      <div class="hint">Ключ Anthropic живёт в прокси (Cloudflare Worker), НЕ в браузере. Сюда - только адрес прокси (не секрет). Один раз вставил - дальше просто «Получить разбор».</div>
+      <input type="password" id="aiKey" autocomplete="off" placeholder="Ключ Anthropic (sk-ant-…) - вставить один раз" style="width:100%;box-sizing:border-box" value="${esc(aiKeyGet())}" oninput="aiKeySet(this.value)">
+      <div class="hint">Ключ вставляется один раз и хранится только в этом браузере (localStorage), дальше просто «Получить разбор». Не в коде и не в гите.</div>
       <button class="abtn" style="margin-top:10px" onclick="aiRun()">Получить разбор</button>
       <div class="aimsg" id="aiInMsg"></div>
       <div id="aiAnsOut"></div>
@@ -1441,31 +1441,32 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
 // Одно окно на весь цикл: распознаём вставленное и сами решаем, что с ним делать.
 // Настройка (есть ключ «фильтр» или список сделок без вердиктов) - разворачиваем дашборд.
 // Разбор ИИ (вердикты по сделкам / карточка менеджера / просто текст) - показываем ниже.
-// Адрес прокси (Cloudflare Worker), который держит ключ Anthropic у себя. В браузере хранится
-// только URL (не секрет) - в localStorage. Кнопка «Получить разбор» шлёт выборку СЮДА, без ключа;
-// прокси добавляет ключ и передаёт в Anthropic. Код воркера - analytics-mvp/dialog/ai-proxy-worker.js.
-function aiProxyGet(){ try{ return localStorage.getItem('dlg_ai_proxy')||''; }catch(e){ return ''; } }
-function aiProxySet(v){ try{ localStorage.setItem('dlg_ai_proxy',(v||'').trim()); }catch(e){} }
-// Кнопка «Получить разбор»: собирает выборку (aiScope) + уточняющий вопрос, шлёт на прокси
-// (Sonnet 5) и рендерит ответ тем же renderAns, что и раньше. Ключа в браузере нет.
+// Ключ Anthropic для прямого вызова из браузера. Хранится ТОЛЬКО в localStorage этого браузера
+// (не в коде, не в гите). Вставляется один раз - дальше кнопка работает сама.
+function aiKeyGet(){ try{ return localStorage.getItem('dlg_anthropic_key')||''; }catch(e){ return ''; } }
+function aiKeySet(v){ try{ localStorage.setItem('dlg_anthropic_key',(v||'').trim()); }catch(e){} }
+// Кнопка «Получить разбор»: собирает выборку (aiScope) + уточняющий вопрос, шлёт напрямую в
+// Anthropic (Sonnet 5, браузерный доступ) и рендерит ответ тем же renderAns, что и раньше.
 async function aiRun(){
   const msg=document.getElementById('aiInMsg'), out=document.getElementById('aiAnsOut');
-  const url=aiProxyGet();
-  if(!url){ msg.innerHTML='Вставьте URL прокси-разбора в поле выше (адрес Cloudflare Worker) - через него идёт запрос.'; const k=document.getElementById('aiProxy'); if(k) k.focus(); return; }
+  const key=aiKeyGet();
+  if(!key){ msg.innerHTML='Вставьте ключ Anthropic (sk-ant-…) в поле выше - один раз, дальше не нужно.'; const k=document.getElementById('aiKey'); if(k) k.focus(); return; }
   const scope=aiScope(); const n=(scope.сделки||[]).length;
   if(!n){ msg.innerHTML='В выборке нет сделок - задайте фильтр (даты, менеджеры, стадии или клики по дашборду).'; return; }
   msg.innerHTML='Отправляю '+n+' '+plu(n,'сделку','сделки','сделок')+' в Anthropic (Sonnet 5)… до минуты.'; out.innerHTML='';
   const sys=scope.запрос+' Верни ТОЛЬКО валидный JSON строго по полю формат_вывода, без markdown-обёртки.';
   const body={ model:'claude-sonnet-5', max_tokens:8000, system:[{type:'text',text:sys}], messages:[{role:'user',content:JSON.stringify(scope)}] };
   try{
-    const res=await fetch(url,{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body) });
+    const res=await fetch('https://api.anthropic.com/v1/messages',{ method:'POST',
+      headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify(body) });
     const j=await res.json();
-    if(j.error){ msg.innerHTML='Ошибка: '+esc(j.error.message||j.error.type||'неизвестно'); return; }
+    if(j.error){ msg.innerHTML='Ошибка API: '+esc(j.error.message||j.error.type||'неизвестно'); return; }
     const txt=(j.content||[]).map(c=>c.text||'').join('').trim();
     if(!txt){ msg.innerHTML='Пустой ответ модели.'; return; }
     S.ansText=txt; renderAns(txt); aiSave();
     const u=j.usage||{}; msg.innerHTML='Готово · '+n+' '+plu(n,'сделка','сделки','сделок')+(u.input_tokens?(' · токенов '+u.input_tokens+'→'+(u.output_tokens||0)):'');
-  }catch(e){ msg.innerHTML='Сбой запроса: '+esc(e&&e.message||String(e))+'. Проверьте URL прокси и сеть.'; }
+  }catch(e){ msg.innerHTML='Сбой запроса: '+esc(e&&e.message||String(e))+'. Проверьте ключ и сеть.'; }
 }
 function aiIsConfig(obj){ if(!obj) return false; // не-JSON (обычный текст) считаем разбором
   if(obj.фильтр||obj.filter) return true; // наш конфиг всегда несёт блок «фильтр»

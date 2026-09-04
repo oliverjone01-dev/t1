@@ -881,7 +881,8 @@ function renderAccountFees(cur){
 }
 // === блок «План на месяц и выполнение» (независим от верхнего фильтра, свой выбор месяца) ===
 function planFmtMon(ym){var n=['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];return n[+ym.slice(5,7)]+' '+ym.slice(0,4);}
-function planMonthList(){var s={};for(var i=0;i<AN_ACCT.length;i++)s[AN_ACCT[i][0].slice(0,7)]=1;for(var k in AN_PLAN)if(/^[0-9]{4}-[0-9]{2}$/.test(k))s[k]=1;return Object.keys(s).sort();}
+function planCurMon(){return AN_MAXD?String(AN_MAXD).slice(0,7):new Date().toISOString().slice(0,7);} // текущий месяц по данным
+function planMonthList(){var cm=planCurMon();var s={};for(var i=0;i<AN_ACCT.length;i++)s[AN_ACCT[i][0].slice(0,7)]=1;for(var k in AN_PLAN)if(/^[0-9]{4}-[0-9]{2}$/.test(k))s[k]=1;return Object.keys(s).filter(function(m){return m>=cm;}).sort();} // только текущий и будущие месяцы
 // Факт за месяц (те же формулы, что ИТОГО таблицы): реклама (финансовая), рентабельность и пр.
 // Итоги за период по ТОЙ ЖЕ логике, что ИТОГО таблицы по SKU (renderSkuAnalytics): К выплате
 // после разнесённой рекламы, база АДМ/налогов amtS (только по SKU с реализовано>0 + сборы
@@ -946,7 +947,7 @@ var planInited=false;
 function initPlan(){
   if(planInited)return;var sel=document.getElementById('plan-month');if(!sel)return;var ms=planMonthList();if(!ms.length)return;planInited=true;
   sel.innerHTML=ms.map(function(m){return '<option value="'+m+'">'+planFmtMon(m)+'</option>';}).join('');
-  var def=ms[ms.length-1];sel.value=def;sel.onchange=function(){renderPlan(sel.value);};renderPlan(def);
+  var cm=planCurMon();var def=(ms.indexOf(cm)>=0)?cm:ms[0];sel.value=def;sel.onchange=function(){renderPlan(sel.value);};renderPlan(def); // по умолчанию - текущий месяц
 }
 function render(cur,cmp){
   // Фаза 2b: P&L канала за выбранный период из дневного ряда. Фолбэк на снимок 30 дн.

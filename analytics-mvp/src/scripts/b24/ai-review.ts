@@ -7,16 +7,28 @@
 //
 // Экономия: разбираются только диалоги с новой активностью (кэш по ключу lastTs), не больше
 // AI_LIMIT за прогон, модель по Protocol 11 - sonnet для содержательного анализа.
+//
+// Batch API (AI_BATCH=1, по умолчанию): разбор сделок уходит одним пакетом в
+// https://api.anthropic.com/v1/messages/batches - это -50% к стоимости токенов. Качество не
+// меняется: та же модель, тот же system, тот же prompt, что и в синхронном режиме (buildBody
+// строит тело запроса в одном месте для обоих путей). Пакет ждём не дольше AI_BATCH_WAIT_MIN
+// минут; всё, что не успело/сломалось в пакете, добираем синхронно - прогон всегда завершается
+// с полными данными. AI_BATCH=0 полностью возвращает старый синхронный режим.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 
 const KEY = process.env.ANTHROPIC_API_KEY || "";
 const MODEL = process.env.AI_MODEL || "claude-sonnet-5";
 const LIMIT = Number(process.env.AI_LIMIT || 120);
 const CONC = 4;
+const USE_BATCH = (process.env.AI_BATCH ?? "1") !== "0";
+const BATCH_WAIT_MIN = Number(process.env.AI_BATCH_WAIT_MIN || 30);
 const DLG = "dialog/data/dialog.json";
 const OUT = "dialog/data/ai-review.json";
 
 if (!KEY) { console.log("ANTHROPIC_API_KEY не задан - ИИ-слой пропущен (это не ошибка)"); process.exit(0); }
+
+const API = "https://api.anthropic.com/v1";
+const HEADERS = { "content-type": "application/json", "x-api-key": KEY, "anthropic-version": "2023-06-01" };
 
 const SYSTEM = `Ты аудитор отдела продаж мебельного производства (стекло, зеркала, металл, изделия на заказ).
 Оцениваешь переписку менеджера с клиентом по регламенту сильного продавца:
@@ -57,25 +69,37 @@ const MGR_SCHEMA = `{
 }`;
 
 type Ev = { ts: number; dt: string; dealId: string; leadId: string; mgr: string; type: string; dir: string; who: string; body: string; dealT: string; leadT: string; src?: string };
+type Item = { k: string; cid: string; mgr: string; last: number; prompt: string; srcs: Record<number, string> };
+
+// Тело запроса к Messages API. Одна точка сборки на оба режима (sync + batch), чтобы модель,
+// system и prompt были байт-в-байт одинаковыми и качество разбора не зависело от способа отправки.
+function buildBody(prompt: string, system: string) {
+  return {
+    model: MODEL, max_tokens: 900,
+    system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+    messages: [{ role: "user", content: prompt }],
+  };
+}
+
+// Достаём JSON-вердикт из ответа модели (content[].text -> первый {...} -> parse).
+function parseReview(message: any): any {
+  const txt = (message?.content || []).map((c: any) => c.text || "").join("").trim();
+  const m = txt.match(/\{[\s\S]*\}/);
+  try { return m ? JSON.parse(m[0]) : null; } catch { return null; }
+}
 
 async function callAI(prompt: string, system: string = SYSTEM): Promise<any> {
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-api-key": KEY, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({
-          model: MODEL, max_tokens: 900, system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-          messages: [{ role: "user", content: prompt }],
-        }),
+      const res = await fetch(`${API}/messages`, {
+        method: "POST", headers: HEADERS,
+        body: JSON.stringify(buildBody(prompt, system)),
         signal: AbortSignal.timeout(90000),
       });
       if (res.status === 429 || res.status >= 500) { await new Promise((r) => setTimeout(r, 2000 * (attempt + 1))); continue; }
       const j: any = await res.json();
       if (j.error) { console.log("  ошибка API:", j.error.message || j.error.type); return null; }
-      const txt = (j.content || []).map((c: any) => c.text || "").join("").trim();
-      const m = txt.match(/\{[\s\S]*\}/);
-      return m ? JSON.parse(m[0]) : null;
+      return parseReview(j);
     } catch (e: any) { if (attempt === 3) { console.log("  сбой:", e.message); return null; } await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); }
   }
   return null;
@@ -95,6 +119,70 @@ function transcript(evs: Ev[]): { text: string; srcs: Record<number, string> } {
   return { text: lines.join("\n").slice(0, 12000), srcs };
 }
 
+// Записываем разбор сделки в reviews с переводом msgTags.i -> src сообщения.
+function applyReview(reviews: Record<string, any>, it: Item, r: any) {
+  const msgTags = Array.isArray(r.msgTags)
+    ? r.msgTags.map((t: any) => ({ src: it.srcs[Number(t.i)] || "", tone: t.tone, t: t.t, quote: t.quote })).filter((t: any) => t.src)
+    : [];
+  reviews[it.k] = { ...r, msgTags, mgr: it.mgr, lastTs: it.last, at: new Date().toISOString(), model: MODEL };
+}
+
+// --- Batch API: создать пакет, дождаться, забрать результаты ------------------------
+async function batchCreate(requests: any[]): Promise<any | null> {
+  try {
+    const res = await fetch(`${API}/messages/batches`, {
+      method: "POST", headers: HEADERS, body: JSON.stringify({ requests }), signal: AbortSignal.timeout(120000),
+    });
+    const j: any = await res.json();
+    if (j.error || !j.id) { console.log("  batch не создан:", j.error?.message || j.error?.type || res.status); return null; }
+    return j;
+  } catch (e: any) { console.log("  batch не создан:", e.message); return null; }
+}
+
+async function batchGet(id: string): Promise<any | null> {
+  try {
+    const res = await fetch(`${API}/messages/batches/${id}`, { headers: HEADERS, signal: AbortSignal.timeout(60000) });
+    const j: any = await res.json();
+    return j.error ? null : j;
+  } catch { return null; }
+}
+
+async function batchCancel(id: string): Promise<void> {
+  try { await fetch(`${API}/messages/batches/${id}/cancel`, { method: "POST", headers: HEADERS, signal: AbortSignal.timeout(60000) }); } catch { /* best-effort */ }
+}
+
+// Результаты приходят в формате JSONL по results_url; порядок произвольный - ключуем по custom_id.
+async function batchResults(url: string): Promise<Record<string, any>> {
+  const out: Record<string, any> = {};
+  try {
+    const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(120000) });
+    const text = await res.text();
+    for (const line of text.split("\n")) {
+      const s = line.trim(); if (!s) continue;
+      try {
+        const row: any = JSON.parse(s);
+        if (row?.result?.type === "succeeded") { const r = parseReview(row.result.message); if (r) out[row.custom_id] = r; }
+      } catch { /* пропускаем битую строку */ }
+    }
+  } catch (e: any) { console.log("  результаты пакета не забраны:", e.message); }
+  return out;
+}
+
+// Синхронный добор оставшихся сделок пулом из CONC воркеров.
+async function reviewSync(items: Item[], reviews: Record<string, any>): Promise<{ done: number; failed: number }> {
+  let done = 0, failed = 0, qi = 0;
+  await Promise.all(Array.from({ length: CONC }, async () => {
+    for (;;) {
+      const idx = qi++; if (idx >= items.length) break;
+      const it = items[idx]!;
+      const r = await callAI(it.prompt);
+      if (r) { applyReview(reviews, it, r); done++; } else failed++;
+      if ((done + failed) % 20 === 0) console.log(`  синхронно разобрано ${done}, сбоев ${failed} из ${items.length}`);
+    }
+  }));
+  return { done, failed };
+}
+
 async function main() {
   const dlg = JSON.parse(readFileSync(DLG, "utf8"));
   const events: Ev[] = dlg.events || [];
@@ -108,35 +196,67 @@ async function main() {
   for (const e of events) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= []).push(e);
 
   // разбираем только диалоги с новой активностью и с реальной перепиской
-  const queue = Object.entries(byKey)
+  const raw = Object.entries(byKey)
     .map(([k, evs]) => { evs.sort((a, b) => a.ts - b.ts); return { k, evs, last: evs[evs.length - 1]!.ts }; })
     .filter((x) => x.evs.filter((e) => e.type.startsWith("Сообщение") || e.type === "Письмо").length >= 2)
     .filter((x) => !reviews[x.k] || reviews[x.k].lastTs !== x.last)
     .sort((a, b) => b.last - a.last)
     .slice(0, LIMIT);
 
-  console.log(`ИИ-разбор: в очереди ${queue.length} диалогов (модель ${MODEL}, лимит ${LIMIT})`);
-  let done = 0, failed = 0, qi = 0;
-  await Promise.all(Array.from({ length: CONC }, async () => {
-    for (;;) {
-      const idx = qi++; if (idx >= queue.length) break;
-      const { k, evs, last } = queue[idx]!;
-      const head = evs[evs.length - 1]!;
-      mgrOf[k] = head.mgr || "";
-      const tr = transcript(evs);
-      const prompt = `Сделка: ${head.dealT || head.leadT || k}\nМенеджер: ${head.mgr}\n\nХронология (строки пронумерованы):\n${tr.text}\n\nВерни JSON строго такой формы:\n${SCHEMA}`;
-      const r = await callAI(prompt);
-      if (r) {
-        // перевод msgTags.i -> src сообщения
-        const msgTags = Array.isArray(r.msgTags) ? r.msgTags.map((t: any) => ({ src: tr.srcs[Number(t.i)] || "", tone: t.tone, t: t.t, quote: t.quote })).filter((t: any) => t.src) : [];
-        reviews[k] = { ...r, msgTags, mgr: head.mgr, lastTs: last, at: new Date().toISOString(), model: MODEL };
-        done++;
-      } else failed++;
-      if ((done + failed) % 20 === 0) console.log(`  разобрано ${done}, сбоев ${failed} из ${queue.length}`);
+  // Готовим prompt один раз на сделку: и пакет, и синхронный добор берут ровно этот текст.
+  const items: Item[] = raw.map((x, i) => {
+    const head = x.evs[x.evs.length - 1]!;
+    mgrOf[x.k] = head.mgr || "";
+    const tr = transcript(x.evs);
+    const prompt = `Сделка: ${head.dealT || head.leadT || x.k}\nМенеджер: ${head.mgr}\n\nХронология (строки пронумерованы):\n${tr.text}\n\nВерни JSON строго такой формы:\n${SCHEMA}`;
+    return { k: x.k, cid: "q" + i, mgr: head.mgr || "", last: x.last, prompt, srcs: tr.srcs };
+  });
+
+  console.log(`ИИ-разбор: в очереди ${items.length} диалогов (модель ${MODEL}, лимит ${LIMIT}, режим ${USE_BATCH ? "batch" : "sync"})`);
+
+  let done = 0, failed = 0;
+
+  if (USE_BATCH && items.length) {
+    const byCid: Record<string, Item> = {};
+    for (const it of items) byCid[it.cid] = it;
+    const requests = items.map((it) => ({ custom_id: it.cid, params: buildBody(it.prompt, SYSTEM) }));
+
+    const batch = await batchCreate(requests);
+    if (batch) {
+      const id = batch.id;
+      const deadline = Date.now() + BATCH_WAIT_MIN * 60_000;
+      let st = batch;
+      console.log(`  batch ${id} создан, жду до ${BATCH_WAIT_MIN} мин`);
+      while (st && st.processing_status !== "ended" && Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 30_000));
+        st = (await batchGet(id)) || st;
+        const c = st.request_counts || {};
+        console.log(`  batch ${st.processing_status}: готово ${c.succeeded || 0}, в работе ${c.processing || 0}, ошибок ${c.errored || 0}`);
+      }
+      if (st && st.processing_status !== "ended") { console.log("  окно ожидания истекло - отменяю пакет, добор синхронно"); await batchCancel(id); st = (await batchGet(id)) || st; }
+
+      const url = st?.results_url || `${API}/messages/batches/${id}/results`;
+      const got = await batchResults(url);
+      for (const [cid, r] of Object.entries(got)) { const it = byCid[cid]; if (it) { applyReview(reviews, it, r); done++; } }
+      console.log(`  из пакета получено разборов: ${done}`);
+
+      const remaining = items.filter((it) => !got[it.cid]);
+      if (remaining.length) {
+        console.log(`  добор синхронно: ${remaining.length}`);
+        const s = await reviewSync(remaining, reviews);
+        done += s.done; failed += s.failed;
+      }
+    } else {
+      console.log("  batch недоступен - весь разбор синхронно");
+      const s = await reviewSync(items, reviews); done = s.done; failed = s.failed;
     }
-  }));
+  } else if (items.length) {
+    const s = await reviewSync(items, reviews); done = s.done; failed = s.failed;
+  }
 
   // --- Разбор на уровне менеджера: сводим итоги ИИ по всем его сделкам --------------
+  // Объём небольшой (по одному запросу на менеджера) и зависит от результатов сделок,
+  // поэтому идёт синхронно после основного пакета.
   const byMgr: Record<string, any[]> = {};
   for (const [k, r] of Object.entries(reviews)) { const mg = (r as any).mgr || mgrOf[k]; if (mg) (byMgr[mg] ||= []).push(r); }
   const managers: Record<string, any> = {};

@@ -174,6 +174,7 @@ try{
   // боевой калибровкой (K1: с 04.09 файл разметки Ивана живёт в данных)
   const kcal=K.calibration&&K.calibration.byRule?K.calibration.byRule:null;
   const kHidden=kcal?Object.keys(kcal).filter(r=>kcal[r].n&&100*kcal[r].ok/kcal[r].n<90):[];
+  const payRaw=Object.entries(K.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+v.viol,0);
   const paySum=Object.entries(K.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+v.viol-kHidden.reduce((h,r)=>h+((v.byRule||{})[r]||0),0),0);
   const tblSum=[...d.querySelectorAll('#kur-table tr')].slice(1).filter(tr=>roster.some(m=>kSame(tr.querySelector('td')?.textContent.trim()||'',m))).reduce((s2,tr)=>{const b=tr.querySelectorAll('td')[3]?.querySelector('b');return s2+(b?+b.textContent:0);},0);
   ck('куратор Б2(а): сумма улик таблицы = сумме payload',tblSum===paySum,tblSum+' vs '+paySum);
@@ -190,7 +191,8 @@ try{
     const cd=cdom.window.document;
     const cK=cdom.window.eval('DATA').kurator;
     const hidR1=Object.entries(cK.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+((v.byRule||{}).R1||0),0);
-    const expTot=paySum-hidR1;
+    // K4-сборка живёт под ТЕСТОВОЙ калибровкой (только R1<90) - сравнивать с сырой суммой
+    const expTot=payRaw-hidR1;
     const cTbl=[...cd.querySelectorAll('#kur-table tr')].slice(1).filter(tr=>roster.some(m=>kSame(tr.querySelector('td')?.textContent.trim()||'',m))).reduce((s2,tr)=>{const b=tr.querySelectorAll('td')[3]?.querySelector('b');return s2+(b?+b.textContent:0);},0);
     ck('куратор K4: при калибровке R1<90% таблица = payload минус скрытые',cTbl===expTot,cTbl+' vs '+expTot+' (спрятано R1: '+hidR1+')');
     ck('куратор K4: бейдж пересчитан по отфильтрованным',(cd.getElementById('kur-total')?.textContent||'').includes(String(expTot)));

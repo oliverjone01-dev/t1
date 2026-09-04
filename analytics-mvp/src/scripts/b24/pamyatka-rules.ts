@@ -25,7 +25,7 @@ const K_ALT = /(альтернатив|вариант дешевле|можем 
 const K_LPRQ = /(кто принимает решение|кто подписывает|кто ещё будет смотреть|кто еще будет смотреть|кто согласов)/i;
 const K_TERMQ = /(к какому числу|к какому сроку|в какие сроки|какие сроки у вас|сколько времени у вас|когда нужно готовое|дата объекта|когда планируете)/i;
 // не-речь клиента: записи звонков, сервисные и ботовые сообщения, письма-треды
-const K_NONMSG = /^(звонок|тема:|\/start|не удаляйте это сообщение)/i;
+const K_NONMSG = /^(звонок|тема:|\/start|не удаляйте это сообщение|чат открытой линии)/i;
 const K_HELLO = /здравствуйте|добрый день|доброе утро|добрый вечер|приветству|доброго дня/i;
 
 export const KURATOR_RULES: Record<string, string> = {
@@ -102,10 +102,14 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
         const s = st(author);
         s.fr++; if (wm <= 15) s.frOk++;
         else V.push({ author, v: { r: "R1", q: "Клиент написал " + kDT(fin) + ", ответ ушёл через " + (wm >= 60 ? Math.floor(wm / 60) + " ч " + (wm % 60) + " мин" : wm + " мин") + " рабочего времени", d: kDT(fout) } });
-        // R10 (памятка §3, детектор T02 академии): первый ответ НОВОМУ клиенту без приветствия.
-        // Продолжение старой переписки (история до окна) приветствия не требует
-        if (newDialog && !K_HELLO.test(String(fout.body || "")))
-          V.push({ author, v: { r: "R10", q: "Первый ответ новому клиенту без приветствия: «" + clip(String(fout.body || "").trim()).slice(0, 110) + "»", d: kDT(fout) } });
+        // R10 (памятка §3, детектор T02 академии): в НОВОМ диалоге никто не поздоровался
+        // ни в одном исходящем от начала окна до первого ответа ВКЛЮЧИТЕЛЬНО. Доминирующий
+        // поток - менеджер здоровается ПЕРВЫМ, до реплики клиента (дельта-аудит ФЕНИКСА:
+        // проверка одного fout давала точность 16%). Маркеры и служебные строки - не речь.
+        const greeted = win.some((x: any) => x.dir === "исходящее" && +x.ts <= +fout.ts && isRealMsg(x) && !K_ATTACH.test(String(x.body || "").trim()) && K_HELLO.test(String(x.body || "")));
+        const foutBody = String(fout.body || "").trim();
+        if (newDialog && !greeted && !K_ATTACH.test(foutBody)) { if (process.env.R10DBG) console.log("R10DBG :: " + author + " :: " + String(d?.title || k).slice(0,45) + " :: " + clip(foutBody).slice(0, 130));
+          V.push({ author, v: { r: "R10", q: "Первый ответ новому клиенту без приветствия: «" + clip(foutBody).slice(0, 110) + "»", d: kDT(fout) } }); }
       } else { firstLine.fr++; if (wm <= 15) firstLine.frOk++; flAuthors.add(String(fout.who || "?").trim()); }
     }
     const seenAttachMin = new Set<string>();

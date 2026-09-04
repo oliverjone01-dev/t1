@@ -92,7 +92,12 @@ export async function adsSnapshot(dateFrom: string, dateTo: string): Promise<any
   const objectsByCamp: Record<string, string[]> = {};
   for (const a of top10) objectsByCamp[a.id] = await perf.campaignObjects(a.id);
 
-  return { dateFrom, dateTo, generated_at: new Date().toISOString(), ...aggregateAds(list, camps.length, objectsByCamp) };
+  // Полная мета ВСЕХ кампаний (не только топ/сливы): id -> инструмент/статус/место/линия/оффер.
+  // Дашборд агрегирует дневной ряд по любому периоду, куда попадают и хвостовые/закрытые кампании,
+  // которых нет в top_spend/burners - без этой карты у них пустели «Инструмент» и статус.
+  const camp_meta: Record<string, { off: string; instr: string; place: string; status: string; line: string }> = {};
+  camps.forEach((c) => { camp_meta[c.id] = { off: c.title, instr: instrOf(c.advObjectType, c.paymentType), place: plOf(c.placement), status: statusOf(c.state), line: adLineOf(c.title) }; });
+  return { dateFrom, dateTo, generated_at: new Date().toISOString(), camp_meta, ...aggregateAds(list, camps.length, objectsByCamp) };
 }
 
 // Чистая агрегация снимка рекламы (тестируется без сети): totals, сливы, top_spend, по линиям.

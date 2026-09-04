@@ -271,6 +271,13 @@ jobs:
           # Перетягивает текущий + предыдущий месяц (доначисления/поздние возвраты). Без кредов - пропуск.
           npm run pnl:realization || echo "::warning::месячная реализация не обновлена"
 
+      - name: План маркетинга из Google-таблицы (CSV по ссылке)
+        run: |
+          set -euo pipefail
+          # data/plan_monthly.json из Google-таблицы плана (CSV по ссылке, без Google-авторизации).
+          # Нужна доступность таблицы «по ссылке (просмотр)». Недоступна/не CSV - файл не трогаем.
+          npm run plan:fetch || echo "::warning::план из Google-таблицы не обновлён"
+
       - name: "Каталожный маппинг SKU -> артикул (offer_id)"
         run: |
           set -euo pipefail

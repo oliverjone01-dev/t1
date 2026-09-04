@@ -1566,16 +1566,20 @@ function planMonthList(){var s={};for(var i=0;i<AN_ACCT.length;i++)s[AN_ACCT[i][
 // кабинета), доставка от покупателя - отдельно (в расчёт НЕ входит). Один источник правды для
 // плана, водопада и таблицы - одна «Чистая прибыль» на странице.
 function periodTotals(from,to){
-  var covM=coveredMonths(from,to);var rev=0,amt=0,amtS=0,cc=0,realized=0,gadv=0;
+  // amtReal = «К выплате» для прибыли: у позиций с реализовано=0 берём ТОЛЬКО отрицательное
+  // (возвраты/расходы), а положительные «висящие» заказы (начислены, но ещё не выкуплены -
+  // типично для последних дней открытого месяца) в прибыль НЕ считаем, иначе чистая/рентаб
+  // раздуваются (АДМ/налоги-то берутся только с реализованных). Для закрытых месяцев amtReal=amt.
+  var covM=coveredMonths(from,to);var rev=0,amt=0,amtReal=0,amtS=0,cc=0,realized=0,gadv=0;
   for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var ru=realUnits(sk,covM,from,to);
     var adv=anSum(AN_ADSSKU[sk],from,to,1)[0]||0;var amtNet=(fi[6]||0)-adv; // К выплате после разнесённой рекламы
-    rev+=sa[0]||0;realized+=ru;amt+=amtNet;if(ru>0)amtS+=amtNet;cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;}
+    rev+=sa[0]||0;realized+=ru;amt+=amtNet;amtReal+=(ru>0?amtNet:Math.min(0,amtNet));if(ru>0)amtS+=amtNet;cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;}
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;aB.adv+=r[1];aB.fines+=r[2];aB.realfbs+=r[3];aB.badge+=r[4];aB.delivery+=r[5];aB.other+=r[6];}
   var aDel=aB.realfbs,aOth=(aB.adv+gadv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // доставка от покупателя исключена
-  amt+=at;amtS+=at; // сборы кабинета - в базе АДМ/налогов
-  var net=(amt-cc)-0.45*amtS,rent=(amt>0)?net/amt*100:null; // рентаб только при положительной базе «К выплате»
-  return {ad:-aB.adv,rev:rev,realized:realized,amt:amt,amtS:amtS,cc:cc,delivery:aB.delivery,net:net,rent:rent};
+  amt+=at;amtReal+=at;amtS+=at; // сборы кабинета - в базе АДМ/налогов
+  var net=(amtReal-cc)-0.45*amtS,rent=(amtReal>0)?net/amtReal*100:null; // прибыль/рентаб - на реализованной базе (без висящих заказов)
+  return {ad:-aB.adv,rev:rev,realized:realized,amt:amt,amtReal:amtReal,amtS:amtS,cc:cc,delivery:aB.delivery,net:net,rent:rent};
 }
 function monthTotals(ym){
   var yy=+ym.slice(0,4),mm=+ym.slice(5,7),from=ym+'-01',to=ym+'-'+String(new Date(Date.UTC(yy,mm,0)).getUTCDate()).padStart(2,'0');

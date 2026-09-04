@@ -1,0 +1,537 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GENGROUP · Свод по менеджерам</title>
+<style>
+/* Дизайн-язык по мотивам кабинета Ozon Seller [ГИПОТЕЗА: реконструкция по публичным
+   материалам Ozon Design - светлые карточки, синий акцент, KPI-плитки с трендами,
+   фирменные "?"-подсказки; живой кабинет за логином, прямой скан недоступен]. */
+:root{
+  --bg:#f2f5f8;--card:#ffffff;--line:#e6eaef;--line2:#d5dbe3;
+  --ink:#001a34;--ink2:#4d5a6a;--ink3:#8a97a6;
+  --blue:#005bff;--blue-soft:#e7efff;--magenta:#f91155;
+  --ok:#10a44b;--ok-soft:#e3f6ea;--warn:#b57e00;--warn-soft:#fff3d6;--bad:#e00045;--bad-soft:#ffe8ee;
+  --r:16px;--r-sm:10px;
+  --shadow:0 1px 2px rgba(0,26,52,.06),0 4px 16px rgba(0,26,52,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+.top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:10px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.brand b{font-size:15px;font-weight:700}
+.brand span{display:block;font-size:11.5px;color:var(--ink3)}
+.top .sp{flex:1}
+.src{font-size:11.5px;color:var(--ink3);text-align:right;line-height:1.4}
+.src b{color:var(--ink2)}
+.wrap{max-width:1440px;margin:0 auto;padding:20px 24px 80px}
+h1{font-size:24px;font-weight:800;letter-spacing:-.01em;margin:6px 0 2px}
+.sub{color:var(--ink2);font-size:13px;margin-bottom:16px}
+/* бейджи происхождения цифры */
+.tagD,.tagC,.tagH{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px;vertical-align:middle;margin-left:6px;letter-spacing:.02em}
+.tagD{background:var(--ok-soft);color:var(--ok)}       /* ДАННЫЕ: цифра из снимка как есть */
+.tagC{background:var(--blue-soft);color:var(--blue)}   /* РАСЧЁТ: арифметика над данными, формула в подсказке */
+.tagH{background:var(--warn-soft);color:var(--warn)}   /* ГИПОТЕЗА: допущение, помечено прямо */
+/* фирменная "?"-подсказка (как в кабинете Ozon): наводишь - объяснение простыми словами */
+.q{display:inline-flex;width:16px;height:16px;border-radius:50%;background:#eef2f6;border:1px solid var(--line2);color:var(--ink3);font-size:10px;font-weight:700;align-items:center;justify-content:center;margin-left:6px;cursor:help;vertical-align:-2px}
+.q:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+/* KPI-плитки */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+@media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px}
+.kpi .l{font-size:12px;color:var(--ink2);font-weight:600;display:flex;align-items:center}
+.kpi .v{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-top:6px;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:14px;color:var(--ink3);font-weight:600}
+.kpi .d{font-size:12px;color:var(--ink3);margin-top:4px}
+.kpi .d b{color:var(--ink2)}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:8px}
+.chip.up{background:var(--ok-soft);color:var(--ok)}
+.chip.dn{background:var(--bad-soft);color:var(--bad)}
+.chip.mid{background:var(--warn-soft);color:var(--warn)}
+/* бар фильтра периода (как в РОП-дашборде) */
+.pbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px 14px;margin-bottom:16px;font-size:12.5px}
+.pbar .lbl{color:var(--ink3);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.pseg{display:inline-flex;background:#eef2f6;border-radius:9px;padding:3px;gap:2px}
+.pseg button{border:0;background:transparent;padding:5px 12px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer}
+.pseg button.on{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(0,26,52,.12)}
+.pbar input[type=date]{border:1px solid var(--line2);border-radius:8px;padding:5px 8px;font:inherit;font-size:12.5px;color:var(--ink)}
+.pbar .ok{border:0;background:var(--blue);color:#fff;font-weight:800;font-size:12.5px;border-radius:8px;padding:6px 14px;cursor:pointer}
+.pbar .pnote{color:var(--ink3);flex-basis:100%;font-size:11.5px}
+/* карточки-секции */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:800;display:flex;align-items:center;flex-wrap:wrap}
+.card .hint{font-size:12px;color:var(--ink3);margin:2px 0 12px}
+/* таблица */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;font-weight:700;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+th.r,td.r{text-align:right}
+th.sorted{color:var(--blue)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tr.mrow{cursor:pointer}
+tr.mrow:hover td{background:#f7faff}
+td.name{font-weight:700;color:var(--ink)}
+.star{color:#f5a623;font-weight:800}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
+.pill.g{background:var(--ok-soft);color:var(--ok)}
+.pill.y{background:var(--warn-soft);color:var(--warn)}
+.pill.r{background:var(--bad-soft);color:var(--bad)}
+.pill.n{background:#eef2f6;color:var(--ink3)}
+.pill.b{background:var(--blue-soft);color:var(--blue)}
+/* секции регламента - мини-бар */
+.sect{display:inline-flex;gap:3px;vertical-align:middle}
+.sect i{width:22px;height:8px;border-radius:3px;background:#e8edf2;display:inline-block;position:relative}
+.sect i.g{background:var(--ok)}.sect i.y{background:#f5a623}.sect i.r{background:var(--bad)}.sect i.e{background:#e8edf2}
+/* очереди */
+.qgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media(max-width:1100px){.qgrid{grid-template-columns:repeat(2,1fr)}}
+.qcell{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;cursor:pointer;transition:.12s}
+.qcell:hover{border-color:var(--blue);background:#f7faff}
+.qcell.on{border-color:var(--blue);background:var(--blue-soft)}
+.qcell .qn{font-size:12px;color:var(--ink2);font-weight:600;display:flex;align-items:center}
+.qcell .qv{font-size:19px;font-weight:800;margin-top:2px}
+.qcell .qm{font-size:12px;color:var(--ink3)}
+/* тренд-спарклайн */
+.spark{width:100%;height:56px}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--ink2);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+/* персональная страница */
+.back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line2);border-radius:10px;padding:7px 14px;font-weight:700;font-size:13px;color:var(--ink2);cursor:pointer;margin-bottom:14px}
+.back:hover{color:var(--blue);border-color:var(--blue)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:1000px){.g2{grid-template-columns:1fr}}
+.gw{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+@media(max-width:1000px){.gw{grid-template-columns:1fr}}
+.li{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;align-items:flex-start}
+.li:last-child{border-bottom:0}
+.li .ic{width:22px;height:22px;border-radius:7px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+.li.good .ic{background:var(--ok-soft);color:var(--ok)}
+.li.badi .ic{background:var(--bad-soft);color:var(--bad)}
+.li.focus .ic{background:var(--blue-soft);color:var(--blue)}
+.li b{color:var(--ink)}
+.li .m{color:var(--ink3);font-size:12px}
+.screen{display:none}.screen.on{display:block}
+.note{background:#fff;border:1px dashed var(--line2);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--ink2);margin-bottom:16px}
+.foot{color:var(--ink3);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.6}
+</style></head><body>
+
+<div class="top">
+  <div class="logo">GG</div>
+  <div class="brand"><b>Свод по менеджерам</b><span>эксперимент · связка «Диалоги + РОП + План»</span></div>
+  <a href="dialog.html" style="font-size:12.5px;font-weight:700">Открыть разбор диалогов →</a>
+  <div class="sp"></div>
+  <div class="src" id="src"></div>
+</div>
+
+<div class="wrap">
+
+<!-- ================= ЭКРАН ОТДЕЛА ================= -->
+<div class="screen on" id="scr-dept">
+  <h1>Отдел продаж за неделю</h1>
+  <div class="sub" id="subline"></div>
+
+  <div class="note">Каждая цифра помечена: <span class="tagD">ДАННЫЕ</span> - взято из снимка Битрикс24 как есть · <span class="tagC">РАСЧЁТ</span> - арифметика над данными, формула в подсказке «?» · <span class="tagH">ГИПОТЕЗА</span> - допущение, а не факт. Наведите или нажмите на «?» у любого блока - там объяснение простыми словами, что это и откуда взялось (работает и с телефона).</div>
+
+  <div class="pbar" id="pbar"></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h2>Где застряли деньги - очереди сделок <span class="tagD">ДАННЫЕ</span><span class="q" data-t="Каждая открытая сделка недели автоматически попадает в одну из очередей по правилам регламента (движок разбора диалогов). Например: «Ждут ответа» - последним написал клиент и ждёт дольше 4 рабочих часов. Сумма - бюджеты сделок этой очереди из Битрикс24. Нажмите на очередь - список сделок внизу.">?</span></h2>
+    <div class="hint">Нажмите на очередь, чтобы увидеть сделки. Это готовый список «кому звонить сегодня».</div>
+    <div class="qgrid" id="queues"></div>
+    <div class="hint" id="qrecon" style="margin:10px 0 0"></div>
+    <div id="qdrill"></div>
+  </div>
+
+  <div class="card">
+    <h2>Рейтинг менеджеров за неделю <span class="tagD">ДАННЫЕ</span><span class="q" data-t="Строка менеджера: рейтинг по 6 разделам регламента (звёзды 0-5), число разобранных диалогов, оценка просадки недели в рублях (насколько дефекты ведения снизили шансы сделок, в пересчёте на деньги), продажи месяца из снимка РОПа. Нажмите на строку - откроется личная страница с разбором. Менеджеры с малым числом диалогов не получают негативных выводов - данных мало.">?</span></h2>
+    <div class="hint">Клик по строке - личная страница менеджера: что хорошо, что плохо, на что давить на следующей неделе.</div>
+    <table id="mtable"></table>
+    <div class="hint" id="mrecon" style="margin:10px 0 0"></div>
+  </div>
+
+  <div class="gw">
+    <div class="card">
+      <h2 id="trend-h">Динамика замеров <span class="tagD">ДАННЫЕ</span><span class="q" data-t="Замеры движка разбора при каждом ночном снимке: сколько открытых сделок «в тишине» (без касания 4+ дня) и медиана скорости ответа клиенту в минутах. Ниже - лучше. Каждая точка подписана датой и значением - наведите на неё.">?</span></h2>
+      <div class="hint" id="trend-hint"></div>
+      <div id="trendbox"></div>
+    </div>
+    <div class="card">
+      <h2>Потенциал открытого портфеля <span class="tagC">РАСЧЁТ</span><span class="q" data-t="Формула: по каждой открытой сделке без предоплаты берём её бюджет из Битрикс24 [ДАННЫЕ] и умножаем на шанс успеха. Шанс = историческая доля выигрыша сделок этой стадии (посчитана на 1000+ сделках с апреля 2026) [ДАННЫЕ], скорректированная движком на поведение по сделке (тишина, дожим, возражения) [ГИПОТЕЗА]. Итог - взвешенная сумма на жизненном цикле сделок (недели), а не «к концу месяца»: не обещание, а ориентир.">?</span></h2>
+      <div class="hint" id="fc-hint"></div>
+      <div id="forecast"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ЛИЧНАЯ СТРАНИЦА ================= -->
+<div class="screen" id="scr-mgr">
+  <button class="back" onclick="showDept()">← Ко всему отделу</button>
+  <div id="mgr-body"></div>
+</div>
+
+<div class="foot" id="foot"></div>
+</div>
+
+<script>
+const DATA={"placeholder":true,"meta":{},"sections":[],"managers":[],"deals":[],"queues":[],"trend":[]};
+const M=DATA.meta||{};
+const fmtR=n=>{n=Math.round(n||0);if(Math.abs(n)>=1e6)return (n/1e6).toFixed(1).replace('.',',')+' млн ₽';if(Math.abs(n)>=1e3)return Math.round(n/1e3).toLocaleString('ru-RU')+' тыс ₽';return n.toLocaleString('ru-RU')+' ₽';};
+const fmt=n=>Math.round(n||0).toLocaleString('ru-RU');
+/* русские числительные: plural(21,['продажа','продажи','продаж']) -> «продажа» */
+const plural=(n,f)=>{n=Math.abs(Math.round(n||0));const m10=n%10,m100=n%100;return f[(m10===1&&m100!==11)?0:(m10>=2&&m10<=4&&(m100<10||m100>=20))?1:2];};
+const nSale=n=>`${n} ${plural(n,['продажа','продажи','продаж'])}`;
+const nDeal=n=>`${n} ${plural(n,['сделка','сделки','сделок'])}`;
+/* ярлыки движка приходят с плейсхолдером «N» вместо числа («клиент ждёт N ч»).
+   ВАЖНО: \b в JS-регексах не работает рядом с кириллицей (ч, дн - не \w),
+   поэтому границы задаём пробелами явно, без \b (урок ФЕНИКС-аудита N1) */
+const deN=s=>String(s||'').replace(/(\s+на)?\s+[N\u041D](\.[N\u041D])?\s*(ч|дн|мин|дней|часов|%)?(?=[\s.,)»]|$)/g,' дольше нормы').replace(/\s+/g,' ').trim();
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dd=s=>s?String(s).slice(8,10)+'.'+String(s).slice(5,7):'-';
+/* Метки и подсказки очередей берём из движка разбора диалогов (DATA.queues) - один
+   источник правды, тексты здесь не дублируем. QFB - только для ключей, которых движок
+   в списке очередей не отдаёт (итоги и две служебные очереди, считаемые из сделок). */
+const QFB={ok:['Ведутся чисто','Открытая сделка без единой проблемной очереди на этой неделе.'],won:['Продажа','Сделка дошла до предоплаты или закрыта успешно.'],lost:['Закрыта неуспешно','Сделка проиграна, в очереди работ не входит.'],overdue:['Просроченные дела','Дела по сделке в CRM просрочены дольше 3 рабочих дней.'],objection:['Возражение висит','Клиент возразил (дорого, долго), ответа менеджера по возражению не видно.']};
+const QMETA={};for(const q of (DATA.queues||[]))QMETA[q.key]=[q.label,q.hint||''];
+for(const k in QFB)if(!QMETA[k])QMETA[k]=QFB[k];
+const qLabel=k=>(QMETA[k]||[k,''])[0],qHint=k=>(QMETA[k]||['',''])[1];
+const BADQ=['waiting','ready','silent','nostep','nopush','fakedone','internal','overdue','promise','refuse','objection','lowprob'];
+/* Стадии «предоплата получена и дальше»: по правилу учёта это уже продажа месяца.
+   Такие сделки исключаем из «под риском», «дожать» и прогноза - иначе одни и те же
+   деньги посчитались бы дважды (и в продажах, и в потенциале). */
+const PAIDS=new Set(['C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON']);
+const isOU=d=>d.outcome==='open'&&!PAIDS.has(d.stageCode);
+const isBot=s=>/систем|робот/i.test(String(s||''));
+
+let sortKey='wonRub',sortAsc=false,curQ=null,curMgr=null;
+
+/* ---------- шапка-источники ---------- */
+(function(){
+  const g=d=>d?new Date(d).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'-';
+  document.getElementById('src').innerHTML=
+    `Диалоги: снимок <b>${g(M.dlgGenerated)}</b>, окно ${dd(M.dlgFrom)}-${dd(M.dlgTo)} · Продажи/план: снимок РОПа <b>${g(M.ropGenerated)}</b>`;
+  document.getElementById('subline').textContent=`${M.scope||''} · неделя ${dd(M.dlgFrom)} - ${dd(M.dlgTo)}`;
+  document.getElementById('foot').innerHTML=`Свод собирается из трёх готовых снимков (диалоги Битрикс24, РОП, план из Google-таблицы). Ничего не вводится вручную и не придумывается: у каждой цифры указано происхождение. Вероятности успеха - историческая статистика стадий [ДАННЫЕ, калибровка ${esc(DATA.calibratedAt||'-')}] с поведенческой поправкой движка [ГИПОТЕЗА].<br>Дизайн - по мотивам кабинета Ozon Seller [ГИПОТЕЗА: реконструкция по публичным материалам Ozon Design; живой кабинет за логином, прямое сравнение недоступно].`;
+})();
+
+/* ---------- фильтр периода продаж (как в РОП-дашборде) ----------
+   Управляет ТОЛЬКО деньгами продаж: плиткой «Продано», процентом плана и колонками
+   «Продано/Продаж» в таблице. Очереди, рейтинг недели и потенциал портфеля - состояние
+   на последний снимок, к календарному фильтру они не привязаны (и это подписано). */
+const REC=DATA.soldRecs||[];
+const ropDay=(M.ropGenerated||'').slice(0,10)||new Date().toISOString().slice(0,10);
+const dShift=(base,n)=>{const d=new Date(base+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
+const PKEYS=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['month','Этот месяц']];
+let PERIOD={key:'month',from:(M.month||ropDay.slice(0,7))+'-01',to:ropDay};
+function setPeriod(key,from,to){
+  if(key==='today')PERIOD={key,from:ropDay,to:ropDay};
+  else if(key==='yest'){const y=dShift(ropDay,-1);PERIOD={key,from:y,to:y};}
+  else if(key==='7')PERIOD={key,from:dShift(ropDay,-6),to:ropDay};
+  else if(key==='30')PERIOD={key,from:dShift(ropDay,-29),to:ropDay};
+  else if(key==='60')PERIOD={key,from:dShift(ropDay,-59),to:ropDay};
+  else if(key==='custom'&&from&&to)PERIOD={key,from,to};
+  else PERIOD={key:'month',from:(M.month||ropDay.slice(0,7))+'-01',to:ropDay};
+  renderPBar();renderKPIs();renderTable();armTips();
+}
+function applyCustom(){const f=document.getElementById('pfrom').value,t=document.getElementById('pto').value;
+  if(f&&t&&f<=t)setPeriod('custom',f,t);
+  else{const e=document.getElementById('perr');if(e)e.textContent='Диапазон не применён: дата «с» должна быть не позже даты «по», обе заполнены.';}}
+/* граница глубины данных: раньше этой даты записей на странице просто нет */
+const depthFrom=dShift(ropDay,-(M.depthDays||180));
+const snapT=M.ropGenerated?new Date(M.ropGenerated).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+function periodTitle(){
+  if(PERIOD.key==='month')return 'за '+new Date((M.month||'2026-01')+'-15').toLocaleString('ru-RU',{month:'long'});
+  if(PERIOD.key==='today')return 'сегодня';
+  if(PERIOD.key==='yest')return 'вчера';
+  return 'за '+dd(PERIOD.from)+' - '+dd(PERIOD.to);
+}
+const soldSel=()=>REC.filter(r=>r.d>=PERIOD.from&&r.d<=PERIOD.to);
+function renderPBar(){
+  document.getElementById('pbar').innerHTML=
+    `<span class="lbl">Продажи за период</span><span class="pseg">${PKEYS.map(([k,l])=>`<button class="${PERIOD.key===k?'on':''}" onclick="setPeriod('${k}')">${l}</button>`).join('')}</span>
+     <input type="date" id="pfrom" value="${PERIOD.from}" min="${depthFrom}" max="${ropDay}"> - <input type="date" id="pto" value="${PERIOD.to}" min="${depthFrom}" max="${ropDay}"> <button class="ok" onclick="applyCustom()">ОК</button> <span id="perr" style="color:var(--bad);font-weight:700"></span>
+     <span class="q" data-t="Фильтр управляет плиткой «Продано», процентом плана и колонками «Продано/Продаж» в таблице менеджеров. Дата продажи = день получения предоплаты (правило учёта, как в РОП-дашборде). Глубина данных о продажах на этой странице - ${M.depthDays||180} дней от снимка РОПа. «Сегодня» - по состоянию на момент ночного снимка. Очереди, рейтинг недели и потенциал портфеля - это состояние на последний снимок, фильтр дат на них не влияет.">?</span>
+     <span class="pnote">Очереди и рейтинг - фиксированное окно разбора диалогов ${dd(M.dlgFrom)}-${dd(M.dlgTo)} (последний ночной снимок), фильтр на них не действует.</span>`;
+}
+
+/* ---------- KPI ---------- */
+const OU=DATA.deals.filter(isOU);                                    /* открытые без предоплаты */
+const OPAID=DATA.deals.filter(d=>d.outcome==='open'&&PAIDS.has(d.stageCode)); /* открытые, но предоплата уже есть */
+const OPAIDRUB=OPAID.reduce((s,d)=>s+(d.budget||0),0);
+function renderKPIs(){
+  const risk=OU.filter(d=>BADQ.includes(d.uKey));
+  const riskRub=risk.reduce((s,d)=>s+(d.budget||0),0);
+  const ouRub=OU.reduce((s,d)=>s+(d.budget||0),0);
+  const zeroN=risk.filter(d=>!(d.budget>0)).length;
+  const wsum=OU.reduce((s,d)=>s+(d.budget||0)*(d.prob||0)/100,0);
+  const sel=soldSel();
+  const done=sel.reduce((s,r)=>s+r.b,0),doneN=sel.reduce((s,r)=>s+(r.n||1),0);
+  /* дни массового переноса из старой CRM (флаг a из сборки): предупреждаем прямо на плитке */
+  const migDays=[...new Set(sel.filter(r=>r.a).map(r=>r.d))].sort();
+  const migN=sel.filter(r=>r.a).reduce((s,r)=>s+(r.n||1),0);
+  const isMonth=PERIOD.key==='month';
+  /* честность на краях периода: запрос старше глубины данных и «сегодня» до ночного снимка */
+  const beyondAll=PERIOD.to<depthFrom;
+  const beyondPart=!beyondAll&&PERIOD.from<depthFrom;
+  const inclToday=PERIOD.to>=ropDay;
+  const plan=M.planRev;
+  const pct=isMonth&&plan&&!beyondAll?Math.round(done/plan*100):null;
+  const monthName=new Date((M.month||'2026-01')+'-15').toLocaleString('ru-RU',{month:'long'});
+  /* план-выброс: месяц в 1,8+ раза выше обоих соседей - похоже на опечатку или разовую цель,
+     до подтверждения владельцем таблицы честно помечаем гипотезой */
+  const outlier=plan&&M.planPrev&&M.planNext&&plan>=1.8*M.planPrev&&plan>=1.8*M.planNext;
+  const cyc=M.cycle;
+  const k=[
+    {l:'Продано '+periodTitle(),tag:'D',
+     v:beyondAll?'нет данных':fmtR(done),
+     d:beyondAll?`страница хранит продажи за ${M.depthDays||180} дней - с ${dd(depthFrom)}.${depthFrom.slice(0,4)}`
+       :`${nSale(doneN)} · снимок РОПа`
+        +(beyondPart?` · ЦИФРА НЕПОЛНАЯ: запрошено с ${dd(PERIOD.from)}, данные только с ${dd(depthFrom)}.${depthFrom.slice(0,4)}`:'')
+        +(inclToday?(PERIOD.key==='today'?` · снимок сделан ${snapT} - сегодняшний день ещё не измерен`:` · по снимку ${snapT}`):'')
+        +(migDays.length?` · В ПЕРИОДЕ ${migDays.map(dd).join(', ')} - день массового переноса из старой CRM (${nSale(migN)} разом) [ГИПОТЕЗА: миграция, не реальные продажи дня]`:''),
+     q:'Сумма бюджетов сделок, по которым в выбранный период получена предоплата или продажа закрыта. Источник - ночной снимок РОПа из Битрикс24, глубина данных на странице - '+(M.depthDays||180)+' дней. Снимок делается ночью: «сегодня» до следующего снимка почти всегда покажет ноль - это не «нет продаж», а «день ещё не измерен». Продажу считаем с момента предоплаты - так принято в учёте компании (то же правило, что в РОП-дашборде). Период меняется фильтром сверху.'+(isMonth&&outlier?' Процент выполнения плана считается от плана месяца, который помечен как возможный выброс [ГИПОТЕЗА] - если план уточнится, процент изменится.':''),
+     chip:beyondPart?['dn','период шире глубины данных - сумма занижена']:migDays.length?['dn','в периоде день переноса данных - сумма искажена [ГИПОТЕЗА]']:pct!=null?(outlier?['mid',pct+'% плана, но план месяца под вопросом [ГИПОТЕЗА]']:pct>=90?['up','план выполняется: '+pct+'%']:pct>=60?['mid','выполнено '+pct+'% плана']:['dn','только '+pct+'% плана']):null},
+    {l:'План на '+monthName,tag:'D',v:plan?fmtR(plan):'не задан',d:plan?(isMonth?'из Google-таблицы руководителя':'планы помесячные · % виден в режиме «Этот месяц»'):'файл плана недоступен',q:'План выручки отдела на месяц из Google-таблицы руководителя (тот же источник, что в РОП-дашборде). Планы заданы помесячно, поэтому процент выполнения показывается только в режиме «Этот месяц». Персональные планы по менеджерам в системе не заданы - мы их не показываем и не выдумываем.'+(outlier?` Внимание: план этого месяца (${fmtR(plan)}) в ${(plan/Math.max(M.planPrev,M.planNext)).toFixed(1).replace('.',',')} раза выше соседних (${fmtR(M.planPrev)} и ${fmtR(M.planNext)}) - до подтверждения владельцем таблицы считаем цифру гипотезой.`:''),chip:outlier?['mid','выброс? соседние месяцы '+fmtR(M.planPrev)+' и '+fmtR(M.planNext)+' [ГИПОТЕЗА]']:null},
+    {l:'Под риском сейчас',tag:'D',v:fmtR(riskRub),d:`${nDeal(risk.length)} · ${ouRub?Math.round(riskRub/ouRub*100):0}% открытого портфеля · ${zeroN} записей с бюджетом 0 ₽`,q:'Сумма бюджетов открытых сделок, попавших хотя бы в одну проблемную очередь (клиент ждёт, тишина, КП без дожима и т.д.) по состоянию на последний снимок разбора. Фильтр дат на эту плитку не влияет - это «прямо сейчас», а не за период. Сделки, уже дошедшие до предоплаты, сюда не входят - их деньги уже посчитаны в «Продано». Приоритизируйте не по числу сделок, а по деньгам внутри очередей: у части записей (в основном лидов) бюджет ещё не проставлен.'},
+    {l:'Потенциал портфеля',tag:'C',v:fmtR(wsum),
+     /* Горизонт подписываем ПО ДЕНЬГАМ, не по числу сделок (урок ФЕНИКС D3): основная
+        сумма потенциала лежит в крупных сделках, а у них цикл в разы длиннее мелочи */
+     d:(function(){
+       if(!cyc||!cyc.big)return `портфель ${fmt(OU.length)} открытых сделок без предоплаты`+(OPAID.length?` · ещё ${fmtR(OPAIDRUB)} уже с предоплатой`:'');
+       const wBig=OU.filter(x=>(x.budget||0)>=cyc.thr).reduce((s,x)=>s+(x.budget||0)*(x.prob||0)/100,0);
+       const shareBig=wsum?Math.round(wBig/wsum*100):0;
+       return `${shareBig}% суммы - сделки от ${fmtR(cyc.thr)}: половина их предоплат за ${cyc.big.medD} дн, каждая десятая - дольше ${cyc.big.p90D} дн`;
+     })(),
+     q:'РАСЧЁТ: каждая открытая сделка БЕЗ предоплаты = бюджет [ДАННЫЕ] × шанс успеха её стадии по истории 1000+ сделок [ДАННЫЕ] с поправкой на поведение (тишина, дожим) [ГИПОТЕЗА]. Складываем. ВАЖНО: это ожидаемая ценность портфеля на его жизненном цикле, а НЕ сумма «к концу месяца».'+(cyc&&cyc.big?` Горизонт по деньгам: основная часть этой суммы - сделки от ${fmtR(cyc.thr)}, у них половина предоплат приходит за ${cyc.big.medD} ${plural(cyc.big.medD,['день','дня','дней'])} от создания, четверть - дольше ${cyc.big.p75D} дн, каждая десятая - дольше ${cyc.big.p90D} дн [ДАННЫЕ этого месяца, n=${cyc.big.n}].`:'')+(cyc&&cyc.small?` Мелкие сделки (до ${fmtR(cyc.thr)}) продаются быстро - половина за ${cyc.small.medD} ${plural(cyc.small.medD,['день','дня','дней'])} [n=${cyc.small.n}] - но их доля в этой сумме мала.`:'')+(OPAID.length?` Ещё ${fmtR(OPAIDRUB)} открытых сделок уже с предоплатой - они в «Продано», сюда не входят.`:'')+' Ориентир, не обещание.'},
+  ];
+  document.getElementById('kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x.l}<span class="tag${x.tag}">${x.tag==='D'?'ДАННЫЕ':x.tag==='C'?'РАСЧЁТ':'ГИПОТЕЗА'}</span><span class="q" data-t="${esc(x.q)}">?</span></div><div class="v">${x.v}</div><div class="d">${x.d}</div>${x.chip?`<div class="chip ${x.chip[0]}">${esc(x.chip[1])}</div>`:''}</div>`).join('');
+}
+
+/* ---------- очереди ---------- */
+/* Плитки считаем прямо из списка сделок (те же сделки, что в KPI «Под риском») -
+   поэтому сумма плиток всегда сходится с плиткой «Под риском» до рубля.
+   Метки и подсказки - из движка (QMETA), сюда попадают и очереди, которых нет
+   в готовом списке движка (просроченные дела, возражения) - они считаются из сделок. */
+function renderQueues(){
+  const agg={};
+  for(const d of OU){if(!BADQ.includes(d.uKey))continue;(agg[d.uKey]||={n:0,money:0});agg[d.uKey].n++;agg[d.uKey].money+=d.budget||0;}
+  const qs=BADQ.filter(k=>agg[k]).map(k=>({key:k,n:agg[k].n,money:agg[k].money}));
+  document.getElementById('queues').innerHTML=qs.map(q=>`<div class="qcell ${curQ===q.key?'on':''}" onclick="drillQ('${q.key}')"><div class="qn">${esc(qLabel(q.key))}<span class="q" data-t="${esc(qHint(q.key))} Число - сколько открытых сделок без предоплаты, сумма - их бюджеты из Битрикс24.">?</span></div><div class="qv">${q.n}</div><div class="qm">${fmtR(q.money)}</div></div>`).join('');
+  const recon=document.getElementById('qrecon');
+  recon.innerHTML=`Сумма плиток равна плитке «Под риском» - это одни и те же сделки, каждая в своей главной очереди.`+(OPAID.length?` Ещё ${OPAID.length} открытых сделок на ${fmtR(OPAIDRUB)} уже с предоплатой - они в продажах месяца, в очередях их нет.`:'');
+  const el=document.getElementById('qdrill');
+  if(!curQ){el.innerHTML='';return;}
+  /* Ботов НЕ выкидываем из списка: их сделки сидят в плитках и в KPI «Под риском»,
+     молча прятать строку, чьи деньги посчитаны, нечестно - помечаем пилюлей */
+  const all=OU.filter(d=>d.uKey===curQ).sort((a,b)=>(b.budget||0)-(a.budget||0));
+  const list=all.slice(0,12);
+  el.innerHTML=`<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+    ${all.length>list.length?`<div class="hint" style="margin-bottom:8px">Показаны ${list.length} из ${all.length} - самые дорогие по бюджету.</div>`:''}
+    <table><thead><tr><th>Сделка</th><th>Менеджер</th><th>Этап</th><th class="r">Бюджет</th><th class="r">Шанс</th><th>Что делать (движок)</th></tr></thead><tbody>
+    ${list.map(d=>{const bot=isBot(d.mgr);const known=!bot&&DATA.managers.some(x=>x.mgr===d.mgr);
+      return `<tr class="mrow" ${known?`onclick="openMgr('${esc(d.mgr)}')"`:''}><td class="name">${esc((d.title||('#'+d.dealId)).slice(0,42))}</td><td>${esc(d.mgr)}${bot?' <span class="pill n">системная запись</span>':known?'':' <span class="pill n">вне разбора</span>'}</td><td><span class="pill n">${esc(d.stage||'без этапа')}</span></td><td class="r">${d.budget?fmtR(d.budget):'-'}</td><td class="r">${d.prob!=null?d.prob+'%':'-'}</td><td style="white-space:normal;max-width:340px;font-size:12px;color:var(--ink2)">${esc((d.next||'-').slice(0,120))}</td></tr>`;}).join('')}
+    </tbody></table></div>`;
+}
+function drillQ(k){curQ=curQ===k?null:k;renderQueues();armTips();}
+
+/* ---------- таблица менеджеров ---------- */
+function sectBar(m){
+  return `<span class="sect">${(m.sections||[]).map(s=>{
+    const cls=s.pos==null?'e':s.pos>=70?'g':s.pos>=40?'y':'r';
+    return `<i class="${cls}" title="${esc(s.label)}: ${s.pos==null?'мало данных':s.pos+'% хорошо'} (${s.n} набл.)"></i>`;}).join('')}</span>`;
+}
+function verdict(m){
+  if(m.rating==null)return '<span class="pill n">мало данных</span>';
+  if(m.rating>=3.5)return '<span class="pill g">сильная неделя</span>';
+  if(m.rating>=2.5)return '<span class="pill y">норма</span>';
+  return '<span class="pill r">в разборе</span>';
+}
+function renderTable(){
+  /* продажи в колонках - по выбранному периоду (фильтр сверху), из тех же записей, что плитка «Продано» */
+  const sel=soldSel();
+  const perMgr={};let hidRub=0,hidN=0;const hidNames={};
+  for(const r of sel){
+    if(r.s){(perMgr[r.s]||={rub:0,n:0});perMgr[r.s].rub+=r.b;perMgr[r.s].n+=r.n||1;}
+    else{hidRub+=r.b;hidN+=r.n||1;hidNames[r.m]=(hidNames[r.m]||0)+r.b;}
+  }
+  const rows=[...DATA.managers].filter(m=>m.role!=='office')
+    .map(m=>({...m,wonRub:(perMgr[m.mgr]||{}).rub||0,wonN:(perMgr[m.mgr]||{}).n||0}))
+    .sort((a,b)=>{
+    if(sortKey==='mgr')return sortAsc?String(a.mgr).localeCompare(String(b.mgr),'ru'):String(b.mgr).localeCompare(String(a.mgr),'ru');
+    const va=a[sortKey]??-1,vb=b[sortKey]??-1;return sortAsc?va-vb:vb-va;});
+  const TH=[['mgr','Менеджер',0],['rating','Рейтинг недели',1],['deals','Диалогов',1],['lossRub','Просадка недели',1],['wonRub','Продано '+periodTitle(),1],['wonN','Продаж',1]];
+  document.getElementById('mtable').innerHTML=`<thead><tr>
+    ${TH.map(([k,l,r])=>`<th class="${r?'r ':''}${sortKey===k?'sorted':''}" onclick="sortBy('${k}')">${l}${k==='rating'?'<span class=q data-t="Оценка недели 0-5 звёзд по 6 разделам регламента (скорость ответа, квалификация, сроки, вежливость, ведение, результат). Считает движок разбора диалогов по фактам переписки, звонков и дел. Меньше '+(DATA.minSample||10)+' наблюдений - оценки нет, чтобы не судить по случайности.">?</span>':''}${k==='deals'?'<span class=q data-t="Сколько сделок и лидов менеджера попало в недельное окно разбора: по ним были события (переписка, звонки, дела) или они открыты и требуют действий.">?</span>':''}${k==='lossRub'?'<span class=q data-t="РАСЧЁТ: не «потерянные бюджеты целиком», а рублёвая оценка просадки шанса. По каждой сделке с дефектом недели (клиент ждёт, тишина, КП без дожима) движок оценивает, на сколько процентов дефект снизил шанс успеха, и умножает эту просадку на бюджет сделки. Сумма таких просадок - эта колонка. Деньги не потеряны навсегда: отработал дефект - вернул шанс.">?</span>':''}${k==='wonRub'?'<span class=q data-t="Продажи менеджера за выбранный в фильтре период, из ночного снимка РОПа: сделки, дошедшие до предоплаты и дальше. Другой снимок и другое окно, чем у диалогов - поэтому подписано отдельно. Офисные роли и продавцы вне недельного разбора учтены в строке сверки под таблицей.">?</span>':''}</th>`).join('')}
+    <th>Регламент по разделам<span class="q" data-t="6 плиток = 6 разделов регламента: Отклик, Квалификация, Сроки, Вежливость, Ведение, Результат. Зелёная - раздел в порядке (70%+ наблюдений хорошие), жёлтая - середина, красная - западает, серая - мало данных. Наведите на плитку - подробность.">?</span></th><th>Вердикт<span class="q" data-t="ГИПОТЕЗА: пороги вердикта выбраны при постройке свода, в регламенте их нет. 3,5+ звезды - «сильная неделя», от 2,5 до 3,5 - «норма», ниже 2,5 - «в разборе», меньше ${DATA.minSample||10} наблюдений - «мало данных». Обсуждаемо и настраивается.">?</span></th></tr></thead><tbody>
+    ${rows.map(m=>`<tr class="mrow" onclick="openMgr('${esc(m.mgr)}')">
+      <td class="name">${esc(m.mgr)}</td>
+      <td class="r">${m.rating!=null?`<span class="star">${m.rating.toFixed(1)} ★</span>`:'<span style="color:var(--ink3)">-</span>'}</td>
+      <td class="r">${m.deals}</td>
+      <td class="r">${m.lossRub?fmtR(m.lossRub):'0 ₽'}</td>
+      <td class="r"><b>${m.wonRub?fmtR(m.wonRub):'-'}</b></td>
+      <td class="r">${m.wonN||0}</td>
+      <td>${sectBar(m)}</td>
+      <td>${verdict(m)}</td></tr>`).join('')}
+    </tbody>`;
+  /* сверка: колонка + офисные роли + продавцы вне разбора = плитка «Продано» за тот же период */
+  const officeRub=DATA.managers.filter(m=>m.role==='office').reduce((s,m)=>s+((perMgr[m.mgr]||{}).rub||0),0);
+  const colSum=rows.reduce((s,m)=>s+(m.wonRub||0),0);
+  const total=sel.reduce((s,r)=>s+r.b,0);
+  const parts=[];
+  if(officeRub)parts.push(`${fmtR(officeRub)} офисных ролей`);
+  if(hidN)parts.push(`${fmtR(hidRub)} (${nSale(hidN)}) от ${Object.keys(hidNames).length} сотрудников вне недельного разбора - ${esc(Object.keys(hidNames).sort((a,b)=>hidNames[b]-hidNames[a]).join(', '))}`);
+  document.getElementById('mrecon').innerHTML=
+    Math.round(colSum+officeRub+hidRub)===Math.round(total)
+    ?`Сумма по колонке «Продано»${parts.length?' плюс '+parts.join(' плюс '):''} даёт ровно плитку «Продано ${esc(periodTitle())}» наверху. Ничего не спрятано.`
+    :'Внимание: сумма колонки не сходится с плиткой «Продано» - сообщите разработчику.';
+}
+function sortBy(k){if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=false;}renderTable();armTips();}
+
+/* ---------- тренд: два отдельных графика, у каждого своя шкала ----------
+   Раньше две линии рисовались в одном svg с независимой нормировкой - визуально их
+   можно было сравнивать между собой, а это обман. Теперь каждый показатель отдельно,
+   с реальными мин/макс на шкале, датами и подписью каждой точки. */
+(function(){
+  const days=DATA.trend||[];
+  document.getElementById('trend-h').firstChild.textContent='Динамика за '+days.length+' замер'+(days.length%10===1&&days.length%100!==11?'':days.length%10>=2&&days.length%10<=4&&(days.length%100<10||days.length%100>=20)?'а':'ов')+' ';
+  document.getElementById('trend-hint').textContent=days.length?'Каждая точка - ночной замер. Шкалы у графиков разные, между собой линии не сравнивать.':'Файл тренда пока пуст - замеры начнут копиться со следующих ночных снимков.';
+  if(!days.length){document.getElementById('trendbox').innerHTML='';return;}
+  const W=600,H=64,P=10;
+  const xs=i=>P+(W-2*P)*i/(days.length-1||1);
+  const spark=(vals,color,unit)=>{
+    const mx=Math.max(...vals,1),mn=Math.min(...vals,0);
+    const y=v=>H-P-(H-2*P)*(v-mn)/((mx-mn)||1);
+    const pts=vals.map((v,i)=>[xs(i),y(v)]);
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:${H}px">
+      <polyline fill="none" stroke="${color}" stroke-width="2" points="${pts.map(p=>p.map(x=>x.toFixed(1)).join(',')).join(' ')}"/>
+      ${pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="${color}"><title>${dd(days[i].date)}: ${vals[i]} ${unit}</title></circle>`).join('')}
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink3)"><span>${dd(days[0].date)}</span><span>мин ${mn} · макс ${mx} ${unit}</span><span>${dd(days[days.length-1].date)}</span></div>`;
+  };
+  document.getElementById('trendbox').innerHTML=
+    `<div style="font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:2px">Сделок в тишине 4+ дней, шт</div>`+spark(days.map(d=>d.silence||0),'var(--bad)','шт')+
+    `<div style="font-size:12px;font-weight:700;color:var(--ink2);margin:10px 0 2px">Медиана ответа клиенту, мин</div>`+spark(days.map(d=>d.respMed||0),'var(--blue)','мин');
+})();
+
+/* ---------- прогноз-блок ---------- */
+(function(){
+  const byStage={};const noStage={n:0,rub:0};
+  for(const d of OU){
+    if(!d.stage){noStage.n++;noStage.rub+=d.budget||0;continue;}
+    (byStage[d.stage]||={n:0,rub:0,w:0});byStage[d.stage].n++;byStage[d.stage].rub+=d.budget||0;byStage[d.stage].w+=(d.budget||0)*(d.prob||0)/100;}
+  const rows=Object.entries(byStage).sort((a,b)=>b[1].w-a[1].w).slice(0,7);
+  document.getElementById('forecast').innerHTML=`<table><thead><tr><th>Этап</th><th class="r">Сделок</th><th class="r">Бюджеты</th><th class="r">Взвешенно</th></tr></thead><tbody>
+    ${rows.map(([s,v])=>`<tr><td>${esc(s)}</td><td class="r">${v.n}</td><td class="r">${fmtR(v.rub)}</td><td class="r"><b>${fmtR(v.w)}</b></td></tr>`).join('')}
+  </tbody></table>
+  ${noStage.n?`<div class="hint" style="margin-top:10px">Ещё ${nDeal(noStage.n)} без этапа (в основном свежие лиды, бюджеты ${fmtR(noStage.rub)}) - в таблицу прогноза не входят.</div>`:''}
+  ${OPAID.length?`<div class="hint" style="margin-top:${noStage.n?'4px':'10px'}">Ещё ${OPAID.length} открытых сделок на ${fmtR(OPAIDRUB)} уже прошли предоплату - в прогноз не входят, эти деньги уже посчитаны в «Продано за месяц».</div>`:''}`;
+})();
+
+/* ---------- личная страница ---------- */
+function openMgr(name){
+  const m=DATA.managers.find(x=>x.mgr===name);if(!m)return;
+  curMgr=name;
+  document.getElementById('scr-dept').classList.remove('on');
+  document.getElementById('scr-mgr').classList.add('on');
+  try{window.scrollTo({top:0});}catch(e){}
+  const my=DATA.deals.filter(d=>d.mgr===name);
+  const myOpen=my.filter(d=>isOU(d));
+  const myPaid=my.filter(d=>d.outcome==='open'&&PAIDS.has(d.stageCode));
+  const myBad=myOpen.filter(d=>BADQ.includes(d.uKey));
+  const small=(m.deals||0)<(DATA.minSample||10);
+
+  /* Офисная роль (документооборот): регламент продаж к ней не применяется,
+     звёзды и «что плохо» по продажным правилам были бы несправедливы. */
+  if(m.role==='office'){
+    document.getElementById('mgr-body').innerHTML=`
+      <h1>${esc(name)} <span class="pill b">офис / документооборот</span></h1>
+      <div class="sub">неделя ${dd(M.dlgFrom)}-${dd(M.dlgTo)} · ${m.deals} ${plural(m.deals,['диалог','диалога','диалогов'])} в окне разбора</div>
+      <div class="note">Эта роль - офис и документооборот, а не продажи. Регламент отдела продаж (скорость ответа, дожим КП, звёзды) к ней не применяется, поэтому рейтинга и разбора «хорошо/плохо» здесь нет - сравнивать с продавцами было бы нечестно. Показываем только факты по сделкам в работе.</div>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Сделок в окне недели<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Сколько сделок и лидов с участием этого сотрудника попало в недельное окно разбора диалогов.">?</span></div><div class="v">${my.length}</div><div class="d">${myOpen.length} ${plural(myOpen.length,['открытая','открытые','открытых'])} без предоплаты</div></div>
+        <div class="kpi"><div class="l">Продажи месяца в снимке РОПа<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Если на сотруднике числятся сделки, дошедшие до предоплаты в этом месяце, они видны здесь. Для офисной роли это чаще всего оформление, а не личная продажа.">?</span></div><div class="v">${m.wonRub?fmtR(m.wonRub):'0 ₽'}</div><div class="d">${nDeal(m.wonN||0)}</div></div>
+      </div>`;
+    armTips();return;
+  }
+
+  /* хорошо: секции 70%+, продажи месяца, чистые сделки */
+  const good=[];
+  for(const s of (m.sections||[])) if(s.pos!=null&&s.pos>=70) good.push(`<div class="li good"><div class="ic">✓</div><div><b>${esc(s.label)}: ${s.pos}% наблюдений в порядке</b> <span class="tagD">ДАННЫЕ</span><div class="m">${s.n} наблюдений за неделю по фактам переписки и дел</div></div></div>`);
+  if(m.wonRub) good.push(`<div class="li good"><div class="ic">₽</div><div><b>Продажи месяца: ${fmtR(m.wonRub)} (${m.wonN} шт)</b> <span class="tagD">ДАННЫЕ</span><div class="m">снимок РОПа, продажа от предоплаты</div></div></div>`);
+  const okDeals=myOpen.filter(d=>d.uKey==='ok').length;
+  if(okDeals) good.push(`<div class="li good"><div class="ic">✓</div><div><b>${nDeal(okDeals)} - без единого дефекта</b> <span class="tagD">ДАННЫЕ</span><div class="m">без единой проблемной очереди на этой неделе</div></div></div>`);
+  if(!good.length) good.push(`<div class="li good"><div class="ic">·</div><div><b>Явных сильных сторон на этой неделе движок не зафиксировал</b><div class="m">это не приговор - мало наблюдений</div></div></div>`);
+
+  /* плохо: секции <40% с bad, topLoss, плохие очереди с деньгами */
+  const bad=[];
+  if(!small){
+    for(const s of (m.sections||[])) if(s.pos!=null&&s.pos<40&&s.bad>0) bad.push(`<div class="li badi"><div class="ic">!</div><div><b>${esc(s.label)}: только ${s.pos}% в порядке, ${s.bad} нарушений</b> <span class="tagD">ДАННЫЕ</span><div class="m">по фактам недели из переписки, звонков и дел</div></div></div>`);
+    if(m.topLoss&&m.topLoss.label) bad.push(`<div class="li badi"><div class="ic">₽</div><div><b>Главная утечка: «${esc(deN(m.topLoss.label))}» - ${fmtR(m.topLoss.rub||0)}</b> <span class="tagC">РАСЧЁТ</span><div class="m">самая дорогая категория дефектов недели: оценка просадки шанса в рублях</div></div></div>`);
+    const qAgg={};for(const d of myBad){(qAgg[d.uKey]||={n:0,rub:0});qAgg[d.uKey].n++;qAgg[d.uKey].rub+=d.budget||0;}
+    for(const [k,v] of Object.entries(qAgg).sort((a,b)=>b[1].rub-a[1].rub).slice(0,3))
+      bad.push(`<div class="li badi"><div class="ic">${v.n}</div><div><b>${esc(qLabel(k))}: ${nDeal(v.n)} на ${fmtR(v.rub)}</b> <span class="tagD">ДАННЫЕ</span><div class="m">${esc(qHint(k))}</div></div></div>`);
+  }
+  if(!bad.length) bad.push(`<div class="li badi"><div class="ic">·</div><div><b>${small?'Мало данных за неделю - негативные выводы не делаем':'Серьёзных дефектов на этой неделе не зафиксировано'}</b><div class="m">${small?('диалогов меньше порога '+(DATA.minSample||10)):'держать уровень'}</div></div></div>`);
+
+  /* фокус следующей недели: конкретные сделки с деньгами и рекомендацией движка */
+  const focusList=[...myBad].sort((a,b)=>(b.budget||0)*(b.prob||0)-(a.budget||0)*(a.prob||0)).slice(0,5);
+  const focusRub=focusList.reduce((s,d)=>s+(d.budget||0),0);
+  const focusW=focusList.reduce((s,d)=>s+(d.budget||0)*(d.prob||0)/100,0);
+  const focus=focusList.length?focusList.map(d=>`<div class="li focus"><div class="ic">→</div><div><b>${esc((d.title||('#'+d.dealId)).slice(0,48))}</b> · ${fmtR(d.budget)} · шанс ${d.prob!=null?d.prob+'%':'-'} <span class="pill b">${esc(qLabel(d.uKey))}</span><div class="m">${esc((d.next||'связаться с клиентом и зафиксировать следующий шаг').slice(0,140))}</div></div></div>`).join('')
+    :`<div class="li focus"><div class="ic">✓</div><div><b>Проблемных сделок нет - фокус на новых заявках и дожиме открытого портфеля</b></div></div>`;
+
+  document.getElementById('mgr-body').innerHTML=`
+    <h1>${esc(name)}</h1>
+    <div class="sub">неделя ${dd(M.dlgFrom)}-${dd(M.dlgTo)} · ${m.deals} ${plural(m.deals,['диалог разобран','диалога разобрано','диалогов разобрано'])} · ${m.rating!=null?('рейтинг '+m.rating.toFixed(1)+' ★'):'рейтинга нет - мало данных'}</div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">Продано за месяц<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Из ночного снимка РОПа: сделки менеджера, дошедшие в этом месяце до предоплаты и дальше.">?</span></div><div class="v">${m.wonRub?fmtR(m.wonRub):'0 ₽'}</div><div class="d">${nSale(m.wonN||0)}</div></div>
+      <div class="kpi"><div class="l">Просадка недели<span class="tagC">РАСЧЁТ</span><span class="q" data-t="РАСЧЁТ: рублёвая оценка просадки шанса, а не потерянные бюджеты целиком. По каждой сделке с дефектом недели движок оценивает, на сколько процентов дефект снизил шанс успеха, и умножает просадку на бюджет. «На диалог» - та же сумма, поделённая на число разобранных диалогов менеджера. Отработал дефект - вернул шанс: блок «фокус» ниже.">?</span></div><div class="v">${m.lossRub?fmtR(m.lossRub):'0 ₽'}</div><div class="d">${m.lossPerDeal?('~'+fmtR(m.lossPerDeal)+' на диалог'):''}</div></div>
+      <div class="kpi"><div class="l">Сделок под риском<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Открытые сделки менеджера без предоплаты, попавшие в проблемные очереди прямо сейчас. Сделки с полученной предоплатой не считаем - они уже в продажах месяца.">?</span></div><div class="v">${myBad.length}</div><div class="d">из ${myOpen.length} ${plural(myOpen.length,['открытой','открытых','открытых'])} без предоплаты${myPaid.length?(' · ещё '+myPaid.length+' с предоплатой'):''}</div></div>
+      <div class="kpi"><div class="l">Фокус недели даст до<span class="tagC">РАСЧЁТ</span><span class="q" data-t="РАСЧЁТ: топ-5 проблемных сделок ниже - их бюджеты [ДАННЫЕ] × шансы стадий [ДАННЫЕ по истории + ГИПОТЕЗА-поправка движка]. Если отработать все пять - взвешенно это столько денег.">?</span></div><div class="v">${fmtR(focusW)}</div><div class="d">в топ-5 сделках на ${fmtR(focusRub)}</div></div>
+    </div>
+    <div class="g2">
+      <div class="card"><h2>Что хорошо на этой неделе</h2><div class="hint">Только факты из снимков - без комплиментов.</div>${good.join('')}</div>
+      <div class="card"><h2>Что плохо на этой неделе</h2><div class="hint">${small?'Диалогов мало, поэтому негативные выводы не делаются - данных недостаточно.':'Каждый пункт - конкретный дефект с деньгами.'}</div>${bad.join('')}</div>
+    </div>
+    <div class="card">
+      <h2>На что давить на следующей неделе <span class="tagC">РАСЧЁТ</span><span class="q" data-t="Топ-5 сделок менеджера из проблемных очередей, отсортированы по деньгам × шансу. По каждой - готовая рекомендация движка разбора. Отработать эти пять - самый короткий путь добрать план. Персональные планы в системе не заданы [ДАННЫЕ: их нет в plan.json], поэтому личную цель в рублях мы не выдумываем - показываем общий план отдела и вклад.">?</span></h2>
+      <div class="hint">${M.planRev?`План отдела на месяц ${fmtR(M.planRev)} [ДАННЫЕ: Google-таблица], сделано ${fmtR(DATA.deptWonRub)}. Персональных планов в системе нет - показываем самый денежный личный фокус.`:'Файл плана недоступен - показываем самый денежный личный фокус.'}</div>
+      ${focus}
+    </div>`;
+  armTips();
+}
+function showDept(){document.getElementById('scr-mgr').classList.remove('on');document.getElementById('scr-dept').classList.add('on');}
+
+/* ---------- tooltip: наведение мыши, клик/тап и клавиатура (Tab + Esc) ---------- */
+const tipEl=document.createElement('div');
+tipEl.style.cssText='position:fixed;z-index:99;max-width:340px;background:#0b1f33;color:#fff;font-size:12px;line-height:1.5;padding:10px 12px;border-radius:10px;box-shadow:0 8px 30px rgba(0,26,52,.35);opacity:0;pointer-events:none;transition:opacity .12s';
+document.body.appendChild(tipEl);
+let tipPinned=false;
+function tipShow(text,x,y){tipEl.textContent=text;tipEl.style.opacity=1;
+  if(x+tipEl.offsetWidth>innerWidth)x=Math.max(8,innerWidth-tipEl.offsetWidth-8);
+  if(y+tipEl.offsetHeight>innerHeight)y=Math.max(8,innerHeight-tipEl.offsetHeight-8);
+  tipEl.style.left=x+'px';tipEl.style.top=y+'px';}
+function tipShowAt(el){const r=el.getBoundingClientRect();tipShow(el.getAttribute('data-t'),r.left,r.bottom+8);}
+function tipHide(){tipEl.style.opacity=0;tipPinned=false;}
+document.addEventListener('mousemove',e=>{
+  if(tipPinned)return;
+  const q=e.target.closest('[data-t]');
+  if(q)tipShow(q.getAttribute('data-t'),e.clientX+14,e.clientY+14);
+  else tipEl.style.opacity=0;
+});
+/* клик/тап по «?» - подсказка закрепляется и НЕ проваливается в клик по строке/плитке (capture) */
+document.addEventListener('click',e=>{
+  const q=e.target.closest('.q');
+  if(q&&q.hasAttribute('data-t')){e.stopPropagation();e.preventDefault();tipPinned=true;tipShowAt(q);}
+  else if(tipPinned)tipHide();
+},true);
+document.addEventListener('focusin',e=>{const q=e.target.closest?e.target.closest('[data-t]'):null;if(q){tipPinned=true;tipShowAt(q);}});
+document.addEventListener('focusout',()=>{if(tipPinned)tipHide();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')tipHide();});
+/* все «?» доступны с клавиатуры */
+function armTips(){for(const el of document.querySelectorAll('.q[data-t]')){el.setAttribute('tabindex','0');el.setAttribute('role','button');el.setAttribute('aria-label','Пояснение');}}
+
+renderPBar();renderKPIs();renderQueues();renderTable();armTips();
+(function(){const c=M.cycle;document.getElementById('fc-hint').textContent=(c&&c.big)?`Горизонт по деньгам: основная сумма - в сделках от ${fmtR(c.thr)}, у них половина предоплат за ${c.big.medD} дн от создания, четверть - дольше ${c.big.p75D} дн, каждая десятая - дольше ${c.big.p90D} дн [ДАННЫЕ этого месяца, n=${c.big.n}]. Мелкие (до ${fmtR(c.thr)}) продаются за ${c.small?c.small.medD+' ':''}дн медианно, но денег в них мало. Это не «сумма к концу месяца».`:'Взвешенная оценка открытого портфеля по этапам. Горизонт - жизненный цикл сделок (недели), не конец месяца.';})();
+</script>
+</body></html>

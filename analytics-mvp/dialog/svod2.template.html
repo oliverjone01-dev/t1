@@ -902,7 +902,7 @@ function renderKurator(){
     return [m,{...v,deals,eff:effViol(v)}];})
     .sort((a,b)=>{const sa=a[1].out>=MINS?1:0,sb=b[1].out>=MINS?1:0;if(sa!==sb)return sb-sa;return dens(b[1])-dens(a[1]);});
   const tot=rows.reduce((s2,[,v])=>s2+v.eff,0);
-  document.getElementById('kur-total').textContent=tot+' '+plural(tot,['улика','улики','улик'])+' за неделю'+(cal?' (по правилам с точностью от 90%)':'');
+  document.getElementById('kur-total').textContent=tot+' '+plural(tot,['улика','улики','улик'])+' за неделю'+(cal?' (по правилам, прошедшим порог точности)':'');
   tb.innerHTML='<tr><th>Менеджер</th><th>Первый ответ ≤15 раб. минут</th><th data-t="Считается тем же детектором, что правило «Обещание без даты», и наследует его измеренную точность (89,5% по разметке 04.09)">Обещания с датой*</th><th>Улик · на 10 сообщений</th><th></th></tr>'+
     rows.map(([m,v],i)=>{const frP=v.fr?Math.round(100*v.frOk/v.fr):null,prP=v.pr?Math.round(100*v.prOk/v.pr):null;
     const small=v.out<MINS;

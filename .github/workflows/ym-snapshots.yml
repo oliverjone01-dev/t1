@@ -50,6 +50,7 @@ jobs:
         shell: bash
     steps:
       - name: Маскировать ключ и проверить наличие (первым шагом, до любых установок)
+        working-directory: . # до checkout каталога analytics-mvp ещё нет
         run: |
           set -euo pipefail
           [ -n "${YM_API_KEY:-}" ] && echo "::add-mask::$YM_API_KEY"

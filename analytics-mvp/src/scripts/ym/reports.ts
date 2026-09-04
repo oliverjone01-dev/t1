@@ -264,7 +264,14 @@ async function main() {
     await realization(months);
   } else if (cmd === "netting") {
     const to = process.argv[4] || yesterday();
-    const from = process.argv[3] || (readNdjson(yp("netting.ndjson")).length ? addDays(to, -59) : FLOOR);
+    // Обычный прогон добирает последние 60 дней. Но снимок, собранный до дедупа по TRANSACTION_ID,
+    // содержит задвоенные проводки (соседние месячные окна пересекаются) и не несёт внешнего номера
+    // заказа - лечится только полным пересбором от FLOOR. Признак такого снимка: хотя бы одна строка
+    // без tx. Делаем это САМИ, чтобы историю не пришлось чинить руками.
+    const have = readNdjson<any>(yp("netting.ndjson"));
+    const stale = have.length > 0 && have.some((r) => !r.tx);
+    if (stale) console.warn(`::warning::netting: в снимке ${have.filter((r: any) => !r.tx).length}/${have.length} строк без TRANSACTION_ID (собраны до дедупа) - полный пересбор от ${FLOOR}`);
+    const from = process.argv[3] || (have.length && !stale ? addDays(to, -59) : FLOOR);
     await netting(from, to);
   } else if (cmd === "shows") {
     await shows(Number(process.argv[3] || process.env.YM_SHOWS_DAYS || 7) || 7);

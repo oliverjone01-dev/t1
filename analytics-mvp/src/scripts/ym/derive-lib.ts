@@ -42,6 +42,7 @@ export interface OrderRow {
   units: number; count: number; delivered: number; returned: number; cancelled: number;
   price: number; p_buyer: number; p_mp: number; p_cashback: number; p_spasibo: number;
   revenue: number; accruals: number;
+  shop_order: string;
   fees: Record<string, number>; fee_total: number; payout: number; fee_actual: boolean;
   paid: number; paid_by_type: Record<string, number>; subsidy: number; fake: boolean;
 }
@@ -101,7 +102,7 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
     if (deliveredSet) for (const [g, v] of Object.entries(fees)) { const a = r2(v * share); if (a) { f[g] = a; ft += a; } }
     ft = r2(ft);
     return {
-      platform: PLATFORM, business: businessId, campaign: campaignId, order: o.id,
+      platform: PLATFORM, business: businessId, campaign: campaignId, order: o.id, shop_order: o.partnerOrderId || "",
       created, statusDate, status: o.status, fin,
       sku: x.it.shopSku || x.it.marketSku, market_sku: x.it.marketSku, name: x.it.offerName, line: lineOf(x.it.offerName),
       units: x.units, count: x.count, delivered: x.delivered, returned: x.returned, cancelled: x.cancelledUnits,

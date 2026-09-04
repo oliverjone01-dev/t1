@@ -2,6 +2,7 @@
 // Период и сравнение считаются в браузере. Запуск: npm run build:site
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from "node:fs";
 import { dp, op, OUT_DIR, IS_OZON, platformize } from "../paths.js";
+import { injectCoverage } from "../coverage.js";
 import type { SkuDaily } from "../types.js";
 import { renderTovary, renderOverview, renderFunnel, renderCards, renderMoney, renderAssistant, staticPage } from "../site.js";
 
@@ -23,7 +24,8 @@ function sanitize(html: string): string {
   for (const [re, alias] of HTML_FIX) out = out.replace(re, alias);
   return out;
 }
-const writePage = (path: string, html: string) => writeFileSync(path, platformize(sanitize(html)));
+// injectCoverage: полоса §15 + бейджи на всех страницах, если есть reconcile.json (ФЕНИКС G3); OZON без файла - identity.
+const writePage = (path: string, html: string) => writeFileSync(path, platformize(sanitize(injectCoverage(html))));
 
 const fixLine = (l: string) => (l === "VIOLUR (перегородки)" ? "VIOLUR (столы)" : l);
 
@@ -363,7 +365,11 @@ function main() {
   const footComp = `Все поля - <b>[ДАННЫЕ]</b> с публичной карточки OZON (цена / база / рейтинг / отзывы / наличие). Заказы и выручку конкурента OZON не отдаёт - не оцениваем. Лист - снимок последнего прогона пилота; страж заполненности краснеет, если анти-бот срезал сбор.`;
   const compSnaps = listCompetitorSnaps();
   const compLabel = compSnaps.length ? `снимок конкурентов ${compDate(compSnaps[compSnaps.length - 1]!)}` : "конкуренты - данных пока нет";
-  writePage(op("competitors.html"), staticPage("Конкуренты", compLabel, buildCompetitors(maxDate), footComp));
+  // Конкуренты: пилот-сборщик работает только с карточками OZON. Для другой платформы - честная заглушка
+  // без чужих ссылок (ФЕНИКС G5), пока нет своего сборщика по market.yandex.ru.
+  const compBody = IS_OZON ? buildCompetitors(maxDate) : `<div class="card"><b>Конкуренты на этой площадке не собираются.</b><div class="note" style="margin-top:8px">Сборщик цен/рейтингов конкурентов есть только для OZON (пилот). Для Яндекс Маркета нужен отдельный сборщик по market.yandex.ru - отдельная задача, решение за Иваном.</div></div>`;
+  const compFoot = IS_OZON ? footComp : "Лист пустой намеренно: источника по конкурентам на этой площадке нет.";
+  writePage(op("competitors.html"), staticPage("Конкуренты", IS_OZON ? compLabel : "нет источника", compBody, compFoot));
 
   console.log(`Готово: obzor · tovary · voronka · cards · money · marketing · campaigns · competitors (+index-redirect)`);
   console.log(`Фактов ${facts.length} · SKU ${Object.keys(skus).length} · ${model.floor}..${model.max} · OOS ${oos.length} · закрытые Акты до ${closedMeta.lastLabel}${closedMeta.stale ? " (УСТАРЕЛИ)" : ""}`);

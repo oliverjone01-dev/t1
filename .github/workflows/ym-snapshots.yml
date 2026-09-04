@@ -18,9 +18,13 @@ on:
         required: false
         default: "7"
       realization_months:
-        description: "Месяцы реализации через пробел, напр. 2026-07 2026-08 (пусто = текущий + прошлый)"
+        description: "Месяцы реализации через пробел, напр. 2026-07 2026-08 (пусто = текущий + прошлый; первый прогон - все от FLOOR в пределах бюджета)"
         required: false
         default: ""
+      report_budget:
+        description: "Максимум отчётов Маркета (generate/poll/download) за прогон; каждый до 15 мин"
+        required: false
+        default: "10"
 
 permissions:
   contents: write
@@ -34,6 +38,7 @@ env:
   YM_BUSINESS_IDS: ${{ secrets.YM_BUSINESS_IDS }}
   YM_CAMPAIGN_IDS: ${{ secrets.YM_CAMPAIGN_IDS }}
   SNAPSHOT_MIN_SKUS: "1"
+  YM_REPORT_BUDGET: ${{ github.event.inputs.report_budget || '10' }}
 
 jobs:
   snapshots:
@@ -44,18 +49,17 @@ jobs:
         working-directory: analytics-mvp
         shell: bash
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: npm ci
-
-      - name: Маскировать ключ и проверить наличие
+      - name: Маскировать ключ и проверить наличие (первым шагом, до любых установок)
         run: |
           set -euo pipefail
           [ -n "${YM_API_KEY:-}" ] && echo "::add-mask::$YM_API_KEY"
           if [ -z "${YM_API_KEY:-}" ]; then echo "::error::секрет YM_DASHBOARD_1 не задан (Api-Key Маркета)"; exit 1; fi
           echo "Ключ Маркета на месте."
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
 
       - name: "Снимок OZON-страниц ДО (гейт: OZON байт-в-байт не меняется)"
         run: |
@@ -70,7 +74,23 @@ jobs:
       - name: Каталог (имена, marketSku, цены, остатки; накопительно)
         run: npm run ym:catalog || echo "::warning::каталог не обновлён (прошлый catalog.json остаётся)"
 
-      - name: Отчёт о реализации по месяцам (generate/poll/download)
+      - name: Промежуточный коммит факт-слоя (заказы+каталог сохраняются даже при обрыве отчётов)
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if grep -rqF -- "$YM_API_KEY" analytics-mvp/data-ym; then echo "::error::в data-ym найден Api-Key"; exit 1; fi
+          git add -A analytics-mvp/data-ym
+          if git diff --staged --quiet; then echo "факт-слой без изменений"; exit 0; fi
+          git commit -m "data-ym: заказы и каталог Маркета $(date -u +%F) (промежуточный)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "::warning::промежуточный push не удался - финальный коммит повторит"
+
+      - name: Отчёт о реализации по месяцам (generate/poll/download; бюджет YM_REPORT_BUDGET)
         run: |
           set -euo pipefail
           npm run ym:realization -- ${{ github.event.inputs.realization_months }} || echo "::warning::реализация не обновлена"
@@ -114,11 +134,11 @@ jobs:
           if [ -s /tmp/ozon-before/data.md5 ]; then md5sum -c /tmp/ozon-before/data.md5; fi
           echo "OZON-страницы и data/ не тронуты."
 
-      - name: Ключ не попал в HTML
+      - name: Ключ не попал в HTML и в данные
         run: |
           set -euo pipefail
-          if grep -rq -- "$YM_API_KEY" public/market; then echo "::error::в public/market найден Api-Key"; exit 1; fi
-          echo "Ключа в HTML нет."
+          if grep -rqF -- "$YM_API_KEY" public/market data-ym; then echo "::error::в public/market или data-ym найден Api-Key"; exit 1; fi
+          echo "Ключа в HTML и данных нет."
 
       - name: Commit (если есть изменения)
         working-directory: .

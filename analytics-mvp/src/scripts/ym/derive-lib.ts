@@ -66,7 +66,9 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
     const count = it.count;
     const delivered = deliveredSet ? Math.max(0, count - returned) : 0;
     const cancelledUnits = cancelled ? units : rejected;
-    const revenue = cancelled ? 0 : r2(price * count);
+    // revenue = «заказано на сумму» по дате создания, как revenue в OZON analytics (включая заказы,
+    // отменённые позже) - единый смысл поля в обоих каналах (ФЕНИКС G7). Деньги - в accruals/payout.
+    const revenue = r2(price * units);
     const accruals = deliveredSet ? r2(price * Math.max(0, count - returned)) : 0;
     return { it, price, p_buyer: per("BUYER"), p_mp: per("MARKETPLACE"), p_cashback: per("CASHBACK"), p_spasibo: per("SPASIBO"), returned, units, count, delivered, cancelledUnits, revenue, accruals };
   });
@@ -235,10 +237,28 @@ export function buildPnlSkuDaily(rows: OrderRow[]) {
   return [...m.values()].map((t) => { for (const k of ["accruals", "commission", "delivery", "acquiring", "storage", "otherSvc", "amount"]) t[k] = Math.round(t[k]); return t; }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
 }
 
-// Сборы уровня кабинета: у Маркета в stats/orders все комиссии привязаны к заказу и разнесены по
-// SKU, поэтому здесь нули (честно: не «нет данных», а «в этом канале так не списывают»).
-export function buildAccountDaily(floor: string, to: string) {
-  return daysBetween(floor, to).map((d) => ({ d, adv: 0, fines: 0, realfbs: 0, badge: 0, delivery: 0, other: 0, platform: PLATFORM }));
+// Сборы уровня кабинета (плата за размещение, буст вне заказа, штрафы, подписки) в stats/orders не
+// приходят - [ГИПОТЕЗА] до первого netting. Источник - строки отчёта по взаиморасчётам БЕЗ номера
+// заказа: группируем по дате и смыслу услуги. Пока отчёта нет - нули, и полоса покрытия так и пишет
+// «сборы уровня кабинета: не подключены» (ФЕНИКС G8), а не молчит.
+export interface NettingRow { d: string; order?: string; service?: string; type?: string; amount: number }
+export function accountGroup(service: string, type = ""): "adv" | "fines" | "badge" | "delivery" | "other" {
+  const n = `${service} ${type}`.toLowerCase();
+  if (/буст|продвиж|реклам|полк|shows|boost/.test(n)) return "adv";
+  if (/штраф|неустой|penalt/.test(n)) return "fines";
+  if (/подписк|premium|плюс|размещен|subscri/.test(n)) return "badge";
+  if (/доставк|логист|deliver/.test(n)) return "delivery";
+  return "other";
+}
+export function buildAccountDaily(floor: string, to: string, netting: NettingRow[] = []) {
+  const m = new Map<string, any>();
+  for (const d of daysBetween(floor, to)) m.set(d, { d, adv: 0, fines: 0, realfbs: 0, badge: 0, delivery: 0, other: 0, platform: PLATFORM });
+  for (const r of netting) {
+    if (r.order && String(r.order).trim()) continue; // привязано к заказу - уже в pnl_sku_daily
+    const t = m.get(r.d); if (!t) continue;
+    t[accountGroup(r.service || "", r.type || "")] += Math.round(r.amount * 100) / 100; // знак как в отчёте (удержания отрицательны)
+  }
+  return [...m.values()].map((t) => { for (const k of ["adv", "fines", "badge", "delivery", "other"]) t[k] = Math.round(t[k]); return t; });
 }
 
 export function buildSkuOffer(rows: OrderRow[], catalog: CatalogLike): Record<string, string> {

@@ -40,7 +40,8 @@ function main() {
   writeJson(yp("pnl_sku_30d.json"), buildPnlSku(rows, w.dateFrom, w.dateTo));
   writeNdjson(yp("pnl_daily.ndjson"), buildPnlDaily(rows));
   writeNdjson(yp("pnl_sku_daily.ndjson"), buildPnlSkuDaily(rows));
-  writeNdjson(yp("pnl_account_daily.ndjson"), buildAccountDaily(floor, to));
+  const nettingRows = readNdjson<any>(yp("netting.ndjson"));
+  writeNdjson(yp("pnl_account_daily.ndjson"), buildAccountDaily(floor, to, nettingRows));
   writeJson(yp("sku_offer.json"), buildSkuOffer(rows, catalog), 0);
 
   // реклама - заглушки (нет источника); не перезаписываем, если кто-то положил реальный снимок с расходом

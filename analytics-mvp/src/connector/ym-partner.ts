@@ -121,7 +121,14 @@ export function parseOrder(o: any): YmOrder {
   };
 }
 
+// YYYY-MM-DD -> DD-MM-YYYY (формат дат запроса stats/orders в части документации Маркета).
+export function toDmy(iso: string): string { const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}-${m[2]}-${m[1]}` : iso; }
+
 export class YmPartner {
+  // Сырой первый заказ последнего stats/orders (для _probe/orders.json: ключи и типы, без значений).
+  public lastRawOrder: any = null;
+  // Формат дат запроса, который принял Маркет: "iso" | "dmy" (выясняется на первом 400, ФЕНИКС G6).
+  public orderDateFormat: "iso" | "dmy" | null = null;
   constructor(private creds: YmCreds, private host: string = YM_HOST) {}
 
   private headers(): Record<string, string> {
@@ -163,14 +170,32 @@ export class YmPartner {
     let pageToken: string | undefined;
     let guard = 0;
     do {
-      const body: any = {};
-      if (f.dateFrom) body.dateFrom = f.dateFrom;
-      if (f.dateTo) body.dateTo = f.dateTo;
-      if (f.updateFrom) body.updateFrom = f.updateFrom;
-      if (f.updateTo) body.updateTo = f.updateTo;
-      if (f.statuses?.length) body.statuses = f.statuses;
-      const j = await this.req<any>("POST", `/campaigns/${campaignId}/stats/orders`, body, { limit: 200, page_token: pageToken });
+      const mk = (fmt: "iso" | "dmy") => {
+        const cv = (d?: string) => (d ? (fmt === "dmy" ? toDmy(d) : d) : undefined);
+        const body: any = {};
+        if (f.dateFrom) body.dateFrom = cv(f.dateFrom);
+        if (f.dateTo) body.dateTo = cv(f.dateTo);
+        if (f.updateFrom) body.updateFrom = cv(f.updateFrom);
+        if (f.updateTo) body.updateTo = cv(f.updateTo);
+        if (f.statuses?.length) body.statuses = f.statuses;
+        return body;
+      };
+      const path = `/campaigns/${campaignId}/stats/orders`;
+      let j: any;
+      const fmt0 = this.orderDateFormat ?? "iso";
+      try {
+        j = await this.req<any>("POST", path, mk(fmt0), { limit: 200, page_token: pageToken });
+        this.orderDateFormat ??= fmt0;
+      } catch (e) {
+        // 400 на первом же формате -> пробуем второй (ISO <-> DD-MM-YYYY) и запоминаем, какой принял Маркет.
+        if (!(e instanceof HttpError) || e.status !== 400 || this.orderDateFormat) throw e;
+        const fmt1 = fmt0 === "iso" ? "dmy" : "iso";
+        j = await this.req<any>("POST", path, mk(fmt1), { limit: 200, page_token: pageToken });
+        this.orderDateFormat = fmt1;
+        console.warn(`::warning::stats/orders: формат дат ${fmt0} отвергнут (400), принят ${fmt1}`);
+      }
       const r = j?.result ?? j ?? {};
+      if (this.lastRawOrder == null && (r.orders ?? []).length) this.lastRawOrder = r.orders[0];
       for (const o of r.orders ?? []) out.push(parseOrder(o));
       pageToken = r.paging?.nextPageToken || undefined;
     } while (pageToken && ++guard < 2000);
@@ -298,6 +323,14 @@ export function decodeReport(buf: Buffer): { name: string; text: string } {
   const bad = (text.match(/�/g) || []).length;
   if (bad > 3) { try { text = new TextDecoder("windows-1251").decode(data); } catch { /* оставляем utf-8 */ } }
   return { name, text };
+}
+
+// Форма объекта без значений (для _probe: ключи -> тип/форма вложенных), чтобы не писать ПД/номера в git.
+export function shape(x: any, depth = 0): any {
+  if (depth > 4) return typeof x;
+  if (Array.isArray(x)) return x.length ? [shape(x[0], depth + 1)] : [];
+  if (x && typeof x === "object") { const o: Record<string, any> = {}; for (const k of Object.keys(x)) o[k] = shape(x[k], depth + 1); return o; }
+  return typeof x;
 }
 
 // Ключ из окружения: YM_API_KEY (локально) либо YM_DASHBOARD_1 (GitHub Secret). YM_TOKEN не читаем - это Метрика.

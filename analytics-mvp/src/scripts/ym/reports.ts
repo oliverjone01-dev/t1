@@ -11,15 +11,38 @@
 import { readFileSync } from "node:fs";
 import { loadEnv } from "../../env.js";
 import { client, resolveCampaigns, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad } from "./common.js";
-import { toTable, findCol, cellNum, cellDate } from "../../util/table.js";
+import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { ymBusinessIdsFromEnv, type YmPartner } from "../../connector/ym-partner.js";
 
 type ColMap = Record<string, string[]>;
 const COLS: Record<string, ColMap> = JSON.parse(readFileSync(new URL("./report-columns.json", import.meta.url), "utf-8"));
 
+// Probe: заголовки + МАСКИРОВАННЫЕ образцы строк (цифры -> 9, буквы -> x): для настройки колонок достаточно,
+// а номера заказов / п/п / суммы в git не уезжают (ФЕНИКС G10).
 function probe(type: string, headers: string[], rows: string[][], extra: any = {}) {
-  writeJson(yp(`_probe/${type}.json`), { type, at: new Date().toISOString(), headers, sample: rows.slice(0, 3), ...extra });
+  writeJson(yp(`_probe/${type}.json`), { type, at: new Date().toISOString(), headers, sample_masked: rows.slice(0, 3).map((r) => r.map(maskCell)), ...extra });
 }
+
+// Битые числовые ячейки (не разобрались) - считаем, пишем в _probe/bad_cells.json, reconcile поднимает в полосу.
+const BAD: Record<string, number> = {};
+function num(type: string, s: string | undefined): number {
+  const v = cellNumStrict(s);
+  if (v == null) { BAD[type] = (BAD[type] || 0) + 1; return 0; }
+  return v;
+}
+function flushBad() {
+  const total = Object.values(BAD).reduce((a, b) => a + b, 0);
+  const prev = readJson<any>(yp("_probe/bad_cells.json"), { byType: {} });
+  const byType: Record<string, number> = { ...(prev.byType || {}), ...BAD };
+  writeJson(yp("_probe/bad_cells.json"), { at: new Date().toISOString(), byType, total: Object.values(byType).reduce((a, b) => a + Number(b), 0) });
+  if (total) console.warn(`::warning::неразобранных числовых ячеек за прогон: ${total} (${JSON.stringify(BAD)})`);
+}
+
+// Бюджет отчётов на прогон (ФЕНИКС G9): каждый generate+poll до 15 мин; без потолка первый бэкфилл
+// упирается в timeout job и теряет всё. По умолчанию 10 отчётов, переопределяется YM_REPORT_BUDGET.
+const BUDGET = Math.max(1, Number(process.env.YM_REPORT_BUDGET || 10) || 10);
+let used = 0;
+function budgetLeft(): boolean { if (used >= BUDGET) { console.warn(`::warning::бюджет отчётов исчерпан (${BUDGET}) - остальное доберёт следующий прогон`); return false; } used++; return true; }
 
 function cols(type: string, headers: string[], required: string[]): Record<string, number> | null {
   const map = COLS[type] || {};
@@ -31,6 +54,7 @@ function cols(type: string, headers: string[], required: string[]): Record<strin
 }
 
 async function fetchReport(api: YmPartner, type: string, body: any): Promise<{ headers: string[]; rows: string[][] } | null> {
+  if (!budgetLeft()) return null;
   const r = await api.report(type, body, { timeoutMs: Number(process.env.YM_REPORT_TIMEOUT_MS || 15 * 60 * 1000) });
   if (r.status !== "DONE" || r.text == null) { console.warn(`::warning::отчёт ${type} ${JSON.stringify(body)}: status ${r.status}${r.subStatus ? "/" + r.subStatus : ""} - данных нет`); return null; }
   const t = toTable(r.text);
@@ -59,7 +83,7 @@ async function realization(api: YmPartner, months: string[]) {
       for (const r of t.rows) {
         const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
         const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0 });
-        a.sold += cellNum(r[ix.sold!]); if (ix.returned! >= 0) a.ret += cellNum(r[ix.returned!]); if (ix.amount! >= 0) a.amount += cellNum(r[ix.amount!]);
+        a.sold += num("goods-realization", r[ix.sold!]); if (ix.returned! >= 0) a.ret += num("goods-realization", r[ix.returned!]); if (ix.amount! >= 0) a.amount += num("goods-realization", r[ix.amount!]);
       }
     }
     if (!ok) { console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`); continue; }
@@ -92,7 +116,7 @@ async function netting(api: YmPartner, from: string, to: string) {
           ok++;
           for (const r of t.rows) {
             const d = cellDate(r[ix.date!]); if (!d) continue;
-            fresh.push({ d, business: b, type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", amount: cellNum(r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
+            fresh.push({ d, business: b, type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
           }
         }
       }
@@ -116,7 +140,7 @@ async function shows(api: YmPartner, days: number) {
   const to = yesterday();
   let from = addDays(to, -(days - 1)); if (from < FLOOR) from = FLOOR;
   const targets: string[] = []; for (let d = from; d <= to; d = addDays(d, 1)) if (!have.has(d)) targets.push(d);
-  const maxReports = Number(process.env.YM_SHOWS_MAX_REPORTS || 40);
+  const maxReports = Math.min(Number(process.env.YM_SHOWS_MAX_REPORTS || 40), BUDGET);
   console.log(`shows: дней к сбору ${targets.length} (${targets[0] || "-"}..${targets[targets.length - 1] || "-"}), лимит отчётов за прогон ${maxReports}`);
   const fresh: any[] = []; let n = 0, fails = 0;
   outer: for (const d of targets) {
@@ -133,7 +157,7 @@ async function shows(api: YmPartner, days: number) {
       if (!ix) break outer;
       for (const r of t.rows) {
         const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
-        dayRows.push({ date: d, sku, name: ix.name! >= 0 ? (r[ix.name!] || "").trim() : "", line: "", views: Math.round(cellNum(r[ix.shows!])), vsearch: 0, pdp: ix.clicks! >= 0 ? Math.round(cellNum(r[ix.clicks!])) : 0, cart: ix.cart! >= 0 ? Math.round(cellNum(r[ix.cart!])) : 0, units: ix.units! >= 0 ? Math.round(cellNum(r[ix.units!])) : 0, deliv: 0, ret: 0, canc: 0, business: b, platform: "ym" });
+        dayRows.push({ date: d, sku, name: ix.name! >= 0 ? (r[ix.name!] || "").trim() : "", line: "", views: Math.round(num("shows-sales", r[ix.shows!])), vsearch: 0, pdp: ix.clicks! >= 0 ? Math.round(num("shows-sales", r[ix.clicks!])) : 0, cart: ix.cart! >= 0 ? Math.round(num("shows-sales", r[ix.cart!])) : 0, units: ix.units! >= 0 ? Math.round(num("shows-sales", r[ix.units!])) : 0, deliv: 0, ret: 0, canc: 0, business: b, platform: "ym" });
       }
     }
     fresh.push(...dayRows);
@@ -169,6 +193,7 @@ async function main() {
   } else if (cmd === "shows") {
     await shows(api, Number(process.argv[3] || process.env.YM_SHOWS_DAYS || 7) || 7);
   } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days]"); process.exit(2); }
+  flushBad();
 }
 
 main().catch((e) => { console.error("ym-reports FAILED:", (e as Error).message); process.exit(0); }); // мягкий продьюсер

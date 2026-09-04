@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { dailyRecords } from "./ads-daily.js";
 
 const row = (date: string, id: string, spent: number, orders: number, om: number, title = "") =>
-  ({ id, title, date, views: 0, clicks: 0, spent, orders, ordersMoney: om });
+  ({ id, title, date, views: 0, clicks: 0, toCart: 0, spent, orders, ordersMoney: om });
 
 describe("dailyRecords", () => {
   it("формат, фильтр окна и округление сумм", () => {
@@ -13,8 +13,8 @@ describe("dailyRecords", () => {
       row("2026-06-03", "1", 1, 1, 1, "GGT-1"),       // вне окна сверху
     ];
     expect(dailyRecords(rows, "2026-06-01", "2026-06-02")).toEqual([
-      { d: "2026-06-01", id: "1", off: "GGT-1", sp: 100, o: 2, om: 501 },
-      { d: "2026-06-02", id: "2", off: "2", sp: 50, o: 0, om: 0 },
+      { d: "2026-06-01", id: "1", off: "GGT-1", sp: 100, o: 2, om: 501, vw: 0, cl: 0, ca: 0 },
+      { d: "2026-06-02", id: "2", off: "2", sp: 50, o: 0, om: 0, vw: 0, cl: 0, ca: 0 },
     ]);
   });
 

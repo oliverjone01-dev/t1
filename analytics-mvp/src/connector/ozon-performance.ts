@@ -19,6 +19,7 @@ export interface DailyStatRow {
   date: string;
   views: number;
   clicks: number;
+  toCart: number; // добавления в корзину (если OZON отдаёт в дневной статистике; иначе 0)
   spent: number;
   orders: number;
   ordersMoney: number;
@@ -107,6 +108,7 @@ export class OzonPerformance {
           date: String(r.date ?? ""),
           views: parseOzonNumber(r.views),
           clicks: parseOzonNumber(r.clicks),
+          toCart: parseOzonNumber(r.toCart ?? r.to_cart ?? r.addToCart ?? r.add_to_cart ?? r.toCartCount ?? 0),
           spent: parseOzonNumber(r.moneySpent),
           orders: parseOzonNumber(r.orders),
           ordersMoney: parseOzonNumber(r.ordersMoney),

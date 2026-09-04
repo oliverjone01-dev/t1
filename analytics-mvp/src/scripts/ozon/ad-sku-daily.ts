@@ -20,7 +20,7 @@ function today(): string { return fmt(new Date()); }
 function yesterday(): string { const d = new Date(); d.setUTCDate(d.getUTCDate() - 1); return fmt(d); }
 function shiftDays(date: string, n: number): string { const d = new Date(date + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return fmt(d); }
 
-type Row = { d: string; cid: string; sku: string; sp: number; om: number };
+type Row = { d: string; cid: string; sku: string; sp: number; om: number; ca: number }; // ca = добавления в корзину (реклама)
 
 function readExisting(): Row[] {
   if (!existsSync(OUT)) return [];
@@ -75,7 +75,7 @@ async function main() {
     processed.add(cid); state[cid] = today();
     for (const r of rows) {
       if (!r.sku || r.date < from || r.date > to) continue;
-      fresh.push({ d: r.date, cid, sku: String(r.sku), sp: Math.round(r.sp || 0), om: Math.round(r.om || 0) });
+      fresh.push({ d: r.date, cid, sku: String(r.sku), sp: Math.round(r.sp || 0), om: Math.round(r.om || 0), ca: Math.round((r as any).toCart || 0) });
     }
   }
   // Накопление: сохраняем всё, КРОМЕ строк собранных сейчас кампаний в окне (их заменяем свежими).

@@ -53,13 +53,21 @@ export function findCol(headers: string[], patterns: string[]): number {
   return -1;
 }
 
-// Число из ячейки отчёта: «1 234,56», «1234.56», «−12», пусто -> 0.
-export function cellNum(s: string | undefined): number {
-  if (!s) return 0;
-  const t = s.replace(/[\s ]/g, "").replace("−", "-").replace(/₽|руб\.?/gi, "").replace(",", ".");
+// Число из ячейки отчёта: «1 234,56», «1234.56», «−12», «1,234,567.89». Пусто -> 0.
+// Не разобралось -> null (ФЕНИКС G12: деньги не превращаются в нули молча; вызывающий считает bad cells).
+export function cellNumStrict(s: string | undefined): number | null {
+  if (s == null || s.trim() === "" || s.trim() === "-" || s.trim() === "—") return 0;
+  let t = s.replace(/[\s\u00A0]/g, "").replace("−", "-").replace(/₽|руб\.?|%/gi, "");
+  if (/,\d{3}(,|\.|$)/.test(t) && t.includes(".")) t = t.replace(/,/g, "");      // 1,234,567.89
+  else if ((t.match(/,/g) || []).length === 1 && !t.includes(".")) t = t.replace(",", "."); // 1234,56
+  else if ((t.match(/,/g) || []).length > 1) t = t.replace(/,/g, "");                 // 1,234,567
   const n = Number(t);
-  return Number.isFinite(n) ? n : 0;
+  return Number.isFinite(n) ? n : null;
 }
+export function cellNum(s: string | undefined): number { return cellNumStrict(s) ?? 0; }
+
+// Маска значения для probe-файлов (в git не должны попадать сырые номера заказов/п/п): цифры -> 9, буквы -> x.
+export function maskCell(s: string): string { return s.replace(/\d/g, "9").replace(/[A-Za-zА-Яа-яЁё]/g, "x").slice(0, 24); }
 
 // Дата из ячейки: DD.MM.YYYY, DD-MM-YYYY, YYYY-MM-DD, ISO datetime -> YYYY-MM-DD ('' если не дата).
 export function cellDate(s: string | undefined): string {

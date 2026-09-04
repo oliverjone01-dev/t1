@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toTable, findCol, cellNum, cellDate, detectDelimiter } from "./table.js";
+import { toTable, findCol, cellNum, cellNumStrict, cellDate, detectDelimiter, maskCell } from "./table.js";
 import { unzip, isZip } from "./zip.js";
 import { deflateRawSync } from "node:zlib";
 
@@ -19,6 +19,12 @@ describe("table", () => {
     expect(cellNum("1 234,56")).toBeCloseTo(1234.56);
     expect(cellNum("−12")).toBe(-12);
     expect(cellNum("")).toBe(0);
+    expect(cellNumStrict("1,234,567.89")).toBeCloseTo(1234567.89);
+    expect(cellNumStrict("1,234,567")).toBe(1234567);
+    expect(cellNumStrict("12,5%")).toBe(12.5);
+    expect(cellNumStrict("н/д")).toBeNull();
+    expect(cellNum("н/д")).toBe(0);
+    expect(maskCell("Заказ 500001-A")).toBe("xxxxx 999999-x");
     expect(cellDate("05.08.2026")).toBe("2026-08-05");
     expect(cellDate("2026-08-05T00:00:00")).toBe("2026-08-05");
     expect(cellDate("не дата")).toBe("");

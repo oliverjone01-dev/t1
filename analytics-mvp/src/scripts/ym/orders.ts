@@ -7,7 +7,8 @@
 // predicted -> actual. Первый прогон - полный бэкфилл от FLOOR. Дедуп по (campaign, order, sku).
 // Запуск: npm run ym:orders  (env: YM_API_KEY|YM_DASHBOARD_1, YM_BUSINESS_IDS, YM_CAMPAIGN_IDS, YM_TAIL_DAYS)
 import { loadEnv } from "../../env.js";
-import { client, resolveCampaigns, ensureDir, readNdjson, writeNdjson, yp, FLOOR, yesterday, addDays, campaignSummary } from "./common.js";
+import { client, resolveCampaigns, ensureDir, readNdjson, writeNdjson, writeJson, yp, FLOOR, yesterday, addDays, campaignSummary } from "./common.js";
+import { shape } from "../../connector/ym-partner.js";
 import { normalizeOrder, type OrderRow } from "./derive-lib.js";
 
 const OUT = yp("orders.ndjson");
@@ -63,6 +64,10 @@ async function main() {
       }
     }
   }
+
+  // Самодиагностика первого живого прогона (ФЕНИКС G6): форма сырого заказа (ключи/типы, без значений)
+  // и принятый формат дат запроса -> data-ym/_probe/orders.json.
+  if (api.lastRawOrder) writeJson(yp("_probe/orders.json"), { at: new Date().toISOString(), dateFormatAccepted: api.orderDateFormat, shape: shape(api.lastRawOrder), creationDateSample: String(api.lastRawOrder.creationDate || "").replace(/\d/g, "9") });
 
   // Дедуп: свежая строка побеждает старую по ключу (campaign, order, sku).
   const key = (r: OrderRow) => `${r.campaign}|${r.order}|${r.sku}`;

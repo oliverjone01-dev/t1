@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, feeGroup, type OrderRow } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -37,13 +37,13 @@ describe("normalizeOrder", () => {
     const r = rows.find((x) => x.order === "500002")!;
     expect(r.units).toBe(3); expect(r.count).toBe(2); expect(r.returned).toBe(1); expect(r.cancelled).toBe(1);
     expect(r.delivered).toBe(1);
-    expect(r.accruals).toBe(40000); expect(r.revenue).toBe(80000);
+    expect(r.accruals).toBe(40000); expect(r.revenue).toBe(120000); // заказано 3 шт (как revenue OZON: до отклонений/возвратов)
     expect(r.fee_actual).toBe(false); expect(r.fee_total).toBe(6500);
     expect(r.fin).toBe("2026-08-16"); // дата доставки/возврата, не создания
   });
-  it("отменённый заказ: выручка 0, cancelled = units, денег нет", () => {
+  it("отменённый заказ: revenue = заказано (единый смысл с OZON), cancelled = units, денег нет", () => {
     const r = rows.find((x) => x.order === "500003")!;
-    expect(r.revenue).toBe(0); expect(r.cancelled).toBe(1); expect(r.accruals).toBe(0); expect(r.payout).toBe(0);
+    expect(r.revenue).toBe(18000); expect(r.cancelled).toBe(1); expect(r.accruals).toBe(0); expect(r.payout).toBe(0);
   });
   it("заказ в доставке: выручка есть (заказано), начислений/выплаты нет", () => {
     const r = rows.find((x) => x.order === "500004")!;
@@ -65,7 +65,7 @@ describe("derive contract files", () => {
     expect(d05.map((f) => f.sku).sort()).toEqual(["GGM-16-2-2", "GGT-03-3-3-O-20090"]);
     expect(d05.find((f) => f.sku === "GGM-16-2-2")!.revenue).toBe(20000);
     const c = facts.find((f) => f.date === "2026-08-20")!;
-    expect(c.cancellations).toBe(1); expect(c.revenue).toBe(0);
+    expect(c.cancellations).toBe(1); expect(c.revenue).toBe(18000);
   });
   it("daily_totals: суммы по дням совпадают с history", () => {
     const dt = buildDailyTotals(facts, "2026-08-01", "2026-08-31");
@@ -77,7 +77,7 @@ describe("derive contract files", () => {
     const cat = { items: { "GGM-16-2-2": { name: "x", marketSku: "100200300", price: 17500, stock: 0 }, "GGT-03-3-3-O-20090": { name: "y", marketSku: "100200301", price: 41000, stock: 5 } } };
     const live = buildSkusLive(rows, facts, cat, "2026-08-01", "2026-08-31");
     expect(live.platform).toBe("ym");
-    expect(live.totals.rev).toBe(20000 + 80000 + 80000 + 18000);
+    expect(live.totals.rev).toBe(20000 + 80000 + 120000 + 18000 + 18000);
     expect(live.totals.units).toBe(1 + 2 + 3 + 1 + 1);
     const m = live.sku_table.find((s: any) => s.sku === "GGM-16-2-2");
     expect(m.offer).toBe("GGM-16-2-2"); expect(m.price).toBe(17500); expect(m.oos).toBe(1); expect(m.stock).toBe(0);
@@ -106,6 +106,21 @@ describe("derive contract files", () => {
     const sd = buildPnlSkuDaily(rows);
     expect(Math.abs(sd.reduce((s, d) => s + d.amount, 0) - p.payout)).toBeLessThanOrEqual(2);
     expect(sd.every((d) => d.commission <= 0 && d.delivery <= 0)).toBe(true);
+  });
+});
+
+describe("сборы уровня кабинета из netting", () => {
+  it("строки без заказа раскладываются по группам и датам, строки с заказом пропускаются", () => {
+    const acct = buildAccountDaily("2026-08-01", "2026-08-03", [
+      { d: "2026-08-02", order: "", service: "Буст продаж", amount: -300 },
+      { d: "2026-08-02", order: "", service: "Штраф за отмену", amount: -100 },
+      { d: "2026-08-02", order: "500001", service: "Комиссия", amount: -50 },
+      { d: "2026-08-03", order: "", service: "Плата за размещение", amount: -20 },
+    ]);
+    expect(acct.length).toBe(3);
+    expect(acct[1]).toMatchObject({ d: "2026-08-02", adv: -300, fines: -100, other: 0 });
+    expect(acct[2]!.badge).toBe(-20);
+    expect(accountGroup("Доставка до покупателя")).toBe("delivery");
   });
 });
 

@@ -5,7 +5,8 @@
 // Реальные числа - канал OZON. Прочие каналы, клиенты, план - нет данных (честно пусто).
 // Запуск: tsx src/scripts/build-katya.ts (после fetch:live). Источник: data/, не fixtures.
 import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
-import { dp, fp, op, platformize } from "../paths.js";
+import { dp, fp, op, IS_OZON, platformize } from "../paths.js";
+import { coverageStrip, GAPS_JS } from "../coverage.js";
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
 const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(html));
 
@@ -409,24 +410,6 @@ const KPAGES: [string, string, string][] = [
   ["katya-money.html", "Деньги", "money"],
   ["katya-competitors.html", "Конкуренты", "competitors"],
 ];
-// --- Отчёт о покрытии и пробелы по SKU (CLAUDE.md §15 п.3): читаем reconcile.json, если продьюсер
-// платформы его положил (Маркет: ym:reconcile). Нет файла - ничего не добавляем (OZON без изменений).
-const RECON: any = (() => { try { return JSON.parse(readFileSync(dp("reconcile.json"), "utf-8")); } catch { return null; } })();
-function coverageStrip(): string {
-  if (!RECON || !RECON.coverage) return "";
-  const c = RECON.coverage, gapsN = Object.keys(c.gaps || {}).length;
-  const pill = (ok: boolean, t: string) => `<span style="display:inline-block;border:1px solid ${ok ? "#34D399" : "#E5B567"};color:${ok ? "#34D399" : "#E5B567"};border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">${t}</span>`;
-  const per = (RECON.periods || []).map((p: any) => `<div style="margin-top:3px"><b>${p.label}</b>: штуки ${p.units.orders_delivered}−${p.units.orders_returned} vs реализация ${p.units.realization_sold ?? "—"}−${p.units.realization_ret ?? "—"} (${p.units.status}); деньги к выплате ${p.money.payout_derived.toLocaleString("ru-RU")} ₽ vs ЛК ${p.money.netting_paid == null ? "—" : p.money.netting_paid.toLocaleString("ru-RU") + " ₽"} (${p.money.status}); СС ${p.cogs.pct_rev}% оборота</div>`).join("");
-  return `<div id="gg-cov" style="background:#141c26;border-bottom:1px solid #2a3a4a;color:#cfe8ef;font:12px/1.6 system-ui;padding:6px 18px">
-  <div><b style="color:${RECON.verdict === "go" ? "#34D399" : "#E5B567"}">Сверка §15: ${RECON.verdict === "go" ? "GO" : "RETURN"}</b> · покрытие за ${c.window?.dateFrom}..${c.window?.dateTo}, SKU ${c.sku_total}:
-  ${pill(c.cogs.pct_rev >= 90, `СС ${c.cogs.pct_sku}% SKU / ${c.cogs.pct_rev}% оборота`)}${pill(c.taxonomy.pct_rev >= 90, `таксономия ${c.taxonomy.pct_sku}% / ${c.taxonomy.pct_rev}%`)}${pill(!!(c.realization && c.realization.months && c.realization.months.length), `реализация: ${c.realization && c.realization.months && c.realization.months.length ? c.realization.months.join(", ") : "нет отчёта"}`)}${pill(!!c.netting, `выплаты ЛК: ${c.netting ? c.netting.months.join(", ") : "нет отчёта"}`)}${pill(c.views && c.views.days > 0, `показы: ${c.views ? c.views.days : 0} дн`)}${pill(false, `реклама: ${c.ads}`)}${pill(gapsN === 0, `пробелов по SKU: ${gapsN}`)}
-  <details style="display:inline-block;margin-left:6px"><summary style="cursor:pointer;color:#22D3EE">три периода</summary>${per}${(RECON.blockers || []).length ? `<div style="margin-top:3px;color:#E5B567">Блокеры: ${RECON.blockers.join("; ")}</div>` : ""}</details></div></div>`;
-}
-// Бейджи у затронутых строк: ячейка, чей текст равен артикулу/SKU с пробелом, получает пометку.
-const GAPS_JS = RECON && RECON.coverage && Object.keys(RECON.coverage.gaps || {}).length ? `<script>(function(){var G=${JSON.stringify(RECON.coverage.gaps)};
-function mark(){document.querySelectorAll('td,.pv-name,.model-name,.name').forEach(function(td){if(td.dataset.ggGap)return;var t=(td.textContent||'').trim();var g=G[t];if(!g){var m=t.match(/[A-ZА-Я]{2,4}-[A-Z0-9-]{3,}/);if(m)g=G[m[0]];}if(!g)return;td.dataset.ggGap='1';var b=document.createElement('span');b.textContent='⚠ '+g.join(', ');b.title='Пробел данных по SKU (сверка §15): '+g.join(', ');b.style.cssText='margin-left:6px;font-size:10px;color:#E5B567;border:1px solid #E5B567;border-radius:5px;padding:0 5px;white-space:nowrap';td.appendChild(b);});}
-mark();setInterval(mark,1500);})();</script>` : "";
-
 function banner(active: string): string {
   const snap = `${MONTHS[11]?.m || ""}-${MONTHS[15]?.m || ""}`;
   const k = (href: string, label: string, on: boolean) =>
@@ -1816,7 +1799,7 @@ function paintTable(){
     const delta='<span style="color:'+(up?'var(--dn)':'var(--up)')+'">'+(up?'▲ +':'▼ -')+fmtRu(diff)+'</span>';
     const av=d.available?'<span style="color:var(--up)">в наличии</span>':'<span style="color:var(--dn)">нет</span>';
     return '<tr><td><b>'+esc(d.seller)+'</b></td>'+
-      '<td><a href="https://www.ozon.ru/product/'+esc(d.sku)+'" target="_blank" rel="noopener" style="color:#22D3EE;text-decoration:none">'+esc(d.stol.slice(0,60))+' &#8599;</a></td>'+
+      ${IS_OZON ? `'<td><a href="https://www.ozon.ru/product/'+esc(d.sku)+'" target="_blank" rel="noopener" style="color:#22D3EE;text-decoration:none">'+esc(d.stol.slice(0,60))+' &#8599;</a></td>'+` : `'<td>'+esc(d.stol.slice(0,60))+'</td>'+`}
       '<td><span style="color:#9fb3c0;font-variant-numeric:tabular-nums">'+esc(d.sku)+'</span></td>'+
       '<td>'+qpill(d.qual)+'</td>'+
       '<td class="r">'+fmtRu(d.ggPrice)+'</td><td class="r">'+fmtRu(d.compPrice)+'</td><td class="r">'+delta+'</td>'+

@@ -4,7 +4,7 @@
 // чипы и ввод ассистента. Любая рантайм-ошибка = тест падает.
 import { JSDOM, VirtualConsole } from "jsdom";
 import { readFileSync, readdirSync } from "node:fs";
-import { OUT_DIR } from "../paths.js";
+import { OUT_DIR, IS_OZON, YM_FORBIDDEN } from "../paths.js";
 
 const PAGES = readdirSync(OUT_DIR).filter((f) => f.endsWith(".html"));
 
@@ -59,6 +59,10 @@ for (const page of PAGES) {
   const body = clone.textContent || "";
   if (/-?Infinity|NaN|undefined ₽/.test(body)) errors.push("в выводе Infinity/NaN/undefined");
 
+  // ФЕНИКС G4/G5 (Маркет): на страницах /market/ не должно остаться OZON-подписей источников и ссылок
+  // (реклама Маркета не подключена, Seller API/realFBS/Premium - сущности OZON). Проверяем сырой HTML,
+  // потому что подписи живут внутри клиентских JS-строк.
+  if (!IS_OZON) { const m = html.match(YM_FORBIDDEN); if (m) errors.push(`OZON-подпись на странице Маркета: «${m[0]}» (словарь YM_LABELS в paths.ts неполон)`); }
   // FENIX BLOCKER-2: скрытая линия VALONTI (перегородки) не светится - ни в тексте, ни в DATA.
   // VIOLUR (столы) - легальный бренд, показывается открыто (решение Ивана).
   if (/valonti/i.test(html)) errors.push("утечка бренда скрытой линии VALONTI в HTML/DATA");

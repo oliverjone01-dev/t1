@@ -30,16 +30,16 @@ jobs:
       YM_BUSINESS_IDS: ${{ github.event.inputs.business_ids }}
       YM_CAMPAIGN_IDS: ${{ github.event.inputs.campaign_ids }}
     steps:
+      - name: Маскировать ключ и проверить наличие (первым шагом)
+        run: |
+          set -euo pipefail
+          [ -n "${YM_API_KEY:-}" ] && echo "::add-mask::$YM_API_KEY"
+          if [ -z "${YM_API_KEY:-}" ]; then echo "::error::секрет YM_DASHBOARD_1 не задан (Api-Key Маркета)"; exit 1; fi
+          echo "Ключ Маркета на месте."
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
       - run: npm ci
-      - name: Маскировать ключ и проверить наличие
-        run: |
-          set -euo pipefail
-          [ -n "${YM_API_KEY:-}" ] && echo "::add-mask::$YM_API_KEY"
-          if [ -z "${YM_API_KEY:-}" ]; then echo "::error::секрет YM_DASHBOARD_1 не задан (Api-Key Маркета)"; exit 1; fi
-          echo "Ключ Маркета на месте (длина ${#YM_API_KEY})."
       - name: Ping Partner API (campaigns + stats/orders)
         run: npm run ym:ping

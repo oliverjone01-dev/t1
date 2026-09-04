@@ -6,7 +6,7 @@
 import { appendFileSync } from "node:fs";
 import { loadEnv } from "../../env.js";
 import { client, resolveCampaigns, campaignSummary, bizName, windowDays } from "./common.js";
-import { ymBusinessIdsFromEnv } from "../../connector/ym-partner.js";
+import { ymBusinessIdsFromEnv, shape } from "../../connector/ym-partner.js";
 
 async function main() {
   loadEnv();
@@ -31,7 +31,8 @@ async function main() {
       for (const o of orders) statuses[o.status] = (statuses[o.status] || 0) + 1;
       const sample = orders[0];
       lines.push(`campaign ${c.id}: заказов за ${w.dateFrom}..${w.dateTo}: ${orders.length} (позиций ${items}); статусы ${JSON.stringify(statuses)}`);
-      if (sample) lines.push(`  пример: creationDate=${sample.creationDate} status=${sample.status} items=${sample.items.length} commissions=${sample.commissions.map((x) => x.type).join("|") || "-"} priceTypes=${[...new Set(sample.items.flatMap((i) => i.prices.map((p) => p.type)))].join("|") || "-"}`);
+      if (sample) lines.push(`  пример: creationDate=${sample.creationDate.replace(/\d/g, "9")} (формат запроса: ${api.orderDateFormat}) status=${sample.status} items=${sample.items.length} commissions=${sample.commissions.map((x) => x.type).join("|") || "-"} priceTypes=${[...new Set(sample.items.flatMap((i) => i.prices.map((p) => p.type)))].join("|") || "-"}`);
+      if (api.lastRawOrder) lines.push(`  сырые ключи заказа: ${JSON.stringify(shape(api.lastRawOrder))}`);
     } catch (e) { lines.push(`campaign ${c.id}: stats/orders ОШИБКА: ${(e as Error).message.slice(0, 200)}`); }
   }
   for (const l of lines) console.log(l);

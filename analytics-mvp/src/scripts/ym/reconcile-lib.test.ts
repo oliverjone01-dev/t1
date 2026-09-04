@@ -69,18 +69,67 @@ describe("reconcile §15", () => {
     expect(moneyTol(1000)).toBe(50); expect(moneyTol(100000)).toBe(500);
     expect(r.blockers.some((b) => b.includes("деньги закрытого месяца"))).toBe(true);
   });
-  it("сверка с фактическими платежами Маркета из заказов: ловит завышенное «к выплате»", () => {
+  it("сверка с платежами Маркета идёт по ПОКУПАТЕЛЬСКОЙ ноге (начислено − софинансирование)", () => {
     const r = buildReconcile({ ...base, realization: [], netting: null }, TODAY);
     const cp = r.cumulative.payments;
-    // по заказу 500001 расчёт 81000, фактически Маркет заплатил 62000 -> расхождение видно
+    // заказ 500001: начислено 100000, софинансирование Маркета 2000 -> покупательская нога 98000.
+    // Полное «к выплате» 81000 (за вычетом сборов) этой сверкой НЕ проверяется: сборы видны только
+    // в отчёте по взаиморасчётам.
     expect(cp.orders_with_payments).toBe(1);
-    expect(cp.payout_with_payments).toBe(81000);
+    expect(cp.accruals).toBe(100000);
+    expect(cp.subsidy_leg).toBe(2000);
+    expect(cp.buyer_leg_derived).toBe(98000);
+    expect(cp.payout_full).toBe(81000);
     expect(cp.payments_actual).toBe(62000);
-    expect(cp.diff).toBe(19000);
+    expect(cp.diff).toBe(36000);
+    expect(cp.orders_off).toBe(1); expect(cp.orders_matched).toBe(0); expect(cp.orders_off_pct).toBe(100);
+    expect(cp.off_orders[0]).toMatchObject({ order: "500001", expected: 98000, actual: 62000, diff: -36000 });
     expect(cp.status).toContain("РАСХОЖДЕНИЕ");
-    expect(cp.by_type).toMatchObject({ PAYMENT: 60000, SUBSIDY: 2000 });
-    expect(r.blockers.some((b) => b.includes("фактическими платежами"))).toBe(true);
+    expect(cp.covers).toContain("united-netting");
+    expect(r.blockers.some((b) => b.includes("покупательская нога"))).toBe(true);
     expect(r.verdict).toBe("return");
+  });
+  it("покупательская нога сходится, когда payments = оплата покупателя (форма живых данных)", () => {
+    // Живые данные: в payments приходит только оплата покупателя, софинансирование Маркета
+    // (subsidies / цена типа MARKETPLACE) выплачивается отдельно и в payments не попадает.
+    const order = {
+      id: 700001, creationDate: "05-08-2026", statusUpdateDate: "10-08-2026", status: "DELIVERED",
+      items: [{ offerName: "Зеркало", shopSku: "GGZ-1", marketSku: "1", count: 1, initialCount: 1,
+        prices: [{ type: "BUYER", costPerItem: 23018, total: 23018 }, { type: "MARKETPLACE", costPerItem: 20640, total: 20640 }], details: [] }],
+      commissions: [{ type: "FEE", actual: 6089 }],
+      subsidies: [{ operationType: "MARKETPLACE", type: "SUBSIDY", amount: 20640 }],
+      payments: [{ id: "p", date: "20-08-2026", type: "PAYMENT", total: 23018 }],
+    };
+    const rs = normalizeOrder(parseOrder(order), "c1", "1023124");
+    const r = buildReconcile({ ...base, rows: rs, realization: [], netting: null }, TODAY);
+    const cp = r.cumulative.payments;
+    expect(cp.accruals).toBe(43658);
+    expect(cp.subsidy_leg).toBe(20640);
+    expect(cp.buyer_leg_derived).toBe(23018);
+    expect(cp.payments_actual).toBe(23018);
+    expect(cp.diff).toBe(0);
+    expect(cp.orders_off).toBe(0); expect(cp.orders_matched).toBe(1);
+    expect(cp.status).toContain("сошлось позаказно");
+    expect(cp.payout_full).toBe(43658 - 6089); // полное «к выплате» больше ноги покупателя на софинансирование
+    expect(r.blockers.some((b) => b.includes("покупательская нога"))).toBe(false);
+  });
+  it("единичный краевой заказ не объявляет формулу сломанной (порог по доле заказов, не по сумме)", () => {
+    // 50 нормальных заказов + 1 краевой: агрегат уедет, но доля несошедшихся 2% -> блокера нет.
+    const mk = (id: number, paid: number) => normalizeOrder(parseOrder({
+      id, creationDate: "05-08-2026", statusUpdateDate: "10-08-2026", status: "DELIVERED",
+      items: [{ offerName: "Зеркало", shopSku: "GGZ-1", marketSku: "1", count: 1, initialCount: 1,
+        prices: [{ type: "BUYER", costPerItem: 10000, total: 10000 }, { type: "MARKETPLACE", costPerItem: 5000, total: 5000 }], details: [] }],
+      commissions: [{ type: "FEE", actual: 1000 }],
+      subsidies: [{ operationType: "MARKETPLACE", type: "SUBSIDY", amount: 5000 }],
+      payments: [{ id: "p", date: "20-08-2026", type: "PAYMENT", total: paid }],
+    }), "c1", "1023124");
+    const rs = [...Array(50).keys()].flatMap((i) => mk(800000 + i, 10000)).concat(mk(800050, 3000));
+    const r = buildReconcile({ ...base, rows: rs, realization: [], netting: null }, TODAY);
+    const cp = r.cumulative.payments;
+    expect(cp.orders_matched).toBe(50); expect(cp.orders_off).toBe(1); expect(cp.orders_off_pct).toBe(2);
+    expect(cp.off_amount).toBe(-7000);
+    expect(cp.status).toContain("краевые случаи");
+    expect(r.blockers.some((b) => b.includes("формула денег неверна"))).toBe(false);
   });
   it("выручка vs реализация: подбор состава типов цен (G7)", () => {
     // accruals августа = 100000 (BUYER 98000 + MARKETPLACE 2000) + 40000 = 140000; amount отчёта 138000 => ближе BUYER-only

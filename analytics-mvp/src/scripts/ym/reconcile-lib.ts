@@ -40,20 +40,47 @@ export function buildReconcile(inp: ReconInput, today: string) {
   // Сверка с ФАКТИЧЕСКИМИ выплатами Маркета из самого stats/orders (блок payments заказа).
   // Это эталон денег, не зависящий от доступа к финансовым отчётам ЛК: если расчётное «к выплате»
   // расходится с тем, что Маркет реально заплатил по тем же заказам, цифра дашборда неверна.
+  // Блок payments в stats/orders - это только ПОКУПАТЕЛЬСКАЯ нога выплаты: деньги из оплаты
+  // покупателя. Софинансирование Маркета (subsidies; в ценах позиции тип MARKETPLACE) приходит
+  // отдельной выплатой и в payments не попадает. Проверено на живых данных: на 594 расчитанных
+  // заказах (доставка до 2026-06-30) тождество accruals − subsidy == Σ payments держится у 99.7%
+  // заказов, суммарное отклонение 0.37%. Поэтому эталон здесь - buyer_leg, а не полное «к выплате»:
+  // сравнение payout с payments завышало расхождение на всю ногу софинансирования (~39%).
+  // Что эта сверка НЕ покрывает: сборы Маркета и ногу софинансирования - для них нужен
+  // отчёт по взаиморасчётам (united-netting), сейчас 403 по правам ключа.
   const paymentsCheck = (d: OrderRow[], label: string) => {
     const withPay = d.filter((r) => r.paid !== 0);
-    const orders = new Set(withPay.map((r) => r.order));
     const allOrders = new Set(d.map((r) => r.order));
+    // Сверяем ПОЗАКАЗНО: агрегат прячет единичные кривые заказы за общей суммой, а доля несошедшихся
+    // заказов сразу отличает сломанную формулу (расходятся все) от краевых случаев (расходятся 2-3).
+    const per = new Map<string, { accr: number; sub: number; paid: number }>();
+    for (const r of withPay) { const a = per.get(r.order) || { accr: 0, sub: 0, paid: 0 }; a.accr += r.accruals; a.sub += r.subsidy; a.paid += r.paid; per.set(r.order, a); }
+    let accruals = 0, subsidy = 0, paid = 0, off = 0, offAmount = 0;
+    const offOrders: Array<{ order: string; expected: number; actual: number; diff: number }> = [];
+    for (const [o, a] of per) {
+      const exp = a.accr - a.sub; const dlt = a.paid - exp;
+      accruals += a.accr; subsidy += a.sub; paid += a.paid;
+      if (Math.abs(dlt) > moneyTol(exp)) { off++; offAmount += dlt; if (offOrders.length < 20) offOrders.push({ order: o, expected: r0(exp), actual: r0(a.paid), diff: r0(dlt) }); }
+    }
+    const buyerLeg = accruals - subsidy;
     const payout = withPay.reduce((s, r) => s + r.payout, 0);
-    const paid = withPay.reduce((s, r) => s + r.paid, 0);
-    const diff = r0(payout - paid);
-    const cov = pct(orders.size, allOrders.size);
+    const diff = r0(buyerLeg - paid);
+    const cov = pct(per.size, allOrders.size);
+    const offPct = pct(off, per.size);
     const byType: Record<string, number> = {};
     for (const r of withPay) for (const [k, v] of Object.entries(r.paid_by_type || {})) byType[k] = r0((byType[k] || 0) + v);
-    const status = !orders.size ? "в заказах нет платежей (Маркет ещё не выплатил за период)"
-      : Math.abs(diff) <= moneyTol(paid) ? `сошлось с платежами Маркета по ${orders.size}/${allOrders.size} заказам`
-      : `РАСХОЖДЕНИЕ ${diff} ₽ (${payout ? Math.round((diff / payout) * 1000) / 10 : 0}%): расчётное «к выплате» ${r0(payout)} vs фактические платежи Маркета ${r0(paid)} по ${orders.size}/${allOrders.size} заказам${label === "cum" ? "" : "; для незакрытого периода часть платежей могла не прийти"}`;
-    return { payout_with_payments: r0(payout), payments_actual: r0(paid), diff, orders_with_payments: orders.size, orders_total: allOrders.size, coverage_pct: cov, by_type: byType, status };
+    const status = !per.size ? "в заказах нет платежей (Маркет ещё не выплатил за период)"
+      : off === 0 ? `сошлось позаказно: все ${per.size} заказов с платежами (покупательская нога)`
+      : offPct <= 2 ? `сошлось по ${per.size - off}/${per.size} заказам (${100 - offPct}%); не сошлись ${off} на ${r0(offAmount)} ₽ - краевые случаи (частичная доставка, полный возврат с софинансированием), см. off_orders`
+      : `РАСХОЖДЕНИЕ у ${off}/${per.size} заказов (${offPct}%) на ${r0(offAmount)} ₽: покупательская нога (начислено − софинансирование) ${r0(buyerLeg)} vs фактические платежи Маркета ${r0(paid)}${label === "cum" ? "" : "; для незакрытого периода часть платежей могла не прийти"}`;
+    return {
+      buyer_leg_derived: r0(buyerLeg), payments_actual: r0(paid), diff,
+      accruals: r0(accruals), subsidy_leg: r0(subsidy), payout_full: r0(payout),
+      orders_with_payments: per.size, orders_total: allOrders.size, coverage_pct: cov,
+      orders_matched: per.size - off, orders_off: off, orders_off_pct: offPct, off_amount: r0(offAmount), off_orders: offOrders,
+      by_type: byType, status,
+      covers: "сверяет цены, возвраты и состав заказов; сборы Маркета и нога софинансирования этой сверкой не покрыты (нужен united-netting)",
+    };
   };
 
   const moneyCheck = (d: OrderRow[]) => {
@@ -166,7 +193,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
   if (closed.money.diff != null && Math.abs(closed.money.diff) > moneyTol(closed.money.payout_matched)) blockers.push(`деньги закрытого месяца расходятся с выплатами ЛК на ${closed.money.diff} ₽`);
   if (closed.revenue && closed.revenue.status !== "сошлось") blockers.push(`выручка закрытого месяца vs реализация: ${closed.revenue.status}`);
   const cp = cumulative.payments;
-  if (cp.orders_with_payments && Math.abs(cp.diff) > moneyTol(cp.payments_actual)) blockers.push(`«к выплате» расходится с фактическими платежами Маркета на ${cp.diff} ₽ (${cp.payout_with_payments ? Math.round((cp.diff / cp.payout_with_payments) * 1000) / 10 : 0}% по ${cp.orders_with_payments} заказам) - формула денег неверна`);
+  if (cp.orders_with_payments && cp.orders_off_pct > 2) blockers.push(`покупательская нога не сходится с платежами Маркета у ${cp.orders_off}/${cp.orders_with_payments} заказов (${cp.orders_off_pct}%) на ${cp.off_amount} ₽ - формула денег неверна`);
   if (sk && pct(rC, rt) < 90) blockers.push(`СС покрывает ${pct(rC, rt)}% оборота (<90%)`);
   if ((inp.badCells || 0) > 0) blockers.push(`битых ячеек в отчётах: ${inp.badCells}`);
   for (const sc of inp.skippedCampaigns || []) blockers.push(`кампания ${sc.campaign} (кабинет ${sc.business}) не отдаёт данные: ${sc.reason}`);

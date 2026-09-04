@@ -31,13 +31,12 @@ const K_HELLO = /здравствуйте|добрый день|доброе у�
 export const KURATOR_RULES: Record<string, string> = {
   R1: "Первый ответ дольше 15 рабочих минут", R2: "Обещание без даты", R3: "Вложение без сопроводительного текста",
   R5: "Стоп-слово из блоклиста", R7: "«Дорого» без вопроса о бюджете", R9: "Эскалация без извинения",
-  R10: "Первый ответ новому клиенту без приветствия",
 };
 
 export type KViol = { r: string; q: string; d: string };
 export type KDeal = { id: any; lead: number; m: string; t: string; b: number; viol: KViol[] };
 export type Kurator = {
-  mgrs: Record<string, { fr: number; frOk: number; pr: number; prOk: number; out: number; qe: number; viol: number; byRule: Record<string, number>; deals: KDeal[] }>;
+  mgrs: Record<string, { fr: number; frOk: number; pr: number; prOk: number; out: number; qe: number; hi: number; hiN: number; viol: number; byRule: Record<string, number>; deals: KDeal[] }>;
   firstLine: { fr: number; frOk: number; viol: number; authors: string[] };
   qual: { bud: number; term: number; lpr: number; out: number; note: string };
   note: string;
@@ -83,7 +82,7 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
   const dealEv: Record<string, KDeal> = {};
   const qual = { bud: 0, term: 0, lpr: 0, out: 0, note: "по списку зашитых формулировок; полнота детектора не измерена - «не найдено» значит «не найдено этим списком», а не «не спрашивали»" };
   // per-author копилки: улика принадлежит АВТОРУ сообщения (G2 ФЕНИКСА)
-  const st = (a: string) => (mgrs[a] ||= { fr: 0, frOk: 0, pr: 0, prOk: 0, out: 0, qe: 0, viol: 0, byRule: {}, deals: [] });
+  const st = (a: string) => (mgrs[a] ||= { fr: 0, frOk: 0, pr: 0, prOk: 0, out: 0, qe: 0, hi: 0, hiN: 0, viol: 0, byRule: {}, deals: [] });
   const violByDeal: Record<string, { author: string; v: KViol }[]> = {};
   for (const [k, list] of Object.entries(evByObj)) {
     const win = list.filter((e) => +e.ts >= WIN_FROM && +e.ts <= WIN_TO);
@@ -102,15 +101,17 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
         const s = st(author);
         s.fr++; if (wm <= 15) s.frOk++;
         else V.push({ author, v: { r: "R1", q: "Клиент написал " + kDT(fin) + ", ответ ушёл через " + (wm >= 60 ? Math.floor(wm / 60) + " ч " + (wm % 60) + " мин" : wm + " мин") + " рабочего времени", d: kDT(fout) } });
-        // R10 (памятка §3, детектор T02 академии): в НОВОМ диалоге никто не поздоровался
-        // ни в одном исходящем от начала окна до первого ответа ВКЛЮЧИТЕЛЬНО. Доминирующий
-        // поток - менеджер здоровается ПЕРВЫМ, до реплики клиента (дельта-аудит ФЕНИКСА:
-        // проверка одного fout давала точность 16%). Маркеры и служебные строки - не речь.
-        const greeted = win.some((x: any) => x.dir === "исходящее" && +x.ts <= +fout.ts && isRealMsg(x) && !K_ATTACH.test(String(x.body || "").trim()) && K_HELLO.test(String(x.body || "")));
-        const foutBody = String(fout.body || "").trim();
-        if (newDialog && !greeted && !K_ATTACH.test(foutBody)) { if (process.env.R10DBG) console.log("R10DBG :: " + author + " :: " + String(d?.title || k).slice(0,45) + " :: " + clip(foutBody).slice(0, 130));
-          V.push({ author, v: { r: "R10", q: "Первый ответ новому клиенту без приветствия: «" + clip(foutBody).slice(0, 110) + "»", d: kDT(fout) } }); }
+        // приветствие как СЧЁТЧИК, не улика (решение ФЕНИКСА, дельта 1189e10): якорь -
+        // ПЕРВОЕ исходящее менеджера в новом диалоге (§3 «представься в первом контакте»),
+        // а не «первый ответ после реплики клиента» - тот якорь уезжал в середину треда,
+        // когда менеджер писал первым или контакт начинался звонком. Precision улики на
+        // 6 наблюдениях не измерить - вернёмся к улике после 40-50 наблюдений
       } else { firstLine.fr++; if (wm <= 15) firstLine.frOk++; flAuthors.add(String(fout.who || "?").trim()); }
+    }
+    if (newDialog) {
+      const fmsg = win.find((x: any) => x.dir === "исходящее" && isRealMsg(x) && !K_ATTACH.test(String(x.body || "").trim()));
+      if (fmsg) { const fa = canonSeller(String(fmsg.who || d?.mgr || "").trim());
+        if (fa) { const s2 = st(fa); s2.hiN++; if (K_HELLO.test(String(fmsg.body || ""))) s2.hi++; } }
     }
     const seenAttachMin = new Set<string>();
     for (const e of win) {

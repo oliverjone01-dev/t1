@@ -7,7 +7,7 @@
 // predicted -> actual. Первый прогон - полный бэкфилл от FLOOR. Дедуп по (campaign, order, sku).
 // Запуск: npm run ym:orders  (env: YM_API_KEY|YM_DASHBOARD_1, YM_BUSINESS_IDS, YM_CAMPAIGN_IDS, YM_TAIL_DAYS)
 import { loadEnv } from "../../env.js";
-import { client, resolveCampaigns, ensureDir, readNdjson, writeNdjson, writeJson, yp, FLOOR, yesterday, addDays, campaignSummary } from "./common.js";
+import { accounts, resolveTargets, ensureDir, readNdjson, writeNdjson, writeJson, yp, FLOOR, yesterday, addDays, targetSummary } from "./common.js";
 import { shape } from "../../connector/ym-partner.js";
 import { normalizeOrder, type OrderRow } from "./derive-lib.js";
 
@@ -25,10 +25,10 @@ function windows(from: string, to: string): Array<[string, string]> {
 async function main() {
   loadEnv();
   ensureDir();
-  const api = client();
-  const camps = await resolveCampaigns(api);
-  if (!camps.length) { console.error("ym-orders: нет кампаний к обработке"); process.exit(1); }
-  console.log(`ym-orders: кампаний ${camps.length}\n${campaignSummary(camps)}`);
+  const accs = accounts();
+  const targets = await resolveTargets(accs);
+  if (!targets.length) { console.error("ym-orders: нет кампаний к обработке ни по одному ключу"); process.exit(1); }
+  console.log(`ym-orders: ключей ${accs.length}, кампаний ${targets.length}\n${targetSummary(targets)}`);
 
   // YM_ORDERS_REFETCH=1 - полный пересбор с FLOOR (нужен, когда меняется состав полей строки).
   const refetch = process.env.YM_ORDERS_REFETCH === "1";
@@ -42,7 +42,10 @@ async function main() {
 
   const fresh: OrderRow[] = [];
   let nOrders = 0;
-  for (const c of camps) {
+  let probeApi: typeof targets[number]["account"]["api"] | null = null;
+  for (const { campaign: c, account } of targets) {
+    const api = account.api;
+    if (!probeApi) probeApi = api;
     // 1) новые заказы по дате создания
     if (fullFrom <= to) for (const [wf, wt] of windows(fullFrom, to)) {
       const orders = await api.ordersStats(c.id, { dateFrom: wf, dateTo: wt });
@@ -81,7 +84,8 @@ async function main() {
   }
   writeJson(yp("_probe/payment_types.json"), { at: new Date().toISOString(), note: "агрегат за прогон: типы платежей, субсидии и группы сборов (суммы разнесены по позициям)", payments: pt, subsidies: sub, fees: com });
 
-  if (api.lastRawOrder) writeJson(yp("_probe/orders.json"), { at: new Date().toISOString(), dateFormatAccepted: api.orderDateFormat, shape: shape(api.lastRawOrder), creationDateSample: String(api.lastRawOrder.creationDate || "").replace(/\d/g, "9") });
+  const pa = targets.map((t) => t.account.api).find((a) => a.lastRawOrder);
+  if (pa) writeJson(yp("_probe/orders.json"), { at: new Date().toISOString(), dateFormatAccepted: pa.orderDateFormat, shape: shape(pa.lastRawOrder), creationDateSample: String(pa.lastRawOrder.creationDate || "").replace(/\d/g, "9") });
 
   // Дедуп: свежая строка побеждает старую по ключу (campaign, order, sku).
   const key = (r: OrderRow) => `${r.campaign}|${r.order}|${r.sku}`;

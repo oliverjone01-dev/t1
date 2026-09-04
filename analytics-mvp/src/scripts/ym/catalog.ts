@@ -4,8 +4,7 @@
 // НАКОПИТЕЛЬНО: раз увиденный артикул не теряем (аналог data/sku_offer.json у OZON).
 // Запуск: npm run ym:catalog
 import { loadEnv } from "../../env.js";
-import { client, resolveCampaigns, ensureDir, readJson, writeJson, yp, bizName } from "./common.js";
-import { ymBusinessIdsFromEnv } from "../../connector/ym-partner.js";
+import { accounts, resolveTargets, resolveBusinesses, ensureDir, readJson, writeJson, yp, bizName } from "./common.js";
 
 export interface CatalogItem { name: string; marketSku: string; category: string; price: number | null; basicPrice: number | null; stock: number; business: string; campaigns: string[]; archived?: boolean; seen: string }
 export interface Catalog { platform: "ym"; generated_at: string; items: Record<string, CatalogItem> }
@@ -15,17 +14,17 @@ const OUT = yp("catalog.json");
 async function main() {
   loadEnv();
   ensureDir();
-  const api = client();
+  const accs = accounts();
   const prev = readJson<Catalog>(OUT, { platform: "ym", generated_at: "", items: {} });
   const items: Record<string, CatalogItem> = { ...prev.items };
   const now = new Date().toISOString();
 
-  const camps = await resolveCampaigns(api);
-  const bizIds = new Set([...ymBusinessIdsFromEnv(), ...camps.map((c) => c.businessId)]);
+  const targets = await resolveTargets(accs);
+  const bizList = await resolveBusinesses(accs);
   let nMap = 0;
-  for (const b of bizIds) {
+  for (const { businessId: b, account } of bizList) {
     try {
-      const offers = await api.offerMappings(b);
+      const offers = await account.api.offerMappings(b);
       for (const o of offers) {
         if (!o.offerId) continue;
         const cur = items[o.offerId] || { name: "", marketSku: "", category: "", price: null, basicPrice: null, stock: 0, business: b, campaigns: [], seen: now };
@@ -36,8 +35,9 @@ async function main() {
       console.log(`ym-catalog: кабинет ${b} (${bizName(b)}): offer-mappings ${offers.length}`);
     } catch (e) { console.warn(`::warning::ym-catalog: offer-mappings ${b} не прочитан: ${(e as Error).message.slice(0, 160)}`); }
   }
-  // цены и остатки по кампаниям
-  for (const c of camps) {
+  // цены и остатки по кампаниям (каждая - своим ключом)
+  for (const { campaign: c, account } of targets) {
+    const api = account.api;
     try {
       const offers = await api.campaignOffers(c.id);
       for (const o of offers) {

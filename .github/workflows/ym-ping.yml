@@ -27,6 +27,7 @@ jobs:
         shell: bash
     env:
       YM_API_KEY: ${{ secrets.YM_DASHBOARD_1 }}
+      YM_API_KEY_2: ${{ secrets.YM_DASHBOARD_ZERKALA_2 }}
       YM_BUSINESS_IDS: ${{ github.event.inputs.business_ids }}
       YM_CAMPAIGN_IDS: ${{ github.event.inputs.campaign_ids }}
     steps:
@@ -35,8 +36,11 @@ jobs:
         run: |
           set -euo pipefail
           [ -n "${YM_API_KEY:-}" ] && echo "::add-mask::$YM_API_KEY"
-          if [ -z "${YM_API_KEY:-}" ]; then echo "::error::секрет YM_DASHBOARD_1 не задан (Api-Key Маркета)"; exit 1; fi
-          echo "Ключ Маркета на месте."
+          [ -n "${YM_API_KEY_2:-}" ] && echo "::add-mask::$YM_API_KEY_2"
+          if [ -z "${YM_API_KEY:-}" ] && [ -z "${YM_API_KEY_2:-}" ]; then
+            echo "::error::не задан ни один ключ Маркета (YM_DASHBOARD_1 - мебель, YM_DASHBOARD_ZERKALA_2 - зеркала)"; exit 1
+          fi
+          echo "Ключи Маркета: мебель ${YM_API_KEY:+есть}${YM_API_KEY:-НЕТ}, зеркала ${YM_API_KEY_2:+есть}${YM_API_KEY_2:-НЕТ}."
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:

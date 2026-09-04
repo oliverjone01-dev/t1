@@ -131,6 +131,17 @@ export function buildReconcile(inp: ReconInput, today: string) {
   const prevDelivered = new Set(delivered.filter((r) => r.fin >= pb.dateFrom && r.fin <= pb.dateTo).map((r) => r.sku));
   if (rzSkus.size) for (const s of prevDelivered) if (!rzSkus.has(s)) add(s, `нет в реализации ${prevYm}`);
   const viewDays = new Set(views.map((v) => v.date));
+  // Разбивка по бизнес-кабинетам: у каждого кабинета свой ключ, и по каждому надо видеть, что он вообще
+  // отдаёт данные (кабинет без строк = ключ не подключён или в кабинете нет продаж).
+  const byBusiness: Record<string, { orders: number; rows: number; revenue: number; delivered: number; payout: number; skus: number }> = {};
+  const bizSku: Record<string, Set<string>> = {}, bizOrd: Record<string, Set<string>> = {};
+  for (const r of real(rows)) {
+    const b = r.business || "?";
+    const a = byBusiness[b] || (byBusiness[b] = { orders: 0, rows: 0, revenue: 0, delivered: 0, payout: 0, skus: 0 });
+    a.rows++; a.revenue += r.revenue; a.delivered += r.delivered; a.payout += r.payout;
+    (bizSku[b] ||= new Set()).add(r.sku); (bizOrd[b] ||= new Set()).add(r.order);
+  }
+  for (const [b, a] of Object.entries(byBusiness)) { a.revenue = r0(a.revenue); a.payout = r0(a.payout); a.skus = bizSku[b]!.size; a.orders = bizOrd[b]!.size; }
   const accountRows = netRows.filter((n) => !String(n.order || "").trim()).length;
   const coverage = {
     window: { dateFrom: live.dateFrom, dateTo: live.dateTo },
@@ -141,6 +152,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
     views: { days: viewDays.size, last: [...viewDays].sort().pop() || null, note: viewDays.size ? "показы per-SKU из отчёта shows-sales" : "показы не собраны (отчёт shows-sales) - воронка без верха" },
     ads: ads && ads.totals && ads.totals.spend > 0 ? "есть расход" : "нет источника (реклама Маркета не подключена)",
     bad_cells: inp.badCells || 0,
+    by_business: byBusiness,
     orders_rows: rows.length, orders_fake: rows.filter((r) => r.fake).length,
     gaps,
   };

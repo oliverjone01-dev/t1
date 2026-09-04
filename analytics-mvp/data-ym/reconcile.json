@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-04T11:16:53.393Z",
+  "generated_at": "2026-09-04T11:34:57.679Z",
   "today": "2026-09-04",
   "periods": [
     {
@@ -197,6 +197,16 @@
     },
     "ads": "нет источника (реклама Маркета не подключена)",
     "bad_cells": 0,
+    "by_business": {
+      "74986385": {
+        "orders": 1193,
+        "rows": 1201,
+        "revenue": 19408132,
+        "delivered": 777,
+        "payout": 9738116,
+        "skus": 303
+      }
+    },
     "orders_rows": 1201,
     "orders_fake": 0,
     "gaps": {

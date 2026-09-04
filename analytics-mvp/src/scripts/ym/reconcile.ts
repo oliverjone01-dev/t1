@@ -34,6 +34,8 @@ function main() {
     `типы платежей: ${JSON.stringify(out.cumulative.payments.by_type)}`);
   const c = out.coverage;
   md.push(`Покрытие 30 дн: SKU ${c.sku_total}, СС ${c.cogs.pct_sku}% SKU / ${c.cogs.pct_rev}% оборота, таксономия ${c.taxonomy.pct_sku}% / ${c.taxonomy.pct_rev}%, показы ${c.views.days} дн, реклама: ${c.ads}, сборы кабинета: ${c.account_fees.note}. Пробелов по SKU: ${Object.keys(c.gaps).length}. Битых ячеек: ${c.bad_cells}.`);
+  const bb = (c as any).by_business || {};
+  if (Object.keys(bb).length) md.push("Кабинеты: " + Object.entries(bb).map(([b, v]: [string, any]) => `${b} - ${v.skus} SKU, ${v.orders} заказов, заказано ${v.revenue} ₽`).join("; "));
   if (out.blockers.length) md.push("", "Блокеры: " + out.blockers.join("; "));
   const text = md.join("\n");
   console.log(text);

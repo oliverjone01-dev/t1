@@ -39,6 +39,7 @@ concurrency:
 
 env:
   YM_API_KEY: ${{ secrets.YM_DASHBOARD_1 }}
+  YM_API_KEY_2: ${{ secrets.YM_DASHBOARD_ZERKALA_2 }}
   YM_BUSINESS_IDS: ${{ secrets.YM_BUSINESS_IDS }}
   YM_CAMPAIGN_IDS: ${{ secrets.YM_CAMPAIGN_IDS }}
   SNAPSHOT_MIN_SKUS: "1"
@@ -59,8 +60,11 @@ jobs:
         run: |
           set -euo pipefail
           [ -n "${YM_API_KEY:-}" ] && echo "::add-mask::$YM_API_KEY"
-          if [ -z "${YM_API_KEY:-}" ]; then echo "::error::секрет YM_DASHBOARD_1 не задан (Api-Key Маркета)"; exit 1; fi
-          echo "Ключ Маркета на месте."
+          [ -n "${YM_API_KEY_2:-}" ] && echo "::add-mask::$YM_API_KEY_2"
+          if [ -z "${YM_API_KEY:-}" ] && [ -z "${YM_API_KEY_2:-}" ]; then
+            echo "::error::не задан ни один ключ Маркета (YM_DASHBOARD_1 - мебель, YM_DASHBOARD_ZERKALA_2 - зеркала)"; exit 1
+          fi
+          echo "Ключи Маркета: мебель ${YM_API_KEY:+есть}${YM_API_KEY:-НЕТ}, зеркала ${YM_API_KEY_2:+есть}${YM_API_KEY_2:-НЕТ}."
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -86,7 +90,9 @@ jobs:
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if grep -rqF -- "$YM_API_KEY" analytics-mvp/data-ym; then echo "::error::в data-ym найден Api-Key"; exit 1; fi
+          for k in "${YM_API_KEY:-}" "${YM_API_KEY_2:-}"; do
+            [ -n "$k" ] && grep -rqF -- "$k" analytics-mvp/data-ym && { echo "::error::в data-ym найден Api-Key"; exit 1; }
+          done
           git add -A analytics-mvp/data-ym
           if git diff --staged --quiet; then echo "факт-слой без изменений"; exit 0; fi
           git commit -m "data-ym: заказы и каталог Маркета $(date -u +%F) (промежуточный)"
@@ -143,8 +149,10 @@ jobs:
       - name: Ключ не попал в HTML и в данные
         run: |
           set -euo pipefail
-          if grep -rqF -- "$YM_API_KEY" public/market data-ym; then echo "::error::в public/market или data-ym найден Api-Key"; exit 1; fi
-          echo "Ключа в HTML и данных нет."
+          for k in "${YM_API_KEY:-}" "${YM_API_KEY_2:-}"; do
+            [ -n "$k" ] && grep -rqF -- "$k" public/market data-ym && { echo "::error::в public/market или data-ym найден Api-Key"; exit 1; }
+          done
+          echo "Ключей в HTML и данных нет."
 
       - name: Commit (если есть изменения)
         working-directory: .

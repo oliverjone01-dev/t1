@@ -10,9 +10,9 @@
 // Запуск: npm run ym:realization | ym:netting | ym:shows
 import { readFileSync } from "node:fs";
 import { loadEnv } from "../../env.js";
-import { client, resolveCampaigns, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad } from "./common.js";
+import { accounts, resolveTargets, resolveBusinesses, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
-import { ymBusinessIdsFromEnv, type YmPartner } from "../../connector/ym-partner.js";
+import { type YmPartner } from "../../connector/ym-partner.js";
 
 type ColMap = Record<string, string[]>;
 const COLS: Record<string, ColMap> = JSON.parse(readFileSync(new URL("./report-columns.json", import.meta.url), "utf-8"));
@@ -67,18 +67,12 @@ async function fetchReport(api: YmPartner, type: string, body: any): Promise<{ h
   const all = await fetchReportAll(api, type, body);
   return all && all[0] ? { headers: all[0].headers, rows: all[0].rows } : null;
 }
-// Кабинеты для отчётов уровня business: только те, где у ключа есть кампании (иначе 403 на каждый запрос).
-async function businessesWithAccess(api: YmPartner): Promise<string[]> {
-  const camps = await resolveCampaigns(api);
-  const ids = [...new Set(camps.map((c) => c.businessId))];
-  for (const b of ymBusinessIdsFromEnv()) if (!ids.includes(b)) console.warn(`::warning::кабинет ${b}: у ключа нет кампаний - отчёты по нему не запрашиваю (403). Проверь, что аккаунт ключа принят в кабинет.`);
-  return ids;
-}
+
 
 // ---- goods-realization: {campaignId, year, month} -> {ym, sku, sold, ret} ----
-async function realization(api: YmPartner, months: string[]) {
+async function realization(months: string[]) {
   const OUT = yp("realization_monthly.ndjson");
-  const camps = await resolveCampaigns(api);
+  const targets = await resolveTargets();
   const existing = readNdjson<any>(OUT);
   const done = new Set<string>();
   const fresh: any[] = [];
@@ -86,8 +80,8 @@ async function realization(api: YmPartner, months: string[]) {
     const [y, m] = ym.split("-").map(Number) as [number, number];
     const bySku: Record<string, { sold: number; ret: number; amount: number }> = {};
     let ok = 0;
-    for (const c of camps) {
-      const tables = await fetchReportAll(api, "goods-realization", { campaignId: Number(c.id), year: y, month: m });
+    for (const { campaign: c, account } of targets) {
+      const tables = await fetchReportAll(account.api, "goods-realization", { campaignId: Number(c.id), year: y, month: m });
       if (!tables) continue;
       let parsed = false;
       for (const t of tables) {
@@ -116,18 +110,18 @@ async function realization(api: YmPartner, months: string[]) {
 }
 
 // ---- united-netting: {businessId, dateFrom, dateTo} -> платежи по датам ----
-async function netting(api: YmPartner, from: string, to: string) {
+async function netting(from: string, to: string) {
   const OUT = yp("netting.ndjson");
   const existing = readNdjson<any>(OUT).filter((r) => !(r.d >= from && r.d <= to));
   const fresh: any[] = [];
   let ok = 0;
-  for (const b of await businessesWithAccess(api)) {
+  for (const { businessId: b, account } of await resolveBusinesses()) {
     // помесячно (лимит диапазона отчёта)
     let s = from;
     while (s <= to) {
       const mb = monthBounds(s.slice(0, 7));
       const e = mb.dateTo < to ? mb.dateTo : to;
-      const t = await fetchReport(api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e });
+      const t = await fetchReport(account.api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e });
       if (t) {
         probe("united-netting", t.headers, t.rows, { business: b, from: s, to: e });
         const ix = cols("united-netting", t.headers, ["date", "amount"]);
@@ -156,7 +150,7 @@ async function netting(api: YmPartner, from: string, to: string) {
 // ОДИН отчёт за всё недостающее окно на кабинет, не по дням. Если в отчёте есть колонка даты - строки
 // дневные; иначе агрегат за окно помечается period_from/aggregate и используется только для
 // окна skus_live (derive), а не для дневной воронки.
-async function shows(api: YmPartner, days: number) {
+async function shows(days: number) {
   const OUT = yp("sku_views.ndjson");
   const existing = readNdjson<any>(OUT);
   const have = new Set(existing.map((r) => r.date));
@@ -166,9 +160,9 @@ async function shows(api: YmPartner, days: number) {
   if (from > to) { console.log("shows: окно уже собрано"); return; }
   console.log(`shows: окно ${from}..${to}, по одному отчёту на кабинет (лимит Маркета 1 генерация / 6 мин)`);
   const fresh: any[] = [];
-  for (const b of await businessesWithAccess(api)) {
+  for (const { businessId: b, account } of await resolveBusinesses()) {
     let t: { headers: string[]; rows: string[][] } | null = null;
-    try { t = await fetchReport(api, "shows-sales", { businessId: Number(b), dateFrom: from, dateTo: to, grouping: "OFFERS" }); }
+    try { t = await fetchReport(account.api, "shows-sales", { businessId: Number(b), dateFrom: from, dateTo: to, grouping: "OFFERS" }); }
     catch (e) { console.warn(`::warning::shows ${from}..${to} ${b}: ${(e as Error).message.slice(0, 200)}`); continue; }
     if (!t) continue;
     probe("shows-sales", t.headers, t.rows, { business: b, from, to });
@@ -191,7 +185,7 @@ async function shows(api: YmPartner, days: number) {
 
 async function main() {
   loadEnv(); ensureDir();
-  const api = client();
+  accounts(); // ранняя проверка, что хотя бы один ключ задан
   const cmd = process.argv[2];
   const now = new Date();
   if (cmd === "realization") {
@@ -206,13 +200,13 @@ async function main() {
         while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
       }
     }
-    await realization(api, months);
+    await realization(months);
   } else if (cmd === "netting") {
     const to = process.argv[4] || yesterday();
     const from = process.argv[3] || (readNdjson(yp("netting.ndjson")).length ? addDays(to, -59) : FLOOR);
-    await netting(api, from, to);
+    await netting(from, to);
   } else if (cmd === "shows") {
-    await shows(api, Number(process.argv[3] || process.env.YM_SHOWS_DAYS || 7) || 7);
+    await shows(Number(process.argv[3] || process.env.YM_SHOWS_DAYS || 7) || 7);
   } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days]"); process.exit(2); }
   flushBad();
 }

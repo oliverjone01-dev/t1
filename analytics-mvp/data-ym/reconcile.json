@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-04T16:44:31.894Z",
+  "generated_at": "2026-09-04T16:51:13.548Z",
   "today": "2026-09-04",
   "periods": [
     {
@@ -315,6 +315,12 @@
         "2026-09"
       ],
       "orders_with_number": 1201
+    },
+    "items": {
+      "rows": 1536,
+      "service_rows": 0,
+      "dup_sku_unrecognized": 0,
+      "note": "позиции-услуги распознаны, дублей SKU без объяснения нет"
     },
     "account_fees": {
       "rows": 28,

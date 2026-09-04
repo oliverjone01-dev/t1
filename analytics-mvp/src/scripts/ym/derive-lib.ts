@@ -43,6 +43,8 @@ export interface OrderRow {
   price: number; p_buyer: number; p_mp: number; p_cashback: number; p_spasibo: number;
   revenue: number; accruals: number;
   shop_order: string;
+  pos: number;      // номер позиции в заказе: у товара и доставки один shopSku, ключ строки без него схлопывает их
+  service: boolean; // позиция-услуга (доставка/подъём): деньги заказа - да, проданные штуки - нет
   fees: Record<string, number>; fee_total: number; payout: number; fee_actual: boolean;
   paid: number; paid_by_type: Record<string, number>; subsidy: number; fake: boolean;
 }
@@ -51,6 +53,14 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 
 // Заказ API -> строки по позициям. Комиссии уровня заказа разносим по позициям пропорционально
 // начислениям (равными долями, если начислений нет). actual предпочтительнее predicted.
+// Маркет кладёт доставку и подъём ОТДЕЛЬНОЙ позицией заказа, причём с тем же shopSku, что у товара
+// (живой факт 2026-09-04: заказ 55204502850 - «Стол ... 160х80» и «Доставка КГТ без подъема на этаж»,
+// оба под GGT-03-1-5-E-16080). Такая позиция - услуга, а не товар: её деньги принадлежат заказу, а её
+// count не является проданной штукой. Список закрытый и проверяемый; всё, что под него не подошло,
+// считается товаром, а совпадение SKU внутри заказа поднимается в отчёт о покрытии.
+export const SERVICE_NAME = /^\s*(доставк|подъ[её]м|подьем|сборк|установк|услуг)/i;
+export function isServiceItem(offerName: string): boolean { return SERVICE_NAME.test(String(offerName || "")); }
+
 export function normalizeOrder(o: YmOrder, campaignId: string, businessId: string): OrderRow[] {
   const types = revenuePriceTypes();
   const created = ymDate(o.creationDate), statusDate = ymDate(o.statusUpdateDate) || created;
@@ -58,7 +68,7 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
   const deliveredSet = DELIVERED_STATUSES.has(o.status);
   const fin = deliveredSet ? statusDate : created;
 
-  const items = o.items.map((it) => {
+  const items = o.items.map((it, idx) => {
     const per = (t: string) => it.prices.filter((p) => p.type.toUpperCase() === t).reduce((s, p) => s + p.costPerItem, 0);
     const price = it.prices.filter((p) => types.has(p.type.toUpperCase())).reduce((s, p) => s + p.costPerItem, 0);
     const returned = it.details.filter((d) => d.itemStatus === "RETURNED").reduce((s, d) => s + d.itemCount, 0) || (o.status === "RETURNED" ? it.count : 0);
@@ -71,7 +81,12 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
     // отменённые позже) - единый смысл поля в обоих каналах (ФЕНИКС G7). Деньги - в accruals/payout.
     const revenue = r2(price * units);
     const accruals = deliveredSet ? r2(price * Math.max(0, count - returned)) : 0;
-    return { it, price, p_buyer: per("BUYER"), p_mp: per("MARKETPLACE"), p_cashback: per("CASHBACK"), p_spasibo: per("SPASIBO"), returned, units, count, delivered, cancelledUnits, revenue, accruals };
+    // Услуга (доставка, подъём): деньги остаются в заказе, штуки обнуляются - иначе каждая доставка
+    // считалась бы проданной единицей и ломала сверку штук с отчётом о реализации.
+    const service = isServiceItem(it.offerName);
+    return { it, idx, service, price, p_buyer: per("BUYER"), p_mp: per("MARKETPLACE"), p_cashback: per("CASHBACK"), p_spasibo: per("SPASIBO"),
+      returned: service ? 0 : returned, units: service ? 0 : units, count, delivered: service ? 0 : delivered,
+      cancelledUnits: service ? 0 : cancelledUnits, revenue, accruals };
   });
 
   // комиссии заказа по группам (положительные суммы)
@@ -102,7 +117,7 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
     if (deliveredSet) for (const [g, v] of Object.entries(fees)) { const a = r2(v * share); if (a) { f[g] = a; ft += a; } }
     ft = r2(ft);
     return {
-      platform: PLATFORM, business: businessId, campaign: campaignId, order: o.id, shop_order: o.partnerOrderId || "",
+      platform: PLATFORM, business: businessId, campaign: campaignId, order: o.id, shop_order: o.partnerOrderId || "", pos: x.idx, service: x.service,
       created, statusDate, status: o.status, fin,
       sku: x.it.shopSku || x.it.marketSku, market_sku: x.it.marketSku, name: x.it.offerName, line: lineOf(x.it.offerName),
       units: x.units, count: x.count, delivered: x.delivered, returned: x.returned, cancelled: x.cancelledUnits,

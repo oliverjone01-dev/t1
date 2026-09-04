@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -192,5 +192,54 @@ describe("доставка отдельной позицией с тем же SK
     expect(isServiceItem("Сборка мебели")).toBe(true);
     expect(isServiceItem("GEN GROUP Стол обеденный")).toBe(false);
     expect(isServiceItem("Зеркало настенное")).toBe(false);
+  });
+});
+
+describe("сборы из ledger'а кабинета (§15: источник денег - кабинет)", () => {
+  // Живой факт 2026-09-04: commissions заказа несут только комиссию по заказу. Мы книжили
+  // 3 242 362 ₽ удержаний, кабинет удержал 18 231 203 ₽ - видели 18%. Недостающее (размещение
+  // товарных предложений 14.9 млн, буст, логистика, эквайринг) живёт отдельными проводками ledger'а.
+  const mk = (over: any = {}) => ({
+    platform: "ym", business: "b", campaign: "c", order: "1", shop_order: "GG-1", pos: 0, service: false,
+    created: "2026-08-01", statusDate: "2026-08-10", status: "DELIVERED", fin: "2026-08-10",
+    sku: "A", market_sku: "1", name: "Стол", line: "", units: 1, count: 1, delivered: 1, returned: 0, cancelled: 0,
+    price: 10000, p_buyer: 10000, p_mp: 0, p_cashback: 0, p_spasibo: 0, revenue: 10000, accruals: 10000,
+    fees: { "Комиссия за продажу": 500 }, fee_total: 500, payout: 9500, fee_actual: true,
+    paid: 10000, paid_by_type: {}, subsidy: 0, fake: false, ...over,
+  }) as any;
+
+  it("удержания кабинета заменяют комиссии заказа, payout пересчитывается", () => {
+    const net = [
+      { order: "1", sku: "A", type: "Удержание", service: "Размещение товарных предложений", amount: -2000 },
+      { order: "1", sku: "A", type: "Списание", service: "Буст продаж, оплата за продажи", amount: -300 },
+      { order: "1", sku: "A", type: "Удержание", service: "Доставка (средняя миля)", amount: -700 },
+      { order: "1", sku: "A", type: "Начисление", service: "Стол", amount: 10000 }, // начисления не трогаем
+    ];
+    const r = applyNettingFees([mk()], net).rows[0]!;
+    expect(r.fee_source).toBe("netting");
+    expect(r.fees).toEqual({ "Комиссия за продажу": 2000, "Продвижение (буст/лояльность)": 300, "Логистика (прямая+возвратная)": 700 });
+    expect(r.fee_total).toBe(3000);
+    expect(r.payout).toBe(7000); // 10000 начислено − 3000 удержано, а не 9500 по комиссии заказа
+  });
+  it("заказ, которого ещё нет в ledger'е, сохраняет комиссии заказа и помечается", () => {
+    const r = applyNettingFees([mk({ order: "2" })], [{ order: "1", sku: "A", type: "Удержание", service: "Размещение", amount: -50 }]).rows[0]!;
+    expect(r.fee_source).toBe("order");
+    expect(r.fee_total).toBe(500);
+    expect(r.payout).toBe(9500);
+  });
+  it("удержания без SKU делятся по начислениям внутри заказа", () => {
+    const rows = [mk({ pos: 0, sku: "A", accruals: 7500 }), mk({ pos: 1, sku: "B", accruals: 2500 })];
+    const net = [{ order: "1", sku: "", type: "Удержание", service: "Перевод платежа", amount: -400 }];
+    const out = applyNettingFees(rows, net).rows;
+    expect(out[0]!.fees["Эквайринг"]).toBe(300); // 75%
+    expect(out[1]!.fees["Эквайринг"]).toBe(100); // 25%
+  });
+  it("группы услуг кабинета совпадают с подписями OZON, неизвестное идёт в Прочее", () => {
+    expect(nettingFeeGroup("Размещение товарных предложений")).toBe("Комиссия за продажу");
+    expect(nettingFeeGroup("Буст продаж, оплата за продажи")).toBe("Продвижение (буст/лояльность)");
+    expect(nettingFeeGroup("Доставка невыкупов и возвратов")).toBe("Логистика (прямая+возвратная)");
+    expect(nettingFeeGroup("Приём платежа")).toBe("Эквайринг");
+    expect(nettingFeeGroup("Отмена заказа по вине продавца")).toBe("Штрафы");
+    expect(nettingFeeGroup("Новая услуга Маркета")).toBe("Прочее");
   });
 });

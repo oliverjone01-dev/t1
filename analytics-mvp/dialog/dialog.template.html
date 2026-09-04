@@ -1450,9 +1450,9 @@ async function aiRun(){
   if(!key){ msg.innerHTML='Вставьте ключ Anthropic (sk-ant-…) в поле выше - один раз, дальше не нужно.'; const k=document.getElementById('aiKey'); if(k) k.focus(); return; }
   const scope=aiScope(); const n=(scope.сделки||[]).length;
   if(!n){ msg.innerHTML='В выборке нет сделок - задайте фильтр (даты, менеджеры, стадии или клики по дашборду).'; return; }
-  msg.innerHTML='Отправляю '+n+' '+plu(n,'сделку','сделки','сделок')+' в Anthropic (Sonnet 5)… до минуты.'; out.innerHTML='';
+  msg.innerHTML='Отправляю '+n+' '+plu(n,'сделку','сделки','сделок')+' в Anthropic (Sonnet 5)… 1-3 мин'+(n>60?' (большая выборка - дольше; при обрезке сузьте фильтр)':'')+'.'; out.innerHTML='';
   const sys=scope.запрос+' Верни ТОЛЬКО валидный JSON строго по полю формат_вывода, без markdown-обёртки.';
-  const body={ model:'claude-sonnet-5', max_tokens:8000, system:[{type:'text',text:sys}], messages:[{role:'user',content:JSON.stringify(scope)}] };
+  const body={ model:'claude-sonnet-5', max_tokens:32000, system:[{type:'text',text:sys}], messages:[{role:'user',content:JSON.stringify(scope)}] };
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{ method:'POST',
       headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
@@ -1479,6 +1479,9 @@ function aiIsConfig(obj){ if(!obj) return false; // не-JSON (обычный т
 function renderAns(raw,obj){ const out=document.getElementById('aiAnsOut'); if(!out) return;
   raw=(raw||'').trim(); if(!raw){ out.innerHTML=''; return; }
   if(obj===undefined){ obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){} }
+  // Подстраховка: пришёл JSON, но не распарсился (чаще всего обрезан по лимиту на большой выборке).
+  // Не вываливаем сырой JSON - показываем понятное сообщение.
+  if(!obj && /^\s*\{/.test(raw)){ out.innerHTML='<div class="ansout"><div class="mgcard" style="border-color:#E0858566"><div class="mgh">Ответ ИИ не удалось разобрать</div><div class="mgaudit">Похоже, разбор обрезан по объёму (большая выборка). Сузьте фильтр (один менеджер или 1-2 стадии, ~10-30 сделок) и повторите «Получить разбор».</div></div></div>'; return; }
   const tcol=t=>t==='bad'?'#E08585':t==='good'?'#7FD1A6':'#E4B563';
   const lst=(a)=>Array.isArray(a)&&a.length?'<ul class="mgul">'+a.map(x=>`<li>${esc(typeof x==='string'?x:(x.действие||x.text||''))}</li>`).join('')+'</ul>':'';
   // Вывод уровня ОТДЕЛ: карточка отдела + карточки менеджеров с подсветкой сильных/слабых сделок.

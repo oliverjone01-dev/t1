@@ -46,6 +46,7 @@ export interface OrderRow {
   pos: number;      // номер позиции в заказе: у товара и доставки один shopSku, ключ строки без него схлопывает их
   service: boolean; // позиция-услуга (доставка/подъём): деньги заказа - да, проданные штуки - нет
   fees: Record<string, number>; fee_total: number; payout: number; fee_actual: boolean;
+  fee_source?: "netting" | "order"; // откуда взяты сборы: ledger кабинета или комиссии заказа
   paid: number; paid_by_type: Record<string, number>; subsidy: number; fake: boolean;
 }
 
@@ -294,4 +295,75 @@ export function buildSkuOffer(rows: OrderRow[], catalog: CatalogLike): Record<st
 // явной пометкой, чтобы дашборд не молчал, а показывал «нет источника».
 export function adsStub(dateFrom: string, dateTo: string) {
   return { platform: PLATFORM, dateFrom, dateTo, generated_at: new Date().toISOString(), totals: { spend: 0, adRevenue: 0, orders: 0, drr: 0, cpo: 0, active: 0, campaigns: 0 }, burners: [], top_spend: [], by_line: [], note: "реклама Маркета не подключена (нет источника): расход/ДРР = 0, это не «ноль рекламы»" };
+}
+
+// ---------- сборы из ledger'а кабинета (united-netting) ----------
+// По CLAUDE.md §15 источник денег - кабинет, а не заказ. Блок commissions в stats/orders несёт только
+// комиссию по заказу: на живых данных 2026-09-04 мы книжили 3 242 362 ₽ удержаний, а кабинет удержал
+// 18 231 203 ₽, то есть видели 18%. Недостающее - размещение товарных предложений (14.9 млн), буст,
+// логистика и эквайринг: это отдельные проводки ledger'а, и в заказ они не попадают.
+// Начисления при этом сходятся с кабинетом в ноль, поэтому подменяем ТОЛЬКО сборы.
+export const NETTING_FEE_GROUPS: Array<[RegExp, string]> = [
+  [/размещени.*(товарн|витрин)/i, "Комиссия за продажу"],
+  [/буст|лояльност|отзыв/i, "Продвижение (буст/лояльность)"],
+  [/доставк|миля|невыкуп/i, "Логистика (прямая+возвратная)"],
+  [/перевод платежа|при[её]м платежа|эквайр/i, "Эквайринг"],
+  [/хранени/i, "Хранение"],
+  [/не вовремя|по вине продавца|штраф/i, "Штрафы"],
+];
+export function nettingFeeGroup(service: string): string {
+  const t = String(service || "");
+  for (const [re, g] of NETTING_FEE_GROUPS) if (re.test(t)) return g;
+  return "Прочее";
+}
+
+export interface NetFeeRow { order?: string; sku?: string; service?: string; type?: string; amount: number }
+export interface NetFeeResult { rows: OrderRow[]; orders_from_netting: number; orders_from_commissions: number; unmapped: Record<string, number> }
+
+// Заменяем сборы строк на удержания кабинета там, где заказ уже есть в ledger'е. Заказы, которых там
+// ещё нет (свежие, выплата не прошла), сохраняют комиссии заказа и помечаются fee_source="order" -
+// по ним цифра предварительная, и это должно быть видно, а не смешиваться со сверенными.
+export function applyNettingFees(rows: OrderRow[], net: NetFeeRow[]): NetFeeResult {
+  const HOLD = (t: string) => t !== "Начисление" && t !== "Возврат";
+  const bySku = new Map<string, Record<string, number>>();   // order|sku -> группа -> сумма
+  const byOrder = new Map<string, Record<string, number>>(); // order -> группа -> сумма (строки без sku)
+  const orders = new Set<string>();
+  const unmapped: Record<string, number> = {};
+  for (const n of net) {
+    const o = String(n.order || "").trim(); if (!o || !HOLD(String(n.type || ""))) continue;
+    const g = nettingFeeGroup(n.service || "");
+    if (g === "Прочее" && n.service) unmapped[n.service] = r2((unmapped[n.service] || 0) + Math.abs(n.amount));
+    orders.add(o);
+    const sku = String(n.sku || "").trim();
+    const bag = sku ? (bySku.get(`${o}|${sku}`) || (bySku.set(`${o}|${sku}`, {}), bySku.get(`${o}|${sku}`)!))
+                    : (byOrder.get(o) || (byOrder.set(o, {}), byOrder.get(o)!));
+    bag[g] = r2((bag[g] || 0) + Math.abs(n.amount));
+  }
+  // доли внутри заказа и внутри (заказ, sku) - по начислениям, как и для комиссий заказа
+  const accrOrder = new Map<string, number>(), accrSku = new Map<string, number>(), nOrder = new Map<string, number>();
+  for (const r of rows) {
+    accrOrder.set(r.order, (accrOrder.get(r.order) || 0) + r.accruals);
+    accrSku.set(`${r.order}|${r.sku}`, (accrSku.get(`${r.order}|${r.sku}`) || 0) + r.accruals);
+    nOrder.set(r.order, (nOrder.get(r.order) || 0) + 1);
+  }
+  const out = rows.map((r) => {
+    if (!orders.has(r.order)) return { ...r, fee_source: "order" as const };
+    const f: Record<string, number> = {};
+    const add = (bag: Record<string, number> | undefined, share: number) => {
+      if (!bag) return;
+      for (const [g, v] of Object.entries(bag)) { const a = r2(v * share); if (a) f[g] = r2((f[g] || 0) + a); }
+    };
+    const kSku = `${r.order}|${r.sku}`;
+    const aSku = accrSku.get(kSku) || 0, aOrd = accrOrder.get(r.order) || 0, n = nOrder.get(r.order) || 1;
+    add(bySku.get(kSku), aSku > 0 ? r.accruals / aSku : 1 / rows.filter((x) => x.order === r.order && x.sku === r.sku).length);
+    add(byOrder.get(r.order), aOrd > 0 ? r.accruals / aOrd : 1 / n);
+    const ft = r2(Object.values(f).reduce((s, v) => s + v, 0));
+    return { ...r, fees: f, fee_total: ft, payout: r2(r.accruals - ft), fee_actual: true, fee_source: "netting" as const };
+  });
+  return {
+    rows: out,
+    orders_from_netting: new Set(out.filter((r) => r.fee_source === "netting").map((r) => r.order)).size,
+    orders_from_commissions: new Set(out.filter((r) => r.fee_source !== "netting").map((r) => r.order)).size,
+    unmapped,
+  };
 }

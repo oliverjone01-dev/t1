@@ -3,14 +3,18 @@
 import { appendFileSync } from "node:fs";
 import { yp, readNdjson, readJson, writeJson, today } from "./common.js";
 import { buildReconcile } from "./reconcile-lib.js";
-import type { OrderRow } from "./derive-lib.js";
+import { applyNettingFees, type OrderRow } from "./derive-lib.js";
 
 function main() {
   const nettingSummary = readJson<any>(yp("netting_summary.json"), null);
+  const netRows = readNdjson<any>(yp("netting.ndjson"));
+  // Сверка обязана считать по тем же деньгам, что и дашборд: сборы берутся из ledger'а кабинета.
+  // Иначе проверялась бы цифра, которой на страницах нет.
+  const rows = applyNettingFees(readNdjson<OrderRow>(yp("orders.ndjson")), netRows).rows;
   const out = buildReconcile({
-    rows: readNdjson<OrderRow>(yp("orders.ndjson")),
+    rows,
     realization: readNdjson<any>(yp("realization_monthly.ndjson")),
-    netting: nettingSummary ? readNdjson<any>(yp("netting.ndjson")) : null,
+    netting: nettingSummary ? netRows : null,
     cogs: readJson<Record<string, number>>(yp("sku_cogs.json"), {}),
     tax: readJson<Record<string, any>>(yp("sku_taxonomy.json"), {}),
     live: readJson<any>(yp("skus_live_30d.json"), { sku_table: [] }),

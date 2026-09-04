@@ -6,11 +6,11 @@
 // Без сети. Запуск: npm run ym:derive [days=30]
 import { existsSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
-import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, type OrderRow } from "./derive-lib.js";
+import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, applyNettingFees, type OrderRow } from "./derive-lib.js";
 
 function main() {
   ensureDir();
-  const rows = readNdjson<OrderRow>(yp("orders.ndjson"));
+  let rows = readNdjson<OrderRow>(yp("orders.ndjson"));
   if (!rows.length) { console.error(`ym-derive: ${yp("orders.ndjson")} пуст - сначала npm run ym:orders`); process.exit(1); }
   const catalog = readJson<any>(yp("catalog.json"), { items: {} });
   const to = yesterday();
@@ -41,11 +41,19 @@ function main() {
   }
   const live = buildSkusLive(rows, facts, catalog, w.dateFrom, w.dateTo, skuViews.size ? skuViews : undefined);
   writeJson(yp("skus_live_30d.json"), live);
+  // Сборы берём из ledger'а кабинета (§15: источник денег - кабинет). Комиссии заказа остаются
+  // запасным источником для заказов, которых в ledger'е ещё нет.
+  const netAll = readNdjson<any>(yp("netting.ndjson"));
+  const fee = applyNettingFees(rows, netAll);
+  rows = fee.rows;
+  console.log(`ym-derive: сборы из взаиморасчётов у ${fee.orders_from_netting} заказов, из комиссий заказа у ${fee.orders_from_commissions}`);
+  if (Object.keys(fee.unmapped).length) console.warn(`::warning::услуги без группы сборов: ${JSON.stringify(fee.unmapped)}`);
+  writeJson(yp("fee_source.json"), { at: new Date().toISOString(), ...fee, rows: undefined });
   writeJson(yp("pnl_30d.json"), buildPnl(rows, w.dateFrom, w.dateTo), 0);
   writeJson(yp("pnl_sku_30d.json"), buildPnlSku(rows, w.dateFrom, w.dateTo));
   writeNdjson(yp("pnl_daily.ndjson"), buildPnlDaily(rows));
   writeNdjson(yp("pnl_sku_daily.ndjson"), buildPnlSkuDaily(rows));
-  const nettingRows = readNdjson<any>(yp("netting.ndjson"));
+  const nettingRows = netAll;
   writeNdjson(yp("pnl_account_daily.ndjson"), buildAccountDaily(floor, to, nettingRows));
   writeJson(yp("sku_offer.json"), buildSkuOffer(rows, catalog), 0);
 

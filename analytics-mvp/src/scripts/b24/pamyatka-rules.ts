@@ -26,16 +26,18 @@ const K_LPRQ = /(кто принимает решение|кто подписы�
 const K_TERMQ = /(к какому числу|к какому сроку|в какие сроки|какие сроки у вас|сколько времени у вас|когда нужно готовое|дата объекта|когда планируете)/i;
 // не-речь клиента: записи звонков, сервисные и ботовые сообщения, письма-треды
 const K_NONMSG = /^(звонок|тема:|\/start|не удаляйте это сообщение)/i;
+const K_HELLO = /здравствуйте|добрый день|доброе утро|добрый вечер|приветству|доброго дня/i;
 
 export const KURATOR_RULES: Record<string, string> = {
   R1: "Первый ответ дольше 15 рабочих минут", R2: "Обещание без даты", R3: "Вложение без сопроводительного текста",
   R5: "Стоп-слово из блоклиста", R7: "«Дорого» без вопроса о бюджете", R9: "Эскалация без извинения",
+  R10: "Первый ответ новому клиенту без приветствия",
 };
 
 export type KViol = { r: string; q: string; d: string };
 export type KDeal = { id: any; lead: number; m: string; t: string; b: number; viol: KViol[] };
 export type Kurator = {
-  mgrs: Record<string, { fr: number; frOk: number; pr: number; prOk: number; out: number; viol: number; byRule: Record<string, number>; deals: KDeal[] }>;
+  mgrs: Record<string, { fr: number; frOk: number; pr: number; prOk: number; out: number; qe: number; viol: number; byRule: Record<string, number>; deals: KDeal[] }>;
   firstLine: { fr: number; frOk: number; viol: number; authors: string[] };
   qual: { bud: number; term: number; lpr: number; out: number; note: string };
   note: string;
@@ -81,7 +83,7 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
   const dealEv: Record<string, KDeal> = {};
   const qual = { bud: 0, term: 0, lpr: 0, out: 0, note: "по списку зашитых формулировок; полнота детектора не измерена - «не найдено» значит «не найдено этим списком», а не «не спрашивали»" };
   // per-author копилки: улика принадлежит АВТОРУ сообщения (G2 ФЕНИКСА)
-  const st = (a: string) => (mgrs[a] ||= { fr: 0, frOk: 0, pr: 0, prOk: 0, out: 0, viol: 0, byRule: {}, deals: [] });
+  const st = (a: string) => (mgrs[a] ||= { fr: 0, frOk: 0, pr: 0, prOk: 0, out: 0, qe: 0, viol: 0, byRule: {}, deals: [] });
   const violByDeal: Record<string, { author: string; v: KViol }[]> = {};
   for (const [k, list] of Object.entries(evByObj)) {
     const win = list.filter((e) => +e.ts >= WIN_FROM && +e.ts <= WIN_TO);
@@ -92,6 +94,7 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
     // ответ; время в РАБОЧИХ минутах; улика и знаменатель - у автора ответа
     const fin = win.find((e) => e.dir === "входящее" && isRealMsg(e));
     const fout = fin ? win.find((e) => e.dir === "исходящее" && +e.ts > +fin.ts && isRealMsg(e)) : null;
+    const newDialog = +list[0].ts >= WIN_FROM; // у сделки нет истории до окна - диалог новый
     if (fin && fout) {
       const author = canonSeller(String(fout.who || d?.mgr || "").trim());
       const wm = workMinutes(+fin.ts, +fout.ts);
@@ -99,6 +102,10 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
         const s = st(author);
         s.fr++; if (wm <= 15) s.frOk++;
         else V.push({ author, v: { r: "R1", q: "Клиент написал " + kDT(fin) + ", ответ ушёл через " + (wm >= 60 ? Math.floor(wm / 60) + " ч " + (wm % 60) + " мин" : wm + " мин") + " рабочего времени", d: kDT(fout) } });
+        // R10 (памятка §3, детектор T02 академии): первый ответ НОВОМУ клиенту без приветствия.
+        // Продолжение старой переписки (история до окна) приветствия не требует
+        if (newDialog && !K_HELLO.test(String(fout.body || "")))
+          V.push({ author, v: { r: "R10", q: "Первый ответ новому клиенту без приветствия: «" + clip(String(fout.body || "").trim()).slice(0, 110) + "»", d: kDT(fout) } });
       } else { firstLine.fr++; if (wm <= 15) firstLine.frOk++; flAuthors.add(String(fout.who || "?").trim()); }
     }
     const seenAttachMin = new Set<string>();
@@ -110,6 +117,7 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
       const seller = !!author;
       const marker = K_ATTACH.test(body) && body.length < 60;
       if (seller && !marker) { const s = st(author!); s.out++; qual.out++;
+        if (/\?\s*$/.test(body)) s.qe++; // «ход у нас»: сообщение заканчивается вопросом (счётчик, не улика)
         if (K_BUDGQ.test(body)) qual.bud++; if (K_TERMQ.test(body)) qual.term++; if (K_LPRQ.test(body)) qual.lpr++; }
       const flaggedSents: string[] = [];
       // N4 ФЕНИКСА: счёт симметричен - КАЖДОЕ предложение-обещание учитывается и в pr,

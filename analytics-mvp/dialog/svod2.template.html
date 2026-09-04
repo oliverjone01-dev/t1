@@ -267,7 +267,13 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
 <!-- КУРАТОР ПО ПАМЯТКЕ (решение Ивана 03.09: отдел видит всех) -->
 <div class="card">
   <h2>Разбор недели по памятке <span class="tagH">ЧЕРНОВИК ДЕТЕКТОРА</span> <span class="pill b" id="kur-total"></span><span class="q" data-pop="kur-help">?</span></h2>
-  <div class="pop2" id="pop-kur-help">Простыми словами: движок читает переписку недели и сверяет её с памяткой менеджера v2.3. Улика - конкретное сообщение: что написали, какое правило нарушено, готовая замена с кнопкой «Скопировать». Улика принадлежит АВТОРУ сообщения, а не владельцу сделки; первый ответ меряется в рабочих минутах (9:00-18:00), звонки, боты и письма-треды не считаются «клиент написал». Это не приговор, а список для пятничной чистки: спорную улику откройте в CRM и разберите с РОПом - по спорным случаям детекторы дообучаются. Отдел видит всех (решение Ивана 03.09): планка у всех одна.</div>
+  <div class="pop2" id="pop-kur-help">Простыми словами: движок читает переписку недели и сверяет её с памяткой менеджера v2.3. Улика - конкретное сообщение: что написали, какое правило нарушено, готовая замена с кнопкой «Скопировать». Улика принадлежит АВТОРУ сообщения, а не владельцу сделки; первый ответ меряется в рабочих минутах (9:00-18:00), звонки, боты и письма-треды не считаются «клиент написал». Это не приговор, а список для пятничной чистки: спорную улику откройте в CRM и разберите с РОПом - по спорным случаям детекторы дообучаются. Отдел видит всех (решение Ивана 03.09): планка у всех одна.
+  <br><br><b>Что из памятки покрыто, а что нет - честная карта:</b><table>
+  <tr><td>Улики (7 правил)</td><td>первый ответ 15 раб. минут (§1) · обещание без даты (§1) · вложение без текста (§3) · стоп-слова (§1) · «дорого» без вопроса о бюджете (§3) · эскалация без извинения (§3, только чаты) · первый ответ без приветствия (§3)</td></tr>
+  <tr><td>Счётчики (ориентиры, не улики)</td><td>вопросы о бюджете / сроке / ЛПР (§3) · «ход у нас»: доля сообщений с вопросом в конце (§1) - в разборе менеджера</td></tr>
+  <tr><td>Живёт в других блоках СВОДа</td><td>второе касание молчащей сделке (§4) - «Долг по ответам» · каденции дожимов (§4) - таблицы очередей · заморозка и «Долгострой» (§4)</td></tr>
+  <tr><td>Фаза 2 - НЕ детектится</td><td>почтовый канал целиком (жалобы письмом движок не видит) · правила CRM §2 (свалки, теневые каналы, причины отказов) · «плохую новость первым» (§1) · перевод в звонок, «у конкурентов дешевле», возврат после паузы, сопровождение после оплаты (§3) · материалы §5 · замер · опечатки в словарях</td></tr>
+  </table>«Не детектится» не значит «не важно»: эти разделы разбираются РОПом руками, движок туда пока не смотрит.</div>
   <div class="hint">ЧЕСТНО: точность детекторов ещё не измерена - до ручной разметки 60 улик РОПом выводы по людям не делаются, это черновик для калибровки. Два из четырёх чисел пятницы (§6) посчитаны автоматически; «первый ответ» здесь - первая пара сделки в рабочих минутах (не путать с 486 парами ответов линии выше - там все ответы недели). Нажмите «Разбор» - сделки с уликами, самые дорогие первыми. Никого не коронуем и не хороним по одной цифре.</div>
   <div class="tscroll"><table class="mt" id="kur-table"></table></div>
   <div id="kur-panel"></div>
@@ -869,8 +875,8 @@ function debtList(kind,key){
     (items.length?items.map(x=>`<a class="dl" href="${crmUrl({lead:x.lead,id:x.id})}" target="_blank" rel="noopener"><span class="db">${fmtR(x.b)}</span><span><b>${esc(x.t||('#'+x.id))}</b> · ${esc(x.m)} · ждёт ${ageTxt(x.ageH)}<br><span style="color:var(--ink3)">${esc(deN(x.next)||'ответить сегодня и назвать точный срок')}</span>${(function(){const ph=pickPhrase(x.u,x.ageH);return ph?`<br><button class="btn" style="margin-top:5px" onclick="event.preventDefault();copyPhrase('${esc(ph.id)}')">Скопировать фразу${ph.verified===false?' (непроверено)':''}</button>`:'';})()} · открыть в CRM →</span></a>`).join(''):'<div class="pill g" style="margin-top:8px">Долга нет - все клиенты получили ответ</div>');
 }
 /* КУРАТОР ПО ПАМЯТКЕ: улики недели по правилам v2.3 */
-const KRULE={R1:['Первый ответ дольше 15 рабочих минут','§1 · норматив: 15 минут рабочего времени, цель 100%'],R2:['Обещание без даты','§1 · дефект отдела номер один'],R3:['Вложение без сопроводительного текста','§3 · второй по частоте дефект'],R5:['Стоп-слово из блоклиста','§1 · «срок, которого нет»'],R7:['«Дорого» без вопроса о бюджете','§3 · первый ход - вопрос, не скидка'],R9:['Эскалация без извинения','§3 · извинений не было в 13 из 16']};
-const KFIX={R1:'Холдинг-сообщение в 15 минут: «Имя, добрый день! Заявку получил, беру в расчёт. Вернусь с цифрой завтра до 11:00»',R2:'Дописать дату в то же предложение: «отправлю завтра до 12:00». Срок без даты клиент читает как отказ',R3:'«Имя, направляю <счёт / КП / макет> по вашему заказу. Прошу подтвердить получение»',R5:'Заменить конкретной датой: вместо «в ближайшее время» - «завтра до 15:00»',R7:'«Какой бюджет для вас рабочий? Назовите цифру, я честно скажу, попадаем мы в неё или нет»',R9:'«Имя, мне очень жаль, что так вышло. Приношу извинения» - и только потом причина и план'};
+const KRULE={R1:['Первый ответ дольше 15 рабочих минут','§1 · норматив: 15 минут рабочего времени, цель 100%'],R2:['Обещание без даты','§1 · дефект отдела номер один'],R3:['Вложение без сопроводительного текста','§3 · второй по частоте дефект'],R5:['Стоп-слово из блоклиста','§1 · «срок, которого нет»'],R7:['«Дорого» без вопроса о бюджете','§3 · первый ход - вопрос, не скидка'],R9:['Эскалация без извинения','§3 · извинений не было в 13 из 16'],R10:['Первый ответ без приветствия','§3 · представление в каждом первом контакте']};
+const KFIX={R1:'Холдинг-сообщение в 15 минут: «Имя, добрый день! Заявку получил, беру в расчёт. Вернусь с цифрой завтра до 11:00»',R2:'Дописать дату в то же предложение: «отправлю завтра до 12:00». Срок без даты клиент читает как отказ',R3:'«Имя, направляю <счёт / КП / макет> по вашему заказу. Прошу подтвердить получение»',R5:'Заменить конкретной датой: вместо «в ближайшее время» - «завтра до 15:00»',R7:'«Какой бюджет для вас рабочий? Назовите цифру, я честно скажу, попадаем мы в неё или нет»',R9:'«Имя, мне очень жаль, что так вышло. Приношу извинения» - и только потом причина и план',R10:'«Имя, добрый день! Меня зовут <Имя>, компания GENGLASS» - представление в каждом первом контакте, и в звонке тоже'};
 function renderKurator(){
   const K=DATA.kurator;const tb=document.getElementById('kur-table');
   if(!K||!K.mgrs){if(tb)tb.innerHTML='';const t2=document.getElementById('kur-total');if(t2)t2.textContent='';return;}
@@ -901,7 +907,7 @@ function renderKurator(){
     <td>${v.fr?`<b>${v.frOk} из ${v.fr}</b> <span class="cmp ${frP>=50?'up':'dn'}">${frP}%</span>`:'<span class="pill n">пар нет</span>'}</td>
     <td>${v.pr?`<b>${v.prOk} из ${v.pr}</b> <span class="cmp ${prP>=50?'up':'dn'}">${prP}%</span>`:'<span class="pill n">обещаний нет</span>'}</td>
     <td>${cal&&v.eff===0&&v.viol>0?'<span class="pill n">улик по надёжным правилам нет</span>':`<b>${v.eff}</b> · ${small?'<span class="pill n" data-t="меньше '+MINS+' сообщений за неделю - плотность не ранжируется">мало данных</span>':dens(v).toFixed(1)}`}</td>
-    <td><button class="btn ${v.deals.length?'pri':''}" ${v.deals.length?`onclick="kurPanel(${i})"`:'disabled'}>▼ Разбор</button></td></tr>`;}).join('')+
+    <td>${v.deals.length?`<button class="btn ${window.__kurOpen===i?'on':'pri'}" id="kurbtn-${i}" onclick="kurPanel(${i})">${window.__kurOpen===i?'▲ Свернуть':'▼ Разбор'}</button>`:'<span class="pill n">улик нет</span>'}</td></tr>`;}).join('')+
     (K.firstLine&&K.firstLine.fr?`<tr><td><span style="color:var(--ink3)">Первая линия (офис)</span></td><td>${K.firstLine.frOk} из ${K.firstLine.fr}</td><td colspan="2" style="color:var(--ink3)">${K.firstLine.viol} ${plural(K.firstLine.viol,['улика','улики','улик'])} - вне таблицы продавцов: регламент продаж к офисной роли не применяется</td><td></td></tr>`:'');
   window.__kurRows=rows;
   const q=K.qual;
@@ -909,8 +915,13 @@ function renderKurator(){
   document.getElementById('kur-qual').textContent=(q&&q.out?`Квалификация за неделю по продавцам (памятка §3): по списку зашитых формулировок найдено - вопрос о бюджете ${q.bud}, о сроке ${q.term}, про ЛПР ${q.lpr} на ${q.out} исходящих. ${q.note||''} `:'')+calLine+`Почтовый канал (письма-треды) в разбор пока не входит - жалобы почтой движок не видит, это фаза 2. ${K.note||''}`;
 }
 function kurPanel(i){
+  /* повторный клик по открытому - закрыть; переключение - подсветка кнопки и заметный скролл */
+  if(window.__kurOpen===i){window.__kurOpen=null;document.getElementById('kur-panel').innerHTML='';renderKuratorButtons();return;}
+  window.__kurOpen=i;renderKuratorButtons();
   const [m,v]=window.__kurRows[i];
+  const qeP=v.out?Math.round(100*v.qe/v.out):null;
   document.getElementById('kur-panel').innerHTML=`<div class="mh" style="margin:10px 0 4px">Разбор · ${esc(m)} · сделки с уликами, самые дорогие первыми</div>`+
+    (v.out?`<div class="hint" style="margin:0 0 6px">«Ход всегда у нас» (§1, счётчик): вопросом заканчивается ${v.qe} из ${v.out} сообщений (${qeP}%) - по отделу за старый период было 11%. Это ориентир, не улика.</div>`:'')+
     v.deals.map(d=>`<div class="exp" style="margin:8px 0">
       <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap"><b>${esc(d.t)}</b><span style="font-weight:800">${fmtR(d.b)}</span><a href="${crmUrl({lead:d.lead,id:d.id})}" target="_blank" rel="noopener" style="font-size:var(--fs-sm);font-weight:700">открыть в CRM →</a></div>
       ${d.viol.map(x=>`<div style="border-left:3px solid var(--bad);padding:7px 11px;margin:7px 0;background:#fbfcfe;border-radius:0 var(--r-sm) var(--r-sm) 0">
@@ -919,7 +930,11 @@ function kurPanel(i){
         <div style="background:var(--ok-soft);border-radius:var(--r-sm);padding:6px 10px;font-size:var(--fs-body)"><b style="color:var(--ok)">Как надо:</b> ${esc(KFIX[x.r]||'')} <button class="btn" style="margin-left:6px" onclick="copyKFix('${x.r}')">Скопировать</button></div>
       </div>`).join('')}
     </div>`).join('');
-  try{document.getElementById('kur-panel').scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}
+  try{document.getElementById('kur-panel').scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
+}
+function renderKuratorButtons(){
+  (window.__kurRows||[]).forEach(([,v],i)=>{const b=document.getElementById('kurbtn-'+i);if(!b)return;
+    const on=window.__kurOpen===i;b.className='btn '+(on?'on':'pri');b.textContent=on?'▲ Свернуть':'▼ Разбор';});
 }
 function copyKFix(r){
   const t=(KFIX[r]||'').replace(/«|»/g,'');
@@ -954,7 +969,7 @@ function pipeCoach(name,cr,grey){
 
 function renderAll(){renderStik();renderDebt();renderKurator();renderPipe();renderPBar();renderKPIs();renderTeam();renderQueues();renderPulse();renderFunnelBig();renderFreeze();renderAI();
   document.getElementById('subline').textContent=`${M.scope||''} · период ${df(PERIOD.from)} - ${df(PERIOD.to)}`;
-  document.getElementById('qpanel').innerHTML='';document.getElementById('ppanel').innerHTML='';document.getElementById('zpanel').innerHTML='';document.getElementById('mgr-day-ann').innerHTML='';document.getElementById('kur-panel').innerHTML='';
+  document.getElementById('qpanel').innerHTML='';document.getElementById('ppanel').innerHTML='';document.getElementById('zpanel').innerHTML='';document.getElementById('mgr-day-ann').innerHTML='';document.getElementById('kur-panel').innerHTML='';window.__kurOpen=null;
   /* клавиатурная доступность кликабельных span/div (P2-7) */
   document.querySelectorAll('.q,.name-l').forEach(el=>{el.setAttribute('role','button');el.setAttribute('tabindex','0');});}
 try{renderAll();}catch(e){document.body.insertAdjacentHTML('afterbegin','<div class="err">Ошибка рендера: '+esc(e.message)+'</div>');throw e;}

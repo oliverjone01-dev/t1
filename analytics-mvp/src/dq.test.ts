@@ -46,6 +46,26 @@ describe("runDq", () => {
     expect(r.volumeDrop?.date).toBe("2026-06-08");
   });
 
+  it("провал объёма в последний день НЕ фатален (свежий день частичный, ok=true)", () => {
+    // 7 ровных дней по 1000, последний день 100 (провал >60%) - типичный неустоявшийся свежий день
+    const rows: SkuDaily[] = [];
+    for (let d = 1; d <= 7; d++) rows.push(row(`2026-06-0${d}`, 1000));
+    rows.push(row("2026-06-08", 100));
+    store.upsertSkuDaily(rows);
+    const r = runDq(store, "2026-06-01", "2026-06-08");
+    expect(r.volumeDrop?.ok).toBe(false); // проверка сработала - предупреждение есть
+    expect(r.ok).toBe(true);              // но общий DQ не фатал - данные коммитятся
+  });
+
+  it("дыра в датах остаётся фатальной даже при провале объёма", () => {
+    const rows: SkuDaily[] = [];
+    for (const d of [1, 2, 3, 4, 5, 7]) rows.push(row(`2026-06-0${d}`, d === 7 ? 100 : 1000));
+    store.upsertSkuDaily(rows);
+    const r = runDq(store, "2026-06-01", "2026-06-07");
+    expect(r.gaps).toEqual(["2026-06-06"]);
+    expect(r.ok).toBe(false); // дыра - реальная поломка, синк должен падать
+  });
+
   it("норма: ровный объём - провала нет", () => {
     const rows: SkuDaily[] = [];
     for (let d = 1; d <= 8; d++) rows.push(row(`2026-06-0${d}`, 1000));

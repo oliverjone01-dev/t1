@@ -34,7 +34,12 @@ export function runDq(store: Store, from: string, expectedLatest: string): DqRes
     volumeDrop = { ok: last.revenue >= median * 0.4, date: last.date, revenue: last.revenue, median };
   }
 
-  const ok = freshness.ok && gaps.length === 0 && (volumeDrop?.ok ?? true);
+  // Фатальны только реальные поломки синка: нет свежего дня (freshness) или дыры в датах (gaps).
+  // volumeDrop на ПОСЛЕДНЕМ дне НЕ фатален: свежий день у OZON почти всегда неполный (продажи
+  // досчитываются ещё сутки-двое), поэтому низкий объём последнего дня - ожидаемо, а не поломка.
+  // Он остаётся в результате как предупреждение (день помечается «частичный»), но не валит синк -
+  // иначе свежий день никогда не коммитится и дашборд застревает на пред-предыдущем дне.
+  const ok = freshness.ok && gaps.length === 0;
   return { ok, freshness, gaps, volumeDrop };
 }
 

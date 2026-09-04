@@ -38,6 +38,19 @@ describe("reconcile §15", () => {
     expect(moneyTol(1000)).toBe(50); expect(moneyTol(100000)).toBe(500);
     expect(r.blockers.some((b) => b.includes("деньги закрытого месяца"))).toBe(true);
   });
+  it("сверка с фактическими платежами Маркета из заказов: ловит завышенное «к выплате»", () => {
+    const r = buildReconcile({ ...base, realization: [], netting: null }, TODAY);
+    const cp = r.cumulative.payments;
+    // по заказу 500001 расчёт 81000, фактически Маркет заплатил 62000 -> расхождение видно
+    expect(cp.orders_with_payments).toBe(1);
+    expect(cp.payout_with_payments).toBe(81000);
+    expect(cp.payments_actual).toBe(62000);
+    expect(cp.diff).toBe(19000);
+    expect(cp.status).toContain("РАСХОЖДЕНИЕ");
+    expect(cp.by_type).toMatchObject({ PAYMENT: 60000, SUBSIDY: 2000 });
+    expect(r.blockers.some((b) => b.includes("фактическими платежами"))).toBe(true);
+    expect(r.verdict).toBe("return");
+  });
   it("выручка vs реализация: подбор состава типов цен (G7)", () => {
     // accruals августа = 100000 (BUYER 98000 + MARKETPLACE 2000) + 40000 = 140000; amount отчёта 138000 => ближе BUYER-only
     const realz = [{ ym: "2026-08", sku: "GGT-03-3-3-O-20090", sold: 4, ret: 1, amount: 138000 }, { ym: "2026-08", sku: "GGM-16-2-2", sold: 1, ret: 0 }];

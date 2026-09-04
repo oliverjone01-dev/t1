@@ -43,7 +43,7 @@ export interface OrderRow {
   price: number; p_buyer: number; p_mp: number; p_cashback: number; p_spasibo: number;
   revenue: number; accruals: number;
   fees: Record<string, number>; fee_total: number; payout: number; fee_actual: boolean;
-  paid: number; fake: boolean;
+  paid: number; paid_by_type: Record<string, number>; subsidy: number; fake: boolean;
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -83,7 +83,13 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
     const g = feeGroup(c.type); fees[g] = r2((fees[g] || 0) + Math.abs(v));
   }
   const feeActual = anyActual || !anyPredicted;
+  // Фактические выплаты по заказу из самого API (эталон денег внутри stats/orders, доступен без
+  // финансовых отчётов ЛК). Знак: REFUND уменьшает выплату. Разбивку по типам храним, чтобы видеть,
+  // из чего складывается платёж (софинансирование Маркета приходит отдельным типом).
   const paidTotal = o.payments.reduce((s, p) => s + (p.type === "REFUND" ? -p.total : p.total), 0);
+  const paidByType: Record<string, number> = {};
+  for (const p of o.payments) { const k = String(p.type || "?").toUpperCase(); paidByType[k] = r2((paidByType[k] || 0) + (p.type === "REFUND" ? -p.total : p.total)); }
+  const subsidyTotal = (o.subsidies || []).reduce((s, x) => s + x.amount, 0);
   const base = items.reduce((s, x) => s + x.accruals, 0);
   const n = items.length || 1;
 
@@ -102,7 +108,7 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
       price: r2(x.price), p_buyer: r2(x.p_buyer), p_mp: r2(x.p_mp), p_cashback: r2(x.p_cashback), p_spasibo: r2(x.p_spasibo),
       revenue: x.revenue, accruals: x.accruals,
       fees: f, fee_total: ft, payout: deliveredSet ? r2(x.accruals - ft) : 0, fee_actual: feeActual,
-      paid: r2(paidTotal * share), fake: !!o.fake,
+      paid: r2(paidTotal * share), paid_by_type: Object.fromEntries(Object.entries(paidByType).map(([k, v]) => [k, r2(v * share)])), subsidy: r2(subsidyTotal * share), fake: !!o.fake,
     };
   });
 }

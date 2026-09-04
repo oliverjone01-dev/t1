@@ -30,7 +30,10 @@ async function main() {
   if (!camps.length) { console.error("ym-orders: нет кампаний к обработке"); process.exit(1); }
   console.log(`ym-orders: кампаний ${camps.length}\n${campaignSummary(camps)}`);
 
-  const existing = readNdjson<OrderRow>(OUT);
+  // YM_ORDERS_REFETCH=1 - полный пересбор с FLOOR (нужен, когда меняется состав полей строки).
+  const refetch = process.env.YM_ORDERS_REFETCH === "1";
+  const existing = refetch ? [] : readNdjson<OrderRow>(OUT);
+  if (refetch) console.log("ym-orders: YM_ORDERS_REFETCH=1 - полный пересбор истории с " + FLOOR);
   const lastCreated = existing.reduce((m, r) => (r.created > m ? r.created : m), "");
   const to = yesterday();
   const fullFrom = lastCreated ? addDays(lastCreated, 1) : FLOOR;
@@ -67,6 +70,17 @@ async function main() {
 
   // Самодиагностика первого живого прогона (ФЕНИКС G6): форма сырого заказа (ключи/типы, без значений)
   // и принятый формат дат запроса -> data-ym/_probe/orders.json.
+  // Справочник типов платежей/субсидий/комиссий за прогон (счётчики и суммы, без номеров заказов):
+  // по нему видно, из чего складывается фактическая выплата Маркета.
+  const cnt = (m: Record<string, { n: number; sum: number }>, k: string, v: number) => { const a = m[k] || (m[k] = { n: 0, sum: 0 }); a.n++; a.sum = Math.round((a.sum + v) * 100) / 100; };
+  const pt: Record<string, { n: number; sum: number }> = {}, sub: Record<string, { n: number; sum: number }> = {}, com: Record<string, { n: number; sum: number }> = {};
+  for (const r of fresh) {
+    for (const [k, v] of Object.entries(r.paid_by_type || {})) cnt(pt, k, v);
+    if (r.subsidy) cnt(sub, "SUBSIDY", r.subsidy);
+    for (const [k, v] of Object.entries(r.fees || {})) cnt(com, k, v);
+  }
+  writeJson(yp("_probe/payment_types.json"), { at: new Date().toISOString(), note: "агрегат за прогон: типы платежей, субсидии и группы сборов (суммы разнесены по позициям)", payments: pt, subsidies: sub, fees: com });
+
   if (api.lastRawOrder) writeJson(yp("_probe/orders.json"), { at: new Date().toISOString(), dateFormatAccepted: api.orderDateFormat, shape: shape(api.lastRawOrder), creationDateSample: String(api.lastRawOrder.creationDate || "").replace(/\d/g, "9") });
 
   // Дедуп: свежая строка побеждает старую по ключу (campaign, order, sku).

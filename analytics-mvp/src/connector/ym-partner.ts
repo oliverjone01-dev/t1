@@ -54,6 +54,7 @@ export interface YmOrder {
   items: YmOrderItem[];
   commissions: Array<{ type: string; actual: number | null; predicted: number | null }>;
   payments: Array<{ id?: string; date: string; type: string; source?: string; total: number; paymentOrderId?: string; paymentOrderDate?: string }>;
+  subsidies: Array<{ operationType: string; type: string; amount: number }>;
 }
 
 export interface YmOffer {
@@ -114,6 +115,7 @@ export function parseOrder(o: any): YmOrder {
     deliveryRegion: o?.deliveryRegion?.name ? str(o.deliveryRegion.name) : undefined,
     items,
     commissions: (o?.commissions ?? []).map((c: any) => ({ type: str(c.type), actual: c.actual != null ? num(c.actual) : null, predicted: c.predicted != null ? num(c.predicted) : null })),
+    subsidies: (o?.subsidies ?? []).map((x: any) => ({ operationType: str(x.operationType), type: str(x.type), amount: num(x.amount) })),
     payments: (o?.payments ?? []).map((p: any) => ({
       id: p.id != null ? str(p.id) : undefined, date: ymDate(p.date), type: str(p.type), source: p.source ? str(p.source) : undefined,
       total: num(p.total), paymentOrderId: p.paymentOrder?.id != null ? str(p.paymentOrder.id) : undefined, paymentOrderDate: ymDate(p.paymentOrder?.date),

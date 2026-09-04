@@ -12,7 +12,8 @@
          "prices": [{"type": "BUYER", "costPerItem": 40000, "total": 80000}], "details": []}
       ],
       "commissions": [{"type": "FEE", "actual": 15000, "predicted": 14000}, {"type": "AGENCY", "actual": 1000, "predicted": 1000}, {"type": "DELIVERY_TO_CUSTOMER", "actual": 3000, "predicted": 3000}],
-      "payments": [{"id": "p1", "date": "12-08-2026", "type": "PAYMENT", "source": "PAYMENT", "total": 81000, "paymentOrder": {"id": "po-1", "date": "12-08-2026"}}]
+      "subsidies": [{"operationType": "MARKETPLACE", "type": "SUBSIDY", "amount": 2000}],
+      "payments": [{"id": "p1", "date": "12-08-2026", "type": "PAYMENT", "source": "PAYMENT", "total": 60000, "paymentOrder": {"id": "po-1", "date": "12-08-2026"}}, {"id": "p2", "date": "12-08-2026", "type": "SUBSIDY", "source": "MARKETPLACE", "total": 2000, "paymentOrder": {"id": "po-1", "date": "12-08-2026"}}]
     },
     {
       "id": 500002, "creationDate": "10-08-2026", "statusUpdateDate": "16-08-2026", "status": "PARTIALLY_RETURNED", "paymentType": "PREPAID", "fake": false,

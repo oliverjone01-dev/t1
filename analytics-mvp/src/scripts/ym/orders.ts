@@ -4,7 +4,7 @@
 //
 // Инкремент: заказы по дате СОЗДАНИЯ от последнего известного дня до вчера + перетяжка хвоста
 // (TAIL_DAYS) по дате ОБНОВЛЕНИЯ, чтобы поймать доставки/возвраты/отмены и переход комиссий
-// predicted -> actual. Первый прогон - полный бэкфилл от FLOOR. Дедуп по (campaign, order, sku).
+// predicted -> actual. Первый прогон - полный бэкфилл от FLOOR. Дедуп по (campaign, order, sku, позиция).
 // Запуск: npm run ym:orders  (env: YM_API_KEY|YM_DASHBOARD_1, YM_BUSINESS_IDS, YM_CAMPAIGN_IDS, YM_TAIL_DAYS)
 import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, yp, FLOOR, yesterday, addDays, targetSummary } from "./common.js";
@@ -106,8 +106,11 @@ async function main() {
   }
   if (pa) writeJson(yp("_probe/orders.json"), { at: new Date().toISOString(), dateFormatAccepted: pa.orderDateFormat, shape: shape(pa.lastRawOrder), creationDateSample: String(pa.lastRawOrder.creationDate || "").replace(/\d/g, "9") });
 
-  // Дедуп: свежая строка побеждает старую по ключу (campaign, order, sku).
-  const key = (r: OrderRow) => `${r.campaign}|${r.order}|${r.sku}`;
+  // Дедуп: свежая строка побеждает старую по ключу (campaign, order, sku, ПОЗИЦИЯ). Позиция здесь не
+  // украшение: Маркет кладёт доставку отдельной позицией с тем же shopSku, что у товара, и ключ без
+  // позиции схлопывал их в одну строку - выживала доставка, а товар пропадал. На живом снимке так
+  // потерялось 921 строка из 1536.
+  const key = (r: OrderRow) => `${r.campaign}|${r.order}|${r.sku}|${r.pos}`;
   const map = new Map<string, OrderRow>();
   for (const r of existing) map.set(key(r), r);
   let replaced = 0, added = 0;

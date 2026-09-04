@@ -202,6 +202,25 @@ export function buildReconcile(inp: ReconInput, today: string) {
     realization: { months: [...new Set(realz.map((r) => r.ym))].sort(), sku_prev_month: rzSkus.size },
     netting_key: keyCheck,
     netting: netting ? { rows: netRows.length, months: [...new Set(netRows.map((n) => n.d.slice(0, 7)))].sort(), orders_with_number: netByOrder.size } : null,
+    // Позиции-услуги (доставка, подъём) и совпадения SKU внутри заказа. Если у заказа две позиции с
+    // одним SKU и вторая НЕ распознана как услуга, значит список услуг неполон и деньги/штуки по этому
+    // заказу считаются неверно - это должно быть видно, а не тонуть.
+    items: (() => {
+      const rs = real(rows);
+      const svc = rs.filter((r) => r.service).length;
+      const byOrder: Record<string, Record<string, number>> = {};
+      for (const r of rs) ((byOrder[r.order] ||= {})[r.sku] = (byOrder[r.order]![r.sku] || 0) + 1);
+      let dupUnknown = 0;
+      for (const [o, m] of Object.entries(byOrder)) for (const [sku, n] of Object.entries(m)) {
+        if (n < 2) continue;
+        const group = rs.filter((r) => r.order === o && r.sku === sku);
+        if (group.filter((r) => r.service).length < n - 1) dupUnknown++;
+      }
+      return {
+        rows: rs.length, service_rows: svc, dup_sku_unrecognized: dupUnknown,
+        note: dupUnknown ? `в ${dupUnknown} заказах SKU повторяется, но вторая позиция не распознана как услуга - проверить SERVICE_NAME в derive-lib` : "позиции-услуги распознаны, дублей SKU без объяснения нет",
+      };
+    })(),
     account_fees: { rows: accountRows, note: accountRows ? "строки взаиморасчётов без номера заказа -> pnl_account_daily" : "[ГИПОТЕЗА] сборы уровня кабинета не подключены - в pnl_account_daily нули" },
     views: { days: viewDays.size, last: [...viewDays].sort().pop() || null, note: viewDays.size ? "показы per-SKU из отчёта shows-sales" : "показы не собраны (отчёт shows-sales) - воронка без верха" },
     ads: ads && ads.totals && ads.totals.spend > 0 ? "есть расход" : "нет источника (реклама Маркета не подключена)",

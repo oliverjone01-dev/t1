@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -148,5 +148,49 @@ describe("decodeReport", () => {
   it("utf-8 с BOM как есть", () => {
     const { text } = decodeReport(Buffer.from("﻿Дата;Сумма\n01.08.2026;10", "utf-8"));
     expect(text.replace("﻿", "")).toContain("Дата;Сумма");
+  });
+});
+
+describe("доставка отдельной позицией с тем же SKU (живой факт 2026-09-04)", () => {
+  // Маркет кладёт доставку отдельной позицией заказа, причём под тем же shopSku, что и товар.
+  // Ключ строки без номера позиции схлопывал их: выживала доставка, товар пропадал. На живом
+  // снимке так потерялась 921 строка из 1536 - больше половины данных.
+  const order = {
+    id: 55204502850, creationDate: "18-03-2026", statusUpdateDate: "30-03-2026", status: "DELIVERED",
+    partnerOrderId: "GG-1", items: [
+      { offerName: "GEN GROUP Стол обеденный овальный 160х80 см", shopSku: "GGT-03-1-5-E-16080", marketSku: "1", count: 1,
+        prices: [{ type: "MARKETPLACE", costPerItem: 13267 }, { type: "BUYER", costPerItem: 30530 }], details: [] },
+      { offerName: "Доставка КГТ без подъема на этаж", shopSku: "GGT-03-1-5-E-16080", marketSku: "1", count: 1,
+        prices: [{ type: "BUYER", costPerItem: 3500 }], details: [] },
+    ],
+    commissions: [{ type: "FEE", actual: 6089 }], subsidies: [], payments: [],
+  };
+  const rs = normalizeOrder(parseOrder(order as any), "c1", "b1");
+
+  it("обе позиции сохраняются и различимы по номеру позиции", () => {
+    expect(rs.length).toBe(2);
+    expect(rs.map((r) => r.pos)).toEqual([0, 1]);
+    expect(rs[0]!.sku).toBe(rs[1]!.sku); // тот же SKU - ключ обязан их различать
+  });
+  it("товар не потерян: его цена 43 797, а не 3500 от доставки", () => {
+    expect(rs[0]!.price).toBe(43797);
+    expect(rs[0]!.service).toBe(false);
+    expect(rs[1]!.price).toBe(3500);
+    expect(rs[1]!.service).toBe(true);
+  });
+  it("деньги доставки остаются в заказе, а её штуки - нет", () => {
+    expect(rs[0]!.delivered).toBe(1);
+    expect(rs[1]!.delivered).toBe(0); // доставка - не проданная единица
+    expect(rs[1]!.units).toBe(0);
+    expect(rs[1]!.revenue).toBe(3500); // но выручка заказа её включает
+    expect(rs.reduce((s, r) => s + r.delivered, 0)).toBe(1); // сверка штук не удваивается
+    expect(rs.reduce((s, r) => s + r.accruals, 0)).toBe(43797 + 3500);
+  });
+  it("подъём, сборка и установка тоже считаются услугами, товар - нет", () => {
+    expect(isServiceItem("Доставка и подъем КГТ на этаж с лифтом")).toBe(true);
+    expect(isServiceItem("Подъём на этаж")).toBe(true);
+    expect(isServiceItem("Сборка мебели")).toBe(true);
+    expect(isServiceItem("GEN GROUP Стол обеденный")).toBe(false);
+    expect(isServiceItem("Зеркало настенное")).toBe(false);
   });
 });

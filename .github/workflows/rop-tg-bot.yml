@@ -47,6 +47,8 @@ jobs:
       SEND: ${{ (github.event.schedule == '0 5 * * 1-5' || github.event.schedule == '0 11 * * 1-5' || github.event.schedule == '30 13 * * 1-5') && '0' || '1' }}
       # Чистовые (main) слоты идут в основной чат; тестовые слоты и ручной запуск без chat - в тест-чат.
       CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || (github.event.schedule == '15 6 * * 1-5' && '-1004401671894') || (github.event.schedule == '15 12 * * 1-5' && '-1004401671894') || (github.event.schedule == '45 14 * * 1-5' && '-1004401671894') || '-1003652568523' }}
+      # Признак планового запуска: у GitHub schedule бывают опоздания на часы. Ручной запуск не трогаем.
+      IS_SCHED: ${{ github.event_name == 'schedule' }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
@@ -156,6 +158,20 @@ jobs:
           MGR_NAME: ${{ github.event.inputs.mgr }}
         run: |
           set -euo pipefail
+          # Защита от опоздавших кронов GitHub: schedule иногда срабатывает на часы позже слота.
+          # Если ПЛАНОВЫЙ крон опоздал больше чем на 90 мин от своего слота - НЕ шлём дайджест,
+          # иначе прилетает «призрак» (напр. утренний план в обед). Ручной запуск не трогаем.
+          if [ "${IS_SCHED:-}" = "true" ]; then
+            case "$MODE" in plan) GSLOT="06:00";; srez) GSLOT="12:00";; itogi) GSLOT="14:30";; *) GSLOT="";; esac
+            if [ -n "$GSLOT" ]; then
+              GSLOT_TS=$(date -u -d "$(date -u +%F) $GSLOT" +%s 2>/dev/null || echo 0)
+              NOW_TS=$(date -u +%s)
+              if [ "$GSLOT_TS" -gt 0 ] && [ $((NOW_TS - GSLOT_TS)) -gt 5400 ]; then
+                echo "Крон слота $GSLOT UTC опоздал на $(((NOW_TS-GSLOT_TS)/60)) мин (>90) - пропускаю отправку (опоздавший дайджест не нужен)."
+                exit 0
+              fi
+            fi
+          fi
           git fetch --depth=1 origin rop-dashboard-v1
           git show FETCH_HEAD:analytics-mvp/rop/data/rop.json > /tmp/rop.json
           git fetch --depth=1 origin dialog-export-v1

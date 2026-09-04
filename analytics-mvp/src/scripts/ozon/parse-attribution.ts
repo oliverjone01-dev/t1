@@ -13,7 +13,7 @@ const norm = (s: string) => String(s ?? "").trim().toLowerCase().replace(/\s+/g,
 
 // Парсер DATE-формата (groupBy=DATE): те же колонки + ведущая «День» (ДД.ММ.ГГГГ).
 // Даёт per-(день, SKU) ряд атрибуции -> агрегация любого периода на дашборде.
-export interface AttrDailyRow extends SkuStat { date: string; }
+export interface AttrDailyRow extends SkuStat { date: string; toCart: number; }
 
 export function parseAttributionDaily(text: string): AttrDailyRow[] {
   const lines = String(text || "").split(/\r?\n/).filter((l) => l.trim());
@@ -30,6 +30,7 @@ export function parseAttributionDaily(text: string): AttrDailyRow[] {
     om: find((h) => h.includes("продажи в продвижении") && !h.includes("модели")),
     soldModel: find((h) => h.includes("продано товаров модели")),
     omModel: find((h) => h.includes("продажи в продвижении") && h.includes("модели")),
+    toCart: find((h) => h.includes("добавлен") && h.includes("корзин")), // «Добавления в корзину»
   };
   if (ci.date < 0 || ci.sku < 0 || ci.om < 0) return [];
 
@@ -46,6 +47,7 @@ export function parseAttributionDaily(text: string): AttrDailyRow[] {
       sp: num(c[ci.sp] ?? ""), sold: num(c[ci.sold] ?? ""), om: num(c[ci.om] ?? ""),
       soldModel: ci.soldModel >= 0 ? num(c[ci.soldModel] ?? "") : 0,
       omModel: ci.omModel >= 0 ? num(c[ci.omModel] ?? "") : 0,
+      toCart: ci.toCart >= 0 ? num(c[ci.toCart] ?? "") : 0,
       drr: 0,
     });
   }

@@ -13,8 +13,8 @@ describe("parseAttributionDaily", () => {
   it("разбирает per-(день, SKU) ряд с датой ISO и колонками модели", () => {
     const rows = parseAttributionDaily(CSV_DATE);
     expect(rows).toHaveLength(2);
-    expect(rows[0]).toMatchObject({ date: "2026-05-27", sku: "3734276157", sp: 4957, sold: 0, om: 0, soldModel: 1, omModel: 84900 });
-    expect(rows[1]).toMatchObject({ date: "2026-05-28", sku: "3734276157", sp: 5606, sold: 1, om: 84900, soldModel: 0, omModel: 0 });
+    expect(rows[0]).toMatchObject({ date: "2026-05-27", sku: "3734276157", sp: 4957, sold: 0, om: 0, soldModel: 1, omModel: 84900, toCart: 6 });
+    expect(rows[1]).toMatchObject({ date: "2026-05-28", sku: "3734276157", sp: 5606, sold: 1, om: 84900, soldModel: 0, omModel: 0, toCart: 6 });
   });
   it("не-DATE формат (без «День») -> []", () => {
     expect(parseAttributionDaily("sku;Продажи в продвижении\n1;10")).toEqual([]);

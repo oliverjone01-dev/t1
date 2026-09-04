@@ -1373,7 +1373,7 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
       <div class="hint">Данные всегда собираются на всю глубину (до коммуникаций), но вывод - на уровне объекта и на один ниже: <b>отдел</b> → по менеджерам (+ подсветка сильных/слабых сделок), <b>менеджер</b> → по сделкам, <b>сделка</b> → по коммуникациям. «Авто» берёт объект из того, что выделено.</div>
     </div>`;
   p.innerHTML=`
-    <div class="ah"><div><b>Настройка ИИ-анализа</b><div class="sub2">MVP: собери фильтр → скопируй → пришли в чат → вставь ответ</div></div>
+    <div class="ah"><div><b>Настройка ИИ-анализа</b><div class="sub2">Фильтр → уточняющий вопрос → «Получить разбор»</div></div>
       <span class="ax" onclick="aiToggle(false)">✕</span></div>
     ${picksSect}
     ${objSect}
@@ -1427,40 +1427,47 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
       <div id="aiRep">${repHTML()}</div>
     </div>
 
-    <div class="sect"><h5>Рабочее окно ИИ - одно на всё</h5>
-      <ol class="steps">
-        <li>Соберите выборку - кликами по дашборду или полями выше.</li>
-        <li>Нажмите «Скопировать» и пришлите настройку в чат Claude.</li>
-        <li>Что вернётся - вставьте в окно ниже. Я сам пойму, настройка это или разбор, и подскажу следующий шаг.</li>
-      </ol>
-      <button class="abtn" onclick="aiCopy()">Скопировать настройку и отправить в чат</button>
-      <div class="copied" id="aiCopied"></div>
-      <button class="abtn sec" style="margin-top:8px" onclick="aiApplyToDash()">Показать эту выборку в дашборде</button>
-      <div class="hint">Свернёт таблицу до выбранных менеджеров и сделок, выставит период и раскроет переписку - проверить ход коммуникаций, не дожидаясь ИИ.</div>
-      <textarea class="ansbox" id="aiIn" style="min-height:96px;margin-top:12px" placeholder="Вставьте сюда одно из двух:
- • настройку (JSON) - разверну ровно эти сделки в дашборде;
- • ответ ИИ из чата (JSON или обычный текст) - покажу разбор.
-Распознаю сам."></textarea>
-      <button class="abtn" style="margin-top:8px" onclick="aiProcess()">Распознать и применить</button>
+    <div class="sect"><h5>Разбор ИИ</h5>
+      <input type="password" id="aiKey" autocomplete="off" placeholder="Ключ Anthropic (sk-ant-…)" style="width:100%;box-sizing:border-box" value="${esc(aiKeyGet())}" oninput="aiKeySet(this.value)">
+      <div class="hint">Ключ хранится только в этом браузере (localStorage), не в коде и не в гите. Нужен, чтобы кнопка звала Anthropic напрямую.</div>
+      <button class="abtn" style="margin-top:10px" onclick="aiRun()">Получить разбор</button>
       <div class="aimsg" id="aiInMsg"></div>
       <div id="aiAnsOut"></div>
     </div>`;
   p.querySelectorAll('.picksect .pchip').forEach(c=>c.onclick=()=>aiPickRemove(c.dataset.psig));
-  const at=document.getElementById('aiIn'); if(at && S.ansText){ at.value=S.ansText; renderAns(S.ansText); }
+  if(S.ansText) renderAns(S.ansText);
   aiSave();
 }
 // Одно окно на весь цикл: распознаём вставленное и сами решаем, что с ним делать.
 // Настройка (есть ключ «фильтр» или список сделок без вердиктов) - разворачиваем дашборд.
 // Разбор ИИ (вердикты по сделкам / карточка менеджера / просто текст) - показываем ниже.
-function aiProcess(){ const raw=(document.getElementById('aiIn').value||'').trim();
+// Ключ Anthropic для прямого вызова из браузера. Живёт ТОЛЬКО в localStorage этого браузера
+// (не в коде, не в гите, не шарится между людьми). Серверный секрет ANTHROPIC_API_KEY со
+// статической страницы недоступен, поэтому кнопка «Получить разбор» использует этот ключ.
+function aiKeyGet(){ try{ return localStorage.getItem('dlg_anthropic_key')||''; }catch(e){ return ''; } }
+function aiKeySet(v){ try{ localStorage.setItem('dlg_anthropic_key',(v||'').trim()); }catch(e){} }
+// Кнопка «Получить разбор»: собирает выборку (aiScope) + уточняющий вопрос, шлёт напрямую в
+// Anthropic (Sonnet 5, браузерный доступ) и рендерит ответ тем же renderAns, что и раньше.
+async function aiRun(){
   const msg=document.getElementById('aiInMsg'), out=document.getElementById('aiAnsOut');
-  if(!raw){ msg.innerHTML='Окно пустое. Соберите выборку кликами по дашборду или полями выше, нажмите «Скопировать», пришлите в чат - и вставьте сюда, что вернулось.'; out.innerHTML=''; S.ansText=''; aiSave(); return; }
-  let obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){}
-  if(aiIsConfig(obj)){ // это настройка - применяем к дашборду (панель закроется, будут видны сделки)
-    S.ansText=''; aiApplyToDash(obj); return; }
-  // иначе - разбор ИИ (JSON с вердиктами или обычный текст)
-  S.ansText=raw; renderAns(raw,obj); aiSave();
-  msg.innerHTML='Распознал <b>разбор ИИ</b> - показал ниже. Для новой выборки: соберите её, «Скопировать» → в чат → ответ снова сюда.';
+  const key=aiKeyGet();
+  if(!key){ msg.innerHTML='Вставьте ключ Anthropic в поле выше - он нужен, чтобы получить разбор.'; const k=document.getElementById('aiKey'); if(k) k.focus(); return; }
+  const scope=aiScope(); const n=(scope.сделки||[]).length;
+  if(!n){ msg.innerHTML='В выборке нет сделок - задайте фильтр (даты, менеджеры, стадии или клики по дашборду).'; return; }
+  msg.innerHTML='Отправляю '+n+' '+plu(n,'сделку','сделки','сделок')+' в Anthropic (Sonnet 5)… до минуты.'; out.innerHTML='';
+  const sys=scope.запрос+' Верни ТОЛЬКО валидный JSON строго по полю формат_вывода, без markdown-обёртки.';
+  const body={ model:'claude-sonnet-5', max_tokens:8000, system:[{type:'text',text:sys}], messages:[{role:'user',content:JSON.stringify(scope)}] };
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{ method:'POST',
+      headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify(body) });
+    const j=await res.json();
+    if(j.error){ msg.innerHTML='Ошибка API: '+esc(j.error.message||j.error.type||'неизвестно'); return; }
+    const txt=(j.content||[]).map(c=>c.text||'').join('').trim();
+    if(!txt){ msg.innerHTML='Пустой ответ модели.'; return; }
+    S.ansText=txt; renderAns(txt); aiSave();
+    const u=j.usage||{}; msg.innerHTML='Готово · '+n+' '+plu(n,'сделка','сделки','сделок')+(u.input_tokens?(' · токенов '+u.input_tokens+'→'+(u.output_tokens||0)):'');
+  }catch(e){ msg.innerHTML='Сбой запроса: '+esc(e&&e.message||String(e))+'. Проверьте ключ и сеть.'; }
 }
 function aiIsConfig(obj){ if(!obj) return false; // не-JSON (обычный текст) считаем разбором
   if(obj.фильтр||obj.filter) return true; // наш конфиг всегда несёт блок «фильтр»

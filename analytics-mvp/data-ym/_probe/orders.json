@@ -1,0 +1,66 @@
+{
+  "at": "2026-09-04T10:41:57.226Z",
+  "dateFormatAccepted": "iso",
+  "shape": {
+    "id": "number",
+    "creationDate": "string",
+    "statusUpdateDate": "string",
+    "status": "string",
+    "partnerOrderId": "string",
+    "paymentType": "string",
+    "fake": "boolean",
+    "deliveryRegion": {
+      "id": "number",
+      "name": "string"
+    },
+    "items": [
+      {
+        "offerName": "string",
+        "marketSku": "number",
+        "shopSku": "string",
+        "count": "number",
+        "prices": [
+          {
+            "type": "string",
+            "costPerItem": "number",
+            "total": "number"
+          }
+        ],
+        "warehouse": {
+          "id": "number",
+          "name": "string"
+        },
+        "bidFee": "number"
+      }
+    ],
+    "payments": [
+      {
+        "id": "string",
+        "date": "string",
+        "type": "string",
+        "source": "string",
+        "total": "number",
+        "paymentOrder": {
+          "id": "string",
+          "date": "string"
+        }
+      }
+    ],
+    "commissions": [
+      {
+        "type": "string",
+        "actual": "number"
+      }
+    ],
+    "subsidies": [
+      {
+        "operationType": "string",
+        "type": "string",
+        "amount": "number"
+      }
+    ],
+    "buyerType": "string",
+    "currency": "string"
+  },
+  "creationDateSample": "9999-99-99"
+}

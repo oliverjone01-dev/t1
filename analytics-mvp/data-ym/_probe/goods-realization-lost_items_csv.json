@@ -1,6 +1,6 @@
 {
   "type": "goods-realization-lost_items_csv",
-  "at": "2026-09-04T16:28:31.033Z",
+  "at": "2026-09-05T10:57:18.177Z",
   "headers": [
     "ORDER_ID",
     "YOUR_ORDER_ID",
@@ -46,6 +46,6 @@
   ],
   "sample_masked": [],
   "campaign": "149001087",
-  "ym": "2026-04",
+  "ym": "2026-08",
   "file": "lost_items.csv"
 }

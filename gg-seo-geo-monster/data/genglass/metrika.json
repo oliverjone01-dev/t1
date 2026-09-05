@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-09-04",
+ "measured": "2026-09-05",
  "visits_30d": [
-  {
-   "date": "2026-08-05",
-   "visits": 257,
-   "search_visits": 85
-  },
   {
    "date": "2026-08-06",
    "visits": 246,
@@ -151,20 +146,25 @@
    "date": "2026-09-03",
    "visits": 375,
    "search_visits": 88
+  },
+  {
+   "date": "2026-09-04",
+   "visits": 420,
+   "search_visits": 58
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 45
+   "visits": 43
   },
   {
    "phrase": "genglass",
-   "visits": 23
+   "visits": 24
   },
   {
    "phrase": "генгласс",
-   "visits": 17
+   "visits": 18
   },
   {
    "phrase": "интернет магазин зеркало в раме",
@@ -175,19 +175,19 @@
    "visits": 7
   },
   {
-   "phrase": "дженгласс ру",
-   "visits": 7
+   "phrase": "генглас",
+   "visits": 6
   },
   {
    "phrase": "ген гласс",
    "visits": 5
   },
   {
-   "phrase": "генглас",
+   "phrase": "дженгласс",
    "visits": 5
   },
   {
-   "phrase": "дженгласс",
+   "phrase": "дженгласс ру",
    "visits": 5
   },
   {
@@ -223,11 +223,11 @@
    "visits": 3
   },
   {
-   "phrase": "зеркало на заказ",
+   "phrase": "перегородки гармошка",
    "visits": 3
   },
   {
-   "phrase": "перегородки гармошка",
+   "phrase": "столы на заказ по индивидуальным размерам",
    "visits": 3
   },
   {
@@ -283,6 +283,10 @@
    "visits": 2
   },
   {
+   "phrase": "зеркало на заказ",
+   "visits": 2
+  },
+  {
    "phrase": "зеркало на заказ glavglass",
    "visits": 2
   },
@@ -331,10 +335,6 @@
    "visits": 2
   },
   {
-   "phrase": "столы на заказ по индивидуальным размерам",
-   "visits": 2
-  },
-  {
    "phrase": "\"джен груп\" сайт",
    "visits": 1
   },
@@ -347,42 +347,42 @@
    "visits": 1
   },
   {
-   "phrase": "GENGLASS Зеркало настенное с нейтральной подсветкой в полный рост прямоугольное HALFEO Slim NF LED XL 200x80 см",
+   "phrase": "GENGLASS EVELUM",
    "visits": 1
   },
   {
-   "phrase": "GENGLASS Стол кухонный овальный черный TRUBIS Wood 160х80 см",
+   "phrase": "GENGLASS Зеркало настенное с нейтральной подсветкой в полный рост прямоугольное HALFEO Slim NF LED XL 200x80 см",
    "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 428
+   "visits": 422
   },
   {
    "url": "/stoly-na-zakaz/",
    "visits": 103
   },
   {
-   "url": "/product-category/mirrors/",
-   "visits": 68
-  },
-  {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 68
+   "visits": 71
   },
   {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 62
+   "url": "/product-category/mirrors/",
+   "visits": 69
   },
   {
    "url": "/product-category/tables/",
    "visits": 62
   },
   {
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
+   "visits": 61
+  },
+  {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 59
+   "visits": 57
   },
   {
    "url": "/zerkala-na-zakaz/",
@@ -394,14 +394,14 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 39
-  },
-  {
-   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 36
+   "visits": 40
   },
   {
    "url": "/product-category/steklyannye-doski/",
+   "visits": 38
+  },
+  {
+   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
    "visits": 36
   },
   {
@@ -410,7 +410,7 @@
   },
   {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-   "visits": 27
+   "visits": 28
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
@@ -421,20 +421,20 @@
    "visits": 24
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 23
-  },
-  {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 23
+   "visits": 22
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
-   "visits": 18
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
+   "visits": 20
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/",
    "visits": 17
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
+   "visits": 16
   },
   {
    "url": "/product/zerkalo-v-zolotoj-rame-arkelo-s-102h52-sm/",
@@ -445,39 +445,39 @@
    "visits": 13
   },
   {
-   "url": "/product-category/mirrors/led/",
-   "visits": 12
-  },
-  {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
-   "visits": 12
-  },
-  {
-   "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj/",
-   "visits": 12
+   "visits": 13
   },
   {
    "url": "/news/universalnyj-stol-konux-podhodit-dlya-lyubogo-interera-i-prostranstva/",
    "visits": 11
   },
   {
-   "url": "/product-category/mezhkomnatnye-peregorodki/",
+   "url": "/product-category/mirrors/led/",
    "visits": 11
   },
   {
-   "url": "/product-category/mirrors/wall/",
+   "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj/",
    "visits": 11
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/zerkalnye-peregorodki/",
+   "url": "/product-category/",
    "visits": 10
   },
   {
    "url": "/product-category/mirrors/rotatable/",
    "visits": 10
+  },
+  {
+   "url": "/product-category/mirrors/wall/",
+   "visits": 10
+  },
+  {
+   "url": "/product-category/tables/metal-tables/",
+   "visits": 10
   }
  ],
  "goals": [],
- "bounce_rate": 19.9,
+ "bounce_rate": 19.4,
  "depth": 2.6
 }

@@ -215,8 +215,8 @@ jobs:
         run: |
           set -euo pipefail
           cd ozon-research
-          npm ci
-          npm run build
+          npm ci 2>&1 | tee /tmp/ozon-build.log | tail -3
+          npm run build 2>&1 | tee -a /tmp/ozon-build.log | tail -5
           mkdir -p "$GITHUB_WORKSPACE/_site/ozon-research"
           cp -r out/. "$GITHUB_WORKSPACE/_site/ozon-research/"
           # Та же история одной страницей: удобно переслать или открыть без сети.
@@ -567,6 +567,20 @@ jobs:
             cp /tmp/rop-exp/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop-experiments/index.html"
           fi
           echo "Песочница опубликована в /rop-experiments/ из ветки dima-dashboard-experiments"
+
+      # Контроль раскладки исследования. Шаг сборки идёт с continue-on-error, поэтому его
+      # падение не видно в статусе задачи: эта проверка печатает результат в конец лога и,
+      # если раздела нет, показывает хвост лога сборки. Сама не падает - поломка одного
+      # раздела не должна останавливать публикацию всего сайта.
+      - name: Check Ozon research files
+        if: always()
+        run: |
+          if [ -f _site/ozon-research/index.html ] && [ -f _site/ozon-research/onepage.html ]; then
+            echo "OZON-RESEARCH OK: страниц $(find _site/ozon-research -name '*.html' | wc -l), одностраничная версия на месте"
+          else
+            echo "::warning::OZON-RESEARCH не собрался, хвост лога сборки:"
+            tail -40 /tmp/ozon-build.log 2>/dev/null || echo "лога сборки нет"
+          fi
 
       - uses: actions/configure-pages@v5
         with:

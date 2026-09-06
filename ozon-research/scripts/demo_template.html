@@ -1,0 +1,837 @@
+<title>Карта ниш Ozon</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Дизайн-система перенесена из src/app/globals.css боевого проекта:
+   нейтральные с уходом в зелёный, акценты лайм и бирюза, оранжевый на предупреждениях. */
+:root{
+  --ground:#ffffff; --surface:#f3f4f1; --surface-2:#e9ebe5; --card:#ffffff;
+  --ink:#111310; --ink-2:#3d423a; --muted:#5f6659; --line:#e2e5dc; --line-2:#d2d6c9;
+  --lime:#c2f53c; --teal:#12c8a4; --teal-ink:#07705d; --orange:#ff6b2c; --orange-ink:#b83c08;
+  --ok:#07705d; --ok-bg:rgb(18 200 164 / .14);
+  --warn:#8f5d06; --warn-bg:rgb(255 171 44 / .16);
+  --bad:#a83a25; --bad-bg:rgb(224 80 44 / .12);
+  --series-1:#12c8a4; --series-2:#ff6b2c; --track:#e5e8df;
+  --shadow:0 1px 2px rgb(17 19 16 / .05), 0 8px 24px -12px rgb(17 19 16 / .18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0b0d0a; --surface:#141712; --surface-2:#1e221b; --card:#141712;
+    --ink:#f1f4ec; --ink-2:#c4cabа; --ink-2:#c4cab9; --muted:#8b9382; --line:#242820; --line-2:#333829;
+    --teal-ink:#3fe3c0; --orange-ink:#ff8b54;
+    --ok:#3fe3c0; --ok-bg:rgb(18 200 164 / .16);
+    --warn:#f0b646; --warn-bg:rgb(240 182 70 / .14);
+    --bad:#f0755a; --bad-bg:rgb(240 117 90 / .14);
+    --series-1:#1aa88c; --series-2:#e8642a; --track:#232720;
+    --shadow:0 1px 2px rgb(0 0 0 / .4), 0 10px 30px -14px rgb(0 0 0 / .6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0b0d0a; --surface:#141712; --surface-2:#1e221b; --card:#141712;
+  --ink:#f1f4ec; --ink-2:#c4cab9; --muted:#8b9382; --line:#242820; --line-2:#333829;
+  --teal-ink:#3fe3c0; --orange-ink:#ff8b54;
+  --ok:#3fe3c0; --ok-bg:rgb(18 200 164 / .16);
+  --warn:#f0b646; --warn-bg:rgb(240 182 70 / .14);
+  --bad:#f0755a; --bad-bg:rgb(240 117 90 / .14);
+  --series-1:#1aa88c; --series-2:#e8642a; --track:#232720;
+  --shadow:0 1px 2px rgb(0 0 0 / .4), 0 10px 30px -14px rgb(0 0 0 / .6);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Golos Text","Helvetica Neue",Arial,sans-serif; font-size:15px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:Onest,"Helvetica Neue",Arial,sans-serif; letter-spacing:-.03em; line-height:1.06; text-wrap:balance; margin:0}
+p{margin:0}
+a{color:var(--teal-ink)}
+:focus-visible{outline:2px solid var(--teal-ink); outline-offset:2px}
+::selection{background:var(--lime); color:#111310}
+.tnum{font-variant-numeric:tabular-nums}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.measure{max-width:68ch}
+
+/* ── каркас ──────────────────────────────────────────── */
+.wrap{width:100%; max-width:1180px; margin:0 auto; padding:0 20px}
+.wrap-wide{width:100%; max-width:1360px; margin:0 auto; padding:0 20px}
+section{scroll-margin-top:96px}
+.stack{display:flex; flex-direction:column}
+.gap-s{gap:10px} .gap-m{gap:18px} .gap-l{gap:28px} .gap-xl{gap:44px}
+.eyebrow{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.14em; color:var(--teal-ink)}
+.lead{font-size:17px; line-height:1.6; color:var(--ink-2)}
+.note{font-size:13px; line-height:1.6; color:var(--muted)}
+.sec-title{font-size:clamp(24px,3.2vw,36px); font-weight:700}
+
+header.bar{position:sticky; top:0; z-index:40; padding:14px 20px 10px; background:linear-gradient(var(--ground) 62%, transparent)}
+.bar-inner{max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:12px;
+  border:1px solid var(--line); border-radius:999px; background:color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter:blur(14px); padding:7px 8px 7px 18px}
+.brand{display:flex; align-items:center; gap:9px; font-family:Onest,sans-serif; font-weight:700; font-size:14px; white-space:nowrap}
+.brand i{width:15px; height:15px; border-radius:5px; background:linear-gradient(135deg,var(--lime),var(--teal)); display:block}
+nav.links{display:flex; gap:2px; margin-left:auto; overflow-x:auto; scrollbar-width:none}
+nav.links::-webkit-scrollbar{display:none}
+nav.links a{padding:6px 11px; border-radius:999px; font-family:Onest,sans-serif; font-size:13px; font-weight:500;
+  color:var(--ink-2); text-decoration:none; white-space:nowrap}
+nav.links a:hover{color:var(--ink); background:var(--surface-2)}
+nav.links a[aria-current="true"]{background:var(--surface-2); color:var(--ink)}
+.theme{display:flex; gap:2px; border:1px solid var(--line); border-radius:999px; padding:3px; background:var(--card)}
+.theme button{width:30px; height:26px; border:0; border-radius:999px; background:transparent; color:var(--muted); cursor:pointer; font-size:13px; line-height:1}
+.theme button[aria-pressed="true"]{background:var(--ink); color:var(--ground)}
+
+/* ── плитки и карточки ───────────────────────────────── */
+.grid{display:grid; gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:900px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.g2,.g3,.g4{grid-template-columns:minmax(0,1fr)}}
+.tile{border:1px solid var(--line); border-radius:18px; background:var(--surface); padding:18px 18px 16px}
+.tile .val{font-family:Onest,sans-serif; font-size:34px; font-weight:800; letter-spacing:-.04em; line-height:1; font-variant-numeric:tabular-nums}
+.tile .lbl{margin-top:8px; font-size:13px; font-weight:500; color:var(--ink-2)}
+.tile .sub{margin-top:6px; font-size:12px; line-height:1.45; color:var(--muted)}
+.val-accent{color:var(--teal-ink)} .val-alert{color:var(--orange-ink)}
+.card{border:1px solid var(--line); border-radius:20px; background:var(--card); padding:22px}
+.panel{border-radius:22px; background:var(--surface); padding:24px}
+@media (min-width:720px){.panel{padding:32px}}
+
+.badge{display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 10px;
+  font-family:Onest,sans-serif; font-size:12px; font-weight:600; line-height:1.2; white-space:nowrap}
+.b-ok{background:var(--ok-bg); color:var(--ok)}
+.b-warn{background:var(--warn-bg); color:var(--warn)}
+.b-bad{background:var(--bad-bg); color:var(--bad)}
+.b-dim{background:var(--surface-2); color:var(--ink-2)}
+.b-muted{background:var(--surface-2); color:var(--muted)}
+.b-orange{background:color-mix(in srgb, var(--orange) 15%, transparent); color:var(--orange-ink)}
+.b-lime{background:var(--lime); color:#111310}
+.b-out{border:1px solid var(--line-2); color:var(--ink-2)}
+.badges{display:flex; flex-wrap:wrap; gap:7px}
+
+/* ── таблицы ─────────────────────────────────────────── */
+.tablebox{border:1px solid var(--line); border-radius:20px; overflow-x:auto; background:var(--card)}
+table{border-collapse:collapse; width:100%; font-size:13px}
+thead th{position:sticky; top:0; background:var(--surface); text-align:left; padding:11px 12px;
+  font-family:"JetBrains Mono",ui-monospace,monospace; font-size:10.5px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.08em; color:var(--muted); white-space:nowrap; z-index:1}
+tbody td{border-top:1px solid var(--line); padding:10px 12px; vertical-align:top}
+tbody tr:hover{background:var(--surface)}
+td.r,th.r{text-align:right}
+td.num{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11.5px; font-variant-numeric:tabular-nums; white-space:nowrap}
+.rowname{font-weight:500; color:var(--ink); background:none; border:0; padding:0; font-family:inherit; font-size:13px;
+  text-align:left; cursor:pointer; text-decoration:underline; text-decoration-color:var(--line-2); text-underline-offset:4px}
+.rowname:hover{text-decoration-color:var(--teal-ink)}
+
+/* ── управление таблицей ─────────────────────────────── */
+.controls{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.chip{border:1px solid var(--line-2); background:transparent; color:var(--ink-2); border-radius:999px;
+  padding:6px 13px; font-family:Onest,sans-serif; font-size:13px; font-weight:500; cursor:pointer}
+.chip:hover{background:var(--surface)}
+.chip[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--ground)}
+.chip.shop[aria-pressed="true"]{background:var(--ok-bg); border-color:var(--teal-ink); color:var(--teal-ink)}
+.field{height:34px; border:1px solid var(--line-2); border-radius:999px; background:var(--card); color:var(--ink);
+  padding:0 14px; font-family:inherit; font-size:13px; min-width:180px}
+select.field{padding-right:8px}
+.sep{width:1px; height:20px; background:var(--line-2)}
+
+/* ── графики ─────────────────────────────────────────── */
+.chart{display:flex; flex-direction:column; gap:9px}
+.chart-row{display:grid; grid-template-columns:minmax(120px,180px) 1fr; gap:14px; align-items:center}
+.chart-row .rl{font-size:12.5px; color:var(--ink-2); text-align:right}
+.track{position:relative; background:var(--track); border-radius:4px; height:22px; display:flex; align-items:center}
+.fill{height:22px; border-radius:0 4px 4px 0; background:var(--series-1); min-width:3px}
+.fill.s2{background:var(--series-2)}
+.chart-row .v{margin-left:8px; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11.5px;
+  font-variant-numeric:tabular-nums; color:var(--ink-2); white-space:nowrap}
+.pair{display:flex; flex-direction:column; gap:2px}
+.legend{display:flex; flex-wrap:wrap; gap:16px; font-size:12.5px; color:var(--ink-2)}
+.legend i{display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:7px; vertical-align:-1px}
+.axis{display:grid; grid-template-columns:minmax(120px,180px) 1fr; gap:14px; font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:10.5px; color:var(--muted)}
+.axis .ticks{display:flex; justify-content:space-between}
+
+/* ── сетка кейсов ────────────────────────────────────── */
+.cases{display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.case{border:1px solid var(--line); border-radius:20px; background:var(--card); padding:0; overflow:hidden;
+  text-align:left; cursor:pointer; font:inherit; color:inherit; display:flex; flex-direction:column}
+.case:hover{border-color:var(--teal-ink)}
+.case .strip{height:76px; display:flex; align-items:flex-end; justify-content:space-between; padding:12px 16px;
+  font-family:"JetBrains Mono",ui-monospace,monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:#0b1a16}
+.case .body{padding:16px; display:flex; flex-direction:column; gap:10px; flex:1}
+.case h3{font-size:16.5px; font-weight:700; line-height:1.25}
+.kv{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 16px; margin-top:auto;
+  font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11.5px; color:var(--muted)}
+.kv div{display:flex; justify-content:space-between; gap:8px}
+.kv b{font-weight:500; color:var(--ink-2); font-variant-numeric:tabular-nums}
+
+/* ── модальное окно кейса ────────────────────────────── */
+dialog{border:0; padding:0; background:transparent; max-width:min(980px,94vw); width:100%; color:var(--ink)}
+dialog::backdrop{background:rgb(9 11 8 / .55); backdrop-filter:blur(3px)}
+.sheet{background:var(--ground); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow);
+  max-height:88vh; overflow-y:auto; padding:26px}
+.sheet-top{display:flex; align-items:flex-start; justify-content:space-between; gap:16px}
+.close{border:1px solid var(--line-2); background:var(--card); color:var(--ink-2); border-radius:999px;
+  width:34px; height:34px; cursor:pointer; font-size:16px; line-height:1; flex:none}
+.rows{display:flex; flex-direction:column}
+.rows > div{display:flex; justify-content:space-between; align-items:baseline; gap:14px; padding:8px 0; border-bottom:1px solid var(--line)}
+.rows > div:last-child{border-bottom:0}
+.rows dt{font-size:12.5px; color:var(--muted); min-width:0}
+.rows dd{margin:0; flex:none; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12.5px;
+  text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+blockquote{margin:0; border-left:2px solid var(--orange); padding-left:18px; font-style:italic; font-size:15.5px; line-height:1.6}
+details{border-top:1px solid var(--line); padding-top:12px}
+summary{cursor:pointer; font-family:Onest,sans-serif; font-size:13px; font-weight:600; color:var(--teal-ink)}
+details[open] summary{margin-bottom:10px}
+.dl-grid{display:grid; gap:16px}
+.dl-grid dt{font-family:Onest,sans-serif; font-size:12.5px; font-weight:700; color:var(--ink)}
+.dl-grid dd{margin:6px 0 0; font-size:14px; line-height:1.6; color:var(--ink-2)}
+.pill-list{display:flex; flex-wrap:wrap; gap:8px; padding:0; margin:0; list-style:none}
+.pill-list li{border:1px solid var(--line); background:var(--surface); border-radius:999px; padding:6px 12px; font-size:12.5px; color:var(--ink-2)}
+footer{border-top:1px solid var(--line); margin-top:72px; padding:32px 0 56px}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important; transition-duration:.01ms !important}}
+</style>
+
+<header class="bar">
+  <div class="bar-inner">
+    <span class="brand"><i aria-hidden="true"></i>Карта ниш Ozon</span>
+    <nav class="links" aria-label="Разделы">
+      <a href="#itog">Итог</a>
+      <a href="#metod">Методика</a>
+      <a href="#karta">Карта ниш</a>
+      <a href="#keysy">Кейсы</a>
+      <a href="#nouhau">Ноу-хау</a>
+      <a href="#audit">Аудит</a>
+      <a href="#resheniya">Решения</a>
+    </nav>
+    <div class="theme" role="group" aria-label="Тема оформления">
+      <button type="button" id="th-light" aria-label="Светлая тема">☀</button>
+      <button type="button" id="th-dark" aria-label="Тёмная тема">☾</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ИТОГ -->
+  <section id="itog" class="wrap stack gap-l" style="padding-top:38px">
+    <div class="stack gap-m">
+      <span class="eyebrow" id="hero-eyebrow">Исследование</span>
+      <h1 style="font-size:clamp(34px,5.6vw,64px); font-weight:800; max-width:17ch" id="hero-h1">180 ниш проверено. Прибыльных сегодня - ноль.</h1>
+      <p class="lead measure" id="hero-lead"></p>
+    </div>
+    <div class="grid g4" id="kpi"></div>
+    <div class="panel stack gap-m">
+      <div class="badges">
+        <span class="badge b-orange">Главный вывод</span>
+        <span class="mono" style="font-size:11.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted)">проверено адверсариальным аудитом</span>
+      </div>
+      <h2 class="sec-title" style="max-width:24ch">Разрыв не в комиссии, а в цене, которую платит рынок</h2>
+      <div class="grid g2">
+        <p style="color:var(--ink-2)" id="concl-1"></p>
+        <p style="color:var(--ink-2)" id="concl-2"></p>
+      </div>
+    </div>
+    <div class="card stack gap-m">
+      <div class="stack gap-s">
+        <span class="eyebrow">Распределение</span>
+        <h3 style="font-size:20px; font-weight:700">Маржа по целевой цене: где стоят 93 ниши с осмысленным расчётом</h3>
+        <p class="note measure">Целевая цена - верхняя граница того, что рынок платит сегодня. Порог отбора 10% остался бы правее нуля, ни одна ниша до него не доходит. Считаем к чистой выручке, поэтому проценты крупные по модулю.</p>
+      </div>
+      <div class="chart" id="chart-buckets"></div>
+      <p class="note">Ещё 27 ниш в этот график не попали: расходы площадки и себестоимость съедают там всю чистую выручку, процент теряет смысл. И 60 ниш второго круга без расчёта экономики.</p>
+    </div>
+  </section>
+
+  <!-- МЕТОДИКА -->
+  <section id="metod" class="wrap stack gap-l" style="padding-top:72px">
+    <div class="stack gap-s">
+      <span class="eyebrow">Методика</span>
+      <h2 class="sec-title">Как считали и на чём это держится</h2>
+      <p class="lead measure">Одна цепочка на каждую цифру: спрос из кабинета продавца, себестоимость от внутренних якорей, расходы площадки по тарифам, цена по витрине. Ниже модель целиком, включая допущения, которые её ломают.</p>
+    </div>
+
+    <div class="grid g4" id="money"></div>
+
+    <div class="card stack gap-m">
+      <h3 style="font-size:19px; font-weight:700">Формула «маржа по целевой цене»</h3>
+      <p class="measure" style="color:var(--ink-2)">Единственный показатель, которого нет в исходной выгрузке: он пересчитывается в <span class="mono" style="font-size:13px">scripts/build_content.py</span> по тем же допущениям, что и сито, и отвечает на вопрос «сколько останется, если встать по целевой цене прямо сейчас».</p>
+      <div class="tablebox" style="padding:18px; background:var(--surface)">
+        <pre class="mono" id="formula" style="margin:0; font-size:12.5px; line-height:1.8; white-space:pre-wrap"></pre>
+      </div>
+    </div>
+
+    <div class="stack gap-m">
+      <div class="stack gap-s">
+        <span class="eyebrow">Шесть ворот сита</span>
+        <h3 style="font-size:19px; font-weight:700">Что должна пройти ниша, чтобы попасть в шорт-лист</h3>
+      </div>
+      <div class="grid g3" id="gates"></div>
+    </div>
+
+    <div class="card stack gap-m" id="sens">
+      <div class="stack gap-s">
+        <span class="eyebrow">Чувствительность</span>
+        <h3 style="font-size:19px; font-weight:700">Что будет, если комиссия 46%, а не 51-52%</h3>
+        <p class="note measure">Комиссия 51-52% для «Дома и сада», «Дачи и сада», «Строительства и ремонта» взята по аналогии с зеркалами и столами: это гипотеза, а не факт кабинета по самим этим категориям. 46,1% - подтверждённый факт по текущему ассортименту. Десять ниш аудита при обеих ставках.</p>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--series-1)"></i>маржа при комиссии из данных (51-52%)</span>
+        <span><i style="background:var(--series-2)"></i>маржа при комиссии 46%</span>
+      </div>
+      <div class="chart" id="chart-comm"></div>
+      <div class="axis"><span></span><span class="ticks" id="comm-ticks"></span></div>
+      <div class="grid g3" id="sens-tiles"></div>
+    </div>
+
+    <div class="stack gap-m">
+      <div class="stack gap-s">
+        <span class="eyebrow">Прозрачность</span>
+        <h3 style="font-size:19px; font-weight:700">Допущения и их источники</h3>
+      </div>
+      <div class="tablebox">
+        <table>
+          <thead><tr><th>Допущение</th><th>Значение</th><th>Источник</th></tr></thead>
+          <tbody id="assumptions"></tbody>
+        </table>
+      </div>
+      <p class="note measure">Чего в исследовании нет: нормы станко-часа (себестоимость - оценка с вилкой ±25%), проверенного k по новым категориям, лимитов габаритов FBS из кабинета. Всё это закрывается одной тестовой карточкой и одним запросом в поддержку.</p>
+    </div>
+  </section>
+
+  <!-- КАРТА НИШ -->
+  <section id="karta" style="padding-top:72px">
+    <div class="wrap stack gap-s">
+      <span class="eyebrow">Карта ниш</span>
+      <h2 class="sec-title" id="karta-title">Ниши с посчитанной экономикой</h2>
+      <p class="lead measure">Вердикт по каждой нише при комиссии из данных, АДМ 1,49 и софинансировании Ozon k 0,55. Колонка «целевая С/С» отвечает производству: за сколько нужно научиться делать, чтобы цена рынка дала 15%.</p>
+    </div>
+    <div class="wrap-wide stack gap-m" style="padding-top:22px">
+      <div class="controls" id="filters"></div>
+      <div class="note" id="tablestat"></div>
+      <div class="tablebox">
+        <table>
+          <thead><tr>
+            <th>ID</th><th>Ниша</th><th>Цех</th><th class="r">Спрос ₽/28 дн</th><th class="r">Рынок</th>
+            <th class="r">С/С произв</th><th class="r">Целевая С/С</th><th class="r">Зазор</th><th class="r">Маржа</th><th>Вердикт</th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <p class="note measure">«Целевая С/С» - себестоимость производства, при которой цена рынка даёт 15%. «Зазор» - во сколько раз цена рынка отличается от требуемой (база / серийный режим). «Маржа» - рентабельность к чистой выручке по целевой цене. Подчёркнутые названия открывают разбор кейса.</p>
+    </div>
+    <div class="wrap stack gap-m" style="padding-top:34px">
+      <h3 style="font-size:19px; font-weight:700" id="second-title">Ниши второго круга</h3>
+      <p class="note measure">Экономика по ним не считалась: спрос ниже порога для полного анализа либо расчёт не вернулся в конвейере. Список приведён целиком, чтобы было видно, что смотрели.</p>
+      <ul class="pill-list" id="second"></ul>
+    </div>
+  </section>
+
+  <!-- КЕЙСЫ -->
+  <section id="keysy" class="wrap stack gap-l" style="padding-top:72px">
+    <div class="stack gap-s">
+      <span class="eyebrow">Шорт-лист</span>
+      <h2 class="sec-title" id="cases-title">Ниши, разобранные до конкурентов</h2>
+      <p class="lead measure">По каждой: кто сегодня забирает нишу и по какой цене, как выглядит сезон по данным кабинета, чего в предложении не хватает и чем можно зайти. Карточка открывается по клику.</p>
+    </div>
+    <div class="controls" id="case-tabs"></div>
+    <div class="cases" id="case-grid"></div>
+  </section>
+
+  <!-- НОУ-ХАУ -->
+  <section id="nouhau" class="wrap stack gap-l" style="padding-top:72px">
+    <div class="stack gap-s">
+      <span class="eyebrow">Ноу-хау</span>
+      <h2 class="sec-title" id="ideas-title">Идеи под непокрытый спрос</h2>
+      <p class="lead measure">Четыре генератора собрали идеи: запросы без ответа, комбинации материалов, сезон и B2B. Скептик с правилом «при сомнении отклонить» не пропустил ни одной. Разрыв тот же, что и в сите: идеи считались от целевой цены, а рынок платит меньше.</p>
+    </div>
+    <div class="grid g4" id="ideas-kpi"></div>
+    <div class="grid g2" id="ideas"></div>
+  </section>
+
+  <!-- АУДИТ -->
+  <section id="audit" class="wrap stack gap-l" style="padding-top:72px">
+    <div class="stack gap-s">
+      <span class="eyebrow">Reality Audit</span>
+      <h2 class="sec-title" id="audit-title">Проверка на прочность</h2>
+      <p class="lead measure">Каждая ниша топ-10 прогнана через пять вопросов аудита и симуляцию реакции собственника. Задача проверки - не оправдать список, а найти, где расчёт держится на желаемом.</p>
+    </div>
+    <div class="panel stack gap-m">
+      <span class="eyebrow">Общий вывод аудита</span>
+      <p class="note measure">Аудит считал по своим ставкам: реклама 10% и резерв 4% против 8% и 2% в сите. По восьми нишам из десяти сито мягче аудита на 18-44 пункта, по двум (изголовье кровати и костровая чаша с крышкой) жёстче - на 196 и 54 пункта. Текст оставлен дословно, а не подогнан под сито.</p>
+      <div class="stack gap-m measure" id="audit-overall" style="color:var(--ink-2); font-size:15.5px; line-height:1.65"></div>
+    </div>
+    <div class="stack gap-m" id="audit-items"></div>
+  </section>
+
+  <!-- РЕШЕНИЯ -->
+  <section id="resheniya" class="wrap stack gap-l" style="padding-top:72px">
+    <div class="stack gap-s">
+      <span class="eyebrow">Решения</span>
+      <h2 class="sec-title">Четыре решения, без которых дальше считать нечего</h2>
+      <p class="lead measure">Исследование закончилось не списком готовых товаров, а развилками. Первые три сформулировал Reality Audit дословно, четвёртая нужна производству. Пока они не пройдены, любой следующий раунд отбора считается на неподтверждённых цифрах.</p>
+    </div>
+    <div class="stack gap-m" id="decisions"></div>
+    <div class="stack gap-m">
+      <h3 style="font-size:19px; font-weight:700">Неделя, месяц, квартал</h3>
+      <p class="note measure" id="plan-lead"></p>
+      <div class="grid g3" id="plan"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <div class="grid g2" style="align-items:start">
+    <p class="note measure" id="foot-1"></p>
+    <p class="note measure">Демо-версия исследования: один файл, данные встроены и пересобираются скриптом из выгрузки. Фотографии в демо не выводятся - в боевом сайте это примерные снимки, к изделиям GENGROUP отношения не имеют.</p>
+  </div>
+</footer>
+
+<dialog id="sheet"><div class="sheet stack gap-l" id="sheet-body"></div></dialog>
+
+<script>
+const D = /*__DATA__*/null;
+
+/* ── форматирование ─────────────────────────────────── */
+const NB = " ";
+const fmt = (v, d = 0) => v === null || v === undefined || Number.isNaN(v) ? "-" : v.toLocaleString("ru-RU", {maximumFractionDigits: d});
+const rub = (v, short) => {
+  if (v === null || v === undefined) return "-";
+  if (short && Math.abs(v) >= 1e6) return (v / 1e6).toLocaleString("ru-RU", {maximumFractionDigits: 1}) + NB + "млн" + NB + "₽";
+  if (short && Math.abs(v) >= 1e3) return Math.round(v / 1e3).toLocaleString("ru-RU") + NB + "тыс." + NB + "₽";
+  return Math.round(v).toLocaleString("ru-RU") + NB + "₽";
+};
+const pct = (v, d = 0) => v === null || v === undefined ? "-" : (v * 100).toLocaleString("ru-RU", {maximumFractionDigits: d}) + "%";
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const el = (id) => document.getElementById(id);
+
+const VERDICT = {
+  PASS: ["проходит", "b-ok"], PASS_CERT: ["проходит, нужен сертификат", "b-ok"], PASS_PREMIUM: ["проходит в премиум-цене", "b-ok"],
+  PASS_SERIAL_ONLY: ["серийный режим", "b-warn"], PASS_SERIAL_ONLY_CERT: ["серийный и сертификат", "b-warn"],
+  BORDER: ["на грани", "b-warn"], BORDER_SERIAL: ["на грани в серийном", "b-warn"],
+  PASS_ONLY_MARGINAL: ["только при АДМ 1,2", "b-dim"], FAIL: ["не проходит", "b-bad"],
+  NO_ECON: ["без экономики", "b-muted"], NO_PRICE: ["нет цены", "b-muted"],
+};
+const SHOP = {metal: "металл", combo: "комбо", glass: "стекло", print: "керамопечать", mdf: "МДФ", led: "LED", "": "не определён"};
+const AUDIT_V = {GO: ["GO", "b-ok"], GO_WITH_FIXES: ["GO с правками", "b-warn"], NEED_DATA: ["нужны данные", "b-dim"], NO_GO: ["NO_GO", "b-bad"]};
+const vbadge = (v) => `<span class="badge ${(VERDICT[v] || ["", "b-muted"])[1]}">${esc((VERDICT[v] || [v])[0])}</span>`;
+const abadge = (v) => v ? `<span class="badge ${AUDIT_V[v][1]}">Аудит: ${AUDIT_V[v][0]}</span>` : "";
+
+/* ── тема ───────────────────────────────────────────── */
+const setTheme = (t) => {
+  document.documentElement.setAttribute("data-theme", t);
+  el("th-light").setAttribute("aria-pressed", String(t === "light"));
+  el("th-dark").setAttribute("aria-pressed", String(t === "dark"));
+  try { localStorage.setItem("ozon-theme", t); } catch (e) {}
+};
+try {
+  const saved = localStorage.getItem("ozon-theme");
+  if (saved) setTheme(saved);
+} catch (e) {}
+el("th-light").onclick = () => setTheme("light");
+el("th-dark").onclick = () => setTheme("dark");
+
+/* ── шапка: активный раздел ─────────────────────────── */
+const navLinks = [...document.querySelectorAll("nav.links a")];
+const secs = navLinks.map((a) => document.querySelector(a.getAttribute("href")));
+if ("IntersectionObserver" in window) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      const i = secs.indexOf(en.target);
+      navLinks.forEach((a, j) => a.setAttribute("aria-current", String(i === j)));
+    });
+  }, {rootMargin: "-15% 0px -70% 0px"});
+  secs.forEach((s) => s && io.observe(s));
+}
+
+/* ── итог ───────────────────────────────────────────── */
+const M = D.meta, C = M.counts;
+const dateRu = new Date(M.date).toLocaleDateString("ru-RU", {day: "numeric", month: "long", year: "numeric"});
+el("hero-eyebrow").textContent = `Исследование · ${dateRu}`;
+el("hero-h1").textContent = `${C.niches} ниш проверено. Прибыльных сегодня - ноль.`;
+el("hero-lead").innerHTML = `Что Ozon реально покупает, во сколько это обходится цехам и почему правило «цена = себестоимость${NB}×${NB}4,5» ломается на комиссии 51-52%. Сито находит ${C.passing} ниш, которые проходят порог 10-15% <b style="color:var(--ink)">условно</b>: если получится продавать по расчётной цене. Проверка реальными ценами конкурентов не подтверждает ни одну.`;
+
+const best = M.bestToday;
+const tile = (v, l, s, cls) => `<div class="tile"><div class="val ${cls || ""}">${v}</div><div class="lbl">${esc(l)}</div>${s ? `<div class="sub">${esc(s)}</div>` : ""}</div>`;
+el("kpi").innerHTML = [
+  tile(C.passing, "проходят сито условно", `если рынок примет расчётную цену; ${C.passingBelowFloor} из них ниже порога спроса`, "val-accent"),
+  tile(C.profitableToday, `прибыльны сегодня из ${C.priced}`, best ? `лучшая - «${best.name}» при ${pct(best.rentToday)}` : "", "val-alert"),
+  tile(`${M.audit.noGo}/${M.audit.total}`, "NO_GO в Reality Audit", `${M.audit.needData} - нужны данные, остальные отклонены`),
+  tile("51-52%", "вознаграждение Ozon", "гипотеза для новых категорий против 46% подтверждённых по текущим"),
+].join("");
+
+const deltaPP = M.medianDelta46Passing === null ? "-" : Math.round(M.medianDelta46Passing * 100);
+el("concl-1").innerHTML = `Сито отвечает на условный вопрос: «если задать расчётную цену, при которой выходит 15% чистой рентабельности, попадёт ли она в диапазон, который рынок платит». Reality Audit проверяет жёстче: «а если встать по целевой цене, той что рынок платит на верхней границе, сколько останется сегодня». По всем ${C.priced} просчитанным нишам ответ один: ни одной с рентабельностью выше 10%.`;
+el("concl-2").innerHTML = `Пересчёт по комиссии 46% (подтверждённый факт по текущему ассортименту вместо гипотезы 51-52% для новых категорий) сдвигает медианную маржу восьми проходных ниш примерно на ${deltaPP} пунктов и не выводит в плюс ни одну: прибыльных при 46% ровно ${M.profitableAt46}. Премиальный конверт производства (TIG, зачистка, индивидуальная упаковка) дороже, чем позволяет целевая цена в категории, где нас никто не знает.`;
+
+/* ── график распределения ───────────────────────────── */
+const bmax = Math.max(...D.buckets.map((b) => b.count));
+el("chart-buckets").innerHTML = D.buckets.map((b) => `
+  <div class="chart-row">
+    <span class="rl">${esc(b.label)}</span>
+    <div class="track" title="${esc(b.label)}: ${b.count} ниш. Например: ${esc(b.ids.join("; "))}">
+      <span class="fill" style="width:${(b.count / bmax * 100).toFixed(1)}%"></span>
+      <span class="v">${b.count} ниш</span>
+    </div>
+  </div>`).join("");
+
+/* ── методика ───────────────────────────────────────── */
+const MO = M.model, A = M.assumptions;
+el("money").innerHTML = [
+  ["P = 100%", "Предельная цена продавца. От неё Ozon считает вознаграждение и все расходы."],
+  ["53-60%", "Расходы площадки при FBS: вознаграждение 51-52%, логистика по объёму, эквайринг 1%, последняя миля 25 ₽, КГТ 280 ₽."],
+  ["40-47%", "Доходит до продавца до рекламы. В июле реклама съела 11,8% оборота, в модели заложено 8%."],
+  ["k = 45-65%", "Доля предельной цены, которую платит покупатель. Факт 0,45 по проверенным карточкам, гипотеза по новым."],
+].map(([t, d], i) => `<div class="tile"><div class="mono" style="font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted)">шаг ${i + 1}</div><div class="val val-accent" style="font-size:26px; margin-top:8px">${esc(t)}</div><div class="sub">${esc(d)}</div></div>`).join("");
+
+el("formula").textContent =
+  `доля, которая доходит до продавца = 1 - комиссия - ${MO.acq} (эквайринг) - ${MO.ads} (реклама) - ${MO.returns} (возвраты)\n` +
+  `чистая выручка = цена × доля - логистика - ${MO.lastMile} ₽ (последняя миля) - ${MO.kgtFee} ₽ (КГТ, если применимо)\n` +
+  `маржа = (чистая выручка - С/С общая) ÷ чистая выручка`;
+
+el("gates").innerHTML = [
+  ["Спрос", "Заказано за 28 дней по фразе и её вариантам из кабинета продавца. Порог 300 тыс. ₽. Ниже порога ниша помечается флагом, но не отбрасывается."],
+  ["Конверт цеха", "Изделие собирается из того, что цеха делают сегодня: труболазер, листолазер до 8 мм, гибка, сварка, порошок, стекло и зеркало, керамопечать, МДФ, LED."],
+  ["Себестоимость", "С/С произв оценивается от реальных якорей внутренней таблицы в двух режимах: премиум (TIG, зачистка, индивидуальная упаковка) и серийный (MIG, партии, простая упаковка)."],
+  ["Экономика площадки", "Вознаграждение, логистика по объёму, эквайринг, последняя миля, надбавка за КГТ, реклама и резерв на возвраты - всё от предельной цены продавца."],
+  ["Цена рынка", "Квартили витрины и средний чек покупки из кабинета. Требуемая цена сравнивается с тем, что рынок платит: отсюда зазор."],
+  ["Доставка", "FBS и realFBS, без FBO: склады маркетплейса под риском, а КГТ дешевле возить своими силами."],
+].map(([n, d], i) => `<div class="card"><div style="display:flex; gap:12px; align-items:baseline"><span class="mono" style="font-size:11px; color:var(--muted)">${String(i + 1).padStart(2, "0")}</span><h4 style="font-size:16.5px; font-weight:700">${esc(n)}</h4></div><p style="margin-top:10px; font-size:13.5px; line-height:1.6; color:var(--ink-2)">${esc(d)}</p></div>`).join("");
+
+/* ── график: комиссия из данных против 46% ──────────── */
+const worst = Math.min(...D.audited.flatMap((a) => [a.rentToday, a.rent46]));
+const scale = Math.ceil(Math.abs(worst) * 10) / 10;
+el("chart-comm").innerHTML = D.audited.slice().sort((a, b) => b.rentToday - a.rentToday).map((a) => `
+  <div class="chart-row">
+    <span class="rl">${esc(a.name.split(" (")[0])}</span>
+    <div class="pair">
+      <div class="track" title="${esc(a.name)} · комиссия из данных: ${pct(a.rentToday)}">
+        <span class="fill" style="width:${(Math.abs(a.rentToday) / scale * 100).toFixed(1)}%"></span>
+        <span class="v">${pct(a.rentToday)}</span>
+      </div>
+      <div class="track" title="${esc(a.name)} · комиссия 46%: ${pct(a.rent46)}">
+        <span class="fill s2" style="width:${(Math.abs(a.rent46) / scale * 100).toFixed(1)}%"></span>
+        <span class="v">${pct(a.rent46)}</span>
+      </div>
+    </div>
+  </div>`).join("");
+el("comm-ticks").innerHTML = [0, 0.25, 0.5, 0.75, 1].map((f) => `<span>${f === 0 ? "0%" : "-" + Math.round(scale * f * 100) + "%"}</span>`).join("");
+
+el("sens-tiles").innerHTML = [
+  tile(`${M.medianDelta46Passing === null ? "-" : fmt(M.medianDelta46Passing * 100, 1)} п.п.`, "медианный сдвиг маржи по восьми проходным нишам", "по всем 93 медиана выглядит драматичнее, но её задирают ниши с околонулевой выручкой", "val-accent"),
+  tile(`${fmt(M.medianLoss52)} → ${fmt(M.medianLoss46)} ₽`, "медианный убыток на одном изделии", "комиссия 46% возвращает около 300 ₽ из пяти тысяч"),
+  tile(`${M.profitableAt46} из ${C.priced}`, "выходят на 10% при комиссии 46%", "столько же, сколько при 51-52%", "val-alert"),
+].join("");
+
+const kindBadge = (k) => `<span class="badge ${k === "данные" ? "b-ok" : "b-orange"}">${k}</span>`;
+el("assumptions").innerHTML = [
+  ["АДМ, надбавка к С/С произв", `× ${A.ADM}`, "данные", "Структура внутреннего листа расчёта себестоимости"],
+  ["Вознаграждение Ozon", pct(A.COMM_DEFAULT), "гипотеза", "Факт кабинета по текущим категориям (зеркала, столы, консоли, вешалки). Для «Дома и сада», «Дачи и сада», «Строительства и ремонта» перенесено по аналогии и не подтверждено"],
+  ["Эквайринг", pct(A.ACQ), "данные", "Кабинет продавца"],
+  ["Реклама", pct(A.ADS), "гипотеза", "В июле по всему кабинету было 11,8%, для новых карточек заложено меньше. Reality Audit считал по 10%"],
+  ["Резерв на возвраты и брак", pct(A.RETURNS), "гипотеза", "Оценка, фактических данных по новым категориям нет. Reality Audit считал по 4%"],
+  ["Последняя миля и КГТ", `${A.LAST_MILE} ₽ и ${A.KGT_FEE} ₽`, "данные", "Кабинет продавца"],
+  ["Софинансирование Ozon, k", "0,45 / 0,55 / 0,65 / 1,00", "гипотеза", "Факт 0,45 по проверенным SKU, по новым товарам не гарантирован"],
+  ["Целевая доля ниши", pct(A.SHARE_TARGET), "гипотеза", "Для оценки загрузки цеха"],
+  ["Порог спроса", `${fmt(A.DEMAND_MIN)} ₽ за 28 дней`, "гипотеза", "Отсечка, ниже которой ниша помечается флагом"],
+].map(([l, v, k, s]) => `<tr><td style="font-weight:500; min-width:180px">${esc(l)}</td><td class="num r">${esc(v)}</td><td>${kindBadge(k)}<div class="note" style="margin-top:6px">${esc(s)}</div></td></tr>`).join("");
+
+/* ── карта ниш ──────────────────────────────────────── */
+const withEcon = D.niches.filter((n) => n.verdict !== "NO_ECON");
+const noEcon = D.niches.filter((n) => n.verdict === "NO_ECON");
+el("karta-title").textContent = `${withEcon.length} ниш с посчитанной экономикой`;
+el("second-title").textContent = `Ниши второго круга: ${noEcon.length} без расчёта экономики`;
+el("second").innerHTML = noEcon.map((n) => `<li${n.verdictNote ? ` title="${esc(n.verdictNote)}"` : ""}><span class="mono" style="font-size:11px; color:var(--muted)">${n.id}</span> ${esc(n.name)}</li>`).join("");
+
+const GROUPS = [["all", "все"], ["pass", "проходят"], ["warn", "на грани / серийный"], ["marginal", "только маржинально"], ["fail", "не проходят"]];
+const inGroup = (v, g) => g === "all" ? true
+  : g === "pass" ? ["PASS", "PASS_CERT", "PASS_PREMIUM"].includes(v)
+  : g === "warn" ? ["BORDER", "BORDER_SERIAL", "PASS_SERIAL_ONLY", "PASS_SERIAL_ONLY_CERT"].includes(v)
+  : g === "marginal" ? v === "PASS_ONLY_MARGINAL" : v === "FAIL";
+const shops = [...new Set(withEcon.map((n) => n.workshop || ""))].sort();
+let state = {group: "all", shop: null, q: "", sort: "score"};
+
+el("filters").innerHTML =
+  GROUPS.map(([k, l]) => `<button type="button" class="chip" data-group="${k}" aria-pressed="${k === "all"}">${l}</button>`).join("") +
+  `<span class="sep" aria-hidden="true"></span>` +
+  shops.map((s) => `<button type="button" class="chip shop" data-shop="${s}" aria-pressed="false">${SHOP[s] || s}</button>`).join("") +
+  `<input class="field" id="q" type="search" placeholder="Поиск по нишам" aria-label="Поиск по нишам" style="margin-left:auto">` +
+  `<select class="field" id="sort" aria-label="Сортировка">
+     <option value="score">по потенциалу</option><option value="demand">по спросу</option>
+     <option value="market">по цене рынка</option><option value="ssBase">по себестоимости</option>
+     <option value="gapBase">по зазору</option><option value="rentToday">по марже</option>
+   </select>`;
+
+function renderRows() {
+  const q = state.q.trim().toLowerCase();
+  const view = withEcon.filter((n) =>
+    inGroup(n.verdict, state.group) &&
+    (state.shop === null || (n.workshop || "") === state.shop) &&
+    (!q || `${n.name} ${n.query} ${n.id}`.toLowerCase().includes(q))
+  ).sort((a, b) => {
+    const k = state.sort, def = k === "rentToday" ? -99 : -1;
+    return (b[k] ?? def) - (a[k] ?? def);
+  });
+
+  el("tablestat").innerHTML = `Показано <b class="tnum" style="color:var(--ink)">${view.length}</b> из ${withEcon.length} · проходят сито условно: <b class="tnum" style="color:var(--ink)">${C.passing}</b> · прибыльных сегодня: <b class="tnum" style="color:var(--ink)">${C.profitableToday}</b>`;
+  el("rows").innerHTML = view.length === 0
+    ? `<tr><td colspan="10" style="text-align:center; padding:48px; color:var(--muted)">Ничего не найдено. Снимите фильтр или измените запрос.</td></tr>`
+    : view.map((n) => `
+      <tr>
+        <td class="mono" style="font-size:11px; color:var(--muted)">${n.id}</td>
+        <td style="min-width:220px">
+          ${n.hasCase ? `<button class="rowname" data-case="${n.id}">${esc(n.name)}</button>` : `<span style="font-weight:500">${esc(n.name)}</span>`}
+          <div class="note" style="font-size:12px">${esc(n.query)}${n.noCabinetData ? " · нет данных кабинета" : ""}${n.belowDemandFloor ? ` · <span style="color:var(--warn)">ниже порога спроса</span>` : ""}</div>
+        </td>
+        <td style="color:var(--ink-2)">${SHOP[n.workshop || ""]}</td>
+        <td class="num r">${n.noCabinetData ? `<span style="color:var(--muted)">нет данных</span>` : fmt(n.demand)}</td>
+        <td class="num r">${fmt(n.market)}</td>
+        <td class="num r">${fmt(n.ssLow)} / ${fmt(n.ssBase)}</td>
+        <td class="num r" style="font-weight:700; color:var(--teal-ink)">${fmt(n.ssMax55)}</td>
+        <td class="num r">${fmt(n.gapBase, 2)} / ${fmt(n.gapLow, 2)}</td>
+        <td class="num r">${n.rentToday === null
+          ? `<span style="color:var(--muted)" title="Чистая выручка ниже 5% цены, процент теряет смысл">выручки не остаётся</span>`
+          : `<span style="color:${n.rentToday >= 0.1 ? "var(--ok)" : "var(--bad)"}">${pct(n.rentToday)}</span>`}</td>
+        <td>${vbadge(n.verdict)}</td>
+      </tr>`).join("");
+}
+
+el("filters").addEventListener("click", (e) => {
+  const b = e.target.closest("button.chip");
+  if (!b) return;
+  if (b.dataset.group) {
+    state.group = b.dataset.group;
+    el("filters").querySelectorAll("[data-group]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  } else {
+    const s = b.dataset.shop;
+    state.shop = state.shop === s ? null : s;
+    el("filters").querySelectorAll("[data-shop]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.shop === state.shop)));
+  }
+  renderRows();
+});
+el("q").addEventListener("input", (e) => { state.q = e.target.value; renderRows(); });
+el("sort").addEventListener("change", (e) => { state.sort = e.target.value; renderRows(); });
+renderRows();
+
+/* ── кейсы ──────────────────────────────────────────── */
+el("cases-title").textContent = `${D.cases.length} ниши, разобранные до конкурентов`;
+const caseShops = [...new Set(D.cases.map((c) => c.workshop || ""))].sort();
+el("case-tabs").innerHTML = [["all", "Все цеха"], ...caseShops.map((s) => [s, SHOP[s] || s])]
+  .map(([k, l], i) => `<button type="button" class="chip" data-tab="${k}" aria-pressed="${i === 0}">${l}</button>`).join("");
+
+const stripBg = {
+  metal: "linear-gradient(135deg,#c2f53c,#12c8a4)", combo: "linear-gradient(135deg,#12c8a4,#ff6b2c)",
+  glass: "linear-gradient(135deg,#9fe8ff,#12c8a4)", print: "linear-gradient(135deg,#ffd166,#ff6b2c)",
+  mdf: "linear-gradient(135deg,#e6d3a3,#c2a26a)", led: "linear-gradient(135deg,#c2f53c,#9fe8ff)", "": "linear-gradient(135deg,#d2d6c9,#8b9382)",
+};
+function renderCases(tab) {
+  const view = tab === "all" ? D.cases : D.cases.filter((c) => (c.workshop || "") === tab);
+  el("case-grid").innerHTML = view.map((c) => `
+    <button class="case" data-case="${c.id}">
+      <span class="strip" style="background:${stripBg[c.workshop || ""]}"><span>${c.id}</span><span>${SHOP[c.workshop || ""]}</span></span>
+      <span class="body">
+        <span class="badges">${vbadge(c.verdict)}${abadge(c.audit && c.audit.verdict)}${c.kgt ? `<span class="badge b-out">КГТ</span>` : ""}</span>
+        <h3>${esc(c.name)}</h3>
+        <span class="note" style="display:block">${esc((c.angle || "").slice(0, 118))}${(c.angle || "").length > 118 ? "…" : ""}</span>
+        <span class="kv">
+          <div><span>рынок</span><b>${fmt(c.market)}</b></div>
+          <div><span>С/С</span><b>${fmt(c.ssBase)}</b></div>
+          <div><span>спрос</span><b>${c.noCabinetData ? "нет данных" : rub(c.demand, true)}</b></div>
+          <div><span>маржа</span><b>${c.rentToday === null ? "-" : pct(c.rentToday)}</b></div>
+        </span>
+      </span>
+    </button>`).join("");
+}
+el("case-tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  el("case-tabs").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  renderCases(b.dataset.tab);
+});
+renderCases("all");
+
+/* ── разбор кейса ───────────────────────────────────── */
+const sheet = el("sheet");
+const row = (l, v) => `<div><dt>${esc(l)}</dt><dd>${v}</dd></div>`;
+function openCase(id) {
+  const c = D.cases.find((x) => x.id === id);
+  if (!c) return;
+  const comp = (c.competitors || []).map((x) => `
+    <tr>
+      <td style="min-width:220px">${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.name)}</a>` : esc(x.name)}</td>
+      <td class="num r">${fmt(x.price)}</td><td class="num r">${fmt(x.reviews)}</td><td class="num r">${x.rating ?? "-"}</td>
+      <td style="color:var(--ink-2)">${esc(x.seller)}${x.seller_orders ? `<div class="note mono" style="font-size:11px">${esc(x.seller_orders)} заказов</div>` : ""}</td>
+      <td class="note">${esc(x.why_wins)}</td>
+    </tr>`).join("");
+  const a = c.audit;
+  el("sheet-body").innerHTML = `
+    <div class="sheet-top">
+      <div class="stack gap-s">
+        <span class="eyebrow">${c.id} · запрос «${esc(c.query)}»</span>
+        <h2 style="font-size:clamp(22px,3vw,32px); font-weight:800">${esc(c.name)}</h2>
+        <span class="badges">${vbadge(c.verdict)}${abadge(a && a.verdict)}${c.kgt ? `<span class="badge b-out">КГТ</span>` : ""}${(c.flags || "").split(";").filter(Boolean).map((f) => `<span class="badge b-orange">${esc(f.trim())}</span>`).join("")}</span>
+      </div>
+      <button class="close" type="button" aria-label="Закрыть" onclick="document.getElementById('sheet').close()">✕</button>
+    </div>
+    ${c.spec ? `<p class="measure" style="color:var(--ink-2)">${esc(c.spec)}</p>` : ""}
+    ${c.position ? `<p class="panel measure" style="font-size:14px; color:var(--ink-2); padding:16px"><b style="color:var(--ink)">Наш подсегмент:</b> ${esc(c.position)}</p>` : ""}
+    <div class="grid g3">
+      <div class="card"><h3 style="font-size:16px; font-weight:700; margin-bottom:8px">Спрос и рынок</h3><dl class="rows">
+        ${row("заказано за 28 дней", `${rub(c.demand, true)} · ${fmt(c.units)} шт`)}
+        ${row("запросов / динамика", `${fmt(c.pop)} / ${c.dyn == null ? "-" : c.dyn + "%"}`)}
+        ${row("средний чек покупки", rub(c.avgPrice))}
+        ${row("цена: Q1 / медиана / Q3", `${fmt(c.q1)} / ${fmt(c.med)} / ${fmt(c.q3)}`)}
+      </dl></div>
+      <div class="card"><h3 style="font-size:16px; font-weight:700; margin-bottom:8px">Экономика</h3><dl class="rows">
+        ${row("С/С произв: низ / база / верх", `${fmt(c.ssLow)} / ${fmt(c.ssBase)} / ${fmt(c.ssHigh)}`)}
+        ${row("целевая цена (верх рынка)", rub(c.market))}
+        ${row("предельная цена для 10% / 15%", `${fmt(c.p10)} / ${fmt(c.p15)}`)}
+        ${row("целевая С/С для 15%", `<b style="color:var(--teal-ink)">${fmt(c.ssMax55)} ₽</b>`)}
+        ${row("маржа по целевой цене", c.rentToday === null ? `<span style="color:var(--muted)">выручки не остаётся</span>` : `<span style="color:${c.rentToday >= 0.1 ? "var(--ok)" : "var(--bad)"}">${pct(c.rentToday)}</span>`)}
+        ${row("та же маржа при комиссии 46%", c.rent46 === null ? "-" : pct(c.rent46))}
+      </dl></div>
+      <div class="card"><h3 style="font-size:16px; font-weight:700; margin-bottom:8px">Производство</h3><dl class="rows">
+        ${row("лазер / сварка при 5% ниши", `${fmt(c.laserH, 1)} ч / ${fmt(c.weldH, 1)} ч в месяц`)}
+        ${row("логистика FBS / realFBS", `${fmt(c.logistics)} / ${fmt(c.logisticsReal)} ₽`)}
+        ${row("уверенность оценки", esc(c.confidence || "-"))}
+      </dl>
+      <p class="note" style="margin-top:10px"><b style="color:var(--ink)">Узкое место:</b> ${esc(c.bottleneck || "-")}</p></div>
+    </div>
+    ${comp ? `<div class="stack gap-s"><h3 style="font-size:18px; font-weight:700">Кто забирает нишу</h3>
+      <div class="tablebox"><table><thead><tr><th>Карточка</th><th class="r">Цена</th><th class="r">Отзывы</th><th class="r">Рейтинг</th><th>Продавец</th><th>Чем берёт</th></tr></thead><tbody>${comp}</tbody></table></div></div>` : ""}
+    <div class="grid g3">
+      ${[["Сезонность", c.seasonality], ["Дырки в предложении", c.gaps], ["Чем заходим", c.angle]].map(([t, v]) =>
+        `<div class="panel" style="padding:18px"><h4 class="mono" style="font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted)">${t}</h4><p style="margin-top:10px; font-size:13.5px; line-height:1.6; color:var(--ink-2)">${esc(v || "-")}</p></div>`).join("")}
+    </div>
+    ${a ? `<div class="card stack gap-m">
+      <div class="badges"><span class="eyebrow">Reality Audit</span>${abadge(a.verdict)}</div>
+      <blockquote>${esc(a.bogdan)}</blockquote>
+      <dl class="dl-grid g2" style="display:grid">
+        ${[["Аудитория и как покупает", a.audience], ["На чём держится экономика", a.assumptions], ["Каких данных нет", a.gaps], ["Что при downside", a.downside], ["Первый чекпоинт", a.checkpoint], ["Задетые красные линии", a.redLines]]
+          .map(([t, v]) => `<div><dt>${t}</dt><dd>${esc(v || "-")}</dd></div>`).join("")}
+      </dl></div>` : ""}
+    <div class="panel note stack gap-s" style="font-size:13px">
+      <span><b style="color:var(--ink)">Риски:</b> ${esc(c.risks || "-")}</span>
+      <span><b style="color:var(--ink)">Покупные узлы:</b> ${esc(c.purchased || "-")}</span>
+      <span><b style="color:var(--ink)">Сертификация:</b> ${esc(c.certification || "-")}</span>
+      <span><b style="color:var(--ink)">Якорь себестоимости:</b> ${esc(c.anchor || "-")}</span>
+    </div>`;
+  sheet.showModal();
+  el("sheet-body").scrollTop = 0;
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-case]");
+  if (b) openCase(b.dataset.case);
+});
+sheet.addEventListener("click", (e) => { if (e.target === sheet) sheet.close(); });
+
+/* ── ноу-хау ────────────────────────────────────────── */
+el("ideas-title").textContent = `${C.knowhowKept} из ${C.knowhow} идей пережили опровержение`;
+const byShop = {};
+D.ideas.forEach((i) => { const k = i.workshop || ""; byShop[k] = (byShop[k] || 0) + 1; });
+el("ideas-kpi").innerHTML = [
+  tile(C.knowhow, "идей сгенерировано", "четыре независимых угла зрения"),
+  tile(C.knowhowKept, "прошли опровержение", "скептик не пропустил ни одной", "val-alert"),
+  tile(C.knowhowWithFix, "с предложением, как спасти", "кандидаты на второй заход", "val-accent"),
+  tile(Object.keys(byShop).length, "цехов затронуто", Object.entries(byShop).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${SHOP[k] || k}: ${v}`).join(", ")),
+].join("");
+
+el("ideas").innerHTML = D.ideas.map((i) => `
+  <article class="card stack gap-m">
+    <div class="badges">
+      <span class="badge b-dim">${SHOP[i.workshop || ""] || esc(i.workshop)}</span>
+      ${i.ss !== null ? `<span class="badge b-out">С/С ${fmt(i.ss)} ₽</span>` : ""}
+      ${i.price !== null ? `<span class="badge b-out">цена ${fmt(i.price)} ₽</span>` : ""}
+      ${i.fix && i.fix.length > 40 ? `<span class="badge b-orange">есть способ спасти</span>` : ""}
+    </div>
+    <h3 style="font-size:17.5px; font-weight:700">${esc(i.name)}</h3>
+    <p style="font-size:14px; line-height:1.6; color:var(--ink-2)">${esc(i.what)}</p>
+    <dl class="dl-grid" style="border-top:1px solid var(--line); padding-top:14px">
+      <div><dt style="color:var(--bad)">Почему отклонена</dt><dd>${esc(i.reason || "-")}</dd></div>
+      ${i.fix ? `<div><dt style="color:var(--teal-ink)">Как спасти</dt><dd>${esc(i.fix)}</dd></div>` : ""}
+    </dl>
+    ${(i.evidence || i.whyUs) ? `<details><summary>Доказательство спроса и почему это можем мы</summary>
+      <dl class="dl-grid">
+        ${i.evidence ? `<div><dt>Доказательство спроса</dt><dd>${esc(i.evidence)}</dd></div>` : ""}
+        ${i.whyNobody ? `<div><dt>Почему не делают другие</dt><dd>${esc(i.whyNobody)}</dd></div>` : ""}
+        ${i.whyUs ? `<div><dt>Почему можем мы</dt><dd>${esc(i.whyUs)}</dd></div>` : ""}
+      </dl></details>` : ""}
+    <p class="mono note" style="font-size:11.5px; border-top:1px solid var(--line); padding-top:12px">
+      Операции: ${esc(i.ops || "-")}${i.season ? ` · сезон: ${esc(i.season)}` : ""}${i.ttm ? ` · запуск: ${i.ttm} нед.` : ""}</p>
+  </article>`).join("");
+
+/* ── аудит ──────────────────────────────────────────── */
+el("audit-title").textContent = `Проверка на прочность: ${M.audit.noGo} из ${M.audit.total} - NO_GO`;
+el("audit-overall").innerHTML = M.audit.overall.split("\n\n").map((p) => `<p>${esc(p)}</p>`).join("");
+el("audit-items").innerHTML = D.cases.filter((c) => c.audit).map((c) => `
+  <article class="card stack gap-m">
+    <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:space-between; align-items:flex-start">
+      <div class="stack gap-s">
+        <span class="mono" style="font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted)">${c.id} · запрос «${esc(c.query)}»</span>
+        <h3 style="font-size:19px; font-weight:700"><button class="rowname" data-case="${c.id}" style="font-family:Onest,sans-serif; font-size:19px; font-weight:700">${esc(c.name)}</button></h3>
+      </div>
+      <span class="badges">${vbadge(c.verdict)}${abadge(c.audit.verdict)}</span>
+    </div>
+    <blockquote>${esc(c.audit.bogdan)}</blockquote>
+    <dl class="dl-grid g2" style="display:grid">
+      <div><dt>На чём держится экономика</dt><dd>${esc(c.audit.assumptions)}</dd></div>
+      <div><dt>Что при downside</dt><dd>${esc(c.audit.downside)}</dd></div>
+    </dl>
+    <p class="mono note" style="border-top:1px solid var(--line); padding-top:12px; font-size:11.5px">
+      спрос ${rub(c.demand, true)} за 28 дней · целевая цена ${rub(c.market)} · маржа по модели сита ${c.rentToday === null ? "выручки не остаётся" : pct(c.rentToday)} · первый чекпоинт: ${esc(c.audit.checkpoint || "-")}</p>
+  </article>`).join("");
+
+/* ── решения ────────────────────────────────────────── */
+el("decisions").innerHTML = [
+  ["Подтвердить реальную комиссию по непрофильным категориям",
+   "Сейчас 51-52% для «Дома и сада», «Дачи и сада», «Строительства и ремонта» - гипотеза по аналогии с зеркалами и столами, а не факт из кабинета по самим этим категориям. На этой цифре стоит вся экономика 120 ниш.",
+   "Один запрос в поддержку или одна тестовая карточка",
+   "Если не проверить, следующий раунд отбора повторит ту же ошибку в большем масштабе"],
+  ["Решить судьбу правила «цена = С/С × 4-4,5»",
+   "Правило откалибровано на комиссии 46,1% по текущему ассортименту. При комиссии выше 50% для выхода на те же 10-15% нужен множитель 5,5 и выше, а это отсекает почти весь товар дешевле 10-15 тысяч.",
+   "Решение на уровне собственника, без затрат",
+   "Либо принимаем более высокий множитель и узкий ассортимент, либо уходим из категорий с высокой комиссией"],
+  ["Починить ворота спроса до того, как собирать карточки",
+   "Требование аудита дословно: вернуться на этап лонг-листа и проверять реальный кабинетный спрос ДО составления карточки, а не после. Сейчас из восьми ниш, прошедших сито, четыре имеют спрос ниже объявленного порога 300 000 ₽ за 28 дней, а одна - 26 298 ₽ и 47 запросов.",
+   "Правка одной проверки в конвейере отбора",
+   "Следующий раунд снова потратит недели на ниши, где спроса нет вовсе"],
+  ["Выбрать режим цеха для маркетплейса",
+   "Премиальный конверт (TIG, зачистка, индивидуальная упаковка) даёт себестоимость, которую целевая цена рынка не выдерживает. Серийный режим - MIG, минимальная зачистка, порошок партиями - по оценке дешевле на 30-45% по работе, но это гипотеза до подтверждения производством.",
+   "Расчёт производства по 5-8 нишам, 5 рабочих дней",
+   "Без этого решения производство не может посчитать реальную себестоимость, а сито остаётся на вилке"],
+].map(([t, why, cost, risk], i) => `
+  <section class="card stack gap-m">
+    <div style="display:flex; gap:16px; align-items:baseline">
+      <span class="mono" style="font-size:13px; color:var(--muted)">${String(i + 1).padStart(2, "0")}</span>
+      <h3 style="font-size:clamp(19px,2.4vw,26px); font-weight:700">${esc(t)}</h3>
+    </div>
+    <p class="measure" style="color:var(--ink-2)">${esc(why)}</p>
+    <div class="grid g2">
+      <div class="panel" style="padding:16px"><div class="mono" style="font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted)">Чего стоит</div><div style="margin-top:6px; font-size:14px">${esc(cost)}</div></div>
+      <div class="panel" style="padding:16px"><div class="mono" style="font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted)">Если не решать</div><div style="margin-top:6px; font-size:14px">${esc(risk)}</div></div>
+    </div>
+  </section>`).join("");
+
+el("plan-lead").textContent = `План намеренно не начинается с запуска карточек: по данным исследования ни одна ниша не выходит в плюс по целевой цене (${C.profitableToday} из ${C.priced}${best ? `, лучшая ${pct(best.rentToday)}` : ""}). Сначала четыре дешёвые проверки, потом пилот, и только потом деньги в производство.`;
+el("plan").innerHTML = [
+  ["Неделя 1", "Снять четыре неопределённости", [
+    "Проверить реальную комиссию по трём непрофильным категориям в кабинете",
+    "Выставить одну тестовую карточку по расчётной целевой цене и смотреть 7 дней: покупает ли рынок и даёт ли Ozon баллы на новых карточках",
+    "Принять решение по режиму цеха: премиум или отдельный серийный стандарт",
+    "Добавить в конвейер отбора жёсткую проверку кабинетного спроса до сборки карточки"]],
+  ["До 30 дней", "Точечный пилот по результатам недели", [
+    "Если комиссия и баллы подтвердились: производство считает себестоимость по 5-8 верхним нишам в подтверждённом режиме",
+    "Если комиссия ближе к 46%: пересчитать сито по факту и заново оценить, сколько ниш переходит в проходные",
+    "Схема доставки везде FBS и realFBS, без FBO"]],
+  ["До 90 дней", "Масштабирование только на подтверждённых цифрах", [
+    "Новогодние ниши с отгрузкой до 15 декабря, но только те, что прошли пилот",
+    "Пересчёт сита по факту первых продаж: баллы, реклама, возвраты вместо гипотез",
+    "Решение по крупным распродажам принимать по факту пилота, а не заранее"]],
+].map(([w, t, items]) => `
+  <div class="panel stack gap-m">
+    <span class="badge b-lime">${w}</span>
+    <h4 style="font-size:17px; font-weight:700">${esc(t)}</h4>
+    <ul class="stack gap-s" style="margin:0; padding-left:18px; font-size:14px; line-height:1.6; color:var(--ink-2)">${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+  </div>`).join("");
+
+el("foot-1").textContent = `Исследование от ${dateRu}: ${C.niches} ниш проверено, ${C.withEcon} посчитано по экономике, ${C.withCabinet} с метриками кабинета Ozon Seller. Источники: кабинет продавца, витрина Ozon, внутренняя таблица себестоимости. Показатель «маржа по целевой цене» пересчитывается скриптом, остальные цифры приходят из выгрузки исследования как есть.`;
+</script>

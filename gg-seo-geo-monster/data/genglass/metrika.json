@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-09-05",
+ "measured": "2026-09-06",
  "visits_30d": [
-  {
-   "date": "2026-08-06",
-   "visits": 246,
-   "search_visits": 84
-  },
   {
    "date": "2026-08-07",
    "visits": 254,
@@ -151,6 +146,11 @@
    "date": "2026-09-04",
    "visits": 420,
    "search_visits": 58
+  },
+  {
+   "date": "2026-09-05",
+   "visits": 373,
+   "search_visits": 52
   }
  ],
  "top_phrases": [
@@ -164,11 +164,11 @@
   },
   {
    "phrase": "генгласс",
-   "visits": 18
+   "visits": 17
   },
   {
    "phrase": "интернет магазин зеркало в раме",
-   "visits": 8
+   "visits": 9
   },
   {
    "phrase": "genglass официальный",
@@ -179,16 +179,16 @@
    "visits": 6
   },
   {
-   "phrase": "ген гласс",
-   "visits": 5
-  },
-  {
    "phrase": "дженгласс",
    "visits": 5
   },
   {
-   "phrase": "дженгласс ру",
-   "visits": 5
+   "phrase": "GENGLASS",
+   "visits": 4
+  },
+  {
+   "phrase": "ген гласс",
+   "visits": 4
   },
   {
    "phrase": "генгласс зеркала",
@@ -201,10 +201,6 @@
   {
    "phrase": "столы на заказ",
    "visits": 4
-  },
-  {
-   "phrase": "GENGLASS",
-   "visits": 3
   },
   {
    "phrase": "gen glass",
@@ -220,6 +216,14 @@
   },
   {
    "phrase": "kuvino m",
+   "visits": 3
+  },
+  {
+   "phrase": "дженгласс ру",
+   "visits": 3
+  },
+  {
+   "phrase": "зеркало на заказ",
    "visits": 3
   },
   {
@@ -271,19 +275,11 @@
    "visits": 2
   },
   {
-   "phrase": "зеркало арочное",
-   "visits": 2
-  },
-  {
    "phrase": "зеркало дизайнерское",
    "visits": 2
   },
   {
    "phrase": "зеркало купить",
-   "visits": 2
-  },
-  {
-   "phrase": "зеркало на заказ",
    "visits": 2
   },
   {
@@ -296,10 +292,6 @@
   },
   {
    "phrase": "зеркало с креплением к потолку",
-   "visits": 2
-  },
-  {
-   "phrase": "каскадная перегородка",
    "visits": 2
   },
   {
@@ -335,6 +327,10 @@
    "visits": 2
   },
   {
+   "phrase": "стол под заказ",
+   "visits": 2
+  },
+  {
    "phrase": "\"джен груп\" сайт",
    "visits": 1
   },
@@ -344,6 +340,10 @@
   },
   {
    "phrase": "2026 трендовое интерьерное зеркало",
+   "visits": 1
+  },
+  {
+   "phrase": "3d",
    "visits": 1
   },
   {
@@ -358,7 +358,7 @@
  "top_pages": [
   {
    "url": "/",
-   "visits": 422
+   "visits": 415
   },
   {
    "url": "/stoly-na-zakaz/",
@@ -366,35 +366,31 @@
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 71
+   "visits": 72
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 69
+   "visits": 70
   },
   {
    "url": "/product-category/tables/",
-   "visits": 62
+   "visits": 60
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 61
+   "visits": 59
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 57
+   "visits": 54
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 46
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 41
+   "visits": 45
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 40
+   "visits": 42
   },
   {
    "url": "/product-category/steklyannye-doski/",
@@ -405,55 +401,59 @@
    "visits": 36
   },
   {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 28
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
+   "visits": 35
   },
   {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-   "visits": 28
+   "visits": 31
+  },
+  {
+   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "visits": 27
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-   "visits": 25
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
    "visits": 24
   },
   {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 22
+   "visits": 24
+  },
+  {
+   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
+   "visits": 23
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 20
+   "visits": 19
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/",
-   "visits": 17
+   "visits": 18
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
    "visits": 16
   },
   {
-   "url": "/product/zerkalo-v-zolotoj-rame-arkelo-s-102h52-sm/",
-   "visits": 15
-  },
-  {
    "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
-   "visits": 13
+   "visits": 14
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
-   "visits": 13
+   "visits": 14
   },
   {
-   "url": "/news/universalnyj-stol-konux-podhodit-dlya-lyubogo-interera-i-prostranstva/",
+   "url": "/product/zerkalo-v-zolotoj-rame-arkelo-s-102h52-sm/",
+   "visits": 14
+  },
+  {
+   "url": "/product-category/mirrors/rotatable/",
    "visits": 11
   },
   {
-   "url": "/product-category/mirrors/led/",
+   "url": "/product-category/tables/metal-tables/",
    "visits": 11
   },
   {
@@ -461,19 +461,19 @@
    "visits": 11
   },
   {
+   "url": "/news/universalnyj-stol-konux-podhodit-dlya-lyubogo-interera-i-prostranstva/",
+   "visits": 10
+  },
+  {
    "url": "/product-category/",
    "visits": 10
   },
   {
-   "url": "/product-category/mirrors/rotatable/",
+   "url": "/product-category/mirrors/led/",
    "visits": 10
   },
   {
    "url": "/product-category/mirrors/wall/",
-   "visits": 10
-  },
-  {
-   "url": "/product-category/tables/metal-tables/",
    "visits": 10
   }
  ],

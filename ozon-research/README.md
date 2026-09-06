@@ -63,6 +63,23 @@ npm run content     # то же самое: python3 scripts/build_content.py
 2. В `PHOTOS` укажите путь, начинающийся со слеша: `"N005": "/photos/drovnitsa.jpg"`.
 3. Функция `unsplash()` в `src/lib/format.ts` отдаёт такие пути как есть, без обращения к Unsplash.
 
+## Где сайт опубликован
+
+Боевая версия собирается общим воркфлоу репозитория `.github/workflows/deploy-pages.yml`
+и лежит на GitHub Pages:
+
+| Адрес | Что там |
+| --- | --- |
+| https://oliverjone01-dev.github.io/t1/ozon-research/ | сайт целиком: главная, методика, карта ниш, кейсы, ноу-хау, аудит, решения |
+| https://oliverjone01-dev.github.io/t1/ozon-research/onepage.html | та же история одной страницей, из `demo/` |
+
+Сборка для Pages включается переменной `PAGES_BASE` (подпапка сайта), внешние снимки
+на публичной сборке выключены переменной `NEXT_PUBLIC_NO_PHOTOS=1`:
+
+```bash
+PAGES_BASE=/t1/ozon-research NEXT_PUBLIC_NO_PHOTOS=1 npm run build   # статика в out/
+```
+
 ## Данные
 
 | Файл | Что внутри |

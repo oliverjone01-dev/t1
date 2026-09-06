@@ -22,6 +22,8 @@ name: Deploy to GitHub Pages
 #   /integra/          - ИНТЕГРА 2.0, план GENTERO (из ветки claude/gentero-plan-03609o, статика public/)
 #   /academy/          - GG Sales Academy: библиотека отдела (контур 1A) плюс запечатанные
 #                        кабинеты менеджеров и сводка штаба (контуры 2 и 3, из sealed/)
+#   /ozon-research/    - Карта ниш Ozon: исследование 180 ниш для цехов (из main,
+#                        статический экспорт Next.js, одностраничная версия в onepage.html)
 #   /plan/             - GENGLASS План-Радар, полная версия (из main, статика без ПД)
 #   /plan/v2/          - План-Радар v2 «простая» с разбивкой по менеджерам - ТОЛЬКО
 #                        запечатанная копия (исходник в gg-plan-radar-v2-src/, не деплоится)
@@ -42,7 +44,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -199,6 +201,27 @@ jobs:
             exit 1
           fi
           echo "План-Радар: /plan/ и /plan/v2/ собраны, ростер чист"
+
+      # === КАРТА НИШ OZON (из main, в /ozon-research/) ===
+      # Сборка Next.js в статику: PAGES_BASE подставляет подпапку Pages в пути ассетов.
+      # Внешние снимки на публичной сборке отключены (NEXT_PUBLIC_NO_PHOTOS): они грузятся
+      # со стороннего хоста и в переписке с шефом ломались бы иконкой битой картинки.
+      # continue-on-error: падение исследования не должно валить остальной сайт.
+      - name: Build Ozon research (/ozon-research/)
+        continue-on-error: true
+        env:
+          PAGES_BASE: /t1/ozon-research
+          NEXT_PUBLIC_NO_PHOTOS: "1"
+        run: |
+          set -euo pipefail
+          cd ozon-research
+          npm ci
+          npm run build
+          mkdir -p "$GITHUB_WORKSPACE/_site/ozon-research"
+          cp -r out/. "$GITHUB_WORKSPACE/_site/ozon-research/"
+          # Та же история одной страницей: удобно переслать или открыть без сети.
+          cp demo/ozon-research.html "$GITHUB_WORKSPACE/_site/ozon-research/onepage.html"
+          echo "Карта ниш Ozon: /ozon-research/ собрана, страниц $(find out -name '*.html' | wc -l)"
 
       # === ПРЕВЬЮ (из рабочей ветки) ===
       # Если падает - бой всё равно публикуется (continue-on-error), поломка видна в логах.

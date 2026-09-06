@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Дизайн-система ─────────────────────────────────────────────
+   Пластика Mobbin: pill-навигация, радиус 999px, плотный трекинг,
+   серые контейнеры. Акценты: лайм → бирюза, оранжевый.
+   Нейтральные с уходом в зелёный, а не стерильный серый.        */
+:root {
+  --ground: #ffffff;
+  --surface: #f3f4f1;
+  --surface-2: #e9ebe5;
+  --card: #ffffff;
+  --ink: #111310;
+  --ink-2: #3d423a;
+  --muted: #5f6659;
+  --line: #e2e5dc;
+  --line-2: #d2d6c9;
+  --lime: #c2f53c;
+  --teal: #12c8a4;
+  --teal-ink: #07705d;
+  --orange: #ff6b2c;
+  --orange-ink: #b83c08;
+  --ok: #07705d;
+  --ok-bg: rgb(18 200 164 / 0.14);
+  --warn: #8f5d06;
+  --warn-bg: rgb(255 171 44 / 0.16);
+  --bad: #a83a25;
+  --bad-bg: rgb(224 80 44 / 0.12);
+}
+
+.dark {
+  --ground: #0b0d0a;
+  --surface: #141712;
+  --surface-2: #1e221b;
+  --card: #141712;
+  --ink: #f1f4ec;
+  --ink-2: #c4cabA;
+  --muted: #8b9382;
+  --line: #242820;
+  --line-2: #333829;
+  --teal-ink: #3fe3c0;
+  --orange-ink: #ff8b54;
+  --ok: #3fe3c0;
+  --ok-bg: rgb(18 200 164 / 0.16);
+  --warn: #f0b646;
+  --warn-bg: rgb(240 182 70 / 0.14);
+  --bad: #f0755a;
+  --bad-bg: rgb(240 117 90 / 0.14);
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-lime: var(--lime);
+  --color-teal: var(--teal);
+  --color-teal-ink: var(--teal-ink);
+  --color-orange: var(--orange);
+  --color-orange-ink: var(--orange-ink);
+  --color-ok: var(--ok);
+  --color-ok-bg: var(--ok-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-bad: var(--bad);
+  --color-bad-bg: var(--bad-bg);
+  --font-display: var(--font-onest), "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-golos), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --radius-pill: 999px;
+}
+
+@layer base {
+  * { border-color: var(--line); }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    line-height: 1.04;
+  }
+  :focus-visible { outline: 2px solid var(--teal-ink); outline-offset: 2px; }
+  ::selection { background: var(--lime); color: #111310; }
+}
+
+@layer utilities {
+  .tnum { font-variant-numeric: tabular-nums; }
+  .measure { max-width: 68ch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  html { scroll-behavior: auto; }
+}

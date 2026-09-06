@@ -119,7 +119,7 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 - FAIL по пробе класса A (гейты) или B7 (утечка непроверенных чисел наружу) → verdict не выше `return`.
 - Класс гейт / дашборд / агент без проб → `probes: not_run (причина)`, risk_awareness ≤5.0, verdict не выше `return`.
 - Self-claimed score внутри артефакта без ссылки на аудит → veto-кандидат (якорь sales-director 5.05).
-- Score >9.0 - только при всех 25 чекпоинтах 2/2 с evidence; в 2026 году не наблюдалось.
+- Score >9.0 - только при всех 25 чекпоинтах 2/2 с evidence; в 2026 году встречался только в серии sales-director iter 2-4 (9.25 / 9.45 / 9.52), помеченной к пересмотру (см. calibration-anchors.md).
 
 ## Output JSON (по `schemas/audit-report.json`)
 
@@ -127,9 +127,15 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 {
   "agent": "feniks",
   "skill": "phoenix-eval",
-  "task_id": "<uuid>",
-  "timestamp": "<ISO>",
-  "deliverable_ref": "<path>",
+  "task_id": "feniks-example-001",
+  "timestamp": "2026-06-08T12:00:00+03:00",
+  "deliverable_ref": "knowledge/episodes/2026-06/example-launch-plan.md",
+  "artifact_class": "strategy",
+  "anchor": "6.7 feniks-return-reestr - наш артефакт выше на 0.25: ядро здоровое, дефекты закрываемы за одну итерацию",
+  "probes": [
+    {"id": "B1", "result": "PASS", "evidence": "все 4 цифры имеют путь вне артефакта"},
+    {"id": "D1", "result": "PASS", "evidence": "grep самопровозглашённых оценок: 0"}
+  ],
   "comprehension_gate": {
     "applies": true,
     "passed": false,
@@ -171,7 +177,7 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
     "brand_fit": 9.0,
     "risk_awareness": 5.0
   },
-  "weighted_total": 7.05,
+  "weighted_total": 6.95,
   "verdict": "return",
   "gaps": [
     "Insight: рассмотрены ли альтернативные стратегии запуска?",
@@ -184,10 +190,11 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 }
 ```
 
-### Приложение к JSON (markdown, не внутри JSON: схема `audit-report.json` закрыта для лишних полей)
+Пример выше - фикстура `schemas/smoke-test.py`: он извлекается из этого файла и обязан проходить
+`validate.py` (схема + арифметика весов + сумма чекпоинтов). Поля `anchor`, `probes`, `evidence_ledger`,
+`comprehension_gate`, `artifact_class` - часть схемы с v3. В markdown-отчёте те же данные дублируются таблицами:
 
 ```
-anchor: 6.7 feniks-return-reestr - наш артефакт выше, потому что дедупликация уже в определении счётчика
 ## Evidence ledger
 | # | Gap | Evidence | Чекпоинт | Вес |
 ## Red-team probes

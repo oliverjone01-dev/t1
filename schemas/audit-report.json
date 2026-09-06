@@ -2,22 +2,45 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gengroup.local/schemas/audit-report.json",
   "title": "FENIX Audit Report (Phoenix-Eval)",
-  "description": "Output schema for any FENIX adversarial review. 25 checkpoints across 5 weighted criteria, weighted total, verdict, gaps and rework TZ.",
+  "description": "Output schema for any FENIX adversarial review. 25 checkpoints across 5 weighted criteria, weighted total, verdict, gaps and rework TZ. v3 (2026-09-06): optional anchor / probes / evidence_ledger / comprehension_gate / artifact_class; weighted_total обязан сходиться с Σ(score × weight) в пределах 0.05 (проверяет validate.py).",
   "type": "object",
-  "required": ["agent", "skill", "task_id", "timestamp", "scores", "weighted_total", "verdict"],
+  "required": [
+    "agent",
+    "skill",
+    "task_id",
+    "timestamp",
+    "scores",
+    "weighted_total",
+    "verdict"
+  ],
   "additionalProperties": false,
   "properties": {
-    "agent": { "const": "feniks" },
-    "skill": { "const": "phoenix-eval" },
-    "task_id": { "type": "string" },
-    "timestamp": { "type": "string", "format": "date-time" },
-    "deliverable_ref": { "type": "string" },
-    "iteration": { "type": "integer", "minimum": 1, "maximum": 3 },
+    "agent": {
+      "const": "feniks"
+    },
+    "skill": {
+      "const": "phoenix-eval"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deliverable_ref": {
+      "type": "string"
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
     "checkpoints": {
       "type": "object",
       "description": "25 checkpoints, each 0/1/2",
       "patternProperties": {
-        "^(accuracy|actionability|insight|brand|risk)_[0-9]+_[a-z_]+$": {
+        "^(accuracy|actionability|insight|brand|risk)_[0-9]+_[a-z0-9_]+$": {
           "type": "integer",
           "minimum": 0,
           "maximum": 2
@@ -27,13 +50,39 @@
     },
     "scores": {
       "type": "object",
-      "required": ["accuracy", "actionability", "insight", "brand_fit", "risk_awareness"],
+      "required": [
+        "accuracy",
+        "actionability",
+        "insight",
+        "brand_fit",
+        "risk_awareness"
+      ],
       "properties": {
-        "accuracy":        { "type": "number", "minimum": 0, "maximum": 10 },
-        "actionability":   { "type": "number", "minimum": 0, "maximum": 10 },
-        "insight":         { "type": "number", "minimum": 0, "maximum": 10 },
-        "brand_fit":       { "type": "number", "minimum": 0, "maximum": 10 },
-        "risk_awareness":  { "type": "number", "minimum": 0, "maximum": 10 }
+        "accuracy": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "actionability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "insight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "brand_fit": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "risk_awareness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        }
       }
     },
     "weighted_total": {
@@ -44,11 +93,17 @@
     },
     "verdict": {
       "type": "string",
-      "enum": ["go", "return", "veto"]
+      "enum": [
+        "go",
+        "return",
+        "veto"
+      ]
     },
     "gaps": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "maxItems": 10
     },
     "rework_tz": {
@@ -59,34 +114,186 @@
       "type": "string",
       "description": "Path to dispute markdown if score <8 and author challenged"
     },
-    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
     "p9_triggers_fired": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string"
+      }
     },
     "telemetry": {
       "type": "object",
       "properties": {
-        "model": { "type": "string" },
-        "tokens_in": { "type": "integer" },
-        "tokens_out": { "type": "integer" },
-        "cost_usd": { "type": "number" },
-        "wall_time_seconds": { "type": "number" }
+        "model": {
+          "type": "string"
+        },
+        "tokens_in": {
+          "type": "integer"
+        },
+        "tokens_out": {
+          "type": "integer"
+        },
+        "cost_usd": {
+          "type": "number"
+        },
+        "wall_time_seconds": {
+          "type": "number"
+        }
+      }
+    },
+    "artifact_class": {
+      "type": "string",
+      "enum": [
+        "strategy",
+        "content",
+        "gate",
+        "dashboard",
+        "agent",
+        "mixed"
+      ],
+      "description": "Phase 0 CLASSIFY (v3)"
+    },
+    "anchor": {
+      "type": "string",
+      "description": "Ближайший калибровочный якорь и почему выше/ниже (v3, обязателен по роли, схема не требует для обратной совместимости)"
+    },
+    "comprehension_gate": {
+      "type": "object",
+      "properties": {
+        "applies": {
+          "type": "boolean"
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "defects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "probes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "result"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "FAIL",
+              "PARTIAL",
+              "N/A"
+            ]
+          },
+          "evidence": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "evidence_ledger": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "gap",
+          "evidence"
+        ],
+        "properties": {
+          "gap": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "checkpoint": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "primary_gap": {
+      "type": "string"
+    },
+    "escalate_to": {
+      "type": "string"
+    },
+    "audience": {
+      "type": "string"
+    },
+    "sources_of_truth": {
+      "type": "array",
+      "items": {
+        "type": "string"
       }
     }
   },
   "allOf": [
     {
-      "if": { "properties": { "verdict": { "const": "veto" } } },
-      "then": { "properties": { "weighted_total": { "maximum": 5.99 } } }
+      "if": {
+        "properties": {
+          "verdict": {
+            "const": "veto"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "weighted_total": {
+            "maximum": 5.99
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "verdict": { "const": "return" } } },
-      "then": { "properties": { "weighted_total": { "minimum": 6.0, "exclusiveMaximum": 7.5 } } }
+      "if": {
+        "properties": {
+          "verdict": {
+            "const": "return"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "weighted_total": {
+            "minimum": 6.0,
+            "exclusiveMaximum": 7.5
+          }
+        }
+      }
     },
     {
-      "if": { "properties": { "verdict": { "const": "go" } } },
-      "then": { "properties": { "weighted_total": { "minimum": 7.5 } } }
+      "if": {
+        "properties": {
+          "verdict": {
+            "const": "go"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "weighted_total": {
+            "minimum": 7.5
+          }
+        }
+      }
     }
   ]
 }

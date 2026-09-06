@@ -10,6 +10,7 @@
 //   mode            - solo | council | debate | red_team (опционально; иначе решает СПАРТАК)
 //   max_iterations  - итерации Step 12.5 (по умолчанию 3)
 //   deliverable_ref - путь артефакта, если Council про существующий файл
+//   cost_budget_usd - лимит стоимости, по умолчанию 1.0 (оценка по токенам, тариф [ГИПОТЕЗА]); hard_stop_over_budget: true - остановка при превышении
 //
 // Возвращает объект: brief, roster, positions (анонимизированы), votes, ranking,
 // synthesis, audits[], verdict, final_status. Эпизод в knowledge/episodes/ пишет
@@ -39,6 +40,21 @@ if (!args.ts) {
   throw new Error('council: args.ts обязателен (ISO-время старта; часы внутри workflow недоступны)')
 }
 const MAX_ITER = Math.min(Math.max(Number(args.max_iterations) || 3, 1), 3)
+// Правило СПАРТАКА «Council > $1 - предупредить Ивана». Внутри workflow есть только токены (budget.spent()),
+// поэтому доллары оцениваются по тарифу [ГИПОТЕЗА: opus ~$75/M output => ~13K output-токенов на $1; берём 15K].
+const COST_BUDGET_USD = Number(args.cost_budget_usd) > 0 ? Number(args.cost_budget_usd) : 1.0
+const TOKENS_PER_USD = 15000
+const spentUsd = () => (typeof budget !== 'undefined' && budget && typeof budget.spent === 'function') ? budget.spent() / TOKENS_PER_USD : null
+let costWarned = false
+function costCheck(stage) {
+  const usd = spentUsd()
+  if (usd === null) return
+  if (usd > COST_BUDGET_USD && !costWarned) {
+    costWarned = true
+    log(`БЮДЖЕТ: после стадии ${stage} оценка ~$${usd.toFixed(2)} превысила лимит $${COST_BUDGET_USD} [ГИПОТЕЗА: тариф ${TOKENS_PER_USD} output-токенов/$]. Предупреждение Ивану - в эпизод. ${args.hard_stop_over_budget ? 'hard_stop_over_budget=true: остановка.' : 'Продолжаем (hard_stop_over_budget не задан).'}`)
+    if (args.hard_stop_over_budget) throw new Error(`council: превышен cost_budget_usd=${COST_BUDGET_USD} после стадии ${stage}`)
+  }
+}
 
 const SCORES_SCHEMA = {
   type: 'object',
@@ -54,10 +70,11 @@ const SCORES_SCHEMA = {
 
 const BRIEF_SCHEMA = {
   type: 'object',
-  required: ['clarified_task', 'mode', 'cc', 'roster', 'p9_required', 'rag_paths', 'success_criteria', 'stop_conditions'],
+  required: ['clarified_task', 'mode', 'cc', 'roster', 'p9_required', 'rag_paths', 'success_criteria', 'stop_conditions', 'artifact_class'],
   properties: {
     clarified_task: { type: 'string', description: 'Задача одной фразой, как её понял СПАРТАК' },
     mode: { type: 'string', enum: ['solo', 'council', 'debate', 'red_team'] },
+    artifact_class: { type: 'string', enum: ['strategy', 'content', 'gate', 'dashboard', 'agent', 'mixed'], description: 'Класс ожидаемого deliverable (Phase 0 ФЕНИКСА): от него зависят обязательные пробы' },
     cc: { type: 'string', description: 'CC-09..CC-19 или custom' },
     roster: { type: 'array', items: { type: 'string' }, maxItems: 4, description: 'id бойцов без feniks и spartak' },
     p9_required: { type: 'boolean' },
@@ -127,7 +144,7 @@ const SYNTHESIS_SCHEMA = {
 
 const AUDIT_SCHEMA = {
   type: 'object',
-  required: ['scores', 'weighted_total', 'verdict', 'gaps', 'rework_tz', 'anchor', 'confidence'],
+  required: ['scores', 'weighted_total', 'verdict', 'gaps', 'rework_tz', 'anchor', 'probes', 'confidence'],
   properties: {
     scores: SCORES_SCHEMA,
     weighted_total: { type: 'number', minimum: 0, maximum: 10 },
@@ -135,7 +152,7 @@ const AUDIT_SCHEMA = {
     gaps: { type: 'array', items: { type: 'string' }, maxItems: 10 },
     rework_tz: { type: 'string' },
     anchor: { type: 'string', description: 'Ближайший калибровочный якорь и почему выше/ниже' },
-    probes: { type: 'array', items: { type: 'object', required: ['id', 'result', 'evidence'], properties: { id: { type: 'string' }, result: { type: 'string', enum: ['PASS', 'FAIL', 'N/A'] }, evidence: { type: 'string' } } } },
+    probes: { type: 'array', items: { type: 'object', required: ['id', 'result', 'evidence'], properties: { id: { type: 'string' }, result: { type: 'string', enum: ['PASS', 'FAIL', 'PARTIAL', 'N/A'] }, evidence: { type: 'string' } } }, description: 'Red-team пробы класса артефакта; пустой массив допустим только для класса strategy/content' },
     comprehension_gate: { type: 'object', properties: { applies: { type: 'boolean' }, passed: { type: 'boolean' }, defects: { type: 'array', items: { type: 'string' } } } },
     confidence: { type: 'number', minimum: 0, maximum: 1 },
   },
@@ -170,13 +187,18 @@ const brief = await agent(
 )
 if (!brief) throw new Error('council: СПАРТАК не вернул brief (агент прерван)')
 
-let roster = (Array.isArray(args.roster) && args.roster.length ? args.roster : brief.roster)
-  .map(a => String(a).toLowerCase().trim())
-  .filter((a, i, arr) => ALLOWED.includes(a) && arr.indexOf(a) === i)
-if (brief.p9_required) {
-  for (const must of ['data', 'marco']) if (!roster.includes(must)) roster.unshift(must)
+const rosterFromIvan = Array.isArray(args.roster) && args.roster.length > 0
+const requested = (rosterFromIvan ? args.roster : brief.roster).map(a => String(a).toLowerCase().trim())
+let roster = requested.filter((a, i, arr) => ALLOWED.includes(a) && arr.indexOf(a) === i)
+const rejected = requested.filter(a => !ALLOWED.includes(a))
+if (rejected.length) log(`Ростер: отклонены не из ростера v3: ${rejected.join(', ')}`)
+if (brief.mode === 'debate') {
+  // DEBATE = ровно 2 голоса. Ростер Ивана не переопределяется P9-правилом (аудит 2026-09-06: [viktor,boris] молча превращались в [marco,data]).
+  if (roster.length > 2) { log(`DEBATE: оставлены первые два (${roster.slice(0, 2).join(', ')}), убраны ${roster.slice(2).join(', ')}`); roster = roster.slice(0, 2) }
+  if (brief.p9_required) log('P9 в режиме DEBATE: data и marco в ростер не добавляются; цифры проверяет ФЕНИКС в Gate, рекомендуется отдельный /reality-audit')
+} else if (brief.p9_required) {
+  for (const must of ['data', 'marco']) if (!roster.includes(must)) { roster.unshift(must); log(`P9: в ростер добавлен ${must}`) }
 }
-if (brief.mode === 'debate') roster = roster.slice(0, 2)
 if (roster.length > 4) { log(`Ростер обрезан до 4 (coordination tax): убраны ${roster.slice(4).join(', ')}`); roster = roster.slice(0, 4) }
 if (roster.length === 0) throw new Error('council: пустой ростер после фильтра ALLOWED')
 if (brief.clarifying_question) log(`Вопрос СПАРТАКА Ивану (не блокирует прогон): ${brief.clarifying_question}`)
@@ -206,6 +228,7 @@ const positions = rawPositions
   .map((p, i) => (p ? { id: `Аноним ${LETTERS[i]}`, agent: roster[i], ...p } : null))
   .filter(Boolean)
 if (positions.length === 0) throw new Error('council: ни один боец не вернул позицию')
+costCheck('Execute')
 if (positions.length < roster.length) log(`Внимание: ${roster.length - positions.length} бойц(а) не вернули позицию, идём с ${positions.length}`)
 const blockers = positions.flatMap(p => p.blocking_issues.map(b => `${p.id}: ${b}`))
 if (blockers.length) log(`Blocking issues (${blockers.length}): ${blockers.slice(0, 3).join(' | ')}`)
@@ -247,6 +270,7 @@ const ranking = Object.values(tally)
   .map(t => ({ ...t, avg: t.n ? Math.round((t.sum / t.n) * 100) / 100 : null }))
   .sort((a, b) => (b.avg || 0) - (a.avg || 0) || b.best - a.best)
 log(`Ранжирование: ${ranking.map(r => `${r.id}=${r.avg === null ? 'n/a' : r.avg}`).join(', ')}`)
+costCheck('Peer review')
 
 // ---------------------------------------------------------------- Phase C.2
 phase('Synthesis')
@@ -267,6 +291,7 @@ const synthPrompt = (extra) => [
 
 let synthesis = await agent(synthPrompt(''), { agentType: 'spartak', schema: SYNTHESIS_SCHEMA, label: 'spartak:synthesis', phase: 'Synthesis' })
 if (!synthesis) throw new Error('council: синтез не вернулся')
+costCheck('Synthesis')
 
 // ---------------------------------------------------------------- Phase D
 phase('Gate')
@@ -278,7 +303,7 @@ for (let iter = 1; iter <= MAX_ITER; iter += 1) {
       `Ты ФЕНИКС. Step 12.5, итерация ${iter} из ${MAX_ITER}. Не подчиняешься СПАРТАКУ. Skill phoenix-eval: Comprehension Gate (если контент наружу), 25 чекпоинтов, калибровочные якоря (references/calibration-anchors.md), red-team пробы для класса артефакта (references/red-team-probes.md).`,
       'A2A (Protocol 13):',
       JSON.stringify({ from: 'spartak', to: 'feniks', intent: 'review_request', thread_id: `council-${args.ts}`, context: { cc: brief.cc, p9_required: brief.p9_required, iteration: iter }, expected_output: 'audit-report' }),
-      `Задача: ${brief.clarified_task}`,
+      `Задача: ${brief.clarified_task}. Класс артефакта: ${brief.artifact_class}. Для класса gate/dashboard/agent/mixed пробы обязательны, иначе оценка не выше 7.9 и verdict не выше return.`,
       `Self-check автора (25 чекпоинтов): ${(synthesis.self_check || []).join('; ') || 'ОТСУТСТВУЕТ - это само по себе gap'}`,
       'Артефакт под аудит:',
       synthesis.deliverable_markdown,
@@ -295,12 +320,26 @@ for (let iter = 1; iter <= MAX_ITER; iter += 1) {
   if (Math.abs(wt - audit.weighted_total) > 0.05 || enforced !== audit.verdict) {
     log(`Коррекция ФЕНИКСА: заявлено ${audit.weighted_total}/${audit.verdict}, пересчёт по весам ${wt}/${enforced}`)
   }
-  const probeFail = (audit.probes || []).some(p => p.result === 'FAIL' && /^(A|B7)/.test(p.id))
-  const finalVerdict = probeFail && enforced === 'go' ? 'return' : enforced
-  if (probeFail && enforced === 'go') log('Проба класса A или B7 = FAIL: go понижен до return (правило red-team-probes)')
-  audits.push({ ...audit, iteration: iter, weighted_total: wt, verdict: finalVerdict })
+  const probes = Array.isArray(audit.probes) ? audit.probes : []
+  const realProbes = probes.filter(p => p && p.result && p.result !== 'N/A')
+  const needsProbes = ['gate', 'dashboard', 'agent', 'mixed'].includes(brief.artifact_class)
+  let scores = { ...audit.scores }
+  let wtAdj = wt
+  if (needsProbes && realProbes.length === 0) {
+    // Правило red-team-probes / Hard Rule 8: класс гейт/дашборд/агент без проб -> risk_awareness <= 5.0, оценка <= 7.9, verdict не выше return
+    scores.risk_awareness = Math.min(Number(scores.risk_awareness) || 0, 5.0)
+    wtAdj = Math.min(Math.round(weighted(scores) * 100) / 100, 7.9)
+    log(`Класс ${brief.artifact_class} без red-team проб: risk_awareness <= 5.0, потолок 7.9, verdict не выше return (заявлено ${wt})`)
+  }
+  const enforcedAdj = wtAdj >= 7.5 ? 'go' : wtAdj >= 6.0 ? 'return' : 'veto'
+  const probeFail = realProbes.some(p => p.result === 'FAIL' && /^(A|B7)/.test(p.id))
+  let finalVerdict = enforcedAdj
+  if (needsProbes && realProbes.length === 0 && finalVerdict === 'go') finalVerdict = 'return'
+  if (probeFail && finalVerdict === 'go') { finalVerdict = 'return'; log('Проба класса A или B7 = FAIL: go понижен до return (правило red-team-probes)') }
+  audits.push({ ...audit, iteration: iter, scores, weighted_total: wtAdj, verdict: finalVerdict, probes_run: realProbes.length })
   verdict = finalVerdict
-  log(`Step 12.5 итерация ${iter}: ${wt}/10 → ${finalVerdict}${audit.anchor ? ` (якорь: ${audit.anchor.slice(0, 80)})` : ''}`)
+  log(`Step 12.5 итерация ${iter}: ${wtAdj}/10 → ${finalVerdict}${audit.anchor ? ` (якорь: ${audit.anchor.slice(0, 80)})` : ''}`)
+  costCheck(`Gate-${iter}`)
   if (finalVerdict !== 'return') break
   if (iter === MAX_ITER) break
   synthesis = await agent(
@@ -327,6 +366,7 @@ return {
   task: args.task,
   brief,
   roster,
+  cost_estimate_usd: spentUsd(),
   positions,
   votes,
   ranking,

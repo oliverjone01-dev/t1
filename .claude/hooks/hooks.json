@@ -2,27 +2,88 @@
   "description": "GENGROUP roster hooks (Protocols 6, 9, 14) - копия регистрации из .claude/settings.json для установки как плагин (Claude Code / Cowork). Пути через ${CLAUDE_PLUGIN_ROOT}; хуки пишут в traces/ и читают knowledge/ относительно CLAUDE_PROJECT_DIR.",
   "hooks": {
     "UserPromptSubmit": [
-      { "matcher": "", "hooks": [ { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/p9-trigger-detector.sh" } ] }
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/p9-trigger-detector.sh"
+          }
+        ]
+      }
     ],
     "PreToolUse": [
-      { "matcher": "Write|Edit", "hooks": [
-        { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/anti-slop-checker.sh" },
-        { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/approvals-guard.sh" }
-      ] },
-      { "matcher": "Bash", "hooks": [
-        { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/direct-write-gate.sh" },
-        { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/approvals-guard.sh" },
-        { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/deliver-gate.sh" }
-      ] }
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/anti-slop-checker.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/approvals-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/feniks-write-scope.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/direct-write-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/approvals-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/deliver-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/feniks-bash-scope.sh"
+          }
+        ]
+      }
     ],
     "SubagentStart": [
-      { "matcher": "", "hooks": [ { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/subagent-trace.sh" } ] }
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/subagent-trace.sh"
+          }
+        ]
+      }
     ],
     "SubagentStop": [
-      { "matcher": "", "hooks": [ { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/subagent-trace.sh" } ] }
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/subagent-trace.sh"
+          }
+        ]
+      }
     ],
     "Stop": [
-      { "matcher": "", "hooks": [ { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/approvals-state-monitor.sh" } ] }
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/approvals-state-monitor.sh"
+          }
+        ]
+      }
     ]
   }
 }

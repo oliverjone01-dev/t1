@@ -18,7 +18,21 @@ from collections import Counter, defaultdict
 from datetime import date
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
+def _find_root() -> Path:
+    """Корень проекта: CLAUDE_PROJECT_DIR, иначе вверх от cwd до каталога с traces/ или schemas/,
+    иначе положение скрипта (аудит 2026-09-06: при установке плагином parents[4] указывал в каталог плагина)."""
+    import os
+    env = os.environ.get("CLAUDE_PROJECT_DIR")
+    if env and Path(env).is_dir():
+        return Path(env).resolve()
+    here = Path.cwd().resolve()
+    for cand in (here, *here.parents):
+        if (cand / "traces").is_dir() or (cand / "schemas").is_dir():
+            return cand
+    return Path(__file__).resolve().parents[4]
+
+
+ROOT = _find_root()
 sys.path.insert(0, str(ROOT / "schemas"))
 try:
     from validate import validate  # noqa: E402

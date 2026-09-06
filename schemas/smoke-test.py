@@ -48,7 +48,7 @@ SAMPLES: dict[str, dict] = {
             "brand_fit": 9.0,
             "risk_awareness": 7.0,
         },
-        "weighted_total": 7.85,
+        "weighted_total": 7.80,
         "verdict": "go",
     },
     "council-vote.json": {
@@ -62,7 +62,7 @@ SAMPLES: dict[str, dict] = {
             "brand_fit": 8.0,
             "risk_awareness": 7.0,
         },
-        "weighted_total": 7.25,
+        "weighted_total": 7.20,
         "vote": "best",
     },
     "agent-trace.json": {
@@ -102,8 +102,34 @@ SAMPLES: dict[str, dict] = {
 }
 
 
+def _extra_fixtures() -> dict[str, tuple[Path, object]]:
+    """Реальные артефакты как фикстуры: канонический пример из phoenix-eval и живой отчёт ФЕНИКСА."""
+    import re
+    fx: dict[str, tuple[Path, object]] = {}
+    root = SCHEMA_DIR.parent
+    skill = root / ".claude" / "skills" / "phoenix-eval" / "SKILL.md"
+    if skill.exists():
+        m = re.search(r"## Output JSON.*?```json\n(.*?)\n```", skill.read_text(encoding="utf-8"), re.S)
+        if m:
+            fx["phoenix-eval example"] = (SCHEMA_DIR / "audit-report.json", json.loads(m.group(1)))
+    live = root / "traces" / "2026-07-01" / "feniks-newsletter-lazer-steel-20260701.json"
+    if live.exists():
+        fx["traces/2026-07-01 feniks newsletter"] = (SCHEMA_DIR / "audit-report.json", json.loads(live.read_text(encoding="utf-8")))
+    return fx
+
+
 def main() -> int:
     failures = 0
+    for label, (path, sample) in _extra_fixtures().items():
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        errors = validate(sample, schema)
+        if errors:
+            print(f"FAIL  fixture {label}:")
+            for err in errors[:5]:
+                print(f"      - {err}")
+            failures += 1
+        else:
+            print(f"OK    fixture {label}")
     for name, sample in SAMPLES.items():
         path = SCHEMA_DIR / name
         try:

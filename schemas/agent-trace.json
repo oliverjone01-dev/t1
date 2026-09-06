@@ -10,7 +10,7 @@
     "ts": { "type": "string", "format": "date-time" },
     "event": {
       "type": "string",
-      "enum": ["subagent_start", "subagent_stop", "deliver", "audit", "council", "dispute", "escalation", "hitl_block", "reflexion"]
+      "enum": ["subagent_start", "subagent_stop", "deliver", "audit", "council", "dispute", "escalation", "hitl_block", "gate", "reflexion"]
     },
     "agent": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
     "tier": { "type": "string", "enum": ["0", "chairman", "1", "2", "3", "4", "tech", "unknown"] },
@@ -35,6 +35,9 @@
     "deliverable_ref": { "type": "string" },
     "transcript_path": { "type": "string" },
     "mode": { "type": "string", "enum": ["solo", "council", "debate", "red_team", "hats", "workflow"] },
+    "agent_source": { "type": "string", "enum": ["stitched_by_agent_id"] },
+    "payload_keys": { "type": "array", "items": { "type": "string" } },
+    "msg_chars": { "type": "integer", "minimum": 0 },
     "note": { "type": "string", "maxLength": 500 }
   }
 }

@@ -17,6 +17,8 @@ Exit codes: 0 valid · 1 invalid · 2 usage / load error.
 Если установлен пакет jsonschema - используется он (Draft 2020-12).
 Иначе работает встроенный валидатор для подмножества Draft 2020-12,
 которое реально используют наши схемы: type, const, enum, pattern, min/max,
+(плюс post-check: weighted_total = Σ(score × weight) ± 0.05 для audit-report и council-vote;
+сумма чекпоинтов по критерию = score критерия для полного отчёта на 25 чекпоинтов),
 exclusiveMin/Max, minLength/maxLength, minItems/maxItems, items, required,
 properties, patternProperties, additionalProperties, allOf/anyOf/oneOf,
 if/then/else. format проверяется только для date и date-time (мягко).
@@ -162,14 +164,46 @@ def resolve_schema(name: str) -> Path:
     raise FileNotFoundError(f"схема '{name}' не найдена (ищу {cand})")
 
 
+WEIGHTS = {"accuracy": 0.25, "actionability": 0.25, "insight": 0.20, "brand_fit": 0.15, "risk_awareness": 0.15}
+WEIGHT_TOLERANCE = 0.05
+
+
+def _post_checks(instance, schema: dict) -> list[str]:
+    """Семантические проверки поверх JSON Schema (аудит 2026-09-06: VALID выдавался на расхождение 1.2)."""
+    errs: list[str] = []
+    sid = str(schema.get("$id", "")) + " " + str(schema.get("title", ""))
+    if not isinstance(instance, dict):
+        return errs
+    scores = instance.get("scores")
+    wt = instance.get("weighted_total")
+    if ("audit-report" in sid or "council-vote" in sid) and isinstance(scores, dict) and isinstance(wt, (int, float)):
+        try:
+            calc = sum(float(scores.get(k, 0)) * w for k, w in WEIGHTS.items())
+        except (TypeError, ValueError):
+            calc = None
+        if calc is not None and abs(calc - float(wt)) > WEIGHT_TOLERANCE:
+            errs.append(f"$.weighted_total: {wt} не сходится с Σ(score × weight) = {calc:.2f} (допуск {WEIGHT_TOLERANCE})")
+    if "audit-report" in sid and isinstance(instance.get("checkpoints"), dict):
+        cps = instance["checkpoints"]
+        if len(cps) >= 25 and isinstance(scores, dict):
+            groups = {"accuracy": "accuracy", "actionability": "actionability", "insight": "insight", "brand": "brand_fit", "risk": "risk_awareness"}
+            for prefix, key in groups.items():
+                tot = sum(int(v) for k, v in cps.items() if k.startswith(prefix + "_") and isinstance(v, int))
+                sc = scores.get(key)
+                if isinstance(sc, (int, float)) and abs(tot - float(sc)) > 0.5:
+                    errs.append(f"$.scores.{key}: {sc} не сходится с суммой чекпоинтов {prefix}_* = {tot}")
+    return errs
+
+
 def validate(instance, schema: dict) -> list[str]:
-    """Список ошибок (пустой = valid). jsonschema если есть, иначе fallback."""
+    """Список ошибок (пустой = valid). jsonschema если есть, иначе fallback. Плюс post-checks арифметики."""
     try:
         from jsonschema import Draft202012Validator  # type: ignore
     except ImportError:
-        return _errors(instance, schema, "$")
+        return _errors(instance, schema, "$") + _post_checks(instance, schema)
     v = Draft202012Validator(schema)
-    return [f"$.{'.'.join(str(x) for x in e.absolute_path) or ''}: {e.message}" for e in v.iter_errors(instance)]
+    base = [f"$.{'.'.join(str(x) for x in e.absolute_path) or ''}: {e.message}" for e in v.iter_errors(instance)]
+    return base + _post_checks(instance, schema)
 
 
 def list_schemas() -> list[str]:

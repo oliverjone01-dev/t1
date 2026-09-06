@@ -111,3 +111,4 @@
 {"ts": "2026-09-06T11:13:56+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "bash-scope allow targets /dev/null"}
 {"ts": "2026-09-06T11:14:09+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "write-scope allow Write /tmp/claude-0/-home-user-t1/bbcbbeee-8b44-5e00-ab7a-ee611d91f74e/scratchpad/selfcheck.py"}
 {"ts": "2026-09-06T11:14:43+00:00", "event": "subagent_stop", "agent": "feniks", "tier": "0", "session_id": "bbcbbeee-8b44-5e00-ab7a-ee611d91f74e", "agent_id": "adbb84df9cd0572e4", "msg_chars": 3955, "verdict": "return", "outcome": "partial", "feniks_score": 8.2, "confidence": 0.83}
+{"ts": "2026-09-06T11:21:45+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "bbcbbeee-8b44-5e00-ab7a-ee611d91f74e", "agent_id": "a3981779ffdb0d7c2"}

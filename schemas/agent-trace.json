@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gengroup.local/schemas/agent-trace.json",
+  "title": "Agent Trace Record (Protocol 14)",
+  "description": "Одна строка traces/YYYY-MM-DD/agents.jsonl. Пишется хуками SubagentStart/SubagentStop автоматически и агентами вручную при deliver/audit/escalation. Невалидная строка - баг репорта, не данных.",
+  "type": "object",
+  "required": ["ts", "event", "agent"],
+  "additionalProperties": true,
+  "properties": {
+    "ts": { "type": "string", "format": "date-time" },
+    "event": {
+      "type": "string",
+      "enum": ["subagent_start", "subagent_stop", "deliver", "audit", "council", "dispute", "escalation", "hitl_block", "gate", "reflexion"]
+    },
+    "agent": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "tier": { "type": "string", "enum": ["0", "chairman", "1", "2", "3", "4", "tech", "unknown"] },
+    "session_id": { "type": "string" },
+    "agent_id": { "type": "string" },
+    "task_id": { "type": "string" },
+    "parent_task": { "type": "string" },
+    "thread_id": { "type": "string" },
+    "model": { "type": "string" },
+    "tokens_in": { "type": "integer", "minimum": 0 },
+    "tokens_out": { "type": "integer", "minimum": 0 },
+    "cost_usd": { "type": "number", "minimum": 0 },
+    "wall_time_seconds": { "type": "number", "minimum": 0 },
+    "outcome": {
+      "type": "string",
+      "enum": ["success", "blocked", "escalated", "returned", "vetoed", "partial", "error", "unknown"]
+    },
+    "stop_reason": { "type": "string" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "feniks_score": { "type": "number", "minimum": 0, "maximum": 10 },
+    "verdict": { "type": "string", "enum": ["go", "return", "veto"] },
+    "deliverable_ref": { "type": "string" },
+    "transcript_path": { "type": "string" },
+    "mode": { "type": "string", "enum": ["solo", "council", "debate", "red_team", "hats", "workflow"] },
+    "agent_source": { "type": "string", "enum": ["stitched_by_agent_id"] },
+    "payload_keys": { "type": "array", "items": { "type": "string" } },
+    "msg_chars": { "type": "integer", "minimum": 0 },
+    "note": { "type": "string", "maxLength": 500 }
+  }
+}

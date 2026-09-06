@@ -1,13 +1,28 @@
 ---
 name: phoenix-eval
-description: Adversarial audit checklist for FENIX (#35). Use when reviewing any GENGROUP deliverable (Roadmap entry, KP, content piece, strategy doc, landing copy). Runs a mandatory Comprehension Gate (человекочитаемость - текст понятен неспециалисту за 1 секунду, жаргон переведён) plus a 25-point check across 5 weighted criteria (Accuracy 25% / Actionability 25% / Insight 20% / Brand Fit 15% / Risk Awareness 15%), produces score 0.0-10.0 and JSON audit report.
+description: Adversarial audit checklist for FENIX (#35). Use when reviewing any GENGROUP deliverable (Roadmap entry, KP, content piece, strategy doc, landing copy). Runs a mandatory Comprehension Gate (человекочитаемость - текст понятен неспециалисту за 1 секунду, жаргон переведён) plus a 25-point check across 5 weighted criteria (Accuracy 25% / Actionability 25% / Insight 20% / Brand Fit 15% / Risk Awareness 15%), anchors the score to real 2026 calibration cases (references/calibration-anchors.md), runs red-team probes by artifact class (references/red-team-probes.md), requires an evidence ledger per gap and validates the JSON report with schemas/validate.py. Produces score 0.0-10.0 and JSON audit report.
 ---
 
 # Phoenix-Eval - Adversarial Audit Checklist (25 points)
 
 ## Invocation
 
-Используется агентом ФЕНИКС или вручную через `/feniks <path>`.
+Используется агентом ФЕНИКС (`.claude/agents/feniks.md`, preload) или через skill `/feniks <path>`; в Workflow -
+`agentType: feniks` со схемой. В Cowork - инлайн вместе с role-картой feniks из
+`.claude/skills/council/references/roster-cards.md`.
+
+## Pipeline v3 (порядок обязателен)
+
+1. **CLASSIFY** - класс артефакта: стратегия/КП · контент наружу · гейт/хук/инструмент · дашборд/цифры · агент/skill/workflow.
+   От класса зависят пробы и потолок (гейт / дашборд / агент без проб ≤7.9). См. `references/red-team-probes.md`.
+2. **SELF-CHECK автора** - приложен (25 чекпоинтов, да/нет/частично)? Нет → вернуть без скоринга.
+3. **Comprehension Gate** (для контента наружу) → **25 чекпоинтов** → **red-team пробы класса** → **weighted total**.
+4. **ANCHOR** - ближайший якорь из `references/calibration-anchors.md`, строка `anchor: <score> <slug> - выше|ниже потому что …`.
+   Расхождение >1.5 балла - перепроверить чекпоинты.
+5. **EVIDENCE LEDGER** - каждый gap с командой / файлом:строкой / расчётом. Gap без evidence в `gaps` не попадает.
+6. **VALIDATE** - `python3 schemas/validate.py audit-report <report.json>` печатает `VALID`; иначе чинить отчёт.
+   Пересчитать weighted_total по весам и сравнить с полем (расхождение >0.05 - ошибка).
+7. **TRACE** - строка `event: audit` в `traces/YYYY-MM-DD/agents.jsonl` (`schemas/agent-trace.json`).
 
 ## 5 Criteria × weights
 
@@ -100,15 +115,27 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 | 6.0–7.4 | return | Send back with rework_tz, max 3 iterations |
 | <6.0 | veto | Escalate to Иван, do not deliver |
 
+Поправки v3 к порогам (применяются после weighted total, в сторону ужесточения, никогда наоборот):
+- FAIL по пробе класса A (гейты) или B7 (утечка непроверенных чисел наружу) → verdict не выше `return`.
+- Класс гейт / дашборд / агент без проб → `probes: not_run (причина)`, risk_awareness ≤5.0, verdict не выше `return`.
+- Self-claimed score внутри артефакта без ссылки на аудит → veto-кандидат (якорь sales-director 5.05).
+- Score >9.0 - только при всех 25 чекпоинтах 2/2 с evidence; в 2026 году встречался только в серии sales-director iter 2-4 (9.25 / 9.45 / 9.52), помеченной к пересмотру (см. calibration-anchors.md).
+
 ## Output JSON (по `schemas/audit-report.json`)
 
 ```json
 {
   "agent": "feniks",
   "skill": "phoenix-eval",
-  "task_id": "<uuid>",
-  "timestamp": "<ISO>",
-  "deliverable_ref": "<path>",
+  "task_id": "feniks-example-001",
+  "timestamp": "2026-06-08T12:00:00+03:00",
+  "deliverable_ref": "knowledge/episodes/2026-06/example-launch-plan.md",
+  "artifact_class": "strategy",
+  "anchor": "6.7 feniks-return-reestr - наш артефакт выше на 0.25: ядро здоровое, дефекты закрываемы за одну итерацию",
+  "probes": [
+    {"id": "B1", "result": "PASS", "evidence": "все 4 цифры имеют путь вне артефакта"},
+    {"id": "D1", "result": "PASS", "evidence": "grep самопровозглашённых оценок: 0"}
+  ],
   "comprehension_gate": {
     "applies": true,
     "passed": false,
@@ -150,7 +177,7 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
     "brand_fit": 9.0,
     "risk_awareness": 5.0
   },
-  "weighted_total": 7.05,
+  "weighted_total": 6.95,
   "verdict": "return",
   "gaps": [
     "Insight: рассмотрены ли альтернативные стратегии запуска?",
@@ -161,6 +188,17 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
   "iteration": 1,
   "confidence": 0.85
 }
+```
+
+Пример выше - фикстура `schemas/smoke-test.py`: он извлекается из этого файла и обязан проходить
+`validate.py` (схема + арифметика весов + сумма чекпоинтов). Поля `anchor`, `probes`, `evidence_ledger`,
+`comprehension_gate`, `artifact_class` - часть схемы с v3. В markdown-отчёте те же данные дублируются таблицами:
+
+```
+## Evidence ledger
+| # | Gap | Evidence | Чекпоинт | Вес |
+## Red-team probes
+| ID | Result | Evidence |
 ```
 
 ## Industry Benchmarks (для cross-check цифр)
@@ -191,6 +229,9 @@ GEO напрямую не закладывать - это репутация/в�
 - ❌ Em dash в твоём отчёте
 - ❌ Пропустить непереведённый жаргон или мутную формулировку в клиентском тексте, потому что «эксперту и так понятно» - ты читаешь как обыватель (Comprehension Gate)
 - ❌ Похвалить строку как сильную, не проверив, поймёт ли её неспециалист за 1 секунду
+- ❌ Gap без evidence («кажется», «вероятно») - в v3 это не gap
+- ❌ Оценка гейта / хука / агента без попытки его обойти (пробы A / D)
+- ❌ Отчёт без anchor или без `VALID` от `schemas/validate.py`
 
 ## Dispute Template (если автор не согласен)
 
@@ -213,4 +254,8 @@ GEO напрямую не закладывать - это репутация/в�
 
 ## Reference
 
-См. `agents-v9/MASTER_SYSTEM_v9.md` Раздел 3.1 - Tier 0 ФЕНИКС.
+- `agents-v9/MASTER_SYSTEM_v9.md` §3.1 - Tier 0 ФЕНИКС
+- `references/calibration-anchors.md` - реальные якоря 2026 (3.7 … 8.9) и шкала по диапазонам
+- `references/red-team-probes.md` - пробы A (гейты), B (цифры), C (контент), D (агенты / skills / workflow)
+- `schemas/audit-report.json`, `schemas/validate.py` - контракт и валидатор отчёта
+- `.claude/agents/feniks.md` v3.0 - полная роль

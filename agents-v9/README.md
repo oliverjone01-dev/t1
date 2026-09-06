@@ -34,11 +34,9 @@
 │   │   ├── protocol-9-runner/         #  Reality Audit executable
 │   │   ├── phoenix-eval/              #  25-checkpoint FENIX checklist
 │   │   └── humanizer-ru/              #  30 RU AI-patterns removal
-│   ├── commands/                      # Slash commands
-│   │   ├── reality-audit.md           #  /reality-audit - P9 trifecta
-│   │   ├── feniks.md                  #  /feniks - adversarial audit on file
-│   │   ├── council.md                 #  /council - multi-agent decision
-│   │   └── crisis.md                  #  /crisis - Protocol 8 activation
+│   ├── skills/ (user-invocable)       # /council /feniks /reality-audit /crisis /reflexion (v3: вместо commands/)
+│   ├── workflows/council.js           # Детерминированный Council (opt-in)
+│   ├── agent-memory/                  # Память feniks / spartak / data (Protocol 12)
 │   └── hooks/                         # Shell scripts triggered by events
 │       ├── p9-trigger-detector.sh     #  UserPromptSubmit - inject P9 reminder
 │       └── anti-slop-checker.sh       #  PreToolUse(Write/Edit) - warn on forbidden patterns
@@ -50,6 +48,17 @@
     ├── episodic/                       #  Past decisions, councils, disputes
     └── reflexion/                      #  Monthly retros (Protocol 15)
 ```
+
+## Ростер v3 (сентябрь 2026) - что изменилось
+
+- Все 13 агентов: `Operating Contract v3` + preload skill `roster-protocol` (жизненный цикл, A2A, evidence, stop conditions, self-check).
+- СПАРТАК v3.0: Agent tool, 6 режимов (SOLO / COUNCIL / DEBATE / RED_TEAM / WORKFLOW / HATS), self-check перед ФЕНИКСОМ, пересчёт порогов, память.
+- ФЕНИКС v3.0: классификация артефакта, red-team пробы, калибровочные якоря из реальных аудитов 2026, evidence ledger, валидация JSON, хук write-scope.
+- Slash-команды заменены skills: `/council`, `/feniks`, `/reality-audit`, `/crisis` (+ новый `/reflexion`, Protocol 15).
+- Protocol 14 executable: хуки `SubagentStart/Stop` → `traces/YYYY-MM-DD/agents.jsonl`, схема `agent-trace.json`, `trace-summary.py`.
+- `schemas/validate.py` - валидатор без зависимостей; `.claude/workflows/council.js` - детерминированный Council по opt-in.
+- Cowork и плагин: `.claude-plugin/`, инструкция и ограничения - `COWORK_AND_PLUGIN.md`.
+- Дизайн-решения и P9-разметка: `knowledge/episodes/2026-09/roster-v3-upgrade-20260906.md`.
 
 ## Быстрый старт
 
@@ -71,7 +80,8 @@
 | Запустить план перед commit'ом в Roadmap | `/reality-audit <task description>` |
 | Решить cross-functional задачу (3+ департамента) | `/council <task>` |
 | Активировать кризис-режим | `/crisis <trigger description>` |
-| Просто работать с одним агентом | Through Task tool: `Task → subagent_type: feniks` (или любой другой) |
+| Просто работать с одним агентом | Agent tool: `subagent_type: feniks` (или любой другой из ростера) |
+| Месячное ретро системы (Protocol 15) | `/reflexion 2026-09` |
 
 ### Скиллы (auto-invoke по описанию)
 
@@ -81,7 +91,7 @@
 
 ## Hooks
 
-Уже активированы через `.claude/settings.json`:
+Уже активированы через `.claude/settings.json` (v3 добавил `deliver-gate.sh` на git push, `subagent-trace.sh` на SubagentStart/Stop, agent-scoped `feniks-write-scope.sh`):
 
 - **UserPromptSubmit:** P9 trigger detector - нудит про Reality Audit при словах «эффект», «удвоит», «уникальный актив» и т.п.
 - **PreToolUse(Write/Edit):** Anti-Slop checker - флажит запрещённые конструкции при правке `.md`/`.html`/`.txt`
@@ -94,9 +104,9 @@
 - [ ] Скопировать v8 Project Knowledge в `knowledge/semantic/`
 - [ ] Архивировать неактивные 24 агента в `.claude/agents/archive/v8/`
 - [ ] Bitrix24 MCP connector (Q3-2026)
-- [ ] Telemetry/Stop hook для записи traces (Sprint 4)
+- [x] Telemetry: хуки SubagentStart/Stop → `traces/YYYY-MM-DD/agents.jsonl` (ростер v3, 2026-09-06)
 - [ ] Browser/Computer use для ФЕНИКСА и СЕМЁНА (Sprint 4)
-- [ ] Reflexion loop первый месяц (Sprint 5)
+- [ ] Reflexion loop первый месяц: skill `/reflexion` готов, первый прогон - октябрь 2026 за сентябрь
 
 ## Success Criteria (через 60 дней)
 

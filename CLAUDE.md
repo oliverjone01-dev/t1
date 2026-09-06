@@ -1,4 +1,4 @@
-# GENGROUP AI System - Operating Constitution (v9.0)
+# GENGROUP AI System - Operating Constitution (v9.1)
 
 > Этот файл - ДНК работы Claude Code в этом репозитории. Загружается каждой сессией. Полный манифест: `agents-v9/MASTER_SYSTEM_v9.md`.
 
@@ -28,25 +28,27 @@
 
 **Inactive** (в `.claude/agents/archive/v8/`): остальные 24 из v8. Активация - через `/agent activate <name>` с обоснованием через Protocol 9.
 
+**Ростер v3 (сентябрь 2026).** Каждый агент несёт `Operating Contract v3` (lens, A2A intents входа/выхода, evidence, stop conditions, handoff, бюджет, память) и preload'ит skill `roster-protocol` (жизненный цикл вызова, структура ответа VERDICT / EVIDENCE / BLOCKING_ISSUES / HANDOFF, self-check из 7 пунктов, деградированные режимы). Portable role-карты всех 13 ролей для Cowork и HATS-режима: `.claude/skills/council/references/roster-cards.md` (обновлять вместе с агентом). СПАРТАК имеет Agent tool и 6 режимов оркестрации (SOLO / COUNCIL / DEBATE / RED_TEAM / WORKFLOW / HATS); ФЕНИКС - классификацию артефакта, red-team пробы, калибровочные якоря, evidence ledger и хук, запрещающий ему писать продукт. Дизайн-решения: `knowledge/episodes/2026-09/roster-v3-upgrade-20260906.md`.
+
 ## 3. Protocols (v9.0 - executable)
 
 | # | Имя | Где живёт | Как срабатывает |
 |---|---|---|---|
 | 1 | Long-Term Memory (RAG) | `knowledge/semantic/`, MCP | Перед генерацией - fetch контекста |
 | 2 | Agentic Tools | MCP servers + Bash + Read/Edit | По необходимости задачи |
-| 3 | Shadow Council | `/council` slash command | Триггеры: финансы >5M, 3+ департамента, KPI <70% |
+| 3 | Shadow Council | skill `/council` (native fan-out · workflow `council` по opt-in · cowork · hats) | Триггеры: финансы >5M, 3+ департамента, KPI <70% |
 | 4 | RLAIF Feedback | Protocol 15 (Reflexion) | Monthly |
 | 5 | Agentic Foundation | Все subagents | Reasoning + Planning + Tool Use + Delegated Authority |
 | 6 | Governance "Trust by Design" | `.claude/settings.json` permissions | HITL gates на финансах >500K, публикациях |
 | 7 | Knowledge Versioning | `knowledge/` + git tags | RAG > Project Knowledge > Prompt > Memory |
-| 8 | Crisis Response | `/crisis` slash command | 6 триггеров - кассовый разрыв, KPI drop, блок канала, потеря РОПа, рекламации >3%, выручка <80% × 2 недели |
-| 9 | **Reality Audit** | Hook `UserPromptSubmit` + skill `protocol-9-runner` + `/reality-audit` | См. §5 |
+| 8 | Crisis Response | skill `/crisis` (+ доктрина `crisis-response`) | 6 триггеров - кассовый разрыв, KPI drop, блок канала, потеря РОПа, рекламации >3%, выручка <80% × 2 недели |
+| 9 | **Reality Audit** | Hook `UserPromptSubmit` + skill `protocol-9-runner` + skill `/reality-audit` (триада data → feniks + marco) | См. §5 |
 | 10 | Output Routing | `.claude/skills/output-router` | Запрос → формат → платформа |
 | 11 | **Model Routing** | См. §6 | По классу задачи |
 | 12 | **Memory Tiering** | `knowledge/working|episodic|semantic|procedural` | Приоритет: Semantic > Procedural > Episodic > Working |
-| 13 | **A2A Wire Format** | `schemas/a2a-message.json` | Все межагентные передачи валидируются |
-| 14 | **Observability** | `traces/YYYY-MM-DD/*.jsonl` | Stop hook → flush |
-| 15 | **Reflexion** | `knowledge/reflexion/YYYY-MM.md` | CC-19, ежемесячно |
+| 13 | **A2A Wire Format** | `schemas/a2a-message.json` + `python3 schemas/validate.py <schema> <file|->` | Все межагентные передачи и отчёты валидируются (без внешних зависимостей) |
+| 14 | **Observability** | `traces/YYYY-MM-DD/agents.jsonl` по `schemas/agent-trace.json` | Хуки `SubagentStart/SubagentStop` → `subagent-trace.sh` (автоматически); агенты дописывают `deliver / audit / council / escalation`; агрегация `trace-summary.py` |
+| 15 | **Reflexion** | skill `/reflexion` → `knowledge/reflexion/YYYY-MM.md` | CC-19, ежемесячно: трейсы + эпизоды + агентная память → систематические ошибки → правки skills/agents (после решения Ивана) |
 
 ## 4. Step 12.5 - Adversarial Gate (НЕ ПРОПУСКАТЬ)
 
@@ -58,6 +60,13 @@
 4. Если `verdict == "veto"` (score <6) - эскалация Ивану
 
 **Никогда не деливерь без Step 12.5 для критики.** «Выглядит хорошо» - запрещённая формула.
+
+Правила v3 (сентябрь 2026):
+- Автор прикладывает self-check по 25 чекпоинтам phoenix-eval (да/нет/частично, без оценок). Без него ФЕНИКС возвращает без скоринга.
+- ФЕНИКС классифицирует артефакт (стратегия / контент наружу / гейт-инструмент / дашборд / агент-skill), гоняет red-team пробы класса (`phoenix-eval/references/red-team-probes.md`); гейт, дашборд или агент без проб - не выше 7.9.
+- Каждый gap - с evidence (команда / файл:строка / расчёт). Оценка привязывается к якорю (`phoenix-eval/references/calibration-anchors.md`).
+- JSON отчёта проходит `python3 schemas/validate.py audit-report`; получатель пересчитывает weighted_total по весам сам, порог решает пересчёт.
+- `git push` с изменёнными критическими артефактами без свежего аудита ФЕНИКСА - хук `deliver-gate.sh` напоминает (не блокирует, по §6.4 манифеста).
 
 ## 5. Protocol 9 - Reality Audit (executable)
 
@@ -209,8 +218,11 @@
 - **Agent definitions:** `.claude/agents/*.md`
 - **Skills:** `.claude/skills/*/SKILL.md`
 - **Schemas (A2A, audit, vote):** `schemas/*.json`
-- **Permissions/hooks:** `.claude/settings.json`
+- **Permissions/hooks:** `.claude/settings.json` (проектная регистрация) и `.claude/hooks/hooks.json` (та же регистрация для плагина)
 - **Migration v8→v9:** `agents-v9/MIGRATION_v8_to_v9.md`
+- **Workflows (детерминированная оркестрация):** `.claude/workflows/council.js` - только по явному opt-in Ивана («use a workflow» / «ultracode»)
+- **Агентная память (Protocol 12, `memory: project`):** `.claude/agent-memory/{feniks,spartak,data}/MEMORY.md` - калибровка и карта источников, не факты бизнеса
+- **Cowork / plugin:** `.claude-plugin/plugin.json` + `marketplace.json`; установка и ограничения - `agents-v9/COWORK_AND_PLUGIN.md`
 
 ## 15. Definition of Done для аналитики (числа в дашбордах)
 
@@ -225,9 +237,20 @@
 
 Правило источника СС: себестоимость писать для ВСЕХ артикулов листа по прямому ключу SKU (не только для живого снимка), иначе неактивные, но реализованные в периоде артикулы теряют СС.
 
+## 16. Multi-agent v3: где что работает
+
+| Среда | Агенты `.claude/agents` | Skills | Хуки | Как идёт Council |
+|---|---|---|---|---|
+| Claude Code (CLI, Desktop Code, web) | да | да | да (settings.json) | native fan-out через Agent tool; по opt-in - workflow `council` |
+| Claude Code как плагин (`/plugin install gengroup-roster@gengroup`) | да | да | да (hooks.json) | то же |
+| Cowork (Desktop) | **нет** - `.claude/` проекта не читается | да, из аккаунта (плагин / загруженный skill) | только `~/.claude/settings.json` | skill `/council` §4: role-карты + general-purpose subagents; без Agent tool - HATS |
+| Headless / вложенная делегация заблокирована | зависит | да | да | HATS с пометкой `MODE: hats`; критические артефакты - повторный /feniks в native |
+
+Правила: параллельность только реальная (один голос = HATS и так и пишется); Cowork-аудит ФЕНИКСА без Bash не поднимается выше 7.9 для гейтов/дашбордов/агентов; approval-файлы Protocol 6 вне Claude Code недоступны, любая мутация внешних систем = `HITL: Иван`.
+
 ---
 
-**Version:** v9.0.0
-**Last update:** июнь 2026
+**Version:** v9.1.0
+**Last update:** сентябрь 2026 (ростер v3, Protocols 14/15 executable, Cowork-упаковка)
 **Owner:** Иван Раюшкин (CMO)
 **Audit gate:** ФЕНИКС approval required for any change to this file

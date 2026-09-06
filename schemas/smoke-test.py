@@ -6,8 +6,7 @@ Runs:
 2. Sample-validation: representative payloads pass their schema
 
 Usage:
-    pip install jsonschema
-    python3 schemas/smoke-test.py
+    python3 schemas/smoke-test.py          # jsonschema опционален (pip install jsonschema для meta-check)
 
 Exit code:
     0 - all valid
@@ -19,13 +18,14 @@ import json
 import sys
 from pathlib import Path
 
+SCHEMA_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCHEMA_DIR))
+from validate import validate  # noqa: E402  (jsonschema если есть, иначе встроенный fallback)
+
 try:
     from jsonschema import Draft202012Validator
-except ImportError:
-    print("Install: pip install jsonschema", file=sys.stderr)
-    sys.exit(2)
-
-SCHEMA_DIR = Path(__file__).parent
+except ImportError:  # meta-validation пропускается без jsonschema
+    Draft202012Validator = None
 
 SAMPLES: dict[str, dict] = {
     "a2a-message.json": {
@@ -65,6 +65,16 @@ SAMPLES: dict[str, dict] = {
         "weighted_total": 7.25,
         "vote": "best",
     },
+    "agent-trace.json": {
+        "ts": "2026-09-06T10:00:00Z",
+        "event": "subagent_stop",
+        "agent": "feniks",
+        "tier": "0",
+        "outcome": "vetoed",
+        "feniks_score": 5.83,
+        "verdict": "veto",
+        "mode": "council",
+    },
     "roadmap-entry.json": {
         "id": "ROAD-2026-Q3-001",
         "title": "Smoke roadmap entry",
@@ -103,19 +113,19 @@ def main() -> int:
             failures += 1
             continue
 
-        try:
-            Draft202012Validator.check_schema(schema)
-        except Exception as e:
-            print(f"FAIL  {name}: schema meta-invalid ({e})")
-            failures += 1
-            continue
+        if Draft202012Validator is not None:
+            try:
+                Draft202012Validator.check_schema(schema)
+            except Exception as e:
+                print(f"FAIL  {name}: schema meta-invalid ({e})")
+                failures += 1
+                continue
 
-        validator = Draft202012Validator(schema)
-        errors = list(validator.iter_errors(sample))
+        errors = validate(sample, schema)
         if errors:
             print(f"FAIL  {name}: sample violates schema:")
             for err in errors[:5]:
-                print(f"      - {err.message}")
+                print(f"      - {err}")
             failures += 1
         else:
             print(f"OK    {name}")
@@ -123,7 +133,7 @@ def main() -> int:
     if failures:
         print(f"\n{failures} schema(s) failed validation", file=sys.stderr)
         return 1
-    print("\nAll 4 schemas valid (meta + sample)")
+    print(f"\nAll {len(SAMPLES)} schemas valid" + (" (meta + sample)" if Draft202012Validator else " (sample; meta skipped: no jsonschema)"))
     return 0
 
 

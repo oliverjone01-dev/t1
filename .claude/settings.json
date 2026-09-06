@@ -32,7 +32,10 @@
       "Bash(bash .claude/skills/direct/scripts/yd-report.sh:*)",
       "WebFetch(domain:genglass.ru)",
       "WebFetch(domain:valonti.com)",
-      "WebFetch(domain:gentero.ru)"
+      "WebFetch(domain:gentero.ru)",
+      "Bash(python3 schemas/validate.py:*)",
+      "Bash(python3 schemas/smoke-test.py:*)",
+      "Bash(node --check:*)"
     ],
     "deny": [
       "Bash(rm -rf:*)",
@@ -88,6 +91,32 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/approvals-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/deliver-gate.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/subagent-trace.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/subagent-trace.sh"
           }
         ]
       }

@@ -11,7 +11,7 @@ plugin-marketplaces, desktop, workflows), проверены 2026-09-06 чере
 - Skills: `.claude/skills/*/SKILL.md`; user-invocable: `/council`, `/feniks`, `/reality-audit`, `/crisis`, `/reflexion`.
 - Хуки: `.claude/settings.json` (P6 approvals-guard / direct-write-gate, P9 detector, Anti-Slop, P14 subagent-trace, deliver-gate).
 - Workflow: `.claude/workflows/council.js` - запуск по имени `council` только при явном opt-in Ивана.
-- Проверка: `python3 schemas/smoke-test.py` (5 схем + 2 живые фикстуры), `bash .claude/hooks/tests/run-hook-tests.sh` (гейты, 112 кейсов), `bash -n .claude/hooks/*.sh`.
+- Проверка: `python3 schemas/smoke-test.py` (5 схем + 2 живые фикстуры), `bash .claude/hooks/tests/run-hook-tests.sh` (гейты, 112 кейсов), `bash .claude-plugin/sync-agents.sh --check` (копии агентов плагина), `bash -n .claude/hooks/*.sh`.
 
 ## 2. Как плагин (другой репозиторий, другой человек, тот же ростер)
 
@@ -21,10 +21,14 @@ plugin-marketplaces, desktop, workflows), проверены 2026-09-06 чере
 ```
 Манифесты: `.claude-plugin/plugin.json` (agents, skills, workflows, hooks), `.claude-plugin/marketplace.json`
 (репозиторий = маркетплейс с одним плагином, `source: "./"`). Skills в плагине именуются `gengroup-roster:<skill>`.
-[ДАННЫЕ: `claude plugin validate .` 2.1.263, 2026-09-06] поле `agents` принимает только явный список `.md`-файлов,
-каталог отклоняется (`agents: Invalid input`); первая версия манифеста 3.0.0 на этом падала при `claude plugin install`,
-исправлено в 3.0.1 (13 файлов ростера перечислены явно; технические агенты accessibility-auditor и ui-migration-architect
-в плагин не входят). `claude plugin marketplace add oliverjone01-dev/t1` проходит headless.
+[ДАННЫЕ: `claude plugin validate` и локальный маркетплейс, 2.1.263, 2026-09-06] загрузчик плагинов видит агентов ТОЛЬКО
+в каталоге `agents/` в корне плагина (без поля `agents` в манифесте): каталог в поле отклоняется валидатором, явный список
+файлов проходит валидацию, но даёт Agents (0), симлинки на файлы не читаются, симлинк на каталог работает, но ненадёжен
+на Windows. Поэтому с 3.0.2 в репозитории лежат копии 13 агентов ростера в `agents/` (источник правды - `.claude/agents/`),
+синхронизация `bash .claude-plugin/sync-agents.sh`, проверка дрейфа `--check` (deliver-gate напоминает при push).
+В `agents/` не может быть других .md: любой файл там становится агентом. Технические агенты accessibility-auditor и
+ui-migration-architect в плагин не входят. Headless-установка с GitHub: `marketplace add` и `install` проходят,
+`claude plugin details gengroup-roster@gengroup` показывает Skills (19), Agents (13), Hooks (5).
 
 Автоподключение маркетплейса на всех машинах (`~/.claude/settings.json`), по docs settings-reference:
 ```json

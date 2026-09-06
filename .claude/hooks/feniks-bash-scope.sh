@@ -55,7 +55,8 @@ GIT_WRITE = re.compile(r"(^|[^A-Za-z0-9_/.-])([^\s'\"]*/)?git(\s+(-[^\s]+|-C\s+[
 if GIT_WRITE.search(cmd):
     block("git-операции записи ФЕНИКСУ запрещены (коммит делает автор)")
 
-REDIRECT = re.compile(r"(?<![0-9&<])>{1,2}(?!&)\s*([^\s;&|)]+)")
+# Перенаправления: `> f`, `>> f`, `1> f`, `2> f`, `&> f`, `>| f`; исключаем `>&2`, `2>&1`, `<>`. Проба `1>` (итерация 2, 2026-09-06).
+REDIRECT = re.compile(r"(?<![<])(?:[0-9]*|&)>{1,2}(?!&)\s*([^\s;&|)]+)")
 WRITE_CMD = re.compile(r"(^|[\s;|&(])(tee|cp|mv|rm|touch|chmod|chown|ln|dd|patch|install|truncate|shred|mkdir|rmdir|unzip|wget|rsync)\b|\bsed\s+(-[a-zA-Z]*i|--in-place)|\btar\s+[a-z-]*x|\bcurl\b[^|;]*\s-[oO]\b")
 WRITE_API = re.compile(r"write_text\(|write_bytes\(|\.write\(|open\([^)]*['\"][wax]|shutil\.|os\.(remove|unlink|rename|replace|makedirs|mkdir|rmdir)|Path\([^)]*\)\.(unlink|rename|touch|mkdir|write)|fs\.(write|append|unlink|rename|mkdir|rm)|writeFileSync|copyFileSync")
 PATH_TOKEN = re.compile(r"(?<![A-Za-z0-9_@])((?:\.{1,2}/|/|~/|[A-Za-z0-9_.-]+/)[A-Za-z0-9_./{}%:-]*)")
@@ -64,6 +65,8 @@ def resolve(tok):
     tok = tok.strip("'\"`")
     if "://" in tok or tok.startswith("-"):
         return None
+    if re.fullmatch(r"[0-9]+(\.[0-9]+)?", tok):
+        return None  # `print(1 > 0)`: числовая «цель» - это сравнение в коде, не файл
     if tok.startswith("~/"):
         tok = os.path.expanduser(tok)
     tok = re.split(r"[{%]", tok)[0] or tok  # `traces/{d:%Y}` -> `traces/`
@@ -93,7 +96,8 @@ def seg_tokens(seg):
     return toks
 
 targets = []
-segments = re.split(r"\|\||&&|[;|\n]", cmd)
+cmd_norm = re.sub(r">\|", ">", cmd)  # `>|` (noclobber override) - та же запись; иначе разбиение по `|` прячет цель
+segments = re.split(r"\|\||&&|[;|\n]", cmd_norm)
 for seg in segments:
     for m in REDIRECT.finditer(seg):
         targets.append(m.group(1))

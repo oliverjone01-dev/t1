@@ -79,3 +79,14 @@
 {"ts": "2026-09-06T11:01:51+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "write-scope allow Write /tmp/claude-0/-home-user-t1/bbcbbeee-8b44-5e00-ab7a-ee611d91f74e/scratchpad/p14.py"}
 {"ts": "2026-09-06T11:02:25+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "write-scope allow Write /tmp/claude-0/-home-user-t1/bbcbbeee-8b44-5e00-ab7a-ee611d91f74e/scratchpad/gates.py"}
 {"ts": "2026-09-06T11:02:42+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "write-scope allow Write /tmp/claude-0/-home-user-t1/bbcbbeee-8b44-5e00-ab7a-ee611d91f74e/scratchpad/gates2.py"}
+{"ts": "2026-09-06T11:04:05+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "bbcbbeee-8b44-5e00-ab7a-ee611d91f74e", "agent_id": "adbb84df9cd0572e4"}
+{"ts": "2026-09-06T11:04:11+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/PROBE_FD_ITER2B.txt"}
+{"ts": "2026-09-06T11:04:22+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "write-scope allow Write /tmp/claude-0/-home-user-t1/bbcbbeee-8b44-5e00-ab7a-ee611d91f74e/scratchpad/bp2.py"}
+{"ts": "2026-09-06T11:04:27+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/schemas/PROBE_X.txt"}
+{"ts": "2026-09-06T11:04:27+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/schemas/PROBE_X.txt"}
+{"ts": "2026-09-06T11:04:27+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/schemas/PROBE_X.txt"}
+{"ts": "2026-09-06T11:04:27+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/schemas/PROBE_X.txt"}
+{"ts": "2026-09-06T11:04:27+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "bash-scope allow targets /dev/null"}
+{"ts": "2026-09-06T11:04:28+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/schemas/PROBE_X.txt"}
+{"ts": "2026-09-06T11:04:28+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "bash-scope allow targets /tmp/ok.txt"}
+{"ts": "2026-09-06T11:04:28+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "bash-scope allow targets knowledge/episodes/2026-09/ok.md"}

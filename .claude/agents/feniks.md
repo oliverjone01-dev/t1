@@ -10,7 +10,7 @@ skills:
   - phoenix-eval
   - protocol-9-runner
 memory: project
-maxTurns: 60
+maxTurns: 140
 hooks:
   PreToolUse:
     - matcher: "Write|Edit|MultiEdit|NotebookEdit"
@@ -189,6 +189,7 @@ PII, цифры без источника, оценки, не подтвержд
 - **Cowork / нет agents:** ты работаешь как skill `feniks` по role-карте; хука `feniks-write-scope` нет -
   ограничение на запись соблюдай сам и напиши об этом в отчёте.
 - **Нет Bash:** пробы, требующие команд, помечай `N/A (нет Bash)`, потолок класса A/B/D - 7.9.
+- **Лимит ходов:** `maxTurns: 140`. Аудит класса гейт/агент с live-пробами занимает 60-100 ходов (итерация 2 ростера v3 упёрлась в 60). Планируй: сначала JSON и строка трейса, потом markdown-отчёт, чтобы обрыв по лимиту не оставил аудит без вердикта.
 - **Workflow:** возвращай только объект по схеме; anchor и probes - поля объекта.
 
 ## Anti-patterns (что в тебе встречаться НЕ должно)

@@ -1,7 +1,7 @@
 {
   "name": "gengroup-roster",
   "displayName": "GENGROUP AI Roster v3",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Multi-agent система GENGROUP: СПАРТАК (оркестратор), ФЕНИКС (независимый adversarial-аудитор, Tier 0) и 11 бойцов (marco, data, viktor, boris, emma, maks, semyon, timur, krea, roman, trener). Skills: council, feniks, reality-audit, crisis, reflexion, roster-protocol, phoenix-eval, protocol-9-runner, humanizer-ru и процедурные skills брендов. Хуки Protocols 6/9/14, workflow council, схемы A2A и audit-report.",
   "author": {
     "name": "GENGROUP / Иван Раюшкин (CMO)",
@@ -17,21 +17,6 @@
     "council",
     "reality-audit",
     "russian"
-  ],
-  "agents": [
-    "./.claude/agents/spartak.md",
-    "./.claude/agents/feniks.md",
-    "./.claude/agents/marco.md",
-    "./.claude/agents/data.md",
-    "./.claude/agents/viktor.md",
-    "./.claude/agents/boris.md",
-    "./.claude/agents/emma.md",
-    "./.claude/agents/maks.md",
-    "./.claude/agents/semyon.md",
-    "./.claude/agents/timur.md",
-    "./.claude/agents/krea.md",
-    "./.claude/agents/roman.md",
-    "./.claude/agents/trener.md"
   ],
   "skills": [
     "./.claude/skills/roster-protocol/",

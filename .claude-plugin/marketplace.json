@@ -1,15 +1,23 @@
 {
   "name": "gengroup",
   "description": "Маркетплейс плагинов GENGROUP. Один плагин - ростер multi-agent системы v3 (агенты, skills, хуки, workflow, схемы).",
-  "owner": { "name": "GENGROUP / Иван Раюшкин", "url": "https://github.com/oliverjone01-dev/t1" },
+  "owner": {
+    "name": "GENGROUP / Иван Раюшкин",
+    "url": "https://github.com/oliverjone01-dev/t1"
+  },
   "plugins": [
     {
       "name": "gengroup-roster",
       "source": "./",
       "description": "СПАРТАК + ФЕНИКС + 11 бойцов, /council /feniks /reality-audit /crisis /reflexion, хуки P6/P9/P14, workflow council.",
-      "version": "3.0.0",
+      "version": "3.0.1",
       "category": "productivity",
-      "tags": ["multi-agent", "orchestration", "audit", "gengroup"]
+      "tags": [
+        "multi-agent",
+        "orchestration",
+        "audit",
+        "gengroup"
+      ]
     }
   ]
 }

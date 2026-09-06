@@ -64,6 +64,9 @@ Workflow({ name: "council", args: { task: "<задача>", ts: "<UTC выше>"
 
 ## 4. Cowork path (custom agents недоступны)
 
+Если в Cowork установлен плагин `gengroup-roster`, агенты ростера доступны как subagents (по docs - `<name>@synced`):
+тогда иди по §2, а этот раздел не нужен. §4 - только когда плагина нет.
+
 Тот же порядок фаз, но роли берутся из role-карт: `${CLAUDE_SKILL_DIR}/references/roster-cards.md`.
 - Каждый боец = general-purpose subagent, в промпт инлайнится его карта + краткая версия roster-protocol §3-§4-§7 + A2A-бриф.
 - ФЕНИКС = general-purpose subagent с картой feniks + текстом `.claude/skills/phoenix-eval/SKILL.md` (Comprehension Gate,

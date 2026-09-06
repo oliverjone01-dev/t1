@@ -57,6 +57,10 @@ gg-sales-academy/public/
 registry.json
 cases.json
 msgs.jsonl
+# Исключение: в исследовании ниш Ozon свой cases.json - это карточки конкурентов
+# с витрины Ozon (товар, цена, продавец, отзывы). Персональных данных в нём нет,
+# а без него сайт не собирается: src/lib/data.ts импортирует файл напрямую.
+!ozon-research/src/content/cases.json
 
 # Лендинг /phoenix: зависимости не коммитим, собранный dist коммитим намеренно,
 # чтобы деплой Pages не зависел от доступности npm в CI.

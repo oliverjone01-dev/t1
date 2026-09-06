@@ -97,7 +97,8 @@
         "go",
         "return",
         "veto"
-      ]
+      ],
+      "description": "go: weighted >= 7.5 и нет понижающих правил; return: weighted >= 6.0 (в т.ч. >= 7.5 при поправке v3 с verdict_override_reason или FAIL пробы A/B7); veto: weighted < 6.0"
     },
     "gaps": {
       "type": "array",
@@ -188,7 +189,8 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[A-Za-z][0-9]"
           },
           "result": {
             "type": "string",
@@ -243,6 +245,10 @@
       "items": {
         "type": "string"
       }
+    },
+    "verdict_override_reason": {
+      "type": "string",
+      "description": "Почему verdict ниже, чем даёт weighted_total (v3): FAIL пробы класса A/B7, класс без проб, self-claimed score. Обязателен при return с weighted_total >= 7.5 (проверяет validate.py)."
     }
   },
   "allOf": [
@@ -257,7 +263,7 @@
       "then": {
         "properties": {
           "weighted_total": {
-            "maximum": 5.99
+            "exclusiveMaximum": 6.0
           }
         }
       }
@@ -273,8 +279,7 @@
       "then": {
         "properties": {
           "weighted_total": {
-            "minimum": 6.0,
-            "exclusiveMaximum": 7.5
+            "minimum": 6.0
           }
         }
       }

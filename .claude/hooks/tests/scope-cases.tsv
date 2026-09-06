@@ -1,0 +1,123 @@
+# hook	expect	agent_type	input
+# hook: bash | write | deliver ; expect: exit-код (0 allow, 2 block; для deliver: 1 = напоминание, 0 = тишина)
+# input: для bash - команда; для write - file_path; для deliver - команда (в фикстурном репо без аудита)
+# --- bash-scope: векторы итерации 1-2 (должны блокироваться)
+bash	2	feniks	echo "x" > .claude/agents/marco.md
+bash	2	feniks	echo x >> CLAUDE.md
+bash	2	feniks	echo x 1> .claude/agents/marco.md
+bash	2	feniks	echo x 2> CLAUDE.md
+bash	2	feniks	echo x &> CLAUDE.md
+bash	2	feniks	echo x >| CLAUDE.md
+bash	2	feniks	cp /tmp/c.md CLAUDE.md
+bash	2	feniks	cp schemas/validate.py schemas/v2.py
+bash	2	feniks	sed -i "s/a/b/" CLAUDE.md
+bash	2	feniks	tee CLAUDE.md < /tmp/x
+bash	2	feniks	touch README.md
+bash	2	feniks	git add -A
+bash	2	feniks	git commit -m x
+bash	2	feniks	git -C . push
+bash	2	feniks	git -c a=b push --force-with-lease
+bash	2	feniks	bash -c "git push"
+bash	2	feniks	eval "git add -A"
+bash	2	feniks	M=mar""co; echo x > .claude/agents/$M.md
+bash	2	feniks	python3 - <<PY\nopen("CLAUDE.md","w").write("x")\nPY
+bash	2	feniks	python3 - <<PY\nimport pathlib; pathlib.Path(".claude/agents/marco.md").write_text("x")\nPY
+bash	2	feniks	cat a | grep b > CLAUDE.md
+# --- bash-scope: векторы итерации 2 (DANGEROUS)
+bash	2	feniks	find . -name "*.txt" -delete
+bash	2	feniks	find . -type f -exec rm {} \;
+bash	2	feniks	sort -o CLAUDE.md CLAUDE.md
+bash	2	feniks	perl -pi -e "s/a/b/" CLAUDE.md
+bash	2	feniks	ruby -i -pe "gsub(/a/,\"b\")" CLAUDE.md
+bash	2	feniks	ex -s -c "%s/a/b/g|wq" CLAUDE.md
+bash	2	feniks	vim -c "wq" CLAUDE.md
+bash	2	feniks	ls | xargs rm
+bash	2	feniks	awk -i inplace "{print}" CLAUDE.md
+# --- bash-scope: векторы итерации 3 (обёртки и цели без расширения)
+bash	2	feniks	env cp /tmp/x CLAUDE.md
+bash	2	feniks	env rm README
+bash	2	feniks	env tee Makefile < /tmp/x
+bash	2	feniks	env find . -delete
+bash	2	feniks	env git push
+bash	2	feniks	env FOO=1 cp /tmp/x Makefile
+bash	2	feniks	command cp /tmp/x CLAUDE.md
+bash	2	feniks	exec rm README
+bash	2	feniks	nohup cp /tmp/x CLAUDE.md
+bash	2	feniks	sort -o Makefile /tmp/x
+bash	2	feniks	sort -o .gitignore /tmp/x
+bash	2	feniks	python3 -c "from pathlib import Path; Path('Makefile').write_text('x')"
+bash	2	feniks	xargs git add
+# --- bash-scope: read-only и ложные срабатывания (должны проходить)
+bash	0	feniks	git merge-base HEAD origin/main
+bash	0	feniks	git rev-parse --is-shallow-repository
+bash	0	feniks	git log --oneline -3
+bash	0	feniks	git diff HEAD~1 --stat
+bash	0	feniks	git status --porcelain
+bash	0	feniks	grep -rn "git add" .claude/hooks/
+bash	0	feniks	grep -rn "cp " .claude/ | head
+bash	0	feniks	grep -n 'A -> B' CLAUDE.md
+bash	0	feniks	echo 'k -> v'
+bash	0	feniks	echo "допуск >0.05"
+bash	0	feniks	python3 -c "print('->')"
+bash	0	feniks	python3 -c "print(\"git add\")"
+bash	0	feniks	python3 -c "import stubs; print(stubs.args, 1 > 0)"
+bash	0	feniks	cat CLAUDE.md | grep -c "git push"
+bash	0	feniks	sort CLAUDE.md | head
+bash	0	feniks	awk "{print}" CLAUDE.md
+bash	0	feniks	perl -ne "print" CLAUDE.md
+bash	0	feniks	find . -name "*.py" | xargs grep foo
+bash	0	feniks	find . -type f -exec grep foo {} \;
+bash	0	feniks	env
+bash	0	feniks	env | grep PATH
+bash	0	feniks	ls 2>/dev/null
+bash	0	feniks	echo x >&2
+bash	0	feniks	cmd 2>&1 | head
+bash	0	feniks	echo x 1>/dev/null
+bash	0	feniks	node --check .claude/workflows/council.js
+bash	0	feniks	bash -n .claude/hooks/deliver-gate.sh
+bash	0	feniks	python3 schemas/validate.py audit-report /tmp/r.json
+bash	0	feniks	python3 schemas/smoke-test.py
+bash	0	feniks	python3 - <<PY\nimport json; print(json.load(open("schemas/audit-report.json"))["title"])\nPY
+# --- bash-scope: запись в свои зоны (должна проходить)
+bash	0	feniks	echo x > /tmp/x
+bash	0	feniks	cp CLAUDE.md /tmp/c.md
+bash	0	feniks	grep -rn "knowledge/" .claude/agents/ > /tmp/out.txt
+bash	0	feniks	cat CLAUDE.md | tee /tmp/copy.md
+bash	0	feniks	mkdir -p traces/2026-09-06 && echo "{}" >> traces/2026-09-06/agents.jsonl
+bash	0	feniks	echo x 1>> traces/a.jsonl
+bash	0	feniks	touch traces/x.jsonl
+bash	0	feniks	mv /tmp/a.json knowledge/episodes/2026-09/a.json
+bash	0	feniks	find knowledge/episodes -name "*.bak" -delete
+bash	0	feniks	find /tmp/x -name "*.txt" -delete
+bash	0	feniks	sort -o /tmp/s.txt /tmp/s.txt
+bash	0	feniks	python3 - <<PY\nimport pathlib; pathlib.Path("knowledge/episodes/2026-09/r.md").write_text("x")\nPY
+bash	0	feniks	python3 - <<'PY'\nimport json, datetime, pathlib\nd = datetime.datetime.now(datetime.timezone.utc)\np = pathlib.Path(f"traces/{d:%Y-%m-%d}"); p.mkdir(parents=True, exist_ok=True)\nrec = {"ts": d.isoformat(timespec="seconds"), "event": "deliver", "agent": "feniks"}\n(p / "agents.jsonl").open("a").write(json.dumps(rec, ensure_ascii=False) + "\\n")\nPY
+# --- bash-scope: не ФЕНИКС - гейт не применяется
+bash	0	-	echo x > CLAUDE.md
+bash	0	marco	git add -A
+# --- write-scope
+write	0	feniks	/tmp/r.json
+write	0	feniks	knowledge/episodes/2026-09/x.md
+write	0	feniks	traces/2026-09-06/a.jsonl
+write	0	feniks	.claude/agent-memory/feniks/MEMORY.md
+write	2	feniks	knowledge/episodes/../../.claude/agents/marco.md
+write	2	feniks	traces/../CLAUDE.md
+write	2	feniks	schemas/PROBE.txt
+write	2	feniks	.claude/agents/PROBE.md
+write	2	feniks	.claude/agent-memory/spartak/MEMORY.md
+write	2	feniks	
+write	0	-	CLAUDE.md
+write	0	marco	CLAUDE.md
+# --- deliver-gate: матчер push (фикстурный репо с CLAUDE.md в последнем коммите, без аудита)
+deliver	1	-	git push
+deliver	1	-	bash -c "git push"
+deliver	1	-	/usr/bin/git push
+deliver	1	-	git -C . push
+deliver	1	-	eval "git push"
+deliver	1	-	echo x && git   push origin HEAD
+deliver	1	-	git --no-pager push
+deliver	1	-	git -c a=b push --force-with-lease
+deliver	0	-	git status
+deliver	0	-	echo pushing
+deliver	0	-	gitk push
+deliver	0	-	git pushx

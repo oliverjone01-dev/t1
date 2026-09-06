@@ -77,3 +77,5 @@
 {"ts": "2026-09-06T11:00:54+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/0.05, /home/user/t1/0.05:"}
 {"ts": "2026-09-06T11:01:08+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "write-scope allow Write /tmp/claude-0/-home-user-t1/bbcbbeee-8b44-5e00-ab7a-ee611d91f74e/scratchpad/anchors2.py"}
 {"ts": "2026-09-06T11:01:51+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "write-scope allow Write /tmp/claude-0/-home-user-t1/bbcbbeee-8b44-5e00-ab7a-ee611d91f74e/scratchpad/p14.py"}
+{"ts": "2026-09-06T11:02:25+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "write-scope allow Write /tmp/claude-0/-home-user-t1/bbcbbeee-8b44-5e00-ab7a-ee611d91f74e/scratchpad/gates.py"}
+{"ts": "2026-09-06T11:02:42+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "success", "note": "write-scope allow Write /tmp/claude-0/-home-user-t1/bbcbbeee-8b44-5e00-ab7a-ee611d91f74e/scratchpad/gates2.py"}

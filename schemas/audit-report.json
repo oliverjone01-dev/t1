@@ -189,7 +189,8 @@
         ],
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[A-Za-z][0-9]"
           },
           "result": {
             "type": "string",

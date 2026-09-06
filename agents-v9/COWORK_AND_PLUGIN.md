@@ -11,7 +11,7 @@ plugin-marketplaces, desktop, workflows), проверены 2026-09-06 чере
 - Skills: `.claude/skills/*/SKILL.md`; user-invocable: `/council`, `/feniks`, `/reality-audit`, `/crisis`, `/reflexion`.
 - Хуки: `.claude/settings.json` (P6 approvals-guard / direct-write-gate, P9 detector, Anti-Slop, P14 subagent-trace, deliver-gate).
 - Workflow: `.claude/workflows/council.js` - запуск по имени `council` только при явном opt-in Ивана.
-- Проверка: `python3 schemas/smoke-test.py` (5 схем), `bash -n .claude/hooks/*.sh`.
+- Проверка: `python3 schemas/smoke-test.py` (5 схем + 2 живые фикстуры), `bash .claude/hooks/tests/run-hook-tests.sh` (гейты, 112 кейсов), `bash -n .claude/hooks/*.sh`.
 
 ## 2. Как плагин (другой репозиторий, другой человек, тот же ростер)
 
@@ -54,4 +54,5 @@ Cowork берёт skills и plugins из настроек аккаунта claud
 3. В Cowork: `/council` → первая строка эпизода `MODE: cowork`, роли из карт.
 4. Попытка записать файл в `.claude/agents/` от имени ФЕНИКСА → блок хука `feniks-write-scope.sh`.
 5. `python3 .claude/skills/reflexion/scripts/trace-summary.py <YYYY-MM>` даёт сводку без ошибок.
+6. `bash .claude/hooks/tests/run-hook-tests.sh` - регрессионный тест гейтов ФЕНИКСА и deliver-gate: все кейсы passed (обязателен после любой правки `.claude/hooks/`).
 Результаты - в `knowledge/episodes/<YYYY-MM>/roster-v3-install-check.md`.

@@ -187,7 +187,7 @@ def _post_checks(instance, schema: dict) -> list[str]:
         verdict = instance.get("verdict")
         probes = [p for p in (instance.get("probes") or []) if isinstance(p, dict)]
         real = [p for p in probes if str(p.get("result", "")).upper() != "N/A"]
-        fail_a = [p for p in real if str(p.get("result", "")).upper() == "FAIL" and re.match(r"^(A|B7)", str(p.get("id", "")))]
+        fail_a = [p for p in real if str(p.get("result", "")).upper() == "FAIL" and re.match(r"^(A|B7)", str(p.get("id", "")).strip(), re.I)]
         cls = instance.get("artifact_class")
         override = str(instance.get("verdict_override_reason") or "").strip()
         if verdict == "go" and fail_a:

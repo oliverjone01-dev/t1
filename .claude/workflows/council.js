@@ -154,6 +154,7 @@ const AUDIT_SCHEMA = {
     anchor: { type: 'string', description: 'Ближайший калибровочный якорь и почему выше/ниже' },
     probes: { type: 'array', items: { type: 'object', required: ['id', 'result', 'evidence'], properties: { id: { type: 'string' }, result: { type: 'string', enum: ['PASS', 'FAIL', 'PARTIAL', 'N/A'] }, evidence: { type: 'string' } } }, description: 'Red-team пробы класса артефакта; пустой массив допустим только для класса strategy/content' },
     comprehension_gate: { type: 'object', properties: { applies: { type: 'boolean' }, passed: { type: 'boolean' }, defects: { type: 'array', items: { type: 'string' } } } },
+    checkpoints: { type: 'object', description: '25 чекпоинтов 0/1/2 (accuracy_1_… risk_25_…); при понижении risk_awareness чекпоинты risk_* режутся до суммы <= 5' },
     confidence: { type: 'number', minimum: 0, maximum: 1 },
   },
 }
@@ -324,25 +325,40 @@ for (let iter = 1; iter <= MAX_ITER; iter += 1) {
     log(`Коррекция ФЕНИКСА: заявлено ${audit.weighted_total}/${audit.verdict}, пересчёт по весам ${wt}/${enforced}`)
   }
   // Пробы считаются только с валидным id класса (A/B/C/D + номер) и непустым evidence: выдуманная строка probes потолок не снимает
+  // Пробы считаются только с id класса артефакта (gate -> A, dashboard -> B, agent -> D, content -> C, mixed -> A/B/D,
+  // strategy -> любой), result != N/A и evidence >= 10 символов: проба чужого класса или пустышка правило не снимает.
+  const CLASS_LETTERS = { gate: 'A', dashboard: 'B', agent: 'D', content: 'C', mixed: 'ABD', strategy: 'ABCD' }
+  const letters = CLASS_LETTERS[artifactClass] || 'ABD'
   const probes = Array.isArray(audit.probes) ? audit.probes : []
-  const realProbes = probes.filter(p => p && typeof p.id === 'string' && /^[ABCD][0-9]+/.test(p.id) && p.result && p.result !== 'N/A' && typeof p.evidence === 'string' && p.evidence.trim().length >= 10)
+  const realProbes = probes.filter(p => p && typeof p.id === 'string' && /^[A-Za-z][0-9]+/.test(p.id) && letters.includes(p.id[0].toUpperCase()) && p.result && String(p.result).toUpperCase() !== 'N/A' && typeof p.evidence === 'string' && p.evidence.trim().length >= 10)
   const needsProbes = artifactClass !== 'strategy' && artifactClass !== 'content'
   let scores = { ...audit.scores }
+  let checkpoints = (audit.checkpoints && typeof audit.checkpoints === 'object') ? { ...audit.checkpoints } : null
   let overrideReason = ''
   if (needsProbes && realProbes.length === 0) {
     // Правило red-team-probes / Hard Rule 8: класс гейт/дашборд/агент без проб -> risk_awareness <= 5.0 и verdict не выше return.
-    // weighted_total пересчитывается из скорректированных scores (арифметика сходится с validate.py), не режется константой.
-    scores.risk_awareness = Math.min(Number(scores.risk_awareness) || 0, 5.0)
+    // Понижение проводится через чекпоинты risk_* (каждый <= 1 => сумма <= 5), score = сумма; так объект проходит validate.py
+    // и по арифметике весов, и по сумме чекпоинтов. Без чекпоинтов - просто min(score, 5.0).
+    if (checkpoints) {
+      let sum = 0
+      for (const k of Object.keys(checkpoints)) {
+        if (k.startsWith('risk_')) { checkpoints[k] = Math.min(Number(checkpoints[k]) || 0, 1); sum += checkpoints[k] }
+      }
+      scores.risk_awareness = Math.min(Number(scores.risk_awareness) || 0, sum || 0, 5.0)
+    } else {
+      scores.risk_awareness = Math.min(Number(scores.risk_awareness) || 0, 5.0)
+    }
     overrideReason = `класс ${artifactClass} без выполненных red-team проб`
     log(`Класс ${artifactClass} без red-team проб: risk_awareness <= 5.0, verdict не выше return (заявлено ${wt})`)
   }
   const wtAdj = Math.round(weighted(scores) * 100) / 100
   const enforcedAdj = wtAdj >= 7.5 ? 'go' : wtAdj >= 6.0 ? 'return' : 'veto'
-  const failA = realProbes.filter(p => p.result === 'FAIL' && /^(A|B7)/.test(p.id))
+  const failA = realProbes.filter(p => String(p.result).toUpperCase() === 'FAIL' && /^(A|B7)/i.test(p.id))
   let finalVerdict = enforcedAdj
   if (needsProbes && realProbes.length === 0 && finalVerdict === 'go') finalVerdict = 'return'
   if (failA.length && finalVerdict === 'go') { finalVerdict = 'return'; overrideReason = `FAIL пробы ${failA.map(p => p.id).join(', ')}`; log('Проба класса A или B7 = FAIL: go понижен до return (правило red-team-probes)') }
   const record = { ...audit, iteration: iter, scores, weighted_total: wtAdj, verdict: finalVerdict, probes_run: realProbes.length }
+  if (checkpoints) record.checkpoints = checkpoints
   if (finalVerdict !== enforcedAdj || overrideReason) record.verdict_override_reason = overrideReason || `понижение с ${enforcedAdj}`
   audits.push(record)
   verdict = finalVerdict

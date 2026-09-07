@@ -1,0 +1,119 @@
+name: Sales audit (weekly/monthly)
+
+# Дежурный аудит отдела продаж в Telegram.
+# Еженедельно (пятница 12:00 МСК) и ежемесячно (1-е число 12:00 МСК): детерминированный
+# срез из снимков Bitrix + накопление срезов в ветке данных + ИИ-коучинг (Костя-ИИ) по ключу
+# из секрета. Расход по токенам печатается в конце отчёта. Ручной запуск - через workflow_dispatch.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "weekly | monthly | announce"
+        default: "weekly"
+      chat:
+        description: "chat_id (пусто = тест-чат)"
+        default: ""
+      ai:
+        description: "ИИ-коучинг: 1 включить, 0 только факты"
+        default: "1"
+  schedule:
+    - cron: "0 9 * * 5"   # пятница 09:00 UTC = 12:00 МСК - недельный
+    - cron: "0 9 1 * *"   # 1-е число 09:00 UTC = 12:00 МСК - месячный
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    env:
+      MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 9 1 * *' && 'monthly') || 'weekly' }}
+      CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1003652568523' }}
+      AI: ${{ github.event.inputs.ai || '1' }}
+      BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
+      BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      REPO_URL: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - name: Снимки Bitrix (rop.json + dialog.json)
+        run: |
+          set -e
+          git fetch --depth=1 origin rop-dashboard-v1
+          git show FETCH_HEAD:analytics-mvp/rop/data/rop.json > /tmp/rop.json
+          git fetch --depth=1 origin dialog-export-v1
+          git show FETCH_HEAD:analytics-mvp/dialog/data/dialog.json > /tmp/dialog.json
+          echo "rop $(du -h /tmp/rop.json|cut -f1) · dialog $(du -h /tmp/dialog.json|cut -f1)"
+
+      - name: Стор срезов (ветка данных sales-audit-data)
+        run: |
+          set -e
+          if git clone --depth=1 --single-branch --branch sales-audit-data "$REPO_URL" store 2>/dev/null; then
+            echo "стор загружен"
+          else
+            echo "стор пуст - создаю"
+            mkdir -p store && cd store && git init -q && git checkout -q -b sales-audit-data
+            git remote add origin "$REPO_URL"
+            cd ..
+          fi
+          mkdir -p store/srez
+
+      - name: Announce (объявление о запуске)
+        if: env.MODE == 'announce'
+        run: |
+          cat > /tmp/msg.md <<'EOF'
+          🤖 Аудит отдела продаж запущен на дежурство.
+
+          Еженедельно (пятница 12:00) и ежемесячно (1-е число) сюда приходит разбор работы отдела: сильные и слабые стороны по менеджерам, динамика к прошлому периоду, рекомендации РОПу.
+
+          @yanchoglov - если нужны доработки в анализе, пишите сюда.
+          EOF
+          node .github/scripts/tg-send.mjs /tmp/msg.md
+
+      - name: Сборка фактов (детерминированно)
+        if: env.MODE != 'announce'
+        run: |
+          set -e
+          if [ "$MODE" = "monthly" ]; then
+            node analytics-mvp/src/scripts/sales/audit-build.mjs --mode monthly \
+              --store store/srez --month "$(date -u +%Y-%m)" --out-facts /tmp/facts.md
+          else
+            node analytics-mvp/src/scripts/sales/audit-build.mjs --mode weekly \
+              --rop /tmp/rop.json --dialog /tmp/dialog.json --store store/srez \
+              --out-facts /tmp/facts.md --out-srez /tmp/srez-new.json
+          fi
+          echo "--- FACTS ---"; cat /tmp/facts.md
+
+      - name: ИИ-коучинг (Костя-ИИ) + расход
+        if: env.MODE != 'announce' && env.AI == '1' && env.ANTHROPIC_API_KEY != ''
+        run: |
+          set -e
+          PRIOR=""; [ -f store/prior-ai.md ] && PRIOR="--prior store/prior-ai.md"
+          node analytics-mvp/src/scripts/sales/audit-ai.mjs --facts /tmp/facts.md $PRIOR \
+            --out /tmp/ai.md --spend-log store/spend.json --mode "$MODE"
+          cp /tmp/ai.md store/prior-ai.md
+
+      - name: Итоговое сообщение
+        if: env.MODE != 'announce'
+        run: |
+          if [ -f /tmp/ai.md ]; then cp /tmp/ai.md /tmp/msg.md; else cp /tmp/facts.md /tmp/msg.md; fi
+          node .github/scripts/tg-send.mjs /tmp/msg.md
+
+      - name: Сохранить в стор (накопление срезов + расход)
+        if: env.MODE != 'announce'
+        run: |
+          set -e
+          if [ "$MODE" = "weekly" ] && [ -f /tmp/srez-new.json ]; then
+            WK=$(node -e "console.log(JSON.parse(require('fs').readFileSync('/tmp/srez-new.json','utf8')).week)")
+            cp /tmp/srez-new.json "store/srez/${WK}.json"
+            MSG="срез ${WK} + расход"
+          else
+            MSG="месячный прогон + расход"
+          fi
+          cd store
+          git config user.email "bot@gengroup"; git config user.name "sales-audit"
+          git add -A
+          git commit -q -m "$MSG" || { echo "нет изменений"; exit 0; }
+          git push origin HEAD:sales-audit-data

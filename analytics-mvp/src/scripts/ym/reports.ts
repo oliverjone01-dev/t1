@@ -40,6 +40,10 @@ function flushBad() {
   if (total) console.warn(`::warning::неразобранных числовых ячеек за прогон: ${total} (${JSON.stringify(BAD)})`);
 }
 
+// Версия парсера взаиморасчётов. Поднимать, когда меняется состав полей строки или правила дедупа:
+// это и есть сигнал «снимок надо пересобрать от FLOOR», ровно один раз.
+export const NETTING_SCHEMA = 2;
+
 // Бюджет отчётов на прогон (ФЕНИКС G9): каждый generate+poll до 15 мин; без потолка первый бэкфилл
 // упирается в timeout job и теряет всё. По умолчанию 10 отчётов, переопределяется YM_REPORT_BUDGET.
 const BUDGET = Math.max(1, Number(process.env.YM_REPORT_BUDGET || 10) || 10);
@@ -190,15 +194,25 @@ async function realization(months: string[]) {
 // ---- united-netting: {businessId, dateFrom, dateTo} -> платежи по датам ----
 async function netting(from: string, to: string) {
   const OUT = yp("netting.ndjson");
-  const existing = readNdjson<any>(OUT).filter((r) => !(r.d >= from && r.d <= to));
+  const STATE = yp("netting_state.json");
   const fresh: any[] = [];
   let ok = 0;
+  // Возобновляемость по паре (кабинет, месяц). Полный пересбор девяти месяцев в лимит Маркета
+  // (1 генерация / 2 мин) за один прогон не влезает: раньше он обрывался, версия схемы не
+  // проставлялась, и следующий прогон начинал сначала - бесконечный цикл, съедавший весь бюджет
+  // генераций, из-за чего бэкфилл реализации не двигался. Теперь каждый прогон доносит свою часть.
+  const prevState = readJson<{ schema?: number; months_done?: string[] }>(STATE, {});
+  const doneMonths = new Set(prevState.schema === NETTING_SCHEMA ? prevState.months_done || [] : []);
+  // Свежее окно всегда перезабираем: проводки по недавним месяцам ещё меняются.
+  const freshWindow = addDays(to, -59).slice(0, 7);
   for (const { businessId: b, account } of await resolveBusinesses()) {
     // помесячно (лимит диапазона отчёта)
     let s = from;
     while (s <= to) {
       const mb = monthBounds(s.slice(0, 7));
       const e = mb.dateTo < to ? mb.dateTo : to;
+      const pair = `${b}/${s.slice(0, 7)}`;
+      if (doneMonths.has(pair) && s.slice(0, 7) < freshWindow) { s = addDays(e, 1); continue; }
       let t: { headers: string[]; rows: string[][] } | null = null;
       try { t = await fetchReport(account.api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e }); }
       catch (err) { if (stopOnRateLimit(err, `взаиморасчёты ${s}..${e}`)) break; throw err; }
@@ -206,7 +220,7 @@ async function netting(from: string, to: string) {
         probe("united-netting", t.headers, t.rows, { business: b, from: s, to: e });
         const ix = cols("united-netting", t.headers, ["date", "amount"]);
         if (ix) {
-          ok++;
+          ok++; doneMonths.add(pair);
           for (const r of t.rows) {
             const d = cellDate(r[ix.date!]); if (!d) continue;
             fresh.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
@@ -217,11 +231,16 @@ async function netting(from: string, to: string) {
     }
     if (rateLimited) break;
   }
+  // Ничего не забрали, но прогресс есть - значит история уже собрана, а свежее окно не дало строк.
+  // Это не ошибка: файлы не трогаем, состояние оставляем как есть.
+  if (!ok && !fresh.length && doneMonths.size) { console.log(`netting: все ${doneMonths.size} пар кабинет/месяц уже собраны, новых строк нет`); return; }
   if (!ok) { console.warn("::warning::netting: ни один отчёт не разобран - файлы не трогаю"); return; }
   // При мягком стопе по лимиту часть периода не добрана: старые строки этого периода не выкидываем,
   // иначе один упёршийся в лимит прогон обнулит уже собранные месяцы.
+  // Из старого снимка выкидываем только те месяцы, которые в ЭТОТ прогон реально перезабрали.
+  // Возобновляемый бэкфилл трогает лишь часть диапазона, и обнулять остальное нельзя.
   const covered = new Set(fresh.map((r) => r.d.slice(0, 7)));
-  const keep = rateLimited ? readNdjson<any>(OUT).filter((r) => !covered.has(r.d.slice(0, 7))) : existing;
+  const keep = readNdjson<any>(OUT).filter((r) => !covered.has(r.d.slice(0, 7)));
   // Живой факт 2026-09-04: отчёт отдаёт проводки и за пределами запрошенного окна (в выгрузке за
   // февраль пришли январские), поэтому соседние месячные запросы ПЕРЕСЕКАЮТСЯ. Без дедупа одна и та
   // же проводка попадает дважды: на первом прогоне так задвоилось 2935 строк на 17.6 млн ₽, и сверка
@@ -231,7 +250,11 @@ async function netting(from: string, to: string) {
   const byDate: Record<string, number> = {}, byMonth: Record<string, number> = {};
   for (const r of merged) { byDate[r.d] = Math.round(((byDate[r.d] || 0) + r.amount) * 100) / 100; const m = r.d.slice(0, 7); byMonth[m] = Math.round(((byMonth[m] || 0) + r.amount) * 100) / 100; }
   writeJson(yp("netting_summary.json"), { platform: "ym", generated_at: new Date().toISOString(), rows: merged.length, byDate, byMonth, note: "сумма строк отчёта по взаиморасчётам по дате; знак как в отчёте (выплаты +, удержания -). [ГИПОТЕЗА] до сверки колонок" });
-  console.log(`netting: строк ${merged.length} (${from}..${to} получено ${fresh.length}, дублей отброшено ${fresh.length + keep.length - merged.length}) -> ${OUT}`);
+  // Состояние пишем ВСЕГДА: прогресс помесячный, поэтому оборванный лимитом прогон сохраняет то,
+  // что успел, и следующий продолжает с места остановки, а не начинает заново.
+  const txSeen = merged.filter((r: any) => r.tx && String(r.tx).trim()).length;
+  writeJson(STATE, { at: new Date().toISOString(), schema: NETTING_SCHEMA, rows: merged.length, months_done: [...doneMonths].sort(), tx_present: txSeen, note: txSeen ? "дедуп по TRANSACTION_ID" : "Маркет отдаёт TRANSACTION_ID пустым - дедуп идёт по составному ключу (дата, заказ, SKU, тип, услуга, сумма, п/п)" });
+  console.log(`netting: строк ${merged.length} (${from}..${to} получено ${fresh.length}, дублей отброшено ${fresh.length + keep.length - merged.length}, пар кабинет/месяц собрано ${doneMonths.size}, строк с TRANSACTION_ID ${txSeen})${rateLimited ? " - упёрлись в лимит, продолжу в следующий прогон" : ""} -> ${OUT}`);
 }
 
 // ---- shows-sales: {businessId, dateFrom, dateTo, grouping:"OFFERS"} -> sku_views.ndjson ----
@@ -300,14 +323,21 @@ async function main() {
     await realization(months);
   } else if (cmd === "netting") {
     const to = process.argv[4] || yesterday();
-    // Обычный прогон добирает последние 60 дней. Но снимок, собранный до дедупа по TRANSACTION_ID,
-    // содержит задвоенные проводки (соседние месячные окна пересекаются) и не несёт внешнего номера
-    // заказа - лечится только полным пересбором от FLOOR. Признак такого снимка: хотя бы одна строка
-    // без tx. Делаем это САМИ, чтобы историю не пришлось чинить руками.
+    // Обычный прогон добирает последние 60 дней; полный пересбор от FLOOR нужен один раз - когда
+    // снимок собран парсером старой версии.
+    //
+    // Живой факт 2026-09-07: признаком «старого снимка» стояло «есть строка без TRANSACTION_ID». Но
+    // Маркет отдаёт эту колонку ПУСТОЙ во всех 11 407 строках, поэтому признак срабатывал КАЖДЫЙ
+    // прогон: взаиморасчёты пересобирались от января заново, девять генераций по одной на две минуты
+    // съедали весь лимит, и бэкфилл реализации не двигался (0 из 7 магазинов за август). Признаком
+    // теперь служит версия парсера в netting_state.json, а не содержимое строк.
     const have = readNdjson<any>(yp("netting.ndjson"));
-    const stale = have.length > 0 && have.some((r) => !r.tx);
-    if (stale) console.warn(`::warning::netting: в снимке ${have.filter((r: any) => !r.tx).length}/${have.length} строк без TRANSACTION_ID (собраны до дедупа) - полный пересбор от ${FLOOR}`);
-    const from = process.argv[3] || (have.length && !stale ? addDays(to, -59) : FLOOR);
+    const st = readJson<{ schema?: number; months_done?: string[] }>(yp("netting_state.json"), {});
+    // Бэкфилл идёт от FLOOR, пока схема не та или прогресс ещё не покрыл историю. Прогресс
+    // помесячный, поэтому «полный» диапазон каждый прогон стоит дёшево: собранные пары пропускаются.
+    const needFull = have.length === 0 || st.schema !== NETTING_SCHEMA || !(st.months_done || []).length;
+    if (needFull && have.length) console.warn(`::warning::netting: снимок собран парсером версии ${st.schema ?? "?"}, текущая ${NETTING_SCHEMA} - бэкфилл от ${FLOOR} (возобновляемый, по парам кабинет/месяц)`);
+    const from = process.argv[3] || FLOOR;
     await netting(from, to);
   } else if (cmd === "shows") {
     await shows(Number(process.argv[3] || process.env.YM_SHOWS_DAYS || 7) || 7);

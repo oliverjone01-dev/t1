@@ -1,5 +1,5 @@
 {
-  "at": "2026-09-07T06:46:00.537Z",
+  "at": "2026-09-07T07:53:22.089Z",
   "dateFormatAccepted": "iso",
   "shape": {
     "id": "number",
@@ -42,7 +42,12 @@
         "total": "number"
       }
     ],
-    "commissions": [],
+    "commissions": [
+      {
+        "type": "string",
+        "actual": "number"
+      }
+    ],
     "subsidies": [
       {
         "operationType": "string",

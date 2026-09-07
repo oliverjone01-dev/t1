@@ -114,19 +114,31 @@ async function realization(months: string[]) {
   const STATE = yp("realization_state.json");
   const state = readJson<{ pairs: string[]; by_month?: Record<string, any> }>(STATE, { pairs: [] });
   const donePairs = new Set(state.pairs || []);
-  // Пары, закрытые СТАРЫМ поведением «NO_DATA закрывает магазин навсегда», уже не могли открыться:
-  // donePairs пропускает их до любого запроса. Живой факт 2026-09-07 - август встал на 1/7 магазинов
-  // не из-за лимита (лимит отработал: подождал 125 с и добрал магазин), а потому что 4 магазина были
-  // закрыты пустыми отчётами прошлых прогонов. Переоткрываем ТОЛЬКО те пары, которые ничего не дали:
-  // их вклад в накопленный месяц равен нулю, поэтому повторный сбор не задвоит цифры.
-  let reopened = 0;
-  for (const [ym, cov] of Object.entries(state.by_month || {})) {
-    const withRows = new Set<string>((cov as any)?.shops_with_rows || []);
-    for (const c of ((cov as any)?.shops_sold || []) as string[]) {
-      if (!withRows.has(c) && donePairs.delete(`${ym}/${c}`)) reopened++;
-    }
+  // ПЕРЕОТКРЫТИЯ ПАР БОЛЬШЕ НЕТ. Две итерации подряд оно оказывалось небезопасным, и оба раза по
+  // одной причине: признак «магазин ничего не дал» выводился косвенно, а разбор складывает поверх
+  // накопленного (a.sold += ...), поэтому любая ошибка вывода превращается во второй слой.
+  //   итерация 1: признак читался из состояния (shops_with_rows), пустого у старых месяцев;
+  //   итерация 2: признак читался из поля from, а писатель проставляет from ВСЕМ строкам, включая
+  //   поднятые из файла с пустым множеством - через один прогон from: [] стоял у всех 177 строк,
+  //   и переоткрылись бы 14 пар на 4 830 709 ₽ реализации.
+  // Косвенный признак тут в принципе не годится. Оставляем один явный и идемпотентный путь:
+  // ПЕРЕСБОР МЕСЯЦА С НУЛЯ по прямой команде оператора (`ym:realization -- 2026-02 --rebuild`).
+  // Он не складывает, а заменяет: строки месяца выбрасываются, пары месяца открываются, месяц
+  // собирается заново. Задвоение невозможно по построению, а не по выводу из данных.
+  // Магазины, ответившие NO_DATA, в переоткрытии не нуждаются: новый код такие пары не закрывает.
+  const rebuild = process.argv.includes("--rebuild");
+  // Пересбор без явно названного месяца брал бы [прошлый, текущий] по умолчанию и стирал их молча.
+  // Разрушительная команда обязана называть цель словами (ФЕНИКС iter4).
+  if (rebuild && !process.argv.slice(3).some((a) => /^\d{4}-\d{2}$/.test(a))) {
+    console.error("::error::--rebuild требует явно названный месяц: ym:realization -- 2026-02 --rebuild");
+    process.exit(1);
   }
-  if (reopened) console.log(`realization: переоткрыто ${reopened} пар месяц/магазин, закрытых пустым отчётом (вклад в накопленное = 0, задвоения не будет)`);
+  if (rebuild) {
+    for (const ym of months) {
+      for (const p of [...donePairs]) if (p.startsWith(`${ym}/`)) donePairs.delete(p);
+    }
+    console.log(`realization: ПЕРЕСБОР месяцев ${months.join(", ")} с нуля - накопленные строки этих месяцев отброшены, пары открыты`);
+  }
   // Сколько штук по каждому (месяц, магазин) мы САМИ насчитали по заказам. Нужно для двух вещей:
   // не тратить генерацию отчёта на магазин без продаж (лимит 1 отчёт / 2 мин, он дорог) и не
   // закрывать пару по NO_DATA там, где продажи были - у Маркета отчёт появляется после выпуска УПД,
@@ -140,7 +152,18 @@ async function realization(months: string[]) {
   const withRows: Record<string, Set<string>> = {}, noDataDespiteSales: Record<string, Set<string>> = {};
   const mark = (m: Record<string, Set<string>>, ym: string, c: string) => (m[ym] ||= new Set()).add(c);
   const byMonth: Record<string, Record<string, { sold: number; ret: number; amount: number; from: Set<string> }>> = {};
-  for (const r of existing) { const b = byMonth[r.ym] || (byMonth[r.ym] = {}); b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) }; }
+  // При пересборе месяц НЕ засеваем накопленным (иначе свежий разбор ляжет поверх старого), но
+  // старые строки НЕ выбрасываем: держим их в теневом слое и заменяем только при успешном сборе.
+  // ФЕНИКС iter4: удаление шло безусловно, а запись условно - при пустом ответе Маркета месяц
+  // просто исчезал. Веток в пустой ответ шесть: нечитаемый список кампаний, все NO_DATA (2026-08 -
+  // пять из семи), API_DISABLED (три кампании 1023124), исчерпанный бюджет, лимит генерации,
+  // отсутствие продаж. Предупреждение «месяц не трогаю» при этом было прямой ложью.
+  const shadow: Record<string, any[]> = {};
+  for (const r of existing) {
+    if (rebuild && months.includes(r.ym)) { (shadow[r.ym] ||= []).push(r); continue; }
+    const b = byMonth[r.ym] || (byMonth[r.ym] = {});
+    b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+  }
   outer:
   for (const ym of months) {
     const [y, m] = ym.split("-").map(Number) as [number, number];
@@ -192,8 +215,25 @@ async function realization(months: string[]) {
       }
       if (parsed) { ok++; donePairs.add(pair); mark(withRows, ym, c.id); }
     }
-    if (!ok && !Object.keys(bySku).length) { console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`); continue; }
+    if (!ok && !Object.keys(bySku).length) {
+      // Ничего не собрали. При обычном прогоне месяц и так на месте; при пересборе возвращаем
+      // теневой слой, иначе «не трогаю» означало бы «стёр».
+      if (rebuild && shadow[ym]?.length) {
+        for (const r of shadow[ym]!) (byMonth[ym] ||= {})[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+        console.warn(`::warning::realization ${ym}: пересбор ничего не дал - вернул ${shadow[ym]!.length} ранее собранных строк, месяц не потерян`);
+      } else console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`);
+      continue;
+    }
     console.log(`realization ${ym}: SKU ${Object.keys(bySku).length}, реализовано нетто ${Object.values(bySku).reduce((s, a) => s + a.sold - a.ret, 0)} шт${ok ? "" : " (из ранее собранного)"}`);
+  }
+  // Последняя сеть перед записью: любой месяц пересбора, оставшийся пустым, возвращается из теневого
+  // слоя. Покрывает ВСЕ ранние выходы разом, включая `break outer` по лимиту Маркета, после которого
+  // до месяцев очереди управление уже не доходит. Проверка «пусто -> верни» надёжнее перечисления
+  // веток: веток шесть, и седьмую я бы снова не увидел.
+  for (const [ym, rows] of Object.entries(shadow)) {
+    if (Object.keys(byMonth[ym] || {}).length) continue;
+    for (const r of rows) (byMonth[ym] ||= {})[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+    console.warn(`::warning::realization ${ym}: пересбор не дал строк - месяц восстановлен из ранее собранного (${rows.length} строк)`);
   }
   for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), from: [...a.from].sort(), platform: "ym", source: "goods-realization" });
   const merged = fresh.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));
@@ -230,6 +270,8 @@ async function netting(from: string, to: string) {
   const OUT = yp("netting.ndjson");
   const STATE = yp("netting_state.json");
   const fresh: any[] = [];
+  // Пары, которые в ЭТОТ прогон реально запрошены и разобраны. Чистить старое можно только по ним.
+  const purged = new Set<string>();
   let ok = 0;
   // Возобновляемость по паре (кабинет, месяц). Полный пересбор девяти месяцев в лимит Маркета
   // (1 генерация / 2 мин) за один прогон не влезает: раньше он обрывался, версия схемы не
@@ -254,7 +296,7 @@ async function netting(from: string, to: string) {
         probe("united-netting", t.headers, t.rows, { business: b, from: s, to: e });
         const ix = cols("united-netting", t.headers, ["date", "amount"]);
         if (ix) {
-          ok++; doneMonths.add(pair);
+          ok++; doneMonths.add(pair); purged.add(pair);
           for (const r of t.rows) {
             const d = cellDate(r[ix.date!]); if (!d) continue;
             fresh.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
@@ -279,8 +321,13 @@ async function netting(from: string, to: string) {
   // 74986385 за 2026-03..2026-06 - реестр упал с 11 407 строк (27 932 124 ₽) до 6 509 (18 577 394 ₽),
   // минус 4 898 строк и 9 354 730 ₽. Дельта-гейт этого не увидел: он смотрит только 30-дневные
   // производные. Чистим строго ту пару, которую в этот прогон реально перезабрали.
-  const covered = new Set(fresh.map((r) => `${r.business}/${r.d.slice(0, 7)}`));
-  const keep = readNdjson<any>(OUT).filter((r) => !covered.has(`${r.business}/${r.d.slice(0, 7)}`));
+  // Список «что чистим» строится из ЗАПРОШЕННЫХ пар, а не из полученных строк. Отчёт отдаёт
+  // проводки за пределами запрошенного окна (см. комментарий про дедуп ниже: в выгрузке за февраль
+  // приходят январские). Прошлая версия брала месяцы из ответа, поэтому запрос июля помечал
+  // «перезабранными» май и июнь, приносил оттуда десяток строк - и сносил остальные две тысячи.
+  // Живой факт 2026-09-07, прогон 17: 2026-05 упал с 2380 строк до 568, 2026-06 с 1652 до 441.
+  // Гейт накопительного слоя это поймал и остановил публикацию.
+  const keep = readNdjson<any>(OUT).filter((r) => !purged.has(`${r.business}/${r.d.slice(0, 7)}`));
   // Живой факт 2026-09-04: отчёт отдаёт проводки и за пределами запрошенного окна (в выгрузке за
   // февраль пришли январские), поэтому соседние месячные запросы ПЕРЕСЕКАЮТСЯ. Без дедупа одна и та
   // же проводка попадает дважды: на первом прогоне так задвоилось 2935 строк на 17.6 млн ₽, и сверка

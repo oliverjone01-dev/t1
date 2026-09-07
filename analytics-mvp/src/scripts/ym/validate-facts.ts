@@ -11,7 +11,24 @@
 // Запуск: tsx validate-facts.ts <файл.ndjson> <прошлый.ndjson|""> [--month-key=d|date|ym] [--sum=amount]
 import { readFileSync, existsSync } from "node:fs";
 
-const DROP = Number(process.env.YM_FACTS_DROP_GATE || 0.1); // просадка месяца >10% = блок
+// Порог просадки месяца. ФЕНИКС 2026-09-07: Number('abc') = NaN, и тогда ВСЕ сравнения давали false -
+// гейт печатал «потерь нет» при минус половине; а значение 1 отключало его целиком. Значение вне
+// разумного диапазона - это ошибка настройки, и она обязана ронять прогон, а не молча снимать защиту.
+function threshold(raw: string | undefined, name: string, def: number, max: number): number {
+  if (raw === undefined || raw === "") return def;
+  const v = Number(raw);
+  if (!Number.isFinite(v) || v <= 0 || v > max) {
+    console.error(`FACTS INVALID: ${name}="${raw}" - не число в диапазоне (0, ${max}]. Гейт не запускается: неверная настройка не должна выглядеть как «потерь нет».`);
+    process.exit(1);
+  }
+  return v;
+}
+const DROP = threshold(process.env.YM_FACTS_DROP_GATE, "YM_FACTS_DROP_GATE", 0.1, 0.5);  // просадка месяца
+// Потолок роста закрытого месяца. Верхняя граница 2.0, а не 20: значение 20 проходило валидацию и
+// на месяце x2 давало «аномалий нет» - легальный выключатель детектора задвоения (ФЕНИКС iter3).
+// Верхняя граница 0.9, а не 2: при 2 ровное удвоение (+100%) проходило под порогом, то есть
+// разрешённое значение оставалось выключателем детектора - просто более узким (ФЕНИКС iter4).
+const GROW = threshold(process.env.YM_FACTS_GROW_GATE, "YM_FACTS_GROW_GATE", 0.25, 0.9); // рост ЗАКРЫТОГО месяца
 
 function rows(p: string): any[] {
   if (!p || !existsSync(p)) return [];
@@ -24,32 +41,72 @@ function main() {
   const [file, prevFile] = [process.argv[2]!, process.argv[3] || ""];
   const arg = (n: string, d: string) => (process.argv.find((a) => a.startsWith(`--${n}=`)) || `--${n}=${d}`).split("=")[1]!;
   const mk = arg("month-key", "d"), sumK = arg("sum", "");
+  const byBizEarly = process.argv.includes("--by=business");
   const cur = rows(file);
   if (!cur.length) { console.error(`FACTS INVALID: ${file} пуст или нечитаем`); process.exit(1); }
   const prev = rows(prevFile);
   if (!prev.length) { console.log(`facts-gate ${file}: строк ${cur.length}, прошлого снимка нет - сравнивать не с чем`); return; }
 
+  // Ключ агрегации - пара (кабинет, месяц), если файл её несёт. Чистка в продьюсере идёт по паре,
+  // и гейт по одному месяцу пропускал потерю целого кабинета: у 1023124/2026-06 доля в месяце 19.2%,
+  // то есть минус половина кабинета - это минус 9.6% месяца, под порогом 10%.
+  const byBiz = byBizEarly;
+  // Потолок роста включаем только там, где есть ключ кабинета. У реализации его нет, повторный
+  // разбор сливается по SKU и не меняет числа строк, поэтому прирост суммы неотличим от законного
+  // добора УПД: живой случай - 2026-08, шесть магазинов из семи ждут УПД, их приход законно даст
+  // больше 25%. Для реализации задвоение снято в источнике (пересбор вместо переоткрытия).
+  const growOn = byBiz;
+  // Строки-агрегаты (окно целиком одной датой) заменяются следующим окном целиком, поэтому по
+  // МЕСЯЦАМ их сравнивать нельзя: смена окна давала бы «потерю» каждый прогон. Но выбрасывать их
+  // из сравнения было хуже: сегодня 4504 строки из 4504 в sku_views несут этот флаг, и гейт
+  // сравнивал пустоту с пустотой - потеря 90% строк давала «аномалий нет» (ФЕНИКС iter4, и мой
+  // собственный тест закреплял эту дыру зелёной). Агрегаты сравниваем ОТДЕЛЬНЫМ ведром «окно
+  // целиком»: месяц там ни при чём, а объём и сумма сторожатся как у всех.
+  const AGG_BUCKET = "агрегат окна";
   const agg = (rs: any[]) => {
     const m: Record<string, { n: number; s: number }> = {};
     for (const r of rs) {
-      const key = String(r[mk] || "").slice(0, 7); if (!key) continue;
+      if (r.aggregate) {
+        const k = byBizEarly && r.business ? `${r.business}/${AGG_BUCKET}` : AGG_BUCKET;
+        const b = (m[k] ||= { n: 0, s: 0 });
+        b.n++; if (sumK) b.s += Number(r[sumK]) || 0;
+        continue;
+      }
+      const mon = String(r[mk] || "").slice(0, 7); if (!mon) continue;
+      const key = byBiz && r.business ? `${r.business}/${mon}` : mon;
       const b = (m[key] ||= { n: 0, s: 0 });
       b.n++; if (sumK) b.s += Number(r[sumK]) || 0;
     }
     return m;
   };
   const a = agg(prev), b = agg(cur);
+  // Самый свежий месяц базового снимка законно добирается прогон за прогоном (текущий месяц ещё
+  // идёт), поэтому потолок роста к нему не применяем - иначе гейт кричал бы каждый день. К закрытым
+  // месяцам применяем: там рост означает, что разбор сложился поверх уже накопленного.
+  const monthOf = (k: string) => k.slice(-7);
+  const newest = Object.keys(a).map(monthOf).sort().pop() || "";
   const bad: string[] = [];
   for (const [mth, p] of Object.entries(a)) {
     const c = b[mth] || { n: 0, s: 0 };
-    if (c.n < p.n * (1 - DROP)) bad.push(`${mth}: строк было ${p.n}, стало ${c.n}`);
-    else if (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) < Math.abs(p.s) * (1 - DROP)) bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)}`);
+    if (c.n < p.n * (1 - DROP)) bad.push(`${mth}: строк было ${p.n}, стало ${c.n} (потеря)`);
+    else if (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) < Math.abs(p.s) * (1 - DROP)) bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} (потеря)`);
+    // Гейт был односторонним и пропускал ЗАДВОЕНИЕ - а именно оно и грозило реализации: разбор
+    // складывает поверх накопленного, и второй проход по той же паре удваивает месяц.
+    // Файл без ключа кабинета (реализация): повторный разбор сливается по SKU и НЕ меняет число
+    // строк, а законный добор УПД приносит новые SKU и число строк растит. Это и есть разделитель.
+    // Убрав детектор целиком, я снял обнаружение ровно с того файла, где задвоение случалось трижды.
+    else if (!growOn && sumK && c.n === p.n && Math.abs(p.s) > 1 && Math.abs(c.s) >= Math.abs(p.s) * (1 + GROW)) {
+      bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} при неизменном числе строк ${c.n} - это задвоение, а не добор (добор растит число строк)`);
+    }
+    else if (!growOn || monthOf(mth) >= newest) continue; // текущий месяц ещё набирается - потолок роста не про него
+    else if (c.n >= p.n * (1 + GROW)) bad.push(`${mth}: строк было ${p.n}, стало ${c.n} (закрытый месяц вырос на ${Math.round((c.n / p.n - 1) * 100)}% - похоже на задвоение)`);
+    else if (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) >= Math.abs(p.s) * (1 + GROW)) bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} (закрытый месяц вырос на ${Math.round((Math.abs(c.s) / Math.abs(p.s) - 1) * 100)}% - похоже на задвоение)`);
   }
   if (bad.length) {
-    console.error(`FACTS INVALID: ${file} потерял уже собранные месяцы (порог ${Math.round(DROP * 100)}%):\n  ${bad.join("\n  ")}`);
-    console.error("Накопительный файл не имеет права терять собранный месяц. Проверь ключ чистки в продьюсере: он обязан совпадать с ключом возобновляемости.");
+    console.error(`FACTS INVALID: ${file} - аномалия по месяцам (порог потери ${Math.round(DROP * 100)}%, роста ${Math.round(GROW * 100)}%):\n  ${bad.join("\n  ")}`);
+    console.error("Накопительный файл не имеет права ни терять собранный месяц, ни скачкообразно расти. Потеря - проверь ключ чистки в продьюсере (он обязан совпадать с ключом возобновляемости). Рост - проверь, не складывается ли разбор поверх уже накопленного.");
     process.exit(1);
   }
-  console.log(`facts-gate ${file}: строк ${prev.length} -> ${cur.length}, месяцев ${Object.keys(a).length} -> ${Object.keys(b).length}, потерь нет`);
+  console.log(`facts-gate ${file}: строк ${prev.length} -> ${cur.length}, месяцев ${Object.keys(a).length} -> ${Object.keys(b).length}, аномалий нет`);
 }
 main();

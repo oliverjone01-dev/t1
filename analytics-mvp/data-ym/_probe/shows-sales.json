@@ -1,6 +1,6 @@
 {
   "type": "shows-sales",
-  "at": "2026-09-07T08:02:36.512Z",
+  "at": "2026-09-07T08:41:15.489Z",
   "headers": [
     "DAY",
     "MONTH",
@@ -44,13 +44,13 @@
       "9999",
       "xxxxxx xxx xxxx · xxxxxx",
       "xxxxxxxx",
-      "xxx-99-x-9999-9",
+      "xxx-99-x-9",
       "xxxxxxxx xxxxxxx xxxxxxx",
       "99",
       "99",
       "99",
-      "99.99",
-      "",
+      "99.9",
+      "9",
       "9",
       "",
       "",
@@ -80,13 +80,13 @@
       "9999",
       "xxxxxx xxx xxxx · xxxxxx",
       "xxxxxxxx",
-      "xxx-99-x-9999-9",
+      "xxx-99-x-9",
       "xxxxxxxx xxxxxxx xxxxxxx",
       "99",
       "99",
       "99",
       "99.99",
-      "",
+      "9",
       "9",
       "",
       "",
@@ -148,6 +148,6 @@
     ]
   ],
   "business": "1023124",
-  "from": "2026-08-08",
+  "from": "2026-08-31",
   "to": "2026-09-06"
 }

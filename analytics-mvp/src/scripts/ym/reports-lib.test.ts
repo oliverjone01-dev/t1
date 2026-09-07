@@ -94,3 +94,36 @@ describe("дедуп проводок взаиморасчётов", () => {
     expect(dedupeNetting(rows).length).toBe(2);
   });
 });
+
+describe("лимит Маркета - это ожидание, а не отказ", () => {
+  // Живой факт 2026-09-07: шаг реализации отработал 1 мин 49 с и вышел на первом же 420, собрав один
+  // отчёт. Прогон использовал 10 минут из 120 доступных, и бэкфилл августа стоял на 0 из 7 магазинов.
+  // Лимит Маркета - 1 генерация на 2 минуты: его надо переждать, а не сдаваться.
+  it("после ожидания попытка повторяется и возвращает результат", async () => {
+    let calls = 0;
+    const fn = async () => {
+      calls++;
+      if (calls < 3) throw new Error('HTTP 420: {"errors":[{"code":"METHOD_FAILURE","message":"Hit rate limit of 1 points per 2 minutes"}]}');
+      return "отчёт";
+    };
+    // ожидание подменяем нулевым, чтобы тест не спал две минуты
+    const prev = process.env.YM_REPORT_WAIT_MS;
+    process.env.YM_REPORT_WAIT_MS = "0";
+    const mod = await import("./reports-wait.js");
+    const out = await mod.retryOnRateLimit(fn, "тест", { waitMs: 0, timeLeft: () => 10 * 60_000 });
+    expect(out).toBe("отчёт");
+    expect(calls).toBe(3);
+    if (prev === undefined) delete process.env.YM_REPORT_WAIT_MS; else process.env.YM_REPORT_WAIT_MS = prev;
+  });
+  it("не ждёт, если до дедлайна прогона уже не хватает времени", async () => {
+    const mod = await import("./reports-wait.js");
+    const fn = async () => { throw new Error("HTTP 420: rate limit"); };
+    const out = await mod.retryOnRateLimit(fn, "тест", { waitMs: 125_000, timeLeft: () => 30_000 });
+    expect(out).toBe(mod.RATE_LIMITED);
+  });
+  it("обычная ошибка пробрасывается, а не ждёт", async () => {
+    const mod = await import("./reports-wait.js");
+    const fn = async () => { throw new Error("HTTP 403: API_DISABLED"); };
+    await expect(mod.retryOnRateLimit(fn, "тест", { waitMs: 0, timeLeft: () => 10 * 60_000 })).rejects.toThrow("API_DISABLED");
+  });
+});

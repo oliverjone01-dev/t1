@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-07T07:03:18.285Z",
+  "generated_at": "2026-09-07T07:08:54.715Z",
   "today": "2026-09-07",
   "periods": [
     {
@@ -244,12 +244,12 @@
     }
   ],
   "cumulative": {
-    "payout_derived": 26845196,
-    "payout_matched": 19273317,
+    "payout_derived": 27248525,
+    "payout_matched": 19676646,
     "netting_by_order": 19681466,
     "orders_total": 995,
     "orders_matched": 795,
-    "diff": -408149,
+    "diff": -4820,
     "key_check": {
       "checked": 9735,
       "agree": 9735,
@@ -257,7 +257,7 @@
       "trusted": true,
       "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 9735/9735 строк (100%)"
     },
-    "status": "расхождение -408149 ₽ по 795/995 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
+    "status": "сошлось по 795/995 заказам (допуск 98383 ₽)",
     "netting_account": 400849,
     "payments": {
       "buyer_leg_derived": 26299395,
@@ -265,7 +265,7 @@
       "diff": -22202,
       "accruals": 46753367,
       "subsidy_leg": 20453972,
-      "payout_full": 27644487,
+      "payout_full": 27671011,
       "orders_with_payments": 967,
       "orders_total": 995,
       "coverage_pct": 97.2,
@@ -394,7 +394,7 @@
         "rows": 1996,
         "revenue": 64359771,
         "delivered": 794,
-        "payout": 19135823,
+        "payout": 19578896,
         "skus": 304
       }
     },

@@ -324,6 +324,12 @@ export interface NetFeeResult { rows: OrderRow[]; orders_from_netting: number; o
 // ещё нет (свежие, выплата не прошла), сохраняют комиссии заказа и помечаются fee_source="order" -
 // по ним цифра предварительная, и это должно быть видно, а не смешиваться со сверенными.
 export function applyNettingFees(rows: OrderRow[], net: NetFeeRow[]): NetFeeResult {
+  // Проводка-сбор - это всё, что не начисление товара и не возврат товара. ВАЖНО: сумму берём СО
+  // ЗНАКОМ. Живой факт 2026-09: 21 строка «Возврат списания» на +227 561 ₽ (возврат за размещение и
+  // скидка за лояльность) проходила через Math.abs и учитывалась как удержание, хотя это возврат нам
+  // ранее списанного. Из-за этого кумулятивное расхождение показывало −408 149 ₽, и я объяснил его
+  // «заказами вне ledger'а» - объяснение логически невозможное, несопоставленные заказы в разность не
+  // входят по построению. Знак и есть причина.
   const HOLD = (t: string) => t !== "Начисление" && t !== "Возврат";
   const bySku = new Map<string, Record<string, number>>();   // order|sku -> группа -> сумма
   const byOrder = new Map<string, Record<string, number>>(); // order -> группа -> сумма (строки без sku)
@@ -332,12 +338,12 @@ export function applyNettingFees(rows: OrderRow[], net: NetFeeRow[]): NetFeeResu
   for (const n of net) {
     const o = String(n.order || "").trim(); if (!o || !HOLD(String(n.type || ""))) continue;
     const g = nettingFeeGroup(n.service || "");
-    if (g === "Прочее" && n.service) unmapped[n.service] = r2((unmapped[n.service] || 0) + Math.abs(n.amount));
+    if (g === "Прочее" && n.service) unmapped[n.service] = r2((unmapped[n.service] || 0) - n.amount);
     orders.add(o);
     const sku = String(n.sku || "").trim();
     const bag = sku ? (bySku.get(`${o}|${sku}`) || (bySku.set(`${o}|${sku}`, {}), bySku.get(`${o}|${sku}`)!))
                     : (byOrder.get(o) || (byOrder.set(o, {}), byOrder.get(o)!));
-    bag[g] = r2((bag[g] || 0) + Math.abs(n.amount));
+    bag[g] = r2((bag[g] || 0) - n.amount); // списание (минус в ledger'е) -> сбор плюсом; возврат списания -> сбор минусом
   }
   // доли внутри заказа и внутри (заказ, sku) - по начислениям, как и для комиссий заказа
   const accrOrder = new Map<string, number>(), accrSku = new Map<string, number>(), nOrder = new Map<string, number>();

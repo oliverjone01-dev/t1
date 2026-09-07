@@ -14,6 +14,7 @@ import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensur
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
 import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
+import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
 import { DELIVERED_STATUSES } from "./derive-lib.js";
 
 type ColMap = Record<string, string[]>;
@@ -56,6 +57,8 @@ function budgetLeft(): boolean { if (used >= BUDGET) { budgetSpent = true; conso
 // кампаний) в один прогон физически не влезает. Поэтому лимит - это не ошибка: продьюсер
 // останавливается мягко, СОХРАНЯЕТ уже разобранное, а остаток добирает следующий прогон.
 let rateLimited = false;
+// Ждём окно лимита и повторяем. Сдаёмся только когда до дедлайна прогона уже не хватает на ожидание -
+// тогда мягкая остановка отрабатывает как раньше и собранное сохраняется.
 function stopOnRateLimit(e: unknown, what: string): boolean {
   if (!isRateLimit(e)) return false;
   rateLimited = true;
@@ -74,9 +77,20 @@ function cols(type: string, headers: string[], required: string[]): Record<strin
 
 type Tbl = { name: string; headers: string[]; rows: string[][] };
 // Все таблицы отчёта (zip может нести несколько CSV: доставки + возвраты). null = нет данных/ошибка.
+// Лимит Маркета - это ОЖИДАНИЕ, а не отказ: 1 генерация на 2 минуты на кабинет. Раньше первый же 420
+// приводил к выходу из продьюсера, и прогон использовал 10 минут из 120 доступных (живой факт
+// 2026-09-07: шаг реализации отработал 1 мин 49 с и сдался, собрав один отчёт). Теперь ждём окно и
+// повторяем, пока не упрёмся в дедлайн прогона.
+const WAIT_MS = Number(process.env.YM_REPORT_WAIT_MS || 125_000);
+const DEADLINE_MS = Number(process.env.YM_REPORT_DEADLINE_MS || 95 * 60 * 1000);
+const startedAt = Date.now();
+const timeLeft = () => DEADLINE_MS - (Date.now() - startedAt);
+
+
 async function fetchReportAll(api: YmPartner, type: string, body: any): Promise<Tbl[] | null> {
   if (!budgetLeft()) return null;
-  const r = await api.report(type, body, { timeoutMs: Number(process.env.YM_REPORT_TIMEOUT_MS || 15 * 60 * 1000) });
+  const r = await retryOnRateLimit(() => api.report(type, body, { timeoutMs: Number(process.env.YM_REPORT_TIMEOUT_MS || 15 * 60 * 1000) }), type, { waitMs: WAIT_MS, timeLeft });
+  if (r === RATE_LIMITED) throw new Error("HTTP 420: лимит генерации отчётов Маркета, дедлайн прогона исчерпан");
   if (r.status !== "DONE" || !r.files.length) { console.warn(`::warning::отчёт ${type} ${JSON.stringify(body)}: status ${r.status}${r.subStatus ? "/" + r.subStatus : ""} - данных нет`); return null; }
   const out: Tbl[] = [];
   for (const f of r.files) { const t = toTable(f.text); console.log(`  ${type}: ${f.name} строк ${t.rows.length}, разделитель '${t.delimiter}'`); out.push({ name: f.name, headers: t.headers, rows: t.rows }); }

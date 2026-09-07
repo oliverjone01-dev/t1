@@ -83,6 +83,18 @@ jobs:
           md5sum public/*.html > /tmp/ozon-before/public.md5
           md5sum data/* 2>/dev/null | grep -v "data/competitors" > /tmp/ozon-before/data.md5 || true
 
+      - name: "Базовый слепок накопительных файлов (ДО продьюсеров: гейт обязан сравнивать с прошлым прогоном)"
+        run: |
+          set -euo pipefail
+          # ФЕНИКС 2026-09-07: гейт читал прошлый снимок как `git show HEAD:`, но промежуточный
+          # коммит кладёт свежие orders/catalog в HEAD РАНЬШЕ гейта - файл сравнивался сам с собой,
+          # и потеря в заказах прошла бы молча. Слепок снимаем до того, как что-либо записано.
+          mkdir -p /tmp/ym-base
+          for f in netting.ndjson orders.ndjson realization_monthly.ndjson sku_views.ndjson; do
+            cp "analytics-mvp/data-ym/$f" "/tmp/ym-base/$f" 2>/dev/null || true
+          done
+          ls -la /tmp/ym-base/ || true
+
       - name: Заказы Маркета (факт-слой, инкремент + перетяжка хвоста)
         run: npm run ym:orders
 
@@ -143,9 +155,13 @@ jobs:
           # Накопительный факт-слой. Гейт выше сторожит ТОЛЬКО 30-дневные производные, и потому не
           # заметил, как чистка реестра по неверному ключу снесла 4 898 строк и 9 354 730 ₽ за
           # 2026-03..2026-06: окно 30 дней не шелохнулось, прогон был зелёный.
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/netting.ndjson            $(prev netting.ndjson)            --month-key=d    --sum=amount
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/orders.ndjson             $(prev orders.ndjson)             --month-key=created --sum=accruals
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/realization_monthly.ndjson $(prev realization_monthly.ndjson) --month-key=ym   --sum=amount
+          # Базовый слепок - из /tmp/ym-base (снят до продьюсеров), а НЕ из HEAD: промежуточный коммит
+          # успевает положить свежие orders в HEAD, и сравнение шло бы файла с самим собой.
+          base () { [ -f "/tmp/ym-base/$1" ] && echo "/tmp/ym-base/$1" || echo ""; }
+          npx tsx src/scripts/ym/validate-facts.ts data-ym/netting.ndjson            $(base netting.ndjson)            --month-key=d       --sum=amount --by=business
+          npx tsx src/scripts/ym/validate-facts.ts data-ym/orders.ndjson             $(base orders.ndjson)             --month-key=created --sum=accruals --by=business
+          npx tsx src/scripts/ym/validate-facts.ts data-ym/realization_monthly.ndjson $(base realization_monthly.ndjson) --month-key=ym      --sum=amount
+          npx tsx src/scripts/ym/validate-facts.ts data-ym/sku_views.ndjson          $(base sku_views.ndjson)          --month-key=date    --sum=views --by=business
 
       - name: Джойны таксономии и СС (ключ - артикул)
         run: npm run ym:join

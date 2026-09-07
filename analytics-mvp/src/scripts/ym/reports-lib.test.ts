@@ -195,3 +195,38 @@ describe("состояние не запирает бэкфилл навсегд
     expect(left).not.toContain("2026-08/B"); // строк не дала - тянем снова, прибавлять нечего
   });
 });
+
+describe("переоткрытие пар доказывается ДАННЫМИ, а не состоянием (ФЕНИКС P0)", () => {
+  // Живой факт 2026-09-07: shops_with_rows пуст и у месяцев, которые строки ДАЛИ, потому что поле
+  // from появилось только что и в накопленном файле его нет. Разбор складывает, вычитания нет,
+  // значит переоткрытие такой пары кладёт второй слой: 13 пар и 4 737 075 ₽ реализации.
+  const attributed = (rows: any[]) => {
+    if (!rows.length) return null;
+    if (!rows.every((r) => Array.isArray(r.from))) return undefined;
+    return new Set<string>(rows.flatMap((r) => r.from as string[]));
+  };
+  const reopen = (pairs: string[], byMonth: Record<string, any>, rows: any[]) => {
+    const done = new Set(pairs);
+    const byM: Record<string, any[]> = {};
+    for (const r of rows) (byM[r.ym] ||= []).push(r);
+    for (const [ym, cov] of Object.entries(byMonth)) {
+      const gave = attributed(byM[ym] || []);
+      if (gave === undefined) continue;
+      for (const c of cov.shops_sold as string[]) { if (gave && gave.has(c)) continue; done.delete(`${ym}/${c}`); }
+    }
+    return [...done].sort();
+  };
+  const cov = { "2026-02": { shops_sold: ["A", "B"], shops_with_rows: [] } };
+
+  it("месяц БЕЗ разбивки в данных не переоткрывается вовсе - иначе задвоение", () => {
+    const legacy = [{ ym: "2026-02", sku: "S", sold: 5, amount: 100000 }]; // строки есть, from нет
+    expect(reopen(["2026-02/A", "2026-02/B"], cov, legacy)).toEqual(["2026-02/A", "2026-02/B"]);
+  });
+  it("месяц С разбивкой: переоткрывается только магазин, который строк не дал", () => {
+    const withFrom = [{ ym: "2026-02", sku: "S", sold: 5, amount: 100000, from: ["A"] }];
+    expect(reopen(["2026-02/A", "2026-02/B"], cov, withFrom)).toEqual(["2026-02/A"]);
+  });
+  it("месяц вовсе без строк: вклад нулевой по факту, переоткрываются все", () => {
+    expect(reopen(["2026-02/A", "2026-02/B"], cov, [])).toEqual([]);
+  });
+});

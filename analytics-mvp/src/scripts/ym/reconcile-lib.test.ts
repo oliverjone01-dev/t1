@@ -7,7 +7,11 @@ import { buildReconcile, moneyTol } from "./reconcile-lib.js";
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
 const live = { dateFrom: "2026-08-05", dateTo: "2026-09-03", sku_table: [{ sku: "GGM-16-2-2", rev: 38000 }, { sku: "GGT-03-3-3-O-20090", rev: 200000 }] };
-const base = { rows, cogs: { "GGT-03-3-3-O-20090": 15000 }, tax: { "GGT-03-3-3-O-20090": {} }, live, views: [], ads: null };
+// Полное покрытие отчёта о реализации по умолчанию: базовые проверки §15 описывают случай, когда
+// отчёт выпущен по всем магазинам с продажами. Неполное и неизвестное покрытие проверяются отдельно
+// в блоке «недобранный отчёт о реализации».
+const FULL_COV = { by_month: { "2026-08": { shops_sold: ["21000001"], shops_with_rows: ["21000001"], shops_no_data: [], shops_pending: [] } } };
+const base = { rows, cogs: { "GGT-03-3-3-O-20090": 15000 }, tax: { "GGT-03-3-3-O-20090": {} }, live, views: [], ads: null, realizationState: FULL_COV };
 const TODAY = "2026-09-04";
 
 describe("несколько кабинетов (свой ключ на кабинет)", () => {
@@ -179,5 +183,41 @@ describe("reconcile §15", () => {
   it("«текущий месяц» от сегодняшней даты (G13): 1-го числа текущий = этот месяц", () => {
     const r = buildReconcile({ ...base, realization: [], netting: null }, "2026-09-01");
     expect(r.periods[2]!.dateFrom).toBe("2026-09-01"); expect(r.periods[0]!.dateFrom).toBe("2026-08-01");
+  });
+});
+
+describe("недобранный отчёт о реализации - это пробел, а не расхождение", () => {
+  // Живой факт 2026-09: за закрытый месяц 2026-08 отчёт был выпущен лишь по части магазинов, в нём
+  // лежало 26 шт против 151 доставленной. Сверка объявляла «расхождение 125 шт», хотя сравнивать
+  // было не с чем: три магазина с 78 шт продаж не забраны вовсе, ещё у четырёх отчёт вернул NO_DATA.
+  const rows2 = rows.map((r, i) => ({ ...r, campaign: i % 2 ? "shopA" : "shopB" }));
+  const realz = [{ ym: "2026-08", sku: "GGT-03-3-3-O-20090", sold: 3, ret: 0, amount: 100000 }];
+
+  it("покрытие неполное: штуки не сверяются, в блокерах названы недостающие магазины", () => {
+    const st = { by_month: { "2026-08": { shops_sold: ["shopA", "shopB"], shops_with_rows: ["shopA"], shops_no_data: ["shopB"], shops_pending: [] } } };
+    const r = buildReconcile({ ...base, rows: rows2, realization: realz, netting: null, realizationState: st }, TODAY);
+    const u = r.periods[0]!.units;
+    expect(u.diff).toBe(null);                       // расхождения НЕ объявляем
+    expect(u.status).toContain("ОТЧЁТ ДОБРАН ЧАСТИЧНО");
+    expect((u as any).coverage).toMatchObject({ known: true, shops_sold: 2, shops_with_rows: 1, shops_missing: ["shopB"], complete: false });
+    expect(r.periods[0]!.revenue).toBe(null);        // выручку по неполному отчёту тоже не сверяем
+    expect(r.blockers.some((b) => b.includes("добран частично") && b.includes("shopB"))).toBe(true);
+    expect(r.blockers.some((b) => b.includes("штуки закрытого месяца расходятся"))).toBe(false);
+  });
+  it("покрытие полное: сверка работает как раньше", () => {
+    const st = { by_month: { "2026-08": { shops_sold: ["shopA", "shopB"], shops_with_rows: ["shopA", "shopB"], shops_no_data: [], shops_pending: [] } } };
+    const r = buildReconcile({ ...base, rows: rows2, realization: realz, netting: null, realizationState: st }, TODAY);
+    const u = r.periods[0]!.units;
+    expect((u as any).coverage.complete).toBe(true);
+    expect(u.diff).toBe(u.orders_delivered_net - 3);
+    expect(r.periods[0]!.revenue).not.toBe(null);
+  });
+  it("состояние бэкфилла не записано: покрытие НЕИЗВЕСТНО, а не ноль", () => {
+    const r = buildReconcile({ ...base, rows: rows2, realization: realz, netting: null, realizationState: null }, TODAY);
+    const u = r.periods[0]!.units;
+    expect((u as any).coverage).toMatchObject({ known: false, shops_with_rows: null });
+    expect(u.diff).toBe(null);
+    expect(u.status).toContain("НЕИЗВЕСТНО");
+    expect(r.blockers.some((b) => b.includes("покрытие отчёта о реализации") && b.includes("неизвестно"))).toBe(true);
   });
 });

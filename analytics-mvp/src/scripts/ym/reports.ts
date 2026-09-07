@@ -14,6 +14,7 @@ import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensur
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
 import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
+import { DELIVERED_STATUSES } from "./derive-lib.js";
 
 type ColMap = Record<string, string[]>;
 const COLS: Record<string, ColMap> = JSON.parse(readFileSync(new URL("./report-columns.json", import.meta.url), "utf-8"));
@@ -95,6 +96,18 @@ async function realization(months: string[]) {
   const STATE = yp("realization_state.json");
   const state = readJson<{ pairs: string[] }>(STATE, { pairs: [] });
   const donePairs = new Set(state.pairs || []);
+  // Сколько штук по каждому (месяц, магазин) мы САМИ насчитали по заказам. Нужно для двух вещей:
+  // не тратить генерацию отчёта на магазин без продаж (лимит 1 отчёт / 2 мин, он дорог) и не
+  // закрывать пару по NO_DATA там, где продажи были - у Маркета отчёт появляется после выпуска УПД,
+  // и «пусто» на свежем месяце значит «ещё не готов», а не «не продавали».
+  const soldBy: Record<string, number> = {};
+  for (const r of readNdjson<any>(yp("orders.ndjson"))) {
+    if (r.fake || !DELIVERED_STATUSES.has(r.status) || !r.delivered) continue;
+    const k = `${String(r.fin).slice(0, 7)}/${r.campaign}`;
+    soldBy[k] = (soldBy[k] || 0) + r.delivered;
+  }
+  const withRows: Record<string, Set<string>> = {}, noDataDespiteSales: Record<string, Set<string>> = {};
+  const mark = (m: Record<string, Set<string>>, ym: string, c: string) => (m[ym] ||= new Set()).add(c);
   const byMonth: Record<string, Record<string, { sold: number; ret: number; amount: number }>> = {};
   for (const r of existing) { const b = byMonth[r.ym] || (byMonth[r.ym] = {}); b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0 }; }
   outer:
@@ -105,6 +118,8 @@ async function realization(months: string[]) {
     for (const { campaign: c, account } of targets) {
       const pair = `${ym}/${c.id}`;
       if (donePairs.has(pair)) continue;
+      // Магазин без наших продаж за месяц: отчёт заведомо пуст, генерацию не тратим.
+      if (!soldBy[pair]) { donePairs.add(pair); continue; }
       let tables: Tbl[] | null = null;
       try { tables = await fetchReportAll(account.api, "goods-realization", { campaignId: Number(c.id), year: y, month: m }); }
       catch (e) {
@@ -112,9 +127,14 @@ async function realization(months: string[]) {
         const why = campaignUnavailable(e); if (!why) throw e;
         console.warn(`::warning::реализация ${ym}: кампания ${c.id} пропущена (${why})`); donePairs.add(pair); continue;
       }
-      // NO_DATA - это законный «нечего собирать» (месяц без продаж по кампании): пара закрыта.
-      // Исчерпанный бюджет или лимит Маркета - НЕ закрыты, иначе пара выпадет из бэкфилла навсегда.
-      if (!tables) { if (!rateLimited && !budgetSpent) donePairs.add(pair); if (budgetSpent) break outer; continue; }
+      // Сюда попадаем только когда продажи по магазину БЫЛИ. Значит NO_DATA - это «отчёт ещё не
+      // выпущен», а не «нечего собирать»: пару НЕ закрываем, следующий прогон попробует снова.
+      // Раньше она закрывалась навсегда, и месяц оставался недобранным при зелёном бейдже.
+      if (!tables) {
+        if (budgetSpent) break outer;
+        if (!rateLimited) { mark(noDataDespiteSales, ym, c.id); console.warn(`::warning::реализация ${ym}: магазин ${c.id} продал ${soldBy[pair]} шт, но отчёт пуст (УПД ещё не выпущен) - повторю в следующий прогон`); }
+        continue;
+      }
       let parsed = false;
       for (const t of tables) {
         probe(`goods-realization${tables.length > 1 ? "-" + t.name.replace(/[^a-z0-9_]/gi, "_") : ""}`, t.headers, t.rows, { campaign: c.id, ym, file: t.name });
@@ -138,7 +158,7 @@ async function realization(months: string[]) {
           }
         }
       }
-      if (parsed) { ok++; donePairs.add(pair); }
+      if (parsed) { ok++; donePairs.add(pair); mark(withRows, ym, c.id); }
     }
     if (!ok && !Object.keys(bySku).length) { console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`); continue; }
     console.log(`realization ${ym}: SKU ${Object.keys(bySku).length}, реализовано нетто ${Object.values(bySku).reduce((s, a) => s + a.sold - a.ret, 0)} шт${ok ? "" : " (из ранее собранного)"}`);
@@ -146,7 +166,23 @@ async function realization(months: string[]) {
   for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), platform: "ym", source: "goods-realization" });
   const merged = fresh.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));
   writeNdjson(OUT, merged);
-  writeJson(STATE, { at: new Date().toISOString(), pairs: [...donePairs].sort(), note: "разобранные пары месяц/кампания отчёта о реализации; лимит генерации Маркета не даёт собрать бэкфилл за один прогон" });
+  // Покрытие по месяцам: какие магазины реально дали строки, а какие продавали, но отчёт ещё пуст.
+  // Без этого сверка штук объявляет расхождением обычную недобранность отчёта.
+  const shopsSold: Record<string, string[]> = {};
+  for (const k of Object.keys(soldBy)) { const [ym, c] = k.split("/") as [string, string]; (shopsSold[ym] ||= []).push(c); }
+  const byMonthCov: Record<string, { shops_sold: string[]; shops_with_rows: string[]; shops_no_data: string[]; shops_pending: string[] }> = {};
+  for (const [ym, shops] of Object.entries(shopsSold)) {
+    const rowsSet = withRows[ym] || new Set<string>(), ndSet = noDataDespiteSales[ym] || new Set<string>();
+    const prev = readJson<any>(STATE, {}).by_month?.[ym];
+    const keptRows = new Set<string>([...(prev?.shops_with_rows || []), ...rowsSet]);
+    byMonthCov[ym] = {
+      shops_sold: shops.sort(),
+      shops_with_rows: [...keptRows].filter((c) => shops.includes(c)).sort(),
+      shops_no_data: [...ndSet].sort(),
+      shops_pending: shops.filter((c) => !keptRows.has(c) && !ndSet.has(c)).sort(),
+    };
+  }
+  writeJson(STATE, { at: new Date().toISOString(), pairs: [...donePairs].sort(), by_month: byMonthCov, note: "разобранные пары месяц/магазин отчёта о реализации и покрытие по месяцам; лимит генерации Маркета не даёт собрать бэкфилл за один прогон" });
   const total = targets.length * months.length;
   console.log(`realization: всего ${merged.length} строк (${new Set(merged.map((r) => r.ym)).size} мес), пар месяц/кампания ${donePairs.size}/${total}${rateLimited ? " - упёрлись в лимит Маркета, продолжу в следующий прогон" : ""} -> ${OUT}`);
 }

@@ -164,15 +164,24 @@ jobs:
           # Пустая строка от base() означает «сравнивать не с чем», и гейт тогда молча пропускает
           # что угодно. Это допустимо только на первом прогоне. Если файл в data-ym есть, а слепка
           # нет - защита отключена, и прогон обязан упасть, а не проехать (ФЕНИКС iter3).
+          # `exit 1` внутри $( ) убивает ПОДСТАНОВКУ, а не шаг: аргумент просто исчезал из argv,
+          # гейт печатал «прошлого снимка нет» и отрабатывал вхолостую с кодом 0. Проверял сообщение
+          # защиты вместо её срабатывания - третий раз подряд (ФЕНИКС iter4). Теперь статус
+          # подстановки проверяется явно, присваиванием в переменную.
           base () {
-            if [ -f "/tmp/ym-base/$1" ]; then echo "/tmp/ym-base/$1"; return; fi
-            if [ -f "data-ym/$1" ]; then echo "::error::слепка /tmp/ym-base/$1 нет, а data-ym/$1 существует - гейт остался бы без базы сравнения" >&2; exit 1; fi
-            echo ""
+            if [ -f "/tmp/ym-base/$1" ]; then echo "/tmp/ym-base/$1"; return 0; fi
+            if [ -f "data-ym/$1" ]; then echo "::error::слепка /tmp/ym-base/$1 нет, а data-ym/$1 существует - гейт остался бы без базы сравнения" >&2; return 1; fi
+            echo ""; return 0
           }
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/netting.ndjson            $(base netting.ndjson)            --month-key=d       --sum=amount --by=business
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/orders.ndjson             $(base orders.ndjson)             --month-key=created --sum=accruals --by=business
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/realization_monthly.ndjson $(base realization_monthly.ndjson) --month-key=ym      --sum=amount
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/sku_views.ndjson          $(base sku_views.ndjson)          --month-key=date    --sum=views --by=business
+          check () {
+            local f="$1"; shift
+            local b; b=$(base "$f") || exit 1
+            npx tsx src/scripts/ym/validate-facts.ts "data-ym/$f" "$b" "$@"
+          }
+          check netting.ndjson            --month-key=d       --sum=amount   --by=business
+          check orders.ndjson             --month-key=created --sum=accruals --by=business
+          check realization_monthly.ndjson --month-key=ym     --sum=amount
+          check sku_views.ndjson          --month-key=date    --sum=views    --by=business
 
       - name: Джойны таксономии и СС (ключ - артикул)
         run: npm run ym:join

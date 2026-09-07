@@ -127,6 +127,12 @@ async function realization(months: string[]) {
   // собирается заново. Задвоение невозможно по построению, а не по выводу из данных.
   // Магазины, ответившие NO_DATA, в переоткрытии не нуждаются: новый код такие пары не закрывает.
   const rebuild = process.argv.includes("--rebuild");
+  // Пересбор без явно названного месяца брал бы [прошлый, текущий] по умолчанию и стирал их молча.
+  // Разрушительная команда обязана называть цель словами (ФЕНИКС iter4).
+  if (rebuild && !process.argv.slice(3).some((a) => /^\d{4}-\d{2}$/.test(a))) {
+    console.error("::error::--rebuild требует явно названный месяц: ym:realization -- 2026-02 --rebuild");
+    process.exit(1);
+  }
   if (rebuild) {
     for (const ym of months) {
       for (const p of [...donePairs]) if (p.startsWith(`${ym}/`)) donePairs.delete(p);
@@ -146,9 +152,15 @@ async function realization(months: string[]) {
   const withRows: Record<string, Set<string>> = {}, noDataDespiteSales: Record<string, Set<string>> = {};
   const mark = (m: Record<string, Set<string>>, ym: string, c: string) => (m[ym] ||= new Set()).add(c);
   const byMonth: Record<string, Record<string, { sold: number; ret: number; amount: number; from: Set<string> }>> = {};
-  // При пересборе месяц НЕ засеваем накопленным: иначе свежий разбор ляжет поверх старого.
+  // При пересборе месяц НЕ засеваем накопленным (иначе свежий разбор ляжет поверх старого), но
+  // старые строки НЕ выбрасываем: держим их в теневом слое и заменяем только при успешном сборе.
+  // ФЕНИКС iter4: удаление шло безусловно, а запись условно - при пустом ответе Маркета месяц
+  // просто исчезал. Веток в пустой ответ шесть: нечитаемый список кампаний, все NO_DATA (2026-08 -
+  // пять из семи), API_DISABLED (три кампании 1023124), исчерпанный бюджет, лимит генерации,
+  // отсутствие продаж. Предупреждение «месяц не трогаю» при этом было прямой ложью.
+  const shadow: Record<string, any[]> = {};
   for (const r of existing) {
-    if (rebuild && months.includes(r.ym)) continue;
+    if (rebuild && months.includes(r.ym)) { (shadow[r.ym] ||= []).push(r); continue; }
     const b = byMonth[r.ym] || (byMonth[r.ym] = {});
     b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
   }
@@ -203,8 +215,25 @@ async function realization(months: string[]) {
       }
       if (parsed) { ok++; donePairs.add(pair); mark(withRows, ym, c.id); }
     }
-    if (!ok && !Object.keys(bySku).length) { console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`); continue; }
+    if (!ok && !Object.keys(bySku).length) {
+      // Ничего не собрали. При обычном прогоне месяц и так на месте; при пересборе возвращаем
+      // теневой слой, иначе «не трогаю» означало бы «стёр».
+      if (rebuild && shadow[ym]?.length) {
+        for (const r of shadow[ym]!) (byMonth[ym] ||= {})[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+        console.warn(`::warning::realization ${ym}: пересбор ничего не дал - вернул ${shadow[ym]!.length} ранее собранных строк, месяц не потерян`);
+      } else console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`);
+      continue;
+    }
     console.log(`realization ${ym}: SKU ${Object.keys(bySku).length}, реализовано нетто ${Object.values(bySku).reduce((s, a) => s + a.sold - a.ret, 0)} шт${ok ? "" : " (из ранее собранного)"}`);
+  }
+  // Последняя сеть перед записью: любой месяц пересбора, оставшийся пустым, возвращается из теневого
+  // слоя. Покрывает ВСЕ ранние выходы разом, включая `break outer` по лимиту Маркета, после которого
+  // до месяцев очереди управление уже не доходит. Проверка «пусто -> верни» надёжнее перечисления
+  // веток: веток шесть, и седьмую я бы снова не увидел.
+  for (const [ym, rows] of Object.entries(shadow)) {
+    if (Object.keys(byMonth[ym] || {}).length) continue;
+    for (const r of rows) (byMonth[ym] ||= {})[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+    console.warn(`::warning::realization ${ym}: пересбор не дал строк - месяц восстановлен из ранее собранного (${rows.length} строк)`);
   }
   for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), from: [...a.from].sort(), platform: "ym", source: "goods-realization" });
   const merged = fresh.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));

@@ -63,13 +63,48 @@ describe("гейт не кричит зря - иначе его снимут", (
   it("неизменённый файл - молчит", () => {
     expect(gate(BASE, BASE, KEY)).toBe(0);
   });
-  it("смена окна у строк-агрегатов - не потеря: окно заменяется целиком", () => {
-    const old = put("ag_old.ndjson", Array.from({ length: 3916 }, () => ({ date: "2026-09-06", business: "74986385", views: 5, aggregate: true })));
-    const now = put("ag_new.ndjson", Array.from({ length: 500 }, () => ({ date: "2026-10-01", business: "74986385", views: 5, aggregate: true })));
-    expect(gate(now, old, ["--month-key=date", "--sum=views", "--by=business"])).toBe(0);
+  it("смена ДАТЫ окна у агрегатов - не потеря: сравнивается ведро «агрегат окна», а не месяц", () => {
+    // Этот тест раньше пиннил дыру: агрегаты выбрасывались из сравнения, и потому 3916 против 500
+    // считалось нормой. Сегодня все 4504 строки sku_views несут aggregate, то есть гейт сравнивал
+    // пустоту с пустотой. Правильное поведение: дата окна может меняться, объём - нет.
+    const rowsA = (n: number, date: string) => Array.from({ length: n }, () => ({ date, business: "74986385", views: 5, aggregate: true }));
+    const old = put("ag_old.ndjson", rowsA(3916, "2026-09-06"));
+    const same = put("ag_same.ndjson", rowsA(3916, "2026-10-01"));   // окно переехало, объём тот же
+    expect(gate(same, old, ["--month-key=date", "--sum=views", "--by=business"])).toBe(0);
   });
   it("рост текущего (самого свежего) месяца - законный добор, не задвоение", () => {
     const grow = rows.concat(rows.filter((r) => r.d.startsWith("2026-02")));
     expect(gate(put("grow.ndjson", grow), BASE, KEY)).toBe(0);
+  });
+});
+
+describe("дыры, найденные четвёртым аудитом, закрыты", () => {
+  const rowsA = (n: number, date: string) => Array.from({ length: n }, () => ({ date, business: "74986385", views: 5, aggregate: true }));
+  it("потеря 90% строк-агрегатов - блок (раньше давала «аномалий нет»: гейт сравнивал пустоту)", () => {
+    const old = put("h_ag_old.ndjson", rowsA(4504, "2026-09-06"));
+    const loss = put("h_ag_loss.ndjson", rowsA(450, "2026-09-06"));
+    expect(gate(loss, old, ["--month-key=date", "--sum=views", "--by=business"])).toBe(1);
+  });
+  it("задвоение месяца в файле БЕЗ ключа кабинета - блок по сигнатуре «сумма выросла, строк столько же»", () => {
+    // Реализация не несёт business, повторный разбор сливается по SKU и не меняет число строк.
+    // Законный добор УПД, наоборот, приносит новые SKU и число строк растит - вот разделитель.
+    const base = put("h_rz.ndjson", [
+      { ym: "2026-02", sku: "A", amount: 600000 }, { ym: "2026-02", sku: "B", amount: 659030 },
+      { ym: "2026-03", sku: "C", amount: 100000 },
+    ]);
+    const dup = put("h_rz_dup.ndjson", [
+      { ym: "2026-02", sku: "A", amount: 1200000 }, { ym: "2026-02", sku: "B", amount: 1318060 },
+      { ym: "2026-03", sku: "C", amount: 100000 },
+    ]);
+    expect(gate(dup, base, ["--month-key=ym", "--sum=amount"])).toBe(1);
+    // а законный добор новых SKU в тот же месяц - не блок
+    const add = put("h_rz_add.ndjson", [
+      { ym: "2026-02", sku: "A", amount: 600000 }, { ym: "2026-02", sku: "B", amount: 659030 },
+      { ym: "2026-02", sku: "D", amount: 500000 }, { ym: "2026-03", sku: "C", amount: 100000 },
+    ]);
+    expect(gate(add, base, ["--month-key=ym", "--sum=amount"])).toBe(0);
+  });
+  it("порог роста 2 больше не разрешён - при нём ровное удвоение проходило под порогом", () => {
+    expect(gate(put("h_dup.ndjson", rows.concat(rows)), BASE, KEY, { YM_FACTS_GROW_GATE: "2" })).toBe(1);
   });
 });

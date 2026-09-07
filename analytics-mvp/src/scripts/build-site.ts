@@ -79,7 +79,7 @@ function buildMarketing(): string {
   <div class="two">
     <div><h2>Доля выручки по линиям</h2><div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th></tr></thead><tbody>${byLine}</tbody></table></div></div></div>
     <div><h2>ДРР по линиям <span class="pill b-Y">ориентир</span></h2><div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody>${adsLine}</tbody></table></div></div>
-      <div class="note">ДРР по линиям - ненадёжно (таксономии рекламы и аналитики расходятся, G5). Достоверен только суммарный ДРР канала ${drrCell(ads.totals.drr, ads.totals.spend)}.</div></div>
+      <div class="note">ДРР по линиям - ненадёжно (таксономии рекламы и аналитики расходятся, G5). ${ads.totals.spend > 0 && !ads.totals.drr ? "Суммарный ДРР канала тоже не считается: расход есть, привязки к заказам нет." : `Достоверен только суммарный ДРР канала ${drrCell(ads.totals.drr, ads.totals.spend)}.`}</div></div>
   </div>`;
 }
 

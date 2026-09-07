@@ -40,6 +40,10 @@ function flushBad() {
   if (total) console.warn(`::warning::неразобранных числовых ячеек за прогон: ${total} (${JSON.stringify(BAD)})`);
 }
 
+// Версия парсера взаиморасчётов. Поднимать, когда меняется состав полей строки или правила дедупа:
+// это и есть сигнал «снимок надо пересобрать от FLOOR», ровно один раз.
+export const NETTING_SCHEMA = 2;
+
 // Бюджет отчётов на прогон (ФЕНИКС G9): каждый generate+poll до 15 мин; без потолка первый бэкфилл
 // упирается в timeout job и теряет всё. По умолчанию 10 отчётов, переопределяется YM_REPORT_BUDGET.
 const BUDGET = Math.max(1, Number(process.env.YM_REPORT_BUDGET || 10) || 10);
@@ -231,7 +235,11 @@ async function netting(from: string, to: string) {
   const byDate: Record<string, number> = {}, byMonth: Record<string, number> = {};
   for (const r of merged) { byDate[r.d] = Math.round(((byDate[r.d] || 0) + r.amount) * 100) / 100; const m = r.d.slice(0, 7); byMonth[m] = Math.round(((byMonth[m] || 0) + r.amount) * 100) / 100; }
   writeJson(yp("netting_summary.json"), { platform: "ym", generated_at: new Date().toISOString(), rows: merged.length, byDate, byMonth, note: "сумма строк отчёта по взаиморасчётам по дате; знак как в отчёте (выплаты +, удержания -). [ГИПОТЕЗА] до сверки колонок" });
-  console.log(`netting: строк ${merged.length} (${from}..${to} получено ${fresh.length}, дублей отброшено ${fresh.length + keep.length - merged.length}) -> ${OUT}`);
+  // Помечаем снимок версией парсера, иначе следующий прогон снова уйдёт в полный пересбор.
+  // Пишем только когда лимит не оборвал сбор: недобранный снимок версией метить нельзя.
+  const txSeen = merged.filter((r: any) => r.tx && String(r.tx).trim()).length;
+  if (!rateLimited) writeJson(yp("netting_state.json"), { at: new Date().toISOString(), schema: NETTING_SCHEMA, rows: merged.length, tx_present: txSeen, note: txSeen ? "дедуп по TRANSACTION_ID" : "Маркет отдаёт TRANSACTION_ID пустым - дедуп идёт по составному ключу (дата, заказ, SKU, тип, услуга, сумма, п/п)" });
+  console.log(`netting: строк ${merged.length} (${from}..${to} получено ${fresh.length}, дублей отброшено ${fresh.length + keep.length - merged.length}, строк с TRANSACTION_ID ${txSeen}) -> ${OUT}`);
 }
 
 // ---- shows-sales: {businessId, dateFrom, dateTo, grouping:"OFFERS"} -> sku_views.ndjson ----
@@ -300,14 +308,19 @@ async function main() {
     await realization(months);
   } else if (cmd === "netting") {
     const to = process.argv[4] || yesterday();
-    // Обычный прогон добирает последние 60 дней. Но снимок, собранный до дедупа по TRANSACTION_ID,
-    // содержит задвоенные проводки (соседние месячные окна пересекаются) и не несёт внешнего номера
-    // заказа - лечится только полным пересбором от FLOOR. Признак такого снимка: хотя бы одна строка
-    // без tx. Делаем это САМИ, чтобы историю не пришлось чинить руками.
+    // Обычный прогон добирает последние 60 дней; полный пересбор от FLOOR нужен один раз - когда
+    // снимок собран парсером старой версии.
+    //
+    // Живой факт 2026-09-07: признаком «старого снимка» стояло «есть строка без TRANSACTION_ID». Но
+    // Маркет отдаёт эту колонку ПУСТОЙ во всех 11 407 строках, поэтому признак срабатывал КАЖДЫЙ
+    // прогон: взаиморасчёты пересобирались от января заново, девять генераций по одной на две минуты
+    // съедали весь лимит, и бэкфилл реализации не двигался (0 из 7 магазинов за август). Признаком
+    // теперь служит версия парсера в netting_state.json, а не содержимое строк.
     const have = readNdjson<any>(yp("netting.ndjson"));
-    const stale = have.length > 0 && have.some((r) => !r.tx);
-    if (stale) console.warn(`::warning::netting: в снимке ${have.filter((r: any) => !r.tx).length}/${have.length} строк без TRANSACTION_ID (собраны до дедупа) - полный пересбор от ${FLOOR}`);
-    const from = process.argv[3] || (have.length && !stale ? addDays(to, -59) : FLOOR);
+    const st = readJson<{ schema?: number }>(yp("netting_state.json"), {});
+    const needFull = have.length === 0 || st.schema !== NETTING_SCHEMA;
+    if (needFull && have.length) console.warn(`::warning::netting: снимок собран парсером версии ${st.schema ?? "?"}, текущая ${NETTING_SCHEMA} - разовый полный пересбор от ${FLOOR}`);
+    const from = process.argv[3] || (needFull ? FLOOR : addDays(to, -59));
     await netting(from, to);
   } else if (cmd === "shows") {
     await shows(Number(process.argv[3] || process.env.YM_SHOWS_DAYS || 7) || 7);

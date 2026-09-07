@@ -243,6 +243,32 @@ describe("сборы из ledger'а кабинета (§15: источник д�
     expect(r.fee_total).toBe(500);
     expect(r.payout).toBe(9500);
   });
+  it("разрез «откуда сборы» считается деньгами и по месяцам, а не числом заказов", () => {
+    // ФЕНИКС P0: 1081 старый заказ на копейки и 475 свежих на миллионы по счётчику заказов читаются
+    // одинаково. Мера завышения маржи - разрыв СТАВОК на непокрытой части оборота, а не доля заказов.
+    const rows = [
+      mk({ order: "1", created: "2026-08-02", accruals: 10000 }),                      // будет netting
+      mk({ order: "2", created: "2026-05-02", accruals: 90000, fee_total: 4500 }),     // останется order
+    ];
+    const net = [{ order: "1", sku: "A", type: "Удержание", service: "Размещение товарных предложений", amount: -5000 }];
+    const r = applyNettingFees(rows, net);
+    expect(r.orders_from_netting).toBe(1);
+    expect(r.orders_from_commissions).toBe(1);       // по заказам ровно пополам
+    expect(r.accruals_from_netting).toBe(10000);
+    expect(r.accruals_from_commissions).toBe(90000); // по деньгам - 90% без ledger'а
+    expect(r.rate_netting).toBe(50);                 // 5000 / 10000
+    expect(r.rate_order).toBe(5);                    // 4500 / 90000 - вот она, заниженная ставка
+    expect(r.by_month["2026-08"]!.rate_netting).toBe(50);
+    expect(r.by_month["2026-05"]!.accruals_netting).toBe(0);
+    expect(r.by_month["2026-05"]!.rate_order).toBe(5);
+  });
+  it("заказ из двух позиций не считается двумя заказами в разрезе источника", () => {
+    const rows = [mk({ pos: 0, sku: "A", accruals: 5000 }), mk({ pos: 1, sku: "B", accruals: 5000 })];
+    const r = applyNettingFees(rows, []);
+    expect(r.orders_from_commissions).toBe(1);
+    expect(r.by_month["2026-08"]!.orders_order).toBe(1);
+    expect(r.by_month["2026-08"]!.accruals_order).toBe(10000);
+  });
   it("удержания без SKU делятся по начислениям внутри заказа", () => {
     const rows = [mk({ pos: 0, sku: "A", accruals: 7500 }), mk({ pos: 1, sku: "B", accruals: 2500 })];
     const net = [{ order: "1", sku: "", type: "Удержание", service: "Перевод платежа", amount: -400 }];

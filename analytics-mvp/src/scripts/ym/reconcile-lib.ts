@@ -3,7 +3,7 @@
 //  - деньги: по КЛЮЧУ ЗАКАЗА (netting.order ↔ orders.order), а не по датам выплат; плюс кумулятив с начала данных;
 //  - выручка: начислено vs realization.amount закрытого месяца + подбор состава типов цен;
 //  - «текущий месяц» - от сегодняшней даты, не от вчера.
-import { DELIVERED_STATUSES, real, type OrderRow } from "./derive-lib.js";
+import { DELIVERED_STATUSES, feeSourceSplit, real, type OrderRow } from "./derive-lib.js";
 
 export interface RealizationRow { ym: string; sku: string; sold: number; ret: number; amount?: number }
 export interface NettingRow { d: string; order?: string; shop_order?: string; sku?: string; service?: string; type?: string; amount: number }
@@ -241,6 +241,24 @@ export function buildReconcile(inp: ReconInput, today: string) {
         note: dupUnknown ? `в ${dupUnknown} заказах SKU повторяется, но вторая позиция не распознана как услуга - проверить SERVICE_NAME в derive-lib` : "позиции-услуги распознаны, дублей SKU без объяснения нет",
       };
     })(),
+    // ФЕНИКС P0: «откуда сборы» было в снимке, но не на страницах. Пока ledger покрывает не весь
+    // оборот, маржа и «к выплате» по непокрытой части ЗАВЫШЕНЫ, и величина завышения видна из
+    // разрыва ставок. Показываем деньгами, а не заказами.
+    fee_source: (() => {
+      const f = feeSourceSplit(real(rows));
+      const total = f.accruals_from_netting + f.accruals_from_commissions;
+      const pct_order = pct(f.accruals_from_commissions, total);
+      const months_order = Object.entries(f.by_month)
+        .filter(([, b]) => b.accruals_order > 0 && b.accruals_order >= b.accruals_netting)
+        .map(([m]) => m).sort();
+      return {
+        ...f, accruals_total: r0(total), pct_accruals_from_commissions: pct_order,
+        months_mostly_commissions: months_order,
+        note: pct_order > 0
+          ? `сборы из взаиморасчётов у ${f.orders_from_netting} заказов (${r0(f.accruals_from_netting)} ₽, ставка ${f.rate_netting}%), из комиссий заказа у ${f.orders_from_commissions} (${r0(f.accruals_from_commissions)} ₽, ставка ${f.rate_order}%) - на второй части маржа завышена`
+          : "все сборы из взаиморасчётов кабинета",
+      };
+    })(),
     account_fees: { rows: accountRows, note: accountRows ? "строки взаиморасчётов без номера заказа -> pnl_account_daily" : "[ГИПОТЕЗА] сборы уровня кабинета не подключены - в pnl_account_daily нули" },
     views: { days: viewDays.size, last: [...viewDays].sort().pop() || null, note: viewDays.size ? "показы per-SKU из отчёта shows-sales" : "показы не собраны (отчёт shows-sales) - воронка без верха" },
     ads: ads && ads.totals && ads.totals.spend > 0 ? "есть расход" : "нет источника (реклама Маркета не подключена)",
@@ -253,6 +271,12 @@ export function buildReconcile(inp: ReconInput, today: string) {
   const blockers: string[] = [];
   if (!realz.length) blockers.push("нет отчёта о реализации (штуки не сверены с УПД-аналогом)");
   if (!netting) blockers.push("нет отчёта по взаиморасчётам (выплаты ЛК не сверены)");
+  // Порог 20% оборота: ниже него перекос маржи тонет в допуске, выше - «к выплате» на странице
+  // читается как факт, хотя по большей части оборота это комиссия за продажу без прочих удержаний.
+  const fs = (coverage as any).fee_source;
+  if (fs && fs.pct_accruals_from_commissions > 20) {
+    blockers.push(`сборы у ${fs.pct_accruals_from_commissions}% оборота взяты из комиссий заказа, а не из взаиморасчётов (ставка ${fs.rate_order}% против ${fs.rate_netting}% там, где ledger есть) - маржа и «к выплате» по этой части завышены${fs.months_mostly_commissions.length ? `; месяцы почти без ledger'а: ${fs.months_mostly_commissions.join(", ")}` : ""}`);
+  }
   const closed = periods[0]!;
   const cc = (closed.units as any).coverage;
   if (cc && cc.shops_sold > 0 && !cc.known) blockers.push(`покрытие отчёта о реализации за ${prevYm} неизвестно (состояние бэкфилла не записано) - штуки и выручка закрытого месяца не сверены`);

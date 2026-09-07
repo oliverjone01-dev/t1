@@ -318,7 +318,25 @@ export function nettingFeeGroup(service: string): string {
 }
 
 export interface NetFeeRow { order?: string; sku?: string; service?: string; type?: string; amount: number }
-export interface NetFeeResult { rows: OrderRow[]; orders_from_netting: number; orders_from_commissions: number; unmapped: Record<string, number> }
+export interface FeeMonth {
+  orders_netting: number; orders_order: number;
+  accruals_netting: number; accruals_order: number;
+  fees_netting: number; fees_order: number;
+  rate_netting: number | null; rate_order: number | null;
+}
+export interface NetFeeResult {
+  rows: OrderRow[]; orders_from_netting: number; orders_from_commissions: number;
+  accruals_from_netting: number; accruals_from_commissions: number;
+  fees_from_netting: number; fees_from_commissions: number;
+  rate_netting: number | null; rate_order: number | null;
+  by_month: Record<string, FeeMonth>;
+  unmapped: Record<string, number>;
+}
+
+// Доля сборов от начислений. Разрыв между ставкой по ledger'у и ставкой по комиссиям заказа - это и
+// есть мера недооценки: комиссия заказа покрывает только комиссию за продажу, а ledger содержит ещё
+// размещение, эквайринг, буст и логистику. Живой факт 2026-09: 6.5% против 54%.
+function rate(fees: number, accr: number): number | null { return accr > 0 ? Math.round((fees / accr) * 1000) / 10 : null; }
 
 // Заменяем сборы строк на удержания кабинета там, где заказ уже есть в ledger'е. Заказы, которых там
 // ещё нет (свежие, выплата не прошла), сохраняют комиссии заказа и помечаются fee_source="order" -
@@ -366,10 +384,39 @@ export function applyNettingFees(rows: OrderRow[], net: NetFeeRow[]): NetFeeResu
     const ft = r2(Object.values(f).reduce((s, v) => s + v, 0));
     return { ...r, fees: f, fee_total: ft, payout: r2(r.accruals - ft), fee_actual: true, fee_source: "netting" as const };
   });
+  return { rows: out, ...feeSourceSplit(out), unmapped };
+}
+
+// Разрез «откуда сборы» по месяцам. Где ledger'а нет, сборы взяты из комиссий заказа и занижены:
+// комиссия заказа покрывает только комиссию за продажу, ledger содержит ещё размещение, эквайринг,
+// буст и логистику. Считаем это ДЕНЬГАМИ, а не заказами: 1081 старый заказ на копейки и 475 свежих
+// на миллионы читаются одинаково по счётчику заказов и совершенно по-разному по обороту.
+// Один расчёт на два потребителя: снимок fee_source.json и сверка §15 (иначе цифры разъедутся).
+export function feeSourceSplit(rows: OrderRow[]): Omit<NetFeeResult, "rows" | "unmapped"> {
+  const by_month: Record<string, FeeMonth> = {};
+  const seen = new Map<string, string>(); // заказ целиком идёт из одного источника, не считаем его дважды
+  for (const r of rows) {
+    const m = String(r.created || "").slice(0, 7); if (!m) continue;
+    const b = (by_month[m] ||= { orders_netting: 0, orders_order: 0, accruals_netting: 0, accruals_order: 0, fees_netting: 0, fees_order: 0, rate_netting: null, rate_order: null });
+    const net = r.fee_source === "netting";
+    if (seen.get(r.order) !== m) { seen.set(r.order, m); if (net) b.orders_netting++; else b.orders_order++; }
+    if (net) { b.accruals_netting += r.accruals; b.fees_netting += r.fee_total; }
+    else { b.accruals_order += r.accruals; b.fees_order += r.fee_total; }
+  }
+  let aNet = 0, aOrd = 0, fNet = 0, fOrd = 0;
+  for (const b of Object.values(by_month)) {
+    b.accruals_netting = r2(b.accruals_netting); b.accruals_order = r2(b.accruals_order);
+    b.fees_netting = r2(b.fees_netting); b.fees_order = r2(b.fees_order);
+    b.rate_netting = rate(b.fees_netting, b.accruals_netting);
+    b.rate_order = rate(b.fees_order, b.accruals_order);
+    aNet += b.accruals_netting; aOrd += b.accruals_order; fNet += b.fees_netting; fOrd += b.fees_order;
+  }
   return {
-    rows: out,
-    orders_from_netting: new Set(out.filter((r) => r.fee_source === "netting").map((r) => r.order)).size,
-    orders_from_commissions: new Set(out.filter((r) => r.fee_source !== "netting").map((r) => r.order)).size,
-    unmapped,
+    orders_from_netting: new Set(rows.filter((r) => r.fee_source === "netting").map((r) => r.order)).size,
+    orders_from_commissions: new Set(rows.filter((r) => r.fee_source !== "netting").map((r) => r.order)).size,
+    accruals_from_netting: r2(aNet), accruals_from_commissions: r2(aOrd),
+    fees_from_netting: r2(fNet), fees_from_commissions: r2(fOrd),
+    rate_netting: rate(r2(fNet), r2(aNet)), rate_order: rate(r2(fOrd), r2(aOrd)),
+    by_month,
   };
 }

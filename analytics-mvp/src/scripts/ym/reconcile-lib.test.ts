@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { parseOrder } from "../../connector/ym-partner.js";
-import { normalizeOrder, type OrderRow } from "./derive-lib.js";
+import { applyNettingFees, normalizeOrder, type OrderRow } from "./derive-lib.js";
 import { buildReconcile, moneyTol } from "./reconcile-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
@@ -219,5 +219,24 @@ describe("недобранный отчёт о реализации - это п�
     expect(u.diff).toBe(null);
     expect(u.status).toContain("НЕИЗВЕСТНО");
     expect(r.blockers.some((b) => b.includes("покрытие отчёта о реализации") && b.includes("неизвестно"))).toBe(true);
+  });
+});
+
+describe("«откуда сборы» видно на страницах, а не только в снимке (ФЕНИКС P0)", () => {
+  // Сборы, взятые из комиссий заказа, покрывают только комиссию за продажу. Пока ledger не закрыл
+  // весь оборот, «к выплате» и маржа по непокрытой части завышены, и это обязано быть видно.
+  it("непокрытая ledger'ом часть оборота попадает в покрытие и в блокеры", () => {
+    const r = buildReconcile({ ...base, realization: [], netting: null }, TODAY);
+    const fs = (r.coverage as any).fee_source;
+    expect(fs.pct_accruals_from_commissions).toBe(100); // netting не подан - весь оборот из комиссий
+    expect(r.blockers.some((b) => b.includes("из комиссий заказа") && b.includes("завышены"))).toBe(true);
+    expect(r.coverage).toHaveProperty("fee_source.by_month");
+  });
+  it("когда ledger покрывает оборот, блокера нет", () => {
+    const net = rows.map((x) => ({ order: x.order, sku: x.sku, type: "Удержание", service: "Размещение товарных предложений", amount: -100 }));
+    const withFees = applyNettingFees(rows, net).rows;
+    const r = buildReconcile({ ...base, rows: withFees, realization: [], netting: null }, TODAY);
+    expect((r.coverage as any).fee_source.pct_accruals_from_commissions).toBe(0);
+    expect(r.blockers.some((b) => b.includes("из комиссий заказа"))).toBe(false);
   });
 });

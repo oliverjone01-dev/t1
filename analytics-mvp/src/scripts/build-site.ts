@@ -8,6 +8,9 @@ import { renderTovary, renderOverview, renderFunnel, renderCards, renderMoney, r
 
 const ru = (n: number) => new Intl.NumberFormat("ru-RU").format(Math.round(n));
 const mln = (n: number) => (Math.abs(n) >= 1e6 ? (n / 1e6).toFixed(2) + " М" : ru(n));
+// ДРР без привязки расхода к заказам не считается. Ноль в карточке рядом с ненулевым расходом
+// читается как «ДРР ноль», то есть неизвестность выдаётся за факт (ФЕНИКС 2026-09-07, Q3).
+const drrCell = (drr: number, spend: number) => (spend > 0 && !drr ? "не считается" : drr + "%");
 const kpiC = (lab: string, val: string) => `<div class="card kpi"><div class="lab">${lab}</div><div class="val num">${val}</div></div>`;
 
 // VIOLUR - это столы GENGLASS, открыто продаются на OZON (решение Ивана), не маскируем.
@@ -61,7 +64,7 @@ function buildMarketing(): string {
   ${snapNote(skus.dateFrom, skus.dateTo)}
   <h2>Срез периода ${skus.dateFrom}..${skus.dateTo}</h2>
   <div class="grid">
-    ${kpiC("ДРР канала, %", ads.totals.drr + "%")}
+    ${kpiC("ДРР канала, %", drrCell(ads.totals.drr, ads.totals.spend))}
     ${kpiC("Расход рекламы, ₽", mln(ads.totals.spend))}
     ${kpiC("Выручка с рекламы, ₽", mln(ads.totals.adRevenue))}
     ${kpiC("ROAS", roas + "x")}
@@ -76,7 +79,7 @@ function buildMarketing(): string {
   <div class="two">
     <div><h2>Доля выручки по линиям</h2><div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th></tr></thead><tbody>${byLine}</tbody></table></div></div></div>
     <div><h2>ДРР по линиям <span class="pill b-Y">ориентир</span></h2><div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody>${adsLine}</tbody></table></div></div>
-      <div class="note">ДРР по линиям - ненадёжно (таксономии рекламы и аналитики расходятся, G5). Достоверен только суммарный ДРР канала ${ads.totals.drr}%.</div></div>
+      <div class="note">ДРР по линиям - ненадёжно (таксономии рекламы и аналитики расходятся, G5). ${ads.totals.spend > 0 && !ads.totals.drr ? "Суммарный ДРР канала тоже не считается: расход есть, привязки к заказам нет." : `Достоверен только суммарный ДРР канала ${drrCell(ads.totals.drr, ads.totals.spend)}.`}</div></div>
   </div>`;
 }
 
@@ -97,7 +100,7 @@ function buildCampaigns(): string {
   ${snapNote(ads.dateFrom, ads.dateTo)}
   <h2>Срез периода ${ads.dateFrom}..${ads.dateTo}</h2>
   <div class="grid">
-    ${kpiC("ДРР канала, %", t.drr + "%")}
+    ${kpiC("ДРР канала, %", drrCell(t.drr, t.spend))}
     ${kpiC("Расход, ₽", mln(t.spend))}
     ${kpiC("Заказов с рекламы", ru(t.orders))}
     ${kpiC("CPO, ₽", ru(t.cpo))}

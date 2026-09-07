@@ -83,6 +83,22 @@ jobs:
           md5sum public/*.html > /tmp/ozon-before/public.md5
           md5sum data/* 2>/dev/null | grep -v "data/competitors" > /tmp/ozon-before/data.md5 || true
 
+      - name: "Базовый слепок накопительных файлов (ДО продьюсеров: гейт обязан сравнивать с прошлым прогоном)"
+        run: |
+          set -euo pipefail
+          # ФЕНИКС 2026-09-07: гейт читал прошлый снимок как `git show HEAD:`, но промежуточный
+          # коммит кладёт свежие orders/catalog в HEAD РАНЬШЕ гейта - файл сравнивался сам с собой,
+          # и потеря в заказах прошла бы молча. Слепок снимаем до того, как что-либо записано.
+          # Рабочая папка шага по умолчанию - analytics-mvp (defaults.run выше), поэтому путь
+          # БЕЗ повторного префикса. ФЕНИКС 2026-09-07: с префиксом cp искал
+          # analytics-mvp/analytics-mvp/data-ym, `|| true` глушил промах, /tmp/ym-base оставался
+          # пустым - и гейт молча пропускал любую потерю по всем четырём файлам.
+          # Промах больше не глушим: нет слепка там, где файл есть - это отказ защиты, а не мелочь.
+          rm -rf /tmp/ym-base && mkdir -p /tmp/ym-base
+          for f in netting.ndjson orders.ndjson realization_monthly.ndjson sku_views.ndjson; do
+            if [ -f "data-ym/$f" ]; then cp "data-ym/$f" "/tmp/ym-base/$f"; echo "слепок $f: $(wc -l < "/tmp/ym-base/$f") строк"; else echo "слепок $f: файла ещё нет (первый прогон)"; fi
+          done
+
       - name: Заказы Маркета (факт-слой, инкремент + перетяжка хвоста)
         run: npm run ym:orders
 
@@ -143,9 +159,29 @@ jobs:
           # Накопительный факт-слой. Гейт выше сторожит ТОЛЬКО 30-дневные производные, и потому не
           # заметил, как чистка реестра по неверному ключу снесла 4 898 строк и 9 354 730 ₽ за
           # 2026-03..2026-06: окно 30 дней не шелохнулось, прогон был зелёный.
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/netting.ndjson            $(prev netting.ndjson)            --month-key=d    --sum=amount
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/orders.ndjson             $(prev orders.ndjson)             --month-key=created --sum=accruals
-          npx tsx src/scripts/ym/validate-facts.ts data-ym/realization_monthly.ndjson $(prev realization_monthly.ndjson) --month-key=ym   --sum=amount
+          # Базовый слепок - из /tmp/ym-base (снят до продьюсеров), а НЕ из HEAD: промежуточный коммит
+          # успевает положить свежие orders в HEAD, и сравнение шло бы файла с самим собой.
+          # Пустая строка от base() означает «сравнивать не с чем», и гейт тогда молча пропускает
+          # что угодно. Это допустимо только на первом прогоне. Если файл в data-ym есть, а слепка
+          # нет - защита отключена, и прогон обязан упасть, а не проехать (ФЕНИКС iter3).
+          # `exit 1` внутри $( ) убивает ПОДСТАНОВКУ, а не шаг: аргумент просто исчезал из argv,
+          # гейт печатал «прошлого снимка нет» и отрабатывал вхолостую с кодом 0. Проверял сообщение
+          # защиты вместо её срабатывания - третий раз подряд (ФЕНИКС iter4). Теперь статус
+          # подстановки проверяется явно, присваиванием в переменную.
+          base () {
+            if [ -f "/tmp/ym-base/$1" ]; then echo "/tmp/ym-base/$1"; return 0; fi
+            if [ -f "data-ym/$1" ]; then echo "::error::слепка /tmp/ym-base/$1 нет, а data-ym/$1 существует - гейт остался бы без базы сравнения" >&2; return 1; fi
+            echo ""; return 0
+          }
+          check () {
+            local f="$1"; shift
+            local b; b=$(base "$f") || exit 1
+            npx tsx src/scripts/ym/validate-facts.ts "data-ym/$f" "$b" "$@"
+          }
+          check netting.ndjson            --month-key=d       --sum=amount   --by=business
+          check orders.ndjson             --month-key=created --sum=accruals --by=business
+          check realization_monthly.ndjson --month-key=ym     --sum=amount
+          check sku_views.ndjson          --month-key=date    --sum=views    --by=business
 
       - name: Джойны таксономии и СС (ключ - артикул)
         run: npm run ym:join

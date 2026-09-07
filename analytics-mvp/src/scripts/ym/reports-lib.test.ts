@@ -147,6 +147,22 @@ describe("ключ чистки накопительного файла = клю
     expect(keep.map((r) => `${r.business}/${r.d.slice(0, 7)}`)).toEqual(["74986385/2026-04", "74986385/2026-05"]);
     expect(keep.some((r) => r.business === "1023124")).toBe(false); // свой месяц заменяется свежим
   });
+  it("чистится ЗАПРОШЕННАЯ пара, а не месяц, пришедший в ответе", () => {
+    // Отчёт Маркета отдаёт проводки за пределами окна: запрос июля приносит и майские строки.
+    // Живой факт 2026-09-07 (прогон 17): список чистки строился из ответа, поэтому запрос июля
+    // помечал май «перезабранным», приносил оттуда 568 строк из 2380 - и сносил остальные 1812.
+    const old = [
+      { business: "B", d: "2026-05-10", amount: 1 }, { business: "B", d: "2026-05-11", amount: 1 },
+      { business: "B", d: "2026-07-01", amount: 1 },
+    ];
+    const requested = new Set(["B/2026-07"]);          // запрошен ТОЛЬКО июль
+    const fresh = [{ business: "B", d: "2026-07-02" }, { business: "B", d: "2026-05-30" }]; // а пришёл и май
+    const keepByRequest = old.filter((r) => !requested.has(`${r.business}/${r.d.slice(0, 7)}`));
+    expect(keepByRequest.filter((r) => r.d.startsWith("2026-05"))).toHaveLength(2); // май цел
+    const coveredFromRows = new Set(fresh.map((r) => `${r.business}/${r.d.slice(0, 7)}`));
+    expect(old.filter((r) => !coveredFromRows.has(`${r.business}/${r.d.slice(0, 7)}`))
+      .filter((r) => r.d.startsWith("2026-05"))).toHaveLength(0); // старое поведение теряло май
+  });
   it("чистка по одному месяцу (старое поведение) сносила бы чужой кабинет", () => {
     const old = [{ business: "74986385", d: "2026-04-11", amount: 2 }];
     const fresh = [{ business: "1023124", d: "2026-04-15", amount: 9 }];
@@ -156,26 +172,39 @@ describe("ключ чистки накопительного файла = клю
   });
 });
 
-describe("состояние не запирает бэкфилл навсегда", () => {
-  // Пара, закрытая пустым отчётом, раньше не открывалась никогда: donePairs пропускает её до
-  // запроса. Август встал на 1/7 магазинов не из-за лимита Маркета, а из-за этого.
-  const reopen = (pairs: string[], byMonth: Record<string, any>) => {
-    const done = new Set(pairs);
-    for (const [ym, cov] of Object.entries(byMonth)) {
-      const withRows = new Set<string>(cov.shops_with_rows || []);
-      for (const c of (cov.shops_sold || []) as string[]) if (!withRows.has(c)) done.delete(`${ym}/${c}`);
+
+
+describe("пересбор месяца идемпотентен, обычный прогон ничего не переоткрывает (ФЕНИКС veto 5.6)", () => {
+  // Переоткрытие по косвенному признаку проваливалось дважды: признак читался из состояния
+  // (пустого у старых месяцев), потом из поля from (которое писатель проставляет ВСЕМ строкам,
+  // включая поднятые из файла с пустым множеством - через один прогон from: [] стоял бы у всех 177
+  // строк и переоткрылись бы 14 пар на 4 830 709 ₽). Косвенный признак заменён явной командой.
+  const run = (existing: any[], donePairs: string[], months: string[], rebuild: boolean) => {
+    const done = new Set(donePairs);
+    if (rebuild) for (const ym of months) for (const p of [...done]) if (p.startsWith(`${ym}/`)) done.delete(p);
+    const byMonth: Record<string, Record<string, { sold: number }>> = {};
+    for (const r of existing) {
+      if (rebuild && months.includes(r.ym)) continue;              // месяц не засеваем накопленным
+      (byMonth[r.ym] ||= {})[r.sku] = { sold: r.sold };
     }
-    return [...done].sort();
+    return { open: [...done].sort(), seeded: byMonth };
   };
-  it("пара без строк переоткрывается, чужие месяцы не трогаются", () => {
-    const byMonth = { "2026-08": { shops_sold: ["A", "B"], shops_with_rows: ["A"] } };
-    // B за август переоткрыт; A за август и C за июль остались закрытыми
-    expect(reopen(["2026-08/A", "2026-08/B", "2026-07/C"], byMonth)).toEqual(["2026-07/C", "2026-08/A"]);
+  const existing = [{ ym: "2026-02", sku: "S", sold: 10, from: [] }];
+  const pairs = ["2026-02/A", "2026-02/B", "2026-03/C"];
+
+  it("обычный прогон: ни одна пара не открывается, даже если from пуст у всех строк", () => {
+    const r = run(existing, pairs, ["2026-02"], false);
+    expect(r.open).toEqual(pairs);                                  // ничего не переоткрыто
+    expect(r.seeded["2026-02"]!["S"]!.sold).toBe(10);               // месяц засеян накопленным
   });
-  it("переоткрытие не может задвоить цифры: у переоткрытых пар вклад нулевой", () => {
-    const byMonth = { "2026-08": { shops_sold: ["A", "B"], shops_with_rows: ["A"] } };
-    const left = reopen(["2026-08/A", "2026-08/B"], byMonth);
-    expect(left).toContain("2026-08/A");     // дала строки - повторно не тянем
-    expect(left).not.toContain("2026-08/B"); // строк не дала - тянем снова, прибавлять нечего
+  it("пересбор: пары месяца открыты, накопленное месяца отброшено - складывать не на что", () => {
+    const r = run(existing, pairs, ["2026-02"], true);
+    expect(r.open).toEqual(["2026-03/C"]);                          // открыт только целевой месяц
+    expect(r.seeded["2026-02"]).toBeUndefined();                    // второго слоя быть не из чего
+  });
+  it("пересбор одного месяца не трогает соседние", () => {
+    const two = [{ ym: "2026-02", sku: "S", sold: 10 }, { ym: "2026-03", sku: "T", sold: 5 }];
+    const r = run(two, pairs, ["2026-02"], true);
+    expect(r.seeded["2026-03"]!["T"]!.sold).toBe(5);
   });
 });

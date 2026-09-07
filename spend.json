@@ -1,0 +1,11 @@
+[
+ {
+  "ts": "2026-09-07T13:05:37.394Z",
+  "mode": "weekly",
+  "model": "claude-sonnet-5",
+  "inTok": 1551,
+  "outTok": 1311,
+  "usd": 0.0162,
+  "rub": 1.5
+ }
+]

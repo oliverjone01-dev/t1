@@ -269,6 +269,27 @@ jobs:
             dep.kp+=kp;dep.dec+=dec;dep.long+=lo;dep.kpR+=sumOf(my,'C49:PREPAYMENT_INVOIC');dep.decR+=sumOf(my,'C49:3');dep.longR+=sumOf(my,'C49:UC_8JTBV2');dep.port+=my.length;dep.neu+=neu;dep.rub+=my.reduce((s,x)=>s+(x.budget||0),0);prepN+=pN;prepR+=pR;
             return {m,port:my.length,kp,dec,lo,neu,pN,pR,miss,todayN:tN};});
           rows.sort((a,b)=>b.port-a.port);
+          // Сигналы «что дожать сегодня» из снимка коммуникаций (детерминированно, без ИИ/API):
+          // КП без дожима (отправил и забыл), просроченные дела, клиент написал - ответа нет.
+          const nkey=s=>String(s||'').trim().toLowerCase().split(/\s+/).sort().join(' ');
+          let SIG={}; try{
+            const dlg=JSON.parse(fs.readFileSync('/tmp/dialog.json','utf8'));
+            const dev=dlg.events||[]; const dds=(dlg.scoring&&dlg.scoring.deals)||[];
+            const PREp=new Set(['C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2']);
+            const EX={}; for(const e of dev){const k=e.dealId?'D'+e.dealId:'L'+e.leadId;(EX[k]=EX[k]||[]).push(e);}
+            const CF=t=>t&&(t.indexOf('Сообщение')===0||t==='Мессенджер ОЛ'||t==='Письмо'||t==='Звонок');
+            const TX=t=>t&&(t.indexOf('Сообщение')===0||t==='Мессенджер ОЛ'||t==='Письмо');
+            const triv=t=>{const raw=String(t||'').toLowerCase().trim();const s=raw.replace(/[^a-zа-яё]/gi,'');return !s||/^(принято|получено|спасибо|благодарю)/.test(raw)||/^(ок|окей|хорошо|да|нет|угу|ага)$/.test(s);};
+            for(const z of dds){ if(z.isLead||(z.outcome||'open')!=='open'||PREp.has(z.stageCode))continue;
+              const key=nkey(z.mgr); const s=(SIG[key]=SIG[key]||{kp:0,kpSum:0,over:0,wait:0});
+              if((z.overdueD||0)>0)s.over++;
+              const evs=(EX['D'+z.dealId]||[]).slice().sort((a,b)=>a.ts-b.ts);
+              const kpRow=(z.stageRows||[]).find(r=>r.code==='C49:PREPAYMENT_INVOIC');
+              if(kpRow){const after=evs.filter(e=>e.ts>=kpRow.ts&&CF(e.type)&&e.dir==='исходящее');if(!after.length){s.kp++;s.kpSum+=z.budget||0;}}
+              const tx=evs.filter(e=>TX(e.type)); const last=tx[tx.length-1];
+              if(last&&last.dir==='входящее'&&!triv(last.body))s.wait++;
+            }
+          }catch(e){ console.error('сигналы коммуникаций пропущены:', e.message); }
           const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
           const MON=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
           const monName=MON[parseInt(TODAY.slice(5,7),10)-1]||TODAY.slice(0,7);
@@ -294,7 +315,8 @@ jobs:
           // Ссылки внутри <pre> у части клиентов Telegram НЕ кликаются, поэтому строки менеджеров выносим ИЗ моноблока:
           // имя - настоящая кликабельная ссылка на его блок «Приоритет к предоплате», показатели через « · », цветовой флаг спереди.
           const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba','Юлия Шура-Бура':'YuliyaShB','Ольга Маслова':'vuinochan','Алина Платонова':'alina_platt','Надежда Лобова':'Nadia_LNA90'};
-          const mgrLine=r=>tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>'+(HANDLE[r.m]?(' @'+HANDLE[r.m]):'')+'\n    портф '+r.port+(r.neu?('(+'+r.neu+')'):'')+' · КП '+r.kp+'/'+r.dec+'/'+r.lo+(r.pN?(' · предопл '+r.pN+'·'+K(r.pR)):' · <b>без предоплат</b>')+' · сегодня '+r.todayN+' · '+r.miss+' дн без предоплат';
+          const sigLine=r=>{const g=SIG[nkey(r.m)]||{kp:0,kpSum:0,over:0,wait:0};const parts=[];if(g.kp)parts.push('🔴 КП без дожима '+g.kp+'·'+K(g.kpSum));if(g.over)parts.push('⏰ просрочено '+g.over);if(g.wait)parts.push('💬 без ответа '+g.wait);return parts.length?('\n    '+parts.join(' · ')):'';};
+          const mgrLine=r=>tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>'+(HANDLE[r.m]?(' @'+HANDLE[r.m]):'')+'\n    портф '+r.port+(r.neu?('(+'+r.neu+')'):'')+' · КП '+r.kp+'/'+r.dec+'/'+r.lo+(r.pN?(' · предопл '+r.pN+'·'+K(r.pR)):' · <b>без предоплат</b>')+' · сегодня '+r.todayN+' · '+r.miss+' дн без предоплат'+sigLine(r);
           const table=rows.map(mgrLine).join('\n');
           let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за вчера)'):'')+'\n';
           sum+='Цель 700к/день · 20 млн/мес\n';

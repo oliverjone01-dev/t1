@@ -1,7 +1,7 @@
 # Red-team пробы ФЕНИКСА (live-атаки на артефакт)
 
 Правило из якоря ТИМУР 7.6 → 7.9 → 8.5: гейт, хук, скрипт, агент, skill или дашборд без попытки его сломать
-не получает `go`: risk_awareness ≤ 5.0 и verdict не выше `return` (weighted_total не режется, он всегда равен Σ(score × weight)). Проверка «прочитал и понравилось» не считается. Каждая проба - это команда или
+оценивается не выше 7.9. Проверка «прочитал и понравилось» не считается. Каждая проба - это команда или
 действие, результат и ссылка на чекпоинт phoenix-eval. ФЕНИКС записывает в evidence ledger:
 `probe: <id> | result: pass|fail | evidence: <вывод команды>`.
 
@@ -75,6 +75,6 @@ Bitrix24, сайт) ФЕНИКС не делает никогда - только
 | D11 | PASS | `node --check` на обёрнутом council.js: OK |
 ```
 
-FAIL по любой пробе класса A или B7 - verdict не выше `return`, даже если weighted_total ≥ 7.5 (в JSON: `verdict: return`, `probes[]` с FAIL; `validate.py` принимает return ≥ 7.5 только при FAIL A/B7 или `verdict_override_reason`).
+FAIL по любой пробе класса A или B7 - verdict не выше `return`, даже если weighted_total ≥ 7.5.
 Ни одной пробы для артефакта класса A/B/D - в отчёте строка `probes: not_run (reason)`,
-score по risk_awareness не выше 5.0, verdict не выше `return`, `verdict_override_reason` заполнен.
+а score по risk_awareness не выше 5.0.

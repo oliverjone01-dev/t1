@@ -4,7 +4,7 @@
 # Путь нормализуется (realpath) ДО сравнения префиксов: обход через `..` и симлинки закрыт (проба A5, аудит 2026-09-06).
 # Регистрация: (1) project-level в settings.json - срабатывает, когда stdin несёт agent_type=feniks;
 #              (2) agent-scoped в frontmatter feniks.md с флагом --force - срабатывает без agent_type.
-# Блокировки пишутся в traces/YYYY-MM-DD/agents.jsonl (event=gate); allow - только при FENIKS_GATE_TRACE_ALL=1.
+# Каждое решение пишется в traces/YYYY-MM-DD/agents.jsonl (event=gate) для проверки живой работы гейта.
 
 set -uo pipefail
 ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
@@ -62,8 +62,7 @@ if not fp:
 p = fp if os.path.isabs(fp) else os.path.join(root, fp)
 real = os.path.realpath(p)
 if allowed(real):
-    if os.environ.get("FENIKS_GATE_TRACE_ALL") == "1":
-        trace("allow", real)  # allow не логируется по умолчанию: 74 из 80 строк трейса за день были allow (аудит, итерация 2)
+    trace("allow", real)
     sys.exit(0)
 
 trace("block", real)

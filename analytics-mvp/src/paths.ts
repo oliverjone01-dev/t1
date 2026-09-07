@@ -71,7 +71,10 @@ export function platformize(html: string): string {
   let out = html
     .replace(/\['ym','Яндекс Маркет',0\]/g, `['ym','${YM_OTHER}',0]`)
     .replace(/"id":"ym","name":"Яндекс Маркет","short":"Я\.Маркет"/g, `"id":"ym","name":"${YM_OTHER}","short":"${YM_OTHER}"`)
-    .replace(/ozon-snapshots\.yml/g, "ym-snapshots.yml");
+    .replace(/ozon-snapshots\.yml/g, "ym-snapshots.yml")
+    // Оверлей выбора каналов: слот OZON на дашборде Маркета пуст не потому, что у OZON нет
+    // продаж, а потому что OZON живёт на своём дашборде. Иначе читатель видит «нет данных» по OZON.
+    .replace(/\(прочие пока не подключены к API\)/g, `(${YM_OTHER} - на своём дашборде, прочие не подключены к API)`);
   for (const [re, to] of YM_LABELS) out = out.replace(re, to);
   out = out
     .replace(/OZON/g, "Яндекс Маркет")

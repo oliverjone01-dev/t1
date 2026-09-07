@@ -127,3 +127,31 @@ describe("лимит Маркета - это ожидание, а не отка�
     await expect(mod.retryOnRateLimit(fn, "тест", { waitMs: 0, timeLeft: () => 10 * 60_000 })).rejects.toThrow("API_DISABLED");
   });
 });
+
+describe("ключ чистки накопительного файла = ключ возобновляемости", () => {
+  // Живой факт 2026-09-07: чистка реестра шла по месяцу, а возобновляемость - по паре
+  // (кабинет, месяц). Перезабор 1023124/2026-04 снёс 74986385 за 2026-03..2026-06:
+  // 11 407 строк -> 6 509, 27 932 124 ₽ -> 18 577 394 ₽. Прогон при этом завершился зелёным.
+  const purge = (fresh: any[], old: any[]) => {
+    const covered = new Set(fresh.map((r) => `${r.business}/${r.d.slice(0, 7)}`));
+    return old.filter((r) => !covered.has(`${r.business}/${r.d.slice(0, 7)}`));
+  };
+  it("перезабор одного кабинета не трогает другой за тот же месяц", () => {
+    const old = [
+      { business: "1023124", d: "2026-04-10", amount: 1 },
+      { business: "74986385", d: "2026-04-11", amount: 2 },
+      { business: "74986385", d: "2026-05-01", amount: 3 },
+    ];
+    const fresh = [{ business: "1023124", d: "2026-04-15", amount: 9 }];
+    const keep = purge(fresh, old);
+    expect(keep.map((r) => `${r.business}/${r.d.slice(0, 7)}`)).toEqual(["74986385/2026-04", "74986385/2026-05"]);
+    expect(keep.some((r) => r.business === "1023124")).toBe(false); // свой месяц заменяется свежим
+  });
+  it("чистка по одному месяцу (старое поведение) сносила бы чужой кабинет", () => {
+    const old = [{ business: "74986385", d: "2026-04-11", amount: 2 }];
+    const fresh = [{ business: "1023124", d: "2026-04-15", amount: 9 }];
+    const byMonthOnly = new Set(fresh.map((r) => r.d.slice(0, 7)));
+    expect(old.filter((r) => !byMonthOnly.has(r.d.slice(0, 7)))).toHaveLength(0); // вот она, потеря
+    expect(purge(fresh, old)).toHaveLength(1);                                    // исправленный ключ бережёт
+  });
+});

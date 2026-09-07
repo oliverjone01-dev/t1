@@ -65,6 +65,12 @@ const YM_LABELS: Array<[RegExp, string]> = [
 // Меняем только человекочитаемые метки; идентификаторы каналов ('ozon', .ch-ozon) не трогаем:
 // шаблон Кати завязан на id 'ozon' как на «живой канал», для Маркета этот слот занимает Маркет.
 // Слот «Яндекс Маркет (нет данных)» в селекторе каналов при этом становится слотом OZON.
+// Плейсхолдер для мест, где слово «OZON» на странице Маркета стоит ОСМЫСЛЕННО (сравнение площадок,
+// «у OZON это есть, у Маркета нет»). Без него общая замена OZON -> Яндекс Маркет переворачивает смысл:
+// живой факт 2026-09-07 - фраза «слой закрытых месяцев на OZON строится из Актов» превратилась в
+// «на Яндекс Маркет строится из Актов», то есть в прямую ложь про Маркет.
+export const KEEP_OZON = "@@GG_KEEP_MP1@@";
+
 export function platformize(html: string): string {
   if (IS_OZON) return html;
   const YM_OTHER = "@@GG_OTHER_MP@@";
@@ -81,6 +87,7 @@ export function platformize(html: string): string {
     .replace(/Озон/g, "Я.Маркет")
     .replace(/Ozon/g, "Я.Маркет");
   out = out.replace(new RegExp(YM_OTHER, "g"), "OZON");
+  out = out.replace(new RegExp(KEEP_OZON, "g"), "OZON");
   return out;
 }
 

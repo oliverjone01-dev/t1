@@ -140,6 +140,12 @@ jobs:
           npx tsx src/scripts/validate-snapshot.ts skus   data-ym/skus_live_30d.json $(prev skus_live_30d.json)
           npx tsx src/scripts/validate-snapshot.ts pnl    data-ym/pnl_30d.json       $(prev pnl_30d.json)
           npx tsx src/scripts/validate-snapshot.ts pnlsku data-ym/pnl_sku_30d.json   $(prev pnl_sku_30d.json)
+          # Накопительный факт-слой. Гейт выше сторожит ТОЛЬКО 30-дневные производные, и потому не
+          # заметил, как чистка реестра по неверному ключу снесла 4 898 строк и 9 354 730 ₽ за
+          # 2026-03..2026-06: окно 30 дней не шелохнулось, прогон был зелёный.
+          npx tsx src/scripts/ym/validate-facts.ts data-ym/netting.ndjson            $(prev netting.ndjson)            --month-key=d    --sum=amount
+          npx tsx src/scripts/ym/validate-facts.ts data-ym/orders.ndjson             $(prev orders.ndjson)             --month-key=created --sum=accruals
+          npx tsx src/scripts/ym/validate-facts.ts data-ym/realization_monthly.ndjson $(prev realization_monthly.ndjson) --month-key=ym   --sum=amount
 
       - name: Джойны таксономии и СС (ключ - артикул)
         run: npm run ym:join

@@ -255,6 +255,8 @@ describe("сверка денег не выдаёт тождество за пр
     expect(l.fees_derived).toBe(l.fees_ledger);
     expect(l.fees_diff).toBe(0);                       // тождество, а не совпадение
     expect(r.cumulative.diff).toBe(l.accruals_diff);   // разность - это только начисления
+    // и она обязана быть ОДНИМ числом со своими ногами, а не отдельно округлённой копией
+    expect(r.cumulative.diff).toBe(Math.round(l.accruals_diff - l.fees_diff));
     expect(l.covers).toContain("сокращаются тождественно");
   });
   it("разнесение сборов по позициям проверяется независимо и умеет падать", () => {
@@ -267,5 +269,43 @@ describe("сверка денег не выдаёт тождество за пр
     const a = (bad.cumulative as any).legs.allocation;
     expect(a.orders_off).toBe(1);
     expect(a.status).toContain("РАЗНЕСЕНИЕ ТЕРЯЕТ ДЕНЬГИ");
+  });
+});
+
+describe("покрытие: неизвестность не выдаётся за ноль, окно не выдаётся за весь период", () => {
+  it("месяц со строками реализации не может показывать «0 магазинов добрано»", () => {
+    // Состояние собрано версией без поля from: разбивка потеряна, но строки за месяц ЕСТЬ.
+    // «0 из 7» - проверяемо ложно; корректный ответ - «покрытие неизвестно».
+    const realz = [{ ym: "2026-08", sku: "GGT-03-3-3-O-20090", sold: 4, ret: 1, amount: 140000 }];
+    const st = { by_month: { "2026-08": { shops_sold: ["21000001"], shops_with_rows: [], shops_no_data: [], shops_pending: ["21000001"] } } };
+    const r = buildReconcile({ ...base, realization: realz, netting: null, realizationState: st }, TODAY);
+    const cov: any = (r.periods[0]!.units as any).coverage;
+    expect(cov.known).toBe(false);
+    expect(cov.shops_with_rows).toBeNull();
+    expect(r.blockers.some((b) => b.includes("0/"))).toBe(false);
+  });
+  it("покрытие СС и таксономии считается и за весь период, не только за окно 30 дней", () => {
+    const r = buildReconcile({ ...base, realization: [], netting: null }, TODAY);
+    const ap: any = (r.coverage as any).all_period;
+    expect(ap.sku_total).toBeGreaterThan(0);
+    expect(ap.cogs).toHaveProperty("rev_without");
+    expect(ap.taxonomy).toHaveProperty("rev_without");
+    // Инвариант: весь период считается по ВСЕМ строкам заказов, а окно - по живому снимку.
+    // В фикстуре даты могут совпасть, поэтому сверяем состав, а не границы.
+    expect(ap.sku_total).toBe(new Set(rows.filter((x) => !x.fake).map((x) => x.sku)).size);
+    // И главное: сузив живое окно, покрытие за весь период меняться НЕ должно - иначе это опять
+    // окно под другим именем, а не весь период.
+    const narrow = buildReconcile({ ...base, live: { ...live, sku_table: [live.sku_table[0]!] }, realization: [], netting: null }, TODAY);
+    expect((narrow.coverage as any).sku_total).toBeLessThan((r.coverage as any).sku_total);
+    expect((narrow.coverage as any).all_period.sku_total).toBe(ap.sku_total);
+    expect((narrow.coverage as any).all_period.rev_total).toBe(ap.rev_total);
+  });
+  it("сборы уровня кабинета не имеют двух значений без объяснения", () => {
+    const netting = [{ d: "2026-01-31", order: "", service: "Премия", amount: 100 }, { d: "2026-08-31", order: "", service: "Премия", amount: 50 }];
+    const r = buildReconcile({ ...base, realization: [], netting }, TODAY);
+    const c: any = r.cumulative;
+    expect(c.netting_account).toBe(150);
+    expect(c.netting_account_in_window).toBe(50);       // проводка до нижней границы в окно не входит
+    expect(c.netting_account_note).toContain("до нижней границы");
   });
 });

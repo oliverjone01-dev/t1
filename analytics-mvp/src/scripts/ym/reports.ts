@@ -126,12 +126,12 @@ async function realization(months: string[]) {
   }
   const withRows: Record<string, Set<string>> = {}, noDataDespiteSales: Record<string, Set<string>> = {};
   const mark = (m: Record<string, Set<string>>, ym: string, c: string) => (m[ym] ||= new Set()).add(c);
-  const byMonth: Record<string, Record<string, { sold: number; ret: number; amount: number }>> = {};
-  for (const r of existing) { const b = byMonth[r.ym] || (byMonth[r.ym] = {}); b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0 }; }
+  const byMonth: Record<string, Record<string, { sold: number; ret: number; amount: number; from: Set<string> }>> = {};
+  for (const r of existing) { const b = byMonth[r.ym] || (byMonth[r.ym] = {}); b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) }; }
   outer:
   for (const ym of months) {
     const [y, m] = ym.split("-").map(Number) as [number, number];
-    const bySku: Record<string, { sold: number; ret: number; amount: number }> = byMonth[ym] || (byMonth[ym] = {});
+    const bySku: Record<string, { sold: number; ret: number; amount: number; from: Set<string> }> = byMonth[ym] || (byMonth[ym] = {});
     let ok = 0;
     for (const { campaign: c, account } of targets) {
       const pair = `${ym}/${c.id}`;
@@ -166,7 +166,8 @@ async function realization(months: string[]) {
         parsed = true;
         for (const r of t.rows) {
           const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
-          const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0 });
+          const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0, from: new Set<string>() });
+          a.from.add(c.id); // какой магазин дал строку - пишем В ДАННЫЕ, а не только в состояние прогона
           if (role === "returned") {
             a.ret += num("goods-realization", r[ix.returned!]);
             if (ix.amount_returned! >= 0) a.amount -= num("goods-realization", r[ix.amount_returned!]);
@@ -181,7 +182,7 @@ async function realization(months: string[]) {
     if (!ok && !Object.keys(bySku).length) { console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`); continue; }
     console.log(`realization ${ym}: SKU ${Object.keys(bySku).length}, реализовано нетто ${Object.values(bySku).reduce((s, a) => s + a.sold - a.ret, 0)} шт${ok ? "" : " (из ранее собранного)"}`);
   }
-  for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), platform: "ym", source: "goods-realization" });
+  for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), from: [...a.from].sort(), platform: "ym", source: "goods-realization" });
   const merged = fresh.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));
   writeNdjson(OUT, merged);
   // Покрытие по месяцам: какие магазины реально дали строки, а какие продавали, но отчёт ещё пуст.
@@ -192,7 +193,13 @@ async function realization(months: string[]) {
   for (const [ym, shops] of Object.entries(shopsSold)) {
     const rowsSet = withRows[ym] || new Set<string>(), ndSet = noDataDespiteSales[ym] || new Set<string>();
     const prev = readJson<any>(STATE, {}).by_month?.[ym];
-    const keptRows = new Set<string>([...(prev?.shops_with_rows || []), ...rowsSet]);
+    // Магазины, давшие строки, берём ИЗ ДАННЫХ. Раньше источником было только то, что разобрал этот
+    // прогон, плюс перенос из состояния - а пары, собранные до появления поля, не отмечались никогда
+    // и не могли отметиться потом (donePairs их пропускает). Месяц с данными вечно показывал
+    // «0 магазинов добрано» при непустом файле: живой факт 2026-09-07 - 2026-08 имел 22 SKU и 26 шт
+    // при shops_with_rows = [].
+    const fromData = new Set<string>(merged.filter((r: any) => r.ym === ym).flatMap((r: any) => r.from || []));
+    const keptRows = new Set<string>([...(prev?.shops_with_rows || []), ...rowsSet, ...fromData]);
     byMonthCov[ym] = {
       shops_sold: shops.sort(),
       shops_with_rows: [...keptRows].filter((c) => shops.includes(c)).sort(),
@@ -253,8 +260,14 @@ async function netting(from: string, to: string) {
   // иначе один упёршийся в лимит прогон обнулит уже собранные месяцы.
   // Из старого снимка выкидываем только те месяцы, которые в ЭТОТ прогон реально перезабрали.
   // Возобновляемый бэкфилл трогает лишь часть диапазона, и обнулять остальное нельзя.
-  const covered = new Set(fresh.map((r) => r.d.slice(0, 7)));
-  const keep = readNdjson<any>(OUT).filter((r) => !covered.has(r.d.slice(0, 7)));
+  // КЛЮЧ ЧИСТКИ ОБЯЗАН СОВПАДАТЬ С КЛЮЧОМ ВОЗОБНОВЛЯЕМОСТИ. Возобновляемся по паре (кабинет, месяц),
+  // а чистили по одному месяцу - и перезабор одного кабинета сносил строки ДРУГОГО за тот же месяц.
+  // Живой факт 2026-09-07: прогон перезабрал 1023124/2026-04 и 1023124/2026-05 и уничтожил
+  // 74986385 за 2026-03..2026-06 - реестр упал с 11 407 строк (27 932 124 ₽) до 6 509 (18 577 394 ₽),
+  // минус 4 898 строк и 9 354 730 ₽. Дельта-гейт этого не увидел: он смотрит только 30-дневные
+  // производные. Чистим строго ту пару, которую в этот прогон реально перезабрали.
+  const covered = new Set(fresh.map((r) => `${r.business}/${r.d.slice(0, 7)}`));
+  const keep = readNdjson<any>(OUT).filter((r) => !covered.has(`${r.business}/${r.d.slice(0, 7)}`));
   // Живой факт 2026-09-04: отчёт отдаёт проводки и за пределами запрошенного окна (в выгрузке за
   // февраль пришли январские), поэтому соседние месячные запросы ПЕРЕСЕКАЮТСЯ. Без дедупа одна и та
   // же проводка попадает дважды: на первом прогоне так задвоилось 2935 строк на 17.6 млн ₽, и сверка

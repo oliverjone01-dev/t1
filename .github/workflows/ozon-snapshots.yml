@@ -67,11 +67,6 @@ jobs:
             echo "::error::OZON Seller креды не заданы (ни Secrets, ни input)."; exit 1
           fi
           echo "Seller-креды на месте."
-      - name: PROBE CPO per-SKU отчёт (разведка API, удалить после разбора)
-        run: |
-          set -uo pipefail
-          echo "::add-mask::${OZON_PERF_SECRET:-}"; echo "::add-mask::${OZON_PERF_CLIENT_ID:-}"
-          npx tsx src/scripts/ozon/cpo-report-probe.ts 2026-09-01 2026-09-07 || echo "probe завершился (не критично)"
       - name: Рекламная статистика по дням (показы/клики/корзина -> ads_daily)
         run: |
           set -euo pipefail

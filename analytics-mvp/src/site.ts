@@ -1,4 +1,4 @@
-import { PRODUCT_URL_JS, CABINET_URL_JS } from "./paths.js";
+import { PRODUCT_URL_JS, CABINET_URL_JS, IS_OZON, KEEP_OZON } from "./paths.js";
 // Рендер сервиса в Orbi-стиле. История встроена в страницу, клиентский движок
 // витрин считает за выбранный период (7/30/90/Всё/свой) и сравнение - в браузере.
 // Несколько страниц на общем движке: Товары, Обзор, Воронка.
@@ -362,14 +362,22 @@ boot();`;
 
 // ---------------- Деньги ----------------
 export function renderMoney(model: unknown): string {
-  const sections = `
-  <h2>Сверенный P&L · закрытые месяцы (из подписанных Актов OZON)</h2>
+  // Слой закрытых месяцев держится на подписанных Актах OZON. У Яндекс Маркета такого источника нет
+  // (closed_pnl.json для него не собирается, DATA.closed пуст), поэтому дословный перенос текста
+  // утверждал бы про Маркет несуществующее: «из подписанных Актов (фев-апр)», «незакрытые месяцы
+  // (май-июнь)» - и месяцы там зашиты от OZON, к данным Маркета отношения не имеют.
+  const closedHead = IS_OZON
+    ? `<h2>Сверенный P&L · закрытые месяцы (из подписанных Актов OZON)</h2>
   <div class="grid" id="pnl"></div>
   <div class="note" id="pnlMeta"></div>
-  <div class="note">Сверенный слой. За незакрытые месяцы (май-июнь) чистая прибыль не показывается - не выдумывается (DOC_05 §1.2). Метод разнесения Акта - открытый риск G3 (двойной счёт "Базовое вознаграждение"), цифры с оговоркой.</div>
+  <div class="note">Сверенный слой. За незакрытые месяцы (май-июнь) чистая прибыль не показывается - не выдумывается (DOC_05 §1.2). Метод разнесения Акта - открытый риск G3 (двойной счёт "Базовое вознаграждение"), цифры с оговоркой.</div>`
+    : `<h2>Сверенный P&amp;L по закрытым месяцам: источника нет</h2>
+  <div class="card"><b>Чистая прибыль по закрытым месяцам не показывается.</b><div class="note" style="margin-top:8px">Слой закрытых месяцев на ${KEEP_OZON} строится из подписанных Актов. У Яндекс Маркета аналога Актов в API нет, отчёт о реализации даёт штуки и суммы, но не закрытый P&amp;L. Пока источника нет, слой пустой намеренно - ноль тут означал бы «прибыль ноль», а не «нет данных».</div></div>`;
+  const sections = `
+  ${closedHead}
   <h2>Операционный P&L по транзакциям · 30 дней (реальные сборы OZON)</h2>
   <div class="card" id="txpnl"></div>
-  <div class="note">Реальные сборы из /v3/finance/transaction (комиссия, логистика, эквайринг, подписки). Это канальный водопад М1→М3, работает и для незакрытого периода. С\С и реклама тут НЕ вычитаются: базис единиц у начисления и заказов разный, чистая прибыль - только из Актов. Маржа по С\С - на странице Товары. Декомпозиция строки «Прочие удержания» не документирована отчётом OZON - уточняется по детальному финотчёту (задача оперблоку, до закрытия цифра с оговоркой).</div>
+  <div class="note">Реальные сборы из /v3/finance/transaction (комиссия, логистика, эквайринг, подписки). Это канальный водопад М1→М3, работает и для незакрытого периода. С\С и реклама тут НЕ вычитаются: базис единиц у начисления и заказов разный, чистая прибыль - только из Актов${IS_OZON ? "" : " (у Маркета их нет, поэтому чистая прибыль не показывается вовсе)"}. Маржа по С\С - на странице Товары. Декомпозиция строки «Прочие удержания» не документирована отчётом OZON - уточняется по детальному финотчёту (задача оперблоку, до закрытия цифра с оговоркой).</div>
   <h2>Оборот по месяцам · оперативный слой (GMV, не прибыль)</h2>
   <div class="card" id="gmv"></div>
   <h2>Оборот за выбранный период (для контекста)</h2>
@@ -380,17 +388,20 @@ function draw(cur,cmp){
   document.getElementById('kpis').innerHTML=[kpiCard('Оборот, ₽ (GMV)',tc.rev,tp.rev,true,mln),kpiCard('Заказы',tc.units,tp.units,true,rub)].join('');
 }
 function drawStatic(){
-  const C=DATA.closed;let cum=0;let ph='';
+  const C=${IS_OZON ? "DATA.closed" : "[]"};let cum=0;let ph='';
   C.forEach(m=>{cum+=m.profit;const margin=Math.round(m.profit/m.realization*1000)/10;const pos=m.profit>=0;ph+='<div class="card"><div class="sub">'+m.label+'</div><div class="val num" style="font-size:24px;font-weight:680;color:'+(pos?'#34D399':'#FF5A5F')+'">'+mln(m.profit)+' ₽</div><div class="sub" style="margin-top:6px">реализация '+mln(m.realization)+' · маржа '+margin+'%</div></div>';});
-  ph+='<div class="card" style="border-color:#34343a"><div class="sub">Накоплено (фев-апр)</div><div class="val num" style="font-size:24px;font-weight:680">'+mln(cum)+' ₽</div><div class="sub" style="margin-top:6px">чистая прибыль</div></div>';
-  document.getElementById('pnl').innerHTML=ph;
-  const M=DATA.closedMeta||{};document.getElementById('pnlMeta').innerHTML='Последний закрытый месяц: <b>'+(M.lastLabel||'-')+'</b> · Акты обновлены '+(M.updated||'-')+(M.stale?' <span class="pill b-Z">Актам больше 45 дней - сверенный слой устарел, запросить закрытие месяца</span>':'');
+  ${IS_OZON ? `ph+='<div class="card" style="border-color:#34343a"><div class="sub">Накоплено (фев-апр)</div><div class="val num" style="font-size:24px;font-weight:680">'+mln(cum)+' ₽</div><div class="sub" style="margin-top:6px">чистая прибыль</div></div>';` : ``}
+  ${IS_OZON ? `document.getElementById('pnl').innerHTML=ph;
+  const M=DATA.closedMeta||{};document.getElementById('pnlMeta').innerHTML='Последний закрытый месяц: <b>'+(M.lastLabel||'-')+'</b> · Акты обновлены '+(M.updated||'-')+(M.stale?' <span class="pill b-Z">Актам больше 45 дней - сверенный слой устарел, запросить закрытие месяца</span>':'');` : `/* закрытого слоя у Маркета нет: узлов #pnl и #pnlMeta на странице тоже нет */`}
   const P=DATA.opnl;if(P&&P.accruals){let feesAbs=0;for(const k in (P.breakdown||{}))feesAbs+=Math.abs(P.breakdown[k]);const totalDed=P.accruals-P.payout;const other=Math.max(0,Math.round(totalDed-feesAbs));const f=n=>Math.round(n/P.accruals*1000)/10;let w='<div class="wgrid">'+'<div class="card kpi"><div class="lab">Выручка начисленная (М1)</div><div class="val num">'+mln(P.accruals)+' ₽</div><div class="sub">'+P.dateFrom+'..'+P.dateTo+'</div></div>'+'<div class="card kpi"><div class="lab">Сборы OZON (комиссия+услуги)</div><div class="val num" style="color:#FF5A5F">-'+mln(feesAbs)+' ₽</div><div class="sub">'+f(feesAbs)+'% выручки</div></div>'+'<div class="card kpi"><div class="lab">Прочие удержания (реклама/прочее)</div><div class="val num" style="color:#F2B544">-'+mln(other)+' ₽</div><div class="sub">'+f(other)+'% выручки · декомпозиция уточняется</div></div>'+'<div class="card kpi"><div class="lab">К начислению (М3)</div><div class="val num" style="color:#34D399">'+mln(P.payout)+' ₽</div><div class="sub">'+f(P.payout)+'% выручки</div></div></div>';w+='<div class="tscroll"><table><thead><tr><th>Статья сбора</th><th class="r">Сумма</th><th class="r">% выручки</th></tr></thead><tbody>';for(const k in (P.breakdown||{})){const v=P.breakdown[k];w+='<tr><td>'+k+'</td><td class="r num down">'+mln(v)+' ₽</td><td class="r num">'+f(Math.abs(v))+'%</td></tr>';}w+='<tr><td class="sub">Прочие удержания (реклама и пр., вне комиссии за продажу)</td><td class="r num down">-'+mln(other)+' ₽</td><td class="r num">'+f(other)+'%</td></tr><tr><td><b>Итого удержано</b></td><td class="r num down"><b>-'+mln(totalDed)+' ₽</b></td><td class="r num">'+f(totalDed)+'%</td></tr></tbody></table></div>';document.getElementById('txpnl').innerHTML=w;}
   const bm={};for(const f of F){const mo=f[0].slice(0,7);bm[mo]=(bm[mo]||0)+f[2];}const ms=Object.keys(bm).sort();const max=Math.max(1,...Object.values(bm));
   let g='';ms.forEach(m=>{g+='<div style="display:grid;grid-template-columns:80px 1fr 110px;align-items:center;gap:10px;margin:8px 0"><div class="sub">'+m+'</div><div style="background:#1E1E20;border-radius:7px"><div style="height:24px;width:'+(bm[m]/max*100)+'%;background:linear-gradient(90deg,#8AA0FF,#6377d6);border-radius:7px"></div></div><div class="r num">'+mln(bm[m])+' ₽</div></div>';});document.getElementById('gmv').innerHTML=g;
 }
 boot(drawStatic);`;
-  return shell("Деньги", sections, js, JSON.stringify(model), `Сверенный слой - <b>[ДАННЫЕ]</b> из подписанных Актов (фев-апр). Оперативный GMV - из дневной истории. Слои не смешиваются. Маржа по SKU - после коннектора транзакций (Фаза 2).`);
+  const foot = IS_OZON
+    ? `Сверенный слой - <b>[ДАННЫЕ]</b> из подписанных Актов (фев-апр). Оперативный GMV - из дневной истории. Слои не смешиваются. Маржа по SKU - после коннектора транзакций (Фаза 2).`
+    : `Закрытого слоя нет: у Маркета нет аналога подписанных Актов. Оперативный P&amp;L - из отчёта по взаиморасчётам и заказов. Оперативный GMV - из дневной истории. Слои не смешиваются.`;
+  return shell("Деньги", sections, js, JSON.stringify(model), foot);
 }
 
 // ---------------- Ассистент (детерминированный аналитик по витринам) ----------------

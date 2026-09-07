@@ -65,19 +65,29 @@ const YM_LABELS: Array<[RegExp, string]> = [
 // Меняем только человекочитаемые метки; идентификаторы каналов ('ozon', .ch-ozon) не трогаем:
 // шаблон Кати завязан на id 'ozon' как на «живой канал», для Маркета этот слот занимает Маркет.
 // Слот «Яндекс Маркет (нет данных)» в селекторе каналов при этом становится слотом OZON.
+// Плейсхолдер для мест, где слово «OZON» на странице Маркета стоит ОСМЫСЛЕННО (сравнение площадок,
+// «у OZON это есть, у Маркета нет»). Без него общая замена OZON -> Яндекс Маркет переворачивает смысл:
+// живой факт 2026-09-07 - фраза «слой закрытых месяцев на OZON строится из Актов» превратилась в
+// «на Яндекс Маркет строится из Актов», то есть в прямую ложь про Маркет.
+export const KEEP_OZON = "@@GG_KEEP_MP1@@";
+
 export function platformize(html: string): string {
   if (IS_OZON) return html;
   const YM_OTHER = "@@GG_OTHER_MP@@";
   let out = html
     .replace(/\['ym','Яндекс Маркет',0\]/g, `['ym','${YM_OTHER}',0]`)
     .replace(/"id":"ym","name":"Яндекс Маркет","short":"Я\.Маркет"/g, `"id":"ym","name":"${YM_OTHER}","short":"${YM_OTHER}"`)
-    .replace(/ozon-snapshots\.yml/g, "ym-snapshots.yml");
+    .replace(/ozon-snapshots\.yml/g, "ym-snapshots.yml")
+    // Оверлей выбора каналов: слот OZON на дашборде Маркета пуст не потому, что у OZON нет
+    // продаж, а потому что OZON живёт на своём дашборде. Иначе читатель видит «нет данных» по OZON.
+    .replace(/\(прочие пока не подключены к API\)/g, `(${YM_OTHER} - на своём дашборде, прочие не подключены к API)`);
   for (const [re, to] of YM_LABELS) out = out.replace(re, to);
   out = out
     .replace(/OZON/g, "Яндекс Маркет")
     .replace(/Озон/g, "Я.Маркет")
     .replace(/Ozon/g, "Я.Маркет");
   out = out.replace(new RegExp(YM_OTHER, "g"), "OZON");
+  out = out.replace(new RegExp(KEEP_OZON, "g"), "OZON");
   return out;
 }
 

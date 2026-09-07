@@ -3,7 +3,7 @@
 //  - деньги: по КЛЮЧУ ЗАКАЗА (netting.order ↔ orders.order), а не по датам выплат; плюс кумулятив с начала данных;
 //  - выручка: начислено vs realization.amount закрытого месяца + подбор состава типов цен;
 //  - «текущий месяц» - от сегодняшней даты, не от вчера.
-import { DELIVERED_STATUSES, real, type OrderRow } from "./derive-lib.js";
+import { DELIVERED_STATUSES, feeSourceSplit, real, type OrderRow } from "./derive-lib.js";
 
 export interface RealizationRow { ym: string; sku: string; sold: number; ret: number; amount?: number }
 export interface NettingRow { d: string; order?: string; shop_order?: string; sku?: string; service?: string; type?: string; amount: number }
@@ -15,6 +15,8 @@ export interface ReconInput {
   skippedCampaigns?: Array<{ campaign: string; business: string; reason: string }>;
 }
 
+// Человеческие имена кабинетов: в блокере «1023124» ничего не говорит, «зеркала» - говорит.
+const BIZ_NAME: Record<string, string> = { "1023124": "кабинет зеркал (1023124)", "74986385": "кабинет мебели (74986385)" };
 const r0 = (n: number) => Math.round(n);
 const pct = (a: number, b: number) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -39,6 +41,13 @@ export function buildReconcile(inp: ReconInput, today: string) {
     // Это не то же самое, что «ноль магазинов»: неизвестность нельзя выдавать за факт.
     if (!cov) return { known: false, shops_sold: sold.size, shops_with_rows: null, shops_missing: [] as string[], complete: false };
     const withRows = new Set(cov.shops_with_rows || []);
+    // Состояние говорит «ни один магазин не дал строк», а строки за месяц в файле ЕСТЬ. Значит
+    // состояние потеряло разбивку (собрано версией без поля from), а не магазины ничего не дали.
+    // «0 из 7» - проверяемо ложное утверждение: выдавать его за факт нельзя.
+    if (!withRows.size && realz.some((r) => r.ym === ym)) {
+      return { known: false, shops_sold: sold.size, shops_with_rows: null, shops_missing: [] as string[], complete: false,
+        note: `строки за ${ym} есть, но разбивка по магазинам не сохранена (снимок собран до появления поля from) - покрытие неизвестно, а не нулевое` };
+    }
     const missing = [...sold].filter((c) => !withRows.has(c)).sort();
     return { known: true, shops_sold: sold.size, shops_with_rows: [...sold].filter((c) => withRows.has(c)).length, shops_missing: missing, complete: sold.size > 0 && missing.length === 0 };
   };
@@ -50,8 +59,21 @@ export function buildReconcile(inp: ReconInput, today: string) {
   const delivered = real(rows).filter((r) => DELIVERED_STATUSES.has(r.status));
   const netRows = netting || [];
   const netByOrder = new Map<string, number>();
+  // Реестр раскладываем на начисления и удержания ОТДЕЛЬНО. Без этого разложения сверка денег
+  // выглядит проверкой сборов, хотя ею не является: payout = начислено − сборы, сборы взяты из этого
+  // же реестра, поэтому в разности payout − реестр член со сборами сокращается тождественно и
+  // остаётся только «начислено по заказам vs начислено по реестру». Разложение делает это явным.
+  const ledgerAccr = new Map<string, number>();  // Начисление/Возврат: деньги за товар
+  const ledgerHold = new Map<string, number>();  // всё остальное: удержания кабинета, знак как у сборов
+  const IS_ACCR = (t: string) => t === "Начисление" || t === "Возврат";
   let nettingAccount = 0;
-  for (const n of netRows) { const o = String(n.order || "").trim(); if (o) netByOrder.set(o, (netByOrder.get(o) || 0) + n.amount); else nettingAccount += n.amount; }
+  for (const n of netRows) {
+    const o = String(n.order || "").trim();
+    if (!o) { nettingAccount += n.amount; continue; }
+    netByOrder.set(o, (netByOrder.get(o) || 0) + n.amount);
+    if (IS_ACCR(String(n.type || ""))) ledgerAccr.set(o, (ledgerAccr.get(o) || 0) + n.amount);
+    else ledgerHold.set(o, (ledgerHold.get(o) || 0) - n.amount);
+  }
 
   // Проверка, что ORDER_ID отчёта и id заказа из stats/orders - ОДИН И ТОТ ЖЕ ключ. Живая находка
   // 2026-09-04: по одному id наш заказ показывал начисление 3500 ₽, а отчёт - 43 797 ₽ по тому же
@@ -129,14 +151,58 @@ export function buildReconcile(inp: ReconInput, today: string) {
     let pay = 0, matched = 0, net = 0;
     for (const [o, p] of orders) { pay += p; if (netByOrder.has(o)) { matched++; net += netByOrder.get(o)!; } }
     const payMatched = [...orders].filter(([o]) => netByOrder.has(o)).reduce((s, [, p]) => s + p, 0);
-    const diff = netting ? r0(payMatched - net) : null;
+    const diff0 = netting ? r0(payMatched - net) : null;
     const status = !netting ? "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены"
       : orders.size === 0 ? "доставленных заказов нет"
       : matched === 0 ? "в отчёте взаиморасчётов нет номеров этих заказов (колонка order пуста? см. _probe/united-netting.json)"
       : keyTrusted === false ? keyCheck.status
-      : Math.abs(diff!) <= moneyTol(payMatched) ? `сошлось по ${matched}/${orders.size} заказам (допуск ${r0(moneyTol(payMatched))} ₽)`
-      : `расхождение ${diff} ₽ по ${matched}/${orders.size} сопоставленным заказам (predicted-комиссии, удержания вне позиций)${keyTrusted === null ? "; " + keyCheck.status : ""}`;
-    return { payout_derived: r0(pay), payout_matched: r0(payMatched), netting_by_order: netting ? r0(net) : null, orders_total: orders.size, orders_matched: matched, diff, key_check: keyCheck, status };
+      : Math.abs(diff0!) <= moneyTol(payMatched) ? `сошлось по ${matched}/${orders.size} заказам (допуск ${r0(moneyTol(payMatched))} ₽)`
+      : `расхождение ${diff0} ₽ по ${matched}/${orders.size} сопоставленным заказам (predicted-комиссии, удержания вне позиций)${keyTrusted === null ? "; " + keyCheck.status : ""}`;
+    // Что эта сверка проверяет на самом деле. Раскладываем разность на две ноги: начисления и сборы.
+    // Там, где сборы взяты из реестра (а это ВСЕ сопоставленные заказы: заказ, попавший в реестр,
+    // получает fee_source="netting"), нога сборов равна нулю ТОЖДЕСТВЕННО, и разность целиком
+    // объясняется начислениями. Значит ошибку разнесения сборов по позициям эта сверка не поймает,
+    // и говорить «деньги сошлись с кабинетом» по ней нельзя.
+    let accrOrd = 0, accrLed = 0, feeDer = 0, feeLed = 0, fromLedger = 0;
+    const allocOff: Array<{ order: string; derived: number; ledger: number; diff: number }> = [];
+    for (const [o] of orders) {
+      if (!netByOrder.has(o)) continue;
+      const rs = d.filter((r) => r.order === o);
+      const a = rs.reduce((x, r) => x + r.accruals, 0), f = rs.reduce((x, r) => x + r.fee_total, 0);
+      const h = ledgerHold.get(o) || 0;
+      accrOrd += a; accrLed += ledgerAccr.get(o) || 0; feeDer += f; feeLed += h;
+      if (rs.some((r) => r.fee_source === "netting")) {
+        fromLedger++;
+        // Инвариант разнесения: сумма разнесённых по позициям сборов обязана сойтись с удержаниями
+        // реестра по этому заказу. Тождеством это НЕ является - разнесение идёт долями по
+        // начислениям и может потерять деньги (нулевые начисления, отфильтрованные позиции).
+        if (Math.abs(f - h) > 1) allocOff.push({ order: o, derived: r0(f), ledger: r0(h), diff: r0(f - h) });
+      }
+    }
+    const alloc = {
+      orders_from_ledger: fromLedger, orders_off: allocOff.length,
+      off_amount: r0(allocOff.reduce((x, o) => x + Math.abs(o.diff), 0)),
+      off_orders: allocOff.slice(0, 5),
+      status: !fromLedger ? "сборов из реестра нет - разносить нечего"
+        : allocOff.length ? `РАЗНЕСЕНИЕ ТЕРЯЕТ ДЕНЬГИ: у ${allocOff.length}/${fromLedger} заказов сумма сборов по позициям не равна удержаниям реестра`
+        : `разнесение сходится по всем ${fromLedger} заказам (сборы по позициям = удержания реестра)`,
+    };
+    const legs = {
+      accruals_orders: r0(accrOrd), accruals_ledger: r0(accrLed), accruals_diff: r0(accrOrd - accrLed),
+      fees_derived: r0(feeDer), fees_ledger: r0(feeLed), fees_diff: r0(feeDer - feeLed),
+      orders_fees_from_ledger: fromLedger,
+      covers: fromLedger === matched && matched > 0
+        ? "сверяет ТОЛЬКО начисления: сборы у всех сопоставленных заказов взяты из этого же реестра, в разности они сокращаются тождественно"
+        : `сверяет начисления; нога сборов независима лишь у ${matched - fromLedger}/${matched} заказов (у остальных сборы взяты из этого же реестра)`,
+      allocation: alloc,
+    };
+    // Разность и её ноги обязаны быть ОДНИМ числом: округляли их порознь, и на живых данных
+    // 2026-09-07 страница показывала −4820 рядом с −4819. Расхождение в рубль между двумя числами,
+    // равными по построению, читатель тратит время на объяснение, которого нет.
+    // Округляем КАЖДУЮ ногу один раз, а разность складываем из округлённых ног. Иначе нога сборов
+    // печатается как 0, будучи −0.5 внутри, и разность уезжает на рубль от суммы своих же слагаемых.
+    const diffFromLegs = legs.accruals_diff - legs.fees_diff;
+    return { payout_derived: r0(pay), payout_matched: r0(payMatched), netting_by_order: netting ? r0(net) : null, orders_total: orders.size, orders_matched: matched, diff: netting ? diffFromLegs : null, key_check: keyCheck, legs, status };
   };
 
   const check = (kind: "closed_month" | "half_month" | "current_month", label: string, dateFrom: string, dateTo: string, ym: string, fullMonth: boolean) => {
@@ -190,7 +256,21 @@ export function buildReconcile(inp: ReconInput, today: string) {
   ];
   const cumD = delivered.filter((r) => r.fin <= yesterday);
   const cumM = moneyCheck(cumD);
-  const cumulative = { ...cumM, netting_account: netting ? r0(nettingAccount) : null, status: cumM.status, payments: paymentsCheck(cumD, "cum") };
+  // «Сборы уровня кабинета» имели ДВА значения в одном отчёте: 452 405 ₽ здесь (все строки реестра
+  // без номера заказа) и 342 784 ₽ в pnl_account_daily (только внутри окна дашборда, с 2026-02-01).
+  // Разницу давали две проводки от 2026-01-31 - до нижней границы. Одна величина под одним именем
+  // с двумя значениями - это не округление, это невозможность сверить.
+  const accFloor = real(rows).map((r) => r.created).sort()[0] || "";
+  const accIn = netRows.filter((n) => !String(n.order || "").trim() && (!accFloor || n.d >= accFloor)).reduce((a, n) => a + n.amount, 0);
+  const cumulative = {
+    ...cumM,
+    netting_account: netting ? r0(nettingAccount) : null,
+    netting_account_in_window: netting ? r0(accIn) : null,
+    netting_account_note: netting && Math.abs(nettingAccount - accIn) > 1
+      ? `${r0(nettingAccount)} ₽ всего по реестру, из них ${r0(accIn)} ₽ попадает в окно дашборда (с ${accFloor}); разница ${r0(nettingAccount - accIn)} ₽ - проводки до нижней границы, в pnl_account_daily их нет`
+      : "все строки реестра без номера заказа попадают в окно дашборда",
+    status: cumM.status, payments: paymentsCheck(cumD, "cum"),
+  };
 
   const gaps: Record<string, string[]> = {};
   const add = (sku: string, g: string) => { (gaps[sku] ||= []).push(g); };
@@ -219,6 +299,25 @@ export function buildReconcile(inp: ReconInput, today: string) {
   const coverage = {
     window: { dateFrom: live.dateFrom, dateTo: live.dateTo },
     sku_total: sk, cogs: { sku: skC, pct_sku: pct(skC, sk), pct_rev: pct(rC, rt) }, taxonomy: { sku: skT, pct_sku: pct(skT, sk), pct_rev: pct(rT, rt) },
+    // Покрытие ЗА ВЕСЬ ПЕРИОД, а не только за живое окно 30 дней. Бейдж считался по окну, а страницы
+    // показывают февраль-сентябрь: живой факт 2026-09-07 - бейдж «таксономия 95.6% оборота» при
+    // 43.1% оборота всего периода без таксономии и 11.4% без СС. CLAUDE.md §15 прямо требует СС для
+    // ВСЕХ артикулов листа, а не только для живого снимка: неактивные, но реализованные теряют СС.
+    all_period: (() => {
+      const rev = new Map<string, number>();
+      for (const r of real(rows)) rev.set(r.sku, (rev.get(r.sku) || 0) + r.revenue);
+      const tot = [...rev.values()].reduce((a, b) => a + b, 0);
+      const has = (m: Record<string, any>) => [...rev].filter(([s]) => m[s] !== undefined);
+      const c = has(cogs), t = has(tax);
+      const sum = (xs: Array<[string, number]>) => xs.reduce((a, [, v]) => a + v, 0);
+      return {
+        dateFrom: [...real(rows)].map((r) => r.created).sort()[0] || null,
+        dateTo: [...real(rows)].map((r) => r.created).sort().pop() || null,
+        sku_total: rev.size, rev_total: r0(tot),
+        cogs: { sku: c.length, pct_sku: pct(c.length, rev.size), pct_rev: pct(sum(c), tot), rev_without: r0(tot - sum(c)) },
+        taxonomy: { sku: t.length, pct_sku: pct(t.length, rev.size), pct_rev: pct(sum(t), tot), rev_without: r0(tot - sum(t)) },
+      };
+    })(),
     realization: { months: [...new Set(realz.map((r) => r.ym))].sort(), sku_prev_month: rzSkus.size, prev_month_coverage: realizationCoverage(prevYm, delivered.filter((r) => r.fin >= pb.dateFrom && r.fin <= pb.dateTo)) },
     netting_key: keyCheck,
     netting: netting ? { rows: netRows.length, months: [...new Set(netRows.map((n) => n.d.slice(0, 7)))].sort(), orders_with_number: netByOrder.size } : null,
@@ -241,9 +340,32 @@ export function buildReconcile(inp: ReconInput, today: string) {
         note: dupUnknown ? `в ${dupUnknown} заказах SKU повторяется, но вторая позиция не распознана как услуга - проверить SERVICE_NAME в derive-lib` : "позиции-услуги распознаны, дублей SKU без объяснения нет",
       };
     })(),
+    // ФЕНИКС P0: «откуда сборы» было в снимке, но не на страницах. Пока ledger покрывает не весь
+    // оборот, маржа и «к выплате» по непокрытой части ЗАВЫШЕНЫ, и величина завышения видна из
+    // разрыва ставок. Показываем деньгами, а не заказами.
+    fee_source: (() => {
+      const f = feeSourceSplit(real(rows));
+      const total = f.accruals_from_netting + f.accruals_from_commissions;
+      const pct_order = pct(f.accruals_from_commissions, total);
+      const months_order = Object.entries(f.by_month)
+        .filter(([, b]) => b.accruals_order > 0 && b.accruals_order >= b.accruals_netting)
+        .map(([m]) => m).sort();
+      return {
+        ...f, accruals_total: r0(total), pct_accruals_from_commissions: pct_order,
+        months_mostly_commissions: months_order,
+        gaps_named: f.gaps.map((g) => `${BIZ_NAME[g.business] || g.business} за ${g.ym} (${r0(g.accruals)} ₽, ${g.orders} зак.)`),
+        note: pct_order > 0
+          ? `сборы из взаиморасчётов у ${f.orders_from_netting} заказов (${r0(f.accruals_from_netting)} ₽, ставка ${f.rate_netting}%), из комиссий заказа у ${f.orders_from_commissions} (${r0(f.accruals_from_commissions)} ₽, ставка ${f.rate_order}%) - на второй части маржа завышена`
+          : "все сборы из взаиморасчётов кабинета",
+      };
+    })(),
     account_fees: { rows: accountRows, note: accountRows ? "строки взаиморасчётов без номера заказа -> pnl_account_daily" : "[ГИПОТЕЗА] сборы уровня кабинета не подключены - в pnl_account_daily нули" },
     views: { days: viewDays.size, last: [...viewDays].sort().pop() || null, note: viewDays.size ? "показы per-SKU из отчёта shows-sales" : "показы не собраны (отчёт shows-sales) - воронка без верха" },
-    ads: ads && ads.totals && ads.totals.spend > 0 ? "есть расход" : "нет источника (реклама Маркета не подключена)",
+    // «Нет источника» было ложью: рекламного КАБИНЕТА нет, а расход на продвижение кабинет удерживает
+    // и он лежит в реестре. Соседняя вкладка при этом показывала эти же деньги строкой «Продвижение».
+    ads: ads && ads.promo_from_netting > 0
+      ? `буст из реестра ${r0(ads.promo_from_netting)} ₽ за 30 дн (кабинета кампаний у Маркета в API нет: ДРР и CPO не считаются)`
+      : ads && ads.totals && ads.totals.spend > 0 ? "есть расход" : "нет источника (реклама Маркета не подключена)",
     bad_cells: inp.badCells || 0,
     by_business: byBusiness,
     campaigns_skipped: inp.skippedCampaigns || [],
@@ -253,6 +375,14 @@ export function buildReconcile(inp: ReconInput, today: string) {
   const blockers: string[] = [];
   if (!realz.length) blockers.push("нет отчёта о реализации (штуки не сверены с УПД-аналогом)");
   if (!netting) blockers.push("нет отчёта по взаиморасчётам (выплаты ЛК не сверены)");
+  // Порог 20% оборота: ниже него перекос маржи тонет в допуске, выше - «к выплате» на странице
+  // читается как факт, хотя по большей части оборота это комиссия за продажу без прочих удержаний.
+  const fs = (coverage as any).fee_source;
+  // Порог по доле оборота ЛИБО наличие адресного пробела: 16% диффузно - это «кабинет зеркал за три
+  // месяца», и молчать об этом нельзя только потому, что доля не дотянула до порога.
+  if (fs && (fs.pct_accruals_from_commissions > 20 || fs.gaps_named.length)) {
+    blockers.push(`сборы у ${fs.pct_accruals_from_commissions}% оборота взяты из комиссий заказа, а не из взаиморасчётов (ставка ${fs.rate_order}% против ${fs.rate_netting}% там, где ledger есть) - маржа и «к выплате» по этой части завышены. Не собран реестр: ${fs.gaps_named.join("; ")}`);
+  }
   const closed = periods[0]!;
   const cc = (closed.units as any).coverage;
   if (cc && cc.shops_sold > 0 && !cc.known) blockers.push(`покрытие отчёта о реализации за ${prevYm} неизвестно (состояние бэкфилла не записано) - штуки и выручка закрытого месяца не сверены`);

@@ -127,3 +127,55 @@ describe("лимит Маркета - это ожидание, а не отка�
     await expect(mod.retryOnRateLimit(fn, "тест", { waitMs: 0, timeLeft: () => 10 * 60_000 })).rejects.toThrow("API_DISABLED");
   });
 });
+
+describe("ключ чистки накопительного файла = ключ возобновляемости", () => {
+  // Живой факт 2026-09-07: чистка реестра шла по месяцу, а возобновляемость - по паре
+  // (кабинет, месяц). Перезабор 1023124/2026-04 снёс 74986385 за 2026-03..2026-06:
+  // 11 407 строк -> 6 509, 27 932 124 ₽ -> 18 577 394 ₽. Прогон при этом завершился зелёным.
+  const purge = (fresh: any[], old: any[]) => {
+    const covered = new Set(fresh.map((r) => `${r.business}/${r.d.slice(0, 7)}`));
+    return old.filter((r) => !covered.has(`${r.business}/${r.d.slice(0, 7)}`));
+  };
+  it("перезабор одного кабинета не трогает другой за тот же месяц", () => {
+    const old = [
+      { business: "1023124", d: "2026-04-10", amount: 1 },
+      { business: "74986385", d: "2026-04-11", amount: 2 },
+      { business: "74986385", d: "2026-05-01", amount: 3 },
+    ];
+    const fresh = [{ business: "1023124", d: "2026-04-15", amount: 9 }];
+    const keep = purge(fresh, old);
+    expect(keep.map((r) => `${r.business}/${r.d.slice(0, 7)}`)).toEqual(["74986385/2026-04", "74986385/2026-05"]);
+    expect(keep.some((r) => r.business === "1023124")).toBe(false); // свой месяц заменяется свежим
+  });
+  it("чистка по одному месяцу (старое поведение) сносила бы чужой кабинет", () => {
+    const old = [{ business: "74986385", d: "2026-04-11", amount: 2 }];
+    const fresh = [{ business: "1023124", d: "2026-04-15", amount: 9 }];
+    const byMonthOnly = new Set(fresh.map((r) => r.d.slice(0, 7)));
+    expect(old.filter((r) => !byMonthOnly.has(r.d.slice(0, 7)))).toHaveLength(0); // вот она, потеря
+    expect(purge(fresh, old)).toHaveLength(1);                                    // исправленный ключ бережёт
+  });
+});
+
+describe("состояние не запирает бэкфилл навсегда", () => {
+  // Пара, закрытая пустым отчётом, раньше не открывалась никогда: donePairs пропускает её до
+  // запроса. Август встал на 1/7 магазинов не из-за лимита Маркета, а из-за этого.
+  const reopen = (pairs: string[], byMonth: Record<string, any>) => {
+    const done = new Set(pairs);
+    for (const [ym, cov] of Object.entries(byMonth)) {
+      const withRows = new Set<string>(cov.shops_with_rows || []);
+      for (const c of (cov.shops_sold || []) as string[]) if (!withRows.has(c)) done.delete(`${ym}/${c}`);
+    }
+    return [...done].sort();
+  };
+  it("пара без строк переоткрывается, чужие месяцы не трогаются", () => {
+    const byMonth = { "2026-08": { shops_sold: ["A", "B"], shops_with_rows: ["A"] } };
+    // B за август переоткрыт; A за август и C за июль остались закрытыми
+    expect(reopen(["2026-08/A", "2026-08/B", "2026-07/C"], byMonth)).toEqual(["2026-07/C", "2026-08/A"]);
+  });
+  it("переоткрытие не может задвоить цифры: у переоткрытых пар вклад нулевой", () => {
+    const byMonth = { "2026-08": { shops_sold: ["A", "B"], shops_with_rows: ["A"] } };
+    const left = reopen(["2026-08/A", "2026-08/B"], byMonth);
+    expect(left).toContain("2026-08/A");     // дала строки - повторно не тянем
+    expect(left).not.toContain("2026-08/B"); // строк не дала - тянем снова, прибавлять нечего
+  });
+});

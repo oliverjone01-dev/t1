@@ -6,7 +6,7 @@
 // Без сети. Запуск: npm run ym:derive [days=30]
 import { existsSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
-import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, applyNettingFees, type OrderRow } from "./derive-lib.js";
+import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, type OrderRow } from "./derive-lib.js";
 
 function main() {
   ensureDir();
@@ -59,9 +59,9 @@ function main() {
 
   // реклама - заглушки (нет источника); не перезаписываем, если кто-то положил реальный снимок с расходом
   const ads = readJson<any>(yp("ads_30d.json"), null);
-  if (!ads || !(ads.totals && ads.totals.spend > 0)) {
-    writeJson(yp("ads_30d.json"), adsStub(w.dateFrom, w.dateTo));
-    const ap: any = {}; for (const d of [7, 30, 90]) { const ww = windowDays(d, to); ap[`p${d}`] = adsStub(ww.dateFrom, ww.dateTo); }
+  if (!ads || !(ads.totals && ads.totals.spend > 0) || ads.promo_from_netting !== undefined) {
+    writeJson(yp("ads_30d.json"), adsStub(w.dateFrom, w.dateTo, promoFromNetting(netAll, w.dateFrom, w.dateTo)));
+    const ap: any = {}; for (const d of [7, 30, 90]) { const ww = windowDays(d, to); ap[`p${d}`] = adsStub(ww.dateFrom, ww.dateTo, promoFromNetting(netAll, ww.dateFrom, ww.dateTo)); }
     writeJson(yp("ads_periods.json"), ap, 0);
     writeJson(yp("ads_reports.json"), { platform: "ym", generated_at: new Date().toISOString(), source: "нет источника (реклама Маркета не подключена)", p7: { reports: {} }, p30: { reports: {} }, p90: { reports: {} } }, 0);
   }

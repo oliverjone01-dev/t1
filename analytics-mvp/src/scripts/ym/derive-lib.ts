@@ -293,8 +293,31 @@ export function buildSkuOffer(rows: OrderRow[], catalog: CatalogLike): Record<st
 
 // Реклама: источника нет (рекламный кабинет Маркета не подключён). Снимок-заглушка с нулями и
 // явной пометкой, чтобы дашборд не молчал, а показывал «нет источника».
-export function adsStub(dateFrom: string, dateTo: string) {
-  return { platform: PLATFORM, dateFrom, dateTo, generated_at: new Date().toISOString(), totals: { spend: 0, adRevenue: 0, orders: 0, drr: 0, cpo: 0, active: 0, campaigns: 0 }, burners: [], top_spend: [], by_line: [], note: "реклама Маркета не подключена (нет источника): расход/ДРР = 0, это не «ноль рекламы»" };
+// Расход на продвижение из реестра взаиморасчётов. «Рекламного кабинета» у Маркета в API нет, но
+// деньги на буст кабинет удерживает, и они лежат в реестре отдельными проводками. Утверждение
+// «реклама не подключена, расход 0» на странице маркетинга при этом противоречило странице денег,
+// где те же деньги проходили строкой «Продвижение (буст/лояльность)»: живой факт 2026-09-07 -
+// 1 277 473 ₽ буста в реестре против «Расход рекламы 0 ₽» на соседней вкладке.
+// Группа берётся ТЕМ ЖЕ nettingFeeGroup, что и на странице денег. Второе, «похожее» определение
+// продвижения гарантированно разошлось бы с первым, и дашборд снова сам себе противоречил бы.
+export const PROMO_GROUP = "Продвижение (буст/лояльность)";
+export function promoFromNetting(net: Array<{ d: string; type?: string; service?: string; amount: number }>, dateFrom?: string, dateTo?: string): number {
+  let v = 0;
+  for (const n of net) {
+    if (dateFrom && n.d < dateFrom) continue;
+    if (dateTo && n.d > dateTo) continue;
+    const t = String(n.type || "");
+    if (t === "Начисление" || t === "Возврат") continue;
+    if (nettingFeeGroup(String(n.service || "")) === PROMO_GROUP) v -= n.amount; // списание -> расход плюсом
+  }
+  return Math.round(v * 100) / 100;
+}
+
+export function adsStub(dateFrom: string, dateTo: string, promoSpend = 0) {
+  const note = promoSpend > 0
+    ? `рекламного кабинета у Маркета в API нет. Расход на продвижение ${Math.round(promoSpend)} ₽ взят из отчёта по взаиморасчётам (группа «${PROMO_GROUP}»), базис - ДАТА ПРОВОДКИ реестра. На странице Деньги та же группа считается по другому базису - по дате доставки заказа, которому проводка разнесена, - поэтому число там отличается: это не расхождение, а два разных вопроса («когда кабинет списал» и «на какие продажи легло»). Привязки расхода к кампаниям и заказам Маркет не отдаёт, поэтому ДРР и CPO не считаются`
+    : "реклама Маркета не подключена (нет источника): расход/ДРР = 0, это не «ноль рекламы»";
+  return { platform: PLATFORM, dateFrom, dateTo, generated_at: new Date().toISOString(), totals: { spend: promoSpend, adRevenue: 0, orders: 0, drr: 0, cpo: 0, active: 0, campaigns: 0 }, promo_from_netting: promoSpend, burners: [], top_spend: [], by_line: [], note };
 }
 
 // ---------- сборы из ledger'а кабинета (united-netting) ----------
@@ -318,7 +341,28 @@ export function nettingFeeGroup(service: string): string {
 }
 
 export interface NetFeeRow { order?: string; sku?: string; service?: string; type?: string; amount: number }
-export interface NetFeeResult { rows: OrderRow[]; orders_from_netting: number; orders_from_commissions: number; unmapped: Record<string, number> }
+export interface FeeMonth {
+  orders_netting: number; orders_order: number;
+  accruals_netting: number; accruals_order: number;
+  fees_netting: number; fees_order: number;
+  rate_netting: number | null; rate_order: number | null;
+}
+export interface NetFeeResult {
+  rows: OrderRow[]; orders_from_netting: number; orders_from_commissions: number;
+  accruals_from_netting: number; accruals_from_commissions: number;
+  fees_from_netting: number; fees_from_commissions: number;
+  rate_netting: number | null; rate_order: number | null;
+  by_month: Record<string, FeeMonth>;
+  // Адресные пробелы: пара (кабинет, месяц), где оборот есть, а реестра нет. Диффузная доля
+  // «16.4% оборота» не говорит, что делать; «кабинет 1023124 за 2026-06..08» - говорит.
+  gaps: Array<{ business: string; ym: string; accruals: number; orders: number }>;
+  unmapped: Record<string, number>;
+}
+
+// Доля сборов от начислений. Разрыв между ставкой по ledger'у и ставкой по комиссиям заказа - это и
+// есть мера недооценки: комиссия заказа покрывает только комиссию за продажу, а ledger содержит ещё
+// размещение, эквайринг, буст и логистику. Живой факт 2026-09: 6.5% против 54%.
+function rate(fees: number, accr: number): number | null { return accr > 0 ? Math.round((fees / accr) * 1000) / 10 : null; }
 
 // Заменяем сборы строк на удержания кабинета там, где заказ уже есть в ledger'е. Заказы, которых там
 // ещё нет (свежие, выплата не прошла), сохраняют комиссии заказа и помечаются fee_source="order" -
@@ -366,10 +410,49 @@ export function applyNettingFees(rows: OrderRow[], net: NetFeeRow[]): NetFeeResu
     const ft = r2(Object.values(f).reduce((s, v) => s + v, 0));
     return { ...r, fees: f, fee_total: ft, payout: r2(r.accruals - ft), fee_actual: true, fee_source: "netting" as const };
   });
+  return { rows: out, ...feeSourceSplit(out), unmapped };
+}
+
+// Разрез «откуда сборы» по месяцам. Где ledger'а нет, сборы взяты из комиссий заказа и занижены:
+// комиссия заказа покрывает только комиссию за продажу, ledger содержит ещё размещение, эквайринг,
+// буст и логистику. Считаем это ДЕНЬГАМИ, а не заказами: 1081 старый заказ на копейки и 475 свежих
+// на миллионы читаются одинаково по счётчику заказов и совершенно по-разному по обороту.
+// Один расчёт на два потребителя: снимок fee_source.json и сверка §15 (иначе цифры разъедутся).
+export function feeSourceSplit(rows: OrderRow[]): Omit<NetFeeResult, "rows" | "unmapped"> {
+  const gapAcc = new Map<string, { business: string; ym: string; accruals: number; orders: Set<string> }>();
+  const by_month: Record<string, FeeMonth> = {};
+  const seen = new Map<string, string>(); // заказ целиком идёт из одного источника, не считаем его дважды
+  for (const r of rows) {
+    const m = String(r.created || "").slice(0, 7); if (!m) continue;
+    const b = (by_month[m] ||= { orders_netting: 0, orders_order: 0, accruals_netting: 0, accruals_order: 0, fees_netting: 0, fees_order: 0, rate_netting: null, rate_order: null });
+    const net = r.fee_source === "netting";
+    if (seen.get(r.order) !== m) { seen.set(r.order, m); if (net) b.orders_netting++; else b.orders_order++; }
+    if (net) { b.accruals_netting += r.accruals; b.fees_netting += r.fee_total; }
+    else {
+      b.accruals_order += r.accruals; b.fees_order += r.fee_total;
+      if (r.accruals > 0) {
+        const gk = `${r.business}/${m}`;
+        const g = gapAcc.get(gk) || (gapAcc.set(gk, { business: r.business, ym: m, accruals: 0, orders: new Set() }), gapAcc.get(gk)!);
+        g.accruals += r.accruals; g.orders.add(r.order);
+      }
+    }
+  }
+  let aNet = 0, aOrd = 0, fNet = 0, fOrd = 0;
+  for (const b of Object.values(by_month)) {
+    b.accruals_netting = r2(b.accruals_netting); b.accruals_order = r2(b.accruals_order);
+    b.fees_netting = r2(b.fees_netting); b.fees_order = r2(b.fees_order);
+    b.rate_netting = rate(b.fees_netting, b.accruals_netting);
+    b.rate_order = rate(b.fees_order, b.accruals_order);
+    aNet += b.accruals_netting; aOrd += b.accruals_order; fNet += b.fees_netting; fOrd += b.fees_order;
+  }
   return {
-    rows: out,
-    orders_from_netting: new Set(out.filter((r) => r.fee_source === "netting").map((r) => r.order)).size,
-    orders_from_commissions: new Set(out.filter((r) => r.fee_source !== "netting").map((r) => r.order)).size,
-    unmapped,
+    orders_from_netting: new Set(rows.filter((r) => r.fee_source === "netting").map((r) => r.order)).size,
+    orders_from_commissions: new Set(rows.filter((r) => r.fee_source !== "netting").map((r) => r.order)).size,
+    accruals_from_netting: r2(aNet), accruals_from_commissions: r2(aOrd),
+    fees_from_netting: r2(fNet), fees_from_commissions: r2(fOrd),
+    rate_netting: rate(r2(fNet), r2(aNet)), rate_order: rate(r2(fOrd), r2(aOrd)),
+    by_month,
+    gaps: [...gapAcc.values()].map((g) => ({ business: g.business, ym: g.ym, accruals: r2(g.accruals), orders: g.orders.size }))
+      .sort((a, b) => (a.business === b.business ? a.ym.localeCompare(b.ym) : a.business.localeCompare(b.business))),
   };
 }

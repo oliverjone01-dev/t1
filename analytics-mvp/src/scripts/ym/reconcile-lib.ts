@@ -50,8 +50,21 @@ export function buildReconcile(inp: ReconInput, today: string) {
   const delivered = real(rows).filter((r) => DELIVERED_STATUSES.has(r.status));
   const netRows = netting || [];
   const netByOrder = new Map<string, number>();
+  // Реестр раскладываем на начисления и удержания ОТДЕЛЬНО. Без этого разложения сверка денег
+  // выглядит проверкой сборов, хотя ею не является: payout = начислено − сборы, сборы взяты из этого
+  // же реестра, поэтому в разности payout − реестр член со сборами сокращается тождественно и
+  // остаётся только «начислено по заказам vs начислено по реестру». Разложение делает это явным.
+  const ledgerAccr = new Map<string, number>();  // Начисление/Возврат: деньги за товар
+  const ledgerHold = new Map<string, number>();  // всё остальное: удержания кабинета, знак как у сборов
+  const IS_ACCR = (t: string) => t === "Начисление" || t === "Возврат";
   let nettingAccount = 0;
-  for (const n of netRows) { const o = String(n.order || "").trim(); if (o) netByOrder.set(o, (netByOrder.get(o) || 0) + n.amount); else nettingAccount += n.amount; }
+  for (const n of netRows) {
+    const o = String(n.order || "").trim();
+    if (!o) { nettingAccount += n.amount; continue; }
+    netByOrder.set(o, (netByOrder.get(o) || 0) + n.amount);
+    if (IS_ACCR(String(n.type || ""))) ledgerAccr.set(o, (ledgerAccr.get(o) || 0) + n.amount);
+    else ledgerHold.set(o, (ledgerHold.get(o) || 0) - n.amount);
+  }
 
   // Проверка, что ORDER_ID отчёта и id заказа из stats/orders - ОДИН И ТОТ ЖЕ ключ. Живая находка
   // 2026-09-04: по одному id наш заказ показывал начисление 3500 ₽, а отчёт - 43 797 ₽ по тому же
@@ -136,7 +149,45 @@ export function buildReconcile(inp: ReconInput, today: string) {
       : keyTrusted === false ? keyCheck.status
       : Math.abs(diff!) <= moneyTol(payMatched) ? `сошлось по ${matched}/${orders.size} заказам (допуск ${r0(moneyTol(payMatched))} ₽)`
       : `расхождение ${diff} ₽ по ${matched}/${orders.size} сопоставленным заказам (predicted-комиссии, удержания вне позиций)${keyTrusted === null ? "; " + keyCheck.status : ""}`;
-    return { payout_derived: r0(pay), payout_matched: r0(payMatched), netting_by_order: netting ? r0(net) : null, orders_total: orders.size, orders_matched: matched, diff, key_check: keyCheck, status };
+    // Что эта сверка проверяет на самом деле. Раскладываем разность на две ноги: начисления и сборы.
+    // Там, где сборы взяты из реестра (а это ВСЕ сопоставленные заказы: заказ, попавший в реестр,
+    // получает fee_source="netting"), нога сборов равна нулю ТОЖДЕСТВЕННО, и разность целиком
+    // объясняется начислениями. Значит ошибку разнесения сборов по позициям эта сверка не поймает,
+    // и говорить «деньги сошлись с кабинетом» по ней нельзя.
+    let accrOrd = 0, accrLed = 0, feeDer = 0, feeLed = 0, fromLedger = 0;
+    const allocOff: Array<{ order: string; derived: number; ledger: number; diff: number }> = [];
+    for (const [o] of orders) {
+      if (!netByOrder.has(o)) continue;
+      const rs = d.filter((r) => r.order === o);
+      const a = rs.reduce((x, r) => x + r.accruals, 0), f = rs.reduce((x, r) => x + r.fee_total, 0);
+      const h = ledgerHold.get(o) || 0;
+      accrOrd += a; accrLed += ledgerAccr.get(o) || 0; feeDer += f; feeLed += h;
+      if (rs.some((r) => r.fee_source === "netting")) {
+        fromLedger++;
+        // Инвариант разнесения: сумма разнесённых по позициям сборов обязана сойтись с удержаниями
+        // реестра по этому заказу. Тождеством это НЕ является - разнесение идёт долями по
+        // начислениям и может потерять деньги (нулевые начисления, отфильтрованные позиции).
+        if (Math.abs(f - h) > 1) allocOff.push({ order: o, derived: r0(f), ledger: r0(h), diff: r0(f - h) });
+      }
+    }
+    const alloc = {
+      orders_from_ledger: fromLedger, orders_off: allocOff.length,
+      off_amount: r0(allocOff.reduce((x, o) => x + Math.abs(o.diff), 0)),
+      off_orders: allocOff.slice(0, 5),
+      status: !fromLedger ? "сборов из реестра нет - разносить нечего"
+        : allocOff.length ? `РАЗНЕСЕНИЕ ТЕРЯЕТ ДЕНЬГИ: у ${allocOff.length}/${fromLedger} заказов сумма сборов по позициям не равна удержаниям реестра`
+        : `разнесение сходится по всем ${fromLedger} заказам (сборы по позициям = удержания реестра)`,
+    };
+    const legs = {
+      accruals_orders: r0(accrOrd), accruals_ledger: r0(accrLed), accruals_diff: r0(accrOrd - accrLed),
+      fees_derived: r0(feeDer), fees_ledger: r0(feeLed), fees_diff: r0(feeDer - feeLed),
+      orders_fees_from_ledger: fromLedger,
+      covers: fromLedger === matched && matched > 0
+        ? "сверяет ТОЛЬКО начисления: сборы у всех сопоставленных заказов взяты из этого же реестра, в разности они сокращаются тождественно"
+        : `сверяет начисления; нога сборов независима лишь у ${matched - fromLedger}/${matched} заказов (у остальных сборы взяты из этого же реестра)`,
+      allocation: alloc,
+    };
+    return { payout_derived: r0(pay), payout_matched: r0(payMatched), netting_by_order: netting ? r0(net) : null, orders_total: orders.size, orders_matched: matched, diff, key_check: keyCheck, legs, status };
   };
 
   const check = (kind: "closed_month" | "half_month" | "current_month", label: string, dateFrom: string, dateTo: string, ym: string, fullMonth: boolean) => {

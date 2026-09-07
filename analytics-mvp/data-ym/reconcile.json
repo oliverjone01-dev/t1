@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-07T08:31:23.874Z",
+  "generated_at": "2026-09-07T08:38:08.033Z",
   "today": "2026-09-07",
   "periods": [
     {
@@ -45,6 +45,23 @@
           "pct": 100,
           "trusted": true,
           "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 4061/4061 строк (100%)"
+        },
+        "legs": {
+          "accruals_orders": 4614229,
+          "accruals_ledger": 4614229,
+          "accruals_diff": 0,
+          "fees_derived": 2502557,
+          "fees_ledger": 2502557,
+          "fees_diff": 0,
+          "orders_fees_from_ledger": 73,
+          "covers": "сверяет ТОЛЬКО начисления: сборы у всех сопоставленных заказов взяты из этого же реестра, в разности они сокращаются тождественно",
+          "allocation": {
+            "orders_from_ledger": 73,
+            "orders_off": 0,
+            "off_amount": 0,
+            "off_orders": [],
+            "status": "разнесение сходится по всем 73 заказам (сборы по позициям = удержания реестра)"
+          }
         },
         "status": "сошлось по 73/148 заказам (допуск 10558 ₽)",
         "accruals": 7935530,
@@ -126,6 +143,23 @@
           "trusted": true,
           "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 4061/4061 строк (100%)"
         },
+        "legs": {
+          "accruals_orders": 2691337,
+          "accruals_ledger": 2691337,
+          "accruals_diff": 0,
+          "fees_derived": 1457001,
+          "fees_ledger": 1457001,
+          "fees_diff": 0,
+          "orders_fees_from_ledger": 41,
+          "covers": "сверяет ТОЛЬКО начисления: сборы у всех сопоставленных заказов взяты из этого же реестра, в разности они сокращаются тождественно",
+          "allocation": {
+            "orders_from_ledger": 41,
+            "orders_off": 0,
+            "off_amount": 0,
+            "off_orders": [],
+            "status": "разнесение сходится по всем 41 заказам (сборы по позициям = удержания реестра)"
+          }
+        },
         "status": "сошлось по 41/81 заказам (допуск 6172 ₽)",
         "accruals": 4533392,
         "fees": 1607838,
@@ -205,6 +239,23 @@
           "trusted": true,
           "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 4061/4061 строк (100%)"
         },
+        "legs": {
+          "accruals_orders": 1850775,
+          "accruals_ledger": 1850775,
+          "accruals_diff": 0,
+          "fees_derived": 973691,
+          "fees_ledger": 973691,
+          "fees_diff": 0,
+          "orders_fees_from_ledger": 29,
+          "covers": "сверяет ТОЛЬКО начисления: сборы у всех сопоставленных заказов взяты из этого же реестра, в разности они сокращаются тождественно",
+          "allocation": {
+            "orders_from_ledger": 29,
+            "orders_off": 0,
+            "off_amount": 0,
+            "off_orders": [],
+            "status": "разнесение сходится по всем 29 заказам (сборы по позициям = удержания реестра)"
+          }
+        },
         "status": "сошлось по 29/45 заказам (допуск 4385 ₽)",
         "accruals": 2581070,
         "fees": 1040817,
@@ -256,6 +307,23 @@
       "pct": 100,
       "trusted": true,
       "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 4061/4061 строк (100%)"
+    },
+    "legs": {
+      "accruals_orders": 18162079,
+      "accruals_ledger": 17105618,
+      "accruals_diff": 1056461,
+      "fees_derived": 8045495,
+      "fees_ledger": 8045495,
+      "fees_diff": 0,
+      "orders_fees_from_ledger": 354,
+      "covers": "сверяет ТОЛЬКО начисления: сборы у всех сопоставленных заказов взяты из этого же реестра, в разности они сокращаются тождественно",
+      "allocation": {
+        "orders_from_ledger": 354,
+        "orders_off": 0,
+        "off_amount": 0,
+        "off_orders": [],
+        "status": "разнесение сходится по всем 354 заказам (сборы по позициям = удержания реестра)"
+      }
     },
     "status": "расхождение 1056461 ₽ по 354/995 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
     "netting_account": 452405,

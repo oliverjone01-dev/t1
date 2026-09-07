@@ -240,3 +240,32 @@ describe("«откуда сборы» видно на страницах, а н�
     expect(r.blockers.some((b) => b.includes("из комиссий заказа"))).toBe(false);
   });
 });
+
+describe("сверка денег не выдаёт тождество за проверку сборов (ФЕНИКС P0)", () => {
+  // payout = начислено − сборы, сборы взяты из реестра. В разности payout − реестр член со сборами
+  // сокращается тождественно, поэтому «сошлось» относится к начислениям, а не к сборам.
+  const net = [
+    { d: "2026-08-12", order: "500001", type: "Начисление", amount: 90000 },
+    { d: "2026-08-12", order: "500001", sku: "GGT-03-3-3-O-20090", type: "Удержание", service: "Размещение товарных предложений", amount: -9000 },
+  ];
+  it("нога сборов равна нулю, вся разность объясняется начислениями", () => {
+    const withFees = applyNettingFees(rows, net as any).rows;
+    const r = buildReconcile({ ...base, rows: withFees, realization: [], netting: net }, TODAY);
+    const l = (r.cumulative as any).legs;
+    expect(l.fees_derived).toBe(l.fees_ledger);
+    expect(l.fees_diff).toBe(0);                       // тождество, а не совпадение
+    expect(r.cumulative.diff).toBe(l.accruals_diff);   // разность - это только начисления
+    expect(l.covers).toContain("сокращаются тождественно");
+  });
+  it("разнесение сборов по позициям проверяется независимо и умеет падать", () => {
+    const withFees = applyNettingFees(rows, net as any).rows;
+    const ok = buildReconcile({ ...base, rows: withFees, realization: [], netting: net }, TODAY);
+    expect((ok.cumulative as any).legs.allocation.orders_off).toBe(0);
+    // Ломаем разнесение: половина сбора «потерялась» - инвариант обязан это увидеть.
+    const broken = withFees.map((x) => (x.order === "500001" ? { ...x, fee_total: x.fee_total / 2 } : x));
+    const bad = buildReconcile({ ...base, rows: broken, realization: [], netting: net }, TODAY);
+    const a = (bad.cumulative as any).legs.allocation;
+    expect(a.orders_off).toBe(1);
+    expect(a.status).toContain("РАЗНЕСЕНИЕ ТЕРЯЕТ ДЕНЬГИ");
+  });
+});

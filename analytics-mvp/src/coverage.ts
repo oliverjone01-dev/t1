@@ -15,16 +15,27 @@ export function coverageStrip(): string {
   const c = RECON.coverage, gapsN = Object.keys(c.gaps || {}).length;
   const isGo = RECON.verdict === "go";
   const pill = (ok: boolean, t: string) => `<span style="display:inline-block;border:1px solid ${ok ? "#34D399" : "#E5B567"};color:${ok ? "#34D399" : "#E5B567"};border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">${t}</span>`;
+  // Что именно проверяет сверка денег. Сборы берутся из реестра, поэтому в разности payout − реестр
+  // они сокращаются тождественно, и «сошлось» относится к начислениям, а не к сборам. Показываем обе
+  // ноги: нулевая нога сборов - это и есть признак тождества, её нельзя выдавать за проверку.
+  const legs = (m: any) => {
+    const l = m && m.legs; if (!l) return "";
+    const a = l.allocation || {};
+    return `<div style="margin-left:12px;opacity:.85">ноги разности: начисления ${fmtR(l.accruals_orders)} − ${fmtR(l.accruals_ledger)} = <b>${fmtR(l.accruals_diff)}</b> · сборы ${fmtR(l.fees_derived)} − ${fmtR(l.fees_ledger)} = <b>${fmtR(l.fees_diff)}</b>${l.fees_diff === 0 ? ` <span style="color:#E5B567">(ноль тождественно: сборы взяты из этого же реестра)</span>` : ""}
+    <br>${l.covers}<br>независимо проверяется разнесение: ${a.status || "—"}${a.orders_off ? ` (${fmtR(a.off_amount)})` : ""}</div>`;
+  };
+
   const per = (RECON.periods || []).map((p: any) => {
     const u = p.units, m = p.money, r = p.revenue || {};
     return `<div style="margin-top:4px"><b>${p.label}</b> (${p.dateFrom}..${p.dateTo})
     <div>штуки: доставлено нетто ${u.orders_delivered_net} (возвраты ${u.orders_returned}) vs реализация нетто ${u.realization_net ?? "—"} → ${u.status}</div>
     <div>деньги: к выплате по заказам ${fmtR(m.payout_derived)} vs выплаты ЛК по тем же заказам ${fmtR(m.netting_by_order)} (покрыто ${m.orders_matched ?? 0}/${m.orders_total ?? 0} заказов) → ${m.status}</div>
+    ${legs(m)}
     ${m.payments ? `<div>платежи Маркета (покупательская нога): факт ${fmtR(m.payments.payments_actual)} vs начислено − софинансирование ${fmtR(m.payments.buyer_leg_derived)}; сошлось ${m.payments.orders_matched}/${m.payments.orders_with_payments} заказов → ${m.payments.status}</div>` : ""}
     ${r.status ? `<div>выручка: начислено ${fmtR(r.accruals)} vs реализация ${fmtR(r.realization_amount)} → ${r.status}</div>` : ""}
     <div>СС: ${p.cogs.sku_with_cogs}/${p.cogs.sku_total} SKU, ${p.cogs.pct_rev}% оборота → ${p.cogs.status}</div></div>`;
   }).join("");
-  const cum = RECON.cumulative ? `<div style="margin-top:4px"><b>с начала данных</b>: к выплате ${fmtR(RECON.cumulative.payout_derived)} vs выплаты ЛК по заказам ${fmtR(RECON.cumulative.netting_by_order)} → ${RECON.cumulative.status}; сборы уровня кабинета (строки без заказа): ${fmtR(RECON.cumulative.netting_account)}${RECON.cumulative.payments ? `<br>платежи Маркета (покупательская нога): факт ${fmtR(RECON.cumulative.payments.payments_actual)} vs начислено ${fmtR(RECON.cumulative.payments.accruals)} − софинансирование ${fmtR(RECON.cumulative.payments.subsidy_leg)} = ${fmtR(RECON.cumulative.payments.buyer_leg_derived)} по ${RECON.cumulative.payments.orders_with_payments}/${RECON.cumulative.payments.orders_total} заказам → ${RECON.cumulative.payments.status}<br><span style="opacity:.75">полное «к выплате» ${fmtR(RECON.cumulative.payments.payout_full)}: ${RECON.cumulative.payments.covers}</span>` : ""}</div>` : "";
+  const cum = RECON.cumulative ? `<div style="margin-top:4px"><b>с начала данных</b>: к выплате ${fmtR(RECON.cumulative.payout_derived)} vs выплаты ЛК по заказам ${fmtR(RECON.cumulative.netting_by_order)} → ${RECON.cumulative.status}${legs(RECON.cumulative)}; сборы уровня кабинета (строки без заказа): ${fmtR(RECON.cumulative.netting_account)}${RECON.cumulative.payments ? `<br>платежи Маркета (покупательская нога): факт ${fmtR(RECON.cumulative.payments.payments_actual)} vs начислено ${fmtR(RECON.cumulative.payments.accruals)} − софинансирование ${fmtR(RECON.cumulative.payments.subsidy_leg)} = ${fmtR(RECON.cumulative.payments.buyer_leg_derived)} по ${RECON.cumulative.payments.orders_with_payments}/${RECON.cumulative.payments.orders_total} заказам → ${RECON.cumulative.payments.status}<br><span style="opacity:.75">полное «к выплате» ${fmtR(RECON.cumulative.payments.payout_full)}: ${RECON.cumulative.payments.covers}</span>` : ""}</div>` : "";
   const warn = isGo ? "" : `<div style="margin:4px 0 6px;padding:6px 10px;border:1px solid #E5B567;border-radius:8px;color:#ffd27a;font-weight:700">ПРЕДВАРИТЕЛЬНО: цифры этой страницы не сверены по §15 (вердикт RETURN). Причины: ${(RECON.blockers || []).join("; ") || "см. периоды ниже"}.</div>`;
   // Разрез «откуда сборы» по месяцам: без него читатель видит одну ставку сборов и считает её фактом.
   const fs = (c as any).fee_source;

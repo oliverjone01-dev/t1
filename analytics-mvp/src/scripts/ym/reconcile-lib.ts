@@ -11,6 +11,7 @@ export interface ReconInput {
   rows: OrderRow[]; realization: RealizationRow[]; netting: NettingRow[] | null;
   cogs: Record<string, number>; tax: Record<string, any>; live: { dateFrom?: string; dateTo?: string; sku_table: any[] };
   views: Array<{ date: string }>; ads: any; badCells?: number;
+  realizationState?: { by_month?: Record<string, { shops_sold?: string[]; shops_with_rows?: string[]; shops_no_data?: string[]; shops_pending?: string[] }> } | null;
   skippedCampaigns?: Array<{ campaign: string; business: string; reason: string }>;
 }
 
@@ -26,6 +27,21 @@ export const moneyTol = (base: number) => Math.max(50, Math.abs(base) * 0.005);
 
 export function buildReconcile(inp: ReconInput, today: string) {
   const { rows, realization: realz, netting, cogs, tax, live, views, ads } = inp;
+  // Покрытие отчёта о реализации по месяцам. Недобранный отчёт - это ПРОБЕЛ, а не расхождение:
+  // живой факт 2026-09, закрытый месяц 2026-08 - отчёт был выпущен лишь по части магазинов, в нём
+  // лежало 26 шт против 151 доставленной, и сверка объявляла «расхождение 125 шт», хотя сравнивать
+  // было не с чем. Ниже такой месяц честно помечается недобранным, а не расходящимся.
+  const realzCov = inp.realizationState?.by_month || {};
+  const realizationCoverage = (ym: string, d: OrderRow[]) => {
+    const sold = new Set(d.filter((r) => r.delivered > 0).map((r) => r.campaign));
+    const cov = realzCov[ym];
+    // Состояние бэкфилла ещё не писалось (снимок собран старой версией) - покрытие НЕИЗВЕСТНО.
+    // Это не то же самое, что «ноль магазинов»: неизвестность нельзя выдавать за факт.
+    if (!cov) return { known: false, shops_sold: sold.size, shops_with_rows: null, shops_missing: [] as string[], complete: false };
+    const withRows = new Set(cov.shops_with_rows || []);
+    const missing = [...sold].filter((c) => !withRows.has(c)).sort();
+    return { known: true, shops_sold: sold.size, shops_with_rows: [...sold].filter((c) => withRows.has(c)).length, shops_missing: missing, complete: sold.size > 0 && missing.length === 0 };
+  };
   const yesterday = (() => { const d = new Date(today + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); })();
   const curYm = today.slice(0, 7);
   const prevD = new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)) - 2, 1));
@@ -130,16 +146,20 @@ export function buildReconcile(inp: ReconInput, today: string) {
     const hasRz = rz.length > 0;
     const rs = hasRz ? rz.reduce((s, r) => s + (r.sold || 0), 0) : null, rr = hasRz ? rz.reduce((s, r) => s + (r.ret || 0), 0) : null;
     const rzNet = hasRz ? rs! - rr! : null;
-    const udiff = hasRz ? odNet - rzNet! : null; // нетто vs нетто (G1: delivered уже count − returned)
+    const rcov = realizationCoverage(ym, d);
+    const rzUsable = hasRz && rcov.complete;
+    const udiff = rzUsable ? odNet - rzNet! : null; // нетто vs нетто (G1: delivered уже count − returned)
     const ustatus = !fullMonth ? "частичный месяц: отчёт о реализации помесячный - сверка только по заказам"
       : !hasRz ? "нет отчёта о реализации за месяц (не собран / NO_DATA)"
+      : !rcov.known ? "покрытие отчёта о реализации НЕИЗВЕСТНО (состояние бэкфилла не записано) - сверка штук не проводится до следующего синка"
+      : !rcov.complete ? `ОТЧЁТ ДОБРАН ЧАСТИЧНО: строки есть по ${rcov.shops_with_rows}/${rcov.shops_sold} магазинов с продажами, не хватает ${rcov.shops_missing.join(", ")} - сверка штук невозможна, это пробел выгрузки, а не расхождение`
       : udiff === 0 ? "сошлось" : `расхождение ${udiff} шт: заказы vs реализация (доначисления, поздние возвраты, месяц ещё не закрыт)`;
     const acc = d.reduce((s, r) => s + r.accruals, 0), fees = d.reduce((s, r) => s + r.fee_total, 0);
     const predShare = d.length ? pct(d.filter((r) => !r.fee_actual).length, d.length) : 0;
     const money = { ...moneyCheck(d), accruals: r0(acc), fees: r0(fees), predicted_share: predShare, payments: paymentsCheck(d, kind) };
     // выручка vs реализация (G7): начислено за доставленные vs amount отчёта; подбор состава типов цен
     let revenue: any = null;
-    if (fullMonth && hasRz && rz.some((r) => r.amount != null)) {
+    if (fullMonth && rzUsable && rz.some((r) => r.amount != null)) {
       const ra = rz.reduce((s, r) => s + (r.amount || 0), 0);
       const combos: Record<string, (r: OrderRow) => number> = {
         "BUYER": (r) => r.p_buyer, "BUYER,MARKETPLACE": (r) => r.p_buyer + r.p_mp,
@@ -156,7 +176,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
     const cstatus = bySku.size === 0 ? "продаж нет" : sc === bySku.size ? "все SKU периода с СС" : `без СС ${bySku.size - sc} SKU (${Math.round((100 - pct(rc, rt)) * 10) / 10}% оборота) - маржа по ним завышена`;
     return {
       kind, label, dateFrom, dateTo,
-      units: { orders_delivered_net: odNet, orders_returned: orr, realization_sold: rs, realization_ret: rr, realization_net: rzNet, diff: udiff, status: ustatus },
+      units: { orders_delivered_net: odNet, orders_returned: orr, realization_sold: rs, realization_ret: rr, realization_net: rzNet, diff: udiff, coverage: rcov, status: ustatus },
       money, revenue,
       cogs: { sku_total: bySku.size, sku_with_cogs: sc, rev_total: r0(rt), rev_with_cogs: r0(rc), pct_sku: pct(sc, bySku.size), pct_rev: pct(rc, rt), status: cstatus },
     };
@@ -199,7 +219,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
   const coverage = {
     window: { dateFrom: live.dateFrom, dateTo: live.dateTo },
     sku_total: sk, cogs: { sku: skC, pct_sku: pct(skC, sk), pct_rev: pct(rC, rt) }, taxonomy: { sku: skT, pct_sku: pct(skT, sk), pct_rev: pct(rT, rt) },
-    realization: { months: [...new Set(realz.map((r) => r.ym))].sort(), sku_prev_month: rzSkus.size },
+    realization: { months: [...new Set(realz.map((r) => r.ym))].sort(), sku_prev_month: rzSkus.size, prev_month_coverage: realizationCoverage(prevYm, delivered.filter((r) => r.fin >= pb.dateFrom && r.fin <= pb.dateTo)) },
     netting_key: keyCheck,
     netting: netting ? { rows: netRows.length, months: [...new Set(netRows.map((n) => n.d.slice(0, 7)))].sort(), orders_with_number: netByOrder.size } : null,
     // Позиции-услуги (доставка, подъём) и совпадения SKU внутри заказа. Если у заказа две позиции с
@@ -234,7 +254,10 @@ export function buildReconcile(inp: ReconInput, today: string) {
   if (!realz.length) blockers.push("нет отчёта о реализации (штуки не сверены с УПД-аналогом)");
   if (!netting) blockers.push("нет отчёта по взаиморасчётам (выплаты ЛК не сверены)");
   const closed = periods[0]!;
-  if (closed.units.diff != null && closed.units.diff !== 0) blockers.push(`штуки закрытого месяца расходятся с реализацией на ${closed.units.diff}`);
+  const cc = (closed.units as any).coverage;
+  if (cc && cc.shops_sold > 0 && !cc.known) blockers.push(`покрытие отчёта о реализации за ${prevYm} неизвестно (состояние бэкфилла не записано) - штуки и выручка закрытого месяца не сверены`);
+  else if (cc && cc.shops_sold > 0 && !cc.complete) blockers.push(`отчёт о реализации за ${prevYm} добран частично: ${cc.shops_with_rows}/${cc.shops_sold} магазинов с продажами, не хватает ${cc.shops_missing.join(", ")} - штуки и выручка закрытого месяца не сверены`);
+  else if (closed.units.diff != null && closed.units.diff !== 0) blockers.push(`штуки закрытого месяца расходятся с реализацией на ${closed.units.diff}`);
   if (keyTrusted === false) blockers.push(keyCheck.status);
   else if (closed.money.diff != null && Math.abs(closed.money.diff) > moneyTol(closed.money.payout_matched)) blockers.push(`деньги закрытого месяца расходятся с выплатами ЛК на ${closed.money.diff} ₽${keyTrusted === null ? " (ключ заказа не подтверждён - цифра предварительная)" : ""}`);
   if (closed.revenue && closed.revenue.status !== "сошлось") blockers.push(`выручка закрытого месяца vs реализация: ${closed.revenue.status}`);

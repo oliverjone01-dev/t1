@@ -1,7 +1,7 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-06T11:33:13.574Z",
-  "today": "2026-09-06",
+  "generated_at": "2026-09-07T06:43:31.477Z",
+  "today": "2026-09-07",
   "periods": [
     {
       "kind": "closed_month",
@@ -14,8 +14,15 @@
         "realization_sold": 26,
         "realization_ret": 0,
         "realization_net": 26,
-        "diff": 125,
-        "status": "расхождение 125 шт: заказы vs реализация (доначисления, поздние возвраты, месяц ещё не закрыт)"
+        "diff": null,
+        "coverage": {
+          "known": false,
+          "shops_sold": 7,
+          "shops_with_rows": null,
+          "shops_missing": [],
+          "complete": false
+        },
+        "status": "покрытие отчёта о реализации НЕИЗВЕСТНО (состояние бэкфилла не записано) - сверка штук не проводится до следующего синка"
       },
       "money": {
         "payout_derived": 5215634,
@@ -57,13 +64,7 @@
           "covers": "сверяет цены, возвраты и состав заказов; сборы Маркета и нога софинансирования этой сверкой не покрыты (нужен united-netting)"
         }
       },
-      "revenue": {
-        "accruals": 7935530,
-        "realization_amount": 457718,
-        "diff": 7477812,
-        "best_price_types": "BUYER",
-        "status": "расхождение 7477812 ₽; ближе всего состав цен BUYER (YM_REVENUE_PRICE_TYPES)"
-      },
+      "revenue": null,
       "cogs": {
         "sku_total": 123,
         "sku_with_cogs": 115,
@@ -86,6 +87,13 @@
         "realization_ret": null,
         "realization_net": null,
         "diff": null,
+        "coverage": {
+          "known": false,
+          "shops_sold": 7,
+          "shops_with_rows": null,
+          "shops_missing": [],
+          "complete": false
+        },
         "status": "частичный месяц: отчёт о реализации помесячный - сверка только по заказам"
       },
       "money": {
@@ -141,23 +149,30 @@
     },
     {
       "kind": "current_month",
-      "label": "текущий месяц 2026-09 (по 2026-09-05)",
+      "label": "текущий месяц 2026-09 (по 2026-09-06)",
       "dateFrom": "2026-09-01",
-      "dateTo": "2026-09-05",
+      "dateTo": "2026-09-06",
       "units": {
-        "orders_delivered_net": 39,
+        "orders_delivered_net": 42,
         "orders_returned": 1,
         "realization_sold": null,
         "realization_ret": null,
         "realization_net": null,
         "diff": null,
+        "coverage": {
+          "known": false,
+          "shops_sold": 6,
+          "shops_with_rows": null,
+          "shops_missing": [],
+          "complete": false
+        },
         "status": "частичный месяц: отчёт о реализации помесячный - сверка только по заказам"
       },
       "money": {
-        "payout_derived": 1427263,
+        "payout_derived": 1559884,
         "payout_matched": 890965,
         "netting_by_order": 890965,
-        "orders_total": 40,
+        "orders_total": 43,
         "orders_matched": 27,
         "diff": 0,
         "key_check": {
@@ -167,29 +182,29 @@
           "trusted": true,
           "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 9678/9678 строк (100%)"
         },
-        "status": "сошлось по 27/40 заказам (допуск 4455 ₽)",
-        "accruals": 2361908,
+        "status": "сошлось по 27/43 заказам (допуск 4455 ₽)",
+        "accruals": 2494529,
         "fees": 934645,
         "predicted_share": 0,
         "payments": {
-          "buyer_leg_derived": 1197578,
-          "payments_actual": 1197578,
+          "buyer_leg_derived": 1255042,
+          "payments_actual": 1255042,
           "diff": 0,
-          "accruals": 2361908,
-          "subsidy_leg": 1164330,
-          "payout_full": 1480430,
-          "orders_with_payments": 39,
-          "orders_total": 40,
-          "coverage_pct": 97.5,
-          "orders_matched": 39,
+          "accruals": 2494529,
+          "subsidy_leg": 1239487,
+          "payout_full": 1613050,
+          "orders_with_payments": 42,
+          "orders_total": 43,
+          "coverage_pct": 97.7,
+          "orders_matched": 42,
           "orders_off": 0,
           "orders_off_pct": 0,
           "off_amount": 0,
           "off_orders": [],
           "by_type": {
-            "PAYMENT": 1197578
+            "PAYMENT": 1255042
           },
-          "status": "сошлось позаказно: все 39 заказов с платежами (покупательская нога)",
+          "status": "сошлось позаказно: все 42 заказов с платежами (покупательская нога)",
           "covers": "сверяет цены, возвраты и состав заказов; сборы Маркета и нога софинансирования этой сверкой не покрыты (нужен united-netting)"
         }
       },
@@ -206,10 +221,10 @@
     }
   ],
   "cumulative": {
-    "payout_derived": 26728471,
+    "payout_derived": 26861091,
     "payout_matched": 19287197,
     "netting_by_order": 19695346,
-    "orders_total": 990,
+    "orders_total": 993,
     "orders_matched": 793,
     "diff": -408149,
     "key_check": {
@@ -219,19 +234,19 @@
       "trusted": true,
       "status": "ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у 9678/9678 строк (100%)"
     },
-    "status": "расхождение -408149 ₽ по 793/990 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
+    "status": "расхождение -408149 ₽ по 793/993 сопоставленным заказам (predicted-комиссии, удержания вне позиций)",
     "netting_account": 400849,
     "payments": {
-      "buyer_leg_derived": 26196232,
-      "payments_actual": 26218434,
+      "buyer_leg_derived": 26253696,
+      "payments_actual": 26275898,
       "diff": -22202,
-      "accruals": 46534205,
-      "subsidy_leg": 20337973,
-      "payout_full": 27527762,
-      "orders_with_payments": 962,
-      "orders_total": 990,
+      "accruals": 46666826,
+      "subsidy_leg": 20413130,
+      "payout_full": 27660383,
+      "orders_with_payments": 965,
+      "orders_total": 993,
       "coverage_pct": 97.2,
-      "orders_matched": 959,
+      "orders_matched": 962,
       "orders_off": 3,
       "orders_off_pct": 0.3,
       "off_amount": 22202,
@@ -256,10 +271,10 @@
         }
       ],
       "by_type": {
-        "PAYMENT": 26246355,
+        "PAYMENT": 26303819,
         "REFUND": -27912
       },
-      "status": "сошлось по 959/962 заказам (99.7%); не сошлись 3 на 22202 ₽ - краевые случаи (частичная доставка, полный возврат с софинансированием), см. off_orders",
+      "status": "сошлось по 962/965 заказам (99.7%); не сошлись 3 на 22202 ₽ - краевые случаи (частичная доставка, полный возврат с софинансированием), см. off_orders",
       "covers": "сверяет цены, возвраты и состав заказов; сборы Маркета и нога софинансирования этой сверкой не покрыты (нужен united-netting)"
     }
   },
@@ -286,7 +301,14 @@
         "2026-04",
         "2026-08"
       ],
-      "sku_prev_month": 22
+      "sku_prev_month": 22,
+      "prev_month_coverage": {
+        "known": false,
+        "shops_sold": 7,
+        "shops_with_rows": null,
+        "shops_missing": [],
+        "complete": false
+      }
     },
     "netting_key": {
       "checked": 9678,
@@ -614,8 +636,7 @@
   },
   "verdict": "return",
   "blockers": [
-    "штуки закрытого месяца расходятся с реализацией на 125",
-    "выручка закрытого месяца vs реализация: расхождение 7477812 ₽; ближе всего состав цен BUYER (YM_REVENUE_PRICE_TYPES)",
+    "покрытие отчёта о реализации за 2026-08 неизвестно (состояние бэкфилла не записано) - штуки и выручка закрытого месяца не сверены",
     "кампания 21985942 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности",
     "кампания 23960471 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности",
     "кампания 40175277 (кабинет 1023124) не отдаёт данные: API кампании отключён Маркетом из-за неактивности"

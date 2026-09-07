@@ -89,11 +89,15 @@ jobs:
           # ФЕНИКС 2026-09-07: гейт читал прошлый снимок как `git show HEAD:`, но промежуточный
           # коммит кладёт свежие orders/catalog в HEAD РАНЬШЕ гейта - файл сравнивался сам с собой,
           # и потеря в заказах прошла бы молча. Слепок снимаем до того, как что-либо записано.
-          mkdir -p /tmp/ym-base
+          # Рабочая папка шага по умолчанию - analytics-mvp (defaults.run выше), поэтому путь
+          # БЕЗ повторного префикса. ФЕНИКС 2026-09-07: с префиксом cp искал
+          # analytics-mvp/analytics-mvp/data-ym, `|| true` глушил промах, /tmp/ym-base оставался
+          # пустым - и гейт молча пропускал любую потерю по всем четырём файлам.
+          # Промах больше не глушим: нет слепка там, где файл есть - это отказ защиты, а не мелочь.
+          rm -rf /tmp/ym-base && mkdir -p /tmp/ym-base
           for f in netting.ndjson orders.ndjson realization_monthly.ndjson sku_views.ndjson; do
-            cp "analytics-mvp/data-ym/$f" "/tmp/ym-base/$f" 2>/dev/null || true
+            if [ -f "data-ym/$f" ]; then cp "data-ym/$f" "/tmp/ym-base/$f"; echo "слепок $f: $(wc -l < "/tmp/ym-base/$f") строк"; else echo "слепок $f: файла ещё нет (первый прогон)"; fi
           done
-          ls -la /tmp/ym-base/ || true
 
       - name: Заказы Маркета (факт-слой, инкремент + перетяжка хвоста)
         run: npm run ym:orders
@@ -157,7 +161,14 @@ jobs:
           # 2026-03..2026-06: окно 30 дней не шелохнулось, прогон был зелёный.
           # Базовый слепок - из /tmp/ym-base (снят до продьюсеров), а НЕ из HEAD: промежуточный коммит
           # успевает положить свежие orders в HEAD, и сравнение шло бы файла с самим собой.
-          base () { [ -f "/tmp/ym-base/$1" ] && echo "/tmp/ym-base/$1" || echo ""; }
+          # Пустая строка от base() означает «сравнивать не с чем», и гейт тогда молча пропускает
+          # что угодно. Это допустимо только на первом прогоне. Если файл в data-ym есть, а слепка
+          # нет - защита отключена, и прогон обязан упасть, а не проехать (ФЕНИКС iter3).
+          base () {
+            if [ -f "/tmp/ym-base/$1" ]; then echo "/tmp/ym-base/$1"; return; fi
+            if [ -f "data-ym/$1" ]; then echo "::error::слепка /tmp/ym-base/$1 нет, а data-ym/$1 существует - гейт остался бы без базы сравнения" >&2; exit 1; fi
+            echo ""
+          }
           npx tsx src/scripts/ym/validate-facts.ts data-ym/netting.ndjson            $(base netting.ndjson)            --month-key=d       --sum=amount --by=business
           npx tsx src/scripts/ym/validate-facts.ts data-ym/orders.ndjson             $(base orders.ndjson)             --month-key=created --sum=accruals --by=business
           npx tsx src/scripts/ym/validate-facts.ts data-ym/realization_monthly.ndjson $(base realization_monthly.ndjson) --month-key=ym      --sum=amount

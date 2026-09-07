@@ -24,7 +24,9 @@ function threshold(raw: string | undefined, name: string, def: number, max: numb
   return v;
 }
 const DROP = threshold(process.env.YM_FACTS_DROP_GATE, "YM_FACTS_DROP_GATE", 0.1, 0.5);  // просадка месяца
-const GROW = threshold(process.env.YM_FACTS_GROW_GATE, "YM_FACTS_GROW_GATE", 0.25, 20);  // рост ЗАКРЫТОГО месяца
+// Потолок роста закрытого месяца. Верхняя граница 2.0, а не 20: значение 20 проходило валидацию и
+// на месяце x2 давало «аномалий нет» - легальный выключатель детектора задвоения (ФЕНИКС iter3).
+const GROW = threshold(process.env.YM_FACTS_GROW_GATE, "YM_FACTS_GROW_GATE", 0.25, 2);   // рост ЗАКРЫТОГО месяца
 
 function rows(p: string): any[] {
   if (!p || !existsSync(p)) return [];
@@ -46,9 +48,18 @@ function main() {
   // и гейт по одному месяцу пропускал потерю целого кабинета: у 1023124/2026-06 доля в месяце 19.2%,
   // то есть минус половина кабинета - это минус 9.6% месяца, под порогом 10%.
   const byBiz = process.argv.includes("--by=business");
+  // Потолок роста включаем только там, где есть ключ кабинета. У реализации его нет, повторный
+  // разбор сливается по SKU и не меняет числа строк, поэтому прирост суммы неотличим от законного
+  // добора УПД: живой случай - 2026-08, шесть магазинов из семи ждут УПД, их приход законно даст
+  // больше 25%. Для реализации задвоение снято в источнике (пересбор вместо переоткрытия).
+  const growOn = byBiz;
+  // Строки-агрегаты (окно целиком одной датой) заменяются следующим окном целиком - это не
+  // накопленный факт, и сравнивать их по месяцам бессмысленно: смена окна давала бы «потерю»
+  // каждый прогон, а гейт, который кричит зря, отключают (ФЕНИКС iter3).
   const agg = (rs: any[]) => {
     const m: Record<string, { n: number; s: number }> = {};
     for (const r of rs) {
+      if (r.aggregate) continue;
       const mon = String(r[mk] || "").slice(0, 7); if (!mon) continue;
       const key = byBiz && r.business ? `${r.business}/${mon}` : mon;
       const b = (m[key] ||= { n: 0, s: 0 });
@@ -69,7 +80,7 @@ function main() {
     else if (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) < Math.abs(p.s) * (1 - DROP)) bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} (потеря)`);
     // Гейт был односторонним и пропускал ЗАДВОЕНИЕ - а именно оно и грозило реализации: разбор
     // складывает поверх накопленного, и второй проход по той же паре удваивает месяц.
-    else if (monthOf(mth) >= newest) continue; // текущий месяц ещё набирается - потолок роста не про него
+    else if (!growOn || monthOf(mth) >= newest) continue; // текущий месяц ещё набирается - потолок роста не про него
     else if (c.n >= p.n * (1 + GROW)) bad.push(`${mth}: строк было ${p.n}, стало ${c.n} (закрытый месяц вырос на ${Math.round((c.n / p.n - 1) * 100)}% - похоже на задвоение)`);
     else if (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) >= Math.abs(p.s) * (1 + GROW)) bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} (закрытый месяц вырос на ${Math.round((Math.abs(c.s) / Math.abs(p.s) - 1) * 100)}% - похоже на задвоение)`);
   }

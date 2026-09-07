@@ -114,39 +114,25 @@ async function realization(months: string[]) {
   const STATE = yp("realization_state.json");
   const state = readJson<{ pairs: string[]; by_month?: Record<string, any> }>(STATE, { pairs: [] });
   const donePairs = new Set(state.pairs || []);
-  // Пары, закрытые СТАРЫМ поведением «NO_DATA закрывает магазин навсегда», сами не откроются:
-  // donePairs пропускает их до любого запроса. Переоткрывать их можно ТОЛЬКО там, где из ДАННЫХ
-  // видно, что магазин ничего не дал.
-  //
-  // ФЕНИКС 2026-09-07 (RETURN 7.1): моё прежнее условие «нет в shops_with_rows -> вклад нулевой»
-  // на живом состоянии ЛОЖНО. Поле from появилось только что, в накопленном файле его нет ни у одной
-  // из 177 строк, поэтому shops_with_rows пуст и у месяцев, которые строки ДАЛИ. Разбор складывает
-  // (a.sold += / a.amount +=) и вычитания прошлого вклада нет, значит переоткрытие таких пар положило
-  // бы второй слой поверх первого: 13 пар за 2026-02/03/04/08 и 4 737 075 ₽ реализации.
-  //
-  // Доказательство нулевого вклада берём из файла: месяц пригоден к переоткрытию, только если КАЖДАЯ
-  // его строка несёт from, то есть разбивка по магазинам известна по данным, а не по состоянию.
-  // Месяцы, собранные до появления from, не переоткрываем вовсе - там нулевой вклад недоказуем.
-  // Магазины, ответившие NO_DATA, в переоткрытии и не нуждаются: новый код такие пары не закрывает.
-  const rowsByMonth: Record<string, any[]> = {};
-  for (const r of existing) (rowsByMonth[r.ym] ||= []).push(r);
-  const attributed = (ym: string) => {
-    const rs = rowsByMonth[ym];
-    if (!rs || !rs.length) return null;                       // строк нет - вклад нулевой по факту
-    if (!rs.every((r) => Array.isArray(r.from))) return undefined; // разбивка неизвестна - не трогаем
-    return new Set<string>(rs.flatMap((r) => r.from as string[]));
-  };
-  let reopened = 0, blocked = 0;
-  for (const [ym, cov] of Object.entries(state.by_month || {})) {
-    const gave = attributed(ym);
-    if (gave === undefined) { blocked += ((cov as any)?.shops_sold || []).length; continue; }
-    for (const c of ((cov as any)?.shops_sold || []) as string[]) {
-      if (gave && gave.has(c)) continue;                      // магазин дал строки - повторный разбор задвоит
-      if (donePairs.delete(`${ym}/${c}`)) reopened++;
+  // ПЕРЕОТКРЫТИЯ ПАР БОЛЬШЕ НЕТ. Две итерации подряд оно оказывалось небезопасным, и оба раза по
+  // одной причине: признак «магазин ничего не дал» выводился косвенно, а разбор складывает поверх
+  // накопленного (a.sold += ...), поэтому любая ошибка вывода превращается во второй слой.
+  //   итерация 1: признак читался из состояния (shops_with_rows), пустого у старых месяцев;
+  //   итерация 2: признак читался из поля from, а писатель проставляет from ВСЕМ строкам, включая
+  //   поднятые из файла с пустым множеством - через один прогон from: [] стоял у всех 177 строк,
+  //   и переоткрылись бы 14 пар на 4 830 709 ₽ реализации.
+  // Косвенный признак тут в принципе не годится. Оставляем один явный и идемпотентный путь:
+  // ПЕРЕСБОР МЕСЯЦА С НУЛЯ по прямой команде оператора (`ym:realization -- 2026-02 --rebuild`).
+  // Он не складывает, а заменяет: строки месяца выбрасываются, пары месяца открываются, месяц
+  // собирается заново. Задвоение невозможно по построению, а не по выводу из данных.
+  // Магазины, ответившие NO_DATA, в переоткрытии не нуждаются: новый код такие пары не закрывает.
+  const rebuild = process.argv.includes("--rebuild");
+  if (rebuild) {
+    for (const ym of months) {
+      for (const p of [...donePairs]) if (p.startsWith(`${ym}/`)) donePairs.delete(p);
     }
+    console.log(`realization: ПЕРЕСБОР месяцев ${months.join(", ")} с нуля - накопленные строки этих месяцев отброшены, пары открыты`);
   }
-  if (blocked) console.warn(`::warning::реализация: ${blocked} пар не переоткрыты - в накопленном файле нет разбивки по магазинам (поле from), нулевой вклад недоказуем. Переоткрытие станет возможным, когда месяц будет собран заново с from.`);
-  if (reopened) console.log(`realization: переоткрыто ${reopened} пар месяц/магазин, закрытых пустым отчётом (вклад в накопленное = 0, задвоения не будет)`);
   // Сколько штук по каждому (месяц, магазин) мы САМИ насчитали по заказам. Нужно для двух вещей:
   // не тратить генерацию отчёта на магазин без продаж (лимит 1 отчёт / 2 мин, он дорог) и не
   // закрывать пару по NO_DATA там, где продажи были - у Маркета отчёт появляется после выпуска УПД,
@@ -160,7 +146,12 @@ async function realization(months: string[]) {
   const withRows: Record<string, Set<string>> = {}, noDataDespiteSales: Record<string, Set<string>> = {};
   const mark = (m: Record<string, Set<string>>, ym: string, c: string) => (m[ym] ||= new Set()).add(c);
   const byMonth: Record<string, Record<string, { sold: number; ret: number; amount: number; from: Set<string> }>> = {};
-  for (const r of existing) { const b = byMonth[r.ym] || (byMonth[r.ym] = {}); b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) }; }
+  // При пересборе месяц НЕ засеваем накопленным: иначе свежий разбор ляжет поверх старого.
+  for (const r of existing) {
+    if (rebuild && months.includes(r.ym)) continue;
+    const b = byMonth[r.ym] || (byMonth[r.ym] = {});
+    b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+  }
   outer:
   for (const ym of months) {
     const [y, m] = ym.split("-").map(Number) as [number, number];

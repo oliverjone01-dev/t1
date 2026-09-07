@@ -68,8 +68,8 @@
     },
     "GGM-01-1": {
       "accruals": 103550,
-      "commission": -668,
-      "amount": 86823,
+      "commission": -826,
+      "amount": 86666,
       "ops": 4
     },
     "GGL-07-XL-2": {
@@ -93,7 +93,7 @@
     "GGL-09-2": {
       "accruals": 512184,
       "commission": -2324,
-      "amount": 482630,
+      "amount": 481480,
       "ops": 16
     },
     "GGM-20-1": {
@@ -237,7 +237,7 @@
     "GGM-23-3-1": {
       "accruals": 93820,
       "commission": -464,
-      "amount": 91998,
+      "amount": 90677,
       "ops": 4
     },
     "GGT-03-1-3-E-16080": {
@@ -321,7 +321,7 @@
     "GGL-08-2": {
       "accruals": 45144,
       "commission": -224,
-      "amount": 44586,
+      "amount": 43322,
       "ops": 2
     },
     "GGR-11-2": {

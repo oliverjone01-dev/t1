@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-07T07:03:18.285Z",
+  "generated_at": "2026-09-07T07:20:44.813Z",
   "today": "2026-09-07",
   "periods": [
     {
@@ -33,7 +33,7 @@
         "status": "ОТЧЁТ ДОБРАН ЧАСТИЧНО: строки есть по 0/7 магазинов с продажами, не хватает 148992469, 149000600, 149001087, 149002232, 149032438, 149035080, 149154933 - сверка штук невозможна, это пробел выгрузки, а не расхождение"
       },
       "money": {
-        "payout_derived": 5215634,
+        "payout_derived": 5215476,
         "payout_matched": 2111672,
         "netting_by_order": 2111672,
         "orders_total": 148,
@@ -48,7 +48,7 @@
         },
         "status": "сошлось по 73/148 заказам (допуск 10558 ₽)",
         "accruals": 7935530,
-        "fees": 2719896,
+        "fees": 2720054,
         "predicted_share": 0,
         "payments": {
           "buyer_leg_derived": 3931592,
@@ -192,7 +192,7 @@
         "status": "частичный месяц: отчёт о реализации помесячный - сверка только по заказам"
       },
       "money": {
-        "payout_derived": 1543988,
+        "payout_derived": 1540253,
         "payout_matched": 877084,
         "netting_by_order": 877084,
         "orders_total": 45,
@@ -207,7 +207,7 @@
         },
         "status": "сошлось по 29/45 заказам (допуск 4385 ₽)",
         "accruals": 2581070,
-        "fees": 1037082,
+        "fees": 1040817,
         "predicted_share": 0,
         "payments": {
           "buyer_leg_derived": 1300741,
@@ -215,7 +215,7 @@
           "diff": 0,
           "accruals": 2581070,
           "subsidy_leg": 1280329,
-          "payout_full": 1597154,
+          "payout_full": 1593419,
           "orders_with_payments": 44,
           "orders_total": 45,
           "coverage_pct": 97.8,
@@ -244,7 +244,7 @@
     }
   ],
   "cumulative": {
-    "payout_derived": 26845196,
+    "payout_derived": 26841303,
     "payout_matched": 19273317,
     "netting_by_order": 19681466,
     "orders_total": 995,
@@ -265,7 +265,7 @@
       "diff": -22202,
       "accruals": 46753367,
       "subsidy_leg": 20453972,
-      "payout_full": 27644487,
+      "payout_full": 27640752,
       "orders_with_payments": 967,
       "orders_total": 995,
       "coverage_pct": 97.2,
@@ -386,7 +386,7 @@
         "rows": 507,
         "revenue": 15485314,
         "delivered": 204,
-        "payout": 7571879,
+        "payout": 7567986,
         "skus": 84
       },
       "74986385": {

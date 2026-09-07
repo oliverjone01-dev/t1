@@ -210,7 +210,9 @@ async function main() {
   // Сделки воронки GG, активные в окне (фильтр-объект применяется, т.к. JSON-тело).
   const ents: Ent[] = [];
   const leadToDeal: Record<string, string> = {}, dealSrcLead: Record<string, string> = {}, dealTitle: Record<string, string> = {}, leadTitle: Record<string, string> = {};
-  const deals = await listAll("crm.deal.list", { select: ["ID", "TITLE", "ASSIGNED_BY_ID", "LEAD_ID"], filter: { CATEGORY_ID: CATEGORY_ID, ">=LAST_ACTIVITY_TIME": FROM } });
+  // ВСЕ открытые сделки воронки (не только активные за окно): для полной базы знаний нужна
+  // каждая сделка в работе, даже без движения за неделю. Историю переписки по ним берём полную.
+  const deals = await listAll("crm.deal.list", { select: ["ID", "TITLE", "ASSIGNED_BY_ID", "LEAD_ID"], filter: { CATEGORY_ID: CATEGORY_ID, CLOSED: "N" } });
   for (const d of deals) {
     const id = String(d.ID); const t = stripHtml(d.TITLE) || ("Сделка " + id);
     ents.push({ kind: "deal", id, title: t, mgrId: String(d.ASSIGNED_BY_ID || "") });
@@ -219,7 +221,7 @@ async function main() {
   }
   // Закрытые в окне (успех/отказ): у них нет новых сообщений, поэтому берём по CLOSEDATE.
   // Помечаем closed=true -> по ним грузим всю историю переписки (см. HFROM).
-  const closedDeals = await listAll("crm.deal.list", { select: ["ID", "TITLE", "ASSIGNED_BY_ID", "LEAD_ID"], filter: { CATEGORY_ID: CATEGORY_ID, CLOSED: "Y", ">=CLOSEDATE": FROM } });
+  const closedDeals = await listAll("crm.deal.list", { select: ["ID", "TITLE", "ASSIGNED_BY_ID", "LEAD_ID"], filter: { CATEGORY_ID: CATEGORY_ID, CLOSED: "Y", ">=CLOSEDATE": HFROM } });
   const dealSeen = new Set(ents.filter((e) => e.kind === "deal").map((e) => e.id));
   let closedN = 0;
   for (const d of closedDeals) {
@@ -234,7 +236,7 @@ async function main() {
   let leadsN = 0;
   if (WITH_LEADS) {
     // Лиды: созданные в окне (реальный intake отдела продаж) + источники сделок в скоупе.
-    const leads = await listAll("crm.lead.list", { select: ["ID", "TITLE", "ASSIGNED_BY_ID"], filter: { ">=DATE_CREATE": FROM } });
+    const leads = await listAll("crm.lead.list", { select: ["ID", "TITLE", "ASSIGNED_BY_ID"], filter: { ">=DATE_CREATE": HFROM } });
     const leadInfo: Record<string, any> = {}; const leadIds = new Set<string>();
     for (const l of leads) { const id = String(l.ID); leadInfo[id] = l; leadIds.add(id); }
     for (const lid of Object.keys(leadToDeal)) leadIds.add(lid);
@@ -259,8 +261,8 @@ async function main() {
     const cmds: Record<string, string> = {};
     slice.forEach((e, j) => {
       const ot = e.kind === "deal" ? 2 : 1;
-      // Закрытые сделки - вся история (HFROM), остальные - окно снимка (FROM).
-      const efrom = e.closed ? HFROM : FROM;
+      // Полная история переписки по КАЖДОЙ сущности (не только 7 дней у активных): для базы знаний.
+      const efrom = HFROM;
       cmds["a" + j] = `crm.activity.list?filter[OWNER_TYPE_ID]=${ot}&filter[OWNER_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(efrom)}&order[CREATED]=ASC${aSel}`;
       cmds["c" + j] = `crm.timeline.comment.list?filter[ENTITY_TYPE]=${e.kind}&filter[ENTITY_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(efrom)}&order[CREATED]=ASC${cSel}`;
     });
@@ -271,6 +273,29 @@ async function main() {
   };
   let ci = 0;
   await Promise.all(Array.from({ length: CONC }, async () => { for (;;) { const idx = ci++; if (idx >= chunks.length) break; await runChunk(chunks[idx]!); } }));
+
+  // «Все коммуникации»: одна batch-подкоманда отдаёт максимум 50 записей. У длинных лент хвост
+  // обрезается - дочитываем такие сущности постранично (listAll), чтобы история была полной.
+  const actSelArr = ["ID", "TYPE_ID", "PROVIDER_ID", "DIRECTION", "SUBJECT", "DESCRIPTION", "CREATED", "END_TIME", "COMPLETED", "RESPONSIBLE_ID", "SETTINGS", "ASSOCIATED_ENTITY_ID", "FILES", "START_TIME", "DEADLINE"];
+  const cmtSelArr = ["ID", "CREATED", "COMMENT", "AUTHOR_ID"];
+  const capped: { e: Ent; kind: "a" | "c" }[] = [];
+  for (const e of ents) {
+    const key = e.kind + ":" + e.id;
+    if ((actsBy[key] || []).length >= 50) capped.push({ e, kind: "a" });
+    if ((cmtsBy[key] || []).length >= 50) capped.push({ e, kind: "c" });
+  }
+  if (capped.length) {
+    console.log(`Дочитываю полную историю у ${capped.length} длинных лент (>50 записей)`);
+    let cj = 0;
+    await Promise.all(Array.from({ length: CONC }, async () => {
+      for (;;) {
+        const idx = cj++; if (idx >= capped.length) break;
+        const { e, kind } = capped[idx]!; const key = e.kind + ":" + e.id; const ot = e.kind === "deal" ? 2 : 1;
+        if (kind === "a") actsBy[key] = await listAll("crm.activity.list", { filter: { OWNER_TYPE_ID: ot, OWNER_ID: e.id, ">CREATED": HFROM }, order: { CREATED: "ASC" }, select: actSelArr });
+        else cmtsBy[key] = await listAll("crm.timeline.comment.list", { filter: { ENTITY_TYPE: e.kind, ENTITY_ID: e.id, ">CREATED": HFROM }, order: { CREATED: "ASC" }, select: cmtSelArr });
+      }
+    }));
+  }
 
   // Справочник звонков для привязки AI-резюме (ASSOCIATED_ENTITY_ID -> звонок).
   // Всё загруженное кладём сразу; недостающие (звонок старше окна) добираем точечно.

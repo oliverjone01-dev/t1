@@ -1,13 +1,13 @@
 {
-  "at": "2026-09-07T09:19:40.644Z",
-  "orders_from_netting": 1016,
-  "orders_from_commissions": 540,
-  "accruals_from_netting": 39093377,
-  "accruals_from_commissions": 7659990,
-  "fees_from_netting": 19134407.47,
-  "fees_from_commissions": 734499.81,
-  "rate_netting": 48.9,
-  "rate_order": 9.6,
+  "at": "2026-09-07T09:28:25.735Z",
+  "orders_from_netting": 1274,
+  "orders_from_commissions": 282,
+  "accruals_from_netting": 46753367,
+  "accruals_from_commissions": 0,
+  "fees_from_netting": 24080417.78,
+  "fees_from_commissions": 0,
+  "rate_netting": 51.5,
+  "rate_order": null,
   "by_month": {
     "2026-02": {
       "orders_netting": 110,
@@ -44,71 +44,52 @@
       "orders_order": 26,
       "accruals_netting": 7247462,
       "accruals_order": 0,
-      "fees_netting": 3376631.74,
+      "fees_netting": 3419998.79,
       "fees_order": 0,
-      "rate_netting": 46.6,
+      "rate_netting": 47.2,
       "rate_order": null
     },
     "2026-06": {
-      "orders_netting": 119,
-      "orders_order": 53,
-      "accruals_netting": 4620150,
-      "accruals_order": 892830,
-      "fees_netting": 2205952.03,
-      "fees_order": 144887.94,
-      "rate_netting": 47.7,
-      "rate_order": 16.2
+      "orders_netting": 152,
+      "orders_order": 20,
+      "accruals_netting": 5512980,
+      "accruals_order": 0,
+      "fees_netting": 2794718.79,
+      "fees_order": 0,
+      "rate_netting": 50.7,
+      "rate_order": null
     },
     "2026-07": {
-      "orders_netting": 129,
-      "orders_order": 166,
-      "accruals_netting": 5968302,
-      "accruals_order": 3886121,
-      "fees_netting": 3304870.05,
-      "fees_order": 402964.24,
-      "rate_netting": 55.4,
-      "rate_order": 10.4
+      "orders_netting": 248,
+      "orders_order": 47,
+      "accruals_netting": 9854423,
+      "accruals_order": 0,
+      "fees_netting": 5878082.49,
+      "fees_order": 0,
+      "rate_netting": 59.6,
+      "rate_order": null
     },
     "2026-08": {
-      "orders_netting": 107,
-      "orders_order": 151,
-      "accruals_netting": 4151471,
-      "accruals_order": 2881039,
-      "fees_netting": 2221332.31,
-      "fees_order": 186647.63,
-      "rate_netting": 53.5,
-      "rate_order": 6.5
+      "orders_netting": 205,
+      "orders_order": 53,
+      "accruals_netting": 7032510,
+      "accruals_order": 0,
+      "fees_netting": 3961995.17,
+      "fees_order": 0,
+      "rate_netting": 56.3,
+      "rate_order": null
     },
     "2026-09": {
-      "orders_netting": 33,
-      "orders_order": 43,
+      "orders_netting": 41,
+      "orders_order": 35,
       "accruals_netting": 49611,
       "accruals_order": 0,
-      "fees_netting": 23768.63,
+      "fees_netting": 23769.83,
       "fees_order": 0,
       "rate_netting": 47.9,
       "rate_order": null
     }
   },
-  "gaps": [
-    {
-      "business": "1023124",
-      "ym": "2026-06",
-      "accruals": 892830,
-      "orders": 24
-    },
-    {
-      "business": "1023124",
-      "ym": "2026-07",
-      "accruals": 3886121,
-      "orders": 91
-    },
-    {
-      "business": "1023124",
-      "ym": "2026-08",
-      "accruals": 2881039,
-      "orders": 64
-    }
-  ],
+  "gaps": [],
   "unmapped": {}
 }

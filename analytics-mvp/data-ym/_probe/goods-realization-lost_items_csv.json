@@ -1,6 +1,6 @@
 {
   "type": "goods-realization-lost_items_csv",
-  "at": "2026-09-05T10:57:18.177Z",
+  "at": "2026-09-07T08:33:29.172Z",
   "headers": [
     "ORDER_ID",
     "YOUR_ORDER_ID",
@@ -45,7 +45,7 @@
     "ADJUSTMENT_INVOICE_NUMBER"
   ],
   "sample_masked": [],
-  "campaign": "149001087",
+  "campaign": "149154933",
   "ym": "2026-08",
   "file": "lost_items.csv"
 }

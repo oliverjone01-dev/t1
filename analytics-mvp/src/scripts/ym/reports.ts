@@ -112,8 +112,21 @@ async function realization(months: string[]) {
   // кабинет), поэтому помним разобранные пары (месяц, кампания) в realization_state.json и каждый
   // прогон двигаем бэкфилл дальше, а не начинаем с нуля.
   const STATE = yp("realization_state.json");
-  const state = readJson<{ pairs: string[] }>(STATE, { pairs: [] });
+  const state = readJson<{ pairs: string[]; by_month?: Record<string, any> }>(STATE, { pairs: [] });
   const donePairs = new Set(state.pairs || []);
+  // Пары, закрытые СТАРЫМ поведением «NO_DATA закрывает магазин навсегда», уже не могли открыться:
+  // donePairs пропускает их до любого запроса. Живой факт 2026-09-07 - август встал на 1/7 магазинов
+  // не из-за лимита (лимит отработал: подождал 125 с и добрал магазин), а потому что 4 магазина были
+  // закрыты пустыми отчётами прошлых прогонов. Переоткрываем ТОЛЬКО те пары, которые ничего не дали:
+  // их вклад в накопленный месяц равен нулю, поэтому повторный сбор не задвоит цифры.
+  let reopened = 0;
+  for (const [ym, cov] of Object.entries(state.by_month || {})) {
+    const withRows = new Set<string>((cov as any)?.shops_with_rows || []);
+    for (const c of ((cov as any)?.shops_sold || []) as string[]) {
+      if (!withRows.has(c) && donePairs.delete(`${ym}/${c}`)) reopened++;
+    }
+  }
+  if (reopened) console.log(`realization: переоткрыто ${reopened} пар месяц/магазин, закрытых пустым отчётом (вклад в накопленное = 0, задвоения не будет)`);
   // Сколько штук по каждому (месяц, магазин) мы САМИ насчитали по заказам. Нужно для двух вещей:
   // не тратить генерацию отчёта на магазин без продаж (лимит 1 отчёт / 2 мин, он дорог) и не
   // закрывать пару по NO_DATA там, где продажи были - у Маркета отчёт появляется после выпуска УПД,
@@ -311,7 +324,14 @@ async function shows(days: number) {
     // отдельной колонки даты нет - собираем ISO из трёх, иначе воронка схлопывается в агрегат.
     const hasParts = ix.day! >= 0 && ix.month! >= 0 && ix.year! >= 0;
     const hasDate = ix.date! >= 0 || hasParts;
+    // Живой факт 2026-09-07: колонка DAY несёт НЕ номер дня, а полную дату DD-MM-YYYY (MONTH -
+    // MM-YYYY, YEAR - YYYY). Number("07-09-2026") = NaN, поэтому дата не собиралась, все строки
+    // помечались агрегатом и 30 дневных строк на SKU схлопывались на одну дату: 20 388 строк на
+    // 733 уникальных ключа, воронка «1 день из 30» и нули показов в daily_totals. Сначала пробуем
+    // прочитать DAY как дату целиком, и только потом - как номер дня.
     const partsDate = (r: string[]) => {
+      const whole = cellDate(r[ix.day!]);
+      if (whole) return whole;
       const y = Number(r[ix.year!]), m = Number(r[ix.month!]), dd = Number(r[ix.day!]);
       if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(dd) || y < 2000 || m < 1 || m > 12 || dd < 1 || dd > 31) return "";
       return `${y}-${pad(m)}-${pad(dd)}`;

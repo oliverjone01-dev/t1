@@ -155,3 +155,27 @@ describe("ключ чистки накопительного файла = клю
     expect(purge(fresh, old)).toHaveLength(1);                                    // исправленный ключ бережёт
   });
 });
+
+describe("состояние не запирает бэкфилл навсегда", () => {
+  // Пара, закрытая пустым отчётом, раньше не открывалась никогда: donePairs пропускает её до
+  // запроса. Август встал на 1/7 магазинов не из-за лимита Маркета, а из-за этого.
+  const reopen = (pairs: string[], byMonth: Record<string, any>) => {
+    const done = new Set(pairs);
+    for (const [ym, cov] of Object.entries(byMonth)) {
+      const withRows = new Set<string>(cov.shops_with_rows || []);
+      for (const c of (cov.shops_sold || []) as string[]) if (!withRows.has(c)) done.delete(`${ym}/${c}`);
+    }
+    return [...done].sort();
+  };
+  it("пара без строк переоткрывается, чужие месяцы не трогаются", () => {
+    const byMonth = { "2026-08": { shops_sold: ["A", "B"], shops_with_rows: ["A"] } };
+    // B за август переоткрыт; A за август и C за июль остались закрытыми
+    expect(reopen(["2026-08/A", "2026-08/B", "2026-07/C"], byMonth)).toEqual(["2026-07/C", "2026-08/A"]);
+  });
+  it("переоткрытие не может задвоить цифры: у переоткрытых пар вклад нулевой", () => {
+    const byMonth = { "2026-08": { shops_sold: ["A", "B"], shops_with_rows: ["A"] } };
+    const left = reopen(["2026-08/A", "2026-08/B"], byMonth);
+    expect(left).toContain("2026-08/A");     // дала строки - повторно не тянем
+    expect(left).not.toContain("2026-08/B"); // строк не дала - тянем снова, прибавлять нечего
+  });
+});

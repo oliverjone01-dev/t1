@@ -147,6 +147,22 @@ describe("ключ чистки накопительного файла = клю
     expect(keep.map((r) => `${r.business}/${r.d.slice(0, 7)}`)).toEqual(["74986385/2026-04", "74986385/2026-05"]);
     expect(keep.some((r) => r.business === "1023124")).toBe(false); // свой месяц заменяется свежим
   });
+  it("чистится ЗАПРОШЕННАЯ пара, а не месяц, пришедший в ответе", () => {
+    // Отчёт Маркета отдаёт проводки за пределами окна: запрос июля приносит и майские строки.
+    // Живой факт 2026-09-07 (прогон 17): список чистки строился из ответа, поэтому запрос июля
+    // помечал май «перезабранным», приносил оттуда 568 строк из 2380 - и сносил остальные 1812.
+    const old = [
+      { business: "B", d: "2026-05-10", amount: 1 }, { business: "B", d: "2026-05-11", amount: 1 },
+      { business: "B", d: "2026-07-01", amount: 1 },
+    ];
+    const requested = new Set(["B/2026-07"]);          // запрошен ТОЛЬКО июль
+    const fresh = [{ business: "B", d: "2026-07-02" }, { business: "B", d: "2026-05-30" }]; // а пришёл и май
+    const keepByRequest = old.filter((r) => !requested.has(`${r.business}/${r.d.slice(0, 7)}`));
+    expect(keepByRequest.filter((r) => r.d.startsWith("2026-05"))).toHaveLength(2); // май цел
+    const coveredFromRows = new Set(fresh.map((r) => `${r.business}/${r.d.slice(0, 7)}`));
+    expect(old.filter((r) => !coveredFromRows.has(`${r.business}/${r.d.slice(0, 7)}`))
+      .filter((r) => r.d.startsWith("2026-05"))).toHaveLength(0); // старое поведение теряло май
+  });
   it("чистка по одному месяцу (старое поведение) сносила бы чужой кабинет", () => {
     const old = [{ business: "74986385", d: "2026-04-11", amount: 2 }];
     const fresh = [{ business: "1023124", d: "2026-04-15", amount: 9 }];

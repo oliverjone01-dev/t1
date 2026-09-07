@@ -230,6 +230,8 @@ async function netting(from: string, to: string) {
   const OUT = yp("netting.ndjson");
   const STATE = yp("netting_state.json");
   const fresh: any[] = [];
+  // Пары, которые в ЭТОТ прогон реально запрошены и разобраны. Чистить старое можно только по ним.
+  const purged = new Set<string>();
   let ok = 0;
   // Возобновляемость по паре (кабинет, месяц). Полный пересбор девяти месяцев в лимит Маркета
   // (1 генерация / 2 мин) за один прогон не влезает: раньше он обрывался, версия схемы не
@@ -254,7 +256,7 @@ async function netting(from: string, to: string) {
         probe("united-netting", t.headers, t.rows, { business: b, from: s, to: e });
         const ix = cols("united-netting", t.headers, ["date", "amount"]);
         if (ix) {
-          ok++; doneMonths.add(pair);
+          ok++; doneMonths.add(pair); purged.add(pair);
           for (const r of t.rows) {
             const d = cellDate(r[ix.date!]); if (!d) continue;
             fresh.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
@@ -279,8 +281,13 @@ async function netting(from: string, to: string) {
   // 74986385 за 2026-03..2026-06 - реестр упал с 11 407 строк (27 932 124 ₽) до 6 509 (18 577 394 ₽),
   // минус 4 898 строк и 9 354 730 ₽. Дельта-гейт этого не увидел: он смотрит только 30-дневные
   // производные. Чистим строго ту пару, которую в этот прогон реально перезабрали.
-  const covered = new Set(fresh.map((r) => `${r.business}/${r.d.slice(0, 7)}`));
-  const keep = readNdjson<any>(OUT).filter((r) => !covered.has(`${r.business}/${r.d.slice(0, 7)}`));
+  // Список «что чистим» строится из ЗАПРОШЕННЫХ пар, а не из полученных строк. Отчёт отдаёт
+  // проводки за пределами запрошенного окна (см. комментарий про дедуп ниже: в выгрузке за февраль
+  // приходят январские). Прошлая версия брала месяцы из ответа, поэтому запрос июля помечал
+  // «перезабранными» май и июнь, приносил оттуда десяток строк - и сносил остальные две тысячи.
+  // Живой факт 2026-09-07, прогон 17: 2026-05 упал с 2380 строк до 568, 2026-06 с 1652 до 441.
+  // Гейт накопительного слоя это поймал и остановил публикацию.
+  const keep = readNdjson<any>(OUT).filter((r) => !purged.has(`${r.business}/${r.d.slice(0, 7)}`));
   // Живой факт 2026-09-04: отчёт отдаёт проводки и за пределами запрошенного окна (в выгрузке за
   // февраль пришли январские), поэтому соседние месячные запросы ПЕРЕСЕКАЮТСЯ. Без дедупа одна и та
   // же проводка попадает дважды: на первом прогоне так задвоилось 2935 строк на 17.6 млн ₽, и сверка

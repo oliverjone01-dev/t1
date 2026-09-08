@@ -339,7 +339,7 @@ BLOCKER risk: Bitrix24 MCP not ready -> CSV fallback unblocks Sprint 3 partially
 
 **Версия документа:** v9.0.0 GA (iteration 2 verdict=GO)
 **FENIX iteration 1:** score 5.05/10, verdict=veto. Отчёт: `knowledge/episodes/2026-06/feniks-audit-master-system-v9.md`
-**FENIX iteration 2:** score 8.15/10, verdict=GO (delta +3.10). Отчёт: `knowledge/episodes/2026-06/feniks-audit-master-system-v9-iter2.md`
+**FENIX iteration 2:** score 8.15/10, verdict=GO (delta +3.10; в наборе калибровочных якорей пересчитан на 9.35 по контракту v3 решением Ивана 2026-09-08). Отчёт: `knowledge/episodes/2026-06/feniks-audit-master-system-v9-iter2.md`
 **Rework applied (iter 1 -> iter 2):** 10 пунктов rework_tz + 4 минорки (council-vote.json em dash, 50% milestones §9.2, эффорт-оценка §9.1, критический путь §9.3) до выпуска GA.
 **Re-audit checkpoint:** post-Sprint 4 reflexion CC-19.
 

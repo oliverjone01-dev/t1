@@ -80,17 +80,24 @@ const cap = (s: string) => (s.length > BODY_CAP ? s.slice(0, BODY_CAP) + " …[�
 const uCache: Record<string, string> = {};
 const empFirst: Record<string, 1> = {};   // имена сотрудников: «Юлия», «Анна» и т.д.
 async function buildEmployeeSet(): Promise<Record<string, 1>> {
-  const set: Record<string, 1> = {}; let start = 0;
-  for (;;) {
-    const r = await call("user.get", { FILTER: { ACTIVE: true }, start });
-    for (const u of (r.result || [])) {
-      const a = `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim().toLowerCase();
-      const b = `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim().toLowerCase();
-      if (a) set[a] = 1; if (b) set[b] = 1;
-      const fn = String(u.NAME || "").trim().toLowerCase(); if (fn) empFirst[fn] = 1;
-      uCache[String(u.ID)] = `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim() || String(u.ID);
+  // Берём и АКТИВНЫХ, и НЕактивных пользователей: часть менеджеров помечена в Bitrix как
+  // неактивные (уволенные/деактивированные аккаунты), но их исторические чаты Wazzup должны
+  // распознаваться как исходящие. Раньше фильтр ACTIVE:true их отбрасывал, и их сообщения
+  // по умолчанию уходили во «входящие» (напр. Кубанова, Маслова).
+  const set: Record<string, 1> = {};
+  for (const active of [true, false]) {
+    let start = 0;
+    for (;;) {
+      const r = await call("user.get", { FILTER: { ACTIVE: active }, start });
+      for (const u of (r.result || [])) {
+        const a = `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim().toLowerCase();
+        const b = `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim().toLowerCase();
+        if (a) set[a] = 1; if (b) set[b] = 1;
+        const fn = String(u.NAME || "").trim().toLowerCase(); if (fn) empFirst[fn] = 1;
+        if (!uCache[String(u.ID)]) uCache[String(u.ID)] = `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim() || String(u.ID);
+      }
+      if (r.next === undefined || r.next === null) break; start = r.next;
     }
-    if (r.next === undefined || r.next === null) break; start = r.next;
   }
   return set;
 }

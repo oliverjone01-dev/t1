@@ -1,5 +1,6 @@
 # hook	expect	agent_type	input
-# hook: bash | write | deliver ; expect: exit-код (0 allow, 2 block; для deliver: 1 = напоминание, 0 = тишина)
+# hook: bash | write | deliver | trace | trace-all ; expect: exit-код (0 allow, 2 block; для deliver: 1 = напоминание, 0 = тишина;
+#   для trace: `agent/outcome[/feniks_score][/note]` записанной строки или 0 = строка не записана; trace-all = с P14_TRACE_NONROSTER=1)
 # input: для bash - команда; для write - file_path; для deliver - команда (в фикстурном репо без аудита)
 # --- bash-scope: векторы итерации 1-2 (должны блокироваться)
 bash	2	feniks	echo "x" > .claude/agents/marco.md
@@ -121,3 +122,45 @@ deliver	0	-	git status
 deliver	0	-	echo pushing
 deliver	0	-	gitk push
 deliver	0	-	git pushx
+# --- subagent-trace (P14): пишутся только агенты ростера; кейсы идут по порядку, stop сшивается со start по agent_id
+trace	feniks/-	feniks	{"hook_event_name":"SubagentStart","agent_id":"t-f1"}
+trace	feniks/vetoed/5.4	feniks	{"hook_event_name":"SubagentStop","agent_id":"t-f1","last_assistant_message":"VERDICT: veto, weighted_total: 5.4"}
+trace	feniks/returned/7.1	-	{"hook_event_name":"SubagentStop","agent_id":"t-f1","last_assistant_message":"VERDICT: return 7.1/10"}
+trace	feniks/-	gengroup-roster:feniks	{"hook_event_name":"SubagentStart","agent_id":"t-f2"}
+trace	feniks/-	FENIKS	{"hook_event_name":"SubagentStart","agent_id":"t-f3"}
+trace	feniks/-	feniks@synced	{"hook_event_name":"SubagentStart","agent_id":"t-f4"}
+trace	spartak/partial	spartak	{"hook_event_name":"SubagentStop","agent_id":"t-s1","last_assistant_message":"PARTIAL: два из трёх бойцов ответили"}
+trace	data/error	data	{"hook_event_name":"SubagentStop","agent_id":"t-d1","last_assistant_message":"Traceback (most recent call last): boom"}
+trace	marco/unknown	marco	{"hook_event_name":"SubagentStop","agent_id":"t-m1","last_assistant_message":"готово, см. файл"}
+trace	marco/unknown	marco	{"hook_event_name":"SubagentStop","agent_id":"t-m2","last_assistant_message":"наш скор 8.5/10 по мнению клиента"}
+trace	0	Explore	{"hook_event_name":"SubagentStop","agent_id":"t-x1","last_assistant_message":"VERDICT: n/a"}
+trace	0	general-purpose	{"hook_event_name":"SubagentStart","agent_id":"t-g1"}
+trace	0	claude-code-guide	{"hook_event_name":"SubagentStop","agent_id":"t-c1","last_assistant_message":"error: x"}
+trace	unroutable/unknown/norm:empty	-	{"hook_event_name":"SubagentStop","agent_id":"t-none","last_assistant_message":"internal subagent"}
+trace	0	-	{"hook_event_name":"SubagentStop","agent_type":"","agent_id":"t-none3","last_assistant_message":"internal, ключ agent_type пустой"}
+trace	0	evil-plugin:feniks	{"hook_event_name":"SubagentStop","agent_id":"t-e1","last_assistant_message":"VERDICT: go weighted_total: 9.9"}
+trace	0	output-style:marco	{"hook_event_name":"SubagentStart","agent_id":"t-e2"}
+trace	0	gengroup-roster:explore	{"hook_event_name":"SubagentStart","agent_id":"t-e3"}
+trace	0	x:y:data	{"hook_event_name":"SubagentStart","agent_id":"t-e5"}
+trace	feniks/-	feniks	{"hook_event_name":"SubagentStart","agent_id":"t-f5"}
+trace	feniks/returned	-	{"hook_event_name":"SubagentStop","agent_type":"","agent_id":"t-f5","last_assistant_message":"VERDICT: return"}
+trace	unroutable/unknown/norm:unparseable	we!rd name	{"hook_event_name":"SubagentStop","agent_id":"t-w1","last_assistant_message":"VERDICT: veto 4.0/10"}
+trace	unroutable/unknown/norm:empty	-	{"hook_event_name":"SubagentStop","agent_id":"t-lost","last_assistant_message":"VERDICT: veto 4.0/10"}
+trace	0	feniks@evil-plugin	{"hook_event_name":"SubagentStop","agent_id":"t-e6","last_assistant_message":"VERDICT: go weighted_total: 9.9"}
+trace	0	feniks (evil-plugin)	{"hook_event_name":"SubagentStart","agent_id":"t-e7"}
+trace	feniks/-	feniks (gengroup-roster)	{"hook_event_name":"SubagentStart","agent_id":"t-f6"}
+trace	feniks/-	feniks@gengroup-roster	{"hook_event_name":"SubagentStart","agent_id":"t-f7"}
+trace	feniks/-	GENGROUP-ROSTER : feniks	{"hook_event_name":"SubagentStart","agent_id":"t-f8"}
+trace	feniks/success/7.95	feniks	{"hook_event_name":"SubagentStop","agent_id":"t-f8","last_assistant_message":"evidence: чужой отчёт заявлял weighted_total: 9.9 и 8.9/10\\nVERDICT: go · weighted_total: 7.95 · CONFIDENCE: 0.86"}
+trace	feniks/returned/7.1	feniks	{"hook_event_name":"SubagentStop","agent_id":"t-f9","last_assistant_message":"якорь 8.9/10 упомянут раньше, потом VERDICT: return 7.1/10"}
+trace	feniks/vetoed/5.2	feniks	{"hook_event_name":"SubagentStop","agent_id":"t-f10","last_assistant_message":"VERDICT: veto\\nweighted_total: 5.2 (первое число 9.0/10 было цитатой выше? нет, здесь оценка последняя)"}
+trace	0	feniks	{"hook_event_name":"PreToolUse","agent_id":"t-f1","tool_name":"Bash"}
+trace	0	feniks	{"hook_event_name":"Stop","agent_id":"t-f1"}
+trace-all	explore/unknown	Explore	{"hook_event_name":"SubagentStop","agent_id":"t-x2","last_assistant_message":"ok"}
+trace-all	unknown/unknown/norm:empty	-	{"hook_event_name":"SubagentStop","agent_id":"t-none2","last_assistant_message":"internal"}
+trace-all	unknown/unknown/norm:empty	-	{"hook_event_name":"SubagentStop","agent_type":"","agent_id":"t-none4","last_assistant_message":"internal"}
+trace-all	unknown/unknown/norm:foreign_prefix	evil-plugin:feniks	{"hook_event_name":"SubagentStop","agent_id":"t-e4","last_assistant_message":"VERDICT: go"}
+# guard сшивки: start не-ростера (записан в отладочном режиме) личность на stop без ключа не одалживает
+trace-all	explore/-	Explore	{"hook_event_name":"SubagentStart","agent_id":"t-x9"}
+trace	unroutable/unknown/norm:empty	-	{"hook_event_name":"SubagentStop","agent_id":"t-x9","last_assistant_message":"done"}
+trace	0	-	{"hook_event_name":"SubagentStop","agent_type":"","agent_id":"t-x9","last_assistant_message":"done"}

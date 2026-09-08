@@ -106,6 +106,7 @@ def main(argv: list[str]) -> int:
             "share_ge_75": round(sum(1 for s in scores if s >= 7.5) / len(scores), 2) if scores else None,
         },
         "council_modes": dict(modes),
+        "unroutable_stops": stops.get("unroutable", 0) + stops.get("unknown", 0),
     }
     if as_json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
@@ -120,6 +121,7 @@ def main(argv: list[str]) -> int:
     fs = summary["feniks_scores"]
     print(f"- оценки: n={fs['n']} mean={fs['mean']} median={fs['median']} min={fs['min']} max={fs['max']} share_go(по вердикту)={fs['share_go']} share_ge_75(по оценке)={fs['share_ge_75']}")
     print(f"\n## События: {dict(events)}")
+    print(f"## Не распознано хуком P14 (stop с agent unroutable/unknown): {summary['unroutable_stops']}")
     print(f"## Режимы Council: {dict(modes) or '-'}")
     return 0
 

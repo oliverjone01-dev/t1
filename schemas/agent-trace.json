@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gengroup.local/schemas/agent-trace.json",
   "title": "Agent Trace Record (Protocol 14)",
-  "description": "Одна строка traces/YYYY-MM-DD/agents.jsonl. Пишется хуками SubagentStart/SubagentStop автоматически и агентами вручную при deliver/audit/escalation. Невалидная строка - баг репорта, не данных.",
+  "description": "Одна строка traces/YYYY-MM-DD/agents.jsonl. Пишется хуками SubagentStart/SubagentStop автоматически (только для 13 агентов ростера; Explore, general-purpose и внутренние субагенты харнесса не трассируются, с 2026-09-08; нераспознанное имя - agent unroutable; отладка P14_TRACE_NONROSTER=1) и агентами вручную при deliver/audit/escalation. Невалидная строка - баг репорта, не данных.",
   "type": "object",
   "required": ["ts", "event", "agent"],
   "additionalProperties": true,

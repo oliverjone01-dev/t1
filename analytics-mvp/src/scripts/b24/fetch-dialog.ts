@@ -79,12 +79,14 @@ const cap = (s: string) => (s.length > BODY_CAP ? s.slice(0, BODY_CAP) + " …[�
 
 const uCache: Record<string, string> = {};
 const empFirst: Record<string, 1> = {};   // имена сотрудников: «Юлия», «Анна» и т.д.
+const firedSet: Record<string, 1> = {};    // имена НЕактивных (уволенных) сотрудников - для тега «(уволен)»
 async function buildEmployeeSet(): Promise<Record<string, 1>> {
   // Берём и АКТИВНЫХ, и НЕактивных пользователей: часть менеджеров помечена в Bitrix как
   // неактивные (уволенные/деактивированные аккаунты), но их исторические чаты Wazzup должны
   // распознаваться как исходящие. Раньше фильтр ACTIVE:true их отбрасывал, и их сообщения
-  // по умолчанию уходили во «входящие» (напр. Кубанова, Маслова).
-  const set: Record<string, 1> = {};
+  // по умолчанию уходили во «входящие» (напр. Кубанова, Маслова). Имена только из неактивного
+  // прохода помечаем в firedSet - их сообщения останутся исходящими, но с тегом «(уволен)».
+  const set: Record<string, 1> = {}; const activeNames: Record<string, 1> = {};
   for (const active of [true, false]) {
     let start = 0;
     for (;;) {
@@ -92,7 +94,8 @@ async function buildEmployeeSet(): Promise<Record<string, 1>> {
       for (const u of (r.result || [])) {
         const a = `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim().toLowerCase();
         const b = `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim().toLowerCase();
-        if (a) set[a] = 1; if (b) set[b] = 1;
+        if (a) { set[a] = 1; if (active) activeNames[a] = 1; else if (!activeNames[a]) firedSet[a] = 1; }
+        if (b) { set[b] = 1; if (active) activeNames[b] = 1; else if (!activeNames[b]) firedSet[b] = 1; }
         const fn = String(u.NAME || "").trim().toLowerCase(); if (fn) empFirst[fn] = 1;
         if (!uCache[String(u.ID)]) uCache[String(u.ID)] = `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim() || String(u.ID);
       }
@@ -200,8 +203,9 @@ function commentToEvent(c: any, employees: Record<string, 1>, authorName: string
     if (idx > 0 && idx < 40) { nm = body.slice(0, idx).trim(); tx = body.slice(idx + 1).trim(); }
     const isEmp = nm && employees[nm.toLowerCase()];
     const guessed = !isEmp && guessOutgoing(nm || "—", tx);
+    const fired = isEmp && firedSet[nm.toLowerCase()] === 1;   // сотрудник уволен/деактивирован в Bitrix
     return { raw: c.CREATED, type: "Сообщение " + chan, dir: (isEmp || guessed) ? "исходящее" : "входящее",
-             who: nm || "—", guess: guessed ? 1 : 0, title: "", body: cap(tx), status: "", dur: "", link: "", src: "cmt#" + c.ID };
+             who: (nm || "—") + (fired ? " (уволен)" : ""), fired: fired ? 1 : 0, guess: guessed ? 1 : 0, title: "", body: cap(tx), status: "", dur: "", link: "", src: "cmt#" + c.ID };
   }
   return { raw: c.CREATED, type: "Комментарий-заметка", dir: "-", who: authorName, title: "", body: cap(stripHtml(raw)), status: "", dur: "", link: "", src: "cmt#" + c.ID };
 }
@@ -341,7 +345,7 @@ async function main() {
       if (mgr) mgrSet[mgr] = 1;
       // Подпись-заглушка у исходящего: показываем ответственного, а не «Телефон».
       const whoName = (ev.guess && mgr) ? mgr : ev.who;
-      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: whoName, title: ev.title, body: ev.body, status: ev.status, due: ev.due || "", dur: ev.dur, link: ev.link, ref: ev.ref || "", refId: ev.refId || "", guess: ev.guess || 0, src: ev.src });
+      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: whoName, title: ev.title, body: ev.body, status: ev.status, due: ev.due || "", dur: ev.dur, link: ev.link, ref: ev.ref || "", refId: ev.refId || "", guess: ev.guess || 0, fired: ev.fired || 0, src: ev.src });
     }
   }
   events.sort((a, b) => a.ts - b.ts);

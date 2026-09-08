@@ -249,15 +249,18 @@ export function buildPnlSkuDaily(rows: OrderRow[]) {
   const m = new Map<string, any>();
   for (const r of paid(rows, "0000-00-00", "9999-99-99")) {
     const k = `${r.fin}|${r.sku}`;
-    const t = m.get(k) || { d: r.fin, sku: r.sku, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, otherSvc: 0, amount: 0, platform: PLATFORM };
+    const t = m.get(k) || { d: r.fin, sku: r.sku, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, otherSvc: 0, amount: 0, platform: PLATFORM };
     t.accruals += r.accruals; t.amount += r.payout;
     for (const [g, v] of Object.entries(r.fees)) {
       if (g === "Комиссия за продажу") t.commission -= v; else if (g === "Логистика (прямая+возвратная)") t.delivery -= v;
-      else if (g === "Эквайринг") t.acquiring -= v; else if (g === "Хранение") t.storage -= v; else t.otherSvc -= v;
+      else if (g === "Эквайринг") t.acquiring -= v; else if (g === "Хранение") t.storage -= v;
+      // Софинансирование скидок - крупнейшая статья расходов канала (июль 2026, один магазин зеркал:
+      // 1 140 019 ₽ против 317 877 ₽ всех остальных услуг вместе). В «Прочих» её быть не должно.
+      else if (g === COFIN_GROUP) t.cofin -= v; else t.otherSvc -= v;
     }
     m.set(k, t);
   }
-  return [...m.values()].map((t) => { for (const k of ["accruals", "commission", "delivery", "acquiring", "storage", "otherSvc", "amount"]) t[k] = Math.round(t[k]); return t; }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
+  return [...m.values()].map((t) => { for (const k of ["accruals", "commission", "delivery", "acquiring", "storage", "cofin", "otherSvc", "amount"]) t[k] = Math.round(t[k]); return t; }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
 }
 
 // Сборы уровня кабинета (плата за размещение, буст вне заказа, штрафы, подписки) в stats/orders не
@@ -301,14 +304,13 @@ export function buildSkuOffer(rows: OrderRow[], catalog: CatalogLike): Record<st
 // Группа берётся ТЕМ ЖЕ nettingFeeGroup, что и на странице денег. Второе, «похожее» определение
 // продвижения гарантированно разошлось бы с первым, и дашборд снова сам себе противоречил бы.
 export const PROMO_GROUP = "Продвижение (буст/лояльность)";
-export function promoFromNetting(net: Array<{ d: string; type?: string; service?: string; amount: number }>, dateFrom?: string, dateTo?: string): number {
+export function promoFromNetting(net: Array<{ d: string; type?: string; service?: string; src?: string; amount: number }>, dateFrom?: string, dateTo?: string): number {
   let v = 0;
   for (const n of net) {
     if (dateFrom && n.d < dateFrom) continue;
     if (dateTo && n.d > dateTo) continue;
-    const t = String(n.type || "");
-    if (t === "Начисление" || t === "Возврат") continue;
-    if (nettingFeeGroup(String(n.service || "")) === PROMO_GROUP) v -= n.amount; // списание -> расход плюсом
+    if (!isNettingFee(String(n.type || ""), (n as any).src)) continue;
+    if (nettingFeeGroup(String(n.service || ""), String((n as any).src || "")) === PROMO_GROUP) v -= n.amount; // списание -> расход плюсом
   }
   return Math.round(v * 100) / 100;
 }
@@ -334,13 +336,48 @@ export const NETTING_FEE_GROUPS: Array<[RegExp, string]> = [
   [/хранени/i, "Хранение"],
   [/не вовремя|по вине продавца|штраф/i, "Штрафы"],
 ];
-export function nettingFeeGroup(service: string): string {
+// Классификация по ИСТОЧНИКУ проводки (TRANSACTION_SOURCE). Она главнее имени услуги и решает первой.
+// Сверка с выгрузкой кабинета за июль 2026 (один магазин зеркал) показала: у проводок «Скидка за
+// участие в совместных акциях» - 121 строка на 1 142 508 ₽, крупнейшая статья расходов канала - в
+// поле имени услуги стоит НАЗВАНИЕ ТОВАРА. Разбор по имени услуги отправил бы их в «Прочее», где они
+// неотличимы от проводок без названия. Источник же называет их прямо.
+export const COFIN_GROUP = "Софинансирование скидок";
+export const NETTING_SOURCE_GROUPS: Array<[RegExp, string]> = [
+  [/скидк[аи].*совместн|совместн.*акци/i, COFIN_GROUP],
+  [/оплата услуг/i, ""],   // пустая группа = решает имя услуги, это обычные услуги Маркета
+];
+// Является ли проводка сбором. Решает ИСТОЧНИК, а не тип: внутри «Оплаты услуг Маркета» встречаются
+// строки типа «Начисление» - это СТОРНО ранее удержанной услуги, и его надо зачитывать. Прежнее
+// правило «Начисление и Возврат - не сбор» отбрасывало их вместе с начислениями за товар, и сборы
+// завышались: живой факт июля 2026 по одному магазину зеркал - 329 413 ₽ вместо 317 877 ₽ у кабинета,
+// разница ровно в двух строках сторно на 11 536 ₽.
+const SRC_FEE = /оплата услуг|скидк[аи].*совместн|совместн.*акци/i;
+const SRC_NOT_FEE = /плат[её]ж покупател|баллы за скидку|внесено продавцом|возврат плат|возврат баллов/i;
+export function isNettingFee(type: string, source?: string): boolean {
+  const src = String(source || "").trim();
+  if (src) {
+    if (SRC_NOT_FEE.test(src)) return false;
+    if (SRC_FEE.test(src)) return true;
+  }
+  // Источника нет (снимки, собранные до появления колонки) - решаем по типу, как раньше.
+  const t = String(type || "");
+  return t !== "Начисление" && t !== "Возврат";
+}
+
+export function nettingSourceGroup(source: string): string {
+  const t = String(source || "");
+  for (const [re, g] of NETTING_SOURCE_GROUPS) if (re.test(t)) return g;
+  return "";
+}
+export function nettingFeeGroup(service: string, source?: string): string {
+  const bySrc = nettingSourceGroup(source || "");
+  if (bySrc) return bySrc;
   const t = String(service || "");
   for (const [re, g] of NETTING_FEE_GROUPS) if (re.test(t)) return g;
   return "Прочее";
 }
 
-export interface NetFeeRow { order?: string; sku?: string; service?: string; type?: string; amount: number }
+export interface NetFeeRow { order?: string; sku?: string; service?: string; src?: string; type?: string; amount: number }
 export interface FeeMonth {
   orders_netting: number; orders_order: number;
   accruals_netting: number; accruals_order: number;
@@ -374,14 +411,14 @@ export function applyNettingFees(rows: OrderRow[], net: NetFeeRow[]): NetFeeResu
   // ранее списанного. Из-за этого кумулятивное расхождение показывало −408 149 ₽, и я объяснил его
   // «заказами вне ledger'а» - объяснение логически невозможное, несопоставленные заказы в разность не
   // входят по построению. Знак и есть причина.
-  const HOLD = (t: string) => t !== "Начисление" && t !== "Возврат";
+  const HOLD = (t: string, src?: string) => isNettingFee(t, src);
   const bySku = new Map<string, Record<string, number>>();   // order|sku -> группа -> сумма
   const byOrder = new Map<string, Record<string, number>>(); // order -> группа -> сумма (строки без sku)
   const orders = new Set<string>();
   const unmapped: Record<string, number> = {};
   for (const n of net) {
-    const o = String(n.order || "").trim(); if (!o || !HOLD(String(n.type || ""))) continue;
-    const g = nettingFeeGroup(n.service || "");
+    const o = String(n.order || "").trim(); if (!o || !HOLD(String(n.type || ""), (n as any).src)) continue;
+    const g = nettingFeeGroup(n.service || "", (n as any).src || "");
     if (g === "Прочее" && n.service) unmapped[n.service] = r2((unmapped[n.service] || 0) - n.amount);
     orders.add(o);
     const sku = String(n.sku || "").trim();

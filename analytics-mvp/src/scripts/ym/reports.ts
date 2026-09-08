@@ -299,7 +299,7 @@ async function netting(from: string, to: string) {
           ok++; doneMonths.add(pair); purged.add(pair);
           for (const r of t.rows) {
             const d = cellDate(r[ix.date!]); if (!d) continue;
-            fresh.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
+            fresh.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", src: ix.source! >= 0 ? (r[ix.source!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
           }
         }
       }

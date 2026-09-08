@@ -1342,7 +1342,9 @@ function render(cur,cmp){
   try {
     for (const l of readFileSync(dp("pnl_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); const sk = String(r.sku);
-      (anFin[sk] ||= []).push([r.d, r.accruals, r.commission, r.delivery, r.acquiring, r.storage, r.otherSvc, r.amount]);
+      // Софинансирование скидок идёт ОТДЕЛЬНОЙ ногой, не сливается в «Прочие»: на Маркете это
+      // крупнейшая статья расходов канала, и в общей куче она нечитаема.
+      (anFin[sk] ||= []).push([r.d, r.accruals, r.commission, r.delivery, r.acquiring, r.storage, (r.otherSvc || 0) + (r.cofin || 0), r.amount, r.cofin || 0]);
     }
   } catch { /* нет файла - финансы по SKU пустые */ }
   // Артикул (offer_id) не всегда есть в таксономии - добираем из каталожного маппинга (sku_offer,

@@ -354,7 +354,7 @@ jobs:
             : MODE==='srez'
             ? '☀️ Кто сколько сделал к обеду: предоплату сегодня получили '+doneT.length+' из '+nTot+'.'+(notT.length?(' Ещё без предоплаты: '+notT.map(tagOf).join(' ')+' - успеваем добить до вечера.'):' Все с предоплатой - отлично!')
             : '🌙 Итог дня: план (минимум 1 предоплата) выполнили '+doneT.length+' из '+nTot+'.'+(notT.length?(' Не выполнили: '+notT.map(tagOf).join(' ')+'. Напишите в ответ на это сообщение, почему сегодня не получилось?'):' Все выполнили план - отличная работа!');
-          const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу:\n\n<pre>'+E(sum)+'</pre>\n\n'+modeBlock+'\n\n'+table+'\n\nЦвет по предоплатам за день: 🟢 лидер (или все по 1) · 🟡 есть предоплата · 🔴 нет предоплаты\n';
+          const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу:\n\n<pre>'+E(sum)+'</pre>\n\n'+modeBlock+'\n\n'+table+'\n';
           let body=funnel;
           if(MODE==='itogi')body+='\n\nДо 20 млн осталось: '+M(Math.max(0,20e6-prepR));
           const after='\n🔗 <a href="https://oliverjone01-dev.github.io/t1/rop/?focus=cal">Календарь успехов по менеджерам (РОП-дашборд)</a>';

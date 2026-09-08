@@ -229,6 +229,9 @@ input#q{min-width:220px}
 .deptrow>td{background:#22d3ee0d;border-top:2px solid #22d3ee44;border-bottom:1px solid #22d3ee33}
 .deptrow:hover>td{background:#22d3ee16}
 .deptrow>td:first-child b{color:#bfeff8}
+.grprow{cursor:pointer}
+.grprow>td{background:#ffffff05;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.grprow:hover>td{background:#ffffff0a}
 .dmgrtag{display:inline-block;margin-right:7px;font-size:9.5px;color:#8fd3e2;background:#22d3ee12;border:1px solid #22d3ee33;border-radius:4px;padding:0 5px;vertical-align:middle}
 .t3 tr.lead-stage td.etime{color:#C2873C}
 .drow{cursor:pointer}
@@ -486,7 +489,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, clMgr:'', clKind:'', deptOpen:true, evHi:null, picks:[],
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, clMgr:'', clKind:'', deptOpen:true, grpOpen:{office:true,sales:true,other:true}, evHi:null, picks:[],
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), question:'', obj:'auto', inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -916,9 +919,14 @@ function renderTree(){
   // «Весь отдел» - уровень 0: его стрелка сворачивает всех менеджеров. Дрил-фильтр отдела
   // (клик по воронке/каналу/«Горит») показывает сделки всего отдела вместо списка менеджеров.
   const deptDrill = (S.fnMgr===DEPT_KEY&&S.fnGrp)||(S.cmMgr===DEPT_KEY&&S.cmType)||(S.hotMgr===DEPT_KEY);
-  for(const m of [deptMgr, ...mgrs]){
+  // Уровень ГРУПП между отделом и менеджерами: офис-менеджеры / отдел продаж (Розница) / другие.
+  const gnorm=s=>String(s||'').trim().toLowerCase().replace(/ё/g,'е').split(/\s+/).sort().join(' ');
+  const GRP_OFFICE=['Емельяненко Анна','Терентьева Анна','Турченко Анна'].map(gnorm);
+  const GRP_SALES=['Лакомова Татьяна','Лысанова Юлия','Шура-Бура Юлия','Платонова Алина','Зазноба Екатерина','Лобова Надежда'].map(gnorm);
+  const mgrGroup=(name)=>{const n=gnorm(name);return GRP_OFFICE.includes(n)?'office':GRP_SALES.includes(n)?'sales':'other';};
+  const GRP_META={office:{label:'Офис-менеджеры',color:'#3DAEC2',tip:'Приём и квалификация лидов (Емельяненко, Терентьева, Турченко). Продавцом-закрывашкой не оцениваются.'},sales:{label:'Отдел продаж (Розница)',color:'#8B5CF6',tip:'Продавцы розницы, ведущие сделки до предоплаты.'},other:{label:'Другие ответственные',color:'#7A8794',tip:'Все, кто не вошёл в офис и в отдел продаж (в т.ч. неактивные аккаунты).'}};
+  const emitRow=(m,padPx)=>{
     const dept=m.role==='dept';
-    if(!dept && (!S.deptOpen || deptDrill)) continue; // менеджеры скрыты, если отдел свёрнут или идёт дрил по отделу
     let ds=(byM[m.mgr]||[]).slice(); if(S.fDealIds.size) ds=ds.filter(d=>S.fDealIds.has(String(d.dealId||d.leadId)));
     const p=m.profile; const office=m.role==='office';
     const arwOpen = dept ? S.deptOpen : S.tm.has(m.mgr);
@@ -927,7 +935,7 @@ function renderTree(){
     const [vc,vl]= dept? ['#22D3EE','ВЕСЬ ОТДЕЛ'] : office? ['#3DAEC2','ОФИС · ЛИДЫ'] : (p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ']);
     const nameHtml = dept? 'Весь отдел' : esc(m.mgr);
     html+=`<tr class="mrow2${arwOpen?' on':''}${dept?' deptrow':' mgrrow'}" data-m="${esc(m.mgr)}">`
-      +`<td class="l" ${dept?'':'style="padding-left:34px"'}><span class="arw4">${arwOpen?'▾':'▸'}</span><b>${nameHtml}</b>${dept?`<span class="rolech" style="color:#22D3EE;border-color:#22D3EE66;background:#22D3EE14" title="Уровень отдела. Стрелка - свернуть/развернуть всех менеджеров. Клик по воронке, каналу или «Горит» - сделки всего отдела на этом этапе.">${S.deptOpen?'свернуть отдел':'развернуть отдел'}</span>`:''}${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}</td>`
+      +`<td class="l" ${dept?'':`style="padding-left:${padPx||34}px"`}><span class="arw4">${arwOpen?'▾':'▸'}</span><b>${nameHtml}</b>${dept?`<span class="rolech" style="color:#22D3EE;border-color:#22D3EE66;background:#22D3EE14" title="Уровень отдела. Стрелка - свернуть/развернуть всех менеджеров. Клик по воронке, каналу или «Горит» - сделки всего отдела на этом этапе.">${S.deptOpen?'свернуть отдел':'развернуть отдел'}</span>`:''}${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}</td>`
       +`<td ${dept?'':`data-tip="${verdTip(m).replace(/"/g,'&quot;')}"`} style="cursor:${dept?'default':'help'}"><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
       +MCOLS.slice(2).map(c=>{
         if(c.k==='deals'){ const v=mval(m,'deals')||0; const on=aiPickActive('all',m.mgr,'all');
@@ -981,6 +989,37 @@ function renderTree(){
       }
       html+=`</table></td></tr>`;
     }
+  };
+  // Строка-группа (уровень 1): агрегат по своим менеджерам через byM['__grp_'+g], сворачивается.
+  const emitGrpRow=(g,members)=>{
+    const key='__grp_'+g, meta=GRP_META[g], open=S.grpOpen[g]!==false;
+    byM[key]=members.flatMap(mm=>byM[mm.mgr]||[]);
+    const gm={mgr:key,role:'group'};
+    html+=`<tr class="grprow${open?' on':''}" data-g="${g}">`
+      +`<td class="l" style="padding-left:20px"><span class="arw4">${open?'▾':'▸'}</span><b style="color:${meta.color}">${esc(meta.label)}</b> <span class="rolech" style="color:${meta.color};border-color:${meta.color}66;background:${meta.color}14" title="${esc(meta.tip)}">${members.length} чел.</span></td>`
+      +`<td><span class="vbadge" style="color:${meta.color};border-color:${meta.color}66;background:${meta.color}14">ГРУППА</span></td>`
+      +MCOLS.slice(2).map(c=>{
+        if(c.k==='deals') return `<td class="dealcnt">${mval(gm,'deals')||0}</td>`;
+        if(c.k==='funnel') return `<td class="l">${funnelCell(key)}</td>`;
+        if(c.k==='act') return `<td class="l">${commCell(key)}</td>`;
+        if(c.k==='compl') return `<td class="l">${complCell(key)}</td>`;
+        if(c.k==='alerts'){ const v=mval(gm,'alerts')||0; return `<td class="gorit" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
+        if(c.k==='hot'){ const v=mval(gm,'hot')||0; return `<td>${money(v)} ₽</td>`; }
+        if(c.k==='rating') return `<td><span class="na2">-</span></td>`;
+        return `<td style="${cellCol(c.k,mval(gm,c.k))}">${fmtM(c.k,mval(gm,c.k))}</td>`; }).join('')
+      +`</tr>`;
+  };
+  // Порядок вывода: Весь отдел -> группы (офис/продажи/другие) -> менеджеры внутри группы.
+  emitRow(deptMgr);
+  if(S.deptOpen && !deptDrill){
+    for(const g of ['office','sales','other']){
+      const members=mgrs.filter(mm=>mgrGroup(mm.mgr)===g);
+      if(!members.length) continue;
+      emitGrpRow(g,members);
+      if(S.grpOpen[g]!==false) for(const m of members) emitRow(m,52);
+    }
+  } else if(deptDrill){
+    // Дрил по отделу: показываем сделки всего отдела (внутри emitRow deptMgr уже отрисован выше).
   }
   html+=`</table></div>`;
   list.innerHTML=html;
@@ -1043,6 +1082,8 @@ function renderTree(){
     if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; renderTree(); return; }
     // Клик по строке менеджера - раскрыть/свернуть его сделки (навигация, не фильтр).
     if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); } else S.tm.add(m); renderTree(); });
+  // Клик по строке-группе - свернуть/развернуть её менеджеров.
+  list.querySelectorAll('.grprow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const g=r.dataset.g; S.grpOpen[g]=(S.grpOpen[g]===false); renderTree(); });
   list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d;
     // Клик по чипу «Ленты» или тегу «Что горит»: раскрыть переписку, прокрутить к событиям
     // и добавить эту сделку в корзину фильтра ИИ.

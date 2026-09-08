@@ -225,7 +225,7 @@ jobs:
           const d=JSON.parse(fs.readFileSync('/tmp/rop.json','utf8'));
           const deals=(d.deals||[]).filter(x=>String(x.category)==='49');
           // Ольга Лысенко - РОП (@Olgal89), в списке плановых менеджеров не участвует (тег РОПа в сводке).
-          const PLAN=["Юлия Лысанова","Ольга Маслова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];
+          const PLAN=["Юлия Лысанова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];
           const TODAY=(d.generated_at||'').slice(0,10);
           const KP={"C49:PREPAYMENT_INVOIC":0,"C49:3":1,"C49:UC_8JTBV2":2};
           const firstKP=x=>{for(const h of (x.hist||[]))if(KP[h[0]]!=null&&h[1])return h[1].slice(0,10);return null;};

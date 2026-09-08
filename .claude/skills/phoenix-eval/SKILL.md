@@ -14,7 +14,7 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 ## Pipeline v3 (порядок обязателен)
 
 1. **CLASSIFY** - класс артефакта: стратегия/КП · контент наружу · гейт/хук/инструмент · дашборд/цифры · агент/skill/workflow.
-   От класса зависят пробы и потолок (гейт / дашборд / агент без проб ≤7.9). См. `references/red-team-probes.md`.
+   От класса зависят обязательные пробы (гейт / дашборд / агент без проб: risk_awareness ≤ 5.0, verdict не выше return). См. `references/red-team-probes.md`.
 2. **SELF-CHECK автора** - приложен (25 чекпоинтов, да/нет/частично)? Нет → вернуть без скоринга.
 3. **Comprehension Gate** (для контента наружу) → **25 чекпоинтов** → **red-team пробы класса** → **weighted total**.
 4. **ANCHOR** - ближайший якорь из `references/calibration-anchors.md`, строка `anchor: <score> <slug> - выше|ниже потому что …`.
@@ -117,7 +117,7 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 
 Поправки v3 к порогам (применяются после weighted total, в сторону ужесточения, никогда наоборот):
 - FAIL по пробе класса A (гейты) или B7 (утечка непроверенных чисел наружу) → verdict не выше `return`.
-- Класс гейт / дашборд / агент без проб → `probes: not_run (причина)`, risk_awareness ≤5.0, verdict не выше `return`.
+- Класс гейт / дашборд / агент без проб → `probes: not_run (причина)`, risk_awareness ≤5.0, verdict не выше `return`, поле `verdict_override_reason` заполнено. weighted_total при этом НЕ режется: он всегда равен Σ(score × weight), а понижение живёт в verdict (схема v3 разрешает `return` при weighted ≥ 7.5 только с причиной или FAIL пробы A/B7).
 - Self-claimed score внутри артефакта без ссылки на аудит → veto-кандидат (якорь sales-director 5.05).
 - Score >9.0 - только при всех 25 чекпоинтах 2/2 с evidence; в 2026 году встречался только в серии sales-director iter 2-4 (9.25 / 9.45 / 9.52), помеченной к пересмотру (см. calibration-anchors.md).
 

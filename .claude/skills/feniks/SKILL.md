@@ -31,7 +31,7 @@ argument-hint: "<путь к файлу | описание артефакта | 
 - **Cowork (custom agents недоступны):** general-purpose subagent, в промпт инлайнить карту `feniks` из
   `.claude/skills/council/references/roster-cards.md`, текст `.claude/skills/phoenix-eval/SKILL.md`,
   `references/calibration-anchors.md` и таблицу проб класса из `references/red-team-probes.md`. Пробы без Bash - `N/A`,
-  потолок для гейтов/дашбордов/агентов - 7.9. Первая строка отчёта: `MODE: cowork`.
+  для гейтов/дашбордов/агентов это «без проб»: risk ≤ 5.0, verdict ≤ return. Первая строка отчёта: `MODE: cowork`.
 - **Нет Agent tool:** ФЕНИКС-шляпа по карте, отчёт помечается `[HATS: не независимый аудит]`; для критических
   артефактов (CLAUDE.md §4) это не Step 12.5, нужен повтор в native-среде.
 
@@ -39,7 +39,7 @@ argument-hint: "<путь к файлу | описание артефакта | 
 
 1. Сохрани JSON во временный файл, прогони `python3 schemas/validate.py audit-report <file>`. Не VALID → верни ФЕНИКСУ на исправление отчёта (не артефакта).
 2. Пересчитай `weighted_total = 0.25*accuracy + 0.25*actionability + 0.20*insight + 0.15*brand_fit + 0.15*risk_awareness`. Расхождение >0.05 - ошибка отчёта.
-3. Проверь наличие: `anchor`, evidence на каждый gap, `probes` для класса A/B/D (иначе risk ≤5.0 и verdict ≤ return).
+3. Проверь наличие: `anchor`, evidence на каждый gap, `probes` для класса A/B/D (иначе risk ≤5.0 и verdict ≤ return с `verdict_override_reason`).
 4. Вердикт не переопределяется на этом уровне. Диспут - между автором и ФЕНИКСОМ (max 2 раунда), дальше Иван.
 
 ## 4. Вывод Ивану

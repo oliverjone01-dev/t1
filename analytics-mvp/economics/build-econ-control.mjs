@@ -183,17 +183,16 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .tabs .tb:hover{color:var(--ink);border-color:var(--accent)}
 .tabs .tb.on{background:var(--accent);color:#06231b;border-color:var(--accent)}
 #izdSum{color:var(--ink-3);font-size:12px;margin:2px 0 8px}
-.izrow{display:flex;align-items:center;gap:12px;padding:7px 8px;border-bottom:1px solid var(--border);font-size:12.5px}
-.izrow .exp{width:12px;flex:none;color:var(--ink-3)}
-.izrow.lvl1{cursor:pointer;font-weight:600;background:var(--card)}
-.izrow.lvl1:hover{background:var(--elev)}
-.izrow.lvl2{cursor:pointer;padding-left:28px;background:var(--bg)}
-.izrow.lvl2:hover{background:var(--elev)}
-.izrow.lvl3{display:block;padding:8px 8px 12px 44px;background:var(--bg);border-bottom:2px solid var(--border)}
-.izname{flex:1 1 40%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.izdl-t{flex:1 1 30%;min-width:0;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.izm{color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums;flex:none}
-.izm b{color:var(--ink)}
+#izdtbl thead th{position:sticky;top:0;z-index:3;background:var(--card);color:var(--ink-3);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px}
+#izdtbl thead th.num{text-align:right}
+#izdtbl td{padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+tr.izgrp{cursor:pointer;background:var(--card)}
+tr.izgrp:hover{background:var(--elev)}
+tr.izgrp>td{border-top:1px solid var(--border);font-weight:700}
+tr.izgrp .exp{color:var(--ink-3)}
+.izgnm{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.izgnm .izgc{color:var(--ink-3);font-weight:400}
+tr.izdeal{cursor:pointer}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;visibility:hidden;transition:opacity .2s;z-index:70}
 .scrim.open{opacity:1;visibility:visible}
 .drawer{position:fixed;top:0;right:0;height:100%;width:min(600px,62vw);background:var(--bg-1,#0b0f16);border-left:1px solid var(--border);box-shadow:-12px 0 30px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .24s ease;z-index:80;display:flex;flex-direction:column}
@@ -329,7 +328,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 </aside>
 
 <div class="scrollx" id="dealsWrap"><table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
-<div id="izdwrap" hidden><div id="izdSum"></div><div id="izdList"></div></div>
+<div id="izdwrap" hidden><div id="izdSum"></div><div class="scrollx"><table id="izdtbl"><thead></thead><tbody></tbody></table></div></div>
 </div>
 <script>
 const DATA=${JSON.stringify(payload)};
@@ -773,33 +772,51 @@ function buildIzd(list){
 }
 function renderIzd(base){
   const items=buildIzd(base).sort((a,b)=>b.ss-a.ss||b.deals.length-a.deals.length);
+  const tbl=document.getElementById('izdtbl');
+  if(!tbl.querySelector('colgroup')){
+    tbl.insertAdjacentHTML('afterbegin','<colgroup>'+COLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
+    const hs=COLS.slice(); hs[0]='Изделие / Сделка';
+    tbl.querySelector('thead').innerHTML='<tr>'+hs.map((h,i)=>'<th class="'+([4,7,8,9,10,11,12,13].includes(i)?'num':'')+'">'+esc(h)+'</th>').join('')+'</tr>';
+  }
   let html='';
   for(const e of items){ const open=OPENIZD.has(e.key), avg=e.qty?Math.round(e.ss/e.qty):0;
-    html+='<div class="izrow lvl1" data-k="'+esc(e.key)+'">'
-      +'<span class="exp">'+(open?'▾':'▸')+'</span>'
-      +'<span class="izname">'+((e.art||e.ns)?'<span class="art-code">'+esc(e.art||e.ns)+'</span> ':'')+esc(cleanNm(e.nm).slice(0,64)||'(без названия)')+'</span>'
-      +'<span class="izm">сделок <b>'+e.deals.length+'</b></span>'
-      +'<span class="izm">'+(e.qty?e.qty+' шт':'-')+'</span>'
-      +'<span class="izm">Σ с/с <b>'+(e.ss?fmt(e.ss):'-')+'</b></span>'
-      +'<span class="izm">ср '+(avg?fmt(avg)+'/шт':'-')+'</span>'
-      +'</div>';
-    if(open){ for(const it of e.deals.slice().sort((a,b)=>b.ss-a.ss)){ const d=it.d, dk=e.key+'::'+d.id, dop=OPENIZDDEAL.has(dk), g2=gate(d);
-      html+='<div class="izrow lvl2" data-dk="'+esc(dk)+'">'
-        +'<span class="exp">'+(dop?'▾':'▸')+'</span>'
-        +'<a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a>'
-        +'<span class="izdl-t" title="'+esc(d.title||'')+'">'+esc((d.title||'').slice(0,34))+'</span>'
-        +'<span class="izm">'+esc(d.mgr||'')+'</span>'
-        +'<span class="izm"><span class="st">'+esc(d.stage||'')+'</span></span>'
-        +'<span class="izm">'+(it.qty?it.qty+' шт':'-')+'</span>'
-        +'<span class="izm">с/с <b>'+(it.ss?fmt(it.ss):'-')+'</b></span>'
-        +'<span class="izm">бюджет '+fmt(d.budget)+'</span>'
-        +'<span class="izm"><span class="flag '+(g2.cls||'')+'">'+esc(g2.t||'')+'</span></span>'
-        +'</div>';
-      if(dop){ html+='<div class="izrow lvl3"><div class="pwrap">'+detailInner(d)+'</div></div>'; } } }
+    // группирующая строка изделия: агрегаты выровнены под колонками Штук / Σ с/с / (Маржа = ср с/с за шт)
+    html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
+      +'<td><span class="exp">'+(open?'▾':'▸')+'</span></td>'
+      +'<td class="izgnm" colspan="5">'+((e.art||e.ns)?'<span class="art-code">'+esc(e.art||e.ns)+'</span> ':'')+esc(cleanNm(e.nm).slice(0,64)||'(без названия)')+' <span class="izgc">· сделок '+e.deals.length+'</span></td>'
+      +'<td></td><td></td><td></td><td></td>'
+      +'<td class="num"><b>'+(e.qty?e.qty:'-')+'</b></td>'
+      +'<td class="num"><b>'+(e.ss?fmt(e.ss):'-')+'</b></td>'
+      +'<td class="num" title="средняя с/с за штуку">'+(avg?fmt(avg)+'/шт':'-')+'</td>'
+      +'<td></td>'
+      +'</tr>';
+    if(open){ for(const it of e.deals.slice().sort((a,b)=>b.ss-a.ss)){ const d=it.d, dk=e.key+'::'+d.id, dop=OPENIZDDEAL.has(dk);
+      html+='<tr class="izdeal drow" data-dk="'+esc(dk)+'" data-id="'+d.id+'">'+dealCells(d,dop)+'</tr>';
+      if(dop){ html+=detailRow(d); } } }
   }
-  document.getElementById('izdList').innerHTML=html||'<div class="pusl">нет изделий в выборке</div>';
-  document.getElementById('izdSum').textContent='Изделий в выборке: '+items.length+' · сортировка по убыванию Σ с/с · клик по изделию - сделки с ним, клик по сделке - её содержание';
+  tbl.querySelector('tbody').innerHTML=html||'<tr><td colspan="'+COLS.length+'" class="pusl">нет изделий в выборке</td></tr>';
+  document.getElementById('izdSum').textContent='Изделий в выборке: '+items.length+' · сортировка по убыванию Σ с/с · клик по изделию - сделки с ним (полные колонки), клик по сделке - её содержание';
   document.getElementById('cnt').textContent='изделий: '+items.length;
+}
+// ячейки строки сделки (те же колонки, что в таблице «Сделки») - переиспользуются во вкладке «Изделия»
+function dealCells(d,op){
+  const ss=prodSS(d); const pr=spCost(byKey(d,'Производство  GG')); const bs=budgetSrc(d);
+  const marginShown=(pr&&!pr.empty)||prodRankOf(d)>=5;
+  const goods=goodRows(d), svc=svcRows(d), gQty=goodsQty(d), sSum=svcSum(d);
+  return '<td><span class="exp">'+(op?'▾':'▸')+'</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a></td>'
+    +'<td title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,38))+'</td>'
+    +'<td>'+esc(d.mgr||'')+'</td>'
+    +'<td><span class="st">'+esc(d.stage||'')+'</span></td>'
+    +'<td class="num">'+ruD(d.created)+'</td>'
+    +'<td class="ctype" title="'+esc(d.assort||'')+'">'+(d.assort?esc(d.assort):'<span class="cell-o">-</span>')+'</td>'
+    +smartCell(d)
+    +'<td class="num" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; ').slice(0,300))+'">'+(svc.length?'<span class="cell-g">'+fmt(sSum)+'</span> <span class="cell-o">('+svc.length+')</span>':'<span class="cell-o">-</span>')+'</td>'
+    +'<td class="num" title="'+esc(bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал')+'">'+fmt(d.budget)+(bs?' <span class="bsrc">'+bs.tag+'</span>':'')+'</td>'
+    +'<td class="num" title="наименований (товарных строк): '+goods.length+'">'+(goods.length?goods.length:'<span class="cell-o">-</span>')+'</td>'
+    +'<td class="num" title="'+esc(goods.map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(goods.length?gQty+' <span class="cell-o">шт</span>':'<span class="cell-o">-</span>')+'</td>'
+    +ssCell(d,ss)
+    +marginCell(d,ss,marginShown)
+    +mpctCell(d);
 }
 function render(){
   const base=DATA.deals.filter(d=>passesBase(d));
@@ -808,25 +825,8 @@ function render(){
   list.sort((a,b)=>{ const x=sortVal(a,sortIdx),y=sortVal(b,sortIdx); return (x<y?-1:x>y?1:0)*sortDir; });
   let rows='';
   for(const d of list){
-    const ss=prodSS(d); const pr=spCost(byKey(d,'Производство  GG')); const g=gate(d); const cv=coverage(d);
-    const marginShown=(pr&&!pr.empty)||prodRankOf(d)>=5; const op=OPEN.has(d.id); const bs=budgetSrc(d);
-    const goods=goodRows(d), svc=svcRows(d), gQty=goodsQty(d), sSum=svcSum(d);
-    rows+='<tr class="drow" data-id="'+d.id+'">'
-      +'<td><span class="exp">'+(op?'▾':'▸')+'</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a></td>'
-      +'<td title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,38))+'</td>'
-      +'<td>'+esc(d.mgr||'')+'</td>'
-      +'<td><span class="st">'+esc(d.stage||'')+'</span></td>'
-      +'<td class="num">'+ruD(d.created)+'</td>'
-      +'<td class="ctype" title="'+esc(d.assort||'')+'">'+(d.assort?esc(d.assort):'<span class="cell-o">-</span>')+'</td>'
-      +smartCell(d)
-      +'<td class="num" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; ').slice(0,300))+'">'+(svc.length?'<span class="cell-g">'+fmt(sSum)+'</span> <span class="cell-o">('+svc.length+')</span>':'<span class="cell-o">-</span>')+'</td>'
-      +'<td class="num" title="'+esc(bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал')+'">'+fmt(d.budget)+(bs?' <span class="bsrc">'+bs.tag+'</span>':'')+'</td>'
-      +'<td class="num" title="наименований (товарных строк): '+goods.length+'">'+(goods.length?goods.length:'<span class="cell-o">-</span>')+'</td>'
-      +'<td class="num" title="'+esc(goods.map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(goods.length?gQty+' <span class="cell-o">шт</span>':'<span class="cell-o">-</span>')+'</td>'
-      +ssCell(d,ss)
-      +marginCell(d,ss,marginShown)
-      +mpctCell(d)
-      +'</tr>';
+    const op=OPEN.has(d.id);
+    rows+='<tr class="drow" data-id="'+d.id+'">'+dealCells(d,op)+'</tr>';
     if(op){ rows+=detailRow(d); }
   }
   document.querySelector('#tbl tbody').innerHTML=rows;
@@ -840,10 +840,10 @@ document.getElementById('tabs').addEventListener('click',e=>{ const b=e.target.c
   document.querySelectorAll('#tabs .tb').forEach(x=>x.classList.toggle('on',x===b));
   document.getElementById('dealsWrap').hidden=(VIEW!=='deals');
   document.getElementById('izdwrap').hidden=(VIEW!=='izd'); render(); });
-// разворот 3 уровней во вкладке «Изделия»
-document.getElementById('izdList').addEventListener('click',e=>{ if(e.target.closest('a'))return;
-  const l2=e.target.closest('.lvl2'); if(l2){ const dk=l2.dataset.dk; if(OPENIZDDEAL.has(dk))OPENIZDDEAL.delete(dk); else OPENIZDDEAL.add(dk); render(); return; }
-  const l1=e.target.closest('.lvl1'); if(l1){ const k=l1.dataset.k; if(OPENIZD.has(k))OPENIZD.delete(k); else OPENIZD.add(k); render(); return; } });
+// разворот 3 уровней во вкладке «Изделия»: изделие -> сделки (полные колонки) -> содержание сделки
+document.querySelector('#izdtbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return;
+  const dl=e.target.closest('tr.izdeal'); if(dl){ const dk=dl.dataset.dk; if(OPENIZDDEAL.has(dk))OPENIZDDEAL.delete(dk); else OPENIZDDEAL.add(dk); render(); return; }
+  const gr=e.target.closest('tr.izgrp'); if(gr){ const k=gr.dataset.k; if(OPENIZD.has(k))OPENIZD.delete(k); else OPENIZD.add(k); render(); return; } });
 const _drawer=document.getElementById('drawer'), _scrim=document.getElementById('scrim');
 function drawerOpen(o){ _drawer.classList.toggle('open',o); _scrim.classList.toggle('open',o); }
 document.getElementById('burger').addEventListener('click',()=>drawerOpen(!_drawer.classList.contains('open')));

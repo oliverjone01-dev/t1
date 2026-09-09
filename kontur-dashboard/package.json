@@ -1,0 +1,18 @@
+{
+  "name": "kontur-dashboard",
+  "private": true,
+  "type": "module",
+  "description": "Контур: дашборд SEO, GEO и Директ по проектам GENGROUP",
+  "scripts": {
+    "data": "python3 tools/build_data.py",
+    "build": "python3 src/build.py",
+    "check": "python3 tools/check_dash.py",
+    "tamper": "python3 tools/tamper.py",
+    "smoke": "node tools/smoke.mjs",
+    "shots": "node tools/shots.mjs",
+    "all": "npm run data && npm run build && npm run check && npm run smoke"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

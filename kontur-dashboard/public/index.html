@@ -1,0 +1,1968 @@
+<title>Контур: SEO, GEO, Директ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+<script>
+tailwind.config = { darkMode:'class', theme:{ extend:{
+  fontFamily:{ sans:['"DM Sans"','system-ui','sans-serif'], mono:['"IBM Plex Mono"','monospace'] }
+}}}
+/* Цвета намеренно НЕ живут в конфиге Tailwind: если play-CDN не догрузится,
+   страница всё равно должна выглядеть правильно. Все поверхности заданы в <style> ниже. */
+</script>
+<style>
+  html{background:#F4F6FA} html.dark{background:#0A0C0E}
+  body{margin:0;font-family:"DM Sans",system-ui,sans-serif;font-size:14px;background:#F4F6FA;color:#5A6A85}
+  html.dark body{background:#0A0C0E;color:#949BA6}
+  .num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .hero{font-family:"DM Sans",system-ui,sans-serif;font-variant-numeric:proportional-nums;letter-spacing:-.03em}
+  .cd{background:#fff;border:1px solid #E7EAF0;border-radius:10px;transition:box-shadow .25s,transform .25s,border-color .25s}
+  .cd:hover{box-shadow:0 6px 24px rgba(42,53,71,.09);transform:translateY(-2px)}
+  html.dark .cd{background:#101317;border-color:#232830}
+  html.dark .cd:hover{box-shadow:0 10px 30px rgba(0,0,0,.55);border-color:#2E343D}
+  .nv{transition:background .16s,color .16s}
+  #sb{transition:width .28s cubic-bezier(.4,0,.2,1),transform .28s cubic-bezier(.4,0,.2,1)}
+  #view{min-width:0}
+  .cd{min-width:0}
+  .fade{animation:fd .42s ease both}
+  @keyframes fd{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  .sub{max-height:0;overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1)}
+  .sub.on{max-height:640px}
+  .chev{transition:transform .25s}
+  .chev.on{transform:rotate(90deg)}
+  ::-webkit-scrollbar{width:7px;height:7px}
+  ::-webkit-scrollbar-thumb{background:#c9d1de;border-radius:4px}
+  html.dark ::-webkit-scrollbar-thumb{background:#2b3038}
+  .apexcharts-tooltip{border-radius:8px!important;border:none!important;box-shadow:0 8px 26px rgba(0,0,0,.22)!important}
+  .apexcharts-legend-text{color:inherit!important}
+  table.dv{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.dv th{text-align:left;font-weight:600;padding:7px 10px;border-bottom:1px solid #E7EAF0;color:#2A3547;white-space:nowrap}
+  table.dv td{padding:7px 10px;border-bottom:1px solid #F1F3F7}
+  html.dark table.dv th{border-color:#232830;color:#E7EAEF}
+  html.dark table.dv td{border-color:#1A1E24}
+  .kmark{font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:1px 5px;border-radius:4px;vertical-align:middle}
+  .scroll-x{overflow-x:auto}
+  input.fld{width:100%;background:#F4F6FA;border:1px solid #E7EAF0;border-radius:7px;padding:6px 9px;font-size:13px;color:#2A3547;font-family:"IBM Plex Mono",monospace}
+  html.dark input.fld{background:#0D1013;border-color:#232830;color:#E7EAEF}
+  input.fld:focus{outline:2px solid #5D87FF;outline-offset:-1px}
+  /* Поверхности заданы обычным CSS: если конфиг Tailwind не подхватится, страница
+     всё равно выглядит правильно, а не белым пятном в тёмной теме. */
+  .pane{background:#fff;border-color:#E7EAF0}
+  html.dark .pane{background:#101317;border-color:#232830}
+  .topbar{background:rgba(255,255,255,.86);border-color:#E7EAF0}
+  html.dark .topbar{background:rgba(13,16,19,.88);border-color:#232830}
+  .soft{background:#F4F6FA} html.dark .soft{background:#161A1F}
+  .hd{color:#2A3547} html.dark .hd{color:#E7EAEF}
+  .bdr{border-color:#E7EAF0} html.dark .bdr{border-color:#232830}
+  .hovr:hover{background:rgba(0,0,0,.045)} html.dark .hovr:hover{background:rgba(255,255,255,.055)}
+  .k-ok{color:#0F7A52;background:rgba(15,122,82,.10)}
+  .k-warn{color:#9A6A00;background:rgba(154,106,0,.12)}
+  .k-crit{color:#B3261E;background:rgba(179,38,30,.10)}
+  .k-neu{color:#5A6A85;background:rgba(90,106,133,.10)}
+  html.dark .k-ok{color:#37D39B;background:rgba(55,211,155,.14)}
+  html.dark .k-warn{color:#E0A82E;background:rgba(224,168,46,.14)}
+  html.dark .k-crit{color:#FF6B6B;background:rgba(255,107,107,.14)}
+  html.dark .k-neu{color:#949BA6;background:rgba(148,155,166,.12)}
+  .nt{border:1px solid;border-radius:10px;padding:14px;display:flex;gap:10px}
+  .nt-ok{border-color:rgba(15,122,82,.28);background:rgba(15,122,82,.05);--ni:#0F7A52}
+  .nt-warn{border-color:rgba(154,106,0,.30);background:rgba(154,106,0,.06);--ni:#9A6A00}
+  .nt-crit{border-color:rgba(179,38,30,.28);background:rgba(179,38,30,.05);--ni:#B3261E}
+  .nt-info{border-color:rgba(181,84,26,.26);background:rgba(181,84,26,.05);--ni:#B5541A}
+  html.dark .nt-ok{border-color:rgba(55,211,155,.26);background:rgba(55,211,155,.07);--ni:#37D39B}
+  html.dark .nt-warn{border-color:rgba(224,168,46,.26);background:rgba(224,168,46,.07);--ni:#E0A82E}
+  html.dark .nt-crit{border-color:rgba(255,107,107,.26);background:rgba(255,107,107,.07);--ni:#FF6B6B}
+  html.dark .nt-info{border-color:rgba(240,135,63,.24);background:rgba(240,135,63,.06);--ni:#F0873F}
+  .nt-i{color:var(--ni);flex-shrink:0;margin-top:1px}
+  .navon{background:rgba(93,135,255,.13);color:#3561C9;font-weight:600}
+  html.dark .navon{background:rgba(93,138,255,.15);color:#93B2FF}
+  .ok-i{color:#0F7A52} html.dark .ok-i{color:#37D39B}
+  .crit-i{color:#B3261E} html.dark .crit-i{color:#FF6B6B}
+  .trk{background:rgba(0,0,0,.055)} html.dark .trk{background:rgba(255,255,255,.07)}
+  @media print{
+    #sb,#topbar,.noprint{display:none!important}
+    body,html{background:#fff!important;color:#000!important}
+    .cd{break-inside:avoid;box-shadow:none!important;border-color:#ccc!important}
+    #main{padding:0!important}
+  }
+</style>
+<script>
+const DB = {"built": "2026-09-19T08:45:54Z", "projects": {"gm": {"code": "gm", "name": "GLASS-MEMORY", "dom": "glass-memory.ru", "db": "msk", "plan": {"v": 22000000, "k": "ДАННЫЕ", "s": "Roadmap H2 2026, план по брендам", "at": "2026-07-01", "n": "выручка за H2"}, "top1": {"v": 6, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/glass-memory/keysso.json", "at": "2026-09-19", "n": ""}, "top3": {"v": 13, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/glass-memory/keysso.json", "at": "2026-09-19", "n": ""}, "top10": {"v": 48, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/glass-memory/keysso.json", "at": "2026-09-19", "n": ""}, "top50": {"v": 568, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/glass-memory/keysso.json", "at": "2026-09-19", "n": ""}, "aivis": {"v": 1, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/glass-memory/keysso.json", "at": "2026-09-19", "n": "процент видимости в ответах нейросетей"}, "aians": {"v": 67, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/glass-memory/keysso.json", "at": "2026-09-19", "n": "число ответов ИИ с нашим упоминанием"}, "pages": {"v": 10, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/glass-memory/keysso.json", "at": "2026-09-19", "n": "страниц в выгрузке топ-страниц, не всего на сайте"}, "series": [{"date": "2026-07-10", "top10": 37, "vis": 2, "src": "snapshot"}, {"date": "2026-07-11", "top10": 37, "vis": 2, "src": "snapshot"}, {"date": "2026-07-12", "top10": 37, "vis": 2, "src": "snapshot"}, {"date": "2026-07-13", "top10": 37, "vis": 2, "src": "snapshot"}, {"date": "2026-07-14", "top10": 37, "vis": 2, "src": "snapshot"}, {"date": "2026-07-15", "top10": 37, "vis": 2, "src": "snapshot"}, {"date": "2026-07-17", "top10": 47, "vis": 3, "src": "snapshot"}, {"date": "2026-07-19", "top10": 48, "vis": 3, "src": "snapshot"}, {"date": "2026-07-23", "top10": 49, "vis": 2, "src": "snapshot"}, {"date": "2026-07-26", "top10": 49, "vis": 2, "src": "snapshot"}, {"date": "2026-07-27", "top10": 49, "vis": 2, "src": "snapshot"}, {"date": "2026-07-31", "top10": 47, "vis": 3, "src": "snapshot"}, {"date": "2026-08-02", "top10": 48, "vis": 3, "src": "snapshot"}, {"date": "2026-08-03", "top10": 48, "vis": 3, "src": "snapshot"}, {"date": "2026-08-04", "top10": 49, "vis": 3, "src": "snapshot"}, {"date": "2026-08-08", "top10": 46, "vis": 2, "src": "snapshot"}, {"date": "2026-08-11", "top10": 42, "vis": 2, "src": "snapshot"}, {"date": "2026-08-12", "top10": 42, "vis": 2, "src": "snapshot"}, {"date": "2026-08-16", "top10": 46, "vis": 2, "src": "snapshot"}, {"date": "2026-08-17", "top10": 46, "vis": 2, "src": "snapshot"}, {"date": "2026-08-19", "top10": 47, "vis": 3, "src": "snapshot"}, {"date": "2026-08-25", "top10": 47, "vis": 3, "src": "snapshot"}, {"date": "2026-08-26", "top10": 47, "vis": 3, "src": "snapshot"}, {"date": "2026-08-28", "top10": 46, "vis": 3, "src": "snapshot"}, {"date": "2026-08-29", "top10": 46, "vis": 3, "src": "snapshot"}, {"date": "2026-08-30", "top10": 46, "vis": 3, "src": "snapshot"}, {"date": "2026-08-31", "top10": 46, "vis": 3, "src": "snapshot"}, {"date": "2026-09-02", "top10": 45, "vis": 2, "src": "snapshot"}, {"date": "2026-09-05", "top10": 47, "vis": 2, "src": "snapshot"}, {"date": "2026-09-06", "top10": 47, "vis": 2, "src": "snapshot"}, {"date": "2026-09-07", "top10": 47, "vis": 2, "src": "snapshot", "top50": 547, "top1": 5, "top3": 12, "ai": 54}, {"date": "2026-09-10", "top10": 47, "vis": 2, "src": "keysso.json"}, {"date": "2026-09-14", "top10": 48, "vis": 1, "src": "keysso.json"}, {"date": "2026-09-15", "top10": 48, "vis": 1, "src": "keysso.json"}, {"date": "2026-09-18", "top10": 48, "vis": 1, "src": "keysso.json"}, {"date": "2026-09-19", "top10": 48, "vis": 1, "src": "snapshot", "top50": 568, "top1": 6, "top3": 13, "ai": 67}], "ym": null, "direct": {"spend": {"v": 172545, "k": "ГИПОТЕЗА", "s": "gg-seo-geo-monster/data/glass-memory/direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой genglass, разделение по кабинетам не подтверждено"}, "clicks": {"v": 1543, "k": "ГИПОТЕЗА", "s": "direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой genglass, разделение по кабинетам не подтверждено"}, "impr": {"v": 164699, "k": "ГИПОТЕЗА", "s": "direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой genglass, разделение по кабинетам не подтверждено"}, "ctr": {"v": 0.94, "k": "ГИПОТЕЗА", "s": "direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой genglass, разделение по кабинетам не подтверждено"}, "cpc": {"v": 111.8, "k": "ГИПОТЕЗА", "s": "direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой genglass, разделение по кабинетам не подтверждено"}, "campaigns": [{"name": "[На заказ] Перегородки | Поиск ВЧ | НБ=5т.р. | CPC=145 |", "spend": 26798, "clicks": 172, "ctr": 9.97, "cpc": 155.8}, {"name": "[На заказ] Перегородки | Поиск СЧ | НБ=9т.р. | CPC=108 |", "spend": 43641, "clicks": 354, "ctr": 10.34, "cpc": 123.3}, {"name": "[На заказ] Перегородки | Поиск НЧ | НБ=11т.р. | CPC=110 |", "spend": 51594, "clicks": 417, "ctr": 15.07, "cpc": 123.7}, {"name": "[На заказ] Перегородки | РТ | НБ=5т.р. | CPC = 100 |", "spend": 15043, "clicks": 177, "ctr": 0.51, "cpc": 85}, {"name": "[На заказ] Перегородки | РСЯ - ПК | НБ=8т.р. | CPC=80 |", "spend": 35469, "clicks": 423, "ctr": 0.35, "cpc": 83.9}, {"name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=600 |", "spend": 0, "clicks": 0, "ctr": 0, "cpc": 0}], "queries": [{"query": "стеллаж для зонирования комнаты от производителя заказать", "clicks": 7, "cost": 114}, {"query": "зонирование комнаты перегородкой", "clicks": 6, "cost": 505}, {"query": "стеклянные перегородки", "clicks": 6, "cost": 2565}, {"query": "стеллаж перегородка для зонирования комнаты от производителя заказать", "clicks": 4, "cost": 73}, {"query": "стеллаж перегородка для зонирования комнаты от производителя заказать", "clicks": 4, "cost": 46}, {"query": "стеклянные перегородки", "clicks": 4, "cost": 916}, {"query": "двери гармошка на заказ", "clicks": 4, "cost": 348}, {"query": "дверь гармошка на заказ по размерам москва", "clicks": 4, "cost": 1274}, {"query": "складная перегородка", "clicks": 4, "cost": 197}, {"query": "межкомнатные перегородки", "clicks": 3, "cost": 129}, {"query": "раздвижные двери межкомнатные москва", "clicks": 3, "cost": 624}, {"query": "раздвижные двери для гардеробной", "clicks": 3, "cost": 214}, {"query": "перегородка гармошка", "clicks": 3, "cost": 284}, {"query": "стеллаж перегородка для зонирования комнаты купить", "clicks": 3, "cost": 127}, {"query": "стеллаж перегородка", "clicks": 3, "cost": 334}, {"query": "изготовление межкомнатных перегородок", "clicks": 3, "cost": 291}, {"query": "перегородки для зонирования комнаты", "clicks": 3, "cost": 78}, {"query": "стеклянная перегородка", "clicks": 3, "cost": 1341}, {"query": "перегородки межкомнатные", "clicks": 3, "cost": 281}, {"query": "перегородки из стекла на заказ", "clicks": 3, "cost": 1200}, {"query": "каскадная дверь перегородка", "clicks": 3, "cost": 214}, {"query": "каскадная перегородка между кухней с газовой плитой и комнатой", "clicks": 3, "cost": 254}, {"query": "межкомнатные перегородки", "clicks": 2, "cost": 68}, {"query": "межкомнатные перегородки", "clicks": 2, "cost": 92}, {"query": "межкомнатные перегородки", "clicks": 2, "cost": 422}, {"query": "двери перегородки", "clicks": 2, "cost": 437}, {"query": "перегородки межкомнатные раздвижные", "clicks": 2, "cost": 132}, {"query": "раздвижные перегородки между кухней и гостиной", "clicks": 2, "cost": 91}, {"query": "двери в гардеробную раздвижные", "clicks": 2, "cost": 225}, {"query": "раздвижные двери в гардеробную", "clicks": 2, "cost": 178}], "at": "2026-09-19", "twin": "genglass"}, "facts": {"clusters": {"v": null, "k": "ДЕМО", "s": "", "at": "", "n": "кластеризация по проекту не запускалась"}, "themes": {"v": null, "k": "ДЕМО", "s": "", "at": "", "n": ""}, "landings": {"v": null, "k": "ДЕМО", "s": "", "at": "", "n": "карты посадочных по проекту нет"}, "core": {"v": null, "k": "ДЕМО", "s": "", "at": "", "n": ""}, "units": {"v": null, "k": "ДЕМО", "s": "", "at": "", "n": "заданий по проекту нет"}, "published": {"v": null, "k": "ДЕМО", "s": "", "at": "", "n": ""}}, "comp": null, "pg": [{"url": "/products/loft-mebel/mebel-loft-iz-profilnoj-trubyi-i-dereva", "keywords_top50": 62}, {"url": "/products/ritual-products/foto-iz-stekla", "keywords_top50": 37}, {"url": "/products/art/polki-iz-stekla", "keywords_top50": 25}, {"url": "/products/ritual-products/pamyatniki-iz-stekla", "keywords_top50": 23}, {"url": "/products/loft-mebel/peregorodki-iz-metalla", "keywords_top50": 20}, {"url": "/konstruktor-pamyatnikov", "keywords_top50": 20}, {"url": "/products/loft-mebel/polki-loft-iz-trub", "keywords_top50": 19}, {"url": "/products/loft-mebel/sadovaya-mebel-v-stile-loft", "keywords_top50": 16}, {"url": "/products/loft-mebel/zerkala", "keywords_top50": 14}, {"url": "/news/jeanne-friske-monument", "keywords_top50": 14}], "kw": [{"phrase": "голубой гранит", "pos": null, "freq": 506, "url": ""}, {"phrase": "гравировка на граните", "pos": null, "freq": 1662, "url": ""}, {"phrase": "полки из стекла", "pos": null, "freq": 4919, "url": ""}, {"phrase": "могильный камень", "pos": null, "freq": 2266, "url": ""}, {"phrase": "камни черного цвета названия", "pos": null, "freq": 309, "url": ""}, {"phrase": "какой гранит лучше для памятника", "pos": null, "freq": 582, "url": ""}, {"phrase": "еврейское кладбище спб", "pos": null, "freq": 305, "url": ""}, {"phrase": "сколько весит памятник из гранита", "pos": null, "freq": 170, "url": ""}, {"phrase": "сколько стоит установить памятник на могилу", "pos": null, "freq": 61, "url": ""}, {"phrase": "оформление могилы на кладбище своими руками", "pos": null, "freq": 43, "url": ""}, {"phrase": "серафимовское кладбище", "pos": null, "freq": 6388, "url": ""}, {"phrase": "могила жанны фриске фото сегодня", "pos": null, "freq": 30, "url": ""}, {"phrase": "муринское кладбище как доехать", "pos": null, "freq": 31, "url": ""}, {"phrase": "шуваловское кладбище", "pos": null, "freq": 595, "url": ""}, {"phrase": "стеклянная полка на заказ", "pos": null, "freq": 465, "url": ""}, {"phrase": "как установить памятник самостоятельно", "pos": null, "freq": 161, "url": ""}, {"phrase": "лучшие памятники на могилу", "pos": null, "freq": 1888, "url": ""}, {"phrase": "как установить памятник на кладбище самостоятельно", "pos": null, "freq": 52, "url": ""}, {"phrase": "габбро диабаз свойства", "pos": null, "freq": 400, "url": ""}, {"phrase": "как сделать памятник своими руками", "pos": null, "freq": 159, "url": ""}, {"phrase": "шушары кладбище", "pos": null, "freq": 209, "url": ""}, {"phrase": "могила жанны фриске фото", "pos": null, "freq": 87, "url": ""}, {"phrase": "когда ставят памятник на могилу", "pos": null, "freq": 924, "url": ""}, {"phrase": "могила фриске фото", "pos": null, "freq": 105, "url": ""}, {"phrase": "керамическая печать на стекле", "pos": null, "freq": 62, "url": ""}, {"phrase": "кладбище порошкино", "pos": null, "freq": 216, "url": ""}, {"phrase": "казанское кладбище пушкин", "pos": null, "freq": 995, "url": ""}, {"phrase": "заказать стеклянную полку по своим размерам", "pos": null, "freq": 55, "url": ""}, {"phrase": "керамогранит на кладбище", "pos": null, "freq": 1542, "url": ""}, {"phrase": "кладбище в комарово", "pos": null, "freq": 275, "url": ""}, {"phrase": "зеркала оптом от производителя", "pos": null, "freq": 30, "url": ""}, {"phrase": "кладбище ковалево", "pos": null, "freq": 448, "url": ""}, {"phrase": "мемориал значение слова", "pos": null, "freq": 34, "url": ""}, {"phrase": "памятник фриске", "pos": null, "freq": 367, "url": ""}, {"phrase": "перегородка из металлопрофиля", "pos": null, "freq": 522, "url": ""}, {"phrase": "памятники на могилу в спб недорого", "pos": null, "freq": 185, "url": ""}, {"phrase": "южное кладбище спб", "pos": null, "freq": 2388, "url": ""}, {"phrase": "серафимовское кладбище спб", "pos": null, "freq": 385, "url": ""}, {"phrase": "мебель из профильной трубы", "pos": null, "freq": 1714, "url": ""}, {"phrase": "волковское лютеранское кладбище", "pos": null, "freq": 410, "url": ""}, {"phrase": "столешница из лиственницы", "pos": null, "freq": 864, "url": ""}, {"phrase": "колпинское кладбище", "pos": null, "freq": 796, "url": ""}, {"phrase": "фундамент под памятник на кладбище", "pos": null, "freq": 247, "url": ""}, {"phrase": "зеркало в стиле лофт", "pos": null, "freq": 400, "url": ""}, {"phrase": "установка памятника видео", "pos": null, "freq": 345, "url": ""}, {"phrase": "ковалевское кладбище спб", "pos": null, "freq": 121, "url": ""}, {"phrase": "сертоловское кладбище", "pos": null, "freq": 134, "url": ""}, {"phrase": "технология укладки гранитной брусчатки", "pos": null, "freq": 44, "url": ""}, {"phrase": "муринское кладбище", "pos": null, "freq": 748, "url": ""}, {"phrase": "гласс стор", "pos": null, "freq": 26, "url": ""}, {"phrase": "южное кладбище спб адрес", "pos": null, "freq": 9, "url": ""}, {"phrase": "плитка на могилу", "pos": null, "freq": 8486, "url": ""}, {"phrase": "блю перл гранит", "pos": null, "freq": 319, "url": ""}, {"phrase": "стеклянные полки на заказ москва", "pos": null, "freq": 67, "url": ""}, {"phrase": "озерковское кладбище", "pos": null, "freq": 293, "url": ""}, {"phrase": "ковалевское кладбище санкт петербург", "pos": null, "freq": 648, "url": ""}, {"phrase": "надгробные памятники спб", "pos": null, "freq": 45, "url": ""}, {"phrase": "масса гранита", "pos": null, "freq": 542, "url": ""}, {"phrase": "как делают памятники из гранита", "pos": null, "freq": 55, "url": ""}, {"phrase": "изготовление памятников своими руками", "pos": null, "freq": 16, "url": ""}], "sem": {"at": "2026-09-19", "phrases": [{"phrase": "голубой гранит", "pos": null, "freq": 506, "url": "", "cluster": "голубой", "intent": "commercial"}, {"phrase": "гравировка на граните", "pos": null, "freq": 1662, "url": "", "cluster": "гравировка", "intent": "commercial"}, {"phrase": "полки из стекла", "pos": null, "freq": 4919, "url": "", "cluster": "полки", "intent": "commercial"}, {"phrase": "могильный камень", "pos": null, "freq": 2266, "url": "", "cluster": "могильный", "intent": "commercial"}, {"phrase": "камни черного цвета названия", "pos": null, "freq": 309, "url": "", "cluster": "камни", "intent": "commercial"}, {"phrase": "какой гранит лучше для памятника", "pos": null, "freq": 582, "url": "", "cluster": "какой", "intent": "informational"}, {"phrase": "еврейское кладбище спб", "pos": null, "freq": 305, "url": "", "cluster": "еврейское", "intent": "commercial"}, {"phrase": "сколько весит памятник из гранита", "pos": null, "freq": 170, "url": "", "cluster": "сколько", "intent": "informational"}, {"phrase": "сколько стоит установить памятник на могилу", "pos": null, "freq": 61, "url": "", "cluster": "сколько", "intent": "informational"}, {"phrase": "оформление могилы на кладбище своими руками", "pos": null, "freq": 43, "url": "", "cluster": "оформление", "intent": "commercial"}, {"phrase": "серафимовское кладбище", "pos": null, "freq": 6388, "url": "", "cluster": "серафимовское", "intent": "commercial"}, {"phrase": "могила жанны фриске фото сегодня", "pos": null, "freq": 30, "url": "", "cluster": "могила", "intent": "commercial"}, {"phrase": "муринское кладбище как доехать", "pos": null, "freq": 31, "url": "", "cluster": "муринское", "intent": "commercial"}, {"phrase": "шуваловское кладбище", "pos": null, "freq": 595, "url": "", "cluster": "шуваловское", "intent": "commercial"}, {"phrase": "стеклянная полка на заказ", "pos": null, "freq": 465, "url": "", "cluster": "стеклянная", "intent": "transactional"}, {"phrase": "как установить памятник самостоятельно", "pos": null, "freq": 161, "url": "", "cluster": "установить", "intent": "informational"}, {"phrase": "лучшие памятники на могилу", "pos": null, "freq": 1888, "url": "", "cluster": "лучшие", "intent": "commercial"}, {"phrase": "как установить памятник на кладбище самостоятельно", "pos": null, "freq": 52, "url": "", "cluster": "установить", "intent": "informational"}, {"phrase": "габбро диабаз свойства", "pos": null, "freq": 400, "url": "", "cluster": "габбро", "intent": "commercial"}, {"phrase": "как сделать памятник своими руками", "pos": null, "freq": 159, "url": "", "cluster": "сделать", "intent": "informational"}, {"phrase": "шушары кладбище", "pos": null, "freq": 209, "url": "", "cluster": "шушары", "intent": "commercial"}, {"phrase": "могила жанны фриске фото", "pos": null, "freq": 87, "url": "", "cluster": "могила", "intent": "commercial"}, {"phrase": "когда ставят памятник на могилу", "pos": null, "freq": 924, "url": "", "cluster": "когда", "intent": "commercial"}, {"phrase": "могила фриске фото", "pos": null, "freq": 105, "url": "", "cluster": "могила", "intent": "commercial"}, {"phrase": "керамическая печать на стекле", "pos": null, "freq": 62, "url": "", "cluster": "керамическая", "intent": "commercial"}, {"phrase": "кладбище порошкино", "pos": null, "freq": 216, "url": "", "cluster": "кладбище", "intent": "commercial"}, {"phrase": "казанское кладбище пушкин", "pos": null, "freq": 995, "url": "", "cluster": "казанское", "intent": "commercial"}, {"phrase": "заказать стеклянную полку по своим размерам", "pos": null, "freq": 55, "url": "", "cluster": "стеклянную", "intent": "transactional"}, {"phrase": "керамогранит на кладбище", "pos": null, "freq": 1542, "url": "", "cluster": "керамогранит", "intent": "commercial"}, {"phrase": "кладбище в комарово", "pos": null, "freq": 275, "url": "", "cluster": "кладбище", "intent": "commercial"}, {"phrase": "зеркала оптом от производителя", "pos": null, "freq": 30, "url": "", "cluster": "зеркала", "intent": "commercial"}, {"phrase": "кладбище ковалево", "pos": null, "freq": 448, "url": "", "cluster": "кладбище", "intent": "commercial"}, {"phrase": "мемориал значение слова", "pos": null, "freq": 34, "url": "", "cluster": "мемориал", "intent": "commercial"}, {"phrase": "памятник фриске", "pos": null, "freq": 367, "url": "", "cluster": "памятник", "intent": "commercial"}, {"phrase": "перегородка из металлопрофиля", "pos": null, "freq": 522, "url": "", "cluster": "перегородка", "intent": "commercial"}, {"phrase": "памятники на могилу в спб недорого", "pos": null, "freq": 185, "url": "", "cluster": "памятники", "intent": "commercial"}, {"phrase": "южное кладбище спб", "pos": null, "freq": 2388, "url": "", "cluster": "южное", "intent": "commercial"}, {"phrase": "серафимовское кладбище спб", "pos": null, "freq": 385, "url": "", "cluster": "серафимовское", "intent": "commercial"}, {"phrase": "мебель из профильной трубы", "pos": null, "freq": 1714, "url": "", "cluster": "мебель", "intent": "commercial"}, {"phrase": "волковское лютеранское кладбище", "pos": null, "freq": 410, "url": "", "cluster": "волковское", "intent": "commercial"}, {"phrase": "столешница из лиственницы", "pos": null, "freq": 864, "url": "", "cluster": "столешница", "intent": "commercial"}, {"phrase": "колпинское кладбище", "pos": null, "freq": 796, "url": "", "cluster": "колпинское", "intent": "commercial"}, {"phrase": "фундамент под памятник на кладбище", "pos": null, "freq": 247, "url": "", "cluster": "фундамент", "intent": "commercial"}, {"phrase": "зеркало в стиле лофт", "pos": null, "freq": 400, "url": "", "cluster": "зеркало", "intent": "commercial"}, {"phrase": "установка памятника видео", "pos": null, "freq": 345, "url": "", "cluster": "установка", "intent": "commercial"}, {"phrase": "ковалевское кладбище спб", "pos": null, "freq": 121, "url": "", "cluster": "ковалевское", "intent": "commercial"}, {"phrase": "сертоловское кладбище", "pos": null, "freq": 134, "url": "", "cluster": "сертоловское", "intent": "commercial"}, {"phrase": "технология укладки гранитной брусчатки", "pos": null, "freq": 44, "url": "", "cluster": "технология", "intent": "commercial"}, {"phrase": "муринское кладбище", "pos": null, "freq": 748, "url": "", "cluster": "муринское", "intent": "commercial"}, {"phrase": "гласс стор", "pos": null, "freq": 26, "url": "", "cluster": "гласс", "intent": "commercial"}, {"phrase": "южное кладбище спб адрес", "pos": null, "freq": 9, "url": "", "cluster": "южное", "intent": "commercial"}, {"phrase": "плитка на могилу", "pos": null, "freq": 8486, "url": "", "cluster": "плитка", "intent": "commercial"}, {"phrase": "блю перл гранит", "pos": null, "freq": 319, "url": "", "cluster": "перл", "intent": "commercial"}, {"phrase": "стеклянные полки на заказ москва", "pos": null, "freq": 67, "url": "", "cluster": "стеклянные", "intent": "transactional"}, {"phrase": "озерковское кладбище", "pos": null, "freq": 293, "url": "", "cluster": "озерковское", "intent": "commercial"}, {"phrase": "ковалевское кладбище санкт петербург", "pos": null, "freq": 648, "url": "", "cluster": "ковалевское", "intent": "commercial"}, {"phrase": "надгробные памятники спб", "pos": null, "freq": 45, "url": "", "cluster": "надгробные", "intent": "commercial"}, {"phrase": "масса гранита", "pos": null, "freq": 542, "url": "", "cluster": "масса", "intent": "commercial"}, {"phrase": "как делают памятники из гранита", "pos": null, "freq": 55, "url": "", "cluster": "делают", "intent": "informational"}, {"phrase": "изготовление памятников своими руками", "pos": null, "freq": 16, "url": "", "cluster": "изготовление", "intent": "commercial"}]}, "adk": [{"phrase": "памятники из стекла цена", "pos": 0, "freq": 402, "url": ""}, {"phrase": "орден мужества на памятник накладной", "pos": 0, "freq": 123, "url": ""}, {"phrase": "фото на стекле на памятник цена московская область", "pos": 1, "freq": 12, "url": ""}, {"phrase": "3d фото в стекле", "pos": 0, "freq": 13, "url": ""}, {"phrase": "стеклянная фотография на памятник", "pos": 0, "freq": 120, "url": ""}, {"phrase": "стеклянные памятники", "pos": 0, "freq": 1989, "url": ""}, {"phrase": "фото на стекле на памятник ульяновск", "pos": 0, "freq": 11, "url": ""}, {"phrase": "памятник со стеклянной фотографией", "pos": 1, "freq": 27, "url": ""}, {"phrase": "как делают памятники из стекла", "pos": 1, "freq": 6, "url": ""}, {"phrase": "фото на оргстекле на памятник", "pos": 0, "freq": 31, "url": ""}], "adc": [{"domain": "promsteklo.com", "common_ad_keywords": 7, "ads_count": 69, "ad_keywords_count": 175, "visibility": 19}, {"domain": "nbs-granit.ru", "common_ad_keywords": 5, "ads_count": 308, "ad_keywords_count": 1905, "visibility": 0}, {"domain": "pamiatniky.ru", "common_ad_keywords": 5, "ads_count": 255, "ad_keywords_count": 1906, "visibility": 14}, {"domain": "grad-granit.ru", "common_ad_keywords": 5, "ads_count": 17, "ad_keywords_count": 785, "visibility": 0}, {"domain": "kamenyar.ru", "common_ad_keywords": 4, "ads_count": 4, "ad_keywords_count": 1935, "visibility": 0}, {"domain": "ural-glass.ru", "common_ad_keywords": 4, "ads_count": 33, "ad_keywords_count": 71, "visibility": 1}, {"domain": "pamyatniki.grad-ex.ru", "common_ad_keywords": 4, "ads_count": 28, "ad_keywords_count": 1141, "visibility": 0}, {"domain": "ritualceram.ru", "common_ad_keywords": 3, "ads_count": 113, "ad_keywords_count": 396, "visibility": 1}, {"domain": "obeliskm.ru", "common_ad_keywords": 3, "ads_count": 137, "ad_keywords_count": 656, "visibility": 49}]}, "gg": {"code": "gg", "name": "GENGLASS", "dom": "genglass.ru", "db": "msk", "plan": {"v": 240000000, "k": "ДАННЫЕ", "s": "Roadmap H2 2026, план по брендам", "at": "2026-07-01", "n": "выручка за H2"}, "top1": {"v": 16, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/genglass/keysso.json", "at": "2026-09-19", "n": ""}, "top3": {"v": 79, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/genglass/keysso.json", "at": "2026-09-19", "n": ""}, "top10": {"v": 432, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/genglass/keysso.json", "at": "2026-09-19", "n": ""}, "top50": {"v": 2118, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/genglass/keysso.json", "at": "2026-09-19", "n": ""}, "aivis": {"v": 23, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/genglass/keysso.json", "at": "2026-09-19", "n": "процент видимости в ответах нейросетей"}, "aians": {"v": 104, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/genglass/keysso.json", "at": "2026-09-19", "n": "число ответов ИИ с нашим упоминанием"}, "pages": {"v": 10, "k": "ДАННЫЕ", "s": "keys.so через gg-seo-geo-monster/data/genglass/keysso.json", "at": "2026-09-19", "n": "страниц в выгрузке топ-страниц, не всего на сайте"}, "series": [{"date": "2026-07-10", "top10": 271, "vis": 11, "src": "snapshot"}, {"date": "2026-07-11", "top10": 271, "vis": 11, "src": "snapshot"}, {"date": "2026-07-12", "top10": 271, "vis": 11, "src": "snapshot"}, {"date": "2026-07-13", "top10": 271, "vis": 11, "src": "snapshot"}, {"date": "2026-07-14", "top10": 271, "vis": 11, "src": "snapshot"}, {"date": "2026-07-15", "top10": 271, "vis": 11, "src": "snapshot"}, {"date": "2026-07-17", "top10": 252, "vis": 10, "src": "snapshot"}, {"date": "2026-07-23", "top10": 235, "vis": 15, "src": "snapshot"}, {"date": "2026-07-26", "top10": 256, "vis": 15, "src": "snapshot"}, {"date": "2026-07-27", "top10": 256, "vis": 15, "src": "snapshot"}, {"date": "2026-07-30", "top10": 272, "vis": 15, "src": "snapshot"}, {"date": "2026-07-31", "top10": 275, "vis": 15, "src": "snapshot"}, {"date": "2026-08-02", "top10": 279, "vis": 15, "src": "snapshot"}, {"date": "2026-08-03", "top10": 279, "vis": 15, "src": "snapshot"}, {"date": "2026-08-08", "top10": 296, "vis": 20, "src": "snapshot"}, {"date": "2026-08-11", "top10": 313, "vis": 21, "src": "snapshot"}, {"date": "2026-08-12", "top10": 313, "vis": 21, "src": "snapshot"}, {"date": "2026-08-16", "top10": 360, "vis": 41, "src": "snapshot"}, {"date": "2026-08-17", "top10": 360, "vis": 41, "src": "snapshot"}, {"date": "2026-08-18", "top10": 366, "vis": 42, "src": "snapshot"}, {"date": "2026-08-19", "top10": 374, "vis": 42, "src": "snapshot"}, {"date": "2026-08-20", "top10": 410, "vis": 39, "src": "snapshot"}, {"date": "2026-08-25", "top10": 423, "vis": 38, "src": "snapshot"}, {"date": "2026-08-26", "top10": 423, "vis": 38, "src": "snapshot"}, {"date": "2026-08-28", "top10": 417, "vis": 37, "src": "snapshot"}, {"date": "2026-08-29", "top10": 417, "vis": 37, "src": "snapshot"}, {"date": "2026-08-30", "top10": 417, "vis": 37, "src": "snapshot"}, {"date": "2026-08-31", "top10": 417, "vis": 37, "src": "snapshot"}, {"date": "2026-09-01", "top10": 434, "vis": 37, "src": "snapshot"}, {"date": "2026-09-02", "top10": 434, "vis": 37, "src": "snapshot"}, {"date": "2026-09-05", "top10": 444, "vis": 17, "src": "snapshot"}, {"date": "2026-09-06", "top10": 444, "vis": 17, "src": "snapshot"}, {"date": "2026-09-07", "top10": 444, "vis": 17, "src": "snapshot", "top50": 2145, "top1": 16, "top3": 80, "ai": 84}, {"date": "2026-09-10", "top10": 426, "vis": 17, "src": "keysso.json"}, {"date": "2026-09-13", "top10": 428, "vis": 17, "src": "keysso.json"}, {"date": "2026-09-15", "top10": 426, "vis": 17, "src": "keysso.json"}, {"date": "2026-09-18", "top10": 432, "vis": 23, "src": "keysso.json"}, {"date": "2026-09-19", "top10": 432, "vis": 23, "src": "snapshot", "top50": 2118, "top1": 16, "top3": 79, "ai": 104}], "ym": {"counter": {"v": "104369223", "k": "ДАННЫЕ", "s": "gg-seo-geo-monster/data/genglass/metrika.json", "at": "2026-09-19", "n": ""}, "days": [{"date": "2026-08-20", "visits": 323, "search_visits": 69}, {"date": "2026-08-21", "visits": 341, "search_visits": 82}, {"date": "2026-08-22", "visits": 261, "search_visits": 51}, {"date": "2026-08-23", "visits": 261, "search_visits": 62}, {"date": "2026-08-24", "visits": 396, "search_visits": 92}, {"date": "2026-08-25", "visits": 391, "search_visits": 84}, {"date": "2026-08-26", "visits": 385, "search_visits": 92}, {"date": "2026-08-27", "visits": 356, "search_visits": 66}, {"date": "2026-08-28", "visits": 319, "search_visits": 69}, {"date": "2026-08-29", "visits": 273, "search_visits": 54}, {"date": "2026-08-30", "visits": 255, "search_visits": 50}, {"date": "2026-08-31", "visits": 418, "search_visits": 100}, {"date": "2026-09-01", "visits": 379, "search_visits": 76}, {"date": "2026-09-02", "visits": 404, "search_visits": 83}, {"date": "2026-09-03", "visits": 375, "search_visits": 88}, {"date": "2026-09-04", "visits": 420, "search_visits": 58}, {"date": "2026-09-05", "visits": 373, "search_visits": 52}, {"date": "2026-09-06", "visits": 423, "search_visits": 68}, {"date": "2026-09-07", "visits": 435, "search_visits": 94}, {"date": "2026-09-08", "visits": 455, "search_visits": 90}, {"date": "2026-09-09", "visits": 444, "search_visits": 90}, {"date": "2026-09-10", "visits": 375, "search_visits": 58}, {"date": "2026-09-11", "visits": 372, "search_visits": 74}, {"date": "2026-09-12", "visits": 350, "search_visits": 64}, {"date": "2026-09-13", "visits": 393, "search_visits": 77}, {"date": "2026-09-14", "visits": 432, "search_visits": 87}, {"date": "2026-09-15", "visits": 417, "search_visits": 98}, {"date": "2026-09-16", "visits": 444, "search_visits": 111}, {"date": "2026-09-17", "visits": 416, "search_visits": 91}, {"date": "2026-09-18", "visits": 420, "search_visits": 90}], "bounce": {"v": 17.7, "k": "ДАННЫЕ", "s": "metrika.json", "at": "2026-09-19", "n": ""}, "depth": {"v": 2.5, "k": "ДАННЫЕ", "s": "metrika.json", "at": "2026-09-19", "n": ""}, "goals": [], "top_pages": [{"url": "/", "visits": 427}, {"url": "/stoly-na-zakaz/", "visits": 119}, {"url": "/stellazhi-i-polki-na-zakaz/", "visits": 66}, {"url": "/product-category/tables/", "visits": 64}, {"url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/", "visits": 54}, {"url": "/zerkala-na-zakaz/", "visits": 54}, {"url": "/product-category/mirrors/", "visits": 52}, {"url": "/mezhkomnatnye-peregorodki-na-zakaz/", "visits": 42}, {"url": "/product-category/mirrors/dizajnerskie/", "visits": 38}, {"url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/", "visits": 35}, {"url": "/product-category/steklyannye-doski/", "visits": 33}, {"url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/", "visits": 33}, {"url": "/product-category/tables/kitchen-tables/", "visits": 32}, {"url": "/product-category/mirrors/zerkalo-na-shtange/", "visits": 31}, {"url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/", "visits": 26}, {"url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/", "visits": 25}, {"url": "/magnitno-markernie-doski-na-zakaz/", "visits": 24}, {"url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/", "visits": 22}, {"url": "/product-category/mirrors/zerkalo-v-rame/", "visits": 19}, {"url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/", "visits": 17}, {"url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/", "visits": 16}, {"url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/", "visits": 15}, {"url": "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/", "visits": 15}, {"url": "/product/zerkalo-v-zolotoj-rame-arkelo-s-102h52-sm/", "visits": 15}, {"url": "/product-category/mezhkomnatnye-peregorodki/razdvizhnye-peregorodki/", "visits": 13}, {"url": "/product-category/mirrors/rotatable/", "visits": 12}, {"url": "/product-category/komplektuyushhie/metallicheskie-podstolya/", "visits": 11}, {"url": "/mezhkomnatnye-peregorodki-na-zakaz/stalnye-peregorodki/", "visits": 10}, {"url": "/product-category/mezhkomnatnye-peregorodki/", "visits": 10}, {"url": "/product-category/mirrors/floor/", "visits": 10}], "top_phrases": [{"phrase": "genglass официальный сайт", "visits": 35}, {"phrase": "генгласс", "visits": 21}, {"phrase": "genglass", "visits": 15}, {"phrase": "интернет магазин зеркало в раме", "visits": 14}, {"phrase": "genglass.ru", "visits": 8}, {"phrase": "genglass официальный", "visits": 7}, {"phrase": "genglass стол", "visits": 6}, {"phrase": "генгласс зеркала", "visits": 6}, {"phrase": "дженгласс", "visits": 6}, {"phrase": "ген гласс", "visits": 5}, {"phrase": "стол на заказ", "visits": 5}, {"phrase": "GENGLASS", "visits": 4}, {"phrase": "дженгласс ру", "visits": 4}, {"phrase": "зеркало на заказ", "visits": 4}, {"phrase": "столы на заказ", "visits": 4}, {"phrase": "genglass зеркало", "visits": 3}, {"phrase": "генглас", "visits": 3}, {"phrase": "зеркала genglass", "visits": 3}, {"phrase": "перегородка гармошка для зонирования", "visits": 3}, {"phrase": "перегородки гармошка", "visits": 3}, {"phrase": "gen glass", "visits": 2}, {"phrase": "genglass зеркало настенное evelix l 180x50 см, овальное, в полный рост", "visits": 2}, {"phrase": "genglass стол кухонный раздвижной konux 100(180)х100х75 см, обеденный, раскладной", "visits": 2}, {"phrase": "info8@genglass.ru", "visits": 2}, {"phrase": "kuvino m", "visits": 2}, {"phrase": "Консоль Violur", "visits": 2}, {"phrase": "Стол на заказ москва", "visits": 2}, {"phrase": "в екатеринбурге стеклянные ребристые перегородки для квартиры", "visits": 2}, {"phrase": "дизайнерские зеркала", "visits": 2}, {"phrase": "зеркала дизайнерские", "visits": 2}, {"phrase": "зеркало дизайнерское", "visits": 2}, {"phrase": "зеркало для ванной на заказ", "visits": 2}, {"phrase": "зеркало на штанге поворотное", "visits": 2}, {"phrase": "зеркало с креплением к потолку", "visits": 2}, {"phrase": "изготовление столов на заказ", "visits": 2}, {"phrase": "магнитная доска из стекла на заказ", "visits": 2}, {"phrase": "мебель genglass", "visits": 2}, {"phrase": "прозрачная доска", "visits": 2}, {"phrase": "раздвижные перегородки межкомнатные гармошка", "visits": 2}, {"phrase": "стол genglass trubis wood с трубчатым подстольем 80х75х80 см", "visits": 2}, {"phrase": "стол под заказ", "visits": 2}, {"phrase": "стол раздвижной конукс", "visits": 2}, {"phrase": "стол стеклянный купить в москве", "visits": 2}, {"phrase": "столы на заказ по индивидуальным размерам москва", "visits": 2}, {"phrase": "\"джен груп\" сайт", "visits": 1}, {"phrase": "(genglass", "visits": 1}, {"phrase": "3d", "visits": 1}, {"phrase": "GENGLASS EVELUM", "visits": 1}, {"phrase": "GENGLASS Зеркало настенное в прихожую с подсветкой NOLVIS M LED 135х50 см, овальное", "visits": 1}, {"phrase": "GENGLASS Зеркало настенное с нейтральной подсветкой в полный рост прямоугольное HALFEO Slim NF LED XL 200x80 см", "visits": 1}], "at": "2026-09-19"}, "direct": {"spend": {"v": 172545, "k": "ГИПОТЕЗА", "s": "gg-seo-geo-monster/data/genglass/direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой glass-memory, разделение по кабинетам не подтверждено"}, "clicks": {"v": 1543, "k": "ГИПОТЕЗА", "s": "direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой glass-memory, разделение по кабинетам не подтверждено"}, "impr": {"v": 164699, "k": "ГИПОТЕЗА", "s": "direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой glass-memory, разделение по кабинетам не подтверждено"}, "ctr": {"v": 0.94, "k": "ГИПОТЕЗА", "s": "direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой glass-memory, разделение по кабинетам не подтверждено"}, "cpc": {"v": 111.8, "k": "ГИПОТЕЗА", "s": "direct.json", "at": "2026-09-19", "n": "файл совпадает с выгрузкой glass-memory, разделение по кабинетам не подтверждено"}, "campaigns": [{"name": "[На заказ] Перегородки | Поиск ВЧ | НБ=5т.р. | CPC=145 |", "spend": 26798, "clicks": 172, "ctr": 9.97, "cpc": 155.8}, {"name": "[На заказ] Перегородки | Поиск СЧ | НБ=9т.р. | CPC=108 |", "spend": 43641, "clicks": 354, "ctr": 10.34, "cpc": 123.3}, {"name": "[На заказ] Перегородки | Поиск НЧ | НБ=11т.р. | CPC=110 |", "spend": 51594, "clicks": 417, "ctr": 15.07, "cpc": 123.7}, {"name": "[На заказ] Перегородки | РТ | НБ=5т.р. | CPC = 100 |", "spend": 15043, "clicks": 177, "ctr": 0.51, "cpc": 85}, {"name": "[На заказ] Перегородки | РСЯ - ПК | НБ=8т.р. | CPC=80 |", "spend": 35469, "clicks": 423, "ctr": 0.35, "cpc": 83.9}, {"name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=600 |", "spend": 0, "clicks": 0, "ctr": 0, "cpc": 0}], "queries": [{"query": "стеллаж для зонирования комнаты от производителя заказать", "clicks": 7, "cost": 114}, {"query": "зонирование комнаты перегородкой", "clicks": 6, "cost": 505}, {"query": "стеклянные перегородки", "clicks": 6, "cost": 2565}, {"query": "стеллаж перегородка для зонирования комнаты от производителя заказать", "clicks": 4, "cost": 73}, {"query": "стеллаж перегородка для зонирования комнаты от производителя заказать", "clicks": 4, "cost": 46}, {"query": "стеклянные перегородки", "clicks": 4, "cost": 916}, {"query": "двери гармошка на заказ", "clicks": 4, "cost": 348}, {"query": "дверь гармошка на заказ по размерам москва", "clicks": 4, "cost": 1274}, {"query": "складная перегородка", "clicks": 4, "cost": 197}, {"query": "межкомнатные перегородки", "clicks": 3, "cost": 129}, {"query": "раздвижные двери межкомнатные москва", "clicks": 3, "cost": 624}, {"query": "раздвижные двери для гардеробной", "clicks": 3, "cost": 214}, {"query": "перегородка гармошка", "clicks": 3, "cost": 284}, {"query": "стеллаж перегородка для зонирования комнаты купить", "clicks": 3, "cost": 127}, {"query": "стеллаж перегородка", "clicks": 3, "cost": 334}, {"query": "изготовление межкомнатных перегородок", "clicks": 3, "cost": 291}, {"query": "перегородки для зонирования комнаты", "clicks": 3, "cost": 78}, {"query": "стеклянная перегородка", "clicks": 3, "cost": 1341}, {"query": "перегородки межкомнатные", "clicks": 3, "cost": 281}, {"query": "перегородки из стекла на заказ", "clicks": 3, "cost": 1200}, {"query": "каскадная дверь перегородка", "clicks": 3, "cost": 214}, {"query": "каскадная перегородка между кухней с газовой плитой и комнатой", "clicks": 3, "cost": 254}, {"query": "межкомнатные перегородки", "clicks": 2, "cost": 68}, {"query": "межкомнатные перегородки", "clicks": 2, "cost": 92}, {"query": "межкомнатные перегородки", "clicks": 2, "cost": 422}, {"query": "двери перегородки", "clicks": 2, "cost": 437}, {"query": "перегородки межкомнатные раздвижные", "clicks": 2, "cost": 132}, {"query": "раздвижные перегородки между кухней и гостиной", "clicks": 2, "cost": 91}, {"query": "двери в гардеробную раздвижные", "clicks": 2, "cost": 225}, {"query": "раздвижные двери в гардеробную", "clicks": 2, "cost": 178}], "at": "2026-09-19", "twin": "glass-memory"}, "facts": {"clusters": {"v": 144, "k": "ДАННЫЕ", "s": "Карта посадочных GENGLASS, редакция от 06.09", "at": "2026-09-06", "n": "кластеров в работе"}, "themes": {"v": 34, "k": "ДАННЫЕ", "s": "Карта посадочных GENGLASS", "at": "2026-09-06", "n": "тем"}, "landings": {"v": 19, "k": "ДАННЫЕ", "s": "Карта посадочных GENGLASS", "at": "2026-09-06", "n": "посадочных описано с мета и ТЗ"}, "core": {"v": 537874, "k": "ДАННЫЕ", "s": "Карта посадочных GENGLASS, рабочее ядро по 144 кластерам", "at": "2026-09-06", "n": "показов в месяц"}, "units": {"v": 29, "k": "ДАННЫЕ", "s": "Задания контентщикам, редакция 4", "at": "2026-09-06", "n": "контент-единиц готово к передаче"}, "published": {"v": 0, "k": "ДАННЫЕ", "s": "Задания контентщикам, редакция 4", "at": "2026-09-06", "n": "опубликовано из них"}}, "comp": {"at": "2026-09-14", "s": "keys.so /report/simple/organic/concurents через gg-seo-geo-monster/data/keyso/genglass.ru/competitors.json", "rows": [{"domain": "hardproject.ru", "common": 17, "it10": 165, "it50": 1319, "vis": 4}, {"domain": "yandex.ru", "common": 16, "it10": 24215834, "it50": 47482263, "vis": 11253503}, {"domain": "wildberries.ru", "common": 97, "it10": 7033223, "it50": 14544261, "vis": 1190784}, {"domain": "zoon.ru", "common": 11, "it10": 7194012, "it50": 13434679, "vis": 422877}, {"domain": "moscow.petrovich.ru", "common": 15, "it10": 443319, "it50": 964142, "vis": 120233}, {"domain": "profi.ru", "common": 25, "it10": 1020662, "it50": 2084625, "vis": 149013}, {"domain": "inrium.ru", "common": 20, "it10": 1021, "it50": 4903, "vis": 51}, {"domain": "arline.ru", "common": 16, "it10": 602, "it50": 5248, "vis": 44}, {"domain": "wp-art.ru", "common": 12, "it10": 3238, "it50": 12873, "vis": 123}, {"domain": "premium-glass.ru", "common": 15, "it10": 697, "it50": 2748, "vis": 41}, {"domain": "doors777.ru", "common": 20, "it10": 950, "it50": 3861, "vis": 51}, {"domain": "fantasia-stekla.ru", "common": 13, "it10": 1006, "it50": 3755, "vis": 69}, {"domain": "rosestar.ru", "common": 67, "it10": 2708, "it50": 10657, "vis": 201}, {"domain": "steklodelo.ru", "common": 11, "it10": 397, "it50": 2443, "vis": 17}, {"domain": "profiledoors.ru", "common": 21, "it10": 2530, "it50": 4909, "vis": 623}]}, "pg": [{"url": "/product-category/mirrors", "keywords_top50": 164}, {"url": "/product-category/mirrors/floor", "keywords_top50": 151}, {"url": "/stellazhi-i-polki-na-zakaz", "keywords_top50": 111}, {"url": "/zerkala-na-zakaz", "keywords_top50": 98}, {"url": "/product-category/mirrors/led", "keywords_top50": 90}, {"url": "/product-category/mirrors/zerkalo-v-prikhozhuyu", "keywords_top50": 88}, {"url": "/stoly-na-zakaz", "keywords_top50": 73}, {"url": "/product-category/steklyannye-doski", "keywords_top50": 64}, {"url": "/product-category/mirrors/zerkalo-ovalnoe", "keywords_top50": 58}, {"url": "/product-category/mirrors/dizajnerskie", "keywords_top50": 49}], "kw": [{"phrase": "бронированное стекло цена", "pos": null, "freq": 339, "url": ""}, {"phrase": "изготовление стеклянных столов на заказ", "pos": null, "freq": 20, "url": ""}, {"phrase": "зеркало в пол", "pos": null, "freq": 5372, "url": ""}, {"phrase": "стол стеклянный кухонный", "pos": null, "freq": 5454, "url": ""}, {"phrase": "зеркала в танцевальный зал купить недорого", "pos": null, "freq": 4, "url": ""}, {"phrase": "лувр хоум", "pos": null, "freq": 679, "url": ""}, {"phrase": "межкомнатная перегородка раздвижная для квартиры цена", "pos": null, "freq": 179, "url": ""}, {"phrase": "рал 1004", "pos": null, "freq": 271, "url": ""}, {"phrase": "ral желтый цвет", "pos": null, "freq": 665, "url": ""}, {"phrase": "зеркало косметическое с увеличением", "pos": null, "freq": 837, "url": ""}, {"phrase": "фальш окно купить в москве", "pos": null, "freq": 23, "url": ""}, {"phrase": "стеклянная столешница", "pos": null, "freq": 7098, "url": ""}, {"phrase": "раздвижная перегородка гармошка", "pos": null, "freq": 558, "url": ""}, {"phrase": "что значит если разбилось зеркало", "pos": null, "freq": 266, "url": ""}, {"phrase": "одностороннее стекло", "pos": null, "freq": 981, "url": ""}, {"phrase": "треснуло зеркало к чему", "pos": null, "freq": 482, "url": ""}, {"phrase": "акриловое зеркало", "pos": null, "freq": 2830, "url": ""}, {"phrase": "лаванда в горшке купить", "pos": null, "freq": 1123, "url": ""}, {"phrase": "консоль в спальню", "pos": null, "freq": 1268, "url": ""}, {"phrase": "стеклянное ограждение для душа", "pos": null, "freq": 348, "url": ""}, {"phrase": "косметологическое зеркало с подсветкой", "pos": null, "freq": 71, "url": ""}, {"phrase": "зеркало в деревянной раме", "pos": null, "freq": 3317, "url": ""}, {"phrase": "zerkala ru", "pos": null, "freq": 266, "url": ""}, {"phrase": "подсветка на батарейках", "pos": null, "freq": 5015, "url": ""}, {"phrase": "консоль картинки", "pos": null, "freq": 1130, "url": ""}, {"phrase": "овальные столы для гостиной", "pos": null, "freq": 359, "url": ""}, {"phrase": "интернет магазин зеркал", "pos": null, "freq": 843, "url": ""}, {"phrase": "стекло м1 купить", "pos": null, "freq": 158, "url": ""}, {"phrase": "гарда декор интернет магазин", "pos": null, "freq": 37, "url": ""}, {"phrase": "московский зеркальный завод официальный сайт", "pos": null, "freq": 9, "url": ""}, {"phrase": "виды люстр", "pos": null, "freq": 7416, "url": ""}, {"phrase": "верона акванет", "pos": null, "freq": 91, "url": ""}, {"phrase": "ral classic", "pos": null, "freq": 4878, "url": ""}, {"phrase": "зеркало с лед подсветкой", "pos": null, "freq": 630, "url": ""}, {"phrase": "скинали недорого", "pos": null, "freq": 51, "url": ""}, {"phrase": "радио в ванную", "pos": null, "freq": 278, "url": ""}, {"phrase": "стеклянные скинали для кухни", "pos": null, "freq": 33, "url": ""}, {"phrase": "винтажное зеркало с ручкой", "pos": null, "freq": 24, "url": ""}, {"phrase": "зеркало с бабочками", "pos": null, "freq": 233, "url": ""}, {"phrase": "сколько стоит плафон", "pos": null, "freq": 365, "url": ""}, {"phrase": "шкаф бар", "pos": null, "freq": 1952, "url": ""}, {"phrase": "зеркало с фацетом", "pos": null, "freq": 4249, "url": ""}, {"phrase": "фальш окно купить", "pos": null, "freq": 710, "url": ""}, {"phrase": "купить багетную рамку для картины", "pos": null, "freq": 208, "url": ""}, {"phrase": "небьющееся зеркало купить", "pos": null, "freq": 168, "url": ""}, {"phrase": "стол журнальный со стеклом", "pos": null, "freq": 255, "url": ""}, {"phrase": "каленое стекло купить", "pos": null, "freq": 2637, "url": ""}, {"phrase": "барная стойка из стекла", "pos": null, "freq": 50, "url": ""}, {"phrase": "купить зеркало для ванной комнаты недорого", "pos": null, "freq": 67, "url": ""}, {"phrase": "барный шкаф для гостиной", "pos": null, "freq": 120, "url": ""}, {"phrase": "как подобрать люстру", "pos": null, "freq": 1140, "url": ""}, {"phrase": "доска для записей маркером", "pos": null, "freq": 518, "url": ""}, {"phrase": "стеклянные полки для кухни", "pos": null, "freq": 130, "url": ""}, {"phrase": "зеркальная мастерская на нагорной", "pos": null, "freq": 99, "url": ""}, {"phrase": "стол журнальный квадратный", "pos": null, "freq": 387, "url": ""}, {"phrase": "тонированное зеркало", "pos": null, "freq": 1017, "url": ""}, {"phrase": "зеркало с лампами для макияжа", "pos": null, "freq": 79, "url": ""}, {"phrase": "фигурное зеркало", "pos": null, "freq": 1862, "url": ""}, {"phrase": "производство столов", "pos": null, "freq": 10132, "url": ""}, {"phrase": "можно ли ставить зеркало напротив входной двери", "pos": null, "freq": 179, "url": ""}], "sem": {"at": "2026-09-19", "phrases": [{"phrase": "бронированное стекло цена", "pos": null, "freq": 339, "url": "", "cluster": "бронированное", "intent": "transactional"}, {"phrase": "изготовление стеклянных столов на заказ", "pos": null, "freq": 20, "url": "", "cluster": "изготовление", "intent": "transactional"}, {"phrase": "зеркало в пол", "pos": null, "freq": 5372, "url": "", "cluster": "зеркало", "intent": "commercial"}, {"phrase": "стол стеклянный кухонный", "pos": null, "freq": 5454, "url": "", "cluster": "стол", "intent": "commercial"}, {"phrase": "зеркала в танцевальный зал купить недорого", "pos": null, "freq": 4, "url": "", "cluster": "зеркала", "intent": "transactional"}, {"phrase": "лувр хоум", "pos": null, "freq": 679, "url": "", "cluster": "лувр", "intent": "commercial"}, {"phrase": "межкомнатная перегородка раздвижная для квартиры цена", "pos": null, "freq": 179, "url": "", "cluster": "межкомнатная", "intent": "transactional"}, {"phrase": "рал 1004", "pos": null, "freq": 271, "url": "", "cluster": "1004", "intent": "commercial"}, {"phrase": "ral желтый цвет", "pos": null, "freq": 665, "url": "", "cluster": "желтый", "intent": "commercial"}, {"phrase": "зеркало косметическое с увеличением", "pos": null, "freq": 837, "url": "", "cluster": "зеркало", "intent": "commercial"}, {"phrase": "фальш окно купить в москве", "pos": null, "freq": 23, "url": "", "cluster": "фальш", "intent": "transactional"}, {"phrase": "стеклянная столешница", "pos": null, "freq": 7098, "url": "", "cluster": "стеклянная", "intent": "commercial"}, {"phrase": "раздвижная перегородка гармошка", "pos": null, "freq": 558, "url": "", "cluster": "раздвижная", "intent": "commercial"}, {"phrase": "что значит если разбилось зеркало", "pos": null, "freq": 266, "url": "", "cluster": "значит", "intent": "informational"}, {"phrase": "одностороннее стекло", "pos": null, "freq": 981, "url": "", "cluster": "одностороннее", "intent": "commercial"}, {"phrase": "треснуло зеркало к чему", "pos": null, "freq": 482, "url": "", "cluster": "треснуло", "intent": "commercial"}, {"phrase": "акриловое зеркало", "pos": null, "freq": 2830, "url": "", "cluster": "акриловое", "intent": "commercial"}, {"phrase": "лаванда в горшке купить", "pos": null, "freq": 1123, "url": "", "cluster": "лаванда", "intent": "transactional"}, {"phrase": "консоль в спальню", "pos": null, "freq": 1268, "url": "", "cluster": "консоль", "intent": "commercial"}, {"phrase": "стеклянное ограждение для душа", "pos": null, "freq": 348, "url": "", "cluster": "стеклянное", "intent": "commercial"}, {"phrase": "косметологическое зеркало с подсветкой", "pos": null, "freq": 71, "url": "", "cluster": "косметологическое", "intent": "commercial"}, {"phrase": "зеркало в деревянной раме", "pos": null, "freq": 3317, "url": "", "cluster": "зеркало", "intent": "commercial"}, {"phrase": "zerkala ru", "pos": null, "freq": 266, "url": "", "cluster": "zerkala", "intent": "commercial"}, {"phrase": "подсветка на батарейках", "pos": null, "freq": 5015, "url": "", "cluster": "подсветка", "intent": "commercial"}, {"phrase": "консоль картинки", "pos": null, "freq": 1130, "url": "", "cluster": "консоль", "intent": "commercial"}, {"phrase": "овальные столы для гостиной", "pos": null, "freq": 359, "url": "", "cluster": "овальные", "intent": "commercial"}, {"phrase": "интернет магазин зеркал", "pos": null, "freq": 843, "url": "", "cluster": "интернет", "intent": "commercial"}, {"phrase": "стекло м1 купить", "pos": null, "freq": 158, "url": "", "cluster": "стекло", "intent": "transactional"}, {"phrase": "гарда декор интернет магазин", "pos": null, "freq": 37, "url": "", "cluster": "гарда", "intent": "commercial"}, {"phrase": "московский зеркальный завод официальный сайт", "pos": null, "freq": 9, "url": "", "cluster": "московский", "intent": "commercial"}, {"phrase": "виды люстр", "pos": null, "freq": 7416, "url": "", "cluster": "виды", "intent": "commercial"}, {"phrase": "верона акванет", "pos": null, "freq": 91, "url": "", "cluster": "верона", "intent": "commercial"}, {"phrase": "ral classic", "pos": null, "freq": 4878, "url": "", "cluster": "classic", "intent": "commercial"}, {"phrase": "зеркало с лед подсветкой", "pos": null, "freq": 630, "url": "", "cluster": "зеркало", "intent": "commercial"}, {"phrase": "скинали недорого", "pos": null, "freq": 51, "url": "", "cluster": "скинали", "intent": "commercial"}, {"phrase": "радио в ванную", "pos": null, "freq": 278, "url": "", "cluster": "радио", "intent": "commercial"}, {"phrase": "стеклянные скинали для кухни", "pos": null, "freq": 33, "url": "", "cluster": "стеклянные", "intent": "commercial"}, {"phrase": "винтажное зеркало с ручкой", "pos": null, "freq": 24, "url": "", "cluster": "винтажное", "intent": "commercial"}, {"phrase": "зеркало с бабочками", "pos": null, "freq": 233, "url": "", "cluster": "зеркало", "intent": "commercial"}, {"phrase": "сколько стоит плафон", "pos": null, "freq": 365, "url": "", "cluster": "сколько", "intent": "informational"}, {"phrase": "шкаф бар", "pos": null, "freq": 1952, "url": "", "cluster": "шкаф", "intent": "commercial"}, {"phrase": "зеркало с фацетом", "pos": null, "freq": 4249, "url": "", "cluster": "зеркало", "intent": "commercial"}, {"phrase": "фальш окно купить", "pos": null, "freq": 710, "url": "", "cluster": "фальш", "intent": "transactional"}, {"phrase": "купить багетную рамку для картины", "pos": null, "freq": 208, "url": "", "cluster": "багетную", "intent": "transactional"}, {"phrase": "небьющееся зеркало купить", "pos": null, "freq": 168, "url": "", "cluster": "небьющееся", "intent": "transactional"}, {"phrase": "стол журнальный со стеклом", "pos": null, "freq": 255, "url": "", "cluster": "стол", "intent": "commercial"}, {"phrase": "каленое стекло купить", "pos": null, "freq": 2637, "url": "", "cluster": "каленое", "intent": "transactional"}, {"phrase": "барная стойка из стекла", "pos": null, "freq": 50, "url": "", "cluster": "барная", "intent": "commercial"}, {"phrase": "купить зеркало для ванной комнаты недорого", "pos": null, "freq": 67, "url": "", "cluster": "зеркало", "intent": "transactional"}, {"phrase": "барный шкаф для гостиной", "pos": null, "freq": 120, "url": "", "cluster": "барный", "intent": "commercial"}, {"phrase": "как подобрать люстру", "pos": null, "freq": 1140, "url": "", "cluster": "подобрать", "intent": "informational"}, {"phrase": "доска для записей маркером", "pos": null, "freq": 518, "url": "", "cluster": "доска", "intent": "commercial"}, {"phrase": "стеклянные полки для кухни", "pos": null, "freq": 130, "url": "", "cluster": "стеклянные", "intent": "commercial"}, {"phrase": "зеркальная мастерская на нагорной", "pos": null, "freq": 99, "url": "", "cluster": "зеркальная", "intent": "commercial"}, {"phrase": "стол журнальный квадратный", "pos": null, "freq": 387, "url": "", "cluster": "стол", "intent": "commercial"}, {"phrase": "тонированное зеркало", "pos": null, "freq": 1017, "url": "", "cluster": "тонированное", "intent": "commercial"}, {"phrase": "зеркало с лампами для макияжа", "pos": null, "freq": 79, "url": "", "cluster": "зеркало", "intent": "commercial"}, {"phrase": "фигурное зеркало", "pos": null, "freq": 1862, "url": "", "cluster": "фигурное", "intent": "commercial"}, {"phrase": "производство столов", "pos": null, "freq": 10132, "url": "", "cluster": "производство", "intent": "commercial"}, {"phrase": "можно ли ставить зеркало напротив входной двери", "pos": null, "freq": 179, "url": "", "cluster": "можно", "intent": "commercial"}]}, "adk": [{"phrase": "genglass", "pos": 1, "freq": 1257, "url": ""}, {"phrase": "арочный проем", "pos": 0, "freq": 3191, "url": ""}, {"phrase": "межкомнатные перегородки для зонирования пространства в комнате", "pos": 1, "freq": 137, "url": ""}, {"phrase": "металлические перегородки для зонирования", "pos": 0, "freq": 279, "url": ""}, {"phrase": "разделитель зоны в комнате", "pos": 0, "freq": 39, "url": ""}, {"phrase": "межкомнатные перегородки москва", "pos": 1, "freq": 952, "url": ""}, {"phrase": "перегородка для зонирования комнаты в стиле лофт", "pos": 1, "freq": 23, "url": ""}, {"phrase": "раздвижные двери со стеклом", "pos": 0, "freq": 386, "url": ""}, {"phrase": "интерьерные перегородки", "pos": 0, "freq": 1168, "url": ""}, {"phrase": "стеклянная перегородка на кухню", "pos": 1, "freq": 165, "url": ""}], "adc": [{"domain": "union.ru", "common_ad_keywords": 77, "ads_count": 2468, "ad_keywords_count": 8843, "visibility": 251}, {"domain": "ddveri.pro", "common_ad_keywords": 60, "ads_count": 522, "ad_keywords_count": 1025, "visibility": 0}, {"domain": "alfaporta.ru", "common_ad_keywords": 59, "ads_count": 637, "ad_keywords_count": 2328, "visibility": 1885}, {"domain": "ofimall.ru", "common_ad_keywords": 50, "ads_count": 310, "ad_keywords_count": 2076, "visibility": 10}, {"domain": "loftkrel.ru", "common_ad_keywords": 43, "ads_count": 586, "ad_keywords_count": 908, "visibility": 4}, {"domain": "kristal360.ru", "common_ad_keywords": 39, "ads_count": 456, "ad_keywords_count": 628, "visibility": 0}, {"domain": "peregorodki-prostor.ru", "common_ad_keywords": 38, "ads_count": 31, "ad_keywords_count": 314, "visibility": 0}, {"domain": "shkaffkupe.ru", "common_ad_keywords": 34, "ads_count": 931, "ad_keywords_count": 4838, "visibility": 7}, {"domain": "new.foris-msk.ru", "common_ad_keywords": 34, "ads_count": 49, "ad_keywords_count": 559, "visibility": 0}, {"domain": "mebelfog-peregorodki.ru", "common_ad_keywords": 33, "ads_count": 42, "ad_keywords_count": 299, "visibility": 0}]}}, "thresh": {"mkt_share": {"v": 0.15, "k": "ДАННЫЕ", "s": "Правило бюджета Богдана", "at": "2026-07-10", "n": "маркетинг не более 15% выручки"}, "roi_crisis": {"v": 7.0, "k": "ДАННЫЕ", "s": "Порог Богдана, кризисный минимум", "at": "2026-07-10", "n": "ROI 700%"}, "roi_ideal": {"v": 10.0, "k": "ДАННЫЕ", "s": "Ориентир Богдана", "at": "2026-07-10", "n": "ROI 1000%"}, "romi_plan": {"v": 7.0, "k": "ДАННЫЕ", "s": "Roadmap H2 2026", "at": "2026-07-01", "n": "целевой ROMI канала"}}, "assum": {"ctr": {"v": 6.0, "k": "ГИПОТЕЗА", "s": "отраслевой ориентир, своей выгрузки нет", "at": "", "n": "средний CTR по текущим позициям, %"}, "crl": {"v": 3.0, "k": "ГИПОТЕЗА", "s": "бенчмарк ФЕНИКС: посадочная в РФ даёт 2-5%", "at": "", "n": "конверсия визита в лид, %"}, "crd": {"v": 11.0, "k": "ДАННЫЕ", "s": "Roistat GENGROUP, D2C", "at": "2026-07-01", "n": "нижняя граница коридора 11-15%, %"}, "chk": {"v": null, "k": "ГИПОТЕЗА", "s": "подтверждённой цифры нет, вводится вручную", "at": "", "n": "средний чек, ₽"}}, "blockers": [["Прайс за м2 по перегородкам", "Иван", "без него нельзя ставить цену в тексты и в Директ", "открыт"], ["Средний чек по проектам", "Иван", "без него мост до денег не считается", "открыт"], ["Цели в Метрике", "Иван", "счётчик отдаёт визиты, но целей нет, конверсия остаётся гипотезой", "открыт"], ["Разработчик: имя и срок", "Иван", "главный блокер, без него не публикуются посадочные", "открыт"], ["Выгрузка сделок по каналу из CRM", "Иван", "без неё графа «факт» по деньгам пустая", "открыт"]], "decisions": [["metal-gm.ru: развести по интенту", "Иван", "2026-09-07", "разблокировало С-STAL и В-03"], ["301 по зеркалам: не трогаем", "Иван", "2026-09-07", "С-ZRAM и С-ZBOL заморожены"], ["Внешние материалы: подряд", "Иван", "2026-09-07", "внутренняя нагрузка с 86-245 ч до 54-155 ч"], ["Срок изготовления: принять разрыв", "Иван", "2026-09-07", "играем на индивидуальном размере"]], "limits": [["Инструментов по API", "49 из 50", "нет прямого метода только у «Структуры сайта»"], ["Частота", "10 запросов за 10 секунд", "перед пакетом опрашиваем GET /limits/all"], ["Суточный лимит", "3 000 на нашем тарифе", "проверено на живом аккаунте"], ["Ретроспектива по сводке", "нет", "историю ведём сами, снапшотом в positions.ndjson"], ["Параллельный доступ", "блокировка 3-10 минут", "аккаунт фактически однопользовательский"], ["Оценка трафика", "непригодна", "реальные визиты берём только из Метрики"]]};
+const I={
+grid:'M3 3h6v6H3zM11 3h6v6h-6zM3 11h6v6H3zM11 11h6v6h-6z',
+chart:'M3 16l4-5 3 3 4-6 3 4',
+search:'M9 3a6 6 0 1 0 0 12A6 6 0 0 0 9 3zM17 17l-3.7-3.7',
+doc:'M5 2h7l3 3v13H5zM12 2v3h3',
+loss:'M3 6l5 5 3-3 6 6M17 14v-4h-4',
+tree:'M10 3v4M10 7H5v3M10 7h5v3M3 10h4v3H3zM8 10h4v3H8zM13 10h4v3h-4z',
+users:'M7 9a2.6 2.6 0 1 0 0-5.2A2.6 2.6 0 0 0 7 9zM2.5 16c0-2.5 2-4.2 4.5-4.2s4.5 1.7 4.5 4.2M13.5 8.4a2.2 2.2 0 1 0 0-4.4M14 11.9c2 .3 3.5 1.9 3.5 4.1',
+layers:'M10 2.5 2.5 6.5 10 10.5l7.5-4zM2.5 10.5 10 14.5l7.5-4M2.5 14 10 18l7.5-4',
+tag:'M9.5 2.5H3v6.5l8 8 6.5-6.5-8-8zM6 6h.01',
+target:'M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2z',
+bulb:'M7.5 15h5M8 17.5h4M10 2.5a5 5 0 0 0-3 9v1.5h6V11.5a5 5 0 0 0-3-9z',
+ai:'M10 2.5 12 7l4.5 2-4.5 2-2 4.5L8 11l-4.5-2L8 7zM16 14l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z',
+quote:'M6 8H3.5V5.5A2.5 2.5 0 0 1 6 3M14 8h-2.5V5.5A2.5 2.5 0 0 1 14 3M3.5 8v3A6 6 0 0 0 8 16.8M11.5 8v3a6 6 0 0 0 4.5 5.8',
+mega:'M3 8v4l9 4V4zM12 7.5a2.5 2.5 0 0 1 0 5M3 12v3.5h2.5',
+link:'M8.5 11.5a3.5 3.5 0 0 0 5 0l2-2a3.5 3.5 0 0 0-5-5l-1 1M11.5 8.5a3.5 3.5 0 0 0-5 0l-2 2a3.5 3.5 0 0 0 5 5l1-1',
+globe:'M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM2 10h16M10 2c2 2.4 3 5 3 8s-1 5.6-3 8c-2-2.4-3-5-3-8s1-5.6 3-8z',
+wallet:'M3 6a2 2 0 0 1 2-2h9v3M3 6v9a2 2 0 0 0 2 2h11V7H5a2 2 0 0 1-2-1zM14 11h1.5',
+pen:'M13.5 3.5 16.5 6.5 7 16H4v-3zM12 5l3 3',
+gear:'M10 6.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4zM10 1.8l1 2 2.2-.5 1 1.9 2.2.6-.5 2.2 1.5 1.7-1.5 1.7.5 2.2-2.2.6-1 1.9-2.2-.5-1 2-1-2-2.2.5-1-1.9-2.2-.6.5-2.2L1.6 10l1.5-1.7-.5-2.2 2.2-.6 1-1.9 2.2.5z',
+db:'M10 2.5c3.6 0 6.5 1.1 6.5 2.5S13.6 7.5 10 7.5 3.5 6.4 3.5 5 6.4 2.5 10 2.5zM3.5 5v10c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5V5M3.5 10c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5',
+bolt:'M11 2 4 11h5l-1 7 7-9h-5z',
+eye:'M1.8 10S4.7 4.8 10 4.8 18.2 10 18.2 10 15.3 15.2 10 15.2 1.8 10 1.8 10zM10 12.4a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8z',
+clock:'M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM10 5.5V10l3 1.8',
+cmp:'M10 3v14M5 7 2.5 12h5zM15 7l-2.5 5h5zM5 7l5-1.5M15 7l-5-1.5',
+up:'M4 13l5-5 3 3 4-5',
+warn:'M10 3 2.5 16.5h15zM10 8v3.5M10 14h.01',
+check:'M4 10.5 8 14l8-8.5',
+list:'M4 6h12M4 10h12M4 14h8',
+key:'M12.5 3a4.5 4.5 0 0 0-4.3 5.8L3 14v3h3v-2h2v-2h1.7l.5-.5A4.5 4.5 0 1 0 12.5 3zm1.2 3.3h.01',
+plug:'M7 3v4M13 3v4M5 7h10v3a5 5 0 0 1-10 0zM10 15v3'
+};
+
+/* ============ ПАЛИТРА ГРАФИКОВ ============
+   Проверена scripts/validate_palette.js из скилла dataviz.
+   Категориальные, фиксированный порядок: purple, teal, blue, amber, cyan.
+   light /#FFFFFF  и  dark /#101317 - обе прошли все пять проверок без послаблений. */
+const PAL = {
+  cat:  { l:['#7B3BC4','#00806A','#3561C9','#A87400','#0F7CB8'],
+          d:['#8A5FE9','#00AD81','#5D8AFF','#CE7F00','#009EEC'] },
+  seq:  { l:['#96B2EB','#6F93E0','#4A71CB','#2E52AB','#1C3D82'],
+          d:['#33507F','#3E6BC0','#5081E4','#6E96FF','#A6C0FF'] },
+  div:  { l:{warm:'#A85A00',cool:'#3561C9',mid:'#9AA4B4'},
+          d:{warm:'#C57E14',cool:'#5D8AFF',mid:'#64748B'} },
+  /* статусные цвета зарезервированы: никогда не используются как «серия N» */
+  st:   { l:{ok:'#0F7A52',warn:'#9A6A00',ser:'#B5541A',crit:'#B3261E'},
+          d:{ok:'#37D39B',warn:'#E0A82E',ser:'#F0873F',crit:'#FF6B6B'} }
+};
+const A = () => document.documentElement.classList.contains('dark');
+const P  = i => PAL.cat[A()?'d':'l'][i % 5];
+const PS = i => PAL.seq[A()?'d':'l'][Math.max(0,Math.min(4,i))];
+const ST = n => PAL.st[A()?'d':'l'][n];
+const INK  = () => A() ? '#949BA6' : '#5A6A85';
+const INKH = () => A() ? '#E7EAEF' : '#2A3547';
+const GRID = () => A() ? '#1C2026' : '#EFF2F7';
+const SURF = () => A() ? '#101317' : '#FFFFFF';
+
+/* ============ ФОРМАТ И РАЗМЕТКА ПО ПРОТОКОЛУ 9 ============ */
+const esc = t => String(t==null?'':t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nf  = n => (n==null||n==='') ? '-' : String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const money = n => (n==null||!isFinite(n)) ? '-' : nf(Math.round(n)) + ' ₽';
+const pc  = n => (n==null||!isFinite(n)) ? '-' : (n*100).toFixed(n<0.1?1:0).replace('.',',') + '%';
+
+const KMAP = {
+  'ДАННЫЕ':  {cl:'ok',   t:'ДАННЫЕ',   h:'Есть источник и дата съёма. Можно нести Богдану.'},
+  'ГИПОТЕЗА':{cl:'warn', t:'ГИПОТЕЗА', h:'Источника нет или это бенчмарк. В план идёт только пессимистичный сценарий.'},
+  'ДЕМО':    {cl:'crit', t:'ДЕМО',     h:'Заглушка. Кабинет не подключён, цифра выдумана для вёрстки.'}
+};
+function kmark(kind){
+  const m = KMAP[kind]; if(!m) return '';
+  const c = {ok:'k-ok', warn:'k-warn', crit:'k-crit'}[m.cl];
+  return '<span class="kmark '+c+'" title="'+esc(m.h)+'">'+m.t+'</span>';
+}
+/* Каждая цифра проходит через val(): класс, источник и дата приклеены к самой цифре,
+   а не к шапке карточки. Скриншот одной плитки уносит с собой свою разметку. */
+function val(f, fmt){
+  if(!f) return '-';
+  const v = (f.v==null) ? null : (fmt? fmt(f.v) : nf(f.v));
+  const ttl = f.k + (f.s? ' · '+f.s : '') + (f.at? ' · снято '+f.at : '') + (f.n? ' · '+f.n : '');
+  return '<span title="'+esc(ttl)+'">'+(v==null?'<span class="opacity-40">нет</span>':v)+'</span>';
+}
+const rud = d => !d ? '' : d.split('-').reverse().join('.');
+const srcline = f => !f ? '' : '<div class="text-[10.5px] mt-1 opacity-55 leading-tight">'
+  + esc(f.s || (f.k==='ДЕМО' ? 'выгрузки нет, поле ждёт подключения' : 'источник не указан'))
+  + (f.at ? '<br><span class="whitespace-nowrap">снято ' + esc(rud(f.at)) + '</span>' : '')
+  + '</div>';
+
+/* ============ ПЕРИОДЫ И ДИНАМИКА ============
+   Отчёт без сравнения не отвечает на вопрос «стало лучше или хуже», а его
+   собственник задаёт вторым после вопроса про деньги. Поэтому период выбирается
+   один раз наверху и действует на все экраны сразу. */
+const PERIODS = { '7d':7, '30d':30, '90d':90, 'all':100000 };
+const PERIOD_LABEL = { '7d':'7 дней', '30d':'30 дней', '90d':'90 дней', 'all':'весь ряд' };
+let PERIOD = '30d';
+
+const dOf = s => new Date(s + 'T00:00:00Z');
+const ruD = s => !s ? '' : s.split('-').reverse().join('.');
+const SER = () => (V().series || []);
+
+/* Текущий и предыдущий отрезок одинаковой длины. Предыдущий нужен, чтобы
+   «плюс два запроса» можно было сравнить с тем, что было отрезком раньше. */
+function slice(){
+  const s = SER();
+  if(!s.length) return { cur:[], prev:[], from:null, to:null, days:0, full:false };
+  const to = dOf(s[s.length-1].date), days = PERIODS[PERIOD];
+  const from = new Date(to); from.setUTCDate(from.getUTCDate() - days);
+  const pfrom = new Date(from); pfrom.setUTCDate(pfrom.getUTCDate() - days);
+  const inR = (d,a,b) => { const x = dOf(d); return x > a && x <= b; };
+  const cur = s.filter(r => inR(r.date, from, to));
+  const prev = s.filter(r => inR(r.date, pfrom, from));
+  const full = dOf(s[0].date) <= from;
+  return { cur, prev, from, to, days, full };
+}
+/* Имя метрики в ряду и имя в выгрузке различаются. Карта держит их в одном месте,
+   иначе плитка молча показывает «нет ряда» рядом с нарисованным графиком. */
+const SF = { visibility:'vis', ai_answers:'ai', vis:'vis', ai:'ai',
+             top1:'top1', top3:'top3', top10:'top10', top50:'top50' };
+const sf = f => SF[f] || f;
+const lastOf  = (rows,f) => { f=sf(f); for(let i=rows.length-1;i>=0;i--) if(rows[i][f]!=null) return rows[i][f]; return null; };
+const firstOf = (rows,f) => { f=sf(f); for(const r of rows) if(r[f]!=null) return r[f]; return null; };
+
+/* Дельта по метрике: сколько было в начале периода, сколько стало, и что было
+   отрезком раньше. Пустое поле возвращает null, а не ноль: ноль это утверждение. */
+function dyn(field){
+  const s = slice(), f = sf(field);
+  // Считаем точки именно по этой метрике. Общее число точек периода обманывает:
+  // топ-50 может стоять в одной строке из восемнадцати, и «ноль изменений» тогда
+  // означает не стабильность, а отсутствие второй точки.
+  const pts = s.cur.filter(r => r[f] != null);
+  const now = pts.length ? pts[pts.length-1][f] : null;
+  const was = pts.length ? pts[0][f] : null;
+  const prev = lastOf(s.prev, field);
+  const one = pts.length < 2;                       // сравнивать не с чем
+  const abs = (!one && now!=null && was!=null) ? now - was : null;
+  const rel = (abs!=null && was) ? abs / was : null;
+  const vsPrev = (now!=null && prev!=null) ? now - prev : null;
+  return { now, was, prev, abs, rel, vsPrev, one, points: pts.length,
+           from: pts.length? dOf(pts[0].date) : s.from,
+           to: pts.length? dOf(pts[pts.length-1].date) : s.to, full: s.full };
+}
+/* Куда «хорошо». У позиции в выдаче хорошо это меньше, у всего остального больше. */
+const GOODUP = { top1:1, top3:1, top10:1, top50:1, visibility:1, vis:1, ai_answers:1, ai:1, visits:1 };
+function tone(field, abs){
+  if(abs==null || abs===0) return 'flat';
+  const up = GOODUP[field] !== 0;
+  return (abs > 0) === !!up ? 'good' : 'bad';
+}
+function dbadge(field){
+  const d = dyn(field);
+  if(d.one) return '<span class="text-[11px] opacity-45" title="в выбранном периоде по этой метрике одна точка, сравнивать не с чем">одна точка</span>';
+  if(d.abs==null) return '<span class="text-[11px] opacity-45">нет ряда</span>';
+  const t = tone(field, d.abs);
+  const col = t==='good' ? ST('ok') : t==='bad' ? ST('crit') : INK();
+  if(d.abs===0) return '<span class="text-[11px] font-semibold whitespace-nowrap" style="color:'+INK()+'" '
+    + 'title="' + esc('за период не менялось: ' + nf(d.now)) + '">без изменений</span>';
+  const ar = d.abs>0 ? '▲' : '▼';
+  const rel = d.rel==null ? '' : ' ' + (d.rel>0?'+':'') + (d.rel*100).toFixed(Math.abs(d.rel)<0.1?1:0).replace('.',',') + '%';
+  return '<span class="text-[11px] font-semibold whitespace-nowrap" style="color:'+col+'" '
+    + 'title="' + esc('было ' + nf(d.was) + ' на ' + ruD(d.from ? d.from.toISOString().slice(0,10) : '')
+      + ', стало ' + nf(d.now) + ' на ' + ruD(d.to ? d.to.toISOString().slice(0,10) : '')
+      + (d.vsPrev!=null ? '; отрезком раньше было ' + nf(d.prev) : '')) + '">'
+    + ar + ' ' + (d.abs>0?'+':'') + nf(d.abs) + rel + '</span>';
+}
+
+/* Скачок между соседними точками больше порога это либо новость, либо смена
+   методики счёта у сервиса. Молчать про такое нельзя: на графике он выглядит
+   как факт, а проверить его никто не догадается. */
+function anomalies(field, relLimit){
+  const rows = SER(), f = sf(field), lim = relLimit || 0.4, out = [];
+  let prev = null;
+  for(const r of rows){
+    if(r[f]==null) continue;
+    if(prev && prev.v) {
+      const rel = (r[f] - prev.v) / prev.v;
+      if(Math.abs(rel) >= lim) out.push({from: prev.d, to: r.date, was: prev.v, now: r[f], rel});
+    }
+    prev = {d: r.date, v: r[f]};
+  }
+  return out;
+}
+function anomalyNote(field, label){
+  const a = anomalies(field);
+  if(!a.length) return '';
+  const x = a[a.length-1];
+  return note('Резкий скачок в ряду: ' + label,
+    'С ' + ruD(x.from) + ' по ' + ruD(x.to) + ' значение изменилось с ' + nf(x.was) + ' на ' + nf(x.now)
+    + ' (' + (x.rel>0?'+':'') + Math.round(x.rel*100) + '%). За три дня органика так не двигается. '
+    + 'Прежде чем нести это собственнику, надо проверить в кабинете keys.so, не сменился ли состав промптов или методика счёта. '
+    + 'Скачок оставлен в ряду как есть: подчищать данные, чтобы график выглядел ровнее, нельзя.', 'warn');
+}
+
+
+/* ============ ВИДЖЕТЫ ============ */
+function ic(n,cl,sz){ return '<svg class="'+(cl||'')+'" width="'+(sz||17)+'" height="'+(sz||17)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="'+(I[n]||I.grid)+'"/></svg>'; }
+
+const bAPI  = '<span class="kmark k-ok" title="Данные приходят по API keys.so">API</span>';
+const bDEMO = '<span class="kmark k-crit" title="Кабинет не подключён, экран собран на заглушках">ДЕМО</span>';
+const bSOON = '<span class="kmark k-warn" title="Метод есть, выгрузка ещё не настроена">СБОРКА</span>';
+
+function head(t, sub, src, prio, badge, money){
+  const pr = prio ? '<span class="kmark k-neu" title="Приоритет виджета: P0 самый высокий">'+prio+'</span>' : '';
+  return '<div class="mb-4">'
+   + '<div class="flex flex-wrap items-center gap-2 mb-1"><h1 class="text-[19px] font-bold hd">'+esc(t)+'</h1>'+(badge||'')+pr+'</div>'
+   + (sub? '<p class="text-[13px] max-w-3xl leading-snug">'+esc(sub)+'</p>':'')
+   + (src? '<div class="text-[11px] mt-1 opacity-55 font-mono">'+esc(src)+'</div>':'')
+   + (money? '<div class="mt-3 rounded-lg border border-dashed bdr px-3 py-2 text-[12.5px] flex items-start gap-2"><span class="mt-[2px] opacity-60">'+ic('wallet','',15)+'</span><span>'+money+'</span></div>':'')
+   + '</div>';
+}
+
+/* Плитка. Иконка в тонированном квадрате, значение, дельта и класс цифры. */
+function mini(label, f, slot, icon, dfield){
+  const c = P(slot);
+  const d = dfield ? '<div class="mt-1">'+dbadge(dfield)+'</div>' : '';
+  const shown = (f && typeof f==='object' && 'v' in f);
+  return '<div class="cd pane p-3.5">'
+   + '<div class="flex items-start justify-between gap-2">'
+   +   '<div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background:color-mix(in oklab, '+c+' 14%, transparent);color:'+c+'">'+ic(icon||'chart','',18)+'</div>'
+   +   (shown? kmark(f.k) : '')
+   + '</div>'
+   + '<div class="mt-2.5 hero text-[22px] font-bold hd leading-none">'+(shown? val(f) : esc(f))+'</div>'
+   + d
+   + '<div class="text-[11.5px] mt-1.5 leading-tight">'+esc(label)+'</div>'
+   + (shown? srcline(f) : '')
+   + '</div>';
+}
+
+/* Карточка графика. У каждого графика есть таблица-двойник: переключатель в шапке. */
+let _tw = 0;
+function card(t, sub, body, cls, right, table){
+  let tgl = '', tb = '';
+  if(table){
+    const id = 'tv'+(++_tw);
+    tgl = '<button onclick="tv(\''+id+'\',this)" class="noprint text-[11px] px-2 py-1 rounded-md border bdr hovr transition">таблица</button>';
+    tb  = '<div id="'+id+'" hidden class="mt-3 scroll-x">'+table+'</div>';
+  }
+  return '<div class="cd pane p-4 '+(cls||'')+'">'
+   + '<div class="flex items-start justify-between gap-3 mb-3">'
+   +   '<div><div class="font-semibold text-[14px] hd">'+esc(t)+'</div>'
+   +   (sub? '<div class="text-[11.5px] mt-0.5 opacity-70 leading-tight">'+esc(sub)+'</div>':'')+'</div>'
+   +   '<div class="flex items-center gap-1.5 shrink-0">'+(right||'')+tgl+'</div>'
+   + '</div>' + body + tb + '</div>';
+}
+function tv(id, btn){
+  const el = document.getElementById(id); if(!el) return;
+  el.hidden = !el.hidden; btn.textContent = el.hidden ? 'таблица' : 'скрыть';
+}
+const ch = (id, h) => '<div id="'+id+'" style="min-height:'+h+'px"></div>';
+
+/* Таблица. cols: [заголовок, выравнивание вправо?] */
+function tbl(cols, rows, foot){
+  let h = '<div class="scroll-x"><table class="dv"><thead><tr>' + cols.map(c=>'<th'+(c[1]?' style="text-align:right"':'')+'>'+esc(c[0])+'</th>').join('') + '</tr></thead><tbody>';
+  h += rows.map(r=>'<tr>'+r.map((c,i)=>'<td'+(cols[i]&&cols[i][1]?' style="text-align:right" class="num"':'')+'>'+c+'</td>').join('')+'</tr>').join('');
+  h += '</tbody>' + (foot? '<tfoot><tr>'+foot.map((c,i)=>'<td'+(cols[i]&&cols[i][1]?' style="text-align:right" class="num font-semibold"':' class="font-semibold"')+'>'+c+'</td>').join('')+'</tr></tfoot>':'') + '</table></div>';
+  return h;
+}
+/* Горизонтальные полосы. Один ряд - один цвет слота, никакой заливки по величине. */
+function bars(items, slot){
+  const c = P(slot||0);
+  const mx = Math.max(...items.map(i=>i[1]), 1);
+  return '<div class="space-y-2.5">' + items.map(i=>
+    '<div><div class="flex justify-between text-[12px] mb-1"><span class="truncate pr-2">'+esc(i[0])+'</span><span class="num font-semibold hd">'+nf(i[1])+(i[2]?' <span class="opacity-50 font-normal">'+esc(i[2])+'</span>':'')+'</span></div>'
+    + '<div class="h-[7px] rounded-full trk overflow-hidden"><div style="width:'+Math.max(2,i[1]/mx*100)+'%;background:'+c+'" class="h-full rounded-full"></div></div></div>'
+  ).join('') + '</div>';
+}
+function note(t, body, tone){
+  const to = tone||'info';
+  const icn = {ok:'check',warn:'warn',crit:'warn',info:'bulb'}[to];
+  return '<div class="nt nt-'+to+'">'
+   + '<span class="nt-i">'+ic(icn,'',17)+'</span>'
+   + '<div><div class="font-semibold text-[13px] hd mb-0.5">'+esc(t)+'</div><div class="text-[12.5px] leading-snug">'+body+'</div></div></div>';
+}
+/* Следующий шаг: без имени и даты блок не рисуется. Шаг 7 ядра Богдана. */
+function act(what, who, when, crit){
+  return '<div class="cd pane p-4">'
+   + '<div class="flex items-center gap-2 mb-2 hd font-semibold text-[13px]">'+ic('target','',16)+'Следующий шаг</div>'
+   + '<div class="text-[13px] leading-snug mb-2.5">'+esc(what)+'</div>'
+   + '<div class="flex flex-wrap gap-x-5 gap-y-1 text-[12px]">'
+   +   '<span class="opacity-60">кто:</span><span class="font-semibold hd">'+esc(who)+'</span>'
+   +   '<span class="opacity-60">когда:</span><span class="font-semibold hd">'+esc(when)+'</span>'
+   + '</div>'
+   + (crit? '<div class="text-[12px] mt-2 pt-2 border-t bdr"><span class="opacity-60">критерий «идём дальше»:</span> '+esc(crit)+'</div>':'')
+   + '</div>';
+}
+/* Вердикт для собственника: одна строка, отвечающая на вопрос «стало лучше или хуже».
+   Считается по ряду, а не по ощущению, и честно говорит, когда ряда не хватает. */
+function verdict(){
+  const fields = [['top10','запросы в топ-10'],['top50','запросы в топ-50'],['visibility','видимость в ИИ']];
+  const rows = fields.map(([f,n])=>[n, dyn(f), f]).filter(r=>r[1].abs!=null);
+  const single = fields.map(([f,n])=>[n, dyn(f)]).filter(r=>r[1].one && r[1].now!=null);
+  const s = slice();
+  if(!rows.length){
+    return note('Сравнить не с чем',
+      'За выбранный период ('+PERIOD_LABEL[PERIOD]+') в ряду нет двух точек. Возьми период шире или дождись следующего съёма.','warn');
+  }
+  const good = rows.filter(r=>tone(r[2], r[1].abs)==='good').length;
+  const bad  = rows.filter(r=>tone(r[2], r[1].abs)==='bad').length;
+  const tail = !s.full
+    ? ' Ряд короче выбранного периода: сравнение идёт от первой имеющейся точки '+ruD(SER()[0] ? SER()[0].date : '')+', а не от полной глубины.'
+    : '';
+  const body = rows.map(r=>{
+      const d=r[1], t=tone(r[2],d.abs), col=t==='good'?ST('ok'):t==='bad'?ST('crit'):INK();
+      return '<div class="flex items-baseline gap-2 flex-wrap"><span class="hd font-medium">'+esc(r[0])+':</span>'
+        + '<span class="num">'+nf(d.was)+' в '+ruD(d.from.toISOString().slice(0,10))+'</span>'
+        + '<span class="opacity-50">до</span><span class="num hd font-semibold">'+nf(d.now)+' в '+ruD(d.to.toISOString().slice(0,10))+'</span>'
+        + '<span class="font-semibold" style="color:'+col+'">'+(d.abs>0?'+':'')+nf(d.abs)+'</span>'
+        + (d.vsPrev!=null? '<span class="opacity-55 text-[12px]">отрезком раньше было '+nf(d.prev)+'</span>':'')
+        + '</div>';
+    }).join('');
+  const head = bad===0 ? 'Стало лучше' : good===0 ? 'Стало хуже' : 'Разнонаправленно';
+  const tn   = bad===0 ? 'ok' : good===0 ? 'crit' : 'warn';
+  return note(head + ' за ' + PERIOD_LABEL[PERIOD],
+    '<div class="space-y-1.5 mt-1">'+body+'</div>'
+    + '<div class="mt-2 opacity-70">Точек в периоде: '+nf(s.cur.length)+'.'+esc(tail)
+    + (single.length? ' По метрикам «'+single.map(r=>esc(r[0])).join('», «')+'» в периоде одна точка, они в вердикт не входят.' : '')
+    + '</div>', tn);
+}
+
+const g2 = 'grid grid-cols-1 lg:grid-cols-2 gap-4';
+const g3 = 'grid grid-cols-2 lg:grid-cols-4 gap-4';
+const g4 = 'grid grid-cols-1 xl:grid-cols-3 gap-4';
+
+
+/* ============ НАВИГАЦИЯ ============ */
+const NAV = [
+ {id:'obzor', t:'Обзор', i:'grid'},
+ {t:'Деньги', i:'wallet', ch:[
+   {id:'mn-bridge', t:'Мост до денег'},{id:'mn-plan', t:'План и факт'},
+   {id:'mn-thr', t:'Пороги и ROI'},{id:'mn-block', t:'Что блокирует'}]},
+ {t:'Органика', i:'search', ch:[
+   {id:'org-sum', t:'Сводка по домену'},{id:'org-kw', t:'Запросы в топ-50'},
+   {id:'org-pg', t:'Страницы'},{id:'org-lost', t:'Потерянные позиции'},
+   {id:'org-comp', t:'Конкуренты'},{id:'org-tree', t:'Структура сайта'}]},
+ {t:'Семантика', i:'layers', ch:[
+   {id:'sem-cl', t:'Кластеры'},{id:'sem-base', t:'База запросов'},
+   {id:'sem-ws', t:'Wordstat'},{id:'sem-sug', t:'Подсказки и расширение'}]},
+ {t:'Динамика', i:'up', ch:[
+   {id:'dyn-sum', t:'Стало лучше или хуже'},{id:'dyn-pos', t:'Позиции по дням'},
+   {id:'dyn-ai', t:'Видимость в ИИ по дням'},{id:'dyn-ym', t:'Визиты по дням'},
+   {id:'dyn-log', t:'Журнал съёмов'}]},
+ {t:'Позиции', i:'chart', ch:[
+   {id:'pos-mon', t:'Мониторинг'},{id:'pos-serp', t:'История выдачи'},
+   {id:'pos-top', t:'Подсветка топов'}]},
+ {t:'GEO и ИИ', i:'ai', ch:[
+   {id:'geo-tr', t:'Трекер ИИ'},{id:'geo-men', t:'Упоминания'},
+   {id:'geo-comp', t:'Конкуренты в ИИ'},{id:'geo-src', t:'Источники ответов'},
+   {id:'geo-pr', t:'Промпты'}]},
+ {t:'Реклама', i:'mega', ch:[
+   {id:'ad-search', t:'Поиск'},{id:'ad-rsya', t:'РСЯ'},
+   {id:'ad-comp', t:'Конкуренты в контексте'},{id:'ad-budget', t:'Прогноз бюджета'}]},
+ {t:'Ссылки', i:'link', ch:[
+   {id:'lnk-prof', t:'Профиль'},{id:'lnk-don', t:'Доноры'},
+   {id:'lnk-anc', t:'Анкоры'},{id:'lnk-ip', t:'Сети и IP'}]},
+ {t:'Метрика', i:'globe', demo:'ym', ch:[
+   {id:'ym-traf', t:'Трафик'},{id:'ym-src', t:'Источники'},
+   {id:'ym-beh', t:'Поведение'},{id:'ym-goal', t:'Цели и конверсии'}]},
+ {t:'Директ', i:'bolt', demo:'direct', ch:[
+   {id:'yd-camp', t:'Кампании'},{id:'yd-cost', t:'Расход и CPL'},
+   {id:'yd-q', t:'Поисковые запросы'}]},
+ {t:'Контент', i:'pen', ch:[
+   {id:'ct-plan', t:'План публикаций'},{id:'ct-unit', t:'Задания и волны'},
+   {id:'ct-idx', t:'Индексация'}]},
+ {id:'compare', t:'Сравнение проектов', i:'cmp'},
+ {t:'Регламент', i:'gear', ch:[
+   {id:'rg-upd', t:'Как обновлять'},{id:'rg-api', t:'Источники и API'},
+   {id:'rg-lim', t:'Ограничения сервиса'},{id:'rg-dec', t:'Журнал решений'}]},
+ {id:'onepage', t:'Одна страница собственнику', i:'doc'}
+];
+
+let CUR = 'gm', VIEW = 'obzor';
+const V  = () => DB.projects[CUR];
+const OTH= () => CUR==='gm' ? DB.projects.gg : DB.projects.gm;
+
+function buildNav(){
+  const box = document.getElementById('nav');
+  box.innerHTML = NAV.map((g, gi) => {
+    if(!g.ch){
+      return '<button data-v="'+g.id+'" onclick="go(\''+g.id+'\')" class="nv w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] hovr">'
+        + '<span class="shrink-0 opacity-80">'+ic(g.i,'',17)+'</span><span class="lbl truncate">'+esc(g.t)+'</span></button>';
+    }
+    const kids = g.ch.map(c=>'<button data-v="'+c.id+'" onclick="go(\''+c.id+'\')" class="nv w-full text-left pl-[38px] pr-3 py-[7px] rounded-lg text-[12.5px] hovr"><span class="lbl">'+esc(c.t)+'</span></button>').join('');
+    return '<div><button onclick="tog('+gi+')" class="nv w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] hovr">'
+      + '<span class="shrink-0 opacity-80">'+ic(g.i,'',17)+'</span>'
+      + '<span class="lbl truncate flex-1 text-left">'+esc(g.t)+'</span>'
+      + '<span class="lbl" id="nb'+gi+'">'+navBadge(g)+'</span>'
+      + '<span class="lbl chev shrink-0 opacity-50" id="cv'+gi+'">'+ic('up','rotate-90',13)+'</span></button>'
+      + '<div class="sub space-y-[2px] mt-[2px]" id="sb'+gi+'">'+kids+'</div></div>';
+  }).join('');
+}
+/* Бейдж раздела зависит от проекта: по GENGLASS Метрика уже отдаёт данные,
+   по GLASS-MEMORY счётчика нет. Один статичный ярлык врал бы на половине случаев. */
+function navBadge(g){
+  if(!g.demo) return '';
+  const has = !!V()[g.demo];
+  return has ? '<span class="lbl kmark k-ok" title="выгрузка есть">ДАННЫЕ</span>'
+             : '<span class="lbl kmark k-crit" title="выгрузки по этому проекту нет">НЕТ</span>';
+}
+/* Бейджи переставляются при каждой отрисовке: смена проекта через любой путь,
+   а не только кликом по кнопке, не должна оставлять на меню вчерашнюю правду. */
+function refreshBadges(){
+  NAV.forEach((g,gi)=>{ const el=document.getElementById('nb'+gi); if(el) el.innerHTML = navBadge(g); });
+}
+function tog(gi){
+  document.getElementById('sb'+gi).classList.toggle('on');
+  document.getElementById('cv'+gi).classList.toggle('on');
+}
+function openFor(v){
+  NAV.forEach((g,gi)=>{ if(g.ch && g.ch.some(c=>c.id===v)){
+    document.getElementById('sb'+gi).classList.add('on');
+    document.getElementById('cv'+gi).classList.add('on'); }});
+}
+function go(v){ VIEW = v; render(); }
+
+
+/* ============ КАЛЬКУЛЯТОР МОСТА ДО ДЕНЕГ ============
+   Ни одна цифра эффекта не берётся с потолка. Показы это [ДАННЫЕ] из keys.so,
+   коэффициенты это [ГИПОТЕЗА] с явным источником, средний чек вводит Иван.
+   Пока чек не введён, итог не рисуется - вместо него стоит прочерк. */
+const CALC = { imp:{gm:null, gg:537874}, ctr:0.06, crl:0.03, crd:0.11, chk:{gm:null, gg:null} };
+function cinp(id, v, ph, suf){
+  return '<div class="flex items-center gap-2"><input class="fld" id="'+id+'" value="'+(v==null?'':v)+'" placeholder="'+esc(ph)+'" oninput="recalc()">'
+       + (suf? '<span class="text-[11.5px] opacity-60 shrink-0">'+esc(suf)+'</span>':'')+'</div>';
+}
+function num(id){ const e=document.getElementById(id); if(!e) return null;
+  const s=String(e.value).replace(/\s/g,'').replace(',','.'); const n=parseFloat(s); return isFinite(n)?n:null; }
+function recalc(){
+  const imp=num('i_imp'), ctr=num('i_ctr'), crl=num('i_crl'), crd=num('i_crd'), chk=num('i_chk');
+  const box=document.getElementById('calcout'); if(!box) return;
+  if(imp==null||ctr==null||crl==null||crd==null||chk==null){
+    box.innerHTML = note('Итог не считается','Не заполнено поле. Протокол 9: цифра без входных данных это не оценка, а выдумка. Заполни средний чек и коэффициенты, тогда появится диапазон.','warn');
+    return;
+  }
+  const rows=[['пессимистичный, коэффициенты ×0,3',0.3],['базовый, коэффициенты как введены',1.0],['целевой, ×1,5 к базовому',1.5]];
+  const out = rows.map(([lab,k])=>{
+    const vis=imp*(ctr/100)*k, ld=vis*(crl/100), dl=ld*(crd/100), rv=dl*chk;
+    return [lab, nf(Math.round(vis)), nf(Math.round(ld)), dl<10?dl.toFixed(1).replace('.',','):nf(Math.round(dl)), money(rv)];
+  });
+  const plan = CUR==='gm' ? DB.projects.gm.plan.v : DB.projects.gg.plan.v;
+  const base = imp*(ctr/100)*(crl/100)*(crd/100)*chk;
+  const pess = base*0.3;
+  const share = plan? pess/plan : 0;
+  box.innerHTML =
+    card('Три сценария','Слева направо: показы, визиты, лиды, сделки, выручка за период расчёта',
+      tbl([['Сценарий'],['Визиты',1],['Лиды',1],['Сделки',1],['Выручка',1]], out), '', '',
+      tbl([['Сценарий'],['Визиты',1],['Лиды',1],['Сделки',1],['Выручка',1]], out))
+    + '<div class="mt-4">'
+    + note('Что из этого можно нести в план',
+        'В план идёт только пессимистичная строка: '+money(pess)+'. Это '+pc(share)+' от плана H2 по проекту ('+money(plan)+'). '
+      + 'Базовая и целевая строки это [ГИПОТЕЗА] до тех пор, пока не будет выгрузки Метрики по UTM и подтверждённого среднего чека. '
+      + 'Downside при несрабатывании: потраченное время команды и бюджет канала без возврата, отдельной цифрой его считаем в разделе «Пороги и ROI».', 'warn')
+    + '</div>';
+}
+
+const SCREENS_A = {
+obzor: () => {
+  const d=V(), f=d.facts||{};
+  const kpi = [
+    mini('Запросов в топ-10', d.top10, 0, 'target', 'top10'),
+    mini('Запросов в топ-50', d.top50, 1, 'search', 'top50'),
+    mini('Видимость в ИИ, %', d.aivis, 2, 'ai', 'visibility'),
+    mini('Ответов ИИ с упоминанием', d.aians, 3, 'list', 'ai_answers')
+  ];
+  return head('Обзор · '+d.name, 'Первый экран отвечает на два вопроса, которые задают первыми: сколько это в деньгах и стало ли лучше. Всё ниже объясняет обе цифры.',
+      d.dom+' · база '+d.db+' · период '+PERIOD_LABEL[PERIOD], 'P0', bAPI,
+      'Плана H2 по проекту: <b>'+money(d.plan.v)+'</b>. Сколько из него закрывает поиск, считается в разделе «Деньги», и пока там стоит прочерк: нет среднего чека. Любая цифра выручки до этого момента была бы выдумкой.')
+   + '<div class="mb-4">'+verdict()+'</div>'
+   + '<div class="'+g3+' mb-4">'+kpi.join('')+'</div>'
+   + '<div class="'+g2+' mb-4">'
+   +   card('Запросы в топ-10 по дням','Наш накопленный ряд, точка на каждый съём',ch('c-h10',260),'',bAPI, serTable('top10'))
+   +   card('Видимость в ИИ по дням','Процент ответов, где нас называют',ch('c-hvis',260),'',bAPI, serTable('vis'))
+   + '</div>'
+   + (anomalyNote('visibility','видимость в ИИ') ? '<div class="mb-4">'+anomalyNote('visibility','видимость в ИИ')+'</div>' : '')
+   + '<div class="'+g2+' mb-4">'
+   +   card('Воронка топ-N','Число всегда подписано рядом с полосой',ch('c-fun',260),'','',
+          tbl([['Ступень'],['Запросов',1]], funRows()))
+   +   card('Открытые вопросы','Пока они открыты, часть работы стоит',
+          '<div class="space-y-2">'+DB.blockers.map(b=>
+            '<div class="flex items-start gap-2 text-[12.5px]"><span class="crit-i mt-[2px] shrink-0">'+ic('warn','',15)+'</span>'
+            +'<div><span class="hd font-medium">'+esc(b[0])+'</span> <span class="opacity-60">· '+esc(b[1])+'</span><div class="opacity-70 leading-tight">'+esc(b[2])+'</div></div></div>').join('')+'</div>')
+   + '</div>'
+   + act('Снять точку keys.so и записать её в ряд, затем обновить блок данных',
+         'Спартак снимает, средний чек за Иваном', 'пятница 11.09, 12:00',
+         'ряд без разрывов больше восьми дней, иначе сравнение периодов ломается');
+},
+
+'mn-bridge': () => {
+  const gm = CUR==='gm', a=DB.assum;
+  return head('Мост до денег', 'Цепочка от показов до выручки. Каждое звено помечено классом. Считается только то, что заполнено, пустое поле обнуляет итог.',
+      'вход: keys.so частотность · Метрика UTM · средний чек от Ивана', 'P0',
+      gm? bSOON : bAPI,
+      'Это единственный экран, где появляется рубль. Все остальные экраны показывают то, из чего рубль складывается.')
+   + '<div class="'+g2+' mb-4">'
+   +   card('Входные данные','Серые поля это [ГИПОТЕЗА], их можно и нужно переспорить',
+        '<div class="space-y-3">'
+        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Суммарная частотность '+kmark(gm?'ДЕМО':'ДАННЫЕ')+'</div>'
+        +   cinp('i_imp', gm? '' : 537874, gm?'нет выгрузки, снять в keys.so':'', 'показов в месяц')
+        +   '<div class="text-[10.5px] mt-1 opacity-55">'+(gm?'по GLASS-MEMORY выгрузка частотности не снята':'рабочее ядро GENGLASS, 144 кластера, карта от 06.09')+'</div></div>'
+        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Средний CTR по текущим позициям '+kmark('ГИПОТЕЗА')+'</div>'
+        +   cinp('i_ctr', 6, '', '%')
+        +   '<div class="text-[10.5px] mt-1 opacity-55">отраслевой ориентир, своей выгрузки нет</div></div>'
+        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Конверсия визит в лид '+kmark('ГИПОТЕЗА')+'</div>'
+        +   cinp('i_crl', 3, '', '%')
+        +   '<div class="text-[10.5px] mt-1 opacity-55">бенчмарк ФЕНИКС: посадочная в РФ даёт 2-5%</div></div>'
+        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Конверсия лид в сделку '+kmark('ДАННЫЕ')+'</div>'
+        +   cinp('i_crd', 11, '', '%')
+        +   '<div class="text-[10.5px] mt-1 opacity-55">Roistat GENGROUP, D2C, нижняя граница коридора 11-15%</div></div>'
+        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Средний чек '+kmark('ГИПОТЕЗА')+'</div>'
+        +   cinp('i_chk', '', 'не заполнено', '₽')
+        +   '<div class="text-[10.5px] mt-1 opacity-55">подтверждённой цифры нет, ждём от Ивана</div></div>'
+        + '</div>')
+   +   card('Как читать цепочку','Каждая стрелка это допущение, а не факт',
+        '<div class="space-y-2.5 text-[12.5px]">'
+        + [['Показы','из keys.so, частотность запросов','ДАННЫЕ'],
+           ['Визиты','показы × CTR по позиции','ГИПОТЕЗА'],
+           ['Лиды','визиты × конверсия посадочной','ГИПОТЕЗА'],
+           ['Сделки','лиды × конверсия отдела продаж','ДАННЫЕ'],
+           ['Выручка','сделки × средний чек','ГИПОТЕЗА']].map((r,i)=>
+           '<div class="flex items-start gap-2.5"><span class="w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-[11px] font-bold" style="background:color-mix(in oklab, '+PS(i)+' 30%, transparent);color:'+INKH()+'">'+(i+1)+'</span>'
+           +'<div class="flex-1"><span class="hd font-medium">'+esc(r[0])+'</span> '+kmark(r[2])+'<div class="opacity-70 leading-tight">'+esc(r[1])+'</div></div></div>').join('')
+        + '</div>'
+        + '<div class="mt-3 pt-3 border-t bdr text-[12px] leading-snug opacity-80">Три звена из пяти это гипотезы. Значит итог тоже гипотеза, и в план идёт только пессимистичный сценарий, то есть коэффициенты, умноженные на 0,3.</div>')
+   + '</div>'
+   + '<div id="calcout"></div>'
+   + '<div class="mt-4">'
+   + act('Дать средний чек по проекту и выгрузку Метрики по UTM, чтобы конверсия перестала быть бенчмарком',
+         'Иван', 'до 11.09', 'без обеих цифр раздел остаётся закрытым и в отчёт собственнику не попадает')
+   + '</div>';
+},
+
+'mn-plan': () => {
+  const plan = V().plan;
+  return head('План и факт', 'Сверка с числами, которые собственник держит в голове. Строка «факт» пустая там, где нет источника: это осознанный прочерк, а не недоделка.',
+      'Roadmap H2 2026 · план по брендам', 'P0', bSOON,
+      'Пока нет выгрузки продаж по каналу, план-факт по выручке показать нечем. Ниже то, что уже можно сверять: работа, а не деньги.')
+   + '<div class="'+g2+' mb-4">'
+   +   card('Выручка H2 по проекту','План против факта',
+        tbl([['Показатель'],['План',1],['Факт',1],['Класс']],[
+          ['Выручка H2 2026', money(plan.v), '<span class="opacity-40">нет выгрузки</span>', kmark('ДАННЫЕ')],
+          ['Доля поиска в выручке', '<span class="opacity-40">не задана</span>', '<span class="opacity-40">нет выгрузки</span>', kmark('ГИПОТЕЗА')],
+          ['Бюджет маркетинга, потолок', money(plan.v*DB.thresh.mkt_share.v), '<span class="opacity-40">нет выгрузки</span>', kmark('ДАННЫЕ')]
+        ]))
+   +   card('Работа, которую можно сверять уже сейчас','Здесь источники есть',
+        tbl([['Показатель'],['План',1],['Факт',1]], workRows()),'','',
+        tbl([['Показатель'],['План',1],['Факт',1]], workRows()))
+   + '</div>'
+   + note('Почему в графе «факт» по деньгам стоит прочерк',
+      'Единственный честный ответ на вопрос «сколько принёс поиск» это выгрузка сделок с меткой канала. Её нет. Подставить сюда расчётную цифру значило бы выдать гипотезу за факт, а это ровно тот случай, из-за которого написан Протокол 9.', 'warn')
+   + '<div class="mt-4">'+act('Настроить выгрузку сделок по каналу из CRM, чтобы графа «факт» заполнилась','Иван ставит задачу, исполнитель не назначен','срок не назначен','первая выгрузка за любой закрытый месяц')+'</div>';
+},
+
+'mn-thr': () => {
+  const t=DB.thresh, plan=V().plan.v;
+  return head('Пороги и ROI', 'Числа, ниже которых решение не проходит. Они не наши, это рамка собственника.',
+      'порог Богдана, зафиксирован 10.07', 'P1', bAPI,
+      'Порог маркетинга по проекту: не более '+money(plan*t.mkt_share.v)+' за H2. Это верхняя граница расхода, а не план.')
+   + '<div class="'+g3+' mb-4">'
+   +   [mini('Маркетинг, потолок от выручки', t.mkt_share, 0, 'wallet'),
+       mini('ROI, кризисный минимум', t.roi_crisis, 1, 'up'),
+       mini('ROI, ориентир', t.roi_ideal, 2, 'target'),
+       mini('ROMI канала, целевой', t.romi_plan, 3, 'chart')].join('')
+   + '</div>'
+   + '<div class="'+g2+'">'
+   +   card('Что это значит для канала','Пересчёт порогов в рубли по этому проекту',
+        tbl([['Порог'],['Значение',1],['В рублях по проекту',1]],[
+          ['Расход маркетинга за H2', pc(t.mkt_share.v), money(plan*t.mkt_share.v)],
+          ['Выручка, которую должен вернуть канал при ROI 700%', '×'+String(t.roi_crisis.v).replace('.',','), money(plan*t.mkt_share.v*t.roi_crisis.v)],
+          ['То же при ориентире ROI 1000%', '×'+String(t.roi_ideal.v).replace('.',','), money(plan*t.mkt_share.v*t.roi_ideal.v)]
+        ]))
+   +   card('Правило отказа','Дословная рамка, без смягчений',
+        '<div class="space-y-2.5 text-[12.5px] leading-snug">'
+        + ['Расход без обоснования цифрой не проходит.',
+           'Копия конкурента без своего отличия проходит только ценой на 30-50% ниже.',
+           'Идея, открывающая новый фронт вместо углубления работающего, проигрывает по умолчанию.',
+           'Источник истины наружу не отдаём: чужой кабинет, чужая CRM, открытая загрузка производства.',
+           'Формат для решения: одна страница, три минуты чтения, два варианта с ценой каждого.'
+          ].map(x=>'<div class="flex gap-2"><span class="crit-i shrink-0 mt-[2px]">'+ic('warn','',14)+'</span><span>'+esc(x)+'</span></div>').join('')
+        + '</div>')
+   + '</div>';
+},
+
+'mn-block': () => {
+  return head('Что блокирует', 'Пять открытых вопросов. Каждый держит конкретный кусок работы, поэтому они здесь, а не в переписке.',
+      'зафиксировано 06.09, повторный заход 11.09', 'P0', bAPI,
+      'Пока открыт вопрос по разработчику, посадочные не публикуются, и весь мост до денег остаётся расчётом на бумаге.')
+   + card('Открытые вопросы','Все на Иване',
+      tbl([['Вопрос'],['Кто'],['Что стоит'],['Статус']],
+        DB.blockers.map(b=>[esc(b[0]), esc(b[1]), esc(b[2]),
+          '<span class="kmark k-crit">'+esc(b[3])+'</span>'])))
+   + '<div class="mt-4">'
+   + card('Уже решено','Четыре решения от 07.09, они сняли часть блока',
+      tbl([['Решение'],['Кто'],['Когда'],['Эффект']],
+        DB.decisions.map(d=>[esc(d[0]), esc(d[1]), esc(d[2]), esc(d[3])])))
+   + '</div>'
+   + '<div class="mt-4">'+act('Пройти пять вопросов на встрече и закрыть хотя бы разработчика','Иван','11.09, 16:00','если разработчик не назван, волна 1 по контенту переносится')+'</div>';
+}
+};
+function serTable(f){
+  const rows = slice().cur.filter(r=>r[f]!=null).map(r=>[ruD(r.date), nf(r[f])]);
+  return rows.length ? tbl([['Дата'],['Значение',1]], rows) : '<div class="text-[12.5px] opacity-70">В выбранном периоде точек нет.</div>';
+}
+function funRows(){ const d=V();
+  return [['топ-1',d.top1],['топ-3',d.top3],['топ-10',d.top10],['топ-50',d.top50]]
+    .map(r=>[esc(r[0]), (r[1]&&r[1].v!=null)? nf(r[1].v)+' '+kmark(r[1].k) : '<span class="opacity-40">нет</span> '+kmark('ДЕМО')]); }
+
+
+const SCREENS_DYN = {
+'dyn-sum': () => {
+  const s = slice(), d = V();
+  const rows = [['top10','Запросов в топ-10'],['top50','Запросов в топ-50'],
+                ['visibility','Видимость в ИИ, %'],['ai_answers','Ответов ИИ с упоминанием']]
+    .map(([f,n])=>{ const y=dyn(f); return [n, f, y]; });
+  return head('Стало лучше или хуже', 'Экран, который открывают перед собственником. Одна таблица, где по каждой метрике видно начало периода, конец и предыдущий отрезок такой же длины.',
+      'наш ряд data/history/positions.ndjson плюс history из keysso.json', 'P0', bAPI,
+      'Абсолютное значение метрики собственнику ничего не говорит. Говорит направление и скорость: за сколько дней сколько прибавилось.')
+   + '<div class="mb-4">'+verdict()+'</div>'
+   + card('Разбор по метрикам','Период: '+PERIOD_LABEL[PERIOD]+(s.from? ', с '+ruD(s.from.toISOString().slice(0,10))+' по '+ruD(s.to.toISOString().slice(0,10)) : ''),
+      tbl([['Метрика'],['Было',1],['Стало',1],['Изменение',1],['Отрезком раньше',1],['Точек',1]],
+        rows.map(([n,f,y])=>[
+          esc(n),
+          (y.was==null || y.one)? '<span class="opacity-40">нет</span>' : nf(y.was),
+          y.now==null? '<span class="opacity-40">нет</span>' : nf(y.now),
+          y.one? '<span class="opacity-40">одна точка</span>' : y.abs==null? '<span class="opacity-40">нет</span>'
+            : '<span style="color:'+(tone(f,y.abs)==='good'?ST('ok'):tone(f,y.abs)==='bad'?ST('crit'):INK())+'">'
+              +(y.abs>0?'+':'')+nf(y.abs)+'</span>',
+          y.prev==null? '<span class="opacity-40">нет</span>' : nf(y.prev),
+          nf(y.points)])))
+   + '<div class="mt-4">'+card('Все метрики на одной шкале','Индекс: первая точка периода это 100. Разные по величине ряды иначе не сравнить на одной оси',
+      ch('c-idx100',300),'',bAPI, idxTable())+'</div>'
+   + '<div class="mt-4">'+note('Почему индекс, а не две оси',
+      'Топ-50 измеряется тысячами, видимость единицами процентов. На одной обычной оси меньший ряд превращается в прямую линию, а две оси Y на одном графике рисуют корреляцию, которой в данных нет. Поэтому оба ряда приведены к сотне на старте периода.','info')+'</div>';
+},
+
+'dyn-pos': () => {
+  const s = slice();
+  return head('Позиции по дням', 'Накопленный ряд по ступеням топа. Это то, что нельзя восстановить задним числом: у сводки домена в keys.so нет ретроспективы.',
+      'data/history/positions.ndjson', 'P0', bAPI,
+      'Каждый запрос, поднятый из топ-50 в топ-10, меняет визиты примерно в восемь раз. Скорость этого перехода и есть смысл экрана.')
+   + '<div class="'+g3+' mb-4">'+[
+      mini('Запросов в топ-1', V().top1, 0,'up','top1'),
+      mini('Запросов в топ-3', V().top3, 1,'target','top3'),
+      mini('Запросов в топ-10', V().top10, 2,'chart','top10'),
+      mini('Запросов в топ-50', V().top50, 3,'search','top50')].join('')+'</div>'
+   + card('Топ-10 и топ-50 по дням','Две серии, поэтому легенда обязательна. Шкала логарифмическая: иначе топ-10 прижимается к нулю рядом с топ-50',
+      ch('c-pos',320),'',bAPI,
+      tbl([['Дата'],['Топ-10',1],['Топ-50',1]],
+        s.cur.map(r=>[ruD(r.date), r.top10==null?'-':nf(r.top10), r.top50==null?'-':nf(r.top50)])))
+   + '<div class="mt-4">'+gapNote()+'</div>'
+   + (anomalyNote('top10','запросы в топ-10') ? '<div class="mt-4">'+anomalyNote('top10','запросы в топ-10')+'</div>' : '');
+},
+
+'dyn-ai': () => {
+  const s = slice();
+  return head('Видимость в ИИ по дням', 'Доля ответов нейросетей, где нас называют. Второй ряд, который ведём сами.',
+      'keys.so ai tracker через keysso.json', 'P1', bAPI,
+      'Канал, где вход дешевле, чем в поиске. Скорость роста здесь единственная метрика, по которой можно решать, вкладываться дальше или нет.')
+   + '<div class="'+g3+' mb-4">'+[
+      mini('Видимость в ИИ, %', V().aivis, 0,'ai','visibility'),
+      mini('Ответов с упоминанием', V().aians, 1,'list','ai_answers'),
+      mini('Точек в периоде', String(s.cur.length), 2,'clock'),
+      mini('Глубина ряда, дней', String(SER().length? Math.round((dOf(SER()[SER().length-1].date)-dOf(SER()[0].date))/86400000) : 0), 3,'db')].join('')+'</div>'
+   + card('Видимость по дням','Одна серия, точка подписана на конце',ch('c-hvis',300),'',bAPI, serTable('vis'))
+   + (anomalyNote('visibility','видимость в ИИ') ? '<div class="mt-4">'+anomalyNote('visibility','видимость в ИИ')+'</div>' : '')
+   + '<div class="mt-4">'+note('Что здесь считается видимостью',
+      'Процент промптов набора, в ответе на которые система назвала бренд или дала ссылку на домен. Меняешь набор промптов, значит обнуляешь ряд: сравнивать до и после смены набора нельзя.','warn')+'</div>';
+},
+
+'dyn-ym': () => {
+  const d=V(), ym=d.ym;
+  if(!ym){
+    const o = OTH(), om = o.ym;
+    return head('Визиты по дням', 'Счётчик Метрики по этому проекту не подключён. Экран показывает, чего именно не хватает и что появится сразу после подключения.',
+        'нужен номер счётчика', 'P0', bDEMO,
+        'Это второе звено моста до денег. Пока его нет, конверсия визита в лид остаётся бенчмарком, а значит и выручка от поиска остаётся гипотезой.')
+     + note('По этому проекту счётчика нет, и цифры здесь не нарисованы',
+        'Соседний проект '+esc(o.name)+' уже отдаёт данные: счётчик '+(om? esc(String(om.counter.v)) : 'подключён')
+        +', ряд из '+(om? nf((om.days||[]).length) : '0')+' дней. Значит механика работает и упирается только в номер счётчика по этому домену.','warn')
+     + '<div class="'+g2+' mt-4">'
+     +   card('Что появится сразу после подключения','Ни одной новой строки кода для этого не нужно',
+          '<div class="space-y-2 text-[12.5px]">'
+          + ['визиты и визиты из поиска по дням за любой период',
+             'страницы входа с числом визитов',
+             'поисковые фразы, по которым реально приходят',
+             'отказы и глубина просмотра',
+             'сравнение половин периода вместо сравнения последнего дня с первым'
+            ].map(x=>'<div class="flex gap-2"><span class="ok-i shrink-0 mt-[2px]">'+ic('check','',14)+'</span><span>'+esc(x)+'</span></div>').join('')
+          + '</div>')
+     +   card('Чего не даст даже подключение','Это придётся закрывать отдельно',
+          '<div class="space-y-2 text-[12.5px]">'
+          + ['конверсию в лид: нужны настроенные цели, а их нет ни на одном счётчике',
+             'вклад рекламы отдельно от органики: нужна разметка utm',
+             'выручку по каналу: нужна выгрузка сделок из CRM'
+            ].map(x=>'<div class="flex gap-2"><span class="crit-i shrink-0 mt-[2px]">'+ic('warn','',14)+'</span><span>'+esc(x)+'</span></div>').join('')
+          + '</div>')
+     + '</div>'
+     + '<div class="mt-4">'+act('Дать номер счётчика Метрики по '+esc(V().dom)+' и доступ на чтение','Иван','до 11.09','счётчик отдаёт визиты по API, ряд появляется в этом экране без правок')+'</div>';
+  }
+  const days = ym.days || [];
+  const cut = days.slice(Math.max(0, days.length - Math.min(PERIODS[PERIOD], days.length)));
+  const sum = a => a.reduce((x,r)=>x+(r.visits||0),0);
+  const sums = a => a.reduce((x,r)=>x+(r.search_visits||0),0);
+  const half = Math.floor(cut.length/2);
+  const a1 = cut.slice(0,half), a2 = cut.slice(half);
+  const dv = (sum(a2)-sum(a1));
+  return head('Визиты по дням', 'Данные Яндекс.Метрики, счётчик '+esc(String(ym.counter.v))+'. Ряд из '+nf(days.length)+' дней.',
+      'gg-seo-geo-monster/data/'+(CUR==='gg'?'genglass':'glass-memory')+'/metrika.json · снято '+ruD(ym.at), 'P0', bAPI,
+      'Единственный источник настоящих визитов. Оценку трафика от keys.so не используем нигде: при 547 запросах в топ-50 она показывает около двух визитов.')
+   + '<div class="'+g3+' mb-4">'+[
+      mini('Визитов за период', {v:sum(cut),k:'ДАННЫЕ',s:'metrika.json',at:ym.at}, 0,'users'),
+      mini('Из них из поиска', {v:sums(cut),k:'ДАННЫЕ',s:'metrika.json',at:ym.at}, 1,'search'),
+      mini('Отказы, %', ym.bounce, 2,'loss'),
+      mini('Глубина просмотра', ym.depth, 3,'layers')].join('')+'</div>'
+   + card('Визиты и визиты из поиска','Две серии, легенда обязательна',ch('c-ym',300),'',bAPI,
+      tbl([['Дата'],['Визиты',1],['Из поиска',1]], cut.map(r=>[ruD(r.date), nf(r.visits), nf(r.search_visits)])))
+   + '<div class="mt-4">'+note(
+      dv>0 ? 'Вторая половина периода выше первой' : dv<0 ? 'Вторая половина периода ниже первой' : 'Половины периода равны',
+      'Первая половина: '+nf(sum(a1))+' визитов. Вторая: '+nf(sum(a2))+'. Разница '+(dv>0?'+':'')+nf(dv)+'. '
+      +'Сравнение половинами устойчивее к выходным, чем сравнение последнего дня с первым.', dv>0?'ok':dv<0?'crit':'info')+'</div>'
+   + '<div class="mt-4">'+g2Cards(
+      card('Страницы входа','По визитам', tbl([['Страница'],['Визиты',1]], (ym.top_pages||[]).slice(0,10).map(r=>['<span class="font-mono text-[12px]">'+esc(r.url)+'</span>', nf(r.visits)]))),
+      card('Поисковые фразы','По визитам', tbl([['Фраза'],['Визиты',1]], (ym.top_phrases||[]).slice(0,10).map(r=>[esc(r.phrase), nf(r.visits)]))))+'</div>'
+   + ((ym.goals||[]).length===0 ? '<div class="mt-4">'+note('Целей в счётчике нет',
+      'Визиты есть, а целей ноль. Значит конверсия визита в лид не измеряется и остаётся бенчмарком в мосте до денег. Это самая дешёвая из оставшихся правок: три цели закрывают вопрос.','crit')+'</div>' : '');
+},
+
+'dyn-log': () => {
+  const s = SER();
+  const rows = s.slice().reverse().slice(0,60).map(r=>[
+    ruD(r.date),
+    r.top10==null?'-':nf(r.top10), r.top50==null?'-':nf(r.top50),
+    r.vis==null?'-':nf(r.vis), r.ai==null?'-':nf(r.ai),
+    '<span class="opacity-60">'+esc(r.src||'-')+'</span>']);
+  return head('Журнал съёмов', 'Каждая точка ряда с датой и источником. Экран нужен, чтобы видеть не только цифру, но и то, откуда она взялась и не пропущена ли неделя.',
+      'data/history/positions.ndjson', 'P1', bAPI,
+      'Пропущенный съём не восстанавливается. Любая дыра в этом журнале это дыра в сравнении периодов на всех остальных экранах.')
+   + '<div class="'+g3+' mb-4">'+[
+      mini('Точек в ряду', {v:s.length,k:'ДАННЫЕ',s:'positions.ndjson',at:s.length? s[s.length-1].date:''}, 0,'db'),
+      mini('Первая точка', s.length? ruD(s[0].date):'нет', 1,'clock'),
+      mini('Последняя точка', s.length? ruD(s[s.length-1].date):'нет', 2,'check'),
+      mini('Разрывов больше 8 дней', String(gaps().length), 3, gaps().length? 'warn':'check')].join('')+'</div>'
+   + gapNote()
+   + '<div class="mt-4">'+card('Последние 60 точек','Новые сверху',
+      tbl([['Дата'],['Топ-10',1],['Топ-50',1],['Видимость',1],['Ответов ИИ',1],['Источник']], rows))+'</div>';
+}
+};
+
+function gaps(){
+  const s = SER(); const out=[];
+  for(let i=1;i<s.length;i++){
+    const dd = (dOf(s[i].date) - dOf(s[i-1].date)) / 86400000;
+    if(dd > 8) out.push([s[i-1].date, s[i].date, Math.round(dd)]);
+  }
+  return out;
+}
+function gapNote(){
+  const g = gaps(), s = SER();
+  if(!s.length) return note('Ряда нет','Ни одной точки не записано. Запусти tools/snapshot.py.','crit');
+  const stale = Math.round((Date.now() - dOf(s[s.length-1].date)) / 86400000);
+  if(g.length) return note('В ряду есть разрывы',
+    g.map(x=>'с '+ruD(x[0])+' по '+ruD(x[1])+', '+x[2]+' дней без съёма').join('; ')
+    + '. Сравнение периодов на этих отрезках опирается на интерполяцию глазом, а не на данные.','warn');
+  if(stale > 8) return note('Последний съём просрочен',
+    'Свежей точке '+stale+' дней. Регламент требует еженедельного съёма, иначе недельное сравнение теряет смысл.','crit');
+  return note('Ряд без разрывов','Последняя точка '+ruD(s[s.length-1].date)+', свежесть '+stale+' дн. Съём идёт по регламенту.','ok');
+}
+function g2Cards(a,b){ return '<div class="'+g2+'">'+a+b+'</div>'; }
+function idxTable(){
+  const s = slice().cur;
+  const base = {}; ['top10','top50','vis'].forEach(f=>{ base[f] = firstOf(s,f); });
+  const rows = s.map(r=>[ruD(r.date)].concat(['top10','top50','vis'].map(f=>
+    (r[f]==null || !base[f]) ? '-' : Math.round(r[f]/base[f]*100))));
+  return rows.length ? tbl([['Дата'],['Топ-10',1],['Топ-50',1],['Видимость',1]], rows)
+                     : '<div class="text-[12.5px] opacity-70">В периоде нет точек.</div>';
+}
+
+
+/* Демо-ряды. Каждый помечен ДЕМО в интерфейсе, ни один не выдаётся за выгрузку. */
+const DEMOD = {
+ gm:{ ai:[['Алиса в поиске',31],['Алиса в чате',18],['Google ИИ',9],['ChatGPT',6],['Perplexity',5],['DeepSeek',3],['Claude',3],['Gemini',2],['GigaChat',1]],
+      wk:[41,44,43,47,49,48,49], aiwk:[12,14,13,16,17,18,19],
+      pg:[['/pamyatniki-iz-stekla/',38,14200],['/kolumbarii/',21,6100],['/blog/',17,3900],['/ceny/',9,2400],['прочее',17,2800]],
+      lost:[['памятник из стекла цена',7,19,-12],['стеклянный памятник на могилу',11,24,-13],['колумбарий стекло',4,9,-5]],
+      anc:[['безанкорные',61],['брендовые',18],['общие',13],['коммерческие',8]],
+      don:[['sub1.glass-memory.ru',48],['katalog-ritual.ru',31],['pomniki-info.ru',22],['forum-ritual.ru',17],['прочие',401]],
+      src:[52,18,15,9,6], tree:[['/pamyatniki/',34,182400],['/kolumbarii/',12,41200],['/blog/',38,58700],['/ceny/',4,9800],['прочее',14,12300]] },
+ gg:{ ai:[['Алиса в поиске',22],['Алиса в чате',19],['Google ИИ',14],['ChatGPT',16],['Perplexity',12],['DeepSeek',8],['Claude',9],['Gemini',11],['GigaChat',5]],
+      wk:[1980,2020,2065,2088,2110,2132,2145], aiwk:[9,11,12,13,14,15,16],
+      pg:[['/peregorodki/',126,84100],['/dushevye/',88,51200],['/stoly-na-zakaz/',54,57518],['/zerkala/',41,21147],['прочее',1836,323900]],
+      lost:[['перегородки в квартиру',9,22,-13],['стеклянные двери межкомнатные',14,31,-17],['душевая перегородка цена',6,15,-9]],
+      anc:[['безанкорные',44],['брендовые',29],['общие',18],['коммерческие',9]],
+      don:[['vc.ru',8],['dzen.ru',6],['dtf.ru',3],['pikabu.ru',2],['прочие',45]],
+      src:[38,27,18,11,6], tree:[['/peregorodki/',126,182400],['/dushevye/',88,51200],['/stoly-na-zakaz/',54,57518],['/zerkala/',41,21147],['прочее',1836,225609]] }
+};
+const DD = () => DEMOD[CUR];
+function aiRows(){ return DD().ai.map(r=>[esc(r[0]), r[1]+' '+kmark('ДЕМО')]); }
+function compRows(){ const c=V().comp; return (c && c.rows.length) ? c.rows.slice(0,8).map(r=>[r.domain, r.common]) : []; }
+function workRows(){ const d=V();
+  return CUR==='gg'
+   ? [['Посадочных описано в карте', nf(d.facts.landings.v), nf(d.facts.landings.v)+' '+kmark('ДАННЫЕ')],
+      ['Кластеров разобрано', nf(d.facts.clusters.v), nf(d.facts.clusters.v)+' '+kmark('ДАННЫЕ')],
+      ['Контент-единиц в заданиях', nf(d.facts.units.v), nf(d.facts.units.v)+' '+kmark('ДАННЫЕ')],
+      ['Опубликовано из них', nf(d.facts.units.v), '0 '+kmark('ДАННЫЕ')]]
+   : [['Страниц на сайте', '<span class="opacity-40">не задан</span>', nf(d.pages.v)+' '+kmark('ДАННЫЕ')],
+      ['Запросов в топ-10', '<span class="opacity-40">не задан</span>', nf(d.top10.v)+' '+kmark('ДАННЫЕ')],
+      ['Упоминаний в Алисе', '<span class="opacity-40">не задан</span>', nf(d.aians.v)+' '+kmark('ДАННЫЕ')],
+      ['Объявлений в контексте', '<span class="opacity-40">не задан</span>', nf((d.adk||[]).length)+' '+kmark('ДАННЫЕ')]];
+}
+
+const SCREENS_B = {
+'org-sum': () => { const d=V(), gm=CUR==='gm';
+  return head('Сводка по домену', 'Верхнеуровневые цифры по органике. Ретроспективы у этого метода нет, поэтому историю ведём сами через Мониторинг.',
+      'GET /report/simple/organic/summary', 'P1', bAPI,
+      'Каждый запрос, поднятый из топ-50 в топ-10, меняет цифру визитов примерно в восемь раз. Пересчёт в рубли на экране «Мост до денег».')
+   + '<div class="'+g3+' mb-4">'
+   +   [mini('Запросов в топ-10', d.top10, 0, 'target', 'top10'), mini('Запросов в топ-50', d.top50, 1, 'search', 'top50'),
+       mini('Страниц в топ-выгрузке', d.pages, 2, 'doc'),
+       mini('Видимость в ИИ, %', d.aivis, 3, 'ai', 'visibility')].join('')
+   + '</div>'
+   + '<div class="'+g2+' mb-4">'
+   +   card('Воронка топ-N','Число всегда подписано рядом с полосой',ch('c-fun',260),'','',tbl([['Ступень'],['Запросов',1]],funRows()))
+   +   card('Динамика топ-50 по неделям','Семь точек, съём еженедельно',ch('c-wk',260),'',kmark('ДЕМО'),
+        tbl([['Неделя'],['Запросов в топ-50',1]], DD().wk.map((v,i)=>['неделя '+(i+1), nf(v)])))
+   + '</div>'
+   + note('Оценку трафика от сервиса на этом экране не показываем',
+      'При '+nf(d.top50.v)+' запросах в топ-50 keys.so оценивает трафик примерно в два визита. Это ошибка метода, а не состояние сайта. Реальные визиты придут из Метрики, когда её подключим.', 'warn')
+   + '<div class="mt-4">'+act('Снять свежую сводку и записать точку в недельный ряд','Спартак','каждую пятницу 12:00','ряд не прерывается больше чем на одну неделю')+'</div>';
+},
+'org-kw': () => { const d=V();
+  return head('Запросы в топ-50', 'Полный список позиций с частотностью. Выгружается страницами, на Professional по 500 строк.',
+      'GET /report/simple/organic/keywords', 'P1', bAPI,
+      'Это сырьё для моста до денег: сумма частотности отсюда идёт первым звеном цепочки.')
+   + '<div class="'+g3+' mb-4">'
+   +   [mini('Запросов в топ-50', d.top50, 0, 'search', 'top50'), mini('Из них в топ-10', d.top10, 1, 'target', 'top10'),
+       mini('Из них в топ-3', d.top3, 2, 'up', 'top3'),
+       mini('Суммарная частотность', CUR==='gg'? d.facts.core : {v:null,k:'ДЕМО',s:'',at:''}, 3, 'bolt')].join('')
+   + '</div>'
+   + card('Распределение по ступеням','Одна серия, один цвет: длина полосы уже несёт величину',bars(funBars(),2),'','',
+       tbl([['Ступень'],['Запросов',1]],funRows()))
+   + '<div class="mt-4">'+note('Почему полосы одного цвета','Раскрашивать каждую полосу своим цветом значит второй раз закодировать ту же величину и сжечь единственный свободный канал. Цвет здесь не несёт информации, её несёт длина.','info')+'</div>';
+},
+'org-pg': () => {
+  return head('Страницы', 'Какие URL приносят видимость. Из этой же выгрузки собирается дерево разделов.',
+      'GET /report/simple/organic/sitepages', 'P2', bAPI,
+      'Пять страниц обычно дают больше половины видимости. Работать надо с ними, а не с «сайтом целиком».')
+   + card('Топ страниц','Запросов и суммарная частотность',
+      tbl([['Страница'],['Запросов',1],['Частотность',1]],
+        (V().pg||[]).map(r=>['<span class="font-mono text-[12px]">'+esc(r.url)+'</span>', nf(r.keywords_top50)+' '+kmark('ДАННЫЕ'), '-'])))
+   + '<div class="mt-4">'+card('Вес страниц','Площадь пропорциональна частотности',ch('c-tree',300),'',kmark('ДЕМО'),
+        tbl([['Страница'],['Частотность',1]], DD().pg.map(r=>[esc(r[0]), nf(r[2])])))+'</div>';
+},
+'org-lost': () => {
+  return head('Потерянные позиции', 'Запросы, по которым мы просели. Это самый быстрый источник роста: страница уже есть, её надо чинить, а не писать заново.',
+      'GET /report/simple/organic/lost', 'P1', bAPI,
+      'Возврат просевшего запроса в топ-10 стоит дешевле, чем вывод нового: контент уже написан и проиндексирован.')
+   + card('Просадки','Было и стало',
+      tbl([['Запрос'],['Стало',1],['Было',1],['Дельта',1]],
+        DD().lost.map(r=>[esc(r[0]), nf(r[1])+' '+kmark('ДЕМО'), nf(r[2]),
+          '<span class="crit-i font-semibold">'+r[3]+'</span>'])))
+   + '<div class="mt-4">'+act('Разобрать просадки и назначить правки по страницам','контент-подряд','волна 1','каждая просадка получила либо правку, либо отметку «не наш запрос»')+'</div>';
+},
+'org-comp': () => {
+  return head('Конкуренты в органике', 'Сайты, продвигающиеся по тем же запросам. Оговорка ниже важнее самой таблицы.',
+      'GET /report/simple/organic/concurents', 'P2', bAPI,
+      'Этой метрикой нельзя управлять и по ней нельзя ставить цель. Настоящая ниша видна в контексте.')
+   + note('В органике мы соревнуемся не с нишей',
+      'Первая десятка пересечений это маркетплейсы и агрегаторы. Схожесть у них около нуля, пересечение идёт по общим товарным запросам. Ставить их себе в конкуренты значит гнаться за недостижимой и бессмысленной целью.', 'warn')
+   + '<div class="mt-4">'+card('Пересечение по ключам','Общих запросов в топ-50',bars(compRows(),2),'',
+        (V().comp? kmark('ДАННЫЕ') : kmark('ДЕМО')),
+        tbl([['Домен'],['Общих запросов',1]], compRows().map(r=>[esc(r[0]), nf(r[1])])))+'</div>';
+},
+'org-tree': () => {
+  return head('Структура сайта', 'Единственный инструмент keys.so без прямого метода в API. Дерево собирается у нас из выгрузки страниц группировкой по сегментам URL.',
+      'сборка из /report/simple/organic/sitepages', 'P4', bSOON,
+      'Экран показывает, где на сайте пусто. Пустой раздел с большой частотностью это готовое ТЗ на страницу.')
+   + card('Разделы сайта','Страниц и суммарная частотность',
+      tbl([['Раздел'],['Страниц',1],['Частотность',1]],
+        DD().tree.map(t=>['<span class="font-mono text-[12px]">'+esc(t[0])+'</span>', nf(t[1])+' '+kmark('ДЕМО'), nf(t[2])])));
+},
+'sem-cl': () => { const d=V();
+  return head('Кластеры', 'Автогруппировка запросов по схожести выдачи. Дерево папок и содержимое каждой достаются по API целиком.',
+      'POST /clustering · GET /clustering/node/{uid}/{id}/keywords', 'P3', bAPI,
+      CUR==='gg' ? 'Разобрано '+nf(d.facts.clusters.v)+' кластеров на '+nf(d.facts.core.v)+' показов. Это описанный, но ещё не занятый спрос.'
+                 : 'По GLASS-MEMORY кластеризация не запускалась, экран пуст по делу.')
+   + (CUR==='gg'
+      ? '<div class="'+g3+' mb-4">'+[mini('Кластеров в работе', d.facts.clusters, 0,'layers'), mini('Тем', d.facts.themes, 1,'tag'),
+          mini('Посадочных в карте', d.facts.landings, 2,'doc'), mini('Рабочее ядро, показов', d.facts.core, 3,'bolt')].join('')+'</div>'
+        + note('Рабочее ядро 537 874 показов','Это уже очищенная цифра. Из первоначального разбора отброшен 91 кластер на 10 575 показов: нерелевантные, дублирующие и те, что уходят на чужие посадочные. Прежнее, большее число в отчётах не используем, чтобы его нельзя было процитировать по ошибке.','info')
+      : note('Кластеризация не запускалась','По этому проекту 561 запрос в топ-50. Кластеризовать имеет смысл после того, как соберём базу шире выдачи, иначе разобьём то, что и так помещается в один список.','warn'));
+},
+'sem-base': () => {
+  return head('База запросов', 'Поиск по общей базе сервиса. Отсюда берутся запросы, которых у нас ещё нет в выдаче.',
+      'GET /base/keywords · /base/keywords/count', 'P3', bAPI,
+      'Каждый найденный здесь запрос это потенциальная строка в мосте до денег.')
+   + note('Правило отбора','Берём запрос в работу, только если у него есть посадочная или мы готовы её сделать. Запрос без страницы это не спрос, а строка в отчёте.','info');
+},
+'sem-ws': () => {
+  return head('Wordstat', 'Онлайн-парсер частотностей по списку слов и ориентировочная оценка бюджета в контексте.',
+      'GET /wordstat/report · POST /wordstat/create-project', 'P4', bAPI,
+      'Частотность из Wordstat это показы, а не визиты. Путать их значит завышать мост до денег в разы.')
+   + card('Что даёт метод','',
+      tbl([['Возможность'],['Есть']],[
+        ['Частотность по списку слов','да'],['Точная и широкая частотность','да'],
+        ['Оценка бюджета в контексте','ориентировочная'],['История по месяцам','нет']]));
+},
+'sem-sug': () => {
+  return head('Подсказки и расширение', 'Поисковые подсказки и связанные фразы. Дешёвый способ добрать длинный хвост и, что важнее, живые формулировки для FAQ.',
+      'GET /suggestions · /report/simple/organic/relevant', 'P3', bAPI,
+      'Из этого источника уже вытащено 287 реальных фраз под FAQ по GENGLASS. Формулировка из подсказки работает в ответах ИИ лучше, чем придуманная.')
+   + note('Зачем это для GEO','Нейросети цитируют тот текст, который дословно отвечает на заданный вопрос. Вопрос надо брать из подсказок, а не сочинять.','info');
+},
+'pos-mon': () => {
+  return head('Мониторинг', 'Единственный инструмент с полноценным рядом по датам. На нём держится вся история проекта.',
+      'GET /monitoring/{id}/report-chart · /dates · /report-compare', 'P1', bAPI,
+      'Ретроспективы по сводке домена в сервисе нет. Если мониторинг не снимать, история не восстановится задним числом никогда.')
+   + card('Позиции по неделям','Съём еженедельно',ch('c-wk',280),'',kmark('ДЕМО'),
+      tbl([['Неделя'],['Запросов в топ-50',1]], DD().wk.map((v,i)=>['неделя '+(i+1), nf(v)])))
+   + '<div class="mt-4">'+note('Это то, что нельзя пропускать','Пропущенная неделя в мониторинге не восстанавливается. Все остальные экраны можно пересобрать задним числом, этот нет.','crit')+'</div>'
+   + '<div class="mt-4">'+act('Снимать мониторинг еженедельно и складывать точку в ряд','Спартак','каждую пятницу 12:00','ряд без разрывов')+'</div>';
+},
+'pos-serp': () => {
+  return head('История выдачи', 'Как менялся топ-10 по конкретному запросу. Ось перевёрнута: первая позиция сверху.',
+      'GET /serp-history', 'P3', bAPI,
+      'Показывает, кто и когда нас подвинул. Без этого разговор про просадку превращается в гадание.')
+   + card('Позиция по неделям','Чем выше линия, тем лучше позиция',ch('c-serp',280),'',kmark('ДЕМО'),
+      tbl([['Неделя'],['Позиция',1]], [9,8,8,6,7,5,5].map((v,i)=>['неделя '+(i+1), v])));
+},
+'pos-top': () => {
+  return head('Подсветка топов', 'Схожесть выдачи по нескольким запросам. Отвечает на вопрос, можно ли продвигать группу фраз одной страницей.',
+      'POST /tools/check-top', 'P4', bAPI,
+      'Каждая лишняя страница это работа контентщика. Экран экономит её там, где хватит одной.')
+   + card('Матрица пересечений','Одна шкала в одном тоне. Насыщенность клетки это число общих URL, точные границы в легенде',ch('c-heat',320),'',kmark('ДЕМО'),
+      '<div class="text-[12.5px] opacity-70">Табличный двойник тепловой карты: значения ячеек доступны при наведении и в выгрузке метода.</div>');
+},
+'geo-tr': () => { const d=V();
+  return head('Трекер ИИ', 'Видимость бренда в ответах девяти систем. Полный ряд по датам есть в API, это второй источник настоящей истории после мониторинга.',
+      'GET /ai_tracker/{id}/chart · /report · /citation', 'P1', bAPI,
+      'Канал, где нас пока никто не вытесняет. Стоимость входа тут ниже, чем в поиске, и это единственное место, где мы можем обогнать нишу быстро.')
+   + '<div class="'+g3+' mb-4">'
+   +   [mini('Ответов ИИ с упоминанием', d.aians, 0,'ai','ai_answers'),
+       mini('Видимость в ИИ, %', d.aivis, 1,'eye','visibility'),
+       mini('Систем в трекере', {v:9,k:'ДАННЫЕ',s:'состав трекера keys.so',at:'2026-09-08'}, 2,'layers'),
+       mini('Промптов в наборе', {v:30,k:'ДАННЫЕ',s:'настройка трекера GENGLASS',at:'2026-09-04'}, 3,'list')].join('')
+   + '</div>'
+   + '<div class="'+g2+'">'
+   +   card('Доля в ответах по системам','Девять систем',ch('c-ai',280),'',kmark('ДЕМО'),tbl([['Система'],['Видимость, %',1]],aiRows()))
+   +   card('Видимость по неделям','',ch('c-aiwk',280),'',kmark('ДЕМО'),
+        tbl([['Неделя'],['Видимость, %',1]], DD().aiwk.map((v,i)=>['неделя '+(i+1), v])))
+   + '</div>';
+},
+'geo-men': () => { const d=V();
+  return head('Упоминания', 'Где именно нас процитировали и с какой формулировкой.',
+      'GET /ai_tracker/{id}/citation', 'P2', bAPI,
+      'Упоминание в ответе Алисы это визит без клика по рекламе. Считать его в мосте до денег пока нечем, но и игнорировать нельзя.')
+   + (CUR==='gm'
+     ? '<div class="'+g3+' mb-4">'+[mini('Ответов ИИ с упоминанием', d.aians, 0,'quote','ai_answers'),
+         mini('С прямой ссылкой', {v:null,k:'ДЕМО',s:'',at:''}, 1,'link'),
+         mini('С названием бренда', {v:null,k:'ДЕМО',s:'',at:''}, 2,'tag'),
+         mini('Систем, где нас видно', {v:null,k:'ДЕМО',s:'',at:''}, 3,'ai')].join('')+'</div>'
+     : '')
+   + note('Что считается упоминанием','Ответ системы, где присутствует название бренда или ссылка на домен. Косвенное описание продукта без имени не считается: проверить его нельзя, а значит и в отчёт оно не идёт.','info');
+},
+'geo-comp': () => {
+  return head('Конкуренты в ИИ', 'Кого нейросети называют вместо нас по тем же промптам.',
+      'GET /ai_tracker/{id}/competitors', 'P2', bAPI,
+      'В отличие от органики, здесь список конкурентов реальный: это ровно те, кого клиент увидит вместо нас.')
+   + card('Доля голоса по промптам','Одна серия, длина несёт величину',
+      bars(CUR==='gm'? [['nbs-granit.ru',34],['pamiatniky.ru',22],['мы',18],['promsteklo.ru',11],['прочие',15]]
+                     : [['мы',16],['miralls.ru',14],['лофт-студии',12],['маркетплейсы',31],['прочие',27]], 1),
+      '', kmark('ДЕМО'));
+},
+'geo-src': () => {
+  return head('Источники ответов', 'Откуда системы берут текст, который выдают за ответ.',
+      'GET /ai_tracker/{id}/sources · /sources/chart', 'P2', bAPI,
+      'Экран отвечает, куда писать. Если половина ответов собирается из подборок «Топ-N», деньги надо нести туда, а не на свой блог.')
+   + card('Структура источников','Пять долей, каждая подписана',ch('c-src',300),'',kmark('ДЕМО'),
+      tbl([['Источник'],['Доля, %',1]], ['Свой сайт','Подборки «Топ-N»','Каталоги','Маркетплейсы','Прочее'].map((n,i)=>[n, DD().src[i]])));
+},
+'geo-pr': () => {
+  return head('Промпты', 'Набор вопросов, по которым снимается видимость. Промпт это не ключевое слово, это то, как человек реально спрашивает.',
+      'GET /ai_tracker/{id}/prompts', 'P2', bAPI,
+      'Тридцать промптов на проект. Меньше не даёт статистики, больше упирается в суточный лимит выгрузок.')
+   + note('Правило набора','Промпт должен звучать как вопрос покупателя, а не как запрос сеошника. «Из чего делают стеклянные памятники и сколько они стоят» работает, «памятник стекло цена» нет.','info');
+}
+};
+function funBars(){ const d=V();
+  return [['топ-1',d.top1],['топ-3',d.top3],['топ-10',d.top10],['топ-50',d.top50]]
+    .filter(r=>r[1]&&r[1].v!=null).map(r=>[r[0],r[1].v]); }
+
+
+function linkStub(t, sub, ep){
+  return head(t, sub, ep, 'P3', bSOON,
+      'Ссылочное не даёт лидов напрямую, оно снимает потолок по позициям. В мост до денег входит косвенно, через первое звено.')
+   + note('Ссылочной выгрузки в репозитории нет',
+      'Метод в keys.so есть, сбор по нему не настроен. Экран описан и ждёт выгрузки: как только сборщик начнёт складывать ссылочные отчёты рядом с keysso.json, он заполнится без правок вёрстки. Рисовать сюда числа до этого нельзя.','warn');
+}
+const SCREENS_C = {
+'ad-search': () => { const d=V(), k=d.adk||[];
+  return head('Поиск', 'Наши рекламные запросы из выгрузки keys.so: фраза, позиция объявления, частотность.',
+      'keys.so ad_keywords через keysso.json', 'P1', bAPI,
+      'Ни одна кампания не запускается и не пополняется без прямого подтверждения Ивана. Экран готовит структуру, решение остаётся за ним.')
+   + (k.length
+      ? card('Наши рекламные фразы','Позиция 0 значит, что объявление в выгрузке есть, а места не зафиксировано',
+          tbl([['Фраза'],['Позиция',1],['Частотность',1]],
+            k.slice(0,15).map(r=>[esc(r.phrase), r.pos==null?'-':nf(r.pos), nf(r.freq)])))
+      : note('Выгрузки по рекламным фразам нет','По этому проекту keys.so не вернул ad_keywords. Пустой экран честнее, чем нарисованный.','warn'))
+   + '<div class="mt-4">'+note('Запуск не согласован','Экран нужен для подготовки структуры, а не для старта. Любой запуск и любое пополнение только после подтверждения Ивана.','crit')+'</div>';
+},
+'ad-rsya': () => {
+  return head('РСЯ', 'Сети: площадки, форматы, охват. Отдельная логика от поиска, поэтому и экран отдельный.',
+      'выгрузки по сетям в репозитории нет', 'P3', bSOON,
+      'РСЯ дешевле по клику и дороже по лиду. Смешивать её с поиском в одной цифре CPL значит не понимать, откуда пришли деньги.')
+   + note('Данных по сетям нет','Ни keys.so, ни текущая выгрузка Директа не разделяют поиск и сети. Пока разделения нет, любой общий CPL по кабинету обманывает: он всегда лучше поиска и всегда хуже реальности.','warn');
+},
+'ad-comp': () => { const d=V(), c=d.adc||[];
+  return head('Конкуренты в контексте', 'Здесь, в отличие от органики, видна настоящая ниша: кто платит за те же запросы.',
+      'keys.so ad_competitors через keysso.json', 'P1', bAPI,
+      'Если конкурент держит объявления на запросе полгода, запрос приносит ему деньги. Самый дешёвый способ проверить спрос без своего бюджета.')
+   + (c.length
+      ? card('Кто рекламируется по нашим запросам','Отсортировано выгрузкой сервиса',
+          tbl([['Домен'],['Общих фраз',1],['Объявлений',1],['Своих фраз',1],['Видимость',1]],
+            c.slice(0,12).map(r=>[esc(r.domain), nf(r.common_ad_keywords), nf(r.ads_count), nf(r.ad_keywords_count), nf(r.visibility)])))
+      : note('Выгрузки нет','keys.so не вернул ad_competitors по этому домену.','warn'))
+   + '<div class="mt-4">'+card('Объём рекламы у первой пятёрки','Наш столбец в этой выгрузке отсутствует: сервис показывает только чужие домены',
+      ch('c-ads',290),'',bAPI,
+      tbl([['Домен'],['Объявлений',1]], c.slice(0,5).map(r=>[esc(r.domain), nf(r.ads_count)])))+'</div>';
+},
+'ad-budget': () => { const d=V(), dr=d.direct, cap=d.plan.v*DB.thresh.mkt_share.v;
+  return head('Прогноз бюджета', 'Потолок из плана против фактического расхода кабинета.',
+      dr ? 'direct.json · снято '+ruD(dr.at) : 'выгрузки Директа нет', 'P1', dr? bAPI : bDEMO,
+      'Потолок маркетинга по проекту: '+money(cap)+' за H2. Это верхняя граница расхода, а не план.')
+   + '<div class="'+g3+' mb-4">'+[
+       mini('Потолок маркетинга H2', {v:cap,k:'ДАННЫЕ',s:'план H2 × 15%',at:'2026-07-01'}, 0,'wallet'),
+       mini('Расход за 30 дней', dr? dr.spend : {v:null,k:'ДЕМО',s:'',at:''}, 1,'loss'),
+       mini('Кликов', dr? dr.clicks : {v:null,k:'ДЕМО',s:'',at:''}, 2,'users'),
+       mini('Средний CPC', dr? dr.cpc : {v:null,k:'ДЕМО',s:'',at:''}, 3,'chart')].join('')+'</div>'
+   + (dr && dr.twin
+      ? note('Выгрузки двух проектов совпадают побайтно',
+          'Файл direct.json по этому проекту идентичен файлу проекта '+esc(dr.twin)+': те же кампании, тот же расход, те же клики. Значит верной может быть в лучшем случае одна из двух. До разделения по кабинетам обе цифры помечены как гипотеза и в решения не идут.','crit')
+      : '')
+   + (dr ? '<div class="mt-4">'+card('Кампании','Из выгрузки кабинета',
+        tbl([['Кампания'],['Расход',1],['Клики',1],['CTR',1],['CPC',1]],
+          (dr.campaigns||[]).map(c=>[esc(c.name), money(c.spend), nf(c.clicks),
+            String(c.ctr).replace('.',',')+'%', money(c.cpc)])))+'</div>' : '')
+   + '<div class="mt-4">'+note('Ни рубля без подтверждения','Ни одна рекламная кампания не запускается и не пополняется без прямого подтверждения Ивана.','crit')+'</div>';
+},
+'lnk-prof': () => linkStub('Профиль', 'Общее состояние ссылочной массы: сколько доноров, какой авторитет.',
+      'GET /report/simple/links/summary'),
+'lnk-don': () => linkStub('Доноры', 'Кто на нас ссылается. Важно не количество, а состав.',
+      'GET /report/simple/links/donors'),
+'lnk-anc': () => linkStub('Анкоры', 'Чем перекошен анкор-лист и нет ли переспама.',
+      'GET /report/simple/links/backlinks-anchor'),
+'lnk-ip': () => linkStub('Сети и IP', 'С каких адресов и подсетей идут ссылки.',
+      'GET /report/simple/links/backlinks-ip'),
+'ym-traf': () => SCREENS_DYN['dyn-ym'](),
+'ym-src': () => { const ym=V().ym;
+  return head('Источники', 'Откуда приходят визиты. Разрез, без которого нельзя посчитать вклад поиска.',
+      ym? 'metrika.json · снято '+ruD(ym.at) : 'счётчик не подключён', 'P1', ym? bAPI : bDEMO,
+      'Без разделения по каналам выручка не раскладывается, а значит ROI канала посчитать нечем.')
+   + (ym
+      ? card('Визиты и доля поиска за период','Из ряда Метрики', ch('c-ym',300),'',bAPI,
+          tbl([['Дата'],['Визиты',1],['Из поиска',1]],
+            (ym.days||[]).slice(-Math.min(PERIODS[PERIOD],(ym.days||[]).length)).map(r=>[ruD(r.date), nf(r.visits), nf(r.search_visits)])))
+      : note('Счётчика нет','По этому проекту номер счётчика не задан.','warn'))
+   + '<div class="mt-4">'+note('Чего в этой выгрузке нет',
+      'Разбивки по utm-меткам. Пока её нет, «поиск» это органика и реклама вместе, и вклад Директа из этого числа не вытащить.','warn')+'</div>';
+},
+'ym-beh': () => { const ym=V().ym;
+  return head('Поведение', 'Что люди делают на страницах. Нужен, чтобы понимать, почему конверсия такая, какая есть.',
+      ym? 'metrika.json · снято '+ruD(ym.at) : 'счётчик не подключён', 'P3', ym? bAPI : bDEMO,
+      'Экран не про деньги напрямую. Он объясняет, почему проваливается третье звено цепочки: визит есть, лида нет.')
+   + (ym
+      ? '<div class="'+g3+' mb-4">'+[mini('Отказы, %', ym.bounce, 0,'loss'),
+          mini('Глубина просмотра', ym.depth, 1,'layers'),
+          mini('Страниц в выгрузке', {v:(ym.top_pages||[]).length,k:'ДАННЫЕ',s:'metrika.json',at:ym.at}, 2,'doc'),
+          mini('Фраз в выгрузке', {v:(ym.top_phrases||[]).length,k:'ДАННЫЕ',s:'metrika.json',at:ym.at}, 3,'search')].join('')+'</div>'
+        + card('Страницы входа','По визитам за 30 дней',
+            tbl([['Страница'],['Визиты',1]], (ym.top_pages||[]).slice(0,12).map(r=>['<span class="font-mono text-[12px]">'+esc(r.url)+'</span>', nf(r.visits)])))
+      : note('Счётчика нет','','warn'))
+   + '<div class="mt-4">'+note('Отказы 19% это не повод радоваться',
+      'Низкий процент отказов при выключенных целях чаще всего означает, что счётчик считает отказом только очень короткий визит. Пока целей нет, поведенческие метрики описывают трафик, а не продажи.','warn')+'</div>';
+},
+'ym-goal': () => { const ym=V().ym, g=(ym&&ym.goals)||[];
+  return head('Цели и конверсии', 'Второе звено моста до денег. Как только здесь появится цифра, конверсия визита в лид перестанет быть гипотезой.',
+      ym? 'metrika.json · снято '+ruD(ym.at) : 'счётчик не подключён', 'P0', ym? bAPI : bDEMO,
+      'Это самая дешёвая из оставшихся правок. Три цели закрывают вопрос, который сейчас держит весь расчёт выручки.')
+   + (g.length
+      ? card('Цели','', tbl([['Цель'],['Достижения',1]], g.map(x=>[esc(x.name||x.id||'-'), nf(x.reaches||x.value||0)])))
+      : note('Целей в счётчике ноль',
+          'Счётчик '+(ym? esc(String(ym.counter.v)) : '')+' отдаёт визиты, но ни одной цели не настроено. Значит конверсия визита в лид измеряется бенчмарком, а не фактом, и итог моста до денег остаётся гипотезой.','crit'))
+   + '<div class="mt-4">'+act('Настроить три цели: отправка формы, клик по телефону, переход в мессенджер','Иван ставит задачу разработчику','вместе с разметкой utm','цели видны в интерфейсе Метрики и отдают данные по API')+'</div>';
+},
+'yd-camp': () => { const dr=V().direct;
+  return head('Кампании', 'Список кампаний с расходом и кликами из выгрузки кабинета.',
+      dr? 'direct.json · снято '+ruD(dr.at) : 'выгрузки нет', 'P1', dr? bAPI : bDEMO,
+      'Ни одна кампания не запускается и не пополняется без прямого подтверждения Ивана.')
+   + (dr && dr.twin ? note('Выгрузки двух проектов совпадают побайтно',
+        'Файл идентичен файлу проекта '+esc(dr.twin)+'. Верной может быть в лучшем случае одна из двух, поэтому цифры ниже помечены как гипотеза.','crit')+'<div class="mb-4"></div>' : '')
+   + (dr
+      ? card('Кампании','Расход за 30 дней',
+          tbl([['Кампания'],['Расход',1],['Клики',1],['CTR',1],['CPC',1]],
+            (dr.campaigns||[]).map(c=>[esc(c.name), money(c.spend), nf(c.clicks), String(c.ctr).replace('.',',')+'%', money(c.cpc)])))
+      : note('Выгрузки нет','','warn'))
+   + '<div class="mt-4">'+note('Бренд считаем отдельно',
+      'Брендовая кампания почти всегда даёт лучший CPL и, смешанная с остальными, вытягивает среднее. По ней нельзя судить, работает ли канал: человек, который ищет нас по названию, пришёл бы и без объявления.','warn')+'</div>';
+},
+'yd-cost': () => { const d=V(), dr=d.direct, cap=d.plan.v*DB.thresh.mkt_share.v;
+  const cpl = null;
+  return head('Расход и CPL', 'Сколько потратили и сколько стоил лид. Главный экран для проверки порога.',
+      dr? 'direct.json · снято '+ruD(dr.at) : 'выгрузки нет', 'P0', dr? bAPI : bDEMO,
+      'Потолок расхода по проекту за H2: '+money(cap)+'.')
+   + '<div class="'+g3+' mb-4">'+[
+      mini('Потолок расхода H2', {v:cap,k:'ДАННЫЕ',s:'план H2 × 15%',at:'2026-07-01'}, 0,'wallet'),
+      mini('Расход за 30 дней', dr? dr.spend : {v:null,k:'ДЕМО',s:'',at:''}, 1,'loss'),
+      mini('Кликов', dr? dr.clicks : {v:null,k:'ДЕМО',s:'',at:''}, 2,'users'),
+      mini('CPL факт', {v:null,k:'ДЕМО',s:'',at:'',n:'лидов нет: цели в Метрике не настроены'}, 3,'chart')].join('')+'</div>'
+   + note('CPL посчитать нечем, и это не мелочь',
+      'Расход известен, лидов нет: цели в счётчике не настроены. Без числителя CPL не существует, а без CPL нельзя сказать, укладывается канал в порог или нет. Предельный CPL тоже не назвать: он считается из среднего чека, которого нет.','crit')
+   + (dr? '<div class="mt-4">'+card('Расход по кампаниям','',
+        bars((dr.campaigns||[]).map(c=>[c.name.slice(0,42), c.spend]), 3),'',dr.twin? kmark('ГИПОТЕЗА'):bAPI,
+        tbl([['Кампания'],['Расход',1]], (dr.campaigns||[]).map(c=>[esc(c.name), money(c.spend)])))+'</div>' : '');
+},
+'yd-q': () => { const dr=V().direct, q=(dr&&dr.queries)||[];
+  return head('Поисковые запросы', 'По каким реальным фразам показывались объявления. Источник минус-слов и новых кластеров.',
+      dr? 'direct.json · снято '+ruD(dr.at) : 'выгрузки нет', 'P2', dr? bAPI : bDEMO,
+      'Каждое незаминусованное мусорное слово это прямой расход без возврата.')
+   + (q.length
+      ? card('Запросы с расходом','Отсортировано выгрузкой',
+          tbl([['Запрос'],['Клики',1],['Расход',1],['Цена клика',1]],
+            q.slice(0,20).map(r=>[esc(r.query), nf(r.clicks), money(r.cost),
+              money(r.clicks? r.cost/r.clicks : null)])))
+      : note('Выгрузки нет','','warn'))
+   + '<div class="mt-4">'+note('Зачем это SEO',
+      'Отчёт по поисковым запросам единственный источник, где видно реальную формулировку с оплаченным показом. Для семантики он ценнее Wordstat: здесь спрос подтверждён деньгами.','info')+'</div>';
+},
+'ct-plan': () => { const gg=CUR==='gg', d=V();
+  return head('План публикаций', 'Что и когда выходит. По GENGLASS план собран из карты посадочных, по GLASS-MEMORY его пока нет.',
+      'внутренний план, не keys.so', 'P2', gg? bAPI : bDEMO,
+      gg? 'В работе '+nf(d.facts.units.v)+' контент-единиц на '+nf(d.facts.landings.v)+' посадочных. Опубликовано ноль: ждём разработчика.'
+        : 'Плана по проекту нет. Пока не закрыт вопрос ресурса, ставить сроки нечем.')
+   + (gg? card('Волны','Разбивка по готовности, а не по желанию',
+        tbl([['Волна'],['Единиц',1],['Что держит']],[
+          ['Волна 1, не заблокирована','12','ничего, можно стартовать'],
+          ['Волна 2, нужен прайс','9','вопрос по цене за м2'],
+          ['Волна 3, нужен разработчик','8','публикация посадочных']]))
+      : note('Плана нет','Собирать план публикаций до того, как понятен ресурс, значит писать список желаний.','warn'));
+},
+'ct-unit': () => { const gg=CUR==='gg';
+  return head('Задания и волны', 'Контент-единицы: кто пишет, что проверяем на приёмке.',
+      'задания контентщикам, редакция 4 от 06.09', 'P2', gg? bAPI : bDEMO,
+      gg? 'Приёмка идёт по чек-листу из 27 проверок. Единица без пройденной проверки не считается сданной, независимо от того, опубликована она или нет.'
+        : 'По этому проекту заданий нет.')
+   + (gg? card('Что проверяется на приёмке','Двадцать семь проверок, ключевые ниже',
+        '<div class="space-y-2 text-[12.5px]">'
+        + ['мета-описание в пределах длины и без запрещённых цифр',
+           'ни одного длинного тире во всём тексте',
+           'каждая цифра либо со ссылкой на источник, либо снята',
+           'FAQ собран из реальных формулировок подсказок, а не придуман',
+           'нет обещаний гарантии сверх двенадцати месяцев',
+           'нет цен, если прайс не подтверждён'
+          ].map(x=>'<div class="flex gap-2"><span class="ok-i shrink-0 mt-[2px]">'+ic('check','',14)+'</span><span>'+esc(x)+'</span></div>').join('')
+        + '</div>')
+      : note('По этому проекту заданий нет',
+          'Контент-единицы собираются из карты посадочных, а её по GLASS-MEMORY нет: кластеризация не запускалась, потому что 561 запрос в топ-50 помещается в один список. Сначала расширение базы, потом карта, потом задания. Обратный порядок даёт список желаний вместо плана.','warn'));
+},
+'ct-idx': () => { const d=V();
+  return head('Индексация', 'Сколько страниц реально в индексе. Разрыв между «есть на сайте» и «есть в поиске» закрывается раньше всего остального.',
+      'оператор site: плюс Вебмастер, доступа нет', 'P3', bDEMO,
+      'Непроиндексированная страница это уже потраченные деньги на текст и ноль на выходе. Из всех работ по SEO эта самая дешёвая и самая быстрая.')
+   + '<div class="'+g3+' mb-4">'+[
+      mini('Страниц на сайте', CUR==='gm'? d.pages : {v:null,k:'ДЕМО',s:'',at:''}, 0,'doc'),
+      mini('Из них в индексе', {v:null,k:'ДЕМО',s:'',at:''}, 1,'check'),
+      mini('Исключено роботом', {v:null,k:'ДЕМО',s:'',at:''}, 2,'loss'),
+      mini('Ждут обхода', {v:null,k:'ДЕМО',s:'',at:''}, 3,'clock')].join('')+'</div>'
+   + '<div class="'+g2+'">'
+   +   card('Покрытие индексом','Доля страниц, попавших в поиск',ch('c-idx',260),'',bDEMO,
+        '<div class="text-[12.5px] opacity-70">Точная цифра появится с доступом к Вебмастеру.</div>')
+   +   card('Частые причины исключения','По убыванию распространённости',
+        '<div class="space-y-2 text-[12.5px]">'
+        + ['страница дублирует другую по содержанию',
+           'закрыта в robots или мета-тегом по недосмотру',
+           'нет внутренних ссылок, робот до неё не доходит',
+           'малоценная: текста меньше, чем шаблонной обвязки',
+           'отдаёт неверный код ответа'
+          ].map(x=>'<div class="flex gap-2"><span class="opacity-50 shrink-0 mt-[2px]">'+ic('warn','',14)+'</span><span>'+esc(x)+'</span></div>').join('')
+        + '</div>')
+   + '</div>'
+   + '<div class="mt-4">'+act('Получить доступ к Вебмастеру и снять отчёт по исключённым страницам','Иван даёт доступ','вместе с Метрикой','отчёт выгружается, список исключённых страниц получен')+'</div>';
+},
+
+compare: () => {
+  const a=DB.projects.gm, b=DB.projects.gg;
+  return head('Сравнение проектов', 'Только те метрики, которые считаются одинаково и потому сравнимы. Всё остальное сравнивать нельзя.',
+      'GET /report/compare · пакетный анализ', 'P2', bAPI,
+      'Планы у проектов разные: '+money(DB.projects.gg.plan.v)+' по GENGLASS и '+money(DB.projects.gm.plan.v)+' по GLASS-MEMORY. Абсолютные цифры видимости между ними сравнивать бессмысленно, сравнивать надо динамику.')
+   + card('Сопоставимые метрики','Прочерк означает, что выгрузки нет, а не что значение равно нулю',
+      tbl([['Метрика'],['GLASS-MEMORY',1],['GENGLASS',1]],[
+        ['План выручки H2', money(DB.projects.gm.plan.v), money(DB.projects.gg.plan.v)],
+        ['Запросов в топ-50', val(a.top50), val(b.top50)],
+        ['Запросов в топ-10', val(a.top10), '<span class="opacity-40">нет</span>'],
+        ['Страниц в выдаче', val(a.pages), '<span class="opacity-40">нет</span>'],
+        ['Упоминаний в Алисе', val(a.alice), '<span class="opacity-40">нет</span>'],
+        ['Видимость в ИИ', '<span class="opacity-40">нет</span>', val(b.aivis, v=>pc(v))],
+        ['Доноров', val(a.donors), '<span class="opacity-40">нет</span>']]))
+   + '<div class="mt-4">'+note('Почему половина таблицы пустая',
+      'Потому что выгрузки по этим метрикам не сняты. Пустая ячейка честнее, чем подставленная демо-цифра рядом с настоящей: рядом с реальным числом заглушка перестаёт читаться как заглушка.','warn')+'</div>';
+}
+};
+
+
+const SCREENS_D = {
+'rg-upd': () => {
+  const sample = '{\n  "gm": {\n    "top10": { "v": 49, "k": "ДАННЫЕ",\n              "s": "keys.so /report/simple/organic/summary",\n              "at": "2026-09-08", "n": "" }\n  }\n}';
+  return head('Как обновлять', 'Дашборд наполняется одним блоком данных. Ниже его формат и порядок съёма. Без этого экрана шаблон превращается в картинку, которую каждый раз переверстывают руками.',
+      'блок DB в начале страницы', 'P0', bAPI,
+      'Обновление занимает столько же времени, сколько выгрузка. Верстку при этом трогать не нужно ни разу.')
+   + '<div class="'+g2+' mb-4">'
+   +   card('Формат одной цифры','Пять полей, все обязательны кроме примечания',
+        '<pre class="text-[11.5px] font-mono leading-relaxed overflow-x-auto p-3 rounded-lg soft">'+esc(sample)+'</pre>'
+        + '<div class="mt-3">'+tbl([['Поле'],['Что значит']],[
+            ['<span class="font-mono">v</span>','значение, число или null если выгрузки нет'],
+            ['<span class="font-mono">k</span>','класс: ДАННЫЕ, ГИПОТЕЗА или ДЕМО'],
+            ['<span class="font-mono">s</span>','источник: метод API или название документа'],
+            ['<span class="font-mono">at</span>','дата съёма в формате ГГГГ-ММ-ДД'],
+            ['<span class="font-mono">n</span>','примечание, можно пустое']])+'</div>')
+   +   card('Порядок съёма','Последовательно, аккаунт не держит параллельные заходы',
+        '<div class="space-y-2.5 text-[12.5px]">'
+        + [['Опросить лимиты','GET /limits/all, чтобы не упереться в суточный'],
+           ['Снять сводку по домену','organic/summary по каждому проекту'],
+           ['Снять запросы и страницы','organic/keywords и sitepages, страницами по 500'],
+           ['Записать точку мониторинга','monitoring/{id}/report-chart, это то, что не восстановится'],
+           ['Снять трекер ИИ','ai_tracker/{id}/chart и /citation'],
+           ['Обновить блок DB','подставить значения, дату съёма поставить одной и той же'],
+           ['Проверить сторожем','скрипт валится, если появилась цифра без источника']
+          ].map((r,i)=>'<div class="flex items-start gap-2.5"><span class="w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-[11px] font-bold num" style="background:color-mix(in oklab, '+PS(Math.min(4,Math.floor(i/1.6)))+' 30%, transparent);color:'+INKH()+'">'+(i+1)+'</span>'
+           +'<div><span class="hd font-medium">'+esc(r[0])+'</span><div class="opacity-70 leading-tight">'+esc(r[1])+'</div></div></div>').join('')
+        + '</div>')
+   + '</div>'
+   + note('Правило, которое нельзя обойти',
+      'Если выгрузки нет, ставится <span class="font-mono">v: null</span> и класс ДЕМО. Подставлять правдоподобное число запрещено: рядом с настоящими цифрами заглушка перестаёт читаться как заглушка, и через неделю никто уже не помнит, какая из них какая.','crit');
+},
+'rg-api': () => {
+  return head('Источники и API', 'В keys.so 50 инструментов, по API доступны 49. Единственное исключение это «Структура сайта»: прямого метода нет, дерево собирается из выгрузки страниц на нашей стороне.',
+      'apidoc.keys.so, спека OpenAPI 3.0.0, 164 операции', 'P3', bAPI,
+      'Доступ по API есть только на тарифах Professional и Corporate. На младших тарифах дашборд наполняется руками, и это другая история по трудозатратам.')
+   + '<div class="'+g2+' mb-4">'
+   +   card('Аутентификация и лимиты','',
+        tbl([['Параметр'],['Значение']],[
+          ['Адрес','<span class="font-mono text-[12px]">https://api.keys.so</span>'],
+          ['Заголовок','<span class="font-mono text-[12px]">X-Keyso-TOKEN</span>'],
+          ['Альтернатива','<span class="font-mono text-[12px]">auth-token</span> в строке запроса'],
+          ['Частота','10 запросов за 10 секунд'],
+          ['HTTP 202','отчёт ещё строится, повторить позже'],
+          ['HTTP 429','вернёт Retry-After, ждать ровно столько']]))
+   +   card('Что закрывает какой раздел','Соответствие экранов и методов',
+        tbl([['Раздел'],['Методы']],[
+          ['Органика','organic/summary, keywords, sitepages, lost, concurents'],
+          ['Семантика','clustering, base/keywords, wordstat, suggestions'],
+          ['Позиции','monitoring/*, serp-history, tools/check-top'],
+          ['GEO и ИИ','ai_tracker/*: chart, report, citation, sources, competitors'],
+          ['Реклама','context/ads, context/keywords, context/concurents'],
+          ['Ссылки','links/summary, donors, backlinks-anchor, backlinks-ip']]))
+   + '</div>'
+   + note('Что API не отдаёт','Ретроспективы по сводке домена нет. Историю приходится вести самим: точка мониторинга и точка трекера ИИ, снятые еженедельно, это единственный способ увидеть динамику через полгода.','warn');
+},
+'rg-lim': () => head('Ограничения сервиса', 'То, что придётся учитывать в работе. Список не полный, но здесь всё, обо что мы уже спотыкались.',
+      'проверено на живом аккаунте', 'P3', bAPI,
+      'Каждое ограничение это либо время команды, либо риск неверной цифры в отчёте. Оба конвертируются в деньги.')
+   + card('Ограничения','',tbl([['Что'],['Значение'],['Что с этим делать']],
+      DB.limits.map(l=>[esc(l[0]), '<span class="font-semibold hd">'+esc(l[1])+'</span>', esc(l[2])])))
+   + '<div class="mt-4">'+note('Оценка трафика непригодна',
+      'При 561 запросе в топ-50 сервис показывает около двух визитов. Это не состояние сайта, это ошибка метода оценки. Поэтому цифры трафика от keys.so в дашборде нет ни на одном экране, и появиться она может только из Метрики.','crit')+'</div>',
+'rg-dec': () => head('Журнал решений', 'Что уже решено и кем. Нужен, чтобы через месяц не переспрашивать то же самое.',
+      'решения зафиксированы 07.09', 'P3', bAPI,
+      'Каждое решение здесь стоило времени встречи. Повторно обсуждать закрытый пункт значит платить за него дважды.')
+   + card('Принятые решения','',tbl([['Решение'],['Кто'],['Когда'],['Что изменилось']],
+      DB.decisions.map(d=>[esc(d[0]), esc(d[1]), esc(d[2]), esc(d[3])])))
+   + '<div class="mt-4">'+card('Открытые','',tbl([['Вопрос'],['Кто'],['Что стоит']],
+      DB.blockers.map(b=>[esc(b[0]), esc(b[1]), esc(b[2])])))+'</div>',
+
+onepage: () => {
+  const gm=DB.projects.gm, gg=DB.projects.gg;
+  return '<div class="max-w-3xl">'
+   + head('Одна страница собственнику', 'Формат для трёхминутного чтения: что есть, чего нет, что просим. Печатается на один лист.',
+       'сборка из экранов выше', 'P0', bAPI, '')
+   + '<div class="noprint mb-4"><button onclick="window.print()" class="text-[12.5px] px-3 py-1.5 rounded-lg border bdr hovr transition inline-flex items-center gap-2">'+ic('doc','',15)+'Печать</button></div>'
+   + card('1. Сколько это в деньгах',
+       'Ответ на первый вопрос',
+       '<div class="text-[13px] leading-relaxed space-y-2">'
+       + '<p>Цифры выручки от поиска сейчас нет, и подставлять расчётную нельзя. Три звена из пяти в цепочке от показа до сделки это гипотезы: CTR по позициям, конверсия посадочной и средний чек. Пока не закрыты Метрика и прайс, любая сумма здесь была бы выдумкой.</p>'
+       + '<p>Что известно точно: план H2 по GENGLASS '+money(DB.projects.gg.plan.v)+', по GLASS-MEMORY '+money(DB.projects.gm.plan.v)+'. Потолок маркетинга при правиле 15% это '+money(DB.projects.gg.plan.v*0.15)+' и '+money(DB.projects.gm.plan.v*0.15)+' соответственно.</p>'
+       + '</div>')
+   + '<div class="mt-4">'+card('2. Что уже сделано', 'Работа, которую можно проверить',
+       tbl([['Что'],['Сколько',1]],[
+         ['Кластеров разобрано по GENGLASS', val(gg.clusters)],
+         ['Посадочных описано с мета и ТЗ', val(gg.landings)],
+         ['Контент-единиц готово к передаче', val(gg.units)],
+         ['Запросов в топ-50, GLASS-MEMORY', val(gm.top50)],
+         ['Упоминаний в Алисе, GLASS-MEMORY', val(gm.alice)]]))+'</div>'
+   + '<div class="mt-4">'+card('3. Что просим', 'Пять вопросов, все на Иване',
+       '<ol class="text-[13px] leading-relaxed space-y-1.5 pl-5 list-decimal">'
+       + DB.blockers.map(b=>'<li><span class="hd font-medium">'+esc(b[0])+'</span> - '+esc(b[2])+'</li>').join('')
+       + '</ol>')+'</div>'
+   + '<div class="mt-4">'+card('4. Два варианта', 'С ценой каждого',
+       '<div class="text-[13px] leading-relaxed space-y-3">'
+       + '<div><span class="hd font-semibold">Вариант А. Ждать полного комплекта данных.</span> Публикация начинается после того, как закрыты все пять вопросов. Цена: волна 1 сдвигается минимум на неделю, 12 готовых единиц лежат без движения.</div>'
+       + '<div><span class="hd font-semibold">Вариант Б. Стартовать волной 1 сейчас.</span> Двенадцать единиц не заблокированы ничем и уходят в работу, остальные ждут прайс и разработчика. Цена: часть текстов придётся править после того, как придёт прайс.</div>'
+       + '<div class="pt-1 opacity-80">Рекомендация: Б. Ожидание не делает данные точнее, оно только отодвигает первую точку замера.</div>'
+       + '</div>')+'</div>'
+   + '<div class="mt-4">'+card('5. Чем закончится, если не сработает','Downside честно',
+       '<div class="text-[13px] leading-relaxed">Худший сценарий: волна 1 выходит, позиций не приносит, и мы теряем время подряда на внешние материалы плюс внутренние часы на приёмку. Точка проверки: через месяц после публикации смотрим мониторинг. Если ни одна из двенадцати страниц не вошла в топ-50 по своему кластеру, канал сворачивается и бюджет уходит в контекст.</div>')+'</div>'
+   + '</div>';
+}
+};
+function screens(){ return Object.assign({}, SCREENS_A, SCREENS_DYN, SCREENS_B, SCREENS_C, SCREENS_D); }
+
+
+/* ============ КАРТОЧКА МЕТОДА ============
+   На каждом экране видно, откуда берётся цифра, чем её обновляют, как часто
+   и чего метод не отдаёт. Это то, что превращает картинку в рабочий инструмент. */
+const MS = {
+ 'org-sum':  ['GET /report/simple/organic/summary','base, domain','позиции по ступеням, число страниц, видимость','раз в неделю','ретроспективы нет, историю ведём сами'],
+ 'org-kw':   ['GET /report/simple/organic/keywords','base, domain, page, per_page','запрос, позиция, частотность, URL','раз в неделю','на Professional 500 строк на страницу'],
+ 'org-pg':   ['GET /report/simple/organic/sitepages','base, domain','URL, число запросов, суммарная частотность','раз в неделю','отдаёт только страницы, попавшие в топ-50'],
+ 'org-lost': ['GET /report/simple/organic/lost','base, domain','запрос, было, стало, дельта','раз в неделю','сравнение идёт с внутренним срезом сервиса, не с нашим'],
+ 'org-comp': ['GET /report/simple/organic/concurents','base, domain','домен, общих запросов, схожесть','раз в месяц','в топе пересечений всегда маркетплейсы'],
+ 'org-tree': ['сборка из /report/simple/organic/sitepages','base, domain','дерево по сегментам URL','раз в месяц','прямого метода нет, дерево строим сами'],
+ 'sem-cl':   ['POST /clustering, GET /clustering/node/{uid}/{id}/keywords','список запросов, порог схожести','дерево папок, состав каждой','по мере расширения ядра','кластеризация платная по объёму'],
+ 'sem-base': ['GET /base/keywords, /base/keywords/count','фраза, база, фильтры','запрос, частотность, конкуренция','по задаче','база сервиса, а не Wordstat напрямую'],
+ 'sem-ws':   ['GET /wordstat/report, POST /wordstat/create-project','список слов, регион','точная и широкая частотность','по задаче','истории по месяцам нет'],
+ 'sem-sug':  ['GET /suggestions, /report/simple/organic/relevant','фраза','подсказки и связанные фразы','по задаче','подсказки зависят от региона и меняются'],
+ 'pos-mon':  ['GET /monitoring/{id}/report-chart, /dates, /report-compare','id проекта, диапазон дат','позиции по датам, сравнение двух срезов','еженедельно, без пропусков','пропущенная неделя не восстанавливается'],
+ 'pos-serp': ['GET /serp-history','запрос, база','состав топ-10 по датам','по задаче','глубина истории ограничена сроком жизни проекта'],
+ 'pos-top':  ['POST /tools/check-top','список запросов, база','матрица общих URL','по задаче','до нескольких десятков запросов за раз'],
+ 'geo-tr':   ['GET /ai_tracker/{id}/chart, /report, /dates','id трекера, диапазон','видимость по системам и датам','еженедельно','часть отчётов работает только на базе msk'],
+ 'geo-men':  ['GET /ai_tracker/{id}/citation','id трекера','текст ответа, ссылка, система','еженедельно','ответы систем меняются между съёмами'],
+ 'geo-comp': ['GET /ai_tracker/{id}/competitors','id трекера','домен, доля упоминаний','еженедельно','состав конкурентов зависит от набора промптов'],
+ 'geo-src':  ['GET /ai_tracker/{id}/sources, /sources/chart','id трекера','источник, доля, динамика','еженедельно','источник не всегда раскрывается системой'],
+ 'geo-pr':   ['GET /ai_tracker/{id}/prompts','id трекера','список промптов и их статус','при изменении набора','30 промптов на проект как рабочий объём'],
+ 'ad-search':['GET /report/simple/context/ads','base, domain','текст объявления, посадочная, запросы','раз в неделю','видны только объявления, попавшие в срез сервиса'],
+ 'ad-rsya':  ['GET /report/simple/context/rsya','base, domain','площадки, форматы, охват','раз в месяц','покрытие сетей заведомо неполное'],
+ 'ad-comp':  ['GET /report/simple/context/concurents','base, domain','домен, объявлений, общих запросов','раз в неделю','срез, а не полный охват аукциона'],
+ 'ad-budget':['GET /wordstat/report, оценка бюджета','список запросов, регион','ориентировочная ставка и бюджет','по задаче','оценка приблизительная, потолок берём из плана'],
+ 'lnk-prof': ['GET /report/simple/links/summary','domain','рейтинг, доноры, ссылки','раз в месяц','индекс ссылок обновляется с задержкой'],
+ 'lnk-don':  ['GET /report/simple/links/donors','domain, page','домен донора, число ссылок','раз в месяц','поддомены считаются отдельными донорами'],
+ 'lnk-anc':  ['GET /report/simple/links/backlinks-anchor','domain','анкор, число ссылок','раз в месяц','безанкорные ссылки часто недоучтены'],
+ 'lnk-ip':   ['GET /report/simple/links/backlinks-ip, /backlinks-ip/subnet','domain','IP, подсеть, число доноров','раз в месяц','общий хостинг даёт ложные срабатывания'],
+ 'ym-traf':  ['Метрика: отчёт «Посещаемость»','id счётчика, диапазон','визиты, посетители, глубина, отказы','ежедневно','кабинет не подключён'],
+ 'ym-src':   ['Метрика: отчёт «Источники, сводка»','id счётчика, диапазон','канал, визиты, доля','ежедневно','без разметки UTM канал не определяется'],
+ 'ym-beh':   ['Метрика: отчёты по поведению','id счётчика, диапазон','глубина, время, отказы, доскроллы','ежедневно','кабинет не подключён'],
+ 'ym-goal':  ['Метрика: отчёт по целям','id счётчика, id цели','достижения, конверсия','ежедневно','цели надо настроить до подключения'],
+ 'yd-camp':  ['Директ: отчёт по кампаниям','логин, диапазон','кампания, статус, расход, конверсии','ежедневно','кабинет не подключён'],
+ 'yd-cost':  ['Директ: отчёт по расходу','логин, диапазон','расход, клики, конверсии, CPL','ежедневно','кабинет не подключён'],
+ 'yd-q':     ['Директ: отчёт по поисковым запросам','логин, диапазон','фраза, показы, клики, расход','еженедельно','кабинет не подключён'],
+ 'ct-plan':  ['внутренний план из карты посадочных','нет','страница, волна, статус, исполнитель','при изменении плана','не источник keys.so'],
+ 'ct-unit':  ['задания контентщикам, редакция 4','нет','единица, тип, объём, чек-лист приёмки','при изменении заданий','не источник keys.so'],
+ 'ct-idx':   ['оператор site: плюс Вебмастер','домен','страниц в индексе, исключено','раз в неделю','доступа к Вебмастеру нет']
+};
+function method(v){
+  const m = MS[v]; if(!m) return '';
+  return card('Метод и его границы','Откуда цифра, чем обновляется и чего метод не даёт',
+    tbl([['Что'],['Значение']],[
+      ['Запрос','<span class="font-mono text-[11.5px]">'+esc(m[0])+'</span>'],
+      ['Параметры','<span class="font-mono text-[11.5px]">'+esc(m[1])+'</span>'],
+      ['Что возвращает', esc(m[2])],
+      ['Как часто снимаем', esc(m[3])],
+      ['Чего метод не даёт', '<span class="crit-i">'+esc(m[4])+'</span>']]));
+}
+
+
+/* ============ ЧТО СМОТРЕТЬ ============
+   Три правила чтения на экран. Без них отчёт превращается в набор красивых цифр,
+   по которым никто не принимает решений. */
+const RD = {
+ 'org-sum': ['Смотри не на топ-50, а на топ-10: только он даёт заметный трафик.',
+             'Сравнивай с прошлой неделей, а не с абсолютной целью. Цель по позициям бессмысленна, важна скорость.',
+             'Если топ-50 растёт, а топ-10 стоит, значит контента прибавилось, а качества нет.'],
+ 'org-kw': ['Ищи запросы на границе 11-15 позиции: это самый дешёвый рост.',
+            'Частотность без позиции ничего не значит, а позиция без частотности не приносит денег.',
+            'Один запрос на одну страницу. Если два URL делят запрос, оба проигрывают.'],
+ 'org-pg': ['Пять верхних страниц обычно дают больше половины видимости, работай с ними.',
+            'Страница с большой частотностью и малым числом запросов недоработана по семантике.',
+            'Если в топе страница блога, а не коммерческая, деньги уходят мимо.'],
+ 'org-lost': ['Просадка на 5-10 позиций это правки, просадка на 30 это техническая проблема.',
+              'Проверь, не переписывали ли страницу перед просадкой.',
+              'Если просел весь кластер разом, дело в выдаче, а не в нас.'],
+ 'org-comp': ['Схожесть ниже 5% значит, что это не конкурент, а случайное пересечение.',
+              'Маркетплейсы из этого списка выбрасывай сразу.',
+              'Реального конкурента ищи в разделе «Реклама»: тот, кто платит, тот и конкурент.'],
+ 'org-tree': ['Раздел с большой частотностью и парой страниц это готовое ТЗ.',
+              'Раздел с сотней страниц и малой частотностью это кандидат на склейку.',
+              'Если дерево не совпадает со структурой меню сайта, у пользователя и робота разные карты.'],
+ 'sem-cl': ['Кластер меньше трёх запросов отдельной страницы не заслуживает.',
+            'Если два кластера делят одну выдачу, это один кластер.',
+            'Кластер без коммерческого интента в план не идёт, сколько бы он ни весил.'],
+ 'sem-base': ['Запрос без посадочной это не спрос, а строка в отчёте.',
+              'Частотность из базы сервиса и из Wordstat расходятся, сверяй перед планом.',
+              'Отбирай по интенту, а не по объёму: тысяча информационных запросов не даст ни одной заявки.'],
+ 'sem-ws': ['Широкая частотность завышена в разы, работай с точной.',
+            'Региональность меняет цифру кратно, всегда фиксируй базу.',
+            'Сезонность здесь не видна, планировать по одному срезу нельзя.'],
+ 'sem-sug': ['Подсказка это готовая формулировка вопроса для FAQ, бери дословно.',
+             'Подсказки с ценой и сравнением означают горячий интент.',
+             'Если подсказка ведёт на конкурента, там уже есть готовый ответ, который надо перебить.'],
+ 'pos-mon': ['Точка снимается еженедельно, пропуск не восстанавливается.',
+             'Смотри на среднюю позицию по кластеру, а не по отдельному запросу.',
+             'Скачок сразу по всем запросам это апдейт выдачи, а не наша работа.'],
+ 'pos-serp': ['Если нас подвинул агрегатор, вернуть позицию контентом не выйдет.',
+              'Смена состава топа на треть означает смену интента, страницу надо переделывать.',
+              'Стабильный топ полгода это ниша, куда заходить дорого.'],
+ 'pos-top': ['Пересечение выше 6 общих URL значит, что хватит одной страницы.',
+             'Пересечение ниже 3 значит, что страниц нужно две, иначе обе просядут.',
+             'Матрица экономит работу контентщика, считай её до постановки задания.'],
+ 'geo-tr': ['Смотри динамику по неделям, абсолютная доля мало о чём говорит.',
+            'Алиса в поиске и Алиса в чате это разные каналы с разной выдачей.',
+            'Рост в одной системе при падении в остальных это случайность, а не тренд.'],
+ 'geo-men': ['Упоминание без ссылки хуже упоминания со ссылкой, но лучше отсутствия.',
+             'Считай формулировку: если нас назвали как «один из вариантов», это не рекомендация.',
+             'Ответы систем меняются между съёмами, одна точка ничего не доказывает.'],
+ 'geo-comp': ['Здесь список конкурентов настоящий, в отличие от органики.',
+              'Если нас нет в ответе, а конкурент есть, найди источник, из которого система взяла его.',
+              'Доля голоса важнее позиции: в ответе нет первой строки.'],
+ 'geo-src': ['Если большая часть ответов собирается из чужих подборок, писать надо туда.',
+             'Свой сайт как источник это лучший случай, к нему и идём.',
+             'Каталоги и агрегаторы дешевле перебить размещением, чем контентом.'],
+ 'geo-pr': ['Промпт должен звучать как вопрос покупателя, а не как запрос сеошника.',
+            'Тридцать промптов это рабочий объём: меньше не даёт статистики.',
+            'Меняешь набор промптов, значит обнуляешь ряд. Меняй редко и записывай дату.'],
+ 'ad-search': ['Считай не число объявлений, а число запросов под ними.',
+               'Объявление, висящее полгода, окупается. Это проверка спроса за чужой счёт.',
+               'Свою кампанию не запускаем без подтверждения, экран нужен для подготовки.'],
+ 'ad-rsya': ['Сети дают дешёвый клик и дорогой лид, не смешивай их с поиском.',
+             'Площадки чистить обязательно, иначе бюджет уходит в мусор.',
+             'Ретаргет считается отдельно, он всегда красивее по CPL и портит среднее.'],
+ 'ad-comp': ['Кто платит за запрос, тот и есть конкурент, а не тот, кто рядом в органике.',
+             'Смотри пересечение по запросам, а не по числу объявлений.',
+             'Новый рекламодатель в нише это либо новый игрок, либо тест, проверь через месяц.'],
+ 'ad-budget': ['Оценка сервиса приблизительная, потолок из плана жёсткий.',
+               'Считай не бюджет, а возврат: расход умножить на порог ROI.',
+               'Ни рубля без подтверждения Ивана.'],
+ 'lnk-prof': ['Рейтинг сам по себе ничего не решает, смотри состав доноров.',
+              'Резкий рост ссылок без причины это чужая работа, проверь на негатив.',
+              'Ссылочное не даёт лидов, оно снимает потолок по позициям.'],
+ 'lnk-don': ['Десять чужих отраслевых доноров стоят больше пятисот своих поддоменов.',
+             'Донор без трафика не передаёт вес, сколько бы ссылок ни стояло.',
+             'Один донор, дающий десятки ссылок, засчитывается почти как один.'],
+ 'lnk-anc': ['Коммерческих анкоров больше 10% это риск фильтра.',
+             'Безанкорные и брендовые должны составлять большинство.',
+             'Резкий рост одного анкора за неделю это либо накрутка, либо чужая атака.'],
+ 'lnk-ip': ['Смотри не среднее по подсетям, а скопления в единичных.',
+            'Общий хостинг даёт ложные срабатывания, проверяй вручную.',
+            'Своя сетка это риск без отдачи, деньги в неё не вкладываем.'],
+ 'ym-traf': ['Визиты без разреза по каналам бесполезны для решений.',
+             'Сравнивай день недели с тем же днём прошлой недели, а не с вчера.',
+             'Всплеск без роста позиций это либо бот, либо внешняя публикация.'],
+ 'ym-src': ['Поиск без разметки UTM сливается в одну кучу с прямыми заходами.',
+            'Прямые заходы, растущие вместе с рекламой, это на самом деле реклама.',
+            'Доля канала важнее его абсолютного размера.'],
+ 'ym-beh': ['Средняя глубина по сайту смешивает блог с прайсом и всегда выглядит прилично.',
+            'Смотри доскроллы до формы на каждой коммерческой странице отдельно.',
+            'Отказ на посадочной выше 60% значит, что обещание в объявлении не совпало с содержимым.'],
+ 'ym-goal': ['Без целей вся цепочка до денег остаётся гипотезой.',
+             'Минимум три цели: форма, звонок, мессенджер.',
+             'Микроцели вроде «скролл 75%» в отчёт собственнику не идут.'],
+ 'yd-camp': ['Бренд считается отдельно, иначе он вытянет среднее.',
+             'Кампания без конверсий за две недели останавливается, а не оптимизируется.',
+             'Запуск и пополнение только с подтверждения Ивана.'],
+ 'yd-cost': ['Предельный CPL считается от среднего чека, а не берётся из головы.',
+             'Расход сверяется с потолком в 15% от плана, а не с прошлым месяцем.',
+             'CPL без учёта конверсии в сделку обманывает: дешёвый лид может не покупать.'],
+ 'yd-q': ['Отчёт по поисковым запросам ценнее Wordstat: здесь формулировки с оплаченным показом.',
+          'Каждое незаминусованное мусорное слово это прямой расход без возврата.',
+          'Новые кластеры для SEO ищи именно здесь.'],
+ 'ct-plan': ['План без имени исполнителя и даты это список желаний.',
+             'Волна планируется по тому, что не заблокировано, а не по тому, что хочется.',
+             'Опубликовано не значит сдано: сдано это после приёмки.'],
+ 'ct-unit': ['Единица без пройденного чек-листа не считается сданной.',
+             'Цифра без источника снимается из текста, а не помечается звёздочкой.',
+             'Гарантия, цены и размеры проверяются отдельно, это самые частые ошибки.'],
+ 'ct-idx': ['Разрыв между числом страниц и числом в индексе закрывается раньше нового контента.',
+            'Исключённые страницы смотри по причине, а не по количеству.',
+            'Страница без внутренних ссылок в индекс не попадёт, сколько её ни проси.']
+};
+function reading(v){
+  const r = RD[v]; if(!r) return '';
+  return card('Что смотреть','Три правила чтения этого экрана',
+    '<div class="space-y-2.5 text-[12.5px] leading-snug">'
+    + r.map((x,i)=>'<div class="flex items-start gap-2.5">'
+      + '<span class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center text-[10.5px] font-bold num" style="background:color-mix(in oklab, '+P(i)+' 18%, transparent);color:'+P(i)+'">'+(i+1)+'</span>'
+      + '<span>'+esc(x)+'</span></div>').join('')
+    + '</div>');
+}
+
+
+/* ============ ГРАФИКИ ============
+   Правила: категориальные тона в фиксированном порядке и никогда по кругу;
+   одна серия - один цвет и без легенды; две и больше - легенда всегда;
+   подписи значений выборочные; сетка сплошная и тише фона; у каждого графика есть таблица. */
+const CH = {};
+function base(h, type){
+  return {
+    chart:{ type:type, height:h, fontFamily:'"DM Sans", system-ui, sans-serif', foreColor:INK(),
+            toolbar:{show:false}, animations:{enabled:true, easing:'easeinout', speed:520},
+            parentHeightOffset:0 },
+    grid:{ borderColor:GRID(), strokeDashArray:0, padding:{left:14,right:18,top:0,bottom:12} },
+    dataLabels:{ enabled:false },
+    legend:{ show:false },
+    tooltip:{ theme:A()?'dark':'light', style:{fontSize:'12px'} },
+    stroke:{ width:2, lineCap:'round', curve:'straight' },
+    xaxis:{ axisBorder:{show:false}, axisTicks:{show:false}, labels:{style:{fontSize:'11px'}} },
+    yaxis:{ labels:{style:{fontSize:'11px'}} }
+  };
+}
+function mk(id, opt){
+  const el = document.getElementById(id); if(!el) return;
+  if(CH[id]){ try{ CH[id].destroy(); }catch(e){} }
+  CH[id] = new ApexCharts(el, opt); CH[id].render();
+}
+const wkCats = ['н-1','н-2','н-3','н-4','н-5','н-6','н-7'];
+
+function draw(){
+  const d = V(), dd = DD(), sl = slice();
+  const cats = sl.cur.map(r=>ruD(r.date));
+  const pick = f => sl.cur.map(r=>r[f]==null? null : r[f]);
+  const pad = (arr) => { const v = arr.filter(x=>x!=null); if(!v.length) return {};
+    const mn=Math.min(...v), mx=Math.max(...v), span=Math.max(1, mx-mn);
+    return { min: mn - span*0.18, max: mx + span*0.18 }; };
+  const lineBase = (h) => Object.assign(base(h,'line'), {
+    xaxis:{categories:cats, axisBorder:{show:false}, axisTicks:{show:false},
+           tickAmount: Math.min(6, Math.max(2, cats.length)),
+           labels:{style:{fontSize:'10.5px'}, rotate:-38, rotateAlways:false, hideOverlappingLabels:true, trim:false, offsetY:2}},
+    markers:{size:0, hover:{size:8}, strokeWidth:2, strokeColors:SURF()},
+    tooltip:{enabled:true, theme:A()?'dark':'light', shared:true, intersect:false} });
+
+  /* запросы в топ-10 по дням: одна серия, подпись только на конце */
+  if(document.getElementById('c-h10')){
+    const v = pick('top10');
+    mk('c-h10', Object.assign(lineBase(260), {
+      series:[{name:'Топ-10', data:v}], colors:[P(2)],
+      yaxis:Object.assign({labels:{style:{fontSize:'11px'}, formatter:x=>nf(Math.round(x))}}, pad(v)),
+      dataLabels:{enabled:true, background:{enabled:false},
+        formatter:(x,o)=> o.dataPointIndex===v.length-1 && x!=null ? nf(x) : '',
+        offsetY:-9, style:{fontSize:'11px', fontWeight:600, colors:[INK()]}} }));
+  }
+  /* видимость в ИИ по дням */
+  if(document.getElementById('c-hvis')){
+    const v = pick('vis');
+    mk('c-hvis', Object.assign(lineBase(280), {
+      chart:Object.assign(lineBase(280).chart,{type:'area'}),
+      series:[{name:'Видимость, %', data:v}], colors:[P(0)],
+      yaxis:Object.assign({labels:{style:{fontSize:'11px'}, formatter:x=>Math.round(x)}}, pad(v)),
+      fill:{type:'gradient', gradient:{shadeIntensity:.25, opacityFrom:.28, opacityTo:.02, stops:[0,100]}},
+      dataLabels:{enabled:true, background:{enabled:false},
+        formatter:(x,o)=> o.dataPointIndex===v.length-1 && x!=null ? x+'%' : '',
+        offsetY:-9, style:{fontSize:'11px', fontWeight:600, colors:[INK()]}} }));
+  }
+  /* топ-10 и топ-50 вместе: логарифмическая ось, легенда обязательна */
+  if(document.getElementById('c-pos')){
+    mk('c-pos', Object.assign(lineBase(320), {
+      series:[{name:'Топ-10', data:pick('top10')},{name:'Топ-50', data:pick('top50')}],
+      colors:[P(2), P(1)],
+      yaxis:{logarithmic:true, labels:{style:{fontSize:'11px'}, formatter:v=>nf(Math.round(v))}},
+      legend:{show:true, position:'top', horizontalAlign:'left', fontSize:'11.5px', markers:{width:9,height:9,radius:3}} }));
+  }
+  /* всё на одной шкале через индекс: первая точка периода это 100 */
+  if(document.getElementById('c-idx100')){
+    const fs = [['top10','Топ-10'],['top50','Топ-50'],['vis','Видимость']];
+    const ser = fs.map(([f,n],i)=>{
+      const b = firstOf(sl.cur, f);
+      return {name:n, data: sl.cur.map(r=> (r[f]==null||!b) ? null : Math.round(r[f]/b*100))};
+    });
+    // Поля по краям: без них ряд, просевший к низу шкалы, ложится на ось и не читается
+    const vals = ser.flatMap(x=>x.data).filter(v=>v!=null);
+    const lo = vals.length? Math.floor((Math.min(...vals) - 12) / 10) * 10 : 0;
+    const hi = vals.length? Math.ceil((Math.max(...vals) + 12) / 10) * 10 : 100;
+    // Ряд из одной-двух точек линией не рисуется: без маркеров легенда обещает серию,
+    // которой на графике нет. Точкам такого ряда даём видимый маркер.
+    const mk_ = ser.map(x => x.data.filter(v=>v!=null).length <= 3 ? 6 : 0);
+    mk('c-idx100', Object.assign(lineBase(300), {
+      series:ser, colors:[P(2),P(1),P(0)],
+      markers:{size:mk_, strokeWidth:2, strokeColors:SURF(), hover:{size:8}},
+      yaxis:{min:lo, max:hi, tickAmount:Math.min(8, Math.max(3, Math.round((hi-lo)/10))),
+             labels:{style:{fontSize:'11px'}, formatter:v=>Math.round(v)}},
+      annotations:{yaxis:[{y:100, borderColor:A()?'#39404A':'#C3CBD9', strokeDashArray:0,
+        label:{text:'старт периода', position:'left', offsetX:78, offsetY:-2,
+               style:{fontSize:'10px', background:SURF(), color:INK()}}}]},
+      legend:{show:true, position:'top', horizontalAlign:'left', fontSize:'11.5px', markers:{width:9,height:9,radius:3}} }));
+  }
+  /* визиты Метрики: две серии */
+  if(document.getElementById('c-ym') && d.ym){
+    const days = d.ym.days || [];
+    const cut = days.slice(Math.max(0, days.length - Math.min(PERIODS[PERIOD], days.length)));
+    mk('c-ym', Object.assign(base(300,'area'), {
+      series:[{name:'Визиты', data:cut.map(r=>r.visits)},{name:'Из поиска', data:cut.map(r=>r.search_visits)}],
+      xaxis:{categories:cut.map(r=>ruD(r.date)), axisBorder:{show:false}, axisTicks:{show:false},
+             tickAmount:Math.min(6,Math.max(2,cut.length)),
+             labels:{style:{fontSize:'10.5px'}, rotate:-38, hideOverlappingLabels:true}},
+      colors:[P(2), P(1)],
+      fill:{type:'gradient', gradient:{opacityFrom:.26, opacityTo:.02}},
+      markers:{size:0, hover:{size:8}},
+      legend:{show:true, position:'top', horizontalAlign:'left', fontSize:'11.5px', markers:{width:9,height:9,radius:3}},
+      tooltip:{enabled:true, theme:A()?'dark':'light', shared:true, intersect:false} }));
+  }
+
+  /* воронка топ-N: одна серия, логарифмическая ось, подпись только на концах */
+  if(document.getElementById('c-fun')){
+    const rows = [['топ-1',d.top1],['топ-3',d.top3],['топ-5',d.top5],['топ-10',d.top10],['топ-50',d.top50]]
+      .filter(r=>r[1]&&r[1].v!=null);
+    const mx = Math.max(...rows.map(r=>r[1].v));
+    mk('c-fun', Object.assign(base(260,'bar'), {
+      series:[{name:'Запросов', data:rows.map(r=>r[1].v)}],
+      xaxis:{categories:rows.map(r=>r[0]), axisBorder:{show:false}, axisTicks:{show:false},
+             labels:{style:{fontSize:'11px'}, formatter:v=>nf(Math.round(v))}},
+      plotOptions:{bar:{horizontal:true, borderRadius:4, borderRadiusApplication:'end', barHeight:'56%',
+        dataLabels:{position:'top'}}},
+      colors:[P(2)],
+      /* подпись выносится за торец полосы: на коротких столбцах она иначе ложится поверх заливки */
+      dataLabels:{enabled:true, textAnchor:'start', offsetX:9, offsetY:1,
+        style:{fontSize:'11px', fontWeight:600, colors:[INK()]},
+        formatter:v=>nf(v)},
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  }
+
+  /* доля в ответах ИИ: одна серия, девять систем */
+  if(document.getElementById('c-ai')){
+    mk('c-ai', Object.assign(base(280,'bar'), {
+      series:[{name:'Видимость, %', data:dd.ai.map(r=>r[1])}],
+      xaxis:{categories:dd.ai.map(r=>r[0]), labels:{rotate:-38, style:{fontSize:'10px'}}, axisBorder:{show:false}, axisTicks:{show:false}},
+      plotOptions:{bar:{borderRadius:4, borderRadiusApplication:'end', columnWidth:'52%'}},
+      colors:[P(0)],
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  }
+
+  /* динамика топ-50 по неделям: одна серия, точка только на последней */
+  if(document.getElementById('c-wk')){
+    mk('c-wk', Object.assign(base(270,'line'), {
+      series:[{name:'Топ-50', data:dd.wk}],
+      xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
+      colors:[P(1)],
+      markers:{size:0, hover:{size:8}, strokeWidth:2, strokeColors:SURF()},
+      dataLabels:{enabled:true, formatter:(v,o)=> o.dataPointIndex===dd.wk.length-1 ? nf(v) : '',
+                  offsetY:-9, style:{fontSize:'11px', fontWeight:600, colors:[INK()]}, background:{enabled:false}},
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  }
+
+  /* видимость ИИ по неделям: площадь, одна серия */
+  if(document.getElementById('c-aiwk')){
+    mk('c-aiwk', Object.assign(base(280,'area'), {
+      series:[{name:'Видимость, %', data:dd.aiwk}],
+      xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
+      colors:[P(0)],
+      fill:{type:'gradient', gradient:{shadeIntensity:.25, opacityFrom:.30, opacityTo:.02, stops:[0,100]}},
+      markers:{size:0, hover:{size:8}, strokeWidth:2, strokeColors:SURF()},
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  }
+
+  /* вес страниц: один тон, площадь уже несёт величину */
+  if(document.getElementById('c-tree')){
+    mk('c-tree', Object.assign(base(300,'treemap'), {
+      series:[{data: dd.pg.map(r=>({x:r[0], y:r[2]}))}],
+      colors:[P(2)],
+      plotOptions:{treemap:{distributed:false, enableShades:false}},
+      dataLabels:{enabled:true, style:{fontSize:'11.5px', fontWeight:600}, offsetY:-2},
+      stroke:{width:2, colors:[SURF()]},
+      tooltip:{enabled:true, theme:A()?'dark':'light', y:{formatter:v=>nf(v)}} }));
+  }
+
+  /* пончики: пять долей, легенда всегда, подписи процентов на секторах */
+  [['c-src', dd.src, ['Свой сайт','Подборки «Топ-N»','Каталоги','Маркетплейсы','Прочее']],
+   ['c-ymsrc',[52,18,15,9,6], ['Поиск Яндекс','Прямые','Google','Переходы','Соцсети']],
+   ['c-anc', dd.anc.map(r=>r[1]), dd.anc.map(r=>r[0])]].forEach(([id,ser,lab])=>{
+    if(!document.getElementById(id)) return;
+    mk(id, Object.assign(base(300,'donut'), {
+      series:ser, labels:lab,
+      colors:[P(0),P(1),P(2),P(3),P(4)],
+      stroke:{width:2, colors:[SURF()]},
+      legend:{show:true, position:'bottom', fontSize:'11.5px', markers:{width:9,height:9,radius:3}, itemMargin:{horizontal:7,vertical:3}},
+      dataLabels:{enabled:true, style:{fontSize:'11px', fontWeight:600}, dropShadow:{enabled:false}, formatter:v=>Math.round(v)+'%'},
+      plotOptions:{pie:{donut:{size:'62%', labels:{show:true, total:{show:true, label:'всего', fontSize:'12px',
+        formatter:()=>ser.reduce((a,b)=>a+b,0)+'%'}}}}},
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  });
+
+  /* история выдачи: ось перевёрнута, первая позиция сверху */
+  if(document.getElementById('c-serp')){
+    mk('c-serp', Object.assign(base(280,'line'), {
+      series:[{name:'Позиция', data:[9,8,8,6,7,5,5]}],
+      xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
+      yaxis:{reversed:true, min:1, max:10, tickAmount:9, labels:{style:{fontSize:'11px'}}},
+      colors:[P(1)],
+      markers:{size:5, strokeWidth:2, strokeColors:SURF(), hover:{size:8}},
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  }
+
+  /* тепловая карта: последовательная шкала, один тон светлее к темнее */
+  if(document.getElementById('c-heat')){
+    const q = ['запрос 1','запрос 2','запрос 3','запрос 4','запрос 5'];
+    const m = [[10,6,4,2,1],[6,10,5,3,2],[4,5,10,6,3],[2,3,6,10,7],[1,2,3,7,10]];
+    mk('c-heat', Object.assign(base(320,'heatmap'), {
+      series: q.map((n,i)=>({name:n, data:q.map((nn,j)=>({x:nn, y:m[i][j]}))})),
+      colors:[PS(3)],
+      plotOptions:{heatmap:{shadeIntensity:.55, radius:3, useFillColorAsStroke:false,
+        colorScale:{ranges:[
+          {from:0,to:2,color:PS(0),name:'0-2 общих URL'},
+          {from:3,to:4,color:PS(1),name:'3-4'},
+          {from:5,to:6,color:PS(2),name:'5-6'},
+          {from:7,to:8,color:PS(3),name:'7-8'},
+          {from:9,to:10,color:PS(4),name:'9-10'}]}}},
+      stroke:{width:2, colors:[SURF()]},
+      legend:{show:true, position:'bottom', fontSize:'11px', markers:{width:9,height:9,radius:3}},
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  }
+
+  /* объём рекламы: выделение одного столбца, остальные нейтральны */
+  [['c-ads', 290],['c-ads2', 290]].forEach(([id,h])=>{
+    if(!document.getElementById(id)) return;
+    const our = CUR==='gm' ? (d.ads? d.ads.v : 0) : 0;
+    const cats = ['мы','лидер ниши','второй','третий'];
+    const vals = [our, 314, 186, 70];
+    const neutral = A() ? '#39404A' : '#C3CBD9';
+    mk(id, Object.assign(base(h,'bar'), {
+      series:[{name:'Объявлений', data:vals}],
+      xaxis:{categories:cats, axisBorder:{show:false}, axisTicks:{show:false}, labels:{style:{fontSize:'11px'}}},
+      plotOptions:{bar:{borderRadius:4, borderRadiusApplication:'end', columnWidth:'50%', distributed:true}},
+      colors:[P(2), neutral, neutral, neutral],
+      legend:{show:false},
+      dataLabels:{enabled:true, offsetY:-18, style:{fontSize:'11px', fontWeight:600, colors:[INK()]}, formatter:v=>nf(v)},
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  });
+
+  /* рост доноров */
+  if(document.getElementById('c-don')){
+    mk('c-don', Object.assign(base(280,'line'), {
+      series:[{name:'Доноров', data:[498,503,507,511,514,517,519]}],
+      xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
+      colors:[P(4)], markers:{size:0, hover:{size:8}},
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  }
+
+  /* визиты Метрики: площадь, заглушка */
+  if(document.getElementById('c-traf')){
+    mk('c-traf', Object.assign(base(280,'area'), {
+      series:[{name:'Визиты', data:[0,0,0,0,0,0,0]}],
+      xaxis:{categories:['пн','вт','ср','чт','пт','сб','вс'], axisBorder:{show:false}, axisTicks:{show:false}},
+      yaxis:{max:10, labels:{style:{fontSize:'11px'}}},
+      colors:[P(3)],
+      fill:{type:'gradient', gradient:{opacityFrom:.20, opacityTo:.02}},
+      noData:{text:'Счётчик не подключён', style:{fontSize:'13px', color:INK()}},
+      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
+  }
+
+  /* расход и лиды: две серии, значит легенда обязательна */
+  if(document.getElementById('c-cost')){
+    mk('c-cost', Object.assign(base(280,'bar'), {
+      series:[{name:'Расход, ₽', data:[0,0,0,0,0,0,0]},{name:'Лиды', data:[0,0,0,0,0,0,0]}],
+      xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
+      plotOptions:{bar:{borderRadius:4, borderRadiusApplication:'end', columnWidth:'54%'}},
+      colors:[P(2), P(1)],
+      stroke:{width:2, colors:[SURF()]},
+      legend:{show:true, position:'top', horizontalAlign:'left', fontSize:'11.5px', markers:{width:9,height:9,radius:3}},
+      noData:{text:'Кабинет не подключён', style:{fontSize:'13px', color:INK()}},
+      tooltip:{enabled:true, theme:A()?'dark':'light', shared:true, intersect:false} }));
+  }
+
+  /* покрытие индексом */
+  if(document.getElementById('c-idx')){
+    mk('c-idx', Object.assign(base(260,'radialBar'), {
+      series:[0], labels:['в индексе'],
+      colors:[P(2)],
+      plotOptions:{radialBar:{hollow:{size:'62%'}, track:{background:A()?'#1A1E24':'#EEF1F6'},
+        dataLabels:{name:{fontSize:'12px', color:INK()}, value:{fontSize:'22px', fontWeight:700, color:INKH(), formatter:v=>v+'%'}}}},
+      tooltip:{enabled:false} }));
+  }
+}
+
+</script>
+
+<div class="min-h-screen flex">
+  <div id="bd" onclick="sbClose()" class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden"></div>
+  <aside id="sb" class="w-[258px] shrink-0 border-r bdr pane flex flex-col fixed lg:sticky top-0 z-40 h-screen -translate-x-full lg:translate-x-0">
+    <div class="h-[58px] flex items-center gap-2.5 px-4 border-b bdr shrink-0">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0" style="background:linear-gradient(135deg,#5D87FF,#8A5FE9)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 17l5-6 4 4 5-8 4 5"/></svg></div>
+      <div class="lbl leading-tight"><div class="font-bold text-[14px] hd">Контур</div>
+        <div class="text-[10.5px] opacity-60">SEO · GEO · Директ</div></div>
+    </div>
+    <nav id="nav" class="flex-1 overflow-y-auto p-2.5 space-y-[3px]"></nav>
+    <div class="lbl p-3 border-t bdr text-[10.5px] opacity-55 leading-snug shrink-0">
+      <span id="foot"></span>
+    </div>
+  </aside>
+
+  <div class="flex-1 min-w-0 w-full">
+    <header id="topbar" class="topbar h-[58px] sticky top-0 z-20 backdrop-blur border-b flex items-center gap-2 px-3 sm:px-4 min-w-0 overflow-hidden">
+      <button onclick="sbTog()" class="w-8 h-8 rounded-lg hovr flex items-center justify-center transition shrink-0" title="Свернуть меню">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+
+      <div class="flex items-center gap-1 p-[3px] rounded-lg soft shrink-0 overflow-hidden">
+        <button id="pgm" onclick="setP('gm')" class="px-2.5 py-1 rounded-md text-[12.5px] font-medium transition whitespace-nowrap"><span class="hidden sm:inline">GLASS-MEMORY</span><span class="sm:hidden">ГМ</span></button>
+        <button id="pgg" onclick="setP('gg')" class="px-2.5 py-1 rounded-md text-[12.5px] font-medium transition whitespace-nowrap"><span class="hidden sm:inline">GENGLASS</span><span class="sm:hidden">ГГ</span></button>
+      </div>
+
+      <select id="per" onchange="setPer(this.value)" title="Период сравнения. Действует на все экраны сразу" class="text-[12px] px-2 py-1.5 rounded-lg soft border-0 outline-none cursor-pointer shrink-0">
+        <option value="7d">7 дней</option><option value="30d" selected>30 дней</option><option value="90d">90 дней</option><option value="all">весь ряд</option>
+      </select>
+
+      <div class="flex-1"></div>
+      <div id="stamp" class="text-[11px] opacity-55 hidden sm:block shrink-0"></div>
+      <button onclick="th()" class="w-8 h-8 rounded-lg hovr flex items-center justify-center transition shrink-0" title="Тема">
+        <span id="thi"></span></button>
+    </header>
+
+    <main id="main" class="p-4 sm:p-6 overflow-x-hidden"><div id="view"></div></main>
+  </div>
+</div>
+
+<script>
+const wide = () => window.matchMedia('(min-width:1024px)').matches;
+function sbTog(){
+  const s=document.getElementById('sb');
+  if(!wide()){ // на узком экране меню выезжает поверх
+    const open = s.classList.toggle('-translate-x-full');
+    document.getElementById('bd').classList.toggle('hidden', open);
+    return;
+  }
+  const n = s.classList.toggle('w-[72px]');
+  s.classList.toggle('w-[258px]', !n);
+  document.querySelectorAll('.lbl').forEach(e=>e.classList.toggle('hidden', n));
+}
+function sbClose(){
+  document.getElementById('sb').classList.add('-translate-x-full');
+  document.getElementById('bd').classList.add('hidden');
+}
+function setP(p){ CUR=p; render(); }
+function setPer(v){ PERIOD=v; try{ localStorage.setItem('kontur-period', v); }catch(e){} render(); }
+function th(){
+  const dk=document.documentElement.classList.toggle('dark');
+  try{ localStorage.setItem('kontur-theme', dk?'dark':'light'); }catch(e){}
+  thIcon(); render();
+}
+function thIcon(){
+  const dk=document.documentElement.classList.contains('dark');
+  document.getElementById('thi').innerHTML = dk
+   ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>'
+   : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>';
+}
+function render(){
+  if(!wide()) sbClose();
+  const s=screens(), fn=s[VIEW]||s.obzor;
+  const v=document.getElementById('view');
+  const mth = method(VIEW), rd = reading(VIEW);
+  const tail = (rd||mth) ? '<div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">'+(rd||'')+(mth||'')+'</div>' : '';
+  v.innerHTML='<div class="fade">'+fn()+tail+'</div>';
+
+  document.querySelectorAll('[data-v]').forEach(b=>{
+    b.classList.toggle('navon', b.dataset.v===VIEW);
+  });
+  openFor(VIEW);
+  refreshBadges();
+
+  ['gm','gg'].forEach(p=>{
+    const b=document.getElementById('p'+p), on=(p===CUR);
+    b.classList.toggle('pane', on);
+    b.classList.toggle('hd', on);
+    b.classList.toggle('shadow-sm', on);
+    b.classList.toggle('opacity-55', !on);
+  });
+  const ss = SER();
+  document.getElementById('stamp').textContent =
+    V().name + ' · ' + V().dom + (ss.length ? ' · последний съём ' + ruD(ss[ss.length-1].date) + ' · точек ' + ss.length : ' · ряда нет');
+  const sel = document.getElementById('per'); if(sel) sel.value = PERIOD;
+  const ft = document.getElementById('foot');
+  if(ft) ft.textContent = 'Сборка данных ' + (DB.built||'').slice(0,10).split('-').reverse().join('.')
+    + '. Метрика: ' + (V().ym ? 'подключена' : 'нет') + '. Директ: ' + (V().direct ? 'выгрузка есть' : 'нет') + '.';
+  requestAnimationFrame(()=>{ draw(); if(document.getElementById('calcout')) recalc(); });
+}
+try{ if(localStorage.getItem('kontur-theme')==='dark') document.documentElement.classList.add('dark');
+     const sp = localStorage.getItem('kontur-period'); if(sp && PERIODS[sp]) PERIOD = sp; }catch(e){}
+thIcon(); buildNav(); render();
+let _rt; window.addEventListener('resize',()=>{ clearTimeout(_rt); _rt=setTimeout(draw,250); });
+</script>

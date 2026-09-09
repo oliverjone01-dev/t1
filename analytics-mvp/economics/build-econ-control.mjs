@@ -178,6 +178,22 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .note b{color:var(--ink-2)}.note i{color:var(--ink-2);font-style:normal}
 .burger{position:fixed;top:12px;right:14px;z-index:60;cursor:pointer;font-size:12px;font-weight:700;color:var(--ink-2);background:var(--elev);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
 .burger:hover{color:var(--ink-1);border-color:var(--accent)}
+.tabs{display:flex;gap:6px;margin:12px 0 8px}
+.tabs .tb{cursor:pointer;background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 16px;font-weight:600;font-size:13px}
+.tabs .tb:hover{color:var(--ink);border-color:var(--accent)}
+.tabs .tb.on{background:var(--accent);color:#06231b;border-color:var(--accent)}
+#izdSum{color:var(--ink-3);font-size:12px;margin:2px 0 8px}
+.izrow{display:flex;align-items:center;gap:12px;padding:7px 8px;border-bottom:1px solid var(--border);font-size:12.5px}
+.izrow .exp{width:12px;flex:none;color:var(--ink-3)}
+.izrow.lvl1{cursor:pointer;font-weight:600;background:var(--card)}
+.izrow.lvl1:hover{background:var(--elev)}
+.izrow.lvl2{cursor:pointer;padding-left:28px;background:var(--bg)}
+.izrow.lvl2:hover{background:var(--elev)}
+.izrow.lvl3{display:block;padding:8px 8px 12px 44px;background:var(--bg);border-bottom:2px solid var(--border)}
+.izname{flex:1 1 40%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.izdl-t{flex:1 1 30%;min-width:0;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.izm{color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums;flex:none}
+.izm b{color:var(--ink)}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;visibility:hidden;transition:opacity .2s;z-index:70}
 .scrim.open{opacity:1;visibility:visible}
 .drawer{position:fixed;top:0;right:0;height:100%;width:min(600px,62vw);background:var(--bg-1,#0b0f16);border-left:1px solid var(--border);box-shadow:-12px 0 30px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .24s ease;z-index:80;display:flex;flex-direction:column}
@@ -278,6 +294,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
   <span class="cnt" id="cnt"></span>
 </div>
 <div class="presets" id="presets"></div>
+<div class="tabs" id="tabs"><button class="tb on" data-v="deals">Сделки</button><button class="tb" data-v="izd">Изделия</button></div>
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-label="Инструкция">
@@ -311,7 +328,8 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
   </div>
 </aside>
 
-<div class="scrollx"><table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+<div class="scrollx" id="dealsWrap"><table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+<div id="izdwrap" hidden><div id="izdSum"></div><div id="izdList"></div></div>
 </div>
 <script>
 const DATA=${JSON.stringify(payload)};
@@ -384,7 +402,7 @@ function izdStageInfo(g){ let idx=-1,card=null,key=null;
 function izdShade(p){ const L=Math.round(46-p*32); return {bg:'hsl(162,42%,'+L+'%)', fg:(L>32?'#06231b':'#dff7ee')}; }
 function izdBadge(g){ const si=izdStageInfo(g); if(!si) return '';
   const sh=izdShade(si.prog); return '<span class="izst" style="background:'+sh.bg+';color:'+sh.fg+(si.fail?';outline:1px solid var(--dn)':'')+'" title="Этап смарт-процесса '+esc(si.smart)+': '+esc(si.name)+(si.fail?' (провал)':'')+' · чем темнее, тем ближе к закрытию">'+esc(si.name.length>20?si.name.slice(0,20)+'…':si.name)+'</span> '; }
-function detailRow(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
+function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
   if(izd.length){
     inner+='<table class="ptab"><tr><th>Изделие (НС/артикул)</th><th>Кол-во</th>'+ORDER.map(k=>'<th>'+esc(SMFULL[k]||k)+'</th>').join('')+'<th>Σ с/с</th></tr>';
     for(const g of izd){ const cells=ORDER.map(k=>{ const e=g.sp[k];
@@ -397,8 +415,9 @@ function detailRow(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
   }
   if(svc.length){ inner+='<div class="pusl"><b>Услуги:</b> '+svc.map(p=>esc(p.name)+' - '+fmt((+p.price||0)*(+p.qty||0))).join(' · ')+'</div>'; }
   if(!izd.length&&!svc.length) inner='<div class="pusl">изделий с артикулом в карточках нет'+(d.sps.length?' (смарты запущены, артикул не заполнен)':'; смарты не запущены')+'</div>';
-  return '<tr class="detail"><td colspan="'+COLS.length+'"><div class="pwrap">'+inner+'</div></td></tr>';
+  return inner;
 }
+function detailRow(d){ return '<tr class="detail"><td colspan="'+COLS.length+'"><div class="pwrap">'+detailInner(d)+'</div></td></tr>'; }
 function marginCell(d,ss,marginShown){
   if(!(marginShown&&ss)) return '<td class="num" title="маржа считается со стадии производства"><span class="cell-o">-</span></td>';
   const m=d.budget-ss;
@@ -738,8 +757,53 @@ function renderTotals(list){
     +'</tr>';
   document.querySelector('#tbl tfoot').innerHTML=tr;
 }
+// ===== ВКЛАДКА «ИЗДЕЛИЯ»: изделие -> сделки с ним -> содержание сделки (3 уровня) =====
+let VIEW='deals';
+const OPENIZD=new Set();      // раскрытые изделия (ключ изделия)
+const OPENIZDDEAL=new Set();  // раскрытые сделки внутри изделия (ключ изделия + id сделки)
+const izKeyG=g=> g.art?('art:'+g.art) : (g.ns?('ns:'+g.ns) : (nameSig(g.nm)?('sig:'+nameSig(g.nm)):('id:'+g.firstId)));
+const izSS=g=>((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0)+((g.sp['Закупка']&&g.sp['Закупка'].vB)||0);
+function buildIzd(list){
+  const M=new Map();
+  for(const d of list){ for(const g of izdelia(d)){ const key=izKeyG(g);
+    let e=M.get(key); if(!e){ e={key,art:g.art,ns:g.ns,nm:g.nm||'',qty:0,ss:0,deals:[]}; M.set(key,e); }
+    if((g.nm||'').length>(e.nm||'').length)e.nm=g.nm; if(!e.art&&g.art)e.art=g.art; if(!e.ns&&g.ns)e.ns=g.ns;
+    const ss=izSS(g); e.qty+=g.qty||0; e.ss+=ss; e.deals.push({d,qty:g.qty||0,ss,g}); } }
+  return [...M.values()];
+}
+function renderIzd(base){
+  const items=buildIzd(base).sort((a,b)=>b.ss-a.ss||b.deals.length-a.deals.length);
+  let html='';
+  for(const e of items){ const open=OPENIZD.has(e.key), avg=e.qty?Math.round(e.ss/e.qty):0;
+    html+='<div class="izrow lvl1" data-k="'+esc(e.key)+'">'
+      +'<span class="exp">'+(open?'▾':'▸')+'</span>'
+      +'<span class="izname">'+((e.art||e.ns)?'<span class="art-code">'+esc(e.art||e.ns)+'</span> ':'')+esc(cleanNm(e.nm).slice(0,64)||'(без названия)')+'</span>'
+      +'<span class="izm">сделок <b>'+e.deals.length+'</b></span>'
+      +'<span class="izm">'+(e.qty?e.qty+' шт':'-')+'</span>'
+      +'<span class="izm">Σ с/с <b>'+(e.ss?fmt(e.ss):'-')+'</b></span>'
+      +'<span class="izm">ср '+(avg?fmt(avg)+'/шт':'-')+'</span>'
+      +'</div>';
+    if(open){ for(const it of e.deals.slice().sort((a,b)=>b.ss-a.ss)){ const d=it.d, dk=e.key+'::'+d.id, dop=OPENIZDDEAL.has(dk), g2=gate(d);
+      html+='<div class="izrow lvl2" data-dk="'+esc(dk)+'">'
+        +'<span class="exp">'+(dop?'▾':'▸')+'</span>'
+        +'<a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a>'
+        +'<span class="izdl-t" title="'+esc(d.title||'')+'">'+esc((d.title||'').slice(0,34))+'</span>'
+        +'<span class="izm">'+esc(d.mgr||'')+'</span>'
+        +'<span class="izm"><span class="st">'+esc(d.stage||'')+'</span></span>'
+        +'<span class="izm">'+(it.qty?it.qty+' шт':'-')+'</span>'
+        +'<span class="izm">с/с <b>'+(it.ss?fmt(it.ss):'-')+'</b></span>'
+        +'<span class="izm">бюджет '+fmt(d.budget)+'</span>'
+        +'<span class="izm"><span class="flag '+(g2.cls||'')+'">'+esc(g2.t||'')+'</span></span>'
+        +'</div>';
+      if(dop){ html+='<div class="izrow lvl3"><div class="pwrap">'+detailInner(d)+'</div></div>'; } } }
+  }
+  document.getElementById('izdList').innerHTML=html||'<div class="pusl">нет изделий в выборке</div>';
+  document.getElementById('izdSum').textContent='Изделий в выборке: '+items.length+' · сортировка по убыванию Σ с/с · клик по изделию - сделки с ним, клик по сделке - её содержание';
+  document.getElementById('cnt').textContent='изделий: '+items.length;
+}
 function render(){
   const base=DATA.deals.filter(d=>passesBase(d));
+  if(VIEW==='izd'){ renderIzd(base); return; }
   let list=base.filter(matchQuick);
   list.sort((a,b)=>{ const x=sortVal(a,sortIdx),y=sortVal(b,sortIdx); return (x<y?-1:x>y?1:0)*sortDir; });
   let rows='';
@@ -771,6 +835,15 @@ function render(){
 }
 document.querySelector('#tbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return; const tr=e.target.closest('tr.drow'); if(!tr)return; const id=+tr.dataset.id; if(OPEN.has(id))OPEN.delete(id); else OPEN.add(id); render(); });
 ['q','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+// переключение вкладок Сделки / Изделия
+document.getElementById('tabs').addEventListener('click',e=>{ const b=e.target.closest('.tb'); if(!b)return; VIEW=b.dataset.v;
+  document.querySelectorAll('#tabs .tb').forEach(x=>x.classList.toggle('on',x===b));
+  document.getElementById('dealsWrap').hidden=(VIEW!=='deals');
+  document.getElementById('izdwrap').hidden=(VIEW!=='izd'); render(); });
+// разворот 3 уровней во вкладке «Изделия»
+document.getElementById('izdList').addEventListener('click',e=>{ if(e.target.closest('a'))return;
+  const l2=e.target.closest('.lvl2'); if(l2){ const dk=l2.dataset.dk; if(OPENIZDDEAL.has(dk))OPENIZDDEAL.delete(dk); else OPENIZDDEAL.add(dk); render(); return; }
+  const l1=e.target.closest('.lvl1'); if(l1){ const k=l1.dataset.k; if(OPENIZD.has(k))OPENIZD.delete(k); else OPENIZD.add(k); render(); return; } });
 const _drawer=document.getElementById('drawer'), _scrim=document.getElementById('scrim');
 function drawerOpen(o){ _drawer.classList.toggle('open',o); _scrim.classList.toggle('open',o); }
 document.getElementById('burger').addEventListener('click',()=>drawerOpen(!_drawer.classList.contains('open')));

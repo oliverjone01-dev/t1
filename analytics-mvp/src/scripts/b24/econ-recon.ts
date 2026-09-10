@@ -104,19 +104,24 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   // История переходов - через crm.stagehistory.list (ответ в {result:{items:[...]}} со своей пагинацией).
   // Всё в try/catch: сбой истории не должен ломать снимок, изделия просто останутся без даты реализации.
   try {
-    const shipIds = new Set(stages.filter((s: any) => String(s.NAME || "") === "Заказ отправлен" && /^C49:/.test(String(s.STATUS_ID || ""))).map((s: any) => String(s.STATUS_ID)));
+    const norm = (x: any) => String(x || "").replace(/^C49:/, "");
+    // статусы «Заказ отправлен» воронки 49: держим и полный STATUS_ID, и суффикс - форматы в разных методах отличаются
+    const shipStatuses = stages.filter((s: any) => String(s.NAME || "") === "Заказ отправлен" && /_49\b|C49|CATEGORY.*49/i.test(String(s.ENTITY_ID || s.STATUS_ID || "")));
+    const shipIds = new Set<string>(); for (const s of shipStatuses) { shipIds.add(String(s.STATUS_ID)); shipIds.add(norm(s.STATUS_ID)); }
+    console.error(`RECON-SHIPPED\tстатусов «Заказ отправлен»: ${shipStatuses.length}, ids=${[...shipIds].join("|")}`);
     if (shipIds.size) {
       const shippedAt: Record<string, string> = {};
-      let start = 0;
+      let start = 0, seen = 0, matched = 0; const sampleStages = new Set<string>();
       for (;;) {
         const j: any = await call("crm.stagehistory.list", { entityTypeId: "deal", filter: { CATEGORY_ID: CAT }, order: { CREATED_TIME: "ASC" }, select: ["OWNER_ID", "STAGE_ID", "CREATED_TIME"], start });
-        const items: any[] = (j.result && j.result.items) || [];
-        for (const h of items) { const did = String(h.OWNER_ID || ""); if (!did || !inWin.has(did)) continue; if (shipIds.has(String(h.STAGE_ID))) { const dt = d10(h.CREATED_TIME); if (dt && (!shippedAt[did] || dt < shippedAt[did])) shippedAt[did] = dt; } }
+        const items: any[] = (j.result && j.result.items) || j.result || [];
+        for (const h of items) { seen++; if (sampleStages.size < 12) sampleStages.add(String(h.STAGE_ID)); const did = String(h.OWNER_ID || ""); if (!did || !inWin.has(did)) continue;
+          if (shipIds.has(String(h.STAGE_ID)) || shipIds.has(norm(h.STAGE_ID))) { matched++; const dt = d10(h.CREATED_TIME); if (dt && (!shippedAt[did] || dt < shippedAt[did])) shippedAt[did] = dt; } }
         if (j.next === undefined || !items.length) break; start = j.next;
       }
       for (const did of Object.keys(shippedAt)) if (deal[did]) deal[did].shippedAt = shippedAt[did];
-      console.error(`RECON-SHIPPED\tсделок с датой реализации (переход в «Заказ отправлен»): ${Object.keys(shippedAt).length}`);
-    } else { console.error("RECON-SHIPPED\tстадия «Заказ отправлен» не найдена среди статусов C49"); }
+      console.error(`RECON-SHIPPED\tистория: строк ${seen}, совпало ${matched}, сделок с датой ${Object.keys(shippedAt).length}; примеры STAGE_ID=${[...sampleStages].join("|")}`);
+    } else { console.error("RECON-SHIPPED\tстадия «Заказ отправлен» не найдена среди статусов воронки 49"); }
   } catch (e) { console.error("RECON-SHIPPED\tошибка crm.stagehistory.list:", String(e)); }
   console.error(`Сделок воронки ${CAT} за ${WINDOW_DAYS} дн (с ${cutoff}): ${inWin.size}`);
 

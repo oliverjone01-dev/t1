@@ -132,6 +132,9 @@
     var h=0; for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;
     el.style.background=pal[h%pal.length];
     el.textContent=init;
+    // если в mgr/<slug>.jpg есть реальное фото (тянется из Bitrix) - показываем его поверх инициалов
+    var a=el.closest('a[href]'); var m=a&&(a.getAttribute('href')||'').match(/rop-([a-z0-9-]+)\/?$/i);
+    if(m){ var img=new Image(); img.alt=n; img.onload=function(){ el.textContent=''; el.appendChild(img); }; img.src='mgr/'+m[1]+'.jpg'; }
   });
 })();
 // Ленивая подгрузка превью: iframe грузится только когда карточка появляется на экране.

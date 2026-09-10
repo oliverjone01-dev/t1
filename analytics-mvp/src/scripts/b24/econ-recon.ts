@@ -99,6 +99,25 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   const deal: Record<string, any> = {};
   for (const d of dealRows) deal[String(d.ID)] = { id: Number(d.ID), title: d.TITLE || "", mgr: uName[String(d.ASSIGNED_BY_ID)] || null, stageCode: String(d.STAGE_ID || "").replace(/^C49:/, ""), stage: stageName[d.STAGE_ID] || d.STAGE_ID, budget: Math.round(num(d.OPPORTUNITY)), created: d10(d.DATE_CREATE), modified: d10(d.DATE_MODIFY), assort: assortId ? resolveAssort(d[assortId]) : "", sps: {} as Record<string, any>, products: [] as any[], hasProducts: false };
   const inWin = new Set(Object.keys(deal));
+
+  // 2.1) Дата реализации = дата первого перехода сделки в стадию «Заказ отправлен».
+  // История переходов - через crm.stagehistory.list (ответ в {result:{items:[...]}} со своей пагинацией).
+  // Всё в try/catch: сбой истории не должен ломать снимок, изделия просто останутся без даты реализации.
+  try {
+    const shipIds = new Set(stages.filter((s: any) => String(s.NAME || "") === "Заказ отправлен" && /^C49:/.test(String(s.STATUS_ID || ""))).map((s: any) => String(s.STATUS_ID)));
+    if (shipIds.size) {
+      const shippedAt: Record<string, string> = {};
+      let start = 0;
+      for (;;) {
+        const j: any = await call("crm.stagehistory.list", { entityTypeId: "deal", filter: { CATEGORY_ID: CAT }, order: { CREATED_TIME: "ASC" }, select: ["OWNER_ID", "STAGE_ID", "CREATED_TIME"], start });
+        const items: any[] = (j.result && j.result.items) || [];
+        for (const h of items) { const did = String(h.OWNER_ID || ""); if (!did || !inWin.has(did)) continue; if (shipIds.has(String(h.STAGE_ID))) { const dt = d10(h.CREATED_TIME); if (dt && (!shippedAt[did] || dt < shippedAt[did])) shippedAt[did] = dt; } }
+        if (j.next === undefined || !items.length) break; start = j.next;
+      }
+      for (const did of Object.keys(shippedAt)) if (deal[did]) deal[did].shippedAt = shippedAt[did];
+      console.error(`RECON-SHIPPED\tсделок с датой реализации (переход в «Заказ отправлен»): ${Object.keys(shippedAt).length}`);
+    } else { console.error("RECON-SHIPPED\tстадия «Заказ отправлен» не найдена среди статусов C49"); }
+  } catch (e) { console.error("RECON-SHIPPED\tошибка crm.stagehistory.list:", String(e)); }
   console.error(`Сделок воронки ${CAT} за ${WINDOW_DAYS} дн (с ${cutoff}): ${inWin.size}`);
 
   // 3) По каждому СП: денежные поля -> инвентаризация (заполненность на карточках, привязанных к окну)
@@ -140,7 +159,7 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   }
 
   // 5) JSON для экрана
-  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, modified: r.modified || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
+  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, modified: r.modified || null, shippedAt: r.shippedAt || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
   mkdirSync("economics/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, spStages, inventory: inv, deals }));
 

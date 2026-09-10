@@ -157,6 +157,8 @@ th,td{padding:5px 6px;text-align:left;border-bottom:1px solid var(--border);whit
 .mp-wht{background:rgba(200,205,215,.09);color:var(--ink-1)}
 .mp-red{background:rgba(214,92,110,.22);color:#ec93a4}
 #izdtbl .ss-bad{background:rgba(214,92,110,.22);color:#ec93a4;font-weight:700}
+#izdtbl .ss-src{font-size:9px;font-weight:700;color:var(--ink-3);letter-spacing:.02em;cursor:help}
+#izdtbl .dno{color:var(--ink-2);font-variant-numeric:tabular-nums}
 th{position:sticky;top:0;background:var(--elev);z-index:2;font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none}
 th:hover{color:var(--ink)} th .ar{color:var(--accent);font-size:10px}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
@@ -778,6 +780,12 @@ const OPENIZD=new Set();      // раскрытые изделия (ключ и�
 const OPENIZDDEAL=new Set();  // раскрытые сделки внутри изделия (ключ изделия + id сделки)
 const izKeyG=g=> g.art?('art:'+g.art) : (g.ns?('ns:'+g.ns) : (nameSig(g.nm)?('sig:'+nameSig(g.nm)):('id:'+g.firstId)));
 const izSS=g=>((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0)+((g.sp['Закупка']&&g.sp['Закупка'].vB)||0);
+// из каких смарт-процессов сложена с/с (та же логика, что в izSS): база (Производство ИЛИ Расчёт) + Закупка.
+const SSABBR={'Производство  GG':'П','Расчёт':'Р','Закупка':'З'};
+const SSFULL={'П':'Производство GG','Р':'Расчёт','З':'Закупка'};
+function izSsSrcOf(g){ const s=[]; const vb=k=>g.sp[k]&&g.sp[k].vB>0?g.sp[k].vB:0;
+  if(vb('Производство  GG'))s.push('П'); else if(vb('Расчёт'))s.push('Р');
+  if(vb('Закупка'))s.push('З'); return s; }
 // цена товара: цена клиента из товарной строки сделки, сопоставленной изделию по сигнатуре названия
 const izPrice=(d,g)=>{const sig=nameSig(g.nm);if(!sig)return 0;for(const p of goodRows(d)){if(nameSig(p.name)===sig){const pr=+p.price||0;if(pr>1)return pr;}}return 0;};
 // на каких смарт-процессах у изделия есть карточки (сейчас в работе)
@@ -795,15 +803,22 @@ function izMpct(mpct){ if(mpct==null)return '<td class="num"><span class="cell-o
 // Σ с/с: подсветка красным недостоверной себестоимости (нет с/с или неправдоподобно мало).
 // Порог: партия изделия не может стоить меньше SS_MIN ₽ (артефакт незаполненного калькулятора).
 const SS_MIN=1000;
-function izSsCell(ss){
+function izSsSrcTag(srcSet){ if(!srcSet||!srcSet.size)return '';
+  const ord=['П','Р','З'].filter(a=>srcSet.has(a)); if(!ord.length)return '';
+  const full=ord.map(a=>SSFULL[a]).join(' + ');
+  return ' <span class="ss-src" title="с/с сложена из смарт-процессов: '+esc(full)+'">'+esc(ord.join('+'))+'</span>';
+}
+function izSsCell(ss,srcSet){
   if(!ss)return '<td class="num ss-bad" title="нет данных по себестоимости - калькулятор GG не заполнен">нет с/с</td>';
-  if(ss<SS_MIN)return '<td class="num ss-bad" title="с/с '+fmt(ss)+' ₽ - недостоверно мало для партии, проверьте калькулятор GG">'+fmt(ss)+'</td>';
-  return '<td class="num">'+fmt(ss)+'</td>';
+  const tag=izSsSrcTag(srcSet);
+  if(ss<SS_MIN)return '<td class="num ss-bad" title="с/с '+fmt(ss)+' ₽ - недостоверно мало для партии, проверьте калькулятор GG">'+fmt(ss)+tag+'</td>';
+  return '<td class="num">'+fmt(ss)+tag+'</td>';
 }
 function buildIzd(list){
   const M=new Map();
   for(const d of list){ for(const g of izdelia(d)){ const key=izKeyG(g);
-    let e=M.get(key); if(!e){ e={key,art:g.art,ns:g.ns,nm:g.nm||'',qty:0,ss:0,rev:0,deals:[],smarts:new Set(),smartsSS:new Set(),dmin:null,dmax:null}; M.set(key,e); }
+    let e=M.get(key); if(!e){ e={key,art:g.art,ns:g.ns,nm:g.nm||'',qty:0,ss:0,rev:0,deals:[],smarts:new Set(),smartsSS:new Set(),dmin:null,dmax:null,ssSrc:new Set()}; M.set(key,e); }
+    izSsSrcOf(g).forEach(a=>e.ssSrc.add(a));
     if(d.created){ if(!e.dmin||d.created<e.dmin)e.dmin=d.created; if(!e.dmax||d.created>e.dmax)e.dmax=d.created; }
     if((g.nm||'').length>(e.nm||'').length)e.nm=g.nm; if(!e.art&&g.art)e.art=g.art; if(!e.ns&&g.ns)e.ns=g.ns;
     const ss=izSS(g),price=izPrice(d,g),qty=g.qty||0,rev=price*qty;
@@ -858,13 +873,13 @@ function renderIzd(base){
       +'<td class="iznum"'+(izNo(e)?' title="'+esc(izNo(e))+'"':'')+'><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
       +'<td class="izgnm" title="'+esc(e.nm||'')+'">'+esc(cleanNm(e.nm).slice(0,60)||'(без названия)')+'</td>'
       +'<td class="izdt" title="'+(e.dmin&&e.dmin!==e.dmax?'сделки '+ruD(e.dmin)+' - '+ruD(e.dmax):'дата создания сделки')+'">'+(e.dmax?ruD(e.dmax):'<span class="cell-o">—</span>')+(e.dmin&&e.dmin!==e.dmax?' <span class="izgc">+'+(e.deals.length-1)+'</span>':'')+'</td>'
-      +'<td class="num">'+e.deals.length+'</td>'
+      +'<td class="num">'+(e.deals.length===1?'<span class="dno" title="номер сделки '+e.deals[0].d.id+' (без ссылки)">'+e.deals[0].d.id+'</span>':'<span title="сделок: '+e.deals.length+' - номера видны при разворачивании">'+e.deals.length+' сд.</span>')+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
       +'<td class="num">'+(e.price?fmt(e.price):'<span class="cell-o">-</span>')+'</td>'
       +'<td>'+izBar(e)+'</td>'
       +'<td>'+_izsp.smart+'</td>'
       +'<td>'+_izsp.badge+'</td>'
-      +izSsCell(e.ss)
+      +izSsCell(e.ss,e.ssSrc)
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
       +izMpct(e.mpct)
@@ -880,7 +895,7 @@ function renderIzd(base){
     }
   }
   document.querySelector('#izdtbl tbody').innerHTML=html||'<tr><td colspan="'+ICOLS.length+'" class="pusl">нет изделий в выборке</td></tr>';
-  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽) · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
+  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽); значок Р/П/З показывает из каких смартов сложена с/с (Р-Расчёт, П-Производство, З-Закупка) · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
   document.getElementById('cnt').textContent='изделий: '+items.length;
 }
 // ячейки строки сделки (те же колонки, что в таблице «Сделки») - переиспользуются во вкладке «Изделия»

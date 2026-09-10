@@ -117,3 +117,32 @@ council.js понижал risk-score, не трогая чекпоинты. Гл
 скриптом `.claude-plugin/export-plugin.sh --push`. Дубли skills в аккаунте claude.ai (10 `gengroup-*`, список в
 `agents-v9/COWORK_AND_PLUGIN.md` §5) из облачной сессии не отключаются - это Customize → Skills руками Ивана;
 в репозитории дублей skills нет (`agents/` - копия 13 агентов для загрузчика плагина, дрейф ловит `sync-agents.sh --check`).
+
+## 7. Установка в Desktop: замер 2026-09-10, зеркало понижено до плана Б
+
+Иван: «создай его скорее» (репозиторий-зеркало `oliverjone01-dev/gengroup-roster`). Создать нельзя: `POST /user/repos`
+через интеграцию отдаёт 403 «Resource not accessible by integration» (повтор 2026-09-08 и 2026-09-10, `get_me` при этом
+работает). Создание репозитория под личным аккаунтом требует пользовательского токена, приложению оно не делегируется.
+
+Вместо этого проверена форма источника с явной веткой [ДАННЫЕ 2026-09-10]:
+
+| Команда | Результат |
+|---|---|
+| `claude plugin marketplace add oliverjone01-dev/t1@plugin` | клон только ref `plugin`, 2.0 с, чекаут 1.3 МБ |
+| `claude plugin install gengroup-roster@gengroup` | 880 КБ в `~/.claude/plugins/cache/gengroup/gengroup-roster/3.0.3` |
+| `claude plugin list` | `gengroup-roster@gengroup` 3.0.3 enabled |
+
+Вывод: причина «нужен отдельный репозиторий» (сервер клонирует ветку по умолчанию, main 465 МБ) к форме с `@` не
+относится. Desktop отверг только формы без ветки и с разделителем `#`: `t1` и `t1.git#plugin` - «Marketplace sync
+failed», `t1#plugin` - «Marketplace source format is invalid». Строка `oliverjone01-dev/t1@plugin` именно в поле
+Desktop остаётся [ГИПОТЕЗА] до проверки Иваном: CLI и Desktop делят подсистему плагинов, но поле ввода не проверялось.
+Прежний текст `agents-v9/COWORK_AND_PLUGIN.md` утверждал «`t1@plugin` не проходит» без замера, это опровергнуто.
+
+Step 12.5 на коммит a2de0e9 не гонялся: изменена инструкция по установке, а не гейт, дашборд, агент или контент
+наружу. Цена ошибки - одна неудачная строка в поле Desktop и возврат к плану Б. Хук `deliver-gate.sh` напомнил про
+аудит при push (9 критических файлов в диффе ветки), 8 из них аудированы 2026-09-08 (итерация 2, go 7.95) и с тех
+пор не менялись.
+
+Что делает Иван: вводит `oliverjone01-dev/t1@plugin` в Customize → Plugins → Add marketplace. Если поле не примет `@` -
+создаёт `gengroup-roster` (New repository, Public, без README) и говорит сюда, зеркало заливается скриптом за минуту.
+Отдельно остаётся отключить 10 дублей `gengroup-*` в Customize → Skills (§5 `agents-v9/COWORK_AND_PLUGIN.md`).

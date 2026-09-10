@@ -192,6 +192,9 @@ tr.izgrp>td{border-top:1px solid var(--border);font-weight:700}
 tr.izgrp .exp{color:var(--ink-3)}
 .izgnm{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #izdtbl .iznum{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subdeals{margin:0;background:var(--bg)}
+#izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
+#izdtbl .subdeals thead th.num{text-align:right}
 #izdtbl .iznum .art-code{font-size:11px}
 .izgnm .izgc{color:var(--ink-3);font-weight:400}
 tr.izdeal{cursor:pointer}
@@ -772,15 +775,17 @@ const izPrice=(d,g)=>{const sig=nameSig(g.nm);if(!sig)return 0;for(const p of go
 // на каких смарт-процессах у изделия есть карточки (сейчас в работе)
 const izSmartsOf=g=>ORDER.filter(k=>g.sp[k]&&g.sp[k].cards&&g.sp[k].cards.length);
 const izDots=arr=>'<span class="dots">'+ORDER.map(k=>'<span class="sd'+(arr.includes(k)?' on':'')+'" title="'+esc(SMFULL[k]||k)+(arr.includes(k)?' - есть карточки':' - нет')+'"></span>').join('')+'</span>';
+// полоса-индикатор смартов как в «Сделках»: off - нет карточек, on - есть, ss - внесена с/с
+const izBar=e=>'<span class="smbar">'+ORDER.map(k=>{let c='smb-off';if(e.smartsSS&&e.smartsSS.has(k))c='smb-ss';else if(e.smarts.has(k))c='smb-on';return '<span class="smb '+c+'" title="'+esc(SMFULL[k]||k)+(e.smartsSS&&e.smartsSS.has(k)?' - с/с внесена':(e.smarts.has(k)?' - есть карточки':' - нет'))+'"></span>';}).join('')+'</span>';
 // бейдж самого «дальнего» по цепочке производственного этапа среди экземпляров изделия
 function izStageAgg(e){let best=null,bp=-1;for(const it of e.deals){const si=izdStageInfo(it.g);if(si&&si.prog>bp){bp=si.prog;best=it.g;}}return best?izdBadge(best):'<span class="cell-o">-</span>';}
 function buildIzd(list){
   const M=new Map();
   for(const d of list){ for(const g of izdelia(d)){ const key=izKeyG(g);
-    let e=M.get(key); if(!e){ e={key,art:g.art,ns:g.ns,nm:g.nm||'',qty:0,ss:0,rev:0,deals:[],smarts:new Set()}; M.set(key,e); }
+    let e=M.get(key); if(!e){ e={key,art:g.art,ns:g.ns,nm:g.nm||'',qty:0,ss:0,rev:0,deals:[],smarts:new Set(),smartsSS:new Set()}; M.set(key,e); }
     if((g.nm||'').length>(e.nm||'').length)e.nm=g.nm; if(!e.art&&g.art)e.art=g.art; if(!e.ns&&g.ns)e.ns=g.ns;
     const ss=izSS(g),price=izPrice(d,g),qty=g.qty||0,rev=price*qty;
-    e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>e.smarts.add(k));
+    e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>{e.smarts.add(k); if(g.sp[k]&&g.sp[k].vB>0)e.smartsSS.add(k);});
     e.deals.push({d,qty,ss,price,rev,g}); } }
   const arr=[...M.values()];
   for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; for(const it of e.deals){const si=izdStageInfo(it.g);if(si&&si.prog>e.sp)e.sp=si.prog;} }
@@ -794,7 +799,7 @@ let izSortIdx=8, izSortDir=-1;
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
 function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.deals.length;case 3:return e.qty;case 4:return e.price;case 5:return e.smarts.size;case 6:return e.sp;case 7:return e.ss;case 8:return e.rev;case 9:return e.margin;case 10:return e.mpct==null?-1:e.mpct;}return 0;}
-function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().includes(fn))return false;
+function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
   return mn('ifMin_2',e.deals.length)&&mn('ifMin_3',e.qty)&&mn('ifMin_4',e.price)&&mn('ifMin_7',e.ss)&&mn('ifMin_8',e.rev)&&mn('ifMin_9',e.margin)&&mn('ifMin_10',e.mpct==null?null:e.mpct*100); }
@@ -833,17 +838,25 @@ function renderIzd(base){
       +'<td class="num">'+e.deals.length+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
       +'<td class="num">'+(e.price?fmt(e.price):'<span class="cell-o">-</span>')+'</td>'
-      +'<td>'+izDots([...e.smarts])+'</td>'
+      +'<td>'+izBar(e)+'</td>'
       +'<td>'+izStageAgg(e)+'</td>'
       +'<td class="num">'+(e.ss?fmt(e.ss):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num">'+(e.mpct==null?'<span class="cell-o">-</span>':Math.round(e.mpct*100)+'%')+'</td>'
       +'</tr>';
-    if(open){ for(const it of e.deals.slice().sort((a,b)=>b.rev-a.rev||b.ss-a.ss)){ html+=izDealRow(e,it); const dk=e.key+'::'+it.d.id; if(OPENIZDDEAL.has(dk)){ html+='<tr class="detail"><td colspan="'+ICOLS.length+'"><div class="pwrap">'+detailInner(it.d)+'</div></td></tr>'; } } }
+    if(open){
+      const numH=[I_SVC,I_BUD,I_POS,I_QTY,I_SS,I_MRG,I_MPCT];
+      let sub='<table class="subdeals"><colgroup>'+COLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup><thead><tr>'+COLS.map((h,i)=>'<th class="'+(numH.includes(i)?'num':'')+'">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>';
+      for(const it of e.deals.slice().sort((a,b)=>b.rev-a.rev||b.ss-a.ss)){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk);
+        sub+='<tr class="drow izsub" data-dk="'+esc(dk)+'">'+dealCells(d,dop)+'</tr>';
+        if(dop)sub+=detailRow(d); }
+      sub+='</tbody></table>';
+      html+='<tr class="detail izsubwrap"><td colspan="'+ICOLS.length+'"><div class="pwrap">'+sub+'</div></td></tr>';
+    }
   }
   document.querySelector('#izdtbl tbody').innerHTML=html||'<tr><td colspan="'+ICOLS.length+'" class="pusl">нет изделий в выборке</td></tr>';
-  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · клик по изделию - сделки, клик по сделке - содержание · сортировка и фильтры';
+  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
   document.getElementById('cnt').textContent='изделий: '+items.length;
 }
 // ячейки строки сделки (те же колонки, что в таблице «Сделки») - переиспользуются во вкладке «Изделия»
@@ -890,7 +903,7 @@ document.getElementById('tabs').addEventListener('click',e=>{ const b=e.target.c
   document.getElementById('izdwrap').hidden=(VIEW!=='izd'); render(); });
 // разворот 3 уровней во вкладке «Изделия»: изделие -> сделки (полные колонки) -> содержание сделки
 document.querySelector('#izdtbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return;
-  const dl=e.target.closest('tr.izdeal'); if(dl){ const dk=dl.dataset.dk; if(OPENIZDDEAL.has(dk))OPENIZDDEAL.delete(dk); else OPENIZDDEAL.add(dk); render(); return; }
+  const dl=e.target.closest('tr.izsub'); if(dl){ const dk=dl.dataset.dk; if(OPENIZDDEAL.has(dk))OPENIZDDEAL.delete(dk); else OPENIZDDEAL.add(dk); render(); return; }
   const gr=e.target.closest('tr.izgrp'); if(gr){ const k=gr.dataset.k; if(OPENIZD.has(k))OPENIZD.delete(k); else OPENIZD.add(k); render(); return; } });
 const _drawer=document.getElementById('drawer'), _scrim=document.getElementById('scrim');
 function drawerOpen(o){ _drawer.classList.toggle('open',o); _scrim.classList.toggle('open',o); }

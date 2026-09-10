@@ -318,6 +318,7 @@ select.fcsel:disabled{opacity:.5;cursor:not-allowed}
 input.fcd{color-scheme:dark}
 input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 .fcx.fcn{text-align:right}
+.iz-nofill{color:#e0645a;font-size:9.5px;font-style:italic;opacity:.9}
 .fcrange{display:flex;flex-direction:column;gap:2px}
 .fcrange .fcd{font-size:9px;padding:1px 3px}
 #izdtbl .izmgr{font-size:10.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1000,7 +1001,7 @@ function renderIzd(base){
   let html='';
   for(const e of items){ const open=OPENIZD.has(e.key); const _izsp=izStageParts(e);
     html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
-      +'<td class="iznum"'+(izNo(e)?' title="'+esc(izNo(e))+'"':'')+'><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
+      +'<td class="iznum"'+(izNo(e)?' title="'+esc(izNo(e))+'"':' title="артикул/НС не заполнен в Bitrix"')+'><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="iz-nofill">не заполнено</span>')+'</td>'
       +'<td class="izgnm" title="'+esc(e.nm||'')+'">'+esc(cleanNm(e.nm).slice(0,58)||'(без названия)')+'</td>'
       +'<td class="izcatc" title="'+esc(e.cat?('категория: '+e.cat+(e.cats&&e.cats.length>1?' · у сделок изделия есть и другие категории: '+e.cats.filter(c=>c!==e.cat).join(', '):'')):'категория не указана')+'">'+(e.cat?'<span class="izcat">'+esc(e.cat)+'</span>'+(e.cats&&e.cats.length>1?' <span class="izgc" title="ещё '+(e.cats.length-1)+' категор. у сделок этого изделия">+'+(e.cats.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="izmgr" title="'+esc(e.mgr?('ответственный: '+e.mgr+(e.mgrs&&e.mgrs.length>1?' · ещё менеджеры по сделкам изделия: '+e.mgrs.slice(1).join(', '):'')):'менеджер не указан')+'">'+(e.mgr?esc(e.mgr)+(e.mgrs&&e.mgrs.length>1?' <span class="izgc">+'+(e.mgrs.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'

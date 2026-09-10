@@ -2,111 +2,12 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="0; url=./dashboards/">
+<link rel="canonical" href="https://oliverjone01-dev.github.io/t1/dashboards/">
 <title>GENGROUP · Дашборды</title>
-<style>
-  :root{--bg:#0a0e14;--card:#121822;--line:#1f2a38;--ink:#e6edf5;--ink2:#9fb0c3;--ink3:#6b7a8d;--acc:#22d3ee;--gm:#c084fc;--warn:#f59e0b}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,Segoe UI,Roboto,Manrope,sans-serif;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1180px;margin:0 auto;padding:32px 20px 60px}
-  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:8px}
-  header .logo{font-weight:800;font-size:22px;letter-spacing:.02em}
-  header .logo b{color:var(--acc)}
-  header .sub{color:var(--ink2);font-size:13px}
-  .note{color:var(--ink3);font-size:12.5px;margin:14px 0 24px}
-  .sec{margin-top:30px}
-  .sec h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink2);font-weight:700;margin:0 0 12px;display:flex;align-items:center;gap:10px}
-  .sec h2::after{content:"";flex:1;height:1px;background:var(--line)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-  a.card{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px;color:var(--ink);transition:border-color .15s,transform .05s,background .15s}
-  a.card:hover{border-color:var(--acc);background:#16202c}
-  a.card:active{transform:translateY(1px)}
-  a.card .t{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
-  a.card .d{color:var(--ink2);font-size:12.5px;margin-top:5px}
-  a.card .u{color:var(--ink3);font-size:11px;margin-top:8px;font-family:ui-monospace,Menlo,monospace}
-  .em{font-size:17px;line-height:1}
-  .tag{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:5px;padding:1px 6px;vertical-align:middle}
-  .tag.gg{color:var(--acc);border:1px solid #22d3ee55;background:#22d3ee14}
-  .tag.gm{color:var(--gm);border:1px solid #c084fc55;background:#c084fc14}
-  footer{margin-top:40px;color:var(--ink3);font-size:12px;border-top:1px solid var(--line);padding-top:14px}
-  @media (max-width:520px){.grid{grid-template-columns:1fr}}
-</style>
+<script>location.replace("./dashboards/"+location.search+location.hash);</script>
 </head>
-<body>
-<div class="wrap">
-  <header>
-    <div class="logo"><b>GENGROUP</b> · Дашборды</div>
-    <div class="sub">Единая точка входа во все панели холдинга</div>
-  </header>
-  <div class="note">Клик открывает дашборд в новой вкладке. Данные обновляются автоматически (снимки Bitrix / маркетплейсов по расписанию).</div>
-
-  <div class="sec">
-    <h2>Отдел продаж · РОП</h2>
-    <div class="grid">
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/rop/" target="_blank" rel="noopener"><div class="t">📊 РОП <span class="tag gg">ГГ</span></div><div class="d">Командный центр отдела продаж GENGLASS: воронка, план, портфель, менеджеры.</div><div class="u">/rop/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/rop-gm/" target="_blank" rel="noopener"><div class="t">📊 РОП <span class="tag gm">ГМ</span></div><div class="d">Командный центр отдела продаж GLASS MEMORY.</div><div class="u">/rop-gm/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/dialog/" target="_blank" rel="noopener"><div class="t">💬 Диалоги</div><div class="d">Хронология коммуникаций по сделкам: отклик, направление, дефекты, группы менеджеров.</div><div class="u">/dialog/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/office/" target="_blank" rel="noopener"><div class="t">📞 Офис-менеджеры</div><div class="d">Приём и квалификация лидов: скорость, полнота, конверсия в сделку.</div><div class="u">/office/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/economics/" target="_blank" rel="noopener"><div class="t">💰 Экономика сделок</div><div class="d">Контроль заполнения и экономика по сделкам.</div><div class="u">/economics/</div></a>
-    </div>
-  </div>
-
-  <div class="sec">
-    <h2>РОП · по менеджерам (GENGLASS)</h2>
-    <div class="grid">
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/rop-lakomova/" target="_blank" rel="noopener"><div class="t">👤 Лакомова</div><div class="u">/rop-lakomova/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/rop-lysanova/" target="_blank" rel="noopener"><div class="t">👤 Лысанова</div><div class="u">/rop-lysanova/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/rop-shura-bura/" target="_blank" rel="noopener"><div class="t">👤 Шура-Бура</div><div class="u">/rop-shura-bura/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/rop-platonova/" target="_blank" rel="noopener"><div class="t">👤 Платонова</div><div class="u">/rop-platonova/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/rop-zaznoba/" target="_blank" rel="noopener"><div class="t">👤 Зазноба</div><div class="u">/rop-zaznoba/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/rop-lobova/" target="_blank" rel="noopener"><div class="t">👤 Лобова</div><div class="u">/rop-lobova/</div></a>
-    </div>
-  </div>
-
-  <div class="sec">
-    <h2>Производство</h2>
-    <div class="grid">
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/prod/" target="_blank" rel="noopener"><div class="t">🏭 Производство</div><div class="d">Загрузка участков, календарь, маршрут заказов цеха.</div><div class="u">/prod/</div></a>
-    </div>
-  </div>
-
-  <div class="sec">
-    <h2>Маркетплейсы и реклама</h2>
-    <div class="grid">
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/" target="_blank" rel="noopener"><div class="t">🟦 OZON · аналитика</div><div class="d">Продажи, реклама, P&L по OZON.</div><div class="u">/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/market/" target="_blank" rel="noopener"><div class="t">🟨 Яндекс Маркет</div><div class="d">Заказы, каталог, экономика Я.Маркета (KATYA).</div><div class="u">/market/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/direct/" target="_blank" rel="noopener"><div class="t">🎯 Яндекс Директ</div><div class="d">Кампании, ставки, расход, сверка Директ vs Метрика.</div><div class="u">/direct/</div></a>
-    </div>
-  </div>
-
-  <div class="sec">
-    <h2>SEO и AI-видимость</h2>
-    <div class="grid">
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/seo/" target="_blank" rel="noopener"><div class="t">🔎 SEO / GEO Монстр</div><div class="d">Позиции, AI Citation (ChatGPT / Perplexity / YandexGPT), техаудит.</div><div class="u">/seo/</div></a>
-    </div>
-  </div>
-
-  <div class="sec">
-    <h2>Планы и стратегия</h2>
-    <div class="grid">
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/plan/" target="_blank" rel="noopener"><div class="t">🧭 План-Радар GENGLASS</div><div class="d">План по менеджерам и целям.</div><div class="u">/plan/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/markplan/" target="_blank" rel="noopener"><div class="t">📈 MarkPlan 2026</div><div class="d">Маркетинговый план по 5 брендам.</div><div class="u">/markplan/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/integra/" target="_blank" rel="noopener"><div class="t">🏗 ИНТЕГРА 2.0 · GENTERO</div><div class="d">План направления GENTERO.</div><div class="u">/integra/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/ozon-research/" target="_blank" rel="noopener"><div class="t">🗺 Карта ниш OZON</div><div class="d">Исследование 180 ниш для цехов.</div><div class="u">/ozon-research/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/phoenix/" target="_blank" rel="noopener"><div class="t">🔥 Перегородки · разбор</div><div class="d">Разбор направления перегородок.</div><div class="u">/phoenix/</div></a>
-    </div>
-  </div>
-
-  <div class="sec">
-    <h2>Автоматизация и обучение</h2>
-    <div class="grid">
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/op-gm/" target="_blank" rel="noopener"><div class="t">⚙ Автоматизация ОП ГМ</div><div class="d">Процессы отдела продаж GLASS MEMORY.</div><div class="u">/op-gm/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/messages/" target="_blank" rel="noopener"><div class="t">✉ Message Automation</div><div class="d">Автоматизация сообщений GG.</div><div class="u">/messages/</div></a>
-      <a class="card" href="https://oliverjone01-dev.github.io/t1/academy/" target="_blank" rel="noopener"><div class="t">🎓 Sales Academy</div><div class="d">Библиотека отдела, кабинеты менеджеров, сводка штаба.</div><div class="u">/academy/</div></a>
-    </div>
-  </div>
-
-  <footer>GENGROUP · внутренняя навигация по дашбордам. Если дашборд открывается пустым - обнови страницу (Ctrl+F5), данные подтягиваются последним снимком.</footer>
-</div>
+<body style="background:#0a0e14;color:#9fb0c3;font:15px -apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:40px 20px">
+Переезд на <a href="./dashboards/" style="color:#22d3ee">/t1/dashboards/</a> …
 </body>
 </html>

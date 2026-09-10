@@ -313,6 +313,10 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
 #ftr{position:sticky;top:26px;z-index:6}
 #ftr td{padding:2px 3px;background:#131c26;border-bottom:1px solid var(--border);overflow:visible;vertical-align:middle}
 .fcx{width:100%;min-width:0;box-sizing:border-box;font-size:10px;padding:2px 4px;background:var(--bg-1,#0b0f16);border:1px solid var(--border);border-radius:4px;color:var(--ink-1)}
+select.fcsel{cursor:pointer;-webkit-appearance:none;appearance:none;padding-right:14px;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 7px) 55%,calc(100% - 4px) 55%;background-size:3px 3px,3px 3px;background-repeat:no-repeat}
+select.fcsel:disabled{opacity:.5;cursor:not-allowed}
+input.fcd{color-scheme:dark}
+input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 .fcx.fcn{text-align:right}
 .fcbtn{width:100%;min-width:0;box-sizing:border-box;font-size:10px;padding:2px 4px;background:var(--bg-1,#0b0f16);border:1px solid var(--border);border-radius:4px;color:var(--ink-2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fcbtn:hover{color:var(--ink-1);border-color:var(--accent)}
@@ -857,6 +861,13 @@ function izSsCell(ss,srcSet){
   if(ss<SS_MIN)return '<td class="num ss-bad" title="с/с '+fmt(ss)+' ₽ - недостоверно мало для партии, проверьте калькулятор GG">'+fmt(ss)+tag+'</td>';
   return '<td class="num">'+fmt(ss)+tag+'</td>';
 }
+// категория изделия: официальные категории берём из assort сделок, но выбираем ту, что
+// соответствует товару по названию (перегородка -> «...перегородки», зеркало -> «Зеркала»),
+// иначе самую частую среди сделок изделия. Так перегородка не покажется «Зеркалами».
+const CAT_KW=[[/перегород/,/перегород/],[/зеркал/,/зеркал/],[/стол|столеш|подстол/,/стол/],[/каркас|комплект|фурнит/,/каркас|комплект|фурнит/],[/доск|маркерн/,/доск|маркерн/],[/огражд|балкон|лестниц/,/огражд|балкон|лестниц/]];
+function izPickCat(nm,cnt){ const keys=Object.keys(cnt); if(!keys.length)return ''; const low=(nm||'').toLowerCase();
+  for(const [nre,cre] of CAT_KW){ if(nre.test(low)){ const m=keys.find(k=>cre.test(k.toLowerCase())); if(m)return m; } }
+  return keys.sort((a,b)=>cnt[b]-cnt[a])[0]; }
 function buildIzd(list){
   const M=new Map();
   for(const d of list){ for(const g of izdelia(d)){ const key=izKeyG(g);
@@ -868,11 +879,11 @@ function buildIzd(list){
     e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>{e.smarts.add(k); if(g.sp[k]&&g.sp[k].vB>0)e.smartsSS.add(k);});
     e.deals.push({d,qty,ss,price,rev,g}); } }
   const arr=[...M.values()];
-  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catSet=new Set(); const shipArr=[];
-    for(const it of e.deals){ if(it.d.stage)stSet.add(it.d.stage); if(it.d.assort)catSet.add(it.d.assort); if(it.d.shippedAt)shipArr.push(it.d.shippedAt); const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;bestD=it.d;}}
+  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catCnt={}; const shipArr=[];
+    for(const it of e.deals){ if(it.d.stage)stSet.add(it.d.stage); if(it.d.assort)catCnt[it.d.assort]=(catCnt[it.d.assort]||0)+1; if(it.d.shippedAt)shipArr.push(it.d.shippedAt); const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;bestD=it.d;}}
     e.smartName=best?best.smart:''; e.stageName=best?best.name:'';
     e.dealStage=bestD&&bestD.stage?bestD.stage:(e.deals[0]&&e.deals[0].d.stage||''); e.dealStages=[...stSet];
-    e.cats=[...catSet]; e.cat=e.cats[0]||'';
+    e.cats=Object.keys(catCnt); e.cat=izPickCat(e.nm,catCnt);
     shipArr.sort(); e.shippedAt=shipArr.length?shipArr[shipArr.length-1]:''; e.shippedN=shipArr.length; }
   return arr;
 }
@@ -888,22 +899,39 @@ function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return 
 function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
   const fc=_igv('ifCat').trim().toLowerCase(); if(fc&&!((e.cats||[]).join(' ').toLowerCase().includes(fc)))return false;
-  const fd=_igv('ifDate').trim().toLowerCase(); if(fd&&!((ruD(e.dmax)+' '+ruD(e.dmin)).toLowerCase().includes(fd)))return false;
-  const fsm=_igv('ifSmart').trim().toLowerCase(); if(fsm&&!((e.smartName||'').toLowerCase().includes(fsm)))return false;
-  const fst=_igv('ifStage').trim().toLowerCase(); if(fst&&!((e.stageName||'').toLowerCase().includes(fst)))return false;
+  const fd=_igv('ifDate').trim(); if(fd&&!((e.dmax||'')>=fd))return false;
+  const fsm=_igv('ifSmart'); if(fsm&&(e.smartName||'')!==fsm)return false;
+  const fst=_igv('ifStage'); if(fst&&(e.stageName||'')!==fst)return false;
   if(izStageSel.size && !((e.dealStages||[]).some(s=>izStageSel.has(s))))return false;
-  const fsh=_igv('ifShip').trim().toLowerCase(); if(fsh){ const shtxt=e.shippedAt?ruD(e.shippedAt):'не наступила'; if(!shtxt.toLowerCase().includes(fsh))return false; }
+  const fsh=_igv('ifShip').trim(); if(fsh&&!((e.shippedAt||'')>=fsh))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
   return mn('ifMin_4',e.deals.length)&&mn('ifMin_5',e.qty)&&mn('ifMin_6',e.price)&&mn('ifMin_12',e.ss)&&mn('ifMin_13',e.rev)&&mn('ifMin_14',e.margin)&&mn('ifMin_15',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<input class="fcx" id="ifDate" placeholder="дата" title="фильтр по дате, напр. 09.2026">'; if(i===8)return '<input class="fcx" id="ifSmart" placeholder="смарт" title="фильтр по смарт-процессу">'; if(i===9)return '<input class="fcx" id="ifStage" placeholder="этап" title="фильтр по этапу">'; if(i===10)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===11)return '<input class="fcx" id="ifShip" placeholder="реализ." title="фильтр по дате реализации (или «не наступила»)">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<input type="date" class="fcx fcd" id="ifDate" title="создана: показать с выбранной даты">'; if(i===8)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">смарт</option></select>'; if(i===9)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">этап</option></select>'; if(i===10)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===11)return '<input type="date" class="fcx fcd" id="ifShip" title="дата реализации: показать с выбранной даты">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2)?1:-1);}izHeadRow();render();})); }
+// карта Смарт -> его этапы (по фактическим данным, теми же izdStageInfo, что дают значения колонок)
+let _ssMap=null;
+function izSmartStageMap(){ if(_ssMap)return _ssMap; const m=new Map();
+  for(const d of DATA.deals){ for(const g of izdelia(d)){ const si=izdStageInfo(g); if(si&&si.smart){ if(!m.has(si.smart))m.set(si.smart,new Set()); if(si.name)m.get(si.smart).add(si.name); } } }
+  _ssMap=m; return m; }
 function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySelector('colgroup'))return;
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifCat','ifDate','ifSmart','ifStage','ifShip','ifMin_4','ifMin_5','ifMin_6','ifMin_12','ifMin_13','ifMin_14','ifMin_15'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifCat','ifDate','ifShip','ifMin_4','ifMin_5','ifMin_6','ifMin_12','ifMin_13','ifMin_14','ifMin_15'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation());
+  // зависимые выпадающие списки: Смарт -> Этап (этапы зависят от выбранного смарта)
+  const ssm=izSmartStageMap(), selSmart=document.getElementById('ifSmart'), selStage=document.getElementById('ifStage');
+  if(selSmart&&selStage){
+    const smarts=(ORDER||[]).map(k=>SMFULL[k]||k).filter(nm=>ssm.has(nm)); for(const nm of ssm.keys()) if(!smarts.includes(nm))smarts.push(nm);
+    selSmart.innerHTML='<option value="">смарт</option>'+smarts.map(nm=>'<option value="'+esc(nm)+'">'+esc(nm)+'</option>').join('');
+    const fillStages=()=>{ const cur=selStage.value, sm=selSmart.value, list=(sm&&ssm.has(sm))?[...ssm.get(sm)].sort((a,b)=>a.localeCompare(b,'ru')):[];
+      selStage.innerHTML='<option value="">этап</option>'+list.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');
+      selStage.disabled=!sm; selStage.value=list.includes(cur)?cur:''; };
+    fillStages();
+    selSmart.addEventListener('change',()=>{ fillStages(); render(); });
+    selStage.addEventListener('change',render);
+  }
   // мультивыбор стадий сделки: список стадий с чекбоксами, всплывашка фиксированная (не режется контейнером)
   const sp=document.getElementById('stagePop');
   if(sp){ const opts=(DATA.stageOrder||[]).filter(s=>DATA.deals.some(d=>d.stage===s)); const extra=[...new Set(DATA.deals.map(d=>d.stage).filter(Boolean))].filter(s=>!opts.includes(s)); const IZ_STAGES=[...opts,...extra];
@@ -941,7 +969,7 @@ function renderIzd(base){
     html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
       +'<td class="iznum"'+(izNo(e)?' title="'+esc(izNo(e))+'"':'')+'><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
       +'<td class="izgnm" title="'+esc(e.nm||'')+'">'+esc(cleanNm(e.nm).slice(0,58)||'(без названия)')+'</td>'
-      +'<td class="izcatc" title="'+esc((e.cats||[]).join(', '))+'">'+(e.cat?'<span class="izcat">'+esc(e.cat)+'</span>'+(e.cats&&e.cats.length>1?' <span class="izgc">+'+(e.cats.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
+      +'<td class="izcatc" title="'+esc(e.cat?('категория: '+e.cat+(e.cats&&e.cats.length>1?' · у сделок изделия есть и другие категории: '+e.cats.filter(c=>c!==e.cat).join(', '):'')):'категория не указана')+'">'+(e.cat?'<span class="izcat">'+esc(e.cat)+'</span>'+(e.cats&&e.cats.length>1?' <span class="izgc" title="ещё '+(e.cats.length-1)+' категор. у сделок этого изделия">+'+(e.cats.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="izdt" title="'+(e.dmin&&e.dmin!==e.dmax?'сделки '+ruD(e.dmin)+' - '+ruD(e.dmax):'дата создания сделки')+'">'+(e.dmax?ruD(e.dmax):'<span class="cell-o">—</span>')+(e.dmin&&e.dmin!==e.dmax?' <span class="izgc">+'+(e.deals.length-1)+'</span>':'')+'</td>'
       +'<td class="num">'+(e.deals.length===1?'<span class="dno" title="номер сделки '+e.deals[0].d.id+' (без ссылки)">'+e.deals[0].d.id+'</span>':'<span title="сделок: '+e.deals.length+' - номера видны при разворачивании">'+e.deals.length+' сд.</span>')+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
@@ -977,7 +1005,7 @@ function renderIzd(base){
       +'<td class="num">'+fmt(tmg)+'</td>'
       +'<td class="num">'+(tmp!==null?tmp+'%':'-')+'</td></tr>';
     document.querySelector('#izdtbl tfoot').innerHTML=ft; }
-  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽); значок К/Р/З/П показывает откуда взята с/с по приоритету: К-Калькулятор, иначе Р-Расчёт+З-Закупка, иначе П-Производство · «Дата реализации» - дата перехода сделки в «Заказ отправлен» (нет перехода - «не наступила») · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
+  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽); значок К/Р/З/П показывает откуда взята с/с по приоритету: К-Калькулятор, иначе Р-Расчёт+З-Закупка, иначе П-Производство · «Дата реализации» - дата перехода сделки в «Заказ отправлен» (нет перехода - «не наступила») · значок «+N» рядом со значением = у изделия несколько сделок, и у них ещё N вариантов (категорий/стадий/дат); наведи, чтобы увидеть список · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
   document.getElementById('cnt').textContent='изделий: '+items.length;
 }
 // ячейки строки сделки (те же колонки, что в таблице «Сделки») - переиспользуются во вкладке «Изделия»

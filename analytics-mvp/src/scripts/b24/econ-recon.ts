@@ -94,35 +94,14 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   } catch (e) { console.error("RECON-ASSORT\tошибка чтения crm.deal.fields:", String(e)); }
   const resolveAssort = (v: any): string => !assortId ? "" : Array.isArray(v) ? v.map((x) => assortMap[String(x)] || String(x)).filter(Boolean).join(", ") : (assortMap[String(v)] || (v ? String(v) : ""));
 
-  const dealSelect = ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "DATE_CREATE", "DATE_MODIFY", ...(assortId ? [assortId] : [])];
+  // MOVED_TIME = дата перехода сделки в ТЕКУЩУЮ стадию. Для сделок в «Заказ отправлен» это и есть дата реализации.
+  const dealSelect = ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "DATE_CREATE", "DATE_MODIFY", "MOVED_TIME", ...(assortId ? [assortId] : [])];
   const dealRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": cutoff }, select: dealSelect, order: { ID: "DESC" } });
   const deal: Record<string, any> = {};
-  for (const d of dealRows) deal[String(d.ID)] = { id: Number(d.ID), title: d.TITLE || "", mgr: uName[String(d.ASSIGNED_BY_ID)] || null, stageCode: String(d.STAGE_ID || "").replace(/^C49:/, ""), stage: stageName[d.STAGE_ID] || d.STAGE_ID, budget: Math.round(num(d.OPPORTUNITY)), created: d10(d.DATE_CREATE), modified: d10(d.DATE_MODIFY), assort: assortId ? resolveAssort(d[assortId]) : "", sps: {} as Record<string, any>, products: [] as any[], hasProducts: false };
+  for (const d of dealRows) { const stName = stageName[d.STAGE_ID] || d.STAGE_ID; deal[String(d.ID)] = { id: Number(d.ID), title: d.TITLE || "", mgr: uName[String(d.ASSIGNED_BY_ID)] || null, stageCode: String(d.STAGE_ID || "").replace(/^C49:/, ""), stage: stName, budget: Math.round(num(d.OPPORTUNITY)), created: d10(d.DATE_CREATE), modified: d10(d.DATE_MODIFY), shippedAt: (String(stName) === "Заказ отправлен" && d.MOVED_TIME) ? d10(d.MOVED_TIME) : null, assort: assortId ? resolveAssort(d[assortId]) : "", sps: {} as Record<string, any>, products: [] as any[], hasProducts: false }; }
   const inWin = new Set(Object.keys(deal));
-
-  // 2.1) Дата реализации = дата первого перехода сделки в стадию «Заказ отправлен».
-  // История переходов - через crm.stagehistory.list (ответ в {result:{items:[...]}} со своей пагинацией).
-  // Всё в try/catch: сбой истории не должен ломать снимок, изделия просто останутся без даты реализации.
-  try {
-    const shipStatuses = stages.filter((s: any) => String(s.NAME || "") === "Заказ отправлен" && /_49\b|C49|CATEGORY.*49/i.test(String(s.ENTITY_ID || s.STATUS_ID || "")));
-    const shipStatusIds = [...new Set(shipStatuses.map((s: any) => String(s.STATUS_ID)))];
-    console.error(`RECON-SHIPPED\tстатусы «Заказ отправлен»: ${shipStatusIds.join("|") || "(нет)"}`);
-    // Диагностика формата: 1 страница истории БЕЗ фильтра (дёшево) - чтобы увидеть реальный формат STAGE_ID.
-    try { const pj: any = await call("crm.stagehistory.list", { entityTypeId: "deal", filter: { CATEGORY_ID: CAT }, select: ["STAGE_ID"], start: 0 }); const pit: any[] = (pj.result && pj.result.items) || []; console.error(`RECON-SHIPPED\tпроба STAGE_ID (первые): ${[...new Set(pit.slice(0, 40).map((x: any) => String(x.STAGE_ID)))].join("|")}`); } catch (e) { console.error("RECON-SHIPPED\tпроба не удалась:", String(e)); }
-    // Основной сбор: фильтруем историю по конкретной стадии «Заказ отправлен» - строк мало (~сделки, дошедшие до отгрузки), не тяжело.
-    const shippedAt: Record<string, string> = {}; let seen = 0, matched = 0;
-    for (const sid of shipStatusIds) {
-      let start = 0, page = 0;
-      for (;;) {
-        const j: any = await call("crm.stagehistory.list", { entityTypeId: "deal", filter: { CATEGORY_ID: CAT, STAGE_ID: sid }, order: { CREATED_TIME: "ASC" }, select: ["OWNER_ID", "STAGE_ID", "CREATED_TIME"], start });
-        const items: any[] = (j.result && j.result.items) || [];
-        for (const h of items) { seen++; const did = String(h.OWNER_ID || ""); if (!did || !inWin.has(did)) continue; matched++; const dt = d10(h.CREATED_TIME); if (dt && (!shippedAt[did] || dt < shippedAt[did])) shippedAt[did] = dt; }
-        page++; if (j.next === undefined || !items.length || page >= 200) break; start = j.next;
-      }
-    }
-    for (const did of Object.keys(shippedAt)) if (deal[did]) deal[did].shippedAt = shippedAt[did];
-    console.error(`RECON-SHIPPED\tистория(фильтр по стадии): строк ${seen}, совпало ${matched}, сделок с датой ${Object.keys(shippedAt).length}`);
-  } catch (e) { console.error("RECON-SHIPPED\tошибка crm.stagehistory.list:", String(e)); }
+  // Дата реализации проставлена выше из MOVED_TIME для сделок в стадии «Заказ отправлен» (без тяжёлых доп. запросов).
+  console.error(`RECON-SHIPPED\tсделок с датой реализации (в стадии «Заказ отправлен», по MOVED_TIME): ${[...inWin].filter((id) => deal[id].shippedAt).length}`);
   console.error(`Сделок воронки ${CAT} за ${WINDOW_DAYS} дн (с ${cutoff}): ${inWin.size}`);
 
   // 3) По каждому СП: денежные поля -> инвентаризация (заполненность на карточках, привязанных к окну)

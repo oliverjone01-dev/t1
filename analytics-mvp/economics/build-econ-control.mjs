@@ -146,6 +146,7 @@ th,td{padding:5px 6px;text-align:left;border-bottom:1px solid var(--border);whit
 .mp-yel{background:rgba(217,164,65,.20);color:#e6c069}
 .mp-wht{background:rgba(200,205,215,.09);color:var(--ink-1)}
 .mp-red{background:rgba(214,92,110,.22);color:#ec93a4}
+#izdtbl .ss-bad{background:rgba(214,92,110,.22);color:#ec93a4;font-weight:700}
 th{position:sticky;top:0;background:var(--elev);z-index:2;font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none}
 th:hover{color:var(--ink)} th .ar{color:var(--accent);font-size:10px}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
@@ -781,6 +782,14 @@ function izStageParts(e){let best=null,bp=-1;for(const it of e.deals){const si=i
   const si=izdStageInfo(best); return {smart:'<span class="izsm">'+esc(si.smart)+'</span>',badge:izdBadge(best)};}
 // маржинальность цветом как в «Сделках» (mp-red/mp-yel/mp-grn по MPCT_LO/MPCT_HI)
 function izMpct(mpct){ if(mpct==null)return '<td class="num"><span class="cell-o">-</span></td>'; const mv=Math.round(mpct*100); const cls=mv<MPCT_LO?'mp-red':mv>MPCT_HI?'mp-grn':'mp-yel'; return '<td class="num mp '+cls+'" title="маржинальность '+mv+'% · красный <'+MPCT_LO+'%, жёлтый '+MPCT_LO+'-'+MPCT_HI+'%, зелёный >'+MPCT_HI+'%">'+mv+'%</td>'; }
+// Σ с/с: подсветка красным недостоверной себестоимости (нет с/с или неправдоподобно мало).
+// Порог: партия изделия не может стоить меньше SS_MIN ₽ (артефакт незаполненного калькулятора).
+const SS_MIN=1000;
+function izSsCell(ss){
+  if(!ss)return '<td class="num ss-bad" title="нет данных по себестоимости - калькулятор GG не заполнен">нет с/с</td>';
+  if(ss<SS_MIN)return '<td class="num ss-bad" title="с/с '+fmt(ss)+' ₽ - недостоверно мало для партии, проверьте калькулятор GG">'+fmt(ss)+'</td>';
+  return '<td class="num">'+fmt(ss)+'</td>';
+}
 function buildIzd(list){
   const M=new Map();
   for(const d of list){ for(const g of izdelia(d)){ const key=izKeyG(g);
@@ -845,7 +854,7 @@ function renderIzd(base){
       +'<td>'+izBar(e)+'</td>'
       +'<td>'+_izsp.smart+'</td>'
       +'<td>'+_izsp.badge+'</td>'
-      +'<td class="num">'+(e.ss?fmt(e.ss):'<span class="cell-o">-</span>')+'</td>'
+      +izSsCell(e.ss)
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
       +izMpct(e.mpct)
@@ -861,7 +870,7 @@ function renderIzd(base){
     }
   }
   document.querySelector('#izdtbl tbody').innerHTML=html||'<tr><td colspan="'+ICOLS.length+'" class="pusl">нет изделий в выборке</td></tr>';
-  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
+  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽) · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
   document.getElementById('cnt').textContent='изделий: '+items.length;
 }
 // ячейки строки сделки (те же колонки, что в таблице «Сделки») - переиспользуются во вкладке «Изделия»

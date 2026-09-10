@@ -319,6 +319,30 @@ input.fcd{color-scheme:dark}
 input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 .fcx.fcn{text-align:right}
 .iz-nofill{color:#e0645a;font-size:9.5px;font-style:italic;opacity:.9}
+/* Календарь диапазона дат (как в Яндекс.Метрике) */
+.calbtn{cursor:pointer;white-space:nowrap;text-align:left}
+.cal-pop{position:fixed;z-index:120;background:var(--card,#141a24);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 16px 44px rgba(0,0,0,.55);font-size:12px;color:var(--ink-1)}
+.cal-nav{display:flex;align-items:flex-start;gap:8px}
+.cal-nav>button{background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:15px;line-height:1;flex:0 0 auto;margin-top:2px}
+.cal-nav>button:hover{border-color:var(--accent);color:var(--ink)}
+.cal-months{display:flex;gap:18px}
+.cal-mo{min-width:210px}
+.cal-mh{text-align:center;font-weight:700;color:var(--ink);margin-bottom:6px}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px}
+.cal-dow span{text-align:center;font-size:10px;color:var(--ink-3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-grid .cal-e{height:26px}
+.cal-d{height:26px;border:0;background:transparent;color:var(--ink-1);border-radius:6px;cursor:pointer;font-size:11.5px}
+.cal-d:hover{background:var(--elev)}
+.cal-d.in{background:rgba(90,150,255,.16);border-radius:0}
+.cal-d.edge{background:var(--accent,#5a96ff);color:#fff;border-radius:6px;font-weight:700}
+.cal-foot{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.cal-io{color:var(--ink-3)}
+.cal-io input{width:88px;background:var(--bg-1,#0b0f16);border:1px solid var(--border);border-radius:6px;color:var(--ink-1);font-size:11px;padding:3px 6px;margin-left:3px}
+.cal-sp{flex:1}
+.cal-pop .cal-pset{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.cal-pop .cal-pset button{background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer}
+.cal-pop .cal-pset button:hover{border-color:var(--accent);color:var(--ink)}
 .fcrange{display:flex;flex-direction:column;gap:2px}
 .fcrange .fcd{font-size:9px;padding:1px 3px}
 #izdtbl .izmgr{font-size:10.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -343,10 +367,8 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
   <div class="presets" id="presets"></div>
   <details class="msel" id="mselMgr"><summary id="mgrSum">Менеджеры</summary><div class="msel-pop" id="mgrPop"></div></details>
   <span class="barsp"></span>
-  <label>с <input type="date" id="dfrom"></label>
-  <span class="dsep">–</span>
-  <label>по <input type="date" id="dto"></label>
-  <button class="dbtn" id="applyRange">ОК</button>
+  <button class="dbtn calbtn" id="dateBtn" title="выбрать дату или диапазон дат (календарь как в Метрике)">📅 <span id="dateBtnTxt">даты</span></button>
+  <input type="hidden" id="dfrom"><input type="hidden" id="dto">
   <span class="cnt" id="cnt"></span>
 </div>
 <div class="tabs" id="tabs"><button class="tb on" data-v="deals">Сделки</button><button class="tb" data-v="izd">Изделия</button></div>
@@ -547,8 +569,43 @@ function econSetPeriod(p){ const df=document.getElementById('dfrom'), dt=documen
 const pdiv=document.getElementById('presets');
 const clearPeriod=()=>{ [...pdiv.querySelectorAll('.seg button')].forEach(x=>x.classList.remove('on')); };
 pdiv.innerHTML='<span style="color:var(--ink-3);font-size:11.5px;align-self:center;margin-right:6px">Период:</span><div class="seg">'+PSET.map(p=>'<button data-p="'+p[0]+'"'+(p[0]==='mig'?' title="сделки, созданные после переезда - операционка с апреля 2026"':'')+'>'+esc(p[1])+'</button>').join('')+'</div>';
-pdiv.addEventListener('click',e=>{ const b=e.target.closest('.seg button'); if(!b)return; clearPeriod(); b.classList.add('on'); econSetPeriod(b.dataset.p); render(); });
-document.getElementById('applyRange').addEventListener('click',()=>{ clearPeriod(); render(); });
+pdiv.addEventListener('click',e=>{ const b=e.target.closest('.seg button'); if(!b)return; clearPeriod(); b.classList.add('on'); econSetPeriod(b.dataset.p); updateDateBtn(); render(); });
+
+// ===== Календарь диапазона дат (как в Яндекс.Метрике): один общий поповер на все триггеры =====
+const _cpad=n=>String(n).padStart(2,'0');
+const _ruShort=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'дд.мм.гггг';
+const CALP={from:'',to:'',view:new Date(),onApply:null};
+function calGrid(y,m){ const off=(new Date(y,m,1).getDay()+6)%7, dim=new Date(y,m+1,0).getDate();
+  const MN=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  let h='<div class="cal-mo"><div class="cal-mh">'+MN[m]+' '+y+'</div><div class="cal-dow">'+['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>'<span>'+d+'</span>').join('')+'</div><div class="cal-grid">';
+  for(let i=0;i<off;i++)h+='<span class="cal-e"></span>';
+  for(let d=1;d<=dim;d++){ const iso=y+'-'+_cpad(m+1)+'-'+_cpad(d); const inr=CALP.from&&CALP.to&&iso>=CALP.from&&iso<=CALP.to; const edge=(iso===CALP.from||iso===CALP.to);
+    h+='<button type="button" class="cal-d'+(inr?' in':'')+(edge?' edge':'')+'" data-d="'+iso+'">'+d+'</button>'; }
+  return h+'</div></div>'; }
+function calDraw(){ const pop=document.getElementById('calPop'); if(!pop)return; const y=CALP.view.getFullYear(), m=CALP.view.getMonth(), nm=new Date(y,m+1,1);
+  pop.querySelector('.cal-months').innerHTML=calGrid(y,m)+calGrid(nm.getFullYear(),nm.getMonth());
+  pop.querySelector('#calFrom').value=_ruShort(CALP.from); pop.querySelector('#calTo').value=_ruShort(CALP.to); }
+function calClose(){ const pop=document.getElementById('calPop'); if(pop)pop.hidden=true; }
+function calEnsure(){ if(document.getElementById('calPop'))return;
+  const pop=document.createElement('div'); pop.id='calPop'; pop.className='cal-pop'; pop.hidden=true;
+  pop.innerHTML='<div class="cal-nav"><button type="button" class="cal-pv" data-nav="-1">‹</button><div class="cal-months"></div><button type="button" class="cal-nx" data-nav="1">›</button></div>'
+    +'<div class="cal-foot"><span class="cal-io">с<input id="calFrom" readonly></span><span class="cal-io">по<input id="calTo" readonly></span><span class="cal-sp"></span><button type="button" class="dbtn" data-cal="clr">Сброс</button><button type="button" class="dbtn" data-cal="ok">Применить</button></div>';
+  document.body.appendChild(pop);
+  pop.addEventListener('click',e=>{ e.stopPropagation();
+    const nav=e.target.closest('[data-nav]'); if(nav){ CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()+(+nav.dataset.nav),1); calDraw(); return; }
+    const dd=e.target.closest('.cal-d'); if(dd){ const iso=dd.dataset.d;
+      if(!CALP.from||CALP.to){ CALP.from=iso; CALP.to=''; } else { if(iso<CALP.from){CALP.to=CALP.from;CALP.from=iso;} else CALP.to=iso; }
+      calDraw(); return; }
+    const act=e.target.closest('[data-cal]'); if(act){ if(act.dataset.cal==='clr'){ if(CALP.onApply)CALP.onApply('',''); } else { const f=CALP.from,t=CALP.to||CALP.from; if(CALP.onApply)CALP.onApply(f,t); } calClose(); } });
+  document.addEventListener('click',()=>calClose()); }
+function calOpen(anchor,from,to,onApply){ calEnsure(); CALP.from=from||''; CALP.to=to||''; CALP.onApply=onApply;
+  const base=to||from; CALP.view=base?new Date(base+'T00:00:00'):new Date(); CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()-1,1);
+  const pop=document.getElementById('calPop'); pop.hidden=false; calDraw();
+  const r=anchor.getBoundingClientRect(); pop.style.left=Math.max(6,Math.min(r.left,innerWidth-500))+'px'; pop.style.top=Math.min(r.bottom+4,innerHeight-360)+'px'; }
+function updateDateBtn(){ const t=document.getElementById('dateBtnTxt'); if(!t)return; const f=(document.getElementById('dfrom')||{}).value, d=(document.getElementById('dto')||{}).value;
+  t.textContent=(f||d)?(_ruShort(f||d)+(d&&d!==f?' - '+_ruShort(d):'')):'даты'; }
+{ const db=document.getElementById('dateBtn'); if(db)db.addEventListener('click',ev=>{ ev.stopPropagation(); const df=document.getElementById('dfrom'),dt=document.getElementById('dto');
+  calOpen(db,df.value,dt.value,(f,t)=>{ df.value=f; dt.value=t; clearPeriod(); updateDateBtn(); render(); }); }); updateDateBtn(); }
 // мультивыбор менеджеров: применяется в passesBase -> фильтрует обе вкладки (Сделки и Изделия)
 const MGRS=[...new Set(DATA.deals.map(d=>d.mgr).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
 const mgrSel=new Set();
@@ -943,7 +1000,7 @@ function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e)
   const fsht=_igv('ifShipTo').trim(); if(fsht&&!(e.shippedAt&&e.shippedAt<=fsht))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
   return mn('ifMin_5',e.deals.length)&&mn('ifMin_6',e.qty)&&mn('ifMin_7',e.price)&&mn('ifMin_13',e.ss)&&mn('ifMin_14',e.rev)&&mn('ifMin_15',e.margin)&&mn('ifMin_16',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<div class="fcrange"><input type="date" class="fcx fcd" id="ifDateFrom" title="создана с (от)"><input type="date" class="fcx fcd" id="ifDateTo" title="создана по (до)"></div>'; if(i===9)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">Все смарты</option></select>'; if(i===10)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">Все этапы</option></select>'; if(i===11)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===12)return '<div class="fcrange"><input type="date" class="fcx fcd" id="ifShipFrom" title="дата реализации с (от)"><input type="date" class="fcx fcd" id="ifShipTo" title="дата реализации по (до)"></div>'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<button class="fcx calbtn" id="ifDateBtn" title="создана: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifDateFrom"><input type="hidden" id="ifDateTo">'; if(i===9)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">Все смарты</option></select>'; if(i===10)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">Все этапы</option></select>'; if(i===11)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===12)return '<button class="fcx calbtn" id="ifShipBtn" title="дата реализации: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifShipFrom"><input type="hidden" id="ifShipTo">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2||i===3)?1:-1);}izHeadRow();render();})); }
 // карта Смарт -> его этапы (по фактическим данным, теми же izdStageInfo, что дают значения колонок)
@@ -955,7 +1012,13 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifCat','ifDateFrom','ifDateTo','ifShipFrom','ifShipTo','ifMin_5','ifMin_6','ifMin_7','ifMin_13','ifMin_14','ifMin_15','ifMin_16'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifCat','ifMin_5','ifMin_6','ifMin_7','ifMin_13','ifMin_14','ifMin_15','ifMin_16'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  // кнопки-календари в колонках «Создана» и «Дата реализации» (дата или диапазон)
+  const _colCal=(btnId,fromId,toId,label)=>{ const btn=document.getElementById(btnId); if(!btn)return;
+    const upd=()=>{ const f=document.getElementById(fromId).value, t=document.getElementById(toId).value; btn.textContent=(f||t)?(_ruShort(f||t)+(t&&t!==f?' … '+_ruShort(t):'')):label; };
+    upd(); btn.addEventListener('click',ev=>{ ev.stopPropagation(); const fi=document.getElementById(fromId),ti=document.getElementById(toId);
+      calOpen(btn,fi.value,ti.value,(f,t)=>{ fi.value=f; ti.value=t; upd(); render(); }); }); };
+  _colCal('ifDateBtn','ifDateFrom','ifDateTo','дата'); _colCal('ifShipBtn','ifShipFrom','ifShipTo','дата');
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation());
   // зависимые выпадающие списки: Смарт -> Этап (этапы зависят от выбранного смарта)
   const ssm=izSmartStageMap(), selSmart=document.getElementById('ifSmart'), selStage=document.getElementById('ifStage');

@@ -817,13 +817,18 @@ let VIEW='deals';
 const OPENIZD=new Set();      // раскрытые изделия (ключ изделия)
 const OPENIZDDEAL=new Set();  // раскрытые сделки внутри изделия (ключ изделия + id сделки)
 const izKeyG=g=> g.art?('art:'+g.art) : (g.ns?('ns:'+g.ns) : (nameSig(g.nm)?('sig:'+nameSig(g.nm)):('id:'+g.firstId)));
-const izSS=g=>((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0)+((g.sp['Закупка']&&g.sp['Закупка'].vB)||0);
-// из каких смарт-процессов сложена с/с (та же логика, что в izSS): база (Производство ИЛИ Расчёт) + Закупка.
-const SSABBR={'Производство  GG':'П','Расчёт':'Р','Закупка':'З'};
-const SSFULL={'П':'Производство GG','Р':'Расчёт','З':'Закупка'};
-function izSsSrcOf(g){ const s=[]; const vb=k=>g.sp[k]&&g.sp[k].vB>0?g.sp[k].vB:0;
-  if(vb('Производство  GG'))s.push('П'); else if(vb('Расчёт'))s.push('Р');
-  if(vb('Закупка'))s.push('З'); return s; }
+// с/с по приоритету: Калькулятор GG (итоговая) -> иначе Расчёт+Закупка (сумма) -> иначе Производство GG.
+const _vbOf=(g,k)=>g.sp[k]&&g.sp[k].vB>0?g.sp[k].vB:0;
+const izSS=g=>{ const K=_vbOf(g,'Калькулятор GG'); if(K)return K;
+  const R=_vbOf(g,'Расчёт'),Z=_vbOf(g,'Закупка'); if(R||Z)return R+Z;
+  return _vbOf(g,'Производство  GG'); };
+// из каких смартов взята с/с (тот же приоритет): К=Калькулятор, Р=Расчёт, З=Закупка, П=Производство.
+const SSABBR={'Калькулятор GG':'К','Производство  GG':'П','Расчёт':'Р','Закупка':'З'};
+const SSFULL={'К':'Калькулятор GG','Р':'Расчёт','З':'Закупка','П':'Производство GG'};
+function izSsSrcOf(g){ if(_vbOf(g,'Калькулятор GG'))return ['К'];
+  const R=_vbOf(g,'Расчёт'),Z=_vbOf(g,'Закупка'); if(R||Z){const s=[];if(R)s.push('Р');if(Z)s.push('З');return s;}
+  if(_vbOf(g,'Производство  GG'))return ['П'];
+  return []; }
 // цена товара: цена клиента из товарной строки сделки, сопоставленной изделию по сигнатуре названия
 const izPrice=(d,g)=>{const sig=nameSig(g.nm);if(!sig)return 0;for(const p of goodRows(d)){if(nameSig(p.name)===sig){const pr=+p.price||0;if(pr>1)return pr;}}return 0;};
 // на каких смарт-процессах у изделия есть карточки (сейчас в работе)
@@ -842,9 +847,9 @@ function izMpct(mpct){ if(mpct==null)return '<td class="num"><span class="cell-o
 // Порог: партия изделия не может стоить меньше SS_MIN ₽ (артефакт незаполненного калькулятора).
 const SS_MIN=1000;
 function izSsSrcTag(srcSet){ if(!srcSet||!srcSet.size)return '';
-  const ord=['П','Р','З'].filter(a=>srcSet.has(a)); if(!ord.length)return '';
+  const ord=['К','Р','З','П'].filter(a=>srcSet.has(a)); if(!ord.length)return '';
   const full=ord.map(a=>SSFULL[a]).join(' + ');
-  return ' <span class="ss-src" title="с/с сложена из смарт-процессов: '+esc(full)+'">'+esc(ord.join('+'))+'</span>';
+  return ' <span class="ss-src" title="с/с взята из смарт-процесса: '+esc(full)+'">'+esc(ord.join('+'))+'</span>';
 }
 function izSsCell(ss,srcSet){
   if(!ss)return '<td class="num ss-bad" title="нет данных по себестоимости - калькулятор GG не заполнен">нет с/с</td>';
@@ -972,7 +977,7 @@ function renderIzd(base){
       +'<td class="num">'+fmt(tmg)+'</td>'
       +'<td class="num">'+(tmp!==null?tmp+'%':'-')+'</td></tr>';
     document.querySelector('#izdtbl tfoot').innerHTML=ft; }
-  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽); значок Р/П/З показывает из каких смартов сложена с/с (Р-Расчёт, П-Производство, З-Закупка) · «Дата реализации» - дата перехода сделки в «Заказ отправлен» (нет перехода - «не наступила») · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
+  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽); значок К/Р/З/П показывает откуда взята с/с по приоритету: К-Калькулятор, иначе Р-Расчёт+З-Закупка, иначе П-Производство · «Дата реализации» - дата перехода сделки в «Заказ отправлен» (нет перехода - «не наступила») · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
   document.getElementById('cnt').textContent='изделий: '+items.length;
 }
 // ячейки строки сделки (те же колонки, что в таблице «Сделки») - переиспользуются во вкладке «Изделия»

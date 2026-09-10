@@ -667,6 +667,20 @@ function izdelia(d){
     if((+c.qty||0)>it.qty)it.qty=+c.qty||0;
     if(c.nm&&c.nm.length>(it.nm||'').length)it.nm=c.nm; // самое полное название изделия из заголовка карточки
     const e=it.sp[s.key]=it.sp[s.key]||{vU:0,vB:0,cards:[]}; e.vU+=ss; e.vB+=cardBatch(c); e.cards.push({id:c.id,etid:s.etid,st:c.st}); } }
+  // Склейка «голого» артикула-префикса: если карточка подписана префиксом (напр. «НС26»),
+  // а в сделке есть полный артикул с этим префиксом («НС26-435/-436»), это дефект заполнения,
+  // а не отдельная позиция. Сливаем такую группу в позицию с ТЕМ ЖЕ названием, но только
+  // если она ровно одна - иначе не угадываем (не искажаем с/с).
+  { const ents=Object.entries(g); const arts=ents.map(([,v])=>v.art).filter(Boolean);
+    const bare=a=>!!a&&arts.some(o=>o!==a&&o.startsWith(a+'-'));
+    // полная сигнатура: убираем номер заказа и артикул-коды, но СОХРАНЯЕМ габариты (2440/2170),
+    // чтобы различать одноимённые позиции разного размера
+    const fsig=nm=>String(nm||'').replace(/\\b\\d{5,7}\\b/g,'').replace(/[A-Za-zА-Яа-я]{1,4}\\d+(?:-\\d+)?/g,'').toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu,'');
+    for(const [k,it] of ents){ if(!bare(it.art))continue; const sig=fsig(it.nm); if(!sig)continue;
+      const tw=ents.filter(([kk,v])=>kk!==k&&v.art&&!bare(v.art)&&fsig(v.nm)===sig);
+      if(tw.length===1){ const t=tw[0][1];
+        for(const sk in it.sp){ const e=it.sp[sk]; const te=t.sp[sk]=t.sp[sk]||{vU:0,vB:0,cards:[]}; te.vU+=e.vU; te.vB+=e.vB; te.cards.push(...e.cards); }
+        delete g[k]; } } }
   // строка изделия имеет смысл, если по нему есть с/с или дошло до Расчёта/Производства (там живёт единый НС-номер)
   return Object.values(g).filter(it=>Object.values(it.sp).some(e=>e.vB>0)||(it.sp['Расчёт']&&it.sp['Расчёт'].cards.length)||(it.sp['Производство  GG']&&it.sp['Производство  GG'].cards.length));
 }
@@ -928,7 +942,7 @@ function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e)
   const fsht=_igv('ifShipTo').trim(); if(fsht&&!(e.shippedAt&&e.shippedAt<=fsht))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
   return mn('ifMin_5',e.deals.length)&&mn('ifMin_6',e.qty)&&mn('ifMin_7',e.price)&&mn('ifMin_13',e.ss)&&mn('ifMin_14',e.rev)&&mn('ifMin_15',e.margin)&&mn('ifMin_16',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<div class="fcrange"><input type="date" class="fcx fcd" id="ifDateFrom" title="создана с (от)"><input type="date" class="fcx fcd" id="ifDateTo" title="создана по (до)"></div>'; if(i===9)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">смарт</option></select>'; if(i===10)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">этап</option></select>'; if(i===11)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===12)return '<div class="fcrange"><input type="date" class="fcx fcd" id="ifShipFrom" title="дата реализации с (от)"><input type="date" class="fcx fcd" id="ifShipTo" title="дата реализации по (до)"></div>'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<div class="fcrange"><input type="date" class="fcx fcd" id="ifDateFrom" title="создана с (от)"><input type="date" class="fcx fcd" id="ifDateTo" title="создана по (до)"></div>'; if(i===9)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">Все смарты</option></select>'; if(i===10)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">Все этапы</option></select>'; if(i===11)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===12)return '<div class="fcrange"><input type="date" class="fcx fcd" id="ifShipFrom" title="дата реализации с (от)"><input type="date" class="fcx fcd" id="ifShipTo" title="дата реализации по (до)"></div>'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2||i===3)?1:-1);}izHeadRow();render();})); }
 // карта Смарт -> его этапы (по фактическим данным, теми же izdStageInfo, что дают значения колонок)
@@ -946,9 +960,9 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
   const ssm=izSmartStageMap(), selSmart=document.getElementById('ifSmart'), selStage=document.getElementById('ifStage');
   if(selSmart&&selStage){
     const smarts=(ORDER||[]).map(k=>SMFULL[k]||k).filter(nm=>ssm.has(nm)); for(const nm of ssm.keys()) if(!smarts.includes(nm))smarts.push(nm);
-    selSmart.innerHTML='<option value="">смарт</option>'+smarts.map(nm=>'<option value="'+esc(nm)+'">'+esc(nm)+'</option>').join('');
+    selSmart.innerHTML='<option value="">Все смарты</option>'+smarts.map(nm=>'<option value="'+esc(nm)+'">'+esc(nm)+'</option>').join('');
     const fillStages=()=>{ const cur=selStage.value, sm=selSmart.value, list=(sm&&ssm.has(sm))?[...ssm.get(sm)].sort((a,b)=>a.localeCompare(b,'ru')):[];
-      selStage.innerHTML='<option value="">этап</option>'+list.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');
+      selStage.innerHTML='<option value="">Все этапы</option>'+list.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');
       selStage.disabled=!sm; selStage.value=list.includes(cur)?cur:''; };
     fillStages();
     selSmart.addEventListener('change',()=>{ fillStages(); render(); });

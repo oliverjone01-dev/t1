@@ -136,7 +136,8 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .seg button.on{background:var(--accent);color:#04222a;font-weight:700}
 .dbtn{background:var(--accent);border:1px solid var(--accent);color:#04222a;border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .dsep{color:var(--ink-4)}
-.cnt{color:var(--ink-3);font-size:12px;margin-left:auto}
+.cnt{color:var(--ink-3);font-size:12px;margin-left:6px}
+.barsp{flex:1 1 auto}
 .scrollx{overflow:auto;max-height:74vh;border:1px solid var(--border);border-radius:12px}
 table{border-collapse:separate;border-spacing:0;width:100%;font-size:11px;min-width:0;table-layout:fixed}
 th,td{padding:5px 6px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -291,14 +292,11 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
 
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
-  <span class="barhint">фильтры по столбцам - в строке под шапкой таблицы ↓</span>
+  <span class="barsp"></span>
   <label>с <input type="date" id="dfrom"></label>
   <span class="dsep">–</span>
   <label>по <input type="date" id="dto"></label>
   <button class="dbtn" id="applyRange">ОК</button>
-  <label><input type="checkbox" id="fnoprod"> без товаров</label>
-  <label><input type="checkbox" id="fgap"> произв. без с/с</label>
-  <label><input type="checkbox" id="fpart"> неполная с/с</label>
   <span class="cnt" id="cnt"></span>
 </div>
 <div class="presets" id="presets"></div>
@@ -674,13 +672,9 @@ const _gv=id=>{const e=document.getElementById(id);return e?e.value:'';};
 function passesBase(d,skipStage){
   const q=document.getElementById('q').value.trim().toLowerCase();
   const df=document.getElementById('dfrom').value, dt=document.getElementById('dto').value;
-  const noprod=document.getElementById('fnoprod').checked, gap=document.getElementById('fgap').checked, part=document.getElementById('fpart').checked;
   if(q && !(String(d.id).includes(q)||(d.title||'').toLowerCase().includes(q))) return false;
   if(df && (d.created||'')<df) return false;
   if(dt && (d.created||'')>dt) return false;
-  if(noprod && d.hasProducts) return false;
-  if(gap && gate(d).cls!=='bad') return false;
-  if(part){ const r=coverage(d).r; if(!(r>=0&&r<1)) return false; }
   // фильтры-столбцы
   const ft=_gv('fcTitle').trim().toLowerCase(); if(ft && !(d.title||'').toLowerCase().includes(ft)) return false;
   const fm=_gv('fcMgr').trim().toLowerCase(); if(fm && !(d.mgr||'').toLowerCase().includes(fm)) return false;
@@ -902,7 +896,7 @@ function render(){
   document.getElementById('cnt').textContent='показано '+list.length+' из '+DATA.deals.length;
 }
 document.querySelector('#tbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return; const tr=e.target.closest('tr.drow'); if(!tr)return; const id=+tr.dataset.id; if(OPEN.has(id))OPEN.delete(id); else OPEN.add(id); render(); });
-['q','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+['q','dfrom','dto'].forEach(id=>document.getElementById(id).addEventListener('input',render));
 // переключение вкладок Сделки / Изделия
 document.getElementById('tabs').addEventListener('click',e=>{ const b=e.target.closest('.tb'); if(!b)return; VIEW=b.dataset.v;
   document.querySelectorAll('#tabs .tb').forEach(x=>x.classList.toggle('on',x===b));

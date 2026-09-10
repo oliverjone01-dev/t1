@@ -839,8 +839,8 @@ function renderIzd(base){
   let html='';
   for(const e of items){ const open=OPENIZD.has(e.key); const _izsp=izStageParts(e);
     html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
-      +'<td class="iznum">'+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
-      +'<td class="izgnm" title="'+esc(e.nm||'')+'"><span class="exp">'+(open?'▾':'▸')+'</span> '+esc(cleanNm(e.nm).slice(0,60)||'(без названия)')+'</td>'
+      +'<td class="iznum"><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
+      +'<td class="izgnm" title="'+esc(e.nm||'')+'">'+esc(cleanNm(e.nm).slice(0,60)||'(без названия)')+'</td>'
       +'<td class="num">'+e.deals.length+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
       +'<td class="num">'+(e.price?fmt(e.price):'<span class="cell-o">-</span>')+'</td>'

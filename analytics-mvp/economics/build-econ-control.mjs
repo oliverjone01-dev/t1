@@ -318,6 +318,10 @@ select.fcsel:disabled{opacity:.5;cursor:not-allowed}
 input.fcd{color-scheme:dark}
 input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 .fcx.fcn{text-align:right}
+.fcrange{display:flex;flex-direction:column;gap:2px}
+.fcrange .fcd{font-size:9px;padding:1px 3px}
+#izdtbl .izmgr{font-size:10.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#izdtbl .izmgr .izgc{color:var(--ink-3);font-size:10px}
 .fcbtn{width:100%;min-width:0;box-sizing:border-box;font-size:10px;padding:2px 4px;background:var(--bg-1,#0b0f16);border:1px solid var(--border);border-radius:4px;color:var(--ink-2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fcbtn:hover{color:var(--ink-1);border-color:var(--accent)}
 .fcpop{display:none;position:fixed;z-index:90;background:var(--elev);border:1px solid var(--border);border-radius:8px;padding:6px;max-height:300px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.45);min-width:200px}
@@ -529,12 +533,13 @@ const stageSet=new Set(); // мультивыбор этапов (из стро�
 const today=DATA.deals.reduce((mx,d)=>d.created>mx?d.created:mx, '2026-01-01');
 function daysAgo(n){ const t=new Date(today+'T00:00:00Z'); t.setUTCDate(t.getUTCDate()-n); return t.toISOString().slice(0,10); }
 // пресеты периода по образцу РОП: сегмент-пилюля + диапазон с–по с кнопкой ОК
-const PSET=[['today','Сегодня'],['yest','Вчера'],['month','Текущий месяц'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['90','90 дн'],['all','Всё'],['mig','После переезда']];
+const PSET=[['today','Сегодня'],['yest','Вчера'],['month','Текущий месяц'],['lastmonth','Прошлый месяц'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['90','90 дн'],['all','Всё'],['mig','После переезда']];
 function econSetPeriod(p){ const df=document.getElementById('dfrom'), dt=document.getElementById('dto');
   if(p==='all'){ df.value=''; dt.value=''; }
   else if(p==='today'){ df.value=today; dt.value=today; }
   else if(p==='yest'){ df.value=daysAgo(1); dt.value=daysAgo(1); }
   else if(p==='month'){ df.value=today.slice(0,7)+'-01'; dt.value=today; }
+  else if(p==='lastmonth'){ const _d=new Date(today+'T00:00:00'),_y=_d.getFullYear(),_m=_d.getMonth(),_l=new Date(_y,_m,0),_p=n=>String(n).padStart(2,'0'); df.value=(_m===0?_y-1:_y)+'-'+_p(_m===0?12:_m)+'-01'; dt.value=_l.getFullYear()+'-'+_p(_l.getMonth()+1)+'-'+_p(_l.getDate()); }
   else if(p==='mig'){ df.value='2026-04-01'; dt.value=''; }
   else { df.value=daysAgo(+p-1); dt.value=today; } }
 const pdiv=document.getElementById('presets');
@@ -888,36 +893,43 @@ function buildIzd(list){
     e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>{e.smarts.add(k); if(g.sp[k]&&g.sp[k].vB>0)e.smartsSS.add(k);});
     e.deals.push({d,qty,ss,price,rev,g}); } }
   const arr=[...M.values()];
-  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catCnt={}; const shipArr=[];
-    for(const it of e.deals){ if(it.d.stage)stSet.add(it.d.stage); if(it.d.assort)catCnt[it.d.assort]=(catCnt[it.d.assort]||0)+1; if(it.d.shippedAt)shipArr.push(it.d.shippedAt); const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;bestD=it.d;}}
+  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catCnt={}; const shipArr=[]; const mgrCnt={};
+    for(const it of e.deals){ if(it.d.stage)stSet.add(it.d.stage); if(it.d.assort)catCnt[it.d.assort]=(catCnt[it.d.assort]||0)+1; if(it.d.shippedAt)shipArr.push(it.d.shippedAt); if(it.d.mgr)mgrCnt[it.d.mgr]=(mgrCnt[it.d.mgr]||0)+1; const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;bestD=it.d;}}
     e.smartName=best?best.smart:''; e.stageName=best?best.name:'';
     e.dealStage=bestD&&bestD.stage?bestD.stage:(e.deals[0]&&e.deals[0].d.stage||''); e.dealStages=[...stSet];
     e.cats=Object.keys(catCnt); e.cat=izPickCat(e.nm,catCnt);
+    e.mgrs=Object.keys(mgrCnt).sort((a,b)=>mgrCnt[b]-mgrCnt[a]); e.mgr=e.mgrs[0]||'';
     shipArr.sort(); e.shippedAt=shipArr.length?shipArr[shipArr.length-1]:''; e.shippedN=shipArr.length; }
   return arr;
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
-const ICOLS=['Номер заказа','Изделие','Категория','Создана','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Дата реализации','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[112,160,100,82,90,60,66,92,98,116,116,146,68,110,78,86];
-const INUM=[4,5,6,12,13,14,15];
-let izSortIdx=13, izSortDir=-1;
+const ICOLS=['Номер заказа','Изделие','Категория','Менеджер','Создана','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Дата реализации','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
+const ICOLW=[112,160,100,124,82,90,60,66,92,98,116,116,146,68,110,78,86];
+const INUM=[5,6,7,13,14,15,16];
+let izSortIdx=14, izSortDir=-1;
 const izStageSel=new Set(); // мультивыбор стадий сделки в фильтре колонки «Стадия сделки»
+const izMgrSel=new Set();   // мультивыбор менеджеров в фильтре колонки «Менеджер»
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
-function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return (e.cat||'').toLowerCase();case 3:return e.dmax||'';case 4:return e.deals.length;case 5:return e.qty;case 6:return e.price;case 7:return e.smarts.size;case 8:return e.sp;case 9:return e.sp;case 10:return (e.dealStage||'').toLowerCase();case 11:return e.shippedAt||'';case 12:return e.ss;case 13:return e.rev;case 14:return e.margin;case 15:return e.mpct==null?-1:e.mpct;}return 0;}
+function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return (e.cat||'').toLowerCase();case 3:return (e.mgr||'').toLowerCase();case 4:return e.dmax||'';case 5:return e.deals.length;case 6:return e.qty;case 7:return e.price;case 8:return e.smarts.size;case 9:return e.sp;case 10:return e.sp;case 11:return (e.dealStage||'').toLowerCase();case 12:return e.shippedAt||'';case 13:return e.ss;case 14:return e.rev;case 15:return e.margin;case 16:return e.mpct==null?-1:e.mpct;}return 0;}
 function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
   const fc=_igv('ifCat').trim().toLowerCase(); if(fc&&!((e.cats||[]).join(' ').toLowerCase().includes(fc)))return false;
-  const fd=_igv('ifDate').trim(); if(fd&&!((e.dmax||'')>=fd))return false;
+  if(izMgrSel.size && !((e.mgrs||[]).some(m=>izMgrSel.has(m))))return false;
+  // «Создана»: диапазон дат (от/до) по окну создания сделок изделия (dmin..dmax)
+  const fdf=_igv('ifDateFrom').trim(); if(fdf&&!((e.dmax||'')>=fdf))return false;
+  const fdt=_igv('ifDateTo').trim(); if(fdt&&!(e.dmin&&e.dmin<=fdt))return false;
   const fsm=_igv('ifSmart'); if(fsm&&(e.smartName||'')!==fsm)return false;
   const fst=_igv('ifStage'); if(fst&&(e.stageName||'')!==fst)return false;
   if(izStageSel.size && !((e.dealStages||[]).some(s=>izStageSel.has(s))))return false;
-  const fsh=_igv('ifShip').trim(); if(fsh&&!((e.shippedAt||'')>=fsh))return false;
+  // «Дата реализации»: диапазон дат (от/до) по дате отгрузки
+  const fshf=_igv('ifShipFrom').trim(); if(fshf&&!((e.shippedAt||'')>=fshf))return false;
+  const fsht=_igv('ifShipTo').trim(); if(fsht&&!(e.shippedAt&&e.shippedAt<=fsht))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
-  return mn('ifMin_4',e.deals.length)&&mn('ifMin_5',e.qty)&&mn('ifMin_6',e.price)&&mn('ifMin_12',e.ss)&&mn('ifMin_13',e.rev)&&mn('ifMin_14',e.margin)&&mn('ifMin_15',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<input type="date" class="fcx fcd" id="ifDate" title="создана: показать с выбранной даты">'; if(i===8)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">смарт</option></select>'; if(i===9)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">этап</option></select>'; if(i===10)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===11)return '<input type="date" class="fcx fcd" id="ifShip" title="дата реализации: показать с выбранной даты">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+  return mn('ifMin_5',e.deals.length)&&mn('ifMin_6',e.qty)&&mn('ifMin_7',e.price)&&mn('ifMin_13',e.ss)&&mn('ifMin_14',e.rev)&&mn('ifMin_15',e.margin)&&mn('ifMin_16',e.mpct==null?null:e.mpct*100); }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<div class="fcrange"><input type="date" class="fcx fcd" id="ifDateFrom" title="создана с (от)"><input type="date" class="fcx fcd" id="ifDateTo" title="создана по (до)"></div>'; if(i===9)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">смарт</option></select>'; if(i===10)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">этап</option></select>'; if(i===11)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===12)return '<div class="fcrange"><input type="date" class="fcx fcd" id="ifShipFrom" title="дата реализации с (от)"><input type="date" class="fcx fcd" id="ifShipTo" title="дата реализации по (до)"></div>'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
-  document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2)?1:-1);}izHeadRow();render();})); }
+  document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2||i===3)?1:-1);}izHeadRow();render();})); }
 // карта Смарт -> его этапы (по фактическим данным, теми же izdStageInfo, что дают значения колонок)
 let _ssMap=null;
 function izSmartStageMap(){ if(_ssMap)return _ssMap; const m=new Map();
@@ -927,7 +939,7 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifCat','ifDate','ifShip','ifMin_4','ifMin_5','ifMin_6','ifMin_12','ifMin_13','ifMin_14','ifMin_15'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifCat','ifDateFrom','ifDateTo','ifShipFrom','ifShipTo','ifMin_5','ifMin_6','ifMin_7','ifMin_13','ifMin_14','ifMin_15','ifMin_16'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation());
   // зависимые выпадающие списки: Смарт -> Этап (этапы зависят от выбранного смарта)
   const ssm=izSmartStageMap(), selSmart=document.getElementById('ifSmart'), selStage=document.getElementById('ifStage');
@@ -953,6 +965,18 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
     sp.addEventListener('click',e=>{ e.stopPropagation(); const a=e.target&&e.target.dataset?e.target.dataset.a:''; if(a==='all'){sp.querySelectorAll('input').forEach(c=>c.checked=true);sync();} else if(a==='none'){sp.querySelectorAll('input').forEach(c=>c.checked=false);sync();} });
     const ms=document.getElementById('mselStage');
     ms.addEventListener('toggle',()=>{ if(ms.open){ const r=document.getElementById('stageSum').getBoundingClientRect(); sp.style.left=Math.max(6,Math.min(r.left,innerWidth-250))+'px'; sp.style.top=(r.bottom+2)+'px'; } });
+  }
+  // мультивыбор менеджеров в колонке «Менеджер» (тот же список, что и в верхней панели)
+  const mp2=document.getElementById('izMgrPop');
+  if(mp2){ mp2.innerHTML='<div class="msel-act"><button type="button" data-a="all">все</button><button type="button" data-a="none">сброс</button></div>'
+      +MGRS.map(m=>'<label><input type="checkbox" value="'+esc(m)+'"'+(izMgrSel.has(m)?' checked':'')+'> '+esc(m)+'</label>').join('');
+    const sync2=()=>{ izMgrSel.clear(); mp2.querySelectorAll('input:checked').forEach(c=>izMgrSel.add(c.value));
+      document.getElementById('izMgrSum').textContent=izMgrSel.size?('менеджер: '+izMgrSel.size):'менеджер';
+      document.getElementById('mselIzMgr').classList.toggle('has',izMgrSel.size>0); render(); };
+    mp2.addEventListener('change',sync2);
+    mp2.addEventListener('click',e=>{ e.stopPropagation(); const a=e.target&&e.target.dataset?e.target.dataset.a:''; if(a==='all'){mp2.querySelectorAll('input').forEach(c=>c.checked=true);sync2();} else if(a==='none'){mp2.querySelectorAll('input').forEach(c=>c.checked=false);sync2();} });
+    const mm=document.getElementById('mselIzMgr');
+    mm.addEventListener('toggle',()=>{ if(mm.open){ const r=document.getElementById('izMgrSum').getBoundingClientRect(); mp2.style.left=Math.max(6,Math.min(r.left,innerWidth-250))+'px'; mp2.style.top=(r.bottom+2)+'px'; } });
   } }
 function izDealRow(e,it){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk),marg=it.rev-it.ss,mp=it.rev>0?marg/it.rev:null;
   return '<tr class="izdeal" data-dk="'+esc(dk)+'">'
@@ -979,6 +1003,7 @@ function renderIzd(base){
       +'<td class="iznum"'+(izNo(e)?' title="'+esc(izNo(e))+'"':'')+'><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
       +'<td class="izgnm" title="'+esc(e.nm||'')+'">'+esc(cleanNm(e.nm).slice(0,58)||'(без названия)')+'</td>'
       +'<td class="izcatc" title="'+esc(e.cat?('категория: '+e.cat+(e.cats&&e.cats.length>1?' · у сделок изделия есть и другие категории: '+e.cats.filter(c=>c!==e.cat).join(', '):'')):'категория не указана')+'">'+(e.cat?'<span class="izcat">'+esc(e.cat)+'</span>'+(e.cats&&e.cats.length>1?' <span class="izgc" title="ещё '+(e.cats.length-1)+' категор. у сделок этого изделия">+'+(e.cats.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
+      +'<td class="izmgr" title="'+esc(e.mgr?('ответственный: '+e.mgr+(e.mgrs&&e.mgrs.length>1?' · ещё менеджеры по сделкам изделия: '+e.mgrs.slice(1).join(', '):'')):'менеджер не указан')+'">'+(e.mgr?esc(e.mgr)+(e.mgrs&&e.mgrs.length>1?' <span class="izgc">+'+(e.mgrs.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="izdt" title="'+(e.dmin&&e.dmin!==e.dmax?'сделки '+ruD(e.dmin)+' - '+ruD(e.dmax):'дата создания сделки')+'">'+(e.dmax?ruD(e.dmax):'<span class="cell-o">—</span>')+(e.dmin&&e.dmin!==e.dmax?' <span class="izgc">+'+(e.deals.length-1)+'</span>':'')+'</td>'
       +'<td class="num">'+(e.deals.length===1?'<span class="dno" title="номер сделки '+e.deals[0].d.id+' (без ссылки)">'+e.deals[0].d.id+'</span>':'<span title="сделок: '+e.deals.length+' - номера видны при разворачивании">'+e.deals.length+' сд.</span>')+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
@@ -1005,7 +1030,7 @@ function renderIzd(base){
   }
   document.querySelector('#izdtbl tbody').innerHTML=html||'<tr><td colspan="'+ICOLS.length+'" class="pusl">нет изделий в выборке</td></tr>';
   { let tq=0,tdl=0,tss=0,trv=0,tmg=0; for(const e of items){ tq+=e.qty||0; tdl+=e.deals.length; tss+=e.ss||0; trv+=e.rev||0; tmg+=e.margin||0; } const tmp=trv>0?Math.round(tmg/trv*100):null;
-    const ft='<tr class="totrow"><td>ИТОГО '+items.length+'</td><td></td><td></td><td></td>'
+    const ft='<tr class="totrow"><td>ИТОГО '+items.length+'</td><td></td><td></td><td></td><td></td>'
       +'<td class="num">'+tdl+'</td>'
       +'<td class="num">'+tq+' <span class="cell-o">шт</span></td>'
       +'<td></td><td></td><td></td><td></td><td></td><td></td>'

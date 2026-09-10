@@ -249,8 +249,6 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="budget" class="on">по бюджету</button><button data-r="prepay">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="Способ признания выручки. «По бюджету» (по умолчанию) - бюджет сделки (поле в CRM) считается по ВСЕМ незакрытым и выигранным сделкам когорты (кроме проигранных): весь объём заведённых денег в работе и закрытых. «От предоплаты» - деньги признаются с момента «Предоплата получена» (стадии предоплата, производство, отправлен, успех; возвраты ≈3-5%). «По успеху» - только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу, и в отделе, и в разрезе менеджеров. На раздел 4 «Передача в производство» НЕ влияет.">?</span></div>
   <span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div>
   <span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:148px" data-tip="Фильтр по направлению бизнеса (бренду). Влияет на все блоки. План в таблице - общий, поэтому % выполнения корректен при «Все направления».">​</select>
-  <span class="ctl-lbl">Менеджер</span><select id="mgrSel" class="dinp" style="max-width:160px" data-tip="Фильтр по ответственному менеджеру. Влияет на все блоки (метрики, динамика, воронка, разрезы).">​</select>
-  <span class="ctl-lbl">Выручка между</span><input type="number" id="budMin" class="dinp" style="max-width:96px" placeholder="от, ₽" data-tip="Нижняя граница бюджета сделки. Оставь пустым - без ограничения."><span style="color:var(--ink-4)">–</span><input type="number" id="budMax" class="dinp" style="max-width:96px" placeholder="до, ₽" data-tip="Верхняя граница бюджета сделки. Фильтр по бюджету применяется ко всем блокам.">
   <div class="tb-spacer"></div>
   <div class="seg" id="period"></div>
   <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
@@ -323,11 +321,11 @@ const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Нека�
 // Расчёты, id{N}. Уволенный/действующий сотрудник - это ЕСТЬ ответственный, сюда не входит.
 const noOwner=n=>/систем|^id\s?\d|^расч[её]т/i.test(n||'');
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'budget',fBudMin:null,fBudMax:null,dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false,stSort:'age',stAsc:false,stEmp:'',stBiz:'',stAge:'',stStage:''};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'budget',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false,stSort:'age',stAsc:false,stEmp:'',stBiz:'',stAge:'',stStage:''};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
-const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(!S.fDir||x.dir===S.fDir)&&(x.budget==null||((S.fBudMin==null||x.budget>=S.fBudMin)&&(S.fBudMax==null||x.budget<=S.fBudMax)))&&(withCli? (!S.fCli||x.client===S.fCli):true));
+const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(!S.fDir||x.dir===S.fDir)&&(withCli? (!S.fCli||x.client===S.fCli):true));
 function FD(){return flt(AD,true).filter(d=>inP(d.created));}
 // Воронка (Лиды/Сделки/CR1/CR2) - ВСЕГДА по дате создания (когорта), решение Ивана:
 // конверсии осмысленны только в одной когорте. Тумблер «Период по» меняет только
@@ -2837,13 +2835,6 @@ function buildShell(){
     const _present=[...new Set([...AD,...AL].map(x=>x.dir).filter(Boolean))].sort((a,b)=>(_ord.indexOf(a)+1||99)-(_ord.indexOf(b)+1||99));
     _dirSel.innerHTML='<option value="">Все направления</option>'+_present.map(d=>`<option value="${d}"${S.fDir===d?' selected':''}>${DIRLAB[d]||d}</option>`).join('');
     _dirSel.onchange=()=>{S.fDir=_dirSel.value;render();};}
-  const _mgrSel=document.getElementById('mgrSel');
-  if(_mgrSel){const _mgs=[...new Set(AD.map(d=>d.mgr).filter(m=>m&&isOP(m)))].sort((a,b)=>a.localeCompare(b,'ru'));
-    _mgrSel.innerHTML='<option value="">Все менеджеры</option>'+_mgs.map(m=>`<option value="${esc(m)}"${S.fMgr===m?' selected':''}>${esc(m)}</option>`).join('');
-    _mgrSel.onchange=()=>{S.fMgr=_mgrSel.value;render();};}
-  const _bMin=document.getElementById('budMin'),_bMax=document.getElementById('budMax');
-  const _bud=()=>{const a=parseFloat(_bMin.value),b=parseFloat(_bMax.value);S.fBudMin=isNaN(a)?null:a;S.fBudMax=isNaN(b)?null:b;render();};
-  if(_bMin)_bMin.onchange=_bud; if(_bMax)_bMax.onchange=_bud;
   // scroll-spy
   addEventListener('scroll',()=>{let cur=1;SECS.forEach((s,i)=>{const el=document.getElementById('sec'+(i+1));if(el&&el.getBoundingClientRect().top<160)cur=i+1;});document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));});
 }

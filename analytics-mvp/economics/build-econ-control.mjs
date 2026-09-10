@@ -170,6 +170,7 @@ th,td{padding:5px 6px;text-align:left;border-bottom:1px solid var(--border);whit
 #izdtbl .ss-src{font-size:9px;font-weight:700;color:var(--ink-3);letter-spacing:.02em;cursor:help}
 #izdtbl .dno{color:var(--ink-2);font-variant-numeric:tabular-nums}
 #izdtbl .izcat{display:inline-block;font-size:9px;font-weight:700;color:var(--info);background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.32);border-radius:5px;padding:0 5px;vertical-align:middle}
+#izdtbl .izcatc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 th{position:sticky;top:0;background:var(--elev);z-index:2;font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none}
 th:hover{color:var(--ink)} th .ar{color:var(--accent);font-size:10px}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
@@ -860,30 +861,31 @@ function buildIzd(list){
   return arr;
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
-const ICOLS=['Номер заказа','Изделие','Создана','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Дата реализации','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[112,222,86,74,54,72,116,108,150,132,104,74,84,84,62];
-const INUM=[3,4,5,11,12,13,14];
-let izSortIdx=12, izSortDir=-1;
+const ICOLS=['Номер заказа','Изделие','Категория','Создана','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Дата реализации','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
+const ICOLW=[112,208,110,86,74,54,72,116,108,150,132,104,74,84,84,62];
+const INUM=[4,5,6,12,13,14,15];
+let izSortIdx=13, izSortDir=-1;
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
-function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.dmax||'';case 3:return e.deals.length;case 4:return e.qty;case 5:return e.price;case 6:return e.smarts.size;case 7:return e.sp;case 8:return e.sp;case 9:return (e.dealStage||'').toLowerCase();case 10:return e.shippedAt||'';case 11:return e.ss;case 12:return e.rev;case 13:return e.margin;case 14:return e.mpct==null?-1:e.mpct;}return 0;}
+function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return (e.cat||'').toLowerCase();case 3:return e.dmax||'';case 4:return e.deals.length;case 5:return e.qty;case 6:return e.price;case 7:return e.smarts.size;case 8:return e.sp;case 9:return e.sp;case 10:return (e.dealStage||'').toLowerCase();case 11:return e.shippedAt||'';case 12:return e.ss;case 13:return e.rev;case 14:return e.margin;case 15:return e.mpct==null?-1:e.mpct;}return 0;}
 function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
+  const fc=_igv('ifCat').trim().toLowerCase(); if(fc&&!((e.cats||[]).join(' ').toLowerCase().includes(fc)))return false;
   const fd=_igv('ifDate').trim().toLowerCase(); if(fd&&!((ruD(e.dmax)+' '+ruD(e.dmin)).toLowerCase().includes(fd)))return false;
   const fsm=_igv('ifSmart').trim().toLowerCase(); if(fsm&&!((e.smartName||'').toLowerCase().includes(fsm)))return false;
   const fst=_igv('ifStage').trim().toLowerCase(); if(fst&&!((e.stageName||'').toLowerCase().includes(fst)))return false;
   const fds=_igv('ifDealStage').trim().toLowerCase(); if(fds&&!((e.dealStages||[]).join(' ').toLowerCase().includes(fds)))return false;
   const fsh=_igv('ifShip').trim().toLowerCase(); if(fsh){ const shtxt=e.shippedAt?ruD(e.shippedAt):'не наступила'; if(!shtxt.toLowerCase().includes(fsh))return false; }
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
-  return mn('ifMin_3',e.deals.length)&&mn('ifMin_4',e.qty)&&mn('ifMin_5',e.price)&&mn('ifMin_11',e.ss)&&mn('ifMin_12',e.rev)&&mn('ifMin_13',e.margin)&&mn('ifMin_14',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifDate" placeholder="дата" title="фильтр по дате, напр. 09.2026">'; if(i===7)return '<input class="fcx" id="ifSmart" placeholder="смарт" title="фильтр по смарт-процессу">'; if(i===8)return '<input class="fcx" id="ifStage" placeholder="этап" title="фильтр по этапу">'; if(i===9)return '<input class="fcx" id="ifDealStage" placeholder="стадия" title="фильтр по стадии сделки">'; if(i===10)return '<input class="fcx" id="ifShip" placeholder="реализ." title="фильтр по дате реализации (или «не наступила»)">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+  return mn('ifMin_4',e.deals.length)&&mn('ifMin_5',e.qty)&&mn('ifMin_6',e.price)&&mn('ifMin_12',e.ss)&&mn('ifMin_13',e.rev)&&mn('ifMin_14',e.margin)&&mn('ifMin_15',e.mpct==null?null:e.mpct*100); }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<input class="fcx" id="ifDate" placeholder="дата" title="фильтр по дате, напр. 09.2026">'; if(i===8)return '<input class="fcx" id="ifSmart" placeholder="смарт" title="фильтр по смарт-процессу">'; if(i===9)return '<input class="fcx" id="ifStage" placeholder="этап" title="фильтр по этапу">'; if(i===10)return '<input class="fcx" id="ifDealStage" placeholder="стадия" title="фильтр по стадии сделки">'; if(i===11)return '<input class="fcx" id="ifShip" placeholder="реализ." title="фильтр по дате реализации (или «не наступила»)">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
-  document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1)?1:-1);}izHeadRow();render();})); }
+  document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2)?1:-1);}izHeadRow();render();})); }
 function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySelector('colgroup'))return;
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifDate','ifSmart','ifStage','ifDealStage','ifShip','ifMin_3','ifMin_4','ifMin_5','ifMin_11','ifMin_12','ifMin_13','ifMin_14'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifCat','ifDate','ifSmart','ifStage','ifDealStage','ifShip','ifMin_4','ifMin_5','ifMin_6','ifMin_12','ifMin_13','ifMin_14','ifMin_15'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation()); }
 function izDealRow(e,it){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk),marg=it.rev-it.ss,mp=it.rev>0?marg/it.rev:null;
   return '<tr class="izdeal" data-dk="'+esc(dk)+'">'
@@ -907,7 +909,8 @@ function renderIzd(base){
   for(const e of items){ const open=OPENIZD.has(e.key); const _izsp=izStageParts(e);
     html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
       +'<td class="iznum"'+(izNo(e)?' title="'+esc(izNo(e))+'"':'')+'><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
-      +'<td class="izgnm" title="'+esc((e.nm||'')+(e.cats&&e.cats.length?' · категория: '+e.cats.join(', '):''))+'">'+(e.cat?'<span class="izcat">'+esc(e.cat)+'</span> ':'')+esc(cleanNm(e.nm).slice(0,54)||'(без названия)')+'</td>'
+      +'<td class="izgnm" title="'+esc(e.nm||'')+'">'+esc(cleanNm(e.nm).slice(0,58)||'(без названия)')+'</td>'
+      +'<td class="izcatc" title="'+esc((e.cats||[]).join(', '))+'">'+(e.cat?'<span class="izcat">'+esc(e.cat)+'</span>'+(e.cats&&e.cats.length>1?' <span class="izgc">+'+(e.cats.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="izdt" title="'+(e.dmin&&e.dmin!==e.dmax?'сделки '+ruD(e.dmin)+' - '+ruD(e.dmax):'дата создания сделки')+'">'+(e.dmax?ruD(e.dmax):'<span class="cell-o">—</span>')+(e.dmin&&e.dmin!==e.dmax?' <span class="izgc">+'+(e.deals.length-1)+'</span>':'')+'</td>'
       +'<td class="num">'+(e.deals.length===1?'<span class="dno" title="номер сделки '+e.deals[0].d.id+' (без ссылки)">'+e.deals[0].d.id+'</span>':'<span title="сделок: '+e.deals.length+' - номера видны при разворачивании">'+e.deals.length+' сд.</span>')+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
@@ -934,7 +937,7 @@ function renderIzd(base){
   }
   document.querySelector('#izdtbl tbody').innerHTML=html||'<tr><td colspan="'+ICOLS.length+'" class="pusl">нет изделий в выборке</td></tr>';
   { let tq=0,tdl=0,tss=0,trv=0,tmg=0; for(const e of items){ tq+=e.qty||0; tdl+=e.deals.length; tss+=e.ss||0; trv+=e.rev||0; tmg+=e.margin||0; } const tmp=trv>0?Math.round(tmg/trv*100):null;
-    const ft='<tr class="totrow"><td>ИТОГО '+items.length+'</td><td></td><td></td>'
+    const ft='<tr class="totrow"><td>ИТОГО '+items.length+'</td><td></td><td></td><td></td>'
       +'<td class="num">'+tdl+'</td>'
       +'<td class="num">'+tq+' <span class="cell-o">шт</span></td>'
       +'<td></td><td></td><td></td><td></td><td></td><td></td>'

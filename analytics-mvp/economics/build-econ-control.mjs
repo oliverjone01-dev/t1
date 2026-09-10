@@ -825,7 +825,7 @@ function buildIzd(list){
     e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>{e.smarts.add(k); if(g.sp[k]&&g.sp[k].vB>0)e.smartsSS.add(k);});
     e.deals.push({d,qty,ss,price,rev,g}); } }
   const arr=[...M.values()];
-  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; for(const it of e.deals){const si=izdStageInfo(it.g);if(si&&si.prog>e.sp)e.sp=si.prog;} }
+  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null; for(const it of e.deals){const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;}} e.smartName=best?best.smart:''; e.stageName=best?best.name:''; }
   return arr;
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
@@ -838,16 +838,19 @@ const izNo=e=>e.art||e.ns||'';
 function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.dmax||'';case 3:return e.deals.length;case 4:return e.qty;case 5:return e.price;case 6:return e.smarts.size;case 7:return e.sp;case 8:return e.sp;case 9:return e.ss;case 10:return e.rev;case 11:return e.margin;case 12:return e.mpct==null?-1:e.mpct;}return 0;}
 function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
+  const fd=_igv('ifDate').trim().toLowerCase(); if(fd&&!((ruD(e.dmax)+' '+ruD(e.dmin)).toLowerCase().includes(fd)))return false;
+  const fsm=_igv('ifSmart').trim().toLowerCase(); if(fsm&&!((e.smartName||'').toLowerCase().includes(fsm)))return false;
+  const fst=_igv('ifStage').trim().toLowerCase(); if(fst&&!((e.stageName||'').toLowerCase().includes(fst)))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
   return mn('ifMin_3',e.deals.length)&&mn('ifMin_4',e.qty)&&mn('ifMin_5',e.price)&&mn('ifMin_9',e.ss)&&mn('ifMin_10',e.rev)&&mn('ifMin_11',e.margin)&&mn('ifMin_12',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifDate" placeholder="дата" title="фильтр по дате, напр. 09.2026">'; if(i===7)return '<input class="fcx" id="ifSmart" placeholder="смарт" title="фильтр по смарт-процессу">'; if(i===8)return '<input class="fcx" id="ifStage" placeholder="этап" title="фильтр по этапу">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1)?1:-1);}izHeadRow();render();})); }
 function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySelector('colgroup'))return;
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifMin_3','ifMin_4','ifMin_5','ifMin_9','ifMin_10','ifMin_11','ifMin_12'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifDate','ifSmart','ifStage','ifMin_3','ifMin_4','ifMin_5','ifMin_9','ifMin_10','ifMin_11','ifMin_12'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation()); }
 function izDealRow(e,it){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk),marg=it.rev-it.ss,mp=it.rev>0?marg/it.rev:null;
   return '<tr class="izdeal" data-dk="'+esc(dk)+'">'

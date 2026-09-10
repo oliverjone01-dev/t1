@@ -5,7 +5,11 @@
 <meta http-equiv="refresh" content="0; url=./dashboards/">
 <link rel="canonical" href="https://oliverjone01-dev.github.io/t1/dashboards/">
 <title>GENGROUP · Дашборды</title>
-<script>location.replace("./dashboards/"+location.search+location.hash);</script>
+<script>
+// Мгновенный редирект на чистый URL. В try/catch, чтобы не падать в jsdom (smoke-гейт),
+// где базовый URL about:blank и относительный путь не резолвится - там сработает meta refresh.
+try { if (location && /^https?:/.test(location.href)) location.replace("./dashboards/" + location.search + location.hash); } catch (e) {}
+</script>
 </head>
 <body style="background:#0a0e14;color:#9fb0c3;font:15px -apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:40px 20px">
 Переезд на <a href="./dashboards/" style="color:#22d3ee">/t1/dashboards/</a> …

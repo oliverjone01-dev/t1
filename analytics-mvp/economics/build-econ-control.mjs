@@ -218,6 +218,7 @@ tr.izgrp .exp{color:var(--ink-3)}
 .izgnm{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #izdtbl .iznum{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #izdtbl .izdt{white-space:nowrap;color:var(--ink-2);font-size:11px}
+#izdtbl .izship{white-space:nowrap;color:var(--ink-2);font-size:11px}
 #izdtbl .izdt .izgc{color:var(--ink-3);font-size:10px}
 .subdeals{margin:0;background:var(--bg)}
 #izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
@@ -850,37 +851,39 @@ function buildIzd(list){
     e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>{e.smarts.add(k); if(g.sp[k]&&g.sp[k].vB>0)e.smartsSS.add(k);});
     e.deals.push({d,qty,ss,price,rev,g}); } }
   const arr=[...M.values()];
-  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catSet=new Set();
-    for(const it of e.deals){ if(it.d.stage)stSet.add(it.d.stage); if(it.d.assort)catSet.add(it.d.assort); const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;bestD=it.d;}}
+  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catSet=new Set(); const shipArr=[];
+    for(const it of e.deals){ if(it.d.stage)stSet.add(it.d.stage); if(it.d.assort)catSet.add(it.d.assort); if(it.d.shippedAt)shipArr.push(it.d.shippedAt); const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;bestD=it.d;}}
     e.smartName=best?best.smart:''; e.stageName=best?best.name:'';
     e.dealStage=bestD&&bestD.stage?bestD.stage:(e.deals[0]&&e.deals[0].d.stage||''); e.dealStages=[...stSet];
-    e.cats=[...catSet]; e.cat=e.cats[0]||''; }
+    e.cats=[...catSet]; e.cat=e.cats[0]||'';
+    shipArr.sort(); e.shippedAt=shipArr.length?shipArr[shipArr.length-1]:''; e.shippedN=shipArr.length; }
   return arr;
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
-const ICOLS=['Номер заказа','Изделие','Создана','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[112,222,86,74,54,72,116,108,150,132,74,84,84,62];
-const INUM=[3,4,5,10,11,12,13];
-let izSortIdx=11, izSortDir=-1;
+const ICOLS=['Номер заказа','Изделие','Создана','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Дата реализации','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
+const ICOLW=[112,222,86,74,54,72,116,108,150,132,104,74,84,84,62];
+const INUM=[3,4,5,11,12,13,14];
+let izSortIdx=12, izSortDir=-1;
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
-function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.dmax||'';case 3:return e.deals.length;case 4:return e.qty;case 5:return e.price;case 6:return e.smarts.size;case 7:return e.sp;case 8:return e.sp;case 9:return (e.dealStage||'').toLowerCase();case 10:return e.ss;case 11:return e.rev;case 12:return e.margin;case 13:return e.mpct==null?-1:e.mpct;}return 0;}
+function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.dmax||'';case 3:return e.deals.length;case 4:return e.qty;case 5:return e.price;case 6:return e.smarts.size;case 7:return e.sp;case 8:return e.sp;case 9:return (e.dealStage||'').toLowerCase();case 10:return e.shippedAt||'';case 11:return e.ss;case 12:return e.rev;case 13:return e.margin;case 14:return e.mpct==null?-1:e.mpct;}return 0;}
 function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
   const fd=_igv('ifDate').trim().toLowerCase(); if(fd&&!((ruD(e.dmax)+' '+ruD(e.dmin)).toLowerCase().includes(fd)))return false;
   const fsm=_igv('ifSmart').trim().toLowerCase(); if(fsm&&!((e.smartName||'').toLowerCase().includes(fsm)))return false;
   const fst=_igv('ifStage').trim().toLowerCase(); if(fst&&!((e.stageName||'').toLowerCase().includes(fst)))return false;
   const fds=_igv('ifDealStage').trim().toLowerCase(); if(fds&&!((e.dealStages||[]).join(' ').toLowerCase().includes(fds)))return false;
+  const fsh=_igv('ifShip').trim().toLowerCase(); if(fsh){ const shtxt=e.shippedAt?ruD(e.shippedAt):'не наступила'; if(!shtxt.toLowerCase().includes(fsh))return false; }
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
-  return mn('ifMin_3',e.deals.length)&&mn('ifMin_4',e.qty)&&mn('ifMin_5',e.price)&&mn('ifMin_10',e.ss)&&mn('ifMin_11',e.rev)&&mn('ifMin_12',e.margin)&&mn('ifMin_13',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifDate" placeholder="дата" title="фильтр по дате, напр. 09.2026">'; if(i===7)return '<input class="fcx" id="ifSmart" placeholder="смарт" title="фильтр по смарт-процессу">'; if(i===8)return '<input class="fcx" id="ifStage" placeholder="этап" title="фильтр по этапу">'; if(i===9)return '<input class="fcx" id="ifDealStage" placeholder="стадия" title="фильтр по стадии сделки">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+  return mn('ifMin_3',e.deals.length)&&mn('ifMin_4',e.qty)&&mn('ifMin_5',e.price)&&mn('ifMin_11',e.ss)&&mn('ifMin_12',e.rev)&&mn('ifMin_13',e.margin)&&mn('ifMin_14',e.mpct==null?null:e.mpct*100); }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifDate" placeholder="дата" title="фильтр по дате, напр. 09.2026">'; if(i===7)return '<input class="fcx" id="ifSmart" placeholder="смарт" title="фильтр по смарт-процессу">'; if(i===8)return '<input class="fcx" id="ifStage" placeholder="этап" title="фильтр по этапу">'; if(i===9)return '<input class="fcx" id="ifDealStage" placeholder="стадия" title="фильтр по стадии сделки">'; if(i===10)return '<input class="fcx" id="ifShip" placeholder="реализ." title="фильтр по дате реализации (или «не наступила»)">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1)?1:-1);}izHeadRow();render();})); }
 function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySelector('colgroup'))return;
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifDate','ifSmart','ifStage','ifDealStage','ifMin_3','ifMin_4','ifMin_5','ifMin_10','ifMin_11','ifMin_12','ifMin_13'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifDate','ifSmart','ifStage','ifDealStage','ifShip','ifMin_3','ifMin_4','ifMin_5','ifMin_11','ifMin_12','ifMin_13','ifMin_14'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation()); }
 function izDealRow(e,it){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk),marg=it.rev-it.ss,mp=it.rev>0?marg/it.rev:null;
   return '<tr class="izdeal" data-dk="'+esc(dk)+'">'
@@ -913,6 +916,7 @@ function renderIzd(base){
       +'<td>'+_izsp.smart+'</td>'
       +'<td>'+_izsp.badge+'</td>'
       +'<td title="'+esc(e.dealStages&&e.dealStages.length>1?'стадии сделок: '+e.dealStages.join(', '):'стадия сделки')+'">'+(e.dealStage?'<span class="st">'+esc(e.dealStage)+'</span>'+(e.dealStages&&e.dealStages.length>1?' <span class="izgc">+'+(e.dealStages.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
+      +'<td class="izship" title="'+(e.shippedAt?'дата перехода в «Заказ отправлен»'+(e.shippedN>1?' (последняя из '+e.shippedN+' сделок)':''):'сделка ещё не переходила в «Заказ отправлен»')+'">'+(e.shippedAt?ruD(e.shippedAt)+(e.shippedN>1?' <span class="izgc">+'+(e.shippedN-1)+'</span>':''):'<span class="cell-o">не наступила</span>')+'</td>'
       +izSsCell(e.ss,e.ssSrc)
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
@@ -933,13 +937,13 @@ function renderIzd(base){
     const ft='<tr class="totrow"><td>ИТОГО '+items.length+'</td><td></td><td></td>'
       +'<td class="num">'+tdl+'</td>'
       +'<td class="num">'+tq+' <span class="cell-o">шт</span></td>'
-      +'<td></td><td></td><td></td><td></td><td></td>'
+      +'<td></td><td></td><td></td><td></td><td></td><td></td>'
       +'<td class="num">'+fmt(tss)+'</td>'
       +'<td class="num">'+fmt(trv)+'</td>'
       +'<td class="num">'+fmt(tmg)+'</td>'
       +'<td class="num">'+(tmp!==null?tmp+'%':'-')+'</td></tr>';
     document.querySelector('#izdtbl tfoot').innerHTML=ft; }
-  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽); значок Р/П/З показывает из каких смартов сложена с/с (Р-Расчёт, П-Производство, З-Закупка) · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
+  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽); значок Р/П/З показывает из каких смартов сложена с/с (Р-Расчёт, П-Производство, З-Закупка) · «Дата реализации» - дата перехода сделки в «Заказ отправлен» (нет перехода - «не наступила») · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
   document.getElementById('cnt').textContent='изделий: '+items.length;
 }
 // ячейки строки сделки (те же колонки, что в таблице «Сделки») - переиспользуются во вкладке «Изделия»

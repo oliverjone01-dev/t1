@@ -211,6 +211,16 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 #izdSum{color:var(--ink-3);font-size:12px;margin:2px 0 8px}
 #izdtbl thead th{position:sticky;top:0;z-index:3;background:var(--card);color:var(--ink-3);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px}
 #izdtbl thead th.num{text-align:right}
+/* шапка и строка фильтров липнут при прокрутке (по образцу таблицы «Сделки»: липнет строка-tr) */
+#izdtbl #ihtr{position:sticky;top:0;z-index:7}
+#izdtbl #iftr{position:sticky;top:31px;z-index:6}
+#izdtbl #iftr td{background:var(--card);border-bottom:1px solid var(--border)}
+/* мультивыбор стадий прямо в строке фильтров: компактный summary + всплывашка position:fixed (не режется .scrollx) */
+.fmsel{position:relative}
+.fmsel>summary{list-style:none;cursor:pointer;display:block;width:100%;background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:6px;padding:3px 7px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fmsel>summary::-webkit-details-marker{display:none}
+.fmsel.has>summary{border-color:var(--accent);color:var(--ink)}
+.msel-pop.msel-fixed{position:fixed;z-index:90}
 #izdtbl td{padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 tr.izgrp{cursor:pointer;background:var(--card)}
 tr.izgrp:hover{background:var(--elev)}
@@ -509,11 +519,12 @@ const stageSet=new Set(); // мультивыбор этапов (из стро�
 const today=DATA.deals.reduce((mx,d)=>d.created>mx?d.created:mx, '2026-01-01');
 function daysAgo(n){ const t=new Date(today+'T00:00:00Z'); t.setUTCDate(t.getUTCDate()-n); return t.toISOString().slice(0,10); }
 // пресеты периода по образцу РОП: сегмент-пилюля + диапазон с–по с кнопкой ОК
-const PSET=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['90','90 дн'],['all','Всё'],['mig','После переезда']];
+const PSET=[['today','Сегодня'],['yest','Вчера'],['month','Текущий месяц'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['90','90 дн'],['all','Всё'],['mig','После переезда']];
 function econSetPeriod(p){ const df=document.getElementById('dfrom'), dt=document.getElementById('dto');
   if(p==='all'){ df.value=''; dt.value=''; }
   else if(p==='today'){ df.value=today; dt.value=today; }
   else if(p==='yest'){ df.value=daysAgo(1); dt.value=daysAgo(1); }
+  else if(p==='month'){ df.value=today.slice(0,7)+'-01'; dt.value=today; }
   else if(p==='mig'){ df.value='2026-04-01'; dt.value=''; }
   else { df.value=daysAgo(+p-1); dt.value=today; } }
 const pdiv=document.getElementById('presets');
@@ -865,6 +876,7 @@ const ICOLS=['Номер заказа','Изделие','Категория','С
 const ICOLW=[112,208,110,86,74,54,72,116,108,150,132,104,74,84,84,62];
 const INUM=[4,5,6,12,13,14,15];
 let izSortIdx=13, izSortDir=-1;
+const izStageSel=new Set(); // мультивыбор стадий сделки в фильтре колонки «Стадия сделки»
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
 function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return (e.cat||'').toLowerCase();case 3:return e.dmax||'';case 4:return e.deals.length;case 5:return e.qty;case 6:return e.price;case 7:return e.smarts.size;case 8:return e.sp;case 9:return e.sp;case 10:return (e.dealStage||'').toLowerCase();case 11:return e.shippedAt||'';case 12:return e.ss;case 13:return e.rev;case 14:return e.margin;case 15:return e.mpct==null?-1:e.mpct;}return 0;}
@@ -874,19 +886,32 @@ function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e)
   const fd=_igv('ifDate').trim().toLowerCase(); if(fd&&!((ruD(e.dmax)+' '+ruD(e.dmin)).toLowerCase().includes(fd)))return false;
   const fsm=_igv('ifSmart').trim().toLowerCase(); if(fsm&&!((e.smartName||'').toLowerCase().includes(fsm)))return false;
   const fst=_igv('ifStage').trim().toLowerCase(); if(fst&&!((e.stageName||'').toLowerCase().includes(fst)))return false;
-  const fds=_igv('ifDealStage').trim().toLowerCase(); if(fds&&!((e.dealStages||[]).join(' ').toLowerCase().includes(fds)))return false;
+  if(izStageSel.size && !((e.dealStages||[]).some(s=>izStageSel.has(s))))return false;
   const fsh=_igv('ifShip').trim().toLowerCase(); if(fsh){ const shtxt=e.shippedAt?ruD(e.shippedAt):'не наступила'; if(!shtxt.toLowerCase().includes(fsh))return false; }
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
   return mn('ifMin_4',e.deals.length)&&mn('ifMin_5',e.qty)&&mn('ifMin_6',e.price)&&mn('ifMin_12',e.ss)&&mn('ifMin_13',e.rev)&&mn('ifMin_14',e.margin)&&mn('ifMin_15',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<input class="fcx" id="ifDate" placeholder="дата" title="фильтр по дате, напр. 09.2026">'; if(i===8)return '<input class="fcx" id="ifSmart" placeholder="смарт" title="фильтр по смарт-процессу">'; if(i===9)return '<input class="fcx" id="ifStage" placeholder="этап" title="фильтр по этапу">'; if(i===10)return '<input class="fcx" id="ifDealStage" placeholder="стадия" title="фильтр по стадии сделки">'; if(i===11)return '<input class="fcx" id="ifShip" placeholder="реализ." title="фильтр по дате реализации (или «не наступила»)">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<input class="fcx" id="ifDate" placeholder="дата" title="фильтр по дате, напр. 09.2026">'; if(i===8)return '<input class="fcx" id="ifSmart" placeholder="смарт" title="фильтр по смарт-процессу">'; if(i===9)return '<input class="fcx" id="ifStage" placeholder="этап" title="фильтр по этапу">'; if(i===10)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===11)return '<input class="fcx" id="ifShip" placeholder="реализ." title="фильтр по дате реализации (или «не наступила»)">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2)?1:-1);}izHeadRow();render();})); }
 function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySelector('colgroup'))return;
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifCat','ifDate','ifSmart','ifStage','ifDealStage','ifShip','ifMin_4','ifMin_5','ifMin_6','ifMin_12','ifMin_13','ifMin_14','ifMin_15'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
-  document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation()); }
+  ['ifNum','ifName','ifCat','ifDate','ifSmart','ifStage','ifShip','ifMin_4','ifMin_5','ifMin_6','ifMin_12','ifMin_13','ifMin_14','ifMin_15'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation());
+  // мультивыбор стадий сделки: список стадий с чекбоксами, всплывашка фиксированная (не режется контейнером)
+  const sp=document.getElementById('stagePop');
+  if(sp){ const opts=(DATA.stageOrder||[]).filter(s=>DATA.deals.some(d=>d.stage===s)); const extra=[...new Set(DATA.deals.map(d=>d.stage).filter(Boolean))].filter(s=>!opts.includes(s)); const IZ_STAGES=[...opts,...extra];
+    sp.innerHTML='<div class="msel-act"><button type="button" data-a="all">все</button><button type="button" data-a="none">сброс</button></div>'
+      +IZ_STAGES.map(s=>'<label><input type="checkbox" value="'+esc(s)+'"'+(izStageSel.has(s)?' checked':'')+'> '+esc(s)+'</label>').join('');
+    const sync=()=>{ izStageSel.clear(); sp.querySelectorAll('input:checked').forEach(c=>izStageSel.add(c.value));
+      document.getElementById('stageSum').textContent=izStageSel.size?('стадия: '+izStageSel.size):'стадия';
+      document.getElementById('mselStage').classList.toggle('has',izStageSel.size>0); render(); };
+    sp.addEventListener('change',sync);
+    sp.addEventListener('click',e=>{ e.stopPropagation(); const a=e.target&&e.target.dataset?e.target.dataset.a:''; if(a==='all'){sp.querySelectorAll('input').forEach(c=>c.checked=true);sync();} else if(a==='none'){sp.querySelectorAll('input').forEach(c=>c.checked=false);sync();} });
+    const ms=document.getElementById('mselStage');
+    ms.addEventListener('toggle',()=>{ if(ms.open){ const r=document.getElementById('stageSum').getBoundingClientRect(); sp.style.left=Math.max(6,Math.min(r.left,innerWidth-250))+'px'; sp.style.top=(r.bottom+2)+'px'; } });
+  } }
 function izDealRow(e,it){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk),marg=it.rev-it.ss,mp=it.rev>0?marg/it.rev:null;
   return '<tr class="izdeal" data-dk="'+esc(dk)+'">'
     +'<td class="cell-o">·</td>'
@@ -903,6 +928,7 @@ function izDealRow(e,it){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk
     +'</tr>'; }
 function renderIzd(base){
   izHead();
+  { const _h=document.getElementById('ihtr'),_f=document.getElementById('iftr'); if(_h&&_f&&_h.offsetHeight){ _f.style.top=_h.offsetHeight+'px'; } }
   const items=buildIzd(base).filter(izPass);
   items.sort((a,b)=>{const x=izVal(a,izSortIdx),y=izVal(b,izSortIdx);return (x<y?-1:x>y?1:0)*izSortDir;});
   let html='';

@@ -196,6 +196,7 @@ tr.izgrp .exp{color:var(--ink-3)}
 #izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
 #izdtbl .subdeals thead th.num{text-align:right}
 #izdtbl .iznum .art-code{font-size:11px}
+#izdtbl .izsm{font-size:11px;color:var(--ink-2);white-space:nowrap}
 .izgnm .izgc{color:var(--ink-3);font-weight:400}
 tr.izdeal{cursor:pointer}
 tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
@@ -778,7 +779,12 @@ const izDots=arr=>'<span class="dots">'+ORDER.map(k=>'<span class="sd'+(arr.incl
 // полоса-индикатор смартов как в «Сделках»: off - нет карточек, on - есть, ss - внесена с/с
 const izBar=e=>'<span class="smbar">'+ORDER.map(k=>{let c='smb-off';if(e.smartsSS&&e.smartsSS.has(k))c='smb-ss';else if(e.smarts.has(k))c='smb-on';return '<span class="smb '+c+'" title="'+esc(SMFULL[k]||k)+(e.smartsSS&&e.smartsSS.has(k)?' - с/с внесена':(e.smarts.has(k)?' - есть карточки':' - нет'))+'"></span>';}).join('')+'</span>';
 // бейдж самого «дальнего» по цепочке производственного этапа среди экземпляров изделия
-function izStageAgg(e){let best=null,bp=-1;for(const it of e.deals){const si=izdStageInfo(it.g);if(si&&si.prog>bp){bp=si.prog;best=it.g;}}return best?izdBadge(best):'<span class="cell-o">-</span>';}
+// самый «дальний» экземпляр -> {смарт-процесс, бейдж стадии этого смарта}
+function izStageParts(e){let best=null,bp=-1;for(const it of e.deals){const si=izdStageInfo(it.g);if(si&&si.prog>bp){bp=si.prog;best=it.g;}}
+  if(!best)return {smart:'<span class="cell-o">-</span>',badge:'<span class="cell-o">-</span>'};
+  const si=izdStageInfo(best); return {smart:'<span class="izsm">'+esc(si.smart)+'</span>',badge:izdBadge(best)};}
+// маржинальность цветом как в «Сделках» (mp-red/mp-yel/mp-grn по MPCT_LO/MPCT_HI)
+function izMpct(mpct){ if(mpct==null)return '<td class="num"><span class="cell-o">-</span></td>'; const mv=Math.round(mpct*100); const cls=mv<MPCT_LO?'mp-red':mv>MPCT_HI?'mp-grn':'mp-yel'; return '<td class="num mp '+cls+'" title="маржинальность '+mv+'% · красный <'+MPCT_LO+'%, жёлтый '+MPCT_LO+'-'+MPCT_HI+'%, зелёный >'+MPCT_HI+'%">'+mv+'%</td>'; }
 function buildIzd(list){
   const M=new Map();
   for(const d of list){ for(const g of izdelia(d)){ const key=izKeyG(g);
@@ -792,17 +798,17 @@ function buildIzd(list){
   return arr;
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
-const ICOLS=['Номер заказа','Изделие','Сделок / №','Кол-во','Цена, ₽','Смарты','Этап','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[112,224,78,56,74,120,150,76,86,86,64];
-const INUM=[2,3,4,7,8,9,10];
-let izSortIdx=8, izSortDir=-1;
+const ICOLS=['Номер заказа','Изделие','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
+const ICOLW=[112,222,74,54,72,116,108,150,74,84,84,62];
+const INUM=[2,3,4,8,9,10,11];
+let izSortIdx=9, izSortDir=-1;
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
-function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.deals.length;case 3:return e.qty;case 4:return e.price;case 5:return e.smarts.size;case 6:return e.sp;case 7:return e.ss;case 8:return e.rev;case 9:return e.margin;case 10:return e.mpct==null?-1:e.mpct;}return 0;}
+function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.deals.length;case 3:return e.qty;case 4:return e.price;case 5:return e.smarts.size;case 6:return e.sp;case 7:return e.sp;case 8:return e.ss;case 9:return e.rev;case 10:return e.margin;case 11:return e.mpct==null?-1:e.mpct;}return 0;}
 function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
-  return mn('ifMin_2',e.deals.length)&&mn('ifMin_3',e.qty)&&mn('ifMin_4',e.price)&&mn('ifMin_7',e.ss)&&mn('ifMin_8',e.rev)&&mn('ifMin_9',e.margin)&&mn('ifMin_10',e.mpct==null?null:e.mpct*100); }
+  return mn('ifMin_2',e.deals.length)&&mn('ifMin_3',e.qty)&&mn('ifMin_4',e.price)&&mn('ifMin_8',e.ss)&&mn('ifMin_9',e.rev)&&mn('ifMin_10',e.margin)&&mn('ifMin_11',e.mpct==null?null:e.mpct*100); }
 function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1)?1:-1);}izHeadRow();render();})); }
@@ -810,7 +816,7 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifMin_2','ifMin_3','ifMin_4','ifMin_7','ifMin_8','ifMin_10'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifMin_2','ifMin_3','ifMin_4','ifMin_8','ifMin_9','ifMin_10','ifMin_11'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation()); }
 function izDealRow(e,it){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk),marg=it.rev-it.ss,mp=it.rev>0?marg/it.rev:null;
   return '<tr class="izdeal" data-dk="'+esc(dk)+'">'
@@ -831,7 +837,7 @@ function renderIzd(base){
   const items=buildIzd(base).filter(izPass);
   items.sort((a,b)=>{const x=izVal(a,izSortIdx),y=izVal(b,izSortIdx);return (x<y?-1:x>y?1:0)*izSortDir;});
   let html='';
-  for(const e of items){ const open=OPENIZD.has(e.key);
+  for(const e of items){ const open=OPENIZD.has(e.key); const _izsp=izStageParts(e);
     html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
       +'<td class="iznum">'+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
       +'<td class="izgnm" title="'+esc(e.nm||'')+'"><span class="exp">'+(open?'▾':'▸')+'</span> '+esc(cleanNm(e.nm).slice(0,60)||'(без названия)')+'</td>'
@@ -839,11 +845,12 @@ function renderIzd(base){
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
       +'<td class="num">'+(e.price?fmt(e.price):'<span class="cell-o">-</span>')+'</td>'
       +'<td>'+izBar(e)+'</td>'
-      +'<td>'+izStageAgg(e)+'</td>'
+      +'<td>'+_izsp.smart+'</td>'
+      +'<td>'+_izsp.badge+'</td>'
       +'<td class="num">'+(e.ss?fmt(e.ss):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
-      +'<td class="num">'+(e.mpct==null?'<span class="cell-o">-</span>':Math.round(e.mpct*100)+'%')+'</td>'
+      +izMpct(e.mpct)
       +'</tr>';
     if(open){
       const numH=[I_SVC,I_BUD,I_POS,I_QTY,I_SS,I_MRG,I_MPCT];

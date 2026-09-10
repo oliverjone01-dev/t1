@@ -139,6 +139,16 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .cnt{color:var(--ink-3);font-size:12px;margin-left:6px}
 .barsp{flex:1 1 auto}
 .scrollx{overflow:auto;max-height:74vh;border:1px solid var(--border);border-radius:12px}
+/* скроллбары в цвет дашборда (тёмная тема), а не системные белые/серые */
+html{scrollbar-width:thin;scrollbar-color:var(--ink-4) var(--bg)}
+.scrollx,.pwrap,.dbody,.byst,.drawer{scrollbar-width:thin;scrollbar-color:var(--ink-4) var(--card)}
+.scrollx::-webkit-scrollbar,.pwrap::-webkit-scrollbar,.dbody::-webkit-scrollbar,.byst::-webkit-scrollbar,.drawer::-webkit-scrollbar,body::-webkit-scrollbar{width:11px;height:11px}
+.scrollx::-webkit-scrollbar-track,.pwrap::-webkit-scrollbar-track,.dbody::-webkit-scrollbar-track,.byst::-webkit-scrollbar-track,.drawer::-webkit-scrollbar-track,body::-webkit-scrollbar-track{background:var(--card)}
+body::-webkit-scrollbar-track{background:var(--bg)}
+.scrollx::-webkit-scrollbar-thumb,.pwrap::-webkit-scrollbar-thumb,.dbody::-webkit-scrollbar-thumb,.byst::-webkit-scrollbar-thumb,.drawer::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb{background:var(--ink-4);border:2px solid var(--card);border-radius:8px}
+body::-webkit-scrollbar-thumb{border-color:var(--bg)}
+.scrollx::-webkit-scrollbar-thumb:hover,.pwrap::-webkit-scrollbar-thumb:hover,.dbody::-webkit-scrollbar-thumb:hover,.byst::-webkit-scrollbar-thumb:hover,.drawer::-webkit-scrollbar-thumb:hover,body::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+.scrollx::-webkit-scrollbar-corner,.pwrap::-webkit-scrollbar-corner,body::-webkit-scrollbar-corner{background:var(--card)}
 table{border-collapse:separate;border-spacing:0;width:100%;font-size:11px;min-width:0;table-layout:fixed}
 th,td{padding:5px 6px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mp{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
@@ -845,7 +855,7 @@ function renderIzd(base){
   let html='';
   for(const e of items){ const open=OPENIZD.has(e.key); const _izsp=izStageParts(e);
     html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
-      +'<td class="iznum"><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
+      +'<td class="iznum"'+(izNo(e)?' title="'+esc(izNo(e))+'"':'')+'><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
       +'<td class="izgnm" title="'+esc(e.nm||'')+'">'+esc(cleanNm(e.nm).slice(0,60)||'(без названия)')+'</td>'
       +'<td class="izdt" title="'+(e.dmin&&e.dmin!==e.dmax?'сделки '+ruD(e.dmin)+' - '+ruD(e.dmax):'дата создания сделки')+'">'+(e.dmax?ruD(e.dmax):'<span class="cell-o">—</span>')+(e.dmin&&e.dmin!==e.dmax?' <span class="izgc">+'+(e.deals.length-1)+'</span>':'')+'</td>'
       +'<td class="num">'+e.deals.length+'</td>'

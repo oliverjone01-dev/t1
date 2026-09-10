@@ -126,7 +126,7 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .bar input,.bar select{background:var(--elev);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:7px 10px;font-size:12.5px}
 .bar input[type=text]{min-width:200px}
 .bar label{display:flex;gap:6px;align-items:center;color:var(--ink-2);font-size:12px;cursor:pointer;user-select:none}
-.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0}
 .pbtn{background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
 .pbtn:hover{border-color:var(--accent)}.pbtn.act{background:var(--accent);color:#04222a;border-color:var(--accent);font-weight:700}
 .seg{display:inline-flex;background:var(--elev);border:1px solid var(--border);border-radius:8px;overflow:hidden}
@@ -294,6 +294,7 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
 
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
+  <div class="presets" id="presets"></div>
   <span class="barsp"></span>
   <label>с <input type="date" id="dfrom"></label>
   <span class="dsep">–</span>
@@ -301,7 +302,6 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
   <button class="dbtn" id="applyRange">ОК</button>
   <span class="cnt" id="cnt"></span>
 </div>
-<div class="presets" id="presets"></div>
 <div class="tabs" id="tabs"><button class="tb on" data-v="deals">Сделки</button><button class="tb" data-v="izd">Изделия</button></div>
 
 <div class="scrim" id="scrim"></div>

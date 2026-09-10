@@ -1,15 +1,15 @@
 {
- "dateFrom": "2026-08-10",
- "dateTo": "2026-09-08",
- "generated_at": "2026-09-09T11:26:28.234Z",
+ "dateFrom": "2026-08-11",
+ "dateTo": "2026-09-09",
+ "generated_at": "2026-09-10T11:22:49.816Z",
  "totals": {
   "campaigns": 34,
   "active": 5,
   "moderation": 28,
-  "spend": 164146.07,
-  "clicks": 1500,
-  "impressions": 147431,
-  "conversions": 1259
+  "spend": 165436.88999999998,
+  "clicks": 1510,
+  "impressions": 151126,
+  "conversions": 1265
  },
  "campaigns": [
   {
@@ -464,12 +464,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 1852,
-   "clicks": 181,
-   "ctr": 9.77,
-   "cpc": 150.54,
-   "spend": 27247.34,
-   "conv": 167
+   "imp": 1793,
+   "clicks": 176,
+   "ctr": 9.82,
+   "cpc": 154.68,
+   "spend": 27224.53,
+   "conv": 163
   },
   {
    "id": 712877517,
@@ -481,12 +481,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 3313,
-   "clicks": 381,
-   "ctr": 11.5,
-   "cpc": 120.71,
-   "spend": 45989.23,
-   "conv": 338
+   "imp": 3343,
+   "clicks": 379,
+   "ctr": 11.34,
+   "cpc": 121.9,
+   "spend": 46198.83,
+   "conv": 341
   },
   {
    "id": 712877525,
@@ -498,12 +498,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 2761,
-   "clicks": 409,
-   "ctr": 14.81,
-   "cpc": 120.31,
-   "spend": 49206.6,
-   "conv": 363
+   "imp": 2716,
+   "clicks": 414,
+   "ctr": 15.24,
+   "cpc": 120.3,
+   "spend": 49803.67,
+   "conv": 367
   },
   {
    "id": 712877530,
@@ -515,12 +515,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 3976,
-   "clicks": 64,
-   "ctr": 1.61,
-   "cpc": 152.5,
-   "spend": 9760,
-   "conv": 62
+   "imp": 3079,
+   "clicks": 48,
+   "ctr": 1.56,
+   "cpc": 158.53,
+   "spend": 7609.51,
+   "conv": 46
   },
   {
    "id": 712877535,
@@ -566,12 +566,12 @@
    "start": "2026-08-12",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 13785,
-   "clicks": 99,
-   "ctr": 0.72,
-   "cpc": 51.04,
-   "spend": 5052.79,
-   "conv": 45
+   "imp": 15842,
+   "clicks": 107,
+   "ctr": 0.68,
+   "cpc": 57.01,
+   "spend": 6100.6,
+   "conv": 50
   },
   {
    "id": 713589837,
@@ -583,12 +583,12 @@
    "start": "2026-08-16",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 121744,
-   "clicks": 366,
-   "ctr": 0.3,
-   "cpc": 73.47,
-   "spend": 26890.11,
-   "conv": 284
+   "imp": 124353,
+   "clicks": 386,
+   "ctr": 0.31,
+   "cpc": 73.83,
+   "spend": 28499.75,
+   "conv": 298
   }
  ]
 }

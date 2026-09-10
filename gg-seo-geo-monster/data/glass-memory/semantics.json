@@ -1,10 +1,10 @@
 {
- "measured": "2026-09-07",
+ "measured": "2026-09-10",
  "phrases": [
   {
    "phrase": "илики",
    "pos": null,
-   "freq": 3248,
+   "freq": 2642,
    "url": "",
    "cluster": "илики",
    "intent": "commercial"
@@ -28,7 +28,7 @@
   {
    "phrase": "зеркала оптом",
    "pos": null,
-   "freq": 488,
+   "freq": 616,
    "url": "",
    "cluster": "зеркала",
    "intent": "commercial"
@@ -40,6 +40,14 @@
    "url": "",
    "cluster": "установить",
    "intent": "informational"
+  },
+  {
+   "phrase": "сверло по мрамору",
+   "pos": null,
+   "freq": 269,
+   "url": "",
+   "cluster": "сверло",
+   "intent": "commercial"
   },
   {
    "phrase": "кладбище памяти жертв 9 января",
@@ -76,7 +84,7 @@
   {
    "phrase": "изделия из металлопрофиля",
    "pos": null,
-   "freq": 135,
+   "freq": 142,
    "url": "",
    "cluster": "изделия",
    "intent": "commercial"
@@ -92,17 +100,9 @@
   {
    "phrase": "изготовление полок из стекла",
    "pos": null,
-   "freq": 403,
+   "freq": 128,
    "url": "",
    "cluster": "изготовление",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "укладка брусчатки технология",
-   "pos": null,
-   "freq": 2150,
-   "url": "",
-   "cluster": "укладка",
    "intent": "commercial"
   },
   {
@@ -156,7 +156,7 @@
   {
    "phrase": "как сделать дырку в камне",
    "pos": null,
-   "freq": 108,
+   "freq": 110,
    "url": "",
    "cluster": "сделать",
    "intent": "informational"
@@ -276,7 +276,7 @@
   {
    "phrase": "как установить памятник на могилу",
    "pos": null,
-   "freq": 2746,
+   "freq": 2829,
    "url": "",
    "cluster": "установить",
    "intent": "informational"
@@ -292,7 +292,7 @@
   {
    "phrase": "как установить памятник",
    "pos": null,
-   "freq": 7276,
+   "freq": 8100,
    "url": "",
    "cluster": "установить",
    "intent": "informational"
@@ -332,7 +332,7 @@
   {
    "phrase": "каркас для табурета купить",
    "pos": null,
-   "freq": 39,
+   "freq": 30,
    "url": "",
    "cluster": "каркас",
    "intent": "transactional"
@@ -354,17 +354,9 @@
    "intent": "informational"
   },
   {
-   "phrase": "стеклянная мебель",
-   "pos": null,
-   "freq": 1738,
-   "url": "",
-   "cluster": "стеклянная",
-   "intent": "commercial"
-  },
-  {
    "phrase": "как выглядит гранит камень фото",
    "pos": null,
-   "freq": 16,
+   "freq": 17,
    "url": "",
    "cluster": "выглядит",
    "intent": "informational"
@@ -378,17 +370,9 @@
    "intent": "informational"
   },
   {
-   "phrase": "гранит черный",
-   "pos": null,
-   "freq": 9099,
-   "url": "",
-   "cluster": "гранит",
-   "intent": "commercial"
-  },
-  {
    "phrase": "заказать памятник в спб",
    "pos": null,
-   "freq": 354,
+   "freq": 469,
    "url": "",
    "cluster": "памятник",
    "intent": "transactional"
@@ -396,7 +380,7 @@
   {
    "phrase": "гранитех",
    "pos": null,
-   "freq": 153,
+   "freq": 193,
    "url": "",
    "cluster": "гранитех",
    "intent": "commercial"
@@ -444,7 +428,7 @@
   {
    "phrase": "как сделать отверстие в камне",
    "pos": null,
-   "freq": 329,
+   "freq": 419,
    "url": "",
    "cluster": "сделать",
    "intent": "informational"
@@ -498,9 +482,17 @@
    "intent": "commercial"
   },
   {
+   "phrase": "виды надгробных памятников",
+   "pos": null,
+   "freq": 127,
+   "url": "",
+   "cluster": "виды",
+   "intent": "commercial"
+  },
+  {
    "phrase": "гравировка портрета",
    "pos": null,
-   "freq": 1175,
+   "freq": 1160,
    "url": "",
    "cluster": "гравировка",
    "intent": "commercial"
@@ -508,7 +500,7 @@
   {
    "phrase": "инструкция по установке памятника",
    "pos": null,
-   "freq": 3,
+   "freq": 31,
    "url": "",
    "cluster": "инструкция",
    "intent": "commercial"
@@ -516,7 +508,7 @@
   {
    "phrase": "как выбрать памятник",
    "pos": null,
-   "freq": 558,
+   "freq": 458,
    "url": "",
    "cluster": "выбрать",
    "intent": "informational"
@@ -540,7 +532,7 @@
   {
    "phrase": "как ухаживать за могилой",
    "pos": null,
-   "freq": 316,
+   "freq": 306,
    "url": "",
    "cluster": "ухаживать",
    "intent": "informational"
@@ -559,14 +551,6 @@
    "freq": 297,
    "url": "",
    "cluster": "месторождение",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "памятники из стекла",
-   "pos": null,
-   "freq": 2010,
-   "url": "",
-   "cluster": "памятники",
    "intent": "commercial"
   },
   {
@@ -634,14 +618,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "мощение гранитной брусчаткой",
-   "pos": null,
-   "freq": 48,
-   "url": "",
-   "cluster": "мощение",
-   "intent": "commercial"
-  },
-  {
    "phrase": "памятник из бетона своими руками",
    "pos": null,
    "freq": 99,
@@ -652,7 +628,7 @@
   {
    "phrase": "как правильно установить памятник",
    "pos": null,
-   "freq": 1690,
+   "freq": 1639,
    "url": "",
    "cluster": "правильно",
    "intent": "informational"
@@ -700,7 +676,7 @@
   {
    "phrase": "иликовское кладбище",
    "pos": null,
-   "freq": 106,
+   "freq": 147,
    "url": "",
    "cluster": "иликовское",
    "intent": "commercial"
@@ -722,17 +698,9 @@
    "intent": "commercial"
   },
   {
-   "phrase": "изготовление надгробий в спб",
-   "pos": null,
-   "freq": 42,
-   "url": "",
-   "cluster": "изготовление",
-   "intent": "commercial"
-  },
-  {
    "phrase": "из какого камня делают памятники",
    "pos": null,
-   "freq": 171,
+   "freq": 159,
    "url": "",
    "cluster": "какого",
    "intent": "commercial"
@@ -764,7 +732,7 @@
   {
    "phrase": "гранит карелии архангельск",
    "pos": null,
-   "freq": 101,
+   "freq": 67,
    "url": "",
    "cluster": "гранит",
    "intent": "commercial"
@@ -796,9 +764,41 @@
   {
    "phrase": "гранит вес",
    "pos": null,
-   "freq": 2848,
+   "freq": 3398,
    "url": "",
    "cluster": "гранит",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "чем просверлить мрамор",
+   "pos": null,
+   "freq": 116,
+   "url": "",
+   "cluster": "просверлить",
+   "intent": "informational"
+  },
+  {
+   "phrase": "кладбище на дальневосточном проспекте",
+   "pos": null,
+   "freq": 10,
+   "url": "",
+   "cluster": "кладбище",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "что прочнее гранит или мрамор для памятника",
+   "pos": null,
+   "freq": 18,
+   "url": "",
+   "cluster": "прочнее",
+   "intent": "informational"
+  },
+  {
+   "phrase": "гранитный поребрик на могилу",
+   "pos": null,
+   "freq": 136,
+   "url": "",
+   "cluster": "гранитный",
    "intent": "commercial"
   }
  ]

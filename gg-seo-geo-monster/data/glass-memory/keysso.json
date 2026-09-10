@@ -1,13 +1,13 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-09-07",
+ "measured": "2026-09-10",
  "visibility": 2,
- "ai_answers": 54,
- "keywords_total": 547,
- "top1": 5,
- "top3": 12,
+ "ai_answers": 58,
+ "keywords_total": 563,
+ "top1": 6,
+ "top3": 13,
  "top10": 47,
- "top50": 547,
+ "top50": 563,
  "top_pages": [
   {
    "url": "/products/loft-mebel/mebel-loft-iz-profilnoj-trubyi-i-dereva",
@@ -15,38 +15,38 @@
   },
   {
    "url": "/products/ritual-products/foto-iz-stekla",
-   "keywords_top50": 35
+   "keywords_top50": 34
   },
   {
    "url": "/products/art/polki-iz-stekla",
-   "keywords_top50": 26
+   "keywords_top50": 25
   },
   {
    "url": "/products/ritual-products/pamyatniki-iz-stekla",
-   "keywords_top50": 22
-  },
-  {
-   "url": "/products/loft-mebel/peregorodki-iz-metalla",
    "keywords_top50": 21
   },
   {
+   "url": "/products/loft-mebel/peregorodki-iz-metalla",
+   "keywords_top50": 20
+  },
+  {
    "url": "/konstruktor-pamyatnikov",
-   "keywords_top50": 19
+   "keywords_top50": 20
   },
   {
    "url": "/products/loft-mebel/polki-loft-iz-trub",
-   "keywords_top50": 17
-  },
-  {
-   "url": "/news/jeanne-friske-monument",
-   "keywords_top50": 14
+   "keywords_top50": 19
   },
   {
    "url": "/products/loft-mebel/sadovaya-mebel-v-stile-loft",
-   "keywords_top50": 14
+   "keywords_top50": 16
   },
   {
-   "url": "/products/loft-mebel/zerkala",
+   "url": "/news/jeanne-friske-monument",
+   "keywords_top50": 15
+  },
+  {
+   "url": "/",
    "keywords_top50": 14
   }
  ],
@@ -94,12 +94,6 @@
    "url": ""
   },
   {
-   "phrase": "как делают памятники из стекла",
-   "pos": 1,
-   "freq": 5,
-   "url": ""
-  },
-  {
    "phrase": "стеклянные памятники",
    "pos": 0,
    "freq": 1989,
@@ -110,78 +104,84 @@
    "pos": 0,
    "freq": 11,
    "url": ""
+  },
+  {
+   "phrase": "памятник со стеклянной фотографией",
+   "pos": 1,
+   "freq": 54,
+   "url": ""
   }
  ],
  "ad_competitors": [
   {
    "domain": "promsteklo.com",
-   "common_ad_keywords": 9,
-   "ads_count": 71,
-   "ad_keywords_count": 171,
-   "visibility": 19
+   "common_ad_keywords": 8,
+   "ads_count": 69,
+   "ad_keywords_count": 177,
+   "visibility": 20
   },
   {
    "domain": "pamiatniky.ru",
    "common_ad_keywords": 7,
-   "ads_count": 245,
-   "ad_keywords_count": 1902,
+   "ads_count": 260,
+   "ad_keywords_count": 1927,
    "visibility": 13
   },
   {
    "domain": "ural-glass.ru",
    "common_ad_keywords": 6,
-   "ads_count": 36,
-   "ad_keywords_count": 78,
+   "ads_count": 33,
+   "ad_keywords_count": 73,
    "visibility": 1
+  },
+  {
+   "domain": "nbs-granit.ru",
+   "common_ad_keywords": 5,
+   "ads_count": 314,
+   "ad_keywords_count": 2019,
+   "visibility": 0
   },
   {
    "domain": "kamenyar.ru",
    "common_ad_keywords": 5,
    "ads_count": 4,
-   "ad_keywords_count": 2401,
+   "ad_keywords_count": 2020,
    "visibility": 0
   },
   {
    "domain": "grad-granit.ru",
    "common_ad_keywords": 5,
    "ads_count": 17,
-   "ad_keywords_count": 1031,
-   "visibility": 0
-  },
-  {
-   "domain": "nbs-granit.ru",
-   "common_ad_keywords": 5,
-   "ads_count": 325,
-   "ad_keywords_count": 2213,
+   "ad_keywords_count": 860,
    "visibility": 0
   },
   {
    "domain": "pamyatniki.grad-ex.ru",
    "common_ad_keywords": 4,
-   "ads_count": 33,
-   "ad_keywords_count": 1197,
+   "ads_count": 27,
+   "ad_keywords_count": 1182,
    "visibility": 0
   },
   {
    "domain": "granit1.ru",
    "common_ad_keywords": 4,
-   "ads_count": 41,
-   "ad_keywords_count": 198,
+   "ads_count": 36,
+   "ad_keywords_count": 149,
    "visibility": 0
   },
   {
    "domain": "obeliskm.ru",
-   "common_ad_keywords": 4,
-   "ads_count": 149,
-   "ad_keywords_count": 786,
-   "visibility": 50
+   "common_ad_keywords": 3,
+   "ads_count": 137,
+   "ad_keywords_count": 674,
+   "visibility": 47
   },
   {
-   "domain": "памятники-цены.рф",
+   "domain": "ritualceram.ru",
    "common_ad_keywords": 3,
-   "ads_count": 217,
-   "ad_keywords_count": 4850,
-   "visibility": 0
+   "ads_count": 119,
+   "ad_keywords_count": 412,
+   "visibility": 1
   }
  ],
  "history": [
@@ -339,13 +339,18 @@
    "date": "2026-09-07",
    "visibility": 2,
    "top10": 47
+  },
+  {
+   "date": "2026-09-10",
+   "visibility": 2,
+   "top10": 47
   }
  ],
  "keywords": [
   {
    "phrase": "илики",
    "pos": null,
-   "freq": 3248,
+   "freq": 2642,
    "url": ""
   },
   {
@@ -363,13 +368,19 @@
   {
    "phrase": "зеркала оптом",
    "pos": null,
-   "freq": 488,
+   "freq": 616,
    "url": ""
   },
   {
    "phrase": "как установить памятник на могилу самостоятельно",
    "pos": null,
    "freq": 92,
+   "url": ""
+  },
+  {
+   "phrase": "сверло по мрамору",
+   "pos": null,
+   "freq": 269,
    "url": ""
   },
   {
@@ -399,7 +410,7 @@
   {
    "phrase": "изделия из металлопрофиля",
    "pos": null,
-   "freq": 135,
+   "freq": 142,
    "url": ""
   },
   {
@@ -411,13 +422,7 @@
   {
    "phrase": "изготовление полок из стекла",
    "pos": null,
-   "freq": 403,
-   "url": ""
-  },
-  {
-   "phrase": "укладка брусчатки технология",
-   "pos": null,
-   "freq": 2150,
+   "freq": 128,
    "url": ""
   },
   {
@@ -459,7 +464,7 @@
   {
    "phrase": "как сделать дырку в камне",
    "pos": null,
-   "freq": 108,
+   "freq": 110,
    "url": ""
   },
   {
@@ -549,7 +554,7 @@
   {
    "phrase": "как установить памятник на могилу",
    "pos": null,
-   "freq": 2746,
+   "freq": 2829,
    "url": ""
   },
   {
@@ -561,7 +566,7 @@
   {
    "phrase": "как установить памятник",
    "pos": null,
-   "freq": 7276,
+   "freq": 8100,
    "url": ""
   },
   {
@@ -591,7 +596,7 @@
   {
    "phrase": "каркас для табурета купить",
    "pos": null,
-   "freq": 39,
+   "freq": 30,
    "url": ""
   },
   {
@@ -607,15 +612,9 @@
    "url": ""
   },
   {
-   "phrase": "стеклянная мебель",
-   "pos": null,
-   "freq": 1738,
-   "url": ""
-  },
-  {
    "phrase": "как выглядит гранит камень фото",
    "pos": null,
-   "freq": 16,
+   "freq": 17,
    "url": ""
   },
   {
@@ -625,21 +624,15 @@
    "url": ""
   },
   {
-   "phrase": "гранит черный",
-   "pos": null,
-   "freq": 9099,
-   "url": ""
-  },
-  {
    "phrase": "заказать памятник в спб",
    "pos": null,
-   "freq": 354,
+   "freq": 469,
    "url": ""
   },
   {
    "phrase": "гранитех",
    "pos": null,
-   "freq": 153,
+   "freq": 193,
    "url": ""
   },
   {
@@ -675,7 +668,7 @@
   {
    "phrase": "как сделать отверстие в камне",
    "pos": null,
-   "freq": 329,
+   "freq": 419,
    "url": ""
   },
   {
@@ -715,21 +708,27 @@
    "url": ""
   },
   {
+   "phrase": "виды надгробных памятников",
+   "pos": null,
+   "freq": 127,
+   "url": ""
+  },
+  {
    "phrase": "гравировка портрета",
    "pos": null,
-   "freq": 1175,
+   "freq": 1160,
    "url": ""
   },
   {
    "phrase": "инструкция по установке памятника",
    "pos": null,
-   "freq": 3,
+   "freq": 31,
    "url": ""
   },
   {
    "phrase": "как выбрать памятник",
    "pos": null,
-   "freq": 558,
+   "freq": 458,
    "url": ""
   },
   {
@@ -747,7 +746,7 @@
   {
    "phrase": "как ухаживать за могилой",
    "pos": null,
-   "freq": 316,
+   "freq": 306,
    "url": ""
   },
   {
@@ -760,12 +759,6 @@
    "phrase": "месторождение габбро",
    "pos": null,
    "freq": 297,
-   "url": ""
-  },
-  {
-   "phrase": "памятники из стекла",
-   "pos": null,
-   "freq": 2010,
    "url": ""
   },
   {
@@ -817,12 +810,6 @@
    "url": ""
   },
   {
-   "phrase": "мощение гранитной брусчаткой",
-   "pos": null,
-   "freq": 48,
-   "url": ""
-  },
-  {
    "phrase": "памятник из бетона своими руками",
    "pos": null,
    "freq": 99,
@@ -831,7 +818,7 @@
   {
    "phrase": "как правильно установить памятник",
    "pos": null,
-   "freq": 1690,
+   "freq": 1639,
    "url": ""
   },
   {
@@ -867,7 +854,7 @@
   {
    "phrase": "иликовское кладбище",
    "pos": null,
-   "freq": 106,
+   "freq": 147,
    "url": ""
   },
   {
@@ -883,15 +870,9 @@
    "url": ""
   },
   {
-   "phrase": "изготовление надгробий в спб",
-   "pos": null,
-   "freq": 42,
-   "url": ""
-  },
-  {
    "phrase": "из какого камня делают памятники",
    "pos": null,
-   "freq": 171,
+   "freq": 159,
    "url": ""
   },
   {
@@ -915,7 +896,7 @@
   {
    "phrase": "гранит карелии архангельск",
    "pos": null,
-   "freq": 101,
+   "freq": 67,
    "url": ""
   },
   {
@@ -939,99 +920,123 @@
   {
    "phrase": "гранит вес",
    "pos": null,
-   "freq": 2848,
+   "freq": 3398,
+   "url": ""
+  },
+  {
+   "phrase": "чем просверлить мрамор",
+   "pos": null,
+   "freq": 116,
+   "url": ""
+  },
+  {
+   "phrase": "кладбище на дальневосточном проспекте",
+   "pos": null,
+   "freq": 10,
+   "url": ""
+  },
+  {
+   "phrase": "что прочнее гранит или мрамор для памятника",
+   "pos": null,
+   "freq": 18,
+   "url": ""
+  },
+  {
+   "phrase": "гранитный поребрик на могилу",
+   "pos": null,
+   "freq": 136,
    "url": ""
   }
  ],
  "competitors": [
   {
+   "domain": "m.avito.ru",
+   "visibility": 2161646,
+   "common_keywords": 407,
+   "delta_visibility": -24.6
+  },
+  {
    "domain": "livemaster.ru",
-   "visibility": 110146,
-   "common_keywords": 286,
-   "delta_visibility": 0
+   "visibility": 96689,
+   "common_keywords": 298,
+   "delta_visibility": -12.2
   },
   {
    "domain": "market.yandex.ru",
-   "visibility": 1147628,
-   "common_keywords": 277,
+   "visibility": 906679,
+   "common_keywords": 290,
+   "delta_visibility": -21
+  },
+  {
+   "domain": "ozon.ru",
+   "visibility": 1936639,
+   "common_keywords": 276,
    "delta_visibility": 0
   },
   {
    "domain": "wildberries.ru",
-   "visibility": 1615119,
-   "common_keywords": 269,
-   "delta_visibility": 0
+   "visibility": 1182769,
+   "common_keywords": 274,
+   "delta_visibility": -26.8
   },
   {
    "domain": "lemanapro.ru",
-   "visibility": 704902,
-   "common_keywords": 211,
+   "visibility": 503823,
+   "common_keywords": 222,
+   "delta_visibility": -28.5
+  },
+  {
+   "domain": "aliexpress.ru",
+   "visibility": 206113,
+   "common_keywords": 160,
+   "delta_visibility": -5.5
+  },
+  {
+   "domain": "uslugi.yandex.ru",
+   "visibility": 199414,
+   "common_keywords": 159,
+   "delta_visibility": -10.6
+  },
+  {
+   "domain": "yandex.ru",
+   "visibility": 10814891,
+   "common_keywords": 13,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "postament.ru",
+   "visibility": 1590,
+   "common_keywords": 13,
    "delta_visibility": 0
   },
   {
    "domain": "dzen.ru",
-   "visibility": 7303732,
-   "common_keywords": 204,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "uslugi.yandex.ru",
-   "visibility": 222990,
-   "common_keywords": 155,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "aliexpress.ru",
-   "visibility": 218157,
-   "common_keywords": 149,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "m.avito.ru",
-   "visibility": 2866164,
-   "common_keywords": 17,
-   "delta_visibility": 0
+   "visibility": 4604157,
+   "common_keywords": 11,
+   "delta_visibility": -37
   },
   {
    "domain": "pqd.ru",
-   "visibility": 1245,
-   "common_keywords": 12,
+   "visibility": 1006,
+   "common_keywords": 10,
+   "delta_visibility": -19.2
+  },
+  {
+   "domain": "nisp.ru",
+   "visibility": 527,
+   "common_keywords": 9,
    "delta_visibility": 0
   },
   {
    "domain": "talkingstone.ru",
-   "visibility": 392,
-   "common_keywords": 10,
-   "delta_visibility": 0
+   "visibility": 308,
+   "common_keywords": 8,
+   "delta_visibility": -21.4
   },
   {
-   "domain": "danila-master.ru",
-   "visibility": 260,
+   "domain": "organizator24-granit.ru",
+   "visibility": 0,
    "common_keywords": 7,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "vk.ru",
-   "visibility": 7930172,
-   "common_keywords": 6,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "cherdak-masterskaya.ru",
-   "visibility": 315,
-   "common_keywords": 5,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "granit44.ru",
-   "visibility": 2,
-   "common_keywords": 5,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "pamatniki.ru",
-   "visibility": 116,
-   "common_keywords": 5,
    "delta_visibility": 0
   }
  ],

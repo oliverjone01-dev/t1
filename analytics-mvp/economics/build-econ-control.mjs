@@ -126,7 +126,7 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .bar input,.bar select{background:var(--elev);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:7px 10px;font-size:12.5px}
 .bar input[type=text]{min-width:200px}
 .bar label{display:flex;gap:6px;align-items:center;color:var(--ink-2);font-size:12px;cursor:pointer;user-select:none}
-.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0}
 .pbtn{background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
 .pbtn:hover{border-color:var(--accent)}.pbtn.act{background:var(--accent);color:#04222a;border-color:var(--accent);font-weight:700}
 .seg{display:inline-flex;background:var(--elev);border:1px solid var(--border);border-radius:8px;overflow:hidden}
@@ -146,6 +146,7 @@ th,td{padding:5px 6px;text-align:left;border-bottom:1px solid var(--border);whit
 .mp-yel{background:rgba(217,164,65,.20);color:#e6c069}
 .mp-wht{background:rgba(200,205,215,.09);color:var(--ink-1)}
 .mp-red{background:rgba(214,92,110,.22);color:#ec93a4}
+#izdtbl .ss-bad{background:rgba(214,92,110,.22);color:#ec93a4;font-weight:700}
 th{position:sticky;top:0;background:var(--elev);z-index:2;font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none}
 th:hover{color:var(--ink)} th .ar{color:var(--accent);font-size:10px}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
@@ -193,6 +194,8 @@ tr.izgrp>td{border-top:1px solid var(--border);font-weight:700}
 tr.izgrp .exp{color:var(--ink-3)}
 .izgnm{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #izdtbl .iznum{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#izdtbl .izdt{white-space:nowrap;color:var(--ink-2);font-size:11px}
+#izdtbl .izdt .izgc{color:var(--ink-3);font-size:10px}
 .subdeals{margin:0;background:var(--bg)}
 #izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
 #izdtbl .subdeals thead th.num{text-align:right}
@@ -292,6 +295,7 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
 
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
+  <div class="presets" id="presets"></div>
   <span class="barsp"></span>
   <label>с <input type="date" id="dfrom"></label>
   <span class="dsep">–</span>
@@ -299,7 +303,6 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
   <button class="dbtn" id="applyRange">ОК</button>
   <span class="cnt" id="cnt"></span>
 </div>
-<div class="presets" id="presets"></div>
 <div class="tabs" id="tabs"><button class="tb on" data-v="deals">Сделки</button><button class="tb" data-v="izd">Изделия</button></div>
 
 <div class="scrim" id="scrim"></div>
@@ -779,10 +782,19 @@ function izStageParts(e){let best=null,bp=-1;for(const it of e.deals){const si=i
   const si=izdStageInfo(best); return {smart:'<span class="izsm">'+esc(si.smart)+'</span>',badge:izdBadge(best)};}
 // маржинальность цветом как в «Сделках» (mp-red/mp-yel/mp-grn по MPCT_LO/MPCT_HI)
 function izMpct(mpct){ if(mpct==null)return '<td class="num"><span class="cell-o">-</span></td>'; const mv=Math.round(mpct*100); const cls=mv<MPCT_LO?'mp-red':mv>MPCT_HI?'mp-grn':'mp-yel'; return '<td class="num mp '+cls+'" title="маржинальность '+mv+'% · красный <'+MPCT_LO+'%, жёлтый '+MPCT_LO+'-'+MPCT_HI+'%, зелёный >'+MPCT_HI+'%">'+mv+'%</td>'; }
+// Σ с/с: подсветка красным недостоверной себестоимости (нет с/с или неправдоподобно мало).
+// Порог: партия изделия не может стоить меньше SS_MIN ₽ (артефакт незаполненного калькулятора).
+const SS_MIN=1000;
+function izSsCell(ss){
+  if(!ss)return '<td class="num ss-bad" title="нет данных по себестоимости - калькулятор GG не заполнен">нет с/с</td>';
+  if(ss<SS_MIN)return '<td class="num ss-bad" title="с/с '+fmt(ss)+' ₽ - недостоверно мало для партии, проверьте калькулятор GG">'+fmt(ss)+'</td>';
+  return '<td class="num">'+fmt(ss)+'</td>';
+}
 function buildIzd(list){
   const M=new Map();
   for(const d of list){ for(const g of izdelia(d)){ const key=izKeyG(g);
-    let e=M.get(key); if(!e){ e={key,art:g.art,ns:g.ns,nm:g.nm||'',qty:0,ss:0,rev:0,deals:[],smarts:new Set(),smartsSS:new Set()}; M.set(key,e); }
+    let e=M.get(key); if(!e){ e={key,art:g.art,ns:g.ns,nm:g.nm||'',qty:0,ss:0,rev:0,deals:[],smarts:new Set(),smartsSS:new Set(),dmin:null,dmax:null}; M.set(key,e); }
+    if(d.created){ if(!e.dmin||d.created<e.dmin)e.dmin=d.created; if(!e.dmax||d.created>e.dmax)e.dmax=d.created; }
     if((g.nm||'').length>(e.nm||'').length)e.nm=g.nm; if(!e.art&&g.art)e.art=g.art; if(!e.ns&&g.ns)e.ns=g.ns;
     const ss=izSS(g),price=izPrice(d,g),qty=g.qty||0,rev=price*qty;
     e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>{e.smarts.add(k); if(g.sp[k]&&g.sp[k].vB>0)e.smartsSS.add(k);});
@@ -792,17 +804,17 @@ function buildIzd(list){
   return arr;
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
-const ICOLS=['Номер заказа','Изделие','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[112,222,74,54,72,116,108,150,74,84,84,62];
-const INUM=[2,3,4,8,9,10,11];
-let izSortIdx=9, izSortDir=-1;
+const ICOLS=['Номер заказа','Изделие','Создана','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
+const ICOLW=[112,222,86,74,54,72,116,108,150,74,84,84,62];
+const INUM=[3,4,5,9,10,11,12];
+let izSortIdx=10, izSortDir=-1;
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
-function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.deals.length;case 3:return e.qty;case 4:return e.price;case 5:return e.smarts.size;case 6:return e.sp;case 7:return e.sp;case 8:return e.ss;case 9:return e.rev;case 10:return e.margin;case 11:return e.mpct==null?-1:e.mpct;}return 0;}
+function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.dmax||'';case 3:return e.deals.length;case 4:return e.qty;case 5:return e.price;case 6:return e.smarts.size;case 7:return e.sp;case 8:return e.sp;case 9:return e.ss;case 10:return e.rev;case 11:return e.margin;case 12:return e.mpct==null?-1:e.mpct;}return 0;}
 function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
-  return mn('ifMin_2',e.deals.length)&&mn('ifMin_3',e.qty)&&mn('ifMin_4',e.price)&&mn('ifMin_8',e.ss)&&mn('ifMin_9',e.rev)&&mn('ifMin_10',e.margin)&&mn('ifMin_11',e.mpct==null?null:e.mpct*100); }
+  return mn('ifMin_3',e.deals.length)&&mn('ifMin_4',e.qty)&&mn('ifMin_5',e.price)&&mn('ifMin_9',e.ss)&&mn('ifMin_10',e.rev)&&mn('ifMin_11',e.margin)&&mn('ifMin_12',e.mpct==null?null:e.mpct*100); }
 function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1)?1:-1);}izHeadRow();render();})); }
@@ -810,7 +822,7 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifMin_2','ifMin_3','ifMin_4','ifMin_8','ifMin_9','ifMin_10','ifMin_11'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifMin_3','ifMin_4','ifMin_5','ifMin_9','ifMin_10','ifMin_11','ifMin_12'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation()); }
 function izDealRow(e,it){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk),marg=it.rev-it.ss,mp=it.rev>0?marg/it.rev:null;
   return '<tr class="izdeal" data-dk="'+esc(dk)+'">'
@@ -835,13 +847,14 @@ function renderIzd(base){
     html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
       +'<td class="iznum"><span class="exp">'+(open?'▾':'▸')+'</span> '+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
       +'<td class="izgnm" title="'+esc(e.nm||'')+'">'+esc(cleanNm(e.nm).slice(0,60)||'(без названия)')+'</td>'
+      +'<td class="izdt" title="'+(e.dmin&&e.dmin!==e.dmax?'сделки '+ruD(e.dmin)+' - '+ruD(e.dmax):'дата создания сделки')+'">'+(e.dmax?ruD(e.dmax):'<span class="cell-o">—</span>')+(e.dmin&&e.dmin!==e.dmax?' <span class="izgc">+'+(e.deals.length-1)+'</span>':'')+'</td>'
       +'<td class="num">'+e.deals.length+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
       +'<td class="num">'+(e.price?fmt(e.price):'<span class="cell-o">-</span>')+'</td>'
       +'<td>'+izBar(e)+'</td>'
       +'<td>'+_izsp.smart+'</td>'
       +'<td>'+_izsp.badge+'</td>'
-      +'<td class="num">'+(e.ss?fmt(e.ss):'<span class="cell-o">-</span>')+'</td>'
+      +izSsCell(e.ss)
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
       +izMpct(e.mpct)
@@ -857,7 +870,7 @@ function renderIzd(base){
     }
   }
   document.querySelector('#izdtbl tbody').innerHTML=html||'<tr><td colspan="'+ICOLS.length+'" class="pusl">нет изделий в выборке</td></tr>';
-  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
+  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · «Создана» - дата создания сделки (для нескольких сделок последняя, наведи для диапазона) · Σ с/с красным - недостоверно (нет с/с или партия <1000 ₽) · клик по изделию - таблица сделок (как во вкладке «Сделки»), клик по сделке - содержание · сортировка и фильтры';
   document.getElementById('cnt').textContent='изделий: '+items.length;
 }
 // ячейки строки сделки (те же колонки, что в таблице «Сделки») - переиспользуются во вкладке «Изделия»

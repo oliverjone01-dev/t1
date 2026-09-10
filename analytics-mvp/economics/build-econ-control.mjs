@@ -459,7 +459,7 @@ function izdBadge(g){ const si=izdStageInfo(g); if(!si) return '';
   const sh=izdShade(si.prog); return '<span class="izst" style="background:'+sh.bg+';color:'+sh.fg+(si.fail?';outline:1px solid var(--dn)':'')+'" title="Этап смарт-процесса '+esc(si.smart)+': '+esc(si.name)+(si.fail?' (провал)':'')+' · чем темнее, тем ближе к закрытию">'+esc(si.name.length>20?si.name.slice(0,20)+'…':si.name)+'</span> '; }
 function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
   if(izd.length){
-    inner+='<table class="ptab"><tr><th>Артикул/НС</th><th>Изделие</th><th>Смарт</th><th>Этап</th><th>Кол-во</th>'+ORDER.map(k=>'<th>'+esc(SMFULL[k]||k)+'</th>').join('')+'<th>Σ с/с</th></tr>';
+    inner+='<table class="ptab"><tr><th>Артикул/НС</th><th>Изделие</th><th>Смарт</th><th>Этап</th><th title="в какие смарты запущен товар (есть карточки)">Смарты</th><th>Кол-во</th>'+ORDER.map(k=>'<th>'+esc(SMFULL[k]||k)+'</th>').join('')+'<th>Σ с/с</th></tr>';
     for(const g of izd){ const cells=ORDER.map(k=>{ const e=g.sp[k];
         if(e&&e.vB) return '<td class="num cell-g"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>';
         if(e&&e.cards&&e.cards.length) return '<td class="num"><a class="nocs" href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">нет с/с</a></td>';
@@ -471,6 +471,7 @@ function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
         +'<td class="pnm" title="'+esc(g.nm||'')+'">'+esc(cleanNm(g.nm).slice(0,50))+'</td>'
         +'<td>'+(_si?esc(_si.smart):'<span class="cell-o">-</span>')+'</td>'
         +'<td>'+izdBadge(g)+'</td>'
+        +'<td>'+izDots(izSmartsOf(g))+'</td>'
         +'<td class="num">'+(g.qty?g.qty+' шт':'')+'</td>'+cells+'<td class="num">'+(ssTot?fmt(ssTot):'<span class="cell-o">-</span>')+'</td></tr>'; }
     inner+='</table>';
   }

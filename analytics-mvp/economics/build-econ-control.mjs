@@ -642,13 +642,16 @@ function nsCode(nm){ const m=String(nm||'').match(NSRE); return m?m[0].replace(/
 function nameSig(nm){ let s=String(nm||'');
   s=s.replace(/^\\s*№?\\s*\\d+[.\\d]*\\s*/,'').replace(NSRE,' ').replace(/МАХАЧКАЛА/gi,' ').replace(/\\d+\\s*шт/gi,' ');
   return s.replace(/[^\\p{L}\\p{N}]+/gu,'').toLowerCase().slice(0,48); }
+// артикул годится как ключ группировки только если это полный код, а не обрывок-заглушка
+// (напр. «С26-», «НС26-», «-» - префикс номера без самого номера; такие склеивают разные товары).
+function goodArt(a){ a=String(a||'').trim(); return a.length>=2 && !/-\s*$/.test(a); }
 // ключ изделия по приоритету: артикул -> НС-код (единый б24-номер) -> название -> айди карточки
-function izdKey(c){ if(c.art) return 'art:'+c.art; const ns=nsCode(c.nm); if(ns) return 'ns:'+ns; const sg=nameSig(c.nm); if(sg) return 'sig:'+sg; return 'id:'+c.id; }
+function izdKey(c){ if(c.art&&goodArt(c.art)) return 'art:'+c.art; const ns=nsCode(c.nm); if(ns) return 'ns:'+ns; const sg=nameSig(c.nm); if(sg) return 'sig:'+sg; return 'id:'+c.id; }
 // изделия сделки: группируем карточки СП по артикулу, с/с по каждому смарту
 function izdelia(d){
   const g={};
   for(const s of d.sps){ for(const c of (s.cards||[])){ if(c.bad)continue; const ss=cardSS(c); const key=izdKey(c);
-    const it=g[key]=g[key]||{art:c.art||'',ns:nsCode(c.nm),firstId:c.id,qty:0,sp:{},nm:''};
+    const it=g[key]=g[key]||{art:(c.art&&goodArt(c.art))?c.art:'',ns:nsCode(c.nm),firstId:c.id,qty:0,sp:{},nm:''};
     if((+c.qty||0)>it.qty)it.qty=+c.qty||0;
     if(c.nm&&c.nm.length>(it.nm||'').length)it.nm=c.nm; // самое полное название изделия из заголовка карточки
     const e=it.sp[s.key]=it.sp[s.key]||{vU:0,vB:0,cards:[]}; e.vU+=ss; e.vB+=cardBatch(c); e.cards.push({id:c.id,etid:s.etid,st:c.st}); } }
@@ -820,7 +823,7 @@ function renderTotals(list){
 let VIEW='deals';
 const OPENIZD=new Set();      // раскрытые изделия (ключ изделия)
 const OPENIZDDEAL=new Set();  // раскрытые сделки внутри изделия (ключ изделия + id сделки)
-const izKeyG=g=> g.art?('art:'+g.art) : (g.ns?('ns:'+g.ns) : (nameSig(g.nm)?('sig:'+nameSig(g.nm)):('id:'+g.firstId)));
+const izKeyG=g=> (g.art&&goodArt(g.art))?('art:'+g.art) : (g.ns?('ns:'+g.ns) : (nameSig(g.nm)?('sig:'+nameSig(g.nm)):('id:'+g.firstId)));
 // с/с по приоритету: Калькулятор GG (итоговая) -> иначе Расчёт+Закупка (сумма) -> иначе Производство GG.
 const _vbOf=(g,k)=>g.sp[k]&&g.sp[k].vB>0?g.sp[k].vB:0;
 const izSS=g=>{ const K=_vbOf(g,'Калькулятор GG'); if(K)return K;
@@ -889,7 +892,7 @@ function buildIzd(list){
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
 const ICOLS=['Номер заказа','Изделие','Категория','Создана','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Дата реализации','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[112,208,110,86,74,54,72,116,108,150,132,104,74,84,84,62];
+const ICOLW=[112,160,100,82,90,60,66,92,98,116,116,146,68,110,78,86];
 const INUM=[4,5,6,12,13,14,15];
 let izSortIdx=13, izSortDir=-1;
 const izStageSel=new Set(); // мультивыбор стадий сделки в фильтре колонки «Стадия сделки»

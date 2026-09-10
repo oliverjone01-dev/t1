@@ -780,14 +780,19 @@ function renderIzd(base){
   }
   let html='';
   for(const e of items){ const open=OPENIZD.has(e.key), avg=e.qty?Math.round(e.ss/e.qty):0;
-    // группирующая строка изделия: агрегаты выровнены под колонками Штук / Σ с/с / (Маржа = ср с/с за шт)
+    // строка изделия в ТЕХ ЖЕ столбцах, что и сделка: артикул+название в «Название»,
+    // сделок в «Позиций», Σ шт в «Штук», Σ с/с в «Σ с/с», средняя с/с/шт в «Маржа».
     html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
       +'<td><span class="exp">'+(open?'▾':'▸')+'</span></td>'
-      +'<td class="izgnm" colspan="5">'+((e.art||e.ns)?'<span class="art-code">'+esc(e.art||e.ns)+'</span> ':'')+esc(cleanNm(e.nm).slice(0,64)||'(без названия)')+' <span class="izgc">· сделок '+e.deals.length+'</span></td>'
+      +'<td class="izgnm" title="'+esc(((e.art||e.ns)?(e.art||e.ns)+' · ':'')+(e.nm||''))+'">'+((e.art||e.ns)?'<span class="art-code">'+esc(e.art||e.ns)+'</span> ':'')+esc(cleanNm(e.nm).slice(0,64)||'(без названия)')+'</td>'
       +'<td></td><td></td><td></td><td></td>'
-      +'<td class="num"><b>'+(e.qty?e.qty:'-')+'</b></td>'
+      +'<td></td>'
+      +'<td></td>'
+      +'<td></td>'
+      +'<td class="num" title="в скольких сделках это изделие">'+e.deals.length+'</td>'
+      +'<td class="num"><b>'+(e.qty?e.qty+' <span class="cell-o">шт</span>':'-')+'</b></td>'
       +'<td class="num"><b>'+(e.ss?fmt(e.ss):'-')+'</b></td>'
-      +'<td class="num" title="средняя с/с за штуку">'+(avg?fmt(avg)+'/шт':'-')+'</td>'
+      +'<td class="num" title="средняя с/с за штуку">'+(avg?fmt(avg):'-')+'</td>'
       +'<td></td>'
       +'</tr>';
     if(open){ for(const it of e.deals.slice().sort((a,b)=>b.ss-a.ss)){ const d=it.d, dk=e.key+'::'+d.id, dop=OPENIZDDEAL.has(dk);

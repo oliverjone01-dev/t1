@@ -191,6 +191,8 @@ tr.izgrp:hover{background:var(--elev)}
 tr.izgrp>td{border-top:1px solid var(--border);font-weight:700}
 tr.izgrp .exp{color:var(--ink-3)}
 .izgnm{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#izdtbl .iznum{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#izdtbl .iznum .art-code{font-size:11px}
 .izgnm .izgc{color:var(--ink-3);font-weight:400}
 tr.izdeal{cursor:pointer}
 tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
@@ -785,28 +787,31 @@ function buildIzd(list){
   return arr;
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
-const ICOLS=['Изделие','Сделок','Кол-во','Цена, ₽','Смарты','Этап','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[240,58,58,74,120,152,76,86,86,66];
-const INUM=[1,2,3,6,7,8,9];
-let izSortIdx=7, izSortDir=-1;
+const ICOLS=['Номер заказа','Изделие','Сделок / №','Кол-во','Цена, ₽','Смарты','Этап','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
+const ICOLW=[112,224,78,56,74,120,150,76,86,86,64];
+const INUM=[2,3,4,7,8,9,10];
+let izSortIdx=8, izSortDir=-1;
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
-function izVal(e,i){switch(i){case 0:return (e.nm||'').toLowerCase();case 1:return e.deals.length;case 2:return e.qty;case 3:return e.price;case 4:return e.smarts.size;case 5:return e.sp;case 6:return e.ss;case 7:return e.rev;case 8:return e.margin;case 9:return e.mpct==null?-1:e.mpct;}return 0;}
-function izPass(e){ const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!(((e.art||'')+' '+(e.ns||'')+' '+(e.nm||'')).toLowerCase().includes(ft)))return false;
+const izNo=e=>e.art||e.ns||'';
+function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return e.deals.length;case 3:return e.qty;case 4:return e.price;case 5:return e.smarts.size;case 6:return e.sp;case 7:return e.ss;case 8:return e.rev;case 9:return e.margin;case 10:return e.mpct==null?-1:e.mpct;}return 0;}
+function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().includes(fn))return false;
+  const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
-  return mn('ifMin_1',e.deals.length)&&mn('ifMin_2',e.qty)&&mn('ifMin_3',e.price)&&mn('ifMin_6',e.ss)&&mn('ifMin_7',e.rev)&&mn('ifMin_8',e.margin)&&mn('ifMin_9',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+  return mn('ifMin_2',e.deals.length)&&mn('ifMin_3',e.qty)&&mn('ifMin_4',e.price)&&mn('ifMin_7',e.ss)&&mn('ifMin_8',e.rev)&&mn('ifMin_9',e.margin)&&mn('ifMin_10',e.mpct==null?null:e.mpct*100); }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
-  document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=(i===0?1:-1);}izHeadRow();render();})); }
+  document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1)?1:-1);}izHeadRow();render();})); }
 function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySelector('colgroup'))return;
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifName','ifMin_1','ifMin_2','ifMin_3','ifMin_6','ifMin_7','ifMin_8','ifMin_9'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifMin_2','ifMin_3','ifMin_4','ifMin_7','ifMin_8','ifMin_10'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation()); }
 function izDealRow(e,it){ const d=it.d,dk=e.key+'::'+d.id,dop=OPENIZDDEAL.has(dk),marg=it.rev-it.ss,mp=it.rev>0?marg/it.rev:null;
   return '<tr class="izdeal" data-dk="'+esc(dk)+'">'
-    +'<td class="izdl" title="'+esc(d.title||'')+'"><span class="exp">'+(dop?'▾':'▸')+'</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a> <span class="cell-o">'+esc((d.mgr||'').split(' ')[0])+'</span></td>'
-    +'<td class="num cell-o">·</td>'
+    +'<td class="cell-o">·</td>'
+    +'<td class="izdl" title="'+esc(d.title||'')+'"><span class="exp">'+(dop?'▾':'▸')+'</span> '+esc((d.title||'').slice(0,40))+' <span class="cell-o">'+esc((d.mgr||'').split(' ')[0])+'</span></td>'
+    +'<td class="num"><a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a></td>'
     +'<td class="num">'+(it.qty||'-')+'</td>'
     +'<td class="num">'+(it.price?fmt(it.price):'<span class="cell-o">-</span>')+'</td>'
     +'<td>'+izDots(izSmartsOf(it.g))+'</td>'
@@ -823,7 +828,8 @@ function renderIzd(base){
   let html='';
   for(const e of items){ const open=OPENIZD.has(e.key);
     html+='<tr class="izgrp" data-k="'+esc(e.key)+'">'
-      +'<td class="izgnm" title="'+esc(((e.art||e.ns)?(e.art||e.ns)+' · ':'')+(e.nm||''))+'"><span class="exp">'+(open?'▾':'▸')+'</span> '+((e.art||e.ns)?'<span class="art-code">'+esc(e.art||e.ns)+'</span> ':'')+esc(cleanNm(e.nm).slice(0,60)||'(без названия)')+'</td>'
+      +'<td class="iznum">'+(izNo(e)?'<span class="art-code">'+esc(izNo(e))+'</span>':'<span class="cell-o">—</span>')+'</td>'
+      +'<td class="izgnm" title="'+esc(e.nm||'')+'"><span class="exp">'+(open?'▾':'▸')+'</span> '+esc(cleanNm(e.nm).slice(0,60)||'(без названия)')+'</td>'
       +'<td class="num">'+e.deals.length+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
       +'<td class="num">'+(e.price?fmt(e.price):'<span class="cell-o">-</span>')+'</td>'
@@ -837,7 +843,7 @@ function renderIzd(base){
     if(open){ for(const it of e.deals.slice().sort((a,b)=>b.rev-a.rev||b.ss-a.ss)){ html+=izDealRow(e,it); const dk=e.key+'::'+it.d.id; if(OPENIZDDEAL.has(dk)){ html+='<tr class="detail"><td colspan="'+ICOLS.length+'"><div class="pwrap">'+detailInner(it.d)+'</div></td></tr>'; } } }
   }
   document.querySelector('#izdtbl tbody').innerHTML=html||'<tr><td colspan="'+ICOLS.length+'" class="pusl">нет изделий в выборке</td></tr>';
-  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · товар вперёд, сделки - разворот изделия, содержание - разворот сделки · сортировка и фильтры по колонкам';
+  document.getElementById('izdSum').textContent='Изделий: '+items.length+' · номер заказа (НС/НМ/С) отдельной колонкой, «—» если нет · клик по изделию - сделки, клик по сделке - содержание · сортировка и фильтры';
   document.getElementById('cnt').textContent='изделий: '+items.length;
 }
 // ячейки строки сделки (те же колонки, что в таблице «Сделки») - переиспользуются во вкладке «Изделия»

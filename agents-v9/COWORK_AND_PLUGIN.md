@@ -19,7 +19,7 @@ plugin-marketplaces, desktop, workflows), проверены 2026-09-06 чере
 /plugin marketplace add oliverjone01-dev/t1
 /plugin install gengroup-roster@gengroup
 ```
-Тот же плагин доступен из лёгкой ветки `plugin` (`/plugin marketplace add oliverjone01-dev/t1#plugin`): содержимое
+Тот же плагин доступен из лёгкой ветки `plugin` (`/plugin marketplace add oliverjone01-dev/t1@plugin`; CLI принимает и `#plugin`, сохраняет как `@plugin`): содержимое
 идентично main, но без истории и данных аналитики, см. §3 п.1 и скрипт `.claude-plugin/export-plugin.sh`.
 Манифесты: `.claude-plugin/plugin.json` (agents, skills, workflows, hooks), `.claude-plugin/marketplace.json`
 (репозиторий = маркетплейс с одним плагином, `source: "./"`). Skills в плагине именуются `gengroup-roster:<skill>`.
@@ -68,15 +68,27 @@ claude.ai»: облачная сессия скачивает плагины, в
 `<name>@synced`, без маркетплейса и записи об установке.]
 
 Практический путь:
-1. Desktop → боковая панель **Customize** → Plugins → **Add marketplace** → URL `oliverjone01-dev/t1#plugin` → Sync →
-   установить `gengroup-roster`. [ДАННЫЕ 2026-09-07] сторонний маркетплейс в Customize добавлять можно (поле принимает
-   `owner/repo` или git URL, суффикс `#ветка` задокументирован в docs discover-plugins). С URL `oliverjone01-dev/t1` без
-   ветки sync падал: «Marketplace sync failed. Check the repository URL and try again». Репозиторий публичный, манифест
-   валиден, CLI ставит его с GitHub, поэтому рабочая гипотеза - серверный клон main (465 МБ по GitHub API: аналитика,
-   xlsx, PDF в истории) не укладывается в лимит. Ветка `plugin` (606 КБ, 77 файлов) содержит только манифесты, `agents/`,
-   skills из plugin.json, `.claude/hooks`, workflow council и `schemas/`; установка с GitHub по `#plugin` проверена
-   в облаке: Skills 19 / Agents 13 / Hooks 5. Ветку обновляет `bash .claude-plugin/export-plugin.sh --push` после
-   любого изменения плагина в main (руками её не править).
+1. Desktop → боковая панель **Customize** → Plugins → **Add marketplace** → строка `oliverjone01-dev/t1@plugin` → Sync →
+   установить `gengroup-roster`.
+   Почему с суффиксом `@plugin` [ДАННЫЕ 2026-09-10]: `claude plugin marketplace add oliverjone01-dev/t1@plugin` клонирует
+   только ref `plugin` за 2.0 с, `claude plugin install gengroup-roster@gengroup` кладёт 880 КБ в
+   `~/.claude/plugins/cache/gengroup/gengroup-roster/3.0.3`, `claude plugin list` показывает версию 3.0.3 enabled.
+   Полный main (465 МБ по GitHub API: аналитика, xlsx, PDF в истории) при этой форме не выкачивается.
+   Формы, которые Desktop отверг [ДАННЫЕ 2026-09-08]: `oliverjone01-dev/t1#plugin` - «Marketplace source format is invalid.
+   Enter a GitHub owner/repo or a full Git URL», то есть разделитель `#` поле Desktop не разбирает;
+   `https://github.com/oliverjone01-dev/t1.git#plugin` и `oliverjone01-dev/t1` без ветки - «Marketplace sync failed»,
+   клон ветки по умолчанию не укладывается в лимит.
+   Форма `oliverjone01-dev/t1@plugin` именно в поле Desktop [ГИПОТЕЗА]: в CLI проходит, в Desktop не проверялась,
+   проверяет Иван. Ветку `plugin` обновляет `bash .claude-plugin/export-plugin.sh --push` после любого изменения
+   плагина в main (руками её не править).
+   План Б, если Desktop не примет `@`: отдельный репозиторий-зеркало `oliverjone01-dev/gengroup-roster` (~600 КБ,
+   `.claude-plugin/marketplace.json` в корне с `source: ./plugins/gengroup-roster`, плагин в `plugins/gengroup-roster/`,
+   README), сборка и заливка `bash .claude-plugin/export-plugin.sh --repo https://github.com/oliverjone01-dev/gengroup-roster.git --push`,
+   раскладка проверена локально через CLI: Skills 19, Agents 13, Hooks 5. Репозиторий создаёт Иван (New repository,
+   Public, без README): интеграции Claude создание запрещено, `POST /user/repos` отдаёт 403 «Resource not accessible by
+   integration» (проверено 2026-09-08 и 2026-09-10).
+   [ДАННЫЕ 2026-09-07] сторонний маркетплейс в Customize добавлять можно, поле принимает `owner/repo` или git URL,
+   суффикс ветки задокументирован в docs discover-plugins.
 2. Проверка: в Cowork или в новой облачной сессии `claude plugin list` показывает плагин под заголовком
    `Synced from claude.ai`; `/agents` содержит spartak, feniks и бойцов как `<name>@synced`.
 3. Выключить дубли: старые account-навыки с теми же триггерами (список в §5), иначе один запрос будит две версии.
@@ -119,7 +131,7 @@ claude.ai»: облачная сессия скачивает плагины, в
 | Шаг | Где | Действие |
 |---|---|---|
 | A | Терминал на машине | `claude plugin marketplace add oliverjone01-dev/t1` + `claude plugin install gengroup-roster@gengroup`: ростер в Claude Code CLI и во вкладке Code для ДРУГИХ репозиториев. В этом репозитории не нужно (§1). |
-| B | Desktop → Customize → Plugins → Add marketplace | URL `oliverjone01-dev/t1#plugin` (не `oliverjone01-dev/t1`: полный клон main падает по размеру), затем установить `gengroup-roster`: Cowork и облачные сессии получают `<name>@synced` (13 агентов, 19 skills, 5 хуков). |
+| B | Desktop → Customize → Plugins → Add marketplace | Строка `oliverjone01-dev/t1@plugin`, затем установить `gengroup-roster`: Cowork и облачные сессии получают `<name>@synced` (13 агентов, 19 skills, 5 хуков). Форма с `@` проверена в CLI (клон только ref `plugin`, 2.0 с, 880 КБ), в поле Desktop - гипотеза. Не проходят: `oliverjone01-dev/t1` и `t1.git#plugin` (sync failed, клон ветки по умолчанию), `t1#plugin` (invalid format). План Б - зеркало `oliverjone01-dev/gengroup-roster`, создаёт Иван (§3). |
 | C | Desktop → Customize → Skills | выключить дубли: `gengroup-geo-aeo`, `gengroup-phoenix-eval`, `gengroup-reality-audit`, `gengroup-humanizer-ru`, `gengroup-crisis-response`, `gengroup-competitor-intel`, `gengroup-cross-sell`, `gengroup-encyclopedia`, `gengroup-content-factory`, `gengroup-brand` (в плагине те же навыки под именами без префикса, версии v3). |
 | D | там же | оставить: `gengroup-aio-recon`, `gengroup-seo-manual`, `gengroup-seo-pipeline`, `gengroup-content-expert`, `gengroup-print-design`, `bogdan-persona`, `avu-persona`, `valonti-brand` (аналогов в плагине нет). Остальные account-навыки (docx, pdf, pptx, xlsx, humanizer, skill-creator, import-memory, morning, turbium-webdis-v1) ростера не касаются. |
 

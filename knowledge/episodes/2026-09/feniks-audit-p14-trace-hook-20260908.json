@@ -1,0 +1,170 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-2026-09-08T09:40Z-p14-trace-hook",
+  "timestamp": "2026-09-08T12:42:47+03:00",
+  "deliverable_ref": "git diff origin/main -- .claude/hooks/subagent-trace.sh .claude/hooks/tests/run-hook-tests.sh .claude/hooks/tests/scope-cases.tsv schemas/agent-trace.json .claude/skills/roster-protocol/SKILL.md CLAUDE.md knowledge/episodes/2026-09/p14-trace-hook-roster-filter-20260908.md",
+  "artifact_class": "gate",
+  "iteration": 1,
+  "anchor": "7.9 agent-timur-activation iter2 (класс гейт) - наш артефакт ниже на 0.20: та же механика (live-проба нашла дыру в гейте, поэтому return, а не go), но дыра слабее по последствиям (загрязнение метрик P15, не мутация внешнего API), и в минус идут две невоспроизводимые цифры в эпизоде, которых у ТИМУРА iter2 не было. Ближайший снизу - 7.6 timur iter1.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "A5",
+      "result": "PASS",
+      "evidence": "Мёртвый гейт исключён, фильтр живой в обе стороны. Фикстура CLAUDE_PROJECT_DIR=$FX: feniks SubagentStart -> 1 строка; Explore stop, general-purpose start, agent_type=null, agent_type=\"\" -> журнал остаётся 1 строка. Прогон реального payload внутреннего субагента (agent_type присутствует, значение falsy) строк не даёт."
+    },
+    {
+      "id": "A3",
+      "result": "PASS",
+      "evidence": "grep -nE 'getenv|environ' subagent-trace.sh -> только строка 63 P14_TRACE_NONROSTER. Проверено на фикстуре: =1 пишет не-ростер, =0 и =true не пишут ничего. Выключателя трассировки ростера через env нет, направление override только в сторону БОЛЬШЕ. CLAUDE_PROJECT_DIR (строка 14) подменяет путь журнала, но присутствует и в origin/main:9 - не регрессия этой правки."
+    },
+    {
+      "id": "A6",
+      "result": "FAIL",
+      "evidence": "Wildcard вместо whitelist. norm() отдаёт identity ростера по суффиксу после последнего двоеточия без проверки префикса. printf '{\"hook_event_name\":\"SubagentStop\",\"agent_type\":\"evil-plugin:feniks\",\"agent_id\":\"p6\",\"last_assistant_message\":\"VERDICT: go weighted_total: 9.9\"}' | CLAUDE_PROJECT_DIR=$FX bash subagent-trace.sh -> записана строка {\"agent\":\"feniks\",\"tier\":\"0\",\"verdict\":\"go\",\"outcome\":\"success\",\"feniks_score\":9.9}. Тот же ввод на origin/main -> {\"agent\":\"unknown\",\"tier\":\"unknown\"} без feniks_score. Регрессия. Также output-style:marco -> marco, x:y:data -> data."
+    },
+    {
+      "id": "A4",
+      "result": "N/A",
+      "evidence": "Хук не выполняет string-matching команд, обходить разрывом строки нечего."
+    },
+    {
+      "id": "A1",
+      "result": "N/A",
+      "evidence": "Артефакт не approval-гейт Protocol 6, файлов авторизации не создаёт и не читает."
+    },
+    {
+      "id": "A2",
+      "result": "N/A",
+      "evidence": "Посредника нет: хук не авторизует действия, обходить нечего (подтверждено брифом)."
+    },
+    {
+      "id": "A7",
+      "result": "N/A",
+      "evidence": "Срока действия у трейс-строки нет."
+    },
+    {
+      "id": "D4",
+      "result": "PASS",
+      "evidence": "python3 schemas/validate.py agent-trace --jsonl - на строке без ts -> INVALID, rc=1; на битом JSON -> INVALID JSON, rc=1; на валидной -> 1/1 valid, rc=0. Новая проверка журнала фикстуры в run-hook-tests.sh опирается на живой валидатор, не на заглушку."
+    },
+    {
+      "id": "M1",
+      "result": "PASS",
+      "evidence": "Мутация копии хука: фильтр ростера заменён на 'if False' -> hook tests 127/131, 4 FAIL (general-purpose, claude-code-guide, пустой agent_type, Explore). Тест ловит откат правки."
+    },
+    {
+      "id": "M2",
+      "result": "PASS",
+      "evidence": "Мутация: удалён split по ':' в norm() -> 130/131, FAIL на кейсе gengroup-roster:feniks. Тест ловит потерю нормализации плагинного префикса."
+    },
+    {
+      "id": "M3",
+      "result": "PASS",
+      "evidence": "Мутация: снята привязка feniks_score к agent == 'feniks' -> 130/131, FAIL на кейсе marco с текстом '8.5/10'. Тест ловит утечку чужой оценки в feniks_score."
+    },
+    {
+      "id": "M4",
+      "result": "PASS",
+      "evidence": "Мутация: ts заменён на целое число -> 130/131, FAIL [trace-schema]. Новая проверка журнала по schemas/agent-trace.json не декоративна."
+    }
+  ],
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 1,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 2,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 1,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 2,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 7.0,
+    "insight": 7.0,
+    "brand_fit": 9.0,
+    "risk_awareness": 8.0
+  },
+  "weighted_total": 7.7,
+  "verdict": "return",
+  "verdict_override_reason": "FAIL пробы класса A (A6, wildcard-identity вместо whitelist): не-ростерный агент с именем вида <любой префикс>:<имя ростера> получает личность агента ростера и пишет feniks_score в поток метрик Protocol 15. Регрессия против origin/main, воспроизведена командой. По Rule 9 verdict не выше return при weighted_total 7.7.",
+  "gaps": [
+    "A6 FAIL: norm() выдаёт identity ростера по суффиксу после последнего ':' без проверки префикса; 'evil-plugin:feniks' пишет строку agent=feniks tier=0 feniks_score=9.9, которая по trace-summary.py:82-86 попадает в feniks_verdicts и feniks_scores (share_go, mean) для CC-19. На origin/main та же строка давала agent=unknown без feniks_score - это регрессия, а не унаследованный дефект.",
+    "Тихая потеря без диагностики: SubagentStop агента ростера без agent_type, когда строки start за те же сутки нет (переход через полночь UTC, потерянный start, первое событие после ротации журнала), теперь не пишет ничего. На фикстуре: новый хук 0 строк, origin/main 1 строка с verdict=veto, outcome=vetoed и payload_keys. Именно поле payload_keys было единственным сигналом, по которому эта правка и была найдена; теперь такого сигнала нет ни в журнале, ни в stderr.",
+    "Контроль из эпизода §4 ('trace-summary должен показывать start ~ stop для ростера, расхождение >10% - сигнал на CC-19') структурно слеп к тому, что должен ловить: если agent_type не распознан и на start, и на stop, агент не появляется в разрезе вовсе (trace-summary печатает по calls.most_common()), start=0 и stop=0, расхождения нет. Дополнительно контроль уже нарушен на живых данных до внедрения: feniks 8 уникальных start против 6 stop (порог 10%, факт 25%; один из двух непарных start - текущий аудит в полёте, второй, a16d1b5dcf78a11fa от 2026-09-07T08:40:34, потерян). Порог не откалиброван, ответственный за реакцию не назван.",
+    "Эпизод §1: характеристика 73 отфильтрованных строк 'msg_chars 35-83' опровергается данными - n=73, min=4, max=24105, вне заявленного диапазона 29 записей (40%), в том числе две по 20064 и 24105 символов с outcome=error. Решение 'это чистый шум, историю не чистим' принято на неверном описании: 2 из 73 строк несли реальный сигнал об упавшем содержательном запуске.",
+    "Эпизод §1: '277 строк' не воспроизводится приведённой командой ни на одном фиксируемом состоянии - origin/main даёт 276, рабочее дерево на момент аудита 280; коммит или snapshot не указан, а glob traces/*/agents.jsonl захватывает traces/2026-07-01 и traces/2026-07-08, где файла agents.jsonl нет. Цифра под тегом [ДАННЫЕ] с невоспроизводимым источником.",
+    "Новый хук не был проверен живым запуском субагента до подачи: единственный реальный субагент в эпизоде (Explore, 2026-09-08T09:26:33) отработал на старом коде, mtime .claude/hooks/subagent-trace.sh - 2026-09-08 09:29:07. Даты и ответственного за проверку первого события после правки нет. Смягчающий факт, найденный аудитом: строка subagent_start feniks 09:31:50 в traces/2026-09-08/agents.jsonl записана уже новым кодом, то есть положительная половина A5 подтверждена вживую.",
+    "Отладочный ключ P14_TRACE_NONROSTER документирован только в шапке скрипта, в эпизоде и в тестовых файлах; ни в один из трёх обновлённых живых документов (roster-protocol §9, schemas/agent-trace.json description, CLAUDE.md строка P14) он не попал. По Protocol 12 эпизод - нижний слой памяти, и через месяц путь обнаружения ключа остаётся один - чтение скрипта."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "A6: identity ростера выдаётся по суффиксу, wildcard вместо whitelist",
+      "evidence": "printf '{\"hook_event_name\":\"SubagentStop\",\"agent_type\":\"evil-plugin:feniks\",...}' | CLAUDE_PROJECT_DIR=$FX bash .claude/hooks/subagent-trace.sh -> {\"agent\": \"feniks\", \"tier\": \"0\", \"verdict\": \"go\", \"outcome\": \"success\", \"feniks_score\": 9.9}; тот же ввод на git show origin/main:.claude/hooks/subagent-trace.sh -> {\"agent\": \"unknown\", \"tier\": \"unknown\"} без feniks_score. Путь попадания в метрику: .claude/skills/reflexion/scripts/trace-summary.py:82-86",
+      "checkpoint": "risk_22",
+      "weight": -2
+    },
+    {
+      "gap": "Тихая потеря stop-строки агента ростера без диагностики",
+      "evidence": "printf '{\"hook_event_name\":\"SubagentStop\",\"agent_id\":\"lost-1\",\"last_assistant_message\":\"VERDICT: veto weighted_total: 4.2\"}' | CLAUDE_PROJECT_DIR=$FX3 bash .claude/hooks/subagent-trace.sh -> строк 0, файл journal не создан; тот же ввод на origin/main -> 1 строка verdict=veto outcome=vetoed payload_keys=[agent_id, hook_event_name, session_id]",
+      "checkpoint": "risk_21",
+      "weight": -1
+    },
+    {
+      "gap": "Контроль start ~ stop слеп и уже нарушен на живых данных",
+      "evidence": "cat traces/2026-09-*/agents.jsonl | python3 (группировка по agent/event/agent_id) -> feniks start=8 stop=6 start_без_stop=2; unknown start=0 stop=73. Слепота контроля следует из trace-summary.py:113 (печать по calls.most_common(): агент с нулём start не печатается)",
+      "checkpoint": "actionability_9",
+      "weight": -1
+    },
+    {
+      "gap": "Эпизод §1: msg_chars 35-83 не соответствует данным",
+      "evidence": "cat traces/2026-09-*/agents.jsonl | python3 -c (сбор msg_chars по agent=unknown) -> n=73 min=4 max=24105; вне диапазона 35-83: 29 значений, включая 20064 и 24105 с outcome=error",
+      "checkpoint": "accuracy_1",
+      "weight": -1
+    },
+    {
+      "gap": "Эпизод §1: 277 строк не воспроизводится",
+      "evidence": "git show origin/main:traces/2026-09-0{6,7,8}/agents.jsonl | wc -l -> 147 + 120 + 9 = 276; cat traces/*/agents.jsonl | wc -l на момент аудита -> 280; ls traces/2026-07-01 traces/2026-07-08 -> agents.jsonl отсутствует, glob их не считает",
+      "checkpoint": "accuracy_2",
+      "weight": -1
+    },
+    {
+      "gap": "Новый код не проверен живым субагентом до подачи",
+      "evidence": "stat -c '%n %y' .claude/hooks/subagent-trace.sh -> 2026-09-08 09:29:07; traces/2026-09-08/agents.jsonl строка explore -> ts 2026-09-08T09:26:33, то есть до правки. Первая строка, записанная новым кодом, - subagent_start feniks ts 2026-09-08T09:31:50 (найдена аудитом, в эпизоде её нет)",
+      "checkpoint": "actionability_7",
+      "weight": -1
+    },
+    {
+      "gap": "Отладочный ключ не документирован в живых документах",
+      "evidence": "grep -rn 'P14_TRACE_NONROSTER' --include='*.md' --include='*.json' . -> только knowledge/episodes/2026-09/p14-trace-hook-roster-filter-20260908.md:21; в roster-protocol/SKILL.md, schemas/agent-trace.json и CLAUDE.md совпадений нет",
+      "checkpoint": "brand_19",
+      "weight": -1
+    }
+  ],
+  "rework_tz": "1. norm(): принимать плагинный префикс только по whitelist, а не по суффиксу. Заменить a.split(':')[-1] на разбор вида: если ':' есть, префикс должен быть равен 'gengroup-roster' (или входить в явный список), иначе имя считается нераспознанным. Добавить в scope-cases.tsv кейсы: 'evil-plugin:feniks' -> 0, 'output-style:marco' -> 0, 'gengroup-roster:feniks' -> feniks/-. 2. Не терять сигнал молча: при agent_type, который не разобрался, и при stop без пары писать одну строку с event subagent_stop, agent 'unroutable', payload_keys и без tier ростера (это не возвращает 73 строки шума: у внутренних субагентов харнесса agent_type falsy, их отсекать отдельной веткой ДО фильтра ростера, по признаку 'agent_type присутствует в payload и пуст'). Альтернатива, если строка не нужна: писать счётчик отброшенных в traces/YYYY-MM-DD/dropped.count и показывать его в trace-summary. 3. Переписать контроль §4: сравнивать не start и stop, а число вызовов Agent tool за период с числом строк start; порог задать после недели наблюдений, ответственный и дата первой сверки - явно. Отметить в эпизоде, что на 2026-09-08 контроль уже даёт 25% по feniks. 4. Исправить §1 эпизода: диапазон msg_chars - min 4 / max 24105, вне 35-83 находятся 29 из 73 строк, две из них (20064 и 24105 символов, outcome error) несут реальный сигнал; пересмотреть на этом основании решение 'историю не чистим' либо оставить его с явной оговоркой. 5. Заменить '277 строк' на цифру с привязкой к коммиту (например 'на origin/main 276 строк, из них 73') и уточнить glob до traces/2026-09-*/agents.jsonl. 6. Добавить P14_TRACE_NONROSTER одной строкой в roster-protocol §9 и в description schemas/agent-trace.json. 7. После мержа зафиксировать в эпизоде дату и время первого события внутреннего субагента, не попавшего в журнал (ожидается около 10:20 UTC 2026-09-08), с ответственным.",
+  "p9_triggers_fired": [],
+  "confidence": 0.88
+}

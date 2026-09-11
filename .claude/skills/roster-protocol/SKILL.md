@@ -104,7 +104,10 @@ Handoff - это строка в ответе, не вызов. Вызывает
 ## 9. Трейсы (Protocol 14)
 
 Хуки `SubagentStart/SubagentStop` пишут строки `subagent_start/subagent_stop` в `traces/YYYY-MM-DD/agents.jsonl`
-сами. Агент дописывает строку только на событие `deliver`, `audit`, `dispute`, `escalation`, `hitl_block`:
+сами, только для 13 агентов ростера (Explore, general-purpose и внутренние субагенты харнесса строк не получают;
+имя из плагина `gengroup-roster:feniks` нормализуется до `feniks`, чужой префикс личности ростера не даёт).
+Нераспознанное имя без строки start пишется как `agent: unroutable` с `payload_keys` (сигнал, не тишина);
+отладка `P14_TRACE_NONROSTER=1` пишет и не-ростерных агентов. Агент дописывает строку только на событие `deliver`, `audit`, `dispute`, `escalation`, `hitl_block`:
 
 ```bash
 python3 - <<'PY'

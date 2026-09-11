@@ -47,7 +47,7 @@
 | 11 | **Model Routing** | См. §6 | По классу задачи |
 | 12 | **Memory Tiering** | `knowledge/working|episodic|semantic|procedural` | Приоритет: Semantic > Procedural > Episodic > Working |
 | 13 | **A2A Wire Format** | `schemas/a2a-message.json` + `python3 schemas/validate.py <schema> <file|->` | Все межагентные передачи и отчёты валидируются (без внешних зависимостей) |
-| 14 | **Observability** | `traces/YYYY-MM-DD/agents.jsonl` по `schemas/agent-trace.json` | Хуки `SubagentStart/SubagentStop` → `subagent-trace.sh` (автоматически); агенты дописывают `deliver / audit / council / escalation`; агрегация `trace-summary.py` |
+| 14 | **Observability** | `traces/YYYY-MM-DD/agents.jsonl` по `schemas/agent-trace.json` | Хуки `SubagentStart/SubagentStop` → `subagent-trace.sh` (автоматически, только 13 агентов ростера); агенты дописывают `deliver / audit / council / escalation`; агрегация `trace-summary.py` |
 | 15 | **Reflexion** | skill `/reflexion` → `knowledge/reflexion/YYYY-MM.md` | CC-19, ежемесячно: трейсы + эпизоды + агентная память → систематические ошибки → правки skills/agents (после решения Ивана) |
 
 ## 4. Step 12.5 - Adversarial Gate (НЕ ПРОПУСКАТЬ)

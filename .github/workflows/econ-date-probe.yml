@@ -1,0 +1,36 @@
+name: ECON date probe (поля-даты сделки и СП Производство, read-only)
+
+# Разведка: перечисляет поля-даты сделки воронки 49 и СП «Производство» с заполненностью
+# на живом окне. Нужна, чтобы под «Срок сдачи» (план по договору) и «Дата готовности
+# фактическая» (по цеху) выбрать реальные поля. Ничего не коммитит, только печатает в лог.
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "ECON_WINDOW_DAYS (если не задан ECON_SINCE)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Probe date fields
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+          ECON_WINDOW_DAYS: ${{ github.event.inputs.days || '60' }}
+        run: |
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/econ-date-probe.ts

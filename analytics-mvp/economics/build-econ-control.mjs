@@ -1028,6 +1028,8 @@ let izSortIdx=15, izSortDir=-1;
 const izStageSel=new Set(); // мультивыбор стадий сделки в фильтре колонки «Стадия сделки»
 const izMgrSel=new Set();   // мультивыбор менеджеров в фильтре колонки «Менеджер»
 const izCatSel=new Set();   // мультивыбор категорий в фильтре колонки «Категория»
+const izSmartSel=new Set(); // мультивыбор смарт-процессов в колонке «Смарт»
+const izEtapSel=new Set();  // мультивыбор этапов в колонке «Этап»
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
 function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return (e.cat||'').toLowerCase();case 3:return (e.mgr||'').toLowerCase();case 4:return e.dmax||'';case 5:return e.readyAt||'';case 6:return e.shippedAt||'';case 7:return e.deals.length;case 8:return e.qty;case 9:return e.price;case 10:return e.smarts.size;case 11:return e.sp;case 12:return e.sp;case 13:return (e.dealStage||'').toLowerCase();case 14:return e.ss;case 15:return e.rev;case 16:return e.margin;case 17:return e.mpct==null?-1:e.mpct;}return 0;}
@@ -1038,8 +1040,8 @@ function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e)
   // «Создана»: диапазон дат (от/до) по окну создания сделок изделия (dmin..dmax)
   const fdf=_igv('ifDateFrom').trim(); if(fdf&&!((e.dmax||'')>=fdf))return false;
   const fdt=_igv('ifDateTo').trim(); if(fdt&&!(e.dmin&&e.dmin<=fdt))return false;
-  const fsm=_igv('ifSmart'); if(fsm&&(e.smartName||'')!==fsm)return false;
-  const fst=_igv('ifStage'); if(fst&&(e.stageName||'')!==fst)return false;
+  if(izSmartSel.size && !izSmartSel.has(e.smartName||''))return false;
+  if(izEtapSel.size && !izEtapSel.has(e.stageName||''))return false;
   if(izStageSel.size && !((e.dealStages||[]).some(s=>izStageSel.has(s))))return false;
   // «Дата готовности»: диапазон дат (от/до) по дате перехода в «Заказ произведен»
   const frf=_igv('ifReadyFrom').trim(); if(frf&&!((e.readyAt||'')>=frf))return false;
@@ -1049,7 +1051,7 @@ function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e)
   const fsht=_igv('ifShipTo').trim(); if(fsht&&!(e.shippedAt&&e.shippedAt<=fsht))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
   return mn('ifMin_7',e.deals.length)&&mn('ifMin_8',e.qty)&&mn('ifMin_9',e.price)&&mn('ifMin_14',e.ss)&&mn('ifMin_15',e.rev)&&mn('ifMin_16',e.margin)&&mn('ifMin_17',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<details class="msel fmsel" id="mselIzCat"><summary id="izCatSum" title="фильтр по категории товара (мультивыбор)">категория</summary><div class="msel-pop msel-fixed" id="izCatPop"></div></details>'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<button class="fcx calbtn" id="ifDateBtn" title="создана: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifDateFrom"><input type="hidden" id="ifDateTo">'; if(i===5)return '<button class="fcx calbtn" id="ifReadyBtn" title="дата готовности: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifReadyFrom"><input type="hidden" id="ifReadyTo">'; if(i===6)return '<button class="fcx calbtn" id="ifShipBtn" title="дата реализации: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifShipFrom"><input type="hidden" id="ifShipTo">'; if(i===11)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">Все смарты</option></select>'; if(i===12)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">Все этапы</option></select>'; if(i===13)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<details class="msel fmsel" id="mselIzCat"><summary id="izCatSum" title="фильтр по категории товара (мультивыбор)">категория</summary><div class="msel-pop msel-fixed" id="izCatPop"></div></details>'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<button class="fcx calbtn" id="ifDateBtn" title="создана: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifDateFrom"><input type="hidden" id="ifDateTo">'; if(i===5)return '<button class="fcx calbtn" id="ifReadyBtn" title="дата готовности: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifReadyFrom"><input type="hidden" id="ifReadyTo">'; if(i===6)return '<button class="fcx calbtn" id="ifShipBtn" title="дата реализации: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifShipFrom"><input type="hidden" id="ifShipTo">'; if(i===11)return '<details class="msel fmsel" id="mselIzSmart"><summary id="izSmartSum" title="фильтр по смарт-процессу (мультивыбор)">смарт</summary><div class="msel-pop msel-fixed" id="izSmartPop"></div></details>'; if(i===12)return '<details class="msel fmsel" id="mselIzEtap"><summary id="izEtapSum" title="фильтр по этапу (мультивыбор)">этап</summary><div class="msel-pop msel-fixed" id="izEtapPop"></div></details>'; if(i===13)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2||i===3)?1:-1);}izHeadRow();render();})); }
 // карта Смарт -> его этапы (по фактическим данным, теми же izdStageInfo, что дают значения колонок)
@@ -1069,18 +1071,21 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
       calOpen(btn,fi.value,ti.value,(f,t)=>{ fi.value=f; ti.value=t; upd(); render(); }); }); };
   _colCal('ifDateBtn','ifDateFrom','ifDateTo','дата'); _colCal('ifReadyBtn','ifReadyFrom','ifReadyTo','дата'); _colCal('ifShipBtn','ifShipFrom','ifShipTo','дата');
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation());
-  // зависимые выпадающие списки: Смарт -> Этап (этапы зависят от выбранного смарта)
-  const ssm=izSmartStageMap(), selSmart=document.getElementById('ifSmart'), selStage=document.getElementById('ifStage');
-  if(selSmart&&selStage){
-    const smarts=(ORDER||[]).map(k=>SMFULL[k]||k).filter(nm=>ssm.has(nm)); for(const nm of ssm.keys()) if(!smarts.includes(nm))smarts.push(nm);
-    selSmart.innerHTML='<option value="">Все смарты</option>'+smarts.map(nm=>'<option value="'+esc(nm)+'">'+esc(nm)+'</option>').join('');
-    const fillStages=()=>{ const cur=selStage.value, sm=selSmart.value, list=(sm&&ssm.has(sm))?[...ssm.get(sm)].sort((a,b)=>a.localeCompare(b,'ru')):[];
-      selStage.innerHTML='<option value="">Все этапы</option>'+list.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');
-      selStage.disabled=!sm; selStage.value=list.includes(cur)?cur:''; };
-    fillStages();
-    selSmart.addEventListener('change',()=>{ fillStages(); render(); });
-    selStage.addEventListener('change',render);
-  }
+  // мультивыбор смарт-процессов (колонка «Смарт») и этапов (колонка «Этап») - единообразно со «Стадией»
+  const ssm=izSmartStageMap();
+  const _izMsel=(popId,sumId,mselId,items,selSet,lbl)=>{ const pp=document.getElementById(popId); if(!pp)return;
+    pp.innerHTML='<div class="msel-act"><button type="button" data-a="all">все</button><button type="button" data-a="none">сброс</button></div>'
+      +items.map(s=>'<label><input type="checkbox" value="'+esc(s)+'"'+(selSet.has(s)?' checked':'')+'> '+esc(s)+'</label>').join('');
+    const sync=()=>{ selSet.clear(); pp.querySelectorAll('input:checked').forEach(c=>selSet.add(c.value));
+      document.getElementById(sumId).textContent=selSet.size?(lbl+': '+selSet.size):lbl;
+      document.getElementById(mselId).classList.toggle('has',selSet.size>0); render(); };
+    pp.addEventListener('change',sync);
+    pp.addEventListener('click',e=>{ e.stopPropagation(); const a=e.target&&e.target.dataset?e.target.dataset.a:''; if(a==='all'){pp.querySelectorAll('input').forEach(c=>c.checked=true);sync();} else if(a==='none'){pp.querySelectorAll('input').forEach(c=>c.checked=false);sync();} });
+    const mm=document.getElementById(mselId); mm.addEventListener('toggle',()=>{ if(mm.open){ const r=document.getElementById(sumId).getBoundingClientRect(); pp.style.left=Math.max(6,Math.min(r.left,innerWidth-250))+'px'; pp.style.top=(r.bottom+2)+'px'; } }); };
+  const smarts=(ORDER||[]).map(k=>SMFULL[k]||k).filter(nm=>ssm.has(nm)); for(const nm of ssm.keys()) if(!smarts.includes(nm))smarts.push(nm);
+  const etaps=[...new Set([...ssm.values()].flatMap(set=>[...set]))].sort((a,b)=>a.localeCompare(b,'ru'));
+  _izMsel('izSmartPop','izSmartSum','mselIzSmart',smarts,izSmartSel,'смарт');
+  _izMsel('izEtapPop','izEtapSum','mselIzEtap',etaps,izEtapSel,'этап');
   // мультивыбор стадий сделки: список стадий с чекбоксами, всплывашка фиксированная (не режется контейнером)
   const sp=document.getElementById('stagePop');
   if(sp){ const opts=(DATA.stageOrder||[]).filter(s=>DATA.deals.some(d=>d.stage===s)); const extra=[...new Set(DATA.deals.map(d=>d.stage).filter(Boolean))].filter(s=>!opts.includes(s)); const IZ_STAGES=[...opts,...extra];

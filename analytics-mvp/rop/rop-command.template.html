@@ -247,6 +247,25 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .rev-toggle{display:flex;align-items:center;gap:5px}
 .dinp{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:7px;padding:5px 6px;font:inherit;font-size:11px}
 .dbtn{background:var(--accent-soft);border:1px solid var(--border);color:var(--accent);border-radius:7px;padding:5px 8px;font:inherit;font-size:11px;cursor:pointer}
+.cal-pop{position:fixed;z-index:120;background:var(--bg-card,#141a24);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 16px 44px rgba(0,0,0,.55);font-size:12px;color:var(--ink-1)}
+.cal-nav{display:flex;align-items:flex-start;gap:8px}
+.cal-nav>button{background:var(--bg-elevated,#1a212b);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:15px;line-height:1;flex:0 0 auto;margin-top:2px}
+.cal-nav>button:hover{border-color:var(--accent);color:var(--ink)}
+.cal-months{display:flex;gap:18px}
+.cal-mo{min-width:210px}
+.cal-mh{text-align:center;font-weight:700;color:var(--ink);margin-bottom:6px}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px}
+.cal-dow span{text-align:center;font-size:10px;color:var(--ink-3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-grid .cal-e{height:26px}
+.cal-d{height:26px;border:0;background:transparent;color:var(--ink-1);border-radius:6px;cursor:pointer;font-size:11.5px}
+.cal-d:hover{background:var(--bg-elevated,#1a212b)}
+.cal-d.in{background:rgba(90,150,255,.16);border-radius:0}
+.cal-d.edge{background:var(--accent,#5a96ff);color:#fff;border-radius:6px;font-weight:700}
+.cal-foot{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.cal-io{color:var(--ink-3)}
+.cal-io input{width:88px;background:var(--bg-card,#0b0f16);border:1px solid var(--border);border-radius:6px;color:var(--ink-1);font-size:11px;padding:3px 6px;margin-left:3px}
+.cal-sp{flex:1}
 </style></head><body>
 <div id="tip"></div>
 <div class="hdr">
@@ -266,7 +285,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   </div></div>
   <div class="tb-spacer"></div>
   <div class="seg" id="period"></div>
-  <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
+  <button id="dateBtn" class="dbtn">📅 <span id="dateBtnTxt">даты</span></button><input type="hidden" id="cf"><input type="hidden" id="ct">
 </div>
 </div>
 <div class="wrap" id="root"></div>
@@ -2855,10 +2874,13 @@ function buildShell(){
   document.addEventListener('click',e=>{const m=e.target.closest('[data-mdmgr]');if(m){const k=m.dataset.mdmgr;S.mdOpen=S.mdOpen||{};S.mdOpen[k]=!S.mdOpen[k];render();return;}const so=e.target.closest('[data-mdsort]');if(so){const k=so.dataset.mdsort;if(S.mdSort===k)S.mdAsc=!S.mdAsc;else{S.mdSort=k;S.mdAsc=false;}render();return;}});
   document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const wmm=e.target.closest('[data-calwipmode]');if(wmm){S.calWipMode=wmm.dataset.calwipmode;S.calRowOpen=S.calRowOpen||{};render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}const csrt=e.target.closest('[data-cellsort]');if(csrt){const kk=csrt.dataset.cellsort;if((S.cellSort||'due')===kk)S.cellAsc=(S.cellAsc===false);else{S.cellSort=kk;S.cellAsc=true;}render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}const tdp=e.target.closest('[data-tdprob]');if(tdp){S.tdProb=tdp.dataset.tdprob;render();return;}const tds=e.target.closest('[data-tdsort]');if(tds){const kk=tds.dataset.tdsort;S.tdSort=S.tdSort||{k:'prob',a:false};if(S.tdSort.k===kk)S.tdSort.a=!S.tdSort.a;else S.tdSort={k:kk,a:false};render();return;}const tfm=e.target.closest('[data-tdfmgr]');if(tfm){const k=tfm.dataset.tdfmgr;S.tdMgr=(S.tdMgr===k)?'':k;render();return;}const tvw=e.target.closest('[data-tdview]');if(tvw){S.tdView=tvw.dataset.tdview;S.tdMgr='';S.tdProb='all';render();return;}const tcl=e.target.closest('[data-tdcell]');if(tcl){const p=tcl.dataset.tdcell.split('|'),mg=p[0]||'',st=p[1]||'all';S.tdProb=st;S.tdMgr=mg||'';S.tdDept=true;render();return;}const tcs=e.target.closest('[data-tdchanseg]');if(tcs){const p=tcs.dataset.tdchanseg.split('|'),mg=p[0]||'',ch=p[1]||'';S.tdChan=ch;S.tdMgr=mg||'';S.tdDept=true;render();return;}const tch=e.target.closest('[data-tdchan]');if(tch){const k=tch.dataset.tdchan;S.tdChan=(S.tdChan===k)?'':k;render();return;}if(e.target.closest('[data-tdprobclear]')){S.tdProb='all';render();return;}if(e.target.closest('[data-tdchanclear]')){S.tdChan='';render();return;}const tdm=e.target.closest('[data-tdmgr]');if(tdm){const k=tdm.dataset.tdmgr;S.tdMgr=(S.tdMgr===k)?'':k;render();return;}const tdd=e.target.closest('[data-tddept]');if(tdd){S.tdDept=(S.tdDept===false);render();return;}});
   document.addEventListener('change',e=>{const ms=e.target.closest('[data-tdmgrsel]');if(ms){S.tdMgr=ms.value||'';if(S.tdMgr)S.tdDept=true;render();return;}});
-  const _ac=document.getElementById('applyCustom');
-  if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));const _pl=document.getElementById('periodLabel');if(_pl)_pl.textContent=S.start+' → '+S.end;render();}};
+  const _db=document.getElementById('dateBtn');
+  if(_db)_db.onclick=ev=>{ ev.stopPropagation(); const cf=document.getElementById('cf'),ct=document.getElementById('ct');
+    calOpen(_db, cf.value, ct.value, (f,t)=>{ if(f&&t){ cf.value=f; ct.value=t; S.start=f; S.end=t; document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on')); const _pl=document.getElementById('periodLabel'); if(_pl)_pl.textContent=S.start+' → '+S.end; }
+      else { cf.value=''; ct.value=''; document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on')); const d30=[...document.querySelectorAll('#period button')].find(x=>x.dataset.p==='30'); if(d30)d30.classList.add('on'); setPeriod('30'); }
+      updateDateBtnR(); render(); }); };
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё'],['mig','После переезда']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}"${p[0]==='mig'?' title="Сделки, созданные после переезда с AmoCRM (05.03.2026), без залитых при миграции"':''}>${p[1]}</button>`).join('');
-  document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);render();});
+  document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);const cf=document.getElementById('cf'),ct=document.getElementById('ct');if(cf)cf.value='';if(ct)ct.value='';updateDateBtnR();render();});
   document.querySelectorAll('#gran button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#gran button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.gran=b.dataset.g;render();});
   const _dirSel=document.getElementById('dirSel');
   if(_dirSel){const _ord=['genglass','metal_gm','valonti','gentero','gen-group','не указано'];
@@ -2869,6 +2891,41 @@ function buildShell(){
   addEventListener('scroll',()=>{let cur=1;SECS.forEach((s,i)=>{const el=document.getElementById('sec'+(i+1));if(el&&el.getBoundingClientRect().top<160)cur=i+1;});document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));});
 }
 function fill(id,arr,allLabel,key){const el=document.getElementById(id);el.innerHTML=`<option value="">${allLabel}</option>`+arr.map(a=>`<option>${a}</option>`).join('');el.onchange=()=>{S[key]=el.value;render();};}
+// ===== Календарь диапазона дат (как в Яндекс.Метрике): единый стиль с экономикой =====
+const _cpad=n=>String(n).padStart(2,'0');
+const _ruShort=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'дд.мм.гггг';
+const CALP={from:'',to:'',view:new Date(),onApply:null};
+function calGrid(y,m){ const off=(new Date(y,m,1).getDay()+6)%7, dim=new Date(y,m+1,0).getDate();
+  const MN=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  let h='<div class="cal-mo"><div class="cal-mh">'+MN[m]+' '+y+'</div><div class="cal-dow">'+['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>'<span>'+d+'</span>').join('')+'</div><div class="cal-grid">';
+  for(let i=0;i<off;i++)h+='<span class="cal-e"></span>';
+  for(let d=1;d<=dim;d++){ const iso=y+'-'+_cpad(m+1)+'-'+_cpad(d); const inr=CALP.from&&CALP.to&&iso>=CALP.from&&iso<=CALP.to; const edge=(iso===CALP.from||iso===CALP.to);
+    h+='<button type="button" class="cal-d'+(inr?' in':'')+(edge?' edge':'')+'" data-d="'+iso+'">'+d+'</button>'; }
+  return h+'</div></div>'; }
+function calDraw(){ const pop=document.getElementById('calPop'); if(!pop)return; const y=CALP.view.getFullYear(), m=CALP.view.getMonth(), nm=new Date(y,m+1,1);
+  pop.querySelector('.cal-months').innerHTML=calGrid(y,m)+calGrid(nm.getFullYear(),nm.getMonth());
+  pop.querySelector('#calFrom').value=_ruShort(CALP.from); pop.querySelector('#calTo').value=_ruShort(CALP.to); }
+function calClose(){ const pop=document.getElementById('calPop'); if(pop)pop.hidden=true; }
+function calEnsure(){ if(document.getElementById('calPop'))return;
+  const pop=document.createElement('div'); pop.id='calPop'; pop.className='cal-pop'; pop.hidden=true;
+  pop.innerHTML='<div class="cal-nav"><button type="button" class="cal-pv" data-nav="-1">‹</button><div class="cal-months"></div><button type="button" class="cal-nx" data-nav="1">›</button></div>'
+    +'<div class="cal-foot"><span class="cal-io">с<input id="calFrom" readonly></span><span class="cal-io">по<input id="calTo" readonly></span><span class="cal-sp"></span><button type="button" class="dbtn" data-cal="clr">Сброс</button><button type="button" class="dbtn" data-cal="ok">Применить</button></div>';
+  document.body.appendChild(pop);
+  pop.addEventListener('click',e=>{ e.stopPropagation();
+    const nav=e.target.closest('[data-nav]'); if(nav){ CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()+(+nav.dataset.nav),1); calDraw(); return; }
+    const dd=e.target.closest('.cal-d'); if(dd){ const iso=dd.dataset.d;
+      if(!CALP.from||CALP.to){ CALP.from=iso; CALP.to=''; } else { if(iso<CALP.from){CALP.to=CALP.from;CALP.from=iso;} else CALP.to=iso; }
+      calDraw(); return; }
+    const act=e.target.closest('[data-cal]'); if(act){ if(act.dataset.cal==='clr'){ if(CALP.onApply)CALP.onApply('',''); } else { const f=CALP.from,t=CALP.to||CALP.from; if(CALP.onApply)CALP.onApply(f,t); } calClose(); } });
+  document.addEventListener('click',()=>calClose()); }
+function calOpen(anchor,from,to,onApply){ calEnsure(); CALP.from=from||''; CALP.to=to||''; CALP.onApply=onApply;
+  const base=to||from; CALP.view=base?new Date(base+'T00:00:00'):new Date(); CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()-1,1);
+  const pop=document.getElementById('calPop'); pop.hidden=false; calDraw();
+  const r=anchor.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;
+  let left=Math.min(r.right-pw, innerWidth-pw-8); left=Math.max(6,left);
+  let top=r.bottom+4; if(top+ph>innerHeight-8) top=Math.max(6,r.top-ph-4);
+  pop.style.left=left+'px'; pop.style.top=top+'px'; }
+function updateDateBtnR(){ const t=document.getElementById('dateBtnTxt'); if(!t)return; const a=(document.getElementById('cf')||{}).value, b=(document.getElementById('ct')||{}).value; t.textContent=(a||b)?(_ruShort(a||b)+(b&&b!==a?' - '+_ruShort(b):'')):'даты'; }
 function setPeriod(p){
   if(p==='all'){S.start=DATA.from;S.end=DATA.to;}
   else if(p==='today'){S.start=S.end=DATA.to;}

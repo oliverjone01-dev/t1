@@ -323,7 +323,9 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 /* Календарь диапазона дат (как в Яндекс.Метрике) */
 .calbtn{cursor:pointer;white-space:nowrap;text-align:left;background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:600}
 .calbtn:hover{border-color:var(--accent);color:var(--ink)}
-.cal-pop{position:fixed;z-index:120;background:var(--card,#141a24);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 16px 44px rgba(0,0,0,.55);font-size:12px;color:var(--ink-1)}
+.cal-pop{position:fixed;z-index:120;background:var(--card,#141a24);border:1px solid var(--border);border-radius:12px;padding:32px 12px 12px;box-shadow:0 16px 44px rgba(0,0,0,.55);font-size:12px;color:var(--ink-1)}
+.cal-x{position:absolute;top:8px;right:10px;width:24px;height:24px;border:1px solid var(--border);background:var(--elev,#1a212b);color:var(--ink-3);border-radius:7px;font-size:17px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;z-index:1}
+.cal-x:hover{color:var(--ink);border-color:var(--accent)}
 .cal-nav{display:flex;align-items:flex-start;gap:8px}
 .cal-nav>button{background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:15px;line-height:1;flex:0 0 auto;margin-top:2px}
 .cal-nav>button:hover{border-color:var(--accent);color:var(--ink)}
@@ -592,7 +594,7 @@ function calDraw(){ const pop=document.getElementById('calPop'); if(!pop)return;
 function calClose(){ const pop=document.getElementById('calPop'); if(pop)pop.hidden=true; }
 function calEnsure(){ if(document.getElementById('calPop'))return;
   const pop=document.createElement('div'); pop.id='calPop'; pop.className='cal-pop'; pop.hidden=true;
-  pop.innerHTML='<div class="cal-nav"><button type="button" class="cal-pv" data-nav="-1">‹</button><div class="cal-months"></div><button type="button" class="cal-nx" data-nav="1">›</button></div>'
+  pop.innerHTML='<button type="button" class="cal-x" data-cal="x" aria-label="Закрыть">×</button><div class="cal-nav"><button type="button" class="cal-pv" data-nav="-1">‹</button><div class="cal-months"></div><button type="button" class="cal-nx" data-nav="1">›</button></div>'
     +'<div class="cal-foot"><span class="cal-io">с<input id="calFrom" readonly></span><span class="cal-io">по<input id="calTo" readonly></span><span class="cal-sp"></span><button type="button" class="dbtn" data-cal="clr">Сброс</button><button type="button" class="dbtn" data-cal="ok">Применить</button></div>';
   document.body.appendChild(pop);
   pop.addEventListener('click',e=>{ e.stopPropagation();
@@ -600,7 +602,7 @@ function calEnsure(){ if(document.getElementById('calPop'))return;
     const dd=e.target.closest('.cal-d'); if(dd){ const iso=dd.dataset.d;
       if(!CALP.from||CALP.to){ CALP.from=iso; CALP.to=''; } else { if(iso<CALP.from){CALP.to=CALP.from;CALP.from=iso;} else CALP.to=iso; }
       calDraw(); return; }
-    const act=e.target.closest('[data-cal]'); if(act){ if(act.dataset.cal==='clr'){ if(CALP.onApply)CALP.onApply('',''); } else { const f=CALP.from,t=CALP.to||CALP.from; if(CALP.onApply)CALP.onApply(f,t); } calClose(); } });
+    const act=e.target.closest('[data-cal]'); if(act){ const a=act.dataset.cal; if(a==='x'){ calClose(); return; } if(a==='clr'){ if(CALP.onApply)CALP.onApply('',''); } else { const f=CALP.from,t=CALP.to||CALP.from; if(CALP.onApply)CALP.onApply(f,t); } calClose(); } });
   document.addEventListener('click',()=>calClose()); }
 function calOpen(anchor,from,to,onApply){ calEnsure(); CALP.from=from||''; CALP.to=to||''; CALP.onApply=onApply;
   const base=to||from; CALP.view=base?new Date(base+'T00:00:00'):new Date(); CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()-1,1);
@@ -612,7 +614,7 @@ function calOpen(anchor,from,to,onApply){ calEnsure(); CALP.from=from||''; CALP.
   pop.style.left=left+'px'; pop.style.top=top+'px'; }
 function updateDateBtn(){ const t=document.getElementById('dateBtnTxt'); if(!t)return; const f=(document.getElementById('dfrom')||{}).value, d=(document.getElementById('dto')||{}).value;
   t.textContent=(f||d)?(_ruShort(f||d)+(d&&d!==f?' - '+_ruShort(d):'')):'даты'; }
-{ const db=document.getElementById('dateBtn'); if(db)db.addEventListener('click',ev=>{ ev.stopPropagation(); const df=document.getElementById('dfrom'),dt=document.getElementById('dto');
+{ const db=document.getElementById('dateBtn'); if(db)db.addEventListener('click',ev=>{ ev.stopPropagation(); const _cp=document.getElementById('calPop'); if(_cp&&!_cp.hidden){ calClose(); return; } const df=document.getElementById('dfrom'),dt=document.getElementById('dto');
   calOpen(db,df.value,dt.value,(f,t)=>{ df.value=f; dt.value=t; clearPeriod(); updateDateBtn(); render(); }); }); updateDateBtn(); }
 { const eb=document.getElementById('econBasis'); if(eb)eb.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; eb.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); econDateBasis=b.dataset.b; render(); }); }
 { const ea=document.getElementById('econAmt'); if(ea)ea.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; ea.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); econAmt=b.dataset.a; head(); render(); }); }

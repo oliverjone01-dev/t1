@@ -221,7 +221,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .fmsel>summary::-webkit-details-marker{display:none}
 .fmsel.has>summary{border-color:var(--accent);color:var(--ink)}
 .msel-pop.msel-fixed{position:fixed;z-index:90}
-#izdtbl td{padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#izdtbl td{padding:5px 6px;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
 tr.izgrp{cursor:pointer;background:var(--card)}
 tr.izgrp:hover{background:var(--elev)}
 tr.izgrp>td{border-top:1px solid var(--border);font-weight:700}
@@ -1022,7 +1022,7 @@ function buildIzd(list){
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
 const ICOLS=['Номер заказа','Изделие','Категория','Менеджер','Создана','Дата готовности','Дата реализации','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[108,128,104,124,80,116,116,84,58,64,88,96,116,116,66,104,74,82];
+const ICOLW=[92,116,88,104,72,92,92,70,52,60,80,84,100,100,62,94,70,74];
 const INUM=[7,8,9,14,15,16,17];
 let izSortIdx=15, izSortDir=-1;
 const izStageSel=new Set(); // мультивыбор стадий сделки в фильтре колонки «Стадия сделки»

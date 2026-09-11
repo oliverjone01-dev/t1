@@ -323,8 +323,6 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 /* Календарь диапазона дат (как в Яндекс.Метрике) */
 .calbtn{cursor:pointer;white-space:nowrap;text-align:left;background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:600}
 .calbtn:hover{border-color:var(--accent);color:var(--ink)}
-.dinp{background:var(--elev);border:1px solid var(--border);color:var(--ink-1);border-radius:8px;padding:6px 9px;font:inherit;font-size:12px;font-weight:600;color-scheme:dark}
-.dinp:hover{border-color:var(--accent)}
 .cal-pop{position:fixed;z-index:120;background:var(--card,#141a24);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 16px 44px rgba(0,0,0,.55);font-size:12px;color:var(--ink-1)}
 .cal-nav{display:flex;align-items:flex-start;gap:8px}
 .cal-nav>button{background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:15px;line-height:1;flex:0 0 auto;margin-top:2px}
@@ -373,7 +371,8 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
   <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="чем считать сумму сделки: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»)">Сумма</span><div class="seg" id="econAmt"><button data-a="budget" class="on">бюджет</button><button data-a="prepay">предоплата</button></div>
   <span class="barsp"></span>
   <div class="presets" id="presets"></div>
-  <input type="date" id="dfrom" class="dinp" title="дата с"><span style="color:var(--ink-3)">–</span><input type="date" id="dto" class="dinp" title="дата по"><button id="dateOk" class="calbtn">ОК</button>
+  <button class="calbtn" id="dateBtn" title="выбрать дату или диапазон дат (календарь как в Метрике)">📅 <span id="dateBtnTxt">даты</span></button>
+  <input type="hidden" id="dfrom"><input type="hidden" id="dto">
   <span class="cnt" id="cnt" style="margin-left:10px"></span>
 </div>
 <div class="tabs" id="tabs"><button class="tb on" data-v="deals">Сделки</button><button class="tb" data-v="izd">Изделия</button></div>
@@ -574,7 +573,7 @@ function econSetPeriod(p){ const df=document.getElementById('dfrom'), dt=documen
 const pdiv=document.getElementById('presets');
 const clearPeriod=()=>{ [...pdiv.querySelectorAll('.seg button')].forEach(x=>x.classList.remove('on')); };
 pdiv.innerHTML='<span style="color:var(--ink-3);font-size:11.5px;align-self:center;margin-right:6px">Период:</span><div class="seg">'+PSET.map(p=>'<button data-p="'+p[0]+'"'+(p[0]==='mig'?' title="сделки, созданные после переезда - операционка с апреля 2026"':'')+'>'+esc(p[1])+'</button>').join('')+'</div>';
-pdiv.addEventListener('click',e=>{ const b=e.target.closest('.seg button'); if(!b)return; clearPeriod(); b.classList.add('on'); econSetPeriod(b.dataset.p); render(); });
+pdiv.addEventListener('click',e=>{ const b=e.target.closest('.seg button'); if(!b)return; clearPeriod(); b.classList.add('on'); econSetPeriod(b.dataset.p); updateDateBtn(); render(); });
 
 // ===== Календарь диапазона дат (как в Яндекс.Метрике): один общий поповер на все триггеры =====
 const _cpad=n=>String(n).padStart(2,'0');
@@ -611,11 +610,10 @@ function calOpen(anchor,from,to,onApply){ calEnsure(); CALP.from=from||''; CALP.
   let left=Math.min(r.right-pw, innerWidth-pw-8); left=Math.max(6,left);
   let top=r.bottom+4; if(top+ph>innerHeight-8) top=Math.max(6,r.top-ph-4);
   pop.style.left=left+'px'; pop.style.top=top+'px'; }
-// Диапазон дат как в РОП: два поля дд.мм.гггг (с - по) + ОК. Ручной ввод/выбор сбрасывает пресет.
-{ const df=document.getElementById('dfrom'), dt=document.getElementById('dto'), ok=document.getElementById('dateOk');
-  const apply=()=>{ clearPeriod(); render(); };
-  if(df)df.addEventListener('change',apply); if(dt)dt.addEventListener('change',apply);
-  if(ok)ok.addEventListener('click',apply); }
+function updateDateBtn(){ const t=document.getElementById('dateBtnTxt'); if(!t)return; const f=(document.getElementById('dfrom')||{}).value, d=(document.getElementById('dto')||{}).value;
+  t.textContent=(f||d)?(_ruShort(f||d)+(d&&d!==f?' - '+_ruShort(d):'')):'даты'; }
+{ const db=document.getElementById('dateBtn'); if(db)db.addEventListener('click',ev=>{ ev.stopPropagation(); const df=document.getElementById('dfrom'),dt=document.getElementById('dto');
+  calOpen(db,df.value,dt.value,(f,t)=>{ df.value=f; dt.value=t; clearPeriod(); updateDateBtn(); render(); }); }); updateDateBtn(); }
 { const eb=document.getElementById('econBasis'); if(eb)eb.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; eb.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); econDateBasis=b.dataset.b; render(); }); }
 { const ea=document.getElementById('econAmt'); if(ea)ea.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; ea.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); econAmt=b.dataset.a; head(); render(); }); }
 // мультивыбор менеджеров: применяется в passesBase -> фильтрует обе вкладки (Сделки и Изделия)

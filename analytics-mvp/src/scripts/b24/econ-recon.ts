@@ -122,11 +122,21 @@ async function listSharded(method: string, params: any, opts: { idField?: string
   } catch (e) { console.error("RECON-ASSORT\tошибка чтения crm.deal.fields:", String(e)); }
   const resolveAssort = (v: any): string => !assortId ? "" : Array.isArray(v) ? v.map((x) => assortMap[String(x)] || String(x)).filter(Boolean).join(", ") : (assortMap[String(v)] || (v ? String(v) : ""));
 
+  // 2.1) Денежное поле «Предоплата» (для тумблера «Сумма: бюджет/предоплата» в экране «Сделки»).
+  let prepayId = "";
+  try {
+    const dfs2: Record<string, any> = (await call("crm.deal.fields", {})).result || {};
+    const money = (def: any) => /^(money|double|integer)$/i.test(String(def.type || ""));
+    for (const [id, def] of Object.entries<any>(dfs2)) { if (String(lbl(def)).trim().toLowerCase() === "предоплата" && money(def)) { prepayId = id; break; } }
+    if (!prepayId) for (const [id, def] of Object.entries<any>(dfs2)) { const t = String(lbl(def)).trim().toLowerCase(); if (/предоплат/.test(t) && !/получен|дата|%|процент/.test(t) && money(def)) { prepayId = id; break; } }
+    console.error(prepayId ? `RECON-PREPAY\tденежное поле «Предоплата» = ${prepayId}` : "RECON-PREPAY\tденежное поле «Предоплата» не найдено");
+  } catch (e) { console.error("RECON-PREPAY\tошибка:", String(e)); }
+
   // MOVED_TIME = дата перехода сделки в ТЕКУЩУЮ стадию. Для сделок в «Заказ отправлен» это и есть дата реализации.
-  const dealSelect = ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "DATE_CREATE", "DATE_MODIFY", "MOVED_TIME", ...(assortId ? [assortId] : [])];
+  const dealSelect = ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "DATE_CREATE", "DATE_MODIFY", "MOVED_TIME", ...(assortId ? [assortId] : []), ...(prepayId ? [prepayId] : [])];
   const dealRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": cutoff }, select: dealSelect, order: { ID: "DESC" } });
   const deal: Record<string, any> = {};
-  for (const d of dealRows) { const stName = stageName[d.STAGE_ID] || d.STAGE_ID; deal[String(d.ID)] = { id: Number(d.ID), title: d.TITLE || "", mgr: uName[String(d.ASSIGNED_BY_ID)] || null, stageCode: String(d.STAGE_ID || "").replace(/^C49:/, ""), stage: stName, budget: Math.round(num(d.OPPORTUNITY)), created: d10(d.DATE_CREATE), modified: d10(d.DATE_MODIFY), shippedAt: (String(stName) === "Заказ отправлен" && d.MOVED_TIME) ? d10(d.MOVED_TIME) : null, readyAt: (String(stName) === "Заказ произведен" && d.MOVED_TIME) ? d10(d.MOVED_TIME) : null, assort: assortId ? resolveAssort(d[assortId]) : "", sps: {} as Record<string, any>, products: [] as any[], hasProducts: false }; }
+  for (const d of dealRows) { const stName = stageName[d.STAGE_ID] || d.STAGE_ID; deal[String(d.ID)] = { id: Number(d.ID), title: d.TITLE || "", mgr: uName[String(d.ASSIGNED_BY_ID)] || null, stageCode: String(d.STAGE_ID || "").replace(/^C49:/, ""), stage: stName, budget: Math.round(num(d.OPPORTUNITY)), prepayAmt: prepayId ? Math.round(num(d[prepayId])) : 0, created: d10(d.DATE_CREATE), modified: d10(d.DATE_MODIFY), shippedAt: (String(stName) === "Заказ отправлен" && d.MOVED_TIME) ? d10(d.MOVED_TIME) : null, readyAt: (String(stName) === "Заказ произведен" && d.MOVED_TIME) ? d10(d.MOVED_TIME) : null, assort: assortId ? resolveAssort(d[assortId]) : "", sps: {} as Record<string, any>, products: [] as any[], hasProducts: false }; }
   const inWin = new Set(Object.keys(deal));
   // Дата реализации проставлена выше из MOVED_TIME для сделок в стадии «Заказ отправлен» (без тяжёлых доп. запросов).
   console.error(`RECON-SHIPPED\tсделок с датой реализации (в стадии «Заказ отправлен», по MOVED_TIME): ${[...inWin].filter((id) => deal[id].shippedAt).length}`);
@@ -186,7 +196,7 @@ async function listSharded(method: string, params: any, opts: { idField?: string
   }
 
   // 5) JSON для экрана
-  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, modified: r.modified || null, shippedAt: r.shippedAt || null, readyAt: r.readyAt || null, prepayAt: r.prepayAt || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
+  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, prepayAmt: r.prepayAmt || 0, created: r.created, modified: r.modified || null, shippedAt: r.shippedAt || null, readyAt: r.readyAt || null, prepayAt: r.prepayAt || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
   mkdirSync("economics/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, spStages, inventory: inv, deals }));
 

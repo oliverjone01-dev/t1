@@ -367,11 +367,12 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
   <details class="msel" id="mselMgr"><summary id="mgrSum">Менеджеры</summary><div class="msel-pop" id="mgrPop"></div></details>
+  <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="какой датой фильтрует период: дата создания сделки или дата получения предоплаты">Период по</span><div class="seg" id="econBasis"><button data-b="created" class="on">создание</button><button data-b="prepay">предоплата</button></div>
+  <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="чем считать сумму сделки: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»)">Сумма</span><div class="seg" id="econAmt"><button data-a="budget" class="on">бюджет</button><button data-a="prepay">предоплата</button></div>
   <span class="barsp"></span>
   <div class="presets" id="presets"></div>
   <button class="calbtn" id="dateBtn" title="выбрать дату или диапазон дат (календарь как в Метрике)">📅 <span id="dateBtnTxt">даты</span></button>
   <input type="hidden" id="dfrom"><input type="hidden" id="dto">
-  <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="какой датой фильтрует период: дата создания сделки или дата получения предоплаты">Период по</span><div class="seg" id="econBasis"><button data-b="created" class="on">создание</button><button data-b="prepay">предоплата</button></div>
   <span class="cnt" id="cnt" style="margin-left:10px"></span>
 </div>
 <div class="tabs" id="tabs"><button class="tb on" data-v="deals">Сделки</button><button class="tb" data-v="izd">Изделия</button></div>
@@ -507,18 +508,18 @@ function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
 function detailRow(d){ return '<tr class="detail"><td colspan="'+COLS.length+'"><div class="pwrap">'+detailInner(d)+'</div></td></tr>'; }
 function marginCell(d,ss,marginShown){
   if(!(marginShown&&ss)) return '<td class="num" title="маржа считается со стадии производства"><span class="cell-o">-</span></td>';
-  const m=d.budget-ss;
-  if(m>=0) return '<td class="num" title="бюджет за партию − с/с за партию">'+fmt(m)+'</td>';
-  const lowPrice=d.budget<=100||d.budget<ss*0.05;
+  const m=dBud(d)-ss;
+  if(m>=0) return '<td class="num" title="сумма за партию − с/с за партию">'+fmt(m)+'</td>';
+  const lowPrice=dBud(d)<=100||dBud(d)<ss*0.05;
   const tag=lowPrice?'нет цены':'убыток', fl=lowPrice?'warn':'bad';
-  const tip=lowPrice?('бюджет '+fmt(d.budget)+' не заполнен, а с/с '+fmt(ss)+' есть - минус ложный, проставить цену'):('цена '+fmt(d.budget)+' ниже с/с '+fmt(ss)+' - убыток по данным, разобрать');
+  const tip=lowPrice?('сумма '+fmt(dBud(d))+' не заполнена, а с/с '+fmt(ss)+' есть - минус ложный, проставить цену'):('цена '+fmt(dBud(d))+' ниже с/с '+fmt(ss)+' - убыток по данным, разобрать');
   return '<td class="num" title="'+esc(tip)+'"><span class="cell-dn">'+fmt(m)+'</span> <span class="flag '+fl+'">'+tag+'</span></td>';
 }
 // маржинальность % = (бюджет − Σ с/с)/бюджет. null там, где маржа не считается или «нет цены»
 function marginPctVal(d){ const pr=spCost(byKey(d,'Производство  GG')); const marginShown=(pr&&!pr.empty)||prodRankOf(d)>=5;
-  const ss=prodSS(d); if(!(marginShown&&ss)||!(d.budget>0))return null;
-  if(d.budget<=100||d.budget<ss*0.05)return null; // «нет цены» - процент бессмысленный
-  return Math.round((d.budget-ss)/d.budget*100); }
+  const ss=prodSS(d); if(!(marginShown&&ss)||!(dBud(d)>0))return null;
+  if(dBud(d)<=100||dBud(d)<ss*0.05)return null; // «нет цены» - процент бессмысленный
+  return Math.round((dBud(d)-ss)/dBud(d)*100); }
 // пороги подсветки - терцили по фактическим данным (адаптивно): красный низ, белый середина, зелёный верх
 const MPCT_LO=20, MPCT_HI=50; // фиксированные пороги: красный <20%, жёлтый 20-50%, зелёный >50%
 function mpctCell(d){ const mv=marginPctVal(d);
@@ -614,6 +615,7 @@ function updateDateBtn(){ const t=document.getElementById('dateBtnTxt'); if(!t)r
 { const db=document.getElementById('dateBtn'); if(db)db.addEventListener('click',ev=>{ ev.stopPropagation(); const df=document.getElementById('dfrom'),dt=document.getElementById('dto');
   calOpen(db,df.value,dt.value,(f,t)=>{ df.value=f; dt.value=t; clearPeriod(); updateDateBtn(); render(); }); }); updateDateBtn(); }
 { const eb=document.getElementById('econBasis'); if(eb)eb.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; eb.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); econDateBasis=b.dataset.b; render(); }); }
+{ const ea=document.getElementById('econAmt'); if(ea)ea.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; ea.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); econAmt=b.dataset.a; head(); render(); }); }
 // мультивыбор менеджеров: применяется в passesBase -> фильтрует обе вкладки (Сделки и Изделия)
 const MGRS=[...new Set(DATA.deals.map(d=>d.mgr).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
 const mgrSel=new Set();
@@ -647,11 +649,11 @@ function sortVal(d,i){
   if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return (d.assort||'').toLowerCase();
   if(i===I_SM)return readiness(d).lvl;
   if(i===I_SVC)return svcSum(d);
-  if(i===I_BUD)return d.budget;
+  if(i===I_BUD)return dBud(d);
   if(i===I_POS)return goodsPos(d);
   if(i===I_QTY)return goodsQty(d);
   if(i===I_SS)return prodSS(d);
-  if(i===I_MRG){ const pr=spCost(byKey(d,'Производство  GG')); return (pr&&!pr.empty)||prodRankOf(d)>=5? d.budget-prodSS(d) : -1e15; }
+  if(i===I_MRG){ const pr=spCost(byKey(d,'Производство  GG')); return (pr&&!pr.empty)||prodRankOf(d)>=5? dBud(d)-prodSS(d) : -1e15; }
   if(i===I_MPCT){ const mv=marginPctVal(d); return mv===null?-1e15:mv; }
   if(i===I_COV)return coverage(d).r;
   if(i===I_STAT)return rankOf(d);
@@ -687,7 +689,7 @@ function head(){ const tbl=document.getElementById('tbl'); const oc=tbl.querySel
     thead.innerHTML='<tr id="htr"></tr><tr id="ftr" class="frow">'+COLS.map((h,i)=>'<td>'+fcell(i)+'</td>').join('')+'</tr>';
     wireFilters(); syncStage();
   }
-  document.getElementById('htr').innerHTML=COLS.map((h,i)=>'<th class="'+([I_SVC,I_BUD,I_POS,I_QTY,I_SS,I_MRG,I_MPCT].includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===sortIdx?' <span class="ar">'+(sortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
+  document.getElementById('htr').innerHTML=COLS.map((h,i)=>'<th class="'+([I_SVC,I_BUD,I_POS,I_QTY,I_SS,I_MRG,I_MPCT].includes(i)?'num':'')+'" data-i="'+i+'">'+esc(i===I_BUD&&econAmt==='prepay'?'Предоплата':h)+(i===sortIdx?' <span class="ar">'+(sortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#htr th').forEach(th=>th.addEventListener('click',()=>{ const i=+th.dataset.i; if(i===sortIdx)sortDir=-sortDir; else{sortIdx=i;sortDir=(i===0?-1:1);} head(); render(); })); }
 
 // ячейка СП на уровне сделки: точки по товарам в этом смарте (одна на карточку).
@@ -803,10 +805,10 @@ function classify(d){
   if(!hasAnySS(d)) return 'noss';                       // нет данных о с/с
   const ss=prodSS(d);
   if(ss<=0) return 'draft';                             // с/с только в калькуляторе (черновик)
-  if(d.budget<=100||d.budget<ss*0.05) return 'noprice'; // бюджет не заполнен, с/с есть
-  const m=d.budget-ss;
+  if(dBud(d)<=100||dBud(d)<ss*0.05) return 'noprice'; // сумма не заполнена, с/с есть
+  const m=dBud(d)-ss;
   if(m<=0) return 'loss';                               // убыток/ноль
-  if(m/d.budget*100 < MARG_WEAK) return 'weak';         // слабый запас
+  if(m/dBud(d)*100 < MARG_WEAK) return 'weak';         // слабый запас
   return 'good';                                        // с запасом
 }
 const TILES=[
@@ -821,6 +823,9 @@ const TILES=[
 let quick='';
 const _gv=id=>{const e=document.getElementById(id);return e?e.value:'';};
 let econDateBasis='created'; // «Период по»: created | prepay - какое поле даты фильтрует верхний период
+let econAmt='budget'; // «Сумма»: budget | prepay - чем считать сумму сделки в экране «Сделки»
+// Сумма сделки для экрана «Сделки»: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»).
+const dBud=d=>econAmt==='prepay'?(d.prepayAmt||0):(d.budget||0);
 function passesBase(d,skipStage){
   const q=document.getElementById('q').value.trim().toLowerCase();
   const df=document.getElementById('dfrom').value, dt=document.getElementById('dto').value;
@@ -839,11 +844,11 @@ function passesBase(d,skipStage){
   const fst=_gv('fcStat'); if(fst && gate(d).t!==fst) return false;
   const minChk=(id,val)=>{const s=_gv(id).replace(/[^0-9.\\-]/g,'');if(s===''||isNaN(+s))return true;return val!=null&&val>=+s;};
   if(!minChk('fcMin_'+I_SVC,svcSum(d)))return false;
-  if(!minChk('fcMin_'+I_BUD,d.budget))return false;
+  if(!minChk('fcMin_'+I_BUD,dBud(d)))return false;
   if(!minChk('fcMin_'+I_POS,goodsPos(d)))return false;
   if(!minChk('fcMin_'+I_QTY,goodsQty(d)))return false;
   if(!minChk('fcMin_'+I_SS,prodSS(d)))return false;
-  if(!minChk('fcMin_'+I_MRG,d.budget-prodSS(d)))return false;
+  if(!minChk('fcMin_'+I_MRG,dBud(d)-prodSS(d)))return false;
   if(!minChk('fcMin_'+I_MPCT,marginPctVal(d)))return false;
   return true;
 }
@@ -855,27 +860,28 @@ function renderKPI(base){
 function renderSummary(base){
   const n=base.length;
   let bud=0,budN=0,svc=0,svcCnt=0,ss=0,ssCnt=0,mrg=0,budM=0,mCnt=0,pos=0,qty=0;
-  for(const d of base){ if(d.budget>0){bud+=d.budget;budN++;}
+  for(const d of base){ if(dBud(d)>0){bud+=dBud(d);budN++;}
     pos+=goodsPos(d); qty+=goodsQty(d);
     const sv=svcSum(d); if(sv){svc+=sv;svcCnt++;}
     const s=prodSS(d); if(s){ss+=s;ssCnt++;}
     const pr=spCost(byKey(d,'Производство  GG')); const shown=(pr&&!pr.empty)||prodRankOf(d)>=5;
-    if(shown&&s){ mrg+=(d.budget-s); budM+=d.budget; mCnt++; } }
+    if(shown&&s){ mrg+=(dBud(d)-s); budM+=dBud(d); mCnt++; } }
+  const _sumL=econAmt==='prepay'?'предоплата':'бюджет';
   const mpct=budM>0?Math.round(mrg/budM*100):null;
   const pc=x=>n?Math.round(100*x/n)+'%':'0%';
   const tile=(l,v,sub,cls,tip)=>'<div class="sm'+(cls?' '+cls:'')+'" title="'+esc(tip||'')+'"><div class="smv">'+v+'</div><div class="sml">'+esc(l)+(sub?' <span class="smsub">'+esc(sub)+'</span>':'')+'</div></div>';
   document.getElementById('sums').innerHTML=
     tile('сделок',n,'','','всего в выборке (фильтры + даты)')
-    +tile('бюджет есть',budN,pc(budN),'sm-ok','сделок с ценой - на них считается доход')
+    +tile(_sumL+' есть',budN,pc(budN),'sm-ok','сделок с суммой - на них считается доход')
     +tile('с/с есть',ssCnt,pc(ssCnt),ssCnt/(n||1)<0.3?'sm-lo':'sm-ok','сделок с посчитанной с/с - ТОЛЬКО на них репрезентативны затраты и маржа')
     +tile('услуги есть',svcCnt,pc(svcCnt),'','сделок с доставкой/монтажом/замером')
     +tile('Σ позиций',pos,'','','наименований (товарных строк) по выборке')
     +tile('Σ штук',qty,'','','суммарное количество изделий по выборке')
-    +tile('Σ бюджет',fmt(bud),'','','доход по '+budN+' сделкам с ценой')
+    +tile('Σ '+_sumL,fmt(bud),'','','доход по '+budN+' сделкам с суммой')
     +tile('Σ услуги',fmt(svc),'','','по '+svcCnt+' сделкам')
     +tile('Σ с/с',fmt(ss),'','','затраты по '+ssCnt+' сделкам с с/с')
     +tile('Σ маржа',fmt(mrg),'','','по '+mCnt+' сделкам, где есть и цена, и с/с')
-    +tile('маржин-ть',(mpct!==null?mpct+'%':'-'),'','','Σ маржа / Σ бюджет по '+mCnt+' сделкам');
+    +tile('маржин-ть',(mpct!==null?mpct+'%':'-'),'','','Σ маржа / Σ '+_sumL+' по '+mCnt+' сделкам');
 }
 function matchQuick(d){ if(!quick)return true; if(quick==='hasss')return classify(d)!=='noss'; return classify(d)===quick; }
 function renderByStage(base){
@@ -895,10 +901,10 @@ function renderByStage(base){
 // строка ИТОГО под таблицей - суммы по столбцам текущей выборки
 function renderTotals(list){
   let bud=0,pos=0,qty=0,svc=0,ss=0,mrg=0,budM=0;
-  for(const d of list){ bud+=d.budget||0; pos+=goodsPos(d); qty+=goodsQty(d); svc+=svcSum(d);
+  for(const d of list){ bud+=dBud(d)||0; pos+=goodsPos(d); qty+=goodsQty(d); svc+=svcSum(d);
     const s=prodSS(d); if(s)ss+=s;
     const pr=spCost(byKey(d,'Производство  GG')); const shown=(pr&&!pr.empty)||prodRankOf(d)>=5;
-    if(shown&&s){ mrg+=(d.budget-s); budM+=d.budget; } }
+    if(shown&&s){ mrg+=(dBud(d)-s); budM+=dBud(d); } }
   const mpct=budM>0?Math.round(mrg/budM*100):null;
   const tr='<tr class="totrow">'
     +'<td>ИТОГО '+list.length+'</td>'
@@ -1151,7 +1157,7 @@ function dealCells(d,op){
     +'<td class="ctype" title="'+esc(d.assort||'')+'">'+(d.assort?esc(d.assort):'<span class="cell-o">-</span>')+'</td>'
     +smartCell(d)
     +'<td class="num" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; ').slice(0,300))+'">'+(svc.length?'<span class="cell-g">'+fmt(sSum)+'</span> <span class="cell-o">('+svc.length+')</span>':'<span class="cell-o">-</span>')+'</td>'
-    +'<td class="num" title="'+esc(bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал')+'">'+fmt(d.budget)+(bs?' <span class="bsrc">'+bs.tag+'</span>':'')+'</td>'
+    +'<td class="num" title="'+esc(econAmt==='prepay'?('полученная предоплата (поле «Предоплата»)'+(d.budget?'; бюджет сделки '+fmt(d.budget):'')):(bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал'))+'">'+fmt(dBud(d))+((econAmt!=='prepay'&&bs)?' <span class="bsrc">'+bs.tag+'</span>':'')+'</td>'
     +'<td class="num" title="наименований (товарных строк): '+goods.length+'">'+(goods.length?goods.length:'<span class="cell-o">-</span>')+'</td>'
     +'<td class="num" title="'+esc(goods.map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(goods.length?gQty+' <span class="cell-o">шт</span>':'<span class="cell-o">-</span>')+'</td>'
     +ssCell(d,ss)

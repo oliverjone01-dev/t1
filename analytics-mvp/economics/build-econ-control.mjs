@@ -1005,7 +1005,7 @@ function izPickCat(nm,cnt){ const keys=Object.keys(cnt); if(!keys.length)return 
   return keys.sort((a,b)=>cnt[b]-cnt[a])[0]; }
 function buildIzd(list){
   const M=new Map();
-  for(const d of list){ for(const g of izdelia(d)){ const key=izKeyG(g);
+  for(const d of list){ for(const g of izdelia(d)){ const key=izKeyG(g)+'::'+d.id; // отдельная строка на каждое изделие В КАЖДОЙ сделке (без склейки одинаковых товаров между сделками)
     let e=M.get(key); if(!e){ e={key,art:g.art,ns:g.ns,nm:g.nm||'',qty:0,ss:0,rev:0,deals:[],smarts:new Set(),smartsSS:new Set(),dmin:null,dmax:null,ssSrc:new Set()}; M.set(key,e); }
     izSsSrcOf(g).forEach(a=>e.ssSrc.add(a));
     if(d.created){ if(!e.dmin||d.created<e.dmin)e.dmin=d.created; if(!e.dmax||d.created>e.dmax)e.dmax=d.created; }

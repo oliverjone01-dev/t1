@@ -365,13 +365,13 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
+  <details class="msel" id="mselMgr"><summary id="mgrSum">Менеджеры</summary><div class="msel-pop" id="mgrPop"></div></details>
+  <span class="barsp"></span>
   <div class="presets" id="presets"></div>
   <button class="calbtn" id="dateBtn" title="выбрать дату или диапазон дат (календарь как в Метрике)">📅 <span id="dateBtnTxt">даты</span></button>
   <input type="hidden" id="dfrom"><input type="hidden" id="dto">
   <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="какой датой фильтрует период: дата создания сделки или дата получения предоплаты">Период по</span><div class="seg" id="econBasis"><button data-b="created" class="on">создание</button><button data-b="prepay">предоплата</button></div>
-  <details class="msel" id="mselMgr"><summary id="mgrSum">Менеджеры</summary><div class="msel-pop" id="mgrPop"></div></details>
-  <span class="barsp"></span>
-  <span class="cnt" id="cnt"></span>
+  <span class="cnt" id="cnt" style="margin-left:10px"></span>
 </div>
 <div class="tabs" id="tabs"><button class="tb on" data-v="deals">Сделки</button><button class="tb" data-v="izd">Изделия</button></div>
 

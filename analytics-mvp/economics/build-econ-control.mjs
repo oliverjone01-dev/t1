@@ -122,7 +122,7 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .mo:hover{border-color:var(--accent)}
 .mo.move{background:rgba(245,158,11,.14);border-color:var(--warn);color:var(--warn);font-weight:700;cursor:default}
 .mo.act{background:var(--accent);color:#04222a;border-color:var(--accent);font-weight:700}
-.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:10px 0 10px}
+.bar{display:flex;flex-wrap:nowrap;gap:8px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:10px 0 10px;overflow-x:auto}
 .bar input,.bar select{background:var(--elev);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:7px 10px;font-size:12.5px}
 .bar input[type=text]{min-width:200px}
 .bar label{display:flex;gap:6px;align-items:center;color:var(--ink-2);font-size:12px;cursor:pointer;user-select:none}
@@ -369,7 +369,6 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
-  <details class="msel" id="mselMgr"><summary id="mgrSum">Менеджеры</summary><div class="msel-pop" id="mgrPop"></div></details>
   <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="какой датой фильтрует период: дата создания сделки или дата получения предоплаты">Период по</span><div class="seg" id="econBasis"><button data-b="created" class="on">создание</button><button data-b="prepay">предоплата</button></div>
   <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="чем считать сумму сделки: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»)">Сумма</span><div class="seg" id="econAmt"><button data-a="budget" class="on">бюджет</button><button data-a="prepay">предоплата</button></div>
   <span class="barsp"></span>
@@ -393,7 +392,7 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
       <tr><td>Σ с/с</td><td>себестоимость за партию (с/с за штуку × количество товара)</td></tr>
       <tr><td>Маржа</td><td>бюджет − Σ с/с, в рублях. Убыток красным. «нет цены» - бюджет ≈ 0, минус ложный</td></tr>
       <tr><td>Маржин.%</td><td>маржинальность (маржа / бюджет) с подсветкой: <b>красный</b> ниже 20%, <b>жёлтый</b> 20-50%, <b>зелёный</b> выше 50%</td></tr>
-      <tr><td>Бюджет (тег К/Р)</td><td>каким смартом сформирован бюджет: <b>Р</b> Расчёт, <b>К</b> Калькулятор, З Закупка, Пр Производство, Сб Сборка, Л Логистика. Нет тега = бюджет вбит вручную</td></tr>
+      <tr><td>Σ с/с (тег К/Р)</td><td>каким смартом сформирована сумма: <b>Р</b> Расчёт, <b>К</b> Калькулятор, З Закупка, Пр Производство, Сб Сборка, Л Логистика. Нет тега = сумма вбита вручную</td></tr>
       <tr><td>Тип</td><td>тип ассортимента из поля сделки Bitrix (чип в «Название»)</td></tr>
     </table>
     <p class="dsub"><b>Разворот сделки (▸)</b></p>
@@ -468,8 +467,8 @@ function smartCell(d){ const src=ssSource(d); let html='';
   return '<td class="smcell"><span class="smbar">'+html+'</span></td>';
 }
 // Σ с/с с цветовой гистограммой готовности
-function ssCell(d,ss){ const r=readiness(d);
-  return '<td class="num" title="с/с за партию · '+esc(r.txt)+'">'+(ss?fmt(ss):'<span class="cell-o">-</span>')+' <span class="rdbar '+r.cls+'"><i></i><i></i><i></i></span></td>';
+function ssCell(d,ss){ const r=readiness(d); const bs=budgetSrc(d);
+  return '<td class="num" title="с/с за партию · '+esc(r.txt)+'">'+(ss?fmt(ss):'<span class="cell-o">-</span>')+(bs?' <span class="bsrc" title="каким смартом сформирована сумма: '+esc(BUDNAME[bs.tag]||bs.tag)+'">'+bs.tag+'</span>':'')+' <span class="rdbar '+r.cls+'"><i></i><i></i><i></i></span></td>';
 }
 // разворот сделки - панель: по каждому изделию с/с по смартам со ссылками
 // Текущий этап изделия по смарт-процессам + прогресс по цепочке (Калькулятор→…→Монтаж).
@@ -1198,7 +1197,7 @@ function dealCells(d,op){
     +'<td class="ctype" title="'+esc(d.assort||'')+'">'+(d.assort?esc(d.assort):'<span class="cell-o">-</span>')+'</td>'
     +smartCell(d)
     +'<td class="num" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; ').slice(0,300))+'">'+(svc.length?'<span class="cell-g">'+fmt(sSum)+'</span> <span class="cell-o">('+svc.length+')</span>':'<span class="cell-o">-</span>')+'</td>'
-    +'<td class="num" title="'+esc(econAmt==='prepay'?('полученная предоплата (поле «Предоплата»)'+(d.budget?'; бюджет сделки '+fmt(d.budget):'')):(bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал'))+'">'+fmt(dBud(d))+((econAmt!=='prepay'&&bs)?' <span class="bsrc">'+bs.tag+'</span>':'')+'</td>'
+    +'<td class="num" title="'+esc(econAmt==='prepay'?('полученная предоплата (поле «Предоплата»)'+(d.budget?'; бюджет сделки '+fmt(d.budget):'')):(bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал'))+'">'+fmt(dBud(d))+'</td>'
     +'<td class="num" title="наименований (товарных строк): '+goods.length+'">'+(goods.length?goods.length:'<span class="cell-o">-</span>')+'</td>'
     +'<td class="num" title="'+esc(goods.map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(goods.length?gQty+' <span class="cell-o">шт</span>':'<span class="cell-o">-</span>')+'</td>'
     +ssCell(d,ss)

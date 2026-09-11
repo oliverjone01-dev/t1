@@ -370,7 +370,7 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
   <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="какой датой фильтрует период: дата создания сделки или дата получения предоплаты">Период по</span><div class="seg" id="econBasis"><button data-b="created" class="on">создание</button><button data-b="prepay">предоплата</button></div>
-  <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="чем считать сумму сделки: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»)">Сумма</span><div class="seg" id="econAmt"><button data-a="budget" class="on">бюджет</button><button data-a="prepay">предоплата</button></div>
+  <span id="econAmtLbl" style="color:var(--ink-3);font-size:11.5px;align-self:center" title="чем считать сумму сделки: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»)">Сумма</span><div class="seg" id="econAmt"><button data-a="budget" class="on">бюджет</button><button data-a="prepay">предоплата</button></div>
   <span class="barsp"></span>
   <div class="presets" id="presets"></div>
   <button class="calbtn" id="dateBtn" title="выбрать дату или диапазон дат (календарь как в Метрике)">📅 <span id="dateBtnTxt">даты</span></button>
@@ -487,20 +487,24 @@ function izdBadge(g){ const si=izdStageInfo(g); if(!si) return '';
   const sh=izdShade(si.prog); return '<span class="izst" style="background:'+sh.bg+';color:'+sh.fg+(si.fail?';outline:1px solid var(--dn)':'')+'" title="Этап смарт-процесса '+esc(si.smart)+': '+esc(si.name)+(si.fail?' (провал)':'')+' · чем темнее, тем ближе к закрытию">'+esc(si.name.length>20?si.name.slice(0,20)+'…':si.name)+'</span> '; }
 function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
   if(izd.length){
-    inner+='<table class="ptab"><tr><th>Артикул/НС</th><th>Изделие</th><th>Смарт</th><th>Этап</th><th title="в какие смарты запущен товар (есть карточки)">Смарты</th><th>Кол-во</th>'+ORDER.map(k=>'<th>'+esc(SMFULL[k]||k)+'</th>').join('')+'<th>Σ с/с</th></tr>';
+    inner+='<table class="ptab"><tr><th>Артикул/НС</th><th>Изделие</th><th>Смарт</th><th>Этап</th><th title="в какие смарты запущен товар (есть карточки)">Смарты</th><th>Кол-во</th><th title="цена за штуку">Цена/шт</th>'+ORDER.map(k=>'<th>'+esc(SMFULL[k]||k)+'</th>').join('')+'<th>Σ с/с</th><th title="цена за штуку × количество">Выручка</th></tr>';
+    let tQty=0,tSs=0,tRev=0;
     for(const g of izd){ const cells=ORDER.map(k=>{ const e=g.sp[k];
         if(e&&e.vB) return '<td class="num cell-g"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>';
         if(e&&e.cards&&e.cards.length) return '<td class="num"><a class="nocs" href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">нет с/с</a></td>';
         return '<td class="num cell-o">·</td>'; }).join('');
       const ssTot=((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0)+((g.sp['Закупка']&&g.sp['Закупка'].vB)||0);
-      const _si=izdStageInfo(g);
+      const _si=izdStageInfo(g); const _pr=izPrice(d,g), _q=g.qty||0, _rev=_pr*_q; tQty+=_q; tSs+=ssTot; tRev+=_rev;
       inner+='<tr>'
         +'<td class="pnm"><span class="art-code">'+esc(g.art||g.ns||('#'+g.firstId))+'</span></td>'
         +'<td class="pnm" title="'+esc(g.nm||'')+'">'+esc(cleanNm(g.nm).slice(0,50))+'</td>'
         +'<td>'+(_si?esc(_si.smart):'<span class="cell-o">-</span>')+'</td>'
         +'<td>'+izdBadge(g)+'</td>'
         +'<td>'+izDots(izSmartsOf(g))+'</td>'
-        +'<td class="num">'+(g.qty?g.qty+' шт':'')+'</td>'+cells+'<td class="num">'+(ssTot?fmt(ssTot):'<span class="cell-o">-</span>')+'</td></tr>'; }
+        +'<td class="num">'+(_q?_q+' шт':'')+'</td>'
+        +'<td class="num">'+(_pr?fmt(_pr):'<span class="cell-o">-</span>')+'</td>'+cells+'<td class="num">'+(ssTot?fmt(ssTot):'<span class="cell-o">-</span>')+'</td>'
+        +'<td class="num">'+(_rev?fmt(_rev):'<span class="cell-o">-</span>')+'</td></tr>'; }
+    inner+='<tr style="font-weight:700;background:var(--elev)"><td>Итого</td><td></td><td></td><td></td><td></td><td class="num">'+tQty+' шт</td><td></td>'+ORDER.map(()=>'<td></td>').join('')+'<td class="num">'+(tSs?fmt(tSs):'-')+'</td><td class="num">'+(tRev?fmt(tRev):'-')+'</td></tr>';
     inner+='</table>';
   }
   if(svc.length){ inner+='<div class="pusl"><b>Услуги:</b> '+svc.map(p=>esc(p.name)+' - '+fmt((+p.price||0)*(+p.qty||0))).join(' · ')+'</div>'; }
@@ -1210,6 +1214,9 @@ function dealCells(d,op){
     +mpctCell(d);
 }
 function render(){
+  { const ea=document.getElementById('econAmt'), el=document.getElementById('econAmtLbl'), off=(VIEW==='izd');
+    if(ea){ ea.style.opacity=off?'.4':''; ea.style.pointerEvents=off?'none':''; ea.title=off?'«Сумма» влияет только на вкладку «Сделки»':''; }
+    if(el){ el.style.opacity=off?'.4':''; el.title=off?'«Сумма» влияет только на вкладку «Сделки»':'чем считать сумму сделки: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»)'; } }
   const base=DATA.deals.filter(d=>passesBase(d));
   if(VIEW==='izd'){ renderIzd(base); return; }
   let list=base.filter(matchQuick);

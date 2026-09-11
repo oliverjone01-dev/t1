@@ -339,6 +339,7 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 .cal-d{height:26px;border:0;background:transparent;color:var(--ink-1);border-radius:6px;cursor:pointer;font-size:11.5px}
 .cal-d:hover{background:var(--elev)}
 .cal-d.in{background:rgba(90,150,255,.16);border-radius:0}
+.cal-d.prev{background:rgba(90,150,255,.09);border-radius:0}
 .cal-d.edge{background:var(--accent,#5a96ff);color:#fff;border-radius:6px;font-weight:700}
 .cal-foot{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
 .cal-io{color:var(--ink-3)}
@@ -580,13 +581,14 @@ pdiv.addEventListener('click',e=>{ const b=e.target.closest('.seg button'); if(!
 // ===== Календарь диапазона дат (как в Яндекс.Метрике): один общий поповер на все триггеры =====
 const _cpad=n=>String(n).padStart(2,'0');
 const _ruShort=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'дд.мм.гггг';
-const CALP={from:'',to:'',view:new Date(),onApply:null};
+const CALP={from:'',to:'',hover:'',view:new Date(),onApply:null};
 function calGrid(y,m){ const off=(new Date(y,m,1).getDay()+6)%7, dim=new Date(y,m+1,0).getDate();
   const MN=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
   let h='<div class="cal-mo"><div class="cal-mh">'+MN[m]+' '+y+'</div><div class="cal-dow">'+['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>'<span>'+d+'</span>').join('')+'</div><div class="cal-grid">';
   for(let i=0;i<off;i++)h+='<span class="cal-e"></span>';
-  for(let d=1;d<=dim;d++){ const iso=y+'-'+_cpad(m+1)+'-'+_cpad(d); const inr=CALP.from&&CALP.to&&iso>=CALP.from&&iso<=CALP.to; const edge=(iso===CALP.from||iso===CALP.to);
-    h+='<button type="button" class="cal-d'+(inr?' in':'')+(edge?' edge':'')+'" data-d="'+iso+'">'+d+'</button>'; }
+  const _hlo=CALP.hover&&CALP.hover<CALP.from?CALP.hover:CALP.from, _hhi=CALP.hover&&CALP.hover>CALP.from?CALP.hover:CALP.from;
+  for(let d=1;d<=dim;d++){ const iso=y+'-'+_cpad(m+1)+'-'+_cpad(d); const inr=CALP.from&&CALP.to&&iso>=CALP.from&&iso<=CALP.to; const prev=CALP.from&&!CALP.to&&CALP.hover&&iso>=_hlo&&iso<=_hhi; const edge=(iso===CALP.from||iso===CALP.to);
+    h+='<button type="button" class="cal-d'+(inr?' in':'')+(prev?' prev':'')+(edge?' edge':'')+'" data-d="'+iso+'">'+d+'</button>'; }
   return h+'</div></div>'; }
 function calDraw(){ const pop=document.getElementById('calPop'); if(!pop)return; const y=CALP.view.getFullYear(), m=CALP.view.getMonth(), nm=new Date(y,m+1,1);
   pop.querySelector('.cal-months').innerHTML=calGrid(y,m)+calGrid(nm.getFullYear(),nm.getMonth());
@@ -600,11 +602,13 @@ function calEnsure(){ if(document.getElementById('calPop'))return;
   pop.addEventListener('click',e=>{ e.stopPropagation();
     const nav=e.target.closest('[data-nav]'); if(nav){ CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()+(+nav.dataset.nav),1); calDraw(); return; }
     const dd=e.target.closest('.cal-d'); if(dd){ const iso=dd.dataset.d;
-      if(!CALP.from||CALP.to){ CALP.from=iso; CALP.to=''; } else { if(iso<CALP.from){CALP.to=CALP.from;CALP.from=iso;} else CALP.to=iso; }
-      calDraw(); return; }
+      if(!CALP.from||CALP.to){ CALP.from=iso; CALP.to=''; CALP.hover=''; calDraw(); }
+      else { if(iso<CALP.from){CALP.to=CALP.from;CALP.from=iso;} else CALP.to=iso; CALP.hover=''; if(CALP.onApply)CALP.onApply(CALP.from,CALP.to); calClose(); }
+      return; }
     const act=e.target.closest('[data-cal]'); if(act){ const a=act.dataset.cal; if(a==='x'){ calClose(); return; } if(a==='clr'){ if(CALP.onApply)CALP.onApply('',''); } else { const f=CALP.from,t=CALP.to||CALP.from; if(CALP.onApply)CALP.onApply(f,t); } calClose(); } });
+  pop.addEventListener('mouseover',e=>{ const dd=e.target.closest('.cal-d'); if(!dd)return; if(CALP.from&&!CALP.to){ const iso=dd.dataset.d; if(iso!==CALP.hover){ CALP.hover=iso; calDraw(); } } });
   document.addEventListener('click',()=>calClose()); }
-function calOpen(anchor,from,to,onApply){ calEnsure(); CALP.from=from||''; CALP.to=to||''; CALP.onApply=onApply;
+function calOpen(anchor,from,to,onApply){ calEnsure(); CALP.from=from||''; CALP.to=to||''; CALP.hover=''; CALP.onApply=onApply;
   const base=to||from; CALP.view=base?new Date(base+'T00:00:00'):new Date(); CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()-1,1);
   const pop=document.getElementById('calPop'); pop.hidden=false; calDraw();
   const r=anchor.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;

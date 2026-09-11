@@ -231,6 +231,10 @@ tr.izgrp .exp{color:var(--ink-3)}
 #izdtbl .izdt{white-space:nowrap;color:var(--ink-2);font-size:11px}
 #izdtbl .izship{white-space:nowrap;color:var(--ink-2);font-size:11px}
 #izdtbl .izready{white-space:nowrap;color:var(--ink-2);font-size:11px}
+.gap{font-size:9.5px;padding:0 5px;border-radius:5px;font-weight:700;white-space:nowrap}
+.gap.ok{background:rgba(90,200,120,.16);border:1px solid rgba(90,200,120,.4);color:#8fe0a8}
+.gap.warn{background:rgba(230,180,70,.16);border:1px solid rgba(230,180,70,.42);color:#e6c069}
+.gap.bad{background:rgba(214,92,110,.18);border:1px solid rgba(214,92,110,.44);color:#ec93a4}
 #izdtbl .izdt .izgc{color:var(--ink-3);font-size:10px}
 .subdeals{margin:0;background:var(--bg)}
 #izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
@@ -485,6 +489,11 @@ function izdStageInfo(g){ let idx=-1,card=null,key=null;
 function izdShade(p){ const L=Math.round(46-p*32); return {bg:'hsl(162,42%,'+L+'%)', fg:(L>32?'#06231b':'#dff7ee')}; }
 // приглушённый цвет-тег по строке (детерминированно): каждый смарт/стадия - свой оттенок
 function tagStyle(s){ let h=0; s=String(s||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; h=h%360; return 'background:hsla('+h+',42%,50%,.15);border-color:hsla('+h+',42%,58%,.42);color:hsl('+h+',48%,80%)'; }
+// разрыв между готовностью и реализацией: 0 дн - «в срок» (зелёный), >0 - лежало готовым N дн (жёлтый), <0 - аномалия (красный)
+function readyShipGap(e){ if(!e.readyAt||!e.shippedAt) return ''; const g=Math.round((new Date(e.shippedAt+'T00:00:00')-new Date(e.readyAt+'T00:00:00'))/86400000);
+  if(g===0) return ' <span class="gap ok" title="отгрузили в день готовности">в срок</span>';
+  if(g>0) return ' <span class="gap warn" title="лежало готовым '+g+' дн до отгрузки">+'+g+' дн</span>';
+  return ' <span class="gap bad" title="отгрузка раньше готовности на '+(-g)+' дн - проверить даты">'+g+' дн</span>'; }
 function izdBadge(g){ const si=izdStageInfo(g); if(!si) return '';
   const sh=izdShade(si.prog); return '<span class="izst" style="background:'+sh.bg+';color:'+sh.fg+(si.fail?';outline:1px solid var(--dn)':'')+'" title="Этап смарт-процесса '+esc(si.smart)+': '+esc(si.name)+(si.fail?' (провал)':'')+' · чем темнее, тем ближе к закрытию">'+esc(si.name.length>20?si.name.slice(0,20)+'…':si.name)+'</span> '; }
 function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
@@ -1158,7 +1167,7 @@ function renderIzd(base){
       +'<td class="izmgr" title="'+esc(e.mgr?('ответственный: '+e.mgr+(e.mgrs&&e.mgrs.length>1?' · ещё менеджеры по сделкам изделия: '+e.mgrs.slice(1).join(', '):'')):'менеджер не указан')+'">'+(e.mgr?esc(e.mgr)+(e.mgrs&&e.mgrs.length>1?' <span class="izgc">+'+(e.mgrs.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="izdt" title="'+(e.dmin&&e.dmin!==e.dmax?'сделки '+ruD(e.dmin)+' - '+ruD(e.dmax):'дата создания сделки')+'">'+(e.dmax?ruD(e.dmax):'<span class="cell-o">—</span>')+(e.dmin&&e.dmin!==e.dmax?' <span class="izgc">+'+(e.deals.length-1)+'</span>':'')+'</td>'
       +'<td class="izready" title="'+(e.readyAt?'дата перехода в «Заказ произведен»'+(e.readyN>1?' (последняя из '+e.readyN+' сделок)':''):'сделка ещё не переходила в «Заказ произведен»')+'">'+(e.readyAt?ruD(e.readyAt)+(e.readyN>1?' <span class="izgc">+'+(e.readyN-1)+'</span>':''):'<span class="cell-o">не наступила</span>')+'</td>'
-      +'<td class="izship" title="'+(e.shippedAt?'дата перехода в «Заказ отправлен»'+(e.shippedN>1?' (последняя из '+e.shippedN+' сделок)':''):'сделка ещё не переходила в «Заказ отправлен»')+'">'+(e.shippedAt?ruD(e.shippedAt)+(e.shippedN>1?' <span class="izgc">+'+(e.shippedN-1)+'</span>':''):'<span class="cell-o">не наступила</span>')+'</td>'
+      +'<td class="izship" title="'+(e.shippedAt?'дата перехода в «Заказ отправлен»'+(e.shippedN>1?' (последняя из '+e.shippedN+' сделок)':''):'сделка ещё не переходила в «Заказ отправлен»')+'">'+(e.shippedAt?ruD(e.shippedAt)+(e.shippedN>1?' <span class="izgc">+'+(e.shippedN-1)+'</span>':'')+readyShipGap(e):'<span class="cell-o">не наступила</span>')+'</td>'
       +'<td class="num">'+(e.deals.length===1?'<span class="dno" title="номер сделки '+e.deals[0].d.id+' (без ссылки)">'+e.deals[0].d.id+'</span>':'<span title="сделок: '+e.deals.length+' - номера видны при разворачивании">'+e.deals.length+' сд.</span>')+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
       +'<td class="num">'+(e.price?fmt(e.price):'<span class="cell-o">-</span>')+'</td>'

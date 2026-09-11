@@ -236,7 +236,7 @@ tr.izgrp .exp{color:var(--ink-3)}
 #izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
 #izdtbl .subdeals thead th.num{text-align:right}
 #izdtbl .iznum .art-code{font-size:11px}
-#izdtbl .izsm{font-size:11px;color:var(--ink-2);white-space:nowrap}
+#izdtbl .izsm{font-size:11px;color:var(--ink-2);white-space:nowrap;padding:2px 8px;border:1px solid var(--border);border-radius:999px;display:inline-block}
 .izgnm .izgc{color:var(--ink-3);font-weight:400}
 tr.izdeal{cursor:pointer}
 tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
@@ -483,6 +483,8 @@ function izdStageInfo(g){ let idx=-1,card=null,key=null;
   return {prog:Math.max(0,Math.min(1,(idx+frac)/ORDER.length)), name, smart:SMFULL[key]||key, fail}; }
 // Оттенок по прогрессу: светлее ранние, темнее ближе к закрытию (dark-тема, зелёная шкала).
 function izdShade(p){ const L=Math.round(46-p*32); return {bg:'hsl(162,42%,'+L+'%)', fg:(L>32?'#06231b':'#dff7ee')}; }
+// приглушённый цвет-тег по строке (детерминированно): каждый смарт/стадия - свой оттенок
+function tagStyle(s){ let h=0; s=String(s||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; h=h%360; return 'background:hsla('+h+',42%,50%,.15);border-color:hsla('+h+',42%,58%,.42);color:hsl('+h+',48%,80%)'; }
 function izdBadge(g){ const si=izdStageInfo(g); if(!si) return '';
   const sh=izdShade(si.prog); return '<span class="izst" style="background:'+sh.bg+';color:'+sh.fg+(si.fail?';outline:1px solid var(--dn)':'')+'" title="Этап смарт-процесса '+esc(si.smart)+': '+esc(si.name)+(si.fail?' (провал)':'')+' · чем темнее, тем ближе к закрытию">'+esc(si.name.length>20?si.name.slice(0,20)+'…':si.name)+'</span> '; }
 function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
@@ -979,7 +981,7 @@ const izBar=e=>'<span class="smbar">'+ORDER.map(k=>{let c='smb-off';if(e.smartsS
 // самый «дальний» экземпляр -> {смарт-процесс, бейдж стадии этого смарта}
 function izStageParts(e){let best=null,bp=-1;for(const it of e.deals){const si=izdStageInfo(it.g);if(si&&si.prog>bp){bp=si.prog;best=it.g;}}
   if(!best)return {smart:'<span class="cell-o">-</span>',badge:'<span class="cell-o">-</span>'};
-  const si=izdStageInfo(best); return {smart:'<span class="izsm">'+esc(si.smart)+'</span>',badge:izdBadge(best)};}
+  const si=izdStageInfo(best); return {smart:'<span class="izsm" style="'+tagStyle(si.smart)+'">'+esc(si.smart)+'</span>',badge:izdBadge(best)};}
 // маржинальность цветом как в «Сделках» (mp-red/mp-yel/mp-grn по MPCT_LO/MPCT_HI)
 function izMpct(mpct){ if(mpct==null)return '<td class="num"><span class="cell-o">-</span></td>'; const mv=Math.round(mpct*100); const cls=mv<MPCT_LO?'mp-red':mv>MPCT_HI?'mp-grn':'mp-yel'; return '<td class="num mp '+cls+'" title="маржинальность '+mv+'% · красный <'+MPCT_LO+'%, жёлтый '+MPCT_LO+'-'+MPCT_HI+'%, зелёный >'+MPCT_HI+'%">'+mv+'%</td>'; }
 // Σ с/с: подсветка красным недостоверной себестоимости (нет с/с или неправдоподобно мало).
@@ -1163,7 +1165,7 @@ function renderIzd(base){
       +'<td>'+izBar(e)+'</td>'
       +'<td>'+_izsp.smart+'</td>'
       +'<td>'+_izsp.badge+'</td>'
-      +'<td title="'+esc(e.dealStages&&e.dealStages.length>1?'стадии сделок: '+e.dealStages.join(', '):'стадия сделки')+'">'+(e.dealStage?'<span class="st">'+esc(e.dealStage)+'</span>'+(e.dealStages&&e.dealStages.length>1?' <span class="izgc">+'+(e.dealStages.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
+      +'<td title="'+esc(e.dealStages&&e.dealStages.length>1?'стадии сделок: '+e.dealStages.join(', '):'стадия сделки')+'">'+(e.dealStage?'<span class="st" style="'+tagStyle(e.dealStage)+'">'+esc(e.dealStage)+'</span>'+(e.dealStages&&e.dealStages.length>1?' <span class="izgc">+'+(e.dealStages.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
       +izSsCell(e.ss,e.ssSrc)
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
@@ -1201,7 +1203,7 @@ function dealCells(d,op){
   return '<td><span class="exp">'+(op?'▾':'▸')+'</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a></td>'
     +'<td title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,38))+'</td>'
     +'<td>'+esc(d.mgr||'')+'</td>'
-    +'<td><span class="st">'+esc(d.stage||'')+'</span></td>'
+    +'<td><span class="st" style="'+tagStyle(d.stage||'')+'">'+esc(d.stage||'')+'</span></td>'
     +'<td class="num">'+ruD(d.created)+'</td>'
     +'<td class="ctype" title="'+esc(d.assort||'')+'">'+(d.assort?esc(d.assort):'<span class="cell-o">-</span>')+'</td>'
     +smartCell(d)

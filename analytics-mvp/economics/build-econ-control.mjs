@@ -231,10 +231,9 @@ tr.izgrp .exp{color:var(--ink-3)}
 #izdtbl .izdt{white-space:nowrap;color:var(--ink-2);font-size:11px}
 #izdtbl .izship{white-space:nowrap;color:var(--ink-2);font-size:11px}
 #izdtbl .izready{white-space:nowrap;color:var(--ink-2);font-size:11px}
-.gap{font-size:9.5px;padding:0 5px;border-radius:5px;font-weight:700;white-space:nowrap}
-.gap.ok{background:rgba(90,200,120,.16);border:1px solid rgba(90,200,120,.4);color:#8fe0a8}
-.gap.warn{background:rgba(230,180,70,.16);border:1px solid rgba(230,180,70,.42);color:#e6c069}
-.gap.bad{background:rgba(214,92,110,.18);border:1px solid rgba(214,92,110,.44);color:#ec93a4}
+.gap{font-size:9.5px;color:var(--ink-3);white-space:nowrap;margin-left:3px}
+.gapd{display:inline-block;width:7px;height:7px;border-radius:50%;vertical-align:middle;margin-right:3px}
+.gapd.ok{background:#5ec27a}.gapd.warn{background:#e6b445}.gapd.bad{background:#d65c6e}
 #izdtbl .izdt .izgc{color:var(--ink-3);font-size:10px}
 .subdeals{margin:0;background:var(--bg)}
 #izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
@@ -372,7 +371,6 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 <p class="ver">Воронка «GG Заказы РФ» (49) · с/с и Маржа - за партию (с/с за шт × кол-во) · обновлено <span id="gen"></span></p>
 
 <div class="bar">
-  <input type="text" id="q" placeholder="Поиск: номер или название">
   <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="какой датой фильтрует период: дата создания сделки или дата получения предоплаты">Период по</span><div class="seg" id="econBasis"><button data-b="created" class="on">создание</button><button data-b="prepay">предоплата</button></div>
   <span id="econAmtLbl" style="color:var(--ink-3);font-size:11.5px;align-self:center" title="чем считать сумму сделки: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»)">Сумма</span><div class="seg" id="econAmt"><button data-a="budget" class="on">бюджет</button><button data-a="prepay">предоплата</button></div>
   <span class="barsp"></span>
@@ -491,9 +489,9 @@ function izdShade(p){ const L=Math.round(46-p*32); return {bg:'hsl(162,42%,'+L+'
 function tagStyle(s){ let h=0; s=String(s||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; h=h%360; return 'background:hsla('+h+',42%,50%,.15);border-color:hsla('+h+',42%,58%,.42);color:hsl('+h+',48%,80%)'; }
 // разрыв между готовностью и реализацией: 0 дн - «в срок» (зелёный), >0 - лежало готовым N дн (жёлтый), <0 - аномалия (красный)
 function readyShipGap(e){ if(!e.readyAt||!e.shippedAt) return ''; const g=Math.round((new Date(e.shippedAt+'T00:00:00')-new Date(e.readyAt+'T00:00:00'))/86400000);
-  if(g===0) return ' <span class="gap ok" title="отгрузили в день готовности">в срок</span>';
-  if(g>0) return ' <span class="gap warn" title="лежало готовым '+g+' дн до отгрузки">+'+g+' дн</span>';
-  return ' <span class="gap bad" title="отгрузка раньше готовности на '+(-g)+' дн - проверить даты">'+g+' дн</span>'; }
+  if(g===0) return ' <span class="gapd ok" title="отгрузили в день готовности"></span><span class="gap">в срок</span>';
+  if(g>0) return ' <span class="gapd warn" title="лежало готовым '+g+' дн до отгрузки"></span><span class="gap">+'+g+' дн</span>';
+  return ' <span class="gapd bad" title="отгрузка раньше готовности на '+(-g)+' дн - проверить даты"></span><span class="gap">'+g+' дн</span>'; }
 function izdBadge(g){ const si=izdStageInfo(g); if(!si) return '';
   const sh=izdShade(si.prog); return '<span class="izst" style="background:'+sh.bg+';color:'+sh.fg+(si.fail?';outline:1px solid var(--dn)':'')+'" title="Этап смарт-процесса '+esc(si.smart)+': '+esc(si.name)+(si.fail?' (провал)':'')+' · чем темнее, тем ближе к закрытию">'+esc(si.name.length>20?si.name.slice(0,20)+'…':si.name)+'</span> '; }
 function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
@@ -866,7 +864,7 @@ let econAmt='budget'; // «Сумма»: budget | prepay - чем считать
 // Сумма сделки для экрана «Сделки»: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»).
 const dBud=d=>econAmt==='prepay'?(d.prepayAmt||0):(d.budget||0);
 function passesBase(d,skipStage){
-  const q=document.getElementById('q').value.trim().toLowerCase();
+  const _qe=document.getElementById('q'); const q=_qe?_qe.value.trim().toLowerCase():'';
   const df=document.getElementById('dfrom').value, dt=document.getElementById('dto').value;
   if(q && !(String(d.id).includes(q)||(d.title||'').toLowerCase().includes(q))) return false;
   // «Период по»: фильтр верхней панели по дате создания (по умолчанию) или по дате предоплаты.
@@ -1243,7 +1241,7 @@ function render(){
   document.getElementById('cnt').textContent='показано '+list.length+' из '+DATA.deals.length;
 }
 document.querySelector('#tbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return; const tr=e.target.closest('tr.drow'); if(!tr)return; const id=+tr.dataset.id; if(OPEN.has(id))OPEN.delete(id); else OPEN.add(id); render(); });
-['q','dfrom','dto'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+['dfrom','dto'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',render);});
 // переключение вкладок Сделки / Изделия
 document.getElementById('tabs').addEventListener('click',e=>{ const b=e.target.closest('.tb'); if(!b)return; VIEW=b.dataset.v;
   document.querySelectorAll('#tabs .tb').forEach(x=>x.classList.toggle('on',x===b));

@@ -601,7 +601,11 @@ function calEnsure(){ if(document.getElementById('calPop'))return;
 function calOpen(anchor,from,to,onApply){ calEnsure(); CALP.from=from||''; CALP.to=to||''; CALP.onApply=onApply;
   const base=to||from; CALP.view=base?new Date(base+'T00:00:00'):new Date(); CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()-1,1);
   const pop=document.getElementById('calPop'); pop.hidden=false; calDraw();
-  const r=anchor.getBoundingClientRect(); pop.style.left=Math.max(6,Math.min(r.left,innerWidth-500))+'px'; pop.style.top=Math.min(r.bottom+4,innerHeight-360)+'px'; }
+  const r=anchor.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;
+  // прижимаем правым краем к кнопке (кнопки дат у правого края), затем держим в пределах экрана
+  let left=Math.min(r.right-pw, innerWidth-pw-8); left=Math.max(6,left);
+  let top=r.bottom+4; if(top+ph>innerHeight-8) top=Math.max(6,r.top-ph-4);
+  pop.style.left=left+'px'; pop.style.top=top+'px'; }
 function updateDateBtn(){ const t=document.getElementById('dateBtnTxt'); if(!t)return; const f=(document.getElementById('dfrom')||{}).value, d=(document.getElementById('dto')||{}).value;
   t.textContent=(f||d)?(_ruShort(f||d)+(d&&d!==f?' - '+_ruShort(d):'')):'даты'; }
 { const db=document.getElementById('dateBtn'); if(db)db.addEventListener('click',ev=>{ ev.stopPropagation(); const df=document.getElementById('dfrom'),dt=document.getElementById('dto');

@@ -28,7 +28,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 9 1 * *' && 'monthly') || 'weekly' }}
-      CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1003652568523' }}
+      # ПРАВИЛО (обязательное): недельный/месячный ИИ-разбор идёт ТОЛЬКО в тест-чат, в основной - никогда.
+      # Поэтому основной чат (-1004401671894) здесь принудительно перенаправляется в тест-чат,
+      # даже если его передали вручную. Другой тест/отладочный chat_id допускается.
+      CHAT_ID: ${{ (github.event.inputs.chat != '' && github.event.inputs.chat != '-1004401671894') && github.event.inputs.chat || '-1003652568523' }}
       AI: ${{ github.event.inputs.ai || '1' }}
       BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
       BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}

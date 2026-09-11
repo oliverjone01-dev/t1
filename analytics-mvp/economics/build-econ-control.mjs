@@ -134,6 +134,7 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .msel-pop{position:absolute;top:calc(100% + 4px);left:0;z-index:40;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px;min-width:230px;max-height:340px;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .msel-pop label{display:flex;gap:7px;align-items:center;padding:4px 6px;border-radius:6px;font-size:12px;color:var(--ink-2);cursor:pointer;white-space:nowrap}
 .msel-pop label:hover{background:var(--elev)}
+.msel-pop label.rej,.fcpop label.rej{color:#ea8a99;font-weight:600}
 .msel-act{display:flex;gap:8px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)}
 .msel-act button{flex:1;background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:6px;padding:4px;font-size:11px;cursor:pointer}
 .msel-act button:hover{border-color:var(--accent)}
@@ -169,7 +170,7 @@ th,td{padding:5px 6px;text-align:left;border-bottom:1px solid var(--border);whit
 #izdtbl .ss-bad{background:rgba(214,92,110,.22);color:#ec93a4;font-weight:700}
 #izdtbl .ss-src{font-size:9px;font-weight:700;color:var(--ink-3);letter-spacing:.02em;cursor:help}
 #izdtbl .dno{color:var(--ink-2);font-variant-numeric:tabular-nums}
-#izdtbl .izcat{display:inline-block;font-size:9px;font-weight:700;color:var(--info);background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.32);border-radius:5px;padding:0 5px;vertical-align:middle}
+#izdtbl .izcat{display:inline-block;font-size:8.5px;font-weight:700;letter-spacing:-.2px;color:var(--info);background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.32);border-radius:5px;padding:0 4px;vertical-align:middle}
 #izdtbl .izcatc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 th{position:sticky;top:0;background:var(--elev);z-index:2;font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none}
 th:hover{color:var(--ink)} th .ar{color:var(--accent);font-size:10px}
@@ -177,7 +178,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 tr.drow:hover td{background:rgba(255,255,255,.02)}
 tr.drow{cursor:pointer}
 a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-.st{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--elev);border:0;color:var(--ink-2)}
+.st{font-size:9.5px;padding:1px 7px;border-radius:999px;background:var(--elev);border:0;color:var(--ink-2);letter-spacing:-.1px}
 .cell-g{color:var(--up);font-weight:700}.cell-y{color:var(--warn)}.cell-o{color:var(--ink-4)}.cell-dn{color:var(--dn);font-weight:800}
 .nocs{color:var(--ink-3);font-size:11px;border-bottom:1px dashed var(--ink-4)}.nocs:hover{color:var(--ink-2)}
 .exp{color:var(--ink-3);display:inline-block;width:12px}
@@ -195,7 +196,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .izd .izcol{color:var(--accent);text-align:center;width:22px}
 .izd .iname{color:var(--ink-2);padding-left:6px;max-width:340px;overflow:hidden;text-overflow:ellipsis}
 .art-code{color:var(--ink-4);font-size:10px;font-variant-numeric:tabular-nums}
-.izst{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px;margin-right:6px;vertical-align:middle;white-space:nowrap}
+.izst{display:inline-block;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;margin-right:4px;vertical-align:middle;white-space:nowrap;letter-spacing:-.1px}
 .atype{font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(90,140,200,.14);border:1px solid rgba(90,140,200,.3);color:var(--ink-2);white-space:nowrap;margin-left:4px}
 .mpct{font-size:10px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .mpct.dn{color:var(--dn,#e0687a)}
@@ -231,15 +232,16 @@ tr.izgrp .exp{color:var(--ink-3)}
 #izdtbl .izdt{white-space:nowrap;color:var(--ink-2);font-size:11px}
 #izdtbl .izship{white-space:nowrap;color:var(--ink-2);font-size:11px}
 #izdtbl .izready{white-space:nowrap;color:var(--ink-2);font-size:11px}
-.gap{font-size:9.5px;color:var(--ink-3);white-space:nowrap;margin-left:3px}
-.gapd{display:inline-block;width:7px;height:7px;border-radius:50%;vertical-align:middle;margin-right:3px}
-.gapd.ok{background:#5ec27a}.gapd.warn{background:#e6b445}.gapd.bad{background:#d65c6e}
+.gapn{display:inline-block;font-size:9px;font-weight:700;line-height:1.4;padding:0 5px;border-radius:999px;margin-left:4px;vertical-align:middle;white-space:nowrap}
+.gapn.ok{background:rgba(94,194,122,.20);color:#7fd39a}
+.gapn.warn{background:rgba(230,180,69,.20);color:#e6c069}
+.gapn.bad{background:rgba(214,92,110,.22);color:#ea8a99}
 #izdtbl .izdt .izgc{color:var(--ink-3);font-size:10px}
 .subdeals{margin:0;background:var(--bg)}
 #izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
 #izdtbl .subdeals thead th.num{text-align:right}
 #izdtbl .iznum .art-code{font-size:11px}
-#izdtbl .izsm{font-size:11px;color:var(--ink-2);white-space:nowrap;padding:2px 8px;border:0;border-radius:999px;display:inline-block}
+#izdtbl .izsm{font-size:9.5px;color:var(--ink-2);white-space:nowrap;padding:1px 6px;border:0;border-radius:999px;display:inline-block;letter-spacing:-.1px}
 .izgnm .izgc{color:var(--ink-3);font-weight:400}
 tr.izdeal{cursor:pointer}
 tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
@@ -290,12 +292,11 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
 #tbl tfoot td{position:sticky;bottom:0;background:#111a24;border-top:2px solid var(--accent,#4a90d9);font-weight:700;color:var(--ink-1);z-index:5}
 #izdtbl tfoot td{position:sticky;bottom:0;background:#111a24;border-top:2px solid var(--accent);font-weight:700;color:var(--ink);z-index:6;padding:6px 8px}
 .smcell{white-space:nowrap;overflow:visible}
-.smbar{display:inline-flex;gap:3px;align-items:center;height:16px}
-.smb{width:6px;height:16px;border-radius:2px;display:inline-block;background:rgba(200,205,215,.12)}
-.smb-off{background:rgba(200,205,215,.10)}
-.smb-on{background:rgba(200,205,215,.42)}
-.smb-ss{background:#4fb387}
-.smb-src{outline:2px solid #e6c069;outline-offset:1px}
+.smseg{display:inline-block;box-sizing:border-box;width:9px;height:9px;margin-right:2px;border-radius:2px;border:1px solid transparent;vertical-align:middle;background:rgba(200,205,215,.10)}
+.smoff{background:rgba(200,205,215,.10)}
+.smon{background:rgba(200,205,215,.42)}
+.smss{background:#4fb387}
+.smsrc{outline:2px solid #e6c069;outline-offset:1px}
 .rdbar{display:inline-flex;gap:1px;vertical-align:middle;margin-left:4px}
 .rdbar i{width:5px;height:11px;background:rgba(200,205,215,.14);border-radius:1px;display:inline-block}
 .rdbar.rd1 i:nth-child(1){background:#d98b45}
@@ -326,6 +327,8 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 /* Календарь диапазона дат (как в Яндекс.Метрике) */
 .calbtn{cursor:pointer;white-space:nowrap;text-align:left;background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:600}
 .calbtn:hover{border-color:var(--accent);color:var(--ink)}
+#iftr .calbtn{width:100%;box-sizing:border-box;font-size:10px;font-weight:600;padding:3px 5px;border-radius:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#iftr .calbtn.on{border-color:var(--accent);background:rgba(74,144,217,.16);color:var(--ink);font-weight:700;font-size:9.5px;letter-spacing:-.3px}
 .cal-pop{position:fixed;z-index:120;background:var(--card,#141a24);border:1px solid var(--border);border-radius:12px;padding:32px 12px 12px;box-shadow:0 16px 44px rgba(0,0,0,.55);font-size:12px;color:var(--ink-1)}
 .cal-x{position:absolute;top:8px;right:10px;width:24px;height:24px;border:1px solid var(--border);background:var(--elev,#1a212b);color:var(--ink-3);border-radius:7px;font-size:17px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;z-index:1}
 .cal-x:hover{color:var(--ink);border-color:var(--accent)}
@@ -460,13 +463,15 @@ function readiness(d){
 // колонка «Смарты»: цепочка меток - запущен/с·с/источник итоговой с/с
 const SMLET={'Калькулятор GG':'К','Расчёт':'Р','Закупка':'З','Производство  GG':'Пр','Сборка':'Сб','Логистика':'Л','Монтаж':'М'};
 const SMFULL={'Калькулятор GG':'Калькулятор','Расчёт':'Расчёт','Закупка':'Закупка','Производство  GG':'Производство','Сборка':'Сборка','Логистика':'Логистика','Монтаж':'Монтаж'};
+// квадратик-значок смарта: off - нет карточек, on - запущен, ss - внесена с/с, src - источник итоговой с/с
+function smSeg(k,launched,hasss,isSrc){ let cls='smseg'; if(!launched)cls+=' smoff'; else if(hasss)cls+=' smss'; else cls+=' smon'; if(isSrc)cls+=' smsrc';
+  const tip=(SMFULL[k]||k)+(hasss?' - с/с внесена':(launched?' - запущен, с/с нет':' - не запущен'))+(isSrc?' · источник итоговой с/с':'');
+  return '<span class="'+cls+'" title="'+esc(tip)+'"></span>'; }
 function ssSource(d){ if(hasSP(byKey(d,'Производство  GG')))return 'Производство  GG'; if(hasSP(byKey(d,'Расчёт')))return 'Расчёт'; return null; }
 function smartCell(d){ const src=ssSource(d); let html='';
   for(const k of ORDER){ const sp=byKey(d,k); const cards=sp?(sp.cards||[]).filter(c=>!c.bad):[]; const launched=cards.length>0; const hasss=cards.some(c=>realMoney(c.money).length>0); const isSrc=(k===src);
-    let cls='smb'; if(!launched)cls+=' smb-off'; else if(hasss)cls+=' smb-ss'; else cls+=' smb-on'; if(isSrc)cls+=' smb-src';
-    const tip=(SMFULL[k]||k)+(hasss?' - с/с внесена':(launched?' - запущен, с/с нет':' - не запущен'))+(isSrc?' · источник итоговой с/с':'');
-    html+='<span class="'+cls+'" title="'+esc(tip)+'"></span>'; }
-  return '<td class="smcell"><span class="smbar">'+html+'</span></td>';
+    html+=smSeg(k,launched,hasss,isSrc); }
+  return '<td class="smcell">'+html+'</td>';
 }
 // Σ с/с с цветовой гистограммой готовности
 function ssCell(d,ss){ const r=readiness(d); const bs=budgetSrc(d);
@@ -487,11 +492,14 @@ function izdStageInfo(g){ let idx=-1,card=null,key=null;
 function izdShade(p){ const L=Math.round(46-p*32); return {bg:'hsl(162,42%,'+L+'%)', fg:(L>32?'#06231b':'#dff7ee')}; }
 // приглушённый цвет-тег по строке (детерминированно): каждый смарт/стадия - свой оттенок
 function tagStyle(s){ let h=0; s=String(s||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; h=h%360; return 'background:hsla('+h+',42%,50%,.18);color:hsl('+h+',48%,82%)'; }
+// отказные стадии (провал / рекламация / отказ) - подсветка красным, остальные - обычный цвет-тег
+const isReject=s=>/провал|рекламац|отказ/i.test(String(s||''));
+function stageStyle(s){ return isReject(s)?'background:rgba(214,92,110,.22);color:#ea8a99':tagStyle(s); }
 // разрыв между готовностью и реализацией: 0 дн - «в срок» (зелёный), >0 - лежало готовым N дн (жёлтый), <0 - аномалия (красный)
 function readyShipGap(e){ if(!e.readyAt||!e.shippedAt) return ''; const g=Math.round((new Date(e.shippedAt+'T00:00:00')-new Date(e.readyAt+'T00:00:00'))/86400000);
-  if(g===0) return ' <span class="gapd ok" title="отгрузили в день готовности"></span><span class="gap">в срок</span>';
-  if(g>0) return ' <span class="gapd warn" title="лежало готовым '+g+' дн до отгрузки"></span><span class="gap">+'+g+' дн</span>';
-  return ' <span class="gapd bad" title="отгрузка раньше готовности на '+(-g)+' дн - проверить даты"></span><span class="gap">'+g+' дн</span>'; }
+  if(g===0) return '<span class="gapn ok" title="реализация в день готовности - точно в срок">в срок</span>';
+  if(g>0) return '<span class="gapn warn" title="от готовности ('+ruD(e.readyAt)+') до реализации ('+ruD(e.shippedAt)+') прошло '+g+' дн">+'+g+' дн</span>';
+  return '<span class="gapn bad" title="реализация раньше готовности на '+(-g)+' дн ('+ruD(e.shippedAt)+' против '+ruD(e.readyAt)+') - проверить даты">'+g+' дн</span>'; }
 function izdBadge(g){ const si=izdStageInfo(g); if(!si) return '';
   const sh=izdShade(si.prog); return '<span class="izst" style="background:'+sh.bg+';color:'+sh.fg+(si.fail?';outline:1px solid var(--dn)':'')+'" title="Этап смарт-процесса '+esc(si.smart)+': '+esc(si.name)+(si.fail?' (провал)':'')+' · чем темнее, тем ближе к закрытию">'+esc(si.name.length>20?si.name.slice(0,20)+'…':si.name)+'</span> '; }
 function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
@@ -698,7 +706,7 @@ function wireFilters(){
   ['fcTitle','fcType','fcStat','fcMin_'+I_SVC,'fcMin_'+I_BUD,'fcMin_'+I_POS,'fcMin_'+I_QTY,'fcMin_'+I_SS,'fcMin_'+I_MRG,'fcMin_'+I_MPCT].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',render);e.addEventListener('change',render);}});
   document.getElementById('ftr').addEventListener('click',e=>e.stopPropagation());
   const pop=document.getElementById('fcStagePop'), btn=document.getElementById('fcStageBtn');
-  pop.innerHTML=stageList.map(s=>'<label><input type="checkbox" value="'+esc(s)+'"> '+esc(s)+'</label>').join('')+'<div class="fcpa"><button type="button" id="fcStageClear">сброс</button></div>';
+  pop.innerHTML=stageList.map(s=>'<label'+(isReject(s)?' class="rej"':'')+'><input type="checkbox" value="'+esc(s)+'"> '+esc(s)+'</label>').join('')+'<div class="fcpa"><button type="button" id="fcStageClear">сброс</button></div>';
   btn.addEventListener('click',e=>{e.stopPropagation(); const open=!pop.classList.contains('open'); if(open){const r=btn.getBoundingClientRect(); pop.style.left=Math.max(4,r.left)+'px'; pop.style.top=(r.bottom+2)+'px';} pop.classList.toggle('open',open);});
   pop.addEventListener('click',e=>e.stopPropagation());
   pop.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{ if(cb.checked)stageSet.add(cb.value);else stageSet.delete(cb.value); syncStage(); render(); }));
@@ -981,9 +989,9 @@ function izSsSrcOf(g){ if(_vbOf(g,'Калькулятор GG'))return ['К'];
 const izPrice=(d,g)=>{const sig=nameSig(g.nm);if(!sig)return 0;for(const p of goodRows(d)){if(nameSig(p.name)===sig){const pr=+p.price||0;if(pr>1)return pr;}}return 0;};
 // на каких смарт-процессах у изделия есть карточки (сейчас в работе)
 const izSmartsOf=g=>ORDER.filter(k=>g.sp[k]&&g.sp[k].cards&&g.sp[k].cards.length);
-const izDots=arr=>'<span class="dots">'+ORDER.map(k=>'<span class="sd'+(arr.includes(k)?' on':'')+'" title="'+esc(SMFULL[k]||k)+(arr.includes(k)?' - есть карточки':' - нет')+'"></span>').join('')+'</span>';
-// полоса-индикатор смартов как в «Сделках»: off - нет карточек, on - есть, ss - внесена с/с
-const izBar=e=>'<span class="smbar">'+ORDER.map(k=>{let c='smb-off';if(e.smartsSS&&e.smartsSS.has(k))c='smb-ss';else if(e.smarts.has(k))c='smb-on';return '<span class="smb '+c+'" title="'+esc(SMFULL[k]||k)+(e.smartsSS&&e.smartsSS.has(k)?' - с/с внесена':(e.smarts.has(k)?' - есть карточки':' - нет'))+'"></span>';}).join('')+'</span>';
+const izDots=arr=>'<span class="smcell">'+ORDER.map(k=>smSeg(k,arr.includes(k),false,false)).join('')+'</span>';
+// квадратики-значки смартов как в «Сделках»: off - нет карточек, on - есть, ss - внесена с/с
+const izBar=e=>'<span class="smcell">'+ORDER.map(k=>smSeg(k,!!(e.smarts&&e.smarts.has(k)),!!(e.smartsSS&&e.smartsSS.has(k)),false)).join('')+'</span>';
 // бейдж самого «дальнего» по цепочке производственного этапа среди экземпляров изделия
 // самый «дальний» экземпляр -> {смарт-процесс, бейдж стадии этого смарта}
 function izStageParts(e){let best=null,bp=-1;for(const it of e.deals){const si=izdStageInfo(it.g);if(si&&si.prog>bp){bp=si.prog;best=it.g;}}
@@ -1035,7 +1043,7 @@ function buildIzd(list){
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
 const ICOLS=['Номер заказа','Изделие','Категория','Менеджер','Создана','Дата готовности','Дата реализации','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[92,116,88,104,72,92,92,70,52,60,80,84,100,100,62,94,70,74];
+const ICOLW=[92,104,88,96,84,92,110,70,52,60,70,84,98,102,62,94,70,74];
 const INUM=[7,8,9,14,15,16,17];
 let izSortIdx=15, izSortDir=-1;
 const izStageSel=new Set(); // мультивыбор стадий сделки в фильтре колонки «Стадия сделки»
@@ -1078,8 +1086,13 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
   izHeadRow();
   ['ifNum','ifName','ifMin_7','ifMin_8','ifMin_9','ifMin_14','ifMin_15','ifMin_16','ifMin_17'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   // кнопки-календари в колонках «Создана», «Дата готовности» и «Дата реализации» (дата или диапазон)
-  const _colCal=(btnId,fromId,toId,label)=>{ const btn=document.getElementById(btnId); if(!btn)return;
-    const upd=()=>{ const f=document.getElementById(fromId).value, t=document.getElementById(toId).value; btn.textContent=(f||t)?(_ruShort(f||t)+(t&&t!==f?' … '+_ruShort(t):'')):label; };
+  const _colCal=(btnId,fromId,toId,label)=>{ const btn=document.getElementById(btnId); if(!btn)return; const baseTip=btn.getAttribute('title')||'';
+    const _mm=s=>s.slice(8,10)+'.'+s.slice(5,7), _yy=s=>s.slice(2,4);
+    const upd=()=>{ const f=document.getElementById(fromId).value, t=document.getElementById(toId).value;
+      if(!f&&!t){ btn.textContent=label; btn.classList.remove('on'); btn.title=baseTip; return; }
+      if(!t||t===f){ btn.textContent=_mm(f)+'.'+_yy(f); btn.title='дата: '+_ruShort(f); }
+      else { const sameY=f.slice(0,4)===t.slice(0,4); btn.textContent=sameY?(_mm(f)+'–'+_mm(t)):(_mm(f)+'.'+_yy(f)+'–'+_mm(t)+'.'+_yy(t)); btn.title='диапазон: '+_ruShort(f)+' - '+_ruShort(t); }
+      btn.classList.add('on'); };
     upd(); btn.addEventListener('click',ev=>{ ev.stopPropagation(); const _cp=document.getElementById('calPop'); if(_cp&&!_cp.hidden){ calClose(); return; } const fi=document.getElementById(fromId),ti=document.getElementById(toId);
       calOpen(btn,fi.value,ti.value,(f,t)=>{ fi.value=f; ti.value=t; upd(); render(); }); }); };
   _colCal('ifDateBtn','ifDateFrom','ifDateTo','дата'); _colCal('ifReadyBtn','ifReadyFrom','ifReadyTo','дата'); _colCal('ifShipBtn','ifShipFrom','ifShipTo','дата');
@@ -1103,7 +1116,7 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
   const sp=document.getElementById('stagePop');
   if(sp){ const opts=(DATA.stageOrder||[]).filter(s=>DATA.deals.some(d=>d.stage===s)); const extra=[...new Set(DATA.deals.map(d=>d.stage).filter(Boolean))].filter(s=>!opts.includes(s)); const IZ_STAGES=[...opts,...extra];
     sp.innerHTML='<div class="msel-act"><button type="button" data-a="all">все</button><button type="button" data-a="none">сброс</button></div>'
-      +IZ_STAGES.map(s=>'<label><input type="checkbox" value="'+esc(s)+'"'+(izStageSel.has(s)?' checked':'')+'> '+esc(s)+'</label>').join('');
+      +IZ_STAGES.map(s=>'<label'+(isReject(s)?' class="rej"':'')+'><input type="checkbox" value="'+esc(s)+'"'+(izStageSel.has(s)?' checked':'')+'> '+esc(s)+'</label>').join('');
     const sync=()=>{ izStageSel.clear(); sp.querySelectorAll('input:checked').forEach(c=>izStageSel.add(c.value));
       document.getElementById('stageSum').textContent=izStageSel.size?('стадия: '+izStageSel.size):'стадия';
       document.getElementById('mselStage').classList.toggle('has',izStageSel.size>0); render(); };
@@ -1172,7 +1185,7 @@ function renderIzd(base){
       +'<td>'+izBar(e)+'</td>'
       +'<td>'+_izsp.smart+'</td>'
       +'<td>'+_izsp.badge+'</td>'
-      +'<td title="'+esc(e.dealStages&&e.dealStages.length>1?'стадии сделок: '+e.dealStages.join(', '):'стадия сделки')+'">'+(e.dealStage?'<span class="st" style="'+tagStyle(e.dealStage)+'">'+esc(e.dealStage)+'</span>'+(e.dealStages&&e.dealStages.length>1?' <span class="izgc">+'+(e.dealStages.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
+      +'<td title="'+esc(e.dealStages&&e.dealStages.length>1?'стадии сделок: '+e.dealStages.join(', '):'стадия сделки')+'">'+(e.dealStage?'<span class="st" style="'+stageStyle(e.dealStage)+'">'+esc(e.dealStage)+'</span>'+(e.dealStages&&e.dealStages.length>1?' <span class="izgc">+'+(e.dealStages.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
       +izSsCell(e.ss,e.ssSrc)
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
@@ -1210,7 +1223,7 @@ function dealCells(d,op){
   return '<td><span class="exp">'+(op?'▾':'▸')+'</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a></td>'
     +'<td title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,38))+'</td>'
     +'<td>'+esc(d.mgr||'')+'</td>'
-    +'<td><span class="st" style="'+tagStyle(d.stage||'')+'">'+esc(d.stage||'')+'</span></td>'
+    +'<td><span class="st" style="'+stageStyle(d.stage||'')+'">'+esc(d.stage||'')+'</span></td>'
     +'<td class="num">'+ruD(d.created)+'</td>'
     +'<td class="ctype" title="'+esc(d.assort||'')+'">'+(d.assort?esc(d.assort):'<span class="cell-o">-</span>')+'</td>'
     +smartCell(d)

@@ -126,7 +126,7 @@ async function listSharded(method: string, params: any, opts: { idField?: string
   const dealSelect = ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "DATE_CREATE", "DATE_MODIFY", "MOVED_TIME", ...(assortId ? [assortId] : [])];
   const dealRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": cutoff }, select: dealSelect, order: { ID: "DESC" } });
   const deal: Record<string, any> = {};
-  for (const d of dealRows) { const stName = stageName[d.STAGE_ID] || d.STAGE_ID; deal[String(d.ID)] = { id: Number(d.ID), title: d.TITLE || "", mgr: uName[String(d.ASSIGNED_BY_ID)] || null, stageCode: String(d.STAGE_ID || "").replace(/^C49:/, ""), stage: stName, budget: Math.round(num(d.OPPORTUNITY)), created: d10(d.DATE_CREATE), modified: d10(d.DATE_MODIFY), shippedAt: (String(stName) === "Заказ отправлен" && d.MOVED_TIME) ? d10(d.MOVED_TIME) : null, assort: assortId ? resolveAssort(d[assortId]) : "", sps: {} as Record<string, any>, products: [] as any[], hasProducts: false }; }
+  for (const d of dealRows) { const stName = stageName[d.STAGE_ID] || d.STAGE_ID; deal[String(d.ID)] = { id: Number(d.ID), title: d.TITLE || "", mgr: uName[String(d.ASSIGNED_BY_ID)] || null, stageCode: String(d.STAGE_ID || "").replace(/^C49:/, ""), stage: stName, budget: Math.round(num(d.OPPORTUNITY)), created: d10(d.DATE_CREATE), modified: d10(d.DATE_MODIFY), shippedAt: (String(stName) === "Заказ отправлен" && d.MOVED_TIME) ? d10(d.MOVED_TIME) : null, readyAt: (String(stName) === "Заказ произведен" && d.MOVED_TIME) ? d10(d.MOVED_TIME) : null, assort: assortId ? resolveAssort(d[assortId]) : "", sps: {} as Record<string, any>, products: [] as any[], hasProducts: false }; }
   const inWin = new Set(Object.keys(deal));
   // Дата реализации проставлена выше из MOVED_TIME для сделок в стадии «Заказ отправлен» (без тяжёлых доп. запросов).
   console.error(`RECON-SHIPPED\tсделок с датой реализации (в стадии «Заказ отправлен», по MOVED_TIME): ${[...inWin].filter((id) => deal[id].shippedAt).length}`);
@@ -139,11 +139,12 @@ async function listSharded(method: string, params: any, opts: { idField?: string
     const hist = await listSharded("crm.stagehistory.list", { entityTypeId: 2, filter: { CATEGORY_ID: CAT } }, { itemsPath: true });
     const firstInto: Record<string, Record<string, string>> = {};
     for (const h of hist) { const oid = String(h.OWNER_ID); const nm = stageName[h.STAGE_ID] || ""; const dt = d10(h.CREATED_TIME); if (!oid || !nm || !dt) continue; (firstInto[oid] ||= {}); if (!firstInto[oid][nm] || dt < firstInto[oid][nm]) firstInto[oid][nm] = dt; }
-    let np = 0, ns = 0;
+    let np = 0, ns = 0, nr = 0;
     for (const id of inWin) { const f = firstInto[id]; if (!f) continue;
       if (f["Предоплата получена"]) { deal[id].prepayAt = f["Предоплата получена"]; np++; }
+      if (f["Заказ произведен"]) { deal[id].readyAt = f["Заказ произведен"]; nr++; }
       if (f["Заказ отправлен"]) { deal[id].shippedAt = f["Заказ отправлен"]; ns++; } }
-    console.error(`RECON-HIST\tистория стадий: строк ${hist.length}; дата предоплаты у ${np}, дата реализации (из истории) у ${ns}`);
+    console.error(`RECON-HIST\tистория стадий: строк ${hist.length}; дата предоплаты у ${np}, дата готовности у ${nr}, дата реализации (из истории) у ${ns}`);
   } catch (e) { console.error("RECON-HIST\tошибка истории стадий (даты из MOVED_TIME/пусто):", String(e)); }
 
   // 3) По каждому СП: денежные поля -> инвентаризация (заполненность на карточках, привязанных к окну)
@@ -185,7 +186,7 @@ async function listSharded(method: string, params: any, opts: { idField?: string
   }
 
   // 5) JSON для экрана
-  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, modified: r.modified || null, shippedAt: r.shippedAt || null, prepayAt: r.prepayAt || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
+  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, modified: r.modified || null, shippedAt: r.shippedAt || null, readyAt: r.readyAt || null, prepayAt: r.prepayAt || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
   mkdirSync("economics/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, spStages, inventory: inv, deals }));
 

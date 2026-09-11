@@ -230,6 +230,7 @@ tr.izgrp .exp{color:var(--ink-3)}
 #izdtbl .iznum{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #izdtbl .izdt{white-space:nowrap;color:var(--ink-2);font-size:11px}
 #izdtbl .izship{white-space:nowrap;color:var(--ink-2);font-size:11px}
+#izdtbl .izready{white-space:nowrap;color:var(--ink-2);font-size:11px}
 #izdtbl .izdt .izgc{color:var(--ink-3);font-size:10px}
 .subdeals{margin:0;background:var(--bg)}
 #izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
@@ -977,25 +978,26 @@ function buildIzd(list){
     e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>{e.smarts.add(k); if(g.sp[k]&&g.sp[k].vB>0)e.smartsSS.add(k);});
     e.deals.push({d,qty,ss,price,rev,g}); } }
   const arr=[...M.values()];
-  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catCnt={}; const shipArr=[]; const mgrCnt={};
-    for(const it of e.deals){ if(it.d.stage)stSet.add(it.d.stage); if(it.d.assort)catCnt[it.d.assort]=(catCnt[it.d.assort]||0)+1; if(it.d.shippedAt)shipArr.push(it.d.shippedAt); if(it.d.mgr)mgrCnt[it.d.mgr]=(mgrCnt[it.d.mgr]||0)+1; const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;bestD=it.d;}}
+  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catCnt={}; const shipArr=[]; const readyArr=[]; const mgrCnt={};
+    for(const it of e.deals){ if(it.d.stage)stSet.add(it.d.stage); if(it.d.assort)catCnt[it.d.assort]=(catCnt[it.d.assort]||0)+1; if(it.d.shippedAt)shipArr.push(it.d.shippedAt); if(it.d.readyAt)readyArr.push(it.d.readyAt); if(it.d.mgr)mgrCnt[it.d.mgr]=(mgrCnt[it.d.mgr]||0)+1; const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;bestD=it.d;}}
     e.smartName=best?best.smart:''; e.stageName=best?best.name:'';
     e.dealStage=bestD&&bestD.stage?bestD.stage:(e.deals[0]&&e.deals[0].d.stage||''); e.dealStages=[...stSet];
     e.cats=Object.keys(catCnt); e.cat=izPickCat(e.nm,catCnt);
     e.mgrs=Object.keys(mgrCnt).sort((a,b)=>mgrCnt[b]-mgrCnt[a]); e.mgr=e.mgrs[0]||'';
-    shipArr.sort(); e.shippedAt=shipArr.length?shipArr[shipArr.length-1]:''; e.shippedN=shipArr.length; }
+    shipArr.sort(); e.shippedAt=shipArr.length?shipArr[shipArr.length-1]:''; e.shippedN=shipArr.length;
+    readyArr.sort(); e.readyAt=readyArr.length?readyArr[readyArr.length-1]:''; e.readyN=readyArr.length; }
   return arr;
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
-const ICOLS=['Номер заказа','Изделие','Категория','Менеджер','Создана','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Дата реализации','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[112,160,100,124,82,90,60,66,92,98,116,116,146,68,110,78,86];
-const INUM=[5,6,7,13,14,15,16];
-let izSortIdx=14, izSortDir=-1;
+const ICOLS=['Номер заказа','Изделие','Категория','Менеджер','Создана','Дата готовности','Дата реализации','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
+const ICOLW=[112,160,100,124,82,120,120,90,60,66,92,98,116,116,68,110,78,86];
+const INUM=[7,8,9,14,15,16,17];
+let izSortIdx=15, izSortDir=-1;
 const izStageSel=new Set(); // мультивыбор стадий сделки в фильтре колонки «Стадия сделки»
 const izMgrSel=new Set();   // мультивыбор менеджеров в фильтре колонки «Менеджер»
 const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
-function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return (e.cat||'').toLowerCase();case 3:return (e.mgr||'').toLowerCase();case 4:return e.dmax||'';case 5:return e.deals.length;case 6:return e.qty;case 7:return e.price;case 8:return e.smarts.size;case 9:return e.sp;case 10:return e.sp;case 11:return (e.dealStage||'').toLowerCase();case 12:return e.shippedAt||'';case 13:return e.ss;case 14:return e.rev;case 15:return e.margin;case 16:return e.mpct==null?-1:e.mpct;}return 0;}
+function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return (e.cat||'').toLowerCase();case 3:return (e.mgr||'').toLowerCase();case 4:return e.dmax||'';case 5:return e.readyAt||'';case 6:return e.shippedAt||'';case 7:return e.deals.length;case 8:return e.qty;case 9:return e.price;case 10:return e.smarts.size;case 11:return e.sp;case 12:return e.sp;case 13:return (e.dealStage||'').toLowerCase();case 14:return e.ss;case 15:return e.rev;case 16:return e.margin;case 17:return e.mpct==null?-1:e.mpct;}return 0;}
 function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
   const fc=_igv('ifCat').trim().toLowerCase(); if(fc&&!((e.cats||[]).join(' ').toLowerCase().includes(fc)))return false;
@@ -1006,12 +1008,15 @@ function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e)
   const fsm=_igv('ifSmart'); if(fsm&&(e.smartName||'')!==fsm)return false;
   const fst=_igv('ifStage'); if(fst&&(e.stageName||'')!==fst)return false;
   if(izStageSel.size && !((e.dealStages||[]).some(s=>izStageSel.has(s))))return false;
+  // «Дата готовности»: диапазон дат (от/до) по дате перехода в «Заказ произведен»
+  const frf=_igv('ifReadyFrom').trim(); if(frf&&!((e.readyAt||'')>=frf))return false;
+  const frt=_igv('ifReadyTo').trim(); if(frt&&!(e.readyAt&&e.readyAt<=frt))return false;
   // «Дата реализации»: диапазон дат (от/до) по дате отгрузки
   const fshf=_igv('ifShipFrom').trim(); if(fshf&&!((e.shippedAt||'')>=fshf))return false;
   const fsht=_igv('ifShipTo').trim(); if(fsht&&!(e.shippedAt&&e.shippedAt<=fsht))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
-  return mn('ifMin_5',e.deals.length)&&mn('ifMin_6',e.qty)&&mn('ifMin_7',e.price)&&mn('ifMin_13',e.ss)&&mn('ifMin_14',e.rev)&&mn('ifMin_15',e.margin)&&mn('ifMin_16',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<button class="fcx calbtn" id="ifDateBtn" title="создана: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifDateFrom"><input type="hidden" id="ifDateTo">'; if(i===9)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">Все смарты</option></select>'; if(i===10)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">Все этапы</option></select>'; if(i===11)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===12)return '<button class="fcx calbtn" id="ifShipBtn" title="дата реализации: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifShipFrom"><input type="hidden" id="ifShipTo">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+  return mn('ifMin_7',e.deals.length)&&mn('ifMin_8',e.qty)&&mn('ifMin_9',e.price)&&mn('ifMin_14',e.ss)&&mn('ifMin_15',e.rev)&&mn('ifMin_16',e.margin)&&mn('ifMin_17',e.mpct==null?null:e.mpct*100); }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<input class="fcx" id="ifCat" placeholder="категория" title="фильтр по категории товара">'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<button class="fcx calbtn" id="ifDateBtn" title="создана: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifDateFrom"><input type="hidden" id="ifDateTo">'; if(i===5)return '<button class="fcx calbtn" id="ifReadyBtn" title="дата готовности: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifReadyFrom"><input type="hidden" id="ifReadyTo">'; if(i===6)return '<button class="fcx calbtn" id="ifShipBtn" title="дата реализации: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifShipFrom"><input type="hidden" id="ifShipTo">'; if(i===11)return '<select class="fcx fcsel" id="ifSmart" title="фильтр по смарт-процессу"><option value="">Все смарты</option></select>'; if(i===12)return '<select class="fcx fcsel" id="ifStage" title="фильтр по этапу (зависит от смарта)"><option value="">Все этапы</option></select>'; if(i===13)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2||i===3)?1:-1);}izHeadRow();render();})); }
 // карта Смарт -> его этапы (по фактическим данным, теми же izdStageInfo, что дают значения колонок)
@@ -1023,13 +1028,13 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifCat','ifMin_5','ifMin_6','ifMin_7','ifMin_13','ifMin_14','ifMin_15','ifMin_16'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
-  // кнопки-календари в колонках «Создана» и «Дата реализации» (дата или диапазон)
+  ['ifNum','ifName','ifCat','ifMin_7','ifMin_8','ifMin_9','ifMin_14','ifMin_15','ifMin_16','ifMin_17'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  // кнопки-календари в колонках «Создана», «Дата готовности» и «Дата реализации» (дата или диапазон)
   const _colCal=(btnId,fromId,toId,label)=>{ const btn=document.getElementById(btnId); if(!btn)return;
     const upd=()=>{ const f=document.getElementById(fromId).value, t=document.getElementById(toId).value; btn.textContent=(f||t)?(_ruShort(f||t)+(t&&t!==f?' … '+_ruShort(t):'')):label; };
     upd(); btn.addEventListener('click',ev=>{ ev.stopPropagation(); const fi=document.getElementById(fromId),ti=document.getElementById(toId);
       calOpen(btn,fi.value,ti.value,(f,t)=>{ fi.value=f; ti.value=t; upd(); render(); }); }); };
-  _colCal('ifDateBtn','ifDateFrom','ifDateTo','дата'); _colCal('ifShipBtn','ifShipFrom','ifShipTo','дата');
+  _colCal('ifDateBtn','ifDateFrom','ifDateTo','дата'); _colCal('ifReadyBtn','ifReadyFrom','ifReadyTo','дата'); _colCal('ifShipBtn','ifShipFrom','ifShipTo','дата');
   document.getElementById('iftr').addEventListener('click',e=>e.stopPropagation());
   // зависимые выпадающие списки: Смарт -> Этап (этапы зависят от выбранного смарта)
   const ssm=izSmartStageMap(), selSmart=document.getElementById('ifSmart'), selStage=document.getElementById('ifStage');
@@ -1095,6 +1100,8 @@ function renderIzd(base){
       +'<td class="izcatc" title="'+esc(e.cat?('категория: '+e.cat+(e.cats&&e.cats.length>1?' · у сделок изделия есть и другие категории: '+e.cats.filter(c=>c!==e.cat).join(', '):'')):'категория не указана')+'">'+(e.cat?'<span class="izcat">'+esc(e.cat)+'</span>'+(e.cats&&e.cats.length>1?' <span class="izgc" title="ещё '+(e.cats.length-1)+' категор. у сделок этого изделия">+'+(e.cats.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="izmgr" title="'+esc(e.mgr?('ответственный: '+e.mgr+(e.mgrs&&e.mgrs.length>1?' · ещё менеджеры по сделкам изделия: '+e.mgrs.slice(1).join(', '):'')):'менеджер не указан')+'">'+(e.mgr?esc(e.mgr)+(e.mgrs&&e.mgrs.length>1?' <span class="izgc">+'+(e.mgrs.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="izdt" title="'+(e.dmin&&e.dmin!==e.dmax?'сделки '+ruD(e.dmin)+' - '+ruD(e.dmax):'дата создания сделки')+'">'+(e.dmax?ruD(e.dmax):'<span class="cell-o">—</span>')+(e.dmin&&e.dmin!==e.dmax?' <span class="izgc">+'+(e.deals.length-1)+'</span>':'')+'</td>'
+      +'<td class="izready" title="'+(e.readyAt?'дата перехода в «Заказ произведен»'+(e.readyN>1?' (последняя из '+e.readyN+' сделок)':''):'сделка ещё не переходила в «Заказ произведен»')+'">'+(e.readyAt?ruD(e.readyAt)+(e.readyN>1?' <span class="izgc">+'+(e.readyN-1)+'</span>':''):'<span class="cell-o">не наступила</span>')+'</td>'
+      +'<td class="izship" title="'+(e.shippedAt?'дата перехода в «Заказ отправлен»'+(e.shippedN>1?' (последняя из '+e.shippedN+' сделок)':''):'сделка ещё не переходила в «Заказ отправлен»')+'">'+(e.shippedAt?ruD(e.shippedAt)+(e.shippedN>1?' <span class="izgc">+'+(e.shippedN-1)+'</span>':''):'<span class="cell-o">не наступила</span>')+'</td>'
       +'<td class="num">'+(e.deals.length===1?'<span class="dno" title="номер сделки '+e.deals[0].d.id+' (без ссылки)">'+e.deals[0].d.id+'</span>':'<span title="сделок: '+e.deals.length+' - номера видны при разворачивании">'+e.deals.length+' сд.</span>')+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
       +'<td class="num">'+(e.price?fmt(e.price):'<span class="cell-o">-</span>')+'</td>'
@@ -1102,7 +1109,6 @@ function renderIzd(base){
       +'<td>'+_izsp.smart+'</td>'
       +'<td>'+_izsp.badge+'</td>'
       +'<td title="'+esc(e.dealStages&&e.dealStages.length>1?'стадии сделок: '+e.dealStages.join(', '):'стадия сделки')+'">'+(e.dealStage?'<span class="st">'+esc(e.dealStage)+'</span>'+(e.dealStages&&e.dealStages.length>1?' <span class="izgc">+'+(e.dealStages.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
-      +'<td class="izship" title="'+(e.shippedAt?'дата перехода в «Заказ отправлен»'+(e.shippedN>1?' (последняя из '+e.shippedN+' сделок)':''):'сделка ещё не переходила в «Заказ отправлен»')+'">'+(e.shippedAt?ruD(e.shippedAt)+(e.shippedN>1?' <span class="izgc">+'+(e.shippedN-1)+'</span>':''):'<span class="cell-o">не наступила</span>')+'</td>'
       +izSsCell(e.ss,e.ssSrc)
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
@@ -1120,10 +1126,10 @@ function renderIzd(base){
   }
   document.querySelector('#izdtbl tbody').innerHTML=html||'<tr><td colspan="'+ICOLS.length+'" class="pusl">нет изделий в выборке</td></tr>';
   { let tq=0,tdl=0,tss=0,trv=0,tmg=0; for(const e of items){ tq+=e.qty||0; tdl+=e.deals.length; tss+=e.ss||0; trv+=e.rev||0; tmg+=e.margin||0; } const tmp=trv>0?Math.round(tmg/trv*100):null;
-    const ft='<tr class="totrow"><td>ИТОГО '+items.length+'</td><td></td><td></td><td></td><td></td>'
+    const ft='<tr class="totrow"><td>ИТОГО '+items.length+'</td><td></td><td></td><td></td><td></td><td></td><td></td>'
       +'<td class="num">'+tdl+'</td>'
       +'<td class="num">'+tq+' <span class="cell-o">шт</span></td>'
-      +'<td></td><td></td><td></td><td></td><td></td><td></td>'
+      +'<td></td><td></td><td></td><td></td><td></td>'
       +'<td class="num">'+fmt(tss)+'</td>'
       +'<td class="num">'+fmt(trv)+'</td>'
       +'<td class="num">'+fmt(tmg)+'</td>'

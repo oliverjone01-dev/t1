@@ -320,7 +320,8 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 .fcx.fcn{text-align:right}
 .iz-nofill{color:#e0645a;font-size:9.5px;font-style:italic;opacity:.9}
 /* Календарь диапазона дат (как в Яндекс.Метрике) */
-.calbtn{cursor:pointer;white-space:nowrap;text-align:left}
+.calbtn{cursor:pointer;white-space:nowrap;text-align:left;background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:600}
+.calbtn:hover{border-color:var(--accent);color:var(--ink)}
 .cal-pop{position:fixed;z-index:120;background:var(--card,#141a24);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 16px 44px rgba(0,0,0,.55);font-size:12px;color:var(--ink-1)}
 .cal-nav{display:flex;align-items:flex-start;gap:8px}
 .cal-nav>button{background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:15px;line-height:1;flex:0 0 auto;margin-top:2px}
@@ -365,11 +366,11 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
   <div class="presets" id="presets"></div>
+  <button class="calbtn" id="dateBtn" title="выбрать дату или диапазон дат (календарь как в Метрике)">📅 <span id="dateBtnTxt">даты</span></button>
+  <input type="hidden" id="dfrom"><input type="hidden" id="dto">
+  <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="какой датой фильтрует период: дата создания сделки или дата получения предоплаты">Период по</span><div class="seg" id="econBasis"><button data-b="created" class="on">создание</button><button data-b="prepay">предоплата</button></div>
   <details class="msel" id="mselMgr"><summary id="mgrSum">Менеджеры</summary><div class="msel-pop" id="mgrPop"></div></details>
   <span class="barsp"></span>
-  <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="какой датой фильтрует период: дата создания сделки или дата получения предоплаты">Период по</span><div class="seg" id="econBasis"><button data-b="created" class="on">создание</button><button data-b="prepay">предоплата</button></div>
-  <button class="dbtn calbtn" id="dateBtn" title="выбрать дату или диапазон дат (календарь как в Метрике)">📅 <span id="dateBtnTxt">даты</span></button>
-  <input type="hidden" id="dfrom"><input type="hidden" id="dto">
   <span class="cnt" id="cnt"></span>
 </div>
 <div class="tabs" id="tabs"><button class="tb on" data-v="deals">Сделки</button><button class="tb" data-v="izd">Изделия</button></div>

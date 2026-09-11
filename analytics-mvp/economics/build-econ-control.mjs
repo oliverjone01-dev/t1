@@ -367,6 +367,7 @@ input.fcd::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
   <div class="presets" id="presets"></div>
   <details class="msel" id="mselMgr"><summary id="mgrSum">Менеджеры</summary><div class="msel-pop" id="mgrPop"></div></details>
   <span class="barsp"></span>
+  <span style="color:var(--ink-3);font-size:11.5px;align-self:center" title="какой датой фильтрует период: дата создания сделки или дата получения предоплаты">Период по</span><div class="seg" id="econBasis"><button data-b="created" class="on">создание</button><button data-b="prepay">предоплата</button></div>
   <button class="dbtn calbtn" id="dateBtn" title="выбрать дату или диапазон дат (календарь как в Метрике)">📅 <span id="dateBtnTxt">даты</span></button>
   <input type="hidden" id="dfrom"><input type="hidden" id="dto">
   <span class="cnt" id="cnt"></span>
@@ -610,6 +611,7 @@ function updateDateBtn(){ const t=document.getElementById('dateBtnTxt'); if(!t)r
   t.textContent=(f||d)?(_ruShort(f||d)+(d&&d!==f?' - '+_ruShort(d):'')):'даты'; }
 { const db=document.getElementById('dateBtn'); if(db)db.addEventListener('click',ev=>{ ev.stopPropagation(); const df=document.getElementById('dfrom'),dt=document.getElementById('dto');
   calOpen(db,df.value,dt.value,(f,t)=>{ df.value=f; dt.value=t; clearPeriod(); updateDateBtn(); render(); }); }); updateDateBtn(); }
+{ const eb=document.getElementById('econBasis'); if(eb)eb.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; eb.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); econDateBasis=b.dataset.b; render(); }); }
 // мультивыбор менеджеров: применяется в passesBase -> фильтрует обе вкладки (Сделки и Изделия)
 const MGRS=[...new Set(DATA.deals.map(d=>d.mgr).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
 const mgrSel=new Set();
@@ -816,12 +818,16 @@ const TILES=[
 ];
 let quick='';
 const _gv=id=>{const e=document.getElementById(id);return e?e.value:'';};
+let econDateBasis='created'; // «Период по»: created | prepay - какое поле даты фильтрует верхний период
 function passesBase(d,skipStage){
   const q=document.getElementById('q').value.trim().toLowerCase();
   const df=document.getElementById('dfrom').value, dt=document.getElementById('dto').value;
   if(q && !(String(d.id).includes(q)||(d.title||'').toLowerCase().includes(q))) return false;
-  if(df && (d.created||'')<df) return false;
-  if(dt && (d.created||'')>dt) return false;
+  // «Период по»: фильтр верхней панели по дате создания (по умолчанию) или по дате предоплаты.
+  // В режиме предоплаты сделки без предоплаты (пустая дата) выпадают из выбранного периода.
+  const _dfld=(econDateBasis==='prepay')?(d.prepayAt||''):(d.created||'');
+  if(df && _dfld<df) return false;
+  if(dt && _dfld>dt) return false;
   // фильтры-столбцы
   const ft=_gv('fcTitle').trim().toLowerCase(); if(ft && !(d.title||'').toLowerCase().includes(ft)) return false;
   const fm=_gv('fcMgr').trim().toLowerCase(); if(fm && !(d.mgr||'').toLowerCase().includes(fm)) return false;

@@ -56,6 +56,34 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   for (;;) { const j = await call("crm.item.list", { entityTypeId: etid, select, filter: { ">id": lastId }, order: { id: "ASC" }, start: -1 }); const b: any[] = (j.result && j.result.items) || []; if (!b.length) break; all.push(...b); lastId = Number(b[b.length - 1].id); if (b.length < 50) break; }
   return all;
 }
+// --- Шардированная выборка истории стадий (как в fetch-rop): быстро, не вешает джоб ---
+const HCONC = 8;
+const rowsOf = (j: any, itemsPath: boolean): any[] => (itemsPath ? (j.result?.items || []) : (j.result || []));
+async function idBounds(method: string, params: any, idField: string, itemsPath: boolean): Promise<{ min: number; max: number }> {
+  const hi = await call(method, { ...params, order: { [idField]: "DESC" }, start: -1 });
+  const hiArr = rowsOf(hi, itemsPath); if (!hiArr.length) return { min: 0, max: 0 };
+  const lo = await call(method, { ...params, order: { [idField]: "ASC" }, start: -1 });
+  const loArr = rowsOf(lo, itemsPath);
+  return { min: Number(loArr[0][idField]), max: Number(hiArr[0][idField]) };
+}
+async function pageBand(method: string, params: any, lo: number, hi: number, idField: string, itemsPath: boolean): Promise<any[]> {
+  const all: any[] = []; let last = lo;
+  for (;;) { const filter = { ...(params.filter || {}), [`>${idField}`]: last, [`<=${idField}`]: hi };
+    const j = await call(method, { ...params, filter, order: { [idField]: "ASC" }, start: -1 });
+    const batch = rowsOf(j, itemsPath); if (!batch.length) break;
+    all.push(...batch); last = Number(batch[batch.length - 1][idField]);
+    if (batch.length < 50 || last >= hi) break; }
+  return all;
+}
+async function listSharded(method: string, params: any, opts: { idField?: string; itemsPath?: boolean; shards?: number } = {}): Promise<any[]> {
+  const idField = opts.idField || "ID", itemsPath = !!opts.itemsPath, shards = Math.max(1, opts.shards || HCONC);
+  const { min, max } = await idBounds(method, params, idField, itemsPath); if (!max) return [];
+  const base = min - 1, span = max - base, step = Math.ceil(span / shards);
+  const bands: Array<[number, number]> = [];
+  for (let i = 0; i < shards; i++) { const lo = base + i * step, hi = Math.min(base + (i + 1) * step, max); if (lo < hi) bands.push([lo, hi]); }
+  const parts = await Promise.all(bands.map(([lo, hi]) => pageBand(method, params, lo, hi, idField, itemsPath)));
+  return parts.flat();
+}
 
 (async () => {
   const cutoff = SINCE || new Date(Date.now() - WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
@@ -103,6 +131,20 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   // Дата реализации проставлена выше из MOVED_TIME для сделок в стадии «Заказ отправлен» (без тяжёлых доп. запросов).
   console.error(`RECON-SHIPPED\tсделок с датой реализации (в стадии «Заказ отправлен», по MOVED_TIME): ${[...inWin].filter((id) => deal[id].shippedAt).length}`);
   console.error(`Сделок воронки ${CAT} за ${WINDOW_DAYS} дн (с ${cutoff}): ${inWin.size}`);
+  // История стадий (шардировано, best-effort): дата ВХОДА в «Предоплата получена» и «Заказ
+  // отправлен» для ВСЕХ сделок, а не только стоящих на этой стадии сейчас. Чинит «дату
+  // реализации» у ушедших дальше (в «Сделка успешна») и даёт «дату предоплаты» для фильтра.
+  // При любом сбое снимок всё равно пишется: реализация останется из MOVED_TIME, предоплата пустой.
+  try {
+    const hist = await listSharded("crm.stagehistory.list", { entityTypeId: 2, filter: { CATEGORY_ID: CAT } }, { itemsPath: true });
+    const firstInto: Record<string, Record<string, string>> = {};
+    for (const h of hist) { const oid = String(h.OWNER_ID); const nm = stageName[h.STAGE_ID] || ""; const dt = d10(h.CREATED_TIME); if (!oid || !nm || !dt) continue; (firstInto[oid] ||= {}); if (!firstInto[oid][nm] || dt < firstInto[oid][nm]) firstInto[oid][nm] = dt; }
+    let np = 0, ns = 0;
+    for (const id of inWin) { const f = firstInto[id]; if (!f) continue;
+      if (f["Предоплата получена"]) { deal[id].prepayAt = f["Предоплата получена"]; np++; }
+      if (f["Заказ отправлен"]) { deal[id].shippedAt = f["Заказ отправлен"]; ns++; } }
+    console.error(`RECON-HIST\tистория стадий: строк ${hist.length}; дата предоплаты у ${np}, дата реализации (из истории) у ${ns}`);
+  } catch (e) { console.error("RECON-HIST\tошибка истории стадий (даты из MOVED_TIME/пусто):", String(e)); }
 
   // 3) По каждому СП: денежные поля -> инвентаризация (заполненность на карточках, привязанных к окну)
   //    + перенос значений на сделку.
@@ -143,7 +185,7 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   }
 
   // 5) JSON для экрана
-  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, modified: r.modified || null, shippedAt: r.shippedAt || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
+  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, modified: r.modified || null, shippedAt: r.shippedAt || null, prepayAt: r.prepayAt || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
   mkdirSync("economics/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, spStages, inventory: inv, deals }));
 

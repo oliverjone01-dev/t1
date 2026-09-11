@@ -44,6 +44,9 @@ body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),
 #filtToggle{display:inline-flex;align-items:center;gap:6px}
 #filtDot{color:var(--accent,#3DAEC2);font-size:10px;line-height:1}
 .advf{position:absolute;top:calc(100% + 7px);left:0;z-index:80;background:var(--bg-card,#131820);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:11px;box-shadow:0 16px 44px rgba(0,0,0,.55);min-width:300px}
+.advf-hd{display:flex;align-items:center;justify-content:space-between;margin:-2px 0 3px;padding-bottom:9px;border-bottom:1px solid var(--border);font-weight:600;color:var(--ink-2,#c9d4e0);font-size:12px;letter-spacing:.03em;text-transform:uppercase}
+.advf-x{appearance:none;border:1px solid var(--border);background:var(--bg-elev,#1a212b);color:var(--ink-3,#9fb0c0);width:24px;height:24px;line-height:1;border-radius:7px;font-size:17px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;transition:background .12s,color .12s}
+.advf-x:hover{background:var(--bg-card,#131820);color:var(--ink,#eaf1f8)}
 .advf .rev-toggle{display:flex;align-items:center;gap:7px}
 .advf .ctl-lbl{min-width:104px}
 .controls>*{flex-shrink:0}
@@ -253,7 +256,8 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 <div class="controls">
   <div class="filt-wrap"><button id="filtToggle" class="dbtn" data-tip="Настройки: Период по · Выручка · Сумма · Гранулярность · Направление. По умолчанию свёрнуто.">☰ Фильтры<span id="filtDot" hidden>●</span></button>
   <div class="advf" id="advFilters" hidden>
-  <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
+  <div class="advf-hd"><span>Фильтры</span><button id="filtClose" class="advf-x" type="button" aria-label="Закрыть" data-tip="Закрыть">×</button></div>
+  <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created">дате создания</button><button data-b="outcome" class="on">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
   <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу. На раздел 4 «Передача в производство» НЕ влияет: предоплаты и передачи там считаются по событиям стадий и не зависят от способа признания выручки.">?</span></div>
   <div class="rev-toggle"><span class="ctl-lbl">Сумма</span><div class="seg" id="amtSeg"><button data-am="budget" class="on">бюджет</button><button data-am="prepay">предоплата</button></div><span class="qm" data-tip="Чем считаем выручку во ВСЕХ блоках дашборда. «Бюджет» - сумма сделки (поле бюджет). «Предоплата» - фактически полученный аванс (поле «Предоплата» в карточке сделки). Меняет выручку, средний чек, план и динамику - и по отделу, и в разрезе менеджеров. На «потеряно», «в работе» и бюджет-колонки НЕ влияет (это не выручка).">?</span></div>
   <div class="rev-toggle"><span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div></div>
@@ -331,7 +335,7 @@ const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Нека�
 // Расчёты, id{N}. Уволенный/действующий сотрудник - это ЕСТЬ ответственный, сюда не входит.
 const noOwner=n=>/систем|^id\s?\d|^расч[её]т/i.test(n||'');
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',amtMode:'budget',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false,stSort:'age',stAsc:false,stEmp:'',stBiz:'',stAge:'',stStage:''};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',amtMode:'budget',dateBasis:'outcome',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false,stSort:'age',stAsc:false,stEmp:'',stBiz:'',stAge:'',stStage:''};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
@@ -385,8 +389,8 @@ function prodKey(d){return S.dateBasis==='outcome'?(prodDate(d)||d.created):d.cr
 function prodSet(a,b){a=a||S.start;b=b||S.end;
   if(S.dateBasis==='outcome')return flt(AD,true).filter(d=>{const pd=prodDate(d);return pd&&pd>=a&&pd<=b;});
   return flt(AD,true).filter(d=>prodDate(d)&&d.created>=a&&d.created<=b);}
-// Тумблер периода S.dateBasis: 'created' (по дате СОЗДАНИЯ, как было - дефолт) или
-// 'outcome' (по дате ИСХОДА - продажи/потери считаются когда они состоялись).
+// Тумблер периода S.dateBasis: 'outcome' (по дате ИСХОДА - продажи/потери считаются
+// когда они состоялись; ДЕФОЛТ) или 'created' (по дате СОЗДАНИЯ - когорта заведённых).
 // Наборы продаж/потерь в окне [a,b] (по умолчанию текущий период). Уважают фильтры flt().
 function soldSet(a,b){a=a||S.start;b=b||S.end;
   if(S.dateBasis==='outcome')return flt(AD,true).filter(d=>{if(!SOLD(d))return false;const sd=soldDate(d);return sd&&sd>=a&&sd<=b;});
@@ -2818,7 +2822,9 @@ function buildShell(){
   // Бургер «Фильтры»: сворачивает блок настроек (Период по / Выручка / Сумма / Гранулярность / Направление)
   const _ft=document.getElementById('filtToggle'), _af=document.getElementById('advFilters');
   if(_ft&&_af){ _ft.onclick=e=>{ e.stopPropagation(); _af.hidden=!_af.hidden; };
-    document.addEventListener('click',e=>{ if(!_af.hidden && !e.target.closest('#advFilters') && !e.target.closest('#filtToggle')) _af.hidden=true; }); }
+    const _fx=document.getElementById('filtClose'); if(_fx)_fx.onclick=e=>{ e.stopPropagation(); _af.hidden=true; };
+    document.addEventListener('click',e=>{ if(!_af.hidden && !e.target.closest('#advFilters') && !e.target.closest('#filtToggle')) _af.hidden=true; });
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !_af.hidden) _af.hidden=true; }); }
   const _ds=document.getElementById('dateSeg');
   if(_ds)_ds.querySelectorAll('button').forEach(b=>b.onclick=()=>{_ds.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.dateBasis=b.dataset.b;render();});
   document.addEventListener('click',e=>{const sb=e.target.closest('#dwellSort button');if(sb){S.dwellSort=sb.dataset.s;render();}});

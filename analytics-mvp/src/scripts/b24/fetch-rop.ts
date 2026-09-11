@@ -381,12 +381,24 @@ async function main() {
   const reasonMap = enumMap(dealFields[UF.reason]);
   const dirMap = enumMap(dealFields[UF.dir]);
   const leadDirMap = enumMap(leadFields[UF_LEAD_DIR]);
+  // Поле «Предоплата» (сумма полученного аванса) - находим по ТОЧНОМУ названию среди полей
+  // сделки (money), код не хардкодим. Значение money приходит как "61790.00|RUB".
+  let UF_PREPAY = "";
+  for (const [id, def] of Object.entries<any>(dealFields)) {
+    const lab = String(def?.formLabel || def?.listLabel || def?.title || "").trim().toLowerCase();
+    const typ = String(def?.type || "");
+    if (lab === "предоплата" && (typ === "money" || typ === "double" || typ === "integer")) { UF_PREPAY = id; break; }
+  }
+  if (UF_PREPAY) console.log(`Поле «Предоплата» найдено: ${UF_PREPAY} (тип ${dealFields[UF_PREPAY]?.type})`);
+  else console.error("ВНИМАНИЕ: поле «Предоплата» (money) среди полей сделки не найдено - prepayAmt=0 у всех");
+  const moneyNum = (v: any): number => { const n = parseFloat(String(v ?? "").split("|")[0]); return isNaN(n) ? 0 : n; };
   console.log(`Справочники: стадий ${Object.keys(stageName).length}, источников ${Object.keys(sourceName).length}, менеджеров ${users.length}, воронок ${cats.length}`);
 
   // --- Сделки: только воронка DEAL_CATEGORY (49 = Заказы GG RF) ---
   const dealSelect = ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
     "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "LAST_ACTIVITY_TIME", "SOURCE_ID",
-    "CONTACT_ID", "COMPANY_ID", "LEAD_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir];
+    "CONTACT_ID", "COMPANY_ID", "LEAD_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir,
+    ...(UF_PREPAY ? [UF_PREPAY] : [])];
   const dateFilter = DATE_FROM ? { ">=DATE_CREATE": DATE_FROM } : {};
   const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });
   // История стадий -> на каждую сделку массив [STAGE_ID, дата входа], отсортированный.
@@ -423,6 +435,7 @@ async function main() {
       won: /:WON$|^WON$/.test(sid),
       lost: /:(LOSE|APOLOGY)$|^(LOSE|APOLOGY)$/.test(sid),
       budget: Number(d.OPPORTUNITY) || 0,
+      prepayAmt: UF_PREPAY ? moneyNum(d[UF_PREPAY]) : 0,
       created: d10(d.DATE_CREATE),
       activity: d10(d.LAST_ACTIVITY_TIME),
       taskDue: tk ? d10(tk.due) : null,

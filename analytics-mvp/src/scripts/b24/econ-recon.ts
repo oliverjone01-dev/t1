@@ -205,5 +205,39 @@ async function listSharded(method: string, params: any, opts: { idField?: string
   // доля запуска по каждому СП
   for (const sp of spMeta) { const n = deals.filter((d) => d.sps.some((s) => s.key === sp.title)).length; console.error(`SP-LAUNCH\t${sp.title}\t${n}\t${Math.round(100 * n / N)}%`); }
   console.error(`Сделок без товарных строк (первые 60 ID): ${noProd.slice(0, 60).join(",")}`);
+
+  // 7) РАЗВЕДКА ПОЛЕЙ-ДАТ (read-only): под «Срок сдачи» (план по договору) и «Дата
+  //    готовности фактическая» (по цеху сборки) - показать реальные поля + заполненность.
+  try {
+    const isDate = (t: any) => /^(date|datetime)$/i.test(String(t || ""));
+    const hasV = (v: any) => v !== null && v !== undefined && String(v).trim() !== "" && !/^0000-00-00/.test(String(v));
+    const HINT = /срок|сдач|готов|отгруз|завершен|договор|устн|план|дедлайн|deadline/i;
+    const pctN = (n: number, d: number) => d ? Math.round(100 * n / d) : 0;
+    // 7.1 поля-даты сделки
+    const dfsAll: Record<string, any> = (await call("crm.deal.fields", {})).result || {};
+    const dealDate: { id: string; label: string; type: string }[] = [];
+    for (const [id, def] of Object.entries<any>(dfsAll)) if (isDate(def.type)) dealDate.push({ id, label: String(lbl(def)), type: String(def.type) });
+    const ddSel = ["ID", ...dealDate.map((f) => f.id)];
+    const ddRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": cutoff }, select: ddSel, order: { ID: "DESC" } });
+    const NN = ddRows.length; const dfill: Record<string, number> = {};
+    for (const d of ddRows) for (const f of dealDate) if (hasV(d[f.id])) dfill[f.id] = (dfill[f.id] || 0) + 1;
+    console.error(`\nDATE-PROBE\tполя-даты СДЕЛКИ (сделок в окне ${NN}) ===`);
+    dealDate.map((f) => ({ ...f, n: dfill[f.id] || 0 })).sort((a, b) => b.n - a.n)
+      .forEach((f) => console.error(`DEAL-DATE\t${pctN(f.n, NN)}%\t${f.n}/${NN}\t${f.id}\t${f.type}\t${f.label}${HINT.test(f.label) ? "\t<< КАНДИДАТ" : ""}`));
+    // 7.2 поля-даты СП «Производство»
+    for (const sp of sps.filter((s) => /производств/i.test(s.title))) {
+      let fld: Record<string, any>;
+      try { fld = (await call("crm.item.fields", { entityTypeId: sp.etid })).result?.fields || {}; } catch { continue; }
+      const spDate: { id: string; label: string; type: string }[] = [];
+      for (const [id, def] of Object.entries<any>(fld)) if (isDate(def.type)) spDate.push({ id, label: String(lbl(def)), type: String(def.type) });
+      const its = await itemsAll(sp.etid, ["id", "parentId2", ...spDate.map((f) => f.id)]);
+      let linked = 0; const sfill: Record<string, number> = {};
+      for (const it of its) { if (!inWin.has(String(it.parentId2 || ""))) continue; linked++; for (const f of spDate) if (hasV(it[f.id])) sfill[f.id] = (sfill[f.id] || 0) + 1; }
+      console.error(`\nDATE-PROBE\tСП ${sp.etid} «${sp.title}» поля-даты (карточек к окну ${linked}) ===`);
+      spDate.map((f) => ({ ...f, n: sfill[f.id] || 0 })).sort((a, b) => b.n - a.n)
+        .forEach((f) => console.error(`SP-DATE\t${sp.etid}\t${pctN(f.n, linked)}%\t${f.n}/${linked}\t${f.id}\t${f.type}\t${f.label}${HINT.test(f.label) ? "\t<< КАНДИДАТ" : ""}`));
+    }
+  } catch (e) { console.error("DATE-PROBE\tошибка:", String(e)); }
+
   console.error("RECON-DONE");
 })();

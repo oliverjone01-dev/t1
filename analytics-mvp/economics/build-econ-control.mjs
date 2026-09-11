@@ -177,7 +177,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 tr.drow:hover td{background:rgba(255,255,255,.02)}
 tr.drow{cursor:pointer}
 a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-.st{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--elev);border:1px solid var(--border);color:var(--ink-2)}
+.st{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--elev);border:0;color:var(--ink-2)}
 .cell-g{color:var(--up);font-weight:700}.cell-y{color:var(--warn)}.cell-o{color:var(--ink-4)}.cell-dn{color:var(--dn);font-weight:800}
 .nocs{color:var(--ink-3);font-size:11px;border-bottom:1px dashed var(--ink-4)}.nocs:hover{color:var(--ink-2)}
 .exp{color:var(--ink-3);display:inline-block;width:12px}
@@ -239,7 +239,7 @@ tr.izgrp .exp{color:var(--ink-3)}
 #izdtbl .subdeals thead th{position:static;top:auto;background:var(--elev);color:var(--ink-3);font-weight:600;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-size:10.5px;white-space:nowrap}
 #izdtbl .subdeals thead th.num{text-align:right}
 #izdtbl .iznum .art-code{font-size:11px}
-#izdtbl .izsm{font-size:11px;color:var(--ink-2);white-space:nowrap;padding:2px 8px;border:1px solid var(--border);border-radius:999px;display:inline-block}
+#izdtbl .izsm{font-size:11px;color:var(--ink-2);white-space:nowrap;padding:2px 8px;border:0;border-radius:999px;display:inline-block}
 .izgnm .izgc{color:var(--ink-3);font-weight:400}
 tr.izdeal{cursor:pointer}
 tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
@@ -486,7 +486,7 @@ function izdStageInfo(g){ let idx=-1,card=null,key=null;
 // Оттенок по прогрессу: светлее ранние, темнее ближе к закрытию (dark-тема, зелёная шкала).
 function izdShade(p){ const L=Math.round(46-p*32); return {bg:'hsl(162,42%,'+L+'%)', fg:(L>32?'#06231b':'#dff7ee')}; }
 // приглушённый цвет-тег по строке (детерминированно): каждый смарт/стадия - свой оттенок
-function tagStyle(s){ let h=0; s=String(s||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; h=h%360; return 'background:hsla('+h+',42%,50%,.15);border-color:hsla('+h+',42%,58%,.42);color:hsl('+h+',48%,80%)'; }
+function tagStyle(s){ let h=0; s=String(s||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; h=h%360; return 'background:hsla('+h+',42%,50%,.18);color:hsl('+h+',48%,82%)'; }
 // разрыв между готовностью и реализацией: 0 дн - «в срок» (зелёный), >0 - лежало готовым N дн (жёлтый), <0 - аномалия (красный)
 function readyShipGap(e){ if(!e.readyAt||!e.shippedAt) return ''; const g=Math.round((new Date(e.shippedAt+'T00:00:00')-new Date(e.readyAt+'T00:00:00'))/86400000);
   if(g===0) return ' <span class="gapd ok" title="отгрузили в день готовности"></span><span class="gap">в срок</span>';

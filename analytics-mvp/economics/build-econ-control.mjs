@@ -432,7 +432,10 @@ function realMoney(arr){ return (arr||[]).filter(m=>!EXCL.test(m.label)); }
 function spCost(sp){ if(!sp) return null; const f=realMoney(sp.money); if(!f.length) return {v:0,empty:true}; const it=f.find(m=>ITOG.test(m.label)); return {v: it?it.value:f.reduce((a,m)=>a+m.value,0), empty:false, fields:f}; }
 function byKey(d,key){ return d.sps.find(s=>s.key===key); }
 function ssCardsOf(sp){ return sp?(sp.cards||[]).filter(c=>!c.bad&&realMoney(c.money).length>0).length:0; }
-const fmt=v=>v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' млн':v>=1000?Math.round(v/1000)+'к':Math.round(v)+'';
+// Деньги в таблицах - полным числом в рублях (44 900), без «к»: Катя, 14.09.2026.
+// Компактный формат остался только для верхних плиток-итогов, где важна ширина.
+const fmtK=v=>v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' млн':v>=1000?Math.round(v/1000)+'к':Math.round(v)+'';
+const fmt=v=>Math.round(+v||0).toLocaleString('ru-RU');
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // заголовок карточки «<сделка>/<артикул>. <название>» -> чистое название товара
 const cleanNm=s=>String(s||'').replace(/^\\s*\\d+\\s*(?:[\\/\\\\][^.]*)?\\.\\s*/,'').trim();
@@ -672,7 +675,8 @@ const I_SM=6; // одна колонка «Смарты» вместо 7 кол�
 const COLS=['Сделка','Название','Менеджер','Этап','Создана','Тип','Смарты','Услуги ₽','Бюджет','Позиций','Штук','Σ с/с','Маржа','Маржин.%'];
 const I_SVC=7, I_BUD=8, I_POS=9, I_QTY=10, I_SS=11, I_MRG=12, I_MPCT=13, I_COV=14, I_STAT=15;
 // порядок: Сделка,Название,Менеджер,Этап,Создана,Тип,Смарты,Услуги,Бюджет,Позиций,Штук,Σсс,Маржа,Маржин%,Полнота,Статус
-const COLW=[56,180,110,92,64,96,112,64,84,52,46,66,90,66];
+// Денежные колонки «Сделок» под полные рубли: Услуги 64->96, Бюджет 84->104, Σ с/с 66->104, Маржа 90->104.
+const COLW=[70,180,110,92,64,96,112,96,104,52,52,104,104,66];
 function sortVal(d,i){
   if(i===0)return d.id; if(i===1)return (d.title||'').toLowerCase(); if(i===2)return (d.mgr||'').toLowerCase();
   if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return (d.assort||'').toLowerCase();
@@ -924,10 +928,10 @@ function renderSummary(base){
     +tile('услуги есть',svcCnt,pc(svcCnt),'','сделок с доставкой/монтажом/замером')
     +tile('Σ позиций',pos,'','','наименований (товарных строк) по выборке')
     +tile('Σ штук',qty,'','','суммарное количество изделий по выборке')
-    +tile('Σ '+_sumL,fmt(bud),'','','доход по '+budN+' сделкам с суммой')
-    +tile('Σ услуги',fmt(svc),'','','по '+svcCnt+' сделкам')
-    +tile('Σ с/с',fmt(ss),'','','затраты по '+ssCnt+' сделкам с с/с')
-    +tile('Σ маржа',fmt(mrg),'','','по '+mCnt+' сделкам, где есть и цена, и с/с')
+    +tile('Σ '+_sumL,fmtK(bud),'','','доход по '+budN+' сделкам с суммой')
+    +tile('Σ услуги',fmtK(svc),'','','по '+svcCnt+' сделкам')
+    +tile('Σ с/с',fmtK(ss),'','','затраты по '+ssCnt+' сделкам с с/с')
+    +tile('Σ маржа',fmtK(mrg),'','','по '+mCnt+' сделкам, где есть и цена, и с/с')
     +tile('маржин-ть',(mpct!==null?mpct+'%':'-'),'','','Σ маржа / Σ '+_sumL+' по '+mCnt+' сделкам');
 }
 function matchQuick(d){ if(!quick)return true; if(quick==='hasss')return classify(d)!=='noss'; return classify(d)===quick; }
@@ -1043,7 +1047,9 @@ function buildIzd(list){
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
 const ICOLS=['Номер заказа','Изделие','Категория','Менеджер','Создана','Дата готовности','Дата реализации','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[92,104,88,96,84,92,110,70,52,60,70,84,98,102,62,94,70,74];
+// Денежные колонки расширены под полные суммы в рублях (формат без «к», 14.09.2026):
+// Цена 60->96, Σ с/с 62->104 (+значок источника), Выручка 94->104, Маржа 70->104, Кол-во 52->58.
+const ICOLW=[92,104,88,96,84,92,110,70,72,96,70,84,98,102,104,104,104,74];
 const INUM=[7,8,9,14,15,16,17];
 let izSortIdx=15, izSortDir=-1;
 const izStageSel=new Set(); // мультивыбор стадий сделки в фильтре колонки «Стадия сделки»
@@ -1055,6 +1061,8 @@ const _igv=id=>{const el=document.getElementById(id);return el?el.value:'';};
 const izNo=e=>e.art||e.ns||'';
 function izVal(e,i){switch(i){case 0:return izNo(e).toLowerCase();case 1:return (e.nm||'').toLowerCase();case 2:return (e.cat||'').toLowerCase();case 3:return (e.mgr||'').toLowerCase();case 4:return e.dmax||'';case 5:return e.readyAt||'';case 6:return e.shippedAt||'';case 7:return e.deals.length;case 8:return e.qty;case 9:return e.price;case 10:return e.smarts.size;case 11:return e.sp;case 12:return e.sp;case 13:return (e.dealStage||'').toLowerCase();case 14:return e.ss;case 15:return e.rev;case 16:return e.margin;case 17:return e.mpct==null?-1:e.mpct;}return 0;}
 function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e).toLowerCase().startsWith(fn))return false;
+  // «Сделок / №»: поиск по номеру сделки (было «минимум по числу сделок» - бесполезно, Катя 14.09.2026)
+  const fdl=_igv('ifDeal').replace(/[^0-9]/g,''); if(fdl&&!((e.deals||[]).some(it=>String(it.d.id).includes(fdl))))return false;
   const ft=_igv('ifName').trim().toLowerCase(); if(ft&&!((e.nm||'').toLowerCase().includes(ft)))return false;
   if(izCatSel.size && !((e.cats||[]).flatMap(c=>String(c).split(',').map(s=>s.trim())).some(c=>izCatSel.has(c))))return false;
   if(izMgrSel.size && !((e.mgrs||[]).some(m=>izMgrSel.has(m))))return false;
@@ -1071,8 +1079,8 @@ function izPass(e){ const fn=_igv('ifNum').trim().toLowerCase(); if(fn&&!izNo(e)
   const fshf=_igv('ifShipFrom').trim(); if(fshf&&!((e.shippedAt||'')>=fshf))return false;
   const fsht=_igv('ifShipTo').trim(); if(fsht&&!(e.shippedAt&&e.shippedAt<=fsht))return false;
   const mn=(id,v)=>{const s=_igv(id).replace(/[^0-9.\-]/g,'');if(s===''||isNaN(+s))return true;return v!=null&&v>=+s;};
-  return mn('ifMin_7',e.deals.length)&&mn('ifMin_8',e.qty)&&mn('ifMin_9',e.price)&&mn('ifMin_14',e.ss)&&mn('ifMin_15',e.rev)&&mn('ifMin_16',e.margin)&&mn('ifMin_17',e.mpct==null?null:e.mpct*100); }
-function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<details class="msel fmsel" id="mselIzCat"><summary id="izCatSum" title="фильтр по категории товара (мультивыбор)">категория</summary><div class="msel-pop msel-fixed" id="izCatPop"></div></details>'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<button class="fcx calbtn" id="ifDateBtn" title="создана: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifDateFrom"><input type="hidden" id="ifDateTo">'; if(i===5)return '<button class="fcx calbtn" id="ifReadyBtn" title="дата готовности: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifReadyFrom"><input type="hidden" id="ifReadyTo">'; if(i===6)return '<button class="fcx calbtn" id="ifShipBtn" title="дата реализации: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifShipFrom"><input type="hidden" id="ifShipTo">'; if(i===11)return '<details class="msel fmsel" id="mselIzSmart"><summary id="izSmartSum" title="фильтр по смарт-процессу (мультивыбор)">смарт</summary><div class="msel-pop msel-fixed" id="izSmartPop"></div></details>'; if(i===12)return '<details class="msel fmsel" id="mselIzEtap"><summary id="izEtapSum" title="фильтр по этапу (мультивыбор)">этап</summary><div class="msel-pop msel-fixed" id="izEtapPop"></div></details>'; if(i===13)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
+  return mn('ifMin_8',e.qty)&&mn('ifMin_9',e.price)&&mn('ifMin_14',e.ss)&&mn('ifMin_15',e.rev)&&mn('ifMin_16',e.margin)&&mn('ifMin_17',e.mpct==null?null:e.mpct*100); }
+function izFcell(i){ if(i===0)return '<input class="fcx" id="ifNum" placeholder="НС/НМ/С">'; if(i===1)return '<input class="fcx" id="ifName" placeholder="фильтр">'; if(i===2)return '<details class="msel fmsel" id="mselIzCat"><summary id="izCatSum" title="фильтр по категории товара (мультивыбор)">категория</summary><div class="msel-pop msel-fixed" id="izCatPop"></div></details>'; if(i===3)return '<details class="msel fmsel" id="mselIzMgr"><summary id="izMgrSum" title="фильтр по ответственному менеджеру (мультивыбор)">менеджер</summary><div class="msel-pop msel-fixed" id="izMgrPop"></div></details>'; if(i===4)return '<button class="fcx calbtn" id="ifDateBtn" title="создана: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifDateFrom"><input type="hidden" id="ifDateTo">'; if(i===5)return '<button class="fcx calbtn" id="ifReadyBtn" title="дата готовности: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifReadyFrom"><input type="hidden" id="ifReadyTo">'; if(i===6)return '<button class="fcx calbtn" id="ifShipBtn" title="дата реализации: выбрать дату или диапазон (календарь)">дата</button><input type="hidden" id="ifShipFrom"><input type="hidden" id="ifShipTo">'; if(i===11)return '<details class="msel fmsel" id="mselIzSmart"><summary id="izSmartSum" title="фильтр по смарт-процессу (мультивыбор)">смарт</summary><div class="msel-pop msel-fixed" id="izSmartPop"></div></details>'; if(i===12)return '<details class="msel fmsel" id="mselIzEtap"><summary id="izEtapSum" title="фильтр по этапу (мультивыбор)">этап</summary><div class="msel-pop msel-fixed" id="izEtapPop"></div></details>'; if(i===13)return '<details class="msel fmsel" id="mselStage"><summary id="stageSum" title="фильтр по стадии сделки (мультивыбор)">стадия</summary><div class="msel-pop msel-fixed" id="stagePop"></div></details>'; if(i===7)return '<input class="fcx fcn" id="ifDeal" placeholder="№ сделки" title="поиск по номеру сделки: введите 99961 или часть номера">'; if(INUM.includes(i))return '<input class="fcx fcn" id="ifMin_'+i+'" placeholder="≥" title="минимум">'; return ''; }
 function izHeadRow(){ document.getElementById('ihtr').innerHTML=ICOLS.map((h,i)=>'<th class="'+(INUM.includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===izSortIdx?' <span class="ar">'+(izSortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#ihtr th').forEach(th=>th.addEventListener('click',()=>{const i=+th.dataset.i;if(i===izSortIdx)izSortDir=-izSortDir;else{izSortIdx=i;izSortDir=((i===0||i===1||i===2||i===3)?1:-1);}izHeadRow();render();})); }
 // карта Смарт -> его этапы (по фактическим данным, теми же izdStageInfo, что дают значения колонок)
@@ -1084,7 +1092,7 @@ function izHead(){ const tbl=document.getElementById('izdtbl'); if(tbl.querySele
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+ICOLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
   tbl.querySelector('thead').innerHTML='<tr id="ihtr"></tr><tr id="iftr" class="frow">'+ICOLS.map((h,i)=>'<td>'+izFcell(i)+'</td>').join('')+'</tr>';
   izHeadRow();
-  ['ifNum','ifName','ifMin_7','ifMin_8','ifMin_9','ifMin_14','ifMin_15','ifMin_16','ifMin_17'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
+  ['ifNum','ifName','ifDeal','ifMin_8','ifMin_9','ifMin_14','ifMin_15','ifMin_16','ifMin_17'].forEach(id=>{const el=document.getElementById(id);if(el){el.addEventListener('input',render);el.addEventListener('change',render);}});
   // кнопки-календари в колонках «Создана», «Дата готовности» и «Дата реализации» (дата или диапазон)
   const _colCal=(btnId,fromId,toId,label)=>{ const btn=document.getElementById(btnId); if(!btn)return; const baseTip=btn.getAttribute('title')||'';
     const _mm=s=>s.slice(8,10)+'.'+s.slice(5,7), _yy=s=>s.slice(2,4);

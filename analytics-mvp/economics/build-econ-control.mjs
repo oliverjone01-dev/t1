@@ -293,8 +293,9 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
 #izdtbl tfoot td{position:sticky;bottom:0;background:#111a24;border-top:2px solid var(--accent);font-weight:700;color:var(--ink);z-index:6;padding:6px 8px}
 .smcell{white-space:nowrap;overflow:visible}
 /* квадратики смартов, из которых сложилась Σ с/с: прямые углы, цвет смарта */
-.sssq{white-space:nowrap;margin-left:5px}
-.sssq i{display:inline-block;width:9px;height:9px;border-radius:0;margin-left:2px;vertical-align:middle;border:1px solid rgba(255,255,255,.18)}
+/* буквы источника Σ с/с: каждая в рамке цветом своего смарта, углы прямые */
+.ss-src{white-space:nowrap;margin-left:5px}
+.ss-src i{display:inline-block;font-style:normal;font-size:9px;font-weight:700;line-height:11px;min-width:11px;text-align:center;padding:0 2px;margin-left:2px;border-radius:0;border:1px solid rgba(255,255,255,.28);vertical-align:middle}
 .smseg{display:inline-block;box-sizing:border-box;width:9px;height:9px;margin-right:2px;border-radius:2px;border:1px solid transparent;vertical-align:middle;background:rgba(200,205,215,.10)}
 .smoff{background:rgba(200,205,215,.10)}
 .smon{background:rgba(200,205,215,.42)}
@@ -517,7 +518,7 @@ function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
         if(e&&e.cards&&e.cards.length) return '<td class="num"><a class="nocs" href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">нет с/с</a></td>';
         return '<td class="num cell-o">·</td>'; }).join('');
       const ssTot=((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0)+((g.sp['Закупка']&&g.sp['Закупка'].vB)||0);
-      const _si=izdStageInfo(g); const _pr=izPrice(d,g), _q=g.qty||0, _rev=_pr*_q; tQty+=_q; tSs+=ssTot; tRev+=_rev;
+      const _si=izdStageInfo(g); const _pr=izPrice(d,g), _q=izQty(d,g), _rev=_pr*_q; tQty+=_q; tSs+=ssTot; tRev+=_rev;
       inner+='<tr>'
         +'<td class="pnm"><span class="art-code">'+esc(g.art||g.ns||('#'+g.firstId))+'</span></td>'
         +'<td class="pnm" title="'+esc(g.nm||'')+'">'+esc(cleanNm(g.nm).slice(0,50))+'</td>'
@@ -781,7 +782,16 @@ function goodArt(a){ a=String(a||'').trim(); return a.length>=2 && !/-\s*$/.test
 // Якорные коды изделия (НМ26-112, НС26-330, С26-1244, М26-4155) из артикула и заголовка.
 // Без \\b: в JS граница слова не срабатывает перед кириллической буквой, «НМ26-112» не находился.
 const IZCODE=/([А-Яа-яA-Za-z]{1,3}\\d{2}-\\d{1,5})/g;
-function izCodes(v){ const out=new Set(); for(const t of [v.art||'', v.nm||'']) for(const m of String(t).matchAll(IZCODE)) out.add(m[1].toUpperCase()); return out; }
+// Перечисление нескольких изделий в одном поле артикула («С26-1136, С26-1137, С26-1137»)
+// НЕ является ключом склейки: ФЕНИКС поймал на этом сделку 96565, где зеркало слиплось с
+// двумя душевыми и унесло 21 135 руб чужой себестоимости. Признак перечисления - два и
+// более кода С ОДНИМ префиксом. У составного кода одного товара префиксы разные
+// («М26-4155 GGT-03-1-3-R-140-170-90//НМ26-112» = М + НМ, сделка 99961), он остаётся рабочим.
+const izPrefix=c=>String(c).replace(/\\d.*$/,'');
+function izArtList(a){ const cs=[...String(a||'').matchAll(IZCODE)].map(m=>m[1].toUpperCase());
+  if(cs.length<2)return false; const ps=new Set(cs.map(izPrefix)); return ps.size===1; }
+function izCodes(v){ const out=new Set(); if(izArtList(v.art))return out;
+  for(const t of [v.art||'', v.nm||'']) for(const m of String(t).matchAll(IZCODE)) out.add(m[1].toUpperCase()); return out; }
 function izdKey(c){ if(c.art&&goodArt(c.art)) return 'art:'+c.art; const ns=nsCode(c.nm); if(ns) return 'ns:'+ns; const sg=nameSig(c.nm); if(sg) return 'sig:'+sg; return 'id:'+c.id; }
 // изделия сделки: группируем карточки СП по артикулу, с/с по каждому смарту
 // Разбор сделки на изделия не меняется в рамках сборки, поэтому считаем один раз.
@@ -816,7 +826,9 @@ function izdeliaCalc(d){
   // Закупка - «НМ26-112». Это один стол, но izdKey разводил его на две строки: количество
   // становилось 2 шт вместо 1, с/с рвалась (8 639 + 2 000), цена находилась только у одной.
   // Ключ склейки - ЯКОРНЫЙ КОД изделия (НМ26-112, НС26-330, С26-1244), а не название: у разных
-  // изделий коды разные, поэтому ложных склеек по габаритам или цвету тут быть не может.
+  // изделий коды разные, поэтому склейка по габаритам или цвету, как в завёрнутой версии,
+  // тут невозможна. Измеренное ограничение: карточка, перечисляющая несколько кодов одного
+  // префикса, из склейки исключается (izArtList) - там код означает не этот товар.
   // Склеиваем только те группы, у которых ВСЕ участники делят один и тот же код.
   { const ents=Object.entries(g); const cds=ents.map(([,v])=>izCodes(v));
     const cnt={}; cds.forEach(set=>set.forEach(c=>cnt[c]=(cnt[c]||0)+1));
@@ -1021,6 +1033,8 @@ const izSS=g=>{ const K=_vbOf(g,'Калькулятор GG'); if(K)return K;
 // из каких смартов взята с/с (тот же приоритет): К=Калькулятор, Р=Расчёт, З=Закупка, П=Производство.
 const SSABBR={'Калькулятор GG':'К','Производство  GG':'П','Расчёт':'Р','Закупка':'З'};
 const SSFULL={'К':'Калькулятор GG','Р':'Расчёт','З':'Закупка','П':'Производство GG'};
+// ключ смарта из ORDER для буквы источника: в ORDER у «Производство  GG» два пробела
+const SSKEY={'К':'Калькулятор GG','Р':'Расчёт','З':'Закупка','П':'Производство  GG'};
 function izSsSrcOf(g){ if(_vbOf(g,'Калькулятор GG'))return ['К'];
   const R=_vbOf(g,'Расчёт'),Z=_vbOf(g,'Закупка'); if(R||Z){const s=[];if(R)s.push('Р');if(Z)s.push('З');return s;}
   if(_vbOf(g,'Производство  GG'))return ['П'];
@@ -1035,12 +1049,30 @@ function izSsSrcOf(g){ if(_vbOf(g,'Калькулятор GG'))return ['К'];
 //  2) если на одну строку претендуют два изделия сделки, цену не получает никто: раньше
 //     каждое брало её себе, и одна строка CRM разбиралась дважды.
 function izSigs(g){ const out=new Set(); for(const n of ((g.nms&&g.nms.length)?g.nms:[g.nm])){ const q=nameSig(n); if(q)out.add(q); } return out; }
-const izPrice=(d,g)=>{ const sigs=izSigs(g); if(!sigs.size)return 0; const its=izdelia(d);
-  for(const p of goodRows(d)){ const ps=nameSig(p.name); if(!ps||!sigs.has(ps))continue;
-    const pr=+p.price||0; if(pr<=1)continue;
-    if(its.some(o=>o!==g&&izSigs(o).has(ps)))continue;
-    return pr; }
-  return 0; };
+function izRowOf(d,g){ const sigs=izSigs(g); const rows=goodRows(d); const its=izdelia(d);
+  let conflict=false;
+  // 1) точное совпадение названия карточки и товарной строки
+  if(sigs.size) for(const p of rows){ const ps=nameSig(p.name); if(!ps||!sigs.has(ps))continue;
+    if((+p.price||0)<=1)continue;
+    if(its.some(o=>o!==g&&izSigs(o).has(ps))){conflict=true;continue;}
+    return {p,sure:true}; }
+  // 2) в сделке ровно одно изделие и ровно одна товарная строка, и количество совпадает.
+  // Выбирать не из чего, поэтому это не угадывание. Сделка 99671: карточка подписана
+  // «...гладкое золото, зеркало 4мм, б/цв, D700*40», строка - «...гладкое золото, D700*40»,
+  // названия расходятся вставкой в середине, а товар один и бюджет 16 300 = цене строки.
+  // Кол-во сверяем жёстко: именно на нём прошлая версия выдумала выручку (96845: карточка
+  // 31 шт против строки 7 шт дала 898 752 руб при бюджете 278 944).
+  if(its.length===1&&rows.length===1){ const r=rows[0];
+    if((+r.price||0)>1&&(+g.qty||0)>0&&(+g.qty||0)===(+r.qty||0)) return {p:r,sure:false}; }
+  // цена есть в CRM, но на строку претендует несколько изделий - молча прятать это нельзя
+  return conflict?{conflict:true}:null; }
+const izPrice=(d,g)=>{ const r=izRowOf(d,g); return (r&&r.p)?(+r.p.price||0):0; };
+// количество для денег: из СОПОСТАВЛЕННОЙ товарной строки CRM, а не из карточки смарта.
+// Карточка считает производственные единицы и расходится с проданным (94117: карточка 2,
+// строка 1 шт на 143 840 руб - отсюда брались деньги, которых в CRM нет).
+const izQty=(d,g)=>{ const r=izRowOf(d,g); const rq=(r&&r.p)?(+r.p.qty||0):0; return rq||(+g.qty||0); };
+// цена подтянута по единственности, а не по названию: помечаем, чтобы это было видно
+const izPriceSure=(d,g)=>{ const r=izRowOf(d,g); return !r||!r.p||r.sure; };
 // на каких смарт-процессах у изделия есть карточки (сейчас в работе)
 const izSmartsOf=g=>ORDER.filter(k=>g.sp[k]&&g.sp[k].cards&&g.sp[k].cards.length);
 const izDots=arr=>'<span class="smcell">'+ORDER.map(k=>smSeg(k,arr.includes(k),false,false)).join('')+'</span>';
@@ -1058,16 +1090,19 @@ function izMpct(mpct){ if(mpct==null)return '<td class="num"><span class="cell-o
 const SS_MIN=1000;
 function izSsSrcTag(srcSet){ if(!srcSet||!srcSet.size)return '';
   const ord=['К','Р','З','П'].filter(a=>srcSet.has(a)); if(!ord.length)return '';
-  const full=ord.map(a=>SSFULL[a]).join(' + ');
-  return ' <span class="ss-src" title="с/с взята из смарт-процесса: '+esc(full)+'">'+esc(ord.join('+'))+'</span>';
+  // каждая буква - в своей рамке цветом смарта; буквы берутся из ssSrc, то есть из ИСТОЧНИКА
+  // итоговой Σ с/с, а не из «где с/с вообще внесена»: множества расходятся на 327 строках из 657
+  return ' <span class="ss-src">'+ord.map(a=>'<i style="'+tagStyle(SSKEY[a]||SSFULL[a])+'" title="с/с взята из смарта: '+esc(SSFULL[a])+'">'+esc(a)+'</i>').join('')+'</span>';
 }
-// квадратики тех смарт-процессов, что внесли с/с: заменяют буквенный тег «Р+З» наглядной меткой
-function izSsSquares(e){ if(!e||!e.smartsSS||!e.smartsSS.size)return '';
-  const ks=ORDER.filter(k=>e.smartsSS.has(k)); if(!ks.length)return '';
-  return ' <span class="sssq">'+ks.map(k=>'<i style="'+tagStyle(k)+'" title="с/с внесена в смарте: '+esc(SMFULL[k]||k)+'"></i>').join('')+'</span>'; }
+// ячейка цены: жёлтая с подсказкой, если цена взята по единственности товарной строки
+function izPriceCell(e){ if(!e.price)return e.priceConflict
+    ? '<td class="num"><span class="cell-y" title="цена в CRM есть, но на одну товарную строку претендует несколько изделий сделки: какому именно принадлежит сумма, по данным не определить. Разведите названия карточек в Bitrix24">спор</span></td>'
+    : '<td class="num"><span class="cell-o">-</span></td>';
+  if(e.priceSure)return '<td class="num">'+fmt(e.price)+'</td>';
+  return '<td class="num cell-y" title="цена взята из единственной товарной строки сделки: изделие в сделке одно, строка одна, количество совпадает. Названия карточки и строки расходятся - проверьте в Bitrix24">'+fmt(e.price)+'</td>'; }
 function izSsCell(ss,srcSet,e){
   if(!ss)return '<td class="num ss-bad" title="нет данных по себестоимости - калькулятор GG не заполнен">нет с/с</td>';
-  const sq=izSsSquares(e); const tag=sq||izSsSrcTag(srcSet);
+  const tag=izSsSrcTag(srcSet);
   if(ss<SS_MIN)return '<td class="num ss-bad" title="с/с '+fmt(ss)+' ₽ - недостоверно мало для партии, проверьте калькулятор GG">'+fmt(ss)+tag+'</td>';
   return '<td class="num">'+fmt(ss)+tag+'</td>';
 }
@@ -1085,11 +1120,14 @@ function buildIzd(list){
     izSsSrcOf(g).forEach(a=>e.ssSrc.add(a));
     if(d.created){ if(!e.dmin||d.created<e.dmin)e.dmin=d.created; if(!e.dmax||d.created>e.dmax)e.dmax=d.created; }
     if((g.nm||'').length>(e.nm||'').length)e.nm=g.nm; if(!e.art&&g.art)e.art=g.art; if(!e.ns&&g.ns)e.ns=g.ns;
-    const ss=izSS(g),price=izPrice(d,g),qty=g.qty||0,rev=price*qty;
+    const ss=izSS(g),price=izPrice(d,g),qty=izQty(d,g),rev=price*qty;
+    if(price&&!izPriceSure(d,g))e.priceUnsure=true;
+    const _r=izRowOf(d,g); if(!price&&_r&&_r.conflict)e.priceConflict=true;
+    if(_r&&_r.p&&(+g.qty||0)&&(+_r.p.qty||0)&&(+g.qty||0)!==(+_r.p.qty||0))e.qtyWarn=(+g.qty||0);
     e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>{e.smarts.add(k); if(g.sp[k]&&g.sp[k].vB>0)e.smartsSS.add(k);});
     e.deals.push({d,qty,ss,price,rev,g}); } }
   const arr=[...M.values()];
-  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catCnt={}; const shipArr=[]; const readyArr=[]; const mgrCnt={};
+  for(const e of arr){ e.price=e.qty?Math.round(e.rev/e.qty):0; e.priceSure=!e.priceUnsure; e.margin=e.rev-e.ss; e.mpct=e.rev>0?e.margin/e.rev:null; e.sp=-1; let best=null,bestD=null; const stSet=new Set(); const catCnt={}; const shipArr=[]; const readyArr=[]; const mgrCnt={};
     for(const it of e.deals){ if(it.d.stage)stSet.add(it.d.stage); if(it.d.assort)catCnt[it.d.assort]=(catCnt[it.d.assort]||0)+1; if(it.d.shippedAt)shipArr.push(it.d.shippedAt); if(it.d.readyAt)readyArr.push(it.d.readyAt); if(it.d.mgr)mgrCnt[it.d.mgr]=(mgrCnt[it.d.mgr]||0)+1; const si=izdStageInfo(it.g);if(si&&si.prog>e.sp){e.sp=si.prog;best=si;bestD=it.d;}}
     e.smartName=best?best.smart:''; e.stageName=best?best.name:'';
     e.dealStage=bestD&&bestD.stage?bestD.stage:(e.deals[0]&&e.deals[0].d.stage||''); e.dealStages=[...stSet];
@@ -1243,7 +1281,7 @@ function renderIzd(base){
       +'<td class="izship" title="'+(e.shippedAt?'дата перехода в «Заказ отправлен»'+(e.shippedN>1?' (последняя из '+e.shippedN+' сделок)':''):'сделка ещё не переходила в «Заказ отправлен»')+'">'+(e.shippedAt?ruD(e.shippedAt)+(e.shippedN>1?' <span class="izgc">+'+(e.shippedN-1)+'</span>':'')+readyShipGap(e):'<span class="cell-o">не наступила</span>')+'</td>'
       +'<td class="num">'+(e.deals.length===1?'<span class="dno" title="номер сделки '+e.deals[0].d.id+' (без ссылки)">'+e.deals[0].d.id+'</span>':'<span title="сделок: '+e.deals.length+' - номера видны при разворачивании">'+e.deals.length+' сд.</span>')+'</td>'
       +'<td class="num"><b>'+(e.qty||'-')+'</b></td>'
-      +'<td class="num">'+(e.price?fmt(e.price):'<span class="cell-o">-</span>')+'</td>'
+      +izPriceCell(e)
       +'<td>'+izBar(e)+'</td>'
       +'<td>'+_izsp.smart+'</td>'
       +'<td>'+_izsp.badge+'</td>'

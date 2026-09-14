@@ -1,0 +1,5 @@
+Сюда кладутся исходные PNG из GPT Image 2.0 по брифу GRAPHICS_BRIEF.md.
+Имена без расширения: hero-bg, cat-01-railing, cat-02-door-frame, cat-03-shower,
+cat-04-swing, cat-05-sliding, cat-06-partition, warehouse-parts,
+glass-processing, og-cover.
+Дальше: python3 prepare-images.py

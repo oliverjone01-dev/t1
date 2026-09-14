@@ -985,7 +985,6 @@
 {"d":"2026-09-09","sku":"GGT-03-2-2-M-80","accruals":54742,"commission":-23813,"delivery":-3161,"acquiring":-1533,"storage":0,"otherSvc":-3794,"amount":22442,"platform":"ym"}
 {"d":"2026-09-09","sku":"GGT-03-2-5-E-16080-K","accruals":127870,"commission":-59698,"delivery":0,"acquiring":-3581,"storage":0,"otherSvc":-9116,"amount":55475,"platform":"ym"}
 {"d":"2026-09-09","sku":"GGT-03-2-5-L-100-K","accruals":115963,"commission":-53502,"delivery":0,"acquiring":-3247,"storage":0,"otherSvc":-7880,"amount":51333,"platform":"ym"}
-{"d":"2026-09-09","sku":"GGT-35-3-3-100-180","accruals":89505,"commission":-36552,"delivery":0,"acquiring":-2506,"storage":0,"otherSvc":-7149,"amount":43298,"platform":"ym"}
 {"d":"2026-09-10","sku":"GGM-20-2","accruals":60370,"commission":-30092,"delivery":0,"acquiring":-1691,"storage":0,"otherSvc":-3414,"amount":25173,"platform":"ym"}
 {"d":"2026-09-10","sku":"GGM-24-1","accruals":46060,"commission":-22569,"delivery":-1836,"acquiring":-1290,"storage":0,"otherSvc":-2432,"amount":17933,"platform":"ym"}
 {"d":"2026-09-10","sku":"GGT-03-1-3-M-60","accruals":52020,"commission":-24970,"delivery":-2612,"acquiring":-1457,"storage":0,"otherSvc":-3433,"amount":19548,"platform":"ym"}
@@ -1005,3 +1004,6 @@
 {"d":"2026-09-12","sku":"GGT-03-3-1-M-100","accruals":59047,"commission":-27021,"delivery":0,"acquiring":0,"storage":0,"otherSvc":-3687,"amount":28339,"platform":"ym"}
 {"d":"2026-09-12","sku":"GGT-03-3-3-E-16080","accruals":84028,"commission":-37792,"delivery":0,"acquiring":0,"storage":0,"otherSvc":-4149,"amount":42087,"platform":"ym"}
 {"d":"2026-09-13","sku":"GGT-47-3-5-80","accruals":46800,"commission":0,"delivery":0,"acquiring":0,"storage":0,"otherSvc":0,"amount":46800,"platform":"ym"}
+{"d":"2026-09-14","sku":"GGT-35-2-2-100-180","accruals":100150,"commission":0,"delivery":0,"acquiring":0,"storage":0,"otherSvc":0,"amount":100150,"platform":"ym"}
+{"d":"2026-09-14","sku":"GGT-35-3-3-100-180","accruals":89505,"commission":-36552,"delivery":0,"acquiring":-2506,"storage":0,"otherSvc":-7149,"amount":43298,"platform":"ym"}
+{"d":"2026-09-14","sku":"GGTP-20-1","accruals":21065,"commission":0,"delivery":0,"acquiring":0,"storage":0,"otherSvc":0,"amount":21065,"platform":"ym"}

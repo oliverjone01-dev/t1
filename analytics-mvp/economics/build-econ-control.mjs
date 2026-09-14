@@ -432,7 +432,10 @@ function realMoney(arr){ return (arr||[]).filter(m=>!EXCL.test(m.label)); }
 function spCost(sp){ if(!sp) return null; const f=realMoney(sp.money); if(!f.length) return {v:0,empty:true}; const it=f.find(m=>ITOG.test(m.label)); return {v: it?it.value:f.reduce((a,m)=>a+m.value,0), empty:false, fields:f}; }
 function byKey(d,key){ return d.sps.find(s=>s.key===key); }
 function ssCardsOf(sp){ return sp?(sp.cards||[]).filter(c=>!c.bad&&realMoney(c.money).length>0).length:0; }
-const fmt=v=>v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' млн':v>=1000?Math.round(v/1000)+'к':Math.round(v)+'';
+// Деньги в таблицах - полным числом в рублях (44 900), без «к»: Катя, 14.09.2026.
+// Компактный формат остался только для верхних плиток-итогов, где важна ширина.
+const fmtK=v=>v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' млн':v>=1000?Math.round(v/1000)+'к':Math.round(v)+'';
+const fmt=v=>Math.round(+v||0).toLocaleString('ru-RU');
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // заголовок карточки «<сделка>/<артикул>. <название>» -> чистое название товара
 const cleanNm=s=>String(s||'').replace(/^\\s*\\d+\\s*(?:[\\/\\\\][^.]*)?\\.\\s*/,'').trim();
@@ -672,7 +675,8 @@ const I_SM=6; // одна колонка «Смарты» вместо 7 кол�
 const COLS=['Сделка','Название','Менеджер','Этап','Создана','Тип','Смарты','Услуги ₽','Бюджет','Позиций','Штук','Σ с/с','Маржа','Маржин.%'];
 const I_SVC=7, I_BUD=8, I_POS=9, I_QTY=10, I_SS=11, I_MRG=12, I_MPCT=13, I_COV=14, I_STAT=15;
 // порядок: Сделка,Название,Менеджер,Этап,Создана,Тип,Смарты,Услуги,Бюджет,Позиций,Штук,Σсс,Маржа,Маржин%,Полнота,Статус
-const COLW=[56,180,110,92,64,96,112,64,84,52,46,66,90,66];
+// Денежные колонки «Сделок» под полные рубли: Услуги 64->96, Бюджет 84->104, Σ с/с 66->104, Маржа 90->104.
+const COLW=[70,180,110,92,64,96,112,96,104,52,52,104,104,66];
 function sortVal(d,i){
   if(i===0)return d.id; if(i===1)return (d.title||'').toLowerCase(); if(i===2)return (d.mgr||'').toLowerCase();
   if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return (d.assort||'').toLowerCase();
@@ -924,10 +928,10 @@ function renderSummary(base){
     +tile('услуги есть',svcCnt,pc(svcCnt),'','сделок с доставкой/монтажом/замером')
     +tile('Σ позиций',pos,'','','наименований (товарных строк) по выборке')
     +tile('Σ штук',qty,'','','суммарное количество изделий по выборке')
-    +tile('Σ '+_sumL,fmt(bud),'','','доход по '+budN+' сделкам с суммой')
-    +tile('Σ услуги',fmt(svc),'','','по '+svcCnt+' сделкам')
-    +tile('Σ с/с',fmt(ss),'','','затраты по '+ssCnt+' сделкам с с/с')
-    +tile('Σ маржа',fmt(mrg),'','','по '+mCnt+' сделкам, где есть и цена, и с/с')
+    +tile('Σ '+_sumL,fmtK(bud),'','','доход по '+budN+' сделкам с суммой')
+    +tile('Σ услуги',fmtK(svc),'','','по '+svcCnt+' сделкам')
+    +tile('Σ с/с',fmtK(ss),'','','затраты по '+ssCnt+' сделкам с с/с')
+    +tile('Σ маржа',fmtK(mrg),'','','по '+mCnt+' сделкам, где есть и цена, и с/с')
     +tile('маржин-ть',(mpct!==null?mpct+'%':'-'),'','','Σ маржа / Σ '+_sumL+' по '+mCnt+' сделкам');
 }
 function matchQuick(d){ if(!quick)return true; if(quick==='hasss')return classify(d)!=='noss'; return classify(d)===quick; }
@@ -1043,7 +1047,9 @@ function buildIzd(list){
 }
 // Товар-центричная таблица: свои колонки, сортировка и фильтры (как в «Сделках»).
 const ICOLS=['Номер заказа','Изделие','Категория','Менеджер','Создана','Дата готовности','Дата реализации','Сделок / №','Кол-во','Цена, ₽','Смарты','Смарт','Этап','Стадия сделки','Σ с/с','Выручка, ₽','Маржа, ₽','Маржин.%'];
-const ICOLW=[92,104,88,96,84,92,110,70,52,60,70,84,98,102,62,94,70,74];
+// Денежные колонки расширены под полные суммы в рублях (формат без «к», 14.09.2026):
+// Цена 60->96, Σ с/с 62->104 (+значок источника), Выручка 94->104, Маржа 70->104, Кол-во 52->58.
+const ICOLW=[92,104,88,96,84,92,110,70,72,96,70,84,98,102,104,104,104,74];
 const INUM=[7,8,9,14,15,16,17];
 let izSortIdx=15, izSortDir=-1;
 const izStageSel=new Set(); // мультивыбор стадий сделки в фильтре колонки «Стадия сделки»

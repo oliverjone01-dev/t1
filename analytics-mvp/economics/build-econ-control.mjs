@@ -514,7 +514,7 @@ function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
         if(e&&e.cards&&e.cards.length) return '<td class="num"><a class="nocs" href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">нет с/с</a></td>';
         return '<td class="num cell-o">·</td>'; }).join('');
       const ssTot=((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0)+((g.sp['Закупка']&&g.sp['Закупка'].vB)||0);
-      const _si=izdStageInfo(g); const _pr=izPrice(d,g), _q=izQty(d,g), _rev=_pr*_q; tQty+=_q; tSs+=ssTot; tRev+=_rev;
+      const _si=izdStageInfo(g); const _pr=izPrice(d,g), _q=g.qty||0, _rev=_pr*_q; tQty+=_q; tSs+=ssTot; tRev+=_rev;
       inner+='<tr>'
         +'<td class="pnm"><span class="art-code">'+esc(g.art||g.ns||('#'+g.firstId))+'</span></td>'
         +'<td class="pnm" title="'+esc(g.nm||'')+'">'+esc(cleanNm(g.nm).slice(0,50))+'</td>'
@@ -777,12 +777,7 @@ function goodArt(a){ a=String(a||'').trim(); return a.length>=2 && !/-\s*$/.test
 // ключ изделия по приоритету: артикул -> НС-код (единый б24-номер) -> название -> айди карточки
 function izdKey(c){ if(c.art&&goodArt(c.art)) return 'art:'+c.art; const ns=nsCode(c.nm); if(ns) return 'ns:'+ns; const sg=nameSig(c.nm); if(sg) return 'sig:'+sg; return 'id:'+c.id; }
 // изделия сделки: группируем карточки СП по артикулу, с/с по каждому смарту
-const _izdMemo=new Map(); // разбор сделки на изделия не меняется в рамках сборки - считаем один раз
-function izdelia(d){ if(_izdMemo.has(d.id))return _izdMemo.get(d.id); const r=izdeliaCalc(d); _izdMemo.set(d.id,r); return r; }
-// полная сигнатура названия: убираем номер заказа и артикул-коды, но СОХРАНЯЕМ габариты
-// (2440/2170), чтобы различать одноимённые позиции разного размера
-const fsig=nm=>String(nm||'').replace(/\\b\\d{5,7}\\b/g,'').replace(/[A-Za-zА-Яа-я]{1,4}\\d+(?:-\\d+)?/g,'').toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu,'');
-function izdeliaCalc(d){
+function izdelia(d){
   const g={};
   for(const s of d.sps){ for(const c of (s.cards||[])){ if(c.bad)continue; const ss=cardSS(c); const key=izdKey(c);
     const it=g[key]=g[key]||{art:(c.art&&goodArt(c.art))?c.art:'',ns:nsCode(c.nm),firstId:c.id,qty:0,sp:{},nm:''};
@@ -795,29 +790,12 @@ function izdeliaCalc(d){
   // если она ровно одна - иначе не угадываем (не искажаем с/с).
   { const ents=Object.entries(g); const arts=ents.map(([,v])=>v.art).filter(Boolean);
     const bare=a=>!!a&&arts.some(o=>o!==a&&o.startsWith(a+'-'));
-    const _unused_fsig=nm=>String(nm||'').replace(/\\b\\d{5,7}\\b/g,'').replace(/[A-Za-zА-Яа-я]{1,4}\\d+(?:-\\d+)?/g,'').toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu,'');
+    // полная сигнатура: убираем номер заказа и артикул-коды, но СОХРАНЯЕМ габариты (2440/2170),
+    // чтобы различать одноимённые позиции разного размера
+    const fsig=nm=>String(nm||'').replace(/\\b\\d{5,7}\\b/g,'').replace(/[A-Za-zА-Яа-я]{1,4}\\d+(?:-\\d+)?/g,'').toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu,'');
     for(const [k,it] of ents){ if(!bare(it.art))continue; const sig=fsig(it.nm); if(!sig)continue;
       const tw=ents.filter(([kk,v])=>kk!==k&&v.art&&!bare(v.art)&&fsig(v.nm)===sig);
       if(tw.length===1){ const t=tw[0][1];
-        for(const sk in it.sp){ const e=it.sp[sk]; const te=t.sp[sk]=t.sp[sk]||{vU:0,vB:0,cards:[]}; te.vU+=e.vU; te.vB+=e.vB; te.cards.push(...e.cards); }
-        delete g[k]; } } }
-  // Склейка одного изделия, распавшегося на две строки: карточка Расчёта подписана
-  // «<сделка>/<артикул>. <название>», а карточка Производства - «<сделка>. <название>» без
-  // артикула, и izdKey разводит их по разным группам. Итог до правки: 26% строк вкладки
-  // «Изделия» двоились, кол-во завышалось, с/с рвалась пополам, выручка задваивалась
-  // (сделка 98395: 657 000 руб при бюджете 488 200). Сверка 14.09.2026, замер в описании коммита.
-  // Сигнатура сохраняет габариты и цифры названия, поэтому одноимённые позиции разного
-  // размера остаются раздельными. Количество берём максимум, а не сумму: изделие одно.
-  { const ents=Object.entries(g); const seen={};
-    for(const [k,it] of ents){ const sig=fsig(it.nm); if(!sig)continue; (seen[sig]=seen[sig]||[]).push(k); }
-    for(const keys of Object.values(seen)){ if(keys.length<2)continue;
-      // цель склейки - группа с самым полным опознанием (артикул, затем НС-код)
-      keys.sort((a,b)=>((g[b].art?2:0)+(g[b].ns?1:0))-((g[a].art?2:0)+(g[a].ns?1:0)));
-      const t=g[keys[0]];
-      for(const k of keys.slice(1)){ const it=g[k];
-        if(!t.art&&it.art)t.art=it.art; if(!t.ns&&it.ns)t.ns=it.ns;
-        if((it.nm||'').length>(t.nm||'').length)t.nm=it.nm;
-        if((+it.qty||0)>(+t.qty||0))t.qty=+it.qty||0;
         for(const sk in it.sp){ const e=it.sp[sk]; const te=t.sp[sk]=t.sp[sk]||{vU:0,vB:0,cards:[]}; te.vU+=e.vU; te.vB+=e.vB; te.cards.push(...e.cards); }
         delete g[k]; } } }
   // строка изделия имеет смысл, если по нему есть с/с или дошло до Расчёта/Производства (там живёт единый НС-номер)
@@ -1011,34 +989,8 @@ function izSsSrcOf(g){ if(_vbOf(g,'Калькулятор GG'))return ['К'];
   const R=_vbOf(g,'Расчёт'),Z=_vbOf(g,'Закупка'); if(R||Z){const s=[];if(R)s.push('Р');if(Z)s.push('З');return s;}
   if(_vbOf(g,'Производство  GG'))return ['П'];
   return []; }
-// Цена товара: цена клиента из товарной строки сделки, сопоставленной изделию.
-// Было одно правило - точное совпадение сигнатуры названия, и оно промахивалось на 207 строках
-// из 209 пустых (замер 14.09.2026 по стадиям «Заказ отправлен» + «Сделка успешна»): карточка
-// подписана «99961/НМ26-112.Обеденный стол...», строка - «Обеденный стол... см, белый/золотой»,
-// а nameSig вырезает только код вида НС26-391 и не знает НМ / С26- / GGM- / GGT- / M26-.
-// Теперь три правила по убыванию строгости, каждое следующее включается только если предыдущее
-// не дало однозначного ответа. Неоднозначные случаи намеренно оставляем без цены.
-const _pxSig=s=>String(s||'').replace(/^\\s*\\d+\\s*[\\/.]?\\s*/,'')
-  .replace(/^\\s*[A-Za-zА-Яа-я]{1,4}\\s*\\d+(?:\\s*-\\s*\\d+)*\\s*[.]?\\s*/,'')
-  .replace(/чертеж\\w* не тр\\w*|срочн\\w*|на запуск|на согласование|согласовано/gi,' ')
-  .replace(/[^\\p{L}\\p{N}]+/gu,'').toLowerCase();
-const _pxHit=(a,b)=>{const n=Math.min(a.length,b.length); return n>=14&&a.slice(0,n)===b.slice(0,n);};
-function izRowOf(d,g){ const rows=goodRows(d); if(!rows.length)return null;
-  // 1) точное совпадение сигнатуры названия
-  const sig=nameSig(g.nm);
-  if(sig){ for(const p of rows){ if(nameSig(p.name)===sig&&(+p.price||0)>1)return p; } }
-  // 2) совпадение по началу очищенного названия (карточка обрезана, у строки длиннее хвост)
-  const cs=_pxSig(g.nm);
-  if(cs.length>=14){ const hits=rows.filter(p=>_pxHit(cs,_pxSig(p.name))&&(+p.price||0)>1);
-    // на строку не должно претендовать второе изделие сделки, иначе цена посчиталась бы дважды
-    if(hits.length===1&&!izdelia(d).some(o=>o!==g&&_pxHit(_pxSig(o.nm),_pxSig(hits[0].name))))return hits[0]; }
-  // 3) в сделке ровно одно изделие и ровно одна товарная строка - сопоставление однозначно
-  if(izdelia(d).length===1&&rows.length===1&&(+rows[0].price||0)>1)return rows[0];
-  return null; }
-const izPrice=(d,g)=>{const p=izRowOf(d,g);return p?(+p.price||0):0;};
-// Количество: из карточки СП, а если там 0 - из сопоставленной товарной строки.
-// До правки 18 строк имели цену при кол-ве 0 и давали нулевую выручку.
-const izQty=(d,g)=>{const q=+g.qty||0; if(q)return q; const p=izRowOf(d,g); return p?(+p.qty||0):0;};
+// цена товара: цена клиента из товарной строки сделки, сопоставленной изделию по сигнатуре названия
+const izPrice=(d,g)=>{const sig=nameSig(g.nm);if(!sig)return 0;for(const p of goodRows(d)){if(nameSig(p.name)===sig){const pr=+p.price||0;if(pr>1)return pr;}}return 0;};
 // на каких смарт-процессах у изделия есть карточки (сейчас в работе)
 const izSmartsOf=g=>ORDER.filter(k=>g.sp[k]&&g.sp[k].cards&&g.sp[k].cards.length);
 const izDots=arr=>'<span class="smcell">'+ORDER.map(k=>smSeg(k,arr.includes(k),false,false)).join('')+'</span>';
@@ -1079,7 +1031,7 @@ function buildIzd(list){
     izSsSrcOf(g).forEach(a=>e.ssSrc.add(a));
     if(d.created){ if(!e.dmin||d.created<e.dmin)e.dmin=d.created; if(!e.dmax||d.created>e.dmax)e.dmax=d.created; }
     if((g.nm||'').length>(e.nm||'').length)e.nm=g.nm; if(!e.art&&g.art)e.art=g.art; if(!e.ns&&g.ns)e.ns=g.ns;
-    const ss=izSS(g),price=izPrice(d,g),qty=izQty(d,g),rev=price*qty;
+    const ss=izSS(g),price=izPrice(d,g),qty=g.qty||0,rev=price*qty;
     e.qty+=qty; e.ss+=ss; e.rev+=rev; izSmartsOf(g).forEach(k=>{e.smarts.add(k); if(g.sp[k]&&g.sp[k].vB>0)e.smartsSS.add(k);});
     e.deals.push({d,qty,ss,price,rev,g}); } }
   const arr=[...M.values()];

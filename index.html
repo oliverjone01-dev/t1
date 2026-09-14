@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GENGROUP — Бренд-глоссарий v2.1</title>
+  <meta name="description" content="Бренд-глоссарий GENGROUP v2.1 — архитектура продукта и терминология для команды холдинга и партнёров." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body data-current="">
+  <aside class="sidebar" id="sidebar" aria-label="Навигация по глоссарию">
+    <div class="sidebar__progress" aria-hidden="true">
+      <div class="sidebar__progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="sidebar__header">
+      <a href="index.html" class="sidebar__logo">
+        <span class="sidebar__brand">GENGROUP</span>
+        <span class="sidebar__sub">Бренд-глоссарий v2.1</span>
+      </a>
+      <button class="sidebar__close" id="sidebar-close" aria-label="Закрыть меню" type="button">&times;</button>
+    </div>
+    <div class="sidebar__search">
+      <input type="search" class="sidebar__search-input" id="search-input"
+             placeholder="Поиск по глоссарию..." autocomplete="off" />
+      <div class="sidebar__results" id="search-results" role="listbox" aria-label="Результаты поиска"></div>
+    </div>
+    <nav class="sidebar__nav" aria-label="Оглавление">
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Разделы</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="sections/01-architecture.html" data-section="01">1. Архитектура продукта</a></li>
+          <li><a class="sidebar__link" href="sections/02-palette.html" data-section="02">2. Палитра (Palette)</a></li>
+          <li><a class="sidebar__link" href="sections/03-linea.html" data-section="03">3. Линия (Linea)</a></li>
+          <li><a class="sidebar__link" href="sections/04-collezione.html" data-section="04">4. Коллекция (Collezione)</a></li>
+          <li><a class="sidebar__link" href="sections/05-ensemble.html" data-section="05">5. Комплект (Ensemble)</a></li>
+          <li><a class="sidebar__link" href="sections/06-model.html" data-section="06">6. Модель, артикул, размер</a></li>
+          <li><a class="sidebar__link" href="sections/07-sales-modes.html" data-section="07">7. Режимы продаж</a></li>
+          <li><a class="sidebar__link" href="sections/08-practice.html" data-section="08">8. Применение терминов</a></li>
+          <li><a class="sidebar__link" href="sections/09-brand-arch.html" data-section="09">9. Brand Architecture</a></li>
+          <li><a class="sidebar__link" href="sections/10-systems.html" data-section="10">10. Системы и поля данных</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Приложения</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="appendix/a-dictionary.html" data-section="a">A. Алфавитный словарь</a></li>
+          <li><a class="sidebar__link" href="appendix/b-migration.html" data-section="b">B. Миграция v1.0/v2.0 → v2.1</a></li>
+          <li><a class="sidebar__link" href="appendix/c-history.html" data-section="c">C. История версий</a></li>
+          <li><a class="sidebar__link" href="appendix/d-roadmap.html" data-section="d">D. План приведения к v2.1</a></li>
+        </ul>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+  <button class="hamburger" id="hamburger" aria-label="Открыть меню" aria-expanded="false" type="button">
+    <span></span><span></span><span></span>
+  </button>
+
+  <main class="main">
+    <div class="content">
+      <section class="hero">
+        <div class="hero__top">
+          <div class="hero__title-wrap">
+            <h1 class="hero__title">Бренд-глоссарий GENGROUP</h1>
+            <p class="hero__subtitle">Архитектура продукта и терминология</p>
+          </div>
+          <span class="hero__badge">v2.1</span>
+        </div>
+
+        <div class="meta-table">
+          <table>
+            <tbody>
+              <tr><td>Версия</td><td>v2.1</td></tr>
+              <tr><td>Вступает в силу</td><td>Май 2026</td></tr>
+              <tr><td>Статус</td><td>Действующий, заменяет v2.0 / v1.0</td></tr>
+              <tr><td>Владелец</td><td>Иван (CMO GENGROUP)</td></tr>
+              <tr><td>Аудит</td><td>ФЕНИКС #35 (adversarial audit, оценка 9.99/10)</td></tr>
+              <tr><td>Аудитория</td><td>Внутренняя команда GENGROUP + партнёры-дизайнеры</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="intro">
+        <h2>Введение</h2>
+        <p>Методический документ, определяющий архитектуру продукта, терминологию и правила её применения во всех бренд-коммуникациях GENGROUP.</p>
+
+        <h3 id="why-new-version">Зачем нужна новая версия</h3>
+        <p>В версии v1.0 словом «коллекция» назывались цветовые линии NERO, ORO, BIANCO. Это решение сработало в период 2018–2025, когда GENGLASS развивал базовый ассортимент, и внешняя аудитория не требовала различения терминов.</p>
+        <p>В 2026 году холдинг готовит первую сквозную дизайн-концепцию со своими силуэтами, материалами и авторством. В индустрии премиум-мебели такое явление называется «коллекцией», а цветовые линии называются «палитрами» или «finish options». Сохранение старого термина «коллекция» за цветом закрывает путь к запуску настоящей дизайн-коллекции: два разных объекта окажутся под одним именем, и это обвалит аналитику, ценообразование и позиционирование.</p>
+        <p>Дополнительно: бестселлер TRUBIS расширился из категории столов в стеллажи, ожидаются консоли. В индустрии семейство продуктов с общим дизайн-кодом через несколько категорий называется «Линия» (Line/Family). В v2.0 этот уровень отсутствовал, из-за чего сайт назвал TRUBIS «коллекцией» — за неимением другого слова.</p>
+        <p>Версия v2.1 приводит терминологию GENGROUP в соответствие с отраслевой нормой премиум-сегмента (Cassina, Minotti, Molteni, Poliform) и готовит архитектуру к масштабированию на 3–5 лет.</p>
+
+        <h3 id="changes">Что изменилось по сравнению с v1.0 / v2.0</h3>
+        <ul>
+          <li><strong>Термин «коллекция»</strong> переопределён: сквозной дизайн-концепт (силуэты, материалы, авторство), а не цветовое направление.</li>
+          <li><strong>Введён термин «палитра»</strong> для сквозных финишей и цветовых линий. NERO, ORO, BIANCO теперь являются палитрами.</li>
+          <li><strong>Введён термин «линия» (Linea)</strong> для семейств продуктов с общим дизайн-кодом через несколько категорий. TRUBIS — первая линия GENGLASS.</li>
+          <li><strong>Разведены Core и Drop</strong> для палитр; Capsule и Core для коллекций.</li>
+          <li><strong>Семь уровней номенклатуры</strong> вместо четырёх: Бренд — Категория — Линия (опц.) — Модель — Артикул (вертикаль) + Палитра, Коллекция, Комплект (горизонталь).</li>
+          <li><strong>Режимы продаж</strong> выделены отдельно: In-Stock, Made-to-Order, Bespoke Project.</li>
+          <li><strong>Связь с ценообразованием</strong> формализована: палитра даёт надбавку 0–15%, коллекция — премию 15–30%.</li>
+          <li><strong>Зафиксирована реальная система артикулов</strong> (GGT/GGM/GGP/GGL) плюс маркетинговое имя для внешних каналов.</li>
+        </ul>
+
+        <h3 id="who-reads">Кто должен читать</h3>
+        <p>Документ обязателен к прочтению для следующих ролей:</p>
+        <ul>
+          <li>Менеджеры отделов продаж GENGLASS, VALONTI, GENTERO, Metal-GM, GLASS-MEMORY.</li>
+          <li>РОПы и руководители направлений.</li>
+          <li>Маркетинг-отдел: контент-маркетологи, SMM, email-маркетинг, SEO.</li>
+          <li>Продуктовый отдел: менеджеры артикулов, ответственные за 1С и сайт.</li>
+          <li>Дизайнеры производства, работающие с рендерами и каталогами.</li>
+          <li>Внешние партнёры: авторизованные дизайнеры интерьера, дилеры GLASS-MEMORY.</li>
+        </ul>
+
+        <h3 id="usage">Принципы использования</h3>
+        <p>Документ работает в двух режимах. Как справочник — через оглавление и алфавитный словарь в приложении A. Как учебник — последовательным чтением в течение 60–90 минут.</p>
+
+        <div class="callout">
+          <span class="callout__title">ПРАВИЛО ЕДИНОГО ЯЗЫКА</span>
+          <p>Все коммуникации GENGROUP — от переписки с клиентом до полей CRM, от карточки на Ozon до питча в AD Russia — используют термины этого документа. Расхождение между отделами или каналами не допускается. Спорные случаи решаются ссылкой на актуальную версию глоссария.</p>
+        </div>
+      </section>
+
+      <section class="cards-section">
+        <h2 class="cards-section__title">Разделы</h2>
+        <div class="cards">
+          <a class="card" href="sections/01-architecture.html">
+            <span class="card__num">Раздел 01</span>
+            <span class="card__title">Архитектура продукта: семь уровней</span>
+            <span class="card__desc">Пять уровней вертикали идентичности и три измерения горизонтали группировки. Семь атрибутов, исчерпывающе описывающих любой товар GENGROUP.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="sections/02-palette.html">
+            <span class="card__num">Раздел 02</span>
+            <span class="card__title">Палитра (Palette)</span>
+            <span class="card__desc">Сквозной финиш — цвет, покрытие, отделка. Core и Drop, действующие палитры NERO, ORO, BIANCO, CIPRIA и правила запуска новых.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="sections/03-linea.html">
+            <span class="card__num">Раздел 03</span>
+            <span class="card__title">Линия (Linea)</span>
+            <span class="card__desc">Сквозной дизайн-код через одну или несколько категорий. Чем линия отличается от коллекции и почему TRUBIS — это линия, а не «коллекция».</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="sections/04-collezione.html">
+            <span class="card__num">Раздел 04</span>
+            <span class="card__title">Коллекция (Collezione)</span>
+            <span class="card__desc">Сквозной дизайн-концепт со своими силуэтами и стилистикой. Capsule и Core, принципы создания и ценообразование коллекций.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="sections/05-ensemble.html">
+            <span class="card__num">Раздел 05</span>
+            <span class="card__title">Комплект (Ensemble)</span>
+            <span class="card__desc">Готовый функциональный набор из 2–7 артикулов для конкретной зоны интерьера. Принципы сборки, ценообразование и Scena.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="sections/06-model.html">
+            <span class="card__num">Раздел 06</span>
+            <span class="card__title">Модель, артикул, размер</span>
+            <span class="card__desc">Три объекта, которые чаще всего путают между собой. Внутренний формат GGT/GGM/GGP/GGL и маркетинговое имя для внешних каналов.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="sections/07-sales-modes.html">
+            <span class="card__num">Раздел 07</span>
+            <span class="card__title">Режимы продаж и жизненный цикл</span>
+            <span class="card__desc">In-Stock, Made-to-Order, Bespoke — операционные модели и сроки по категориям. Жизненный цикл палитры от Pre-release до Decision point.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="sections/08-practice.html">
+            <span class="card__num">Раздел 08</span>
+            <span class="card__title">Применение терминов на практике</span>
+            <span class="card__desc">Речевые модули и запрещённые формулировки для трёх ключевых ролей: менеджера, дизайнера-партнёра, маркетолога.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="sections/09-brand-arch.html">
+            <span class="card__num">Раздел 09</span>
+            <span class="card__title">Brand Architecture холдинга</span>
+            <span class="card__desc">Сквозная терминология v2.1 для пяти брендов: GENGLASS, VALONTI, GENTERO, Metal-GM, GLASS-MEMORY и правила холдинговой логики.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="sections/10-systems.html">
+            <span class="card__num">Раздел 10</span>
+            <span class="card__title">Системы и поля данных</span>
+            <span class="card__desc">Поля и атрибуты в 1С и Bitrix24, URL-структура сайта genglass.ru и правила для карточек маркетплейсов.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="cards-section">
+        <h2 class="cards-section__title">Приложения</h2>
+        <div class="cards">
+          <a class="card" href="appendix/a-dictionary.html">
+            <span class="card__num">Приложение A</span>
+            <span class="card__title">Алфавитный словарь</span>
+            <span class="card__desc">Все термины глоссария v2.1 в одном месте — от «Артикул» до «Pre-release», с короткими определениями и ссылками на разделы.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="appendix/b-migration.html">
+            <span class="card__num">Приложение B</span>
+            <span class="card__title">Миграция v1.0/v2.0 → v2.1</span>
+            <span class="card__desc">Таблица соответствий старых и новых терминов плюс приоритеты миграции от P0 (72 часа) до P4 (непрерывно).</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="appendix/c-history.html">
+            <span class="card__num">Приложение C</span>
+            <span class="card__title">История версий и решений</span>
+            <span class="card__desc">Версии 1.0, 2.0, 2.1 — что изменилось, кем поддерживается, регулярность пересмотра и зоны ответственности редакторов.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="card" href="appendix/d-roadmap.html">
+            <span class="card__num">Приложение D</span>
+            <span class="card__title">План приведения к v2.1</span>
+            <span class="card__desc">Детальный план внедрения: фазы 0–5, конкретные задачи с дедлайнами, ответственными, матрица эскалаций и контрольные точки.</span>
+            <span class="card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      </section>
+
+      <footer class="footer">GENGROUP &copy; 2026 &bull; Внутренний документ &bull; Версия v2.1 &bull; Аудит ФЕНИКС #35</footer>
+    </div>
+  </main>
+
+  <script src="assets/app.js" defer></script>
+</body>
+</html>

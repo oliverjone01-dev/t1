@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Приложение B. Миграция v1.0/v2.0 → v2.1 — GENGROUP</title>
+  <meta name="description" content="Бренд-глоссарий GENGROUP v2.1." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body data-current="b">
+  <aside class="sidebar" id="sidebar" aria-label="Навигация по глоссарию">
+    <div class="sidebar__progress" aria-hidden="true">
+      <div class="sidebar__progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="sidebar__header">
+      <a href="../index.html" class="sidebar__logo">
+        <span class="sidebar__brand">GENGROUP</span>
+        <span class="sidebar__sub">Бренд-глоссарий v2.1</span>
+      </a>
+      <button class="sidebar__close" id="sidebar-close" aria-label="Закрыть меню" type="button">&times;</button>
+    </div>
+    <div class="sidebar__search">
+      <input type="search" class="sidebar__search-input" id="search-input"
+             placeholder="Поиск по глоссарию..." autocomplete="off" />
+      <div class="sidebar__results" id="search-results" role="listbox" aria-label="Результаты поиска"></div>
+    </div>
+    <nav class="sidebar__nav" aria-label="Оглавление">
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Разделы</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="../sections/01-architecture.html" data-section="01">1. Архитектура продукта</a></li>
+          <li><a class="sidebar__link" href="../sections/02-palette.html" data-section="02">2. Палитра (Palette)</a></li>
+          <li><a class="sidebar__link" href="../sections/03-linea.html" data-section="03">3. Линия (Linea)</a></li>
+          <li><a class="sidebar__link" href="../sections/04-collezione.html" data-section="04">4. Коллекция (Collezione)</a></li>
+          <li><a class="sidebar__link" href="../sections/05-ensemble.html" data-section="05">5. Комплект (Ensemble)</a></li>
+          <li><a class="sidebar__link" href="../sections/06-model.html" data-section="06">6. Модель, артикул, размер</a></li>
+          <li><a class="sidebar__link" href="../sections/07-sales-modes.html" data-section="07">7. Режимы продаж</a></li>
+          <li><a class="sidebar__link" href="../sections/08-practice.html" data-section="08">8. Применение терминов</a></li>
+          <li><a class="sidebar__link" href="../sections/09-brand-arch.html" data-section="09">9. Brand Architecture</a></li>
+          <li><a class="sidebar__link" href="../sections/10-systems.html" data-section="10">10. Системы и поля данных</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Приложения</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="../appendix/a-dictionary.html" data-section="a">A. Алфавитный словарь</a></li>
+          <li><a class="sidebar__link" href="../appendix/b-migration.html" data-section="b">B. Миграция v1.0/v2.0 → v2.1</a></li>
+          <li><a class="sidebar__link" href="../appendix/c-history.html" data-section="c">C. История версий</a></li>
+          <li><a class="sidebar__link" href="../appendix/d-roadmap.html" data-section="d">D. План приведения к v2.1</a></li>
+        </ul>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+  <button class="hamburger" id="hamburger" aria-label="Открыть меню" aria-expanded="false" type="button">
+    <span></span><span></span><span></span>
+  </button>
+
+  <main class="main">
+    <div class="content">
+      <nav class="crumbs" aria-label="Хлебные крошки">
+        <a href="../index.html">Глоссарий</a><span class="crumbs__sep">/</span>Приложение B. Миграция v1.0/v2.0 → v2.1
+      </nav>
+      <p class="page-eyebrow">Приложение B</p>
+      <h1>Миграция v1.0 / v2.0 → v2.1</h1>
+
+      <h2 id="map">B.1 Таблица соответствий</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Было</th><th>Стало (v2.1)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>«Коллекция NERO»</td><td><strong>Палитра NERO</strong></td></tr>
+            <tr><td>«Коллекция ORO»</td><td><strong>Палитра ORO</strong></td></tr>
+            <tr><td>«Коллекция BIANCO»</td><td><strong>Палитра BIANCO</strong></td></tr>
+            <tr><td>«Коллекция CIPRIA» / «розовая коллекция»</td><td><strong>Палитра CIPRIA (Drop весна 2026)</strong></td></tr>
+            <tr><td>«Коллекция TRUBIS»</td><td><strong>Линия TRUBIS</strong></td></tr>
+            <tr><td>«Ежемесячный комплект»</td><td><strong>Комплект (Ensemble)</strong></td></tr>
+            <tr><td>«Квартальная коллекция»</td><td><strong>Квартальный Drop палитры</strong></td></tr>
+            <tr><td>«SKU» (иногда означало модель)</td><td><strong>Артикул (если единица товара) / Модель (если тип дизайна)</strong></td></tr>
+            <tr><td>«Интерьерное решение» (как товар)</td><td><strong>Scena — способ подачи комплекта, не товар</strong></td></tr>
+            <tr><td>GM-METAL</td><td><strong>Metal-GM</strong></td></tr>
+            <tr><td>«Коллекция INDUSTRIAL»</td><td><strong>Палитра в разработке INDUSTRIAL</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="priorities">B.2 Приоритеты миграции</h2>
+
+      <h3 id="p0">Priority-0: срочно, 72 часа от вступления в силу</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Баннер главной сайта «Наша новая коллекция. Розовая серия»</td><td>Заменить на «Весенний дроп. Палитра CIPRIA»</td><td>Сергей</td></tr>
+            <tr><td>URL <code>/premera-rozovoj-kollekczii-mebeli/</code></td><td>301-редирект на <code>/product-category/?pa_palitra=cipria</code> (или временный slug)</td><td>Сергей</td></tr>
+            <tr><td>Меню «Коллекция TRUBIS»</td><td>Заменить на «Линия TRUBIS»</td><td>Сергей</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p1">Priority-1: 14 дней</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Внутренние документы</td><td>Замена терминологии в CRM, регламентах</td><td>Борис, Дмитрий Янчоглов</td></tr>
+            <tr><td>1С: добавить поля</td><td>Линия, Маркетинговое наименование</td><td>Борис, отдел 1С</td></tr>
+            <tr><td>Bitrix24: добавить поля</td><td>Линия в сделке</td><td>Дмитрий Янчоглов</td></tr>
+            <tr><td>Скрипты продаж</td><td>Обновить речевые модули</td><td>Виктор, РОПы</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p2">Priority-2: 30 дней</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Сайт genglass.ru полностью</td><td>Все упоминания «коллекция» в контексте цвета → «палитра»; создать страницу <code>/line/trubis/</code></td><td>Сергей</td></tr>
+            <tr><td>Презентация GENGLASS</td><td>Обновить терминологию в PDF</td><td>Маркетинг</td></tr>
+            <tr><td>КП шаблоны</td><td>Заменить терминологию в шаблонах Bitrix24</td><td>Борис</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p3">Priority-3: 45 дней</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Карточки маркетплейсов</td><td>Постепенная замена в заголовках и описаниях</td><td>Наташа Скриптун</td></tr>
+            <tr><td>Email-шаблоны</td><td>Обновить</td><td>Маркетинг</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p4">Priority-4: непрерывно</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Публичные материалы</td><td>Новую терминологию с момента вступления, старые не переписывать</td><td>Контент-отдел</td></tr>
+            <tr><td>Обучение менеджеров</td><td>Буклет «Архитектура продукта GENGLASS» (3 листа A4)</td><td>ТРЕНЕР #36</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="../assets/app.js" defer></script>
+</body>
+</html>

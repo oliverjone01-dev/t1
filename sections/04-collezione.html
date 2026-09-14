@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Раздел 4. Коллекция (Collezione) — GENGROUP</title>
+  <meta name="description" content="Бренд-глоссарий GENGROUP v2.1." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body data-current="04">
+  <aside class="sidebar" id="sidebar" aria-label="Навигация по глоссарию">
+    <div class="sidebar__progress" aria-hidden="true">
+      <div class="sidebar__progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="sidebar__header">
+      <a href="../index.html" class="sidebar__logo">
+        <span class="sidebar__brand">GENGROUP</span>
+        <span class="sidebar__sub">Бренд-глоссарий v2.1</span>
+      </a>
+      <button class="sidebar__close" id="sidebar-close" aria-label="Закрыть меню" type="button">&times;</button>
+    </div>
+    <div class="sidebar__search">
+      <input type="search" class="sidebar__search-input" id="search-input"
+             placeholder="Поиск по глоссарию..." autocomplete="off" />
+      <div class="sidebar__results" id="search-results" role="listbox" aria-label="Результаты поиска"></div>
+    </div>
+    <nav class="sidebar__nav" aria-label="Оглавление">
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Разделы</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="../sections/01-architecture.html" data-section="01">1. Архитектура продукта</a></li>
+          <li><a class="sidebar__link" href="../sections/02-palette.html" data-section="02">2. Палитра (Palette)</a></li>
+          <li><a class="sidebar__link" href="../sections/03-linea.html" data-section="03">3. Линия (Linea)</a></li>
+          <li><a class="sidebar__link" href="../sections/04-collezione.html" data-section="04">4. Коллекция (Collezione)</a></li>
+          <li><a class="sidebar__link" href="../sections/05-ensemble.html" data-section="05">5. Комплект (Ensemble)</a></li>
+          <li><a class="sidebar__link" href="../sections/06-model.html" data-section="06">6. Модель, артикул, размер</a></li>
+          <li><a class="sidebar__link" href="../sections/07-sales-modes.html" data-section="07">7. Режимы продаж</a></li>
+          <li><a class="sidebar__link" href="../sections/08-practice.html" data-section="08">8. Применение терминов</a></li>
+          <li><a class="sidebar__link" href="../sections/09-brand-arch.html" data-section="09">9. Brand Architecture</a></li>
+          <li><a class="sidebar__link" href="../sections/10-systems.html" data-section="10">10. Системы и поля данных</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Приложения</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="../appendix/a-dictionary.html" data-section="a">A. Алфавитный словарь</a></li>
+          <li><a class="sidebar__link" href="../appendix/b-migration.html" data-section="b">B. Миграция v1.0/v2.0 → v2.1</a></li>
+          <li><a class="sidebar__link" href="../appendix/c-history.html" data-section="c">C. История версий</a></li>
+          <li><a class="sidebar__link" href="../appendix/d-roadmap.html" data-section="d">D. План приведения к v2.1</a></li>
+        </ul>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+  <button class="hamburger" id="hamburger" aria-label="Открыть меню" aria-expanded="false" type="button">
+    <span></span><span></span><span></span>
+  </button>
+
+  <main class="main">
+    <div class="content">
+      <nav class="crumbs" aria-label="Хлебные крошки">
+        <a href="../index.html">Глоссарий</a><span class="crumbs__sep">/</span>Раздел 4. Коллекция (Collezione)
+      </nav>
+      <p class="page-eyebrow">Раздел 04</p>
+      <h1>Коллекция (Collezione)</h1>
+      <p class="lead">Коллекция — сквозной дизайн-концепт со своими силуэтами, материалами и стилистикой. Это не цветовая линия и не семейство бестселлера — это авторское высказывание бренда.</p>
+
+      <h2 id="definition">4.1 Определение</h2>
+      <p>Коллекция отвечает на вопрос «какой идеи, авторства и стилистики». В отличие от палитры, где меняется только финиш, в коллекции меняется конструкция изделий: новые силуэты, новые пропорции, возможно новые материалы или технологии. В отличие от линии, коллекция — это событие с именным автором, а не органическое расширение бестселлера.</p>
+      <p>Пример из индустрии: линия I Contemporanei у Cassina — 30+ моделей разных дизайнеров с общей contemporary-философией. Линия 2024 Collection by Dordoni (скончался октябрь 2024, Minotti перешёл к Ruffinengo + приглашённые дизайнеры) — капсула одного арт-директора с единой формальной логикой.</p>
+
+      <div class="callout">
+        <span class="callout__title">БЫСТРАЯ ПРОВЕРКА</span>
+        <p>Если не уверены — палитра, линия или коллекция — задайте себе два вопроса. (1) «Если убрать цвет — концепция остаётся?» Если нет — это палитра. (2) «Есть ли именной автор и событие запуска?» Если нет, но дизайн-код проходит через категории — это линия. Если есть авторство и событие — это коллекция.</p>
+      </div>
+
+      <h2 id="capsule-core">4.2 Типы коллекций: Capsule и Core</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Атрибут</th><th>Capsule Collection</th><th>Core Collection</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Срок жизни</td><td>6–18 месяцев, ограниченный тираж</td><td>Постоянно, флагманская линия</td></tr>
+            <tr><td>Объём артикулов</td><td>5–15 моделей</td><td>20+ моделей, регулярное пополнение</td></tr>
+            <tr><td>Авторство</td><td>Часто внешний дизайнер / коллаб</td><td>Внутренний бренд-дизайн</td></tr>
+            <tr><td>Премия к цене</td><td>20–30% над базовой линией</td><td>15–25% над базовой линией</td></tr>
+            <tr><td>Коммуникация</td><td>Событие, launch-кампания, PR</td><td>Постоянное присутствие</td></tr>
+            <tr><td>В GENGROUP сейчас</td><td>Первая ожидается Q3–Q4 2026</td><td>Пока не существует</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="principles">4.3 Принципы создания коллекции</h2>
+      <p>Коллекция не создаётся случайно. Решение о запуске принимается на уровне совета холдинга и требует обоснования по четырём критериям:</p>
+      <ul>
+        <li><strong>Дизайн-концепт.</strong> Чёткая формальная идея, выразимая в 2–3 предложениях. Пример: «Геометрия пересечения круга и прямоугольника как основа всех силуэтов».</li>
+        <li><strong>Авторство.</strong> Имя конкретного дизайнера, арт-директора или коллаба. Анонимные коллекции не запускаются.</li>
+        <li><strong>Материальная палитра.</strong> Единый набор материалов и финишей, связывающий все артикулы визуально.</li>
+        <li><strong>Коммерческая модель.</strong> Прогноз объёма продаж за 12 месяцев, обоснование премии к цене, бюджет launch-кампании.</li>
+      </ul>
+
+      <h2 id="pricing">4.4 Ценообразование коллекций</h2>
+      <ul>
+        <li>Базовая модель GENGLASS в палитре NERO: референсная цена.</li>
+        <li>Та же модель в палитре CIPRIA (Drop): +5–15% к референсу за нестандартный цвет.</li>
+        <li>Коллекционная модель (не существующая вне коллекции): +15–30% к референсу категории.</li>
+        <li>Лимитированная серия (первые 50 экземпляров, нумерация): дополнительно +10–20%.</li>
+      </ul>
+    </div>
+  </main>
+
+  <script src="../assets/app.js" defer></script>
+</body>
+</html>

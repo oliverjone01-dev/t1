@@ -292,6 +292,9 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
 #tbl tfoot td{position:sticky;bottom:0;background:#111a24;border-top:2px solid var(--accent,#4a90d9);font-weight:700;color:var(--ink-1);z-index:5}
 #izdtbl tfoot td{position:sticky;bottom:0;background:#111a24;border-top:2px solid var(--accent);font-weight:700;color:var(--ink);z-index:6;padding:6px 8px}
 .smcell{white-space:nowrap;overflow:visible}
+/* квадратики смартов, из которых сложилась Σ с/с: прямые углы, цвет смарта */
+.sssq{white-space:nowrap;margin-left:5px}
+.sssq i{display:inline-block;width:9px;height:9px;border-radius:0;margin-left:2px;vertical-align:middle;border:1px solid rgba(255,255,255,.18)}
 .smseg{display:inline-block;box-sizing:border-box;width:9px;height:9px;margin-right:2px;border-radius:2px;border:1px solid transparent;vertical-align:middle;background:rgba(200,205,215,.10)}
 .smoff{background:rgba(200,205,215,.10)}
 .smon{background:rgba(200,205,215,.42)}
@@ -775,12 +778,22 @@ function nameSig(nm){ let s=String(nm||'');
 // (напр. «С26-», «НС26-», «-» - префикс номера без самого номера; такие склеивают разные товары).
 function goodArt(a){ a=String(a||'').trim(); return a.length>=2 && !/-\s*$/.test(a); }
 // ключ изделия по приоритету: артикул -> НС-код (единый б24-номер) -> название -> айди карточки
+// Якорные коды изделия (НМ26-112, НС26-330, С26-1244, М26-4155) из артикула и заголовка.
+// Без \\b: в JS граница слова не срабатывает перед кириллической буквой, «НМ26-112» не находился.
+const IZCODE=/([А-Яа-яA-Za-z]{1,3}\\d{2}-\\d{1,5})/g;
+function izCodes(v){ const out=new Set(); for(const t of [v.art||'', v.nm||'']) for(const m of String(t).matchAll(IZCODE)) out.add(m[1].toUpperCase()); return out; }
 function izdKey(c){ if(c.art&&goodArt(c.art)) return 'art:'+c.art; const ns=nsCode(c.nm); if(ns) return 'ns:'+ns; const sg=nameSig(c.nm); if(sg) return 'sig:'+sg; return 'id:'+c.id; }
 // изделия сделки: группируем карточки СП по артикулу, с/с по каждому смарту
-function izdelia(d){
+// Разбор сделки на изделия не меняется в рамках сборки, поэтому считаем один раз.
+// ВАЖНО: izPrice сравнивает изделия по ссылке (o!==g), и это работает только потому,
+// что izdelia(d) отдаёт один и тот же массив. Мемоизацию не убирать.
+const _izdMemo=new Map();
+function izdelia(d){ if(_izdMemo.has(d.id))return _izdMemo.get(d.id); const r=izdeliaCalc(d); _izdMemo.set(d.id,r); return r; }
+function izdeliaCalc(d){
   const g={};
   for(const s of d.sps){ for(const c of (s.cards||[])){ if(c.bad)continue; const ss=cardSS(c); const key=izdKey(c);
-    const it=g[key]=g[key]||{art:(c.art&&goodArt(c.art))?c.art:'',ns:nsCode(c.nm),firstId:c.id,qty:0,sp:{},nm:''};
+    const it=g[key]=g[key]||{art:(c.art&&goodArt(c.art))?c.art:'',ns:nsCode(c.nm),firstId:c.id,qty:0,sp:{},nm:'',nms:[]};
+    if(c.nm)it.nms.push(c.nm); // все варианты названия карточек изделия: по ним ищем товарную строку
     if((+c.qty||0)>it.qty)it.qty=+c.qty||0;
     if(c.nm&&c.nm.length>(it.nm||'').length)it.nm=c.nm; // самое полное название изделия из заголовка карточки
     const e=it.sp[s.key]=it.sp[s.key]||{vU:0,vB:0,cards:[]}; e.vU+=ss; e.vB+=cardBatch(c); e.cards.push({id:c.id,etid:s.etid,st:c.st}); } }
@@ -796,6 +809,29 @@ function izdelia(d){
     for(const [k,it] of ents){ if(!bare(it.art))continue; const sig=fsig(it.nm); if(!sig)continue;
       const tw=ents.filter(([kk,v])=>kk!==k&&v.art&&!bare(v.art)&&fsig(v.nm)===sig);
       if(tw.length===1){ const t=tw[0][1];
+        for(const sk in it.sp){ const e=it.sp[sk]; const te=t.sp[sk]=t.sp[sk]||{vU:0,vB:0,cards:[]}; te.vU+=e.vU; te.vB+=e.vB; te.cards.push(...e.cards); }
+        delete g[k]; } } }
+  // Склейка одного товара, запущенного в РАЗНЫХ смартах под по-разному записанным артикулом.
+  // Сделка 99961: Расчёт и Производство подписаны «М26-4155 GGT-03-1-3-R-140-170-90//НМ26-112»,
+  // Закупка - «НМ26-112». Это один стол, но izdKey разводил его на две строки: количество
+  // становилось 2 шт вместо 1, с/с рвалась (8 639 + 2 000), цена находилась только у одной.
+  // Ключ склейки - ЯКОРНЫЙ КОД изделия (НМ26-112, НС26-330, С26-1244), а не название: у разных
+  // изделий коды разные, поэтому ложных склеек по габаритам или цвету тут быть не может.
+  // Склеиваем только те группы, у которых ВСЕ участники делят один и тот же код.
+  { const ents=Object.entries(g); const cds=ents.map(([,v])=>izCodes(v));
+    const cnt={}; cds.forEach(set=>set.forEach(c=>cnt[c]=(cnt[c]||0)+1));
+    for(const [code,n] of Object.entries(cnt)){ if(n<2)continue;
+      const keys=ents.filter(([,],i)=>cds[i].has(code)).map(([k])=>k).filter(k=>g[k]);
+      if(keys.length<2)continue;
+      // цель - группа с самым полным опознанием (артикул, затем НС-код)
+      keys.sort((a,b)=>((g[b].art?2:0)+(g[b].ns?1:0))-((g[a].art?2:0)+(g[a].ns?1:0)));
+      const t=g[keys[0]];
+      for(const k of keys.slice(1)){ const it=g[k]; if(it===t)continue;
+        if(!t.art&&it.art)t.art=it.art; if(!t.ns&&it.ns)t.ns=it.ns;
+        if((it.nm||'').length>(t.nm||'').length)t.nm=it.nm;
+        t.nms=(t.nms||[]).concat(it.nms||[]);
+        // количество - максимум, а не сумма: товар один и тот же, просто заведён в нескольких смартах
+        if((+it.qty||0)>(+t.qty||0))t.qty=+it.qty||0;
         for(const sk in it.sp){ const e=it.sp[sk]; const te=t.sp[sk]=t.sp[sk]||{vU:0,vB:0,cards:[]}; te.vU+=e.vU; te.vB+=e.vB; te.cards.push(...e.cards); }
         delete g[k]; } } }
   // строка изделия имеет смысл, если по нему есть с/с или дошло до Расчёта/Производства (там живёт единый НС-номер)
@@ -989,8 +1025,22 @@ function izSsSrcOf(g){ if(_vbOf(g,'Калькулятор GG'))return ['К'];
   const R=_vbOf(g,'Расчёт'),Z=_vbOf(g,'Закупка'); if(R||Z){const s=[];if(R)s.push('Р');if(Z)s.push('З');return s;}
   if(_vbOf(g,'Производство  GG'))return ['П'];
   return []; }
-// цена товара: цена клиента из товарной строки сделки, сопоставленной изделию по сигнатуре названия
-const izPrice=(d,g)=>{const sig=nameSig(g.nm);if(!sig)return 0;for(const p of goodRows(d)){if(nameSig(p.name)===sig){const pr=+p.price||0;if(pr>1)return pr;}}return 0;};
+// Цена товара: цена клиента из товарной строки сделки, сопоставленной изделию по названию.
+// Сопоставление строгое - точное совпадение нормализованной сигнатуры, никакого угадывания
+// по началу строки (на этом ФЕНИКС завернул правку 14.09: приклеивались чужие цены).
+// Отличий от прежней версии два, оба сужают, а не расширяют:
+//  1) сверяются ВСЕ заголовки карточек изделия, а не только самый длинный. После склейки
+//     «99961/НМ26-112.Обеденный стол...» у товара остаётся и короткий заголовок Закупки,
+//     который совпадает с товарной строкой буквально;
+//  2) если на одну строку претендуют два изделия сделки, цену не получает никто: раньше
+//     каждое брало её себе, и одна строка CRM разбиралась дважды.
+function izSigs(g){ const out=new Set(); for(const n of ((g.nms&&g.nms.length)?g.nms:[g.nm])){ const q=nameSig(n); if(q)out.add(q); } return out; }
+const izPrice=(d,g)=>{ const sigs=izSigs(g); if(!sigs.size)return 0; const its=izdelia(d);
+  for(const p of goodRows(d)){ const ps=nameSig(p.name); if(!ps||!sigs.has(ps))continue;
+    const pr=+p.price||0; if(pr<=1)continue;
+    if(its.some(o=>o!==g&&izSigs(o).has(ps)))continue;
+    return pr; }
+  return 0; };
 // на каких смарт-процессах у изделия есть карточки (сейчас в работе)
 const izSmartsOf=g=>ORDER.filter(k=>g.sp[k]&&g.sp[k].cards&&g.sp[k].cards.length);
 const izDots=arr=>'<span class="smcell">'+ORDER.map(k=>smSeg(k,arr.includes(k),false,false)).join('')+'</span>';
@@ -1011,9 +1061,13 @@ function izSsSrcTag(srcSet){ if(!srcSet||!srcSet.size)return '';
   const full=ord.map(a=>SSFULL[a]).join(' + ');
   return ' <span class="ss-src" title="с/с взята из смарт-процесса: '+esc(full)+'">'+esc(ord.join('+'))+'</span>';
 }
-function izSsCell(ss,srcSet){
+// квадратики тех смарт-процессов, что внесли с/с: заменяют буквенный тег «Р+З» наглядной меткой
+function izSsSquares(e){ if(!e||!e.smartsSS||!e.smartsSS.size)return '';
+  const ks=ORDER.filter(k=>e.smartsSS.has(k)); if(!ks.length)return '';
+  return ' <span class="sssq">'+ks.map(k=>'<i style="'+tagStyle(k)+'" title="с/с внесена в смарте: '+esc(SMFULL[k]||k)+'"></i>').join('')+'</span>'; }
+function izSsCell(ss,srcSet,e){
   if(!ss)return '<td class="num ss-bad" title="нет данных по себестоимости - калькулятор GG не заполнен">нет с/с</td>';
-  const tag=izSsSrcTag(srcSet);
+  const sq=izSsSquares(e); const tag=sq||izSsSrcTag(srcSet);
   if(ss<SS_MIN)return '<td class="num ss-bad" title="с/с '+fmt(ss)+' ₽ - недостоверно мало для партии, проверьте калькулятор GG">'+fmt(ss)+tag+'</td>';
   return '<td class="num">'+fmt(ss)+tag+'</td>';
 }
@@ -1194,7 +1248,7 @@ function renderIzd(base){
       +'<td>'+_izsp.smart+'</td>'
       +'<td>'+_izsp.badge+'</td>'
       +'<td title="'+esc(e.dealStages&&e.dealStages.length>1?'стадии сделок: '+e.dealStages.join(', '):'стадия сделки')+'">'+(e.dealStage?'<span class="st" style="'+stageStyle(e.dealStage)+'">'+esc(e.dealStage)+'</span>'+(e.dealStages&&e.dealStages.length>1?' <span class="izgc">+'+(e.dealStages.length-1)+'</span>':''):'<span class="cell-o">-</span>')+'</td>'
-      +izSsCell(e.ss,e.ssSrc)
+      +izSsCell(e.ss,e.ssSrc,e)
       +'<td class="num"><b>'+(e.rev?fmt(e.rev):'<span class="cell-o">-</span>')+'</b></td>'
       +'<td class="num">'+(e.rev?fmt(e.margin):'<span class="cell-o">-</span>')+'</td>'
       +izMpct(e.mpct)

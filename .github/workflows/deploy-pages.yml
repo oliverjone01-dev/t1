@@ -386,7 +386,11 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/_site/kp-gm"
           cp -r /tmp/kp-gm/kp-glass-memory/. "$GITHUB_WORKSPACE/_site/kp-gm/"
           rm -f "$GITHUB_WORKSPACE/_site/kp-gm/README.md"
-          echo "КП GLASS-MEMORY опубликовано в /kp-gm/ из kp-glass-memory"
+          # v.txt = штамп сборки для авто-обновления страницы при устаревшем кэше (как в /prod/)
+          STAMP=$(git -C /tmp/kp-gm rev-parse --short HEAD)
+          printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/kp-gm/v.txt"
+          sed -i "s/__BUILD__/$STAMP/" "$GITHUB_WORKSPACE/_site/kp-gm/index.html"
+          echo "КП GLASS-MEMORY опубликовано в /kp-gm/ из kp-glass-memory, сборка $STAMP"
 
       # === ОФИС-МЕНЕДЖЕР (ИЗОЛИРОВАННО, из ветки office-dashboard-v1, в /office/) ===
       # Личный дашборд квалификации лидов GG. Аналог /rop/: самодостаточный HTML,

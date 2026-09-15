@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-09-15T12:33:38.031Z",
+ "generated_at": "2026-09-15T13:15:57.404Z",
  "category": 49,
  "dealSince": "2026-01-01",
  "portal": "https://glassmemory.bitrix24.ru",
  "deal": {
   "entity": "crm.deal (воронка 49)",
   "fieldCount": 422,
-  "dealCount": 23477,
+  "dealCount": 23481,
   "cardFieldCount": 79,
   "cardSectionOrder": [
    "main",
@@ -31,8 +31,8 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 23477,
-    "total": 23477,
+    "filled": 23481,
+    "total": 23481,
     "fillPct": 100,
     "distinct": 61
    },
@@ -47,8 +47,8 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 23477,
-    "total": 23477,
+    "filled": 23481,
+    "total": 23481,
     "fillPct": 100,
     "distinct": 61
    },
@@ -95,8 +95,8 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 23477,
-    "total": 23477,
+    "filled": 23481,
+    "total": 23481,
     "fillPct": 100,
     "distinct": 13
    },
@@ -198,7 +198,7 @@
    },
    {
     "code": "PROBABILITY",
-    "title": "Вероятность",
+    "title": "Вероятность,%",
     "type": "integer",
     "required": false,
     "readonly": false,
@@ -383,14 +383,14 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 23477,
-    "total": 23477,
+    "filled": 23481,
+    "total": 23481,
     "fillPct": 100,
     "distinct": 61
    },
    {
     "code": "OPENED",
-    "title": "Доступна для всех",
+    "title": "Доступно для всех",
     "type": "char",
     "required": false,
     "readonly": false,
@@ -406,7 +406,7 @@
    },
    {
     "code": "CLOSED",
-    "title": "Закрыта",
+    "title": "Сделка закрыта",
     "type": "char",
     "required": false,
     "readonly": false,
@@ -431,8 +431,8 @@
     "items": [],
     "onCard49": true,
     "section": "Документы",
-    "filled": 664,
-    "total": 23477,
+    "filled": 665,
+    "total": 23481,
     "fillPct": 2.8,
     "distinct": 61
    },
@@ -447,8 +447,8 @@
     "items": [],
     "onCard49": true,
     "section": "main",
-    "filled": 23477,
-    "total": 23477,
+    "filled": 23481,
+    "total": 23481,
     "fillPct": 100,
     "distinct": 32
    },
@@ -559,8 +559,8 @@
     "items": [],
     "onCard49": true,
     "section": "Источник",
-    "filled": 1950,
-    "total": 23477,
+    "filled": 1953,
+    "total": 23481,
     "fillPct": 8.3,
     "distinct": 41
    },
@@ -768,7 +768,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 0,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 0
    },
@@ -966,7 +966,7 @@
    },
    {
     "code": "UF_CRM_1649142188627",
-    "title": "UF_CRM_1649142188627",
+    "title": "Дата завершения по договору",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -982,7 +982,7 @@
    },
    {
     "code": "UF_CRM_1650978745544",
-    "title": "UF_CRM_1650978745544",
+    "title": "Планируемый бюджет",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1019,7 +1019,7 @@
    },
    {
     "code": "UF_CRM_1650978884125",
-    "title": "UF_CRM_1650978884125",
+    "title": "Адрес объекта",
     "type": "address",
     "required": false,
     "readonly": false,
@@ -1035,7 +1035,7 @@
    },
    {
     "code": "UF_CRM_1650979417141",
-    "title": "UF_CRM_1650979417141",
+    "title": "Название нашей компании",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1051,7 +1051,7 @@
    },
    {
     "code": "UF_CRM_1650979433946",
-    "title": "UF_CRM_1650979433946",
+    "title": "Телефон нашей компании",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1067,7 +1067,7 @@
    },
    {
     "code": "UF_CRM_1650979598029",
-    "title": "UF_CRM_1650979598029",
+    "title": "Предварительная стоимость",
     "type": "money",
     "required": false,
     "readonly": false,
@@ -1083,7 +1083,7 @@
    },
    {
     "code": "UF_CRM_1651060610069",
-    "title": "UF_CRM_1651060610069",
+    "title": "Оцените как прошла доставка",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1112,7 +1112,7 @@
    },
    {
     "code": "UF_CRM_1651063242300",
-    "title": "UF_CRM_1651063242300",
+    "title": "Предоплата (удвлить поле)",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -1128,7 +1128,7 @@
    },
    {
     "code": "UF_CRM_1652423381303",
-    "title": "UF_CRM_1652423381303",
+    "title": "Интерес",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1165,7 +1165,7 @@
    },
    {
     "code": "UF_CRM_1652423714785",
-    "title": "UF_CRM_1652423714785",
+    "title": "Данные по замеру одним файлом",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1181,7 +1181,7 @@
    },
    {
     "code": "UF_CRM_1652424699605",
-    "title": "UF_CRM_1652424699605",
+    "title": "Монтаж будет?",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1206,7 +1206,7 @@
    },
    {
     "code": "UF_CRM_1655449456841",
-    "title": "UF_CRM_1655449456841",
+    "title": "Дата и время монтажа",
     "type": "datetime",
     "required": false,
     "readonly": false,
@@ -1222,7 +1222,7 @@
    },
    {
     "code": "UF_CRM_1655571683678",
-    "title": "UF_CRM_1655571683678",
+    "title": "Комментарий обратной связи",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1238,7 +1238,7 @@
    },
    {
     "code": "UF_CRM_1655571991161",
-    "title": "UF_CRM_1655571991161",
+    "title": "Подписанный акт",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1254,7 +1254,7 @@
    },
    {
     "code": "UF_CRM_1655572019",
-    "title": "UF_CRM_1655572019",
+    "title": "Монтажник",
     "type": "employee",
     "required": false,
     "readonly": false,
@@ -1270,7 +1270,7 @@
    },
    {
     "code": "UF_CRM_1655572313",
-    "title": "UF_CRM_1655572313",
+    "title": "Замерщик",
     "type": "employee",
     "required": false,
     "readonly": false,
@@ -1286,7 +1286,7 @@
    },
    {
     "code": "UF_CRM_1655572417110",
-    "title": "UF_CRM_1655572417110",
+    "title": "Файлы замера (фото, эксиз)",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1302,7 +1302,7 @@
    },
    {
     "code": "UF_CRM_1655572606609",
-    "title": "UF_CRM_1655572606609",
+    "title": "Комментарий замерщика",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1318,7 +1318,7 @@
    },
    {
     "code": "UF_CRM_1655573262273",
-    "title": "UF_CRM_1655573262273",
+    "title": "Фотоотчет работ",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1334,7 +1334,7 @@
    },
    {
     "code": "UF_CRM_1655580166",
-    "title": "UF_CRM_1655580166",
+    "title": "Дата и время замера",
     "type": "datetime",
     "required": false,
     "readonly": false,
@@ -1350,7 +1350,7 @@
    },
    {
     "code": "UF_CRM_1678430692645",
-    "title": "UF_CRM_1678430692645",
+    "title": "Номер договора",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1366,7 +1366,7 @@
    },
    {
     "code": "UF_CRM_1678430705114",
-    "title": "UF_CRM_1678430705114",
+    "title": "Дата заключения",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -1382,7 +1382,7 @@
    },
    {
     "code": "UF_CRM_1678430716113",
-    "title": "UF_CRM_1678430716113",
+    "title": "Прочие условия",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1398,7 +1398,7 @@
    },
    {
     "code": "UF_CRM_1678430763290",
-    "title": "UF_CRM_1678430763290",
+    "title": "Доля вознаграждения, %",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -1414,7 +1414,7 @@
    },
    {
     "code": "UF_CRM_1678431287504",
-    "title": "UF_CRM_1678431287504",
+    "title": "Фото рекламации",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1430,7 +1430,7 @@
    },
    {
     "code": "UF_CRM_1678431368",
-    "title": "UF_CRM_1678431368",
+    "title": "По какой сделке рекламация",
     "type": "crm",
     "required": false,
     "readonly": false,
@@ -1446,7 +1446,7 @@
    },
    {
     "code": "UF_CRM_1678431564945",
-    "title": "UF_CRM_1678431564945",
+    "title": "Время на устранение рекламации",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1462,7 +1462,7 @@
    },
    {
     "code": "UF_CRM_1678783488",
-    "title": "UF_CRM_1678783488",
+    "title": "Агент",
     "type": "crm",
     "required": false,
     "readonly": false,
@@ -1478,7 +1478,7 @@
    },
    {
     "code": "UF_CRM_1678786312430",
-    "title": "UF_CRM_1678786312430",
+    "title": "Промокод",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1494,7 +1494,7 @@
    },
    {
     "code": "UF_CRM_1695375794224",
-    "title": "UF_CRM_1695375794224",
+    "title": "Счет на оплату поставщику",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1510,7 +1510,7 @@
    },
    {
     "code": "UF_CRM_1695375817322",
-    "title": "UF_CRM_1695375817322",
+    "title": "Сумма предоплаты поставщику",
     "type": "money",
     "required": false,
     "readonly": false,
@@ -1526,7 +1526,7 @@
    },
    {
     "code": "UF_CRM_1695375858901",
-    "title": "UF_CRM_1695375858901",
+    "title": "Статус счета поставщику",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1559,7 +1559,7 @@
    },
    {
     "code": "UF_CRM_1696488023017",
-    "title": "UF_CRM_1696488023017",
+    "title": "Счета поставщиков",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1575,7 +1575,7 @@
    },
    {
     "code": "UF_CRM_6728E4D499623",
-    "title": "UF_CRM_6728E4D499623",
+    "title": "Комментарий при переходе на этап СПАМ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1591,7 +1591,7 @@
    },
    {
     "code": "UF_CRM_6729198C43AD0",
-    "title": "UF_CRM_6729198C43AD0",
+    "title": "Комментарий при переходе на этап НЕКАЧЕСТВЕННЫЙ ЛИД",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1607,7 +1607,7 @@
    },
    {
     "code": "UF_CRM_1731094577430",
-    "title": "UF_CRM_1731094577430",
+    "title": "Сумма после монтажа",
     "type": "money",
     "required": false,
     "readonly": false,
@@ -1623,7 +1623,7 @@
    },
    {
     "code": "UF_CRM_1731094901475",
-    "title": "UF_CRM_1731094901475",
+    "title": "Предоплата",
     "type": "money",
     "required": false,
     "readonly": false,
@@ -1633,13 +1633,13 @@
     "onCard49": true,
     "section": "main",
     "filled": 436,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.9,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1731094938642",
-    "title": "UF_CRM_1731094938642",
+    "title": "Сумма перед доставкой",
     "type": "money",
     "required": false,
     "readonly": false,
@@ -1655,7 +1655,7 @@
    },
    {
     "code": "UF_CRM_1731095428638",
-    "title": "UF_CRM_1731095428638",
+    "title": "Дата готовности по договору",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -1671,7 +1671,7 @@
    },
    {
     "code": "UF_CRM_1731096123268",
-    "title": "UF_CRM_1731096123268",
+    "title": "Дата заключения договора",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -1687,7 +1687,7 @@
    },
    {
     "code": "UF_CRM_1731096442850",
-    "title": "UF_CRM_1731096442850",
+    "title": "Файл с расчетом себестоимости и наценки",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1703,7 +1703,7 @@
    },
    {
     "code": "UF_CRM_1731096522310",
-    "title": "UF_CRM_1731096522310",
+    "title": "Договор + приложение",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1719,7 +1719,7 @@
    },
    {
     "code": "UF_CRM_1731096636373",
-    "title": "UF_CRM_1731096636373",
+    "title": "Файл с дополнительной информацией",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1735,7 +1735,7 @@
    },
    {
     "code": "UF_CRM_1731096684891",
-    "title": "UF_CRM_1731096684891",
+    "title": "Комментарии для производства",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1751,7 +1751,7 @@
    },
    {
     "code": "UF_CRM_1731100151037",
-    "title": "UF_CRM_1731100151037",
+    "title": "Расчет себестоимости + наценка",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1767,7 +1767,7 @@
    },
    {
     "code": "UF_CRM_1731101126",
-    "title": "UF_CRM_1731101126",
+    "title": "Ответственный за производство",
     "type": "employee",
     "required": false,
     "readonly": false,
@@ -1783,7 +1783,7 @@
    },
    {
     "code": "UF_CRM_1731353724239",
-    "title": "UF_CRM_1731353724239",
+    "title": "Сварка",
     "type": "boolean",
     "required": false,
     "readonly": false,
@@ -1799,7 +1799,7 @@
    },
    {
     "code": "UF_CRM_1731353818438",
-    "title": "UF_CRM_1731353818438",
+    "title": "Доставка",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1824,7 +1824,7 @@
    },
    {
     "code": "UF_CRM_1731353870342",
-    "title": "UF_CRM_1731353870342",
+    "title": "Монтаж",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1849,7 +1849,7 @@
    },
    {
     "code": "UF_CRM_1731353948082",
-    "title": "UF_CRM_1731353948082",
+    "title": "Покраска",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1874,7 +1874,7 @@
    },
    {
     "code": "UF_CRM_1731353987785",
-    "title": "UF_CRM_1731353987785",
+    "title": "Древесные материалы",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1899,7 +1899,7 @@
    },
    {
     "code": "UF_CRM_1731354021253",
-    "title": "UF_CRM_1731354021253",
+    "title": "Стекло/зеркала",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1924,7 +1924,7 @@
    },
    {
     "code": "UF_CRM_1731354048005",
-    "title": "UF_CRM_1731354048005",
+    "title": "Фурнитура",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -1949,7 +1949,7 @@
    },
    {
     "code": "UF_CRM_1731442169975",
-    "title": "UF_CRM_1731442169975",
+    "title": "Файл №1",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1965,7 +1965,7 @@
    },
    {
     "code": "UF_CRM_1731442194464",
-    "title": "UF_CRM_1731442194464",
+    "title": "Комментарий к чертежу №1",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -1981,7 +1981,7 @@
    },
    {
     "code": "UF_CRM_1731442213120",
-    "title": "UF_CRM_1731442213120",
+    "title": "Файл №3",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -1997,7 +1997,7 @@
    },
    {
     "code": "UF_CRM_1731442227988",
-    "title": "UF_CRM_1731442227988",
+    "title": "Комментарий к чертежу №2",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2013,7 +2013,7 @@
    },
    {
     "code": "UF_CRM_1731442248238",
-    "title": "UF_CRM_1731442248238",
+    "title": "Файл №5",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2029,7 +2029,7 @@
    },
    {
     "code": "UF_CRM_1731442269350",
-    "title": "UF_CRM_1731442269350",
+    "title": "Комментарий к чертежу №3",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2045,7 +2045,7 @@
    },
    {
     "code": "UF_CRM_1731442296658",
-    "title": "UF_CRM_1731442296658",
+    "title": "Файл №7",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2061,7 +2061,7 @@
    },
    {
     "code": "UF_CRM_1731442316150",
-    "title": "UF_CRM_1731442316150",
+    "title": "Комментарий к чертежу №4",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2077,7 +2077,7 @@
    },
    {
     "code": "UF_CRM_1731442329596",
-    "title": "UF_CRM_1731442329596",
+    "title": "Файл №9",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2093,7 +2093,7 @@
    },
    {
     "code": "UF_CRM_1731442349894",
-    "title": "UF_CRM_1731442349894",
+    "title": "Комментарий к чертежу №5",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2109,7 +2109,7 @@
    },
    {
     "code": "UF_CRM_1731442388186",
-    "title": "UF_CRM_1731442388186",
+    "title": "Файл №2",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2125,7 +2125,7 @@
    },
    {
     "code": "UF_CRM_1731442399970",
-    "title": "UF_CRM_1731442399970",
+    "title": "Файл №4",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2141,7 +2141,7 @@
    },
    {
     "code": "UF_CRM_1731442410150",
-    "title": "UF_CRM_1731442410150",
+    "title": "Файл №6",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2157,7 +2157,7 @@
    },
    {
     "code": "UF_CRM_1731442420070",
-    "title": "UF_CRM_1731442420070",
+    "title": "Файл №8",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2173,7 +2173,7 @@
    },
    {
     "code": "UF_CRM_1731442434436",
-    "title": "UF_CRM_1731442434436",
+    "title": "Файл №10",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2189,7 +2189,7 @@
    },
    {
     "code": "UF_CRM_6734F670012AA",
-    "title": "UF_CRM_6734F670012AA",
+    "title": "Профиль в соц сетях",
     "type": "url",
     "required": false,
     "readonly": false,
@@ -2205,7 +2205,7 @@
    },
    {
     "code": "UF_CRM_1731527219039",
-    "title": "UF_CRM_1731527219039",
+    "title": "Тип клиент",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -2230,7 +2230,7 @@
    },
    {
     "code": "UF_CRM_1731527468296",
-    "title": "UF_CRM_1731527468296",
+    "title": "Способ доставки",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -2257,13 +2257,13 @@
     "onCard49": true,
     "section": "Доставка",
     "filled": 886,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 3.8,
     "distinct": 4
    },
    {
     "code": "UF_CRM_1731527950534",
-    "title": "UF_CRM_1731527950534",
+    "title": "Макет №1",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2279,7 +2279,7 @@
    },
    {
     "code": "UF_CRM_1731527976796",
-    "title": "UF_CRM_1731527976796",
+    "title": "Комментарий к макету №1",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2295,7 +2295,7 @@
    },
    {
     "code": "UF_CRM_1731528017961",
-    "title": "UF_CRM_1731528017961",
+    "title": "Файл для печати №1",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2311,7 +2311,7 @@
    },
    {
     "code": "UF_CRM_1731528077389",
-    "title": "UF_CRM_1731528077389",
+    "title": "Счет",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2327,7 +2327,7 @@
    },
    {
     "code": "UF_CRM_1731528095436",
-    "title": "UF_CRM_1731528095436",
+    "title": "Спецификация",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2343,7 +2343,7 @@
    },
    {
     "code": "UF_CRM_1731528119842",
-    "title": "UF_CRM_1731528119842",
+    "title": "Чертеж от ДГ №1",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2359,7 +2359,7 @@
    },
    {
     "code": "UF_CRM_1731528163786",
-    "title": "UF_CRM_1731528163786",
+    "title": "Фото №1",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2375,7 +2375,7 @@
    },
    {
     "code": "UF_CRM_1731528175762",
-    "title": "UF_CRM_1731528175762",
+    "title": "Фото №2",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2391,7 +2391,7 @@
    },
    {
     "code": "UF_CRM_1731528188664",
-    "title": "UF_CRM_1731528188664",
+    "title": "Фото №3",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2407,7 +2407,7 @@
    },
    {
     "code": "UF_CRM_1731528202934",
-    "title": "UF_CRM_1731528202934",
+    "title": "Фото №4",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2423,7 +2423,7 @@
    },
    {
     "code": "UF_CRM_1731850879697",
-    "title": "UF_CRM_1731850879697",
+    "title": "ФИО кандидата",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2439,7 +2439,7 @@
    },
    {
     "code": "UF_CRM_1731851026900",
-    "title": "UF_CRM_1731851026900",
+    "title": "Дата рождения кандидата",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -2455,7 +2455,7 @@
    },
    {
     "code": "UF_CRM_1731851049521",
-    "title": "UF_CRM_1731851049521",
+    "title": "Гражданство кандидата",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2471,7 +2471,7 @@
    },
    {
     "code": "UF_CRM_1731851076471",
-    "title": "UF_CRM_1731851076471",
+    "title": "Обращение по вакансии",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2487,7 +2487,7 @@
    },
    {
     "code": "UF_CRM_1731851141928",
-    "title": "UF_CRM_1731851141928",
+    "title": "Источник обращения по вакансии",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2503,7 +2503,7 @@
    },
    {
     "code": "UF_CRM_1731851186104",
-    "title": "UF_CRM_1731851186104",
+    "title": "Ожидаемая дата собеседования",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -2519,7 +2519,7 @@
    },
    {
     "code": "UF_CRM_1731851210326",
-    "title": "UF_CRM_1731851210326",
+    "title": "Ожидаемая дата/время собеседования",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -2535,7 +2535,7 @@
    },
    {
     "code": "UF_CRM_1731851326256",
-    "title": "UF_CRM_1731851326256",
+    "title": "Номер телефона кандидата",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2551,7 +2551,7 @@
    },
    {
     "code": "UF_CRM_1732531661887",
-    "title": "UF_CRM_1732531661887",
+    "title": "Картинка по изделию (pdf не прикреплять)",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2567,7 +2567,7 @@
    },
    {
     "code": "UF_CRM_1732777445756",
-    "title": "UF_CRM_1732777445756",
+    "title": "Файл с дополнительной информацией 2",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2583,7 +2583,7 @@
    },
    {
     "code": "UF_CRM_1732777475300",
-    "title": "UF_CRM_1732777475300",
+    "title": "Файл с дополнительной информацией 3",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -2599,7 +2599,7 @@
    },
    {
     "code": "UF_CRM_1733320823848",
-    "title": "UF_CRM_1733320823848",
+    "title": "Ссылка на МС",
     "type": "url",
     "required": false,
     "readonly": false,
@@ -2615,7 +2615,7 @@
    },
    {
     "code": "UF_CRM_1733339712970",
-    "title": "UF_CRM_1733339712970",
+    "title": "Цвет изделия по RAL (если нет красим \"ПОКРАСКИ НЕТ\")",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2631,7 +2631,7 @@
    },
    {
     "code": "UF_CRM_1733679633332",
-    "title": "UF_CRM_1733679633332",
+    "title": "СВАРКА стоимость работ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2647,7 +2647,7 @@
    },
    {
     "code": "UF_CRM_1733679691590",
-    "title": "UF_CRM_1733679691590",
+    "title": "СЛЕСАРКА стоимость работ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2663,7 +2663,7 @@
    },
    {
     "code": "UF_CRM_1733680024322",
-    "title": "UF_CRM_1733680024322",
+    "title": "ГИБКА стоимость работ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2679,7 +2679,7 @@
    },
    {
     "code": "UF_CRM_675827D080BAF",
-    "title": "UF_CRM_675827D080BAF",
+    "title": "Instagram_WZ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2695,7 +2695,7 @@
    },
    {
     "code": "UF_CRM_675827D0B1AD5",
-    "title": "UF_CRM_675827D0B1AD5",
+    "title": "VK_WZ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2711,7 +2711,7 @@
    },
    {
     "code": "UF_CRM_675827D10AC1C",
-    "title": "UF_CRM_675827D10AC1C",
+    "title": "Avito_WZ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2727,7 +2727,7 @@
    },
    {
     "code": "UF_CRM_675827D11C76B",
-    "title": "UF_CRM_675827D11C76B",
+    "title": "TelegramUsername_WZ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2743,7 +2743,7 @@
    },
    {
     "code": "UF_CRM_675827D12BA08",
-    "title": "UF_CRM_675827D12BA08",
+    "title": "TelegramId_WZ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2753,13 +2753,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 203,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.9,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1734173037358",
-    "title": "UF_CRM_1734173037358",
+    "title": "ФИО ФИЗ.",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2775,7 +2775,7 @@
    },
    {
     "code": "UF_CRM_1734173115634",
-    "title": "UF_CRM_1734173115634",
+    "title": "КЕМ ВЫДАН ПАСПОРТ ФИЗ.",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2791,7 +2791,7 @@
    },
    {
     "code": "UF_CRM_1734173151160",
-    "title": "UF_CRM_1734173151160",
+    "title": "КОГДА ВЫДАН ПАСПОРТ ФИЗ.",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -2807,7 +2807,7 @@
    },
    {
     "code": "UF_CRM_1734173169407",
-    "title": "UF_CRM_1734173169407",
+    "title": "ДАТА РОЖДЕНИЯ ФИЗ.",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -2823,7 +2823,7 @@
    },
    {
     "code": "UF_CRM_1734173207652",
-    "title": "UF_CRM_1734173207652",
+    "title": "E-mail ДЛЯ ДОГОВОРА С ФИЗ.",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2839,7 +2839,7 @@
    },
    {
     "code": "UF_CRM_1734173228536",
-    "title": "UF_CRM_1734173228536",
+    "title": "АДРЕС РЕГИСТРАЦИИ ФИЗ.",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2855,7 +2855,7 @@
    },
    {
     "code": "UF_CRM_1734173250454",
-    "title": "UF_CRM_1734173250454",
+    "title": "МЕСТО РОЖДЕНИЯ ФИЗ.",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2871,7 +2871,7 @@
    },
    {
     "code": "UF_CRM_1734176379549",
-    "title": "UF_CRM_1734176379549",
+    "title": "НОМЕР ПАСПОРТА ФИЗ.",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2887,7 +2887,7 @@
    },
    {
     "code": "UF_CRM_1734177588358",
-    "title": "UF_CRM_1734177588358",
+    "title": "КАТЕГОРИЯ ИЗДЕЛИЯ ПО ДОГОВОРУ",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -2916,7 +2916,7 @@
    },
    {
     "code": "UF_CRM_1734186950991",
-    "title": "UF_CRM_1734186950991",
+    "title": "ФИО ИП",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2932,7 +2932,7 @@
    },
    {
     "code": "UF_CRM_1734186982702",
-    "title": "UF_CRM_1734186982702",
+    "title": "E-mail ДЛЯ ДОГОВОРА ИП",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2948,7 +2948,7 @@
    },
    {
     "code": "UF_CRM_1734186997320",
-    "title": "UF_CRM_1734186997320",
+    "title": "ИНН ИП",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2964,7 +2964,7 @@
    },
    {
     "code": "UF_CRM_1735245500804",
-    "title": "UF_CRM_1735245500804",
+    "title": "Полная себестоимость по заказу",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2980,7 +2980,7 @@
    },
    {
     "code": "UF_CRM_1739262499780",
-    "title": "UF_CRM_1739262499780",
+    "title": "БОНУС ДИЗАЙНЕРУ РУБ.",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -2996,7 +2996,7 @@
    },
    {
     "code": "UF_CRM_1739367679230",
-    "title": "UF_CRM_1739367679230",
+    "title": "Дата/Время",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -3012,7 +3012,7 @@
    },
    {
     "code": "UF_CRM_1739368623032",
-    "title": "UF_CRM_1739368623032",
+    "title": "Бронирование ресурсов",
     "type": "resourcebooking",
     "required": false,
     "readonly": false,
@@ -3028,7 +3028,7 @@
    },
    {
     "code": "UF_CRM_1740476066791",
-    "title": "UF_CRM_1740476066791",
+    "title": "ОПЛАТА ПОЛУЧЕНА",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3044,7 +3044,7 @@
    },
    {
     "code": "UF_CRM_1740563608987",
-    "title": "UF_CRM_1740563608987",
+    "title": "Количество",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3095,13 +3095,13 @@
     "onCard49": true,
     "section": "Заказ",
     "filled": 39,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.2,
     "distinct": 7
    },
    {
     "code": "UF_CRM_1740563698201",
-    "title": "UF_CRM_1740563698201",
+    "title": "ЦВЕТ СЕРИЙКИ",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3134,7 +3134,7 @@
    },
    {
     "code": "UF_CRM_1740564130363",
-    "title": "UF_CRM_1740564130363",
+    "title": "НОМЕР СЕРИЙНОЙ МОДЕЛИ",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3311,7 +3311,7 @@
    },
    {
     "code": "UF_CRM_1740564880079",
-    "title": "UF_CRM_1740564880079",
+    "title": "Сварщик",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3340,7 +3340,7 @@
    },
    {
     "code": "UF_CRM_1740564936986",
-    "title": "UF_CRM_1740564936986",
+    "title": "Слесарь",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3369,7 +3369,7 @@
    },
    {
     "code": "UF_CRM_1740565174542",
-    "title": "UF_CRM_1740565174542",
+    "title": "Сумма сварки за 1шт.",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -3385,7 +3385,7 @@
    },
    {
     "code": "UF_CRM_1740565199511",
-    "title": "UF_CRM_1740565199511",
+    "title": "Сумма слесарки за 1шт.",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -3401,7 +3401,7 @@
    },
    {
     "code": "UF_CRM_1740940764690",
-    "title": "UF_CRM_1740940764690",
+    "title": "Комментарии к себестоимости",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3417,7 +3417,7 @@
    },
    {
     "code": "UF_CRM_1740940813045",
-    "title": "UF_CRM_1740940813045",
+    "title": "Комментарии к бонусу",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3433,7 +3433,7 @@
    },
    {
     "code": "UF_CRM_1741248674179",
-    "title": "UF_CRM_1741248674179",
+    "title": "Артикулы",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3449,7 +3449,7 @@
    },
    {
     "code": "UF_CRM_67CAB80062E46",
-    "title": "UF_CRM_67CAB80062E46",
+    "title": "Адрес диалога Jivosite",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3465,7 +3465,7 @@
    },
    {
     "code": "UF_CRM_1741381034130",
-    "title": "UF_CRM_1741381034130",
+    "title": "СПЕЦИФИКАЦИЯ №1",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -3481,7 +3481,7 @@
    },
    {
     "code": "UF_CRM_1742300453252",
-    "title": "UF_CRM_1742300453252",
+    "title": "Счет на ЦП",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -3497,7 +3497,7 @@
    },
    {
     "code": "UF_CRM_1742300485492",
-    "title": "UF_CRM_1742300485492",
+    "title": "Спецификация на ЦП",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -3513,7 +3513,7 @@
    },
    {
     "code": "UF_CRM_1742801750773",
-    "title": "UF_CRM_1742801750773",
+    "title": "СПЕЦИФИКАЦИЯ №2",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -3529,7 +3529,7 @@
    },
    {
     "code": "UF_CRM_1742801763856",
-    "title": "UF_CRM_1742801763856",
+    "title": "СПЕЦИФИКАЦИЯ №3",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -3545,7 +3545,7 @@
    },
    {
     "code": "UF_CRM_1743062298535",
-    "title": "UF_CRM_1743062298535",
+    "title": "Доп название",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3561,7 +3561,7 @@
    },
    {
     "code": "UF_CRM_1743148179478",
-    "title": "UF_CRM_1743148179478",
+    "title": "Фото и видео цветопробы загружены",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3582,7 +3582,7 @@
    },
    {
     "code": "UF_CRM_67FD6BD79D0BF",
-    "title": "UF_CRM_67FD6BD79D0BF",
+    "title": "Новая строка",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3598,7 +3598,7 @@
    },
    {
     "code": "UF_CRM_1746433165674",
-    "title": "UF_CRM_1746433165674",
+    "title": "МОНТАЖ стоимость услуг",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3614,7 +3614,7 @@
    },
    {
     "code": "UF_CRM_1746433220885",
-    "title": "UF_CRM_1746433220885",
+    "title": "ДОСТАВКА/РАЗГРУЗКА стоимость услуг",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3630,7 +3630,7 @@
    },
    {
     "code": "UF_CRM_1746433296380",
-    "title": "UF_CRM_1746433296380",
+    "title": "РУЧНОЙ ПОДЪЕМ стоимость услуг",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3646,7 +3646,7 @@
    },
    {
     "code": "UF_CRM_1747127358950",
-    "title": "UF_CRM_1747127358950",
+    "title": "ДомГласс - себестоимость",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3662,7 +3662,7 @@
    },
    {
     "code": "UF_CRM_1747127421496",
-    "title": "UF_CRM_1747127421496",
+    "title": "Макет - себестоимость",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3678,7 +3678,7 @@
    },
    {
     "code": "UF_CRM_1747127514819",
-    "title": "UF_CRM_1747127514819",
+    "title": "Шаблон - себестоимость",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3694,7 +3694,7 @@
    },
    {
     "code": "UF_CRM_1747339001207",
-    "title": "UF_CRM_1747339001207",
+    "title": "Остаток",
     "type": "money",
     "required": false,
     "readonly": false,
@@ -3710,7 +3710,7 @@
    },
    {
     "code": "UF_CRM_1747386964735",
-    "title": "UF_CRM_1747386964735",
+    "title": "Цветопроба - себестоимость",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3747,7 +3747,7 @@
    },
    {
     "code": "UF_CRM_1747387147985",
-    "title": "UF_CRM_1747387147985",
+    "title": "Крепеж - себестоимость",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3776,7 +3776,7 @@
    },
    {
     "code": "UF_CRM_1747387383732",
-    "title": "UF_CRM_1747387383732",
+    "title": "Подставка",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3821,7 +3821,7 @@
    },
    {
     "code": "UF_CRM_1753087644988",
-    "title": "UF_CRM_1753087644988",
+    "title": "УСЛУГИ К ВЫЧЕТУ (общая сумма)",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3837,7 +3837,7 @@
    },
    {
     "code": "UF_CRM_68D3B154D797A",
-    "title": "UF_CRM_68D3B154D797A",
+    "title": "MaxId_WZ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3847,13 +3847,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 284,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.2,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1761571112349",
-    "title": "UF_CRM_1761571112349",
+    "title": "Себестоимость стекла",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3869,7 +3869,7 @@
    },
    {
     "code": "UF_CRM_1761571182160",
-    "title": "UF_CRM_1761571182160",
+    "title": "Себестоимость зеркал",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3885,7 +3885,7 @@
    },
    {
     "code": "UF_CRM_1761900789593",
-    "title": "UF_CRM_1761900789593",
+    "title": "Замерные листы",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -3901,7 +3901,7 @@
    },
    {
     "code": "UF_CRM_1762335743741",
-    "title": "UF_CRM_1762335743741",
+    "title": "Стоимость обрешетки",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3917,7 +3917,7 @@
    },
    {
     "code": "UF_CRM_1762502392053",
-    "title": "UF_CRM_1762502392053",
+    "title": "Электронная почта для чеков",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -3933,7 +3933,7 @@
    },
    {
     "code": "UF_CRM_1767957553704",
-    "title": "UF_CRM_1767957553704",
+    "title": "Адрес оплаты",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -3980,13 +3980,13 @@
     "onCard49": true,
     "section": "Оплата",
     "filled": 770,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 3.3,
     "distinct": 7
    },
    {
     "code": "UF_CRM_1767958427410",
-    "title": "UF_CRM_1767958427410",
+    "title": "GG Тип клиента",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -4028,14 +4028,14 @@
     ],
     "onCard49": true,
     "section": "Обязательные поля",
-    "filled": 16271,
-    "total": 23477,
+    "filled": 16272,
+    "total": 23481,
     "fillPct": 69.3,
     "distinct": 8
    },
    {
     "code": "UF_CRM_1767958995676",
-    "title": "UF_CRM_1767958995676",
+    "title": "Адрес доставки и монтажа",
     "type": "address",
     "required": false,
     "readonly": false,
@@ -4045,13 +4045,13 @@
     "onCard49": true,
     "section": "Доставка",
     "filled": 272,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.2,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1767959080459",
-    "title": "UF_CRM_1767959080459",
+    "title": "GG Дата и время доставки",
     "type": "datetime",
     "required": false,
     "readonly": false,
@@ -4061,13 +4061,13 @@
     "onCard49": true,
     "section": "Доставка",
     "filled": 359,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.5,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1767959114927",
-    "title": "UF_CRM_1767959114927",
+    "title": "GG Дата отгрузки",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -4077,13 +4077,13 @@
     "onCard49": true,
     "section": "Доставка",
     "filled": 7534,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 32.1,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1767959323260",
-    "title": "UF_CRM_1767959323260",
+    "title": "Заказ по 1с",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4092,14 +4092,14 @@
     "items": [],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 7458,
-    "total": 23477,
+    "filled": 7459,
+    "total": 23481,
     "fillPct": 31.8,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1767959378611",
-    "title": "UF_CRM_1767959378611",
+    "title": "Артикул",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4108,14 +4108,14 @@
     "items": [],
     "onCard49": true,
     "section": "Источник",
-    "filled": 14868,
-    "total": 23477,
+    "filled": 14869,
+    "total": 23481,
     "fillPct": 63.3,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1767959421726",
-    "title": "UF_CRM_1767959421726",
+    "title": "Заказ ГМ х ГГ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4124,14 +4124,14 @@
     "items": [],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 3816,
-    "total": 23477,
+    "filled": 3817,
+    "total": 23481,
     "fillPct": 16.3,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1767959515444",
-    "title": "UF_CRM_1767959515444",
+    "title": "Заказ в ДГ \\ БСК",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4141,13 +4141,13 @@
     "onCard49": true,
     "section": "Заказ",
     "filled": 1454,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 6.2,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1767959558377",
-    "title": "UF_CRM_1767959558377",
+    "title": "Номер запроса в ГМ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4157,13 +4157,13 @@
     "onCard49": true,
     "section": "Заказ",
     "filled": 25,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.1,
     "distinct": 22
    },
    {
     "code": "UF_CRM_1767959582244",
-    "title": "UF_CRM_1767959582244",
+    "title": "Срок",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4172,14 +4172,14 @@
     "items": [],
     "onCard49": true,
     "section": "Заказ",
-    "filled": 1604,
-    "total": 23477,
+    "filled": 1605,
+    "total": 23481,
     "fillPct": 6.8,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1767959627027",
-    "title": "UF_CRM_1767959627027",
+    "title": "GG Резерв ДО",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -4189,13 +4189,13 @@
     "onCard49": true,
     "section": "Заказ",
     "filled": 123,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.5,
     "distinct": 55
    },
    {
     "code": "UF_CRM_1767959647027",
-    "title": "UF_CRM_1767959647027",
+    "title": "GG Ссылка ЯД",
     "type": "url",
     "required": false,
     "readonly": false,
@@ -4205,13 +4205,13 @@
     "onCard49": true,
     "section": "Заказ",
     "filled": 0,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 0
    },
    {
     "code": "UF_CRM_1767959749629",
-    "title": "UF_CRM_1767959749629",
+    "title": "Cтатус оплаты",
     "type": "boolean",
     "required": false,
     "readonly": false,
@@ -4227,7 +4227,7 @@
    },
    {
     "code": "UF_CRM_1767961411803",
-    "title": "UF_CRM_1767961411803",
+    "title": "Чертеж",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -4237,13 +4237,13 @@
     "onCard49": true,
     "section": "Документы",
     "filled": 36,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.2,
     "distinct": 1
    },
    {
     "code": "UF_CRM_1767961429453",
-    "title": "UF_CRM_1767961429453",
+    "title": "Договор",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -4259,7 +4259,7 @@
    },
    {
     "code": "UF_CRM_1767961447303",
-    "title": "UF_CRM_1767961447303",
+    "title": "Спецификация",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -4275,7 +4275,7 @@
    },
    {
     "code": "UF_CRM_1767961492304",
-    "title": "UF_CRM_1767961492304",
+    "title": "КП / Визуализация",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -4291,7 +4291,7 @@
    },
    {
     "code": "UF_CRM_1767961514987",
-    "title": "UF_CRM_1767961514987",
+    "title": "Счёт на оплату",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -4307,7 +4307,7 @@
    },
    {
     "code": "UF_CRM_1767961544322",
-    "title": "UF_CRM_1767961544322",
+    "title": "Расходный документ (УПД / Накладная)",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -4323,7 +4323,7 @@
    },
    {
     "code": "UF_CRM_1767961568404",
-    "title": "UF_CRM_1767961568404",
+    "title": "Карточка предприятия",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -4339,7 +4339,7 @@
    },
    {
     "code": "UF_CRM_1767961585708",
-    "title": "UF_CRM_1767961585708",
+    "title": "Замер 1",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -4355,7 +4355,7 @@
    },
    {
     "code": "UF_CRM_1767961594420",
-    "title": "UF_CRM_1767961594420",
+    "title": "Замер 2",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -4371,7 +4371,7 @@
    },
    {
     "code": "UF_CRM_1767961661606",
-    "title": "UF_CRM_1767961661606",
+    "title": "Комментарий к замеру",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4387,7 +4387,7 @@
    },
    {
     "code": "UF_CRM_1767964621546",
-    "title": "UF_CRM_1767964621546",
+    "title": "Тест для расчета А",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4403,7 +4403,7 @@
    },
    {
     "code": "UF_CRM_1767964639266",
-    "title": "UF_CRM_1767964639266",
+    "title": "Тест для расчета B",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4419,7 +4419,7 @@
    },
    {
     "code": "UF_CRM_1767964661218",
-    "title": "UF_CRM_1767964661218",
+    "title": "Тест для расчета ответ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4435,7 +4435,7 @@
    },
    {
     "code": "UF_CRM_1768399740374",
-    "title": "UF_CRM_1768399740374",
+    "title": "ПОКРАСКА себестоимость",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4451,7 +4451,7 @@
    },
    {
     "code": "UF_CRM_1768567130907",
-    "title": "UF_CRM_1768567130907",
+    "title": "Объявление (utm_content)",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4467,7 +4467,7 @@
    },
    {
     "code": "UF_CRM_1768567155840",
-    "title": "UF_CRM_1768567155840",
+    "title": "Кампания (utm_campaign)",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4483,7 +4483,7 @@
    },
    {
     "code": "UF_CRM_1768567176206",
-    "title": "UF_CRM_1768567176206",
+    "title": "Канал (utm_medium)",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4499,7 +4499,7 @@
    },
    {
     "code": "UF_CRM_1768567201823",
-    "title": "UF_CRM_1768567201823",
+    "title": "Источник (utm_source)",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4515,7 +4515,7 @@
    },
    {
     "code": "UF_CRM_1768567236711",
-    "title": "UF_CRM_1768567236711",
+    "title": "Ключевое слово (utm_term)",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4531,7 +4531,7 @@
    },
    {
     "code": "UF_CRM_1768567267991",
-    "title": "UF_CRM_1768567267991",
+    "title": "clientID",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4540,14 +4540,14 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 1268,
-    "total": 23477,
+    "filled": 1270,
+    "total": 23481,
     "fillPct": 5.4,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1768567649058",
-    "title": "UF_CRM_1768567649058",
+    "title": "URL объявления",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4557,13 +4557,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 718,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 3.1,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1768567680708",
-    "title": "UF_CRM_1768567680708",
+    "title": "Объявление",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4579,7 +4579,7 @@
    },
    {
     "code": "UF_CRM_1768567696145",
-    "title": "UF_CRM_1768567696145",
+    "title": "GA UTM",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4595,7 +4595,7 @@
    },
    {
     "code": "UF_CRM_1768574616452",
-    "title": "UF_CRM_1768574616452",
+    "title": "GG/Лид Причина отказа",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -4624,7 +4624,7 @@
    },
    {
     "code": "UF_CRM_1768574645865",
-    "title": "UF_CRM_1768574645865",
+    "title": "Комментарий к отказу",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4633,14 +4633,14 @@
     "items": [],
     "onCard49": true,
     "section": "Отказ",
-    "filled": 1814,
-    "total": 23477,
+    "filled": 1815,
+    "total": 23481,
     "fillPct": 7.7,
     "distinct": 61
    },
    {
     "code": "UF_CRM_DEAL_TZDATA696A6A5FEEFA9",
-    "title": "UF_CRM_DEAL_TZDATA696A6A5FEEFA9",
+    "title": "Местное время клиента",
     "type": "rest_113_biz0702",
     "required": false,
     "readonly": false,
@@ -4656,7 +4656,7 @@
    },
    {
     "code": "UF_CRM_1768582026100",
-    "title": "UF_CRM_1768582026100",
+    "title": "Часовой пояс клиента",
     "type": "rest_113_biz0702",
     "required": false,
     "readonly": false,
@@ -4672,7 +4672,7 @@
    },
    {
     "code": "UF_CRM_1768762646695",
-    "title": "UF_CRM_1768762646695",
+    "title": "ИТОГО БЮДЖЕТ",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -4682,13 +4682,13 @@
     "onCard49": true,
     "section": "main",
     "filled": 413,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.8,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1768762671646",
-    "title": "UF_CRM_1768762671646",
+    "title": "СУММА ПРИБЫЛЬ",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -4704,7 +4704,7 @@
    },
    {
     "code": "UF_CRM_1769242063589",
-    "title": "UF_CRM_1769242063589",
+    "title": "Удалить",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -4736,7 +4736,7 @@
    },
    {
     "code": "UF_CRM_6977176C92A3E",
-    "title": "UF_CRM_6977176C92A3E",
+    "title": "Часовой пояс клиента",
     "type": "integer",
     "required": false,
     "readonly": false,
@@ -4752,7 +4752,7 @@
    },
    {
     "code": "UF_CRM_1769430267",
-    "title": "UF_CRM_1769430267",
+    "title": "ID Товара",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4778,13 +4778,13 @@
     "onCard49": true,
     "section": "Обязательные поля",
     "filled": 0,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 0
    },
    {
     "code": "UF_CRM_1772008649",
-    "title": "UF_CRM_1772008649",
+    "title": "ID расчет",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -4794,13 +4794,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 688,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 2.9,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1772099078",
-    "title": "UF_CRM_1772099078",
+    "title": "1.КалькуляторGG",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -4810,13 +4810,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 603,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 2.6,
     "distinct": 61
    },
    {
     "code": "UF_CRM_69A7D830ADDB7",
-    "title": "UF_CRM_69A7D830ADDB7",
+    "title": "Тег",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4832,7 +4832,7 @@
    },
    {
     "code": "UF_CRM_69A7D830D026F",
-    "title": "UF_CRM_69A7D830D026F",
+    "title": "Номер заказа",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4848,7 +4848,7 @@
    },
    {
     "code": "UF_CRM_69A7D830EA586",
-    "title": "UF_CRM_69A7D830EA586",
+    "title": "Дополнительно",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4864,7 +4864,7 @@
    },
    {
     "code": "UF_CRM_69A7F70A18816",
-    "title": "UF_CRM_69A7F70A18816",
+    "title": "Направление бизнеса",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -4898,14 +4898,14 @@
     ],
     "onCard49": true,
     "section": "Обязательные поля",
-    "filled": 1634,
-    "total": 23477,
+    "filled": 1636,
+    "total": 23481,
     "fillPct": 7,
     "distinct": 6
    },
    {
     "code": "UF_CRM_1772889370439",
-    "title": "UF_CRM_1772889370439",
+    "title": "Ссылка на оплату",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4915,13 +4915,13 @@
     "onCard49": true,
     "section": "main",
     "filled": 16,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.1,
     "distinct": 16
    },
    {
     "code": "UF_CRM_69AFC82133645",
-    "title": "UF_CRM_69AFC82133645",
+    "title": "Сайт",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4937,7 +4937,7 @@
    },
    {
     "code": "UF_CRM_69AFC8216B570",
-    "title": "UF_CRM_69AFC8216B570",
+    "title": "Url страницы",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4946,14 +4946,14 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 260,
-    "total": 23477,
+    "filled": 261,
+    "total": 23481,
     "fillPct": 1.1,
     "distinct": 61
    },
    {
     "code": "UF_CRM_69AFC82182CC6",
-    "title": "UF_CRM_69AFC82182CC6",
+    "title": "Категория/Подкатегория",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4969,7 +4969,7 @@
    },
    {
     "code": "UF_CRM_69AFC8219B7D2",
-    "title": "UF_CRM_69AFC8219B7D2",
+    "title": "Tittle/Название товара//Загаловок",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4979,13 +4979,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 332,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.4,
     "distinct": 61
    },
    {
     "code": "UF_CRM_69AFC821B61F6",
-    "title": "UF_CRM_69AFC821B61F6",
+    "title": "Номер заказа сайта (woocomerce)",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -4995,13 +4995,29 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 2,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 1
    },
    {
     "code": "UF_CRM_69AFC821CD83E",
-    "title": "UF_CRM_69AFC821CD83E",
+    "title": "UTM Source",
+    "type": "string",
+    "required": false,
+    "readonly": false,
+    "multiple": false,
+    "isLink": false,
+    "items": [],
+    "onCard49": true,
+    "section": "Маркетинг",
+    "filled": 434,
+    "total": 23481,
+    "fillPct": 1.8,
+    "distinct": 33
+   },
+   {
+    "code": "UF_CRM_69AFC821E3C1D",
+    "title": "UTM Medium",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5011,29 +5027,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 432,
-    "total": 23477,
-    "fillPct": 1.8,
-    "distinct": 33
-   },
-   {
-    "code": "UF_CRM_69AFC821E3C1D",
-    "title": "UF_CRM_69AFC821E3C1D",
-    "type": "string",
-    "required": false,
-    "readonly": false,
-    "multiple": false,
-    "isLink": false,
-    "items": [],
-    "onCard49": true,
-    "section": "Маркетинг",
-    "filled": 430,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.8,
     "distinct": 14
    },
    {
     "code": "UF_CRM_69AFC82206B86",
-    "title": "UF_CRM_69AFC82206B86",
+    "title": "UTM Campaign",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5043,13 +5043,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 331,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.4,
     "distinct": 20
    },
    {
     "code": "UF_CRM_69AFC82223115",
-    "title": "UF_CRM_69AFC82223115",
+    "title": "UTM Content",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5059,13 +5059,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 327,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.4,
     "distinct": 53
    },
    {
     "code": "UF_CRM_69AFC8224F8A2",
-    "title": "UF_CRM_69AFC8224F8A2",
+    "title": "UTM Term",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5075,13 +5075,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 277,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.2,
     "distinct": 41
    },
    {
     "code": "UF_CRM_69AFC82268901",
-    "title": "UF_CRM_69AFC82268901",
+    "title": "ym_uid",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5091,13 +5091,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 146,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.6,
     "distinct": 61
    },
    {
     "code": "UF_CRM_69B15FA7BCCEE",
-    "title": "UF_CRM_69B15FA7BCCEE",
+    "title": "googleId",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5113,7 +5113,7 @@
    },
    {
     "code": "UF_CRM_69B15FA802C1F",
-    "title": "UF_CRM_69B15FA802C1F",
+    "title": "rb_clickid",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5129,7 +5129,7 @@
    },
    {
     "code": "UF_CRM_69B3B0A01520F",
-    "title": "UF_CRM_69B3B0A01520F",
+    "title": "Согласие на обработку",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5145,7 +5145,7 @@
    },
    {
     "code": "UF_CRM_69B3DB195F788",
-    "title": "UF_CRM_69B3DB195F788",
+    "title": "mess-type",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5161,7 +5161,7 @@
    },
    {
     "code": "UF_CRM_69B3DB198A342",
-    "title": "UF_CRM_69B3DB198A342",
+    "title": "mess-id",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5177,7 +5177,7 @@
    },
    {
     "code": "UF_CRM_69B3DB19A4A34",
-    "title": "UF_CRM_69B3DB19A4A34",
+    "title": "Checkbox",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5193,7 +5193,7 @@
    },
    {
     "code": "UF_CRM_69B3DB19C3FD5",
-    "title": "UF_CRM_69B3DB19C3FD5",
+    "title": "ymclientid",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5209,7 +5209,7 @@
    },
    {
     "code": "UF_CRM_69B3DB19E069E",
-    "title": "UF_CRM_69B3DB19E069E",
+    "title": "tranid",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5225,7 +5225,7 @@
    },
    {
     "code": "UF_CRM_69B3DB1A0C38C",
-    "title": "UF_CRM_69B3DB1A0C38C",
+    "title": "cookies",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5241,7 +5241,7 @@
    },
    {
     "code": "UF_CRM_69B3EAA0C2394",
-    "title": "UF_CRM_69B3EAA0C2394",
+    "title": "Checkbox__qa_s5",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5257,7 +5257,7 @@
    },
    {
     "code": "UF_CRM_69B3EAA0E2B4E",
-    "title": "UF_CRM_69B3EAA0E2B4E",
+    "title": "mashtab__qa_s1",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5273,7 +5273,7 @@
    },
    {
     "code": "UF_CRM_69B3EAA10CB3C",
-    "title": "UF_CRM_69B3EAA10CB3C",
+    "title": "estetika__qa_s2",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5289,7 +5289,7 @@
    },
    {
     "code": "UF_CRM_69B3EAA1275FA",
-    "title": "UF_CRM_69B3EAA1275FA",
+    "title": "texturi",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5305,7 +5305,7 @@
    },
    {
     "code": "UF_CRM_69B3EAA13F478",
-    "title": "UF_CRM_69B3EAA13F478",
+    "title": "kluch__qa_s4",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5321,7 +5321,7 @@
    },
    {
     "code": "UF_CRM_1773710483015",
-    "title": "UF_CRM_1773710483015",
+    "title": "ID СП Сборка",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5331,13 +5331,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 412,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.8,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1773732290",
-    "title": "UF_CRM_1773732290",
+    "title": "Ссылки на СП \"Расчеты\"",
     "type": "crm",
     "required": false,
     "readonly": false,
@@ -5353,7 +5353,7 @@
    },
    {
     "code": "UF_CRM_1773735191",
-    "title": "UF_CRM_1773735191",
+    "title": "ID Логистика",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -5363,13 +5363,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 685,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 2.9,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1773740570",
-    "title": "UF_CRM_1773740570",
+    "title": "СП Логистика",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -5388,13 +5388,13 @@
     "onCard49": true,
     "section": "Обязательные поля",
     "filled": 1030,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 4.4,
     "distinct": 2
    },
    {
     "code": "UF_CRM_1773742984",
-    "title": "UF_CRM_1773742984",
+    "title": "Выбрать вид расчета",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -5416,14 +5416,14 @@
     ],
     "onCard49": true,
     "section": "main",
-    "filled": 864,
-    "total": 23477,
+    "filled": 865,
+    "total": 23481,
     "fillPct": 3.7,
     "distinct": 3
    },
    {
     "code": "UF_CRM_1773904621041",
-    "title": "UF_CRM_1773904621041",
+    "title": "Кол-во СП Сборка",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -5439,7 +5439,7 @@
    },
    {
     "code": "UF_CRM_1773904695389",
-    "title": "UF_CRM_1773904695389",
+    "title": "Кол-во СП Сборка в \"Готовность заказ\"",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -5455,7 +5455,7 @@
    },
    {
     "code": "UF_CRM_69BCEDB6A31FB",
-    "title": "UF_CRM_69BCEDB6A31FB",
+    "title": "tip-mebeli",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5471,7 +5471,7 @@
    },
    {
     "code": "UF_CRM_69BCEDB87419A",
-    "title": "UF_CRM_69BCEDB87419A",
+    "title": "kuda",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5487,7 +5487,7 @@
    },
    {
     "code": "UF_CRM_69BCEDB9CCF02",
-    "title": "UF_CRM_69BCEDB9CCF02",
+    "title": "kakoy",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5503,7 +5503,7 @@
    },
    {
     "code": "UF_CRM_69BCEDBB4A21E",
-    "title": "UF_CRM_69BCEDBB4A21E",
+    "title": "formname",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5519,7 +5519,7 @@
    },
    {
     "code": "UF_CRM_69BD2860C00F6",
-    "title": "UF_CRM_69BD2860C00F6",
+    "title": "WhatsappUsername_WZ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5535,7 +5535,7 @@
    },
    {
     "code": "UF_CRM_69BD2862442C5",
-    "title": "UF_CRM_69BD2862442C5",
+    "title": "WhatsappLid_WZ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5551,7 +5551,7 @@
    },
    {
     "code": "UF_CRM_1774239151742",
-    "title": "UF_CRM_1774239151742",
+    "title": "Срок устной договоренности",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -5561,13 +5561,13 @@
     "onCard49": true,
     "section": "Заказ",
     "filled": 12,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.1,
     "distinct": 11
    },
    {
     "code": "UF_CRM_1774269222",
-    "title": "UF_CRM_1774269222",
+    "title": "Срочный заказ",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -5585,14 +5585,14 @@
     ],
     "onCard49": true,
     "section": "Доставка",
-    "filled": 1292,
-    "total": 23477,
+    "filled": 1293,
+    "total": 23481,
     "fillPct": 5.5,
     "distinct": 2
    },
    {
     "code": "UF_CRM_69C3C9DA9F279",
-    "title": "UF_CRM_69C3C9DA9F279",
+    "title": "Согласие на рассылку",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5608,7 +5608,7 @@
    },
    {
     "code": "UF_CRM_1774441488",
-    "title": "UF_CRM_1774441488",
+    "title": "UTM-метки",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5618,13 +5618,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 0,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 0
    },
    {
     "code": "UF_CRM_69C6275849030",
-    "title": "UF_CRM_69C6275849030",
+    "title": "kakoytip",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5640,7 +5640,7 @@
    },
    {
     "code": "UF_CRM_69C6275A57C24",
-    "title": "UF_CRM_69C6275A57C24",
+    "title": "predpochtenie",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5656,7 +5656,7 @@
    },
    {
     "code": "UF_CRM_69C6275C087FF",
-    "title": "UF_CRM_69C6275C087FF",
+    "title": "utm_id",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5672,7 +5672,7 @@
    },
    {
     "code": "UF_CRM_1774625960792",
-    "title": "UF_CRM_1774625960792",
+    "title": "ID Замер",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -5688,7 +5688,7 @@
    },
    {
     "code": "UF_CRM_1774628129698",
-    "title": "UF_CRM_1774628129698",
+    "title": "ID Товары на замер!",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -5704,7 +5704,7 @@
    },
    {
     "code": "UF_CRM_1774798548887",
-    "title": "UF_CRM_1774798548887",
+    "title": "ID Монтаж",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -5720,7 +5720,7 @@
    },
    {
     "code": "UF_CRM_1774854888512",
-    "title": "UF_CRM_1774854888512",
+    "title": "ID Производство",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -5736,7 +5736,7 @@
    },
    {
     "code": "UF_CRM_1774877188526",
-    "title": "UF_CRM_1774877188526",
+    "title": "Комментарий для замерщика",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5746,13 +5746,13 @@
     "onCard49": true,
     "section": "Заказ",
     "filled": 2,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 2
    },
    {
     "code": "UF_CRM_1774877964494",
-    "title": "UF_CRM_1774877964494",
+    "title": "Цвет изделия",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5762,13 +5762,13 @@
     "onCard49": true,
     "section": "Заказ",
     "filled": 46,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.2,
     "distinct": 34
    },
    {
     "code": "UF_CRM_1777359797667",
-    "title": "UF_CRM_1777359797667",
+    "title": "#ТЕГ / Промокод",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5778,13 +5778,13 @@
     "onCard49": true,
     "section": "Обязательные поля",
     "filled": 2,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 2
    },
    {
     "code": "UF_CRM_1777548705116",
-    "title": "UF_CRM_1777548705116",
+    "title": "Стадия переговоров",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5800,7 +5800,7 @@
    },
    {
     "code": "UF_CRM_1777574645130",
-    "title": "UF_CRM_1777574645130",
+    "title": "ID Закупка",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -5816,7 +5816,7 @@
    },
    {
     "code": "UF_CRM_1777898716601",
-    "title": "UF_CRM_1777898716601",
+    "title": "Добавлен товар для расчета и замера  ?",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -5841,7 +5841,7 @@
    },
    {
     "code": "UF_CRM_69F8A648ADD71",
-    "title": "UF_CRM_69F8A648ADD71",
+    "title": "CianProfileId_WZ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5857,7 +5857,7 @@
    },
    {
     "code": "UF_CRM_69FB287626AB6",
-    "title": "UF_CRM_69FB287626AB6",
+    "title": "UF_DESIGNER_PROMO",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -5867,13 +5867,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 6,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 3
    },
    {
     "code": "UF_CRM_69FB28793E872",
-    "title": "UF_CRM_69FB28793E872",
+    "title": "Дизайнер!",
     "type": "crm",
     "required": false,
     "readonly": false,
@@ -5883,13 +5883,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 2,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 2
    },
    {
     "code": "UF_CRM_1778068642303",
-    "title": "UF_CRM_1778068642303",
+    "title": "Сайт",
     "type": "url",
     "required": false,
     "readonly": false,
@@ -5905,7 +5905,7 @@
    },
    {
     "code": "UF_CRM_1778140952",
-    "title": "UF_CRM_1778140952",
+    "title": "Дизайнер",
     "type": "crm",
     "required": false,
     "readonly": false,
@@ -5921,7 +5921,7 @@
    },
    {
     "code": "UF_CRM_1779356091",
-    "title": "UF_CRM_1779356091",
+    "title": "Соисполнитель",
     "type": "employee",
     "required": false,
     "readonly": false,
@@ -5931,13 +5931,13 @@
     "onCard49": true,
     "section": "main",
     "filled": 38,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.2,
     "distinct": 11
    },
    {
     "code": "UF_CRM_1779356094",
-    "title": "UF_CRM_1779356094",
+    "title": "Соисполнитель",
     "type": "employee",
     "required": false,
     "readonly": false,
@@ -5953,7 +5953,7 @@
    },
    {
     "code": "UF_CRM_1779356178",
-    "title": "UF_CRM_1779356178",
+    "title": "Соисполнитель",
     "type": "employee",
     "required": false,
     "readonly": false,
@@ -5969,7 +5969,7 @@
    },
    {
     "code": "UF_CRM_1780730734",
-    "title": "UF_CRM_1780730734",
+    "title": "ИД Счет",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -5985,7 +5985,7 @@
    },
    {
     "code": "UF_CRM_1780734064945",
-    "title": "UF_CRM_1780734064945",
+    "title": "ИД ПРОИЗ.GM",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6001,7 +6001,7 @@
    },
    {
     "code": "UF_CRM_1781009838265",
-    "title": "UF_CRM_1781009838265",
+    "title": "Тест",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6017,7 +6017,7 @@
    },
    {
     "code": "UF_CRM_6A338AF04AF33",
-    "title": "UF_CRM_6A338AF04AF33",
+    "title": "Ссылка на диалог Avito",
     "type": "url",
     "required": false,
     "readonly": false,
@@ -6033,7 +6033,7 @@
    },
    {
     "code": "UF_CRM_6A338AF284AF1",
-    "title": "UF_CRM_6A338AF284AF1",
+    "title": "Ссылка на объявление Avito",
     "type": "url",
     "required": false,
     "readonly": false,
@@ -6049,7 +6049,7 @@
    },
    {
     "code": "UF_CRM_6A338AF43D917",
-    "title": "UF_CRM_6A338AF43D917",
+    "title": "Номер профиля Avito",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6065,7 +6065,7 @@
    },
    {
     "code": "UF_CRM_1782211334374",
-    "title": "UF_CRM_1782211334374",
+    "title": "Номер профиля Avito",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6075,13 +6075,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 0,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 0
    },
    {
     "code": "UF_CRM_1782211360584",
-    "title": "UF_CRM_1782211360584",
+    "title": "Ссылка на диалог Avito",
     "type": "url",
     "required": false,
     "readonly": false,
@@ -6091,13 +6091,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 0,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 0
    },
    {
     "code": "UF_CRM_6A3A6EF56E995",
-    "title": "UF_CRM_6A3A6EF56E995",
+    "title": "ID диалога Авито",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6113,7 +6113,7 @@
    },
    {
     "code": "UF_CRM_6A3CC00C65874",
-    "title": "UF_CRM_6A3CC00C65874",
+    "title": "Комментарий при переходе в отказ",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6129,7 +6129,7 @@
    },
    {
     "code": "UF_CRM_6A435C70C2BB5",
-    "title": "UF_CRM_6A435C70C2BB5",
+    "title": "Вставьте ссылку на дубль лида",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6145,7 +6145,7 @@
    },
    {
     "code": "UF_CRM_1783613607592",
-    "title": "UF_CRM_1783613607592",
+    "title": "С/С Металла",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6161,7 +6161,7 @@
    },
    {
     "code": "UF_CRM_1784360883579",
-    "title": "UF_CRM_1784360883579",
+    "title": "Причина зависания",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -6210,7 +6210,7 @@
    },
    {
     "code": "UF_CRM_1784360940343",
-    "title": "UF_CRM_1784360940343",
+    "title": "Дата следующей связи",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -6226,7 +6226,7 @@
    },
    {
     "code": "UF_CRM_1784360977237",
-    "title": "UF_CRM_1784360977237",
+    "title": "Дата постановки на Долгострой",
     "type": "date",
     "required": false,
     "readonly": false,
@@ -6236,13 +6236,13 @@
     "onCard49": true,
     "section": "main",
     "filled": 119,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.5,
     "distinct": 33
    },
    {
     "code": "UF_CRM_1785440906141",
-    "title": "UF_CRM_1785440906141",
+    "title": "Закрывающие документы",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -6261,13 +6261,13 @@
     "onCard49": true,
     "section": "Доставка",
     "filled": 362,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.5,
     "distinct": 2
    },
    {
     "code": "UF_CRM_1785441028811",
-    "title": "UF_CRM_1785441028811",
+    "title": "Комментарий к закрывающим документам",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6277,13 +6277,13 @@
     "onCard49": true,
     "section": "Доставка",
     "filled": 388,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1.7,
     "distinct": 61
    },
    {
     "code": "UF_CRM_1785828076439",
-    "title": "UF_CRM_1785828076439",
+    "title": "Остаток к оплате",
     "type": "money",
     "required": false,
     "readonly": false,
@@ -6293,13 +6293,13 @@
     "onCard49": true,
     "section": "main",
     "filled": 85,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.4,
     "distinct": 61
    },
    {
     "code": "UF_CRM_6A71B88314B60",
-    "title": "UF_CRM_6A71B88314B60",
+    "title": "Причина отказа",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6315,7 +6315,7 @@
    },
    {
     "code": "UF_CRM_6A744C27A1EC6",
-    "title": "UF_CRM_6A744C27A1EC6",
+    "title": "Результаты квиза",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6331,7 +6331,7 @@
    },
    {
     "code": "UF_CRM_6A8552A67B044",
-    "title": "UF_CRM_6A8552A67B044",
+    "title": "Расшифровка записи разговора",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6347,7 +6347,7 @@
    },
    {
     "code": "UF_CRM_1787820729076",
-    "title": "UF_CRM_1787820729076",
+    "title": "GG Cтатус оплаты!",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -6366,13 +6366,13 @@
     "onCard49": true,
     "section": "main",
     "filled": 35,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.1,
     "distinct": 2
    },
    {
     "code": "UF_CRM_1787906595",
-    "title": "UF_CRM_1787906595",
+    "title": "ДОП.Ответственный",
     "type": "employee",
     "required": false,
     "readonly": false,
@@ -6382,13 +6382,13 @@
     "onCard49": true,
     "section": "main",
     "filled": 1,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 1
    },
    {
     "code": "UF_CRM_6A9155D706F0F",
-    "title": "UF_CRM_6A9155D706F0F",
+    "title": "Город ( удалить! )",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6404,7 +6404,7 @@
    },
    {
     "code": "UF_CRM_1788981586606",
-    "title": "UF_CRM_1788981586606",
+    "title": "Удалить",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6420,7 +6420,7 @@
    },
    {
     "code": "UF_CRM_1788982793773",
-    "title": "UF_CRM_1788982793773",
+    "title": "Кол-во калькуляторов",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6430,13 +6430,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 593,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 2.5,
     "distinct": 16
    },
    {
     "code": "UF_CRM_1788983070662",
-    "title": "UF_CRM_1788983070662",
+    "title": "Кол-во калькуляторов успех",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6446,13 +6446,13 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 4,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0,
     "distinct": 2
    },
    {
     "code": "UF_CRM_1788984097937",
-    "title": "UF_CRM_1788984097937",
+    "title": "Калькуляторы  рассчитаны",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6462,13 +6462,13 @@
     "onCard49": true,
     "section": "main",
     "filled": 41,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.2,
     "distinct": 3
    },
    {
     "code": "UF_CRM_1677081257",
-    "title": "UF_CRM_1677081257",
+    "title": "Маржинальность",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6484,7 +6484,7 @@
    },
    {
     "code": "UF_CRM_1677081189",
-    "title": "UF_CRM_1677081189",
+    "title": "Расходы на материалы",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6500,7 +6500,7 @@
    },
    {
     "code": "UF_CRM_1677081209",
-    "title": "UF_CRM_1677081209",
+    "title": "Расходы на услуги",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6516,7 +6516,7 @@
    },
    {
     "code": "UF_CRM_1677081235",
-    "title": "UF_CRM_1677081235",
+    "title": "Расходы прочие",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6628,7 +6628,7 @@
    },
    {
     "code": "UF_CRM_1683092375941",
-    "title": "UF_CRM_1683092375941",
+    "title": "Гарантия",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -6693,7 +6693,7 @@
    },
    {
     "code": "UF_CRM_1682085182919",
-    "title": "UF_CRM_1682085182919",
+    "title": "Затраты оборудование/материалы",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6709,7 +6709,7 @@
    },
    {
     "code": "UF_CRM_1682085202169",
-    "title": "UF_CRM_1682085202169",
+    "title": "Затраты прочие",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6741,7 +6741,7 @@
    },
    {
     "code": "UF_CRM_1682085215015",
-    "title": "UF_CRM_1682085215015",
+    "title": "Маржинальность",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6757,7 +6757,7 @@
    },
    {
     "code": "UF_CRM_1681743514830",
-    "title": "UF_CRM_1681743514830",
+    "title": "Оплата за монтаж",
     "type": "double",
     "required": false,
     "readonly": false,
@@ -6789,7 +6789,7 @@
    },
    {
     "code": "UF_CRM_1681049175676",
-    "title": "UF_CRM_1681049175676",
+    "title": "Способ связи",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -6814,7 +6814,7 @@
    },
    {
     "code": "UF_CRM_1680961042274",
-    "title": "UF_CRM_1680961042274",
+    "title": "Ссылка на источник",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6878,7 +6878,7 @@
    },
    {
     "code": "UF_CRM_1682067215487",
-    "title": "UF_CRM_1682067215487",
+    "title": "Требуется доставка",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -6903,7 +6903,7 @@
    },
    {
     "code": "UF_CRM_1682067189844",
-    "title": "UF_CRM_1682067189844",
+    "title": "Требуется монтаж",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -6944,7 +6944,7 @@
    },
    {
     "code": "UF_CRM_1770361831",
-    "title": "UF_CRM_1770361831",
+    "title": "Tittle",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6960,7 +6960,7 @@
    },
    {
     "code": "UF_CRM_1770361869",
-    "title": "UF_CRM_1770361869",
+    "title": "Категория",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6976,7 +6976,7 @@
    },
    {
     "code": "UF_CRM_1770361902",
-    "title": "UF_CRM_1770361902",
+    "title": "Подкатегория",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -6992,7 +6992,7 @@
    },
    {
     "code": "UF_CRM_1770361922",
-    "title": "UF_CRM_1770361922",
+    "title": "Название формы",
     "type": "string",
     "required": false,
     "readonly": false,
@@ -7002,7 +7002,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 244,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 1,
     "distinct": 22
    },
@@ -7204,8 +7204,8 @@
     ],
     "onCard49": true,
     "section": "Обязательные поля",
-    "filled": 4737,
-    "total": 23477,
+    "filled": 4739,
+    "total": 23481,
     "fillPct": 20.2,
     "distinct": 8
    },
@@ -7322,7 +7322,7 @@
     "onCard49": true,
     "section": "Отказ",
     "filled": 4613,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 19.6,
     "distinct": 9
    },
@@ -7417,7 +7417,7 @@
    },
    {
     "code": "UF_CRM_1770360958",
-    "title": "UF_CRM_1770360958",
+    "title": "GG Документы",
     "type": "file",
     "required": false,
     "readonly": false,
@@ -7427,13 +7427,13 @@
     "onCard49": true,
     "section": "Документы",
     "filled": 78,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 0.3,
     "distinct": 12
    },
    {
     "code": "UF_CRM_1771904220",
-    "title": "UF_CRM_1771904220",
+    "title": "Тип изделия-",
     "type": "enumeration",
     "required": false,
     "readonly": false,
@@ -7459,8 +7459,8 @@
     ],
     "onCard49": true,
     "section": "Оплата",
-    "filled": 2236,
-    "total": 23477,
+    "filled": 2237,
+    "total": 23481,
     "fillPct": 9.5,
     "distinct": 4
    },
@@ -7588,7 +7588,7 @@
     "onCard49": true,
     "section": "Маркетинг",
     "filled": 1396,
-    "total": 23477,
+    "total": 23481,
     "fillPct": 5.9,
     "distinct": 61
    },
@@ -7635,8 +7635,8 @@
     "items": [],
     "onCard49": true,
     "section": "Маркетинг",
-    "filled": 1965,
-    "total": 23477,
+    "filled": 1967,
+    "total": 23481,
     "fillPct": 8.4,
     "distinct": 61
    },
@@ -9085,9 +9085,9 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 615,
+     "filled": 617,
      "total": 1141,
-     "fillPct": 53.9,
+     "fillPct": 54.1,
      "distinct": 61
     },
     {
@@ -9449,9 +9449,9 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 467,
+     "filled": 468,
      "total": 1141,
-     "fillPct": 40.9,
+     "fillPct": 41,
      "distinct": 19
     },
     {
@@ -9878,9 +9878,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 480,
+     "filled": 481,
      "total": 1141,
-     "fillPct": 42.1,
+     "fillPct": 42.2,
      "distinct": 61
     },
     {
@@ -9892,9 +9892,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 494,
+     "filled": 495,
      "total": 1141,
-     "fillPct": 43.3,
+     "fillPct": 43.4,
      "distinct": 61
     },
     {
@@ -10032,9 +10032,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 562,
+     "filled": 565,
      "total": 1141,
-     "fillPct": 49.3,
+     "fillPct": 49.5,
      "distinct": 61
     },
     {
@@ -10069,9 +10069,9 @@
        "val": "Нет"
       }
      ],
-     "filled": 235,
+     "filled": 236,
      "total": 1141,
-     "fillPct": 20.6,
+     "fillPct": 20.7,
      "distinct": 2
     },
     {
@@ -10106,9 +10106,9 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 45,
+     "filled": 47,
      "total": 1141,
-     "fillPct": 3.9,
+     "fillPct": 4.1,
      "distinct": 1
     },
     {
@@ -10134,17 +10134,17 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 25,
+     "filled": 27,
      "total": 1141,
-     "fillPct": 2.2,
-     "distinct": 13
+     "fillPct": 2.4,
+     "distinct": 14
     }
    ]
   },
   {
    "etid": 1074,
    "title": "Закупка",
-   "itemCount": 762,
+   "itemCount": 764,
    "fields": [
     {
      "code": "id",
@@ -10155,8 +10155,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10169,8 +10169,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10184,7 +10184,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10197,8 +10197,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10211,8 +10211,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10225,8 +10225,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 17
     },
@@ -10239,8 +10239,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 12
     },
@@ -10253,8 +10253,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 2
     },
@@ -10267,8 +10267,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 2
     },
@@ -10281,8 +10281,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 1
     },
@@ -10296,7 +10296,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10309,8 +10309,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10323,8 +10323,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10337,8 +10337,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 1
     },
@@ -10351,8 +10351,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 1
     },
@@ -10366,7 +10366,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10380,7 +10380,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10394,7 +10394,7 @@
      "isLink": false,
      "items": [],
      "filled": 3,
-     "total": 762,
+     "total": 764,
      "fillPct": 0.4,
      "distinct": 3
     },
@@ -10407,8 +10407,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 1
     },
@@ -10421,8 +10421,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10435,10 +10435,10 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
-     "distinct": 6
+     "distinct": 7
     },
     {
      "code": "stageId",
@@ -10449,8 +10449,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 8
     },
@@ -10463,9 +10463,9 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 761,
-     "total": 762,
-     "fillPct": 99.9,
+     "filled": 762,
+     "total": 764,
+     "fillPct": 99.7,
      "distinct": 9
     },
     {
@@ -10477,8 +10477,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 20
     },
@@ -10491,8 +10491,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 762,
-     "total": 762,
+     "filled": 764,
+     "total": 764,
      "fillPct": 100,
      "distinct": 61
     },
@@ -10505,8 +10505,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 757,
-     "total": 762,
+     "filled": 759,
+     "total": 764,
      "fillPct": 99.3,
      "distinct": 61
     },
@@ -10520,7 +10520,7 @@
      "isLink": true,
      "items": [],
      "filled": 1,
-     "total": 762,
+     "total": 764,
      "fillPct": 0.1,
      "distinct": 1
     },
@@ -10534,7 +10534,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10548,7 +10548,7 @@
      "isLink": true,
      "items": [],
      "filled": 164,
-     "total": 762,
+     "total": 764,
      "fillPct": 21.5,
      "distinct": 61
     },
@@ -10562,7 +10562,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10576,7 +10576,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10590,7 +10590,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10604,7 +10604,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10618,7 +10618,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10632,7 +10632,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10645,9 +10645,9 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 578,
-     "total": 762,
-     "fillPct": 75.9,
+     "filled": 579,
+     "total": 764,
+     "fillPct": 75.8,
      "distinct": 61
     },
     {
@@ -10660,8 +10660,8 @@
      "isLink": false,
      "items": [],
      "filled": 230,
-     "total": 762,
-     "fillPct": 30.2,
+     "total": 764,
+     "fillPct": 30.1,
      "distinct": 61
     },
     {
@@ -10674,7 +10674,7 @@
      "isLink": false,
      "items": [],
      "filled": 42,
-     "total": 762,
+     "total": 764,
      "fillPct": 5.5,
      "distinct": 28
     },
@@ -10687,10 +10687,10 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 16,
-     "total": 762,
-     "fillPct": 2.1,
-     "distinct": 12
+     "filled": 17,
+     "total": 764,
+     "fillPct": 2.2,
+     "distinct": 13
     },
     {
      "code": "ufCrm19_1772433940",
@@ -10702,7 +10702,7 @@
      "isLink": false,
      "items": [],
      "filled": 35,
-     "total": 762,
+     "total": 764,
      "fillPct": 4.6,
      "distinct": 17
     },
@@ -10716,7 +10716,7 @@
      "isLink": false,
      "items": [],
      "filled": 26,
-     "total": 762,
+     "total": 764,
      "fillPct": 3.4,
      "distinct": 19
     },
@@ -10730,8 +10730,8 @@
      "isLink": false,
      "items": [],
      "filled": 287,
-     "total": 762,
-     "fillPct": 37.7,
+     "total": 764,
+     "fillPct": 37.6,
      "distinct": 61
     },
     {
@@ -10744,8 +10744,8 @@
      "isLink": false,
      "items": [],
      "filled": 137,
-     "total": 762,
-     "fillPct": 18,
+     "total": 764,
+     "fillPct": 17.9,
      "distinct": 61
     },
     {
@@ -10758,8 +10758,8 @@
      "isLink": false,
      "items": [],
      "filled": 449,
-     "total": 762,
-     "fillPct": 58.9,
+     "total": 764,
+     "fillPct": 58.8,
      "distinct": 61
     },
     {
@@ -10772,7 +10772,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -10785,8 +10785,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 726,
-     "total": 762,
+     "filled": 728,
+     "total": 764,
      "fillPct": 95.3,
      "distinct": 11
     },
@@ -10799,9 +10799,9 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 391,
-     "total": 762,
-     "fillPct": 51.3,
+     "filled": 393,
+     "total": 764,
+     "fillPct": 51.4,
      "distinct": 15
     },
     {
@@ -10814,7 +10814,7 @@
      "isLink": false,
      "items": [],
      "filled": 187,
-     "total": 762,
+     "total": 764,
      "fillPct": 24.5,
      "distinct": 16
     },
@@ -10827,8 +10827,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 704,
-     "total": 762,
+     "filled": 706,
+     "total": 764,
      "fillPct": 92.4,
      "distinct": 61
     },
@@ -10841,9 +10841,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 273,
-     "total": 762,
-     "fillPct": 35.8,
+     "filled": 275,
+     "total": 764,
+     "fillPct": 36,
      "distinct": 23
     },
     {
@@ -10855,8 +10855,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 700,
-     "total": 762,
+     "filled": 702,
+     "total": 764,
      "fillPct": 91.9,
      "distinct": 17
     },
@@ -10898,9 +10898,9 @@
        "val": "Зеркала"
       }
      ],
-     "filled": 391,
-     "total": 762,
-     "fillPct": 51.3,
+     "filled": 393,
+     "total": 764,
+     "fillPct": 51.4,
      "distinct": 6
     },
     {
@@ -10937,9 +10937,9 @@
        "val": "valonti"
       }
      ],
-     "filled": 247,
-     "total": 762,
-     "fillPct": 32.4,
+     "filled": 249,
+     "total": 764,
+     "fillPct": 32.6,
      "distinct": 5
     },
     {
@@ -10968,8 +10968,8 @@
        "val": "изделие в покраску"
       }
      ],
-     "filled": 410,
-     "total": 762,
+     "filled": 411,
+     "total": 764,
      "fillPct": 53.8,
      "distinct": 4
     },
@@ -10996,7 +10996,7 @@
       }
      ],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11023,7 +11023,7 @@
       }
      ],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11050,7 +11050,7 @@
       }
      ],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11077,7 +11077,7 @@
       }
      ],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11091,7 +11091,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11105,7 +11105,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11119,7 +11119,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11133,7 +11133,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11147,7 +11147,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11161,7 +11161,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11174,9 +11174,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 422,
-     "total": 762,
-     "fillPct": 55.4,
+     "filled": 425,
+     "total": 764,
+     "fillPct": 55.6,
      "distinct": 61
     },
     {
@@ -11188,9 +11188,9 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 638,
-     "total": 762,
-     "fillPct": 83.7,
+     "filled": 640,
+     "total": 764,
+     "fillPct": 83.8,
      "distinct": 18
     },
     {
@@ -11203,8 +11203,8 @@
      "isLink": false,
      "items": [],
      "filled": 233,
-     "total": 762,
-     "fillPct": 30.6,
+     "total": 764,
+     "fillPct": 30.5,
      "distinct": 61
     },
     {
@@ -11217,7 +11217,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11231,7 +11231,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11245,7 +11245,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11259,7 +11259,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11273,7 +11273,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11287,7 +11287,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11300,9 +11300,9 @@
      "multiple": true,
      "isLink": true,
      "items": [],
-     "filled": 664,
-     "total": 762,
-     "fillPct": 87.1,
+     "filled": 666,
+     "total": 764,
+     "fillPct": 87.2,
      "distinct": 1
     },
     {
@@ -11324,7 +11324,7 @@
       }
      ],
      "filled": 18,
-     "total": 762,
+     "total": 764,
      "fillPct": 2.4,
      "distinct": 1
     },
@@ -11338,7 +11338,7 @@
      "isLink": false,
      "items": [],
      "filled": 148,
-     "total": 762,
+     "total": 764,
      "fillPct": 19.4,
      "distinct": 61
     },
@@ -11351,10 +11351,10 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 40,
-     "total": 762,
-     "fillPct": 5.2,
-     "distinct": 40
+     "filled": 41,
+     "total": 764,
+     "fillPct": 5.4,
+     "distinct": 41
     },
     {
      "code": "ufCrm19_1782743347774",
@@ -11366,7 +11366,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11379,8 +11379,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 339,
-     "total": 762,
+     "filled": 340,
+     "total": 764,
      "fillPct": 44.5,
      "distinct": 61
     },
@@ -11394,7 +11394,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11408,7 +11408,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 762,
+     "total": 764,
      "fillPct": 0,
      "distinct": 0
     }
@@ -11417,7 +11417,7 @@
   {
    "etid": 1086,
    "title": "Производство  GG",
-   "itemCount": 492,
+   "itemCount": 495,
    "fields": [
     {
      "code": "id",
@@ -11428,8 +11428,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11442,8 +11442,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11457,7 +11457,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11470,8 +11470,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11484,8 +11484,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11498,8 +11498,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 11
     },
@@ -11512,10 +11512,10 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
-     "distinct": 7
+     "distinct": 6
     },
     {
      "code": "assignedById",
@@ -11526,8 +11526,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 3
     },
@@ -11540,8 +11540,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 2
     },
@@ -11554,8 +11554,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -11569,7 +11569,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11582,8 +11582,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -11596,8 +11596,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -11611,7 +11611,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11625,7 +11625,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11638,9 +11638,9 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 485,
-     "total": 492,
-     "fillPct": 98.6,
+     "filled": 489,
+     "total": 495,
+     "fillPct": 98.8,
      "distinct": 61
     },
     {
@@ -11652,8 +11652,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -11666,8 +11666,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11680,8 +11680,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 4
     },
@@ -11694,10 +11694,10 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
-     "distinct": 8
+     "distinct": 9
     },
     {
      "code": "previousStageId",
@@ -11708,9 +11708,9 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 489,
-     "total": 492,
-     "fillPct": 99.4,
+     "filled": 493,
+     "total": 495,
+     "fillPct": 99.6,
      "distinct": 13
     },
     {
@@ -11722,8 +11722,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 2
     },
@@ -11737,7 +11737,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11750,8 +11750,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -11764,8 +11764,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -11778,8 +11778,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11792,8 +11792,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11806,8 +11806,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 12
     },
@@ -11820,8 +11820,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 61
     },
@@ -11834,9 +11834,9 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 476,
-     "total": 492,
-     "fillPct": 96.7,
+     "filled": 479,
+     "total": 495,
+     "fillPct": 96.8,
      "distinct": 61
     },
     {
@@ -11849,7 +11849,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11862,9 +11862,9 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 421,
-     "total": 492,
-     "fillPct": 85.6,
+     "filled": 424,
+     "total": 495,
+     "fillPct": 85.7,
      "distinct": 61
     },
     {
@@ -11877,7 +11877,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11891,7 +11891,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11905,7 +11905,7 @@
      "isLink": true,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11919,7 +11919,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11933,7 +11933,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11947,7 +11947,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11961,7 +11961,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -11974,8 +11974,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 450,
-     "total": 492,
+     "filled": 453,
+     "total": 495,
      "fillPct": 91.5,
      "distinct": 61
     },
@@ -11988,9 +11988,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 474,
-     "total": 492,
-     "fillPct": 96.3,
+     "filled": 477,
+     "total": 495,
+     "fillPct": 96.4,
      "distinct": 61
     },
     {
@@ -12002,8 +12002,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 461,
-     "total": 492,
+     "filled": 464,
+     "total": 495,
      "fillPct": 93.7,
      "distinct": 61
     },
@@ -12016,9 +12016,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 469,
-     "total": 492,
-     "fillPct": 95.3,
+     "filled": 472,
+     "total": 495,
+     "fillPct": 95.4,
      "distinct": 61
     },
     {
@@ -12055,9 +12055,9 @@
        "val": "valonti"
       }
      ],
-     "filled": 341,
-     "total": 492,
-     "fillPct": 69.3,
+     "filled": 344,
+     "total": 495,
+     "fillPct": 69.5,
      "distinct": 5
     },
     {
@@ -12070,7 +12070,7 @@
      "isLink": false,
      "items": [],
      "filled": 28,
-     "total": 492,
+     "total": 495,
      "fillPct": 5.7,
      "distinct": 17
     },
@@ -12083,8 +12083,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 462,
-     "total": 492,
+     "filled": 465,
+     "total": 495,
      "fillPct": 93.9,
      "distinct": 61
     },
@@ -12097,9 +12097,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 458,
-     "total": 492,
-     "fillPct": 93.1,
+     "filled": 462,
+     "total": 495,
+     "fillPct": 93.3,
      "distinct": 61
     },
     {
@@ -12111,9 +12111,9 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 348,
-     "total": 492,
-     "fillPct": 70.7,
+     "filled": 351,
+     "total": 495,
+     "fillPct": 70.9,
      "distinct": 19
     },
     {
@@ -12126,8 +12126,8 @@
      "isLink": false,
      "items": [],
      "filled": 223,
-     "total": 492,
-     "fillPct": 45.3,
+     "total": 495,
+     "fillPct": 45.1,
      "distinct": 16
     },
     {
@@ -12139,8 +12139,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 449,
-     "total": 492,
+     "filled": 452,
+     "total": 495,
      "fillPct": 91.3,
      "distinct": 61
     },
@@ -12153,8 +12153,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 9
     },
@@ -12168,8 +12168,8 @@
      "isLink": false,
      "items": [],
      "filled": 47,
-     "total": 492,
-     "fillPct": 9.6,
+     "total": 495,
+     "fillPct": 9.5,
      "distinct": 46
     },
     {
@@ -12182,8 +12182,8 @@
      "isLink": false,
      "items": [],
      "filled": 74,
-     "total": 492,
-     "fillPct": 15,
+     "total": 495,
+     "fillPct": 14.9,
      "distinct": 61
     },
     {
@@ -12196,8 +12196,8 @@
      "isLink": false,
      "items": [],
      "filled": 74,
-     "total": 492,
-     "fillPct": 15,
+     "total": 495,
+     "fillPct": 14.9,
      "distinct": 61
     },
     {
@@ -12210,8 +12210,8 @@
      "isLink": false,
      "items": [],
      "filled": 59,
-     "total": 492,
-     "fillPct": 12,
+     "total": 495,
+     "fillPct": 11.9,
      "distinct": 44
     },
     {
@@ -12224,7 +12224,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12238,7 +12238,7 @@
      "isLink": false,
      "items": [],
      "filled": 1,
-     "total": 492,
+     "total": 495,
      "fillPct": 0.2,
      "distinct": 1
     },
@@ -12252,8 +12252,8 @@
      "isLink": false,
      "items": [],
      "filled": 61,
-     "total": 492,
-     "fillPct": 12.4,
+     "total": 495,
+     "fillPct": 12.3,
      "distinct": 16
     },
     {
@@ -12266,7 +12266,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12280,8 +12280,8 @@
      "isLink": false,
      "items": [],
      "filled": 78,
-     "total": 492,
-     "fillPct": 15.9,
+     "total": 495,
+     "fillPct": 15.8,
      "distinct": 61
     },
     {
@@ -12322,9 +12322,9 @@
        "val": "Зеркала"
       }
      ],
-     "filled": 303,
-     "total": 492,
-     "fillPct": 61.6,
+     "filled": 306,
+     "total": 495,
+     "fillPct": 61.8,
      "distinct": 6
     },
     {
@@ -12353,8 +12353,8 @@
        "val": "изделие в покраску"
       }
      ],
-     "filled": 337,
-     "total": 492,
+     "filled": 339,
+     "total": 495,
      "fillPct": 68.5,
      "distinct": 4
     },
@@ -12367,8 +12367,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 19
     },
@@ -12382,8 +12382,8 @@
      "isLink": false,
      "items": [],
      "filled": 56,
-     "total": 492,
-     "fillPct": 11.4,
+     "total": 495,
+     "fillPct": 11.3,
      "distinct": 12
     },
     {
@@ -12396,8 +12396,8 @@
      "isLink": false,
      "items": [],
      "filled": 330,
-     "total": 492,
-     "fillPct": 67.1,
+     "total": 495,
+     "fillPct": 66.7,
      "distinct": 35
     },
     {
@@ -12410,7 +12410,7 @@
      "isLink": false,
      "items": [],
      "filled": 7,
-     "total": 492,
+     "total": 495,
      "fillPct": 1.4,
      "distinct": 5
     },
@@ -12424,7 +12424,7 @@
      "isLink": false,
      "items": [],
      "filled": 3,
-     "total": 492,
+     "total": 495,
      "fillPct": 0.6,
      "distinct": 2
     },
@@ -12438,7 +12438,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12451,8 +12451,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12465,8 +12465,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12479,8 +12479,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12493,8 +12493,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12507,8 +12507,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12521,8 +12521,8 @@
      "multiple": false,
      "isLink": true,
      "items": [],
-     "filled": 492,
-     "total": 492,
+     "filled": 495,
+     "total": 495,
      "fillPct": 100,
      "distinct": 1
     },
@@ -12536,7 +12536,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12550,7 +12550,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12564,7 +12564,7 @@
      "isLink": false,
      "items": [],
      "filled": 29,
-     "total": 492,
+     "total": 495,
      "fillPct": 5.9,
      "distinct": 6
     },
@@ -12577,8 +12577,8 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 459,
-     "total": 492,
+     "filled": 462,
+     "total": 495,
      "fillPct": 93.3,
      "distinct": 18
     },
@@ -12591,9 +12591,9 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 198,
-     "total": 492,
-     "fillPct": 40.2,
+     "filled": 200,
+     "total": 495,
+     "fillPct": 40.4,
      "distinct": 61
     },
     {
@@ -12606,7 +12606,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12620,7 +12620,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12633,8 +12633,8 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 480,
-     "total": 492,
+     "filled": 483,
+     "total": 495,
      "fillPct": 97.6,
      "distinct": 61
     },
@@ -12648,7 +12648,7 @@
      "isLink": false,
      "items": [],
      "filled": 4,
-     "total": 492,
+     "total": 495,
      "fillPct": 0.8,
      "distinct": 4
     },
@@ -12662,7 +12662,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12675,9 +12675,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 384,
-     "total": 492,
-     "fillPct": 78,
+     "filled": 387,
+     "total": 495,
+     "fillPct": 78.2,
      "distinct": 61
     },
     {
@@ -12689,9 +12689,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 386,
-     "total": 492,
-     "fillPct": 78.5,
+     "filled": 389,
+     "total": 495,
+     "fillPct": 78.6,
      "distinct": 61
     },
     {
@@ -12703,9 +12703,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 374,
-     "total": 492,
-     "fillPct": 76,
+     "filled": 377,
+     "total": 495,
+     "fillPct": 76.2,
      "distinct": 1
     },
     {
@@ -12717,9 +12717,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 385,
-     "total": 492,
-     "fillPct": 78.3,
+     "filled": 388,
+     "total": 495,
+     "fillPct": 78.4,
      "distinct": 44
     },
     {
@@ -12732,7 +12732,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12746,7 +12746,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12760,7 +12760,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12774,7 +12774,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12788,7 +12788,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12802,7 +12802,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12815,8 +12815,8 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 477,
-     "total": 492,
+     "filled": 480,
+     "total": 495,
      "fillPct": 97,
      "distinct": 61
     },
@@ -12829,8 +12829,8 @@
      "multiple": true,
      "isLink": true,
      "items": [],
-     "filled": 490,
-     "total": 492,
+     "filled": 493,
+     "total": 495,
      "fillPct": 99.6,
      "distinct": 61
     },
@@ -12844,7 +12844,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12858,8 +12858,8 @@
      "isLink": false,
      "items": [],
      "filled": 20,
-     "total": 492,
-     "fillPct": 4.1,
+     "total": 495,
+     "fillPct": 4,
      "distinct": 10
     },
     {
@@ -12872,7 +12872,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12886,7 +12886,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12900,7 +12900,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -12923,7 +12923,7 @@
       }
      ],
      "filled": 4,
-     "total": 492,
+     "total": 495,
      "fillPct": 0.8,
      "distinct": 3
     },
@@ -12937,7 +12937,7 @@
      "isLink": false,
      "items": [],
      "filled": 8,
-     "total": 492,
+     "total": 495,
      "fillPct": 1.6,
      "distinct": 8
     },
@@ -12950,9 +12950,9 @@
      "multiple": true,
      "isLink": false,
      "items": [],
-     "filled": 198,
-     "total": 492,
-     "fillPct": 40.2,
+     "filled": 200,
+     "total": 495,
+     "fillPct": 40.4,
      "distinct": 61
     },
     {
@@ -12965,7 +12965,7 @@
      "isLink": false,
      "items": [],
      "filled": 14,
-     "total": 492,
+     "total": 495,
      "fillPct": 2.8,
      "distinct": 8
     },
@@ -12978,9 +12978,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 391,
-     "total": 492,
-     "fillPct": 79.5,
+     "filled": 394,
+     "total": 495,
+     "fillPct": 79.6,
      "distinct": 61
     },
     {
@@ -12993,7 +12993,7 @@
      "isLink": false,
      "items": [],
      "filled": 0,
-     "total": 492,
+     "total": 495,
      "fillPct": 0,
      "distinct": 0
     },
@@ -13016,7 +13016,7 @@
       }
      ],
      "filled": 2,
-     "total": 492,
+     "total": 495,
      "fillPct": 0.4,
      "distinct": 1
     }
@@ -19340,9 +19340,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 330,
+     "filled": 331,
      "total": 388,
-     "fillPct": 85.1,
+     "fillPct": 85.3,
      "distinct": 2
     },
     {
@@ -19354,9 +19354,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 286,
+     "filled": 287,
      "total": 388,
-     "fillPct": 73.7,
+     "fillPct": 74,
      "distinct": 2
     },
     {
@@ -19396,9 +19396,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 217,
+     "filled": 221,
      "total": 388,
-     "fillPct": 55.9,
+     "fillPct": 57,
      "distinct": 2
     },
     {
@@ -19438,9 +19438,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 177,
+     "filled": 181,
      "total": 388,
-     "fillPct": 45.6,
+     "fillPct": 46.6,
      "distinct": 2
     },
     {
@@ -19550,9 +19550,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 380,
+     "filled": 384,
      "total": 388,
-     "fillPct": 97.9,
+     "fillPct": 99,
      "distinct": 61
     },
     {
@@ -19564,9 +19564,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 379,
+     "filled": 382,
      "total": 388,
-     "fillPct": 97.7,
+     "fillPct": 98.5,
      "distinct": 34
     },
     {
@@ -19578,9 +19578,9 @@
      "multiple": false,
      "isLink": false,
      "items": [],
-     "filled": 380,
+     "filled": 383,
      "total": 388,
-     "fillPct": 97.9,
+     "fillPct": 98.7,
      "distinct": 4
     },
     {

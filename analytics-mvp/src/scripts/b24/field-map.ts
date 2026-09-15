@@ -141,15 +141,26 @@ async function main() {
     let fields: Record<string, any>;
     try { fields = (await call("crm.item.fields", { entityTypeId: sp.etid })).result?.fields || {}; } catch { continue; }
     const codes = Object.keys(fields);
+    // поля, НАСТРОЕННЫЕ на карточке смарта, + разделы + названия с карточки
+    const spOnCard = new Set<string>(); const spSection: Record<string, string> = {}; const spSecOrder: string[] = []; const spTitle: Record<string, string> = {};
+    try {
+      for (const params of [{ entityTypeId: sp.etid, scope: "C" }, { entityTypeId: sp.etid }] as any[]) {
+        const cfgRaw: any = (await call("crm.item.details.configuration.get", params)).result;
+        const cfg: any[] = Array.isArray(cfgRaw) ? cfgRaw : (cfgRaw && cfgRaw.data) || [];
+        for (const sec of cfg) { const st = String(sec.title || sec.name || "").trim(); if (st && !spSecOrder.includes(st)) spSecOrder.push(st); for (const el of (sec.elements || [])) if (el && el.name) { spOnCard.add(el.name); if (!spSection[el.name]) spSection[el.name] = st; const t = pickLabel(el.title); if (t) spTitle[el.name] = t; } }
+        if (spOnCard.size) break;
+      }
+    } catch (e) { console.error(`SP-CARD-FAIL\t${sp.etid}\t${String(e)}`); }
     let rows: any[] = [];
     try { rows = await itemsAll(sp.etid, codes); } catch (e) { console.error(`ITEMS-FAIL\t${sp.title}\t${String(e)}`); }
     const stats = fillStats(rows, codes);
     const outFields = codes.map((c) => {
       const f = fieldRow(c, fields[c]); const s = stats[c];
-      return { ...f, filled: s.filled, total: rows.length, fillPct: rows.length ? Math.round(1000 * s.filled / rows.length) / 10 : 0, distinct: s.distinct };
+      if (spTitle[c]) f.title = spTitle[c];
+      return { ...f, onCard: spOnCard.size ? spOnCard.has(c) : null, section: spSection[c] || "", filled: s.filled, total: rows.length, fillPct: rows.length ? Math.round(1000 * s.filled / rows.length) / 10 : 0, distinct: s.distinct };
     });
-    smarts.push({ etid: sp.etid, title: sp.title, itemCount: rows.length, fields: outFields });
-    console.error(`SP\t${sp.etid}\t${sp.title}\tполей ${codes.length}\tкарточек ${rows.length}`);
+    smarts.push({ etid: sp.etid, title: sp.title, itemCount: rows.length, cardFieldCount: spOnCard.size, cardSectionOrder: spSecOrder, fields: outFields });
+    console.error(`SP\t${sp.etid}\t${sp.title}\tполей ${codes.length}\tкарточка ${spOnCard.size}\tразделов ${spSecOrder.length}\tкарточек ${rows.length}`);
   }
 
   writeFileSync(OUT, JSON.stringify({

@@ -46,6 +46,31 @@ jobs:
         with:
           node-version: "22"
       - run: npm ci
+      - name: База дизайнеров (только по ручному запуску) -> designers.json
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/designers.ts
+          echo "designers: $(du -h economics/data/designers.json | cut -f1)"
+      - name: Commit designers.json (сразу, до тяжёлого recon)
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/economics/data/designers.json
+          if git diff --staged --quiet; then echo "designers без изменений"; exit 0; fi
+          git commit -m "data(b24): база дизайнеров designers.json $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git push origin "HEAD:$DATA_BRANCH"; then exit 0; fi
+            git fetch origin "$DATA_BRANCH"; git rebase "origin/$DATA_BRANCH" || git rebase --abort; sleep $((2**i))
+          done
+          echo "designers push не удался"
       - name: Recon -> econ-recon.json + сводка
         run: |
           set -euo pipefail

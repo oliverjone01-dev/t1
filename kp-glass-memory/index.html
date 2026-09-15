@@ -12,6 +12,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="build" content="__BUILD__">
 <title>Glass Memory · Коммерческое предложение</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -742,6 +743,19 @@ $('#btnHtml').addEventListener('click',()=>{
 
 if(!EDIT){ $('#edToggle').hidden=true; }
 render();
+
+/* Устаревший кэш: v.txt рядом со страницей пишется деплоем (штамп = sha сборки). Если штамп
+   в этом HTML отличается от свежего v.txt - один раз перезагружаемся с параметром ?v=штамп.
+   Локально (штамп не подставлен) и без v.txt ничего не делаем. */
+(function(){
+  var meta=document.querySelector('meta[name="build"]'); var mine=meta?meta.content:'';
+  if(!mine || mine==='__BUILD__' || location.protocol==='file:') return;
+  fetch('v.txt?ts='+Date.now(),{cache:'no-store'}).then(function(r){ return r.ok?r.text():''; }).then(function(t){
+    t=(t||'').trim(); if(!t || t===mine) return;
+    var key='kp-gm-reloaded-'+t; try{ if(sessionStorage.getItem(key)) return; sessionStorage.setItem(key,'1'); }catch(e){}
+    var u=new URL(location.href); u.searchParams.set('v',t); location.replace(u.toString());
+  }).catch(function(){});
+})();
 </script>
 </body>
 </html>

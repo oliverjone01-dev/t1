@@ -92,16 +92,22 @@ async function main() {
     for (const u of ufs) { const lab = pickLabel(u.EDIT_FORM_LABEL) || pickLabel(u.LIST_COLUMN_LABEL) || pickLabel(u.LIST_FILTER_LABEL); if (u.FIELD_NAME && lab) ufLabels[u.FIELD_NAME] = lab; }
     console.error(`DEAL-UF-LABELS\t${Object.keys(ufLabels).length}`);
   } catch (e) { console.error("USERFIELD-FAIL", String(e)); }
-  // поля, НАСТРОЕННЫЕ на карточке сделки воронки 49 (и заполненные, и пустые)
+  // поля, НАСТРОЕННЫЕ на карточке сделки воронки 49 (и заполненные, и пустые), + раздел карточки
   const onCard = new Set<string>();
+  const cardSection: Record<string, string> = {};
+  const cardSectionOrder: string[] = [];
   try {
     for (const params of [{ scope: "C", extras: { dealCategoryId: CAT } }, { scope: "C" }] as any[]) {
       const cfgRaw: any = (await call("crm.deal.details.configuration.get", params)).result;
       const cfg: any[] = Array.isArray(cfgRaw) ? cfgRaw : (cfgRaw && cfgRaw.data) || [];
-      for (const sec of cfg) for (const el of (sec.elements || [])) if (el && el.name) onCard.add(el.name);
+      for (const sec of cfg) {
+        const st = String(sec.title || sec.name || "").trim();
+        if (st && !cardSectionOrder.includes(st)) cardSectionOrder.push(st);
+        for (const el of (sec.elements || [])) if (el && el.name) { onCard.add(el.name); if (!cardSection[el.name]) cardSection[el.name] = st; }
+      }
       if (onCard.size) break;
     }
-    console.error(`DEAL-CARD-FIELDS\t${onCard.size}`);
+    console.error(`DEAL-CARD-FIELDS\t${onCard.size}\tразделов ${cardSectionOrder.length}`);
   } catch (e) { console.error("CARD-CFG-FAIL", String(e)); }
   const dealRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": DEAL_SINCE }, select: dealCodes, order: { ID: "DESC" } });
   console.error(`DEAL\tполей ${dealCodes.length}\tсделок ${dealRows.length}`);
@@ -110,7 +116,7 @@ async function main() {
     const f = fieldRow(c, dfs[c]); const s = dealStats[c];
     if (ufLabels[c]) f.title = ufLabels[c];
     const onCardVal = onCard.size ? onCard.has(c) : null;
-    return { ...f, onCard49: onCardVal, filled: s.filled, total: dealRows.length, fillPct: dealRows.length ? Math.round(1000 * s.filled / dealRows.length) / 10 : 0, distinct: s.distinct };
+    return { ...f, onCard49: onCardVal, section: cardSection[c] || "", filled: s.filled, total: dealRows.length, fillPct: dealRows.length ? Math.round(1000 * s.filled / dealRows.length) / 10 : 0, distinct: s.distinct };
   });
 
   // 3) СМАРТЫ: схема + заполненность
@@ -135,7 +141,7 @@ async function main() {
     category: CAT,
     dealSince: DEAL_SINCE,
     portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""),
-    deal: { entity: "crm.deal (воронка 49)", fieldCount: dealFields.length, dealCount: dealRows.length, fields: dealFields },
+    deal: { entity: "crm.deal (воронка 49)", fieldCount: dealFields.length, dealCount: dealRows.length, cardFieldCount: onCard.size, cardSectionOrder, fields: dealFields },
     smarts,
   }, null, 1));
   console.error("WROTE\t" + OUT);

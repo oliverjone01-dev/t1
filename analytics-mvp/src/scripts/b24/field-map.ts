@@ -85,12 +85,13 @@ async function main() {
   // 2) СДЕЛКА: схема + заполненность
   const dfs: Record<string, any> = (await call("crm.deal.fields", {})).result || {};
   const dealCodes = Object.keys(dfs);
-  // человекочитаемые названия UF-полей сделки (crm.deal.fields для UF отдаёт title=код)
+  // человекочитаемые названия UF-полей сделки (crm.deal.fields для UF отдаёт title=код).
+  // userfield.list пагинируется по 50 - листаем ВСЕ страницы, иначе имена не подтянутся.
   const ufLabels: Record<string, string> = {};
   try {
-    const ufs: any[] = (await call("crm.deal.userfield.list", {})).result || [];
+    const ufs: any[] = await pageAll("crm.deal.userfield.list", {});
     for (const u of ufs) { const lab = pickLabel(u.EDIT_FORM_LABEL) || pickLabel(u.LIST_COLUMN_LABEL) || pickLabel(u.LIST_FILTER_LABEL); if (u.FIELD_NAME && lab) ufLabels[u.FIELD_NAME] = lab; }
-    console.error(`DEAL-UF-LABELS\t${Object.keys(ufLabels).length}`);
+    console.error(`DEAL-UF-LABELS\t${Object.keys(ufLabels).length}\tиз ${ufs.length} UF`);
   } catch (e) { console.error("USERFIELD-FAIL", String(e)); }
   // поля, НАСТРОЕННЫЕ на карточке сделки воронки 49 (и заполненные, и пустые), + раздел карточки
   const onCard = new Set<string>();
@@ -109,14 +110,17 @@ async function main() {
     }
     console.error(`DEAL-CARD-FIELDS\t${onCard.size}\tразделов ${cardSectionOrder.length}`);
   } catch (e) { console.error("CARD-CFG-FAIL", String(e)); }
-  const dealRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": DEAL_SINCE }, select: dealCodes, order: { ID: "DESC" } });
-  console.error(`DEAL\tполей ${dealCodes.length}\tсделок ${dealRows.length}`);
-  const dealStats = fillStats(dealRows, dealCodes);
+  // заполненность считаем только по полям карточки (быстрее в разы), если карточка известна
+  const selCodes = onCard.size ? dealCodes.filter((c) => onCard.has(c) || c === "ID") : dealCodes;
+  const dealRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": DEAL_SINCE }, select: selCodes, order: { ID: "DESC" } });
+  console.error(`DEAL\tполей карточки ${selCodes.length}/${dealCodes.length}\tсделок ${dealRows.length}`);
+  const dealStats = fillStats(dealRows, selCodes);
   const dealFields = dealCodes.map((c) => {
-    const f = fieldRow(c, dfs[c]); const s = dealStats[c];
+    const f = fieldRow(c, dfs[c]); const s = dealStats[c] || { filled: 0, distinct: 0 };
     if (ufLabels[c]) f.title = ufLabels[c];
     const onCardVal = onCard.size ? onCard.has(c) : null;
-    return { ...f, onCard49: onCardVal, section: cardSection[c] || "", filled: s.filled, total: dealRows.length, fillPct: dealRows.length ? Math.round(1000 * s.filled / dealRows.length) / 10 : 0, distinct: s.distinct };
+    const measured = !!dealStats[c];
+    return { ...f, onCard49: onCardVal, section: cardSection[c] || "", filled: s.filled, total: measured ? dealRows.length : 0, fillPct: measured && dealRows.length ? Math.round(1000 * s.filled / dealRows.length) / 10 : 0, distinct: s.distinct };
   });
 
   // 3) СМАРТЫ: схема + заполненность

@@ -6,7 +6,7 @@
 // Без сети. Запуск: npm run ym:derive [days=30]
 import { existsSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
-import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, type OrderRow } from "./derive-lib.js";
+import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, type OrderRow } from "./derive-lib.js";
 
 function main() {
   ensureDir();
@@ -56,6 +56,16 @@ function main() {
   const nettingRows = netAll;
   writeNdjson(yp("pnl_account_daily.ndjson"), buildAccountDaily(floor, to, nettingRows));
   writeJson(yp("sku_offer.json"), buildSkuOffer(rows, catalog), 0);
+
+  // Свод по дате заказа (методика v4): отдельный базис, отдельная витрина. Считается по СЫРЫМ
+  // строкам заказов (до подмены сборов реестром): свод берёт услуги из реестра сам, по своим
+  // правилам разнесения, и второй источник тех же услуг дал бы двойной счёт.
+  const cogsMap = readJson<Record<string, number>>(yp("sku_cogs.json"), {});
+  const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap);
+  writeJson(yp("svod_orders.json"), { platform: "ym", generated_at: new Date().toISOString(),
+    basis: "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
+    months: svod });
+  console.log(`ym-derive: свод по дате заказа - ${svod.length} пар (кабинет, месяц)`);
 
   // реклама - заглушки (нет источника); не перезаписываем, если кто-то положил реальный снимок с расходом
   const ads = readJson<any>(yp("ads_30d.json"), null);

@@ -493,3 +493,219 @@ export function feeSourceSplit(rows: OrderRow[]): Omit<NetFeeResult, "rows" | "u
       .sort((a, b) => (a.business === b.business ? a.ym.localeCompare(b.ym) : a.business.localeCompare(b.business))),
   };
 }
+
+// ---------- Свод по дате заказа (методика Ивана/Кати v4, июль 2026) ----------
+// Базис свода отличается от остальных витрин намеренно: период берётся по ДАТЕ ОФОРМЛЕНИЯ заказа,
+// в расчёт идут только заказы со статусом DELIVERED, штуки - доставленные минус возвращённые.
+// Витрины pnl_* живут по дате доставки/проводки - это другой вопрос, и числа там другие законно.
+//
+// Главное, чего свод не повторяет за прежним подходом: выручка НЕ берётся по цене продажи.
+// Цена продажи включает скидку, которую платил Маркет, а не покупатель; расходы при этом уходили
+// в учёт уже за вычетом баллов. Обе половины были искажены в одну сторону. Здесь выручка - это
+// платёж покупателя минус возвраты, а услуги - полная начисленная стоимость с разделением на
+// оплаченные деньгами и оплаченные баллами.
+export const SVC_OTHER = "Прочие услуги";
+export const SVC_COLUMNS: Array<[string, RegExp]> = [
+  ["Размещение (комиссия)", /размещени/i],
+  ["Программа лояльности и отзывы", /лояльност|отзыв/i],
+  ["Буст продаж", /буст/i],
+  ["Доставка покупателю", /доставка покупателю/i],
+  ["Доставка (средняя миля)", /средн[а-яё]*\s*мил/i],
+  ["Доставка невыкупов и возвратов", /невыкуп|возврат/i],
+  ["Приём платежа покупателя", /при[её]м платежа/i],
+  ["Перевод платежа покупателя", /перевод платежа/i],
+  ["Обработка в СЦ/ПВЗ", /обработк|сортировк|СЦ|ПВЗ/i],
+  ["Хранение", /хранени/i],
+  ["Штрафы (не вовремя)", /не вовремя|по вине продавца|штраф/i],
+];
+export function svcColumn(service: string): string {
+  const t = String(service || "");
+  for (const [name, re] of SVC_COLUMNS) if (re.test(t)) return name;
+  return SVC_OTHER;
+}
+
+// Чем оплачена услуга. Источник проводки (TRANSACTION_SOURCE) решает первым - он называет
+// софинансирование прямо. Пока источника в снимке нет, решает ТИП проводки, и это не догадка:
+// на живом июле 2026 по кабинету мебели сумма «Удержание» = 557 521 ₽ против 557 250,20 ₽
+// в строке «Стоимость оказанных услуг по актам» отчёта об исполнении поручения (+0,05%),
+// а сумма «Списание» = 2 326 514 ₽ против 2 350 590,89 ₽ списанных баллами по акту (-1,0%).
+export function isPointsPaid(type: string, source?: string): boolean {
+  const src = String(source || "").trim();
+  if (src) return nettingSourceGroup(src) === COFIN_GROUP;
+  const t = String(type || "").trim();
+  return t === "Списание" || t === "Возврат списания";
+}
+
+export interface SvodRow {
+  business: string; ym: string; sku: string; name: string; line: string;
+  orders: number; units_delivered: number; units_returned: number; units_net: number;
+  price: number; ship_buyer: number; disc_mp: number; disc_plus: number;
+  buyer_pay: number; refunds: number; revenue_money: number; points_accrued: number;
+  svc: Record<string, number>; svc_pts: Record<string, number>; svc_money: number; svc_points: number; svc_total: number;
+  result_money: number; result_points: number;
+  cogs: number; cogs_known: boolean;
+}
+export interface SvodMonth {
+  business: string; ym: string; orders: number; rows: SvodRow[];
+  overhead_money: number; overhead_points: number; overhead: Record<string, number>; overhead_pts: Record<string, number>;
+  svc_months: string[];           // из каких месяцев реестра взяты услуги этих заказов
+  orders_without_ledger: number;  // заказы периода, которых в реестре ещё нет
+  svc_settled: boolean;           // услуги месяца добраны: есть хотя бы один ЗАКРЫТЫЙ акт позже месяца заказа
+  cogs_cov: number;               // доля выручки деньгами, закрытая себестоимостью
+}
+
+const svcZero = () => { const o: Record<string, number> = {}; for (const [n] of SVC_COLUMNS) o[n] = 0; o[SVC_OTHER] = 0; return o; };
+
+export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>): SvodMonth[] {
+  // 1. отбор: заказы со статусом DELIVERED, месяц - по дате оформления
+  const keyOf = (r: OrderRow) => `${r.business}|${String(r.created || "").slice(0, 7)}`;
+  const delivered = new Map<string, string>();  // order -> ключ месяца
+  for (const r of rows) if (!r.service && r.status === "DELIVERED" && r.created) delivered.set(r.order, keyOf(r));
+
+  // 2. услуги реестра, разнесённые на заказ (и на SKU, где реестр его называет)
+  type Svc = { col: string; points: boolean; amount: number; sku: string };
+  const byOrder = new Map<string, Svc[]>();
+  const svcMonths = new Map<string, Set<string>>();
+  const overheadMoney = new Map<string, Record<string, number>>();
+  const overheadPts = new Map<string, Record<string, number>>();
+  let overheadRows: Array<{ business: string; d: string; col: string; points: boolean; amount: number }> = [];
+  for (const n of netting) {
+    if (!isNettingFee(String(n.type || ""), n.src)) continue;
+    // Знак: в реестре удержание/списание приходит отрицательным, сторно («Возврат списания») -
+    // положительным. Сбор - это то, что уменьшило счёт, поэтому берём -amount, а не модуль:
+    // модуль превращал сторно в ещё один сбор и завышал статью вдвое от суммы сторно.
+    const amount = -(Number(n.amount) || 0);
+    if (!amount) continue;
+    const col = svcColumn(String(n.service || ""));
+    const points = isPointsPaid(String(n.type || ""), n.src);
+    const ord = String(n.order || "").trim();
+    void 0;
+    if (ord && delivered.has(ord)) {
+      const arr = byOrder.get(ord) || []; arr.push({ col, points, amount, sku: String(n.sku || "").trim() }); byOrder.set(ord, arr);
+      const k = delivered.get(ord)!; const s = svcMonths.get(k) || new Set<string>(); s.add(String(n.d || "").slice(0, 7)); svcMonths.set(k, s);
+    } else if (!ord) {
+      overheadRows.push({ business: String(n.business || ""), d: String(n.d || ""), col, points, amount });
+    }
+  }
+
+  // 3. агрегация по (кабинет, месяц, SKU)
+  const months = new Map<string, SvodMonth>();
+  const acc = new Map<string, SvodRow>();
+  const orderSet = new Map<string, Set<string>>();
+  const noLedger = new Map<string, Set<string>>();
+  const baseOf = new Map<string, number>();   // сумма начислений заказа - для разнесения услуг
+
+  const itemsOf = new Map<string, OrderRow[]>();
+  for (const r of rows) {
+    if (!delivered.has(r.order)) continue;
+    if (r.service) continue;
+    const a = itemsOf.get(r.order) || []; a.push(r); itemsOf.set(r.order, a);
+    baseOf.set(r.order, (baseOf.get(r.order) || 0) + (r.accruals || 0));
+  }
+
+  const touch = (k: string, r: OrderRow): SvodRow => {
+    const kk = `${k}|${r.sku}`;
+    let s = acc.get(kk);
+    if (!s) {
+      s = { business: r.business, ym: k.split("|")[1]!, sku: r.sku, name: r.name, line: r.line,
+        orders: 0, units_delivered: 0, units_returned: 0, units_net: 0,
+        price: 0, ship_buyer: 0, disc_mp: 0, disc_plus: 0, buyer_pay: 0, refunds: 0, revenue_money: 0, points_accrued: 0,
+        svc: svcZero(), svc_pts: svcZero(), svc_money: 0, svc_points: 0, svc_total: 0, result_money: 0, result_points: 0,
+        cogs: 0, cogs_known: cogs[r.sku] != null };
+      acc.set(kk, s);
+    }
+    return s;
+  };
+
+  for (const r of rows) {
+    const k = delivered.get(r.order); if (!k) continue;
+    if (!months.has(k)) months.set(k, { business: r.business, ym: k.split("|")[1]!, orders: 0, rows: [],
+      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, svc_months: [], orders_without_ledger: 0, svc_settled: false, cogs_cov: 0 });
+    const os = orderSet.get(k) || new Set<string>(); os.add(r.order); orderSet.set(k, os);
+    if (r.service) {
+      // строка доставки: разносим по позициям заказа пропорционально начислениям
+      const items = itemsOf.get(r.order) || []; const base = baseOf.get(r.order) || 0;
+      const svcRefund = (r.paid_by_type || {}).REFUND || 0;
+      for (const it of items) {
+        const share = base > 0 ? (it.accruals || 0) / base : 1 / (items.length || 1);
+        const s2 = touch(k, it);
+        s2.ship_buyer += (r.accruals || 0) * share;
+        s2.refunds += svcRefund * share;
+      }
+      continue;
+    }
+    const s = touch(k, r);
+    s.units_delivered += (r.delivered || 0) + (r.returned || 0);
+    s.units_returned += r.returned || 0;
+    s.price += r.price || 0;
+    s.disc_mp += r.p_mp || 0;
+    s.disc_plus += (r.p_cashback || 0) + (r.p_spasibo || 0);
+    s.buyer_pay += r.p_buyer || 0;
+    s.refunds += (r.paid_by_type || {}).REFUND || 0;
+    s.points_accrued += r.subsidy || 0;
+    if (cogs[r.sku] != null) s.cogs += cogs[r.sku]! * ((r.delivered || 0) + (r.returned || 0) - (r.returned || 0));
+  }
+
+  // 4. услуги заказа -> позиции
+  for (const [ord, k] of delivered) {
+    const list = byOrder.get(ord);
+    const items = itemsOf.get(ord) || [];
+    if (!list || !list.length) { const n = noLedger.get(k) || new Set<string>(); n.add(ord); noLedger.set(k, n); continue; }
+    const base = baseOf.get(ord) || 0;
+    for (const sv of list) {
+      const direct = sv.sku ? items.filter((i) => i.sku === sv.sku) : [];
+      const targets = direct.length ? direct : items;
+      const tb = targets.reduce((a, i) => a + (i.accruals || 0), 0);
+      for (const it of targets) {
+        const share = tb > 0 ? (it.accruals || 0) / tb : 1 / (targets.length || 1);
+        const s = touch(k, it);
+        const part = sv.amount * share;
+        if (sv.points) { s.svc_pts[sv.col] = (s.svc_pts[sv.col] || 0) + part; s.svc_points += part; }
+        else { s.svc[sv.col] = (s.svc[sv.col] || 0) + part; s.svc_money += part; }
+      }
+    }
+  }
+
+  // 5. общие расходы кабинета (подписки, полки, баннеры) - к заказу не привязаны
+  for (const o of overheadRows) {
+    for (const [k, m] of months) {
+      if (m.business !== o.business || k.split("|")[1] !== o.d.slice(0, 7)) continue;
+      const bag = o.points ? overheadPts : overheadMoney;
+      const r = bag.get(k) || {}; r[o.col] = (r[o.col] || 0) + o.amount; bag.set(k, r);
+      if (o.points) m.overhead_points += o.amount; else m.overhead_money += o.amount;
+    }
+  }
+
+  for (const s of acc.values()) {
+    s.units_net = s.units_delivered - s.units_returned;
+    s.revenue_money = r2(s.buyer_pay + s.ship_buyer + s.refunds);
+    s.svc_total = r2(s.svc_money + s.svc_points);
+    s.result_money = r2(s.revenue_money - s.svc_money);
+    s.result_points = r2(s.revenue_money + s.points_accrued - s.svc_total);
+    for (const c of Object.keys(s.svc)) s.svc[c] = r2(s.svc[c]!);
+    for (const c of Object.keys(s.svc_pts)) s.svc_pts[c] = r2(s.svc_pts[c]!);
+    s.price = r2(s.price); s.ship_buyer = r2(s.ship_buyer); s.disc_mp = r2(s.disc_mp); s.disc_plus = r2(s.disc_plus);
+    s.buyer_pay = r2(s.buyer_pay + s.ship_buyer); s.refunds = r2(s.refunds); s.points_accrued = r2(s.points_accrued);
+    s.svc_money = r2(s.svc_money); s.svc_points = r2(s.svc_points); s.cogs = r2(s.cogs);
+    const k = `${s.business}|${s.ym}`; months.get(k)!.rows.push(s);
+  }
+  // Часть услуг по заказу начисляется в акте СЛЕДУЮЩЕГО месяца (доставка, средняя миля, штрафы).
+  // Пока такого закрытого акта нет, услуги месяца неполные, а результат по нему завышен. Это ровно
+  // тот пробел, который свод Кати за июль честно назвал «нет данных» по августовскому акту.
+  const nowYm = new Date().toISOString().slice(0, 7);
+  const actMonths = new Set<string>();
+  for (const n of netting) if (isNettingFee(String(n.type || ""), n.src)) actMonths.add(String(n.d || "").slice(0, 7));
+  for (const [k, m] of months) {
+    m.orders = (orderSet.get(k) || new Set()).size;
+    m.svc_settled = [...actMonths].some((a) => a > m.ym && a < nowYm);
+    m.orders_without_ledger = (noLedger.get(k) || new Set()).size;
+    m.svc_months = [...(svcMonths.get(k) || new Set<string>())].sort();
+    m.overhead = overheadMoney.get(k) || {}; m.overhead_pts = overheadPts.get(k) || {};
+    m.overhead_money = r2(m.overhead_money); m.overhead_points = r2(m.overhead_points);
+    m.rows.sort((a, b) => b.revenue_money - a.revenue_money);
+    const rev = m.rows.reduce((a, r) => a + r.revenue_money, 0);
+    const covered = m.rows.filter((r) => r.cogs_known).reduce((a, r) => a + r.revenue_money, 0);
+    m.cogs_cov = rev > 0 ? Math.round((covered / rev) * 1000) / 10 : 0;
+  }
+  return [...months.values()].sort((a, b) => (a.ym === b.ym ? a.business.localeCompare(b.business) : b.ym.localeCompare(a.ym)));
+}

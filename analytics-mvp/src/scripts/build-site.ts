@@ -339,9 +339,14 @@ function main() {
     stale: staleDays > 45,
   };
 
+  // Свод по дате заказа есть только у Маркета (у OZON другой источник закрытия месяца).
+  // Ключ добавляется условно: у OZON модель обязана остаться байт-в-байт прежней.
+  let svod: unknown = null;
+  if (!IS_OZON) { try { svod = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svod = null; } }
   const model = {
     max: maxDate, floor: dates[0]!, skus, facts, closed: closedData.months,
     closedMeta, tax, cogs, opnl, txsku, ads, offers, oos, fresh,
+    ...(IS_OZON ? {} : { svod }),
   };
 
   mkdirSync(OUT_DIR, { recursive: true });

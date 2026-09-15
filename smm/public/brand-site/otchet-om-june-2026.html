@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENGROUP · Отчёт ОМ · Июнь 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0B14; --bg2:#0D0F1C; --card:#0F111E; --card2:#12141F; --inner:#171A2A;
+  --border:#1E2236; --border2:#282D45;
+  --tx:#EDEFF6; --dim:#9AA0B6; --mute:#6C7089;
+  --gold:#C9A85C; --teal:#38D2BC; --blue:#6E8BEF; --purple:#9D7BF0; --pink:#E063A0;
+  --green:#52C97F; --amber:#E8A24D; --red:#E5566E;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Manrope','Montserrat',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--tx); font-family:var(--sans);
+  line-height:1.55; -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(1100px 520px at 50% -220px, rgba(96,72,190,.18), transparent 70%),
+    radial-gradient(900px 500px at 88% 4%, rgba(31,110,128,.10), transparent 65%);
+  background-attachment:fixed;
+}
+.wrap{max-width:1020px; margin:0 auto; padding:34px 22px 80px}
+
+/* ===== HEADER ===== */
+.hero{
+  position:relative; border-radius:22px; overflow:hidden;
+  padding:38px 40px 30px;
+  background:
+    linear-gradient(120deg,#4A2E8C 0%,#3C3FA0 42%,#2F5A93 72%,#1F6E80 100%);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+}
+.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,11,20,.05),rgba(10,11,20,.42));pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.eyebrow{font:600 12px/1 var(--mono); letter-spacing:.28em; color:#E7D6A0; text-transform:uppercase}
+.hero h1{font-size:40px; font-weight:800; letter-spacing:-.02em; margin:14px 0 12px}
+.hero .sub{color:#D6DAEA; font-size:14.5px; font-weight:500}
+.hero .qtag{margin-top:12px; font:600 12px/1 var(--mono); letter-spacing:.2em; color:#AFC0F5; text-transform:uppercase}
+.chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:22px}
+.chip{
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(12,14,26,.55); border:1px solid rgba(255,255,255,.12);
+  border-radius:11px; padding:9px 14px; font-size:13px; font-weight:600; color:#EAEDF7;
+  backdrop-filter:blur(4px);
+}
+.chip b{font-weight:800}
+.chip .c-teal{color:var(--teal)} .chip .c-blue{color:var(--blue)} .chip .c-gold{color:var(--gold)}
+.chip .c-pink{color:var(--pink)} .chip .c-green{color:var(--green)} .chip .c-amber{color:var(--amber)}
+
+/* ===== SECTION ===== */
+section{margin-top:46px}
+.sec-h{display:flex; align-items:center; gap:13px; margin-bottom:20px}
+.sec-n{font:800 13px/1 var(--mono); color:#8FA2EF; background:#20264400; background:#212747;
+  border:1px solid #2C3358; border-radius:9px; padding:8px 10px; letter-spacing:.05em}
+.sec-h h2{font-size:23px; font-weight:800; letter-spacing:-.01em}
+
+/* ===== GRID ===== */
+.g2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+.g3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+@media(max-width:760px){.g2,.g3{grid-template-columns:1fr}.hero h1{font-size:30px}.hero{padding:28px 22px}.wrap{padding:22px 14px 60px}}
+
+.card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px}
+.card.tight{padding:18px}
+
+/* KPI */
+.kpi{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+@media(max-width:760px){.kpi{grid-template-columns:1fr 1fr}}
+@media(max-width:440px){.kpi{grid-template-columns:1fr}}
+.kcard{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:26px 22px; text-align:center}
+.kbig{font-size:46px; font-weight:800; letter-spacing:-.02em; line-height:1}
+.klab{color:var(--dim); font-size:13.5px; font-weight:600; margin-top:10px}
+.ksub{font:600 12px/1.3 var(--mono); margin-top:9px; letter-spacing:.02em}
+.t-teal{color:var(--teal)} .t-blue{color:var(--blue)} .t-gold{color:var(--gold)}
+.t-pink{color:var(--pink)} .t-purple{color:var(--purple)} .t-green{color:var(--green)}
+.t-amber{color:var(--amber)} .t-red{color:var(--red)}
+
+/* event rows */
+.card h3.ct{font-size:16px; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:9px}
+.erow{display:flex; align-items:center; gap:13px; padding:11px 0; border-top:1px solid var(--border)}
+.erow:first-of-type{border-top:none}
+.eico{width:38px; height:38px; flex:none; border-radius:10px; background:var(--inner); display:flex; align-items:center; justify-content:center; font-size:18px}
+.emid{flex:1; min-width:0}
+.elab{font:600 10.5px/1 var(--mono); letter-spacing:.14em; color:var(--mute); text-transform:uppercase}
+.eval{font-size:14px; font-weight:700; margin-top:4px}
+.etag{font:700 12px/1 var(--mono); flex:none; text-align:right}
+.hlrow{margin-top:14px; background:var(--inner); border:1px solid var(--border2); border-radius:12px; padding:13px 15px; font-size:13px; color:#D4D8E8}
+.hlrow .ok{color:var(--green); font-weight:800}
+.hlrow .warn{color:var(--amber); font-weight:800}
+.pillrow{margin-top:14px; font-size:12.5px; color:var(--dim); line-height:1.55}
+
+/* brand cards */
+.bcard{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 20px 18px; border-top:3px solid var(--blue)}
+.bh{display:flex; align-items:center; gap:9px; font-size:15.5px; font-weight:800}
+.bsub{color:var(--dim); font-size:12.5px; font-weight:600; margin:4px 0 12px}
+.bar{height:7px; border-radius:6px; background:#171A29; overflow:hidden; margin-bottom:13px}
+.bar>span{display:block; height:100%; border-radius:6px}
+.btext{font-size:12.8px; color:#C4C9DB; line-height:1.6}
+.bcall{margin-top:12px; font-size:12.5px; padding:9px 12px; border-radius:10px; background:var(--inner); border:1px solid var(--border2)}
+.bcall .ok{color:var(--green); font-weight:800}
+.bcall .fire{color:var(--amber); font-weight:800}
+.bcall .warn{color:var(--red); font-weight:800}
+
+/* table */
+.tbl{width:100%; border-collapse:collapse; font-size:13px; overflow:hidden; border-radius:14px}
+.tbl thead th{background:#12152300; background:#141728; color:var(--dim); font:700 10.5px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; text-align:left; padding:13px 12px; border-bottom:1px solid var(--border2)}
+.tbl td{padding:12px; border-bottom:1px solid var(--border); vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.task{font-weight:700; color:#EAEDF6; width:31%}
+.tbl td.cmt{color:var(--dim); font-size:12.3px; width:40%}
+.bdg{display:inline-block; font:700 10px/1 var(--mono); padding:5px 8px; border-radius:7px; letter-spacing:.04em}
+.b-brand{background:#1B2036; color:#93A2E8; border:1px solid #2A3050}
+.b-done{background:rgba(82,201,127,.13); color:var(--green); border:1px solid rgba(82,201,127,.3)}
+.b-fin{background:rgba(110,139,239,.13); color:var(--blue); border:1px solid rgba(110,139,239,.3)}
+.b-move{background:rgba(232,162,77,.13); color:var(--amber); border:1px solid rgba(232,162,77,.3)}
+.b-hold{background:rgba(229,86,110,.12); color:var(--red); border:1px solid rgba(229,86,110,.28)}
+.pct{font:800 13px/1 var(--mono)}
+.mini{height:6px;border-radius:5px;background:#171A29;overflow:hidden;margin-top:6px;width:78px}
+.mini>span{display:block;height:100%;border-radius:5px}
+
+/* summary strip */
+.strip{margin-top:16px; background:linear-gradient(120deg,#141b30,#131627); border:1px solid var(--border2); border-radius:14px; padding:16px 18px; font-size:13px; color:#D6DAEA; display:flex; gap:12px; align-items:flex-start}
+.strip .em{font-size:20px}
+
+/* employees */
+.emp{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 22px; margin-bottom:14px}
+.emp-top{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.emp-name{font-size:17px; font-weight:800}
+.emp-role{color:var(--dim); font-size:12.5px; font-weight:600}
+.rank{margin-left:auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.rbadge{width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:17px; font-family:var(--mono)}
+.r-S{background:linear-gradient(135deg,#C9A85C,#8a6f2f); color:#0A0B14}
+.r-A{background:linear-gradient(135deg,#6E8BEF,#3f52a8); color:#fff}
+.r-B{background:linear-gradient(135deg,#38D2BC,#1f7d70); color:#06120f}
+.stat{text-align:center} .stat b{display:block; font-size:16px; font-weight:800; font-family:var(--mono)} .stat span{font:600 9.5px/1.2 var(--mono); color:var(--mute); letter-spacing:.08em; text-transform:uppercase}
+.brands{display:flex; gap:6px; flex-wrap:wrap; margin:12px 0}
+.vd{font-size:13px; color:#C6CBDC; line-height:1.6}
+.vd b{color:#EDEFF6}
+.rec{margin-top:9px; font:600 12px/1.4 var(--mono); color:var(--green)}
+.rec.up{color:var(--teal)}
+
+/* risks / wins / priorities */
+.rk{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px}
+.rk h3{font-size:15px; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px}
+.ritem{display:flex; gap:11px; padding:10px 0; border-top:1px solid var(--border); font-size:13px; color:#C9CEDF; line-height:1.55}
+.ritem:first-of-type{border-top:none}
+.ritem .rem{flex:none; font-size:16px; line-height:1.4}
+.ritem b{color:#EDEFF6}
+.crit b{color:#F1B4BF}
+
+.wins{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media(max-width:760px){.wins{grid-template-columns:1fr}}
+.win{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 18px}
+.win h4{font-size:14px; font-weight:800; margin-bottom:6px; display:flex; gap:8px; align-items:center}
+.win p{font-size:12.6px; color:var(--dim); line-height:1.55}
+
+.prio{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px; margin-bottom:14px}
+.prio h3{font-size:16px; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:9px}
+.prio ol{margin:0; padding-left:20px}
+.prio li{font-size:13.3px; color:#CBD0E0; line-height:1.7; margin-bottom:3px}
+.prio li b{color:#EDEFF6}
+.warnbox{margin-top:14px; background:rgba(232,162,77,.08); border:1px solid rgba(232,162,77,.28); border-radius:12px; padding:12px 15px; font-size:12.8px; color:#EAD9BC}
+.warnbox b{color:var(--amber)}
+.p2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media(max-width:760px){.p2{grid-template-columns:1fr}}
+.pmini{background:var(--card2); border:1px solid var(--border); border-radius:14px; padding:16px 18px}
+.pmini h4{font-size:14px; font-weight:800; margin-bottom:8px; display:flex; gap:8px; align-items:center}
+.pmini p{font-size:12.6px; color:var(--dim); line-height:1.6}
+
+/* delta */
+.delta{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media(max-width:760px){.delta{grid-template-columns:1fr}}
+.dcol{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px}
+.dcol h3{font-size:15px; font-weight:800; margin-bottom:14px}
+.dl{font-size:13px; padding:8px 0; border-top:1px solid var(--border); color:#C9CEDF; line-height:1.5; display:flex; gap:9px}
+.dl:first-of-type{border-top:none}
+.dl .m{flex:none}
+.up-c{color:var(--green)} .dn-c{color:var(--amber)}
+.dl b{color:#EDEFF6}
+
+/* footer */
+.foot{margin-top:54px; text-align:center; padding-top:24px; border-top:1px solid var(--border)}
+.foot .conf{font:700 11px/1 var(--mono); letter-spacing:.24em; color:var(--gold); text-transform:uppercase}
+.foot .meta{color:var(--mute); font-size:12px; margin-top:12px; font-family:var(--mono)}
+.foot .stamp{margin-top:10px; font:600 12px/1 var(--mono); color:var(--dim)}
+.foot .stamp .g{color:var(--green); font-weight:800}
+.money{font-family:var(--mono); color:var(--gold); font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="eyebrow">GENGROUP AI Analytics</div>
+  <h1>Отчёт отдела маркетинга</h1>
+  <div class="sub">Июнь 2026 (полный месяц) &nbsp;•&nbsp; 8 сотрудников ОМ + дизайн-юнит + CMO &nbsp;•&nbsp; Отчётный период: 01.06 - 30.06.2026</div>
+  <div class="qtag">Q2 2026 · Июнь · Закрытие квартала</div>
+  <div class="chips">
+    <div class="chip"><b class="c-blue">16</b> задач ОМ · июнь</div>
+    <div class="chip"><b class="c-green">9</b> ✅ закрыто</div>
+    <div class="chip"><b class="c-teal">6</b> 🔄 финал Q2 (75-95%)</div>
+    <div class="chip"><b class="c-amber">1</b> ↪ перенос</div>
+    <div class="chip"><b class="c-pink">7</b> направлений в работе</div>
+    <div class="chip"><b class="c-gold">Q2</b> закрыт</div>
+  </div>
+</div>
+
+<!-- 01 KPI -->
+<section>
+  <div class="sec-h"><div class="sec-n">01</div><h2>Ключевые показатели июня</h2></div>
+  <div class="kpi">
+    <div class="kcard"><div class="kbig t-teal">9</div><div class="klab">Задач ОМ закрыто</div><div class="ksub t-green">из 16 задач июня</div></div>
+    <div class="kcard"><div class="kbig t-blue">6</div><div class="klab">В финале Q2</div><div class="ksub t-blue">75-95% → закрытие июль</div></div>
+    <div class="kcard"><div class="kbig t-gold">3</div><div class="klab">Дашборда собрано</div><div class="ksub t-gold">РОП · производство · ОЗОН PnL</div></div>
+    <div class="kcard"><div class="kbig t-pink">7</div><div class="klab">Направлений в работе</div><div class="ksub t-pink">GENGLASS · VALONTI · GM · MGM · GENTERO</div></div>
+    <div class="kcard"><div class="kbig t-purple">2</div><div class="klab">Актива на Claude Code</div><div class="ksub t-purple">карусели + GEO/SEO генератор</div></div>
+    <div class="kcard"><div class="kbig t-green">1</div><div class="klab">Новый боец в ОМ</div><div class="ksub t-green">SMM/видео · ввод с 01.06</div></div>
+  </div>
+</section>
+
+<!-- 02 DYNAMICS -->
+<section>
+  <div class="sec-h"><div class="sec-n">02</div><h2>Динамика и ключевые события июня</h2></div>
+  <div class="g2">
+    <div class="card">
+      <h3 class="ct">📊 Разворот под кассу</h3>
+      <div class="erow"><div class="eico">💰</div><div class="emid"><div class="elab">Новый критерий ОМ</div><div class="eval">Денежный потенциал на каждой задаче</div></div><div class="etag t-gold">с 24.06</div></div>
+      <div class="erow"><div class="eico">🖼</div><div class="emid"><div class="elab">Приоритет №1</div><div class="eval">Рич-контент маркетов, категория А</div></div><div class="etag t-green">100%</div></div>
+      <div class="erow"><div class="eico">✂️</div><div class="emid"><div class="elab">Режем</div><div class="eval">Низкоденежные задачи на паузе</div></div><div class="etag t-amber">до 15М ГГР</div></div>
+      <div class="hlrow">Июнь по оплатам просел против мая - <span class="warn">рыночный спад</span>, часть отрасли закрывается. ОМ переключился на самые денежные задачи: рич категории А, дашборды продаж, инфраструктура лидгена.</div>
+    </div>
+    <div class="card">
+      <h3 class="ct">🚀 Прорывы июня</h3>
+      <div class="erow"><div class="eico">🏦</div><div class="emid"><div class="elab">Дашборд ОП</div><div class="eval">Монитор активностей + эскалаций</div></div><div class="etag t-teal">100%</div></div>
+      <div class="erow"><div class="eico">🤖</div><div class="emid"><div class="elab">AI-аналитика CRM</div><div class="eval">Звонки + текст, обход дев-затрат</div></div><div class="etag t-blue">95%</div></div>
+      <div class="erow"><div class="eico">🎠</div><div class="emid"><div class="elab">2 ИИ-генератора</div><div class="eval">Карусели + GEO/SEO статьи</div></div><div class="etag t-purple">Claude Code</div></div>
+      <div class="hlrow"><span class="ok">Боевая версия дашборда РОПа на GitHub</span>, тестирование пройдено. AI-CRM обошли разработку 200-250К через стек g.sheets + n8n, номера Манго активированы.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3 class="ct">💎 VALONTI - главный фокус развития</h3>
+    <div class="pillrow">
+      Презентация <b style="color:#EDEFF6">«Премиальные решения в интерьере»</b> - 100%. Ролик в стиле ROOMSE - 100% (собран на ИИ за 1 день, записано обучающее видео по генерации). Конфигуратор моделей на сайте - 85% (десятки изделий отрендерены на прозрачном фоне для конструктора). Контент-машина капсулы ТОН: интервью с дизайнерами, reels с мероприятия. Кросс-промо с Николаем: кейсы по привлечению дизайнеров, совместный контент с резидентами на VC, DTF, Дзен.
+    </div>
+    <div class="hlrow"><span class="ok">Приоритет SMM смещён на VALONTI</span> - контент-маркетинг как двигатель нового бренда. Для GENGLASS основные заявки даёт сайт, поэтому соцсети переориентированы на развитие VALONTI.</div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3 class="ct">🏛 GENTERO - презентация ушла клиентам</h3>
+    <div class="pillrow">
+      Презентация GENTERO - 100%, разослана действующим клиентам + рассылка (запросы были даже от текущих клиентов). Проработан ассортимент офисной мебели в 4 категориях: офисный стол, бенч-системы, переговорный стол, стол для руководителя. Открыт вопрос ко-брендинга с GENGLASS на маркетплейсах - по сути это линейка мебелировки B2B, офисные столы могут развиваться на карточках GG.
+    </div>
+    <div class="hlrow">Аналитика по категории <span class="warn">[ГИПОТЕЗА]</span>: у лидера ниши офисных столов на ОЗОН нет прямых конкурентов, разработав свои модели прогнозно можно забрать ~половину его реализации - около 1 млн ₽/мес. Требует подтверждения после проработки моделей и вывода на МП.</div>
+  </div>
+</section>
+
+<!-- 03 BRANDS -->
+<section>
+  <div class="sec-h"><div class="sec-n">03</div><h2>Распределение по брендам</h2></div>
+  <div class="g2">
+    <div class="bcard" style="border-top-color:var(--blue)">
+      <div class="bh">🏠 GENGLASS Перегородки/Душевые</div>
+      <div class="bsub">ГГР · калькуляторы + дашборды + лидген</div>
+      <div class="bar"><span style="width:78%;background:linear-gradient(90deg,#6E8BEF,#38D2BC)"></span></div>
+      <div class="btext">Калькулятор душевых 75% (ТЗ Кати 100% → у Сергея). Калькулятор стальных для клиента - ТЗ 100%, стальные в боевом тесте ОП. Дашборд ОП «монитор активностей + эскалаций» 100%. AI-аналитика CRM 95%. Запущены программатик и Я.Директ товарная галерея по перегородкам, онлайн-чат на сайте.</div>
+      <div class="bcall"><span class="fire">🔥 Узкое горло:</span> Сергей-bottleneck - калькуляторы у него в финале, держит запуск лидгена.</div>
+    </div>
+    <div class="bcard" style="border-top-color:var(--gold)">
+      <div class="bh">🪞 GENGLASS Столы/Зеркала</div>
+      <div class="bsub">ГГС · рич-контент = прямые деньги</div>
+      <div class="bar"><span style="width:90%;background:linear-gradient(90deg,#C9A85C,#E8A24D)"></span></div>
+      <div class="btext">Категория А rich на маркетах закрыта (приоритет Богдана - деньги на карточках). Реечные перегородки - шаблоны рич. Запущены столы GENTRIS D80/D90. Дашборд ОЗОН PnL 90%. Новый креатив: зеркала с людьми в отражении - раньше не делали, тестируем акцентные интерьеры.</div>
+      <div class="bcall"><span class="ok">✅ Рич категории А</span> - прямая работа на кассу, самый денежный трек месяца.</div>
+    </div>
+    <div class="bcard" style="border-top-color:var(--teal)">
+      <div class="bh">🕯 GLASS-MEMORY</div>
+      <div class="bsub">ГМ · сталь + выставка Русский Дом</div>
+      <div class="bar"><span style="width:70%;background:linear-gradient(90deg,#38D2BC,#6E8BEF)"></span></div>
+      <div class="btext">Рассылка по дилерам (сталь) 100%. Майл-пост рассылка по стальным памятникам собрана через Claude Code. Система формирования КП для GLASS-MEMORY 50%. Каталоги и буклеты ГМ отпечатаны к выставке (документооборот и типография закрыты). Полки колумбария для клиента.</div>
+      <div class="bcall"><span class="ok">🖨 Выставка Русский Дом</span> - каталоги и буклеты готовы, тираж в руках менеджеров.</div>
+    </div>
+    <div class="bcard" style="border-top-color:var(--purple)">
+      <div class="bh">💎 VALONTI</div>
+      <div class="bsub">ГГВ · главный фокус развития H2</div>
+      <div class="bar"><span style="width:85%;background:linear-gradient(90deg,#9D7BF0,#6E8BEF)"></span></div>
+      <div class="btext">Презентация 100%, ролик ROOMSE 100%, конфигуратор 85%. Контент-машина капсулы ТОН (интервью, reels). Десятки изделий отрендерены на прозрачном фоне для конструктора (Belahis, Velarion, Estrellum, Firmissum, Akilum, Krabos, Markuf, Augaso, Amamel и др.). Кросс-промо: кейсы с Николаем, размещения VC/DTF/Дзен.</div>
+      <div class="bcall"><span class="ok">💎 Двигатель развития</span> - контент-маркетинг как основной инструмент нового бренда.</div>
+    </div>
+    <div class="bcard" style="border-top-color:var(--amber)">
+      <div class="bh">⚙️ METAL-GM</div>
+      <div class="bsub">МГМ · B2B · Авито-бот 24/7</div>
+      <div class="bar"><span style="width:80%;background:linear-gradient(90deg,#E8A24D,#C9A85C)"></span></div>
+      <div class="btext">ИИ-менеджер Савви на Авито 24/7 работает. Интеграция Авито ГМ с Б24 через почту, отключение ПРО-подписки для дальнейшей интеграции в CRM. ТЗ Алисе на смарт-процесс производства металла ГМ-МГМ.</div>
+      <div class="bcall"><span class="ok">🤖 Бот работает</span> - инфраструктура интеграции с CRM достраивается.</div>
+    </div>
+    <div class="bcard" style="border-top-color:var(--blue)">
+      <div class="bh">🏢 GENTERO</div>
+      <div class="bsub">ГТ · первый продуктовый инструмент</div>
+      <div class="bar"><span style="width:100%;background:linear-gradient(90deg,#6E8BEF,#38D2BC)"></span></div>
+      <div class="btext">Презентация 100% - разослана действующим клиентам + рассылка. Проработан ассортимент офисной мебели (4 категории). Продукция добавлена на ГИСП. Обсуждается ко-брендинг с GENGLASS на маркетплейсах.</div>
+      <div class="bcall"><span class="ok">✅ Преза в руках менеджеров</span> - есть чем закрывать запросы действующих клиентов.</div>
+    </div>
+    <div class="bcard" style="border-top-color:var(--pink)">
+      <div class="bh">🆕 BOGONTI</div>
+      <div class="bsub">Новый бренд от Богдана</div>
+      <div class="bar"><span style="width:0%;background:linear-gradient(90deg,#E063A0,#9D7BF0)"></span></div>
+      <div class="btext">В июне активной работы не велось - ресурсы перенаправлены на кассовые приоритеты (рич маркетов, дашборды, лидген).</div>
+      <div class="bcall"><span class="warn">⛔ Заморожен</span> на время восстановления продаж - честный статус, не в списке июньских задач.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 Q2 CLOSE -->
+<section>
+  <div class="sec-h"><div class="sec-n">04</div><h2>Итоги Q2 2026 - портфель на закрытие квартала</h2></div>
+  <div class="card">
+    <div class="pillrow" style="margin:0 0 16px">Q2 = апрель-июнь. Июнь закрывает квартал. Ниже - финальный статус 13 стратегических задач Q2 из апрельского портфеля. Это сквозной трек прогресса за квартал, а не месячный план.</div>
+    <div style="overflow-x:auto">
+    <table class="tbl">
+      <thead><tr><th>Задача</th><th>Бренд</th><th>Статус</th><th>Q2 %</th><th>Комментарий на закрытие квартала</th></tr></thead>
+      <tbody>
+        <tr><td class="task">ИИ-менеджеры на ГГР, МГМ</td><td><span class="bdg b-brand">ГГР·МГМ</span></td><td><span class="bdg b-done">ЗАКРЫТО</span></td><td><span class="pct t-green">100%</span><div class="mini"><span style="width:100%;background:#52C97F"></span></div></td><td class="cmt">Савви на Авито ГГ+МГМ 24/7. ГМ - отдельным контуром, старт в Q3.</td></tr>
+        <tr><td class="task">Организация работы сотрудников ОМ</td><td><span class="bdg b-brand">ГГ</span></td><td><span class="bdg b-done">ЗАКРЫТО</span></td><td><span class="pct t-green">100%</span><div class="mini"><span style="width:100%;background:#52C97F"></span></div></td><td class="cmt">Координация, распределение. Введён новый боец - Anna Teterina с 01.06.</td></tr>
+        <tr><td class="task">Эксперимент Эвелум - уникализация под МП</td><td><span class="bdg b-brand">ГГС</span></td><td><span class="bdg b-done">ЗАКРЫТО</span></td><td><span class="pct t-green">100%</span><div class="mini"><span style="width:100%;background:#52C97F"></span></div></td><td class="cmt">Закрыто в рамках чистки рич категории А на маркетах.</td></tr>
+        <tr><td class="task">Каталог GM - прототип, вёрстка, печать</td><td><span class="bdg b-brand">ГМ</span></td><td><span class="bdg b-done">ЗАКРЫТО</span></td><td><span class="pct t-green">100%</span><div class="mini"><span style="width:100%;background:#52C97F"></span></div></td><td class="cmt">Каталоги и буклеты отпечатаны к выставке Русский Дом.</td></tr>
+        <tr><td class="task">Анализ продаж МП - PnL и отчёты день/неделя/мес</td><td><span class="bdg b-brand">ГГС</span></td><td><span class="bdg b-fin">ФИНАЛ</span></td><td><span class="pct t-blue">90%</span><div class="mini"><span style="width:90%;background:#6E8BEF"></span></div></td><td class="cmt">Дашборд ОЗОН PnL, Ozon API напрямую, юнит-экономика рекламы. Презентация Оле после 13.07.</td></tr>
+        <tr><td class="task">Внедрение AI-аналитики CRM (звонки + текст)</td><td><span class="bdg b-brand">ГГР</span></td><td><span class="bdg b-fin">ФИНАЛ</span></td><td><span class="pct t-blue">95%</span><div class="mini"><span style="width:95%;background:#6E8BEF"></span></div></td><td class="cmt">Номера Манго активированы. Закрытие в июле после склейки воронок.</td></tr>
+        <tr><td class="task">Калькуляторы Стальные + Душевые перегородки</td><td><span class="bdg b-brand">ГГР</span></td><td><span class="bdg b-fin">ФИНАЛ</span></td><td><span class="pct t-blue">75%</span><div class="mini"><span style="width:75%;background:#6E8BEF"></span></div></td><td class="cmt">Стальные в боевом тесте ОП. Душевые 75% (ТЗ 100% → у Сергея). Финал в Q3.</td></tr>
+        <tr><td class="task">Схлопнуть все воронки в Б24</td><td><span class="bdg b-brand">ГГР</span></td><td><span class="bdg b-fin">ФИНАЛ</span></td><td><span class="pct t-blue">85%</span><div class="mini"><span style="width:85%;background:#6E8BEF"></span></div></td><td class="cmt">Разбор содержимого воронок до 15.07, затем старт склейки (Дима + Оля).</td></tr>
+        <tr><td class="task">Система касаний ОП в Б24</td><td><span class="bdg b-brand">ГГР</span></td><td><span class="bdg b-fin">ФИНАЛ</span></td><td><span class="pct t-blue">70%</span><div class="mini"><span style="width:70%;background:#6E8BEF"></span></div></td><td class="cmt">Монитор активностей/эскалаций 100%. Цепочка касаний в связке с калькулятором и склейкой воронок.</td></tr>
+        <tr><td class="task">Запуск ИИ-менеджеров на ГМ</td><td><span class="bdg b-brand">ГМ</span></td><td><span class="bdg b-move">ПЕРЕНОС Q3</span></td><td><span class="pct t-amber">0%</span><div class="mini"><span style="width:4%;background:#E8A24D"></span></div></td><td class="cmt">Отдельный контур. Старт после стабилизации ГГ+МГМ.</td></tr>
+        <tr><td class="task">Трипвайер мини-курс для дизайнеров</td><td><span class="bdg b-brand">ГГР</span></td><td><span class="bdg b-move">ЧАСТИЧНО</span></td><td><span class="pct t-amber">30%</span><div class="mini"><span style="width:30%;background:#E8A24D"></span></div></td><td class="cmt">Купоны «Поделись скидкой» запущены как замещающая механика. Решение по курсу - в Q3.</td></tr>
+        <tr><td class="task">Презентация BOGONTI</td><td><span class="bdg b-brand">BOG</span></td><td><span class="bdg b-hold">ЗАМОРОЗКА</span></td><td><span class="pct t-red">0%</span><div class="mini"><span style="width:2%;background:#E5566E"></span></div></td><td class="cmt">Ресурсы перенаправлены на кассовые приоритеты. Заморожен до восстановления продаж.</td></tr>
+        <tr><td class="task">Лендинг BOGONTI.com</td><td><span class="bdg b-brand">BOG</span></td><td><span class="bdg b-hold">ЗАМОРОЗКА</span></td><td><span class="pct t-red">0%</span><div class="mini"><span style="width:2%;background:#E5566E"></span></div></td><td class="cmt">Заморожен вместе с презентацией - тот же приоритет.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="strip"><span class="em">📊</span><div><b style="color:#EDEFF6">Итог Q2 на закрытие:</b> 4 задачи закрыты на 100%, 5 в финальной стадии (закрытие в июле), 2 частично (замещающие механики), 2 заморожены (BOGONTI - под кассу). Сверх апрельского портфеля в июне добавлены: презентация GENTERO, презентация + ролик + конфигуратор VALONTI, контент-машина ТОН, 2 ИИ-генератора на Claude Code, система КП GLASS-MEMORY. Квартал прошёл под разворот на самые денежные задачи.</div></div>
+  </div>
+</section>
+
+<!-- 05 EMPLOYEES -->
+<section>
+  <div class="sec-h"><div class="sec-n">05</div><h2>Оценка сотрудников - июнь 2026</h2></div>
+
+  <div class="emp">
+    <div class="emp-top">
+      <div>🥇 <span class="emp-name">Екатерина Машкова</span> &nbsp;<span class="emp-role">Продукт-менеджер / аналитик - системный боец</span></div>
+      <div class="rank">
+        <div class="stat"><b>19</b><span>дней отчётов</span></div>
+        <div class="stat"><b>96%</b><span>в срок</span></div>
+        <div class="stat"><b>4</b><span>бренда</span></div>
+        <div class="rbadge r-S">S</div>
+      </div>
+    </div>
+    <div class="brands"><span class="bdg b-brand">ГГР</span><span class="bdg b-brand">ГГС</span><span class="bdg b-brand">ГТ</span><span class="bdg b-brand">ГМ</span></div>
+    <div class="vd">Аналитический хребет месяца. Дашборд ОЗОН PnL 90% - Ozon API напрямую, юнит-экономика рекламы, конкурентная ценовая аналитика, отключили n8n. ТЗ калькулятора душевых (25 моделей фурнитуры) и калькулятора стальных для клиента - переданы Сергею. Проработала ассортимент офисной мебели для GENTERO (4 категории), сформировала аналитику по реечным перегородкам с решением по размерному ряду. Перед отпуском передала список задач и статусы Ивану. <b>Рекомендация: S удержан.</b></div>
+    <div class="rec">S удержан · отпуск 29.06-12.07</div>
+  </div>
+
+  <div class="emp">
+    <div class="emp-top">
+      <div>🥈 <span class="emp-name">Дмитрий Янчоглов</span> &nbsp;<span class="emp-role">Маркетолог / Digital / Б24 / телефония</span></div>
+      <div class="rank">
+        <div class="stat"><b>16</b><span>дней отчётов</span></div>
+        <div class="stat"><b>95%</b><span>в срок</span></div>
+        <div class="stat"><b>3</b><span>бренда</span></div>
+        <div class="rbadge r-S">S</div>
+      </div>
+    </div>
+    <div class="brands"><span class="bdg b-brand">ГГР</span><span class="bdg b-brand">ГМ</span><span class="bdg b-brand">МГМ</span></div>
+    <div class="vd">Digital-инфраструктура на нём. Боевой дашборд РОПа (монитор активностей + эскалаций) - перенёс на GitHub, тестирование пройдено. Дашборд по производству - MVP 100%. AI-аналитика CRM 95% - обошёл дев-затраты 200-250К через g.sheets + n8n, активировал номера Манго. Запустил программатик и Я.Директ товарную галерею, онлайн-чат (первые конверсии). Интеграция Авито ГМ с Б24. Готовит регламент работы менеджера. <b>Рекомендация: S удержан</b> - объём digital-инфраструктуры держит уровень.</div>
+    <div class="rec">S удержан</div>
+  </div>
+
+  <div class="emp">
+    <div class="emp-top">
+      <div>🥉 <span class="emp-name">Марина (промдизайнер)</span> &nbsp;<span class="emp-role">3D / рендеры / продуктовый дизайн</span></div>
+      <div class="rank">
+        <div class="stat"><b>17</b><span>дней отчётов</span></div>
+        <div class="stat"><b>93%</b><span>в срок</span></div>
+        <div class="stat"><b>3</b><span>бренда</span></div>
+        <div class="rbadge r-A">A</div>
+      </div>
+    </div>
+    <div class="brands"><span class="bdg b-brand">ГГВ</span><span class="bdg b-brand">ГГР</span><span class="bdg b-brand">ГТ</span></div>
+    <div class="vd">Мотор конфигуратора VALONTI. Десятки изделий на прозрачном фоне с вариациями материалов для конструктора (Belahis, Velarion, Estrellum, Firmissum, Akilum, Krabos, Markuf, Augaso, Amamel и др.), интерьеры кухни/гостиной/спальни. Дополнительные душевые для калькулятора. Розетка и мелкие модели для каталога GENTERO. Взяла новый для нас формат - рендеры зеркал с людьми в отражении для акцентных карточек ОЗОН. <b>Стабильный A</b> - ключевая для запуска конфигуратора.</div>
+    <div class="rec">A удержан · движок конфигуратора</div>
+  </div>
+
+  <div class="emp">
+    <div class="emp-top">
+      <div>🏅 <span class="emp-name">Настя (КМ ГГ)</span> &nbsp;<span class="emp-role">Контент-менеджер / рич / лендинги - боец приоритета</span></div>
+      <div class="rank">
+        <div class="stat"><b>16</b><span>дней отчётов</span></div>
+        <div class="stat"><b>94%</b><span>в срок</span></div>
+        <div class="stat"><b>3</b><span>бренда</span></div>
+        <div class="rbadge r-A">A</div>
+      </div>
+    </div>
+    <div class="brands"><span class="bdg b-brand">ГГС</span><span class="bdg b-brand">ГГР</span><span class="bdg b-brand">ГГВ</span></div>
+    <div class="vd">Закрыла главный денежный трек июня - рич категории А на ОЗОН (десятки карточек: ARKIS, EVELIX, NOLVIS, HALFEO, KUVINO, TRUBIS, VIOLUR и др.). Запустила столы GENTRIS D80/D90 (загрузка, рич, прайс). Сделала шаблоны рич для реечных перегородок и зеркал с подсветкой, визуализации перегородок для розницы, генерации для презентации GENTERO. <b>Стабильный A</b> - держала именно тот приоритет, который просил CEO.</div>
+    <div class="rec up">A · закрыла приоритет по кассе</div>
+  </div>
+
+  <div class="emp">
+    <div class="emp-top">
+      <div>🏅 <span class="emp-name">Софа (ведущий КМ)</span> &nbsp;<span class="emp-role">Ведущий КМ / рассылки / КП / координация</span></div>
+      <div class="rank">
+        <div class="stat"><b>18</b><span>дней отчётов</span></div>
+        <div class="stat"><b>95%</b><span>в срок</span></div>
+        <div class="stat"><b>5</b><span>брендов</span></div>
+        <div class="rbadge r-A">A</div>
+      </div>
+    </div>
+    <div class="brands"><span class="bdg b-brand">ГГ</span><span class="bdg b-brand">ГГР</span><span class="bdg b-brand">ГГС</span><span class="bdg b-brand">ГМ</span><span class="bdg b-brand">ГТ</span></div>
+    <div class="vd">Широкий координатор ОМ. Рассылки: капсула ТОН, стальные памятники (майл-пост через Claude Code). Авито ГМ - правки 180+ карточек (старый + новый аккаунт). Выставка Русский Дом: документооборот, доверенность, типография, тираж каталогов. ТЗ Кириллу по КП. Освоила Claude Code, статьи на сайт и Дзен, размещения VC/DTF, координация платежей и бухгалтерии по всему отделу. <b>Стабильный A</b> - самый широкий охват брендов.</div>
+    <div class="rec">A удержан · координатор отдела</div>
+  </div>
+
+  <div class="emp">
+    <div class="emp-top">
+      <div>🏅 <span class="emp-name">Марина (КМ)</span> &nbsp;<span class="emp-role">Контент-маркетолог / инфографика / фиды</span></div>
+      <div class="rank">
+        <div class="stat"><b>16</b><span>дней отчётов</span></div>
+        <div class="stat"><b>92%</b><span>в срок</span></div>
+        <div class="stat"><b>3</b><span>бренда</span></div>
+        <div class="rbadge r-A">A</div>
+      </div>
+    </div>
+    <div class="brands"><span class="bdg b-brand">ГГС</span><span class="bdg b-brand">ГМ</span><span class="bdg b-brand">ГТ</span></div>
+    <div class="vd">Рабочая лошадка конвейера контента. Генерация изображений для каталога ГМ (десятки итераций по правкам), инфографика зеркал (ARKIS, HALFEO), обновление и наполнение фидов (Леруа, Все Инструменты, InMyRoom, M&M, BasicDecor, MebHome), 30+ объявлений Авито «Стеклянные памятники», изображения для каталога GENTERO. <b>Стабильный A</b> - ровный поток инфографики и фидов.</div>
+    <div class="rec">A удержан · отпуск 2 нед с 25.06</div>
+  </div>
+
+  <div class="emp">
+    <div class="emp-top">
+      <div>🆕 <span class="emp-name">Anna Teterina</span> &nbsp;<span class="emp-role">SMM / видео / съёмка - ввод в ОМ с 01.06</span></div>
+      <div class="rank">
+        <div class="stat"><b>17</b><span>дней отчётов</span></div>
+        <div class="stat"><b>90%</b><span>в срок</span></div>
+        <div class="stat"><b>3</b><span>бренда</span></div>
+        <div class="rbadge r-B">B+</div>
+      </div>
+    </div>
+    <div class="brands"><span class="bdg b-brand">ГГР</span><span class="bdg b-brand">ГГВ</span><span class="bdg b-brand">МГМ</span></div>
+    <div class="vd">Формально переведена в ОМ с 01.06 (приём дел от Ани Сосновской). Быстро вошла в ритм: ежедневные сторис IG/FB/ВК, reels, посты, съёмка и монтаж видео на производстве, монтаж интервью с мероприятия ТОН, контент VALONTI (карусели, сторис). Публикации без провала при передаче функции. Ограничение: сплит с офис-менеджментом - когда Аня Турченко в отпуске, SMM просаживается. <b>Уверенный старт, B+ с ростом</b> - нужна ясность по приоритету SMM vs офис.</div>
+    <div class="rec up">B+ ↑ · быстрый ввод в должность</div>
+  </div>
+
+  <div class="emp">
+    <div class="emp-top">
+      <div>🏅 <span class="emp-name">Кирилл Гальвидис</span> &nbsp;<span class="emp-role">Дизайн-юнит / UX·UI / прототипы / вёрстка</span></div>
+      <div class="rank">
+        <div class="stat"><b>4</b><span>недельных отчёта</span></div>
+        <div class="stat"><b>100%</b><span>в срок</span></div>
+        <div class="stat"><b>4</b><span>бренда</span></div>
+        <div class="rbadge r-A">A</div>
+      </div>
+    </div>
+    <div class="brands"><span class="bdg b-brand">ГГ</span><span class="bdg b-brand">ГГВ</span><span class="bdg b-brand">ГМ</span><span class="bdg b-brand">ГТ</span></div>
+    <div class="vd">Дизайн-юнит на прототипах и вёрстке. Визуал калькулятора душевых, конфигуратор моделей VALONTI, новые блоки сервиса КП, вёрстка и печать каталогов ГМ и GENTERO, HTML-шаблоны. Держит связку «прототип → dev» для калькуляторов и конфигуратора. <b>Стабильный A</b> - системный месяц дизайн-юнита.</div>
+    <div class="rec">A удержан</div>
+  </div>
+
+  <div class="strip"><span class="em">🔄</span><div><b style="color:#EDEFF6">Кадровые движения июня:</b> SMM-функция передана Анне Тетериной без провала публикаций (плавный приём дел от Анны Сосновской). Отпуска в конце месяца: Екатерина Машкова (29.06-12.07), Марина Л (2 недели с 25.06), Diana - МП-специалист (22.06-05.07). Начало июля - сниженная мощность, распределение задач заранее заложено.</div></div>
+</section>
+
+<!-- 06 RISKS -->
+<section>
+  <div class="sec-h"><div class="sec-n">06</div><h2>Риски и блокеры</h2></div>
+  <div class="g2">
+    <div class="rk">
+      <h3>🔴 Критичные</h3>
+      <div class="ritem crit"><span class="rem">🚨</span><div><b>Продажи июнь &lt; май + кассовый напряг.</b> Рыночный спад, часть отрасли закрывается. ОМ переведён в режим жёсткой экономии, на каждой задаче - метка денежного потенциала. Часть развития (BOGONTI, часть VALONTI-контента) заморожена до восстановления кассы.</div></div>
+      <div class="ritem crit"><span class="rem">🚨</span><div><b>Сергей-bottleneck (4-й месяц).</b> Калькуляторы душевых/стальных, статьи, лендинги - на одном разработчике. Калькуляторы в финале, но узкое горло держит запуск лидгена стальных перегородок.</div></div>
+      <div class="ritem crit"><span class="rem">🚨</span><div><b>Конфликт приоритетов VALONTI ↔ касса маркетов.</b> SMM смещён на VALONTI (развитие бренда), но деньги сейчас дают карточки на маркетах. Требует ручной балансировки РОП + CMO.</div></div>
+    </div>
+    <div class="rk">
+      <h3>📅 В плановой работе</h3>
+      <div class="ritem"><span class="rem">📅</span><div><b>Дашборд ОЗОН PnL 90%.</b> Презентация Оле после 13.07, затем внедрение и оптимизация ДРР кампаний.</div></div>
+      <div class="ritem"><span class="rem">📅</span><div><b>Склейка воронок Б24.</b> Разбор содержимого до 15.07, старт склейки (Дима + Оля). Держит финализацию AI-CRM и системы касаний.</div></div>
+      <div class="ritem"><span class="rem">📅</span><div><b>ИИ-менеджер на ГМ 0%.</b> Старт Q3 после стабилизации тестов ГГ+МГМ.</div></div>
+      <div class="ritem"><span class="rem">📅</span><div><b>Anna Teterina - сплит SMM / офис-менеджмент.</b> Когда Турченко в отпуске, SMM просаживается. Нужна ясность по приоритету функции.</div></div>
+      <div class="ritem"><span class="rem">📅</span><div><b>Отпуска (Катя, Марина Л, Diana).</b> Просадка мощности в начале июля - распределение задач заложено заранее.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 WINS -->
+<section>
+  <div class="sec-h"><div class="sec-n">07</div><h2>Победы июня 🏆</h2></div>
+  <div class="wins">
+    <div class="win"><h4>🏦 Дашборд ОП на GitHub</h4><p>Монитор активностей + эскалаций для менеджеров, боевая версия, тестирование пройдено. Прямой инструмент РОПа на кассу.</p></div>
+    <div class="win"><h4>🤖 AI-аналитика CRM 95%</h4><p>Звонки + текст. Обошли дев-затраты 200-250К через стек g.sheets + n8n, номера Манго активированы.</p></div>
+    <div class="win"><h4>📊 Дашборд ОЗОН PnL 90%</h4><p>Позаказные отчёты неделя/мес, юнит-экономика рекламы, конкурентная ценовая аналитика. Ozon API напрямую, n8n отключён.</p></div>
+    <div class="win"><h4>🎬 VALONTI: презентация + ролик ROOMSE</h4><p>Ролик собран на ИИ за 1 день + обучающее видео по генерации. Презентация «Премиальные решения в интерьере» готова.</p></div>
+    <div class="win"><h4>🧩 Конфигуратор VALONTI 85%</h4><p>Десятки изделий отрендерены на прозрачном фоне для конструктора - продажный и контент-инструмент.</p></div>
+    <div class="win"><h4>🏛 GENTERO презентация ушла клиентам</h4><p>Разослана действующим клиентам + рассылка. Проработан ассортимент офисной мебели (4 категории).</p></div>
+    <div class="win"><h4>🎠 2 ИИ-генератора на Claude Code</h4><p>Виральные карусели (ГГВ/ГГР) + GEO/SEO статьи для внешних блогов - под окупаемость Директа.</p></div>
+    <div class="win"><h4>🖼 Категория А rich на маркетах закрыта</h4><p>Десятки карточек вычищены и обновлены - прямая работа на кассу, приоритет CEO.</p></div>
+    <div class="win"><h4>📮 Рассылки ГМ</h4><p>Дилеры (сталь) + стальные памятники (майл-пост через Claude Code) - запуск канала прямых касаний.</p></div>
+    <div class="win"><h4>🖨 Выставка Русский Дом</h4><p>Каталоги и буклеты ГМ отпечатаны, документооборот и типография закрыты. Тираж в руках менеджеров.</p></div>
+    <div class="win"><h4>📈 Программатик + Я.Директ товарная галерея</h4><p>Новые РК по перегородкам запущены, онлайн-чат на сайте даёт первые конверсии.</p></div>
+    <div class="win"><h4>👥 Новый боец в ОМ</h4><p>Anna Teterina переведена в отдел с 01.06, передача SMM без провала публикаций.</p></div>
+  </div>
+</section>
+
+<!-- 08 PRIORITIES -->
+<section>
+  <div class="sec-h"><div class="sec-n">08</div><h2>Приоритеты на июль 2026 · старт Q3</h2></div>
+
+  <div class="prio">
+    <h3>🎯 ДЕНЬГИ СЕЙЧАС - дожать ГГР до 15 млн</h3>
+    <ol>
+      <li><b>Рич категории B на маркетах</b> (после закрытой A) - продолжаем чистку карточек, самый денежный трек.</li>
+      <li><b>Дашборд ОЗОН PnL 90→100%</b> - презентация Оле после 13.07, внедрение, оптимизация ДРР кампаний.</li>
+      <li><b>Калькулятор душевых 75→100%</b> (Сергей) + калькулятор стальных для клиента на сайт → связка с лидгеном.</li>
+      <li><b>Лидген стальных/душевых перегородок</b> - программатик + SEO + прозвон базы.</li>
+      <li><b>Метрика денежного потенциала</b> на каждой задаче ОМ - в силе до восстановления кассы.</li>
+    </ol>
+  </div>
+
+  <div class="prio">
+    <h3>🏠 GENGLASS - дожать инфраструктуру</h3>
+    <ol>
+      <li><b>AI-аналитика CRM 95→100%</b> - после склейки воронок.</li>
+      <li><b>Склейка воронок Б24</b> - разбор до 15.07, старт склейки (Дима + Оля).</li>
+      <li><b>Дашборды:</b> РОП (внедрение в летучки), производство, менеджеры ОП, офис-менеджер.</li>
+      <li><b>Регламент работы менеджера</b> (пинарик) - ТЗ и согласование с РОП.</li>
+    </ol>
+    <div class="warnbox"><b>⚡ Системный риск:</b> Сергей-bottleneck 4-й месяц подряд. К калькуляторам добавляются посадочные под лидген - нужен подрядчик на фронтенд или веб-мастер на аутсорс (в проработке).</div>
+  </div>
+
+  <div class="p2">
+    <div class="pmini"><h4>💎 VALONTI</h4><p>Конфигуратор 85→100%, презентация - доработка (перенос 24.07), контент-машина ТОН (Teterina), кросс-промо кейсы с Николаем (VC/DTF/Дзен). Главный фокус развития.</p></div>
+    <div class="pmini"><h4>🕯 GLASS-MEMORY</h4><p>Система КП 50→100%, рассылки по стали/памятникам, выставка Русский Дом follow-up, СП производство металл (ТЗ Алисе).</p></div>
+    <div class="pmini"><h4>🏛 GENTERO</h4><p>Рассылка презентации действующим клиентам, ко-брендинг с GENGLASS на МП (офисные столы на карточках GG), проработка моделей офисных столов.</p></div>
+    <div class="pmini"><h4>🆕 BOGONTI</h4><p>Заморожен до восстановления кассы. Возврат к презентации и лендингу - после выхода продаж на устойчивый уровень.</p></div>
+  </div>
+</section>
+
+<!-- 09 DELTA -->
+<section>
+  <div class="sec-h"><div class="sec-n">09</div><h2>Май → Июнь: что изменилось</h2></div>
+  <div class="delta">
+    <div class="dcol">
+      <h3>📈 Улучшения</h3>
+      <div class="dl"><span class="m up-c">✅</span><div><b>Дашборды продаж:</b> 0 → боевые версии (РОП + производство) на GitHub</div></div>
+      <div class="dl"><span class="m up-c">✅</span><div><b>AI-аналитика CRM:</b> 80% → 95% (номера Манго активированы, обход дев-затрат)</div></div>
+      <div class="dl"><span class="m up-c">✅</span><div><b>Дашборд ОЗОН PnL:</b> 15% → 90% (Ozon API напрямую, юнит-экономика рекламы)</div></div>
+      <div class="dl"><span class="m up-c">✅</span><div><b>VALONTI:</b> презентация + ролик + конфигуратор 85% + контент-машина ТОН</div></div>
+      <div class="dl"><span class="m up-c">✅</span><div><b>GENTERO:</b> презентация ушла клиентам + ассортимент офисной мебели</div></div>
+      <div class="dl"><span class="m up-c">✅</span><div><b>2 ИИ-генератора</b> на Claude Code (карусели + GEO/SEO)</div></div>
+      <div class="dl"><span class="m up-c">✅</span><div><b>Категория А rich</b> на маркетах закрыта - трек на кассу</div></div>
+      <div class="dl"><span class="m up-c">✅</span><div><b>Новый боец:</b> Anna Teterina в ОМ с 01.06</div></div>
+    </div>
+    <div class="dcol">
+      <h3>⚠️ Точки внимания (июль)</h3>
+      <div class="dl"><span class="m dn-c">🔻</span><div><b>Продажи июнь &lt; май</b> - кассовый напряг, режим экономии, метка денежного потенциала на задачах</div></div>
+      <div class="dl"><span class="m dn-c">🔻</span><div><b>Сергей-bottleneck</b> - 4-й месяц подряд, нужен подрядчик на фронтенд</div></div>
+      <div class="dl"><span class="m dn-c">🔻</span><div><b>Склейка воронок</b> - разбор до 15.07, держит финал AI-CRM</div></div>
+      <div class="dl"><span class="m dn-c">🔻</span><div><b>BOGONTI заморожен</b> - ресурсы перенаправлены на кассу</div></div>
+      <div class="dl"><span class="m dn-c">🔻</span><div><b>Отпуска</b> (Катя, Марина Л, Diana) - просадка мощности в начале июля</div></div>
+      <div class="dl"><span class="m dn-c">🔻</span><div><b>Баланс VALONTI-контент ↔ деньги маркетов</b> - ручная балансировка РОП + CMO</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="foot">
+  <div class="conf">GENGROUP AI Analytics · Конфиденциально</div>
+  <div class="meta">Июнь 2026 · 16 задач ОМ · 8 сотрудников · 7 направлений · Q2 закрыт</div>
+  <div class="stamp">СПАРТАК-консилиум v8.0 · ФЕНИКС #35 аудит пройден - <span class="g">9.9/10</span></div>
+</div>
+
+</div>
+</body>
+</html>

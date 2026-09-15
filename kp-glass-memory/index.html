@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<!--
+  GLASS-MEMORY · Персональное КП для физлица · v3 (финал)
+  humanizer_pass: v1.0 · design-kit: frontend-design + pre-delivery checklist
+  ФЕНИКС Step 12.5: ~7.9/10 · verdict go
+
+  Фото кладутся РЯДОМ с этим файлом:
+    1.jpg портрет на граните · 2.jpg стол с планшетом и образцами
+    3.jpg кейс-набор · 4.jpg полный комплекс · 5.jpg стела с панелью
+
+  Плейсхолдеры под замену: имя клиента, дата, менеджер, цены (ориентир).
+  Правки v3: стекло не режут лазером; возвращены ценностные секции и 2 конфигурации; SVG-иконки; a11y.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Memory · Коммерческое предложение</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --dark:#082821; --dark-2:#0C3127; --green:#1F895A; --green-d:#166B45; --forest:#31513A;
+  --cream:#F6F7ED; --bg:#FFFFFF; --ink:#15241C; --muted:#56635A; --line:#E3E5DB; --line-dark:#1C4034;
+  --serif:'Lora',Georgia,serif; --sans:'Inter','Helvetica Neue',Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{ background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased; }
+img{display:block;max-width:100%}
+a{color:inherit}
+:focus-visible{ outline:2px solid var(--green); outline-offset:3px; border-radius:4px; }
+.wrap{ max-width:1120px; margin:0 auto; padding:0 44px; }
+h1,h2,h3{ font-family:var(--serif); font-weight:500; line-height:1.22; letter-spacing:-.01em; }
+.eyebrow{ font-family:var(--sans); font-weight:600; font-size:12.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--green); }
+.muted{color:var(--muted)}
+.sec{ padding:62px 0; }
+.sec h2{ font-size:30px; margin-bottom:14px; }
+.sec .intro{ font-size:18px; color:var(--muted); max-width:64ch; margin-bottom:36px; }
+.sec.cream{ background:var(--cream); }
+svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+/* top bar */
+.topbar{ background:var(--dark); color:#EAF1ED; }
+.topbar .wrap{ display:flex; align-items:center; justify-content:space-between; height:70px; }
+.brand{ display:flex; align-items:center; gap:11px; }
+.brand .logo{ width:28px; height:35px; }
+.brand .name{ font-family:var(--serif); font-weight:600; font-size:20px; color:#fff; }
+.topbar .site{ font-size:14px; color:#9DB5A9; }
+
+/* title */
+.title{ background:var(--dark); color:#EAF1ED; padding:8px 0 54px; }
+.title h1{ color:#fff; font-size:38px; max-width:22ch; }
+.title .date{ color:#9DB5A9; font-size:15px; margin-top:16px; }
+.mgr{ display:flex; align-items:center; gap:15px; margin-top:32px; background:var(--dark-2); border:1px solid var(--line-dark); border-radius:12px; padding:18px 22px; max-width:520px; }
+.mgr .av{ width:50px; height:50px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:22px; font-weight:600; flex:none; }
+.mgr .who b{ color:#fff; font-size:16px; display:block; }
+.mgr .who .role{ color:#9DB5A9; font-size:13.5px; }
+.mgr .who .c{ color:#CFE0D6; font-size:14px; margin-top:5px; }
+
+/* value cards (icon) */
+.vals{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+.vcard{ border:1px solid var(--line); border-radius:14px; padding:30px 28px; background:#fff; }
+.cream .vcard{ background:#fff; }
+.vcard .ico{ width:52px; height:52px; border-radius:12px; background:rgba(31,137,90,.10); display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+.vcard h3{ font-size:20px; font-weight:600; }
+.vcard p{ font-size:15.5px; color:var(--muted); margin-top:11px; line-height:1.55; }
+
+/* positions */
+.pos{ border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+.pos .row{ display:grid; grid-template-columns:120px 1fr 140px 64px 140px; gap:24px; padding:22px 26px; border-bottom:1px solid var(--line); align-items:center; }
+.pos .row:last-child{ border-bottom:0; }
+.pos .head-row{ background:var(--cream); }
+.pos .thumb{ width:120px; height:92px; border-radius:9px; object-fit:cover; border:1px solid var(--line); }
+.pos .nm{ font-weight:600; font-size:16.5px; }
+.pos .meta{ font-size:13.5px; color:var(--muted); margin-top:6px; line-height:1.5; }
+.pos .col-h{ font-size:11.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
+.pos .unit{ font-size:14px; color:var(--muted); }
+.pos .qty{ font-size:15px; text-align:center; }
+.pos .sum{ font-family:var(--serif); font-size:19px; font-weight:600; text-align:right; }
+.totals{ display:grid; grid-template-columns:1fr 360px; gap:30px; margin-top:24px; align-items:start; }
+.tnote{ font-size:13.5px; color:var(--muted); line-height:1.6; background:var(--cream); border-radius:12px; padding:20px 22px; }
+.tbox{ border:1px solid var(--line); border-radius:14px; padding:22px 26px; }
+.tbox .t{ display:flex; justify-content:space-between; font-size:15px; padding:8px 0; }
+.tbox .t span:last-child{ color:var(--green); font-weight:600; }
+.tbox .grand{ display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid var(--line); margin-top:8px; padding-top:15px; }
+.tbox .grand .l{ font-size:15px; color:var(--muted); }
+.tbox .grand .v{ font-family:var(--serif); font-size:29px; font-weight:600; color:var(--green); }
+.tbox .fine{ font-size:12px; color:var(--muted); margin-top:9px; line-height:1.5; }
+
+/* info strip */
+.info{ display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+.info .i{ padding:24px; border-right:1px solid var(--line); }
+.info .i:last-child{ border-right:0; }
+.info .h{ font-size:13px; color:var(--green); font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
+.info .d{ font-size:14.5px; margin-top:10px; line-height:1.5; }
+
+/* configs */
+.configs{ display:grid; grid-template-columns:1fr 1fr; gap:26px; }
+.cfg{ border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff; display:flex; flex-direction:column; }
+.cfg img{ width:100%; height:260px; object-fit:cover; }
+.cfg .body{ padding:28px 28px 30px; display:flex; flex-direction:column; flex:1; }
+.cfg .kicker{ font-size:12.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--green); font-weight:600; }
+.cfg h3{ font-size:24px; font-weight:600; margin-top:11px; }
+.cfg p{ font-size:15.5px; color:var(--muted); margin-top:12px; }
+.cfg ul{ list-style:none; margin-top:18px; display:flex; flex-direction:column; gap:11px; }
+.cfg li{ font-size:15.5px; padding-left:25px; position:relative; }
+.cfg li::before{ content:""; position:absolute; left:4px; top:9px; width:8px; height:8px; border-radius:50%; background:var(--green); }
+.cfg .term{ padding-top:20px; border-top:1px solid var(--line); margin-top:22px; font-size:14.5px; color:var(--muted); }
+.cfg .term b{ color:var(--ink); }
+
+/* split */
+.split{ display:grid; grid-template-columns:1.05fr .95fr; gap:54px; align-items:center; }
+.split .ph{ border-radius:14px; overflow:hidden; border:1px solid var(--line); }
+.split .ph img{ width:100%; height:520px; object-fit:cover; }
+.split h2{ font-size:32px; margin-bottom:0; }
+.split p{ margin-top:18px; }
+.split .note{ margin-top:20px; font-size:15px; color:var(--muted); border-left:3px solid var(--green); padding-left:18px; }
+
+/* gallery 3 */
+.g3{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+.g3 .ph{ border-radius:12px; overflow:hidden; border:1px solid var(--line); }
+.g3 .ph img{ width:100%; height:300px; object-fit:cover; }
+.g3 .cap{ font-size:13.5px; color:var(--muted); padding:12px 4px 0; }
+
+/* materials */
+.mats{ display:grid; grid-template-columns:repeat(3,1fr); gap:34px; }
+.mats h3{ font-size:18px; font-weight:600; margin-bottom:18px; }
+.sw{ display:flex; gap:14px; flex-wrap:wrap; }
+.sw .s{ text-align:center; font-size:12.5px; color:var(--muted); width:76px; }
+.sw .chip{ width:76px; height:58px; border-radius:9px; border:1px solid var(--line); margin-bottom:8px; }
+
+.band-img{ height:420px; background-size:cover; background-position:center; }
+
+/* process */
+.proc{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+.ptile{ background:var(--dark); color:#EAF1ED; border-radius:12px; padding:26px 24px; min-height:178px; display:flex; flex-direction:column; justify-content:space-between; }
+.ptile .n{ font-family:var(--serif); font-size:22px; color:var(--green); }
+.ptile .t{ font-size:16.5px; font-weight:600; color:#fff; }
+.ptile .d{ font-size:13.5px; color:#A9C1B4; margin-top:8px; line-height:1.5; }
+
+/* steps */
+.dark{ background:var(--dark); color:#EAF1ED; }
+.dark h2{ color:#fff; }
+.steps{ display:grid; grid-template-columns:repeat(5,1fr); gap:20px; }
+.step .n{ font-family:var(--serif); font-size:28px; color:var(--green); }
+.step .t{ font-size:16px; font-weight:600; color:#fff; margin-top:10px; }
+.step .d{ font-size:13px; color:#A9C1B4; margin-top:7px; line-height:1.5; }
+.step .w{ font-size:12px; color:var(--green); font-weight:600; margin-top:9px; }
+
+/* stats */
+.stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+.stat{ background:var(--dark-2); border:1px solid var(--line-dark); border-radius:12px; padding:26px 24px; }
+.stat .v{ font-family:var(--serif); font-size:29px; color:#fff; font-weight:600; }
+.stat .l{ font-size:13.5px; color:#A9C1B4; margin-top:10px; line-height:1.5; }
+
+/* cost */
+.cost{ display:grid; grid-template-columns:330px 1fr; gap:50px; align-items:center; }
+.donut{ width:280px; height:280px; border-radius:50%;
+  background:conic-gradient(var(--green) 0 38%, var(--forest) 38% 64%, #6FA98C 64% 84%, #B7CBBE 84% 100%);
+  position:relative; margin:0 auto; }
+.donut::after{ content:""; position:absolute; inset:64px; background:var(--cream); border-radius:50%; }
+.donut .mid{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:1; }
+.donut .mid b{ font-family:var(--serif); font-size:22px; }
+.donut .mid span{ font-size:12px; color:var(--muted); }
+.legend{ display:flex; flex-direction:column; gap:14px; }
+.legend .li{ display:flex; align-items:center; gap:13px; font-size:15px; }
+.legend .dot{ width:14px; height:14px; border-radius:4px; flex:none; }
+.legend .li b{ margin-left:auto; font-weight:600; }
+.path{ margin-top:28px; }
+.path .h{ font-weight:600; font-size:16px; margin-bottom:14px; }
+.pgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.pg{ font-size:13px; background:#fff; border:1px solid var(--line); border-radius:9px; padding:12px 14px; }
+.pg b{ color:var(--green); font-family:var(--serif); font-size:15px; }
+
+/* QC */
+.qc{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+.qc .q{ display:flex; align-items:center; gap:13px; font-size:15.5px; font-weight:600; }
+.qc .ok{ width:34px; height:34px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; flex:none; }
+.qc .ok svg{ width:18px; height:18px; stroke:#fff; stroke-width:2.4; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+/* CTA */
+.cta .wrap{ padding:64px 44px; text-align:center; }
+.cta h2{ color:#fff; font-size:34px; max-width:24ch; margin:0 auto; }
+.cta p{ color:#A9C1B4; margin-top:16px; max-width:50ch; margin-left:auto; margin-right:auto; }
+.cta .price{ font-family:var(--serif); font-size:48px; color:var(--green); font-weight:600; margin-top:24px; }
+.cta .price small{ font-size:19px; color:#A9C1B4; font-weight:400; }
+.cta .btns{ margin-top:26px; display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+.btn{ display:inline-flex; align-items:center; gap:9px; font-weight:600; font-size:16px; padding:16px 30px; border-radius:10px; text-decoration:none; cursor:pointer; transition:transform .15s ease, background .2s ease; }
+.btn.p{ background:var(--green); color:#fff; }
+.btn.p:hover{ background:var(--green-d); transform:translateY(-1px); }
+.btn.g{ background:transparent; color:#EAF1ED; border:1px solid #2C5A48; }
+.btn.g:hover{ background:#0E3A2C; }
+
+footer{ background:var(--dark); color:#9DB5A9; padding:28px 0; }
+footer .wrap{ display:flex; justify-content:space-between; font-size:13.5px; }
+
+@media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+@media(max-width:900px){
+  .wrap{padding:0 20px}
+  .vals,.pos .row,.totals,.info,.configs,.split,.g3,.mats,.proc,.steps,.stats,.cost,.qc,.pgrid{grid-template-columns:1fr}
+  .title h1{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar"><div class="wrap">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 34 42" aria-hidden="true"><path d="M17 1C8 8 3 16 3 25c0 9 6 16 14 16s14-7 14-16C31 16 26 8 17 1z" fill="#1F895A"/><path d="M17 9c4 5 7 10 7 16 0 6-3 9-7 9" stroke="#EAF1ED" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+    <div class="name">Glass Memory</div>
+  </div>
+  <div class="site">glass-memory.ru</div>
+</div></div>
+
+<!-- TITLE -->
+<section class="title"><div class="wrap">
+  <div class="eyebrow" style="margin:30px 0 16px">Персональное коммерческое предложение</div>
+  <h1>Мемориал из стекла и металла в память о Вашем муже</h1>
+  <div class="date">для Марии Петровны · от 29.06.2026</div>
+  <div class="mgr">
+    <div class="av">Е</div>
+    <div class="who">
+      <b>Елена Соколова</b>
+      <div class="role">Ваш личный менеджер</div>
+      <div class="c">+7 (495) 955-16-79 · info@glass-memory.ru</div>
+    </div>
+  </div>
+</div></section>
+
+<!-- VALUE: WHY GLASS -->
+<section class="sec"><div class="wrap">
+  <h2>Почему семьи выбирают стекло</h2>
+  <p class="intro">Стекло меняет то, как выглядит и ощущается место памяти. Это не про моду, а про свет, лицо и цельность участка.</p>
+  <div class="vals">
+    <div class="vcard">
+      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg></div>
+      <h3>Светлее гранита</h3>
+      <p>Стекло пропускает свет. Мемориал не выглядит тяжёлым и мрачным, особенно в солнечный день.</p>
+    </div>
+    <div class="vcard">
+      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 18c1-2.2 8-2.2 9 0"/></svg></div>
+      <h3>Портрет внутри стекла</h3>
+      <p>Лицо напечатано керамическими красками и впечатано в стекло. Глубина и мягкий объём, который не даёт камень.</p>
+    </div>
+    <div class="vcard">
+      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg></div>
+      <h3>Единый дизайн</h3>
+      <p>Стела, цветник, ограждение и скамья делаются в одном рисунке. Участок выглядит цельно, без случайных деталей.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- POSITIONS -->
+<section class="sec cream"><div class="wrap">
+  <h2>Состав мемориала</h2>
+  <p class="intro">Предлагаем сдержанный и светлый комплект. Состав можно менять: убрать или добавить элемент на этапе согласования.</p>
+  <div class="pos">
+    <div class="row head-row">
+      <div class="col-h">Изделие</div><div></div>
+      <div class="col-h">Цена за ед.</div><div class="col-h" style="text-align:center">Кол-во</div>
+      <div class="col-h" style="text-align:right">Сумма</div>
+    </div>
+    <div class="row">
+      <img class="thumb" src="5.jpg" alt="Стеклянная стела с портретом">
+      <div><div class="nm">Стела стеклянная с керамическим портретом</div><div class="meta">Триплекс 18 мм, 600 × 1200 мм. Керамическая фотопечать портрета и текста. Дистанционный крепёж.</div></div>
+      <div class="unit">от 79 000 ₽</div><div class="qty">1</div>
+      <div class="sum">от 79 000 ₽</div>
+    </div>
+    <div class="row">
+      <img class="thumb" src="4.jpg" alt="Стеклянный цветник">
+      <div><div class="nm">Стеклянный цветник с керамопечатью</div><div class="meta">Триплекс закалённый, 600 × 1200 мм. Цветочный мотив керамической печатью. Не боится влаги и мороза.</div></div>
+      <div class="unit">от 44 000 ₽</div><div class="qty">1</div>
+      <div class="sum">от 44 000 ₽</div>
+    </div>
+    <div class="row">
+      <img class="thumb" src="1.jpg" alt="Ограждение стекло и металл">
+      <div><div class="nm">Ограждение стекло и металл</div><div class="meta">Стальной каркас с лазерной резкой, окраска RAL 9005 matte, стеклянные вставки. Растительный рисунок под общий дизайн.</div></div>
+      <div class="unit">от 74 000 ₽</div><div class="qty">1</div>
+      <div class="sum">от 74 000 ₽</div>
+    </div>
+    <div class="row">
+      <img class="thumb" src="2.jpg" alt="3D-визуализация">
+      <div><div class="nm">3D-визуализация и согласование</div><div class="meta">Покажем будущий мемориал в 3D до старта работ. Правки до полного согласования.</div></div>
+      <div class="unit">0 ₽</div><div class="qty">1</div>
+      <div class="sum">0 ₽</div>
+    </div>
+  </div>
+  <div class="totals">
+    <div class="tnote"><b>Это предварительный ориентир, а не финальная цена.</b> Готового розничного прайса на персональный комплект нет: стоимость зависит от размеров, толщины стекла, формы и состава. Точную смету подтвердим после замера и согласования 3D-макета. На этом шаге Вы ничем не связаны.</div>
+    <div class="tbox">
+      <div class="t"><span>Замер по Москве</span><span>0 ₽</span></div>
+      <div class="t"><span>3D-макет и согласование</span><span>0 ₽</span></div>
+      <div class="t"><span>Доставка ТК по РФ</span><span>от 2 500 ₽</span></div>
+      <div class="grand"><div class="l">Итого ориентировочно</div><div class="v">от 197 000 ₽</div></div>
+      <div class="fine">Самовывоз из Домодедово бесплатно. Финальная смета после замера.</div>
+    </div>
+  </div>
+</div></section>
+
+<!-- INFO STRIP -->
+<section class="sec" style="padding-bottom:0"><div class="wrap">
+  <div class="info">
+    <div class="i"><div class="h">Срок изготовления</div><div class="d">Отдельное изделие 30 к.д. Полный комплекс 45-90 к.д. от утверждения макета.</div></div>
+    <div class="i"><div class="h">Оплата</div><div class="d">Заказы от 50 000 ₽ по схеме 70% и 30%. Поэтапная оплата по согласованию.</div></div>
+    <div class="i"><div class="h">Гарантия</div><div class="d">5 лет на металл и окраску. Керамический портрет не выцветает 20+ лет.</div></div>
+    <div class="i"><div class="h">Доставка</div><div class="d">Транспортной компанией по всей России. Самовывоз из Домодедово бесплатно.</div></div>
+  </div>
+</div></section>
+
+<!-- TWO CONFIGS -->
+<section class="sec"><div class="wrap">
+  <h2>Два варианта состава</h2>
+  <p class="intro">Можно начать сдержанно и дополнить позже. Оба варианта собираются в одном дизайне.</p>
+  <div class="configs">
+    <div class="cfg">
+      <img src="5.jpg" alt="Светлая стела">
+      <div class="body">
+        <div class="kicker">Вариант 1 · сдержанный</div>
+        <h3>Светлая стела</h3>
+        <p>Когда не хочется перегружать участок. Главное - светлая стела и портрет.</p>
+        <ul>
+          <li>Стела из триплекса с керамическим портретом</li>
+          <li>Стеклянный цветник с печатью</li>
+          <li>Ограждение из стекла и металла</li>
+        </ul>
+        <div class="term"><b>Срок:</b> 30-45 к.д. · состав можно расширить позже</div>
+      </div>
+    </div>
+    <div class="cfg">
+      <img src="3.jpg" alt="Полный мемориальный комплекс">
+      <div class="body">
+        <div class="kicker">Вариант 2 · полный</div>
+        <h3>Мемориальный комплекс</h3>
+        <p>Шесть элементов в одном дизайне по цвету, материалу и рисунку.</p>
+        <ul>
+          <li>Стела, цветник, входная группа</li>
+          <li>Стальные вазы с лазерной резкой</li>
+          <li>Скамья, столик и ограждение в общем стиле</li>
+        </ul>
+        <div class="term"><b>Срок:</b> 45-90 к.д. в зависимости от состава</div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- VALUE: PORTRAIT IN GLASS -->
+<section class="sec cream"><div class="wrap">
+  <div class="split">
+    <div class="ph"><img src="1.jpg" alt="Керамический портрет в стекле"></div>
+    <div>
+      <div class="eyebrow">Технология</div>
+      <h2>Портрет живёт внутри стекла</h2>
+      <p>Керамические краски впекаются в стекло при 600 °C и становятся частью материала. Поэтому изображение не выцветает и не стирается. На наших памятниках с 2016 года портрет сохраняет цвет более 20 лет.</p>
+      <p class="note">УФ-печать наносится поверх стекла и обновляется через 3-5 лет. Керамика этого не требует: она держит цвет десятилетиями.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- VALUE: STRENGTH -->
+<section class="sec"><div class="wrap">
+  <h2>Стекло прочнее, чем кажется</h2>
+  <p class="intro">Это не витринное стекло. Триплекс собран из двух закалённых стёкол и прочной плёнки между ними.</p>
+  <div class="vals">
+    <div class="vcard">
+      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg></div>
+      <h3>В 6 раз прочнее</h3>
+      <p>Триплекс от 8 до 34 мм прочнее обычного стекла той же толщины. Спокойно стоит под дождём, морозом и солнцем.</p>
+    </div>
+    <div class="vcard">
+      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M5 7l7-5 7 5M5 7v6c0 4 3 6.5 7 9 4-2.5 7-5 7-9V7"/></svg></div>
+      <h3>Не боится погоды</h3>
+      <p>Стекло не ржавеет и не гниёт, поверхность не тускнеет. Уход простой: вода и мягкая ткань.</p>
+    </div>
+    <div class="vcard">
+      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></div>
+      <h3>Проверено временем</h3>
+      <p>Наши памятники стоят без повреждений с 2016 года. Это более 10 лет реальной службы на участках.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- EXAMPLES -->
+<section class="sec cream"><div class="wrap">
+  <h2>Примеры на участке</h2>
+  <div class="g3">
+    <div><div class="ph"><img src="4.jpg" alt="Полный комплекс"></div><div class="cap">Полный комплекс в едином дизайне</div></div>
+    <div><div class="ph"><img src="5.jpg" alt="Светлая стела"></div><div class="cap">Светлая стела с портретом</div></div>
+    <div><div class="ph"><img src="1.jpg" alt="Портрет на креплении"></div><div class="cap">Керамический портрет на дистанционном креплении</div></div>
+  </div>
+</div></section>
+
+<!-- MATERIALS -->
+<section class="sec"><div class="wrap">
+  <h2>Материалы и базовые цвета</h2>
+  <div class="mats">
+    <div>
+      <h3>Стекло</h3>
+      <div class="sw">
+        <div class="s"><div class="chip" style="background:#DDE7E3"></div>бесцветное</div>
+        <div class="s"><div class="chip" style="background:#EDF3F0"></div>осветлённое</div>
+        <div class="s"><div class="chip" style="background:#9AA7A2"></div>матовое</div>
+        <div class="s"><div class="chip" style="background:#5B5043"></div>тонированное</div>
+      </div>
+    </div>
+    <div>
+      <h3>Металл, окраска</h3>
+      <div class="sw">
+        <div class="s"><div class="chip" style="background:#0A0A0A"></div>RAL 9005</div>
+        <div class="s"><div class="chip" style="background:#383E42"></div>RAL 7016</div>
+        <div class="s"><div class="chip" style="background:#F1F0EA;border-color:#D7D7CE"></div>RAL 9016</div>
+      </div>
+    </div>
+    <div>
+      <h3>Основание</h3>
+      <div class="sw">
+        <div class="s"><div class="chip" style="background:#111316"></div>гранит чёрный</div>
+        <div class="s"><div class="chip" style="background:#2B2E33"></div>габбро</div>
+      </div>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:26px;font-size:14.5px;max-width:72ch">Осветлённое стекло (Crystalvision) убирает зеленоватый оттенок и дороже обычного на 25%. Форма влияет на цену: прямоугольник дешевле фигурной резки.</p>
+</div></section>
+
+<!-- WIDE BAND -->
+<div class="band-img" style="background-image:url('4.jpg')" role="img" aria-label="Мемориальный комплекс из стекла и металла"></div>
+
+<!-- PROCESS (стекло не режется лазером) -->
+<section class="sec cream"><div class="wrap">
+  <h2>Как мы производим</h2>
+  <p class="intro">Полный цикл на своём цехе в Домодедово. Стекло и металл обрабатываются по-разному.</p>
+  <div class="proc">
+    <div class="ptile"><div class="n">01</div><div><div class="t">Раскрой стекла</div><div class="d">Фигурная резка, обработка кромки и отверстия под крепёж.</div></div></div>
+    <div class="ptile"><div class="n">02</div><div><div class="t">Керамическая печать</div><div class="d">Портрет наносим керамическими красками.</div></div></div>
+    <div class="ptile"><div class="n">03</div><div><div class="t">Закалка 600 °C и триплекс</div><div class="d">Краски впекаются, два стекла соединяем плёнкой EVA.</div></div></div>
+    <div class="ptile"><div class="n">04</div><div><div class="t">Металл и сборка</div><div class="d">Лазерная резка стали 0,1 мм, окраска RAL, монтаж узлов.</div></div></div>
+  </div>
+</div></section>
+
+<!-- STEPS DARK -->
+<section class="sec dark"><div class="wrap">
+  <h2>Как это работает</h2>
+  <div class="steps">
+    <div class="step"><div class="n">01</div><div class="t">Заявка и фото</div><div class="d">Присылаете фото и размеры участка.</div><div class="w">1 день</div></div>
+    <div class="step"><div class="n">02</div><div class="t">3D-макет</div><div class="d">Показываем будущий мемориал.</div><div class="w">до производства</div></div>
+    <div class="step"><div class="n">03</div><div class="t">Согласование и смета</div><div class="d">Подтверждаем состав и точную цену.</div><div class="w">1-2 дня</div></div>
+    <div class="step"><div class="n">04</div><div class="t">Производство</div><div class="d">Изготавливаем на своём цехе.</div><div class="w">30-90 к.д.</div></div>
+    <div class="step"><div class="n">05</div><div class="t">Доставка и монтаж</div><div class="d">Привозим и устанавливаем бережно.</div><div class="w">по согласованию</div></div>
+  </div>
+</div></section>
+
+<!-- STATS DARK -->
+<section class="sec dark" style="padding-top:0"><div class="wrap">
+  <h2 style="font-size:26px">Российский производитель с собственным цехом</h2>
+  <div class="stats">
+    <div class="stat"><div class="v">16 000 м²</div><div class="l">собственное производство в Домодедово</div></div>
+    <div class="stat"><div class="v">320+</div><div class="l">партнёров в 250+ городах России</div></div>
+    <div class="stat"><div class="v">600 °C</div><div class="l">керамопечать впекается в стекло</div></div>
+    <div class="stat"><div class="v">10 лет</div><div class="l">на рынке, производство с 2016 года</div></div>
+  </div>
+</div></section>
+
+<!-- COST -->
+<section class="sec cream"><div class="wrap">
+  <h2>Из чего складывается стоимость</h2>
+  <div class="cost">
+    <div class="donut"><div class="mid"><b>100%</b><span>состав сметы</span></div></div>
+    <div>
+      <div class="legend">
+        <div class="li"><span class="dot" style="background:var(--green)"></span>Стекло и керамическая печать <b>38%</b></div>
+        <div class="li"><span class="dot" style="background:var(--forest)"></span>Металл и лазерная резка <b>26%</b></div>
+        <div class="li"><span class="dot" style="background:#6FA98C"></span>Закалка и триплекс <b>20%</b></div>
+        <div class="li"><span class="dot" style="background:#B7CBBE"></span>Монтаж и доставка <b>16%</b></div>
+      </div>
+      <div class="path">
+        <div class="h">Путь изделия</div>
+        <div class="pgrid">
+          <div class="pg"><b>1.</b> Макет 3D</div>
+          <div class="pg"><b>2.</b> Раскрой</div>
+          <div class="pg"><b>3.</b> Печать</div>
+          <div class="pg"><b>4.</b> Закалка</div>
+          <div class="pg"><b>5.</b> Триплекс</div>
+          <div class="pg"><b>6.</b> Сборка</div>
+          <div class="pg"><b>7.</b> ОТК</div>
+          <div class="pg"><b>8.</b> Доставка</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- QC -->
+<section class="sec"><div class="wrap">
+  <h2>Контроль качества</h2>
+  <p class="intro">Двойной ОТК: проверяем на ключевых этапах. Брак не выходит за ворота цеха.</p>
+  <div class="qc">
+    <div class="q"><span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>После раскроя</div>
+    <div class="q"><span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>После печати</div>
+    <div class="q"><span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>После закалки</div>
+    <div class="q"><span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>После сборки</div>
+  </div>
+</div></section>
+
+<!-- CTA -->
+<section class="cta dark"><div class="wrap">
+  <h2>Подтвердите состав, и мы покажем мемориал в 3D</h2>
+  <p>Производство начинаем только после Вашего одобрения макета. Так Вы видите результат заранее и решаете спокойно, в удобном темпе.</p>
+  <div class="price">от 197 000 ₽ <small>ориентировочно</small></div>
+  <div class="btns">
+    <a class="btn p" href="mailto:info@glass-memory.ru">Отправить фото и размеры</a>
+    <a class="btn g" href="tel:+74959551679">Позвонить · +7 (495) 955-16-79</a>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <span>Glass Memory · производство с 2016 года, Домодедово</span>
+  <span>Персональное предложение · Мария Петровна · 2026</span>
+</div></footer>
+
+</body>
+</html>

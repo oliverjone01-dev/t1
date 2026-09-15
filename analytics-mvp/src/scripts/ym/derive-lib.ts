@@ -581,10 +581,26 @@ const svcZero = () => { const o: Record<string, number> = {}; for (const [n] of 
 
 export interface ActRow { ym: string; business: string; service: string; money: number; points: number; order?: string }
 export interface BonusRow { ym: string; business: string; type?: string; src?: string; order?: string; sku?: string; amount: number }
-// Начисление баллов - положительная строка отчёта. Списание баллов на оплату услуг и возврат
-// баллов приходят отрицательными и в «начислено» не идут: это другая сторона той же монеты, и
-// услуги, закрытые баллами, свод уже считает отдельной колонкой.
-export const isBonusAccrual = (r: BonusRow) => (Number(r.amount) || 0) > 0;
+// Что считать начислением баллов, решает ИСТОЧНИК проводки, а не знак суммы. По знаку в
+// «начислено» попадал бы «Возврат списания» (+29 556 ₽ за июль) - сторно услуги, оплаченной
+// баллами, то есть возврат ПОТРАЧЕННОГО, а не новое начисление; и выпадал бы «Возврат баллов за
+// скидку Маркета» (-30 420 ₽), который начисление как раз уменьшает.
+//
+// Правило проверено на живой выгрузке за июль 2026 по кабинету мебели (fixtures/ym/bonuses-2026-07.json):
+// начислено 2 296 335 + 55 713 - 30 420 = 2 321 628 ₽, потрачено на услуги 2 341 564 - 29 556 =
+// 2 312 008 ₽, остаток 2 321 628 - 2 312 008 = 9 620 ₽ - ровно строка «Премия, предоставленная
+// Исполнителем» в отчёте об исполнении поручения.
+// «баллы за скидку» у начисления и «баллОВ за скидку» у его возврата - падеж разный, корень один.
+const BONUS_ACCRUAL = /балл(ы|ов) за скидку/i;
+const BONUS_SPEND = /скидк[аи].{0,30}совместн|совместн.{0,20}акци|оплата бонусами/i;  // оплата услуг баллами и сторно
+export type BonusKind = "accrual" | "spend" | "other";
+export function bonusKind(r: BonusRow): BonusKind {
+  const src = String(r.src || "");
+  if (BONUS_ACCRUAL.test(src)) return "accrual";
+  if (BONUS_SPEND.test(src)) return "spend";
+  return "other";
+}
+export const isBonusAccrual = (r: BonusRow) => bonusKind(r) === "accrual";
 export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string, act: ActRow[] = [], bonus: BonusRow[] = []): SvodMonth[] {
   // 1. отбор: заказы со статусом DELIVERED, месяц - по дате оформления
   const keyOf = (r: OrderRow) => `${r.business}|${String(r.created || "").slice(0, 7)}`;
@@ -784,10 +800,11 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   // кабинетная, а не наша.
   const bonusBy = new Map<string, number>();
   for (const r of bonus) {
-    if (!isBonusAccrual(r)) continue;
+    if (bonusKind(r) !== "accrual") continue;   // знак сохраняем: возврат баллов начисление уменьшает
     const k = `${r.business}|${r.ym}`;
     bonusBy.set(k, (bonusBy.get(k) || 0) + (Number(r.amount) || 0));
   }
+  for (const [k, v] of bonusBy) if (v <= 0) bonusBy.delete(k);   // ноль или минус за месяц - не масштабируем
 
   // Общие расходы из акта по стоимости услуг. Реестр платежей несёт только оплаченные ДЕНЬГАМИ
   // (живой июль 2026: 6 строк на 36 875 ₽, ни одной оплаченной баллами), а полки, подписки,

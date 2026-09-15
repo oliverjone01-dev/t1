@@ -1,7 +1,8 @@
 // Свод по дате заказа. Тесты пиннят не «страница собралась», а сами числа и правила разнесения:
 // каждый дефект ниже уже случался на живых данных июля 2026 и молча искажал результат.
 import { describe, it, expect } from "vitest";
-import { buildSvod, svcColumn, isPointsPaid, SVC_OTHER, type OrderRow } from "./derive-lib.js";
+import { readFileSync } from "node:fs";
+import { buildSvod, svcColumn, isPointsPaid, bonusKind, SVC_OTHER, type OrderRow } from "./derive-lib.js";
 
 const item = (over: Partial<OrderRow>): OrderRow => ({
   platform: "ym", business: "1", campaign: "1", order: "A", shop_order: "A", pos: 0, service: false,
@@ -234,7 +235,7 @@ describe("акт по стоимости услуг замещает общие 
 });
 
 describe("баллы берутся из отчёта по баллам, а не из скидки Маркета", () => {
-  const bon = (o: Partial<Record<string, unknown>> = {}) => ({ ym: "2026-07", business: "1", amount: 5000, type: "Начисление", ...o });
+  const bon = (o: Partial<Record<string, unknown>> = {}) => ({ ym: "2026-07", business: "1", amount: 5000, type: "Начисление", src: "Баллы за скидку Маркета", ...o });
   it("месячный итог приводится к отчёту, доли по позициям остаются пропорциональными", () => {
     const rows = [item({ price: 7500, accruals: 7500, subsidy: 3000 }), item({ pos: 1, sku: "S2", price: 2500, accruals: 2500, subsidy: 1000 })];
     const ms = buildSvod(rows, [] as any, {}, "2026-09-15", [], [bon()] as any);
@@ -243,8 +244,30 @@ describe("баллы берутся из отчёта по баллам, а не
     expect(Math.round(m.rows.reduce((a, r) => a + r.points_accrued, 0))).toBe(5000);
     expect(Math.round(m.rows.find((r) => r.sku === "S1")!.points_accrued)).toBe(3750);
   });
-  it("списание баллов на услуги в «начислено» не идёт - отрицательные строки отбрасываются", () => {
-    const ms = buildSvod([item({})], [] as any, {}, "2026-09-15", [], [bon({ amount: 5000 }), bon({ amount: -2000, type: "Списание" })] as any);
+  it("живой июль 2026: разбор сходится с «Премией» кабинета до рубля", () => {
+    // fixtures/ym/bonuses-2026-07.json - агрегат выгрузки кабинета (345 строк, 5 видов проводок).
+    // Начислено минус потрачено на услуги обязано дать остаток, выплаченный премией.
+    const f = JSON.parse(readFileSync("fixtures/ym/bonuses-2026-07.json", "utf-8"));
+    const rows: any[] = f.by_type_source.map((x: any) => ({ ym: f.ym, business: f.business, type: x.type, src: x.source, amount: x.sum }));
+    const accrued = rows.filter((r) => bonusKind(r) === "accrual").reduce((a, r) => a + r.amount, 0);
+    const spent = -rows.filter((r) => bonusKind(r) === "spend").reduce((a, r) => a + r.amount, 0);
+    expect(accrued).toBe(f.accrued);
+    expect(spent).toBe(f.spent_on_services);
+    expect(accrued - spent).toBe(f.balance_to_premium);
+  });
+  it("вид проводки решает источник, а не знак суммы", () => {
+    // По знаку «Возврат списания» (+29 556 ₽) попал бы в начисление, хотя это возврат
+    // ПОТРАЧЕННОГО, а «Возврат баллов за скидку Маркета» (-30 420 ₽) выпал бы, хотя начисление
+    // как раз уменьшает.
+    expect(bonusKind({ ym: "", business: "", src: "Баллы за скидку Маркета", amount: 100 })).toBe("accrual");
+    expect(bonusKind({ ym: "", business: "", src: "Возврат баллов за скидку Маркета", amount: -100 })).toBe("accrual");
+    expect(bonusKind({ ym: "", business: "", src: "Баллы за скидку Яндекс Плюс", amount: 100 })).toBe("accrual");
+    expect(bonusKind({ ym: "", business: "", src: "Скидка за участие в совместных акциях", amount: -100 })).toBe("spend");
+    expect(bonusKind({ ym: "", business: "", src: "Возврат скидки за участие в совместных акциях", amount: 100 })).toBe("spend");
+  });
+  it("списание баллов на услуги в «начислено» не идёт", () => {
+    const ms = buildSvod([item({})], [] as any, {}, "2026-09-15", [],
+      [bon({ amount: 5000, src: "Баллы за скидку Маркета" }), bon({ amount: -2000, type: "Списание", src: "Скидка за участие в совместных акциях" })] as any);
     expect(Math.round(ms[0]!.points_report)).toBe(5000);
   });
   it("результат с учётом баллов пересчитывается под кабинетный итог, а не остаётся старым", () => {

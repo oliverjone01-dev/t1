@@ -1,0 +1,66 @@
+name: B24 field-map (полная схема полей: сделка 49 + смарты -> field-map.json)
+
+# Разовая/по запросу выгрузка ПОЛНОЙ схемы полей для работы с РОПом:
+# все поля crm.deal (воронка 49) и crm.item.fields по каждому смарт-процессу,
+# с ID/названием/типом/справочником, % заполненности, числом уникальных значений
+# и пометкой полей-связей (parentId). Пишет economics/data/field-map.json в ветку данных.
+
+on:
+  workflow_dispatch:
+    inputs:
+      since:
+        description: "FIELDMAP_SINCE - окно для заполненности сделок (YYYY-MM-DD)"
+        required: false
+  schedule:
+    - cron: "0 6 * * 1" # еженедельно, пн 06:00 UTC - освежить схему полей
+
+permissions:
+  contents: write
+
+concurrency:
+  group: b24-field-map
+  cancel-in-progress: true
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+  B24_PORTAL: https://glassmemory.bitrix24.ru
+  DATA_BRANCH: economics-dashboard-v1
+  FIELDMAP_SINCE: ${{ github.event.inputs.since || '2026-01-01' }}
+
+jobs:
+  field-map:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: economics-dashboard-v1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Full field map -> field-map.json
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/field-map.ts
+          echo "Размер JSON: $(du -h economics/data/field-map.json | cut -f1)"
+      - name: Commit field-map.json
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/economics/data/field-map.json
+          if git diff --staged --quiet; then echo "без изменений"; exit 0; fi
+          git commit -m "data(b24): полная карта полей field-map.json $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git push origin "HEAD:$DATA_BRANCH"; then exit 0; fi
+            git fetch origin "$DATA_BRANCH"; git rebase "origin/$DATA_BRANCH" || git rebase --abort; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1

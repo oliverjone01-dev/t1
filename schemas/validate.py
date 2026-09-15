@@ -183,6 +183,19 @@ def _post_checks(instance, schema: dict) -> list[str]:
             calc = None
         if calc is not None and abs(calc - float(wt)) > WEIGHT_TOLERANCE:
             errs.append(f"$.weighted_total: {wt} не сходится с Σ(score × weight) = {calc:.2f} (допуск {WEIGHT_TOLERANCE})")
+    if "audit-report" in sid:
+        verdict = instance.get("verdict")
+        probes = [p for p in (instance.get("probes") or []) if isinstance(p, dict)]
+        real = [p for p in probes if str(p.get("result", "")).upper() != "N/A"]
+        fail_a = [p for p in real if str(p.get("result", "")).upper() == "FAIL" and re.match(r"^(A|B7)", str(p.get("id", "")).strip(), re.I)]
+        cls = instance.get("artifact_class")
+        override = str(instance.get("verdict_override_reason") or "").strip()
+        if verdict == "go" and fail_a:
+            errs.append(f"$.verdict: go при FAIL пробы класса A/B7 ({', '.join(str(p.get('id')) for p in fail_a)}) - поправка v3 требует не выше return")
+        if verdict == "go" and cls in ("gate", "dashboard", "agent", "mixed") and not real:
+            errs.append(f"$.verdict: go для класса {cls} без выполненных проб - поправка v3 требует не выше return и risk_awareness <= 5.0")
+        if verdict == "return" and isinstance(wt, (int, float)) and float(wt) >= 7.5 and not (fail_a or override):
+            errs.append("$.verdict: return при weighted_total >= 7.5 требует FAIL пробы A/B7 или verdict_override_reason")
     if "audit-report" in sid and isinstance(instance.get("checkpoints"), dict):
         cps = instance["checkpoints"]
         if len(cps) >= 25 and isinstance(scores, dict):

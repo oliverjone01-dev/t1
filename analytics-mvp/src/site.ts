@@ -387,6 +387,14 @@ export function renderMoney(model: unknown): string {
   <h3 style="margin:16px 0 6px">Услуги Маркета: чем оплачены</h3>
   <div class="card" style="padding:0"><div class="tscroll" id="svSvc"></div></div>
   <h3 style="margin:16px 0 6px">По товарам</h3>
+  <div class="card" style="padding:8px 12px;margin-bottom:8px"><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+    <label class="sub">Раскладка <select id="svLay" style="margin-left:6px">
+      <option value="pnl">P&amp;L по деньгам (как в вашем своде)</option>
+      <option value="pts">Деньги и баллы раздельно</option>
+    </select></label>
+    <span id="svRates"><label class="sub">АДМ, % <input id="svAdm" type="number" value="30" min="0" max="100" step="1" style="width:56px;margin-left:4px"></label>
+    <label class="sub" style="margin-left:10px">Налоги, % <input id="svTax" type="number" value="15" min="0" max="100" step="1" style="width:56px;margin-left:4px"></label></span>
+  </div></div>
   <div class="card" style="padding:0"><div class="tscroll" id="svTab"></div></div>
   <div class="note">Период - по <b>дате оформления заказа</b>, а не по дате доставки или проводки: остальные блоки страницы живут по другому базису, и числа там законно другие. В свод идут только заказы со статусом «Доставлен»; штуки - доставленные минус возвращённые.<br>
   <b>Выручка деньгами</b> = платёж покупателя - возвраты. Колонка «Платёж покуп.» уже включает доставку с покупателя, поэтому складывать их не надо: отдельная колонка доставки показана, чтобы было видно, сколько внутри платежа приходится на DBS. Цена продажи показана справочно и в результат не идёт: она включает скидку, которую платил Маркет, а не покупатель.<br>
@@ -482,6 +490,7 @@ function svDraw(){
     a.ud+=r.units_delivered;a.ur+=r.units_returned;a.un+=r.units_net;a.price+=r.price;a.ship+=r.ship_buyer;a.dmp+=r.disc_mp;a.dpl+=r.disc_plus;
     a.pay+=r.buyer_pay;a.ref+=r.refunds;a.rev+=r.revenue_money;a.pts+=r.points_accrued;a.sm+=r.svc_money;a.sp+=r.svc_points;a.cogs+=r.cogs;a.ck=a.ck&&r.cogs_known;});});
   var list=Object.keys(agg).map(function(k){return agg[k];}).sort(function(a,b){return b.rev-a.rev;});
+  if((document.getElementById('svLay')||{}).value!=='pts'){svPnl(ms,list,ohM);return;}
   var H=['Артикул','Название','Шт. дост.','Шт. возвр.','Шт. выкуп.','Цена продажи','Доставка с покуп.','Скидка Маркета','Баллы Плюса','Платёж покуп.','Возвраты','ВЫРУЧКА ДЕНЬГАМИ','Баллы начислены','Услуги деньгами','Услуги баллами','Услуги всего','Результат по деньгам','Результат с баллами','С\\С','Валовая прибыль','Маржа к деньгам+баллам'];
   var th='<table><thead><tr>'+H.map(function(h,i){return '<th'+(i>1?' class="r"':'')+'>'+h+'</th>';}).join('')+'</tr></thead><tbody>';
   list.forEach(function(a){var tot=a.sm+a.sp,rm=a.rev-a.sm,rp=a.rev+a.pts-tot,gp=a.ck?rp-a.cogs:null;
@@ -496,13 +505,75 @@ function svDraw(){
       '<td class="r num">'+(gp===null||(a.rev+a.pts)<=0?'-':Math.round(gp/(a.rev+a.pts)*1000)/10+'%')+'</td></tr>';});
   th+='</tbody></table>';document.getElementById('svTab').innerHTML=th;
 }
+// Раскладка «P&L по деньгам» - те же столбцы, что в своде Кати. Базис: выручка тут не включает
+// баллы Маркета, потому что и расходы взяты только оплаченные деньгами. Обе половины одной
+// природы, и это отличает раскладку от прежней ошибки, где выручку брали по полной цене продажи,
+// а расходы - уже за вычетом баллов.
+var PNL_COLS=[
+  ['Размещение',['Размещение (комиссия)','Штрафы (не вовремя)']],
+  ['Программа лояльности и отзывы',['Программа лояльности и отзывы']],
+  ['Продвижение',['Буст продаж']],
+  ['Доставка',['Доставка покупателю','Доставка (средняя миля)','Доставка невыкупов и возвратов']],
+  ['Приём платежа покупателя',['Приём платежа покупателя']],
+  ['Перевод платежа покупателя',['Перевод платежа покупателя']],
+  ['Обработка, хранение, прочее',['Обработка в СЦ/ПВЗ','Хранение','Прочие услуги']]
+];
+function svPnl(ms,list,ohM){
+  var adm=Number((document.getElementById('svAdm')||{}).value||30)/100;
+  var tax=Number((document.getElementById('svTax')||{}).value||15)/100;
+  // расход по столбцам собираем заново по SKU: агрегат list их не несёт
+  var svc={};ms.forEach(function(m){m.rows.forEach(function(r){var c=svc[r.sku]||(svc[r.sku]={});
+    PNL_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});c[p[0]]=(c[p[0]]||0)+v;});});});
+  var H=['Артикул','Название','Продажи','Доставка покупателя'].concat(PNL_COLS.map(function(p){return p[0];}))
+    .concat(['Баллы Маркета','DBS','Штуки','С\\С за шт','С\\С','Поступление','Валовая прибыль','Маржа','АДМ','Налоги','Чистая прибыль','Рентабельность']);
+  var th='<table><thead><tr>'+H.map(function(h,i){return '<th'+(i>1?' class="r"':'')+'>'+h+'</th>';}).join('')+'</tr></thead><tbody>';
+  var T={price:0,ship:0,dmp:0,un:0,cogs:0,net:0,gp:0,admV:0,taxV:0,np:0,cover:0,admC:0,taxC:0};
+  var TC={};PNL_COLS.forEach(function(p){TC[p[0]]=0;});
+  list.forEach(function(a){
+    var c=svc[a.sku]||{},fee=0;PNL_COLS.forEach(function(p){fee+=c[p[0]]||0;TC[p[0]]+=c[p[0]]||0;});
+    var net=a.price+a.ship-fee-a.dmp;
+    var gp=a.ck?net-a.cogs:null, admV=net*adm, taxV=net*tax, np=gp===null?null:gp-admV-taxV;
+    T.price+=a.price;T.ship+=a.ship;T.dmp+=a.dmp;T.un+=a.un;T.net+=net;T.admV+=admV;T.taxV+=taxV;
+    // Итог по валовой, АДМ, налогам и чистой считается ТОЛЬКО по строкам с известной С\\С:
+    // иначе числитель шёл бы по покрытым SKU, а АДМ и налоги - по всем, и чистая уезжала в минус.
+    if(a.ck){T.cogs+=a.cogs;T.gp+=gp;T.np+=np;T.cover+=net;T.admC+=admV;T.taxC+=taxV;}
+    th+='<tr><td class="num">'+a.sku+(a.ck?'':' <span class="pill b-Z" title="нет себестоимости">нет С\\С</span>')+'</td><td>'+(a.name||'').slice(0,42)+'</td>'+
+      '<td class="r num">'+rub(a.price)+'</td><td class="r num">'+rub(a.ship)+'</td>'+
+      PNL_COLS.map(function(p){return '<td class="r num down">'+rub(Math.round(c[p[0]]||0))+'</td>';}).join('')+
+      '<td class="r num down">'+rub(Math.round(a.dmp))+'</td><td class="r num sub">нет источника</td>'+
+      '<td class="r num">'+a.un+'</td><td class="r num sub">'+(a.ck&&a.un?rub(Math.round(a.cogs/a.un)):'-')+'</td>'+
+      '<td class="r num down">'+(a.ck?rub(Math.round(a.cogs)):'нет данных')+'</td>'+
+      '<td class="r num"><b>'+rub(Math.round(net))+'</b></td>'+
+      '<td class="r num" style="color:'+(gp===null?'':(gp>=0?'#34D399':'#FF5A5F'))+'">'+(gp===null?'не считается':rub(Math.round(gp)))+'</td>'+
+      '<td class="r num">'+(gp===null||net<=0?'-':Math.round(gp/net*1000)/10+'%')+'</td>'+
+      '<td class="r num down">'+rub(Math.round(admV))+'</td><td class="r num down">'+rub(Math.round(taxV))+'</td>'+
+      '<td class="r num" style="color:'+(np===null?'':(np>=0?'#34D399':'#FF5A5F'))+'">'+(np===null?'не считается':rub(Math.round(np)))+'</td>'+
+      '<td class="r num">'+(np===null||net<=0?'-':Math.round(np/net*1000)/10+'%')+'</td></tr>';});
+  th+='</tbody><tfoot><tr style="border-top:2px solid var(--line)"><td><b>ИТОГ</b></td><td class="sub">'+list.length+' SKU</td>'+
+    '<td class="r num"><b>'+rub(Math.round(T.price))+'</b></td><td class="r num"><b>'+rub(Math.round(T.ship))+'</b></td>'+
+    PNL_COLS.map(function(p){return '<td class="r num down"><b>'+rub(Math.round(TC[p[0]]))+'</b></td>';}).join('')+
+    '<td class="r num down"><b>'+rub(Math.round(T.dmp))+'</b></td><td class="r num sub">нет источника</td>'+
+    '<td class="r num"><b>'+T.un+'</b></td><td></td><td class="r num down"><b>'+rub(Math.round(T.cogs))+'</b></td>'+
+    '<td class="r num"><b>'+rub(Math.round(T.net))+'</b></td><td class="r num"><b>'+rub(Math.round(T.gp))+'</b></td>'+
+    '<td class="r num"><b>'+(T.cover>0?Math.round(T.gp/T.cover*1000)/10+'%':'-')+'</b></td>'+
+    '<td class="r num down"><b>'+rub(Math.round(T.admC))+'</b></td><td class="r num down"><b>'+rub(Math.round(T.taxC))+'</b></td>'+
+    '<td class="r num"><b>'+rub(Math.round(T.np))+'</b></td>'+
+    '<td class="r num"><b>'+(T.cover>0?Math.round(T.np/T.cover*1000)/10+'%':'-')+'</b></td></tr>'+
+    '<tr><td class="sub">Общие расходы кабинета</td><td class="sub">подписки, полки, баннеры</td><td colspan="'+(PNL_COLS.length+2)+'"></td>'+
+    '<td class="r num down" colspan="4">'+rub(Math.round(ohM))+' ₽</td><td class="sub" colspan="6">к товару не привязаны, в строки не разнесены</td></tr></tfoot></table>';
+  th+='<div class="note" style="padding:8px 12px"><b>Поступление</b> = продажи + доставка с покупателя - услуги Маркета - скидка Маркета покупателю. Это деньги, дошедшие до счёта. Баллы, которыми Маркет компенсирует свою же скидку и которыми оплачена часть услуг, в этой раскладке НЕ участвуют: расходы тут тоже взяты только оплаченные деньгами. Обе половины одной природы - именно это отличает раскладку от прежней ошибки, где выручку брали по полной цене продажи, а расходы уже за вычетом баллов. Полную экономику с баллами показывает вторая раскладка.<br>Итог по валовой прибыли, АДМ, налогам и чистой считается только по SKU с известной себестоимостью ('+(T.net>0?Math.round(T.cover/T.net*1000)/10:0)+'% поступления); остальные строки в него не идут, а не приравниваются к нулю. Колонка DBS - собственный расход на доставку, Маркет его в API не отдаёт.</div>';
+  document.getElementById('svTab').innerHTML=th;
+}
 function svInit(){
   if(!SV.length){var h=document.getElementById('svKpi');if(h)h.innerHTML='<div class="card"><b>Свод не собран.</b><div class="note" style="margin-top:8px">Нет data-ym/svod_orders.json - запустить ym:derive.</div></div>';return;}
   var bs={},msx={};SV.forEach(function(x){bs[x.business]=1;msx[x.ym]=1;});
   var bsel=document.getElementById('svB'),msel=document.getElementById('svM');
   bsel.innerHTML='<option value="all">все кабинеты</option>'+Object.keys(bs).sort().map(function(b){return '<option value="'+b+'">'+svName(b)+'</option>';}).join('');
   msel.innerHTML=Object.keys(msx).sort().reverse().map(function(m){return '<option value="'+m+'">'+m+'</option>';}).join('');
-  bsel.onchange=svDraw;msel.onchange=svDraw;svDraw();
+  bsel.onchange=svDraw;msel.onchange=svDraw;
+  ['svLay','svAdm','svTax'].forEach(function(id){var el=document.getElementById(id);if(el)el.onchange=svDraw;});
+  var lay=document.getElementById('svLay');if(lay)lay.addEventListener('change',function(){var rt=document.getElementById('svRates');if(rt)rt.style.display=lay.value==='pts'?'none':'';});
+  svDraw();
 }
 svInit();`}
 boot(drawStatic);`;

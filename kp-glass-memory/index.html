@@ -518,5 +518,18 @@ footer .wrap{ display:flex; justify-content:space-between; font-size:13.5px; }
   <span>Персональное предложение · Мария Петровна · 2026</span>
 </div></footer>
 
+<!-- Фолбэк: пока фото не добавлены в папку, слот держит размер и показывает
+     мягкий брендовый градиент вместо иконки битой картинки. -->
+<script>
+document.querySelectorAll('img').forEach(function (im) {
+  im.addEventListener('error', function () {
+    im.style.visibility = 'hidden';
+    if (im.parentNode && im.parentNode.style) {
+      im.parentNode.style.background = 'linear-gradient(135deg, #EAF1ED, #F6F7ED)';
+    }
+  });
+});
+</script>
+
 </body>
 </html>

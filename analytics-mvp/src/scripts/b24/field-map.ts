@@ -97,19 +97,30 @@ async function main() {
   const onCard = new Set<string>();
   const cardSection: Record<string, string> = {};
   const cardSectionOrder: string[] = [];
+  const cardTitle: Record<string, string> = {}; // название поля с карточки (что видит пользователь)
   try {
     for (const params of [{ scope: "C", extras: { dealCategoryId: CAT } }, { scope: "C" }] as any[]) {
       const cfgRaw: any = (await call("crm.deal.details.configuration.get", params)).result;
       const cfg: any[] = Array.isArray(cfgRaw) ? cfgRaw : (cfgRaw && cfgRaw.data) || [];
+      if (cfg[0]) console.error("CARD-EL-SAMPLE\t" + JSON.stringify((cfg[0].elements || [])[0] || cfg[0]).slice(0, 300));
       for (const sec of cfg) {
         const st = String(sec.title || sec.name || "").trim();
         if (st && !cardSectionOrder.includes(st)) cardSectionOrder.push(st);
-        for (const el of (sec.elements || [])) if (el && el.name) { onCard.add(el.name); if (!cardSection[el.name]) cardSection[el.name] = st; }
+        for (const el of (sec.elements || [])) if (el && el.name) { onCard.add(el.name); if (!cardSection[el.name]) cardSection[el.name] = st; const t = pickLabel(el.title); if (t) cardTitle[el.name] = t; }
       }
       if (onCard.size) break;
     }
-    console.error(`DEAL-CARD-FIELDS\t${onCard.size}\tразделов ${cardSectionOrder.length}`);
+    console.error(`DEAL-CARD-FIELDS\t${onCard.size}\tразделов ${cardSectionOrder.length}\tназваний с карточки ${Object.keys(cardTitle).length}`);
   } catch (e) { console.error("CARD-CFG-FAIL", String(e)); }
+  // Доп. источник названий: универсальный crm.item.fields(entityTypeId=2) отдаёт UF с title (в camelCase-кодах).
+  const itemLabels: Record<string, string> = {};
+  try {
+    const df2: Record<string, any> = (await call("crm.item.fields", { entityTypeId: 2 })).result?.fields || {};
+    const norm = (c: string) => c.replace(/^ufCrm\d*_/i, "UF_CRM_").replace(/^ufCrm\d*/i, "UF_CRM").toUpperCase();
+    let s0 = "";
+    for (const [k, v] of Object.entries(df2)) { const t = pickLabel((v as any).title); if (t) { itemLabels[norm(k)] = t; if (!s0 && /^ufCrm/i.test(k)) { s0 = k; console.error("ITEM2-SAMPLE\t" + k + " -> " + norm(k) + " = " + t); } } }
+    console.error(`DEAL-ITEM2-LABELS\t${Object.keys(itemLabels).length}`);
+  } catch (e) { console.error("ITEM2-FAIL", String(e)); }
   // заполненность считаем только по полям карточки (быстрее в разы), если карточка известна
   const selCodes = onCard.size ? dealCodes.filter((c) => onCard.has(c) || c === "ID") : dealCodes;
   const dealRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": DEAL_SINCE }, select: selCodes, order: { ID: "DESC" } });
@@ -117,7 +128,8 @@ async function main() {
   const dealStats = fillStats(dealRows, selCodes);
   const dealFields = dealCodes.map((c) => {
     const f = fieldRow(c, dfs[c]); const s = dealStats[c] || { filled: 0, distinct: 0 };
-    if (ufLabels[c]) f.title = ufLabels[c];
+    const lab = cardTitle[c] || itemLabels[c] || ufLabels[c];
+    if (lab) f.title = lab;
     const onCardVal = onCard.size ? onCard.has(c) : null;
     const measured = !!dealStats[c];
     return { ...f, onCard49: onCardVal, section: cardSection[c] || "", filled: s.filled, total: measured ? dealRows.length : 0, fillPct: measured && dealRows.length ? Math.round(1000 * s.filled / dealRows.length) / 10 : 0, distinct: s.distinct };

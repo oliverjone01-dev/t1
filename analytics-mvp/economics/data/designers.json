@@ -1,6 +1,7 @@
 {
-  "generated_at": "2026-09-15T15:01:27.145Z",
+  "generated_at": "2026-09-15T15:06:45.976Z",
   "portal": "https://glassmemory.bitrix24.ru",
+  "source": "смарт «Дизайнеры ( тех СП )» entityTypeId=1124; контакт=ufCrm35_1778137689, промокод=ufCrm35_1778137905",
   "directions_kept": {
     "2331": "genglass",
     "2335": "metal_gm",
@@ -8,27 +9,209 @@
     "2339": "gentero",
     "2341": "valonti"
   },
+  "designers_total": 20,
   "deals_scanned": 1846,
-  "deals_with_designer": 2,
-  "designers_unique": 2,
+  "deals_matched": 2,
   "designers": [
     {
-      "designer": "Контакт #63595",
+      "name": "Контакт #63595",
       "email": "",
       "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63595/",
-      "designerId": 63595,
+      "contactId": 63595,
+      "promo": "GG-DSN-031",
       "deals": 1,
       "brands": "genglass",
       "funnels": "GG RF Заказы"
     },
     {
-      "designer": "Наташаа Петровна Бубликоваа",
+      "name": "Наташаа Петровна Бубликоваа",
       "email": "selina_a_a@mail.ru",
       "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63599/",
-      "designerId": 63599,
+      "contactId": 63599,
+      "promo": "GG-DSN-002",
       "deals": 1,
       "brands": "genglass",
       "funnels": "GG RF Заказы"
+    },
+    {
+      "name": "Дизайнеры ( тех СП ) #1",
+      "email": "",
+      "link": "",
+      "contactId": null,
+      "promo": "",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63557",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63557/",
+      "contactId": 63557,
+      "promo": "",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63559",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63559/",
+      "contactId": 63559,
+      "promo": "",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63561",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63561/",
+      "contactId": 63561,
+      "promo": "GG-DSN-7",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63563",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63563/",
+      "contactId": 63563,
+      "promo": "GG-DSN-023",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63563",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63563/",
+      "contactId": 63563,
+      "promo": "GG-DSN-9",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63577",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63577/",
+      "contactId": 63577,
+      "promo": "GG-DSN-024",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63579",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63579/",
+      "contactId": 63579,
+      "promo": "GG-DSN-025",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63583",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63583/",
+      "contactId": 63583,
+      "promo": "GG-DSN-026",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63587",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63587/",
+      "contactId": 63587,
+      "promo": "GG-DSN-028",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63587",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63587/",
+      "contactId": 63587,
+      "promo": "GG-DSN-027",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63589",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63589/",
+      "contactId": 63589,
+      "promo": "GG-DSN-029",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63593",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63593/",
+      "contactId": 63593,
+      "promo": "GG-DSN-030",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63597",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63597/",
+      "contactId": 63597,
+      "promo": "GG-DSN-001",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Контакт #63679",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63679/",
+      "contactId": 63679,
+      "promo": "GG-DSN-003",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Наталья Анатольевна Костенко",
+      "email": "natalia_kostenko@icloud.com",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/64219/",
+      "contactId": 64219,
+      "promo": "GG-DSN-006",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "Юлия Александровна  Кукарина",
+      "email": "jullette_@mail.ru",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63735/",
+      "contactId": 63735,
+      "promo": "GG-DSN-004",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
+    },
+    {
+      "name": "тест тест тест",
+      "email": "yuliya.s@gen-group.ru",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63749/",
+      "contactId": 63749,
+      "promo": "GG-DSN-005",
+      "deals": 0,
+      "brands": "",
+      "funnels": ""
     }
   ],
   "rows": [
@@ -36,25 +219,25 @@
       "designer": "Контакт #63595",
       "email": "",
       "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63595/",
-      "designerId": 63595,
+      "promo": "GG-DSN-031",
+      "dealId": "95207",
+      "title": "Тест ",
       "funnel": "GG RF Заказы",
       "stage": "Сделка успешна",
-      "title": "Тест ",
-      "clientName": "",
       "direction": "genglass",
-      "dealId": "95207"
+      "via": "промокод"
     },
     {
       "designer": "Наташаа Петровна Бубликоваа",
       "email": "selina_a_a@mail.ru",
       "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63599/",
-      "designerId": 63599,
+      "promo": "GG-DSN-002",
+      "dealId": "95209",
+      "title": "Тест/тестов",
       "funnel": "GG RF Заказы",
       "stage": "Сделка успешна",
-      "title": "Тест/тестов",
-      "clientName": "",
       "direction": "genglass",
-      "dealId": "95209"
+      "via": "промокод"
     }
   ]
 }

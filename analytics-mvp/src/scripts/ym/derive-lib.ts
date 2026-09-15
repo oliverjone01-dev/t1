@@ -555,6 +555,9 @@ export interface SvodRow {
 export interface SvodMonth {
   business: string; ym: string; orders: number; rows: SvodRow[];
   overhead_money: number; overhead_points: number; overhead: Record<string, number>; overhead_pts: Record<string, number>;
+  overhead_src: "ledger" | "act";   // откуда взяты общие расходы: только реестр или акт по стоимости услуг
+  points_src: "orders" | "report"; // откуда взяты баллы: subsidies[] заказа или отчёт по баллам Маркета
+  points_report: number;           // начислено баллов по отчёту за этот месяц (для сверки с разнесённым)
   svc_months: string[];           // из каких месяцев реестра взяты услуги этих заказов
   orders_without_ledger: number;  // заказы периода, которых в реестре ещё нет
   svc_settled: boolean;           // услуги месяца добраны: есть хотя бы один ЗАКРЫТЫЙ акт позже месяца заказа
@@ -576,7 +579,13 @@ export interface SvodMonth {
 
 const svcZero = () => { const o: Record<string, number> = {}; for (const [n] of SVC_COLUMNS) o[n] = 0; o[SVC_OTHER] = 0; return o; };
 
-export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string): SvodMonth[] {
+export interface ActRow { ym: string; business: string; service: string; money: number; points: number; order?: string }
+export interface BonusRow { ym: string; business: string; type?: string; src?: string; order?: string; sku?: string; amount: number }
+// Начисление баллов - положительная строка отчёта. Списание баллов на оплату услуг и возврат
+// баллов приходят отрицательными и в «начислено» не идут: это другая сторона той же монеты, и
+// услуги, закрытые баллами, свод уже считает отдельной колонкой.
+export const isBonusAccrual = (r: BonusRow) => (Number(r.amount) || 0) > 0;
+export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string, act: ActRow[] = [], bonus: BonusRow[] = []): SvodMonth[] {
   // 1. отбор: заказы со статусом DELIVERED, месяц - по дате оформления
   const keyOf = (r: OrderRow) => `${r.business}|${String(r.created || "").slice(0, 7)}`;
   const delivered = new Map<string, string>();  // order -> ключ месяца
@@ -669,7 +678,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   for (const r of rows) {
     const k = delivered.get(r.order); if (!k) continue;
     if (!months.has(k)) months.set(k, { business: r.business, ym: k.split("|")[1]!, orders: 0, rows: [],
-      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 });
+      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 });
     const os = orderSet.get(k) || new Set<string>(); os.add(r.order); orderSet.set(k, os);
     if (r.service) {
       // строка доставки: разносим по позициям заказа пропорционально начислениям
@@ -758,7 +767,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     let m = months.get(k);
     if (!m) {
       m = { business: o.business, ym: o.d.slice(0, 7), orders: 0, rows: [], overhead_money: 0, overhead_points: 0,
-        overhead: {}, overhead_pts: {}, svc_months: [], orders_without_ledger: 0, svc_settled: false,
+        overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false,
         ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
         orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
@@ -768,6 +777,49 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     if (o.points) m.overhead_points += o.amount; else m.overhead_money += o.amount;
   }
 
+  // Баллы из отчёта по баллам Маркета. Это источник кабинета, а subsidies[] заказа - производная
+  // от него, которую нам приходилось разносить самим (см. открытый вопрос про базу: три варианта
+  // давали +2,7% / -2,3% / +0,34% к кабинету). Где отчёт есть, месячный итог берётся из него, а
+  // разнесение по позициям остаётся пропорциональным стоимости: сумма по месяцу при этом ровно
+  // кабинетная, а не наша.
+  const bonusBy = new Map<string, number>();
+  for (const r of bonus) {
+    if (!isBonusAccrual(r)) continue;
+    const k = `${r.business}|${r.ym}`;
+    bonusBy.set(k, (bonusBy.get(k) || 0) + (Number(r.amount) || 0));
+  }
+
+  // Общие расходы из акта по стоимости услуг. Реестр платежей несёт только оплаченные ДЕНЬГАМИ
+  // (живой июль 2026: 6 строк на 36 875 ₽, ни одной оплаченной баллами), а полки, подписки,
+  // баннеры и буст за показы в акте дают 81 495 ₽, из них 15 051 ₽ закрыто баллами. Где акт есть,
+  // он замещает реестровые общие расходы целиком: смешивать два источника одной статьи - двойной
+  // счёт. Где акта нет, остаётся реестр, и месяц честно помечен overhead_src.
+  const actBy = new Map<string, ActRow[]>();
+  for (const a of act) {
+    if (String(a.order || "").trim()) continue;   // услуга привязана к заказу - её несёт реестр
+    const k = `${a.business}|${a.ym}`;
+    const arr = actBy.get(k) || []; arr.push(a); actBy.set(k, arr);
+  }
+  for (const [k, list] of actBy) {
+    let m = months.get(k);
+    if (!m) {
+      const [business, ym] = k.split("|") as [string, string];
+      m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
+        overhead_src: "ledger", points_src: "orders", points_report: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0,
+        ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
+        orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+      months.set(k, m);
+    }
+    m.overhead_src = "act"; m.overhead_money = 0; m.overhead_points = 0;
+    const om: Record<string, number> = {}, op: Record<string, number> = {};
+    for (const a of list) {
+      const col = svcColumn(a.service);
+      if (a.money) { om[col] = r2((om[col] || 0) + a.money); m.overhead_money = r2(m.overhead_money + a.money); }
+      if (a.points) { op[col] = r2((op[col] || 0) + a.points); m.overhead_points = r2(m.overhead_points + a.points); }
+    }
+    overheadMoney.set(k, om); overheadPts.set(k, op);
+  }
+
   // Сборы акта по заказам вне свода. Пара (кабинет, месяц акта) может вообще не иметь
   // доставленных заказов - тогда месяц заводится ради самой суммы, иначе 301 937 ₽ по снимку
   // оставались бы невидимыми.
@@ -775,7 +827,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     let m = months.get(k);
     if (!m) {
       const [business, ym] = k.split("|") as [string, string];
-      m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
+      m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0,
         svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0,
         ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
@@ -821,6 +873,24 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       const f = inflightOrders.get(k) || new Set<string>(); f.add(r.order); inflightOrders.set(k, f);
     }
   }
+  // Где отчёт по баллам есть, месячный итог приводим к нему: доли по позициям остаются нашими,
+  // а сумма становится кабинетной. Это снимает вопрос выбора базы разнесения с итога - он
+  // остаётся только внутри месяца, между артикулами.
+  for (const [k, m] of months) {
+    const want = bonusBy.get(k);
+    if (want == null) continue;
+    m.points_src = "report"; m.points_report = r2(want);
+    const have = m.rows.reduce((a, r) => a + r.points_accrued, 0);
+    if (have > 0) { const f = want / have; for (const r of m.rows) r.points_accrued = r2(r.points_accrued * f); }
+    else if (m.rows.length) {
+      const base = m.rows.reduce((a, r) => a + r.revenue_money, 0);
+      for (const r of m.rows) r.points_accrued = r2(base > 0 ? want * (r.revenue_money / base) : want / m.rows.length);
+    }
+    // Результат с учётом баллов держится на points_accrued, поэтому пересчитываем его здесь же:
+    // иначе в строке остался бы итог, посчитанный по старым, не кабинетным баллам.
+    for (const r of m.rows) r.result_points = r2(r.revenue_money + r.points_accrued - r.svc_total);
+  }
+
   for (const [k, m] of months) {
     m.orders = (orderSet.get(k) || new Set()).size;
     m.orders_period = (periodOrders.get(k) || new Set()).size;

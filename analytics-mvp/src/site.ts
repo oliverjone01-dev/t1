@@ -435,10 +435,10 @@ function svSum(ms,f){var t=0;ms.forEach(function(m){m.rows.forEach(function(r){t
 function svCard(lab,val,sub,col){return '<div class="card kpi"><div class="lab">'+lab+'</div><div class="val num"'+(col?' style="color:'+col+'"':'')+'>'+mln(val)+' ₽</div><div class="sub">'+sub+'</div></div>';}
 function svDraw(){
   var ms=svPick();if(!ms.length){document.getElementById('svKpi').innerHTML='<div class="card">За этот месяц доставленных заказов в снимке нет.</div>';document.getElementById('svTab').innerHTML='';document.getElementById('svSvc').innerHTML='';document.getElementById('svNote').innerHTML='';document.getElementById('svCov').textContent='';return;}
-  var orders=0,noLed=0,acts={},cov=0,covW=0,unset=0,outSum=0,outOrd=0,ptsDel=0,outSt=0,outMi=0,outMiN=0,periodOrd=0,inflight=0;
+  var orders=0,noLed=0,acts={},cov=0,covW=0,unset=0,outSum=0,outOrd=0,ptsDel=0,outSt=0,outMi=0,outMiN=0,periodOrd=0,inflight=0,ohAct=0,ohLed=0,ptsRep=0,ptsOrd=0;
   ms.forEach(function(m){orders+=m.orders;noLed+=m.orders_without_ledger;if(!m.svc_settled)unset++;periodOrd+=m.orders_period||0;
     outSum+=m.ledger_outside||0;outOrd+=m.ledger_outside_orders||0;ptsDel+=m.points_on_delivery||0;
-    outSt+=m.ledger_status||0;outMi+=m.ledger_missing||0;outMiN+=m.ledger_missing_orders||0;inflight+=m.orders_inflight||0;(m.svc_months||[]).forEach(function(a){acts[a]=1;});
+    outSt+=m.ledger_status||0;outMi+=m.ledger_missing||0;outMiN+=m.ledger_missing_orders||0;inflight+=m.orders_inflight||0;if(m.overhead_src==='act')ohAct++;else ohLed++;if(m.points_src==='report')ptsRep++;else ptsOrd++;(m.svc_months||[]).forEach(function(a){acts[a]=1;});
     var rev=0,c=0;m.rows.forEach(function(r){rev+=r.revenue_money;if(r.cogs_known)c+=r.revenue_money;});cov+=c;covW+=rev;});
   var rev=svSum(ms,function(r){return r.revenue_money;}),pts=svSum(ms,function(r){return r.points_accrued;});
   var sm=svSum(ms,function(r){return r.svc_money;}),sp=svSum(ms,function(r){return r.svc_points;});
@@ -462,13 +462,14 @@ function svDraw(){
     svCard('Результат с учётом баллов',resP,'экономика заказов целиком','#34D399'),
     svCard('Себестоимость',-cogs,'покрытие '+(covW>0?Math.round(cov/covW*1000)/10:0)+'% выручки','#FF5A5F'),
     svCard('Валовая прибыль',gross,'только SKU с известной С\\С ('+((rev+pts)>0?Math.round(revC/(rev+pts)*1000)/10:0)+'% базы) · маржа '+(revC>0?Math.round(gross/revC*1000)/10:0)+'%',gross>=0?'#34D399':'#FF5A5F')].join('');
-  var partial=inflight>0;
+  var partial=inflight>0;var ohSrc=(ohAct&&!ohLed)?'act':'ledger';
   document.getElementById('svCov').innerHTML='заказов: <b>'+orders+(periodOrd>orders?' из '+periodOrd+' оформленных':'')+'</b> · услуги из актов: <b>'+Object.keys(acts).sort().join(', ')+'</b>'+(noLed?' · <span class="pill b-Z">'+noLed+' заказов ещё нет в реестре кабинета - их услуги не учтены</span>':'')+(unset?' <span class="pill b-Z">месяц не добран: следующий акт ещё не закрыт</span>':'')+(partial?' <span class="pill b-Z">период не завершён: '+inflight+' заказов ещё в пути</span>':'');
   var gaps=[];
   if(partial)gaps.push('период не завершён: '+inflight+' заказов месяца ещё в пути, выручка и услуги по ним добавятся позже - сравнивать этот месяц с закрытыми нельзя');
   if(noLed)gaps.push(noLed+' заказов периода ещё не попали в отчёт по платежам: их услуги в своде равны нулю, результат по ним завышен');
   if(unset)gaps.push('закрытого акта за следующий месяц ещё нет - часть услуг по этим заказам (доставка, средняя миля, штрафы) начислится позже: услуги неполные, результат завышен');
-  gaps.push('общие расходы кабинета показаны неполно: в отчёте по платежам есть только оплаченные деньгами, а полки, подписки и буст за показы (часть из них оплачена баллами) живут в акте по стоимости услуг, который пока не подключён');
+  if(ptsOrd)gaps.push('начисленные баллы взяты из заказа, а не из отчёта по баллам Маркета: это производная величина, которую мы разносим своей базой. По июлю 2026 расхождение с кабинетом составляло +2,7%. Отчёт по баллам подключён, но за этот месяц ещё не собран');
+  if(ohSrc!=='act')gaps.push('общие расходы кабинета показаны неполно: в отчёте по платежам есть только оплаченные деньгами, а полки, подписки и буст за показы (часть из них оплачена баллами) берутся из акта по стоимости услуг - за этот месяц акт ещё не собран');
   if(outSt)gaps.push(rub(Math.round(outSt))+' ₽ сборов акта относятся к заказам периода с другим статусом (возвраты, отмены в доставке) - так работает базис «только доставленные»');
   if(outMi)gaps.push(rub(Math.round(outMi))+' ₽ сборов акта относятся к '+outMiN+' заказам, которых нет в выгрузке заказов вообще - это пробел сбора, а не базиса');
   if(ptsDel)gaps.push(rub(Math.round(ptsDel))+' ₽ начисленных баллов осели на строке доставки и в свод не попали');
@@ -526,7 +527,7 @@ function svPnl(ms,list,ohM){
   var svc={};ms.forEach(function(m){m.rows.forEach(function(r){var c=svc[r.sku]||(svc[r.sku]={});
     PNL_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});c[p[0]]=(c[p[0]]||0)+v;});});});
   var H=['Артикул','Название','Продажи','Доставка покупателя'].concat(PNL_COLS.map(function(p){return p[0];}))
-    .concat(['Баллы Маркета','DBS','Штуки','С\\С за шт','С\\С','Поступление','Валовая прибыль','Маржа','АДМ','Налоги','Чистая прибыль','Рентабельность']);
+    .concat(['Скидка Маркета покупателю','DBS','Штуки','С\\С за шт','С\\С','Поступление','Валовая прибыль','Маржа','АДМ','Налоги','Чистая прибыль','Рентабельность']);
   var th='<table><thead><tr>'+H.map(function(h,i){return '<th'+(i>1?' class="r"':'')+'>'+h+'</th>';}).join('')+'</tr></thead><tbody>';
   var T={price:0,ship:0,dmp:0,un:0,cogs:0,net:0,gp:0,admV:0,taxV:0,np:0,cover:0,admC:0,taxC:0};
   var TC={};PNL_COLS.forEach(function(p){TC[p[0]]=0;});
@@ -562,7 +563,7 @@ function svPnl(ms,list,ohM){
     '<td class="r num"><b>'+(T.cover>0?Math.round(T.np/T.cover*1000)/10+'%':'-')+'</b></td></tr>'+
     '<tr><td class="sub">Общие расходы кабинета</td><td class="sub">подписки, полки, баннеры</td><td colspan="'+(PNL_COLS.length+2)+'"></td>'+
     '<td class="r num down" colspan="4">'+rub(Math.round(ohM))+' ₽</td><td class="sub" colspan="6">к товару не привязаны, в строки не разнесены</td></tr></tfoot></table>';
-  th+='<div class="note" style="padding:8px 12px"><b>Поступление</b> = продажи + доставка с покупателя - услуги Маркета - скидка Маркета покупателю. Это деньги, дошедшие до счёта. Баллы, которыми Маркет компенсирует свою же скидку и которыми оплачена часть услуг, в этой раскладке НЕ участвуют: расходы тут тоже взяты только оплаченные деньгами. Обе половины одной природы - именно это отличает раскладку от прежней ошибки, где выручку брали по полной цене продажи, а расходы уже за вычетом баллов. Полную экономику с баллами показывает вторая раскладка.<br>Итог по валовой прибыли, АДМ, налогам и чистой считается только по SKU с известной себестоимостью ('+(T.net>0?Math.round(T.cover/T.net*1000)/10:0)+'% поступления); остальные строки в него не идут, а не приравниваются к нулю. Колонка DBS - собственный расход на доставку, Маркет его в API не отдаёт.</div>';
+  th+='<div class="note" style="padding:8px 12px"><b>Столбец «Скидка Маркета покупателю»</b> - это НЕ баллы. Маркет опускает цену за свой счёт, покупатель столько не платил, поэтому скидка вычитается из продаж. Баллы, которыми Маркет эту скидку потом компенсирует, - отдельная величина и живут в отчёте по баллам Маркета; в этой раскладке их нет с обеих сторон. В присланном своде эта колонка подписана «Баллы Маркета», и подпись вводит в заблуждение: по одним артикулам там стоит скидка, по другим величина в пять раз меньше.<br><b>Поступление</b> = продажи + доставка с покупателя - услуги Маркета - скидка Маркета покупателю. Это деньги, дошедшие до счёта. Баллы, которыми Маркет компенсирует свою же скидку и которыми оплачена часть услуг, в этой раскладке НЕ участвуют: расходы тут тоже взяты только оплаченные деньгами. Обе половины одной природы - именно это отличает раскладку от прежней ошибки, где выручку брали по полной цене продажи, а расходы уже за вычетом баллов. Полную экономику с баллами показывает вторая раскладка.<br>Итог по валовой прибыли, АДМ, налогам и чистой считается только по SKU с известной себестоимостью ('+(T.net>0?Math.round(T.cover/T.net*1000)/10:0)+'% поступления); остальные строки в него не идут, а не приравниваются к нулю. Колонка DBS - собственный расход на доставку, Маркет его в API не отдаёт.</div>';
   document.getElementById('svTab').innerHTML=th;
 }
 function svInit(){

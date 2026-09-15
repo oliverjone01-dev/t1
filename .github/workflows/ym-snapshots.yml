@@ -95,7 +95,7 @@ jobs:
           # пустым - и гейт молча пропускал любую потерю по всем четырём файлам.
           # Промах больше не глушим: нет слепка там, где файл есть - это отказ защиты, а не мелочь.
           rm -rf /tmp/ym-base && mkdir -p /tmp/ym-base
-          for f in netting.ndjson orders.ndjson realization_monthly.ndjson sku_views.ndjson; do
+          for f in netting.ndjson orders.ndjson realization_monthly.ndjson sku_views.ndjson services_monthly.ndjson bonuses_monthly.ndjson; do
             if [ -f "data-ym/$f" ]; then cp "data-ym/$f" "/tmp/ym-base/$f"; echo "слепок $f: $(wc -l < "/tmp/ym-base/$f") строк"; else echo "слепок $f: файла ещё нет (первый прогон)"; fi
           done
 
@@ -140,6 +140,12 @@ jobs:
       - name: Отчёт по взаиморасчётам (выплаты ЛК)
         run: npm run ym:netting || echo "::warning::взаиморасчёты не обновлены"
 
+      - name: Акт по стоимости услуг (общие расходы кабинета)
+        run: npm run ym:services || echo "::warning::акт услуг не обновлён"
+
+      - name: Отчёт по баллам Маркета
+        run: npm run ym:bonuses || echo "::warning::баллы не обновлены"
+
       - name: Показы/корзина per-SKU по дням (shows-sales)
         env:
           YM_SHOWS_DAYS: ${{ github.event.inputs.shows_days || '7' }}
@@ -182,6 +188,8 @@ jobs:
           check orders.ndjson             --month-key=created --sum=accruals --by=business
           check realization_monthly.ndjson --month-key=ym     --sum=amount
           check sku_views.ndjson          --month-key=date    --sum=views    --by=business
+          check services_monthly.ndjson   --month-key=ym      --sum=money    --by=business
+          check bonuses_monthly.ndjson    --month-key=ym      --sum=amount   --by=business
 
       - name: Джойны таксономии и СС (ключ - артикул)
         run: npm run ym:join

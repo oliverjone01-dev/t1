@@ -207,3 +207,56 @@ describe("результат не зависит от дня прогона", ()
     expect(buildSvod(rows, alien, {}, "2026-09-15").find((m) => m.business === "1")!.svc_settled).toBe(false);
   });
 });
+
+describe("акт по стоимости услуг замещает общие расходы реестра", () => {
+  const actRow = (o: Partial<Record<string, unknown>> = {}) => ({ ym: "2026-07", business: "1", service: "Полки", money: 1657, points: 15051, ...o });
+  it("где акт есть, реестровые общие расходы не суммируются с ним - иначе двойной счёт", () => {
+    // Реестр платежей несёт только оплаченные деньгами: живой июль 2026 - 6 строк на 36 875 ₽,
+    // ни одной оплаченной баллами. Акт за те же статьи даёт 81 495 ₽, из них 15 051 ₽ баллами.
+    const ms = buildSvod([item({})], [net({ order: "", service: "Полки", amount: -1657 })] as any, {}, "2026-09-15", [actRow()] as any);
+    const m = ms.find((x) => x.ym === "2026-07")!;
+    expect(m.overhead_src).toBe("act");
+    expect(m.overhead_money).toBe(1657);
+    expect(m.overhead_points).toBe(15051);
+  });
+  it("где акта нет, остаётся реестр, и месяц это честно помечает", () => {
+    const m = one([item({})], [net({ order: "", service: "Подписка", amount: -16990 })]);
+    expect(m.overhead_src).toBe("ledger");
+    expect(m.overhead_money).toBe(16990);
+    expect(m.overhead_points).toBe(0);
+  });
+  it("услуга акта, привязанная к заказу, в общие расходы не идёт - её несёт реестр", () => {
+    const ms = buildSvod([item({})], [] as any, {}, "2026-09-15", [actRow({ order: "A", service: "Буст продаж" })] as any);
+    const m = ms.find((x) => x.ym === "2026-07")!;
+    expect(m.overhead_src).toBe("ledger");
+    expect(m.overhead_money).toBe(0);
+  });
+});
+
+describe("баллы берутся из отчёта по баллам, а не из скидки Маркета", () => {
+  const bon = (o: Partial<Record<string, unknown>> = {}) => ({ ym: "2026-07", business: "1", amount: 5000, type: "Начисление", ...o });
+  it("месячный итог приводится к отчёту, доли по позициям остаются пропорциональными", () => {
+    const rows = [item({ price: 7500, accruals: 7500, subsidy: 3000 }), item({ pos: 1, sku: "S2", price: 2500, accruals: 2500, subsidy: 1000 })];
+    const ms = buildSvod(rows, [] as any, {}, "2026-09-15", [], [bon()] as any);
+    const m = ms[0]!;
+    expect(m.points_src).toBe("report");
+    expect(Math.round(m.rows.reduce((a, r) => a + r.points_accrued, 0))).toBe(5000);
+    expect(Math.round(m.rows.find((r) => r.sku === "S1")!.points_accrued)).toBe(3750);
+  });
+  it("списание баллов на услуги в «начислено» не идёт - отрицательные строки отбрасываются", () => {
+    const ms = buildSvod([item({})], [] as any, {}, "2026-09-15", [], [bon({ amount: 5000 }), bon({ amount: -2000, type: "Списание" })] as any);
+    expect(Math.round(ms[0]!.points_report)).toBe(5000);
+  });
+  it("результат с учётом баллов пересчитывается под кабинетный итог, а не остаётся старым", () => {
+    const ms = buildSvod([item({})], [] as any, {}, "2026-09-15", [], [bon({ amount: 1000 })] as any);
+    const r = ms[0]!.rows[0]!;
+    expect(r.points_accrued).toBe(1000);
+    expect(r.result_points).toBe(r2x(r.revenue_money + 1000 - r.svc_total));
+  });
+  it("без отчёта остаётся subsidies[] заказа, и месяц это честно помечает", () => {
+    const m = one([item({})], []);
+    expect(m.points_src).toBe("orders");
+    expect(m.points_report).toBe(0);
+  });
+});
+const r2x = (n: number) => Math.round(n * 100) / 100;

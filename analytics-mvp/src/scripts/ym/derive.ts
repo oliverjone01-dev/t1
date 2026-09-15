@@ -61,7 +61,13 @@ function main() {
   // строкам заказов (до подмены сборов реестром): свод берёт услуги из реестра сам, по своим
   // правилам разнесения, и второй источник тех же услуг дал бы двойной счёт.
   const cogsMap = readJson<Record<string, number>>(yp("sku_cogs.json"), {});
-  const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to);
+  const actRows = readNdjson<any>(yp("services_monthly.ndjson"));
+  const bonusRows = readNdjson<any>(yp("bonuses_monthly.ndjson"));
+  const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to, actRows, bonusRows);
+  if (bonusRows.length) console.log(`ym-derive: отчёт по баллам - ${bonusRows.length} строк, начисленные баллы берутся из него`);
+  else console.warn("::warning::отчёт по баллам Маркета не собран (bonuses_monthly.ndjson пуст): начисленные баллы берутся из subsidies[] заказа и разносятся нашей базой - это не источник кабинета, расхождение по июлю 2026 составляло +2,7%");
+  if (actRows.length) console.log(`ym-derive: акт по стоимости услуг - ${actRows.length} строк, общие расходы берутся из него`);
+  else console.warn("::warning::акт по стоимости услуг не собран (services_monthly.ndjson пуст): общие расходы кабинета показаны только по реестру платежей и занижены - полки, подписки и буст за показы туда не попадают");
   // Проверка правила «Списание = баллы» считается на сборке: держать её числом в тексте
   // страницы значит показывать вчерашнюю цифру после сегодняшнего обновления реестра.
   const SPLIT_B = "74986385", SPLIT_M = "2026-07";

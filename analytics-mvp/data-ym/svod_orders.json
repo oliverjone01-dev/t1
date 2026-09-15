@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-15T13:45:58.557Z",
+  "generated_at": "2026-09-15T14:45:29.825Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "split_check": {
     "business": "74986385",
@@ -129,6 +129,9 @@
       "overhead_points": 0,
       "overhead": {},
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-09"
       ],
@@ -1396,6 +1399,9 @@
       "overhead_points": 0,
       "overhead": {},
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-09"
       ],
@@ -3367,6 +3373,9 @@
         "Прочие услуги": 40207.5
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-08",
         "2026-09"
@@ -6689,6 +6698,9 @@
         "Прочие услуги": 47829.729999999996
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-08",
         "2026-09"
@@ -8985,6 +8997,9 @@
         "Прочие услуги": 17285.929999999997
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-07",
         "2026-08"
@@ -13279,6 +13294,9 @@
         "Прочие услуги": 19589.24
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-07",
         "2026-08"
@@ -14171,6 +14189,9 @@
         "Прочие услуги": 1050
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-06",
         "2026-07"
@@ -18141,6 +18162,9 @@
         "Прочие услуги": 18205
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-06",
         "2026-07"
@@ -18385,6 +18409,9 @@
         "Прочие услуги": 7940.09
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-05",
         "2026-06"
@@ -23327,6 +23354,9 @@
         "Прочие услуги": 18481.2
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-05",
         "2026-06",
@@ -23897,6 +23927,9 @@
         "Прочие услуги": 7326.05
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-04",
         "2026-05"
@@ -29001,6 +29034,9 @@
         "Прочие услуги": 786.3
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-04",
         "2026-05",
@@ -29030,6 +29066,9 @@
         "Прочие услуги": 2660.56
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,
@@ -33429,6 +33468,9 @@
         "Прочие услуги": 1894.4
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-03",
         "2026-04"
@@ -33456,6 +33498,9 @@
         "Прочие услуги": 8731.67
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,
@@ -36829,6 +36874,9 @@
         "Прочие услуги": 805
       },
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [
         "2026-02",
         "2026-03"
@@ -36854,6 +36902,9 @@
       "overhead_points": 0,
       "overhead": {},
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,
@@ -36876,6 +36927,9 @@
       "overhead_points": 0,
       "overhead": {},
       "overhead_pts": {},
+      "overhead_src": "ledger",
+      "points_src": "orders",
+      "points_report": 0,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,

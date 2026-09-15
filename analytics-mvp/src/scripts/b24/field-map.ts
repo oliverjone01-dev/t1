@@ -51,6 +51,13 @@ function fillStats(rows: any[], codes: string[]) {
   return out;
 }
 
+// человекочитаемая метка UF-поля (может быть строкой или объектом {ru:..,en:..})
+function pickLabel(v: any): string {
+  if (!v) return "";
+  if (typeof v === "string") return v.trim();
+  if (typeof v === "object") { const o: any = v; return String(o.ru || o.en || Object.values(o)[0] || "").trim(); }
+  return "";
+}
 // нормализуем описание поля из crm.item.fields / crm.deal.fields
 function fieldRow(code: string, def: any) {
   const type = def.type || def.userTypeId || "";
@@ -78,11 +85,19 @@ async function main() {
   // 2) СДЕЛКА: схема + заполненность
   const dfs: Record<string, any> = (await call("crm.deal.fields", {})).result || {};
   const dealCodes = Object.keys(dfs);
+  // человекочитаемые названия UF-полей сделки (crm.deal.fields для UF отдаёт title=код)
+  const ufLabels: Record<string, string> = {};
+  try {
+    const ufs: any[] = (await call("crm.deal.userfield.list", {})).result || [];
+    for (const u of ufs) { const lab = pickLabel(u.EDIT_FORM_LABEL) || pickLabel(u.LIST_COLUMN_LABEL) || pickLabel(u.LIST_FILTER_LABEL); if (u.FIELD_NAME && lab) ufLabels[u.FIELD_NAME] = lab; }
+    console.error(`DEAL-UF-LABELS\t${Object.keys(ufLabels).length}`);
+  } catch (e) { console.error("USERFIELD-FAIL", String(e)); }
   const dealRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": DEAL_SINCE }, select: dealCodes, order: { ID: "DESC" } });
   console.error(`DEAL\tполей ${dealCodes.length}\tсделок ${dealRows.length}`);
   const dealStats = fillStats(dealRows, dealCodes);
   const dealFields = dealCodes.map((c) => {
     const f = fieldRow(c, dfs[c]); const s = dealStats[c];
+    if (ufLabels[c]) f.title = ufLabels[c];
     return { ...f, filled: s.filled, total: dealRows.length, fillPct: dealRows.length ? Math.round(1000 * s.filled / dealRows.length) / 10 : 0, distinct: s.distinct };
   });
 

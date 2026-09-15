@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-09-15T15:01:27.145Z",
+  "portal": "https://glassmemory.bitrix24.ru",
+  "directions_kept": {
+    "2331": "genglass",
+    "2335": "metal_gm",
+    "2337": "gen-group",
+    "2339": "gentero",
+    "2341": "valonti"
+  },
+  "deals_scanned": 1846,
+  "deals_with_designer": 2,
+  "designers_unique": 2,
+  "designers": [
+    {
+      "designer": "Контакт #63595",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63595/",
+      "designerId": 63595,
+      "deals": 1,
+      "brands": "genglass",
+      "funnels": "GG RF Заказы"
+    },
+    {
+      "designer": "Наташаа Петровна Бубликоваа",
+      "email": "selina_a_a@mail.ru",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63599/",
+      "designerId": 63599,
+      "deals": 1,
+      "brands": "genglass",
+      "funnels": "GG RF Заказы"
+    }
+  ],
+  "rows": [
+    {
+      "designer": "Контакт #63595",
+      "email": "",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63595/",
+      "designerId": 63595,
+      "funnel": "GG RF Заказы",
+      "stage": "Сделка успешна",
+      "title": "Тест ",
+      "clientName": "",
+      "direction": "genglass",
+      "dealId": "95207"
+    },
+    {
+      "designer": "Наташаа Петровна Бубликоваа",
+      "email": "selina_a_a@mail.ru",
+      "link": "https://glassmemory.bitrix24.ru/crm/contact/details/63599/",
+      "designerId": 63599,
+      "funnel": "GG RF Заказы",
+      "stage": "Сделка успешна",
+      "title": "Тест/тестов",
+      "clientName": "",
+      "direction": "genglass",
+      "dealId": "95209"
+    }
+  ]
+}

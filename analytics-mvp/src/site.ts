@@ -427,10 +427,10 @@ function svSum(ms,f){var t=0;ms.forEach(function(m){m.rows.forEach(function(r){t
 function svCard(lab,val,sub,col){return '<div class="card kpi"><div class="lab">'+lab+'</div><div class="val num"'+(col?' style="color:'+col+'"':'')+'>'+mln(val)+' ₽</div><div class="sub">'+sub+'</div></div>';}
 function svDraw(){
   var ms=svPick();if(!ms.length){document.getElementById('svKpi').innerHTML='<div class="card">За этот месяц доставленных заказов в снимке нет.</div>';document.getElementById('svTab').innerHTML='';document.getElementById('svSvc').innerHTML='';document.getElementById('svNote').innerHTML='';document.getElementById('svCov').textContent='';return;}
-  var orders=0,noLed=0,acts={},cov=0,covW=0,unset=0,outSum=0,outOrd=0,ptsDel=0,outSt=0,outMi=0,outMiN=0,periodOrd=0;
+  var orders=0,noLed=0,acts={},cov=0,covW=0,unset=0,outSum=0,outOrd=0,ptsDel=0,outSt=0,outMi=0,outMiN=0,periodOrd=0,inflight=0;
   ms.forEach(function(m){orders+=m.orders;noLed+=m.orders_without_ledger;if(!m.svc_settled)unset++;periodOrd+=m.orders_period||0;
     outSum+=m.ledger_outside||0;outOrd+=m.ledger_outside_orders||0;ptsDel+=m.points_on_delivery||0;
-    outSt+=m.ledger_status||0;outMi+=m.ledger_missing||0;outMiN+=m.ledger_missing_orders||0;(m.svc_months||[]).forEach(function(a){acts[a]=1;});
+    outSt+=m.ledger_status||0;outMi+=m.ledger_missing||0;outMiN+=m.ledger_missing_orders||0;inflight+=m.orders_inflight||0;(m.svc_months||[]).forEach(function(a){acts[a]=1;});
     var rev=0,c=0;m.rows.forEach(function(r){rev+=r.revenue_money;if(r.cogs_known)c+=r.revenue_money;});cov+=c;covW+=rev;});
   var rev=svSum(ms,function(r){return r.revenue_money;}),pts=svSum(ms,function(r){return r.points_accrued;});
   var sm=svSum(ms,function(r){return r.svc_money;}),sp=svSum(ms,function(r){return r.svc_points;});
@@ -454,10 +454,10 @@ function svDraw(){
     svCard('Результат с учётом баллов',resP,'экономика заказов целиком','#34D399'),
     svCard('Себестоимость',-cogs,'покрытие '+(covW>0?Math.round(cov/covW*1000)/10:0)+'% выручки','#FF5A5F'),
     svCard('Валовая прибыль',gross,'только SKU с известной С\\С ('+((rev+pts)>0?Math.round(revC/(rev+pts)*1000)/10:0)+'% базы) · маржа '+(revC>0?Math.round(gross/revC*1000)/10:0)+'%',gross>=0?'#34D399':'#FF5A5F')].join('');
-  var partial=periodOrd>0&&orders/periodOrd<0.9;
-  document.getElementById('svCov').innerHTML='заказов: <b>'+orders+(periodOrd>orders?' из '+periodOrd+' оформленных':'')+'</b> · услуги из актов: <b>'+Object.keys(acts).sort().join(', ')+'</b>'+(noLed?' · <span class="pill b-Z">'+noLed+' заказов ещё нет в реестре кабинета - их услуги не учтены</span>':'')+(unset?' <span class="pill b-Z">месяц не добран: следующий акт ещё не закрыт</span>':'')+(partial?' <span class="pill b-Z">период не завершён: доставлено '+Math.round(orders/periodOrd*100)+'% заказов</span>':'');
+  var partial=inflight>0;
+  document.getElementById('svCov').innerHTML='заказов: <b>'+orders+(periodOrd>orders?' из '+periodOrd+' оформленных':'')+'</b> · услуги из актов: <b>'+Object.keys(acts).sort().join(', ')+'</b>'+(noLed?' · <span class="pill b-Z">'+noLed+' заказов ещё нет в реестре кабинета - их услуги не учтены</span>':'')+(unset?' <span class="pill b-Z">месяц не добран: следующий акт ещё не закрыт</span>':'')+(partial?' <span class="pill b-Z">период не завершён: '+inflight+' заказов ещё в пути</span>':'');
   var gaps=[];
-  if(partial)gaps.push('период не завершён: доставлено '+orders+' заказов из '+periodOrd+' оформленных ('+Math.round(orders/periodOrd*100)+'%), остальные ещё в пути или отменены - сравнивать этот месяц с закрытыми нельзя');
+  if(partial)gaps.push('период не завершён: '+inflight+' заказов месяца ещё в пути, выручка и услуги по ним добавятся позже - сравнивать этот месяц с закрытыми нельзя');
   if(noLed)gaps.push(noLed+' заказов периода ещё не попали в отчёт по платежам: их услуги в своде равны нулю, результат по ним завышен');
   if(unset)gaps.push('закрытого акта за следующий месяц ещё нет - часть услуг по этим заказам (доставка, средняя миля, штрафы) начислится позже: услуги неполные, результат завышен');
   if(outSt)gaps.push(rub(Math.round(outSt))+' ₽ сборов акта относятся к заказам периода с другим статусом (возвраты, отмены в доставке) - так работает базис «только доставленные»');

@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-15T13:40:17.155Z",
+  "generated_at": "2026-09-15T13:45:58.557Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "split_check": {
     "business": "74986385",
@@ -140,6 +140,7 @@
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 36,
+      "orders_inflight": 26,
       "points_on_delivery": 0,
       "cogs_cov": 100
     },
@@ -1406,6 +1407,7 @@
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 107,
+      "orders_inflight": 59,
       "points_on_delivery": 28799.22,
       "cogs_cov": 94.8
     },
@@ -3377,6 +3379,7 @@
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 125,
+      "orders_inflight": 5,
       "points_on_delivery": 55287.61,
       "cogs_cov": 100
     },
@@ -6698,6 +6701,7 @@
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 133,
+      "orders_inflight": 2,
       "points_on_delivery": 122290.46,
       "cogs_cov": 93.2
     },
@@ -8993,6 +8997,7 @@
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 138,
+      "orders_inflight": 0,
       "points_on_delivery": 43723.09,
       "cogs_cov": 89.9
     },
@@ -13286,6 +13291,7 @@
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 157,
+      "orders_inflight": 0,
       "points_on_delivery": 107483.46,
       "cogs_cov": 86.2
     },
@@ -14177,6 +14183,7 @@
       "ledger_missing": 64931.67,
       "ledger_missing_orders": 10,
       "orders_period": 34,
+      "orders_inflight": 0,
       "points_on_delivery": 7854.08,
       "cogs_cov": 92
     },
@@ -18146,6 +18153,7 @@
       "ledger_missing": 450,
       "ledger_missing_orders": 1,
       "orders_period": 138,
+      "orders_inflight": 0,
       "points_on_delivery": 81037.37,
       "cogs_cov": 86.4
     },
@@ -18389,6 +18397,7 @@
       "ledger_missing": 964856.87,
       "ledger_missing_orders": 50,
       "orders_period": 8,
+      "orders_inflight": 0,
       "points_on_delivery": 2647.42,
       "cogs_cov": 100
     },
@@ -23332,6 +23341,7 @@
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 188,
+      "orders_inflight": 0,
       "points_on_delivery": 117604.28,
       "cogs_cov": 90.7
     },
@@ -23899,6 +23909,7 @@
       "ledger_missing": 890760.07,
       "ledger_missing_orders": 63,
       "orders_period": 18,
+      "orders_inflight": 0,
       "points_on_delivery": 7303.96,
       "cogs_cov": 88.2
     },
@@ -29004,6 +29015,7 @@
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 221,
+      "orders_inflight": 0,
       "points_on_delivery": 129073.92,
       "cogs_cov": 89.5
     },
@@ -29027,6 +29039,7 @@
       "ledger_missing": 462905.05,
       "ledger_missing_orders": 52,
       "orders_period": 1,
+      "orders_inflight": 0,
       "points_on_delivery": 0,
       "cogs_cov": 0
     },
@@ -33428,6 +33441,7 @@
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 193,
+      "orders_inflight": 0,
       "points_on_delivery": 55197.43,
       "cogs_cov": 92.3
     },
@@ -33451,6 +33465,7 @@
       "ledger_missing": 765448.63,
       "ledger_missing_orders": 72,
       "orders_period": 0,
+      "orders_inflight": 0,
       "points_on_delivery": 0,
       "cogs_cov": 0
     },
@@ -36826,6 +36841,7 @@
       "ledger_missing": 342913.68,
       "ledger_missing_orders": 21,
       "orders_period": 126,
+      "orders_inflight": 1,
       "points_on_delivery": 21344.65,
       "cogs_cov": 87.8
     },
@@ -36847,6 +36863,7 @@
       "ledger_missing": 107938.59,
       "ledger_missing_orders": 38,
       "orders_period": 0,
+      "orders_inflight": 0,
       "points_on_delivery": 0,
       "cogs_cov": 0
     },
@@ -36868,6 +36885,7 @@
       "ledger_missing": 193998.25,
       "ledger_missing_orders": 60,
       "orders_period": 0,
+      "orders_inflight": 0,
       "points_on_delivery": 0,
       "cogs_cov": 0
     }

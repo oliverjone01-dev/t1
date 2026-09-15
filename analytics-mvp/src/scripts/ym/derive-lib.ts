@@ -566,8 +566,10 @@ export interface SvodMonth {
   ledger_status: number;          // из них: заказ есть, но статус не DELIVERED
   ledger_missing: number;         // из них: заказа нет в orders.ndjson вообще
   ledger_missing_orders: number;
-  // Незавершённость периода: сколько заказов месяца уже доставлено из всех оформленных.
-  orders_period: number;
+  // Незавершённость периода. Отменённые заказы - нормальный исход, а не незавершённость, поэтому
+  // мерилом служат заказы, которые ЕЩЁ В ПУТИ: пока они есть, месяц продолжает набирать выручку.
+  orders_period: number;     // оформлено всего в месяце, любой статус
+  orders_inflight: number;   // из них ещё не доставлены и не отменены
   points_on_delivery: number;     // доля начисленных баллов, осевшая на строке доставки
   cogs_cov: number;               // доля выручки деньгами, закрытая себестоимостью
 }
@@ -667,7 +669,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   for (const r of rows) {
     const k = delivered.get(r.order); if (!k) continue;
     if (!months.has(k)) months.set(k, { business: r.business, ym: k.split("|")[1]!, orders: 0, rows: [],
-      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, points_on_delivery: 0, cogs_cov: 0 });
+      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 });
     const os = orderSet.get(k) || new Set<string>(); os.add(r.order); orderSet.set(k, os);
     if (r.service) {
       // строка доставки: разносим по позициям заказа пропорционально начислениям
@@ -758,7 +760,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       m = { business: o.business, ym: o.d.slice(0, 7), orders: 0, rows: [], overhead_money: 0, overhead_points: 0,
         overhead: {}, overhead_pts: {}, svc_months: [], orders_without_ledger: 0, svc_settled: false,
         ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
-        orders_period: 0, points_on_delivery: 0, cogs_cov: 0 };
+        orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
     const bag = o.points ? overheadPts : overheadMoney;
@@ -775,7 +777,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       const [business, ym] = k.split("|") as [string, string];
       m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
         svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0,
-        ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, points_on_delivery: 0, cogs_cov: 0 };
+        ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
     m.ledger_outside = r2(out.sum); m.ledger_outside_orders = out.orders.size;
@@ -809,14 +811,20 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   // Сколько заказов месяца оформлено всего (любой статус) - без этого текущий месяц выглядит
   // как обычный, хотя половина заказов ещё в доставке.
   const periodOrders = new Map<string, Set<string>>();
+  const inflightOrders = new Map<string, Set<string>>();
+  const DONE = /^(DELIVERED|RETURNED|CANCELLED)/;
   for (const r of rows) {
     if (r.service || !r.created) continue;
     const k = `${r.business}|${r.created.slice(0, 7)}`;
     const set = periodOrders.get(k) || new Set<string>(); set.add(r.order); periodOrders.set(k, set);
+    if (!DONE.test(String(r.status || ""))) {
+      const f = inflightOrders.get(k) || new Set<string>(); f.add(r.order); inflightOrders.set(k, f);
+    }
   }
   for (const [k, m] of months) {
     m.orders = (orderSet.get(k) || new Set()).size;
     m.orders_period = (periodOrders.get(k) || new Set()).size;
+    m.orders_inflight = (inflightOrders.get(k) || new Set()).size;
     m.svc_settled = [...(actMonths.get(m.business) || new Set<string>())].some((a) => a > m.ym && a < nowYm);
     m.orders_without_ledger = (noLedger.get(k) || new Set()).size;
     m.svc_months = [...(svcMonths.get(k) || new Set<string>())].sort();

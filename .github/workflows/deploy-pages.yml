@@ -20,6 +20,7 @@ name: Deploy to GitHub Pages
 #   /messages/         - GG Message Automation (из ветки claude/gg-message-automation-ffpwpd, статика public/)
 #   /economics/        - Экономика сделок (из ветки economics-dashboard-v1, данные economics-cron.yml)
 #   /integra/          - ИНТЕГРА 2.0, план GENTERO (из ветки claude/gentero-plan-03609o, статика public/)
+#   /kp-gm/            - КП GLASS-MEMORY для физлица (из ветки kp-glass-memory, статика kp-glass-memory/)
 #   /academy/          - GG Sales Academy: библиотека отдела (контур 1A) плюс запечатанные
 #                        кабинеты менеджеров и сводка штаба (контуры 2 и 3, из sealed/)
 #   /ozon-research/    - Карта ниш Ozon: исследование 180 ниш для цехов (из main,
@@ -371,6 +372,21 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/_site/integra"
           cp -r /tmp/integra/gentero-integra/public/. "$GITHUB_WORKSPACE/_site/integra/"
           echo "ИНТЕГРА 2.0 опубликована в /integra/ из claude/gentero-plan-03609o"
+
+      # === КП GLASS-MEMORY (ИЗОЛИРОВАННО, из ветки kp-glass-memory, в /kp-gm/) ===
+      # Персональное КП для физлица на мемориал из стекла и металла. Своя ветка, свой URL.
+      # Самодостаточный HTML плюс фотографии рядом, копируем как есть - без npm/smoke.
+      # Секретов в HTML нет. Падение не валит остальной сайт.
+      - name: Build KP GLASS-MEMORY (isolated, /kp-gm/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin kp-glass-memory
+          git worktree add /tmp/kp-gm FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/kp-gm"
+          cp -r /tmp/kp-gm/kp-glass-memory/. "$GITHUB_WORKSPACE/_site/kp-gm/"
+          rm -f "$GITHUB_WORKSPACE/_site/kp-gm/README.md"
+          echo "КП GLASS-MEMORY опубликовано в /kp-gm/ из kp-glass-memory"
 
       # === ОФИС-МЕНЕДЖЕР (ИЗОЛИРОВАННО, из ветки office-dashboard-v1, в /office/) ===
       # Личный дашборд квалификации лидов GG. Аналог /rop/: самодостаточный HTML,

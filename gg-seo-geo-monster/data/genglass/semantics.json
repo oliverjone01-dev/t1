@@ -1,5 +1,5 @@
 {
- "measured": "2026-09-13",
+ "measured": "2026-09-15",
  "phrases": [
   {
    "phrase": "бронированное стекло цена",
@@ -236,7 +236,7 @@
   {
    "phrase": "московский зеркальный завод официальный сайт",
    "pos": null,
-   "freq": 6,
+   "freq": 9,
    "url": "",
    "cluster": "московский",
    "intent": "commercial"
@@ -356,7 +356,7 @@
   {
    "phrase": "небьющееся зеркало купить",
    "pos": null,
-   "freq": 156,
+   "freq": 168,
    "url": "",
    "cluster": "небьющееся",
    "intent": "transactional"
@@ -476,7 +476,7 @@
   {
    "phrase": "можно ли ставить зеркало напротив входной двери",
    "pos": null,
-   "freq": 156,
+   "freq": 179,
    "url": "",
    "cluster": "можно",
    "intent": "commercial"

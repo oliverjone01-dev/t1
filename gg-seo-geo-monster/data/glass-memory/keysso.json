@@ -1,8 +1,8 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-09-14",
+ "measured": "2026-09-15",
  "visibility": 1,
- "ai_answers": 58,
+ "ai_answers": 64,
  "keywords_total": 572,
  "top1": 6,
  "top3": 13,
@@ -340,6 +340,11 @@
   },
   {
    "date": "2026-09-14",
+   "visibility": 1,
+   "top10": 48
+  },
+  {
+   "date": "2026-09-15",
    "visibility": 1,
    "top10": 48
   }
@@ -951,25 +956,25 @@
    "domain": "market.yandex.ru",
    "visibility": 978656,
    "common_keywords": 292,
-   "delta_visibility": 7.9
+   "delta_visibility": 0
   },
   {
    "domain": "wildberries.ru",
    "visibility": 1190784,
    "common_keywords": 279,
-   "delta_visibility": 0.7
+   "delta_visibility": 0
   },
   {
    "domain": "lemanapro.ru",
    "visibility": 509835,
    "common_keywords": 227,
-   "delta_visibility": 1.2
+   "delta_visibility": 0
   },
   {
    "domain": "dzen.ru",
    "visibility": 4336257,
    "common_keywords": 201,
-   "delta_visibility": -5.8
+   "delta_visibility": 0
   },
   {
    "domain": "ru.pinterest.com",
@@ -981,19 +986,19 @@
    "domain": "aliexpress.ru",
    "visibility": 211931,
    "common_keywords": 163,
-   "delta_visibility": 2.8
+   "delta_visibility": 0
   },
   {
    "domain": "uslugi.yandex.ru",
    "visibility": 203733,
    "common_keywords": 161,
-   "delta_visibility": 2.2
+   "delta_visibility": 0
   },
   {
    "domain": "m.avito.ru",
    "visibility": 2158472,
    "common_keywords": 19,
-   "delta_visibility": -0.1
+   "delta_visibility": 0
   },
   {
    "domain": "glassphoto.ru",
@@ -1005,7 +1010,7 @@
    "domain": "pqd.ru",
    "visibility": 1066,
    "common_keywords": 10,
-   "delta_visibility": 6
+   "delta_visibility": 0
   },
   {
    "domain": "vk.ru",
@@ -1017,7 +1022,7 @@
    "domain": "livemaster.ru",
    "visibility": 99846,
    "common_keywords": 8,
-   "delta_visibility": 3.3
+   "delta_visibility": 0
   },
   {
    "domain": "grad-ex.ru",
@@ -1041,15 +1046,6 @@
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],
-  "competitor_up": [
-   {
-    "domain": "market.yandex.ru",
-    "delta": 7.9
-   },
-   {
-    "domain": "pqd.ru",
-    "delta": 6
-   }
-  ]
+  "competitor_up": []
  }
 }

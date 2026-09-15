@@ -1,13 +1,13 @@
 {
  "domain": "genglass.ru",
- "measured": "2026-09-13",
+ "measured": "2026-09-15",
  "visibility": 17,
- "ai_answers": 94,
- "keywords_total": 2110,
+ "ai_answers": 97,
+ "keywords_total": 2111,
  "top1": 16,
  "top3": 77,
- "top10": 428,
- "top50": 2110,
+ "top10": 426,
+ "top50": 2111,
  "top_pages": [
   {
    "url": "/product-category/mirrors",
@@ -39,7 +39,7 @@
   },
   {
    "url": "/product-category/steklyannye-doski",
-   "keywords_top50": 61
+   "keywords_top50": 63
   },
   {
    "url": "/product-category/mirrors/zerkalo-ovalnoe",
@@ -116,72 +116,72 @@
   {
    "domain": "union.ru",
    "common_ad_keywords": 84,
-   "ads_count": 2456,
-   "ad_keywords_count": 8780,
-   "visibility": 266
+   "ads_count": 2471,
+   "ad_keywords_count": 8842,
+   "visibility": 264
   },
   {
    "domain": "alfaporta.ru",
-   "common_ad_keywords": 65,
-   "ads_count": 645,
-   "ad_keywords_count": 2390,
-   "visibility": 1710
+   "common_ad_keywords": 63,
+   "ads_count": 644,
+   "ad_keywords_count": 2395,
+   "visibility": 1643
   },
   {
    "domain": "ddveri.pro",
    "common_ad_keywords": 62,
-   "ads_count": 535,
-   "ad_keywords_count": 1056,
+   "ads_count": 532,
+   "ad_keywords_count": 1050,
    "visibility": 0
   },
   {
    "domain": "ofimall.ru",
    "common_ad_keywords": 52,
-   "ads_count": 307,
-   "ad_keywords_count": 2125,
+   "ads_count": 306,
+   "ad_keywords_count": 2102,
    "visibility": 8
   },
   {
    "domain": "loftkrel.ru",
    "common_ad_keywords": 43,
-   "ads_count": 597,
-   "ad_keywords_count": 938,
-   "visibility": 4
+   "ads_count": 594,
+   "ad_keywords_count": 927,
+   "visibility": 3
   },
   {
    "domain": "peregorodki-prostor.ru",
    "common_ad_keywords": 41,
    "ads_count": 31,
-   "ad_keywords_count": 343,
+   "ad_keywords_count": 329,
    "visibility": 0
   },
   {
    "domain": "kristal360.ru",
    "common_ad_keywords": 40,
-   "ads_count": 458,
-   "ad_keywords_count": 633,
+   "ads_count": 456,
+   "ad_keywords_count": 629,
    "visibility": 0
   },
   {
    "domain": "keepforyou.ru",
-   "common_ad_keywords": 36,
-   "ads_count": 381,
-   "ad_keywords_count": 798,
-   "visibility": 0
-  },
-  {
-   "domain": "new.foris-msk.ru",
-   "common_ad_keywords": 34,
-   "ads_count": 49,
-   "ad_keywords_count": 565,
+   "common_ad_keywords": 35,
+   "ads_count": 376,
+   "ad_keywords_count": 782,
    "visibility": 0
   },
   {
    "domain": "shkaffkupe.ru",
    "common_ad_keywords": 34,
-   "ads_count": 916,
-   "ad_keywords_count": 4887,
+   "ads_count": 924,
+   "ad_keywords_count": 4890,
    "visibility": 9
+  },
+  {
+   "domain": "new.foris-msk.ru",
+   "common_ad_keywords": 34,
+   "ads_count": 49,
+   "ad_keywords_count": 562,
+   "visibility": 0
   }
  ],
  "history": [
@@ -364,6 +364,11 @@
    "date": "2026-09-13",
    "visibility": 17,
    "top10": 428
+  },
+  {
+   "date": "2026-09-15",
+   "visibility": 17,
+   "top10": 426
   }
  ],
  "keywords": [
@@ -544,7 +549,7 @@
   {
    "phrase": "московский зеркальный завод официальный сайт",
    "pos": null,
-   "freq": 6,
+   "freq": 9,
    "url": ""
   },
   {
@@ -634,7 +639,7 @@
   {
    "phrase": "небьющееся зеркало купить",
    "pos": null,
-   "freq": 156,
+   "freq": 168,
    "url": ""
   },
   {
@@ -724,7 +729,7 @@
   {
    "phrase": "можно ли ставить зеркало напротив входной двери",
    "pos": null,
-   "freq": 156,
+   "freq": 179,
    "url": ""
   },
   {
@@ -970,108 +975,99 @@
  ],
  "competitors": [
   {
-   "domain": "rosestar.ru",
-   "visibility": 200,
-   "common_keywords": 874,
-   "delta_visibility": 2
-  },
-  {
    "domain": "zerkala-m.ru",
-   "visibility": 189,
-   "common_keywords": 61,
-   "delta_visibility": 1.1
+   "visibility": 188,
+   "common_keywords": 829,
+   "delta_visibility": -0.5
   },
   {
-   "domain": "avazerkala.ru",
-   "visibility": 124,
-   "common_keywords": 40,
-   "delta_visibility": 1.6
+   "domain": "rosestar.ru",
+   "visibility": 201,
+   "common_keywords": 67,
+   "delta_visibility": 0.5
   },
   {
-   "domain": "alfaporta.ru",
-   "visibility": 1710,
-   "common_keywords": 12,
-   "delta_visibility": 5.8
+   "domain": "zerkala-mag.ru",
+   "visibility": 27,
+   "common_keywords": 22,
+   "delta_visibility": 0
   },
   {
-   "domain": "lemanapro.ru",
-   "visibility": 518949,
-   "common_keywords": 1376,
-   "delta_visibility": 3
-  },
-  {
-   "domain": "wildberries.ru",
-   "visibility": 1217783,
-   "common_keywords": 1170,
-   "delta_visibility": 3
-  },
-  {
-   "domain": "hoff.ru",
-   "visibility": 112651,
-   "common_keywords": 969,
-   "delta_visibility": 5.9
-  },
-  {
-   "domain": "livemaster.ru",
-   "visibility": 100352,
-   "common_keywords": 947,
-   "delta_visibility": 3.8
-  },
-  {
-   "domain": "inmyroom.ru",
-   "visibility": 7482,
-   "common_keywords": 944,
-   "delta_visibility": 2.7
+   "domain": "msk-zerkala.ru",
+   "visibility": 46,
+   "common_keywords": 15,
+   "delta_visibility": 0
   },
   {
    "domain": "m.avito.ru",
-   "visibility": 2193962,
-   "common_keywords": 171,
-   "delta_visibility": 1.5
+   "visibility": 2158472,
+   "common_keywords": 1364,
+   "delta_visibility": -1.6
   },
   {
    "domain": "ozon.ru",
-   "visibility": 1990710,
-   "common_keywords": 150,
-   "delta_visibility": 2.8
+   "visibility": 1884982,
+   "common_keywords": 1274,
+   "delta_visibility": -5.3
   },
   {
    "domain": "market.yandex.ru",
-   "visibility": 934528,
-   "common_keywords": 118,
-   "delta_visibility": 3.1
+   "visibility": 978656,
+   "common_keywords": 1239,
+   "delta_visibility": 4.7
   },
   {
-   "domain": "fdmebel.ru",
-   "visibility": 105,
-   "common_keywords": 46,
-   "delta_visibility": 2.9
+   "domain": "inmyroom.ru",
+   "visibility": 7603,
+   "common_keywords": 941,
+   "delta_visibility": 1.6
   },
   {
-   "domain": "basicdecor.ru",
-   "visibility": 3569,
-   "common_keywords": 42,
-   "delta_visibility": 1.2
+   "domain": "lemanapro.ru",
+   "visibility": 509835,
+   "common_keywords": 146,
+   "delta_visibility": -1.8
   },
   {
-   "domain": "lain-loft.ru",
-   "visibility": 279,
-   "common_keywords": 31,
-   "delta_visibility": 1.8
+   "domain": "wildberries.ru",
+   "visibility": 1190784,
+   "common_keywords": 97,
+   "delta_visibility": -2.2
+  },
+  {
+   "domain": "livemaster.ru",
+   "visibility": 99846,
+   "common_keywords": 68,
+   "delta_visibility": -0.5
+  },
+  {
+   "domain": "hoff.ru",
+   "visibility": 112925,
+   "common_keywords": 54,
+   "delta_visibility": 0.2
+  },
+  {
+   "domain": "shkaf-kupe.ru",
+   "visibility": 3956,
+   "common_keywords": 40,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "bestmebelshop.ru",
+   "visibility": 18034,
+   "common_keywords": 36,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "profi.ru",
+   "visibility": 149013,
+   "common_keywords": 25,
+   "delta_visibility": 0
   }
  ],
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],
-  "competitor_up": [
-   {
-    "domain": "alfaporta.ru",
-    "delta": 5.8
-   },
-   {
-    "domain": "hoff.ru",
-    "delta": 5.9
-   }
-  ]
+  "competitor_up": []
  }
 }

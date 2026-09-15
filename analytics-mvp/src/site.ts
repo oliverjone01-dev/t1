@@ -391,7 +391,7 @@ export function renderMoney(model: unknown): string {
   <div class="note">Период - по <b>дате оформления заказа</b>, а не по дате доставки или проводки: остальные блоки страницы живут по другому базису, и числа там законно другие. В свод идут только заказы со статусом «Доставлен»; штуки - доставленные минус возвращённые.<br>
   <b>Выручка деньгами</b> = платёж покупателя - возвраты. Колонка «Платёж покуп.» уже включает доставку с покупателя, поэтому складывать их не надо: отдельная колонка доставки показана, чтобы было видно, сколько внутри платежа приходится на DBS. Цена продажи показана справочно и в результат не идёт: она включает скидку, которую платил Маркет, а не покупатель.<br>
   <b>Услуги</b> разделены на оплаченные деньгами и оплаченные баллами Маркета. Обе половины - реальный расход: услугу оказали и в акте она стоит полностью. Результат «по деньгам» показывает, что осталось на счёте; результат «с учётом баллов» - экономику заказа целиком. Карточки сверху включают общие расходы кабинета (подписки, полки, баннеры), строки таблицы - нет: к товару они не привязаны, поэтому сумма колонки таблицы меньше карточки ровно на них.<br>
-  <b>[ГИПОТЕЗА] Разделение «деньгами / баллами»</b> опирается на тип проводки, потому что поле источника (<code>TRANSACTION_SOURCE</code>) в снимке пустое. Правило проверено на июле 2026 по кабинету мебели: «Удержание» 557 521 ₽ против 557 250,20 ₽ по акту, «Списание» 2 326 514 ₽ против 2 350 590,89 ₽. На других месяцах и кабинетах не сверялось. Итог «Услуги всего» от разделения не зависит.</div>`;
+  <b>[ГИПОТЕЗА] Разделение «деньгами / баллами»</b> опирается на тип проводки, потому что поле источника (<code>TRANSACTION_SOURCE</code>) в снимке пустое. Правило проверено на одном месяце одного кабинета, цифры проверки - в подписи под таблицей услуг (считаются на сборке, а не записаны в текст). На других месяцах и кабинетах не сверялось. Итог «Услуги всего» от разделения не зависит.</div>`;
   const sections = `
   ${closedHead}${svodHead}
   <h2>Операционный P&L по транзакциям · 30 дней (реальные сборы OZON)</h2>
@@ -427,9 +427,10 @@ function svSum(ms,f){var t=0;ms.forEach(function(m){m.rows.forEach(function(r){t
 function svCard(lab,val,sub,col){return '<div class="card kpi"><div class="lab">'+lab+'</div><div class="val num"'+(col?' style="color:'+col+'"':'')+'>'+mln(val)+' ₽</div><div class="sub">'+sub+'</div></div>';}
 function svDraw(){
   var ms=svPick();if(!ms.length){document.getElementById('svKpi').innerHTML='<div class="card">За этот месяц доставленных заказов в снимке нет.</div>';document.getElementById('svTab').innerHTML='';document.getElementById('svSvc').innerHTML='';document.getElementById('svNote').innerHTML='';document.getElementById('svCov').textContent='';return;}
-  var orders=0,noLed=0,acts={},cov=0,covW=0,unset=0,outSum=0,outOrd=0,ptsDel=0;
-  ms.forEach(function(m){orders+=m.orders;noLed+=m.orders_without_ledger;if(!m.svc_settled)unset++;
-    outSum+=m.ledger_outside||0;outOrd+=m.ledger_outside_orders||0;ptsDel+=m.points_on_delivery||0;(m.svc_months||[]).forEach(function(a){acts[a]=1;});
+  var orders=0,noLed=0,acts={},cov=0,covW=0,unset=0,outSum=0,outOrd=0,ptsDel=0,outSt=0,outMi=0,outMiN=0,periodOrd=0;
+  ms.forEach(function(m){orders+=m.orders;noLed+=m.orders_without_ledger;if(!m.svc_settled)unset++;periodOrd+=m.orders_period||0;
+    outSum+=m.ledger_outside||0;outOrd+=m.ledger_outside_orders||0;ptsDel+=m.points_on_delivery||0;
+    outSt+=m.ledger_status||0;outMi+=m.ledger_missing||0;outMiN+=m.ledger_missing_orders||0;(m.svc_months||[]).forEach(function(a){acts[a]=1;});
     var rev=0,c=0;m.rows.forEach(function(r){rev+=r.revenue_money;if(r.cogs_known)c+=r.revenue_money;});cov+=c;covW+=rev;});
   var rev=svSum(ms,function(r){return r.revenue_money;}),pts=svSum(ms,function(r){return r.points_accrued;});
   var sm=svSum(ms,function(r){return r.svc_money;}),sp=svSum(ms,function(r){return r.svc_points;});
@@ -438,8 +439,11 @@ function svDraw(){
   var resM=rev-sm-Math.round(ohM),resP=rev+pts-sm-sp-Math.round(ohM)-Math.round(ohP);
   // Валовая прибыль считается только по строкам с известной С\\С: брать 100% выручки против
   // 86% себестоимости - это завышение прибыли ровно на непокрытую часть.
+  // База маржи одна с числителем: результат считается С БАЛЛАМИ, значит и знаменатель - выручка
+  // деньгами ПЛЮС баллы. Со старым знаменателем (только деньги) 14 строк снимка давали маржу
+  // выше 100%, максимум 885 389% у SKU с выручкой 1 ₽ и баллами 31 943 ₽.
   var revC=0,resPC=0;ms.forEach(function(m){m.rows.forEach(function(r){if(!r.cogs_known)return;
-    revC+=r.revenue_money;resPC+=r.revenue_money+r.points_accrued-r.svc_money-r.svc_points;});});
+    revC+=r.revenue_money+r.points_accrued;resPC+=r.revenue_money+r.points_accrued-r.svc_money-r.svc_points;});});
   var gross=Math.round(resPC)-cogs;
   document.getElementById('svKpi').innerHTML=[
     svCard('Выручка деньгами',rev,'платёж покупателя + доставка - возвраты'),
@@ -449,11 +453,15 @@ function svDraw(){
     svCard('Результат по деньгам',resM,'что осталось на счёте'),
     svCard('Результат с учётом баллов',resP,'экономика заказов целиком','#34D399'),
     svCard('Себестоимость',-cogs,'покрытие '+(covW>0?Math.round(cov/covW*1000)/10:0)+'% выручки','#FF5A5F'),
-    svCard('Валовая прибыль',gross,'только SKU с известной С\\С ('+(rev>0?Math.round(revC/rev*1000)/10:0)+'% выручки)',gross>=0?'#34D399':'#FF5A5F')].join('');
-  document.getElementById('svCov').innerHTML='заказов: <b>'+orders+'</b> · услуги из актов: <b>'+Object.keys(acts).sort().join(', ')+'</b>'+(noLed?' · <span class="pill b-Z">'+noLed+' заказов ещё нет в реестре кабинета - их услуги не учтены</span>':'')+(unset?' <span class="pill b-Z">месяц не добран: следующий акт ещё не закрыт</span>':'');
-  var gaps=[];if(noLed)gaps.push(noLed+' заказов периода ещё не попали в отчёт по платежам: их услуги в своде равны нулю, результат по ним завышен');
+    svCard('Валовая прибыль',gross,'только SKU с известной С\\С ('+((rev+pts)>0?Math.round(revC/(rev+pts)*1000)/10:0)+'% базы) · маржа '+(revC>0?Math.round(gross/revC*1000)/10:0)+'%',gross>=0?'#34D399':'#FF5A5F')].join('');
+  var partial=periodOrd>0&&orders/periodOrd<0.9;
+  document.getElementById('svCov').innerHTML='заказов: <b>'+orders+(periodOrd>orders?' из '+periodOrd+' оформленных':'')+'</b> · услуги из актов: <b>'+Object.keys(acts).sort().join(', ')+'</b>'+(noLed?' · <span class="pill b-Z">'+noLed+' заказов ещё нет в реестре кабинета - их услуги не учтены</span>':'')+(unset?' <span class="pill b-Z">месяц не добран: следующий акт ещё не закрыт</span>':'')+(partial?' <span class="pill b-Z">период не завершён: доставлено '+Math.round(orders/periodOrd*100)+'% заказов</span>':'');
+  var gaps=[];
+  if(partial)gaps.push('период не завершён: доставлено '+orders+' заказов из '+periodOrd+' оформленных ('+Math.round(orders/periodOrd*100)+'%), остальные ещё в пути или отменены - сравнивать этот месяц с закрытыми нельзя');
+  if(noLed)gaps.push(noLed+' заказов периода ещё не попали в отчёт по платежам: их услуги в своде равны нулю, результат по ним завышен');
   if(unset)gaps.push('закрытого акта за следующий месяц ещё нет - часть услуг по этим заказам (доставка, средняя миля, штрафы) начислится позже: услуги неполные, результат завышен');
-  if(outSum)gaps.push(rub(Math.round(outSum))+' ₽ сборов акта относятся к '+outOrd+' заказам вне свода (другой статус или заказа нет в выгрузке) - в блоке их нет');
+  if(outSt)gaps.push(rub(Math.round(outSt))+' ₽ сборов акта относятся к заказам периода с другим статусом (возвраты, отмены в доставке) - так работает базис «только доставленные»');
+  if(outMi)gaps.push(rub(Math.round(outMi))+' ₽ сборов акта относятся к '+outMiN+' заказам, которых нет в выгрузке заказов вообще - это пробел сбора, а не базиса');
   if(ptsDel)gaps.push(rub(Math.round(ptsDel))+' ₽ начисленных баллов осели на строке доставки и в свод не попали');
   if(covW>0&&cov/covW<0.999)gaps.push('себестоимость известна для '+(Math.round(cov/covW*1000)/10)+'% выручки - валовая прибыль по остальным SKU не считается, а не равна выручке');
   document.getElementById('svNote').innerHTML=gaps.length?'<b>Чего не хватает:</b> '+gaps.join('; ')+'.':'Пробелов нет: все заказы периода есть в реестре кабинета, себестоимость известна по всей выручке.';
@@ -465,6 +473,8 @@ function svDraw(){
   SVC_ORDER.forEach(function(c){var a=Math.round(m0[c]||0),b=Math.round(p0[c]||0);if(!a&&!b)return;
     sh+='<tr><td>'+c+'</td><td class="r num down">'+rub(a)+'</td><td class="r num" style="color:#F2B544">'+rub(b)+'</td><td class="r num">'+rub(a+b)+'</td><td class="r num">'+(rev>0?Math.round((a+b)/rev*1000)/10:0)+'%</td></tr>';});
   sh+='<tr><td><b>Итого услуги</b></td><td class="r num down"><b>'+rub(sm+Math.round(ohM))+'</b></td><td class="r num" style="color:#F2B544"><b>'+rub(sp+Math.round(ohP))+'</b></td><td class="r num"><b>'+rub(sm+sp+Math.round(ohM)+Math.round(ohP))+'</b></td><td class="r num"><b>'+(rev>0?Math.round((sm+sp+ohM+ohP)/rev*1000)/10:0)+'%</b></td></tr></tbody></table>';
+  var SC=(DATA.svod&&DATA.svod.split_check)||null;
+  if(SC)sh+='<div class="note" style="padding:8px 12px">Проверка правила «Списание = баллы» на '+SC.ym+', кабинет '+svName(SC.business)+': списано деньгами <b>'+rub(SC.money)+' ₽</b> против '+rub(Math.round(SC.act_money))+' ₽ в строке «Стоимость оказанных услуг по актам» ('+(SC.act_money?((SC.money-SC.act_money)/SC.act_money*100).toFixed(2):'0')+'%), оплачено баллами <b>'+rub(SC.points)+' ₽</b> против '+rub(Math.round(SC.act_points))+' ₽ по акту ('+(SC.act_points?((SC.points-SC.act_points)/SC.act_points*100).toFixed(2):'0')+'%).</div>';
   document.getElementById('svSvc').innerHTML=sh;
   // таблица по товарам
   var agg={};ms.forEach(function(m){m.rows.forEach(function(r){var k=r.sku;var a=agg[k];
@@ -472,7 +482,7 @@ function svDraw(){
     a.ud+=r.units_delivered;a.ur+=r.units_returned;a.un+=r.units_net;a.price+=r.price;a.ship+=r.ship_buyer;a.dmp+=r.disc_mp;a.dpl+=r.disc_plus;
     a.pay+=r.buyer_pay;a.ref+=r.refunds;a.rev+=r.revenue_money;a.pts+=r.points_accrued;a.sm+=r.svc_money;a.sp+=r.svc_points;a.cogs+=r.cogs;a.ck=a.ck&&r.cogs_known;});});
   var list=Object.keys(agg).map(function(k){return agg[k];}).sort(function(a,b){return b.rev-a.rev;});
-  var H=['Артикул','Название','Шт. дост.','Шт. возвр.','Шт. выкуп.','Цена продажи','Доставка с покуп.','Скидка Маркета','Баллы Плюса','Платёж покуп.','Возвраты','ВЫРУЧКА ДЕНЬГАМИ','Баллы начислены','Услуги деньгами','Услуги баллами','Услуги всего','Результат по деньгам','Результат с баллами','С\\С','Валовая прибыль','Маржа'];
+  var H=['Артикул','Название','Шт. дост.','Шт. возвр.','Шт. выкуп.','Цена продажи','Доставка с покуп.','Скидка Маркета','Баллы Плюса','Платёж покуп.','Возвраты','ВЫРУЧКА ДЕНЬГАМИ','Баллы начислены','Услуги деньгами','Услуги баллами','Услуги всего','Результат по деньгам','Результат с баллами','С\\С','Валовая прибыль','Маржа к деньгам+баллам'];
   var th='<table><thead><tr>'+H.map(function(h,i){return '<th'+(i>1?' class="r"':'')+'>'+h+'</th>';}).join('')+'</tr></thead><tbody>';
   list.forEach(function(a){var tot=a.sm+a.sp,rm=a.rev-a.sm,rp=a.rev+a.pts-tot,gp=a.ck?rp-a.cogs:null;
     th+='<tr><td class="num">'+a.sku+(a.ck?'':' <span class="pill b-Z" title="нет себестоимости">нет С\\С</span>')+'</td><td>'+(a.name||'').slice(0,46)+'</td>'+
@@ -483,7 +493,7 @@ function svDraw(){
       '<td class="r num down">'+rub(a.sm)+'</td><td class="r num" style="color:#F2B544">'+rub(a.sp)+'</td><td class="r num down">'+rub(tot)+'</td>'+
       '<td class="r num">'+rub(rm)+'</td><td class="r num" style="color:'+(rp>=0?'#34D399':'#FF5A5F')+'">'+rub(rp)+'</td>'+
       '<td class="r num">'+(a.ck?rub(a.cogs):'нет данных')+'</td><td class="r num">'+(gp===null?'не считается':rub(gp))+'</td>'+
-      '<td class="r num">'+(gp===null||a.rev<=0?'-':Math.round(gp/a.rev*1000)/10+'%')+'</td></tr>';});
+      '<td class="r num">'+(gp===null||(a.rev+a.pts)<=0?'-':Math.round(gp/(a.rev+a.pts)*1000)/10+'%')+'</td></tr>';});
   th+='</tbody></table>';document.getElementById('svTab').innerHTML=th;
 }
 function svInit(){

@@ -170,8 +170,29 @@ describe("пробелы реестра раскрыты, а не потерян
     expect(feb.orders).toBe(0);
   });
   it("баллы, осевшие на строке доставки, названы суммой", () => {
+    // Субсидия заказа (3900 + 250) разносится по стоимости позиций: доставка 1000 из 11000 базы
+    // забирает 4150 × 1/11. Свод разносит её сам и не полагается на разнесение из снимка.
     const m = one([item({}), item({ pos: 1, service: true, sku: "DOSTAVKA", price: 1000, subsidy: 250 })], []);
-    expect(m.points_on_delivery).toBe(250);
+    expect(m.points_on_delivery).toBeCloseTo(377.27, 1);
+    expect(m.rows[0]!.points_accrued).toBeCloseTo(3772.73, 1);
+  });
+  it("возврат ложится на возвращённый SKU, а не размазывается по заказу", () => {
+    // Живой случай: заказ 58875910850, GGR-11-4 возвращён целиком, а весь -11 066 ₽ садился на
+    // соседний GGT-12-2, потому что база разнесения была accruals, а они у возврата равны нулю.
+    const rows = [
+      item({ sku: "RET", price: 11066, delivered: 0, returned: 1, accruals: 0, paid_by_type: {} }),
+      item({ pos: 1, sku: "KEEP", price: 53051, delivered: 1, paid_by_type: { REFUND: -11066 } }),
+    ];
+    const m = one(rows, []);
+    expect(Math.round(m.rows.find((r) => r.sku === "RET")!.refunds)).toBe(-11066);
+    expect(m.rows.find((r) => r.sku === "KEEP")!.refunds).toBe(0);
+  });
+  it("доставка, оплаченная Маркетом, не показывается платежом покупателя", () => {
+    // price строки доставки включает MARKETPLACE: 2 599 ₽ по снимку были деньгами Маркета,
+    // показанными как деньги покупателя, и при этом не попадали в «Скидку Маркета».
+    const m = one([item({}), item({ pos: 1, service: true, sku: "DOSTAVKA", price: 2000, p_buyer: 0, p_mp: 2000 })], []);
+    expect(m.rows[0]!.ship_buyer).toBe(0);
+    expect(m.rows[0]!.disc_mp).toBe(6000);   // 4000 своих + 2000 доставки за счёт Маркета
   });
 });
 

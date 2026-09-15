@@ -107,11 +107,18 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
   const paidByType: Record<string, number> = {};
   for (const p of o.payments) { const k = String(p.type || "?").toUpperCase(); paidByType[k] = r2((paidByType[k] || 0) + (p.type === "REFUND" ? -p.total : p.total)); }
   const subsidyTotal = (o.subsidies || []).reduce((s, x) => s + x.amount, 0);
+  // База разнесения платежей и субсидий - стоимость позиции (цена × штуки), а не accruals:
+  // у полностью возвращённой позиции accruals обнуляются, и её возврат уезжал на соседний SKU.
+  // Живой случай: заказ 58875910850 (июль, мебель), GGR-11-4 возвращён целиком, а весь возврат
+  // -11 066 ₽ сел на GGT-12-2. Сборы остаются на accruals: по недоставленному Маркет и правда
+  // ничего не списал.
   const base = items.reduce((s, x) => s + x.accruals, 0);
+  const payBase = items.reduce((s, x) => s + x.price * x.count, 0);
   const n = items.length || 1;
 
   return items.map((x) => {
     const share = base > 0 ? x.accruals / base : 1 / n;
+    const payShare = payBase > 0 ? (x.price * x.count) / payBase : 1 / n;
     const f: Record<string, number> = {};
     let ft = 0;
     // сборы относим только к доставленным позициям (по недоставленным Маркет ещё ничего не списал)
@@ -125,7 +132,7 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
       price: r2(x.price), p_buyer: r2(x.p_buyer), p_mp: r2(x.p_mp), p_cashback: r2(x.p_cashback), p_spasibo: r2(x.p_spasibo),
       revenue: x.revenue, accruals: x.accruals,
       fees: f, fee_total: ft, payout: deliveredSet ? r2(x.accruals - ft) : 0, fee_actual: feeActual,
-      paid: r2(paidTotal * share), paid_by_type: Object.fromEntries(Object.entries(paidByType).map(([k, v]) => [k, r2(v * share)])), subsidy: r2(subsidyTotal * share), fake: !!o.fake,
+      paid: r2(paidTotal * payShare), paid_by_type: Object.fromEntries(Object.entries(paidByType).map(([k, v]) => [k, r2(v * payShare)])), subsidy: r2(subsidyTotal * payShare), fake: !!o.fake,
     };
   });
 }
@@ -552,8 +559,15 @@ export interface SvodMonth {
   orders_without_ledger: number;  // заказы периода, которых в реестре ещё нет
   svc_settled: boolean;           // услуги месяца добраны: есть хотя бы один ЗАКРЫТЫЙ акт позже месяца заказа
   // Пробелы, которые иначе исчезли бы молча. Все три - деньги кабинета, не попавшие в свод.
-  ledger_outside: number;         // сборы акта этого месяца по заказам вне свода (другой статус или заказа нет в выгрузке)
+  // Два разных диагноза, склеивать их нельзя: «другой статус» - нормальная работа базиса,
+  // «заказа нет в выгрузке» - дыра в сборе заказов, и чинится она в другом месте.
+  ledger_outside: number;         // сборы акта этого месяца по заказам вне свода, всего
   ledger_outside_orders: number;
+  ledger_status: number;          // из них: заказ есть, но статус не DELIVERED
+  ledger_missing: number;         // из них: заказа нет в orders.ndjson вообще
+  ledger_missing_orders: number;
+  // Незавершённость периода: сколько заказов месяца уже доставлено из всех оформленных.
+  orders_period: number;
   points_on_delivery: number;     // доля начисленных баллов, осевшая на строке доставки
   cogs_cov: number;               // доля выручки деньгами, закрытая себестоимостью
 }
@@ -573,7 +587,8 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   const overheadMoney = new Map<string, Record<string, number>>();
   const overheadPts = new Map<string, Record<string, number>>();
   const pointsOnDelivery = new Map<string, number>();
-  const outside = new Map<string, { sum: number; orders: Set<string> }>();
+  const outside = new Map<string, { sum: number; orders: Set<string>; status: number; missing: number; missingOrders: Set<string> }>();
+  const knownOrders = new Set<string>(rows.map((r) => r.order));
   let overheadRows: Array<{ business: string; d: string; col: string; points: boolean; amount: number }> = [];
   for (const n of netting) {
     if (!isNettingFee(String(n.type || ""), n.src)) continue;
@@ -594,8 +609,10 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       // Заказ есть, но в свод не идёт: другой статус (RETURNED, отмена в доставке, частичная
       // доставка) или заказа вовсе нет в выгрузке. Это деньги кабинета - их нельзя терять молча.
       const k = `${String(n.business || "")}|${String(n.d || "").slice(0, 7)}`;
-      const cur = outside.get(k) || { sum: 0, orders: new Set<string>() };
-      cur.sum += amount; cur.orders.add(ord); outside.set(k, cur);
+      const cur = outside.get(k) || { sum: 0, orders: new Set<string>(), status: 0, missing: 0, missingOrders: new Set<string>() };
+      cur.sum += amount; cur.orders.add(ord);
+      if (knownOrders.has(ord)) cur.status += amount; else { cur.missing += amount; cur.missingOrders.add(ord); }
+      outside.set(k, cur);
     }
   }
 
@@ -605,6 +622,22 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   const orderSet = new Map<string, Set<string>>();
   const noLedger = new Map<string, Set<string>>();
   const baseOf = new Map<string, number>();   // сумма начислений заказа - для разнесения услуг
+
+  // Возвраты и субсидии заказа свод разносит САМ, по стоимости позиций. Полагаться на разнесение
+  // из снимка нельзя: оно шло по accruals, а у полностью возвращённой позиции accruals = 0, и её
+  // возврат уезжал на соседний SKU (заказ 58875910850: весь -11 066 ₽ сел на GGT-12-2, хотя
+  // возвращён был GGR-11-4). Снимок пересобирается ночным прогоном, а числа нужны верные сегодня.
+  const orderRefund = new Map<string, number>();
+  const orderSubsidy = new Map<string, number>();
+  const orderBaseAll = new Map<string, number>();   // база субсидии: стоимость всех позиций заказа
+  const orderRetBase = new Map<string, number>();   // база возврата: стоимость ВОЗВРАЩЁННОГО
+  for (const r of rows) {
+    if (!delivered.has(r.order)) continue;
+    orderRefund.set(r.order, (orderRefund.get(r.order) || 0) + ((r.paid_by_type || {}).REFUND || 0));
+    orderSubsidy.set(r.order, (orderSubsidy.get(r.order) || 0) + (r.subsidy || 0));
+    orderBaseAll.set(r.order, (orderBaseAll.get(r.order) || 0) + (r.price || 0) * (r.count || 0));
+    orderRetBase.set(r.order, (orderRetBase.get(r.order) || 0) + (r.price || 0) * (r.returned || 0));
+  }
 
   const itemsOf = new Map<string, OrderRow[]>();
   for (const r of rows) {
@@ -634,21 +667,26 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   for (const r of rows) {
     const k = delivered.get(r.order); if (!k) continue;
     if (!months.has(k)) months.set(k, { business: r.business, ym: k.split("|")[1]!, orders: 0, rows: [],
-      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, points_on_delivery: 0, cogs_cov: 0 });
+      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, points_on_delivery: 0, cogs_cov: 0 });
     const os = orderSet.get(k) || new Set<string>(); os.add(r.order); orderSet.set(k, os);
     if (r.service) {
       // строка доставки: разносим по позициям заказа пропорционально начислениям
       const items = itemsOf.get(r.order) || []; const base = baseOf.get(r.order) || 0;
-      const svcRefund = (r.paid_by_type || {}).REFUND || 0;
       // Доставка тоже берётся как цена × штуки: по accruals заказ с полным возвратом давал 0,
       // и июльская доставка по кабинету мебели выходила 234 800 ₽ вместо 243 800 ₽ кабинета.
-      const ship = (r.price || 0) * (r.count || 0);
-      const droppedPts = r.subsidy || 0;   // доля субсидии, осевшая на строке доставки
+      // Берём ТОЛЬКО долю покупателя: price строки доставки включает и MARKETPLACE, то есть
+      // доставку, оплаченную Маркетом (заказы 59225193154 и 56864253122, 2 599 ₽ по снимку).
+      // Показывать её платежом покупателя - ровно та ошибка, которую блок объявляет своим
+      // отличием. Доля Маркета уходит в «Скидку Маркета», как у товарной строки.
+      const ship = (r.p_buyer || 0) * (r.count || 0);
+      const shipMp = ((r.p_mp || 0) + (r.p_cashback || 0) + (r.p_spasibo || 0)) * (r.count || 0);
+      const droppedPts = (orderBaseAll.get(r.order) || 0) > 0
+        ? (orderSubsidy.get(r.order) || 0) * ((r.price || 0) * (r.count || 0)) / (orderBaseAll.get(r.order) || 1) : 0;
       for (const it of items) {
         const share = base > 0 ? (it.price || 0) * (it.count || 0) / base : 1 / (items.length || 1);
         const s2 = touch(k, it);
         s2.ship_buyer += ship * share;
-        s2.refunds += svcRefund * share;
+        s2.disc_mp += shipMp * share;
       }
       if (droppedPts) pointsOnDelivery.set(k, (pointsOnDelivery.get(k) || 0) + droppedPts);
       continue;
@@ -666,8 +704,26 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     s.disc_mp += (r.p_mp || 0) * n;
     s.disc_plus += ((r.p_cashback || 0) + (r.p_spasibo || 0)) * n;
     s.buyer_pay += (r.p_buyer || 0) * n;
-    s.refunds += (r.paid_by_type || {}).REFUND || 0;
-    s.points_accrued += r.subsidy || 0;
+    // Возврат заказа целиком ложится на товарные позиции пропорционально их стоимости; субсидия -
+    // пропорционально стоимости позиции в полной базе заказа, поэтому доля строки доставки в свод
+    // не попадает (она раскрыта отдельно в points_on_delivery).
+    // Возврат платят за ВОЗВРАЩЁННЫЕ штуки, поэтому он разносится по их стоимости, а не по
+    // стоимости позиции: иначе возврат за один SKU размазывался по всему заказу. Если в заказе
+    // ничего не возвращено, а возврат есть (отмена в доставке), падаем на стоимость позиции.
+    const items = itemsOf.get(r.order) || [];
+    const retBase = orderRetBase.get(r.order) || 0;
+    const itemBase = items.reduce((a, i) => a + (i.price || 0) * (i.count || 0), 0);
+    const mineRet = (r.price || 0) * (r.returned || 0);
+    const mine = (r.price || 0) * n;
+    s.refunds += retBase > 0 ? (orderRefund.get(r.order) || 0) * (mineRet / retBase)
+      : (itemBase > 0 ? (orderRefund.get(r.order) || 0) * (mine / itemBase) : 0);
+    // Субсидия разносится по той же базе, что и всё остальное в своде - стоимость позиции
+    // (цена × штуки). База одна на весь блок, чтобы её нельзя было подобрать под желаемый итог.
+    // Цена этого решения названа в YM_SVOD_RECON.md: по июлю/мебели выходит +2,7% к кабинету,
+    // тогда как база accruals давала -2,3%, а прежнее равнодолевое разнесение +0,34%. Какая из
+    // трёх верна, из наших данных не определяется - вопрос открыт на ДАТУ.
+    const baseAll = orderBaseAll.get(r.order) || 0;
+    s.points_accrued += baseAll > 0 ? (orderSubsidy.get(r.order) || 0) * (mine / baseAll) : 0;
     if (cogs[r.sku] != null) s.cogs += cogs[r.sku]! * ((r.delivered || 0) + (r.returned || 0) - (r.returned || 0));
   }
 
@@ -701,7 +757,8 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     if (!m) {
       m = { business: o.business, ym: o.d.slice(0, 7), orders: 0, rows: [], overhead_money: 0, overhead_points: 0,
         overhead: {}, overhead_pts: {}, svc_months: [], orders_without_ledger: 0, svc_settled: false,
-        ledger_outside: 0, ledger_outside_orders: 0, points_on_delivery: 0, cogs_cov: 0 };
+        ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
+        orders_period: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
     const bag = o.points ? overheadPts : overheadMoney;
@@ -718,10 +775,11 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       const [business, ym] = k.split("|") as [string, string];
       m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
         svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0,
-        points_on_delivery: 0, cogs_cov: 0 };
+        ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
     m.ledger_outside = r2(out.sum); m.ledger_outside_orders = out.orders.size;
+    m.ledger_status = r2(out.status); m.ledger_missing = r2(out.missing); m.ledger_missing_orders = out.missingOrders.size;
   }
 
   for (const s of acc.values()) {
@@ -748,8 +806,17 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     const b = String(n.business || ""); const set = actMonths.get(b) || new Set<string>();
     set.add(String(n.d || "").slice(0, 7)); actMonths.set(b, set);
   }
+  // Сколько заказов месяца оформлено всего (любой статус) - без этого текущий месяц выглядит
+  // как обычный, хотя половина заказов ещё в доставке.
+  const periodOrders = new Map<string, Set<string>>();
+  for (const r of rows) {
+    if (r.service || !r.created) continue;
+    const k = `${r.business}|${r.created.slice(0, 7)}`;
+    const set = periodOrders.get(k) || new Set<string>(); set.add(r.order); periodOrders.set(k, set);
+  }
   for (const [k, m] of months) {
     m.orders = (orderSet.get(k) || new Set()).size;
+    m.orders_period = (periodOrders.get(k) || new Set()).size;
     m.svc_settled = [...(actMonths.get(m.business) || new Set<string>())].some((a) => a > m.ym && a < nowYm);
     m.orders_without_ledger = (noLedger.get(k) || new Set()).size;
     m.svc_months = [...(svcMonths.get(k) || new Set<string>())].sort();

@@ -6,7 +6,7 @@
 // Без сети. Запуск: npm run ym:derive [days=30]
 import { existsSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
-import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, type OrderRow } from "./derive-lib.js";
+import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, isNettingFee, isPointsPaid, type OrderRow } from "./derive-lib.js";
 
 function main() {
   ensureDir();
@@ -62,25 +62,44 @@ function main() {
   // правилам разнесения, и второй источник тех же услуг дал бы двойной счёт.
   const cogsMap = readJson<Record<string, number>>(yp("sku_cogs.json"), {});
   const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to);
+  // Проверка правила «Списание = баллы» считается на сборке: держать её числом в тексте
+  // страницы значит показывать вчерашнюю цифру после сегодняшнего обновления реестра.
+  const SPLIT_B = "74986385", SPLIT_M = "2026-07";
+  let splitMoney = 0, splitPoints = 0;
+  for (const n of netAll as any[]) {
+    if (String(n.business) !== SPLIT_B || String(n.d || "").slice(0, 7) !== SPLIT_M) continue;
+    if (!isNettingFee(String(n.type || ""), n.src)) continue;
+    const v = -(Number(n.amount) || 0);
+    if (isPointsPaid(String(n.type || ""), n.src)) splitPoints += v; else splitMoney += v;
+  }
   writeJson(yp("svod_orders.json"), { platform: "ym", generated_at: new Date().toISOString(),
     basis: "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
+    split_check: { business: SPLIT_B, ym: SPLIT_M, money: Math.round(splitMoney), points: Math.round(splitPoints),
+      act_money: 557250.2, act_points: 2350590.89 },
     months: svod });
   console.log(`ym-derive: свод по дате заказа - ${svod.length} пар (кабинет, месяц)`);
   // Тождество внутри самого API: платёж покупателя по своду (он уже включает доставку) должен
   // сойтись с суммой фактических платежей заказа. Оно ловит ровно тот класс дефекта, из-за
   // которого свод недосчитывал 576 279 ₽: цену за штуку складывали без умножения на count.
+  // Считаем ПОПАРНО по (кабинет, месяц): в общей сумме отклонение одной пары тонет. Допуск 0,1%
+  // пары - на построчное округление r2 его хватает с запасом, а два заказа с доставкой за счёт
+  // Маркета (2 000 ₽ и 599 ₽) он ловил.
   {
     const ordersAll = readNdjson<OrderRow>(yp("orders.ndjson"));
-    const inSvod = new Set<string>();
-    for (const r of ordersAll) if (!r.service && r.status === "DELIVERED" && r.created) inSvod.add(r.order);
-    let pay = 0; for (const r of ordersAll) if (inSvod.has(r.order)) pay += (r.paid_by_type || {}).PAYMENT || 0;
-    let svodPay = 0; for (const m of svod) for (const r of m.rows) svodPay += r.buyer_pay;
-    const diff = Math.abs(svodPay - pay);
-    if (diff > Math.max(100, pay * 0.001)) {
-      console.warn(`::warning::свод: платёж покупателя ${Math.round(svodPay)} против фактических платежей ${Math.round(pay)} (расхождение ${Math.round(diff)} ₽). Тождество Σ(p_buyer × count) + Σ(доставка × count) = Σ PAYMENT нарушено - проверить разнесение цен`);
-    } else {
-      console.log(`ym-derive: свод сходится с платежами заказов - ${Math.round(svodPay)} ₽ (расхождение ${Math.round(diff)} ₽)`);
+    const monthOf = new Map<string, string>();
+    for (const r of ordersAll) if (!r.service && r.status === "DELIVERED" && r.created) monthOf.set(r.order, `${r.business}|${r.created.slice(0, 7)}`);
+    const pay = new Map<string, number>();
+    for (const r of ordersAll) { const k = monthOf.get(r.order); if (k) pay.set(k, (pay.get(k) || 0) + ((r.paid_by_type || {}).PAYMENT || 0)); }
+    const got = new Map<string, number>();
+    for (const m of svod) for (const r of m.rows) { const k = `${m.business}|${m.ym}`; got.set(k, (got.get(k) || 0) + r.buyer_pay); }
+    const bad: string[] = []; let sumPay = 0, sumGot = 0;
+    for (const [k, want] of pay) {
+      const have = got.get(k) || 0; sumPay += want; sumGot += have;
+      const d = Math.abs(have - want);
+      if (d > Math.max(1, Math.abs(want) * 0.001)) bad.push(`${k}: свод ${Math.round(have)} против платежей ${Math.round(want)} (${Math.round(d)} ₽)`);
     }
+    if (bad.length) console.warn(`::warning::свод: платёж покупателя не сходится с фактическими платежами заказа в ${bad.length} парах (кабинет, месяц): ${bad.join("; ")}. Проверить разнесение цен по позициям`);
+    else console.log(`ym-derive: свод сходится с платежами заказов по всем ${pay.size} парам - ${Math.round(sumGot)} ₽ против ${Math.round(sumPay)} ₽`);
   }
 
   // реклама - заглушки (нет источника); не перезаписываем, если кто-то положил реальный снимок с расходом

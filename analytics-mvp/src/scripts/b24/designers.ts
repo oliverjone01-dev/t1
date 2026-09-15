@@ -1,8 +1,10 @@
-// База дизайнеров: сделки всех воронок, где заполнено поле «Дизайнер» (UF_CRM_1778140952)
-// или «Дизайнер!» (UF_CRM_69FB28793E872), а «Направление бизнеса» (UF_CRM_69A7F70A18816)
-// входит в {genglass, metal_gm, gen-group, gentero, valonti} - без glass-memory (2333) и без пустого.
-// Для каждого дизайнера резолвим контакт: имя, почта (из его карточки контакта), ссылка на контакт.
-// Плюс по сделке: воронка (категория), этап, название сделки, имя контакта-клиента.
+// База дизайнеров. Источник - смарт-процесс «Дизайнеры ( тех СП )» (entityTypeId=1124):
+// это реестр дизайнеров бренда. Контакт дизайнера лежит в поле «Контакт Дизайнера»
+// (ufCrm35_1778137689, crm), промокод - «Промокод дизайнера» (ufCrm35_1778137905).
+// (Поле «Дизайнер» на самой сделке фактически пустое: 0-2 из 23481 - не используется.)
+// Для каждого дизайнера: имя/почта/ссылка на его контакт + промокод.
+// Сделки дизайнера ищем по промокоду (UF_DESIGNER_PROMO на сделке) и по контакту (клиент сделки),
+// только направления {genglass, metal_gm, gen-group, gentero, valonti} - без glass-memory и пустого.
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/designers.ts
 import { writeFileSync } from "node:fs";
 
@@ -11,10 +13,12 @@ if (!BASE) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
 const PORTAL = (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, "");
 const OUT = "economics/data/designers.json";
 
-const F_DIR = "UF_CRM_69A7F70A18816";       // Направление бизнеса (enum)
-const F_DES1 = "UF_CRM_1778140952";          // Дизайнер (crm)
-const F_DES2 = "UF_CRM_69FB28793E872";       // Дизайнер!
-const DIR_KEEP = new Set(["2331", "2335", "2337", "2339", "2341"]); // без 2333 glass-memory + без пустого
+const ETID_DES = 1124;                        // смарт «Дизайнеры ( тех СП )»
+const F_DES_CONTACT = "ufCrm35_1778137689";   // Контакт Дизайнера (crm)
+const F_DES_PROMO = "ufCrm35_1778137905";     // Промокод дизайнера (string)
+const F_DIR = "UF_CRM_69A7F70A18816";         // Направление бизнеса (enum) на сделке
+const F_DEAL_PROMO = "UF_CRM_69FB287626AB6";  // UF_DESIGNER_PROMO на сделке
+const DIR_KEEP = new Set(["2331", "2335", "2337", "2339", "2341"]); // без 2333 glass-memory + пустого
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function call(method: string, params: any = {}): Promise<any> {
@@ -34,115 +38,93 @@ async function pageAll(method: string, params: any): Promise<any[]> {
   for (;;) { const j = await call(method, { ...params, start }); const b: any[] = j.result || []; all.push(...b); if (j.next === undefined || !b.length) break; start = j.next; }
   return all;
 }
+async function itemsAll(etid: number, select: string[]): Promise<any[]> {
+  const all: any[] = []; let lastId = 0;
+  for (;;) { const j = await call("crm.item.list", { entityTypeId: etid, select, filter: { ">id": lastId }, order: { id: "ASC" } }); const b: any[] = (j.result && j.result.items) || []; if (!b.length) break; all.push(...b); lastId = Number(b[b.length - 1].id); if (b.length < 50) break; }
+  return all;
+}
 const isEmpty = (v: any) => v === null || v === undefined || v === "" || v === false || (Array.isArray(v) && v.length === 0);
-
-// извлечь id контактов из значения crm-поля (форматы: "C_123", "123", число, массив)
 function contactIds(v: any): number[] {
   if (isEmpty(v)) return [];
   const arr = Array.isArray(v) ? v : [v];
   const out: number[] = [];
-  for (const it of arr) {
-    const s = String(it).trim();
-    let m = s.match(/^C_?(\d+)$/i) || s.match(/^(\d+)$/);
-    if (m) out.push(Number(m[1]));
-  }
+  for (const it of arr) { const s = String(it).trim(); const m = s.match(/^C_?(\d+)$/i) || s.match(/^(\d+)$/); if (m) out.push(Number(m[1])); }
   return out;
 }
 
 async function main() {
-  // 1. воронки (категории сделок)
+  // справочники
   const catRes = await call("crm.category.list", { entityTypeId: 2 });
-  const catName: Record<string, string> = {};
+  const catName: Record<string, string> = { "0": "Общая воронка" };
   for (const c of (catRes.result?.categories || [])) catName[String(c.id)] = c.name;
-  catName["0"] = catName["0"] || "Общая воронка";
-
-  // 2. этапы (все стадии сделок) STATUS_ID -> NAME
   const statuses = await pageAll("crm.status.list", { filter: {} });
   const stageName: Record<string, string> = {};
   for (const s of statuses) if (/^DEAL_STAGE/i.test(String(s.ENTITY_ID))) stageName[String(s.STATUS_ID)] = s.NAME;
-
-  // 3. справочник направлений (enum id -> бренд)
   const dfRes = await call("crm.deal.fields", {});
   const dirItems = (dfRes.result?.[F_DIR]?.items || []) as any[];
   const dirName: Record<string, string> = {};
   for (const it of dirItems) dirName[String(it.ID ?? it.id)] = String(it.VALUE ?? it.value);
 
-  // 4. сделки нужных направлений
-  const deals = await pageAll("crm.deal.list", {
-    filter: { [F_DIR]: Array.from(DIR_KEEP) },
-    select: ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "CONTACT_ID", F_DIR, F_DES1, F_DES2],
-    order: { ID: "ASC" },
-  });
-
-  // отфильтровать: направление в KEEP и есть дизайнер
-  const rows0: any[] = [];
-  const desIds = new Set<number>();
-  const cliIds = new Set<number>();
-  for (const d of deals) {
-    const dir = String(d[F_DIR] ?? "");
-    if (!DIR_KEEP.has(dir)) continue;
-    const ids = [...contactIds(d[F_DES1]), ...contactIds(d[F_DES2])];
-    if (!ids.length) continue;
-    const cli = Number(d.CONTACT_ID || 0) || null;
-    if (cli) cliIds.add(cli);
-    for (const id of ids) { desIds.add(id); rows0.push({ deal: d, designerId: id, dir, cli }); }
+  // 1. реестр дизайнеров
+  const items = await itemsAll(ETID_DES, ["id", "title", "stageId", F_DES_CONTACT, F_DES_PROMO]);
+  const desList: any[] = [];
+  const desContactIds = new Set<number>();
+  const byPromo: Record<string, any> = {};
+  const byContact: Record<string, any> = {};
+  for (const it of items) {
+    const cid = contactIds(it[F_DES_CONTACT])[0] || null;
+    const promo = String(it[F_DES_PROMO] || "").trim();
+    const rec: any = { itemId: it.id, title: it.title || "", contactId: cid, promo, name: "", email: "", link: cid ? `${PORTAL}/crm/contact/details/${cid}/` : "", deals: 0, brands: new Set<string>(), funnels: new Set<string>(), dealRows: [] as any[] };
+    desList.push(rec);
+    if (cid) { desContactIds.add(cid); byContact[String(cid)] = rec; }
+    if (promo) byPromo[promo.toLowerCase()] = rec;
   }
 
-  // 5. резолв контактов (дизайнеры + клиенты) чанками
-  const allIds = Array.from(new Set([...desIds, ...cliIds]));
-  const contact: Record<string, { name: string; email: string }> = {};
-  for (let i = 0; i < allIds.length; i += 50) {
-    const chunk = allIds.slice(i, i + 50);
-    const cs = await pageAll("crm.contact.list", { filter: { ID: chunk }, select: ["ID", "NAME", "LAST_NAME", "SECOND_NAME", "EMAIL"] });
+  // 2. контакты дизайнеров
+  const ids = Array.from(desContactIds);
+  for (let i = 0; i < ids.length; i += 50) {
+    const cs = await pageAll("crm.contact.list", { filter: { ID: ids.slice(i, i + 50) }, select: ["ID", "NAME", "LAST_NAME", "SECOND_NAME", "EMAIL"] });
     for (const c of cs) {
-      const nm = [c.NAME, c.SECOND_NAME, c.LAST_NAME].filter(Boolean).join(" ").trim();
-      let email = "";
-      if (Array.isArray(c.EMAIL) && c.EMAIL.length) email = String(c.EMAIL[0].VALUE || "");
-      contact[String(c.ID)] = { name: nm || `Контакт #${c.ID}`, email };
+      const rec = byContact[String(c.ID)]; if (!rec) continue;
+      rec.name = [c.NAME, c.SECOND_NAME, c.LAST_NAME].filter(Boolean).join(" ").trim() || `Контакт #${c.ID}`;
+      if (Array.isArray(c.EMAIL) && c.EMAIL.length) rec.email = String(c.EMAIL[0].VALUE || "");
     }
   }
-  const cget = (id: number | null) => (id && contact[String(id)]) ? contact[String(id)] : { name: id ? `Контакт #${id}` : "", email: "" };
+  for (const r of desList) if (!r.name) r.name = r.contactId ? `Контакт #${r.contactId}` : (r.title || "(без контакта)");
 
-  // 6. строки
-  const rows = rows0.map((r) => {
-    const d = r.deal; const des = cget(r.designerId); const cli = cget(r.cli);
-    return {
-      designer: des.name,
-      email: des.email,
-      link: `${PORTAL}/crm/contact/details/${r.designerId}/`,
-      designerId: r.designerId,
-      funnel: catName[String(d.CATEGORY_ID)] || `Воронка ${d.CATEGORY_ID}`,
-      stage: stageName[String(d.STAGE_ID)] || String(d.STAGE_ID),
-      title: d.TITLE || "",
-      clientName: cli.name,
-      direction: dirName[r.dir] || r.dir,
-      dealId: d.ID,
-    };
+  // 3. сделки нужных направлений: матчим к дизайнеру по промокоду и по контакту-клиенту
+  const deals = await pageAll("crm.deal.list", {
+    filter: { [F_DIR]: Array.from(DIR_KEEP) },
+    select: ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "CONTACT_ID", F_DIR, F_DEAL_PROMO],
+    order: { ID: "ASC" },
   });
-
-  // 7. уникальные дизайнеры
-  const byId: Record<string, any> = {};
-  for (const r of rows) {
-    const k = String(r.designerId);
-    if (!byId[k]) byId[k] = { designer: r.designer, email: r.email, link: r.link, designerId: r.designerId, deals: 0, brands: new Set<string>(), funnels: new Set<string>() };
-    byId[k].deals++; byId[k].brands.add(r.direction); byId[k].funnels.add(r.funnel);
+  let matched = 0;
+  for (const d of deals) {
+    const dir = String(d[F_DIR] ?? ""); if (!DIR_KEEP.has(dir)) continue;
+    const promo = String(d[F_DEAL_PROMO] || "").trim().toLowerCase();
+    const cli = Number(d.CONTACT_ID || 0) || null;
+    let rec = (promo && byPromo[promo]) || (cli && byContact[String(cli)]) || null;
+    if (!rec) continue;
+    matched++;
+    rec.deals++; rec.brands.add(dirName[dir] || dir); rec.funnels.add(catName[String(d.CATEGORY_ID)] || `Воронка ${d.CATEGORY_ID}`);
+    rec.dealRows.push({ dealId: d.ID, title: d.TITLE || "", funnel: catName[String(d.CATEGORY_ID)] || String(d.CATEGORY_ID), stage: stageName[String(d.STAGE_ID)] || String(d.STAGE_ID), direction: dirName[dir] || dir, via: (promo && byPromo[promo]) ? "промокод" : "контакт" });
   }
-  const designers = Object.values(byId).map((x: any) => ({
-    designer: x.designer, email: x.email, link: x.link, designerId: x.designerId,
-    deals: x.deals, brands: Array.from(x.brands).join(", "), funnels: Array.from(x.funnels).join(", "),
-  })).sort((a, b) => b.deals - a.deals);
+
+  const designers = desList.map((r) => ({
+    name: r.name, email: r.email, link: r.link, contactId: r.contactId, promo: r.promo,
+    deals: r.deals, brands: Array.from(r.brands).join(", "), funnels: Array.from(r.funnels).join(", "),
+  })).sort((a, b) => b.deals - a.deals || (a.name > b.name ? 1 : -1));
+  const rows: any[] = [];
+  for (const r of desList) for (const dr of r.dealRows) rows.push({ designer: r.name, email: r.email, link: r.link, promo: r.promo, ...dr });
 
   const out = {
-    generated_at: new Date().toISOString(),
-    portal: PORTAL,
+    generated_at: new Date().toISOString(), portal: PORTAL,
+    source: "смарт «Дизайнеры ( тех СП )» entityTypeId=1124; контакт=ufCrm35_1778137689, промокод=ufCrm35_1778137905",
     directions_kept: Object.fromEntries(Array.from(DIR_KEEP).map((id) => [id, dirName[id] || id])),
-    deals_scanned: deals.length,
-    deals_with_designer: rows0.length,
-    designers_unique: designers.length,
-    designers,
-    rows,
+    designers_total: desList.length, deals_scanned: deals.length, deals_matched: matched,
+    designers, rows,
   };
   writeFileSync(OUT, JSON.stringify(out, null, 2));
-  console.log(`designers: сделок с направлением ${deals.length}, строк дизайнер×сделка ${rows.length}, уникальных дизайнеров ${designers.length}`);
+  console.log(`designers: реестр ${desList.length}, сделок в направлениях ${deals.length}, привязано ${matched}`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });

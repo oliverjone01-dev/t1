@@ -1,37 +1,37 @@
 {
- "dateFrom": "2026-08-15",
- "dateTo": "2026-09-13",
- "generated_at": "2026-09-14T12:51:51.707Z",
+ "dateFrom": "2026-08-16",
+ "dateTo": "2026-09-14",
+ "generated_at": "2026-09-15T11:46:55.930Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 1566,
-  "ad_visits_30d": 4628,
-  "yd_visits_30d": 4584,
-  "ad_leads_30d": 109
+  "direct_clicks_30d": 1597,
+  "ad_visits_30d": 4692,
+  "yd_visits_30d": 4647,
+  "ad_leads_30d": 113
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4460,
-   "users": 3828,
-   "leads": 105,
-   "contacts": 91
+   "visits": 4522,
+   "users": 3874,
+   "leads": 110,
+   "contacts": 96
   },
   {
    "engine": "Yandex.Direct: Undetermined",
-   "visits": 124,
-   "users": 78,
-   "leads": 3,
-   "contacts": 2
+   "visits": 125,
+   "users": 80,
+   "leads": 2,
+   "contacts": 1
   },
   {
    "engine": "Instagram",
-   "visits": 24,
-   "users": 15,
+   "visits": 25,
+   "users": 16,
    "leads": 0,
    "contacts": 0
   },
@@ -53,49 +53,49 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 3032,
-   "leads": 66,
-   "contacts": 56
+   "visits": 3064,
+   "leads": 69,
+   "contacts": 59
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 443,
+   "visits": 454,
    "leads": 13,
    "contacts": 11
   },
   {
-   "utm": "peregorodki_712877517",
-   "visits": 380,
-   "leads": 16,
-   "contacts": 13
-  },
-  {
    "utm": "peregorodki_713589837",
-   "visits": 375,
+   "visits": 383,
    "leads": 9,
    "contacts": 9
   },
   {
+   "utm": "peregorodki_712877517",
+   "visits": 381,
+   "leads": 17,
+   "contacts": 14
+  },
+  {
    "utm": "peregorodki_712877513",
-   "visits": 159,
-   "leads": 4,
-   "contacts": 3
+   "visits": 169,
+   "leads": 5,
+   "contacts": 4
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 84,
+   "visits": 91,
    "leads": 0,
    "contacts": 1
   },
   {
    "utm": "organization",
-   "visits": 41,
+   "visits": 42,
    "leads": 5,
    "contacts": 3
   },
   {
    "utm": "obedennyj_razdvizhnoj_stol_quatris",
-   "visits": 17,
+   "visits": 19,
    "leads": 1,
    "contacts": 0
   },
@@ -108,12 +108,6 @@
   {
    "utm": "sale",
    "visits": 11,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "peregorodki_712877530",
-   "visits": 8,
    "leads": 0,
    "contacts": 0
   },
@@ -154,13 +148,19 @@
    "contacts": 0
   },
   {
-   "utm": "name_704582421",
+   "utm": "peregorodki_712877530",
    "visits": 3,
-   "leads": 1,
-   "contacts": 1
+   "leads": 0,
+   "contacts": 0
   },
   {
    "utm": "alyuminij_ili_stal",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_704582421",
    "visits": 2,
    "leads": 0,
    "contacts": 0
@@ -191,12 +191,6 @@
   },
   {
    "utm": "loft_peregorodki_dlya_zonirovaniya",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "name_704736563",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -253,49 +247,57 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 4628,
-   "users": 3918,
-   "bounce": 21.95332757,
-   "leads": 109,
-   "contacts": 94
+   "visits": 4692,
+   "users": 3967,
+   "bounce": 21.80306905,
+   "leads": 113,
+   "contacts": 98
   },
   {
    "source": "Search engine traffic",
-   "visits": 2793,
-   "users": 2087,
-   "bounce": 18.47475832,
-   "leads": 139,
-   "contacts": 99
+   "visits": 2848,
+   "users": 2120,
+   "bounce": 18.29353933,
+   "leads": 143,
+   "contacts": 103
   },
   {
    "source": "Link traffic",
-   "visits": 1517,
-   "users": 1290,
-   "bounce": 4.87804878,
-   "leads": 5,
+   "visits": 1588,
+   "users": 1349,
+   "bounce": 5.03778338,
+   "leads": 6,
    "contacts": 10
   },
   {
    "source": "Direct traffic",
-   "visits": 1424,
-   "users": 1255,
-   "bounce": 20.08426966,
+   "visits": 1462,
+   "users": 1296,
+   "bounce": 20.10943912,
    "leads": 30,
-   "contacts": 22
+   "contacts": 23
   },
   {
    "source": "Internal traffic",
-   "visits": 244,
-   "users": 184,
-   "bounce": 24.59016393,
-   "leads": 3,
-   "contacts": 3
+   "visits": 252,
+   "users": 190,
+   "bounce": 24.6031746,
+   "leads": 5,
+   "contacts": 5
   },
   {
    "source": "Social network traffic",
    "visits": 27,
    "users": 12,
    "bounce": 18.51851852,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "source": "Messenger traffic",
+   "visits": 12,
+   "users": 8,
+   "bounce": 25,
    "leads": 0,
    "contacts": 0
   },
@@ -308,18 +310,10 @@
    "contacts": 1
   },
   {
-   "source": "Messenger traffic",
-   "visits": 9,
-   "users": 7,
-   "bounce": 33.33333333,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
    "source": "Recommendation system traffic",
-   "visits": 6,
-   "users": 4,
-   "bounce": 16.66666667,
+   "visits": 7,
+   "users": 5,
+   "bounce": 14.28571429,
    "leads": 0,
    "contacts": 0
   }

@@ -41,6 +41,8 @@
     "ym:realization": "tsx src/scripts/ym/reports.ts realization",
     "ym:netting": "tsx src/scripts/ym/reports.ts netting",
     "ym:shows": "tsx src/scripts/ym/reports.ts shows",
+    "ym:services": "tsx src/scripts/ym/reports.ts services",
+    "ym:bonuses": "tsx src/scripts/ym/reports.ts bonuses",
     "ym:reconcile": "tsx src/scripts/ym/reconcile.ts",
     "ym:join": "DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-taxonomy-join.ts && DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-cogs-join.ts",
     "ym:build": "DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-site.ts && DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-katya.ts",

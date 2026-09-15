@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -283,5 +283,30 @@ describe("сборы из ledger'а кабинета (§15: источник д�
     expect(nettingFeeGroup("Приём платежа")).toBe("Эквайринг");
     expect(nettingFeeGroup("Отмена заказа по вине продавца")).toBe("Штрафы");
     expect(nettingFeeGroup("Новая услуга Маркета")).toBe("Прочее");
+  });
+});
+
+describe("софинансирование скидок: сверено с выгрузкой кабинета за июль 2026", () => {
+  // Живая сверка одного магазина зеркал (кампания 149154933) с четырьмя выгрузками кабинета.
+  // Классификация проводки лежит в TRANSACTION_SOURCE, а не в имени услуги: у строк
+  // «Скидка за участие в совместных акциях» в имени услуги стоит НАЗВАНИЕ ТОВАРА.
+  it("источник решает раньше имени услуги", () => {
+    expect(nettingFeeGroup("GENGLASS Зеркало напольное EVELIX", "Скидка за участие в совместных акциях")).toBe("Софинансирование скидок");
+    expect(nettingFeeGroup("Размещение товарных предложений", "Оплата услуг Маркета")).toBe("Комиссия за продажу");
+    expect(nettingFeeGroup("Доставка (средняя миля)", "")).toBe("Логистика (прямая+возвратная)"); // старые снимки без источника
+  });
+  it("сторно услуги внутри «Оплаты услуг» зачитывается, начисление за товар - нет", () => {
+    // Прежнее правило «Начисление - не сбор» отбрасывало два сторно на 11 536 ₽, и сборы за июль
+    // выходили 329 413 ₽ вместо 317 877 ₽ у кабинета.
+    expect(isNettingFee("Начисление", "Оплата услуг Маркета")).toBe(true);
+    expect(isNettingFee("Удержание", "Оплата услуг Маркета")).toBe(true);
+    expect(isNettingFee("Начисление", "Баллы за скидку Маркета")).toBe(false);
+    expect(isNettingFee("Начисление", "Платёж покупателя")).toBe(false);
+    expect(isNettingFee("Списание", "Скидка за участие в совместных акциях")).toBe(true);
+  });
+  it("без источника поведение прежнее - снимки, собранные до появления колонки, не ломаются", () => {
+    expect(isNettingFee("Удержание", "")).toBe(true);
+    expect(isNettingFee("Начисление", "")).toBe(false);
+    expect(isNettingFee("Возврат", undefined)).toBe(false);
   });
 });

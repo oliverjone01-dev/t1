@@ -11,6 +11,8 @@ on:
       since:
         description: "FIELDMAP_SINCE - окно для заполненности сделок (YYYY-MM-DD)"
         required: false
+  schedule:
+    - cron: "0 6 * * 1" # еженедельно, пн 06:00 UTC - освежить схему полей
 
 permissions:
   contents: write

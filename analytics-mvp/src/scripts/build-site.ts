@@ -346,7 +346,6 @@ function main() {
   const model = {
     max: maxDate, floor: dates[0]!, skus, facts, closed: closedData.months,
     closedMeta, tax, cogs, opnl, txsku, ads, offers, oos, fresh,
-    ...(IS_OZON ? {} : { svod }),
   };
 
   mkdirSync(OUT_DIR, { recursive: true });
@@ -363,7 +362,9 @@ function main() {
   writePage(op("obzor.html"), renderOverview(model));
   writePage(op("voronka.html"), renderFunnel(model));
   writePage(op("cards.html"), renderCards(model));
-  writePage(op("money.html"), renderMoney(model));
+  // Свод (около 1,1 МБ) кладём ТОЛЬКО на страницу, которая его читает: в общей модели он
+  // инлайнился в каждую страницу Маркета и раздувал шесть файлов до 1,36 МБ каждый.
+  writePage(op("money.html"), renderMoney(IS_OZON ? model : { ...model, svod }));
   writePage(op("assistant.html"), renderAssistant(model));
 
   const footMkt = `ДРР канала - <b>[ДАННЫЕ]</b>, надёжен. ДРР по линиям - ориентир (G5). Индекс цены - снимок OZON. Реклама/цены не в дневной истории, поэтому страница - снимок за 30 дней, без интерактивного периода.`;

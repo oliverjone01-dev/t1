@@ -124,3 +124,65 @@ describe("пробелы видны, а не замазаны", () => {
     expect(m.rows[0]!.svc_money).toBe(0);
   });
 });
+
+describe("многоштучная позиция (дефект, найденный ФЕНИКСОМ)", () => {
+  it("цены в заказе - ЗА ШТУКУ, поэтому умножаются на count", () => {
+    // Без × count позиция из двух штук приносила выручку одной. По снимку 2026-09 это 576 279 ₽
+    // недосчёта, а у SKU GGR-10-1 маржа переворачивалась с +21,8% на -5,2%.
+    const m = one([item({ count: 2, delivered: 2, price: 10000, p_buyer: 6000, p_mp: 4000, p_cashback: 100 })], []);
+    const r = m.rows[0]!;
+    expect(r.units_delivered).toBe(2);
+    expect(r.price).toBe(20000);
+    expect(r.disc_mp).toBe(8000);
+    expect(r.disc_plus).toBe(200);
+    expect(r.buyer_pay).toBe(12000);
+    expect(r.revenue_money).toBe(12000);
+  });
+  it("возвраты и начисленные баллы на count НЕ умножаются - это уже разнесённые суммы", () => {
+    const m = one([item({ count: 2, delivered: 2, subsidy: 3900, paid_by_type: { REFUND: -500 } })], []);
+    const r = m.rows[0]!;
+    expect(r.points_accrued).toBe(3900);
+    expect(r.refunds).toBe(-500);
+  });
+  it("доставка берётся по цене × штуки, а не по accruals: полный возврат не съедает её", () => {
+    // accruals позиции при полном возврате = 0, и доставка по кабинету мебели за июль выходила
+    // 234 800 ₽ вместо 243 800 ₽ кабинета.
+    const rows = [
+      item({ delivered: 0, returned: 1, accruals: 0 }),
+      item({ pos: 1, service: true, sku: "DOSTAVKA", price: 4500, count: 1, accruals: 0, p_buyer: 4500 }),
+    ];
+    const m = one(rows, []);
+    expect(m.rows.find((r) => r.sku === "S1")!.ship_buyer).toBe(4500);
+  });
+});
+
+describe("пробелы реестра раскрыты, а не потеряны", () => {
+  it("сборы по заказу вне свода считаются отдельно, с числом заказов", () => {
+    const m = buildSvod([item({}), item({ order: "B", status: "RETURNED", delivered: 0, returned: 1 })],
+      [net({ order: "A", amount: -1000 }), net({ order: "B", amount: -700 })] as any, {}, "2026-09-15")[0]!;
+    expect(m.ledger_outside).toBe(700);
+    expect(m.ledger_outside_orders).toBe(1);
+  });
+  it("общие расходы в месяце без доставленных заказов не исчезают - месяц заводится ради них", () => {
+    const ms = buildSvod([item({})], [net({ order: "", d: "2026-02-10", service: "Подписка", amount: -8732 })] as any, {}, "2026-09-15");
+    const feb = ms.find((m) => m.ym === "2026-02")!;
+    expect(feb.overhead_money).toBe(8732);
+    expect(feb.orders).toBe(0);
+  });
+  it("баллы, осевшие на строке доставки, названы суммой", () => {
+    const m = one([item({}), item({ pos: 1, service: true, sku: "DOSTAVKA", price: 1000, subsidy: 250 })], []);
+    expect(m.points_on_delivery).toBe(250);
+  });
+});
+
+describe("результат не зависит от дня прогона", () => {
+  it("svc_settled считается от переданной даты и по актам СВОЕГО кабинета", () => {
+    const rows = [item({})];
+    const acts = [net({ d: "2026-08-10" })] as any;
+    expect(buildSvod(rows, acts, {}, "2026-09-15")[0]!.svc_settled).toBe(true);
+    expect(buildSvod(rows, acts, {}, "2026-08-15")[0]!.svc_settled).toBe(false);
+    // акт чужого кабинета о полноте этого ничего не говорит
+    const alien = [net({ order: "A" }), net({ order: "", business: "9", d: "2026-08-10" })] as any;
+    expect(buildSvod(rows, alien, {}, "2026-09-15").find((m) => m.business === "1")!.svc_settled).toBe(false);
+  });
+});

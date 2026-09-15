@@ -61,11 +61,27 @@ function main() {
   // строкам заказов (до подмены сборов реестром): свод берёт услуги из реестра сам, по своим
   // правилам разнесения, и второй источник тех же услуг дал бы двойной счёт.
   const cogsMap = readJson<Record<string, number>>(yp("sku_cogs.json"), {});
-  const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap);
+  const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to);
   writeJson(yp("svod_orders.json"), { platform: "ym", generated_at: new Date().toISOString(),
     basis: "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
     months: svod });
   console.log(`ym-derive: свод по дате заказа - ${svod.length} пар (кабинет, месяц)`);
+  // Тождество внутри самого API: платёж покупателя по своду (он уже включает доставку) должен
+  // сойтись с суммой фактических платежей заказа. Оно ловит ровно тот класс дефекта, из-за
+  // которого свод недосчитывал 576 279 ₽: цену за штуку складывали без умножения на count.
+  {
+    const ordersAll = readNdjson<OrderRow>(yp("orders.ndjson"));
+    const inSvod = new Set<string>();
+    for (const r of ordersAll) if (!r.service && r.status === "DELIVERED" && r.created) inSvod.add(r.order);
+    let pay = 0; for (const r of ordersAll) if (inSvod.has(r.order)) pay += (r.paid_by_type || {}).PAYMENT || 0;
+    let svodPay = 0; for (const m of svod) for (const r of m.rows) svodPay += r.buyer_pay;
+    const diff = Math.abs(svodPay - pay);
+    if (diff > Math.max(100, pay * 0.001)) {
+      console.warn(`::warning::свод: платёж покупателя ${Math.round(svodPay)} против фактических платежей ${Math.round(pay)} (расхождение ${Math.round(diff)} ₽). Тождество Σ(p_buyer × count) + Σ(доставка × count) = Σ PAYMENT нарушено - проверить разнесение цен`);
+    } else {
+      console.log(`ym-derive: свод сходится с платежами заказов - ${Math.round(svodPay)} ₽ (расхождение ${Math.round(diff)} ₽)`);
+    }
+  }
 
   // реклама - заглушки (нет источника); не перезаписываем, если кто-то положил реальный снимок с расходом
   const ads = readJson<any>(yp("ads_30d.json"), null);

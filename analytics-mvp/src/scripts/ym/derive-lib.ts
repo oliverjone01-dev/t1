@@ -48,6 +48,12 @@ export interface OrderRow {
   fees: Record<string, number>; fee_total: number; payout: number; fee_actual: boolean;
   fee_source?: "netting" | "order"; // откуда взяты сборы: ledger кабинета или комиссии заказа
   paid: number; paid_by_type: Record<string, number>; subsidy: number; fake: boolean;
+  // Баллы Маркета из subsidies[] заказа, разнесённые по позициям. `subsidy` - ЧИСТОЕ начисление
+  // (ACCRUAL минус DEDUCTION); разбивка нужна, чтобы списание при невыкупе и возврате было видно,
+  // а не только сальдо. Ключ разбивки - "<operationType>|<type>", например "ACCRUAL|SUBSIDY".
+  sub_acc?: number;                       // начислено баллов (ACCRUAL)
+  sub_ded?: number;                       // списано баллов (DEDUCTION, положительное число)
+  sub_by_type?: Record<string, number>;   // разбивка по источнику и типу операции
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -106,7 +112,22 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
   const paidTotal = o.payments.reduce((s, p) => s + (p.type === "REFUND" ? -p.total : p.total), 0);
   const paidByType: Record<string, number> = {};
   for (const p of o.payments) { const k = String(p.type || "?").toUpperCase(); paidByType[k] = r2((paidByType[k] || 0) + (p.type === "REFUND" ? -p.total : p.total)); }
-  const subsidyTotal = (o.subsidies || []).reduce((s, x) => s + x.amount, 0);
+  // Раньше здесь стоял reduce по всем субсидиям без разбора: ACCRUAL и DEDUCTION складывались,
+  // то есть СПИСАНИЕ баллов при невыкупе и возврате ПРИБАВЛЯЛОСЬ к начислению. Из-за этого баллы
+  // по июлю 2026 были завышены на 2.7%. По спецификации Маркета amount - величина без знака, а
+  // направление операции несёт operationType (ACCRUAL / DEDUCTION); источник несёт type
+  // (YANDEX_CASHBACK - Плюс, SUBSIDY - скидка Маркета по акциям и промокодам, DELIVERY - DBS).
+  let subAcc = 0, subDed = 0;
+  const subByType: Record<string, number> = {};
+  for (const x of o.subsidies || []) {
+    const op = String(x.operationType || "").toUpperCase();
+    const amt = Math.abs(Number(x.amount) || 0);
+    if (!amt) continue;
+    if (op === "DEDUCTION") subDed += amt; else subAcc += amt;
+    const k = `${op || "?"}|${String(x.type || "?").toUpperCase()}`;
+    subByType[k] = r2((subByType[k] || 0) + amt);
+  }
+  const subsidyTotal = subAcc - subDed;
   // База разнесения платежей и субсидий - стоимость позиции (цена × штуки), а не accruals:
   // у полностью возвращённой позиции accruals обнуляются, и её возврат уезжал на соседний SKU.
   // Живой случай: заказ 58875910850 (июль, мебель), GGR-11-4 возвращён целиком, а весь возврат
@@ -133,6 +154,8 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
       revenue: x.revenue, accruals: x.accruals,
       fees: f, fee_total: ft, payout: deliveredSet ? r2(x.accruals - ft) : 0, fee_actual: feeActual,
       paid: r2(paidTotal * payShare), paid_by_type: Object.fromEntries(Object.entries(paidByType).map(([k, v]) => [k, r2(v * payShare)])), subsidy: r2(subsidyTotal * payShare), fake: !!o.fake,
+      sub_acc: r2(subAcc * payShare), sub_ded: r2(subDed * payShare),
+      sub_by_type: Object.fromEntries(Object.entries(subByType).map(([k, v]) => [k, r2(v * payShare)])),
     };
   });
 }
@@ -555,6 +578,8 @@ export interface SvodRow {
 export interface SvodMonth {
   business: string; ym: string; orders: number; rows: SvodRow[];
   overhead_money: number; overhead_points: number; overhead: Record<string, number>; overhead_pts: Record<string, number>;
+  points_acc: number;   // начислено баллов за месяц (ACCRUAL из subsidies[])
+  points_ded: number;   // списано баллов при невыкупе и возврате (DEDUCTION), положительное число
   overhead_src: "ledger" | "act";   // откуда взяты общие расходы: только реестр или акт по стоимости услуг
   points_src: "orders" | "report"; // откуда взяты баллы: subsidies[] заказа или отчёт по баллам Маркета
   points_report: number;           // начислено баллов по отчёту за этот месяц (для сверки с разнесённым)
@@ -614,6 +639,8 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   const overheadMoney = new Map<string, Record<string, number>>();
   const overheadPts = new Map<string, Record<string, number>>();
   const pointsOnDelivery = new Map<string, number>();
+  const pointsAcc = new Map<string, number>();   // начислено баллов за месяц (ACCRUAL)
+  const pointsDed = new Map<string, number>();   // списано при невыкупе и возврате (DEDUCTION)
   const outside = new Map<string, { sum: number; orders: Set<string>; status: number; missing: number; missingOrders: Set<string> }>();
   const knownOrders = new Set<string>(rows.map((r) => r.order));
   let overheadRows: Array<{ business: string; d: string; col: string; points: boolean; amount: number }> = [];
@@ -656,12 +683,19 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   // возвращён был GGR-11-4). Снимок пересобирается ночным прогоном, а числа нужны верные сегодня.
   const orderRefund = new Map<string, number>();
   const orderSubsidy = new Map<string, number>();
+  // Начисление и списание копим НА УРОВНЕ ЗАКАЗА, как и сальдо. Если считать их по строкам, до
+  // которых доходит цикл, позиция-доставка в разбивку не попадёт, а в сальдо попадёт - и
+  // «начислено минус списано» перестанет сходиться с показанными баллами (на июле это 160 763 ₽).
+  const orderSubAcc = new Map<string, number>();
+  const orderSubDed = new Map<string, number>();
   const orderBaseAll = new Map<string, number>();   // база субсидии: стоимость всех позиций заказа
   const orderRetBase = new Map<string, number>();   // база возврата: стоимость ВОЗВРАЩЁННОГО
   for (const r of rows) {
     if (!delivered.has(r.order)) continue;
     orderRefund.set(r.order, (orderRefund.get(r.order) || 0) + ((r.paid_by_type || {}).REFUND || 0));
     orderSubsidy.set(r.order, (orderSubsidy.get(r.order) || 0) + (r.subsidy || 0));
+    orderSubAcc.set(r.order, (orderSubAcc.get(r.order) || 0) + (r.sub_acc || 0));
+    orderSubDed.set(r.order, (orderSubDed.get(r.order) || 0) + (r.sub_ded || 0));
     orderBaseAll.set(r.order, (orderBaseAll.get(r.order) || 0) + (r.price || 0) * (r.count || 0));
     orderRetBase.set(r.order, (orderRetBase.get(r.order) || 0) + (r.price || 0) * (r.returned || 0));
   }
@@ -694,7 +728,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   for (const r of rows) {
     const k = delivered.get(r.order); if (!k) continue;
     if (!months.has(k)) months.set(k, { business: r.business, ym: k.split("|")[1]!, orders: 0, rows: [],
-      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 });
+      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 });
     const os = orderSet.get(k) || new Set<string>(); os.add(r.order); orderSet.set(k, os);
     if (r.service) {
       // строка доставки: разносим по позициям заказа пропорционально начислениям
@@ -750,6 +784,14 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     // тогда как база accruals давала -2,3%, а прежнее равнодолевое разнесение +0,34%. Какая из
     // трёх верна, из наших данных не определяется - вопрос открыт на ДАТУ.
     const baseAll = orderBaseAll.get(r.order) || 0;
+    // Начисление и списание копим по отдельности: в свод идёт сальдо (r.subsidy = ACCRUAL минус
+    // DEDUCTION), но пользователю надо видеть, что списание вообще было. До правки operationType
+    // игнорировался, и списание ПРИБАВЛЯЛОСЬ к начислению - отсюда завышение баллов на 2.7%.
+    if (baseAll > 0) {
+      const sh = mine / baseAll;
+      pointsAcc.set(k, (pointsAcc.get(k) || 0) + (orderSubAcc.get(r.order) || 0) * sh);
+      pointsDed.set(k, (pointsDed.get(k) || 0) + (orderSubDed.get(r.order) || 0) * sh);
+    }
     s.points_accrued += baseAll > 0 ? (orderSubsidy.get(r.order) || 0) * (mine / baseAll) : 0;
     if (cogs[r.sku] != null) s.cogs += cogs[r.sku]! * ((r.delivered || 0) + (r.returned || 0) - (r.returned || 0));
   }
@@ -783,7 +825,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     let m = months.get(k);
     if (!m) {
       m = { business: o.business, ym: o.d.slice(0, 7), orders: 0, rows: [], overhead_money: 0, overhead_points: 0,
-        overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false,
+        overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false,
         ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
         orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
@@ -822,7 +864,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     if (!m) {
       const [business, ym] = k.split("|") as [string, string];
       m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
-        overhead_src: "ledger", points_src: "orders", points_report: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0,
+        overhead_src: "ledger", points_src: "orders", points_report: 0, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0,
         ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
         orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
@@ -844,7 +886,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     let m = months.get(k);
     if (!m) {
       const [business, ym] = k.split("|") as [string, string];
-      m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0,
+      m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0, points_acc: 0, points_ded: 0,
         svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0,
         ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
@@ -917,6 +959,8 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     m.svc_months = [...(svcMonths.get(k) || new Set<string>())].sort();
     m.overhead = overheadMoney.get(k) || {}; m.overhead_pts = overheadPts.get(k) || {};
     m.points_on_delivery = r2(pointsOnDelivery.get(k) || 0);
+    m.points_acc = r2(pointsAcc.get(k) || 0);
+    m.points_ded = r2(pointsDed.get(k) || 0);
     m.overhead_money = r2(m.overhead_money); m.overhead_points = r2(m.overhead_points);
     m.rows.sort((a, b) => b.revenue_money - a.revenue_money);
     const rev = m.rows.reduce((a, r) => a + r.revenue_money, 0);

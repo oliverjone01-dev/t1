@@ -8,7 +8,16 @@
 //
 // Здесь сторожим то, что копится: число строк и сумму по месяцам. Накопительный файл имеет право
 // расти и уточняться, но не имеет права терять уже собранный месяц.
-// Запуск: tsx validate-facts.ts <файл.ndjson> <прошлый.ndjson|""> [--month-key=d|date|ym] [--sum=amount]
+// Для ЗНАКОВОГО реестра сумму надо брать по модулю (--abs). Живой факт 2026-09-16: гейт остановил
+// прогон на 1023124/2026-09 («сумма amount была 387 595, стала 309 953»), хотя не потерялось ни
+// строки - про строки он как раз не ругался. В netting.ndjson «Начисление» плюс, «Списание» минус,
+// и месячная сумма это САЛЬДО: 387 595 ₽ при обороте 3 002 575 ₽, то есть 12.9%. Один день двигает
+// сальдо в среднем на 67 229 ₽, а максимум за сентябрь - 297 366 ₽. Просадка, на которую ругнулся
+// гейт, - 77 642 ₽, меньше медианного дня: это просто добор 15 сентября, где списаний больше начислений.
+// Порог 10% от сальдо - это 1.3% от оборота, то есть гейт срабатывал на шуме. По модулю всё честно:
+// потеря строк ВСЕГДА уменьшает оборот, а задвоение его растит, поэтому --abs не ослабляет защиту,
+// а делает её применимой к знаковым файлам.
+// Запуск: tsx validate-facts.ts <файл.ndjson> <прошлый.ndjson|""> [--month-key=d|date|ym] [--sum=amount] [--abs]
 import { readFileSync, existsSync } from "node:fs";
 
 // Порог просадки месяца. ФЕНИКС 2026-09-07: Number('abc') = NaN, и тогда ВСЕ сравнения давали false -
@@ -41,10 +50,23 @@ function main() {
   const [file, prevFile] = [process.argv[2]!, process.argv[3] || ""];
   const arg = (n: string, d: string) => (process.argv.find((a) => a.startsWith(`--${n}=`)) || `--${n}=${d}`).split("=")[1]!;
   const mk = arg("month-key", "d"), sumK = arg("sum", "");
+  const abs = process.argv.includes("--abs");
+  const val = (r: any) => { const v = Number(r[sumK]) || 0; return abs ? Math.abs(v) : v; };
   const byBizEarly = process.argv.includes("--by=business");
   const cur = rows(file);
-  if (!cur.length) { console.error(`FACTS INVALID: ${file} пуст или нечитаем`); process.exit(1); }
   const prev = rows(prevFile);
+  // Источника может не быть вовсе. Отчёта по баллам Маркета в Partner API не существует (все 22
+  // метода генерации выписаны из OpenAPI-спецификации, вызовы united-bonuses / bonuses /
+  // united-marketplace-bonuses отдают 404), поэтому bonuses_monthly.ndjson не появляется, и гейт
+  // ронял прогон на «пуст или нечитаем» - при том, что ронять тут нечего.
+  // Но «файла нет» законно ТОЛЬКО когда его не было и раньше: исчезновение собранного файла - это
+  // ровно та потеря, ради которой гейт и стоит.
+  if (!existsSync(file)) {
+    if (prev.length) { console.error(`FACTS INVALID: ${file} исчез, а в прошлом снимке было ${prev.length} строк`); process.exit(1); }
+    console.log(`facts-gate ${file}: источник не собран и раньше не собирался - сторожить нечего`);
+    return;
+  }
+  if (!cur.length) { console.error(`FACTS INVALID: ${file} пуст или нечитаем`); process.exit(1); }
   if (!prev.length) { console.log(`facts-gate ${file}: строк ${cur.length}, прошлого снимка нет - сравнивать не с чем`); return; }
 
   // Ключ агрегации - пара (кабинет, месяц), если файл её несёт. Чистка в продьюсере идёт по паре,
@@ -69,13 +91,13 @@ function main() {
       if (r.aggregate) {
         const k = byBizEarly && r.business ? `${r.business}/${AGG_BUCKET}` : AGG_BUCKET;
         const b = (m[k] ||= { n: 0, s: 0 });
-        b.n++; if (sumK) b.s += Number(r[sumK]) || 0;
+        b.n++; if (sumK) b.s += val(r);
         continue;
       }
       const mon = String(r[mk] || "").slice(0, 7); if (!mon) continue;
       const key = byBiz && r.business ? `${r.business}/${mon}` : mon;
       const b = (m[key] ||= { n: 0, s: 0 });
-      b.n++; if (sumK) b.s += Number(r[sumK]) || 0;
+      b.n++; if (sumK) b.s += val(r);
     }
     return m;
   };

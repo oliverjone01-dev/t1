@@ -58,6 +58,57 @@ describe("колонки отчётов Маркета (живые заголо�
   });
 });
 
+// Акт по стоимости услуг. Прогон 2026-09-16 скачал все 9 таблиц по обоим кабинетам и разобрал
+// НОЛЬ строк: карта колонок была снята с русской выгрузки кабинета, а API отдаёт английские
+// UPPER_SNAKE. Шаг при этом отчитался успехом, дашборд молча остался на реестре платежей.
+// Заголовки ниже выписаны из лога того прогона - если карта снова разъедется, падать будет тут.
+describe("акт по стоимости услуг: колонки по живым заголовкам API", () => {
+  const FILES = ["placement", "boost", "shelf", "cpm-boost", "delivery",
+    "payment_accepting", "payment_transfer", "order_processing", "storage_of_returns"];
+  it("сумма услуги находится во ВСЕХ девяти таблицах акта", () => {
+    const miss: string[] = [];
+    for (const f of FILES) {
+      const h = H[`united-marketplace-services/${f}.csv`]!;
+      expect(h, `нет фикстуры заголовков для ${f}.csv`).toBeTruthy();
+      const i = col("united-marketplace-services", "amount", h);
+      if (i < 0) miss.push(f);
+      else expect(h[i], `${f}.csv: сумма зацепилась за «${h[i]}»`).toMatch(/^(SERVICE_PRICE|TOTAL_AMOUNT)$/);
+    }
+    expect(miss).toEqual([]);
+  });
+  it("placement.csv берёт TOTAL_AMOUNT, а не AMOUNT_WITHOUT_BONUSES - иначе теряется оплаченное баллами", () => {
+    const h = H["united-marketplace-services/placement.csv"]!;
+    expect(h[col("united-marketplace-services", "amount", h)]).toBe("TOTAL_AMOUNT");
+  });
+  it("оплаченное баллами - это BONUS_PAID, и только там, где оно есть", () => {
+    for (const f of ["boost", "shelf", "cpm-boost"]) {
+      const h = H[`united-marketplace-services/${f}.csv`]!;
+      expect(h[col("united-marketplace-services", "amount_points", h)], f).toBe("BONUS_PAID");
+    }
+    // В акте размещения колонка называется «сумма БЕЗ баллов» - это не баллы, цеплять её нельзя.
+    const p = H["united-marketplace-services/placement.csv"]!;
+    expect(col("united-marketplace-services", "amount_points", p)).toBe(-1);
+  });
+  it("три таблицы не имеют названия услуги вовсе - его даёт имя файла", () => {
+    for (const f of ["payment_accepting", "payment_transfer", "storage_of_returns"]) {
+      const h = H[`united-marketplace-services/${f}.csv`]!;
+      expect(col("united-marketplace-services", "service", h), `${f}.csv`).toBe(-1);
+    }
+    for (const f of ["placement", "boost", "shelf", "cpm-boost", "delivery", "order_processing"]) {
+      const h = H[`united-marketplace-services/${f}.csv`]!;
+      expect(h[col("united-marketplace-services", "service", h)], f).toBe("SERVICE_NAME");
+    }
+  });
+  it("дата берётся из ACT_DATE или SERVICE_DATE_TIME, но не из даты создания заказа", () => {
+    for (const f of FILES) {
+      const h = H[`united-marketplace-services/${f}.csv`]!;
+      const i = col("united-marketplace-services", "date", h);
+      expect(i, f).toBeGreaterThanOrEqual(0);
+      expect(h[i], `${f}.csv`).toMatch(/^(ACT_DATE|SERVICE_DATE_TIME|SERVICE_DATE)$/);
+    }
+  });
+});
+
 describe("лимит генерации отчётов Маркета - мягкая остановка, а не падение", () => {
   it("HTTP 420 и METHOD_FAILURE распознаются как лимит, обычные ошибки - нет", () => {
     expect(isRateLimit(new Error('Market POST /reports/united-netting/generate -> HTTP 420: {"errors":[{"code":"METHOD_FAILURE","message":"Hit rate limit of 1 points per 2 minutes"}]}'))).toBe(true);

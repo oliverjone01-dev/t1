@@ -279,18 +279,23 @@ export function buildPnlSkuDaily(rows: OrderRow[]) {
   const m = new Map<string, any>();
   for (const r of paid(rows, "0000-00-00", "9999-99-99")) {
     const k = `${r.fin}|${r.sku}`;
-    const t = m.get(k) || { d: r.fin, sku: r.sku, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, otherSvc: 0, amount: 0, platform: PLATFORM };
+    const t = m.get(k) || { d: r.fin, sku: r.sku, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, promo: 0, otherSvc: 0, amount: 0, platform: PLATFORM };
     t.accruals += r.accruals; t.amount += r.payout;
     for (const [g, v] of Object.entries(r.fees)) {
       if (g === "Комиссия за продажу") t.commission -= v; else if (g === "Логистика (прямая+возвратная)") t.delivery -= v;
       else if (g === "Эквайринг") t.acquiring -= v; else if (g === "Хранение") t.storage -= v;
       // Софинансирование скидок - крупнейшая статья расходов канала (июль 2026, один магазин зеркал:
       // 1 140 019 ₽ против 317 877 ₽ всех остальных услуг вместе). В «Прочих» её быть не должно.
-      else if (g === COFIN_GROUP) t.cofin -= v; else t.otherSvc -= v;
+      // Буст продаж и участие в программе лояльности - отдельная статья, а не «прочее»: у Маркета
+      // это реклама за продажу, и её нельзя смешивать с эквайрингом и штрафами. Без своей строки
+      // она сидела в «Прочих» вместе с софинансированием и читалась как непонятный ком.
+      else if (g === COFIN_GROUP) t.cofin -= v;
+      else if (g === "Продвижение (буст/лояльность)") t.promo -= v;
+      else t.otherSvc -= v;
     }
     m.set(k, t);
   }
-  return [...m.values()].map((t) => { for (const k of ["accruals", "commission", "delivery", "acquiring", "storage", "cofin", "otherSvc", "amount"]) t[k] = Math.round(t[k]); return t; }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
+  return [...m.values()].map((t) => { for (const k of ["accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"]) t[k] = Math.round(t[k]); return t; }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
 }
 
 // Сборы уровня кабинета (плата за размещение, буст вне заказа, штрафы, подписки) в stats/orders не

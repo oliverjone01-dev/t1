@@ -454,8 +454,20 @@ async function services(months: string[]) {
 // Имя метода в Partner API документацией отсюда не подтверждается (сеть до доков закрыта), поэтому
 // перебираем кандидатов: неизвестный тип отчёта Маркет отклоняет сразу, без генерации, так что
 // перебор не тратит лимит. Принятое имя и форму тела запоминаем в состоянии.
-const BONUS_SCHEMA = 1;
-const BONUS_TYPES = ["united-bonuses", "bonuses", "united-marketplace-bonuses", "market-bonuses", "united-netting-bonuses"];
+// 2 - до этого продьюсер звал несуществующие эндпоинты и не собрал ни строки; состояние
+// с прошлой версией содержит только следы неудач.
+const BONUS_SCHEMA = 2;
+// Отчёт по баллам Маркета - это НЕ отдельный метод. Это третий тип отчёта «По платежам»
+// (в кабинете: Финансы -> Финансовые отчёты -> По платежам -> «О баллах Маркета»), и в API он
+// запрашивается тем же reports/united-netting/generate, но с телом monthOfYear вместо диапазона
+// дат. В OpenAPI-спецификации Маркета это сказано прямо, в описании MonthOfYearDTO: «Месяц, за
+// который нужен отчет о баллах Маркета». Прежние пять имён были выдуманы и все отдавали 404:
+// я перебирал названия эндпоинтов вместо того, чтобы прочитать схему запроса метода, который и
+// так вызываю каждый прогон.
+const BONUS_TYPES = ["united-netting"];
+const BONUS_BODIES: Body[] = [
+  { name: "monthOfYear", body: (b, ym) => ({ businessId: Number(b), monthOfYear: { year: Number(ym.slice(0, 4)), month: Number(ym.slice(5, 7)) } }) },
+];
 async function bonuses(months: string[]) {
   const OUT = yp("bonuses_monthly.ndjson");
   const STATE = yp("bonuses_state.json");
@@ -473,7 +485,7 @@ async function bonuses(months: string[]) {
       const pair = `${b}/${ym}`;
       if (done.has(pair) && ym < freshFrom) continue;
       const types = typeName ? [typeName] : BONUS_TYPES;
-      const shapes = bodyName ? SERVICE_BODIES.filter((x) => x.name === bodyName) : SERVICE_BODIES;
+      const shapes = bodyName ? BONUS_BODIES.filter((x) => x.name === bodyName) : BONUS_BODIES;
       let tables: Tbl[] | null = null, usedType = "", usedBody = "";
       outer: for (const t of types) {
         for (const shape of shapes) {

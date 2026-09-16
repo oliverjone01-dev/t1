@@ -309,3 +309,56 @@ describe("раскрытие баллов сходится с показанны
     for (const m of svod.months) expect(m.points_ded, `${m.business}/${m.ym}`).toBeGreaterThanOrEqual(0);
   });
 });
+
+// Отчёт по баллам Маркета. Живой агрегат за июль 2026 по кабинету зеркал, выгруженный Иваном из
+// кабинета (Финансы -> Финансовые отчёты -> По платежам -> «О баллах Маркета»). В API это тот же
+// reports/united-netting/generate с телом monthOfYear - отдельного метода нет, и пять имён, которые
+// я перебирал раньше, были выдуманы.
+//
+// Главное, что показывает этот отчёт: НАЧИСЛЕННЫЕ баллы не равны СПИСАННЫМ. За июль по зеркалам
+// начислено 1 748 465, списано 1 750 954, возвращено 2 489 - баланс -2 000 руб.
+describe("отчёт по баллам: разбор типов транзакций", () => {
+  const ref = JSON.parse(readFileSync("fixtures/ym/bonuses-2026-07-1023124.json", "utf-8"));
+  const rows = ref.by_type_source as Array<{ type: string; source: string; n: number; sum: number }>;
+  const kind = (r: { type: string; source: string }) => bonusKind({ ym: "2026-07", business: "1023124", type: r.type, src: r.source, amount: 0 });
+
+  it("начисление узнаётся по ИСТОЧНИКУ проводки, а не по знаку суммы", () => {
+    const acc = rows.filter((r) => kind(r) === "accrual");
+    expect(acc.map((r) => r.source).sort()).toEqual([
+      "Баллы за скидку Маркета", "Баллы за скидку Маркета на доставку", "Баллы за скидку Яндекс Плюс",
+    ]);
+    expect(Math.round(acc.reduce((a, r) => a + r.sum, 0))).toBe(1748465);
+  });
+
+  it("списание и возврат списания - это трата баллов на услуги, а не начисление", () => {
+    const sp = rows.filter((r) => kind(r) === "spend");
+    expect(sp.map((r) => r.type).sort()).toEqual(["Возврат списания", "Списание"]);
+    // Списание -1 750 954.03 плюс возврат списания +2 489.03 = потрачено 1 748 465.
+    expect(Math.round(sp.reduce((a, r) => a + r.sum, 0))).toBe(-1748465);
+  });
+
+  it("ни одна проводка отчёта не осталась неразобранной", () => {
+    expect(rows.filter((r) => kind(r) === "other").map((r) => `${r.type} | ${r.source}`)).toEqual([]);
+  });
+
+  it("начислено и потрачено - разные величины, сходятся только по кабинету за месяц", () => {
+    const acc = rows.filter((r) => r.type === "Начисление").reduce((a, r) => a + r.sum, 0);
+    const ded = rows.filter((r) => r.type === "Списание").reduce((a, r) => a + r.sum, 0);
+    const ret = rows.filter((r) => r.type === "Возврат списания").reduce((a, r) => a + r.sum, 0);
+    // Валовые суммы не равны: начислено 1 748 465, списано 1 750 954, возвращено 2 489.
+    expect(Math.round(acc)).toBe(1748465);
+    expect(Math.round(ded)).toBe(-1750954);
+    expect(Math.round(ret)).toBe(2489);
+    // По кабинету за июль баллы израсходованы полностью, остаток ноль. У мебели за тот же месяц
+    // остаток 9 620 руб - строка «Премия, предоставленная Исполнителем». То есть ноль тут факт
+    // конкретного месяца, а не тождество: проверяем сведение, а не равенство начислено=списано.
+    expect(Math.abs(acc + ded + ret)).toBeLessThan(1);
+  });
+
+  it("проводки баллов отличаются от денежных по типу транзакции", () => {
+    expect(isPointsPaid("Списание")).toBe(true);
+    expect(isPointsPaid("Возврат списания")).toBe(true);
+    expect(isPointsPaid("Удержание")).toBe(false);
+    expect(isPointsPaid("Начисление")).toBe(false);
+  });
+});

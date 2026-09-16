@@ -67,10 +67,22 @@ function stopOnRateLimit(e: unknown, what: string): boolean {
   return true;
 }
 
+// Ключи на «_» - это документация карты колонок (_live: откуда сняты заголовки и на чём сверено
+// правило разбора), а не список шаблонов. Раньше они шли в findCol наравне с колонками, и тот
+// перебирал СИМВОЛЫ прозы как регулярки. Пока среди них попадался символ, совпадавший с
+// каким-нибудь заголовком, findCol выходил раньше и это сходило с рук. У отчёта по баллам
+// заголовки английские (TRANSACTION_DATE, ORDER_ID...), русская проза не совпала ни одним
+// символом, перебор дошёл до скобки - и продьюсер падал на `new RegExp("(")`:
+//   ym-reports FAILED: Invalid regular expression: /(/i: Unterminated group
+// Живой факт 2026-09-16, прогон 38: отчёт СКАЧАЛСЯ (netting_bonuses.csv, 277 строк), имя метода
+// и тело подтвердились - и всё это потерялось на разборе, состояние даже не записалось.
 function cols(type: string, headers: string[], required: string[]): Record<string, number> | null {
   const map = COLS[type] || {};
   const idx: Record<string, number> = {};
-  for (const [k, pats] of Object.entries(map)) idx[k] = findCol(headers, pats);
+  for (const [k, pats] of Object.entries(map)) {
+    if (k.startsWith("_")) continue;
+    idx[k] = findCol(headers, pats);
+  }
   const missing = required.filter((k) => idx[k] == null || idx[k]! < 0);
   if (missing.length) { console.warn(`::warning::отчёт ${type}: не найдены колонки ${missing.join(", ")} в заголовках [${headers.join(" | ")}] - см. data-ym/_probe/${type}.json и поправь report-columns.json`); return null; }
   return idx;

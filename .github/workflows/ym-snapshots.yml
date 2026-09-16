@@ -94,9 +94,14 @@ jobs:
           # analytics-mvp/analytics-mvp/data-ym, `|| true` глушил промах, /tmp/ym-base оставался
           # пустым - и гейт молча пропускал любую потерю по всем четырём файлам.
           # Промах больше не глушим: нет слепка там, где файл есть - это отказ защиты, а не мелочь.
-          rm -rf /tmp/ym-base && mkdir -p /tmp/ym-base
+          # Файлы, которых ДО продьюсеров не было, записываем поимённо. Иначе гейт не отличает
+          # «слепок потерян» от «файл появился впервые» и валит первый же успешный сбор нового
+          # источника: прогон 35081265100 наконец разобрал акт услуг и упал на том, что для
+          # services_monthly.ndjson нет базы сравнения, хотя её и не могло быть.
+          rm -rf /tmp/ym-base && mkdir -p /tmp/ym-base && : > /tmp/ym-base/.absent
           for f in netting.ndjson orders.ndjson realization_monthly.ndjson sku_views.ndjson services_monthly.ndjson bonuses_monthly.ndjson; do
-            if [ -f "data-ym/$f" ]; then cp "data-ym/$f" "/tmp/ym-base/$f"; echo "слепок $f: $(wc -l < "/tmp/ym-base/$f") строк"; else echo "слепок $f: файла ещё нет (первый прогон)"; fi
+            if [ -f "data-ym/$f" ]; then cp "data-ym/$f" "/tmp/ym-base/$f"; echo "слепок $f: $(wc -l < "/tmp/ym-base/$f") строк"
+            else echo "$f" >> /tmp/ym-base/.absent; echo "слепок $f: файла ещё нет (первый прогон)"; fi
           done
 
       - name: Заказы Маркета (факт-слой, инкремент + перетяжка хвоста)
@@ -124,7 +129,17 @@ jobs:
             git fetch origin "$GITHUB_REF_NAME" || { sleep $((2**i)); continue; }
             rm -rf /tmp/ym-keep && mkdir -p /tmp/ym-keep && cp -r analytics-mvp/data-ym /tmp/ym-keep/
             git reset --hard "origin/$GITHUB_REF_NAME"
-            rm -rf analytics-mvp/data-ym && cp -r /tmp/ym-keep/data-ym analytics-mvp/
+            # НАКЛАДЫВАЕМ свои снимки поверх свежего remote, а не заменяем каталог целиком.
+            # Прежнее `rm -rf data-ym && cp -r` стирало файлы, которых нет у нас, потому что
+            # checkout берёт КОММИТ ЗАПУСКА, а не голову ветки: прогон, стоявший в очереди,
+            # приходит со старым деревом и сносит всё, что успел добавить предыдущий. Живой факт
+            # 2026-09-16: прогон 35085836231 впервые собрал акт по стоимости услуг (6 588 строк),
+            # а следующий, 35087166394, снёс services_monthly.ndjson и services_state.json вместе
+            # с прогрессом возобновляемости. Дельта-гейт поймать этого не мог: слепок для сравнения
+            # снимается ДО продьюсеров, и файла в нём тоже не было.
+            # Продьюсеры файлы только создают и перезаписывают, поэтому наложение безопасно:
+            # наше побеждает по именам, чужое остаётся.
+            cp -r /tmp/ym-keep/data-ym/. analytics-mvp/data-ym/
             git add -A analytics-mvp/data-ym
             git diff --staged --quiet && exit 0
             git commit -m "data-ym: заказы и каталог Маркета $(date -u +%F) (промежуточный)"
@@ -143,8 +158,14 @@ jobs:
       - name: Акт по стоимости услуг (общие расходы кабинета)
         run: npm run ym:services || echo "::warning::акт услуг не обновлён"
 
-      - name: Отчёт по баллам Маркета
-        run: npm run ym:bonuses || echo "::warning::баллы не обновлены"
+      # Шаг отчёта по баллам снят с расписания: такого метода в Partner API нет. Все 22 метода
+      # генерации отчётов выписаны из официальной OpenAPI-спецификации Маркета, ни один не про
+      # баллы; united-bonuses, bonuses и united-marketplace-bonuses отдают HTTP 404. Каждый прогон
+      # тратил на это 10 генераций впустую. Команда `npm run ym:bonuses` оставлена: когда метод
+      # появится или когда решим грузить выгрузку кабинета руками, точкой входа остаётся
+      # data-ym/bonuses_monthly.ndjson, и derive его подхватит.
+      # Начисление и списание баллов API отдаёт в stats/orders: subsidies[].operationType
+      # (ACCRUAL / DEDUCTION) и subsidies[].type (YANDEX_CASHBACK / SUBSIDY / DELIVERY).
 
       - name: Показы/корзина per-SKU по дням (shows-sales)
         env:
@@ -176,7 +197,10 @@ jobs:
           # подстановки проверяется явно, присваиванием в переменную.
           base () {
             if [ -f "/tmp/ym-base/$1" ]; then echo "/tmp/ym-base/$1"; return 0; fi
-            if [ -f "data-ym/$1" ]; then echo "::error::слепка /tmp/ym-base/$1 нет, а data-ym/$1 существует - гейт остался бы без базы сравнения" >&2; return 1; fi
+            # Файла не было до прогона - сравнивать не с чем на законных основаниях. Верим только
+            # списку, составленному шагом слепка: «нет слепка и нет записи» по-прежнему отказ защиты.
+            if grep -qxF "$1" /tmp/ym-base/.absent 2>/dev/null; then echo ""; return 0; fi
+            if [ -f "data-ym/$1" ]; then echo "::error::слепка /tmp/ym-base/$1 нет, а data-ym/$1 существует и до прогона не числился отсутствующим - гейт остался бы без базы сравнения" >&2; return 1; fi
             echo ""; return 0
           }
           check () {
@@ -184,7 +208,11 @@ jobs:
             local b; b=$(base "$f") || exit 1
             npx tsx src/scripts/ym/validate-facts.ts "data-ym/$f" "$b" "$@"
           }
-          check netting.ndjson            --month-key=d       --sum=amount   --by=business
+          # Реестр знаковый: начисления плюс, списания минус, месячная сумма - сальдо (по
+          # 1023124/2026-09 это 387 595 руб при обороте 3 002 575). Сравнивать надо оборот, иначе
+          # добор одного дня со списаниями выглядит как потеря: прогон 35074533928 встал именно на
+          # этом, не потеряв ни строки. Проверка числа строк работает как работала.
+          check netting.ndjson            --month-key=d       --sum=amount   --by=business --abs
           check orders.ndjson             --month-key=created --sum=accruals --by=business
           check realization_monthly.ndjson --month-key=ym     --sum=amount
           check sku_views.ndjson          --month-key=date    --sum=views    --by=business
@@ -236,7 +264,17 @@ jobs:
             git fetch origin "$GITHUB_REF_NAME" || { sleep $((2**i)); continue; }
             rm -rf /tmp/ym-keep && mkdir -p /tmp/ym-keep && cp -r analytics-mvp/data-ym /tmp/ym-keep/
             git reset --hard "origin/$GITHUB_REF_NAME"
-            rm -rf analytics-mvp/data-ym && cp -r /tmp/ym-keep/data-ym analytics-mvp/
+            # НАКЛАДЫВАЕМ свои снимки поверх свежего remote, а не заменяем каталог целиком.
+            # Прежнее `rm -rf data-ym && cp -r` стирало файлы, которых нет у нас, потому что
+            # checkout берёт КОММИТ ЗАПУСКА, а не голову ветки: прогон, стоявший в очереди,
+            # приходит со старым деревом и сносит всё, что успел добавить предыдущий. Живой факт
+            # 2026-09-16: прогон 35085836231 впервые собрал акт по стоимости услуг (6 588 строк),
+            # а следующий, 35087166394, снёс services_monthly.ndjson и services_state.json вместе
+            # с прогрессом возобновляемости. Дельта-гейт поймать этого не мог: слепок для сравнения
+            # снимается ДО продьюсеров, и файла в нём тоже не было.
+            # Продьюсеры файлы только создают и перезаписывают, поэтому наложение безопасно:
+            # наше побеждает по именам, чужое остаётся.
+            cp -r /tmp/ym-keep/data-ym/. analytics-mvp/data-ym/
             ( cd analytics-mvp && npm run ym:reconcile && npm run ym:build && npm run ym:smoke ) \
               || { echo "::error::пересборка /market/ на свежем main не прошла - снимки не публикую"; exit 1; }
             # HTML пересобран заново, поэтому гейт «ключа нет в выдаче» обязан отработать и здесь.

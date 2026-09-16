@@ -82,9 +82,8 @@ const NO_TAX_SUB = "Без таксономии";
 // прочие каналы пусты (нет данных) и не затрагиваются. Когда n8n вернёт дерево категорий
 // OZON (/v2/category/tree) - заменить эвристику на официальные категории.
 const _autoCache: Record<string, { category: string | null; sub: string | null }> = {};
-function autoTax(name: string): { category: string | null; sub: string | null } {
-  if (name in _autoCache) return _autoCache[name]!;
-  const n = (name || "").toLowerCase();
+// Правила упорядочены: более узкий признак раньше более общего.
+function _autoRules(n: string): { category: string | null; sub: string | null } {
   let category: string | null = null, sub: string | null = null;
   if (/зеркал/.test(n)) {
     category = "Зеркала";
@@ -102,7 +101,25 @@ function autoTax(name: string): { category: string | null; sub: string | null } 
   else if (/маркерн|доска/.test(n)) { category = "Маркерные доски"; sub = "Маркерные доски"; }
   else if (/журнальн|кофейн/.test(n)) { category = "Столы"; sub = "Столы журнальные"; }
   else if (/стол/.test(n)) { category = "Столы"; sub = "Столы обеденные"; }
-  return (_autoCache[name] = { category, sub });
+  return { category, sub };
+}
+// Тип товара стоит в начале названия, а описание дальше по строке называет материалы и детали.
+// Из-за этого поиск по всей строке уводил товар в чужую категорию: «Стол обеденный овальный
+// 200х90 TRUBIS Wood, столешница ЛДСП» попадал в «Комплектующие/Столешницы» (38 из 79 артикулов
+// мебельного кабинета за июль 2026), «Стол на металлических опорах» - туда же по слову «опоры».
+// Поэтому сначала классифицируем по «голове» названия (бренд отброшен, первые 5 слов), и только
+// если она ничего не дала - по всей строке.
+function autoTax(name: string): { category: string | null; sub: string | null } {
+  if (name in _autoCache) return _autoCache[name]!;
+  const n = (name || "").toLowerCase();
+  const head = n.replace(/^(gen group|gengroup|genglass|valonti|gentero|metal-gm|glass-memory)[\s,:-]*/, "").split(/\s+/).slice(0, 5).join(" ");
+  const rh = _autoRules(head);
+  if (!rh.category) return (_autoCache[name] = _autoRules(n));
+  // Категорию решает голова, а подкатегорию - вся строка, если она согласна с категорией. Иначе
+  // правка головы обнуляла бы уточнение, стоящее дальше пятого слова: «Зеркало настенное ... LED»
+  // теряло подкатегорию «Зеркала с подсветкой» (5 SKU OZON и 7 SKU Маркета).
+  const rf = _autoRules(n);
+  return (_autoCache[name] = { category: rh.category, sub: (rf.category === rh.category && rf.sub) ? rf.sub : rh.sub });
 }
 const catOf = (sku: string) => taxOf(sku).category || autoTax(skuName[sku] || "").category || LINE_CAT[skuLine[sku] || ""] || "Прочее";
 const subOf = (sku: string) => taxOf(sku).sub || autoTax(skuName[sku] || "").sub || NO_TAX_SUB;
@@ -1300,7 +1317,11 @@ function render(cur,cmp){
   setAds('ok','готов к работе');
   loadAllReports(); // per-SKU разбивка из кэша снимка (ближайший 7/30/90)
 }`;
-  writeFileSync(op("katya-marketing.html"), kshell("Маркетинг и реклама", "marketing", body, pageJs));
+  // У Маркета лист рекламы собирается заново: модель площадки другая, лист OZON туда не
+  // переносится. Кампаний, ставок и кликов у Маркета нет, поэтому нет и юнит-экономики клика,
+  // сливов бюджета и «активных кампаний» - показывать их нулями значило бы врать про канал.
+  if (IS_OZON) writeFileSync(op("katya-marketing.html"), kshell("Маркетинг и реклама", "marketing", body, pageJs));
+  else { const p = promoYm(); writeFileSync(op("katya-marketing.html"), kshell("Продвижение", "marketing", p.body, p.js)); }
 }
 
 // --- страница 5: Деньги (ЖИВЫЕ P&L-вебхуки по периоду, fallback - снимок) ---
@@ -1399,8 +1420,28 @@ function render(cur,cmp){
   const anAdsSku: Record<string, any[]> = {};
   for (const sk in anAdsSkuMap) { anAdsSku[sk] = []; for (const d in anAdsSkuMap[sk]) anAdsSku[sk]!.push([d, Math.round(anAdsSkuMap[sk]![d]!)]); }
 
+  // Свод по дате заказа - только у Маркета: у OZON закрытие месяца идёт из подписанных Актов,
+  // а базис «по дате оформления заказа» там не строится. Ключ добавляется условно, чтобы страница
+  // OZON осталась прежней.
+  let svodJson: any = null;
+  if (!IS_OZON) { try { svodJson = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svodJson = null; } }
+  const svodSection = IS_OZON ? "" : `
+  <section class="card"><div class="card-h"><div><div class="card-title">Свод по дате заказа</div><div class="card-sub">доставлено минус отмены и возвраты &middot; период по дате оформления заказа</div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <select id="sv-b" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select>
+      <select id="sv-m" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select>
+      <select id="sv-lay" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit">
+        <option value="pnl">P&amp;L по деньгам</option><option value="pts">Деньги и баллы раздельно</option></select>
+      <span id="sv-rates"><label style="color:var(--ink-2);font-size:12.5px">АДМ % <input id="sv-adm" type="number" value="30" min="0" max="100" style="width:54px;background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;font:inherit"></label>
+      <label style="color:var(--ink-2);font-size:12.5px;margin-left:8px">Налоги % <input id="sv-tax" type="number" value="15" min="0" max="100" style="width:54px;background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;font:inherit"></label></span>
+    </div></div>
+    <div id="sv-cov" class="kt-note" style="padding:2px 0 8px"></div>
+    <div id="sv-gaps" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
+    <div class="kt-scroll"><table class="kt-table" id="sv-t"></table></div>
+    <div id="sv-note" class="kt-note" style="margin-top:8px"></div>
+  </section>`;
   const body = `
-  <section class="kt-kpi" id="kpis"></section>
+  <section class="kt-kpi" id="kpis"></section>${svodSection}
   <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub"><a href="https://docs.google.com/spreadsheets/d/1Mt7UDX9sfVaVxb-c4u0Nno2dOWOZG7AIxlwTMYGAFCY/edit" target="_blank" rel="noopener" style="color:#22D3EE;font-weight:600">✎ заполнить план (Google-таблица, лист OZON)</a></div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div id="plan" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-around;padding:16px 4px 6px"></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note" style="display:none">начислено → комиссия → услуги OZON → к выплате (канал) → −доставка от покупателя (компенсируется, в расчёт не входит) → −СС произв. → −(АДМ 30% + Налоги 15%) → чистая прибыль. Канальный «к выплате» = к выплате по SKU + доставка от покупателя; СС, база АДМ/налогов и чистая - из аналитики по SKU за тот же период (совпадают с ИТОГО таблицы).</div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub" style="display:none">Сводка по каждому артикулу за период из верхнего фильтра: реализация с учётом возвратов + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» и «Налоги 15%» - от К выплате (сборы кабинета входят в базу, доставка от покупателя - нет); по позициям с реализовано=0 не начисляются; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / К выплате. Для артикулов без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). «Реклама» - расход на продвижение по SKU (CPC+CPO из Performance API), где собрано; вычтен из «К выплате». Несобранная реклама и прочие сборы, которые OZON списывает не по одному SKU (штрафы/realFBS/бейдж/эквайринг), - в отдельной строке «Сборы уровня заказа/кабинета» и в ИТОГО (realFBS - в «Логистику», остаток рекламы и прочее - в «Прочие»). «Доставка от покупателя» в расчёт НЕ входит (компенсируется) - она только в информационном блоке ниже.</div></div></div><div id="skuan-warn" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
@@ -1643,7 +1684,384 @@ function render(cur,cmp){
   renderSkuAnalytics(cur); // аналитика по SKU за период
   renderAccountFees(cur); // сборы уровня заказа/кабинета за период (+прогноз)
 }`;
-  writeFileSync(op("katya-money.html"), kshell("Деньги", "money", body, pageJs));
+  writeFileSync(op("katya-money.html"), kshell("Деньги", "money", body, pageJs + svodJs(svodJson)));
+}
+
+// Лист продвижения Яндекс Маркета. Считается из того же свода, что и вкладка Деньги, поэтому
+// цифры двух листов не могут разойтись: один источник, один базис - дата оформления заказа.
+//
+// Почему лист не повторяет лист OZON. У Маркета нет рекламных кампаний за клик: нет ставок,
+// кликов, показов рекламы, а значит нет ни CPC, ни CTR, ни CPO по кликам, ни «активных кампаний».
+// Продвижение здесь - буст продаж, который списывается ПРОЦЕНТОМ С ПРОДАЖИ и привязан к номеру
+// заказа (1990 строк реестра из 1990 несут ORDER_ID). Именно поэтому ДРР считается по заказам, а
+// не оценивается ориентиром: расход и выручка относятся к одним и тем же заказам.
+function promoYm(): { body: string; js: string } {
+  let svod: any = null;
+  try { svod = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svod = null; }
+  const head = `
+  <div class="card" style="border-color:#22D3EE;background:rgba(34,211,238,.05);padding:12px 14px;margin-bottom:10px">
+    <b>У Яндекс Маркета нет рекламных кампаний за клик.</b>
+    <div class="kt-note" style="margin-top:6px">Кнопки периода в шапке к этому листу не применяются: расход и выручка тут считаются ПО МЕСЯЦАМ ДАТЫ ЗАКАЗА, а не произвольным диапазоном. Месяц выбирается в таблице ниже.<br>На листе нет ставок, кликов, показов рекламы, CPC, CTR и «активных кампаний»: таких сущностей у площадки нет. Продвижение Маркета - это <b>буст продаж, который списывается за продажу</b>, плюс отзывы за баллы и общие расходы кабинета (подписка, полки, баннеры). Буст привязан к номеру заказа, поэтому <b>ДРР здесь считается по заказам, а не оценивается</b>. Базис - дата оформления заказа, тот же, что у свода на вкладке Деньги.</div>
+  </div>`;
+  if (!svod || !svod.months || !svod.months.length) {
+    return { body: head + `<div class="card"><b>Свод по заказам не собран.</b><div class="kt-note" style="margin-top:8px">Лист продвижения считается из него: нет <code>data-ym/svod_orders.json</code> - нечего показывать. Запустить <code>npm run ym:derive</code>.</div></div>`, js: "" };
+  }
+  const body = head + `
+  <section class="kt-kpi" id="pm-kpi"></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Расход на продвижение по месяцам заказа</div><div class="card-sub">буст оплачивается и деньгами, и баллами Маркета - обе половины реальный расход</div></div>
+    <select id="pm-b" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div>
+    <div class="kt-scroll"><table class="kt-table" id="pm-mon"></table></div>
+    <div class="kt-note" style="margin-top:8px">Выручка взята как деньги плюс начисленные баллы - та же база, что у маржи на вкладке Деньги. К неполной выручке ДРР завышался бы.</div>
+  </section>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
+    <section class="card"><div class="card-h"><div><div class="card-title">ДРР по линиям</div><div class="card-sub" id="pm-lab1"></div></div></div><div class="kt-scroll"><table class="kt-table" id="pm-line"></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Где буст съедает маржу</div><div class="card-sub" id="pm-lab2"></div></div></div><div id="pm-hungry" style="padding:4px 2px"></div></section>
+  </div>
+  <section class="card"><div class="card-h"><div><div class="card-title">По артикулам</div><div class="card-sub" id="pm-lab3"></div></div></div><div class="kt-scroll"><table class="kt-table" id="pm-sku"></table></div></section>
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#pm-mon th,#pm-mon td,#pm-sku th,#pm-sku td{white-space:nowrap}</style>`;
+  const js = `
+var PM=${JSON.stringify(svod)};
+var PM_ART=${JSON.stringify(["Буст продаж", "Программа лояльности и отзывы"])};
+var PM_NAMES={"74986385":"GEN GROUP (мебель)","1023124":"GENGLASS (зеркала)"};
+function pmN(b){return PM_NAMES[b]||('кабинет '+b);}
+function pmRub(n){return fmtRu(Math.round(n||0));}
+function pmRow(m){
+  var sm=0,sp=0,rev=0,pts=0;
+  m.rows.forEach(function(r){PM_ART.forEach(function(a){sm+=(r.svc||{})[a]||0;sp+=(r.svc_pts||{})[a]||0;});rev+=r.revenue_money;pts+=r.points_accrued;});
+  var ohM=0,ohP=0;PM_ART.concat(['Прочие услуги']).forEach(function(a){ohM+=(m.overhead||{})[a]||0;ohP+=(m.overhead_pts||{})[a]||0;});
+  var spend=sm+sp+ohM+ohP, base=rev+pts;
+  return {ym:m.ym,business:m.business,sm:sm,sp:sp,oh:ohM+ohP,spend:spend,base:base,
+    drr:base>0?Math.round(spend/base*1000)/10:null,
+    settled:!!m.svc_settled, partial:(m.orders_inflight||0)>0};
+}
+function pmDraw(){
+  var b=document.getElementById('pm-b').value;
+  var ms=(PM.months||[]).filter(function(m){return (b==='all'||m.business===b)&&m.rows.length;});
+  var rows=ms.map(pmRow).filter(function(r){return r.spend||r.base;})
+    .sort(function(x,y){return x.ym===y.ym?String(x.business).localeCompare(String(y.business)):(x.ym<y.ym?1:-1);});
+  // карточки - по последнему ЗАКРЫТОМУ месяцу: незакрытый выдавать за итог нельзя
+  var closed=rows.filter(function(r){return r.settled&&!r.partial;});
+  var lastYm=closed.length?closed[0].ym:'';
+  var headRows=closed.filter(function(r){return r.ym===lastYm;});
+  var S=function(f){return headRows.reduce(function(a,r){return a+f(r);},0);};
+  var hSpend=S(function(r){return r.spend;}),hBase=S(function(r){return r.base;});
+  var card=function(lab,val,sub,col){return '<div class="card kpi"><div class="lab">'+lab+'</div><div class="val num"'+(col?' style="color:'+col+'"':'')+'>'+val+'</div><div class="sub">'+sub+'</div></div>';};
+  document.getElementById('pm-kpi').innerHTML=lastYm
+    ? [card('Расход на продвижение',pmRub(hSpend)+' ₽','последний закрытый месяц: '+lastYm),
+       card('ДРР по заказам',(hBase>0?Math.round(hSpend/hBase*1000)/10:0)+'%','расход к выручке тех же заказов'),
+       card('Буст деньгами',pmRub(S(function(r){return r.sm;}))+' ₽','списано со счёта'),
+       card('Буст баллами',pmRub(S(function(r){return r.sp;}))+' ₽','оплачено баллами Маркета','#E5B567'),
+       card('Общие расходы',pmRub(S(function(r){return r.oh;}))+' ₽','подписка, полки, баннеры')].join('')
+    : '<div class="card"><b>Закрытых месяцев в снимке нет.</b><div class="kt-note" style="margin-top:6px">Месяц закрыт, когда пришёл акт за следующий и период доставки завершён. Пока таких нет, карточки не показываются: незакрытый месяц выдавать за итог нельзя.</div></div>';
+  var mh='<thead><tr><th>Месяц заказа</th><th>Кабинет</th><th class="r">Буст деньгами</th><th class="r">Буст баллами</th><th class="r">Общие</th><th class="r">Всего</th><th class="r">Выручка (деньги+баллы)</th><th class="r">ДРР</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var flag=r.partial?' <span style="color:#E5B567;font-size:11px">период не завершён</span>':(!r.settled?' <span style="color:#E5B567;font-size:11px">акт не закрыт</span>':'');
+    mh+='<tr><td>'+r.ym+flag+'</td><td style="color:var(--ink-2)">'+pmN(r.business)+'</td>'
+      +'<td class="r">'+pmRub(r.sm)+'</td><td class="r" style="color:#E5B567">'+pmRub(r.sp)+'</td>'
+      +'<td class="r">'+pmRub(r.oh)+'</td><td class="r"><b>'+pmRub(r.spend)+'</b></td>'
+      +'<td class="r">'+pmRub(r.base)+'</td>'
+      +'<td class="r"'+(r.drr!=null&&r.drr>30?' style="color:var(--dn)"':'')+'>'+(r.drr==null?'нет базы':r.drr+'%')+'</td></tr>';});
+  document.getElementById('pm-mon').innerHTML=mh+'</tbody>';
+  // по SKU за последний закрытый месяц
+  var agg={};
+  ms.forEach(function(m){ if(m.ym!==lastYm)return;
+    if(!headRows.some(function(h){return h.business===m.business;}))return;
+    m.rows.forEach(function(r){var sp=0;PM_ART.forEach(function(a){sp+=((r.svc||{})[a]||0)+((r.svc_pts||{})[a]||0);});
+      var o=agg[r.sku]||(agg[r.sku]={sku:r.sku,name:r.name,line:r.line||'прочее',sp:0,rev:0,un:0});
+      o.sp+=sp;o.rev+=r.revenue_money+r.points_accrued;o.un+=r.units_net;});});
+  var list=Object.keys(agg).map(function(k){return agg[k];}).filter(function(x){return x.sp>0;}).sort(function(x,y){return y.sp-x.sp;});
+  var lab=lastYm?('за '+lastYm):'закрытых месяцев нет';
+  document.getElementById('pm-lab1').textContent=lab;
+  document.getElementById('pm-lab3').textContent=lab+(list.length>40?' · топ-40 из '+list.length:'');
+  var lines={};list.forEach(function(x){var c=lines[x.line]||(lines[x.line]={sp:0,rev:0});c.sp+=x.sp;c.rev+=x.rev;});
+  var lh='<thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">ДРР</th></tr></thead><tbody>';
+  Object.keys(lines).sort(function(a,b){return lines[b].sp-lines[a].sp;}).forEach(function(l){var v=lines[l];
+    var d=v.rev>0?Math.round(v.sp/v.rev*1000)/10:null;
+    lh+='<tr><td>'+l+'</td><td class="r">'+pmRub(v.sp)+'</td><td class="r">'+pmRub(v.rev)+'</td>'
+      +'<td class="r"'+(d!=null&&d>30?' style="color:var(--dn)"':'')+'>'+(d==null?'—':d+'%')+'</td></tr>';});
+  document.getElementById('pm-line').innerHTML=lh+'</tbody>';
+  var hungry=list.filter(function(x){return x.rev>0&&x.sp/x.rev>0.3;});
+  var hSum=hungry.reduce(function(a,x){return a+x.sp;},0);
+  document.getElementById('pm-lab2').textContent=lab;
+  document.getElementById('pm-hungry').innerHTML=hungry.length
+    ? '<b style="font-size:15px">'+hungry.length+' SKU с ДРР выше 30%</b> на '+pmRub(hSum)+' ₽ расхода.<div class="kt-note" style="margin-top:8px">Буст Маркета списывается процентом с продажи, поэтому высокий ДРР тут значит высокую ставку буста, а не «плохие клики». Снижать его надо ставкой буста в кабинете, а не отключением кампании: отключать нечего.</div>'
+    : '<b>SKU с ДРР выше 30% нет.</b><div class="kt-note" style="margin-top:8px">Ни один артикул не отдал больше 30% выручки на продвижение.</div>';
+  var sh='<thead><tr><th>Артикул</th><th>Название</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Штук</th><th class="r">ДРР</th></tr></thead><tbody>';
+  list.slice(0,40).forEach(function(x){var d=x.rev>0?Math.round(x.sp/x.rev*1000)/10:null;
+    sh+='<tr><td>'+x.sku+'</td><td>'+(x.name||'').slice(0,44)+'</td><td class="r">'+pmRub(x.sp)+'</td>'
+      +'<td class="r">'+pmRub(x.rev)+'</td><td class="r">'+x.un+'</td>'
+      +'<td class="r"'+(d!=null&&d>30?' style="color:var(--dn)"':'')+'>'+(d==null?'нет выручки':d+'%')+'</td></tr>';});
+  document.getElementById('pm-sku').innerHTML=sh+'</tbody>';
+}
+// Шелл Кати дёргает render(cur,cmp) на каждой смене периода в шапке - функция обязана быть на
+// любом листе. Этому листу период из шапки не применим: свод живёт месяцами по дате оформления
+// заказа, а не произвольным диапазоном. Поэтому render ничего не делает, а в шапке листа прямо
+// сказано, по какому периоду он считается - иначе кнопки периода молча врали бы.
+function render(cur,cmp){}
+function pmInit(){
+  var bs={};(PM.months||[]).forEach(function(m){if(m.rows.length)bs[m.business]=1;});
+  var sel=document.getElementById('pm-b');if(!sel)return;
+  sel.innerHTML='<option value="all">все кабинеты</option>'+Object.keys(bs).sort().map(function(x){return '<option value="'+x+'">'+pmN(x)+'</option>';}).join('');
+  sel.onchange=pmDraw;pmDraw();
+}
+pmInit();
+`;
+  return { body, js };
+}
+
+// JS свода по дате заказа для katya-money. Пустая строка у OZON: секции там нет, и вешать на
+// несуществующие узлы нечего.
+function svodJs(svod: any): string {
+  if (IS_OZON || !svod || !svod.months || !svod.months.length) return "";
+  // Категория артикула: сперва размеченная таксономия, затем эвристика по названию - та же, что
+  // работает для OZON. На данных Маркета связка закрывает 100% выручки (в самой таксономии
+  // размечено только 55%), поэтому строки «Без категории» в своде не появляется.
+  // Блокеры реконсилятора - это пробелы СБОРА, а не расчёта, и по §15 п.3 они должны быть видны
+  // пользователю. Без них страница молчала про то, что отчёт о реализации за август добран на
+  // 1 магазин из 7, то есть штуки закрытого месяца не сверены ни с чем.
+  let rec: string[] = [];
+  try {
+    const rj = JSON.parse(readFileSync(dp("reconcile.json"), "utf-8"));
+    if (rj && rj.verdict !== "ok") rec = (rj.blockers || []).map((x: any) => String(x));
+  } catch { rec = []; }
+  const cat: Record<string, string> = {};
+  const nameOf: Record<string, string> = {};
+  for (const m of svod.months) for (const r of m.rows) {
+    if (cat[r.sku]) continue;
+    nameOf[r.sku] = r.name || "";
+    cat[r.sku] = taxOf(r.sku).category || autoTax(r.name || "").category || "Без категории";
+  }
+  const COLS: Array<[string, string[]]> = [
+    ["Размещение", ["Размещение (комиссия)", "Штрафы (не вовремя)"]],
+    ["Программа лояльности и отзывы", ["Программа лояльности и отзывы"]],
+    ["Продвижение", ["Буст продаж"]],
+    ["Доставка", ["Доставка покупателю", "Доставка (средняя миля)", "Доставка невыкупов и возвратов"]],
+    ["Приём платежа покупателя", ["Приём платежа покупателя"]],
+    ["Перевод платежа покупателя", ["Перевод платежа покупателя"]],
+    ["Обработка, хранение, прочее", ["Обработка в СЦ/ПВЗ", "Хранение", "Прочие услуги"]],
+  ];
+  return `
+var SV=${JSON.stringify(svod)};
+var SV_COLS=${JSON.stringify(COLS)};
+var SV_CAT=${JSON.stringify(cat)};
+var SV_OPEN={};
+var SV_REC=${JSON.stringify(rec)};
+var SV_NAMES={"74986385":"GEN GROUP (мебель)","1023124":"GENGLASS (зеркала)"};
+function svN(b){return SV_NAMES[b]||('кабинет '+b);}
+function svRub(n){return fmtRu(Math.round(n||0));}
+function svPick(){var b=document.getElementById('sv-b').value,m=document.getElementById('sv-m').value;
+  return (SV.months||[]).filter(function(x){return (b==='all'||x.business===b)&&x.ym===m;});}
+function svAgg(ms){
+  var a={};ms.forEach(function(m){m.rows.forEach(function(r){var k=r.sku,o=a[k];
+    if(!o){o=a[k]={sku:r.sku,name:r.name,un:0,price:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:r.cogs_known,svc:{}};}
+    o.un+=r.units_net;o.price+=r.price;o.ship+=r.ship_buyer;o.dmp+=r.disc_mp;o.rev+=r.revenue_money;
+    o.pts+=r.points_accrued;o.sm+=r.svc_money;o.sp+=r.svc_points;o.cogs+=r.cogs;o.ck=o.ck&&r.cogs_known;
+    SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
+  return Object.keys(a).map(function(k){return a[k];}).sort(function(x,y){return y.rev-x.rev;});
+}
+function svDraw(){
+  var ms=svPick();
+  var cov=document.getElementById('sv-cov'),gapsEl=document.getElementById('sv-gaps'),noteEl=document.getElementById('sv-note');
+  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За этот месяц доставленных заказов в снимке нет.';gapsEl.style.display='none';noteEl.textContent='';return;}
+  var orders=0,periodOrd=0,inflight=0,noLed=0,acts={},outSt=0,outMi=0,outMiN=0,ptsDel=0,ohM=0,ohP=0,ohAct=0,ohLed=0,ptsOrd=0,ptsDed=0;
+  ms.forEach(function(m){orders+=m.orders;periodOrd+=m.orders_period||0;inflight+=m.orders_inflight||0;noLed+=m.orders_without_ledger||0;
+    outSt+=m.ledger_status||0;outMi+=m.ledger_missing||0;outMiN+=m.ledger_missing_orders||0;ptsDel+=m.points_on_delivery||0;
+    ohM+=m.overhead_money||0;ohP+=m.overhead_points||0;if(m.overhead_src==='act')ohAct++;else ohLed++;if(m.points_src!=='report')ptsOrd++;ptsDed+=m.points_ded||0;
+    (m.svc_months||[]).forEach(function(x){acts[x]=1;});});
+  var partial=inflight>0;
+  cov.innerHTML='заказов: <b>'+orders+(periodOrd>orders?' из '+periodOrd+' оформленных':'')+'</b> · услуги из актов: <b>'+Object.keys(acts).sort().join(', ')+'</b>'
+    +(partial?' · <span style="color:#E5B567">период не завершён: '+inflight+' заказов ещё в пути</span>':'');
+  var gaps=[];
+  if(partial)gaps.push('период не завершён: '+inflight+' заказов месяца ещё в пути, выручка и услуги по ним добавятся позже');
+  if(noLed)gaps.push(noLed+' заказов периода ещё нет в отчёте по платежам: их услуги равны нулю, результат по ним завышен');
+  // Раньше тут было «отчёт подключён, но за этот месяц ещё не собран» - неправда: отдельного
+  // отчёта по баллам в Partner API нет вовсе, subsidies[] заказа и есть источник. Показываем не
+  // мнимый пробел, а реальную величину списания, которую пользователь иначе не увидит.
+  if(ptsDed)gaps.push('из начисленных баллов '+svRub(ptsDed)+' ₽ Маркет списал обратно при невыкупе и возврате: в своде баллы показаны за вычетом списания');
+  // Когда выбраны оба кабинета, у одного расходы могут идти из акта, у другого из реестра.
+  // Текст «показаны только по отчёту о платежах» в этом случае врёт наполовину, поэтому говорим,
+  // по скольким кабинетам акта не хватает.
+  if(ohLed)gaps.push(ohAct
+    ? 'по '+ohLed+' из '+(ohAct+ohLed)+' кабинетов общие расходы взяты только из отчёта о платежах: акт по стоимости услуг за этот месяц по ним ещё не собран, поэтому полки, подписки и буст за показы там не учтены'
+    : 'общие расходы показаны только по отчёту о платежах: полки, подписки и буст за показы берутся из акта по стоимости услуг, а он за этот месяц ещё не собран');
+  if(outSt)gaps.push(svRub(outSt)+' ₽ сборов акта относятся к заказам периода с другим статусом (возвраты, отмены в доставке)');
+  if(outMi)gaps.push(svRub(outMi)+' ₽ сборов акта относятся к '+outMiN+' заказам, которых нет в выгрузке заказов - это пробел сбора');
+  if(ptsDel)gaps.push(svRub(ptsDel)+' ₽ начисленных баллов осели на строке доставки и в свод не попали');
+  var list=svAgg(ms);
+  var noCogs=list.filter(function(x){return !x.ck;}).length;
+  if(noCogs)gaps.push('у '+noCogs+' SKU нет себестоимости: валовая прибыль по ним не считается, а не равна выручке');
+  // Пробелы сбора из реконсилятора. Деньги он сверяет с отчётом о платежах (расхождение 0.01%),
+  // а штуки - с отчётом о реализации, и вот там покрытие неполное. Молчать об этом нельзя:
+  // пользователь видел бы штуки закрытого месяца как сверенные.
+  SV_REC.forEach(function(x){gaps.push(x);});
+  gapsEl.innerHTML=gaps.length?'<b>Чего не хватает:</b> '+gaps.join('; ')+'.':'';
+  gapsEl.style.display=gaps.length?'':'none';
+  var lay=document.getElementById('sv-lay').value;
+  document.getElementById('sv-rates').style.display=lay==='pts'?'none':'';
+  if(lay==='pts')svTabPts(list,noteEl);else svTabPnl(list,ohM,ohP,noteEl);
+}
+function svTabPnl(list,ohM,ohP,noteEl){
+  var adm=Number(document.getElementById('sv-adm').value||30)/100, tax=Number(document.getElementById('sv-tax').value||15)/100;
+  // Строка любого уровня считается одинаково - категория это сумма своих артикулов, поэтому
+  // раскрытие не может дать другую арифметику, чем свёрнутый итог.
+  // База - «Выручка деньгами» из отчёта: покупательский платёж МИНУС возвраты. Раньше здесь
+  // стояло price+ship-dmp, то есть цена продажи, из которой возвраты не вычитались: по июлю это
+  // завышало поступление на 109 809 ₽, а два полностью возвращённых артикула (GGR-11-4 и
+  // GGT-03-3-5-E-12080) показывали 54 993 ₽ «прибыли» со 100% маржой при нуле проданных штук.
+  // Поступление считается по ВСЕМ артикулам строки, а валовая, АДМ, налоги и чистая - только по
+  // тем, где известна себестоимость. Иначе числитель шёл бы по покрытым, а знаменатель по всем, и
+  // итог уезжал бы в минус. Прежняя версия была хуже: категория, где хоть у одного SKU нет С\С,
+  // выбрасывала СВОЮ ВСЮ себестоимость из итога - 90 269 ₽ вместо 1 901 788 ₽ за июль.
+  function calc(a){
+    var fee=0;SV_COLS.forEach(function(p){fee+=a.svc[p[0]]||0;});
+    var net=a.rev-fee;
+    var isG=(a.netCov!=null);                            // строка категории, а не артикула
+    var cov=isG?a.netCov:(a.ck?net:0);                   // поступление по покрытым С\С артикулам
+    // Условие «только положительное» тут стояло зря: строка с убытком показывала «не считается»,
+    // а в сумму категории её минус всё равно попадал - категория «Хранение» за июль давала
+    // 21 953 ₽ против 26 522 ₽ по своим же раскрытым строкам. Признак ровно один - известна С\С.
+    // Для категории это НЕ «у всех известна С\С»: иначе «Столы», где 9 SKU из 57 без неё,
+    // целиком уходили бы в «не считается», а ИТОГО за июль давало -19 300 ₽ вместо 1.8 млн.
+    var covered=isG?(a.rows.length>a.noCogs):a.ck;
+    var gp=covered?cov-a.cogs:null, av=cov*adm, tv=cov*tax;
+    return {fee:fee,net:net,cov:cov,covered:covered,gp:gp,adm:av,tax:tv,np:(gp===null)?null:gp-av-tv};
+  }
+  // группировка по категориям
+  var cats={};
+  list.forEach(function(a){var c=SV_CAT[a.sku]||'Без категории';
+    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,ship:0,dmp:0,rev:0,cogs:0,ck:true,netCov:0,noCogs:0,svc:{}});
+    SV_COLS.forEach(function(p){g.svc[p[0]]=(g.svc[p[0]]||0)+(a.svc[p[0]]||0);});
+    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;
+    if(a.ck){g.cogs+=a.cogs;g.netCov+=calc(a).net;} else {g.ck=false;g.noCogs++;}});
+  var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(x,y){return calc(y).net-calc(x).net;});
+  var H=['Категория / Артикул','Штуки'].concat(SV_COLS.map(function(p){return p[0];}))
+    .concat(['Скидка Маркета','Продажи','Доставка покуп.','Выручка деньгами','С\\С','Поступление','Валовая прибыль (деньги)','Маржа','АДМ','Налоги','Чистая прибыль','Рентаб.']);
+  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  var T={un:0,price:0,ship:0,dmp:0,rev:0,cogs:0,net:0,gp:0,adm:0,tax:0,np:0,cover:0},TC={};
+  // Подсказка с покрытой базой: маржа и рентабельность считаются к поступлению по артикулам с
+  // известной С\\С, а в колонке «Поступление» стоит итог по ВСЕМ. Без этой подписи число в
+  // строке нельзя было получить делением соседних видимых чисел.
+  function svBase(c){return (c.gp===null||c.cov<=0||Math.round(c.cov)===Math.round(c.net))?'':' title="база: поступление по артикулам с известной С\\С, '+svRub(c.cov)+' ₽ из '+svRub(c.net)+' ₽"';}
+  SV_COLS.forEach(function(p){TC[p[0]]=0;});
+  function cells(a,c){
+    return '<td class="r">'+a.un+'</td>'
+      +SV_COLS.map(function(p){var v=a.svc[p[0]]||0;return '<td class="r">'+(v?svRub(v):'—')+'</td>';}).join('')
+      +'<td class="r">'+svRub(a.dmp)+'</td><td class="r" style="color:var(--ink-3)">'+svRub(a.price)+'</td>'
+      +'<td class="r" style="color:var(--ink-3)">'+(a.ship?svRub(a.ship):'—')+'</td>'
+      +'<td class="r"><b>'+svRub(a.rev)+'</b></td>'
+      +'<td class="r">'+(c.covered?svRub(a.cogs):'нет С\\С')+'</td>'
+      +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
+      +'<td class="r" style="color:'+(c.gp===null?'var(--ink-3)':(c.gp>=0?'var(--up)':'var(--dn)'))+'">'+(c.gp===null?'не считается':svRub(c.gp))+'</td>'
+      +'<td class="r"'+svBase(c)+'>'+((c.gp===null||c.cov<=0)?'—':(Math.round(c.gp/c.cov*1000)/10)+'%')+'</td>'
+      +'<td class="r">'+svRub(c.adm)+'</td><td class="r">'+svRub(c.tax)+'</td>'
+      +'<td class="r" style="color:'+(c.np===null?'var(--ink-3)':(c.np>=0?'var(--up)':'var(--dn)'))+'">'+(c.np===null?'не считается':svRub(c.np))+'</td>'
+      +'<td class="r"'+svBase(c)+'>'+((c.np===null||c.cov<=0)?'—':(Math.round(c.np/c.cov*1000)/10)+'%')+'</td>';
+  }
+  groups.forEach(function(g,gi){
+    var c=calc(g), open=!!SV_OPEN[g.cat];
+    T.un+=g.un;T.price+=g.price;T.ship+=g.ship;T.dmp+=g.dmp;T.rev+=g.rev;T.net+=c.net;T.adm+=c.adm;T.tax+=c.tax;
+    SV_COLS.forEach(function(p){TC[p[0]]+=g.svc[p[0]]||0;});
+    T.cogs+=g.cogs;if(c.gp!==null){T.gp+=c.gp;T.np+=c.np;}T.cover+=c.cov;
+    h+='<tr class="sv-cat" data-cat="'+gi+'" style="cursor:pointer"><td><b>'+(open?'▾':'▸')+' '+g.cat+'</b> <span style="color:var(--ink-3)">('+g.rows.length+')</span>'+(g.noCogs?' <span style="color:#E5B567;font-size:11px">'+g.noCogs+' без С\\С</span>':'')+'</td>'+cells(g,c)+'</tr>';
+    if(open) g.rows.forEach(function(a){var ac=calc(a);
+      h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+a.sku+'</td>'+cells(a,ac)+'</tr>';});
+  });
+  // Месяц без строк - это не убыток: общие расходы кабинета показываем, но валовой прибылью и
+  // рентабельностью пустоту не называем (февраль и март по кабинету зеркал давали -8 732 ₽ и
+  // -2 661 ₽ «валовой прибыли» при нуле заказов).
+  var some=groups.length>0, gpT=T.gp-(ohM+ohP), npT=T.np-(ohM+ohP);
+  var mS=function(v){return (some&&T.cover>0)?(Math.round(v/T.cover*1000)/10)+'%':'—';};
+  h+='</tbody><tfoot>'
+    +'<tr><td style="color:var(--ink-2)">Общие расходы кабинета</td><td class="r">—</td>'
+    +SV_COLS.map(function(){return '<td class="r">—</td>';}).join('')
+    +'<td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">'+svRub(-(ohM+ohP))+'</td>'
+    +'<td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td></tr>'
+    +'<tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td><td class="r"><b>'+T.un+'</b></td>'
+    +SV_COLS.map(function(p){return '<td class="r"><b>'+(TC[p[0]]?svRub(TC[p[0]]):'—')+'</b></td>';}).join('')
+    +'<td class="r"><b>'+svRub(T.dmp)+'</b></td><td class="r" style="color:var(--ink-3)"><b>'+svRub(T.price)+'</b></td>'
+    +'<td class="r" style="color:var(--ink-3)"><b>'+svRub(T.ship)+'</b></td><td class="r"><b>'+svRub(T.rev)+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.cogs)+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.net-(ohM+ohP))+'</b></td>'
+    +'<td class="r"><b>'+(some?svRub(gpT):'—')+'</b></td>'
+    +'<td class="r"'+svBase({gp:some?gpT:null,cov:T.cover,net:T.net-(ohM+ohP)})+'><b>'+mS(gpT)+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.adm)+'</b></td><td class="r"><b>'+svRub(T.tax)+'</b></td>'
+    +'<td class="r"><b>'+(some?svRub(npT):'—')+'</b></td>'
+    +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net-(ohM+ohP)})+'><b>'+mS(npT)+'</b></td></tr></tfoot>';
+  var el=document.getElementById('sv-t');el.innerHTML=h;
+  Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
+    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
+  noteEl.innerHTML='<b>Клик по категории раскрывает артикулы.</b> Категория берётся из таксономии, а где её нет - по названию товара: тип товара читается из начала названия, поэтому «столешница» или «опоры» в описании больше не уводят стол в комплектующие. На данных Маркета связка закрывает всю выручку.<br>'
+    +'<b>Столбец «Скидка Маркета» - это не баллы.</b> Маркет опускает цену за свой счёт, покупатель столько не платил, поэтому скидка вычитается из продаж. Баллы, которыми Маркет её потом компенсирует, живут в отчёте по баллам и в этой раскладке не участвуют с обеих сторон: расходы тут тоже взяты только оплаченные деньгами.<br>'
+    +'<b>Поступление</b> = выручка деньгами − услуги Маркета. «Выручка деньгами» - это платёж покупателя за вычетом возвратов, она уже включает доставку с покупателя. «Продажи» и «Доставка покуп.» стоят слева справочно и в расчёт не идут: продажи - это цена по прайсу, из которой Маркет часть закрыл своей скидкой. В строке ИТОГО дополнительно вычтены общие расходы кабинета ('+svRub(ohM+ohP)+' ₽): к товару они не привязаны, поэтому в строках категорий их нет.<br>'
+    +'<b>Валовая прибыль (деньги)</b> = поступление − себестоимость, то есть только живые деньги. На второй раскладке колонка называется «Валовая прибыль (деньги + баллы)» и считается к другой базе - там в выручку добавлены начисленные баллы, а в расходы услуги, оплаченные баллами. Это два разных числа по смыслу, а не расхождение.<br>'
+    +'Итог по валовой прибыли, АДМ, налогам и чистой считается только по SKU с известной себестоимостью ('+(T.net>0?(Math.round(T.cover/T.net*1000)/10):0)+'% поступления), к этой же покрытой базе считаются маржа и рентабельность - наведите на процент, чтобы увидеть базу. Колонка DBS убрана: Маркет собственный расход на доставку в API не отдаёт.';
+}
+function svTabPts(list,noteEl){
+  // Та же группировка, что в P&L-раскладке: категория с раскрытием в артикулы, названий нет.
+  var cats={};
+  list.forEach(function(a){var c=SV_CAT[a.sku]||'Без категории';
+    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,noCogs:0,covRes:0});
+    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;g.pts+=a.pts;
+    g.sm+=a.sm;g.sp+=a.sp;
+    if(a.ck){g.cogs+=a.cogs;g.covRes+=a.rev+a.pts-a.sm-a.sp;} else g.noCogs++;});
+  var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(x,y){return y.rev-x.rev;});
+  var H=['Категория / Артикул','Штуки','Цена продажи','Доставка с покуп.','Скидка Маркета','Выручка деньгами','Баллы начислены','Услуги деньгами','Услуги баллами','Услуги всего','Результат по деньгам','Результат с баллами','С\\С','Валовая прибыль (деньги + баллы)','Маржа к результату'];
+  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  var T={un:0,price:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,covRes:0,gp:0};
+  function cells(a,cov){
+    var tot=a.sm+a.sp, rm=a.rev-a.sm, rp=a.rev+a.pts-tot;
+    var gp=(cov!==0)?cov-a.cogs:null;
+    return '<td class="r">'+a.un+'</td><td class="r" style="color:var(--ink-3)">'+svRub(a.price)+'</td>'
+      +'<td class="r">'+(a.ship?svRub(a.ship):'—')+'</td><td class="r" style="color:var(--ink-3)">'+svRub(a.dmp)+'</td>'
+      +'<td class="r"><b>'+svRub(a.rev)+'</b></td><td class="r" style="color:#8AA0FF">'+svRub(a.pts)+'</td>'
+      +'<td class="r">'+svRub(a.sm)+'</td><td class="r" style="color:#E5B567">'+svRub(a.sp)+'</td><td class="r">'+svRub(tot)+'</td>'
+      +'<td class="r">'+svRub(rm)+'</td><td class="r" style="color:'+(rp>=0?'var(--up)':'var(--dn)')+'">'+svRub(rp)+'</td>'
+      +'<td class="r">'+(a.cogs?svRub(a.cogs):'нет С\\С')+'</td>'
+      +'<td class="r" style="color:'+(gp===null?'var(--ink-3)':(gp>=0?'var(--up)':'var(--dn)'))+'">'+(gp===null?'не считается':svRub(gp))+'</td>'
+      +'<td class="r">'+((gp===null||cov<=0)?'—':(Math.round(gp/cov*1000)/10)+'%')+'</td>';
+  }
+  groups.forEach(function(g,gi){
+    var open=!!SV_OPEN[g.cat];
+    T.un+=g.un;T.price+=g.price;T.ship+=g.ship;T.dmp+=g.dmp;T.rev+=g.rev;T.pts+=g.pts;T.sm+=g.sm;T.sp+=g.sp;
+    T.cogs+=g.cogs;T.covRes+=g.covRes;if(g.covRes!==0)T.gp+=g.covRes-g.cogs;
+    h+='<tr class="sv-cat" data-cat="'+gi+'" style="cursor:pointer"><td><b>'+(open?'▾':'▸')+' '+g.cat+'</b> <span style="color:var(--ink-3)">('+g.rows.length+')</span>'
+      +(g.noCogs?' <span style="color:#E5B567;font-size:11px">'+g.noCogs+' без С\\С</span>':'')+'</td>'+cells(g,g.covRes)+'</tr>';
+    if(open) g.rows.forEach(function(a){
+      h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+a.sku+'</td>'+cells(a,a.ck?(a.rev+a.pts-a.sm-a.sp):0)+'</tr>';});
+  });
+  h+='</tbody><tfoot><tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td><td class="r"><b>'+T.un+'</b></td>'
+    +'<td class="r" style="color:var(--ink-3)"><b>'+svRub(T.price)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
+    +'<td class="r" style="color:var(--ink-3)"><b>'+svRub(T.dmp)+'</b></td><td class="r"><b>'+svRub(T.rev)+'</b></td>'
+    +'<td class="r" style="color:#8AA0FF"><b>'+svRub(T.pts)+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.sm)+'</b></td><td class="r" style="color:#E5B567"><b>'+svRub(T.sp)+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.sm+T.sp)+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.rev-T.sm)+'</b></td><td class="r"><b>'+svRub(T.rev+T.pts-T.sm-T.sp)+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.cogs)+'</b></td><td class="r"><b>'+svRub(T.gp)+'</b></td>'
+    +'<td class="r"><b>'+(T.covRes>0?(Math.round(T.gp/T.covRes*1000)/10)+'%':'—')+'</b></td></tr></tfoot>';
+  var el=document.getElementById('sv-t');el.innerHTML=h;
+  Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
+    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
+  noteEl.innerHTML='<b>Клик по категории раскрывает артикулы.</b><br>'
+    +'<b>Выручка деньгами</b> = платёж покупателя − возвраты; платёж уже включает доставку с покупателя, складывать их не надо. Цена продажи показана справочно и в результат не идёт: она включает скидку, которую платил Маркет, а не покупатель.<br>'
+    +'<b>Услуги</b> разделены на оплаченные деньгами и баллами. Обе половины - реальный расход: услугу оказали, и в акте она стоит полностью. Результат «по деньгам» - что осталось на счёте, «с учётом баллов» - экономика заказа целиком. <b>Валовая прибыль (деньги + баллы)</b> = результат с баллами минус себестоимость, то есть уже после услуг Маркета. С колонкой «Валовая прибыль (деньги)» из раскладки P&amp;L она НЕ обязана совпадать и обычно не совпадает: там база - только живые деньги, здесь в выручку добавлены начисленные баллы, а в расходы услуги, оплаченные баллами. Какая из двух правда - зависит от вопроса: сколько осталось на счёте или сколько заработал заказ целиком. Маржа считается к результату с баллами, той же базе, что у числителя, и только по артикулам с известной себестоимостью.';
+}
+function svInit(){
+  var bs={},msx={};(SV.months||[]).forEach(function(x){bs[x.business]=1;msx[x.ym]=1;});
+  var b=document.getElementById('sv-b'),m=document.getElementById('sv-m');if(!b||!m)return;
+  b.innerHTML='<option value="all">все кабинеты</option>'+Object.keys(bs).sort().map(function(x){return '<option value="'+x+'">'+svN(x)+'</option>';}).join('');
+  var list=Object.keys(msx).sort().reverse();
+  m.innerHTML=list.map(function(x){return '<option value="'+x+'">'+x+'</option>';}).join('');
+  // По умолчанию - последний ЗАКРЫТЫЙ месяц, а не самый свежий. Свежий месяц ещё в доставке:
+  // на сентябре 2026 это 24 заказа по мебели и 2 по зеркалам, из-за чего свод выглядел как
+  // «данные только по мебели», хотя по зеркалам в снимке 206 заказов и 69 SKU за 6 месяцев.
+  var closed=list.filter(function(ym){
+    return (SV.months||[]).some(function(x){return x.ym===ym&&x.rows.length&&x.svc_settled&&!(x.orders_inflight>0);});});
+  if(closed.length)m.value=closed[0];
+  ['sv-b','sv-m','sv-lay','sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=svDraw;});
+  svDraw();
+}
+svInit();
+`;
 }
 
 // --- страница 0: КОМАНДНЫЙ ЦЕНТР (war-room, флагман Pro) ---

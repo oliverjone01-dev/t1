@@ -283,3 +283,29 @@ describe("баллы берутся из отчёта по баллам, а не
   });
 });
 const r2x = (n: number) => Math.round(n * 100) / 100;
+
+// Раскрытие баллов обязано сходиться с самими баллами: если показать «начислено» и «списано»,
+// а их разность не даст показанную сумму, пользователь не сможет проверить число. Первая версия
+// копила разбивку по строкам, до которых доходит цикл, а сальдо - по заказу целиком, и
+// позиция-доставка в разбивку не попадала: по июлю 2026 расхождение было 160 763 ₽.
+describe("раскрытие баллов сходится с показанными баллами", () => {
+  it("начислено минус списано = сумма points_accrued строк, по каждой паре кабинет/месяц", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const bad: string[] = [];
+    let checked = 0;
+    for (const m of svod.months) {
+      if (!m.rows.length) continue;
+      checked++;
+      const shown = m.rows.reduce((a: number, r: any) => a + (r.points_accrued || 0), 0);
+      const net = (m.points_acc || 0) - (m.points_ded || 0);
+      if (Math.abs(net - shown) > 1) bad.push(`${m.business}/${m.ym}: ${Math.round(net)} против ${Math.round(shown)}`);
+    }
+    expect(checked).toBeGreaterThan(5);
+    expect(bad).toEqual([]);
+  });
+
+  it("списание неотрицательно - это величина, а не знак", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    for (const m of svod.months) expect(m.points_ded, `${m.business}/${m.ym}`).toBeGreaterThanOrEqual(0);
+  });
+});

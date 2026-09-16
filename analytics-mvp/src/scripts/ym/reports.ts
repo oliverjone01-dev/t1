@@ -362,6 +362,22 @@ const SERVICE_BODIES: Body[] = [
   { name: "dateFrom/dateTo", body: (b, ym) => ({ businessId: Number(b), dateFrom: monthBounds(ym).dateFrom, dateTo: monthBounds(ym).dateTo }) },
   { name: "year/month", body: (b, ym) => ({ businessId: Number(b), year: Number(ym.slice(0, 4)), month: Number(ym.slice(5, 7)) }) },
 ];
+// Три таблицы акта (payment_accepting, payment_transfer, storage_of_returns) колонки с названием
+// услуги не имеют вовсе: услуга задана самим файлом, а внутри лежит только RECORD_TYPE. Раньше
+// парсер требовал и service, и amount, поэтому такие таблицы молча выбрасывались целиком.
+const SERVICE_BY_FILE: Record<string, string> = {
+  payment_accepting: "Приём платежа покупателя",
+  payment_transfer: "Перевод платежа покупателя",
+  storage_of_returns: "Хранение возвратов",
+  order_processing: "Обработка заказа",
+  placement: "Размещение (комиссия)",
+  delivery: "Доставка",
+  boost: "Буст продаж",
+  shelf: "Полка",
+  "cpm-boost": "Буст за показы",
+};
+const serviceOfFile = (file: string) => SERVICE_BY_FILE[file.replace(/\.[a-z]+$/i, "")] || file.replace(/\.[a-z]+$/i, "");
+
 async function services(months: string[]) {
   const OUT = yp("services_monthly.ndjson");
   const STATE = yp("services_state.json");
@@ -394,11 +410,12 @@ async function services(months: string[]) {
       if (!bodyName && used) { bodyName = used; console.log(`services: Маркет принял тело «${used}»`); }
       for (const t of tables) {
         probe(`united-marketplace-services${tables.length > 1 ? "-" + t.name.replace(/[^a-z0-9_]/gi, "_") : ""}`, t.headers, t.rows, { business: b, ym, file: t.name });
-        const ix = cols("united-marketplace-services", t.headers, ["service", "amount"]);
+        const ix = cols("united-marketplace-services", t.headers, ["amount"]);
         if (!ix) continue;
+        const fileService = serviceOfFile(t.name);
         ok++; done.add(pair); purged.add(pair);
         for (const r of t.rows) {
-          const service = (r[ix.service!] || "").trim();
+          const service = (ix.service! >= 0 ? (r[ix.service!] || "").trim() : "") || fileService;
           if (!service) continue;
           const money = num("united-marketplace-services", r[ix.amount!]);
           const points = ix.amount_points! >= 0 ? num("united-marketplace-services", r[ix.amount_points!]) : 0;

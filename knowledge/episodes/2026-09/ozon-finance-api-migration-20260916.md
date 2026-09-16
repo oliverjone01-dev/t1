@@ -31,13 +31,25 @@ OZON **08.09.2026** отключил `/v3/finance/transaction/list` (HTTP 400 `{
 **Даёт сборы по SKU и типу** (для pnl-sku / pnl-sku-daily). Номера отправлений - из `/v2/posting/fbo/list`
 и `/v3/posting/fbs/list` за период (batching по 200).
 
-### POST /v1/finance/accrual/by-day  (все начисления за один день)
+### POST /v1/finance/accrual/by-day  (все начисления за один день) - ЛУЧШИЙ источник сборов
 Тело: `{date:"YYYY-MM-DD"}` (строго 10 символов, один день; пагинация `last_id`). Ответ:
 ```
-{accruals:[{ accrual_id, date, total_amount:{amount,currency},
-   accrued_category:"ITEM|NON_ITEM", posting, item_fees, non_item_fee:{type_id,accrued}, container_fees }], last_id}
+{accruals:[{ accrual_id, date, total_amount:{amount,currency}, unit_number,
+   accrued_category:"ITEM|NON_ITEM", posting,
+   item_fees:{fees:[{sku, fees:[{type_id, accrued:{amount}}]}]},   // для ITEM: per-SKU per-type
+   non_item_fee:{type_id, accrued:{amount}},                        // для NON_ITEM: кабинетный сбор
+   container_fees }], last_id}
 ```
-**Даёт дневной срез всех сборов** (для pnl-daily / pnl-account-daily), с делением ITEM/NON_ITEM.
+ITEM-пример: `item_fees.fees=[{sku:3492822125, fees:[{type_id:1, accrued:{amount:"-385.04"}}]}]` (эквайринг по SKU).
+**Даёт per-день/per-SKU/per-type сборы** (ITEM -> pnl-sku-daily; NON_ITEM -> pnl-account-daily). Один вызов на день,
+итерировать даты периода. Это заменяет разбор services[] старого transaction/list.
+
+### Выручка (в accrual/* её НЕТ) - источники
+- `/v2/finance/realization {month,year}` - авторитетная бухгалтерская выручка/УПД (уже собирается pnl-realization).
+- `/v2/posting/fbo|fbs/list with:{financial_data:true}` -> `financial_data.products[]:{product_id(sku), price,
+  commission_amount, commission_percent, payout, old_price, total_discount_value}`. ВНИМАНИЕ: в примере payout=0,
+  commission_amount=0 - financial_data отражает цену на момент ЗАКАЗА, не расчётную к выплате. Для сверки к выплате
+  опираться на реализацию (закрытый месяц) + сборы из accruals, financial_data - только цена/скидка.
 
 ## Главный нюанс (почему это не «поменять URL»)
 Старый `transaction/list` отдавал в одной операции И выручку за продажу (`accruals_for_sale`), И комиссию,

@@ -1306,7 +1306,11 @@ function render(cur,cmp){
   setAds('ok','готов к работе');
   loadAllReports(); // per-SKU разбивка из кэша снимка (ближайший 7/30/90)
 }`;
-  writeFileSync(op("katya-marketing.html"), kshell("Маркетинг и реклама", "marketing", body, pageJs));
+  // У Маркета лист рекламы собирается заново: модель площадки другая, лист OZON туда не
+  // переносится. Кампаний, ставок и кликов у Маркета нет, поэтому нет и юнит-экономики клика,
+  // сливов бюджета и «активных кампаний» - показывать их нулями значило бы врать про канал.
+  if (IS_OZON) writeFileSync(op("katya-marketing.html"), kshell("Маркетинг и реклама", "marketing", body, pageJs));
+  else { const p = promoYm(); writeFileSync(op("katya-marketing.html"), kshell("Продвижение", "marketing", p.body, p.js)); }
 }
 
 // --- страница 5: Деньги (ЖИВЫЕ P&L-вебхуки по периоду, fallback - снимок) ---
@@ -1670,6 +1674,128 @@ function render(cur,cmp){
   renderAccountFees(cur); // сборы уровня заказа/кабинета за период (+прогноз)
 }`;
   writeFileSync(op("katya-money.html"), kshell("Деньги", "money", body, pageJs + svodJs(svodJson)));
+}
+
+// Лист продвижения Яндекс Маркета. Считается из того же свода, что и вкладка Деньги, поэтому
+// цифры двух листов не могут разойтись: один источник, один базис - дата оформления заказа.
+//
+// Почему лист не повторяет лист OZON. У Маркета нет рекламных кампаний за клик: нет ставок,
+// кликов, показов рекламы, а значит нет ни CPC, ни CTR, ни CPO по кликам, ни «активных кампаний».
+// Продвижение здесь - буст продаж, который списывается ПРОЦЕНТОМ С ПРОДАЖИ и привязан к номеру
+// заказа (1990 строк реестра из 1990 несут ORDER_ID). Именно поэтому ДРР считается по заказам, а
+// не оценивается ориентиром: расход и выручка относятся к одним и тем же заказам.
+function promoYm(): { body: string; js: string } {
+  let svod: any = null;
+  try { svod = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svod = null; }
+  const head = `
+  <div class="card" style="border-color:#22D3EE;background:rgba(34,211,238,.05);padding:12px 14px;margin-bottom:10px">
+    <b>У Яндекс Маркета нет рекламных кампаний за клик.</b>
+    <div class="kt-note" style="margin-top:6px">Кнопки периода в шапке к этому листу не применяются: расход и выручка тут считаются ПО МЕСЯЦАМ ДАТЫ ЗАКАЗА, а не произвольным диапазоном. Месяц выбирается в таблице ниже.<br>На листе нет ставок, кликов, показов рекламы, CPC, CTR и «активных кампаний»: таких сущностей у площадки нет. Продвижение Маркета - это <b>буст продаж, который списывается за продажу</b>, плюс отзывы за баллы и общие расходы кабинета (подписка, полки, баннеры). Буст привязан к номеру заказа, поэтому <b>ДРР здесь считается по заказам, а не оценивается</b>. Базис - дата оформления заказа, тот же, что у свода на вкладке Деньги.</div>
+  </div>`;
+  if (!svod || !svod.months || !svod.months.length) {
+    return { body: head + `<div class="card"><b>Свод по заказам не собран.</b><div class="kt-note" style="margin-top:8px">Лист продвижения считается из него: нет <code>data-ym/svod_orders.json</code> - нечего показывать. Запустить <code>npm run ym:derive</code>.</div></div>`, js: "" };
+  }
+  const body = head + `
+  <section class="kt-kpi" id="pm-kpi"></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Расход на продвижение по месяцам заказа</div><div class="card-sub">буст оплачивается и деньгами, и баллами Маркета - обе половины реальный расход</div></div>
+    <select id="pm-b" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div>
+    <div class="kt-scroll"><table class="kt-table" id="pm-mon"></table></div>
+    <div class="kt-note" style="margin-top:8px">Выручка взята как деньги плюс начисленные баллы - та же база, что у маржи на вкладке Деньги. К неполной выручке ДРР завышался бы.</div>
+  </section>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
+    <section class="card"><div class="card-h"><div><div class="card-title">ДРР по линиям</div><div class="card-sub" id="pm-lab1"></div></div></div><div class="kt-scroll"><table class="kt-table" id="pm-line"></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Где буст съедает маржу</div><div class="card-sub" id="pm-lab2"></div></div></div><div id="pm-hungry" style="padding:4px 2px"></div></section>
+  </div>
+  <section class="card"><div class="card-h"><div><div class="card-title">По артикулам</div><div class="card-sub" id="pm-lab3"></div></div></div><div class="kt-scroll"><table class="kt-table" id="pm-sku"></table></div></section>
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#pm-mon th,#pm-mon td,#pm-sku th,#pm-sku td{white-space:nowrap}</style>`;
+  const js = `
+var PM=${JSON.stringify(svod)};
+var PM_ART=${JSON.stringify(["Буст продаж", "Программа лояльности и отзывы"])};
+var PM_NAMES={"74986385":"GEN GROUP (мебель)","1023124":"GENGLASS (зеркала)"};
+function pmN(b){return PM_NAMES[b]||('кабинет '+b);}
+function pmRub(n){return fmtRu(Math.round(n||0));}
+function pmRow(m){
+  var sm=0,sp=0,rev=0,pts=0;
+  m.rows.forEach(function(r){PM_ART.forEach(function(a){sm+=(r.svc||{})[a]||0;sp+=(r.svc_pts||{})[a]||0;});rev+=r.revenue_money;pts+=r.points_accrued;});
+  var ohM=0,ohP=0;PM_ART.concat(['Прочие услуги']).forEach(function(a){ohM+=(m.overhead||{})[a]||0;ohP+=(m.overhead_pts||{})[a]||0;});
+  var spend=sm+sp+ohM+ohP, base=rev+pts;
+  return {ym:m.ym,business:m.business,sm:sm,sp:sp,oh:ohM+ohP,spend:spend,base:base,
+    drr:base>0?Math.round(spend/base*1000)/10:null,
+    settled:!!m.svc_settled, partial:(m.orders_inflight||0)>0};
+}
+function pmDraw(){
+  var b=document.getElementById('pm-b').value;
+  var ms=(PM.months||[]).filter(function(m){return (b==='all'||m.business===b)&&m.rows.length;});
+  var rows=ms.map(pmRow).filter(function(r){return r.spend||r.base;})
+    .sort(function(x,y){return x.ym===y.ym?String(x.business).localeCompare(String(y.business)):(x.ym<y.ym?1:-1);});
+  // карточки - по последнему ЗАКРЫТОМУ месяцу: незакрытый выдавать за итог нельзя
+  var closed=rows.filter(function(r){return r.settled&&!r.partial;});
+  var lastYm=closed.length?closed[0].ym:'';
+  var headRows=closed.filter(function(r){return r.ym===lastYm;});
+  var S=function(f){return headRows.reduce(function(a,r){return a+f(r);},0);};
+  var hSpend=S(function(r){return r.spend;}),hBase=S(function(r){return r.base;});
+  var card=function(lab,val,sub,col){return '<div class="card kpi"><div class="lab">'+lab+'</div><div class="val num"'+(col?' style="color:'+col+'"':'')+'>'+val+'</div><div class="sub">'+sub+'</div></div>';};
+  document.getElementById('pm-kpi').innerHTML=lastYm
+    ? [card('Расход на продвижение',pmRub(hSpend)+' ₽','последний закрытый месяц: '+lastYm),
+       card('ДРР по заказам',(hBase>0?Math.round(hSpend/hBase*1000)/10:0)+'%','расход к выручке тех же заказов'),
+       card('Буст деньгами',pmRub(S(function(r){return r.sm;}))+' ₽','списано со счёта'),
+       card('Буст баллами',pmRub(S(function(r){return r.sp;}))+' ₽','оплачено баллами Маркета','#E5B567'),
+       card('Общие расходы',pmRub(S(function(r){return r.oh;}))+' ₽','подписка, полки, баннеры')].join('')
+    : '<div class="card"><b>Закрытых месяцев в снимке нет.</b><div class="kt-note" style="margin-top:6px">Месяц закрыт, когда пришёл акт за следующий и период доставки завершён. Пока таких нет, карточки не показываются: незакрытый месяц выдавать за итог нельзя.</div></div>';
+  var mh='<thead><tr><th>Месяц заказа</th><th>Кабинет</th><th class="r">Буст деньгами</th><th class="r">Буст баллами</th><th class="r">Общие</th><th class="r">Всего</th><th class="r">Выручка (деньги+баллы)</th><th class="r">ДРР</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var flag=r.partial?' <span style="color:#E5B567;font-size:11px">период не завершён</span>':(!r.settled?' <span style="color:#E5B567;font-size:11px">акт не закрыт</span>':'');
+    mh+='<tr><td>'+r.ym+flag+'</td><td style="color:var(--ink-2)">'+pmN(r.business)+'</td>'
+      +'<td class="r">'+pmRub(r.sm)+'</td><td class="r" style="color:#E5B567">'+pmRub(r.sp)+'</td>'
+      +'<td class="r">'+pmRub(r.oh)+'</td><td class="r"><b>'+pmRub(r.spend)+'</b></td>'
+      +'<td class="r">'+pmRub(r.base)+'</td>'
+      +'<td class="r"'+(r.drr!=null&&r.drr>30?' style="color:var(--dn)"':'')+'>'+(r.drr==null?'нет базы':r.drr+'%')+'</td></tr>';});
+  document.getElementById('pm-mon').innerHTML=mh+'</tbody>';
+  // по SKU за последний закрытый месяц
+  var agg={};
+  ms.forEach(function(m){ if(m.ym!==lastYm)return;
+    if(!headRows.some(function(h){return h.business===m.business;}))return;
+    m.rows.forEach(function(r){var sp=0;PM_ART.forEach(function(a){sp+=((r.svc||{})[a]||0)+((r.svc_pts||{})[a]||0);});
+      var o=agg[r.sku]||(agg[r.sku]={sku:r.sku,name:r.name,line:r.line||'прочее',sp:0,rev:0,un:0});
+      o.sp+=sp;o.rev+=r.revenue_money+r.points_accrued;o.un+=r.units_net;});});
+  var list=Object.keys(agg).map(function(k){return agg[k];}).filter(function(x){return x.sp>0;}).sort(function(x,y){return y.sp-x.sp;});
+  var lab=lastYm?('за '+lastYm):'закрытых месяцев нет';
+  document.getElementById('pm-lab1').textContent=lab;
+  document.getElementById('pm-lab3').textContent=lab+(list.length>40?' · топ-40 из '+list.length:'');
+  var lines={};list.forEach(function(x){var c=lines[x.line]||(lines[x.line]={sp:0,rev:0});c.sp+=x.sp;c.rev+=x.rev;});
+  var lh='<thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">ДРР</th></tr></thead><tbody>';
+  Object.keys(lines).sort(function(a,b){return lines[b].sp-lines[a].sp;}).forEach(function(l){var v=lines[l];
+    var d=v.rev>0?Math.round(v.sp/v.rev*1000)/10:null;
+    lh+='<tr><td>'+l+'</td><td class="r">'+pmRub(v.sp)+'</td><td class="r">'+pmRub(v.rev)+'</td>'
+      +'<td class="r"'+(d!=null&&d>30?' style="color:var(--dn)"':'')+'>'+(d==null?'—':d+'%')+'</td></tr>';});
+  document.getElementById('pm-line').innerHTML=lh+'</tbody>';
+  var hungry=list.filter(function(x){return x.rev>0&&x.sp/x.rev>0.3;});
+  var hSum=hungry.reduce(function(a,x){return a+x.sp;},0);
+  document.getElementById('pm-lab2').textContent=lab;
+  document.getElementById('pm-hungry').innerHTML=hungry.length
+    ? '<b style="font-size:15px">'+hungry.length+' SKU с ДРР выше 30%</b> на '+pmRub(hSum)+' ₽ расхода.<div class="kt-note" style="margin-top:8px">Буст Маркета списывается процентом с продажи, поэтому высокий ДРР тут значит высокую ставку буста, а не «плохие клики». Снижать его надо ставкой буста в кабинете, а не отключением кампании: отключать нечего.</div>'
+    : '<b>SKU с ДРР выше 30% нет.</b><div class="kt-note" style="margin-top:8px">Ни один артикул не отдал больше 30% выручки на продвижение.</div>';
+  var sh='<thead><tr><th>Артикул</th><th>Название</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Штук</th><th class="r">ДРР</th></tr></thead><tbody>';
+  list.slice(0,40).forEach(function(x){var d=x.rev>0?Math.round(x.sp/x.rev*1000)/10:null;
+    sh+='<tr><td>'+x.sku+'</td><td>'+(x.name||'').slice(0,44)+'</td><td class="r">'+pmRub(x.sp)+'</td>'
+      +'<td class="r">'+pmRub(x.rev)+'</td><td class="r">'+x.un+'</td>'
+      +'<td class="r"'+(d!=null&&d>30?' style="color:var(--dn)"':'')+'>'+(d==null?'нет выручки':d+'%')+'</td></tr>';});
+  document.getElementById('pm-sku').innerHTML=sh+'</tbody>';
+}
+// Шелл Кати дёргает render(cur,cmp) на каждой смене периода в шапке - функция обязана быть на
+// любом листе. Этому листу период из шапки не применим: свод живёт месяцами по дате оформления
+// заказа, а не произвольным диапазоном. Поэтому render ничего не делает, а в шапке листа прямо
+// сказано, по какому периоду он считается - иначе кнопки периода молча врали бы.
+function render(cur,cmp){}
+function pmInit(){
+  var bs={};(PM.months||[]).forEach(function(m){if(m.rows.length)bs[m.business]=1;});
+  var sel=document.getElementById('pm-b');if(!sel)return;
+  sel.innerHTML='<option value="all">все кабинеты</option>'+Object.keys(bs).sort().map(function(x){return '<option value="'+x+'">'+pmN(x)+'</option>';}).join('');
+  sel.onchange=pmDraw;pmDraw();
+}
+pmInit();
+`;
+  return { body, js };
 }
 
 // JS свода по дате заказа для katya-money. Пустая строка у OZON: секции там нет, и вешать на

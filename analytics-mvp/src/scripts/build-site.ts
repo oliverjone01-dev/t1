@@ -453,47 +453,25 @@ function main() {
   for (const orphan of ["dashboard.html", "styleguide.html", "data.json"]) {
     try { rmSync(op(orphan)); } catch { /* нет файла - ок */ }
   }
-  // index = редирект на канонический obzor.html (TZ v2 1.12): один тяжёлый файл вместо дубля.
-  // У Маркета вход ведёт в вид Кати: технический вид там путает, и из навигации он убран
-  // (решение Кати, сентябрь 2026). Сами страницы остаются доступны по прямым ссылкам.
-  const entry = IS_OZON ? "obzor.html" : "katya-command.html";
-  writePage(op("index.html"), `<!doctype html><html lang="ru"><head><meta charset="utf-8">
-<meta http-equiv="refresh" content="0;url=${entry}"><title>GENGLASS · аналитика OZON</title>
-<style>body{margin:0;background:#0A0A0B;color:#8A8A90;font:14px/1.5 "SF Pro Display",-apple-system,sans-serif;display:grid;place-items:center;height:100vh}a{color:#FF4438}</style>
-</head><body><div>Открываю обзор... <a href="${entry}">перейти вручную</a></div></body></html>`);
-  writePage(op("tovary.html"), renderTovary(model));
-  writePage(op("obzor.html"), renderOverview(model));
-  writePage(op("voronka.html"), renderFunnel(model));
-  writePage(op("cards.html"), renderCards(model));
-  // Свод (около 1,1 МБ) кладём ТОЛЬКО на страницу, которая его читает: в общей модели он
-  // инлайнился в каждую страницу Маркета и раздувал шесть файлов до 1,36 МБ каждый.
-  writePage(op("money.html"), renderMoney(IS_OZON ? model : { ...model, svod }));
-  writePage(op("assistant.html"), renderAssistant(model));
+  // Решение Ивана: наружу показываем ТОЛЬКО «вид Кати» (katya-*). Старые страницы и корневой
+  // индекс - редиректы на соответствующий KATYA-экран, чтобы старая панель навигации нигде не
+  // всплывала (в т.ч. по старым ссылкам/закладкам). Полные старые страницы больше не собираем.
+  const redir = (target: string) => `<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta http-equiv="refresh" content="0;url=${target}"><title>GENGLASS · KATYA</title>
+<style>body{margin:0;background:#0A0A0B;color:#8A8A90;font:14px/1.5 "SF Pro Display",-apple-system,sans-serif;display:grid;place-items:center;height:100vh}a{color:#22D3EE}</style>
+</head><body><div>Открываю KATYA... <a href="${target}">перейти вручную</a></div></body></html>`;
+  writePage(op("index.html"), redir("katya-command.html"));
+  writePage(op("obzor.html"), redir("katya.html"));
+  writePage(op("tovary.html"), redir("katya-tovary.html"));
+  writePage(op("voronka.html"), redir("katya-voronka.html"));
+  writePage(op("cards.html"), redir("katya-tovary.html"));
+  writePage(op("money.html"), redir("katya-money.html"));
+  writePage(op("assistant.html"), redir("katya-command.html"));
+  writePage(op("marketing.html"), redir("katya-marketing.html"));
+  writePage(op("campaigns.html"), redir("katya-marketing.html"));
+  writePage(op("competitors.html"), redir("katya-competitors.html"));
 
-  const footMkt = `ДРР канала - <b>[ДАННЫЕ]</b>, надёжен. ДРР по линиям - ориентир (G5). Индекс цены - снимок OZON. Реклама/цены не в дневной истории, поэтому страница - снимок за 30 дней, без интерактивного периода.`;
-  // Реклама Маркета собирается отдельно: модель площадки другая, лист OZON туда не переносится.
-  const footPromo = `Расход на продвижение и выручка - <b>[ДАННЫЕ]</b> из отчёта по платежам и заказов, базис один (дата оформления заказа), поэтому ДРР считается по заказам, а не оценивается. Кампаний, ставок и кликов у Маркета нет - на листе их нет тоже.`;
-  if (IS_OZON) {
-    writePage(op("marketing.html"), staticPage("Маркетинг и цена", "снимок рекламы и цен за 30 дней", buildMarketing(), footMkt));
-    writePage(op("campaigns.html"), staticPage("Кампании", "снимок рекламы за 30 дней", buildCampaigns(), footMkt));
-  } else {
-    writePage(op("marketing.html"), staticPage("Маркетинг и цена", "продвижение по месяцам заказа", buildPromoYm(), footPromo));
-    writePage(op("campaigns.html"), staticPage("Кампании", "у Маркета их нет", `
-  <div class="card" style="border-color:#34343a"><b>Рекламных кампаний у Яндекс Маркета нет.</b>
-  <div class="note" style="margin-top:8px">Площадка не заводит кампании с бюджетом и ставкой за клик: продвижение идёт бустом продаж, который списывается процентом с проданного заказа, и общими расходами кабинета (подписка, полки, баннеры). Отключать нечего, оптимизировать надо ставку буста. Весь расход и ДРР по заказам - на листе <a href="marketing.html">Маркетинг и цена</a>.</div></div>
-  <div class="note">Лист оставлен пустым намеренно: нули в карточках «ставка», «клики», «активных кампаний» показывали бы канал, которого у площадки нет.</div>`, footPromo));
-  }
-
-  const footComp = `Все поля - <b>[ДАННЫЕ]</b> с публичной карточки OZON (цена / база / рейтинг / отзывы / наличие). Заказы и выручку конкурента OZON не отдаёт - не оцениваем. Лист - снимок последнего прогона пилота; страж заполненности краснеет, если анти-бот срезал сбор.`;
-  const compSnaps = listCompetitorSnaps();
-  const compLabel = compSnaps.length ? `снимок конкурентов ${compDate(compSnaps[compSnaps.length - 1]!)}` : "конкуренты - данных пока нет";
-  // Конкуренты: пилот-сборщик работает только с карточками OZON. Для другой платформы - честная заглушка
-  // без чужих ссылок (ФЕНИКС G5), пока нет своего сборщика по market.yandex.ru.
-  const compBody = IS_OZON ? buildCompetitors(maxDate) : `<div class="card"><b>Конкуренты на этой площадке не собираются.</b><div class="note" style="margin-top:8px">Сборщик цен/рейтингов конкурентов есть только для OZON (пилот). Для Яндекс Маркета нужен отдельный сборщик по market.yandex.ru - отдельная задача, решение за Иваном.</div></div>`;
-  const compFoot = IS_OZON ? footComp : "Лист пустой намеренно: источника по конкурентам на этой площадке нет.";
-  writePage(op("competitors.html"), staticPage("Конкуренты", IS_OZON ? compLabel : "нет источника", compBody, compFoot));
-
-  console.log(`Готово: obzor · tovary · voronka · cards · money · marketing · campaigns · competitors (+index-redirect)`);
+  console.log(`Готово: все старые страницы -> редиректы на KATYA (вход = katya-command.html)`);
   console.log(`Фактов ${facts.length} · SKU ${Object.keys(skus).length} · ${model.floor}..${model.max} · OOS ${oos.length} · закрытые Акты до ${closedMeta.lastLabel}${closedMeta.stale ? " (УСТАРЕЛИ)" : ""}`);
 }
 

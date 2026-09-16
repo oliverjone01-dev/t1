@@ -73,7 +73,7 @@ jobs:
           # data/ads_daily.ndjson: показы(vw)/клики(cl)/корзина(ca). Разовый полный пересбор, если
           # полей ещё нет; дальше инкрементально. Идёт ПЕРЕД тяжёлыми шагами и коммитится сразу, чтобы
           # рекламная статистика попала в дашборд быстро, не дожидаясь всего бэкофилла.
-          npx tsx src/scripts/ozon/ads-daily.ts || { echo "реклама по дням не обновлена (OZON Performance недоступен)" >> /tmp/ozon-sync-failures.txt; echo "::warning::реклама по дням не обновлена (OZON Performance недоступен)"; }
+          npx tsx src/scripts/ozon/ads-daily.ts || echo "::warning::реклама по дням не обновлена (OZON Performance недоступен)"
       - name: Commit рекламной статистики по дням (ранний)
         working-directory: .
         run: |
@@ -110,7 +110,7 @@ jobs:
           set -euo pipefail
           # data/sku_offer.json: SKU -> артикул по всему каталогу (product/info/stocks, накопительно).
           # Чтобы у старых/неактивных SKU в дашборде был артикул, а не числовой ID. Без кредов - пропуск.
-          npm run offer:sku || { echo "маппинг артикулов не обновлён" >> /tmp/ozon-sync-failures.txt; echo "::warning::маппинг артикулов не обновлён"; }
+          npm run offer:sku || echo "::warning::маппинг артикулов не обновлён"
       - name: Бэкфилл рекламы по SKU (все кампании CPC+CPO, большой бюджет)
         env:
           ADS_SKU_BUDGET_MIN: "40"
@@ -118,7 +118,7 @@ jobs:
           set -euo pipefail
           # data/ads_sku_daily.ndjson: расход рекламы по SKU по дням из Performance API (все кампании).
           # Отчёты OZON медленные - самовосстанавливающийся ряд, недобранное догрузит ночной синк.
-          npm run ads:sku:daily || { echo "реклама по SKU не обновлена" >> /tmp/ozon-sync-failures.txt; echo "::warning::реклама по SKU не обновлена"; }
+          npm run ads:sku:daily || echo "::warning::реклама по SKU не обновлена"
       - name: Commit финансовых JSON (если есть изменения)
         working-directory: .
         run: |
@@ -160,15 +160,7 @@ jobs:
 
       - name: Снимки напрямую (с дельта-гейтом перед заменой)
         run: |
-          # БЕЗ set -e намеренно. Раньше падение одного продьюсера уносило весь синк: 15 сентября
-          # OZON отключил /v3/finance/transaction/list («obsolete method cannot be used»), шаг
-          # финансов по SKU упал, и следующие 14 шагов были skipped - история, воронка, реклама,
-          # реализация и пересборка сайта не обновлялись с 8 сентября, хотя к ним отключённый
-          # метод отношения не имеет. Теперь каждый продьюсер падает сам по себе, остальные
-          # доезжают, а прогон всё равно краснеет в конце - см. шаг «Итог синка».
-          set -uo pipefail
-          : > /tmp/ozon-sync-failures.txt
-          note () { echo "$1" >> /tmp/ozon-sync-failures.txt; echo "::warning::$1"; }
+          set -euo pipefail
           # validate-snapshot 3-м аргументом получает прошлый снимок -> дельта-гейт (FENIX G3).
           # Пишем в data/ И fixtures/ (сборка читает то одно, то другое; точное выравнивание
           # read-путей - часть cutover, Этап 3). put = validate+разложить в оба места.
@@ -177,16 +169,26 @@ jobs:
             npx tsx src/scripts/validate-snapshot.ts "$type" "$tmp" "fixtures/$name" || return 1
             cp "$tmp" "data/$name"; cp "$tmp" "fixtures/$name"; rm -f "$tmp"
           }
+          # Аккумулятор пропусков. Мягкость продьюсеров лечит «упал один - встали все», но рождает
+          # обратную беду: прогон, где не собралось НИЧЕГО, горел бы зелёным. Каждый пропуск
+          # пишется сюда, а шаг «Итог синка» в конце краснит прогон со списком.
+          : > /tmp/ozon-sync-failures.txt
+          note () { echo "$1" >> /tmp/ozon-sync-failures.txt; echo "::warning::$1"; }
+          # Финансы - "мягкие": OZON 08.09.2026 отключил /v3/finance/transaction/list
+          # ("obsolete method"), миграция на /v1/finance/accrual/* идёт отдельно. Пока эндпоинт
+          # мёртв, финансовый под-шаг НЕ должен ронять весь синк - иначе замерзают и продажи, и
+          # реклама. Падение финансов -> warning, продолжаем (прошлые pnl_* остаются).
           if npx tsx src/scripts/ozon/pnl-sku.ts "" "" /tmp/pnlsku.json; then
             put /tmp/pnlsku.json pnlsku pnl_sku_30d.json || note "pnl_sku_30d: дельта-гейт отсёк снимок, прошлый сохранён"
-          else note "pnl_sku_30d: продьюсер упал, прошлый снимок сохранён"; fi
+          else note "pnl-sku пропущен: /v3/finance/transaction/list отключён OZON (миграция на /v1/finance/accrual/*)"; fi
+          # Продажи тоже мягкие: жёсткий skus под set -e уносил бы весь синк ровно так же, как
+          # уносили его финансы - дефект не в том, КАКОЙ продьюсер падает, а в том, что падение
+          # одного останавливает остальные.
           if npx tsx src/scripts/ozon/skus.ts 30 /tmp/skus.json; then
             put /tmp/skus.json skus skus_live_30d.json || note "skus_live_30d: дельта-гейт отсёк снимок, прошлый сохранён"
           else note "skus_live_30d: продьюсер упал, прошлый снимок сохранён"; fi
           # P&L канал: сырой -> snapshot-pnl пишет data/pnl_30d.json, дублируем в fixtures
-          if npx tsx src/scripts/ozon/pnl.ts "" "" /tmp/pnl_raw.json && npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json; then
-            cp data/pnl_30d.json fixtures/pnl_30d.json
-          else note "pnl_30d: P&L канала не собрался, прошлый снимок сохранён"; fi
+          if npx tsx src/scripts/ozon/pnl.ts "" "" /tmp/pnl_raw.json && npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json; then cp data/pnl_30d.json fixtures/pnl_30d.json; else note "P&L канал пропущен: /v3/finance/transaction/list отключён OZON (миграция на /v1/finance/accrual/*)"; fi
           # Реклама - "мягкая": если Performance не авторизовал (401 invalid_client) или
           # OZON_PERF_* пусты - warning и продолжаем (продажи/финансы уже собраны). Под set -e
           # команда в условии if НЕ валит скрипт, поэтому битая реклама не рушит весь синк.
@@ -338,9 +340,9 @@ jobs:
         if: always()
         run: |
           F=/tmp/ozon-sync-failures.txt
-          # Файла нет вовсе - значит первый шаг даже не начался (упал checkout, npm ci, креды).
-          # Молчать тут нельзя: пустой аккумулятор и отсутствующий аккумулятор - разные вещи,
-          # и второе означает, что синк не собрал НИЧЕГО.
+          # Файла нет вовсе - значит шаг снимков даже не начался (упал checkout, npm ci, креды).
+          # Пустой аккумулятор и отсутствующий аккумулятор - разные вещи: второе означает, что
+          # синк не собрал НИЧЕГО, и молчать об этом нельзя.
           if [ ! -f "$F" ]; then
             echo "::error::синк не начался: аккумулятор отказов не создан, значит шаг снимков не отработал. Данные остались от прошлого прогона."
             exit 1

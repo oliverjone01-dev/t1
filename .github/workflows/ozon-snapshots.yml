@@ -67,6 +67,10 @@ jobs:
             echo "::error::OZON Seller креды не заданы (ни Secrets, ни input)."; exit 1
           fi
           echo "Seller-креды на месте."
+      - name: PROBE accrual (схема новых finance-методов, удалить после разбора)
+        run: |
+          set -uo pipefail
+          npx tsx src/scripts/ozon/accrual-probe.ts 2026-08-01 2026-08-31 || echo "accrual-probe завершился (не критично)"
       - name: Рекламная статистика по дням (показы/клики/корзина -> ads_daily)
         run: |
           set -euo pipefail

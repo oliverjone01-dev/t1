@@ -72,7 +72,9 @@ const YM_LABELS: Array<[RegExp, string]> = [
 export const KEEP_OZON = "@@GG_KEEP_MP1@@";
 
 export function platformize(html: string): string {
-  if (IS_OZON) return html;
+  // Сторож раскрывается на ОБЕИХ площадках. Раньше сборка OZON выходила из функции раньше и
+  // оставляла @@GG_KEEP_MP1@@ прямо в тексте страницы: смоук-гейт ловил его на 7 страницах.
+  if (IS_OZON) return html.replace(new RegExp(KEEP_OZON, "g"), "OZON");
   const YM_OTHER = "@@GG_OTHER_MP@@";
   let out = html
     .replace(/\['ym','Яндекс Маркет',0\]/g, `['ym','${YM_OTHER}',0]`)

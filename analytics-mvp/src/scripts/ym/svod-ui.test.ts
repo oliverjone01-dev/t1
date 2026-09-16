@@ -197,6 +197,153 @@ describe("свод Маркета: числа на странице", () => {
     expect(Math.abs(partial || 0), "расходы дней вне окна попали в период").toBeLessThan(Math.abs(full || 0));
   });
 
+  // Ниже - про то, что вся страница отвечает ОДНИМ числом. Пока план и водопад считали по своей
+  // базе (проводки реестра + pnl_sku_daily), за июль они давали выручку 15 287 504 ₽ и чистую
+  // -294 510 ₽, а таблица под ними - 9 722 328 ₽ и 140 942 ₽. Расхождение ловится только так:
+  // взять число из одного блока и сверить с числом из другого на той же странице.
+  const planFact = (lab: string): number | null => {
+    const rows: any[] = (dom.window as any).planRows(planYm);
+    const r = rows.find((x) => x[0] === lab);
+    return r ? (r[2] == null ? null : Math.round(r[2])) : null;
+  };
+  let planYm = "2026-07";
+
+  it("план на месяц берёт факт из свода: те же числа, что в ИТОГО таблицы", () => {
+    const bad: string[] = [];
+    let compared = 0;
+    for (const m of MONTHS) {
+      planYm = m;
+      setRange(`${m}-01`, monthEnd(m));
+      // Верхний фильтр подрезает запрошенный период под окно данных (февраль начинается с 06-го,
+      // сентябрь кончается вчерашним днём). План считает КАЛЕНДАРНЫЙ месяц, поэтому сравнивать
+      // его с таблицей можно только там, где фильтр отдал весь месяц целиком - иначе тест ловил
+      // бы подрезку, а не расхождение источников.
+      const w = (dom.window as any).__guruPeriod || {};
+      if (w.curFrom !== `${m}-01` || w.curTo !== monthEnd(m)) continue;
+      compared++;
+      const pairs: Array<[string, string]> = [
+        ["Реализация", "Штуки"], ["Выручка деньгами", "Выручка деньгами"],
+        ["Валовая прибыль", "Валовая прибыль (деньги)"], ["Чистая прибыль", "Чистая прибыль"],
+      ];
+      for (const [pl, tb] of pairs) {
+        const a = planFact(pl), b = num(cell(tb));
+        if (a === null || b === null) { bad.push(`${m} ${pl}: нет числа (план ${a}, таблица ${b})`); continue; }
+        if (Math.abs(a - b) > 1) bad.push(`${m} ${pl}: план ${a} против таблицы ${b}`);
+      }
+    }
+    expect(compared, "сравнивать оказалось нечего - тест стал пустым").toBeGreaterThanOrEqual(5);
+    expect(bad).toEqual([]);
+  }, 60_000);
+
+  it("план показывает только текущий и будущие месяцы, и текущий сходится с таблицей", () => {
+    const sel = D().getElementById("plan-month") as any;
+    const opts = [...sel.options].map((o: any) => o.value);
+    expect(opts.length, "в плане нет ни одного месяца").toBeGreaterThan(0);
+    const cur = (dom.window as any).planCurMon();
+    expect(opts).toContain(cur);
+    expect(opts.filter((v: string) => v < cur), "в плане месяцы из прошлого").toEqual([]);
+    // Текущий месяц - единственный, который пользователь реально видит в этом блоке, поэтому
+    // именно он обязан совпадать с таблицей за тот же период.
+    planYm = cur;
+    setRange(`${cur}-01`, monthEnd(cur));
+    expect(planFact("Реализация")).toBe(num(cell("Штуки")));
+    expect(Math.abs((planFact("Чистая прибыль") || 0) - (num(cell("Чистая прибыль")) || 0))).toBeLessThanOrEqual(1);
+  });
+
+  // §15 п.2: целый закрытый месяц, часть месяца, текущий незакрытый. Граничные периоды - главный
+  // источник багов, и именно на них водопад раньше расходился с таблицей сильнее всего.
+  const WF_PERIODS: Array<[string, string, string]> = [
+    ["2026-07-01", "2026-07-31", "целый закрытый месяц"],
+    ["2026-08-01", "2026-08-15", "часть месяца"],
+    ["2026-09-01", "2026-09-30", "текущий незакрытый"],
+    ["2026-08-17", "2026-09-15", "окно через границу месяцев"],
+  ];
+  const bars = () => [...D().querySelectorAll("#wf > div")].map((x) => {
+    const t = x.getAttribute("title") || "";
+    const i = t.lastIndexOf(":");
+    return [t.slice(0, i), num(t.slice(i + 1))! ] as [string, number];
+  });
+
+  it("водопад: бары складываются в цепочку и последний равен чистой прибыли таблицы", () => {
+    const bad: string[] = [];
+    for (const [from, to, lab] of WF_PERIODS) {
+      setRange(from, to);
+      const b = bars();
+      if (b.length < 4) { bad.push(`${lab}: водопад не нарисован (${b.length} баров)`); continue; }
+      // Промежуточные итоги («Поступление по артикулам») в сумму не идут - это метки уровня,
+      // а не шаги. Старт - первый бар, дальше складываются только шаги.
+      const steps = b.slice(1).filter((x) => !/^Поступление по артикулам|^Чистая прибыль/.test(x[0]));
+      const chain = b[0]![1] + steps.reduce((a, x) => a + x[1], 0);
+      const last = b[b.length - 1]!;
+      if (!/^Чистая прибыль/.test(last[0])) bad.push(`${lab}: последний бар «${last[0]}», а не чистая прибыль`);
+      if (Math.abs(chain - last[1]) > 2) bad.push(`${lab}: цепочка даёт ${Math.round(chain)}, последний бар ${last[1]}`);
+      const tbl = num(cell("Чистая прибыль"));
+      if (tbl === null || Math.abs(last[1] - tbl) > 2) bad.push(`${lab}: водопад ${last[1]} против таблицы ${tbl}`);
+    }
+    expect(bad).toEqual([]);
+  }, 60_000);
+
+  it("блок «Общие расходы» под Маркет: колонки свои, итог равен строке свода", () => {
+    const hdr = () => [...D().querySelectorAll("#acct-h th")].map((x) => (x.textContent || "").trim());
+    const rows = () => [...D().querySelectorAll("#acct tr")];
+    setRange("2026-07-01", "2026-07-31");
+    // Колонок OZON тут быть не должно: у Маркета нет ни рекламы за клик, ни realFBS, ни гибкого
+    // графика - все пять колонок стояли пустыми, а вся сумма падала в «Прочее».
+    for (const ozon of ["Реклама (клик+заказ)", "Штрафы + гибкий график", "realFBS + сервис + страховка", "Бейдж/сеть/отзывы/Premium", "Доставка от покупателя"]) {
+      expect(hdr(), `колонка OZON «${ozon}» осталась на Маркете`).not.toContain(ozon);
+    }
+    expect(hdr()).toContain("Продвижение");
+    // Разбивка обязана быть НЕ пустой. Если derive перестанет писать статьи по дням, итог всё
+    // равно сойдётся (остаток уезжает в «Вне групп») - и без этой проверки потеря разбивки
+    // прошла бы молча: пользователь снова видел бы одну кучу вместо статей.
+    {
+      const tot = rows().find((r) => (r.textContent || "").startsWith("Всего"))!;
+      const cells = [...tot.children].slice(1, -1).map((c) => Math.abs(num(c.textContent) || 0));
+      const named = hdr().slice(1, -1).map((h, i) => (h === "Вне групп" ? 0 : cells[i] || 0));
+      expect(named.reduce((a, b) => a + b, 0), "все расходы легли в «Вне групп»: разбивки по статьям нет").toBeGreaterThan(0);
+      expect(hdr(), "колонка «Вне групп» появилась - статья не попала ни в одну группу").not.toContain("Вне групп");
+    }
+    const bad: string[] = [];
+    for (const [from, to, lab] of WF_PERIODS) {
+      setRange(from, to);
+      const tot = rows().find((r) => (r.textContent || "").startsWith("Всего"));
+      // строка свода «Общие расходы кабинета» - первая в подвале
+      const ohCell = [...T().querySelectorAll("tfoot tr:first-child td")][head().indexOf("Поступление")];
+      const svodOh = Math.abs(num(ohCell?.textContent) || 0);
+      const blockOh = tot ? Math.abs(num([...tot.children].pop()!.textContent) || 0) : 0;
+      if (Math.abs(blockOh - svodOh) > 1) bad.push(`${lab}: блок ${blockOh} против свода ${svodOh}`);
+      // Деньгами + Баллами обязаны дать «Всего»: иначе часть расходов не видна ни в одной строке.
+      if (tot) {
+        const m = rows().find((r) => (r.textContent || "").startsWith("Деньгами"));
+        const p = rows().find((r) => (r.textContent || "").startsWith("Баллами"));
+        const sum = (num([...m!.children].pop()!.textContent) || 0) + (num([...p!.children].pop()!.textContent) || 0);
+        const tt = num([...tot.children].pop()!.textContent) || 0;
+        if (Math.abs(sum - tt) > 1) bad.push(`${lab}: деньгами+баллами ${Math.round(sum)} против «Всего» ${tt}`);
+      }
+    }
+    expect(bad).toEqual([]);
+  }, 60_000);
+
+  it("второй таблицы по артикулам на Маркете нет: она расходилась со сводом", () => {
+    // Раздел остаётся на месте с объяснением - но именно таблицы с другими числами быть не должно.
+    expect(D().getElementById("skuan-t")!.closest(".kt-scroll")!.getAttribute("style") || "").toContain("display:none");
+    expect(D().body.textContent).toContain("Свод по дате заказа");
+  });
+
+  it("переключатель площадки: обе подписи разные и ведут на ту же вкладку", () => {
+    const chips = [...D().querySelectorAll("#gg-nav a")].filter((a) => /^(OZON|Яндекс Маркет)$/.test((a.textContent || "").trim()));
+    expect(chips.length, "переключателя площадки нет").toBe(2);
+    // platformize() в сборке Маркета меняет каждое «OZON» на «Яндекс Маркет»; без сторожа
+    // KEEP_OZON обе кнопки подписывались одинаково.
+    expect((chips[0]!.textContent || "").trim()).toBe("OZON");
+    expect((chips[1]!.textContent || "").trim()).toBe("Яндекс Маркет");
+    expect(chips[0]!.getAttribute("href")).toBe("../katya-money.html");
+    expect(chips[1]!.getAttribute("href")).toBe("katya-money.html");
+    // Вкладки «Реакция» на Маркете нет: файла katya-reakciya.html в public/market/ не существует.
+    expect([...D().querySelectorAll("#gg-nav a")].map((a) => a.getAttribute("href")))
+      .not.toContain("katya-reakciya.html");
+  });
+
   it("две раскладки называют валовую прибыль по-разному - базы у них разные", () => {
     setRange("2026-07-01", "2026-07-31");
     expect(head()).toContain("Валовая прибыль (деньги)");

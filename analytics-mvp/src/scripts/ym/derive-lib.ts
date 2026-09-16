@@ -586,7 +586,10 @@ export interface SvodMonth {
   // Общие расходы кабинета ПО ДНЯМ: {дата: {m: деньгами, p: баллами}}. Нужны, чтобы свод считался
   // за произвольный период, а не только за целый месяц. У акта есть дата оказания услуги, у
   // реестра платежей - дата проводки, так что день известен у обоих источников.
-  overhead_daily: Record<string, { m: number; p: number }>;
+  // По дню: m - оплачено деньгами, p - баллами, c - та же сумма в разрезе статей (колонок
+  // svcColumn), чтобы блок «Общие расходы» показывал не один ком, а из чего он сложен, и делал
+  // это по тем же дням и статьям, что ИТОГО свода. Значение статьи - [деньги, баллы].
+  overhead_daily: Record<string, { m: number; p: number; c?: Record<string, [number, number]> }>;
   points_acc: number;   // начислено баллов за месяц (ACCRUAL из subsidies[])
   points_ded: number;   // списано баллов при невыкупе и возврате (DEDUCTION), положительное число
   overhead_src: "ledger" | "act";   // откуда взяты общие расходы: только реестр или акт по стоимости услуг
@@ -848,8 +851,9 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     const bag = o.points ? overheadPts : overheadMoney;
     const r = bag.get(k) || {}; r[o.col] = (r[o.col] || 0) + o.amount; bag.set(k, r);
     if (o.points) m.overhead_points += o.amount; else m.overhead_money += o.amount;
-    const dd = m.overhead_daily[o.d] || (m.overhead_daily[o.d] = { m: 0, p: 0 });
-    if (o.points) dd.p += o.amount; else dd.m += o.amount;
+    const dd = m.overhead_daily[o.d] || (m.overhead_daily[o.d] = { m: 0, p: 0, c: {} });
+    const dc = (dd.c ||= {}); const cc = dc[o.col] || (dc[o.col] = [0, 0]);
+    if (o.points) { dd.p += o.amount; cc[1] = r2(cc[1] + o.amount); } else { dd.m += o.amount; cc[0] = r2(cc[0] + o.amount); }
   }
 
   // Баллы из отчёта по баллам Маркета. Это источник кабинета, а subsidies[] заказа - производная
@@ -894,9 +898,10 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     for (const a of list) {
       const col = svcColumn(a.service);
       const ad = a.d || `${a.ym}-28`;   // строка акта без даты - на конец месяца, чтобы не потерялась
-      const dd = m.overhead_daily[ad] || (m.overhead_daily[ad] = { m: 0, p: 0 });
-      if (a.money) { om[col] = r2((om[col] || 0) + a.money); m.overhead_money = r2(m.overhead_money + a.money); dd.m = r2(dd.m + a.money); }
-      if (a.points) { op[col] = r2((op[col] || 0) + a.points); m.overhead_points = r2(m.overhead_points + a.points); dd.p = r2(dd.p + a.points); }
+      const dd = m.overhead_daily[ad] || (m.overhead_daily[ad] = { m: 0, p: 0, c: {} });
+      const dc = (dd.c ||= {}); const cc = dc[col] || (dc[col] = [0, 0]);
+      if (a.money) { om[col] = r2((om[col] || 0) + a.money); m.overhead_money = r2(m.overhead_money + a.money); dd.m = r2(dd.m + a.money); cc[0] = r2(cc[0] + a.money); }
+      if (a.points) { op[col] = r2((op[col] || 0) + a.points); m.overhead_points = r2(m.overhead_points + a.points); dd.p = r2(dd.p + a.points); cc[1] = r2(cc[1] + a.points); }
     }
     overheadMoney.set(k, om); overheadPts.set(k, op);
   }

@@ -44,6 +44,21 @@ ITEM-пример: `item_fees.fees=[{sku:3492822125, fees:[{type_id:1, accrued:{
 **Даёт per-день/per-SKU/per-type сборы** (ITEM -> pnl-sku-daily; NON_ITEM -> pnl-account-daily). Один вызов на день,
 итерировать даты периода. Это заменяет разбор services[] старого transaction/list.
 
+### Отчёт о реализации /v2/finance/realization {month,year} - ГОТОВЫЕ деньги закрытого месяца
+Уже тянется (pnl-realization.ts), но берём только quantity. В строке есть ВСЕ деньги per-SKU:
+```
+row: {item:{sku, offer_id}, seller_price_per_instance, commission_ratio,
+  delivery_commission:{ price_per_instance, quantity,
+     amount,         // ВЫРУЧКА (цена × кол-во)
+     standard_fee,   // комиссия OZON
+     bonus, stars, bank_coinvestment, pick_up_point_coinvestment,
+     total },        // К ВЫПЛАТЕ по строке (нетто payout) = amount + bonus - standard_fee + coinvest
+  return_commission:{...}|null }
+```
+Август 2026: 294 строки. Для ЗАКРЫТОГО месяца это авторитетный источник выручки+комиссии+к-выплате
+per-SKU (УПД) - реконструкция из accruals не нужна. Из accruals собираем ТОЛЬКО текущий/незакрытый
+месяц (реализации ещё нет): сборы postings+by-day + выручка из history/financial_data.
+
 ### Выручка (в accrual/* её НЕТ) - источники
 - `/v2/finance/realization {month,year}` - авторитетная бухгалтерская выручка/УПД (уже собирается pnl-realization).
 - `/v2/posting/fbo|fbs/list with:{financial_data:true}` -> `financial_data.products[]:{product_id(sku), price,

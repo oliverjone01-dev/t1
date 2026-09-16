@@ -1,13 +1,13 @@
 {
-  "at": "2026-09-15T15:03:30.159Z",
-  "orders_from_netting": 1339,
-  "orders_from_commissions": 284,
-  "accruals_from_netting": 49924292,
-  "accruals_from_commissions": 101900,
-  "fees_from_netting": 25667170.32,
+  "at": "2026-09-16T11:21:11.284Z",
+  "orders_from_netting": 1347,
+  "orders_from_commissions": 280,
+  "accruals_from_netting": 50246000,
+  "accruals_from_commissions": 0,
+  "fees_from_netting": 25906875.21,
   "fees_from_commissions": 0,
-  "rate_netting": 51.4,
-  "rate_order": 0,
+  "rate_netting": 51.6,
+  "rate_order": null,
   "by_month": {
     "2026-02": {
       "orders_netting": 110,
@@ -44,7 +44,7 @@
       "orders_order": 26,
       "accruals_netting": 7247462,
       "accruals_order": 0,
-      "fees_netting": 3419998.79,
+      "fees_netting": 3419803.99,
       "fees_order": 0,
       "rate_netting": 47.2,
       "rate_order": null
@@ -54,9 +54,9 @@
       "orders_order": 20,
       "accruals_netting": 5512980,
       "accruals_order": 0,
-      "fees_netting": 2794718.79,
+      "fees_netting": 2783035.72,
       "fees_order": 0,
-      "rate_netting": 50.7,
+      "rate_netting": 50.5,
       "rate_order": null
     },
     "2026-07": {
@@ -64,7 +64,7 @@
       "orders_order": 47,
       "accruals_netting": 9854423,
       "accruals_order": 0,
-      "fees_netting": 5878082.49,
+      "fees_netting": 5877537.78,
       "fees_order": 0,
       "rate_netting": 59.6,
       "rate_order": null
@@ -72,31 +72,24 @@
     "2026-08": {
       "orders_netting": 205,
       "orders_order": 53,
-      "accruals_netting": 8641026,
+      "accruals_netting": 8681274,
       "accruals_order": 0,
-      "fees_netting": 4840690.77,
+      "fees_netting": 4848985.86,
       "fees_order": 0,
-      "rate_netting": 56,
+      "rate_netting": 55.9,
       "rate_order": null
     },
     "2026-09": {
-      "orders_netting": 106,
-      "orders_order": 37,
-      "accruals_netting": 1612020,
-      "accruals_order": 101900,
-      "fees_netting": 731826.77,
+      "orders_netting": 114,
+      "orders_order": 33,
+      "accruals_netting": 1893480,
+      "accruals_order": 0,
+      "fees_netting": 975659.15,
       "fees_order": 0,
-      "rate_netting": 45.4,
-      "rate_order": 0
+      "rate_netting": 51.5,
+      "rate_order": null
     }
   },
-  "gaps": [
-    {
-      "business": "74986385",
-      "ym": "2026-09",
-      "accruals": 101900,
-      "orders": 1
-    }
-  ],
+  "gaps": [],
   "unmapped": {}
 }

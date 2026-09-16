@@ -67,10 +67,6 @@ jobs:
             echo "::error::OZON Seller креды не заданы (ни Secrets, ни input)."; exit 1
           fi
           echo "Seller-креды на месте."
-      - name: VERIFY realization money (деньги закрытых месяцев, сверка августа, удалить)
-        run: |
-          set -uo pipefail
-          npm run pnl:realization || echo "pnl-realization завершился (не критично)"
       - name: Рекламная статистика по дням (показы/клики/корзина -> ads_daily)
         run: |
           set -euo pipefail

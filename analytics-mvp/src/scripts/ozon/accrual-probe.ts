@@ -31,8 +31,18 @@ async function main() {
   const headers = { "Client-Id": clientId, "Api-Key": apiKey, "Content-Type": "application/json" };
   const fromZ = `${from}T00:00:00.000Z`, toZ = `${to}T23:59:59.999Z`;
 
+  // Полный справочник типов начислений (id -> name) - основа маппинга type_id по категориям.
+  console.log(`=== /v1/finance/accrual/types (ВСЕ 124 типа: id | name) ===`);
+  try {
+    const r = await fetch(`${SELLER_HOST}/v1/finance/accrual/types`, { method: "POST", headers, body: "{}" });
+    const d: any = await r.json();
+    const types = d.accrual_types ?? d.result?.accrual_types ?? [];
+    for (const t of types) console.log(`  ${t.id}\t${t.name}${t.description && t.description !== t.name ? " ("+t.description+")" : ""}`);
+    console.log(`  всего типов: ${types.length}`);
+  } catch (e) { console.log("  types ERR:", (e as Error).message); }
+
   const day = from; // одна дата YYYY-MM-DD
-  console.log(`=== /v1/finance/accrual/by-day (дневные агрегаты) date=${day} ===`);
+  console.log(`\n=== /v1/finance/accrual/by-day (дневные агрегаты) date=${day} ===`);
   await hit(headers, "/v1/finance/accrual/by-day", { date: day });
 
   // Номера отправлений для postings берём из FBO-списка за окно.

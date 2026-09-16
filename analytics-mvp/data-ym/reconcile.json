@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-16T16:01:21.410Z",
+  "generated_at": "2026-09-16T16:52:26.271Z",
   "today": "2026-09-16",
   "periods": [
     {
@@ -522,7 +522,7 @@
     "fee_source": {
       "orders_from_netting": 1347,
       "orders_from_commissions": 280,
-      "accruals_from_netting": 50643807,
+      "accruals_from_netting": 50669100,
       "accruals_from_commissions": 0,
       "fees_from_netting": 26055213.11,
       "fees_from_commissions": 0,
@@ -602,16 +602,16 @@
         "2026-09": {
           "orders_netting": 114,
           "orders_order": 33,
-          "accruals_netting": 2291287,
+          "accruals_netting": 2316580,
           "accruals_order": 0,
           "fees_netting": 1101929.95,
           "fees_order": 0,
-          "rate_netting": 48.1,
+          "rate_netting": 47.6,
           "rate_order": null
         }
       },
       "gaps": [],
-      "accruals_total": 50643807,
+      "accruals_total": 50669100,
       "pct_accruals_from_commissions": 0,
       "months_mostly_commissions": [],
       "gaps_named": [],
@@ -641,8 +641,8 @@
         "orders": 1266,
         "rows": 2074,
         "revenue": 67976007,
-        "delivered": 843,
-        "payout": 21233153,
+        "delivered": 844,
+        "payout": 21258446,
         "skus": 305
       }
     },

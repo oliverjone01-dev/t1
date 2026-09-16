@@ -42,17 +42,33 @@ async function main() {
   } catch (e) { console.log("  types ERR:", (e as Error).message); }
 
   const day = from; // одна дата YYYY-MM-DD
-  console.log(`\n=== /v1/finance/accrual/by-day (дневные агрегаты) date=${day} ===`);
-  await hit(headers, "/v1/finance/accrual/by-day", { date: day });
+  console.log(`\n=== /v1/finance/accrual/by-day - ищем ITEM-строку с item_fees (структура per-SKU) ===`);
+  try {
+    const r = await fetch(`${SELLER_HOST}/v1/finance/accrual/by-day`, { method: "POST", headers, body: JSON.stringify({ date: day }) });
+    const d: any = await r.json();
+    const arr = d.accruals ?? [];
+    const item = arr.find((a: any) => a.accrued_category === "ITEM" || a.item_fees) || arr[0];
+    console.log("  ITEM-строка (item_fees структура):", JSON.stringify(item).slice(0, 900));
+  } catch (e) { console.log("  by-day ITEM ERR:", (e as Error).message); }
 
-  // Номера отправлений для postings берём из FBO-списка за окно.
-  console.log(`\n=== /v2/posting/fbo/list (получить posting_number) ${from}..${to} ===`);
+  // Источник ВЫРУЧКИ: financial_data отправления (в начислениях выручки нет).
+  console.log(`\n=== /v2/posting/fbo/list with financial_data (источник выручки) ${from}..${to} ===`);
   let postingNumbers: string[] = [];
   try {
-    const r = await fetch(`${SELLER_HOST}/v2/posting/fbo/list`, { method: "POST", headers, body: JSON.stringify({ dir: "ASC", filter: { since: fromZ, to: toZ, status: "" }, limit: 20, offset: 0, with: {} }) });
+    const r = await fetch(`${SELLER_HOST}/v2/posting/fbo/list`, { method: "POST", headers, body: JSON.stringify({ dir: "ASC", filter: { since: fromZ, to: toZ, status: "" }, limit: 20, offset: 0, with: { financial_data: true } }) });
     const t = await r.text();
     if (!r.ok) console.log(`  [${r.status}] fbo/list :: ${t.slice(0, 200)}`);
-    else { const d: any = JSON.parse(t); const arr = d.result ?? []; postingNumbers = arr.map((p: any) => p.posting_number).filter(Boolean).slice(0, 50); console.log(`  fbo/list: ${arr.length} отправлений, взял ${postingNumbers.length}: ${postingNumbers.slice(0, 3).join(", ")}...`); }
+    else {
+      const d: any = JSON.parse(t); const arr = d.result ?? [];
+      postingNumbers = arr.map((p: any) => p.posting_number).filter(Boolean).slice(0, 50);
+      console.log(`  fbo/list: ${arr.length} отправлений, взял ${postingNumbers.length}`);
+      const withFd = arr.find((p: any) => p.financial_data);
+      if (withFd) {
+        const fd = withFd.financial_data; const prod = (fd.products || [])[0];
+        console.log("  financial_data.products[0]:", JSON.stringify(prod).slice(0, 700));
+        console.log("  financial_data (верхние ключи):", Object.keys(fd).join(", "));
+      } else console.log("  financial_data нет в ответе (проверить поле with)");
+    }
   } catch (e) { console.log("  fbo/list ERR:", (e as Error).message); }
 
   console.log(`\n=== /v1/finance/accrual/postings (начисления по отправлениям) ===`);

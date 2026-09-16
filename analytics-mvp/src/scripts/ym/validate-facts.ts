@@ -54,8 +54,19 @@ function main() {
   const val = (r: any) => { const v = Number(r[sumK]) || 0; return abs ? Math.abs(v) : v; };
   const byBizEarly = process.argv.includes("--by=business");
   const cur = rows(file);
-  if (!cur.length) { console.error(`FACTS INVALID: ${file} пуст или нечитаем`); process.exit(1); }
   const prev = rows(prevFile);
+  // Источника может не быть вовсе. Отчёта по баллам Маркета в Partner API не существует (все 22
+  // метода генерации выписаны из OpenAPI-спецификации, вызовы united-bonuses / bonuses /
+  // united-marketplace-bonuses отдают 404), поэтому bonuses_monthly.ndjson не появляется, и гейт
+  // ронял прогон на «пуст или нечитаем» - при том, что ронять тут нечего.
+  // Но «файла нет» законно ТОЛЬКО когда его не было и раньше: исчезновение собранного файла - это
+  // ровно та потеря, ради которой гейт и стоит.
+  if (!existsSync(file)) {
+    if (prev.length) { console.error(`FACTS INVALID: ${file} исчез, а в прошлом снимке было ${prev.length} строк`); process.exit(1); }
+    console.log(`facts-gate ${file}: источник не собран и раньше не собирался - сторожить нечего`);
+    return;
+  }
+  if (!cur.length) { console.error(`FACTS INVALID: ${file} пуст или нечитаем`); process.exit(1); }
   if (!prev.length) { console.log(`facts-gate ${file}: строк ${cur.length}, прошлого снимка нет - сравнивать не с чем`); return; }
 
   // Ключ агрегации - пара (кабинет, месяц), если файл её несёт. Чистка в продьюсере идёт по паре,

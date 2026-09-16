@@ -148,8 +148,14 @@ jobs:
       - name: Акт по стоимости услуг (общие расходы кабинета)
         run: npm run ym:services || echo "::warning::акт услуг не обновлён"
 
-      - name: Отчёт по баллам Маркета
-        run: npm run ym:bonuses || echo "::warning::баллы не обновлены"
+      # Шаг отчёта по баллам снят с расписания: такого метода в Partner API нет. Все 22 метода
+      # генерации отчётов выписаны из официальной OpenAPI-спецификации Маркета, ни один не про
+      # баллы; united-bonuses, bonuses и united-marketplace-bonuses отдают HTTP 404. Каждый прогон
+      # тратил на это 10 генераций впустую. Команда `npm run ym:bonuses` оставлена: когда метод
+      # появится или когда решим грузить выгрузку кабинета руками, точкой входа остаётся
+      # data-ym/bonuses_monthly.ndjson, и derive его подхватит.
+      # Начисление и списание баллов API отдаёт в stats/orders: subsidies[].operationType
+      # (ACCRUAL / DEDUCTION) и subsidies[].type (YANDEX_CASHBACK / SUBSIDY / DELIVERY).
 
       - name: Показы/корзина per-SKU по дням (shows-sales)
         env:

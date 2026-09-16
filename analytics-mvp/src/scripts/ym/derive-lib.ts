@@ -683,12 +683,19 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   // возвращён был GGR-11-4). Снимок пересобирается ночным прогоном, а числа нужны верные сегодня.
   const orderRefund = new Map<string, number>();
   const orderSubsidy = new Map<string, number>();
+  // Начисление и списание копим НА УРОВНЕ ЗАКАЗА, как и сальдо. Если считать их по строкам, до
+  // которых доходит цикл, позиция-доставка в разбивку не попадёт, а в сальдо попадёт - и
+  // «начислено минус списано» перестанет сходиться с показанными баллами (на июле это 160 763 ₽).
+  const orderSubAcc = new Map<string, number>();
+  const orderSubDed = new Map<string, number>();
   const orderBaseAll = new Map<string, number>();   // база субсидии: стоимость всех позиций заказа
   const orderRetBase = new Map<string, number>();   // база возврата: стоимость ВОЗВРАЩЁННОГО
   for (const r of rows) {
     if (!delivered.has(r.order)) continue;
     orderRefund.set(r.order, (orderRefund.get(r.order) || 0) + ((r.paid_by_type || {}).REFUND || 0));
     orderSubsidy.set(r.order, (orderSubsidy.get(r.order) || 0) + (r.subsidy || 0));
+    orderSubAcc.set(r.order, (orderSubAcc.get(r.order) || 0) + (r.sub_acc || 0));
+    orderSubDed.set(r.order, (orderSubDed.get(r.order) || 0) + (r.sub_ded || 0));
     orderBaseAll.set(r.order, (orderBaseAll.get(r.order) || 0) + (r.price || 0) * (r.count || 0));
     orderRetBase.set(r.order, (orderRetBase.get(r.order) || 0) + (r.price || 0) * (r.returned || 0));
   }
@@ -782,8 +789,8 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     // игнорировался, и списание ПРИБАВЛЯЛОСЬ к начислению - отсюда завышение баллов на 2.7%.
     if (baseAll > 0) {
       const sh = mine / baseAll;
-      pointsAcc.set(k, (pointsAcc.get(k) || 0) + (r.sub_acc || 0) * sh);
-      pointsDed.set(k, (pointsDed.get(k) || 0) + (r.sub_ded || 0) * sh);
+      pointsAcc.set(k, (pointsAcc.get(k) || 0) + (orderSubAcc.get(r.order) || 0) * sh);
+      pointsDed.set(k, (pointsDed.get(k) || 0) + (orderSubDed.get(r.order) || 0) * sh);
     }
     s.points_accrued += baseAll > 0 ? (orderSubsidy.get(r.order) || 0) * (mine / baseAll) : 0;
     if (cogs[r.sku] != null) s.cogs += cogs[r.sku]! * ((r.delivered || 0) + (r.returned || 0) - (r.returned || 0));

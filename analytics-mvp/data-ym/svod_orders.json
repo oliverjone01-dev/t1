@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-16T11:21:11.405Z",
+  "generated_at": "2026-09-16T11:22:55.891Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "split_check": {
     "business": "74986385",
@@ -1566,8 +1566,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 917379.73,
-      "points_ded": 20691.74,
+      "points_acc": 945658.29,
+      "points_ded": 22023.51,
       "svc_months": [
         "2026-09"
       ],
@@ -3542,7 +3542,7 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 1730893.62,
+      "points_acc": 1783529.39,
       "points_ded": 0,
       "svc_months": [
         "2026-08",
@@ -6873,8 +6873,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 2388543.66,
-      "points_ded": 44116.37,
+      "points_acc": 2506718.74,
+      "points_ded": 46316.81,
       "svc_months": [
         "2026-08",
         "2026-09"
@@ -9174,7 +9174,7 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 2035694.88,
+      "points_acc": 2096253.91,
       "points_ded": 0,
       "svc_months": [
         "2026-07",
@@ -13477,8 +13477,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 2516258.51,
-      "points_ded": 69247.48,
+      "points_acc": 2626846.03,
+      "points_ded": 79630.51,
       "svc_months": [
         "2026-07",
         "2026-08"
@@ -14374,7 +14374,7 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 455274.11,
+      "points_acc": 462654.92,
       "points_ded": 0,
       "svc_months": [
         "2026-06",
@@ -18349,7 +18349,7 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 1728508.19,
+      "points_acc": 1804579.63,
       "points_ded": 0,
       "svc_months": [
         "2026-06",
@@ -18598,7 +18598,7 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 93009.25,
+      "points_acc": 95544.58,
       "points_ded": 0,
       "svc_months": [
         "2026-05",
@@ -23548,7 +23548,7 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 2616949.86,
+      "points_acc": 2747484.72,
       "points_ded": 0,
       "svc_months": [
         "2026-05",
@@ -24123,7 +24123,7 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 243958.4,
+      "points_acc": 250970.04,
       "points_ded": 0,
       "svc_months": [
         "2026-04",
@@ -29233,8 +29233,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 2960021.33,
-      "points_ded": 12177.9,
+      "points_acc": 3080725.15,
+      "points_ded": 12470.92,
       "svc_months": [
         "2026-04",
         "2026-05",
@@ -33673,7 +33673,7 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 1731850.44,
+      "points_acc": 1783081.57,
       "points_ded": 0,
       "svc_months": [
         "2026-03",
@@ -37084,8 +37084,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
-      "points_acc": 1378396.64,
-      "points_ded": 20864.39,
+      "points_acc": 1398420.94,
+      "points_ded": 21095.42,
       "svc_months": [
         "2026-02",
         "2026-03"

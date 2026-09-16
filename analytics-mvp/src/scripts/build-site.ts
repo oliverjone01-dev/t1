@@ -453,11 +453,14 @@ function main() {
   for (const orphan of ["dashboard.html", "styleguide.html", "data.json"]) {
     try { rmSync(op(orphan)); } catch { /* нет файла - ок */ }
   }
-  // index = редирект на канонический obzor.html (TZ v2 1.12): один тяжёлый файл вместо дубля
+  // index = редирект на канонический obzor.html (TZ v2 1.12): один тяжёлый файл вместо дубля.
+  // У Маркета вход ведёт в вид Кати: технический вид там путает, и из навигации он убран
+  // (решение Кати, сентябрь 2026). Сами страницы остаются доступны по прямым ссылкам.
+  const entry = IS_OZON ? "obzor.html" : "katya-command.html";
   writePage(op("index.html"), `<!doctype html><html lang="ru"><head><meta charset="utf-8">
-<meta http-equiv="refresh" content="0;url=obzor.html"><title>GENGLASS · аналитика OZON</title>
+<meta http-equiv="refresh" content="0;url=${entry}"><title>GENGLASS · аналитика OZON</title>
 <style>body{margin:0;background:#0A0A0B;color:#8A8A90;font:14px/1.5 "SF Pro Display",-apple-system,sans-serif;display:grid;place-items:center;height:100vh}a{color:#FF4438}</style>
-</head><body><div>Открываю обзор... <a href="obzor.html">перейти вручную</a></div></body></html>`);
+</head><body><div>Открываю обзор... <a href="${entry}">перейти вручную</a></div></body></html>`);
   writePage(op("tovary.html"), renderTovary(model));
   writePage(op("obzor.html"), renderOverview(model));
   writePage(op("voronka.html"), renderFunnel(model));

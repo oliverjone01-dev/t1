@@ -99,13 +99,20 @@ describe("акт по стоимости услуг: колонки по жив�
       expect(h[col("united-marketplace-services", "service", h)], f).toBe("SERVICE_NAME");
     }
   });
-  it("дата берётся из ACT_DATE или SERVICE_DATE_TIME, но не из даты создания заказа", () => {
+  // Дата ОКАЗАНИЯ услуги, а не дата акта. ACT_DATE - всегда последнее число месяца: с ней весь
+  // акт схлопывался в 7 уникальных дат на 6588 строк, и свод нельзя было посчитать ни за какой
+  // период короче месяца. Обе колонки лежат рядом во всех таблицах, поэтому промах тихий.
+  it("дата - это дата оказания услуги, а не дата акта", () => {
+    const bad: string[] = [];
     for (const f of FILES) {
       const h = H[`united-marketplace-services/${f}.csv`]!;
       const i = col("united-marketplace-services", "date", h);
       expect(i, f).toBeGreaterThanOrEqual(0);
-      expect(h[i], `${f}.csv`).toMatch(/^(ACT_DATE|SERVICE_DATE_TIME|SERVICE_DATE)$/);
+      // ACT_DATE есть в каждой таблице, поэтому выбор её - это всегда ошибка приоритета.
+      expect(h, `${f}.csv: в фикстуре нет ACT_DATE, проверять нечего`).toContain("ACT_DATE");
+      if (!/^SERVICE_DATE(_TIME)?$/.test(h[i]!)) bad.push(`${f}.csv -> ${h[i]}`);
     }
+    expect(bad, "взята дата акта вместо даты оказания").toEqual([]);
   });
 });
 

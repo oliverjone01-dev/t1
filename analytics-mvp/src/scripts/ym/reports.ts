@@ -356,7 +356,9 @@ async function netting(from: string, to: string) {
 // нас пока нет. Поэтому тело подбирается: сначала {businessId, dateFrom, dateTo}, затем
 // {businessId, year, month}. Принятая форма пишется в состояние, и следующий прогон начинает
 // сразу с неё, а не перебирает заново, тратя генерации из лимита.
-const SERVICES_SCHEMA = 1;
+// 2 - дата строки сменилась с ACT_DATE (конец месяца) на SERVICE_DATE (дата оказания услуги).
+// Старые строки несут бесполезную для периодов дату, поэтому акт надо перезабрать целиком.
+const SERVICES_SCHEMA = 2;
 type Body = { name: string; body: (b: string, ym: string) => any };
 const SERVICE_BODIES: Body[] = [
   { name: "dateFrom/dateTo", body: (b, ym) => ({ businessId: Number(b), dateFrom: monthBounds(ym).dateFrom, dateTo: monthBounds(ym).dateTo }) },

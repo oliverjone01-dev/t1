@@ -92,7 +92,9 @@ async function main() {
   const pt: Record<string, { n: number; sum: number }> = {}, sub: Record<string, { n: number; sum: number }> = {}, com: Record<string, { n: number; sum: number }> = {};
   for (const r of fresh) {
     for (const [k, v] of Object.entries(r.paid_by_type || {})) cnt(pt, k, v);
-    if (r.subsidy) cnt(sub, "SUBSIDY", r.subsidy);
+    // Раньше тут стоял хардкод "SUBSIDY", поэтому проба показывала одну строку на всё и по ней
+    // нельзя было увидеть ни списаний, ни источника баллов. Пишем то, что реально пришло.
+    for (const [k, v] of Object.entries(r.sub_by_type || {})) cnt(sub, k, v);
     for (const [k, v] of Object.entries(r.fees || {})) cnt(com, k, v);
   }
   writeJson(yp("_probe/payment_types.json"), { at: new Date().toISOString(), note: "агрегат за прогон: типы платежей, субсидии и группы сборов (суммы разнесены по позициям)", payments: pt, subsidies: sub, fees: com });

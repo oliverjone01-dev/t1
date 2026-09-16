@@ -1869,10 +1869,10 @@ function svDraw(){
   var ms=svPick();
   var cov=document.getElementById('sv-cov'),gapsEl=document.getElementById('sv-gaps'),noteEl=document.getElementById('sv-note');
   if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За этот месяц доставленных заказов в снимке нет.';gapsEl.style.display='none';noteEl.textContent='';return;}
-  var orders=0,periodOrd=0,inflight=0,noLed=0,acts={},outSt=0,outMi=0,outMiN=0,ptsDel=0,ohM=0,ohP=0,ohAct=0,ohLed=0,ptsOrd=0;
+  var orders=0,periodOrd=0,inflight=0,noLed=0,acts={},outSt=0,outMi=0,outMiN=0,ptsDel=0,ohM=0,ohP=0,ohAct=0,ohLed=0,ptsOrd=0,ptsDed=0;
   ms.forEach(function(m){orders+=m.orders;periodOrd+=m.orders_period||0;inflight+=m.orders_inflight||0;noLed+=m.orders_without_ledger||0;
     outSt+=m.ledger_status||0;outMi+=m.ledger_missing||0;outMiN+=m.ledger_missing_orders||0;ptsDel+=m.points_on_delivery||0;
-    ohM+=m.overhead_money||0;ohP+=m.overhead_points||0;if(m.overhead_src==='act')ohAct++;else ohLed++;if(m.points_src!=='report')ptsOrd++;
+    ohM+=m.overhead_money||0;ohP+=m.overhead_points||0;if(m.overhead_src==='act')ohAct++;else ohLed++;if(m.points_src!=='report')ptsOrd++;ptsDed+=m.points_ded||0;
     (m.svc_months||[]).forEach(function(x){acts[x]=1;});});
   var partial=inflight>0;
   cov.innerHTML='заказов: <b>'+orders+(periodOrd>orders?' из '+periodOrd+' оформленных':'')+'</b> · услуги из актов: <b>'+Object.keys(acts).sort().join(', ')+'</b>'
@@ -1880,7 +1880,10 @@ function svDraw(){
   var gaps=[];
   if(partial)gaps.push('период не завершён: '+inflight+' заказов месяца ещё в пути, выручка и услуги по ним добавятся позже');
   if(noLed)gaps.push(noLed+' заказов периода ещё нет в отчёте по платежам: их услуги равны нулю, результат по ним завышен');
-  if(ptsOrd)gaps.push('начисленные баллы взяты из заказа, а не из отчёта по баллам Маркета: отчёт подключён, но за этот месяц ещё не собран');
+  // Раньше тут было «отчёт подключён, но за этот месяц ещё не собран» - неправда: отдельного
+  // отчёта по баллам в Partner API нет вовсе, subsidies[] заказа и есть источник. Показываем не
+  // мнимый пробел, а реальную величину списания, которую пользователь иначе не увидит.
+  if(ptsDed)gaps.push('из начисленных баллов '+svRub(ptsDed)+' ₽ Маркет списал обратно при невыкупе и возврате: в своде баллы показаны за вычетом списания');
   if(ohLed)gaps.push('общие расходы показаны только по отчёту о платежах: полки, подписки и буст за показы берутся из акта по стоимости услуг, а он за этот месяц ещё не собран');
   if(outSt)gaps.push(svRub(outSt)+' ₽ сборов акта относятся к заказам периода с другим статусом (возвраты, отмены в доставке)');
   if(outMi)gaps.push(svRub(outMi)+' ₽ сборов акта относятся к '+outMiN+' заказам, которых нет в выгрузке заказов - это пробел сбора');

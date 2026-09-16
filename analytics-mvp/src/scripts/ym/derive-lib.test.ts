@@ -310,3 +310,67 @@ describe("софинансирование скидок: сверено с вы�
     expect(isNettingFee("Возврат", undefined)).toBe(false);
   });
 });
+
+// Баллы Маркета. По спецификации Partner API (OrdersStatsSubsidyDTO) amount - величина БЕЗ знака,
+// а направление несёт operationType: ACCRUAL - начисление, DEDUCTION - списание при невыкупе и
+// возврате. Разбор складывал их подряд, то есть списание ПРИБАВЛЯЛОСЬ к начислению: по июлю 2026
+// это давало завышение баллов на 2.7%. Отдельного отчёта по баллам в API нет (все 22 метода
+// генерации отчётов выписаны из OpenAPI-спецификации), поэтому subsidies[] - единственный источник,
+// и разбирать его надо правильно.
+describe("баллы Маркета из subsidies[]: списание вычитается, а не прибавляется", () => {
+  const mk = (subsidies: any[]) => normalizeOrder(parseOrder({
+    id: 1, status: "DELIVERED", substatus: "", creationDate: "01-07-2026", statusUpdateDate: "05-07-2026",
+    partnerOrderId: "GG-P", items: [
+      { offerName: "Стол", shopSku: "S1", marketSku: "1", count: 1,
+        prices: [{ type: "BUYER", costPerItem: 10000 }], details: [] },
+    ],
+    commissions: [], subsidies, payments: [{ type: "PAYMENT", total: 10000 }],
+  } as any), "c1", "b1")[0]!;
+
+  it("начисление минус списание, а не сумма", () => {
+    const r = mk([
+      { operationType: "ACCRUAL", type: "SUBSIDY", amount: 1000 },
+      { operationType: "DEDUCTION", type: "SUBSIDY", amount: 300 },
+    ]);
+    expect(r.subsidy, "сальдо").toBe(700);       // раньше было бы 1300
+    expect(r.sub_acc).toBe(1000);
+    expect(r.sub_ded).toBe(300);
+  });
+
+  it("знак у amount игнорируется - направление задаёт operationType", () => {
+    // Маркет может прислать списание отрицательным. Тогда прежний код вычитал его дважды.
+    const r = mk([
+      { operationType: "ACCRUAL", type: "YANDEX_CASHBACK", amount: 500 },
+      { operationType: "DEDUCTION", type: "YANDEX_CASHBACK", amount: -200 },
+    ]);
+    expect(r.subsidy).toBe(300);
+    expect(r.sub_ded).toBe(200);
+  });
+
+  it("разбивка хранит источник баллов, а не только итог", () => {
+    const r = mk([
+      { operationType: "ACCRUAL", type: "YANDEX_CASHBACK", amount: 400 },
+      { operationType: "ACCRUAL", type: "SUBSIDY", amount: 600 },
+      { operationType: "DEDUCTION", type: "DELIVERY", amount: 100 },
+    ]);
+    expect(r.sub_by_type).toEqual({
+      "ACCRUAL|YANDEX_CASHBACK": 400,
+      "ACCRUAL|SUBSIDY": 600,
+      "DEDUCTION|DELIVERY": 100,
+    });
+    expect(r.subsidy).toBe(900);
+  });
+
+  it("неизвестный operationType считается начислением, а не теряется", () => {
+    const r = mk([{ operationType: "", type: "SUBSIDY", amount: 250 }]);
+    expect(r.sub_acc).toBe(250);
+    expect(r.subsidy).toBe(250);
+  });
+
+  it("баллов нет - нули, а не undefined", () => {
+    const r = mk([]);
+    expect(r.subsidy).toBe(0);
+    expect(r.sub_acc).toBe(0);
+    expect(r.sub_ded).toBe(0);
+  });
+});

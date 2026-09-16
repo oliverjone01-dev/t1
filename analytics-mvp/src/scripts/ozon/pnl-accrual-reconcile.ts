@@ -9,9 +9,10 @@ import { bucketMap, type Bucket } from "./accrual-buckets.js";
 
 const num = (a: any): number => Number(String(a?.amount ?? a ?? 0).replace(",", ".")) || 0;
 const pad = (n: number) => String(n).padStart(2, "0");
-function* days(from: string, to: string) {
-  let d = new Date(from + "T00:00:00Z"); const end = new Date(to + "T00:00:00Z");
-  for (; d <= end; d.setUTCDate(d.getUTCDate() + 1)) yield `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+function days(from: string, to: string): string[] {
+  const out: string[] = []; const d = new Date(from + "T00:00:00Z"); const end = new Date(to + "T00:00:00Z");
+  for (; d <= end; d.setUTCDate(d.getUTCDate() + 1)) out.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`);
+  return out;
 }
 
 async function main() {

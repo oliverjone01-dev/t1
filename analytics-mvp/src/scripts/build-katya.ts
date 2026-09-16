@@ -6,6 +6,7 @@
 // Запуск: tsx src/scripts/build-katya.ts (после fetch:live). Источник: data/, не fixtures.
 import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
 import { dp, fp, op, IS_OZON, platformize } from "../paths.js";
+import { KPAGES } from "./katya-nav.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
 const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(html));
@@ -421,15 +422,8 @@ function patchMarginHonesty(html: string): string {
 }
 
 // Шапка инструмента: только новые страницы (решение Ивана - старые из шапки убраны).
-const KPAGES: [string, string, string][] = [
-  ["katya-command.html", "Командный центр", "command"],
-  ["katya.html", "Обзор", "obzor"],
-  ["katya-tovary.html", "Товары и заказы", "tovary"],
-  ["katya-voronka.html", "Воронка", "voronka"],
-  ["katya-marketing.html", "Маркетинг", "marketing"],
-  ["katya-money.html", "Деньги", "money"],
-  ["katya-competitors.html", "Конкуренты", "competitors"],
-];
+// Список вкладок переехал в katya-nav.ts: его же читает build-reakciya.ts, чтобы шапка
+// «Реакции» не расходилась с шапкой основных вкладок.
 function banner(active: string): string {
   const snap = `${MONTHS[11]?.m || ""}-${MONTHS[15]?.m || ""}`;
   const k = (href: string, label: string, on: boolean) =>

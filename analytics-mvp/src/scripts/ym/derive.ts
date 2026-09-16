@@ -65,7 +65,7 @@ function main() {
   const bonusRows = readNdjson<any>(yp("bonuses_monthly.ndjson"));
   const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to, actRows, bonusRows);
   if (bonusRows.length) console.log(`ym-derive: отчёт по баллам - ${bonusRows.length} строк, начисленные баллы берутся из него`);
-  else console.log("ym-derive: баллы взяты из subsidies[] заказа по operationType (ACCRUAL минус DEDUCTION) - отдельного отчёта по баллам в Partner API нет");
+  else console.warn("::warning::отчёт по баллам Маркета не собран: баллы взяты из subsidies[] заказа (начисление сходится со скидкой до рубля), но списания баллов уровня кабинета - Полки, Буст за показы - есть только в отчёте по баллам");
   if (actRows.length) console.log(`ym-derive: акт по стоимости услуг - ${actRows.length} строк, общие расходы берутся из него`);
   else console.warn("::warning::акт по стоимости услуг не собран (services_monthly.ndjson пуст): общие расходы кабинета показаны только по реестру платежей и занижены - полки, подписки и буст за показы туда не попадают");
   // Проверка правила «Списание = баллы» считается на сборке: держать её числом в тексте

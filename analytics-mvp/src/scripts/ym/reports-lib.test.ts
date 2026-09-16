@@ -10,6 +10,7 @@ import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
 const col = (type: string, key: string, headers: string[]) => findCol(headers, COLS[type]![key]!);
+const col_ = col;
 
 describe("колонки отчётов Маркета (живые заголовки)", () => {
   it("реализация: delivered.csv даёт sku/sold/amount, returned.csv - sku/returned/amount_returned", () => {
@@ -99,13 +100,51 @@ describe("акт по стоимости услуг: колонки по жив�
       expect(h[col("united-marketplace-services", "service", h)], f).toBe("SERVICE_NAME");
     }
   });
-  it("дата берётся из ACT_DATE или SERVICE_DATE_TIME, но не из даты создания заказа", () => {
+  // Дата ОКАЗАНИЯ услуги, а не дата акта. ACT_DATE - всегда последнее число месяца: с ней весь
+  // акт схлопывался в 7 уникальных дат на 6588 строк, и свод нельзя было посчитать ни за какой
+  // период короче месяца. Обе колонки лежат рядом во всех таблицах, поэтому промах тихий.
+  it("дата - это дата оказания услуги, а не дата акта", () => {
+    const bad: string[] = [];
     for (const f of FILES) {
       const h = H[`united-marketplace-services/${f}.csv`]!;
       const i = col("united-marketplace-services", "date", h);
       expect(i, f).toBeGreaterThanOrEqual(0);
-      expect(h[i], `${f}.csv`).toMatch(/^(ACT_DATE|SERVICE_DATE_TIME|SERVICE_DATE)$/);
+      // ACT_DATE есть в каждой таблице, поэтому выбор её - это всегда ошибка приоритета.
+      expect(h, `${f}.csv: в фикстуре нет ACT_DATE, проверять нечего`).toContain("ACT_DATE");
+      if (!/^SERVICE_DATE(_TIME)?$/.test(h[i]!)) bad.push(`${f}.csv -> ${h[i]}`);
     }
+    expect(bad, "взята дата акта вместо даты оказания").toEqual([]);
+  });
+});
+
+// Отчёт по баллам Маркета. Заголовки сняты с живой выгрузки прогона 2026-09-16: файл
+// netting_bonuses.csv, 22 английские колонки. Метод - reports/united-netting/generate с телом
+// monthOfYear (в кабинете это третий тип отчёта «По платежам»); пять имён эндпоинтов, которые
+// перебирались раньше, были выдуманы и отдавали 404.
+describe("отчёт по баллам: колонки по живым заголовкам API", () => {
+  const h = () => H["ym-bonuses/netting_bonuses.csv"]!;
+  it("все нужные колонки находятся", () => {
+    const want: Array<[string, string]> = [
+      ["date", "TRANSACTION_DATE"], ["type", "TRANSACTION_TYPE"], ["source", "TRANSACTION_SOURCE"],
+      ["amount", "TRANSACTION_SUM"], ["order", "ORDER_ID"], ["sku", "SHOP_SKU"],
+      ["service", "OFFER_OR_SERVICE_NAME"], ["business", "BUSINESS_ID"], ["count", "COUNT"],
+    ];
+    const bad: string[] = [];
+    for (const [key, col] of want) {
+      const i = col_("ym-bonuses", key, h());
+      if (i < 0) bad.push(`${key}: не найдена`);
+      else if (h()[i] !== col) bad.push(`${key}: зацепилась за ${h()[i]}, а нужна ${col}`);
+    }
+    expect(bad).toEqual([]);
+  });
+  it("дата - дата транзакции, а не дата создания или доставки заказа", () => {
+    const i = col_("ym-bonuses", "date", h());
+    expect(h()).toContain("ORDER_CREATION_DATE");
+    expect(h()).toContain("ORDER_DELIVERY_DATE");
+    expect(h()[i]).toBe("TRANSACTION_DATE");
+  });
+  it("сумма - TRANSACTION_SUM, а не COUNT", () => {
+    expect(h()[col_("ym-bonuses", "amount", h())]).toBe("TRANSACTION_SUM");
   });
 });
 

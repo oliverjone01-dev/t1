@@ -1426,10 +1426,8 @@ function render(cur,cmp){
   let svodJson: any = null;
   if (!IS_OZON) { try { svodJson = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svodJson = null; } }
   const svodSection = IS_OZON ? "" : `
-  <section class="card"><div class="card-h"><div><div class="card-title">Свод по дате заказа</div><div class="card-sub">доставлено минус отмены и возвраты &middot; период по дате оформления заказа</div></div>
+  <section class="card"><div class="card-h"><div><div class="card-title">Свод по дате заказа</div><div class="card-sub">доставлено минус отмены и возвраты &middot; все кабинеты &middot; период берётся из фильтра наверху страницы, по дате оформления заказа</div></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <select id="sv-b" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select>
-      <select id="sv-m" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select>
       <select id="sv-lay" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit">
         <option value="pnl">P&amp;L по деньгам</option><option value="pts">Деньги и баллы раздельно</option></select>
       <span id="sv-rates"><label style="color:var(--ink-2);font-size:12.5px">АДМ % <input id="sv-adm" type="number" value="30" min="0" max="100" style="width:54px;background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;font:inherit"></label>
@@ -1811,6 +1809,30 @@ pmInit();
 
 // JS свода по дате заказа для katya-money. Пустая строка у OZON: секции там нет, и вешать на
 // несуществующие узлы нечего.
+// В браузер уходит компактная копия свода: имена товаров там не нужны (в таблице их нет по
+// просьбе Ивана, а категорию считаем здесь же), суммы округляем до копейки. Без этого дневные
+// строки раздували страницу: полный свод весит 2.3 МБ, из них больше половины - названия.
+function svodLite(svod: any): any {
+  const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
+  const NUM = ["units_delivered", "units_returned", "units_net", "price", "ship_buyer", "disc_mp", "disc_plus",
+    "buyer_pay", "refunds", "revenue_money", "points_accrued", "svc_money", "svc_points", "svc_total",
+    "result_money", "result_points", "cogs"];
+  return {
+    ...svod,
+    months: (svod.months || []).map((m: any) => ({
+      ...m,
+      rows: (m.rows || []).map((row: any) => {
+        const o: any = { business: row.business, ym: row.ym, d: row.d, sku: row.sku, cogs_known: row.cogs_known };
+        for (const k of NUM) if (row[k]) o[k] = r2(row[k]);
+        const svc: Record<string, number> = {};
+        for (const [k, v] of Object.entries(row.svc || {})) if (v) svc[k] = r2(v as number);
+        if (Object.keys(svc).length) o.svc = svc;
+        return o;
+      }),
+    })),
+  };
+}
+
 function svodJs(svod: any): string {
   if (IS_OZON || !svod || !svod.months || !svod.months.length) return "";
   // Категория артикула: сперва размеченная таксономия, затем эвристика по названию - та же, что
@@ -1841,7 +1863,7 @@ function svodJs(svod: any): string {
     ["Обработка, хранение, прочее", ["Обработка в СЦ/ПВЗ", "Хранение", "Прочие услуги"]],
   ];
   return `
-var SV=${JSON.stringify(svod)};
+var SV=${JSON.stringify(svodLite(svod))};
 var SV_COLS=${JSON.stringify(COLS)};
 var SV_CAT=${JSON.stringify(cat)};
 var SV_OPEN={};
@@ -1849,27 +1871,44 @@ var SV_REC=${JSON.stringify(rec)};
 var SV_NAMES={"74986385":"GEN GROUP (мебель)","1023124":"GENGLASS (зеркала)"};
 function svN(b){return SV_NAMES[b]||('кабинет '+b);}
 function svRub(n){return fmtRu(Math.round(n||0));}
-function svPick(){var b=document.getElementById('sv-b').value,m=document.getElementById('sv-m').value;
-  return (SV.months||[]).filter(function(x){return (b==='all'||x.business===b)&&x.ym===m;});}
+// Период свод берёт из ЕДИНОГО фильтра наверху страницы: своих выпадашек у него больше нет.
+// window.__guruPeriod шелл проставляет перед каждым вызовом render, поэтому здесь всегда свежее
+// окно. Кабинеты не фильтруются - показываются все сразу.
+function svWin(){var p=(window.__guruPeriod||{});return {from:p.curFrom||'0000-01-01',to:p.curTo||'9999-12-31'};}
+function svPick(){var w=svWin();
+  // месяц берём, если он ПЕРЕСЕКАЕТСЯ с окном: строки внутри отфильтруются по своей дате
+  return (SV.months||[]).filter(function(x){return x.ym>=w.from.slice(0,7)&&x.ym<=w.to.slice(0,7);});}
+function svInWin(d){var w=svWin();return d>=w.from&&d<=w.to;}
 function svAgg(ms){
-  var a={};ms.forEach(function(m){m.rows.forEach(function(r){var k=r.sku,o=a[k];
+  var a={};ms.forEach(function(m){m.rows.forEach(function(r){if(!svInWin(r.d))return;var k=r.sku,o=a[k];
     if(!o){o=a[k]={sku:r.sku,name:r.name,un:0,price:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:r.cogs_known,svc:{}};}
-    o.un+=r.units_net;o.price+=r.price;o.ship+=r.ship_buyer;o.dmp+=r.disc_mp;o.rev+=r.revenue_money;
-    o.pts+=r.points_accrued;o.sm+=r.svc_money;o.sp+=r.svc_points;o.cogs+=r.cogs;o.ck=o.ck&&r.cogs_known;
+    // ||0 обязателен: в страницу уходит компактная копия свода, где нулевые поля просто не
+    // записаны. Без защиты первая же строка с нулевыми штуками давала NaN во всём итоге.
+    o.un+=r.units_net||0;o.price+=r.price||0;o.ship+=r.ship_buyer||0;o.dmp+=r.disc_mp||0;o.rev+=r.revenue_money||0;
+    o.pts+=r.points_accrued||0;o.sm+=r.svc_money||0;o.sp+=r.svc_points||0;o.cogs+=r.cogs||0;o.ck=o.ck&&r.cogs_known;
     SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
   return Object.keys(a).map(function(k){return a[k];}).sort(function(x,y){return y.rev-x.rev;});
 }
 function svDraw(){
   var ms=svPick();
   var cov=document.getElementById('sv-cov'),gapsEl=document.getElementById('sv-gaps'),noteEl=document.getElementById('sv-note');
-  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За этот месяц доставленных заказов в снимке нет.';gapsEl.style.display='none';noteEl.textContent='';return;}
+  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.';gapsEl.style.display='none';noteEl.textContent='';return;}
   var orders=0,periodOrd=0,inflight=0,noLed=0,acts={},outSt=0,outMi=0,outMiN=0,ptsDel=0,ohM=0,ohP=0,ohAct=0,ohLed=0,ptsOrd=0,ptsDed=0;
   ms.forEach(function(m){orders+=m.orders;periodOrd+=m.orders_period||0;inflight+=m.orders_inflight||0;noLed+=m.orders_without_ledger||0;
     outSt+=m.ledger_status||0;outMi+=m.ledger_missing||0;outMiN+=m.ledger_missing_orders||0;ptsDel+=m.points_on_delivery||0;
-    ohM+=m.overhead_money||0;ohP+=m.overhead_points||0;if(m.overhead_src==='act')ohAct++;else ohLed++;if(m.points_src!=='report')ptsOrd++;ptsDed+=m.points_ded||0;
+    // Общие расходы кабинета берём ПО ДНЯМ, попавшим в окно. Раньше тут стоял месячный итог, и
+    // при периоде короче месяца в него попадали расходы дней, которых в периоде нет: за «7 дн»
+    // подписка за весь месяц вычиталась целиком. У акта есть дата оказания услуги, у реестра -
+    // дата проводки, поэтому день известен у обоих источников.
+    var od=m.overhead_daily||{};
+    Object.keys(od).forEach(function(dd){if(svInWin(dd)){ohM+=od[dd].m||0;ohP+=od[dd].p||0;}});
+    if(m.overhead_src==='act')ohAct++;else ohLed++;if(m.points_src!=='report')ptsOrd++;ptsDed+=m.points_ded||0;
     (m.svc_months||[]).forEach(function(x){acts[x]=1;});});
   var partial=inflight>0;
-  cov.innerHTML='заказов: <b>'+orders+(periodOrd>orders?' из '+periodOrd+' оформленных':'')+'</b> · услуги из актов: <b>'+Object.keys(acts).sort().join(', ')+'</b>'
+  var w=svWin();
+  cov.innerHTML='период: <b>'+w.from+' .. '+w.to+'</b> · все кабинеты'
+    +' · заказов за месяцы периода: <b>'+orders+(periodOrd>orders?' из '+periodOrd+' оформленных':'')+'</b>'
+    +' · услуги из актов: <b>'+(Object.keys(acts).sort().join(', ')||'нет')+'</b>'
     +(partial?' · <span style="color:#E5B567">период не завершён: '+inflight+' заказов ещё в пути</span>':'');
   var gaps=[];
   if(partial)gaps.push('период не завершён: '+inflight+' заказов месяца ещё в пути, выручка и услуги по ним добавятся позже');
@@ -1877,7 +1916,7 @@ function svDraw(){
   // Раньше тут было «отчёт подключён, но за этот месяц ещё не собран» - неправда: отдельного
   // отчёта по баллам в Partner API нет вовсе, subsidies[] заказа и есть источник. Показываем не
   // мнимый пробел, а реальную величину списания, которую пользователь иначе не увидит.
-  if(ptsDed)gaps.push('из начисленных баллов '+svRub(ptsDed)+' ₽ Маркет списал обратно при невыкупе и возврате: в своде баллы показаны за вычетом списания');
+  if(ptsDed)gaps.push('из баллов за скидку '+svRub(ptsDed)+' ₽ Маркет забрал обратно при невыкупе и возврате: в своде баллы показаны за вычетом списания');
   // Когда выбраны оба кабинета, у одного расходы могут идти из акта, у другого из реестра.
   // Текст «показаны только по отчёту о платежах» в этом случае врёт наполовину, поэтому говорим,
   // по скольким кабинетам акта не хватает.
@@ -1991,7 +2030,7 @@ function svTabPnl(list,ohM,ohP,noteEl){
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
     tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
   noteEl.innerHTML='<b>Клик по категории раскрывает артикулы.</b> Категория берётся из таксономии, а где её нет - по названию товара: тип товара читается из начала названия, поэтому «столешница» или «опоры» в описании больше не уводят стол в комплектующие. На данных Маркета связка закрывает всю выручку.<br>'
-    +'<b>Столбец «Скидка Маркета» - это не баллы.</b> Маркет опускает цену за свой счёт, покупатель столько не платил, поэтому скидка вычитается из продаж. Баллы, которыми Маркет её потом компенсирует, живут в отчёте по баллам и в этой раскладке не участвуют с обеих сторон: расходы тут тоже взяты только оплаченные деньгами.<br>'
+    +'<b>Столбец «Скидка Маркета» - это не баллы, а причина баллов.</b> Маркет опускает цену за свой счёт, покупатель столько не платил, поэтому скидка вычитается из продаж. Ровно эту сумму Маркет возвращает продавцу баллами, и она видна в раскладке «деньги + баллы» столбцом «Баллы за скидку» - тождество сходится по всем месяцам до рубля. В этой раскладке баллы не участвуют с обеих сторон: расходы тут тоже взяты только оплаченные деньгами.<br>'
     +'<b>Поступление</b> = выручка деньгами − услуги Маркета. «Выручка деньгами» - это платёж покупателя за вычетом возвратов, она уже включает доставку с покупателя. «Продажи» и «Доставка покуп.» стоят слева справочно и в расчёт не идут: продажи - это цена по прайсу, из которой Маркет часть закрыл своей скидкой. В строке ИТОГО дополнительно вычтены общие расходы кабинета ('+svRub(ohM+ohP)+' ₽): к товару они не привязаны, поэтому в строках категорий их нет.<br>'
     +'<b>Валовая прибыль (деньги)</b> = поступление − себестоимость, то есть только живые деньги. На второй раскладке колонка называется «Валовая прибыль (деньги + баллы)» и считается к другой базе - там в выручку добавлены начисленные баллы, а в расходы услуги, оплаченные баллами. Это два разных числа по смыслу, а не расхождение.<br>'
     +'Итог по валовой прибыли, АДМ, налогам и чистой считается только по SKU с известной себестоимостью ('+(T.net>0?(Math.round(T.cover/T.net*1000)/10):0)+'% поступления), к этой же покрытой базе считаются маржа и рентабельность - наведите на процент, чтобы увидеть базу. Колонка DBS убрана: Маркет собственный расход на доставку в API не отдаёт.';
@@ -2005,7 +2044,7 @@ function svTabPts(list,noteEl){
     g.sm+=a.sm;g.sp+=a.sp;
     if(a.ck){g.cogs+=a.cogs;g.covRes+=a.rev+a.pts-a.sm-a.sp;} else g.noCogs++;});
   var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(x,y){return y.rev-x.rev;});
-  var H=['Категория / Артикул','Штуки','Цена продажи','Доставка с покуп.','Скидка Маркета','Выручка деньгами','Баллы начислены','Услуги деньгами','Услуги баллами','Услуги всего','Результат по деньгам','Результат с баллами','С\\С','Валовая прибыль (деньги + баллы)','Маржа к результату'];
+  var H=['Категория / Артикул','Штуки','Цена продажи','Доставка с покуп.','Скидка Маркета','Выручка деньгами','Баллы за скидку','Услуги деньгами','Услуги баллами','Услуги всего','Результат по деньгам','Результат с баллами','С\\С','Валовая прибыль (деньги + баллы)','Маржа к результату'];
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   var T={un:0,price:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,covRes:0,gp:0};
   function cells(a,cov){
@@ -2042,22 +2081,17 @@ function svTabPts(list,noteEl){
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
     tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
   noteEl.innerHTML='<b>Клик по категории раскрывает артикулы.</b><br>'
-    +'<b>Выручка деньгами</b> = платёж покупателя − возвраты; платёж уже включает доставку с покупателя, складывать их не надо. Цена продажи показана справочно и в результат не идёт: она включает скидку, которую платил Маркет, а не покупатель.<br>'
+    +'<b>Выручка деньгами</b> = платёж покупателя − возвраты; платёж уже включает доставку с покупателя, складывать их не надо. Цена продажи показана справочно и в результат не идёт: она включает скидку, которую платил Маркет, а не покупатель.<br><b>«Баллы за скидку» - это не бонус сверху, а возврат скидки.</b> Маркет опускает цену на кассе за свой счёт, покупатель платит меньше, и ровно эту сумму Маркет возвращает продавцу баллами. Тождество проверено на выгрузке заказов по всем восьми месяцам без расхождения: начисленные баллы = скидка Маркета + скидка по подписке Плюс + Спасибо, по доставленным заказам. Поэтому в раскладке «P&amp;L по деньгам» этих баллов нет (там только живые деньги), а здесь есть - это и есть экономика заказа целиком. Данные берутся из массива subsidies[] каждого заказа в stats/orders, отдельного отчёта по баллам у Маркета нет.<br>'
     +'<b>Услуги</b> разделены на оплаченные деньгами и баллами. Обе половины - реальный расход: услугу оказали, и в акте она стоит полностью. Результат «по деньгам» - что осталось на счёте, «с учётом баллов» - экономика заказа целиком. <b>Валовая прибыль (деньги + баллы)</b> = результат с баллами минус себестоимость, то есть уже после услуг Маркета. С колонкой «Валовая прибыль (деньги)» из раскладки P&amp;L она НЕ обязана совпадать и обычно не совпадает: там база - только живые деньги, здесь в выручку добавлены начисленные баллы, а в расходы услуги, оплаченные баллами. Какая из двух правда - зависит от вопроса: сколько осталось на счёте или сколько заработал заказ целиком. Маржа считается к результату с баллами, той же базе, что у числителя, и только по артикулам с известной себестоимостью.';
 }
 function svInit(){
-  var bs={},msx={};(SV.months||[]).forEach(function(x){bs[x.business]=1;msx[x.ym]=1;});
-  var b=document.getElementById('sv-b'),m=document.getElementById('sv-m');if(!b||!m)return;
-  b.innerHTML='<option value="all">все кабинеты</option>'+Object.keys(bs).sort().map(function(x){return '<option value="'+x+'">'+svN(x)+'</option>';}).join('');
-  var list=Object.keys(msx).sort().reverse();
-  m.innerHTML=list.map(function(x){return '<option value="'+x+'">'+x+'</option>';}).join('');
-  // По умолчанию - последний ЗАКРЫТЫЙ месяц, а не самый свежий. Свежий месяц ещё в доставке:
-  // на сентябре 2026 это 24 заказа по мебели и 2 по зеркалам, из-за чего свод выглядел как
-  // «данные только по мебели», хотя по зеркалам в снимке 206 заказов и 69 SKU за 6 месяцев.
-  var closed=list.filter(function(ym){
-    return (SV.months||[]).some(function(x){return x.ym===ym&&x.rows.length&&x.svc_settled&&!(x.orders_inflight>0);});});
-  if(closed.length)m.value=closed[0];
-  ['sv-b','sv-m','sv-lay','sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=svDraw;});
+  if(!document.getElementById('sv-t'))return;
+  ['sv-lay','sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=svDraw;});
+  // Свод перерисовывается вместе со всей страницей: шелл зовёт render(cur,cmp) на каждой смене
+  // периода, а window.__guruPeriod к этому моменту уже обновлён. Своего состояния периода у
+  // свода нет - один фильтр на всю страницу, как и просил Иван.
+  var base=(typeof render==='function')?render:null;
+  render=function(cur,cmp){if(base)base(cur,cmp);svDraw();};
   svDraw();
 }
 svInit();

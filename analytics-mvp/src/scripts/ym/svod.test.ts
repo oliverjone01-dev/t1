@@ -304,6 +304,38 @@ describe("раскрытие баллов сходится с показанны
     expect(bad).toEqual([]);
   });
 
+  // Где месяц приведён к отчёту, раскрытие обязано идти ИЗ ОТЧЁТА, а не из subsidies[] заказа:
+  // иначе на экране стоят числа двух источников и их разность не даёт показанную сумму. Живой
+  // факт 2026-09-16: по кабинету мебели за июль отчёт давал 2 321 628, а раскрытие от subsidies[]
+  // 2 626 846 минус 79 631 - разность не сходилась ни с колонкой, ни с кабинетом.
+  it("где источник - отчёт, раскрытие тоже из отчёта: acc - ded = points_report", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const bad: string[] = [];
+    let checked = 0;
+    for (const m of svod.months) {
+      if (m.points_src !== "report" || !m.rows.length) continue;
+      checked++;
+      const net = (m.points_acc || 0) - (m.points_ded || 0);
+      if (Math.abs(net - (m.points_report || 0)) > 1) {
+        bad.push(`${m.business}/${m.ym}: ${Math.round(net)} против отчёта ${Math.round(m.points_report || 0)}`);
+      }
+    }
+    expect(checked, "ни одного месяца по отчёту - проверять нечего").toBeGreaterThan(5);
+    expect(bad).toEqual([]);
+  });
+
+  // Живая сверка с выгрузкой Ивана из кабинета: июль, кабинет зеркал. Начислено 1 748 465
+  // (1 727 820 скидка Маркета + 18 645 Плюс + 2 000 на доставку), возврата начисления нет.
+  it("июль по кабинету зеркал совпадает с выгрузкой из кабинета", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const m = svod.months.find((x: any) => x.ym === "2026-07" && x.business === "1023124");
+    expect(m, "месяца нет в своде").toBeTruthy();
+    expect(m.points_src).toBe("report");
+    expect(Math.round(m.points_report)).toBe(1748465);
+    expect(Math.round(m.points_acc)).toBe(1748465);
+    expect(Math.round(m.points_ded)).toBe(0);
+  });
+
   it("списание неотрицательно - это величина, а не знак", () => {
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
     for (const m of svod.months) expect(m.points_ded, `${m.business}/${m.ym}`).toBeGreaterThanOrEqual(0);

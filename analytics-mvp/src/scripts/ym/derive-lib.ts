@@ -862,10 +862,20 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   // разнесение по позициям остаётся пропорциональным стоимости: сумма по месяцу при этом ровно
   // кабинетная, а не наша.
   const bonusBy = new Map<string, number>();
+  // Начисление и возврат начисления считаем ПО ОТДЕЛЬНОСТИ, а не только сальдо. Раскрытие на
+  // странице показывает «начислено» и «списано», и их разность обязана давать показанную сумму
+  // баллов. Пока сальдо бралось из отчёта, а разбивка оставалась от subsidies[] заказа, это были
+  // числа из двух разных источников: за июль по кабинету мебели отчёт давал 2 321 628, а разбивка
+  // 2 626 846 минус 79 631 - разность не сходилась ни с чем на экране.
+  const bonusAcc = new Map<string, number>();   // положительные начисления
+  const bonusRet = new Map<string, number>();   // возврат начисления (величина, без знака)
   for (const r of bonus) {
     if (bonusKind(r) !== "accrual") continue;   // знак сохраняем: возврат баллов начисление уменьшает
     const k = `${r.business}|${r.ym}`;
-    bonusBy.set(k, (bonusBy.get(k) || 0) + (Number(r.amount) || 0));
+    const v = Number(r.amount) || 0;
+    bonusBy.set(k, (bonusBy.get(k) || 0) + v);
+    if (v >= 0) bonusAcc.set(k, (bonusAcc.get(k) || 0) + v);
+    else bonusRet.set(k, (bonusRet.get(k) || 0) - v);
   }
   for (const [k, v] of bonusBy) if (v <= 0) bonusBy.delete(k);   // ноль или минус за месяц - не масштабируем
 
@@ -986,8 +996,17 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     m.svc_months = [...(svcMonths.get(k) || new Set<string>())].sort();
     m.overhead = overheadMoney.get(k) || {}; m.overhead_pts = overheadPts.get(k) || {};
     m.points_on_delivery = r2(pointsOnDelivery.get(k) || 0);
-    m.points_acc = r2(pointsAcc.get(k) || 0);
-    m.points_ded = r2(pointsDed.get(k) || 0);
+    // Раскрытие берётся из ТОГО ЖЕ источника, что и сами баллы строк. Где месяц приведён к
+    // отчёту, subsidies[] заказа для раскрытия уже не годится: разность его начислений и списаний
+    // не даст кабинетную сумму, которая стоит в колонке. Тождество, на котором держится проверка:
+    // points_acc - points_ded = points_report = сумма points_accrued строк.
+    if (m.points_src === "report") {
+      m.points_acc = r2(bonusAcc.get(k) || 0);
+      m.points_ded = r2(bonusRet.get(k) || 0);
+    } else {
+      m.points_acc = r2(pointsAcc.get(k) || 0);
+      m.points_ded = r2(pointsDed.get(k) || 0);
+    }
     m.overhead_money = r2(m.overhead_money); m.overhead_points = r2(m.overhead_points);
     m.rows.sort((a, b) => b.revenue_money - a.revenue_money);
     const rev = m.rows.reduce((a, r) => a + r.revenue_money, 0);

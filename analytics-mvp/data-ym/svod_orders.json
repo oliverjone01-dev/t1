@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-16T16:52:14.674Z",
+  "generated_at": "2026-09-16T17:00:14.880Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "split_check": {
     "business": "74986385",
@@ -190,8 +190,8 @@
       "points_src": "report",
       "points_report": 656971,
       "overhead_daily": {},
-      "points_acc": 82483.43,
-      "points_ded": 0,
+      "points_acc": 676567,
+      "points_ded": 19596,
       "svc_months": [
         "2026-09"
       ],
@@ -1981,8 +1981,8 @@
       "points_src": "report",
       "points_report": 2396925,
       "overhead_daily": {},
-      "points_acc": 1138215.07,
-      "points_ded": 22023.51,
+      "points_acc": 2483281,
+      "points_ded": 86356,
       "svc_months": [
         "2026-09"
       ],
@@ -6135,8 +6135,8 @@
           }
         }
       },
-      "points_acc": 1783529.39,
-      "points_ded": 0,
+      "points_acc": 1909396,
+      "points_ded": 22130,
       "svc_months": [
         "2026-08",
         "2026-09"
@@ -11283,8 +11283,8 @@
           }
         }
       },
-      "points_acc": 2506718.74,
-      "points_ded": 46316.81,
+      "points_acc": 2181155,
+      "points_ded": 122897,
       "svc_months": [
         "2026-08",
         "2026-09"
@@ -16483,7 +16483,7 @@
           }
         }
       },
-      "points_acc": 2096253.91,
+      "points_acc": 1748465,
       "points_ded": 0,
       "svc_months": [
         "2026-07",
@@ -22756,8 +22756,8 @@
           }
         }
       },
-      "points_acc": 2626846.03,
-      "points_ded": 79630.51,
+      "points_acc": 2352048,
+      "points_ded": 30420,
       "svc_months": [
         "2026-07",
         "2026-08"
@@ -24295,8 +24295,8 @@
           }
         }
       },
-      "points_acc": 462654.92,
-      "points_ded": 0,
+      "points_acc": 349533,
+      "points_ded": 69250,
       "svc_months": [
         "2026-06",
         "2026-07"
@@ -29290,8 +29290,8 @@
           }
         }
       },
-      "points_acc": 1804579.63,
-      "points_ded": 0,
+      "points_acc": 2349785,
+      "points_ded": 86883,
       "svc_months": [
         "2026-06",
         "2026-07"
@@ -29965,8 +29965,8 @@
           }
         }
       },
-      "points_acc": 95544.58,
-      "points_ded": 0,
+      "points_acc": 1061165,
+      "points_ded": 60496,
       "svc_months": [
         "2026-05",
         "2026-06"
@@ -37572,8 +37572,8 @@
           }
         }
       },
-      "points_acc": 2747484.72,
-      "points_ded": 0,
+      "points_acc": 3406483,
+      "points_ded": 9434,
       "svc_months": [
         "2026-05",
         "2026-06",
@@ -38690,8 +38690,8 @@
           }
         }
       },
-      "points_acc": 250970.04,
-      "points_ded": 0,
+      "points_acc": 962405,
+      "points_ded": 38301,
       "svc_months": [
         "2026-04",
         "2026-05"
@@ -47701,8 +47701,8 @@
           }
         }
       },
-      "points_acc": 3080725.15,
-      "points_ded": 12470.92,
+      "points_acc": 2019438,
+      "points_ded": 99036,
       "svc_months": [
         "2026-04",
         "2026-05",
@@ -48172,8 +48172,8 @@
           }
         }
       },
-      "points_acc": 0,
-      "points_ded": 0,
+      "points_acc": 359541,
+      "points_ded": 9679,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,
@@ -55136,8 +55136,8 @@
           }
         }
       },
-      "points_acc": 1783081.57,
-      "points_ded": 0,
+      "points_acc": 1862569,
+      "points_ded": 73704,
       "svc_months": [
         "2026-03",
         "2026-04"
@@ -55517,8 +55517,8 @@
           }
         }
       },
-      "points_acc": 0,
-      "points_ded": 0,
+      "points_acc": 686720,
+      "points_ded": 11347,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,
@@ -60639,8 +60639,8 @@
           }
         }
       },
-      "points_acc": 1398420.94,
-      "points_ded": 21095.42,
+      "points_acc": 1500335,
+      "points_ded": 19478,
       "svc_months": [
         "2026-02",
         "2026-03"

@@ -291,4 +291,24 @@ export class OzonSeller {
     }
     return out;
   }
+
+  // Номера отправлений (FBO + FBS) за период по дате заказа. Для accrualPostings нужны номера;
+  // окно берём с запасом назад, т.к. начисления по отправлению приходят позже даты заказа.
+  async postingNumbers(dateFrom: string, dateTo: string): Promise<string[]> {
+    const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
+    const nums = new Set<string>();
+    for (let offset = 0; offset < 200000; offset += 1000) {
+      const d = await this.post<any>("/v2/posting/fbo/list", { dir: "ASC", filter: { since: from, to, status: "" }, limit: 1000, offset, with: {} });
+      const arr: any[] = d.result ?? [];
+      for (const p of arr) if (p?.posting_number) nums.add(String(p.posting_number));
+      if (arr.length < 1000) break;
+    }
+    for (let offset = 0; offset < 200000; offset += 1000) {
+      const d = await this.post<any>("/v3/posting/fbs/list", { dir: "ASC", filter: { since: from, to }, limit: 1000, offset, with: {} });
+      const arr: any[] = d.result?.postings ?? d.result ?? [];
+      for (const p of arr) if (p?.posting_number) nums.add(String(p.posting_number));
+      if (arr.length < 1000) break;
+    }
+    return [...nums];
+  }
 }

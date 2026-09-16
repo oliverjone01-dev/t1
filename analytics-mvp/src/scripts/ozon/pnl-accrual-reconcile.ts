@@ -40,6 +40,23 @@ async function main() {
   const newFees = neu.commission + neu.acquiring + neu.storage + neu.delivery + neu.ads + neu.other; // без buyerDelivery (компенс.)
   console.log(`  СБОРЫ всего (без доставки от покупателя)\t${Math.round(newFees).toLocaleString("ru-RU")}`);
 
+  // --- НОВЫЙ источник 2: accrual/postings (правильный источник комиссии/логистики продаж) ---
+  // Номера отправлений берём с запасом назад (начисления приходят позже заказа), фильтруем по
+  // accrual_date в целевом окне.
+  const backFrom = (() => { const d = new Date(from + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() - 90); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`; })();
+  const pnums = await seller.postingNumbers(backFrom, to);
+  console.log(`\nНОВЫЙ postings: номеров отправлений ${backFrom}..${to} = ${pnums.length}`);
+  const pos: Record<Bucket, number> = { commission: 0, acquiring: 0, storage: 0, delivery: 0, buyerDelivery: 0, ads: 0, other: 0 };
+  let posAccr = 0;
+  const pa = await seller.accrualPostings(pnums);
+  for (const p of pa) for (const a of (p.accruals || [])) {
+    const dt = String(a.accrual_date || "").slice(0, 10);
+    if (dt < from || dt > to) continue;
+    posAccr++; pos[bmap[Number(a.type_id)] ?? "other"] += num(a.accrued);
+  }
+  console.log(`  начислений в окне: ${posAccr}`);
+  for (const b of Object.keys(pos) as Bucket[]) console.log(`  ${b}\t${Math.round(pos[b]).toLocaleString("ru-RU")}`);
+
   // --- СТАРЫЙ источник: pnl_sku_daily.ndjson за тот же период ---
   const F = "data/pnl_sku_daily.ndjson";
   if (!existsSync(F)) { console.log("старого pnl_sku_daily.ndjson нет - сверить не с чем"); return; }
@@ -58,14 +75,13 @@ async function main() {
     const d = a - b, p = b ? Math.round((d / b) * 1000) / 10 : (a ? 100 : 0);
     console.log(`  ${label}: новый ${Math.round(a).toLocaleString("ru-RU")} vs старый ${Math.round(b).toLocaleString("ru-RU")} -> Δ ${Math.round(d).toLocaleString("ru-RU")} (${p}%)`);
   };
-  console.log(`\nСВЕРКА сборов (новый by-day vs старый pnl_sku_daily):`);
-  cmp("commission", neu.commission, old.commission);
-  cmp("acquiring", neu.acquiring, old.acquiring);
-  cmp("storage", neu.storage, old.storage);
-  cmp("delivery", neu.delivery, old.delivery);
-  cmp("other(ads+other)", neu.ads + neu.other, old.otherSvc);
-  console.log(`\nПРИМЕЧАНИЕ: старый pnl_sku_daily - ТОЛЬКО операции с одним SKU (комплекты/кабинетные сборы вне),`);
-  console.log(`а новый by-day несёт ВСЕ начисления (вкл. NON_ITEM кабинетные). Точное совпадение не ждём;`);
-  console.log(`смотрим порядок и знак по каждому бакету - подтверждает корректность карты категорий.`);
+  console.log(`\nСВЕРКА сборов (postings - правильный источник комиссии/логистики продаж):`);
+  cmp("commission (postings)", pos.commission, old.commission);
+  cmp("delivery (postings)", pos.delivery, old.delivery);
+  cmp("acquiring (by-day)", neu.acquiring, old.acquiring);
+  cmp("storage (by-day)", neu.storage, old.storage);
+  console.log(`\nПРИМЕЧАНИЕ: старый pnl_sku_daily - ТОЛЬКО операции с одним SKU (комплекты/кабинетные сборы вне).`);
+  console.log(`postings несёт комиссию+логистику продаж по SKU; by-day - кабинетные/сервисные (эквайринг/хранение).`);
+  console.log(`Ждём: commission и delivery из postings сходятся со старым в пределах допуска.`);
 }
 main().catch((e) => { console.error("reconcile FAILED:", (e as Error).message); process.exit(0); });

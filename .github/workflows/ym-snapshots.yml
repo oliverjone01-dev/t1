@@ -129,7 +129,17 @@ jobs:
             git fetch origin "$GITHUB_REF_NAME" || { sleep $((2**i)); continue; }
             rm -rf /tmp/ym-keep && mkdir -p /tmp/ym-keep && cp -r analytics-mvp/data-ym /tmp/ym-keep/
             git reset --hard "origin/$GITHUB_REF_NAME"
-            rm -rf analytics-mvp/data-ym && cp -r /tmp/ym-keep/data-ym analytics-mvp/
+            # НАКЛАДЫВАЕМ свои снимки поверх свежего remote, а не заменяем каталог целиком.
+            # Прежнее `rm -rf data-ym && cp -r` стирало файлы, которых нет у нас, потому что
+            # checkout берёт КОММИТ ЗАПУСКА, а не голову ветки: прогон, стоявший в очереди,
+            # приходит со старым деревом и сносит всё, что успел добавить предыдущий. Живой факт
+            # 2026-09-16: прогон 35085836231 впервые собрал акт по стоимости услуг (6 588 строк),
+            # а следующий, 35087166394, снёс services_monthly.ndjson и services_state.json вместе
+            # с прогрессом возобновляемости. Дельта-гейт поймать этого не мог: слепок для сравнения
+            # снимается ДО продьюсеров, и файла в нём тоже не было.
+            # Продьюсеры файлы только создают и перезаписывают, поэтому наложение безопасно:
+            # наше побеждает по именам, чужое остаётся.
+            cp -r /tmp/ym-keep/data-ym/. analytics-mvp/data-ym/
             git add -A analytics-mvp/data-ym
             git diff --staged --quiet && exit 0
             git commit -m "data-ym: заказы и каталог Маркета $(date -u +%F) (промежуточный)"
@@ -254,7 +264,17 @@ jobs:
             git fetch origin "$GITHUB_REF_NAME" || { sleep $((2**i)); continue; }
             rm -rf /tmp/ym-keep && mkdir -p /tmp/ym-keep && cp -r analytics-mvp/data-ym /tmp/ym-keep/
             git reset --hard "origin/$GITHUB_REF_NAME"
-            rm -rf analytics-mvp/data-ym && cp -r /tmp/ym-keep/data-ym analytics-mvp/
+            # НАКЛАДЫВАЕМ свои снимки поверх свежего remote, а не заменяем каталог целиком.
+            # Прежнее `rm -rf data-ym && cp -r` стирало файлы, которых нет у нас, потому что
+            # checkout берёт КОММИТ ЗАПУСКА, а не голову ветки: прогон, стоявший в очереди,
+            # приходит со старым деревом и сносит всё, что успел добавить предыдущий. Живой факт
+            # 2026-09-16: прогон 35085836231 впервые собрал акт по стоимости услуг (6 588 строк),
+            # а следующий, 35087166394, снёс services_monthly.ndjson и services_state.json вместе
+            # с прогрессом возобновляемости. Дельта-гейт поймать этого не мог: слепок для сравнения
+            # снимается ДО продьюсеров, и файла в нём тоже не было.
+            # Продьюсеры файлы только создают и перезаписывают, поэтому наложение безопасно:
+            # наше побеждает по именам, чужое остаётся.
+            cp -r /tmp/ym-keep/data-ym/. analytics-mvp/data-ym/
             ( cd analytics-mvp && npm run ym:reconcile && npm run ym:build && npm run ym:smoke ) \
               || { echo "::error::пересборка /market/ на свежем main не прошла - снимки не публикую"; exit 1; }
             # HTML пересобран заново, поэтому гейт «ключа нет в выдаче» обязан отработать и здесь.

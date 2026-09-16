@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-16T13:49:30.338Z",
+  "generated_at": "2026-09-16T14:16:13.105Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "split_check": {
     "business": "74986385",
@@ -155,7 +155,7 @@
     {
       "business": "74986385",
       "ym": "2026-09",
-      "orders": 27,
+      "orders": 28,
       "rows": [
         {
           "business": "74986385",
@@ -815,6 +815,61 @@
           "result_money": 36378.94,
           "result_points": 32818.93,
           "cogs": 13664,
+          "cogs_known": true
+        },
+        {
+          "business": "74986385",
+          "ym": "2026-09",
+          "d": "2026-09-03",
+          "sku": "GGT-03-1-2-L-80",
+          "name": "GEN GROUP Кухонный обеденный стол TRUBIS Wood L D80 см черный с золотым подстольем",
+          "line": "TRUBIS",
+          "orders": 0,
+          "units_delivered": 1,
+          "units_returned": 0,
+          "units_net": 1,
+          "price": 64700,
+          "ship_buyer": 0,
+          "disc_mp": 32604,
+          "disc_plus": 0,
+          "buyer_pay": 32096,
+          "refunds": 0,
+          "revenue_money": 32096,
+          "points_accrued": 32604,
+          "svc": {
+            "Размещение (комиссия)": 0,
+            "Программа лояльности и отзывы": 0,
+            "Буст продаж": 0,
+            "Доставка покупателю": 0,
+            "Доставка (средняя миля)": 0,
+            "Доставка невыкупов и возвратов": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 0,
+            "Обработка в СЦ/ПВЗ": 0,
+            "Хранение": 0,
+            "Штрафы (не вовремя)": 0,
+            "Прочие услуги": 0
+          },
+          "svc_pts": {
+            "Размещение (комиссия)": 0,
+            "Программа лояльности и отзывы": 0,
+            "Буст продаж": 0,
+            "Доставка покупателю": 0,
+            "Доставка (средняя миля)": 0,
+            "Доставка невыкупов и возвратов": 0,
+            "Приём платежа покупателя": 0,
+            "Перевод платежа покупателя": 0,
+            "Обработка в СЦ/ПВЗ": 0,
+            "Хранение": 0,
+            "Штрафы (не вовремя)": 0,
+            "Прочие услуги": 0
+          },
+          "svc_money": 0.12,
+          "svc_points": 0,
+          "svc_total": 0.12,
+          "result_money": 32095.88,
+          "result_points": 64699.88,
+          "cogs": 10587,
           "cogs_known": true
         },
         {
@@ -1651,22 +1706,22 @@
       "points_src": "orders",
       "points_report": 0,
       "overhead_daily": {},
-      "points_acc": 945658.29,
+      "points_acc": 978262.29,
       "points_ded": 22023.51,
       "svc_months": [
         "2026-09"
       ],
       "orders_without_ledger": 0,
       "svc_settled": false,
-      "ledger_outside": 1297.79,
-      "ledger_outside_orders": 62,
-      "ledger_status": 1297.79,
+      "ledger_outside": 1297.67,
+      "ledger_outside_orders": 61,
+      "ledger_status": 1297.67,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "orders_period": 110,
-      "orders_inflight": 57,
+      "orders_inflight": 56,
       "points_on_delivery": 28168.22,
-      "cogs_cov": 95.3
+      "cogs_cov": 95.5
     },
     {
       "business": "1023124",

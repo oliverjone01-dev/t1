@@ -1021,3 +1021,4 @@
 {"d":"2026-09-15","sku":"GGT-03-2-2-L-110","accruals":61532,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-34001,"otherSvc":0,"amount":27531,"platform":"ym"}
 {"d":"2026-09-15","sku":"GGT-03-2-2-S-40","accruals":62784,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-36387,"otherSvc":0,"amount":26397,"platform":"ym"}
 {"d":"2026-09-15","sku":"GGT-35-5-1-100-180","accruals":101900,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":-46997,"otherSvc":0,"amount":54903,"platform":"ym"}
+{"d":"2026-09-16","sku":"GGT-03-1-2-L-80","accruals":64700,"commission":0,"delivery":0,"acquiring":0,"storage":0,"cofin":0,"otherSvc":0,"amount":64700,"platform":"ym"}

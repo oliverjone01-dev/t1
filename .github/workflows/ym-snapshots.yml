@@ -184,7 +184,11 @@ jobs:
             local b; b=$(base "$f") || exit 1
             npx tsx src/scripts/ym/validate-facts.ts "data-ym/$f" "$b" "$@"
           }
-          check netting.ndjson            --month-key=d       --sum=amount   --by=business
+          # Реестр знаковый: начисления плюс, списания минус, месячная сумма - сальдо (по
+          # 1023124/2026-09 это 387 595 руб при обороте 3 002 575). Сравнивать надо оборот, иначе
+          # добор одного дня со списаниями выглядит как потеря: прогон 35074533928 встал именно на
+          # этом, не потеряв ни строки. Проверка числа строк работает как работала.
+          check netting.ndjson            --month-key=d       --sum=amount   --by=business --abs
           check orders.ndjson             --month-key=created --sum=accruals --by=business
           check realization_monthly.ndjson --month-key=ym     --sum=amount
           check sku_views.ndjson          --month-key=date    --sum=views    --by=business

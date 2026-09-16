@@ -1,0 +1,101 @@
+name: ROP TG guard (доотправщик пропущенных слотов)
+
+# Страховка от опозданий/пропусков планировщика GitHub. Каждые 30 мин в рабочем окне
+# проверяет, что дневные дайджесты (план/срез/итог) и недельный/месячный ИИ-разбор
+# реально запускались сегодня. Если для слота НЕ было ни одного прогона к моменту
+# «время слота + 20 мин» - досылает его.
+#
+# Идемпотентность: как только слот отправлен (штатно ИЛИ этим доотправщиком),
+# в истории Actions появляется прогон нужного воркфлоу за сегодня в окне слота,
+# и следующая проверка его видит - повторно не шлёт. Двойной отправки нет.
+#
+# ПРАВИЛО ЧАТОВ соблюдается: дневные при полном пропуске досылаются в ОСНОВНОЙ чат
+# (иначе отдел не получит дайджест вовсе), недельный/месячный - только в тест-чат
+# (их адресат жёстко задан в sales-audit.yml, доотправщик chat не передаёт).
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 5-16 * * 1-5"   # каждые 30 мин, 05:00-16:59 UTC (08:00-19:59 МСК), пн-пт
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: rop-tg-guard
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Проверить слоты и досеять пропущенные
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash --noprofile --norc {0}
+        run: |
+          set +e +o pipefail
+          API="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}"
+          MAIN_CHAT="-1004401671894"
+          TODAY="$(date -u +%F)"
+          NOW=$(date -u +%s)
+          DOW=$(date -u +%u)   # 1=пн .. 7=вс
+          DOM=$(date -u +%-d)  # число месяца
+
+          # Был ли сегодня прогон воркфлоу $1 с created_at не раньше, чем $2 (UTC HH:MM минус 60 мин)?
+          ran_today_since() {
+            local wf="$1" since_ts="$2" runs cnt
+            runs=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+              "$API/actions/workflows/$wf/runs?per_page=40" 2>/dev/null || echo '{}')
+            cnt=$(printf '%s' "$runs" | jq --arg t "$TODAY" --argjson s "$since_ts" \
+              '[.workflow_runs[]? | select((.created_at|startswith($t)) and ((.created_at|fromdateiso8601) >= $s))] | length' 2>/dev/null || echo 0)
+            [ "${cnt:-0}" -gt 0 ]
+          }
+          dispatch() {
+            local wf="$1" body="$2" code
+            code=$(curl -sS -o /tmp/gd.out -w '%{http_code}' -X POST -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer $GH_TOKEN" "$API/actions/workflows/$wf/dispatches" -d "$body" || echo 000)
+            echo "  dispatch $wf: HTTP $code $( [ "$code" != 204 ] && cat /tmp/gd.out 2>/dev/null )"
+          }
+
+          # Дневной слот: mode, время ОСНОВНОГО слота UTC HH:MM. Досев только в окне
+          # [слот+20мин .. слот+4ч], чтобы вечерний прогон не досылал утренний слот.
+          check_daily() {
+            local mode="$1" hhmm="$2"
+            local slot; slot=$(date -u -d "$TODAY $hhmm" +%s 2>/dev/null || echo 0)
+            [ "$slot" -eq 0 ] && return
+            if [ "$NOW" -lt $((slot + 1200)) ] || [ "$NOW" -gt $((slot + 14400)) ]; then
+              echo "$mode ($hhmm UTC): вне окна досева - пропуск"; return
+            fi
+            if ran_today_since "rop-tg-bot.yml" $((slot - 3600)); then
+              echo "$mode ($hhmm UTC): прогон за сегодня в окне слота есть - ОК, не досылаю"
+            else
+              echo "$mode ($hhmm UTC): прогонов нет - ДОСЫЛАЮ в основной чат"
+              dispatch "rop-tg-bot.yml" "{\"ref\":\"main\",\"inputs\":{\"mode\":\"$mode\",\"chat\":\"$MAIN_CHAT\"}}"
+            fi
+          }
+
+          echo "Проверка $TODAY (DOW=$DOW DOM=$DOM), now=$(date -u +%H:%M) UTC"
+          check_daily "plan"  "06:15"
+          check_daily "srez"  "12:15"
+          check_daily "itogi" "14:45"
+
+          # Недельный (пятница) и месячный (1-е число) ИИ-разбор: слот 09:00 UTC, только тест-чат.
+          # sales-audit.yml сам определяет weekly/monthly по расписанию, но у ручного dispatch
+          # схемы нет - передаём mode явно. Адресат (тест) жёстко в самом sales-audit.
+          check_audit() {
+            local mode="$1"
+            local slot; slot=$(date -u -d "$TODAY 09:00" +%s 2>/dev/null || echo 0)
+            if [ "$NOW" -lt $((slot + 1200)) ] || [ "$NOW" -gt $((slot + 14400)) ]; then
+              echo "$mode (09:00 UTC): вне окна досева - пропуск"; return
+            fi
+            if ran_today_since "sales-audit.yml" $((slot - 3600)); then
+              echo "$mode (09:00 UTC): прогон sales-audit за сегодня есть - ОК"
+            else
+              echo "$mode (09:00 UTC): прогонов нет - ДОСЫЛАЮ (тест-чат по конфигу sales-audit)"
+              dispatch "sales-audit.yml" "{\"ref\":\"main\",\"inputs\":{\"mode\":\"$mode\"}}"
+            fi
+          }
+          [ "$DOW" = "5" ] && check_audit "weekly"
+          [ "$DOM" = "1" ] && check_audit "monthly"
+          echo "Готово."

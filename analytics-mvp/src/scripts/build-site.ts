@@ -8,6 +8,9 @@ import { renderTovary, renderOverview, renderFunnel, renderCards, renderMoney, r
 
 const ru = (n: number) => new Intl.NumberFormat("ru-RU").format(Math.round(n));
 const mln = (n: number) => (Math.abs(n) >= 1e6 ? (n / 1e6).toFixed(2) + " М" : ru(n));
+// ДРР без привязки расхода к заказам не считается. Ноль в карточке рядом с ненулевым расходом
+// читается как «ДРР ноль», то есть неизвестность выдаётся за факт (ФЕНИКС 2026-09-07, Q3).
+const drrCell = (drr: number, spend: number) => (spend > 0 && !drr ? "не считается" : drr + "%");
 const kpiC = (lab: string, val: string) => `<div class="card kpi"><div class="lab">${lab}</div><div class="val num">${val}</div></div>`;
 
 // VIOLUR - это столы GENGLASS, открыто продаются на OZON (решение Ивана), не маскируем.
@@ -61,7 +64,7 @@ function buildMarketing(): string {
   ${snapNote(skus.dateFrom, skus.dateTo)}
   <h2>Срез периода ${skus.dateFrom}..${skus.dateTo}</h2>
   <div class="grid">
-    ${kpiC("ДРР канала, %", ads.totals.drr + "%")}
+    ${kpiC("ДРР канала, %", drrCell(ads.totals.drr, ads.totals.spend))}
     ${kpiC("Расход рекламы, ₽", mln(ads.totals.spend))}
     ${kpiC("Выручка с рекламы, ₽", mln(ads.totals.adRevenue))}
     ${kpiC("ROAS", roas + "x")}
@@ -76,8 +79,108 @@ function buildMarketing(): string {
   <div class="two">
     <div><h2>Доля выручки по линиям</h2><div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th></tr></thead><tbody>${byLine}</tbody></table></div></div></div>
     <div><h2>ДРР по линиям <span class="pill b-Y">ориентир</span></h2><div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody>${adsLine}</tbody></table></div></div>
-      <div class="note">ДРР по линиям - ненадёжно (таксономии рекламы и аналитики расходятся, G5). Достоверен только суммарный ДРР канала ${ads.totals.drr}%.</div></div>
+      <div class="note">ДРР по линиям - ненадёжно (таксономии рекламы и аналитики расходятся, G5). ${ads.totals.spend > 0 && !ads.totals.drr ? "Суммарный ДРР канала тоже не считается: расход есть, привязки к заказам нет." : `Достоверен только суммарный ДРР канала ${drrCell(ads.totals.drr, ads.totals.spend)}.`}</div></div>
   </div>`;
+}
+
+// Продвижение Яндекс Маркета. Модель площадки другая, поэтому лист собран заново, а не перенесён
+// с OZON: у Маркета нет рекламных кампаний, ставок, кликов и показов рекламы, а значит нет ни CPC,
+// ни CTR, ни CPO по кликам, ни «активных кампаний». Продвижение здесь - это буст продаж, который
+// списывается ЗА ПРОДАЖУ и привязан к номеру заказа (1990 строк реестра из 1990 несут ORDER_ID).
+// Именно поэтому ДРР у Маркета считается честно, по заказам, а не «ориентиром»: расход и выручка
+// относятся к одним и тем же заказам.
+const PROMO_ARTICLES = ["Буст продаж", "Программа лояльности и отзывы"];
+function buildPromoYm(): string {
+  let svod: any;
+  try { svod = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svod = null; }
+  if (!svod || !svod.months || !svod.months.length) {
+    return `<div class="card"><b>Свод по заказам не собран.</b><div class="note" style="margin-top:8px">Лист продвижения считается из него: нет <code>data-ym/svod_orders.json</code> - нечего показывать. Запустить <code>npm run ym:derive</code>.</div></div>`;
+  }
+  const NAMES: Record<string, string> = { "74986385": "GEN GROUP (мебель)", "1023124": "GENGLASS (зеркала)" };
+  const nm = (b: string) => NAMES[b] || `кабинет ${b}`;
+  type Row = { business: string; ym: string; spendM: number; spendP: number; ohM: number; ohP: number; rev: number; pts: number; orders: number; settled: boolean; partial: boolean };
+  const rows: Row[] = [];
+  for (const m of svod.months) {
+    let spendM = 0, spendP = 0, rev = 0, pts = 0;
+    for (const r of m.rows) {
+      for (const a of PROMO_ARTICLES) { spendM += (r.svc || {})[a] || 0; spendP += (r.svc_pts || {})[a] || 0; }
+      rev += r.revenue_money; pts += r.points_accrued;
+    }
+    let ohM = 0, ohP = 0;
+    for (const a of PROMO_ARTICLES) { ohM += (m.overhead || {})[a] || 0; ohP += (m.overhead_pts || {})[a] || 0; }
+    // общие расходы без названия услуги - подписки, полки, баннеры: к товару не привязаны
+    ohM += (m.overhead || {})["Прочие услуги"] || 0; ohP += (m.overhead_pts || {})["Прочие услуги"] || 0;
+    if (!spendM && !spendP && !ohM && !ohP && !rev) continue;
+    rows.push({ business: m.business, ym: m.ym, spendM, spendP, ohM, ohP, rev, pts, orders: m.orders,
+      settled: !!m.svc_settled, partial: (m.orders_inflight || 0) > 0 });
+  }
+  rows.sort((a, b) => (a.ym === b.ym ? a.business.localeCompare(b.business) : b.ym.localeCompare(a.ym)));
+  const base = (r: Row) => r.rev + r.pts;
+  const drr = (r: Row) => (base(r) > 0 ? Math.round(((r.spendM + r.spendP + r.ohM + r.ohP) / base(r)) * 1000) / 10 : null);
+
+  // последний ЗАКРЫТЫЙ месяц: по нему считаем карточки, незакрытый показывать как итог нельзя
+  const closed = rows.filter((r) => r.settled && !r.partial);
+  const lastYm = closed.length ? closed[0]!.ym : "";
+  const head = closed.filter((r) => r.ym === lastYm);
+  const sum = (f: (r: Row) => number) => head.reduce((a, r) => a + f(r), 0);
+  const hSpend = sum((r) => r.spendM + r.spendP + r.ohM + r.ohP);
+  const hBase = sum(base);
+  const hDrr = hBase > 0 ? Math.round((hSpend / hBase) * 1000) / 10 : 0;
+
+  const monthRows = rows.map((r) => {
+    const d = drr(r);
+    const flag = r.partial ? ` <span class="pill b-Z">период не завершён</span>` : (!r.settled ? ` <span class="pill b-Z">акт не закрыт</span>` : "");
+    return `<tr><td>${r.ym}${flag}</td><td class="sub">${nm(r.business)}</td><td class="r num">${ru(Math.round(r.spendM))}</td><td class="r num" style="color:#F2B544">${ru(Math.round(r.spendP))}</td><td class="r num">${ru(Math.round(r.ohM + r.ohP))}</td><td class="r num"><b>${ru(Math.round(r.spendM + r.spendP + r.ohM + r.ohP))}</b></td><td class="r num">${mln(Math.round(base(r)))}</td><td class="r num ${d != null && d > 30 ? "down" : ""}">${d == null ? "нет базы" : d + "%"}</td></tr>`;
+  }).join("");
+
+  // по SKU за последний закрытый месяц: кто съедает буст
+  const skuAgg = new Map<string, { sku: string; name: string; line: string; sp: number; rev: number; units: number }>();
+  for (const m of svod.months) {
+    if (m.ym !== lastYm || !head.some((h) => h.business === m.business)) continue;
+    for (const r of m.rows) {
+      let sp = 0; for (const a of PROMO_ARTICLES) sp += ((r.svc || {})[a] || 0) + ((r.svc_pts || {})[a] || 0);
+      const cur = skuAgg.get(r.sku) || { sku: r.sku, name: r.name, line: r.line, sp: 0, rev: 0, units: 0 };
+      cur.sp += sp; cur.rev += r.revenue_money + r.points_accrued; cur.units += r.units_net; skuAgg.set(r.sku, cur);
+    }
+  }
+  const skuList = [...skuAgg.values()].filter((x) => x.sp > 0).sort((a, b) => b.sp - a.sp);
+  const skuRows = skuList.slice(0, 40).map((x) => {
+    const d = x.rev > 0 ? Math.round((x.sp / x.rev) * 1000) / 10 : null;
+    return `<tr><td class="num">${x.sku}</td><td class="sub">${(x.name || "").slice(0, 44)}</td><td class="r num">${ru(Math.round(x.sp))}</td><td class="r num">${ru(Math.round(x.rev))}</td><td class="r num">${x.units}</td><td class="r num ${d != null && d > 30 ? "down" : ""}">${d == null ? "нет выручки" : d + "%"}</td></tr>`;
+  }).join("");
+
+  const lineAgg = new Map<string, { sp: number; rev: number }>();
+  for (const x of skuList) { const c = lineAgg.get(x.line || "прочее") || { sp: 0, rev: 0 }; c.sp += x.sp; c.rev += x.rev; lineAgg.set(x.line || "прочее", c); }
+  const lineRows = [...lineAgg.entries()].sort((a, b) => b[1].sp - a[1].sp).map(([l, v]) => {
+    const d = v.rev > 0 ? Math.round((v.sp / v.rev) * 1000) / 10 : null;
+    return `<tr><td>${l}</td><td class="r num">${ru(Math.round(v.sp))}</td><td class="r num">${mln(Math.round(v.rev))}</td><td class="r num ${d != null && d > 30 ? "down" : ""}">${d == null ? "-" : d + "%"}</td></tr>`;
+  }).join("");
+
+  const hungry = skuList.filter((x) => x.rev > 0 && x.sp / x.rev > 0.3);
+  const hungrySum = hungry.reduce((a, x) => a + x.sp, 0);
+
+  return `
+  <div class="card" style="border-color:#34343a"><b>У Яндекс Маркета нет рекламных кампаний за клик.</b>
+  <div class="note" style="margin-top:8px">Поэтому на этом листе нет ставок, кликов, показов рекламы, CPC, CTR и «активных кампаний»: таких сущностей у площадки нет, и показывать их нулями значило бы врать про канал. Продвижение Маркета - это <b>буст продаж, который списывается за продажу</b>, плюс отзывы за баллы и общие расходы кабинета (подписка, полки, баннеры). Буст привязан к номеру заказа у всех строк реестра, поэтому <b>ДРР здесь считается по заказам, а не оценивается ориентиром</b>: расход и выручка относятся к одним и тем же заказам. Базис - дата оформления заказа, тот же, что у свода на странице Деньги.</div></div>
+  <h2>Последний закрытый месяц${lastYm ? ` &middot; ${lastYm}` : ""}</h2>
+  ${lastYm ? `<div class="grid">
+    ${kpiC("Расход на продвижение, ₽", mln(Math.round(hSpend)))}
+    ${kpiC("ДРР по заказам, %", hDrr + "%")}
+    ${kpiC("Буст деньгами, ₽", mln(Math.round(sum((r) => r.spendM))))}
+    ${kpiC("Буст баллами, ₽", mln(Math.round(sum((r) => r.spendP))))}
+    ${kpiC("Общие расходы, ₽", ru(Math.round(sum((r) => r.ohM + r.ohP))))}
+  </div>` : `<div class="card"><b>Закрытых месяцев в снимке нет.</b><div class="note" style="margin-top:8px">Месяц считается закрытым, когда пришёл акт за следующий месяц и период доставки завершён. Пока таких нет, карточки не показываются: незакрытый месяц выдавать за итог нельзя.</div></div>`}
+  <h2>Расход на продвижение по месяцам</h2>
+  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Месяц заказа</th><th>Кабинет</th><th class="r">Буст деньгами</th><th class="r">Буст баллами</th><th class="r">Общие</th><th class="r">Всего</th><th class="r">Выручка (деньги+баллы)</th><th class="r">ДРР</th></tr></thead><tbody>${monthRows}</tbody></table></div></div>
+  <div class="note">Буст платится и деньгами, и баллами Маркета. Обе половины - реальный расход: услугу оказали, и в акте она стоит полностью. Выручка взята как деньги плюс начисленные баллы - та же база, что у маржи на странице Деньги, иначе ДРР считался бы к неполной выручке и завышался.</div>
+  ${lastYm ? `<div class="two">
+    <div><h2>ДРР по линиям &middot; ${lastYm}</h2><div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">ДРР</th></tr></thead><tbody>${lineRows}</tbody></table></div></div></div>
+    <div><h2>Где буст съедает маржу</h2><div class="card">${hungry.length
+      ? `<b>${hungry.length} SKU с ДРР выше 30%</b> на ${ru(Math.round(hungrySum))} ₽ расхода за ${lastYm}.<div class="note" style="margin-top:8px">Буст Маркета списывается процентом с продажи, поэтому высокий ДРР тут значит именно высокую ставку буста, а не «плохие клики». Снижать его - через ставку буста в кабинете, не через отключение кампании: отключать нечего.</div>`
+      : `<b>SKU с ДРР выше 30% нет.</b><div class="note" style="margin-top:8px">За ${lastYm} ни один артикул не отдал больше 30% выручки на продвижение.</div>`}</div></div>
+  </div>
+  <h2>По артикулам &middot; ${lastYm}${skuList.length > 40 ? ` <span class="sub">(топ-40 из ${skuList.length})</span>` : ""}</h2>
+  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Артикул</th><th>Название</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Штук</th><th class="r">ДРР</th></tr></thead><tbody>${skuRows}</tbody></table></div></div>` : ""}`;
 }
 
 // Кампании: расход, ДРР, сливы, топ по расходу. Снимок 30 дней.
@@ -97,7 +200,7 @@ function buildCampaigns(): string {
   ${snapNote(ads.dateFrom, ads.dateTo)}
   <h2>Срез периода ${ads.dateFrom}..${ads.dateTo}</h2>
   <div class="grid">
-    ${kpiC("ДРР канала, %", t.drr + "%")}
+    ${kpiC("ДРР канала, %", drrCell(t.drr, t.spend))}
     ${kpiC("Расход, ₽", mln(t.spend))}
     ${kpiC("Заказов с рекламы", ru(t.orders))}
     ${kpiC("CPO, ₽", ru(t.cpo))}
@@ -336,6 +439,10 @@ function main() {
     stale: staleDays > 45,
   };
 
+  // Свод по дате заказа есть только у Маркета (у OZON другой источник закрытия месяца).
+  // Ключ добавляется условно: у OZON модель обязана остаться байт-в-байт прежней.
+  let svod: unknown = null;
+  if (!IS_OZON) { try { svod = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svod = null; } }
   const model = {
     max: maxDate, floor: dates[0]!, skus, facts, closed: closedData.months,
     closedMeta, tax, cogs, opnl, txsku, ads, offers, oos, fresh,

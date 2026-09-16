@@ -4,6 +4,7 @@
 //   netting [from] [to]        united-netting по кабинетам -> data-ym/netting.ndjson + netting_summary.json
 //                              (выплаты ЛК: сумма платежей по датам п/п = эталон для «к выплате» по §15).
 //   shows [days]               shows-sales по кабинетам ПО ДНЯМ -> data-ym/sku_views.ndjson (показы/корзина per-SKU).
+//   services [YYYY-MM ...]     united-marketplace-services (акт по стоимости услуг) -> data-ym/services_monthly.ndjson
 // Колонки ищутся по regex из report-columns.json; сырые заголовки + 3 строки каждого отчёта пишутся
 // в data-ym/_probe/<type>.json для первичной настройки. Не найдена ключевая колонка -> warning,
 // файл не трогаем, exit 0 (мягкий продьюсер: не валит ночной синк).
@@ -14,6 +15,8 @@ import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensur
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
 import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
+import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
+import { DELIVERED_STATUSES } from "./derive-lib.js";
 
 type ColMap = Record<string, string[]>;
 const COLS: Record<string, ColMap> = JSON.parse(readFileSync(new URL("./report-columns.json", import.meta.url), "utf-8"));
@@ -39,6 +42,10 @@ function flushBad() {
   if (total) console.warn(`::warning::неразобранных числовых ячеек за прогон: ${total} (${JSON.stringify(BAD)})`);
 }
 
+// Версия парсера взаиморасчётов. Поднимать, когда меняется состав полей строки или правила дедупа:
+// это и есть сигнал «снимок надо пересобрать от FLOOR», ровно один раз.
+export const NETTING_SCHEMA = 2;
+
 // Бюджет отчётов на прогон (ФЕНИКС G9): каждый generate+poll до 15 мин; без потолка первый бэкфилл
 // упирается в timeout job и теряет всё. По умолчанию 10 отчётов, переопределяется YM_REPORT_BUDGET.
 const BUDGET = Math.max(1, Number(process.env.YM_REPORT_BUDGET || 10) || 10);
@@ -51,6 +58,8 @@ function budgetLeft(): boolean { if (used >= BUDGET) { budgetSpent = true; conso
 // кампаний) в один прогон физически не влезает. Поэтому лимит - это не ошибка: продьюсер
 // останавливается мягко, СОХРАНЯЕТ уже разобранное, а остаток добирает следующий прогон.
 let rateLimited = false;
+// Ждём окно лимита и повторяем. Сдаёмся только когда до дедлайна прогона уже не хватает на ожидание -
+// тогда мягкая остановка отрабатывает как раньше и собранное сохраняется.
 function stopOnRateLimit(e: unknown, what: string): boolean {
   if (!isRateLimit(e)) return false;
   rateLimited = true;
@@ -69,9 +78,20 @@ function cols(type: string, headers: string[], required: string[]): Record<strin
 
 type Tbl = { name: string; headers: string[]; rows: string[][] };
 // Все таблицы отчёта (zip может нести несколько CSV: доставки + возвраты). null = нет данных/ошибка.
+// Лимит Маркета - это ОЖИДАНИЕ, а не отказ: 1 генерация на 2 минуты на кабинет. Раньше первый же 420
+// приводил к выходу из продьюсера, и прогон использовал 10 минут из 120 доступных (живой факт
+// 2026-09-07: шаг реализации отработал 1 мин 49 с и сдался, собрав один отчёт). Теперь ждём окно и
+// повторяем, пока не упрёмся в дедлайн прогона.
+const WAIT_MS = Number(process.env.YM_REPORT_WAIT_MS || 125_000);
+const DEADLINE_MS = Number(process.env.YM_REPORT_DEADLINE_MS || 95 * 60 * 1000);
+const startedAt = Date.now();
+const timeLeft = () => DEADLINE_MS - (Date.now() - startedAt);
+
+
 async function fetchReportAll(api: YmPartner, type: string, body: any): Promise<Tbl[] | null> {
   if (!budgetLeft()) return null;
-  const r = await api.report(type, body, { timeoutMs: Number(process.env.YM_REPORT_TIMEOUT_MS || 15 * 60 * 1000) });
+  const r = await retryOnRateLimit(() => api.report(type, body, { timeoutMs: Number(process.env.YM_REPORT_TIMEOUT_MS || 15 * 60 * 1000) }), type, { waitMs: WAIT_MS, timeLeft });
+  if (r === RATE_LIMITED) throw new Error("HTTP 420: лимит генерации отчётов Маркета, дедлайн прогона исчерпан");
   if (r.status !== "DONE" || !r.files.length) { console.warn(`::warning::отчёт ${type} ${JSON.stringify(body)}: status ${r.status}${r.subStatus ? "/" + r.subStatus : ""} - данных нет`); return null; }
   const out: Tbl[] = [];
   for (const f of r.files) { const t = toTable(f.text); console.log(`  ${type}: ${f.name} строк ${t.rows.length}, разделитель '${t.delimiter}'`); out.push({ name: f.name, headers: t.headers, rows: t.rows }); }
@@ -93,18 +113,68 @@ async function realization(months: string[]) {
   // кабинет), поэтому помним разобранные пары (месяц, кампания) в realization_state.json и каждый
   // прогон двигаем бэкфилл дальше, а не начинаем с нуля.
   const STATE = yp("realization_state.json");
-  const state = readJson<{ pairs: string[] }>(STATE, { pairs: [] });
+  const state = readJson<{ pairs: string[]; by_month?: Record<string, any> }>(STATE, { pairs: [] });
   const donePairs = new Set(state.pairs || []);
-  const byMonth: Record<string, Record<string, { sold: number; ret: number; amount: number }>> = {};
-  for (const r of existing) { const b = byMonth[r.ym] || (byMonth[r.ym] = {}); b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0 }; }
+  // ПЕРЕОТКРЫТИЯ ПАР БОЛЬШЕ НЕТ. Две итерации подряд оно оказывалось небезопасным, и оба раза по
+  // одной причине: признак «магазин ничего не дал» выводился косвенно, а разбор складывает поверх
+  // накопленного (a.sold += ...), поэтому любая ошибка вывода превращается во второй слой.
+  //   итерация 1: признак читался из состояния (shops_with_rows), пустого у старых месяцев;
+  //   итерация 2: признак читался из поля from, а писатель проставляет from ВСЕМ строкам, включая
+  //   поднятые из файла с пустым множеством - через один прогон from: [] стоял у всех 177 строк,
+  //   и переоткрылись бы 14 пар на 4 830 709 ₽ реализации.
+  // Косвенный признак тут в принципе не годится. Оставляем один явный и идемпотентный путь:
+  // ПЕРЕСБОР МЕСЯЦА С НУЛЯ по прямой команде оператора (`ym:realization -- 2026-02 --rebuild`).
+  // Он не складывает, а заменяет: строки месяца выбрасываются, пары месяца открываются, месяц
+  // собирается заново. Задвоение невозможно по построению, а не по выводу из данных.
+  // Магазины, ответившие NO_DATA, в переоткрытии не нуждаются: новый код такие пары не закрывает.
+  const rebuild = process.argv.includes("--rebuild");
+  // Пересбор без явно названного месяца брал бы [прошлый, текущий] по умолчанию и стирал их молча.
+  // Разрушительная команда обязана называть цель словами (ФЕНИКС iter4).
+  if (rebuild && !process.argv.slice(3).some((a) => /^\d{4}-\d{2}$/.test(a))) {
+    console.error("::error::--rebuild требует явно названный месяц: ym:realization -- 2026-02 --rebuild");
+    process.exit(1);
+  }
+  if (rebuild) {
+    for (const ym of months) {
+      for (const p of [...donePairs]) if (p.startsWith(`${ym}/`)) donePairs.delete(p);
+    }
+    console.log(`realization: ПЕРЕСБОР месяцев ${months.join(", ")} с нуля - накопленные строки этих месяцев отброшены, пары открыты`);
+  }
+  // Сколько штук по каждому (месяц, магазин) мы САМИ насчитали по заказам. Нужно для двух вещей:
+  // не тратить генерацию отчёта на магазин без продаж (лимит 1 отчёт / 2 мин, он дорог) и не
+  // закрывать пару по NO_DATA там, где продажи были - у Маркета отчёт появляется после выпуска УПД,
+  // и «пусто» на свежем месяце значит «ещё не готов», а не «не продавали».
+  const soldBy: Record<string, number> = {};
+  for (const r of readNdjson<any>(yp("orders.ndjson"))) {
+    if (r.fake || !DELIVERED_STATUSES.has(r.status) || !r.delivered) continue;
+    const k = `${String(r.fin).slice(0, 7)}/${r.campaign}`;
+    soldBy[k] = (soldBy[k] || 0) + r.delivered;
+  }
+  const withRows: Record<string, Set<string>> = {}, noDataDespiteSales: Record<string, Set<string>> = {};
+  const mark = (m: Record<string, Set<string>>, ym: string, c: string) => (m[ym] ||= new Set()).add(c);
+  const byMonth: Record<string, Record<string, { sold: number; ret: number; amount: number; from: Set<string> }>> = {};
+  // При пересборе месяц НЕ засеваем накопленным (иначе свежий разбор ляжет поверх старого), но
+  // старые строки НЕ выбрасываем: держим их в теневом слое и заменяем только при успешном сборе.
+  // ФЕНИКС iter4: удаление шло безусловно, а запись условно - при пустом ответе Маркета месяц
+  // просто исчезал. Веток в пустой ответ шесть: нечитаемый список кампаний, все NO_DATA (2026-08 -
+  // пять из семи), API_DISABLED (три кампании 1023124), исчерпанный бюджет, лимит генерации,
+  // отсутствие продаж. Предупреждение «месяц не трогаю» при этом было прямой ложью.
+  const shadow: Record<string, any[]> = {};
+  for (const r of existing) {
+    if (rebuild && months.includes(r.ym)) { (shadow[r.ym] ||= []).push(r); continue; }
+    const b = byMonth[r.ym] || (byMonth[r.ym] = {});
+    b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+  }
   outer:
   for (const ym of months) {
     const [y, m] = ym.split("-").map(Number) as [number, number];
-    const bySku: Record<string, { sold: number; ret: number; amount: number }> = byMonth[ym] || (byMonth[ym] = {});
+    const bySku: Record<string, { sold: number; ret: number; amount: number; from: Set<string> }> = byMonth[ym] || (byMonth[ym] = {});
     let ok = 0;
     for (const { campaign: c, account } of targets) {
       const pair = `${ym}/${c.id}`;
       if (donePairs.has(pair)) continue;
+      // Магазин без наших продаж за месяц: отчёт заведомо пуст, генерацию не тратим.
+      if (!soldBy[pair]) { donePairs.add(pair); continue; }
       let tables: Tbl[] | null = null;
       try { tables = await fetchReportAll(account.api, "goods-realization", { campaignId: Number(c.id), year: y, month: m }); }
       catch (e) {
@@ -112,9 +182,14 @@ async function realization(months: string[]) {
         const why = campaignUnavailable(e); if (!why) throw e;
         console.warn(`::warning::реализация ${ym}: кампания ${c.id} пропущена (${why})`); donePairs.add(pair); continue;
       }
-      // NO_DATA - это законный «нечего собирать» (месяц без продаж по кампании): пара закрыта.
-      // Исчерпанный бюджет или лимит Маркета - НЕ закрыты, иначе пара выпадет из бэкфилла навсегда.
-      if (!tables) { if (!rateLimited && !budgetSpent) donePairs.add(pair); if (budgetSpent) break outer; continue; }
+      // Сюда попадаем только когда продажи по магазину БЫЛИ. Значит NO_DATA - это «отчёт ещё не
+      // выпущен», а не «нечего собирать»: пару НЕ закрываем, следующий прогон попробует снова.
+      // Раньше она закрывалась навсегда, и месяц оставался недобранным при зелёном бейдже.
+      if (!tables) {
+        if (budgetSpent) break outer;
+        if (!rateLimited) { mark(noDataDespiteSales, ym, c.id); console.warn(`::warning::реализация ${ym}: магазин ${c.id} продал ${soldBy[pair]} шт, но отчёт пуст (УПД ещё не выпущен) - повторю в следующий прогон`); }
+        continue;
+      }
       let parsed = false;
       for (const t of tables) {
         probe(`goods-realization${tables.length > 1 ? "-" + t.name.replace(/[^a-z0-9_]/gi, "_") : ""}`, t.headers, t.rows, { campaign: c.id, ym, file: t.name });
@@ -128,7 +203,8 @@ async function realization(months: string[]) {
         parsed = true;
         for (const r of t.rows) {
           const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
-          const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0 });
+          const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0, from: new Set<string>() });
+          a.from.add(c.id); // какой магазин дал строку - пишем В ДАННЫЕ, а не только в состояние прогона
           if (role === "returned") {
             a.ret += num("goods-realization", r[ix.returned!]);
             if (ix.amount_returned! >= 0) a.amount -= num("goods-realization", r[ix.amount_returned!]);
@@ -138,15 +214,54 @@ async function realization(months: string[]) {
           }
         }
       }
-      if (parsed) { ok++; donePairs.add(pair); }
+      if (parsed) { ok++; donePairs.add(pair); mark(withRows, ym, c.id); }
     }
-    if (!ok && !Object.keys(bySku).length) { console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`); continue; }
+    if (!ok && !Object.keys(bySku).length) {
+      // Ничего не собрали. При обычном прогоне месяц и так на месте; при пересборе возвращаем
+      // теневой слой, иначе «не трогаю» означало бы «стёр».
+      if (rebuild && shadow[ym]?.length) {
+        for (const r of shadow[ym]!) (byMonth[ym] ||= {})[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+        console.warn(`::warning::realization ${ym}: пересбор ничего не дал - вернул ${shadow[ym]!.length} ранее собранных строк, месяц не потерян`);
+      } else console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`);
+      continue;
+    }
     console.log(`realization ${ym}: SKU ${Object.keys(bySku).length}, реализовано нетто ${Object.values(bySku).reduce((s, a) => s + a.sold - a.ret, 0)} шт${ok ? "" : " (из ранее собранного)"}`);
   }
-  for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), platform: "ym", source: "goods-realization" });
+  // Последняя сеть перед записью: любой месяц пересбора, оставшийся пустым, возвращается из теневого
+  // слоя. Покрывает ВСЕ ранние выходы разом, включая `break outer` по лимиту Маркета, после которого
+  // до месяцев очереди управление уже не доходит. Проверка «пусто -> верни» надёжнее перечисления
+  // веток: веток шесть, и седьмую я бы снова не увидел.
+  for (const [ym, rows] of Object.entries(shadow)) {
+    if (Object.keys(byMonth[ym] || {}).length) continue;
+    for (const r of rows) (byMonth[ym] ||= {})[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0, from: new Set<string>(r.from || []) };
+    console.warn(`::warning::realization ${ym}: пересбор не дал строк - месяц восстановлен из ранее собранного (${rows.length} строк)`);
+  }
+  for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), from: [...a.from].sort(), platform: "ym", source: "goods-realization" });
   const merged = fresh.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));
   writeNdjson(OUT, merged);
-  writeJson(STATE, { at: new Date().toISOString(), pairs: [...donePairs].sort(), note: "разобранные пары месяц/кампания отчёта о реализации; лимит генерации Маркета не даёт собрать бэкфилл за один прогон" });
+  // Покрытие по месяцам: какие магазины реально дали строки, а какие продавали, но отчёт ещё пуст.
+  // Без этого сверка штук объявляет расхождением обычную недобранность отчёта.
+  const shopsSold: Record<string, string[]> = {};
+  for (const k of Object.keys(soldBy)) { const [ym, c] = k.split("/") as [string, string]; (shopsSold[ym] ||= []).push(c); }
+  const byMonthCov: Record<string, { shops_sold: string[]; shops_with_rows: string[]; shops_no_data: string[]; shops_pending: string[] }> = {};
+  for (const [ym, shops] of Object.entries(shopsSold)) {
+    const rowsSet = withRows[ym] || new Set<string>(), ndSet = noDataDespiteSales[ym] || new Set<string>();
+    const prev = readJson<any>(STATE, {}).by_month?.[ym];
+    // Магазины, давшие строки, берём ИЗ ДАННЫХ. Раньше источником было только то, что разобрал этот
+    // прогон, плюс перенос из состояния - а пары, собранные до появления поля, не отмечались никогда
+    // и не могли отметиться потом (donePairs их пропускает). Месяц с данными вечно показывал
+    // «0 магазинов добрано» при непустом файле: живой факт 2026-09-07 - 2026-08 имел 22 SKU и 26 шт
+    // при shops_with_rows = [].
+    const fromData = new Set<string>(merged.filter((r: any) => r.ym === ym).flatMap((r: any) => r.from || []));
+    const keptRows = new Set<string>([...(prev?.shops_with_rows || []), ...rowsSet, ...fromData]);
+    byMonthCov[ym] = {
+      shops_sold: shops.sort(),
+      shops_with_rows: [...keptRows].filter((c) => shops.includes(c)).sort(),
+      shops_no_data: [...ndSet].sort(),
+      shops_pending: shops.filter((c) => !keptRows.has(c) && !ndSet.has(c)).sort(),
+    };
+  }
+  writeJson(STATE, { at: new Date().toISOString(), pairs: [...donePairs].sort(), by_month: byMonthCov, note: "разобранные пары месяц/магазин отчёта о реализации и покрытие по месяцам; лимит генерации Маркета не даёт собрать бэкфилл за один прогон" });
   const total = targets.length * months.length;
   console.log(`realization: всего ${merged.length} строк (${new Set(merged.map((r) => r.ym)).size} мес), пар месяц/кампания ${donePairs.size}/${total}${rateLimited ? " - упёрлись в лимит Маркета, продолжу в следующий прогон" : ""} -> ${OUT}`);
 }
@@ -154,15 +269,27 @@ async function realization(months: string[]) {
 // ---- united-netting: {businessId, dateFrom, dateTo} -> платежи по датам ----
 async function netting(from: string, to: string) {
   const OUT = yp("netting.ndjson");
-  const existing = readNdjson<any>(OUT).filter((r) => !(r.d >= from && r.d <= to));
+  const STATE = yp("netting_state.json");
   const fresh: any[] = [];
+  // Пары, которые в ЭТОТ прогон реально запрошены и разобраны. Чистить старое можно только по ним.
+  const purged = new Set<string>();
   let ok = 0;
+  // Возобновляемость по паре (кабинет, месяц). Полный пересбор девяти месяцев в лимит Маркета
+  // (1 генерация / 2 мин) за один прогон не влезает: раньше он обрывался, версия схемы не
+  // проставлялась, и следующий прогон начинал сначала - бесконечный цикл, съедавший весь бюджет
+  // генераций, из-за чего бэкфилл реализации не двигался. Теперь каждый прогон доносит свою часть.
+  const prevState = readJson<{ schema?: number; months_done?: string[] }>(STATE, {});
+  const doneMonths = new Set(prevState.schema === NETTING_SCHEMA ? prevState.months_done || [] : []);
+  // Свежее окно всегда перезабираем: проводки по недавним месяцам ещё меняются.
+  const freshWindow = addDays(to, -59).slice(0, 7);
   for (const { businessId: b, account } of await resolveBusinesses()) {
     // помесячно (лимит диапазона отчёта)
     let s = from;
     while (s <= to) {
       const mb = monthBounds(s.slice(0, 7));
       const e = mb.dateTo < to ? mb.dateTo : to;
+      const pair = `${b}/${s.slice(0, 7)}`;
+      if (doneMonths.has(pair) && s.slice(0, 7) < freshWindow) { s = addDays(e, 1); continue; }
       let t: { headers: string[]; rows: string[][] } | null = null;
       try { t = await fetchReport(account.api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e }); }
       catch (err) { if (stopOnRateLimit(err, `взаиморасчёты ${s}..${e}`)) break; throw err; }
@@ -170,10 +297,10 @@ async function netting(from: string, to: string) {
         probe("united-netting", t.headers, t.rows, { business: b, from: s, to: e });
         const ix = cols("united-netting", t.headers, ["date", "amount"]);
         if (ix) {
-          ok++;
+          ok++; doneMonths.add(pair); purged.add(pair);
           for (const r of t.rows) {
             const d = cellDate(r[ix.date!]); if (!d) continue;
-            fresh.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
+            fresh.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", src: ix.source! >= 0 ? (r[ix.source!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
           }
         }
       }
@@ -181,11 +308,27 @@ async function netting(from: string, to: string) {
     }
     if (rateLimited) break;
   }
+  // Ничего не забрали, но прогресс есть - значит история уже собрана, а свежее окно не дало строк.
+  // Это не ошибка: файлы не трогаем, состояние оставляем как есть.
+  if (!ok && !fresh.length && doneMonths.size) { console.log(`netting: все ${doneMonths.size} пар кабинет/месяц уже собраны, новых строк нет`); return; }
   if (!ok) { console.warn("::warning::netting: ни один отчёт не разобран - файлы не трогаю"); return; }
   // При мягком стопе по лимиту часть периода не добрана: старые строки этого периода не выкидываем,
   // иначе один упёршийся в лимит прогон обнулит уже собранные месяцы.
-  const covered = new Set(fresh.map((r) => r.d.slice(0, 7)));
-  const keep = rateLimited ? readNdjson<any>(OUT).filter((r) => !covered.has(r.d.slice(0, 7))) : existing;
+  // Из старого снимка выкидываем только те месяцы, которые в ЭТОТ прогон реально перезабрали.
+  // Возобновляемый бэкфилл трогает лишь часть диапазона, и обнулять остальное нельзя.
+  // КЛЮЧ ЧИСТКИ ОБЯЗАН СОВПАДАТЬ С КЛЮЧОМ ВОЗОБНОВЛЯЕМОСТИ. Возобновляемся по паре (кабинет, месяц),
+  // а чистили по одному месяцу - и перезабор одного кабинета сносил строки ДРУГОГО за тот же месяц.
+  // Живой факт 2026-09-07: прогон перезабрал 1023124/2026-04 и 1023124/2026-05 и уничтожил
+  // 74986385 за 2026-03..2026-06 - реестр упал с 11 407 строк (27 932 124 ₽) до 6 509 (18 577 394 ₽),
+  // минус 4 898 строк и 9 354 730 ₽. Дельта-гейт этого не увидел: он смотрит только 30-дневные
+  // производные. Чистим строго ту пару, которую в этот прогон реально перезабрали.
+  // Список «что чистим» строится из ЗАПРОШЕННЫХ пар, а не из полученных строк. Отчёт отдаёт
+  // проводки за пределами запрошенного окна (см. комментарий про дедуп ниже: в выгрузке за февраль
+  // приходят январские). Прошлая версия брала месяцы из ответа, поэтому запрос июля помечал
+  // «перезабранными» май и июнь, приносил оттуда десяток строк - и сносил остальные две тысячи.
+  // Живой факт 2026-09-07, прогон 17: 2026-05 упал с 2380 строк до 568, 2026-06 с 1652 до 441.
+  // Гейт накопительного слоя это поймал и остановил публикацию.
+  const keep = readNdjson<any>(OUT).filter((r) => !purged.has(`${r.business}/${r.d.slice(0, 7)}`));
   // Живой факт 2026-09-04: отчёт отдаёт проводки и за пределами запрошенного окна (в выгрузке за
   // февраль пришли январские), поэтому соседние месячные запросы ПЕРЕСЕКАЮТСЯ. Без дедупа одна и та
   // же проводка попадает дважды: на первом прогоне так задвоилось 2935 строк на 17.6 млн ₽, и сверка
@@ -195,7 +338,168 @@ async function netting(from: string, to: string) {
   const byDate: Record<string, number> = {}, byMonth: Record<string, number> = {};
   for (const r of merged) { byDate[r.d] = Math.round(((byDate[r.d] || 0) + r.amount) * 100) / 100; const m = r.d.slice(0, 7); byMonth[m] = Math.round(((byMonth[m] || 0) + r.amount) * 100) / 100; }
   writeJson(yp("netting_summary.json"), { platform: "ym", generated_at: new Date().toISOString(), rows: merged.length, byDate, byMonth, note: "сумма строк отчёта по взаиморасчётам по дате; знак как в отчёте (выплаты +, удержания -). [ГИПОТЕЗА] до сверки колонок" });
-  console.log(`netting: строк ${merged.length} (${from}..${to} получено ${fresh.length}, дублей отброшено ${fresh.length + keep.length - merged.length}) -> ${OUT}`);
+  // Состояние пишем ВСЕГДА: прогресс помесячный, поэтому оборванный лимитом прогон сохраняет то,
+  // что успел, и следующий продолжает с места остановки, а не начинает заново.
+  const txSeen = merged.filter((r: any) => r.tx && String(r.tx).trim()).length;
+  writeJson(STATE, { at: new Date().toISOString(), schema: NETTING_SCHEMA, rows: merged.length, months_done: [...doneMonths].sort(), tx_present: txSeen, note: txSeen ? "дедуп по TRANSACTION_ID" : "Маркет отдаёт TRANSACTION_ID пустым - дедуп идёт по составному ключу (дата, заказ, SKU, тип, услуга, сумма, п/п)" });
+  console.log(`netting: строк ${merged.length} (${from}..${to} получено ${fresh.length}, дублей отброшено ${fresh.length + keep.length - merged.length}, пар кабинет/месяц собрано ${doneMonths.size}, строк с TRANSACTION_ID ${txSeen})${rateLimited ? " - упёрлись в лимит, продолжу в следующий прогон" : ""} -> ${OUT}`);
+}
+
+// ---- united-marketplace-services: акт по стоимости услуг -> data-ym/services_monthly.ndjson ----
+// Зачем отдельный отчёт, когда есть отчёт по платежам. Общие расходы кабинета (полки, подписки,
+// баннеры, буст за показы) в платежах приходят неполно: за июль 2026 там 6 строк без номера заказа
+// на 36 875 ₽, все типа «Удержание», оплаченных баллами среди них нет вовсе. В акте те же статьи
+// дают 81 495 ₽, из них 15 051 ₽ по полкам закрыто баллами. Разница - не ошибка разнесения, а
+// отсутствующий источник, поэтому он и подключается.
+//
+// Форму тела Маркет для этого отчёта документирует иначе, чем для взаиморасчётов, и живой пробы у
+// нас пока нет. Поэтому тело подбирается: сначала {businessId, dateFrom, dateTo}, затем
+// {businessId, year, month}. Принятая форма пишется в состояние, и следующий прогон начинает
+// сразу с неё, а не перебирает заново, тратя генерации из лимита.
+const SERVICES_SCHEMA = 1;
+type Body = { name: string; body: (b: string, ym: string) => any };
+const SERVICE_BODIES: Body[] = [
+  { name: "dateFrom/dateTo", body: (b, ym) => ({ businessId: Number(b), dateFrom: monthBounds(ym).dateFrom, dateTo: monthBounds(ym).dateTo }) },
+  { name: "year/month", body: (b, ym) => ({ businessId: Number(b), year: Number(ym.slice(0, 4)), month: Number(ym.slice(5, 7)) }) },
+];
+async function services(months: string[]) {
+  const OUT = yp("services_monthly.ndjson");
+  const STATE = yp("services_state.json");
+  const prev = readJson<{ schema?: number; done?: string[]; body?: string }>(STATE, {});
+  const done = new Set(prev.schema === SERVICES_SCHEMA ? prev.done || [] : []);
+  let bodyName = prev.schema === SERVICES_SCHEMA ? prev.body || "" : "";
+  const fresh: any[] = [];
+  const purged = new Set<string>();
+  let ok = 0;
+  // Свежее окно перезабираем: акт за текущий и прошлый месяц ещё дополняется.
+  const freshFrom = months.length ? months[months.length - 1]! : "";
+  for (const { businessId: b, account } of await resolveBusinesses()) {
+    for (const ym of months) {
+      const pair = `${b}/${ym}`;
+      if (done.has(pair) && ym < freshFrom) continue;
+      const shapes = bodyName ? SERVICE_BODIES.filter((x) => x.name === bodyName) : SERVICE_BODIES;
+      let tables: Tbl[] | null = null, used = "";
+      for (const shape of shapes) {
+        try { tables = await fetchReportAll(account.api, "united-marketplace-services", shape.body(b, ym)); used = shape.name; }
+        catch (err) {
+          if (stopOnRateLimit(err, `акт услуг ${b} ${ym}`)) break;
+          // Неверная форма тела - это 400 от Маркета, а не отказ отчёта: пробуем следующую.
+          console.warn(`::warning::акт услуг ${b} ${ym}: форма тела «${shape.name}» не принята (${String((err as Error).message).slice(0, 160)})`);
+          tables = null; continue;
+        }
+        if (tables) break;
+      }
+      if (rateLimited) break;
+      if (!tables) continue;
+      if (!bodyName && used) { bodyName = used; console.log(`services: Маркет принял тело «${used}»`); }
+      for (const t of tables) {
+        probe(`united-marketplace-services${tables.length > 1 ? "-" + t.name.replace(/[^a-z0-9_]/gi, "_") : ""}`, t.headers, t.rows, { business: b, ym, file: t.name });
+        const ix = cols("united-marketplace-services", t.headers, ["service", "amount"]);
+        if (!ix) continue;
+        ok++; done.add(pair); purged.add(pair);
+        for (const r of t.rows) {
+          const service = (r[ix.service!] || "").trim();
+          if (!service) continue;
+          const money = num("united-marketplace-services", r[ix.amount!]);
+          const points = ix.amount_points! >= 0 ? num("united-marketplace-services", r[ix.amount_points!]) : 0;
+          if (!money && !points) continue;
+          fresh.push({ ym, business: b, d: ix.date! >= 0 ? cellDate(r[ix.date!]) || monthBounds(ym).dateTo : monthBounds(ym).dateTo,
+            service, money, points,
+            order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "",
+            sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "",
+            campaign: ix.campaign! >= 0 ? (r[ix.campaign!] || "").trim() : "", platform: "ym" });
+        }
+      }
+    }
+    if (rateLimited) break;
+  }
+  if (!ok && !fresh.length && done.size) { console.log(`services: все ${done.size} пар кабинет/месяц уже собраны, новых строк нет`); return; }
+  if (!ok) { console.warn("::warning::services: ни один акт не разобран - файлы не трогаю"); return; }
+  // Чистим строго перезабранные пары, как в реестре: иначе один упёршийся в лимит прогон
+  // обнулит месяцы, которых он вовсе не касался.
+  const keep = readNdjson<any>(OUT).filter((r) => !purged.has(`${r.business}/${r.ym}`));
+  const merged = fresh.concat(keep).sort((a, b) => (a.ym === b.ym ? String(a.business).localeCompare(String(b.business)) : a.ym < b.ym ? -1 : 1));
+  writeNdjson(OUT, merged);
+  writeJson(STATE, { at: new Date().toISOString(), schema: SERVICES_SCHEMA, rows: merged.length, body: bodyName, done: [...done].sort(),
+    note: "акт по стоимости услуг: строка = услуга за месяц, money - оплачено деньгами, points - закрыто баллами" });
+  console.log(`services: строк ${merged.length} (получено ${fresh.length}, пар кабинет/месяц ${done.size}, тело «${bodyName || "не определено"}»)${rateLimited ? " - упёрлись в лимит, продолжу в следующий прогон" : ""} -> ${OUT}`);
+}
+
+// ---- отчёт по баллам Маркета -> data-ym/bonuses_monthly.ndjson ----
+// Баллы - это НЕ скидка Маркета покупателю. Скидку Маркет даёт за свой счёт, а баллами он её потом
+// компенсирует, и величины не равны: за июль 2026 по кабинету мебели скидка 2 714 664 ₽, а
+// начисленные баллы по кабинету 2 635 381 ₽. До этого отчёта баллы брались из subsidies[] заказа и
+// разносились по позициям нашей собственной базой - это давало +2,7% и не проверялось ничем
+// внешним. В кабинете отчёт лежит рядом с отчётом по платежам: «О баллах Маркета».
+//
+// Имя метода в Partner API документацией отсюда не подтверждается (сеть до доков закрыта), поэтому
+// перебираем кандидатов: неизвестный тип отчёта Маркет отклоняет сразу, без генерации, так что
+// перебор не тратит лимит. Принятое имя и форму тела запоминаем в состоянии.
+const BONUS_SCHEMA = 1;
+const BONUS_TYPES = ["united-bonuses", "bonuses", "united-marketplace-bonuses", "market-bonuses", "united-netting-bonuses"];
+async function bonuses(months: string[]) {
+  const OUT = yp("bonuses_monthly.ndjson");
+  const STATE = yp("bonuses_state.json");
+  const prev = readJson<{ schema?: number; done?: string[]; type?: string; body?: string; tried?: string[] }>(STATE, {});
+  const done = new Set(prev.schema === BONUS_SCHEMA ? prev.done || [] : []);
+  let typeName = prev.schema === BONUS_SCHEMA ? prev.type || "" : "";
+  let bodyName = prev.schema === BONUS_SCHEMA ? prev.body || "" : "";
+  const tried: string[] = [];
+  const fresh: any[] = [];
+  const purged = new Set<string>();
+  let ok = 0;
+  const freshFrom = months.length ? months[months.length - 1]! : "";
+  for (const { businessId: b, account } of await resolveBusinesses()) {
+    for (const ym of months) {
+      const pair = `${b}/${ym}`;
+      if (done.has(pair) && ym < freshFrom) continue;
+      const types = typeName ? [typeName] : BONUS_TYPES;
+      const shapes = bodyName ? SERVICE_BODIES.filter((x) => x.name === bodyName) : SERVICE_BODIES;
+      let tables: Tbl[] | null = null, usedType = "", usedBody = "";
+      outer: for (const t of types) {
+        for (const shape of shapes) {
+          try { tables = await fetchReportAll(account.api, t, shape.body(b, ym)); usedType = t; usedBody = shape.name; }
+          catch (err) {
+            if (stopOnRateLimit(err, `баллы ${b} ${ym}`)) break outer;
+            tried.push(`${t}/${shape.name}: ${String((err as Error).message).slice(0, 120)}`);
+            tables = null; continue;
+          }
+          if (tables) break outer;
+        }
+      }
+      if (rateLimited) break;
+      if (!tables) continue;
+      if (!typeName && usedType) { typeName = usedType; bodyName = usedBody; console.log(`bonuses: Маркет принял отчёт «${usedType}», тело «${usedBody}»`); }
+      for (const t of tables) {
+        probe(`ym-bonuses${tables.length > 1 ? "-" + t.name.replace(/[^a-z0-9_]/gi, "_") : ""}`, t.headers, t.rows, { business: b, ym, file: t.name, type: usedType });
+        const ix = cols("ym-bonuses", t.headers, ["amount"]);
+        if (!ix) continue;
+        ok++; done.add(pair); purged.add(pair);
+        for (const r of t.rows) {
+          const amount = num("ym-bonuses", r[ix.amount!]);
+          if (!amount) continue;
+          fresh.push({ ym, business: b, d: ix.date! >= 0 ? cellDate(r[ix.date!]) || monthBounds(ym).dateTo : monthBounds(ym).dateTo,
+            type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", src: ix.source! >= 0 ? (r[ix.source!] || "").trim() : "",
+            service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "",
+            order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "",
+            amount, platform: "ym" });
+        }
+      }
+    }
+    if (rateLimited) break;
+  }
+  if (!ok && !fresh.length && done.size) { console.log(`bonuses: все ${done.size} пар кабинет/месяц уже собраны, новых строк нет`); return; }
+  if (!ok) {
+    console.warn(`::warning::bonuses: отчёт по баллам не разобран${tried.length ? ` - перебрано ${tried.length} вариантов: ${tried.slice(0, 5).join(" | ")}` : ""}. Имя метода нужно уточнить по документации Маркета, карта колонок - в report-columns.json, ключ ym-bonuses`);
+    writeJson(STATE, { at: new Date().toISOString(), schema: BONUS_SCHEMA, rows: 0, type: "", body: "", done: [], tried: tried.slice(0, 20), note: "ни один кандидат имени отчёта не принят" });
+    return;
+  }
+  const keep = readNdjson<any>(OUT).filter((r) => !purged.has(`${r.business}/${r.ym}`));
+  const merged = fresh.concat(keep).sort((a, b) => (a.ym === b.ym ? String(a.business).localeCompare(String(b.business)) : a.ym < b.ym ? -1 : 1));
+  writeNdjson(OUT, merged);
+  writeJson(STATE, { at: new Date().toISOString(), schema: BONUS_SCHEMA, rows: merged.length, type: typeName, body: bodyName, done: [...done].sort(),
+    note: "отчёт по баллам Маркета: строка = движение баллов (начисление за скидку, списание на услуги, возврат)" });
+  console.log(`bonuses: строк ${merged.length} (получено ${fresh.length}, пар кабинет/месяц ${done.size}, отчёт «${typeName}») -> ${OUT}`);
 }
 
 // ---- shows-sales: {businessId, dateFrom, dateTo, grouping:"OFFERS"} -> sku_views.ndjson ----
@@ -225,7 +529,14 @@ async function shows(days: number) {
     // отдельной колонки даты нет - собираем ISO из трёх, иначе воронка схлопывается в агрегат.
     const hasParts = ix.day! >= 0 && ix.month! >= 0 && ix.year! >= 0;
     const hasDate = ix.date! >= 0 || hasParts;
+    // Живой факт 2026-09-07: колонка DAY несёт НЕ номер дня, а полную дату DD-MM-YYYY (MONTH -
+    // MM-YYYY, YEAR - YYYY). Number("07-09-2026") = NaN, поэтому дата не собиралась, все строки
+    // помечались агрегатом и 30 дневных строк на SKU схлопывались на одну дату: 20 388 строк на
+    // 733 уникальных ключа, воронка «1 день из 30» и нули показов в daily_totals. Сначала пробуем
+    // прочитать DAY как дату целиком, и только потом - как номер дня.
     const partsDate = (r: string[]) => {
+      const whole = cellDate(r[ix.day!]);
+      if (whole) return whole;
       const y = Number(r[ix.year!]), m = Number(r[ix.month!]), dd = Number(r[ix.day!]);
       if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(dd) || y < 2000 || m < 1 || m > 12 || dd < 1 || dd > 31) return "";
       return `${y}-${pad(m)}-${pad(dd)}`;
@@ -264,18 +575,54 @@ async function main() {
     await realization(months);
   } else if (cmd === "netting") {
     const to = process.argv[4] || yesterday();
-    // Обычный прогон добирает последние 60 дней. Но снимок, собранный до дедупа по TRANSACTION_ID,
-    // содержит задвоенные проводки (соседние месячные окна пересекаются) и не несёт внешнего номера
-    // заказа - лечится только полным пересбором от FLOOR. Признак такого снимка: хотя бы одна строка
-    // без tx. Делаем это САМИ, чтобы историю не пришлось чинить руками.
+    // Обычный прогон добирает последние 60 дней; полный пересбор от FLOOR нужен один раз - когда
+    // снимок собран парсером старой версии.
+    //
+    // Живой факт 2026-09-07: признаком «старого снимка» стояло «есть строка без TRANSACTION_ID». Но
+    // Маркет отдаёт эту колонку ПУСТОЙ во всех 11 407 строках, поэтому признак срабатывал КАЖДЫЙ
+    // прогон: взаиморасчёты пересобирались от января заново, девять генераций по одной на две минуты
+    // съедали весь лимит, и бэкфилл реализации не двигался (0 из 7 магазинов за август). Признаком
+    // теперь служит версия парсера в netting_state.json, а не содержимое строк.
     const have = readNdjson<any>(yp("netting.ndjson"));
-    const stale = have.length > 0 && have.some((r) => !r.tx);
-    if (stale) console.warn(`::warning::netting: в снимке ${have.filter((r: any) => !r.tx).length}/${have.length} строк без TRANSACTION_ID (собраны до дедупа) - полный пересбор от ${FLOOR}`);
-    const from = process.argv[3] || (have.length && !stale ? addDays(to, -59) : FLOOR);
+    const st = readJson<{ schema?: number; months_done?: string[] }>(yp("netting_state.json"), {});
+    // Бэкфилл идёт от FLOOR, пока схема не та или прогресс ещё не покрыл историю. Прогресс
+    // помесячный, поэтому «полный» диапазон каждый прогон стоит дёшево: собранные пары пропускаются.
+    const needFull = have.length === 0 || st.schema !== NETTING_SCHEMA || !(st.months_done || []).length;
+    if (needFull && have.length) console.warn(`::warning::netting: снимок собран парсером версии ${st.schema ?? "?"}, текущая ${NETTING_SCHEMA} - бэкфилл от ${FLOOR} (возобновляемый, по парам кабинет/месяц)`);
+    const from = process.argv[3] || FLOOR;
     await netting(from, to);
   } else if (cmd === "shows") {
     await shows(Number(process.argv[3] || process.env.YM_SHOWS_DAYS || 7) || 7);
-  } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days]"); process.exit(2); }
+  } else if (cmd === "bonuses") {
+    const args = process.argv.slice(3).filter((a) => /^\d{4}-\d{2}$/.test(a));
+    let months = args;
+    if (!months.length) {
+      if (!readNdjson(yp("bonuses_monthly.ndjson")).length) {
+        months = []; let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
+        while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
+      } else {
+        const cur = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
+        const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+        months = [`${prev.getUTCFullYear()}-${pad(prev.getUTCMonth() + 1)}`, cur];
+      }
+    }
+    await bonuses(months);
+  } else if (cmd === "services") {
+    const args = process.argv.slice(3).filter((a) => /^\d{4}-\d{2}$/.test(a));
+    let months = args;
+    if (!months.length) {
+      // первый прогон - вся история от FLOOR; дальше текущий и предыдущий (акт ещё дополняется)
+      if (!readNdjson(yp("services_monthly.ndjson")).length) {
+        months = []; let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
+        while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
+      } else {
+        const cur = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
+        const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+        months = [`${prev.getUTCFullYear()}-${pad(prev.getUTCMonth() + 1)}`, cur];
+      }
+    }
+    await services(months);
+  } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days] | services [YYYY-MM...] | bonuses [YYYY-MM...]"); process.exit(2); }
   flushBad();
 }
 

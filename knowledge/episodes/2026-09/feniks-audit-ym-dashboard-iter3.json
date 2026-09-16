@@ -1,0 +1,216 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ym-dashboard-iter3-20260907",
+  "timestamp": "2026-09-07T21:10:00+03:00",
+  "deliverable_ref": "analytics-mvp/src/scripts/ym/ + .github/workflows/ym-snapshots.yml (ветка claude/yandex-market-katya-dashboard-eeifol, HEAD 540e396)",
+  "artifact_class": "dashboard",
+  "anchor": "5.83 veto Студия каруселей v4 - наш артефакт ниже на 0.23: у каруселей непроверенные числа уходили в превью и экспорт (обратимо до отправки), у нас защита накопительного слоя не работает в CI вовсе, а восстановленное правило переоткрытия само растворяется через один прогон и подставляет 4 830 709 ₽ уже собранной реализации под второй слой. Выше 5.05 sales-director: self-claimed оценки нет, самопроверка автора честная и с разделом «что не закрыто»",
+  "probes": [
+    {
+      "id": "A1-base-snapshot-path",
+      "result": "FAIL",
+      "evidence": "job defaults working-directory: analytics-mvp (ym-snapshots.yml:57-60), новый шаг слепка (:86-97) своего working-directory не задаёт, в отличие от соседних шагов, которым нужен корень (:64, :104, :191). Проба из cwd=analytics-mvp: test -f analytics-mvp/data-ym/netting.ndjson -> MISSING для всех 4 файлов; cp ... 2>/dev/null || true проглатывает ошибку, /tmp/ym-base остаётся пустым, base() возвращает пустую строку"
+    },
+    {
+      "id": "A2-gate-noop-in-ci",
+      "result": "FAIL",
+      "evidence": "npx tsx src/scripts/ym/validate-facts.ts /tmp/fx/net_drop.ndjson \"\" --month-key=d --sum=amount --by=business -> «строк 14896, прошлого снимка нет - сравнивать не с чем», exit=0 при выброшенных 50% строк 2026-01. Тот же файл с правильным base -> FACTS INVALID, exit=1. Гейт в CI не сработает ни на одном из 4 файлов"
+    },
+    {
+      "id": "A3-reopen-guard-decays",
+      "result": "FAIL",
+      "evidence": "симуляция двух прогонов по reports.ts:131-142 и :218 на живых data-ym/realization_monthly.ndjson и realization_state.json: прогон N блокирует 17 пар (from нет), запись прогона N ставит from=[] на 177/177 строк, прогон N+1 переоткрывает 14 пар за 2026-02/03/04/08 на 4 830 709 ₽ и 256 шт. Блок живёт ровно один прогон"
+    },
+    {
+      "id": "A4-env-validation",
+      "result": "PASS",
+      "evidence": "YM_FACTS_DROP_GATE=abc -> FACTS INVALID: не число в диапазоне (0, 0.5], exit=1; YM_FACTS_DROP_GATE=1 -> exit=1. Дыра итерации 2 закрыта"
+    },
+    {
+      "id": "A5-env-legal-bypass",
+      "result": "FAIL",
+      "evidence": "YM_FACTS_GROW_GATE=20 (внутри разрешённого диапазона) на фикстуре с месяцем x2: «аномалий нет», exit=0. Легальное значение выключает детектор задвоения на 2000%"
+    },
+    {
+      "id": "B1-baseline-outside-artifact",
+      "result": "FAIL",
+      "evidence": "источник базы для гейта (/tmp/ym-base) в CI пуст, см. A1/A2: сравнение с внешней правдой не происходит"
+    },
+    {
+      "id": "B2-three-periods",
+      "result": "PASS",
+      "evidence": "reconcile.json три типа периода, в дельте 42865b6^..HEAD не менялся; проверено в итерации 2"
+    },
+    {
+      "id": "B3-purge-key-vs-gate-key",
+      "result": "PASS",
+      "evidence": "чистка идёт по запрошенной паре (reports.ts:253, :304 purged), гейт netting/orders/sku_views получил --by=business; проба: задвоение пары 1023124/2026-03 (16.7% месяца) поймано как рост 100% на ключе пары, exit=1"
+    },
+    {
+      "id": "B4-three-surfaces",
+      "result": "FAIL",
+      "evidence": "public/market/marketing.html: пилюля «ДРР и CPO не считаются» + карточка «не считается» (исправлено) + абзац «Достоверен только суммарный ДРР канала 0%.» (не исправлено). Источник: src/scripts/build-site.ts:82 интерполирует ${ads.totals.drr}% в обход drrCell"
+    },
+    {
+      "id": "B5-hardcode",
+      "result": "PASS",
+      "evidence": "в дельте новых зашитых чисел нет; месяцы и Акты OZON по-прежнему за IS_OZON"
+    },
+    {
+      "id": "B6-freshness",
+      "result": "N/A",
+      "evidence": "не гонял в итерации 3 (бриф: экономить ходы); в дельте 42865b6^..HEAD генераторы снимков не менялись"
+    },
+    {
+      "id": "B7-unverified-number-outward",
+      "result": "FAIL",
+      "evidence": "метрика, которую источник объявляет невычислимой (ads_30d.json: note «ДРР и CPO не считаются», totals.drr=0 при spend=541771.93), напечатана на странице со словом «достоверен»: «Достоверен только суммарный ДРР канала 0%.»"
+    },
+    {
+      "id": "G1-growth-whole-month",
+      "result": "PASS",
+      "evidence": "реализация 2026-02 x2 -> FACTS INVALID «закрытый месяц вырос на 100%», exit=1"
+    },
+    {
+      "id": "G2-growth-blind-zone",
+      "result": "FAIL",
+      "evidence": "реализация 2026-02, задвоена доля одного магазина (~19% месяца) -> «строк 177 -> 177, месяцев 4 -> 4, аномалий нет», exit=0. У строк realization_monthly нет поля business (grep -c '\"business\"' = 0), поэтому --by=business там невозможен, а повторный разбор пары складывается по SKU и число строк не меняет: работает только проверка суммы, и она разбавлена долей магазина"
+    },
+    {
+      "id": "G3-false-positive-rollover",
+      "result": "FAIL",
+      "evidence": "sku_views.ndjson не накопительный, пока отчёт отдаёт агрегат: shows() заменяет агрегат окна (reports.ts:376), в живом файле 1 дата на кабинет (4504 строки, aggregate=true). Проба смены месяца: гейт даёт FACTS INVALID «74986385/2026-09: строк было 3916, стало 0», exit=1. Первый ночной прогон каждого месяца будет красным"
+    },
+    {
+      "id": "G4-false-positive-backfill",
+      "result": "FAIL",
+      "evidence": "realization_state.json: 2026-08 - 7 магазинов продавали, 1 дал строки, 6 ждут УПД. Пока 2026-08 самый свежий месяц файла, он исключён из потолка роста; как только появится строка 2026-09, легальный добор 6 магазинов даст рост много больше 25% и уронит прогон. Для реализации «закрытый месяц вырос» - нормальный сценарий, а не аномалия"
+    },
+    {
+      "id": "D-test-quality",
+      "result": "FAIL",
+      "evidence": "reports-lib.test.ts:203-215 объявляет собственные attributed/reopen вместо импорта из продового модуля (reports.ts логику не экспортирует, reports-lib.ts рядом существует). Три новых теста зелёные и при этом не видят взаимодействия с писателем reports.ts:218, то есть не покрывают тот самый путь, который задвоит данные"
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": false,
+    "defects": [
+      "public/market/marketing.html: «ДРР по линиям - ненадёжно ... Достоверен только суммарный ДРР канала 0%.» Неспециалист читает «реклама достоверно стоит 0% выручки» на странице, где выше написано, что ДРР не считается. Замена: «ДРР по линиям не показываем: рекламная и аналитическая таксономии расходятся. Суммарный ДРР тоже не считается - Маркет не отдаёт привязку расхода к заказам. Виден только расход.»"
+    ]
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 0,
+    "accuracy_3_no_conflict_with_rag": 0,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 1,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 0,
+    "insight_13_alternatives_analyzed": 1,
+    "insight_14_anti_median": 2,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 1,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 1,
+    "brand_20_tone_audience": 0,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 1,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 5.0,
+    "actionability": 6.0,
+    "insight": 6.0,
+    "brand_fit": 6.0,
+    "risk_awareness": 5.0
+  },
+  "weighted_total": 5.6,
+  "verdict": "veto",
+  "primary_gap": "Оба заявленных P0 закрыты только на бумаге. Шаг базового слепка выполняется из каталога analytics-mvp (job default), путь analytics-mvp/data-ym/* не резолвится, ошибка cp проглочена - /tmp/ym-base пуст, и все четыре вызова гейта в CI печатают «прошлого снимка нет» с exit=0. Правило переоткрытия живёт ровно один прогон: писатель reports.ts:218 ставит from=[] на 177/177 старых строк, и на следующем прогоне 14 пар за 2026-02/03/04/08 переоткрываются на 4 830 709 ₽",
+  "gaps": [
+    "P0 гейт мёртв во всех четырёх файлах: новый шаг слепка не задаёт working-directory при job default analytics-mvp, cp падает молча, base() пуст, exit=0 при потере 50%. Регрессия к итерации 2: там netting и realization имели рабочий baseline через git show HEAD:, теперь baseline нет ни у кого",
+    "P0 правило переоткрытия самоотменяется: writeNdjson (reports.ts:218) записывает from=[] всем старым строкам, признак «разбивка неизвестна» превращается в «магазин ничего не дал», прогон N+1 переоткрывает 14 пар и кладёт второй слой на 4 830 709 ₽ и 256 шт",
+    "P0 потолок роста не видит именно тот механизм, ради которого добавлен: у realization_monthly нет поля business, --by=business невозможен, повторный разбор пары не меняет число строк, а прирост суммы равен доле магазина в месяце - задвоение одного магазина (~19%) проходит под порогом 25% (проба G2, exit=0)",
+    "P1 запланированные ложные срабатывания, из-за которых гейт снимут: sku_views при смене месяца теряет прошлый месяц целиком (агрегат заменяется, проба G3 - exit=1) и реализация при легальном доборе УПД в закрытом месяце (6 из 7 магазинов 2026-08 ждут УПД)",
+    "P1 легальный обход: YM_FACTS_GROW_GATE=20 проходит валидацию и разрешает рост 2000%, то есть штатно выключает детектор задвоения (проба A5)",
+    "P1 ДРР исправлен не везде: build-site.ts:82 печатает ${ads.totals.drr}% мимо drrCell, страница marketing.html утверждает «Достоверен только суммарный ДРР канала 0%» при расходе 541 772 ₽ и собственной оговорке «не считаются»",
+    "P2 три новых теста повторяют дефект итерации 2: логика скопирована в тест (reports-lib.test.ts:203-215), а не импортирована из продового модуля, поэтому взаимодействие с писателем не покрыто и зелёные тесты не значат ничего для живого пути",
+    "P2 счётчик в предупреждении неверен: blocked считает длину shops_sold (17), а реально заблокированных пар в donePairs 14 - число в глазах человека завышено на 21%",
+    "P2 разбивки по кабинетам нет ни в одной таблице дашборда (признано автором, в оценку как закрытое не зачтено); покрытие таксономии 56.9% оборота и СС 88.6% остаются без владельца и даты"
+  ],
+  "rework_tz": "1) В шаге «Базовый слепок накопительных файлов» поставить working-directory: . (как в соседних шагах, которым нужен корень) либо путь data-ym/$f; убрать || true у cp и добавить проверку, что для каждого из четырёх файлов слепок снят, иначе прогон падает: гейт без базы обязан быть громким, а не тихим. 2) Признак пригодности месяца к переоткрытию не должен зависеть от наличия поля, которое писатель проставляет всем: ввести явный маркер версии строки (например from_known: true или schema: 2) и считать доказательством нулевого вклада только его, либо вычитать прошлый вклад пары перед повторным разбором (обнулять вклад пары в bySku), либо пересобирать месяц с нуля при переоткрытии. 3) Для реализации ввести ключ пары: писать business/campaign в строку realization_monthly и гонять гейт с --by=business, иначе потолок роста разбавлен долей магазина. 4) Инвариант против внешней правды: sold по месяцу из realization сверять с delivered из orders.ndjson и падать на расхождении в обе стороны - это ловит задвоение независимо от порога. 5) sku_views убрать из гейта до тех пор, пока отчёт отдаёт агрегат за окно, либо сравнивать по period_from, а не по date. 6) Для реализации отделить легальный добор от задвоения: рост допустим, если растёт число магазинов в from, и недопустим, если состав from не изменился. 7) Сузить YM_FACTS_GROW_GATE до (0, 1] и печатать применённый порог в каждой строке лога. 8) build-site.ts:82 пропустить через drrCell. 9) Тесты импортировать из продового модуля: вынести attributed/reopen в reports-lib.ts, добавить тест на два последовательных прогона (reopen -> write -> reopen) на фикстуре, снятой с живого realization_monthly.ndjson без from.",
+  "evidence_ledger": [
+    {
+      "gap": "Гейт мёртв в CI",
+      "evidence": "cwd=analytics-mvp (job defaults ym-snapshots.yml:57-60); test -f analytics-mvp/data-ym/{netting,orders,realization_monthly,sku_views}.ndjson -> MISSING x4; validate-facts с пустым base на фикстуре -50% -> exit=0",
+      "checkpoint": "accuracy_2",
+      "weight": -2
+    },
+    {
+      "gap": "Переоткрытие возвращается через прогон",
+      "evidence": "симуляция reports.ts:131-142 + :218 на живых файлах: from=[] у 177/177 после записи, прогон N+1 переоткрывает 14 пар, 4 830 709 руб, 256 шт",
+      "checkpoint": "accuracy_3",
+      "weight": -2
+    },
+    {
+      "gap": "Потолок роста слеп к per-shop задвоению",
+      "evidence": "фикстура rel_double_shop (19% месяца 2026-02 удвоено) -> «аномалий нет», exit=0; grep -c '\"business\"' realization_monthly.ndjson = 0",
+      "checkpoint": "risk_21",
+      "weight": -2
+    },
+    {
+      "gap": "Ложное срабатывание на смене месяца",
+      "evidence": "фикстура sku_views_oct (агрегат переставлен на 2026-10-01, как делает reports.ts:376) -> FACTS INVALID «3916 -> 0», exit=1",
+      "checkpoint": "risk_23",
+      "weight": -1
+    },
+    {
+      "gap": "Ложное срабатывание на легальном доборе УПД",
+      "evidence": "realization_state.json 2026-08: shops_sold 7, shops_with_rows 1, ждут УПД 6; после появления 2026-09 месяц перестаёт быть newest и его добор превысит 25%",
+      "checkpoint": "risk_24",
+      "weight": -1
+    },
+    {
+      "gap": "Легальное отключение детектора роста",
+      "evidence": "YM_FACTS_GROW_GATE=20 на месяце x2 -> exit=0; validate-facts.ts threshold(raw, name, 0.25, 20)",
+      "checkpoint": "risk_22",
+      "weight": -1
+    },
+    {
+      "gap": "ДРР 0% названо достоверным",
+      "evidence": "build-site.ts:82 ${ads.totals.drr}%; public/market/marketing.html: «Достоверен только суммарный ДРР канала 0%.»; ads_30d.json spend=541771.93, drr=0, note «не считаются»",
+      "checkpoint": "brand_20",
+      "weight": -2
+    },
+    {
+      "gap": "Тесты не импортируют продовую логику",
+      "evidence": "reports-lib.test.ts:203-215 локальные attributed/reopen; в reports.ts логика inline и не экспортируется; reports-lib.ts существует и импортируется тестом для других функций",
+      "checkpoint": "actionability_9",
+      "weight": -1
+    },
+    {
+      "gap": "Счётчик blocked завышен",
+      "evidence": "симуляция: blocked=17 (длина shops_sold) против 14 реально заблокированных пар в donePairs; reports.ts:142",
+      "checkpoint": "accuracy_1",
+      "weight": -1
+    },
+    {
+      "gap": "Env-валидация действительно закрыта (в плюс автору)",
+      "evidence": "YM_FACTS_DROP_GATE=abc и =1 -> exit=1 с явным сообщением",
+      "checkpoint": "risk_22",
+      "weight": 1
+    }
+  ],
+  "iteration": 3,
+  "confidence": 0.9
+}

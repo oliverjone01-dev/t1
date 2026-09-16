@@ -1,0 +1,96 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ym-dashboard-iter2-20260907",
+  "timestamp": "2026-09-07T17:40:00+03:00",
+  "deliverable_ref": "analytics-mvp/src/scripts/ym/ (ветка claude/yandex-market-katya-dashboard-eeifol, HEAD 42865b6)",
+  "artifact_class": "dashboard",
+  "anchor": "6.7 feniks-return-reestr - наш артефакт выше на 0.4: слой честности воспроизводим (три периода в reconcile.json, «покрытие неизвестно, а не нулевое» реализовано кодом, гейт реально падает на просадке 50%), но ниже 7.6 timur-iter1: живая проба показала путь тихой порчи данных в том же коммите, который заявляет, что порчи не будет",
+  "probes": [
+    {"id": "B1", "result": "FAIL", "evidence": "baseline гейта для orders.ndjson пишется тем же прогоном: шаг «Промежуточный коммит факт-слоя» (.github/workflows/ym-snapshots.yml:91-117) делает git add -A analytics-mvp/data-ym до шага гейта (:136-148), а prev() читает git show HEAD:. Проба: npx tsx src/scripts/ym/validate-facts.ts /tmp/ym_cur.ndjson /tmp/ym_cur.ndjson -> «потерь нет», exit=0 при выкинутых 200 из 400 строк месяца"},
+    {"id": "B2", "result": "PASS", "evidence": "reconcile.json periods: закрытый месяц 2026-08, часть месяца 2026-08-01..15, текущий 2026-09 - три типа периода присутствуют, у закрытого честный статус «сверка штук невозможна, это пробел выгрузки»"},
+    {"id": "B3", "result": "PARTIAL", "evidence": "dedupeNetting вызывается в reports.ts (merged = dedupeNetting(fresh.concat(keep))), ключ чистки purged совпал с ключом возобновляемости (pair = business/YYYY-MM, reports.ts блок netting) - проверено чтением; независимый пересчёт дедупа на живом файле не гонял"},
+    {"id": "B4", "result": "FAIL", "evidence": "две поверхности одной метрики спорят: public/market/marketing.html карточка «ДРР канала, %» = 0%, а пилюля на той же странице - «буст из реестра 541772 ₽ за 30 дн (кабинета кампаний у Маркета в API нет: ДРР и CPO не считаются)»"},
+    {"id": "B5", "result": "PASS", "evidence": "чисел-заготовок в изменённых шаблонах не найдено: месяцы OZON (фев-апр, май-июнь) и слой Актов выключены для Маркета через IS_OZON (site.ts renderMoney) и сторожатся smoke.ts:74-78"},
+    {"id": "B6", "result": "PASS", "evidence": "data-ym/ads_30d.json generated_at 2026-09-07T09:59 против netting.ndjson mtime 09:28 - производные новее фактов; страницы пересобраны после данных"},
+    {"id": "B7", "result": "FAIL", "evidence": "на страницу уходит число, которое источник объявляет невычислимым: ads_30d.json note «ДРР и CPO не считаются» против «ДРР канала, %: 0%» в marketing.html. Общая плашка ПРЕДВАРИТЕЛЬНО есть на всех 17 страницах (grep -c ПРЕДВАРИТЕЛЬНО), но у самой карточки оговорки нет"},
+    {"id": "G1-gate-fires", "result": "PASS", "evidence": "npx tsx validate-facts.ts /tmp/ym_cur.ndjson /tmp/ym_prev.ndjson --month-key=d --sum=amount -> FACTS INVALID: 2026-01 строк было 400, стало 200; exit=1"},
+    {"id": "G2-env-override-nan", "result": "FAIL", "evidence": "YM_FACTS_DROP_GATE=abc ... -> «строк 400 -> 200, потерь нет», exit=0. Number('abc')=NaN, сравнение c.n < NaN всегда false: гейт молча выключается и печатает ложное «потерь нет» (validate-facts.ts:14,45)"},
+    {"id": "G3-env-override-1", "result": "FAIL", "evidence": "YM_FACTS_DROP_GATE=1 ... -> exit=0 при потере 50% месяца; порог 100% отключает гейт целиком, значение не валидируется"},
+    {"id": "G4-double-count", "result": "FAIL", "evidence": "симуляция цикла reopened (reports.ts:117-125) на живом realization_state.json: переоткрывается 13 из 38 пар за 2026-02/03/04/08, у которых в realization_monthly.ndjson лежат 177 строк на 4 737 075 ₽; поле from отсутствует у 0 из 177 строк (grep -c '\"from\"' = 0)"},
+    {"id": "G5-ungated-file", "result": "FAIL", "evidence": "накопительный sku_views.ndjson (1.6 МБ, кормит воронку, daily_totals, history) не передан в validate-facts: в ym-snapshots.yml:146-148 только netting, orders, realization_monthly"}
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": false,
+    "defects": [
+      "marketing.html: карточка «ДРР канала, %» показывает «0%» при расходе 541 772 ₽. Неспециалист читает «продвижение ничего не стоит в доле выручки». Замена: не рисовать карточку вовсе либо «ДРР: не считается - Маркет не отдаёт привязку расхода к заказам»",
+      "коэффициент честности в полосе покрытия написан языком аудитора: «ноль тождественно: сборы взяты из этого же реестра». Для Кати нужно «эта сверка проверяет только начисления: сборы в обе стороны взяты из одного отчёта, поэтому сойтись обязаны»"
+    ]
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 0,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 1,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 1,
+    "insight_14_anti_median": 2,
+    "insight_15_cross_domain": 2,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 6.0,
+    "actionability": 7.0,
+    "insight": 8.0,
+    "brand_fit": 8.0,
+    "risk_awareness": 7.0
+  },
+  "weighted_total": 7.1,
+  "verdict": "return",
+  "primary_gap": "Переоткрытие пар реализации задвоит уже собранные месяцы: на живом состоянии переоткрывается 13 пар за 2026-02/03/04/08 с накопленными 177 строками и 4 737 075 ₽, потому что поля from нет ни у одной строки, а shops_with_rows пуст. Ни один гейт этого не поймает: validate-facts сторожит только просадку",
+  "gaps": [
+    "P0 задвоение: reports.ts:117-125 переоткрывает пары по признаку shops_with_rows, которого нет в данных (from отсутствует у 177/177 строк) - на следующем прогоне 4 737 075 ₽ прибавятся вторым слоем",
+    "P0 гейт односторонний: validate-facts ловит только потерю; рост (задвоение) проходит молча - нужен верхний порог и проверка инварианта sold_ym против заказов",
+    "P0 мёртвый гейт для orders.ndjson: промежуточный коммит делает baseline равным текущему файлу (workflow:91-117 до :136-148), проба даёт exit=0 при потере 50%",
+    "P1 env-override YM_FACTS_DROP_GATE не валидируется: значение abc и 1 выключают гейт и печатают ложное «потерь нет» (validate-facts.ts:14,45)",
+    "P1 sku_views.ndjson (воронка, показы) не покрыт гейтом накопительного слоя вовсе",
+    "P1 ДРР канала 0% на marketing.html при расходе 541 772 ₽ и при собственной оговорке «ДРР и CPO не считаются» - регрессия введена этим диффом",
+    "P2 гейт агрегирует два кабинета в один месяц: пара (кабинет, месяц) минимально 19.2% месяца, значит потеря половины кабинета за 2026-06 (9.6%) проходит под порогом 10%",
+    "P2 покрытие 2026-02/03/04 подаётся как факт: пилюля перечисляет месяцы, а состояние говорит shops_with_rows=[] - «неизвестно, а не нулевое» реализовано только для предыдущего месяца",
+    "P2 тест reports-lib.test.ts:178-196 переписывает продовый цикл вместо импорта и фиксирует фикстуру shops_with_rows=['A'], которой в живых данных нет - инвариант «вклад нулевой» не проверен",
+    "P3 closedMeta.updated 1970-01-01 в блобе 6 страниц и один добавленный em dash в coverage.ts:25 (CLAUDE.md §7)"
+  ],
+  "rework_tz": "1) Перед переоткрытием пары требовать доказательство нулевого вклада ИЗ ДАННЫХ: если в realization_monthly.ndjson за этот ym есть строки без поля from, пару НЕ открывать, а пометить coverage как unknown (как уже сделано в reconcile-lib) либо пересобирать месяц с нуля - обнулять bySku[ym] перед приёмом строк переоткрытых пар. 2) Добавить в validate-facts верхний порог роста месяца (например >25% при неизменном числе SKU) и печатать реально применённый порог. 3) Валидировать YM_FACTS_DROP_GATE: Number.isFinite и 0<x<0.5, иначе fail. 4) Считать гейт по паре (business, month) для netting и по (ym) для realization, чтобы порог не разбавлялся вторым кабинетом. 5) Перенести промежуточный коммит после гейта либо снимать baseline в /tmp ДО запуска продьюсеров. 6) Подключить sku_views.ndjson к validate-facts (--month-key=date). 7) Убрать карточку ДРР канала на Маркете или подписать её «не считается». 8) Тест на переоткрытие импортировать из продового модуля и прогнать на фикстуре, снятой с живого realization_state.json (shops_with_rows пуст)."
+  ,
+  "evidence_ledger": [
+    {"gap": "Переоткрытие задвоит накопленное", "evidence": "python3: reopen-цикл reports.ts на data-ym/realization_state.json -> reopened 13 из 38; месяцы 2026-02/03/04/08 держат 177 строк и 4 737 075 ₽ в realization_monthly.ndjson; rows with from = 0", "checkpoint": "accuracy_3", "weight": -2},
+    {"gap": "Гейт не ловит рост", "evidence": "validate-facts.ts:45-46 сравнивает только c.n < p.n*(1-DROP) и |c.s| < |p.s|*(1-DROP)", "checkpoint": "risk_21", "weight": -1},
+    {"gap": "Baseline пишется тем же прогоном", "evidence": ".github/workflows/ym-snapshots.yml:91-117 (git add -A data-ym; commit) выполняется до :136-148 (prev() = git show HEAD:); проба prev==cur дала exit=0 при -50%", "checkpoint": "accuracy_2", "weight": -2},
+    {"gap": "Env выключает гейт молча", "evidence": "YM_FACTS_DROP_GATE=abc npx tsx validate-facts.ts -> «потерь нет», exit=0; YM_FACTS_DROP_GATE=1 -> exit=0", "checkpoint": "risk_22", "weight": -1},
+    {"gap": "Показы без гейта", "evidence": "ym-snapshots.yml:146-148 перечисляет netting/orders/realization_monthly; data-ym/sku_views.ndjson (1 633 256 байт) отсутствует", "checkpoint": "risk_24", "weight": -1},
+    {"gap": "ДРР 0% против собственной оговорки", "evidence": "public/market/marketing.html: «ДРР канала, %» -> «0%»; там же пилюля «буст из реестра 541772 ₽ ... ДРР и CPO не считаются»; data-ym/ads_30d.json totals.drr=0 при spend=541771.93", "checkpoint": "accuracy_3", "weight": -1},
+    {"gap": "Порог разбавляется вторым кабинетом", "evidence": "python3 по netting.ndjson: минимальная доля пары (кабинет, месяц) 19.2% (1023124/2026-06), значит потеря половины пары = 9.6% < порога 10%", "checkpoint": "risk_21", "weight": -1},
+    {"gap": "Покрытие 02/03/04 выдаётся за факт", "evidence": "reconcile.json coverage.realization.months = [2026-02,2026-03,2026-04,2026-08]; realization_state.json shops_with_rows = [] у всех этих месяцев", "checkpoint": "accuracy_1", "weight": -1},
+    {"gap": "Тест инварианта тавтологичен", "evidence": "reports-lib.test.ts:178-196: локальная копия цикла + фикстура shops_with_rows:['A']; в живых данных этот массив пуст", "checkpoint": "actionability_9", "weight": -1},
+    {"gap": "Em dash и мёртвая метадата", "evidence": "grep -c em dash analytics-mvp/src/coverage.ts = 3, из них 1 добавлен диффом (coverage.ts:25); grep '\"updated\":\"1970-01-01\"' public/market/*.html = 6 файлов", "checkpoint": "brand_18", "weight": -1}
+  ],
+  "iteration": 2,
+  "confidence": 0.86
+}

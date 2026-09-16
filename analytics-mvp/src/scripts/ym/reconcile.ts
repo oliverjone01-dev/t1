@@ -22,6 +22,7 @@ function main() {
     ads: readJson<any>(yp("ads_30d.json"), null),
     badCells: readJson<any>(yp("_probe/bad_cells.json"), { total: 0 }).total || 0,
     skippedCampaigns: readJson<any>(yp("_probe/skipped_campaigns.json"), { skipped: [] }).skipped || [],
+    realizationState: readJson<any>(yp("realization_state.json"), null),
   }, today());
   writeJson(yp("reconcile.json"), out);
 

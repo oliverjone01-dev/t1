@@ -102,7 +102,8 @@ def main(argv: list[str]) -> int:
             "median": round(statistics.median(scores), 2) if scores else None,
             "min": min(scores) if scores else None,
             "max": max(scores) if scores else None,
-            "share_go": round(sum(1 for s in scores if s >= 7.5) / len(scores), 2) if scores else None,
+            "share_go": round(verdicts.get("go", 0) / sum(verdicts.values()), 2) if sum(verdicts.values()) else None,
+            "share_ge_75": round(sum(1 for s in scores if s >= 7.5) / len(scores), 2) if scores else None,
         },
         "council_modes": dict(modes),
     }
@@ -117,7 +118,7 @@ def main(argv: list[str]) -> int:
     print("\n## ФЕНИКС")
     print(f"- вердикты: {dict(verdicts) or '-'}")
     fs = summary["feniks_scores"]
-    print(f"- оценки: n={fs['n']} mean={fs['mean']} median={fs['median']} min={fs['min']} max={fs['max']} share_go={fs['share_go']}")
+    print(f"- оценки: n={fs['n']} mean={fs['mean']} median={fs['median']} min={fs['min']} max={fs['max']} share_go(по вердикту)={fs['share_go']} share_ge_75(по оценке)={fs['share_ge_75']}")
     print(f"\n## События: {dict(events)}")
     print(f"## Режимы Council: {dict(modes) or '-'}")
     return 0

@@ -26,7 +26,7 @@ subagent, он инлайнит карту ниже в промпт. В HATS-р�
 **Контракт выхода.** JSON по schemas/audit-report.json (scores ×5, weighted_total, verdict go/return/veto, gaps ≤10,
 rework_tz, confidence) + evidence ledger (каждый gap с командой/файлом/расчётом) + anchor из calibration-anchors.md
 + red-team probes для класса артефакта + Comprehension Gate для контента наружу.
-**Hard rules.** «Выглядит хорошо» запрещено · гейт/дашборд/агент без проб ≤7.9 · контент и код не пишет · планку не снижает.
+**Hard rules.** «Выглядит хорошо» запрещено · гейт/дашборд/агент без проб: risk ≤ 5.0, verdict ≤ return · контент и код не пишет · планку не снижает.
 **Stop.** Нет self-check автора → вернуть без скоринга · 2 раунда диспута → Иван.
 
 ## marco · Tier 1 · opus

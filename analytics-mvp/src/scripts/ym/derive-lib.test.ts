@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -221,11 +221,53 @@ describe("сборы из ledger'а кабинета (§15: источник д�
     expect(r.fee_total).toBe(3000);
     expect(r.payout).toBe(7000); // 10000 начислено − 3000 удержано, а не 9500 по комиссии заказа
   });
+  it("«Возврат списания» УМЕНЬШАЕТ сбор, а не увеличивает (баг знака)", () => {
+    // Живой факт 2026-09: 21 строка «Возврат списания» на +227 561 ₽ проходила через Math.abs и
+    // учитывалась как удержание. Кумулятивное расхождение показывало −408 149 ₽, и я объяснил его
+    // «заказами вне ledger'а» - объяснение невозможное: несопоставленные заказы в разность не входят
+    // по построению. После починки знака остаток стал −4 820 ₽, то есть ровно дельта начислений.
+    const net = [
+      { order: "1", sku: "A", type: "Списание", service: "Размещение товарных предложений", amount: -3000 },
+      { order: "1", sku: "A", type: "Возврат списания", service: "Возврат за размещение товаров на витрине", amount: 1200 },
+      { order: "1", sku: "A", type: "Возврат списания", service: "Скидка за лояльность", amount: 800 },
+    ];
+    const r = applyNettingFees([mk()], net).rows[0]!;
+    expect(r.fees["Комиссия за продажу"]).toBe(3000 - 1200); // возврат за размещение гасит списание
+    expect(r.fees["Продвижение (буст/лояльность)"]).toBe(-800); // возврат без парного списания - кредит
+    expect(r.fee_total).toBe(1000);
+    expect(r.payout).toBe(9000); // 10000 начислено − 1000 чистых сборов
+  });
   it("заказ, которого ещё нет в ledger'е, сохраняет комиссии заказа и помечается", () => {
     const r = applyNettingFees([mk({ order: "2" })], [{ order: "1", sku: "A", type: "Удержание", service: "Размещение", amount: -50 }]).rows[0]!;
     expect(r.fee_source).toBe("order");
     expect(r.fee_total).toBe(500);
     expect(r.payout).toBe(9500);
+  });
+  it("разрез «откуда сборы» считается деньгами и по месяцам, а не числом заказов", () => {
+    // ФЕНИКС P0: 1081 старый заказ на копейки и 475 свежих на миллионы по счётчику заказов читаются
+    // одинаково. Мера завышения маржи - разрыв СТАВОК на непокрытой части оборота, а не доля заказов.
+    const rows = [
+      mk({ order: "1", created: "2026-08-02", accruals: 10000 }),                      // будет netting
+      mk({ order: "2", created: "2026-05-02", accruals: 90000, fee_total: 4500 }),     // останется order
+    ];
+    const net = [{ order: "1", sku: "A", type: "Удержание", service: "Размещение товарных предложений", amount: -5000 }];
+    const r = applyNettingFees(rows, net);
+    expect(r.orders_from_netting).toBe(1);
+    expect(r.orders_from_commissions).toBe(1);       // по заказам ровно пополам
+    expect(r.accruals_from_netting).toBe(10000);
+    expect(r.accruals_from_commissions).toBe(90000); // по деньгам - 90% без ledger'а
+    expect(r.rate_netting).toBe(50);                 // 5000 / 10000
+    expect(r.rate_order).toBe(5);                    // 4500 / 90000 - вот она, заниженная ставка
+    expect(r.by_month["2026-08"]!.rate_netting).toBe(50);
+    expect(r.by_month["2026-05"]!.accruals_netting).toBe(0);
+    expect(r.by_month["2026-05"]!.rate_order).toBe(5);
+  });
+  it("заказ из двух позиций не считается двумя заказами в разрезе источника", () => {
+    const rows = [mk({ pos: 0, sku: "A", accruals: 5000 }), mk({ pos: 1, sku: "B", accruals: 5000 })];
+    const r = applyNettingFees(rows, []);
+    expect(r.orders_from_commissions).toBe(1);
+    expect(r.by_month["2026-08"]!.orders_order).toBe(1);
+    expect(r.by_month["2026-08"]!.accruals_order).toBe(10000);
   });
   it("удержания без SKU делятся по начислениям внутри заказа", () => {
     const rows = [mk({ pos: 0, sku: "A", accruals: 7500 }), mk({ pos: 1, sku: "B", accruals: 2500 })];
@@ -241,5 +283,30 @@ describe("сборы из ledger'а кабинета (§15: источник д�
     expect(nettingFeeGroup("Приём платежа")).toBe("Эквайринг");
     expect(nettingFeeGroup("Отмена заказа по вине продавца")).toBe("Штрафы");
     expect(nettingFeeGroup("Новая услуга Маркета")).toBe("Прочее");
+  });
+});
+
+describe("софинансирование скидок: сверено с выгрузкой кабинета за июль 2026", () => {
+  // Живая сверка одного магазина зеркал (кампания 149154933) с четырьмя выгрузками кабинета.
+  // Классификация проводки лежит в TRANSACTION_SOURCE, а не в имени услуги: у строк
+  // «Скидка за участие в совместных акциях» в имени услуги стоит НАЗВАНИЕ ТОВАРА.
+  it("источник решает раньше имени услуги", () => {
+    expect(nettingFeeGroup("GENGLASS Зеркало напольное EVELIX", "Скидка за участие в совместных акциях")).toBe("Софинансирование скидок");
+    expect(nettingFeeGroup("Размещение товарных предложений", "Оплата услуг Маркета")).toBe("Комиссия за продажу");
+    expect(nettingFeeGroup("Доставка (средняя миля)", "")).toBe("Логистика (прямая+возвратная)"); // старые снимки без источника
+  });
+  it("сторно услуги внутри «Оплаты услуг» зачитывается, начисление за товар - нет", () => {
+    // Прежнее правило «Начисление - не сбор» отбрасывало два сторно на 11 536 ₽, и сборы за июль
+    // выходили 329 413 ₽ вместо 317 877 ₽ у кабинета.
+    expect(isNettingFee("Начисление", "Оплата услуг Маркета")).toBe(true);
+    expect(isNettingFee("Удержание", "Оплата услуг Маркета")).toBe(true);
+    expect(isNettingFee("Начисление", "Баллы за скидку Маркета")).toBe(false);
+    expect(isNettingFee("Начисление", "Платёж покупателя")).toBe(false);
+    expect(isNettingFee("Списание", "Скидка за участие в совместных акциях")).toBe(true);
+  });
+  it("без источника поведение прежнее - снимки, собранные до появления колонки, не ломаются", () => {
+    expect(isNettingFee("Удержание", "")).toBe(true);
+    expect(isNettingFee("Начисление", "")).toBe(false);
+    expect(isNettingFee("Возврат", undefined)).toBe(false);
   });
 });

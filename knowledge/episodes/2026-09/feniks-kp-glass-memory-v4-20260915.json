@@ -1,0 +1,145 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "568ffe51-e98d-4cc4-9fad-e151fc54ba3f",
+  "timestamp": "2026-09-15T15:50:27+00:00",
+  "deliverable_ref": "kp-glass-memory/index.html",
+  "iteration": 3,
+  "artifact_class": "content",
+  "audience": "физлицо (B2C), режим дилера отдельно",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 2,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 1,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 1,
+    "insight_14_anti_median": 2,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 1,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 0,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 8.0,
+    "insight": 6.0,
+    "brand_fit": 9.0,
+    "risk_awareness": 7.0
+  },
+  "weighted_total": 7.6,
+  "verdict": "go",
+  "anchor": "ближайшие якоря: 3.7 veto (рассылка GLASS-MEMORY, ЦА-mismatch B2C→дилеры) - маркер закрыт режимами физлицо/дилер с наценкой и условиями; 5.83 veto (Студия каруселей: пустые фото-слоты в продукте, тихий экспорт непроверенных чисел) - маркеры закрыты: портфолио без фото скрывается, цены-ориентир уходят только с плашкой; ниже 8.9 go (annotate после доработки), потому что цены остаются гипотезой без прайса, а фото на бою отсутствуют. Итог 7.60: claims воспроизведены тестами, остаточные gaps не блокируют.",
+  "comprehension_gate": {
+    "applies": true,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "C1",
+      "result": "PASS",
+      "evidence": "блоки читаются как: состав заказа, условия, почему стекло, портрет внутри стекла, прочность, установка, портфолио, материалы, производство, шаги, производитель, стоимость, ОТК, CTA; заголовки без жаргона"
+    },
+    {
+      "id": "C2",
+      "result": "PASS",
+      "evidence": "grep терминов на экспорте A: триплекс 6 (расшифрован: 'двух закалённых стёкол и прозрачной полимерной плёнки EVA'), EVA 2 (расшифрован), нитрид/PVD/ROMI/EBITDA/CR2/RAL/AISI 0"
+    },
+    {
+      "id": "C3",
+      "result": "PASS",
+      "evidence": "count U+2014 = 0, U+2013 = 0 в index.html и в экспорте A"
+    },
+    {
+      "id": "C4",
+      "result": "PASS",
+      "evidence": "скан 29 паттернов CLAUDE.md §7 по тексту экспорта A: попаданий нет"
+    },
+    {
+      "id": "C5",
+      "result": "PASS",
+      "evidence": "режим 'физлицо': обращений 'Вы/Ваш' 6, дилерских терминов (наценка/дилер) 0; режим 'дилер' даёт наценку 80-150%, условия оплаты, CTA на образец (Playwright: 'Дилер: блок выгоды' PASS). Закрывает маркер якоря 3.7"
+    },
+    {
+      "id": "C6",
+      "result": "PASS",
+      "evidence": "при отсутствии фото подпись слота скрывается, при отсутствии всех фото портфолио скрыто целиком (Playwright: 'без фото портфолио скрыто целиком' PASS); закрывает маркер якоря 5.83"
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "цены-ориентир уходят наружу только с плашкой 'предварительный ориентир' и словом 'ориентировочно' у итога и в CTA (Playwright: 'A: цена ориентир' PASS; текст экспорта содержит плашку)"
+    },
+    {
+      "id": "D1",
+      "result": "PASS",
+      "evidence": "grep '[0-9].[0-9]+ ?/ ?10' по index.html: 0; self-claim про Step 12.5 из панели редактора удалён"
+    },
+    {
+      "id": "D11",
+      "result": "PASS",
+      "evidence": "node --check на встроенном JS: OK; Playwright 45/45 (A/B/C, дилер, оверрайд модуля, только-металл, экспорт)"
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "accuracy_3",
+      "evidence": "Playwright 'A: процесс стеклянный без лазера', 'Металл: донат без стекла' PASS - стекло лазером не режется ни в одном маршруте",
+      "checkpoint": "accuracy_3"
+    },
+    {
+      "gap": "accuracy_3",
+      "evidence": "гарантия собирается из модулей - 'Металл: гарантия 5 лет, без 20+' и 'B: гарантия разведена' PASS",
+      "checkpoint": "accuracy_3"
+    },
+    {
+      "gap": "accuracy_1",
+      "evidence": "цены 16 500 / 79 000 / 44 000 / 74 000 - ориентир, не канон; плашка в render(), README 'Про цены'",
+      "checkpoint": "accuracy_1"
+    },
+    {
+      "gap": "brand_18",
+      "evidence": "grep U+2014 = 0",
+      "checkpoint": "brand_18"
+    },
+    {
+      "gap": "risk_25",
+      "evidence": "v3 сохранён как v3.html; правки редактора живут в localStorage браузера; производство после 3D-макета",
+      "checkpoint": "risk_25"
+    }
+  ],
+  "gaps": [
+    "Цены - [ГИПОТЕЗА]: розничного прайса для физлица в каноне нет, суммы = цена завода ×2 как заглушка; уходят наружу с плашкой",
+    "Фотографии в репозитории отсутствуют: на бою портфолио скрыто, слот 'Портрет живёт внутри стекла' - градиент",
+    "Insight 15: cross-domain отсылки нет; insight 13: клиенту не показаны альтернативные составы (в v3 были два варианта)",
+    "Имя менеджера 'Елена Соколова' - плейсхолдер на публичной странице (второй контакт по умолчанию убран)",
+    "Protocol 10: формат HTML вместо DOCX по явному решению Ивана; DOCX-экспорт не реализован"
+  ],
+  "primary_gap": "цены-ориентир без прайса производителя",
+  "rework_tz": "Следующая итерация: 1) получить розничный прайс и заменить заглушки, режим 'смета'; 2) закоммитить фото 1-7.jpg; 3) вернуть клиенту модуль 'два варианта состава' как под-блок; 4) при необходимости DOCX-экспорт через output-router.",
+  "confidence": 0.85,
+  "p9_triggers_fired": [
+    "внешняя презентация (партнёрский дек): наценка 80-150%, средний чек 35-45K - только в режиме дилер, с указанием источника"
+  ],
+  "sources_of_truth": [
+    "GENGROUP_PRL_v5_Brands (GLASS-MEMORY стр. 29-34)",
+    "бренд-бук GLASS-MEMORY 46 стр. (уплоад 24dda9ca/e0e42059)",
+    "партнёрская презентация 14 стр. (90afc1e1)",
+    "kp-glass-memory/README.md"
+  ]
+}

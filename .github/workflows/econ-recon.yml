@@ -4,7 +4,8 @@ name: ECON recon (связи сделка<->СП<->поля денег -> econ-r
 # сделке окна фиксирует запущенные СП, поля денег со значениями и ссылки, наличие товаров.
 # Пишет economics/data/econ-recon.json + печёт экран public/econ-control.html и печатает
 # сводку в лог. Коммитит в ветку данных и дёргает deploy-pages (как РОП: авто-обновление).
-# Расписание каждые 3 часа + ручной запуск.
+# Расписание каждые 3 часа + ручной запуск. По ручному запуску дополнительно выгружает
+# полную карту полей (field-map.json) для работы с РОПом.
 
 on:
   workflow_dispatch:
@@ -45,6 +46,31 @@ jobs:
         with:
           node-version: "22"
       - run: npm ci
+      - name: База дизайнеров (только по ручному запуску) -> designers.json
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/designers.ts
+          echo "designers: $(du -h economics/data/designers.json | cut -f1)"
+      - name: Commit designers.json (сразу, до тяжёлого recon)
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/economics/data/designers.json
+          if git diff --staged --quiet; then echo "designers без изменений"; exit 0; fi
+          git commit -m "data(b24): база дизайнеров designers.json $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git push origin "HEAD:$DATA_BRANCH"; then exit 0; fi
+            git fetch origin "$DATA_BRANCH"; git rebase "origin/$DATA_BRANCH" || git rebase --abort; sleep $((2**i))
+          done
+          echo "designers push не удался"
       - name: Recon -> econ-recon.json + сводка
         run: |
           set -euo pipefail
@@ -52,6 +78,15 @@ jobs:
           if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
           npx tsx src/scripts/b24/econ-recon.ts
           echo "Размер JSON: $(du -h economics/data/econ-recon.json | cut -f1)"
+      - name: Full field map (только по ручному запуску) -> field-map.json
+        if: github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        env:
+          FIELDMAP_SINCE: "2026-01-01"
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/field-map.ts
+          echo "field-map: $(du -h economics/data/field-map.json | cut -f1)"
       - name: Печь экран econ-control.html
         run: |
           set -euo pipefail
@@ -64,7 +99,7 @@ jobs:
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A analytics-mvp/economics/data/econ-recon.json analytics-mvp/economics/data/econ-control-history.json analytics-mvp/public/econ-control.html
+          git add -A analytics-mvp/economics/data/econ-recon.json analytics-mvp/economics/data/econ-control-history.json analytics-mvp/public/econ-control.html analytics-mvp/economics/data/field-map.json
           if git diff --staged --quiet; then echo "без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "data(econ): снимок разведки + экран $(date -u +%F)"
           for i in 1 2 3 4 5; do

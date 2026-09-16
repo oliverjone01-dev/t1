@@ -154,6 +154,7 @@ const AUDIT_SCHEMA = {
     anchor: { type: 'string', description: 'Ближайший калибровочный якорь и почему выше/ниже' },
     probes: { type: 'array', items: { type: 'object', required: ['id', 'result', 'evidence'], properties: { id: { type: 'string' }, result: { type: 'string', enum: ['PASS', 'FAIL', 'PARTIAL', 'N/A'] }, evidence: { type: 'string' } } }, description: 'Red-team пробы класса артефакта; пустой массив допустим только для класса strategy/content' },
     comprehension_gate: { type: 'object', properties: { applies: { type: 'boolean' }, passed: { type: 'boolean' }, defects: { type: 'array', items: { type: 'string' } } } },
+    checkpoints: { type: 'object', description: '25 чекпоинтов 0/1/2 (accuracy_1_… risk_25_…); при понижении risk_awareness чекпоинты risk_* режутся до суммы <= 5' },
     confidence: { type: 'number', minimum: 0, maximum: 1 },
   },
 }
@@ -202,6 +203,9 @@ if (brief.mode === 'debate') {
 if (roster.length > 4) { log(`Ростер обрезан до 4 (coordination tax): убраны ${roster.slice(4).join(', ')}`); roster = roster.slice(0, 4) }
 if (roster.length === 0) throw new Error('council: пустой ростер после фильтра ALLOWED')
 if (brief.clarifying_question) log(`Вопрос СПАРТАКА Ивану (не блокирует прогон): ${brief.clarifying_question}`)
+const CLASSES = ['strategy', 'content', 'gate', 'dashboard', 'agent', 'mixed']
+let artifactClass = String(brief.artifact_class || '').toLowerCase().trim()
+if (!CLASSES.includes(artifactClass)) { log(`artifact_class «${brief.artifact_class}» отсутствует или вне enum: считаем mixed (пробы обязательны)`); artifactClass = 'mixed' }
 log(`Режим ${brief.mode}, ${brief.cc}, ростер: ${roster.join(', ')}${brief.p9_required ? ', P9 обязателен' : ''}`)
 
 // ---------------------------------------------------------------- Phase B
@@ -303,7 +307,7 @@ for (let iter = 1; iter <= MAX_ITER; iter += 1) {
       `Ты ФЕНИКС. Step 12.5, итерация ${iter} из ${MAX_ITER}. Не подчиняешься СПАРТАКУ. Skill phoenix-eval: Comprehension Gate (если контент наружу), 25 чекпоинтов, калибровочные якоря (references/calibration-anchors.md), red-team пробы для класса артефакта (references/red-team-probes.md).`,
       'A2A (Protocol 13):',
       JSON.stringify({ from: 'spartak', to: 'feniks', intent: 'review_request', thread_id: `council-${args.ts}`, context: { cc: brief.cc, p9_required: brief.p9_required, iteration: iter }, expected_output: 'audit-report' }),
-      `Задача: ${brief.clarified_task}. Класс артефакта: ${brief.artifact_class}. Для класса gate/dashboard/agent/mixed пробы обязательны, иначе оценка не выше 7.9 и verdict не выше return.`,
+      `Задача: ${brief.clarified_task}. Класс артефакта: ${artifactClass}. Для класса gate/dashboard/agent/mixed пробы обязательны (id вида A1/B3/D11 + evidence), иначе risk_awareness <= 5.0 и verdict не выше return.`,
       `Self-check автора (25 чекпоинтов): ${(synthesis.self_check || []).join('; ') || 'ОТСУТСТВУЕТ - это само по себе gap'}`,
       'Артефакт под аудит:',
       synthesis.deliverable_markdown,
@@ -320,23 +324,43 @@ for (let iter = 1; iter <= MAX_ITER; iter += 1) {
   if (Math.abs(wt - audit.weighted_total) > 0.05 || enforced !== audit.verdict) {
     log(`Коррекция ФЕНИКСА: заявлено ${audit.weighted_total}/${audit.verdict}, пересчёт по весам ${wt}/${enforced}`)
   }
+  // Пробы считаются только с валидным id класса (A/B/C/D + номер) и непустым evidence: выдуманная строка probes потолок не снимает
+  // Пробы считаются только с id класса артефакта (gate -> A, dashboard -> B, agent -> D, content -> C, mixed -> A/B/D,
+  // strategy -> любой), result != N/A и evidence >= 10 символов: проба чужого класса или пустышка правило не снимает.
+  const CLASS_LETTERS = { gate: 'A', dashboard: 'B', agent: 'D', content: 'C', mixed: 'ABD', strategy: 'ABCD' }
+  const letters = CLASS_LETTERS[artifactClass] || 'ABD'
   const probes = Array.isArray(audit.probes) ? audit.probes : []
-  const realProbes = probes.filter(p => p && p.result && p.result !== 'N/A')
-  const needsProbes = ['gate', 'dashboard', 'agent', 'mixed'].includes(brief.artifact_class)
+  const realProbes = probes.filter(p => p && typeof p.id === 'string' && /^[A-Za-z][0-9]+/.test(p.id) && letters.includes(p.id[0].toUpperCase()) && p.result && String(p.result).toUpperCase() !== 'N/A' && typeof p.evidence === 'string' && p.evidence.trim().length >= 10)
+  const needsProbes = artifactClass !== 'strategy' && artifactClass !== 'content'
   let scores = { ...audit.scores }
-  let wtAdj = wt
+  let checkpoints = (audit.checkpoints && typeof audit.checkpoints === 'object') ? { ...audit.checkpoints } : null
+  let overrideReason = ''
   if (needsProbes && realProbes.length === 0) {
-    // Правило red-team-probes / Hard Rule 8: класс гейт/дашборд/агент без проб -> risk_awareness <= 5.0, оценка <= 7.9, verdict не выше return
-    scores.risk_awareness = Math.min(Number(scores.risk_awareness) || 0, 5.0)
-    wtAdj = Math.min(Math.round(weighted(scores) * 100) / 100, 7.9)
-    log(`Класс ${brief.artifact_class} без red-team проб: risk_awareness <= 5.0, потолок 7.9, verdict не выше return (заявлено ${wt})`)
+    // Правило red-team-probes / Hard Rule 8: класс гейт/дашборд/агент без проб -> risk_awareness <= 5.0 и verdict не выше return.
+    // Понижение проводится через чекпоинты risk_* (каждый <= 1 => сумма <= 5), score = сумма; так объект проходит validate.py
+    // и по арифметике весов, и по сумме чекпоинтов. Без чекпоинтов - просто min(score, 5.0).
+    if (checkpoints) {
+      let sum = 0
+      for (const k of Object.keys(checkpoints)) {
+        if (k.startsWith('risk_')) { checkpoints[k] = Math.min(Number(checkpoints[k]) || 0, 1); sum += checkpoints[k] }
+      }
+      scores.risk_awareness = Math.min(Number(scores.risk_awareness) || 0, sum || 0, 5.0)
+    } else {
+      scores.risk_awareness = Math.min(Number(scores.risk_awareness) || 0, 5.0)
+    }
+    overrideReason = `класс ${artifactClass} без выполненных red-team проб`
+    log(`Класс ${artifactClass} без red-team проб: risk_awareness <= 5.0, verdict не выше return (заявлено ${wt})`)
   }
+  const wtAdj = Math.round(weighted(scores) * 100) / 100
   const enforcedAdj = wtAdj >= 7.5 ? 'go' : wtAdj >= 6.0 ? 'return' : 'veto'
-  const probeFail = realProbes.some(p => p.result === 'FAIL' && /^(A|B7)/.test(p.id))
+  const failA = realProbes.filter(p => String(p.result).toUpperCase() === 'FAIL' && /^(A|B7)/i.test(p.id))
   let finalVerdict = enforcedAdj
   if (needsProbes && realProbes.length === 0 && finalVerdict === 'go') finalVerdict = 'return'
-  if (probeFail && finalVerdict === 'go') { finalVerdict = 'return'; log('Проба класса A или B7 = FAIL: go понижен до return (правило red-team-probes)') }
-  audits.push({ ...audit, iteration: iter, scores, weighted_total: wtAdj, verdict: finalVerdict, probes_run: realProbes.length })
+  if (failA.length && finalVerdict === 'go') { finalVerdict = 'return'; overrideReason = `FAIL пробы ${failA.map(p => p.id).join(', ')}`; log('Проба класса A или B7 = FAIL: go понижен до return (правило red-team-probes)') }
+  const record = { ...audit, iteration: iter, scores, weighted_total: wtAdj, verdict: finalVerdict, probes_run: realProbes.length }
+  if (checkpoints) record.checkpoints = checkpoints
+  if (finalVerdict !== enforcedAdj || overrideReason) record.verdict_override_reason = overrideReason || `понижение с ${enforcedAdj}`
+  audits.push(record)
   verdict = finalVerdict
   log(`Step 12.5 итерация ${iter}: ${wtAdj}/10 → ${finalVerdict}${audit.anchor ? ` (якорь: ${audit.anchor.slice(0, 80)})` : ''}`)
   costCheck(`Gate-${iter}`)

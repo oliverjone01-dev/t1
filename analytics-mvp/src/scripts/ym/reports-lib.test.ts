@@ -94,3 +94,117 @@ describe("дедуп проводок взаиморасчётов", () => {
     expect(dedupeNetting(rows).length).toBe(2);
   });
 });
+
+describe("лимит Маркета - это ожидание, а не отказ", () => {
+  // Живой факт 2026-09-07: шаг реализации отработал 1 мин 49 с и вышел на первом же 420, собрав один
+  // отчёт. Прогон использовал 10 минут из 120 доступных, и бэкфилл августа стоял на 0 из 7 магазинов.
+  // Лимит Маркета - 1 генерация на 2 минуты: его надо переждать, а не сдаваться.
+  it("после ожидания попытка повторяется и возвращает результат", async () => {
+    let calls = 0;
+    const fn = async () => {
+      calls++;
+      if (calls < 3) throw new Error('HTTP 420: {"errors":[{"code":"METHOD_FAILURE","message":"Hit rate limit of 1 points per 2 minutes"}]}');
+      return "отчёт";
+    };
+    // ожидание подменяем нулевым, чтобы тест не спал две минуты
+    const prev = process.env.YM_REPORT_WAIT_MS;
+    process.env.YM_REPORT_WAIT_MS = "0";
+    const mod = await import("./reports-wait.js");
+    const out = await mod.retryOnRateLimit(fn, "тест", { waitMs: 0, timeLeft: () => 10 * 60_000 });
+    expect(out).toBe("отчёт");
+    expect(calls).toBe(3);
+    if (prev === undefined) delete process.env.YM_REPORT_WAIT_MS; else process.env.YM_REPORT_WAIT_MS = prev;
+  });
+  it("не ждёт, если до дедлайна прогона уже не хватает времени", async () => {
+    const mod = await import("./reports-wait.js");
+    const fn = async () => { throw new Error("HTTP 420: rate limit"); };
+    const out = await mod.retryOnRateLimit(fn, "тест", { waitMs: 125_000, timeLeft: () => 30_000 });
+    expect(out).toBe(mod.RATE_LIMITED);
+  });
+  it("обычная ошибка пробрасывается, а не ждёт", async () => {
+    const mod = await import("./reports-wait.js");
+    const fn = async () => { throw new Error("HTTP 403: API_DISABLED"); };
+    await expect(mod.retryOnRateLimit(fn, "тест", { waitMs: 0, timeLeft: () => 10 * 60_000 })).rejects.toThrow("API_DISABLED");
+  });
+});
+
+describe("ключ чистки накопительного файла = ключ возобновляемости", () => {
+  // Живой факт 2026-09-07: чистка реестра шла по месяцу, а возобновляемость - по паре
+  // (кабинет, месяц). Перезабор 1023124/2026-04 снёс 74986385 за 2026-03..2026-06:
+  // 11 407 строк -> 6 509, 27 932 124 ₽ -> 18 577 394 ₽. Прогон при этом завершился зелёным.
+  const purge = (fresh: any[], old: any[]) => {
+    const covered = new Set(fresh.map((r) => `${r.business}/${r.d.slice(0, 7)}`));
+    return old.filter((r) => !covered.has(`${r.business}/${r.d.slice(0, 7)}`));
+  };
+  it("перезабор одного кабинета не трогает другой за тот же месяц", () => {
+    const old = [
+      { business: "1023124", d: "2026-04-10", amount: 1 },
+      { business: "74986385", d: "2026-04-11", amount: 2 },
+      { business: "74986385", d: "2026-05-01", amount: 3 },
+    ];
+    const fresh = [{ business: "1023124", d: "2026-04-15", amount: 9 }];
+    const keep = purge(fresh, old);
+    expect(keep.map((r) => `${r.business}/${r.d.slice(0, 7)}`)).toEqual(["74986385/2026-04", "74986385/2026-05"]);
+    expect(keep.some((r) => r.business === "1023124")).toBe(false); // свой месяц заменяется свежим
+  });
+  it("чистится ЗАПРОШЕННАЯ пара, а не месяц, пришедший в ответе", () => {
+    // Отчёт Маркета отдаёт проводки за пределами окна: запрос июля приносит и майские строки.
+    // Живой факт 2026-09-07 (прогон 17): список чистки строился из ответа, поэтому запрос июля
+    // помечал май «перезабранным», приносил оттуда 568 строк из 2380 - и сносил остальные 1812.
+    const old = [
+      { business: "B", d: "2026-05-10", amount: 1 }, { business: "B", d: "2026-05-11", amount: 1 },
+      { business: "B", d: "2026-07-01", amount: 1 },
+    ];
+    const requested = new Set(["B/2026-07"]);          // запрошен ТОЛЬКО июль
+    const fresh = [{ business: "B", d: "2026-07-02" }, { business: "B", d: "2026-05-30" }]; // а пришёл и май
+    const keepByRequest = old.filter((r) => !requested.has(`${r.business}/${r.d.slice(0, 7)}`));
+    expect(keepByRequest.filter((r) => r.d.startsWith("2026-05"))).toHaveLength(2); // май цел
+    const coveredFromRows = new Set(fresh.map((r) => `${r.business}/${r.d.slice(0, 7)}`));
+    expect(old.filter((r) => !coveredFromRows.has(`${r.business}/${r.d.slice(0, 7)}`))
+      .filter((r) => r.d.startsWith("2026-05"))).toHaveLength(0); // старое поведение теряло май
+  });
+  it("чистка по одному месяцу (старое поведение) сносила бы чужой кабинет", () => {
+    const old = [{ business: "74986385", d: "2026-04-11", amount: 2 }];
+    const fresh = [{ business: "1023124", d: "2026-04-15", amount: 9 }];
+    const byMonthOnly = new Set(fresh.map((r) => r.d.slice(0, 7)));
+    expect(old.filter((r) => !byMonthOnly.has(r.d.slice(0, 7)))).toHaveLength(0); // вот она, потеря
+    expect(purge(fresh, old)).toHaveLength(1);                                    // исправленный ключ бережёт
+  });
+});
+
+
+
+describe("пересбор месяца идемпотентен, обычный прогон ничего не переоткрывает (ФЕНИКС veto 5.6)", () => {
+  // Переоткрытие по косвенному признаку проваливалось дважды: признак читался из состояния
+  // (пустого у старых месяцев), потом из поля from (которое писатель проставляет ВСЕМ строкам,
+  // включая поднятые из файла с пустым множеством - через один прогон from: [] стоял бы у всех 177
+  // строк и переоткрылись бы 14 пар на 4 830 709 ₽). Косвенный признак заменён явной командой.
+  const run = (existing: any[], donePairs: string[], months: string[], rebuild: boolean) => {
+    const done = new Set(donePairs);
+    if (rebuild) for (const ym of months) for (const p of [...done]) if (p.startsWith(`${ym}/`)) done.delete(p);
+    const byMonth: Record<string, Record<string, { sold: number }>> = {};
+    for (const r of existing) {
+      if (rebuild && months.includes(r.ym)) continue;              // месяц не засеваем накопленным
+      (byMonth[r.ym] ||= {})[r.sku] = { sold: r.sold };
+    }
+    return { open: [...done].sort(), seeded: byMonth };
+  };
+  const existing = [{ ym: "2026-02", sku: "S", sold: 10, from: [] }];
+  const pairs = ["2026-02/A", "2026-02/B", "2026-03/C"];
+
+  it("обычный прогон: ни одна пара не открывается, даже если from пуст у всех строк", () => {
+    const r = run(existing, pairs, ["2026-02"], false);
+    expect(r.open).toEqual(pairs);                                  // ничего не переоткрыто
+    expect(r.seeded["2026-02"]!["S"]!.sold).toBe(10);               // месяц засеян накопленным
+  });
+  it("пересбор: пары месяца открыты, накопленное месяца отброшено - складывать не на что", () => {
+    const r = run(existing, pairs, ["2026-02"], true);
+    expect(r.open).toEqual(["2026-03/C"]);                          // открыт только целевой месяц
+    expect(r.seeded["2026-02"]).toBeUndefined();                    // второго слоя быть не из чего
+  });
+  it("пересбор одного месяца не трогает соседние", () => {
+    const two = [{ ym: "2026-02", sku: "S", sold: 10 }, { ym: "2026-03", sku: "T", sold: 5 }];
+    const r = run(two, pairs, ["2026-02"], true);
+    expect(r.seeded["2026-03"]!["T"]!.sold).toBe(5);
+  });
+});

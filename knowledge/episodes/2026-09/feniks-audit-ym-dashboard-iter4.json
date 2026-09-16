@@ -1,0 +1,248 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ym-dashboard-iter4",
+  "timestamp": "2026-09-07T21:40:00+03:00",
+  "deliverable_ref": "analytics-mvp/src/scripts/ym/reports.ts + validate-facts.ts + .github/workflows/ym-snapshots.yml @ 1f6fcd6",
+  "artifact_class": "dashboard",
+  "anchor": "5.83 veto Студия каруселей v4 - наш артефакт выше на 0.07: механизм задвоения снят целиком и слепок гейта снимается до продьюсеров. Ниже 6.5 return annotate на 0.6: маркер полосы 4.0-5.9 «гейт только на словах» выполняется буквально, объявленное падение base() не срабатывает (exit 0), а самопроверка автора утверждает обратное третий круг подряд.",
+  "probes": [
+    {
+      "id": "A1-base-hard-fail",
+      "result": "FAIL",
+      "evidence": "exit 1 внутри $( ) не роняет шаг: repro в точной форме ym-snapshots.yml:170-180 даёт ИТОГОВЫЙ EXIT ШАГА = 0, аргумент базы исчезает из argv, гейт печатает «прошлого снимка нет»"
+    },
+    {
+      "id": "A2-snapshot-path",
+      "result": "PASS",
+      "evidence": "ym-snapshots.yml:95-97: путь data-ym/$f при job default analytics-mvp, `|| true` убран"
+    },
+    {
+      "id": "A5-env-legal-bypass",
+      "result": "FAIL",
+      "evidence": "YM_FACTS_GROW_GATE=2 на netting с удвоенным 2026-05: строк 15164 -> 17544, «аномалий нет», exit=0"
+    },
+    {
+      "id": "A6-env-validation",
+      "result": "PASS",
+      "evidence": "YM_FACTS_GROW_GATE=2.0000001 -> FACTS INVALID, не число в диапазоне (0, 2], exit=1"
+    },
+    {
+      "id": "B1-baseline-outside-artifact",
+      "result": "PASS",
+      "evidence": "слепок снимается до продьюсеров, гейт получает путь к нему"
+    },
+    {
+      "id": "B2-three-periods",
+      "result": "N/A",
+      "evidence": "не гонял (экономия ходов), заявление автора не проверял"
+    },
+    {
+      "id": "B4-three-surfaces",
+      "result": "PASS",
+      "evidence": "drrCell во всех трёх рендерах: build-site.ts:67, 82, 103"
+    },
+    {
+      "id": "B6-freshness",
+      "result": "N/A",
+      "evidence": "не гонял"
+    },
+    {
+      "id": "B7-unverified-number-outside",
+      "result": "PASS",
+      "evidence": "ложное «0%» ушло из public/market/marketing.html"
+    },
+    {
+      "id": "G1-sku-views-loss-90",
+      "result": "FAIL",
+      "evidence": "4504 -> 450 строк, «месяцев 0 -> 0, аномалий нет», exit=0; 4504 из 4504 строк несут aggregate:true"
+    },
+    {
+      "id": "G2-realization-month-doubled",
+      "result": "FAIL",
+      "evidence": "2026-02 1 259 030 -> 2 518 060 руб, «аномалий нет», exit=0; в iter3 та же фикстура давала exit=1"
+    },
+    {
+      "id": "G3-month-loss-detected",
+      "result": "PASS",
+      "evidence": "FACTS INVALID: 2026-02 строк было 43, стало 0 (потеря), exit=1"
+    },
+    {
+      "id": "R1-rebuild-wipes-month",
+      "result": "FAIL",
+      "evidence": "живой CLI на копии data-ym: 177 строк 4 мес -> 134 строки 3 мес при логе «месяц не трогаю»"
+    },
+    {
+      "id": "R2-rebuild-without-month-arg",
+      "result": "FAIL",
+      "evidence": "«ПЕРЕСБОР месяцев 2026-08, 2026-09» без аргумента, 2026-08 на 952 805 руб стёрт"
+    },
+    {
+      "id": "R3-control-without-flag",
+      "result": "PASS",
+      "evidence": "та же команда без --rebuild: SKU 43, всего 177 строк (4 мес) - причина ровно флаг"
+    },
+    {
+      "id": "D1-tests-run-real-cli",
+      "result": "PASS",
+      "evidence": "validate-facts.test.ts:20-26 execFileSync вместо копии логики"
+    },
+    {
+      "id": "D2-test-pins-blind-spot",
+      "result": "FAIL",
+      "evidence": "validate-facts.test.ts:70-74 требует exit 0 при 3916 -> 500 строк"
+    }
+  ],
+  "comprehension_gate": {
+    "applies": true,
+    "passed": false,
+    "defects": [
+      "public/market/marketing.html: «Достоверен только суммарный ДРР канала не считается.» - фраза утверждает достоверность того, чего нет. Замена: «ДРР по линиям ненадёжен: таксономии рекламы и аналитики расходятся. Суммарный ДРР канала сейчас не считается - в отчёте нет выручки, сопоставимой с расходом 541 772 руб.»"
+    ]
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 0,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 1,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 0,
+    "insight_13_alternatives_analyzed": 1,
+    "insight_14_anti_median": 2,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 1,
+    "brand_20_tone_audience": 0,
+    "risk_21_downside": 0,
+    "risk_22_p9_hard_rules": 1,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 6.0,
+    "actionability": 7.0,
+    "insight": 5.0,
+    "brand_fit": 7.0,
+    "risk_awareness": 4.0
+  },
+  "weighted_total": 5.9,
+  "verdict": "veto",
+  "escalate_to": "Иван Раюшкин",
+  "primary_gap": "Пересбор месяца удаляет накопленные строки безусловно, а записывает новые условно: при пустом ответе Маркета месяц исчезает из файла, а лог сообщает «месяц не трогаю»",
+  "gaps": [
+    "P0: `--rebuild` стирает месяц реализации, когда пересобрать его нечем (177 строк 4 мес -> 134 строки 3 мес, 2026-02 на 1 259 030 руб), и печатает «месяц не трогаю»",
+    "P0: `--rebuild` без аргумента месяца молча берёт [предыдущий, текущий] и стирает 2026-08 на 952 805 руб",
+    "P0: объявленное падение base() при отсутствии слепка не срабатывает - exit 1 внутри $( ) не роняет шаг, ИТОГОВЫЙ EXIT = 0",
+    "P0: исключение aggregate выключило гейт на sku_views целиком (4504 из 4504 строк с флагом), потеря 90% даёт exit=0, и тест закрепляет это как норму",
+    "P0: growOn снял детектор роста с реализации - задвоение закрытого месяца даёт exit=0, в iter3 та же фикстура давала exit=1 (регрессия обнаружения)",
+    "P1: YM_FACTS_GROW_GATE=2 по-прежнему легально пропускает ровное задвоение; тест пиннит только значение 20",
+    "P1: разрушительная команда живёт только в комментарии кода, локального гейта нет (нет npm-скрипта validate-facts), CI-база отравляется локальным коммитом",
+    "P1: break outer по бюджету и лимиту Маркета выбрасывает из цикла всех месяцев уже после того, как их строки выброшены из аккумулятора",
+    "P1: API_DISABLED при пересборе закрывает пару навсегда и без строк (три кампании 1023124 в этом состоянии сегодня)",
+    "P2: «Достоверен только суммарный ДРР канала не считается» - фраза утверждает достоверность несуществующего числа; ввод realization_months подставляется в шелл без кавычек (ym-snapshots.yml:138)"
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "--rebuild удаляет месяц, лог сообщает обратное",
+      "evidence": "живой CLI на копии data-ym: 177 строк 4 мес -> 134 строки 3 мес; контроль без флага 177 -> 177; reports.ts:145-153 против :216 и :222",
+      "checkpoint": "accuracy_3",
+      "weight": -2
+    },
+    {
+      "gap": "--rebuild без месяца бьёт по [prev, cur]",
+      "evidence": "живой CLI: «ПЕРЕСБОР месяцев 2026-08, 2026-09», в файле остались 3 месяца, 2026-08 на 952 805 руб стёрт",
+      "checkpoint": "risk_21",
+      "weight": -2
+    },
+    {
+      "gap": "Объявленное падение base() не срабатывает",
+      "evidence": "repro в точной форме шага: ИТОГОВЫЙ EXIT ШАГА = 0, гейт идёт без базы; ym-snapshots.yml:170-180",
+      "checkpoint": "accuracy_2",
+      "weight": -2
+    },
+    {
+      "gap": "Гейт на sku_views выключен флагом aggregate",
+      "evidence": "grep -c '\"aggregate\":true' = 4504 из 4504; потеря 90% -> «месяцев 0 -> 0, аномалий нет», exit=0; validate-facts.ts:54",
+      "checkpoint": "risk_23",
+      "weight": -2
+    },
+    {
+      "gap": "Детектор роста снят с реализации (регрессия к iter3)",
+      "evidence": "месяц x2 -> exit=0; в iter3 та же фикстура -> exit=1; validate-facts.ts:51, 83",
+      "checkpoint": "insight_12",
+      "weight": -2
+    },
+    {
+      "gap": "Тест закрепляет слепую зону как норму",
+      "evidence": "validate-facts.test.ts:70-74 требует exit 0 при 3916 -> 500",
+      "checkpoint": "actionability_8",
+      "weight": -1
+    },
+    {
+      "gap": "Легальный выключатель сужен, не убран",
+      "evidence": "YM_FACTS_GROW_GATE=2 пропускает задвоение netting, exit=0",
+      "checkpoint": "risk_22",
+      "weight": -1
+    },
+    {
+      "gap": "Разрушительная команда без локального гейта и без документации",
+      "evidence": "grep validate-facts analytics-mvp/package.json пусто; --rebuild только в комментарии reports.ts:125",
+      "checkpoint": "actionability_8",
+      "weight": -1
+    },
+    {
+      "gap": "Бюджет и лимит Маркета множат ущерб пересбора",
+      "evidence": "reports.ts:176 break outer выходит из цикла всех месяцев, строки всех запрошенных месяцев уже выброшены на :147",
+      "checkpoint": "risk_24",
+      "weight": -1
+    },
+    {
+      "gap": "API_DISABLED при пересборе закрывает пару навсегда и без строк",
+      "evidence": "reports.ts:169-171 donePairs.add(pair) в ветке campaignUnavailable",
+      "checkpoint": "risk_25",
+      "weight": -1
+    },
+    {
+      "gap": "«Достоверен только суммарный ДРР канала не считается»",
+      "evidence": "public/market/marketing.html; build-site.ts:82",
+      "checkpoint": "brand_20",
+      "weight": -2
+    },
+    {
+      "gap": "Ввод realization_months подставляется в шелл без кавычек",
+      "evidence": "ym-snapshots.yml:138",
+      "checkpoint": "risk_22",
+      "weight": -1
+    },
+    {
+      "gap": "Переоткрытие снято целиком (в плюс)",
+      "evidence": "reports.ts:115-137 diff: механизма нет, 4 830 709 руб из iter3 вне риска",
+      "checkpoint": "insight_11",
+      "weight": 2
+    },
+    {
+      "gap": "Путь слепка и || true исправлены (в плюс)",
+      "evidence": "ym-snapshots.yml:95-97; проба A2 PASS",
+      "checkpoint": "accuracy_2",
+      "weight": 1
+    },
+    {
+      "gap": "Тесты гоняют реальный CLI (в плюс)",
+      "evidence": "validate-facts.test.ts:20-26 execFileSync",
+      "checkpoint": "actionability_9",
+      "weight": 2
+    }
+  ],
+  "rework_tz": "1. base(): вынести в переменную и проверить статус (B=$(base f) || exit 1), иначе объявленное падение остаётся текстом. 2. --rebuild: собирать месяц в теневой аккумулятор и заменять накопленное только при успешном разборе всех ожидаемых магазинов; при break outer по бюджету или лимиту не записывать запрошенные месяцы вовсе; без явного аргумента месяца флаг обязан падать, а не брать [prev, cur]. 3. sku_views: сравнивать агрегат окна с агрегатом прошлого окна (сумма показов и число SKU) вместо выбрасывания строк aggregate; переписать validate-facts.test.ts:70-74, который сейчас требует молчания при потере 87% строк. 4. Реализация: вернуть детектор задвоения по сигнатуре «сумма выросла при неизменном числе строк» вместо полного growOn = byBiz. Не блокирующее в ту же итерацию: потолок YM_FACTS_GROW_GATE строго меньше 1.0; npm-скрипт локального гейта; кавычки вокруг ${{ github.event.inputs.realization_months }}.",
+  "confidence": 0.9,
+  "dispute_thread": "iteration 4: поле iteration опущено, схема audit-report ограничивает его тремя (maximum 3). Сам факт непредставимости четвёртой итерации - основание эскалации Ивану наравне со score."
+}

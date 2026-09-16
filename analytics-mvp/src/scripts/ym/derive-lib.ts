@@ -107,11 +107,18 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
   const paidByType: Record<string, number> = {};
   for (const p of o.payments) { const k = String(p.type || "?").toUpperCase(); paidByType[k] = r2((paidByType[k] || 0) + (p.type === "REFUND" ? -p.total : p.total)); }
   const subsidyTotal = (o.subsidies || []).reduce((s, x) => s + x.amount, 0);
+  // База разнесения платежей и субсидий - стоимость позиции (цена × штуки), а не accruals:
+  // у полностью возвращённой позиции accruals обнуляются, и её возврат уезжал на соседний SKU.
+  // Живой случай: заказ 58875910850 (июль, мебель), GGR-11-4 возвращён целиком, а весь возврат
+  // -11 066 ₽ сел на GGT-12-2. Сборы остаются на accruals: по недоставленному Маркет и правда
+  // ничего не списал.
   const base = items.reduce((s, x) => s + x.accruals, 0);
+  const payBase = items.reduce((s, x) => s + x.price * x.count, 0);
   const n = items.length || 1;
 
   return items.map((x) => {
     const share = base > 0 ? x.accruals / base : 1 / n;
+    const payShare = payBase > 0 ? (x.price * x.count) / payBase : 1 / n;
     const f: Record<string, number> = {};
     let ft = 0;
     // сборы относим только к доставленным позициям (по недоставленным Маркет ещё ничего не списал)
@@ -125,7 +132,7 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
       price: r2(x.price), p_buyer: r2(x.p_buyer), p_mp: r2(x.p_mp), p_cashback: r2(x.p_cashback), p_spasibo: r2(x.p_spasibo),
       revenue: x.revenue, accruals: x.accruals,
       fees: f, fee_total: ft, payout: deliveredSet ? r2(x.accruals - ft) : 0, fee_actual: feeActual,
-      paid: r2(paidTotal * share), paid_by_type: Object.fromEntries(Object.entries(paidByType).map(([k, v]) => [k, r2(v * share)])), subsidy: r2(subsidyTotal * share), fake: !!o.fake,
+      paid: r2(paidTotal * payShare), paid_by_type: Object.fromEntries(Object.entries(paidByType).map(([k, v]) => [k, r2(v * payShare)])), subsidy: r2(subsidyTotal * payShare), fake: !!o.fake,
     };
   });
 }
@@ -249,15 +256,18 @@ export function buildPnlSkuDaily(rows: OrderRow[]) {
   const m = new Map<string, any>();
   for (const r of paid(rows, "0000-00-00", "9999-99-99")) {
     const k = `${r.fin}|${r.sku}`;
-    const t = m.get(k) || { d: r.fin, sku: r.sku, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, otherSvc: 0, amount: 0, platform: PLATFORM };
+    const t = m.get(k) || { d: r.fin, sku: r.sku, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, otherSvc: 0, amount: 0, platform: PLATFORM };
     t.accruals += r.accruals; t.amount += r.payout;
     for (const [g, v] of Object.entries(r.fees)) {
       if (g === "Комиссия за продажу") t.commission -= v; else if (g === "Логистика (прямая+возвратная)") t.delivery -= v;
-      else if (g === "Эквайринг") t.acquiring -= v; else if (g === "Хранение") t.storage -= v; else t.otherSvc -= v;
+      else if (g === "Эквайринг") t.acquiring -= v; else if (g === "Хранение") t.storage -= v;
+      // Софинансирование скидок - крупнейшая статья расходов канала (июль 2026, один магазин зеркал:
+      // 1 140 019 ₽ против 317 877 ₽ всех остальных услуг вместе). В «Прочих» её быть не должно.
+      else if (g === COFIN_GROUP) t.cofin -= v; else t.otherSvc -= v;
     }
     m.set(k, t);
   }
-  return [...m.values()].map((t) => { for (const k of ["accruals", "commission", "delivery", "acquiring", "storage", "otherSvc", "amount"]) t[k] = Math.round(t[k]); return t; }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
+  return [...m.values()].map((t) => { for (const k of ["accruals", "commission", "delivery", "acquiring", "storage", "cofin", "otherSvc", "amount"]) t[k] = Math.round(t[k]); return t; }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
 }
 
 // Сборы уровня кабинета (плата за размещение, буст вне заказа, штрафы, подписки) в stats/orders не
@@ -293,8 +303,30 @@ export function buildSkuOffer(rows: OrderRow[], catalog: CatalogLike): Record<st
 
 // Реклама: источника нет (рекламный кабинет Маркета не подключён). Снимок-заглушка с нулями и
 // явной пометкой, чтобы дашборд не молчал, а показывал «нет источника».
-export function adsStub(dateFrom: string, dateTo: string) {
-  return { platform: PLATFORM, dateFrom, dateTo, generated_at: new Date().toISOString(), totals: { spend: 0, adRevenue: 0, orders: 0, drr: 0, cpo: 0, active: 0, campaigns: 0 }, burners: [], top_spend: [], by_line: [], note: "реклама Маркета не подключена (нет источника): расход/ДРР = 0, это не «ноль рекламы»" };
+// Расход на продвижение из реестра взаиморасчётов. «Рекламного кабинета» у Маркета в API нет, но
+// деньги на буст кабинет удерживает, и они лежат в реестре отдельными проводками. Утверждение
+// «реклама не подключена, расход 0» на странице маркетинга при этом противоречило странице денег,
+// где те же деньги проходили строкой «Продвижение (буст/лояльность)»: живой факт 2026-09-07 -
+// 1 277 473 ₽ буста в реестре против «Расход рекламы 0 ₽» на соседней вкладке.
+// Группа берётся ТЕМ ЖЕ nettingFeeGroup, что и на странице денег. Второе, «похожее» определение
+// продвижения гарантированно разошлось бы с первым, и дашборд снова сам себе противоречил бы.
+export const PROMO_GROUP = "Продвижение (буст/лояльность)";
+export function promoFromNetting(net: Array<{ d: string; type?: string; service?: string; src?: string; amount: number }>, dateFrom?: string, dateTo?: string): number {
+  let v = 0;
+  for (const n of net) {
+    if (dateFrom && n.d < dateFrom) continue;
+    if (dateTo && n.d > dateTo) continue;
+    if (!isNettingFee(String(n.type || ""), (n as any).src)) continue;
+    if (nettingFeeGroup(String(n.service || ""), String((n as any).src || "")) === PROMO_GROUP) v -= n.amount; // списание -> расход плюсом
+  }
+  return Math.round(v * 100) / 100;
+}
+
+export function adsStub(dateFrom: string, dateTo: string, promoSpend = 0) {
+  const note = promoSpend > 0
+    ? `рекламного кабинета у Маркета в API нет. Расход на продвижение ${Math.round(promoSpend)} ₽ взят из отчёта по взаиморасчётам (группа «${PROMO_GROUP}»), базис - ДАТА ПРОВОДКИ реестра. На странице Деньги та же группа считается по другому базису - по дате доставки заказа, которому проводка разнесена, - поэтому число там отличается: это не расхождение, а два разных вопроса («когда кабинет списал» и «на какие продажи легло»). Привязки расхода к кампаниям и заказам Маркет не отдаёт, поэтому ДРР и CPO не считаются`
+    : "реклама Маркета не подключена (нет источника): расход/ДРР = 0, это не «ноль рекламы»";
+  return { platform: PLATFORM, dateFrom, dateTo, generated_at: new Date().toISOString(), totals: { spend: promoSpend, adRevenue: 0, orders: 0, drr: 0, cpo: 0, active: 0, campaigns: 0 }, promo_from_netting: promoSpend, burners: [], top_spend: [], by_line: [], note };
 }
 
 // ---------- сборы из ledger'а кабинета (united-netting) ----------
@@ -311,33 +343,95 @@ export const NETTING_FEE_GROUPS: Array<[RegExp, string]> = [
   [/хранени/i, "Хранение"],
   [/не вовремя|по вине продавца|штраф/i, "Штрафы"],
 ];
-export function nettingFeeGroup(service: string): string {
+// Классификация по ИСТОЧНИКУ проводки (TRANSACTION_SOURCE). Она главнее имени услуги и решает первой.
+// Сверка с выгрузкой кабинета за июль 2026 (один магазин зеркал) показала: у проводок «Скидка за
+// участие в совместных акциях» - 121 строка на 1 142 508 ₽, крупнейшая статья расходов канала - в
+// поле имени услуги стоит НАЗВАНИЕ ТОВАРА. Разбор по имени услуги отправил бы их в «Прочее», где они
+// неотличимы от проводок без названия. Источник же называет их прямо.
+export const COFIN_GROUP = "Софинансирование скидок";
+export const NETTING_SOURCE_GROUPS: Array<[RegExp, string]> = [
+  [/скидк[аи].*совместн|совместн.*акци/i, COFIN_GROUP],
+  [/оплата услуг/i, ""],   // пустая группа = решает имя услуги, это обычные услуги Маркета
+];
+// Является ли проводка сбором. Решает ИСТОЧНИК, а не тип: внутри «Оплаты услуг Маркета» встречаются
+// строки типа «Начисление» - это СТОРНО ранее удержанной услуги, и его надо зачитывать. Прежнее
+// правило «Начисление и Возврат - не сбор» отбрасывало их вместе с начислениями за товар, и сборы
+// завышались: живой факт июля 2026 по одному магазину зеркал - 329 413 ₽ вместо 317 877 ₽ у кабинета,
+// разница ровно в двух строках сторно на 11 536 ₽.
+const SRC_FEE = /оплата услуг|скидк[аи].*совместн|совместн.*акци/i;
+const SRC_NOT_FEE = /плат[её]ж покупател|баллы за скидку|внесено продавцом|возврат плат|возврат баллов/i;
+export function isNettingFee(type: string, source?: string): boolean {
+  const src = String(source || "").trim();
+  if (src) {
+    if (SRC_NOT_FEE.test(src)) return false;
+    if (SRC_FEE.test(src)) return true;
+  }
+  // Источника нет (снимки, собранные до появления колонки) - решаем по типу, как раньше.
+  const t = String(type || "");
+  return t !== "Начисление" && t !== "Возврат";
+}
+
+export function nettingSourceGroup(source: string): string {
+  const t = String(source || "");
+  for (const [re, g] of NETTING_SOURCE_GROUPS) if (re.test(t)) return g;
+  return "";
+}
+export function nettingFeeGroup(service: string, source?: string): string {
+  const bySrc = nettingSourceGroup(source || "");
+  if (bySrc) return bySrc;
   const t = String(service || "");
   for (const [re, g] of NETTING_FEE_GROUPS) if (re.test(t)) return g;
   return "Прочее";
 }
 
-export interface NetFeeRow { order?: string; sku?: string; service?: string; type?: string; amount: number }
-export interface NetFeeResult { rows: OrderRow[]; orders_from_netting: number; orders_from_commissions: number; unmapped: Record<string, number> }
+export interface NetFeeRow { order?: string; sku?: string; service?: string; src?: string; type?: string; amount: number }
+export interface FeeMonth {
+  orders_netting: number; orders_order: number;
+  accruals_netting: number; accruals_order: number;
+  fees_netting: number; fees_order: number;
+  rate_netting: number | null; rate_order: number | null;
+}
+export interface NetFeeResult {
+  rows: OrderRow[]; orders_from_netting: number; orders_from_commissions: number;
+  accruals_from_netting: number; accruals_from_commissions: number;
+  fees_from_netting: number; fees_from_commissions: number;
+  rate_netting: number | null; rate_order: number | null;
+  by_month: Record<string, FeeMonth>;
+  // Адресные пробелы: пара (кабинет, месяц), где оборот есть, а реестра нет. Диффузная доля
+  // «16.4% оборота» не говорит, что делать; «кабинет 1023124 за 2026-06..08» - говорит.
+  gaps: Array<{ business: string; ym: string; accruals: number; orders: number }>;
+  unmapped: Record<string, number>;
+}
+
+// Доля сборов от начислений. Разрыв между ставкой по ledger'у и ставкой по комиссиям заказа - это и
+// есть мера недооценки: комиссия заказа покрывает только комиссию за продажу, а ledger содержит ещё
+// размещение, эквайринг, буст и логистику. Живой факт 2026-09: 6.5% против 54%.
+function rate(fees: number, accr: number): number | null { return accr > 0 ? Math.round((fees / accr) * 1000) / 10 : null; }
 
 // Заменяем сборы строк на удержания кабинета там, где заказ уже есть в ledger'е. Заказы, которых там
 // ещё нет (свежие, выплата не прошла), сохраняют комиссии заказа и помечаются fee_source="order" -
 // по ним цифра предварительная, и это должно быть видно, а не смешиваться со сверенными.
 export function applyNettingFees(rows: OrderRow[], net: NetFeeRow[]): NetFeeResult {
-  const HOLD = (t: string) => t !== "Начисление" && t !== "Возврат";
+  // Проводка-сбор - это всё, что не начисление товара и не возврат товара. ВАЖНО: сумму берём СО
+  // ЗНАКОМ. Живой факт 2026-09: 21 строка «Возврат списания» на +227 561 ₽ (возврат за размещение и
+  // скидка за лояльность) проходила через Math.abs и учитывалась как удержание, хотя это возврат нам
+  // ранее списанного. Из-за этого кумулятивное расхождение показывало −408 149 ₽, и я объяснил его
+  // «заказами вне ledger'а» - объяснение логически невозможное, несопоставленные заказы в разность не
+  // входят по построению. Знак и есть причина.
+  const HOLD = (t: string, src?: string) => isNettingFee(t, src);
   const bySku = new Map<string, Record<string, number>>();   // order|sku -> группа -> сумма
   const byOrder = new Map<string, Record<string, number>>(); // order -> группа -> сумма (строки без sku)
   const orders = new Set<string>();
   const unmapped: Record<string, number> = {};
   for (const n of net) {
-    const o = String(n.order || "").trim(); if (!o || !HOLD(String(n.type || ""))) continue;
-    const g = nettingFeeGroup(n.service || "");
-    if (g === "Прочее" && n.service) unmapped[n.service] = r2((unmapped[n.service] || 0) + Math.abs(n.amount));
+    const o = String(n.order || "").trim(); if (!o || !HOLD(String(n.type || ""), (n as any).src)) continue;
+    const g = nettingFeeGroup(n.service || "", (n as any).src || "");
+    if (g === "Прочее" && n.service) unmapped[n.service] = r2((unmapped[n.service] || 0) - n.amount);
     orders.add(o);
     const sku = String(n.sku || "").trim();
     const bag = sku ? (bySku.get(`${o}|${sku}`) || (bySku.set(`${o}|${sku}`, {}), bySku.get(`${o}|${sku}`)!))
                     : (byOrder.get(o) || (byOrder.set(o, {}), byOrder.get(o)!));
-    bag[g] = r2((bag[g] || 0) + Math.abs(n.amount));
+    bag[g] = r2((bag[g] || 0) - n.amount); // списание (минус в ledger'е) -> сбор плюсом; возврат списания -> сбор минусом
   }
   // доли внутри заказа и внутри (заказ, sku) - по начислениям, как и для комиссий заказа
   const accrOrder = new Map<string, number>(), accrSku = new Map<string, number>(), nOrder = new Map<string, number>();
@@ -360,10 +454,474 @@ export function applyNettingFees(rows: OrderRow[], net: NetFeeRow[]): NetFeeResu
     const ft = r2(Object.values(f).reduce((s, v) => s + v, 0));
     return { ...r, fees: f, fee_total: ft, payout: r2(r.accruals - ft), fee_actual: true, fee_source: "netting" as const };
   });
+  return { rows: out, ...feeSourceSplit(out), unmapped };
+}
+
+// Разрез «откуда сборы» по месяцам. Где ledger'а нет, сборы взяты из комиссий заказа и занижены:
+// комиссия заказа покрывает только комиссию за продажу, ledger содержит ещё размещение, эквайринг,
+// буст и логистику. Считаем это ДЕНЬГАМИ, а не заказами: 1081 старый заказ на копейки и 475 свежих
+// на миллионы читаются одинаково по счётчику заказов и совершенно по-разному по обороту.
+// Один расчёт на два потребителя: снимок fee_source.json и сверка §15 (иначе цифры разъедутся).
+export function feeSourceSplit(rows: OrderRow[]): Omit<NetFeeResult, "rows" | "unmapped"> {
+  const gapAcc = new Map<string, { business: string; ym: string; accruals: number; orders: Set<string> }>();
+  const by_month: Record<string, FeeMonth> = {};
+  const seen = new Map<string, string>(); // заказ целиком идёт из одного источника, не считаем его дважды
+  for (const r of rows) {
+    const m = String(r.created || "").slice(0, 7); if (!m) continue;
+    const b = (by_month[m] ||= { orders_netting: 0, orders_order: 0, accruals_netting: 0, accruals_order: 0, fees_netting: 0, fees_order: 0, rate_netting: null, rate_order: null });
+    const net = r.fee_source === "netting";
+    if (seen.get(r.order) !== m) { seen.set(r.order, m); if (net) b.orders_netting++; else b.orders_order++; }
+    if (net) { b.accruals_netting += r.accruals; b.fees_netting += r.fee_total; }
+    else {
+      b.accruals_order += r.accruals; b.fees_order += r.fee_total;
+      if (r.accruals > 0) {
+        const gk = `${r.business}/${m}`;
+        const g = gapAcc.get(gk) || (gapAcc.set(gk, { business: r.business, ym: m, accruals: 0, orders: new Set() }), gapAcc.get(gk)!);
+        g.accruals += r.accruals; g.orders.add(r.order);
+      }
+    }
+  }
+  let aNet = 0, aOrd = 0, fNet = 0, fOrd = 0;
+  for (const b of Object.values(by_month)) {
+    b.accruals_netting = r2(b.accruals_netting); b.accruals_order = r2(b.accruals_order);
+    b.fees_netting = r2(b.fees_netting); b.fees_order = r2(b.fees_order);
+    b.rate_netting = rate(b.fees_netting, b.accruals_netting);
+    b.rate_order = rate(b.fees_order, b.accruals_order);
+    aNet += b.accruals_netting; aOrd += b.accruals_order; fNet += b.fees_netting; fOrd += b.fees_order;
+  }
   return {
-    rows: out,
-    orders_from_netting: new Set(out.filter((r) => r.fee_source === "netting").map((r) => r.order)).size,
-    orders_from_commissions: new Set(out.filter((r) => r.fee_source !== "netting").map((r) => r.order)).size,
-    unmapped,
+    orders_from_netting: new Set(rows.filter((r) => r.fee_source === "netting").map((r) => r.order)).size,
+    orders_from_commissions: new Set(rows.filter((r) => r.fee_source !== "netting").map((r) => r.order)).size,
+    accruals_from_netting: r2(aNet), accruals_from_commissions: r2(aOrd),
+    fees_from_netting: r2(fNet), fees_from_commissions: r2(fOrd),
+    rate_netting: rate(r2(fNet), r2(aNet)), rate_order: rate(r2(fOrd), r2(aOrd)),
+    by_month,
+    gaps: [...gapAcc.values()].map((g) => ({ business: g.business, ym: g.ym, accruals: r2(g.accruals), orders: g.orders.size }))
+      .sort((a, b) => (a.business === b.business ? a.ym.localeCompare(b.ym) : a.business.localeCompare(b.business))),
   };
+}
+
+// ---------- Свод по дате заказа (методика Ивана/Кати v4, июль 2026) ----------
+// Базис свода отличается от остальных витрин намеренно: период берётся по ДАТЕ ОФОРМЛЕНИЯ заказа,
+// в расчёт идут только заказы со статусом DELIVERED, штуки - доставленные минус возвращённые.
+// Витрины pnl_* живут по дате доставки/проводки - это другой вопрос, и числа там другие законно.
+//
+// Главное, чего свод не повторяет за прежним подходом: выручка НЕ берётся по цене продажи.
+// Цена продажи включает скидку, которую платил Маркет, а не покупатель; расходы при этом уходили
+// в учёт уже за вычетом баллов. Обе половины были искажены в одну сторону. Здесь выручка - это
+// платёж покупателя минус возвраты, а услуги - полная начисленная стоимость с разделением на
+// оплаченные деньгами и оплаченные баллами.
+export const SVC_OTHER = "Прочие услуги";
+export const SVC_COLUMNS: Array<[string, RegExp]> = [
+  ["Размещение (комиссия)", /размещени/i],
+  ["Программа лояльности и отзывы", /лояльност|отзыв/i],
+  ["Буст продаж", /буст/i],
+  ["Доставка покупателю", /доставка покупателю/i],
+  ["Доставка (средняя миля)", /средн[а-яё]*\s*мил/i],
+  ["Доставка невыкупов и возвратов", /невыкуп|возврат/i],
+  ["Приём платежа покупателя", /при[её]м платежа/i],
+  ["Перевод платежа покупателя", /перевод платежа/i],
+  ["Обработка в СЦ/ПВЗ", /обработк|сортировк|СЦ|ПВЗ/i],
+  ["Хранение", /хранени/i],
+  ["Штрафы (не вовремя)", /не вовремя|по вине продавца|штраф/i],
+];
+export function svcColumn(service: string): string {
+  const t = String(service || "");
+  for (const [name, re] of SVC_COLUMNS) if (re.test(t)) return name;
+  return SVC_OTHER;
+}
+
+// Чем оплачена услуга. Источник проводки (TRANSACTION_SOURCE) решает первым - он называет
+// софинансирование прямо. Пока источника в снимке нет, решает ТИП проводки, и это не догадка:
+// на живом июле 2026 по кабинету мебели сумма «Удержание» = 557 521 ₽ против 557 250,20 ₽
+// в строке «Стоимость оказанных услуг по актам» отчёта об исполнении поручения (+0,05%),
+// а сумма «Списание» = 2 326 514 ₽ против 2 350 590,89 ₽ списанных баллами по акту (-1,0%).
+export function isPointsPaid(type: string, source?: string): boolean {
+  const src = String(source || "").trim();
+  if (src) return nettingSourceGroup(src) === COFIN_GROUP;
+  const t = String(type || "").trim();
+  return t === "Списание" || t === "Возврат списания";
+}
+
+export interface SvodRow {
+  business: string; ym: string; sku: string; name: string; line: string;
+  orders: number; units_delivered: number; units_returned: number; units_net: number;
+  price: number; ship_buyer: number; disc_mp: number; disc_plus: number;
+  buyer_pay: number; refunds: number; revenue_money: number; points_accrued: number;
+  svc: Record<string, number>; svc_pts: Record<string, number>; svc_money: number; svc_points: number; svc_total: number;
+  result_money: number; result_points: number;
+  cogs: number; cogs_known: boolean;
+}
+export interface SvodMonth {
+  business: string; ym: string; orders: number; rows: SvodRow[];
+  overhead_money: number; overhead_points: number; overhead: Record<string, number>; overhead_pts: Record<string, number>;
+  overhead_src: "ledger" | "act";   // откуда взяты общие расходы: только реестр или акт по стоимости услуг
+  points_src: "orders" | "report"; // откуда взяты баллы: subsidies[] заказа или отчёт по баллам Маркета
+  points_report: number;           // начислено баллов по отчёту за этот месяц (для сверки с разнесённым)
+  svc_months: string[];           // из каких месяцев реестра взяты услуги этих заказов
+  orders_without_ledger: number;  // заказы периода, которых в реестре ещё нет
+  svc_settled: boolean;           // услуги месяца добраны: есть хотя бы один ЗАКРЫТЫЙ акт позже месяца заказа
+  // Пробелы, которые иначе исчезли бы молча. Все три - деньги кабинета, не попавшие в свод.
+  // Два разных диагноза, склеивать их нельзя: «другой статус» - нормальная работа базиса,
+  // «заказа нет в выгрузке» - дыра в сборе заказов, и чинится она в другом месте.
+  ledger_outside: number;         // сборы акта этого месяца по заказам вне свода, всего
+  ledger_outside_orders: number;
+  ledger_status: number;          // из них: заказ есть, но статус не DELIVERED
+  ledger_missing: number;         // из них: заказа нет в orders.ndjson вообще
+  ledger_missing_orders: number;
+  // Незавершённость периода. Отменённые заказы - нормальный исход, а не незавершённость, поэтому
+  // мерилом служат заказы, которые ЕЩЁ В ПУТИ: пока они есть, месяц продолжает набирать выручку.
+  orders_period: number;     // оформлено всего в месяце, любой статус
+  orders_inflight: number;   // из них ещё не доставлены и не отменены
+  points_on_delivery: number;     // доля начисленных баллов, осевшая на строке доставки
+  cogs_cov: number;               // доля выручки деньгами, закрытая себестоимостью
+}
+
+const svcZero = () => { const o: Record<string, number> = {}; for (const [n] of SVC_COLUMNS) o[n] = 0; o[SVC_OTHER] = 0; return o; };
+
+export interface ActRow { ym: string; business: string; service: string; money: number; points: number; order?: string }
+export interface BonusRow { ym: string; business: string; type?: string; src?: string; order?: string; sku?: string; amount: number }
+// Что считать начислением баллов, решает ИСТОЧНИК проводки, а не знак суммы. По знаку в
+// «начислено» попадал бы «Возврат списания» (+29 556 ₽ за июль) - сторно услуги, оплаченной
+// баллами, то есть возврат ПОТРАЧЕННОГО, а не новое начисление; и выпадал бы «Возврат баллов за
+// скидку Маркета» (-30 420 ₽), который начисление как раз уменьшает.
+//
+// Правило проверено на живой выгрузке за июль 2026 по кабинету мебели (fixtures/ym/bonuses-2026-07.json):
+// начислено 2 296 335 + 55 713 - 30 420 = 2 321 628 ₽, потрачено на услуги 2 341 564 - 29 556 =
+// 2 312 008 ₽, остаток 2 321 628 - 2 312 008 = 9 620 ₽ - ровно строка «Премия, предоставленная
+// Исполнителем» в отчёте об исполнении поручения.
+// «баллы за скидку» у начисления и «баллОВ за скидку» у его возврата - падеж разный, корень один.
+const BONUS_ACCRUAL = /балл(ы|ов) за скидку/i;
+const BONUS_SPEND = /скидк[аи].{0,30}совместн|совместн.{0,20}акци|оплата бонусами/i;  // оплата услуг баллами и сторно
+export type BonusKind = "accrual" | "spend" | "other";
+export function bonusKind(r: BonusRow): BonusKind {
+  const src = String(r.src || "");
+  if (BONUS_ACCRUAL.test(src)) return "accrual";
+  if (BONUS_SPEND.test(src)) return "spend";
+  return "other";
+}
+export const isBonusAccrual = (r: BonusRow) => bonusKind(r) === "accrual";
+export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string, act: ActRow[] = [], bonus: BonusRow[] = []): SvodMonth[] {
+  // 1. отбор: заказы со статусом DELIVERED, месяц - по дате оформления
+  const keyOf = (r: OrderRow) => `${r.business}|${String(r.created || "").slice(0, 7)}`;
+  const delivered = new Map<string, string>();  // order -> ключ месяца
+  for (const r of rows) if (!r.service && r.status === "DELIVERED" && r.created) delivered.set(r.order, keyOf(r));
+
+  // 2. услуги реестра, разнесённые на заказ (и на SKU, где реестр его называет)
+  type Svc = { col: string; points: boolean; amount: number; sku: string };
+  const byOrder = new Map<string, Svc[]>();
+  const svcMonths = new Map<string, Set<string>>();
+  const overheadMoney = new Map<string, Record<string, number>>();
+  const overheadPts = new Map<string, Record<string, number>>();
+  const pointsOnDelivery = new Map<string, number>();
+  const outside = new Map<string, { sum: number; orders: Set<string>; status: number; missing: number; missingOrders: Set<string> }>();
+  const knownOrders = new Set<string>(rows.map((r) => r.order));
+  let overheadRows: Array<{ business: string; d: string; col: string; points: boolean; amount: number }> = [];
+  for (const n of netting) {
+    if (!isNettingFee(String(n.type || ""), n.src)) continue;
+    // Знак: в реестре удержание/списание приходит отрицательным, сторно («Возврат списания») -
+    // положительным. Сбор - это то, что уменьшило счёт, поэтому берём -amount, а не модуль:
+    // модуль превращал сторно в ещё один сбор и завышал статью вдвое от суммы сторно.
+    const amount = -(Number(n.amount) || 0);
+    if (!amount) continue;
+    const col = svcColumn(String(n.service || ""));
+    const points = isPointsPaid(String(n.type || ""), n.src);
+    const ord = String(n.order || "").trim();
+    if (ord && delivered.has(ord)) {
+      const arr = byOrder.get(ord) || []; arr.push({ col, points, amount, sku: String(n.sku || "").trim() }); byOrder.set(ord, arr);
+      const k = delivered.get(ord)!; const s = svcMonths.get(k) || new Set<string>(); s.add(String(n.d || "").slice(0, 7)); svcMonths.set(k, s);
+    } else if (!ord) {
+      overheadRows.push({ business: String(n.business || ""), d: String(n.d || ""), col, points, amount });
+    } else {
+      // Заказ есть, но в свод не идёт: другой статус (RETURNED, отмена в доставке, частичная
+      // доставка) или заказа вовсе нет в выгрузке. Это деньги кабинета - их нельзя терять молча.
+      const k = `${String(n.business || "")}|${String(n.d || "").slice(0, 7)}`;
+      const cur = outside.get(k) || { sum: 0, orders: new Set<string>(), status: 0, missing: 0, missingOrders: new Set<string>() };
+      cur.sum += amount; cur.orders.add(ord);
+      if (knownOrders.has(ord)) cur.status += amount; else { cur.missing += amount; cur.missingOrders.add(ord); }
+      outside.set(k, cur);
+    }
+  }
+
+  // 3. агрегация по (кабинет, месяц, SKU)
+  const months = new Map<string, SvodMonth>();
+  const acc = new Map<string, SvodRow>();
+  const orderSet = new Map<string, Set<string>>();
+  const noLedger = new Map<string, Set<string>>();
+  const baseOf = new Map<string, number>();   // сумма начислений заказа - для разнесения услуг
+
+  // Возвраты и субсидии заказа свод разносит САМ, по стоимости позиций. Полагаться на разнесение
+  // из снимка нельзя: оно шло по accruals, а у полностью возвращённой позиции accruals = 0, и её
+  // возврат уезжал на соседний SKU (заказ 58875910850: весь -11 066 ₽ сел на GGT-12-2, хотя
+  // возвращён был GGR-11-4). Снимок пересобирается ночным прогоном, а числа нужны верные сегодня.
+  const orderRefund = new Map<string, number>();
+  const orderSubsidy = new Map<string, number>();
+  const orderBaseAll = new Map<string, number>();   // база субсидии: стоимость всех позиций заказа
+  const orderRetBase = new Map<string, number>();   // база возврата: стоимость ВОЗВРАЩЁННОГО
+  for (const r of rows) {
+    if (!delivered.has(r.order)) continue;
+    orderRefund.set(r.order, (orderRefund.get(r.order) || 0) + ((r.paid_by_type || {}).REFUND || 0));
+    orderSubsidy.set(r.order, (orderSubsidy.get(r.order) || 0) + (r.subsidy || 0));
+    orderBaseAll.set(r.order, (orderBaseAll.get(r.order) || 0) + (r.price || 0) * (r.count || 0));
+    orderRetBase.set(r.order, (orderRetBase.get(r.order) || 0) + (r.price || 0) * (r.returned || 0));
+  }
+
+  const itemsOf = new Map<string, OrderRow[]>();
+  for (const r of rows) {
+    if (!delivered.has(r.order)) continue;
+    if (r.service) continue;
+    const a = itemsOf.get(r.order) || []; a.push(r); itemsOf.set(r.order, a);
+    // База разнесения - стоимость позиции (цена × штуки), а не accruals: у полностью возвращённой
+    // позиции accruals обнуляются, база заказа схлопывалась в ноль и услуги расходились равными
+    // долями вместо пропорциональных.
+    baseOf.set(r.order, (baseOf.get(r.order) || 0) + (r.price || 0) * (r.count || 0));
+  }
+
+  const touch = (k: string, r: OrderRow): SvodRow => {
+    const kk = `${k}|${r.sku}`;
+    let s = acc.get(kk);
+    if (!s) {
+      s = { business: r.business, ym: k.split("|")[1]!, sku: r.sku, name: r.name, line: r.line,
+        orders: 0, units_delivered: 0, units_returned: 0, units_net: 0,
+        price: 0, ship_buyer: 0, disc_mp: 0, disc_plus: 0, buyer_pay: 0, refunds: 0, revenue_money: 0, points_accrued: 0,
+        svc: svcZero(), svc_pts: svcZero(), svc_money: 0, svc_points: 0, svc_total: 0, result_money: 0, result_points: 0,
+        cogs: 0, cogs_known: cogs[r.sku] != null };
+      acc.set(kk, s);
+    }
+    return s;
+  };
+
+  for (const r of rows) {
+    const k = delivered.get(r.order); if (!k) continue;
+    if (!months.has(k)) months.set(k, { business: r.business, ym: k.split("|")[1]!, orders: 0, rows: [],
+      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 });
+    const os = orderSet.get(k) || new Set<string>(); os.add(r.order); orderSet.set(k, os);
+    if (r.service) {
+      // строка доставки: разносим по позициям заказа пропорционально начислениям
+      const items = itemsOf.get(r.order) || []; const base = baseOf.get(r.order) || 0;
+      // Доставка тоже берётся как цена × штуки: по accruals заказ с полным возвратом давал 0,
+      // и июльская доставка по кабинету мебели выходила 234 800 ₽ вместо 243 800 ₽ кабинета.
+      // Берём ТОЛЬКО долю покупателя: price строки доставки включает и MARKETPLACE, то есть
+      // доставку, оплаченную Маркетом (заказы 59225193154 и 56864253122, 2 599 ₽ по снимку).
+      // Показывать её платежом покупателя - ровно та ошибка, которую блок объявляет своим
+      // отличием. Доля Маркета уходит в «Скидку Маркета», как у товарной строки.
+      const ship = (r.p_buyer || 0) * (r.count || 0);
+      const shipMp = ((r.p_mp || 0) + (r.p_cashback || 0) + (r.p_spasibo || 0)) * (r.count || 0);
+      const droppedPts = (orderBaseAll.get(r.order) || 0) > 0
+        ? (orderSubsidy.get(r.order) || 0) * ((r.price || 0) * (r.count || 0)) / (orderBaseAll.get(r.order) || 1) : 0;
+      for (const it of items) {
+        const share = base > 0 ? (it.price || 0) * (it.count || 0) / base : 1 / (items.length || 1);
+        const s2 = touch(k, it);
+        s2.ship_buyer += ship * share;
+        s2.disc_mp += shipMp * share;
+      }
+      if (droppedPts) pointsOnDelivery.set(k, (pointsOnDelivery.get(k) || 0) + droppedPts);
+      continue;
+    }
+    const s = touch(k, r);
+    // price/p_buyer/p_mp/p_cashback/p_spasibo в строке заказа - цена ЗА ШТУКУ (derive-lib.ts:74).
+    // Без × count позиция из двух штук давала выручку одной: по снимку это 576 279 ₽ недосчёта,
+    // а у отдельных SKU переворачивался знак маржи. Контр-эталон внутри того же API:
+    // Σ(p_buyer × count) + Σ(доставка × count) = Σ paid_by_type.PAYMENT, Δ=0 по всем 14 парам
+    // (кабинет, месяц). Возвраты и субсидии умножать НЕ надо - это уже разнесённые суммы.
+    const n = r.count || 0;
+    s.units_delivered += (r.delivered || 0) + (r.returned || 0);
+    s.units_returned += r.returned || 0;
+    s.price += (r.price || 0) * n;
+    s.disc_mp += (r.p_mp || 0) * n;
+    s.disc_plus += ((r.p_cashback || 0) + (r.p_spasibo || 0)) * n;
+    s.buyer_pay += (r.p_buyer || 0) * n;
+    // Возврат заказа целиком ложится на товарные позиции пропорционально их стоимости; субсидия -
+    // пропорционально стоимости позиции в полной базе заказа, поэтому доля строки доставки в свод
+    // не попадает (она раскрыта отдельно в points_on_delivery).
+    // Возврат платят за ВОЗВРАЩЁННЫЕ штуки, поэтому он разносится по их стоимости, а не по
+    // стоимости позиции: иначе возврат за один SKU размазывался по всему заказу. Если в заказе
+    // ничего не возвращено, а возврат есть (отмена в доставке), падаем на стоимость позиции.
+    const items = itemsOf.get(r.order) || [];
+    const retBase = orderRetBase.get(r.order) || 0;
+    const itemBase = items.reduce((a, i) => a + (i.price || 0) * (i.count || 0), 0);
+    const mineRet = (r.price || 0) * (r.returned || 0);
+    const mine = (r.price || 0) * n;
+    s.refunds += retBase > 0 ? (orderRefund.get(r.order) || 0) * (mineRet / retBase)
+      : (itemBase > 0 ? (orderRefund.get(r.order) || 0) * (mine / itemBase) : 0);
+    // Субсидия разносится по той же базе, что и всё остальное в своде - стоимость позиции
+    // (цена × штуки). База одна на весь блок, чтобы её нельзя было подобрать под желаемый итог.
+    // Цена этого решения названа в YM_SVOD_RECON.md: по июлю/мебели выходит +2,7% к кабинету,
+    // тогда как база accruals давала -2,3%, а прежнее равнодолевое разнесение +0,34%. Какая из
+    // трёх верна, из наших данных не определяется - вопрос открыт на ДАТУ.
+    const baseAll = orderBaseAll.get(r.order) || 0;
+    s.points_accrued += baseAll > 0 ? (orderSubsidy.get(r.order) || 0) * (mine / baseAll) : 0;
+    if (cogs[r.sku] != null) s.cogs += cogs[r.sku]! * ((r.delivered || 0) + (r.returned || 0) - (r.returned || 0));
+  }
+
+  // 4. услуги заказа -> позиции
+  for (const [ord, k] of delivered) {
+    const list = byOrder.get(ord);
+    const items = itemsOf.get(ord) || [];
+    if (!list || !list.length) { const n = noLedger.get(k) || new Set<string>(); n.add(ord); noLedger.set(k, n); continue; }
+    const base = baseOf.get(ord) || 0;
+    for (const sv of list) {
+      const direct = sv.sku ? items.filter((i) => i.sku === sv.sku) : [];
+      const targets = direct.length ? direct : items;
+      const tb = targets.reduce((a, i) => a + (i.price || 0) * (i.count || 0), 0);
+      for (const it of targets) {
+        const share = tb > 0 ? (it.price || 0) * (it.count || 0) / tb : 1 / (targets.length || 1);
+        const s = touch(k, it);
+        const part = sv.amount * share;
+        if (sv.points) { s.svc_pts[sv.col] = (s.svc_pts[sv.col] || 0) + part; s.svc_points += part; }
+        else { s.svc[sv.col] = (s.svc[sv.col] || 0) + part; s.svc_money += part; }
+      }
+    }
+  }
+
+  // 5. общие расходы кабинета (подписки, полки, баннеры) - к заказу не привязаны.
+  // Месяц, где расходы есть, а доставленных заказов нет, заводим отдельно: раньше такие расходы
+  // (11 392 ₽ по кабинету зеркал за февраль и март) исчезали, потому что пары (кабинет, месяц)
+  // просто не существовало.
+  for (const o of overheadRows) {
+    const k = `${o.business}|${o.d.slice(0, 7)}`;
+    let m = months.get(k);
+    if (!m) {
+      m = { business: o.business, ym: o.d.slice(0, 7), orders: 0, rows: [], overhead_money: 0, overhead_points: 0,
+        overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false,
+        ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
+        orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+      months.set(k, m);
+    }
+    const bag = o.points ? overheadPts : overheadMoney;
+    const r = bag.get(k) || {}; r[o.col] = (r[o.col] || 0) + o.amount; bag.set(k, r);
+    if (o.points) m.overhead_points += o.amount; else m.overhead_money += o.amount;
+  }
+
+  // Баллы из отчёта по баллам Маркета. Это источник кабинета, а subsidies[] заказа - производная
+  // от него, которую нам приходилось разносить самим (см. открытый вопрос про базу: три варианта
+  // давали +2,7% / -2,3% / +0,34% к кабинету). Где отчёт есть, месячный итог берётся из него, а
+  // разнесение по позициям остаётся пропорциональным стоимости: сумма по месяцу при этом ровно
+  // кабинетная, а не наша.
+  const bonusBy = new Map<string, number>();
+  for (const r of bonus) {
+    if (bonusKind(r) !== "accrual") continue;   // знак сохраняем: возврат баллов начисление уменьшает
+    const k = `${r.business}|${r.ym}`;
+    bonusBy.set(k, (bonusBy.get(k) || 0) + (Number(r.amount) || 0));
+  }
+  for (const [k, v] of bonusBy) if (v <= 0) bonusBy.delete(k);   // ноль или минус за месяц - не масштабируем
+
+  // Общие расходы из акта по стоимости услуг. Реестр платежей несёт только оплаченные ДЕНЬГАМИ
+  // (живой июль 2026: 6 строк на 36 875 ₽, ни одной оплаченной баллами), а полки, подписки,
+  // баннеры и буст за показы в акте дают 81 495 ₽, из них 15 051 ₽ закрыто баллами. Где акт есть,
+  // он замещает реестровые общие расходы целиком: смешивать два источника одной статьи - двойной
+  // счёт. Где акта нет, остаётся реестр, и месяц честно помечен overhead_src.
+  const actBy = new Map<string, ActRow[]>();
+  for (const a of act) {
+    if (String(a.order || "").trim()) continue;   // услуга привязана к заказу - её несёт реестр
+    const k = `${a.business}|${a.ym}`;
+    const arr = actBy.get(k) || []; arr.push(a); actBy.set(k, arr);
+  }
+  for (const [k, list] of actBy) {
+    let m = months.get(k);
+    if (!m) {
+      const [business, ym] = k.split("|") as [string, string];
+      m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
+        overhead_src: "ledger", points_src: "orders", points_report: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0,
+        ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
+        orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+      months.set(k, m);
+    }
+    m.overhead_src = "act"; m.overhead_money = 0; m.overhead_points = 0;
+    const om: Record<string, number> = {}, op: Record<string, number> = {};
+    for (const a of list) {
+      const col = svcColumn(a.service);
+      if (a.money) { om[col] = r2((om[col] || 0) + a.money); m.overhead_money = r2(m.overhead_money + a.money); }
+      if (a.points) { op[col] = r2((op[col] || 0) + a.points); m.overhead_points = r2(m.overhead_points + a.points); }
+    }
+    overheadMoney.set(k, om); overheadPts.set(k, op);
+  }
+
+  // Сборы акта по заказам вне свода. Пара (кабинет, месяц акта) может вообще не иметь
+  // доставленных заказов - тогда месяц заводится ради самой суммы, иначе 301 937 ₽ по снимку
+  // оставались бы невидимыми.
+  for (const [k, out] of outside) {
+    let m = months.get(k);
+    if (!m) {
+      const [business, ym] = k.split("|") as [string, string];
+      m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", points_src: "orders", points_report: 0,
+        svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0,
+        ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+      months.set(k, m);
+    }
+    m.ledger_outside = r2(out.sum); m.ledger_outside_orders = out.orders.size;
+    m.ledger_status = r2(out.status); m.ledger_missing = r2(out.missing); m.ledger_missing_orders = out.missingOrders.size;
+  }
+
+  for (const s of acc.values()) {
+    s.units_net = s.units_delivered - s.units_returned;
+    s.revenue_money = r2(s.buyer_pay + s.ship_buyer + s.refunds);
+    s.svc_total = r2(s.svc_money + s.svc_points);
+    s.result_money = r2(s.revenue_money - s.svc_money);
+    s.result_points = r2(s.revenue_money + s.points_accrued - s.svc_total);
+    for (const c of Object.keys(s.svc)) s.svc[c] = r2(s.svc[c]!);
+    for (const c of Object.keys(s.svc_pts)) s.svc_pts[c] = r2(s.svc_pts[c]!);
+    s.price = r2(s.price); s.ship_buyer = r2(s.ship_buyer); s.disc_mp = r2(s.disc_mp); s.disc_plus = r2(s.disc_plus);
+    s.buyer_pay = r2(s.buyer_pay + s.ship_buyer); s.refunds = r2(s.refunds); s.points_accrued = r2(s.points_accrued);
+    s.svc_money = r2(s.svc_money); s.svc_points = r2(s.svc_points); s.cogs = r2(s.cogs);
+    const k = `${s.business}|${s.ym}`; months.get(k)!.rows.push(s);
+  }
+  // Часть услуг по заказу начисляется в акте СЛЕДУЮЩЕГО месяца (доставка, средняя миля, штрафы).
+  // Пока такого закрытого акта нет, услуги месяца неполные, а результат по нему завышен. Это ровно
+  // тот пробел, который свод Кати за июль честно назвал «нет данных» по августовскому акту.
+  const nowYm = String(today || new Date().toISOString().slice(0, 10)).slice(0, 7);
+  // Акты считаем по своему кабинету: чужой закрытый акт ничего не говорит о полноте этого.
+  const actMonths = new Map<string, Set<string>>();
+  for (const n of netting) {
+    if (!isNettingFee(String(n.type || ""), n.src)) continue;
+    const b = String(n.business || ""); const set = actMonths.get(b) || new Set<string>();
+    set.add(String(n.d || "").slice(0, 7)); actMonths.set(b, set);
+  }
+  // Сколько заказов месяца оформлено всего (любой статус) - без этого текущий месяц выглядит
+  // как обычный, хотя половина заказов ещё в доставке.
+  const periodOrders = new Map<string, Set<string>>();
+  const inflightOrders = new Map<string, Set<string>>();
+  const DONE = /^(DELIVERED|RETURNED|CANCELLED)/;
+  for (const r of rows) {
+    if (r.service || !r.created) continue;
+    const k = `${r.business}|${r.created.slice(0, 7)}`;
+    const set = periodOrders.get(k) || new Set<string>(); set.add(r.order); periodOrders.set(k, set);
+    if (!DONE.test(String(r.status || ""))) {
+      const f = inflightOrders.get(k) || new Set<string>(); f.add(r.order); inflightOrders.set(k, f);
+    }
+  }
+  // Где отчёт по баллам есть, месячный итог приводим к нему: доли по позициям остаются нашими,
+  // а сумма становится кабинетной. Это снимает вопрос выбора базы разнесения с итога - он
+  // остаётся только внутри месяца, между артикулами.
+  for (const [k, m] of months) {
+    const want = bonusBy.get(k);
+    if (want == null) continue;
+    m.points_src = "report"; m.points_report = r2(want);
+    const have = m.rows.reduce((a, r) => a + r.points_accrued, 0);
+    if (have > 0) { const f = want / have; for (const r of m.rows) r.points_accrued = r2(r.points_accrued * f); }
+    else if (m.rows.length) {
+      const base = m.rows.reduce((a, r) => a + r.revenue_money, 0);
+      for (const r of m.rows) r.points_accrued = r2(base > 0 ? want * (r.revenue_money / base) : want / m.rows.length);
+    }
+    // Результат с учётом баллов держится на points_accrued, поэтому пересчитываем его здесь же:
+    // иначе в строке остался бы итог, посчитанный по старым, не кабинетным баллам.
+    for (const r of m.rows) r.result_points = r2(r.revenue_money + r.points_accrued - r.svc_total);
+  }
+
+  for (const [k, m] of months) {
+    m.orders = (orderSet.get(k) || new Set()).size;
+    m.orders_period = (periodOrders.get(k) || new Set()).size;
+    m.orders_inflight = (inflightOrders.get(k) || new Set()).size;
+    m.svc_settled = [...(actMonths.get(m.business) || new Set<string>())].some((a) => a > m.ym && a < nowYm);
+    m.orders_without_ledger = (noLedger.get(k) || new Set()).size;
+    m.svc_months = [...(svcMonths.get(k) || new Set<string>())].sort();
+    m.overhead = overheadMoney.get(k) || {}; m.overhead_pts = overheadPts.get(k) || {};
+    m.points_on_delivery = r2(pointsOnDelivery.get(k) || 0);
+    m.overhead_money = r2(m.overhead_money); m.overhead_points = r2(m.overhead_points);
+    m.rows.sort((a, b) => b.revenue_money - a.revenue_money);
+    const rev = m.rows.reduce((a, r) => a + r.revenue_money, 0);
+    const covered = m.rows.filter((r) => r.cogs_known).reduce((a, r) => a + r.revenue_money, 0);
+    m.cogs_cov = rev > 0 ? Math.round((covered / rev) * 1000) / 10 : 0;
+  }
+  return [...months.values()].sort((a, b) => (a.ym === b.ym ? a.business.localeCompare(b.business) : b.ym.localeCompare(a.ym)));
 }

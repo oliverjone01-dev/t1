@@ -250,4 +250,45 @@ export class OzonSeller {
     } while ((page <= pageCount || lastSize === 1000) && page <= 500);
     return ops;
   }
+
+  // --- Новые финансовые методы (замена /v3/finance/transaction/list, отключён OZON 08.09.2026) ---
+  // Схемы подтверждены probe accrual-probe.ts (см. knowledge/episodes/2026-09/ozon-finance-api-migration).
+
+  // Справочник типов начислений (~124 шт): id -> имя. Основа маппинга type_id по категориям.
+  async accrualTypes(): Promise<Array<{ id: number; name: string; description: string }>> {
+    const d = await this.post<any>("/v1/finance/accrual/types", {});
+    const arr = d.accrual_types ?? d.result?.accrual_types ?? [];
+    return arr.map((t: any) => ({ id: Number(t.id), name: String(t.name ?? ""), description: String(t.description ?? "") }));
+  }
+
+  // Начисления (сборы/услуги) по отправлениям, батч <= 200 номеров. Строка начисления:
+  // {type_id, accrued:{amount,currency}, accrual_date, sku, quantity}. Выручки за продажу тут НЕТ.
+  async accrualPostings(postingNumbers: string[]): Promise<Array<{ posting_number: string; accruals: any[] }>> {
+    const out: Array<{ posting_number: string; accruals: any[] }> = [];
+    for (let i = 0; i < postingNumbers.length; i += 200) {
+      const batch = postingNumbers.slice(i, i + 200);
+      if (!batch.length) continue;
+      const d = await this.post<any>("/v1/finance/accrual/postings", { posting_numbers: batch });
+      for (const p of (d.posting_accruals ?? d.result?.posting_accruals ?? [])) {
+        out.push({ posting_number: String(p.posting_number ?? ""), accruals: p.accruals ?? [] });
+      }
+    }
+    return out;
+  }
+
+  // Все начисления за ОДИН день (пагинация last_id). Запись: {accrual_id, date, total_amount,
+  // accrued_category:ITEM|NON_ITEM, posting, item_fees, non_item_fee:{type_id,accrued}, container_fees}.
+  async accrualByDay(date: string): Promise<any[]> {
+    const out: any[] = [];
+    let lastId: any = "";
+    for (let guard = 0; guard < 500; guard++) {
+      const body: any = { date }; if (lastId) body.last_id = lastId;
+      const d = await this.post<any>("/v1/finance/accrual/by-day", body);
+      const arr = d.accruals ?? d.result?.accruals ?? [];
+      for (const a of arr) out.push(a);
+      lastId = d.last_id ?? d.result?.last_id ?? "";
+      if (!lastId || !arr.length) break;
+    }
+    return out;
+  }
 }

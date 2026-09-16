@@ -14,7 +14,7 @@ import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
-import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, reportMonthsToDo } from "./reports-lib.js";
 import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
 import { DELIVERED_STATUSES } from "./derive-lib.js";
 
@@ -628,17 +628,20 @@ async function main() {
     const args = process.argv.slice(3).filter((a) => /^\d{4}-\d{2}$/.test(a));
     let months = args;
     if (!months.length) {
-      // То же и для баллов: после смены схемы историю надо пересобрать целиком, а не два месяца.
-      const stB = readJson<{ schema?: number }>(yp("bonuses_state.json"), {});
+      // То же и для баллов: что осталось добрать, знает состояние (done по парам кабинет/месяц).
+      // Отчёт возобновляемый и упирается в лимит генерации, поэтому недобранные месяцы - норма
+      // жизни, а не исключение: ровно они и должны попадать в следующий прогон.
+      const stB = readJson<{ schema?: number; done?: string[] }>(yp("bonuses_state.json"), {});
       if (stB.schema !== BONUS_SCHEMA) console.log(`bonuses: схема ${stB.schema ?? "нет"} -> ${BONUS_SCHEMA}, пересобираем всю историю`);
-      if (stB.schema !== BONUS_SCHEMA || !readNdjson(yp("bonuses_monthly.ndjson")).length) {
-        months = []; let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
-        while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
-      } else {
-        const cur = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
-        const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
-        months = [`${prev.getUTCFullYear()}-${pad(prev.getUTCMonth() + 1)}`, cur];
-      }
+      const allB: string[] = []; { let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
+        while (d.getTime() <= now.getTime()) { allB.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); } }
+      const curB = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
+      const prevDB = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+      const prevB = `${prevDB.getUTCFullYear()}-${pad(prevDB.getUTCMonth() + 1)}`;
+      const rebuildB = stB.schema !== BONUS_SCHEMA || !readNdjson(yp("bonuses_monthly.ndjson")).length;
+      months = reportMonthsToDo(allB, stB.done || [], curB, prevB, rebuildB);
+      const lateB = months.filter((m) => m !== curB && m !== prevB);
+      if (lateB.length && !rebuildB) console.log(`bonuses: не добраны месяцы ${lateB.join(", ")} - беру их в этот прогон`);
     }
     await bonuses(months);
   } else if (cmd === "services") {
@@ -651,17 +654,24 @@ async function main() {
       // услуги вместо даты акта, состояние честно сбросилось, но список месяцев считался по
       // непустому файлу - коллектор взял только август с сентябрём, и июль остался с датой акта,
       // из-за чего общие расходы июля сидели на одной дате и свод за часть месяца врал бы.
-      const st = readJson<{ schema?: number }>(yp("services_state.json"), {});
+      const st = readJson<{ schema?: number; done?: string[] }>(yp("services_state.json"), {});
       const schemaChanged = st.schema !== SERVICES_SCHEMA;
       if (schemaChanged) console.log(`services: схема ${st.schema ?? "нет"} -> ${SERVICES_SCHEMA}, пересобираем всю историю`);
-      if (schemaChanged || !readNdjson(yp("services_monthly.ndjson")).length) {
-        months = []; let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
-        while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
-      } else {
-        const cur = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
-        const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
-        months = [`${prev.getUTCFullYear()}-${pad(prev.getUTCMonth() + 1)}`, cur];
-      }
+      // Что осталось добрать, знает СОСТОЯНИЕ (done по парам кабинет/месяц), а не «файл пустой»
+      // и не «схема сменилась». Пока список считался по этим двум признакам, после первого же
+      // прогона на новой схеме коллектор брал только прошлый и текущий месяц: февраль-июль так
+      // и оставались собранными старой версией, и общие расходы июля сидели на одной дате 31.07.
+      // Живой факт 2026-09-16, прогон 37: схема уже 2, файл не пуст, done = 2 августовские пары -
+      // шаг отработал за 4 секунды и не добрал ничего.
+      const all: string[] = []; { let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
+        while (d.getTime() <= now.getTime()) { all.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); } }
+      const cur = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
+      const prevD = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+      const prevYm = `${prevD.getUTCFullYear()}-${pad(prevD.getUTCMonth() + 1)}`;
+      const rebuildAll = schemaChanged || !readNdjson(yp("services_monthly.ndjson")).length;
+      months = reportMonthsToDo(all, st.done || [], cur, prevYm, rebuildAll);
+      const late = months.filter((m) => m !== cur && m !== prevYm);
+      if (late.length && !rebuildAll) console.log(`services: не добраны месяцы ${late.join(", ")} - беру их в этот прогон`);
     }
     await services(months);
   } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days] | services [YYYY-MM...] | bonuses [YYYY-MM...]"); process.exit(2); }

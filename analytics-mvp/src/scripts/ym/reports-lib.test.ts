@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { findCol } from "../../util/table.js";
-import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, reportMonthsToDo } from "./reports-lib.js";
 
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
@@ -296,5 +296,41 @@ describe("пересбор месяца идемпотентен, обычный
     const two = [{ ym: "2026-02", sku: "S", sold: 10 }, { ym: "2026-03", sku: "T", sold: 5 }];
     const r = run(two, pairs, ["2026-02"], true);
     expect(r.seeded["2026-03"]!["T"]!.sold).toBe(5);
+  });
+});
+
+// Акт по стоимости услуг: какие месяцы брать в прогон. Прогон 37 (2026-09-16) отработал этот шаг
+// за 4 секунды и не добрал ничего, хотя в состоянии были собраны только две августовские пары:
+// список месяцев считался по «схема сменилась / файл пуст», а не по тому, что реально осталось.
+describe("акт услуг: список месяцев берётся из состояния, а не из схемы", () => {
+  const ALL = ["2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"];
+  const CUR = "2026-09", PREV = "2026-08";
+
+  it("живой случай прогона 37: собран только август - остальные месяцы обязаны попасть в прогон", () => {
+    const done = ["1023124/2026-08", "74986385/2026-08"];
+    expect(reportMonthsToDo(ALL, done, CUR, PREV)).toEqual(ALL);
+  });
+
+  it("всё собрано - берём только текущий и прошлый: акт за них ещё дополняется", () => {
+    const done = ALL.flatMap((m) => [`1023124/${m}`, `74986385/${m}`]);
+    expect(reportMonthsToDo(ALL, done, CUR, PREV)).toEqual([PREV, CUR]);
+  });
+
+  it("месяц, где успел отработать один кабинет из двух, закрытым не считается", () => {
+    const done = ALL.flatMap((m) => (m === "2026-05" ? [`1023124/${m}`] : [`1023124/${m}`, `74986385/${m}`]));
+    expect(reportMonthsToDo(ALL, done, CUR, PREV)).toEqual(["2026-05", PREV, CUR]);
+  });
+
+  it("пустое состояние и признак «пересобрать всё» дают всю историю", () => {
+    expect(reportMonthsToDo(ALL, [], CUR, PREV)).toEqual(ALL);
+    const done = ALL.flatMap((m) => [`1023124/${m}`, `74986385/${m}`]);
+    expect(reportMonthsToDo(ALL, done, CUR, PREV, true)).toEqual(ALL);
+  });
+
+  it("текущий и прошлый месяц не выпадают, даже когда собраны полностью", () => {
+    const done = ALL.flatMap((m) => [`1023124/${m}`, `74986385/${m}`]);
+    const got = reportMonthsToDo(ALL, done, CUR, PREV);
+    expect(got).toContain(CUR);
+    expect(got).toContain(PREV);
   });
 });

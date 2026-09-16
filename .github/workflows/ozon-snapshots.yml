@@ -67,6 +67,10 @@ jobs:
             echo "::error::OZON Seller креды не заданы (ни Secrets, ни input)."; exit 1
           fi
           echo "Seller-креды на месте."
+      - name: RECONCILE accrual vs old (сверка августа, удалить после разбора)
+        run: |
+          set -uo pipefail
+          npx tsx src/scripts/ozon/pnl-accrual-reconcile.ts 2026-08-01 2026-08-31 || echo "reconcile завершился (не критично)"
       - name: Рекламная статистика по дням (показы/клики/корзина -> ads_daily)
         run: |
           set -euo pipefail

@@ -628,7 +628,10 @@ async function main() {
     const args = process.argv.slice(3).filter((a) => /^\d{4}-\d{2}$/.test(a));
     let months = args;
     if (!months.length) {
-      if (!readNdjson(yp("bonuses_monthly.ndjson")).length) {
+      // То же и для баллов: после смены схемы историю надо пересобрать целиком, а не два месяца.
+      const stB = readJson<{ schema?: number }>(yp("bonuses_state.json"), {});
+      if (stB.schema !== BONUS_SCHEMA) console.log(`bonuses: схема ${stB.schema ?? "нет"} -> ${BONUS_SCHEMA}, пересобираем всю историю`);
+      if (stB.schema !== BONUS_SCHEMA || !readNdjson(yp("bonuses_monthly.ndjson")).length) {
         months = []; let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
         while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
       } else {
@@ -642,8 +645,16 @@ async function main() {
     const args = process.argv.slice(3).filter((a) => /^\d{4}-\d{2}$/.test(a));
     let months = args;
     if (!months.length) {
-      // первый прогон - вся история от FLOOR; дальше текущий и предыдущий (акт ещё дополняется)
-      if (!readNdjson(yp("services_monthly.ndjson")).length) {
+      // Вся история от FLOOR нужна не только на первом прогоне, но и после СМЕНЫ СХЕМЫ: строки,
+      // собранные старой версией, несут другие поля и пересобрать их надо целиком. Признак «файл
+      // пустой» этого не ловит. Живой случай 2026-09-16: схема поднялась до 2 ради даты оказания
+      // услуги вместо даты акта, состояние честно сбросилось, но список месяцев считался по
+      // непустому файлу - коллектор взял только август с сентябрём, и июль остался с датой акта,
+      // из-за чего общие расходы июля сидели на одной дате и свод за часть месяца врал бы.
+      const st = readJson<{ schema?: number }>(yp("services_state.json"), {});
+      const schemaChanged = st.schema !== SERVICES_SCHEMA;
+      if (schemaChanged) console.log(`services: схема ${st.schema ?? "нет"} -> ${SERVICES_SCHEMA}, пересобираем всю историю`);
+      if (schemaChanged || !readNdjson(yp("services_monthly.ndjson")).length) {
         months = []; let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
         while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
       } else {

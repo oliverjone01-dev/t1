@@ -67,6 +67,10 @@ jobs:
             echo "::error::OZON Seller креды не заданы (ни Secrets, ни input)."; exit 1
           fi
           echo "Seller-креды на месте."
+      - name: PROBE realization money (выручка/к выплате в реализации, удалить)
+        run: |
+          set -uo pipefail
+          npx tsx src/scripts/ozon/realization-probe.ts 2026 8 || echo "realization-probe завершился (не критично)"
       - name: Рекламная статистика по дням (показы/клики/корзина -> ads_daily)
         run: |
           set -euo pipefail

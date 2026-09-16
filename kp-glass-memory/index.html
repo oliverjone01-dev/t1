@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="ru">
 <!--
-  GLASS-MEMORY · Персональное КП для физлица · v3 (финал)
-  humanizer_pass: v1.0 · design-kit: frontend-design + pre-delivery checklist
-  ФЕНИКС Step 12.5: ~7.9/10 · verdict go
-
-  Фото кладутся РЯДОМ с этим файлом:
-    1.jpg портрет на граните · 2.jpg стол с планшетом и образцами
-    3.jpg кейс-набор · 4.jpg полный комплекс · 5.jpg стела с панелью
-
-  Плейсхолдеры под замену: имя клиента, дата, менеджер, цены (ориентир).
-  Правки v3: стекло не режут лазером; возвращены ценностные секции и 2 конфигурации; SVG-иконки; a11y.
+  GLASS-MEMORY · Генератор КП v4 · каркас + модули · встроенный редактор
+  Структура: 12 фиксированных блоков (по эталону КП GENGLASS) + модули по типам изделий.
+  Один JSON (kp) описывает клиента, контакты, позиции, режим цены, видимость блоков и модулей.
+  Редактор: кнопка справа сверху. Панель не печатается и не попадает в экспорт HTML.
+  Фото: 1.jpg..5.jpg рядом с файлом; при отсутствии слот показывает брендовый градиент.
+  Правила: стекло не режется лазером (лазер только металл); гарантия разведена по объёму;
+  цифры только из каталога и партнёрского дека; em dash запрещён.
 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="build" content="__BUILD__">
 <title>Glass Memory · Коммерческое предложение</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,6 +22,7 @@
   --dark:#082821; --dark-2:#0C3127; --green:#1F895A; --green-d:#166B45; --forest:#31513A;
   --cream:#F6F7ED; --bg:#FFFFFF; --ink:#15241C; --muted:#56635A; --line:#E3E5DB; --line-dark:#1C4034;
   --serif:'Lora',Georgia,serif; --sans:'Inter','Helvetica Neue',Arial,sans-serif;
+  --panel-w:400px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{ background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased; }
@@ -32,13 +31,14 @@ a{color:inherit}
 :focus-visible{ outline:2px solid var(--green); outline-offset:3px; border-radius:4px; }
 .wrap{ max-width:1120px; margin:0 auto; padding:0 44px; }
 h1,h2,h3{ font-family:var(--serif); font-weight:500; line-height:1.22; letter-spacing:-.01em; }
-.eyebrow{ font-family:var(--sans); font-weight:600; font-size:12.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--green); }
+.eyebrow{ font-weight:600; font-size:12.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--green); }
 .muted{color:var(--muted)}
 .sec{ padding:62px 0; }
 .sec h2{ font-size:30px; margin-bottom:14px; }
 .sec .intro{ font-size:18px; color:var(--muted); max-width:64ch; margin-bottom:36px; }
 .sec.cream{ background:var(--cream); }
 svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+[hidden]{display:none !important}
 
 /* top bar */
 .topbar{ background:var(--dark); color:#EAF1ED; }
@@ -50,18 +50,18 @@ svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:non
 
 /* title */
 .title{ background:var(--dark); color:#EAF1ED; padding:8px 0 54px; }
-.title h1{ color:#fff; font-size:38px; max-width:22ch; }
+.title h1{ color:#fff; font-size:38px; max-width:24ch; }
 .title .date{ color:#9DB5A9; font-size:15px; margin-top:16px; }
-.mgr{ display:flex; align-items:center; gap:15px; margin-top:32px; background:var(--dark-2); border:1px solid var(--line-dark); border-radius:12px; padding:18px 22px; max-width:520px; }
+.contacts{ display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px; margin-top:32px; max-width:900px; }
+.mgr{ display:flex; align-items:center; gap:15px; background:var(--dark-2); border:1px solid var(--line-dark); border-radius:12px; padding:18px 22px; }
 .mgr .av{ width:50px; height:50px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:22px; font-weight:600; flex:none; }
 .mgr .who b{ color:#fff; font-size:16px; display:block; }
 .mgr .who .role{ color:#9DB5A9; font-size:13.5px; }
 .mgr .who .c{ color:#CFE0D6; font-size:14px; margin-top:5px; }
 
-/* value cards (icon) */
+/* value cards */
 .vals{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
 .vcard{ border:1px solid var(--line); border-radius:14px; padding:30px 28px; background:#fff; }
-.cream .vcard{ background:#fff; }
 .vcard .ico{ width:52px; height:52px; border-radius:12px; background:rgba(31,137,90,.10); display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
 .vcard h3{ font-size:20px; font-weight:600; }
 .vcard p{ font-size:15.5px; color:var(--muted); margin-top:11px; line-height:1.55; }
@@ -71,7 +71,7 @@ svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:non
 .pos .row{ display:grid; grid-template-columns:120px 1fr 140px 64px 140px; gap:24px; padding:22px 26px; border-bottom:1px solid var(--line); align-items:center; }
 .pos .row:last-child{ border-bottom:0; }
 .pos .head-row{ background:var(--cream); }
-.pos .thumb{ width:120px; height:92px; border-radius:9px; object-fit:cover; border:1px solid var(--line); }
+.pos .thumb{ width:120px; height:92px; border-radius:9px; object-fit:cover; border:1px solid var(--line); background:linear-gradient(135deg,#EAF1ED,#F6F7ED); }
 .pos .nm{ font-weight:600; font-size:16.5px; }
 .pos .meta{ font-size:13.5px; color:var(--muted); margin-top:6px; line-height:1.5; }
 .pos .col-h{ font-size:11.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
@@ -88,38 +88,29 @@ svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:non
 .tbox .grand .v{ font-family:var(--serif); font-size:29px; font-weight:600; color:var(--green); }
 .tbox .fine{ font-size:12px; color:var(--muted); margin-top:9px; line-height:1.5; }
 
-/* info strip */
+/* terms */
 .info{ display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
 .info .i{ padding:24px; border-right:1px solid var(--line); }
 .info .i:last-child{ border-right:0; }
 .info .h{ font-size:13px; color:var(--green); font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
 .info .d{ font-size:14.5px; margin-top:10px; line-height:1.5; }
 
-/* configs */
-.configs{ display:grid; grid-template-columns:1fr 1fr; gap:26px; }
-.cfg{ border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff; display:flex; flex-direction:column; }
-.cfg img{ width:100%; height:260px; object-fit:cover; }
-.cfg .body{ padding:28px 28px 30px; display:flex; flex-direction:column; flex:1; }
-.cfg .kicker{ font-size:12.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--green); font-weight:600; }
-.cfg h3{ font-size:24px; font-weight:600; margin-top:11px; }
-.cfg p{ font-size:15.5px; color:var(--muted); margin-top:12px; }
-.cfg ul{ list-style:none; margin-top:18px; display:flex; flex-direction:column; gap:11px; }
-.cfg li{ font-size:15.5px; padding-left:25px; position:relative; }
-.cfg li::before{ content:""; position:absolute; left:4px; top:9px; width:8px; height:8px; border-radius:50%; background:var(--green); }
-.cfg .term{ padding-top:20px; border-top:1px solid var(--line); margin-top:22px; font-size:14.5px; color:var(--muted); }
-.cfg .term b{ color:var(--ink); }
-
 /* split */
 .split{ display:grid; grid-template-columns:1.05fr .95fr; gap:54px; align-items:center; }
-.split .ph{ border-radius:14px; overflow:hidden; border:1px solid var(--line); }
+.split .ph{ border-radius:14px; overflow:hidden; border:1px solid var(--line); background:linear-gradient(135deg,#EAF1ED,#F6F7ED); min-height:420px; }
 .split .ph img{ width:100%; height:520px; object-fit:cover; }
 .split h2{ font-size:32px; margin-bottom:0; }
 .split p{ margin-top:18px; }
 .split .note{ margin-top:20px; font-size:15px; color:var(--muted); border-left:3px solid var(--green); padding-left:18px; }
 
-/* gallery 3 */
+/* mount list */
+.mlist{ list-style:none; margin-top:22px; display:flex; flex-direction:column; gap:18px; }
+.mlist li b{ display:block; }
+.mlist li span{ color:var(--muted); font-size:15px; }
+
+/* gallery */
 .g3{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
-.g3 .ph{ border-radius:12px; overflow:hidden; border:1px solid var(--line); }
+.g3 .ph{ border-radius:12px; overflow:hidden; border:1px solid var(--line); background:linear-gradient(135deg,#EAF1ED,#F6F7ED); min-height:300px; }
 .g3 .ph img{ width:100%; height:300px; object-fit:cover; }
 .g3 .cap{ font-size:13.5px; color:var(--muted); padding:12px 4px 0; }
 
@@ -130,16 +121,14 @@ svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:non
 .sw .s{ text-align:center; font-size:12.5px; color:var(--muted); width:76px; }
 .sw .chip{ width:76px; height:58px; border-radius:9px; border:1px solid var(--line); margin-bottom:8px; }
 
-.band-img{ height:420px; background-size:cover; background-position:center; }
-
-/* process */
+/* process tiles */
 .proc{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
 .ptile{ background:var(--dark); color:#EAF1ED; border-radius:12px; padding:26px 24px; min-height:178px; display:flex; flex-direction:column; justify-content:space-between; }
 .ptile .n{ font-family:var(--serif); font-size:22px; color:var(--green); }
 .ptile .t{ font-size:16.5px; font-weight:600; color:#fff; }
 .ptile .d{ font-size:13.5px; color:#A9C1B4; margin-top:8px; line-height:1.5; }
 
-/* steps */
+/* dark */
 .dark{ background:var(--dark); color:#EAF1ED; }
 .dark h2{ color:#fff; }
 .steps{ display:grid; grid-template-columns:repeat(5,1fr); gap:20px; }
@@ -147,8 +136,6 @@ svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:non
 .step .t{ font-size:16px; font-weight:600; color:#fff; margin-top:10px; }
 .step .d{ font-size:13px; color:#A9C1B4; margin-top:7px; line-height:1.5; }
 .step .w{ font-size:12px; color:var(--green); font-weight:600; margin-top:9px; }
-
-/* stats */
 .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
 .stat{ background:var(--dark-2); border:1px solid var(--line-dark); border-radius:12px; padding:26px 24px; }
 .stat .v{ font-family:var(--serif); font-size:29px; color:#fff; font-weight:600; }
@@ -156,9 +143,7 @@ svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:non
 
 /* cost */
 .cost{ display:grid; grid-template-columns:330px 1fr; gap:50px; align-items:center; }
-.donut{ width:280px; height:280px; border-radius:50%;
-  background:conic-gradient(var(--green) 0 38%, var(--forest) 38% 64%, #6FA98C 64% 84%, #B7CBBE 84% 100%);
-  position:relative; margin:0 auto; }
+.donut{ width:280px; height:280px; border-radius:50%; position:relative; margin:0 auto; }
 .donut::after{ content:""; position:absolute; inset:64px; background:var(--cream); border-radius:50%; }
 .donut .mid{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:1; }
 .donut .mid b{ font-family:var(--serif); font-size:22px; }
@@ -186,350 +171,591 @@ svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:non
 .cta .price{ font-family:var(--serif); font-size:48px; color:var(--green); font-weight:600; margin-top:24px; }
 .cta .price small{ font-size:19px; color:#A9C1B4; font-weight:400; }
 .cta .btns{ margin-top:26px; display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
-.btn{ display:inline-flex; align-items:center; gap:9px; font-weight:600; font-size:16px; padding:16px 30px; border-radius:10px; text-decoration:none; cursor:pointer; transition:transform .15s ease, background .2s ease; }
+.btn{ display:inline-flex; align-items:center; gap:9px; font-weight:600; font-size:16px; padding:16px 30px; border-radius:10px; text-decoration:none; cursor:pointer; transition:transform .15s ease, background .2s ease; border:0; font-family:var(--sans); }
 .btn.p{ background:var(--green); color:#fff; }
 .btn.p:hover{ background:var(--green-d); transform:translateY(-1px); }
 .btn.g{ background:transparent; color:#EAF1ED; border:1px solid #2C5A48; }
 .btn.g:hover{ background:#0E3A2C; }
-
 footer{ background:var(--dark); color:#9DB5A9; padding:28px 0; }
 footer .wrap{ display:flex; justify-content:space-between; font-size:13.5px; }
 
+/* dealer value */
+.dv{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+.dv .card{ border:1px solid var(--line); border-radius:12px; padding:24px; background:#fff; }
+.dv .card .v{ font-family:var(--serif); font-size:30px; color:var(--green); font-weight:600; }
+.dv .card .l{ font-size:14.5px; color:var(--muted); margin-top:8px; line-height:1.5; }
+
+/* scenario */
+.scen{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.scen .card{ border:1px solid var(--line); border-radius:14px; padding:28px; background:#fff; }
+.scen .card h3{ font-size:22px; font-weight:600; }
+.scen .card p{ color:var(--muted); font-size:15.5px; margin-top:10px; }
+.scen .card .tags{ margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
+.scen .card .tags span{ font-size:12.5px; background:var(--cream); border:1px solid var(--line); border-radius:999px; padding:5px 11px; }
+
+/* sub-blocks (модули внутри родительского блока) */
+.sub{ background:#fff; border:1px solid var(--line); border-left:4px solid var(--green); border-radius:12px; padding:24px 26px 22px; }
+.sub + .sub{ margin-top:16px; }
+.sub-h{ display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+.sub-h .tag{ font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--green); font-weight:700; background:rgba(31,137,90,.10); border-radius:999px; padding:5px 11px; }
+.sub-h h3{ font-size:20px; font-weight:600; }
+.sub-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; }
+.opt{ display:flex; gap:12px; align-items:flex-start; background:var(--cream); border-radius:10px; padding:14px 16px; }
+.opt .num{ flex:none; width:26px; height:26px; border-radius:50%; background:var(--dark); color:#fff; font:700 12.5px var(--sans); display:flex; align-items:center; justify-content:center; margin-top:2px; }
+.opt b{ display:block; font-size:15px; }
+.opt span{ display:block; font-size:13.5px; color:var(--muted); margin-top:3px; line-height:1.45; }
+
+/* bento portfolio */
+.bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:210px; gap:14px; }
+.cell{ position:relative; border-radius:12px; overflow:hidden; border:1px solid var(--line); background:linear-gradient(135deg,#EAF1ED,#F6F7ED); margin:0; }
+.cell.s22{ grid-column:span 2; grid-row:span 2; }
+.cell.s21{ grid-column:span 2; }
+.cell img{ width:100%; height:100%; object-fit:cover; }
+.cell figcaption{ position:absolute; left:0; right:0; bottom:0; padding:12px 14px; font-size:13px; color:#fff; background:linear-gradient(0deg,rgba(8,40,33,.78),rgba(8,40,33,0)); }
+
+/* ================= EDITOR ================= */
+#edToggle{ position:fixed; top:16px; right:16px; z-index:60; background:var(--green); color:#fff; border:0; border-radius:10px; padding:11px 16px; font:600 14px var(--sans); cursor:pointer; box-shadow:0 6px 20px rgba(8,40,33,.25); display:inline-flex; align-items:center; gap:8px; }
+#edToggle svg{ width:16px; height:16px; stroke:#fff; stroke-width:2; fill:none; }
+#editor{ position:fixed; top:0; right:0; height:100vh; width:var(--panel-w); background:#fff; border-left:1px solid var(--line); z-index:50; overflow:auto; transform:translateX(100%); transition:transform .25s ease; font-size:13.5px; box-shadow:-10px 0 30px rgba(0,0,0,.08); }
+body.ed-open #editor{ transform:none; }
+body.ed-open{ padding-right:var(--panel-w); }
+#editor .ehead{ position:sticky; top:0; background:var(--dark); color:#fff; padding:16px 18px; z-index:2; }
+#editor .ehead b{ font-family:var(--serif); font-size:17px; display:block; }
+#editor .ehead span{ color:#9DB5A9; font-size:12px; }
+#editor details{ border-bottom:1px solid var(--line); }
+#editor summary{ cursor:pointer; padding:13px 18px; font-weight:600; font-size:14px; background:var(--cream); list-style:none; display:flex; justify-content:space-between; align-items:center; }
+#editor summary::-webkit-details-marker{display:none}
+#editor summary::after{ content:"+"; color:var(--green); font-weight:700; }
+#editor details[open] summary::after{ content:"\2212"; }
+#editor .ebody{ padding:12px 18px 16px; display:flex; flex-direction:column; gap:10px; }
+#editor label{ display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted); }
+#editor label.row{ flex-direction:row; align-items:center; gap:8px; color:var(--ink); font-size:13px; }
+#editor input[type=text],#editor input[type=number],#editor input[type=date],#editor select,#editor textarea{ font:13px var(--sans); padding:7px 9px; border:1px solid var(--line); border-radius:7px; width:100%; color:var(--ink); background:#fff; }
+#editor textarea{ min-height:56px; resize:vertical; }
+#editor .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+#editor .seg{ display:flex; gap:6px; }
+#editor .seg button{ flex:1; padding:7px 6px; border:1px solid var(--line); background:#fff; border-radius:7px; font:600 12px var(--sans); cursor:pointer; color:var(--muted); }
+#editor .seg button.on{ background:var(--green); color:#fff; border-color:var(--green); }
+#editor .item{ border:1px solid var(--line); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; background:#FAFBF7; }
+#editor .item .ih{ display:flex; justify-content:space-between; align-items:center; font-weight:600; }
+#editor .item .ih button{ background:none; border:0; color:#B44; cursor:pointer; font-size:12px; }
+#editor .ebtn{ padding:9px 12px; border:1px solid var(--green); background:#fff; color:var(--green); border-radius:8px; font:600 13px var(--sans); cursor:pointer; }
+#editor .ebtn.solid{ background:var(--green); color:#fff; }
+#editor .ebtn:hover{ filter:brightness(.96); }
+#editor .btnrow{ display:flex; gap:8px; flex-wrap:wrap; }
+#editor .modrow{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px; padding:6px 0; border-bottom:1px dashed var(--line); }
+#editor .modrow .mn{ font-size:13px; }
+#editor .modrow .mn small{ display:block; color:var(--muted); font-size:11.5px; }
+#editor .tri{ display:flex; gap:3px; }
+#editor .tri button{ padding:4px 7px; border:1px solid var(--line); background:#fff; border-radius:6px; font:600 11px var(--sans); cursor:pointer; color:var(--muted); }
+#editor .tri button.on{ background:var(--dark); color:#fff; border-color:var(--dark); }
+#editor .hint{ font-size:11.5px; color:var(--muted); line-height:1.45; }
+#editor .warn{ font-size:12px; color:#8A4B00; background:#FFF6E5; border:1px solid #F1D9A8; border-radius:8px; padding:8px 10px; line-height:1.45; }
+
+@media print{ #editor,#edToggle{display:none !important} body.ed-open{padding-right:0} .sec{break-inside:avoid} }
 @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
 @media(max-width:900px){
   .wrap{padding:0 20px}
-  .vals,.pos .row,.totals,.info,.configs,.split,.g3,.mats,.proc,.steps,.stats,.cost,.qc,.pgrid{grid-template-columns:1fr}
+  .vals,.pos .row,.totals,.info,.contacts,.split,.g3,.mats,.proc,.steps,.stats,.cost,.qc,.pgrid,.dv,.scen{grid-template-columns:1fr}
+  .bento{grid-template-columns:repeat(2,1fr);grid-auto-rows:170px}
   .title h1{font-size:28px}
+  body.ed-open{padding-right:0}
+  #editor{width:100vw}
 }
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar"><div class="wrap">
-  <div class="brand">
-    <svg class="logo" viewBox="0 0 34 42" aria-hidden="true"><path d="M17 1C8 8 3 16 3 25c0 9 6 16 14 16s14-7 14-16C31 16 26 8 17 1z" fill="#1F895A"/><path d="M17 9c4 5 7 10 7 16 0 6-3 9-7 9" stroke="#EAF1ED" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
-    <div class="name">Glass Memory</div>
-  </div>
-  <div class="site">glass-memory.ru</div>
-</div></div>
+<button id="edToggle" type="button" aria-controls="editor" aria-expanded="false">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+  Редактор
+</button>
 
-<!-- TITLE -->
-<section class="title"><div class="wrap">
-  <div class="eyebrow" style="margin:30px 0 16px">Персональное коммерческое предложение</div>
-  <h1>Мемориал из стекла и металла в память о Вашем муже</h1>
-  <div class="date">для Марии Петровны · от 29.06.2026</div>
-  <div class="mgr">
-    <div class="av">Е</div>
-    <div class="who">
-      <b>Елена Соколова</b>
-      <div class="role">Ваш личный менеджер</div>
-      <div class="c">+7 (495) 955-16-79 · info@glass-memory.ru</div>
-    </div>
-  </div>
-</div></section>
+<aside id="editor" aria-label="Редактор КП">
+  <div class="ehead"><b>Редактор КП</b><span>изменения применяются сразу и сохраняются в браузере</span></div>
 
-<!-- VALUE: WHY GLASS -->
-<section class="sec"><div class="wrap">
-  <h2>Почему семьи выбирают стекло</h2>
-  <p class="intro">Стекло меняет то, как выглядит и ощущается место памяти. Это не про моду, а про свет, лицо и цельность участка.</p>
-  <div class="vals">
-    <div class="vcard">
-      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg></div>
-      <h3>Светлее гранита</h3>
-      <p>Стекло пропускает свет. Мемориал не выглядит тяжёлым и мрачным, особенно в солнечный день.</p>
+  <details open><summary>Пресеты и файлы</summary><div class="ebody">
+    <div class="btnrow">
+      <button class="ebtn" data-preset="A" type="button">A · Портрет</button>
+      <button class="ebtn" data-preset="B" type="button">B · Стела + цветник + ограда</button>
+      <button class="ebtn" data-preset="C" type="button">C · Комплекс</button>
     </div>
-    <div class="vcard">
-      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 18c1-2.2 8-2.2 9 0"/></svg></div>
-      <h3>Портрет внутри стекла</h3>
-      <p>Лицо напечатано керамическими красками и впечатано в стекло. Глубина и мягкий объём, который не даёт камень.</p>
+    <div class="hint">Пресеты B и C - черновики: цены ориентировочные, состав примерный.</div>
+    <div class="btnrow">
+      <button class="ebtn" id="btnJsonDown" type="button">Скачать kp.json</button>
+      <label class="ebtn" style="display:inline-block">Загрузить kp.json<input id="jsonUp" type="file" accept="application/json" hidden></label>
     </div>
-    <div class="vcard">
-      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg></div>
-      <h3>Единый дизайн</h3>
-      <p>Стела, цветник, ограждение и скамья делаются в одном рисунке. Участок выглядит цельно, без случайных деталей.</p>
+    <div class="btnrow">
+      <button class="ebtn solid" id="btnHtml" type="button">Скачать HTML без панели</button>
+      <button class="ebtn" id="btnPrint" type="button">Печать / PDF</button>
+      <button class="ebtn" id="btnReset" type="button">Сбросить к A</button>
     </div>
-  </div>
-</div></section>
+  </div></details>
 
-<!-- POSITIONS -->
-<section class="sec cream"><div class="wrap">
-  <h2>Состав мемориала</h2>
-  <p class="intro">Предлагаем сдержанный и светлый комплект. Состав можно менять: убрать или добавить элемент на этапе согласования.</p>
-  <div class="pos">
-    <div class="row head-row">
-      <div class="col-h">Изделие</div><div></div>
-      <div class="col-h">Цена за ед.</div><div class="col-h" style="text-align:center">Кол-во</div>
-      <div class="col-h" style="text-align:right">Сумма</div>
-    </div>
-    <div class="row">
-      <img class="thumb" src="5.jpg" alt="Стеклянная стела с портретом">
-      <div><div class="nm">Стела стеклянная с керамическим портретом</div><div class="meta">Триплекс 18 мм, 600 × 1200 мм. Керамическая фотопечать портрета и текста. Дистанционный крепёж.</div></div>
-      <div class="unit">от 79 000 ₽</div><div class="qty">1</div>
-      <div class="sum">от 79 000 ₽</div>
-    </div>
-    <div class="row">
-      <img class="thumb" src="4.jpg" alt="Стеклянный цветник">
-      <div><div class="nm">Стеклянный цветник с керамопечатью</div><div class="meta">Триплекс закалённый, 600 × 1200 мм. Цветочный мотив керамической печатью. Не боится влаги и мороза.</div></div>
-      <div class="unit">от 44 000 ₽</div><div class="qty">1</div>
-      <div class="sum">от 44 000 ₽</div>
-    </div>
-    <div class="row">
-      <img class="thumb" src="1.jpg" alt="Ограждение стекло и металл">
-      <div><div class="nm">Ограждение стекло и металл</div><div class="meta">Стальной каркас с лазерной резкой, окраска RAL 9005 matte, стеклянные вставки. Растительный рисунок под общий дизайн.</div></div>
-      <div class="unit">от 74 000 ₽</div><div class="qty">1</div>
-      <div class="sum">от 74 000 ₽</div>
-    </div>
-    <div class="row">
-      <img class="thumb" src="2.jpg" alt="3D-визуализация">
-      <div><div class="nm">3D-визуализация и согласование</div><div class="meta">Покажем будущий мемориал в 3D до старта работ. Правки до полного согласования.</div></div>
-      <div class="unit">0 ₽</div><div class="qty">1</div>
-      <div class="sum">0 ₽</div>
-    </div>
-  </div>
-  <div class="totals">
-    <div class="tnote"><b>Это предварительный ориентир, а не финальная цена.</b> Готового розничного прайса на персональный комплект нет: стоимость зависит от размеров, толщины стекла, формы и состава. Точную смету подтвердим после замера и согласования 3D-макета. На этом шаге Вы ничем не связаны.</div>
-    <div class="tbox">
-      <div class="t"><span>Замер по Москве</span><span>0 ₽</span></div>
-      <div class="t"><span>3D-макет и согласование</span><span>0 ₽</span></div>
-      <div class="t"><span>Доставка ТК по РФ</span><span>от 2 500 ₽</span></div>
-      <div class="grand"><div class="l">Итого ориентировочно</div><div class="v">от 197 000 ₽</div></div>
-      <div class="fine">Самовывоз из Домодедово бесплатно. Финальная смета после замера.</div>
-    </div>
-  </div>
-</div></section>
+  <details open><summary>Клиент и режим</summary><div class="ebody" id="edClient"></div></details>
+  <details><summary>Контакты</summary><div class="ebody" id="edContacts"></div></details>
+  <details open><summary>Позиции</summary><div class="ebody" id="edItems"></div></details>
+  <details><summary>Блоки каркаса</summary><div class="ebody" id="edBlocks"></div></details>
+  <details><summary>Модули</summary><div class="ebody" id="edModules"></div></details>
+  <details><summary>Фото и подписи</summary><div class="ebody" id="edPhotos"></div></details>
+</aside>
 
-<!-- INFO STRIP -->
-<section class="sec" style="padding-bottom:0"><div class="wrap">
-  <div class="info">
-    <div class="i"><div class="h">Срок изготовления</div><div class="d">Отдельное изделие 30 к.д. Полный комплекс 45-90 к.д. от утверждения макета.</div></div>
-    <div class="i"><div class="h">Оплата</div><div class="d">Заказы от 50 000 ₽ по схеме 70% и 30%. Поэтапная оплата по согласованию.</div></div>
-    <div class="i"><div class="h">Гарантия</div><div class="d">5 лет на металл и окраску. Керамический портрет не выцветает 20+ лет.</div></div>
-    <div class="i"><div class="h">Доставка</div><div class="d">Транспортной компанией по всей России. Самовывоз из Домодедово бесплатно.</div></div>
-  </div>
-</div></section>
+<main id="kp"></main>
 
-<!-- TWO CONFIGS -->
-<section class="sec"><div class="wrap">
-  <h2>Два варианта состава</h2>
-  <p class="intro">Можно начать сдержанно и дополнить позже. Оба варианта собираются в одном дизайне.</p>
-  <div class="configs">
-    <div class="cfg">
-      <img src="5.jpg" alt="Светлая стела">
-      <div class="body">
-        <div class="kicker">Вариант 1 · сдержанный</div>
-        <h3>Светлая стела</h3>
-        <p>Когда не хочется перегружать участок. Главное - светлая стела и портрет.</p>
-        <ul>
-          <li>Стела из триплекса с керамическим портретом</li>
-          <li>Стеклянный цветник с печатью</li>
-          <li>Ограждение из стекла и металла</li>
-        </ul>
-        <div class="term"><b>Срок:</b> 30-45 к.д. · состав можно расширить позже</div>
-      </div>
-    </div>
-    <div class="cfg">
-      <img src="3.jpg" alt="Полный мемориальный комплекс">
-      <div class="body">
-        <div class="kicker">Вариант 2 · полный</div>
-        <h3>Мемориальный комплекс</h3>
-        <p>Шесть элементов в одном дизайне по цвету, материалу и рисунку.</p>
-        <ul>
-          <li>Стела, цветник, входная группа</li>
-          <li>Стальные вазы с лазерной резкой</li>
-          <li>Скамья, столик и ограждение в общем стиле</li>
-        </ul>
-        <div class="term"><b>Срок:</b> 45-90 к.д. в зависимости от состава</div>
-      </div>
-    </div>
-  </div>
-</div></section>
+<script>
+/* ============================ СПРАВОЧНИКИ ============================ */
+const GLASS = ['бесцветное','осветлённое (Crystalvision, +25%)','матовое','тонированное','фактурное'];
+const FORMS = ['прямоугольник (+0%)','арка (+40%)','фасон с прямым углом (+40%)','овал (+60%)','круг (+60%)','сердце (+60%)','фасон криволинейный (+60%)'];
+const MOUNTS = {
+  mount_portrait:['дистанционный крепёж, отступ 15 мм','вплотную к камню, белая подложка','на клей-герметик, без сверления'],
+  mount_stela:['в каменную подставку','в каменный столбик','между двумя каменными столбами','в металлическую раму','в металлический зажимной держатель'],
+  mount_overlay:['крепёж через отверстия','по периметру на полимерный клей'],
+  mount_stand:['рядом с памятником, на основание','домашний мемориал, на полку'],
+  mount_frame:['штапик на заклёпках, рама к основанию','рама-подставка в грунт или бетон'],
+  mount_fence:['зажимной держатель из нержавейки','столбики из гранита (партнёр)'],
+  mount_restoration:['накладка поверх существующего камня'],
+  mount_complex:['замер участка и 3D всего комплекса']
+};
 
-<!-- VALUE: PORTRAIT IN GLASS -->
-<section class="sec cream"><div class="wrap">
-  <div class="split">
-    <div class="ph"><img src="1.jpg" alt="Керамический портрет в стекле"></div>
-    <div>
-      <div class="eyebrow">Технология</div>
-      <h2>Портрет живёт внутри стекла</h2>
-      <p>Керамические краски впекаются в стекло при 600 °C и становятся частью материала. Поэтому изображение не выцветает и не стирается. На наших памятниках с 2016 года портрет сохраняет цвет более 20 лет.</p>
-      <p class="note">УФ-печать наносится поверх стекла и обновляется через 3-5 лет. Керамика этого не требует: она держит цвет десятилетиями.</p>
-    </div>
-  </div>
-</div></section>
+/* Тип изделия -> маршрут, модули ценности, модуль монтажа, срок, поля, картинка по умолчанию */
+const TYPES = {
+  portrait:      {label:'Портрет с керамопечатью', route:'glass', value:['ceramic','triplex'], mount:'mount_portrait', term:30, img:'1.jpg',
+                  fields:['glass','thickness','size','form','mount'], def:{thickness:'триплекс 10 мм', size:'400 × 600 мм'}},
+  stela:         {label:'Памятник-стела из триплекса', route:'glass', value:['ceramic','triplex'], mount:'mount_stela', term:30, img:'5.jpg',
+                  fields:['glass','thickness','size','form','sides','mount'], def:{thickness:'триплекс 18 мм', size:'600 × 1200 мм', sides:'односторонняя печать'}},
+  overlay:       {label:'Накладка на цветник', route:'glass', value:['ceramic','flowers'], mount:'mount_overlay', term:30, img:'4.jpg',
+                  fields:['glass','thickness','size','mount'], def:{thickness:'закалённое 8 мм', size:'600 × 1200 мм'}},
+  restoration:   {label:'Реставрационная накладка', route:'glass', value:['ceramic','restoration'], mount:'mount_restoration', term:30, img:'1.jpg',
+                  fields:['glass','thickness','size'], def:{thickness:'закалённое 8 мм', size:'под размер камня'}},
+  stand:         {label:'Портрет на стеклянной подставке', route:'glass', value:['ceramic','uvbond'], mount:'mount_stand', term:30, img:'1.jpg',
+                  fields:['glass','thickness','size','form','mount'], def:{thickness:'триплекс 10 мм', size:'400 × 600 мм'}},
+  frame:         {label:'Рама или подставка из металла', route:'metal', value:['laser'], mount:'mount_frame', term:30, img:'5.jpg',
+                  fields:['metal','size','ral','mount'], def:{metal:'проф. труба 60×30, лист 8 мм', size:'600 × 1200 мм', ral:'RAL 9005 matte'}},
+  stacked:       {label:'Памятник из наборного стекла', route:'glass', value:['uvbond','premium'], mount:'mount_stela', term:30, img:'5.jpg',
+                  fields:['thickness','size','form'], def:{thickness:'незакалённое стекло 10 мм', size:'по эскизу'}},
+  fence:         {label:'Ограждение стекло и металл', route:'both', value:['laser'], mount:'mount_fence', term:30, img:'4.jpg',
+                  fields:['metal','ral','decor','size','mount'], def:{metal:'труба 40×20, лист 2-3 мм', ral:'RAL 9005 matte', decor:'белая печать', size:'под цоколь захоронения'}},
+  steel:         {label:'Стальной памятник с лазерной резкой', route:'both', value:['laser','ceramic'], mount:'mount_portrait', term:30, img:'5.jpg',
+                  fields:['metal','ral','ornament','size','mount'], def:{metal:'нержавейка AISI 304, лист 3 мм', ral:'натуральная сталь', ornament:'дубовые листья', size:'600 × 1200 мм'}},
+  complex:       {label:'Мемориальный комплекс', route:'both', value:['scenario','designcode','ceramic','triplex','laser'], mount:'mount_complex', term:'45-90', img:'4.jpg',
+                  fields:['composition','scenario'], def:{composition:'6 элементов', scenario:'открытый тип'}}
+};
+const FIELD_LABEL = {glass:'Стекло', thickness:'Толщина', size:'Размер', form:'Форма', sides:'Печать', mount:'Крепление', metal:'Металл', ral:'Окраска', decor:'Декор', ornament:'Орнамент', composition:'Состав', scenario:'Тип'};
 
-<!-- VALUE: STRENGTH -->
-<section class="sec"><div class="wrap">
-  <h2>Стекло прочнее, чем кажется</h2>
-  <p class="intro">Это не витринное стекло. Триплекс собран из двух закалённых стёкол и прочной плёнки между ними.</p>
-  <div class="vals">
-    <div class="vcard">
-      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg></div>
-      <h3>В 6 раз прочнее</h3>
-      <p>Триплекс от 8 до 34 мм прочнее обычного стекла той же толщины. Спокойно стоит под дождём, морозом и солнцем.</p>
-    </div>
-    <div class="vcard">
-      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M5 7l7-5 7 5M5 7v6c0 4 3 6.5 7 9 4-2.5 7-5 7-9V7"/></svg></div>
-      <h3>Не боится погоды</h3>
-      <p>Стекло не ржавеет и не гниёт, поверхность не тускнеет. Уход простой: вода и мягкая ткань.</p>
-    </div>
-    <div class="vcard">
-      <div class="ico"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></div>
-      <h3>Проверено временем</h3>
-      <p>Наши памятники стоят без повреждений с 2016 года. Это более 10 лет реальной службы на участках.</p>
-    </div>
-  </div>
-</div></section>
+/* Модули ценности: заголовок для редактора и отрисовка */
+const VALUE_MODULES = {
+  whyglass:  {name:'Почему семьи выбирают стекло', auto:(kp)=>kp.client.type!=='dealer'},
+  ceramic:   {name:'Портрет живёт внутри стекла (керамопечать 600 °C, 20+ лет)'},
+  triplex:   {name:'Стекло прочнее, чем кажется (триплекс 6×)'},
+  flowers:   {name:'Стекло вместо живых цветов'},
+  restoration:{name:'Обновление без замены камня'},
+  uvbond:    {name:'УФ-склейка стекло-стекло'},
+  premium:   {name:'Наборное стекло: игра света'},
+  laser:     {name:'Лазер вместо ковки (металл)'},
+  designcode:{name:'Единый дизайн-код'},
+  scenario:  {name:'Сценарий участка: открытый / закрытый'},
+  dealer:    {name:'Выгода дилера (наценка 80-150%)', auto:(kp)=>kp.client.type==='dealer'},
+  photos:    {name:'Примеры на участке (фото)', auto:()=>true},
+  materials: {name:'Материалы и базовые цвета', auto:()=>true}
+};
+const BENTO=['22','11','11','11','11','21','21'];
+const BLOCKS = [
+  ['title','Титул и дата'],['contacts','Контакты'],['positions','Позиции'],['totals','Итог'],
+  ['terms','Условия'],['modules','Модули по изделиям'],['process','Как мы производим'],['steps','Как это работает'],
+  ['producer','Производитель'],['cost','Из чего складывается стоимость'],['qc','Контроль качества'],['cta','Призыв к действию']
+];
 
-<!-- EXAMPLES -->
-<section class="sec cream"><div class="wrap">
-  <h2>Примеры на участке</h2>
-  <div class="g3">
-    <div><div class="ph"><img src="4.jpg" alt="Полный комплекс"></div><div class="cap">Полный комплекс в едином дизайне</div></div>
-    <div><div class="ph"><img src="5.jpg" alt="Светлая стела"></div><div class="cap">Светлая стела с портретом</div></div>
-    <div><div class="ph"><img src="1.jpg" alt="Портрет на креплении"></div><div class="cap">Керамический портрет на дистанционном креплении</div></div>
-  </div>
-</div></section>
+/* ============================ ПРЕСЕТЫ ============================ */
+const PRESETS = {
+  A: {
+    client:{name:'Марии Петровны', type:'person', date:'2026-09-15', subject:'Портрет с керамической печатью в память о Вашем муже'},
+    price_mode:'orientir',
+    contacts:[{name:'Елена Соколова', role:'Ваш личный менеджер', phone:'+7 (495) 955-16-79', email:'info@glass-memory.ru'}],
+    items:[{type:'portrait', glass:GLASS[0], thickness:'триплекс 10 мм', size:'400 × 600 мм', form:FORMS[0], mount:MOUNTS.mount_portrait[0], qty:1, price:16500, name:''}],
+    extras:[['Замер по Москве',0],['3D-макет и согласование',0],['Доставка ТК по РФ',2500]],
+    blocks:{}, modules:{}, photos:[['4.jpg','Мемориальный комплекс в едином дизайне'],['1.jpg','Керамический портрет на дистанционном креплении'],['5.jpg','Стела с ажурной панелью'],['6.jpg','Накладка на цветник с керамопечатью'],['7.jpg','Ограждение с лазерной резкой'],['2.jpg','3D-макет и образцы материалов'],['3.jpg','Образцы материалов и стартовый набор']]
+  },
+  B: {
+    client:{name:'Марии Петровны', type:'person', date:'2026-09-15', subject:'Мемориал из стекла и металла в память о Вашем муже'},
+    price_mode:'orientir',
+    contacts:[{name:'Елена Соколова', role:'Ваш личный менеджер', phone:'+7 (495) 955-16-79', email:'info@glass-memory.ru'}],
+    items:[
+      {type:'stela', glass:GLASS[0], thickness:'триплекс 18 мм', size:'600 × 1200 мм', form:FORMS[0], sides:'односторонняя печать', mount:MOUNTS.mount_stela[0], qty:1, price:79000, name:''},
+      {type:'overlay', glass:GLASS[0], thickness:'закалённое 8 мм', size:'600 × 1200 мм', mount:MOUNTS.mount_overlay[0], qty:1, price:44000, name:''},
+      {type:'fence', metal:'труба 40×20, лист 2-3 мм', ral:'RAL 9005 matte', decor:'белая печать', size:'под цоколь захоронения', mount:MOUNTS.mount_fence[0], qty:1, price:74000, name:''}
+    ],
+    extras:[['Замер по Москве',0],['3D-макет и согласование',0],['Доставка ТК по РФ',2500]],
+    blocks:{}, modules:{}, photos:[['4.jpg','Мемориальный комплекс в едином дизайне'],['1.jpg','Керамический портрет на дистанционном креплении'],['5.jpg','Стела с ажурной панелью'],['6.jpg','Накладка на цветник с керамопечатью'],['7.jpg','Ограждение с лазерной резкой'],['2.jpg','3D-макет и образцы материалов'],['3.jpg','Образцы материалов и стартовый набор']]
+  },
+  C: {
+    client:{name:'семьи Ивановых', type:'complex', date:'2026-09-15', subject:'Мемориальный комплекс под ключ'},
+    price_mode:'orientir',
+    contacts:[{name:'Елена Соколова', role:'Ваш личный менеджер', phone:'+7 (495) 955-16-79', email:'info@glass-memory.ru'}],
+    items:[
+      {type:'complex', composition:'6 элементов', scenario:'закрытый тип с остеклением', qty:1, price:0, name:'Мемориальный комплекс, 6 элементов'},
+      {type:'stela', glass:GLASS[1], thickness:'триплекс 24 мм', size:'800 × 1600 мм', form:FORMS[1], sides:'двусторонняя печать', mount:MOUNTS.mount_stela[3], qty:1, price:0, name:''},
+      {type:'overlay', glass:GLASS[0], thickness:'закалённое 8 мм', size:'600 × 1200 мм', mount:MOUNTS.mount_overlay[1], qty:1, price:0, name:''},
+      {type:'fence', metal:'труба 60×30, лист 3 мм', ral:'RAL 9005 matte', decor:'пескоструй', size:'по периметру участка', mount:MOUNTS.mount_fence[0], qty:1, price:0, name:''},
+      {type:'frame', metal:'лист 4 мм, нержавейка матовая', size:'скамья и столик', ral:'без покрытия', mount:MOUNTS.mount_frame[1], qty:1, price:0, name:'Скамья и столик, нержавейка'}
+    ],
+    extras:[['Замер участка',0],['3D-визуализация комплекса',0],['Доставка и монтаж','по согласованию']],
+    blocks:{}, modules:{}, photos:[['4.jpg','Комплекс открытого типа'],['1.jpg','Керамический портрет на дистанционном креплении'],['5.jpg','Стела с ажурной панелью'],['6.jpg','Накладка на цветник с керамопечатью'],['7.jpg','Ограждение с лазерной резкой'],['2.jpg','3D-макет и образцы материалов'],['3.jpg','Образцы материалов и стартовый набор']]
+  }
+};
 
-<!-- MATERIALS -->
-<section class="sec"><div class="wrap">
-  <h2>Материалы и базовые цвета</h2>
-  <div class="mats">
-    <div>
-      <h3>Стекло</h3>
-      <div class="sw">
-        <div class="s"><div class="chip" style="background:#DDE7E3"></div>бесцветное</div>
-        <div class="s"><div class="chip" style="background:#EDF3F0"></div>осветлённое</div>
-        <div class="s"><div class="chip" style="background:#9AA7A2"></div>матовое</div>
-        <div class="s"><div class="chip" style="background:#5B5043"></div>тонированное</div>
-      </div>
-    </div>
-    <div>
-      <h3>Металл, окраска</h3>
-      <div class="sw">
-        <div class="s"><div class="chip" style="background:#0A0A0A"></div>RAL 9005</div>
-        <div class="s"><div class="chip" style="background:#383E42"></div>RAL 7016</div>
-        <div class="s"><div class="chip" style="background:#F1F0EA;border-color:#D7D7CE"></div>RAL 9016</div>
-      </div>
-    </div>
-    <div>
-      <h3>Основание</h3>
-      <div class="sw">
-        <div class="s"><div class="chip" style="background:#111316"></div>гранит чёрный</div>
-        <div class="s"><div class="chip" style="background:#2B2E33"></div>габбро</div>
-      </div>
-    </div>
-  </div>
-  <p class="muted" style="margin-top:26px;font-size:14.5px;max-width:72ch">Осветлённое стекло (Crystalvision) убирает зеленоватый оттенок и дороже обычного на 25%. Форма влияет на цену: прямоугольник дешевле фигурной резки.</p>
-</div></section>
+/* ============================ СОСТОЯНИЕ ============================ */
+const LS = 'gm-kp-v4';
+let kp = load() || clone(PRESETS.A);
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function load(){ try{ const s=localStorage.getItem(LS); return s?JSON.parse(s):null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(kp)); }catch(e){} }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n){ return (Math.round(Number(n)||0)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ') + ' ₽'; }
+function itemName(it){ return it.name && it.name.trim() ? it.name : TYPES[it.type].label; }
+function itemMeta(it){
+  const t=TYPES[it.type]; const parts=[];
+  t.fields.forEach(f=>{ if(it[f]) parts.push(FIELD_LABEL[f]+': '+it[f]); });
+  return parts.join('. ') + (parts.length?'.':'');
+}
+function activeTypes(){ return [...new Set(kp.items.map(i=>i.type))]; }
+function routeOf(){ const r=new Set(activeTypes().map(t=>TYPES[t].route)); if(r.has('both')||(r.has('glass')&&r.has('metal'))) return 'both'; return r.has('metal')?'metal':'glass'; }
+function termOf(){ return activeTypes().some(t=>t==='complex') ? '45-90' : '30'; }
+function isOn(mod){
+  const ov = kp.modules[mod]; if(ov==='on') return true; if(ov==='off') return false;
+  const m=VALUE_MODULES[mod]; if(m && m.auto) return !!m.auto(kp);
+  return activeTypes().some(t=>TYPES[t].value.includes(mod));
+}
+function mountsOn(){
+  const types=activeTypes(); const set=new Set();
+  if(types.includes('complex')) set.add('mount_complex'); else types.forEach(t=>{ if(TYPES[t].mount) set.add(TYPES[t].mount); });
+  Object.keys(MOUNTS).forEach(k=>{ const ov=kp.modules[k]; if(ov==='on') set.add(k); if(ov==='off') set.delete(k); });
+  return [...set];
+}
+function blockOn(b){ return kp.blocks[b]!==false; }
+function priceCell(n){
+  n=Number(n)||0;
+  if(n===0 && kp.price_mode!=='dealer') return 'по смете';
+  if(kp.price_mode==='orientir') return 'от '+money(n);
+  return money(n);
+}
 
-<!-- WIDE BAND -->
-<div class="band-img" style="background-image:url('4.jpg')" role="img" aria-label="Мемориальный комплекс из стекла и металла"></div>
+/* ============================ РЕНДЕР ============================ */
+const ICON = {
+  sun:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg>',
+  face:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 18c1-2.2 8-2.2 9 0"/></svg>',
+  layers:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>',
+  shield:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>',
+  leaf:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M5 7l7-5 7 5M5 7v6c0 4 3 6.5 7 9 4-2.5 7-5 7-9V7"/></svg>',
+  check:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg>',
+  flower:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3a3 3 0 010 6 3 3 0 010-6zM12 15a3 3 0 010 6 3 3 0 010-6zM3 12a3 3 0 016 0 3 3 0 01-6 0zM15 12a3 3 0 016 0 3 3 0 01-6 0z"/></svg>',
+  bolt:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>',
+  stone:'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M8 6V4h8v2"/></svg>'
+};
+const ok = '<span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>';
 
-<!-- PROCESS (стекло не режется лазером) -->
-<section class="sec cream"><div class="wrap">
-  <h2>Как мы производим</h2>
-  <p class="intro">Полный цикл на своём цехе в Домодедово. Стекло и металл обрабатываются по-разному.</p>
-  <div class="proc">
-    <div class="ptile"><div class="n">01</div><div><div class="t">Раскрой стекла</div><div class="d">Фигурная резка, обработка кромки и отверстия под крепёж.</div></div></div>
-    <div class="ptile"><div class="n">02</div><div><div class="t">Керамическая печать</div><div class="d">Портрет наносим керамическими красками.</div></div></div>
-    <div class="ptile"><div class="n">03</div><div><div class="t">Закалка 600 °C и триплекс</div><div class="d">Краски впекаются, два стекла соединяем плёнкой EVA.</div></div></div>
-    <div class="ptile"><div class="n">04</div><div><div class="t">Металл и сборка</div><div class="d">Лазерная резка стали 0,1 мм, окраска RAL, монтаж узлов.</div></div></div>
-  </div>
-</div></section>
+function vcard(icon,h,p){ return `<div class="vcard"><div class="ico">${icon}</div><h3>${h}</h3><p>${p}</p></div>`; }
+function section(cls, inner){ return `<section class="sec ${cls}"><div class="wrap">${inner}</div></section>`; }
 
-<!-- STEPS DARK -->
-<section class="sec dark"><div class="wrap">
-  <h2>Как это работает</h2>
-  <div class="steps">
+function renderModules(){
+  const out=[]; const t=kp.client.type;
+  if(isOn('whyglass')) out.push(section('', `<h2>Почему семьи выбирают стекло</h2><p class="intro">Стекло меняет то, как выглядит и ощущается место памяти. Это не про моду, а про свет, лицо и цельность участка.</p><div class="vals">
+    ${vcard(ICON.sun,'Светлее гранита','Стекло пропускает свет. Мемориал не выглядит тяжёлым и мрачным, особенно в солнечный день.')}
+    ${vcard(ICON.face,'Портрет внутри стекла','Лицо напечатано керамическими красками и впечатано в стекло. Глубина и мягкий объём, который не даёт камень.')}
+    ${vcard(ICON.layers,'Единый дизайн','Стела, цветник, ограждение и скамья делаются в одном рисунке. Участок выглядит цельно, без случайных деталей.')}
+  </div>`));
+  if(isOn('dealer')) out.push(section('', `<h2>Зачем вашему ассортименту стекло</h2><p class="intro">Цифры из партнёрской презентации GLASS-MEMORY. Наценку партнёр устанавливает сам по региону.</p><div class="dv">
+    <div class="card"><div class="v">80-150%</div><div class="l">наценка дилера, потолка нет</div></div>
+    <div class="card"><div class="v">0 ₽</div><div class="l">вход в дилерство, бесплатный образец 380×380 мм</div></div>
+    <div class="card"><div class="v">35-45 тыс ₽</div><div class="l">средний чек по дилерам, повторные продажи ×3-5</div></div>
+  </div>`));
+  if(isOn('scenario')) out.push(section('cream', `<h2>Открытый или закрытый тип</h2><p class="intro">Подбираем формат под семью, размер участка и желаемую степень приватности.</p><div class="scen">
+    <div class="card"><h3>Открытый тип</h3><p>Классическая композиция: ограждение, стела, цветник, скамья. Обзор и гармония с ландшафтом.</p><div class="tags"><span>Стела</span><span>Ограда</span><span>Цветник</span><span>Скамья</span></div></div>
+    <div class="card"><h3>Закрытый, с остеклением</h3><p>Стеклянная стена из триплекса закрывает от ветра и шума, не перекрывая обзор. Приватность внутри.</p><div class="tags"><span>Стеклянные стены</span><span>Столик</span><span>Весь комплекс</span></div></div>
+  </div>`));
+  if(isOn('designcode')) out.push(section('', `<h2>Шесть элементов в единой композиции</h2><p class="intro">Все элементы производим на одном заводе в Домодедово. Единый дизайн-код по цвету, материалу и декору.</p><div class="vals">
+    ${vcard(ICON.layers,'Стела из триплекса','Центр композиции. Керамопечать, 8-34 мм.')}
+    ${vcard(ICON.flower,'Стеклянные цветники','Керамопечать, не выцветает 20+ лет.')}
+    ${vcard(ICON.stone,'Скамья, столик, вазы, ограждение','Нержавейка или сталь с порошковой окраской, лазерная резка под общий рисунок.')}
+  </div>`));
+  if(isOn('ceramic')) out.push(section('cream', `<div class="split"><div class="ph"><img src="1.jpg" alt="Керамический портрет в стекле"></div><div>
+    <div class="eyebrow">Технология</div><h2>Портрет живёт внутри стекла</h2>
+    <p>Керамические краски впекаются в стекло при 600 °C и становятся частью материала. Изображение не выцветает и не стирается. На наших памятниках с 2016 года портрет сохраняет цвет более 20 лет.</p>
+    <p class="note">УФ-печать наносится поверх стекла и обновляется через 3-5 лет. Керамика этого не требует: она держит цвет десятилетиями.</p>
+  </div></div>`));
+  if(isOn('triplex')) out.push(section('', `<h2>Стекло прочнее, чем кажется</h2><p class="intro">Это не витринное стекло. Триплекс собран из двух закалённых стёкол и прозрачной полимерной плёнки EVA между ними.</p><div class="vals">
+    ${vcard(ICON.shield,'В 6 раз прочнее','Триплекс от 8 до 34 мм прочнее обычного стекла той же толщины. Спокойно стоит под дождём, морозом и солнцем.')}
+    ${vcard(ICON.leaf,'Не боится погоды','Стекло не ржавеет и не гниёт, поверхность не тускнеет. Уход простой: вода и мягкая ткань.')}
+    ${vcard(ICON.check,'Проверено временем','Наши памятники стоят без повреждений с 2016 года. Это более 10 лет службы на участках.')}
+  </div>`));
+  if(isOn('flowers')) out.push(section('cream', `<h2>Стекло вместо живых цветов</h2><p class="intro">Накладка с керамопечатью по всей площади цветника. Уход: убрать мусор и протереть.</p><div class="vals">
+    ${vcard(ICON.flower,'Не выгорает и не вянет','Керамические чернила не выцветают. Живые цветы без полива желтеют, искусственные выгорают на солнце.')}
+    ${vcard(ICON.shield,'Не разрушается','Закалённое стекло держит ветер, дождь и мороз. Смена цветов каждые 1-2 сезона больше не нужна.')}
+    ${vcard(ICON.layers,'Любая форма','Печать по эскизу в полную площадь. Опция: толстый триплекс на всё захоронение, стеклянный уличный пол.')}
+  </div>`));
+  if(isOn('restoration')) out.push(section('cream', `<h2>Обновление без замены камня</h2><p class="intro">Накладка со свежим портретом и текстом ставится поверх существующего памятника.</p><div class="vals">
+    ${vcard(ICON.stone,'Камень остаётся','Не нужен демонтаж и новый гранит. Накладка крепится на существующее основание.')}
+    ${vcard(ICON.face,'Цифровой файл','Работаем с цифровыми изображениями. Старую фотокерамику на реставрацию не принимаем.')}
+    ${vcard(ICON.check,'Дешевле замены','По партнёрским материалам, обновление дешевле замены камня в 3-5 раз.')}
+  </div>`));
+  if(isOn('uvbond')) out.push(section('', `<h2>УФ-склейка: соединение стекло-стекло</h2><p class="intro">Специальный клей полимеризуется под ультрафиолетом и даёт прочное прозрачное соединение без видимых швов.</p><div class="vals">
+    ${vcard(ICON.bolt,'Полимеризация светом','Клей твердеет под УФ-лампой. Соединение остаётся прозрачным, стык не виден.')}
+    ${vcard(ICON.layers,'Форма по эскизу','Сердце, волна, крест, фасонные композиции. Форма ограничена только эскизом.')}
+    ${vcard(ICON.stone,'Три материала','Наборное стекло комбинируем с камнем и металлом в одном изделии.')}
+  </div>`));
+  if(isOn('premium')) out.push(section('cream', `<div class="split"><div class="ph"><img src="5.jpg" alt="Наборное стекло"></div><div>
+    <div class="eyebrow">Наборное стекло</div><h2>Край стекла преломляет свет</h2>
+    <p>Для наборных памятников используем незакалённое стекло с необработанным срезом. Необработанный край преломляет лучи, и от памятника исходят мягкие отблески.</p>
+    <p class="note">Прочность даёт УФ-склейка светопрозрачных конструкций, а не закалка. Это единственная линия каталога, которая не проходит закалку.</p>
+  </div></div>`));
+  if(isOn('laser')) out.push(section('', `<h2>Лазерная резка вместо ковки</h2><p class="intro">Узор режем лазером по профильной трубе и стальному листу. Жёсткая геометрия, ровная линия, ремонтопригодность.</p><div class="vals">
+    ${vcard(ICON.bolt,'Точность 0,1 мм','Труболазер режет профиль насквозь, листовой лазер вырезает панели любой сложности. Всё в Домодедово.')}
+    ${vcard(ICON.shield,'Порошковая окраска по RAL','Любой цвет. Нержавейка матовая или полированная. Гарантия окраски 5 лет: без сколов и коррозии.')}
+    ${vcard(ICON.stone,'Что используем','Труба 40×20, 40×40, 60×30 мм. Лист 2-3 мм для панелей, 4 мм для подставок, 8 мм для оснований рам.')}
+  </div>`));
+  /* монтаж: один родительский блок, внутри под-блоки другого дизайна */
+  const mks = mountsOn();
+  if(mks.length){
+    const titles={mount_portrait:'Три способа закрепить портрет',mount_stela:'Пять способов установить стелу',mount_overlay:'Крепление накладки на цветник',mount_stand:'Два сценария для подставки',mount_frame:'Крепление рамы',mount_fence:'Крепление ограждения',mount_restoration:'Установка накладки',mount_complex:'Замер и 3D всего комплекса'};
+    const tags={mount_portrait:'портрет',mount_stela:'стела',mount_overlay:'накладка на цветник',mount_stand:'подставка',mount_frame:'рама',mount_fence:'ограждение',mount_restoration:'реставрация',mount_complex:'комплекс'};
+    const DESC={
+      mount_portrait:['Стекло отходит от камня на 15 мм. Появляется объём и воздух между портретом и гранитом.','Стекло прилегает плотно. Добавляем белую подложку, чтобы фон не просвечивал.','Без сверления камня. Рекомендуем аквариумный клей-герметик. Подложка обязательна.'],
+      mount_stela:['Стела фиксируется в пазу каменной подставки.','Стела входит в паз каменного столбика.','Стекло между двумя столбами, классическая композиция.','Рама из профильной трубы 60×30 со съёмным штапиком, триплекс до 34 мм.','Зажимной держатель из нержавейки, без сверления стекла.'],
+      mount_overlay:['В стекле сверлим отверстия, фиксируем через декоративный крепёж.','Крепится к гранитному основанию цветника по периметру через полимерный клей.'],
+      mount_stand:['Ставится на тумбу или полку памятника. Крепится на крепёж или стоит свободно.','В интерьере дома: на полке, комоде, каминной полке.'],
+      mount_frame:['Стекло фиксируется съёмным штапиком на заклёпках, рама крепится к основанию через отверстия.','Раму-подставку можно углубить в грунт или бетон; крепёжные элементы делаем по запросу.'],
+      mount_fence:['Закалённое стекло держит зажимной держатель из нержавеющей стали.','Столбики из гранита в партнёрстве с гранитчиками; размер и форма под цоколь захоронения.'],
+      mount_restoration:['Накладка крепится поверх существующего камня без его демонтажа.'],
+      mount_complex:['Замер участка, план с размерами, затем 3D-визуализация всего комплекса до производства.']
+    };
+    const cap=m=>m.charAt(0).toUpperCase()+m.slice(1);
+    const subs = mks.map(mk=>{
+      const opts = MOUNTS[mk].map((m,i)=>`<div class="opt"><span class="num">${i+1}</span><div><b>${esc(cap(m))}</b><span>${esc((DESC[mk]||[])[i]||'')}</span></div></div>`).join('');
+      return `<div class="sub"><div class="sub-h"><span class="tag">Крепление · ${esc(tags[mk])}</span><h3>${titles[mk]}</h3></div><div class="sub-grid">${opts}</div></div>`;
+    }).join('');
+    const onlyComplex = mks.length===1 && mks[0]==='mount_complex';
+    const h2 = onlyComplex ? 'Замер и 3D до производства' : 'Установка и крепление';
+    const intro = onlyComplex ? 'Комплекс проектируем целиком: сначала замер участка, затем 3D-визуализация всех элементов.' : 'Подберём вариант под камень и Ваши пожелания. От этого зависит, как изделие смотрится на участке.';
+    out.push(section('cream', `<div class="eyebrow">Установка</div><h2>${h2}</h2><p class="intro">${intro}</p>${subs}`));
+  }
+  if(isOn('photos') && kp.photos.length) out.push(section('', `<h2>Примеры из портфолио</h2><p class="intro">Разные направления каталога на реальных участках.</p><div class="bento">${kp.photos.map((p,i)=>`<figure class="cell s${BENTO[i%BENTO.length]}"><img src="${esc(p[0])}" alt=""><figcaption>${esc(p[1])}</figcaption></figure>`).join('')}</div>`));
+  if(isOn('materials')){
+    const r=routeOf();
+    const glass = `<div><h3>Стекло</h3><div class="sw"><div class="s"><div class="chip" style="background:#DDE7E3"></div>бесцветное</div><div class="s"><div class="chip" style="background:#EDF3F0"></div>осветлённое</div><div class="s"><div class="chip" style="background:#9AA7A2"></div>матовое</div><div class="s"><div class="chip" style="background:#5B5043"></div>тонированное</div></div></div>`;
+    const metal = `<div><h3>Металл, окраска</h3><div class="sw"><div class="s"><div class="chip" style="background:#0A0A0A"></div>RAL 9005</div><div class="s"><div class="chip" style="background:#383E42"></div>RAL 7016</div><div class="s"><div class="chip" style="background:#F1F0EA;border-color:#D7D7CE"></div>RAL 9016</div><div class="s"><div class="chip" style="background:#B9BCBF"></div>нержавейка</div></div></div>`;
+    const base = `<div><h3>Основание</h3><div class="sw"><div class="s"><div class="chip" style="background:#111316"></div>гранит чёрный</div><div class="s"><div class="chip" style="background:#2B2E33"></div>габбро</div></div></div>`;
+    const cols = r==='metal' ? metal+base : r==='glass' ? glass+base : glass+metal+base;
+    const note = r==='metal' ? 'Порошковая окраска по любому RAL, нержавейка без покрытия.' : 'Осветлённое стекло (Crystalvision) убирает зеленоватый оттенок и дороже обычного на 25%. Форма влияет на цену: прямоугольник дешевле фигурной резки.';
+    out.push(section('', `<h2>Материалы и базовые цвета</h2><div class="mats" style="grid-template-columns:repeat(${r==='both'?3:2},1fr)">${cols}</div><p class="muted" style="margin-top:26px;font-size:14.5px;max-width:72ch">${note}</p>`));
+  }
+  return out.join('');
+}
+
+function renderProcess(){
+  const r=routeOf();
+  const glass=[['Раскрой стекла','Фигурная резка, обработка кромки и отверстия под крепёж.'],['Керамическая печать','Портрет наносим керамическими красками.'],['Закалка 600 °C и триплекс','Краски впекаются, два стекла соединяем плёнкой EVA.'],['Сборка и ОТК','Крепёж, проверка, упаковка.']];
+  const metal=[['Лазерная резка металла','Труболазер и листовой лазер, точность 0,1 мм.'],['Гибка и сварка','Гибка на ЧПУ, сварка TIG для видимых швов.'],['Порошковая окраска','Грунт плюс краска по RAL, 160-200 °C.'],['Сборка и ОТК','Монтаж узлов, проверка, упаковка.']];
+  const both=[['Раскрой стекла','Фигурная резка, кромка, отверстия под крепёж.'],['Керамическая печать','Портрет красками, впекается при закалке.'],['Закалка 600 °C и триплекс','Краски впекаются, два стекла соединяем плёнкой EVA.'],['Металл и сборка','Лазерная резка стали 0,1 мм, окраска RAL, монтаж узлов.']];
+  const tiles=(r==='glass'?glass:r==='metal'?metal:both);
+  const intro = r==='glass' ? 'Стекло режется механически и обрабатывается по кромке, лазер к нему не применяется.' : r==='metal' ? 'Металл режем лазером на своём цехе, стекло в этом заказе не участвует.' : 'Стекло и металл обрабатываются по-разному: стекло режется механически, лазер только по металлу.';
+  return section('cream', `<h2>Как мы производим</h2><p class="intro">Полный цикл на своём цехе в Домодедово. ${intro}</p><div class="proc">${tiles.map((t,i)=>`<div class="ptile"><div class="n">0${i+1}</div><div><div class="t">${t[0]}</div><div class="d">${t[1]}</div></div></div>`).join('')}</div>`);
+}
+
+function renderCost(){
+  const r=routeOf();
+  const seg = r==='glass' ? [['Стекло и керамическая печать',46,'var(--green)'],['Закалка и триплекс',26,'var(--forest)'],['Крепёж и сборка',12,'#6FA98C'],['Монтаж и доставка',16,'#B7CBBE']]
+            : r==='metal' ? [['Металл и лазерная резка',44,'var(--green)'],['Гибка и сварка',18,'var(--forest)'],['Порошковая окраска',20,'#6FA98C'],['Монтаж и доставка',18,'#B7CBBE']]
+            : [['Стекло и керамическая печать',38,'var(--green)'],['Металл и лазерная резка',26,'var(--forest)'],['Закалка и триплекс',20,'#6FA98C'],['Монтаж и доставка',16,'#B7CBBE']];
+  let acc=0; const grad = seg.map(s=>{ const a=acc; acc+=s[1]; return `${s[2]} ${a}% ${acc}%`; }).join(', ');
+  const path = r==='metal' ? ['Макет 3D','Лазерная резка','Гибка','Сварка','Окраска','Сборка','ОТК','Доставка'] : r==='glass' ? ['Макет 3D','Раскрой','Печать','Закалка','Триплекс','Сборка','ОТК','Доставка'] : ['Макет 3D','Раскрой стекла','Печать','Закалка','Лазер по металлу','Сборка','ОТК','Доставка'];
+  const routeName = r==='glass' ? 'изделия из стекла' : r==='metal' ? 'изделия из металла' : (activeTypes().includes('complex') ? 'комплекса: стекло и металл' : 'изделий из стекла и металла');
+  return section('cream', `<h2>Из чего складывается стоимость ${routeName}</h2><p class="intro">Состав сметы под этот заказ. Доли ориентировочные, не точный расчёт.</p><div class="cost">
+    <div class="donut" style="background:conic-gradient(${grad})"><div class="mid"><b>100%</b><span>состав сметы</span></div></div>
+    <div><div class="legend">${seg.map(s=>`<div class="li"><span class="dot" style="background:${s[2]}"></span>${s[0]} <b>${s[1]}%</b></div>`).join('')}</div>
+    <div class="path"><div class="h">Путь изделия</div><div class="pgrid">${path.map((p,i)=>`<div class="pg"><b>${i+1}.</b> ${p}</div>`).join('')}</div></div></div>
+  </div>`);
+}
+
+function renderTerms(){
+  const types=activeTypes(); const r=routeOf(); const term=termOf();
+  const srok = term==='45-90' ? 'Полный комплекс 45-90 к.д. от утверждения макета. Отдельное изделие 30 к.д.' : 'Отдельное изделие 30 календарных дней от утверждения макета.';
+  const pay = kp.client.type==='dealer' ? '100% предоплата стандартно. Заказы от 50 000 ₽ по схеме 70% и 30%. Прогрессивная скидка при росте объёмов.' : 'Заказы от 50 000 ₽ по схеме 70% и 30%. Поэтапная оплата по согласованию.';
+  const g=[]; if(r!=='glass') g.push('5 лет на металл и окраску.'); if(types.some(t=>TYPES[t].value.includes('ceramic'))) g.push('Керамический портрет не выцветает 20+ лет.'); if(types.includes('stacked')) g.push('УФ-склейка: прочное прозрачное соединение.');
+  const del = kp.client.type==='dealer' ? 'Транспортной компанией по РФ со страховкой, около 2 500 ₽. Самовывоз из Домодедово бесплатно.' : 'Транспортной компанией по всей России. Самовывоз из Домодедово бесплатно.';
+  return section('', `<div class="info">
+    <div class="i"><div class="h">Срок изготовления</div><div class="d">${srok}</div></div>
+    <div class="i"><div class="h">Оплата</div><div class="d">${pay}</div></div>
+    <div class="i"><div class="h">Гарантия и срок службы</div><div class="d">${g.join(' ')||'Уточняется по составу.'}</div></div>
+    <div class="i"><div class="h">Доставка</div><div class="d">${del}</div></div>
+  </div>`).replace('class="sec "','class="sec " style="padding-bottom:0"');
+}
+
+function render(){
+  const c=kp.client; const dealer=c.type==='dealer';
+  const items=kp.items; const total=items.reduce((s,i)=>s+(Number(i.price)||0)*(Number(i.qty)||1),0);
+  const extrasNum = kp.extras.reduce((s,e)=>s+(typeof e[1]==='number'?e[1]:0),0);
+  const grand=total+extrasNum;
+  const pm=kp.price_mode;
+  const h=[];
+  h.push(`<div class="topbar"><div class="wrap"><div class="brand"><svg class="logo" viewBox="0 0 34 42" aria-hidden="true"><path d="M17 1C8 8 3 16 3 25c0 9 6 16 14 16s14-7 14-16C31 16 26 8 17 1z" fill="#1F895A"/><path d="M17 9c4 5 7 10 7 16 0 6-3 9-7 9" stroke="#EAF1ED" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg><div class="name">Glass Memory</div></div><div class="site">glass-memory.ru</div></div></div>`);
+  if(blockOn('title')){
+    const eyebrow = dealer ? 'Коммерческое предложение для партнёра' : 'Персональное коммерческое предложение';
+    const forWhom = dealer ? `для ${esc(c.name)}` : `для ${esc(c.name)}`;
+    const dateStr = c.date ? new Date(c.date+'T00:00:00').toLocaleDateString('ru-RU') : '';
+    const contacts = blockOn('contacts') ? `<div class="contacts">${kp.contacts.slice(0,2).map(p=>`<div class="mgr"><div class="av">${esc((p.name||'?').charAt(0))}</div><div class="who"><b>${esc(p.name)}</b><div class="role">${esc(p.role)}</div><div class="c">${esc(p.phone)} · ${esc(p.email)}</div></div></div>`).join('')}</div>` : '';
+    h.push(`<section class="title"><div class="wrap"><div class="eyebrow" style="margin:30px 0 16px">${eyebrow}</div><h1>${esc(c.subject)}</h1><div class="date">${forWhom}${dateStr?' · от '+dateStr:''}</div>${contacts}</div></section>`);
+  }
+  if(blockOn('positions')){
+    const rows = items.map(it=>`<div class="row"><img class="thumb" src="${esc(TYPES[it.type].img)}" alt=""><div><div class="nm">${esc(itemName(it))}</div><div class="meta">${esc(itemMeta(it))}</div></div><div class="unit">${priceCell(it.price)}</div><div class="qty">${esc(it.qty||1)}</div><div class="sum">${priceCell((Number(it.price)||0)*(Number(it.qty)||1))}</div></div>`).join('');
+    const intro = dealer ? 'Цены завода без розничной наценки дилера.' : (pm==='orientir' ? 'Состав можно менять: убрать или добавить элемент на этапе согласования.' : 'Смета по результатам замера и согласованного 3D-макета.');
+    let tot='';
+    if(blockOn('totals')){
+      const note = pm==='orientir' ? `<div class="tnote"><b>Это предварительный ориентир, а не финальная цена.</b> Стоимость зависит от размеров, толщины стекла, формы и состава. Точную смету подтвердим после замера и согласования 3D-макета. На этом шаге Вы ничем не связаны.</div>`
+                 : pm==='dealer' ? `<div class="tnote"><b>Цены указаны без розничной наценки дилера.</b> Конечную цену для клиента партнёр устанавливает самостоятельно с учётом регионального рынка. Crystalvision +25% к базовой цене.</div>`
+                 : `<div class="tnote"><b>Смета составлена по замеру и согласованному макету.</b> Состав и размеры зафиксированы, производство запускаем после Вашего подтверждения.</div>`;
+      const ex = kp.extras.map(e=>`<div class="t"><span>${esc(e[0])}</span><span>${typeof e[1]==='number'?(e[1]===0?'0 ₽':(pm==='orientir'?'от ':'')+money(e[1])):esc(e[1])}</span></div>`).join('');
+      const gl = pm==='orientir' ? 'Итого ориентировочно' : 'Итого';
+      tot = `<div class="totals">${note}<div class="tbox">${ex}<div class="grand"><div class="l">${gl}</div><div class="v">${priceCell(grand)}</div></div><div class="fine">${pm==='orientir'?'Самовывоз из Домодедово бесплатно. Финальная смета после замера.':'Самовывоз из Домодедово бесплатно.'}</div></div></div>`;
+    }
+    h.push(section('cream', `<h2>${dealer?'Позиции':'Состав заказа'}</h2><p class="intro">${intro}</p><div class="pos"><div class="row head-row"><div class="col-h">Изделие</div><div></div><div class="col-h">Цена за ед.</div><div class="col-h" style="text-align:center">Кол-во</div><div class="col-h" style="text-align:right">Сумма</div></div>${rows}</div>${tot}`));
+  }
+  if(blockOn('terms')) h.push(renderTerms());
+  if(blockOn('modules')) h.push(renderModules());
+  if(blockOn('process')) h.push(renderProcess());
+  if(blockOn('steps')) h.push(section('dark', `<h2>Как это работает</h2><div class="steps">
     <div class="step"><div class="n">01</div><div class="t">Заявка и фото</div><div class="d">Присылаете фото и размеры участка.</div><div class="w">1 день</div></div>
-    <div class="step"><div class="n">02</div><div class="t">3D-макет</div><div class="d">Показываем будущий мемориал.</div><div class="w">до производства</div></div>
+    <div class="step"><div class="n">02</div><div class="t">3D-макет</div><div class="d">Показываем будущее изделие.</div><div class="w">до производства</div></div>
     <div class="step"><div class="n">03</div><div class="t">Согласование и смета</div><div class="d">Подтверждаем состав и точную цену.</div><div class="w">1-2 дня</div></div>
-    <div class="step"><div class="n">04</div><div class="t">Производство</div><div class="d">Изготавливаем на своём цехе.</div><div class="w">30-90 к.д.</div></div>
+    <div class="step"><div class="n">04</div><div class="t">Производство</div><div class="d">Изготавливаем на своём цехе.</div><div class="w">${termOf()==='45-90'?'45-90 к.д.':'30 к.д.'}</div></div>
     <div class="step"><div class="n">05</div><div class="t">Доставка и монтаж</div><div class="d">Привозим и устанавливаем бережно.</div><div class="w">по согласованию</div></div>
-  </div>
-</div></section>
-
-<!-- STATS DARK -->
-<section class="sec dark" style="padding-top:0"><div class="wrap">
-  <h2 style="font-size:26px">Российский производитель с собственным цехом</h2>
-  <div class="stats">
+  </div>`));
+  if(blockOn('producer')) h.push(section('dark', `<h2 style="font-size:26px">Российский производитель с собственным цехом</h2><div class="stats">
     <div class="stat"><div class="v">16 000 м²</div><div class="l">собственное производство в Домодедово</div></div>
     <div class="stat"><div class="v">320+</div><div class="l">партнёров в 250+ городах России</div></div>
     <div class="stat"><div class="v">600 °C</div><div class="l">керамопечать впекается в стекло</div></div>
     <div class="stat"><div class="v">10 лет</div><div class="l">на рынке, производство с 2016 года</div></div>
-  </div>
-</div></section>
+  </div>`).replace('class="sec dark"','class="sec dark" style="padding-top:0"'));
+  if(blockOn('cost')) h.push(renderCost());
+  if(blockOn('qc')){
+    const r=routeOf(); const st = r==='metal' ? ['После резки','После сварки','После окраски','После сборки'] : r==='glass' ? ['После раскроя','После печати','После закалки','После сборки'] : ['После раскроя','После печати','После закалки и окраски','После сборки'];
+    h.push(section('', `<h2>Контроль качества</h2><p class="intro">Двойной ОТК: проверяем на ключевых этапах. Брак не выходит за ворота цеха.</p><div class="qc">${st.map(s=>`<div class="q">${ok}${s}</div>`).join('')}</div>`));
+  }
+  if(blockOn('cta')){
+    const t = dealer ? 'Запросите бесплатный образец и дилерский прайс' : 'Подтвердите состав, и мы покажем изделие в 3D';
+    const p = dealer ? 'Образец 380×380 мм, каталог, обучение продавцов и страница на сайте с поддоменом вашего города входят в стартовый пакет.' : 'Производство начинаем только после Вашего одобрения макета. Так Вы видите результат заранее и решаете спокойно.';
+    const price = pm==='dealer' ? '' : (grand>0 ? `<div class="price">${priceCell(grand)} ${pm==='orientir'?'<small>ориентировочно</small>':''}</div>` : `<p style="margin-top:22px;color:#EAF1ED;font-family:var(--serif);font-size:24px">Смету подтвердим после замера и 3D-макета</p>`);
+    h.push(`<section class="cta dark"><div class="wrap"><h2>${t}</h2><p>${p}</p>${price}<div class="btns"><a class="btn p" href="mailto:${esc(kp.contacts[0].email)}">${dealer?'Запросить образец':'Отправить фото и размеры'}</a><a class="btn g" href="tel:${esc((kp.contacts[0].phone||'').replace(/[^\d+]/g,''))}">Позвонить · ${esc(kp.contacts[0].phone)}</a></div></div></section>`);
+  }
+  h.push(`<footer><div class="wrap"><span>Glass Memory · производство с 2016 года, Домодедово</span><span>${dealer?'Предложение для партнёра':'Персональное предложение'} · ${esc(c.name)} · ${c.date?c.date.slice(0,4):''}</span></div></footer>`);
+  document.getElementById('kp').innerHTML = h.join('');
+  document.querySelectorAll('#kp img').forEach(im=>{ im.addEventListener('error',()=>{ imgFail(im); }); });
+  save();
+}
 
-<!-- COST -->
-<section class="sec cream"><div class="wrap">
-  <h2>Из чего складывается стоимость</h2>
-  <div class="cost">
-    <div class="donut"><div class="mid"><b>100%</b><span>состав сметы</span></div></div>
-    <div>
-      <div class="legend">
-        <div class="li"><span class="dot" style="background:var(--green)"></span>Стекло и керамическая печать <b>38%</b></div>
-        <div class="li"><span class="dot" style="background:var(--forest)"></span>Металл и лазерная резка <b>26%</b></div>
-        <div class="li"><span class="dot" style="background:#6FA98C"></span>Закалка и триплекс <b>20%</b></div>
-        <div class="li"><span class="dot" style="background:#B7CBBE"></span>Монтаж и доставка <b>16%</b></div>
-      </div>
-      <div class="path">
-        <div class="h">Путь изделия</div>
-        <div class="pgrid">
-          <div class="pg"><b>1.</b> Макет 3D</div>
-          <div class="pg"><b>2.</b> Раскрой</div>
-          <div class="pg"><b>3.</b> Печать</div>
-          <div class="pg"><b>4.</b> Закалка</div>
-          <div class="pg"><b>5.</b> Триплекс</div>
-          <div class="pg"><b>6.</b> Сборка</div>
-          <div class="pg"><b>7.</b> ОТК</div>
-          <div class="pg"><b>8.</b> Доставка</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div></section>
+/* фото отсутствует: слот держит размер, подпись прячется; если в портфолио не загрузилось ни одно фото - блок скрывается целиком */
+function imgFail(im){
+  im.style.visibility='hidden'; im.dataset.failed='1';
+  const fc = im.parentNode && im.parentNode.querySelector && im.parentNode.querySelector('figcaption'); if(fc) fc.style.display='none';
+  const bento = im.closest('.bento');
+  if(bento){ const all=[...bento.querySelectorAll('img')]; if(all.every(x=>x.dataset.failed==='1')){ const sec=bento.closest('section'); if(sec) sec.hidden=true; } }
+}
 
-<!-- QC -->
-<section class="sec"><div class="wrap">
-  <h2>Контроль качества</h2>
-  <p class="intro">Двойной ОТК: проверяем на ключевых этапах. Брак не выходит за ворота цеха.</p>
-  <div class="qc">
-    <div class="q"><span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>После раскроя</div>
-    <div class="q"><span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>После печати</div>
-    <div class="q"><span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>После закалки</div>
-    <div class="q"><span class="ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>После сборки</div>
-  </div>
-</div></section>
+/* ============================ РЕДАКТОР ============================ */
+const $=s=>document.querySelector(s);
+const EDIT = location.protocol==='file:' || new URLSearchParams(location.search).has('edit');
+function inp(label, val, on, type='text'){ const l=document.createElement('label'); l.innerHTML=`${label}<input type="${type}" value="${esc(val)}">`; l.querySelector('input').addEventListener('input',e=>{ on(e.target.value); render(); }); return l; }
+function sel(label, opts, val, on){ const l=document.createElement('label'); l.innerHTML=`${label}<select>${opts.map(o=>`<option ${o===val?'selected':''}>${esc(o)}</option>`).join('')}</select>`; l.querySelector('select').addEventListener('change',e=>{ on(e.target.value); render(); }); return l; }
+function seg(opts, val, on){ const d=document.createElement('div'); d.className='seg'; opts.forEach(([k,lab])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=lab; if(k===val) b.classList.add('on'); b.addEventListener('click',()=>{ on(k); buildEditor(); render(); }); d.appendChild(b); }); return d; }
 
-<!-- CTA -->
-<section class="cta dark"><div class="wrap">
-  <h2>Подтвердите состав, и мы покажем мемориал в 3D</h2>
-  <p>Производство начинаем только после Вашего одобрения макета. Так Вы видите результат заранее и решаете спокойно, в удобном темпе.</p>
-  <div class="price">от 197 000 ₽ <small>ориентировочно</small></div>
-  <div class="btns">
-    <a class="btn p" href="mailto:info@glass-memory.ru">Отправить фото и размеры</a>
-    <a class="btn g" href="tel:+74959551679">Позвонить · +7 (495) 955-16-79</a>
-  </div>
-</div></section>
+function buildEditor(){
+  /* клиент */
+  const ec=$('#edClient'); ec.innerHTML='';
+  ec.appendChild(Object.assign(document.createElement('div'),{className:'hint',textContent:'Тип клиента'}));
+  ec.appendChild(seg([['person','Физлицо'],['dealer','Дилер'],['complex','Комплекс']], kp.client.type, v=>{ kp.client.type=v; }));
+  ec.appendChild(inp('Кому (в родительном падеже)', kp.client.name, v=>kp.client.name=v));
+  ec.appendChild(inp('Заголовок предложения', kp.client.subject, v=>kp.client.subject=v));
+  ec.appendChild(inp('Дата', kp.client.date, v=>kp.client.date=v, 'date'));
+  ec.appendChild(Object.assign(document.createElement('div'),{className:'hint',textContent:'Режим цены'}));
+  ec.appendChild(seg([['orientir','Ориентир'],['smeta','Смета'],['dealer','Дилерский']], kp.price_mode, v=>{ kp.price_mode=v; }));
+  if(kp.price_mode!=='dealer'){ const w=document.createElement('div'); w.className='warn'; w.textContent='Розничного прайса для физлица в каноне нет. Суммы ниже - ориентир; перед отправкой подставьте реальные.'; ec.appendChild(w); }
 
-<footer><div class="wrap">
-  <span>Glass Memory · производство с 2016 года, Домодедово</span>
-  <span>Персональное предложение · Мария Петровна · 2026</span>
-</div></footer>
+  /* контакты */
+  const ek=$('#edContacts'); ek.innerHTML='';
+  kp.contacts.slice(0,2).forEach((p,i)=>{ const box=document.createElement('div'); box.className='item'; const ih=document.createElement('div'); ih.className='ih'; ih.innerHTML=`<span>Контакт ${i+1}</span>`; if(kp.contacts.length>1){ const del=document.createElement('button'); del.type='button'; del.textContent='удалить'; del.addEventListener('click',()=>{ kp.contacts.splice(i,1); buildEditor(); render(); }); ih.appendChild(del); } box.appendChild(ih); box.appendChild(inp('Имя',p.name,v=>p.name=v)); box.appendChild(inp('Роль',p.role,v=>p.role=v)); const g=document.createElement('div'); g.className='grid2'; g.appendChild(inp('Телефон',p.phone,v=>p.phone=v)); g.appendChild(inp('Email',p.email,v=>p.email=v)); box.appendChild(g); ek.appendChild(box); });
+  if(kp.contacts.length<2){ const addC=document.createElement('button'); addC.type='button'; addC.className='ebtn'; addC.textContent='+ Второй контакт (например, РОП)'; addC.addEventListener('click',()=>{ kp.contacts.push({name:'', role:'Руководитель отдела продаж', phone:kp.contacts[0].phone, email:kp.contacts[0].email}); buildEditor(); render(); }); ek.appendChild(addC); }
 
-<!-- Фолбэк: пока фото не добавлены в папку, слот держит размер и показывает
-     мягкий брендовый градиент вместо иконки битой картинки. -->
-<script>
-document.querySelectorAll('img').forEach(function (im) {
-  im.addEventListener('error', function () {
-    im.style.visibility = 'hidden';
-    if (im.parentNode && im.parentNode.style) {
-      im.parentNode.style.background = 'linear-gradient(135deg, #EAF1ED, #F6F7ED)';
-    }
+  /* позиции */
+  const ei=$('#edItems'); ei.innerHTML='';
+  kp.items.forEach((it,idx)=>{
+    const box=document.createElement('div'); box.className='item';
+    const ih=document.createElement('div'); ih.className='ih'; ih.innerHTML=`<span>Позиция ${idx+1}</span>`; const del=document.createElement('button'); del.type='button'; del.textContent='удалить'; del.addEventListener('click',()=>{ kp.items.splice(idx,1); if(!kp.items.length) kp.items.push(clone(PRESETS.A.items[0])); buildEditor(); render(); }); ih.appendChild(del); box.appendChild(ih);
+    box.appendChild(sel('Тип изделия', Object.keys(TYPES).map(k=>TYPES[k].label), TYPES[it.type].label, v=>{ const key=Object.keys(TYPES).find(k=>TYPES[k].label===v); it.type=key; const d=TYPES[key].def||{}; TYPES[key].fields.forEach(f=>{ if(f==='glass') it.glass=it.glass||GLASS[0]; else if(f==='form') it.form=it.form||FORMS[0]; else if(f==='mount') it.mount=MOUNTS[TYPES[key].mount][0]; else it[f]=d[f]||it[f]||''; }); buildEditor(); }));
+    box.appendChild(inp('Название (пусто = по типу)', it.name||'', v=>it.name=v));
+    const t=TYPES[it.type];
+    t.fields.forEach(f=>{
+      if(f==='glass') box.appendChild(sel('Стекло', GLASS, it.glass||GLASS[0], v=>it.glass=v));
+      else if(f==='form') box.appendChild(sel('Форма', FORMS, it.form||FORMS[0], v=>it.form=v));
+      else if(f==='mount') box.appendChild(sel('Крепление', MOUNTS[t.mount], it.mount||MOUNTS[t.mount][0], v=>it.mount=v));
+      else box.appendChild(inp(FIELD_LABEL[f], it[f]||'', v=>it[f]=v));
+    });
+    const g=document.createElement('div'); g.className='grid2'; g.appendChild(inp('Кол-во', it.qty||1, v=>it.qty=Number(v)||1,'number')); g.appendChild(inp('Цена, ₽', it.price||0, v=>it.price=Number(v)||0,'number')); box.appendChild(g);
+    ei.appendChild(box);
   });
-});
-</script>
+  const add=document.createElement('button'); add.type='button'; add.className='ebtn'; add.textContent='+ Добавить позицию'; add.addEventListener('click',()=>{ kp.items.push(clone(PRESETS.A.items[0])); buildEditor(); render(); }); ei.appendChild(add);
+  const exh=document.createElement('div'); exh.className='hint'; exh.textContent='Дополнительные строки итога'; ei.appendChild(exh);
+  kp.extras.forEach((e,i)=>{ const g=document.createElement('div'); g.className='grid2'; g.appendChild(inp('Строка',e[0],v=>e[0]=v)); g.appendChild(inp('Сумма (число или текст)', e[1], v=>{ const n=Number(v); e[1]=(v.trim()!==''&&!isNaN(n))?n:v; })); ei.appendChild(g); });
 
+  /* блоки */
+  const eb=$('#edBlocks'); eb.innerHTML='';
+  BLOCKS.forEach(([k,lab])=>{ const l=document.createElement('label'); l.className='row'; const c=document.createElement('input'); c.type='checkbox'; c.checked=blockOn(k); c.addEventListener('change',()=>{ kp.blocks[k]=c.checked; render(); }); l.appendChild(c); l.appendChild(document.createTextNode(lab)); eb.appendChild(l); });
+
+  /* модули */
+  const em=$('#edModules'); em.innerHTML='';
+  const hint=document.createElement('div'); hint.className='hint'; hint.textContent='Авто = модуль включается по типам изделий в позициях. Принудительно: вкл / выкл.'; em.appendChild(hint);
+  const addMod=(key,name,sub)=>{ const row=document.createElement('div'); row.className='modrow'; row.innerHTML=`<div class="mn">${esc(name)}<small>${esc(sub)}</small></div>`; const tri=document.createElement('div'); tri.className='tri'; [['auto','авто'],['on','вкл'],['off','выкл']].forEach(([v,l])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=l; const cur=kp.modules[key]||'auto'; if(cur===v) b.classList.add('on'); b.addEventListener('click',()=>{ if(v==='auto') delete kp.modules[key]; else kp.modules[key]=v; buildEditor(); render(); }); tri.appendChild(b); }); row.appendChild(tri); em.appendChild(row); };
+  Object.keys(VALUE_MODULES).forEach(k=>addMod(k, VALUE_MODULES[k].name, isOn(k)?'сейчас: показан':'сейчас: скрыт'));
+  Object.keys(MOUNTS).forEach(k=>addMod(k, 'Монтаж: '+k.replace('mount_',''), mountsOn().includes(k)?'сейчас: показан':'сейчас: скрыт'));
+
+  /* фото */
+  const ep=$('#edPhotos'); ep.innerHTML='';
+  const ph=document.createElement('div'); ph.className='hint'; ph.textContent='Файлы кладутся рядом с HTML. При отсутствии слот показывает градиент.'; ep.appendChild(ph);
+  kp.photos.forEach((p,i)=>{ const g=document.createElement('div'); g.className='item'; const ih=document.createElement('div'); ih.className='ih'; ih.innerHTML=`<span>Слот ${i+1} · ${['большой','малый','малый','малый','малый','широкий','широкий'][i%7]}</span>`; const del=document.createElement('button'); del.type='button'; del.textContent='удалить'; del.addEventListener('click',()=>{ kp.photos.splice(i,1); buildEditor(); render(); }); ih.appendChild(del); g.appendChild(ih); const g2=document.createElement('div'); g2.className='grid2'; g2.appendChild(inp('Файл',p[0],v=>p[0]=v)); g2.appendChild(inp('Подпись',p[1],v=>p[1]=v)); g.appendChild(g2); ep.appendChild(g); });
+  const addPh=document.createElement('button'); addPh.type='button'; addPh.className='ebtn'; addPh.textContent='+ Добавить слот'; addPh.addEventListener('click',()=>{ kp.photos.push([`${kp.photos.length+1}.jpg`,'Подпись']); buildEditor(); render(); }); ep.appendChild(addPh);
+
+  $('#edToggle').setAttribute('aria-expanded', document.body.classList.contains('ed-open')?'true':'false');
+}
+
+/* кнопки */
+$('#edToggle').addEventListener('click',()=>{ document.body.classList.toggle('ed-open'); buildEditor(); });
+document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{ kp=clone(PRESETS[b.dataset.preset]); buildEditor(); render(); }));
+$('#btnReset').addEventListener('click',()=>{ kp=clone(PRESETS.A); try{localStorage.removeItem(LS);}catch(e){} buildEditor(); render(); });
+$('#btnPrint').addEventListener('click',()=>window.print());
+function download(name, text, type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500); }
+$('#btnJsonDown').addEventListener('click',()=>download('kp.json', JSON.stringify(kp,null,2), 'application/json'));
+$('#jsonUp').addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ kp=JSON.parse(r.result); buildEditor(); render(); }catch(err){ alert('Не удалось прочитать JSON'); } }; r.readAsText(f); e.target.value=''; });
+$('#btnHtml').addEventListener('click',()=>{
+  const doc=document.documentElement.cloneNode(true);
+  doc.querySelector('#editor').remove(); doc.querySelector('#edToggle').remove(); doc.querySelectorAll('script').forEach(s=>s.remove());
+  doc.querySelector('body').classList.remove('ed-open');
+  const fb=document.createElement('script'); fb.textContent="document.querySelectorAll('img').forEach(function(im){im.addEventListener('error',function(){im.style.visibility='hidden';im.dataset.failed='1';var fc=im.parentNode&&im.parentNode.querySelector?im.parentNode.querySelector('figcaption'):null;if(fc)fc.style.display='none';var b=im.closest('.bento');if(b){var all=[].slice.call(b.querySelectorAll('img'));if(all.every(function(x){return x.dataset.failed==='1';})){var s=b.closest('section');if(s)s.hidden=true;}}});});"; doc.querySelector('body').appendChild(fb);
+  const slug=(kp.client.name||'kp').toLowerCase().replace(/[^a-zа-яё0-9]+/gi,'-').replace(/^-|-$/g,'');
+  download(`kp-glass-memory-${slug||'kp'}.html`, '<!DOCTYPE html>\n'+doc.outerHTML, 'text/html');
+});
+
+if(!EDIT){ $('#edToggle').hidden=true; }
+render();
+
+/* Устаревший кэш: v.txt рядом со страницей пишется деплоем (штамп = sha сборки). Если штамп
+   в этом HTML отличается от свежего v.txt - один раз перезагружаемся с параметром ?v=штамп.
+   Локально (штамп не подставлен) и без v.txt ничего не делаем. */
+(function(){
+  var meta=document.querySelector('meta[name="build"]'); var mine=meta?meta.content:'';
+  if(!mine || mine==='__BUILD__' || location.protocol==='file:') return;
+  fetch('v.txt?ts='+Date.now(),{cache:'no-store'}).then(function(r){ return r.ok?r.text():''; }).then(function(t){
+    t=(t||'').trim(); if(!t || t===mine) return;
+    var key='kp-gm-reloaded-'+t; try{ if(sessionStorage.getItem(key)) return; sessionStorage.setItem(key,'1'); }catch(e){}
+    var u=new URL(location.href); u.searchParams.set('v',t); location.replace(u.toString());
+  }).catch(function(){});
+})();
+</script>
 </body>
 </html>

@@ -94,9 +94,14 @@ jobs:
           # analytics-mvp/analytics-mvp/data-ym, `|| true` глушил промах, /tmp/ym-base оставался
           # пустым - и гейт молча пропускал любую потерю по всем четырём файлам.
           # Промах больше не глушим: нет слепка там, где файл есть - это отказ защиты, а не мелочь.
-          rm -rf /tmp/ym-base && mkdir -p /tmp/ym-base
+          # Файлы, которых ДО продьюсеров не было, записываем поимённо. Иначе гейт не отличает
+          # «слепок потерян» от «файл появился впервые» и валит первый же успешный сбор нового
+          # источника: прогон 35081265100 наконец разобрал акт услуг и упал на том, что для
+          # services_monthly.ndjson нет базы сравнения, хотя её и не могло быть.
+          rm -rf /tmp/ym-base && mkdir -p /tmp/ym-base && : > /tmp/ym-base/.absent
           for f in netting.ndjson orders.ndjson realization_monthly.ndjson sku_views.ndjson services_monthly.ndjson bonuses_monthly.ndjson; do
-            if [ -f "data-ym/$f" ]; then cp "data-ym/$f" "/tmp/ym-base/$f"; echo "слепок $f: $(wc -l < "/tmp/ym-base/$f") строк"; else echo "слепок $f: файла ещё нет (первый прогон)"; fi
+            if [ -f "data-ym/$f" ]; then cp "data-ym/$f" "/tmp/ym-base/$f"; echo "слепок $f: $(wc -l < "/tmp/ym-base/$f") строк"
+            else echo "$f" >> /tmp/ym-base/.absent; echo "слепок $f: файла ещё нет (первый прогон)"; fi
           done
 
       - name: Заказы Маркета (факт-слой, инкремент + перетяжка хвоста)
@@ -176,7 +181,10 @@ jobs:
           # подстановки проверяется явно, присваиванием в переменную.
           base () {
             if [ -f "/tmp/ym-base/$1" ]; then echo "/tmp/ym-base/$1"; return 0; fi
-            if [ -f "data-ym/$1" ]; then echo "::error::слепка /tmp/ym-base/$1 нет, а data-ym/$1 существует - гейт остался бы без базы сравнения" >&2; return 1; fi
+            # Файла не было до прогона - сравнивать не с чем на законных основаниях. Верим только
+            # списку, составленному шагом слепка: «нет слепка и нет записи» по-прежнему отказ защиты.
+            if grep -qxF "$1" /tmp/ym-base/.absent 2>/dev/null; then echo ""; return 0; fi
+            if [ -f "data-ym/$1" ]; then echo "::error::слепка /tmp/ym-base/$1 нет, а data-ym/$1 существует и до прогона не числился отсутствующим - гейт остался бы без базы сравнения" >&2; return 1; fi
             echo ""; return 0
           }
           check () {

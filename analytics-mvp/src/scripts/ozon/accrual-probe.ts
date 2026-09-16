@@ -31,19 +31,24 @@ async function main() {
   const headers = { "Client-Id": clientId, "Api-Key": apiKey, "Content-Type": "application/json" };
   const fromZ = `${from}T00:00:00.000Z`, toZ = `${to}T23:59:59.999Z`;
 
-  console.log(`=== /v1/finance/accrual/types (справочник типов начислений) ===`);
-  await hit(headers, "/v1/finance/accrual/types", {});
+  const day = from; // одна дата YYYY-MM-DD
+  console.log(`=== /v1/finance/accrual/by-day (дневные агрегаты) date=${day} ===`);
+  await hit(headers, "/v1/finance/accrual/by-day", { date: day });
 
-  console.log(`\n=== /v1/finance/accrual/by-day (дневные агрегаты) ${from}..${to} ===`);
-  await hit(headers, "/v1/finance/accrual/by-day", { date: { from: fromZ, to: toZ } });
-  await hit(headers, "/v1/finance/accrual/by-day", { from, to });
-  await hit(headers, "/v1/finance/accrual/by-day", { date_from: from, date_to: to });
+  // Номера отправлений для postings берём из FBO-списка за окно.
+  console.log(`\n=== /v2/posting/fbo/list (получить posting_number) ${from}..${to} ===`);
+  let postingNumbers: string[] = [];
+  try {
+    const r = await fetch(`${SELLER_HOST}/v2/posting/fbo/list`, { method: "POST", headers, body: JSON.stringify({ dir: "ASC", filter: { since: fromZ, to: toZ, status: "" }, limit: 20, offset: 0, with: {} }) });
+    const t = await r.text();
+    if (!r.ok) console.log(`  [${r.status}] fbo/list :: ${t.slice(0, 200)}`);
+    else { const d: any = JSON.parse(t); const arr = d.result ?? []; postingNumbers = arr.map((p: any) => p.posting_number).filter(Boolean).slice(0, 50); console.log(`  fbo/list: ${arr.length} отправлений, взял ${postingNumbers.length}: ${postingNumbers.slice(0, 3).join(", ")}...`); }
+  } catch (e) { console.log("  fbo/list ERR:", (e as Error).message); }
 
-  console.log(`\n=== /v1/finance/accrual/postings (начисления по отправлениям) ${from}..${to} ===`);
-  await hit(headers, "/v1/finance/accrual/postings", { date: { from: fromZ, to: toZ }, page: 1, page_size: 100 });
-  await hit(headers, "/v1/finance/accrual/postings", { filter: { date: { from: fromZ, to: toZ } }, page: 1, page_size: 100 });
-  await hit(headers, "/v1/finance/accrual/postings", { from, to, page: 1, page_size: 100 });
+  console.log(`\n=== /v1/finance/accrual/postings (начисления по отправлениям) ===`);
+  if (postingNumbers.length) await hit(headers, "/v1/finance/accrual/postings", { posting_numbers: postingNumbers });
+  else console.log("  нет posting_number - postings пропущен");
 
-  console.log("\nВЫВОД: смотрим, какой из вариантов тела дал [200] и какие поля в строках (суммы/комиссии/услуги/posting_number/sku/дата) - по ним строим миграцию pnl-*.");
+  console.log("\nВЫВОД: смотрим поля в строках by-day и postings (суммы/комиссии/услуги/type_id/posting_number/sku/дата) - по ним строим миграцию pnl-*.");
 }
 main().catch((e) => { console.error("accrual-probe FAILED:", (e as Error).message); process.exit(0); });

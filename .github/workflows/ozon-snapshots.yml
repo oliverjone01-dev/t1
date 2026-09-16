@@ -169,12 +169,14 @@ jobs:
             npx tsx src/scripts/validate-snapshot.ts "$type" "$tmp" "fixtures/$name"
             cp "$tmp" "data/$name"; cp "$tmp" "fixtures/$name"; rm -f "$tmp"
           }
-          npx tsx src/scripts/ozon/pnl-sku.ts "" "" /tmp/pnlsku.json; put /tmp/pnlsku.json pnlsku pnl_sku_30d.json
+          # Финансы - "мягкие": OZON 08.09.2026 отключил /v3/finance/transaction/list
+          # ("obsolete method"), миграция на /v1/finance/accrual/* идёт отдельно. Пока эндпоинт
+          # мёртв, финансовый под-шаг НЕ должен ронять весь синк - иначе замерзают и продажи, и
+          # реклама. Падение финансов -> warning, продолжаем (прошлые pnl_* остаются).
+          if npx tsx src/scripts/ozon/pnl-sku.ts "" "" /tmp/pnlsku.json; then put /tmp/pnlsku.json pnlsku pnl_sku_30d.json; else echo "::warning::pnl-sku пропущен: /v3/finance/transaction/list отключён OZON (миграция на /v1/finance/accrual/*)"; fi
           npx tsx src/scripts/ozon/skus.ts 30 /tmp/skus.json;        put /tmp/skus.json   skus   skus_live_30d.json
           # P&L канал: сырой -> snapshot-pnl пишет data/pnl_30d.json, дублируем в fixtures
-          npx tsx src/scripts/ozon/pnl.ts "" "" /tmp/pnl_raw.json
-          npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json
-          cp data/pnl_30d.json fixtures/pnl_30d.json
+          if npx tsx src/scripts/ozon/pnl.ts "" "" /tmp/pnl_raw.json && npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json; then cp data/pnl_30d.json fixtures/pnl_30d.json; else echo "::warning::P&L канал пропущен: /v3/finance/transaction/list отключён OZON (миграция на /v1/finance/accrual/*)"; fi
           # Реклама - "мягкая": если Performance не авторизовал (401 invalid_client) или
           # OZON_PERF_* пусты - warning и продолжаем (продажи/финансы уже собраны). Под set -e
           # команда в условии if НЕ валит скрипт, поэтому битая реклама не рушит весь синк.

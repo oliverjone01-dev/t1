@@ -22,6 +22,8 @@ for (const page of PAGES) {
   const vc = new VirtualConsole();
   vc.on("jsdomError", (e: Error) => errors.push("jsdomError: " + e.message));
   const html = readFileSync(`${OUT_DIR}/${page}`, "utf-8");
+  // страницы-редиректы (старые страницы -> KATYA) контролов не имеют - пропускаем
+  if (/http-equiv=["']refresh["']/i.test(html)) { continue; }
   let dom: JSDOM;
   try {
     dom = new JSDOM(html, { runScripts: "dangerously", virtualConsole: vc, pretendToBeVisual: true });

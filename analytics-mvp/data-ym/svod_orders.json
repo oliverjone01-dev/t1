@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-16T10:57:14.473Z",
+  "generated_at": "2026-09-16T10:59:43.235Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "split_check": {
     "business": "74986385",
@@ -132,6 +132,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-09"
       ],
@@ -1564,6 +1566,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-09"
       ],
@@ -3538,6 +3542,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-08",
         "2026-09"
@@ -6867,6 +6873,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-08",
         "2026-09"
@@ -9166,6 +9174,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-07",
         "2026-08"
@@ -13467,6 +13477,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-07",
         "2026-08"
@@ -14362,6 +14374,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-06",
         "2026-07"
@@ -18335,6 +18349,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-06",
         "2026-07"
@@ -18582,6 +18598,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-05",
         "2026-06"
@@ -23530,6 +23548,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-05",
         "2026-06",
@@ -24103,6 +24123,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-04",
         "2026-05"
@@ -29211,6 +29233,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-04",
         "2026-05",
@@ -29244,6 +29268,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,
@@ -33647,6 +33673,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-03",
         "2026-04"
@@ -33678,6 +33706,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,
@@ -37054,6 +37084,8 @@
       "overhead_src": "act",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [
         "2026-02",
         "2026-03"
@@ -37082,6 +37114,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,
@@ -37107,6 +37141,8 @@
       "overhead_src": "ledger",
       "points_src": "orders",
       "points_report": 0,
+      "points_acc": 0,
+      "points_ded": 0,
       "svc_months": [],
       "orders_without_ledger": 0,
       "svc_settled": true,

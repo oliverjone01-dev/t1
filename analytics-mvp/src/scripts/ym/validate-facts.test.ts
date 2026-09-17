@@ -6,6 +6,7 @@
 // это ровно тот дефект, за который аудит снял балл дважды.
 import { describe, it, expect } from "vitest";
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -172,5 +173,31 @@ describe("источник не собран: отличать «не было �
     const empty = join(DIR, "empty.ndjson");
     writeFileSync(empty, "");
     expect(gate(empty, "", KEY)).toBe(1);
+  });
+});
+
+// Флаг --abs в самом workflow. Тесты выше доказывают, что валидатор со знаковым файлом работает
+// правильно ТОЛЬКО с --abs, но сам флаг ставится в ym-snapshots.yml, и его там можно забыть -
+// что и случилось 17.09: у реестра он стоял, у отчёта по баллам нет. Прогон встал на ложной
+// тревоге (74986385/2026-09: сальдо 190 511 -> 58 703 при начисленных 2 396 925, ни одна строка
+// не потеряна) и не закоммитил собранное. Проверяем строку гейта, а не поведение валидатора.
+describe("знаковые файлы в ym-snapshots.yml сверяются по обороту", () => {
+  const SIGNED = ["netting.ndjson", "bonuses_monthly.ndjson"];
+  it("у каждого знакового файла в гейте стоит --abs", () => {
+    const yml = readFileSync("../.github/workflows/ym-snapshots.yml", "utf-8");
+    const bad: string[] = [];
+    for (const f of SIGNED) {
+      const line = yml.split("\n").find((l) => l.trim().startsWith(`check ${f}`));
+      if (!line) { bad.push(`${f}: строки гейта нет вовсе`); continue; }
+      if (!/--abs\b/.test(line)) bad.push(`${f}: нет --abs, сальдо будет принято за потерю`);
+    }
+    expect(bad).toEqual([]);
+  });
+  it("у НЕзнаковых файлов --abs не стоит: там сумма и есть величина", () => {
+    const yml = readFileSync("../.github/workflows/ym-snapshots.yml", "utf-8");
+    for (const f of ["orders.ndjson", "realization_monthly.ndjson", "services_monthly.ndjson"]) {
+      const line = yml.split("\n").find((l) => l.trim().startsWith(`check ${f}`)) || "";
+      expect(/--abs\b/.test(line), `${f}: --abs поставлен зря`).toBe(false);
+    }
   });
 });

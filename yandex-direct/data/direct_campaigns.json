@@ -1,15 +1,15 @@
 {
- "dateFrom": "2026-08-17",
- "dateTo": "2026-09-15",
- "generated_at": "2026-09-16T11:38:10.732Z",
+ "dateFrom": "2026-08-18",
+ "dateTo": "2026-09-16",
+ "generated_at": "2026-09-17T11:45:01.046Z",
  "totals": {
   "campaigns": 35,
   "active": 6,
   "moderation": 28,
-  "spend": 169416.03999999998,
-  "clicks": 1587,
-  "impressions": 171256,
-  "conversions": 1291
+  "spend": 170622.37,
+  "clicks": 1573,
+  "impressions": 171551,
+  "conversions": 1276
  },
  "campaigns": [
   {
@@ -464,12 +464,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 1796,
-   "clicks": 177,
-   "ctr": 9.86,
-   "cpc": 151.86,
-   "spend": 26879.32,
-   "conv": 163
+   "imp": 1746,
+   "clicks": 173,
+   "ctr": 9.91,
+   "cpc": 157.77,
+   "spend": 27293.39,
+   "conv": 157
   },
   {
    "id": 712877517,
@@ -481,12 +481,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 3325,
-   "clicks": 368,
-   "ctr": 11.07,
-   "cpc": 122.54,
-   "spend": 45093.08,
-   "conv": 335
+   "imp": 3281,
+   "clicks": 359,
+   "ctr": 10.94,
+   "cpc": 124.77,
+   "spend": 44792.62,
+   "conv": 327
   },
   {
    "id": 712877525,
@@ -498,12 +498,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 2792,
-   "clicks": 425,
-   "ctr": 15.22,
-   "cpc": 121.89,
-   "spend": 51802.93,
-   "conv": 378
+   "imp": 2778,
+   "clicks": 417,
+   "ctr": 15.01,
+   "cpc": 123.29,
+   "spend": 51413.78,
+   "conv": 374
   },
   {
    "id": 712877530,
@@ -566,12 +566,12 @@
    "start": "2026-08-12",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 28552,
-   "clicks": 156,
-   "ctr": 0.55,
-   "cpc": 74.59,
-   "spend": 11636.04,
-   "conv": 70
+   "imp": 30979,
+   "clicks": 166,
+   "ctr": 0.54,
+   "cpc": 75.54,
+   "spend": 12540.22,
+   "conv": 73
   },
   {
    "id": 713589837,
@@ -583,16 +583,16 @@
    "start": "2026-08-16",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 134791,
-   "clicks": 461,
+   "imp": 132766,
+   "clicks": 458,
    "ctr": 0.34,
-   "cpc": 73.76,
-   "spend": 34004.67,
+   "cpc": 75.51,
+   "spend": 34582.36,
    "conv": 345
   },
   {
    "id": 714445486,
-   "name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=500 |",
+   "name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=600 |",
    "type": "TEXT_CAMPAIGN",
    "status": "ACCEPTED",
    "state": "ON",
@@ -600,7 +600,7 @@
    "start": "2026-09-15",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 0,
+   "imp": 1,
    "clicks": 0,
    "ctr": 0,
    "cpc": 0,

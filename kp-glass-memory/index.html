@@ -6,7 +6,7 @@
   Один JSON (kp) описывает клиента, контакты, позиции, режим цены, видимость блоков и модулей.
   Редактор: кнопка справа сверху. Панель не печатается и не попадает в экспорт HTML.
   Фото: 1.jpg..5.jpg рядом с файлом; при отсутствии слот показывает брендовый градиент.
-  Правила: стекло не режется лазером (лазер только металл); гарантия разведена по объёму;
+  Правила: стекло не режется лазером (лазер только металл); гарантия по материалу (стекло 3 года, триплекс 7 лет, металл 20 лет); доставка только ТК, монтаж не делаем;
   цифры только из каталога и партнёрского дека; em dash запрещён.
 -->
 <head>
@@ -89,7 +89,7 @@ svg.ic{ width:26px; height:26px; stroke:var(--green); stroke-width:1.6; fill:non
 .tbox .fine{ font-size:12px; color:var(--muted); margin-top:9px; line-height:1.5; }
 
 /* terms */
-.info{ display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+.info{ display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
 .info .i{ padding:24px; border-right:1px solid var(--line); }
 .info .i:last-child{ border-right:0; }
 .info .h{ font-size:13px; color:var(--green); font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
@@ -314,7 +314,7 @@ const MOUNTS = {
   mount_frame:['штапик на заклёпках, рама к основанию','рама-подставка в грунт или бетон'],
   mount_fence:['зажимной держатель из нержавейки','столбики из гранита (партнёр)'],
   mount_restoration:['накладка поверх существующего камня'],
-  mount_complex:['замер участка и 3D всего комплекса']
+  mount_complex:['3D-макет комплекса','чертежи с размерами','цветокоррекция портрета','перекрашивание и ретушь','печатная подготовка']
 };
 
 /* Тип изделия -> маршрут, модули ценности, модуль монтажа, срок, поля, картинка по умолчанию */
@@ -351,7 +351,7 @@ const VALUE_MODULES = {
   restoration:{name:'Обновление без замены камня'},
   uvbond:    {name:'УФ-склейка стекло-стекло'},
   premium:   {name:'Наборное стекло: игра света'},
-  laser:     {name:'Лазер вместо ковки (металл)'},
+  laser:     {name:'Лазерная резка (металл)'},
   designcode:{name:'Единый дизайн-код'},
   scenario:  {name:'Сценарий участка: открытый / закрытый'},
   dealer:    {name:'Выгода дилера (наценка 80-150%)', auto:(kp)=>kp.client.type==='dealer'},
@@ -398,7 +398,7 @@ const PRESETS = {
       {type:'fence', metal:'труба 60×30, лист 3 мм', ral:'RAL 9005 matte', decor:'пескоструй', size:'по периметру участка', mount:MOUNTS.mount_fence[0], qty:1, price:0, name:''},
       {type:'frame', metal:'лист 4 мм, нержавейка матовая', size:'скамья и столик', ral:'без покрытия', mount:MOUNTS.mount_frame[1], qty:1, price:0, name:'Скамья и столик, нержавейка'}
     ],
-    extras:[['Замер участка',0],['3D-визуализация комплекса',0],['Доставка и монтаж','по согласованию']],
+    extras:[['Замер участка',0],['3D-визуализация комплекса',0],['Доставка ТК по РФ','по тарифу ТК']],
     blocks:{}, modules:{}, photos:[['4.jpg','Комплекс открытого типа'],['1.jpg','Керамический портрет на дистанционном креплении'],['5.jpg','Стела с ажурной панелью'],['6.jpg','Накладка на цветник с керамопечатью'],['7.jpg','Ограждение с лазерной резкой'],['2.jpg','3D-макет и образцы материалов'],['3.jpg','Образцы материалов и стартовый набор']]
   }
 };
@@ -470,7 +470,7 @@ function renderModules(){
   </div>`));
   if(isOn('scenario')) out.push(section('cream', `<h2>Открытый или закрытый тип</h2><p class="intro">Подбираем формат под семью, размер участка и желаемую степень приватности.</p><div class="scen">
     <div class="card"><h3>Открытый тип</h3><p>Классическая композиция: ограждение, стела, цветник, скамья. Обзор и гармония с ландшафтом.</p><div class="tags"><span>Стела</span><span>Ограда</span><span>Цветник</span><span>Скамья</span></div></div>
-    <div class="card"><h3>Закрытый, с остеклением</h3><p>Стеклянная стена из триплекса закрывает от ветра и шума, не перекрывая обзор. Приватность внутри.</p><div class="tags"><span>Стеклянные стены</span><span>Столик</span><span>Весь комплекс</span></div></div>
+    <div class="card"><h3>Закрытый, с остеклением</h3><p>Стеклянные стены и крыша из триплекса закрывают от ветра и осадков, не перекрывая обзор. Внутри столик и приватность.</p><div class="tags"><span>Всё то же, что у открытого</span><span>Столик</span><span>Стеклянные стены и крыша</span></div></div>
   </div>`));
   if(isOn('designcode')) out.push(section('', `<h2>Шесть элементов в единой композиции</h2><p class="intro">Все элементы производим на одном заводе в Домодедово. Единый дизайн-код по цвету, материалу и декору.</p><div class="vals">
     ${vcard(ICON.layers,'Стела из триплекса','Центр композиции. Керамопечать, 8-34 мм.')}
@@ -507,15 +507,15 @@ function renderModules(){
     <p>Для наборных памятников используем незакалённое стекло с необработанным срезом. Необработанный край преломляет лучи, и от памятника исходят мягкие отблески.</p>
     <p class="note">Прочность даёт УФ-склейка светопрозрачных конструкций, а не закалка. Это единственная линия каталога, которая не проходит закалку.</p>
   </div></div>`));
-  if(isOn('laser')) out.push(section('', `<h2>Лазерная резка вместо ковки</h2><p class="intro">Узор режем лазером по профильной трубе и стальному листу. Жёсткая геометрия, ровная линия, ремонтопригодность.</p><div class="vals">
+  if(isOn('laser')) out.push(section('', `<h2>Лазерная резка</h2><p class="intro">Узор режем лазером по профильной трубе и стальному листу. Жёсткая геометрия, ровная линия, ремонтопригодность.</p><div class="vals">
     ${vcard(ICON.bolt,'Точность 0,1 мм','Труболазер режет профиль насквозь, листовой лазер вырезает панели любой сложности. Всё в Домодедово.')}
-    ${vcard(ICON.shield,'Порошковая окраска по RAL','Любой цвет. Нержавейка матовая или полированная. Гарантия окраски 5 лет: без сколов и коррозии.')}
+    ${vcard(ICON.shield,'Порошковая окраска по RAL','Любой цвет. Нержавейка матовая или полированная. Гарантия на металл 20 лет.')}
     ${vcard(ICON.stone,'Что используем','Труба 40×20, 40×40, 60×30 мм. Лист 2-3 мм для панелей, 4 мм для подставок, 8 мм для оснований рам.')}
   </div>`));
   /* монтаж: один родительский блок, внутри под-блоки другого дизайна */
   const mks = mountsOn();
   if(mks.length){
-    const titles={mount_portrait:'Три способа закрепить портрет',mount_stela:'Пять способов установить стелу',mount_overlay:'Крепление накладки на цветник',mount_stand:'Два сценария для подставки',mount_frame:'Крепление рамы',mount_fence:'Крепление ограждения',mount_restoration:'Установка накладки',mount_complex:'Замер и 3D всего комплекса'};
+    const titles={mount_portrait:'Три способа закрепить портрет',mount_stela:'Пять способов установить стелу',mount_overlay:'Крепление накладки на цветник',mount_stand:'Два сценария для подставки',mount_frame:'Крепление рамы',mount_fence:'Крепление ограждения',mount_restoration:'Установка накладки',mount_complex:'Макет и цветокоррекция'};
     const tags={mount_portrait:'портрет',mount_stela:'стела',mount_overlay:'накладка на цветник',mount_stand:'подставка',mount_frame:'рама',mount_fence:'ограждение',mount_restoration:'реставрация',mount_complex:'комплекс'};
     const DESC={
       mount_portrait:['Стекло отходит от камня на 15 мм. Появляется объём и воздух между портретом и гранитом.','Стекло прилегает плотно. Добавляем белую подложку, чтобы фон не просвечивал.','Без сверления камня. Рекомендуем аквариумный клей-герметик. Подложка обязательна.'],
@@ -525,27 +525,26 @@ function renderModules(){
       mount_frame:['Стекло фиксируется съёмным штапиком на заклёпках, рама крепится к основанию через отверстия.','Раму-подставку можно углубить в грунт или бетон; крепёжные элементы делаем по запросу.'],
       mount_fence:['Закалённое стекло держит зажимной держатель из нержавеющей стали.','Столбики из гранита в партнёрстве с гранитчиками; размер и форма под цоколь захоронения.'],
       mount_restoration:['Накладка крепится поверх существующего камня без его демонтажа.'],
-      mount_complex:['Замер участка, план с размерами, затем 3D-визуализация всего комплекса до производства.']
+      mount_complex:['Показываем весь комплекс на участке до производства: стела, цветник, ограждение, скамья в одном рисунке.','Размеры, узлы и крепёж каждого элемента. По чертежам работает цех и гранитчик.','Убираем шум, выравниваем свет и контраст, восстанавливаем детали лица со старого снимка.','Подбираем цвет одежды и фона, при желании меняем их. Чёрно-белое фото делаем цветным.','Готовим файл под керамическую печать: разрешение, цветопередача, тест на образце.']
     };
     const cap=m=>m.charAt(0).toUpperCase()+m.slice(1);
     const subs = mks.map(mk=>{
       const opts = MOUNTS[mk].map((m,i)=>`<div class="opt"><span class="num">${i+1}</span><div><b>${esc(cap(m))}</b><span>${esc((DESC[mk]||[])[i]||'')}</span></div></div>`).join('');
-      return `<div class="sub"><div class="sub-h"><span class="tag">Крепление · ${esc(tags[mk])}</span><h3>${titles[mk]}</h3></div><div class="sub-grid">${opts}</div></div>`;
+      return `<div class="sub"><div class="sub-h"><span class="tag">${mk==='mount_complex'?'Подготовка':'Крепление'} · ${esc(tags[mk])}</span><h3>${titles[mk]}</h3></div><div class="sub-grid">${opts}</div></div>`;
     }).join('');
     const onlyComplex = mks.length===1 && mks[0]==='mount_complex';
-    const h2 = onlyComplex ? 'Замер и 3D до производства' : 'Установка и крепление';
-    const intro = onlyComplex ? 'Комплекс проектируем целиком: сначала замер участка, затем 3D-визуализация всех элементов.' : 'Подберём вариант под камень и Ваши пожелания. От этого зависит, как изделие смотрится на участке.';
-    out.push(section('cream', `<div class="eyebrow">Установка</div><h2>${h2}</h2><p class="intro">${intro}</p>${subs}`));
+    const h2 = onlyComplex ? 'Макет и цветокоррекция' : 'Установка и крепление';
+    const intro = onlyComplex ? 'До запуска в цех Вы видите весь комплекс в 3D и утверждаете каждый портрет после цветокоррекции.' : 'Подберём вариант под камень и Ваши пожелания. От этого зависит, как изделие смотрится на участке.';
+    out.push(section('cream', `<div class="eyebrow">${onlyComplex?'Подготовка':'Установка'}</div><h2>${h2}</h2><p class="intro">${intro}</p>${subs}`));
   }
   if(isOn('photos') && kp.photos.length) out.push(section('', `<h2>Примеры из портфолио</h2><p class="intro">Разные направления каталога на реальных участках.</p><div class="bento">${kp.photos.map((p,i)=>`<figure class="cell s${BENTO[i%BENTO.length]}"><img src="${esc(p[0])}" alt=""><figcaption>${esc(p[1])}</figcaption></figure>`).join('')}</div>`));
   if(isOn('materials')){
     const r=routeOf();
     const glass = `<div><h3>Стекло</h3><div class="sw"><div class="s"><div class="chip" style="background:#DDE7E3"></div>бесцветное</div><div class="s"><div class="chip" style="background:#EDF3F0"></div>осветлённое</div><div class="s"><div class="chip" style="background:#9AA7A2"></div>матовое</div><div class="s"><div class="chip" style="background:#5B5043"></div>тонированное</div></div></div>`;
     const metal = `<div><h3>Металл, окраска</h3><div class="sw"><div class="s"><div class="chip" style="background:#0A0A0A"></div>RAL 9005</div><div class="s"><div class="chip" style="background:#383E42"></div>RAL 7016</div><div class="s"><div class="chip" style="background:#F1F0EA;border-color:#D7D7CE"></div>RAL 9016</div><div class="s"><div class="chip" style="background:#B9BCBF"></div>нержавейка</div></div></div>`;
-    const base = `<div><h3>Основание</h3><div class="sw"><div class="s"><div class="chip" style="background:#111316"></div>гранит чёрный</div><div class="s"><div class="chip" style="background:#2B2E33"></div>габбро</div></div></div>`;
-    const cols = r==='metal' ? metal+base : r==='glass' ? glass+base : glass+metal+base;
+    const cols = r==='metal' ? metal : r==='glass' ? glass : glass+metal;
     const note = r==='metal' ? 'Порошковая окраска по любому RAL, нержавейка без покрытия.' : 'Осветлённое стекло (Crystalvision) убирает зеленоватый оттенок и дороже обычного на 25%. Форма влияет на цену: прямоугольник дешевле фигурной резки.';
-    out.push(section('', `<h2>Материалы и базовые цвета</h2><div class="mats" style="grid-template-columns:repeat(${r==='both'?3:2},1fr)">${cols}</div><p class="muted" style="margin-top:26px;font-size:14.5px;max-width:72ch">${note}</p>`));
+    out.push(section('', `<h2>Материалы и базовые цвета</h2><div class="mats" style="grid-template-columns:repeat(${r==='both'?2:1},1fr);max-width:${r==='both'?'none':'520px'}">${cols}</div><p class="muted" style="margin-top:26px;font-size:14.5px;max-width:72ch">${note}</p>`));
   }
   return out.join('');
 }
@@ -562,9 +561,9 @@ function renderProcess(){
 
 function renderCost(){
   const r=routeOf();
-  const seg = r==='glass' ? [['Стекло и керамическая печать',46,'var(--green)'],['Закалка и триплекс',26,'var(--forest)'],['Крепёж и сборка',12,'#6FA98C'],['Монтаж и доставка',16,'#B7CBBE']]
-            : r==='metal' ? [['Металл и лазерная резка',44,'var(--green)'],['Гибка и сварка',18,'var(--forest)'],['Порошковая окраска',20,'#6FA98C'],['Монтаж и доставка',18,'#B7CBBE']]
-            : [['Стекло и керамическая печать',38,'var(--green)'],['Металл и лазерная резка',26,'var(--forest)'],['Закалка и триплекс',20,'#6FA98C'],['Монтаж и доставка',16,'#B7CBBE']];
+  const seg = r==='glass' ? [['Стекло и керамическая печать',46,'var(--green)'],['Закалка и триплекс',26,'var(--forest)'],['Крепёж и сборка',12,'#6FA98C'],['Упаковка и доставка ТК',16,'#B7CBBE']]
+            : r==='metal' ? [['Металл и лазерная резка',44,'var(--green)'],['Гибка и сварка',18,'var(--forest)'],['Порошковая окраска',20,'#6FA98C'],['Упаковка и доставка ТК',18,'#B7CBBE']]
+            : [['Стекло и керамическая печать',38,'var(--green)'],['Металл и лазерная резка',26,'var(--forest)'],['Закалка и триплекс',20,'#6FA98C'],['Упаковка и доставка ТК',16,'#B7CBBE']];
   let acc=0; const grad = seg.map(s=>{ const a=acc; acc+=s[1]; return `${s[2]} ${a}% ${acc}%`; }).join(', ');
   const path = r==='metal' ? ['Макет 3D','Лазерная резка','Гибка','Сварка','Окраска','Сборка','ОТК','Доставка'] : r==='glass' ? ['Макет 3D','Раскрой','Печать','Закалка','Триплекс','Сборка','ОТК','Доставка'] : ['Макет 3D','Раскрой стекла','Печать','Закалка','Лазер по металлу','Сборка','ОТК','Доставка'];
   const routeName = r==='glass' ? 'изделия из стекла' : r==='metal' ? 'изделия из металла' : (activeTypes().includes('complex') ? 'комплекса: стекло и металл' : 'изделий из стекла и металла');
@@ -577,15 +576,16 @@ function renderCost(){
 
 function renderTerms(){
   const types=activeTypes(); const r=routeOf(); const term=termOf();
-  const srok = term==='45-90' ? 'Полный комплекс 45-90 к.д. от утверждения макета. Отдельное изделие 30 к.д.' : 'Отдельное изделие 30 календарных дней от утверждения макета.';
-  const pay = kp.client.type==='dealer' ? '100% предоплата стандартно. Заказы от 50 000 ₽ по схеме 70% и 30%. Прогрессивная скидка при росте объёмов.' : 'Заказы от 50 000 ₽ по схеме 70% и 30%. Поэтапная оплата по согласованию.';
-  const g=[]; if(r!=='glass') g.push('5 лет на металл и окраску.'); if(types.some(t=>TYPES[t].value.includes('ceramic'))) g.push('Керамический портрет не выцветает 20+ лет.'); if(types.includes('stacked')) g.push('УФ-склейка: прочное прозрачное соединение.');
-  const del = kp.client.type==='dealer' ? 'Транспортной компанией по РФ со страховкой, около 2 500 ₽. Самовывоз из Домодедово бесплатно.' : 'Транспортной компанией по всей России. Самовывоз из Домодедово бесплатно.';
+  const srok = term==='45-90' ? 'Полный комплекс 45-90 календарных дней от утверждения макета. Отдельное изделие 30 к.д.' : 'Отдельное изделие 30 календарных дней от утверждения макета.';
+  const pay = kp.client.type==='dealer' ? '100% предоплата стандартно. Заказы от 50 000 ₽ по схеме 70% и 30%. Прогрессивная скидка при росте объёмов.' : '50% при подписании договора, 50% по готовности изделия перед отгрузкой.';
+  const g=[]; const items=kp.items.filter(i=>TYPES[i.type]);
+  const hasTriplex = items.some(i=>/триплекс/i.test(i.thickness||'') || (!i.thickness && TYPES[i.type].value.includes('triplex')));
+  const hasPlainGlass = items.some(i=>TYPES[i.type].route!=='metal' && !/триплекс/i.test(i.thickness||'') && !(!i.thickness && TYPES[i.type].value.includes('triplex')));
+  if(hasPlainGlass) g.push('Стекло 3 года.'); if(hasTriplex) g.push('Триплекс 7 лет.'); if(r!=='glass') g.push('Металл 20 лет.');
   return section('', `<div class="info">
-    <div class="i"><div class="h">Срок изготовления</div><div class="d">${srok}</div></div>
+    <div class="i"><div class="h">Срок производства</div><div class="d">${srok}</div></div>
     <div class="i"><div class="h">Оплата</div><div class="d">${pay}</div></div>
-    <div class="i"><div class="h">Гарантия и срок службы</div><div class="d">${g.join(' ')||'Уточняется по составу.'}</div></div>
-    <div class="i"><div class="h">Доставка</div><div class="d">${del}</div></div>
+    <div class="i"><div class="h">Гарантия</div><div class="d">${g.join(' ')||'Уточняется по составу.'}</div></div>
   </div>`).replace('class="sec "','class="sec " style="padding-bottom:0"');
 }
 
@@ -626,7 +626,7 @@ function render(){
     <div class="step"><div class="n">02</div><div class="t">3D-макет</div><div class="d">Показываем будущее изделие.</div><div class="w">до производства</div></div>
     <div class="step"><div class="n">03</div><div class="t">Согласование и смета</div><div class="d">Подтверждаем состав и точную цену.</div><div class="w">1-2 дня</div></div>
     <div class="step"><div class="n">04</div><div class="t">Производство</div><div class="d">Изготавливаем на своём цехе.</div><div class="w">${termOf()==='45-90'?'45-90 к.д.':'30 к.д.'}</div></div>
-    <div class="step"><div class="n">05</div><div class="t">Доставка и монтаж</div><div class="d">Привозим и устанавливаем бережно.</div><div class="w">по согласованию</div></div>
+    <div class="step"><div class="n">05</div><div class="t">Доставка</div><div class="d">Отправляем транспортной компанией по всей России. Самовывоз из Домодедово.</div><div class="w">по тарифу ТК</div></div>
   </div>`));
   if(blockOn('producer')) h.push(section('dark', `<h2 style="font-size:26px">Российский производитель с собственным цехом</h2><div class="stats">
     <div class="stat"><div class="v">16 000 м²</div><div class="l">собственное производство в Домодедово</div></div>
@@ -713,7 +713,7 @@ function buildEditor(){
   const hint=document.createElement('div'); hint.className='hint'; hint.textContent='Авто = модуль включается по типам изделий в позициях. Принудительно: вкл / выкл.'; em.appendChild(hint);
   const addMod=(key,name,sub)=>{ const row=document.createElement('div'); row.className='modrow'; row.innerHTML=`<div class="mn">${esc(name)}<small>${esc(sub)}</small></div>`; const tri=document.createElement('div'); tri.className='tri'; [['auto','авто'],['on','вкл'],['off','выкл']].forEach(([v,l])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=l; const cur=kp.modules[key]||'auto'; if(cur===v) b.classList.add('on'); b.addEventListener('click',()=>{ if(v==='auto') delete kp.modules[key]; else kp.modules[key]=v; buildEditor(); render(); }); tri.appendChild(b); }); row.appendChild(tri); em.appendChild(row); };
   Object.keys(VALUE_MODULES).forEach(k=>addMod(k, VALUE_MODULES[k].name, isOn(k)?'сейчас: показан':'сейчас: скрыт'));
-  Object.keys(MOUNTS).forEach(k=>addMod(k, 'Монтаж: '+k.replace('mount_',''), mountsOn().includes(k)?'сейчас: показан':'сейчас: скрыт'));
+  Object.keys(MOUNTS).forEach(k=>addMod(k, (k==='mount_complex'?'Подготовка: ':'Монтаж: ')+k.replace('mount_',''), mountsOn().includes(k)?'сейчас: показан':'сейчас: скрыт'));
 
   /* фото */
   const ep=$('#edPhotos'); ep.innerHTML='';

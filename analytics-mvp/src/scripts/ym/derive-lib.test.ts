@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
 import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
@@ -372,5 +372,35 @@ describe("баллы Маркета из subsidies[]: списание вычи�
     expect(r.subsidy).toBe(0);
     expect(r.sub_acc).toBe(0);
     expect(r.sub_ded).toBe(0);
+  });
+});
+
+// Что такое «баллы за скидку». Маркет опускает цену на кассе за свой счёт (в ценах позиции это
+// тип MARKETPLACE, у нас p_mp; скидка по подписке Плюс - CASHBACK/SPASIBO), покупатель платит
+// меньше, и ровно эту сумму Маркет возвращает продавцу баллами через subsidies[]. То есть
+// начисленные баллы - не бонус сверху, а возврат скидки. На живой выгрузке заказов тождество
+// сходится по всем восьми месяцам БЕЗ расхождения, и это лучшая имеющаяся проверка разбора
+// баллов: отдельного отчёта по баллам у Маркета нет, сверять больше не с чем.
+describe("баллы за скидку = сама скидка, возвращённая продавцу", () => {
+  const snap = "data-ym/orders.ndjson";
+  it("по каждому месяцу: начислено баллов = скидка Маркета + Плюс + Спасибо (доставленные заказы)", () => {
+    if (!existsSync(snap)) throw new Error(`нет ${snap} - тест обязан падать, а не молча проходить`);
+    const rows: any[] = readFileSync(snap, "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
+    const delivered = rows.filter((r) => r.status === "DELIVERED");
+    expect(delivered.length, "в снимке нет доставленных заказов").toBeGreaterThan(100);
+    expect(delivered.filter((r) => r.sub_acc !== undefined).length, "снимок собран до разбора subsidies[]").toBe(delivered.length);
+    const by: Record<string, { disc: number; acc: number }> = {};
+    for (const r of delivered) {
+      const m = String(r.created).slice(0, 7);
+      const b = by[m] || (by[m] = { disc: 0, acc: 0 });
+      const n = r.count || 0;
+      b.disc += ((r.p_mp || 0) + (r.p_cashback || 0) + (r.p_spasibo || 0)) * n;
+      b.acc += r.sub_acc || 0;
+    }
+    const months = Object.keys(by).sort();
+    expect(months.length).toBeGreaterThan(5);
+    const bad = months.filter((m) => Math.abs(by[m]!.acc - by[m]!.disc) > 1)
+      .map((m) => `${m}: скидка ${Math.round(by[m]!.disc)} против баллов ${Math.round(by[m]!.acc)}`);
+    expect(bad, "баллы разошлись со скидкой - значит разбор subsidies[] сломан").toEqual([]);
   });
 });

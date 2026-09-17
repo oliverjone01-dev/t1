@@ -234,6 +234,27 @@ describe("акт по стоимости услуг замещает общие 
   });
 });
 
+// Маркет отдаёт часть артикулов с кириллическими двойниками в коде: «GGМ-16-4-3» с русской «М»,
+// «GGTP-20-2х2» с русской «х». В листе себестоимости таких кодов нет ни одного, поэтому прямой
+// ключ по ним не срабатывал никогда, и артикул молча оставался без С\С при том, что в листе она
+// есть. На июле это четыре артикула и 21 055 ₽ себестоимости.
+describe("кириллические двойники в кодах артикулов", () => {
+  it("артикул с русской буквой получает С\\С из листа, где код латиницей", () => {
+    const m = one([item({ sku: "GGМ-16-4-3" })], [], { "GGM-16-4-3": 1000 });
+    expect(m.rows[0]!.cogs_known, "С\\С не нашлась по нормализованному коду").toBe(true);
+    expect(m.rows[0]!.cogs).toBe(1000);
+  });
+  it("точный код по-прежнему главнее нормализованного", () => {
+    const m = one([item({ sku: "GGМ-16-4-3" })], [], { "GGМ-16-4-3": 700, "GGM-16-4-3": 1000 });
+    expect(m.rows[0]!.cogs).toBe(700);
+  });
+  it("нормализация не склеивает разные артикулы: заменяются только буквы-двойники", () => {
+    // Цифры, дефисы и латиница не трогаются, иначе два разных кода могли бы сойтись в один.
+    const m = one([item({ sku: "GGM-16-4-3" })], [], { "GGM-16-4-4": 1000 });
+    expect(m.rows[0]!.cogs_known).toBe(false);
+  });
+});
+
 describe("баллы берутся из отчёта по баллам, а не из скидки Маркета", () => {
   const bon = (o: Partial<Record<string, unknown>> = {}) => ({ ym: "2026-07", business: "1", amount: 5000, type: "Начисление", src: "Баллы за скидку Маркета", ...o });
   it("месячный итог приводится к отчёту, доли по позициям остаются пропорциональными", () => {
@@ -304,8 +325,277 @@ describe("раскрытие баллов сходится с показанны
     expect(bad).toEqual([]);
   });
 
+  // Где месяц приведён к отчёту, раскрытие обязано идти ИЗ ОТЧЁТА, а не из subsidies[] заказа:
+  // иначе на экране стоят числа двух источников и их разность не даёт показанную сумму. Живой
+  // факт 2026-09-16: по кабинету мебели за июль отчёт давал 2 321 628, а раскрытие от subsidies[]
+  // 2 626 846 минус 79 631 - разность не сходилась ни с колонкой, ни с кабинетом.
+  it("где источник - отчёт, раскрытие тоже из отчёта: acc - ded = points_report", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const bad: string[] = [];
+    let checked = 0;
+    for (const m of svod.months) {
+      if (m.points_src !== "report" || !m.rows.length) continue;
+      checked++;
+      const net = (m.points_acc || 0) - (m.points_ded || 0);
+      if (Math.abs(net - (m.points_report || 0)) > 1) {
+        bad.push(`${m.business}/${m.ym}: ${Math.round(net)} против отчёта ${Math.round(m.points_report || 0)}`);
+      }
+    }
+    expect(checked, "ни одного месяца по отчёту - проверять нечего").toBeGreaterThan(5);
+    expect(bad).toEqual([]);
+  });
+
+  // Живая сверка с выгрузкой Ивана из кабинета: июль, кабинет зеркал. Начислено 1 748 465
+  // (1 727 820 скидка Маркета + 18 645 Плюс + 2 000 на доставку), возврата начисления нет.
+  it("июль по кабинету зеркал совпадает с выгрузкой из кабинета", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const m = svod.months.find((x: any) => x.ym === "2026-07" && x.business === "1023124");
+    expect(m, "месяца нет в своде").toBeTruthy();
+    expect(m.points_src).toBe("report");
+    expect(Math.round(m.points_report)).toBe(1748465);
+    expect(Math.round(m.points_acc)).toBe(1748465);
+    expect(Math.round(m.points_ded)).toBe(0);
+  });
+
   it("списание неотрицательно - это величина, а не знак", () => {
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
     for (const m of svod.months) expect(m.points_ded, `${m.business}/${m.ym}`).toBeGreaterThanOrEqual(0);
+  });
+});
+
+// Списание баллов за услуги по заказам: почему источником осталась классификация проводок
+// реестра платежей, а не месячный итог отчёта о баллах.
+//
+// 17.09 я на день привёл месячный итог свода к месячному итогу отчёта, решив, что дашборд
+// завышает. Это было неверно и сломало верное число. Месяц отчёта НЕ равен месяцу заказа:
+// свод отвечает «услуги по заказам июля», отчёт - «сколько Маркет списал баллов в июле», и
+// это разные срезы одних и тех же денег. Приведение одного к другому размазало чужой месяц
+// по артикулам своего: за сентябрь по зеркалам артикул с выручкой 19 824 руб получил услуг
+// на 333 003 руб, в 16,8 раза больше собственной выручки.
+//
+// Настоящая проверка ниже: те же рубли из ДРУГОГО файла (отчёт о баллах) и с ДРУГОЙ
+// группировкой (по номеру заказа, а не по проводке реестра) обязаны дать то же число.
+describe("списание баллов сверено с отчётом по номеру заказа", () => {
+  // Отчёт несёт номер заказа и артикул у каждой строки списания по заказам (2 483 строки из
+  // 3 096; остальные 613 - Полки и Буст за показы, они уровня кабинета и уже в общих расходах).
+  // Поэтому сверка идёт по самому мелкому ключу, какой есть в своде: кабинет + день + артикул.
+  // Это внешняя сверка, а не круговая: ни одно число здесь не пишет тот же цикл, что читает.
+  const SPEND = /скидк[аи].{0,30}совместн|совместн.{0,20}акци|оплата бонусами/i;
+  const readNd = (f: string) => readFileSync(f, "utf-8").trim().split("\n").map((l) => JSON.parse(l));
+
+  const reportByDaySku = () => {
+    const ord = new Map<string, { d: string; status: string }>();
+    for (const o of readNd("data-ym/orders.ndjson")) {
+      const id = String(o.order || o.id || "");
+      if (id) ord.set(`${o.business}|${id}`, { d: String(o.created || "").slice(0, 10), status: o.status });
+    }
+    const out = new Map<string, number>();
+    for (const r of readNd("data-ym/bonuses_monthly.ndjson")) {
+      if (!SPEND.test(String(r.src || ""))) continue;
+      if (!String(r.order || "").trim()) continue;
+      const o = ord.get(`${r.business}|${r.order}`);
+      if (!o || o.status !== "DELIVERED") continue;   // в свод идут только доставленные
+      const k = `${r.business}|${o.d}|${r.sku}`;
+      out.set(k, (out.get(k) || 0) - (Number(r.amount) || 0));
+    }
+    return out;
+  };
+
+  it("по каждому ключу кабинет+день+артикул свод равен отчёту", () => {
+    const rep = reportByDaySku();
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const mine = new Map<string, number>();
+    for (const m of svod.months) {
+      for (const r of m.rows || []) {
+        const k = `${m.business}|${r.d}|${r.sku}`;
+        mine.set(k, (mine.get(k) || 0) + (r.svc_points || 0));
+      }
+    }
+    const bad: string[] = [];
+    const keys = new Set([...rep.keys(), ...mine.keys()]);
+    for (const k of keys) {
+      const a = mine.get(k) || 0, b = rep.get(k) || 0;
+      if (Math.abs(a - b) > 1) bad.push(`${k}: свод ${Math.round(a)}, отчёт ${Math.round(b)}`);
+    }
+    expect(keys.size, "ключей нет - сверять нечего").toBeGreaterThan(500);
+    expect(bad).toEqual([]);
+  });
+
+  // Тот же факт крупным планом, чтобы падение читалось без расшифровки ключей.
+  it("по каждой паре кабинет/месяц итоги двух источников совпадают", () => {
+    const rep = reportByDaySku();
+    const byMonth = new Map<string, number>();
+    for (const [k, v] of rep) {
+      const [b, d] = k.split("|");
+      byMonth.set(`${b}|${d!.slice(0, 7)}`, (byMonth.get(`${b}|${d!.slice(0, 7)}`) || 0) + v);
+    }
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const bad: string[] = [];
+    let checked = 0;
+    for (const m of svod.months) {
+      if (!(m.rows || []).length) continue;
+      checked++;
+      const mine = m.rows.reduce((a: number, r: any) => a + (r.svc_points || 0), 0);
+      const theirs = byMonth.get(`${m.business}|${m.ym}`) || 0;
+      if (Math.abs(mine - theirs) > 1) bad.push(`${m.business}/${m.ym}: свод ${Math.round(mine)}, отчёт ${Math.round(theirs)}`);
+    }
+    expect(checked).toBeGreaterThan(10);
+    expect(bad).toEqual([]);
+  });
+
+  // Живая цифра, из-за которой всё это разбиралось. Июль по обоим кабинетам - 4 861 651 руб
+  // услуг по заказам июля. В кабинете за июль списано 4 060 473 руб, и это НЕ то же число:
+  // там списания по заказам любых месяцев. Пин стоит на обоих, чтобы их больше не путали.
+  it("июль: услуги по заказам месяца и списание кабинета за месяц - разные числа", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const july = svod.months.filter((m: any) => m.ym === "2026-07");
+    const byOrderMonth = july.reduce((a: number, m: any) =>
+      a + m.rows.reduce((x: number, r: any) => x + (r.svc_points || 0), 0), 0);
+    expect(Math.round(byOrderMonth)).toBe(4861651);
+
+    const spentInJuly = readNd("data-ym/bonuses_monthly.ndjson")
+      .filter((r: any) => r.ym === "2026-07" && SPEND.test(String(r.src || "")))
+      .reduce((a: number, r: any) => a - (Number(r.amount) || 0), 0);
+    expect(Math.round(spentInJuly)).toBe(4060473);
+  });
+
+  it("строки отчёта без номера заказа в разнесение по позициям не идут", () => {
+    // Полки и Буст за показы к заказу не привязаны: они уровня кабинета и живут в общих
+    // расходах. Если бы они попали сюда, сверка выше разошлась бы ровно на них.
+    const noOrder = readNd("data-ym/bonuses_monthly.ndjson")
+      .filter((r: any) => SPEND.test(String(r.src || "")) && !String(r.order || "").trim());
+    expect(noOrder.length).toBeGreaterThan(0);
+    const names = new Set(noOrder.map((r: any) => String(r.service || "")));
+    expect([...names].sort()).toEqual(["Буст продаж, оплата за показы", "Полки"]);
+  });
+});
+
+// Отчёт по баллам Маркета. Живой агрегат за июль 2026 по кабинету зеркал, выгруженный Иваном из
+// кабинета (Финансы -> Финансовые отчёты -> По платежам -> «О баллах Маркета»). В API это тот же
+// reports/united-netting/generate с телом monthOfYear - отдельного метода нет, и пять имён, которые
+// я перебирал раньше, были выдуманы.
+//
+// Главное, что показывает этот отчёт: НАЧИСЛЕННЫЕ баллы не равны СПИСАННЫМ. За июль по зеркалам
+// начислено 1 748 465, списано 1 750 954, возвращено 2 489 - баланс -2 000 руб.
+describe("отчёт по баллам: разбор типов транзакций", () => {
+  const ref = JSON.parse(readFileSync("fixtures/ym/bonuses-2026-07-1023124.json", "utf-8"));
+  const rows = ref.by_type_source as Array<{ type: string; source: string; n: number; sum: number }>;
+  const kind = (r: { type: string; source: string }) => bonusKind({ ym: "2026-07", business: "1023124", type: r.type, src: r.source, amount: 0 });
+
+  it("начисление узнаётся по ИСТОЧНИКУ проводки, а не по знаку суммы", () => {
+    const acc = rows.filter((r) => kind(r) === "accrual");
+    expect(acc.map((r) => r.source).sort()).toEqual([
+      "Баллы за скидку Маркета", "Баллы за скидку Маркета на доставку", "Баллы за скидку Яндекс Плюс",
+    ]);
+    expect(Math.round(acc.reduce((a, r) => a + r.sum, 0))).toBe(1748465);
+  });
+
+  it("списание и возврат списания - это трата баллов на услуги, а не начисление", () => {
+    const sp = rows.filter((r) => kind(r) === "spend");
+    expect(sp.map((r) => r.type).sort()).toEqual(["Возврат списания", "Списание"]);
+    // Списание -1 750 954.03 плюс возврат списания +2 489.03 = потрачено 1 748 465.
+    expect(Math.round(sp.reduce((a, r) => a + r.sum, 0))).toBe(-1748465);
+  });
+
+  it("ни одна проводка отчёта не осталась неразобранной", () => {
+    expect(rows.filter((r) => kind(r) === "other").map((r) => `${r.type} | ${r.source}`)).toEqual([]);
+  });
+
+  it("начислено и потрачено - разные величины, сходятся только по кабинету за месяц", () => {
+    const acc = rows.filter((r) => r.type === "Начисление").reduce((a, r) => a + r.sum, 0);
+    const ded = rows.filter((r) => r.type === "Списание").reduce((a, r) => a + r.sum, 0);
+    const ret = rows.filter((r) => r.type === "Возврат списания").reduce((a, r) => a + r.sum, 0);
+    // Валовые суммы не равны: начислено 1 748 465, списано 1 750 954, возвращено 2 489.
+    expect(Math.round(acc)).toBe(1748465);
+    expect(Math.round(ded)).toBe(-1750954);
+    expect(Math.round(ret)).toBe(2489);
+    // По кабинету за июль баллы израсходованы полностью, остаток ноль. У мебели за тот же месяц
+    // остаток 9 620 руб - строка «Премия, предоставленная Исполнителем». То есть ноль тут факт
+    // конкретного месяца, а не тождество: проверяем сведение, а не равенство начислено=списано.
+    expect(Math.abs(acc + ded + ret)).toBeLessThan(1);
+  });
+
+  it("проводки баллов отличаются от денежных по типу транзакции", () => {
+    expect(isPointsPaid("Списание")).toBe(true);
+    expect(isPointsPaid("Возврат списания")).toBe(true);
+    expect(isPointsPaid("Удержание")).toBe(false);
+    expect(isPointsPaid("Начисление")).toBe(false);
+  });
+});
+
+
+// ФЕНИКС, аудит 2026-09-17, gaps 6-8. Три дыры, через которые деньги уходили с экрана молча.
+describe("деньги кабинета: три источника не должны терять друг друга", () => {
+  const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+
+  // gap 6: акт замещает реестр целиком. Где акт МЕНЬШЕ, разница исчезала из P&L без следа:
+  // на снимке 2026-09-17 это 9 пар из 14 и 14 534,67 ₽ (февраль/зеркала 8 731,67 -> 1 197,26).
+  it("месяц по акту помнит, сколько давал реестр до замещения", () => {
+    const byAct = svod.months.filter((m: any) => m.overhead_src === "act");
+    expect(byAct.length, "нет ни одного месяца по акту - проверять нечего").toBeGreaterThan(3);
+    for (const m of byAct) {
+      expect(m.overhead_ledger, `${m.business}/${m.ym}: поле реестрового итога не заполнено`).toBeDefined();
+      expect(typeof m.overhead_ledger).toBe("number");
+    }
+    // Хотя бы один месяц, где акт меньше реестра: иначе сторож нечем проверить.
+    const shrunk = byAct.filter((m: any) => (m.overhead_ledger || 0) - ((m.overhead_money || 0) + (m.overhead_points || 0)) > 0.5);
+    expect(shrunk.length, "ни одной пары, где акт меньше реестра - сторож не на чем показать").toBeGreaterThan(0);
+  });
+
+  // gap 7: отчёт о баллах знает о кабинетных тратах больше, чем акт. Сентябрь: 40 094 ₽ при
+  // «расходов кабинета нет» на экране, потому что акта за текущий месяц ещё нет.
+  it("кабинетные списания баллов из отчёта видны отдельным числом", () => {
+    for (const m of svod.months) {
+      expect(m.overhead_points_report, `${m.business}/${m.ym}: поле не заполнено`).toBeDefined();
+      expect(m.overhead_points_report, `${m.business}/${m.ym}: величина отрицательна`).toBeGreaterThanOrEqual(0);
+    }
+    const noAct = svod.months.filter((m: any) => m.overhead_src !== "act" && (m.overhead_points_report || 0) > 0);
+    expect(noAct.length, "нет месяца без акта, но с тратами по отчёту - сторож не на чем показать").toBeGreaterThan(0);
+  });
+
+  // Решение Ивана 2026-09-17: «баллы за полку и за буст относи в общие расходы на кабинет».
+  // Источник балльной ноги по этим статьям - отчёт о баллах, а не акт: в акте BONUS_PAID заполнен
+  // частично, и где заполнен, отчёт всегда больше (август/мебель 9 262,44 против 52 631,71).
+  // Поэтому замещаем, а не складываем, и замещаем ОБЕ статьи целиком: за июль по мебели отчёт
+  // знал только Полки, и рядом оставался Буст из акта - опять два источника в одной статье.
+  it("баллы за Полку и Буст в расходах кабинета равны отчёту о баллах", () => {
+    const bad: string[] = [];
+    let checked = 0;
+    for (const m of svod.months) {
+      const rep = m.overhead_points_report || 0;
+      if (!rep) continue;
+      checked++;
+      const pts = m.overhead_pts || {};
+      const governed = (pts["Полка"] || 0) + (pts["Буст продаж"] || 0);
+      if (Math.abs(governed - rep) > 1) bad.push(`${m.business}/${m.ym}: в расходах ${Math.round(governed)}, в отчёте ${Math.round(rep)}`);
+      // Балльная нога месяца не должна быть МЕНЬШЕ отчёта: иначе кабинетные траты снова невидимы.
+      if ((m.overhead_points || 0) + 1 < rep) bad.push(`${m.business}/${m.ym}: всего баллами ${Math.round(m.overhead_points || 0)} против отчёта ${Math.round(rep)}`);
+    }
+    expect(checked, "нет ни одного месяца с кабинетными списаниями - проверять нечего").toBeGreaterThan(5);
+    expect(bad).toEqual([]);
+  });
+
+  // Живой случай, ради которого правка и делалась: за сентябрь акта ещё нет, и до неё страница
+  // показывала «расходов кабинета нет» при 40 094 ₽ потраченных баллов.
+  it("месяц без акта всё равно показывает кабинетные траты баллами", () => {
+    const sep = svod.months.find((m: any) => m.ym === "2026-09" && (m.overhead_points_report || 0) > 0);
+    expect(sep, "сентябрь с тратами по отчёту не найден").toBeTruthy();
+    expect(sep.overhead_src, "у сентября появился акт - тест потерял смысл, обнови его").toBe("ledger");
+    expect(Math.round(sep.overhead_points)).toBe(Math.round(sep.overhead_points_report));
+    expect(sep.overhead_points).toBeGreaterThan(0);
+  });
+
+  // gap 8: Полка, Подписка и Товарные баннеры не имели правил и падали в «Прочие услуги» -
+  // 151 142 ₽ за историю, то есть 65% общих расходов июля лежало под чужим заголовком.
+  it("статьи уровня кабинета разложены по своим именам, а не в «прочее»", () => {
+    const other: Record<string, number> = {};
+    for (const m of svod.months) {
+      for (const [col, v] of Object.entries<any>(m.overhead || {})) other[col] = (other[col] || 0) + (v as number);
+      for (const [col, v] of Object.entries<any>(m.overhead_pts || {})) other[col] = (other[col] || 0) + (v as number);
+    }
+    for (const name of ["Полка", "Подписка", "Товарные баннеры"]) {
+      expect(other[name], `статья «${name}» не выделена и всё ещё падает в прочее`).toBeGreaterThan(0);
+    }
+    expect(Math.round(other["Прочие услуги"] || 0), "в «Прочих услугах» снова осели именованные статьи").toBe(0);
   });
 });

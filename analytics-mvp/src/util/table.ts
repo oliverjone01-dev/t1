@@ -44,9 +44,19 @@ export function toTable(text: string): Table {
 }
 
 // Индекс колонки по списку регулярок (первое совпадение). -1, если не нашли.
+// Битый шаблон не роняет разбор целиком: одна кривая строка в карте колонок стоила бы всего
+// отчёта, уже скачанного по сети. Такой шаблон пропускаем с предупреждением и идём дальше.
+// Не массив на входе - тоже не падение: «строка шаблонов» перебиралась бы по символам, а
+// такой перебор и сам по себе бессмыслен, и роняет на первой же скобке.
 export function findCol(headers: string[], patterns: string[]): number {
+  if (!Array.isArray(patterns)) {
+    console.warn(`::warning::findCol: шаблоны колонки заданы не списком (${typeof patterns}) - колонка пропущена`);
+    return -1;
+  }
   for (const p of patterns) {
-    const re = new RegExp(p, "i");
+    let re: RegExp;
+    try { re = new RegExp(p, "i"); }
+    catch (e) { console.warn(`::warning::findCol: шаблон «${String(p).slice(0, 40)}» не регулярка (${(e as Error).message}) - пропускаю`); continue; }
     const i = headers.findIndex((h) => re.test(h));
     if (i >= 0) return i;
   }

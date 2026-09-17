@@ -65,7 +65,7 @@ function main() {
   const bonusRows = readNdjson<any>(yp("bonuses_monthly.ndjson"));
   const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to, actRows, bonusRows);
   if (bonusRows.length) console.log(`ym-derive: отчёт по баллам - ${bonusRows.length} строк, начисленные баллы берутся из него`);
-  else console.log("ym-derive: баллы взяты из subsidies[] заказа по operationType (ACCRUAL минус DEDUCTION) - отдельного отчёта по баллам в Partner API нет");
+  else console.warn("::warning::отчёт по баллам Маркета не собран: баллы взяты из subsidies[] заказа (начисление сходится со скидкой до рубля), но списания баллов уровня кабинета - Полки, Буст за показы - есть только в отчёте по баллам");
   if (actRows.length) console.log(`ym-derive: акт по стоимости услуг - ${actRows.length} строк, общие расходы берутся из него`);
   else console.warn("::warning::акт по стоимости услуг не собран (services_monthly.ndjson пуст): общие расходы кабинета показаны только по реестру платежей и занижены - полки, подписки и буст за показы туда не попадают");
   // Проверка правила «Списание = баллы» считается на сборке: держать её числом в тексте
@@ -78,8 +78,18 @@ function main() {
     const v = -(Number(n.amount) || 0);
     if (isPointsPaid(String(n.type || ""), n.src)) splitPoints += v; else splitMoney += v;
   }
+  // Докуда собран реестр платежей. Без этой даты страница не может сказать, дозрел ли месяц:
+  // услуги по заказам месяца Маркет списывает и в следующем месяце (по замеру за февраль-август -
+  // около трети суммы), поэтому у месяца, следующий за которым ещё не прожит, расходы неполные,
+  // а прибыль завышена. Дату берём из данных, а не из «сегодня»: прогон мог не добрать свежие дни.
+  let ledgerTo = "";
+  for (const n of netAll as any[]) {
+    const d = String(n.d || "").slice(0, 10);
+    if (d && d > ledgerTo) ledgerTo = d;
+  }
   writeJson(yp("svod_orders.json"), { platform: "ym", generated_at: new Date().toISOString(),
     basis: "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
+    ledger_to: ledgerTo,
     split_check: { business: SPLIT_B, ym: SPLIT_M, money: Math.round(splitMoney), points: Math.round(splitPoints),
       act_money: 557250.2, act_points: 2350590.89 },
     months: svod });

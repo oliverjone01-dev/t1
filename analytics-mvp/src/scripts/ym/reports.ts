@@ -14,7 +14,7 @@ import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
-import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, reportMonthsToDo } from "./reports-lib.js";
 import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
 import { DELIVERED_STATUSES } from "./derive-lib.js";
 
@@ -67,10 +67,22 @@ function stopOnRateLimit(e: unknown, what: string): boolean {
   return true;
 }
 
+// Ключи на «_» - это документация карты колонок (_live: откуда сняты заголовки и на чём сверено
+// правило разбора), а не список шаблонов. Раньше они шли в findCol наравне с колонками, и тот
+// перебирал СИМВОЛЫ прозы как регулярки. Пока среди них попадался символ, совпадавший с
+// каким-нибудь заголовком, findCol выходил раньше и это сходило с рук. У отчёта по баллам
+// заголовки английские (TRANSACTION_DATE, ORDER_ID...), русская проза не совпала ни одним
+// символом, перебор дошёл до скобки - и продьюсер падал на `new RegExp("(")`:
+//   ym-reports FAILED: Invalid regular expression: /(/i: Unterminated group
+// Живой факт 2026-09-16, прогон 38: отчёт СКАЧАЛСЯ (netting_bonuses.csv, 277 строк), имя метода
+// и тело подтвердились - и всё это потерялось на разборе, состояние даже не записалось.
 function cols(type: string, headers: string[], required: string[]): Record<string, number> | null {
   const map = COLS[type] || {};
   const idx: Record<string, number> = {};
-  for (const [k, pats] of Object.entries(map)) idx[k] = findCol(headers, pats);
+  for (const [k, pats] of Object.entries(map)) {
+    if (k.startsWith("_")) continue;
+    idx[k] = findCol(headers, pats);
+  }
   const missing = required.filter((k) => idx[k] == null || idx[k]! < 0);
   if (missing.length) { console.warn(`::warning::отчёт ${type}: не найдены колонки ${missing.join(", ")} в заголовках [${headers.join(" | ")}] - см. data-ym/_probe/${type}.json и поправь report-columns.json`); return null; }
   return idx;
@@ -106,6 +118,12 @@ async function fetchReport(api: YmPartner, type: string, body: any): Promise<{ h
 // ---- goods-realization: {campaignId, year, month} -> {ym, sku, sold, ret} ----
 async function realization(months: string[]) {
   const OUT = yp("realization_monthly.ndjson");
+  // Второй выход, уровня ЗАКАЗА. Месячный агрегат сверять со сводом нечем: отчёт группирует по
+  // дате РЕАЛИЗАЦИИ, свод - по дате ЗАКАЗА, и «90 штук против 202» ничего не доказывает. В самом
+  // файле отчёта есть ORDER_ID, поэтому сверка возможна один в один - так же, как она сделана по
+  // баллам (1008 ключей из 1008 без расхождения). Монтажный файл не трогаем: у него свои едоки.
+  const OUT_ORD = yp("realization_orders.ndjson");
+  const ordRows: any[] = [];
   const targets = await resolveTargets();
   const existing = readNdjson<any>(OUT);
   const fresh: any[] = [];
@@ -198,11 +216,17 @@ async function realization(months: string[]) {
         // отдельные события: суммировать их в «продано» значит считать одну штуку по три раза.
         const role = realizationRole(t.name, t.headers);
         if (!role) { console.log(`  goods-realization: ${t.name} - роль не учитывается в штуках реализации`); continue; }
-        const ix = cols("goods-realization", t.headers, role === "returned" ? ["sku", "returned"] : ["sku", "sold"]);
+        const ix = cols("goods-realization", t.headers, role === "returned" ? ["sku", "returned", "order", "date"] : ["sku", "sold", "order", "date"]);
         if (!ix) continue;
         parsed = true;
         for (const r of t.rows) {
           const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
+          // Строка уровня заказа: номер заказа и дата события. Пишем ДО агрегации по артикулу,
+          // иначе ключ сверки теряется навсегда и его не восстановить без повторного сбора.
+          const ordId = ix.order! >= 0 ? String(r[ix.order!] || "").trim() : "";
+          if (ordId) ordRows.push({ ym, business: c.businessId, campaign: c.id, order: ordId, sku,
+            role, count: num("goods-realization", r[role === "returned" ? ix.returned! : ix.sold!]),
+            d: ix.date! >= 0 ? String(r[ix.date!] || "").trim() : "", platform: "ym", source: "goods-realization" });
           const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0, from: new Set<string>() });
           a.from.add(c.id); // какой магазин дал строку - пишем В ДАННЫЕ, а не только в состояние прогона
           if (role === "returned") {
@@ -239,6 +263,17 @@ async function realization(months: string[]) {
   for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), from: [...a.from].sort(), platform: "ym", source: "goods-realization" });
   const merged = fresh.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));
   writeNdjson(OUT, merged);
+  // Уровень заказа копится только за месяцы, реально собранные этим прогоном. Дописываем к тому,
+  // что уже лежит, с дедупом по (месяц, заказ, артикул, роль): повтор прогона не должен задваивать.
+  if (ordRows.length) {
+    const prev = readNdjson<any>(OUT_ORD);
+    const key = (r: any) => `${r.ym}|${r.order}|${r.sku}|${r.role}`;
+    const m = new Map<string, any>();
+    for (const r of prev) m.set(key(r), r);
+    for (const r of ordRows) m.set(key(r), r);     // свежая строка побеждает старую
+    writeNdjson(OUT_ORD, [...m.values()].sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.order < b.order ? -1 : 1)));
+    console.log(`realization: строк уровня заказа ${ordRows.length} свежих, всего ${m.size}`);
+  }
   // Покрытие по месяцам: какие магазины реально дали строки, а какие продавали, но отчёт ещё пуст.
   // Без этого сверка штук объявляет расхождением обычную недобранность отчёта.
   const shopsSold: Record<string, string[]> = {};
@@ -356,7 +391,9 @@ async function netting(from: string, to: string) {
 // нас пока нет. Поэтому тело подбирается: сначала {businessId, dateFrom, dateTo}, затем
 // {businessId, year, month}. Принятая форма пишется в состояние, и следующий прогон начинает
 // сразу с неё, а не перебирает заново, тратя генерации из лимита.
-const SERVICES_SCHEMA = 1;
+// 2 - дата строки сменилась с ACT_DATE (конец месяца) на SERVICE_DATE (дата оказания услуги).
+// Старые строки несут бесполезную для периодов дату, поэтому акт надо перезабрать целиком.
+const SERVICES_SCHEMA = 2;
 type Body = { name: string; body: (b: string, ym: string) => any };
 const SERVICE_BODIES: Body[] = [
   { name: "dateFrom/dateTo", body: (b, ym) => ({ businessId: Number(b), dateFrom: monthBounds(ym).dateFrom, dateTo: monthBounds(ym).dateTo }) },
@@ -452,8 +489,20 @@ async function services(months: string[]) {
 // Имя метода в Partner API документацией отсюда не подтверждается (сеть до доков закрыта), поэтому
 // перебираем кандидатов: неизвестный тип отчёта Маркет отклоняет сразу, без генерации, так что
 // перебор не тратит лимит. Принятое имя и форму тела запоминаем в состоянии.
-const BONUS_SCHEMA = 1;
-const BONUS_TYPES = ["united-bonuses", "bonuses", "united-marketplace-bonuses", "market-bonuses", "united-netting-bonuses"];
+// 2 - до этого продьюсер звал несуществующие эндпоинты и не собрал ни строки; состояние
+// с прошлой версией содержит только следы неудач.
+const BONUS_SCHEMA = 2;
+// Отчёт по баллам Маркета - это НЕ отдельный метод. Это третий тип отчёта «По платежам»
+// (в кабинете: Финансы -> Финансовые отчёты -> По платежам -> «О баллах Маркета»), и в API он
+// запрашивается тем же reports/united-netting/generate, но с телом monthOfYear вместо диапазона
+// дат. В OpenAPI-спецификации Маркета это сказано прямо, в описании MonthOfYearDTO: «Месяц, за
+// который нужен отчет о баллах Маркета». Прежние пять имён были выдуманы и все отдавали 404:
+// я перебирал названия эндпоинтов вместо того, чтобы прочитать схему запроса метода, который и
+// так вызываю каждый прогон.
+const BONUS_TYPES = ["united-netting"];
+const BONUS_BODIES: Body[] = [
+  { name: "monthOfYear", body: (b, ym) => ({ businessId: Number(b), monthOfYear: { year: Number(ym.slice(0, 4)), month: Number(ym.slice(5, 7)) } }) },
+];
 async function bonuses(months: string[]) {
   const OUT = yp("bonuses_monthly.ndjson");
   const STATE = yp("bonuses_state.json");
@@ -471,7 +520,7 @@ async function bonuses(months: string[]) {
       const pair = `${b}/${ym}`;
       if (done.has(pair) && ym < freshFrom) continue;
       const types = typeName ? [typeName] : BONUS_TYPES;
-      const shapes = bodyName ? SERVICE_BODIES.filter((x) => x.name === bodyName) : SERVICE_BODIES;
+      const shapes = bodyName ? BONUS_BODIES.filter((x) => x.name === bodyName) : BONUS_BODIES;
       let tables: Tbl[] | null = null, usedType = "", usedBody = "";
       outer: for (const t of types) {
         for (const shape of shapes) {
@@ -614,29 +663,50 @@ async function main() {
     const args = process.argv.slice(3).filter((a) => /^\d{4}-\d{2}$/.test(a));
     let months = args;
     if (!months.length) {
-      if (!readNdjson(yp("bonuses_monthly.ndjson")).length) {
-        months = []; let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
-        while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
-      } else {
-        const cur = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
-        const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
-        months = [`${prev.getUTCFullYear()}-${pad(prev.getUTCMonth() + 1)}`, cur];
-      }
+      // То же и для баллов: что осталось добрать, знает состояние (done по парам кабинет/месяц).
+      // Отчёт возобновляемый и упирается в лимит генерации, поэтому недобранные месяцы - норма
+      // жизни, а не исключение: ровно они и должны попадать в следующий прогон.
+      const stB = readJson<{ schema?: number; done?: string[] }>(yp("bonuses_state.json"), {});
+      if (stB.schema !== BONUS_SCHEMA) console.log(`bonuses: схема ${stB.schema ?? "нет"} -> ${BONUS_SCHEMA}, пересобираем всю историю`);
+      const allB: string[] = []; { let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
+        while (d.getTime() <= now.getTime()) { allB.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); } }
+      const curB = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
+      const prevDB = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+      const prevB = `${prevDB.getUTCFullYear()}-${pad(prevDB.getUTCMonth() + 1)}`;
+      const rebuildB = stB.schema !== BONUS_SCHEMA || !readNdjson(yp("bonuses_monthly.ndjson")).length;
+      months = reportMonthsToDo(allB, stB.done || [], curB, prevB, rebuildB);
+      const lateB = months.filter((m) => m !== curB && m !== prevB);
+      if (lateB.length && !rebuildB) console.log(`bonuses: не добраны месяцы ${lateB.join(", ")} - беру их в этот прогон`);
     }
     await bonuses(months);
   } else if (cmd === "services") {
     const args = process.argv.slice(3).filter((a) => /^\d{4}-\d{2}$/.test(a));
     let months = args;
     if (!months.length) {
-      // первый прогон - вся история от FLOOR; дальше текущий и предыдущий (акт ещё дополняется)
-      if (!readNdjson(yp("services_monthly.ndjson")).length) {
-        months = []; let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
-        while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
-      } else {
-        const cur = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
-        const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
-        months = [`${prev.getUTCFullYear()}-${pad(prev.getUTCMonth() + 1)}`, cur];
-      }
+      // Вся история от FLOOR нужна не только на первом прогоне, но и после СМЕНЫ СХЕМЫ: строки,
+      // собранные старой версией, несут другие поля и пересобрать их надо целиком. Признак «файл
+      // пустой» этого не ловит. Живой случай 2026-09-16: схема поднялась до 2 ради даты оказания
+      // услуги вместо даты акта, состояние честно сбросилось, но список месяцев считался по
+      // непустому файлу - коллектор взял только август с сентябрём, и июль остался с датой акта,
+      // из-за чего общие расходы июля сидели на одной дате и свод за часть месяца врал бы.
+      const st = readJson<{ schema?: number; done?: string[] }>(yp("services_state.json"), {});
+      const schemaChanged = st.schema !== SERVICES_SCHEMA;
+      if (schemaChanged) console.log(`services: схема ${st.schema ?? "нет"} -> ${SERVICES_SCHEMA}, пересобираем всю историю`);
+      // Что осталось добрать, знает СОСТОЯНИЕ (done по парам кабинет/месяц), а не «файл пустой»
+      // и не «схема сменилась». Пока список считался по этим двум признакам, после первого же
+      // прогона на новой схеме коллектор брал только прошлый и текущий месяц: февраль-июль так
+      // и оставались собранными старой версией, и общие расходы июля сидели на одной дате 31.07.
+      // Живой факт 2026-09-16, прогон 37: схема уже 2, файл не пуст, done = 2 августовские пары -
+      // шаг отработал за 4 секунды и не добрал ничего.
+      const all: string[] = []; { let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
+        while (d.getTime() <= now.getTime()) { all.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); } }
+      const cur = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
+      const prevD = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+      const prevYm = `${prevD.getUTCFullYear()}-${pad(prevD.getUTCMonth() + 1)}`;
+      const rebuildAll = schemaChanged || !readNdjson(yp("services_monthly.ndjson")).length;
+      months = reportMonthsToDo(all, st.done || [], cur, prevYm, rebuildAll);
+      const late = months.filter((m) => m !== cur && m !== prevYm);
+      if (late.length && !rebuildAll) console.log(`services: не добраны месяцы ${late.join(", ")} - беру их в этот прогон`);
     }
     await services(months);
   } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days] | services [YYYY-MM...] | bonuses [YYYY-MM...]"); process.exit(2); }

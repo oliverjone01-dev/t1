@@ -46,6 +46,7 @@ function main() {
   let nExtra = 0;
   for (const [sku, cost] of skuCost) { if (!(sku in map)) { map[sku] = cost; nExtra++; } }
 
+
   writeFileSync(dp("sku_cogs.json"), JSON.stringify(map, null, 0));
   const nCov = nDirect + nFuzzyNew + nFuzzyOld;
   console.log(`Плюс ${nExtra} SKU из листа СС вне живого снимка (прямой ключ) - чтобы не терять СС по неактивным артикулам.`);

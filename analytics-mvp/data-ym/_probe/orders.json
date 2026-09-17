@@ -1,5 +1,5 @@
 {
-  "at": "2026-09-16T11:00:16.819Z",
+  "at": "2026-09-17T12:20:50.363Z",
   "dateFormatAccepted": "iso",
   "shape": {
     "id": "number",
@@ -30,6 +30,12 @@
           "id": "number",
           "name": "string"
         },
+        "details": [
+          {
+            "itemStatus": "string",
+            "itemCount": "number"
+          }
+        ],
         "bidFee": "number"
       }
     ],
@@ -39,11 +45,7 @@
         "date": "string",
         "type": "string",
         "source": "string",
-        "total": "number",
-        "paymentOrder": {
-          "id": "string",
-          "date": "string"
-        }
+        "total": "number"
       }
     ],
     "commissions": [

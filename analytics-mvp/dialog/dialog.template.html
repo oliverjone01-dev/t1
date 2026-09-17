@@ -309,7 +309,9 @@ input#q{min-width:220px}
 /* Градусник температуры клиента */
 .tempcell{display:flex;align-items:center;gap:6px;min-width:118px}
 .tbar{display:flex;height:11px;width:92px;border-radius:3px;overflow:hidden;background:var(--line,#e5e7eb);flex:0 0 auto}
-.tseg{display:block;min-width:2px;height:100%}
+.tseg{display:block;min-width:3px;height:100%;cursor:pointer;transition:filter .1s}
+.tseg:hover{filter:brightness(1.35)}
+.tseg.tsegon{outline:2px solid var(--acc);outline-offset:-2px;filter:brightness(1.15)}
 .heatp{font-size:10px;font-weight:700;white-space:nowrap}
 /* Вертикальный термометр (как настоящий градусник): трубка + колба, жидкость снизу вверх */
 .thermo{display:flex;align-items:center;gap:7px;min-width:70px}
@@ -884,7 +886,8 @@ function renderTree(){
     const b={boiling:0,hot:0,warm:0,cold:0,goal:0}; for(const d of ds) b[d.tempBucket==null?'cold':d.tempBucket]++;
     const order=[['boiling','#E5484D','кипят'],['hot','#F76808','горячие'],['warm','#E2A336','тёплые'],['cold','#5B8DEF','холодные'],['goal','#2E9E74','предоплата']];
     const tot=ds.length;
-    const seg=order.filter(([k])=>b[k]).map(([k,c,l])=>`<span class="tseg" style="flex:${b[k]};background:${c}" title="${l}: ${b[k]} (${Math.round(b[k]/tot*100)}%)"></span>`).join('');
+    const seg=order.filter(([k])=>b[k]).map(([k,c,l])=>{ const on=aiPickActive('tp',key,k);
+      return `<span class="tseg${on?' tsegon':''}" data-temp="${k}" style="flex:${b[k]};background:${c}" data-tip="<span class='tdot' style='background:${c}'></span>${l}: <b>${b[k]}</b> (${Math.round(b[k]/tot*100)}%) · клик - показать эти сделки"></span>`; }).join('');
     const dd=ds.filter(d=>!d.goalReached&&(d.stageRows||[]).length&&d.tempDelta!=null).map(d=>d.tempDelta).sort((a,b)=>a-b);
     const hp=dd.length>=3?dd[Math.floor(dd.length/2)]:null;
     const hpc=hp===null?'var(--ink-4)':hp>0?'#2E9E74':hp<0?'#C25252':'var(--ink-3)';
@@ -1160,6 +1163,13 @@ function renderTree(){
     if(hc){ e.stopPropagation();
       if(!aiPickActive('hot',m,'hot')&&m!==DEPT_KEY) openRow(m);
       aiPickToggle({kind:'hot',mgr:m,sub:'hot',label:`${mLabel(m)} · горящие`,deals:dealIdsOf((byM[m]||[]).filter(d=>d.urgency))}); return; }
+    // Сегмент градусника - фильтр сделок этого менеджера по температуре (кипят/горячие/тёплые/
+    // холодные/предоплата). Как воронка и каналы: копится в корзину, раскрывает менеджера.
+    const tp=e.target.closest&&e.target.closest('[data-temp]');
+    if(tp&&tp.dataset.temp){ e.stopPropagation(); const tk=tp.dataset.temp;
+      const TL={boiling:'кипят',hot:'горячие',warm:'тёплые',cold:'холодные',goal:'предоплата'};
+      if(!aiPickActive('tp',m,tk)&&m!==DEPT_KEY) openRow(m);
+      aiPickToggle({kind:'tp',mgr:m,sub:tk,label:`${mLabel(m)} · ${TL[tk]||tk}`,deals:dealIdsOf((byM[m]||[]).filter(d=>d.outcome==='open'&&(tk==='goal'?d.goalReached:(!d.goalReached&&d.tempBucket===tk))))}); return; }
     // Счётчик «Сделок» - весь уровень целиком (менеджер или отдел) со всеми его сделками.
     const ac=e.target.closest&&e.target.closest('[data-allrow]');
     if(ac){ e.stopPropagation();

@@ -543,7 +543,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
+const S = { mode:'tree', hidePaid:false, dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
   fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, clMgr:'', clKind:'', deptOpen:true, grpOpen:{office:false,sales:false,other:false}, evHi:null, picks:[],
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), question:'', obj:'auto', inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
@@ -814,7 +814,8 @@ function renderTree(){
     const ts=EVTS[d.key]||[];
     return ts.some(t=>(!dFrom||t>=dFrom)&&(!dTo||t<=dTo));
   };
-  const DEALS=SC.deals.filter(inPeriod);
+  // hidePaid: скрыть сделки с предоплатой и дальше (goalReached) - для анализа воронки ДО оплаты.
+  const DEALS=SC.deals.filter(d=>inPeriod(d)&&(!S.hidePaid||!d.goalReached));
   const filtered=DEALS.length!==SC.deals.length;
   const byM={}; for(const d of DEALS) (byM[d.mgr] ||= []).push(d);
   const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
@@ -960,6 +961,8 @@ function renderTree(){
     ${(S.dFrom||S.dTo)?`<span class="chip2" data-dreset="1">сбросить</span>`:''}
     <span style="color:var(--ink-4);margin:0 2px">·</span>
     <span class="chip2${S.showMetrics?' on2':''}" data-metrics="1">${S.showMetrics?'скрыть метрики регламента':'показать метрики регламента'}</span>
+    <span style="color:var(--ink-4);margin:0 2px">·</span>
+    <span class="chip2${S.hidePaid?' on2':''}" data-hidepaid="1" title="Скрыть сделки, дошедшие до предоплаты и дальше - анализируем воронку ДО оплаты">${S.hidePaid?'показать с предоплатой':'скрыть с предоплатой'}</span>
   </div>`;
   // Компактная справка: 4 коротких карточки + сетка столбцов. Полные формулы - в подсказке
   // (наведи на «?»), чтобы блок не растягивался на весь экран.
@@ -1138,6 +1141,7 @@ function renderTree(){
     S.td.clear(); renderTree(); });
   list.querySelectorAll('[data-dmode]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.dMode=b.dataset.dmode; renderTree(); });
   const mt=list.querySelector('[data-metrics]'); if(mt) mt.onclick=e=>{ e.stopPropagation(); S.showMetrics=!S.showMetrics; renderTree(); };
+  const hpd=list.querySelector('[data-hidepaid]'); if(hpd) hpd.onclick=e=>{ e.stopPropagation(); S.hidePaid=!S.hidePaid; renderTree(); };
   const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); S.dFrom=''; S.dTo=''; renderTree(); };
   const hb=list.querySelector('[data-help]'); if(hb) hb.onclick=e=>{ e.stopPropagation(); S.help=!S.help; renderTree(); };
   list.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();

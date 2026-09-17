@@ -2,7 +2,7 @@
   "platform": "ym",
   "dateFrom": "2026-08-18",
   "dateTo": "2026-09-16",
-  "generated_at": "2026-09-17T08:48:29.646Z",
+  "generated_at": "2026-09-17T09:19:13.891Z",
   "totals": {
     "rev": 19118410,
     "units": 316,
@@ -921,7 +921,7 @@
       "retp": 0,
       "aov": 66400,
       "offer": "GGM-20-1",
-      "stock": 45,
+      "stock": 44,
       "pidx": null,
       "pcol": "",
       "price": 62860,

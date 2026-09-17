@@ -26,8 +26,15 @@ const fromMs = fromD.getTime(), toMs = nowD.getTime();
 // Закрытые в окне сделки (успех/отказ) грузим с полной историей переписки, а не за 7 дней:
 // иначе разбор «почему выиграли / почему отказ» будет на обрывке. Окно истории - HDAYS назад.
 const HDAYS = Number(process.env.DIALOG_HIST_DAYS || 180);
-const HFROM = iso(new Date(nowD.getTime() - HDAYS * 864e5));
-const hFromMs = nowD.getTime() - HDAYS * 864e5;
+// Нижняя дата-якорь: собираем коммуникации и сделки с лида НЕ ПОЗЖЕ этой даты (по умолчанию
+// апрель 2026), чтобы «с апреля» держалось и когда окно HDAYS уедет вперёд. Берём самую раннюю
+// из (сейчас - HDAYS) и якоря.
+const SINCE = process.env.DIALOG_SINCE || "2026-04-01T00:00:00";
+let _hf = new Date(nowD.getTime() - HDAYS * 864e5);
+const _sinceD = new Date(SINCE);
+if (!isNaN(_sinceD.getTime()) && _sinceD < _hf) _hf = _sinceD;
+const HFROM = iso(_hf);
+const hFromMs = _hf.getTime();
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Запрос к Bitrix JSON-телом (как fetch-rop): фильтры-объекты применяются корректно.

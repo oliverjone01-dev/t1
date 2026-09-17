@@ -342,84 +342,110 @@ describe("раскрытие баллов сходится с показанны
   });
 });
 
-// Вторая нога баллов: сколько Маркет ЗАБРАЛ баллами за услуги по заказам. Начисление к отчёту мы
-// привели ещё 2026-09-16, а списание всё это время оставалось нашей классификацией проводок
-// реестра и было завышено: июль по обоим кабинетам давал 4 861 651 против 4 060 473 в отчёте,
-// то есть на 801 178 руб. Отчёт при этом сходится сам с собой (начислено 4 070 093 минус
-// потрачено 4 060 473 = 9 620, строка «Премия, предоставленная Исполнителем»), значит верен он.
-describe("списание баллов на услуги тоже приводится к отчёту", () => {
-  const spend = (o: Record<string, unknown> = {}) => ({
-    ym: "2026-07", business: "1", amount: -600, type: "Списание",
-    src: "Скидка за участие в совместных акциях", order: "A", ...o,
-  });
-  const two = (bonus: any[]) => buildSvod(
-    [item({ order: "A", shop_order: "A" }), item({ order: "B", shop_order: "B", sku: "S2" })],
-    [net({ order: "A", type: "Списание", amount: -750 }), net({ order: "B", type: "Списание", amount: -250 })] as any,
-    {}, "2026-09-15", [], bonus as any,
-  )[0]!;
+// Списание баллов за услуги по заказам: почему источником осталась классификация проводок
+// реестра платежей, а не месячный итог отчёта о баллах.
+//
+// 17.09 я на день привёл месячный итог свода к месячному итогу отчёта, решив, что дашборд
+// завышает. Это было неверно и сломало верное число. Месяц отчёта НЕ равен месяцу заказа:
+// свод отвечает «услуги по заказам июля», отчёт - «сколько Маркет списал баллов в июле», и
+// это разные срезы одних и тех же денег. Приведение одного к другому размазало чужой месяц
+// по артикулам своего: за сентябрь по зеркалам артикул с выручкой 19 824 руб получил услуг
+// на 333 003 руб, в 16,8 раза больше собственной выручки.
+//
+// Настоящая проверка ниже: те же рубли из ДРУГОГО файла (отчёт о баллах) и с ДРУГОЙ
+// группировкой (по номеру заказа, а не по проводке реестра) обязаны дать то же число.
+describe("списание баллов сверено с отчётом по номеру заказа", () => {
+  // Отчёт несёт номер заказа и артикул у каждой строки списания по заказам (2 483 строки из
+  // 3 096; остальные 613 - Полки и Буст за показы, они уровня кабинета и уже в общих расходах).
+  // Поэтому сверка идёт по самому мелкому ключу, какой есть в своде: кабинет + день + артикул.
+  // Это внешняя сверка, а не круговая: ни одно число здесь не пишет тот же цикл, что читает.
+  const SPEND = /скидк[аи].{0,30}совместн|совместн.{0,20}акци|оплата бонусами/i;
+  const readNd = (f: string) => readFileSync(f, "utf-8").trim().split("\n").map((l) => JSON.parse(l));
 
-  it("месячный итог равен отчёту, доли по позициям остаются пропорциональными", () => {
-    const m = two([spend({ amount: -600 })]);
-    expect(m.svc_points_src).toBe("report");
-    expect(Math.round(m.svc_points_report!)).toBe(600);
-    expect(Math.round(m.rows.reduce((a, r) => a + r.svc_points, 0))).toBe(600);
-    expect(Math.round(m.rows.find((r) => r.sku === "S1")!.svc_points)).toBe(450);  // 750 из 1000
-    expect(Math.round(m.rows.find((r) => r.sku === "S2")!.svc_points)).toBe(150);
-  });
-
-  it("сторно уменьшает списание, а не добавляет второе", () => {
-    const m = two([spend({ amount: -600 }), spend({ amount: 200, type: "Возврат списания", src: "Возврат скидки за участие в совместных акциях" })]);
-    expect(Math.round(m.rows.reduce((a, r) => a + r.svc_points, 0))).toBe(400);
-  });
-
-  it("итог строки и результат по баллам пересчитываются вместе с ногой, а не остаются старыми", () => {
-    const m = two([spend({ amount: -600 })]);
-    for (const r of m.rows) {
-      expect(r.svc_total).toBe(r2x(r.svc_money + r.svc_points));
-      expect(r.result_points).toBe(r2x(r.revenue_money + r.points_accrued - r.svc_total));
+  const reportByDaySku = () => {
+    const ord = new Map<string, { d: string; status: string }>();
+    for (const o of readNd("data-ym/orders.ndjson")) {
+      const id = String(o.order || o.id || "");
+      if (id) ord.set(`${o.business}|${id}`, { d: String(o.created || "").slice(0, 10), status: o.status });
     }
+    const out = new Map<string, number>();
+    for (const r of readNd("data-ym/bonuses_monthly.ndjson")) {
+      if (!SPEND.test(String(r.src || ""))) continue;
+      if (!String(r.order || "").trim()) continue;
+      const o = ord.get(`${r.business}|${r.order}`);
+      if (!o || o.status !== "DELIVERED") continue;   // в свод идут только доставленные
+      const k = `${r.business}|${o.d}|${r.sku}`;
+      out.set(k, (out.get(k) || 0) - (Number(r.amount) || 0));
+    }
+    return out;
+  };
+
+  it("по каждому ключу кабинет+день+артикул свод равен отчёту", () => {
+    const rep = reportByDaySku();
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const mine = new Map<string, number>();
+    for (const m of svod.months) {
+      for (const r of m.rows || []) {
+        const k = `${m.business}|${r.d}|${r.sku}`;
+        mine.set(k, (mine.get(k) || 0) + (r.svc_points || 0));
+      }
+    }
+    const bad: string[] = [];
+    const keys = new Set([...rep.keys(), ...mine.keys()]);
+    for (const k of keys) {
+      const a = mine.get(k) || 0, b = rep.get(k) || 0;
+      if (Math.abs(a - b) > 1) bad.push(`${k}: свод ${Math.round(a)}, отчёт ${Math.round(b)}`);
+    }
+    expect(keys.size, "ключей нет - сверять нечего").toBeGreaterThan(500);
+    expect(bad).toEqual([]);
   });
 
-  it("трата без номера заказа позиции не трогает - это общие расходы кабинета", () => {
-    // Полка и Буст за показы приходят строками без заказа. Разносить их по позициям нечем, и
-    // масштабировать ими ногу заказов - значит забрать у кабинета его же расход.
-    const m = two([spend({ order: "", amount: -600, service: "Полка" })]);
-    expect(m.svc_points_src).toBeUndefined();
-    expect(Math.round(m.rows.reduce((a, r) => a + r.svc_points, 0))).toBe(1000);
-  });
-
-  it("без отчёта нога остаётся реестровой и месяц это не помечает", () => {
-    const m = two([]);
-    expect(m.svc_points_src).toBeUndefined();
-    expect(Math.round(m.rows.reduce((a, r) => a + r.svc_points, 0))).toBe(1000);
-  });
-
-  it("на живых данных: по каждой паре кабинет/месяц услуги баллами равны отчёту", () => {
+  // Тот же факт крупным планом, чтобы падение читалось без расшифровки ключей.
+  it("по каждой паре кабинет/месяц итоги двух источников совпадают", () => {
+    const rep = reportByDaySku();
+    const byMonth = new Map<string, number>();
+    for (const [k, v] of rep) {
+      const [b, d] = k.split("|");
+      byMonth.set(`${b}|${d!.slice(0, 7)}`, (byMonth.get(`${b}|${d!.slice(0, 7)}`) || 0) + v);
+    }
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
     const bad: string[] = [];
     let checked = 0;
     for (const m of svod.months) {
-      if (m.svc_points_src !== "report" || !m.rows.length) continue;
+      if (!(m.rows || []).length) continue;
       checked++;
-      const shown = m.rows.reduce((a: number, r: any) => a + (r.svc_points || 0), 0);
-      // Остаток - округление копеек по строкам (на живом снимке максимум 6 копеек за месяц).
-      if (Math.abs(shown - m.svc_points_report) > 1) {
-        bad.push(`${m.business}/${m.ym}: ${Math.round(shown)} против отчёта ${Math.round(m.svc_points_report)}`);
-      }
+      const mine = m.rows.reduce((a: number, r: any) => a + (r.svc_points || 0), 0);
+      const theirs = byMonth.get(`${m.business}|${m.ym}`) || 0;
+      if (Math.abs(mine - theirs) > 1) bad.push(`${m.business}/${m.ym}: свод ${Math.round(mine)}, отчёт ${Math.round(theirs)}`);
     }
-    expect(checked, "ни одного месяца по отчёту - проверять нечего").toBeGreaterThan(5);
+    expect(checked).toBeGreaterThan(10);
     expect(bad).toEqual([]);
   });
 
-  // Сверка с выгрузкой Ивана из кабинета зеркал за июль: начислено 1 748 465, списано столько же,
-  // остаток 0. Обе ноги списания вместе обязаны дать ровно начисление.
-  it("июль по кабинету зеркал: услуги плюс расходы кабинета = начисленным баллам", () => {
+  // Живая цифра, из-за которой всё это разбиралось. Июль по обоим кабинетам - 4 861 651 руб
+  // услуг по заказам июля. В кабинете за июль списано 4 060 473 руб, и это НЕ то же число:
+  // там списания по заказам любых месяцев. Пин стоит на обоих, чтобы их больше не путали.
+  it("июль: услуги по заказам месяца и списание кабинета за месяц - разные числа", () => {
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
-    const m = svod.months.find((x: any) => x.ym === "2026-07" && x.business === "1023124");
-    expect(m, "месяца нет в своде").toBeTruthy();
-    expect(Math.round(m.svc_points_report)).toBe(1747178);
-    expect(Math.round(m.overhead_points)).toBe(1287);
-    expect(Math.round(m.svc_points_report + m.overhead_points)).toBe(1748465);
+    const july = svod.months.filter((m: any) => m.ym === "2026-07");
+    const byOrderMonth = july.reduce((a: number, m: any) =>
+      a + m.rows.reduce((x: number, r: any) => x + (r.svc_points || 0), 0), 0);
+    expect(Math.round(byOrderMonth)).toBe(4861651);
+
+    const spentInJuly = readNd("data-ym/bonuses_monthly.ndjson")
+      .filter((r: any) => r.ym === "2026-07" && SPEND.test(String(r.src || "")))
+      .reduce((a: number, r: any) => a - (Number(r.amount) || 0), 0);
+    expect(Math.round(spentInJuly)).toBe(4060473);
+  });
+
+  it("строки отчёта без номера заказа в разнесение по позициям не идут", () => {
+    // Полки и Буст за показы к заказу не привязаны: они уровня кабинета и живут в общих
+    // расходах. Если бы они попали сюда, сверка выше разошлась бы ровно на них.
+    const noOrder = readNd("data-ym/bonuses_monthly.ndjson")
+      .filter((r: any) => SPEND.test(String(r.src || "")) && !String(r.order || "").trim());
+    expect(noOrder.length).toBeGreaterThan(0);
+    const names = new Set(noOrder.map((r: any) => String(r.service || "")));
+    expect([...names].sort()).toEqual(["Буст продаж, оплата за показы", "Полки"]);
   });
 });
 

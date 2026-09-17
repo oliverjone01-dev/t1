@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-17T07:18:14.918Z",
+  "generated_at": "2026-09-17T07:37:09.301Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "split_check": {
     "business": "74986385",
@@ -209,6 +209,7 @@
       "overhead_points_report": 0,
       "points_src": "report",
       "points_report": 656971,
+      "points_spent_report": 641876.89,
       "overhead_daily": {},
       "points_acc": 676567,
       "points_ded": 19596,
@@ -222,11 +223,12 @@
       "ledger_status": -6095.68,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 37,
       "orders_inflight": 26,
       "points_on_delivery": 1797.57,
-      "cogs_cov": 100,
-      "points_spent_report": 641876.89
+      "cogs_cov": 100
     },
     {
       "business": "74986385",
@@ -2198,6 +2200,7 @@
       "overhead_points_report": 40094.33,
       "points_src": "report",
       "points_report": 2396925,
+      "points_spent_report": 2356830.67,
       "overhead_daily": {
         "2026-09-04": {
           "m": 0,
@@ -2422,11 +2425,12 @@
       "ledger_status": 1296.95,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 110,
       "orders_inflight": 52,
       "points_on_delivery": 32779.45,
-      "cogs_cov": 96.1,
-      "points_spent_report": 2356830.67
+      "cogs_cov": 96.1
     },
     {
       "business": "1023124",
@@ -6534,6 +6538,7 @@
       "overhead_points_report": 0,
       "points_src": "report",
       "points_report": 1887266,
+      "points_spent_report": 1881282.16,
       "overhead_daily": {
         "2026-08-19": {
           "m": 1518.49,
@@ -7103,11 +7108,12 @@
       "ledger_status": 56512.34,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 125,
       "orders_inflight": 4,
       "points_on_delivery": 55287.61,
-      "cogs_cov": 100,
-      "points_spent_report": 1881282.16
+      "cogs_cov": 100
     },
     {
       "business": "74986385",
@@ -12318,6 +12324,7 @@
       "overhead_points_report": 52631.71,
       "points_src": "report",
       "points_report": 2058258,
+      "points_spent_report": 2005626.29,
       "overhead_daily": {
         "2026-08-01": {
           "m": 11.59,
@@ -12871,11 +12878,12 @@
       "ledger_status": 4540.79,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 133,
       "orders_inflight": 1,
       "points_on_delivery": 117670.07,
-      "cogs_cov": 93.2,
-      "points_spent_report": 2005626.29
+      "cogs_cov": 93.2
     },
     {
       "business": "1023124",
@@ -18145,6 +18153,7 @@
       "overhead_points_report": 1287,
       "points_src": "report",
       "points_report": 1748465,
+      "points_spent_report": 1747178,
       "overhead_daily": {
         "2026-07-01": {
           "m": 1300,
@@ -18662,11 +18671,12 @@
       "ledger_status": -4468.22,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 138,
       "orders_inflight": 0,
       "points_on_delivery": 43723.09,
-      "cogs_cov": 89.9,
-      "points_spent_report": 1747178
+      "cogs_cov": 89.9
     },
     {
       "business": "74986385",
@@ -25280,6 +25290,7 @@
       "overhead_points_report": 15051.27,
       "points_src": "report",
       "points_report": 2321628,
+      "points_spent_report": 2296956.94,
       "overhead_daily": {
         "2026-07-11": {
           "m": 6,
@@ -25617,11 +25628,12 @@
       "ledger_status": 19672.2,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 157,
       "orders_inflight": 0,
       "points_on_delivery": 100154.48,
-      "cogs_cov": 86.2,
-      "points_spent_report": 2296956.94
+      "cogs_cov": 86.2
     },
     {
       "business": "1023124",
@@ -27045,6 +27057,7 @@
       "overhead_points_report": 0,
       "points_src": "report",
       "points_report": 280283,
+      "points_spent_report": 280283,
       "overhead_daily": {
         "2026-06-14": {
           "m": 1300,
@@ -27310,11 +27323,12 @@
       "ledger_status": 34545.38,
       "ledger_missing": 64931.67,
       "ledger_missing_orders": 10,
+      "missing_accrued": 154496,
+      "missing_accrued_orders": 4,
       "orders_period": 34,
       "orders_inflight": 0,
       "points_on_delivery": 7854.08,
-      "cogs_cov": 92,
-      "points_spent_report": 280283
+      "cogs_cov": 92
     },
     {
       "business": "74986385",
@@ -32823,6 +32837,7 @@
       "overhead_points_report": 0,
       "points_src": "report",
       "points_report": 2262902,
+      "points_spent_report": 2232940.51,
       "overhead_daily": {
         "2026-06-24": {
           "m": 16990,
@@ -32848,11 +32863,12 @@
       "ledger_status": 31752.7,
       "ledger_missing": 450,
       "ledger_missing_orders": 1,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 138,
       "orders_inflight": 0,
       "points_on_delivery": 81037.37,
-      "cogs_cov": 86.4,
-      "points_spent_report": 2232940.51
+      "cogs_cov": 86.4
     },
     {
       "business": "1023124",
@@ -33180,6 +33196,7 @@
       "overhead_points_report": 25119.65,
       "points_src": "report",
       "points_report": 1000669,
+      "points_spent_report": 909956.14,
       "overhead_daily": {
         "2026-05-01": {
           "m": 13,
@@ -33559,11 +33576,12 @@
       "ledger_status": 0.24,
       "ledger_missing": 964856.87,
       "ledger_missing_orders": 50,
+      "missing_accrued": 1902629.35,
+      "missing_accrued_orders": 45,
       "orders_period": 8,
       "orders_inflight": 0,
       "points_on_delivery": 2647.42,
-      "cogs_cov": 100,
-      "points_spent_report": 909956.14
+      "cogs_cov": 100
     },
     {
       "business": "74986385",
@@ -41578,6 +41596,7 @@
       "overhead_points_report": 30016.37,
       "points_src": "report",
       "points_report": 3397049,
+      "points_spent_report": 3346720.04,
       "overhead_daily": {
         "2026-05-01": {
           "m": 14,
@@ -41963,11 +41982,12 @@
       "ledger_status": 7508.57,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 188,
       "orders_inflight": 0,
       "points_on_delivery": 117604.28,
-      "cogs_cov": 90.7,
-      "points_spent_report": 3346720.04
+      "cogs_cov": 90.7
     },
     {
       "business": "1023124",
@@ -42722,6 +42742,7 @@
       "overhead_points_report": 26402.86,
       "points_src": "report",
       "points_report": 924104,
+      "points_spent_report": 845705.58,
       "overhead_daily": {
         "2026-04-01": {
           "m": 13,
@@ -43157,11 +43178,12 @@
       "ledger_status": 0.72,
       "ledger_missing": 890760.07,
       "ledger_missing_orders": 63,
+      "missing_accrued": 1911396.01,
+      "missing_accrued_orders": 53,
       "orders_period": 18,
       "orders_inflight": 0,
       "points_on_delivery": 7303.96,
-      "cogs_cov": 88.2,
-      "points_spent_report": 845705.58
+      "cogs_cov": 88.2
     },
     {
       "business": "74986385",
@@ -52883,6 +52905,7 @@
       "overhead_points_report": 19907.62,
       "points_src": "report",
       "points_report": 1920402,
+      "points_spent_report": 1878812.89,
       "overhead_daily": {
         "2026-04-14": {
           "m": 12.44,
@@ -53130,11 +53153,12 @@
       "ledger_status": 131028.39,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 221,
       "orders_inflight": 0,
       "points_on_delivery": 128473.77,
-      "cogs_cov": 89.5,
-      "points_spent_report": 1878812.89
+      "cogs_cov": 89.5
     },
     {
       "business": "1023124",
@@ -53156,6 +53180,7 @@
       "overhead_points_report": 29616.97,
       "points_src": "report",
       "points_report": 349862,
+      "points_spent_report": 291606.67,
       "overhead_daily": {
         "2026-03-01": {
           "m": 6.19,
@@ -53602,11 +53627,12 @@
       "ledger_status": 0.24,
       "ledger_missing": 462905.05,
       "ledger_missing_orders": 52,
+      "missing_accrued": 1375729.1,
+      "missing_accrued_orders": 42,
       "orders_period": 1,
       "orders_inflight": 0,
       "points_on_delivery": 0,
-      "cogs_cov": 0,
-      "points_spent_report": 291606.67
+      "cogs_cov": 0
     },
     {
       "business": "74986385",
@@ -60888,6 +60914,7 @@
       "overhead_points_report": 29986.27,
       "points_src": "report",
       "points_report": 1788865,
+      "points_spent_report": 1727446.65,
       "overhead_daily": {
         "2026-03-01": {
           "m": 5,
@@ -61289,11 +61316,12 @@
       "ledger_status": 63933.57,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
+      "missing_accrued": 0,
+      "missing_accrued_orders": 0,
       "orders_period": 193,
       "orders_inflight": 0,
       "points_on_delivery": 55197.43,
-      "cogs_cov": 92.3,
-      "points_spent_report": 1727446.65
+      "cogs_cov": 92.3
     },
     {
       "business": "1023124",
@@ -61315,6 +61343,7 @@
       "overhead_points_report": 10171.44,
       "points_src": "report",
       "points_report": 675373,
+      "points_spent_report": 524032.22,
       "overhead_daily": {
         "2026-02-01": {
           "m": 9.99,
@@ -61673,11 +61702,12 @@
       "ledger_status": 0,
       "ledger_missing": 765448.63,
       "ledger_missing_orders": 72,
+      "missing_accrued": 1946067,
+      "missing_accrued_orders": 61,
       "orders_period": 0,
       "orders_inflight": 0,
       "points_on_delivery": 0,
-      "cogs_cov": 0,
-      "points_spent_report": 524032.22
+      "cogs_cov": 0
     },
     {
       "business": "74986385",
@@ -67067,6 +67097,7 @@
       "overhead_points_report": 11522.01,
       "points_src": "report",
       "points_report": 1480857,
+      "points_spent_report": 1342388.74,
       "overhead_daily": {
         "2026-02-01": {
           "m": 5,
@@ -67332,11 +67363,12 @@
       "ledger_status": 62319.91,
       "ledger_missing": 342913.68,
       "ledger_missing_orders": 21,
+      "missing_accrued": 278963,
+      "missing_accrued_orders": 5,
       "orders_period": 126,
       "orders_inflight": 1,
       "points_on_delivery": 20877.48,
-      "cogs_cov": 87.8,
-      "points_spent_report": 1342388.74
+      "cogs_cov": 87.8
     },
     {
       "business": "1023124",
@@ -67352,6 +67384,7 @@
       "overhead_points_report": 0,
       "points_src": "orders",
       "points_report": 0,
+      "points_spent_report": 0,
       "overhead_daily": {},
       "points_acc": 0,
       "points_ded": 0,
@@ -67363,11 +67396,12 @@
       "ledger_status": 0,
       "ledger_missing": 107938.59,
       "ledger_missing_orders": 38,
+      "missing_accrued": 809606.13,
+      "missing_accrued_orders": 32,
       "orders_period": 0,
       "orders_inflight": 0,
       "points_on_delivery": 0,
-      "cogs_cov": 0,
-      "points_spent_report": 0
+      "cogs_cov": 0
     },
     {
       "business": "74986385",
@@ -67383,6 +67417,7 @@
       "overhead_points_report": 0,
       "points_src": "orders",
       "points_report": 0,
+      "points_spent_report": 0,
       "overhead_daily": {},
       "points_acc": 0,
       "points_ded": 0,
@@ -67394,11 +67429,12 @@
       "ledger_status": 0,
       "ledger_missing": 193998.25,
       "ledger_missing_orders": 60,
+      "missing_accrued": 1698721,
+      "missing_accrued_orders": 51,
       "orders_period": 0,
       "orders_inflight": 0,
       "points_on_delivery": 0,
-      "cogs_cov": 0,
-      "points_spent_report": 0
+      "cogs_cov": 0
     }
   ]
 }

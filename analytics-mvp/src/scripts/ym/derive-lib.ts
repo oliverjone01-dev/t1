@@ -629,6 +629,12 @@ export interface SvodMonth {
   ledger_status: number;          // из них: заказ есть, но статус не DELIVERED
   ledger_missing: number;         // из них: заказа нет в orders.ndjson вообще
   ledger_missing_orders: number;
+  // Заказы, которых НЕТ в выгрузке заказов, целиком: реестр платежей их знает, а карточки заказа
+  // (дата, статус, штуки) нет, поэтому в свод они не попадают ни выручкой, ни услугами. ledger_missing
+  // выше считает только СБОРЫ по ним, а это - НАЧИСЛЕНИЯ, то есть масштаб пробела для выручки.
+  // Месяц берётся по первой проводке реестра: даты заказа у нас нет по определению.
+  missing_accrued: number;
+  missing_accrued_orders: number;
   // Незавершённость периода. Отменённые заказы - нормальный исход, а не незавершённость, поэтому
   // мерилом служат заказы, которые ЕЩЁ В ПУТИ: пока они есть, месяц продолжает набирать выручку.
   orders_period: number;     // оформлено всего в месяце, любой статус
@@ -678,6 +684,31 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   const pointsDed = new Map<string, number>();   // списано при невыкупе и возврате (DEDUCTION)
   const outside = new Map<string, { sum: number; orders: Set<string>; status: number; missing: number; missingOrders: Set<string> }>();
   const knownOrders = new Set<string>(rows.map((r) => r.order));
+  // Пробел выгрузки заказов. Считаем ДО разбора сборов, отдельным проходом: нужны строки
+  // «Начисление», которые isNettingFee отбрасывает. Заказ относим к месяцу его первой проводки -
+  // единственная дата, которая у нас про него есть.
+  const missFirst = new Map<string, string>();
+  for (const n of netting) {
+    const ord = String(n.order || "").trim();
+    if (!ord || knownOrders.has(ord)) continue;
+    const key = `${String(n.business || "")}|${ord}`;
+    const d = String(n.d || "").slice(0, 10);
+    if (!d) continue;
+    const cur = missFirst.get(key);
+    if (!cur || d < cur) missFirst.set(key, d);
+  }
+  const missAcc = new Map<string, { sum: number; orders: Set<string> }>();
+  for (const n of netting) {
+    const ord = String(n.order || "").trim();
+    if (!ord || knownOrders.has(ord)) continue;
+    if (String(n.type || "") !== "Начисление") continue;
+    const first = missFirst.get(`${String(n.business || "")}|${ord}`);
+    if (!first) continue;
+    const k = `${String(n.business || "")}|${first.slice(0, 7)}`;
+    const cur = missAcc.get(k) || { sum: 0, orders: new Set<string>() };
+    cur.sum = r2(cur.sum + (Number(n.amount) || 0)); cur.orders.add(ord);
+    missAcc.set(k, cur);
+  }
   let overheadRows: Array<{ business: string; d: string; col: string; points: boolean; amount: number }> = [];
   for (const n of netting) {
     if (!isNettingFee(String(n.type || ""), n.src)) continue;
@@ -769,7 +800,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   for (const r of rows) {
     const k = delivered.get(r.order); if (!k) continue;
     if (!months.has(k)) months.set(k, { business: r.business, ym: k.split("|")[1]!, orders: 0, rows: [],
-      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 });
+      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 });
     const os = orderSet.get(k) || new Set<string>(); os.add(r.order); orderSet.set(k, os);
     if (r.service) {
       // строка доставки: разносим по позициям заказа пропорционально начислениям
@@ -867,7 +898,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     if (!m) {
       m = { business: o.business, ym: o.d.slice(0, 7), orders: 0, rows: [], overhead_money: 0, overhead_points: 0,
         overhead: {}, overhead_pts: {}, overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false,
-        ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
+        ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0,
         orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
@@ -941,7 +972,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       const [business, ym] = k.split("|") as [string, string];
       m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
         overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0,
-        ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
+        ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0,
         orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
@@ -1000,7 +1031,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
         overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0,
         overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false,
-        ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
+        ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0,
         orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
@@ -1033,11 +1064,18 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       const [business, ym] = k.split("|") as [string, string];
       m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0,
         svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0,
-        ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+        ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
     m.ledger_outside = r2(out.sum); m.ledger_outside_orders = out.orders.size;
     m.ledger_status = r2(out.status); m.ledger_missing = r2(out.missing); m.ledger_missing_orders = out.missingOrders.size;
+  }
+  // Начисления потерянных заказов раскладываем своим проходом: пара кабинет/месяц может не иметь
+  // ни доставленных заказов, ни сборов акта, и тогда цикл выше до неё не доходит.
+  for (const [k, a] of missAcc) {
+    const m = months.get(k);
+    if (!m) continue;   // месяцев вне окна свода не заводим: там нечего показывать рядом
+    m.missing_accrued = r2(a.sum); m.missing_accrued_orders = a.orders.size;
   }
 
   for (const s of acc.values()) {

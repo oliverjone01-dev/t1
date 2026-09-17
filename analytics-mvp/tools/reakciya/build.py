@@ -1,19 +1,33 @@
 import pandas as pd, numpy as np, json, re, os
-import sys,os
+import sys,os,glob
 # Запускать из analytics-mvp:  python3 tools/reakciya/build.py
 # Читает сырые выгрузки кабинета из tools/reakciya/data-cabinet/ (в git не хранятся, см. README),
 # пишет срез в data/reakciya.json. Дальше:  npm run reakciya
 ROOT=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 D=os.path.join(ROOT,'tools','reakciya','data-cabinet')+os.sep
 L=os.path.join(ROOT,'data')+os.sep
-snap=pd.read_csv(D+'snapshot_514_2026-09-09.psv',sep='|')
+
+# Имена выгрузок кабинета несут в себе даты среза. Раньше они были зашиты константами,
+# и скрипт молча читал старый файл, даже когда рядом лежал свежий: дата на дашборде
+# не двигалась при успешном съёме. Теперь берём самый свежий файл по маске.
+def newest(mask):
+    hits=sorted(glob.glob(D+mask))
+    if not hits:
+        raise SystemExit('нет ни одного файла по маске '+mask+' в '+D)
+    if len(hits)>1:
+        print('  по маске',mask,'найдено',len(hits),'- беру самый свежий')
+    print('  вход:',os.path.basename(hits[-1]))
+    return hits[-1]
+print('Входные файлы:')
+snap=pd.read_csv(newest('snapshot_514_*.psv'),sep='|')
 nm=snap['name'].astype(str).str.lower()
 snap['cat']=np.where(nm.str.contains('зеркал'),'Зеркала','Мебель')
 sku2art=dict(zip(snap['sku'],snap['art'])); sku2cat=dict(zip(snap['sku'],snap['cat']))
 sku2name=dict(zip(snap['sku'],snap['name'])); art2sku=dict(zip(snap['art'],snap['sku']))
 id2sku=dict(zip(snap['id'],snap['sku']))
 
-an=pd.read_csv(D+'analytics_sku_daily_2026-06-12_09-09.psv',sep='|')
+an=pd.read_csv(newest('analytics_sku_daily_*.psv'),sep='|')
+print('  аналитика SKU-дней:',len(an),'строк, до',str(an['date'].max())[:10])
 an['d']=pd.to_datetime(an['date'])
 an=an.sort_values(['sku','d'])
 
@@ -28,7 +42,7 @@ mc['coinv']=(1-mc['mp']/mc['cap'])*100
 co=mc[['art','d','coinv']].dropna()
 
 # события
-ev=pd.read_csv(D+'ads_campaign_history_2026-06-13_09-10.psv',sep='|')
+ev=pd.read_csv(newest('ads_campaign_history_*.psv'),sep='|')
 ev['ts']=pd.to_datetime(ev['ts_utc']).dt.tz_localize(None)+pd.Timedelta(hours=3)
 ev['user']=ev['user'].astype(str).str.split('@').str[0]
 ev=ev.rename(columns={'obj_id':'sku','camp':'campname','type':'etype','change':'chg'})

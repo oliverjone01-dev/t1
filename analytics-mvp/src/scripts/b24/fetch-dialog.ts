@@ -4,7 +4,7 @@
 // Открытые линии, дела/TODO, заметки. Путь лид->сделка (по LEAD_ID) сливается в один диалог.
 // ВАЖНО: запросы шлём JSON-телом (как fetch-rop), иначе Bitrix игнорирует фильтры с >=/<=.
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/fetch-dialog.ts
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 
 const WH = process.env.B24_WEBHOOK_URL;
 if (!WH) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
@@ -35,6 +35,8 @@ const _sinceD = new Date(SINCE);
 if (!isNaN(_sinceD.getTime()) && _sinceD < _hf) _hf = _sinceD;
 const HFROM = iso(_hf);
 const hFromMs = _hf.getTime();
+// Окно ДОсбора при инкременте (устанавливается в main по прошлому снимку). Полный сбор = HFROM.
+let CFROM = HFROM;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Запрос к Bitrix JSON-телом (как fetch-rop): фильтры-объекты применяются корректно.
@@ -127,7 +129,7 @@ async function buildCallMap(): Promise<Record<string, any>> {
   for (;;) {
     // Статистику звонков берём за ПОЛНУЮ историю (HFROM), а не 7 дней: иначе у исторических
     // звонков (июль/август) не будет длительности, флага расшифровки и ссылки на запись.
-    const r = await call("voximplant.statistic.get", { FILTER: { ">CALL_START_DATE": HFROM, "<=CALL_START_DATE": TO }, SORT: "CALL_START_DATE", ORDER: "ASC", start });
+    const r = await call("voximplant.statistic.get", { FILTER: { ">CALL_START_DATE": CFROM, "<=CALL_START_DATE": TO }, SORT: "CALL_START_DATE", ORDER: "ASC", start });
     if (r.error) break;
     for (const c of (r.result || [])) if (c.CRM_ACTIVITY_ID) map[String(c.CRM_ACTIVITY_ID)] = { type: String(c.CALL_TYPE), dur: c.CALL_DURATION, rec: c.CALL_RECORD_URL || "", recId: c.RECORD_FILE_ID || "", tr: c.TRANSCRIPT_ID || "" };
     if (r.next === undefined || r.next === null) break; start = r.next;
@@ -298,7 +300,21 @@ function commentToEvent(c: any, employees: Record<string, 1>, authorName: string
 type Ent = { kind: "deal" | "lead"; id: string; title: string; mgrId: string; closed?: boolean };
 
 async function main() {
-  console.log(`Диалог GG: окно ${FROM} -> ${TO} (${DAYS} дн), воронка ${CATEGORY_ID}${WITH_LEADS ? " + лиды" : ""}`);
+  // Инкрементальный досбор: читаем прошлый снимок и добавляем только СВЕЖИЕ события, а старые
+  // храним. Так снимок накапливает всю историю, а дневной прогон лёгкий (тянет пару дней).
+  // DIALOG_FULL=1 - принудительный полный пересбор (за весь период с HFROM).
+  const FULL = process.env.DIALOG_FULL === "1";
+  let prevEvents: any[] = []; let prevGen = "";
+  if (!FULL && existsSync(OUT)) {
+    try { const p = JSON.parse(readFileSync(OUT, "utf8")); prevEvents = p.events || []; prevGen = p.generatedAt || ""; }
+    catch { prevEvents = []; }
+  }
+  const INCR = prevEvents.length > 0;
+  // При инкременте досбираем переписку только с последнего снимка минус 3 дня нахлёста,
+  // но не раньше якоря HFROM. Полный сбор (первый раз / FULL=1) - за весь период с HFROM.
+  CFROM = INCR ? iso(new Date(Math.max(hFromMs, (Date.parse(prevGen) || nowD.getTime()) - 3 * 864e5))) : HFROM;
+  console.log(`Режим: ${INCR ? `инкремент (досбор с ${CFROM}, прошлых событий ${prevEvents.length})` : `полный сбор с ${HFROM}`}`);
+  console.log(`Диалог GG: якорь ${HFROM} -> ${TO}, воронка ${CATEGORY_ID}${WITH_LEADS ? " + лиды" : ""}`);
   const employees = await buildEmployeeSet();
   const callMap = await buildCallMap();
   console.log(`Сотрудников ${Object.keys(employees).length / 2 | 0}, звонков со статой ${Object.keys(callMap).length}`);
@@ -358,7 +374,7 @@ async function main() {
     slice.forEach((e, j) => {
       const ot = e.kind === "deal" ? 2 : 1;
       // Полная история переписки по КАЖДОЙ сущности (не только 7 дней у активных): для базы знаний.
-      const efrom = HFROM;
+      const efrom = CFROM;
       cmds["a" + j] = `crm.activity.list?filter[OWNER_TYPE_ID]=${ot}&filter[OWNER_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(efrom)}&order[CREATED]=ASC${aSel}`;
       cmds["c" + j] = `crm.timeline.comment.list?filter[ENTITY_TYPE]=${e.kind}&filter[ENTITY_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(efrom)}&order[CREATED]=ASC${cSel}`;
     });
@@ -387,8 +403,8 @@ async function main() {
       for (;;) {
         const idx = cj++; if (idx >= capped.length) break;
         const { e, kind } = capped[idx]!; const key = e.kind + ":" + e.id; const ot = e.kind === "deal" ? 2 : 1;
-        if (kind === "a") actsBy[key] = await listAll("crm.activity.list", { filter: { OWNER_TYPE_ID: ot, OWNER_ID: e.id, ">CREATED": HFROM }, order: { CREATED: "ASC" }, select: actSelArr });
-        else cmtsBy[key] = await listAll("crm.timeline.comment.list", { filter: { ENTITY_TYPE: e.kind, ENTITY_ID: e.id, ">CREATED": HFROM }, order: { CREATED: "ASC" }, select: cmtSelArr });
+        if (kind === "a") actsBy[key] = await listAll("crm.activity.list", { filter: { OWNER_TYPE_ID: ot, OWNER_ID: e.id, ">CREATED": CFROM }, order: { CREATED: "ASC" }, select: actSelArr });
+        else cmtsBy[key] = await listAll("crm.timeline.comment.list", { filter: { ENTITY_TYPE: e.kind, ENTITY_ID: e.id, ">CREATED": CFROM }, order: { CREATED: "ASC" }, select: cmtSelArr });
       }
     }));
   }
@@ -434,6 +450,19 @@ async function main() {
       const whoName = (ev.guess && mgr) ? mgr : ev.who;
       events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: whoName, title: ev.title, body: ev.body, status: ev.status, due: ev.due || "", dur: ev.dur, link: ev.link, ref: ev.ref || "", refId: ev.refId || "", guess: ev.guess || 0, fired: ev.fired || 0, speakers: ev.speakers || null, roleGuess: ev.roleGuess || 0, undiar: ev.undiar || 0, src: ev.src });
     }
+  }
+  // Досбор: добавляем события из прошлого снимка, которых нет среди свежих. Так вся история
+  // накапливается, а свежий прогон тянул только последние дни (CFROM).
+  if (INCR) {
+    let kept = 0;
+    for (const ev of prevEvents) {
+      const uid = (ev.leadId || "") + "|" + (ev.dealId || "") + "|" + (ev.src || "");
+      if (!ev.src || seen[uid]) continue; seen[uid] = 1;
+      events.push(ev); kept++;
+      counts[ev.type] = (counts[ev.type] || 0) + 1;
+      if (ev.mgr) mgrSet[ev.mgr] = 1;
+    }
+    console.log(`Досбор из прошлого снимка: +${kept} событий (итого ${events.length})`);
   }
   events.sort((a, b) => a.ts - b.ts);
   const leadKeys = new Set(events.filter((e) => e.leadId).map((e) => e.leadId));

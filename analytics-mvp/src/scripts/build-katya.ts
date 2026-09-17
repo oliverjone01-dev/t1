@@ -60,8 +60,12 @@ if (DELIVERED_BASIS) {
 const live = JSON.parse(readFileSync(dp("skus_live_30d.json"), "utf-8"));
 const tax: Record<string, any> = JSON.parse(readFileSync(dp("sku_taxonomy.json"), "utf-8"));
 const cogs: Record<string, number> = JSON.parse(readFileSync(dp("sku_cogs.json"), "utf-8"));
-const stockOf: Record<string, number> = {};
-for (const s of live.sku_table) stockOf[String(s.sku)] = s.stock || 0;
+// null - остаток НЕ известен (Маркет его не отдал), 0 - известен и равен нулю.
+// У OZON поле остаётся прежним (нет значения = 0): его снимок собирается другим пайплайном,
+// «неизвестно» там не различается, и страницы OZON обязаны остаться байт-в-байт. Без этой
+// развилки правка меняла OZON: у части артикулов stockQty становился null вместо 0.
+const stockOf: Record<string, number | null> = {};
+for (const s of live.sku_table) stockOf[String(s.sku)] = IS_OZON ? (s.stock || 0) : (s.stock ?? null);
 
 // --- 16-месячное окно, заканчивающееся последним месяцем данных ---
 const months = [...new Set(facts.map((f) => f.date.slice(0, 7)))].sort();
@@ -261,7 +265,7 @@ for (const sk of allSkus) { const m = modelOf(sk); (modelMap.get(m) || modelMap.
 const modelAbc = abcMap([...modelMap.entries()].map(([m, sks]) => ({ k: m, rev: mln(sks.reduce((a, sk) => a + totRevWin(sk), 0)) })));
 const cv = (arr: number[]) => { const nz = arr.filter((x) => x > 0); if (nz.length < 2) return 0; const mean = nz.reduce((a, b) => a + b, 0) / nz.length; const sd = Math.sqrt(nz.reduce((a, b) => a + (b - mean) ** 2, 0) / nz.length); return Math.round((sd / mean) * 100) / 100; };
 
-type Variant = { sku: string; sub: string; rev: number; cost: number; costNA: boolean; orders: number; returns: number; retCnt: number; leadDays: number; stockQty: number; mr: number[]; mc: number[]; mo: number[]; mcu?: number[]; mcr?: number[]; mfu?: number[]; mfr?: number[] };
+type Variant = { sku: string; sub: string; rev: number; cost: number; costNA: boolean; orders: number; returns: number; retCnt: number; leadDays: number; stockQty: number | null; mr: number[]; mc: number[]; mo: number[]; mcu?: number[]; mcr?: number[]; mfu?: number[]; mfr?: number[] };
 const buildModels = () => [...modelMap.entries()].map(([model, sks]) => {
   const mr = z16(), mo = z16(), mc = z16();
   const mcu = z16(), mcr = z16(), mfu = z16(), mfr = z16(); // отменённое и летящее (только Маркет)
@@ -275,7 +279,7 @@ const buildModels = () => [...modelMap.entries()].map(([model, sks]) => {
     for (let i = 0; i < 16; i++) { mr[i] += vmr[i]!; mo[i] += vmo[i]!; mc[i] += vmc[i]!; mcu[i] += vcu[i]!; mcr[i] += vcr[i]!; mfu[i] += vfu[i]!; mfr[i] += vfr[i]!; }
     const vo = skuUnits[sk] || 0, vr = skuRet[sk] || 0;
     const extra = DELIVERED_BASIS ? { mcu: vcu, mcr: vcr, mfu: vfu, mfr: vfr } : {};
-    return { sku: taxOf(sk).offer || sk, sub: skuName[sk] || sk, rev: mln(totRevWin(sk)), cost: mln(cu * vo), costNA: cu <= 0, orders: vo, returns: vo > 0 ? Math.round((vr / vo) * 1000) / 10 : 0, retCnt: vr, leadDays: 0, stockQty: stockOf[sk] || 0, mr: vmr, mc: vmc, mo: vmo, ...extra };
+    return { sku: taxOf(sk).offer || sk, sub: skuName[sk] || sk, rev: mln(totRevWin(sk)), cost: mln(cu * vo), costNA: cu <= 0, orders: vo, returns: vo > 0 ? Math.round((vr / vo) * 1000) / 10 : 0, retCnt: vr, leadDays: 0, stockQty: IS_OZON ? (stockOf[sk] || 0) : (stockOf[sk] ?? null), mr: vmr, mc: vmc, mo: vmo, ...extra };
   });
   const g = catOf(sks[0]!), sub = subOf(sks[0]!);
   const costNA = variants.some((v) => v.costNA);
@@ -523,6 +527,13 @@ function patchDeliveredColumns(html: string): string {
 
   // Пустая таблица растягивалась на 9 колонок - стало 11.
   must(/<tr><td colspan="9">/, '<tr><td colspan="11">', "colspan");
+
+  // «На складе»: остаток, которого Маркет не отдал, - это «нет данных», а не «нет на складе».
+  // По снимку Маркет называет остаток у 34 артикулов из 148; прежний код ставил ноль всем
+  // остальным, и страница объявляла 114 артикулов закончившимися, ничего о них не зная.
+  must(/const stockClass = stockQty === 0 \? 'OOS' : \(stockQty <= 20 \? 'LOW' : 'OK'\);/,
+    "if(stockQty == null) return `<td class=\"right pt-stock-cell\">${ND}</td>`;\n" +
+    "    const stockClass = stockQty === 0 ? 'OOS' : (stockQty <= 20 ? 'LOW' : 'OK');", "stock:нет данных");
 
   // Подпись карточки: базис назван словами прямо на странице.
   must(/клик по модели → артикулы · цвет точки = ранг по выручке/,

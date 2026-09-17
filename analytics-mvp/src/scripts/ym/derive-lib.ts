@@ -219,7 +219,7 @@ export function buildDailyTotals(facts: Fact[], floor: string, to: string, dayVi
 }
 
 // ---------- skus_live_30d.json ----------
-export interface CatalogLike { items: Record<string, { name?: string; marketSku?: string; category?: string; price?: number | null; stock?: number; business?: string }> }
+export interface CatalogLike { items: Record<string, { name?: string; marketSku?: string; category?: string; price?: number | null; stock?: number | null; business?: string }> }
 export function buildSkusLive(rows: OrderRow[], facts: Fact[], catalog: CatalogLike, dateFrom: string, dateTo: string, skuViews?: Map<string, { views: number; cart: number }>) {
   const agg = new Map<string, any>();
   for (const f of facts) {
@@ -240,8 +240,10 @@ export function buildSkusLive(rows: OrderRow[], facts: Fact[], catalog: CatalogL
       sku: a.sku, name: a.name, line: a.line, rev: Math.round(a.rev), units: a.units, views: a.views, cart: a.cart, deliv: a.deliv, ret: a.ret, canc: a.canc,
       convCart: a.views ? Math.round((a.cart / a.views) * 1000) / 10 : 0, convOrd: a.views ? Math.round((a.units / a.views) * 1000) / 10 : 0,
       retp: (a.units + a.ret) ? Math.round((a.ret / (a.units + a.ret)) * 1000) / 10 : 0, aov: a.units ? Math.round(a.rev / a.units) : 0,
-      offer: a.sku, stock: c.stock || 0, pidx: null as number | null, pcol: "", price: c.price != null ? Math.round(c.price) : null,
-      oos: (a.units > 0 && (c.stock || 0) <= 0) ? 1 : 0, market_sku: c.marketSku || "", business: c.business || "", platform: PLATFORM,
+      // stock: null - Маркет остаток не отдал. «Закончился» (oos) объявляем ТОЛЬКО когда он
+      // назвал ноль: иначе флаг вешался на каждый артикул, про который просто ничего не известно.
+      offer: a.sku, stock: c.stock ?? null, pidx: null as number | null, pcol: "", price: c.price != null ? Math.round(c.price) : null,
+      oos: (a.units > 0 && c.stock === 0) ? 1 : 0, market_sku: c.marketSku || "", business: c.business || "", platform: PLATFORM,
     };
     skus.push(s);
     const L = lineMap[a.line] || (lineMap[a.line] = { line: a.line, rev: 0, units: 0, ret: 0, sk: 0 });

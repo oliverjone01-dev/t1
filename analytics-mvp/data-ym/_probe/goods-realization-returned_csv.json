@@ -1,6 +1,6 @@
 {
   "type": "goods-realization-returned_csv",
-  "at": "2026-09-17T11:44:10.976Z",
+  "at": "2026-09-17T12:40:13.439Z",
   "headers": [
     "ORDER_ID",
     "YOUR_ORDER_ID",
@@ -86,6 +86,6 @@
     ]
   ],
   "campaign": "149154933",
-  "ym": "2026-07",
+  "ym": "2026-08",
   "file": "returned.csv"
 }

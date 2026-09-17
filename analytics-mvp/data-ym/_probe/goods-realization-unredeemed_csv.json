@@ -1,6 +1,6 @@
 {
   "type": "goods-realization-unredeemed_csv",
-  "at": "2026-09-17T11:44:10.975Z",
+  "at": "2026-09-17T12:40:13.438Z",
   "headers": [
     "ORDER_ID",
     "YOUR_ORDER_ID",
@@ -48,7 +48,7 @@
       "99999999999",
       "xxxxxxx xxxxxxx",
       "xxxxxxxx xxxxxxx xxxxxxx",
-      "xxx-99-xx-xxxx-9",
+      "xxx-99-9-9",
       "9",
       "9",
       "99.99.9999",
@@ -88,8 +88,8 @@
       "99999999999",
       "99999999999",
       "xxxxxxx xxxxxxx",
-      "xxxxxxxx xxxxxxx xxxxxxx",
-      "xxx-99-9-9",
+      "xxxxxxx xxxxxxxxxxxxx xx",
+      "xxx-99-9",
       "9",
       "9",
       "99.99.9999",
@@ -103,9 +103,9 @@
       "9",
       "9",
       "99999",
-      "9",
-      "9",
-      "9",
+      "99999",
+      "99999",
+      "99999",
       "",
       "",
       "",
@@ -168,6 +168,6 @@
     ]
   ],
   "campaign": "149154933",
-  "ym": "2026-07",
+  "ym": "2026-08",
   "file": "unredeemed.csv"
 }

@@ -302,12 +302,16 @@ input#q{min-width:220px}
 .tbar{display:flex;height:11px;width:92px;border-radius:3px;overflow:hidden;background:var(--line,#e5e7eb);flex:0 0 auto}
 .tseg{display:block;min-width:2px;height:100%}
 .heatp{font-size:10px;font-weight:700;white-space:nowrap}
-.thermo{display:flex;align-items:center;gap:6px;min-width:118px}
-.thtrack{position:relative;height:8px;width:78px;border-radius:4px;background:var(--line,#e5e7eb);flex:0 0 auto}
-.thfill{position:absolute;left:0;top:0;height:100%;border-radius:4px}
-.thmark{position:absolute;top:-2px;width:2px;height:12px;background:var(--ink-2,#555);opacity:.7;z-index:2}
-.tht{font-size:11px;font-weight:700;white-space:nowrap}
-.thd{font-size:10px;font-weight:700;white-space:nowrap}
+/* Вертикальный термометр (как настоящий градусник): трубка + колба, жидкость снизу вверх */
+.thermo{display:flex;align-items:center;gap:7px;min-width:70px}
+.thg{position:relative;width:14px;height:44px;display:flex;flex-direction:column;align-items:center;flex:0 0 auto}
+.thtube{position:relative;width:8px;height:32px;border:1.5px solid var(--ink-4,#9aa3ad);border-bottom:none;border-radius:5px 5px 0 0;background:var(--line,#eceff3);overflow:hidden}
+.thliq{position:absolute;left:0;bottom:0;width:100%;border-radius:4px 4px 0 0}
+.thmark{position:absolute;left:-3px;width:14px;height:0;border-top:1px dashed var(--ink-3,#8a929c);z-index:3}
+.thbulb{position:relative;width:14px;height:14px;border-radius:50%;margin-top:-4px;border:1.5px solid var(--ink-4,#9aa3ad);z-index:2}
+.thnum{display:flex;flex-direction:column;line-height:1.15}
+.tht{font-size:12px;font-weight:800;white-space:nowrap}
+.thd{font-size:9.5px;font-weight:700;white-space:nowrap}
 .tgoal{font-size:10.5px;color:#2E9E74;font-weight:700;white-space:nowrap}
 /* «Полнота» вертикально, чтобы освободить место градуснику */
 .t1 td .cwrap{flex-direction:column;align-items:flex-start;gap:1px}
@@ -852,7 +856,7 @@ function renderTree(){
     const t=d.temp==null?d.prob:d.temp, e=d.entryTemp==null?t:d.entryTemp, dl=d.tempDelta==null?0:d.tempDelta, c=TEMPCOL(t);
     const gaps=(d.needToClose||[]).slice(0,4).map(g=>`+${g.deg}° ${esc(g.label)}${g.rub?` (${money(g.rub)} ₽)`:''}`).join('<br>');
     const tip=`Температура клиента = шанс покупки в моменте: <b>${t}°</b>. На входе ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Цель - предоплата.${gaps?'<br><b>Не хватает до горячего:</b><br>'+gaps:''}`;
-    return `<div class="thermo" data-tip="${tip.replace(/"/g,'&quot;')}"><div class="thtrack"><i class="thmark" style="left:${Math.min(100,e)}%"></i><span class="thfill" style="width:${Math.min(100,t)}%;background:${c}"></span></div><b class="tht" style="color:${c}">${t}°</b>${dl?`<span class="thd" style="color:${dl>0?'#2E9E74':'#C25252'}">${dl>0?'▲+'+dl:'▼'+dl}</span>`:''}</div>`;
+    return `<div class="thermo" data-tip="${tip.replace(/"/g,'&quot;')}"><div class="thg"><div class="thtube"><span class="thliq" style="height:${Math.max(4,Math.min(100,t))}%;background:${c}"></span><i class="thmark" style="bottom:${Math.min(100,e)}%" title="на входе ${e}°"></i></div><span class="thbulb" style="background:${c}"></span></div><div class="thnum"><b class="tht" style="color:${c}">${t}°</b>${dl?`<span class="thd" style="color:${dl>0?'#2E9E74':'#C25252'}">${dl>0?'▲+'+dl:'▼'+dl}</span>`:''}</div></div>`;
   };
   // Распределение сделок менеджера/группы/отдела по температуре + СИЛА НАГРЕВА (медиана Δ).
   const tempCell=(key)=>{ const ds=(byM[key]||[]).filter(d=>d.outcome==='open'); if(!ds.length) return '<span class="na2">-</span>';

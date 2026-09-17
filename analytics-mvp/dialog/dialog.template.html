@@ -154,8 +154,11 @@ input#q{min-width:220px}
 .fixid{font-size:10.5px;padding:2px 7px;border:1px solid var(--line);border-radius:5px;cursor:pointer;color:var(--ink-2)}
 .fixid:hover{border-color:var(--acc);color:var(--acc)}
 .t1{margin-bottom:10px}
-.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.t1{min-width:1260px}
+/* Таблица прокручивается в СВОЕЙ области, а не страница целиком; шапка колонок липкая.
+   Высота = остаток экрана под заголовком и фильтрами (offset правится под реальную высоту). */
+.scrollx{overflow:auto;-webkit-overflow-scrolling:touch;max-height:calc(100vh - 205px)}
+.t1>tbody>tr:first-child>th{position:sticky;top:0;z-index:6;background:var(--card)}
+.t1{min-width:0}
 .t1 th,.t2 th,.t3 th{font-size:9px;padding:5px 5px;white-space:nowrap}
 /* Только СВОИ строки: таблицы сделок и переписки лежат внутри ячеек таблицы менеджеров,
    и потомковый селектор .t1 td навязывал им nowrap - из-за этого текст сообщения шёл
@@ -979,7 +982,8 @@ function renderTree(){
   // каналу/«Горит» показывает сделки всего отдела на этом этапе - без настройки фильтра.
   byM[DEPT_KEY]=mgrs.flatMap(mm=>byM[mm.mgr]||[]);
   const deptMgr={ mgr:DEPT_KEY, role:'dept', profile:null, rating:null, sections:[] };
-  let html=scope+fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
+  // Блок «Как читать таблицу» убран по просьбе Ивана; легенда доступна из подсказок в шапке.
+  let html=scope+fbar+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   // «Весь отдел» - уровень 0: его стрелка сворачивает всех менеджеров. Дрил-фильтр отдела
   // (клик по воронке/каналу/«Горит») показывает сделки всего отдела вместо списка менеджеров.
   const deptDrill = (S.fnMgr===DEPT_KEY&&S.fnGrp)||(S.cmMgr===DEPT_KEY&&S.cmType)||(S.hotMgr===DEPT_KEY);

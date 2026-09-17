@@ -432,7 +432,17 @@ tests=[
    note='Инструмент один на весь магазин, контрольной группы товаров не бывает. Контроль только по времени.'),
 ]
 
-OUT=dict(emet=['coinv','search_views','search_position','pdp_views','ordered_units'],updated='2026-09-15',data_until='2026-09-09',prices_until='2026-09-15',
+# Даты свежести считаются из самих данных, а не зашиваются.
+# Раньше здесь стояли константы, и data_until на дашборде оставался 09.09 даже после
+# успешного съёма: цифры обновлялись, а подпись врала. Это и выглядело как «не работает».
+import datetime as _dt
+_DATA_UNTIL=str(pd.to_datetime(an['date']).max())[:10]
+_PRICES_UNTIL=str(pd.to_datetime(ph['ts']).max())[:10] if 'ts' in getattr(ph,'columns',[]) else _DATA_UNTIL
+_UPDATED=_dt.date.today().isoformat()
+print('Свежесть: data_until',_DATA_UNTIL,'| prices_until',_PRICES_UNTIL,'| updated',_UPDATED)
+if _DATA_UNTIL < (_dt.date.today()-_dt.timedelta(days=7)).isoformat():
+    print('  ВНИМАНИЕ: воронка отстаёт больше чем на 7 дней. Свежая выгрузка не доехала?')
+OUT=dict(emet=['coinv','search_views','search_position','pdp_views','ordered_units'],updated=_UPDATED,data_until=_DATA_UNTIL,prices_until=_PRICES_UNTIL,
   feed=feed,alerts=AL,levels_n=LVN,coinv=CO_NOW,tests=tests,daily=DAILY,
   camps=[dict(camp=int(r['camp']),name=r['name'],on=bool(r['on']),bid=(None if pd.isna(r['bid']) else float(r['bid'])),
               wb=(None if pd.isna(r['wbudget']) else float(r['wbudget'])),n=len(r['skus']),

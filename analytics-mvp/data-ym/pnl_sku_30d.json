@@ -2,8 +2,8 @@
   "platform": "ym",
   "dateFrom": "2026-08-18",
   "dateTo": "2026-09-16",
-  "skuCount": 103,
-  "singleItemOps": 162,
+  "skuCount": 102,
+  "singleItemOps": 161,
   "multiItemOps": 0,
   "bySku": {
     "GGT-35-3-3-100-180": {
@@ -448,12 +448,6 @@
       "accruals": 58780,
       "commission": -233,
       "amount": 30982,
-      "ops": 2
-    },
-    "GGT-03-3-1-M-100": {
-      "accruals": 59047,
-      "commission": -273,
-      "amount": 26376,
       "ops": 2
     },
     "GGK-02-1-5-80": {

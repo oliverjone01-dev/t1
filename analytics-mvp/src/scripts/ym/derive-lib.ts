@@ -3,6 +3,7 @@
 // Контракт = атом 1 эпизода feniks-veto-uploaded-docs-20260610: те же имена файлов и поля,
 // плюс platform="ym". Дашборды не переписываются - читают data-ym/ через DATA_DIR.
 import type { YmOrder } from "../../connector/ym-partner.js";
+import { normSku } from "../../util/sku.js";
 import { ymDate } from "../../connector/ym-partner.js";
 import { lineOf } from "../../util/line.js";
 
@@ -668,6 +669,16 @@ export function bonusKind(r: BonusRow): BonusKind {
 }
 export const isBonusAccrual = (r: BonusRow) => bonusKind(r) === "accrual";
 export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string, act: ActRow[] = [], bonus: BonusRow[] = []): SvodMonth[] {
+  // Часть артикулов Маркет отдаёт с кириллическими двойниками в коде: «GGМ-16-4-3» с русской «М»,
+  // «GGTP-20-2х2» с русской «х». В листе себестоимости таких кодов нет ни одного, поэтому прямой
+  // ключ по ним не срабатывал никогда, и четыре артикула висели без С\С при том, что в листе она
+  // есть. Спрашиваем лист сначала точным кодом, потом нормализованным.
+  const cogsAt = (sku: string): number | undefined => {
+    const v = cogs[sku];
+    if (v != null) return v;
+    const n = normSku(sku);
+    return n === sku ? undefined : cogs[n];
+  };
   // 1. отбор: заказы со статусом DELIVERED, месяц - по дате оформления
   const keyOf = (r: OrderRow) => `${r.business}|${String(r.created || "").slice(0, 7)}`;
   const delivered = new Map<string, string>();  // order -> ключ месяца
@@ -791,7 +802,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
         orders: 0, units_delivered: 0, units_returned: 0, units_net: 0,
         price: 0, ship_buyer: 0, disc_mp: 0, disc_plus: 0, buyer_pay: 0, refunds: 0, revenue_money: 0, points_accrued: 0,
         svc: svcZero(), svc_pts: svcZero(), svc_money: 0, svc_points: 0, svc_total: 0, result_money: 0, result_points: 0,
-        cogs: 0, cogs_known: cogs[r.sku] != null };
+        cogs: 0, cogs_known: cogsAt(r.sku) != null };
       acc.set(kk, s);
     }
     return s;
@@ -865,7 +876,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       pointsDed.set(k, (pointsDed.get(k) || 0) + (orderSubDed.get(r.order) || 0) * sh);
     }
     s.points_accrued += baseAll > 0 ? (orderSubsidy.get(r.order) || 0) * (mine / baseAll) : 0;
-    if (cogs[r.sku] != null) s.cogs += cogs[r.sku]! * ((r.delivered || 0) + (r.returned || 0) - (r.returned || 0));
+    if (cogsAt(r.sku) != null) s.cogs += cogsAt(r.sku)! * ((r.delivered || 0) + (r.returned || 0) - (r.returned || 0));
   }
 
   // 4. услуги заказа -> позиции

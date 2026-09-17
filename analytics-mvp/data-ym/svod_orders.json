@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-17T08:33:33.744Z",
+  "generated_at": "2026-09-17T08:48:29.954Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-16",
   "split_check": {
@@ -15708,8 +15708,8 @@
           "svc_total": 24804.92,
           "result_money": 10548.57,
           "result_points": 9104.83,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 8528,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -16867,8 +16867,8 @@
           "svc_total": 16101.53,
           "result_money": 11672.47,
           "result_points": 9748.9,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 4565,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -18813,7 +18813,7 @@
       "orders_period": 138,
       "orders_inflight": 0,
       "points_on_delivery": 43723.09,
-      "cogs_cov": 89.9
+      "cogs_cov": 91.8
     },
     {
       "business": "74986385",
@@ -23819,8 +23819,8 @@
           "svc_total": 19996.75,
           "result_money": 15605.95,
           "result_points": 15156.4,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7962,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -25770,7 +25770,7 @@
       "orders_period": 157,
       "orders_inflight": 0,
       "points_on_delivery": 100154.48,
-      "cogs_cov": 86.2
+      "cogs_cov": 86.8
     },
     {
       "business": "1023124",
@@ -26140,8 +26140,8 @@
           "svc_total": 21882.2,
           "result_money": 10093.94,
           "result_points": 10582.29,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 8528,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -27465,7 +27465,7 @@
       "orders_period": 34,
       "orders_inflight": 0,
       "points_on_delivery": 7854.08,
-      "cogs_cov": 92
+      "cogs_cov": 97.3
     },
     {
       "business": "74986385",
@@ -32166,8 +32166,8 @@
           "svc_total": 21668.17,
           "result_money": 13180.83,
           "result_points": 16832.26,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7962,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -33005,7 +33005,7 @@
       "orders_period": 138,
       "orders_inflight": 0,
       "points_on_delivery": 81037.37,
-      "cogs_cov": 86.4
+      "cogs_cov": 87.1
     },
     {
       "business": "1023124",
@@ -40432,8 +40432,8 @@
           "svc_total": 17127.8,
           "result_money": 18390.66,
           "result_points": 24566.5,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7962,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -41652,8 +41652,8 @@
           "svc_total": 20685.93,
           "result_money": 7249.41,
           "result_points": 22611.12,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7962,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -42124,7 +42124,7 @@
       "orders_period": 188,
       "orders_inflight": 0,
       "points_on_delivery": 117604.28,
-      "cogs_cov": 91.4
+      "cogs_cov": 92.1
     },
     {
       "business": "1023124",

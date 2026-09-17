@@ -1033,8 +1033,14 @@ function renderTree(){
         html+=`<div class="fnchip"><b>Фильтр:</b> ${chips} · показано <b>${ds.length}</b> из ${before} <span class="x" data-mgrclear="${esc(m.mgr).replace(/"/g,'&quot;')}">✕ сбросить</span></div>`; }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
+        {k:'created',t:'Создана'},{k:'lastcomm',t:'Посл. комм.'},
         {k:'prob',t:'Градусник',l:1},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
-      const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
+      // Дата создания сделки и дата последней КОММУНИКАЦИИ (сообщение/звонок/письмо, не системное дело).
+      const isCommEv=e=>{const t=e.type||'';return t.indexOf('Сообщение')===0||t==='Письмо'||t==='Звонок'||t==='Мессенджер ОЛ'||t==='Транскрипт звонка';};
+      const lastCommTs=d=>{const a=(window.EVIX&&window.EVIX[d.key])||[];let m=0;for(const e of a)if(isCommEv(e)&&e.ts>m)m=e.ts;return m;};
+      const createdTs=d=>d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||0);
+      const dcell=ts=>{if(!ts)return '<span class="na2">-</span>';const t=new Date(ts);return p2(t.getDate())+'.'+p2(t.getMonth()+1)+'.'+String(t.getFullYear()).slice(2);};
+      const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : k==='created'?createdTs(d) : k==='lastcomm'?lastCommTs(d) : d[k];
       // Если в фильтре есть «Горит» - показываем крупные сверху (денежный ракурс).
       if(hotPick) ds.sort((a,b)=>(b.budget||0)-(a.budget||0));
       else ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
@@ -1051,6 +1057,8 @@ function renderTree(){
           <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
           <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
           <td class="l dstage">${esc(d.stage||'-')}</td>
+          <td>${dcell(createdTs(d))}</td>
+          <td>${dcell(lastCommTs(d))}</td>
           <td class="l">${thermo(d)}</td>
           <td>${d.silenceD}</td>
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>

@@ -202,10 +202,23 @@ function guessOutgoing(nm: string, tx: string): boolean {
 // клиент) - ГИПОТЕЗА по эвристике (roleGuess=1); калибруется на реальном образце расшифровки.
 // Детектор консервативный: срабатывает только при >=3 размеченных репликах, чтобы не путать
 // с заметками-спецификациями (проверено на 2713 заметках снимка - 0 ложных).
-const TR_TURN = /^[\s>*_-]*(оператор\w*|абонент\w*|спикер\s*\d+|speaker\s*\d+|роб[оа]т\w*|бот|ivr|автоответчик|менеджер\w*|сотрудник\w*|клиент\w*|заказчик\w*|собеседник\w*)\s*[:\-–]/gim;
+// В JS \w НЕ матчит кириллицу, поэтому окончания слов задаём через [а-яё].
+const TR_TURN = /^[\s>*_-]*(оператор[а-яё]*|абонент[а-яё]*|спикер\s*\d+|speaker\s*\d+|роб[оа]т[а-яё]*|бот|ivr|автоответчик|менеджер[а-яё]*|сотрудник[а-яё]*|клиент[а-яё]*|заказчик[а-яё]*|собеседник[а-яё]*)\s*[:\-–]/gim;
 // ТОЛЬКО чисто-роботные (IVR) фразы, которые живой человек не произносит. Приветствие
 // менеджера «здравствуйте, компания GENGLASS, меня зовут Анна» роботом НЕ считаем.
-const TR_GREET = /оставайтесь на линии|ваш звонок (очень )?важен|нажмите\s+\d|виртуальн\w+ (ассистент|помощник)|автоответчик|соединяю вас|для (записи|соединения|связи с оператором) нажмите|вы позвонили в .{0,50}(в рабочие|график работы|нерабоч|перезвон)/i;
+const TR_GREET = /оставайтесь на линии|ваш звонок (очень )?важен|нажмите\s+\d|виртуальн[а-яё]+ (ассистент|помощник)|автоответчик|соединяю вас|для (записи|соединения|связи с оператором) нажмите|вы позвонили в .{0,50}(в рабочие|график работы|нерабоч|перезвон)|первый освободивш[а-яё]+ менеджер|для оформления нового заказа/i;
+// Формат «Транскрибатор CRM» (app 163): сплошной текст без разметки спикеров, начинается
+// фиксированным IVR-приветствием. Ловим по этим маркерам и вырезаем робота железно.
+const TR_IVR = /оставайтесь на линии|первый освободивш[а-яё]+ менеджер|для оформления нового заказа|нажмите\s*[«"]?\s*(один|\d)/i;
+// Конец роботной вставки: последняя фраза приветствия. Приоритет у «...первый освободившийся
+// менеджер.» (это последняя строка IVR); если её нет - по «оставайтесь на линии.».
+function splitRobotPrefix(text: string): { robot: string; rest: string } | null {
+  let m = text.match(/первый освободивш[а-яё]+ менеджер[.!?]?/i);
+  if (!m) m = text.match(/оставайтесь на линии[^.?!]*[.!?]/i);
+  if (!m || m.index === undefined) return null;
+  const cut = m.index + m[0].length;
+  return { robot: text.slice(0, cut).trim(), rest: text.slice(cut).trim() };
+}
 function trRole(label: string, text: string): string {
   const l = label.toLowerCase();
   // Приоритет у ЯВНОЙ метки спикера; эвристику применяем только когда метки-роли нет.
@@ -216,20 +229,34 @@ function trRole(label: string, text: string): string {
   if (RE_MGR_SPEAK.test(text)) return "Менеджер";   // речь от лица компании (КП/расчёт/«меня зовут»)
   return "";                                          // не выдумываем: оставляем метку как есть
 }
-function parseTranscript(text: string): { turns: { role: string; label: string; text: string }[]; ok: boolean } {
+function parseTranscript(text: string): { turns: { role: string; label: string; text: string }[]; ok: boolean; undiar?: boolean } {
+  // 1) Формат с явными метками спикера («Оператор:/Клиент:/Спикер 1:»).
   const re = new RegExp(TR_TURN.source, "gim");
   const marks: { idx: number; label: string }[] = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) marks.push({ idx: m.index, label: m[1]! });
-  if (marks.length < 3) return { turns: [], ok: false };
-  const turns: { role: string; label: string; text: string }[] = [];
-  for (let i = 0; i < marks.length; i++) {
-    const seg = text.slice(marks[i]!.idx, i + 1 < marks.length ? marks[i + 1]!.idx : text.length);
-    const colon = seg.search(/[:\-–]/);
-    const body = (colon >= 0 ? seg.slice(colon + 1) : seg).trim();
-    turns.push({ role: trRole(marks[i]!.label, body), label: marks[i]!.label.trim(), text: body });
+  if (marks.length >= 3) {
+    const turns: { role: string; label: string; text: string }[] = [];
+    for (let i = 0; i < marks.length; i++) {
+      const seg = text.slice(marks[i]!.idx, i + 1 < marks.length ? marks[i + 1]!.idx : text.length);
+      const colon = seg.search(/[:\-–]/);
+      const body = (colon >= 0 ? seg.slice(colon + 1) : seg).trim();
+      turns.push({ role: trRole(marks[i]!.label, body), label: marks[i]!.label.trim(), text: body });
+    }
+    return { turns, ok: true };
   }
-  return { turns, ok: true };
+  // 2) Формат «Транскрибатор CRM»: сплошной текст без меток, но с IVR-приветствием.
+  // Робота вырезаем железно (скрипт постоянный), остальное держим одним блоком - разделение
+  // менеджер/клиент из сплошного текста надёжно не сделать (нужна диаризация или ИИ-разбор).
+  if (TR_IVR.test(text) && text.length > 150) {
+    const sp = splitRobotPrefix(text);
+    const turns: { role: string; label: string; text: string }[] = [];
+    if (sp && sp.robot) turns.push({ role: "Робот", label: "Робот", text: sp.robot });
+    const body = sp ? sp.rest : text;
+    if (body) turns.push({ role: "", label: "Менеджер и клиент", text: body });
+    return { turns, ok: true, undiar: true };
+  }
+  return { turns: [], ok: false };
 }
 function commentToEvent(c: any, employees: Record<string, 1>, authorName: string): any {
   const raw = String(c.COMMENT || "");
@@ -254,7 +281,7 @@ function commentToEvent(c: any, employees: Record<string, 1>, authorName: string
     const disp = tr.turns.map((t) => `${t.role || t.label}: ${t.text}`).join("\n");
     return { raw: c.CREATED, type: "Транскрипт звонка", dir: "-", who: authorName || "Расшифровка", title: "",
              body: disp.length > 20000 ? disp.slice(0, 20000) + " …[обрезано]" : disp,
-             speakers: tr.turns, roleGuess: 1, status: "", dur: "", link: "", src: "cmt#" + c.ID };
+             speakers: tr.turns, roleGuess: 1, undiar: tr.undiar ? 1 : 0, status: "", dur: "", link: "", src: "cmt#" + c.ID };
   }
   return { raw: c.CREATED, type: "Комментарий-заметка", dir: "-", who: authorName, title: "", body: cap(txt), status: "", dur: "", link: "", src: "cmt#" + c.ID };
 }
@@ -398,7 +425,7 @@ async function main() {
       if (mgr) mgrSet[mgr] = 1;
       // Подпись-заглушка у исходящего: показываем ответственного, а не «Телефон».
       const whoName = (ev.guess && mgr) ? mgr : ev.who;
-      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: whoName, title: ev.title, body: ev.body, status: ev.status, due: ev.due || "", dur: ev.dur, link: ev.link, ref: ev.ref || "", refId: ev.refId || "", guess: ev.guess || 0, fired: ev.fired || 0, speakers: ev.speakers || null, roleGuess: ev.roleGuess || 0, src: ev.src });
+      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: whoName, title: ev.title, body: ev.body, status: ev.status, due: ev.due || "", dur: ev.dur, link: ev.link, ref: ev.ref || "", refId: ev.refId || "", guess: ev.guess || 0, fired: ev.fired || 0, speakers: ev.speakers || null, roleGuess: ev.roleGuess || 0, undiar: ev.undiar || 0, src: ev.src });
     }
   }
   events.sort((a, b) => a.ts - b.ts);

@@ -482,7 +482,9 @@ function trHtml(e){
   const sp=(e.speakers||[]);
   const body = sp.length ? sp.map(t=>{const r=t.role||t.label; const c=RC[t.role]||'#5D6B77';
       return `<div class="trln"><span class="trrole" style="color:${c};border-color:${c}55;background:${c}12">${esc(r)}</span> ${esc(t.text)}</div>`;}).join('') : esc(e.body);
-  const note = e.roleGuess ? `<div class="trnote">роли - гипотеза (робот по IVR-фразам, менеджер по речи от лица компании; «Спикер N» - не установлено)</div>` : '';
+  const note = e.undiar
+    ? `<div class="trnote">робот отделён; менеджер и клиент - общим блоком (транскрибатор не размечает говорящих, разделение требует диаризации или ИИ-разбора)</div>`
+    : (e.roleGuess ? `<div class="trnote">роли - гипотеза (робот по IVR-фразам, менеджер по речи от лица компании; «Спикер N» - не установлено)</div>` : '');
   return body+note;
 }
 const typeColor = t => t && t.indexOf('Сообщение')===0 ? '#2E9E74' : (TCOL[t]||'#5D6B77');

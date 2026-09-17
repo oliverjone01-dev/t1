@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GENGLASS · Диалоги по сделкам</title>
 <style>
-:root{--bg:#0E141A;--card:#141C24;--card2:#0F171E;--border:#243039;--border-soft:#1B242C;--ink:#E7EEF4;--ink-2:#B7C4CE;--ink-3:#8A99A6;--ink-4:#5D6B77;--acc:#22D3EE}
+:root{--bg:#0E141A;--card:#141C24;--card2:#0F171E;--border:#243039;--border-soft:#1B242C;--ink:#E7EEF4;--ink-2:#B7C4CE;--ink-3:#8A99A6;--ink-4:#5D6B77;--acc:#22D3EE;
+--line:#243039;--accent:#22D3EE;--accent-soft:rgba(34,211,238,.10);--accent-deep:#0E7490;--ink-1:#F1F4F8;--bg-elevated:#1A222B;--bg-card:#141C24;--bg-soft:#232B36}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
@@ -530,6 +531,46 @@ input#q{min-width:220px}
 .scopebar .snote{color:#9fd0dc}
 .scopebar .x{margin-left:auto;cursor:pointer;color:#8fd3e2;border:1px solid #2a7a8e;border-radius:7px;padding:3px 9px;font-size:11px}
 .scopebar .x:hover{background:#164050;color:#e7f8fc}
+/* ==== Шапка и панель фильтров в стиле РОП-дашборда ==== */
+.hdr{position:sticky;top:0;z-index:60;margin:-18px -22px 12px;background:rgba(14,20,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-soft)}
+.topbar{padding:11px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-weight:800;color:#06121a;font-size:14px;box-shadow:0 0 18px rgba(34,211,238,.35)}
+.brand b{font-weight:800;font-size:14px;letter-spacing:.2px}
+.brand span{display:block;font-size:10.5px;color:var(--ink-3)}
+.controls{padding:9px 22px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border-soft);background:rgba(19,24,32,.55)}
+.controls .ctl-lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em}
+.controls .cdiv{width:1px;align-self:stretch;background:var(--border);margin:2px 3px}
+.controls .seg{display:inline-flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.controls .seg button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:11px;padding:6px 10px;cursor:pointer;transition:.15s;white-space:nowrap}
+.controls .seg button.on{background:var(--accent-soft);color:var(--accent)}
+.controls .seg button:hover:not(.on){color:var(--ink)}
+.dbtn{background:var(--accent-soft);border:1px solid var(--border);color:var(--accent);border-radius:8px;padding:6px 11px;font:inherit;font-size:11px;cursor:pointer;white-space:nowrap;transition:.15s}
+.dbtn:hover{border-color:var(--accent)}
+.dbtn.gray{background:var(--bg-elevated);color:var(--ink-2)}
+.dbtn.on{background:var(--accent);color:#06121a;border-color:var(--accent);font-weight:600}
+.cal-pop{position:fixed;z-index:120;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:32px 12px 12px;box-shadow:0 16px 44px rgba(0,0,0,.55);font-size:12px;color:var(--ink-1)}
+.cal-x{position:absolute;top:8px;right:10px;width:24px;height:24px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--ink-3);border-radius:7px;font-size:17px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;z-index:1}
+.cal-x:hover{color:var(--ink);border-color:var(--accent)}
+.cal-nav{display:flex;align-items:flex-start;gap:8px}
+.cal-nav>button{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:15px;line-height:1;flex:0 0 auto;margin-top:2px}
+.cal-nav>button:hover{border-color:var(--accent);color:var(--ink)}
+.cal-months{display:flex;gap:18px}
+.cal-mo{min-width:210px}
+.cal-mh{text-align:center;font-weight:700;color:var(--ink);margin-bottom:6px}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px}
+.cal-dow span{text-align:center;font-size:10px;color:var(--ink-3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-grid .cal-e{height:26px}
+.cal-d{height:26px;border:0;background:transparent;color:var(--ink-1);border-radius:6px;cursor:pointer;font-size:11.5px}
+.cal-d:hover{background:var(--bg-elevated)}
+.cal-d.in{background:rgba(34,211,238,.16);border-radius:0}
+.cal-d.prev{background:rgba(34,211,238,.09);border-radius:0}
+.cal-d.edge{background:var(--accent);color:#06121a;border-radius:6px;font-weight:700}
+.cal-foot{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.cal-io{color:var(--ink-3)}
+.cal-io input{width:88px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--ink-1);font-size:11px;padding:3px 6px;margin-left:3px}
+.cal-sp{flex:1}
+@media(max-width:720px){.cal-months{flex-direction:column;gap:8px}}
 </style>
 </head>
 <body>
@@ -539,8 +580,10 @@ input#q{min-width:220px}
 <div class="ptray" id="picktray"></div>
 <aside class="apanel" id="apanel"></aside>
 <div class="wrap">
-  <div class="h1">GENGLASS · Диалоги</div>
-  <div class="sub" id="sub">загрузка…</div>
+  <div class="hdr"><div class="topbar">
+    <div class="logo">GG</div>
+    <div class="brand"><b>GENGLASS · Диалоги</b><span id="sub">загрузка…</span></div>
+  </div></div>
 
   <div class="cnt" id="stat" style="margin-bottom:10px"></div>
 
@@ -612,6 +655,44 @@ function freshStamp(){
   const bk=' · сборка '+p2(bb.getUTCDate())+'.'+p2(bb.getUTCMonth()+1)+' '+p2(bb.getUTCHours())+':'+p2(bb.getUTCMinutes());
   el.textContent=pre+' '+t+' МСК'+bk; el.style.color=col;
 }
+
+// ===== Календарь диапазона дат (как в РОП-дашборде) =====
+const _cpad=n=>String(n).padStart(2,'0');
+const _ruShortC=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'дд.мм.гггг';
+const CALP={from:'',to:'',hover:'',view:new Date(),onApply:null};
+function calGrid(y,m){ const off=(new Date(y,m,1).getDay()+6)%7, dim=new Date(y,m+1,0).getDate();
+  const MN=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  let h='<div class="cal-mo"><div class="cal-mh">'+MN[m]+' '+y+'</div><div class="cal-dow">'+['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>'<span>'+d+'</span>').join('')+'</div><div class="cal-grid">';
+  for(let i=0;i<off;i++)h+='<span class="cal-e"></span>';
+  const _hlo=CALP.hover&&CALP.hover<CALP.from?CALP.hover:CALP.from, _hhi=CALP.hover&&CALP.hover>CALP.from?CALP.hover:CALP.from;
+  for(let d=1;d<=dim;d++){ const iso=y+'-'+_cpad(m+1)+'-'+_cpad(d); const inr=CALP.from&&CALP.to&&iso>=CALP.from&&iso<=CALP.to; const prev=CALP.from&&!CALP.to&&CALP.hover&&iso>=_hlo&&iso<=_hhi; const edge=(iso===CALP.from||iso===CALP.to);
+    h+='<button type="button" class="cal-d'+(inr?' in':'')+(prev?' prev':'')+(edge?' edge':'')+'" data-d="'+iso+'">'+d+'</button>'; }
+  return h+'</div></div>'; }
+function calDraw(){ const pop=document.getElementById('calPop'); if(!pop)return; const y=CALP.view.getFullYear(), m=CALP.view.getMonth(), nm=new Date(y,m+1,1);
+  pop.querySelector('.cal-months').innerHTML=calGrid(y,m)+calGrid(nm.getFullYear(),nm.getMonth());
+  pop.querySelector('#calFrom').value=_ruShortC(CALP.from); pop.querySelector('#calTo').value=_ruShortC(CALP.to); }
+function calClose(){ const pop=document.getElementById('calPop'); if(pop)pop.hidden=true; }
+function calEnsure(){ if(document.getElementById('calPop'))return;
+  const pop=document.createElement('div'); pop.id='calPop'; pop.className='cal-pop'; pop.hidden=true;
+  pop.innerHTML='<button type="button" class="cal-x" data-cal="x" aria-label="Закрыть">×</button><div class="cal-nav"><button type="button" class="cal-pv" data-nav="-1">‹</button><div class="cal-months"></div><button type="button" class="cal-nx" data-nav="1">›</button></div>'
+    +'<div class="cal-foot"><span class="cal-io">с<input id="calFrom" readonly></span><span class="cal-io">по<input id="calTo" readonly></span><span class="cal-sp"></span><button type="button" class="dbtn gray" data-cal="clr">Сброс</button><button type="button" class="dbtn" data-cal="ok">Применить</button></div>';
+  document.body.appendChild(pop);
+  pop.addEventListener('click',e=>{ e.stopPropagation();
+    const nav=e.target.closest('[data-nav]'); if(nav){ CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()+(+nav.dataset.nav),1); calDraw(); return; }
+    const dd=e.target.closest('.cal-d'); if(dd){ const iso=dd.dataset.d;
+      if(!CALP.from||CALP.to){ CALP.from=iso; CALP.to=''; CALP.hover=''; calDraw(); }
+      else { if(iso<CALP.from){CALP.to=CALP.from;CALP.from=iso;} else CALP.to=iso; CALP.hover=''; if(CALP.onApply)CALP.onApply(CALP.from,CALP.to); calClose(); }
+      return; }
+    const act=e.target.closest('[data-cal]'); if(act){ const a=act.dataset.cal; if(a==='x'){ calClose(); return; } if(a==='clr'){ if(CALP.onApply)CALP.onApply('',''); } else { const f=CALP.from,t=CALP.to||CALP.from; if(CALP.onApply)CALP.onApply(f,t); } calClose(); } });
+  pop.addEventListener('mouseover',e=>{ const dd=e.target.closest('.cal-d'); if(!dd)return; if(CALP.from&&!CALP.to){ const iso=dd.dataset.d; if(iso!==CALP.hover){ CALP.hover=iso; calDraw(); } } });
+  document.addEventListener('click',()=>calClose()); }
+function calOpen(anchor,from,to,onApply){ calEnsure(); CALP.from=from||''; CALP.to=to||''; CALP.hover=''; CALP.onApply=onApply;
+  const base=to||from; CALP.view=base?new Date(base+'T00:00:00'):new Date(); CALP.view=new Date(CALP.view.getFullYear(),CALP.view.getMonth()-1,1);
+  const pop=document.getElementById('calPop'); pop.hidden=false; calDraw();
+  const r=anchor.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;
+  let left=Math.min(r.right-pw, innerWidth-pw-8); left=Math.max(6,left);
+  let top=r.bottom+4; if(top+ph>innerHeight-8) top=Math.max(6,r.top-ph-4);
+  pop.style.left=left+'px'; pop.style.top=top+'px'; }
 
 function matchEvent(e){
   if(S.dir && e.dir!==S.dir) return false;
@@ -999,21 +1080,19 @@ function renderTree(){
     if(k==='today') return S.dFrom===iso(now)&&S.dTo===iso(now);
     if(k==='yst') return S.dFrom===iso(now-864e5)&&S.dTo===iso(now-864e5);
     return S.dTo===iso(now)&&S.dFrom===iso(now-(Number(k)-1)*864e5); };
-  const fbar = `<div class="fbar">
-    <span>Период</span>
-    <input type="date" id="dFrom" value="${esc(S.dFrom||'')}">
-    <span style="color:var(--ink-4)">—</span>
-    <input type="date" id="dTo" value="${esc(S.dTo||'')}">
-    ${[['today','сегодня'],['yst','вчера'],['3','3 дня'],['7','7 дней'],['30','30 дней'],['all','всё']]
-      .map(([k,t])=>`<span class="pset${psetOn(k)?' on2':''}" data-pset="${k}">${t}</span>`).join('')}
-    <span style="color:var(--ink-4);margin:0 2px">·</span>
-    <span class="chip2${S.dMode==='comm'?' on2':''}" data-dmode="comm">по коммуникациям</span>
-    <span class="chip2${S.dMode==='created'?' on2':''}" data-dmode="created">по дате создания сделки</span>
-    ${(S.dFrom||S.dTo)?`<span class="chip2" data-dreset="1">сбросить</span>`:''}
-    <span style="color:var(--ink-4);margin:0 2px">·</span>
-    <span class="chip2${S.showMetrics?' on2':''}" data-metrics="1">${S.showMetrics?'скрыть метрики регламента':'показать метрики регламента'}</span>
-    <span style="color:var(--ink-4);margin:0 2px">·</span>
-    <span class="chip2${S.hidePaid?' on2':''}" data-hidepaid="1" title="Скрыть сделки, дошедшие до предоплаты и дальше - анализируем воронку ДО оплаты">${S.hidePaid?'показать с предоплатой':'скрыть с предоплатой'}</span>
+  const _rs=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'';
+  const dLbl=(S.dFrom||S.dTo)?(_rs(S.dFrom||S.dTo)+((S.dTo&&S.dTo!==S.dFrom)?(' - '+_rs(S.dTo)):'')):'даты';
+  const fbar = `<div class="controls">
+    <span class="ctl-lbl">Период</span>
+    <div class="seg" id="pset">${[['today','сегодня'],['yst','вчера'],['3','3 дня'],['7','7 дней'],['30','30 дней'],['all','всё']]
+      .map(([k,t])=>`<button data-pset="${k}"${psetOn(k)?' class="on"':''}>${t}</button>`).join('')}</div>
+    <button id="dateBtn" class="dbtn gray">📅 <span id="dateBtnTxt">${esc(dLbl)}</span></button>
+    ${(S.dFrom||S.dTo)?`<button class="dbtn gray" data-dreset="1">сброс дат</button>`:''}
+    <span class="cdiv"></span>
+    <div class="seg" id="dmode"><button data-dmode="comm"${S.dMode==='comm'?' class="on"':''}>по коммуникациям</button><button data-dmode="created"${S.dMode==='created'?' class="on"':''}>по дате создания</button></div>
+    <span class="cdiv"></span>
+    <button class="dbtn${S.showMetrics?' on':' gray'}" data-metrics="1">${S.showMetrics?'скрыть метрики регламента':'метрики регламента'}</button>
+    <button class="dbtn${S.hidePaid?' on':' gray'}" data-hidepaid="1" title="Скрыть сделки, дошедшие до предоплаты и дальше - анализируем воронку ДО оплаты">${S.hidePaid?'показать с предоплатой':'скрыть с предоплатой'}</button>
   </div>`;
   // Компактная справка: 4 коротких карточки + сетка столбцов. Полные формулы - в подсказке
   // (наведи на «?»), чтобы блок не растягивался на весь экран.
@@ -1174,9 +1253,8 @@ function renderTree(){
   list.innerHTML=html;
   // Возвращаем прокрутку на место после перерисовки (фокус остаётся на раскрытой строке).
   const _sxNew=list.querySelector('.scrollx'); if(_sxNew) _sxNew.scrollTop=_sxTop; if(_winY) window.scrollTo(0,_winY);
-  const fF=list.querySelector('#dFrom'), fT=list.querySelector('#dTo');
-  if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td.clear(); renderTree(); };
-  if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td.clear(); renderTree(); };
+  const db=list.querySelector('#dateBtn');
+  if(db) db.onclick=e=>{ e.stopPropagation(); calOpen(db, S.dFrom, S.dTo, (f,t)=>{ S.dFrom=f||''; S.dTo=t||''; S.td.clear(); renderTree(); }); };
   const sc=list.querySelector('[data-scopeclear]'); if(sc) sc.onclick=e=>{ e.stopPropagation(); aiClearDash(); };
   // Сброс дрила дашборда - только фокус таблицы, корзину фильтра ИИ не трогаем (она отдельно).
   list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; renderTree(); });

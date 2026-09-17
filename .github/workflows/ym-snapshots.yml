@@ -218,7 +218,12 @@ jobs:
           check realization_monthly.ndjson --month-key=ym     --sum=amount
           check sku_views.ndjson          --month-key=date    --sum=views    --by=business
           check services_monthly.ndjson   --month-key=ym      --sum=money    --by=business
-          check bonuses_monthly.ndjson    --month-key=ym      --sum=amount   --by=business
+          # Отчёт по баллам ЗНАКОВЫЙ так же, как реестр: начисления плюс, списания минус, месячная
+          # сумма - сальдо. По мере прихода списаний сальдо схлопывается к нулю, и гейт без --abs
+          # называет это потерей. Живой факт 17.09: 74986385/2026-09 сальдо 190 511 -> 58 703 при
+          # начисленных 2 396 925, ни одна строка не потеряна, прогон встал и не закоммитил сбор.
+          # Для реестра --abs уже стоял, здесь его забыли - один и тот же дефект в двух местах.
+          check bonuses_monthly.ndjson    --month-key=ym      --sum=amount   --by=business --abs
 
       - name: Джойны таксономии и СС (ключ - артикул)
         run: npm run ym:join

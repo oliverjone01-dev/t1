@@ -164,11 +164,11 @@ input#q{min-width:220px}
 /* Только СВОИ строки: таблицы сделок и переписки лежат внутри ячеек таблицы менеджеров,
    и потомковый селектор .t1 td навязывал им nowrap - из-за этого текст сообщения шёл
    одной строкой и наезжал на разметку. */
-.t1>tbody>tr>td{white-space:nowrap;padding:7px 5px;font-size:11.5px}
+.t1>tbody>tr>td{white-space:nowrap;padding:6px 3px;font-size:11.5px}
 /* min-width только для колонки МЕНЕДЖЕР (первая), иначе каждая левая колонка резервирует
    230px и появляются огромные пустоты (воронка, коммуникации, градусник, полнота). */
 .t1>tbody>tr>td.l{white-space:nowrap;padding-left:10px;padding-right:12px}
-.t1>tbody>tr>td.l:first-child,.t1>tbody>tr>th.l:first-child{min-width:150px}
+.t1>tbody>tr>td.l:first-child,.t1>tbody>tr>th.l:first-child{min-width:124px}
 .t1>tbody>tr>th.l{padding-left:10px}
 .t1>tbody>tr>td:nth-child(2),.t1>tbody>tr>th:nth-child(2){padding-right:10px}
 .t1>tbody>tr>td .vbadge{white-space:nowrap;font-size:9px;padding:2px 8px}
@@ -200,10 +200,10 @@ input#q{min-width:220px}
 .lstage{display:inline-block;margin-left:6px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#C2873C;border:1px solid #C2873C66;border-radius:4px;padding:0 4px;line-height:13px;vertical-align:middle;text-transform:uppercase}
 .lstage.ls-deal{color:#3DAEC2;border-color:#3DAEC266}
 /* Мини-воронка и коммуникации в таблице менеджеров */
-.funnel{display:flex;gap:1px;height:9px;border-radius:3px;overflow:hidden;min-width:140px;max-width:240px}
+.funnel{display:flex;gap:1px;height:9px;border-radius:3px;overflow:hidden;min-width:100px;max-width:150px}
 .funnel .fseg{min-width:4px;cursor:help;transition:filter .1s}
 .funnel .fseg:hover{filter:brightness(1.35)}
-.fnrow{display:flex;gap:1px;min-width:140px;max-width:240px;margin-top:3px}
+.fnrow{display:flex;gap:1px;min-width:100px;max-width:150px;margin-top:3px}
 .fn{font-size:9.5px;color:var(--ink-3);text-align:center;min-width:4px;font-variant-numeric:tabular-nums;border-left:1px solid var(--border);line-height:1.2}
 .fn:first-child{border-left:none}
 .tdot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:6px}
@@ -309,7 +309,7 @@ input#q{min-width:220px}
 .trnote{margin-top:4px;font-size:9.5px;color:var(--ink-4);font-style:italic}
 /* Градусник температуры клиента */
 .tempcell{display:flex;align-items:center;gap:6px;min-width:118px}
-.tbar{display:flex;height:14px;width:150px;border-radius:3px;overflow:hidden;background:var(--line,#e5e7eb);flex:0 0 auto;gap:1px}
+.tbar{display:flex;height:14px;width:116px;border-radius:3px;overflow:hidden;background:var(--line,#e5e7eb);flex:0 0 auto;gap:1px}
 /* min-width - чтобы мелкий сегмент можно было навести/кликнуть; небольшой, чтобы не искажать доли. */
 .tseg{display:block;min-width:8px;height:100%;cursor:pointer;transition:filter .1s}
 .tseg:hover{filter:brightness(1.35)}
@@ -336,7 +336,9 @@ input#q{min-width:220px}
 .cgridv .cgc,.cgridv .cch0{justify-content:flex-start}
 .cgridv b{min-width:30px}
 /* Коммуникации все каналы в один горизонтальный ряд (места хватает). */
-.cgrid1row{display:flex !important;flex-direction:row;flex-wrap:nowrap;gap:14px;align-items:baseline}
+.cgrid1row{display:flex !important;flex-direction:row;flex-wrap:nowrap;gap:7px;align-items:baseline}
+.cgrid1row b{min-width:0}
+.cgrid1row i{font-size:8.5px}
 .cgrid1row .cgc,.cgrid1row .cch0{white-space:nowrap}
 .sysw{color:var(--ink-4);font-size:10.5px}
 .mixchip{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap;margin:0 2px 2px 0}

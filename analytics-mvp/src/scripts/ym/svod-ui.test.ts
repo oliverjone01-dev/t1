@@ -342,6 +342,58 @@ describe("свод Маркета: числа на странице", () => {
     expect(bad).toEqual([]);
   }, 60_000);
 
+  // ФЕНИКС, аудит 2026-09-17, gap 1: на окне без доставленных заказов водопад молча уходил на
+  // старый базис и заявлял прибыль там, где таблица показывает пустоту. За 28.02 это было
+  // «Чистая прибыль 147 464 ₽» при нуле строк свода - ровно то противоречие, ради снятия
+  // которого водопад и переводили на свод. Ни один из прежних тестов пустое окно не трогал.
+  it("пустое окно: водопад и план молчат, а не считают по другому источнику", () => {
+    for (const day of ["2026-02-28", "2026-09-15"]) {
+      setRange(day, day);
+      expect(T().querySelectorAll("tbody tr").length, `${day}: в своде есть строки, окно не пустое`).toBe(0);
+      const wf = D().getElementById("wf")!;
+      expect(wf.querySelectorAll("div.bar").length, `${day}: водопад нарисовал бары на пустом окне`).toBe(0);
+      expect(wf.textContent || "").toContain("доставленных заказов в снимке нет");
+    }
+  });
+
+  it("месяц без доставленных заказов: план показывает прочерки, а не числа по дате проводки", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const empty = ["2026-01", "2025-12"].find((m) =>
+      !svod.months.some((x: any) => x.ym === m && (x.rows || []).length));
+    expect(empty, "в снимке не нашлось месяца без строк свода - проверять нечего").toBeTruthy();
+    const rows: any[] = (dom.window as any).planRows(empty!);
+    for (const r of rows) expect(r[2], `${empty}: план показал факт «${r[0]}» на пустом месяце`).toBeNull();
+  });
+
+  // ФЕНИКС, gap 4: в заметке стояли числа замера, и они прокисли в тот же день (9 722 328 было
+  // названо выручкой свода, хотя это справочная колонка «Продажи»). Теперь считается на месте.
+  it("заметка о скрытой таблице показывает живое расхождение, а не замер", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const gap = D().getElementById("skuan-gap")!;
+    const txt = gap.textContent || "";
+    expect(txt, "заметка пуста - разбор ИТОГО скрытой таблицы сломан").toContain("базы расходятся");
+    // Сравниваем с тем, что НАРИСОВАНО в ИТОГО: форматирование у обоих одно (fmtRu).
+    const shown = (cell("Чистая прибыль") || "").replace(/\u00A0/g, " ").trim();
+    expect(shown, "в ИТОГО нет чистой прибыли").not.toBe("");
+    expect(txt.replace(/\u00A0/g, " "), `в заметке нет числа свода «${shown}»`).toContain(shown);
+    // Числа разового замера не должны стоять в видимом тексте: он читается как факт.
+    const visible = [...D().querySelectorAll("section.card")].map((x) => x.textContent || "").join(" ");
+    expect(visible).not.toContain("9 722 328 ₽ и 140 942 ₽");
+    expect(visible, "колонка «Продажи» снова названа выручкой").not.toContain("выручка 15 287 504");
+  });
+
+  // ФЕНИКС, gap 2: страница отрицала отчёт по баллам, считая по нему.
+  it("страница не отрицает отчёт по баллам, когда считает по нему", () => {
+    setRange("2026-07-01", "2026-07-31");
+    setLay("pts");
+    const note = D().getElementById("sv-note")!.textContent || "";
+    expect(note, "устаревшее утверждение осталось").not.toContain("отдельного отчёта по баллам у Маркета нет");
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const byReport = svod.months.filter((m: any) => m.points_src === "report").length;
+    if (byReport > 0) expect(note).toContain("отчёт по баллам Маркета");
+    setLay("pnl");
+  });
+
   it("второй таблицы по артикулам на Маркете нет: она расходилась со сводом", () => {
     // Раздел остаётся на месте с объяснением - но именно таблицы с другими числами быть не должно.
     expect(D().getElementById("skuan-t")!.closest(".kt-scroll")!.getAttribute("style") || "").toContain("display:none");

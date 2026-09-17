@@ -394,3 +394,48 @@ describe("отчёт по баллам: разбор типов транзакц
     expect(isPointsPaid("Начисление")).toBe(false);
   });
 });
+
+
+// ФЕНИКС, аудит 2026-09-17, gaps 6-8. Три дыры, через которые деньги уходили с экрана молча.
+describe("деньги кабинета: три источника не должны терять друг друга", () => {
+  const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+
+  // gap 6: акт замещает реестр целиком. Где акт МЕНЬШЕ, разница исчезала из P&L без следа:
+  // на снимке 2026-09-17 это 9 пар из 14 и 14 534,67 ₽ (февраль/зеркала 8 731,67 -> 1 197,26).
+  it("месяц по акту помнит, сколько давал реестр до замещения", () => {
+    const byAct = svod.months.filter((m: any) => m.overhead_src === "act");
+    expect(byAct.length, "нет ни одного месяца по акту - проверять нечего").toBeGreaterThan(3);
+    for (const m of byAct) {
+      expect(m.overhead_ledger, `${m.business}/${m.ym}: поле реестрового итога не заполнено`).toBeDefined();
+      expect(typeof m.overhead_ledger).toBe("number");
+    }
+    // Хотя бы один месяц, где акт меньше реестра: иначе сторож нечем проверить.
+    const shrunk = byAct.filter((m: any) => (m.overhead_ledger || 0) - ((m.overhead_money || 0) + (m.overhead_points || 0)) > 0.5);
+    expect(shrunk.length, "ни одной пары, где акт меньше реестра - сторож не на чем показать").toBeGreaterThan(0);
+  });
+
+  // gap 7: отчёт о баллах знает о кабинетных тратах больше, чем акт. Сентябрь: 40 094 ₽ при
+  // «расходов кабинета нет» на экране, потому что акта за текущий месяц ещё нет.
+  it("кабинетные списания баллов из отчёта видны отдельным числом", () => {
+    for (const m of svod.months) {
+      expect(m.overhead_points_report, `${m.business}/${m.ym}: поле не заполнено`).toBeDefined();
+      expect(m.overhead_points_report, `${m.business}/${m.ym}: величина отрицательна`).toBeGreaterThanOrEqual(0);
+    }
+    const noAct = svod.months.filter((m: any) => m.overhead_src !== "act" && (m.overhead_points_report || 0) > 0);
+    expect(noAct.length, "нет месяца без акта, но с тратами по отчёту - сторож не на чем показать").toBeGreaterThan(0);
+  });
+
+  // gap 8: Полка, Подписка и Товарные баннеры не имели правил и падали в «Прочие услуги» -
+  // 151 142 ₽ за историю, то есть 65% общих расходов июля лежало под чужим заголовком.
+  it("статьи уровня кабинета разложены по своим именам, а не в «прочее»", () => {
+    const other: Record<string, number> = {};
+    for (const m of svod.months) {
+      for (const [col, v] of Object.entries<any>(m.overhead || {})) other[col] = (other[col] || 0) + (v as number);
+      for (const [col, v] of Object.entries<any>(m.overhead_pts || {})) other[col] = (other[col] || 0) + (v as number);
+    }
+    for (const name of ["Полка", "Подписка", "Товарные баннеры"]) {
+      expect(other[name], `статья «${name}» не выделена и всё ещё падает в прочее`).toBeGreaterThan(0);
+    }
+    expect(Math.round(other["Прочие услуги"] || 0), "в «Прочих услугах» снова осели именованные статьи").toBe(0);
+  });
+});

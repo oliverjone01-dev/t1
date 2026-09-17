@@ -1,0 +1,87 @@
+name: "Тесты аналитики (vitest + smoke обеих площадок)"
+
+# Гейт на числа, а не на сборку. Смоук ловит только ошибки JS: он честно писал «все страницы
+# прошли», пока свод показывал возвращённый товар прибылью со 100% маржой, а водопад на пустом
+# окне рисовал 147 464 руб. Числа ловят тесты, поэтому они гоняются на каждый PR, который трогает
+# analytics-mvp, и на каждый пуш в main.
+#
+# Секретов здесь нет и не нужно: сборка идёт из снимков, лежащих в репозитории
+# (data/ для OZON, data-ym/ для Маркета). fetch:live не зовём - он ходит в вебхуки n8n.
+
+on:
+  pull_request:
+    paths:
+      - "analytics-mvp/**"
+      - ".github/workflows/analytics-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "analytics-mvp/**"
+      - ".github/workflows/analytics-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Новый пуш в ту же ветку отменяет прошлый прогон: платить за устаревший результат незачем.
+concurrency:
+  group: analytics-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: analytics-mvp
+    shell: bash
+
+jobs:
+  tests:
+    name: "vitest + smoke"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: analytics-mvp/package-lock.json
+      - name: "npm ci"
+        run: npm ci
+
+      # Главный гейт: числа. Сюда же входят jsdom-тесты, которые собирают страницу денег и
+      # проверяют сами цифры на четырёх типах периода (целый месяц, половина, текущий, окно
+      # через границу месяцев), и сверки с выгрузками Ивана из кабинетов.
+      - name: "vitest (числа и сверки)"
+        run: npm test
+
+      # OZON: сборка из снимков репозитория плюс смоук-гейт контролов. Пишем в каталог вне
+      # рабочего дерева, чтобы прогон не оставлял за собой изменённый public/.
+      - name: "OZON: сборка и смоук"
+        env:
+          OUT_DIR: ${{ runner.temp }}/ozon-site
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT_DIR"
+          npx tsx src/scripts/build-site.ts
+          npx tsx src/scripts/build-katya.ts
+          npx tsx src/scripts/build-reakciya.ts
+          npx tsx src/scripts/smoke.ts
+
+      # Маркет: та же сборка, параметризованная DATA_DIR/PLATFORM. PLATFORM=ym обязателен -
+      # без него смоук не выполняет проверки площадки (чужая подпись на странице Маркета,
+      # нераскрытый сторож KEEP_OZON), и гейт становится пустым.
+      - name: "Яндекс Маркет: сборка и смоук"
+        env:
+          DATA_DIR: data-ym
+          PLATFORM: ym
+          OUT_DIR: ${{ runner.temp }}/market-site
+        run: |
+          set -euo pipefail
+          if [ ! -s data-ym/history.ndjson ] || [ ! -s data-ym/skus_live_30d.json ]; then
+            echo "::error::data-ym пуст - снимков Маркета нет, гейт Маркета не отработал"
+            exit 1
+          fi
+          mkdir -p "$OUT_DIR"
+          npx tsx src/scripts/build-site.ts
+          npx tsx src/scripts/build-katya.ts
+          npx tsx src/scripts/smoke.ts

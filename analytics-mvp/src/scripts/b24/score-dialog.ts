@@ -314,7 +314,7 @@ function main() {
     // конкретному сообщению (src) и к цитате внутри него, чтобы в переписке было видно
     // место ошибки, а не общий вывод.
     let objTotal = 0, objWorked = 0;
-    const evTags: Record<string, { t: string; tone: string; sec: string; quote: string }[]> = {};
+    const evTags: Record<string, { t: string; tone: string; sec: string; quote: string; ai?: boolean; deg?: number }[]> = {};
     const mark = (src: string, t: string, tone: string, sec: string, quote = "") => {
       (evTags[src] ||= []).push({ t, tone, sec, quote });
     };
@@ -532,7 +532,7 @@ function main() {
     if (a && Array.isArray(a.tags)) for (const t of a.tags) add(String(t.t || t), t.sec || "process", (t.tone as Tag["tone"]) || "warn");
     // Теги ИИ по КОНКРЕТНЫМ сообщениям: вешаем на нужную реплику (evTags[src]) с цитатой -
     // в ленте видно, какая именно фраза греет или холодит сделку.
-    if (a && Array.isArray(a.msgTags)) for (const t of a.msgTags) { if (t && t.src) (evTags[t.src] ||= []).push({ t: String(t.t || ""), tone: t.tone || "warn", sec: "process", quote: t.quote || "" }); }
+    if (a && Array.isArray(a.msgTags)) for (const t of a.msgTags) { if (t && t.src) (evTags[t.src] ||= []).push({ t: String(t.t || ""), tone: t.tone || "warn", sec: "process", quote: t.quote || "", ai: true, deg: typeof t.deg === "number" ? t.deg : undefined }); }
 
     // --- вероятность ---
     const base = BASE_RATES[stageCode]?.win ?? BASE_FALLBACK;

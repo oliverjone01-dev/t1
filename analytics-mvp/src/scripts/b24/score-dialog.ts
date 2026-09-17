@@ -39,6 +39,14 @@ const BASE_RATES: Record<string, { name: string; n: number; win: number }> = {
 const BASE_FALLBACK = 0.219;
 const CALIBRATED_AT = "2026-08-17";
 
+// --- Градусник температуры клиента ---
+// Температура = вероятность покупки в моменте (0-100°), откалибрована на реальных исходах
+// (база стадии - [ДАННЫЕ], поведение двигает её - [ГИПОТЕЗА]). Структурная температура стадии
+// = её эмпирическая доля выигранных. Ведём её отдельно, чтобы строить кривую нагрева по стадиям.
+const stageTemp = (code: string) => Math.round((BASE_RATES[code]?.win ?? BASE_FALLBACK) * 100);
+const tempBucket = (t: number) => t >= 80 ? "boiling" : t >= 50 ? "hot" : t >= 25 ? "warm" : "cold";
+const TEMP_LABEL: Record<string, string> = { cold: "Холодный", warm: "Тёплый", hot: "Горячий", boiling: "Кипит" };
+
 // --- Пороги [ГИПОТЕЗА - калибровка] ---
 const FIRST_ANSWER_MIN = 15;   // норматив первого ответа
 const FAST_ANSWER_MIN = 30;
@@ -601,7 +609,24 @@ function main() {
     const money = (f && f.budget) ? f.budget : 0;
     const prio = Math.round((money || 60000) * (prob) * uw);
 
+    // --- ГРАДУСНИК: температура клиента = вероятность покупки в моменте (0-100°). Цель отдела -
+    // довести до ПРЕДОПЛАТЫ; после неё (POST_SALE) сделка «в цеху», грев окончен -> goalReached.
+    const temp = Math.round(prob * 100);
+    const entryTemp = stageRows.length ? stageTemp(stageRows[0]!.code) : Math.round(BASE_FALLBACK * 100);
+    const goalReached = POST_SALE.has(stageCode) || isWon;
+    const tempDelta = temp - entryTemp;                 // насколько прогрели с входа (или остудили)
+    const tBucket = goalReached ? "goal" : tempBucket(temp);
+    // Кривая нагрева: структурная температура по стадиям [ДАННЫЕ] + текущая точка с учётом поведения.
+    const tempCurve: { d: string; t: number; n: string }[] = (stageRows as any[]).map((s) => ({ d: s.date, t: stageTemp(s.code), n: s.name }));
+    tempCurve.push({ d: String(last.dt).slice(0, 10), t: temp, n: "сейчас" });
+    // Чего не хватает до предоплаты: отрицательные факторы = что тянет температуру вниз, с ценой
+    // в градусах (сколько вернём, если закрыть) и в рублях.
+    const needToClose = (whyProb || []).filter((w) => w.bad)
+      .map((w) => ({ label: w.label.replace(/\s*\([^)]*\)/, ""), deg: -w.pp, rub: -w.rub }))
+      .sort((a, b) => b.deg - a.deg).slice(0, 5);
+
     deals.push({
+      temp, entryTemp, tempDelta, tempBucket: tBucket, goalReached, tempCurve, needToClose,
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
@@ -769,8 +794,18 @@ function main() {
     // Офис-менеджер (лиды) не оценивается регламентом продавца-закрывашки: у него другая
     // работа - принять и квалифицировать лид, а не довести до оплаты. Рейтинг не выставляем.
     const role = mgr === OFFICE_MGR ? "office" : "sales";
+    // Градусник по менеджеру: распределение открытых сделок по температуре + СИЛА НАГРЕВА
+    // (медиана Δ температуры с входа до сейчас на пути к предоплате). Кто реально греет клиента,
+    // а кто сидит на входящем потоке. [ГИПОТЕЗА]: корреляция, часть клиентов стынет сами.
+    const openDs = ds.filter((d) => d.outcome === "open");
+    const tempDist = { cold: 0, warm: 0, hot: 0, boiling: 0, goal: 0 };
+    for (const d of openDs) (tempDist as any)[d.tempBucket] = ((tempDist as any)[d.tempBucket] || 0) + 1;
+    const heatVals = openDs.filter((d) => !d.goalReached && (d.stageRows || []).length).map((d) => d.tempDelta);
+    const heatPower = heatVals.length >= 3 ? med(heatVals) : null;
+    const hotMoneyTemp = openDs.filter((d) => d.tempBucket === "hot" || d.tempBucket === "boiling").reduce((s2, d) => s2 + (d.budget || 0), 0);
     return {
       mgr, role, deals: ds.length, rating: role === "office" ? null : rating, sections, ai,
+      tempDist, heatPower, hotMoneyTemp,
       lossRub: Math.round(lossRub),
       lossPerDeal: Math.round(lossRub / Math.max(ds.length, 1)),
       topLoss: topLoss ? { label: topLoss[0], rub: Math.round(topLoss[1]) } : null,
@@ -825,8 +860,29 @@ function main() {
   ].map((q) => ({ ...q, n: deals.filter((d) => d.uKey === q.key).length,
                   money: deals.filter((d) => d.uKey === q.key).reduce((s2, d) => s2 + (d.budget || 0), 0) }));
 
+  // Градусник отдела: распределение открытых сделок по температуре (штуки + деньги) и медиана.
+  const openAll = deals.filter((d) => d.outcome === "open");
+  const TBUCKETS = [
+    { key: "boiling", label: "Кипят (готовы платить)", min: 80 },
+    { key: "hot", label: "Горячие", min: 50 },
+    { key: "warm", label: "Тёплые", min: 25 },
+    { key: "cold", label: "Холодные", min: 0 },
+  ].map((b) => { const ds = openAll.filter((d) => !d.goalReached && d.tempBucket === b.key);
+    return { ...b, n: ds.length, money: ds.reduce((s2, d) => s2 + (d.budget || 0), 0) }; });
+  const goalN = openAll.filter((d) => d.goalReached).length;
+  const temperature = {
+    buckets: TBUCKETS, goalN,
+    goalMoney: openAll.filter((d) => d.goalReached).reduce((s2, d) => s2 + (d.budget || 0), 0),
+    medianTemp: med(openAll.filter((d) => !d.goalReached).map((d) => d.temp)),
+    // Остывающие горячие: были прогреты (temp>=50), но давно молчат - деньги утекают.
+    coolingHot: openAll.filter((d) => !d.goalReached && d.temp >= 50 && d.silenceD >= SILENCE_WARN_D)
+      .sort((a, b) => (b.budget || 0) - (a.budget || 0))
+      .slice(0, 20).map((d) => ({ id: d.dealId || d.leadId, t: d.title.slice(0, 40), temp: d.temp, silent: d.silenceD, budget: d.budget || 0, mgr: d.mgr })),
+    goal: "Предоплата получена",
+  };
+
   dlg.scoring = {
-    queues: QUEUES,
+    queues: QUEUES, temperature,
     trend: days.slice(-14),
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
     sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length, aiDemo: !!aiFile.demo, aiModel: aiFile.model || "",

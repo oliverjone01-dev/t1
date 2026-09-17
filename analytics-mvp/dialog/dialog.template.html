@@ -297,6 +297,21 @@ input#q{min-width:220px}
 .trln{margin:2px 0;padding-left:2px}
 .trrole{display:inline-block;font-size:9.5px;font-weight:700;padding:0 5px;border-radius:4px;border:1px solid;margin-right:5px;vertical-align:baseline;white-space:nowrap}
 .trnote{margin-top:4px;font-size:9.5px;color:var(--ink-4);font-style:italic}
+/* Градусник температуры клиента */
+.tempcell{display:flex;align-items:center;gap:6px;min-width:118px}
+.tbar{display:flex;height:11px;width:92px;border-radius:3px;overflow:hidden;background:var(--line,#e5e7eb);flex:0 0 auto}
+.tseg{display:block;min-width:2px;height:100%}
+.heatp{font-size:10px;font-weight:700;white-space:nowrap}
+.thermo{display:flex;align-items:center;gap:6px;min-width:118px}
+.thtrack{position:relative;height:8px;width:78px;border-radius:4px;background:var(--line,#e5e7eb);flex:0 0 auto}
+.thfill{position:absolute;left:0;top:0;height:100%;border-radius:4px}
+.thmark{position:absolute;top:-2px;width:2px;height:12px;background:var(--ink-2,#555);opacity:.7;z-index:2}
+.tht{font-size:11px;font-weight:700;white-space:nowrap}
+.thd{font-size:10px;font-weight:700;white-space:nowrap}
+.tgoal{font-size:10.5px;color:#2E9E74;font-weight:700;white-space:nowrap}
+/* «Полнота» вертикально, чтобы освободить место градуснику */
+.t1 td .cwrap{flex-direction:column;align-items:flex-start;gap:1px}
+.t1 td .cwrap .cchip{font-size:9.5px}
 .sysw{color:var(--ink-4);font-size:10.5px}
 .mixchip{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap;margin:0 2px 2px 0}
 .mixchip[data-mixcat]{cursor:pointer}
@@ -828,10 +843,32 @@ function renderTree(){
     const c={full:0,partial:0,empty:0}; for(const d of ds) c[complOf(d)]++;
     return `<div class="cwrap">`+COMPL.map(x=>{ const on=aiPickActive('cl',mgr,x.k); const pct=Math.round(c[x.k]/ds.length*100);
       return `<span class="cchip${on?' con':''}" data-compl="${x.k}" style="color:${x.col}" data-tip="<span class='tdot' style='background:${x.col}'></span>${esc(x.t)}: <b>${c[x.k]}</b> из ${ds.length} (${pct}%) - ${esc(x.why)}. Клик - показать и отфильтровать эти сделки.">${x.ic}${pct}%</span>`; }).join('')+`</div>`; };
+  // --- ГРАДУСНИК: цвет по температуре, термометр сделки, распределение по менеджеру/отделу ---
+  const TEMPCOL=(t)=> t>=80?'#E5484D':t>=50?'#F76808':t>=25?'#E2A336':'#5B8DEF';
+  // Термометр одной сделки: шкала 0-100, засечка на температуре входа, стрелка Δ, в подсказке -
+  // «чего не хватает до предоплаты» в градусах и рублях. Цель отдела = предоплата (goalReached).
+  const thermo=(d)=>{
+    if(d.goalReached) return `<span class="tgoal" data-tip="Цель достигнута: предоплата получена, грев завершён.">🎯 предоплата</span>`;
+    const t=d.temp==null?d.prob:d.temp, e=d.entryTemp==null?t:d.entryTemp, dl=d.tempDelta==null?0:d.tempDelta, c=TEMPCOL(t);
+    const gaps=(d.needToClose||[]).slice(0,4).map(g=>`+${g.deg}° ${esc(g.label)}${g.rub?` (${money(g.rub)} ₽)`:''}`).join('<br>');
+    const tip=`Температура клиента = шанс покупки в моменте: <b>${t}°</b>. На входе ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Цель - предоплата.${gaps?'<br><b>Не хватает до горячего:</b><br>'+gaps:''}`;
+    return `<div class="thermo" data-tip="${tip.replace(/"/g,'&quot;')}"><div class="thtrack"><i class="thmark" style="left:${Math.min(100,e)}%"></i><span class="thfill" style="width:${Math.min(100,t)}%;background:${c}"></span></div><b class="tht" style="color:${c}">${t}°</b>${dl?`<span class="thd" style="color:${dl>0?'#2E9E74':'#C25252'}">${dl>0?'▲+'+dl:'▼'+dl}</span>`:''}</div>`;
+  };
+  // Распределение сделок менеджера/группы/отдела по температуре + СИЛА НАГРЕВА (медиана Δ).
+  const tempCell=(key)=>{ const ds=(byM[key]||[]).filter(d=>d.outcome==='open'); if(!ds.length) return '<span class="na2">-</span>';
+    const b={boiling:0,hot:0,warm:0,cold:0,goal:0}; for(const d of ds) b[d.tempBucket==null?'cold':d.tempBucket]++;
+    const order=[['boiling','#E5484D','кипят'],['hot','#F76808','горячие'],['warm','#E2A336','тёплые'],['cold','#5B8DEF','холодные'],['goal','#2E9E74','предоплата']];
+    const tot=ds.length;
+    const seg=order.filter(([k])=>b[k]).map(([k,c,l])=>`<span class="tseg" style="flex:${b[k]};background:${c}" title="${l}: ${b[k]} (${Math.round(b[k]/tot*100)}%)"></span>`).join('');
+    const dd=ds.filter(d=>!d.goalReached&&(d.stageRows||[]).length&&d.tempDelta!=null).map(d=>d.tempDelta).sort((a,b)=>a-b);
+    const hp=dd.length>=3?dd[Math.floor(dd.length/2)]:null;
+    const hpc=hp===null?'var(--ink-4)':hp>0?'#2E9E74':hp<0?'#C25252':'var(--ink-3)';
+    const hpTip=hp===null?'Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).':`Сила нагрева = медиана Δ температуры с входа до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.`;
+    return `<div class="tempcell" data-tip="Градусник: сделки по температуре (шанс покупки). Цель - предоплата. Наведи на сегмент - сколько и какие."><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
-    {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
+    {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'temp',t:'Градусник',l:1,full:'Температура клиентов (шанс покупки) + сила нагрева менеджера'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
     .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
-    .concat([{k:'compl',t:'Полнота комм.',l:1}]);
+    .concat([{k:'compl',t:'Полнота',l:1}]);
   const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
   let mgrs=SC.managers.filter(m=>byM[m.mgr]);
   if(S.fMgrs.size) mgrs=mgrs.filter(m=>S.fMgrs.has(m.mgr));
@@ -957,6 +994,7 @@ function renderTree(){
           return `<td class="dealcnt${on?' allon':''}" data-allrow="1" data-tip="Все сделки ${m.mgr===DEPT_KEY?'отдела':'менеджера'} в разбор ИИ - со всей коммуникацией до конца. Клик - добавить/убрать из корзины фильтра.">${v}</td>`; }
         if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
         if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
+        if(c.k==='temp') return `<td class="l">${tempCell(m.mgr)}</td>`;
         if(c.k==='compl') return `<td class="l">${complCell(m.mgr)}</td>`;
         if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const on=aiPickActive('hot',m.mgr,'hot');
           return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет цифры тем ярче, чем больше горящих.${v?' Клик - показать эти горящие сделки.':''}" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
@@ -977,7 +1015,7 @@ function renderTree(){
         html+=`<div class="fnchip"><b>Фильтр:</b> ${chips} · показано <b>${ds.length}</b> из ${before} <span class="x" data-mgrclear="${esc(m.mgr).replace(/"/g,'&quot;')}">✕ сбросить</span></div>`; }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
-        {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
+        {k:'prob',t:'Градусник',l:1},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
       const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
       // Если в фильтре есть «Горит» - показываем крупные сверху (денежный ракурс).
       if(hotPick) ds.sort((a,b)=>(b.budget||0)-(a.budget||0));
@@ -995,7 +1033,7 @@ function renderTree(){
           <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
           <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
           <td class="l dstage">${esc(d.stage||'-')}</td>
-          <td style="color:${pc};font-weight:600">${d.prob}%</td>
+          <td class="l">${thermo(d)}</td>
           <td>${d.silenceD}</td>
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
           <td class="l urgcell">${d.outcome==='won'?`<span class="urg" style="color:#2E9E74;background:#2E9E7418;border:1px solid #2E9E7444">Успех</span>`:d.outcome==='lost'?`<span class="urg" title="${d.lossReason?esc('Отказ: '+d.lossReason):'Отказ'}" style="color:#C25252;background:#C2525218;border:1px solid #C2525244">Отказ${d.lossReason&&!/не указан/i.test(d.lossReason)?': '+esc(d.lossReason):''}</span>`:d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td>
@@ -1017,6 +1055,7 @@ function renderTree(){
         if(c.k==='deals') return `<td class="dealcnt">${mval(gm,'deals')||0}</td>`;
         if(c.k==='funnel') return `<td class="l">${funnelCell(key)}</td>`;
         if(c.k==='act') return `<td class="l">${commCell(key)}</td>`;
+        if(c.k==='temp') return `<td class="l">${tempCell(key)}</td>`;
         if(c.k==='compl') return `<td class="l">${complCell(key)}</td>`;
         if(c.k==='alerts'){ const v=mval(gm,'alerts')||0; return `<td class="gorit" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
         if(c.k==='hot'){ const v=mval(gm,'hot')||0; return `<td>${money(v)} ₽</td>`; }

@@ -414,12 +414,10 @@ async function main() {
     const evs: any[] = [];
     for (const a of (actsBy[key] || [])) { const ev = activityToEvent(a, mgr, callMap, callRefs); if (ev) evs.push(ev); }
     for (const c of (cmtsBy[key] || [])) evs.push(commentToEvent(c, employees, await userName(c.AUTHOR_ID)));
-    // Окно по событию: у открытых сделок мессенджеры/заметки берём за короткое окно (иначе снимок
-    // раздувается десятками тысяч сообщений), а ЗВОНКИ, их РАСШИФРОВКИ и РЕЗЮМЕ - за полную историю
-    // (HFROM), чтобы исторические расшифровки (июль/август) были видны. Закрытые - всё за историю.
-    const CALLISH: Record<string, 1> = { "Звонок": 1, "Транскрипт звонка": 1, "Резюме BitrixGPT": 1 };
+    // ПОЛНАЯ история по КАЖДОЙ сделке (не 7 дней): в ленте сделки нужна вся коммуникация -
+    // мессенджеры, письма, звонки, расшифровки, дела. Окно истории - HDAYS назад (по умолчанию 180).
     for (const ev of evs) {
-      const lowMs = (e.closed || CALLISH[ev.type]) ? hFromMs : fromMs;
+      const lowMs = hFromMs;
       const ms = Date.parse(ev.raw); if (isNaN(ms) || ms < lowMs || ms > toMs) continue;
       const uid = pair + "|" + ev.src;
       if (seen[uid]) continue; seen[uid] = 1;
@@ -435,7 +433,7 @@ async function main() {
   const dealKeys = new Set(events.filter((e) => e.dealId).map((e) => e.dealId));
   const managers = Object.keys(mgrSet).sort();
   const trCount = events.filter((e) => e.type === "Транскрипт звонка").length;
-  const out = { generatedAt: new Date().toISOString(), from: FROM, to: TO, days: DAYS, histFrom: HFROM, histDays: HDAYS, transcripts: trCount, scope: `Заказы RF (воронка ${CATEGORY_ID})${WITH_LEADS ? " + Лиды" : ""} · переписка ${DAYS} дн, звонки/расшифровки ${HDAYS} дн`, portal: PORTAL, dealsScanned: ents.length, dealCount: dealKeys.size, leadCount: leadKeys.size, managers, counts, events };
+  const out = { generatedAt: new Date().toISOString(), from: HFROM, to: TO, days: HDAYS, windowDays: DAYS, histFrom: HFROM, histDays: HDAYS, transcripts: trCount, scope: `Заказы RF (воронка ${CATEGORY_ID})${WITH_LEADS ? " + Лиды" : ""} · полная история ${HDAYS} дн`, portal: PORTAL, dealsScanned: ents.length, dealCount: dealKeys.size, leadCount: leadKeys.size, managers, counts, events };
   mkdirSync("dialog/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));
   const summary = Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0)).map((k) => `${k}: ${counts[k] ?? 0}`).join(" · ");

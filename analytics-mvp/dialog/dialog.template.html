@@ -158,15 +158,18 @@ input#q{min-width:220px}
    Высота = остаток экрана под заголовком и фильтрами (offset правится под реальную высоту). */
 .scrollx{overflow:auto;-webkit-overflow-scrolling:touch;max-height:calc(100vh - 205px)}
 .t1>tbody>tr:first-child>th{position:sticky;top:0;z-index:6;background:var(--card)}
-.t1{min-width:0}
+.t1{min-width:0;width:auto}
 .t1 th,.t2 th,.t3 th{font-size:9px;padding:5px 5px;white-space:nowrap}
 /* Только СВОИ строки: таблицы сделок и переписки лежат внутри ячеек таблицы менеджеров,
    и потомковый селектор .t1 td навязывал им nowrap - из-за этого текст сообщения шёл
    одной строкой и наезжал на разметку. */
 .t1>tbody>tr>td{white-space:nowrap;padding:7px 5px;font-size:11.5px}
-.t1>tbody>tr>td.l{white-space:nowrap;min-width:230px;padding-left:12px;padding-right:18px}
-.t1>tbody>tr>th.l{padding-left:12px}
-.t1>tbody>tr>td:nth-child(2),.t1>tbody>tr>th:nth-child(2){min-width:118px;padding-right:16px}
+/* min-width только для колонки МЕНЕДЖЕР (первая), иначе каждая левая колонка резервирует
+   230px и появляются огромные пустоты (воронка, коммуникации, градусник, полнота). */
+.t1>tbody>tr>td.l{white-space:nowrap;padding-left:10px;padding-right:12px}
+.t1>tbody>tr>td.l:first-child,.t1>tbody>tr>th.l:first-child{min-width:150px}
+.t1>tbody>tr>th.l{padding-left:10px}
+.t1>tbody>tr>td:nth-child(2),.t1>tbody>tr>th:nth-child(2){padding-right:10px}
 .t1>tbody>tr>td .vbadge{white-space:nowrap;font-size:9px;padding:2px 8px}
 .mrow2{cursor:pointer}
 .mrow2:hover td{background:#ffffff08}
@@ -880,7 +883,7 @@ function renderTree(){
     const hpc=hp===null?'var(--ink-4)':hp>0?'#2E9E74':hp<0?'#C25252':'var(--ink-3)';
     const hpTip=hp===null?'Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).':`Сила нагрева = медиана Δ температуры с входа до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.`;
     return `<div class="tempcell" data-tip="Градусник: сделки по температуре (шанс покупки). Цель - предоплата. Наведи на сегмент - сколько и какие."><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
-  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
+  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'temp',t:'Градусник',l:1,full:'Температура клиентов (шанс покупки) + сила нагрева менеджера'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
     .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
     .concat([{k:'compl',t:'Полнота',l:1}]);
@@ -1004,8 +1007,7 @@ function renderTree(){
     const nameHtml = dept? 'Весь отдел' : esc(m.mgr);
     html+=`<tr class="mrow2${arwOpen?' on':''}${dept?' deptrow':' mgrrow'}" data-m="${esc(m.mgr)}">`
       +`<td class="l" ${dept?'':`style="padding-left:${padPx||34}px"`}><span class="arw4">${arwOpen?'▾':'▸'}</span><b>${nameHtml}</b>${dept?`<span class="rolech" style="color:#22D3EE;border-color:#22D3EE66;background:#22D3EE14" title="Уровень отдела. Стрелка - свернуть/развернуть всех менеджеров. Клик по воронке, каналу или «Горит» - сделки всего отдела на этом этапе.">${S.deptOpen?'свернуть отдел':'развернуть отдел'}</span>`:''}${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}</td>`
-      +`<td ${dept?'':`data-tip="${verdTip(m).replace(/"/g,'&quot;')}"`} style="cursor:${dept?'default':'help'}"><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
-      +MCOLS.slice(2).map(c=>{
+      +MCOLS.slice(1).map(c=>{
         if(c.k==='deals'){ const v=mval(m,'deals')||0; const on=aiPickActive('all',m.mgr,'all');
           return `<td class="dealcnt${on?' allon':''}" data-allrow="1" data-tip="Все сделки ${m.mgr===DEPT_KEY?'отдела':'менеджера'} в разбор ИИ - со всей коммуникацией до конца. Клик - добавить/убрать из корзины фильтра.">${v}</td>`; }
         if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
@@ -1066,8 +1068,7 @@ function renderTree(){
     const gm={mgr:key,role:'group'};
     html+=`<tr class="grprow${open?' on':''}" data-g="${g}">`
       +`<td class="l" style="padding-left:20px"><span class="arw4">${open?'▾':'▸'}</span><b style="color:${meta.color}">${esc(meta.label)}</b> <span class="rolech" style="color:${meta.color};border-color:${meta.color}66;background:${meta.color}14" title="${esc(meta.tip)}">${members.length} чел.</span></td>`
-      +`<td><span class="vbadge" style="color:${meta.color};border-color:${meta.color}66;background:${meta.color}14">ГРУППА</span></td>`
-      +MCOLS.slice(2).map(c=>{
+      +MCOLS.slice(1).map(c=>{
         if(c.k==='deals') return `<td class="dealcnt">${mval(gm,'deals')||0}</td>`;
         if(c.k==='funnel') return `<td class="l">${funnelCell(key)}</td>`;
         if(c.k==='act') return `<td class="l">${commCell(key)}</td>`;

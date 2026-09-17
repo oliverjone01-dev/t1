@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-17T09:19:14.164Z",
+  "generated_at": "2026-09-17T11:15:35.248Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-16",
   "split_check": {
@@ -176,7 +176,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 22266.09,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 3517.13,
             "Доставка покупателю": 0,
@@ -193,10 +193,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 0.24,
-          "svc_points": 3517.13,
-          "svc_total": 3517.37,
+          "svc_points": 25783.22,
+          "svc_total": 25783.46,
           "result_money": 13598.76,
-          "result_points": 286874.78,
+          "result_points": 264608.69,
           "cogs": 4196,
           "cogs_known": true
         }
@@ -210,7 +210,7 @@
       "overhead_points_report": 0,
       "points_src": "report",
       "points_report": 691772,
-      "points_spent_report": 649354.02,
+      "points_spent_report": 671620.11,
       "overhead_daily": {},
       "points_acc": 711368,
       "points_ded": 19596,
@@ -456,7 +456,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 45452.88,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 8314.08,
             "Доставка покупателю": 0,
@@ -473,10 +473,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 0.24,
-          "svc_points": 8314.08,
-          "svc_total": 8314.32,
+          "svc_points": 53766.96,
+          "svc_total": 53767.2,
           "result_money": 49194.76,
-          "result_points": 149349.13,
+          "result_points": 103896.25,
           "cogs": 16933,
           "cogs_known": true
         },
@@ -578,7 +578,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 42913.88,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 8278.8,
             "Доставка покупателю": 0,
@@ -595,10 +595,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 0.24,
-          "svc_points": 8278.8,
-          "svc_total": 8279.04,
+          "svc_points": 51192.68,
+          "svc_total": 51192.92,
           "result_money": 48133.76,
-          "result_points": 138754.54,
+          "result_points": 95840.66,
           "cogs": 17660,
           "cogs_known": true
         },
@@ -1127,7 +1127,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 43440.7,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
             "Доставка покупателю": 0,
@@ -1144,10 +1144,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 0.12,
-          "svc_points": 0,
-          "svc_total": 0.12,
+          "svc_points": 43440.7,
+          "svc_total": 43440.82,
           "result_money": 39104.88,
-          "result_points": 151323.75,
+          "result_points": 107883.05,
           "cogs": 13233,
           "cogs_known": true
         },
@@ -1249,7 +1249,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 30745.44,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
             "Доставка покупателю": 0,
@@ -1266,10 +1266,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 0.12,
-          "svc_points": 0,
-          "svc_total": 0.12,
+          "svc_points": 30745.44,
+          "svc_total": 30745.56,
           "result_money": 32095.88,
-          "result_points": 104626.04,
+          "result_points": 73880.6,
           "cogs": 10587,
           "cogs_known": true
         },
@@ -2323,7 +2323,7 @@
       "overhead_points_report": 42381.06,
       "points_src": "report",
       "points_report": 2608843,
-      "points_spent_report": 2375951.26,
+      "points_spent_report": 2543454.16,
       "overhead_daily": {
         "2026-09-04": {
           "m": 0,
@@ -2557,9 +2557,9 @@
       ],
       "orders_without_ledger": 0,
       "svc_settled": false,
-      "ledger_outside": 1296.71,
-      "ledger_outside_orders": 56,
-      "ledger_status": 1296.71,
+      "ledger_outside": 6246.71,
+      "ledger_outside_orders": 57,
+      "ledger_status": 6246.71,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "missing_accrued": 0,

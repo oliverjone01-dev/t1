@@ -9,7 +9,7 @@
     "GGT-35-3-3-100-180": {
       "accruals": 454972,
       "commission": -1506,
-      "amount": 254917,
+      "amount": 209464,
       "ops": 10
     },
     "GGM-17-1-2": {
@@ -579,7 +579,7 @@
     "GGT-03-1-2-L-80": {
       "accruals": 64700,
       "commission": 0,
-      "amount": 64700,
+      "amount": 33954,
       "ops": 1
     },
     "GGR-11-1": {
@@ -597,7 +597,7 @@
     "GGT-12-3": {
       "accruals": 89550,
       "commission": 0,
-      "amount": 89550,
+      "amount": 46109,
       "ops": 1
     },
     "GGT-03-3-5-E-14080": {
@@ -609,13 +609,13 @@
     "GGT-03-2-1-O-20090": {
       "accruals": 94807,
       "commission": 0,
-      "amount": 86528,
+      "amount": 43614,
       "ops": 2
     },
     "GGM-18-3-1-LED": {
       "accruals": 48400,
       "commission": 0,
-      "amount": 44883,
+      "amount": 22617,
       "ops": 2
     },
     "GGT-35-5-1-100-180": {

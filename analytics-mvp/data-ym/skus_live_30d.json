@@ -2,7 +2,7 @@
   "platform": "ym",
   "dateFrom": "2026-08-18",
   "dateTo": "2026-09-16",
-  "generated_at": "2026-09-17T09:19:13.891Z",
+  "generated_at": "2026-09-17T11:15:35.013Z",
   "totals": {
     "rev": 19118410,
     "units": 316,
@@ -10,7 +10,7 @@
     "canc": 108,
     "views": 228312,
     "sk": 148,
-    "oos": 113,
+    "oos": 114,
     "ad_spend": 0,
     "ad_drr": 0
   },
@@ -321,11 +321,11 @@
       "retp": 0,
       "aov": 47770,
       "offer": "GGM-18-3-2",
-      "stock": 43,
+      "stock": 0,
       "pidx": null,
       "pcol": "",
       "price": 44640,
-      "oos": 0,
+      "oos": 1,
       "market_sku": "6204447248",
       "business": "1023124",
       "platform": "ym"

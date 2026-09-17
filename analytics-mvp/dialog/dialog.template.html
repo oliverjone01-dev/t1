@@ -1012,7 +1012,16 @@ function renderTree(){
     if(d.goalReached) return `<span class="tgoal" data-tip="Цель достигнута: предоплата получена, грев завершён.">🎯 предоплата</span>`;
     const t=d.temp==null?d.prob:d.temp, e=d.entryTemp==null?t:d.entryTemp, dl=d.tempDelta==null?0:d.tempDelta, c=TEMPCOL(t);
     const gaps=(d.needToClose||[]).slice(0,4).map(g=>`+${g.deg}° ${esc(g.label)}${g.rub?` (${money(g.rub)} ₽)`:''}`).join('<br>');
-    const tip=`Температура клиента = шанс покупки в моменте: <b>${t}°</b>. На входе ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Цель - предоплата.${gaps?'<br><b>Не хватает до горячего:</b><br>'+gaps:''}`;
+    // Вывод ИИ по сделке (вердикт / риск потери / что сделать) - по просьбе Ивана живёт в
+    // подсказке градусника, а не отдельной плашкой над лентой.
+    const a=d.ai;
+    const aiTip=(a&&(a.verdict||a.problem||a.recommendation))
+      ? `<br><br><b style="color:#8B7BF0">🤖 Разбор ИИ</b>`
+        +(a.verdict?`<br>${esc(a.verdict)}`:'')
+        +(a.problem?`<br><b style="color:#E08585">Риск потери:</b> ${esc(a.problem)}`:'')
+        +(a.recommendation?`<br><b style="color:#7FD1A6">Что сделать:</b> ${esc(a.recommendation)}`:'')
+      : '';
+    const tip=`Температура клиента = шанс покупки в моменте: <b>${t}°</b>. На входе ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Цель - предоплата.${gaps?'<br><b>Не хватает до горячего:</b><br>'+gaps:''}${aiTip}`;
     return `<div class="thermo" data-tip="${tip.replace(/"/g,'&quot;')}"><div class="thg"><div class="thtube"><span class="thliq" style="height:${Math.max(4,Math.min(100,t))}%;background:${c}"></span><i class="thmark" style="bottom:${Math.min(100,e)}%" title="на входе ${e}°"></i></div><span class="thbulb" style="background:${c}"></span></div><div class="thnum"><b class="tht" style="color:${c}">${t}°</b>${dl?`<span class="thd" style="color:${dl>0?'#2E9E74':'#C25252'}">${dl>0?'▲+'+dl:'▼'+dl}</span>`:''}</div></div>`;
   };
   // Распределение сделок менеджера/группы/отдела по температуре + СИЛА НАГРЕВА (медиана Δ).

@@ -244,6 +244,8 @@ input#q{min-width:220px}
 .t3 td{padding:5px 6px;vertical-align:top}
 /* Колонки переписки фиксированы: текст сообщения не наезжает на разметку, длинные
    ссылки и склеенные слова переносятся внутри своей колонки. */
+/* Фиксируем раскладку: длинное письмо не раздувает таблицу за правую границу панели. */
+.t3{table-layout:fixed;width:100%;max-width:100%}
 .t3 th:nth-child(1),.t3 td:nth-child(1){width:78px}
 .t3 th:nth-child(2),.t3 td:nth-child(2){width:124px}
 .t3 th:nth-child(3),.t3 td:nth-child(3){width:136px}

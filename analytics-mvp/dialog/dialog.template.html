@@ -214,6 +214,16 @@ input#q{min-width:220px}
 .leadnote.lead-none{background:#8794A514;border:1px solid var(--border);color:var(--ink-3)}
 .lstage{display:inline-block;margin-left:6px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#C2873C;border:1px solid #C2873C66;border-radius:4px;padding:0 4px;line-height:13px;vertical-align:middle;text-transform:uppercase}
 .lstage.ls-deal{color:#3DAEC2;border-color:#3DAEC266}
+/* Баннер ИИ-разбора сделки */
+.aibanner{margin:8px 0 10px;padding:9px 12px;border-radius:8px;border:1px solid;background:rgba(255,255,255,.03);font-size:12px;line-height:1.5;max-width:900px}
+.aibanner .aib-h{font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px;opacity:.9}
+.aibanner .aib-v{font-weight:600;margin-bottom:5px;color:var(--ink-1,#e8ecf1)}
+.aibanner .aib-p{margin-bottom:3px}
+.aibanner .aib-p b{color:#E08585}
+.aibanner .aib-r b{color:#7FD1A6}
+.ai-good{border-color:#2E9E7455}.ai-good .aib-h{color:#2E9E74}
+.ai-warn{border-color:#E2A33655}.ai-warn .aib-h{color:#E2A336}
+.ai-bad{border-color:#C2525255}.ai-bad .aib-h{color:#C25252}
 /* Мини-воронка и коммуникации в таблице менеджеров */
 .funnel{display:flex;gap:1px;height:9px;border-radius:3px;overflow:hidden;min-width:100px;max-width:150px}
 .funnel .fseg{min-width:4px;cursor:help;transition:filter .1s}
@@ -1283,7 +1293,14 @@ function renderTree(){
           originNote=`<div class="leadnote lead-none">Сделка создана напрямую - лида в CRM не было, истории общения до сделки нет</div>`;
         }
       }
-      host.innerHTML=originNote+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
+      // Баннер ИИ-разбора сделки: вердикт, почему может быть потеряна, что сделать сейчас.
+      const a=d&&d.ai; const aiB=(a&&(a.verdict||a.problem||a.recommendation))?
+        `<div class="aibanner ai-${a.tone||'warn'}"><div class="aib-h">Разбор ИИ · температура сделки ${d.temp!=null?d.temp+'°':''}</div>`
+        +(a.verdict?`<div class="aib-v">${esc(a.verdict)}</div>`:'')
+        +(a.problem?`<div class="aib-p"><b>Почему может быть потеряна:</b> ${esc(a.problem)}</div>`:'')
+        +(a.recommendation?`<div class="aib-r"><b>Что сделать сейчас:</b> ${esc(a.recommendation)}</div>`:'')
+        +`</div>`:'';
+      host.innerHTML=originNote+aiB+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
       CUR_TAGS={};
       host.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
         if(S.sE.k===th.dataset.k) S.sE.d=-S.sE.d; else { S.sE.k=th.dataset.k; S.sE.d=1; } renderTree(); });

@@ -530,6 +530,9 @@ function main() {
     if (objTotal) add(objWorked >= objTotal ? `Возражения отработаны аргументом: ${objWorked}` : `Возражение без контраргумента: ${objTotal - objWorked} из ${objTotal}`, "result", objWorked >= objTotal ? "good" : "bad");
     if (RE.refuse.test(inText)) add("Риск отказа", "result", "bad");
     if (a && Array.isArray(a.tags)) for (const t of a.tags) add(String(t.t || t), t.sec || "process", (t.tone as Tag["tone"]) || "warn");
+    // Теги ИИ по КОНКРЕТНЫМ сообщениям: вешаем на нужную реплику (evTags[src]) с цитатой -
+    // в ленте видно, какая именно фраза греет или холодит сделку.
+    if (a && Array.isArray(a.msgTags)) for (const t of a.msgTags) { if (t && t.src) (evTags[t.src] ||= []).push({ t: String(t.t || ""), tone: t.tone || "warn", sec: "process", quote: t.quote || "" }); }
 
     // --- вероятность ---
     const base = BASE_RATES[stageCode]?.win ?? BASE_FALLBACK;

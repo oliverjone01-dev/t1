@@ -984,7 +984,18 @@ const subFun: Record<string, Fun & { name: string; cat: string }> = {};
 const catSubs: Record<string, Set<string>> = {};
 let viewRows: any[] = [];
 try { viewRows = readFileSync(dp("sku_views.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { viewRows = []; }
+// АГРЕГАТНАЯ СТРОКА - ЭТО СВЁРНУТОЕ ОКНО, А НЕ ДЕНЬ. У Маркета 4 504 такие строки помечены датой
+// 06.09 с period_from 31.08, то есть несут в себе всю неделю разом. derive их отбрасывает
+// (`if (v.aggregate) continue`), а воронка по категориям складывала их с дневными и считала
+// неделю дважды: 386 868 показов дневных + 316 600 агрегата = 703 468 на экране против 386 868
+// в воронке продаж. У OZON таких строк нет ни одной, поэтому фильтр там ничего не меняет.
+viewRows = viewRows.filter((r) => !r.aggregate);
 const fromViews = viewRows.length > 0;
+// ШАГИ ПОСЛЕ КОРЗИНЫ СЧИТАЕМ ИЗ ЗАКАЗОВ, А НЕ ИЗ ОТЧЁТА ПОКАЗОВ. У Маркета в отчёте показов
+// deliv и canc нули по ВСЕМ 10 751 строкам, поэтому «Выкуплено = Заказано − Отмены» давало
+// Выкуплено = Заказано и конверсию ровно 100%, а units знает меньше заказов, чем наша выгрузка
+// (151 против 162 за 01-16.09). У OZON отчёт полный - там источник остаётся прежним.
+const ORDERS_FUNNEL = !IS_OZON;
 const funSrc: any[] = fromViews ? viewRows : facts;
 for (const r of funSrc) {
   const i = dayIdx(r.date); if (i < 0 || i >= TOTAL) continue;
@@ -995,10 +1006,10 @@ for (const r of funSrc) {
   const vsearch = fromViews ? (r.vsearch || 0) : 0; // показы в поиске per-SKU (только из sku_views)
   const pdp = fromViews ? (r.pdp || 0) : 0; // посещения карточки (сессии) per-SKU
   const cart = fromViews ? (r.cart || 0) : (r.to_cart || 0);
-  const units = r.units || 0;
-  const deliv = fromViews ? (r.deliv || 0) : (r.delivered || 0);
-  const ret = fromViews ? (r.ret || 0) : (r.returns || 0);
-  const canc = fromViews ? (r.canc || 0) : (r.cancellations || 0);
+  const units = ORDERS_FUNNEL ? 0 : (r.units || 0);
+  const deliv = ORDERS_FUNNEL ? 0 : (fromViews ? (r.deliv || 0) : (r.delivered || 0));
+  const ret = ORDERS_FUNNEL ? 0 : (fromViews ? (r.ret || 0) : (r.returns || 0));
+  const canc = ORDERS_FUNNEL ? 0 : (fromViews ? (r.canc || 0) : (r.cancellations || 0));
   const rev = fromViews ? 0 : (r.revenue || 0); // rev в LINES_D не используется (показываем шт), но поле сохраняем
   const cat = catOf(sk), sub = subOf(sk), sid = subIdOf(cat, sub);
   const L = (lineDayOrd[cat] ||= { units: zD(), ret: zD(), canc: zD(), cart: zD(), rev: zD() });
@@ -1008,6 +1019,27 @@ for (const r of funSrc) {
   cf.views[i] += views; cf.vsearch[i] += vsearch; cf.pdp[i] += pdp; cf.cart[i] += cart; cf.units[i] += units; cf.deliv[i] += deliv; cf.ret[i] += ret; cf.canc[i] += canc;
   const sf = (subFun[sid] ||= Object.assign(newFun(), { name: sub, cat }));
   sf.views[i] += views; sf.vsearch[i] += vsearch; sf.pdp[i] += pdp; sf.cart[i] += cart; sf.units[i] += units; sf.deliv[i] += deliv; sf.ret[i] += ret; sf.canc[i] += canc;
+  (catSubs[cat] ||= new Set()).add(sid);
+}
+// Второй проход - по заказам. Только здесь берутся заказано / выкуплено / возвраты / отмены,
+// поэтому таблица по категориям и воронка продаж считают эти шаги из ОДНОГО источника и сходятся.
+if (ORDERS_FUNNEL) for (const f of facts) {
+  const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue;
+  const sk = String(f.sku); if (sk === "__empty__") continue;
+  const units = f.units || 0, deliv = f.delivered || 0, ret = f.returns || 0, canc = f.cancellations || 0;
+  if (!units && !deliv && !ret && !canc) continue;
+  const cat = catOf(sk), sub = subOf(sk), sid = subIdOf(cat, sub);
+  const L = (lineDayOrd[cat] ||= { units: zD(), ret: zD(), canc: zD(), cart: zD(), rev: zD() });
+  L.units[i] = (L.units[i] ?? 0) + units; L.ret[i] = (L.ret[i] ?? 0) + ret;
+  L.canc[i] = (L.canc[i] ?? 0) + canc; L.rev[i] = (L.rev[i] ?? 0) + (f.revenue || 0);
+  const cf = (catFun[cat] ||= newFun());
+  // `?? 0` не украшение: соседний цикл берёт значения из `any`-строк отчёта и потому компилируется
+  // без него, а здесь источник типизован, и строгий режим справедливо требует защиты от дыры.
+  cf.units[i] = (cf.units[i] ?? 0) + units; cf.deliv[i] = (cf.deliv[i] ?? 0) + deliv;
+  cf.ret[i] = (cf.ret[i] ?? 0) + ret; cf.canc[i] = (cf.canc[i] ?? 0) + canc;
+  const sf = (subFun[sid] ||= Object.assign(newFun(), { name: sub, cat }));
+  sf.units[i] = (sf.units[i] ?? 0) + units; sf.deliv[i] = (sf.deliv[i] ?? 0) + deliv;
+  sf.ret[i] = (sf.ret[i] ?? 0) + ret; sf.canc[i] = (sf.canc[i] ?? 0) + canc;
   (catSubs[cat] ||= new Set()).add(sid);
 }
 let dailyTotals: any[] = [];
@@ -1070,10 +1102,29 @@ if (dailyTotals.length) {
   const CATFUN = Object.fromEntries(Object.entries(catFun).map(([k, v]) => [k, { views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv, ret: v.ret, canc: v.canc }]));
   const SUBFUN = Object.fromEntries(Object.entries(subFun).map(([k, v]) => [k, { name: v.name, cat: v.cat, views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv, ret: v.ret, canc: v.canc }]));
   const CATSUBS = Object.fromEntries(Object.entries(catSubs).map(([k, v]) => [k, [...v]]));
+  // Фильтр строк таблицы. Прежний прятал категории, у которых за период есть показы, но нет
+  // заказов и корзины: после починки задвоения именно эти 410 показов из 386 868 мешали
+  // таблице сойтись с воронкой шаг в шаг. У OZON оставлен прежним - страницы байт-в-байт.
+  // Дельта конверсии показ→заказ. У Маркета знаменатель падал на «или единица» и превращал
+  // «показов не было» в «был один показ»: за 01-16.09 сравнивались 162/386 868 = 0,0004
+  // против 171/1 = 171, и карточка честно рисовала ровно −100%. Теперь пустая база
+  // называется пустой, как в соседней карточке «Показы». У OZON выражение прежнее -
+  // его страницы эта ветка не трогает, и комментарий сюда вынесен, чтобы не уехать
+  // текстом внутрь собранной страницы (уже ловилось сверкой байтов).
+  // Хвост подписи под воронкой. «Выкуплено» у Маркета считается по РЕАЛЬНО доставленному,
+  // поэтому разрыв с «Заказано» надо объяснить числом, а не оставить читаться потерей:
+  // часть заказов периода ещё едет. У OZON хвоста нет, и он обязан быть ПУСТОЙ СТРОКОЙ
+  // без переноса - иначе в его странице остаётся лишний перевод строки (5 байт, поймано).
+  const FSUB_TAIL = IS_OZON ? "" : "+(function(){var fly=Math.max(0,S('units')-S('deliv')-S('canc')-S('ret'));"
+    + "return fly?' · ещё в пути '+fmtRu(fly)+' шт: выкуп по ним дорастёт задним числом':'';})()";
+  const CONV_DELTA = IS_OZON
+    ? "S('units')/(S('views')||1),P('units')/(P('views')||1)"
+    : "S('views')?S('units')/S('views'):0,P('views')?P('units')/P('views'):0";
+  const CAT_KEEP = IS_OZON ? "x.units>0||x.cart>0" : "x.units>0||x.cart>0||x.views>0";
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Воронка продаж</div><div class="card-sub" id="fsub"></div></div></div><div id="funnel"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального. CV, % (серые шапки) - конверсия между соседними шагами: <span style="color:var(--up)">зелёный</span> - категория конвертит выше канала на этом шаге, <span style="color:var(--dn)">красный</span> - ниже. Строка «Итого» = сумма по категориям (она же бенчмарк для раскраски CV). Показы всего и «Посещения карточки» по категориям не сходятся с «Воронкой продаж»: последняя берёт дедуплицированные канальные итоги OZON, а тут - сумма per-SKU (одна сессия на нескольких карточках считается несколько раз).</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r cf-cv">CV, %</th><th class="r">Показы в поиске</th><th class="r cf-cv">CV, %</th><th class="r">Посещения карточки</th><th class="r cf-cv">CV, %</th><th class="r">В корзину</th><th class="r cf-cv">CV, %</th><th class="r">Заказано</th><th class="r cf-cv">CV, %</th><th class="r" title="Выкуплено = Заказано − Отмены (формула OZON; возврат происходит после выкупа, отдельно)">Выкуплено</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального. CV, % (серые шапки) - конверсия между соседними шагами: <span style="color:var(--up)">зелёный</span> - категория конвертит выше канала на этом шаге, <span style="color:var(--dn)">красный</span> - ниже. Строка «Итого» = сумма по категориям (она же бенчмарк для раскраски CV).${IS_OZON ? ` Показы всего и «Посещения карточки» по категориям не сходятся с «Воронкой продаж»: последняя берёт дедуплицированные канальные итоги OZON, а тут - сумма per-SKU (одна сессия на нескольких карточках считается несколько раз).` : ` Итоги этой таблицы сходятся с «Воронкой продаж» шаг в шаг: показы, поиск и карточка берутся из одного отчёта показов, а заказы, выкуп, возвраты и отмены - из одной выгрузки заказов. До 17.09 не сходились по двум причинам, обе починены: таблица складывала дневные строки отчёта с агрегатом за 31.08-06.09 и считала неделю дважды (386 868 показов против 703 468 на экране), а заказы и выкуп брала из отчёта показов, где отмены и доставки нули - отсюда «выкуплено = заказано» и конверсия ровно 100%.`}</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r cf-cv">CV, %</th><th class="r">Показы в поиске</th><th class="r cf-cv">CV, %</th><th class="r">Посещения карточки</th><th class="r cf-cv">CV, %</th><th class="r">В корзину</th><th class="r cf-cv">CV, %</th><th class="r">Заказано</th><th class="r cf-cv">CV, %</th><th class="r" title="${IS_OZON ? "Выкуплено = Заказано − Отмены (формула OZON; возврат происходит после выкупа, отдельно)" : "Выкуплено = реально доставленное за вычетом возвратов, по дате заказа. Заказы периода, которые ещё едут, сюда не попадают - они дорастут задним числом, когда доедут."}">Выкуплено</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Потери и возвраты</div><div class="card-sub">возвраты, отмены, брошенные корзины за период - сводно и по категориям. Меняется по периоду и фильтрам вверху.</div></div></div>
     <div id="leaks"></div>
     <div class="kt-scroll" style="margin-top:14px"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возв.</th><th class="r">Отмены</th><th class="r">% отмен</th><th class="r">Брошено в корзине</th><th class="r">% брош.</th></tr></thead><tbody id="retl"></tbody></table></div>
@@ -1086,20 +1137,20 @@ function sumW(arr,w){let s=0;for(let i=idxOf(w.from);i<=idxOf(w.to);i++)s+=(arr[
 function renderCatFunnel(cur){
   const pct=(a,b)=>b?((a/b*100).toFixed(2)+'%'):'—';
   const sm=(o,k)=>sumW(o[k],cur);
-  const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv'),ret:sm(o,'ret'),canc:sm(o,'canc')};}).filter(x=>x.units>0||x.cart>0).sort((a,b)=>b.units-a.units);
+  const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv'),ret:sm(o,'ret'),canc:sm(o,'canc')};}).filter(x=>${CAT_KEEP}).sort((a,b)=>b.units-a.units);
   const ndc='<td class="r cf-nd">нет данных</td>'; // для старых дней без vsearch/pdp в sku_views
   // Канальный бенчмарк конверсии по каждому шагу (сумма по всем категориям периода).
   // Цвет CV: зелёный - категория конвертит выше канала на этом шаге, красный - ниже.
   const T={};['views','vsearch','pdp','cart','units','deliv','ret','canc'].forEach(k=>T[k]=cats.reduce((s,x)=>s+(x[k]||0),0));
-  const BM={vs:T.views?T.vsearch/T.views:0,pd:T.vsearch?T.pdp/T.vsearch:0,ct:T.pdp?T.cart/T.pdp:0,un:T.cart?T.units/T.cart:0,dl:T.units?(T.units-T.canc)/T.units:0};
+  const BM={vs:T.views?T.vsearch/T.views:0,pd:T.vsearch?T.pdp/T.vsearch:0,ct:T.pdp?T.cart/T.pdp:0,un:T.cart?T.units/T.cart:0,dl:T.units?${IS_OZON ? "(T.units-T.canc)" : "T.deliv"}/T.units:0};
   const cv=(a,b,bm)=>{if(a==null||b==null||b<=0)return '<td class="r cf-cv">—</td>';const r=a/b;const col=(bm&&bm>0)?(r>=bm?'var(--up)':'var(--dn)'):'var(--ink-3)';return '<td class="r cf-cv" style="color:'+col+'">'+(r*100).toFixed(2)+'%</td>';};
   const cell=x=>{const vs=x.vsearch>0?x.vsearch:null,pd=x.pdp>0?x.pdp:null;
     return '<td class="r">'+fmtRu(x.views)+'</td>'+cv(vs,x.views,BM.vs)
       +(vs!=null?'<td class="r">'+fmtRu(vs)+'</td>':ndc)+cv(pd,vs,BM.pd)
       +(pd!=null?'<td class="r">'+fmtRu(pd)+'</td>':ndc)+cv(x.cart,pd,BM.ct)
       +'<td class="r">'+fmtRu(x.cart)+'</td>'+cv(x.units,x.cart,BM.un)
-      +'<td class="r">'+fmtRu(x.units)+'</td>'+cv(Math.max(0,x.units-(x.canc||0)),x.units,BM.dl)
-      +'<td class="r">'+fmtRu(Math.max(0,x.units-(x.canc||0)))+'</td>';};
+      +'<td class="r">'+fmtRu(x.units)+'</td>'+cv(${IS_OZON ? "Math.max(0,x.units-(x.canc||0))" : "x.deliv"},x.units,BM.dl)
+      +'<td class="r">'+fmtRu(${IS_OZON ? "Math.max(0,x.units-(x.canc||0))" : "x.deliv"})+'</td>';};
   let h='';
   cats.forEach((x,ci)=>{
     h+='<tr class="cf-cat" data-i="'+ci+'"><td>▸ '+esc(x.c)+'</td>'+cell(x)+'</tr>';
@@ -1113,8 +1164,8 @@ function renderCatFunnel(cur){
     +'<td class="r">'+fmtRu(T.vsearch)+'</td>'+cvP(T.pdp,T.vsearch)
     +'<td class="r">'+fmtRu(T.pdp)+'</td>'+cvP(T.cart,T.pdp)
     +'<td class="r">'+fmtRu(T.cart)+'</td>'+cvP(T.units,T.cart)
-    +'<td class="r">'+fmtRu(T.units)+'</td>'+cvP(Math.max(0,T.units-T.canc),T.units)
-    +'<td class="r">'+fmtRu(Math.max(0,T.units-T.canc))+'</td></tr>';
+    +'<td class="r">'+fmtRu(T.units)+'</td>'+cvP(${IS_OZON ? "Math.max(0,T.units-T.canc)" : "T.deliv"},T.units)
+    +'<td class="r">'+fmtRu(${IS_OZON ? "Math.max(0,T.units-T.canc)" : "T.deliv"})+'</td></tr>';
   document.getElementById('catfun').innerHTML=h?(totRow+h):'<tr><td colspan="12" class="kt-note">нет данных за период</td></tr>';
   document.querySelectorAll('#catfun .cf-cat').forEach(tr=>tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#catfun .cf-sub[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});tr.querySelector('td').textContent=(open?'▾ ':'▸ ')+tr.querySelector('td').textContent.replace(/^[▸▾]\\s*/,'');});
 }
@@ -1127,11 +1178,11 @@ function render(cur,cmp){
     kpi('Оборот, ₽',fMln(rev),dlt(rev,prev)),
     kpi('Заказы, шт',fmtRu(S('units')),dlt(S('units'),P('units'))),
     kpi('Показы',fMln(S('views')),dlt(S('views'),P('views'))),
-    kpi('Конверсия показ→заказ',cr(S('units'),S('views')),dlt(S('units')/(S('views')||1),P('units')/(P('views')||1))),
+    kpi('Конверсия показ→заказ',cr(S('units'),S('views')),dlt(${CONV_DELTA})),
     kpi('Возвраты',fmtRu(S('ret')),dlt(S('ret'),P('ret'),false,'шт')),
     kpi('Отмены',fmtRu(S('canc')),dlt(S('canc'),P('canc'),false,'шт'))
   ].join('');
-  document.getElementById('fsub').textContent='период '+cur.from+'..'+cur.to+' · сравнение с '+cmp.from+'..'+cmp.to;
+  document.getElementById('fsub').textContent='период '+cur.from+'..'+cur.to+' · сравнение с '+cmp.from+'..'+cmp.to${FSUB_TAIL};
   renderCatFunnel(cur);
   // Вертикальная воронка OZON, сужается вниз, конверсия между шагами (зависит от периода).
   // «Показы в поиске» (vsearch) и «Посещения карточки» (pdp) тянем день-уровнем OZON (dimension=day).
@@ -1143,7 +1194,12 @@ function render(cur,cmp){
     {n:'Посещения карточки товара', v:nz('pdp'), c:'из карточки в корзину'},
     {n:'Добавления в корзину', v:S('cart'), c:'из корзины в заказ'},
     {n:'Заказано товаров', v:S('units'), c:'из заказа в выкуп'},
-    {n:'Выкуплено', v:Math.max(0,S('units')-S('canc')), c:''}
+    ${IS_OZON
+      ? `{n:'Выкуплено', v:Math.max(0,S('units')-S('canc')), c:''}`
+      // Маркет: «Заказано − Отмены» - это «пока не отменили», а не выкуп. За 01-16.09 такая формула
+      // давала 125 при 38 реально доставленных: остальные 85 штук ещё едут. Решение Ивана 17.09 -
+      // считать по доставленному, а сколько ещё в пути, сказать подписью под воронкой.
+      : `{n:'Выкуплено', v:S('deliv'), c:''}`}
   ];
   // Форма воронки ФИКСИРОВАННАЯ - ровное сужение вниз, не зависит от значений (меняются только числа).
   const w=lv.map((x,i)=>100-i*(58/(lv.length-1)));

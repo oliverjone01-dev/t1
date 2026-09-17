@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { findCol } from "../../util/table.js";
-import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, reportMonthsToDo } from "./reports-lib.js";
 
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
@@ -296,5 +296,93 @@ describe("пересбор месяца идемпотентен, обычный
     const two = [{ ym: "2026-02", sku: "S", sold: 10 }, { ym: "2026-03", sku: "T", sold: 5 }];
     const r = run(two, pairs, ["2026-02"], true);
     expect(r.seeded["2026-03"]!["T"]!.sold).toBe(5);
+  });
+});
+
+// Акт по стоимости услуг: какие месяцы брать в прогон. Прогон 37 (2026-09-16) отработал этот шаг
+// за 4 секунды и не добрал ничего, хотя в состоянии были собраны только две августовские пары:
+// список месяцев считался по «схема сменилась / файл пуст», а не по тому, что реально осталось.
+describe("акт услуг: список месяцев берётся из состояния, а не из схемы", () => {
+  const ALL = ["2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"];
+  const CUR = "2026-09", PREV = "2026-08";
+
+  it("живой случай прогона 37: собран только август - остальные месяцы обязаны попасть в прогон", () => {
+    const done = ["1023124/2026-08", "74986385/2026-08"];
+    expect(reportMonthsToDo(ALL, done, CUR, PREV)).toEqual(ALL);
+  });
+
+  it("всё собрано - берём только текущий и прошлый: акт за них ещё дополняется", () => {
+    const done = ALL.flatMap((m) => [`1023124/${m}`, `74986385/${m}`]);
+    expect(reportMonthsToDo(ALL, done, CUR, PREV)).toEqual([PREV, CUR]);
+  });
+
+  it("месяц, где успел отработать один кабинет из двух, закрытым не считается", () => {
+    const done = ALL.flatMap((m) => (m === "2026-05" ? [`1023124/${m}`] : [`1023124/${m}`, `74986385/${m}`]));
+    expect(reportMonthsToDo(ALL, done, CUR, PREV)).toEqual(["2026-05", PREV, CUR]);
+  });
+
+  it("пустое состояние и признак «пересобрать всё» дают всю историю", () => {
+    expect(reportMonthsToDo(ALL, [], CUR, PREV)).toEqual(ALL);
+    const done = ALL.flatMap((m) => [`1023124/${m}`, `74986385/${m}`]);
+    expect(reportMonthsToDo(ALL, done, CUR, PREV, true)).toEqual(ALL);
+  });
+
+  it("текущий и прошлый месяц не выпадают, даже когда собраны полностью", () => {
+    const done = ALL.flatMap((m) => [`1023124/${m}`, `74986385/${m}`]);
+    const got = reportMonthsToDo(ALL, done, CUR, PREV);
+    expect(got).toContain(CUR);
+    expect(got).toContain(PREV);
+  });
+});
+
+// Разбор карты колонок целиком, как это делает cols() в продьюсере. Прогон 38 (2026-09-16)
+// СКАЧАЛ отчёт по баллам - netting_bonuses.csv, 277 строк, имя метода и тело подтвердились - и
+// упал на разборе: `ym-reports FAILED: Invalid regular expression: /(/i: Unterminated group`.
+// Причина: ключ _live хранит прозу (откуда сняты заголовки), а не список шаблонов, и уходил в
+// findCol наравне с колонками. Тот перебирал СИМВОЛЫ прозы как регулярки; у остальных отчётов
+// какой-нибудь символ совпадал с заголовком и перебор выходил раньше, а у баллов заголовки
+// английские, русская проза не совпала ничем, и дело дошло до скобки.
+describe("карта колонок: документация не уходит в разбор", () => {
+  // Точная копия цикла из cols(): ключи на «_» пропускаются.
+  const mapAll = (type: string, headers: string[]) => {
+    const out: Record<string, number> = {};
+    for (const [k, pats] of Object.entries(COLS[type]!)) {
+      if (k.startsWith("_")) continue;
+      out[k] = findCol(headers, pats as string[]);
+    }
+    return out;
+  };
+
+  it("каждый отчёт разбирается целиком, без исключения на прозе _live", () => {
+    const pairs: Array<[string, string]> = [
+      ["ym-bonuses", "ym-bonuses/netting_bonuses.csv"],
+      ["united-netting", "united-netting/transaction_date.csv"],
+      ["goods-realization", "goods-realization/delivered.csv"],
+      ["shows-sales", "shows-sales/sales_funnel_report.csv"],
+      ["united-marketplace-services", "united-marketplace-services/placement.csv"],
+    ];
+    for (const [type, file] of pairs) {
+      expect(() => mapAll(type, H[file]!), `${type}: разбор карты колонок упал`).not.toThrow();
+      expect(Object.keys(mapAll(type, H[file]!)), `${type}: _live попал в результат разбора`).not.toContain("_live");
+    }
+  });
+
+  it("у баллов проза _live не совпадает с английскими заголовками и содержит скобку - ровно тот случай", () => {
+    const live = (COLS["ym-bonuses"] as any)._live as string;
+    expect(typeof live).toBe("string");
+    expect(live).toContain("(");
+    const heads = H["ym-bonuses/netting_bonuses.csv"]!;
+    // ни один символ прозы ДО первой скобки не совпадает с заголовками - поэтому перебор и
+    // доходил до неё. Если это перестанет быть так, падение спрячется, а тест это покажет.
+    const before = [...live.slice(0, live.indexOf("("))];
+    const hit = before.some((ch) => { try { const re = new RegExp(ch, "i"); return heads.some((h) => re.test(h)); } catch { return false; } });
+    expect(hit, "символ прозы совпал с заголовком - падение снова станет случайным").toBe(false);
+  });
+
+  it("findCol не роняет разбор ни на битой регулярке, ни на строке вместо списка", () => {
+    const heads = ["TRANSACTION_SUM", "ORDER_ID"];
+    expect(findCol(heads, ["(", "^ORDER_ID$"])).toBe(1);   // битый шаблон пропускается, следующий работает
+    expect(findCol(heads, ["("])).toBe(-1);
+    expect(findCol(heads, "проза (а не список)" as unknown as string[])).toBe(-1);
   });
 });

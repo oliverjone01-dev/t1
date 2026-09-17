@@ -280,7 +280,7 @@ jobs:
           rm -rf /tmp/market-site && mkdir -p /tmp/market-site
           DATA_DIR=data-ym OUT_DIR=/tmp/market-site PLATFORM=ym npx tsx src/scripts/build-site.ts
           DATA_DIR=data-ym OUT_DIR=/tmp/market-site PLATFORM=ym npx tsx src/scripts/build-katya.ts
-          OUT_DIR=/tmp/market-site npx tsx src/scripts/smoke.ts
+          DATA_DIR=data-ym OUT_DIR=/tmp/market-site PLATFORM=ym npx tsx src/scripts/smoke.ts
           mkdir -p "$GITHUB_WORKSPACE/_site/market"
           cp -r /tmp/market-site/. "$GITHUB_WORKSPACE/_site/market/"
           echo "Маркет опубликован в /market/ ($(ls /tmp/market-site | wc -l) страниц)"

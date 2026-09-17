@@ -1,5 +1,5 @@
 {
-  "at": "2026-09-17T12:01:25.704Z",
+  "at": "2026-09-17T12:20:50.363Z",
   "dateFormatAccepted": "iso",
   "shape": {
     "id": "number",
@@ -30,6 +30,12 @@
           "id": "number",
           "name": "string"
         },
+        "details": [
+          {
+            "itemStatus": "string",
+            "itemCount": "number"
+          }
+        ],
         "bidFee": "number"
       }
     ],
@@ -42,7 +48,12 @@
         "total": "number"
       }
     ],
-    "commissions": [],
+    "commissions": [
+      {
+        "type": "string",
+        "actual": "number"
+      }
+    ],
     "subsidies": [
       {
         "operationType": "string",

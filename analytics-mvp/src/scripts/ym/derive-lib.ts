@@ -640,6 +640,11 @@ export interface SvodMonth {
   // мерилом служат заказы, которые ЕЩЁ В ПУТИ: пока они есть, месяц продолжает набирать выручку.
   orders_period: number;     // оформлено всего в месяце, любой статус
   orders_inflight: number;   // из них ещё не доставлены и не отменены
+  // Недоставленные заказы месяца ПО АРТИКУЛАМ. В расчёт не входят ни одной строкой: свод считает
+  // только доставленное. Нужны, чтобы на экране было видно, чем месяц ещё дорастёт: сентябрь на
+  // 17.09 показывает 36 доставленных штук при 116 заказах в пути, и без этой колонки он читается
+  // как провал продаж, а не как незавершённый месяц.
+  inflight_rows: Array<{ d: string; sku: string; units: number; price: number }>;
   points_on_delivery: number;     // доля начисленных баллов, осевшая на строке доставки
   cogs_cov: number;               // доля выручки деньгами, закрытая себестоимостью
 }
@@ -811,7 +816,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   for (const r of rows) {
     const k = delivered.get(r.order); if (!k) continue;
     if (!months.has(k)) months.set(k, { business: r.business, ym: k.split("|")[1]!, orders: 0, rows: [],
-      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 });
+      overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0, orders_period: 0, orders_inflight: 0, inflight_rows: [], points_on_delivery: 0, cogs_cov: 0 });
     const os = orderSet.get(k) || new Set<string>(); os.add(r.order); orderSet.set(k, os);
     if (r.service) {
       // строка доставки: разносим по позициям заказа пропорционально начислениям
@@ -910,7 +915,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       m = { business: o.business, ym: o.d.slice(0, 7), orders: 0, rows: [], overhead_money: 0, overhead_points: 0,
         overhead: {}, overhead_pts: {}, overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false,
         ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0,
-        orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+        orders_period: 0, orders_inflight: 0, inflight_rows: [], points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
     const bag = o.points ? overheadPts : overheadMoney;
@@ -984,7 +989,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
         overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0,
         ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0,
-        orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+        orders_period: 0, orders_inflight: 0, inflight_rows: [], points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
     // Запоминаем реестровый итог ДО замещения: только так потом видно, что смена источника
@@ -1043,7 +1048,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
         overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0,
         overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false,
         ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0,
-        orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+        orders_period: 0, orders_inflight: 0, inflight_rows: [], points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
     const op = overheadPts.get(k) || {};
@@ -1075,7 +1080,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       const [business, ym] = k.split("|") as [string, string];
       m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {}, overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0, points_spent_report: 0, overhead_daily: {}, points_acc: 0, points_ded: 0,
         svc_months: [], orders_without_ledger: 0, svc_settled: false, ledger_outside: 0, ledger_outside_orders: 0,
-        ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0, orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+        ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0, missing_accrued: 0, missing_accrued_orders: 0, orders_period: 0, orders_inflight: 0, inflight_rows: [], points_on_delivery: 0, cogs_cov: 0 };
       months.set(k, m);
     }
     m.ledger_outside = r2(out.sum); m.ledger_outside_orders = out.orders.size;
@@ -1117,6 +1122,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   // как обычный, хотя половина заказов ещё в доставке.
   const periodOrders = new Map<string, Set<string>>();
   const inflightOrders = new Map<string, Set<string>>();
+  const inflightBySku = new Map<string, Array<{ d: string; sku: string; units: number; price: number }>>();
   const DONE = /^(DELIVERED|RETURNED|CANCELLED)/;
   for (const r of rows) {
     if (r.service || !r.created) continue;
@@ -1124,6 +1130,13 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     const set = periodOrders.get(k) || new Set<string>(); set.add(r.order); periodOrders.set(k, set);
     if (!DONE.test(String(r.status || ""))) {
       const f = inflightOrders.get(k) || new Set<string>(); f.add(r.order); inflightOrders.set(k, f);
+      // Те же заказы, но по артикулам и штукам. Штуки берём заказанные (count): доставленных у
+      // них по определению нет. Цену - как она стоит в заказе, это ещё не выручка, а ожидание.
+      const units = Number(r.count) || 0;
+      if (units > 0) {
+        const a = inflightBySku.get(k) || []; inflightBySku.set(k, a);
+        a.push({ d: String(r.created).slice(0, 10), sku: String(r.sku || ""), units, price: Number(r.price) || 0 });
+      }
     }
   }
   // Где отчёт по баллам есть, месячный итог приводим к нему: доли по позициям остаются нашими,
@@ -1147,6 +1160,15 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     m.orders = (orderSet.get(k) || new Set()).size;
     m.orders_period = (periodOrders.get(k) || new Set()).size;
     m.orders_inflight = (inflightOrders.get(k) || new Set()).size;
+    {
+      const agg = new Map<string, { d: string; sku: string; units: number; price: number }>();
+      for (const x of inflightBySku.get(k) || []) {
+        const kk = `${x.d}|${x.sku}`;
+        const a = agg.get(kk) || { d: x.d, sku: x.sku, units: 0, price: 0 };
+        a.units += x.units; a.price = r2(a.price + x.price); agg.set(kk, a);
+      }
+      m.inflight_rows = [...agg.values()].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
+    }
     m.svc_settled = [...(actMonths.get(m.business) || new Set<string>())].some((a) => a > m.ym && a < nowYm);
     m.orders_without_ledger = (noLedger.get(k) || new Set()).size;
     m.svc_months = [...(svcMonths.get(k) || new Set<string>())].sort();

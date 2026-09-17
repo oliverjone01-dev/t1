@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-17T11:15:35.248Z",
+  "generated_at": "2026-09-17T11:25:52.412Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-16",
   "split_check": {
@@ -228,6 +228,170 @@
       "missing_accrued_orders": 0,
       "orders_period": 40,
       "orders_inflight": 27,
+      "inflight_rows": [
+        {
+          "d": "2026-09-02",
+          "sku": "GGL-05-XL-2",
+          "units": 2,
+          "price": 95680
+        },
+        {
+          "d": "2026-09-02",
+          "sku": "GGM-26-1-2",
+          "units": 1,
+          "price": 65605
+        },
+        {
+          "d": "2026-09-05",
+          "sku": "GGL-05-XL-2",
+          "units": 1,
+          "price": 47840
+        },
+        {
+          "d": "2026-09-05",
+          "sku": "GGL-09-2",
+          "units": 1,
+          "price": 40537
+        },
+        {
+          "d": "2026-09-06",
+          "sku": "GGL-09-2",
+          "units": 1,
+          "price": 40498
+        },
+        {
+          "d": "2026-09-07",
+          "sku": "GGL-08-2",
+          "units": 1,
+          "price": 46240
+        },
+        {
+          "d": "2026-09-07",
+          "sku": "GGM-16-1-3",
+          "units": 1,
+          "price": 40697
+        },
+        {
+          "d": "2026-09-07",
+          "sku": "GGM-18-1-1",
+          "units": 1,
+          "price": 38240
+        },
+        {
+          "d": "2026-09-08",
+          "sku": "GGL-09-2",
+          "units": 1,
+          "price": 38957
+        },
+        {
+          "d": "2026-09-08",
+          "sku": "GGM-01-1",
+          "units": 1,
+          "price": 33638
+        },
+        {
+          "d": "2026-09-08",
+          "sku": "GGM-20-3",
+          "units": 1,
+          "price": 59154
+        },
+        {
+          "d": "2026-09-08",
+          "sku": "GGM-24-2",
+          "units": 1,
+          "price": 45139
+        },
+        {
+          "d": "2026-09-09",
+          "sku": "GGL-08-2",
+          "units": 1,
+          "price": 45697
+        },
+        {
+          "d": "2026-09-09",
+          "sku": "GGL-09-2",
+          "units": 1,
+          "price": 42168
+        },
+        {
+          "d": "2026-09-09",
+          "sku": "GGL-10",
+          "units": 1,
+          "price": 49593
+        },
+        {
+          "d": "2026-09-09",
+          "sku": "GGL-11",
+          "units": 1,
+          "price": 58101
+        },
+        {
+          "d": "2026-09-09",
+          "sku": "GGM-16-2-3",
+          "units": 1,
+          "price": 44900
+        },
+        {
+          "d": "2026-09-09",
+          "sku": "GGM-20-1",
+          "units": 1,
+          "price": 63900
+        },
+        {
+          "d": "2026-09-10",
+          "sku": "GGM-18-2-2",
+          "units": 1,
+          "price": 45900
+        },
+        {
+          "d": "2026-09-11",
+          "sku": "GGM-18-1-2-LED",
+          "units": 1,
+          "price": 65229
+        },
+        {
+          "d": "2026-09-12",
+          "sku": "GGM-20-1",
+          "units": 1,
+          "price": 68900
+        },
+        {
+          "d": "2026-09-13",
+          "sku": "GGL-02-M-2",
+          "units": 1,
+          "price": 33118
+        },
+        {
+          "d": "2026-09-13",
+          "sku": "GGM-18-2-1",
+          "units": 1,
+          "price": 43839
+        },
+        {
+          "d": "2026-09-14",
+          "sku": "GGM-01-1",
+          "units": 1,
+          "price": 40900
+        },
+        {
+          "d": "2026-09-14",
+          "sku": "GGM-18-2-2",
+          "units": 1,
+          "price": 50900
+        },
+        {
+          "d": "2026-09-15",
+          "sku": "GGL-02-M-2",
+          "units": 1,
+          "price": 33900
+        },
+        {
+          "d": "2026-09-16",
+          "sku": "GGM-18-3-2",
+          "units": 4,
+          "price": 50900
+        }
+      ],
       "points_on_delivery": 1797.57,
       "cogs_cov": 100
     },
@@ -2566,6 +2730,320 @@
       "missing_accrued_orders": 0,
       "orders_period": 113,
       "orders_inflight": 53,
+      "inflight_rows": [
+        {
+          "d": "2026-09-01",
+          "sku": "GGT-35-2-3-100-180",
+          "units": 1,
+          "price": 85474
+        },
+        {
+          "d": "2026-09-01",
+          "sku": "GGT-35-5-1-100-180",
+          "units": 1,
+          "price": 90220
+        },
+        {
+          "d": "2026-09-01",
+          "sku": "GGT-47-1-5-80",
+          "units": 1,
+          "price": 41011
+        },
+        {
+          "d": "2026-09-02",
+          "sku": "GGT-03-2-3-L-120",
+          "units": 1,
+          "price": 72418
+        },
+        {
+          "d": "2026-09-02",
+          "sku": "GGT-20-2-3-18090",
+          "units": 1,
+          "price": 68500
+        },
+        {
+          "d": "2026-09-02",
+          "sku": "GGT-35-1-3-100-180",
+          "units": 1,
+          "price": 91545
+        },
+        {
+          "d": "2026-09-02",
+          "sku": "GGT-47-3-3-90",
+          "units": 1,
+          "price": 49190
+        },
+        {
+          "d": "2026-09-02",
+          "sku": "GGT-47-3-5-80",
+          "units": 1,
+          "price": 46800
+        },
+        {
+          "d": "2026-09-03",
+          "sku": "GGR-10-2",
+          "units": 1,
+          "price": 23850
+        },
+        {
+          "d": "2026-09-03",
+          "sku": "GGT-03-1-2-M-100",
+          "units": 1,
+          "price": 62688
+        },
+        {
+          "d": "2026-09-03",
+          "sku": "GGT-03-1-2-S-60",
+          "units": 1,
+          "price": 33293
+        },
+        {
+          "d": "2026-09-03",
+          "sku": "GGT-03-3-2-M-120",
+          "units": 1,
+          "price": 68500
+        },
+        {
+          "d": "2026-09-04",
+          "sku": "GGT-03-2-4-E-16080",
+          "units": 1,
+          "price": 79615
+        },
+        {
+          "d": "2026-09-04",
+          "sku": "GGT-03-3-3-L-80",
+          "units": 1,
+          "price": 64700
+        },
+        {
+          "d": "2026-09-06",
+          "sku": "GGT-03-1-3-O-18090",
+          "units": 1,
+          "price": 88126
+        },
+        {
+          "d": "2026-09-06",
+          "sku": "GGT-03-1-5-L-100",
+          "units": 1,
+          "price": 72350
+        },
+        {
+          "d": "2026-09-06",
+          "sku": "GGT-03-3-3-L-120",
+          "units": 1,
+          "price": 76130
+        },
+        {
+          "d": "2026-09-07",
+          "sku": "GGT-03-2-1-L-120",
+          "units": 1,
+          "price": 76130
+        },
+        {
+          "d": "2026-09-07",
+          "sku": "GGT-03-3-1-O-18090",
+          "units": 1,
+          "price": 91400
+        },
+        {
+          "d": "2026-09-07",
+          "sku": "GGT-35-1-3-100-180",
+          "units": 1,
+          "price": 92568
+        },
+        {
+          "d": "2026-09-07",
+          "sku": "GGT-35-2-2-100-180",
+          "units": 1,
+          "price": 95650
+        },
+        {
+          "d": "2026-09-07",
+          "sku": "GGT-47-2-5-80",
+          "units": 1,
+          "price": 45441
+        },
+        {
+          "d": "2026-09-08",
+          "sku": "GGT-35-1-3-100-180",
+          "units": 1,
+          "price": 95650
+        },
+        {
+          "d": "2026-09-08",
+          "sku": "GGT-47-2-2-80",
+          "units": 1,
+          "price": 46800
+        },
+        {
+          "d": "2026-09-09",
+          "sku": "GGK-05-2-2-12040",
+          "units": 1,
+          "price": 30100
+        },
+        {
+          "d": "2026-09-09",
+          "sku": "GGS-01-1-1",
+          "units": 1,
+          "price": 17709
+        },
+        {
+          "d": "2026-09-09",
+          "sku": "GGT-12-3",
+          "units": 1,
+          "price": 26009
+        },
+        {
+          "d": "2026-09-10",
+          "sku": "GGT-03-1-5-E-16080",
+          "units": 1,
+          "price": 83770
+        },
+        {
+          "d": "2026-09-10",
+          "sku": "GGT-03-2-2-S-60",
+          "units": 1,
+          "price": 32453
+        },
+        {
+          "d": "2026-09-10",
+          "sku": "GGT-03-2-3-E-16080",
+          "units": 1,
+          "price": 83770
+        },
+        {
+          "d": "2026-09-10",
+          "sku": "GGT-03-2-5-E-14080",
+          "units": 1,
+          "price": 77247
+        },
+        {
+          "d": "2026-09-10",
+          "sku": "GGT-12-2",
+          "units": 1,
+          "price": 26476
+        },
+        {
+          "d": "2026-09-10",
+          "sku": "GGT-35-3-3-100-180",
+          "units": 1,
+          "price": 95650
+        },
+        {
+          "d": "2026-09-11",
+          "sku": "GGT-03-1-5-E-16080",
+          "units": 1,
+          "price": 85960
+        },
+        {
+          "d": "2026-09-11",
+          "sku": "GGT-03-2-5-L-90",
+          "units": 1,
+          "price": 69616
+        },
+        {
+          "d": "2026-09-11",
+          "sku": "GGT-03-2-5-O-18090-K",
+          "units": 1,
+          "price": 134900
+        },
+        {
+          "d": "2026-09-11",
+          "sku": "GGT-03-3-3-M-120",
+          "units": 1,
+          "price": 73900
+        },
+        {
+          "d": "2026-09-11",
+          "sku": "GGT-35-1-3-100-180",
+          "units": 2,
+          "price": 194564
+        },
+        {
+          "d": "2026-09-11",
+          "sku": "GGTP-20-2х2",
+          "units": 1,
+          "price": 35668
+        },
+        {
+          "d": "2026-09-12",
+          "sku": "GGT-03-2-2-L-90-12090",
+          "units": 1,
+          "price": 69608
+        },
+        {
+          "d": "2026-09-12",
+          "sku": "GGT-03-3-5-E-14080",
+          "units": 1,
+          "price": 82105
+        },
+        {
+          "d": "2026-09-13",
+          "sku": "GGT-03-2-2-L-90-12090",
+          "units": 2,
+          "price": 139098
+        },
+        {
+          "d": "2026-09-13",
+          "sku": "GGT-35-5-1-100-180",
+          "units": 1,
+          "price": 98900
+        },
+        {
+          "d": "2026-09-13",
+          "sku": "GGT-47-3-5-80",
+          "units": 1,
+          "price": 49900
+        },
+        {
+          "d": "2026-09-14",
+          "sku": "GGT-03-1-4-E-12080",
+          "units": 1,
+          "price": 81900
+        },
+        {
+          "d": "2026-09-14",
+          "sku": "GGT-03-2-3-E-14080",
+          "units": 1,
+          "price": 81857
+        },
+        {
+          "d": "2026-09-14",
+          "sku": "GGT-35-1-3-100-180",
+          "units": 1,
+          "price": 98900
+        },
+        {
+          "d": "2026-09-14",
+          "sku": "GGT-47-3-3-80",
+          "units": 1,
+          "price": 48464
+        },
+        {
+          "d": "2026-09-15",
+          "sku": "GGT-03-2-2-S-40",
+          "units": 1,
+          "price": 34754
+        },
+        {
+          "d": "2026-09-16",
+          "sku": "GGK-06-3-5-80",
+          "units": 1,
+          "price": 42301
+        },
+        {
+          "d": "2026-09-16",
+          "sku": "GGT-03-3-4-E-14080",
+          "units": 1,
+          "price": 82115
+        },
+        {
+          "d": "2026-09-16",
+          "sku": "GGT-35-5-1-100-180",
+          "units": 1,
+          "price": 98900
+        }
+      ],
       "points_on_delivery": 34276.2,
       "cogs_cov": 96.3
     },
@@ -7249,6 +7727,32 @@
       "missing_accrued_orders": 0,
       "orders_period": 125,
       "orders_inflight": 4,
+      "inflight_rows": [
+        {
+          "d": "2026-08-16",
+          "sku": "GGM-26-2-1",
+          "units": 1,
+          "price": 73970
+        },
+        {
+          "d": "2026-08-23",
+          "sku": "GGL-05-XL-slim-2",
+          "units": 1,
+          "price": 44640
+        },
+        {
+          "d": "2026-08-29",
+          "sku": "GGM-16-1-2",
+          "units": 1,
+          "price": 35772
+        },
+        {
+          "d": "2026-08-30",
+          "sku": "GGL-09-2",
+          "units": 1,
+          "price": 40335
+        }
+      ],
       "points_on_delivery": 55287.61,
       "cogs_cov": 100
     },
@@ -13019,6 +13523,14 @@
       "missing_accrued_orders": 0,
       "orders_period": 133,
       "orders_inflight": 1,
+      "inflight_rows": [
+        {
+          "d": "2026-08-06",
+          "sku": "GGP-01-2-I-200-100",
+          "units": 1,
+          "price": 52278
+        }
+      ],
       "points_on_delivery": 117670.07,
       "cogs_cov": 93.9
     },
@@ -18812,6 +19324,7 @@
       "missing_accrued_orders": 0,
       "orders_period": 138,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 43723.09,
       "cogs_cov": 91.8
     },
@@ -25769,6 +26282,7 @@
       "missing_accrued_orders": 0,
       "orders_period": 157,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 100154.48,
       "cogs_cov": 86.8
     },
@@ -27464,6 +27978,7 @@
       "missing_accrued_orders": 4,
       "orders_period": 34,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 7854.08,
       "cogs_cov": 97.3
     },
@@ -33004,6 +33519,7 @@
       "missing_accrued_orders": 0,
       "orders_period": 138,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 81037.37,
       "cogs_cov": 87.1
     },
@@ -33717,6 +34233,7 @@
       "missing_accrued_orders": 45,
       "orders_period": 8,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 2647.42,
       "cogs_cov": 100
     },
@@ -42123,6 +42640,7 @@
       "missing_accrued_orders": 0,
       "orders_period": 188,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 117604.28,
       "cogs_cov": 92.1
     },
@@ -43319,6 +43837,7 @@
       "missing_accrued_orders": 53,
       "orders_period": 18,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 7303.96,
       "cogs_cov": 88.2
     },
@@ -53294,6 +53813,7 @@
       "missing_accrued_orders": 0,
       "orders_period": 221,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 128473.77,
       "cogs_cov": 89.5
     },
@@ -53768,6 +54288,7 @@
       "missing_accrued_orders": 42,
       "orders_period": 1,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 0,
       "cogs_cov": 0
     },
@@ -61457,6 +61978,7 @@
       "missing_accrued_orders": 0,
       "orders_period": 193,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 55197.43,
       "cogs_cov": 92.3
     },
@@ -61843,6 +62365,7 @@
       "missing_accrued_orders": 61,
       "orders_period": 0,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 0,
       "cogs_cov": 0
     },
@@ -67504,6 +68027,20 @@
       "missing_accrued_orders": 5,
       "orders_period": 126,
       "orders_inflight": 1,
+      "inflight_rows": [
+        {
+          "d": "2026-02-20",
+          "sku": "GGK-02-2-2-80",
+          "units": 1,
+          "price": 31080
+        },
+        {
+          "d": "2026-02-20",
+          "sku": "GGK-06-2-2-80",
+          "units": 1,
+          "price": 34860
+        }
+      ],
       "points_on_delivery": 20877.48,
       "cogs_cov": 89.2
     },
@@ -67537,6 +68074,7 @@
       "missing_accrued_orders": 32,
       "orders_period": 0,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 0,
       "cogs_cov": 0
     },
@@ -67570,6 +68108,7 @@
       "missing_accrued_orders": 51,
       "orders_period": 0,
       "orders_inflight": 0,
+      "inflight_rows": [],
       "points_on_delivery": 0,
       "cogs_cov": 0
     }

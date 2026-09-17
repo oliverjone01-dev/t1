@@ -2066,6 +2066,15 @@ function svAgg(ms,w){
     o.un+=r.units_net||0;o.price+=r.price||0;o.ship+=r.ship_buyer||0;o.dmp+=r.disc_mp||0;o.rev+=r.revenue_money||0;
     o.pts+=r.points_accrued||0;o.sm+=r.svc_money||0;o.sp+=r.svc_points||0;o.cogs+=r.cogs||0;o.ck=o.ck&&r.cogs_known;
     SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
+  // Недоставленные заказы периода, по артикулам. В расчёт не идут ни одной строкой: свод считает
+  // только доставленное. Артикул, у которого доставок нет вовсе, заводится отдельной строкой с
+  // нулями - по сентябрю таких 51 из 61, и без них колонка «в пути» показывала бы меньшинство.
+  // ck=true у пустой строки нарочно: она не «без себестоимости», а «ещё не продана», и в счётчик
+  // «N без С\\С» у категории попадать не должна. Нули в расчёт ничего не вносят.
+  ms.forEach(function(m){(m.inflight_rows||[]).forEach(function(r){
+    if(!svInWin(r.d,w))return;
+    var o=a[r.sku]||(a[r.sku]={sku:r.sku,name:r.sku,un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:true,svc:{},fly:0,flyP:0,flyOnly:true});
+    o.fly=(o.fly||0)+(r.units||0); o.flyP=(o.flyP||0)+(r.price||0);});});
   return Object.keys(a).map(function(k){return a[k];}).sort(function(x,y){return y.rev-x.rev;});
 }
 // Общие расходы кабинета за окно: сумма деньгами/баллами И разбивка по статьям.
@@ -2176,6 +2185,19 @@ function svDraw(){
   SV_REC.forEach(function(x){gaps.push(x);});
   gapsEl.innerHTML=gaps.length?'<b>Чего не хватает:</b> '+gaps.join('; ')+'.':'';
   gapsEl.style.display=gaps.length?'':'none';
+  // Окно без ДОСТАВЛЕННЫХ заказов таблицей не рисуется, даже если в нём есть заказы в пути.
+  // Иначе вернулся бы дефект, который ФЕНИКС нашёл раньше: за 28.02 таблица пуста, а водопад
+  // заявлял «Чистая прибыль 147 464 ₽». Заказы в пути - это не продажи, это ожидание, и
+  // показывать их строками P&L нельзя. Сколько их - говорим текстом.
+  var soldRows=list.filter(function(x){return !x.flyOnly;}).length;
+  if(!soldRows){
+    document.getElementById('sv-t').innerHTML='';
+    var fu=0,fp=0; list.forEach(function(x){fu+=x.fly||0;fp+=x.flyP||0;});
+    cov.innerHTML='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.'
+      +(fu?' <span style="color:#E5B567">Заказано, но ещё не доставлено: '+fu+' шт на '+svRub(fp)+' ₽ - попадут в продажи этого периода, когда доедут.</span>':'');
+    noteEl.textContent='';
+    return;
+  }
   svTabPnl(list,ohM,ohP,noteEl);
   svSkuTable();
 }
@@ -2210,21 +2232,26 @@ function svCalcAll(list,ohM,ohP,adm,tax){
   // группировка по категориям
   var cats={};
   list.forEach(function(a){var c=SV_CAT[a.sku]||'Без категории';
-    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,ck:true,netCov:0,noCogs:0,svc:{}});
+    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,ck:true,netCov:0,noCogs:0,svc:{},fly:0,flyP:0});
     SV_COLS.forEach(function(p){g.svc[p[0]]=(g.svc[p[0]]||0)+(a.svc[p[0]]||0);});
-    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.priceNet+=a.priceNet||0;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;g.sp+=a.sp||0;
+    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.priceNet+=a.priceNet||0;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;g.sp+=a.sp||0;g.fly+=a.fly||0;g.flyP+=a.flyP||0;
     if(a.ck){g.cogs+=a.cogs;g.netCov+=calc(a).net;} else {g.ck=false;g.noCogs++;}});
   var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(x,y){return calc(y).net-calc(x).net;});
-  var T={un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,net:0,gp:0,adm:0,tax:0,np:0,cover:0,fee:0,oh:0},TC={};
+  var T={un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,net:0,gp:0,adm:0,tax:0,np:0,cover:0,fee:0,oh:0,fly:0,flyP:0},TC={};
   SV_COLS.forEach(function(p){TC[p[0]]=0;});
   groups.forEach(function(g){
     var c=calc(g);
     T.un+=g.un;T.price+=g.price;T.priceNet+=g.priceNet;T.ship+=g.ship;T.dmp+=g.dmp;T.rev+=g.rev;T.sp+=g.sp;
-    T.net+=c.net;T.adm+=c.adm;T.tax+=c.tax;T.fee+=c.fee;T.oh+=c.oh;
+    T.net+=c.net;T.adm+=c.adm;T.tax+=c.tax;T.fee+=c.fee;T.oh+=c.oh;T.fly+=g.fly||0;T.flyP+=g.flyP||0;
     SV_COLS.forEach(function(p){TC[p[0]]+=g.svc[p[0]]||0;});
     T.cogs+=g.cogs;if(c.gp!==null){T.gp+=c.gp;T.np+=c.np;}T.cover+=c.cov;});
   // Общие расходы уже сидят внутри net каждой строки, поэтому второй раз их не вычитаем.
-  return {calc:calc,groups:groups,T:T,TC:TC,ohPer:ohPer,gpT:T.gp,npT:T.np};
+  // Строки, у которых есть доставки. Окно без них - это «нет доставленных заказов», и водопад с
+  // планом обязаны молчать. Без этого счётчика добавление колонок «в пути» сделало бы пустое окно
+  // непустым и вернуло бы дефект, который ФЕНИКС нашёл раньше: за 28.02 таблица пуста, а водопад
+  // заявлял «Чистая прибыль 147 464 ₽».
+  var sold=0; list.forEach(function(a){if(!a.flyOnly)sold++;});
+  return {calc:calc,groups:groups,T:T,TC:TC,ohPer:ohPer,gpT:T.gp,npT:T.np,sold:sold};
 }
 // Итоги свода за ЛЮБОЕ окно - единая точка входа для водопада, плана и блока общих расходов.
 // Ставки АДМ/налогов берутся из тех же полей страницы, что и у таблицы, чтобы правка ставки
@@ -2302,7 +2329,7 @@ function svTotals(w){
     cogs:T.cogs, gp:R.gpT, adm:T.adm, tax:T.tax, np:R.npT,
     rent:(T.cover>0)?R.npT/T.cover*100:null,
     marg:(T.cover>0)?R.gpT/T.cover*100:null,
-    empty:R.groups.length===0
+    empty:R.sold===0
   };
 }
 function svTabPnl(list,ohM,ohP,noteEl){
@@ -2314,7 +2341,8 @@ function svTabPnl(list,ohM,ohP,noteEl){
   var H=['Категория / Артикул','Продажи','Доставка покупателя']
     .concat(FEE.slice(0,3)).concat(['Общие расходы']).concat(FEE.slice(3))
     .concat(['Баллы Маркета','Штуки','Поступление','Поступление на штуку','С\\С за штуку','С\\С произв.',
-             'Валовая прибыль','Маржа','АДМ','Налоги','Чистая прибыль','Рентаб.']);
+             'Валовая прибыль','Маржа','АДМ','Налоги','Чистая прибыль','Рентаб.',
+             'В пути, шт','В пути, ₽']);
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   var T=R.T,TC=R.TC;
   function svBase(c){return (c.gp===null||c.cov<=0||Math.round(c.cov)===Math.round(c.net))?'':' title="база: поступление по артикулам с известной С\\С, '+svRub(c.cov)+' ₽ из '+svRub(c.net)+' ₽"';}
@@ -2334,7 +2362,9 @@ function svTabPnl(list,ohM,ohP,noteEl){
       +'<td class="r"'+svBase(c)+'>'+((c.gp===null||c.cov<=0)?'—':(Math.round(c.gp/c.cov*1000)/10)+'%')+'</td>'
       +money(c.adm)+money(c.tax)
       +'<td class="r" style="color:'+(c.np===null?'var(--ink-3)':(c.np>=0?'var(--up)':'var(--dn)'))+'">'+(c.np===null?'не считается':svRub(c.np))+'</td>'
-      +'<td class="r"'+svBase(c)+'>'+((c.np===null||c.cov<=0)?'—':(Math.round(c.np/c.cov*1000)/10)+'%')+'</td>';
+      +'<td class="r"'+svBase(c)+'>'+((c.np===null||c.cov<=0)?'—':(Math.round(c.np/c.cov*1000)/10)+'%')+'</td>'
+      +'<td class="r" style="color:var(--ink-3)">'+(a.fly?a.fly:'—')+'</td>'
+      +'<td class="r" style="color:var(--ink-3)">'+(a.flyP?svRub(a.flyP):'—')+'</td>';
   }
   groups.forEach(function(g,gi){
     var c=calc(g), open=!!SV_OPEN[g.cat];
@@ -2360,7 +2390,9 @@ function svTabPnl(list,ohM,ohP,noteEl){
     +'<td class="r"'+svBase({gp:some?gpT:null,cov:T.cover,net:T.net})+'><b>'+mS(gpT)+'</b></td>'
     +'<td class="r"><b>'+svRub(T.adm)+'</b></td><td class="r"><b>'+svRub(T.tax)+'</b></td>'
     +'<td class="r"><b>'+(some?svRub(npT):'—')+'</b></td>'
-    +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net})+'><b>'+mS(npT)+'</b></td></tr></tfoot>';
+    +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net})+'><b>'+mS(npT)+'</b></td>'
+    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.fly?T.fly:'—')+'</b></td>'
+    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td></tr></tfoot>';
   var el=document.getElementById('sv-t');el.innerHTML=h;
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
     tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
@@ -2376,6 +2408,7 @@ function svTabPnl(list,ohM,ohP,noteEl){
     +'Услуги, оплаченные баллами, сверены с ним по номеру заказа и артикулу: по всем 1008 ключам кабинет+день+артикул расхождение ноль.<br>'
     +'<b>Общие расходы кабинета</b> ('+svRub(ohM+ohP)+' ₽) разнесены по артикулам ПО ШТУКАМ ('+(T.un>0?svRub(ohPer):'0')+' ₽ на штуку): к товару они не привязаны, но и прятать их из строки нельзя.<br>'
     +'<b>Валовая прибыль</b> = Поступление − С\\С. АДМ и Налоги считаются от Поступления, Чистая = Валовая − АДМ − Налоги, Маржа и Рентабельность - к Поступлению.<br>'
+    +'<b>«В пути»</b> - заказы периода, которые ещё не доставлены: штуки заказанные и цена по заказу. В расчёт НЕ входят ничем, свод считает только доставленное. Колонки справочные и показывают, чем месяц ещё дорастёт: заказ попадёт в продажи своего месяца задним числом, когда доедет, и вместе с ним придут его услуги и баллы - Маркет списывает их в день доставки.<br>'
     +'Итог по валовой прибыли, АДМ, налогам и чистой считается только по SKU с известной себестоимостью ('+(T.net>0?(Math.round(T.cover/T.net*1000)/10):0)+'% поступления) - наведите на процент, чтобы увидеть базу. Колонки DBS нет: собственный расход на доставку Partner API не отдаёт.';
 }
 function svInit(){

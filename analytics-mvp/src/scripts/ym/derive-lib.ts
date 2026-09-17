@@ -609,6 +609,8 @@ export interface SvodMonth {
   // Числа НЕ складываем (это был бы двойной счёт) - держим рядом и говорим о расхождении вслух.
   overhead_points_report: number;
   points_src: "orders" | "report"; // откуда взяты баллы: subsidies[] заказа или отчёт по баллам Маркета
+  svc_points_src?: "ledger" | "report";  // откуда взято СПИСАНИЕ баллов за услуги по заказам
+  svc_points_report?: number;            // сколько списано по отчёту (для сверки)
   points_report: number;           // начислено баллов по отчёту за этот месяц (для сверки с разнесённым)
   svc_months: string[];           // из каких месяцев реестра взяты услуги этих заказов
   orders_without_ledger: number;  // заказы периода, которых в реестре ещё нет
@@ -893,6 +895,20 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     else bonusRet.set(k, (bonusRet.get(k) || 0) - v);
   }
   for (const [k, v] of bonusBy) if (v <= 0) bonusBy.delete(k);   // ноль или минус за месяц - не масштабируем
+  // Вторая нога: сколько баллов Маркет ЗАБРАЛ за услуги по заказам. Начисление мы к отчёту уже
+  // приводили, а списание всё это время считалось нашей классификацией проводок реестра и было
+  // завышено: за июль по обоим кабинетам 4 861 651 против 4 060 473 в отчёте, то есть на
+  // 801 178 ₽. Отчёт при этом сходится сам с собой (начислено 4 070 093 − потрачено 4 060 473 =
+  // 9 620, строка «Премия, предоставленная Исполнителем»), значит верен он.
+  // Кабинетные строки (Полки, Буст за показы) сюда не идут: они уже ушли в общие расходы.
+  const bonusSpend = new Map<string, number>();
+  for (const r of bonus) {
+    if (bonusKind(r) !== "spend") continue;
+    if (!String((r as any).order || "").trim()) continue;   // без заказа - это общие расходы кабинета
+    const k = `${r.business}|${r.ym}`;
+    bonusSpend.set(k, r2((bonusSpend.get(k) || 0) - (Number(r.amount) || 0)));
+  }
+  for (const [k, v] of bonusSpend) if (v <= 0) bonusSpend.delete(k);
   // Списания баллов уровня кабинета: строки отчёта БЕЗ номера заказа с тратой (Полки, Буст за
   // показы). К заказу они не привязаны, поэтому в разнесение по позициям не идут - это общие
   // расходы, и увидеть их можно только здесь.
@@ -1075,6 +1091,23 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     // Результат с учётом баллов держится на points_accrued, поэтому пересчитываем его здесь же:
     // иначе в строке остался бы итог, посчитанный по старым, не кабинетным баллам.
     for (const r of m.rows) r.result_points = r2(r.revenue_money + r.points_accrued - r.svc_total);
+  }
+  // То же для списания: месячный итог услуг, оплаченных баллами, приводим к отчёту. Доли по
+  // позициям и по статьям остаются нашими, сумма за месяц становится кабинетной.
+  for (const [k, m] of months) {
+    const want = bonusSpend.get(k);
+    if (want == null) continue;
+    const have = m.rows.reduce((a, r) => a + r.svc_points, 0);
+    if (!(have > 0)) continue;
+    const f = want / have;
+    m.svc_points_src = "report"; m.svc_points_report = r2(want);
+    for (const r of m.rows) {
+      r.svc_points = r2(r.svc_points * f);
+      for (const col of Object.keys(r.svc_pts)) r.svc_pts[col] = r2((r.svc_pts[col] || 0) * f);
+      r.svc_total = r2(r.svc_money + r.svc_points);
+      r.result_money = r2(r.revenue_money - r.svc_money);
+      r.result_points = r2(r.revenue_money + r.points_accrued - r.svc_total);
+    }
   }
 
   for (const [k, m] of months) {

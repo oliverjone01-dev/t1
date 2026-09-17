@@ -342,6 +342,87 @@ describe("раскрытие баллов сходится с показанны
   });
 });
 
+// Вторая нога баллов: сколько Маркет ЗАБРАЛ баллами за услуги по заказам. Начисление к отчёту мы
+// привели ещё 2026-09-16, а списание всё это время оставалось нашей классификацией проводок
+// реестра и было завышено: июль по обоим кабинетам давал 4 861 651 против 4 060 473 в отчёте,
+// то есть на 801 178 руб. Отчёт при этом сходится сам с собой (начислено 4 070 093 минус
+// потрачено 4 060 473 = 9 620, строка «Премия, предоставленная Исполнителем»), значит верен он.
+describe("списание баллов на услуги тоже приводится к отчёту", () => {
+  const spend = (o: Record<string, unknown> = {}) => ({
+    ym: "2026-07", business: "1", amount: -600, type: "Списание",
+    src: "Скидка за участие в совместных акциях", order: "A", ...o,
+  });
+  const two = (bonus: any[]) => buildSvod(
+    [item({ order: "A", shop_order: "A" }), item({ order: "B", shop_order: "B", sku: "S2" })],
+    [net({ order: "A", type: "Списание", amount: -750 }), net({ order: "B", type: "Списание", amount: -250 })] as any,
+    {}, "2026-09-15", [], bonus as any,
+  )[0]!;
+
+  it("месячный итог равен отчёту, доли по позициям остаются пропорциональными", () => {
+    const m = two([spend({ amount: -600 })]);
+    expect(m.svc_points_src).toBe("report");
+    expect(Math.round(m.svc_points_report!)).toBe(600);
+    expect(Math.round(m.rows.reduce((a, r) => a + r.svc_points, 0))).toBe(600);
+    expect(Math.round(m.rows.find((r) => r.sku === "S1")!.svc_points)).toBe(450);  // 750 из 1000
+    expect(Math.round(m.rows.find((r) => r.sku === "S2")!.svc_points)).toBe(150);
+  });
+
+  it("сторно уменьшает списание, а не добавляет второе", () => {
+    const m = two([spend({ amount: -600 }), spend({ amount: 200, type: "Возврат списания", src: "Возврат скидки за участие в совместных акциях" })]);
+    expect(Math.round(m.rows.reduce((a, r) => a + r.svc_points, 0))).toBe(400);
+  });
+
+  it("итог строки и результат по баллам пересчитываются вместе с ногой, а не остаются старыми", () => {
+    const m = two([spend({ amount: -600 })]);
+    for (const r of m.rows) {
+      expect(r.svc_total).toBe(r2x(r.svc_money + r.svc_points));
+      expect(r.result_points).toBe(r2x(r.revenue_money + r.points_accrued - r.svc_total));
+    }
+  });
+
+  it("трата без номера заказа позиции не трогает - это общие расходы кабинета", () => {
+    // Полка и Буст за показы приходят строками без заказа. Разносить их по позициям нечем, и
+    // масштабировать ими ногу заказов - значит забрать у кабинета его же расход.
+    const m = two([spend({ order: "", amount: -600, service: "Полка" })]);
+    expect(m.svc_points_src).toBeUndefined();
+    expect(Math.round(m.rows.reduce((a, r) => a + r.svc_points, 0))).toBe(1000);
+  });
+
+  it("без отчёта нога остаётся реестровой и месяц это не помечает", () => {
+    const m = two([]);
+    expect(m.svc_points_src).toBeUndefined();
+    expect(Math.round(m.rows.reduce((a, r) => a + r.svc_points, 0))).toBe(1000);
+  });
+
+  it("на живых данных: по каждой паре кабинет/месяц услуги баллами равны отчёту", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const bad: string[] = [];
+    let checked = 0;
+    for (const m of svod.months) {
+      if (m.svc_points_src !== "report" || !m.rows.length) continue;
+      checked++;
+      const shown = m.rows.reduce((a: number, r: any) => a + (r.svc_points || 0), 0);
+      // Остаток - округление копеек по строкам (на живом снимке максимум 6 копеек за месяц).
+      if (Math.abs(shown - m.svc_points_report) > 1) {
+        bad.push(`${m.business}/${m.ym}: ${Math.round(shown)} против отчёта ${Math.round(m.svc_points_report)}`);
+      }
+    }
+    expect(checked, "ни одного месяца по отчёту - проверять нечего").toBeGreaterThan(5);
+    expect(bad).toEqual([]);
+  });
+
+  // Сверка с выгрузкой Ивана из кабинета зеркал за июль: начислено 1 748 465, списано столько же,
+  // остаток 0. Обе ноги списания вместе обязаны дать ровно начисление.
+  it("июль по кабинету зеркал: услуги плюс расходы кабинета = начисленным баллам", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const m = svod.months.find((x: any) => x.ym === "2026-07" && x.business === "1023124");
+    expect(m, "месяца нет в своде").toBeTruthy();
+    expect(Math.round(m.svc_points_report)).toBe(1747178);
+    expect(Math.round(m.overhead_points)).toBe(1287);
+    expect(Math.round(m.svc_points_report + m.overhead_points)).toBe(1748465);
+  });
+});
+
 // Отчёт по баллам Маркета. Живой агрегат за июль 2026 по кабинету зеркал, выгруженный Иваном из
 // кабинета (Финансы -> Финансовые отчёты -> По платежам -> «О баллах Маркета»). В API это тот же
 // reports/united-netting/generate с телом monthOfYear - отдельного метода нет, и пять имён, которые

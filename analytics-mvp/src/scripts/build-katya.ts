@@ -1771,10 +1771,14 @@ function paint(p,src){
       var uncov=(t.T.net-t.T.cover);   // поступление артикулов без известной С\С
       wfSteps=[['Продажи (за вычетом возвратов)',t.T.priceNet,'#22D3EE','Продажи']];
       if(Math.round(t.T.ship))wfSteps.push(['Доставка покупателя',t.T.ship,'#22D3EE','Доставка покуп.']);
-      Object.keys(t.TC).map(function(k){return [k,t.TC[k]];}).filter(function(x){return x[1];})
-        .sort(function(a,b){return b[1]-a[1];})
-        .forEach(function(x){wfSteps.push([x[0],-x[1],'#FF5A5F']);});
-      if(Math.round(t.ohTot))wfSteps.push(['Общие расходы кабинета',-t.ohTot,'#FF5A5F','Общие расх.']);
+      var feeParts=Object.keys(t.TC).map(function(k){return [k,t.TC[k]];}).filter(function(x){return x[1];})
+        .sort(function(a,b){return b[1]-a[1];});
+      var feeSum=feeParts.reduce(function(a,x){return a+x[1];},0)+(t.ohTot||0);
+      if(Math.round(feeSum)){
+        var tip='Расходы Маркета: '+feeParts.map(function(x){return x[0]+' '+svRub(x[1]);}).join(', ')
+          +(Math.round(t.ohTot)?', расходы кабинета '+svRub(t.ohTot):'');
+        wfSteps.push([tip,-feeSum,'#FF5A5F','Расходы Маркета']);
+      }
       if(Math.round(t.T.sp))wfSteps.push(['Баллы Маркета (услуги, оплаченные баллами)',-t.T.sp,'#FF5A5F','Баллы']);
       wfSteps.push(['Поступление по артикулам',t.T.net,'#34D399','Поступление']);
       if(Math.round(uncov))wfSteps.push(['Поступление артикулов без известной С\\С (дальше не считается)',-uncov,'#8AA0B0','без С\\С']);

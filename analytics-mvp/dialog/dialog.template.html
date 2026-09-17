@@ -158,7 +158,7 @@ input#q{min-width:220px}
    Высота = остаток экрана под заголовком и фильтрами (offset правится под реальную высоту). */
 .scrollx{overflow:auto;-webkit-overflow-scrolling:touch;max-height:calc(100vh - 205px)}
 .t1>tbody>tr:first-child>th{position:sticky;top:0;z-index:6;background:var(--card)}
-.t1{min-width:0;width:auto}
+.t1{min-width:0;width:100%}
 .t1 th,.t2 th,.t3 th{font-size:9px;padding:5px 5px;white-space:nowrap}
 /* Только СВОИ строки: таблицы сделок и переписки лежат внутри ячеек таблицы менеджеров,
    и потомковый селектор .t1 td навязывал им nowrap - из-за этого текст сообщения шёл

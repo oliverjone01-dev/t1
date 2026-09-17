@@ -314,8 +314,14 @@ input#q{min-width:220px}
 .thd{font-size:9.5px;font-weight:700;white-space:nowrap}
 .tgoal{font-size:10.5px;color:#2E9E74;font-weight:700;white-space:nowrap}
 /* «Полнота» вертикально, чтобы освободить место градуснику */
-.t1 td .cwrap{flex-direction:column;align-items:flex-start;gap:1px}
-.t1 td .cwrap .cchip{font-size:9.5px}
+/* Вертикальные колонки (полнота, коммуникации): экономят ширину, убирают гориз. скролл.
+   ВАЖНО: .cwrap и .cgrid по умолчанию inline-grid, поэтому flex-direction без display:flex не
+   работает - переопределяем display. */
+.cvert{display:flex !important;flex-direction:column;align-items:flex-start;gap:1px}
+.cvert .cchip{font-size:9.5px;padding:0 3px}
+.cgridv{display:flex !important;flex-direction:column;gap:1px}
+.cgridv .cgc,.cgridv .cch0{justify-content:flex-start}
+.cgridv b{min-width:30px}
 .sysw{color:var(--ink-4);font-size:10.5px}
 .mixchip{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap;margin:0 2px 2px 0}
 .mixchip[data-mixcat]{cursor:pointer}
@@ -834,7 +840,7 @@ function renderTree(){
     const cells=COMM_TYPES.map(c=>{ const v=t[c.k]||0; const on=aiPickActive('cm',mgr,c.k);
       if(!v) return `<span class="cch0"><b>0</b><i>${c.s}</i></span>`;
       return `<span class="cchip cgc${on?' con':''}" data-comm="${c.k}" style="color:${c.col}" data-tip="<span class='tdot' style='background:${c.col}'></span>${esc(c.t)}: <b>${v}</b> · клик - сделки с этим каналом"><b>${v}</b><i>${c.s}</i></span>`; }).join('');
-    return `<div class="cgrid">${cells}</div>`; };
+    return `<div class="cgrid cgridv">${cells}</div>`; };
   // Полнота коммуникаций сделки: доля коммуникационных событий (сообщения, звонки, письма)
   // от всех событий сделки (плюс системные - дела, задачи, комментарии). Показывает, ведёт ли
   // менеджер общение в CRM или пайплайн держится на системных инструментах.
@@ -845,7 +851,7 @@ function renderTree(){
     {k:'empty',ic:'🔴',t:'скудные',col:'#E08585',why:'коммуникации - меньше 30% или совсем пусто, пайплайн держится на системных делах/задачах/комментариях'}];
   const complCell=(mgr)=>{ const ds=byM[mgr]||[]; if(!ds.length) return '<span class="na2">-</span>';
     const c={full:0,partial:0,empty:0}; for(const d of ds) c[complOf(d)]++;
-    return `<div class="cwrap">`+COMPL.map(x=>{ const on=aiPickActive('cl',mgr,x.k); const pct=Math.round(c[x.k]/ds.length*100);
+    return `<div class="cwrap cvert">`+COMPL.map(x=>{ const on=aiPickActive('cl',mgr,x.k); const pct=Math.round(c[x.k]/ds.length*100);
       return `<span class="cchip${on?' con':''}" data-compl="${x.k}" style="color:${x.col}" data-tip="<span class='tdot' style='background:${x.col}'></span>${esc(x.t)}: <b>${c[x.k]}</b> из ${ds.length} (${pct}%) - ${esc(x.why)}. Клик - показать и отфильтровать эти сделки.">${x.ic}${pct}%</span>`; }).join('')+`</div>`; };
   // --- ГРАДУСНИК: цвет по температуре, термометр сделки, распределение по менеджеру/отделу ---
   const TEMPCOL=(t)=> t>=80?'#E5484D':t>=50?'#F76808':t>=25?'#E2A336':'#5B8DEF';

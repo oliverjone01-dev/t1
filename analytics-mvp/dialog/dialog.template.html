@@ -288,10 +288,13 @@ input#q{min-width:220px}
    ссылки и склеенные слова переносятся внутри своей колонки. */
 /* Фиксируем раскладку: длинное письмо не раздувает таблицу за правую границу панели. */
 .t3{table-layout:fixed;width:100%;max-width:100%}
-.t3 th:nth-child(1),.t3 td:nth-child(1){width:78px}
-.t3 th:nth-child(2),.t3 td:nth-child(2){width:124px}
-.t3 th:nth-child(3),.t3 td:nth-child(3){width:136px}
-.t3 th:nth-child(5),.t3 td:nth-child(5){width:224px;border-left:1px solid var(--line);padding-left:10px}
+/* Доли колонок: «Сообщение» намеренно самая широкая (текст переписки - главное),
+   служебные колонки узкие, «Разметка» компактная (сейчас там короткие теги). */
+.t3 th:nth-child(1),.t3 td:nth-child(1){width:8%}
+.t3 th:nth-child(2),.t3 td:nth-child(2){width:11%}
+.t3 th:nth-child(3),.t3 td:nth-child(3){width:11%}
+.t3 th:nth-child(4),.t3 td:nth-child(4){width:54%}
+.t3 th:nth-child(5),.t3 td:nth-child(5){width:16%;border-left:1px solid var(--line);padding-left:10px}
 .t3 td.ebody{padding-right:16px;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
 .t3 td{white-space:normal}
 .t3 td:nth-child(1){white-space:nowrap}

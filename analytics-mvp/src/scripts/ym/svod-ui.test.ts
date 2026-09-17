@@ -45,7 +45,6 @@ const foot = () => [...T().querySelectorAll("tfoot tr:last-child td")].map((x) =
 const cell = (c: string) => foot()[head().indexOf(c)];
 const catRow = (i: number) => T().querySelector(`tbody tr.sv-cat[data-cat="${i}"]`) as any;
 const click = (el: any) => el.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-const setLay = (v: string) => { const e = D().getElementById("sv-lay") as any; e.value = v; e.onchange(); };
 // Период задаётся тем же способом, что и человеком: панель «Свой» наверху страницы.
 const setRange = (from: string, to: string) => {
   (D().getElementById("range-from") as any).value = from;
@@ -65,9 +64,9 @@ describe("свод Маркета: числа на странице", () => {
 
   it("период берётся из верхнего фильтра: смена периода меняет числа", () => {
     setRange("2026-07-01", "2026-07-31");
-    const jul = num(cell("Выручка деньгами"));
+    const jul = num(cell("Продажи"));
     setRange("2026-08-01", "2026-08-31");
-    const aug = num(cell("Выручка деньгами"));
+    const aug = num(cell("Продажи"));
     expect(jul).toBeGreaterThan(0);
     expect(aug).toBeGreaterThan(0);
     expect(jul).not.toBe(aug);
@@ -81,21 +80,42 @@ describe("свод Маркета: числа на странице", () => {
   //   2026-09-17: баллы за Полку и Буст за показы заведены в общие расходы кабинета (решение
   //     Ивана). Источник балльной ноги - отчёт о баллах, не акт. За июль это +8 830 ₽ расходов
   //     (65 157 -> 73 987), и ровно на столько же упали те же три строки.
+  //   2026-09-17, вечер: таблица переведена на раскладку Ивана из его файла «свод июль». База
+  //     сменилась с «выручка деньгами − услуги деньгами» на «прайс за вычетом возвратов плюс
+  //     доставка покупателя минус ВСЕ услуги, включая оплаченные баллами и общие расходы».
+  //     Это другой вопрос, а не пересчёт прежнего: скидку Маркета он считает доходом, потому что
+  //     Маркет возвращает её баллами, и тут же вычитает услуги, закрытые этими баллами.
   it("июль воспроизводит выверенные числа до рубля", () => {
     setRange("2026-07-01", "2026-07-31");
     expect(num(cell("Штуки"))).toBe(205);
-    expect(num(cell("Выручка деньгами"))).toBe(5067076);
-    expect(num(cell("Поступление"))).toBe(4041006);
-    expect(num(cell("Валовая прибыль (деньги)"))).toBe(1666180);
-    expect(num(cell("Чистая прибыль"))).toBe(27300);
+    expect(num(cell("Продажи"))).toBe(9538224);
+    expect(num(cell("Доставка покупателя"))).toBe(323199);
+    expect(num(cell("Баллы Маркета"))).toBe(4861651);
+    expect(num(cell("Общие расходы"))).toBe(73987);
+    expect(num(cell("Поступление"))).toBe(3973702);
+    expect(num(cell("Валовая прибыль"))).toBe(1605056);
+    expect(num(cell("Чистая прибыль"))).toBe(26976);
+  });
+
+  // Тождество раскладки: Поступление = Продажи + Доставка − все сборы. Считается по видимым
+  // колонкам, поэтому пользователь может проверить строку сложением того, что перед ним.
+  it("поступление получается сложением видимых колонок", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const FEE = ["Размещение", "Программа лояльности и отзывы", "Продвижение", "Общие расходы",
+      "Доставка", "Приём платежа покупателя", "Перевод платежа покупателя", "Подписка",
+      "Обработка, хранение, прочее", "Баллы Маркета"];
+    const fee = FEE.reduce((a, n) => a + (num(cell(n)) || 0), 0);
+    const want = (num(cell("Продажи")) || 0) + (num(cell("Доставка покупателя")) || 0) - fee;
+    expect(Math.abs(want - (num(cell("Поступление")) || 0))).toBeLessThan(2);
   });
 
   // Причина того сдвига, закреплённая отдельно: если акт снова перестанет доезжать и расходы
   // откатятся к реестру, числа выше молча вернутся к прежним, а этот тест назовёт причину.
   it("общие расходы июля берутся из акта, а не из отчёта о платежах", () => {
     setRange("2026-07-01", "2026-07-31");
-    const ohRow = [...T().querySelectorAll("tfoot tr:first-child td")];
-    expect(num(ohRow[head().indexOf("Поступление")]?.textContent)).toBe(-73987);
+    // Отдельной строки подвала у общих расходов больше нет: в раскладке Ивана это КОЛОНКА,
+    // разнесённая по артикулам по штукам, поэтому её видно в каждой строке, а не только в итоге.
+    expect(num(cell("Общие расходы"))).toBe(73987);
     // Полки, подписки и буст за показы есть только в акте: в отчёте о платежах по этой паре
     // стояли 17 286 ₽ одной строкой «Оплата услуг Маркета».
     expect(D().getElementById("sv-gaps")!.textContent || "")
@@ -107,7 +127,7 @@ describe("свод Маркета: числа на странице", () => {
     let checked = 0;
     for (const m of MONTHS) {
       setRange(`${m}-01`, monthEnd(m));
-      const iGP = head().indexOf("Валовая прибыль (деньги)"), iNP = head().indexOf("Чистая прибыль");
+      const iGP = head().indexOf("Валовая прибыль"), iNP = head().indexOf("Чистая прибыль");
       const n = T().querySelectorAll("tbody tr.sv-cat").length;
       for (let i = 0; i < n; i++) {
         const c = catRow(i);
@@ -146,7 +166,7 @@ describe("свод Маркета: числа на странице", () => {
     const bad: string[] = [];
     for (const m of MONTHS) {
       setRange(`${m}-01`, monthEnd(m));
-      const iGP = head().indexOf("Валовая прибыль (деньги)"), iU = head().indexOf("Штуки");
+      const iGP = head().indexOf("Валовая прибыль"), iU = head().indexOf("Штуки");
       const n = T().querySelectorAll("tbody tr.sv-cat").length;
       for (let i = 0; i < n; i++) click(catRow(i));
       for (const r of [...T().querySelectorAll("tbody tr")]) {
@@ -158,14 +178,21 @@ describe("свод Маркета: числа на странице", () => {
     expect(bad).toEqual([]);
   }, 90_000);
 
-  it("база поступления - выручка деньгами, из неё возвраты уже вычтены", () => {
+  // «Продажи» - это прайс, из которого снята доля вернувшихся штук. Иначе полностью возвращённый
+  // артикул стоял бы с продажами при нуле проданных штук: за июль это были GGR-11-4 на 24 897 ₽ и
+  // GGT-03-3-5-E-12080 на 71 820 ₽. Иван поймал ровно это, сверяя свой файл с дашбордом.
+  it("продажи считаются за вычетом возвратов, а не по прайсу целиком", () => {
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
     setRange("2026-07-01", "2026-07-31");
-    const want = svod.months.filter((m: any) => m.ym === "2026-07")
-      .flatMap((m: any) => m.rows).reduce((a: number, r: any) => a + (r.revenue_money || 0), 0);
-    expect(Math.abs((num(cell("Выручка деньгами")) || 0) - want)).toBeLessThan(2);
-    // Цена продажи возвраты не учитывает и базой быть не может: разница за июль - 109 809 ₽.
-    expect(num(cell("Продажи"))).toBeGreaterThan(num(cell("Выручка деньгами"))!);
+    const rows = svod.months.filter((m: any) => m.ym === "2026-07").flatMap((m: any) => m.rows);
+    const gross = rows.reduce((a: number, r: any) => a + (r.price || 0), 0);
+    const net = rows.reduce((a: number, r: any) => {
+      const d = r.units_delivered || 0, n = r.units_net || 0;
+      return a + (d > 0 ? (r.price || 0) * n / d : (r.price || 0));
+    }, 0);
+    expect(Math.abs((num(cell("Продажи")) || 0) - net)).toBeLessThan(2);
+    expect(gross - net, "возвратов в июле не нашлось - проверять нечего").toBeGreaterThan(50000);
+    expect(num(cell("Продажи"))).toBeLessThan(gross);
   });
 
   it("период без заказов не называется убытком: таблицы нет, есть внятное сообщение", () => {
@@ -242,8 +269,8 @@ describe("свод Маркета: числа на странице", () => {
       if (w.curFrom !== `${m}-01` || w.curTo !== monthEnd(m)) continue;
       compared++;
       const pairs: Array<[string, string]> = [
-        ["Реализация", "Штуки"], ["Выручка деньгами", "Выручка деньгами"],
-        ["Валовая прибыль", "Валовая прибыль (деньги)"], ["Чистая прибыль", "Чистая прибыль"],
+        ["Реализация", "Штуки"],
+        ["Валовая прибыль", "Валовая прибыль"], ["Чистая прибыль", "Чистая прибыль"],
       ];
       for (const [pl, tb] of pairs) {
         const a = planFact(pl), b = num(cell(tb));
@@ -327,9 +354,8 @@ describe("свод Маркета: числа на странице", () => {
     for (const [from, to, lab] of WF_PERIODS) {
       setRange(from, to);
       const tot = rows().find((r) => (r.textContent || "").startsWith("Всего"));
-      // строка свода «Общие расходы кабинета» - первая в подвале
-      const ohCell = [...T().querySelectorAll("tfoot tr:first-child td")][head().indexOf("Поступление")];
-      const svodOh = Math.abs(num(ohCell?.textContent) || 0);
+      // в раскладке Ивана общие расходы - КОЛОНКА свода, а не отдельная строка подвала
+      const svodOh = Math.abs(num(cell("Общие расходы")) || 0);
       const blockOh = tot ? Math.abs(num([...tot.children].pop()!.textContent) || 0) : 0;
       if (Math.abs(blockOh - svodOh) > 1) bad.push(`${lab}: блок ${blockOh} против свода ${svodOh}`);
       // Деньгами + Баллами обязаны дать «Всего»: иначе часть расходов не видна ни в одной строке.
@@ -380,13 +406,11 @@ describe("свод Маркета: числа на странице", () => {
   // ФЕНИКС, gap 2: страница отрицала отчёт по баллам, считая по нему.
   it("страница не отрицает отчёт по баллам, когда считает по нему", () => {
     setRange("2026-07-01", "2026-07-31");
-    setLay("pts");
     const note = D().getElementById("sv-note")!.textContent || "";
     expect(note, "устаревшее утверждение осталось").not.toContain("отдельного отчёта по баллам у Маркета нет");
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
     const byReport = svod.months.filter((m: any) => m.points_src === "report").length;
     if (byReport > 0) expect(note).toContain("отчёт по баллам Маркета");
-    setLay("pnl");
   });
 
   // Решение Ивана 2026-09-17: «верни таблицу но мне не нужна разбивка озон, мне нужна разбивка
@@ -447,13 +471,20 @@ describe("свод Маркета: числа на странице", () => {
       .not.toContain("katya-reakciya.html");
   });
 
-  it("две раскладки называют валовую прибыль по-разному - базы у них разные", () => {
+  // Раскладка теперь одна - из файла Ивана, поэтому переключателя нет. Порядок колонок пиннем:
+  // он не декоративный, Иван читает таблицу слева направо и сверяет со своим файлом.
+  it("колонки стоят в порядке файла Ивана, переключателя раскладок нет", () => {
     setRange("2026-07-01", "2026-07-31");
-    expect(head()).toContain("Валовая прибыль (деньги)");
-    setLay("pts");
-    expect(head()).toContain("Валовая прибыль (деньги + баллы)");
-    expect(head()).not.toContain("Валовая прибыль (деньги)");
-    setLay("pnl");
+    expect(D().getElementById("sv-lay"), "переключатель раскладок остался").toBeNull();
+    const h = head();
+    const want = ["Категория / Артикул", "Продажи", "Доставка покупателя", "Размещение",
+      "Программа лояльности и отзывы", "Продвижение", "Общие расходы", "Доставка",
+      "Приём платежа покупателя", "Перевод платежа покупателя"];
+    expect(h.slice(0, want.length)).toEqual(want);
+    // Хвост: баллы, штуки, поступление, себестоимость, прибыль - тоже в его порядке.
+    const tail = ["Баллы Маркета", "Штуки", "Поступление", "Поступление на штуку", "СС за штуку",
+      "СС произв.", "Валовая прибыль", "Маржа", "АДМ", "Налоги", "Чистая прибыль", "Рентаб."];
+    expect(h.slice(-tail.length)).toEqual(tail);
     expect(errs).toEqual([]);
   });
 
@@ -462,13 +493,11 @@ describe("свод Маркета: числа на странице", () => {
   // оба числа вслух, иначе их снова сравнят между собой.
   it("страница называет оба среза баллов: по заказам месяца и по списанию кабинета", () => {
     setRange("2026-07-01", "2026-07-31");
-    setLay("pts");
     const note = D().getElementById("sv-note")!.textContent || "";
     expect(note).toContain("МЕСЯЦУ ЗАКАЗА");
     const clean = note.replace(/\u00a0|\s/g, "");
     expect(clean, "нет числа услуг по заказам июля").toContain("4861651");
     expect(clean, "нет числа списания кабинета за июль").toContain("4044135");
-    setLay("pnl");
     expect(errs).toEqual([]);
   });
 

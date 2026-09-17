@@ -1457,8 +1457,6 @@ function render(cur,cmp){
   const svodSection = IS_OZON ? "" : `
   <section class="card"><div class="card-h"><div><div class="card-title">Свод по дате заказа</div><div class="card-sub">доставлено минус отмены и возвраты &middot; все кабинеты &middot; период берётся из фильтра наверху страницы, по дате оформления заказа</div></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <select id="sv-lay" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit">
-        <option value="pnl">P&amp;L по деньгам</option><option value="pts">Деньги и баллы раздельно</option></select>
       <span id="sv-rates"><label style="color:var(--ink-2);font-size:12.5px">АДМ % <input id="sv-adm" type="number" value="30" min="0" max="100" style="width:54px;background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;font:inherit"></label>
       <label style="color:var(--ink-2);font-size:12.5px;margin-left:8px">Налоги % <input id="sv-tax" type="number" value="15" min="0" max="100" style="width:54px;background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;font:inherit"></label></span>
     </div></div>
@@ -1539,15 +1537,20 @@ function paint(p,src){
   if(!${IS_OZON}){
     var t=svTotals({from:p.dateFrom,to:p.dateTo});
     if(t&&!t.empty){
+      // Цепочка повторяет колонки таблицы слева направо, в том же порядке и теми же числами:
+      // Продажи + Доставка покупателя − статьи − общие расходы − баллы = Поступление, дальше мост
+      // на покрытую С\С базу, себестоимость, АДМ с налогами и чистая. Ни одного своего расчёта.
       var uncov=(t.T.net-t.T.cover);   // поступление артикулов без известной С\С
-      wfSteps=[['Выручка деньгами',t.rev,'#22D3EE','Выручка']];
+      wfSteps=[['Продажи (за вычетом возвратов)',t.T.priceNet,'#22D3EE','Продажи']];
+      if(Math.round(t.T.ship))wfSteps.push(['Доставка покупателя',t.T.ship,'#22D3EE','Доставка покуп.']);
       Object.keys(t.TC).map(function(k){return [k,t.TC[k]];}).filter(function(x){return x[1];})
         .sort(function(a,b){return b[1]-a[1];})
         .forEach(function(x){wfSteps.push([x[0],-x[1],'#FF5A5F']);});
+      if(Math.round(t.ohTot))wfSteps.push(['Общие расходы кабинета',-t.ohTot,'#FF5A5F','Общие расх.']);
+      if(Math.round(t.T.sp))wfSteps.push(['Баллы Маркета (услуги, оплаченные баллами)',-t.T.sp,'#FF5A5F','Баллы']);
       wfSteps.push(['Поступление по артикулам',t.T.net,'#34D399','Поступление']);
       if(Math.round(uncov))wfSteps.push(['Поступление артикулов без известной С\\С (дальше не считается)',-uncov,'#8AA0B0','без С\\С']);
       wfSteps.push(['СС произв.',-t.cogs,'#F59E0B','СС'],['АДМ+Налоги',-(t.adm+t.tax),'#F59E0B','АДМ+Налоги']);
-      if(Math.round(t.ohTot))wfSteps.push(['Общие расходы кабинета',-t.ohTot,'#FF5A5F','Общие расх.']);
       wfSteps.push(['Чистая прибыль',t.np,t.np>=0?'#34D399':'#FF5A5F','Чистая']);
     }
   }
@@ -2015,13 +2018,17 @@ function svodJs(svod: any): string {
     cat[r.sku] = taxOf(r.sku).category || autoTax(r.name || "").category || "Без категории";
   }
   const COLS: Array<[string, string[]]> = [
+    // Порядок и состав - как в файле Ивана «свод июль». Штрафы он складывает в «Размещение», и
+    // здесь так же. «Подписка» и «Обработка, хранение, прочее» в его файле колонок не имеют
+    // (по позициям там нули: это расходы уровня кабинета), но оставлены, чтобы сумма статей
+    // сходилась с денежной ногой услуг без остатка.
     ["Размещение", ["Размещение (комиссия)", "Штрафы (не вовремя)"]],
     ["Программа лояльности и отзывы", ["Программа лояльности и отзывы"]],
     ["Продвижение", ["Буст продаж", "Полка", "Товарные баннеры"]],
-    ["Подписка", ["Подписка"]],
     ["Доставка", ["Доставка покупателю", "Доставка (средняя миля)", "Доставка невыкупов и возвратов"]],
     ["Приём платежа покупателя", ["Приём платежа покупателя"]],
     ["Перевод платежа покупателя", ["Перевод платежа покупателя"]],
+    ["Подписка", ["Подписка"]],
     ["Обработка, хранение, прочее", ["Обработка в СЦ/ПВЗ", "Хранение", "Прочие услуги"]],
   ];
   return `
@@ -2047,9 +2054,15 @@ function svInWin(d,w){w=w||svWin();return d>=w.from&&d<=w.to;}
 function svAgg(ms,w){
   w=w||svWin();
   var a={};ms.forEach(function(m){m.rows.forEach(function(r){if(!svInWin(r.d,w))return;var k=r.sku,o=a[k];
-    if(!o){o=a[k]={sku:r.sku,name:r.name,un:0,price:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:r.cogs_known,svc:{}};}
+    if(!o){o=a[k]={sku:r.sku,name:r.name,un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:r.cogs_known,svc:{}};}
     // ||0 обязателен: в страницу уходит компактная копия свода, где нулевые поля просто не
     // записаны. Без защиты первая же строка с нулевыми штуками давала NaN во всём итоге.
+    // «Продажи» с вычетом возвратов. Прайс строки относится ко ВСЕМ доставленным штукам, поэтому
+    // вернувшуюся долю снимаем пропорционально: у полностью возвращённого артикула остаётся ноль,
+    // как и у штук с выручкой. Раньше колонка показывала прайс целиком, и два полностью
+    // возвращённых артикула июля стояли с продажами 71 820 и 24 897 при нуле проданных штук.
+    var _d=r.units_delivered||0,_n=r.units_net||0;
+    o.priceNet+=_d>0?((r.price||0)*_n/_d):(r.price||0);
     o.un+=r.units_net||0;o.price+=r.price||0;o.ship+=r.ship_buyer||0;o.dmp+=r.disc_mp||0;o.rev+=r.revenue_money||0;
     o.pts+=r.points_accrued||0;o.sm+=r.svc_money||0;o.sp+=r.svc_points||0;o.cogs+=r.cogs||0;o.ck=o.ck&&r.cogs_known;
     SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
@@ -2107,6 +2120,23 @@ function svDraw(){
     +' · услуги из актов: <b>'+(Object.keys(acts).sort().join(', ')||'нет')+'</b>'
     +(partial?' · <span style="color:#E5B567">период не завершён: '+inflight+' заказов ещё в пути</span>':'');
   var gaps=[];
+  // Зрелость месяца. Услуги по заказам месяца Маркет списывает и в СЛЕДУЮЩЕМ месяце: по замеру за
+  // февраль-август в свой месяц приходит около двух третей суммы, остальное в следующий, после +2
+  // практически ничего. Поэтому месяц, следующий за которым ещё не прожит, показывает неполные
+  // расходы и завышенную прибыль. Признак берём из данных: докуда собран реестр платежей.
+  var lgTo=SV.ledger_to||'';
+  if(lgTo){
+    var young=ms.map(function(m){return m.ym;}).filter(function(ym,i,arr){return arr.indexOf(ym)===i;})
+      .filter(function(ym){
+        var y=+ym.slice(0,4), mo=+ym.slice(5,7);            // конец следующего месяца
+        var end=new Date(Date.UTC(mo===12?y+1:y, mo===12?1:mo+1, 0)).toISOString().slice(0,10);
+        return lgTo<end;
+      }).sort();
+    if(young.length)gaps.push('<b>Месяц ещё дозревает: '+young.join(', ')+'.</b> '
+      +'Услуги по заказам месяца Маркет списывает и в следующем месяце - по закрытым месяцам в свой месяц приходит около двух третей суммы, остальное в следующий. '
+      +'Реестр платежей собран по '+lgTo+', поэтому расходы этих месяцев НЕПОЛНЫЕ, а прибыль завышена. '
+      +'Досчитается само: свод пересчитывается целиком на каждом прогоне, и месяц дорастёт задним числом.');
+  }
   // Пробел выгрузки заказов. Самый крупный на странице, поэтому идёт первым: это не «неточность»,
   // а целые заказы, которых в своде нет ни выручкой, ни услугами.
   if(missOrd)gaps.push('<b>'+missOrd+' заказов на '+svRub(missAcc)+' ₽ начислений не попали в свод вовсе.</b> '
@@ -2146,9 +2176,7 @@ function svDraw(){
   SV_REC.forEach(function(x){gaps.push(x);});
   gapsEl.innerHTML=gaps.length?'<b>Чего не хватает:</b> '+gaps.join('; ')+'.':'';
   gapsEl.style.display=gaps.length?'':'none';
-  var lay=document.getElementById('sv-lay').value;
-  document.getElementById('sv-rates').style.display=lay==='pts'?'none':'';
-  if(lay==='pts')svTabPts(list,noteEl);else svTabPnl(list,ohM,ohP,noteEl);
+  svTabPnl(list,ohM,ohP,noteEl);
   svSkuTable();
 }
 // Группировка по категориям и итоги свода - ОДНА реализация на всех потребителей: таблицу
@@ -2160,36 +2188,43 @@ function svDraw(){
 // (непокрытая категория даёт cov=0 и cogs=0 в обе части, поэтому равенства точные).
 var SV_PTS_REP=0;   // сколько баллов Маркет списал за месяцы окна ПО СВОЕМУ ОТЧЁТУ (справочно)
 function svCalcAll(list,ohM,ohP,adm,tax){
+  // Раскладка Ивана (его файл «свод июль», сверена с ним до копейки на артикуле GGT-35-1-3-100-180):
+  //   Поступление = Продажи + Доставка покупателя − сборы по статьям − общие расходы − Баллы Маркета
+  //   Валовая = Поступление − СС;  АДМ и Налоги − от Поступления;  Чистая = Валовая − АДМ − Налоги
+  // Отличия от прежней базы: доход берётся ПРАЙСОМ, а не платежом покупателя (скидку Маркета он
+  // возвращает баллами, поэтому она и доход, и расход одновременно), услуги, оплаченные баллами,
+  // входят в расход, а общие расходы кабинета разносятся по артикулам ПО ШТУКАМ - так же, как у
+  // Ивана: 41 298,43 по мебели на 108 штук дают 1 911,96 на артикул с пятью штуками.
+  var unAll=0; list.forEach(function(a){unAll+=a.un||0;});
+  var ohPer=unAll>0?((ohM||0)+(ohP||0))/unAll:0;
   function calc(a){
     var fee=0;SV_COLS.forEach(function(p){fee+=a.svc[p[0]]||0;});
-    var net=a.rev-fee;
+    var oh=ohPer*(a.un||0);
+    var net=(a.priceNet||0)+(a.ship||0)-fee-oh-(a.sp||0);
     var isG=(a.netCov!=null);                            // строка категории, а не артикула
     var cov=isG?a.netCov:(a.ck?net:0);                   // поступление по покрытым С\С артикулам
-    // Условие «только положительное» тут стояло зря: строка с убытком показывала «не считается»,
-    // а в сумму категории её минус всё равно попадал - категория «Хранение» за июль давала
-    // 21 953 ₽ против 26 522 ₽ по своим же раскрытым строкам. Признак ровно один - известна С\С.
-    // Для категории это НЕ «у всех известна С\С»: иначе «Столы», где 9 SKU из 57 без неё,
-    // целиком уходили бы в «не считается», а ИТОГО за июль давало -19 300 ₽ вместо 1.8 млн.
     var covered=isG?(a.rows.length>a.noCogs):a.ck;
     var gp=covered?cov-a.cogs:null, av=cov*adm, tv=cov*tax;
-    return {fee:fee,net:net,cov:cov,covered:covered,gp:gp,adm:av,tax:tv,np:(gp===null)?null:gp-av-tv};
+    return {fee:fee,oh:oh,net:net,cov:cov,covered:covered,gp:gp,adm:av,tax:tv,np:(gp===null)?null:gp-av-tv};
   }
   // группировка по категориям
   var cats={};
   list.forEach(function(a){var c=SV_CAT[a.sku]||'Без категории';
-    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,ship:0,dmp:0,rev:0,cogs:0,ck:true,netCov:0,noCogs:0,svc:{}});
+    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,ck:true,netCov:0,noCogs:0,svc:{}});
     SV_COLS.forEach(function(p){g.svc[p[0]]=(g.svc[p[0]]||0)+(a.svc[p[0]]||0);});
-    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;
+    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.priceNet+=a.priceNet||0;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;g.sp+=a.sp||0;
     if(a.ck){g.cogs+=a.cogs;g.netCov+=calc(a).net;} else {g.ck=false;g.noCogs++;}});
   var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(x,y){return calc(y).net-calc(x).net;});
-  var T={un:0,price:0,ship:0,dmp:0,rev:0,cogs:0,net:0,gp:0,adm:0,tax:0,np:0,cover:0,fee:0},TC={};
+  var T={un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,net:0,gp:0,adm:0,tax:0,np:0,cover:0,fee:0,oh:0},TC={};
   SV_COLS.forEach(function(p){TC[p[0]]=0;});
   groups.forEach(function(g){
     var c=calc(g);
-    T.un+=g.un;T.price+=g.price;T.ship+=g.ship;T.dmp+=g.dmp;T.rev+=g.rev;T.net+=c.net;T.adm+=c.adm;T.tax+=c.tax;T.fee+=c.fee;
+    T.un+=g.un;T.price+=g.price;T.priceNet+=g.priceNet;T.ship+=g.ship;T.dmp+=g.dmp;T.rev+=g.rev;T.sp+=g.sp;
+    T.net+=c.net;T.adm+=c.adm;T.tax+=c.tax;T.fee+=c.fee;T.oh+=c.oh;
     SV_COLS.forEach(function(p){TC[p[0]]+=g.svc[p[0]]||0;});
     T.cogs+=g.cogs;if(c.gp!==null){T.gp+=c.gp;T.np+=c.np;}T.cover+=c.cov;});
-  return {calc:calc,groups:groups,T:T,TC:TC,gpT:T.gp-(ohM+ohP),npT:T.np-(ohM+ohP)};
+  // Общие расходы уже сидят внутри net каждой строки, поэтому второй раз их не вычитаем.
+  return {calc:calc,groups:groups,T:T,TC:TC,ohPer:ohPer,gpT:T.gp,npT:T.np};
 }
 // Итоги свода за ЛЮБОЕ окно - единая точка входа для водопада, плана и блока общих расходов.
 // Ставки АДМ/налогов берутся из тех же полей страницы, что и у таблицы, чтобы правка ставки
@@ -2262,7 +2297,7 @@ function svTotals(w){
     units:T.un,                       // штук нетто (доставлено − возвраты)
     rev:T.rev,                        // выручка деньгами: платёж покупателя − возвраты
     fee:T.fee,                        // услуги Маркета по заказам
-    net:T.net-ohTot,                  // поступление = выручка − услуги − общие расходы кабинета
+    net:T.net,                        // поступление: общие расходы уже внутри строк (разнесены по штукам)
     cover:T.cover,                    // база с известной С\С
     cogs:T.cogs, gp:R.gpT, adm:T.adm, tax:T.tax, np:R.npT,
     rent:(T.cover>0)?R.npT/T.cover*100:null,
@@ -2272,36 +2307,32 @@ function svTotals(w){
 }
 function svTabPnl(list,ohM,ohP,noteEl){
   var adm=Number(document.getElementById('sv-adm').value||30)/100, tax=Number(document.getElementById('sv-tax').value||15)/100;
-  // Строка любого уровня считается одинаково - категория это сумма своих артикулов, поэтому
-  // раскрытие не может дать другую арифметику, чем свёрнутый итог.
-  // База - «Выручка деньгами» из отчёта: покупательский платёж МИНУС возвраты. Раньше здесь
-  // стояло price+ship-dmp, то есть цена продажи, из которой возвраты не вычитались: по июлю это
-  // завышало поступление на 109 809 ₽, а два полностью возвращённых артикула (GGR-11-4 и
-  // GGT-03-3-5-E-12080) показывали 54 993 ₽ «прибыли» со 100% маржой при нуле проданных штук.
-  // Поступление считается по ВСЕМ артикулам строки, а валовая, АДМ, налоги и чистая - только по
-  // тем, где известна себестоимость. Иначе числитель шёл бы по покрытым, а знаменатель по всем, и
-  // итог уезжал бы в минус. Прежняя версия была хуже: категория, где хоть у одного SKU нет С\С,
-  // выбрасывала СВОЮ ВСЮ себестоимость из итога - 90 269 ₽ вместо 1 901 788 ₽ за июль.
-  var R=svCalcAll(list,ohM,ohP,adm,tax), calc=R.calc, groups=R.groups;
-  var H=['Категория / Артикул','Штуки'].concat(SV_COLS.map(function(p){return p[0];}))
-    .concat(['Скидка Маркета','Продажи','Доставка покуп.','Выручка деньгами','С\\С','Поступление','Валовая прибыль (деньги)','Маржа','АДМ','Налоги','Чистая прибыль','Рентаб.']);
+  // Раскладка колонок - как в файле Ивана «свод июль». Строка любого уровня считается одинаково:
+  // категория это сумма своих артикулов, поэтому раскрытие не может дать другую арифметику.
+  var R=svCalcAll(list,ohM,ohP,adm,tax), calc=R.calc, groups=R.groups, ohPer=R.ohPer;
+  var FEE=SV_COLS.map(function(p){return p[0];});
+  var H=['Категория / Артикул','Продажи','Доставка покупателя']
+    .concat(FEE.slice(0,3)).concat(['Общие расходы']).concat(FEE.slice(3))
+    .concat(['Баллы Маркета','Штуки','Поступление','Поступление на штуку','С\\С за штуку','С\\С произв.',
+             'Валовая прибыль','Маржа','АДМ','Налоги','Чистая прибыль','Рентаб.']);
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   var T=R.T,TC=R.TC;
-  // Подсказка с покрытой базой: маржа и рентабельность считаются к поступлению по артикулам с
-  // известной С\\С, а в колонке «Поступление» стоит итог по ВСЕМ. Без этой подписи число в
-  // строке нельзя было получить делением соседних видимых чисел.
   function svBase(c){return (c.gp===null||c.cov<=0||Math.round(c.cov)===Math.round(c.net))?'':' title="база: поступление по артикулам с известной С\\С, '+svRub(c.cov)+' ₽ из '+svRub(c.net)+' ₽"';}
+  function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
+  function per(v,u){return '<td class="r" style="color:var(--ink-3)">'+(u>0&&Math.round(v)?svRub(v/u):'—')+'</td>';}
   function cells(a,c){
-    return '<td class="r">'+a.un+'</td>'
-      +SV_COLS.map(function(p){var v=a.svc[p[0]]||0;return '<td class="r">'+(v?svRub(v):'—')+'</td>';}).join('')
-      +'<td class="r">'+svRub(a.dmp)+'</td><td class="r" style="color:var(--ink-3)">'+svRub(a.price)+'</td>'
-      +'<td class="r" style="color:var(--ink-3)">'+(a.ship?svRub(a.ship):'—')+'</td>'
-      +'<td class="r"><b>'+svRub(a.rev)+'</b></td>'
-      +'<td class="r">'+(c.covered?svRub(a.cogs):'нет С\\С')+'</td>'
+    return '<td class="r"><b>'+svRub(a.priceNet||0)+'</b></td>'+money(a.ship)
+      +FEE.slice(0,3).map(function(n){return money(a.svc[n]||0);}).join('')
+      +money(c.oh)
+      +FEE.slice(3).map(function(n){return money(a.svc[n]||0);}).join('')
+      +money(a.sp||0)
+      +'<td class="r">'+a.un+'</td>'
       +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
+      +per(c.net,a.un)+per(c.covered?a.cogs:0,a.un)
+      +'<td class="r">'+(c.covered?svRub(a.cogs):'нет С\\С')+'</td>'
       +'<td class="r" style="color:'+(c.gp===null?'var(--ink-3)':(c.gp>=0?'var(--up)':'var(--dn)'))+'">'+(c.gp===null?'не считается':svRub(c.gp))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.gp===null||c.cov<=0)?'—':(Math.round(c.gp/c.cov*1000)/10)+'%')+'</td>'
-      +'<td class="r">'+svRub(c.adm)+'</td><td class="r">'+svRub(c.tax)+'</td>'
+      +money(c.adm)+money(c.tax)
       +'<td class="r" style="color:'+(c.np===null?'var(--ink-3)':(c.np>=0?'var(--up)':'var(--dn)'))+'">'+(c.np===null?'не считается':svRub(c.np))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.np===null||c.cov<=0)?'—':(Math.round(c.np/c.cov*1000)/10)+'%')+'</td>';
   }
@@ -2311,89 +2342,45 @@ function svTabPnl(list,ohM,ohP,noteEl){
     if(open) g.rows.forEach(function(a){var ac=calc(a);
       h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+a.sku+'</td>'+cells(a,ac)+'</tr>';});
   });
-  // Месяц без строк - это не убыток: общие расходы кабинета показываем, но валовой прибылью и
-  // рентабельностью пустоту не называем (февраль и март по кабинету зеркал давали -8 732 ₽ и
-  // -2 661 ₽ «валовой прибыли» при нуле заказов).
+  // Месяц без строк - это не убыток: валовой прибылью и рентабельностью пустоту не называем.
   var some=groups.length>0, gpT=R.gpT, npT=R.npT;
   var mS=function(v){return (some&&T.cover>0)?(Math.round(v/T.cover*1000)/10)+'%':'—';};
-  h+='</tbody><tfoot>'
-    +'<tr><td style="color:var(--ink-2)">Общие расходы кабинета</td><td class="r">—</td>'
-    +SV_COLS.map(function(){return '<td class="r">—</td>';}).join('')
-    +'<td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">'+svRub(-(ohM+ohP))+'</td>'
-    +'<td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td></tr>'
-    +'<tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td><td class="r"><b>'+T.un+'</b></td>'
-    +SV_COLS.map(function(p){return '<td class="r"><b>'+(TC[p[0]]?svRub(TC[p[0]]):'—')+'</b></td>';}).join('')
-    +'<td class="r"><b>'+svRub(T.dmp)+'</b></td><td class="r" style="color:var(--ink-3)"><b>'+svRub(T.price)+'</b></td>'
-    +'<td class="r" style="color:var(--ink-3)"><b>'+svRub(T.ship)+'</b></td><td class="r"><b>'+svRub(T.rev)+'</b></td>'
+  h+='</tbody><tfoot><tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td>'
+    +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
+    +FEE.slice(0,3).map(function(n){return '<td class="r"><b>'+(TC[n]?svRub(TC[n]):'—')+'</b></td>';}).join('')
+    +'<td class="r"><b>'+svRub(ohM+ohP)+'</b></td>'
+    +FEE.slice(3).map(function(n){return '<td class="r"><b>'+(TC[n]?svRub(TC[n]):'—')+'</b></td>';}).join('')
+    +'<td class="r"><b>'+svRub(T.sp)+'</b></td>'
+    +'<td class="r"><b>'+T.un+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.net)+'</b></td>'
+    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.un>0?svRub(T.net/T.un):'—')+'</b></td>'
+    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.un>0?svRub(T.cogs/T.un):'—')+'</b></td>'
     +'<td class="r"><b>'+svRub(T.cogs)+'</b></td>'
-    +'<td class="r"><b>'+svRub(T.net-(ohM+ohP))+'</b></td>'
     +'<td class="r"><b>'+(some?svRub(gpT):'—')+'</b></td>'
-    +'<td class="r"'+svBase({gp:some?gpT:null,cov:T.cover,net:T.net-(ohM+ohP)})+'><b>'+mS(gpT)+'</b></td>'
+    +'<td class="r"'+svBase({gp:some?gpT:null,cov:T.cover,net:T.net})+'><b>'+mS(gpT)+'</b></td>'
     +'<td class="r"><b>'+svRub(T.adm)+'</b></td><td class="r"><b>'+svRub(T.tax)+'</b></td>'
     +'<td class="r"><b>'+(some?svRub(npT):'—')+'</b></td>'
-    +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net-(ohM+ohP)})+'><b>'+mS(npT)+'</b></td></tr></tfoot>';
+    +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net})+'><b>'+mS(npT)+'</b></td></tr></tfoot>';
   var el=document.getElementById('sv-t');el.innerHTML=h;
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
     tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
-  noteEl.innerHTML='<b>Клик по категории раскрывает артикулы.</b> Категория берётся из таксономии, а где её нет - по названию товара: тип товара читается из начала названия, поэтому «столешница» или «опоры» в описании больше не уводят стол в комплектующие. На данных Маркета связка закрывает всю выручку.<br>'
-    +'<b>Столбец «Скидка Маркета» - это не баллы, а причина баллов.</b> Маркет опускает цену за свой счёт, покупатель столько не платил, поэтому скидка вычитается из продаж. Ровно эту сумму Маркет возвращает продавцу баллами, и она видна в раскладке «деньги + баллы» столбцом «Баллы за скидку» - тождество сходится по всем месяцам до рубля. В этой раскладке баллы не участвуют с обеих сторон: расходы тут тоже взяты только оплаченные деньгами.<br>'
-    +'<b>Поступление</b> = выручка деньгами − услуги Маркета. «Выручка деньгами» - это платёж покупателя за вычетом возвратов, она уже включает доставку с покупателя. «Продажи» и «Доставка покуп.» стоят слева справочно и в расчёт не идут: продажи - это цена по прайсу, из которой Маркет часть закрыл своей скидкой. В строке ИТОГО дополнительно вычтены общие расходы кабинета ('+svRub(ohM+ohP)+' ₽): к товару они не привязаны, поэтому в строках категорий их нет.<br>'
-    +'<b>Валовая прибыль (деньги)</b> = поступление − себестоимость, то есть только живые деньги. На второй раскладке колонка называется «Валовая прибыль (деньги + баллы)» и считается к другой базе - там в выручку добавлены начисленные баллы, а в расходы услуги, оплаченные баллами. Это два разных числа по смыслу, а не расхождение.<br>'
-    +'Итог по валовой прибыли, АДМ, налогам и чистой считается только по SKU с известной себестоимостью ('+(T.net>0?(Math.round(T.cover/T.net*1000)/10):0)+'% поступления), к этой же покрытой базе считаются маржа и рентабельность - наведите на процент, чтобы увидеть базу. Колонка DBS убрана: Маркет собственный расход на доставку в API не отдаёт.';
-}
-function svTabPts(list,noteEl){
-  // Та же группировка, что в P&L-раскладке: категория с раскрытием в артикулы, названий нет.
-  var cats={};
-  list.forEach(function(a){var c=SV_CAT[a.sku]||'Без категории';
-    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,noCogs:0,covRes:0});
-    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;g.pts+=a.pts;
-    g.sm+=a.sm;g.sp+=a.sp;
-    if(a.ck){g.cogs+=a.cogs;g.covRes+=a.rev+a.pts-a.sm-a.sp;} else g.noCogs++;});
-  var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(x,y){return y.rev-x.rev;});
-  var H=['Категория / Артикул','Штуки','Цена продажи','Доставка с покуп.','Скидка Маркета','Выручка деньгами','Баллы за скидку','Услуги деньгами','Услуги баллами','Услуги всего','Результат по деньгам','Результат с баллами','С\\С','Валовая прибыль (деньги + баллы)','Маржа к результату'];
-  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
-  var T={un:0,price:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,covRes:0,gp:0};
-  function cells(a,cov){
-    var tot=a.sm+a.sp, rm=a.rev-a.sm, rp=a.rev+a.pts-tot;
-    var gp=(cov!==0)?cov-a.cogs:null;
-    return '<td class="r">'+a.un+'</td><td class="r" style="color:var(--ink-3)">'+svRub(a.price)+'</td>'
-      +'<td class="r">'+(a.ship?svRub(a.ship):'—')+'</td><td class="r" style="color:var(--ink-3)">'+svRub(a.dmp)+'</td>'
-      +'<td class="r"><b>'+svRub(a.rev)+'</b></td><td class="r" style="color:#8AA0FF">'+svRub(a.pts)+'</td>'
-      +'<td class="r">'+svRub(a.sm)+'</td><td class="r" style="color:#E5B567">'+svRub(a.sp)+'</td><td class="r">'+svRub(tot)+'</td>'
-      +'<td class="r">'+svRub(rm)+'</td><td class="r" style="color:'+(rp>=0?'var(--up)':'var(--dn)')+'">'+svRub(rp)+'</td>'
-      +'<td class="r">'+(a.cogs?svRub(a.cogs):'нет С\\С')+'</td>'
-      +'<td class="r" style="color:'+(gp===null?'var(--ink-3)':(gp>=0?'var(--up)':'var(--dn)'))+'">'+(gp===null?'не считается':svRub(gp))+'</td>'
-      +'<td class="r">'+((gp===null||cov<=0)?'—':(Math.round(gp/cov*1000)/10)+'%')+'</td>';
-  }
-  groups.forEach(function(g,gi){
-    var open=!!SV_OPEN[g.cat];
-    T.un+=g.un;T.price+=g.price;T.ship+=g.ship;T.dmp+=g.dmp;T.rev+=g.rev;T.pts+=g.pts;T.sm+=g.sm;T.sp+=g.sp;
-    T.cogs+=g.cogs;T.covRes+=g.covRes;if(g.covRes!==0)T.gp+=g.covRes-g.cogs;
-    h+='<tr class="sv-cat" data-cat="'+gi+'" style="cursor:pointer"><td><b>'+(open?'▾':'▸')+' '+g.cat+'</b> <span style="color:var(--ink-3)">('+g.rows.length+')</span>'
-      +(g.noCogs?' <span style="color:#E5B567;font-size:11px">'+g.noCogs+' без С\\С</span>':'')+'</td>'+cells(g,g.covRes)+'</tr>';
-    if(open) g.rows.forEach(function(a){
-      h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+a.sku+'</td>'+cells(a,a.ck?(a.rev+a.pts-a.sm-a.sp):0)+'</tr>';});
-  });
-  h+='</tbody><tfoot><tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td><td class="r"><b>'+T.un+'</b></td>'
-    +'<td class="r" style="color:var(--ink-3)"><b>'+svRub(T.price)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
-    +'<td class="r" style="color:var(--ink-3)"><b>'+svRub(T.dmp)+'</b></td><td class="r"><b>'+svRub(T.rev)+'</b></td>'
-    +'<td class="r" style="color:#8AA0FF"><b>'+svRub(T.pts)+'</b></td>'
-    +'<td class="r"><b>'+svRub(T.sm)+'</b></td><td class="r" style="color:#E5B567"><b>'+svRub(T.sp)+'</b></td>'
-    +'<td class="r"><b>'+svRub(T.sm+T.sp)+'</b></td>'
-    +'<td class="r"><b>'+svRub(T.rev-T.sm)+'</b></td><td class="r"><b>'+svRub(T.rev+T.pts-T.sm-T.sp)+'</b></td>'
-    +'<td class="r"><b>'+svRub(T.cogs)+'</b></td><td class="r"><b>'+svRub(T.gp)+'</b></td>'
-    +'<td class="r"><b>'+(T.covRes>0?(Math.round(T.gp/T.covRes*1000)/10)+'%':'—')+'</b></td></tr></tfoot>';
-  var el=document.getElementById('sv-t');el.innerHTML=h;
-  Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
-    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
-  noteEl.innerHTML='<b>Клик по категории раскрывает артикулы.</b><br>'
-    +'<b>Выручка деньгами</b> = платёж покупателя − возвраты; платёж уже включает доставку с покупателя, складывать их не надо. Цена продажи показана справочно и в результат не идёт: она включает скидку, которую платил Маркет, а не покупатель.<br><b>«Баллы за скидку» - это не бонус сверху, а возврат скидки.</b> Маркет опускает цену на кассе за свой счёт, покупатель платит меньше, и ровно эту сумму Маркет возвращает продавцу баллами. Тождество проверено на выгрузке заказов по всем восьми месяцам без расхождения: начисленные баллы = скидка Маркета + скидка по подписке Плюс + Спасибо, по доставленным заказам. Поэтому в раскладке «P&amp;L по деньгам» этих баллов нет (там только живые деньги), а здесь есть - это и есть экономика заказа целиком. Источник месячного итога - отчёт по баллам Маркета (reports/united-netting с телом monthOfYear, в кабинете «О баллах Маркета»). Разнесение по позициям остаётся нашим, пропорционально стоимости, поэтому сумма за месяц ровно кабинетная, а доли внутри месяца - наша модель. Где отчёт за месяц ещё не собран, итог считается по массиву subsidies[] заказа, и месяц это помечает.<br>'
-    +'<b>Услуги</b> разделены на оплаченные деньгами и баллами. Обе половины - реальный расход: услугу оказали, и в акте она стоит полностью. Результат «по деньгам» - что осталось на счёте, «с учётом баллов» - экономика заказа целиком. <b>Валовая прибыль (деньги + баллы)</b> = результат с баллами минус себестоимость, то есть уже после услуг Маркета. С колонкой «Валовая прибыль (деньги)» из раскладки P&amp;L она НЕ обязана совпадать и обычно не совпадает: там база - только живые деньги, здесь в выручку добавлены начисленные баллы, а в расходы услуги, оплаченные баллами. Какая из двух правда - зависит от вопроса: сколько осталось на счёте или сколько заработал заказ целиком. Маржа считается к результату с баллами, той же базе, что у числителя, и только по артикулам с известной себестоимостью.<br>'
-    +'<b>Услуги, оплаченные баллами, сгруппированы по МЕСЯЦУ ЗАКАЗА, а кабинет группирует по месяцу списания.</b> За выбранные месяцы здесь '+svRub(list.reduce(function(a,x){return a+x.sp;},0))+' ₽ услуг по заказам этих месяцев, а в отчёте «О баллах Маркета» за те же месяцы списано '+svRub(SV_PTS_REP)+' ₽ - по заказам любых месяцев. Это два разных среза одних и тех же рублей, и сходиться они не обязаны: буст и комиссию по июльскому заказу Маркет может списать в августе. Сверять таблицу с кабинетом надо по номеру заказа, а не по итогу месяца - так она и сверяется, по каждому дню и артикулу.';
+  noteEl.innerHTML='<b>Клик по категории раскрывает артикулы.</b> Категория берётся из таксономии, а где её нет - по названию товара.<br>'
+    +'<b>Поступление</b> = Продажи + Доставка покупателя − сборы по статьям − Общие расходы − Баллы Маркета. '
+    +'Доход взят ПРАЙСОМ, а не платежом покупателя: часть цены Маркет закрывает своей скидкой и возвращает её баллами, поэтому скидка одновременно и доход, и расход. '
+    +'Ровно поэтому услуги, оплаченные баллами, стоят расходом в колонке «Баллы Маркета».<br>'
+    +'<b>Продажи с вычетом возвратов:</b> вернувшаяся штука дохода не принесла, и её доля прайса снята - так же, как сняты штуки и выручка.<br>'
+    +'<b>Колонка «Баллы Маркета» сгруппирована по МЕСЯЦУ ЗАКАЗА, а кабинет группирует по месяцу списания.</b> '
+    +'За выбранные месяцы здесь '+svRub(T.sp)+' ₽ услуг по заказам этих месяцев, а в отчёте «О баллах Маркета» за те же месяцы списано '+svRub(SV_PTS_REP)+' ₽ - по заказам любых месяцев. '
+    +'Это два разных среза одних и тех же рублей: буст и комиссию по июльскому заказу Маркет может списать в августе. Сверять с кабинетом надо по номеру заказа, а не по итогу месяца.<br>'
+    +'<b>Источник балльных чисел</b> - отчёт по баллам Маркета (reports/united-netting с телом monthOfYear, в кабинете «Финансы - Финансовые отчёты - О баллах Маркета»). '
+    +'Услуги, оплаченные баллами, сверены с ним по номеру заказа и артикулу: по всем 1008 ключам кабинет+день+артикул расхождение ноль.<br>'
+    +'<b>Общие расходы кабинета</b> ('+svRub(ohM+ohP)+' ₽) разнесены по артикулам ПО ШТУКАМ ('+(T.un>0?svRub(ohPer):'0')+' ₽ на штуку): к товару они не привязаны, но и прятать их из строки нельзя.<br>'
+    +'<b>Валовая прибыль</b> = Поступление − С\\С. АДМ и Налоги считаются от Поступления, Чистая = Валовая − АДМ − Налоги, Маржа и Рентабельность - к Поступлению.<br>'
+    +'Итог по валовой прибыли, АДМ, налогам и чистой считается только по SKU с известной себестоимостью ('+(T.net>0?(Math.round(T.cover/T.net*1000)/10):0)+'% поступления) - наведите на процент, чтобы увидеть базу. Колонки DBS нет: собственный расход на доставку Partner API не отдаёт.';
 }
 function svInit(){
   if(!document.getElementById('sv-t'))return;
-  ['sv-lay','sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=svDraw;});
+  ['sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=svDraw;});
   // Свод перерисовывается вместе со всей страницей: шелл зовёт render(cur,cmp) на каждой смене
   // периода, а window.__guruPeriod к этому моменту уже обновлён. Своего состояния периода у
   // свода нет - один фильтр на всю страницу, как и просил Иван.

@@ -78,8 +78,18 @@ function main() {
     const v = -(Number(n.amount) || 0);
     if (isPointsPaid(String(n.type || ""), n.src)) splitPoints += v; else splitMoney += v;
   }
+  // Докуда собран реестр платежей. Без этой даты страница не может сказать, дозрел ли месяц:
+  // услуги по заказам месяца Маркет списывает и в следующем месяце (по замеру за февраль-август -
+  // около трети суммы), поэтому у месяца, следующий за которым ещё не прожит, расходы неполные,
+  // а прибыль завышена. Дату берём из данных, а не из «сегодня»: прогон мог не добрать свежие дни.
+  let ledgerTo = "";
+  for (const n of netAll as any[]) {
+    const d = String(n.d || "").slice(0, 10);
+    if (d && d > ledgerTo) ledgerTo = d;
+  }
   writeJson(yp("svod_orders.json"), { platform: "ym", generated_at: new Date().toISOString(),
     basis: "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
+    ledger_to: ledgerTo,
     split_check: { business: SPLIT_B, ym: SPLIT_M, money: Math.round(splitMoney), points: Math.round(splitPoints),
       act_money: 557250.2, act_points: 2350590.89 },
     months: svod });

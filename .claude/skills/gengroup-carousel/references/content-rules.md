@@ -71,7 +71,7 @@ Rules:
 - "позволяет реализовать", generic corporate filler
 - Empty superlatives, three-adjective stacks, em dashes
 
-Run the copy mentally through the `gengroup-humanizer-ru` standard: live rhythm,
+Run the copy mentally through the `gengroup-roster:humanizer-ru` standard: live rhythm,
 short sentences, no канцелярит.
 
 ## Brand tone of voice

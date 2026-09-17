@@ -68,6 +68,9 @@ async function callBatch(cmds: Record<string, string>): Promise<{ result: any; n
 
 function stripHtml(s: any): string {
   return String(s || "")
+    // Вложенные картинки приходят inline как data:...;base64,<огромный блоб> - это мусор,
+    // раздувает снимок и ломает читаемость (особенно в письмах и заметках). Вырезаем.
+    .replace(/data:[a-z0-9.+-]+\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+/gi, "[изображение]")
     .replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n")
     .replace(/\[\/?[a-z][^\]]*\]/gi, " ").replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/gi, " ").replace(/&quot;/gi, '"').replace(/&amp;/gi, "&")
@@ -115,7 +118,9 @@ async function userName(id: any): Promise<string> {
 async function buildCallMap(): Promise<Record<string, any>> {
   const map: Record<string, any> = {}; let start = 0;
   for (;;) {
-    const r = await call("voximplant.statistic.get", { FILTER: { ">CALL_START_DATE": FROM, "<=CALL_START_DATE": TO }, SORT: "CALL_START_DATE", ORDER: "ASC", start });
+    // Статистику звонков берём за ПОЛНУЮ историю (HFROM), а не 7 дней: иначе у исторических
+    // звонков (июль/август) не будет длительности, флага расшифровки и ссылки на запись.
+    const r = await call("voximplant.statistic.get", { FILTER: { ">CALL_START_DATE": HFROM, "<=CALL_START_DATE": TO }, SORT: "CALL_START_DATE", ORDER: "ASC", start });
     if (r.error) break;
     for (const c of (r.result || [])) if (c.CRM_ACTIVITY_ID) map[String(c.CRM_ACTIVITY_ID)] = { type: String(c.CALL_TYPE), dur: c.CALL_DURATION, rec: c.CALL_RECORD_URL || "", recId: c.RECORD_FILE_ID || "", tr: c.TRANSCRIPT_ID || "" };
     if (r.next === undefined || r.next === null) break; start = r.next;
@@ -192,6 +197,40 @@ function guessOutgoing(nm: string, tx: string): boolean {
   if (m && !empFirst[m[1]!.toLowerCase()]) return true;   // обращается к клиенту по имени
   return RE_MGR_SPEAK.test(tx);
 }
+// --- Расшифровки звонков. Приходят комментарием в таймлайн (подтверждено Иваном). Формат:
+// реплики с меткой спикера («Оператор:/Клиент:/Спикер 1:») либо таймкоды. Роли (робот/менеджер/
+// клиент) - ГИПОТЕЗА по эвристике (roleGuess=1); калибруется на реальном образце расшифровки.
+// Детектор консервативный: срабатывает только при >=3 размеченных репликах, чтобы не путать
+// с заметками-спецификациями (проверено на 2713 заметках снимка - 0 ложных).
+const TR_TURN = /^[\s>*_-]*(оператор\w*|абонент\w*|спикер\s*\d+|speaker\s*\d+|роб[оа]т\w*|бот|ivr|автоответчик|менеджер\w*|сотрудник\w*|клиент\w*|заказчик\w*|собеседник\w*)\s*[:\-–]/gim;
+// ТОЛЬКО чисто-роботные (IVR) фразы, которые живой человек не произносит. Приветствие
+// менеджера «здравствуйте, компания GENGLASS, меня зовут Анна» роботом НЕ считаем.
+const TR_GREET = /оставайтесь на линии|ваш звонок (очень )?важен|нажмите\s+\d|виртуальн\w+ (ассистент|помощник)|автоответчик|соединяю вас|для (записи|соединения|связи с оператором) нажмите|вы позвонили в .{0,50}(в рабочие|график работы|нерабоч|перезвон)/i;
+function trRole(label: string, text: string): string {
+  const l = label.toLowerCase();
+  // Приоритет у ЯВНОЙ метки спикера; эвристику применяем только когда метки-роли нет.
+  if (/роб[оа]т|^бот$|ivr|автоответчик/.test(l)) return "Робот";
+  if (/оператор|менеджер|сотрудник/.test(l)) return "Менеджер";
+  if (/клиент|абонент|заказчик|собеседник/.test(l)) return "Клиент";
+  if (TR_GREET.test(text)) return "Робот";          // «Спикер N» с IVR-фразой = робот
+  if (RE_MGR_SPEAK.test(text)) return "Менеджер";   // речь от лица компании (КП/расчёт/«меня зовут»)
+  return "";                                          // не выдумываем: оставляем метку как есть
+}
+function parseTranscript(text: string): { turns: { role: string; label: string; text: string }[]; ok: boolean } {
+  const re = new RegExp(TR_TURN.source, "gim");
+  const marks: { idx: number; label: string }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) marks.push({ idx: m.index, label: m[1]! });
+  if (marks.length < 3) return { turns: [], ok: false };
+  const turns: { role: string; label: string; text: string }[] = [];
+  for (let i = 0; i < marks.length; i++) {
+    const seg = text.slice(marks[i]!.idx, i + 1 < marks.length ? marks[i + 1]!.idx : text.length);
+    const colon = seg.search(/[:\-–]/);
+    const body = (colon >= 0 ? seg.slice(colon + 1) : seg).trim();
+    turns.push({ role: trRole(marks[i]!.label, body), label: marks[i]!.label.trim(), text: body });
+  }
+  return { turns, ok: true };
+}
 function commentToEvent(c: any, employees: Record<string, 1>, authorName: string): any {
   const raw = String(c.COMMENT || "");
   if (/wazzup24\.com/i.test(raw)) {
@@ -207,7 +246,17 @@ function commentToEvent(c: any, employees: Record<string, 1>, authorName: string
     return { raw: c.CREATED, type: "Сообщение " + chan, dir: (isEmp || guessed) ? "исходящее" : "входящее",
              who: (nm || "—") + (fired ? " (уволен)" : ""), fired: fired ? 1 : 0, guess: guessed ? 1 : 0, title: "", body: cap(tx), status: "", dur: "", link: "", src: "cmt#" + c.ID };
   }
-  return { raw: c.CREATED, type: "Комментарий-заметка", dir: "-", who: authorName, title: "", body: cap(stripHtml(raw)), status: "", dur: "", link: "", src: "cmt#" + c.ID };
+  const txt = stripHtml(raw);
+  const tr = parseTranscript(txt);
+  if (tr.ok) {
+    // Транскрипт звонка: не обрезаем стандартным cap() (расшифровки длинные), даём разбивку по
+    // ролям (гипотеза). В теле - «Роль: реплика» построчно; структура в поле speakers.
+    const disp = tr.turns.map((t) => `${t.role || t.label}: ${t.text}`).join("\n");
+    return { raw: c.CREATED, type: "Транскрипт звонка", dir: "-", who: authorName || "Расшифровка", title: "",
+             body: disp.length > 20000 ? disp.slice(0, 20000) + " …[обрезано]" : disp,
+             speakers: tr.turns, roleGuess: 1, status: "", dur: "", link: "", src: "cmt#" + c.ID };
+  }
+  return { raw: c.CREATED, type: "Комментарий-заметка", dir: "-", who: authorName, title: "", body: cap(txt), status: "", dur: "", link: "", src: "cmt#" + c.ID };
 }
 
 type Ent = { kind: "deal" | "lead"; id: string; title: string; mgrId: string; closed?: boolean };
@@ -336,8 +385,12 @@ async function main() {
     const evs: any[] = [];
     for (const a of (actsBy[key] || [])) { const ev = activityToEvent(a, mgr, callMap, callRefs); if (ev) evs.push(ev); }
     for (const c of (cmtsBy[key] || [])) evs.push(commentToEvent(c, employees, await userName(c.AUTHOR_ID)));
-    const lowMs = e.closed ? hFromMs : fromMs;
+    // Окно по событию: у открытых сделок мессенджеры/заметки берём за короткое окно (иначе снимок
+    // раздувается десятками тысяч сообщений), а ЗВОНКИ, их РАСШИФРОВКИ и РЕЗЮМЕ - за полную историю
+    // (HFROM), чтобы исторические расшифровки (июль/август) были видны. Закрытые - всё за историю.
+    const CALLISH: Record<string, 1> = { "Звонок": 1, "Транскрипт звонка": 1, "Резюме BitrixGPT": 1 };
     for (const ev of evs) {
+      const lowMs = (e.closed || CALLISH[ev.type]) ? hFromMs : fromMs;
       const ms = Date.parse(ev.raw); if (isNaN(ms) || ms < lowMs || ms > toMs) continue;
       const uid = pair + "|" + ev.src;
       if (seen[uid]) continue; seen[uid] = 1;
@@ -345,14 +398,15 @@ async function main() {
       if (mgr) mgrSet[mgr] = 1;
       // Подпись-заглушка у исходящего: показываем ответственного, а не «Телефон».
       const whoName = (ev.guess && mgr) ? mgr : ev.who;
-      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: whoName, title: ev.title, body: ev.body, status: ev.status, due: ev.due || "", dur: ev.dur, link: ev.link, ref: ev.ref || "", refId: ev.refId || "", guess: ev.guess || 0, fired: ev.fired || 0, src: ev.src });
+      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: whoName, title: ev.title, body: ev.body, status: ev.status, due: ev.due || "", dur: ev.dur, link: ev.link, ref: ev.ref || "", refId: ev.refId || "", guess: ev.guess || 0, fired: ev.fired || 0, speakers: ev.speakers || null, roleGuess: ev.roleGuess || 0, src: ev.src });
     }
   }
   events.sort((a, b) => a.ts - b.ts);
   const leadKeys = new Set(events.filter((e) => e.leadId).map((e) => e.leadId));
   const dealKeys = new Set(events.filter((e) => e.dealId).map((e) => e.dealId));
   const managers = Object.keys(mgrSet).sort();
-  const out = { generatedAt: new Date().toISOString(), from: FROM, to: TO, days: DAYS, scope: `Заказы RF (воронка ${CATEGORY_ID})${WITH_LEADS ? " + Лиды" : ""}`, portal: PORTAL, dealsScanned: ents.length, dealCount: dealKeys.size, leadCount: leadKeys.size, managers, counts, events };
+  const trCount = events.filter((e) => e.type === "Транскрипт звонка").length;
+  const out = { generatedAt: new Date().toISOString(), from: FROM, to: TO, days: DAYS, histFrom: HFROM, histDays: HDAYS, transcripts: trCount, scope: `Заказы RF (воронка ${CATEGORY_ID})${WITH_LEADS ? " + Лиды" : ""} · переписка ${DAYS} дн, звонки/расшифровки ${HDAYS} дн`, portal: PORTAL, dealsScanned: ents.length, dealCount: dealKeys.size, leadCount: leadKeys.size, managers, counts, events };
   mkdirSync("dialog/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));
   const summary = Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0)).map((k) => `${k}: ${counts[k] ?? 0}`).join(" · ");

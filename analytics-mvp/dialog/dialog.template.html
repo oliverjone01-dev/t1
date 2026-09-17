@@ -294,6 +294,9 @@ input#q{min-width:220px}
 .etime{color:var(--ink-3);font-size:10.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .ewho{font-size:11px;overflow:hidden;text-overflow:ellipsis}
 .ebody{white-space:pre-wrap;word-break:break-word;line-height:1.5}
+.trln{margin:2px 0;padding-left:2px}
+.trrole{display:inline-block;font-size:9.5px;font-weight:700;padding:0 5px;border-radius:4px;border:1px solid;margin-right:5px;vertical-align:baseline;white-space:nowrap}
+.trnote{margin-top:4px;font-size:9.5px;color:var(--ink-4);font-style:italic}
 .sysw{color:var(--ink-4);font-size:10.5px}
 .mixchip{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap;margin:0 2px 2px 0}
 .mixchip[data-mixcat]{cursor:pointer}
@@ -471,7 +474,17 @@ const BAKED_AT = "__BAKED_AT__";
 const PORTAL = DATA.portal || "https://glassmemory.bitrix24.ru";
 const DEAL_LIMIT = 400;
 
-const TCOL = {'Стадия':'#6E7B8A','Ответственный':'#8B7BF0','Звонок':'#3DAEC2','Резюме BitrixGPT':'#C2569B','Письмо':'#C2873C','Дело':'#8B7BF0','Задача':'#8B7BF0','Мессенджер ОЛ':'#2E9E74','Комментарий-заметка':'#8794A5','Активность':'#5D6B77'};
+const TCOL = {'Стадия':'#6E7B8A','Ответственный':'#8B7BF0','Звонок':'#3DAEC2','Транскрипт звонка':'#2C7BE5','Резюме BitrixGPT':'#C2569B','Письмо':'#C2873C','Дело':'#8B7BF0','Задача':'#8B7BF0','Мессенджер ОЛ':'#2E9E74','Комментарий-заметка':'#8794A5','Активность':'#5D6B77'};
+// Транскрипт звонка: реплики с цветной ролью. Роли - ГИПОТЕЗА (робот по IVR-фразам, менеджер
+// по речи от лица компании; «Спикер N» - роль не установлена). Отрисовку зовём в обоих рендерах.
+function trHtml(e){
+  const RC={'Робот':'#8794A5','Менеджер':'#2E9E74','Клиент':'#C2873C'};
+  const sp=(e.speakers||[]);
+  const body = sp.length ? sp.map(t=>{const r=t.role||t.label; const c=RC[t.role]||'#5D6B77';
+      return `<div class="trln"><span class="trrole" style="color:${c};border-color:${c}55;background:${c}12">${esc(r)}</span> ${esc(t.text)}</div>`;}).join('') : esc(e.body);
+  const note = e.roleGuess ? `<div class="trnote">роли - гипотеза (робот по IVR-фразам, менеджер по речи от лица компании; «Спикер N» - не установлено)</div>` : '';
+  return body+note;
+}
 const typeColor = t => t && t.indexOf('Сообщение')===0 ? '#2E9E74' : (TCOL[t]||'#5D6B77');
 // Плавающая подсказка: тот же механизм, что в РОП-дашборде (наведение на элемент с data-tip).
 const TIP = () => document.getElementById('tip');
@@ -634,7 +647,7 @@ function evRowHTML(e){
   return `<div class="erow ${lvl}${bad?' e-bad':good?' e-good':''}">
     <span class="etime">${fmtTime(e.dt)}</span>
     <span class="ewho">${isMsg? whoLabel(e) : '<span class="sysw">CRM · '+esc(e.who||e.mgr||'')+'</span>'}</span>
-    <span class="ebody"><span class="badge" style="background:${c}18;color:${c};border:1px solid ${c}44">${esc(e.type)}</span> ${ttl}${tags.length?hl(e.body,tags):esc(e.body)}${st}${rec}${ref}</span>
+    <span class="ebody"><span class="badge" style="background:${c}18;color:${c};border:1px solid ${c}44">${esc(e.type)}</span> ${ttl}${e.type==='Транскрипт звонка'?trHtml(e):(tags.length?hl(e.body,tags):esc(e.body))}${st}${rec}${ref}</span>
     ${tagsHTML}</div>`;
 }
 function whoLabel(e){
@@ -1140,7 +1153,7 @@ function renderTree(){
           <td class="etime">${fmtTime(e.dt)}${onLead?'<span class="lstage">лид</span>':''}</td>
           <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
           <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
-          <td class="l ebody">${e.title&&!isM?`<b>${esc(String(e.title).replace(/[\s.:;-]+$/,''))}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${e.type==='Стадия'&&e.days!=null?` <span class="due">${e.days} дн на стадии</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}${sumLink(e,SUMBY)}</td>
+          <td class="l ebody">${e.title&&!isM?`<b>${esc(String(e.title).replace(/[\s.:;-]+$/,''))}</b>${bodyNoTitle(e)?': ':''}`:''}${e.type==='Транскрипт звонка'?trHtml(e):(tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e)))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${e.type==='Стадия'&&e.days!=null?` <span class="due">${e.days} дн на стадии</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}${sumLink(e,SUMBY)}</td>
           <td class="l">${tags.map(t=>`<span class="evtag"${t.ai?' data-ai="1"':''} style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join(' ')}</td></tr>`;
       }).join('');
       const parts=(d&&d.participants)||[];

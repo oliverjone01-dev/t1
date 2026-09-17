@@ -118,6 +118,12 @@ async function fetchReport(api: YmPartner, type: string, body: any): Promise<{ h
 // ---- goods-realization: {campaignId, year, month} -> {ym, sku, sold, ret} ----
 async function realization(months: string[]) {
   const OUT = yp("realization_monthly.ndjson");
+  // Второй выход, уровня ЗАКАЗА. Месячный агрегат сверять со сводом нечем: отчёт группирует по
+  // дате РЕАЛИЗАЦИИ, свод - по дате ЗАКАЗА, и «90 штук против 202» ничего не доказывает. В самом
+  // файле отчёта есть ORDER_ID, поэтому сверка возможна один в один - так же, как она сделана по
+  // баллам (1008 ключей из 1008 без расхождения). Монтажный файл не трогаем: у него свои едоки.
+  const OUT_ORD = yp("realization_orders.ndjson");
+  const ordRows: any[] = [];
   const targets = await resolveTargets();
   const existing = readNdjson<any>(OUT);
   const fresh: any[] = [];
@@ -210,11 +216,17 @@ async function realization(months: string[]) {
         // отдельные события: суммировать их в «продано» значит считать одну штуку по три раза.
         const role = realizationRole(t.name, t.headers);
         if (!role) { console.log(`  goods-realization: ${t.name} - роль не учитывается в штуках реализации`); continue; }
-        const ix = cols("goods-realization", t.headers, role === "returned" ? ["sku", "returned"] : ["sku", "sold"]);
+        const ix = cols("goods-realization", t.headers, role === "returned" ? ["sku", "returned", "order", "date"] : ["sku", "sold", "order", "date"]);
         if (!ix) continue;
         parsed = true;
         for (const r of t.rows) {
           const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
+          // Строка уровня заказа: номер заказа и дата события. Пишем ДО агрегации по артикулу,
+          // иначе ключ сверки теряется навсегда и его не восстановить без повторного сбора.
+          const ordId = ix.order! >= 0 ? String(r[ix.order!] || "").trim() : "";
+          if (ordId) ordRows.push({ ym, business: c.businessId, campaign: c.id, order: ordId, sku,
+            role, count: num("goods-realization", r[role === "returned" ? ix.returned! : ix.sold!]),
+            d: ix.date! >= 0 ? String(r[ix.date!] || "").trim() : "", platform: "ym", source: "goods-realization" });
           const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0, from: new Set<string>() });
           a.from.add(c.id); // какой магазин дал строку - пишем В ДАННЫЕ, а не только в состояние прогона
           if (role === "returned") {
@@ -251,6 +263,17 @@ async function realization(months: string[]) {
   for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), from: [...a.from].sort(), platform: "ym", source: "goods-realization" });
   const merged = fresh.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));
   writeNdjson(OUT, merged);
+  // Уровень заказа копится только за месяцы, реально собранные этим прогоном. Дописываем к тому,
+  // что уже лежит, с дедупом по (месяц, заказ, артикул, роль): повтор прогона не должен задваивать.
+  if (ordRows.length) {
+    const prev = readNdjson<any>(OUT_ORD);
+    const key = (r: any) => `${r.ym}|${r.order}|${r.sku}|${r.role}`;
+    const m = new Map<string, any>();
+    for (const r of prev) m.set(key(r), r);
+    for (const r of ordRows) m.set(key(r), r);     // свежая строка побеждает старую
+    writeNdjson(OUT_ORD, [...m.values()].sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.order < b.order ? -1 : 1)));
+    console.log(`realization: строк уровня заказа ${ordRows.length} свежих, всего ${m.size}`);
+  }
   // Покрытие по месяцам: какие магазины реально дали строки, а какие продавали, но отчёт ещё пуст.
   // Без этого сверка штук объявляет расхождением обычную недобранность отчёта.
   const shopsSold: Record<string, string[]> = {};

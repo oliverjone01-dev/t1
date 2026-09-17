@@ -308,9 +308,9 @@ input#q{min-width:220px}
 .trnote{margin-top:4px;font-size:9.5px;color:var(--ink-4);font-style:italic}
 /* Градусник температуры клиента */
 .tempcell{display:flex;align-items:center;gap:6px;min-width:118px}
-.tbar{display:flex;height:14px;width:130px;border-radius:3px;overflow:hidden;background:var(--line,#e5e7eb);flex:0 0 auto;gap:1px}
-/* min-width, чтобы даже мелкий сегмент (1-2%) можно было навести/кликнуть; flex сохраняет доли. */
-.tseg{display:block;min-width:14px;height:100%;cursor:pointer;transition:filter .1s}
+.tbar{display:flex;height:14px;width:150px;border-radius:3px;overflow:hidden;background:var(--line,#e5e7eb);flex:0 0 auto;gap:1px}
+/* min-width - чтобы мелкий сегмент можно было навести/кликнуть; небольшой, чтобы не искажать доли. */
+.tseg{display:block;min-width:8px;height:100%;cursor:pointer;transition:filter .1s}
 .tseg:hover{filter:brightness(1.35)}
 .tseg.tsegon{outline:2px solid var(--acc);outline-offset:-2px;filter:brightness(1.15)}
 .heatp{font-size:10px;font-weight:700;white-space:nowrap}

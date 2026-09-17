@@ -184,8 +184,23 @@ input#q{min-width:220px}
 .subrow .t2{border-left:2px solid #22d3ee33;padding-left:12px}
 .whob{color:var(--ink-3);font-size:11px;margin:2px 0 0 0}
 .afterdlg{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
-.t2{margin-top:6px;font-size:11px;width:100%}
-.t2>tbody>tr>td{padding:6px 6px;white-space:nowrap}
+.t2{margin-top:6px;font-size:11px;width:100%;table-layout:fixed}
+/* Жёсткая раскладка t2: каждая колонка в своих границах, «Что горит» и «Лента» не наезжают.
+   Порядок колонок: ▸ / Сумма / Тип / ID / Сделка / Стадия / Создана / Посл.комм / Градусник /
+   Тишина / Ответ / Что горит / Лента. */
+.t2 th:nth-child(1),.t2 td:nth-child(1){width:24px}
+.t2 th:nth-child(2),.t2 td:nth-child(2){width:74px}
+.t2 th:nth-child(3),.t2 td:nth-child(3){width:48px}
+.t2 th:nth-child(4),.t2 td:nth-child(4){width:52px}
+.t2 th:nth-child(6),.t2 td:nth-child(6){width:100px}
+.t2 th:nth-child(7),.t2 td:nth-child(7){width:64px}
+.t2 th:nth-child(8),.t2 td:nth-child(8){width:64px}
+.t2 th:nth-child(9),.t2 td:nth-child(9){width:66px}
+.t2 th:nth-child(10),.t2 td:nth-child(10){width:52px}
+.t2 th:nth-child(11),.t2 td:nth-child(11){width:56px}
+.t2 th:nth-child(12),.t2 td:nth-child(12){width:132px}
+.t2 th:nth-child(13),.t2 td:nth-child(13){width:120px}
+.t2>tbody>tr>td{padding:6px 6px;white-space:nowrap;overflow:hidden}
 /* Отступы у краёв вложенных таблиц - видно границу */
 .t2>tbody>tr>td:first-child,.t2 th:first-child,.t3>tbody>tr>td:first-child,.t3 th:first-child{padding-left:12px}
 .t2>tbody>tr>td:last-child,.t2 th:last-child,.t3>tbody>tr>td:last-child,.t3 th:last-child{padding-right:14px}

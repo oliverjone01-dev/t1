@@ -1473,13 +1473,13 @@ function render(cur,cmp){
     ? `<a href="https://docs.google.com/spreadsheets/d/1Mt7UDX9sfVaVxb-c4u0Nno2dOWOZG7AIxlwTMYGAFCY/edit" target="_blank" rel="noopener" style="color:#22D3EE;font-weight:600">✎ заполнить план (Google-таблица, лист OZON)</a>`
     : `Факт берётся из свода по дате заказа - того же источника, что таблица выше. Плана по Маркету пока нет: отдельного листа в Google-таблице под эту площадку не заведено, поэтому во всех колбах стоит «задай план». Ссылку на лист OZON тут ставить нельзя - цели там по другой площадке.`}</div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div id="plan" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-around;padding:16px 4px 6px"></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note" style="display:none">начислено → комиссия → услуги OZON → к выплате (канал) → −доставка от покупателя (компенсируется, в расчёт не входит) → −СС произв. → −(АДМ 30% + Налоги 15%) → чистая прибыль. Канальный «к выплате» = к выплате по SKU + доставка от покупателя; СС, база АДМ/налогов и чистая - из аналитики по SKU за тот же период (совпадают с ИТОГО таблицы).</div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub" style="display:none">Сводка по каждому артикулу за период из верхнего фильтра: реализация с учётом возвратов + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» и «Налоги 15%» - от К выплате (сборы кабинета входят в базу, доставка от покупателя - нет); по позициям с реализовано=0 не начисляются; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / К выплате. Для артикулов без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). «Реклама» - расход на продвижение по SKU (CPC+CPO из Performance API), где собрано; вычтен из «К выплате». Несобранная реклама и прочие сборы, которые OZON списывает не по одному SKU (штрафы/realFBS/бейдж/эквайринг), - в отдельной строке «Сборы уровня заказа/кабинета» и в ИТОГО (realFBS - в «Логистику», остаток рекламы и прочее - в «Прочие»). «Доставка от покупателя» в расчёт НЕ входит (компенсируется) - она только в информационном блоке ниже.</div></div></div><div id="skuan-warn" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>${IS_OZON ? `` : `<div class="kt-note" style="margin:2px 0 8px;padding:8px 12px;border-left:3px solid #8AA0FF;background:rgba(138,160,255,.08)">Раскладка по артикулам на Маркете живёт выше, в блоке <b>«Свод по дате заказа»</b> - там те же категории с раскрытием в артикулы.<br>Эта таблица считала то же самое из другого источника: проводки реестра по <b>дате проводки</b> против доставленных заказов по <b>дате заказа</b>. Два ответа на один вопрос на одной странице читаются как ошибка, поэтому таблица скрыта, а не удалена. <span id="skuan-gap"></span>Если нужен именно взгляд «по дате проводки» - скажи, вернём отдельным блоком с явным названием базы.</div>`}<div class="kt-scroll"${IS_OZON ? `` : ` style="display:none"`}><table class="kt-table" id="skuan-t"><thead><tr>
+  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub" style="display:none">Сводка по каждому артикулу за период из верхнего фильтра: реализация с учётом возвратов + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» и «Налоги 15%» - от К выплате (сборы кабинета входят в базу, доставка от покупателя - нет); по позициям с реализовано=0 не начисляются; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / К выплате. Для артикулов без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). «Реклама» - расход на продвижение по SKU (CPC+CPO из Performance API), где собрано; вычтен из «К выплате». Несобранная реклама и прочие сборы, которые OZON списывает не по одному SKU (штрафы/realFBS/бейдж/эквайринг), - в отдельной строке «Сборы уровня заказа/кабинета» и в ИТОГО (realFBS - в «Логистику», остаток рекламы и прочее - в «Прочие»). «Доставка от покупателя» в расчёт НЕ входит (компенсируется) - она только в информационном блоке ниже.</div></div></div><div id="skuan-warn" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>${IS_OZON ? `` : `<div class="kt-note" style="margin:2px 0 8px;padding:8px 12px;border-left:3px solid #8AA0FF;background:rgba(138,160,255,.08)">Из чего сложились сборы Маркета по каждому артикулу: те же статьи, что в своде выше, и тот же источник, поэтому числа сходятся. Свод отвечает на вопрос «сколько заработали», эта таблица - «за что заплатили». Клик по категории раскрывает артикулы.</div>`}<div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead id="skuan-h">${IS_OZON ? `<tr>
     <th>Категория / Артикул</th>
     <th class="r">Реализовано</th>
     <th class="r">Начислено</th><th class="r">Комиссия</th>${IS_OZON
       ? `<th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Реклама</th>`
       : `<th class="r">Доставка</th><th class="r">Приём и перевод платежа</th><th class="r">Хранение</th><th class="r">Софинансирование скидок</th><th class="r">Буст продаж</th><th class="r">Прочие</th>`}<th class="r">Всего сборов</th><th class="r">К выплате</th><th class="r">СС произв.</th><th class="r">Валовая прибыль</th><th class="r">АДМ 30%</th><th class="r">Налоги 15%</th><th class="r">Чистая прибыль</th><th class="r">Рентаб.</th>
-  </tr></thead><tbody id="skuan"></tbody></table></div></section>
+  </tr>` : ``}<tbody id="skuan"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Общие расходы</div><div class="card-sub"${IS_OZON ? ` style="display:none"` : ``}>${IS_OZON ? `За выбранный период. Это то, что OZON списывает отдельными операциями, не привязанными к одному артикулу - поэтому их нет в таблице по артикулам. «Сумма по артикулам (К выплате) + Итого этого блока = P&L канала». Источник - транзакции OZON (operation_type_name). Прогноз до конца периода - <b>[ГИПОТЕЗА]</b>: реклама/realFBS/подписки/доставка экстраполируются по дневному run-rate, штрафы и прочее - по факту (не прогнозируются). За закрытый прошлый месяц прогноз = факт.` : `Расходы кабинета, не привязанные к заказу: полки, подписки, баннеры, буст за показы. Период задаётся фильтром наверху страницы, разбивка - та же, что в своде, и ровно эта сумма вычтена в его строке «Общие расходы кабинета». Прогноза тут нет: часть расходов приходит месячным актом одной датой, и растягивать её по дневному run-rate значило бы придумывать числа.`}</div></div></div><div class="kt-scroll"><table class="kt-table" id="acct-t"><thead id="acct-h">${IS_OZON ? `<tr><th></th><th class="r">Реклама (клик+заказ)</th><th class="r">Штрафы + гибкий график</th><th class="r">realFBS + сервис + страховка</th><th class="r">Бейдж/сеть/отзывы/Premium</th><th class="r">Доставка от покупателя</th><th class="r">Прочее (компенс./эквайринг)</th><th class="r">Итого сборов</th></tr>` : ``}</thead><tbody id="acct"></tbody></table></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
   const pageJs = `
@@ -1840,7 +1840,7 @@ function render(cur,cmp){
   var p=(PNL_DAILY&&PNL_DAILY.length)?aggPnlDaily(cur.from,cur.to):SNAP;
   paint(p,p.daily?'daily':'snap');
   initPlan(); // блок плана - один раз, со своим выбором месяца
-  renderSkuAnalytics(cur); // аналитика по SKU за период
+  if(${IS_OZON})renderSkuAnalytics(cur); // аналитика по SKU за период (на Маркете - svSkuTable из свода)
   renderAccountFees(cur); // сборы уровня заказа/кабинета за период (+прогноз)
 }`;
   writeFileSync(op("katya-money.html"), kshell("Деньги", "money", body, pageJs + svodJs(svodJson)));
@@ -2141,7 +2141,7 @@ function svDraw(){
   var lay=document.getElementById('sv-lay').value;
   document.getElementById('sv-rates').style.display=lay==='pts'?'none':'';
   if(lay==='pts')svTabPts(list,noteEl);else svTabPnl(list,ohM,ohP,noteEl);
-  svGapNote();
+  svSkuTable();
 }
 // Группировка по категориям и итоги свода - ОДНА реализация на всех потребителей: таблицу
 // P&L, водопад, план на месяц и блок общих расходов. Пока каждый считал по-своему, страница
@@ -2185,25 +2185,6 @@ function svCalcAll(list,ohM,ohP,adm,tax){
 // Итоги свода за ЛЮБОЕ окно - единая точка входа для водопада, плана и блока общих расходов.
 // Ставки АДМ/налогов берутся из тех же полей страницы, что и у таблицы, чтобы правка ставки
 // меняла все блоки разом. Возвращает null, когда за окно нет ни одного месяца свода.
-// Живое расхождение двух баз за ВЫБРАННЫЙ период: скрытая таблица по дате проводки против свода
-// по дате заказа. Раньше в заметке стояли числа разового замера, и они прокисли в тот же день:
-// колонка «Продажи» была названа выручкой, а чистая устарела, как только доехал акт по услугам.
-// Считаем на месте по обеим таблицам - тогда врать нечему и стареть нечему.
-function svGapNote(){
-  var el=document.getElementById('skuan-gap'); if(!el)return;
-  var t=svTotals(); if(!t||t.empty){el.innerHTML='';return;}
-  // ИТОГО скрытой таблицы: она по-прежнему рисуется, просто не показана.
-  var tb=document.getElementById('skuan'); if(!tb){el.innerHTML='';return;}
-  var rows=tb.querySelectorAll('tr'); var last=rows[rows.length-1];
-  if(!last||!/ИТОГО/.test(last.textContent||'')){el.innerHTML='';return;}
-  var num=function(x){var v=parseFloat(String(x||'').replace(/[^0-9.-]/g,''));return isNaN(v)?null:v;};
-  var cells=[].slice.call(last.children);
-  var oldNet=num(cells[cells.length-2]&&cells[cells.length-2].textContent);
-  if(oldNet===null){el.innerHTML='';return;}
-  var w=svWin();
-  el.innerHTML='За период <b>'+w.from+' .. '+w.to+'</b> базы расходятся: тут чистая прибыль <b>'+svRub(oldNet)
-    +' ₽</b>, в своде <b>'+svRub(t.np)+' ₽</b>. ';
-}
 // Общие расходы кабинета по ОДНОЙ группе SV_COLS (деньги плюс баллы). Раньше план складывал
 // одно сырое имя услуги «Буст продаж» и поэтому занижал продвижение: полка и товарные баннеры
 // в него не попадали, и на экране «Продвижение» жило тремя разными числами.
@@ -2212,6 +2193,52 @@ function svOhGroup(oh,group){
   if(!names)return 0;
   var v=0; names.forEach(function(n){var c=(oh.c||{})[n]||[0,0];v+=(c[0]||0)+(c[1]||0);});
   return v;
+}
+// Таблица «Аналитика по артикулам» на Маркете. Считает ИЗ СВОДА, поэтому спорить с ним не может.
+// Разделение труда: свод отвечает «сколько заработали» (выручка -> поступление -> прибыль), эта
+// таблица - «за что заплатили»: те же статьи Маркета по каждому артикулу плюс чем оплачено.
+// Прежняя версия брала озоновскую группировку (Комиссия / Софинансирование / Прочие) поверх
+// данных Маркета и другой источник (дату проводки), из-за чего за июль давала чистую 287 402 ₽
+// против 36 130 ₽ в своде.
+function svSkuTable(){
+  var el=document.getElementById('skuan'), hd=document.getElementById('skuan-h');
+  if(!el)return;
+  var w=svWin(), ms=svPick(w), list=svAgg(ms,w);
+  var cols=SV_COLS.map(function(p){return p[0];});
+  var H=['Категория / Артикул','Штуки'].concat(cols).concat(['Сборы деньгами','Оплачено баллами','Всего услуг']);
+  if(hd)hd.innerHTML='<tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr>';
+  if(!list.length){el.innerHTML='<tr><td colspan="'+H.length+'" class="kt-note">За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.</td></tr>';return;}
+  // Группировка та же, что у свода: категория - сумма своих артикулов, раскрытие не меняет арифметику.
+  var cats={};
+  list.forEach(function(a){var c=SV_CAT[a.sku]||'Без категории';
+    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,sm:0,sp:0,svc:{}});
+    cols.forEach(function(n){g.svc[n]=(g.svc[n]||0)+(a.svc[n]||0);});
+    g.rows.push(a);g.un+=a.un;g.sm+=a.sm;g.sp+=a.sp;});
+  var groups=Object.keys(cats).map(function(k){return cats[k];})
+    .sort(function(x,y){return (y.sm+y.sp)-(x.sm+x.sp);});
+  // Восемь статей складываются РОВНО в денежную ногу услуг: услуги, оплаченные баллами
+  // (софинансирование скидок), в разбивку по статьям не попадают. Поэтому итоговых колонок
+  // три и каждая названа своим именем: назвать сумму статей «всего сборов» значило бы
+  // спрятать 4,8 млн баллов за июль.
+  var R=function(v){return '<td class="r">'+(v?svRub(v):'—')+'</td>';};
+  var cells=function(a){
+    return '<td class="r">'+a.un+'</td>'+cols.map(function(n){return R(a.svc[n]||0);}).join('')
+      +'<td class="r"><b>'+svRub(a.sm)+'</b></td>'+R(a.sp)+'<td class="r"><b>'+svRub(a.sm+a.sp)+'</b></td>';
+  };
+  var h='';
+  var T={un:0,sm:0,sp:0,svc:{}};
+  groups.forEach(function(g,gi){
+    var open=!!SV_OPEN['sku:'+g.cat];
+    T.un+=g.un;T.sm+=g.sm;T.sp+=g.sp;cols.forEach(function(n){T.svc[n]=(T.svc[n]||0)+(g.svc[n]||0);});
+    h+='<tr class="sku-cat" data-cat="'+gi+'" style="cursor:pointer;font-weight:700"><td>'+(open?'▾':'▸')+' '+g.cat
+      +' <span style="color:var(--ink-3);font-weight:400">('+g.rows.length+')</span></td>'+cells(g)+'</tr>';
+    if(open)g.rows.forEach(function(a){
+      h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+a.sku+'</td>'+cells(a)+'</tr>';});
+  });
+  h+='<tr style="font-weight:700;border-top:2px solid var(--bd);background:rgba(255,255,255,.03)"><td>ИТОГО</td>'+cells(T)+'</tr>';
+  el.innerHTML=h;
+  Array.prototype.forEach.call(el.querySelectorAll('.sku-cat'),function(tr){
+    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN['sku:'+g.cat]=!SV_OPEN['sku:'+g.cat];svSkuTable();};});
 }
 function svTotals(w){
   w=w||svWin();

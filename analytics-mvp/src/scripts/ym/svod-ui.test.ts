@@ -367,18 +367,11 @@ describe("свод Маркета: числа на странице", () => {
     for (const r of rows) expect(r[2], `${empty}: план показал факт «${r[0]}» на пустом месяце`).toBeNull();
   });
 
-  // ФЕНИКС, gap 4: в заметке стояли числа замера, и они прокисли в тот же день (9 722 328 было
-  // названо выручкой свода, хотя это справочная колонка «Продажи»). Теперь считается на месте.
-  it("заметка о скрытой таблице показывает живое расхождение, а не замер", () => {
+  // ФЕНИКС, gap 4: в видимом тексте стояли числа разового замера, и они прокисли в тот же день
+  // (колонка «Продажи» была названа выручкой, чистая устарела с приходом акта). Заметка с ними
+  // ушла вместе с возвратом таблицы, но сами числа не должны вернуться в видимый текст никогда.
+  it("чисел разового замера нет в видимом тексте страницы", () => {
     setRange("2026-07-01", "2026-07-31");
-    const gap = D().getElementById("skuan-gap")!;
-    const txt = gap.textContent || "";
-    expect(txt, "заметка пуста - разбор ИТОГО скрытой таблицы сломан").toContain("базы расходятся");
-    // Сравниваем с тем, что НАРИСОВАНО в ИТОГО: форматирование у обоих одно (fmtRu).
-    const shown = (cell("Чистая прибыль") || "").replace(/\u00A0/g, " ").trim();
-    expect(shown, "в ИТОГО нет чистой прибыли").not.toBe("");
-    expect(txt.replace(/\u00A0/g, " "), `в заметке нет числа свода «${shown}»`).toContain(shown);
-    // Числа разового замера не должны стоять в видимом тексте: он читается как факт.
     const visible = [...D().querySelectorAll("section.card")].map((x) => x.textContent || "").join(" ");
     expect(visible).not.toContain("9 722 328 ₽ и 140 942 ₽");
     expect(visible, "колонка «Продажи» снова названа выручкой").not.toContain("выручка 15 287 504");
@@ -396,11 +389,49 @@ describe("свод Маркета: числа на странице", () => {
     setLay("pnl");
   });
 
-  it("второй таблицы по артикулам на Маркете нет: она расходилась со сводом", () => {
-    // Раздел остаётся на месте с объяснением - но именно таблицы с другими числами быть не должно.
-    expect(D().getElementById("skuan-t")!.closest(".kt-scroll")!.getAttribute("style") || "").toContain("display:none");
-    expect(D().body.textContent).toContain("Свод по дате заказа");
+  // Решение Ивана 2026-09-17: «верни таблицу но мне не нужна разбивка озон, мне нужна разбивка
+  // яндекса». Таблица вернулась на экран, считает ИЗ СВОДА и показывает статьи Маркета - поэтому
+  // спорить со сводом больше не может. Прежняя версия брала озоновскую группировку поверх данных
+  // Маркета и другой источник (дату проводки): за июль давала чистую 287 402 ₽ против 36 130 ₽.
+  it("таблица по артикулам видна и показывает статьи Маркета, а не озоновские", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const scroll = D().getElementById("skuan-t")!.closest(".kt-scroll")!;
+    expect(scroll.getAttribute("style") || "", "таблица всё ещё скрыта").not.toContain("display:none");
+    const hdr = [...D().querySelectorAll("#skuan-h th")].map((x) => (x.textContent || "").trim());
+    for (const ozon of ["Начислено", "Комиссия", "Софинансирование скидок", "К выплате", "АДМ 30%"]) {
+      expect(hdr, `озоновская колонка «${ozon}» осталась`).not.toContain(ozon);
+    }
+    for (const ym of ["Размещение", "Продвижение", "Подписка", "Перевод платежа покупателя"]) {
+      expect(hdr, `статьи Маркета «${ym}» нет`).toContain(ym);
+    }
+    expect(D().querySelectorAll("#skuan tr").length, "таблица пуста").toBeGreaterThan(2);
   });
+
+  it("таблица по артикулам сходится со сводом по каждой статье и по штукам", () => {
+    const bad: string[] = [];
+    for (const [from, to, lab] of WF_PERIODS) {
+      setRange(from, to);
+      const hdr = [...D().querySelectorAll("#skuan-h th")].map((x) => (x.textContent || "").trim());
+      const rows = [...D().querySelectorAll("#skuan tr")];
+      const last = rows[rows.length - 1];
+      if (!last || !/ИТОГО/.test(last.textContent || "")) continue;   // пустое окно - своя ветка
+      const tot = [...last.children].map((c) => num(c.textContent));
+      const pick = (name: string) => tot[hdr.indexOf(name)];
+      if (pick("Штуки") !== num(cell("Штуки"))) bad.push(`${lab}: штуки ${pick("Штуки")} против свода ${num(cell("Штуки"))}`);
+      for (const art of ["Размещение", "Продвижение", "Доставка", "Перевод платежа покупателя"]) {
+        const a = pick(art) || 0, b = num(cell(art)) || 0;
+        if (Math.abs(a - b) > 1) bad.push(`${lab}: «${art}» ${a} против свода ${b}`);
+      }
+      // Восемь статей обязаны сложиться ровно в денежную ногу услуг.
+      const arts = hdr.slice(2, hdr.indexOf("Сборы деньгами")).reduce((s, n) => s + (pick(n) || 0), 0);
+      const money = pick("Сборы деньгами") || 0;
+      if (Math.abs(arts - money) > 2) bad.push(`${lab}: статьи дают ${Math.round(arts)}, «Сборы деньгами» ${money}`);
+      // «Всего услуг» = деньгами + баллами, иначе колонка врёт.
+      const all = pick("Всего услуг") || 0, pts = pick("Оплачено баллами") || 0;
+      if (Math.abs(money + pts - all) > 2) bad.push(`${lab}: всего ${all} против ${Math.round(money + pts)}`);
+    }
+    expect(bad).toEqual([]);
+  }, 60_000);
 
   it("переключатель площадки: обе подписи разные и ведут на ту же вкладку", () => {
     const chips = [...D().querySelectorAll("#gg-nav a")].filter((a) => /^(OZON|Яндекс Маркет)$/.test((a.textContent || "").trim()));

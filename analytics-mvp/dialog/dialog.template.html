@@ -178,18 +178,18 @@ input#q{min-width:220px}
 .t1>tbody>tr.mrow2>td{border-bottom:1px solid var(--line)}
 .t2>tbody>tr.drow>td{border-bottom:1px solid #ffffff0a}
 .t3>tbody>tr.erow2>td{border-bottom:1px solid #ffffff08}
-.t1>tbody>tr.subrow>td{padding:0 10px 16px 64px;white-space:normal;background:#ffffff05;border-left:6px solid #22d3ee55;position:relative}
+.t1>tbody>tr.subrow>td{padding:0 8px 16px 24px;white-space:normal;background:#ffffff05;border-left:6px solid #22d3ee55;position:relative;overflow-x:auto}
 .subrow>td::before{content:'СДЕЛКИ ▸';position:absolute;left:22px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#22d3eeaa}
 .subrow .t2{border-left:2px solid #22d3ee33;padding-left:12px}
 .whob{color:var(--ink-3);font-size:11px;margin:2px 0 0 0}
 .afterdlg{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
-.t2{margin-top:6px;font-size:11px}
+.t2{margin-top:6px;font-size:11px;width:100%}
 .t2>tbody>tr>td{padding:6px 6px;white-space:nowrap}
 /* Отступы у краёв вложенных таблиц - видно границу */
 .t2>tbody>tr>td:first-child,.t2 th:first-child,.t3>tbody>tr>td:first-child,.t3 th:first-child{padding-left:12px}
 .t2>tbody>tr>td:last-child,.t2 th:last-child,.t3>tbody>tr>td:last-child,.t3 th:last-child{padding-right:14px}
 .t2>tbody>tr>td.l{white-space:normal}
-.dtt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;display:block}
+.dtt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;display:block}
 .dsig{font-size:9.5px;color:var(--ink-4);margin-top:2px;line-height:1.4}
 .dsig .sdiv{color:var(--ink-4);opacity:.45;margin:0 4px}
 .leadnote{font-size:11px;padding:6px 12px;margin:0 0 6px;border-radius:7px;line-height:1.4}
@@ -337,8 +337,8 @@ input#q{min-width:220px}
 .urg{cursor:pointer}
 .t3 tr.erow2.evhi td{background:rgba(34,211,238,.16);box-shadow:inset 3px 0 0 var(--acc)}
 .t2>tbody>tr>td.l .mixchip{font-size:9.5px}
-.t2 td.urgcell{max-width:200px}
-.t2 td.mixcell{max-width:200px;white-space:normal}
+.t2 td.urgcell{max-width:150px;white-space:normal}
+.t2 td.mixcell{max-width:150px;white-space:normal}
 .fbar input[type=date]{background:#0f1720;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px}
 .chip2.on2{border-color:var(--acc);color:var(--acc);background:#22d3ee12}
 .pset{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:1px 8px;cursor:pointer;color:var(--ink-3);font-size:10.5px;margin-right:2px}
@@ -778,6 +778,9 @@ const COMM_TYPES = [
 ];
 function renderTree(){
   const list=document.getElementById('list');
+  // Разворачивание перерисовывает весь список - запоминаем прокрутку (области таблицы и страницы),
+  // чтобы фокус оставался на том, что открыли, а не улетал наверх (как в дашборде «Экономика»).
+  const _sxPrev=list.querySelector('.scrollx'); const _sxTop=_sxPrev?_sxPrev.scrollTop:0; const _winY=window.scrollY||window.pageYOffset||0;
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
   // Индекс времени событий по сделкам - для фильтра «по коммуникациям».
   if(!window.EVTS){ window.EVTS={}; window.EVIX={};
@@ -1102,6 +1105,8 @@ function renderTree(){
   }
   html+=`</table></div>`;
   list.innerHTML=html;
+  // Возвращаем прокрутку на место после перерисовки (фокус остаётся на раскрытой строке).
+  const _sxNew=list.querySelector('.scrollx'); if(_sxNew) _sxNew.scrollTop=_sxTop; if(_winY) window.scrollTo(0,_winY);
   const fF=list.querySelector('#dFrom'), fT=list.querySelector('#dTo');
   if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td.clear(); renderTree(); };
   if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td.clear(); renderTree(); };

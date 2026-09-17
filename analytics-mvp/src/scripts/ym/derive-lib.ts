@@ -170,30 +170,50 @@ export function daysBetween(from: string, to: string): string[] { const out: str
 export const real = (rows: OrderRow[]) => rows.filter((r) => !r.fake);
 
 // ---------- history.ndjson (по дате создания заказа) ----------
-export interface Fact { date: string; sku: string; offer_id: string | null; name: string; line: string; revenue: number; units: number; views: number; to_cart: number; delivered: number; returns: number; cancellations: number; platform: "ym"; market_sku?: string }
+// revenue - «заказано на сумму» (все статусы). accruals - деньги ДОСТАВЛЕННОГО за вычетом возврата:
+// это тот же базис, что у свода по заказам, и именно он показывается на «Товарах» Маркета.
+// rev_canc / rev_fly / rev_ret - деньги отменённого, ещё летящего и возвращённого: не продажи,
+// но прятать их нельзя. rev_service - деньги позиций-услуг (доставка, подъём): штук у них нет.
+// Тождество: revenue = accruals + rev_ret + rev_canc + rev_fly + rev_service; в штуках без услуг.
+export interface Fact { date: string; sku: string; offer_id: string | null; name: string; line: string; revenue: number; units: number; views: number; to_cart: number; delivered: number; returns: number; cancellations: number; accruals: number; flying: number; rev_canc: number; rev_fly: number; rev_ret: number; rev_service: number; platform: "ym"; market_sku?: string }
 
 export function buildHistory(rows: OrderRow[], floor: string, to: string, viewsBy?: Map<string, { views: number; cart: number }>): Fact[] {
   const m = new Map<string, Fact>();
   for (const r of real(rows)) {
     if (r.created < floor || r.created > to) continue;
     const k = `${r.created}|${r.sku}`;
-    const f = m.get(k) || { date: r.created, sku: r.sku, offer_id: r.sku, name: r.name, line: r.line, revenue: 0, units: 0, views: 0, to_cart: 0, delivered: 0, returns: 0, cancellations: 0, platform: PLATFORM, market_sku: r.market_sku };
+    const f = m.get(k) || { date: r.created, sku: r.sku, offer_id: r.sku, name: r.name, line: r.line, revenue: 0, units: 0, views: 0, to_cart: 0, delivered: 0, returns: 0, cancellations: 0, accruals: 0, flying: 0, rev_canc: 0, rev_fly: 0, rev_ret: 0, rev_service: 0, platform: PLATFORM, market_sku: r.market_sku };
     f.revenue = Math.round(f.revenue + r.revenue); f.units += r.units; f.delivered += r.delivered; f.returns += r.returned; f.cancellations += r.cancelled;
+    // Отменённое и летящее НЕ хранятся в строке заказа: они выводятся из статуса, цены и штук,
+    // которые там уже есть. Иначе за ними пришлось бы гнать полный пересбор заказов по сети, а
+    // накопленные снимки (2617 строк с февраля) остались бы без этих колонок навсегда.
+    // Позиция-услуга (доставка, подъём) идёт своей ногой: штук у неё нет по построению, а деньги
+    // есть, и если сложить их в «продано», выручка артикула вырастет на чужую услугу. В своде это
+    // отдельная колонка «Доставка покупателя» - здесь то же самое поле.
+    if (r.service) { f.rev_service = Math.round(f.rev_service + r.revenue); }
+    else {
+      const flying = (!DELIVERED_STATUSES.has(r.status) && !CANCELLED_STATUSES.has(r.status))
+        ? Math.max(0, r.units - r.cancelled) : 0;
+      f.accruals = Math.round(f.accruals + r.accruals); f.flying += flying;
+      f.rev_canc = Math.round(f.rev_canc + r.price * r.cancelled);
+      f.rev_fly = Math.round(f.rev_fly + r.price * flying);
+      f.rev_ret = Math.round(f.rev_ret + r.price * r.returned);
+    }
     if (!f.name && r.name) f.name = r.name;
     m.set(k, f);
   }
   if (viewsBy) for (const [k, v] of viewsBy) { const f = m.get(k); if (f) { f.views += v.views; f.to_cart += v.cart; } }
   const days = new Set([...m.values()].map((f) => f.date));
-  for (const d of daysBetween(floor, to)) if (!days.has(d)) m.set(`${d}|__empty__`, { date: d, sku: "__empty__", offer_id: null, name: "", line: "прочее", revenue: 0, units: 0, views: 0, to_cart: 0, delivered: 0, returns: 0, cancellations: 0, platform: PLATFORM });
+  for (const d of daysBetween(floor, to)) if (!days.has(d)) m.set(`${d}|__empty__`, { date: d, sku: "__empty__", offer_id: null, name: "", line: "прочее", revenue: 0, units: 0, views: 0, to_cart: 0, delivered: 0, returns: 0, cancellations: 0, accruals: 0, flying: 0, rev_canc: 0, rev_fly: 0, rev_ret: 0, rev_service: 0, platform: PLATFORM });
   return [...m.values()].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.sku < b.sku ? -1 : 1));
 }
 
 // ---------- daily_totals.ndjson ----------
-export interface DayTot { date: string; revenue: number; units: number; views: number; views_search: number; pdp_views: number; to_cart: number; delivered: number; returns: number; cancellations: number; platform: "ym" }
+export interface DayTot { date: string; revenue: number; units: number; views: number; views_search: number; pdp_views: number; to_cart: number; delivered: number; returns: number; cancellations: number; accruals: number; flying: number; rev_canc: number; rev_fly: number; rev_ret: number; rev_service: number; platform: "ym" }
 export function buildDailyTotals(facts: Fact[], floor: string, to: string, dayViews?: Map<string, { views: number; vsearch: number; pdp: number; cart: number }>): DayTot[] {
   const m = new Map<string, DayTot>();
-  for (const d of daysBetween(floor, to)) m.set(d, { date: d, revenue: 0, units: 0, views: 0, views_search: 0, pdp_views: 0, to_cart: 0, delivered: 0, returns: 0, cancellations: 0, platform: PLATFORM });
-  for (const f of facts) { const t = m.get(f.date); if (!t || f.sku === "__empty__") continue; t.revenue += f.revenue; t.units += f.units; t.delivered += f.delivered; t.returns += f.returns; t.cancellations += f.cancellations; }
+  for (const d of daysBetween(floor, to)) m.set(d, { date: d, revenue: 0, units: 0, views: 0, views_search: 0, pdp_views: 0, to_cart: 0, delivered: 0, returns: 0, cancellations: 0, accruals: 0, flying: 0, rev_canc: 0, rev_fly: 0, rev_ret: 0, rev_service: 0, platform: PLATFORM });
+  for (const f of facts) { const t = m.get(f.date); if (!t || f.sku === "__empty__") continue; t.revenue += f.revenue; t.units += f.units; t.delivered += f.delivered; t.returns += f.returns; t.cancellations += f.cancellations; t.accruals += f.accruals || 0; t.flying += f.flying || 0; t.rev_canc += f.rev_canc || 0; t.rev_fly += f.rev_fly || 0; t.rev_ret += f.rev_ret || 0; t.rev_service += f.rev_service || 0; }
   if (dayViews) for (const [d, v] of dayViews) { const t = m.get(d); if (t) { t.views = v.views; t.views_search = v.vsearch; t.pdp_views = v.pdp; t.to_cart = v.cart; } }
   return [...m.values()];
 }

@@ -11,13 +11,52 @@ import { coverageStrip, GAPS_JS } from "../coverage.js";
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
 const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(html));
 
-type Fact = { date: string; sku: string; name: string; line: string; revenue: number; units: number; returns?: number };
+type Fact = { date: string; sku: string; name: string; line: string; revenue: number; units: number; returns?: number;
+  // Поля Маркета: деньги и штуки ДОСТАВЛЕННОГО, ОТМЕНЁННОГО и ещё летящего. У OZON их нет,
+  // поэтому все они опциональные и читаются только при DELIVERED_BASIS.
+  accruals?: number; delivered?: number; cancellations?: number; flying?: number; rev_canc?: number; rev_fly?: number };
 const RUMON = ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
 const mln = (n: number) => Math.round((n / 1e6) * 1000) / 1000;
 const slug = (s: string) => "s_" + s.toLowerCase().replace(/[^a-zа-я0-9]+/gi, "_").replace(/^_|_$/g, "").slice(0, 60);
 
 // --- данные ---
+// БАЗИС ПРОДАЖ. У OZON «Товары» считают заказанное (как было). У Маркета заказанное и проданное
+// расходятся в полтора раза: за окно заказано 85,3 млн / 1742 шт, а доставлено 51,1 млн / 1067 шт -
+// разницу дают отмены (Маркет отменяет до трети заказов) и то, что ещё едет. Свод по заказам
+// считает только доставленное, поэтому «Товары» обязаны считать так же, иначе две страницы одного
+// дашборда называют продажами разные числа. Отменённое и летящее не прячем - показываем колонками.
+const DELIVERED_BASIS = !IS_OZON;
 const facts: Fact[] = readFileSync(dp("history.ndjson"), "utf-8").trim().split("\n").map((l) => JSON.parse(l));
+
+// ПРОДАЖИ БЕРУТСЯ ИЗ САМОГО СВОДА, а не пересчитываются по второму разу из истории заказов.
+// Правило свода нетривиально (только статус DELIVERED, позиции-услуги вне товара, прайс нетто
+// возвратов, разнесение доставки по позициям) и уже один раз обошлось в расхождение: повторив его
+// «по смыслу», я получил 48 941 007 ₽ против 49 306 385 ₽ у свода и 1061 шт против 1067. Вторая
+// реализация того же правила расходится с первой всегда, вопрос только когда это заметят.
+// Поэтому: продажи и «в пути» - из svod_orders.json, отменённое - из истории (в своде его нет
+// по построению: свод считает доставленное).
+type SaleRow = { d: string; sku: string; rev: number; units: number; ret: number };
+const salesRows: SaleRow[] = [];
+const flyRows: SaleRow[] = [];
+if (DELIVERED_BASIS) {
+  let sv: any = null;
+  try { sv = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { sv = null; }
+  const months = (sv && (sv.months || sv)) || [];
+  if (!Array.isArray(months) || !months.length) {
+    throw new Error("Маркет: нет data-ym/svod_orders.json - «Товары» считаются из свода, без него страница была бы враньём. Запустить npm run ym:derive");
+  }
+  for (const m of months) {
+    for (const r of m.rows || []) {
+      const d = r.units_delivered || 0, n = r.units_net || 0;
+      // Тот же нетто-прайс, что на листе свода: цена строки относится ко всем доставленным
+      // штукам, вернувшуюся долю снимаем пропорционально.
+      salesRows.push({ d: String(r.d || ""), sku: String(r.sku), rev: d > 0 ? (r.price || 0) * n / d : (r.price || 0), units: n, ret: r.units_returned || 0 });
+    }
+    for (const r of m.inflight_rows || []) flyRows.push({ d: String(r.d || ""), sku: String(r.sku), rev: r.price || 0, units: r.units || 0, ret: 0 });
+  }
+} else {
+  for (const f of facts) salesRows.push({ d: f.date, sku: String(f.sku), rev: f.revenue, units: f.units, ret: f.returns || 0 });
+}
 const live = JSON.parse(readFileSync(dp("skus_live_30d.json"), "utf-8"));
 const tax: Record<string, any> = JSON.parse(readFileSync(dp("sku_taxonomy.json"), "utf-8"));
 const cogs: Record<string, number> = JSON.parse(readFileSync(dp("sku_cogs.json"), "utf-8"));
@@ -43,13 +82,38 @@ const z16 = () => new Array(16).fill(0);
 const taxOf = (sku: string) => tax[sku] || {};
 const skuMonRev: Record<string, number[]> = {}, skuMonOrd: Record<string, number[]> = {};
 const skuName: Record<string, string> = {}, skuRet: Record<string, number> = {}, skuUnits: Record<string, number> = {}, skuLine: Record<string, string> = {};
+// Маркет: отменённое и летящее помесячно - те же 16 колонок окна, что у продаж, чтобы на
+// странице их можно было резать выбранным периодом, а не размазывать долей.
+const skuMonCancU: Record<string, number[]> = {}, skuMonCancR: Record<string, number[]> = {};
+const skuMonFlyU: Record<string, number[]> = {}, skuMonFlyR: Record<string, number[]> = {};
+// Имена, линии и сам список артикулов - из истории заказов: там есть и те, что за окно ничего
+// не продали, и без них выпал бы каталог. Деньги и штуки - из salesRows (Маркет: свод).
 for (const f of facts) {
   const i = moIdx[f.date.slice(0, 7)]; if (i == null) continue;
   const sk = String(f.sku);
-  const arR = (skuMonRev[sk] ||= z16()); arR[i] = (arR[i] ?? 0) + f.revenue;
-  const arO = (skuMonOrd[sk] ||= z16()); arO[i] = (arO[i] ?? 0) + f.units;
+  skuMonRev[sk] ||= z16(); skuMonOrd[sk] ||= z16();
   skuName[sk] = f.name; skuLine[sk] = f.line;
-  skuUnits[sk] = (skuUnits[sk] || 0) + f.units; skuRet[sk] = (skuRet[sk] || 0) + (f.returns || 0);
+  if (DELIVERED_BASIS) {
+    // Отменённое в своде отсутствует по построению - берём из истории заказов.
+    const cU = (skuMonCancU[sk] ||= z16()); cU[i] = (cU[i] ?? 0) + (f.cancellations || 0);
+    const cR = (skuMonCancR[sk] ||= z16()); cR[i] = (cR[i] ?? 0) + (f.rev_canc || 0);
+  }
+}
+for (const r of salesRows) {
+  const i = moIdx[r.d.slice(0, 7)]; if (i == null) continue;
+  const sk = r.sku;
+  const arR = (skuMonRev[sk] ||= z16()); arR[i] = (arR[i] ?? 0) + r.rev;
+  const arO = (skuMonOrd[sk] ||= z16()); arO[i] = (arO[i] ?? 0) + r.units;
+  skuUnits[sk] = (skuUnits[sk] || 0) + r.units; skuRet[sk] = (skuRet[sk] || 0) + r.ret;
+  if (!skuName[sk]) skuName[sk] = sk;
+}
+for (const r of flyRows) {
+  const i = moIdx[r.d.slice(0, 7)]; if (i == null) continue;
+  const sk = r.sku;
+  skuMonRev[sk] ||= z16(); skuMonOrd[sk] ||= z16();
+  const fU = (skuMonFlyU[sk] ||= z16()); fU[i] = (fU[i] ?? 0) + r.units;
+  const fR = (skuMonFlyR[sk] ||= z16()); fR[i] = (fR[i] ?? 0) + r.rev;
+  if (!skuName[sk]) skuName[sk] = sk;
 }
 const allSkus = Object.keys(skuMonRev);
 const dates = [...new Set(facts.map((f) => f.date))].sort();
@@ -197,17 +261,21 @@ for (const sk of allSkus) { const m = modelOf(sk); (modelMap.get(m) || modelMap.
 const modelAbc = abcMap([...modelMap.entries()].map(([m, sks]) => ({ k: m, rev: mln(sks.reduce((a, sk) => a + totRevWin(sk), 0)) })));
 const cv = (arr: number[]) => { const nz = arr.filter((x) => x > 0); if (nz.length < 2) return 0; const mean = nz.reduce((a, b) => a + b, 0) / nz.length; const sd = Math.sqrt(nz.reduce((a, b) => a + (b - mean) ** 2, 0) / nz.length); return Math.round((sd / mean) * 100) / 100; };
 
-type Variant = { sku: string; sub: string; rev: number; cost: number; costNA: boolean; orders: number; returns: number; retCnt: number; leadDays: number; stockQty: number; mr: number[]; mc: number[]; mo: number[] };
+type Variant = { sku: string; sub: string; rev: number; cost: number; costNA: boolean; orders: number; returns: number; retCnt: number; leadDays: number; stockQty: number; mr: number[]; mc: number[]; mo: number[]; mcu?: number[]; mcr?: number[]; mfu?: number[]; mfr?: number[] };
 const buildModels = () => [...modelMap.entries()].map(([model, sks]) => {
   const mr = z16(), mo = z16(), mc = z16();
+  const mcu = z16(), mcr = z16(), mfu = z16(), mfr = z16(); // отменённое и летящее (только Маркет)
   const variants: Variant[] = sks.map((sk) => {
     const vmr = (skuMonRev[sk] || z16()).map((x) => mln(x));
     const vmo = [...(skuMonOrd[sk] || z16())];
     const cu = cogs[sk] || 0;
     const vmc = vmo.map((u) => mln(cu * u));
-    for (let i = 0; i < 16; i++) { mr[i] += vmr[i]!; mo[i] += vmo[i]!; mc[i] += vmc[i]!; }
+    const vcu = [...(skuMonCancU[sk] || z16())], vfu = [...(skuMonFlyU[sk] || z16())];
+    const vcr = (skuMonCancR[sk] || z16()).map((x) => mln(x)), vfr = (skuMonFlyR[sk] || z16()).map((x) => mln(x));
+    for (let i = 0; i < 16; i++) { mr[i] += vmr[i]!; mo[i] += vmo[i]!; mc[i] += vmc[i]!; mcu[i] += vcu[i]!; mcr[i] += vcr[i]!; mfu[i] += vfu[i]!; mfr[i] += vfr[i]!; }
     const vo = skuUnits[sk] || 0, vr = skuRet[sk] || 0;
-    return { sku: taxOf(sk).offer || sk, sub: skuName[sk] || sk, rev: mln(totRevWin(sk)), cost: mln(cu * vo), costNA: cu <= 0, orders: vo, returns: vo > 0 ? Math.round((vr / vo) * 1000) / 10 : 0, retCnt: vr, leadDays: 0, stockQty: stockOf[sk] || 0, mr: vmr, mc: vmc, mo: vmo };
+    const extra = DELIVERED_BASIS ? { mcu: vcu, mcr: vcr, mfu: vfu, mfr: vfr } : {};
+    return { sku: taxOf(sk).offer || sk, sub: skuName[sk] || sk, rev: mln(totRevWin(sk)), cost: mln(cu * vo), costNA: cu <= 0, orders: vo, returns: vo > 0 ? Math.round((vr / vo) * 1000) / 10 : 0, retCnt: vr, leadDays: 0, stockQty: stockOf[sk] || 0, mr: vmr, mc: vmc, mo: vmo, ...extra };
   });
   const g = catOf(sks[0]!), sub = subOf(sks[0]!);
   const costNA = variants.some((v) => v.costNA);
@@ -220,14 +288,15 @@ const buildModels = () => [...modelMap.entries()].map(([model, sks]) => {
     cost: Math.round(variants.reduce((s, v) => s + v.cost, 0) * 1000) / 1000, costNA,
     returns: mOrd > 0 ? Math.round((mRet / mOrd) * 1000) / 10 : 0, retCnt: mRet,
     mr: round3(mr), mc: round3(mc), mo, variants,
+    ...(DELIVERED_BASIS ? { mcu, mcr: round3(mcr), mfu, mfr: round3(mfr) } : {}),
   };
 }).sort((a, b) => b.mr.reduce((s, x) => s + x, 0) - a.mr.reduce((s, x) => s + x, 0));
 const PRODUCTS = buildModels();
 
 // --- помесячные ряды ---
-const MONTHS = WIN.map((m) => ({ m: monLabel(m), r: Math.round(facts.filter((f) => f.date.slice(0, 7) === m).reduce((a, f) => a + f.revenue, 0) / 1e6 * 100) / 100 }));
-const ozRev = mln(facts.reduce((a, f) => a + f.revenue, 0));
-const ozOrd = facts.reduce((a, f) => a + f.units, 0);
+const MONTHS = WIN.map((m) => ({ m: monLabel(m), r: Math.round(salesRows.filter((r) => r.d.slice(0, 7) === m).reduce((a, r) => a + r.rev, 0) / 1e6 * 100) / 100 }));
+const ozRev = mln(salesRows.reduce((a, r) => a + r.rev, 0));
+const ozOrd = salesRows.reduce((a, r) => a + r.units, 0);
 const CHANNELS = [
   { id: "site", name: "Сайт genglass.ru", short: "Сайт", rev: 0, prev: 0, orders: 0 },
   { id: "des", name: "Дизайнеры", short: "Дизайн.", rev: 0, prev: 0, orders: 0 },
@@ -265,17 +334,18 @@ const PRODUCT_DAILY: Record<string, number[]> = {}; // модель(nm)/арти
 const PRODUCT_DAILY_REV: Record<string, number[]> = {}; // модель(nm)/артикул(label) -> млн ₽/день
 const skuSubId: Record<string, string> = {}, skuModel: Record<string, string> = {}, skuLabel: Record<string, string> = {};
 for (const sk of allSkus) { skuSubId[sk] = subIdOf(catOf(sk), subOf(sk)); skuModel[sk] = modelOf(sk); skuLabel[sk] = taxOf(sk).offer || sk; }
-for (const f of facts) {
-  const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue;
-  const sk = String(f.sku);
-  DAILY_REV_REAL[i] = (DAILY_REV_REAL[i] ?? 0) + f.revenue / 1e6;
-  const sid = skuSubId[sk]!;
-  const a1 = (SUB_D_R[sid] ||= zD()); a1[i] = (a1[i] ?? 0) + f.revenue / 1e6;
-  const a2 = (SUB_D_O[sid] ||= zD()); a2[i] = (a2[i] ?? 0) + f.units;
-  const a3 = (PRODUCT_DAILY[skuModel[sk]!] ||= zD()); a3[i] = (a3[i] ?? 0) + f.units;
-  const a4 = (PRODUCT_DAILY[skuLabel[sk]!] ||= zD()); a4[i] = (a4[i] ?? 0) + f.units;
-  const a5 = (PRODUCT_DAILY_REV[skuModel[sk]!] ||= zD()); a5[i] = (a5[i] ?? 0) + f.revenue / 1e6;
-  const a6 = (PRODUCT_DAILY_REV[skuLabel[sk]!] ||= zD()); a6[i] = (a6[i] ?? 0) + f.revenue / 1e6;
+for (const r of salesRows) {
+  const i = dayIdx(r.d); if (i < 0 || i >= TOTAL) continue;
+  const sk = r.sku;
+  const fr = r.rev, fu = r.units;
+  DAILY_REV_REAL[i] = (DAILY_REV_REAL[i] ?? 0) + fr / 1e6;
+  const sid = skuSubId[sk]; if (!sid) continue;
+  const a1 = (SUB_D_R[sid] ||= zD()); a1[i] = (a1[i] ?? 0) + fr / 1e6;
+  const a2 = (SUB_D_O[sid] ||= zD()); a2[i] = (a2[i] ?? 0) + fu;
+  const a3 = (PRODUCT_DAILY[skuModel[sk]!] ||= zD()); a3[i] = (a3[i] ?? 0) + fu;
+  const a4 = (PRODUCT_DAILY[skuLabel[sk]!] ||= zD()); a4[i] = (a4[i] ?? 0) + fu;
+  const a5 = (PRODUCT_DAILY_REV[skuModel[sk]!] ||= zD()); a5[i] = (a5[i] ?? 0) + fr / 1e6;
+  const a6 = (PRODUCT_DAILY_REV[skuLabel[sk]!] ||= zD()); a6[i] = (a6[i] ?? 0) + fr / 1e6;
 }
 const r4 = (a: number[]) => a.map((x) => Math.round(x * 10000) / 10000);
 for (const k in SUB_D_R) SUB_D_R[k] = r4(SUB_D_R[k]!);
@@ -371,6 +441,96 @@ function replaceConst(src: string, name: string, literal: string): string {
 // НО перцентили по ВСЕМ моделям тоже врут: модели с 1 месяцем продаж имеют cv=0 и забивают X.
 // Поэтому: cv=0 (меньше 2 месяцев данных - о стабильности судить нельзя) ИСКЛЮЧАЕМ из матрицы;
 // перцентили p33/p67 считаем ТОЛЬКО по моделям с реальной вариативностью (cv>0).
+// «Товары» на базисе доставленного (только Маркет): две колонки правды рядом с продажами.
+// Шаблон один на обе площадки, поэтому патч применяется ТОЛЬКО при DELIVERED_BASIS - страницы
+// OZON обязаны остаться байт-в-байт (гейт в ym-snapshots.yml это проверяет).
+// Каждая замена обязана сработать: молча не применившийся патч дал бы страницу со старыми
+// подписями и новыми числами, то есть ложь без единой ошибки в логе.
+function patchDeliveredColumns(html: string): string {
+  let out = html;
+  const must = (re: RegExp, to: string, what: string) => {
+    const before = out;
+    out = out.replace(re, to);
+    if (out === before) throw new Error("патч «Товары/доставлено» не применился: " + what);
+  };
+
+  // Период для отменённого и летящего: те же помесячные ряды, порезанные долей дней месяца,
+  // что и запасной путь productPeriod. Дневных рядов по ним нет - и не нужно: колонки справочные.
+  must(/function productPeriod\(p, range\)\{/,
+    "function productExtra(p, range){\n" +
+    "  const f = monthDayOverlap(range);\n" +
+    "  let cu = 0, cr = 0, fu = 0, fr = 0;\n" +
+    "  const mcu = p.mcu || [], mcr = p.mcr || [], mfu = p.mfu || [], mfr = p.mfr || [];\n" +
+    "  for(let m = 0; m < NMONTHS; m++){ cu += (mcu[m]||0)*f[m]; cr += (mcr[m]||0)*f[m]; fu += (mfu[m]||0)*f[m]; fr += (mfr[m]||0)*f[m]; }\n" +
+    "  return { cancU: cu, cancR: cr, flyU: fu, flyR: fr };\n" +
+    "}\n" +
+    "function productPeriod(p, range){",
+    "productExtra");
+
+  // Ячейка колонки: деньги крупно, штуки мелко. Ноль - прочерк, чтобы глаз цеплялся за ненулевое.
+  must(/const barPct = \(val, max\) => /,
+    "const xCell = (rub, units, cls) => units > 0 || rub > 0\n" +
+    "    ? `<td class=\"right ${cls}\"><span class=\"num\">${fmt(rub,2)}</span><span class=\"u\">млн ₽</span><div class=\"pt-name-sub\">${fmt0(Math.round(units))} шт</div></td>`\n" +
+    "    : `<td class=\"right ${cls}\"><span class=\"num\" style=\"color:var(--ink-3)\">—</span></td>`;\n" +
+    "  const barPct = (val, max) => ",
+    "xCell");
+
+  // Заголовки: продажи названы доставленными, отменённое и летящее - своими колонками.
+  must(/<th class="right \$\{sortClass\('rev'\)\}" data-sort="rev">Выручка<\/th>/,
+    '<th class="right ${sortClass(\'rev\')}" data-sort="rev">Продано</th>', "th:rev");
+  must(/<th class="right \$\{sortClass\('orders'\)\}" data-sort="orders">Заказы<\/th>/,
+    '<th class="right ${sortClass(\'orders\')}" data-sort="orders">Доставлено</th>', "th:orders");
+  must(/<th class="right \$\{sortClass\('stockq'\)\}" data-sort="stockq">На складе<\/th>/,
+    '<th class="right ${sortClass(\'canc\')}" data-sort="canc">Отменено</th>\n' +
+    '            <th class="right ${sortClass(\'fly\')}" data-sort="fly">В пути</th>\n' +
+    '            <th class="right ${sortClass(\'stockq\')}" data-sort="stockq">На складе</th>', "th:canc+fly");
+
+  // Сортировка по новым колонкам.
+  must(/else if\(sortCol === 'stockq'\) \{ av = a\.stockQty; bv = b\.stockQty; \}/,
+    "else if(sortCol === 'canc')   { av = a.cancR; bv = b.cancR; }\n" +
+    "    else if(sortCol === 'fly')    { av = a.flyR; bv = b.flyR; }\n" +
+    "    else if(sortCol === 'stockq') { av = a.stockQty; bv = b.stockQty; }", "sort");
+
+  // Значения периода на строке модели.
+  must(/      stockQty: agg\.stockQty,\n    \};/,
+    "      stockQty: agg.stockQty,\n" +
+    "      cancU: _px.cancU, cancR: _px.cancR, flyU: _px.flyU, flyR: _px.flyR,\n" +
+    "    };", "model:extra-fields");
+  must(/    const pa = productPeriod\(p, _rangeA\);/,
+    "    const pa = productPeriod(p, _rangeA);\n    const _px = productExtra(p, _rangeA);", "model:productExtra");
+
+  // Ячейки: модель, размер, лист.
+  must(/        <td class="right pt-ret \$\{p\.returns==null\?'':retClass\}">\$\{p\.returns==null\?ND:`<span class="num">\$\{fmt\(p\.returns,1\)\}%<\/span>`\}<\/td>\n        <td class="right pt-stock-cell">\$\{ND\}<\/td>/,
+    '        <td class="right pt-ret ${p.returns==null?\'\':retClass}">${p.returns==null?ND:`<span class="num">${fmt(p.returns,1)}%</span>`}</td>\n' +
+    '        ${xCell(p.cancR, p.cancU, \'pt-canc\')}\n' +
+    '        ${xCell(p.flyR, p.flyU, \'pt-fly\')}\n' +
+    '        <td class="right pt-stock-cell">${ND}</td>', "row:model");
+
+  must(/      <td class="right pt-ret \$\{retClass\}"><span class="num">\$\{fmt\(v\.returns,1\)\}%<\/span><\/td>\n      \$\{renderStockCell\(v\.stockQty, v\.stk\)\}/,
+    '      <td class="right pt-ret ${retClass}"><span class="num">${fmt(v.returns,1)}%</span></td>\n' +
+    '      ${xCell(_vx.cancR, _vx.cancU, \'pt-canc\')}\n' +
+    '      ${xCell(_vx.flyR, _vx.flyU, \'pt-fly\')}\n' +
+    '      ${renderStockCell(v.stockQty, v.stk)}', "row:size");
+  must(/    const arts = buildArticles\(v\);/, "    const _vx = productExtra(v, _rangeA);\n    const arts = buildArticles(v);", "size:productExtra");
+
+  must(/      <td class="right pt-ret \$\{a\.returns==null\?'':retClass\}">\$\{a\.returns==null\?ND:`<span class="num">\$\{fmt\(a\.returns,1\)\}%<\/span>`\}<\/td>\n      <td class="right pt-stock-cell">\$\{ND\}<\/td>/,
+    '      <td class="right pt-ret ${a.returns==null?\'\':retClass}">${a.returns==null?ND:`<span class="num">${fmt(a.returns,1)}%</span>`}</td>\n' +
+    '      ${xCell(_ax.cancR, _ax.cancU, \'pt-canc\')}\n' +
+    '      ${xCell(_ax.flyR, _ax.flyU, \'pt-fly\')}\n' +
+    '      <td class="right pt-stock-cell">${ND}</td>', "row:leaf");
+  must(/    const retClass = a\.returns <= 1 \? 'good' : \(a\.returns <= 2 \? 'warn' : 'bad'\);/,
+    "    const _ax = productExtra(a, _rangeA);\n    const retClass = a.returns <= 1 ? 'good' : (a.returns <= 2 ? 'warn' : 'bad');", "leaf:productExtra");
+
+  // Пустая таблица растягивалась на 9 колонок - стало 11.
+  must(/<tr><td colspan="9">/, '<tr><td colspan="11">', "colspan");
+
+  // Подпись карточки: базис назван словами прямо на странице.
+  must(/клик по модели → артикулы · цвет точки = ранг по выручке/,
+    "продажи = ДОСТАВЛЕННОЕ за вычетом возвратов, по дате заказа (тот же базис, что у свода) · отменённое и то, что ещё едет - в отдельных колонках · клик по модели → артикулы · цвет точки = ранг по выручке",
+    "card-sub");
+  return out;
+}
+
 function patchXyzMatrix(html: string): string {
   return html.replace(
     /const classified = classifyABC\(skus\)\.map\(sk => \(\{\.\.\.sk, \.\.\.classifyXYZ\(sk\)\}\)\);/g,
@@ -886,6 +1046,7 @@ if (dailyTotals.length) {
   for (const [n, lit] of repl) html = replaceConst(html, n, lit);
   html = patchMarginHonesty(html);
   html = patchRealDaily(html, { products: true });
+  if (DELIVERED_BASIS) html = patchDeliveredColumns(html);
   html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("tovary") + REAL_DAILY_JS(true) + `<script>window.__GG_MAXD='${maxD}'</script>`);
   html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n" + HELP_JS + "\n" + CHANNEL_JS + GAPS_JS + "\n</body>");
   writeFileSync(op("katya-tovary.html"), html);
@@ -2679,4 +2840,4 @@ function render(cur,cmp){
   writeFileSync(op("katya-competitors.html"), kshell("Конкуренты", "competitors", body, pageJs));
 }
 
-console.log(`katya: командный центр + 5 страниц + конкуренты(ДЕМО) · ${PRODUCTS.length} моделей, ${allSkus.length} SKU, категорий ${CAT_TREE.length}, окно ${WIN[0]}..${WIN[15]}, OZON ${ozRev} млн / ${ozOrd} заказов`);
+console.log(`katya: командный центр + 5 страниц + конкуренты(ДЕМО) · ${PRODUCTS.length} моделей, ${allSkus.length} SKU, категорий ${CAT_TREE.length}, окно ${WIN[0]}..${WIN[15]}, ${IS_OZON ? "OZON" : "Маркет"} ${ozRev} млн / ${ozOrd} шт (${DELIVERED_BASIS ? "доставлено, базис свода" : "заказано"})`);

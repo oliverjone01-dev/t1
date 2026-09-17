@@ -887,12 +887,18 @@ function renderTree(){
     const order=[['boiling','#E5484D','кипят'],['hot','#F76808','горячие'],['warm','#E2A336','тёплые'],['cold','#5B8DEF','холодные'],['goal','#2E9E74','предоплата']];
     const tot=ds.length;
     const seg=order.filter(([k])=>b[k]).map(([k,c,l])=>{ const on=aiPickActive('tp',key,k);
-      return `<span class="tseg${on?' tsegon':''}" data-temp="${k}" style="flex:${b[k]};background:${c}" data-tip="<span class='tdot' style='background:${c}'></span>${l}: <b>${b[k]}</b> (${Math.round(b[k]/tot*100)}%) · клик - показать эти сделки"></span>`; }).join('');
+      return `<span class="tseg${on?' tsegon':''}" data-temp="${k}" style="flex:${b[k]};background:${c}" data-tip="<span class='tdot' style='background:${c}'></span><b>${l}</b>: ${b[k]} сдел. · ${Math.round(b[k]/tot*100)}% портфеля · клик - показать эти сделки"></span>`; }).join('');
     const dd=ds.filter(d=>!d.goalReached&&(d.stageRows||[]).length&&d.tempDelta!=null).map(d=>d.tempDelta).sort((a,b)=>a-b);
     const hp=dd.length>=3?dd[Math.floor(dd.length/2)]:null;
     const hpc=hp===null?'var(--ink-4)':hp>0?'#2E9E74':hp<0?'#C25252':'var(--ink-3)';
-    const hpTip=hp===null?'Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).':`Сила нагрева = медиана Δ температуры с входа до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.`;
-    return `<div class="tempcell" data-tip="Градусник: сделки по температуре (шанс покупки). Цель - предоплата. Наведи на сегмент - сколько и какие."><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
+    // Почему остывают: агрегируем «чего не хватает» (needToClose) по открытым сделкам + что делать.
+    const RESOLVE=[[/ждёт|ожида/i,'ответить сегодня, назвать конкретный срок'],[/тишина|пауза|молч/i,'написать с новым поводом, назначить дату след. контакта'],[/возражени/i,'вернуться с расчётом разницы или альтернативой, не скидкой'],[/скидк/i,'обосновать цену составом и ценностью'],[/следующего шага|шаг/i,'поставить дело с датой'],[/обещал|без срока/i,'выполнить обещание, дать дату'],[/стадия двигал|нет следов|касаний/i,'вести общение в CRM, не двигать стадию в тишине'],[/вхолостую|контакта/i,'закрывать дела только после контакта'],[/медленн|ответ/i,'ускорить первый ответ'],[/отказ/i,'спросить, что изменит решение']];
+    const resolveOf=l=>{for(const[re,fx]of RESOLVE)if(re.test(l))return fx;return 'проработать по сделкам';};
+    const cool={}; for(const d of ds){ for(const g of (d.needToClose||[])){ const kk=(g.label||'').replace(/\s*\([^)]*\)/,'').replace(/\d+/g,'N').trim(); if(!kk)continue; (cool[kk]||(cool[kk]={deg:0,n:0}));cool[kk].deg+=g.deg||0;cool[kk].n++; } }
+    const topCool=Object.entries(cool).sort((a,b)=>b[1].deg-a[1].deg).slice(0,4);
+    const whyBlock=topCool.length?`<br><b>Почему остывают (по сделкам):</b>`+topCool.map(([l,v])=>`<br>• ${esc(l)} — ${v.n} сдел., до +${v.deg}°<br>&nbsp;&nbsp;&rarr; ${esc(resolveOf(l))}`).join(''):'';
+    const hpTip=hp===null?'Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).':`Сила нагрева = медиана Δ температуры с входа до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${whyBlock}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
+    return `<div class="tempcell"><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'temp',t:'Градусник',l:1,full:'Температура клиентов (шанс покупки) + сила нагрева менеджера'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
     .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])

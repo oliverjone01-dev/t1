@@ -546,7 +546,7 @@ function initControls(){
   // Статус снимка - как в РОП-дашборде: цветная метка свежести (зелёная/жёлтая/красная)
   // со временем по Москве, вместо сырого ISO. Описательная часть остаётся текстом.
   document.getElementById('sub').innerHTML =
-    `${DATA.from?DATA.from.slice(0,10):''} → ${DATA.to?DATA.to.slice(0,10):''} · ${DATA.days} дн · ${esc(DATA.scope||'')} · сделок ${DATA.dealCount||0} + лидов ${DATA.leadCount||0} · <span id="freshTag" style="font-weight:700">.</span>`;
+    `<span id="freshTag" style="font-weight:700">.</span>`;
   freshStamp();
 }
 

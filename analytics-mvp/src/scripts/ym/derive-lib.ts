@@ -946,6 +946,66 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     overheadMoney.set(k, om); overheadPts.set(k, op);
   }
 
+  // Баллы за Полку и Буст за показы - в общие расходы кабинета (решение Ивана 2026-09-17).
+  // Источник балльной ноги по этим двум статьям - отчёт о баллах, а не акт: в акте колонка
+  // BONUS_PAID заполнена частично (по 8 парам кабинет/месяц из 13 там ноль при непустом отчёте),
+  // и там, где она заполнена, отчёт всегда БОЛЬШЕ - август/мебель 9 262,44 против 52 631,71.
+  // Поэтому ЗАМЕЩАЕМ, а не складываем: сложение посчитало бы часть дважды. Отчёт при этом
+  // сходится сам с собой в ноль (начислено = потрачено − возвращено), то есть он полный.
+  // Где отчёт за пару не собран, остаётся то, что дал акт: пустой отчёт не повод терять число.
+  // Статьи, которыми управляет отчёт. Берём из самих данных, а не списком в коде: заведёт Маркет
+  // третью кабинетную услугу с оплатой баллами - она попадёт сюда сама.
+  const cabCols = new Set<string>();
+  const cabPts = new Map<string, Map<string, number>>();          // кабинет|месяц -> колонка -> сумма
+  const cabPtsDaily = new Map<string, Map<string, Map<string, number>>>(); // + разбивка по дням
+  const bonusHave = new Set<string>(bonus.map((r) => `${r.business}|${r.ym}`));
+  for (const r of bonus) {
+    if (bonusKind(r) !== "spend") continue;
+    if (String((r as any).order || "").trim()) continue;
+    const v = Number(r.amount) || 0;
+    if (v >= 0) continue;                       // сторно уменьшает трату, а не добавляет
+    const k = `${r.business}|${r.ym}`;
+    const col = svcColumn(String((r as any).service || ""));
+    cabCols.add(col);
+    const byCol = cabPts.get(k) || new Map<string, number>();
+    byCol.set(col, r2((byCol.get(col) || 0) - v)); cabPts.set(k, byCol);
+    const d = String((r as any).d || "") || `${r.ym}-${String(new Date(Date.UTC(+r.ym.slice(0, 4), +r.ym.slice(5, 7), 0)).getUTCDate()).padStart(2, "0")}`;
+    const byDay = cabPtsDaily.get(k) || new Map<string, Map<string, number>>();
+    const dayCols = byDay.get(d) || new Map<string, number>();
+    dayCols.set(col, r2((dayCols.get(col) || 0) - v)); byDay.set(d, dayCols); cabPtsDaily.set(k, byDay);
+  }
+  for (const [k, byCol] of cabPts) {
+    if (!bonusHave.has(k)) continue;
+    let m = months.get(k);
+    if (!m) {
+      const [business, ym] = k.split("|") as [string, string];
+      m = { business, ym, orders: 0, rows: [], overhead_money: 0, overhead_points: 0, overhead: {}, overhead_pts: {},
+        overhead_src: "ledger", overhead_ledger: 0, overhead_points_report: 0, points_src: "orders", points_report: 0,
+        overhead_daily: {}, points_acc: 0, points_ded: 0, svc_months: [], orders_without_ledger: 0, svc_settled: false,
+        ledger_outside: 0, ledger_outside_orders: 0, ledger_status: 0, ledger_missing: 0, ledger_missing_orders: 0,
+        orders_period: 0, orders_inflight: 0, points_on_delivery: 0, cogs_cov: 0 };
+      months.set(k, m);
+    }
+    const op = overheadPts.get(k) || {};
+    // Замещаем ОБЕ статьи целиком, а не только встретившиеся в этом месяце. Иначе снова выходит
+    // смешение источников внутри одной пары: за июль по мебели отчёт знал только Полки, и рядом
+    // оставался Буст из акта (7 508,86). Отчёт по паре либо источник по этим статьям целиком,
+    // либо не источник вовсе. Прочих статей (Товарные баннеры) отчёт не покрывает - их не трогаем.
+    for (const col of cabCols) op[col] = byCol.get(col) || 0;
+    overheadPts.set(k, op);
+    // Дневная разбивка по этим же статьям - из дат отчёта.
+    for (const dd of Object.values(m.overhead_daily)) {
+      const c = dd.c || {};
+      for (const col of cabCols) if (c[col]) { dd.p = r2(dd.p - c[col]![1]); c[col]![1] = 0; }
+    }
+    for (const [d, dayCols] of cabPtsDaily.get(k) || []) {
+      const dd = m.overhead_daily[d] || (m.overhead_daily[d] = { m: 0, p: 0, c: {} });
+      const c = (dd.c ||= {});
+      for (const [col, v] of dayCols) { const cc = c[col] || (c[col] = [0, 0]); cc[1] = r2(cc[1] + v); dd.p = r2(dd.p + v); }
+    }
+    m.overhead_points = r2([...Object.values(op)].reduce((a, v) => a + v, 0));
+  }
+
   // Сборы акта по заказам вне свода. Пара (кабинет, месяц акта) может вообще не иметь
   // доставленных заказов - тогда месяц заводится ради самой суммы, иначе 301 937 ₽ по снимку
   // оставались бы невидимыми.

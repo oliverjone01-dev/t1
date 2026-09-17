@@ -678,6 +678,10 @@ const tagCol = t => t==='good'?'#2E9E74':t==='bad'?'#C25252':t==='info'?'#7C8794
 // Цвет и направление ИИ-метки по её весу на термометр: греет (вес>0) - оранжевый вверх,
 // студит (вес<0) - синий вниз, как шкала градусника. У обычных regex-меток - цвет по тону.
 const HEAT='#F76808', COOL='#5B8DEF';
+// ИИ-разработки (карточка разбора над лентой + метки-веса в «Разметке») скрыты по просьбе
+// Ивана до готовности. Вернуть всё одним переключателем: AI_UI=true. Данные (d.ai, evTags с
+// весами) в снимке остаются, просто не рендерятся.
+const AI_UI=false;
 function tagVisual(t){
   if(t.ai && typeof t.deg==='number' && t.deg!==0){ const up=t.deg>0; return {col:up?HEAT:COOL, dir:up?'up':'down'}; }
   return {col:tagCol(t.tone), dir:'flat'};
@@ -1283,8 +1287,9 @@ function renderTree(){
         const allTags=(CUR_TAGS[e.src]||[]);
         // ИИ заменяет механические regex-теги: если по реплике есть разбор ИИ - показываем
         // только его (конкретная ошибка + подчёркнутая цитата), regex прячем.
+        // Пока AI_UI выключен - показываем только regex-теги, как было раньше.
         const aiTags=allTags.filter(t=>t.ai);
-        const tags=aiTags.length?aiTags:allTags;
+        const tags=AI_UI?(aiTags.length?aiTags:allTags):allTags.filter(t=>!t.ai);
         const bad=tags.some(t=>t.tone==='bad'), good=tags.some(t=>t.tone==='good')&&!bad;
         const isM=e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок';
         const c3=typeColor(e.type);
@@ -1317,7 +1322,7 @@ function renderTree(){
       // пойдёт в дашборды менеджеров и в дайджест бота, поэтому максимально сжато и наглядно.
       const a=d&&d.ai; const tn=(a&&a.tone)||'warn';
       const tName=tn==='bad'?'Риск потери':tn==='good'?'В работе':'Требует внимания';
-      const aiB=(a&&(a.verdict||a.problem||a.recommendation))?
+      const aiB=(AI_UI && a&&(a.verdict||a.problem||a.recommendation))?
         `<div class="aicard ai-${tn}"><div class="aicard-top">`
         +`<span class="aicard-badge">🤖 Разбор ИИ · ${tName}</span>`
         +(d.temp!=null?`<span class="aicard-temp" style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:'')

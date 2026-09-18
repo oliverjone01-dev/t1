@@ -2668,7 +2668,7 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   // своим столбцом; спрятать их совсем нельзя - строка перестала бы сходиться.
   // «Поступление на штуку» и «С\С за штуку» убраны: обе получаются делением соседних колонок.
   var H=['Категория / Артикул','Продажи','Доставка покупателя'].concat(FEE)
-    .concat(['Баллы Маркета','Штуки','Поступление','С\\С произв.','Наша доставка',
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
              'Валовая прибыль','Маржа','АДМ','Налоги','Чистая прибыль','Рентаб.',
              'В пути, шт','В пути, ₽']);
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
@@ -2678,7 +2678,11 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   // «—» и «нет ведомости» - разные вещи. Ведомость заполняется руками: за март её нет вовсе при
   // 120 заказах, и ноль в колонке читался бы как «возили бесплатно». §15 п.3 требует показать
   // пробел, а не спрятать его за нулём.
-  function svShipCell(a){
+  function svShipCell(a,c){
+    // Без С\С валовая по строке не считается вовсе, и вычесть из неё доставку некуда. Ставим тот
+    // же маркер, что в колонке С\С: иначе сумма колонки не сходилась бы с тем, что реально
+    // вычтено (за июль это 4 105 ₽ - расход по артикулам, у которых нет себестоимости).
+    if(!c.covered)return '<td class="r" style="color:var(--ink-3)" title="у артикула нет С\\С, поэтому валовая по строке не считается и доставка из неё не вычитается">нет С\\С</td>';
     if(!a.shipKn)return '<td class="r" style="color:#E5B567" title="ведомость доставки по этим заказам не заполнена - наш расход на перевозку неизвестен, прибыль в строке завышена">нет ведомости</td>';
     return '<td class="r">'+(Math.round(a.shipOur||0)?svRub(a.shipOur):'—')+'</td>';
   }
@@ -2689,8 +2693,8 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
       +money(a.sp||0)
       +'<td class="r">'+a.un+'</td>'
       +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
+      +svShipCell(a,c)
       +'<td class="r">'+(c.covered?svRub(a.cogs):'нет С\\С')+'</td>'
-      +svShipCell(a)
       +'<td class="r" style="color:'+(c.gp===null?'var(--ink-3)':(c.gp>=0?'var(--up)':'var(--dn)'))+'">'+(c.gp===null?'не считается':svRub(c.gp))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.gp===null||c.cov<=0)?'—':(Math.round(c.gp/c.cov*1000)/10)+'%')+'</td>'
       +money(c.adm)+money(c.tax)
@@ -2722,15 +2726,30 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   // Месяц без строк - это не убыток: валовой прибылью и рентабельностью пустоту не называем.
   var some=groups.length>0, gpT=R.gpT-lost.v, npT=R.npT-lost.v;
   var mS=function(v){return (some&&T.cover>0)?(Math.round(v/T.cover*1000)/10)+'%':'—';};
-  h+='</tbody><tfoot><tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td>'
+  // Валовая стоит на ПОКРЫТОЙ С\С базе, а «Поступление» показывает всё. Разница читалась как
+  // ошибка расчёта («поступление − СС не равно валовая», Иван 18.09.2026) и жила только в
+  // подсказке на «Марже». Теперь она - видимая строка-мост прямо над ИТОГО, и строка читается
+  // подряд: (Поступление − без С\С) − Наша доставка − СС = Валовая.
+  var uncov=T.net-T.cover;
+  h+='</tbody><tfoot>';
+  if(Math.round(uncov)){
+    h+='<tr class="sv-extra" style="border-top:2px solid var(--bd);color:var(--ink-3);font-size:12px"><td title="Поступление артикулов, у которых нет себестоимости. Валовая и рентабельность по ним не считаются, поэтому в базу прибыли они не входят.">в т.ч. артикулы без С\С - в прибыль не входят</td>'
+      +H.slice(1).map(function(x){return '<td class="r">'+(x==='Поступление'?'−'+svRub(uncov):'')+'</td>';}).join('')+'</tr>';
+  }
+  h+='<tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td>'
     +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
     +FEE.map(function(n){var v=(TC[n]||0)+(n==='Прочее'?(ohM+ohP):0);
         return '<td class="r"><b>'+(Math.round(v)?svRub(v):'—')+'</b></td>';}).join('')
     +'<td class="r"><b>'+svRub(T.sp)+'</b></td>'
     +'<td class="r"><b>'+T.un+'</b></td>'
+    // Валовая стоит на ПОКРЫТОЙ С\С базе, а «Поступление» показывает всё. Разница читалась как
+    // ошибка («поступление − СС не равно валовая», Иван 18.09.2026) и жила только в тултипе на
+    // «Марже». Теперь она названа прямо в ячейке: из 3 973 702 ₽ июля 47 744 - артикулы без С\С,
+    // по ним валовая не считается. Тогда строка ИТОГО читается подряд:
+    // (Поступление − без С\С) − Наша доставка − СС = Валовая.
     +'<td class="r"><b>'+svRub(T.net)+'</b></td>'
+    +'<td class="r"'+(Math.round(T.shipOur-T.shipCov)?' title="плюс '+svRub(T.shipOur-T.shipCov)+' ₽ по артикулам без С\\С: у них валовая не считается, вычитать доставку не из чего"':'')+'><b>'+(T.shipKn||Math.round(lost.v)?(Math.round(T.shipCov+lost.v)?svRub(T.shipCov+lost.v):'—'):'<span style="color:#E5B567">нет ведомости</span>')+'</b></td>'
     +'<td class="r"><b>'+svRub(T.cogs)+'</b></td>'
-    +'<td class="r"><b>'+(T.shipKn||Math.round(lost.v)?(Math.round(T.shipOur+lost.v)?svRub(T.shipOur+lost.v):'—'):'<span style="color:#E5B567">нет ведомости</span>')+'</b></td>'
     +'<td class="r"><b>'+(some?svRub(gpT):'—')+'</b></td>'
     +'<td class="r"'+svBase({gp:some?gpT:null,cov:T.cover,net:T.net})+'><b>'+mS(gpT)+'</b></td>'
     +'<td class="r"><b>'+svRub(T.adm)+'</b></td><td class="r"><b>'+svRub(T.tax)+'</b></td>'

@@ -234,6 +234,17 @@ input#q{min-width:220px}
 .ai-good{border-color:#2E9E7455}.ai-good .aicard-badge{color:#2E9E74;border-color:#2E9E7466;background:#2E9E7414}
 .ai-warn{border-color:#E2A33655}.ai-warn .aicard-badge{color:#E2A336;border-color:#E2A33666;background:#E2A33614}
 .ai-bad{border-color:#C2525255}.ai-bad .aicard-badge{color:#C25252;border-color:#C2525266;background:#C2525214}
+/* Итог сделки двумя колонками над лентой: слева происхождение, справа вывод ИИ */
+.dsum{display:flex;gap:12px;align-items:stretch;margin:2px 0 10px;flex-wrap:wrap}
+.dsum-col{flex:1 1 300px;min-width:0;box-sizing:border-box;border:1px solid var(--border);border-radius:8px;padding:9px 12px}
+.dsum-left{background:rgba(255,255,255,.02);display:flex;align-items:center}
+.dsum-left .leadnote{margin:0;border:0;padding:0;background:none}
+.dsum-right{background:#8B7BF00d;border-color:#8B7BF033}
+.dsum-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8B7BF0;margin-bottom:5px}
+.dsum-v{font-weight:600;color:var(--ink-1);line-height:1.4;margin-bottom:5px;font-size:12px}
+.dsum-p,.dsum-r{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin-bottom:3px}
+.dsum-p b{color:#E08585}.dsum-r b{color:#7FD1A6}
+.dsum-none{color:var(--ink-4);font-size:11.5px}
 /* Мини-воронка и коммуникации в таблице менеджеров */
 .funnel{display:flex;gap:1px;height:9px;border-radius:3px;overflow:hidden;min-width:100px;max-width:150px}
 .funnel .fseg{min-width:4px;cursor:help;transition:filter .1s}
@@ -1415,20 +1426,18 @@ function renderTree(){
           originNote=`<div class="leadnote lead-none">Сделка создана напрямую - лида в CRM не было, истории общения до сделки нет</div>`;
         }
       }
-      // Разбор ИИ по сделке: короткая карточка «риск + ошибка + шаги». Тот же формат
-      // пойдёт в дашборды менеджеров и в дайджест бота, поэтому максимально сжато и наглядно.
-      const a=d&&d.ai; const tn=(a&&a.tone)||'warn';
-      const tName=tn==='bad'?'Риск потери':tn==='good'?'В работе':'Требует внимания';
-      const aiB=(AI_CARD && a&&(a.verdict||a.problem||a.recommendation))?
-        `<div class="aicard ai-${tn}"><div class="aicard-top">`
-        +`<span class="aicard-badge">🤖 Разбор ИИ · ${tName}</span>`
-        +(d.temp!=null?`<span class="aicard-temp" style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:'')
-        +(a.verdict?`<span class="aicard-v">${esc(a.verdict)}</span>`:'')
-        +`</div><div class="aicard-body">`
-        +`<div class="aicard-cell aicard-err"><div class="aicard-h">⚠ В чём ошибка</div><div class="aicard-t">${esc(a.problem||'-')}</div></div>`
-        +`<div class="aicard-cell aicard-act"><div class="aicard-h">→ Что сделать сейчас</div><div class="aicard-t">${esc(a.recommendation||'-')}</div></div>`
-        +`</div></div>`:'';
-      host.innerHTML=originNote+aiB+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
+      // Итог сделки двумя колонками: слева происхождение (лид/напрямую), справа вывод ИИ
+      // (вердикт · риск потери · что сделать). Тот же формат пойдёт в дашборды менеджеров и в бота.
+      const a=d&&d.ai;
+      const aiSum=(a&&(a.verdict||a.problem||a.recommendation))
+        ? `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div>`
+          +(a.verdict?`<div class="dsum-v">${esc(a.verdict)}</div>`:'')
+          +(a.problem?`<div class="dsum-p"><b>Риск потери:</b> ${esc(a.problem)}</div>`:'')
+          +(a.recommendation?`<div class="dsum-r"><b>Что сделать:</b> ${esc(a.recommendation)}</div>`:'')
+        : `<div class="dsum-h">🤖 Итог ИИ по сделке</div><div class="dsum-none">разбор по этой сделке пока не делался</div>`;
+      const leftCol=originNote||'<div class="dsum-none">Происхождение сделки не определено</div>';
+      const sumRow=`<div class="dsum"><div class="dsum-col dsum-left">${leftCol}</div><div class="dsum-col dsum-right">${aiSum}</div></div>`;
+      host.innerHTML=sumRow+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
       CUR_TAGS={};
       host.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
         if(S.sE.k===th.dataset.k) S.sE.d=-S.sE.d; else { S.sE.k=th.dataset.k; S.sE.d=1; } renderTree(); });

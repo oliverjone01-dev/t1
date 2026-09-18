@@ -263,6 +263,7 @@ input#q{min-width:220px}
 .da-col li{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin:2px 0}
 .da-concl{font-size:12px;line-height:1.55;color:var(--ink-1);border-top:1px solid var(--border);padding-top:8px}
 .da-concl b{color:#8B7BF0}
+.aibadge{margin-right:5px;cursor:help}
 /* Итог ИИ по менеджеру (над таблицей его сделок) */
 .msum{background:#8B7BF00d;border:1px solid #8B7BF033;border-radius:9px;padding:11px 13px;margin:2px 0 12px}
 .msum-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8B7BF0;margin-bottom:6px}
@@ -1313,7 +1314,7 @@ function renderTree(){
           <td><b>${money(d.budget)} ₽</b></td>
           <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
           <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
-          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
+          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${(d.ai&&(d.ai.audit||d.ai.verdict))?'<span class="aibadge" title="Есть разбор ИИ по этой сделке">🤖</span>':''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
           <td class="l dstage">${esc(d.stage||'-')}</td>
           <td>${dcell(createdTs(d))}</td>
           <td>${dcell(lastCommTs(d))}</td>

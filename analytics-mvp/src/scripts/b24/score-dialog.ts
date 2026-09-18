@@ -639,7 +639,7 @@ function main() {
       dir: f ? (f.dir || "") : "", cycle: f && f.cycle != null ? f.cycle : null, lossReason: f ? (f.reason || "") : "",
       won: isWon, lost: isLost, outcome: isWon ? "won" : isLost ? "lost" : "open",
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
-      ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [] } : null,
+      ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
       lastTs: last.ts, lastDt: last.dt,
     });

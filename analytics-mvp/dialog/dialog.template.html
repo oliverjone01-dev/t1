@@ -245,6 +245,21 @@ input#q{min-width:220px}
 .dsum-p,.dsum-r{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin-bottom:3px}
 .dsum-p b{color:#E08585}.dsum-r b{color:#7FD1A6}
 .dsum-none{color:var(--ink-4);font-size:11.5px}
+/* Развёрнутый разбор коммуникации по сделке */
+.dabox{width:100%;box-sizing:border-box;border:1px solid #8B7BF033;background:#8B7BF008;border-radius:9px;padding:11px 13px;margin:0 0 10px}
+.da-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8B7BF0;margin-bottom:8px}
+.da-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-bottom:8px}
+@media(max-width:820px){.da-grid{grid-template-columns:1fr}}
+.da-item{font-size:11.5px;line-height:1.5;color:var(--ink-2)}
+.da-item b{display:block;font-size:10px;color:var(--ink-1);margin-bottom:1px;font-weight:700}
+.da-cols{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.da-col{flex:1 1 260px;min-width:0;box-sizing:border-box;border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:rgba(255,255,255,.02)}
+.da-t{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
+.da-good .da-t{color:#7FD1A6}.da-gap .da-t{color:#E08585}
+.da-col ul{margin:0;padding-left:16px}
+.da-col li{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin:2px 0}
+.da-concl{font-size:12px;line-height:1.55;color:var(--ink-1);border-top:1px solid var(--border);padding-top:8px}
+.da-concl b{color:#8B7BF0}
 /* Итог ИИ по менеджеру (над таблицей его сделок) */
 .msum{background:#8B7BF00d;border:1px solid #8B7BF033;border-radius:9px;padding:11px 13px;margin:2px 0 12px}
 .msum-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8B7BF0;margin-bottom:6px}
@@ -1467,7 +1482,8 @@ function renderTree(){
         // только его (конкретная ошибка + подчёркнутая цитата), regex прячем.
         // Пока AI_UI выключен - показываем только regex-теги, как было раньше.
         const aiTags=allTags.filter(t=>t.ai);
-        const tags=AI_UI?(aiTags.length?aiTags:allTags):allTags.filter(t=>!t.ai);
+        // AI_UI on: показываем ТОЛЬКО ИИ-теги, regex-теги скрыты (по просьбе Ивана).
+        const tags=AI_UI?aiTags:allTags.filter(t=>!t.ai);
         const bad=tags.some(t=>t.tone==='bad'), good=tags.some(t=>t.tone==='good')&&!bad;
         const isM=e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок';
         const c3=typeColor(e.type);
@@ -1507,7 +1523,25 @@ function renderTree(){
         : `<div class="dsum-h">🤖 Итог ИИ по сделке</div><div class="dsum-none">разбор по этой сделке пока не делался</div>`;
       const leftCol=originNote||'<div class="dsum-none">Происхождение сделки не определено</div>';
       const sumRow=`<div class="dsum"><div class="dsum-col dsum-left">${leftCol}</div><div class="dsum-col dsum-right">${aiSum}</div></div>`;
-      host.innerHTML=sumRow+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
+      // Развёрнутый ROP-аудит по сделке: даты, ранние стадии, дела/задачи/комментарии и что
+      // после них, стиль, хорошо/не хватает, правила продаж, итог по коммуникации.
+      const au=a&&a.audit;
+      const daItem=(ic,t,v)=>v?`<div class="da-item"><b>${ic} ${t}</b> ${esc(v)}</div>`:'';
+      const daBlock=au?`<div class="dabox"><div class="da-h">🔬 Подробный разбор коммуникации</div>`
+        +`<div class="da-grid">`
+        +daItem('📅','Даты и сроки',au.timeline)
+        +daItem('📇','Фиксация на ранних стадиях',au.early)
+        +daItem('✅','Дела, задачи, комментарии и что после',au.tasks)
+        +daItem('💬','Как общается менеджер',au.style)
+        +daItem('📏','По правилам продаж',au.rules)
+        +`</div>`
+        +(( (au.good&&au.good.length)||(au.gaps&&au.gaps.length))?`<div class="da-cols">`
+          +`<div class="da-col da-good"><div class="da-t">Что хорошо</div>${(au.good||[]).length?'<ul>'+au.good.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
+          +`<div class="da-col da-gap"><div class="da-t">Чего не хватает</div>${(au.gaps||[]).length?'<ul>'+au.gaps.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
+          +`</div>`:'')
+        +(au.conclusion?`<div class="da-concl"><b>Итог по коммуникации:</b> ${esc(au.conclusion)}</div>`:'')
+        +`</div>`:'';
+      host.innerHTML=sumRow+daBlock+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
       CUR_TAGS={};
       host.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
         if(S.sE.k===th.dataset.k) S.sE.d=-S.sE.d; else { S.sE.k=th.dataset.k; S.sE.d=1; } renderTree(); });

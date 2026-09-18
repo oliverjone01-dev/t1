@@ -176,11 +176,35 @@ describe("карточка «Оборот» Маркета: заказано м�
     setRange(WIN[0], WIN[1]);
   });
 
-  it("соседние карточки честно называют свою базу", () => {
+  it("соседние поверхности стоят на той же базе, что карточка", () => {
+    // До этого на экране было три «оборота» разом: 7,92 и 2,33 на карточке против 10,28 в мосте,
+    // а «Средний чек» и ДРР считались от валового заказанного - проверка «оборот ÷ заказы»
+    // расходилась с карточкой чека на 23%. Иван выбрал единую базу «заказано − отменено».
+    const numOf = (name: string) => {
+      const c = [...D().querySelectorAll("#kpis .card")].find((x) => (x.textContent || "").includes(name))!;
+      const t = c.querySelector(".kt-v")!.textContent || "";
+      const m = t.match(/([\d.,]+)\s*М/);
+      return m ? parseFloat(m[1]!.replace(",", ".")) * 1e6
+               : parseFloat(t.replace(/[^\d,.-]/g, "").replace(/\s/g, "").replace(",", "."));
+    };
+    const oborot = pairs()[0]![0], zakazy = numOf("Заказы, шт"), chek = numOf("Средний чек");
+    expect(zakazy).toBeGreaterThan(0);
+    expect(Math.abs(oborot / zakazy - chek) / chek).toBeLessThan(0.01); // оборот ÷ заказы = чек
+
+    // штуки тоже нетто: иначе чек делился бы на другую базу
+    expect(Math.abs(zakazy - (sumWin("units") - sumWin("cancellations")))).toBeLessThan(1);
+
+    // мост «Стало» - то же левое число карточки, а не валовое заказанное
+    const bars = [...D().querySelectorAll("#bridge b")].map((b) => b.textContent || "");
+    const stalo = bars[bars.length - 1]!;
+    const mln2 = parseFloat((stalo.match(/([\d.,]+)\s*М/) || [])[1]?.replace(",", ".") || "0") * 1e6;
+    expect(Math.abs(mln2 - oborot)).toBeLessThan(10_000);
+    expect(Math.abs(mln2 - sumWin("revenue"))).toBeGreaterThan(100_000); // и точно не валовое
+
     const tipOf = (name: string) =>
       [...D().querySelectorAll("#kpis .card")].find((c) => (c.textContent || "").includes(name))?.getAttribute("title") || "";
-    expect(tipOf("Средний чек")).toContain("базы разные");
-    expect(tipOf("ДРР")).toContain("базы разные");
+    expect(tipOf("Средний чек")).toContain("заказано минус отменено");
+    expect(tipOf("ДРР")).toContain("заказано минус отменено");
   });
 
   it("снимок без полей о доставке не выдаётся за честные числа", () => {

@@ -2623,7 +2623,10 @@ svInit();
 // (accruals - деньги доставленного за вычетом возврата, ровно базис свода). Дельта считается по
 // доставленному: это единственная из двух цифр, которая уже деньги, а не намерение.
 // У OZON отчёт о заказах даёт нули в отменах, двух честных чисел не собрать - карточка прежняя.
-const GROSS_TIP = IS_OZON ? "" : " Считается от заказанного целиком, а не от чисел карточки «Оборот»: базы разные.";
+const NET_BASE_LINE = IS_OZON
+  ? `const gmv=v('rev'),gmvP=p('rev'),u=v('units'),uP=p('units'),vw=v('views'),vwP=p('views');`
+  : `const gmv=v('rev')-v('rcanc'),gmvP=p('rev')-p('rcanc'),u=v('units')-v('canc'),uP=p('units')-p('canc'),vw=v('views'),vwP=p('views');`;
+const NET_TIP = IS_OZON ? "" : " База - заказано минус отменено, то есть левое число карточки «Оборот»; оборот ÷ заказы сходится со средним чеком. Не доставленное: оно дозревает неделями, на свежем окне доставлена лишь малая часть заказов, и чек с ДРР скакали бы на ровном месте.";
 const MONEY_GAP_CONST = IS_OZON ? "" : `const MONEY_GAP=${!MONEY_FIELDS_OK};`;
 const KPI2_FN = IS_OZON ? "" : `
   const kpi2=(lab,v1,c1,v2,c2,dd,note,tp)=>'<div class="card"'+tip(tp)+'><div class="kt-k">'+lab+'</div><div style="display:flex;gap:16px;flex-wrap:wrap"><div><div class="kt-v" style="font-size:22px">'+v1+'</div><div class="kt-k" style="margin:3px 0 0;text-transform:none;letter-spacing:0;font-weight:500">'+c1+'</div></div><div><div class="kt-v" style="font-size:22px">'+v2+'</div><div class="kt-k" style="margin:3px 0 0;text-transform:none;letter-spacing:0;font-weight:500">'+c2+'</div></div></div>'+(note||'')+dd+'</div>';
@@ -2650,7 +2653,7 @@ const KPI2_FN = IS_OZON ? "" : `
 `;
 const GMV_KPI = IS_OZON
   ? `kpi('Оборот, ₽',fMln(gmv),dlt(gmv,gmvP),'GMV за период. Дельта к равному предыдущему окну.')`
-  : `kpi2('Оборот, ₽',fMln(gmv-v('rcanc')),'заказано \u2212 отменено',fMln(v('racc')),'доставлено',delivDelta(cur,cmp),MONEY_GAP?'<div class="kt-d dn" style="margin-top:9px">снимок без полей о доставке: слева показано заказанное целиком</div>':gapNote(cur),'Слева заказано за вычетом отменённого, справа доставленное за вычетом возвратов. Разрыв - заказы в пути, возвраты и услуги доставки; услуги в правое число не попадут никогда. Доставленное сходится со сводом помесячно, кроме февраля: свод берёт только статус DELIVERED, здесь ещё PARTIALLY_DELIVERED, расхождение 65 940 ₽.')`;
+  : `kpi2('Оборот, ₽',fMln(gmv),'заказано \u2212 отменено',fMln(v('racc')),'доставлено',delivDelta(cur,cmp),MONEY_GAP?'<div class="kt-d dn" style="margin-top:9px">снимок без полей о доставке: слева показано заказанное целиком</div>':gapNote(cur),'Слева заказано за вычетом отменённого, справа доставленное за вычетом возвратов. Разрыв - заказы в пути, возвраты и услуги доставки; услуги в правое число не попадут никогда. Доставленное сходится со сводом помесячно, кроме февраля: свод берёт только статус DELIVERED, здесь ещё PARTIALLY_DELIVERED, расхождение 65 940 ₽.')`;
 {
   const ads = freshAds("ads_30d.json");
   let adsPeriodsCC: any = freshAds("ads_periods.json");
@@ -2675,13 +2678,13 @@ const GMV_KPI = IS_OZON
   <section class="card" id="alerts-card"><div class="card-h"><div><div class="card-title">Что горит прямо сейчас</div><div class="card-sub">алёрты по живому снимку OZON (остатки, индекс цены, реклама за 30 дн). Клик по алёрту - разбор у Гуру</div></div></div><div id="alerts"></div></section>
   <section class="kt-kpi" id="kpis"></section>
   <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:14px" class="kt-two">
-    <section class="card"><div class="card-h"><div><div class="card-title">Декомпозиция оборота</div><div class="card-sub" id="bsub"></div></div></div><div id="bridge"></div><div class="kt-note">Оборот = трафик × конверсия в заказ × средний чек. Видно, какой из трёх рычагов дал прирост или просадку - туда и бить.${IS_OZON ? "" : " Все три множителя от заказанного, поэтому «Стало» больше левого числа карточки «Оборот»."}</div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Декомпозиция оборота</div><div class="card-sub" id="bsub"></div></div></div><div id="bridge"></div><div class="kt-note">Оборот = трафик × конверсия в заказ × средний чек. Видно, какой из трёх рычагов дал прирост или просадку - туда и бить.${IS_OZON ? "" : " Все три множителя на той же базе, что левое число карточки «Оборот»: заказано минус отменено."}</div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Движения за период</div><div class="card-sub" id="movers-sub">кто прибавил и кто просел по обороту против предыдущего равного периода</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th class="r">Оборот</th><th class="r">Δ к базе</th></tr></thead><tbody id="movers"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Локомотивы и риск</div><div class="card-sub">A-товары (дают 80% оборота периода). Красный флаг - есть риск: OOS или дороже рынка</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Остаток</th><th class="r">Индекс цены</th><th>Риск</th></tr></thead><tbody id="loco"></tbody></table></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
   const pageJs = `
-const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, ...(IS_OZON ? {} : { rcanc: DAY_T.rcanc, racc: DAY_T.racc, rfly: DAY_T.rfly, rret: DAY_T.rret, rsvc: DAY_T.rsvc }) })};
+const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, ...(IS_OZON ? {} : { rcanc: DAY_T.rcanc, racc: DAY_T.racc, rfly: DAY_T.rfly, rret: DAY_T.rret, rsvc: DAY_T.rsvc, canc: DAY_T.canc }) })};
 const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};${MONEY_GAP_CONST}const ADS=${J(ads)};const ADSP=${J(adsPeriodsCC)};
 // Общая ДРР - из запечённого снимка рекламы за период (расход÷оборот). Живого уточнения через
 // n8n больше нет (миграция): берём ближайший снимок 7/30/90 через adsForPeriod().
@@ -2694,16 +2697,16 @@ const skuW=(sk,w)=>{let r=0,u=0;const a=idxOf(w.from),b=idxOf(w.to);sk.d.forEach
 function tip(t){return ' title="'+t.replace(/"/g,'&quot;')+'"';}
 function render(cur,cmp){
   const v=k=>sW(D[k],cur),p=k=>sW(D[k],cmp);
-  const gmv=v('rev'),gmvP=p('rev'),u=v('units'),uP=p('units'),vw=v('views'),vwP=p('views');
+  ${NET_BASE_LINE}
   const cro=vw?u/vw:0,croP=vwP?uP/vwP:0,aov=u?gmv/u:0,aovP=uP?gmvP/uP:0;
   // KPI
   const kpi=(lab,val,dd,tp)=>'<div class="card"'+tip(tp)+'><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div>'+dd+'</div>';${KPI2_FN}
   document.getElementById('kpis').innerHTML=[
     ${GMV_KPI},
-    kpi('Заказы, шт',fmtRu(u),dlt(u,uP),'Сколько штук заказали за период.'),
+    kpi('Заказы, шт',fmtRu(u),dlt(u,uP),'${IS_OZON ? "Сколько штук заказали за период." : "Сколько штук заказали за период за вычетом отменённых. Та же база, что у левого числа карточки «Оборот», поэтому оборот ÷ заказы сходится со средним чеком."}'),
     kpi('Конверсия показ→заказ',(cro*100).toFixed(2)+'%',dlt(cro,croP),'Из скольких показов рождается заказ. Падает - проблема с карточкой/ценой/трафиком.'),
-    kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.${GROSS_TIP}'),
-    kpi('ДРР',(gmv?(Math.round(((adsForPeriod().totals||{}).spend||0)/gmv*1000)/10):0)+'%','<span class="kt-d na">снимок · за период</span>','Расход рекламы ÷ ВЕСЬ оборот за период (как ДРР в выгрузке OZON). Из ближайшего снимка 7/30/90.${GROSS_TIP}'),
+    kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.${NET_TIP}'),
+    kpi('ДРР',(gmv?(Math.round(((adsForPeriod().totals||{}).spend||0)/gmv*1000)/10):0)+'%','<span class="kt-d na">снимок · за период</span>','Расход рекламы ÷ ВЕСЬ оборот за период (как ДРР в выгрузке OZON). Из ближайшего снимка 7/30/90.${NET_TIP}'),
     kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false,'шт'),'Возвраты съедают маржу. Рост - смотри качество и описание.')
   ].join('');
   document.getElementById('bsub').textContent='период '+cur.from+'..'+cur.to+' · база '+cmp.from+'..'+cmp.to;

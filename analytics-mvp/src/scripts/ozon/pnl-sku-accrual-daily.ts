@@ -32,6 +32,7 @@ async function main() {
   const ensure = (sku: string, d: string) => (rows[key(sku, d)] ||= { d, sku, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, otherSvc: 0, amount: 0 });
   for (const p of posts) {
     if (!p.date) continue;
+    if (p.status !== "delivered") continue; // тот же базис, что старый pnl и блок по артикулам - реализация
     orderDate[p.posting_number] = p.date;
     for (const it of p.products) {
       if (!it.sku) continue;

@@ -768,7 +768,8 @@ const HEAT='#F76808', COOL='#5B8DEF';
 // ИИ-разработки (карточка разбора над лентой + метки-веса в «Разметке») скрыты по просьбе
 // Ивана до готовности. Вернуть всё одним переключателем: AI_UI=true. Данные (d.ai, evTags с
 // весами) в снимке остаются, просто не рендерятся.
-const AI_UI=false;
+const AI_UI=true;    // ИИ-теги в «Разметке» с подчёркиванием цитаты (места тега) в реплике
+const AI_CARD=false; // плашка-разбор над лентой выключена: вывод по сделке живёт в подсказке градусника
 function tagVisual(t){
   if(t.ai && typeof t.deg==='number' && t.deg!==0){ const up=t.deg>0; return {col:up?HEAT:COOL, dir:up?'up':'down'}; }
   return {col:tagCol(t.tone), dir:'flat'};
@@ -1418,7 +1419,7 @@ function renderTree(){
       // пойдёт в дашборды менеджеров и в дайджест бота, поэтому максимально сжато и наглядно.
       const a=d&&d.ai; const tn=(a&&a.tone)||'warn';
       const tName=tn==='bad'?'Риск потери':tn==='good'?'В работе':'Требует внимания';
-      const aiB=(AI_UI && a&&(a.verdict||a.problem||a.recommendation))?
+      const aiB=(AI_CARD && a&&(a.verdict||a.problem||a.recommendation))?
         `<div class="aicard ai-${tn}"><div class="aicard-top">`
         +`<span class="aicard-badge">🤖 Разбор ИИ · ${tName}</span>`
         +(d.temp!=null?`<span class="aicard-temp" style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:'')

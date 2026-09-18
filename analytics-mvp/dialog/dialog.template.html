@@ -245,6 +245,18 @@ input#q{min-width:220px}
 .dsum-p,.dsum-r{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin-bottom:3px}
 .dsum-p b{color:#E08585}.dsum-r b{color:#7FD1A6}
 .dsum-none{color:var(--ink-4);font-size:11.5px}
+/* Итог ИИ по менеджеру (над таблицей его сделок) */
+.msum{background:#8B7BF00d;border:1px solid #8B7BF033;border-radius:9px;padding:11px 13px;margin:2px 0 12px}
+.msum-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8B7BF0;margin-bottom:6px}
+.msum-v{font-size:12.5px;font-weight:600;color:var(--ink-1);line-height:1.45;margin-bottom:9px}
+.msum-cols{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.msum-col{flex:1 1 280px;min-width:0;box-sizing:border-box;border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:rgba(255,255,255,.02)}
+.msum-t{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
+.msum-str .msum-t{color:#7FD1A6}.msum-wk .msum-t{color:#E08585}
+.msum-col ul{margin:0;padding-left:16px}
+.msum-col li{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin:2px 0}
+.msum-act{font-size:12px;color:var(--ink-2);line-height:1.5;border-top:1px solid var(--border);padding-top:8px}
+.msum-act b{color:#7FD1A6}
 /* Мини-воронка и коммуникации в таблице менеджеров */
 .funnel{display:flex;gap:1px;height:9px;border-radius:3px;overflow:hidden;min-width:100px;max-width:150px}
 .funnel .fseg{min-width:4px;cursor:help;transition:filter .1s}
@@ -1219,6 +1231,18 @@ function renderTree(){
       else ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
         if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
         return String(x??'').localeCompare(String(y??''))*S.sD.d; });
+      // Итог ИИ по менеджеру за все его сделки: вердикт, сильные/слабые стороны, что делать.
+      const ma=m.ai;
+      if(ma&&(ma.verdict||(ma.strengths&&ma.strengths.length)||(ma.weaknesses&&ma.weaknesses.length)||ma.action)){
+        html+=`<div class="msum"><div class="msum-h">🤖 Итог ИИ по менеджеру${ma.grade!=null?` · балл ${ma.grade}/10`:''}${ma.reviewed?` · разобрано сделок: ${ma.reviewed}`:''}</div>`
+          +(ma.verdict?`<div class="msum-v">${esc(ma.verdict)}</div>`:'')
+          +`<div class="msum-cols">`
+          +`<div class="msum-col msum-str"><div class="msum-t">Сильные стороны</div>${(ma.strengths||[]).length?'<ul>'+ma.strengths.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
+          +`<div class="msum-col msum-wk"><div class="msum-t">Слабые места</div>${(ma.weaknesses||[]).length?'<ul>'+ma.weaknesses.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
+          +`</div>`
+          +(ma.action?`<div class="msum-act"><b>Что делать:</b> ${esc(ma.action)}</div>`:'')
+          +`</div>`;
+      }
       html+=`<table class="tbl t2"><tr>`+DCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="d" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sD,c.k)}</span></th>`).join('')+`</tr>`;
       for(const d of ds){
         const openD=S.td.has(d.key), c2=urgCol(d.uKey), pc=probColor(d.prob);

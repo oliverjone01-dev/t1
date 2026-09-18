@@ -330,7 +330,10 @@ input#q{min-width:220px}
 .drow.on td{background:#22d3ee12}
 .t2>tbody>tr.subrow2>td{padding:0 8px 18px 80px;white-space:normal;background:#00000055;border-left:6px solid #C2873C99;position:relative}
 .subrow2>td::before{content:'КОММУНИКАЦИЯ ▸';position:absolute;left:34px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#C2873Ccc}
-.subrow2>td>div{border-left:2px solid #C2873C55;padding-left:14px;max-height:calc(100vh - 300px);overflow:auto}
+.subrow2>td>div{border-left:2px solid #C2873C55;padding-left:14px}
+/* Итог сделки и подробный разбор закреплены сверху; листается только лента сообщений,
+   её шапка колонок прилипает к верху области прокрутки. */
+.feedscroll{max-height:calc(100vh - 300px);overflow:auto;min-height:150px}
 /* Лента коммуникаций листается в своей области, строка сделки остаётся над ней,
    шапка ленты (Время/Кто/Канал/Сообщение/Разметка) прилипает к верху ленты. */
 .t3 th{position:sticky;top:0;z-index:3;background:#0f171e}
@@ -1541,7 +1544,7 @@ function renderTree(){
           +`</div>`:'')
         +(au.conclusion?`<div class="da-concl"><b>Итог по коммуникации:</b> ${esc(au.conclusion)}</div>`:'')
         +`</div>`:'';
-      host.innerHTML=sumRow+daBlock+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
+      host.innerHTML=sumRow+daBlock+`<div class="feedscroll"><table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table></div>`;
       CUR_TAGS={};
       host.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
         if(S.sE.k===th.dataset.k) S.sE.d=-S.sE.d; else { S.sE.k=th.dataset.k; S.sE.d=1; } renderTree(); });

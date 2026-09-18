@@ -282,7 +282,10 @@ input#q{min-width:220px}
 .drow.on td{background:#22d3ee12}
 .t2>tbody>tr.subrow2>td{padding:0 8px 18px 80px;white-space:normal;background:#00000055;border-left:6px solid #C2873C99;position:relative}
 .subrow2>td::before{content:'КОММУНИКАЦИЯ ▸';position:absolute;left:34px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#C2873Ccc}
-.subrow2>td>div{border-left:2px solid #C2873C55;padding-left:14px}
+.subrow2>td>div{border-left:2px solid #C2873C55;padding-left:14px;max-height:calc(100vh - 300px);overflow:auto}
+/* Лента коммуникаций листается в своей области, строка сделки остаётся над ней,
+   шапка ленты (Время/Кто/Канал/Сообщение/Разметка) прилипает к верху ленты. */
+.t3 th{position:sticky;top:0;z-index:3;background:#0f171e}
 .t3{margin-top:6px;font-size:11px;table-layout:fixed}
 .t3 td{padding:5px 6px;vertical-align:top}
 /* Колонки переписки фиксированы: текст сообщения не наезжает на разметку, длинные
@@ -1327,7 +1330,9 @@ function renderTree(){
     // Клик по строке отдела - свернуть/развернуть всех менеджеров (навигация, не фильтр).
     if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; renderTree(); return; }
     // Клик по строке менеджера - раскрыть/свернуть его сделки (навигация, не фильтр).
-    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); } else S.tm.add(m); renderTree(); });
+    // Аккордеон: открытие менеджера закрывает остальных (и все их сделки).
+    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); }
+    else { S.tm.clear(); S.td.clear(); S.tm.add(m); } renderTree(); });
   // Клик по строке-группе - свернуть/развернуть её менеджеров.
   list.querySelectorAll('.grprow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const g=r.dataset.g; S.grpOpen[g]=(S.grpOpen[g]===false); renderTree(); });
   list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d;
@@ -1335,10 +1340,11 @@ function renderTree(){
     // и добавить эту сделку в корзину фильтра ИИ.
     const chip=e.target.closest&&e.target.closest('.mixchip[data-mixcat]');
     const urg=e.target.closest&&e.target.closest('.urg');
-    if(chip||urg){ S.td.add(k); const cat=chip?chip.dataset.mixcat:''; S.evHi={key:k,cat};
+    if(chip||urg){ S.td.clear(); S.td.add(k); const cat=chip?chip.dataset.mixcat:''; S.evHi={key:k,cat};
       const d=SCD[k]; if(d){ const id=d.dealId||d.leadId; aiPickToggle({kind:'deal',mgr:d.isLead?'(лид)':d.mgr,sub:String(id),label:`Сделка ${id}`,deals:[id]}); } else renderTree();
       scrollToDeal(k,cat); return; }
-    S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
+    // Аккордеон: открытие сделки закрывает остальные открытые.
+    if(S.td.has(k)) S.td.delete(k); else { S.td.clear(); S.td.add(k); } renderTree(); });
   // Сброс фильтра раскрытых сделок менеджера - убираем его пики из корзины.
   list.querySelectorAll('[data-mgrclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); aiPicksClearMgr(b.dataset.mgrclear); });
   for(const dk of S.td){

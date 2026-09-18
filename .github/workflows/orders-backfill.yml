@@ -42,12 +42,14 @@ jobs:
       - run: npm ci || npm install
       - name: Сбор по заказам
         run: npx tsx src/scripts/ozon/orders-daily.ts "${{ github.event.inputs.from }}" "${{ github.event.inputs.to }}"
+      - name: Миграция финансов по SKU на accrual (параллельный файл)
+        run: npx tsx src/scripts/ozon/pnl-sku-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}"
       - name: Коммит данных в ветку
         run: |
           cd "$GITHUB_WORKSPACE"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add analytics-mvp/data/orders_daily.ndjson analytics-mvp/data/orders_accrual_types.json
+          git add analytics-mvp/data/orders_daily.ndjson analytics-mvp/data/orders_accrual_types.json analytics-mvp/data/pnl_sku_accrual_daily.ndjson
           if git diff --cached --quiet; then
             echo "нет изменений в orders_daily.ndjson"
           else

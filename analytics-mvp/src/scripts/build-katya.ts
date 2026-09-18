@@ -1778,7 +1778,7 @@ function render(cur,cmp){
   const svodSection = IS_OZON ? "" : `
   <section class="card"><div class="card-h"><div><div class="card-title">Свод по дате заказа</div><div class="card-sub">доставлено минус отмены и возвраты &middot; все кабинеты &middot; период берётся из фильтра наверху страницы, по дате оформления заказа</div></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-      <span id="sv-rates"><label style="color:var(--ink-2);font-size:12.5px">АДМ % <input id="sv-adm" type="number" value="30" min="0" max="100" style="width:54px;background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;font:inherit"></label>
+      <span id="sv-rates" style="display:none"><label style="color:var(--ink-2);font-size:12.5px">АДМ % <input id="sv-adm" type="number" value="30" min="0" max="100" style="width:54px;background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;font:inherit"></label>
       <label style="color:var(--ink-2);font-size:12.5px;margin-left:8px">Налоги % <input id="sv-tax" type="number" value="15" min="0" max="100" style="width:54px;background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;font:inherit"></label></span>
     </div></div>
     <div id="sv-cov" class="kt-note" style="padding:2px 0 8px"></div>
@@ -2697,6 +2697,10 @@ function svTotals(w){
     empty:R.sold===0
   };
 }
+// Ставка в подписи колонки: «30» и «15» - не круглые константы, а решение, и оно должно быть
+// названо. Полосу с полями ввода Иван убрал 18.09.2026 («эту приписку тоже убери»), поля остались
+// в разметке скрытыми - их читают расчёты, и через них ставку по-прежнему можно поменять.
+function svPct(v){return (Math.round(v*1000)/10)+'%';}
 function svTabPnl(list,ohM,ohP,noteEl,lost){
   lost=lost||{v:0,n:0};
   var adm=Number(document.getElementById('sv-adm').value||30)/100, tax=Number(document.getElementById('sv-tax').value||15)/100;
@@ -2710,9 +2714,13 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   // «Поступление на штуку» и «С\С за штуку» убраны: обе получаются делением соседних колонок.
   var H=['Категория / Артикул','Продажи','Доставка покупателя'].concat(FEE)
     .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
-             'Валовая прибыль','Маржа','АДМ','Налоги','Чистая прибыль','Рентаб.',
+             'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.',
              'В пути, шт','В пути, ₽']);
-  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  // ИТОГО стоит ПЕРВОЙ строкой под шапкой (Иван 18.09.2026: «в своде ИТОГО перенеси вверх под
+  // шапку»): при длинной таблице итог уезжал за экран, и сверять его приходилось прокруткой.
+  // Поэтому строки категорий собираются отдельно и приклеиваются после итоговых.
+  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead>';
+  var body='';
   var T=R.T,TC=R.TC;
   function svBase(c){return (c.gp===null||c.cov<=0||Math.round(c.cov)===Math.round(c.net))?'':' title="база: поступление по артикулам с известной С\\С, '+svRub(c.cov)+' ₽ из '+svRub(c.net)+' ₽"';}
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
@@ -2746,9 +2754,9 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   }
   groups.forEach(function(g,gi){
     var c=calc(g), open=!!SV_OPEN[g.cat];
-    h+='<tr class="sv-cat" data-cat="'+gi+'" style="cursor:pointer"><td><b>'+(open?'▾':'▸')+' '+g.cat+'</b> <span style="color:var(--ink-3)">('+g.rows.length+')</span>'+(g.noCogs?' <span style="color:#E5B567;font-size:11px">'+g.noCogs+' без С\\С</span>':'')+'</td>'+cells(g,c)+'</tr>';
+    body+='<tr class="sv-cat" data-cat="'+gi+'" style="cursor:pointer"><td><b>'+(open?'▾':'▸')+' '+g.cat+'</b> <span style="color:var(--ink-3)">('+g.rows.length+')</span>'+(g.noCogs?' <span style="color:#E5B567;font-size:11px">'+g.noCogs+' без С\\С</span>':'')+'</td>'+cells(g,c)+'</tr>';
     if(open) g.rows.forEach(function(a){var ac=calc(a);
-      h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+a.sku+'</td>'+cells(a,ac)+'</tr>';});
+      body+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+a.sku+'</td>'+cells(a,ac)+'</tr>';});
   });
   // Отправки по заказам, которые отменили или вернули: перевозку оплатили, выручки нет. В строку
   // артикула такой расход не кладём - рентабельность артикула поехала бы от расхода без продажи.
@@ -2762,7 +2770,7 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
       else if(H[ci]==='Валовая прибыль'||H[ci]==='Чистая прибыль') tds+='<td class="r" style="color:var(--dn)">'+svRub(-lost.v)+'</td>';
       else tds+='<td class="r">—</td>';
     }
-    h+='<tr class="sv-extra" style="background:rgba(255,90,95,.06)"><td title="Мы оплатили перевозку, а заказ отменили или вернули. Выручки по таким заказам в своде нет (свод считает доставленное), поэтому расход стоит отдельной строкой и не искажает рентабельность артикулов.">Отправки по отменённым и возвратам <span style="color:var(--ink-3)">('+lost.n+' заказов)</span></td>'+tds+'</tr>';
+    body+='<tr class="sv-extra" style="background:rgba(255,90,95,.06)"><td title="Мы оплатили перевозку, а заказ отменили или вернули. Выручки по таким заказам в своде нет (свод считает доставленное), поэтому расход стоит отдельной строкой и не искажает рентабельность артикулов.">Отправки по отменённым и возвратам <span style="color:var(--ink-3)">('+lost.n+' заказов)</span></td>'+tds+'</tr>';
   }
   // Месяц без строк - это не убыток: валовой прибылью и рентабельностью пустоту не называем.
   var some=groups.length>0, gpT=R.gpT-lost.v, npT=R.npT-lost.v;
@@ -2772,12 +2780,8 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   // подсказке на «Марже». Теперь она - видимая строка-мост прямо над ИТОГО, и строка читается
   // подряд: (Поступление − без С\С) − Наша доставка − СС = Валовая.
   var uncov=T.net-T.cover;
-  h+='</tbody><tfoot>';
-  if(Math.round(uncov)){
-    h+='<tr class="sv-extra" style="border-top:2px solid var(--bd);color:var(--ink-3);font-size:12px"><td title="Поступление артикулов, у которых нет себестоимости. Валовая и рентабельность по ним не считаются, поэтому в базу прибыли они не входят.">в т.ч. артикулы без С\С - в прибыль не входят</td>'
-      +H.slice(1).map(function(x){return '<td class="r">'+(x==='Поступление'?'−'+svRub(uncov):'')+'</td>';}).join('')+'</tr>';
-  }
-  h+='<tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td>'
+  h+='<tbody>';
+  h+='<tr class="sv-total" style="border-bottom:2px solid var(--bd)"><td><b>ИТОГО</b></td>'
     +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
     +FEE.map(function(n){var v=(TC[n]||0)+(n==='Прочее'?(ohM+ohP):0);
         return '<td class="r"><b>'+(Math.round(v)?svRub(v):'—')+'</b></td>';}).join('')
@@ -2797,7 +2801,14 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
     +'<td class="r"><b>'+(some?svRub(npT):'—')+'</b></td>'
     +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net})+'><b>'+mS(npT)+'</b></td>'
     +'<td class="r" style="color:var(--ink-3)"><b>'+(T.fly?T.fly:'—')+'</b></td>'
-    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td></tr></tfoot>';
+    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td></tr>';
+  // Мост под ИТОГО: поступление артикулов без С\С, которое в базу прибыли не входит. Стоит сразу
+  // за итогом, потому что объясняет именно его арифметику.
+  if(Math.round(uncov)){
+    h+='<tr class="sv-extra" style="border-bottom:2px solid var(--bd);color:var(--ink-3);font-size:12px"><td title="Поступление артикулов, у которых нет себестоимости. Валовая и рентабельность по ним не считаются, поэтому в базу прибыли они не входят.">в т.ч. артикулы без С\С - в прибыль не входят</td>'
+      +H.slice(1).map(function(x){return '<td class="r">'+(x==='Поступление'?'−'+svRub(uncov):'')+'</td>';}).join('')+'</tr>';
+  }
+  h+=body+'</tbody>';
   var el=document.getElementById('sv-t');el.innerHTML=h;
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
     tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});

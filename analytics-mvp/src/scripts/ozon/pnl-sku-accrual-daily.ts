@@ -45,12 +45,12 @@ async function main() {
   const acc = await seller.accrualPostings(posts.map((p) => p.posting_number));
   console.log(`  постингов с начислениями: ${acc.length}`);
   for (const p of acc) {
-    if (!orderDate[p.posting_number]) continue; // только доставленные постинги (в orderDate только они)
+    const d = orderDate[p.posting_number]; if (!d) continue; // только доставленные; единый базис - дата заказа
     for (const a of (p.accruals || [])) {
       const sku = String(a.sku ?? ""); if (!sku) continue;
-      // Сборы датируем по ДАТЕ РАСЧЁТА (accrual_date) - как в старом pnl (транзакции), чтобы
-      // комиссия/сборы сходились помесячно. Выручка (accruals) - по дате заказа выше.
-      const d = String(a.accrual_date ?? a.date ?? "").slice(0, 10) || orderDate[p.posting_number];
+      // Сборы и выручка - на ОДНОМ базисе (дата заказа), чтобы «К выплате» в текущем месяце не
+      // разъезжался. Файл используется гибридом только для текущего месяца; закрытые месяцы берутся
+      // из старого pnl (accrual_date-сверка закрытых месяцев уже подтвердила совпадение до рубля).
       const bk = (bmap[Number(a.type_id)] || "other") as Bucket;
       const amt = Number(a?.accrued?.amount ?? a?.accrued ?? a?.amount ?? 0);
       const r = ensure(sku, d);

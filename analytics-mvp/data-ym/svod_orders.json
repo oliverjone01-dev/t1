@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-17T13:07:26.492Z",
+  "generated_at": "2026-09-18T09:01:43.553Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-16",
   "split_check": {
@@ -197,7 +197,7 @@
           "svc_total": 25783.46,
           "result_money": 13598.76,
           "result_points": 264608.69,
-          "cogs": 4196,
+          "cogs": 8864,
           "cogs_known": true
         }
       ],
@@ -580,7 +580,7 @@
           "svc_total": 64629.87,
           "result_money": 48849.96,
           "result_points": 125470.52,
-          "cogs": 34227,
+          "cogs": 22598,
           "cogs_known": true
         },
         {
@@ -1983,7 +1983,7 @@
           "svc_total": 36387.25,
           "result_money": 13119.88,
           "result_points": 18023.59,
-          "cogs": 11375,
+          "cogs": 8557,
           "cogs_known": true
         },
         {
@@ -2044,7 +2044,7 @@
           "svc_total": 19514.73,
           "result_money": 11203.88,
           "result_points": 34390.22,
-          "cogs": 12116,
+          "cogs": 9446,
           "cogs_known": true
         },
         {
@@ -2166,7 +2166,7 @@
           "svc_total": 17784.4,
           "result_money": 10571.88,
           "result_points": 29459.43,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -2227,7 +2227,7 @@
           "svc_total": 16978.29,
           "result_money": 9638.88,
           "result_points": 29802.58,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -7935,8 +7935,8 @@
           "svc_total": 57561.93,
           "result_money": 53473,
           "result_points": 44078.59,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 22598,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -8545,7 +8545,7 @@
           "svc_total": 43031.45,
           "result_money": 43480.05,
           "result_points": 36919.61,
-          "cogs": 19034,
+          "cogs": 19111,
           "cogs_known": true
         },
         {
@@ -10070,7 +10070,7 @@
           "svc_total": 34853.34,
           "result_money": 35786.96,
           "result_points": 29802.11,
-          "cogs": 13482,
+          "cogs": 13304,
           "cogs_known": true
         },
         {
@@ -10192,7 +10192,7 @@
           "svc_total": 34190.58,
           "result_money": 35338.82,
           "result_points": 28820.18,
-          "cogs": 13482,
+          "cogs": 13304,
           "cogs_known": true
         },
         {
@@ -10375,7 +10375,7 @@
           "svc_total": 37719.98,
           "result_money": 34561.86,
           "result_points": 28773.2,
-          "cogs": 34227,
+          "cogs": 11912,
           "cogs_known": true
         },
         {
@@ -11290,7 +11290,7 @@
           "svc_total": 20803.01,
           "result_money": 5742.99,
           "result_points": 21072.68,
-          "cogs": 7340,
+          "cogs": 7109,
           "cogs_known": true
         },
         {
@@ -11412,7 +11412,7 @@
           "svc_total": 32671.14,
           "result_money": 23713.26,
           "result_points": 18557.79,
-          "cogs": 13577,
+          "cogs": 13426,
           "cogs_known": true
         },
         {
@@ -11595,8 +11595,8 @@
           "svc_total": 21905.18,
           "result_money": 21435.52,
           "result_points": 21007.36,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7109,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -11717,8 +11717,8 @@
           "svc_total": 29149.07,
           "result_money": 19523.69,
           "result_points": 15932.26,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 11780,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -11778,7 +11778,7 @@
           "svc_total": 17268.07,
           "result_money": 3844.93,
           "result_points": 15304.04,
-          "cogs": 12252,
+          "cogs": 7872,
           "cogs_known": true
         },
         {
@@ -11961,8 +11961,8 @@
           "svc_total": 18292.44,
           "result_money": 11655.86,
           "result_points": 9421.28,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 8557,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -12388,7 +12388,7 @@
           "svc_total": 16757.49,
           "result_money": -2647.43,
           "result_points": 8211.62,
-          "cogs": 12116,
+          "cogs": 9446,
           "cogs_known": true
         },
         {
@@ -12571,7 +12571,7 @@
           "svc_total": 13517.34,
           "result_money": 8799.75,
           "result_points": 6672.65,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -12693,7 +12693,7 @@
           "svc_total": 13001.97,
           "result_money": 7907.48,
           "result_points": 6417.25,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -13587,7 +13587,7 @@
         }
       ],
       "points_on_delivery": 117670.07,
-      "cogs_cov": 93.9
+      "cogs_cov": 98.3
     },
     {
       "business": "1023124",
@@ -14201,8 +14201,8 @@
           "svc_total": 43468.61,
           "result_money": 27618.81,
           "result_points": 18477.8,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 13510,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -15360,7 +15360,7 @@
           "svc_total": 27238.78,
           "result_money": 18906.09,
           "result_points": 14909.19,
-          "cogs": 4196,
+          "cogs": 8864,
           "cogs_known": true
         },
         {
@@ -16214,8 +16214,8 @@
           "svc_total": 19233.43,
           "result_money": 17322.99,
           "result_points": 11991.05,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 6422,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -19381,7 +19381,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 43723.09,
-      "cogs_cov": 91.8
+      "cogs_cov": 94.6
     },
     {
       "business": "74986385",
@@ -19446,8 +19446,8 @@
           "svc_total": 71581.25,
           "result_money": 81247.49,
           "result_points": 79834.39,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 38522,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -19995,8 +19995,8 @@
           "svc_total": 35683.21,
           "result_money": 48535.17,
           "result_points": 41420.13,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 17047,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -20422,8 +20422,8 @@
           "svc_total": 28617.9,
           "result_money": 15094.1,
           "result_points": 34128.72,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 17047,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -22435,7 +22435,7 @@
           "svc_total": 24306.73,
           "result_money": 29201.29,
           "result_points": 23723.66,
-          "cogs": 12464,
+          "cogs": 12346,
           "cogs_known": true
         },
         {
@@ -24509,8 +24509,8 @@
           "svc_total": 27586.52,
           "result_money": 16308.55,
           "result_points": 11173.58,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12651,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -24570,8 +24570,8 @@
           "svc_total": 28487.15,
           "result_money": 10449.81,
           "result_points": 10258.12,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12651,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -24692,8 +24692,8 @@
           "svc_total": 18780.66,
           "result_money": 8330.86,
           "result_points": 8971.82,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7357,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -24814,8 +24814,8 @@
           "svc_total": 27569.73,
           "result_money": 13112.5,
           "result_points": 10881.71,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12651,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -25119,8 +25119,8 @@
           "svc_total": 14799.42,
           "result_money": -539.99,
           "result_points": 8092.42,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 5720,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -25180,7 +25180,7 @@
           "svc_total": 11979.71,
           "result_money": 11915.04,
           "result_points": 10278.04,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -25363,7 +25363,7 @@
           "svc_total": 14024.62,
           "result_money": 920.79,
           "result_points": 8241.93,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -25546,7 +25546,7 @@
           "svc_total": 14150,
           "result_money": 7295.45,
           "result_points": 8083.27,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -26339,7 +26339,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 100154.48,
-      "cogs_cov": 86.8
+      "cogs_cov": 94.8
     },
     {
       "business": "1023124",
@@ -28161,7 +28161,7 @@
           "svc_total": 41484.92,
           "result_money": 48169.78,
           "result_points": 52956.46,
-          "cogs": 34227,
+          "cogs": 22598,
           "cogs_known": true
         },
         {
@@ -29198,8 +29198,8 @@
           "svc_total": 25239.55,
           "result_money": 36452.73,
           "result_points": 38214.11,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 17047,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -29442,8 +29442,8 @@
           "svc_total": 25771.43,
           "result_money": 11888.57,
           "result_points": 37730.85,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 17047,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -29991,7 +29991,7 @@
           "svc_total": 32185.23,
           "result_money": 32164.1,
           "result_points": 34375.52,
-          "cogs": 19034,
+          "cogs": 19111,
           "cogs_known": true
         },
         {
@@ -30845,7 +30845,7 @@
           "svc_total": 22106.01,
           "result_money": 28343.97,
           "result_points": 30006.41,
-          "cogs": 11465,
+          "cogs": 11324,
           "cogs_known": true
         },
         {
@@ -31028,8 +31028,8 @@
           "svc_total": 24196.92,
           "result_money": 26159.01,
           "result_points": 29397.15,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12651,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -32553,8 +32553,8 @@
           "svc_total": 14060.01,
           "result_money": 16662.29,
           "result_points": 20921.25,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7872,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -32614,8 +32614,8 @@
           "svc_total": 16088.76,
           "result_money": 17958.23,
           "result_points": 20319.85,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7357,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -32858,8 +32858,8 @@
           "svc_total": 15356.64,
           "result_money": 15344.63,
           "result_points": 17485.52,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7357,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -32980,8 +32980,8 @@
           "svc_total": 6070.37,
           "result_money": 12475.54,
           "result_points": 22530.87,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 6123,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -33102,8 +33102,8 @@
           "svc_total": 14878.77,
           "result_money": 9795.3,
           "result_points": 12216.69,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 9097,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -33163,8 +33163,8 @@
           "svc_total": 12495.35,
           "result_money": 7041.63,
           "result_points": 13523.05,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 9097,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -33529,7 +33529,7 @@
           "svc_total": 15485.11,
           "result_money": -2029.46,
           "result_points": 24571.69,
-          "cogs": 7605,
+          "cogs": 7357,
           "cogs_known": true
         }
       ],
@@ -33576,7 +33576,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 81037.37,
-      "cogs_cov": 87.1
+      "cogs_cov": 94.9
     },
     {
       "business": "1023124",
@@ -35758,7 +35758,7 @@
           "svc_total": 36678.45,
           "result_money": 37891.12,
           "result_points": 38326.04,
-          "cogs": 19034,
+          "cogs": 19111,
           "cogs_known": true
         },
         {
@@ -35941,7 +35941,7 @@
           "svc_total": 34567.19,
           "result_money": 37822.69,
           "result_points": 36944.95,
-          "cogs": 19034,
+          "cogs": 19111,
           "cogs_known": true
         },
         {
@@ -36368,8 +36368,8 @@
           "svc_total": 26682.63,
           "result_money": 35797.11,
           "result_points": 39352.21,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 17047,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -36856,8 +36856,8 @@
           "svc_total": 28887.05,
           "result_money": 33947.71,
           "result_points": 39565.37,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 19111,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -37588,8 +37588,8 @@
           "svc_total": 22114.93,
           "result_money": 31478.99,
           "result_points": 31548.93,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12490,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -38076,7 +38076,7 @@
           "svc_total": 23938.91,
           "result_money": 28985.25,
           "result_points": 27803.74,
-          "cogs": 12464,
+          "cogs": 12346,
           "cogs_known": true
         },
         {
@@ -40333,8 +40333,8 @@
           "svc_total": 21369.62,
           "result_money": 25236.41,
           "result_points": 25106.41,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 11642,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -40455,7 +40455,7 @@
           "svc_total": 4162.84,
           "result_money": 24496.31,
           "result_points": 41820.97,
-          "cogs": 11465,
+          "cogs": 11324,
           "cogs_known": true
         },
         {
@@ -40577,8 +40577,8 @@
           "svc_total": 23007.85,
           "result_money": 23393.23,
           "result_points": 25757.69,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 13577,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -41065,8 +41065,8 @@
           "svc_total": 15814.72,
           "result_money": 12671.16,
           "result_points": 19628.26,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7357,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -41309,8 +41309,8 @@
           "svc_total": 17507.36,
           "result_money": 16984.26,
           "result_points": 16426.01,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7109,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -41370,8 +41370,8 @@
           "svc_total": 13866.55,
           "result_money": 16763.14,
           "result_points": 17001.38,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7109,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -41431,8 +41431,8 @@
           "svc_total": 18119.46,
           "result_money": 16265.69,
           "result_points": 15647.83,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7357,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -41492,8 +41492,8 @@
           "svc_total": 15863.63,
           "result_money": 16228.73,
           "result_points": 18872.1,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7644,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -41858,8 +41858,8 @@
           "svc_total": 13270.29,
           "result_money": 9616.82,
           "result_points": 10427.4,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 9097,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -42697,7 +42697,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 117604.28,
-      "cogs_cov": 92.1
+      "cogs_cov": 98.5
     },
     {
       "business": "1023124",
@@ -44020,8 +44020,8 @@
           "svc_total": 53999.97,
           "result_money": 68201.49,
           "result_points": 46449.08,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 38522,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -44630,7 +44630,7 @@
           "svc_total": 25849.28,
           "result_money": 38893.9,
           "result_points": 26873.95,
-          "cogs": 17189,
+          "cogs": 17047,
           "cogs_known": true
         },
         {
@@ -45667,7 +45667,7 @@
           "svc_total": 26951.9,
           "result_money": 31786.19,
           "result_points": 22529.21,
-          "cogs": 19034,
+          "cogs": 19111,
           "cogs_known": true
         },
         {
@@ -46948,8 +46948,8 @@
           "svc_total": 19398.08,
           "result_money": 29520.58,
           "result_points": 20623.16,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 13304,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -49083,7 +49083,7 @@
           "svc_total": 21960.11,
           "result_money": 20913.28,
           "result_points": 11333.91,
-          "cogs": 11225,
+          "cogs": 11119,
           "cogs_known": true
         },
         {
@@ -49266,8 +49266,8 @@
           "svc_total": 25306.3,
           "result_money": 23029.27,
           "result_points": 13258.66,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 13426,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -50120,8 +50120,8 @@
           "svc_total": 14890.5,
           "result_money": 22840.67,
           "result_points": 15976.71,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 13577,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -50181,7 +50181,7 @@
           "svc_total": 24811.5,
           "result_money": 16034.68,
           "result_points": 7675.21,
-          "cogs": 12464,
+          "cogs": 12346,
           "cogs_known": true
         },
         {
@@ -50242,8 +50242,8 @@
           "svc_total": 20239.38,
           "result_money": 22321.18,
           "result_points": 13404.7,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12464,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -50730,7 +50730,7 @@
           "svc_total": 18393.75,
           "result_money": 19659.87,
           "result_points": 12586.48,
-          "cogs": 11225,
+          "cogs": 11119,
           "cogs_known": true
         },
         {
@@ -50791,8 +50791,8 @@
           "svc_total": 17731.93,
           "result_money": 19136.96,
           "result_points": 14441.03,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12464,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -50913,7 +50913,7 @@
           "svc_total": 19637.82,
           "result_money": 18996.73,
           "result_points": 12493.63,
-          "cogs": 12464,
+          "cogs": 12346,
           "cogs_known": true
         },
         {
@@ -51035,8 +51035,8 @@
           "svc_total": 24840.9,
           "result_money": 14436.53,
           "result_points": 8651.43,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12464,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -51157,8 +51157,8 @@
           "svc_total": 23774.9,
           "result_money": 19336.72,
           "result_points": 14363.68,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12651,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -51767,7 +51767,7 @@
           "svc_total": 18388.4,
           "result_money": 16762.14,
           "result_points": 13156.91,
-          "cogs": 12464,
+          "cogs": 12346,
           "cogs_known": true
         },
         {
@@ -51828,7 +51828,7 @@
           "svc_total": 13648.2,
           "result_money": 16613.98,
           "result_points": 11869.19,
-          "cogs": 7340,
+          "cogs": 7109,
           "cogs_known": true
         },
         {
@@ -52072,8 +52072,8 @@
           "svc_total": 18441.43,
           "result_money": 15998.61,
           "result_points": 12910.06,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12464,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -52194,7 +52194,7 @@
           "svc_total": 12484.62,
           "result_money": 18013.95,
           "result_points": 13084.02,
-          "cogs": 7605,
+          "cogs": 7357,
           "cogs_known": true
         },
         {
@@ -52255,8 +52255,8 @@
           "svc_total": 15566.9,
           "result_money": 14977.84,
           "result_points": 11047.89,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 11780,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -52560,8 +52560,8 @@
           "svc_total": 14251.88,
           "result_money": 14959.85,
           "result_points": 10096.65,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7357,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -53170,8 +53170,8 @@
           "svc_total": 12772.17,
           "result_money": 10761.03,
           "result_points": 6846.69,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 5720,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -53870,7 +53870,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 128473.77,
-      "cogs_cov": 89.5
+      "cogs_cov": 96.5
     },
     {
       "business": "1023124",
@@ -54532,8 +54532,8 @@
           "svc_total": 23584.63,
           "result_money": 48329.88,
           "result_points": 43790.45,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 16067,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -54837,7 +54837,7 @@
           "svc_total": 21118.04,
           "result_money": 40319.27,
           "result_points": 39283.73,
-          "cogs": 16574,
+          "cogs": 16067,
           "cogs_known": true
         },
         {
@@ -55081,7 +55081,7 @@
           "svc_total": 18692.48,
           "result_money": 36866.67,
           "result_points": 35077.01,
-          "cogs": 17189,
+          "cogs": 17047,
           "cogs_known": true
         },
         {
@@ -56850,8 +56850,8 @@
           "svc_total": 21197.53,
           "result_money": 21723.51,
           "result_points": 22913.92,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 13577,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -57826,8 +57826,8 @@
           "svc_total": 19607.23,
           "result_money": 20350.08,
           "result_points": 20124.23,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 13577,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -57887,8 +57887,8 @@
           "svc_total": 12634.37,
           "result_money": 25527.26,
           "result_points": 24420.08,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12490,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -58192,8 +58192,8 @@
           "svc_total": 18999.53,
           "result_money": 18746.7,
           "result_points": 19688.57,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 10486,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -58558,7 +58558,7 @@
           "svc_total": 23758.28,
           "result_money": 16099.25,
           "result_points": 16674.05,
-          "cogs": 12464,
+          "cogs": 12346,
           "cogs_known": true
         },
         {
@@ -59778,8 +59778,8 @@
           "svc_total": 19999.27,
           "result_money": 14575.37,
           "result_points": 15059.82,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 10587,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -59961,8 +59961,8 @@
           "svc_total": 20247.25,
           "result_money": 13403.7,
           "result_points": 13942.87,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 10587,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -60205,8 +60205,8 @@
           "svc_total": 16371.05,
           "result_money": 2697.47,
           "result_points": 12491.87,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7109,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -60449,8 +60449,8 @@
           "svc_total": 17050.97,
           "result_money": 8791.48,
           "result_points": 10464.61,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7644,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -60693,7 +60693,7 @@
           "svc_total": 13688.42,
           "result_money": 8506.76,
           "result_points": 9868.59,
-          "cogs": 12116,
+          "cogs": 9446,
           "cogs_known": true
         },
         {
@@ -60876,7 +60876,7 @@
           "svc_total": 15002.51,
           "result_money": 8032.07,
           "result_points": 7012.31,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -61120,7 +61120,7 @@
           "svc_total": 6775.95,
           "result_money": 7375.85,
           "result_points": 15553.06,
-          "cogs": 12116,
+          "cogs": 9446,
           "cogs_known": true
         },
         {
@@ -61181,7 +61181,7 @@
           "svc_total": 13902.77,
           "result_money": 7187.14,
           "result_points": 7010.29,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -61486,7 +61486,7 @@
           "svc_total": 15116.01,
           "result_money": 4152.56,
           "result_points": 6376.22,
-          "cogs": 9072,
+          "cogs": 9097,
           "cogs_known": true
         },
         {
@@ -62035,7 +62035,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 55197.43,
-      "cogs_cov": 92.3
+      "cogs_cov": 99.5
     },
     {
       "business": "1023124",
@@ -62609,7 +62609,7 @@
           "svc_total": 27375.17,
           "result_money": 49611.86,
           "result_points": 50807.09,
-          "cogs": 34227,
+          "cogs": 22598,
           "cogs_known": true
         },
         {
@@ -62731,7 +62731,7 @@
           "svc_total": 20917.56,
           "result_money": 37863.36,
           "result_points": 39736.91,
-          "cogs": 19034,
+          "cogs": 19111,
           "cogs_known": true
         },
         {
@@ -62914,7 +62914,7 @@
           "svc_total": 20876.31,
           "result_money": 36254.61,
           "result_points": 39879.81,
-          "cogs": 19034,
+          "cogs": 19111,
           "cogs_known": true
         },
         {
@@ -63158,7 +63158,7 @@
           "svc_total": 20527.98,
           "result_money": 35827.03,
           "result_points": 39096.34,
-          "cogs": 19034,
+          "cogs": 19111,
           "cogs_known": true
         },
         {
@@ -64073,7 +64073,7 @@
           "svc_total": 3084.82,
           "result_money": 31577.73,
           "result_points": 43836.94,
-          "cogs": 13482,
+          "cogs": 13304,
           "cogs_known": true
         },
         {
@@ -64622,7 +64622,7 @@
           "svc_total": 15263.55,
           "result_money": 29160.21,
           "result_points": 28814.7,
-          "cogs": 13482,
+          "cogs": 13304,
           "cogs_known": true
         },
         {
@@ -65110,7 +65110,7 @@
           "svc_total": 26023.23,
           "result_money": 21426.32,
           "result_points": 20795.52,
-          "cogs": 11465,
+          "cogs": 11324,
           "cogs_known": true
         },
         {
@@ -65171,8 +65171,8 @@
           "svc_total": 22304.16,
           "result_money": 21436.5,
           "result_points": 23869.19,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 13577,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -65537,8 +65537,8 @@
           "svc_total": 13447.92,
           "result_money": 24844.97,
           "result_points": 24842.3,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 13410,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -65781,8 +65781,8 @@
           "svc_total": 23702.59,
           "result_money": 17871.04,
           "result_points": 18999.43,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 11912,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -66208,8 +66208,8 @@
           "svc_total": 21462.3,
           "result_money": 16354.88,
           "result_points": 16344.04,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 7644,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -66391,7 +66391,7 @@
           "svc_total": 18837.9,
           "result_money": 20552.01,
           "result_points": 25253.45,
-          "cogs": 13482,
+          "cogs": 13304,
           "cogs_known": true
         },
         {
@@ -66513,7 +66513,7 @@
           "svc_total": 15366.87,
           "result_money": 12950.82,
           "result_points": 14853.95,
-          "cogs": 7340,
+          "cogs": 7109,
           "cogs_known": true
         },
         {
@@ -68097,7 +68097,7 @@
         }
       ],
       "points_on_delivery": 20877.48,
-      "cogs_cov": 89.2
+      "cogs_cov": 93.5
     },
     {
       "business": "1023124",

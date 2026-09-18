@@ -600,7 +600,10 @@ export function isPointsPaid(type: string, source?: string): boolean {
 
 // Ведомость доставки живёт своим модулем: её разбор и дедуп - отдельная задача от сборки свода.
 export interface SvodRow {
-  business: string; ym: string; d: string; sku: string; name: string; line: string;
+  // Номер заказа в ключе строки: тот же свод читается и по артикулу, и по заказу, из одного
+  // источника (Иван 18.09.2026: «свод отдельным блоком не по артикулу а по заказу на той же базе»).
+  // Разрез по артикулу от этого не меняется - он суммирует строки по sku, как и раньше.
+  business: string; ym: string; d: string; order: string; sku: string; name: string; line: string;
   orders: number; units_delivered: number; units_returned: number; units_net: number;
   price: number; ship_buyer: number; disc_mp: number; disc_plus: number;
   buyer_pay: number; refunds: number; revenue_money: number; points_accrued: number;
@@ -858,10 +861,10 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   // сколько пар (заказ, артикул) в снимке, то есть порядка числа строк заказов.
   const touch = (k: string, r: OrderRow): SvodRow => {
     const day = String(r.created || "").slice(0, 10);
-    const kk = `${k}|${day}|${r.sku}`;
+    const kk = `${k}|${day}|${r.order}|${r.sku}`;
     let s = acc.get(kk);
     if (!s) {
-      s = { business: r.business, ym: k.split("|")[1]!, d: day, sku: r.sku, name: r.name, line: r.line,
+      s = { business: r.business, ym: k.split("|")[1]!, d: day, order: r.order, sku: r.sku, name: r.name, line: r.line,
         orders: 0, units_delivered: 0, units_returned: 0, units_net: 0,
         price: 0, ship_buyer: 0, disc_mp: 0, disc_plus: 0, buyer_pay: 0, refunds: 0, revenue_money: 0, points_accrued: 0,
         svc: svcZero(), svc_pts: svcZero(), svc_money: 0, svc_points: 0, svc_total: 0, result_money: 0, result_points: 0,

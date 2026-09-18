@@ -804,3 +804,81 @@ describe("страница денег: водопад выше свода", () =
     expect(errs).toEqual([]);
   });
 });
+
+// Иван 18.09.2026: «можешь сделать свод отдельным блоком не по артикулу а по заказу на той же
+// базе?». База буквально та же: строки свода несут номер заказа в ключе, блок группирует их по
+// order вместо sku. Расхождение между блоками означало бы ошибку, а не разные методики.
+describe("свод по заказам", () => {
+  const T2 = () => D().getElementById("so-t")!;
+  const head2 = () => [...T2().querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+  const tot2 = () => [...T2().querySelectorAll("tr.so-total td")].map((x) => (x.textContent || "").trim());
+  const cell2 = (c: string) => tot2()[head2().indexOf(c)];
+
+  it("блок есть, стоит после свода по артикулам и не пуст", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
+    const sv = titles.findIndex((x) => /Свод по дате заказа/.test(x));
+    const so = titles.findIndex((x) => /Свод по заказам/.test(x));
+    expect(so, "блока «Свод по заказам» нет").toBeGreaterThanOrEqual(0);
+    expect(so, "свод по заказам встал выше свода по артикулам").toBeGreaterThan(sv);
+    expect(T2().querySelectorAll("tbody tr").length, "таблица заказов пуста").toBeGreaterThan(5);
+    expect(errs).toEqual([]);
+  });
+
+  // Главный сторож: два разреза одних и тех же денег обязаны давать один итог.
+  it("итоги обоих сводов совпадают по всем колонкам, на четырёх окнах", () => {
+    const keys = ["Продажи", "Доставка покупателя", "Баллы Маркета", "Штуки", "Поступление",
+      "Наша доставка", "СС произв.", "Валовая прибыль", "АДМ 30%", "Налоги 15%", "Чистая прибыль"];
+    const bad: string[] = [];
+    for (const [a, b] of [["2026-05-01", "2026-05-31"], ["2026-07-01", "2026-07-31"],
+                          ["2026-08-01", "2026-08-31"], ["2026-06-01", "2026-06-15"]]) {
+      setRange(a!, b!);
+      for (const k of keys) {
+        const x = num(cell(k)) || 0, y = num(cell2(k)) || 0;
+        if (Math.abs(x - y) > 3) bad.push(`${a!.slice(0, 7)} ${k}: по артикулу ${x}, по заказу ${y}`);
+      }
+      expect(num(cell2("Поступление")), `${a}: поступление по заказам пустое`).not.toBe(0);
+    }
+    expect(bad).toEqual([]);
+    expect(errs).toEqual([]);
+  });
+
+  it("строка заказа сходится сама с собой: поступление − доставка − СС = валовая", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const h = head2();
+    const iN = h.indexOf("Поступление"), iS = h.indexOf("Наша доставка"), iC = h.indexOf("СС произв."), iG = h.indexOf("Валовая прибыль");
+    const rows = [...T2().querySelectorAll("tbody tr")]
+      .filter((r) => !r.classList.contains("so-total") && !r.classList.contains("so-extra"));
+    expect(rows.length, "строк заказов нет").toBeGreaterThan(5);
+    const bad: string[] = [];
+    for (const r of rows) {
+      const n = num(r.children[iN]!.textContent) || 0, sh = num(r.children[iS]!.textContent) || 0;
+      const cc = num(r.children[iC]!.textContent) || 0, gp = num(r.children[iG]!.textContent) || 0;
+      if (Math.abs(n - sh - cc - gp) > 2) bad.push(`${(r.children[0]!.textContent || "").trim()}: ${n} − ${sh} − ${cc} ≠ ${gp}`);
+    }
+    expect(bad.slice(0, 5)).toEqual([]);
+  });
+
+  it("ИТОГО считается по всем заказам периода, а не по показанным", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const sel = D().getElementById("so-lim") as any;
+    const shown = () => [...T2().querySelectorAll("tbody tr")]
+      .filter((r) => !r.classList.contains("so-total") && !r.classList.contains("so-extra")).length;
+    sel.value = "50"; sel.dispatchEvent(new dom.window.Event("change"));
+    const n50 = num(cell2("Поступление")), rows50 = shown();
+    sel.value = "0"; sel.dispatchEvent(new dom.window.Event("change"));
+    const nAll = num(cell2("Поступление")), rowsAll = shown();
+    expect(rowsAll, "выбор «все» не показал больше строк - тест ничего не различает").toBeGreaterThan(rows50);
+    expect(n50, "итог поехал вслед за числом показанных строк").toBe(nAll);
+    sel.value = "50"; sel.dispatchEvent(new dom.window.Event("change"));
+    expect(errs).toEqual([]);
+  });
+
+  it("отправки по отменённым стоят и здесь - иначе блоки разойдутся на них", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const tr = [...T2().querySelectorAll("tr.so-extra")].find((x) => /Отправки по отменённым/.test(x.textContent || ""));
+    expect(tr, "строки по отменённым отправкам в своде по заказам нет").toBeTruthy();
+    const v = num(tr!.children[head2().indexOf("Наша доставка")]!.textContent);
+    expect(v, "строка пустая").toBeGreaterThan(10_000);
+  });
+});

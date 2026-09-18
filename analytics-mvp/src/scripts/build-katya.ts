@@ -1811,6 +1811,12 @@ function render(cur,cmp){
     <div id="sv-gaps" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
     <div class="kt-scroll"><table class="kt-table" id="sv-t"></table></div>
     <div id="sv-note" class="kt-note" style="margin-top:8px"></div>
+  </section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Свод по заказам</div><div class="card-sub">та же база и те же колонки, что в своде выше &middot; строка - заказ, а не артикул &middot; период из фильтра наверху страницы</div></div>
+    <label style="color:var(--ink-2);font-size:12.5px">показать <select id="so-lim" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:5px 8px;font:inherit"><option value="50">50 заказов</option><option value="200">200</option><option value="0">все</option></select> по убыванию поступления</label>
+    </div>
+    <div class="kt-scroll"><table class="kt-table" id="so-t"></table></div>
+    <div id="so-more" class="kt-note" style="padding:6px 0 0"></div>
   </section>`;
   // Иван 18.09.2026: «поменяй местами водопад и свод место расположения». На Маркете водопад идёт
   // первым: он отвечает на «куда делись деньги» одной картинкой, а свод - подробностями под ней.
@@ -2400,7 +2406,7 @@ function svodLite(svod: any): any {
       rows: (m.rows || []).map((row: any) => {
         // ship_known - булево, в NUM ему не место: там «ноль не пишем», а здесь именно false несёт
         // смысл «ведомость этот заказ не знает» и обязан доехать до страницы.
-        const o: any = { business: row.business, ym: row.ym, d: row.d, sku: row.sku, cogs_known: row.cogs_known, ship_known: !!row.ship_known };
+        const o: any = { business: row.business, ym: row.ym, d: row.d, order: row.order, sku: row.sku, cogs_known: row.cogs_known, ship_known: !!row.ship_known };
         for (const k of NUM) if (row[k]) o[k] = r2(row[k]);
         const svc: Record<string, number> = {};
         for (const [k, v] of Object.entries(row.svc || {})) if (v) svc[k] = r2(v as number);
@@ -2732,6 +2738,110 @@ function svTotals(w){
     empty:R.sold===0
   };
 }
+// Свод ПО ЗАКАЗАМ. Иван 18.09.2026: «можешь сделать свод отдельным блоком не по артикулу а по
+// заказу на той же базе?». База буквально та же: строки свода несут номер заказа в ключе, и этот
+// блок группирует их по order вместо sku. Ни одного своего расчёта - те же колонки, та же
+// раскладка (Поступление = Продажи + Доставка покупателя − сборы − общие расходы − Баллы), те же
+// ставки АДМ и налогов. Расхождение между блоками означало бы ошибку, а не разные методики.
+// Наша доставка здесь точнее, чем в разрезе по артикулу: счёт перевозчика выставлен НА ЗАКАЗ, и
+// делить его между позициями не приходится.
+function soAgg(ms,w){
+  w=w||svWin();
+  var a={};
+  ms.forEach(function(m){(m.rows||[]).forEach(function(r){
+    if(!svInWin(r.d,w))return;
+    var k=r.order||'—',o=a[k];
+    if(!o){o=a[k]={order:k,d:r.d,skus:{},un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false};}
+    if(r.d<o.d)o.d=r.d;
+    if(r.sku)o.skus[r.sku]=1;
+    var _d=r.units_delivered||0,_n=r.units_net||0;
+    o.priceNet+=_d>0?((r.price||0)*_n/_d):(r.price||0);
+    o.un+=r.units_net||0;o.ship+=r.ship_buyer||0;o.sp+=r.svc_points||0;
+    o.cogs+=r.cogs||0;o.ck=o.ck&&r.cogs_known;
+    o.shipOur+=r.ship_our||0;o.shipKn=o.shipKn||!!r.ship_known;
+    SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
+  return Object.keys(a).map(function(k){return a[k];});
+}
+function soDraw(){
+  var el=document.getElementById('so-t'); if(!el)return;
+  var moreEl=document.getElementById('so-more');
+  var w=svWin(),ms=svPick(w);
+  if(!ms.length){el.innerHTML='';moreEl.textContent='';return;}
+  var list=soAgg(ms,w), oh=svOverhead(ms,w), lost=svShipLost(ms,w);
+  var ae=document.getElementById('sv-adm'),te=document.getElementById('sv-tax');
+  var adm=Number((ae&&ae.value)||30)/100, tax=Number((te&&te.value)||15)/100;
+  // Общие расходы кабинета к заказу не привязаны - разносим ПО ШТУКАМ, ровно как в своде по
+  // артикулам. Иначе два блока дали бы разное «Поступление» на одних и тех же деньгах.
+  var unAll=0; list.forEach(function(x){unAll+=x.un||0;});
+  var ohPer=unAll>0?((oh.m||0)+(oh.p||0))/unAll:0;
+  function calc(x){
+    var fee=0;SV_COLS.forEach(function(p){fee+=x.svc[p[0]]||0;});
+    var ohv=ohPer*(x.un||0);
+    var net=(x.priceNet||0)+(x.ship||0)-fee-ohv-(x.sp||0);
+    var gp=net-(x.cogs||0)-(x.shipOur||0), av=net*adm, tv=net*tax;
+    return {fee:fee,oh:ohv,net:net,gp:gp,adm:av,tax:tv,np:gp-av-tv};
+  }
+  list.forEach(function(x){x._c=calc(x);});
+  list.sort(function(p,q){return q._c.net-p._c.net;});
+  var lim=Number((document.getElementById('so-lim')||{}).value||50);
+  var show=lim>0?list.slice(0,lim):list;
+  var FEE=SV_COLS.map(function(p){return p[0];});
+  var H=['Заказ','Дата','Артикулы','Продажи','Доставка покупателя'].concat(FEE)
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
+             'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.']);
+  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
+  function pc(v,b){return '<td class="r">'+(b>0?(Math.round(v/b*1000)/10)+'%':'—')+'</td>';}
+  // ИТОГО по ВСЕМУ периоду, а не по показанным строкам: иначе выбор «50 заказов» менял бы итог.
+  var T={priceNet:0,ship:0,sp:0,un:0,net:0,cogs:0,shipOur:0,gp:0,adm:0,tax:0,np:0},TC={};
+  FEE.forEach(function(n){TC[n]=0;});
+  list.forEach(function(x){var c=x._c;
+    T.priceNet+=x.priceNet;T.ship+=x.ship;T.sp+=x.sp;T.un+=x.un;T.net+=c.net;
+    T.cogs+=x.cogs;T.shipOur+=x.shipOur;T.gp+=c.gp;T.adm+=c.adm;T.tax+=c.tax;T.np+=c.np;
+    FEE.forEach(function(n){TC[n]+=x.svc[n]||0;});});
+  // Отправки по заказам, которые отменили или вернули. Выручки по ним нет ни в одном разрезе -
+  // заказ не доехал, строк свода у него нет вовсе. Но перевозку мы оплатили, и в своде по
+  // артикулам этот расход уже стоит своей строкой. Без него два блока разошлись бы ровно на эту
+  // сумму (июль 27 666 ₽), и расхождение читалось бы как ошибка одного из них.
+  T.shipOur+=lost.v; T.gp-=lost.v; T.np-=lost.v;
+  h+='<tr class="so-total" style="border-bottom:2px solid var(--bd)"><td><b>ИТОГО</b></td><td class="r">—</td>'
+    +'<td class="r">'+list.length+' зак.</td>'
+    +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
+    +FEE.map(function(n){var v=TC[n]+(n==='Прочее'?(oh.m+oh.p):0);return '<td class="r"><b>'+(Math.round(v)?svRub(v):'—')+'</b></td>';}).join('')
+    +'<td class="r"><b>'+svRub(T.sp)+'</b></td><td class="r"><b>'+T.un+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.net)+'</b></td>'
+    +'<td class="r"><b>'+(Math.round(T.shipOur)?svRub(T.shipOur):'—')+'</b></td>'
+    +'<td class="r"><b>'+(Math.round(T.cogs)?svRub(T.cogs):'—')+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.gp)+'</b></td>'+pc(T.gp,T.net)
+    +'<td class="r"><b>'+svRub(T.adm)+'</b></td><td class="r"><b>'+svRub(T.tax)+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.np)+'</b></td>'+pc(T.np,T.net)+'</tr>';
+  if(Math.round(lost.v)){
+    var iShip=H.indexOf('Наша доставка');
+    var tds='';
+    for(var ci=1;ci<H.length;ci++){
+      if(ci===iShip) tds+='<td class="r" style="color:#FF5A5F">'+svRub(lost.v)+'</td>';
+      else if(H[ci]==='Валовая прибыль'||H[ci]==='Чистая прибыль') tds+='<td class="r" style="color:var(--dn)">'+svRub(-lost.v)+'</td>';
+      else tds+='<td class="r">—</td>';
+    }
+    h+='<tr class="so-extra" style="background:rgba(255,90,95,.06);border-bottom:2px solid var(--bd)"><td title="Мы оплатили перевозку, а заказ отменили или вернули. Строк свода у такого заказа нет - выручки по нему нет, поэтому расход стоит отдельной строкой.">Отправки по отменённым и возвратам <span style="color:var(--ink-3)">('+lost.n+' заказов)</span></td>'+tds+'</tr>';
+  }
+  show.forEach(function(x){var c=x._c,sk=Object.keys(x.skus);
+    h+='<tr><td style="color:var(--ink-2)">'+x.order+'</td><td class="r" style="color:var(--ink-3)">'+x.d+'</td>'
+      +'<td class="r" style="color:var(--ink-3)" title="'+sk.join(', ')+'">'+(sk.length>1?sk.length+' арт.':(sk[0]||'—'))+'</td>'
+      +'<td class="r">'+svRub(x.priceNet)+'</td>'+money(x.ship)
+      +FEE.map(function(n){return money(x.svc[n]||0);}).join('')
+      +money(x.sp)+'<td class="r">'+x.un+'</td>'
+      +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
+      +(x.shipKn?money(x.shipOur):'<td class="r" style="color:#E5B567" title="ведомость доставки этот заказ не знает - наш расход на перевозку неизвестен, прибыль завышена">нет вед.</td>')
+      +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="себестоимости по артикулам заказа нет в листе - валовая и рентабельность завышены"')+'>'+(x.ck&&Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
+      +'<td class="r" style="color:'+(c.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.gp)+'</td>'+pc(c.gp,c.net)
+      +money(c.adm)+money(c.tax)
+      +'<td class="r" style="color:'+(c.np>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.np)+'</td>'+pc(c.np,c.net)+'</tr>';});
+  el.innerHTML=h+'</tbody>';
+  moreEl.textContent=lim>0&&list.length>show.length
+    ? 'показано '+show.length+' из '+list.length+' заказов периода; ИТОГО посчитано по всем'
+    : 'заказов за период: '+list.length;
+}
 // Ставка в подписи колонки: «30» и «15» - не круглые константы, а решение, и оно должно быть
 // названо. Полосу с полями ввода Иван убрал 18.09.2026 («эту приписку тоже убери»), поля остались
 // в разметке скрытыми - их читают расчёты, и через них ставку по-прежнему можно поменять.
@@ -2836,13 +2946,17 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
 }
 function svInit(){
   if(!document.getElementById('sv-t'))return;
-  ['sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=svDraw;});
+  // Оба свода перерисовываются одним обработчиком: они стоят на одной базе, и разъехаться по
+  // ставке или периоду не должны.
+  var both=function(){svDraw();soDraw();};
+  ['sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=both;});
+  var lim=document.getElementById('so-lim');if(lim)lim.onchange=soDraw;
   // Свод перерисовывается вместе со всей страницей: шелл зовёт render(cur,cmp) на каждой смене
   // периода, а window.__guruPeriod к этому моменту уже обновлён. Своего состояния периода у
   // свода нет - один фильтр на всю страницу, как и просил Иван.
   var base=(typeof render==='function')?render:null;
-  render=function(cur,cmp){if(base)base(cur,cmp);svDraw();};
-  svDraw();
+  render=function(cur,cmp){if(base)base(cur,cmp);both();};
+  both();
 }
 svInit();
 `;

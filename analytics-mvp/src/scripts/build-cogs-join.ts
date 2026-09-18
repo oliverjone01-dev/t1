@@ -9,10 +9,34 @@ import { dp, fp, IS_OZON } from "../paths.js";
 import { parseTaxonomy, offerIndex } from "../taxonomy.js";
 import { parseCogs, parseCogsSku, buildCogsIndex, matchCogs, type CogsRow } from "../cogs.js";
 
+// Лист «ЯМ» из таблицы «Copy of СС GEN - OZON»: себестоимость, заведённая под Яндекс Маркет.
+// Колонки листа - модель, артикул, С\С произв.; выгрузка лежит в fixtures/cogs_ym_sku.csv.
+// Для Маркета это ПЕРВЫЙ источник: лист OZON не знает 39 артикулов из тех, что реально продавались.
+type YmCost = { offer: string; cost: number };
+function parseYmCogs(text: string): YmCost[] {
+  const out: YmCost[] = [];
+  for (const line of text.trim().split("\n").slice(1)) {
+    const c = line.split(",");
+    const offer = (c[0] || "").trim();
+    const cost = Number((c[2] || "").trim());
+    if (offer && Number.isFinite(cost) && cost > 0) out.push({ offer, cost });
+  }
+  return out;
+}
+// Артикул в своде и в листе пишут по-разному: GGTW-03-180-90 против GGTW-03-18090, GGTP-20-1
+// против GGTP-20-1x2. Из-за точного сравнения СС по ним числилась пробелом, хотя она есть.
+const normOffer = (s: string): string => s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
 function main() {
   const prodRows = parseCogsSku(readFileSync(fp("cogs_prod_sku.csv"), "utf-8"));
+  const ymRows = IS_OZON ? [] : parseYmCogs(readFileSync(fp("cogs_ym_sku.csv"), "utf-8"));
   // OZON: ключ - числовой SKU OZON; Маркет: ключ снимка = артикул (shopSku), поэтому берём колонку offer.
   const skuCost = new Map<string, number>(prodRows.filter((r) => IS_OZON || r.offer).map((r) => [IS_OZON ? r.sku : r.offer, Math.round(r.cost)]));
+  // Лист ЯМ поверх листа OZON: он заведён под эту площадку и точнее там, где артикулы разошлись.
+  for (const r of ymRows) skuCost.set(r.offer, Math.round(r.cost));
+  // Запасной индекс по нормализованному артикулу - только для тех, кто не нашёлся точным ключом.
+  const normCost = new Map<string, number>();
+  for (const [k, v] of skuCost) { const n = normOffer(k); if (!normCost.has(n)) normCost.set(n, v); }
   // fuzzy-индекс из моделей нового листа (производственная СС), дедуп по имени модели
   const prodModelRows: CogsRow[] = [];
   const seen = new Set<string>();
@@ -25,11 +49,13 @@ function main() {
   const skus = JSON.parse(readFileSync(dp("skus_live_30d.json"), "utf-8"));
 
   const map: Record<string, number> = {};
-  let nSku = 0, nDirect = 0, nFuzzyNew = 0, nFuzzyOld = 0, revTotal = 0, revCov = 0;
+  let nSku = 0, nDirect = 0, nNorm = 0, nFuzzyNew = 0, nFuzzyOld = 0, revTotal = 0, revCov = 0;
   const unmatched = new Set<string>();
   for (const s of skus.sku_table) {
     nSku++; revTotal += s.rev; const sk = String(s.sku);
     if (skuCost.has(sk)) { map[sk] = skuCost.get(sk)!; nDirect++; revCov += s.rev; continue; }
+    const nk = normCost.get(normOffer(sk));
+    if (nk != null) { map[sk] = nk; nNorm++; revCov += s.rev; continue; }
     const t = oi.get(s.offer || "");
     const model = t ? t.model : "";
     let m = model ? matchCogs(model, prodIdx) : null;
@@ -50,8 +76,8 @@ function main() {
   writeFileSync(dp("sku_cogs.json"), JSON.stringify(map, null, 0));
   const nCov = nDirect + nFuzzyNew + nFuzzyOld;
   console.log(`Плюс ${nExtra} SKU из листа СС вне живого снимка (прямой ключ) - чтобы не терять СС по неактивным артикулам.`);
-  console.log(`СС произв.: ${prodRows.length} строк (ключ по SKU), ${prodModelRows.length} моделей для fuzzy.`);
-  console.log(`Связка sku->СС: ${nCov}/${nSku} SKU (${Math.round((nCov / nSku) * 100)}%): прямой SKU ${nDirect}, fuzzy(новый лист) ${nFuzzyNew}, fuzzy(старый лист) ${nFuzzyOld}. Покрытие оборота ${Math.round((revCov / revTotal) * 100)}%.`);
+  console.log(`СС произв.: ${prodRows.length} строк листа OZON${ymRows.length ? `, ${ymRows.length} строк листа ЯМ (приоритет)` : ""}, ${prodModelRows.length} моделей для fuzzy.`);
+  console.log(`Связка sku->СС: ${nCov}/${nSku} SKU (${Math.round((nCov / nSku) * 100)}%): прямой SKU ${nDirect}, по нормализованному артикулу ${nNorm}, fuzzy(новый лист) ${nFuzzyNew}, fuzzy(старый лист) ${nFuzzyOld}. Покрытие оборота ${Math.round((revCov / revTotal) * 100)}%.`);
   console.log(`Не сматчено: ${unmatched.size}. Примеры: ${[...unmatched].slice(0, 12).join(" | ")}`);
 }
 

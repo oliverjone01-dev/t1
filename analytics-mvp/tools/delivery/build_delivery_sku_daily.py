@@ -34,6 +34,19 @@ def norm(s):
     return re.sub(r"\s+", " ", str(s).strip()) if s else ""
 
 
+# кириллица -> латиница (гомоглифы) в коде артикула: GGTP-20-3х2 -> GGTP-20-3x2
+_HOMO = str.maketrans({
+    "А": "A", "В": "B", "С": "C", "Е": "E", "Н": "H", "К": "K", "М": "M", "О": "O",
+    "Р": "P", "Т": "T", "Х": "X", "У": "Y",
+    "а": "a", "в": "b", "с": "c", "е": "e", "н": "h", "к": "k", "м": "m", "о": "o",
+    "р": "p", "т": "t", "х": "x", "у": "y",
+})
+
+
+def nrm_art(s):
+    return str(s).strip().translate(_HOMO) if s else ""
+
+
 def parse_date(s):
     if not s:
         return None
@@ -104,7 +117,7 @@ def main():
                     e = events[key] = {"ship": ship, "deliv": num(r[ci["Стоимость доставки"]]),
                                        "date": d, "arts": [], "city": city_of(r[ci["Адрес"]]),
                                        "st": norm(r[ci["Статус"]])}
-                art = str(r[ci["Артикул"]] or "").strip()
+                art = nrm_art(r[ci["Артикул"]] or "")
                 if art and art not in e["arts"]:
                     e["arts"].append(art)
         wb.close()

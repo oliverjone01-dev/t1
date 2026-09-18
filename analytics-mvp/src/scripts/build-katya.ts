@@ -1576,7 +1576,19 @@ function render(cur,cmp){
     const cg = JSON.parse(readFileSync(dp("card_groups.json"), "utf-8"));
     for (const g of (cg.groups || cg)) for (const x of (g.skus || [])) { if (x.sku != null && x.offer) offerAlt[String(x.sku)] ||= String(x.offer); }
   } catch { /* нет card_groups - пропуск */ }
-  const offerOf = (sk: string) => taxOf(sk).offer || offerAlt[sk] || sk;
+  // Артикул из УПД-отчёта о реализации (data/upd_sku_offer.json): у части SKU каталожный снимок
+  // артикул не отдал, и в подписи стоял числовой SKU, а доставка по артикулу не сшивалась с такой
+  // строкой. УПД - источник правды по связке SKU<->артикул: заполняем пробелы (не переопределяем
+  // уже известный код).
+  try {
+    const upd = JSON.parse(readFileSync(dp("upd_sku_offer.json"), "utf-8"));
+    for (const sk in upd) { if (upd[sk]) offerAlt[String(sk)] ||= String(upd[sk]); }
+  } catch { /* нет upd_sku_offer - пропуск */ }
+  // Гомоглифы кириллицы в коде артикула -> латиница (GGTP-20-3х2 -> GGTP-20-3x2), чтобы совпадало
+  // с таксономией и ведомостью доставки. Реальные коды - латиница+цифры, кириллица там опечатка.
+  const HOMO: Record<string, string> = { "А": "A", "В": "B", "С": "C", "Е": "E", "Н": "H", "К": "K", "М": "M", "О": "O", "Р": "P", "Т": "T", "Х": "X", "У": "Y", "а": "a", "в": "b", "с": "c", "е": "e", "н": "h", "к": "k", "м": "m", "о": "o", "р": "p", "т": "t", "х": "x", "у": "y" };
+  const nrmOff = (s: string) => String(s).replace(/[А-Яа-я]/g, (c) => HOMO[c] ?? c);
+  const offerOf = (sk: string) => nrmOff(taxOf(sk).offer || offerAlt[sk] || sk);
   const anMeta: Record<string, any> = {};
   for (const sk of new Set([...Object.keys(anSales), ...Object.keys(anAds), ...Object.keys(anFin)])) {
     anMeta[sk] = { off: offerOf(sk), nm: (skuName[sk] || sk).slice(0, 58), cat: catOf(sk) };

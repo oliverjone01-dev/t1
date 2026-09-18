@@ -1748,6 +1748,28 @@ function render(cur,cmp){
   let delivCities: Record<string, any> = {};
   try { delivCities = JSON.parse(readFileSync(dp("delivery_cities.json"), "utf-8")); } catch { delivCities = {}; }
 
+  // Данные по ЗАКАЗУ (data/orders_daily.ndjson) для блока «Аналитика по заказам» - та же аналитика,
+  // но строка = заказ (posting). Backbone OZON: выручка/штуки/сборы/к-выплате по заказу. Базис -
+  // ПО ЗАКАЗУ (заказано, все статусы), в отличие от таблицы по артикулам (реализация). Реклама и
+  // наша/клиентская доставка по заказу - следующим проходом (пока «—»). Знаки сборов из OZON: fee<0.
+  const anOrders: any[] = [];
+  try {
+    for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); const sk = String(r.sku || "");
+      const units = Number(r.units || 0);
+      anOrders.push({
+        order: r.order, d: r.d, st: r.status,
+        cat: catOf(sk) || "Прочее", off: String(r.offer || offerOf(sk)), nm: (skuName[sk] || sk).slice(0, 48),
+        units, acc: Math.round(r.revenue || 0),
+        com: -Math.round(r.commission || 0), del: -Math.round(r.delivery || 0), acq: -Math.round(r.acquiring || 0),
+        sto: -Math.round(r.storage || 0), oth: -Math.round(r.other || 0),
+        amt: Math.round(r.payout || 0), amtS: (units > 0 ? Math.round(r.payout || 0) : 0),
+        cc: Math.round((cogs[sk] || 0) * units), noCs: (units > 0 && cogs[sk] == null),
+        adv: 0, ship: 0, dinc: 0,
+      });
+    }
+  } catch { /* нет orders_daily - блок по заказам пуст (собирается orders-backfill) */ }
+
   // Свод по дате заказа - только у Маркета: у OZON закрытие месяца идёт из подписанных Актов,
   // а базис «по дате оформления заказа» там не строится. Ключ добавляется условно, чтобы страница
   // OZON осталась прежней.
@@ -1777,12 +1799,13 @@ function render(cur,cmp){
       ? `<th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Реклама</th>`
       : `<th class="r">Доставка</th><th class="r">Приём и перевод платежа</th><th class="r">Хранение</th><th class="r">Софинансирование скидок</th><th class="r">Буст продаж</th><th class="r">Прочие</th>`}${IS_OZON ? `<th class="r" title="Наш расход на отправку заказа (счёт перевозчика ПЭК/СДЭК и т.п.) из ведомости доставки, разбор по номеру заказа, реальный расход, закрытые месяцы. Вычитается из прибыли.">Наша доставка</th><th class="r" title="Доход: сколько за доставку заплатил клиент (из ведомости), по артикулу, закрытые месяцы. Плюсуется в прибыль.">Доставка покупателя</th>` : ``}<th class="r">Всего сборов</th><th class="r">К выплате</th><th class="r">СС произв.</th><th class="r">Валовая прибыль</th><th class="r">АДМ 30%</th><th class="r">Налоги 15%</th><th class="r">Чистая прибыль</th><th class="r">Рентаб.</th>${IS_OZON ? `<th title="Города доставки по нашей отправке этого артикула (справочно)">Города доставки</th>` : ``}
   </tr>` : ``}<tbody id="skuan"></tbody></table></div></section>` : ``}
+  ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Аналитика по заказам (в разрезе заказа)</div><div class="card-sub">Та же аналитика, но строка = <b>заказ</b> (posting). Базис - ПО ЗАКАЗУ (заказано, все статусы: доставлено/отменено/в пути), в отличие от таблицы по артикулам (реализация). Выручка, сборы и «К выплате» - из OZON по каждому заказу (постинги + начисления). «Реклама» и «Наша/Доставка покупателя» по заказу разносятся следующим проходом (пока «—»). Клик по категории раскрывает заказы.</div></div></div><div class="kt-scroll"><table class="kt-table" id="ordan-t"><thead><tr><th>Заказ / категория</th><th class="r">Реализовано</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Реклама</th><th class="r">Наша доставка</th><th class="r">Доставка покупателя</th><th class="r">Всего сборов</th><th class="r">К выплате</th><th class="r">СС произв.</th><th class="r">Валовая прибыль</th><th class="r">АДМ 30%</th><th class="r">Налоги 15%</th><th class="r">Чистая прибыль</th><th class="r">Рентаб.</th><th>Города доставки</th></tr></thead><tbody id="ordan"></tbody></table></div></section>` : ``}
   <section class="card"><div class="card-h"><div><div class="card-title">Общие расходы</div><div class="card-sub"${IS_OZON ? ` style="display:none"` : ``}>${IS_OZON ? `За выбранный период. Это то, что OZON списывает отдельными операциями, не привязанными к одному артикулу - поэтому их нет в таблице по артикулам. «Сумма по артикулам (К выплате) + Итого этого блока = P&L канала». Источник - транзакции OZON (operation_type_name). Прогноз до конца периода - <b>[ГИПОТЕЗА]</b>: реклама/realFBS/подписки/доставка экстраполируются по дневному run-rate, штрафы и прочее - по факту (не прогнозируются). За закрытый прошлый месяц прогноз = факт.` : `Расходы кабинета, не привязанные к заказу: полки, подписки, баннеры, буст за показы. Период задаётся фильтром наверху страницы, разбивка - та же, что в своде, и ровно эта сумма вычтена в его строке «Общие расходы кабинета». Прогноза тут нет: часть расходов приходит месячным актом одной датой, и растягивать её по дневному run-rate значило бы придумывать числа.`}</div></div></div><div class="kt-scroll"><table class="kt-table" id="acct-t"><thead id="acct-h">${IS_OZON ? `<tr><th></th><th class="r">Реклама (клик+заказ)</th><th class="r">Штрафы + гибкий график</th><th class="r">realFBS + сервис + страховка</th><th class="r">Бейдж/сеть/отзывы/Premium</th><th class="r">Доставка от покупателя</th><th class="r">Прочее (компенс./эквайринг)</th><th class="r">Итого сборов</th></tr>` : ``}</thead><tbody id="acct"></tbody></table></div></section>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}#ordan-t th,#ordan-t td{white-space:nowrap}.ord-cat{cursor:pointer;font-weight:700}.ord-cat:hover{background:rgba(255,255,255,.03)}.ord-row td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_DELIV_CITY=${J(delivCities)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORDERS=${J(anOrders)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -2001,6 +2024,23 @@ function renderSkuAnalytics(cur){
   }
   el.querySelectorAll('.an-cat').forEach(function(tr){tr.onclick=function(){var c=tr.getAttribute('data-cat');anOpen[c]=!anOpen[c];var td=tr.querySelector('td');td.innerHTML=td.innerHTML.replace(anOpen[c]?'▸':'▾',anOpen[c]?'▾':'▸');el.querySelectorAll('.an-sku[data-cat="'+(window.CSS&&CSS.escape?CSS.escape(c):c)+'"]').forEach(function(s){s.style.display=anOpen[c]?'':'none';});};});
 }
+// === блок «Аналитика по заказам» (в разрезе заказа) - та же anCells, строка = заказ ===
+var anOpenOrd={};
+function renderOrdersAnalytics(cur){
+  var el=document.getElementById('ordan');if(!el)return;var from=cur.from,to=cur.to;var groups={};
+  for(var i=0;i<AN_ORDERS.length;i++){var o=AN_ORDERS[i];if(o.d<from||o.d>to)continue;(groups[o.cat]||(groups[o.cat]=[])).push(o);}
+  var SUMK=['units','acc','com','del','acq','sto','oth','adv','amt','amtS','cc','ship','dinc'];
+  var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.acc-a.acc;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.acc-a.t.acc;});
+  if(!cats.length){el.innerHTML='<tr><td colspan="20" class="kt-note">нет заказов за период</td></tr>';return;}
+  var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
+  cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});var op=!!anOpenOrd[g.cat];var ck=g.cat.replace(/"/g,'');
+    html+='<tr class="ord-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+' зак.)</span></td>'+anCells(g.t)+'</tr>';
+    g.arr.forEach(function(x){var stb=(x.st&&x.st!=='delivered')?' <span style="color:#E5B567">'+x.st+'</span>':'';var lbl=(x.off||x.order)+' <span style="color:var(--ink-3);font-weight:400">'+x.order+'</span>'+stb;html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm||'').replace(/"/g,'&quot;')+'">'+lbl+'</td>'+anCells(x)+'</tr>';});
+  });
+  html+='<tr style="font-weight:700;border-top:2px solid var(--bd);background:rgba(255,255,255,.03)"><td>ИТОГО</td>'+anCells(grand)+'</tr>';
+  el.innerHTML=html;
+  el.querySelectorAll('.ord-cat').forEach(function(tr){tr.onclick=function(){var c=tr.getAttribute('data-cat');anOpenOrd[c]=!anOpenOrd[c];var td=tr.querySelector('td');td.innerHTML=td.innerHTML.replace(anOpenOrd[c]?'▸':'▾',anOpenOrd[c]?'▾':'▸');el.querySelectorAll('.ord-row[data-cat="'+(window.CSS&&CSS.escape?CSS.escape(c):c)+'"]').forEach(function(s){s.style.display=anOpenOrd[c]?'':'none';});};});
+}
 // === блок «Сборы уровня заказа/кабинета» за выбранный период (факт + прогноз [ГИПОТЕЗА]) ===
 // AN_ACCT: [d, adv, fines, realfbs, badge, delivery, other]. Значения signed как в транзакциях
 // OZON (сборы отрицательны, доставка от покупателя положительна). Прогноз до конца периода -
@@ -2179,6 +2219,7 @@ function render(cur,cmp){
   paint(p,p.daily?'daily':'snap');
   initPlan(); // блок плана - один раз, со своим выбором месяца
   if(${IS_OZON})renderSkuAnalytics(cur); // аналитика по SKU за период (на Маркете - svSkuTable из свода)
+  if(${IS_OZON})renderOrdersAnalytics(cur); // аналитика по заказам (в разрезе заказа)
   renderAccountFees(cur); // сборы уровня заказа/кабинета за период (+прогноз)
 }`;
   writeFileSync(op("katya-money.html"), kshell("Деньги", "money", body, pageJs + svodJs(svodJson)));

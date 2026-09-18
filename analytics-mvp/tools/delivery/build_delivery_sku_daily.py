@@ -76,6 +76,32 @@ def parse_date(s):
     return f"{YEAR}-{mon:02d}-{int(m.group(1)):02d}" if mon else None
 
 
+# Проданные товары по УПД: артикул есть в отчёте о реализации = это проданный товар (стол), а не
+# комплектующее. Нужен, чтобы замену брака (столешница) привязать к столу из комментария.
+SOLD = set()
+try:
+    _u = json.load(open(os.path.join(ROOT, "data", "upd_sku_offer.json"), encoding="utf-8"))
+    SOLD = set(str(v) for v in _u.values() if v)
+except Exception:
+    SOLD = set()
+
+# Коды артикулов внутри комментария («Брак столешницы, отправляем новую GGT-03-3-3-O-20090»):
+# только GG*/B-* с дефисами, чтобы не хватать внутренние номера М26-… и телефоны.
+_COM_CODE = re.compile(r"(GG[A-Z]{0,4}-[0-9A-Za-z-]*[0-9A-Za-z]|B-[0-9][0-9A-Za-z-]*[0-9A-Za-z])")
+
+
+def comment_codes(raw):
+    if not raw:
+        return []
+    txt = str(raw).translate(_HOMO)
+    out = []
+    for m in _COM_CODE.findall(txt):
+        c = m.strip("-")
+        if _CODE_RE.match(c) and c not in out:
+            out.append(c)
+    return out
+
+
 def num(x):
     if x is None:
         return 0.0
@@ -134,11 +160,16 @@ def main():
                 e = events.get(key)
                 if e is None:
                     e = events[key] = {"ship": ship, "deliv": num(r[ci["Стоимость доставки"]]),
-                                       "date": d, "arts": [], "city": city_of(r[ci["Адрес"]]),
+                                       "date": d, "arts": [], "com": [], "city": city_of(r[ci["Адрес"]]),
                                        "st": norm(r[ci["Статус"]])}
                 for art in clean_arts(r[ci["Артикул"]]):
                     if art not in e["arts"]:
                         e["arts"].append(art)
+                # родительский артикул из комментария (для замен брака: столешница -> стол)
+                if "Комметарий" in ci:
+                    for c in comment_codes(r[ci["Комметарий"]]):
+                        if c not in e["com"]:
+                            e["com"].append(c)
         wb.close()
 
     daily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (offer,d)->[ship,deliv,отправок]
@@ -153,7 +184,17 @@ def main():
         if d[:7] == CUR_MONTH:            # текущий месяц не трогаем (по требованию Ивана)
             skipped_cur += 1
             continue
-        arts = e["arts"] or ["—"]         # отправка без артикула -> псевдо «—» (нераспределённое)
+        # Привязка отправки к артикулу:
+        # 1) если в ячейке есть проданный по УПД товар (стол) - на него;
+        # 2) иначе если ячейка - комплектующее (столешница/подстолье) и это замена брака,
+        #    в комментарии указан родительский стол - на него (реальный расход по браку того стола);
+        # 3) иначе - как есть (или «—»).
+        cell_sold = [a for a in e["arts"] if a in SOLD]
+        if cell_sold:
+            arts = cell_sold
+        else:
+            com_sold = [a for a in e.get("com", []) if a in SOLD]
+            arts = com_sold or e["arts"] or ["—"]
         share = e["ship"] / len(arts)     # мультиартикульная отправка - делим поровну
         dshare = e["deliv"] / len(arts)
         used += 1

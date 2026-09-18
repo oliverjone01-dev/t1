@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-18T13:15:29.376Z",
+  "generated_at": "2026-09-18T13:29:08.242Z",
   "today": "2026-09-18",
   "periods": [
     {
@@ -454,10 +454,10 @@
       "sku_total": 393,
       "rev_total": 86248563,
       "cogs": {
-        "sku": 361,
-        "pct_sku": 91.9,
+        "sku": 362,
+        "pct_sku": 92.1,
         "pct_rev": 97.8,
-        "rev_without": 1935037
+        "rev_without": 1879623
       },
       "taxonomy": {
         "sku": 137,

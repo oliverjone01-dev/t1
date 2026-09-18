@@ -11,6 +11,17 @@ import { coverageStrip, GAPS_JS } from "../coverage.js";
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
 const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(html));
 
+// Иван 18.09.2026: «вообще отключи озон, оставь только маркет, объединим потом». OZON он правит
+// в другом месте, и сборка отсюда затирала бы его работу. Выход без ошибки, а не падение:
+// иначе упал бы весь деплой, включая Маркет. Страницы OZON остаются теми, что закоммичены в
+// public/ - сайт их и раздаёт, просто они перестают обновляться из этой ветки.
+// Снять отключение = убрать этот блок; ни строки кода OZON не тронуто, чтобы объединение прошло
+// без разбора завалов.
+if (IS_OZON) {
+  console.log("katya: сборка OZON временно отключена (Иван, 18.09.2026). Ветка ведёт только Маркет: PLATFORM=ym DATA_DIR=data-ym OUT_DIR=public/market");
+  process.exit(0);
+}
+
 type Fact = { date: string; sku: string; name: string; line: string; revenue: number; units: number; returns?: number;
   // Поля Маркета: деньги и штуки ДОСТАВЛЕННОГО, ОТМЕНЁННОГО и ещё летящего. У OZON их нет,
   // поэтому все они опциональные и читаются только при DELIVERED_BASIS.

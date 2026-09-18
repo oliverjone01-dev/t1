@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, cpSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, cpSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM } from "jsdom";
@@ -11,7 +11,8 @@ import { JSDOM } from "jsdom";
 // Здесь проверяется, что оба берутся из своих полей daily_totals, а не из одного и того же.
 
 let dom: JSDOM;
-let ozonCommand = "";
+let ozonLog = "";
+let ozonOut = "";
 let staleCommand = "";
 const errs: string[] = [];
 const WIN = ["2026-09-01", "2026-09-16"] as const;
@@ -54,9 +55,12 @@ beforeAll(async () => {
     env: { ...process.env, DATA_DIR: "data-ym", OUT_DIR: out, PLATFORM: "ym" },
     stdio: "pipe",
   });
-  const outO = mkdtempSync(join(tmpdir(), "warroom-kpi-ozon-"));
-  execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], { env: { ...process.env, OUT_DIR: outO }, stdio: "pipe" });
-  ozonCommand = readFileSync(join(outO, "katya-command.html"), "utf8");
+  // Сборка OZON отключена (Иван, 18.09.2026), поэтому сторож проверяет не байты его страницы,
+  // а что сборщик её и не пишет. При объединении площадок вернуть сравнение разметки.
+  ozonOut = mkdtempSync(join(tmpdir(), "warroom-kpi-ozon-"));
+  ozonLog = execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], {
+    env: { ...process.env, OUT_DIR: ozonOut }, encoding: "utf8",
+  });
 
   // Снимок daily_totals прошлой версии derive не знает полей о доставке. Проверяем, что сборка
   // на нём не выдаёт молча валовое заказанное под подписью «заказано − отменено».
@@ -218,9 +222,10 @@ describe("карточка «Оборот» Маркета: заказано м�
     expect(card().textContent || "").not.toContain("снимок без полей");
   });
 
-  it("у OZON карточка прежняя: ни второго числа, ни денежных серий", () => {
-    expect(ozonCommand).not.toContain("kpi2");
-    expect(ozonCommand).not.toContain('"rcanc"');
-    expect(ozonCommand).not.toContain("заказано − отменено");
+  it("сборка OZON отключена и её страниц не появляется", () => {
+    expect(ozonLog).toContain("сборка OZON временно отключена");
+    for (const f of ["katya-command.html", "katya.html", "katya-money.html"]) {
+      expect(existsSync(join(ozonOut, f)), `${f}: страница OZON писаться не должна`).toBe(false);
+    }
   });
 });

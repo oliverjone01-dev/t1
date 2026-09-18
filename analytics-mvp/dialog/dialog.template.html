@@ -258,6 +258,13 @@ input#q{min-width:220px}
 .msum-act{font-size:12px;color:var(--ink-2);line-height:1.5;border-top:1px solid var(--border);padding-top:8px}
 .msum-act b{color:#7FD1A6}
 .msum-basis{font-size:10px;color:var(--ink-4);margin-top:6px;font-style:italic}
+.msum-hp{font-size:10px;font-weight:800;margin-left:8px}
+.cool-box{margin:2px 0 8px}
+.cool-ul{margin:4px 0 0;padding-left:0;list-style:none}
+.cool-ul li{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin:3px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
+.cool-l{color:var(--ink-1);font-weight:600}
+.cool-n{color:#E2A336;font-variant-numeric:tabular-nums;font-size:11px}
+.cool-fix{color:#7FD1A6;flex-basis:100%;padding-left:2px}
 .t1>tbody>tr.aggrow>td{padding:2px 10px 12px 24px;background:#ffffff03;border-left:6px solid #8B7BF066}
 .msum-agg{margin:0}
 /* Мини-воронка и коммуникации в таблице менеджеров */
@@ -952,15 +959,17 @@ const COMM_TYPES = [
   {k:'note', t:'Заметки', s:'зам', col:'#8794A5'},
 ];
 // Агрегатная ИИ-сводка (отдел / подотдел): тот же вид, что итог по менеджеру.
-function aggBlock(a){
+function aggBlock(a, coolHtml, hp){
   if(!a) return '';
-  return `<div class="msum msum-agg"><div class="msum-h">🤖 Итог ИИ · ${esc(a.title||'сводка')}</div>`
+  const hpTxt=(hp!==null&&hp!==undefined)?`<span class="msum-hp" style="color:${hp>0?'#2E9E74':hp<0?'#C25252':'var(--ink-3)'}">сила нагрева ${hp>0?'▲ +'+hp:hp<0?'▼ '+hp:'0'}°</span>`:'';
+  return `<div class="msum msum-agg"><div class="msum-h">🤖 Итог ИИ · ${esc(a.title||'сводка')} ${hpTxt}</div>`
     +(a.verdict?`<div class="msum-v">${esc(a.verdict)}</div>`:'')
     +`<div class="msum-cols">`
     +`<div class="msum-col msum-str"><div class="msum-t">Сильные стороны</div>${(a.strengths||[]).length?'<ul>'+a.strengths.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
     +`<div class="msum-col msum-wk"><div class="msum-t">Слабые места</div>${(a.weaknesses||[]).length?'<ul>'+a.weaknesses.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
     +`</div>`
-    +(a.action?`<div class="msum-act"><b>Что делать:</b> ${esc(a.action)}</div>`:'')
+    +(coolHtml?`<div class="cool-box"><div class="msum-t" style="color:#E2A336">Почему остывают (по сделкам) · что делать</div>${coolHtml}</div>`:'')
+    +(a.action?`<div class="msum-act"><b>Что делать в первую очередь:</b> ${esc(a.action)}</div>`:'')
     +(a.basis?`<div class="msum-basis">${esc(a.basis)}</div>`:'')
     +`</div>`;
 }
@@ -1091,6 +1100,15 @@ function renderTree(){
     const whyBlock=topCool.length?`<br><b>Почему остывают (по сделкам):</b>`+topCool.map(([l,v])=>`<br>• ${esc(l)} — ${v.n} сдел., до +${v.deg}°<br>&nbsp;&nbsp;&rarr; ${esc(resolveOf(l))}`).join(''):'';
     const hpTip=hp===null?'Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).':`Сила нагрева = медиана Δ температуры с входа до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${whyBlock}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
     return `<div class="tempcell"><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
+  // «Почему остывают» с конкретными цифрами (сделок, до +N°, что делать) для агрегатного
+  // ИИ-итога отдела/подотдела - те же данные, что в подсказке градусника.
+  const RESOLVE_AGG=[[/ждёт|ожида/i,'ответить сегодня, назвать конкретный срок'],[/тишина|пауза|молч/i,'написать с новым поводом, назначить дату след. контакта'],[/возражени/i,'вернуться с расчётом разницы или альтернативой, не скидкой'],[/скидк/i,'обосновать цену составом и ценностью'],[/следующего шага|шаг/i,'поставить дело с датой'],[/обещал|без срока/i,'выполнить обещание, дать дату'],[/стадия двигал|нет следов|касаний/i,'вести общение в CRM, не двигать стадию в тишине'],[/вхолостую|контакта/i,'закрывать дела только после контакта'],[/медленн|ответ/i,'ускорить первый ответ'],[/отказ/i,'спросить, что изменит решение']];
+  const resolveAgg=l=>{for(const[re,fx]of RESOLVE_AGG)if(re.test(l))return fx;return 'проработать по сделкам';};
+  const heatPowerDeals=(ds)=>{ const dd=ds.filter(d=>d.outcome==='open'&&!d.goalReached&&(d.stageRows||[]).length&&d.tempDelta!=null).map(d=>d.tempDelta).sort((a,b)=>a-b); return dd.length>=3?dd[Math.floor(dd.length/2)]:null; };
+  const coolListHtml=(ds)=>{ const op=ds.filter(d=>d.outcome==='open'); if(!op.length) return '';
+    const cool={}; for(const d of op){ for(const g of (d.needToClose||[])){ const kk=(g.label||'').replace(/\s*\([^)]*\)/,'').replace(/\d+/g,'N').trim(); if(!kk)continue; (cool[kk]||(cool[kk]={deg:0,n:0}));cool[kk].deg+=g.deg||0;cool[kk].n++; } }
+    const top=Object.entries(cool).sort((a,b)=>b[1].deg-a[1].deg).slice(0,5); if(!top.length) return '';
+    return `<ul class="cool-ul">`+top.map(([l,v])=>`<li><b class="cool-l">${esc(l)}</b> <span class="cool-n">${v.n} сдел. · до +${v.deg}°</span><span class="cool-fix">→ ${esc(resolveAgg(l))}</span></li>`).join('')+`</ul>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'temp',t:'Градусник',l:1,full:'Температура клиентов (шанс покупки) + сила нагрева менеджера'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
     .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
@@ -1262,7 +1280,8 @@ function renderTree(){
           +`<div class="msum-col msum-str"><div class="msum-t">Сильные стороны</div>${(ma.strengths||[]).length?'<ul>'+ma.strengths.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
           +`<div class="msum-col msum-wk"><div class="msum-t">Слабые места</div>${(ma.weaknesses||[]).length?'<ul>'+ma.weaknesses.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
           +`</div>`
-          +(ma.action?`<div class="msum-act"><b>Что делать:</b> ${esc(ma.action)}</div>`:'')
+          +((()=>{const ch=coolListHtml(byM[m.mgr]||[]);return ch?`<div class="cool-box"><div class="msum-t" style="color:#E2A336">Почему остывают (по сделкам) · что делать</div>${ch}</div>`:'';})())
+          +(ma.action?`<div class="msum-act"><b>Что делать в первую очередь:</b> ${esc(ma.action)}</div>`:'')
           +`</div>`;
       }
       html+=`<table class="tbl t2"><tr>`+DCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="d" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sD,c.k)}</span></th>`).join('')+`</tr>`;
@@ -1312,15 +1331,15 @@ function renderTree(){
   // aiAgg приходит из scoring (score-dialog читает ai-review.json). Пока свежий прогон не
   // обновил данные, показываем демо-набор из шаблона; данные из крона его перекрывают.
   const AGG=(SC&&SC.aiAgg)||AGG_FALLBACK;
-  const emitAgg=(a)=>{ if(!a) return; html+=`<tr class="aggrow"><td colspan="${MCOLS.length}">${aggBlock(a)}</td></tr>`; };
+  const emitAgg=(a,ds)=>{ if(!a) return; const dsr=ds||[]; html+=`<tr class="aggrow"><td colspan="${MCOLS.length}">${aggBlock(a, coolListHtml(dsr), heatPowerDeals(dsr))}</td></tr>`; };
   emitRow(deptMgr);
   if(S.deptOpen && !deptDrill){
-    if(AGG) emitAgg(AGG.dept);
+    if(AGG) emitAgg(AGG.dept, byM[DEPT_KEY]||[]);
     for(const g of ['office','sales','other']){
       const members=mgrs.filter(mm=>mgrGroup(mm.mgr)===g);
       if(!members.length) continue;
       emitGrpRow(g,members);
-      if(S.grpOpen[g]!==false){ if(AGG) emitAgg(AGG[g]); for(const m of members) emitRow(m,52); }
+      if(S.grpOpen[g]!==false){ if(AGG) emitAgg(AGG[g], members.flatMap(mm=>byM[mm.mgr]||[])); for(const m of members) emitRow(m,52); }
     }
   } else if(deptDrill){
     // Дрил по отделу: показываем сделки всего отдела (внутри emitRow deptMgr уже отрисован выше).

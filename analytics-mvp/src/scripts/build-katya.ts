@@ -1632,19 +1632,32 @@ function render(cur,cmp){
   } catch { /* нет файла - реклама по SKU пустая */ }
   const anAds: Record<string, any[]> = {};
   for (const sk in anAdsMap) { anAds[sk] = []; for (const d in anAdsMap[sk]) { const a = anAdsMap[sk]![d]!; anAds[sk]!.push([d, Math.round(a[0]!), a[1], Math.round(a[2]!), a[3], Math.round(a[4]!)]); } }
+  // ГИБРИД финансов по SKU (OZON): закрытые месяцы - старый pnl (транзакции, реконсилирован, без
+  // сдвига по дате), ТЕКУЩИЙ (открытый) месяц - новый accrual (свежий; transaction-эндпоинт мёртв
+  // с 08.09). Шов ровно на границе месяца, внутри месяца базис единый. Только для OZON.
+  const finNow = new Date();
+  const FIN_CUT = `${finNow.getUTCFullYear()}-${String(finNow.getUTCMonth() + 1).padStart(2, "0")}-01`; // 1-е число текущего месяца
   const anFin: Record<string, any[]> = {};
   try {
     for (const l of readFileSync(dp("pnl_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); const sk = String(r.sku);
-      // Софинансирование скидок идёт ОТДЕЛЬНОЙ ногой, не сливается в «Прочие»: на Маркете это
-      // крупнейшая статья расходов канала, и в общей куче она нечитаема.
+      if (IS_OZON && String(r.d) >= FIN_CUT) continue; // текущий месяц у OZON - из accrual ниже
       // Индексы ряда: 0 дата, 1 начислено, 2 комиссия, 3 доставка, 4 приём/перевод платежа,
       // 5 хранение, 6 прочее, 7 к выплате, 8 софинансирование скидок, 9 буст продаж.
-      // Софинансирование и буст раньше сидели в «прочем» одним комом: на Маркете это две
-      // крупнейшие статьи (за 30 дней 4 505 686 ₽ и 119 411 ₽ против нуля прочего).
       (anFin[sk] ||= []).push([r.d, r.accruals, r.commission, r.delivery, r.acquiring, r.storage, r.otherSvc || 0, r.amount, r.cofin || 0, r.promo || 0]);
     }
   } catch { /* нет файла - финансы по SKU пустые */ }
+  // Текущий месяц (OZON) - из accrual-API (data/pnl_sku_accrual_daily.ndjson). Схема совпадает,
+  // cofin/promo у OZON = 0.
+  if (IS_OZON) {
+    try {
+      for (const l of readFileSync(dp("pnl_sku_accrual_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+        const r = JSON.parse(l); const sk = String(r.sku);
+        if (String(r.d) < FIN_CUT) continue; // закрытые месяцы - из старого pnl выше
+        (anFin[sk] ||= []).push([r.d, r.accruals, r.commission, r.delivery, r.acquiring, r.storage, r.otherSvc || 0, r.amount, 0, 0]);
+      }
+    } catch { /* нет accrual-файла - текущий месяц пуст (соберётся orders-backfill) */ }
+  }
   // Артикул (offer_id) не всегда есть в таксономии - добираем из каталожного маппинга (sku_offer,
   // накопительный снимок /product/info/stocks по всему каталогу), живого снимка и card_groups,
   // иначе в подписи оставался бы числовой SKU (внутренний ID OZON) вместо артикула.

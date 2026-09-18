@@ -292,6 +292,36 @@ export class OzonSeller {
     return out;
   }
 
+  // Отправления (FBO + FBS) за период с товарами и финданными: по каждому заказу - дата, статус,
+  // список товаров {sku, offer, qty, price} и financial_data (если OZON отдал). Для блока «по заказам».
+  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any }>> {
+    const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
+    const out: Array<any> = [];
+    const mapP = (p: any) => ({
+      posting_number: String(p.posting_number ?? ""),
+      status: String(p.status ?? ""),
+      date: String(p.in_process_at ?? p.created_at ?? p.shipment_date ?? "").slice(0, 10),
+      products: (p.products ?? []).map((it: any) => ({
+        sku: String(it.sku ?? ""), offer: String(it.offer_id ?? ""),
+        qty: Number(it.quantity ?? 0), price: Number(it.price ?? 0),
+      })),
+      financial_data: p.financial_data ?? null,
+    });
+    for (let offset = 0; offset < 200000; offset += 1000) {
+      const d = await this.post<any>("/v2/posting/fbo/list", { dir: "ASC", filter: { since: from, to, status: "" }, limit: 1000, offset, with: { financial_data: true } });
+      const arr: any[] = d.result ?? [];
+      for (const p of arr) if (p?.posting_number) out.push(mapP(p));
+      if (arr.length < 1000) break;
+    }
+    for (let offset = 0; offset < 200000; offset += 1000) {
+      const d = await this.post<any>("/v3/posting/fbs/list", { dir: "ASC", filter: { since: from, to }, limit: 1000, offset, with: { financial_data: true } });
+      const arr: any[] = d.result?.postings ?? d.result ?? [];
+      for (const p of arr) if (p?.posting_number) out.push(mapP(p));
+      if (arr.length < 1000) break;
+    }
+    return out;
+  }
+
   // Номера отправлений (FBO + FBS) за период по дате заказа. Для accrualPostings нужны номера;
   // окно берём с запасом назад, т.к. начисления по отправлению приходят позже даты заказа.
   async postingNumbers(dateFrom: string, dateTo: string): Promise<string[]> {

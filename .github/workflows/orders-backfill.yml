@@ -1,0 +1,56 @@
+name: orders backfill (аналитика по заказам)
+
+# Разовый сбор данных по ЗАКАЗУ (posting) с кредами OZON из секретов - чтобы не ждать ночного синка.
+# Пишет data/orders_daily.ndjson в ветку, на которой запущен (ref).
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "FROM YYYY-MM-DD (дата заказа)"
+        required: false
+        default: "2026-05-01"
+      to:
+        description: "TO YYYY-MM-DD (пусто = вчера)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ozon-data
+  cancel-in-progress: false
+
+env:
+  OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+  OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+
+jobs:
+  orders:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci || npm install
+      - name: Сбор по заказам
+        run: npx tsx src/scripts/ozon/orders-daily.ts "${{ github.event.inputs.from }}" "${{ github.event.inputs.to }}"
+      - name: Коммит данных в ветку
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add analytics-mvp/data/orders_daily.ndjson
+          if git diff --cached --quiet; then
+            echo "нет изменений в orders_daily.ndjson"
+          else
+            git commit -m "data(orders): backfill по заказам ${{ github.event.inputs.from }}..${{ github.event.inputs.to }} [skip ci]"
+            for i in 1 2 3 4; do git push origin "HEAD:${{ github.ref_name }}" && break || sleep $((2**i)); done
+          fi

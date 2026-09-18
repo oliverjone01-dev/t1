@@ -700,7 +700,7 @@
   <div>таксономия: 137 SKU (34.9%), 60.9% оборота · без категории 33 740 337 ₽ - в разрезах по категориям этот оборот не виден</div></div><div style="margin-top:6px"><b>откуда сборы по месяцам</b> (где ledger'а нет, ставка занижена и маржа завышена)
   <div style="color:inherit">2026-02: взаиморасчёты 3 803 613 ₽ (43.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-03: взаиморасчёты 5 078 529 ₽ (48.1%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-04: взаиморасчёты 8 174 239 ₽ (47.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-05: взаиморасчёты 7 247 462 ₽ (47.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-06: взаиморасчёты 5 512 980 ₽ (50.5%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-07: взаиморасчёты 9 854 423 ₽ (59.6%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-08: взаиморасчёты 8 717 046 ₽ (56.3%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-09: взаиморасчёты 3 291 317 ₽ (50.4%) · комиссии заказа 0 ₽</div></div></details></div></div></details></div>
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-17</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 18.09.2026 16:45 МСК</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-17</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 18.09.2026 16:53 МСК</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/ym-snapshots.yml" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
@@ -917,7 +917,11 @@ function anCells(x){
   var mid=false
     ? R(x.del)+R(x.acq)+R(x.sto)+R(x.oth)+R(x.adv)
     : R(x.del)+R(x.acq)+R(x.sto)+R(x.cof)+R(x.promo)+R(x.oth);
-  return I(x.units)+R(x.acc)+R(x.com)+mid+shipCell+incCell+R(fees)+R(x.amt)+R(x.cc)+P(gp)+R(adm)+R(tax)+P(net)+PC(rent)+cityCell;
+  // «Доставлено» - только в блоке по заказам (там x.dlv определён); в таблице по артикулам колонки нет.
+  var dlvCell=(x.dlv!=null)?('<td class="r">'+(x.dlv?fmtRu(x.dlv):'—')+'</td>'):'';
+  // «Наша доставка»/«Доставка покупателя» - ПОСЛЕ «К выплате»: в неё они не входят, вычитаются/
+  // плюсуются уже в «Валовой прибыли».
+  return I(x.units)+dlvCell+R(x.acc)+R(x.com)+mid+R(fees)+R(x.amt)+shipCell+incCell+R(x.cc)+P(gp)+R(adm)+R(tax)+P(net)+PC(rent)+cityCell;
 }
 function renderSkuAnalytics(cur){
   var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);var miss=[];
@@ -978,7 +982,7 @@ function renderSkuAnalytics(cur){
     grand.del+=acct.del;grand.oth+=acct.oth;grand.amt+=acct.amt;grand.amtS+=acct.amtS;grand.ship+=unmDeliv;grand.dinc+=unmInc; // сборы кабинета - в базе АДМ/налогов; доставка вне артикулов - в ИТОГО
     html+='<tr style="cursor:default;font-weight:600" title="прочие сборы -> Логистика; реклама/штрафы/бейдж/эквайринг/компенсации -> Прочие. «Наша доставка» и «Доставка покупателя» здесь - по заказам, чей артикул не сошёлся с каталогом."><td>Общие расходы</td>'+anCells(acct)+'</tr>';
   }
-  var totalRow='<tr style="font-weight:700;border-bottom:2px solid var(--bd);background:rgba(255,255,255,.04)"><td>ИТОГО</td>'+anCells(grand)+'</tr>';
+  var totalRow='<tr style="font-weight:800;background:rgba(34,211,238,.16);border-top:2px solid #22D3EE;border-bottom:2px solid #22D3EE"><td style="color:#22D3EE">ИТОГО</td>'+anCells(grand)+'</tr>';
   el.innerHTML=totalRow+html; // ИТОГО - вверху, под шапкой (по просьбе Ивана)
   // Сводка-предупреждение о пробелах в данных (нет производственной СС) - чтобы дырка была видна
   var warn=document.getElementById('skuan-warn');
@@ -1001,7 +1005,7 @@ function renderOrdersAnalytics(cur){
   // глобален и нужен на других перерисовках. Группируем по SKU для сопоставления с таблицей по артикулам.
   var rows=[],bySku={};
   for(var i=0;i<AN_ORDERS.length;i++){var s=AN_ORDERS[i];if(s.d<from||s.d>to)continue;
-    var o={order:s.order,d:s.d,st:s.st,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,adv:s.adv,ship:s.ship,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,citiesTxt:(AN_DELIV_CITY[s.off]||[]).slice(0,3).map(function(c){return c[0]+' ('+c[1]+')';}).join(', ')+((AN_DELIV_CITY[s.off]||[]).length>3?' …':''),citiesTip:(AN_DELIV_CITY[s.off]||[]).map(function(c){return c[0]+' ('+c[1]+')';}).join('\n')};
+    var o={order:s.order,d:s.d,st:s.st,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,adv:s.adv,ship:s.ship,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,citiesTxt:(AN_DELIV_CITY[s.off]||[]).slice(0,3).map(function(c){return c[0]+' ('+c[1]+')';}).join(', ')+((AN_DELIV_CITY[s.off]||[]).length>3?' …':''),citiesTip:(AN_DELIV_CITY[s.off]||[]).map(function(c){return c[0]+' ('+c[1]+')';}).join('\n')};
     rows.push(o);(bySku[o.sk]||(bySku[o.sk]=[])).push(o);
   }
   // ДОБОР ПО АРТИКУЛАМ (сопоставление артикул↔заказ). Чего в разрезе заказа нет вовсе или неполно,
@@ -1031,7 +1035,7 @@ function renderOrdersAnalytics(cur){
     }
   }
   var groups={};for(var r=0;r<rows.length;r++){(groups[rows[r].cat]||(groups[rows[r].cat]=[])).push(rows[r]);}
-  var SUMK=['units','acc','com','del','acq','sto','oth','adv','amt','amtS','cc','ship','dinc'];
+  var SUMK=['units','dlv','acc','com','del','acq','sto','oth','adv','amt','amtS','cc','ship','dinc'];
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.acc-a.acc;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.acc-a.t.acc;});
   if(!cats.length){el.innerHTML='<tr><td colspan="20" class="kt-note">нет заказов за период</td></tr>';return;}
   var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
@@ -1050,11 +1054,11 @@ function renderOrdersAnalytics(cur){
   var totalInc=0;for(var _i in AN_DELIV_INC){totalInc+=anSum(AN_DELIV_INC[_i],from,to,1)[0]||0;}
   var unmDeliv=Math.max(0,Math.round(totalDeliv-(grand.ship||0)));
   var unmInc=Math.max(0,Math.round(totalInc-(grand.dinc||0)));
-  if(at||unmDeliv||unmInc){var acct={units:0,acc:0,com:0,del:-aDel,acq:0,sto:0,oth:-aOth,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:at,cc:0};
+  if(at||unmDeliv||unmInc){var acct={units:0,dlv:0,acc:0,com:0,del:-aDel,acq:0,sto:0,oth:-aOth,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:at,cc:0};
     grand.del+=acct.del;grand.oth+=acct.oth;grand.amt+=acct.amt;grand.amtS+=acct.amtS;grand.ship+=unmDeliv;grand.dinc+=unmInc;
     html+='<tr style="cursor:default;font-weight:600" title="прочие сборы/сервис -> Логистика; остаток рекламы/штрафы/бейдж/эквайринг -> Прочие. «Наша доставка»/«Доставка покупателя» здесь - по заказам, чей артикул не сошёлся с каталогом."><td>Общие расходы</td>'+anCells(acct)+'</tr>';
   }
-  var totalRowOrd='<tr style="font-weight:700;border-bottom:2px solid var(--bd);background:rgba(255,255,255,.04)"><td>ИТОГО</td>'+anCells(grand)+'</tr>';
+  var totalRowOrd='<tr style="font-weight:800;background:rgba(34,211,238,.16);border-top:2px solid #22D3EE;border-bottom:2px solid #22D3EE"><td style="color:#22D3EE">ИТОГО</td>'+anCells(grand)+'</tr>';
   el.innerHTML=totalRowOrd+html; // ИТОГО - вверху, под шапкой
   el.querySelectorAll('.ord-cat').forEach(function(tr){tr.onclick=function(){var c=tr.getAttribute('data-cat');anOpenOrd[c]=!anOpenOrd[c];var td=tr.querySelector('td');td.innerHTML=td.innerHTML.replace(anOpenOrd[c]?'▸':'▾',anOpenOrd[c]?'▾':'▸');el.querySelectorAll('.ord-row[data-cat="'+(window.CSS&&CSS.escape?CSS.escape(c):c)+'"]').forEach(function(s){s.style.display=anOpenOrd[c]?'':'none';});};});
 }

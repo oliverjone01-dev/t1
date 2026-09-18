@@ -45,12 +45,6 @@ const head = () => [...T().querySelectorAll("thead th")].map((x) => x.textConten
 // а не по позиции: позиция уже один раз уезжала и утащила за собой чужие тесты.
 const foot = () => [...T().querySelectorAll("tr.sv-total td")].map((x) => (x.textContent || "").trim());
 const cell = (c: string) => foot()[head().indexOf(c)];
-// Строка-мост над ИТОГО: поступление артикулов без С\С, которое в базу прибыли не входит.
-const bridge = (c: string): number | null => {
-  const tr = [...T().querySelectorAll("tr.sv-extra")].find((x) => /без СС/.test(x.textContent || ""));
-  if (!tr) return null;
-  return num(tr.children[head().indexOf(c)]?.textContent);
-};
 const catRow = (i: number) => T().querySelector(`tbody tr.sv-cat[data-cat="${i}"]`) as any;
 const click = (el: any) => el.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 // Период задаётся тем же способом, что и человеком: панель «Свой» наверху страницы.
@@ -125,14 +119,16 @@ describe("свод Маркета: числа на странице", () => {
     // Июль по Маркету не «сходится в ноль», а убыточен: −390 009 ₽. Прежние 543 ₽ были цифрой
     // без учёта перевозки.
     expect(num(cell("СС произв."))).toBe(2158734);
-    // Показывается ровно то, что вычитается: 362 886 по артикулам с известной С\С плюс 27 666
-    // по отправкам, которые отменили или вернули. Ещё 4 105 ₽ лежат на артикулах без С\С -
-    // у них валовая не считается, вычитать доставку не из чего (названо в подсказке ячейки).
-    expect(num(cell("Наша доставка"))).toBe(390552);
-    expect(num(cell("Валовая прибыль"))).toBe(1376672);
-    expect(num(cell("АДМ 30%"))).toBe(1177787);
-    expect(num(cell("Налоги 15%"))).toBe(588894);
-    expect(num(cell("Чистая прибыль"))).toBe(-390009);
+    // 2026-09-18, третья правка дня: считается ВСЁ поступление (Иван: «всё что есть проставляй,
+    // если нет СС то просто ставь прочерк где СС»). Раньше строка без себестоимости выпадала из
+    // расчёта целиком вместе со своим поступлением, база была частичной (3 925 958 из 3 973 702),
+    // и разрыв приходилось объяснять отдельной строкой-мостом. Теперь база - полное поступление,
+    // а у строк без С\С в колонке себестоимости прочерк, и их валовая завышена на неизвестную С\С.
+    expect(num(cell("Наша доставка"))).toBe(394657);
+    expect(num(cell("Валовая прибыль"))).toBe(1420311);
+    expect(num(cell("АДМ 30%"))).toBe(1192111);       // 3 973 702 × 30%
+    expect(num(cell("Налоги 15%"))).toBe(596055);     // 3 973 702 × 15%
+    expect(num(cell("Чистая прибыль"))).toBe(-367855);
   });
 
   // Тождество раскладки: Поступление = Продажи + Доставка − все сборы. Считается по видимым
@@ -642,35 +638,53 @@ describe("свод: колонка «Наша доставка»", () => {
     expect(errs).toEqual([]);
   });
 
-  // Иван 18.09.2026: «проверь данные у тебя не сходится поступление − СС не равно валовая».
-  // Расхождение было настоящим и складывалось из двух:
-  //   1) валовая стоит на ПОКРЫТОЙ С\С базе, а «Поступление» показывает всё (июль: 47 744 ₽);
-  //   2) в ИТОГО стояла вся доставка, а вычиталась только её покрытая часть (июль: 4 105 ₽).
-  // Теперь непокрытая база названа прямо в ячейке, а колонка показывает ровно вычитаемое.
-  it("строка ИТОГО читается подряд: (поступление − без С\\С) − доставка − СС = валовая", () => {
+  // Иван 18.09.2026: «это не нужно отдельной строкой, всё что есть проставляй, если нет СС то
+  // просто ставь прочерк где СС». Строка-мост «в т.ч. артикулы без С\С» убрана, база стала полной.
+  it("строки-моста «без С\\С» нет, а в колонке С\\С стоит прочерк", () => {
+    setRange("2026-07-01", "2026-07-31");
+    expect([...T().querySelectorAll("tr")].some((x) => /без СС - в прибыль не входят/.test(x.textContent || "")),
+      "строка-мост вернулась на страницу").toBe(false);
+    expect((T().textContent || ""), "маркер «нет СС» вернулся в ячейки").not.toContain("нет СС");
+    // Сразу под ИТОГО идут категории, без служебной прослойки.
+    const rows = [...T().querySelectorAll("tbody tr")];
+    expect(rows[0]!.textContent, "ИТОГО не первой строкой под шапкой").toContain("ИТОГО");
+    expect(rows[1]!.classList.contains("sv-cat"), "между ИТОГО и категориями снова что-то вклинилось").toBe(true);
+    // Артикулы без С\С в таблице есть, и они помечены счётчиком у категории.
+    const badge = [...T().querySelectorAll("tr.sv-cat")].some((x) => /\d+ без СС/.test(x.textContent || ""));
+    expect(badge, "счётчик «N без СС» у категории пропал - пробел стал невидимым").toBe(true);
+    // Главное следствие правки: такой артикул ТОЖЕ считается. Раскрываем категорию с пробелом и
+    // проверяем, что у строки с прочерком в С\С есть валовая, а не «не считается».
+    const gi = [...T().querySelectorAll("tr.sv-cat")].findIndex((x) => /\d+ без СС/.test(x.textContent || ""));
+    click(catRow(gi));
+    const iC = head().map((x) => x.trim()).indexOf("СС произв.");
+    const iG = head().map((x) => x.trim()).indexOf("Валовая прибыль");
+    const rowsNow = [...T().querySelectorAll("tbody tr")];
+    const dashed = rowsNow.filter((r) => !r.classList.contains("sv-cat") && !r.classList.contains("sv-total")
+      && !r.classList.contains("sv-extra") && (r.children[iC]?.textContent || "").trim() === "—");
+    expect(dashed.length, "строк с прочерком в С\\С не нашлось - проверять нечего").toBeGreaterThan(0);
+    for (const r of dashed) {
+      const gpTxt = (r.children[iG]!.textContent || "").trim();
+      expect(gpTxt, `${(r.children[0]!.textContent || "").trim()}: строка снова выпала из расчёта`).not.toContain("не считается");
+      expect(num(gpTxt), "валовая у строки без С\\С пустая").not.toBeNull();
+    }
+    click(catRow(gi));
+  });
+
+  it("строка ИТОГО читается подряд: поступление − доставка − СС = валовая", () => {
     const bad: string[] = [];
     for (const [a, b] of [["2026-05-01", "2026-05-31"], ["2026-07-01", "2026-07-31"],
                           ["2026-08-01", "2026-08-31"], ["2026-06-01", "2026-06-15"]]) {
       setRange(a!, b!);
-      const net = num(cell("Поступление"))!, unc = Math.abs(bridge("Поступление") || 0);
-      const sh = num(cell("Наша доставка")) || 0, cc = num(cell("СС произв."))!, gp = num(cell("Валовая прибыль"))!;
-      if (Math.abs(net - unc - sh - cc - gp) > 2)
-        bad.push(`${a!.slice(0, 7)}: (${net} − ${unc}) − ${sh} − ${cc} = ${net - unc - sh - cc}, а в таблице ${gp}`);
+      const net = num(cell("Поступление"))!, sh = num(cell("Наша доставка")) || 0;
+      const cc = num(cell("СС произв."))!, gp = num(cell("Валовая прибыль"))!;
+      if (Math.abs(net - sh - cc - gp) > 3)
+        bad.push(`${a!.slice(0, 7)}: ${net} − ${sh} − ${cc} = ${net - sh - cc}, а в таблице ${gp}`);
+      // База процентов - полное поступление, без вычета непокрытых строк.
+      const adm = num(cell("АДМ 30%"))!;
+      if (Math.abs(adm - net * 0.30) > 3) bad.push(`${a!.slice(0, 7)}: АДМ ${adm} против ${Math.round(net * 0.3)}`);
     }
     expect(bad).toEqual([]);
     expect(errs).toEqual([]);
-  });
-
-  it("непокрытая С\\С база показана строкой, а не только подсказкой", () => {
-    setRange("2026-07-01", "2026-07-31");
-    const tr = [...T().querySelectorAll("tr.sv-extra")].find((x) => /без СС/.test(x.textContent || ""));
-    expect(tr, "разрыв между поступлением и базой прибыли снова не виден").toBeTruthy();
-    expect((tr!.textContent || "").replace(/\u00a0|\s/g, "")).toContain("47744");
-    // Порядок сверху вниз: шапка, ИТОГО, мост «без СС», дальше категории.
-    const rows = [...T().querySelectorAll("tbody tr")];
-    expect(rows[0]!.textContent, "ИТОГО не первой строкой под шапкой").toContain("ИТОГО");
-    expect(rows[1]!.classList.contains("sv-extra"), "мост оторвался от ИТОГО").toBe(true);
-    expect(rows[2]!.classList.contains("sv-cat"), "после моста должны идти категории").toBe(true);
   });
 
   it("валовая считается за вычетом нашей доставки, база АДМ и налогов не меняется", () => {
@@ -767,10 +781,104 @@ describe("свод: итог сверху, полоса ставок убран�
     (D().getElementById("sv-adm") as any).value = "25";
     setRange("2026-07-01", "2026-07-31");
     expect(head().map((x) => x.trim()), "в шапке нарисовано «30%» вне зависимости от ставки").toContain("АДМ 25%");
-    expect(num(cell("АДМ 25%"))).toBe(981489);          // 3 925 958 × 25%
+    expect(num(cell("АДМ 25%"))).toBe(993425);          // 3 973 702 × 25%
     (D().getElementById("sv-adm") as any).value = "30";
     setRange("2026-07-01", "2026-07-31");
-    expect(num(cell("АДМ 30%"))).toBe(1177787);
+    expect(num(cell("АДМ 30%"))).toBe(1192111);
     expect(errs).toEqual([]);
+  });
+});
+
+// Иван 18.09.2026: «поменяй местами водопад и свод место расположения».
+describe("страница денег: водопад выше свода", () => {
+  it("порядок блоков - водопад, план, свод", () => {
+    const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
+    const wf = titles.findIndex((x) => /Водопад P&L/.test(x));
+    const sv = titles.findIndex((x) => /Свод по дате заказа/.test(x));
+    expect(wf, "блока водопада на странице нет").toBeGreaterThanOrEqual(0);
+    expect(sv, "блока свода на странице нет").toBeGreaterThanOrEqual(0);
+    expect(wf, "свод снова выше водопада").toBeLessThan(sv);
+    // Оба блока живые, а не пустые: водопад рисует бары, свод - строки.
+    expect(D().querySelectorAll("#wf *").length, "водопад пуст").toBeGreaterThan(0);
+    expect(D().querySelectorAll("#sv-t tr").length, "свод пуст").toBeGreaterThan(2);
+    expect(errs).toEqual([]);
+  });
+});
+
+// Иван 18.09.2026: «можешь сделать свод отдельным блоком не по артикулу а по заказу на той же
+// базе?». База буквально та же: строки свода несут номер заказа в ключе, блок группирует их по
+// order вместо sku. Расхождение между блоками означало бы ошибку, а не разные методики.
+describe("свод по заказам", () => {
+  const T2 = () => D().getElementById("so-t")!;
+  const head2 = () => [...T2().querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+  const tot2 = () => [...T2().querySelectorAll("tr.so-total td")].map((x) => (x.textContent || "").trim());
+  const cell2 = (c: string) => tot2()[head2().indexOf(c)];
+
+  it("блок есть, стоит после свода по артикулам и не пуст", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
+    const sv = titles.findIndex((x) => /Свод по дате заказа/.test(x));
+    const so = titles.findIndex((x) => /Свод по заказам/.test(x));
+    expect(so, "блока «Свод по заказам» нет").toBeGreaterThanOrEqual(0);
+    expect(so, "свод по заказам встал выше свода по артикулам").toBeGreaterThan(sv);
+    expect(T2().querySelectorAll("tbody tr").length, "таблица заказов пуста").toBeGreaterThan(5);
+    expect(errs).toEqual([]);
+  });
+
+  // Главный сторож: два разреза одних и тех же денег обязаны давать один итог.
+  it("итоги обоих сводов совпадают по всем колонкам, на четырёх окнах", () => {
+    const keys = ["Продажи", "Доставка покупателя", "Баллы Маркета", "Штуки", "Поступление",
+      "Наша доставка", "СС произв.", "Валовая прибыль", "АДМ 30%", "Налоги 15%", "Чистая прибыль"];
+    const bad: string[] = [];
+    for (const [a, b] of [["2026-05-01", "2026-05-31"], ["2026-07-01", "2026-07-31"],
+                          ["2026-08-01", "2026-08-31"], ["2026-06-01", "2026-06-15"]]) {
+      setRange(a!, b!);
+      for (const k of keys) {
+        const x = num(cell(k)) || 0, y = num(cell2(k)) || 0;
+        if (Math.abs(x - y) > 3) bad.push(`${a!.slice(0, 7)} ${k}: по артикулу ${x}, по заказу ${y}`);
+      }
+      expect(num(cell2("Поступление")), `${a}: поступление по заказам пустое`).not.toBe(0);
+    }
+    expect(bad).toEqual([]);
+    expect(errs).toEqual([]);
+  });
+
+  it("строка заказа сходится сама с собой: поступление − доставка − СС = валовая", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const h = head2();
+    const iN = h.indexOf("Поступление"), iS = h.indexOf("Наша доставка"), iC = h.indexOf("СС произв."), iG = h.indexOf("Валовая прибыль");
+    const rows = [...T2().querySelectorAll("tbody tr")]
+      .filter((r) => !r.classList.contains("so-total") && !r.classList.contains("so-extra"));
+    expect(rows.length, "строк заказов нет").toBeGreaterThan(5);
+    const bad: string[] = [];
+    for (const r of rows) {
+      const n = num(r.children[iN]!.textContent) || 0, sh = num(r.children[iS]!.textContent) || 0;
+      const cc = num(r.children[iC]!.textContent) || 0, gp = num(r.children[iG]!.textContent) || 0;
+      if (Math.abs(n - sh - cc - gp) > 2) bad.push(`${(r.children[0]!.textContent || "").trim()}: ${n} − ${sh} − ${cc} ≠ ${gp}`);
+    }
+    expect(bad.slice(0, 5)).toEqual([]);
+  });
+
+  it("ИТОГО считается по всем заказам периода, а не по показанным", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const sel = D().getElementById("so-lim") as any;
+    const shown = () => [...T2().querySelectorAll("tbody tr")]
+      .filter((r) => !r.classList.contains("so-total") && !r.classList.contains("so-extra")).length;
+    sel.value = "50"; sel.dispatchEvent(new dom.window.Event("change"));
+    const n50 = num(cell2("Поступление")), rows50 = shown();
+    sel.value = "0"; sel.dispatchEvent(new dom.window.Event("change"));
+    const nAll = num(cell2("Поступление")), rowsAll = shown();
+    expect(rowsAll, "выбор «все» не показал больше строк - тест ничего не различает").toBeGreaterThan(rows50);
+    expect(n50, "итог поехал вслед за числом показанных строк").toBe(nAll);
+    sel.value = "50"; sel.dispatchEvent(new dom.window.Event("change"));
+    expect(errs).toEqual([]);
+  });
+
+  it("отправки по отменённым стоят и здесь - иначе блоки разойдутся на них", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const tr = [...T2().querySelectorAll("tr.so-extra")].find((x) => /Отправки по отменённым/.test(x.textContent || ""));
+    expect(tr, "строки по отменённым отправкам в своде по заказам нет").toBeTruthy();
+    const v = num(tr!.children[head2().indexOf("Наша доставка")]!.textContent);
+    expect(v, "строка пустая").toBeGreaterThan(10_000);
   });
 });

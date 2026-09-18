@@ -41,11 +41,13 @@ beforeAll(async () => {
 const D = () => dom.window.document;
 const T = () => D().getElementById("sv-t")!;
 const head = () => [...T().querySelectorAll("thead th")].map((x) => x.textContent || "");
-const foot = () => [...T().querySelectorAll("tfoot tr:last-child td")].map((x) => (x.textContent || "").trim());
+// ИТОГО стоит ПЕРВОЙ строкой под шапкой (Иван 18.09.2026), а не в подвале, поэтому ищем по классу,
+// а не по позиции: позиция уже один раз уезжала и утащила за собой чужие тесты.
+const foot = () => [...T().querySelectorAll("tr.sv-total td")].map((x) => (x.textContent || "").trim());
 const cell = (c: string) => foot()[head().indexOf(c)];
 // Строка-мост над ИТОГО: поступление артикулов без С\С, которое в базу прибыли не входит.
 const bridge = (c: string): number | null => {
-  const tr = [...T().querySelectorAll("tfoot tr")].find((x) => /без СС/.test(x.textContent || ""));
+  const tr = [...T().querySelectorAll("tr.sv-extra")].find((x) => /без СС/.test(x.textContent || ""));
   if (!tr) return null;
   return num(tr.children[head().indexOf(c)]?.textContent);
 };
@@ -128,8 +130,8 @@ describe("свод Маркета: числа на странице", () => {
     // у них валовая не считается, вычитать доставку не из чего (названо в подсказке ячейки).
     expect(num(cell("Наша доставка"))).toBe(390552);
     expect(num(cell("Валовая прибыль"))).toBe(1376672);
-    expect(num(cell("АДМ"))).toBe(1177787);
-    expect(num(cell("Налоги"))).toBe(588894);
+    expect(num(cell("АДМ 30%"))).toBe(1177787);
+    expect(num(cell("Налоги 15%"))).toBe(588894);
     expect(num(cell("Чистая прибыль"))).toBe(-390009);
   });
 
@@ -157,6 +159,9 @@ describe("свод Маркета: числа на странице", () => {
     const rows = [...T().querySelectorAll("tbody tr")];
     expect(rows.length, "таблица пуста - тождество проверять не на чем").toBeGreaterThan(2);
     for (const tr of rows) {
+      // sv-extra - служебные строки («в т.ч. артикулы без С\С», «Отправки по отменённым»). Они не
+      // строки продаж, тождество раскладки к ним неприменимо: у них заполнена одна колонка.
+      if (tr.classList.contains("sv-extra")) continue;
       const cs = rowCells(tr);
       const want = pick(cs, "Продажи") + pick(cs, "Доставка покупателя") - FEE.reduce((a, n) => a + pick(cs, n), 0);
       const got = pick(cs, "Поступление");
@@ -257,7 +262,7 @@ describe("свод Маркета: числа на странице", () => {
   it("период без заказов не называется убытком: таблицы нет, есть внятное сообщение", () => {
     setRange("2026-01-01", "2026-01-31");   // до начала данных
     expect(T().querySelectorAll("tbody tr").length).toBe(0);
-    expect(T().querySelectorAll("tfoot td").length, "подвал с числами на пустом периоде").toBe(0);
+    expect(T().querySelectorAll("tr.sv-total td").length, "строка ИТОГО с числами на пустом периоде").toBe(0);
     const cov = (D().getElementById("sv-cov")!.textContent || "");
     expect(cov).toContain("За выбранный период доставленных заказов в снимке нет");
     // Ни одной денежной величины на экране быть не должно - иначе пустоту можно принять за убыток.
@@ -555,7 +560,7 @@ describe("свод Маркета: числа на странице", () => {
     // 2026-09-18: между «Поступлением» и С\С встала «Наша доставка» - счёт перевозчика из ручной
     // ведомости (Иван: «нашу доставку поставь перед СС»). Этого расхода в дашборде не было вовсе.
     const tail = ["Баллы Маркета", "Штуки", "Поступление",
-      "Наша доставка", "СС произв.", "Валовая прибыль", "Маржа", "АДМ", "Налоги", "Чистая прибыль", "Рентаб.",
+      "Наша доставка", "СС произв.", "Валовая прибыль", "Маржа", "АДМ 30%", "Налоги 15%", "Чистая прибыль", "Рентаб.",
       "В пути, шт", "В пути, ₽"];
     expect(h.slice(-tail.length)).toEqual(tail);
     expect(errs).toEqual([]);
@@ -658,12 +663,14 @@ describe("свод: колонка «Наша доставка»", () => {
 
   it("непокрытая С\\С база показана строкой, а не только подсказкой", () => {
     setRange("2026-07-01", "2026-07-31");
-    const tr = [...T().querySelectorAll("tfoot tr")].find((x) => /без СС/.test(x.textContent || ""));
+    const tr = [...T().querySelectorAll("tr.sv-extra")].find((x) => /без СС/.test(x.textContent || ""));
     expect(tr, "разрыв между поступлением и базой прибыли снова не виден").toBeTruthy();
     expect((tr!.textContent || "").replace(/\u00a0|\s/g, "")).toContain("47744");
-    // ИТОГО осталось последней строкой подвала - на это опираются остальные проверки.
-    const last = [...T().querySelectorAll("tfoot tr")].pop()!;
-    expect(last.textContent).toContain("ИТОГО");
+    // Порядок сверху вниз: шапка, ИТОГО, мост «без СС», дальше категории.
+    const rows = [...T().querySelectorAll("tbody tr")];
+    expect(rows[0]!.textContent, "ИТОГО не первой строкой под шапкой").toContain("ИТОГО");
+    expect(rows[1]!.classList.contains("sv-extra"), "мост оторвался от ИТОГО").toBe(true);
+    expect(rows[2]!.classList.contains("sv-cat"), "после моста должны идти категории").toBe(true);
   });
 
   it("валовая считается за вычетом нашей доставки, база АДМ и налогов не меняется", () => {
@@ -676,7 +683,7 @@ describe("свод: колонка «Наша доставка»", () => {
     const gpNoShip = gp + ship;
     expect(gpNoShip, "доставка не вычтена из валовой").toBeGreaterThan(gp);
     // АДМ и налоги считаются от поступления, а не от прибыли: доставка их трогать не должна.
-    const adm = num(cell("АДМ"))!, tax = num(cell("Налоги"))!;
+    const adm = num(cell("АДМ 30%"))!, tax = num(cell("Налоги 15%"))!;
     expect(Math.abs(adm / tax - 2), "ставки разъехались - доставка попала в базу АДМ/налогов").toBeLessThan(0.02);
     expect(Math.abs(num(cell("Чистая прибыль"))! - (gp - adm - tax))).toBeLessThan(2);
     expect(net).toBeGreaterThan(0);
@@ -726,5 +733,44 @@ describe("свод: колонка «Наша доставка»", () => {
     expect(delivRows().length, "fixtures/delivery_ym.csv опустел").toBeGreaterThan(400);
     setRange("2026-04-01", "2026-09-30");
     expect(num(cell("Наша доставка"))!, "за апрель-сентябрь расход на перевозку пропал").toBeGreaterThan(1_500_000);
+  });
+});
+
+// Иван 18.09.2026: «в своде ИТОГО перенеси вверх под шапку» и «эту приписку тоже убери» (про
+// полосу с полями «АДМ %» и «Налоги %»).
+describe("свод: итог сверху, полоса ставок убрана", () => {
+  it("ИТОГО - первая строка таблицы, категории идут после", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const rows = [...T().querySelectorAll("tbody tr")];
+    expect(rows[0]!.classList.contains("sv-total"), "ИТОГО уехало вниз").toBe(true);
+    expect(rows[0]!.textContent).toContain("ИТОГО");
+    // Подвала с числами больше нет: итог не должен стоять в таблице дважды.
+    expect(T().querySelectorAll("tfoot td").length, "итог продублировался в подвале").toBe(0);
+    const cats = rows.filter((r) => r.classList.contains("sv-cat"));
+    expect(cats.length, "категорий нет - проверять порядок не на чем").toBeGreaterThan(0);
+    expect(rows.indexOf(cats[0]!), "категория встала выше итога").toBeGreaterThan(0);
+    expect(errs).toEqual([]);
+  });
+
+  it("полосы с полями ставок на странице не видно, а ставка названа в шапке", () => {
+    const strip = D().getElementById("sv-rates")!;
+    expect(strip.getAttribute("style") || "", "полоса ставок снова на виду").toContain("display:none");
+    const h = head().map((x) => x.trim());
+    expect(h, "ставка АДМ нигде не названа").toContain("АДМ 30%");
+    expect(h, "ставка налога нигде не названа").toContain("Налоги 15%");
+    // Поля остались в разметке: через них считаются АДМ и налоги.
+    expect(D().getElementById("sv-adm"), "поле ставки удалено - расчёт останется без базы").toBeTruthy();
+    expect(D().getElementById("sv-tax")).toBeTruthy();
+  });
+
+  it("подпись колонки следует за ставкой, а не прибита числом", () => {
+    (D().getElementById("sv-adm") as any).value = "25";
+    setRange("2026-07-01", "2026-07-31");
+    expect(head().map((x) => x.trim()), "в шапке нарисовано «30%» вне зависимости от ставки").toContain("АДМ 25%");
+    expect(num(cell("АДМ 25%"))).toBe(981489);          // 3 925 958 × 25%
+    (D().getElementById("sv-adm") as any).value = "30";
+    setRange("2026-07-01", "2026-07-31");
+    expect(num(cell("АДМ 30%"))).toBe(1177787);
+    expect(errs).toEqual([]);
   });
 });

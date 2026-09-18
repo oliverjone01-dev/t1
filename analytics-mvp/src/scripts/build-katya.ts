@@ -972,7 +972,7 @@ ${CHANNEL_JS}${GAPS_JS}
 // Воронка канала (показы/корзина/заказы/доставка/возвраты/отмены) - из дневных тоталов
 // data/daily_totals.ndjson (полные показы/возвраты, не только дни-с-продажей). Если файла нет -
 // фолбэк на сумму per-SKU истории (как раньше). Разрез по линиям - из истории продаж.
-const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), vsearch: zD(), pdp: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD() };
+const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), vsearch: zD(), pdp: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD(), rcanc: zD(), racc: zD() };
 const lineDayOrd: Record<string, { units: number[]; ret: number[]; canc: number[]; cart: number[]; rev: number[] }> = {};
 // Воронка в разрезе категорий и подкатегорий: показы/корзина/заказы/доставка по дням.
 // Источник - полные показы SKU×день (data/sku_views.ndjson, включая дни без продажи),
@@ -1050,12 +1050,14 @@ if (dailyTotals.length) {
     DAY_T.rev![i] = t.revenue || 0; DAY_T.units![i] = t.units || 0; DAY_T.views![i] = t.views || 0; DAY_T.cart![i] = t.to_cart || 0;
     DAY_T.vsearch![i] = t.views_search || 0; DAY_T.pdp![i] = t.pdp_views || 0;
     DAY_T.deliv![i] = t.delivered || 0; DAY_T.ret![i] = t.returns || 0; DAY_T.canc![i] = t.cancellations || 0;
+    DAY_T.rcanc![i] = t.rev_canc || 0; DAY_T.racc![i] = t.accruals || 0;
   }
 } else { // фолбэк: суммируем per-SKU историю
   for (const f of facts) {
     const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue; const fx: any = f;
     DAY_T.rev![i] += f.revenue; DAY_T.units![i] += f.units; DAY_T.views![i] += fx.views || 0; DAY_T.cart![i] += fx.to_cart || 0;
     DAY_T.deliv![i] += fx.delivered || 0; DAY_T.ret![i] += fx.returns || 0; DAY_T.canc![i] += fx.cancellations || 0;
+    DAY_T.rcanc![i] = (DAY_T.rcanc![i] ?? 0) + (fx.rev_canc || 0); DAY_T.racc![i] = (DAY_T.racc![i] ?? 0) + (fx.accruals || 0);
   }
 }
 
@@ -2612,6 +2614,17 @@ svInit();
 }
 
 // --- страница 0: КОМАНДНЫЙ ЦЕНТР (war-room, флагман Pro) ---
+// Карточка оборота. У Маркета «оборот» одним числом врал: за 01-16.09 это 10,28 млн заказанного
+// против 2,33 млн реально доставленного, потому что треть заказов отменяется, а половина ещё летит.
+// Поэтому у Маркета карточка двузначная: слева заказано минус отменено, справа доставленное
+// (accruals - деньги доставленного за вычетом возврата, ровно базис свода). Дельта считается по
+// доставленному: это единственная из двух цифр, которая уже деньги, а не намерение.
+// У OZON отчёт о заказах даёт нули в отменах, двух честных чисел не собрать - карточка прежняя.
+const KPI2_FN = IS_OZON ? "" : `
+  const kpi2=(lab,v1,c1,v2,c2,dd,tp)=>'<div class="card"'+tip(tp)+'><div class="kt-k">'+lab+'</div><div style="display:flex;gap:16px;flex-wrap:wrap"><div><div class="kt-v" style="font-size:22px">'+v1+'</div><div class="kt-k" style="margin:3px 0 0;text-transform:none;letter-spacing:0;font-weight:500">'+c1+'</div></div><div><div class="kt-v" style="font-size:22px">'+v2+'</div><div class="kt-k" style="margin:3px 0 0;text-transform:none;letter-spacing:0;font-weight:500">'+c2+'</div></div></div>'+dd+'</div>';`;
+const GMV_KPI = IS_OZON
+  ? `kpi('Оборот, ₽',fMln(gmv),dlt(gmv,gmvP),'GMV за период. Дельта к равному предыдущему окну.')`
+  : `kpi2('Оборот, ₽',fMln(gmv-v('rcanc')),'заказано \u2212 отменено',fMln(v('racc')),'доставлено',dlt(v('racc'),p('racc')),'Слева заказано за вычетом отменённого, справа доставленное за вычетом возвратов (базис свода). Разница - заказы, которые ещё в пути: они дорастут в доставленное задним числом. Дельта - по доставленному.')`;
 {
   const ads = freshAds("ads_30d.json");
   let adsPeriodsCC: any = freshAds("ads_periods.json");
@@ -2642,7 +2655,7 @@ svInit();
   <section class="card"><div class="card-h"><div><div class="card-title">Локомотивы и риск</div><div class="card-sub">A-товары (дают 80% оборота периода). Красный флаг - есть риск: OOS или дороже рынка</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Остаток</th><th class="r">Индекс цены</th><th>Риск</th></tr></thead><tbody id="loco"></tbody></table></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
   const pageJs = `
-const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret })};
+const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, ...(IS_OZON ? {} : { rcanc: DAY_T.rcanc, racc: DAY_T.racc }) })};
 const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};const ADS=${J(ads)};const ADSP=${J(adsPeriodsCC)};
 // Общая ДРР - из запечённого снимка рекламы за период (расход÷оборот). Живого уточнения через
 // n8n больше нет (миграция): берём ближайший снимок 7/30/90 через adsForPeriod().
@@ -2658,9 +2671,9 @@ function render(cur,cmp){
   const gmv=v('rev'),gmvP=p('rev'),u=v('units'),uP=p('units'),vw=v('views'),vwP=p('views');
   const cro=vw?u/vw:0,croP=vwP?uP/vwP:0,aov=u?gmv/u:0,aovP=uP?gmvP/uP:0;
   // KPI
-  const kpi=(lab,val,dd,tp)=>'<div class="card"'+tip(tp)+'><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div>'+dd+'</div>';
+  const kpi=(lab,val,dd,tp)=>'<div class="card"'+tip(tp)+'><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div>'+dd+'</div>';${KPI2_FN}
   document.getElementById('kpis').innerHTML=[
-    kpi('Оборот, ₽',fMln(gmv),dlt(gmv,gmvP),'GMV за период. Дельта к равному предыдущему окну.'),
+    ${GMV_KPI},
     kpi('Заказы, шт',fmtRu(u),dlt(u,uP),'Сколько штук заказали за период.'),
     kpi('Конверсия показ→заказ',(cro*100).toFixed(2)+'%',dlt(cro,croP),'Из скольких показов рождается заказ. Падает - проблема с карточкой/ценой/трафиком.'),
     kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.'),

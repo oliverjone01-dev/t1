@@ -118,17 +118,19 @@ describe("свод Маркета: числа на странице", () => {
     // доставленным заказам и 27 666 по отправкам, которые отменили или вернули.
     // Июль по Маркету не «сходится в ноль», а убыточен: −390 009 ₽. Прежние 543 ₽ были цифрой
     // без учёта перевозки.
-    expect(num(cell("СС произв."))).toBe(2158734);
+    // 2026-09-18, вечер: Катя дозаполнила лист «ЯМ» - плюс артикул GGT-20-2-3-R-120-190-80
+    // (VIOLUR Max 120/190 х 80, 17 440 ₽). Июльская С\С выросла ровно на него.
+    expect(num(cell("СС произв."))).toBe(2176174);
     // 2026-09-18, третья правка дня: считается ВСЁ поступление (Иван: «всё что есть проставляй,
     // если нет СС то просто ставь прочерк где СС»). Раньше строка без себестоимости выпадала из
     // расчёта целиком вместе со своим поступлением, база была частичной (3 925 958 из 3 973 702),
     // и разрыв приходилось объяснять отдельной строкой-мостом. Теперь база - полное поступление,
     // а у строк без С\С в колонке себестоимости прочерк, и их валовая завышена на неизвестную С\С.
     expect(num(cell("Наша доставка"))).toBe(394657);
-    expect(num(cell("Валовая прибыль"))).toBe(1420311);
+    expect(num(cell("Валовая прибыль"))).toBe(1402871);
     expect(num(cell("АДМ 30%"))).toBe(1192111);       // 3 973 702 × 30%
     expect(num(cell("Налоги 15%"))).toBe(596055);     // 3 973 702 × 15%
-    expect(num(cell("Чистая прибыль"))).toBe(-367855);
+    expect(num(cell("Чистая прибыль"))).toBe(-385295);
   });
 
   // Тождество раскладки: Поступление = Продажи + Доставка − все сборы. Считается по видимым
@@ -821,8 +823,50 @@ describe("свод по заказам", () => {
     const so = titles.findIndex((x) => /Свод по заказам/.test(x));
     expect(so, "блока «Свод по заказам» нет").toBeGreaterThanOrEqual(0);
     expect(so, "свод по заказам встал выше свода по артикулам").toBeGreaterThan(sv);
-    expect(T2().querySelectorAll("tbody tr").length, "таблица заказов пуста").toBeGreaterThan(5);
+    expect(T2().querySelectorAll("tr.so-cat").length, "категорий в своде по заказам нет").toBeGreaterThan(1);
     expect(errs).toEqual([]);
+  });
+
+  // Иван 18.09.2026: «сгруппируй свод по заказам также по категориям - артикулы убери они здесь не
+  // нужны» и «дата тоже не нужна».
+  it("сгруппировано по категориям, колонок артикула и даты нет", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const h = head2();
+    expect(h[0]).toBe("Категория / Заказ");
+    expect(h, "колонка артикулов вернулась").not.toContain("Артикулы");
+    expect(h, "колонка даты вернулась").not.toContain("Дата");
+    // Категории свёрнуты: заказов в таблице не видно, пока не кликнешь.
+    const cats = [...T2().querySelectorAll("tr.so-cat")];
+    expect(cats.length).toBeGreaterThan(1);
+    const before = T2().querySelectorAll("tbody tr").length;
+    click(cats[0]!);
+    const after = T2().querySelectorAll("tbody tr").length;
+    expect(after, "категория не раскрылась").toBeGreaterThan(before);
+    click([...T2().querySelectorAll("tr.so-cat")][0]!);
+    expect(errs).toEqual([]);
+  });
+
+  it("категория равна сумме своих заказов", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const h = head2();
+    const iN = h.indexOf("Поступление"), iP = h.indexOf("Чистая прибыль");
+    const cats = [...T2().querySelectorAll("tr.so-cat")];
+    const idx = cats.length > 1 ? 1 : 0;
+    const catRowNow = () => [...T2().querySelectorAll("tr.so-cat")][idx]!;
+    const net = num(catRowNow().children[iN]!.textContent)!, np = num(catRowNow().children[iP]!.textContent)!;
+    click(catRowNow());
+    const all = [...T2().querySelectorAll("tbody tr")];
+    const gi = all.indexOf(catRowNow());
+    let sN = 0, sP = 0, n = 0;
+    for (let j = gi + 1; j < all.length && !all[j]!.classList.contains("so-cat"); j++) {
+      sN += num(all[j]!.children[iN]!.textContent) || 0;
+      sP += num(all[j]!.children[iP]!.textContent) || 0;
+      n++;
+    }
+    expect(n, "категория не раскрылась - сверять нечего").toBeGreaterThan(0);
+    expect(Math.abs(net - sN), `поступление: категория ${net}, заказы ${Math.round(sN)}`).toBeLessThan(Math.max(2, n));
+    expect(Math.abs(np - sP), `чистая: категория ${np}, заказы ${Math.round(sP)}`).toBeLessThan(Math.max(2, n));
+    click(catRowNow());
   });
 
   // Главный сторож: два разреза одних и тех же денег обязаны давать один итог.
@@ -847,6 +891,7 @@ describe("свод по заказам", () => {
     setRange("2026-07-01", "2026-07-31");
     const h = head2();
     const iN = h.indexOf("Поступление"), iS = h.indexOf("Наша доставка"), iC = h.indexOf("СС произв."), iG = h.indexOf("Валовая прибыль");
+    [...T2().querySelectorAll("tr.so-cat")].slice(0, 3).forEach((c) => click(c));
     const rows = [...T2().querySelectorAll("tbody tr")]
       .filter((r) => !r.classList.contains("so-total") && !r.classList.contains("so-extra"));
     expect(rows.length, "строк заказов нет").toBeGreaterThan(5);
@@ -859,18 +904,14 @@ describe("свод по заказам", () => {
     expect(bad.slice(0, 5)).toEqual([]);
   });
 
-  it("ИТОГО считается по всем заказам периода, а не по показанным", () => {
+  it("ИТОГО не зависит от того, раскрыта категория или нет", () => {
     setRange("2026-07-01", "2026-07-31");
-    const sel = D().getElementById("so-lim") as any;
-    const shown = () => [...T2().querySelectorAll("tbody tr")]
-      .filter((r) => !r.classList.contains("so-total") && !r.classList.contains("so-extra")).length;
-    sel.value = "50"; sel.dispatchEvent(new dom.window.Event("change"));
-    const n50 = num(cell2("Поступление")), rows50 = shown();
-    sel.value = "0"; sel.dispatchEvent(new dom.window.Event("change"));
-    const nAll = num(cell2("Поступление")), rowsAll = shown();
-    expect(rowsAll, "выбор «все» не показал больше строк - тест ничего не различает").toBeGreaterThan(rows50);
-    expect(n50, "итог поехал вслед за числом показанных строк").toBe(nAll);
-    sel.value = "50"; sel.dispatchEvent(new dom.window.Event("change"));
+    const closed = num(cell2("Поступление"));
+    const cats = () => [...T2().querySelectorAll("tr.so-cat")];
+    click(cats()[0]!);
+    expect(num(cell2("Поступление")), "итог поехал вслед за раскрытием категории").toBe(closed);
+    click(cats()[0]!);
+    expect(num(cell2("Поступление"))).toBe(closed);
     expect(errs).toEqual([]);
   });
 

@@ -37,14 +37,25 @@ async function main() {
   console.log(`  постингов с начислениями: ${acc.length}`);
   const accByOrder: Record<string, Record<Bucket, number>> = {};
   const zero = (): Record<Bucket, number> => ({ commission: 0, acquiring: 0, storage: 0, delivery: 0, buyerDelivery: 0, ads: 0, other: 0 });
+  const nameById: Record<number, string> = {};
+  try { for (const t of await seller.accrualTypes()) nameById[t.id] = t.name; } catch { /* имена не критичны */ }
+  const byType: Record<number, { name: string; bucket: string; sum: number; n: number }> = {};
   for (const p of acc) {
     const b = (accByOrder[p.posting_number] ||= zero());
     for (const a of (p.accruals || [])) {
-      const bk = (bmap[Number(a.type_id)] || "other") as Bucket;
+      const tid = Number(a.type_id);
+      const bk = (bmap[tid] || "other") as Bucket;
       const amt = Number(a?.accrued?.amount ?? a?.accrued ?? a?.amount ?? 0);
       b[bk] += amt;
+      const rec = (byType[tid] ||= { name: nameById[tid] || String(tid), bucket: bk, sum: 0, n: 0 });
+      rec.sum += amt; rec.n += 1;
     }
   }
+  // ПРОБ: разбивка начислений по заказу по ТИПУ (с бакетом) - убедиться, что в «other» нет
+  // замаскированного эквайринга/хранения. Пишем отдельным файлом.
+  const typesArr = Object.entries(byType).map(([tid, v]) => ({ type_id: Number(tid), ...v, sum: Math.round(v.sum) })).sort((a, b) => a.sum - b.sum);
+  writeFileSync("data/orders_accrual_types.json", JSON.stringify(typesArr, null, 1));
+  console.log(`  типов начислений по заказам: ${typesArr.length} -> data/orders_accrual_types.json`);
 
   const rows: any[] = [];
   for (const p of posts) {

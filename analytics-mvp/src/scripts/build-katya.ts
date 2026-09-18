@@ -15,8 +15,7 @@ const writeFileSync = (path: string, html: string): void => _writeFileSync(path,
 // в другом месте, и сборка отсюда затирала бы его работу. Выход без ошибки, а не падение:
 // иначе упал бы весь деплой, включая Маркет. Страницы OZON остаются теми, что закоммичены в
 // public/ - сайт их и раздаёт, просто они перестают обновляться из этой ветки.
-// Снять отключение = убрать этот блок; ни строки кода OZON не тронуто, чтобы объединение прошло
-// без разбора завалов.
+// Снять отключение = убрать этот блок; ни строки кода OZON не тронуто.
 if (IS_OZON) {
   console.log("katya: сборка OZON временно отключена (Иван, 18.09.2026). Ветка ведёт только Маркет: PLATFORM=ym DATA_DIR=data-ym OUT_DIR=public/market");
   process.exit(0);
@@ -1714,8 +1713,8 @@ function render(cur,cmp){
   <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub">${IS_OZON
     ? `<a href="https://docs.google.com/spreadsheets/d/1Mt7UDX9sfVaVxb-c4u0Nno2dOWOZG7AIxlwTMYGAFCY/edit" target="_blank" rel="noopener" style="color:#22D3EE;font-weight:600">✎ заполнить план (Google-таблица, лист OZON)</a>`
     : `Факт берётся из свода по дате заказа - того же источника, что таблица выше. Плана по Маркету пока нет: отдельного листа в Google-таблице под эту площадку не заведено, поэтому во всех колбах стоит «задай план». Ссылку на лист OZON тут ставить нельзя - цели там по другой площадке.`}</div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div id="plan" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-around;padding:16px 4px 6px"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div></section>
-  ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub" style="display:none">Сводка по каждому артикулу за период из верхнего фильтра: реализация с учётом возвратов + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» и «Налоги 15%» - от К выплате (сборы кабинета входят в базу, доставка от покупателя - нет); по позициям с реализовано=0 не начисляются; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / К выплате. Для артикулов без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). «Реклама» - расход на продвижение по SKU (CPC+CPO из Performance API), где собрано; вычтен из «К выплате». Несобранная реклама и прочие сборы, которые OZON списывает не по одному SKU (штрафы/realFBS/бейдж/эквайринг), - в отдельной строке «Сборы уровня заказа/кабинета» и в ИТОГО (realFBS - в «Логистику», остаток рекламы и прочее - в «Прочие»). «Доставка от покупателя» в расчёт НЕ входит (компенсируется) - она только в информационном блоке ниже.</div></div></div><div id="skuan-warn" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>${IS_OZON ? `` : ``}<div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead id="skuan-h">${IS_OZON ? `<tr>
+  <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note" style="display:none">начислено → комиссия → услуги OZON → к выплате (канал) → −доставка от покупателя (компенсируется, в расчёт не входит) → −СС произв. → −(АДМ 30% + Налоги 15%) → чистая прибыль. Канальный «к выплате» = к выплате по SKU + доставка от покупателя; СС, база АДМ/налогов и чистая - из аналитики по SKU за тот же период (совпадают с ИТОГО таблицы).</div></section>
+  ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub" style="display:none">Сводка по каждому артикулу за период из верхнего фильтра: реализация с учётом возвратов + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» и «Налоги 15%» - от К выплате (сборы кабинета входят в базу, доставка от покупателя - нет); по позициям с реализовано=0 не начисляются; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / К выплате. Для артикулов без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). «Реклама» - расход на продвижение по SKU (CPC+CPO из Performance API), где собрано; вычтен из «К выплате». Несобранная реклама и прочие сборы, которые OZON списывает не по одному SKU (штрафы/realFBS/бейдж/эквайринг), - в отдельной строке «Сборы уровня заказа/кабинета» и в ИТОГО (realFBS - в «Логистику», остаток рекламы и прочее - в «Прочие»). «Доставка от покупателя» в расчёт НЕ входит (компенсируется) - она только в информационном блоке ниже.</div></div></div><div id="skuan-warn" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>${IS_OZON ? `` : `<div class="kt-note" style="margin:2px 0 8px;padding:8px 12px;border-left:3px solid #8AA0FF;background:rgba(138,160,255,.08)">Из чего сложились сборы Маркета по каждому артикулу: те же статьи, что в своде выше, и тот же источник, поэтому числа сходятся. Свод отвечает на вопрос «сколько заработали», эта таблица - «за что заплатили». Клик по категории раскрывает артикулы.</div>`}<div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead id="skuan-h">${IS_OZON ? `<tr>
     <th>Категория / Артикул</th>
     <th class="r">Реализовано</th>
     <th class="r">Начислено</th><th class="r">Комиссия</th>${IS_OZON
@@ -2111,7 +2110,7 @@ function promoYm(): { body: string; js: string } {
   const head = `
   <div class="card" style="border-color:#22D3EE;background:rgba(34,211,238,.05);padding:12px 14px;margin-bottom:10px">
     <b>У Яндекс Маркета нет рекламных кампаний за клик.</b>
-    
+    <div class="kt-note" style="margin-top:6px">Кнопки периода в шапке к этому листу не применяются: расход и выручка тут считаются ПО МЕСЯЦАМ ДАТЫ ЗАКАЗА, а не произвольным диапазоном. Месяц выбирается в таблице ниже.<br>На листе нет ставок, кликов, показов рекламы, CPC, CTR и «активных кампаний»: таких сущностей у площадки нет. Продвижение Маркета - это <b>буст продаж, который списывается за продажу</b>, плюс отзывы за баллы и общие расходы кабинета (подписка, полки, баннеры). Буст привязан к номеру заказа, поэтому <b>ДРР здесь считается по заказам, а не оценивается</b>. Базис - дата оформления заказа, тот же, что у свода на вкладке Деньги.</div>
   </div>`;
   if (!svod || !svod.months || !svod.months.length) {
     return { body: head + `<div class="card"><b>Свод по заказам не собран.</b><div class="kt-note" style="margin-top:8px">Лист продвижения считается из него: нет <code>data-ym/svod_orders.json</code> - нечего показывать. Запустить <code>npm run ym:derive</code>.</div></div>`, js: "" };
@@ -2121,7 +2120,7 @@ function promoYm(): { body: string; js: string } {
   <section class="card"><div class="card-h"><div><div class="card-title">Расход на продвижение по месяцам заказа</div><div class="card-sub">буст оплачивается и деньгами, и баллами Маркета - обе половины реальный расход</div></div>
     <select id="pm-b" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div>
     <div class="kt-scroll"><table class="kt-table" id="pm-mon"></table></div>
-    
+    <div class="kt-note" style="margin-top:8px">Выручка взята как деньги плюс начисленные баллы - та же база, что у маржи на вкладке Деньги. К неполной выручке ДРР завышался бы.</div>
   </section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">ДРР по линиям</div><div class="card-sub" id="pm-lab1"></div></div></div><div class="kt-scroll"><table class="kt-table" id="pm-line"></table></div></section>
@@ -2162,7 +2161,7 @@ function pmDraw(){
        card('Буст деньгами',pmRub(S(function(r){return r.sm;}))+' ₽','списано со счёта'),
        card('Буст баллами',pmRub(S(function(r){return r.sp;}))+' ₽','оплачено баллами Маркета','#E5B567'),
        card('Общие расходы',pmRub(S(function(r){return r.oh;}))+' ₽','подписка, полки, баннеры')].join('')
-    : '<div class="card"><b>Закрытых месяцев в снимке нет.</b></div>';
+    : '<div class="card"><b>Закрытых месяцев в снимке нет.</b><div class="kt-note" style="margin-top:6px">Месяц закрыт, когда пришёл акт за следующий и период доставки завершён. Пока таких нет, карточки не показываются: незакрытый месяц выдавать за итог нельзя.</div></div>';
   var mh='<thead><tr><th>Месяц заказа</th><th>Кабинет</th><th class="r">Буст деньгами</th><th class="r">Буст баллами</th><th class="r">Общие</th><th class="r">Всего</th><th class="r">Выручка (деньги+баллы)</th><th class="r">ДРР</th></tr></thead><tbody>';
   rows.forEach(function(r){
     var flag=r.partial?' <span style="color:#E5B567;font-size:11px">период не завершён</span>':(!r.settled?' <span style="color:#E5B567;font-size:11px">акт не закрыт</span>':'');
@@ -2194,8 +2193,8 @@ function pmDraw(){
   var hSum=hungry.reduce(function(a,x){return a+x.sp;},0);
   document.getElementById('pm-lab2').textContent=lab;
   document.getElementById('pm-hungry').innerHTML=hungry.length
-    ? '<b style="font-size:15px">'+hungry.length+' SKU с ДРР выше 30%</b> на '+pmRub(hSum)+' ₽ расхода.'
-    : '<b>SKU с ДРР выше 30% нет.</b>';
+    ? '<b style="font-size:15px">'+hungry.length+' SKU с ДРР выше 30%</b> на '+pmRub(hSum)+' ₽ расхода.<div class="kt-note" style="margin-top:8px">Буст Маркета списывается процентом с продажи, поэтому высокий ДРР тут значит высокую ставку буста, а не «плохие клики». Снижать его надо ставкой буста в кабинете, а не отключением кампании: отключать нечего.</div>'
+    : '<b>SKU с ДРР выше 30% нет.</b><div class="kt-note" style="margin-top:8px">Ни один артикул не отдал больше 30% выручки на продвижение.</div>';
   var sh='<thead><tr><th>Артикул</th><th>Название</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Штук</th><th class="r">ДРР</th></tr></thead><tbody>';
   list.slice(0,40).forEach(function(x){var d=x.rev>0?Math.round(x.sp/x.rev*1000)/10:null;
     sh+='<tr><td>'+x.sku+'</td><td>'+(x.name||'').slice(0,44)+'</td><td class="r">'+pmRub(x.sp)+'</td>'
@@ -2430,7 +2429,9 @@ function svDraw(){
   // а штуки - с отчётом о реализации, и вот там покрытие неполное. Молчать об этом нельзя:
   // пользователь видел бы штуки закрытого месяца как сверенные.
   SV_REC.forEach(function(x){gaps.push(x);});
-  gapsEl.innerHTML=gaps.length?'<b>Чего не хватает:</b> '+gaps.join('; ')+'.':'';
+  // Иван 18.09.2026: «вот такие приписки скрой». Пробел в данных прятать нельзя (§15 п.3),
+  // но и разворачивать простынёй поверх таблицы незачем: сворачиваем в одну строку.
+  gapsEl.innerHTML=gaps.length?'<details><summary style="cursor:pointer;color:#a78a4a;list-style:none">чего не хватает в данных ('+gaps.length+')</summary><div style="padding-top:5px"><b>Чего не хватает:</b> '+gaps.join('; ')+'.</div></details>':'';
   gapsEl.style.display=gaps.length?'':'none';
   // Окно без ДОСТАВЛЕННЫХ заказов таблицей не рисуется, даже если в нём есть заказы в пути.
   // Иначе вернулся бы дефект, который ФЕНИКС нашёл раньше: за 28.02 таблица пуста, а водопад
@@ -2689,7 +2690,7 @@ const GMV_KPI = IS_OZON
   <section class="card" id="alerts-card"><div class="card-h"><div><div class="card-title">Что горит прямо сейчас</div><div class="card-sub">алёрты по живому снимку OZON (остатки, индекс цены, реклама за 30 дн). Клик по алёрту - разбор у Гуру</div></div></div><div id="alerts"></div></section>
   <section class="kt-kpi" id="kpis"></section>
   <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:14px" class="kt-two">
-    <section class="card"><div class="card-h"><div><div class="card-title">Декомпозиция оборота</div><div class="card-sub" id="bsub"></div></div></div><div id="bridge"></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Декомпозиция оборота</div><div class="card-sub" id="bsub"></div></div></div><div id="bridge"></div><div class="kt-note">Оборот = трафик × конверсия в заказ × средний чек. Видно, какой из трёх рычагов дал прирост или просадку - туда и бить.${IS_OZON ? "" : " Все три множителя на той же базе, что левое число карточки «Оборот»: заказано минус отменено."}</div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Движения за период</div><div class="card-sub" id="movers-sub">кто прибавил и кто просел по обороту против предыдущего равного периода</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th class="r">Оборот</th><th class="r">Δ к базе</th></tr></thead><tbody id="movers"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Локомотивы и риск</div><div class="card-sub">A-товары (дают 80% оборота периода). Красный флаг - есть риск: OOS или дороже рынка</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Остаток</th><th class="r">Индекс цены</th><th>Риск</th></tr></thead><tbody id="loco"></tbody></table></div></section>

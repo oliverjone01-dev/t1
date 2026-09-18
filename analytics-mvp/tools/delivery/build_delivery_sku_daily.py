@@ -47,6 +47,25 @@ def nrm_art(s):
     return str(s).strip().translate(_HOMO) if s else ""
 
 
+# Код артикула: латиница/цифры с дефисами (GGT-03-3-5-O-20090, B-100-200-9003). Примечания в
+# ячейке (KONUX, BEPX=«ВЕРХ», «HALFEO Slim Black XL», «(комплект…)») дефис-структуры не имеют.
+_CODE_RE = re.compile(r"^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+$")
+
+
+def clean_arts(raw):
+    # Ячейка «Артикул» бывает грязной: «2 шт GGP-01-2-B-240-100», мультиартикул через перенос,
+    # код + примечание на второй строке. Возвращаем список чистых кодов артикулов.
+    if not raw:
+        return []
+    out = []
+    for part in re.split(r"[\n;]+", str(raw)):
+        p = re.sub(r"^\s*\d+\s*ш[тt]\.?\s*", "", part.strip(), flags=re.I)  # снять «N шт»
+        p = nrm_art(p)
+        if _CODE_RE.match(p) and p not in out:
+            out.append(p)
+    return out
+
+
 def parse_date(s):
     if not s:
         return None
@@ -117,9 +136,9 @@ def main():
                     e = events[key] = {"ship": ship, "deliv": num(r[ci["Стоимость доставки"]]),
                                        "date": d, "arts": [], "city": city_of(r[ci["Адрес"]]),
                                        "st": norm(r[ci["Статус"]])}
-                art = nrm_art(r[ci["Артикул"]] or "")
-                if art and art not in e["arts"]:
-                    e["arts"].append(art)
+                for art in clean_arts(r[ci["Артикул"]]):
+                    if art not in e["arts"]:
+                        e["arts"].append(art)
         wb.close()
 
     daily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (offer,d)->[ship,deliv,отправок]

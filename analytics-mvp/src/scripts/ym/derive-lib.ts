@@ -6,6 +6,7 @@ import type { YmOrder } from "../../connector/ym-partner.js";
 import { normSku } from "../../util/sku.js";
 import { ymDate } from "../../connector/ym-partner.js";
 import { lineOf } from "../../util/line.js";
+import { delivByOrder, type DelivRow } from "./delivery-lib.js";
 
 export const PLATFORM = "ym" as const;
 
@@ -597,6 +598,7 @@ export function isPointsPaid(type: string, source?: string): boolean {
   return t === "Списание" || t === "Возврат списания";
 }
 
+// Ведомость доставки живёт своим модулем: её разбор и дедуп - отдельная задача от сборки свода.
 export interface SvodRow {
   business: string; ym: string; d: string; sku: string; name: string; line: string;
   orders: number; units_delivered: number; units_returned: number; units_net: number;
@@ -605,6 +607,13 @@ export interface SvodRow {
   svc: Record<string, number>; svc_pts: Record<string, number>; svc_money: number; svc_points: number; svc_total: number;
   result_money: number; result_points: number;
   cogs: number; cogs_known: boolean;
+  // Наш расход на перевозку заказа из ручной ведомости (delivery-lib). Стоимость стоит на заказе,
+  // а строка свода - на паре (заказ, артикул), поэтому мультиартикульный заказ делит её между
+  // своими позициями пропорционально начислениям - тем же способом, что и доставка покупателя.
+  ship_our: number;
+  // Ведомость знает этот заказ. Отличается от ship_our===0: за февраль-март лист не заполняли
+  // вовсе, и ноль там означал бы «возили бесплатно». §15 п.3: пробел обязан быть виден.
+  ship_known: boolean;
 }
 export interface SvodMonth {
   business: string; ym: string; orders: number; rows: SvodRow[];
@@ -669,6 +678,16 @@ export interface SvodMonth {
   inflight_rows: Array<{ d: string; sku: string; units: number; price: number }>;
   points_on_delivery: number;     // доля начисленных баллов, осевшая на строке доставки
   cogs_cov: number;               // доля выручки деньгами, закрытая себестоимостью
+  // Наша доставка (ручная ведомость). Отправки по заказам, которые отменили или вернули, в строки
+  // артикулов не идут: выручки по ним в своде нет, и рентабельность артикула поехала бы от расхода
+  // без продажи. Решение Ивана 18.09.2026: «считать, отдельной строкой».
+  ship_lost?: number;             // ₽ за перевозку по отменённым/возвращённым заказам месяца
+  ship_lost_orders?: number;
+  // По ДНЯМ (дата оформления заказа), чтобы строка считалась за произвольное окно, а не только за
+  // целый месяц: свод умеет любые периоды, и месячное число ломало бы окна вроде «1-15».
+  ship_lost_daily?: Record<string, number>;
+  ship_orders?: number;           // заказов месяца, которые ведомость знает
+  ship_cov?: number;              // % заказов месяца, покрытых ведомостью
 }
 
 const svcZero = () => { const o: Record<string, number> = {}; for (const [n] of SVC_COLUMNS) o[n] = 0; o[SVC_OTHER] = 0; return o; };
@@ -695,7 +714,7 @@ export function bonusKind(r: BonusRow): BonusKind {
   return "other";
 }
 export const isBonusAccrual = (r: BonusRow) => bonusKind(r) === "accrual";
-export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string, act: ActRow[] = [], bonus: BonusRow[] = []): SvodMonth[] {
+export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string, act: ActRow[] = [], bonus: BonusRow[] = [], deliv: DelivRow[] = []): SvodMonth[] {
   // Часть артикулов Маркет отдаёт с кириллическими двойниками в коде: «GGМ-16-4-3» с русской «М»,
   // «GGTP-20-2х2» с русской «х». В листе себестоимости таких кодов нет ни одного, поэтому прямой
   // ключ по ним не срабатывал никогда, и четыре артикула висели без С\С при том, что в листе она
@@ -846,7 +865,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
         orders: 0, units_delivered: 0, units_returned: 0, units_net: 0,
         price: 0, ship_buyer: 0, disc_mp: 0, disc_plus: 0, buyer_pay: 0, refunds: 0, revenue_money: 0, points_accrued: 0,
         svc: svcZero(), svc_pts: svcZero(), svc_money: 0, svc_points: 0, svc_total: 0, result_money: 0, result_points: 0,
-        cogs: 0, cogs_known: cogsAt(r.sku) != null };
+        cogs: 0, cogs_known: cogsAt(r.sku) != null, ship_our: 0, ship_known: false };
       acc.set(kk, s);
     }
     return s;
@@ -921,6 +940,54 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     }
     s.points_accrued += baseAll > 0 ? (orderSubsidy.get(r.order) || 0) * (mine / baseAll) : 0;
     if (cogsAt(r.sku) != null) s.cogs += cogsAt(r.sku)! * ((r.delivered || 0) + (r.returned || 0) - (r.returned || 0));
+  }
+
+  // 3.5. НАША ДОСТАВКА из ручной ведомости - расход, которого в дашборде не было вовсе.
+  // Стоимость стоит на ЗАКАЗЕ (одна ведомость = один вывоз = один счёт перевозчика), строка свода -
+  // на паре (заказ, артикул), поэтому мультиартикульный заказ делит её между позициями
+  // пропорционально начислениям: тем же способом, которым уже делится доставка покупателя.
+  // Заказ, которого нет в базе свода (отменён, возвращён, ещё едет), в строки артикулов НЕ идёт:
+  // выручки по нему нет, и рентабельность артикула поехала бы от расхода без продажи. Такие
+  // отправки собираются в ship_lost месяца - отдельной строкой, по решению Ивана 18.09.2026.
+  {
+    const dOrd = delivByOrder(deliv);
+    const ymOfOrder = new Map<string, string>();
+    const dayOfOrder = new Map<string, string>();
+    for (const r of rows) {
+      const ym = String(r.created || "").slice(0, 7);
+      if (ym) { ymOfOrder.set(r.order, `${r.business}|${ym}`); dayOfOrder.set(r.order, String(r.created).slice(0, 10)); }
+    }
+    const ordersKnown = new Map<string, Set<string>>();
+    for (const [ord, d] of dOrd) {
+      if (!d.known) continue;                       // в листе нет числа - это «нет данных», не ноль
+      const k = delivered.get(ord);
+      if (k && d.cls !== "lost") {
+        const items = itemsOf.get(ord) || [];
+        const base = baseOf.get(ord) || 0;
+        for (const it of items) {
+          const share = base > 0 ? (it.price || 0) * (it.count || 0) / base : 1 / (items.length || 1);
+          const s2 = touch(k, it);
+          s2.ship_our += d.ship * share;
+          s2.ship_known = true;
+        }
+        const ok = ordersKnown.get(k) || new Set<string>(); ok.add(ord); ordersKnown.set(k, ok);
+        continue;
+      }
+      const km = k || ymOfOrder.get(ord);
+      const m = km ? months.get(km) : undefined;
+      if (!m) continue;                             // заказа нет в снимке - относить расход некуда
+      m.ship_lost = (m.ship_lost || 0) + d.ship;
+      m.ship_lost_orders = (m.ship_lost_orders || 0) + 1;
+      const day = dayOfOrder.get(ord);
+      if (day) { (m.ship_lost_daily ||= {})[day] = r2(((m.ship_lost_daily || {})[day] || 0) + d.ship); }
+    }
+    for (const [k, m] of months) {
+      const known = (ordersKnown.get(k) || new Set()).size;
+      const total = (orderSet.get(k) || new Set()).size;
+      m.ship_orders = known;
+      m.ship_cov = total > 0 ? Math.round((known / total) * 1000) / 10 : 0;
+      if (m.ship_lost) m.ship_lost = r2(m.ship_lost);
+    }
   }
 
   // 4. услуги заказа -> позиции
@@ -1141,7 +1208,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     s.result_points = r2(s.revenue_money + s.points_accrued - s.svc_total);
     for (const c of Object.keys(s.svc)) s.svc[c] = r2(s.svc[c]!);
     for (const c of Object.keys(s.svc_pts)) s.svc_pts[c] = r2(s.svc_pts[c]!);
-    s.price = r2(s.price); s.ship_buyer = r2(s.ship_buyer); s.disc_mp = r2(s.disc_mp); s.disc_plus = r2(s.disc_plus);
+    s.price = r2(s.price); s.ship_buyer = r2(s.ship_buyer); s.ship_our = r2(s.ship_our); s.disc_mp = r2(s.disc_mp); s.disc_plus = r2(s.disc_plus);
     s.buyer_pay = r2(s.buyer_pay + s.ship_buyer); s.refunds = r2(s.refunds); s.points_accrued = r2(s.points_accrued);
     s.svc_money = r2(s.svc_money); s.svc_points = r2(s.svc_points); s.cogs = r2(s.cogs);
     const k = `${s.business}|${s.ym}`; months.get(k)!.rows.push(s);

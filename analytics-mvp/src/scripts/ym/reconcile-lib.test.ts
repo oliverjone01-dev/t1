@@ -212,6 +212,33 @@ describe("недобранный отчёт о реализации - это п�
     expect(u.diff).toBe(u.orders_delivered_net - 3);
     expect(r.periods[0]!.revenue).not.toBe(null);
   });
+  // Иван 18.09.2026 прислал бейдж «нет в реализации 2026-08» у GGT-03-1-2-E-12080 и спросил, почему
+  // «всё равно пишет, что нет СС». Подпись читалась как претензия к товару, хотя означала ровно
+  // обратное: отчёт по ЕГО магазину не выгружен, и артикул физически не мог в нём оказаться.
+  // Проверяем, что два случая больше не сливаются в одну формулировку.
+  it("артикул недобранного магазина: подпись говорит про выгрузку, а не про отсутствие товара", () => {
+    const st = { by_month: { "2026-08": { shops_sold: ["shopA", "shopB"], shops_with_rows: ["shopA"], shops_no_data: ["shopB"], shops_pending: [] } } };
+    const r = buildReconcile({ ...base, rows: rows2, realization: realz, netting: null, realizationState: st }, TODAY);
+    const g = r.coverage.gaps as Record<string, string[]>;
+    const hit = Object.entries(g).filter(([, v]) => v.some((x) => x.includes("реализация")));
+    expect(hit.length, "ни один артикул не попал в пробел - тест перестал что-либо проверять").toBeGreaterThan(0);
+    for (const [sku, v] of hit) {
+      const line = v.find((x) => x.includes("реализация"))!;
+      expect(line, `${sku}: подпись снова читается как претензия к товару`).toBe("реализация 2026-08 не выгружена");
+      expect(line, "в бейдж вернулся номер магазина - он разносит колонку").not.toMatch(/shop[AB]/);
+    }
+  });
+
+  // Обратная сторона: когда отчёт добран ПОЛНОСТЬЮ, отсутствие артикула - это уже настоящее
+  // расхождение, и списывать его на выгрузку нельзя.
+  it("отчёт добран полностью: отсутствующий артикул помечается как расхождение отчёта", () => {
+    const st = { by_month: { "2026-08": { shops_sold: ["shopA", "shopB"], shops_with_rows: ["shopA", "shopB"], shops_no_data: [], shops_pending: [] } } };
+    const r = buildReconcile({ ...base, rows: rows2, realization: realz, netting: null, realizationState: st }, TODAY);
+    const lines = Object.values(r.coverage.gaps as Record<string, string[]>).flat().filter((x) => x.includes("реализаци"));
+    expect(lines.length).toBeGreaterThan(0);
+    expect(new Set(lines)).toEqual(new Set(["нет в отчёте о реализации 2026-08"]));
+  });
+
   it("состояние бэкфилла не записано: покрытие НЕИЗВЕСТНО, а не ноль", () => {
     const r = buildReconcile({ ...base, rows: rows2, realization: realz, netting: null, realizationState: null }, TODAY);
     const u = r.periods[0]!.units;

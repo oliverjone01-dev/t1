@@ -700,11 +700,28 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
   // «GGTP-20-2х2» с русской «х». В листе себестоимости таких кодов нет ни одного, поэтому прямой
   // ключ по ним не срабатывал никогда, и четыре артикула висели без С\С при том, что в листе она
   // есть. Спрашиваем лист сначала точным кодом, потом нормализованным.
+  // Третья ступень: «скелет» кода - только буквы и цифры. Лист и свод пишут один артикул
+  // по-разному: GGTW-03-180-90 против GGTW-03-18090. Из-за точного сравнения С\С по таким
+  // числилась пробелом, хотя она заведена. Индекс строится только по скелетам без коллизий:
+  // если два разных кода дают один скелет с РАЗНОЙ С\С, оба выбрасываются, чтобы не подставить
+  // чужую цену. На текущем листе (757 ключей) коллизий нет ни одной.
+  const skel = (x: string): string => String(x || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const bySkel = new Map<string, number | null>();
+  for (const [k, v] of Object.entries(cogs)) {
+    const n = skel(normSku(k));
+    if (!n) continue;
+    const seen = bySkel.get(n);
+    if (seen === undefined) bySkel.set(n, v);
+    else if (seen !== v) bySkel.set(n, null);
+  }
   const cogsAt = (sku: string): number | undefined => {
     const v = cogs[sku];
     if (v != null) return v;
     const n = normSku(sku);
-    return n === sku ? undefined : cogs[n];
+    const v2 = n === sku ? undefined : cogs[n];
+    if (v2 != null) return v2;
+    const v3 = bySkel.get(skel(n));
+    return v3 == null ? undefined : v3;
   };
   // 1. отбор: заказы со статусом DELIVERED, месяц - по дате оформления
   const keyOf = (r: OrderRow) => `${r.business}|${String(r.created || "").slice(0, 7)}`;

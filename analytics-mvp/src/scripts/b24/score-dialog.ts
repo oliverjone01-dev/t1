@@ -889,6 +889,7 @@ function main() {
     trend: days.slice(-14),
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
     sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length, aiDemo: !!aiFile.demo, aiModel: aiFile.model || "",
+    aiAgg: aiFile.aggregates || null,
     thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },
     deptMedians: dept, metricDefs: METRICS.map((m) => ({ key: m.key, label: m.label, unit: m.unit, better: m.better, how: (m as any).how || "" })), tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
     hiddenMgr: hiddenMgr.sort((a, b) => b.deals - a.deals),

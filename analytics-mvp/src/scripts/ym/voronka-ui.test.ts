@@ -54,13 +54,15 @@ const totalCells = () => {
   const tr = [...D().querySelectorAll("#catfun tr")].find((x) => /Итого/.test(x.textContent || ""));
   return tr ? [...tr.children].map((c) => num(c.textContent)) : [];
 };
-// Колонки таблицы: 0 имя, 1 показы, 3 в поиске, 5 карточка, 7 корзина, 9 заказано, 11 выкуплено.
-const T = { views: 1, vsearch: 3, pdp: 5, cart: 7, units: 9, deliv: 11 };
+// Колонки таблицы: 0 имя, 1 показы, 3 карточка, 5 корзина, 7 заказано, 9 выкуплено.
+// Иван 18.09.2026: «убери показы в поиске если их нет у яндекса». Поле views_search в
+// daily_totals Маркета - ноль за всю историю, шаг и колонка сняты, индексы уехали на два.
+const T = { views: 1, pdp: 3, cart: 5, units: 7, deliv: 9 };
 
 describe("воронка Маркета: два блока считают одно", () => {
   it("страница отрисовалась без ошибок JS", () => {
     expect(errs).toEqual([]);
-    expect(totalCells().length).toBeGreaterThan(10);
+    expect(totalCells().length).toBe(10);
   });
 
   it("итог по категориям совпадает с воронкой продаж на каждом шаге", () => {
@@ -82,6 +84,40 @@ describe("воронка Маркета: два блока считают одн
 
   // Причина расхождения показов, закреплённая числом: агрегатная строка отчёта несёт СВЁРНУТОЕ
   // окно (31.08-06.09 датой 06.09), и таблица складывала его с дневными - неделя считалась дважды.
+  it("KPI воронки стоят на той же базе, что командный центр: заказано минус отменено", () => {
+    // Иван 18.09.2026: «почему оборот опять 19,2 там же должно быть отмен». Командный центр уже
+    // считал нетто, воронка осталась на валовом - на одном дашборде 19,1 млн против 12,94 млн.
+    const dt = L("data-ym/daily_totals.ndjson").filter((t: any) => inWin(t.date));
+    const sum = (f: string) => dt.reduce((a: number, t: any) => a + (t[f] || 0), 0);
+    const kpiOf = (name: string) => {
+      const c = [...D().querySelectorAll("#kpis .card")].find((x) => (x.textContent || "").includes(name))!;
+      const t = c.querySelector(".kt-v")!.textContent || "";
+      const m = t.match(/([\d.,]+)\s*М/);
+      return m ? parseFloat(m[1]!.replace(",", ".")) * 1e6 : num(t)!;
+    };
+    const netRub = sum("revenue") - sum("rev_canc"), netUnits = sum("units") - sum("cancellations");
+    expect(sum("rev_canc"), "в окне нет отмен - проверять нечего").toBeGreaterThan(0);
+    expect(Math.abs(kpiOf("Оборот") - netRub)).toBeLessThan(6000);
+    expect(Math.abs(kpiOf("Оборот") - sum("revenue")), "оборот снова валовой").toBeGreaterThan(100_000);
+    expect(kpiOf("Заказы, шт")).toBe(netUnits);
+    // конверсия считается от тех же нетто-заказов, иначе карточки рядом разъедутся
+    const conv = parseFloat((D().querySelector("#kpis .card:nth-child(4) .kt-v")!.textContent || "").replace("%", ""));
+    expect(Math.abs(conv - (netUnits / sum("views")) * 100)).toBeLessThan(0.01);
+  });
+
+  it("шага и колонки «Показы в поиске» на Маркете нет", () => {
+    // Поле пустое у площадки, а пустая ступень «нет данных» только сбивала чтение воронки.
+    const V = L("data-ym/daily_totals.ndjson").reduce((a: number, t: any) => a + (t.views_search || 0), 0);
+    expect(V, "views_search перестал быть нулём - шаг надо возвращать").toBe(0);
+    const steps = [...D().querySelectorAll(".vf-name")].map((x) => (x.textContent || "").trim());
+    expect(steps).not.toContain("Показы в поиске и каталоге");
+    const heads = [...D().querySelectorAll("th")].map((x) => (x.textContent || "").trim());
+    expect(heads).not.toContain("Показы в поиске");
+    // первый CV в итоге - сразу показы → карточка
+    const c = totalCells();
+    expect(Math.abs((c[2] as number) - (c[T.pdp]! / c[T.views]!) * 100)).toBeLessThan(0.01);
+  });
+
   it("агрегатные строки отчёта показов в счёт не идут", () => {
     const V = L("data-ym/sku_views.ndjson").filter((r: any) => inWin(r.date));
     const day = V.filter((r: any) => !r.aggregate).reduce((a: number, r: any) => a + (r.views || 0), 0);

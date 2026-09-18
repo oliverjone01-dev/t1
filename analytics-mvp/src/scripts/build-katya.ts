@@ -11,6 +11,16 @@ import { coverageStrip, GAPS_JS } from "../coverage.js";
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
 const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(html));
 
+// Иван 18.09.2026: «вообще отключи озон, оставь только маркет, объединим потом». OZON он правит
+// в другом месте, и сборка отсюда затирала бы его работу. Выход без ошибки, а не падение:
+// иначе упал бы весь деплой, включая Маркет. Страницы OZON остаются теми, что закоммичены в
+// public/ - сайт их и раздаёт, просто они перестают обновляться из этой ветки.
+// Снять отключение = убрать этот блок; ни строки кода OZON не тронуто.
+if (IS_OZON) {
+  console.log("katya: сборка OZON временно отключена (Иван, 18.09.2026). Ветка ведёт только Маркет: PLATFORM=ym DATA_DIR=data-ym OUT_DIR=public/market");
+  process.exit(0);
+}
+
 type Fact = { date: string; sku: string; name: string; line: string; revenue: number; units: number; returns?: number;
   // Поля Маркета: деньги и штуки ДОСТАВЛЕННОГО, ОТМЕНЁННОГО и ещё летящего. У OZON их нет,
   // поэтому все они опциональные и читаются только при DELIVERED_BASIS.
@@ -26,6 +36,16 @@ const slug = (s: string) => "s_" + s.toLowerCase().replace(/[^a-zа-я0-9]+/gi, 
 // считает только доставленное, поэтому «Товары» обязаны считать так же, иначе две страницы одного
 // дашборда называют продажами разные числа. Отменённое и летящее не прячем - показываем колонками.
 const DELIVERED_BASIS = !IS_OZON;
+
+const VSEARCH_STEP = IS_OZON
+  ? `{n:'Показы в поиске и каталоге', v:nz('vsearch'), c:'из поиска в карточку'},\n`
+  : "";
+const FUN_UNITS_KPI = IS_OZON
+  ? `kpi('Заказы, шт',fmtRu(S('units')),dlt(S('units'),P('units')))`
+  : `kpi('Заказы, шт',fmtRu(S('units')-S('canc')),dlt(S('units')-S('canc'),P('units')-P('canc')))`;
+const FUN_REV_LINE = IS_OZON
+  ? `const rev=S('rev')*1e6,prev=P('rev')*1e6;`
+  : `const rev=(S('rev')-S('rcanc'))*1e6,prev=(P('rev')-P('rcanc'))*1e6;`;
 const facts: Fact[] = readFileSync(dp("history.ndjson"), "utf-8").trim().split("\n").map((l) => JSON.parse(l));
 
 // ПРОДАЖИ БЕРУТСЯ ИЗ САМОГО СВОДА, а не пересчитываются по второму разу из истории заказов.
@@ -1102,7 +1122,7 @@ if (dailyTotals.length) {
 
 // --- страница 3: Воронка (реальные дни, динамика по периоду) ---
 {
-  const FACTS_D = { rev: r4(DAY_T.rev!.map((x) => x / 1e6)), units: DAY_T.units, views: DAY_T.views, vsearch: DAY_T.vsearch, pdp: DAY_T.pdp, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, canc: DAY_T.canc };
+  const FACTS_D = { rev: r4(DAY_T.rev!.map((x) => x / 1e6)), rcanc: r4(DAY_T.rcanc!.map((x) => x / 1e6)), units: DAY_T.units, views: DAY_T.views, vsearch: DAY_T.vsearch, pdp: DAY_T.pdp, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, canc: DAY_T.canc };
   const LINES_D = Object.fromEntries(Object.entries(lineDayOrd).map(([k, v]) => [k, { units: v.units, ret: v.ret, canc: v.canc, cart: v.cart, rev: r4(v.rev.map((x) => x / 1e6)) }]));
   const CATFUN = Object.fromEntries(Object.entries(catFun).map(([k, v]) => [k, { views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv, ret: v.ret, canc: v.canc }]));
   const SUBFUN = Object.fromEntries(Object.entries(subFun).map(([k, v]) => [k, { name: v.name, cat: v.cat, views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv, ret: v.ret, canc: v.canc }]));
@@ -1124,12 +1144,12 @@ if (dailyTotals.length) {
     + "return fly?' · ещё в пути '+fmtRu(fly)+' шт: выкуп по ним дорастёт задним числом':'';})()";
   const CONV_DELTA = IS_OZON
     ? "S('units')/(S('views')||1),P('units')/(P('views')||1)"
-    : "S('views')?S('units')/S('views'):0,P('views')?P('units')/P('views'):0";
+    : "S('views')?(S('units')-S('canc'))/S('views'):0,P('views')?(P('units')-P('canc'))/P('views'):0";
   const CAT_KEEP = IS_OZON ? "x.units>0||x.cart>0" : "x.units>0||x.cart>0||x.views>0";
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Воронка продаж</div><div class="card-sub" id="fsub"></div></div></div><div id="funnel"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального. CV, % (серые шапки) - конверсия между соседними шагами: <span style="color:var(--up)">зелёный</span> - категория конвертит выше канала на этом шаге, <span style="color:var(--dn)">красный</span> - ниже. Строка «Итого» = сумма по категориям (она же бенчмарк для раскраски CV).${IS_OZON ? ` Показы всего и «Посещения карточки» по категориям не сходятся с «Воронкой продаж»: последняя берёт дедуплицированные канальные итоги OZON, а тут - сумма per-SKU (одна сессия на нескольких карточках считается несколько раз).` : ` Итоги этой таблицы сходятся с «Воронкой продаж» шаг в шаг: показы, поиск и карточка берутся из одного отчёта показов, а заказы, выкуп, возвраты и отмены - из одной выгрузки заказов. До 17.09 не сходились по двум причинам, обе починены: таблица складывала дневные строки отчёта с агрегатом за 31.08-06.09 и считала неделю дважды (386 868 показов против 703 468 на экране), а заказы и выкуп брала из отчёта показов, где отмены и доставки нули - отсюда «выкуплено = заказано» и конверсия ровно 100%.`}</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r cf-cv">CV, %</th><th class="r">Показы в поиске</th><th class="r cf-cv">CV, %</th><th class="r">Посещения карточки</th><th class="r cf-cv">CV, %</th><th class="r">В корзину</th><th class="r cf-cv">CV, %</th><th class="r">Заказано</th><th class="r cf-cv">CV, %</th><th class="r" title="${IS_OZON ? "Выкуплено = Заказано − Отмены (формула OZON; возврат происходит после выкупа, отдельно)" : "Выкуплено = реально доставленное за вычетом возвратов, по дате заказа. Заказы периода, которые ещё едут, сюда не попадают - они дорастут задним числом, когда доедут."}">Выкуплено</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального. CV, % (серые шапки) - конверсия между соседними шагами: <span style="color:var(--up)">зелёный</span> - категория конвертит выше канала на этом шаге, <span style="color:var(--dn)">красный</span> - ниже. Строка «Итого» = сумма по категориям (она же бенчмарк для раскраски CV).${IS_OZON ? ` Показы всего и «Посещения карточки» по категориям не сходятся с «Воронкой продаж»: последняя берёт дедуплицированные канальные итоги OZON, а тут - сумма per-SKU (одна сессия на нескольких карточках считается несколько раз).` : ` Итоги этой таблицы сходятся с «Воронкой продаж» шаг в шаг: показы, поиск и карточка берутся из одного отчёта показов, а заказы, выкуп, возвраты и отмены - из одной выгрузки заказов. До 17.09 не сходились по двум причинам, обе починены: таблица складывала дневные строки отчёта с агрегатом за 31.08-06.09 и считала неделю дважды (386 868 показов против 703 468 на экране), а заказы и выкуп брала из отчёта показов, где отмены и доставки нули - отсюда «выкуплено = заказано» и конверсия ровно 100%.`}</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th>${IS_OZON ? `<th class="r cf-cv">CV, %</th><th class="r">Показы в поиске</th>` : ``}<th class="r cf-cv">CV, %</th><th class="r">Посещения карточки</th><th class="r cf-cv">CV, %</th><th class="r">В корзину</th><th class="r cf-cv">CV, %</th><th class="r">Заказано</th><th class="r cf-cv">CV, %</th><th class="r" title="${IS_OZON ? "Выкуплено = Заказано − Отмены (формула OZON; возврат происходит после выкупа, отдельно)" : "Выкуплено = реально доставленное за вычетом возвратов, по дате заказа. Заказы периода, которые ещё едут, сюда не попадают - они дорастут задним числом, когда доедут."}">Выкуплено</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Потери и возвраты</div><div class="card-sub">возвраты, отмены, брошенные корзины за период - сводно и по категориям. Меняется по периоду и фильтрам вверху.</div></div></div>
     <div id="leaks"></div>
     <div class="kt-scroll" style="margin-top:14px"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возв.</th><th class="r">Отмены</th><th class="r">% отмен</th><th class="r">Брошено в корзине</th><th class="r">% брош.</th></tr></thead><tbody id="retl"></tbody></table></div>
@@ -1150,8 +1170,9 @@ function renderCatFunnel(cur){
   const BM={vs:T.views?T.vsearch/T.views:0,pd:T.vsearch?T.pdp/T.vsearch:0,ct:T.pdp?T.cart/T.pdp:0,un:T.cart?T.units/T.cart:0,dl:T.units?${IS_OZON ? "(T.units-T.canc)" : "T.deliv"}/T.units:0};
   const cv=(a,b,bm)=>{if(a==null||b==null||b<=0)return '<td class="r cf-cv">—</td>';const r=a/b;const col=(bm&&bm>0)?(r>=bm?'var(--up)':'var(--dn)'):'var(--ink-3)';return '<td class="r cf-cv" style="color:'+col+'">'+(r*100).toFixed(2)+'%</td>';};
   const cell=x=>{const vs=x.vsearch>0?x.vsearch:null,pd=x.pdp>0?x.pdp:null;
-    return '<td class="r">'+fmtRu(x.views)+'</td>'+cv(vs,x.views,BM.vs)
-      +(vs!=null?'<td class="r">'+fmtRu(vs)+'</td>':ndc)+cv(pd,vs,BM.pd)
+    return '<td class="r">'+fmtRu(x.views)+'</td>'+${IS_OZON
+      ? "cv(vs,x.views,BM.vs)+(vs!=null?'<td class=\"r\">'+fmtRu(vs)+'</td>':ndc)+cv(pd,vs,BM.pd)"
+      : "cv(pd,x.views,BM.pd)"}
       +(pd!=null?'<td class="r">'+fmtRu(pd)+'</td>':ndc)+cv(x.cart,pd,BM.ct)
       +'<td class="r">'+fmtRu(x.cart)+'</td>'+cv(x.units,x.cart,BM.un)
       +'<td class="r">'+fmtRu(x.units)+'</td>'+cv(${IS_OZON ? "Math.max(0,x.units-(x.canc||0))" : "x.deliv"},x.units,BM.dl)
@@ -1165,8 +1186,9 @@ function renderCatFunnel(cur){
   // Итоговая строка = сумма по категориям (T). CV в ней нейтральный (серый) - это и есть бенчмарк.
   const cvP=(a,b)=>'<td class="r cf-cv">'+(b>0?(a/b*100).toFixed(2)+'%':'—')+'</td>';
   const totRow='<tr class="cf-total"><td>Итого по категориям</td>'
-    +'<td class="r">'+fmtRu(T.views)+'</td>'+cvP(T.vsearch,T.views)
-    +'<td class="r">'+fmtRu(T.vsearch)+'</td>'+cvP(T.pdp,T.vsearch)
+    +'<td class="r">'+fmtRu(T.views)+'</td>'+${IS_OZON
+      ? "cvP(T.vsearch,T.views)+'<td class=\"r\">'+fmtRu(T.vsearch)+'</td>'+cvP(T.pdp,T.vsearch)"
+      : "cvP(T.pdp,T.views)"}
     +'<td class="r">'+fmtRu(T.pdp)+'</td>'+cvP(T.cart,T.pdp)
     +'<td class="r">'+fmtRu(T.cart)+'</td>'+cvP(T.units,T.cart)
     +'<td class="r">'+fmtRu(T.units)+'</td>'+cvP(${IS_OZON ? "Math.max(0,T.units-T.canc)" : "T.deliv"},T.units)
@@ -1176,14 +1198,14 @@ function renderCatFunnel(cur){
 }
 function render(cur,cmp){
   const S=k=>sumW(D[k],cur),P=k=>sumW(D[k],cmp);
-  const rev=S('rev')*1e6,prev=P('rev')*1e6;
+  ${FUN_REV_LINE}
   const kpi=(lab,val,d)=>'<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div>'+d+'</div>';
   const cr=(a,b)=>b?((a/b*100).toFixed(2)+'%'):'0%';
   document.getElementById('kpis').innerHTML=[
     kpi('Оборот, ₽',fMln(rev),dlt(rev,prev)),
-    kpi('Заказы, шт',fmtRu(S('units')),dlt(S('units'),P('units'))),
+    ${FUN_UNITS_KPI},
     kpi('Показы',fMln(S('views')),dlt(S('views'),P('views'))),
-    kpi('Конверсия показ→заказ',cr(S('units'),S('views')),dlt(${CONV_DELTA})),
+    kpi('Конверсия показ→заказ',${IS_OZON ? "cr(S('units'),S('views'))" : "cr(S('units')-S('canc'),S('views'))"},dlt(${CONV_DELTA})),
     kpi('Возвраты',fmtRu(S('ret')),dlt(S('ret'),P('ret'),false,'шт')),
     kpi('Отмены',fmtRu(S('canc')),dlt(S('canc'),P('canc'),false,'шт'))
   ].join('');
@@ -1195,8 +1217,7 @@ function render(cur,cmp){
   const nz=k=>{const s=S(k);return s>0?s:null;};
   const lv=[
     {n:'Показы, всего', v:S('views'), c:'из показов в поиск'},
-    {n:'Показы в поиске и каталоге', v:nz('vsearch'), c:'из поиска в карточку'},
-    {n:'Посещения карточки товара', v:nz('pdp'), c:'из карточки в корзину'},
+    ${VSEARCH_STEP}    {n:'Посещения карточки товара', v:nz('pdp'), c:'из карточки в корзину'},
     {n:'Добавления в корзину', v:S('cart'), c:'из корзины в заказ'},
     {n:'Заказано товаров', v:S('units'), c:'из заказа в выкуп'},
     ${IS_OZON
@@ -2419,7 +2440,9 @@ function svDraw(){
   // а штуки - с отчётом о реализации, и вот там покрытие неполное. Молчать об этом нельзя:
   // пользователь видел бы штуки закрытого месяца как сверенные.
   SV_REC.forEach(function(x){gaps.push(x);});
-  gapsEl.innerHTML=gaps.length?'<b>Чего не хватает:</b> '+gaps.join('; ')+'.':'';
+  // Иван 18.09.2026: «вот такие приписки скрой». Пробел в данных прятать нельзя (§15 п.3),
+  // но и разворачивать простынёй поверх таблицы незачем: сворачиваем в одну строку.
+  gapsEl.innerHTML=gaps.length?'<details><summary style="cursor:pointer;color:#a78a4a;list-style:none">чего не хватает в данных ('+gaps.length+')</summary><div style="padding-top:5px"><b>Чего не хватает:</b> '+gaps.join('; ')+'.</div></details>':'';
   gapsEl.style.display=gaps.length?'':'none';
   // Окно без ДОСТАВЛЕННЫХ заказов таблицей не рисуется, даже если в нём есть заказы в пути.
   // Иначе вернулся бы дефект, который ФЕНИКС нашёл раньше: за 28.02 таблица пуста, а водопад
@@ -2623,6 +2646,8 @@ svInit();
 // (accruals - деньги доставленного за вычетом возврата, ровно базис свода). Дельта считается по
 // доставленному: это единственная из двух цифр, которая уже деньги, а не намерение.
 // У OZON отчёт о заказах даёт нули в отменах, двух честных чисел не собрать - карточка прежняя.
+// Та же база, что на командном центре: заказано минус отменено. У OZON отмены в отчёте нули,
+// вычитать нечего - остаётся валовое.
 const NET_BASE_LINE = IS_OZON
   ? `const gmv=v('rev'),gmvP=p('rev'),u=v('units'),uP=p('units'),vw=v('views'),vwP=p('views');`
   : `const gmv=v('rev')-v('rcanc'),gmvP=p('rev')-p('rcanc'),u=v('units')-v('canc'),uP=p('units')-p('canc'),vw=v('views'),vwP=p('views');`;

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { execFileSync } from "node:child_process";
-import { readFileSync, mkdtempSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, cpSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM } from "jsdom";
@@ -12,6 +12,7 @@ import { JSDOM } from "jsdom";
 
 let dom: JSDOM;
 let ozonCommand = "";
+let staleCommand = "";
 const errs: string[] = [];
 const WIN = ["2026-09-01", "2026-09-16"] as const;
 const L = (p: string) => readFileSync(p, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
@@ -23,6 +24,11 @@ const sumWin = (field: string): number =>
     .reduce((s: number, t: any) => s + (t[field] || 0), 0);
 
 const D = () => dom.window.document;
+function setRange(from: string, to: string) {
+  (D().getElementById("range-from") as any).value = from;
+  (D().getElementById("range-to") as any).value = to;
+  D().getElementById("range-apply")!.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+}
 const card = () => {
   const c = [...D().querySelectorAll("#kpis .card")].find((x) => /Оборот/.test(x.textContent || ""));
   if (!c) throw new Error("карточки «Оборот» нет");
@@ -51,6 +57,24 @@ beforeAll(async () => {
   const outO = mkdtempSync(join(tmpdir(), "warroom-kpi-ozon-"));
   execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], { env: { ...process.env, OUT_DIR: outO }, stdio: "pipe" });
   ozonCommand = readFileSync(join(outO, "katya-command.html"), "utf8");
+
+  // Снимок daily_totals прошлой версии derive не знает полей о доставке. Проверяем, что сборка
+  // на нём не выдаёт молча валовое заказанное под подписью «заказано − отменено».
+  const stale = mkdtempSync(join(tmpdir(), "warroom-kpi-stale-"));
+  cpSync("data-ym", join(stale, "data"), { recursive: true });
+  const dt = join(stale, "data", "daily_totals.ndjson");
+  writeFileSync(dt, readFileSync(dt, "utf8").trim().split("\n").filter(Boolean).map((l) => {
+    const o = JSON.parse(l);
+    for (const k of ["accruals", "rev_canc", "rev_fly", "rev_ret", "rev_service", "flying"]) delete o[k];
+    return JSON.stringify(o);
+  }).join("\n") + "\n");
+  const outS = join(stale, "out");
+  mkdirSync(outS, { recursive: true });
+  execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], {
+    env: { ...process.env, DATA_DIR: join(stale, "data"), OUT_DIR: outS, PLATFORM: "ym" },
+    stdio: "pipe",
+  });
+  staleCommand = readFileSync(join(outS, "katya-command.html"), "utf8");
 
   dom = new JSDOM(readFileSync(join(out, "katya-command.html"), "utf8"), {
     runScripts: "dangerously",
@@ -105,6 +129,69 @@ describe("карточка «Оборот» Маркета: заказано м�
   it("ни одно из чисел не равно старому «заказано» целиком", () => {
     const gross = sumWin("revenue");
     for (const [v] of pairs()) expect(Math.abs(v - gross)).toBeGreaterThan(5000);
+  });
+
+
+  it("дельта считается по доставленному, а не по заказанному", () => {
+    // Мутация «dlt(v('racc'),p('racc')) -> dlt(gmv-v('rcanc'),gmvP-p('rcanc'))» раньше проходила
+    // все тесты молча. На дозревших окнах две базы обычно близки, и отличить их нельзя; окно
+    // 01-15.08 - редкий случай, где они расходятся знаком: по доставленному +3.7%, по
+    // заказанному −0.3%. Поэтому проверка именно на нём.
+    setRange("2026-08-01", "2026-08-15");
+    const shown = parseFloat((card().querySelector(".kt-d")!.textContent || "")
+      .replace(/[^\d.,-]/g, "").replace(",", "."));
+    const w = (a: string, b: string, f: string) =>
+      L("data-ym/daily_totals.ndjson").filter((t: any) => t.date >= a && t.date <= b)
+        .reduce((s: number, t: any) => s + (t[f] || 0), 0);
+    const net = (a: string, b: string) => w(a, b, "revenue") - w(a, b, "rev_canc");
+    const CUR = ["2026-08-01", "2026-08-15"] as const, PRV = ["2026-07-17", "2026-07-31"] as const;
+    const byDeliv = (w(...CUR, "accruals") / w(...PRV, "accruals") - 1) * 100;
+    const byOrdered = (net(...CUR) / net(...PRV) - 1) * 100;
+    expect(byDeliv * byOrdered).toBeLessThan(0); // базы действительно расходятся знаком
+    expect(Math.abs(shown - byDeliv)).toBeLessThan(1);
+    expect(Math.abs(shown - byOrdered)).toBeGreaterThan(2);
+    setRange(WIN[0], WIN[1]);
+  });
+
+  it("на недозревшем окне вместо дельты стоит пометка, а не красная стрелка", () => {
+    // За 10-16.09 дельта по доставленному дала бы ▼91.9% при движении бизнеса −13.8%:
+    // 92% заказов окна ещё летят. Такая стрелка на командном центре - ложный триггер P8.
+    setRange("2026-09-10", "2026-09-16");
+    const d = card().querySelector(".kt-d")!;
+    expect(d.textContent).toContain("не дозрело");
+    expect(d.className).not.toContain("dn");
+    setRange(WIN[0], WIN[1]);
+  });
+
+  it("разрыв между числами назван прямо на карточке, а не только в подсказке", () => {
+    const t = card().textContent || "";
+    expect(t).toContain("разрыв:");
+    expect(t).toContain("в пути");
+    // на закрытом месяце «в пути» нет, и строка обязана назвать возвраты и услуги
+    setRange("2026-07-01", "2026-07-31");
+    const july = card().textContent || "";
+    expect(july).toContain("возвраты");
+    expect(july).toContain("услуги");
+    expect(july).not.toContain("в пути");
+    setRange(WIN[0], WIN[1]);
+  });
+
+  it("соседние карточки честно называют свою базу", () => {
+    const tipOf = (name: string) =>
+      [...D().querySelectorAll("#kpis .card")].find((c) => (c.textContent || "").includes(name))?.getAttribute("title") || "";
+    expect(tipOf("Средний чек")).toContain("базы разные");
+    expect(tipOf("ДРР")).toContain("базы разные");
+  });
+
+  it("снимок без полей о доставке не выдаётся за честные числа", () => {
+    // Иначе левое число молча становится валовым заказанным под подписью «заказано − отменено»,
+    // то есть ровно тем враньём, которое правка пришла убрать (CLAUDE.md §15 п.3).
+    expect(staleCommand).toContain("const MONEY_GAP=true");
+    expect(staleCommand).toContain("снимок без полей о доставке");
+    // на свежих данных предупреждения быть не должно
+    const html = dom.serialize();
+    expect(html).toContain("const MONEY_GAP=false");
+    expect(card().textContent || "").not.toContain("снимок без полей");
   });
 
   it("у OZON карточка прежняя: ни второго числа, ни денежных серий", () => {

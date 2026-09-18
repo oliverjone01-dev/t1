@@ -1098,7 +1098,17 @@ function renderTree(){
     const cool={}; for(const d of ds){ for(const g of (d.needToClose||[])){ const kk=(g.label||'').replace(/\s*\([^)]*\)/,'').replace(/\d+/g,'N').trim(); if(!kk)continue; (cool[kk]||(cool[kk]={deg:0,n:0}));cool[kk].deg+=g.deg||0;cool[kk].n++; } }
     const topCool=Object.entries(cool).sort((a,b)=>b[1].deg-a[1].deg).slice(0,4);
     const whyBlock=topCool.length?`<br><b>Почему остывают (по сделкам):</b>`+topCool.map(([l,v])=>`<br>• ${esc(l)} — ${v.n} сдел., до +${v.deg}°<br>&nbsp;&nbsp;&rarr; ${esc(resolveOf(l))}`).join(''):'';
-    const hpTip=hp===null?'Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).':`Сила нагрева = медиана Δ температуры с входа до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${whyBlock}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
+    // Разбор ИИ уровня (отдел/подотдел/менеджер) - по просьбе Ивана живёт здесь, в подсказке
+    // динамики температуры, а не отдельными блоками. Только сделка держит свой блок в ленте.
+    const lvlAi = key===DEPT_KEY ? (AGG&&AGG.dept) : key==='__grp_office' ? (AGG&&AGG.office) : key==='__grp_sales' ? (AGG&&AGG.sales) : (key.indexOf('__grp_')===0 ? null : ((SC.managers.find(x=>x.mgr===key)||{}).ai));
+    const aiTip=(lvlAi&&(lvlAi.verdict||lvlAi.action||(lvlAi.strengths&&lvlAi.strengths.length)||(lvlAi.weaknesses&&lvlAi.weaknesses.length)))
+      ? `<br><br><b style="color:#8B7BF0">🤖 Разбор ИИ</b>`
+        +(lvlAi.verdict?`<br>${esc(lvlAi.verdict)}`:'')
+        +((lvlAi.strengths&&lvlAi.strengths.length)?`<br><b style="color:#7FD1A6">Сильные:</b> ${esc(lvlAi.strengths.join('; '))}`:'')
+        +((lvlAi.weaknesses&&lvlAi.weaknesses.length)?`<br><b style="color:#E08585">Слабые:</b> ${esc(lvlAi.weaknesses.join('; '))}`:'')
+        +(lvlAi.action?`<br><b style="color:#7FD1A6">Что делать:</b> ${esc(lvlAi.action)}`:'')
+      : '';
+    const hpTip=hp===null?('Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).'+aiTip):`Сила нагрева = медиана Δ температуры с входа до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${whyBlock}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
     return `<div class="tempcell"><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
   // «Почему остывают» с конкретными цифрами (сделок, до +N°, что делать) для агрегатного
   // ИИ-итога отдела/подотдела - те же данные, что в подсказке градусника.
@@ -1271,19 +1281,7 @@ function renderTree(){
       else ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
         if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
         return String(x??'').localeCompare(String(y??''))*S.sD.d; });
-      // Итог ИИ по менеджеру за все его сделки: вердикт, сильные/слабые стороны, что делать.
-      const ma=m.ai;
-      if(ma&&(ma.verdict||(ma.strengths&&ma.strengths.length)||(ma.weaknesses&&ma.weaknesses.length)||ma.action)){
-        html+=`<div class="msum"><div class="msum-h">🤖 Итог ИИ по менеджеру${ma.grade!=null?` · балл ${ma.grade}/10`:''}${ma.reviewed?` · разобрано сделок: ${ma.reviewed}`:''}</div>`
-          +(ma.verdict?`<div class="msum-v">${esc(ma.verdict)}</div>`:'')
-          +`<div class="msum-cols">`
-          +`<div class="msum-col msum-str"><div class="msum-t">Сильные стороны</div>${(ma.strengths||[]).length?'<ul>'+ma.strengths.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
-          +`<div class="msum-col msum-wk"><div class="msum-t">Слабые места</div>${(ma.weaknesses||[]).length?'<ul>'+ma.weaknesses.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':'<div class="dsum-none">-</div>'}</div>`
-          +`</div>`
-          +((()=>{const ch=coolListHtml(byM[m.mgr]||[]);return ch?`<div class="cool-box"><div class="msum-t" style="color:#E2A336">Почему остывают (по сделкам) · что делать</div>${ch}</div>`:'';})())
-          +(ma.action?`<div class="msum-act"><b>Что делать в первую очередь:</b> ${esc(ma.action)}</div>`:'')
-          +`</div>`;
-      }
+      // Итог ИИ по менеджеру теперь в подсказке градусника (динамика температуры), не блоком.
       html+=`<table class="tbl t2"><tr>`+DCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="d" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sD,c.k)}</span></th>`).join('')+`</tr>`;
       for(const d of ds){
         const openD=S.td.has(d.key), c2=urgCol(d.uKey), pc=probColor(d.prob);
@@ -1330,16 +1328,15 @@ function renderTree(){
   // Агрегатные ИИ-сводки: под «Весь отдел» и под каждым подотделом (данные scoring.aiAgg).
   // aiAgg приходит из scoring (score-dialog читает ai-review.json). Пока свежий прогон не
   // обновил данные, показываем демо-набор из шаблона; данные из крона его перекрывают.
+  // AGG (scoring.aiAgg или демо-резерв) теперь питает подсказку градусника уровней, не строки.
   const AGG=(SC&&SC.aiAgg)||AGG_FALLBACK;
-  const emitAgg=(a,ds)=>{ if(!a) return; const dsr=ds||[]; html+=`<tr class="aggrow"><td colspan="${MCOLS.length}">${aggBlock(a, coolListHtml(dsr), heatPowerDeals(dsr))}</td></tr>`; };
   emitRow(deptMgr);
   if(S.deptOpen && !deptDrill){
-    if(AGG) emitAgg(AGG.dept, byM[DEPT_KEY]||[]);
     for(const g of ['office','sales','other']){
       const members=mgrs.filter(mm=>mgrGroup(mm.mgr)===g);
       if(!members.length) continue;
       emitGrpRow(g,members);
-      if(S.grpOpen[g]!==false){ if(AGG) emitAgg(AGG[g], members.flatMap(mm=>byM[mm.mgr]||[])); for(const m of members) emitRow(m,52); }
+      if(S.grpOpen[g]!==false){ for(const m of members) emitRow(m,52); }
     }
   } else if(deptDrill){
     // Дрил по отделу: показываем сделки всего отдела (внутри emitRow deptMgr уже отрисован выше).

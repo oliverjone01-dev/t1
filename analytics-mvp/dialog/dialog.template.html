@@ -1530,8 +1530,10 @@ function renderTree(){
           +(a.problem?`<div class="dsum-p"><b>Риск потери:</b> ${esc(a.problem)}</div>`:'')
           +(a.recommendation?`<div class="dsum-r"><b>Что сделать:</b> ${esc(a.recommendation)}</div>`:'')
         : `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
-      const leftCol=originNote||'<div class="dsum-none">Происхождение сделки не определено</div>';
-      const sumRow=`<div class="dsum"><div class="dsum-col dsum-left">${leftCol}</div><div class="dsum-col dsum-right">${aiSum}</div></div>`;
+      // Краткий блок «Итог ИИ» убран (он дублирует подсказку градусника). Оставляем только
+      // строку происхождения сделки; подробный разбор идёт отдельным блоком ниже.
+      const sumRow=originNote?`<div class="dsum-origin">${originNote}</div>`:'';
+      void aiSum;
       // Развёрнутый ROP-аудит по сделке: даты, ранние стадии, дела/задачи/комментарии и что
       // после них, стиль, хорошо/не хватает, правила продаж, итог по коммуникации.
       const au=a&&a.audit;

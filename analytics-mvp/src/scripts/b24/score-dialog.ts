@@ -551,6 +551,15 @@ function main() {
     if (RE.refuse.test(inText)) push("клиент говорит об отказе", 0.5);
     if (ghostMove) push("стадия двигалась, касаний в CRM нет", 0.7);
     else if (internalOnly) push("нет следов общения в CRM", 0.75);
+    else {
+      // Слепая зона: касания есть, но видимой коммуникации с клиентом почти нет - лента
+      // держится на системных делах/заметках. Не видно, с чем пришёл клиент, его боли,
+      // возражения, как ведёт менеджер. По логике РОПа это риск: сделкой не управляют, она стынет.
+      const commEv = mix.msg + mix.call + mix.mail, sysEv = mix.task + mix.note;
+      const visShare = (commEv + sysEv) ? commEv / (commEv + sysEv) : 1;
+      if (!postSale && (commEv + sysEv) >= 4 && visShare < 0.34)
+        push("слепая зона: видимой коммуникации почти нет", commEv === 0 ? 0.7 : 0.82);
+    }
     if (promiseBroken) push(`обещал и не сделал: ${promiseBroken}`, promiseBroken > 1 ? 0.7 : 0.8);
     else if (vagueProm > 1) push(`обещания без срока: ${vagueProm}`, 0.9);
     if (taskNoContact) push(`дел закрыто без контакта: ${taskNoContact}`, taskNoContact > 1 ? 0.75 : 0.85);

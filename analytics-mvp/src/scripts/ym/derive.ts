@@ -4,8 +4,9 @@
 //   pnl_daily.ndjson, pnl_sku_daily.ndjson, pnl_account_daily.ndjson, sku_offer.json,
 //   ads_30d.json, ads_periods.json, ads_reports.json (заглушки: реклама не подключена).
 // Без сети. Запуск: npm run ym:derive [days=30]
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
+import { parseDeliveryCsv, type DelivRow } from "./delivery-lib.js";
 import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, isNettingFee, isPointsPaid, type OrderRow } from "./derive-lib.js";
 
 function main() {
@@ -63,7 +64,14 @@ function main() {
   const cogsMap = readJson<Record<string, number>>(yp("sku_cogs.json"), {});
   const actRows = readNdjson<any>(yp("services_monthly.ndjson"));
   const bonusRows = readNdjson<any>(yp("bonuses_monthly.ndjson"));
-  const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to, actRows, bonusRows);
+  // Ведомость доставки - ручной лист (наш расход на перевозку). Живёт в fixtures, потому что
+  // источник ручной: API Маркета счёт перевозчика не отдаёт и отдать не может.
+  let delivRows: DelivRow[] = [];
+  try { delivRows = parseDeliveryCsv(readFileSync("fixtures/delivery_ym.csv", "utf-8")); }
+  catch { delivRows = []; }
+  const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to, actRows, bonusRows, delivRows);
+  if (delivRows.length) console.log(`ym-derive: ведомость доставки - ${delivRows.length} отправок Маркета, наш расход на перевозку разнесён по заказам`);
+  else console.warn("::warning::ведомость доставки не подключена (fixtures/delivery_ym.csv): наш расход на перевозку в свод не попадёт, прибыль завышена");
   if (bonusRows.length) console.log(`ym-derive: отчёт по баллам - ${bonusRows.length} строк, начисленные баллы берутся из него`);
   else console.warn("::warning::отчёт по баллам Маркета не собран: баллы взяты из subsidies[] заказа (начисление сходится со скидкой до рубля), но списания баллов уровня кабинета - Полки, Буст за показы - есть только в отчёте по баллам");
   if (actRows.length) console.log(`ym-derive: акт по стоимости услуг - ${actRows.length} строк, общие расходы берутся из него`);

@@ -1902,7 +1902,12 @@ function paint(p,src){
       if(Math.round(t.T.sp))wfSteps.push(['Баллы Маркета (услуги, оплаченные баллами)',-t.T.sp,'#FF5A5F','Баллы']);
       wfSteps.push(['Поступление по артикулам',t.T.net,'#34D399','Поступление']);
       if(Math.round(uncov))wfSteps.push(['Поступление артикулов без известной С\\С (дальше не считается)',-uncov,'#8AA0B0','без С\\С']);
-      wfSteps.push(['СС произв.',-t.cogs,'#F59E0B','СС'],['АДМ+Налоги',-(t.adm+t.tax),'#F59E0B','АДМ+Налоги']);
+      wfSteps.push(['СС произв.',-t.cogs,'#F59E0B','СС']);
+      // Наш счёт перевозчика (ручная ведомость). Без своего бара цепочка не сходилась бы с
+      // «Чистой»: валовая теперь считается за вычетом этого расхода.
+      if(Math.round(t.shipCov||0))wfSteps.push(['Наша доставка (счёт перевозчика, ведомость)',-t.shipCov,'#F59E0B','Наша доставка']);
+      if(Math.round(t.shipLost||0))wfSteps.push(['Отправки по отменённым и возвратам ('+t.shipLostN+' заказов): перевозку оплатили, выручки нет',-t.shipLost,'#FF5A5F','Отмен. отправки']);
+      wfSteps.push(['АДМ+Налоги',-(t.adm+t.tax),'#F59E0B','АДМ+Налоги']);
       wfSteps.push(['Чистая прибыль',t.np,t.np>=0?'#34D399':'#FF5A5F','Чистая']);
     }
   }
@@ -2382,13 +2387,15 @@ function svodLite(svod: any): any {
   const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
   const NUM = ["units_delivered", "units_returned", "units_net", "price", "ship_buyer", "disc_mp", "disc_plus",
     "buyer_pay", "refunds", "revenue_money", "points_accrued", "svc_money", "svc_points", "svc_total",
-    "result_money", "result_points", "cogs"];
+    "result_money", "result_points", "cogs", "ship_our"];
   return {
     ...svod,
     months: (svod.months || []).map((m: any) => ({
       ...m,
       rows: (m.rows || []).map((row: any) => {
-        const o: any = { business: row.business, ym: row.ym, d: row.d, sku: row.sku, cogs_known: row.cogs_known };
+        // ship_known - булево, в NUM ему не место: там «ноль не пишем», а здесь именно false несёт
+        // смысл «ведомость этот заказ не знает» и обязан доехать до страницы.
+        const o: any = { business: row.business, ym: row.ym, d: row.d, sku: row.sku, cogs_known: row.cogs_known, ship_known: !!row.ship_known };
         for (const k of NUM) if (row[k]) o[k] = r2(row[k]);
         const svc: Record<string, number> = {};
         for (const [k, v] of Object.entries(row.svc || {})) if (v) svc[k] = r2(v as number);
@@ -2455,7 +2462,7 @@ function svInWin(d,w){w=w||svWin();return d>=w.from&&d<=w.to;}
 function svAgg(ms,w){
   w=w||svWin();
   var a={};ms.forEach(function(m){m.rows.forEach(function(r){if(!svInWin(r.d,w))return;var k=r.sku,o=a[k];
-    if(!o){o=a[k]={sku:r.sku,name:r.name,un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:r.cogs_known,svc:{}};}
+    if(!o){o=a[k]={sku:r.sku,name:r.name,un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:r.cogs_known,svc:{},shipOur:0,shipKn:false};}
     // ||0 обязателен: в страницу уходит компактная копия свода, где нулевые поля просто не
     // записаны. Без защиты первая же строка с нулевыми штуками давала NaN во всём итоге.
     // «Продажи» с вычетом возвратов. Прайс строки относится ко ВСЕМ доставленным штукам, поэтому
@@ -2466,6 +2473,9 @@ function svAgg(ms,w){
     o.priceNet+=_d>0?((r.price||0)*_n/_d):(r.price||0);
     o.un+=r.units_net||0;o.price+=r.price||0;o.ship+=r.ship_buyer||0;o.dmp+=r.disc_mp||0;o.rev+=r.revenue_money||0;
     o.pts+=r.points_accrued||0;o.sm+=r.svc_money||0;o.sp+=r.svc_points||0;o.cogs+=r.cogs||0;o.ck=o.ck&&r.cogs_known;
+    // Наша доставка - расход из ручной ведомости. shipKn отделяет «возили бесплатно» от «ведомость
+    // за этот месяц не заполняли»: за март лист пуст при 120 заказах, и ноль там был бы враньём.
+    o.shipOur+=r.ship_our||0; o.shipKn=o.shipKn||!!r.ship_known;
     SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
   // Недоставленные заказы периода, по артикулам. В расчёт не идут ни одной строкой: свод считает
   // только доставленное. Артикул, у которого доставок нет вовсе, заводится отдельной строкой с
@@ -2474,7 +2484,7 @@ function svAgg(ms,w){
   // «N без С\\С» у категории попадать не должна. Нули в расчёт ничего не вносят.
   ms.forEach(function(m){(m.inflight_rows||[]).forEach(function(r){
     if(!svInWin(r.d,w))return;
-    var o=a[r.sku]||(a[r.sku]={sku:r.sku,name:r.sku,un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:true,svc:{},fly:0,flyP:0,flyOnly:true});
+    var o=a[r.sku]||(a[r.sku]={sku:r.sku,name:r.sku,un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:true,svc:{},fly:0,flyP:0,flyOnly:true,shipOur:0,shipKn:false});
     o.fly=(o.fly||0)+(r.units||0); o.flyP=(o.flyP||0)+(r.price||0);});});
   return Object.keys(a).map(function(k){return a[k];}).sort(function(x,y){return y.rev-x.rev;});
 }
@@ -2484,6 +2494,18 @@ function svAgg(ms,w){
 // за весь месяц вычиталась целиком. У акта есть дата оказания услуги, у реестра - дата проводки,
 // поэтому день известен у обоих источников. Одна функция на таблицу, водопад, план и блок
 // «Общие расходы»: второй похожий цикл гарантированно разошёлся бы с первым.
+// Отправки по заказам, которые отменили или вернули. Перевозку мы оплатили, выручки нет.
+// В строки артикулов такой расход не идёт (рентабельность артикула поехала бы от расхода без
+// продажи) - он стоит своей строкой, решение Ивана 18.09.2026. По дням, чтобы работали окна
+// короче месяца.
+function svShipLost(ms,w){
+  w=w||svWin();
+  var v=0,n=0;
+  ms.forEach(function(m){var d=m.ship_lost_daily||{};
+    Object.keys(d).forEach(function(k){if(svInWin(k,w))v+=d[k]||0;});
+    if(Object.keys(d).some(function(k){return svInWin(k,w);}))n+=m.ship_lost_orders||0;});
+  return {v:v,n:n};
+}
 function svOverhead(ms,w){
   w=w||svWin();
   var o={m:0,p:0,c:{},act:0,ledger:0,shrink:0,shrinkN:0,ptsRep:0,ptsRepN:0,ptsNoAct:0};
@@ -2601,7 +2623,7 @@ function svDraw(){
     noteEl.textContent='';
     return;
   }
-  svTabPnl(list,ohM,ohP,noteEl);
+  svTabPnl(list,ohM,ohP,noteEl,svShipLost(svPick(svWin()),svWin()));
 }
 // Группировка по категориям и итоги свода - ОДНА реализация на всех потребителей: таблицу
 // P&L, водопад, план на месяц и блок общих расходов. Пока каждый считал по-своему, страница
@@ -2628,25 +2650,33 @@ function svCalcAll(list,ohM,ohP,adm,tax){
     var isG=(a.netCov!=null);                            // строка категории, а не артикула
     var cov=isG?a.netCov:(a.ck?net:0);                   // поступление по покрытым С\С артикулам
     var covered=isG?(a.rows.length>a.noCogs):a.ck;
-    var gp=covered?cov-a.cogs:null, av=cov*adm, tv=cov*tax;
-    return {fee:fee,oh:oh,net:net,cov:cov,covered:covered,gp:gp,adm:av,tax:tv,np:(gp===null)?null:gp-av-tv};
+    // Наша доставка - расход, которого в дашборде не было вовсе: Маркет в своих сборах показывает
+    // только собственный сбор за логистику, счёт перевозчика (ПЭК/СДЭК/своя машина) сюда не входил.
+    // Вычитается ПОСЛЕ поступления, как и С\С: это не сбор площадки, поэтому базу АДМ и налогов
+    // (они считаются от поступления) он не трогает.
+    // Берём долю ПОКРЫТЫХ С\С строк - как и с себестоимостью: иначе у категории с непокрытыми
+    // артикулами доставка вычиталась бы целиком из частичной базы.
+    var sh=isG?(a.shipCov||0):(a.ck?(a.shipOur||0):0);
+    var gp=covered?cov-a.cogs-sh:null, av=cov*adm, tv=cov*tax;
+    return {fee:fee,oh:oh,net:net,cov:cov,covered:covered,gp:gp,adm:av,tax:tv,np:(gp===null)?null:gp-av-tv,ship:sh};
   }
   // группировка по категориям
   var cats={};
   list.forEach(function(a){var c=SV_CAT[a.sku]||'Без категории';
-    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,ck:true,netCov:0,noCogs:0,svc:{},fly:0,flyP:0});
+    var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,ck:true,netCov:0,noCogs:0,svc:{},fly:0,flyP:0,shipOur:0,shipKn:false});
     SV_COLS.forEach(function(p){g.svc[p[0]]=(g.svc[p[0]]||0)+(a.svc[p[0]]||0);});
-    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.priceNet+=a.priceNet||0;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;g.sp+=a.sp||0;g.fly+=a.fly||0;g.flyP+=a.flyP||0;
-    if(a.ck){g.cogs+=a.cogs;g.netCov+=calc(a).net;} else {g.ck=false;g.noCogs++;}});
+    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.priceNet+=a.priceNet||0;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;g.sp+=a.sp||0;g.fly+=a.fly||0;g.flyP+=a.flyP||0;g.shipOur+=a.shipOur||0;g.shipKn=g.shipKn||!!a.shipKn;
+    if(a.ck){g.cogs+=a.cogs;g.netCov+=calc(a).net;g.shipCov=(g.shipCov||0)+(a.shipOur||0);} else {g.ck=false;g.noCogs++;}});
   var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(x,y){return calc(y).net-calc(x).net;});
-  var T={un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,net:0,gp:0,adm:0,tax:0,np:0,cover:0,fee:0,oh:0,fly:0,flyP:0},TC={};
+  var T={un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,net:0,gp:0,adm:0,tax:0,np:0,cover:0,fee:0,oh:0,fly:0,flyP:0,shipOur:0,shipKn:false,shipCov:0},TC={};
   SV_COLS.forEach(function(p){TC[p[0]]=0;});
   groups.forEach(function(g){
     var c=calc(g);
     T.un+=g.un;T.price+=g.price;T.priceNet+=g.priceNet;T.ship+=g.ship;T.dmp+=g.dmp;T.rev+=g.rev;T.sp+=g.sp;
     T.net+=c.net;T.adm+=c.adm;T.tax+=c.tax;T.fee+=c.fee;T.oh+=c.oh;T.fly+=g.fly||0;T.flyP+=g.flyP||0;
     SV_COLS.forEach(function(p){TC[p[0]]+=g.svc[p[0]]||0;});
-    T.cogs+=g.cogs;if(c.gp!==null){T.gp+=c.gp;T.np+=c.np;}T.cover+=c.cov;});
+    T.cogs+=g.cogs;if(c.gp!==null){T.gp+=c.gp;T.np+=c.np;}T.cover+=c.cov;
+    T.shipOur+=g.shipOur||0;T.shipKn=T.shipKn||!!g.shipKn;T.shipCov+=g.shipCov||0;});
   // Общие расходы уже сидят внутри net каждой строки, поэтому второй раз их не вычитаем.
   // Строки, у которых есть доставки. Окно без них - это «нет доставленных заказов», и водопад с
   // планом обязаны молчать. Без этого счётчика добавление колонок «в пути» сделало бы пустое окно
@@ -2674,7 +2704,7 @@ function svOhGroup(oh,group){
 function svTotals(w){
   w=w||svWin();
   var ms=svPick(w); if(!ms.length)return null;
-  var list=svAgg(ms,w), oh=svOverhead(ms,w);
+  var list=svAgg(ms,w), oh=svOverhead(ms,w), lost=svShipLost(ms,w);
   var ae=document.getElementById('sv-adm'), te=document.getElementById('sv-tax');
   var adm=Number((ae&&ae.value)||30)/100, tax=Number((te&&te.value)||15)/100;
   var R=svCalcAll(list,oh.m,oh.p,adm,tax), T=R.T;
@@ -2686,13 +2716,15 @@ function svTotals(w){
     fee:T.fee,                        // услуги Маркета по заказам
     net:T.net,                        // поступление: общие расходы уже внутри строк (разнесены по штукам)
     cover:T.cover,                    // база с известной С\С
-    cogs:T.cogs, gp:R.gpT, adm:T.adm, tax:T.tax, np:R.npT,
-    rent:(T.cover>0)?R.npT/T.cover*100:null,
-    marg:(T.cover>0)?R.gpT/T.cover*100:null,
+    cogs:T.cogs, shipOur:T.shipOur, shipCov:T.shipCov, shipKnown:T.shipKn, shipLost:lost.v, shipLostN:lost.n,
+    gp:R.gpT-lost.v, adm:T.adm, tax:T.tax, np:R.npT-lost.v,
+    rent:(T.cover>0)?(R.npT-lost.v)/T.cover*100:null,
+    marg:(T.cover>0)?(R.gpT-lost.v)/T.cover*100:null,
     empty:R.sold===0
   };
 }
-function svTabPnl(list,ohM,ohP,noteEl){
+function svTabPnl(list,ohM,ohP,noteEl,lost){
+  lost=lost||{v:0,n:0};
   var adm=Number(document.getElementById('sv-adm').value||30)/100, tax=Number(document.getElementById('sv-tax').value||15)/100;
   // Раскладка колонок - как в файле Ивана «свод июль». Строка любого уровня считается одинаково:
   // категория это сумма своих артикулов, поэтому раскрытие не может дать другую арифметику.
@@ -2703,13 +2735,24 @@ function svTabPnl(list,ohM,ohP,noteEl){
   // своим столбцом; спрятать их совсем нельзя - строка перестала бы сходиться.
   // «Поступление на штуку» и «С\С за штуку» убраны: обе получаются делением соседних колонок.
   var H=['Категория / Артикул','Продажи','Доставка покупателя'].concat(FEE)
-    .concat(['Баллы Маркета','Штуки','Поступление','С\\С произв.',
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
              'Валовая прибыль','Маржа','АДМ','Налоги','Чистая прибыль','Рентаб.',
              'В пути, шт','В пути, ₽']);
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   var T=R.T,TC=R.TC;
   function svBase(c){return (c.gp===null||c.cov<=0||Math.round(c.cov)===Math.round(c.net))?'':' title="база: поступление по артикулам с известной С\\С, '+svRub(c.cov)+' ₽ из '+svRub(c.net)+' ₽"';}
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
+  // «—» и «нет ведомости» - разные вещи. Ведомость заполняется руками: за март её нет вовсе при
+  // 120 заказах, и ноль в колонке читался бы как «возили бесплатно». §15 п.3 требует показать
+  // пробел, а не спрятать его за нулём.
+  function svShipCell(a,c){
+    // Без С\С валовая по строке не считается вовсе, и вычесть из неё доставку некуда. Ставим тот
+    // же маркер, что в колонке С\С: иначе сумма колонки не сходилась бы с тем, что реально
+    // вычтено (за июль это 4 105 ₽ - расход по артикулам, у которых нет себестоимости).
+    if(!c.covered)return '<td class="r" style="color:var(--ink-3)" title="у артикула нет С\\С, поэтому валовая по строке не считается и доставка из неё не вычитается">нет С\\С</td>';
+    if(!a.shipKn)return '<td class="r" style="color:#E5B567" title="ведомость доставки по этим заказам не заполнена - наш расход на перевозку неизвестен, прибыль в строке завышена">нет ведомости</td>';
+    return '<td class="r">'+(Math.round(a.shipOur||0)?svRub(a.shipOur):'—')+'</td>';
+  }
   function per(v,u){return '<td class="r" style="color:var(--ink-3)">'+(u>0&&Math.round(v)?svRub(v/u):'—')+'</td>';}
   function cells(a,c){
     return '<td class="r"><b>'+svRub(a.priceNet||0)+'</b></td>'+money(a.ship)
@@ -2717,6 +2760,7 @@ function svTabPnl(list,ohM,ohP,noteEl){
       +money(a.sp||0)
       +'<td class="r">'+a.un+'</td>'
       +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
+      +svShipCell(a,c)
       +'<td class="r">'+(c.covered?svRub(a.cogs):'нет С\\С')+'</td>'
       +'<td class="r" style="color:'+(c.gp===null?'var(--ink-3)':(c.gp>=0?'var(--up)':'var(--dn)'))+'">'+(c.gp===null?'не считается':svRub(c.gp))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.gp===null||c.cov<=0)?'—':(Math.round(c.gp/c.cov*1000)/10)+'%')+'</td>'
@@ -2732,16 +2776,46 @@ function svTabPnl(list,ohM,ohP,noteEl){
     if(open) g.rows.forEach(function(a){var ac=calc(a);
       h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+a.sku+'</td>'+cells(a,ac)+'</tr>';});
   });
+  // Отправки по заказам, которые отменили или вернули: перевозку оплатили, выручки нет. В строку
+  // артикула такой расход не кладём - рентабельность артикула поехала бы от расхода без продажи.
+  // Своей строкой, в ИТОГО входит (решение Ивана 18.09.2026: «считать, отдельной строкой»).
+  if(Math.round(lost.v)){
+
+    var shipIx=H.indexOf('Наша доставка');
+    var tds='';
+    for(var ci=1;ci<H.length;ci++){
+      if(ci===shipIx) tds+='<td class="r" style="color:#FF5A5F">'+svRub(lost.v)+'</td>';
+      else if(H[ci]==='Валовая прибыль'||H[ci]==='Чистая прибыль') tds+='<td class="r" style="color:var(--dn)">'+svRub(-lost.v)+'</td>';
+      else tds+='<td class="r">—</td>';
+    }
+    h+='<tr class="sv-extra" style="background:rgba(255,90,95,.06)"><td title="Мы оплатили перевозку, а заказ отменили или вернули. Выручки по таким заказам в своде нет (свод считает доставленное), поэтому расход стоит отдельной строкой и не искажает рентабельность артикулов.">Отправки по отменённым и возвратам <span style="color:var(--ink-3)">('+lost.n+' заказов)</span></td>'+tds+'</tr>';
+  }
   // Месяц без строк - это не убыток: валовой прибылью и рентабельностью пустоту не называем.
-  var some=groups.length>0, gpT=R.gpT, npT=R.npT;
+  var some=groups.length>0, gpT=R.gpT-lost.v, npT=R.npT-lost.v;
   var mS=function(v){return (some&&T.cover>0)?(Math.round(v/T.cover*1000)/10)+'%':'—';};
-  h+='</tbody><tfoot><tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td>'
+  // Валовая стоит на ПОКРЫТОЙ С\С базе, а «Поступление» показывает всё. Разница читалась как
+  // ошибка расчёта («поступление − СС не равно валовая», Иван 18.09.2026) и жила только в
+  // подсказке на «Марже». Теперь она - видимая строка-мост прямо над ИТОГО, и строка читается
+  // подряд: (Поступление − без С\С) − Наша доставка − СС = Валовая.
+  var uncov=T.net-T.cover;
+  h+='</tbody><tfoot>';
+  if(Math.round(uncov)){
+    h+='<tr class="sv-extra" style="border-top:2px solid var(--bd);color:var(--ink-3);font-size:12px"><td title="Поступление артикулов, у которых нет себестоимости. Валовая и рентабельность по ним не считаются, поэтому в базу прибыли они не входят.">в т.ч. артикулы без С\С - в прибыль не входят</td>'
+      +H.slice(1).map(function(x){return '<td class="r">'+(x==='Поступление'?'−'+svRub(uncov):'')+'</td>';}).join('')+'</tr>';
+  }
+  h+='<tr style="border-top:2px solid var(--bd)"><td><b>ИТОГО</b></td>'
     +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
     +FEE.map(function(n){var v=(TC[n]||0)+(n==='Прочее'?(ohM+ohP):0);
         return '<td class="r"><b>'+(Math.round(v)?svRub(v):'—')+'</b></td>';}).join('')
     +'<td class="r"><b>'+svRub(T.sp)+'</b></td>'
     +'<td class="r"><b>'+T.un+'</b></td>'
+    // Валовая стоит на ПОКРЫТОЙ С\С базе, а «Поступление» показывает всё. Разница читалась как
+    // ошибка («поступление − СС не равно валовая», Иван 18.09.2026) и жила только в тултипе на
+    // «Марже». Теперь она названа прямо в ячейке: из 3 973 702 ₽ июля 47 744 - артикулы без С\С,
+    // по ним валовая не считается. Тогда строка ИТОГО читается подряд:
+    // (Поступление − без С\С) − Наша доставка − СС = Валовая.
     +'<td class="r"><b>'+svRub(T.net)+'</b></td>'
+    +'<td class="r"'+(Math.round(T.shipOur-T.shipCov)?' title="плюс '+svRub(T.shipOur-T.shipCov)+' ₽ по артикулам без С\\С: у них валовая не считается, вычитать доставку не из чего"':'')+'><b>'+(T.shipKn||Math.round(lost.v)?(Math.round(T.shipCov+lost.v)?svRub(T.shipCov+lost.v):'—'):'<span style="color:#E5B567">нет ведомости</span>')+'</b></td>'
     +'<td class="r"><b>'+svRub(T.cogs)+'</b></td>'
     +'<td class="r"><b>'+(some?svRub(gpT):'—')+'</b></td>'
     +'<td class="r"'+svBase({gp:some?gpT:null,cov:T.cover,net:T.net})+'><b>'+mS(gpT)+'</b></td>'
@@ -2753,21 +2827,7 @@ function svTabPnl(list,ohM,ohP,noteEl){
   var el=document.getElementById('sv-t');el.innerHTML=h;
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
     tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
-  noteEl.innerHTML='<b>Клик по категории раскрывает артикулы.</b> Категория берётся из таксономии, а где её нет - по названию товара.<br>'
-    +'<b>Поступление</b> = Продажи + Доставка покупателя − сборы по статьям − Баллы Маркета. '
-    +'Доход взят ПРАЙСОМ, а не платежом покупателя: часть цены Маркет закрывает своей скидкой и возвращает её баллами, поэтому скидка одновременно и доход, и расход. '
-    +'Ровно поэтому услуги, оплаченные баллами, стоят расходом в колонке «Баллы Маркета».<br>'
-    +'<b>Продажи с вычетом возвратов:</b> вернувшаяся штука дохода не принесла, и её доля прайса снята - так же, как сняты штуки и выручка.<br>'
-    +'<b>Колонка «Баллы Маркета» сгруппирована по МЕСЯЦУ ЗАКАЗА, а кабинет группирует по месяцу списания.</b> '
-    +'За выбранные месяцы здесь '+svRub(T.sp)+' ₽ услуг по заказам этих месяцев, а в отчёте «О баллах Маркета» за те же месяцы списано '+svRub(SV_PTS_REP)+' ₽ - по заказам любых месяцев. '
-    +'Это два разных среза одних и тех же рублей: буст и комиссию по июльскому заказу Маркет может списать в августе. Сверять с кабинетом надо по номеру заказа, а не по итогу месяца.<br>'
-    +'<b>Источник балльных чисел</b> - отчёт по баллам Маркета (reports/united-netting с телом monthOfYear, в кабинете «Финансы - Финансовые отчёты - О баллах Маркета»). '
-    +'Услуги, оплаченные баллами, сверены с ним по номеру заказа и артикулу: по всем 1008 ключам кабинет+день+артикул расхождение ноль.<br>'
-    +'<b>«Прочее»</b> - приём и перевод платежа, подписка, обработка и хранение, ПЛЮС расходы кабинета ('+svRub(ohM+ohP)+' ₽): полки, подписки, баннеры, буст за показы. '
-    +'Расходы кабинета к товару не привязаны, поэтому разнесены по артикулам ПО ШТУКАМ ('+(T.un>0?svRub(ohPer):'0')+' ₽ на штуку) - прятать их из строки нельзя, иначе Поступление перестанет сходиться с колонками. Их разбивка по статьям - в блоке «Общие расходы» ниже.<br>'
-    +'<b>Валовая прибыль</b> = Поступление − С\\С. АДМ и Налоги считаются от Поступления, Чистая = Валовая − АДМ − Налоги, Маржа и Рентабельность - к Поступлению.<br>'
-    +'<b>«В пути»</b> - заказы периода, которые ещё не доставлены: штуки заказанные и цена по заказу. В расчёт НЕ входят ничем, свод считает только доставленное. Колонки справочные и показывают, чем месяц ещё дорастёт: заказ попадёт в продажи своего месяца задним числом, когда доедет, и вместе с ним придут его услуги и баллы - Маркет списывает их в день доставки.<br>'
-    +'Итог по валовой прибыли, АДМ, налогам и чистой считается только по SKU с известной себестоимостью ('+(T.net>0?(Math.round(T.cover/T.net*1000)/10):0)+'% поступления) - наведите на процент, чтобы увидеть базу. Колонки DBS нет: собственный расход на доставку Partner API не отдаёт.';
+  noteEl.innerHTML='';
 }
 function svInit(){
   if(!document.getElementById('sv-t'))return;

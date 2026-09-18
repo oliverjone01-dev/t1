@@ -34,6 +34,20 @@ function main() {
   const skuCost = new Map<string, number>(prodRows.filter((r) => IS_OZON || r.offer).map((r) => [IS_OZON ? r.sku : r.offer, Math.round(r.cost)]));
   // Лист ЯМ поверх листа OZON: он заведён под эту площадку и точнее там, где артикулы разошлись.
   for (const r of ymRows) skuCost.set(r.offer, Math.round(r.cost));
+  // Ручные связки: код в своде и код в листе - РАЗНЫЕ, но товар один. Автоматика такое связать не
+  // может и не должна: подставить чужую цену хуже честного пробела. Сюда попадает только то, что
+  // подтвердил владелец данных, и живёт связка ЗДЕСЬ, а не в выгрузке листа, - иначе следующее
+  // перечитывание таблицы её сотрёт.
+  //   GGT-20-1-3-R-120-190-80 ← GGT-20-2-3-R-120-190-80: одна модель VIOLUR Max 120/190 х 80,
+  //   различие в одной позиции кода. Подтверждено Катей 18.09.2026: «один товар».
+  const ALIAS: Array<[string, string]> = [["GGT-20-1-3-R-120-190-80", "GGT-20-2-3-R-120-190-80"]];
+  for (const [to, from] of ALIAS) {
+    const v = skuCost.get(from);
+    if (v == null) { console.warn(`::warning::связка СС ${to} <- ${from}: исходного артикула нет в листе, связка не сработала`); continue; }
+    if (skuCost.has(to)) continue;   // у самого артикула СС уже есть - связка не нужна
+    skuCost.set(to, v);
+    console.log(`СС произв.: ${to} взята у ${from} (${v} ₽) - ручная связка, один товар`);
+  }
   // Запасной индекс по нормализованному артикулу - только для тех, кто не нашёлся точным ключом.
   const normCost = new Map<string, number>();
   for (const [k, v] of skuCost) { const n = normOffer(k); if (!normCost.has(n)) normCost.set(n, v); }

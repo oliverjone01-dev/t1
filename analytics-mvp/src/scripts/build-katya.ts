@@ -1752,23 +1752,33 @@ function render(cur,cmp){
   // но строка = заказ (posting). Backbone OZON: выручка/штуки/сборы/к-выплате по заказу. Базис -
   // ПО ЗАКАЗУ (заказано, все статусы), в отличие от таблицы по артикулам (реализация). Реклама и
   // наша/клиентская доставка по заказу - следующим проходом (пока «—»). Знаки сборов из OZON: fee<0.
+  // Досбор по номеру заказа: реклама (CPO, ключ - base без суффикса отправки) и доставка (ведомость,
+  // ключ - полный номер постинга). Реклама в OZON по заказу = 0 (CPO API не отдаёт).
+  const cpoByOrder: Record<string, number> = {};
+  try { for (const l of readFileSync(dp("cpo_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); cpoByOrder[String(r.order)] = Number(r.sp || 0); } } catch { /* нет */ }
+  const delivByOrder: Record<string, { ship: number; deliv: number }> = {};
+  try { for (const l of readFileSync(dp("delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); delivByOrder[String(r.order)] = { ship: Number(r.ship || 0), deliv: Number(r.deliv || 0) }; } } catch { /* нет */ }
+  const orderBase = (o: string) => o.replace(/-\d+$/, ""); // снять суффикс отправки для ключа CPO
+
   const anOrders: any[] = [];
   try {
     for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
-      const r = JSON.parse(l); const sk = String(r.sku || "");
+      const r = JSON.parse(l); const sk = String(r.sku || ""); const ord = String(r.order || "");
       // Тот же базис, что в таблице по артикулам: РЕАЛИЗАЦИЯ (доставленные заказы), а не заказанное.
-      // Отменённые/в пути/ожидающие не берём - иначе выручка выше реализации на ~23% и блоки не сходятся.
       if (String(r.status || "") !== "delivered") continue;
       const units = Number(r.units || 0);
+      const adv = Math.round(cpoByOrder[orderBase(ord)] || cpoByOrder[ord] || 0); // реклама «за заказ»
+      const dl = delivByOrder[ord] || delivByOrder[orderBase(ord)] || { ship: 0, deliv: 0 };
+      const amtNet = Math.round((r.payout || 0) - adv); // К выплате после разнесённой рекламы (как в таблице по артикулам)
       anOrders.push({
         order: r.order, d: r.d, st: r.status,
         cat: catOf(sk) || "Прочее", off: String(r.offer || offerOf(sk)), nm: (skuName[sk] || sk).slice(0, 48),
         units, acc: Math.round(r.revenue || 0),
         com: -Math.round(r.commission || 0), del: -Math.round(r.delivery || 0), acq: -Math.round(r.acquiring || 0),
         sto: -Math.round(r.storage || 0), oth: -Math.round(r.other || 0),
-        amt: Math.round(r.payout || 0), amtS: (units > 0 ? Math.round(r.payout || 0) : 0),
+        adv, ship: Math.round(dl.ship), dinc: Math.round(dl.deliv),
+        amt: amtNet, amtS: (units > 0 ? amtNet : 0),
         cc: Math.round((cogs[sk] || 0) * units), noCs: (units > 0 && cogs[sk] == null),
-        adv: 0, ship: 0, dinc: 0,
       });
     }
   } catch { /* нет orders_daily - блок по заказам пуст (собирается orders-backfill) */ }
@@ -1802,7 +1812,7 @@ function render(cur,cmp){
       ? `<th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Реклама</th>`
       : `<th class="r">Доставка</th><th class="r">Приём и перевод платежа</th><th class="r">Хранение</th><th class="r">Софинансирование скидок</th><th class="r">Буст продаж</th><th class="r">Прочие</th>`}${IS_OZON ? `<th class="r" title="Наш расход на отправку заказа (счёт перевозчика ПЭК/СДЭК и т.п.) из ведомости доставки, разбор по номеру заказа, реальный расход, закрытые месяцы. Вычитается из прибыли.">Наша доставка</th><th class="r" title="Доход: сколько за доставку заплатил клиент (из ведомости), по артикулу, закрытые месяцы. Плюсуется в прибыль.">Доставка покупателя</th>` : ``}<th class="r">Всего сборов</th><th class="r">К выплате</th><th class="r">СС произв.</th><th class="r">Валовая прибыль</th><th class="r">АДМ 30%</th><th class="r">Налоги 15%</th><th class="r">Чистая прибыль</th><th class="r">Рентаб.</th>${IS_OZON ? `<th title="Города доставки по нашей отправке этого артикула (справочно)">Города доставки</th>` : ``}
   </tr>` : ``}<tbody id="skuan"></tbody></table></div></section>` : ``}
-  ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Аналитика по заказам (в разрезе заказа)</div><div class="card-sub">Та же аналитика, но строка = <b>заказ</b> (posting). Базис тот же, что в таблице по артикулам - <b>доставленные</b> заказы (реализация); отменённые и ещё летящие не входят. Выручка, сборы и «К выплате» - из OZON по каждому заказу (постинги + начисления). «Реклама» и «Наша/Доставка покупателя» по заказу разносятся следующим проходом (пока «—»). Клик по категории раскрывает заказы.</div></div></div><div class="kt-scroll"><table class="kt-table" id="ordan-t"><thead><tr><th>Заказ / категория</th><th class="r">Реализовано</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Реклама</th><th class="r">Наша доставка</th><th class="r">Доставка покупателя</th><th class="r">Всего сборов</th><th class="r">К выплате</th><th class="r">СС произв.</th><th class="r">Валовая прибыль</th><th class="r">АДМ 30%</th><th class="r">Налоги 15%</th><th class="r">Чистая прибыль</th><th class="r">Рентаб.</th><th>Города доставки</th></tr></thead><tbody id="ordan"></tbody></table></div></section>` : ``}
+  ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Аналитика по заказам (в разрезе заказа)</div><div class="card-sub">Та же аналитика, но строка = <b>заказ</b> (posting). Базис тот же, что в таблице по артикулам - <b>доставленные</b> заказы (реализация); отменённые и ещё летящие не входят. Выручка, сборы и «К выплате» - из OZON по каждому заказу (постинги + начисления). «Реклама» - CPO «за заказ» по номеру заказа (в OZON API по заказу не отдаётся - из ручного отчёта). «Наша доставка» и «Доставка покупателя» - по номеру постинга из ведомости. Часть заказов без рекламы/доставки (не было или номер не сошёлся) - «—». Клик по категории раскрывает заказы.</div></div></div><div class="kt-scroll"><table class="kt-table" id="ordan-t"><thead><tr><th>Заказ / категория</th><th class="r">Реализовано</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Реклама</th><th class="r">Наша доставка</th><th class="r">Доставка покупателя</th><th class="r">Всего сборов</th><th class="r">К выплате</th><th class="r">СС произв.</th><th class="r">Валовая прибыль</th><th class="r">АДМ 30%</th><th class="r">Налоги 15%</th><th class="r">Чистая прибыль</th><th class="r">Рентаб.</th><th>Города доставки</th></tr></thead><tbody id="ordan"></tbody></table></div></section>` : ``}
   <section class="card"><div class="card-h"><div><div class="card-title">Общие расходы</div><div class="card-sub"${IS_OZON ? ` style="display:none"` : ``}>${IS_OZON ? `За выбранный период. Это то, что OZON списывает отдельными операциями, не привязанными к одному артикулу - поэтому их нет в таблице по артикулам. «Сумма по артикулам (К выплате) + Итого этого блока = P&L канала». Источник - транзакции OZON (operation_type_name). Прогноз до конца периода - <b>[ГИПОТЕЗА]</b>: реклама/realFBS/подписки/доставка экстраполируются по дневному run-rate, штрафы и прочее - по факту (не прогнозируются). За закрытый прошлый месяц прогноз = факт.` : `Расходы кабинета, не привязанные к заказу: полки, подписки, баннеры, буст за показы. Период задаётся фильтром наверху страницы, разбивка - та же, что в своде, и ровно эта сумма вычтена в его строке «Общие расходы кабинета». Прогноза тут нет: часть расходов приходит месячным актом одной датой, и растягивать её по дневному run-rate значило бы придумывать числа.`}</div></div></div><div class="kt-scroll"><table class="kt-table" id="acct-t"><thead id="acct-h">${IS_OZON ? `<tr><th></th><th class="r">Реклама (клик+заказ)</th><th class="r">Штрафы + гибкий график</th><th class="r">realFBS + сервис + страховка</th><th class="r">Бейдж/сеть/отзывы/Premium</th><th class="r">Доставка от покупателя</th><th class="r">Прочее (компенс./эквайринг)</th><th class="r">Итого сборов</th></tr>` : ``}</thead><tbody id="acct"></tbody></table></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}#ordan-t th,#ordan-t td{white-space:nowrap}.ord-cat{cursor:pointer;font-weight:700}.ord-cat:hover{background:rgba(255,255,255,.03)}.ord-row td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
   const pageJs = `

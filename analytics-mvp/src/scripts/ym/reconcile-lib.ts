@@ -281,8 +281,26 @@ export function buildReconcile(inp: ReconInput, today: string) {
     if ((cogs[s.sku] || 0) > 0) { skC++; rC += s.rev; } else add(s.sku, "нет СС");
     if (tax[s.sku]) { skT++; rT += s.rev; } else add(s.sku, "нет в таксономии");
   }
-  const prevDelivered = new Set(delivered.filter((r) => r.fin >= pb.dateFrom && r.fin <= pb.dateTo).map((r) => r.sku));
-  if (rzSkus.size) for (const s of prevDelivered) if (!rzSkus.has(s)) add(s, `нет в реализации ${prevYm}`);
+  const prevDeliveredRows = delivered.filter((r) => r.fin >= pb.dateFrom && r.fin <= pb.dateTo);
+  const prevDelivered = new Set(prevDeliveredRows.map((r) => r.sku));
+  // Бейдж «нет в реализации» читался как претензия к товару, хотя чаще это претензия к НАШЕЙ выгрузке:
+  // отчёт за закрытый месяц добран не по всем магазинам (2026-08: 2 из 7), и артикулы недобранных
+  // магазинов физически не могли в нём оказаться. Два разных случая под одной подписью - повод
+  // принять пробел выгрузки за пробел по СС, что и произошло (Иван, 18.09.2026: «что значит эта
+  // приписка?»). Теперь подпись называет причину, а для недобранного магазина - ещё и его номер.
+  const prevCov = realizationCoverage(prevYm, prevDeliveredRows);
+  const missingShops = new Set(prevCov.shops_missing || []);
+  const campOfSku = new Map<string, string>();
+  for (const r of prevDeliveredRows) if (!campOfSku.has(r.sku)) campOfSku.set(r.sku, String(r.campaign));
+  if (rzSkus.size) for (const s of prevDelivered) {
+    if (rzSkus.has(s)) continue;
+    const shop = campOfSku.get(s) || "";
+    // Номер магазина в бейдж не кладём: он в одну строку рядом с артикулом и разносит колонку.
+    // Список недобранных магазинов и так назван в полосе покрытия и в блокерах отчёта.
+    add(s, missingShops.has(shop)
+      ? `реализация ${prevYm} не выгружена`
+      : `нет в отчёте о реализации ${prevYm}`);
+  }
   const viewDays = new Set(views.map((v) => v.date));
   // Разбивка по бизнес-кабинетам: у каждого кабинета свой ключ, и по каждому надо видеть, что он вообще
   // отдаёт данные (кабинет без строк = ключ не подключён или в кабинете нет продаж).
@@ -318,7 +336,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
         taxonomy: { sku: t.length, pct_sku: pct(t.length, rev.size), pct_rev: pct(sum(t), tot), rev_without: r0(tot - sum(t)) },
       };
     })(),
-    realization: { months: [...new Set(realz.map((r) => r.ym))].sort(), sku_prev_month: rzSkus.size, prev_month_coverage: realizationCoverage(prevYm, delivered.filter((r) => r.fin >= pb.dateFrom && r.fin <= pb.dateTo)) },
+    realization: { months: [...new Set(realz.map((r) => r.ym))].sort(), sku_prev_month: rzSkus.size, prev_month_coverage: prevCov },
     netting_key: keyCheck,
     netting: netting ? { rows: netRows.length, months: [...new Set(netRows.map((n) => n.d.slice(0, 7)))].sort(), orders_with_number: netByOrder.size } : null,
     // Позиции-услуги (доставка, подъём) и совпадения SKU внутри заказа. Если у заказа две позиции с

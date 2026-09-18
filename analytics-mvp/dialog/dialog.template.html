@@ -244,9 +244,9 @@ input#q{min-width:220px}
 .dsum-v{font-weight:600;color:var(--ink-1);line-height:1.4;margin-bottom:5px;font-size:12px}
 .dsum-p,.dsum-r{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin-bottom:3px}
 .dsum-p b{color:#E08585}.dsum-r b{color:#7FD1A6}
-.dsum-temp{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin-bottom:4px}
-.dsum-gaps{font-size:11px;line-height:1.5;color:var(--ink-3);margin-bottom:5px}
-.dsum-gaps b{color:#E2A336}
+.da-temp{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.da-gaps{font-size:11px;line-height:1.5;color:var(--ink-3);margin-top:4px}
+.da-gaps b{color:#E2A336}
 .dsum-none{color:var(--ink-4);font-size:11.5px}
 /* Развёрнутый разбор коммуникации по сделке */
 .dabox{width:100%;box-sizing:border-box;border:1px solid #8B7BF033;background:#8B7BF008;border-radius:9px;padding:11px 13px;margin:0 0 10px}
@@ -1092,9 +1092,16 @@ function renderTree(){
   const thermo=(d)=>{
     if(d.goalReached) return `<span class="tgoal" data-tip="Цель достигнута: предоплата получена, грев завершён.">🎯 предоплата</span>`;
     const t=d.temp==null?d.prob:d.temp, e=d.entryTemp==null?t:d.entryTemp, dl=d.tempDelta==null?0:d.tempDelta, c=TEMPCOL(t);
-    // Разбор ИИ, «не хватает до горячего» и динамика теперь в блоке «Итог ИИ» под лентой,
-    // а не в подсказке (по просьбе Ивана - всё в одном разборе, не отдельным блоком).
-    const tip=`Температура клиента = шанс покупки в моменте: <b>${t}°</b>. На входе ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Полный разбор - в блоке «Итог ИИ» при раскрытии сделки.`;
+    // Подсказка градусника: видно без раскрытия сделки (температура + не хватает + разбор ИИ).
+    const gaps=(d.needToClose||[]).slice(0,4).map(g=>`+${g.deg}° ${esc(g.label)}${g.rub?` (${money(g.rub)} ₽)`:''}`).join('<br>');
+    const a=d.ai;
+    const aiTip=(a&&(a.verdict||a.problem||a.recommendation))
+      ? `<br><br><b style="color:#8B7BF0">🤖 Разбор ИИ</b>`
+        +(a.verdict?`<br>${esc(a.verdict)}`:'')
+        +(a.problem?`<br><b style="color:#E08585">Риск потери:</b> ${esc(a.problem)}`:'')
+        +(a.recommendation?`<br><b style="color:#7FD1A6">Что сделать:</b> ${esc(a.recommendation)}`:'')
+      : '';
+    const tip=`Температура клиента = шанс покупки в моменте: <b>${t}°</b>. На входе ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Цель - предоплата.${gaps?'<br><b>Не хватает до горячего:</b><br>'+gaps:''}${aiTip}`;
     return `<div class="thermo" data-tip="${tip.replace(/"/g,'&quot;')}"><div class="thg"><div class="thtube"><span class="thliq" style="height:${Math.max(4,Math.min(100,t))}%;background:${c}"></span><i class="thmark" style="bottom:${Math.min(100,e)}%" title="на входе ${e}°"></i></div><span class="thbulb" style="background:${c}"></span></div><div class="thnum"><b class="tht" style="color:${c}">${t}°</b>${dl?`<span class="thd" style="color:${dl>0?'#2E9E74':'#C25252'}">${dl>0?'▲+'+dl:'▼'+dl}</span>`:''}</div></div>`;
   };
   // Распределение сделок менеджера/группы/отдела по температуре + СИЛА НАГРЕВА (медиана Δ).
@@ -1513,26 +1520,28 @@ function renderTree(){
       // Итог сделки двумя колонками: слева происхождение (лид/напрямую), справа вывод ИИ
       // (вердикт · риск потери · что сделать). Тот же формат пойдёт в дашборды менеджеров и в бота.
       const a=d&&d.ai;
-      // Температура + «не хватает до горячего» теперь ВНУТРИ блока итога ИИ (не в подсказке градусника).
+      // Температура-оценка и «не хватает до горячего» живут ВНУТРИ ИИ-аудита (см. daBlock ниже),
+      // а не перед ним. В шапке итога - только градус рядом с заголовком.
       const gapsList=(d.needToClose||[]).slice(0,4).map(g=>`+${g.deg}° ${esc(g.label)}${g.rub?` (${money(g.rub)} ₽)`:''}`).join('<br>');
-      const tempLine=d.temp!=null&&!d.goalReached
-        ? `<div class="dsum-temp">🌡 Температура <b style="color:${TEMPCOL(d.temp)}">${d.temp}°</b> (шанс покупки в моменте)${d.entryTemp!=null?`, на входе ${d.entryTemp}°`:''}${d.tempDelta?`, ${d.tempDelta>0?'прогрет +'+d.tempDelta:'остыл '+d.tempDelta}°`:''}. Цель - предоплата.</div>`
-          +(gapsList?`<div class="dsum-gaps"><b>Не хватает до горячего:</b><br>${gapsList}</div>`:'')
-        : (d.goalReached?`<div class="dsum-temp">🎯 Предоплата получена, грев завершён.</div>`:'');
       const aiSum=(a&&(a.verdict||a.problem||a.recommendation))
         ? `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div>`
           +(a.verdict?`<div class="dsum-v">${esc(a.verdict)}</div>`:'')
-          +tempLine
           +(a.problem?`<div class="dsum-p"><b>Риск потери:</b> ${esc(a.problem)}</div>`:'')
           +(a.recommendation?`<div class="dsum-r"><b>Что сделать:</b> ${esc(a.recommendation)}</div>`:'')
-        : `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div>`+tempLine+`<div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
+        : `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
       const leftCol=originNote||'<div class="dsum-none">Происхождение сделки не определено</div>';
       const sumRow=`<div class="dsum"><div class="dsum-col dsum-left">${leftCol}</div><div class="dsum-col dsum-right">${aiSum}</div></div>`;
       // Развёрнутый ROP-аудит по сделке: даты, ранние стадии, дела/задачи/комментарии и что
       // после них, стиль, хорошо/не хватает, правила продаж, итог по коммуникации.
       const au=a&&a.audit;
       const daItem=(ic,t,v)=>v?`<div class="da-item"><b>${ic} ${t}</b> ${esc(v)}</div>`:'';
+      // Оценка (температура + не хватает до горячего) - ВНУТРИ аудита, первым разделом.
+      const daTemp=(d.temp!=null&&!d.goalReached)
+        ? `<div class="da-temp">🌡 <b style="color:${TEMPCOL(d.temp)}">${d.temp}°</b> шанс покупки в моменте${d.entryTemp!=null?`, на входе ${d.entryTemp}°`:''}${d.tempDelta?`, ${d.tempDelta>0?'прогрет +'+d.tempDelta:'остыл '+d.tempDelta}°`:''}. Цель - предоплата.`
+          +(gapsList?`<div class="da-gaps"><b>Не хватает до горячего:</b><br>${gapsList}</div>`:'')+`</div>`
+        : (d.goalReached?`<div class="da-temp">🎯 Предоплата получена, грев завершён.</div>`:'');
       const daBlock=au?`<div class="dabox"><div class="da-h">🔬 Подробный разбор коммуникации</div>`
+        +daTemp
         +`<div class="da-grid">`
         +daItem('📅','Даты и сроки',au.timeline)
         +daItem('📇','Фиксация на ранних стадиях',au.early)

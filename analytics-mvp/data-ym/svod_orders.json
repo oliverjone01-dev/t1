@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-18T09:01:43.553Z",
+  "generated_at": "2026-09-18T09:35:33.627Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-16",
   "split_check": {
@@ -1617,8 +1617,8 @@
           "svc_total": 27111.82,
           "result_money": 26704.62,
           "result_points": 52940.61,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 20103,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -3045,7 +3045,7 @@
         }
       ],
       "points_on_delivery": 34276.2,
-      "cogs_cov": 96.2
+      "cogs_cov": 98.9
     },
     {
       "business": "1023124",
@@ -13957,8 +13957,8 @@
           "svc_total": 94888.96,
           "result_money": 21487.4,
           "result_points": -4699.56,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 14913,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -17617,8 +17617,8 @@
           "svc_total": 18062.08,
           "result_money": 11916.92,
           "result_points": 7573.69,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 4471,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -17922,8 +17922,8 @@
           "svc_total": 32625.54,
           "result_money": 8125.77,
           "result_points": -1285.99,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 4971,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -18288,8 +18288,8 @@
           "svc_total": 28848.82,
           "result_money": 9260.42,
           "result_points": 1218.05,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 4971,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -18532,8 +18532,8 @@
           "svc_total": 30113.18,
           "result_money": -22.09,
           "result_points": 903.51,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 4971,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -18593,8 +18593,8 @@
           "svc_total": 16597.73,
           "result_money": 7078.45,
           "result_points": 3036.26,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 4768,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -19381,7 +19381,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 43723.09,
-      "cogs_cov": 94.6
+      "cogs_cov": 100
     },
     {
       "business": "74986385",
@@ -20056,8 +20056,8 @@
           "svc_total": 48296.81,
           "result_money": 39961.44,
           "result_points": 39735.71,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 20103,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -22618,8 +22618,8 @@
           "svc_total": 38039.33,
           "result_money": 22403.2,
           "result_points": 21462.94,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 14260,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -24082,8 +24082,8 @@
           "svc_total": 36247.26,
           "result_money": 17470.18,
           "result_points": 11064.68,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 14260,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -26339,7 +26339,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 100154.48,
-      "cogs_cov": 94.8
+      "cogs_cov": 97.9
     },
     {
       "business": "1023124",
@@ -27624,8 +27624,8 @@
           "svc_total": 31977.14,
           "result_money": 6920.66,
           "result_points": -6994.23,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 4971,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -28035,7 +28035,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 7854.08,
-      "cogs_cov": 97.3
+      "cogs_cov": 100
     },
     {
       "business": "74986385",
@@ -28222,8 +28222,8 @@
           "svc_total": 40469.15,
           "result_money": 38131.15,
           "result_points": 51932.31,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 22598,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -28893,8 +28893,8 @@
           "svc_total": 38419.55,
           "result_money": 37750.92,
           "result_points": 40984.52,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 20103,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -30235,8 +30235,8 @@
           "svc_total": 23428.57,
           "result_money": 30652.75,
           "result_points": 29720.38,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 11225,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -32919,8 +32919,8 @@
           "svc_total": 17044.01,
           "result_money": 11047.68,
           "result_points": 18645.52,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 8239,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -33576,7 +33576,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 81037.37,
-      "cogs_cov": 94.9
+      "cogs_cov": 100
     },
     {
       "business": "1023124",
@@ -39540,8 +39540,8 @@
           "svc_total": 19136.48,
           "result_money": 27583.72,
           "result_points": 27145.5,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 10587,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -42697,7 +42697,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 117604.28,
-      "cogs_cov": 98.5
+      "cogs_cov": 99.2
     },
     {
       "business": "1023124",
@@ -42762,8 +42762,8 @@
           "svc_total": 10746.43,
           "result_money": 29287.13,
           "result_points": 147372.95,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 14007,
+          "cogs_known": true
         },
         {
           "business": "1023124",
@@ -43894,7 +43894,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 7303.96,
-      "cogs_cov": 88.2
+      "cogs_cov": 100
     },
     {
       "business": "74986385",
@@ -48534,8 +48534,8 @@
           "svc_total": 19235.3,
           "result_money": 23518.49,
           "result_points": 17117.32,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 12464,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -52499,8 +52499,8 @@
           "svc_total": 17448.57,
           "result_money": 16214.71,
           "result_points": 8734.95,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 8239,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -53870,7 +53870,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 128473.77,
-      "cogs_cov": 96.5
+      "cogs_cov": 97.4
     },
     {
       "business": "1023124",
@@ -62548,8 +62548,8 @@
           "svc_total": 45064.92,
           "result_money": 38953.99,
           "result_points": 43449.77,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 28520,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -65354,8 +65354,8 @@
           "svc_total": 23399.8,
           "result_money": 20190.98,
           "result_points": 24772.44,
-          "cogs": 0,
-          "cogs_known": false
+          "cogs": 14260,
+          "cogs_known": true
         },
         {
           "business": "74986385",
@@ -68097,7 +68097,7 @@
         }
       ],
       "points_on_delivery": 20877.48,
-      "cogs_cov": 93.5
+      "cogs_cov": 96.9
     },
     {
       "business": "1023124",

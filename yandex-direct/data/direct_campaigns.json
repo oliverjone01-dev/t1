@@ -1,15 +1,15 @@
 {
- "dateFrom": "2026-08-19",
- "dateTo": "2026-09-17",
- "generated_at": "2026-09-18T11:18:32.545Z",
+ "dateFrom": "2026-08-20",
+ "dateTo": "2026-09-18",
+ "generated_at": "2026-09-19T11:02:45.265Z",
  "totals": {
   "campaigns": 35,
   "active": 6,
-  "moderation": 28,
-  "spend": 171735.44,
-  "clicks": 1549,
-  "impressions": 167048,
-  "conversions": 1257
+  "moderation": 29,
+  "spend": 172544.25,
+  "clicks": 1543,
+  "impressions": 164699,
+  "conversions": 1243
  },
  "campaigns": [
   {
@@ -464,12 +464,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 1777,
-   "clicks": 175,
-   "ctr": 9.85,
-   "cpc": 154.76,
-   "spend": 27082.82,
-   "conv": 157
+   "imp": 1726,
+   "clicks": 172,
+   "ctr": 9.97,
+   "cpc": 155.8,
+   "spend": 26797.59,
+   "conv": 154
   },
   {
    "id": 712877517,
@@ -481,12 +481,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 3270,
-   "clicks": 355,
-   "ctr": 10.86,
-   "cpc": 126.39,
-   "spend": 44869.19,
-   "conv": 321
+   "imp": 3425,
+   "clicks": 354,
+   "ctr": 10.34,
+   "cpc": 123.28,
+   "spend": 43640.6,
+   "conv": 320
   },
   {
    "id": 712877525,
@@ -498,19 +498,19 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 2789,
-   "clicks": 415,
-   "ctr": 14.88,
-   "cpc": 123.54,
-   "spend": 51270.17,
-   "conv": 375
+   "imp": 2767,
+   "clicks": 417,
+   "ctr": 15.07,
+   "cpc": 123.73,
+   "spend": 51594.19,
+   "conv": 376
   },
   {
    "id": 712877530,
    "name": "[На заказ] Перегородки | ТГ | НБ=8т.р. | CPC=135 |",
    "type": "TEXT_CAMPAIGN",
-   "status": "ACCEPTED",
-   "state": "SUSPENDED",
+   "status": "MODERATION",
+   "state": "ARCHIVED",
    "payment": "ALLOWED",
    "start": "2026-07-19",
    "dailyBudget": null,
@@ -566,12 +566,12 @@
    "start": "2026-08-12",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 32764,
-   "clicks": 172,
-   "ctr": 0.52,
-   "cpc": 79.83,
-   "spend": 13731.05,
-   "conv": 75
+   "imp": 34512,
+   "clicks": 177,
+   "ctr": 0.51,
+   "cpc": 84.99,
+   "spend": 15043.22,
+   "conv": 77
   },
   {
    "id": 713589837,
@@ -583,12 +583,12 @@
    "start": "2026-08-16",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 126447,
-   "clicks": 432,
-   "ctr": 0.34,
-   "cpc": 80.51,
-   "spend": 34782.21,
-   "conv": 329
+   "imp": 122265,
+   "clicks": 423,
+   "ctr": 0.35,
+   "cpc": 83.85,
+   "spend": 35468.65,
+   "conv": 316
   },
   {
    "id": 714445486,
@@ -600,7 +600,7 @@
    "start": "2026-09-15",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 1,
+   "imp": 4,
    "clicks": 0,
    "ctr": 0,
    "cpc": 0,

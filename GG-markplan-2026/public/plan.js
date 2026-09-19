@@ -36,6 +36,13 @@
   var MON = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
   var WD = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]; // 0=Вс
   function fmt(d) { return d.getDate() + " " + MON[d.getMonth()]; }
+  // Последний день задачи по её старту и длительности.
+  function taskFin(t) { var s = pd(t && t.start); return s ? new Date(s.getTime() + ((t.days || 1) * MS) - MS) : null; }
+  // Просрочка: срок прошёл, а задача не закрыта и не заморожена.
+  function taskLate(t) {
+    if (!t || t.st === "done" || t.st === "frozen") return false;
+    var f = taskFin(t); return !!f && f.getTime() < TODAY.getTime();
+  }
   // какие строки Ганта раскрыты (обоснование + автор) - переживает перерисовку
   var ganttOpen = {};
   var ganttZoom = 1;      // масштаб ленты времени (кнопки +/-)
@@ -205,27 +212,55 @@
   }
 
   /* ---------- рендер статичных секций ---------- */
+  // Отметка свежести в шапке. Дата не вшита в страницу: если задачи прочитаны
+  // из Google-таблицы, показываем момент чтения, иначе честно пишем «снимок от».
+  function setStamp(state) {
+    var host = $("#mast-date"); if (!host) return;
+    if (state === "wait") {
+      host.textContent = "читаю таблицу…";
+      host.title = "Страница запрашивает задачи из Google-таблицы.";
+      return;
+    }
+    if (state === "live") {
+      var d = new Date();
+      var hh = ("0" + d.getHours()).slice(-2), mm = ("0" + d.getMinutes()).slice(-2);
+      host.textContent = "из таблицы · " + d.getDate() + " " + MON[d.getMonth()] + ", " + hh + ":" + mm;
+      host.title = "Задачи прочитаны из Google-таблицы в момент открытия страницы. Обновите страницу, чтобы прочитать заново.";
+      return;
+    }
+    host.textContent = "снимок от " + (P.meta.updated || "неизвестной даты");
+    host.title = "Таблица недоступна. Показан список, вшитый в страницу при сборке " + (P.meta.updated || "") + ".";
+  }
+
   function renderChrome() {
-    $("#mast-date").textContent = "обновлено " + (P.meta.updated || "");
-    $("#hero-dek").textContent = P.meta.dek || "";
-    $("#hero-note").innerHTML = esc(P.meta.note || "");
-    $("#foot-audit").textContent = P.meta.audit || "";
+    setStamp("wait");
+    var hd = $("#hero-dek"); if (hd) hd.textContent = P.meta.dek || "";
+    var hn = $("#hero-note"); if (hn) hn.innerHTML = esc(P.meta.note || "");
+    var fa = $("#foot-audit"); if (fa) fa.textContent = P.meta.audit || "";
+    var fg = $("#foot-gate"); if (fg) fg.textContent = P.meta.gate || "";
     var editUrl = P.meta.sheetId ? "https://docs.google.com/spreadsheets/d/" + P.meta.sheetId + "/edit" : "";
     var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
     var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
-    var nav = [["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-obzor", "Обзор"], ["s-bloki", "Блоки"]];
-    var here = (location.pathname.split("/").pop() || "plan.html");
-    var extra = here === "plan-valonti.html"
-      ? '<a href="plan.html">Антикризис →</a>'
-      : '<a href="plan-valonti.html" title="Прежний план мотивации VALONTI, архив">План VALONTI</a>';
-    $("#nav").innerHTML = nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("") + extra + '<a href="razbor.html" class="active" title="Адверсариальный разбор стратсессии Квартета">ФЕНИКС-разбор →</a>';
-    // герой-статы
-    $("#hero-stats").innerHTML = P.heroStats.map(function (s) {
+    // Навигация собирается по тем секциям, которые реально есть на странице:
+    // разделы удаляются и добавляются, а ссылка в никуда - худшее, что может быть в шапке.
+    var NAVMAP = [["s-gantt", "График"], ["s-razvilka", "Три вещи"], ["s-prioritety", "Приоритеты"],
+      ["s-obzor", "Обзор"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"]];
+    var nh = $("#nav");
+    if (nh) {
+      var here = (location.pathname.split("/").pop() || "plan.html");
+      var extra = here === "plan-valonti.html" ? '<a href="plan.html">Антикризис →</a>' : "";
+      nh.innerHTML = NAVMAP.filter(function (n) { return !!document.getElementById(n[0]); })
+        .map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("") + extra;
+    }
+    // герой-статы (секция есть только в архивном плане VALONTI)
+    var hs = $("#hero-stats");
+    if (hs && P.heroStats) hs.innerHTML = P.heroStats.map(function (s) {
       return '<div class="hstat ' + (s.tone || "") + '"><span class="v tnum">' + esc(s.v) + '</span><span class="l">' + esc(s.l) + "</span></div>";
     }).join("");
     // развилка
-    $("#fork").innerHTML = P.fork.map(function (f) {
-      return '<div class="fcard ' + (f.tone || "") + '"><span class="ftag">' + esc(f.tag) + '</span>' +
+    var fk = $("#fork");
+    if (fk && P.fork) fk.innerHTML = P.fork.map(function (f) {
+      return '<div class="fcard ' + (f.tone || "") + '"><span class="ftag">' + esc(f.tag || "") + '</span>' +
         '<div class="fk">' + esc(f.k) + '</div><div class="ft">' + esc(f.t) + '</div><div class="fd">' + esc(f.d) + "</div></div>";
     }).join("");
     // открытые решения и воронка: разделы могли быть удалены - тогда пропускаем
@@ -299,7 +334,8 @@
         '</span><span class="bcount tnum">' + ts.length + ' зад.</span><span class="chev">▸</span></summary>';
       var body = el("div", "btasks");
       ts.forEach(function (t) {
-        var pills = statusPill(t.st) + (t.gate ? '<span class="pill gate">гейт</span>' : "");
+        var pills = statusPill(t.st) + (taskLate(t) ? '<span class="pill late">просрочено</span>' : "") +
+          (t.gate ? '<span class="pill gate">гейт</span>' : "");
         body.innerHTML += '<div class="trow" id="row-' + esc(t.id) + '"><div><div class="tt">' + esc(t.t) + "</div>" +
           (t.why ? '<div class="twhy"><b>Зачем:</b> ' + esc(t.why) + "</div>" : "") +
           '<div class="tmeta">' + (t.author ? '<span class="who">' + esc(t.author) + "</span>" : "") + pills + "</div></div>" +
@@ -308,6 +344,24 @@
       d.appendChild(body); host.appendChild(d);
     });
   }
+  // Сводка просрочек. Цифра подаётся с расшифровкой: это расхождение плана с
+  // календарём, а не оценка работы людей.
+  function renderLateNote() {
+    var host = $("#late-note"); if (!host) return;
+    var late = P.tasks.filter(taskLate);
+    if (!late.length) { host.hidden = true; host.innerHTML = ""; return; }
+    var worst = null, hi = 0;
+    late.forEach(function (t) {
+      var f = taskFin(t); if (!worst || f < worst) worst = f;
+      if (t.pr === "hi") hi++;
+    });
+    host.hidden = false;
+    host.innerHTML = '<b>Срок прошёл у ' + late.length + ' задач из ' + P.tasks.length + '</b> на ' + fmt(TODAY) +
+      ', из них с высокой важностью ' + hi + '. Самый старый непройденный срок ' + fmt(worst) + '. ' +
+      'Это расхождение плана с календарём, а не оценка работы: срок в таблице не переносили. ' +
+      'По каждой такой задаче нужно либо поставить новую дату в колонке «Старт», либо перевести статус в «готово».';
+  }
+
   function statusPill(st) {
     var m = { done: ["done", "готово"], work: ["work", "в работе"], plan: ["", "план"], talk: ["talk", "к обсуждению"] }[st] || ["", st];
     return '<span class="pill ' + m[0] + '">' + m[1] + "</span>";
@@ -330,7 +384,8 @@
       '<span class="lg"><i class="st-frozen"></i>заморожено</span>' +
       '<span class="lg"><i class="st-done"></i>готово</span>' +
       '<span class="lg"><i class="st-gate"></i>гейт</span>' +
-      '<span class="lg"><i class="st-today"></i>сегодня</span></div>' +
+      '<span class="lg"><i class="st-today"></i>сегодня</span>' +
+      '<span class="lg"><i class="st-late"></i>просрочено</span></div>' +
       '<div class="lg-set lg-pr"><span class="lg-cap">важность:</span>' +
       '<span class="lg"><i class="pr-hi"></i>высокий</span>' +
       '<span class="lg"><i class="pr-mid"></i>средний</span>' +
@@ -340,6 +395,7 @@
       '<div class="g-zoom"><button type="button" data-z="out" aria-label="Уменьшить масштаб">&minus;</button>' +
       '<button type="button" data-z="fit">по ширине</button>' +
       '<button type="button" data-z="in" aria-label="Увеличить масштаб">+</button></div></div>';
+    renderLateNote();
     $("#gantt-legend").querySelectorAll(".g-zoom button").forEach(function (b) {
       b.addEventListener("click", function () {
         var z = b.getAttribute("data-z");
@@ -403,13 +459,19 @@
         o.tl = wrapPx(o.t.t, textPx, "g-task-line", 4);
         o.exWl = o.t.why ? wrapPx(o.t.why, textPx, "g-why-exp", 6) : [];
         var frozen = o.t.st === "frozen" || o.noDate;
+        // Срок прошёл, а задача не закрыта. До этого просроченная задача на экране
+        // ничем не отличалась от запланированной, и это главное, что нужно видеть сразу.
+        var fin = new Date(o.e.getTime() - MS);
+        o.late = !frozen && taskLate(o.t);
         o.whoTxt = frozen ? "нет исполнителя" : (o.t.who || "не назначен");
-        o.finTxt = frozen ? "срок не назначен" : ("до " + fmt(new Date(o.e.getTime() - MS)));
+        o.finTxt = frozen ? "срок не назначен"
+          : o.late ? ("просрочено, срок был " + fmt(fin))
+          : ("до " + fmt(fin));
         var avail = taskRight - taskX;
         var cl = [];
         if (o.t.pr) cl.push({ txt: PRNAME[o.t.pr], kind: "pr g-chip-pr-" + o.t.pr });
         cl.push({ txt: o.whoTxt, kind: (o.t.who && !frozen) ? "who" : "who-empty" });
-        cl.push({ txt: o.finTxt, kind: frozen ? "cal-empty" : "cal" });
+        cl.push({ txt: o.finTxt, kind: frozen ? "cal-empty" : (o.late ? "late" : "cal") });
         if (o.t.ext) cl.push({ txt: "ждём: " + o.t.ext, kind: "ext" });
         if (o.t.typ === "рутина") cl.push({ txt: "фоном, " + (o.t.hrs || "?") + " ч в неделю", kind: "rout" });
         var crows = [[]], rw = 0;
@@ -733,7 +795,7 @@
 
   /* ---------- прокрутка-подсветка навигации + reveal ---------- */
   function wireScroll() {
-    var secs = ["s-obzor", "s-gantt", "s-prioritety", "s-bloki", "s-voronka"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    var secs = ["s-gantt", "s-razvilka", "s-prioritety", "s-obzor", "s-bloki", "s-voronka"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
     var links = {}; document.querySelectorAll(".mast-nav a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
     if ("IntersectionObserver" in window) {
       var io = new IntersectionObserver(function (ents) {
@@ -749,12 +811,63 @@
   function wireTheme() {
     var R = document.documentElement;
     function cur() { return R.getAttribute("data-theme") || "dark"; }
-    function sync() { document.querySelectorAll(".ttoggle button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-t") === cur()); }); }
+    function sync() {
+      document.querySelectorAll(".ttoggle button").forEach(function (b) {
+        var on = b.getAttribute("data-t") === cur();
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    }
     function set(t) { R.setAttribute("data-theme", t); try { localStorage.setItem("gg.theme", t); } catch (e) {} sync(); }
     try { var saved = localStorage.getItem("gg.theme"); if (saved === "light" || saved === "dark") R.setAttribute("data-theme", saved); } catch (e) {}
     if (!R.getAttribute("data-theme")) R.setAttribute("data-theme", "dark");
     document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest(".ttoggle button"); if (b) set(b.getAttribute("data-t")); });
     sync();
+  }
+  // Блоков много, а «развернуть каждый руками» это 16 кликов. Одна кнопка на все.
+  function wireBlocksAll() {
+    var btn = $("#blocks-all"), host = $("#blocks");
+    if (!btn || !host) return;
+    function cards() { return Array.prototype.slice.call(host.querySelectorAll("details.bcard")); }
+    function sync() {
+      var all = cards();
+      var open = all.length > 0 && all.every(function (d) { return d.open; });
+      btn.textContent = open ? "Свернуть все блоки" : "Раскрыть все блоки";
+      btn.setAttribute("aria-pressed", open ? "true" : "false");
+    }
+    btn.addEventListener("click", function () {
+      var all = cards();
+      var open = all.length > 0 && all.every(function (d) { return d.open; });
+      all.forEach(function (d) { d.open = !open; });
+      sync();
+    });
+    host.addEventListener("toggle", sync, true);
+    sync();
+  }
+  // Перед печатью раскрываем все блоки: свёрнутый <details> на бумагу не попадает,
+  // и человек получает лист с одними заголовками. После печати возвращаем как было.
+  function wirePrint() {
+    if (!window.matchMedia && !window.onbeforeprint) { /* всё равно вешаем события */ }
+    var memo = null;
+    function before() {
+      var all = Array.prototype.slice.call(document.querySelectorAll("details.bcard"));
+      memo = all.map(function (d) { return d.open; });
+      all.forEach(function (d) { d.open = true; });
+    }
+    function after() {
+      if (!memo) return;
+      var all = Array.prototype.slice.call(document.querySelectorAll("details.bcard"));
+      all.forEach(function (d, i) { if (i < memo.length) d.open = memo[i]; });
+      memo = null;
+    }
+    window.addEventListener("beforeprint", before);
+    window.addEventListener("afterprint", after);
+    if (window.matchMedia) {
+      var mq = window.matchMedia("print");
+      var h = function (e) { if (e.matches) before(); else after(); };
+      if (mq.addEventListener) mq.addEventListener("change", h);
+      else if (mq.addListener) mq.addListener(h);
+    }
   }
   function wireProg() {
     var bar = $("#prog"); if (!bar) return;
@@ -763,16 +876,20 @@
   }
 
   /* ---------- boot ---------- */
-  function render() { renderChrome(); renderScenarios(); renderGantt(); renderPriorities(); renderBlocks(); wireScroll(); wireTheme(); wireProg(); }
+  function render() { renderChrome(); renderScenarios(); renderGantt(); renderPriorities(); renderBlocks(); wireScroll(); wireTheme(); wireProg(); wireBlocksAll(); wirePrint(); }
   document.addEventListener("DOMContentLoaded", function () {
     render();
     var rt; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { renderGantt(); }, 200); });
     loadLive(function (ok) {
       var badge = $("#src-badge");
-      if (ok) { badge.textContent = "живая таблица"; badge.classList.add("live"); renderGantt(); renderBlocks(); }
-      else {
+      if (ok) {
+        badge.textContent = "живая таблица"; badge.classList.add("live");
+        badge.title = "Задачи прочитаны из Google-таблицы GANTT-V2.";
+        renderGantt(); renderBlocks(); setStamp("live");
+      } else {
         badge.textContent = "список в странице";
         badge.title = "Таблица GANTT-V2 ещё не заполнена или недоступна. Показан список, вшитый в страницу. После заливки задач в таблицу здесь появится надпись «живая таблица».";
+        setStamp("snapshot");
       }
     });
   });

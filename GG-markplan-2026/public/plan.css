@@ -1,5 +1,8 @@
 /* GG-MarkPlan 2026 · авторская тема «редакционный чертёж»
-   Тёплая бумага, глубокая типографика Fraunces, латунный акцент. Не тёмный неон. */
+   Печатный разворот делового издания: тонкие линейки, воздух, латунный акцент,
+   один и тот же Inter в двух насыщенностях. Засечный шрифт не берём - у витринных
+   антикв (Fraunces и родственные) нет кириллицы, а кириллица тут обязательна.
+   Две темы равноправны, дефолт - тёмная. */
 
 :root{
   /* гамма и токены как в SMM-проекте (brand-site). Две темы; дефолт - тёмная.
@@ -93,8 +96,9 @@ main{display:flex;flex-direction:column}
 #s-gantt .sec-head{margin-bottom:14px}
 #s-gantt .sec-no{margin-bottom:6px}
 #s-gantt .sec-title{font-size:clamp(21px,2.5vw,29px)}
-#s-gantt .sec-dek{margin-top:5px;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-@media(max-width:640px){#s-gantt .sec-dek{white-space:normal}}
+/* дек графика переносится по словам: обрезать легенду направлений многоточием
+   значило прятать от читателя половину расшифровки аббревиатур */
+#s-gantt .sec-dek{margin-top:5px;font-size:14px;max-width:104ch}
 #s-prioritety{order:2}
 #s-obzor{order:3}
 #s-razvilka{order:4}
@@ -126,8 +130,21 @@ h1,h2,h3,h4{font-family:var(--serif);font-weight:700;line-height:1.05;letter-spa
 .src{font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid var(--line-2);color:var(--ink-3)}
 .src.live{color:var(--forest);border-color:var(--forest-2);background:color-mix(in oklab,var(--forest) 12%,transparent)}
 .mast-date{font-size:12px;color:var(--ink-3)}
-@media(max-width:820px){.mast-nav{display:none}.mast-meta{margin-left:auto}}
-@media(max-width:560px){.mast-sub,.mast-date,.src{display:none}.mast-inner{gap:12px}.mast-meta{gap:8px}}
+/* На узком экране навигация не исчезает, а уезжает во вторую строку и
+   прокручивается по горизонтали. Раньше ниже 820px разделов не было вообще. */
+@media(max-width:820px){
+  .mast-inner{flex-wrap:wrap;row-gap:8px}
+  .mast-meta{margin-left:auto}
+  .mast-nav{order:3;flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .mast-nav::-webkit-scrollbar{display:none}
+  .mast-nav a{flex:0 0 auto;white-space:nowrap}
+}
+@media(max-width:560px){
+  .mast-sub{display:none}
+  .mast-inner{gap:12px}
+  .mast-meta{gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .mast-date{font-size:11px}
+}
 
 /* ---------- ГЕРОЙ ---------- */
 .hero{max-width:var(--w);margin:0 auto;padding:clamp(38px,7vw,84px) 24px 40px}
@@ -471,7 +488,6 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 }
 /* очень узкие: график и таблицы уже скроллятся внутри себя, тексты в одну колонку */
 @media(max-width:520px){
-  .mast-nav{display:none}
   .hero-title{font-size:clamp(30px,9vw,40px)}
 }
 
@@ -521,3 +537,84 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 .g-chip-rout .g-chip-t,.g-chip-rout .g-chip-dot{fill:var(--ink-3)}
 /* источник цифры в раскрытой строке */
 .g-src-exp{fill:var(--ink-3);font-family:var(--sans);font-size:10px;font-style:italic}
+
+
+/* ---------- ПРОСРОЧКА ---------- */
+/* Задача с прошедшим сроком раньше выглядела как любая запланированная.
+   Для человека, который смотрит страницу между встречами, это первое,
+   что должно бросаться в глаза. */
+/* Важность и просрочка нарочно говорят разными средствами, а не одним цветом:
+   важность это подкрашенная обводка (ярлык), просрочка это залитый чип (сигнал).
+   Цвет просрочки один и тот же в обеих темах, чтобы на планёрке о нём не спорили. */
+:root{--late:#BC3A22;--late-ink:#FFF3EF}
+.g-chip-late .g-chip-bg{fill:var(--late);stroke:var(--late);stroke-width:1}
+.g-chip-late .g-chip-t{fill:var(--late-ink);font-weight:700}
+.g-chip-late .g-chip-dot{fill:var(--late-ink)}
+.lg .st-late{background:var(--late);border:1px solid var(--late)}
+.pill.late{color:var(--late-ink);border-color:var(--late);background:var(--late);font-weight:700}
+
+.late-note{margin-bottom:14px;font-size:13.5px;color:var(--ink2);line-height:1.5;
+  border-left:3px solid var(--stop);padding:10px 14px;border-radius:0 10px 10px 0;
+  background:linear-gradient(90deg,color-mix(in oklab,var(--stop) 13%,transparent),transparent 78%)}
+.late-note b{color:var(--ink);font-weight:800}
+.late-note[hidden]{display:none}
+
+/* ---------- ДОСТУПНОСТЬ И ПЕЧАТЬ (проход по .impeccable.md) ---------- */
+
+/* ссылка «сразу к содержанию»: невидима мышью, первая по Tab */
+.skip{position:fixed;left:12px;top:-60px;z-index:80;background:var(--cta);color:var(--cta-ink);
+  font-size:13.5px;font-weight:800;padding:9px 16px;border-radius:var(--radius-pill);
+  box-shadow:var(--shadow);transition:top .15s var(--ease)}
+.skip:focus{top:12px}
+
+/* видимый фокус клавиатуры. До этого по Tab нельзя было понять, где ты находишься */
+:focus-visible{outline:2px solid var(--gold-fill);outline-offset:2px;border-radius:6px}
+.mast-nav a:focus-visible,.foot-links a:focus-visible,.skip:focus-visible{outline-offset:3px}
+.bcard>summary:focus-visible{outline:2px solid var(--gold-fill);outline-offset:-3px}
+
+/* якорь не прячется под липкой шапкой */
+section[id]{scroll-margin-top:84px}
+@media(max-width:820px){section[id]{scroll-margin-top:108px}}
+
+/* служебная кнопка в шапке раздела (раскрыть все блоки) */
+.sec-tools{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.btn-lite{font:inherit;font-size:13px;font-weight:700;color:var(--ink2);background:var(--s2);
+  border:1px solid var(--line2);border-radius:var(--radius-pill);padding:7px 15px;cursor:pointer;
+  transition:.15s var(--ease)}
+.btn-lite:hover{color:var(--ink);border-color:var(--ink3)}
+.btn-lite[aria-pressed="true"]{color:var(--gold);border-color:var(--gold-border);background:var(--gold-soft)}
+
+/* ПЕЧАТЬ. Требование .impeccable.md: раздел должен уходить на бумагу без потери смысла.
+   Тёмную тему на бумаге печатать нельзя, поэтому на печать токены форсируем в светлые. */
+@media print{
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{
+    --bg:#fff;--s1:#fff;--s2:#F4F2EE;--s3:#E9E5DD;--line:#D8D4CC;--line2:#B3AEA3;
+    --ink:#111;--ink2:#3A352D;--ink3:#585245;
+    --gold:#6B4708;--gold2:#6B4708;--gold-soft:#F7EEDC;--gold-fill:#C9A96A;--gold-border:#B9995A;
+    --gg:#2E4763;--gg-ink:#2E4763;--gg-soft:#E7EDF3;
+    --keep:#245F43;--keep2:#245F43;--pub:#245F43;--pub-soft:#DEEFE6;
+    --stop:#9C3520;--danger:#9C3520;--rdy:#7A4A0C;--pln:#4E463A;
+    --shadow:none;--shadow-lg:none;--glow1:transparent;--glow2:transparent;--top-bg:#fff;
+    --sel-bg:transparent;--sel-ink:#111;--cta:#EADFC5;--cta-ink:#111;
+  }
+  html{scroll-behavior:auto}
+  body{background:#fff!important;background-image:none!important;color:#111;font-size:10.5pt;overflow:visible;transition:none}
+  *{transition:none!important;animation:none!important}
+  .prog,.grain,.masthead,.skip,.ttoggle,.sheet-top,.sec-tools,.g-tools,.g-zoom,.g-lock,.g-divider,.foot-links{display:none!important}
+  .card,.fcard,.vbox,.bcard,.hero-stat,.scen-tbl,.gantt-wrap,.open-list li{box-shadow:none!important}
+  .band{border-top:1pt solid var(--line2)}
+  .band-inner{padding:16pt 0;max-width:none}
+  .band-plan,.band-gate,.band-prio,.band-funnel,.band-open{background:none!important}
+  .sec-title{font-size:18pt}
+  .sec-dek{font-size:10pt;max-width:none}
+  .blocks,.fork,.open-list{grid-template-columns:1fr!important;gap:10pt}
+  .bcard,.fcard,.trow,.fstep,.ptier{break-inside:avoid;page-break-inside:avoid}
+  .bcard{border:1pt solid var(--line2)}
+  .bcard .chev{display:none}
+  /* график печатается на ширину листа: полосу времени не прокрутить на бумаге */
+  .g-right{overflow:visible!important}
+  .foot{background:none;border-top:1pt solid var(--line2)}
+  .late-note{border-left:3pt solid var(--late);background:none!important}
+  .reveal{opacity:1!important;transform:none!important}
+  @page{margin:14mm}
+}

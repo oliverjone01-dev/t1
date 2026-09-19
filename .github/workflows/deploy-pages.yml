@@ -12,6 +12,7 @@ name: Deploy to GitHub Pages
 #   /stand-protocol/   - Протокол стенда MEBELIT x VALONTI, БОЙ (из main, статика public/, правка ?edit=1)
 #   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
 #   /rop-preview/      - РОП-дашборд, ПРЕВЬЮ (из ветки ozon-dashboard-dima-fork, изолированная копия Ивана)
+#   /kontur/           - Контур: SEO, GEO и Директ по проектам (из main, статика public/)
 #   /direct/           - Дашборд Яндекс.Директ, БОЙ (из main, данные direct-snapshots.yml)
 #   /direct-preview/   - Дашборд Яндекс.Директ, ПРЕВЬЮ (из рабочей ветки)
 #   /market/           - Дашборд KATYA для Яндекс Маркета, БОЙ (из main, данные ym-snapshots.yml -> analytics-mvp/data-ym/)
@@ -288,6 +289,21 @@ jobs:
       # === ДИРЕКТ (из main, в /direct/; многостраничный) ===
       # Дашборд Яндекс.Директ: страницы запечены build.mjs из снимков yandex-direct/data/
       # (обновляет direct-snapshots.yml ночью). Токенов в HTML нет. Падение не валит сайт.
+      # === КОНТУР: SEO, GEO и Директ по проектам (из main, статика public/) ===
+      # Страница самодостаточна: данные вшиты на этапе сборки в kontur-dashboard,
+      # поэтому здесь только копирование. Обновляет kontur-snapshot.yml.
+      - name: Build KONTUR dashboard (/kontur/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [ -f "kontur-dashboard/public/index.html" ]; then
+            mkdir -p "$GITHUB_WORKSPACE/_site/kontur"
+            cp -r kontur-dashboard/public/. "$GITHUB_WORKSPACE/_site/kontur/"
+            echo "Контур опубликован в /kontur/"
+          else
+            echo "kontur-dashboard/public/index.html отсутствует в main - пропуск"
+          fi
+
       - name: Build DIRECT dashboard (/direct/)
         continue-on-error: true
         run: |

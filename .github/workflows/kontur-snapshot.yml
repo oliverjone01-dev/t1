@@ -1,0 +1,72 @@
+name: "Контур: съём позиций и пересборка дашборда"
+
+# Фиксирует дневную точку по позициям и видимости в ИИ, пересобирает блок данных
+# и страницу. Смысл в первом шаге: у сводки домена в keys.so нет ретроспективы,
+# поэтому пропущенная точка не восстанавливается задним числом никогда.
+#
+# Данные берутся из выгрузок, которые кладёт keyso-collect.yml. Своих походов
+# в сеть здесь нет: воркфлоу работает только с файлами репозитория.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1-5"      # будни, 09:00 МСК, после ночного сбора
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "1 = разово добрать историю из keysso.json"
+        default: "0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kontur-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Записать точку в дневной ряд
+        working-directory: kontur-dashboard
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event.inputs.seed }}" = "1" ]; then
+            python3 tools/snapshot.py --seed
+          fi
+          python3 tools/snapshot.py
+
+      - name: Пересобрать данные и страницу
+        working-directory: kontur-dashboard
+        run: |
+          set -euo pipefail
+          python3 tools/build_data.py
+          python3 src/build.py
+
+      - name: Сторож
+        working-directory: kontur-dashboard
+        run: python3 tools/check_dash.py
+
+      - name: Проверить ряд на разрывы
+        working-directory: kontur-dashboard
+        continue-on-error: true      # разрыв это повод разобраться, а не валить сборку
+        run: python3 tools/snapshot.py --check
+
+      - name: Закоммитить, если что-то изменилось
+        run: |
+          set -euo pipefail
+          git config user.name  "kontur-bot"
+          git config user.email "kontur-bot@users.noreply.github.com"
+          git add kontur-dashboard/data kontur-dashboard/public
+          if git diff --cached --quiet; then
+            echo "изменений нет"
+          else
+            git commit -m "kontur: точка съёма $(date -u +%Y-%m-%d)"
+            git push
+          fi

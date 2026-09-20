@@ -395,8 +395,16 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 .mast-nav a.active{color:var(--ink);background:var(--s2);font-weight:700}
 .src{border-radius:var(--radius-pill);border-color:var(--line2);color:var(--ink3)}
 .src.live{color:var(--pub);border-color:var(--pub);background:var(--pub-soft)}
-.src.stale{color:var(--late-ink);border-color:var(--late);background:var(--late);font-weight:700}
-@media(max-width:560px){.src{max-width:44vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+/* Бейдж «данные не обновились» намеренно НЕ из семейства просрочки: один и тот
+   же красный на «срок прошёл» и «данные не обновились» склеивает два разных
+   понятия. Охра это «обрати внимание», а не «горит». */
+.src.stale{color:var(--rdy);border-color:var(--rdy);background:var(--sgl-soft);font-weight:700}
+/* Фраза про источник не обрезается на телефоне: дата списка это и есть ответ
+   на вопрос «свежие ли цифры», обрезать её значит убрать ответ. */
+@media(max-width:560px){
+  .src{white-space:normal;line-height:1.25;padding:4px 9px}
+  .mast-meta{flex-wrap:wrap;justify-content:flex-end;row-gap:6px}
+}
 /* верхняя ссылка на Google-таблицу плана (золотая pill CTA) */
 .sheet-top{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:800;color:var(--cta-ink);background:var(--cta);border-radius:var(--radius-pill);padding:7px 14px;white-space:nowrap;box-shadow:0 3px 12px rgba(227,189,114,.3);transition:.15s var(--ease)}
 .sheet-top:hover{background:var(--cta-2);transform:translateY(-1px);box-shadow:0 6px 16px rgba(227,189,114,.42)}

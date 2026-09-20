@@ -21,12 +21,77 @@ const srv = http.createServer((req, res) => {
 await new Promise(r => srv.listen(0, r));
 const BASE = 'http://127.0.0.1:' + srv.address().port;
 
+// ---------------------------------------------------------------------------
+// Оценки аудита: проверяем по ВСЕМ файлам public, а не по одной странице.
+// Белый список не литерал: он собирается из журналов traces/ и отчётов
+// knowledge/episodes/, поэтому удалить запись и оставить цифру на странице
+// не получится - прогон покраснеет.
+// ---------------------------------------------------------------------------
+const REPO = path.resolve(HERE, '..', '..');
+function recordedScores() {
+  const out = new Set();
+  const walk = (dir, fn) => {
+    if (!fs.existsSync(dir)) return;
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p, fn); else fn(p);
+    }
+  };
+  walk(path.join(REPO, 'traces'), p => {
+    if (!p.endsWith('.jsonl')) return;
+    for (const m of fs.readFileSync(p, 'utf8').matchAll(/"feniks_score":\s*([0-9.]+)/g)) out.add(m[1]);
+  });
+  walk(path.join(REPO, 'knowledge', 'episodes'), p => {
+    if (!/feniks.*\.json$/.test(p)) return;
+    try { const d = JSON.parse(fs.readFileSync(p, 'utf8'));
+      if (d.weighted_total != null) out.add(String(d.weighted_total)); } catch (e) {}
+  });
+  // 6.2 и 6,2 это одно число: нормализуем к виду «с запятой, без хвостового нуля»
+  const norm = new Set();
+  for (const v of out) { const n = Number(v); if (!Number.isNaN(n)) norm.add(String(n).replace('.', ',')); }
+  return norm;
+}
+// Осознанные исключения. Каждое с причиной и задачей, которая его закрывает.
+// Это не способ спрятать находку: строка видна в коде и попадает в вывод.
+const CLAIM_EXCEPTIONS = [
+  { file: 'razbor.html', value: '6,6',
+    why: 'оценка стратсессии Квартета, то есть содержание самой страницы разбора, а не оценка страницы. Записи для неё тоже нет - закрывает задача Z23 в плане.' },
+  { file: 'plan-data.js', value: '6,6',
+    why: 'упоминание внутри задачи Z23, которая как раз и требует завести запись под этой оценкой. Текст задачи сам говорит, что записи нет, то есть цифра не выдаётся за факт.' },
+  { file: 'gantt-v2.csv', value: '6,6',
+    why: 'та же задача Z23 в источнике импорта: CSV и снимок обязаны совпадать слово в слово.' },
+];
+function checkClaims() {
+  const rec = recordedScores();
+  const bad = [], allowed = [];
+  for (const f of fs.readdirSync(ROOT)) {
+    if (!/\.(html|js|css|csv)$/.test(f)) continue;
+    const txt = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    const lines = txt.split('\n');
+    lines.forEach((ln, i) => {
+      for (const m of ln.matchAll(/([0-9]+[.,][0-9]+)\s*(?:из 10|\/10)/g)) {
+        const v = m[1].replace('.', ',');
+        const exc = CLAIM_EXCEPTIONS.find(e => e.file === f && e.value === v);
+        if (exc) { allowed.push(`${f}:${i + 1} ${v} (исключение: ${exc.why})`); continue; }
+        if (!rec.has(v)) bad.push(`${f}:${i + 1} оценка ${v} без записи аудита`);
+      }
+    });
+  }
+  console.log(`оценки: записей в репозитории ${rec.size}, исключений ${allowed.length}`);
+  allowed.forEach(a => console.log('  ПРОПУЩЕНО ' + a));
+  if (bad.length) { bad.forEach(b => console.log('  FAIL static: ' + b)); return bad.length; }
+  return 0;
+}
+
 const WIDTHS = [320, 360, 390, 768, 1024, 1440, 1920];
 const THEMES = ['dark', 'light'];
 const MODE = process.argv[2] || 'live';   // live | snapshot
 let fails = 0, checks = 0;
 const bad = (w, t, m) => { fails++; console.log(`  FAIL ${w}px/${t}: ${m}`); };
 const ok = () => { checks++; };
+
+const RECORDED = recordedScores();
+fails += checkClaims(); checks += 1;
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 
@@ -97,6 +162,9 @@ for (const w of WIDTHS) for (const t of THEMES) {
       lateBorder: q('#late-note') ? getComputedStyle(q('#late-note')).borderLeftColor : '',
       chipFill: (() => { const n = q('.pill.late'); return n ? getComputedStyle(n).backgroundColor : ''; })(),
       oldDate: !!q('#mast-date'),
+      badgeClip: (() => { const n = q('#src-badge'); if (!n) return null;
+        return { sw: n.scrollWidth, cw: n.clientWidth, sh: n.scrollHeight, ch: n.clientHeight }; })(),
+      badgeColor: (() => { const n = q('#src-badge'); return n ? getComputedStyle(n).backgroundColor : ''; })(),
       badDates: Array.from(document.querySelectorAll('.g-left text'))
         .map(n => n.textContent).filter(t => /18\d\d|19\d\d|20[3-9]\d|фев/.test(t)),
     };
@@ -121,11 +189,11 @@ for (const w of WIDTHS) for (const t of THEMES) {
   if (r.aria !== (t === 'light' ? 'true,false' : 'false,true')) bad(w, t, `aria-pressed = ${r.aria}`); else ok();
   if (MODE === 'live') {
     if (!/^таблица · /.test(r.badge)) bad(w, t, `бейдж "${r.badge}"`); else ok();
-    if (r.tasks !== 130) bad(w, t, `задач в блоках ${r.tasks}, ждали 130`); else ok();
+    if (r.tasks !== 133) bad(w, t, `задач в блоках ${r.tasks}, ждали 133`); else ok();
     if (r.blocks < 8) bad(w, t, `блоков ${r.blocks}`); else ok();
   } else {
     if (!/^данные не обновились · список от /.test(r.badge)) bad(w, t, `бейдж "${r.badge}"`); else ok();
-    if (r.tasks !== 130) bad(w, t, `задач в блоках ${r.tasks}`); else ok();
+    if (r.tasks !== 133) bad(w, t, `задач в блоках ${r.tasks}`); else ok();
   }
 
   // раскрыть все блоки
@@ -176,8 +244,7 @@ for (const w of WIDTHS) for (const t of THEMES) {
   // Проверяем ВЕСЬ подвал, а не тот узел, который правили: иначе зелёный стенд
   // не видит устаревшую оценку в соседнем абзаце того же подвала.
   const claims = r.footAll.match(/\d+[.,]\d+\s*(?:из 10|\/10)/g) || [];
-  const allowed = /^(6,2|7,25|7,5)$/;
-  const strayClaims = claims.map(c => (c.match(/\d+[,.]\d+/) || [''])[0]).filter(v => !allowed.test(v));
+  const strayClaims = claims.map(c => (c.match(/\d+[,.]\d+/) || [''])[0]).filter(v => !RECORDED.has(v));
   if (strayClaims.length) bad(w, t, `в подвале оценки без записи аудита: ${strayClaims.join(', ')}`); else ok();
   if (!/7,25|6,2/.test(r.footAll)) bad(w, t, 'подвал не ссылается ни на одну запись аудита'); else ok();
   if (/порог(е)? 8,0/.test(r.footAll)) bad(w, t, 'подвал называет порог 8,0 вместо 7,5'); else ok();
@@ -192,6 +259,14 @@ for (const w of WIDTHS) for (const t of THEMES) {
   if (r.srcTags < 100) bad(w, t, `меток источника в блоках ${r.srcTags}, ждали по одной на задачу`); else ok();
   if (r.lateBorder !== r.chipFill) bad(w, t, `два красных на одно понятие: рамка ${r.lateBorder} против чипа ${r.chipFill}`); else ok();
   if (r.oldDate) bad(w, t, 'остался второй бейдж свежести #mast-date'); else ok();
+  // Фраза про источник это ответ на «свежие ли цифры». Обрезать её многоточием
+  // значит убрать ответ, а на телефоне это заметно не сразу.
+  const bc = r.badgeClip;
+  if (bc && (bc.sw > bc.cw + 1 || bc.sh > bc.ch + 1))
+    bad(w, t, `фраза про источник обрезана: ${bc.sw}x${bc.sh} в окне ${bc.cw}x${bc.ch}`); else ok();
+  // Красный просрочки не должен означать ещё и «данные не обновились»
+  if (r.badgeColor && r.badgeColor === r.chipFill)
+    bad(w, t, `бейдж источника залит цветом просрочки ${r.badgeColor}`); else ok();
   if (!/(по таблице, прочитана|по списку от)/.test(r.lateNote || '')) bad(w, t, 'сводка просрочек не подписана источником списка'); else ok();
   if (r.badDates.length) bad(w, t, `подозрительные даты в графике: ${r.badDates.slice(0,3).join(' / ')}`); else ok();
   if (!/Срок прошёл у \d+ задач/.test(r.lateNote || '')) bad(w, t, `сводка просрочек: "${(r.lateNote||'').slice(0,50)}"`); else ok();

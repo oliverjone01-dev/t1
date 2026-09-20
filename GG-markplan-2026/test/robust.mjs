@@ -43,7 +43,7 @@ const snap = pg => pg.evaluate(()=>{
   console.log('garbage  ', JSON.stringify({badge:r.badge,rows:r.rows,noDate:r.noDate,suspect:r.suspect.length}));
   if(r.suspect.length) bad('garbage',`даты вне плана на экране: ${r.suspect.slice(0,3).join(' / ')}`); else ok();
   if(r.noDate<10) bad('garbage',`битые даты не превратились в «срок не назначен» (${r.noDate} из 10+)`); else ok();
-  if(r.rows!==130) bad('garbage',`задач ${r.rows}, ждали 130 (ни одна не должна пропасть)`); else ok();
+  if(r.rows!==133) bad('garbage',`задач ${r.rows}, ждали 133 (ни одна не должна пропасть)`); else ok();
   if(errs.length) bad('garbage','console: '+errs.slice(0,2).join(' | ')); else ok();
   await ctx.close(); }
 
@@ -57,7 +57,7 @@ const snap = pg => pg.evaluate(()=>{
 // 3. пустая таблица (только шапка)
 { const {ctx,pg,errs}=await open('gviz-empty.csv'); const r=await snap(pg);
   console.log('empty    ', JSON.stringify({badge:r.badge,rows:r.rows,docW:r.docW}));
-  if(r.rows!==130) bad('empty',`пустая таблица не откатилась на снимок (${r.rows} задач)`); else ok();
+  if(r.rows!==133) bad('empty',`пустая таблица не откатилась на снимок (${r.rows} задач)`); else ok();
   if(r.docW>r.winW+1) bad('empty','горизонтальный скролл'); else ok();
   if(errs.length) bad('empty','console: '+errs.slice(0,2).join(' | ')); else ok();
   await ctx.close(); }
@@ -66,7 +66,7 @@ const snap = pg => pg.evaluate(()=>{
 { const {ctx,pg,errs}=await open('gviz-alldone.csv'); const r=await snap(pg);
   console.log('all-done ', JSON.stringify({badge:r.badge,rows:r.rows,late:r.late.slice(0,40)}));
   if(r.late) bad('all-done',`сводка просрочек осталась: "${r.late.slice(0,60)}"`); else ok();
-  if(r.rows!==130) bad('all-done',`задач ${r.rows}`); else ok();
+  if(r.rows!==133) bad('all-done',`задач ${r.rows}`); else ok();
   if(errs.length) bad('all-done','console: '+errs.slice(0,2).join(' | ')); else ok();
   await ctx.close(); }
 

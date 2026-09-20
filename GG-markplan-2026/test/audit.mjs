@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
-const ROOT = path.resolve(HERE, '..', 'public');
+import { ROOT, RENDERED, recordedScores, findClaims, excuse, checkClaims } from './claims-gate.mjs';
+
 const FIX = fs.readFileSync(path.join(HERE, 'fixtures', 'gviz.csv'), 'utf8');
 const MIME = { '.html':'text/html;charset=utf-8', '.css':'text/css;charset=utf-8', '.js':'application/javascript;charset=utf-8', '.csv':'text/csv;charset=utf-8', '.json':'application/json;charset=utf-8' };
 
@@ -20,159 +21,6 @@ const srv = http.createServer((req, res) => {
 });
 await new Promise(r => srv.listen(0, r));
 const BASE = 'http://127.0.0.1:' + srv.address().port;
-
-// ---------------------------------------------------------------------------
-// ГЕЙТ УТВЕРЖДЕНИЙ ОБ ОЦЕНКАХ
-//
-// Что он делает: находит на всех публикуемых поверхностях любое утверждение
-// вида «N из 10» или «N/10» и требует, чтобы такое число было подтверждено
-// отчётом аудита, который лежит в knowledge/episodes и называет в
-// deliverable_ref именно этот артефакт.
-//
-// Чего он НЕ делает, и это важно понимать: он не доказывает подлинность
-// оценки. Отчёты пишет тот же, кто правит страницу, поэтому приписать себе
-// девять баллов можно, положив рядом отчёт на девять баллов. Это проверка
-// согласованности, а не подлинности, и подменить её на «страница прошла
-// аудит» нельзя. Единственная настоящая защита это чужой аудит.
-//
-// Что уже пробовали сломать (итерация 4 ФЕНИКСА) и что теперь ловится:
-//   целое число «8 из 10»; неразрывный пробел и &nbsp; между числом и мерой;
-//   разметка внутри числа («<b>9,2</b>/10»); перенос строки между числом и
-//   мерой; исключение, растянутое на весь файл; файл в подпапке и .json;
-//   утверждение, пришедшее в текст из живой таблицы, а не из репозитория.
-// ---------------------------------------------------------------------------
-const REPO = path.resolve(HERE, '..', '..');
-const ARTIFACT = 'GG-markplan';
-
-// Любое «N из 10» / «N/10», целое или дробное, с любым пробелом или переносом.
-// Отрицание после «10» отсекает только продолжение числа (100, 10.5), но не
-// знак препинания: «9,9 из 10, вердикт принято» это оценка, и прежняя версия
-// с (?![\d.,]) её пропускала из-за запятой.
-const CLAIM_RE = /(\d+(?:[.,]\d+)?)\s*(?:из\s*10|\/\s*10)(?!\d)(?![.,]\d)/g;
-// Целое число в этой форме встречается и в обычной речи («хотя бы 8 из 10
-// человек»), поэтому целое считается оценкой только рядом со словом про оценку.
-// Дробное считается оценкой всегда: «7,25 из 10» в живой речи не бывает.
-// Остаточная дыра признана: «8 из 10» без таких слов рядом гейт не поймает.
-const SCORE_WORD = /(оценк|балл|вердикт|аудит|провер|гейт|score|gate|из 10 баллов)/i;
-function isScoreClaim(value, around) {
-  return /[.,]/.test(value) || SCORE_WORD.test(around);
-}
-// Текст перед поиском: снимаем разметку, приводим пробелы к обычным.
-// Пробелы приводим к обычным всегда. Разметку снимаем ОТДЕЛЬНЫМ вариантом, а не
-// вместо исходного текста: в js-файле «<» и «>» могут стоять как обычные знаки,
-// и снятие «тегов» проглотило бы весь кусок между ними вместе с оценкой.
-// Поэтому ищем в обоих вариантах и объединяем находки.
-function normWs(txt) {
-  return txt
-    .replace(/&nbsp;|&#160;|&#xA0;/gi, ' ')
-    .replace(/[\u00A0\u2007\u202F\u2009\u200A]/g, ' ')  // неразрывные и тонкие пробелы
-    .replace(/[ \t]+/g, ' ');
-}
-function variants(txt) {
-  const a = normWs(txt);
-  const b = normWs(txt.replace(/<[^>]*>/g, ' '));   // «<b>9,2</b>/10» -> «9,2 /10»
-  return b === a ? [a] : [a, b];
-}
-const normNum = v => String(Number(String(v).replace(',', '.'))).replace('.', ',');
-
-function walk(dir, fn) {
-  if (!fs.existsSync(dir)) return;
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) { if (e.name !== 'node_modules') walk(p, fn); }
-    else fn(p);
-  }
-}
-
-// Белый список: только отчёты, которые называют ЭТОТ артефакт. Строки журнала
-// сами по себе больше не авторизуют оценку: дописать строку в jsonl дешевле,
-// чем положить отчёт, проходящий схему.
-function recordedScores() {
-  const out = new Set(), where = new Map();
-  walk(path.join(REPO, 'knowledge', 'episodes'), p => {
-    if (!/feniks.*\.json$/.test(p)) return;
-    let d; try { d = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { return; }
-    if (!String(d.deliverable_ref || '').includes(ARTIFACT)) return;
-    if (d.weighted_total == null) return;
-    const v = normNum(d.weighted_total);
-    out.add(v); where.set(v, path.relative(REPO, p));
-  });
-  return { set: out, where };
-}
-
-// Исключения привязаны к 40 символам контекста вокруг числа, а не к файлу:
-// иначе разрешённое значение открывает дорогу тому же числу в любом другом
-// месте того же файла.
-// razbor.html это не страница плана, а опубликованный отчёт разбора
-// стратсессии Квартета: её оценки это предмет страницы, а не её самооценка.
-// Поэтому она выведена из общего правила целиком, но не бесплатно: взамен
-// требуется, чтобы у оценки на первом экране стояли автор и статус записи.
-// Пока записи нет, это держит задача Z23.
-const REPORT_PAGES = {
-  'razbor.html': {
-    why: 'опубликованный отчёт разбора стратсессии Квартета: оценки в нём относятся к разговору, а не к странице',
-    requires: ['Оценку поставил ФЕНИКС', 'запись этой проверки в журнале пока не завёдена'],
-  },
-};
-const RENDERED = '<отрисованный текст страницы>';
-const CLAIM_EXCEPTIONS = [
-  { file: 'plan-data.js', value: '6,6', ctx: 'Z23',
-    why: 'упоминание внутри задачи Z23, которая и требует завести запись под этой оценкой. Текст задачи сам говорит, что записи нет.' },
-  { file: 'gantt-v2.csv', value: '6,6', ctx: 'Z23',
-    why: 'та же задача Z23 в источнике импорта: CSV и снимок обязаны совпадать слово в слово.' },
-  { file: RENDERED, value: '6,6', ctx: 'Завести запись проверки',
-    why: 'текст задачи Z23 в разделе блоков: та же оговорка, что и в снимке.' },
-];
-function excuse(file, value, around) {
-  return CLAIM_EXCEPTIONS.find(e => e.file === file && e.value === value && around.includes(e.ctx));
-}
-
-function findClaims(txt, file) {
-  const hits = [], seen = new Set();
-  for (const flat of variants(txt)) {
-    for (const m of flat.matchAll(CLAIM_RE)) {
-      const around = flat.slice(Math.max(0, m.index - 60), m.index + 60).replace(/\s+/g, ' ');
-      // Окно привязки шире окна показа: исключение цепляется за идентификатор
-      // задачи, внутри которой оценка упомянута, а не за случайную фразу.
-      const ctxWin = flat.slice(Math.max(0, m.index - 220), m.index + 120).replace(/\s+/g, ' ');
-      if (!isScoreClaim(m[1], around)) continue;
-      const value = normNum(m[1]);
-      const key = value + '|' + around.slice(20, 80);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      hits.push({ value, line: flat.slice(0, m.index).split('\n').length, around, ctxWin, file });
-    }
-  }
-  return hits;
-}
-
-function checkClaims(rec) {
-  const bad = [], allowed = [];
-  // Рекурсивно и с json: папка public публикуется целиком.
-  walk(ROOT, p => {
-    if (!/\.(html|js|css|csv|json|md|txt)$/.test(p)) return;
-    const rel = path.relative(ROOT, p), file = path.basename(p);
-    const txt = fs.readFileSync(p, 'utf8');
-    const rep = REPORT_PAGES[file];
-    if (rep) {
-      // Страница-отчёт освобождена от сверки оценок, но обязана назвать автора
-      // и статус записи. Не назвала - это провал, а не пропуск.
-      const miss = rep.requires.filter(r => !txt.includes(r));
-      if (miss.length) bad.push(`${rel}: страница-отчёт не называет автора или статус записи оценки (нет: ${miss.join('; ')})`);
-      else allowed.push(`${rel} целиком: ${rep.why}; автор и статус записи указаны`);
-      return;
-    }
-    for (const h of findClaims(txt, file)) {
-      const exc = excuse(file, h.value, h.ctxWin);
-      if (exc) { allowed.push(`${rel}:${h.line} ${h.value} (${exc.why})`); continue; }
-      if (!rec.set.has(h.value)) bad.push(`${rel}:${h.line} оценка ${h.value} без отчёта, называющего ${ARTIFACT}: «…${h.around.trim()}…»`);
-    }
-  });
-  console.log(`гейт оценок: отчётов по ${ARTIFACT} ${rec.set.size} (${[...rec.set].join(', ')}), исключений ${allowed.length}`);
-  allowed.forEach(a => console.log('  ПРОПУЩЕНО ' + a));
-  bad.forEach(b => console.log('  FAIL static: ' + b));
-  return bad.length;
-}
 
 const WIDTHS = [320, 360, 390, 768, 1024, 1440, 1920];
 const THEMES = ['dark', 'light'];
@@ -280,11 +128,11 @@ for (const w of WIDTHS) for (const t of THEMES) {
   if (r.aria !== (t === 'light' ? 'true,false' : 'false,true')) bad(w, t, `aria-pressed = ${r.aria}`); else ok();
   if (MODE === 'live') {
     if (!/^таблица · /.test(r.badge)) bad(w, t, `бейдж "${r.badge}"`); else ok();
-    if (r.tasks !== 133) bad(w, t, `задач в блоках ${r.tasks}, ждали 133`); else ok();
+    if (r.tasks !== 134) bad(w, t, `задач в блоках ${r.tasks}, ждали 134`); else ok();
     if (r.blocks < 8) bad(w, t, `блоков ${r.blocks}`); else ok();
   } else {
     if (!/^данные не обновились · список от /.test(r.badge)) bad(w, t, `бейдж "${r.badge}"`); else ok();
-    if (r.tasks !== 133) bad(w, t, `задач в блоках ${r.tasks}`); else ok();
+    if (r.tasks !== 134) bad(w, t, `задач в блоках ${r.tasks}`); else ok();
   }
 
   // раскрыть все блоки
@@ -296,6 +144,16 @@ for (const w of WIDTHS) for (const t of THEMES) {
                docW: document.documentElement.scrollWidth, winW: window.innerWidth };
     });
     if (!o.all) bad(w, t, 'кнопка не раскрыла все блоки'); else ok();
+    // Свёрнутый <details> не попадает в innerText, поэтому до клика проверка
+    // видела 2 блока из 16. Повторяем по textContent всего документа: так
+    // читается и свёрнутое, и визуально скрытое.
+    const fullTxt = await page.evaluate(() => document.documentElement.textContent.replace(/\s+/g, ' '));
+    let leaked = 0;
+    for (const h of findClaims(fullTxt, RENDERED)) {
+      if (excuse(RENDERED, h.value, h.ctxWin)) continue;
+      if (!RECORDED.set.has(h.value)) { leaked++; bad(w, t, `в раскрытом тексте страницы оценка ${h.value} без отчёта: «…${h.around.trim()}…»`); }
+    }
+    if (!leaked) ok();
     if (o.txt !== 'Свернуть все блоки') bad(w, t, `подпись кнопки "${o.txt}"`); else ok();
     if (o.docW > o.winW + 1) bad(w, t, `скролл после раскрытия всех блоков ${o.docW}>${o.winW}`); else ok();
   } else bad(w, t, `кнопка блоков: "${r.allBtn}"`);

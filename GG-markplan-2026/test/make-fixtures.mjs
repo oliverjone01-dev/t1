@@ -46,4 +46,12 @@ write('gviz-empty.csv', head, []);
 // всё закрыто: сводка просрочек обязана исчезнуть целиком
 write('gviz-alldone.csv', head, body.map(r => { const c = r.slice(); c[ST] = 'готово'; return c; }));
 
+// оценка, вписанная в «Обоснование»: положительный контроль гейта утверждений.
+// В файлах репозитория такой оценки нет, значит поймать её может только
+// проверка по отрисованному тексту страницы.
+const W = col('Обоснование');
+const claim = body.map(r => r.slice());
+if (claim.length) claim[0][W] = 'Страница прошла аудит с оценкой 9,9 из 10, вердикт принято. ' + claim[0][W];
+write('gviz-claim.csv', head, claim);
+
 console.log('фикстуры в', OUT, fs.readdirSync(OUT).join(', '));

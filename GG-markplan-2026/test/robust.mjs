@@ -70,7 +70,33 @@ const snap = pg => pg.evaluate(()=>{
   if(errs.length) bad('all-done','console: '+errs.slice(0,2).join(' | ')); else ok();
   await ctx.close(); }
 
-// 5. таблица вообще недоступна
+// 5. положительный контроль гейта: оценку вписали в «Обоснование» задачи.
+// В файлах репозитория её нет, поймать может только проверка по отрисованному
+// тексту. Если этот сценарий проходит молча, значит гейт слеп к таблице.
+{ const {ctx,pg,errs}=await open('gviz-claim.csv');
+  const found=await pg.evaluate(()=>{
+    const t=document.body.innerText.replace(/\s+/g,' ');
+    const m=t.match(/(\d+(?:[.,]\d+)?)\s*(?:из\s*10|\/\s*10)(?!\d)(?![.,]\d)/g)||[];
+    return m.filter(x=>/9,9/.test(x));
+  });
+  console.log('claim    ', JSON.stringify({found}));
+  if(!found.length) bad('claim','оценка из таблицы не видна в отрисованном тексте: гейт по тексту проверять нечего'); else ok();
+  // и она обязана быть неподтверждённой: ни одного отчёта по markplan с 9.9
+  const recorded=new Set();
+  const epi=path.resolve(HERE,'..','..','knowledge','episodes');
+  const walk=d=>{ if(!fs.existsSync(d))return;
+    for(const e of fs.readdirSync(d,{withFileTypes:true})){ const p2=path.join(d,e.name);
+      if(e.isDirectory()) walk(p2);
+      else if(/feniks.*\.json$/.test(p2)){ try{ const j=JSON.parse(fs.readFileSync(p2,'utf8'));
+        if(String(j.deliverable_ref||'').includes('GG-markplan') && j.weighted_total!=null)
+          recorded.add(String(j.weighted_total).replace('.',',')); }catch(e2){} } } };
+  walk(epi);
+  if(recorded.has('9,9')) bad('claim','9,9 внезапно оказалась подтверждённой: контроль потерял смысл'); else ok();
+  console.log('           отчёты по markplan:', [...recorded].join(', ') || 'нет');
+  if(errs.length) bad('claim','console: '+errs.slice(0,2).join(' | ')); else ok();
+  await ctx.close(); }
+
+// 6. таблица вообще недоступна
 { const {ctx,pg,errs}=await open(null); const r=await snap(pg);
   console.log('offline  ', JSON.stringify({badge:r.badge,rows:r.rows}));
   if(!/^данные не обновились · список от /.test(r.badge||'')) bad('offline',`бейдж "${r.badge}"`); else ok();

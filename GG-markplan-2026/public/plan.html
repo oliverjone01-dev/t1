@@ -37,6 +37,11 @@
 </header>
 
 <main>
+  <!-- ОТМЕТКА ПРОИСХОЖДЕНИЯ ДАННЫХ ДЛЯ ПЕЧАТИ.
+       На экране это есть в шапке, но шапка на печать не идёт, а лист без
+       ответа «откуда цифры и на какое число» читать нельзя. -->
+  <div class="print-stamp" id="print-stamp"></div>
+
   <!-- ГАНТ -->
   <section class="band band-plan" id="s-gantt">
     <div class="band-inner">
@@ -47,6 +52,7 @@
       </div>
       <div class="late-note" id="late-note" hidden></div>
       <div class="gantt-legend" id="gantt-legend"></div>
+      <div class="plan-note" id="plan-note"></div>
       <div class="gantt-wrap" id="gantt-wrap">
         <div class="gantt-scroll" id="gantt-scroll"></div>
       </div>

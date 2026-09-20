@@ -17,19 +17,32 @@
   // Разбор даты. Google-таблица отдаёт даты в своём формате, месяц первым
   // (8/26/2026), а мы пишем ISO (2026-08-26) и в России принято ДД.ММ.ГГГГ.
   // Понимаем все три, иначе 26-й месяц уносит задачу в февраль.
+  // Сборка даты с проверкой, что такое число вообще существует. Без проверки
+  // new Date(y, m-1, d) молча превращает 31.02 в 3 марта, а 0000-00-00 в 1899 год,
+  // и формат «8 фев» без года это прячет. Дата из таблицы набирается руками,
+  // поэтому опечатка обязана становиться «срок не назначен», а не тихим сроком.
+  function mkDate(y, mo, dd) {
+    if (!(y >= 2000 && y <= 2100)) return null;
+    if (!(mo >= 1 && mo <= 12)) return null;
+    if (!(dd >= 1 && dd <= 31)) return null;
+    var d = new Date(y, mo - 1, dd);
+    // round-trip: если календарь нормализовал число, даты не существует
+    if (d.getFullYear() !== y || d.getMonth() !== mo - 1 || d.getDate() !== dd) return null;
+    return d;
+  }
   function pd(s) {
     s = String(s == null ? "" : s).trim();
     if (!s) return null;
     var iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-    if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3]);
+    if (iso) return mkDate(+iso[1], +iso[2], +iso[3]);
     var us = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
     if (us) {
       var mo = +us[1], dd = +us[2], y = +us[3]; if (y < 100) y += 2000;
       if (mo > 12 && dd <= 12) { var t = mo; mo = dd; dd = t; } // подстраховка на чужую локаль
-      return new Date(y, mo - 1, dd);
+      return mkDate(y, mo, dd);
     }
     var ru = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})/);
-    if (ru) { var y2 = +ru[3]; if (y2 < 100) y2 += 2000; return new Date(y2, +ru[2] - 1, +ru[1]); }
+    if (ru) { var y2 = +ru[3]; if (y2 < 100) y2 += 2000; return mkDate(y2, +ru[2], +ru[1]); }
     return null;
   }
   function diffDays(a, b) { return Math.round((a - b) / MS); }
@@ -215,21 +228,30 @@
   // Отметка свежести в шапке. Дата не вшита в страницу: если задачи прочитаны
   // из Google-таблицы, показываем момент чтения, иначе честно пишем «снимок от».
   function setStamp(state) {
-    var host = $("#mast-date"); if (!host) return;
+    var host = $("#mast-date"), pst = $("#print-stamp");
+    var shortTxt, longTxt, tip;
+    var d = new Date();
+    var today = d.getDate() + " " + MON[d.getMonth()] + " " + d.getFullYear();
     if (state === "wait") {
-      host.textContent = "читаю таблицу…";
-      host.title = "Страница запрашивает задачи из Google-таблицы.";
-      return;
-    }
-    if (state === "live") {
-      var d = new Date();
+      shortTxt = "читаю таблицу…";
+      longTxt = "Источник данных выясняется: страница запрашивает Google-таблицу.";
+      tip = "Страница запрашивает задачи из Google-таблицы.";
+    } else if (state === "live") {
       var hh = ("0" + d.getHours()).slice(-2), mm = ("0" + d.getMinutes()).slice(-2);
-      host.textContent = "из таблицы · " + d.getDate() + " " + MON[d.getMonth()] + ", " + hh + ":" + mm;
-      host.title = "Задачи прочитаны из Google-таблицы в момент открытия страницы. Обновите страницу, чтобы прочитать заново.";
-      return;
+      shortTxt = "из таблицы · " + d.getDate() + " " + MON[d.getMonth()] + ", " + hh + ":" + mm;
+      longTxt = "Задачи прочитаны из Google-таблицы «" + (P.meta.ganttSheet || "GANTT") +
+        "» " + today + " в " + hh + ":" + mm + ". Всего задач: " + P.tasks.length + ".";
+      tip = "Задачи прочитаны из Google-таблицы в момент открытия страницы. Обновите страницу, чтобы прочитать заново.";
+    } else {
+      shortTxt = "снимок от " + (P.meta.updated || "неизвестной даты");
+      longTxt = "Google-таблица недоступна. Показан список, вшитый в страницу при сборке " +
+        (P.meta.updated || "неизвестной даты") + ". Лист напечатан " + today +
+        ", то есть данные старше листа. Всего задач: " + P.tasks.length + ".";
+      tip = "Таблица недоступна. Показан список, вшитый в страницу при сборке " + (P.meta.updated || "") + ".";
     }
-    host.textContent = "снимок от " + (P.meta.updated || "неизвестной даты");
-    host.title = "Таблица недоступна. Показан список, вшитый в страницу при сборке " + (P.meta.updated || "") + ".";
+    if (host) { host.textContent = shortTxt; host.title = tip; }
+    // На печати шапки нет, поэтому происхождение данных дублируется в тело листа.
+    if (pst) pst.textContent = longTxt;
   }
 
   function renderChrome() {
@@ -238,6 +260,10 @@
     var hn = $("#hero-note"); if (hn) hn.innerHTML = esc(P.meta.note || "");
     var fa = $("#foot-audit"); if (fa) fa.textContent = P.meta.audit || "";
     var fg = $("#foot-gate"); if (fg) fg.textContent = P.meta.gate || "";
+    // Расшифровка меток [ДАННЫЕ] / [ГИПОТЕЗА] / [НЕТ ДАННЫХ] и колонок стоит там,
+    // где сами метки и стоят: рядом с графиком. Раньше она жила в первом экране,
+    // и вместе с ним ушла бы со страницы.
+    var pn = $("#plan-note"); if (pn) pn.innerHTML = esc(P.meta.note || "");
     var editUrl = P.meta.sheetId ? "https://docs.google.com/spreadsheets/d/" + P.meta.sheetId + "/edit" : "";
     var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
     var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
@@ -355,11 +381,22 @@
       var f = taskFin(t); if (!worst || f < worst) worst = f;
       if (t.pr === "hi") hi++;
     });
+    // Счётчик, который только растёт, через месяц перестаёт что-либо значить.
+    // Поэтому рядом всегда стоит причина роста: ведут ли вообще статусы.
+    var done = 0, work = 0, nodate = 0;
+    P.tasks.forEach(function (t) {
+      if (t.st === "done") done++;
+      else if (t.st === "work") work++;
+      if (!taskFin(t)) nodate++;
+    });
+    var why = done === 0
+      ? 'Готовой не отмечена ни одна задача из ' + P.tasks.length + '. Значит этот счётчик будет расти сам каждую неделю, даже если работа идёт: он показывает расхождение плана с календарём, а не число провалов. Чтобы он снова что-то значил, статусы в таблице надо вести.'
+      : 'Готовыми отмечено ' + done + ' задач, в работе ' + work + '. Счётчик считает только те, у которых срок прошёл, а статус не «готово» и не «заморожено».';
     host.hidden = false;
     host.innerHTML = '<b>Срок прошёл у ' + late.length + ' задач из ' + P.tasks.length + '</b> на ' + fmt(TODAY) +
       ', из них с высокой важностью ' + hi + '. Самый старый непройденный срок ' + fmt(worst) + '. ' +
-      'Это расхождение плана с календарём, а не оценка работы: срок в таблице не переносили. ' +
-      'По каждой такой задаче нужно либо поставить новую дату в колонке «Старт», либо перевести статус в «готово».';
+      (nodate ? 'Ещё у ' + nodate + ' задач срока нет вовсе. ' : '') + why + ' ' +
+      'По каждой просроченной задаче нужно либо поставить новую дату в колонке «Старт», либо перевести статус в «готово».';
   }
 
   function statusPill(st) {

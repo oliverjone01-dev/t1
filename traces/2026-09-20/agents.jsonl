@@ -1,0 +1,2 @@
+{"ts": "2026-09-20T22:02:55+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "bc715df4-a15a-5c78-84bc-d31a64f4b160", "agent_id": "abfda9d10c72bdea7"}
+{"ts": "2026-09-20T22:04:52+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/</script>, /home/user/t1/\\n''utf-8, /home/user/t1/\\n<script, /home/user/t1/s"}

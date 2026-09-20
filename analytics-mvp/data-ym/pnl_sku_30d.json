@@ -1,17 +1,11 @@
 {
   "platform": "ym",
-  "dateFrom": "2026-08-20",
-  "dateTo": "2026-09-18",
+  "dateFrom": "2026-08-21",
+  "dateTo": "2026-09-19",
   "skuCount": 109,
-  "singleItemOps": 176,
+  "singleItemOps": 178,
   "multiItemOps": 0,
   "bySku": {
-    "GGT-35-3-3-100-180": {
-      "accruals": 454972,
-      "commission": -1965,
-      "amount": 206111,
-      "ops": 10
-    },
     "GGM-17-1-2": {
       "accruals": 36751,
       "commission": -178,
@@ -19,10 +13,10 @@
       "ops": 2
     },
     "GGT-35-1-3-100-180": {
-      "accruals": 848293,
-      "commission": -3165,
-      "amount": 322288,
-      "ops": 20
+      "accruals": 944338,
+      "commission": -4069,
+      "amount": 368207,
+      "ops": 22
     },
     "GGT-03-3-3-O-18090": {
       "accruals": 245997,
@@ -91,10 +85,10 @@
       "ops": 2
     },
     "GGM-16-1-3": {
-      "accruals": 162133,
+      "accruals": 202830,
       "commission": -778,
-      "amount": 66577,
-      "ops": 7
+      "amount": 83515,
+      "ops": 8
     },
     "GGT-03-1-3-O-20090": {
       "accruals": 259474,
@@ -120,12 +114,6 @@
       "amount": 10654,
       "ops": 1
     },
-    "GGL-09-2": {
-      "accruals": 383689,
-      "commission": -1800,
-      "amount": 145520,
-      "ops": 12
-    },
     "GGM-20-1": {
       "accruals": 120972,
       "commission": -606,
@@ -143,6 +131,12 @@
       "commission": -196,
       "amount": 17015,
       "ops": 2
+    },
+    "GGT-35-3-3-100-180": {
+      "accruals": 378424,
+      "commission": -1651,
+      "amount": 171737,
+      "ops": 8
     },
     "GGT-12-2": {
       "accruals": 112814,
@@ -210,6 +204,12 @@
       "amount": 20941,
       "ops": 2
     },
+    "GGL-09-2": {
+      "accruals": 386017,
+      "commission": -1619,
+      "amount": 145955,
+      "ops": 11
+    },
     "GGT-20-2-3-14080": {
       "accruals": 56774,
       "commission": -4834,
@@ -247,15 +247,15 @@
       "ops": 1
     },
     "GGT-47-3-5-80": {
-      "accruals": 93982,
+      "accruals": 140782,
       "commission": -731,
-      "amount": 37832,
-      "ops": 3
+      "amount": 55080,
+      "ops": 4
     },
     "GGT-35-2-2-100-180": {
       "accruals": 290799,
-      "commission": -20357,
-      "amount": 132385,
+      "commission": -33262,
+      "amount": 116522,
       "ops": 6
     },
     "GGTP-03-1-R-500": {
@@ -452,8 +452,8 @@
     },
     "GGT-03-2-4-E-16080": {
       "accruals": 157418,
-      "commission": -296,
-      "amount": 74148,
+      "commission": -678,
+      "amount": 71309,
       "ops": 4
     },
     "GGM-16-1-2": {
@@ -488,8 +488,8 @@
     },
     "GGT-35-5-1-100-180": {
       "accruals": 197120,
-      "commission": -475,
-      "amount": 101942,
+      "commission": -908,
+      "amount": 98823,
       "ops": 4
     },
     "GGT-03-2-5-E-16080-K": {
@@ -536,8 +536,8 @@
     },
     "GGT-20-2-3-18090": {
       "accruals": 73500,
-      "commission": 0,
-      "amount": 35076,
+      "commission": -329,
+      "amount": 32630,
       "ops": 2
     },
     "GGT-03-2-2-S-40": {
@@ -566,8 +566,8 @@
     },
     "GGT-03-2-5-E-14080": {
       "accruals": 153713,
-      "commission": -333,
-      "amount": 76241,
+      "commission": -704,
+      "amount": 67577,
       "ops": 4
     },
     "GGK-05-3-3-12040": {
@@ -590,8 +590,8 @@
     },
     "GGT-03-3-2-M-120": {
       "accruals": 68500,
-      "commission": 0,
-      "amount": 31787,
+      "commission": -329,
+      "amount": 28498,
       "ops": 1
     },
     "GGT-03-1-2-L-80": {

@@ -1,0 +1,4 @@
+# ставится через `npm i playwright` рядом со стендом
+node_modules
+# собираются из public/gantt-v2.csv командой `node make-fixtures.mjs`
+fixtures/

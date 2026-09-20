@@ -225,33 +225,54 @@
   }
 
   /* ---------- рендер статичных секций ---------- */
+  // Откуда взят список задач: "wait" | "live" | "snapshot".
+  // Нужно в двух местах, поэтому живёт рядом с данными, а не внутри одной функции.
+  var SRC = "wait";
+  function srcPhrase() {
+    if (SRC === "live") return "по таблице, прочитана " + STAMP.time;
+    if (SRC === "snapshot") return "по списку от " + (P.meta.updated || "неизвестной даты");
+    return "";
+  }
+  var STAMP = { time: "" };
+
   // Отметка свежести в шапке. Дата не вшита в страницу: если задачи прочитаны
   // из Google-таблицы, показываем момент чтения, иначе честно пишем «снимок от».
   function setStamp(state) {
-    var host = $("#mast-date"), pst = $("#print-stamp");
-    var shortTxt, longTxt, tip;
+    SRC = state;
+    var badge = $("#src-badge"), old = $("#mast-date"), pst = $("#print-stamp");
     var d = new Date();
+    var hh = ("0" + d.getHours()).slice(-2), mm = ("0" + d.getMinutes()).slice(-2);
+    STAMP.time = d.getDate() + " " + MON[d.getMonth()] + " в " + hh + ":" + mm;
     var today = d.getDate() + " " + MON[d.getMonth()] + " " + d.getFullYear();
-    if (state === "wait") {
-      shortTxt = "читаю таблицу…";
-      longTxt = "Источник данных выясняется: страница запрашивает Google-таблицу.";
-      tip = "Страница запрашивает задачи из Google-таблицы.";
-    } else if (state === "live") {
-      var hh = ("0" + d.getHours()).slice(-2), mm = ("0" + d.getMinutes()).slice(-2);
-      shortTxt = "из таблицы · " + d.getDate() + " " + MON[d.getMonth()] + ", " + hh + ":" + mm;
-      longTxt = "Задачи прочитаны из Google-таблицы «" + (P.meta.ganttSheet || "GANTT") +
-        "» " + today + " в " + hh + ":" + mm + ". Всего задач: " + P.tasks.length + ".";
-      tip = "Задачи прочитаны из Google-таблицы в момент открытия страницы. Обновите страницу, чтобы прочитать заново.";
+    var short, long_, tip, live = false;
+    if (state === "live") {
+      short = "таблица · " + d.getDate() + " " + MON[d.getMonth()] + ", " + hh + ":" + mm;
+      long_ = "Задачи взяты из Google-таблицы «" + (P.meta.ganttSheet || "GANTT") + "», прочитана " +
+        today + " в " + hh + ":" + mm + ". Всего задач: " + P.tasks.length + ".";
+      tip = "Задачи прочитаны из Google-таблицы, когда вы открыли страницу. Обновите страницу, чтобы прочитать заново.";
+      live = true;
+    } else if (state === "snapshot") {
+      var upd = P.meta.updated || "неизвестной даты";
+      short = "данные не обновились · список от " + upd;
+      long_ = "Google-таблица не ответила. Показан список, сохранённый в странице " + upd +
+        ". Лист напечатан " + today + (P.meta.updated ? ", данные старше" : "") +
+        ". Всего задач: " + P.tasks.length + ".";
+      tip = "Google-таблица не ответила. Показан список, сохранённый в странице " + upd + ".";
     } else {
-      shortTxt = "снимок от " + (P.meta.updated || "неизвестной даты");
-      longTxt = "Google-таблица недоступна. Показан список, вшитый в страницу при сборке " +
-        (P.meta.updated || "неизвестной даты") + ". Лист напечатан " + today +
-        ", то есть данные старше листа. Всего задач: " + P.tasks.length + ".";
-      tip = "Таблица недоступна. Показан список, вшитый в страницу при сборке " + (P.meta.updated || "") + ".";
+      short = "читаю таблицу…";
+      long_ = "Откуда взяты задачи, выясняется: страница запрашивает Google-таблицу.";
+      tip = "Страница запрашивает задачи из Google-таблицы.";
     }
-    if (host) { host.textContent = shortTxt; host.title = tip; }
+    // Одна фраза вместо двух: раньше рядом стояли «СПИСОК В СТРАНИЦЕ» и «снимок
+    // от 25.08.2026», то есть два разных жаргона про одно и то же.
+    if (badge) {
+      badge.textContent = short; badge.title = tip;
+      badge.classList.toggle("live", live);
+      badge.classList.toggle("stale", state === "snapshot");
+    }
+    if (old) old.textContent = "";
     // На печати шапки нет, поэтому происхождение данных дублируется в тело листа.
-    if (pst) pst.textContent = longTxt;
+    if (pst) pst.textContent = long_;
   }
 
   function renderChrome() {
@@ -263,7 +284,8 @@
     // Расшифровка меток [ДАННЫЕ] / [ГИПОТЕЗА] / [НЕТ ДАННЫХ] и колонок стоит там,
     // где сами метки и стоят: рядом с графиком. Раньше она жила в первом экране,
     // и вместе с ним ушла бы со страницы.
-    var pn = $("#plan-note"); if (pn) pn.innerHTML = esc(P.meta.note || "");
+    var pn = $("#plan-note");
+    if (pn) { pn.innerHTML = esc(P.meta.note || ""); pn.hidden = !P.meta.note; }
     var editUrl = P.meta.sheetId ? "https://docs.google.com/spreadsheets/d/" + P.meta.sheetId + "/edit" : "";
     var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
     var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
@@ -364,6 +386,9 @@
           (t.gate ? '<span class="pill gate">гейт</span>' : "");
         body.innerHTML += '<div class="trow" id="row-' + esc(t.id) + '"><div><div class="tt">' + esc(t.t) + "</div>" +
           (t.why ? '<div class="twhy"><b>Зачем:</b> ' + esc(t.why) + "</div>" : "") +
+          // Метка источника стоит в строке, а не только по клику в графике: иначе
+          // расшифровка меток объясняет обозначения, которых на странице нет.
+          (t.src ? '<div class="tsrc">' + esc(t.src) + "</div>" : "") +
           '<div class="tmeta">' + (t.author ? '<span class="who">' + esc(t.author) + "</span>" : "") + pills + "</div></div>" +
           '<div class="who tnum">' + esc(t.id) + "</div></div>";
       });
@@ -392,9 +417,13 @@
     var why = done === 0
       ? 'Готовой не отмечена ни одна задача из ' + P.tasks.length + '. Значит этот счётчик будет расти сам каждую неделю, даже если работа идёт: он показывает расхождение плана с календарём, а не число провалов. Чтобы он снова что-то значил, статусы в таблице надо вести.'
       : 'Готовыми отмечено ' + done + ' задач, в работе ' + work + '. Счётчик считает только те, у которых срок прошёл, а статус не «готово» и не «заморожено».';
+    // Свежая дата при несвежем списке это та же ложь, что застывшая дата:
+    // поэтому рядом всегда сказано, по какому списку считали.
+    var by = srcPhrase();
     host.hidden = false;
-    host.innerHTML = '<b>Срок прошёл у ' + late.length + ' задач из ' + P.tasks.length + '</b> на ' + fmt(TODAY) +
-      ', из них с высокой важностью ' + hi + '. Самый старый непройденный срок ' + fmt(worst) + '. ' +
+    host.innerHTML = (by ? '<span class="ln-by">' + esc(by) + '</span> ' : "") +
+      '<b>Срок прошёл у ' + late.length + ' задач из ' + P.tasks.length + '</b>, сверено с календарём на ' + fmt(TODAY) +
+      '. Из них с высокой важностью ' + hi + '. Самый старый непройденный срок ' + fmt(worst) + '. ' +
       (nodate ? 'Ещё у ' + nodate + ' задач срока нет вовсе. ' : '') + why + ' ' +
       'По каждой просроченной задаче нужно либо поставить новую дату в колонке «Старт», либо перевести статус в «готово».';
   }
@@ -918,16 +947,13 @@
     render();
     var rt; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { renderGantt(); }, 200); });
     loadLive(function (ok) {
-      var badge = $("#src-badge");
-      if (ok) {
-        badge.textContent = "живая таблица"; badge.classList.add("live");
-        badge.title = "Задачи прочитаны из Google-таблицы GANTT-V2.";
-        renderGantt(); renderBlocks(); setStamp("live");
-      } else {
-        badge.textContent = "список в странице";
-        badge.title = "Таблица GANTT-V2 ещё не заполнена или недоступна. Показан список, вшитый в страницу. После заливки задач в таблицу здесь появится надпись «живая таблица».";
-        setStamp("snapshot");
-      }
+      // Сначала фиксируем происхождение, потом перерисовываем: сводка просрочек
+      // подписывает себя источником, и на момент рендера он должен быть известен.
+      setStamp(ok ? "live" : "snapshot");
+      if (ok) { renderGantt(); renderBlocks(); }
+      // Снимок не требует перерисовки графика, но сводка просрочек подписывает
+      // себя источником и была нарисована ещё в состоянии «читаю таблицу».
+      else renderLateNote();
     });
   });
 })();

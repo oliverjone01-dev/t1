@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-21T13:39:49.473Z",
+  "generated_at": "2026-09-21T13:46:00.454Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-20",
   "split_check": {
@@ -42209,7 +42209,7 @@
           "svc_total": 6106.61,
           "result_money": 33762.05,
           "result_points": 61214.82,
-          "cogs": 2395,
+          "cogs": 15659,
           "cogs_known": true,
           "ship_our": 4977,
           "ship_known": true

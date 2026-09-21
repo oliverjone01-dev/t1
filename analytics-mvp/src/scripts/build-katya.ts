@@ -1824,7 +1824,8 @@ function render(cur,cmp){
   // unit_number, с номерами заказов не совпадает, пересечение 0). Отчёт же привязан к реальному заказу.
   // Разносим per-order (столбец «Услуги партнёров»), остаток без заказа - строкой «Общие расходы».
   const prtByOrderRep: Record<string, number> = {};
-  try { for (const l of readFileSync(dp("order_accruals.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.returns) retByOrder[String(r.order)] = Math.round(r.returns); if (r.partner) prtByOrderRep[String(r.order)] = Math.round(r.partner); } } catch { /* нет отчёта */ }
+  const prtRepRows: Array<{ order: string; prt: number; ym: string }> = [];
+  try { for (const l of readFileSync(dp("order_accruals.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.returns) retByOrder[String(r.order)] = Math.round(r.returns); if (r.partner) { prtByOrderRep[String(r.order)] = Math.round(r.partner); prtRepRows.push({ order: String(r.order), prt: Math.round(r.partner), ym: String(r.ym || "") }); } } } catch { /* нет отчёта */ }
   const retUsed: Record<string, boolean> = {};
   const prtUsedRep: Record<string, boolean> = {};
 
@@ -1900,6 +1901,14 @@ function render(cur,cmp){
       });
     }
   } catch { /* нет orders_daily - блок по заказам пуст (собирается orders-backfill) */ }
+  // Остаток партнёров для «Общих» = отчётные партнёры заказов, КОТОРЫХ НЕТ в блоке (не сматчились с
+  // orders_daily). Основная часть уже разнесена по заказам выше; сюда попадает только несматченный хвост
+  // (~4%). Ключуем по середине месяца начисления, чтобы попасть в диапазон фильтра. НЕ берём AN_ACCT.realfbs
+  // (он по дате начисления и на месячном срезе задваивался бы с разнесённым по дате заказа).
+  const matchedBases = new Set(anOrders.map((o) => orderBase(String(o.order))));
+  const prtResidByYm: Record<string, number> = {};
+  for (const r of prtRepRows) { if (!matchedBases.has(r.order) && r.ym) prtResidByYm[r.ym] = (prtResidByYm[r.ym] || 0) + r.prt; }
+  const prtResid = Object.entries(prtResidByYm).map(([ym, v]) => [ym + "-15", Math.round(v)]).sort((a, b) => String(a[0]).localeCompare(String(b[0])));
 
   // Свод по дате заказа - только у Маркета: у OZON закрытие месяца идёт из подписанных Актов,
   // а базис «по дате оформления заказа» там не строится. Ключ добавляется условно, чтобы страница
@@ -1947,7 +1956,7 @@ function render(cur,cmp){
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORDERS=${J(anOrders)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORDERS=${J(anOrders)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -2275,11 +2284,11 @@ function renderOrdersAnalytics(cur){
   // сборов. Значения AN_ACCT signed (сборы<0); grand.adv уже = разнесённая реклама (CPO+CPC).
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var ai=0;ai<AN_ACCT.length;ai++){var ar=AN_ACCT[ai];if(ar[0]<from||ar[0]>to)continue;aB.adv+=ar[1];aB.fines+=ar[2];aB.realfbs+=ar[3];aB.badge+=ar[4];aB.delivery+=ar[5];aB.other+=ar[6];}
-  // Услуги партнёров (rFBS-доставка): основная часть уже РАЗНЕСЕНА ПО ЗАКАЗАМ из отчёта (grand.prt,
-  // положительная затрата). Здесь - только ОСТАТОК = полный realfbs кабинета (aB.realfbs<0) минус
-  // разнесённое: aPrtResid = aB.realfbs + grand.prt (отрицательный остаток). Итог партнёров = разнесённое
-  // + остаток = полный realfbs, «К выплате» не меняется.
-  var aPrtResid=aB.realfbs+grand.prt,aOth=(aB.adv+grand.adv)+aB.fines+aB.badge+aB.other,at=aPrtResid+aOth;
+  // Услуги партнёров (rFBS-доставка): основная часть РАЗНЕСЕНА ПО ЗАКАЗАМ из отчёта (по дате заказа).
+  // Здесь - только остаток по заказам, которых НЕТ в блоке (AN_PRTRESID, по месяцу начисления, ~4%).
+  // Раньше остаток брался из AN_ACCT.realfbs (по дате начисления) и на месячном срезе задваивался с
+  // разнесённым по дате заказа - теперь берём несматченный хвост из отчёта.
+  var aPrtResid=anSum(AN_PRTRESID,from,to,1)[0]||0,aOth=(aB.adv+grand.adv)+aB.fines+aB.badge+aB.other,at=aPrtResid+aOth;
   var totalDeliv=0;for(var _o in AN_DELIV){totalDeliv+=anSum(AN_DELIV[_o],from,to,1)[0]||0;}
   var totalInc=0;for(var _i in AN_DELIV_INC){totalInc+=anSum(AN_DELIV_INC[_i],from,to,1)[0]||0;}
   var unmDeliv=Math.max(0,Math.round(totalDeliv-(grand.ship||0)));

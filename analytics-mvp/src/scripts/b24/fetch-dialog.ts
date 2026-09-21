@@ -474,6 +474,32 @@ async function main() {
     console.log(`Досбор из прошлого снимка: +${kept} событий (итого ${events.length})`);
   }
   events.sort((a, b) => a.ts - b.ts);
+  // --- Разворот направления по контексту сделки (без ИИ) ---------------------------------
+  // Wazzup: менеджер часто отвечает с бизнес-номера, и его сообщения получают служебную подпись
+  // «Телефон» без маркера направления -> ошибочно уходят во «входящее/Клиент» (сделка 79397:
+  // 548 ответов Лысановой висели как «Клиент»). Правило: если в ветке есть НАЗВАННЫЙ клиент
+  // (входящее сообщение с именем, не сотрудник и не служебная подпись), то сообщения с подписью
+  // «Телефон»/«—» в этой ветке - это менеджер (исходящее), кроме явного «Принято/Получено»
+  // (входящее медиа клиента). Односторонние «Телефон»-ветки (клиент без имени) не трогаем.
+  {
+    const byThread: Record<string, any[]> = {};
+    for (const e of events) { const k = e.dealId ? "D" + e.dealId : e.leadId ? "L" + e.leadId : ""; if (k) (byThread[k] ||= []).push(e); }
+    const isMsg = (e: any) => typeof e.type === "string" && (e.type.indexOf("Сообщение") === 0 || e.type === "Письмо" || e.type === "Мессенджер ОЛ");
+    let flipped = 0;
+    for (const k in byThread) {
+      const arr = byThread[k]!;
+      const namedClient = arr.some((e) => isMsg(e) && e.dir === "входящее" && e.who && !AMB_SIG.test(String(e.who).trim()));
+      if (!namedClient) continue;
+      const mgr = (arr.find((e) => e.mgr)?.mgr) || "Менеджер";
+      for (const e of arr) {
+        if (!isMsg(e) || e.dir !== "входящее") continue;
+        if (!AMB_SIG.test(String(e.who || "").trim())) continue;
+        if (/^Принято|^Получено/.test(String(e.body || ""))) continue;
+        e.dir = "исходящее"; e.who = mgr; e.guess = 1; flipped++;
+      }
+    }
+    console.log(`Контекст-разворот направления: развёрнуто «Телефон»->менеджер: ${flipped}`);
+  }
   const leadKeys = new Set(events.filter((e) => e.leadId).map((e) => e.leadId));
   const dealKeys = new Set(events.filter((e) => e.dealId).map((e) => e.dealId));
   const managers = Object.keys(mgrSet).sort();

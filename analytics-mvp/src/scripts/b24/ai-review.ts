@@ -56,6 +56,7 @@ const SYSTEM = `Ты аудитор отдела продаж мебельног
 - Опирайся только на приведённую хронологию. Не додумывай того, чего в ней нет.
 - Рекомендация - одно конкретное действие на завтра с датой или сроком, без «в ближайшее время».
 - Запрещены: em dash, «выглядит хорошо», «в целом неплохо», канцелярит.
+- КОМПАКТНО: verdict/problem/recommendation - по одной короткой фразе (<=25 слов). msgTags - не более 4 самых весомых; quote - дословный фрагмент до 10 слов. quotes - до 2 коротких. Это критично: длинный ответ обрезается и теряется целиком.
 - Отвечай ТОЛЬКО валидным JSON без markdown-обёртки.`;
 
 const SCHEMA = `{
@@ -87,7 +88,7 @@ type Item = { k: string; cid: string; mgr: string; last: number; prompt: string;
 // system и prompt были байт-в-байт одинаковыми и качество разбора не зависело от способа отправки.
 function buildBody(prompt: string, system: string) {
   return {
-    model: MODEL, max_tokens: Number(process.env.AI_MAXTOK || 2500),
+    model: MODEL, max_tokens: Number(process.env.AI_MAXTOK || 3000),
     system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: prompt }],
   };

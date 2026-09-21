@@ -87,7 +87,7 @@ type Item = { k: string; cid: string; mgr: string; last: number; prompt: string;
 // system и prompt были байт-в-байт одинаковыми и качество разбора не зависело от способа отправки.
 function buildBody(prompt: string, system: string) {
   return {
-    model: MODEL, max_tokens: 900,
+    model: MODEL, max_tokens: Number(process.env.AI_MAXTOK || 2500),
     system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: prompt }],
   };

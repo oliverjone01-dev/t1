@@ -56,6 +56,12 @@ body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),
 select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer;max-width:210px}
 .wrap{max-width:1660px;margin:0 auto;padding:8px 24px 80px}
 .sec-div{display:flex;align-items:center;gap:14px;margin:30px 0 14px;scroll-margin-top:120px}
+.anchornav{flex:1;min-width:0;display:flex;align-items:center;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:0 2px}
+.anchornav::-webkit-scrollbar{display:none}
+.anchornav .anav-lbl{flex:0 0 auto;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);opacity:.55;margin-right:2px}
+.anchornav a{flex:0 0 auto;font-size:10.5px;font-weight:600;color:var(--ink-3);text-decoration:none;padding:5px 9px;border-radius:999px;border:1px solid var(--border);background:var(--bg-elevated);white-space:nowrap;transition:.15s;cursor:pointer}
+.anchornav a:hover{color:var(--accent);border-color:var(--accent)}
+.anchornav a.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
 .sec-div:first-child{margin-top:14px}
 .sec-num{width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;font-size:14px;flex-shrink:0}
 .sec-div h2{font-family:'Manrope';font-weight:800;font-size:19px;letter-spacing:-.01em;white-space:nowrap}
@@ -287,7 +293,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   <div class="rev-toggle"><span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div></div>
   <div class="rev-toggle"><span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:148px" data-tip="Фильтр по направлению бизнеса (бренду). Влияет на все блоки. План в таблице - общий, поэтому % выполнения корректен при «Все направления».">​</select></div>
   </div></div>
-  <div class="tb-spacer"></div>
+  <nav class="anchornav" id="anchorNav" aria-label="Разделы дашборда"><span class="anav-lbl">Разделы</span><a href="#sec1" data-sec="sec1">Компания</a><a href="#sec2" data-sec="sec2">Отдел продаж</a><a href="#sec3" data-sec="sec3">Менеджеры</a><a href="#sec4" data-sec="sec4">В производство</a><a href="#sec5" data-sec="sec5">Дисциплина</a><a href="#sec6" data-sec="sec6">Оффер у клиента</a></nav>
   <div class="seg" id="period"></div>
   <button id="dateBtn" class="dbtn">📅 <span id="dateBtnTxt">даты</span></button><input type="hidden" id="cf"><input type="hidden" id="ct">
 </div>
@@ -1175,6 +1181,19 @@ function periodDQ(D,L){
 }
 function updateFiltDot(){ const dot=document.getElementById('filtDot'); if(!dot)return;
   const active = S.dateBasis!=='created' || S.revMode!=='prepay' || S.amtMode!=='budget' || S.gran!=='week' || !!(S.fDir&&S.fDir!==''); dot.hidden=!active; }
+// Меню-якорь по блокам: плавный скролл к разделу + подсветка активного при прокрутке.
+// Секции #sec1..#sec6 пересобираются в render(), поэтому перевязываем после каждой сборки.
+function wireAnchors(){
+  const nav=document.getElementById('anchorNav');if(!nav)return;
+  const links=[...nav.querySelectorAll('a[data-sec]')];
+  const byId={};links.forEach(a=>byId[a.dataset.sec]=a);
+  links.forEach(a=>{a.onclick=e=>{e.preventDefault();const t=document.getElementById(a.dataset.sec);if(t)t.scrollIntoView({behavior:'smooth',block:'start'});};});
+  if(window._anavIO)window._anavIO.disconnect();
+  window._anavIO=new IntersectionObserver(es=>{
+    es.forEach(en=>{if(en.isIntersecting){links.forEach(l=>l.classList.remove('on'));const a=byId[en.target.id];if(a)a.classList.add('on');}});
+  },{rootMargin:'-125px 0px -68% 0px',threshold:0});
+  links.forEach(a=>{const s=document.getElementById(a.dataset.sec);if(s)window._anavIO.observe(s);});
+}
 function render(){
   updateFiltDot();
   const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
@@ -2486,6 +2505,7 @@ function offerControlBlock(){
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()+deptDQBlock()
     + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+healthBlock()+offerReasonsBlock();
   document.getElementById('root').innerHTML=h;
+  wireAnchors();
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
   // Динамика денег: по дате исхода (закрытые в периоде) или по когорте создания - по тумблеру.

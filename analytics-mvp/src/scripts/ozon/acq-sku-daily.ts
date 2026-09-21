@@ -16,6 +16,8 @@ import { bucketMap, type Bucket } from "./accrual-buckets.js";
 const OUT = "data/acq_sku_daily.ndjson";
 const OUT_BD = "data/buyer_delivery_daily.ndjson"; // кабинетная доставка от покупателя (NON_ITEM) по дням
 const OUT_BDO = "data/buyer_delivery_orders.ndjson"; // доставка от покупателя ПО ЗАКАЗУ (NON_ITEM несёт ключ заказа)
+const OUT_PRTD = "data/partner_daily.ndjson";       // партнёры NON_ITEM без SKU (realFBS-услуги) по дням
+const OUT_PRTO = "data/partner_orders.ndjson";      // партнёры NON_ITEM по заказу (где by-day несёт ключ)
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
 async function main() {
@@ -35,12 +37,16 @@ async function main() {
   // (sku, date) -> {acq, sto, bd}. bd - «перечисление за доставку от покупателя» (ДОХОД, >0), если оно
   // приходит в by-day ITEM (с SKU). Отдельно считаем NON_ITEM-остаток доставки покупателя (без SKU) -
   // если он большой, значит по SKU её не собрать и нужен другой путь.
-  const agg: Record<string, { d: string; sku: string; acq: number; sto: number; bd: number }> = {};
+  // prt - услуги партнёров (rFBS) по SKU; promo - продвижение по SKU (продвижение бренда + подписки-%,
+  // НЕ CPC/CPO - те собираются отдельно). Всё из by-day ITEM (несёт SKU) - разносится по заказам в render.
+  const agg: Record<string, { d: string; sku: string; acq: number; sto: number; bd: number; prt: number; promo: number }> = {};
   const key = (sku: string, d: string) => sku + "|" + d;
   const bdCab: Record<string, number> = {}; // дата -> доставка покупателя (NON_ITEM, кабинет, >0)
   const bdOrd: Record<string, number> = {}; // база заказа -> доставка покупателя (NON_ITEM несёт ключ заказа)
+  const prtCab: Record<string, number> = {}; // дата -> партнёры NON_ITEM без SKU (realFBS-услуги и т.п.)
+  const prtOrd: Record<string, number> = {}; // база заказа -> партнёры NON_ITEM, если несёт ключ
   const oBase = (o: string) => String(o || "").replace(/-\d+$/, "");
-  let recs = 0, bdNonItem = 0, bdWithKey = 0;
+  let recs = 0, bdNonItem = 0, bdWithKey = 0, prtItem = 0, prtNonItem = 0, prtWithKey = 0;
   for (const day of days) {
     let arr: any[] = [];
     try { arr = await seller.accrualByDay(day); } catch { continue; }
@@ -52,38 +58,54 @@ async function main() {
         const sku = String(sf?.sku ?? ""); if (!sku) continue;
         for (const f of (sf?.fees || [])) {
           const bk = (bmap[Number(f?.type_id)] || "other") as Bucket;
-          if (bk !== "acquiring" && bk !== "storage" && bk !== "buyerDelivery") continue;
+          if (bk !== "acquiring" && bk !== "storage" && bk !== "buyerDelivery" && bk !== "partner" && bk !== "ads") continue;
           const amt = Number(f?.accrued?.amount ?? f?.accrued ?? f?.amount ?? 0);
-          const r = (agg[key(sku, d)] ||= { d, sku, acq: 0, sto: 0, bd: 0 });
-          if (bk === "acquiring") r.acq += amt; else if (bk === "storage") r.sto += amt; else r.bd += amt;
+          const r = (agg[key(sku, d)] ||= { d, sku, acq: 0, sto: 0, bd: 0, prt: 0, promo: 0 });
+          if (bk === "acquiring") r.acq += amt; else if (bk === "storage") r.sto += amt;
+          else if (bk === "buyerDelivery") r.bd += amt;
+          else if (bk === "partner") { r.prt += amt; prtItem += amt; }
+          else { r.promo += amt; } // ads по SKU = продвижение бренда + подписки-% (CPC/CPO тут не приходят)
         }
       }
-      // NON_ITEM доставка покупателя (без SKU) - кабинетный доход; собираем по ДАТЕ (в build-katya
-      // разносим по заказам периода пропорционально штукам - per-SKU/per-order ключа у OZON тут нет).
+      // NON_ITEM: доставка покупателя (доход) и партнёрские услуги без SKU (realFBS и т.п.). Собираем
+      // по ДАТЕ (кабинетный ряд) и по ключу заказа, если OZON его отдал (posting/unit_number).
       const nf = a?.non_item_fee;
-      if (nf && (bmap[Number(nf.type_id)] as Bucket) === "buyerDelivery") {
+      if (nf) {
+        const nbk = bmap[Number(nf.type_id)] as Bucket;
         const amt = Number(nf?.accrued?.amount ?? nf?.accrued ?? 0);
-        bdNonItem += amt; bdCab[d] = (bdCab[d] || 0) + amt;
         const okey = oBase(String(a?.posting || a?.unit_number || ""));
-        if (okey) { bdWithKey += amt; bdOrd[okey] = (bdOrd[okey] || 0) + amt; } // per-order ключ (posting/unit_number)
+        if (nbk === "buyerDelivery") {
+          bdNonItem += amt; bdCab[d] = (bdCab[d] || 0) + amt;
+          if (okey) { bdWithKey += amt; bdOrd[okey] = (bdOrd[okey] || 0) + amt; }
+        } else if (nbk === "partner") {
+          prtNonItem += amt; prtCab[d] = (prtCab[d] || 0) + amt;
+          if (okey) { prtWithKey += amt; prtOrd[okey] = (prtOrd[okey] || 0) + amt; }
+        }
       }
     }
   }
-  const rows = Object.values(agg).map((r) => ({ d: r.d, sku: r.sku, acq: Math.round(r.acq), sto: Math.round(r.sto), bd: Math.round(r.bd) }))
-    .filter((r) => r.acq || r.sto || r.bd);
+  const rows = Object.values(agg).map((r) => ({ d: r.d, sku: r.sku, acq: Math.round(r.acq), sto: Math.round(r.sto), bd: Math.round(r.bd), prt: Math.round(r.prt), promo: Math.round(r.promo) }))
+    .filter((r) => r.acq || r.sto || r.bd || r.prt || r.promo);
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   const bdRows = Object.entries(bdCab).map(([d, bd]) => ({ d, bd: Math.round(bd) })).filter((r) => r.bd).sort((a, b) => a.d.localeCompare(b.d));
   writeFileSync(OUT_BD, bdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   const bdOrdRows = Object.entries(bdOrd).map(([order, bd]) => ({ order, bd: Math.round(bd) })).filter((r) => r.bd).sort((a, b) => a.order.localeCompare(b.order));
   writeFileSync(OUT_BDO, bdOrdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  // Партнёры NON_ITEM (без SKU): кабинетный ряд по дням + per-order где есть ключ.
+  const prtCabRows = Object.entries(prtCab).map(([d, v]) => ({ d, prt: Math.round(v) })).filter((r) => r.prt).sort((a, b) => a.d.localeCompare(b.d));
+  writeFileSync(OUT_PRTD, prtCabRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  const prtOrdRows = Object.entries(prtOrd).map(([order, v]) => ({ order, prt: Math.round(v) })).filter((r) => r.prt).sort((a, b) => a.order.localeCompare(b.order));
+  writeFileSync(OUT_PRTO, prtOrdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   // само-сверка по месяцам
-  const bm: Record<string, { acq: number; sto: number; bdc: number }> = {};
-  for (const r of rows) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acq: 0, sto: 0, bdc: 0 }); b.acq += r.acq; b.sto += r.sto; }
-  for (const r of bdRows) { const m = r.d.slice(0, 7); (bm[m] ||= { acq: 0, sto: 0, bdc: 0 }).bdc += r.bd; }
-  console.log(`  by-day записей ${recs} | строк (sku,день) ${rows.length} | дост.покуп NON_ITEM ${Math.round(bdNonItem).toLocaleString("ru")} | из них с ключом заказа: ${Math.round(bdWithKey).toLocaleString("ru")}`);
-  console.log("  по месяцам (эквайринг | хранение | дост.покуп кабинет):");
-  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m].acq.toLocaleString("ru")} | ${bm[m].sto.toLocaleString("ru")} | ${bm[m].bdc.toLocaleString("ru")}`);
-  console.log(`  -> ${OUT}, ${OUT_BD}`);
+  const bm: Record<string, { acq: number; sto: number; bdc: number; prt: number; promo: number }> = {};
+  for (const r of rows) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acq: 0, sto: 0, bdc: 0, prt: 0, promo: 0 }); b.acq += r.acq; b.sto += r.sto; b.prt += r.prt; b.promo += r.promo; }
+  for (const r of prtCabRows) { const m = r.d.slice(0, 7); (bm[m] ||= { acq: 0, sto: 0, bdc: 0, prt: 0, promo: 0 }).prt += r.prt; }
+  for (const r of bdRows) { const m = r.d.slice(0, 7); (bm[m] ||= { acq: 0, sto: 0, bdc: 0, prt: 0, promo: 0 }).bdc += r.bd; }
+  console.log(`  by-day записей ${recs} | строк (sku,день) ${rows.length} | дост.покуп NON_ITEM ${Math.round(bdNonItem).toLocaleString("ru")} (с ключом ${Math.round(bdWithKey).toLocaleString("ru")})`);
+  console.log(`  партнёры: ITEM(по SKU) ${Math.round(prtItem).toLocaleString("ru")} | NON_ITEM ${Math.round(prtNonItem).toLocaleString("ru")} (с ключом заказа ${Math.round(prtWithKey).toLocaleString("ru")})`);
+  console.log("  по месяцам (эквайринг | хранение | дост.покуп | партнёры всего | промо по SKU):");
+  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m].acq.toLocaleString("ru")} | ${bm[m].sto.toLocaleString("ru")} | ${bm[m].bdc.toLocaleString("ru")} | ${bm[m].prt.toLocaleString("ru")} | ${bm[m].promo.toLocaleString("ru")}`);
+  console.log(`  -> ${OUT}, ${OUT_BD}, ${OUT_PRTD}, ${OUT_PRTO}`);
 }
 
 main().catch((e) => { console.error("acq-sku-daily FAIL:", e); process.exit(1); });

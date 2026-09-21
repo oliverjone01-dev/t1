@@ -488,8 +488,8 @@ async function main() {
     let flipped = 0;
     for (const k in byThread) {
       const arr = byThread[k]!;
-      const namedClient = arr.some((e) => isMsg(e) && e.dir === "входящее" && e.who && !AMB_SIG.test(String(e.who).trim()));
-      if (!namedClient) continue;
+      // ПРЕДОХРАНИТЕЛЬ: подпись «Телефон»/«—» система ставит оператору (бизнес-аккаунт),
+      // поэтому по умолчанию это менеджер, а не клиент. Клиент опознаётся именем или «Принято».
       const mgr = (arr.find((e) => e.mgr)?.mgr) || "Менеджер";
       for (const e of arr) {
         if (!isMsg(e) || e.dir !== "входящее") continue;

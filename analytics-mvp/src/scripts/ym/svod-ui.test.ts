@@ -941,7 +941,13 @@ describe("свод по заказам", () => {
 // апрельскую просадку и майский рост пришлось бы объяснять чем угодно, кроме причины.
 describe("свод: позиция по баллам Маркета", () => {
   const PTS = () => D().getElementById("sv-pts")!;
-  const nums = () => (PTS().textContent || "").match(/-?[\d  ]+(?=\s*₽)/g)!.map((x) => num(x)!);
+  // Числа читаются с data-якорей плиток, а не регуляркой по тексту: подписи и знак минуса
+  // склеиваются с соседними плитками, и разбор текста ловил чужое число.
+  const nums = (): number[] => ["acc", "ord", "oh", "bal"].map((k) => {
+    const t = PTS().querySelector(`[data-pts="${k}"] [data-v]`);
+    const v = t ? Number(t.getAttribute("data-v")) : 0;
+    return k === "bal" ? v : Math.abs(v);
+  });
 
   it("июль: начислено, потрачено и сальдо взяты из свода, а не посчитаны заново", () => {
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));

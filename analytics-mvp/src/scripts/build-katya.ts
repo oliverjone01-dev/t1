@@ -922,6 +922,12 @@ const EXTRA_CSS = `
 .kt-kpi .card:nth-child(5)::before{background:linear-gradient(90deg,var(--d5),transparent)}
 .kt-kpi .card:nth-child(6)::before{background:linear-gradient(90deg,var(--up),transparent)}
 .kt-table{width:100%;border-collapse:collapse;font-size:12.5px}.kt-table th{color:var(--ink-3);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--bg-soft)}.kt-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04)}.kt-table .r{text-align:right;font-variant-numeric:tabular-nums}
+/* Строка ИТОГО стоит ПЕРВОЙ под шапкой (решение Ивана 18.09.2026), и на широкой таблице в
+   полсотни колонок терялась среди строк артикулов: те же 12.5px, тот же фон, отличие только
+   в жирности. Отделяем её как отдельный ярус: подложка, акцентная линия снизу и чуть крупнее
+   цифры. Идиома та же, что у .cf-total в контент-фабрике, чтобы итог везде читался одинаково. */
+.kt-table tr.sv-total td,.kt-table tr.so-total td{font-weight:700;font-size:13px;background:rgba(255,255,255,.05);border-top:1px solid var(--bg-soft);border-bottom:2px solid var(--accent-deep)}
+.kt-table tr.sv-total td:first-child,.kt-table tr.so-total td:first-child{letter-spacing:.03em}
 .kt-scroll{overflow-x:auto}.kt-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
 .kt-src{display:inline-block;font-size:10.5px;border:1px solid var(--bg-soft);border-radius:6px;padding:2px 7px;color:var(--ink-3);margin-left:8px}.kt-src.live{border-color:#22D3EE;color:#22D3EE}
@@ -2788,11 +2794,23 @@ function svDraw(){
     var pOh=ohP||0, bal=pAcc-pOrd-pOh;
     if(!Math.round(pAcc)&&!Math.round(pOrd)&&!Math.round(pOh)){el.style.display='none';return;}
     el.style.display='';
-    el.innerHTML='<b>Баллы Маркета за период.</b> '
-      +'Начислено <b>'+svRub(pAcc)+' ₽</b> (скидка Маркета и Плюса, возвращённая баллами - уже внутри «Продаж») · '
-      +'потрачено на услуги заказов <b>'+svRub(pOrd)+' ₽</b> · '
-      +'потрачено на общие расходы кабинета <b>'+svRub(pOh)+' ₽</b> · '
-      +'сальдо <b style="color:'+(bal>=0?'var(--up)':'var(--dn)')+'">'+(bal>=0?'+':'')+svRub(bal)+' ₽</b>. '
+    // Плитками, а не строкой. Первая версия была тонкой заметкой между длинной жёлтой плашкой
+    // пробелов и широкой таблицей, и Катя её просто не нашла на странице (21.09.2026).
+    // data-pts - якорь для тестов: читать числа регуляркой по textContent было бы гаданием,
+    // подпись плитки и знак минуса склеиваются с соседями.
+    var tile=function(k,t,v,c){return '<div data-pts="'+k+'" style="flex:1 1 140px;min-width:140px">'
+      +'<div style="color:var(--ink-3);font-size:11.5px;line-height:1.3">'+t+'</div>'
+      +'<div data-v="'+Math.round(v)+'" style="font-size:17px;font-weight:700;font-variant-numeric:tabular-nums'+(c?';color:'+c:'')+'">'+(v<0?'-':'')+svRub(Math.abs(v))+' ₽</div></div>';};
+    el.innerHTML='<div style="font-weight:700;margin-bottom:8px">Баллы Маркета за период</div>'
+      +'<div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px">'
+      +tile('acc','Начислено<br>скидка Маркета и Плюса',pAcc,'')
+      +tile('ord','Потрачено<br>на услуги заказов',-pOrd,'')
+      +tile('oh','Потрачено<br>на общие расходы',-pOh,'')
+      +tile('bal','Сальдо<br>'+(bal>=0?'накопили':'потратили запас'),bal,bal>=0?'var(--up)':'var(--dn)')
+      +'</div>'
+      +'<div style="color:var(--ink-2);font-size:12px;line-height:1.5">'
+      +'Начисленное уже сидит внутри «Продаж»: скидку на кассе Маркет платит за покупателя и возвращает её продавцу баллами. '
+      +'Потраченное сидит в колонке «Баллы Маркета» и в общих расходах. '
       +(bal>=0
         ? 'Начислено больше, чем потрачено: прибыль периода на эту сумму держится на баллах, которые ещё лежат на счёте. Это не ошибка - баллами оплатят услуги следующих заказов.'
         : 'Потрачено больше, чем начислено: разницу доплатили из запаса, накопленного раньше. Прибыль периода на эту сумму занижена относительно ровного хода.')
@@ -2806,7 +2824,8 @@ function svDraw(){
           +(ptsOrd
             ? 'По '+ptsOrd+' мес. окна отчёта о баллах нет, там баллы взяты из самих заказов - для них эта доля на итог ВЛИЯЕТ.'
             : 'На итог месяца это не влияет: сумма месяца приводится к отчёту о баллах кабинета, разнесение идёт только между артикулами.')
-        : '');
+        : '')
+      +'</div>';
   })();
   var noCogs=list.filter(function(x){return !x.ck;}).length;
   if(noCogs)gaps.push('у '+noCogs+' SKU нет себестоимости: валовая прибыль по ним не считается, а не равна выручке');
@@ -3039,7 +3058,7 @@ function soDraw(){
   // перевозку мы оплатили. Без этой строки два свода разошлись бы ровно на неё.
   T.shipOur+=lost.v; TN.gp-=lost.v; TN.np-=lost.v;
   T.svc['Прочее']=(T.svc['Прочее']||0)+(oh.m+oh.p);
-  h+='<tr class="so-total" style="border-bottom:2px solid var(--bd)"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' заказов)</span></td>'
+  h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' заказов)</span></td>'
     +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
     +FEE.map(function(n){return '<td class="r"><b>'+(Math.round(T.svc[n])?svRub(T.svc[n]):'—')+'</b></td>';}).join('')
     +'<td class="r"><b>'+svRub(T.sp)+'</b></td><td class="r"><b>'+T.un+'</b></td>'
@@ -3147,7 +3166,7 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   var some=groups.length>0, gpT=R.gpT-lost.v, npT=R.npT-lost.v;
   var mS=function(v){return (some&&T.cover>0)?(Math.round(v/T.cover*1000)/10)+'%':'—';};
   h+='<tbody>';
-  h+='<tr class="sv-total" style="border-bottom:2px solid var(--bd)"><td><b>ИТОГО</b></td>'
+  h+='<tr class="sv-total"><td><b>ИТОГО</b></td>'
     +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
     +FEE.map(function(n){var v=(TC[n]||0)+(n==='Прочее'?(ohM+ohP):0);
         return '<td class="r"><b>'+(Math.round(v)?svRub(v):'—')+'</b></td>';}).join('')

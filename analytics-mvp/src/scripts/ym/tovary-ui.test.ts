@@ -123,3 +123,33 @@ describe("«Товары» Маркета: базис - доставленное
     expect(sold, "продажи не должны включать отменённое").toBeLessThan(want.rev / 1e6 + 1);
   });
 });
+
+// Колонка «Рентабельность» снята с «Товаров» (Катя 21.09.2026). Она считалась как
+// (продано − С\С) / продано и не знала ни сборов Маркета, ни нашей доставки, ни АДМ с налогами.
+// Сборы Маркета - 27,76 млн из 52,47 млн прайса, то есть 53%: вдвое крупнее себестоимости.
+// Колонка показывала 71-85% там, где чистая рентабельность канала по своду -2,7%, и слово
+// «рентабельность» значило на одном дашборде две разные вещи.
+describe("«Товары»: рентабельности по одной себестоимости больше нет", () => {
+  const goodsTable = () => [...D().querySelectorAll("table")]
+    .find((t) => /Себестоимость/.test(t.textContent || ""))!;
+
+  it("колонки «Рентабельность» в таблице нет", () => {
+    const hs = [...goodsTable().querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+    expect(hs, "таблица товаров не найдена").toContain("Себестоимость");
+    expect(hs).not.toContain("Рентабельность");
+  });
+
+  it("число колонок сошлось с числом ячеек: снятая колонка не сдвинула строки", () => {
+    const t = goodsTable();
+    const n = t.querySelectorAll("thead th").length;
+    const rows = [...t.querySelectorAll("tbody tr")].slice(0, 20);
+    expect(rows.length, "в таблице нет строк").toBeGreaterThan(0);
+    const bad = rows.filter((r) => r.children.length !== n)
+      .map((r) => `${(r.children[0]?.textContent || "").trim()}: ячеек ${r.children.length}, колонок ${n}`);
+    expect(bad).toEqual([]);
+  });
+
+  it("сортировки по снятой колонке не осталось", () => {
+    expect(D().querySelector('[data-sort="margin"]'), "заголовок сортировки по margin остался").toBeNull();
+  });
+});

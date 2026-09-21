@@ -25,6 +25,10 @@ on:
         description: "yes = полный пересбор заказов с FLOOR (нужен после смены состава полей строки)"
         required: false
         default: ""
+      orders_floor:
+        description: "Пол сбора заказов, YYYY-MM-DD (пусто = 2026-02-01). Раньше пола заказы не тянутся ВООБЩЕ - кабинет зеркал по реестру торговал и в январе"
+        required: false
+        default: ""
       report_budget:
         description: "Максимум отчётов Маркета (generate/poll/download) за прогон; каждый до 15 мин"
         required: false
@@ -49,6 +53,9 @@ env:
   SNAPSHOT_MIN_SKUS: "1"
   YM_REPORT_BUDGET: ${{ github.event.inputs.report_budget || '10' }}
   YM_ORDERS_REFETCH: ${{ github.event.inputs.orders_refetch == 'yes' && '1' || '' }}
+  # Пустая строка = common.ts берёт свой дефолт 2026-02-01. Задавать явно нужно только для
+  # бэкфилла вглубь: по реестру платежей кабинет зеркал торговал уже в январе 2026.
+  YM_FLOOR: ${{ github.event.inputs.orders_floor }}
   YM_DUMP_ORDERS: ${{ github.event.inputs.dump_orders }}
 
 jobs:

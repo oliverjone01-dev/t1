@@ -404,3 +404,42 @@ describe("баллы за скидку = сама скидка, возвращё
     expect(bad, "баллы разошлись со скидкой - значит разбор subsidies[] сломан").toEqual([]);
   });
 });
+
+// Внешний эталон для доли Маркета в доставке (§15 п.1). ФЕНИКС 2026-09-21 справедливо указал,
+// что ship_mp добавлен в доход без сверки с источником ВНЕ артефакта: «баллы за неё начислены» -
+// внутренняя согласованность заказа, а не эталон.
+//
+// Эталон нашёлся: Маркет отдаёт эту субсидию отдельной строкой отчёта о баллах с источником
+// «Баллы за скидку Маркета на доставку». Реестр взаиморасчётов здесь беднее (за май 2026 строки
+// нет вовсе), поэтому эталоном служит отчёт о баллах, а не реестр.
+describe("доля Маркета в доставке сверена с отчётом о баллах", () => {
+  const svodP = "data-ym/svod_orders.json";
+  const bonP = "data-ym/bonuses_monthly.ndjson";
+
+  it("по каждой паре кабинет+месяц ship_mp равен субсидии Маркета на доставку", () => {
+    if (!existsSync(svodP) || !existsSync(bonP)) return;      // снимка нет - сверять нечего
+    const svod = JSON.parse(readFileSync(svodP, "utf-8"));
+    const mine: Record<string, number> = {};
+    for (const m of svod.months) for (const r of m.rows) {
+      if (!r.ship_mp) continue;
+      const k = `${m.business}|${m.ym}`;
+      mine[k] = Math.round(((mine[k] || 0) + r.ship_mp) * 100) / 100;
+    }
+    // Знак берётся из источника: «Возврат ...» уменьшает субсидию, как и везде в отчёте.
+    const theirs: Record<string, number> = {};
+    for (const line of readFileSync(bonP, "utf-8").split("\n")) {
+      const t = line.trim(); if (!t) continue;
+      const r = JSON.parse(t);
+      const src = String(r.src || "");
+      if (!/доставку/i.test(src)) continue;
+      const k = `${r.business}|${String(r.d || r.ym).slice(0, 7)}`;
+      const sign = /^Возврат/i.test(src) ? -1 : 1;
+      theirs[k] = Math.round(((theirs[k] || 0) + sign * Math.abs(Number(r.amount) || 0)) * 100) / 100;
+    }
+    const keys = [...new Set([...Object.keys(mine), ...Object.keys(theirs)])].sort();
+    expect(keys.length, "субсидии на доставку в снимке не нашлось - сверять нечего").toBeGreaterThan(0);
+    const bad = keys.filter((k) => Math.abs((mine[k] || 0) - (theirs[k] || 0)) > 1)
+      .map((k) => `${k}: свод ${mine[k] || 0}, отчёт о баллах ${theirs[k] || 0}`);
+    expect(bad, "доля Маркета в доставке разошлась с отчётом Маркета").toEqual([]);
+  });
+});

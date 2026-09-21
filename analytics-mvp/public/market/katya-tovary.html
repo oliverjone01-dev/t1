@@ -1558,7 +1558,6 @@ function renderProducts(){
     if(sortCol === 'name'){ av = a.nm; bv = b.nm; return av.localeCompare(bv,'ru') * dir; }
     if(sortCol === 'rev')         { av = a.revPeriod; bv = b.revPeriod; }
     else if(sortCol === 'cost')   { av = a.costPeriod; bv = b.costPeriod; }
-    else if(sortCol === 'margin') { av = a.margin; bv = b.margin; }
     else if(sortCol === 'orders') { av = a.ordersPeriod; bv = b.ordersPeriod; }
     else if(sortCol === 'avgp')   { av = a.ordersPeriod>0 ? a.revPeriod/a.ordersPeriod : 0; bv = b.ordersPeriod>0 ? b.revPeriod/b.ordersPeriod : 0; }
     else if(sortCol === 'returns'){ av = a.returns; bv = b.returns; }
@@ -1676,7 +1675,7 @@ function renderProducts(){
     const revB  = _pb.rev;
     const costB = _pb.cost;
     const ordB  = Math.round(_pb.orders);
-    return `<tr class="pt-row-variant pt-leaf depth${depth}" style="--rc:${r.color}" data-tip="${a.sku}|Описание|${a.sub}|Выручка|${fmt(rev,2)} млн ₽|Рентабельность|${a.costNA?'нет данных':fmt(margin,1)+'%'}|Заказы|${fmt0(ord)} шт|Ср.цена|${ord>0?fmt0(kp)+' тыс ₽':'—'}|Возвраты|${a.returns==null?'нет данных':fmt(a.returns,1)+'%'}|Склад|нет данных|Ранг в модели|#${r.rank}">
+    return `<tr class="pt-row-variant pt-leaf depth${depth}" style="--rc:${r.color}" data-tip="${a.sku}|Описание|${a.sub}|Выручка|${fmt(rev,2)} млн ₽|Заказы|${fmt0(ord)} шт|Ср.цена|${ord>0?fmt0(kp)+' тыс ₽':'—'}|Возвраты|${a.returns==null?'нет данных':fmt(a.returns,1)+'%'}|Склад|нет данных|Ранг в модели|#${r.rank}">
       <td class="pt-rank pt-rank-dot"><span class="rc-dot" style="background:${r.color}"></span>${r.rank}</td>
       <td><div class="pt-name-cell pt-indent"><div class="pt-name-text">
         <div class="pt-name-main">${a.sku}</div>
@@ -1684,7 +1683,6 @@ function renderProducts(){
       </div></div></td>
       <td class="right pt-rev pt-bar-cell" ${bAttr(rev, mx.rev, r.fill)}><span class="num">${fmt(rev,2)}</span><span class="u">млн ₽</span>${dlt(rev, revB)}</td>
       <td class="right pt-cost">${a.costNA?ND:`<span class="num">${fmt(cost,2)}</span><span class="u">млн ₽</span>${dlt(cost, costB, false)}`}</td>
-      <td class="right pt-margin ${a.costNA?'':marginCls}">${a.costNA?ND:`<span class="num">${fmt(margin,1)}%</span>`}</td>
       <td class="right pt-num pt-bar-cell" ${bAttr(ord, mx.ord, r.ordFill)}><span class="num">${fmt0(ord)}</span>${dlt(ord, ordB)}</td>
       <td class="right pt-avgp"><span class="num">${ord>0?fmt0(kp):'—'}</span><span class="u">тыс ₽</span></td>
       <td class="right pt-ret ${a.returns==null?'':retClass}">${a.returns==null?ND:`<span class="num">${fmt(a.returns,1)}%</span>`}</td>
@@ -1710,7 +1708,7 @@ function renderProducts(){
     const revB  = v.rev * ratioB;
     const costB = v.cost * ratioB;
     const ordB  = Math.round(v.orders * ratioB);
-    return `<tr class="pt-row-variant pt-size${hasArts?' has-variants':''}${expanded?' expanded':''}" ${hasArts?`data-expand="${sizeKey}"`:''} style="--rc:${r.color}" data-tip="${v.sku}|Описание|${v.sub}|Выручка|${fmt(rev,2)} млн ₽|Рентабельность|${fmt(margin,1)}%|Заказы|${fmt0(ord)} шт|Ср.цена|${ord>0?fmt0(kp)+' тыс ₽':'—'}|Склад|${v.stockQty} шт|Ранг в модели|#${r.rank}${hasArts?'|Артикулов|'+arts.length:''}">
+    return `<tr class="pt-row-variant pt-size${hasArts?' has-variants':''}${expanded?' expanded':''}" ${hasArts?`data-expand="${sizeKey}"`:''} style="--rc:${r.color}" data-tip="${v.sku}|Описание|${v.sub}|Выручка|${fmt(rev,2)} млн ₽|Заказы|${fmt0(ord)} шт|Ср.цена|${ord>0?fmt0(kp)+' тыс ₽':'—'}|Склад|${v.stockQty} шт|Ранг в модели|#${r.rank}${hasArts?'|Артикулов|'+arts.length:''}">
       <td class="pt-rank pt-rank-dot"><span class="rc-dot" style="background:${r.color}"></span>${r.rank}</td>
       <td><div class="pt-name-cell pt-indent">
         ${hasArts ? `<span class="pt-chev">${chevronSvg}</span>` : ''}
@@ -1720,7 +1718,6 @@ function renderProducts(){
         </div></div></td>
       <td class="right pt-rev pt-bar-cell" ${bAttr(rev, mx.rev, r.fill)}><span class="num">${fmt(rev,2)}</span><span class="u">млн ₽</span>${dlt(rev, revB)}</td>
       <td class="right pt-cost"><span class="num">${fmt(cost,2)}</span><span class="u">млн ₽</span>${dlt(cost, costB, false)}</td>
-      <td class="right pt-margin ${marginCls}"><span class="num">${fmt(margin,1)}%</span></td>
       <td class="right pt-num pt-bar-cell" ${bAttr(ord, mx.ord, r.ordFill)}><span class="num">${fmt0(ord)}</span>${dlt(ord, ordB)}</td>
       <td class="right pt-avgp"><span class="num">${ord>0?fmt0(kp):'—'}</span><span class="u">тыс ₽</span></td>
       <td class="right pt-ret ${retClass}"><span class="num">${fmt(v.returns,1)}%</span></td>
@@ -1745,7 +1742,7 @@ function renderProducts(){
         ? `${p.sub} · <span style="color:var(--accent);font-weight:600">${childWord}</span>`
         : p.sub;
 
-      let html = `<tr class="pt-row${hasVariants?' has-variants':''}${isExpanded?' expanded':''}" ${hasVariants?`data-expand="${p.nm}"`:''} data-tip="${p.nm}|Выручка|${fmt(p.revPeriod,1)} млн ₽|Себестоимость|${p.costNA?'нет данных':fmt(p.costPeriod,1)+' млн ₽'}|Рентабельность|${p.costNA?'нет данных':fmt(p.margin,1)+'%'}|Заказы|${fmt0(p.ordersPeriod)} шт|Возвраты|${p.returns==null?'нет данных':fmt(p.returns,1)+'%'}|Склад|нет данных${hasVariants?'|'+(childIsSize?'Размеров':'Артикулов')+'|'+variantCount:''}">
+      let html = `<tr class="pt-row${hasVariants?' has-variants':''}${isExpanded?' expanded':''}" ${hasVariants?`data-expand="${p.nm}"`:''} data-tip="${p.nm}|Выручка|${fmt(p.revPeriod,1)} млн ₽|Себестоимость|${p.costNA?'нет данных':fmt(p.costPeriod,1)+' млн ₽'}|Заказы|${fmt0(p.ordersPeriod)} шт|Возвраты|${p.returns==null?'нет данных':fmt(p.returns,1)+'%'}|Склад|нет данных${hasVariants?'|'+(childIsSize?'Размеров':'Артикулов')+'|'+variantCount:''}">
         <td class="pt-rank">№${i+1}</td>
         <td>
           <div class="pt-name-cell">
@@ -1758,7 +1755,6 @@ function renderProducts(){
         </td>
         <td class="right pt-rev"><span class="num">${fmt(p.revPeriod,1)}</span><span class="u">млн ₽</span>${dlt(p.revPeriod, p.revPeriodB)}</td>
         <td class="right pt-cost">${p.costNA?ND:`<span class="num">${fmt(p.costPeriod,1)}</span><span class="u">млн ₽</span>${dlt(p.costPeriod, p.costPeriodB, false)}`}</td>
-        <td class="right pt-margin ${p.costNA?'':marginCls}">${p.costNA?ND:`<span class="num">${fmt(p.margin,1)}%</span>`}</td>
         <td class="right pt-num"><span class="num">${fmt0(p.ordersPeriod)}</span>${dlt(p.ordersPeriod, p.ordersPeriodB)}</td>
         <td class="right pt-avgp"><span class="num">${p.ordersPeriod>0 ? fmt0(p.revPeriod/p.ordersPeriod*1000) : '—'}</span><span class="u">тыс ₽</span></td>
         <td class="right pt-ret ${p.returns==null?'':retClass}">${p.returns==null?ND:`<span class="num">${fmt(p.returns,1)}%</span>`}</td>
@@ -1853,7 +1849,6 @@ function renderProducts(){
             <th data-sort="name" class="${sortClass('name')}">Наименование</th>
             <th class="right ${sortClass('rev')}" data-sort="rev">Продано</th>
             <th class="right ${sortClass('cost')}" data-sort="cost">Себестоимость</th>
-            <th class="right ${sortClass('margin')}" data-sort="margin">Рентабельность</th>
             <th class="right ${sortClass('orders')}" data-sort="orders">Доставлено</th>
             <th class="right ${sortClass('avgp')}" data-sort="avgp">Ср.цена</th>
             <th class="right ${sortClass('returns')}" data-sort="returns">Возвраты</th>

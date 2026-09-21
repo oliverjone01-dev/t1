@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-21T11:19:37.192Z",
+  "generated_at": "2026-09-21T12:16:49.863Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-20",
   "split_check": {
@@ -10416,6 +10416,14 @@
       "ship_lost_daily": {
         "2026-08-18": 3235
       },
+      "ship_lost_rows": [
+        {
+          "order": "60505396993",
+          "d": "2026-08-18",
+          "v": 3235,
+          "status": "CANCELLED_IN_PROCESSING"
+        }
+      ],
       "ship_orders": 39,
       "ship_cov": 52.7
     },
@@ -16541,6 +16549,14 @@
       "ship_lost_daily": {
         "2026-08-06": 5840.5
       },
+      "ship_lost_rows": [
+        {
+          "order": "59983063232",
+          "d": "2026-08-06",
+          "v": 5840.5,
+          "status": "PROCESSING"
+        }
+      ],
       "ship_orders": 59,
       "ship_cov": 70.2
     },
@@ -23076,6 +23092,14 @@
       "ship_lost_daily": {
         "2026-07-02": 5355.19
       },
+      "ship_lost_rows": [
+        {
+          "order": "58746494592",
+          "d": "2026-07-02",
+          "v": 5355.19,
+          "status": "CANCELLED_IN_PROCESSING"
+        }
+      ],
       "ship_orders": 28,
       "ship_cov": 30.8
     },
@@ -30606,6 +30630,38 @@
         "2026-07-08": 3098.8,
         "2026-07-14": 5871.86
       },
+      "ship_lost_rows": [
+        {
+          "order": "58791538497",
+          "d": "2026-07-03",
+          "v": 4575,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58884154242",
+          "d": "2026-07-06",
+          "v": 8765,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58939662848",
+          "d": "2026-07-08",
+          "v": 3098.8,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "59143638531",
+          "d": "2026-07-14",
+          "v": 2947.52,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "59143849729",
+          "d": "2026-07-14",
+          "v": 2924.34,
+          "status": "CANCELLED_IN_DELIVERY"
+        }
+      ],
       "ship_orders": 61,
       "ship_cov": 56
     },
@@ -38438,6 +38494,50 @@
         "2026-06-26": 4567.68,
         "2026-06-30": 4800.7
       },
+      "ship_lost_rows": [
+        {
+          "order": "58030309827",
+          "d": "2026-06-10",
+          "v": 6739.28,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58032679810",
+          "d": "2026-06-10",
+          "v": 6539.2,
+          "status": "DELIVERED"
+        },
+        {
+          "order": "58048399298",
+          "d": "2026-06-11",
+          "v": 3323.28,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58051191682",
+          "d": "2026-06-11",
+          "v": 3050.17,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "58297914177",
+          "d": "2026-06-18",
+          "v": 4575,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58540706946",
+          "d": "2026-06-26",
+          "v": 4567.68,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58672223489",
+          "d": "2026-06-30",
+          "v": 4800.7,
+          "status": "CANCELLED_IN_PROCESSING"
+        }
+      ],
       "ship_orders": 65,
       "ship_cov": 71.4
     },
@@ -39179,6 +39279,14 @@
       "ship_lost_daily": {
         "2026-05-20": 3079.38
       },
+      "ship_lost_rows": [
+        {
+          "order": "57290591235",
+          "d": "2026-05-20",
+          "v": 3079.38,
+          "status": "CANCELLED_IN_PROCESSING"
+        }
+      ],
       "ship_orders": 4,
       "ship_cov": 80
     },
@@ -48318,6 +48426,56 @@
         "2026-05-21": 3136.9,
         "2026-05-31": 3390.38
       },
+      "ship_lost_rows": [
+        {
+          "order": "56676988034",
+          "d": "2026-05-02",
+          "v": 4073.58,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "56702424896",
+          "d": "2026-05-03",
+          "v": 13515.16,
+          "status": "DELIVERED"
+        },
+        {
+          "order": "56945201795",
+          "d": "2026-05-10",
+          "v": 3970.49,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "57087204739",
+          "d": "2026-05-14",
+          "v": 4421.58,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "57089513347",
+          "d": "2026-05-14",
+          "v": 8702.26,
+          "status": "DELIVERED"
+        },
+        {
+          "order": "57176423680",
+          "d": "2026-05-17",
+          "v": 5403.38,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "57338486337",
+          "d": "2026-05-21",
+          "v": 3136.9,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "57661008643",
+          "d": "2026-05-31",
+          "v": 3390.38,
+          "status": "CANCELLED_IN_DELIVERY"
+        }
+      ],
       "ship_orders": 89,
       "ship_cov": 66.9
     },
@@ -75698,6 +75856,14 @@
       "ship_lost_daily": {
         "2026-02-15": 8243
       },
+      "ship_lost_rows": [
+        {
+          "order": "54234425283",
+          "d": "2026-02-15",
+          "v": 8243,
+          "status": "DELIVERED"
+        }
+      ],
       "ship_orders": 2,
       "ship_cov": 2.2
     },

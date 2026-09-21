@@ -2602,6 +2602,7 @@ var SV=${JSON.stringify(svodLite(svod))};
 var SV_COLS=${JSON.stringify(COLS)};
 var SV_CAT=${JSON.stringify(cat)};
 var SV_OPEN={};
+var SV_LOST_OPEN=false;   // раскрыта ли строка «Отправки по отменённым и возвратам»
 var SV_REC=${JSON.stringify(rec)};
 var SV_SKIPPED=${JSON.stringify(skipped)};
 var PM_NAMES_SV=${JSON.stringify({ "74986385": "мебель", "1023124": "зеркала" })};
@@ -2660,11 +2661,24 @@ function svAgg(ms,w){
 // короче месяца.
 function svShipLost(ms,w){
   w=w||svWin();
-  var v=0,n=0;
-  ms.forEach(function(m){var d=m.ship_lost_daily||{};
-    Object.keys(d).forEach(function(k){if(svInWin(k,w))v+=d[k]||0;});
-    if(Object.keys(d).some(function(k){return svInWin(k,w);}))n+=m.ship_lost_orders||0;});
-  return {v:v,n:n};
+  var v=0,n=0,rows=[];
+  ms.forEach(function(m){
+    // Заказы считаем по СВОИМ датам. Раньше сюда шёл ship_lost_orders всего месяца, если в окно
+    // попадал хоть один его день: окно 1-15 показывало семь заказов там, где их три.
+    (m.ship_lost_rows||[]).forEach(function(r){
+      if(!svInWin(r.d,w))return;
+      rows.push({order:r.order,d:r.d,v:r.v||0,status:r.status||'',business:m.business});
+      v+=r.v||0;n++;
+    });
+    // Снимок собран до появления ship_lost_rows - падаем на дневной ряд, счётчик месячный.
+    if(!(m.ship_lost_rows||[]).length){
+      var dd=m.ship_lost_daily||{};var hit=false;
+      Object.keys(dd).forEach(function(k){if(svInWin(k,w)){v+=dd[k]||0;hit=true;}});
+      if(hit)n+=m.ship_lost_orders||0;
+    }
+  });
+  rows.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:(a.order<b.order?-1:1);});
+  return {v:v,n:n,rows:rows};
 }
 function svOverhead(ms,w){
   w=w||svWin();
@@ -3186,7 +3200,20 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
       else if(H[ci]==='Валовая прибыль'||H[ci]==='Чистая прибыль') tds+='<td class="r" style="color:var(--dn)">'+svRub(-lost.v)+'</td>';
       else tds+='<td class="r">—</td>';
     }
-    body+='<tr class="sv-extra" style="background:rgba(255,90,95,.06)"><td title="Мы оплатили перевозку, а заказ отменили или вернули. Выручки по таким заказам в своде нет (свод считает доставленное), поэтому расход стоит отдельной строкой и не искажает рентабельность артикулов.">Отправки по отменённым и возвратам <span style="color:var(--ink-3)">('+lost.n+' заказов)</span></td>'+tds+'</tr>';
+    var lostTip='Мы оплатили перевозку, а заказ отменили или вернули. Выручки по таким заказам в своде нет (свод считает доставленное), поэтому расход стоит отдельной строкой и не искажает рентабельность артикулов. Клик раскрывает заказы.';
+    body+='<tr class="sv-extra sv-lost-h" style="background:rgba(255,90,95,.06);cursor:pointer" title="'+lostTip+'"><td>'
+      +'<span style="display:inline-block;width:12px;color:var(--ink-3)">'+(SV_LOST_OPEN?'▾':'▸')+'</span>'
+      +'Отправки по отменённым и возвратам <span style="color:var(--ink-3)">('+lost.n+' заказов)</span></td>'+tds+'</tr>';
+    // Раскрытие по заказам: одной суммой строка отвечала «сколько», но не «за что», и проверить
+    // её было нечем. Статус показывается рядом - отмена и возврат объясняются по-разному, а
+    // DELIVERED здесь означает именно возврат (обратная нога по доставленному заказу).
+    if(SV_LOST_OPEN)lost.rows.forEach(function(r){
+      var st=/^CANCELLED/.test(r.status)?'отмена':(r.status==='DELIVERED'||r.status==='RETURNED'?'возврат':(r.status||'—'));
+      var t2='';
+      for(var ci2=1;ci2<H.length;ci2++) t2+=(ci2===shipIx)?'<td class="r" style="color:#FF5A5F">'+svRub(r.v)+'</td>':'<td class="r">—</td>';
+      body+='<tr class="sv-extra sv-lost-r" style="background:rgba(255,90,95,.03)"><td style="padding-left:26px;color:var(--ink-2)">'
+        +r.d+' &middot; заказ '+r.order+' <span style="color:var(--ink-3)">('+st+', '+(PM_NAMES_SV[r.business]||r.business)+')</span></td>'+t2+'</tr>';
+    });
   }
   // Месяц без строк - это не убыток: валовой прибылью и рентабельностью пустоту не называем.
   var some=groups.length>0, gpT=R.gpT-lost.v, npT=R.npT-lost.v;
@@ -3235,15 +3262,19 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
       else if(H[ci]==='Поступление') tds+='<td class="r" style="color:#FF5A5F"><b>'+svRub(net)+'</b></td>';
       else tds+='<td class="r">—</td>';
     }
+    // Подпись короткая: заказы и всё. Диапазон месяцев, доля и оговорка про ИТОГО ушли в
+    // подсказку - в ячейке они забивали саму строку и мешали видеть числа справа (Катя 21.09.2026).
+    tip='В ИТОГО этих заказов НЕТ. Месяцы: '+(ms.months.length>1?ms.months[0]+'..'+ms.months[ms.months.length-1]:ms.months[0])
+      +'. Это '+share+'% продаж периода. '+tip;
     h+='<tr class="sv-extra" style="background:rgba(255,90,95,.10)"><td title="'+tip.replace(/"/g,'&quot;')+'">'
-      +'<b style="color:#FF5A5F">Нет в выгрузке заказов</b> <span style="color:var(--ink-3)">('+ms.orders+' зак., '
-      +(ms.months.length>1?ms.months[0]+'..'+ms.months[ms.months.length-1]:ms.months[0])
-      +'; это '+share+'% продаж периода, в ИТОГО их НЕТ)</span></td>'+tds+'</tr>';
+      +'<b style="color:#FF5A5F">Нет в выгрузке заказов</b> <span style="color:var(--ink-3)">('+ms.orders+' зак.)</span></td>'+tds+'</tr>';
   })();
   h+=body+'</tbody>';
   var el=document.getElementById('sv-t');el.innerHTML=h;
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
     tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
+  Array.prototype.forEach.call(el.querySelectorAll('.sv-lost-h'),function(tr){
+    tr.onclick=function(){SV_LOST_OPEN=!SV_LOST_OPEN;svDraw();};});
   noteEl.innerHTML='';
 }
 function svInit(){

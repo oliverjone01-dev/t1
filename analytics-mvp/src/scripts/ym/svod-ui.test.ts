@@ -1066,3 +1066,50 @@ describe("свод: заказы вне выгрузки стоят строко
     expect(gapRow(), "июль собран полностью - строке пробела взяться неоткуда").toBeFalsy();
   });
 });
+
+// Раскрытие отправок по отменённым. Одной суммой строка отвечала «сколько», но не «за что»:
+// 7 заказов на 33 595 ₽ за июнь нечем было проверить (Катя 21.09.2026).
+describe("свод: отправки по отменённым раскрываются по заказам", () => {
+  const hdr = () => T().querySelector("tr.sv-lost-h") as any;
+  const rows = () => [...T().querySelectorAll("tr.sv-lost-r")];
+  const shipIx = () => head().indexOf("Наша доставка");
+
+  it("июнь: сумма заказов равна сумме в шапке строки", () => {
+    setRange("2026-06-01", "2026-06-30");
+    const h = hdr();
+    expect(h, "строки отправок по отменённым нет").toBeTruthy();
+    expect(rows().length, "заказы раскрыты до клика").toBe(0);
+    const total = num(h.children[shipIx()].textContent)!;
+    click(h);
+    const rr = rows();
+    expect(rr.length, "клик не раскрыл заказы").toBeGreaterThan(0);
+    expect(h.textContent).toContain(`${rr.length} заказов`);
+    const sum = rr.reduce((a, r) => a + (num(r.children[shipIx()].textContent) || 0), 0);
+    expect(Math.abs(sum - total), "сумма раскрытых заказов разошлась с итогом строки").toBeLessThan(2);
+    click(h);
+    expect(rows().length, "повторный клик не свернул").toBe(0);
+  });
+
+  it("у каждого заказа свой номер, дата и внятный статус", () => {
+    setRange("2026-05-01", "2026-06-30");
+    click(hdr());
+    const rr = rows();
+    expect(rr.length).toBeGreaterThan(1);
+    for (const r of rr) {
+      const t = (r.children[0].textContent || "").trim();
+      expect(t, `в строке нет даты: ${t}`).toMatch(/^\d{4}-\d{2}-\d{2}/);
+      expect(t, `в строке нет номера заказа: ${t}`).toMatch(/заказ \d+/);
+      expect(t, `статус не переведён: ${t}`).toMatch(/\((отмена|возврат|—|[A-Z_]+),/);
+    }
+    click(hdr());
+  });
+
+  it("счёт заказов идёт по их датам, а не по месяцу целиком", () => {
+    // Раньше сюда шёл ship_lost_orders всего месяца, если в окно попадал хоть один его день.
+    setRange("2026-06-01", "2026-06-30");
+    const whole = num((hdr().textContent || "").match(/\((\d+) заказов\)/)![1])!;
+    setRange("2026-06-01", "2026-06-10");
+    const part = hdr() ? num((hdr().textContent || "").match(/\((\d+) заказов\)/)![1])! : 0;
+    expect(part, "часть месяца показала столько же заказов, сколько весь месяц").toBeLessThan(whole);
+  });
+});

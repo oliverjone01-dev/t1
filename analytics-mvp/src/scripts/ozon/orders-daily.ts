@@ -57,29 +57,40 @@ async function main() {
   writeFileSync("data/orders_accrual_types.json", JSON.stringify(typesArr, null, 1));
   console.log(`  типов начислений по заказам: ${typesArr.length} -> data/orders_accrual_types.json`);
 
-  // Сборы уровня ЗАКАЗА (ЭКВАЙРИНГ и ДОСТАВКА ОТ ПОКУПАТЕЛЯ) OZON привязывает к БАЗОВОМУ номеру
-  // заказа (без суффикса отправки «-N»), поэтому accrual/postings по суффиксному постингу их почти
-  // не отдаёт: эквайринг=0, доставка покупателя ~3%. Проверено по отчёту «Начисления» (эквайринг -
-  // 402 строки под базой против 13 под постингом; доставка покупателя +605k под базой). Дозапрашиваем
-  // те же начисления по БАЗОВЫМ номерам и берём оттуда ТОЛЬКО эти два бакета (полные), чтобы получать
-  // корректные данные ИЗ API без ручных отчётов. Так «убрать последнюю цифру».
+  // Кабинетные/сервисные сборы уровня ЗАКАЗА (ЭКВАЙРИНГ, ХРАНЕНИЕ, доставка от покупателя) OZON НЕ
+  // отдаёт через accrual/postings - там только сборы ПО ПРОДАЖЕ (комиссия+логистика по SKU). Они в
+  // accrual/BY-DAY (дневной реестр), привязаны к БАЗОВОМУ posting. accrual/postings по 2-частному
+  // (базовому) номеру возвращает HTTP 400 (regex требует 3 части) - поэтому источник именно by-day.
+  // Схема by-day: {posting, accrued_category:ITEM|NON_ITEM, item_fees:{fees:[{sku,fees:[{type_id,
+  // accrued:{amount}}]}]}, non_item_fee:{type_id,accrued:{amount}}}. Эквайринг - type 1 (ITEM, по SKU).
+  // Проверено эпизодом ozon-finance-api-migration: by-day acquiring август -143 233 (совпало с отчётом).
+  // Берём из by-day ТОЛЬКО эквайринг/хранение/доставку покупателя (комиссию/логистику/рекламу НЕ трогаем,
+  // чтобы не задвоить с postings/CPO). Один вызов на день.
   const orderBase = (o: string) => o.replace(/-\d+$/, "");
-  const bases = Array.from(new Set(posts.map((p) => orderBase(p.posting_number)).filter(Boolean)));
-  let accBaseRaw: Array<{ posting_number: string; accruals: any[] }> = [];
-  try { accBaseRaw = await seller.accrualPostings(bases); } catch (e) { console.warn("  accrual по базовым номерам не удался:", (e as Error).message); }
-  const accBase: Record<string, { acquiring: number; buyerDelivery: number }> = {};
-  for (const p of accBaseRaw) {
-    const bkey = orderBase(String(p.posting_number));
-    const rec = (accBase[bkey] ||= { acquiring: 0, buyerDelivery: 0 });
-    for (const a of (p.accruals || [])) {
-      const bk = (bmap[Number(a.type_id)] || "other") as Bucket;
-      if (bk !== "acquiring" && bk !== "buyerDelivery") continue;
-      rec[bk] += Number(a?.accrued?.amount ?? a?.accrued ?? a?.amount ?? 0);
+  const accBase: Record<string, { acquiring: number; storage: number; buyerDelivery: number }> = {};
+  const addFee = (rec: { acquiring: number; storage: number; buyerDelivery: number }, f: any) => {
+    if (!f) return;
+    const bk = (bmap[Number(f.type_id)] || "other") as Bucket;
+    if (bk !== "acquiring" && bk !== "storage" && bk !== "buyerDelivery") return;
+    rec[bk] += Number(f?.accrued?.amount ?? f?.accrued ?? f?.amount ?? 0);
+  };
+  const days: string[] = [];
+  for (let t = Date.parse(from + "T00:00:00Z"); t <= Date.parse(to + "T00:00:00Z"); t += 86400000) days.push(new Date(t).toISOString().slice(0, 10));
+  let byDayRecs = 0;
+  for (const day of days) {
+    let recs: any[] = [];
+    try { recs = await seller.accrualByDay(day); } catch { continue; }
+    byDayRecs += recs.length;
+    for (const a of recs) {
+      const bkey = orderBase(String(a?.posting || "")); if (!bkey) continue;
+      const rec = (accBase[bkey] ||= { acquiring: 0, storage: 0, buyerDelivery: 0 });
+      for (const sf of (a?.item_fees?.fees || [])) for (const f of (sf?.fees || [])) addFee(rec, f);
+      if (a?.non_item_fee) addFee(rec, a.non_item_fee);
     }
   }
   const baseUsed: Record<string, number> = {}; // база -> уже присвоено (не задвоить на мультиотправках)
-  const acqN = Object.values(accBase).filter((v) => v.acquiring).length;
-  console.log(`  базовых номеров: ${bases.length} | из них с эквайрингом: ${acqN} | Σ эквайринг ${Math.round(Object.values(accBase).reduce((s, v) => s + v.acquiring, 0)).toLocaleString("ru")} | Σ дост.покуп ${Math.round(Object.values(accBase).reduce((s, v) => s + v.buyerDelivery, 0)).toLocaleString("ru")}`);
+  const sB = (k: "acquiring" | "storage" | "buyerDelivery") => Math.round(Object.values(accBase).reduce((s, v) => s + v[k], 0)).toLocaleString("ru");
+  console.log(`  by-day: дней ${days.length}, записей ${byDayRecs} | баз с эквайрингом ${Object.values(accBase).filter((v) => v.acquiring).length} | Σ эквайринг ${sB("acquiring")} | Σ хранение ${sB("storage")} | Σ дост.покуп ${sB("buyerDelivery")}`);
 
   const rows: any[] = [];
   for (const p of posts) {
@@ -91,16 +102,17 @@ async function main() {
     // Эквайринг/доставку покупателя берём из БАЗОВОГО запроса (полные), привязываем к базе ОДИН раз
     // (guard), иначе мультиотправки задвоят. Фолбэк на постинговый бакет, если по базе пусто.
     const bkey = orderBase(p.posting_number);
-    const bf = (accBase[bkey] && !baseUsed[bkey]) ? accBase[bkey] : { acquiring: 0, buyerDelivery: 0 };
+    const bf = (accBase[bkey] && !baseUsed[bkey]) ? accBase[bkey] : { acquiring: 0, storage: 0, buyerDelivery: 0 };
     if (accBase[bkey] && !baseUsed[bkey]) baseUsed[bkey] = 1;
-    const acquiring = bf.acquiring || b.acquiring;
+    const acquiring = bf.acquiring || b.acquiring;   // by-day полнее, чем postings; фолбэк на postings
+    const storage = bf.storage || b.storage;
     const buyerDeliv = bf.buyerDelivery || b.buyerDelivery;
-    const feesSum = b.commission + acquiring + b.storage + b.delivery + b.ads + b.other; // buyerDelivery компенсируется, в payout не входит
+    const feesSum = b.commission + acquiring + storage + b.delivery + b.ads + b.other; // buyerDelivery компенсируется, в payout не входит
     rows.push({
       order: p.posting_number, d: p.date, status: p.status,
       sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
       commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(acquiring),
-      storage: Math.round(b.storage), buyer_delivery: Math.round(buyerDeliv), ads: Math.round(b.ads),
+      storage: Math.round(storage), buyer_delivery: Math.round(buyerDeliv), ads: Math.round(b.ads),
       other: Math.round(b.other), payout: Math.round(revenue + feesSum),
     });
   }

@@ -3,7 +3,7 @@
 // Соответствует прежней логике svcBucket (pnl-sku-daily) + отдельная комиссия за продажу.
 // Выручки за продажу в начислениях НЕТ - она берётся отдельно (реализация / financial_data).
 
-export type Bucket = "commission" | "acquiring" | "storage" | "delivery" | "buyerDelivery" | "ads" | "other";
+export type Bucket = "commission" | "acquiring" | "storage" | "delivery" | "buyerDelivery" | "ads" | "partner" | "other";
 
 export function bucketOfType(name: string): Bucket {
   const n = String(name || "").toLowerCase();
@@ -13,6 +13,9 @@ export function bucketOfType(name: string): Bucket {
   // Доставка от покупателя (rFBS) компенсируется - отдельный бакет, в расчёт сборов не входит.
   if (/rfbsbuyerdelivery|rfbsclientdeliverycharge|доставку от покупател|перечисление за доставку/.test(n)) return "buyerDelivery";
   if (/payperclick|promotion|stencil|marketing|advertis|трафарет|продвижен|реклам|лидогенерац|premiumcashbackpromotion|videocover|pushcampaign|socialmedia/.test(n)) return "ads";
+  // Услуги партнёров Ozon на схеме realFBS - стоимость доставки rFBS-заказов силами партнёров OZON
+  // (там, где нет «Нашей доставки» из ведомости). Выделяем отдельно от «Прочих».
+  if (/rfbsdomesticdelivery|rfbsservicefee|rfbsdomesticagent|партнёров ozon на схеме realfbs/.test(n)) return "partner";
   if (/logistic|lastmile|last mile|pick-?up|drop-?off|shipment|handover|returnflow|preparingtoreturn|sellerreturns|partialreturn|courierpickup|deliveryto|supplyinbound|clickandcollect|логист|доставк|возврат|магистрал|последняя миля|выдач/.test(n)) return "delivery";
   return "other";
 }

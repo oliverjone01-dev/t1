@@ -8,7 +8,7 @@ on:
       from:
         description: "FROM YYYY-MM-DD (дата заказа)"
         required: false
-        default: "2026-05-01"
+        default: "2026-02-06"
       to:
         description: "TO YYYY-MM-DD (пусто = вчера)"
         required: false
@@ -46,12 +46,14 @@ jobs:
         run: npx tsx src/scripts/ozon/pnl-sku-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}"
       - name: Эквайринг/хранение по SKU из accrual/by-day
         run: npx tsx src/scripts/ozon/acq-sku-daily.ts "${{ github.event.inputs.from }}" "${{ github.event.inputs.to }}"
+      - name: Канальный P&L и Общие расходы из accrual (замена мёртвых транзакций)
+        run: npx tsx src/scripts/ozon/pnl-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}"
       - name: Коммит данных в ветку
         run: |
           cd "$GITHUB_WORKSPACE"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add analytics-mvp/data/orders_daily.ndjson analytics-mvp/data/orders_accrual_types.json analytics-mvp/data/pnl_sku_accrual_daily.ndjson analytics-mvp/data/acq_sku_daily.ndjson analytics-mvp/data/buyer_delivery_daily.ndjson
+          git add analytics-mvp/data/orders_daily.ndjson analytics-mvp/data/orders_accrual_types.json analytics-mvp/data/pnl_sku_accrual_daily.ndjson analytics-mvp/data/acq_sku_daily.ndjson analytics-mvp/data/buyer_delivery_daily.ndjson analytics-mvp/data/buyer_delivery_orders.ndjson analytics-mvp/data/pnl_channel_accrual_daily.ndjson analytics-mvp/data/pnl_account_accrual_daily.ndjson
           if git diff --cached --quiet; then
             echo "нет изменений в orders_daily.ndjson"
           else

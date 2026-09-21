@@ -7,7 +7,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dp, fp, IS_OZON } from "../paths.js";
 import { parseTaxonomy, offerIndex } from "../taxonomy.js";
-import { parseCogs, parseCogsSku, buildCogsIndex, matchCogs, type CogsRow } from "../cogs.js";
+import { parseCogs, parseCogsSku, buildCogsIndex, matchCogs, normSku, type CogsRow } from "../cogs.js";
 
 // Лист «ЯМ» из таблицы «Copy of СС GEN - OZON»: себестоимость, заведённая под Яндекс Маркет.
 // Колонки листа - модель, артикул, С\С произв.; выгрузка лежит в fixtures/cogs_ym_sku.csv.
@@ -25,7 +25,7 @@ function parseYmCogs(text: string): YmCost[] {
 }
 // Артикул в своде и в листе пишут по-разному: GGTW-03-180-90 против GGTW-03-18090, GGTP-20-1
 // против GGTP-20-1x2. Из-за точного сравнения СС по ним числилась пробелом, хотя она есть.
-const normOffer = (s: string): string => s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+const normOffer = normSku;   // единая нормализация, см. src/cogs.ts: кириллические двойники к латинице
 
 function main() {
   const prodRows = parseCogsSku(readFileSync(fp("cogs_prod_sku.csv"), "utf-8"));

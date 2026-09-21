@@ -1,28 +1,16 @@
 {
   "platform": "ym",
-  "dateFrom": "2026-08-21",
-  "dateTo": "2026-09-19",
-  "skuCount": 109,
-  "singleItemOps": 178,
+  "dateFrom": "2026-08-22",
+  "dateTo": "2026-09-20",
+  "skuCount": 106,
+  "singleItemOps": 173,
   "multiItemOps": 0,
   "bySku": {
-    "GGM-17-1-2": {
-      "accruals": 36751,
-      "commission": -178,
-      "amount": 14490,
-      "ops": 2
-    },
     "GGT-35-1-3-100-180": {
       "accruals": 944338,
       "commission": -4069,
       "amount": 368207,
       "ops": 22
-    },
-    "GGT-03-3-3-O-18090": {
-      "accruals": 245997,
-      "commission": -2023,
-      "amount": 118956,
-      "ops": 6
     },
     "GGP-01-2-I-240-100": {
       "accruals": 80712,
@@ -65,12 +53,6 @@
       "commission": -1143,
       "amount": 97700,
       "ops": 7
-    },
-    "GGM-18-1-1": {
-      "accruals": 31095,
-      "commission": -140,
-      "amount": 12644,
-      "ops": 1
     },
     "GGM-16-2-3": {
       "accruals": 77555,
@@ -150,12 +132,6 @@
       "amount": -2235,
       "ops": 2
     },
-    "GGL-05-XL-4000-1": {
-      "accruals": 42535,
-      "commission": -206,
-      "amount": 18030,
-      "ops": 2
-    },
     "GGM-16-2-3-LED": {
       "accruals": 66340,
       "commission": -332,
@@ -184,12 +160,6 @@
       "accruals": 54919,
       "commission": -237,
       "amount": 23124,
-      "ops": 3
-    },
-    "GGM-15-2-2": {
-      "accruals": 92568,
-      "commission": -455,
-      "amount": 33125,
       "ops": 3
     },
     "GGR-10-2": {
@@ -395,6 +365,12 @@
       "commission": -361,
       "amount": 45872,
       "ops": 2
+    },
+    "GGT-03-3-3-O-18090": {
+      "accruals": 161938,
+      "commission": -662,
+      "amount": 81318,
+      "ops": 4
     },
     "GGT-03-1-4-O-20090": {
       "accruals": 85529,
@@ -629,6 +605,12 @@
       "commission": -433,
       "amount": 40442,
       "ops": 2
+    },
+    "GGM-15-2-2": {
+      "accruals": 45039,
+      "commission": -221,
+      "amount": 14922,
+      "ops": 1
     },
     "GGM-18-3-1-LED": {
       "accruals": 48400,

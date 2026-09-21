@@ -1,7 +1,7 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-20T12:03:51.845Z",
-  "today": "2026-09-20",
+  "generated_at": "2026-09-21T08:48:46.370Z",
+  "today": "2026-09-21",
   "periods": [
     {
       "kind": "closed_month",
@@ -221,9 +221,9 @@
     },
     {
       "kind": "current_month",
-      "label": "текущий месяц 2026-09 (по 2026-09-19)",
+      "label": "текущий месяц 2026-09 (по 2026-09-20)",
       "dateFrom": "2026-09-01",
-      "dateTo": "2026-09-19",
+      "dateTo": "2026-09-20",
       "units": {
         "orders_delivered_net": 127,
         "orders_returned": 3,
@@ -434,19 +434,19 @@
   },
   "coverage": {
     "window": {
-      "dateFrom": "2026-08-21",
-      "dateTo": "2026-09-19"
+      "dateFrom": "2026-08-22",
+      "dateTo": "2026-09-20"
     },
-    "sku_total": 149,
+    "sku_total": 143,
     "cogs": {
-      "sku": 145,
-      "pct_sku": 97.3,
-      "pct_rev": 99.1
+      "sku": 139,
+      "pct_sku": 97.2,
+      "pct_rev": 99
     },
     "taxonomy": {
-      "sku": 135,
-      "pct_sku": 90.6,
-      "pct_rev": 90.8
+      "sku": 129,
+      "pct_sku": 90.2,
+      "pct_rev": 90.5
     },
     "all_period": {
       "dateFrom": "2026-02-01",
@@ -626,7 +626,7 @@
       "last": "2026-09-19",
       "note": "показы per-SKU из отчёта shows-sales"
     },
-    "ads": "буст из реестра 134584 ₽ за 30 дн (кабинета кампаний у Маркета в API нет: ДРР и CPO не считаются)",
+    "ads": "буст из реестра 126440 ₽ за 30 дн (кабинета кампаний у Маркета в API нет: ДРР и CPO не считаются)",
     "bad_cells": 0,
     "by_business": {
       "1023124": {

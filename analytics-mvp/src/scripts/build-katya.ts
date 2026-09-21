@@ -142,6 +142,16 @@ for (const r of flyRows) {
 const allSkus = Object.keys(skuMonRev);
 const dates = [...new Set(facts.map((f) => f.date))].sort();
 const maxD = dates[dates.length - 1]!;
+// Нижняя граница фильтра периода: самый ранний день, который вообще есть в данных. Раньше
+// стояла константа 2026-02-06 (пол эпохи OZON), и всё, что глубже, фильтром не выбиралось.
+const pageFloor: string = (() => {
+  let lo = dates[0] || "2026-02-06";
+  try {
+    const sv = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8"));
+    for (const m of sv.months || []) for (const r of m.rows || []) if (r.d && r.d < lo) lo = r.d;
+  } catch { /* свода нет - остаёмся на дне фактов */ }
+  return lo;
+})();
 // Время сборки дашборда (= последнее обновление) в МСК. Дашборд пересобирается после ночного
 // синка и после ручного «Обновить данные», поэтому это и есть отметка «когда обновлено».
 const BUILD_TS = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Moscow", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(",", "") + " МСК";
@@ -946,14 +956,14 @@ ${banner(activeKey)}
     <button class="pb range" id="btn-range">Свой</button>
   </div>
   <div class="range-panel" id="range-panel" style="display:none;position:absolute;right:16px;top:58px;background:var(--bg-card);border:1px solid var(--bg-soft);border-radius:10px;padding:12px;z-index:50">
-    <div class="range-row" style="margin:4px 0"><label style="margin-right:6px">с</label><input type="date" id="range-from" value="2026-02-06"></div>
+    <div class="range-row" style="margin:4px 0"><label style="margin-right:6px">с</label><input type="date" id="range-from" value="${pageFloor}"></div>
     <div class="range-row" style="margin:4px 0"><label style="margin-right:6px">по</label><input type="date" id="range-to" value="${maxD}"></div>
     <button class="pb" id="range-apply" style="margin-top:6px">Применить</button>
   </div>
 </header>
 <main class="main">${body}</main>
 <script>window.__GG_MAXD='${maxD}';
-const MAXD='${maxD}', FLOOR='2026-02-06';
+const MAXD='${maxD}', FLOOR='${pageFloor}';
 const ad=(d,n)=>{const t=new Date(d+'T00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);};
 const clampLo=d=>d<FLOOR?FLOOR:d;
 const fmtRu=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
@@ -2484,10 +2494,13 @@ function svodJs(svod: any): string {
   // пользователю. Без них страница молчала про то, что отчёт о реализации за август добран на
   // 1 магазин из 7, то есть штуки закрытого месяца не сверены ни с чем.
   let rec: string[] = [];
+  let skipped: Array<{ campaign: string; business: string; reason: string }> = [];
   try {
     const rj = JSON.parse(readFileSync(dp("reconcile.json"), "utf-8"));
     if (rj && rj.verdict !== "ok") rec = (rj.blockers || []).map((x: any) => String(x));
-  } catch { rec = []; }
+    skipped = ((rj && rj.coverage && rj.coverage.campaigns_skipped) || []).map((x: any) => ({
+      campaign: String(x.campaign || ""), business: String(x.business || ""), reason: String(x.reason || "") }));
+  } catch { rec = []; skipped = []; }
   const cat: Record<string, string> = {};
   const nameOf: Record<string, string> = {};
   for (const m of svod.months) for (const r of m.rows) {
@@ -2514,6 +2527,8 @@ var SV_COLS=${JSON.stringify(COLS)};
 var SV_CAT=${JSON.stringify(cat)};
 var SV_OPEN={};
 var SV_REC=${JSON.stringify(rec)};
+var SV_SKIPPED=${JSON.stringify(skipped)};
+var PM_NAMES_SV=${JSON.stringify({ "74986385": "мебель", "1023124": "зеркала" })};
 var SV_NAMES={"74986385":"GEN GROUP (мебель)","1023124":"GENGLASS (зеркала)"};
 function svN(b){return SV_NAMES[b]||('кабинет '+b);}
 function svRub(n){return fmtRu(Math.round(n||0));}
@@ -2607,11 +2622,13 @@ function svOverhead(ms,w){
 function svDraw(){
   var ms=svPick();
   var cov=document.getElementById('sv-cov'),gapsEl=document.getElementById('sv-gaps'),noteEl=document.getElementById('sv-note');
-  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.';gapsEl.style.display='none';noteEl.textContent='';return;}
+  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.';gapsEl.style.display='none';noteEl.textContent='';var _p=document.getElementById('sv-pts');if(_p){_p.style.display='none';_p.innerHTML='';}return;}
   var orders=0,periodOrd=0,inflight=0,noLed=0,acts={},outSt=0,outMi=0,outMiN=0,ptsDel=0,ptsOrd=0,ptsDed=0,ptsRepSpent=0,missAcc=0,missOrd=0;
+  var missByB={};
   var oh=svOverhead(ms),ohM=oh.m,ohP=oh.p,ohAct=oh.act,ohLed=oh.ledger;
   ms.forEach(function(m){orders+=m.orders;periodOrd+=m.orders_period||0;inflight+=m.orders_inflight||0;noLed+=m.orders_without_ledger||0;
     outSt+=m.ledger_status||0;outMi+=m.ledger_missing||0;outMiN+=m.ledger_missing_orders||0;ptsDel+=m.points_on_delivery||0;
+    if(m.missing_accrued){var _b=missByB[m.business]||(missByB[m.business]={a:0,n:0});_b.a+=m.missing_accrued;_b.n+=m.missing_accrued_orders||0;}
     if(m.points_src!=='report')ptsOrd++;ptsDed+=m.points_ded||0;ptsRepSpent+=m.points_spent_report||0;missAcc+=m.missing_accrued||0;missOrd+=m.missing_accrued_orders||0;
     (m.svc_months||[]).forEach(function(x){acts[x]=1;});});
   var partial=inflight>0;
@@ -2640,13 +2657,29 @@ function svDraw(){
   }
   // Пробел выгрузки заказов. Самый крупный на странице, поэтому идёт первым: это не «неточность»,
   // а целые заказы, которых в своде нет ни выручкой, ни услугами.
-  if(missOrd)gaps.push('<b>'+missOrd+' заказов на '+svRub(missAcc)+' ₽ начислений не попали в свод вовсе.</b> '
-    +'Реестр платежей их знает, а карточки заказа (дата, статус, штуки) в выгрузке нет, поэтому свод по доставленным заказам их не видит: '
-    +'ни выручки, ни услуг, ни себестоимости по ним в цифрах выше НЕТ. '
-    +'Две причины, обе про кабинет зеркал. Первая: три его кампании (21985942, 23960471, 40175277) Маркет закрыл для API по неактивности - их заказы вытянуть нечем, и это не лечится нашим кодом. '
-    +'Вторая, найденная 21.09.2026 и уже исправленная: инкремент заказов держал ОДНУ верхнюю границу на весь файл, а не по кампании, поэтому кампания, заведённая позже, считалась собранной до вчера и свою историю не тянула никогда - ей доставался только хвост перетяжки в 45 дней. '
-    +'Граница переведена на кампанию; сколько из пробела закроет бэкфилл, будет видно после первого ночного прогона с ключами кабинета. '
-    +'Месяц такого заказа взят по первой проводке реестра, даты заказа у нас про него не существует.');
+  if(missOrd){
+    // Пробел ЗА ВСЕ данные, а не только за выбранное окно: январь 2026 в окно попасть не может
+    // (пол страницы), и без этой строки 2.5 млн ₽ пробела были бы невидимы совсем.
+    var allA=0,allN=0;(SV.months||[]).forEach(function(m){allA+=m.missing_accrued||0;allN+=m.missing_accrued_orders||0;});
+    var byB=Object.keys(missByB).sort(function(a,b){return missByB[b].a-missByB[a].a;})
+      .map(function(b){return (PM_NAMES_SV[b]||b)+' '+svRub(missByB[b].a)+' ₽ / '+missByB[b].n+' зак.';}).join(', ');
+    var skipTxt=(SV_SKIPPED||[]).length
+      ? (SV_SKIPPED.length===1?'одна кампания':SV_SKIPPED.length+' кампаний')+' ('
+        +SV_SKIPPED.map(function(x){return x.campaign+', кабинет '+(PM_NAMES_SV[x.business]||x.business);}).join('; ')+')'
+      : 'кампании, закрытые Маркетом для API';
+    gaps.push('<b>'+missOrd+' заказов на '+svRub(missAcc)+' ₽ начислений не попали в свод вовсе.</b> '
+      +'Реестр платежей их знает, а карточки заказа (дата, статус, штуки) в выгрузке нет, поэтому свод по доставленным заказам их не видит: '
+      +'ни выручки, ни услуг, ни себестоимости по ним в цифрах выше НЕТ. '
+      +'По кабинетам за это окно: '+byB+'. '
+      +(allA-missAcc>1?'За всё время пробел больше - '+svRub(allA)+' ₽ / '+allN+' заказов: разница лежит в месяцах, которые в окно не попадают. ':'')
+      +'<b>Три причины, и только одна из них про зеркала.</b> '
+      +'Первая: '+skipTxt+' закрыты Маркетом для API по неактивности - их заказы вытянуть нечем, кодом не лечится. '
+      +'Вторая: пол сбора заказов стоит на 2026-02-01, всё, что раньше, не запрашивается вообще. '
+      +'Третья, найденная 21.09.2026 и исправленная: инкремент держал ОДНУ верхнюю границу на весь файл, а не по кампании, поэтому кампания без истории не тянулась никогда, а замолчавшая теряла свой хвост. '
+      +'Важно: сам по себе этот фикс пробел НЕ закрывает - у кампаний история есть, просто начинается с середины, и ночной прогон продолжит с их собственной границы. '
+      +'Нужен ручной прогон ym-snapshots.yml с orders_refetch=yes и orders_floor. '
+      +'Месяц такого заказа взят по первой проводке реестра, даты заказа у нас про него не существует.');
+  }
   if(partial)gaps.push('период не завершён: '+inflight+' заказов месяца ещё в пути, выручка и услуги по ним добавятся позже');
   if(noLed)gaps.push(noLed+' заказов периода ещё нет в отчёте по платежам: их услуги равны нулю, результат по ним завышен');
   // Показываем не мнимый пробел, а реальную величину возврата начисления, которую пользователь
@@ -2694,7 +2727,16 @@ function svDraw(){
         ? 'Начислено больше, чем потрачено: прибыль периода на эту сумму держится на баллах, которые ещё лежат на счёте. Это не ошибка - баллами оплатят услуги следующих заказов.'
         : 'Потрачено больше, чем начислено: разницу доплатили из запаса, накопленного раньше. Прибыль периода на эту сумму занижена относительно ровного хода.')
       +' Вывести баллы нельзя, ими платят только за услуги Маркета, поэтому в «Поступление» сальдо не входит ни одной строкой.'
-      +(Math.round(ptsDel)?' Из начисленного '+svRub(ptsDel)+' ₽ пришлось на строку доставки: на итог месяца это не влияет - сумма месяца приводится к отчёту о баллах кабинета, разнесение идёт только между артикулами.':'');
+      +(Math.round(ptsDel)
+        ? ' Из начисленного '+svRub(ptsDel)+' ₽ пришлось на строку доставки. '
+          // Фраза «на итог не влияет» верна ТОЛЬКО там, где месяц приведён к отчёту о баллах
+          // кабинета. Отчёт начинается с 2026-02, и бэкфилл вглубь создаёт месяцы без него -
+          // то есть именно та правка, ради которой всё затевалось, делает эту фразу ложной,
+          // если не спросить points_src (ptsOrd считает месяцы окна, где он не 'report').
+          +(ptsOrd
+            ? 'По '+ptsOrd+' мес. окна отчёта о баллах нет, там баллы взяты из самих заказов - для них эта доля на итог ВЛИЯЕТ.'
+            : 'На итог месяца это не влияет: сумма месяца приводится к отчёту о баллах кабинета, разнесение идёт только между артикулами.')
+        : '');
   })();
   var noCogs=list.filter(function(x){return !x.ck;}).length;
   if(noCogs)gaps.push('у '+noCogs+' SKU нет себестоимости: валовая прибыль по ним не считается, а не равна выручке');

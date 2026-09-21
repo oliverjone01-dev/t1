@@ -2148,12 +2148,14 @@ function renderOrdersAnalytics(cur){
     }
   }
   // «Доставка покупателя» (доход) - кабинетный ряд accrual/by-day (NON_ITEM «перечисление за доставку
-  // от покупателя», без SKU). Per-order/per-SKU ключа у OZON нет, поэтому разносим период ПО ВСЕМ
-  // заказам пропорционально штукам. ИТОГО сходится с отчётом (август by-day 610к ≈ отчёт 605к).
+  // от покупателя», без SKU). Это доход схемы rFBS (покупатель платит продавцу за доставку), поэтому
+  // разносим период только по rFBS-заказам пропорционально штукам (если схема неизвестна - по всем).
+  // ИТОГО сходится с отчётом (август by-day 610к ≈ отчёт 605к).
   var bdTotal=Math.round(anSum(AN_BUYERDELIV,from,to,1)[0]||0);
-  if(bdTotal){var uAll=0;for(var r2=0;r2<rows.length;r2++)uAll+=(rows[r2].units>0?rows[r2].units:0);var accBd=0;
-    for(var r3=0;r3<rows.length;r3++){var o2=rows[r3];var w2=(o2.units>0?o2.units:0);
-      var part2=(r3===rows.length-1)?(bdTotal-accBd):(uAll>0?Math.round(bdTotal*w2/uAll):Math.round(bdTotal/rows.length));accBd+=part2;o2.dinc=(o2.dinc||0)+part2;}}
+  if(bdTotal){var haveSch=rows.some(function(x){return x.scheme;});var tgt=haveSch?rows.filter(function(x){return x.scheme==='rFBS';}):rows;if(!tgt.length)tgt=rows;
+    var uAll=0;for(var r2=0;r2<tgt.length;r2++)uAll+=(tgt[r2].units>0?tgt[r2].units:0);var accBd=0;
+    for(var r3=0;r3<tgt.length;r3++){var o2=tgt[r3];var w2=(o2.units>0?o2.units:0);
+      var part2=(r3===tgt.length-1)?(bdTotal-accBd):(uAll>0?Math.round(bdTotal*w2/uAll):Math.round(bdTotal/tgt.length));accBd+=part2;o2.dinc=(o2.dinc||0)+part2;}}
   var groups={};for(var r=0;r<rows.length;r++){(groups[rows[r].cat]||(groups[rows[r].cat]=[])).push(rows[r]);}
   var SUMK=['units','dlv','acc','com','del','acq','sto','oth','adv','amt','amtS','cc','ship','dinc'];
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.acc-a.acc;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.acc-a.t.acc;});

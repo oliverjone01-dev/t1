@@ -76,18 +76,21 @@ async function main() {
   };
   const days: string[] = [];
   for (let t = Date.parse(from + "T00:00:00Z"); t <= Date.parse(to + "T00:00:00Z"); t += 86400000) days.push(new Date(t).toISOString().slice(0, 10));
-  let byDayRecs = 0;
+  let byDayRecs = 0; let dumpedItem = false, dumpedNon = false;
   for (const day of days) {
     let recs: any[] = [];
     try { recs = await seller.accrualByDay(day); } catch { continue; }
     byDayRecs += recs.length;
     for (const a of recs) {
+      if (!dumpedItem && a?.item_fees) { console.log("  DEBUG by-day ITEM:", JSON.stringify(a).slice(0, 600)); dumpedItem = true; }
+      if (!dumpedNon && a?.non_item_fee) { console.log("  DEBUG by-day NON_ITEM:", JSON.stringify(a).slice(0, 500)); dumpedNon = true; }
       const bkey = orderBase(String(a?.posting || "")); if (!bkey) continue;
       const rec = (accBase[bkey] ||= { acquiring: 0, storage: 0, buyerDelivery: 0 });
       for (const sf of (a?.item_fees?.fees || [])) for (const f of (sf?.fees || [])) addFee(rec, f);
       if (a?.non_item_fee) addFee(rec, a.non_item_fee);
     }
   }
+  console.log(`  DEBUG bmap sample: [1]=${bmap[1]} [69]=${bmap[69]} [8]=${bmap[8]}`);
   const baseUsed: Record<string, number> = {}; // база -> уже присвоено (не задвоить на мультиотправках)
   const sB = (k: "acquiring" | "storage" | "buyerDelivery") => Math.round(Object.values(accBase).reduce((s, v) => s + v[k], 0)).toLocaleString("ru");
   console.log(`  by-day: дней ${days.length}, записей ${byDayRecs} | баз с эквайрингом ${Object.values(accBase).filter((v) => v.acquiring).length} | Σ эквайринг ${sB("acquiring")} | Σ хранение ${sB("storage")} | Σ дост.покуп ${sB("buyerDelivery")}`);

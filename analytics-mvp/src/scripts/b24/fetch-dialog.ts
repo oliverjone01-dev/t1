@@ -285,7 +285,10 @@ function commentToEvent(c: any, employees: Record<string, 1>, authorName: string
     let nm = "", tx = body; const idx = body.indexOf(":");
     if (idx > 0 && idx < 40) { nm = body.slice(0, idx).trim(); tx = body.slice(idx + 1).trim(); }
     const isEmp = nm && employees[nm.toLowerCase()];
-    const guessed = !isEmp && guessOutgoing(nm || "—", tx);
+    // Wazzup помечает исходящие медиа/сообщения префиксом «Отправлено <тип>». Это надёжный
+    // признак направления для подписи «Телефон», где имя не разрешилось. «Принято/Получено» - входящее.
+    const sentMark = /^Отправлено\b/.test(tx);
+    const guessed = !isEmp && (sentMark || guessOutgoing(nm || "—", tx));
     const fired = isEmp && firedSet[nm.toLowerCase()] === 1;   // сотрудник уволен/деактивирован в Bitrix
     return { raw: c.CREATED, type: "Сообщение " + chan, dir: (isEmp || guessed) ? "исходящее" : "входящее",
              who: (nm || "—") + (fired ? " (уволен)" : ""), fired: fired ? 1 : 0, guess: guessed ? 1 : 0, title: "", body: cap(tx), status: "", dur: "", link: "", src: "cmt#" + c.ID };

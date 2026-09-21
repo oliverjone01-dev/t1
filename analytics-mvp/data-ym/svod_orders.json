@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-21T13:23:09.044Z",
+  "generated_at": "2026-09-21T13:35:08.041Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-20",
   "split_check": {
@@ -79852,8 +79852,8 @@
           "svc_total": 8037.57,
           "result_money": 4268.23,
           "result_points": 14834.39,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 3750,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -80159,7 +80159,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 0,
-      "cogs_cov": 99.3,
+      "cogs_cov": 100,
       "ship_orders": 0,
       "ship_cov": 0
     },

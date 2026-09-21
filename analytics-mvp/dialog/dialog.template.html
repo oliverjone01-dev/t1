@@ -850,6 +850,20 @@ const AGG_FALLBACK={
   sales:{title:"Отдел продаж (Розница)",verdict:"Продавцы держат почти весь портфель отдела (269.1 млн) и почти весь риск (124.9 млн). Нагрев -10°: розница студит крупные сделки.",strengths:["Держат основной денежный портфель отдела","Ведут крупные сделки от 1 млн"],weaknesses:["Здесь сосредоточен почти весь риск потери отдела","Долгие молчания по крупным сделкам (Долгострой)","Дела закрываются без реального контакта с клиентом"],action:"По каждой крупной сделке в Долгострое - один реальный контакт с новым поводом на этой неделе с фиксацией в CRM.",basis:"[ДАННЫЕ] агрегат по подотделу; глубокий разбор по Лысановой (демо)"},
   office:{title:"Офис-менеджеры",verdict:"Приём и квалификация лидов (900 сделок), риск доведения почти нулевой - это не их зона. Нагрев -8° отражает входящий поток, а не ведение до оплаты.",strengths:["Большой объём принятых и квалифицированных лидов","Быстрый первичный отклик по входящим"],weaknesses:["Передача в продажи местами теряет темп"],action:"Сокращать паузу между квалификацией лида и первым контактом продавца; фиксировать передачу в CRM.",basis:"[ДАННЫЕ] агрегат по подотделу; офис оценивается как лид-интейк"}
 };
+// Fallback-разметка: у каждой строки ленты должна быть метка. Где нет разбора ИИ
+// (дело/стадия/заметка/звонок/резюме) - присваиваем 0° и анализируем сроки: сколько
+// на стадии, просрочено/выполнено дело, тип звонка. Не помечаем «ИИ» (это факт, не разбор).
+function fbTag(e){
+  const t=e.type||'';
+  if(t==='Стадия'){const d=e.days;return{t:(d!=null?d+' дн на стадии':'смена стадии'),tone:(d!=null&&d>=30)?'warn':'info'};}
+  if(t==='Дело'){if(e.status==='просрочено')return{t:'дело просрочено',tone:'bad'};if(e.status==='выполнено')return{t:'дело выполнено в срок',tone:'good'};return{t:'дело запланировано',tone:'info'};}
+  if(t==='Комментарий-заметка')return{t:'заметка, без прямого действия',tone:'info'};
+  if(t==='Резюме BitrixGPT')return{t:'авто-резюме BitrixGPT',tone:'info'};
+  if(t==='Транскрипт звонка')return{t:'транскрипт звонка',tone:'info'};
+  if(t==='Звонок')return{t:(e.dir==='входящее'?'входящий':e.dir==='исходящее'?'исходящий':'')+' звонок',tone:'info'};
+  return{t:'без разбора',tone:'info'};
+}
+function fbChip(o){const c=tagCol(o.tone);return `<span class="evtag" style="color:${c};border-color:${c}55;background:${c}12">${esc(o.t)} <b class="aideg">0°</b></span>`;}
 function tagVisual(t){
   if(t.ai && typeof t.deg==='number' && t.deg!==0){ const up=t.deg>0; return {col:up?HEAT:COOL, dir:up?'up':'down'}; }
   return {col:tagCol(t.tone), dir:'flat'};
@@ -1524,7 +1538,7 @@ function renderTree(){
           <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
           <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
           <td class="l ebody">${e.title&&!isM?`<b>${esc(String(e.title).replace(/[\s.:;-]+$/,''))}</b>${bodyNoTitle(e)?': ':''}`:''}${e.type==='Транскрипт звонка'?trHtml(e):e.type==='Звонок'?callCell(e):(tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e)))}${e.status&&e.type!=='Звонок'?` <span class="st">${esc(e.status)}</span>`:''}${e.type==='Стадия'&&e.days!=null?` <span class="due">${e.days} дн на стадии</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}${sumLink(e,SUMBY)}</td>
-          <td class="l">${tags.map(t=>{const v=tagVisual(t);const deg=t.ai&&typeof t.deg==='number'&&t.deg!==0?`<b class="aideg">${t.deg>0?'▲ +'+t.deg:'▼ '+t.deg}°</b>`:'';return `<span class="evtag"${t.ai?' data-ai="1"':''} style="color:${v.col};border-color:${v.col}55;background:${v.col}12">${t.ai?'<b class="aimk" style="background:'+v.col+'">ИИ</b>':''}${esc(t.t)}${deg}</span>`;}).join(' ')}</td></tr>`;
+          <td class="l">${tags.length?tags.map(t=>{const v=tagVisual(t);const deg=t.ai&&typeof t.deg==='number'&&t.deg!==0?`<b class="aideg">${t.deg>0?'▲ +'+t.deg:'▼ '+t.deg}°</b>`:'';return `<span class="evtag"${t.ai?' data-ai="1"':''} style="color:${v.col};border-color:${v.col}55;background:${v.col}12">${t.ai?'<b class="aimk" style="background:'+v.col+'">ИИ</b>':''}${esc(t.t)}${deg}</span>`;}).join(' '):fbChip(fbTag(e))}</td></tr>`;
       }).join('');
       const parts=(d&&d.participants)||[];
       const who=parts.length? parts.map(x=>`${esc(x.who)} (${x.stage==='lead'?'лид':'сделка'}, ${x.n})`).join(' → ') : 'исходящих не было';

@@ -14,6 +14,7 @@ import { OzonSeller } from "../../connector/ozon-seller.js";
 import { bucketMap, type Bucket } from "./accrual-buckets.js";
 
 const OUT = "data/acq_sku_daily.ndjson";
+const OUT_BD = "data/buyer_delivery_daily.ndjson"; // кабинетная доставка от покупателя (NON_ITEM, без SKU) по дням
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
 async function main() {
@@ -35,6 +36,7 @@ async function main() {
   // если он большой, значит по SKU её не собрать и нужен другой путь.
   const agg: Record<string, { d: string; sku: string; acq: number; sto: number; bd: number }> = {};
   const key = (sku: string, d: string) => sku + "|" + d;
+  const bdCab: Record<string, number> = {}; // дата -> доставка покупателя (NON_ITEM, кабинет, >0)
   let recs = 0, bdNonItem = 0;
   for (const day of days) {
     let arr: any[] = [];
@@ -53,21 +55,28 @@ async function main() {
           if (bk === "acquiring") r.acq += amt; else if (bk === "storage") r.sto += amt; else r.bd += amt;
         }
       }
-      // NON_ITEM доставка покупателя (без SKU) - только для диагностики покрытия
+      // NON_ITEM доставка покупателя (без SKU) - кабинетный доход; собираем по ДАТЕ (в build-katya
+      // разносим по заказам периода пропорционально штукам - per-SKU/per-order ключа у OZON тут нет).
       const nf = a?.non_item_fee;
-      if (nf && (bmap[Number(nf.type_id)] as Bucket) === "buyerDelivery") bdNonItem += Number(nf?.accrued?.amount ?? nf?.accrued ?? 0);
+      if (nf && (bmap[Number(nf.type_id)] as Bucket) === "buyerDelivery") {
+        const amt = Number(nf?.accrued?.amount ?? nf?.accrued ?? 0);
+        bdNonItem += amt; bdCab[d] = (bdCab[d] || 0) + amt;
+      }
     }
   }
   const rows = Object.values(agg).map((r) => ({ d: r.d, sku: r.sku, acq: Math.round(r.acq), sto: Math.round(r.sto), bd: Math.round(r.bd) }))
     .filter((r) => r.acq || r.sto || r.bd);
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  const bdRows = Object.entries(bdCab).map(([d, bd]) => ({ d, bd: Math.round(bd) })).filter((r) => r.bd).sort((a, b) => a.d.localeCompare(b.d));
+  writeFileSync(OUT_BD, bdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   // само-сверка по месяцам
-  const bm: Record<string, { acq: number; sto: number; bd: number }> = {};
-  for (const r of rows) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acq: 0, sto: 0, bd: 0 }); b.acq += r.acq; b.sto += r.sto; b.bd += r.bd; }
-  console.log(`  by-day записей ${recs} | строк (sku,день) ${rows.length} | доставка покупателя NON_ITEM (без SKU): ${Math.round(bdNonItem).toLocaleString("ru")}`);
-  console.log("  по месяцам (эквайринг | хранение | дост.покуп по SKU):");
-  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m].acq.toLocaleString("ru")} | ${bm[m].sto.toLocaleString("ru")} | ${bm[m].bd.toLocaleString("ru")}`);
-  console.log(`  -> ${OUT}`);
+  const bm: Record<string, { acq: number; sto: number; bdc: number }> = {};
+  for (const r of rows) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acq: 0, sto: 0, bdc: 0 }); b.acq += r.acq; b.sto += r.sto; }
+  for (const r of bdRows) { const m = r.d.slice(0, 7); (bm[m] ||= { acq: 0, sto: 0, bdc: 0 }).bdc += r.bd; }
+  console.log(`  by-day записей ${recs} | строк (sku,день) ${rows.length} | доставка покупателя (NON_ITEM, кабинет): ${Math.round(bdNonItem).toLocaleString("ru")}`);
+  console.log("  по месяцам (эквайринг | хранение | дост.покуп кабинет):");
+  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m].acq.toLocaleString("ru")} | ${bm[m].sto.toLocaleString("ru")} | ${bm[m].bdc.toLocaleString("ru")}`);
+  console.log(`  -> ${OUT}, ${OUT_BD}`);
 }
 
 main().catch((e) => { console.error("acq-sku-daily FAIL:", e); process.exit(1); });

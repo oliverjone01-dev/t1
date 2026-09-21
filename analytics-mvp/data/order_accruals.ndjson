@@ -1,0 +1,536 @@
+{"order": "00230861-0103", "ym": "2026-08", "acquiring": -915, "n": 1}
+{"order": "0100591416-0554", "ym": "2026-08", "n": 1}
+{"order": "0103702603-0347", "ym": "2026-08", "commission": -21889, "delivery": -2089, "acquiring": -238, "ads": -569, "partner": -8, "rev_cash": 12552, "rev_points": 31100, "rev_other": 126, "n": 1}
+{"order": "0106047850-0308", "ym": "2026-08", "commission": -25398, "delivery": -551, "acquiring": -392, "ads": -647, "partner": -14, "rev_cash": 20625, "rev_points": 28969, "rev_other": 206, "n": 1}
+{"order": "0108327778-0273", "ym": "2026-08", "commission": -25476, "delivery": -1195, "acquiring": -157, "ads": -753, "rev_cash": 22724, "rev_points": 34267, "rev_other": 909, "n": 1}
+{"order": "0111104104-0169", "ym": "2026-08", "commission": -29097, "delivery": -505, "acquiring": -448, "ads": -714, "rev_cash": 23585, "rev_points": 31079, "rev_other": 236, "n": 1}
+{"order": "0112094088-0068", "ym": "2026-08", "acquiring": 218, "n": 1}
+{"order": "0113885880-0517", "ym": "2026-08", "commission": -37723, "delivery": -20, "ads": -1886, "buyer_delivery": 2500, "rev_cash": 46069, "rev_points": 35938, "n": 1}
+{"order": "0114011708-0178", "ym": "2026-08", "acquiring": -369, "n": 1}
+{"order": "0115233235-0057", "ym": "2026-08", "commission": -42734, "delivery": -20, "acquiring": -883, "ads": -2137, "buyer_delivery": 5250, "rev_cash": 46462, "rev_points": 45973, "rev_other": 465, "n": 1}
+{"order": "0115495302-0056", "ym": "2026-08", "commission": -30657, "delivery": -3978, "ads": -797, "partner": -7, "rev_cash": 25445, "rev_points": 35869, "n": 1}
+{"order": "0115989402-0050", "ym": "2026-08", "acquiring": -397, "n": 1}
+{"order": "0117623780-0511", "ym": "2026-08", "n": 1}
+{"order": "0117623780-0517", "ym": "2026-08", "acquiring": -398, "n": 1}
+{"order": "0118310739-0260", "ym": "2026-08", "commission": -18323, "delivery": -936, "acquiring": -270, "ads": -467, "partner": -8, "rev_cash": 14194, "rev_points": 21592, "rev_other": 142, "n": 1}
+{"order": "0119968967-0005", "ym": "2026-08", "commission": -40655, "delivery": -20, "ads": -2033, "buyer_delivery": 4900, "rev_cash": 45544, "rev_points": 42381, "rev_other": 455, "n": 1}
+{"order": "0123505486-0183", "ym": "2026-08", "commission": -47001, "delivery": -20, "acquiring": -721, "ads": -2350, "buyer_delivery": 4200, "rev_cash": 37931, "rev_points": 63866, "rev_other": 379, "n": 1}
+{"order": "0123926747-0112", "ym": "2026-08", "commission": -29621, "delivery": -20, "ads": -1481, "buyer_delivery": 4800, "rev_cash": 26005, "rev_points": 38129, "rev_other": 260, "n": 1}
+{"order": "0124339320-0301", "ym": "2026-08", "commission": -15141, "delivery": -822, "acquiring": -246, "ads": -402, "rev_cash": 12955, "rev_points": 17815, "rev_other": 130, "n": 1}
+{"order": "0124884639-0468", "ym": "2026-08", "commission": -36365, "delivery": -1778, "acquiring": -654, "ads": -985, "rev_cash": 34444, "rev_points": 40972, "rev_other": 344, "n": 1}
+{"order": "0125204845-0219", "ym": "2026-08", "commission": -47334, "delivery": -20, "acquiring": -425, "ads": -1338, "buyer_delivery": 5150, "rev_cash": 43769, "rev_points": 59131, "n": 1}
+{"order": "0127017745-0026", "ym": "2026-08", "delivery": -1606, "partner": -23, "n": 1}
+{"order": "0127981588-0173", "ym": "2026-08", "acquiring": -724, "n": 1}
+{"order": "0129058101-0127", "ym": "2026-08", "commission": -25956, "delivery": -20, "ads": -637, "buyer_delivery": 3900, "rev_cash": 23057, "rev_points": 25916, "n": 1}
+{"order": "0130297914-0520", "ym": "2026-08", "commission": -29406, "delivery": -20, "ads": -1470, "buyer_delivery": 8250, "rev_cash": 32514, "rev_points": 31086, "rev_other": 325, "n": 1}
+{"order": "0133912661-0168", "ym": "2026-08", "delivery": -3158, "acquiring": 496, "partner": -9, "n": 1}
+{"order": "0134725390-0175", "ym": "2026-08", "commission": -26039, "delivery": -822, "ads": -1174, "partner": -9, "rev_cash": 23678, "rev_points": 27378, "n": 1}
+{"order": "0135474233-0227", "ym": "2026-08", "commission": -13204, "delivery": -1563, "acquiring": -212, "ads": -358, "partner": -9, "rev_cash": 11169, "rev_points": 16227, "rev_other": 112, "n": 1}
+{"order": "0137387262-0165", "ym": "2026-08", "n": 1}
+{"order": "0137791821-0194", "ym": "2026-08", "commission": -41354, "delivery": -20, "acquiring": -854, "ads": -1169, "buyer_delivery": 5450, "rev_cash": 44962, "rev_points": 44488, "rev_other": 450, "n": 1}
+{"order": "0141308534-0113", "ym": "2026-08", "commission": -20740, "delivery": -2135, "ads": -994, "partner": -8, "rev_cash": 18994, "rev_points": 24025, "rev_other": 190, "n": 1}
+{"order": "0142018624-0090", "ym": "2026-08", "commission": -14832, "delivery": -1563, "acquiring": -269, "ads": -803, "partner": -36, "rev_cash": 28285, "rev_points": 33232, "rev_other": 283, "returns": -30900, "n": 1}
+{"order": "0142018624-0091", "ym": "2026-08", "commission": -14832, "delivery": -521, "acquiring": -254, "ads": -402, "partner": -9, "rev_cash": 13356, "rev_points": 17410, "rev_other": 134, "n": 1}
+{"order": "0142796604-0021", "ym": "2026-08", "delivery": -756, "ads": -332, "n": 1}
+{"order": "0142796604-0022", "ym": "2026-08", "delivery": -756, "ads": -310, "n": 1}
+{"order": "0144201272-0019", "ym": "2026-08", "commission": -22207, "delivery": -2159, "ads": -964, "rev_cash": 16459, "rev_points": 25276, "rev_other": 165, "n": 1}
+{"order": "0144250896-0022", "ym": "2026-08", "commission": -14229, "delivery": -1080, "acquiring": -71, "ads": -363, "rev_cash": 13897, "rev_points": 14003, "n": 1}
+{"order": "0145175979-0120", "ym": "2026-08", "acquiring": -418, "n": 1}
+{"order": "0145195667-0005", "ym": "2026-08", "commission": -26439, "delivery": -664, "ads": -1216, "partner": -9, "rev_cash": 23076, "rev_points": 29802, "n": 1}
+{"order": "0145549872-0508", "ym": "2026-08", "commission": -25076, "delivery": -1985, "ads": -1131, "partner": -8, "rev_cash": 17438, "rev_points": 31556, "rev_other": 174, "n": 1}
+{"order": "0145585907-0193", "ym": "2026-08", "commission": -41354, "delivery": -20, "acquiring": -854, "ads": -2068, "buyer_delivery": 3899, "rev_cash": 44962, "rev_points": 44488, "rev_other": 450, "n": 1}
+{"order": "0147492026-0092", "ym": "2026-08", "acquiring": 625, "n": 1}
+{"order": "0149091704-0010", "ym": "2026-08", "commission": -25859, "delivery": -479, "acquiring": -363, "ads": -659, "partner": -11, "rev_cash": 19086, "rev_points": 31426, "rev_other": 191, "n": 1}
+{"order": "0151096142-0217", "ym": "2026-08", "commission": -15141, "delivery": -927, "ads": -402, "partner": -8, "rev_cash": 15218, "rev_points": 15682, "n": 1}
+{"order": "0153062823-0252", "ym": "2026-08", "acquiring": -586, "n": 1}
+{"order": "0153427924-0106", "ym": "2026-08", "acquiring": 381, "n": 1}
+{"order": "0153427924-0108", "ym": "2026-08", "commission": -33615, "delivery": -752, "acquiring": -456, "ads": -874, "rev_cash": 23978, "rev_points": 43012, "rev_other": 240, "n": 1}
+{"order": "0153637697-0143", "ym": "2026-08", "commission": -36450, "delivery": -521, "acquiring": -236, "ads": -948, "rev_cash": 34673, "rev_points": 38227, "n": 1}
+{"order": "0156136920-0237", "ym": "2026-08", "n": 1}
+{"order": "0156136920-0238", "ym": "2026-08", "n": 1}
+{"order": "0156136920-0240", "ym": "2026-08", "commission": -32496, "delivery": -2706, "acquiring": -333, "ads": -797, "partner": -9, "rev_cash": 17550, "rev_points": 43588, "rev_other": 176, "n": 1}
+{"order": "0156509488-0008", "ym": "2026-08", "commission": -38134, "delivery": -20, "ads": -1078, "buyer_delivery": 5000, "rev_cash": 48060, "rev_points": 34840, "n": 1}
+{"order": "01588282-0213", "ym": "2026-08", "acquiring": -926, "n": 1}
+{"order": "0162666261-0206", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 2699, "rev_cash": 30547, "rev_points": 48721, "rev_other": 305, "n": 1}
+{"order": "0170844688-0092", "ym": "2026-08", "commission": -41354, "delivery": -20, "ads": -1169, "buyer_delivery": 5550, "rev_cash": 52046, "rev_points": 37854, "n": 1}
+{"order": "0174663516-0231", "ym": "2026-08", "commission": -21950, "delivery": -2369, "acquiring": -322, "ads": -571, "rev_cash": 16932, "rev_points": 26799, "rev_other": 169, "n": 1}
+{"order": "0175265894-0009", "ym": "2026-08", "commission": -60188, "delivery": -20, "ads": -3009, "buyer_delivery": 4400, "rev_cash": 75205, "rev_points": 55638, "n": 1}
+{"order": "0175964667-0043", "ym": "2026-08", "commission": -60188, "delivery": -20, "ads": -3009, "partner": -22714, "buyer_delivery": 19262, "rev_cash": 68861, "rev_points": 61982, "n": 1}
+{"order": "0178552400-0303", "ym": "2026-08", "acquiring": -718, "n": 1}
+{"order": "0179503609-0034", "ym": "2026-08", "commission": -41354, "delivery": -20, "acquiring": -867, "ads": -1169, "buyer_delivery": 2499, "rev_cash": 45636, "rev_points": 43808, "rev_other": 456, "n": 1}
+{"order": "0180602931-0029", "ym": "2026-08", "commission": -28014, "delivery": -20, "acquiring": -550, "ads": -792, "buyer_delivery": 3500, "rev_cash": 28931, "rev_points": 31680, "rev_other": 289, "n": 1}
+{"order": "0180910756-1083", "ym": "2026-08", "n": 1}
+{"order": "0184226523-0017", "ym": "2026-08", "commission": -20194, "delivery": -20, "ads": -571, "buyer_delivery": 4200, "rev_cash": 25444, "rev_points": 18456, "n": 1}
+{"order": "0185711502-0052", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 4999, "rev_cash": 31258, "rev_points": 48002, "rev_other": 313, "n": 1}
+{"order": "0190676748-0251", "ym": "2026-08", "commission": -51459, "delivery": -2981, "ads": -2321, "partner": -10, "rev_cash": 45494, "rev_points": 55406, "n": 1}
+{"order": "0191056587-0077", "ym": "2026-08", "commission": -31569, "delivery": -1108, "ads": -1424, "partner": -8, "rev_cash": 28488, "rev_points": 33412, "n": 1}
+{"order": "0198540949-0060", "ym": "2026-08", "commission": -34193, "delivery": -20, "acquiring": -716, "ads": -966, "buyer_delivery": 3100, "rev_cash": 37709, "rev_points": 36246, "rev_other": 377, "n": 1}
+{"order": "0199209601-0042", "ym": "2026-08", "n": 1}
+{"order": "0199209601-0043", "ym": "2026-08", "commission": -31270, "delivery": -2159, "acquiring": -310, "ads": -797, "rev_cash": 16333, "rev_points": 44818, "rev_other": 163, "n": 1}
+{"order": "0199385894-0002", "ym": "2026-08", "commission": -4227, "delivery": -20, "acquiring": -27, "ads": -119, "buyer_delivery": 2100, "rev_cash": 5391, "rev_points": 3798, "n": 1}
+{"order": "0202776454-0058", "ym": "2026-08", "commission": -11462, "delivery": -2133, "acquiring": -81, "ads": -310, "partner": -7, "rev_cash": 11801, "rev_points": 12079, "n": 1}
+{"order": "0204811178-0181", "ym": "2026-08", "commission": -36669, "delivery": -20, "ads": -1654, "buyer_delivery": 2700, "rev_cash": 36612, "rev_points": 35288, "n": 1}
+{"order": "0205671902-0161", "ym": "2026-08", "commission": -61738, "delivery": -2609, "acquiring": -883, "ads": -1605, "partner": -8, "rev_cash": 46468, "rev_points": 76542, "rev_other": 465, "n": 1}
+{"order": "0209790613-0009", "ym": "2026-08", "commission": -31450, "delivery": -672, "acquiring": -490, "ads": -818, "rev_cash": 25781, "rev_points": 36861, "rev_other": 258, "n": 1}
+{"order": "0210153887-0008", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 2700, "rev_cash": 33538, "rev_points": 45700, "rev_other": 335, "n": 1}
+{"order": "0210799592-0158", "ym": "2026-08", "commission": -26072, "delivery": -350, "ads": -678, "rev_cash": 25133, "rev_points": 27010, "n": 1}
+{"order": "0214468438-0022", "ym": "2026-08", "acquiring": -532, "n": 1}
+{"order": "0217135267-0079", "ym": "2026-08", "delivery": -1972, "partner": -24, "n": 1}
+{"order": "0221655852-0022", "ym": "2026-08", "commission": -19665, "delivery": -1108, "ads": -1028, "partner": -6, "rev_cash": 17447, "rev_points": 27072, "rev_other": 174, "n": 1}
+{"order": "0222268220-0125", "ym": "2026-08", "commission": -24443, "delivery": -1056, "ads": -1102, "partner": -8, "rev_cash": 19707, "rev_points": 28023, "rev_other": 197, "n": 1}
+{"order": "0235934362-0001", "ym": "2026-08", "commission": -74424, "delivery": -20, "ads": -2103, "buyer_delivery": 2500, "rev_cash": 89037, "rev_points": 72754, "n": 1}
+{"order": "02403724-0178", "ym": "2026-08", "commission": -14832, "delivery": -752, "acquiring": -246, "ads": -394, "rev_cash": 12958, "rev_points": 17182, "rev_other": 130, "n": 1}
+{"order": "0244608177-0039", "ym": "2026-08", "commission": -30950, "delivery": -1441, "acquiring": -512, "ads": -805, "partner": -9, "rev_cash": 26953, "rev_points": 34677, "rev_other": 270, "n": 1}
+{"order": "0245430077-0028", "ym": "2026-08", "commission": -15152, "delivery": -1129, "ads": -410, "partner": -9, "rev_cash": 14444, "rev_points": 17122, "n": 1}
+{"order": "0250912566-0025", "ym": "2026-08", "commission": -24327, "delivery": -3121, "ads": -1056, "rev_cash": 16823, "rev_points": 28909, "rev_other": 168, "n": 1}
+{"order": "0251157948-0012", "ym": "2026-08", "commission": -34424, "delivery": -20, "acquiring": -216, "ads": -1721, "buyer_delivery": 3600, "rev_cash": 41585, "rev_points": 33249, "n": 1}
+{"order": "02524631-1687", "ym": "2026-08", "acquiring": -396, "n": 1}
+{"order": "0252722211-0075", "ym": "2026-08", "acquiring": -3789, "n": 1}
+{"order": "02534306-0792", "ym": "2026-08", "commission": -25387, "delivery": -367, "acquiring": -155, "ads": -623, "rev_cash": 22447, "rev_points": 25453, "n": 1}
+{"order": "0253442162-0007", "ym": "2026-08", "commission": -24429, "delivery": -367, "acquiring": -430, "ads": -623, "partner": -11, "rev_cash": 22626, "rev_points": 25274, "n": 1}
+{"order": "0254416217-0013", "ym": "2026-08", "acquiring": 824, "n": 1}
+{"order": "0254416217-0028", "ym": "2026-08", "acquiring": -897, "n": 1}
+{"order": "0257053844-0049", "ym": "2026-08", "commission": -23267, "delivery": -2986, "acquiring": -336, "ads": -571, "partner": -8, "other": -439, "rev_cash": 17699, "rev_points": 26024, "rev_other": 177, "n": 1}
+{"order": "0259435032-0002", "ym": "2026-08", "commission": -28014, "delivery": -20, "ads": -1401, "buyer_delivery": 4300, "rev_cash": 34406, "rev_points": 26494, "n": 1}
+{"order": "0259507238-0005", "ym": "2026-08", "commission": -37622, "delivery": -20, "ads": -1881, "buyer_delivery": 2300, "rev_cash": 43951, "rev_points": 37835, "n": 1}
+{"order": "0268020898-0004", "ym": "2026-08", "acquiring": -891, "n": 1}
+{"order": "0268479996-0005", "ym": "2026-08", "commission": -26352, "delivery": -1073, "ads": -714, "partner": -11, "rev_cash": 27294, "rev_points": 27606, "n": 1}
+{"order": "02716461-2386", "ym": "2026-08", "acquiring": -1144, "n": 1}
+{"order": "02765497-0901", "ym": "2026-08", "acquiring": -990, "n": 1}
+{"order": "03288054-0364", "ym": "2026-08", "commission": -20617, "delivery": -1396, "acquiring": -195, "ads": -506, "partner": -15, "rev_cash": 10240, "rev_points": 28557, "rev_other": 102, "n": 1}
+{"order": "03993655-0998", "ym": "2026-08", "commission": -16769, "delivery": -521, "acquiring": -253, "ads": -427, "rev_cash": 13304, "rev_points": 19443, "rev_other": 133, "n": 1}
+{"order": "04035404-0331", "ym": "2026-08", "commission": -12189, "delivery": -680, "acquiring": -182, "ads": -550, "partner": -8, "rev_cash": 9578, "rev_points": 14226, "rev_other": 96, "n": 1}
+{"order": "04035756-0179", "ym": "2026-08", "acquiring": -722, "n": 1}
+{"order": "04135717-0114", "ym": "2026-08", "acquiring": -870, "n": 1}
+{"order": "04209832-0543", "ym": "2026-08", "commission": -41179, "delivery": -20, "ads": -2059, "buyer_delivery": 8849, "rev_cash": 46228, "rev_points": 42830, "rev_other": 462, "n": 1}
+{"order": "04372185-0138", "ym": "2026-08", "commission": -29402, "delivery": -20, "acquiring": -433, "ads": -721, "partner": -11136, "buyer_delivery": 6846, "rev_cash": 22780, "rev_points": 32467, "rev_other": 228, "n": 1}
+{"order": "04881222-1504", "ym": "2026-08", "n": 1}
+{"order": "04890810-0268", "ym": "2026-08", "delivery": -458, "ads": -751, "partner": -24, "rev_cash": 13485, "rev_points": 19023, "rev_other": 135, "returns": -32643, "n": 1}
+{"order": "04965516-1445", "ym": "2026-08", "commission": -35890, "delivery": -20, "acquiring": -753, "ads": -1014, "buyer_delivery": 2700, "rev_cash": 39607, "rev_points": 38019, "rev_other": 396, "n": 1}
+{"order": "05063721-0463", "ym": "2026-08", "commission": -14646, "delivery": -1055, "acquiring": -230, "ads": -389, "rev_cash": 12095, "rev_points": 17674, "rev_other": 121, "n": 1}
+{"order": "05419528-0647", "ym": "2026-08", "commission": -19412, "delivery": -422, "acquiring": -305, "ads": -893, "rev_cash": 16035, "rev_points": 22629, "rev_other": 160, "n": 1}
+{"order": "05487839-0547", "ym": "2026-08", "commission": -23409, "delivery": -556, "acquiring": -348, "ads": -1056, "rev_cash": 18315, "rev_points": 27402, "rev_other": 183, "n": 1}
+{"order": "05920865-1101", "ym": "2026-08", "commission": -21248, "delivery": -1772, "acquiring": -184, "ads": -575, "rev_cash": 21419, "rev_points": 22848, "n": 1}
+{"order": "06004090-1218", "ym": "2026-08", "commission": -12667, "delivery": -249, "acquiring": -179, "ads": -550, "partner": -10, "other": -239, "rev_cash": 9414, "rev_points": 14392, "rev_other": 94, "n": 1}
+{"order": "06044631-0086", "ym": "2026-08", "commission": -37889, "delivery": -20, "acquiring": -743, "ads": -1071, "buyer_delivery": 2500, "rev_cash": 39120, "rev_points": 42857, "rev_other": 391, "n": 1}
+{"order": "06245159-0207", "ym": "2026-08", "commission": 24772, "delivery": -286, "acquiring": 407, "partner": -15, "other": -2186, "returns": -48572, "n": 1}
+{"order": "06517283-0442", "ym": "2026-08", "acquiring": -595, "n": 1}
+{"order": "07123605-1035", "ym": "2026-08", "commission": -22338, "delivery": -1116, "acquiring": -313, "ads": -569, "rev_cash": 16476, "rev_points": 27159, "rev_other": 165, "n": 1}
+{"order": "07843397-0433", "ym": "2026-08", "commission": -56065, "delivery": -20, "acquiring": -955, "ads": -1584, "buyer_delivery": 2699, "rev_cash": 50264, "rev_points": 71113, "rev_other": 503, "n": 1}
+{"order": "08179664-0578", "ym": "2026-08", "n": 1}
+{"order": "08179664-0581", "ym": "2026-08", "n": 1}
+{"order": "08179664-0582", "ym": "2026-08", "n": 1}
+{"order": "08402143-0112", "ym": "2026-08", "commission": -29915, "delivery": -1116, "acquiring": -408, "ads": -763, "rev_cash": 21483, "rev_points": 36959, "rev_other": 215, "n": 1}
+{"order": "08535246-0008", "ym": "2026-08", "commission": -26634, "delivery": -20, "ads": -1332, "partner": -7707, "buyer_delivery": 7723, "rev_cash": 23805, "rev_points": 33857, "rev_other": 238, "n": 1}
+{"order": "09115662-0444", "ym": "2026-08", "acquiring": 356, "n": 1}
+{"order": "09180406-0537", "ym": "2026-08", "commission": -37867, "delivery": -20, "ads": -1893, "buyer_delivery": 2699, "rev_cash": 32337, "rev_points": 49660, "rev_other": 323, "n": 1}
+{"order": "09224136-0358", "ym": "2026-08", "commission": -36672, "delivery": -20, "acquiring": -769, "ads": -1036, "buyer_delivery": 5549, "rev_cash": 40469, "rev_points": 38847, "rev_other": 405, "n": 1}
+{"order": "09288826-0167", "ym": "2026-08", "acquiring": -806, "n": 1}
+{"order": "09898854-0066", "ym": "2026-08", "commission": -23409, "delivery": -341, "acquiring": -107, "ads": -1056, "rev_cash": 20552, "rev_points": 25348, "n": 1}
+{"order": "10039490-0505", "ym": "2026-08", "commission": -34590, "delivery": -20, "ads": -1940, "buyer_delivery": 5999, "rev_cash": 42517, "rev_points": 41423, "rev_other": 425, "n": 1}
+{"order": "10102073-0669", "ym": "2026-08", "commission": -26979, "delivery": -325, "acquiring": -398, "ads": -1217, "partner": -10, "rev_cash": 20934, "rev_points": 31757, "rev_other": 209, "n": 1}
+{"order": "10428193-0946", "ym": "2026-08", "acquiring": -942, "n": 1}
+{"order": "10653985-0555", "ym": "2026-08", "acquiring": -653, "n": 1}
+{"order": "11158091-1060", "ym": "2026-08", "n": 1}
+{"order": "11327162-0300", "ym": "2026-08", "acquiring": -389, "n": 1}
+{"order": "11381757-0430", "ym": "2026-08", "commission": -34149, "delivery": -20, "acquiring": -529, "ads": -965, "buyer_delivery": 3999, "rev_cash": 27848, "rev_points": 46112, "rev_other": 278, "n": 1}
+{"order": "11872525-0146", "ym": "2026-08", "n": 1}
+{"order": "11872525-0147", "ym": "2026-08", "acquiring": -554, "n": 1}
+{"order": "12723541-0833", "ym": "2026-08", "n": 1}
+{"order": "12723541-0834", "ym": "2026-08", "commission": -17950, "delivery": -286, "acquiring": -290, "ads": -467, "rev_cash": 15280, "rev_points": 20467, "rev_other": 153, "n": 1}
+{"order": "12964777-0178", "ym": "2026-08", "acquiring": -628, "n": 1}
+{"order": "12993523-0063", "ym": "2026-08", "acquiring": -554, "n": 1}
+{"order": "13146151-0075", "ym": "2026-08", "acquiring": -712, "n": 1}
+{"order": "13215672-0177", "ym": "2026-08", "commission": -56065, "delivery": -20, "acquiring": -469, "ads": -1584, "buyer_delivery": 2300, "rev_cash": 67986, "rev_points": 53894, "n": 1}
+{"order": "13428886-0413", "ym": "2026-08", "commission": -31270, "delivery": -3983, "ads": -1410, "partner": -7, "rev_cash": 23754, "rev_points": 37322, "rev_other": 238, "n": 1}
+{"order": "13660635-0291", "ym": "2026-08", "commission": -30730, "delivery": -1116, "acquiring": -422, "ads": -1334, "rev_cash": 22191, "rev_points": 35568, "rev_other": 222, "n": 1}
+{"order": "14105267-1573", "ym": "2026-08", "commission": -21950, "delivery": -1465, "acquiring": -300, "ads": -571, "rev_cash": 15784, "rev_points": 27958, "rev_other": 158, "n": 1}
+{"order": "14273469-0060", "ym": "2026-08", "commission": -26352, "delivery": -1772, "acquiring": -449, "ads": -714, "partner": -9, "rev_cash": 23616, "rev_points": 31047, "rev_other": 236, "n": 1}
+{"order": "14395171-1453", "ym": "2026-08", "commission": -34119, "delivery": -20, "acquiring": -177, "ads": -870, "buyer_delivery": 2600, "rev_cash": 34018, "rev_points": 32882, "n": 1}
+{"order": "14593946-0506", "ym": "2026-08", "acquiring": -582, "n": 1}
+{"order": "14822994-0885", "ym": "2026-08", "n": 1}
+{"order": "15289172-0421", "ym": "2026-08", "commission": -26429, "delivery": -505, "acquiring": -426, "ads": -687, "partner": -7, "rev_cash": 22427, "rev_points": 30207, "rev_other": 224, "n": 1}
+{"order": "15590136-0330", "ym": "2026-08", "commission": -17241, "delivery": -485, "ads": -793, "rev_cash": 14623, "rev_points": 19713, "rev_other": 146, "n": 1}
+{"order": "15692032-0344", "ym": "2026-08", "commission": -13294, "delivery": -20, "ads": -665, "buyer_delivery": 2500, "rev_cash": 14781, "rev_points": 13971, "rev_other": 148, "n": 1}
+{"order": "16716978-0212", "ym": "2026-08", "delivery": -612, "n": 1}
+{"order": "16790452-0143", "ym": "2026-08", "commission": -56065, "delivery": -20, "acquiring": -1187, "ads": -1584, "buyer_delivery": 2400, "rev_cash": 62452, "rev_points": 58803, "rev_other": 625, "n": 1}
+{"order": "17047783-0407", "ym": "2026-08", "n": 1}
+{"order": "17172729-0079", "ym": "2026-08", "acquiring": -574, "n": 1}
+{"order": "17187589-0303", "ym": "2026-08", "commission": -53774, "delivery": -20, "acquiring": -800, "ads": -1520, "buyer_delivery": 2900, "rev_cash": 42084, "rev_points": 74395, "rev_other": 421, "n": 1}
+{"order": "17190398-0534", "ym": "2026-08", "acquiring": -931, "n": 1}
+{"order": "17265517-0158", "ym": "2026-08", "commission": -56074, "delivery": -20, "ads": -2804, "partner": -6703, "buyer_delivery": 6492, "rev_cash": 57569, "rev_points": 63755, "rev_other": 576, "n": 1}
+{"order": "17291204-0121", "ym": "2026-08", "commission": -17950, "delivery": -521, "acquiring": -288, "ads": -467, "rev_cash": 15159, "rev_points": 20589, "rev_other": 152, "n": 1}
+{"order": "17533470-1228", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 2800, "rev_cash": 35562, "rev_points": 43655, "rev_other": 356, "n": 1}
+{"order": "17535753-1191", "ym": "2026-08", "commission": -32703, "delivery": -20, "acquiring": -642, "ads": -4676, "buyer_delivery": 2499, "rev_cash": 33765, "rev_points": 36990, "rev_other": 338, "n": 1}
+{"order": "17624271-0315", "ym": "2026-08", "n": 1}
+{"order": "17750972-0267", "ym": "2026-08", "commission": -30960, "delivery": -1426, "acquiring": -399, "ads": -803, "rev_cash": 21022, "rev_points": 40568, "rev_other": 210, "n": 1}
+{"order": "18052228-0068", "ym": "2026-08", "commission": -30657, "delivery": -793, "ads": -1410, "partner": -11, "rev_cash": 24779, "rev_points": 36287, "rev_other": 248, "n": 1}
+{"order": "18390200-0385", "ym": "2026-08", "delivery": -2223, "acquiring": 318, "ads": -872, "partner": -15, "rev_cash": 16756, "rev_points": 20976, "rev_other": 168, "returns": -37900, "n": 1}
+{"order": "18398730-0409", "ym": "2026-08", "commission": -32079, "delivery": -367, "ads": -1447, "partner": -9, "rev_cash": 24626, "rev_points": 38028, "rev_other": 246, "n": 1}
+{"order": "18538447-1638", "ym": "2026-08", "commission": -56065, "delivery": -20, "acquiring": -834, "ads": -1584, "buyer_delivery": 2899, "rev_cash": 43877, "rev_points": 77564, "rev_other": 439, "n": 1}
+{"order": "18549354-0607", "ym": "2026-08", "acquiring": -780, "n": 1}
+{"order": "18845130-0257", "ym": "2026-08", "commission": -16648, "delivery": -383, "acquiring": -236, "ads": -424, "partner": -7, "rev_cash": 12440, "rev_points": 20079, "rev_other": 124, "n": 1}
+{"order": "18869268-0146", "ym": "2026-08", "acquiring": -160, "n": 1}
+{"order": "19037832-1057", "ym": "2026-08", "acquiring": 325, "n": 1}
+{"order": "19199104-0670", "ym": "2026-08", "commission": -8413, "delivery": -229, "acquiring": -165, "ads": -233, "partner": -11, "rev_cash": 8678, "rev_points": 9135, "rev_other": 87, "n": 1}
+{"order": "19378966-0352", "ym": "2026-08", "commission": -41020, "delivery": -2937, "acquiring": -608, "ads": -1046, "partner": -10, "rev_cash": 31976, "rev_points": 48135, "rev_other": 320, "n": 1}
+{"order": "19595699-0514", "ym": "2026-08", "commission": -15467, "delivery": -521, "ads": -726, "rev_cash": 14139, "rev_points": 17285, "rev_other": 141, "n": 1}
+{"order": "19682860-0486", "ym": "2026-08", "commission": -60639, "delivery": -20, "acquiring": -1010, "ads": -1546, "partner": -3628, "buyer_delivery": 1358, "rev_cash": 53147, "rev_points": 65222, "rev_other": 531, "n": 1}
+{"order": "19772717-0608", "ym": "2026-08", "acquiring": -688, "n": 1}
+{"order": "19996027-0142", "ym": "2026-08", "acquiring": -301, "n": 1}
+{"order": "20580851-0701", "ym": "2026-08", "n": 1}
+{"order": "20580851-0702", "ym": "2026-08", "commission": -17967, "delivery": -1396, "acquiring": -170, "ads": -441, "rev_cash": 8923, "rev_points": 24888, "rev_other": 89, "n": 1}
+{"order": "21044159-0032", "ym": "2026-08", "n": 1}
+{"order": "22021902-1024", "ym": "2026-08", "acquiring": -507, "n": 1}
+{"order": "22599796-0581", "ym": "2026-08", "acquiring": -596, "n": 1}
+{"order": "23029563-0081", "ym": "2026-08", "commission": -34454, "delivery": -20, "acquiring": -416, "ads": -974, "buyer_delivery": 2699, "rev_cash": 35586, "rev_points": 37891, "rev_other": 1423, "n": 1}
+{"order": "23852403-0320", "ym": "2026-08", "commission": -35450, "delivery": -963, "acquiring": -566, "ads": -922, "rev_cash": 29786, "rev_points": 40816, "rev_other": 298, "n": 1}
+{"order": "23898351-0052", "ym": "2026-08", "delivery": -458, "ads": -613, "partner": -27, "rev_cash": 11313, "rev_points": 15205, "rev_other": 113, "returns": -26631, "n": 1}
+{"order": "24.08.26-24.09.26", "ym": "2026-08", "ads": -24990, "n": 1}
+{"order": "24050908-0580", "ym": "2026-08", "acquiring": -564, "n": 1}
+{"order": "24057953-0415", "ym": "2026-08", "commission": -27430, "delivery": -456, "ads": -1190, "partner": -14, "rev_cash": 18562, "rev_points": 33007, "rev_other": 186, "n": 1}
+{"order": "24141166", "ym": "2026-08", "ads": -47779, "n": 1}
+{"order": "24644544-0784", "ym": "2026-08", "commission": -22327, "delivery": -2089, "acquiring": -239, "ads": -569, "partner": -8, "rev_cash": 12594, "rev_points": 31058, "rev_other": 126, "n": 1}
+{"order": "24749786-0841", "ym": "2026-08", "n": 1}
+{"order": "24909599-0383", "ym": "2026-08", "commission": -22950, "delivery": -1538, "ads": -1056, "partner": -7, "rev_cash": 16274, "rev_points": 29463, "rev_other": 163, "n": 1}
+{"order": "25575995-0884", "ym": "2026-08", "commission": -51474, "delivery": -20, "ads": -2574, "buyer_delivery": 2699, "rev_cash": 53689, "rev_points": 57674, "rev_other": 537, "n": 1}
+{"order": "25581794-0364", "ym": "2026-08", "acquiring": -595, "n": 1}
+{"order": "25775432-0157", "ym": "2026-08", "acquiring": -796, "n": 1}
+{"order": "26101925-0010", "ym": "2026-08", "commission": -53774, "delivery": -20, "acquiring": -800, "ads": -1520, "buyer_delivery": 2600, "rev_cash": 42084, "rev_points": 74395, "rev_other": 421, "n": 1}
+{"order": "26147686-1693", "ym": "2026-08", "acquiring": -391, "n": 1}
+{"order": "26184205-0375", "ym": "2026-08", "commission": -27507, "delivery": -551, "acquiring": -385, "ads": -1194, "rev_cash": 20265, "rev_points": 31432, "rev_other": 203, "n": 1}
+{"order": "26239914-0165", "ym": "2026-08", "acquiring": -534, "n": 1}
+{"order": "26787835-0668", "ym": "2026-08", "n": 1}
+{"order": "28003228", "ym": "2026-08", "ads": -115391, "n": 1}
+{"order": "28003260", "ym": "2026-08", "ads": -21955, "n": 1}
+{"order": "28419091-0923", "ym": "2026-08", "commission": -19839, "delivery": -20, "ads": -895, "buyer_delivery": 3400, "rev_cash": 19022, "rev_points": 19688, "rev_other": 190, "n": 1}
+{"order": "28753239", "ym": "2026-08", "ads": -1097161, "n": 1}
+{"order": "28919301", "ym": "2026-08", "ads": -18224, "n": 1}
+{"order": "28955166-0081", "ym": "2026-08", "commission": -37723, "delivery": -20, "ads": -1886, "buyer_delivery": 2400, "rev_cash": 39496, "rev_points": 42116, "rev_other": 395, "n": 1}
+{"order": "29007646-0486", "ym": "2026-08", "acquiring": -867, "n": 1}
+{"order": "29293507-0708", "ym": "2026-08", "acquiring": -610, "n": 1}
+{"order": "29428430-0125", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 3500, "rev_cash": 30547, "rev_points": 48721, "rev_other": 305, "n": 1}
+{"order": "29470890-0171", "ym": "2026-08", "commission": -6248, "delivery": -551, "ads": -312, "rev_cash": 6701, "rev_points": 6814, "rev_other": 67, "n": 1}
+{"order": "29889553-0895", "ym": "2026-08", "acquiring": -752, "n": 1}
+{"order": "29897652-0294", "ym": "2026-08", "commission": -42734, "delivery": -20, "ads": -2137, "buyer_delivery": 4200, "rev_cash": 43316, "rev_points": 49151, "rev_other": 433, "n": 1}
+{"order": "29909380-0066", "ym": "2026-08", "commission": -41698, "delivery": -5406, "acquiring": -272, "ads": -1063, "partner": -16, "other": -1635, "rev_cash": 39478, "rev_points": 42282, "n": 1}
+{"order": "29946999-0210", "ym": "2026-08", "commission": -34629, "delivery": -20, "ads": -1562, "buyer_delivery": 2300, "rev_cash": 31249, "rev_points": 36339, "rev_other": 312, "n": 1}
+{"order": "29980546-0186", "ym": "2026-08", "commission": -31270, "delivery": -2089, "acquiring": -369, "ads": -797, "partner": -7, "rev_cash": 19429, "rev_points": 41691, "rev_other": 194, "n": 1}
+{"order": "30254768-0239", "ym": "2026-08", "commission": -28014, "delivery": -20, "acquiring": -175, "ads": -792, "buyer_delivery": 4200, "rev_cash": 25371, "rev_points": 35529, "n": 1}
+{"order": "30307544-0044", "ym": "2026-08", "acquiring": -599, "n": 1}
+{"order": "30331007-0787", "ym": "2026-08", "commission": -25398, "delivery": -485, "ads": -1145, "rev_cash": 20803, "rev_points": 28789, "rev_other": 208, "n": 1}
+{"order": "30699101-0087", "ym": "2026-08", "acquiring": -496, "n": 1}
+{"order": "30732995-0838", "ym": "2026-08", "commission": -42734, "delivery": -20, "acquiring": -920, "ads": -1208, "buyer_delivery": 3399, "rev_cash": 48418, "rev_points": 43998, "rev_other": 484, "n": 1}
+{"order": "31051747-0183", "ym": "2026-08", "commission": -44574, "delivery": -20, "ads": -2229, "buyer_delivery": 2699, "rev_cash": 49695, "rev_points": 46708, "rev_other": 497, "n": 1}
+{"order": "31227247-0366", "ym": "2026-08", "acquiring": -311, "n": 1}
+{"order": "31353545-0110", "ym": "2026-08", "commission": -34096, "delivery": -20, "ads": -1705, "buyer_delivery": 2699, "rev_cash": 37886, "rev_points": 35857, "rev_other": 379, "n": 1}
+{"order": "31670738-0015", "ym": "2026-08", "commission": -40503, "delivery": -20, "ads": -2025, "buyer_delivery": 2600, "rev_cash": 39367, "rev_points": 48289, "rev_other": 394, "n": 1}
+{"order": "31831672-0141", "ym": "2026-08", "acquiring": -740, "n": 1}
+{"order": "31954039-1284", "ym": "2026-08", "commission": -32589, "delivery": -20, "ads": -1470, "buyer_delivery": 2499, "rev_cash": 28563, "rev_points": 35051, "rev_other": 286, "n": 1}
+{"order": "32062106", "ym": "2026-08", "ads": -28581, "n": 1}
+{"order": "32134026-0694", "ym": "2026-08", "acquiring": -868, "n": 1}
+{"order": "32360455-0039", "ym": "2026-08", "acquiring": -306, "n": 1}
+{"order": "32392899-0276", "ym": "2026-08", "commission": -31450, "delivery": -595, "ads": -1447, "rev_cash": 25714, "rev_points": 36929, "rev_other": 257, "n": 1}
+{"order": "32481238-0142", "ym": "2026-08", "commission": -49696, "delivery": -692, "acquiring": -782, "ads": -1258, "rev_cash": 41140, "rev_points": 55207, "rev_other": 411, "n": 1}
+{"order": "32513775-0082", "ym": "2026-08", "acquiring": -974, "n": 1}
+{"order": "32595697-0666", "ym": "2026-08", "commission": -30687, "delivery": -20, "acquiring": -473, "ads": -753, "buyer_delivery": 4499, "rev_cash": 24909, "rev_points": 32742, "rev_other": 249, "n": 1}
+{"order": "32595697-0667", "ym": "2026-08", "delivery": -1581, "acquiring": -296, "ads": -933, "partner": -15, "rev_cash": 31160, "rev_points": 40328, "rev_other": 312, "returns": -71800, "n": 1}
+{"order": "32652140-0482", "ym": "2026-08", "commission": -24559, "delivery": -20, "ads": -1378, "buyer_delivery": 5000, "rev_cash": 30208, "rev_points": 29390, "rev_other": 302, "n": 1}
+{"order": "32837696-0272", "ym": "2026-08", "commission": -16322, "delivery": -423, "acquiring": -260, "ads": -424, "partner": -9, "rev_cash": 13690, "rev_points": 18816, "rev_other": 137, "n": 1}
+{"order": "33063888-1505", "ym": "2026-08", "delivery": -927, "ads": -874, "partner": -10, "rev_cash": 23953, "rev_points": 43037, "rev_other": 240, "returns": -67230, "n": 1}
+{"order": "33150539-0154", "ym": "2026-08", "commission": -11679, "delivery": -229, "acquiring": -116, "ads": -298, "partner": -11, "rev_cash": 6116, "rev_points": 16722, "rev_other": 61, "n": 1}
+{"order": "33195720-0129", "ym": "2026-08", "acquiring": -812, "n": 1}
+{"order": "33586615", "ym": "2026-08", "ads": -19209, "n": 1}
+{"order": "33587805", "ym": "2026-08", "ads": -8776, "n": 1}
+{"order": "33655357-0034", "ym": "2026-08", "commission": -21206, "delivery": -217, "acquiring": -95, "ads": -541, "partner": -9, "rev_cash": 19471, "rev_points": 22109, "n": 1}
+{"order": "33675651", "ym": "2026-08", "ads": -26464, "n": 1}
+{"order": "33847506-0422", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 5299, "rev_cash": 31193, "rev_points": 48068, "rev_other": 312, "n": 1}
+{"order": "34024397-1758", "ym": "2026-08", "commission": -47325, "delivery": -20, "acquiring": -806, "ads": -1337, "rev_cash": 42428, "rev_points": 60028, "rev_other": 424, "n": 1}
+{"order": "34118165", "ym": "2026-08", "ads": -11962, "n": 1}
+{"order": "34131260-0024", "ym": "2026-08", "acquiring": -739, "n": 1}
+{"order": "34186450-0138", "ym": "2026-08", "acquiring": -703, "n": 1}
+{"order": "34237514-0084", "ym": "2026-08", "delivery": -4294, "acquiring": 510, "n": 1}
+{"order": "34297339-0086", "ym": "2026-08", "commission": -34454, "delivery": -20, "ads": -1723, "buyer_delivery": 5050, "rev_cash": 38405, "rev_points": 36111, "rev_other": 384, "n": 1}
+{"order": "34383019-0514", "ym": "2026-08", "commission": -38594, "delivery": -20, "acquiring": -797, "ads": -6592, "buyer_delivery": 4950, "rev_cash": 41961, "rev_points": 41519, "rev_other": 420, "n": 1}
+{"order": "34398418", "ym": "2026-08", "ads": -15332, "n": 1}
+{"order": "34398483", "ym": "2026-08", "ads": -67955, "n": 1}
+{"order": "34441745-0895", "ym": "2026-08", "commission": -60480, "delivery": -20, "acquiring": -916, "ads": -1483, "buyer_delivery": 2200, "rev_cash": 48225, "rev_points": 65407, "rev_other": 482, "n": 1}
+{"order": "34705404-0246", "ym": "2026-08", "commission": -30191, "delivery": -1493, "ads": -1615, "partner": -8, "rev_cash": 37281, "rev_points": 32558, "rev_other": 373, "n": 1}
+{"order": "34723449-0179", "ym": "2026-08", "commission": -29621, "delivery": -20, "ads": -4323, "buyer_delivery": 7200, "rev_cash": 25581, "rev_points": 38557, "rev_other": 256, "n": 1}
+{"order": "34729481", "ym": "2026-08", "ads": -34883, "n": 1}
+{"order": "34729515", "ym": "2026-08", "ads": -6319, "n": 1}
+{"order": "34788026-0038", "ym": "2026-08", "commission": -21950, "delivery": -1465, "acquiring": -90, "ads": -571, "rev_cash": 17392, "rev_points": 26508, "n": 1}
+{"order": "34914894-0471", "ym": "2026-08", "n": 1}
+{"order": "34987024-0722", "ym": "2026-08", "n": 1}
+{"order": "34987024-0723", "ym": "2026-08", "commission": -22389, "delivery": -1396, "acquiring": -164, "ads": -571, "rev_cash": 18052, "rev_points": 25848, "n": 1}
+{"order": "34990024-0066", "ym": "2026-08", "commission": -35837, "delivery": -20, "ads": -1792, "buyer_delivery": 4900, "rev_cash": 39613, "rev_points": 37898, "rev_other": 396, "n": 1}
+{"order": "35261827", "ym": "2026-08", "ads": -67577, "n": 1}
+{"order": "35396819", "ym": "2026-08", "ads": -84243, "n": 1}
+{"order": "35407946", "ym": "2026-08", "ads": -62914, "n": 1}
+{"order": "35411799", "ym": "2026-08", "ads": -35597, "n": 1}
+{"order": "35439070-0610", "ym": "2026-08", "commission": -35219, "delivery": -20, "ads": -1976, "buyer_delivery": 5200, "rev_cash": 36223, "rev_points": 49315, "rev_other": 362, "n": 1}
+{"order": "35464650", "ym": "2026-08", "ads": -46652, "n": 1}
+{"order": "35592647", "ym": "2026-08", "ads": -25461, "n": 1}
+{"order": "35605656-0571", "ym": "2026-08", "commission": -23214, "delivery": -3096, "acquiring": -293, "ads": -569, "partner": -8, "rev_cash": 15406, "rev_points": 28239, "rev_other": 154, "n": 1}
+{"order": "35756103-0630", "ym": "2026-08", "commission": -35834, "delivery": -20, "ads": -1013, "buyer_delivery": 4499, "other": -3947, "rev_cash": 39470, "rev_points": 38035, "rev_other": 395, "n": 1}
+{"order": "35805535815", "ym": "2026-08", "partner": -500, "n": 1}
+{"order": "35805535816", "ym": "2026-08", "partner": -1500, "n": 1}
+{"order": "358942", "ym": "2026-08", "ads": -9172, "n": 1}
+{"order": "35973350", "ym": "2026-08", "ads": -57807, "n": 1}
+{"order": "35976300", "ym": "2026-08", "ads": -13476, "n": 1}
+{"order": "35976552", "ym": "2026-08", "ads": -19951, "n": 1}
+{"order": "35977053", "ym": "2026-08", "ads": -35551, "n": 1}
+{"order": "36100295956", "ym": "2026-08", "partner": -1068, "n": 1}
+{"order": "36101953625", "ym": "2026-08", "partner": -1356, "n": 1}
+{"order": "36161524", "ym": "2026-08", "ads": -35334, "n": 1}
+{"order": "36162195", "ym": "2026-08", "ads": -25137, "n": 1}
+{"order": "36185816-1775", "ym": "2026-08", "commission": -41179, "delivery": -20, "ads": -2059, "buyer_delivery": 5150, "rev_cash": 42956, "rev_points": 46134, "rev_other": 430, "n": 1}
+{"order": "36244515", "ym": "2026-08", "ads": -56510, "n": 1}
+{"order": "36262666592", "ym": "2026-08", "other": -375, "n": 1}
+{"order": "36308063-0066", "ym": "2026-08", "acquiring": -731, "n": 1}
+{"order": "36319046-0668", "ym": "2026-08", "commission": 24149, "acquiring": 478, "buyer_delivery": -4400, "returns": -58900, "n": 1}
+{"order": "36324882-0084", "ym": "2026-08", "acquiring": -572, "n": 1}
+{"order": "36363522", "ym": "2026-08", "ads": -25918, "n": 1}
+{"order": "36364586", "ym": "2026-08", "ads": -18535, "n": 1}
+{"order": "36367286", "ym": "2026-08", "ads": -26772, "n": 1}
+{"order": "36372164077", "ym": "2026-08", "partner": -1500, "n": 1}
+{"order": "36374396418", "ym": "2026-08", "partner": -2000, "n": 1}
+{"order": "36381550", "ym": "2026-08", "ads": -13106, "n": 1}
+{"order": "36381695", "ym": "2026-08", "ads": -9014, "n": 1}
+{"order": "36502052-0100", "ym": "2026-08", "acquiring": -572, "n": 1}
+{"order": "36539651-0587", "ym": "2026-08", "commission": -23409, "delivery": -1465, "acquiring": -310, "ads": -1056, "rev_cash": 16324, "rev_points": 29413, "rev_other": 163, "n": 1}
+{"order": "36552905556", "ym": "2026-08", "partner": -207, "n": 1}
+{"order": "36552905557", "ym": "2026-08", "other": -125, "n": 1}
+{"order": "36558781630", "ym": "2026-08", "partner": -2000, "n": 1}
+{"order": "36755138", "ym": "2026-08", "ads": -14955, "n": 1}
+{"order": "36755162", "ym": "2026-08", "ads": -45033, "n": 1}
+{"order": "36768862-1527", "ym": "2026-08", "commission": -17259, "delivery": -286, "acquiring": -265, "ads": -778, "partner": -10, "rev_cash": 13968, "rev_points": 19734, "rev_other": 140, "n": 1}
+{"order": "36801376259", "ym": "2026-08", "partner": -369, "n": 1}
+{"order": "36807612786", "ym": "2026-08", "partner": -1200, "n": 1}
+{"order": "36814354-0330", "ym": "2026-08", "acquiring": -825, "n": 1}
+{"order": "36819138219", "ym": "2026-08", "partner": -1845, "n": 1}
+{"order": "36944236681", "ym": "2026-08", "partner": -636, "n": 1}
+{"order": "36980905-0417", "ym": "2026-08", "commission": -26762, "delivery": -334, "acquiring": -538, "ads": -740, "partner": -11, "rev_cash": 28332, "rev_points": 28325, "rev_other": 283, "n": 1}
+{"order": "37007560", "ym": "2026-08", "ads": -25500, "n": 1}
+{"order": "37099669", "ym": "2026-08", "ads": -29624, "n": 1}
+{"order": "37239106", "ym": "2026-08", "ads": -16653, "n": 1}
+{"order": "37415100-0063", "ym": "2026-08", "commission": -43194, "delivery": -20, "ads": -2160, "buyer_delivery": 3700, "rev_cash": 53050, "rev_points": 40850, "n": 1}
+{"order": "37782169-0089", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 4500, "rev_cash": 31656, "rev_points": 47600, "rev_other": 317, "n": 1}
+{"order": "37835527-0211", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 5050, "rev_cash": 33571, "rev_points": 45666, "rev_other": 336, "n": 1}
+{"order": "37942890-0474", "ym": "2026-08", "commission": -13479, "delivery": -1058, "acquiring": -225, "ads": -358, "partner": -8, "rev_cash": 11833, "rev_points": 15557, "rev_other": 118, "n": 1}
+{"order": "38079430-0011", "ym": "2026-08", "acquiring": -976, "n": 1}
+{"order": "38180289-0164", "ym": "2026-08", "n": 1}
+{"order": "38508257-0464", "ym": "2026-08", "acquiring": -426, "n": 1}
+{"order": "38587278-1370", "ym": "2026-08", "acquiring": -332, "n": 1}
+{"order": "38633221-1089", "ym": "2026-08", "commission": -18650, "delivery": -3981, "ads": -894, "partner": -8, "rev_cash": 15570, "rev_points": 23130, "rev_other": 156, "n": 1}
+{"order": "38682168-0382", "ym": "2026-08", "n": 1}
+{"order": "38822054-0367", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 3600, "rev_cash": 33538, "rev_points": 45700, "rev_other": 335, "n": 1}
+{"order": "38889699-1613", "ym": "2026-08", "delivery": -2143, "ads": -351, "partner": -15, "rev_cash": 11444, "rev_points": 15472, "rev_other": 114, "returns": -27030, "n": 1}
+{"order": "38909203-0322", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 5500, "rev_cash": 30547, "rev_points": 48721, "rev_other": 305, "n": 1}
+{"order": "39327221-0946", "ym": "2026-08", "n": 1}
+{"order": "39327221-0953", "ym": "2026-08", "n": 1}
+{"order": "39327221-0955", "ym": "2026-08", "n": 1}
+{"order": "39552181-0329", "ym": "2026-08", "commission": -42486, "delivery": -20, "acquiring": -878, "ads": -7256, "buyer_delivery": 4850, "rev_cash": 46192, "rev_points": 45706, "rev_other": 462, "n": 1}
+{"order": "39826566-0326", "ym": "2026-08", "commission": -36186, "delivery": -566, "ads": -1570, "partner": -10, "rev_cash": 28816, "rev_points": 39172, "rev_other": 288, "n": 1}
+{"order": "39877505-0286", "ym": "2026-08", "commission": -31747, "delivery": -20, "ads": -1378, "buyer_delivery": 3000, "rev_cash": 30932, "rev_points": 28968, "n": 1}
+{"order": "40062786-0403", "ym": "2026-08", "acquiring": -950, "n": 1}
+{"order": "40210392-0552", "ym": "2026-08", "acquiring": -1102, "n": 1}
+{"order": "40581638-0129", "ym": "2026-08", "commission": -41354, "delivery": -20, "ads": -2068, "buyer_delivery": 5299, "rev_cash": 45652, "rev_points": 43791, "rev_other": 457, "n": 1}
+{"order": "40773899-0055", "ym": "2026-08", "commission": -37867, "delivery": -20, "ads": -1893, "buyer_delivery": 2599, "rev_cash": 32337, "rev_points": 49660, "rev_other": 323, "n": 1}
+{"order": "40775013-0152", "ym": "2026-08", "n": 1}
+{"order": "40775013-0153", "ym": "2026-08", "acquiring": -383, "n": 1}
+{"order": "40817054-0083", "ym": "2026-08", "commission": -30301, "delivery": -20, "ads": -1315, "partner": -4663, "buyer_delivery": 834, "rev_cash": 24148, "rev_points": 32782, "rev_other": 241, "n": 1}
+{"order": "40852120-0554", "ym": "2026-08", "commission": -38228, "delivery": -20, "acquiring": -546, "ads": -4853, "buyer_delivery": 2699, "rev_cash": 28750, "rev_points": 43090, "rev_other": 288, "n": 1}
+{"order": "40930151-0250", "ym": "2026-08", "acquiring": -603, "n": 1}
+{"order": "41154498-0579", "ym": "2026-08", "commission": -29621, "delivery": -20, "ads": -4439, "buyer_delivery": 3600, "rev_cash": 26624, "rev_points": 37504, "rev_other": 266, "n": 1}
+{"order": "41309508-1893", "ym": "2026-08", "commission": -20617, "delivery": -1396, "acquiring": -297, "ads": -506, "other": -389, "rev_cash": 15609, "rev_points": 23135, "rev_other": 156, "n": 1}
+{"order": "41429077-0036", "ym": "2026-08", "commission": -22338, "delivery": -3981, "acquiring": -329, "ads": -569, "partner": -8, "rev_cash": 17295, "rev_points": 26332, "rev_other": 173, "n": 1}
+{"order": "41429077-0038", "ym": "2026-08", "delivery": -639, "partner": -23, "n": 1}
+{"order": "41429077-0042", "ym": "2026-08", "acquiring": -289, "n": 1}
+{"order": "41429077-0050", "ym": "2026-08", "acquiring": -265, "n": 1}
+{"order": "41482556-0207", "ym": "2026-08", "acquiring": -630, "n": 1}
+{"order": "41558122-0049", "ym": "2026-08", "acquiring": -1008, "n": 1}
+{"order": "41649957-0237", "ym": "2026-08", "commission": -66390, "delivery": -20, "ads": -3319, "buyer_delivery": 3499, "rev_cash": 70798, "rev_points": 72819, "rev_other": 708, "n": 1}
+{"order": "41739361-0065", "ym": "2026-08", "acquiring": 659, "n": 1}
+{"order": "41750784-0476", "ym": "2026-08", "commission": 43194, "acquiring": 701, "returns": -93900, "n": 1}
+{"order": "41979297-0104", "ym": "2026-08", "commission": -30657, "delivery": -3981, "ads": -1410, "partner": -8, "rev_cash": 21823, "rev_points": 39273, "rev_other": 218, "n": 1}
+{"order": "42205638-0182", "ym": "2026-08", "commission": -8569, "delivery": -45, "ads": -481, "partner": -2880, "rev_cash": 10910, "rev_points": 9881, "rev_other": 109, "n": 1}
+{"order": "42222012-0577", "ym": "2026-08", "n": 1}
+{"order": "42222012-0581", "ym": "2026-08", "n": 1}
+{"order": "42222012-0589", "ym": "2026-08", "commission": -35890, "delivery": -20, "acquiring": -603, "ads": -1014, "buyer_delivery": 3500, "rev_cash": 31730, "rev_points": 45975, "rev_other": 317, "n": 1}
+{"order": "42302648-0425", "ym": "2026-08", "commission": -13671, "delivery": -521, "acquiring": -230, "ads": -363, "rev_cash": 12086, "rev_points": 15693, "rev_other": 121, "n": 1}
+{"order": "42347501-0313", "ym": "2026-08", "commission": -4227, "delivery": -20, "acquiring": -21, "ads": -119, "buyer_delivery": 4200, "rev_cash": 4121, "rev_points": 5069, "n": 1}
+{"order": "42778915-0072", "ym": "2026-08", "commission": -30634, "delivery": -20, "acquiring": -438, "ads": -1329, "partner": -2939, "buyer_delivery": 409, "rev_cash": 23039, "rev_points": 34531, "rev_other": 230, "n": 1}
+{"order": "43116679-0879", "ym": "2026-08", "commission": -42734, "delivery": -20, "acquiring": -883, "ads": -1208, "buyer_delivery": 4300, "rev_cash": 46462, "rev_points": 45973, "rev_other": 465, "n": 1}
+{"order": "43159731-0675", "ym": "2026-08", "n": 1}
+{"order": "43544087-0621", "ym": "2026-08", "commission": -24794, "delivery": -20, "ads": -1240, "buyer_delivery": 4599, "rev_cash": 22160, "rev_points": 31518, "rev_other": 222, "n": 1}
+{"order": "43854374-0838", "ym": "2026-08", "commission": -31569, "delivery": -367, "acquiring": -485, "ads": -805, "rev_cash": 25526, "rev_points": 36119, "rev_other": 255, "n": 1}
+{"order": "44742804-0225", "ym": "2026-08", "commission": -14347, "delivery": -1563, "acquiring": -257, "ads": -389, "rev_cash": 13530, "rev_points": 16225, "rev_other": 135, "n": 1}
+{"order": "44776451-0253", "ym": "2026-08", "commission": -42734, "delivery": -20, "acquiring": -726, "ads": -5454, "buyer_delivery": 3100, "rev_cash": 38217, "rev_points": 54301, "rev_other": 382, "n": 1}
+{"order": "44801590-0518", "ym": "2026-08", "commission": -23630, "delivery": -647, "acquiring": -375, "ads": -614, "partner": -15, "rev_cash": 19726, "rev_points": 27338, "rev_other": 197, "n": 1}
+{"order": "44915408-0119", "ym": "2026-08", "commission": -34454, "delivery": -20, "ads": -1723, "buyer_delivery": 4400, "rev_cash": 29953, "rev_points": 44647, "rev_other": 300, "n": 1}
+{"order": "44938655-0249", "ym": "2026-08", "commission": -16317, "delivery": -639, "acquiring": -74, "ads": -400, "rev_cash": 14186, "rev_points": 16600, "n": 1}
+{"order": "45043132-0524", "ym": "2026-08", "commission": -38637, "delivery": -801, "acquiring": -525, "ads": -948, "rev_cash": 27610, "rev_points": 45014, "rev_other": 276, "n": 1}
+{"order": "45183968-0338", "ym": "2026-08", "commission": -15541, "delivery": -941, "acquiring": -260, "ads": -421, "partner": -9, "rev_cash": 13706, "rev_points": 18533, "rev_other": 137, "n": 1}
+{"order": "45404162-0092", "ym": "2026-08", "commission": -18309, "delivery": -556, "acquiring": -282, "ads": -467, "partner": -10, "rev_cash": 14854, "rev_points": 20897, "rev_other": 149, "n": 1}
+{"order": "45435820-0316", "ym": "2026-08", "n": 1}
+{"order": "45435820-0320", "ym": "2026-08", "commission": -25751, "delivery": -20, "acquiring": -399, "ads": -728, "buyer_delivery": 3400, "rev_cash": 20996, "rev_points": 34774, "rev_other": 210, "n": 1}
+{"order": "45438584-0118", "ym": "2026-08", "commission": -29621, "delivery": -20, "ads": -1481, "buyer_delivery": 2899, "rev_cash": 29406, "rev_points": 34988, "n": 1}
+{"order": "45751818-0063", "ym": "2026-08", "commission": -9614, "delivery": -20, "ads": -481, "buyer_delivery": 2500, "rev_cash": 11967, "rev_points": 8933, "n": 1}
+{"order": "45860590-0053", "ym": "2026-08", "commission": -33994, "delivery": -20, "ads": -1700, "buyer_delivery": 8850, "rev_cash": 37773, "rev_points": 35749, "rev_other": 378, "n": 1}
+{"order": "45950835-0031", "ym": "2026-08", "acquiring": -657, "n": 1}
+{"order": "45963119-0059", "ym": "2026-08", "commission": -20790, "delivery": -382, "acquiring": -317, "ads": -956, "rev_cash": 16688, "rev_points": 24725, "rev_other": 167, "n": 1}
+{"order": "46027676-0255", "ym": "2026-08", "commission": -53268, "delivery": -40, "ads": -2663, "buyer_delivery": 5050, "rev_cash": 49168, "rev_points": 66632, "n": 1}
+{"order": "46095847-0249", "ym": "2026-08", "commission": -42734, "delivery": -20, "acquiring": -920, "ads": -1208, "buyer_delivery": 5050, "rev_cash": 48404, "rev_points": 44012, "rev_other": 484, "n": 1}
+{"order": "46308886-0159", "ym": "2026-08", "n": 1}
+{"order": "46308886-0160", "ym": "2026-08", "commission": -35890, "delivery": -20, "acquiring": -603, "ads": -1014, "buyer_delivery": 3400, "rev_cash": 31746, "rev_points": 45959, "rev_other": 317, "n": 1}
+{"order": "46319137-0391", "ym": "2026-08", "delivery": -1602, "partner": -23, "n": 1}
+{"order": "46379103-0148", "ym": "2026-08", "acquiring": -599, "n": 1}
+{"order": "46445885-0727", "ym": "2026-08", "commission": -2803, "delivery": -20, "acquiring": -59, "ads": -79, "buyer_delivery": 2100, "rev_cash": 3116, "rev_points": 2947, "rev_other": 31, "n": 1}
+{"order": "46533059-0236", "ym": "2026-08", "commission": -34454, "delivery": -20, "acquiring": -722, "ads": -974, "buyer_delivery": 5850, "rev_cash": 37997, "rev_points": 36523, "rev_other": 380, "n": 1}
+{"order": "46561844-0201", "ym": "2026-08", "acquiring": -711, "n": 1}
+{"order": "46591443-0525", "ym": "2026-08", "commission": -42734, "delivery": -20, "acquiring": -662, "ads": -1208, "buyer_delivery": 2699, "rev_cash": 34843, "rev_points": 57709, "rev_other": 348, "n": 1}
+{"order": "46671881-0083", "ym": "2026-08", "commission": -30282, "delivery": -912, "acquiring": -264, "ads": -803, "rev_cash": 29606, "rev_points": 32194, "n": 1}
+{"order": "46756249-0200", "ym": "2026-08", "acquiring": -203, "n": 1}
+{"order": "46862196-0634", "ym": "2026-08", "commission": -53441, "delivery": -20, "acquiring": -819, "ads": -2672, "buyer_delivery": 5299, "rev_cash": 43128, "rev_points": 72617, "rev_other": 431, "n": 1}
+{"order": "46874710-0888", "ym": "2026-08", "acquiring": -351, "n": 1}
+{"order": "46952822-0108", "ym": "2026-08", "commission": -42734, "delivery": -20, "acquiring": -706, "ads": -2137, "buyer_delivery": 2399, "rev_cash": 37172, "rev_points": 55356, "rev_other": 372, "n": 1}
+{"order": "47146183-0143", "ym": "2026-08", "commission": -25959, "delivery": -8986, "acquiring": -297, "ads": -662, "partner": -21, "rev_cash": 15654, "rev_points": 35089, "rev_other": 157, "n": 1}
+{"order": "47184777-0168", "ym": "2026-08", "acquiring": -652, "n": 1}
+{"order": "47244773-0303", "ym": "2026-08", "n": 1}
+{"order": "47244773-0304", "ym": "2026-08", "acquiring": -169, "n": 1}
+{"order": "47306922-0348", "ym": "2026-08", "commission": -63980, "delivery": -1326, "acquiring": -1045, "ads": -1679, "partner": -21, "rev_cash": 55023, "rev_points": 73582, "rev_other": 550, "n": 1}
+{"order": "47403281-0024", "ym": "2026-08", "acquiring": -592, "n": 1}
+{"order": "47673743-0230", "ym": "2026-08", "commission": -40489, "delivery": -20, "ads": -2024, "buyer_delivery": 4999, "rev_cash": 44769, "rev_points": 42803, "rev_other": 448, "n": 1}
+{"order": "47735640-0001", "ym": "2026-08", "commission": -37122, "delivery": -2954, "acquiring": -579, "ads": -985, "partner": -19, "rev_cash": 30480, "rev_points": 44975, "rev_other": 305, "n": 1}
+{"order": "47791092-0451", "ym": "2026-08", "commission": -43778, "delivery": -5878, "ads": -2014, "partner": -16, "rev_cash": 30995, "rev_points": 56251, "rev_other": 310, "n": 1}
+{"order": "47840623-0141", "ym": "2026-08", "acquiring": -904, "n": 1}
+{"order": "48322221-0831", "ym": "2026-08", "commission": -36517, "delivery": -854, "ads": -1585, "other": -689, "rev_cash": 29682, "rev_points": 38921, "rev_other": 297, "n": 1}
+{"order": "48344851-0523", "ym": "2026-08", "commission": -11462, "delivery": -1323, "acquiring": -159, "ads": -310, "rev_cash": 8347, "rev_points": 15450, "rev_other": 83, "n": 1}
+{"order": "48357998-0619", "ym": "2026-08", "commission": -37723, "delivery": -20, "acquiring": -319, "ads": -1066, "buyer_delivery": 5550, "rev_cash": 46187, "rev_points": 35820, "n": 1}
+{"order": "48390310-0348", "ym": "2026-08", "commission": -34454, "delivery": -20, "acquiring": -569, "ads": -1723, "buyer_delivery": 2300, "rev_cash": 29970, "rev_points": 44630, "rev_other": 300, "n": 1}
+{"order": "48772206-0109", "ym": "2026-08", "commission": -23409, "delivery": -664, "acquiring": -348, "ads": -1056, "rev_cash": 18338, "rev_points": 27379, "rev_other": 183, "n": 1}
+{"order": "49322888-0029", "ym": "2026-08", "commission": -36614, "delivery": -20, "ads": -1831, "buyer_delivery": 2400, "rev_cash": 44715, "rev_points": 34881, "n": 1}
+{"order": "49536750-0281", "ym": "2026-08", "n": 1}
+{"order": "49961067-0210", "ym": "2026-08", "n": 1}
+{"order": "50012540-2468", "ym": "2026-08", "commission": -16121, "delivery": -456, "acquiring": -278, "ads": -428, "rev_cash": 14641, "rev_points": 18113, "rev_other": 146, "n": 1}
+{"order": "50077174-0098", "ym": "2026-08", "commission": -23202, "delivery": -1116, "acquiring": -335, "ads": -569, "rev_cash": 17651, "rev_points": 25950, "rev_other": 177, "n": 1}
+{"order": "50219733-0666", "ym": "2026-08", "commission": -69110, "delivery": -20, "ads": -3456, "buyer_delivery": 2799, "rev_cash": 85326, "rev_points": 64914, "n": 1}
+{"order": "50375360-0360", "ym": "2026-08", "n": 1}
+{"order": "51844045-1502", "ym": "2026-08", "acquiring": -860, "n": 1}
+{"order": "52107312-0201", "ym": "2026-08", "commission": -51085, "delivery": -20, "acquiring": -760, "ads": -1444, "buyer_delivery": 4899, "rev_cash": 39980, "rev_points": 70675, "rev_other": 400, "n": 1}
+{"order": "52330503-0468", "ym": "2026-08", "commission": -22389, "delivery": -5725, "acquiring": -287, "ads": -571, "rev_cash": 15081, "rev_points": 28668, "rev_other": 151, "n": 1}
+{"order": "52361274-0070", "ym": "2026-08", "acquiring": -825, "n": 1}
+{"order": "53125307-0168", "ym": "2026-08", "commission": -25757, "delivery": -716, "acquiring": -232, "ads": -779, "partner": -8, "rev_cash": 33692, "rev_points": 26208, "n": 1}
+{"order": "55341192-0298", "ym": "2026-08", "commission": -50450, "delivery": -2983, "acquiring": -519, "ads": -1312, "rev_cash": 27327, "rev_points": 73300, "rev_other": 273, "n": 1}
+{"order": "56069649-0033", "ym": "2026-08", "delivery": -20, "ads": -974, "rev_cash": 30485, "rev_points": 44110, "rev_other": 305, "returns": -74900, "n": 1}
+{"order": "56152594-0608", "ym": "2026-08", "commission": -35648, "delivery": -20, "ads": -1782, "buyer_delivery": 4899, "rev_cash": 39736, "rev_points": 37362, "rev_other": 397, "n": 1}
+{"order": "56681615-0224", "ym": "2026-08", "commission": -42734, "delivery": -20, "acquiring": -921, "ads": -1208, "buyer_delivery": 3200, "rev_cash": 48471, "rev_points": 43944, "rev_other": 485, "n": 1}
+{"order": "56981655-0113", "ym": "2026-08", "commission": -28140, "delivery": -20, "ads": -1407, "buyer_delivery": 4400, "rev_cash": 24925, "rev_points": 36001, "rev_other": 249, "n": 1}
+{"order": "57044974-0684", "ym": "2026-08", "commission": -37867, "delivery": -20, "ads": -1893, "buyer_delivery": 4799, "rev_cash": 41870, "rev_points": 40031, "rev_other": 419, "n": 1}
+{"order": "57044974-0686", "ym": "2026-08", "acquiring": 795, "n": 1}
+{"order": "57120915-1704", "ym": "2026-08", "commission": -26199, "delivery": -20, "ads": -1470, "buyer_delivery": 4499, "rev_cash": 35072, "rev_points": 28828, "n": 1}
+{"order": "57176721-0108", "ym": "2026-08", "commission": -53477, "delivery": -20, "acquiring": -452, "ads": -1312, "buyer_delivery": 5250, "rev_cash": 47565, "rev_points": 53335, "n": 1}
+{"order": "57793871-0077", "ym": "2026-08", "commission": -31234, "delivery": -20, "acquiring": -657, "ads": -4724, "buyer_delivery": 4200, "rev_cash": 34571, "rev_points": 32983, "rev_other": 346, "n": 1}
+{"order": "57891487-0094", "ym": "2026-08", "commission": -37867, "delivery": -20, "ads": -1893, "buyer_delivery": 3900, "rev_cash": 40671, "rev_points": 41242, "rev_other": 407, "n": 1}
+{"order": "58350483-0347", "ym": "2026-08", "n": 1}
+{"order": "58749581-0014", "ym": "2026-08", "acquiring": -282, "n": 1}
+{"order": "58942623-0360", "ym": "2026-08", "acquiring": -719, "n": 1}
+{"order": "58970345-0102", "ym": "2026-08", "acquiring": -540, "n": 1}
+{"order": "59536566-0171", "ym": "2026-08", "commission": -41354, "delivery": -20, "acquiring": -811, "ads": -1169, "buyer_delivery": 2600, "rev_cash": 42697, "rev_points": 46776, "rev_other": 427, "n": 1}
+{"order": "59560423-0363", "ym": "2026-08", "commission": -47334, "delivery": -20, "acquiring": -726, "ads": -2367, "buyer_delivery": 3300, "rev_cash": 38200, "rev_points": 64318, "rev_other": 382, "n": 1}
+{"order": "59801838-0248", "ym": "2026-08", "commission": -35890, "delivery": -20, "acquiring": -603, "ads": -4541, "buyer_delivery": 4599, "rev_cash": 31746, "rev_points": 45959, "rev_other": 317, "n": 1}
+{"order": "59894099-0101", "ym": "2026-08", "commission": -38637, "delivery": -1138, "acquiring": -570, "ads": -948, "rev_cash": 30017, "rev_points": 42583, "rev_other": 300, "n": 1}
+{"order": "60247897-0066", "ym": "2026-08", "commission": -20023, "delivery": -247, "acquiring": -201, "ads": -510, "partner": -12, "rev_cash": 10571, "rev_points": 28584, "rev_other": 106, "n": 1}
+{"order": "60409757-0137", "ym": "2026-08", "commission": -34454, "delivery": -20, "acquiring": -701, "ads": -974, "buyer_delivery": 5000, "rev_cash": 36918, "rev_points": 37613, "rev_other": 369, "n": 1}
+{"order": "60419673-0337", "ym": "2026-08", "commission": -42734, "delivery": -20, "acquiring": -899, "ads": -1208, "buyer_delivery": 3499, "rev_cash": 47300, "rev_points": 45127, "rev_other": 473, "n": 1}
+{"order": "60595441-0416", "ym": "2026-08", "acquiring": 269, "other": -2121, "n": 1}
+{"order": "60796626-0116", "ym": "2026-08", "commission": -26439, "delivery": -664, "acquiring": -419, "ads": -1216, "partner": -9, "rev_cash": 22045, "rev_points": 30613, "rev_other": 220, "n": 1}
+{"order": "61237337-0197", "ym": "2026-08", "acquiring": -363, "n": 1}
+{"order": "61616008-0888", "ym": "2026-08", "commission": -55899, "delivery": -20, "ads": -2795, "buyer_delivery": 2900, "rev_cash": 46720, "rev_points": 74333, "rev_other": 467, "n": 1}
+{"order": "61769824-0157", "ym": "2026-08", "commission": -26593, "delivery": -325, "acquiring": -393, "ads": -1199, "rev_cash": 20708, "rev_points": 31228, "rev_other": 207, "n": 1}
+{"order": "61860509-0207", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 3100, "rev_cash": 31656, "rev_points": 47600, "rev_other": 317, "n": 1}
+{"order": "62342739-0136", "ym": "2026-08", "commission": -27384, "delivery": -20, "ads": -1369, "partner": -5922, "buyer_delivery": 10204, "rev_cash": 30777, "rev_points": 28445, "rev_other": 308, "n": 1}
+{"order": "62641726-1520", "ym": "2026-08", "delivery": -1076, "partner": -16, "n": 1}
+{"order": "62641726-1574", "ym": "2026-08", "delivery": -926, "n": 1}
+{"order": "62641726-1581", "ym": "2026-08", "delivery": -418, "n": 1}
+{"order": "62641726-1597", "ym": "2026-08", "delivery": -1056, "partner": -15, "n": 1}
+{"order": "62641726-1602", "ym": "2026-08", "commission": -11864, "delivery": -679, "acquiring": -176, "ads": -535, "partner": -15, "rev_cash": 9240, "rev_points": 13931, "rev_other": 92, "n": 1}
+{"order": "63035984-0072", "ym": "2026-08", "commission": -48714, "delivery": -20, "acquiring": -1013, "ads": -1377, "buyer_delivery": 2599, "rev_cash": 53334, "rev_points": 52033, "rev_other": 533, "n": 1}
+{"order": "63073627-0068", "ym": "2026-08", "acquiring": -427, "n": 1}
+{"order": "63691190-0262", "ym": "2026-08", "commission": -30687, "delivery": -20, "ads": -1332, "partner": -2777, "buyer_delivery": 513, "rev_cash": 24908, "rev_points": 32743, "rev_other": 249, "n": 1}
+{"order": "63850454-0418", "ym": "2026-08", "acquiring": -632, "n": 1}
+{"order": "64098338-0024", "ym": "2026-08", "commission": -29621, "delivery": -20, "ads": -1481, "buyer_delivery": 4700, "rev_cash": 27167, "rev_points": 36955, "rev_other": 272, "n": 1}
+{"order": "64425170-0211", "ym": "2026-08", "acquiring": -583, "n": 1}
+{"order": "64819832-0123", "ym": "2026-08", "commission": -53774, "delivery": -20, "acquiring": -878, "ads": -1520, "buyer_delivery": 5250, "rev_cash": 46209, "rev_points": 70229, "rev_other": 462, "n": 1}
+{"order": "65013611-1612", "ym": "2026-08", "commission": -37179, "delivery": -941, "acquiring": -543, "ads": -1677, "partner": -8, "rev_cash": 28578, "rev_points": 44036, "rev_other": 286, "n": 1}
+{"order": "65101152-0043", "ym": "2026-08", "commission": -37867, "delivery": -20, "ads": -1893, "buyer_delivery": 2700, "rev_cash": 34730, "rev_points": 47243, "rev_other": 347, "n": 1}
+{"order": "65186144-0600", "ym": "2026-08", "acquiring": -741, "n": 1}
+{"order": "65290465-0949", "ym": "2026-08", "acquiring": -599, "n": 1}
+{"order": "65410224-0017", "ym": "2026-08", "acquiring": -905, "n": 1}
+{"order": "66055769-0824", "ym": "2026-08", "commission": -30801, "delivery": -695, "acquiring": -144, "ads": -801, "rev_cash": 28265, "rev_points": 33337, "n": 1}
+{"order": "66133922-0103", "ym": "2026-08", "commission": -26450, "delivery": -664, "ads": -1217, "partner": -9, "rev_cash": 22912, "rev_points": 29988, "n": 1}
+{"order": "66636355-0036", "ym": "2026-08", "delivery": -7703, "n": 1}
+{"order": "66636355-0037", "ym": "2026-08", "commission": -51459, "delivery": -4263, "acquiring": -513, "ads": -1312, "rev_cash": 26982, "rev_points": 73648, "rev_other": 270, "n": 1}
+{"order": "66658260-0097", "ym": "2026-08", "commission": -40894, "delivery": -20, "ads": -2045, "buyer_delivery": 2799, "rev_cash": 45217, "rev_points": 43231, "rev_other": 452, "n": 1}
+{"order": "66658795-1187", "ym": "2026-08", "delivery": -1042, "n": 1}
+{"order": "66658795-1205", "ym": "2026-08", "delivery": -1042, "n": 1}
+{"order": "66845380-0058", "ym": "2026-08", "acquiring": -996, "n": 1}
+{"order": "67118117-0458", "ym": "2026-08", "commission": -29621, "delivery": -20, "ads": -1481, "partner": -4208, "buyer_delivery": 7638, "rev_cash": 27148, "rev_points": 36975, "rev_other": 271, "n": 1}
+{"order": "67405896-0109", "ym": "2026-08", "commission": -34702, "delivery": -20, "ads": -1947, "partner": -1270, "buyer_delivery": 2699, "rev_cash": 32618, "rev_points": 51696, "rev_other": 326, "n": 1}
+{"order": "67528696-0168", "ym": "2026-08", "commission": -29621, "delivery": -20, "ads": -1481, "buyer_delivery": 5849, "rev_cash": 27167, "rev_points": 36955, "rev_other": 272, "n": 1}
+{"order": "68531983-0177", "ym": "2026-08", "acquiring": -235, "n": 1}
+{"order": "70650045-0198", "ym": "2026-08", "commission": -34424, "delivery": -20, "ads": -1721, "buyer_delivery": 2800, "rev_cash": 42635, "rev_points": 32199, "n": 1}
+{"order": "71206880-0123", "ym": "2026-08", "commission": -32197, "delivery": -1714, "acquiring": -481, "ads": -821, "partner": -14, "rev_cash": 25318, "rev_points": 37561, "rev_other": 253, "n": 1}
+{"order": "72664603-0661", "ym": "2026-08", "commission": -39287, "delivery": -20, "acquiring": -823, "ads": -1110, "buyer_delivery": 4399, "rev_cash": 43302, "rev_points": 41671, "rev_other": 433, "n": 1}
+{"order": "73130647-0105", "ym": "2026-08", "commission": -32732, "delivery": -20, "acquiring": -551, "ads": -925, "buyer_delivery": 3900, "rev_cash": 28983, "rev_points": 41884, "rev_other": 290, "n": 1}
+{"order": "75543387-0959", "ym": "2026-08", "acquiring": -766, "n": 1}
+{"order": "76021716-0267", "ym": "2026-08", "acquiring": 348, "n": 1}
+{"order": "76331110-0151", "ym": "2026-08", "acquiring": -894, "n": 1}
+{"order": "76693478-0105", "ym": "2026-08", "acquiring": -805, "n": 1}
+{"order": "77336717-0087", "ym": "2026-08", "commission": -21889, "delivery": -2159, "ads": -1007, "partner": -6, "rev_cash": 17511, "rev_points": 26267, "n": 1}
+{"order": "78108784-0486", "ym": "2026-08", "n": 1}
+{"order": "78108784-0487", "ym": "2026-08", "acquiring": -601, "n": 1}
+{"order": "78885081-0462", "ym": "2026-08", "commission": -2114, "delivery": -20, "acquiring": -46, "ads": -60, "buyer_delivery": 2200, "rev_cash": 2440, "rev_points": 2132, "rev_other": 24, "n": 1}
+{"order": "79214675-0180", "ym": "2026-08", "commission": -42734, "delivery": -20, "ads": -2137, "buyer_delivery": 3400, "rev_cash": 37151, "rev_points": 55377, "rev_other": 372, "n": 1}
+{"order": "79486456-0316", "ym": "2026-08", "commission": -11315, "delivery": -1130, "ads": -288, "partner": -10, "other": -1847, "rev_cash": 9237, "rev_points": 12858, "rev_other": 92, "n": 1}
+{"order": "80561439-0066", "ym": "2026-08", "acquiring": -788, "n": 1}
+{"order": "80774503-0226", "ym": "2026-08", "acquiring": -906, "n": 1}
+{"order": "81511854-0096", "ym": "2026-08", "commission": -21889, "delivery": -2089, "acquiring": -188, "ads": -569, "partner": -7, "rev_cash": 19395, "rev_points": 24383, "n": 1}
+{"order": "81558672-0299", "ym": "2026-08", "n": 1}
+{"order": "81558672-0300", "ym": "2026-08", "acquiring": -495, "n": 1}
+{"order": "81667674-0212", "ym": "2026-08", "commission": -29621, "delivery": -20, "ads": -1481, "buyer_delivery": 10000, "rev_cash": 25295, "rev_points": 38846, "rev_other": 253, "n": 1}
+{"order": "82804994-0339", "ym": "2026-08", "acquiring": -666, "n": 1}
+{"order": "83056896-0093", "ym": "2026-08", "acquiring": 499, "n": 1}
+{"order": "83234293-0147", "ym": "2026-08", "delivery": -5512, "partner": -30, "n": 1}
+{"order": "83434629-0207", "ym": "2026-08", "acquiring": -482, "n": 1}
+{"order": "83457297-0294", "ym": "2026-08", "acquiring": -188, "n": 1}
+{"order": "83941135-0060", "ym": "2026-08", "acquiring": -786, "n": 1}
+{"order": "83990787-0110", "ym": "2026-08", "commission": -26589, "delivery": -5725, "acquiring": -253, "ads": -652, "partner": -9, "rev_cash": 13295, "rev_points": 36739, "rev_other": 133, "n": 1}
+{"order": "84632637-0221", "ym": "2026-08", "commission": -17950, "delivery": -935, "acquiring": -179, "ads": -467, "partner": -11, "rev_cash": 15281, "rev_points": 20619, "n": 1}
+{"order": "84818481-0059", "ym": "2026-08", "commission": -26174, "delivery": -20, "ads": -1309, "buyer_delivery": 3999, "other": -5406, "rev_cash": 28457, "rev_points": 28158, "rev_other": 285, "n": 1}
+{"order": "85465558-0301", "ym": "2026-08", "commission": -15541, "delivery": -521, "acquiring": -273, "ads": -421, "partner": -10, "rev_cash": 14368, "rev_points": 17866, "rev_other": 144, "n": 1}
+{"order": "85680852-0164", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "partner": -6870, "buyer_delivery": 3838, "rev_cash": 32900, "rev_points": 46344, "rev_other": 329, "n": 1}
+{"order": "85884248-0024", "ym": "2026-08", "commission": -35800, "delivery": -1477, "acquiring": -429, "ads": -931, "rev_cash": 22592, "rev_points": 48782, "rev_other": 226, "n": 1}
+{"order": "86449703-0230", "ym": "2026-08", "acquiring": -604, "n": 1}
+{"order": "86926560-0087", "ym": "2026-08", "acquiring": -1093, "n": 1}
+{"order": "87944687-0766", "ym": "2026-08", "acquiring": -596, "n": 1}
+{"order": "88198262-0244", "ym": "2026-08", "commission": -30634, "delivery": -20, "acquiring": -438, "ads": -1329, "partner": -2538, "buyer_delivery": 513, "rev_cash": 23039, "rev_points": 34531, "rev_other": 230, "n": 1}
+{"order": "88328492-0057", "ym": "2026-08", "commission": -31234, "delivery": -20, "ads": -1562, "buyer_delivery": 10250, "rev_cash": 39032, "rev_points": 28868, "n": 1}
+{"order": "88986664-0094", "ym": "2026-08", "commission": -24378, "delivery": -596, "acquiring": -359, "ads": -621, "partner": -10, "rev_cash": 18878, "rev_points": 28733, "rev_other": 189, "n": 1}
+{"order": "90760158-0108", "ym": "2026-08", "acquiring": -1022, "n": 1}
+{"order": "90985516-0022", "ym": "2026-08", "commission": -37757, "delivery": -20, "acquiring": -575, "ads": -926, "buyer_delivery": 2500, "rev_cash": 30289, "rev_points": 40647, "rev_other": 303, "n": 1}
+{"order": "91502782-0147", "ym": "2026-08", "commission": -32496, "delivery": -1172, "acquiring": -477, "ads": -797, "rev_cash": 25114, "rev_points": 35949, "rev_other": 251, "n": 1}
+{"order": "91587845-0080", "ym": "2026-08", "commission": -41354, "delivery": -20, "acquiring": -854, "ads": -2068, "buyer_delivery": 4600, "rev_cash": 44962, "rev_points": 44488, "rev_other": 450, "n": 1}
+{"order": "91963938-0141", "ym": "2026-08", "acquiring": -275, "n": 1}
+{"order": "92142240-0244", "ym": "2026-08", "acquiring": -703, "n": 1}
+{"order": "93317214-0104", "ym": "2026-08", "acquiring": -575, "n": 1}
+{"order": "94153690-0501", "ym": "2026-08", "acquiring": -620, "n": 1}
+{"order": "94352497-0851", "ym": "2026-08", "delivery": -830, "partner": -8, "n": 1}
+{"order": "94352497-0858", "ym": "2026-08", "commission": -21147, "delivery": -415, "acquiring": -292, "ads": -519, "partner": -8, "other": -399, "rev_cash": 15385, "rev_points": 24361, "rev_other": 154, "n": 1}
+{"order": "94475792-0102", "ym": "2026-08", "commission": -15152, "delivery": -547, "acquiring": -78, "ads": -410, "partner": -7, "rev_cash": 15273, "rev_points": 16293, "n": 1}
+{"order": "95286921-0015", "ym": "2026-08", "commission": -15865, "delivery": -547, "ads": -421, "partner": -8, "rev_cash": 16384, "rev_points": 15993, "n": 1}
+{"order": "95681217-0075", "ym": "2026-08", "acquiring": -281, "n": 1}
+{"order": "97551104-0003", "ym": "2026-08", "commission": -37723, "delivery": -20, "ads": -1886, "buyer_delivery": 3200, "rev_cash": 41711, "rev_points": 39879, "rev_other": 417, "n": 1}
+{"order": "99014609-0003", "ym": "2026-08", "commission": -36604, "delivery": -20, "ads": -1830, "buyer_delivery": 5300, "rev_cash": 32900, "rev_points": 46344, "rev_other": 329, "n": 1}
+{"order": "99373863-0234", "ym": "2026-08", "acquiring": -571, "n": 1}

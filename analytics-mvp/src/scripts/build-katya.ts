@@ -1607,8 +1607,17 @@ function render(cur,cmp){
 {
   const pnlSnap = JSON.parse(readFileSync(dp("pnl_30d.json"), "utf-8"));
   // Фаза 2b: дневной ряд P&L канала (pnl_daily.ndjson) - агрегат за ЛЮБОЙ период.
+  // ГИБРИД: старый транзакционный ряд застыл на 07.09 (transaction/list отключён). Закрытые дни берём
+  // из него (сходится со сводом до рубля), хвост после его последнего дня - из accrual-ряда
+  // (pnl_channel_accrual_daily, дата заказа), чтобы водопад не был заморожен. Разный базис, но стык по
+  // одному дню; для текущего месяца это тот же базис, что блок по артикулам.
   let pnlDaily: any[] = [];
   try { pnlDaily = readFileSync(dp("pnl_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { pnlDaily = []; }
+  {
+    const oldMax = pnlDaily.length ? pnlDaily.map((r) => r.d).sort().slice(-1)[0] : "0000-00-00";
+    try { for (const l of readFileSync(dp("pnl_channel_accrual_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.d > oldMax) pnlDaily.push(r); } } catch { /* нет accrual-ряда - остаётся старый */ }
+    pnlDaily.sort((a, b) => (a.d < b.d ? -1 : 1));
+  }
   const skuNames: Record<string, string> = {};
   for (const sk of allSkus) skuNames[sk] = (skuName[sk] || sk).slice(0, 70);
 
@@ -1689,12 +1698,19 @@ function render(cur,cmp){
     anMeta[sk] = { off: offerOf(sk), nm: (skuName[sk] || sk).slice(0, 58), cat: catOf(sk) };
   }
   // Сборы уровня заказа/кабинета по дням (реклама/штрафы/realFBS/подписки/доставка от покупателя).
+  // ГИБРИД (как pnlDaily): старый транзакционный ряд застыл на 07.09 - хвост после его последнего дня
+  // берём из accrual-ряда (pnl_account_accrual_daily, by-day), чтобы «Общие расходы» не были заморожены.
   const anAcct: any[] = [];
   try {
     for (const l of readFileSync(dp("pnl_account_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]);
     }
   } catch { /* нет файла - блок сборов уровня заказа пустой */ }
+  {
+    const oldMaxA = anAcct.length ? anAcct.map((r) => r[0]).sort().slice(-1)[0] : "0000-00-00";
+    try { for (const l of readFileSync(dp("pnl_account_accrual_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.d > oldMaxA) anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]); } } catch { /* нет accrual-ряда */ }
+    anAcct.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  }
   // Последний день с данными по сборам уровня заказа (для отсечки факт/прогноз). Fallback - maxD.
   const anAcctMaxD = anAcct.length ? anAcct.map((r) => r[0]).sort().slice(-1)[0] : maxD;
   // Месячная реализация по SKU (data/realization_monthly.ndjson) -> {sku:[[ym,sold,ret],...]}.
@@ -1917,7 +1933,7 @@ function paint(p,src){
   // раньше здесь стояло имя озоновского эндпоинта, и на странице Маркета оно читалось как
   // «Яндекс Маркет /v3/finance/transaction/list», то есть ссылалось на несуществующий метод.
   document.getElementById('src1').innerHTML=${JSON.stringify(IS_OZON
-    ? "OZON: транзакции кабинета (метод transaction/list OZON отключил 08.09.2026, ряд заморожен на дате ниже; текущий месяц по SKU считается по accrual-API отдельно) "
+    ? "OZON: гибрид - закрытые дни из транзакций (сходятся со сводом), хвост после 07.09 из accrual-API (postings+by-day, метод transaction/list отключён 08.09.2026) "
     : "Яндекс Маркет: свод по дате заказа (stats/orders + отчёт по платежам reports/united-netting + акт по стоимости услуг). Бары складываются в цепочку: каждый следующий начинается там, где кончился предыдущий, поэтому последний бар совпадает с «Чистая прибыль» в ИТОГО свода ")}+badge;
   const fees=Object.entries(p.breakdown).sort((a,b)=>a[1]-b[1]);
   // Продолжаем водопад до чистой прибыли по данным аналитики по SKU (один источник правды).

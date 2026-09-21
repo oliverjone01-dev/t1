@@ -3,22 +3,22 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -41360028,
-  "n": 1625
+  "sum": -42789389,
+  "n": 1660
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -814602,
-  "n": 732
+  "sum": -824681,
+  "n": 741
  },
  {
   "type_id": 51,
   "name": "PremiumMembership",
   "bucket": "other",
-  "sum": -761496,
-  "n": 1298
+  "sum": -789589,
+  "n": 1333
  },
  {
   "type_id": 3,
@@ -31,8 +31,8 @@
   "type_id": 64,
   "name": "RfbsDomesticDelivery",
   "bucket": "other",
-  "sum": -527778,
-  "n": 101
+  "sum": -532415,
+  "n": 103
  },
  {
   "type_id": 74,
@@ -45,22 +45,22 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -220867,
-  "n": 1246
+  "sum": -227814,
+  "n": 1275
  },
  {
   "type_id": 22,
   "name": "Installment",
   "bucket": "other",
-  "sum": -163983,
-  "n": 52
+  "sum": -171004,
+  "n": 54
  },
  {
   "type_id": 94,
   "name": "DefectFineShipmentDelayRate",
   "bucket": "delivery",
-  "sum": -111961,
-  "n": 186
+  "sum": -113159,
+  "n": 188
  },
  {
   "type_id": 59,
@@ -80,15 +80,15 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -40320,
-  "n": 146
+  "sum": -41440,
+  "n": 150
  },
  {
   "type_id": 68,
   "name": "RfbsServiceFee",
   "bucket": "other",
-  "sum": -16580,
-  "n": 829
+  "sum": -17060,
+  "n": 853
  },
  {
   "type_id": 16,
@@ -108,22 +108,22 @@
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -3269,
-  "n": 362
+  "sum": -3286,
+  "n": 364
  },
  {
   "type_id": 98,
   "name": "DeliveryToHandoverPlaceByOzon",
   "bucket": "delivery",
-  "sum": -2000,
-  "n": 82
+  "sum": -2025,
+  "n": 83
  },
  {
   "type_id": 63,
   "name": "RfbsDomesticAgentFee",
   "bucket": "other",
-  "sum": -1960,
-  "n": 98
+  "sum": -2000,
+  "n": 100
  },
  {
   "type_id": 45,
@@ -136,7 +136,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 415932,
-  "n": 98
+  "sum": 416920,
+  "n": 100
  }
 ]

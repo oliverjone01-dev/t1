@@ -37,7 +37,7 @@ async function main() {
   const agg: Record<string, { d: string; sku: string; acq: number; sto: number; bd: number }> = {};
   const key = (sku: string, d: string) => sku + "|" + d;
   const bdCab: Record<string, number> = {}; // дата -> доставка покупателя (NON_ITEM, кабинет, >0)
-  let recs = 0, bdNonItem = 0;
+  let recs = 0, bdNonItem = 0, bdWithKey = 0;
   for (const day of days) {
     let arr: any[] = [];
     try { arr = await seller.accrualByDay(day); } catch { continue; }
@@ -61,6 +61,7 @@ async function main() {
       if (nf && (bmap[Number(nf.type_id)] as Bucket) === "buyerDelivery") {
         const amt = Number(nf?.accrued?.amount ?? nf?.accrued ?? 0);
         bdNonItem += amt; bdCab[d] = (bdCab[d] || 0) + amt;
+        if (a?.unit_number || a?.posting) bdWithKey += amt; // ПРОБА: есть ли ключ заказа для per-order склейки
       }
     }
   }
@@ -73,7 +74,7 @@ async function main() {
   const bm: Record<string, { acq: number; sto: number; bdc: number }> = {};
   for (const r of rows) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acq: 0, sto: 0, bdc: 0 }); b.acq += r.acq; b.sto += r.sto; }
   for (const r of bdRows) { const m = r.d.slice(0, 7); (bm[m] ||= { acq: 0, sto: 0, bdc: 0 }).bdc += r.bd; }
-  console.log(`  by-day записей ${recs} | строк (sku,день) ${rows.length} | доставка покупателя (NON_ITEM, кабинет): ${Math.round(bdNonItem).toLocaleString("ru")}`);
+  console.log(`  by-day записей ${recs} | строк (sku,день) ${rows.length} | дост.покуп NON_ITEM ${Math.round(bdNonItem).toLocaleString("ru")} | из них с ключом заказа: ${Math.round(bdWithKey).toLocaleString("ru")}`);
   console.log("  по месяцам (эквайринг | хранение | дост.покуп кабинет):");
   for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m].acq.toLocaleString("ru")} | ${bm[m].sto.toLocaleString("ru")} | ${bm[m].bdc.toLocaleString("ru")}`);
   console.log(`  -> ${OUT}, ${OUT_BD}`);

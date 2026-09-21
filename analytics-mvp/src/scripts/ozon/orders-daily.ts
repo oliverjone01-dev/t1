@@ -36,7 +36,7 @@ async function main() {
   const acc = await seller.accrualPostings(nums);
   console.log(`  постингов с начислениями: ${acc.length}`);
   const accByOrder: Record<string, Record<Bucket, number>> = {};
-  const zero = (): Record<Bucket, number> => ({ commission: 0, acquiring: 0, storage: 0, delivery: 0, buyerDelivery: 0, ads: 0, other: 0 });
+  const zero = (): Record<Bucket, number> => ({ commission: 0, acquiring: 0, storage: 0, delivery: 0, buyerDelivery: 0, ads: 0, partner: 0, other: 0 });
   const nameById: Record<number, string> = {};
   try { for (const t of await seller.accrualTypes()) nameById[t.id] = t.name; } catch { /* имена не критичны */ }
   const byType: Record<number, { name: string; bucket: string; sum: number; n: number }> = {};
@@ -72,13 +72,13 @@ async function main() {
     // Схема доставки: rFBS (доставка силами продавца - есть realFBS-начисления) > FBO/FBS (склад/логистика
     // OZON). Если явных признаков нет - берём источник постинга (FBO/FBS из эндпоинта).
     const scheme = rfbsSet.has(p.posting_number) ? "rFBS" : (logiSet.has(p.posting_number) ? ((p as any).src || "FBS") : ((p as any).src || ""));
-    const feesSum = b.commission + b.acquiring + b.storage + b.delivery + b.ads + b.other; // buyerDelivery компенсируется, в payout не входит
+    const feesSum = b.commission + b.acquiring + b.storage + b.delivery + b.ads + b.partner + b.other; // buyerDelivery компенсируется, в payout не входит
     rows.push({
       order: p.posting_number, d: p.date, status: p.status, scheme,
       sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
       commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(b.acquiring),
       storage: Math.round(b.storage), buyer_delivery: Math.round(b.buyerDelivery), ads: Math.round(b.ads),
-      other: Math.round(b.other), payout: Math.round(revenue + feesSum),
+      partner: Math.round(b.partner), other: Math.round(b.other), payout: Math.round(revenue + feesSum),
     });
   }
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");

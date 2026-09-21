@@ -30,7 +30,7 @@
  {
   "type_id": 64,
   "name": "RfbsDomesticDelivery",
-  "bucket": "other",
+  "bucket": "partner",
   "sum": -532415,
   "n": 103
  },
@@ -86,7 +86,7 @@
  {
   "type_id": 68,
   "name": "RfbsServiceFee",
-  "bucket": "other",
+  "bucket": "partner",
   "sum": -17080,
   "n": 854
  },
@@ -121,7 +121,7 @@
  {
   "type_id": 63,
   "name": "RfbsDomesticAgentFee",
-  "bucket": "other",
+  "bucket": "partner",
   "sum": -2000,
   "n": 100
  },

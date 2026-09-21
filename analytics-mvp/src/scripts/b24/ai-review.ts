@@ -19,7 +19,19 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 const KEY = process.env.ANTHROPIC_API_KEY || "";
 const MODEL = process.env.AI_MODEL || "claude-sonnet-5";
 const LIMIT = Number(process.env.AI_LIMIT || 120);
+// AI_MGR="Имя Фамилия" - разобрать только сделки этого менеджера и принудительно ре-разобрать
+// их даже если разбор уже есть (пилот стоимости по одному менеджеру). Пусто = обычный режим.
+// ПИЛОТ (2026-09-21): дефолт "Лысанова Юлия", т.к. воркфлоу пока не пробрасывает AI_MGR.
+// После замера стоимости вернуть на пустую строку (обычный режим по всему отделу).
+const MGR_ONLY = (process.env.AI_MGR || "Лысанова Юлия").trim();
 const CONC = 4;
+// Учёт токенов для отчёта о стоимости (Protocol 9). Считаем по всем ответам API.
+const usage = { in: 0, out: 0, cacheR: 0, cacheW: 0 };
+function addUsage(u: any) {
+  if (!u) return;
+  usage.in += u.input_tokens || 0; usage.out += u.output_tokens || 0;
+  usage.cacheR += u.cache_read_input_tokens || 0; usage.cacheW += u.cache_creation_input_tokens || 0;
+}
 const USE_BATCH = (process.env.AI_BATCH ?? "1") !== "0";
 const BATCH_WAIT_MIN = Number(process.env.AI_BATCH_WAIT_MIN || 30);
 const DLG = "dialog/data/dialog.json";
@@ -99,6 +111,7 @@ async function callAI(prompt: string, system: string = SYSTEM): Promise<any> {
       if (res.status === 429 || res.status >= 500) { await new Promise((r) => setTimeout(r, 2000 * (attempt + 1))); continue; }
       const j: any = await res.json();
       if (j.error) { console.log("  ошибка API:", j.error.message || j.error.type); return null; }
+      addUsage(j.usage);
       return parseReview(j);
     } catch (e: any) { if (attempt === 3) { console.log("  сбой:", e.message); return null; } await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); }
   }
@@ -161,7 +174,7 @@ async function batchResults(url: string): Promise<Record<string, any>> {
       const s = line.trim(); if (!s) continue;
       try {
         const row: any = JSON.parse(s);
-        if (row?.result?.type === "succeeded") { const r = parseReview(row.result.message); if (r) out[row.custom_id] = r; }
+        if (row?.result?.type === "succeeded") { addUsage(row.result.message?.usage); const r = parseReview(row.result.message); if (r) out[row.custom_id] = r; }
       } catch { /* пропускаем битую строку */ }
     }
   } catch (e: any) { console.log("  результаты пакета не забраны:", e.message); }
@@ -189,7 +202,9 @@ async function main() {
   const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : { reviews: {} };
   // Демо-файл (разбор вручную) не перетираем: если ключа нет, скрипт вообще не доходит сюда,
   // а если дошёл - обновляем только реальные разборы, демо остаётся как есть.
-  const reviews: Record<string, any> = prev.demo ? {} : (prev.reviews || {});
+  // При таргет-прогоне по менеджеру (AI_MGR) сохраняем уже сделанные разборы (демо и чужих
+  // менеджеров) и мёржим - иначе фильтр по одному менеджеру стёр бы остальные карточки.
+  const reviews: Record<string, any> = MGR_ONLY ? (prev.reviews || {}) : (prev.demo ? {} : (prev.reviews || {}));
   const mgrOf: Record<string, string> = {};
 
   const byKey: Record<string, Ev[]> = {};
@@ -197,9 +212,10 @@ async function main() {
 
   // разбираем только диалоги с новой активностью и с реальной перепиской
   const raw = Object.entries(byKey)
-    .map(([k, evs]) => { evs.sort((a, b) => a.ts - b.ts); return { k, evs, last: evs[evs.length - 1]!.ts }; })
+    .map(([k, evs]) => { evs.sort((a, b) => a.ts - b.ts); const head = evs[evs.length - 1]!; return { k, evs, last: head.ts, mgr: head.mgr || "" }; })
     .filter((x) => x.evs.filter((e) => e.type.startsWith("Сообщение") || e.type === "Письмо").length >= 2)
-    .filter((x) => !reviews[x.k] || reviews[x.k].lastTs !== x.last)
+    .filter((x) => !MGR_ONLY || x.mgr === MGR_ONLY)
+    .filter((x) => MGR_ONLY ? true : (!reviews[x.k] || reviews[x.k].lastTs !== x.last))
     .sort((a, b) => b.last - a.last)
     .slice(0, LIMIT);
 
@@ -259,8 +275,8 @@ async function main() {
   // поэтому идёт синхронно после основного пакета.
   const byMgr: Record<string, any[]> = {};
   for (const [k, r] of Object.entries(reviews)) { const mg = (r as any).mgr || mgrOf[k]; if (mg) (byMgr[mg] ||= []).push(r); }
-  const managers: Record<string, any> = {};
-  const mgrList = Object.entries(byMgr).filter(([, rs]) => rs.length >= 1);
+  const managers: Record<string, any> = MGR_ONLY ? { ...(prev.managers || {}) } : {};
+  const mgrList = Object.entries(byMgr).filter(([mg, rs]) => rs.length >= 1 && (!MGR_ONLY || mg === MGR_ONLY));
   let mdone = 0;
   await Promise.all(mgrList.map(async ([mgr, rs]) => {
     const digest = rs.slice(0, 40).map((r: any, i: number) => `${i + 1}. [${r.tone || "?"}] ${r.verdict || ""}${r.problem ? " Проблема: " + r.problem : ""}`).join("\n");
@@ -272,5 +288,25 @@ async function main() {
   mkdirSync("dialog/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString(), model: MODEL, reviews, managers }));
   console.log(`Готово: разборов сделок ${done}, менеджеров ${mdone}, сбоев ${failed} -> ${OUT}`);
+
+  // --- Отчёт о стоимости (Protocol 9). Прайс $/1М по модели, batch = -50%. -----------
+  const PRICE: Record<string, { in: number; out: number; cr: number; cw: number }> = {
+    "claude-sonnet-5": { in: 2, out: 10, cr: 0.2, cw: 2.5 },
+    "claude-haiku-4-5": { in: 1, out: 5, cr: 0.1, cw: 1.25 },
+    "claude-opus-4-8": { in: 5, out: 25, cr: 0.5, cw: 6.25 },
+  };
+  const p = PRICE[MODEL] || PRICE["claude-sonnet-5"]!;
+  const B = USE_BATCH ? 0.5 : 1;
+  const RUB = Number(process.env.USD_RUB || 95);
+  const usd = ((usage.in * p.in + usage.out * p.out + usage.cacheR * p.cr + usage.cacheW * p.cw) / 1e6) * B;
+  const rub = usd * RUB;
+  const perDeal = done ? rub / done : 0;
+  console.log("===== СТОИМОСТЬ ПРОГОНА =====");
+  console.log(`Менеджер-фильтр: ${MGR_ONLY || "(весь отдел)"}`);
+  console.log(`Модель: ${MODEL}${USE_BATCH ? " (Batch API, -50%)" : " (sync)"} · курс ${RUB} ₽/$`);
+  console.log(`Токены: input ${usage.in}, output ${usage.out}, cache_read ${usage.cacheR}, cache_write ${usage.cacheW}`);
+  console.log(`Итого: $${usd.toFixed(4)} = ${rub.toFixed(2)} ₽ за ${done} сделок`);
+  console.log(`НА 1 СДЕЛКУ: ${perDeal.toFixed(2)} ₽`);
+  console.log("============================");
 }
 main().catch((e) => { console.error("FATAL", e); process.exit(1); });

@@ -2,7 +2,7 @@
   "domain": "mosgor-okna.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-09-14T08:05:02.042Z",
+  "measured": "2026-09-21T08:10:15.857Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=mosgor-okna.ru",
   "data": {
     "id": 125542640,
@@ -278,7 +278,7 @@
         153,
         55,
         4,
-        40
+        0
       ],
       "2025.04": [
         254,

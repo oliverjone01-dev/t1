@@ -2,7 +2,7 @@
   "domain": "glasstroy.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-09-14T08:10:13.425Z",
+  "measured": "2026-09-21T08:13:52.352Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
   "data": {
     "id": 30202337,
@@ -12,89 +12,89 @@
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 5188,
-        "it50": 50913320,
-        "vis": 4336257,
-        "perc": 0.010189867798839281
+        "cnt": 5192,
+        "it50": 50895583,
+        "vis": 4304502,
+        "perc": 0.010201278173785728
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 4694,
-        "it50": 20507725,
-        "vis": 2158472,
-        "perc": 0.022888935754697314
+        "cnt": 4677,
+        "it50": 20480106,
+        "vis": 2104424,
+        "perc": 0.022836795864240155
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 3838,
-        "it50": 50198217,
-        "vis": 3783422,
-        "perc": 0.007645689885758293
+        "cnt": 3846,
+        "it50": 50271590,
+        "vis": 4085933,
+        "perc": 0.007650444316561302
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 3041,
-        "it50": 47482263,
-        "vis": 11253503,
-        "perc": 0.006404496769667444
+        "cnt": 3042,
+        "it50": 47498722,
+        "vis": 11180773,
+        "perc": 0.006404382837921408
       },
       {
         "did": 37692261,
         "name": "m-strana.ru",
-        "cnt": 2956,
-        "it50": 1383955,
-        "vis": 16611,
-        "perc": 0.21359075981516742
+        "cnt": 2970,
+        "it50": 1387243,
+        "vis": 17006,
+        "perc": 0.2140937096096358
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 2939,
-        "it50": 17480447,
-        "vis": 978656,
-        "perc": 0.016813071198923002
+        "cnt": 2940,
+        "it50": 17477100,
+        "vis": 1039795,
+        "perc": 0.016822012805328114
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 2905,
-        "it50": 3123260,
-        "vis": 509835,
-        "perc": 0.09301178896409522
+        "cnt": 2915,
+        "it50": 3130907,
+        "vis": 509083,
+        "perc": 0.09310401107410728
       },
       {
         "did": 31079457,
         "name": "vk.ru",
-        "cnt": 2402,
-        "it50": 47898176,
-        "vis": 7722477,
-        "perc": 0.005014804739119919
+        "cnt": 2412,
+        "it50": 47969433,
+        "vis": 8187990,
+        "perc": 0.005028202021900071
       },
       {
         "did": 30015208,
         "name": "ivd.ru",
-        "cnt": 2215,
-        "it50": 890908,
-        "vis": 13528,
-        "perc": 0.24862275341561643
+        "cnt": 2223,
+        "it50": 891033,
+        "vis": 13617,
+        "perc": 0.24948570928349456
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 2141,
-        "it50": 18367361,
-        "vis": 1884982,
-        "perc": 0.011656546631821524
+        "cnt": 2130,
+        "it50": 18360273,
+        "vis": 1948414,
+        "perc": 0.011601134689010343
       }
     ],
-    "it1": 250,
-    "it3": 661,
-    "it5": 1105,
-    "it10": 2344,
-    "it50": 9735,
+    "it1": 245,
+    "it3": 659,
+    "it5": 1103,
+    "it10": 2353,
+    "it50": 9742,
     "childsCount": 1,
     "keys": [
       {
@@ -108,12 +108,6 @@
         "word": "высота перил на террасе",
         "ws": 1362,
         "wsk": 509
-      },
-      {
-        "pos": 1,
-        "word": "высота перил на лестнице",
-        "ws": 2787,
-        "wsk": 431
       },
       {
         "pos": 1,
@@ -156,24 +150,30 @@
         "word": "дверь в парную размеры",
         "ws": 2337,
         "wsk": 75
+      },
+      {
+        "pos": 1,
+        "word": "высота перил на веранде",
+        "ws": 286,
+        "wsk": 72
       }
     ],
-    "topkeys": 42050,
+    "topkeys": 42053,
     "pages": [
       {
-        "it50": 288,
+        "it50": 296,
         "url": "/"
       },
       {
-        "it50": 226,
+        "it50": 227,
         "url": "/perila-i-poruchni/vysota-poruchney-i-peril-lestnicy-normy-gost-i-snip"
       },
       {
-        "it50": 222,
+        "it50": 224,
         "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
       },
       {
-        "it50": 215,
+        "it50": 216,
         "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona"
       },
       {
@@ -181,11 +181,11 @@
         "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha"
       },
       {
-        "it50": 192,
+        "it50": 194,
         "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
       },
       {
-        "it50": 147,
+        "it50": 146,
         "url": "/steklyannye-dveri-dlya-doma/vkhodnaya-gruppa-dlya-chastnogo-doma"
       },
       {
@@ -201,18 +201,18 @@
         "url": "/shower-enclosures/kak-pravilno-splanirovat-dushevoe-ograzhdenie-bez-poddona"
       }
     ],
-    "pagesinindex": 1170,
-    "vis": 172,
-    "topvis": 41286,
+    "pagesinindex": 1171,
+    "vis": 169,
+    "topvis": 41532,
     "adconcs": [
       {
         "did": 29969733,
         "name": "ofimall.ru",
         "cnt": 3,
-        "it50": 2485,
-        "vis": 8,
-        "adkeyscnt": 2102,
-        "adscnt": 306
+        "it50": 2486,
+        "vis": 10,
+        "adkeyscnt": 2076,
+        "adscnt": 310
       }
     ],
     "adkeys": [
@@ -224,8 +224,8 @@
         "pos": 5,
         "sr": 1,
         "word": "перегородки в промышленных помещениях",
-        "ws": 9,
-        "wsk": 1
+        "ws": 1,
+        "wsk": 0
       },
       {
         "p": [
@@ -514,16 +514,16 @@
         "aiCnt": 3373
       },
       "2026.09": {
-        "it1": 250,
-        "it3": 661,
-        "it5": 1105,
-        "it10": 2344,
-        "it50": 9735,
-        "pagesInIndex": 1170,
+        "it1": 245,
+        "it3": 659,
+        "it5": 1103,
+        "it10": 2353,
+        "it50": 9742,
+        "pagesInIndex": 1171,
         "adsCount": 4,
         "adKeysCount": 4,
-        "visAvg": 172,
-        "aiCnt": 4118
+        "visAvg": 169,
+        "aiCnt": 3992
       }
     },
     "linksHistory": {
@@ -661,7 +661,7 @@
         1351
       ]
     },
-    "aiAnswersCnt": 4118,
+    "aiAnswersCnt": 3992,
     "aiState": 10,
     "dr": 32,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",

@@ -594,7 +594,7 @@ const stageSet=new Set(); // мультивыбор этапов (из стро�
 const today=DATA.deals.reduce((mx,d)=>d.created>mx?d.created:mx, '2026-01-01');
 function daysAgo(n){ const t=new Date(today+'T00:00:00Z'); t.setUTCDate(t.getUTCDate()-n); return t.toISOString().slice(0,10); }
 // пресеты периода по образцу РОП: сегмент-пилюля + диапазон с–по с кнопкой ОК
-const PSET=[['today','Сегодня'],['yest','Вчера'],['month','Текущий месяц'],['lastmonth','Прошлый месяц'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['90','90 дн'],['all','Всё'],['mig','После переезда']];
+const PSET=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['90','90 дн'],['month','Текущий месяц'],['lastmonth','Прошлый месяц'],['all','Всё'],['mig','После переезда']];
 function econSetPeriod(p){ const df=document.getElementById('dfrom'), dt=document.getElementById('dto');
   if(p==='all'){ df.value=''; dt.value=''; }
   else if(p==='today'){ df.value=today; dt.value=today; }

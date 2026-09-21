@@ -1798,6 +1798,14 @@ function render(cur,cmp){
   } catch { /* нет файла - доставка пустая */ }
   let delivCities: Record<string, any> = {};
   try { delivCities = JSON.parse(readFileSync(dp("delivery_cities.json"), "utf-8")); } catch { delivCities = {}; }
+  // Возврат выручки ПО ЗАКАЗУ из реестра «Начисления» (order_accruals.returns, знак<0). API финансовый
+  // возврат по заказу не отдаёт (returns/list - это заявки, не рефанды; by-day - только сборы), поэтому
+  // берём из отчёта - того же источника, что уже нетит возвраты в таблице по артикулам. Вычитаем ТОЛЬКО
+  // выручку; расходы, которые не возвращаются (реклама/подписки/партнёр), уже стоят в orders_daily и
+  // остаются реальным убытком.
+  const retByOrder: Record<string, number> = {};
+  try { for (const l of readFileSync(dp("order_accruals.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.returns) retByOrder[String(r.order)] = Math.round(r.returns); } } catch { /* нет отчёта - возвраты не вычитаются */ }
+  const retUsed: Record<string, boolean> = {};
 
   // Данные по ЗАКАЗУ (data/orders_daily.ndjson) для блока «Аналитика по заказам» - та же аналитика,
   // но строка = заказ (posting). Backbone OZON: выручка/штуки/сборы/к-выплате по заказу. Базис -
@@ -1844,16 +1852,22 @@ function render(cur,cmp){
       const dl = delivByOrder[ord] || delivByOrder[orderBase(ord)] || { ship: 0, deliv: 0 };
       // Эквайринг orders_daily = 0 (accrual/postings его не отдаёт); он добирается по SKU в render.
       const acqSigned = Math.round(r.acquiring || 0);
-      // К выплате: payout из orders_daily БЕЗ эквайринга/хранения (добираются по SKU в render).
-      const amtNet = Math.round((r.payout || 0) - adv);
+      // Возврат выручки по заказу (из отчёта, один раз на базовый заказ). Вычитаем ТОЛЬКО выручку и
+      // «К выплате»; расходы (реклама/подписки/партнёр) остаются реальным убытком. Комиссия/эквайринг/
+      // доставка покупателя по возврату уже занулены самим OZON в начислениях - повторно не трогаем.
+      const obKey = orderBase(ord);
+      const retAmt = (retByOrder[obKey] != null && !retUsed[obKey]) ? (retUsed[obKey] = true, Math.min(Math.round(r.revenue || 0), Math.abs(retByOrder[obKey]))) : 0;
+      const accNet = Math.round(r.revenue || 0) - retAmt;
+      // К выплате: payout из orders_daily БЕЗ эквайринга/хранения (добираются по SKU в render), минус реклама и возврат.
+      const amtNet = Math.round((r.payout || 0) - adv - retAmt);
       anOrders.push({
         order: r.order, d: r.d, st, sk, scheme: String(r.scheme || ""),
         cat: catOf(sk) || "Прочее", off: String(r.offer || offerOf(sk)), nm: (skuName[sk] || sk).slice(0, 48),
-        units, dlv, acc: Math.round(r.revenue || 0),
+        units, dlv, acc: accNet,
         com: -Math.round(r.commission || 0), del: -Math.round(r.delivery || 0), acq: -Math.round(acqSigned),
         sto: -Math.round(r.storage || 0), oth: -Math.round(r.other || 0), prt: 0, // партнёры добираются по SKU/by-day в render (accrual/postings отдаёт их неполно, только фикс -20₽)
         adv, ship: Math.round(dl.ship), dinc: 0, // дост.покуп добирается глобально в render (кабинетный ряд)
-        amt: amtNet, amtS: (units > 0 ? amtNet : 0), ret: Math.round(r.returned || 0),
+        amt: amtNet, amtS: (units > 0 ? amtNet : 0), ret: retAmt,
         cc: Math.round((cogs[sk] || 0) * units), noCs: (units > 0 && cogs[sk] == null),
       });
     }

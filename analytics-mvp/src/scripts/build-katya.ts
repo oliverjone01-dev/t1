@@ -1880,21 +1880,17 @@ function render(cur,cmp){
       const obKey = orderBase(ord);
       const retAmt = (retByOrder[obKey] != null && !retUsed[obKey]) ? (retUsed[obKey] = true, Math.min(Math.round(r.revenue || 0), Math.abs(retByOrder[obKey]))) : 0;
       const accNet = Math.round(r.revenue || 0) - retAmt;
-      // Услуги партнёров (rFBS-доставка) ПО ЗАКАЗУ из отчёта (prtRep<0), один раз на базовый заказ.
-      // Заменяем шумовой orders_daily.partner (обычно -20, accrual/postings отдаёт неполно) на реальное
-      // значение отчёта: убираем orders_daily.partner из «К выплате», добавляем отчётный. Остаток без
-      // заказа сядет строкой «Общие расходы» в render (полный realfbs − разнесённое).
-      const prtRep = (prtByOrderRep[obKey] != null && !prtUsedRep[obKey]) ? (prtUsedRep[obKey] = true, Math.round(prtByOrderRep[obKey])) : 0;
-      const prtCol = -prtRep; // в столбце - положительная затрата
-      // К выплате: payout из orders_daily БЕЗ эквайринга/хранения (добираются по SKU в render), минус реклама,
-      // возврат; шумовой partner заменён отчётным.
-      const amtNet = Math.round((r.payout || 0) - Math.round(r.partner || 0) + prtRep - adv - retAmt);
+      // Услуги партнёров (rFBS-доставка) ПО ЗАКАЗУ из orders_daily (accrual/postings) - это чистый API и
+      // полный источник: Σ = -868К, совпадает с кабинетом. Для доставленных партнёром заказов там реальная
+      // стоимость (напр. -12 058), для остальных rFBS - фикс сервис-сбор -20. Уже входит в payout.
+      // К выплате: payout из orders_daily БЕЗ эквайринга/хранения (добираются по SKU в render), минус реклама и возврат.
+      const amtNet = Math.round((r.payout || 0) - adv - retAmt);
       anOrders.push({
         order: r.order, d: r.d, st, sk, scheme: String(r.scheme || ""),
         cat: catOf(sk) || "Прочее", off: String(r.offer || offerOf(sk)), nm: (skuName[sk] || sk).slice(0, 48),
         units, dlv, acc: accNet,
         com: -Math.round(r.commission || 0), del: -Math.round(r.delivery || 0), acq: -Math.round(acqSigned),
-        sto: -Math.round(r.storage || 0), oth: -Math.round(r.other || 0), prt: prtCol, // партнёры per-order из отчёта (API по заказу их не отдаёт: ключ by-day = unit_number, не заказ)
+        sto: -Math.round(r.storage || 0), oth: -Math.round(r.other || 0), prt: -Math.round(r.partner || 0), // партнёры per-order из API (accrual/postings), в payout уже учтены
         adv, ship: Math.round(dl.ship), dinc: 0, // дост.покуп добирается глобально в render (кабинетный ряд)
         amt: amtNet, amtS: (units > 0 ? amtNet : 0), ret: retAmt,
         cc: Math.round((cogs[sk] || 0) * units), noCs: (units > 0 && cogs[sk] == null),
@@ -2284,11 +2280,10 @@ function renderOrdersAnalytics(cur){
   // сборов. Значения AN_ACCT signed (сборы<0); grand.adv уже = разнесённая реклама (CPO+CPC).
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var ai=0;ai<AN_ACCT.length;ai++){var ar=AN_ACCT[ai];if(ar[0]<from||ar[0]>to)continue;aB.adv+=ar[1];aB.fines+=ar[2];aB.realfbs+=ar[3];aB.badge+=ar[4];aB.delivery+=ar[5];aB.other+=ar[6];}
-  // Услуги партнёров (rFBS-доставка): основная часть РАЗНЕСЕНА ПО ЗАКАЗАМ из отчёта (по дате заказа).
-  // Здесь - только остаток по заказам, которых НЕТ в блоке (AN_PRTRESID, по месяцу начисления, ~4%).
-  // Раньше остаток брался из AN_ACCT.realfbs (по дате начисления) и на месячном срезе задваивался с
-  // разнесённым по дате заказа - теперь берём несматченный хвост из отчёта.
-  var aPrtResid=anSum(AN_PRTRESID,from,to,1)[0]||0,aOth=(aB.adv+grand.adv)+aB.fines+aB.badge+aB.other,at=aPrtResid+aOth;
+  // Услуги партнёров (rFBS-доставка) полностью разнесены ПО ЗАКАЗУ из orders_daily (в payout) - в «Общих»
+  // их больше нет (иначе задвоение с AN_ACCT.realfbs). Здесь остаётся только кабинетный остаток рекламы,
+  // штрафы, бейдж, прочее.
+  var aPrtResid=0,aOth=(aB.adv+grand.adv)+aB.fines+aB.badge+aB.other,at=aPrtResid+aOth;
   var totalDeliv=0;for(var _o in AN_DELIV){totalDeliv+=anSum(AN_DELIV[_o],from,to,1)[0]||0;}
   var totalInc=0;for(var _i in AN_DELIV_INC){totalInc+=anSum(AN_DELIV_INC[_i],from,to,1)[0]||0;}
   var unmDeliv=Math.max(0,Math.round(totalDeliv-(grand.ship||0)));

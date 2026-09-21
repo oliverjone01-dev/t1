@@ -325,6 +325,35 @@ export class OzonSeller {
     return out;
   }
 
+  // Возвраты за период (/v1/returns/list). Нужны, чтобы вычесть выручку возвращённых заказов из блока
+  // по заказам: в начислениях по постингу возврата выручки нет (ClientReturn=0), только отдельный
+  // эндпоинт возвратов несёт связь заказ<->возвращённый товар. Возвращает [{posting_number, sku, qty,
+  // price, status}]. Схема ответа у OZON плавает - разбираем оборонительно (несколько имён полей).
+  async returns(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; sku: string; offer: string; qty: number; price: number; status: string }>> {
+    const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
+    const out: Array<any> = [];
+    let lastId: any = 0;
+    for (let guard = 0; guard < 500; guard++) {
+      let d: any;
+      try {
+        d = await this.post<any>("/v1/returns/list", { filter: { logistic_return_date: { time_from: from, time_to: to } }, limit: 500, last_id: lastId });
+      } catch { break; }
+      const arr: any[] = d.returns ?? d.result?.returns ?? [];
+      for (const r of arr) {
+        const prods = r.products ?? (r.product ? [r.product] : []);
+        const posting = String(r.posting_number ?? r.posting?.posting_number ?? r.order_number ?? "");
+        const status = String(r.visual?.status?.display_name ?? r.visual?.status?.sys_name ?? r.status ?? "");
+        for (const p of prods) {
+          const price = Number(p.price?.price ?? p.price ?? p.commission_price ?? 0);
+          out.push({ posting_number: posting, sku: String(p.sku ?? ""), offer: String(p.offer_id ?? ""), qty: Number(p.quantity ?? p.qty ?? 1), price, status });
+        }
+      }
+      lastId = d.last_id ?? d.result?.last_id ?? 0;
+      if (!(d.has_next ?? d.result?.has_next) || !arr.length) break;
+    }
+    return out;
+  }
+
   // Номера отправлений (FBO + FBS) за период по дате заказа. Для accrualPostings нужны номера;
   // окно берём с запасом назад, т.к. начисления по отправлению приходят позже даты заказа.
   async postingNumbers(dateFrom: string, dateTo: string): Promise<string[]> {

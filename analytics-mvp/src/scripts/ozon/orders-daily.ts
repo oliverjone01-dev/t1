@@ -62,11 +62,30 @@ async function main() {
   writeFileSync("data/orders_accrual_types.json", JSON.stringify(typesArr, null, 1));
   console.log(`  типов начислений по заказам: ${typesArr.length} -> data/orders_accrual_types.json`);
 
+  // ВОЗВРАТЫ. У постинга нет статуса «возврат» (после возврата он остаётся delivered), а возврат
+  // выручки в начислениях по постингу отсутствует (ClientReturn=0). Поэтому берём отдельный эндпоинт
+  // возвратов и вычитаем возвращённую выручку. ВАЖНО: вычитаем ТОЛЬКО выручку - сборы, которые не
+  // возвращаются (реклама/подписки/сервис/партнёр), уже правильно стоят в начислениях по постингу и
+  // остаются как реальный убыток; комиссия/эквайринг/доставка покупателя по возвращённому заказу уже
+  // занулены самим OZON (charge+refund) в accrual/postings, повторно их не трогаем.
+  const retByPosting: Record<string, number> = {};
+  try {
+    const rets = await seller.returns(from, to);
+    for (const r of rets) {
+      if (!r.posting_number) continue;
+      retByPosting[r.posting_number] = (retByPosting[r.posting_number] || 0) + (r.price || 0) * (r.qty || 0);
+    }
+    console.log(`  возвраты: ${rets.length} строк по ${Object.keys(retByPosting).length} постингам, выручка возвратов ${Math.round(Object.values(retByPosting).reduce((a, v) => a + v, 0)).toLocaleString("ru")}`);
+  } catch (e) { console.warn("  возвраты не собраны:", (e as Error).message); }
+
   const rows: any[] = [];
   for (const p of posts) {
     if (!p.posting_number || !p.date) continue;
     const units = p.products.reduce((s, x) => s + (x.qty || 0), 0);
-    const revenue = p.products.reduce((s, x) => s + (x.price || 0) * (x.qty || 0), 0);
+    const grossRev = p.products.reduce((s, x) => s + (x.price || 0) * (x.qty || 0), 0);
+    // Возвращённая выручка по этому постингу (по цене постинга, а не отчёта - чтобы зануляла gross).
+    const returned = Math.min(grossRev, Math.round(retByPosting[p.posting_number] || 0));
+    const revenue = grossRev - returned; // выручка НЕТТО после возврата
     const top = p.products.slice().sort((a, x) => (x.price * x.qty) - (a.price * a.qty))[0] || { sku: "", offer: "" };
     const b = accByOrder[p.posting_number] || zero();
     // Схема доставки: rFBS (доставка силами продавца - есть realFBS-начисления) > FBO/FBS (склад/логистика
@@ -75,7 +94,7 @@ async function main() {
     const feesSum = b.commission + b.acquiring + b.storage + b.delivery + b.ads + b.partner + b.other; // buyerDelivery компенсируется, в payout не входит
     rows.push({
       order: p.posting_number, d: p.date, status: p.status, scheme,
-      sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
+      sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue), returned: Math.round(returned),
       commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(b.acquiring),
       storage: Math.round(b.storage), buyer_delivery: Math.round(b.buyerDelivery), ads: Math.round(b.ads),
       partner: Math.round(b.partner), other: Math.round(b.other), payout: Math.round(revenue + feesSum),

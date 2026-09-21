@@ -703,6 +703,10 @@ export interface SvodMonth {
   // По ДНЯМ (дата оформления заказа), чтобы строка считалась за произвольное окно, а не только за
   // целый месяц: свод умеет любые периоды, и месячное число ломало бы окна вроде «1-15».
   ship_lost_daily?: Record<string, number>;
+  // Те же отправки ПО ЗАКАЗАМ. Одной суммой строка отвечала «сколько», но не «за что»:
+  // 7 заказов на 33 595 ₽ за июнь нечем было проверить и не с чем сверить. Объём мал
+  // (25 заказов на 128 273 ₽ за всю историю), поэтому носим их целиком.
+  ship_lost_rows?: Array<{ order: string; d: string; v: number; status: string }>;
   ship_orders?: number;           // заказов месяца, которые ведомость знает
   ship_cov?: number;              // % заказов месяца, покрытых ведомостью
 }
@@ -975,6 +979,10 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       const ym = String(r.created || "").slice(0, 7);
       if (ym) { ymOfOrder.set(r.order, `${r.business}|${ym}`); dayOfOrder.set(r.order, String(r.created).slice(0, 10)); }
     }
+    // Статус нужен, чтобы строка не сваливала в кучу отмену и возврат: это разные истории, и
+    // расход по ним объясняется по-разному.
+    const statusOfOrder = new Map<string, string>();
+    for (const r of rows) if (r.status) statusOfOrder.set(r.order, String(r.status));
     const ordersKnown = new Map<string, Set<string>>();
     for (const [ord, d] of dOrd) {
       if (!d.known) continue;                       // в листе нет числа - это «нет данных», не ноль
@@ -998,6 +1006,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       m.ship_lost_orders = (m.ship_lost_orders || 0) + 1;
       const day = dayOfOrder.get(ord);
       if (day) { (m.ship_lost_daily ||= {})[day] = r2(((m.ship_lost_daily || {})[day] || 0) + d.ship); }
+      (m.ship_lost_rows ||= []).push({ order: ord, d: day || "", v: r2(d.ship), status: statusOfOrder.get(ord) || "" });
     }
     for (const [k, m] of months) {
       const known = (ordersKnown.get(k) || new Set()).size;
@@ -1005,6 +1014,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       m.ship_orders = known;
       m.ship_cov = total > 0 ? Math.round((known / total) * 1000) / 10 : 0;
       if (m.ship_lost) m.ship_lost = r2(m.ship_lost);
+      if (m.ship_lost_rows) m.ship_lost_rows.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.order < b.order ? -1 : 1));
     }
   }
 

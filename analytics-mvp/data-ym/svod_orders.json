@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-21T13:35:21.855Z",
+  "generated_at": "2026-09-21T13:39:49.473Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-20",
   "split_check": {
@@ -77,8 +77,8 @@
           "svc_total": 0.24,
           "result_money": 33738.76,
           "result_points": 155266.33,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 8864,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -748,7 +748,7 @@
         }
       ],
       "points_on_delivery": 5409.87,
-      "cogs_cov": 79.7,
+      "cogs_cov": 100,
       "ship_orders": 0,
       "ship_cov": 0
     },
@@ -4327,8 +4327,8 @@
           "svc_total": 14350.82,
           "result_money": 7145.44,
           "result_points": 14913.89,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 4287,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -4523,7 +4523,7 @@
           "result_money": 1386.91,
           "result_points": -20762.63,
           "cogs": 0,
-          "cogs_known": false,
+          "cogs_known": true,
           "ship_our": 3168,
           "ship_known": true
         }
@@ -5112,7 +5112,7 @@
         }
       ],
       "points_on_delivery": 69372.03,
-      "cogs_cov": 99.4,
+      "cogs_cov": 100,
       "ship_orders": 17,
       "ship_cov": 29.3
     },
@@ -10540,6 +10540,14 @@
       "ship_lost_daily": {
         "2026-08-18": 3235
       },
+      "ship_lost_rows": [
+        {
+          "order": "60505396993",
+          "d": "2026-08-18",
+          "v": 3235,
+          "status": "CANCELLED_IN_PROCESSING"
+        }
+      ],
       "ship_orders": 39,
       "ship_cov": 52.7
     },
@@ -13728,8 +13736,8 @@
           "svc_total": 25107.54,
           "result_money": 32592.38,
           "result_points": 25863.76,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 12082,
+          "cogs_known": true,
           "ship_our": 1737.89,
           "ship_known": true
         },
@@ -15158,8 +15166,8 @@
           "svc_total": 8726.42,
           "result_money": 11742.41,
           "result_points": 9775.85,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 3940,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -16659,12 +16667,20 @@
         }
       ],
       "points_on_delivery": 117670.07,
-      "cogs_cov": 98.3,
+      "cogs_cov": 100,
       "ship_lost": 5840.5,
       "ship_lost_orders": 1,
       "ship_lost_daily": {
         "2026-08-06": 5840.5
       },
+      "ship_lost_rows": [
+        {
+          "order": "59983063232",
+          "d": "2026-08-06",
+          "v": 5840.5,
+          "status": "PROCESSING"
+        }
+      ],
       "ship_orders": 59,
       "ship_cov": 70.2
     },
@@ -23200,6 +23216,14 @@
       "ship_lost_daily": {
         "2026-07-02": 5355.19
       },
+      "ship_lost_rows": [
+        {
+          "order": "58746494592",
+          "d": "2026-07-02",
+          "v": 5355.19,
+          "status": "CANCELLED_IN_PROCESSING"
+        }
+      ],
       "ship_orders": 28,
       "ship_cov": 30.8
     },
@@ -25803,8 +25827,8 @@
           "svc_total": 49041.27,
           "result_money": 28911.99,
           "result_points": 19431.25,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 10689,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -30721,7 +30745,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 100154.48,
-      "cogs_cov": 98.9,
+      "cogs_cov": 100,
       "ship_lost": 22310.66,
       "ship_lost_orders": 5,
       "ship_lost_daily": {
@@ -30730,6 +30754,38 @@
         "2026-07-08": 3098.8,
         "2026-07-14": 5871.86
       },
+      "ship_lost_rows": [
+        {
+          "order": "58791538497",
+          "d": "2026-07-03",
+          "v": 4575,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58884154242",
+          "d": "2026-07-06",
+          "v": 8765,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58939662848",
+          "d": "2026-07-08",
+          "v": 3098.8,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "59143638531",
+          "d": "2026-07-14",
+          "v": 2947.52,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "59143849729",
+          "d": "2026-07-14",
+          "v": 2924.34,
+          "status": "CANCELLED_IN_DELIVERY"
+        }
+      ],
       "ship_orders": 61,
       "ship_cov": 56
     },
@@ -38562,6 +38618,50 @@
         "2026-06-26": 4567.68,
         "2026-06-30": 4800.7
       },
+      "ship_lost_rows": [
+        {
+          "order": "58030309827",
+          "d": "2026-06-10",
+          "v": 6739.28,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58032679810",
+          "d": "2026-06-10",
+          "v": 6539.2,
+          "status": "DELIVERED"
+        },
+        {
+          "order": "58048399298",
+          "d": "2026-06-11",
+          "v": 3323.28,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58051191682",
+          "d": "2026-06-11",
+          "v": 3050.17,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "58297914177",
+          "d": "2026-06-18",
+          "v": 4575,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58540706946",
+          "d": "2026-06-26",
+          "v": 4567.68,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "58672223489",
+          "d": "2026-06-30",
+          "v": 4800.7,
+          "status": "CANCELLED_IN_PROCESSING"
+        }
+      ],
       "ship_orders": 65,
       "ship_cov": 71.4
     },
@@ -39303,6 +39403,14 @@
       "ship_lost_daily": {
         "2026-05-20": 3079.38
       },
+      "ship_lost_rows": [
+        {
+          "order": "57290591235",
+          "d": "2026-05-20",
+          "v": 3079.38,
+          "status": "CANCELLED_IN_PROCESSING"
+        }
+      ],
       "ship_orders": 4,
       "ship_cov": 80
     },
@@ -42101,8 +42209,8 @@
           "svc_total": 6106.61,
           "result_money": 33762.05,
           "result_points": 61214.82,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 2395,
+          "cogs_known": true,
           "ship_our": 4977,
           "ship_known": true
         },
@@ -48430,7 +48538,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 117604.28,
-      "cogs_cov": 99.2,
+      "cogs_cov": 100,
       "ship_lost": 46613.73,
       "ship_lost_orders": 8,
       "ship_lost_daily": {
@@ -48442,6 +48550,56 @@
         "2026-05-21": 3136.9,
         "2026-05-31": 3390.38
       },
+      "ship_lost_rows": [
+        {
+          "order": "56676988034",
+          "d": "2026-05-02",
+          "v": 4073.58,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "56702424896",
+          "d": "2026-05-03",
+          "v": 13515.16,
+          "status": "DELIVERED"
+        },
+        {
+          "order": "56945201795",
+          "d": "2026-05-10",
+          "v": 3970.49,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "57087204739",
+          "d": "2026-05-14",
+          "v": 4421.58,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "57089513347",
+          "d": "2026-05-14",
+          "v": 8702.26,
+          "status": "DELIVERED"
+        },
+        {
+          "order": "57176423680",
+          "d": "2026-05-17",
+          "v": 5403.38,
+          "status": "CANCELLED_IN_DELIVERY"
+        },
+        {
+          "order": "57338486337",
+          "d": "2026-05-21",
+          "v": 3136.9,
+          "status": "CANCELLED_IN_PROCESSING"
+        },
+        {
+          "order": "57661008643",
+          "d": "2026-05-31",
+          "v": 3390.38,
+          "status": "CANCELLED_IN_DELIVERY"
+        }
+      ],
       "ship_orders": 89,
       "ship_cov": 66.9
     },
@@ -50862,8 +51020,8 @@
           "svc_total": 27691.08,
           "result_money": 32440.01,
           "result_points": 19854.32,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -50992,8 +51150,8 @@
           "svc_total": 26778.19,
           "result_money": 33324.32,
           "result_points": 21806.52,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -54242,8 +54400,8 @@
           "svc_total": 29352.89,
           "result_money": 24156.94,
           "result_points": 12120.95,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -59572,8 +59730,8 @@
           "svc_total": 14027.67,
           "result_money": 9727.12,
           "result_points": 5503.78,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 6123,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -60627,7 +60785,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 128473.77,
-      "cogs_cov": 97.4,
+      "cogs_cov": 100,
       "ship_orders": 51,
       "ship_cov": 31.1
     },
@@ -67476,8 +67634,8 @@
           "svc_total": 14681.77,
           "result_money": 10641.08,
           "result_points": 11325.71,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 6123,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -69335,7 +69493,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 55197.43,
-      "cogs_cov": 99.5,
+      "cogs_cov": 100,
       "ship_orders": 0,
       "ship_cov": 0
     },
@@ -72326,8 +72484,8 @@
           "svc_total": 28585.62,
           "result_money": 21365.05,
           "result_points": 22441.47,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -75056,8 +75214,8 @@
           "svc_total": 10916.78,
           "result_money": 6612.68,
           "result_points": 9779.21,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 5720,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -75816,12 +75974,20 @@
         }
       ],
       "points_on_delivery": 20877.48,
-      "cogs_cov": 98.3,
+      "cogs_cov": 100,
       "ship_lost": 8243,
       "ship_lost_orders": 1,
       "ship_lost_daily": {
         "2026-02-15": 8243
       },
+      "ship_lost_rows": [
+        {
+          "order": "54234425283",
+          "d": "2026-02-15",
+          "v": 8243,
+          "status": "DELIVERED"
+        }
+      ],
       "ship_orders": 2,
       "ship_cov": 2.2
     },
@@ -76631,8 +76797,8 @@
           "svc_total": 25095.66,
           "result_money": 25921.78,
           "result_points": 45701.79,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -76826,8 +76992,8 @@
           "svc_total": 25910.49,
           "result_money": 21973.06,
           "result_points": 52134.43,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -77996,8 +78162,8 @@
           "svc_total": 8390.27,
           "result_money": 19081.52,
           "result_points": 48486.63,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13577,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -78841,8 +79007,8 @@
           "svc_total": 9263.48,
           "result_money": 9761.11,
           "result_points": 19771.87,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 5720,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -79686,8 +79852,8 @@
           "svc_total": 8037.57,
           "result_money": 4268.23,
           "result_points": 14834.39,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 3750,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -79993,7 +80159,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 0,
-      "cogs_cov": 90.3,
+      "cogs_cov": 100,
       "ship_orders": 0,
       "ship_cov": 0
     },

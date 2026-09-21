@@ -1,7 +1,7 @@
 {
- "dateFrom": "2026-08-21",
- "dateTo": "2026-09-19",
- "generated_at": "2026-09-20T11:27:33.833Z",
+ "dateFrom": "2026-08-22",
+ "dateTo": "2026-09-20",
+ "generated_at": "2026-09-21T12:52:15.186Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
@@ -9,28 +9,28 @@
  },
  "totals": {
   "direct_clicks_30d": 1556,
-  "ad_visits_30d": 4563,
-  "yd_visits_30d": 4525,
-  "ad_leads_30d": 105
+  "ad_visits_30d": 4546,
+  "yd_visits_30d": 4509,
+  "ad_leads_30d": 104
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4407,
-   "users": 3783,
-   "leads": 102,
-   "contacts": 92
+   "visits": 4402,
+   "users": 3795,
+   "leads": 100,
+   "contacts": 88
   },
   {
    "engine": "Yandex.Direct: Undetermined",
-   "visits": 118,
-   "users": 74,
-   "leads": 2,
+   "visits": 107,
+   "users": 71,
+   "leads": 3,
    "contacts": 1
   },
   {
    "engine": "Instagram",
-   "visits": 23,
+   "visits": 22,
    "users": 18,
    "leads": 0,
    "contacts": 0
@@ -53,43 +53,43 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 3007,
+   "visits": 2992,
    "leads": 63,
-   "contacts": 54
+   "contacts": 51
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 440,
-   "leads": 11,
-   "contacts": 9
+   "visits": 434,
+   "leads": 10,
+   "contacts": 8
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 373,
+   "visits": 381,
    "leads": 8,
    "contacts": 8
   },
   {
    "utm": "peregorodki_712877517",
-   "visits": 354,
+   "visits": 355,
    "leads": 17,
    "contacts": 16
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 149,
+   "visits": 146,
    "leads": 6,
    "contacts": 6
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 113,
+   "visits": 110,
    "leads": 0,
    "contacts": 1
   },
   {
    "utm": "organization",
-   "visits": 44,
+   "visits": 45,
    "leads": 6,
    "contacts": 3
   },
@@ -101,24 +101,18 @@
   },
   {
    "utm": "peregorodki_710919957",
-   "visits": 8,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "sale",
-   "visits": 7,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "utm": "Встречайте_gentris",
    "visits": 7,
    "leads": 0,
    "contacts": 0
   },
   {
    "utm": "keramogranit_steklo_ili_mdf",
+   "visits": 6,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "sale",
    "visits": 6,
    "leads": 0,
    "contacts": 0
@@ -132,6 +126,12 @@
   {
    "utm": "zerkala_s_podsvetkoj",
    "visits": 5,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "Встречайте_gentris",
+   "visits": 4,
    "leads": 0,
    "contacts": 0
   },
@@ -164,12 +164,6 @@
    "visits": 2,
    "leads": 1,
    "contacts": 1
-  },
-  {
-   "utm": "genglass",
-   "visits": 1,
-   "leads": 0,
-   "contacts": 0
   },
   {
    "utm": "kuhonnyj_ostrov_vyhodit",
@@ -235,42 +229,42 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 4563,
-   "users": 3874,
-   "bounce": 22.35371466,
-   "leads": 105,
-   "contacts": 94
+   "visits": 4546,
+   "users": 3880,
+   "bounce": 22.48130224,
+   "leads": 104,
+   "contacts": 90
   },
   {
    "source": "Search engine traffic",
-   "visits": 2966,
-   "users": 2205,
-   "bounce": 18.00404585,
-   "leads": 144,
-   "contacts": 108
+   "visits": 2945,
+   "users": 2217,
+   "bounce": 17.79286927,
+   "leads": 142,
+   "contacts": 107
   },
   {
    "source": "Link traffic",
-   "visits": 1960,
-   "users": 1723,
-   "bounce": 3.82653061,
+   "visits": 2022,
+   "users": 1796,
+   "bounce": 3.70919881,
    "leads": 8,
    "contacts": 7
   },
   {
    "source": "Direct traffic",
-   "visits": 1503,
-   "users": 1340,
-   "bounce": 19.22821025,
-   "leads": 28,
-   "contacts": 21
+   "visits": 1498,
+   "users": 1341,
+   "bounce": 19.02536716,
+   "leads": 26,
+   "contacts": 18
   },
   {
    "source": "Internal traffic",
-   "visits": 252,
-   "users": 195,
-   "bounce": 25.3968254,
-   "leads": 6,
+   "visits": 255,
+   "users": 199,
+   "bounce": 25.49019608,
+   "leads": 7,
    "contacts": 5
   },
   {
@@ -291,9 +285,9 @@
   },
   {
    "source": "Mailing traffic",
-   "visits": 10,
+   "visits": 7,
    "users": 3,
-   "bounce": 20,
+   "bounce": 14.28571429,
    "leads": 1,
    "contacts": 1
   },

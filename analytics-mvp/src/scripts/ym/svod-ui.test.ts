@@ -1025,3 +1025,44 @@ describe("свод: пустое окно гасит ВСЁ, а не тольк�
     expect(m! <= lo, `пол фильтра ${m} выше самого раннего дня свода ${lo} - эти дни недостижимы`).toBe(true);
   });
 });
+
+// Строка пробела под ИТОГО. Выбор Кати 21.09.2026 из трёх вариантов: не прятать месяцы, а
+// показать прямо в таблице, насколько итог неполон. До этого пробел жил только в жёлтой плашке
+// над таблицей, и по числам в ИТОГО его было не видно совсем.
+describe("свод: заказы вне выгрузки стоят строкой под ИТОГО", () => {
+  const gapRow = () => [...T().querySelectorAll("tr.sv-extra")]
+    .find((r) => /Нет в выгрузке/.test(r.textContent || ""));
+
+  it("февраль-июнь: сумма и доля совпадают со сводом", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    let miss = 0, fee = 0, orders = 0;
+    for (const m of svod.months) {
+      if (m.ym < "2026-02" || m.ym > "2026-06") continue;
+      // Пара без пропавших заказов не в счёт, даже если по ней есть сборы: строка про ЗАКАЗЫ,
+      // которых нет в выгрузке. На снимке это 2026-06/74986385 - ноль заказов и 450 ₽ сборов.
+      if (!m.missing_accrued && !m.missing_accrued_orders) continue;
+      miss += m.missing_accrued || 0; fee += m.ledger_missing || 0; orders += m.missing_accrued_orders || 0;
+    }
+    setRange("2026-02-01", "2026-06-30");
+    const r = gapRow();
+    expect(r, "строки пробела нет, хотя пробел в данных есть").toBeTruthy();
+    const cs = [...r!.children].map((c) => num(c.textContent));
+    const h = head();
+    expect(cs[h.indexOf("Продажи")]).toBe(Math.round(miss));
+    expect(cs[h.indexOf("Поступление")]).toBe(Math.round(miss - fee));
+    expect(r!.textContent).toContain(`${orders} зак.`);
+  });
+
+  it("в ИТОГО пробел НЕ входит: тождество видимых колонок не ломается", () => {
+    setRange("2026-02-01", "2026-06-30");
+    const FEE = ["Размещение", "Программа лояльности и отзывы", "Продвижение", "Доставка", "Прочее", "Баллы Маркета"];
+    const fee = FEE.reduce((a, n) => a + (num(cell(n)) || 0), 0);
+    const byCols = (num(cell("Продажи")) || 0) + (num(cell("Доставка покупателя")) || 0) - fee;
+    expect(Math.abs(byCols - (num(cell("Поступление")) || 0)), "пробел просочился в ИТОГО").toBeLessThan(2);
+  });
+
+  it("на периоде без пробела строки нет: плашка не должна висеть всегда", () => {
+    setRange("2026-07-01", "2026-07-31");
+    expect(gapRow(), "июль собран полностью - строке пробела взяться неоткуда").toBeFalsy();
+  });
+});

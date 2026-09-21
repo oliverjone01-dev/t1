@@ -2695,6 +2695,32 @@ function svOverhead(ms,w){
   });
   return o;
 }
+// Заказы, которых НЕТ в выгрузке, за месяцы окна. Реестр платежей их знает (суммы, сборы,
+// артикулы), а карточки заказа - даты, статуса, штук - у нас нет, поэтому свод по доставленным
+// заказам их не видит ни выручкой, ни расходами. Числа МЕСЯЧНЫЕ: у таких заказов нет даты, месяц
+// взят по первой проводке реестра, и разложить их по дням окна нечем. Для частичного окна это
+// сказано вслух в подсказке строки, а не спрятано за пропорцией.
+function svMissing(w){
+  w=w||svWin();
+  var o={sum:0,orders:0,fee:0,months:[],partial:false};
+  svPick(w).forEach(function(m){
+    // Пара без пропавших заказов пропускается целиком, даже если по ней есть ledger_missing:
+    // на снимке 21.09.2026 это 2026-06/74986385 с нулём заказов и 450 ₽ сборов. Строка
+    // описывает ЗАКАЗЫ вне выгрузки, и сборы без заказа к ней не относятся - иначе
+    // «Поступление» строки занижалось бы на чужую сумму.
+    if(!m.missing_accrued&&!m.missing_accrued_orders)return;
+    o.sum+=m.missing_accrued||0;o.orders+=m.missing_accrued_orders||0;o.fee+=m.ledger_missing||0;
+    if(o.months.indexOf(m.ym)<0)o.months.push(m.ym);
+  });
+  o.months.sort();
+  // Окно накрывает месяц не целиком - число всё равно месячное.
+  var lo=w.from.slice(0,7),hi=w.to.slice(0,7);
+  o.partial=o.months.some(function(ym){
+    return (ym===lo&&w.from.slice(8)!=='01')||(ym===hi&&w.to<ym+'-28');
+  });
+  return o;
+}
+
 function svDraw(){
   var ms=svPick();
   var cov=document.getElementById('sv-cov'),gapsEl=document.getElementById('sv-gaps'),noteEl=document.getElementById('sv-note');
@@ -3187,6 +3213,33 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
     +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net})+'><b>'+mS(npT)+'</b></td>'
     +'<td class="r" style="color:var(--ink-3)"><b>'+(T.fly?T.fly:'—')+'</b></td>'
     +'<td class="r" style="color:var(--ink-3)"><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td></tr>';
+  // СТРОКА ПРОБЕЛА, сразу под ИТОГО (выбор Кати 21.09.2026 из трёх вариантов). Смысл: итог выше
+  // неполон, и видно, НАСКОЛЬКО. В сумму ИТОГО не входит ни одной ячейкой и входить не должна:
+  // это не наши цифры того же базиса, а начисления реестра по заказам, которых в своде нет.
+  // Класс sv-extra - тот же, что у «Отправок по отменённым»: служебные строки исключены из
+  // тождества «поступление = сложение видимых колонок».
+  (function(){
+    var ms=svMissing();
+    if(!ms.orders)return;
+    var net=ms.sum-ms.fee;
+    var share=(T.priceNet+ms.sum)>0?Math.round(ms.sum/(T.priceNet+ms.sum)*100):0;
+    var tip='Реестр платежей знает эти заказы, а выгрузка заказов - нет: карточки (дата, статус, штуки) у нас по ним отсутствуют, '
+      +'поэтому свод по доставленным заказам их не видит ни выручкой, ни услугами, ни себестоимостью. '
+      +'Две причины, обе внешние: API заказов не отдаёт историю глубже примерно восьми месяцев, и три кампании кабинета зеркал Маркет закрыл за неактивность. '
+      +'Отчётом о реализации не добирается: за декабрь 2025 он пуст по всем 17 магазинам. '
+      +'Числа месячные: даты заказа у нас про них не существует, месяц взят по первой проводке реестра.'
+      +(ms.partial?' ВНИМАНИЕ: окно накрывает месяц не целиком, а число всё равно за весь месяц.':'');
+    var tds='';
+    for(var ci=1;ci<H.length;ci++){
+      if(H[ci]==='Продажи') tds+='<td class="r" style="color:#FF5A5F"><b>'+svRub(ms.sum)+'</b></td>';
+      else if(H[ci]==='Поступление') tds+='<td class="r" style="color:#FF5A5F"><b>'+svRub(net)+'</b></td>';
+      else tds+='<td class="r">—</td>';
+    }
+    h+='<tr class="sv-extra" style="background:rgba(255,90,95,.10)"><td title="'+tip.replace(/"/g,'&quot;')+'">'
+      +'<b style="color:#FF5A5F">Нет в выгрузке заказов</b> <span style="color:var(--ink-3)">('+ms.orders+' зак., '
+      +(ms.months.length>1?ms.months[0]+'..'+ms.months[ms.months.length-1]:ms.months[0])
+      +'; это '+share+'% продаж периода, в ИТОГО их НЕТ)</span></td>'+tds+'</tr>';
+  })();
   h+=body+'</tbody>';
   var el=document.getElementById('sv-t');el.innerHTML=h;
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){

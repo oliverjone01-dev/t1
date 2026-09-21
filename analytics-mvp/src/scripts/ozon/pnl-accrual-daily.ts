@@ -26,7 +26,11 @@ function acctCat(name: string): "adv" | "fines" | "realfbs" | "badge" | "deliver
   if (/payperclick|promotion|stencil|оплата за клик|за заказ|продвижени|реклам/.test(n)) return "adv";
   if (/бейдж|badge|реклама в сети|ускоренный сбор|premium|отзыв|review|stars|звёздн/.test(n)) return "badge";
   if (/гибкий график|нерекомендованный слот|превышение индекса|штраф|fine|defect|утилизац/.test(n)) return "fines";
-  if (/realfbs|rfbs|сервисный сбор за интеграц|страхован|insurance/.test(n)) return "realfbs";
+  // «Услуги партнёров» = ТОЛЬКО партнёрская доставка rFBS (3 типа: RfbsDomesticDelivery/RfbsServiceFee/
+  // RfbsDomesticAgentFee). Раньше правило ловило голый /rfbs/ и до проверки доставки затягивало сюда
+  // RfbsClientDeliveryCharge (ДОХОД за доставку от покупателя, +840К), раздувая столбец в плюс. Точный
+  // список = как в bucketOfType(partner); страхование/сервис-интеграция и прочее уходят в other («Общие»).
+  if (/rfbsdomesticdelivery|rfbsservicefee|rfbsdomesticagent|партнёров ozon на схеме realfbs/.test(n)) return "realfbs";
   if (/перечисление за доставку от покупател|clientdeliverycharge/.test(n)) return "delivery";
   return "other";
 }

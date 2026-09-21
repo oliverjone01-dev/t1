@@ -676,7 +676,7 @@
     <span style="color:#5d7484;margin-left:8px">живой OZON (Май 26-Сен 26) · прочие каналы/клиенты/план - нет данных</span>
   </div></div>
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой OZON · данные по 2026-09-20</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 21.09.2026 17:31 МСК</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой OZON · данные по 2026-09-20</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 21.09.2026 17:48 МСК</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/ozon-snapshots.yml" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
@@ -1025,7 +1025,11 @@ function renderOrdersAnalytics(cur){
       // трогаем: она из API (кабинетный ряд AN_BUYERDELIV) и разносится глобально ниже.
       var shipT=anSum(AN_DELIV[off],from,to,1)[0]||0;
       var haveShip=0;for(var k2=0;k2<arr.length;k2++){haveShip+=arr[k2].ship||0;}
-      spread(arr,wsum,Math.max(0,shipT-haveShip),'ship',false);
+      // Остаток ведомости добираем ТОЛЬКО если он существенный. Мелкий остаток (в пределах округления,
+      // <= числа заказов offer) - это шум от per-order привязки delivery_orders; не льём его на заказы,
+      // у которых по факту наша доставка 0 (иначе там появляется «1»).
+      var shipResid=Math.max(0,Math.round(shipT)-Math.round(haveShip));
+      if(shipResid>arr.length)spread(arr,wsum,shipResid,'ship',false);
     }
   }
   // «Доставка покупателя» (доход) - кабинетный ряд accrual/by-day (NON_ITEM «перечисление за доставку

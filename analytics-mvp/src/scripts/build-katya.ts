@@ -2243,7 +2243,11 @@ function renderOrdersAnalytics(cur){
       // трогаем: она из API (кабинетный ряд AN_BUYERDELIV) и разносится глобально ниже.
       var shipT=anSum(AN_DELIV[off],from,to,1)[0]||0;
       var haveShip=0;for(var k2=0;k2<arr.length;k2++){haveShip+=arr[k2].ship||0;}
-      spread(arr,wsum,Math.max(0,shipT-haveShip),'ship',false);
+      // Остаток ведомости добираем ТОЛЬКО если он существенный. Мелкий остаток (в пределах округления,
+      // <= числа заказов offer) - это шум от per-order привязки delivery_orders; не льём его на заказы,
+      // у которых по факту наша доставка 0 (иначе там появляется «1»).
+      var shipResid=Math.max(0,Math.round(shipT)-Math.round(haveShip));
+      if(shipResid>arr.length)spread(arr,wsum,shipResid,'ship',false);
     }
   }
   // «Доставка покупателя» (доход) - кабинетный ряд accrual/by-day (NON_ITEM «перечисление за доставку

@@ -1997,14 +1997,29 @@ function paint(p,src){
     return;
   }
   if(!wfSteps){
-    var pt=periodTotals(p.dateFrom,p.dateTo);var deliv=pt.delivery,ccv=pt.cc,shipv=pt.ship||0,incv=pt.dinc||0,admtax=0.45*pt.amtS,netv=pt.net;
-    var tail=[['К выплате',p.payout,'#34D399']];
-    if(deliv)tail.push(['Доставка от покупателя (комп.)',-deliv,'#F59E0B']);
-    tail.push(['СС произв.',-ccv,'#F59E0B']);
-    if(shipv)tail.push(['Наша доставка',-shipv,'#F59E0B']);
-    if(incv)tail.push(['Доставка покупателя',incv,'#34D399']);
-    tail.push(['АДМ+Налоги',-admtax,'#F59E0B'],['Чистая прибыль',netv,netv>=0?'#34D399':'#FF5A5F']);
-    wfSteps=[['Начислено',p.accruals,'#22D3EE']].concat(fees.map(f=>[f[0],f[1],'#FF5A5F'])).concat(tail);
+    // OZON: весь водопад из ОДНОГО источника - аналитики по SKU (periodTotals), той же, что таблица
+    // ниже. Раньше верх (Начислено/К выплате) брался из канального P&L по дате заказа, а низ (СС/чистая)
+    // из таблицы по дате начисления - на закрытом месяце базы сходятся, а на ОТКРЫТОМ расходятся, и
+    // водопад противоречил сам себе (сверху К выплате одно, снизу чистая считалась от другого). Теперь
+    // цепочка замкнута: Начислено − Всего сборов = К выплате; из него убираем незакрытые (начисленные,
+    // но ещё не выкупленные) заказы, дальше СС/доставка/АДМ/налоги = Чистая, ровно как в ИТОГО таблицы.
+    var pt=periodTotals(p.dateFrom,p.dateTo);
+    var feeTot=Math.round(pt.amt-pt.accr); // Всего сборов (знак<0)
+    var F=pt.fees||{};var fmtF=function(v){return fmtRu(Math.round(v));};
+    var feeTip='Всего сборов: комиссия '+fmtF(F.comm)+', логистика '+fmtF(F.log)
+      +(Math.round(F.acq)?', эквайринг '+fmtF(-F.acq):'')+(Math.round(F.sto)?', хранение '+fmtF(-F.sto):'')
+      +(Math.round(F.partner)?', услуги партнёров '+fmtF(F.partner):'')+', прочие '+fmtF(F.proch)+', реклама '+fmtF(F.ads);
+    var openTail=Math.round(pt.amt-pt.amtReal); // висящие заказы: К выплате есть, в прибыль не идут
+    var steps2=[['Начислено',pt.accr,'#22D3EE','Начислено']];
+    if(feeTot)steps2.push([feeTip,feeTot,'#FF5A5F','Сборы']);
+    steps2.push(['К выплате',pt.amt,'#34D399','К выплате']);
+    if(openTail)steps2.push(['Незакрытые заказы (начислены, ещё не выкуплены) - в прибыль периода не входят',-openTail,'#8AA0B0','Незакрытые']);
+    if(Math.round(pt.cc))steps2.push(['СС произв.',-pt.cc,'#F59E0B','СС']);
+    if(Math.round(pt.ship))steps2.push(['Наша доставка (счёт перевозчика)',-pt.ship,'#F59E0B','Наша доставка']);
+    if(Math.round(pt.dinc))steps2.push(['Доставка покупателя (доход)',pt.dinc,'#34D399','Дост.покуп.']);
+    steps2.push(['АДМ 30% + Налоги 15% (с реализованной К выплате)',-0.45*pt.amtS,'#F59E0B','АДМ+Налоги']);
+    steps2.push(['Чистая прибыль',pt.net,pt.net>=0?'#34D399':'#FF5A5F','Чистая']);
+    wfSteps=steps2;
   }
   const steps=wfSteps;
   const mx=Math.max(1,Math.abs(steps[0][1])||1);
@@ -2316,9 +2331,13 @@ function periodTotals(from,to){
   // типично для последних дней открытого месяца) в прибыль НЕ считаем, иначе чистая/рентаб
   // раздуваются (АДМ/налоги-то берутся только с реализованных). Для закрытых месяцев amtReal=amt.
   var covM=coveredMonths(from,to);var rev=0,accr=0,amt=0,amtReal=0,amtS=0,cc=0,realized=0,gadv=0;
+  // разбивка сборов на уровне ИТОГО (те же AN_FIN/by-day, что и в таблице) - для водопада, один базис.
+  var fComm=0,fLog=0,fAcq=0,fSto=0,fOth=0;
   for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var ru=realUnits(sk,covM,from,to);
     var adv=(anSum(AN_ADSSKU[sk],from,to,1)[0]||0)+(anSum(AN_CPOSKU[sk],from,to,1)[0]||0);var amtNet=(fi[6]||0)-adv; // К выплате после разнесённой рекламы (CPC + CPO за заказ)
-    rev+=sa[0]||0;accr+=(fi[0]||0);realized+=ru;amt+=amtNet;amtReal+=(ru>0?amtNet:Math.min(0,amtNet));if(ru>0)amtS+=amtNet;cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;}
+    rev+=sa[0]||0;accr+=(fi[0]||0);realized+=ru;amt+=amtNet;amtReal+=(ru>0?amtNet:Math.min(0,amtNet));if(ru>0)amtS+=amtNet;cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;
+    fComm+=fi[1]||0;fLog+=fi[2]||0;fOth+=fi[5]||0;
+    fAcq+=-(anSum(AN_ACQSKU[sk],from,to,1)[0]||0);fSto+=-(anSum(AN_STOSKU[sk],from,to,1)[0]||0);} // эквайринг/хранение по SKU из by-day
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;aB.adv+=r[1];aB.fines+=r[2];aB.realfbs+=r[3];aB.badge+=r[4];aB.delivery+=r[5];aB.other+=r[6];}
   var aDel=aB.realfbs,aOth=(aB.adv+gadv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // доставка от покупателя исключена
@@ -2328,7 +2347,11 @@ function periodTotals(from,to){
   var ship=0;for(var _o in AN_DELIV){ship+=anSum(AN_DELIV[_o],from,to,1)[0]||0;}
   var dinc=0;for(var _i in AN_DELIV_INC){dinc+=anSum(AN_DELIV_INC[_i],from,to,1)[0]||0;} // доход от покупателя за доставку - плюсуется
   var net=(amtReal-cc-ship+dinc)-0.45*amtS,rent=(amtReal>0)?net/amtReal*100:null; // прибыль/рентаб - на реализованной базе (без висящих заказов)
-  return {ad:-aB.adv,rev:rev,accr:accr,realized:realized,amt:amt,amtReal:amtReal,amtS:amtS,cc:cc,ship:ship,dinc:dinc,delivery:aB.delivery,net:net,rent:rent};
+  // Сборы для водопада (знак<0). partner=realFBS; прочие=услуги SKU + штрафы/бейдж/прочее кабинета;
+  // реклама=CPC+CPO разнесённые + остаток кабинетной рекламы. Сумма ≈ amt-accr (Всего сборов).
+  var fPartner=aDel,fAds=(-(gadv))+aB.adv,fProch=fOth+aB.fines+aB.badge+aB.other;
+  var fees={comm:fComm,log:fLog,acq:fAcq,sto:fSto,partner:fPartner,proch:fProch,ads:fAds};
+  return {ad:-aB.adv,rev:rev,accr:accr,realized:realized,amt:amt,amtReal:amtReal,amtS:amtS,cc:cc,ship:ship,dinc:dinc,delivery:aB.delivery,net:net,rent:rent,fees:fees};
 }
 function monthTotals(ym){
   var yy=+ym.slice(0,4),mm=+ym.slice(5,7),from=ym+'-01',to=ym+'-'+String(new Date(Date.UTC(yy,mm,0)).getUTCDate()).padStart(2,'0');

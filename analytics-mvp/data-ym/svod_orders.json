@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-21T12:16:49.863Z",
+  "generated_at": "2026-09-21T13:08:27.444Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-20",
   "split_check": {
@@ -77,8 +77,8 @@
           "svc_total": 0.24,
           "result_money": 33738.76,
           "result_points": 155266.33,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 8864,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -748,7 +748,7 @@
         }
       ],
       "points_on_delivery": 5409.87,
-      "cogs_cov": 79.7,
+      "cogs_cov": 100,
       "ship_orders": 0,
       "ship_cov": 0
     },
@@ -4197,8 +4197,8 @@
           "svc_total": 14350.82,
           "result_money": 7145.44,
           "result_points": 15788.17,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 4287,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -4393,7 +4393,7 @@
           "result_money": 1386.91,
           "result_points": -20762.63,
           "cogs": 0,
-          "cogs_known": false,
+          "cogs_known": true,
           "ship_our": 3168,
           "ship_known": true
         }
@@ -4988,7 +4988,7 @@
         }
       ],
       "points_on_delivery": 65706.13,
-      "cogs_cov": 99.3,
+      "cogs_cov": 100,
       "ship_orders": 17,
       "ship_cov": 30.4
     },
@@ -13612,8 +13612,8 @@
           "svc_total": 25107.54,
           "result_money": 32592.38,
           "result_points": 25863.76,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 12082,
+          "cogs_known": true,
           "ship_our": 1737.89,
           "ship_known": true
         },
@@ -15042,8 +15042,8 @@
           "svc_total": 8726.42,
           "result_money": 11742.41,
           "result_points": 9775.85,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 3940,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -16543,7 +16543,7 @@
         }
       ],
       "points_on_delivery": 117670.07,
-      "cogs_cov": 98.3,
+      "cogs_cov": 100,
       "ship_lost": 5840.5,
       "ship_lost_orders": 1,
       "ship_lost_daily": {
@@ -25703,8 +25703,8 @@
           "svc_total": 49041.27,
           "result_money": 28911.99,
           "result_points": 19431.25,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 10689,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -30621,7 +30621,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 100154.48,
-      "cogs_cov": 98.9,
+      "cogs_cov": 100,
       "ship_lost": 22310.66,
       "ship_lost_orders": 5,
       "ship_lost_daily": {
@@ -42085,8 +42085,8 @@
           "svc_total": 6106.61,
           "result_money": 33762.05,
           "result_points": 61214.82,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 2395,
+          "cogs_known": true,
           "ship_our": 4977,
           "ship_known": true
         },
@@ -48414,7 +48414,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 117604.28,
-      "cogs_cov": 99.2,
+      "cogs_cov": 100,
       "ship_lost": 46613.73,
       "ship_lost_orders": 8,
       "ship_lost_daily": {
@@ -50896,8 +50896,8 @@
           "svc_total": 27691.08,
           "result_money": 32440.01,
           "result_points": 19854.32,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -51026,8 +51026,8 @@
           "svc_total": 26778.19,
           "result_money": 33324.32,
           "result_points": 21806.52,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -54276,8 +54276,8 @@
           "svc_total": 29352.89,
           "result_money": 24156.94,
           "result_points": 12120.95,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -59606,8 +59606,8 @@
           "svc_total": 14027.67,
           "result_money": 9727.12,
           "result_points": 5503.78,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 6123,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -60661,7 +60661,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 128473.77,
-      "cogs_cov": 97.4,
+      "cogs_cov": 100,
       "ship_orders": 51,
       "ship_cov": 31.1
     },
@@ -67510,8 +67510,8 @@
           "svc_total": 14681.77,
           "result_money": 10641.08,
           "result_points": 11325.71,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 6123,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -69369,7 +69369,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 55197.43,
-      "cogs_cov": 99.5,
+      "cogs_cov": 100,
       "ship_orders": 0,
       "ship_cov": 0
     },
@@ -72360,8 +72360,8 @@
           "svc_total": 28585.62,
           "result_money": 21365.05,
           "result_points": 22441.47,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -75090,8 +75090,8 @@
           "svc_total": 10916.78,
           "result_money": 6612.68,
           "result_points": 9779.21,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 5720,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -75850,7 +75850,7 @@
         }
       ],
       "points_on_delivery": 20877.48,
-      "cogs_cov": 98.3,
+      "cogs_cov": 100,
       "ship_lost": 8243,
       "ship_lost_orders": 1,
       "ship_lost_daily": {
@@ -76673,8 +76673,8 @@
           "svc_total": 25095.66,
           "result_money": 25921.78,
           "result_points": 45701.79,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -76868,8 +76868,8 @@
           "svc_total": 25910.49,
           "result_money": 21973.06,
           "result_points": 52134.43,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13421,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -78038,8 +78038,8 @@
           "svc_total": 8390.27,
           "result_money": 19081.52,
           "result_points": 48486.63,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 13577,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -78883,8 +78883,8 @@
           "svc_total": 9263.48,
           "result_money": 9761.11,
           "result_points": 19771.87,
-          "cogs": 0,
-          "cogs_known": false,
+          "cogs": 5720,
+          "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         },
@@ -80035,7 +80035,7 @@
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 0,
-      "cogs_cov": 90.3,
+      "cogs_cov": 99.3,
       "ship_orders": 0,
       "ship_cov": 0
     },

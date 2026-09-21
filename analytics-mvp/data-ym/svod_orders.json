@@ -1,8 +1,8 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-21T09:55:07.478Z",
+  "generated_at": "2026-09-21T10:09:05.584Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
-  "ledger_to": "2026-09-19",
+  "ledger_to": "2026-09-20",
   "split_check": {
     "business": "74986385",
     "ym": "2026-07",
@@ -364,14 +364,14 @@
           "revenue_money": 15785,
           "points_accrued": 93171.74,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 199.42,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 33.82,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 6.76,
             "Доставка невыкупов и возвратов": 0,
             "Приём платежа покупателя": 0.12,
-            "Перевод платежа покупателя": 0,
+            "Перевод платежа покупателя": 1139.52,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -397,11 +397,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0.12,
+          "svc_money": 2379.64,
           "svc_points": 23759.45,
-          "svc_total": 23759.57,
-          "result_money": 15784.88,
-          "result_points": 85197.17,
+          "svc_total": 26139.09,
+          "result_money": 13405.36,
+          "result_points": 82817.65,
           "cogs": 8528,
           "cogs_known": true,
           "ship_our": 0,
@@ -429,14 +429,14 @@
           "revenue_money": 15328,
           "points_accrued": 94282.53,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 198.64,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 36.41,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 23.19,
             "Доставка невыкупов и возвратов": 0,
             "Приём платежа покупателя": 0.12,
-            "Перевод платежа покупателя": 0,
+            "Перевод платежа покупателя": 1135.04,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -462,11 +462,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0.12,
+          "svc_money": 2393.4,
           "svc_points": 25564.11,
-          "svc_total": 25564.23,
-          "result_money": 15327.88,
-          "result_points": 84046.3,
+          "svc_total": 27957.51,
+          "result_money": 12934.6,
+          "result_points": 81653.02,
           "cogs": 7453,
           "cogs_known": true,
           "ship_our": 0,
@@ -556,9 +556,9 @@
       ],
       "orders_without_ledger": 0,
       "svc_settled": false,
-      "ledger_outside": -5049.56,
-      "ledger_outside_orders": 33,
-      "ledger_status": -5049.56,
+      "ledger_outside": -5049.44,
+      "ledger_outside_orders": 34,
+      "ledger_status": -5049.44,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "missing_accrued": 0,
@@ -777,7 +777,7 @@
           "buyer_pay": 65146,
           "refunds": 0,
           "revenue_money": 65146,
-          "points_accrued": 105912.64,
+          "points_accrued": 108872.88,
           "svc": {
             "Размещение (комиссия)": 596.98,
             "Программа лояльности и отзывы": 0,
@@ -816,7 +816,7 @@
           "svc_points": 68125.77,
           "svc_total": 72394.52,
           "result_money": 60877.25,
-          "result_points": 98664.12,
+          "result_points": 101624.36,
           "cogs": 27107,
           "cogs_known": true,
           "ship_our": 3098.79,
@@ -842,7 +842,7 @@
           "buyer_pay": 60513,
           "refunds": 0,
           "revenue_money": 60513,
-          "points_accrued": 69735.37,
+          "points_accrued": 71684.46,
           "svc": {
             "Размещение (комиссия)": 474.72,
             "Программа лояльности и отзывы": 0,
@@ -881,7 +881,7 @@
           "svc_points": 46997.28,
           "svc_total": 50325.44,
           "result_money": 57184.84,
-          "result_points": 79922.93,
+          "result_points": 81872.02,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 1000,
@@ -907,7 +907,7 @@
           "buyer_pay": 58971,
           "refunds": 0,
           "revenue_money": 58971,
-          "points_accrued": 59626.29,
+          "points_accrued": 61292.83,
           "svc": {
             "Размещение (комиссия)": 433.06,
             "Программа лояльности и отзывы": 0,
@@ -946,7 +946,7 @@
           "svc_points": 44852.54,
           "svc_total": 47972,
           "result_money": 55851.54,
-          "result_points": 70625.29,
+          "result_points": 72291.83,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 0,
@@ -972,7 +972,7 @@
           "buyer_pay": 52711,
           "refunds": 0,
           "revenue_money": 52711,
-          "points_accrued": 105548.64,
+          "points_accrued": 108498.7,
           "svc": {
             "Размещение (комиссия)": 535.03,
             "Программа лояльности и отзывы": 0,
@@ -1011,7 +1011,7 @@
           "svc_points": 60768.83,
           "svc_total": 64629.87,
           "result_money": 48849.96,
-          "result_points": 93629.77,
+          "result_points": 96579.83,
           "cogs": 22598,
           "cogs_known": true,
           "ship_our": 5025.32,
@@ -1037,7 +1037,7 @@
           "buyer_pay": 49195,
           "refunds": 0,
           "revenue_money": 49195,
-          "points_accrued": 84649.18,
+          "points_accrued": 87015.11,
           "svc": {
             "Размещение (комиссия)": 459.12,
             "Программа лояльности и отзывы": 0,
@@ -1076,7 +1076,7 @@
           "svc_points": 53766.96,
           "svc_total": 57120.11,
           "result_money": 45841.85,
-          "result_points": 76724.07,
+          "result_points": 79090,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 10215.7,
@@ -1102,7 +1102,7 @@
           "buyer_pay": 49182,
           "refunds": 0,
           "revenue_money": 49182,
-          "points_accrued": 84508.17,
+          "points_accrued": 86870.16,
           "svc": {
             "Размещение (комиссия)": 19987.08,
             "Программа лояльности и отзывы": 0,
@@ -1141,7 +1141,7 @@
           "svc_points": 33351.89,
           "svc_total": 59486.63,
           "result_money": 23047.26,
-          "result_points": 74203.54,
+          "result_points": 76565.53,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 5955.44,
@@ -1167,7 +1167,7 @@
           "buyer_pay": 48134,
           "refunds": 0,
           "revenue_money": 48134,
-          "points_accrued": 77181.59,
+          "points_accrued": 79338.81,
           "svc": {
             "Размещение (комиссия)": 433.48,
             "Программа лояльности и отзывы": 0,
@@ -1206,7 +1206,7 @@
           "svc_points": 51192.68,
           "svc_total": 54364.63,
           "result_money": 44962.05,
-          "result_points": 70950.96,
+          "result_points": 73108.18,
           "cogs": 17660,
           "cogs_known": true,
           "ship_our": 0,
@@ -1232,7 +1232,7 @@
           "buyer_pay": 48004,
           "refunds": 0,
           "revenue_money": 48004,
-          "points_accrued": 73703.35,
+          "points_accrued": 75763.34,
           "svc": {
             "Размещение (комиссия)": 423.01,
             "Программа лояльности и отзывы": 0,
@@ -1271,7 +1271,7 @@
           "svc_points": 50785.15,
           "svc_total": 53891.91,
           "result_money": 44897.24,
-          "result_points": 67815.44,
+          "result_points": 69875.43,
           "cogs": 17189,
           "cogs_known": true,
           "ship_our": 0,
@@ -1297,7 +1297,7 @@
           "buyer_pay": 47161,
           "refunds": 0,
           "revenue_money": 47161,
-          "points_accrued": 86990.7,
+          "points_accrued": 89422.08,
           "svc": {
             "Размещение (комиссия)": 459.12,
             "Программа лояльности и отзывы": 0,
@@ -1336,7 +1336,7 @@
           "svc_points": 58359.6,
           "svc_total": 61722.74,
           "result_money": 43797.86,
-          "result_points": 72428.96,
+          "result_points": 74860.34,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 1000,
@@ -1362,7 +1362,7 @@
           "buyer_pay": 47086,
           "refunds": 0,
           "revenue_money": 47086,
-          "points_accrued": 80767.95,
+          "points_accrued": 83025.4,
           "svc": {
             "Размещение (комиссия)": 438.72,
             "Программа лояльности и отзывы": 0,
@@ -1401,7 +1401,7 @@
           "svc_points": 47957.58,
           "svc_total": 51127.44,
           "result_money": 43916.14,
-          "result_points": 76726.51,
+          "result_points": 78983.96,
           "cogs": 17189,
           "cogs_known": true,
           "ship_our": 8783.83,
@@ -1427,7 +1427,7 @@
           "buyer_pay": 46547,
           "refunds": 0,
           "revenue_money": 46547,
-          "points_accrued": 73743.05,
+          "points_accrued": 75804.16,
           "svc": {
             "Размещение (комиссия)": 10147.22,
             "Программа лояльности и отзывы": 0,
@@ -1466,7 +1466,7 @@
           "svc_points": 36007.08,
           "svc_total": 48754.63,
           "result_money": 33799.45,
-          "result_points": 71535.42,
+          "result_points": 73596.53,
           "cogs": 17189,
           "cogs_known": true,
           "ship_our": 4578,
@@ -1492,7 +1492,7 @@
           "buyer_pay": 46248,
           "refunds": 0,
           "revenue_money": 46248,
-          "points_accrued": 90131.02,
+          "points_accrued": 92650.17,
           "svc": {
             "Размещение (комиссия)": 459.12,
             "Программа лояльности и отзывы": 0,
@@ -1531,7 +1531,7 @@
           "svc_points": 53956.35,
           "svc_total": 57333.81,
           "result_money": 42870.54,
-          "result_points": 79045.21,
+          "result_points": 81564.36,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 0,
@@ -1557,7 +1557,7 @@
           "buyer_pay": 45450,
           "refunds": 0,
           "revenue_money": 45450,
-          "points_accrued": 85458.06,
+          "points_accrued": 87846.6,
           "svc": {
             "Размещение (комиссия)": 444.33,
             "Программа лояльности и отзывы": 0,
@@ -1596,7 +1596,7 @@
           "svc_points": 52309.42,
           "svc_total": 55555.95,
           "result_money": 42203.47,
-          "result_points": 75352.11,
+          "result_points": 77740.65,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 0,
@@ -1622,7 +1622,7 @@
           "buyer_pay": 45099,
           "refunds": 0,
           "revenue_money": 45099,
-          "points_accrued": 90141.04,
+          "points_accrued": 92660.47,
           "svc": {
             "Размещение (комиссия)": 459.12,
             "Программа лояльности и отзывы": 0,
@@ -1661,7 +1661,7 @@
           "svc_points": 53766.96,
           "svc_total": 57072.51,
           "result_money": 41793.45,
-          "result_points": 78167.53,
+          "result_points": 80686.96,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 1000,
@@ -1687,7 +1687,7 @@
           "buyer_pay": 44182,
           "refunds": 0,
           "revenue_money": 44182,
-          "points_accrued": 92059.64,
+          "points_accrued": 94632.69,
           "svc": {
             "Размещение (комиссия)": 459.12,
             "Программа лояльности и отзывы": 0,
@@ -1726,7 +1726,7 @@
           "svc_points": 56247.93,
           "svc_total": 59592.54,
           "result_money": 40837.39,
-          "result_points": 76649.1,
+          "result_points": 79222.15,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 1000,
@@ -1752,7 +1752,7 @@
           "buyer_pay": 43479,
           "refunds": 0,
           "revenue_money": 43479,
-          "points_accrued": 72557.71,
+          "points_accrued": 74585.69,
           "svc": {
             "Размещение (комиссия)": 402.1,
             "Программа лояльности и отзывы": 0,
@@ -1791,7 +1791,7 @@
           "svc_points": 39807.5,
           "svc_total": 51175.56,
           "result_money": 32110.94,
-          "result_points": 64861.15,
+          "result_points": 66889.13,
           "cogs": 14537,
           "cogs_known": true,
           "ship_our": 0,
@@ -1817,7 +1817,7 @@
           "buyer_pay": 42675,
           "refunds": 0,
           "revenue_money": 42675,
-          "points_accrued": 67946.97,
+          "points_accrued": 69846.08,
           "svc": {
             "Размещение (комиссия)": 381.74,
             "Программа лояльности и отзывы": 0,
@@ -1856,7 +1856,7 @@
           "svc_points": 41940.91,
           "svc_total": 44717.59,
           "result_money": 39898.32,
-          "result_points": 65904.38,
+          "result_points": 67803.49,
           "cogs": 14537,
           "cogs_known": true,
           "ship_our": 0,
@@ -1882,7 +1882,7 @@
           "buyer_pay": 41893,
           "refunds": 0,
           "revenue_money": 41893,
-          "points_accrued": 69378.88,
+          "points_accrued": 71318.01,
           "svc": {
             "Размещение (комиссия)": 382.16,
             "Программа лояльности и отзывы": 0,
@@ -1921,7 +1921,7 @@
           "svc_points": 47882.44,
           "svc_total": 50721.57,
           "result_money": 39053.87,
-          "result_points": 60550.31,
+          "result_points": 62489.44,
           "cogs": 14537,
           "cogs_known": true,
           "ship_our": 0,
@@ -1947,7 +1947,7 @@
           "buyer_pay": 41481,
           "refunds": 0,
           "revenue_money": 41481,
-          "points_accrued": 74151.63,
+          "points_accrued": 76224.16,
           "svc": {
             "Размещение (комиссия)": 397.17,
             "Программа лояльности и отзывы": 0,
@@ -1986,7 +1986,7 @@
           "svc_points": 45394.71,
           "svc_total": 48254.28,
           "result_money": 38621.43,
-          "result_points": 67378.35,
+          "result_points": 69450.88,
           "cogs": 17660,
           "cogs_known": true,
           "ship_our": 1000,
@@ -2012,16 +2012,16 @@
           "buyer_pay": 41446,
           "refunds": 0,
           "revenue_money": 41446,
-          "points_accrued": 90346.56,
+          "points_accrued": 92871.73,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 439.42,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 8596.08,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
             "Приём платежа покупателя": 0.24,
-            "Перевод платежа покупателя": 0,
+            "Перевод платежа покупателя": 2689.26,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -2047,11 +2047,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0.24,
+          "svc_money": 11725,
           "svc_points": 43502.18,
-          "svc_total": 43502.42,
-          "result_money": 41445.76,
-          "result_points": 88290.14,
+          "svc_total": 55227.18,
+          "result_money": 29721,
+          "result_points": 79090.55,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 0,
@@ -2077,7 +2077,7 @@
           "buyer_pay": 40871,
           "refunds": 0,
           "revenue_money": 40871,
-          "points_accrued": 78396.69,
+          "points_accrued": 80587.86,
           "svc": {
             "Размещение (комиссия)": 8304.87,
             "Программа лояльности и отзывы": 0,
@@ -2116,7 +2116,7 @@
           "svc_points": 32205.67,
           "svc_total": 49008.86,
           "result_money": 24067.81,
-          "result_points": 70258.83,
+          "result_points": 72450,
           "cogs": 14537,
           "cogs_known": true,
           "ship_our": 0,
@@ -2142,7 +2142,7 @@
           "buyer_pay": 40735,
           "refunds": 0,
           "revenue_money": 40735,
-          "points_accrued": 98513.82,
+          "points_accrued": 101267.27,
           "svc": {
             "Размещение (комиссия)": 12905.49,
             "Программа лояльности и отзывы": 0,
@@ -2181,7 +2181,7 @@
           "svc_points": 48224.66,
           "svc_total": 64088.31,
           "result_money": 24871.35,
-          "result_points": 75160.51,
+          "result_points": 77913.96,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 0,
@@ -2207,7 +2207,7 @@
           "buyer_pay": 39789,
           "refunds": 0,
           "revenue_money": 39789,
-          "points_accrued": 64873.82,
+          "points_accrued": 66687.03,
           "svc": {
             "Размещение (комиссия)": 361.89,
             "Программа лояльности и отзывы": 0,
@@ -2246,7 +2246,7 @@
           "svc_points": 39759.69,
           "svc_total": 42370.54,
           "result_money": 37178.15,
-          "result_points": 62292.28,
+          "result_points": 64105.49,
           "cogs": 17189,
           "cogs_known": true,
           "ship_our": 4105.3,
@@ -2272,7 +2272,7 @@
           "buyer_pay": 39584,
           "refunds": 0,
           "revenue_money": 39584,
-          "points_accrued": 83466.03,
+          "points_accrued": 85798.89,
           "svc": {
             "Размещение (комиссия)": 410.28,
             "Программа лояльности и отзывы": 0,
@@ -2311,7 +2311,7 @@
           "svc_points": 52785.39,
           "svc_total": 55852.1,
           "result_money": 36517.29,
-          "result_points": 67197.93,
+          "result_points": 69530.79,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 0,
@@ -2337,7 +2337,7 @@
           "buyer_pay": 39405,
           "refunds": 0,
           "revenue_money": 39405,
-          "points_accrued": 68661.57,
+          "points_accrued": 70580.65,
           "svc": {
             "Размещение (комиссия)": 370.79,
             "Программа лояльности и отзывы": 0,
@@ -2376,7 +2376,7 @@
           "svc_points": 36707.77,
           "svc_total": 45372.71,
           "result_money": 30740.06,
-          "result_points": 62693.86,
+          "result_points": 64612.94,
           "cogs": 13664,
           "cogs_known": true,
           "ship_our": 0,
@@ -2402,7 +2402,7 @@
           "buyer_pay": 39105,
           "refunds": 0,
           "revenue_money": 39105,
-          "points_accrued": 87576.01,
+          "points_accrued": 90023.75,
           "svc": {
             "Размещение (комиссия)": 438.8,
             "Программа лояльности и отзывы": 0,
@@ -2441,7 +2441,7 @@
           "svc_points": 46184.98,
           "svc_total": 52159.02,
           "result_money": 33130.96,
-          "result_points": 74521.99,
+          "result_points": 76969.73,
           "cogs": 13233,
           "cogs_known": true,
           "ship_our": 0,
@@ -2467,7 +2467,7 @@
           "buyer_pay": 39032,
           "refunds": 0,
           "revenue_money": 39032,
-          "points_accrued": 67165.66,
+          "points_accrued": 69042.93,
           "svc": {
             "Размещение (комиссия)": 364.81,
             "Программа лояльности и отзывы": 0,
@@ -2506,7 +2506,7 @@
           "svc_points": 42248.36,
           "svc_total": 44901.42,
           "result_money": 36378.94,
-          "result_points": 61296.24,
+          "result_points": 63173.51,
           "cogs": 13664,
           "cogs_known": true,
           "ship_our": 1000,
@@ -2532,7 +2532,7 @@
           "buyer_pay": 34924,
           "refunds": 0,
           "revenue_money": 34924,
-          "points_accrued": 62414.78,
+          "points_accrued": 64159.26,
           "svc": {
             "Размещение (комиссия)": 328.8,
             "Программа лояльности и отзывы": 0,
@@ -2571,7 +2571,7 @@
           "svc_points": 38423.78,
           "svc_total": 40870.14,
           "result_money": 32477.64,
-          "result_points": 56468.64,
+          "result_points": 58213.12,
           "cogs": 13410,
           "cogs_known": true,
           "ship_our": 0,
@@ -2597,7 +2597,7 @@
           "buyer_pay": 32096,
           "refunds": 0,
           "revenue_money": 32096,
-          "points_accrued": 56602.8,
+          "points_accrued": 58184.84,
           "svc": {
             "Размещение (комиссия)": 310.56,
             "Программа лояльности и отзывы": 0,
@@ -2636,7 +2636,7 @@
           "svc_points": 31406.76,
           "svc_total": 37926,
           "result_money": 25576.76,
-          "result_points": 50772.8,
+          "result_points": 52354.84,
           "cogs": 10587,
           "cogs_known": true,
           "ship_our": 0,
@@ -2662,7 +2662,7 @@
           "buyer_pay": 31417,
           "refunds": 0,
           "revenue_money": 31417,
-          "points_accrued": 64378.66,
+          "points_accrued": 66178.03,
           "svc": {
             "Размещение (комиссия)": 328.8,
             "Программа лояльности и отзывы": 0,
@@ -2701,7 +2701,7 @@
           "svc_points": 36713.16,
           "svc_total": 40002.12,
           "result_money": 28128.04,
-          "result_points": 55793.54,
+          "result_points": 57592.91,
           "cogs": 14260,
           "cogs_known": true,
           "ship_our": 0,
@@ -2727,7 +2727,7 @@
           "buyer_pay": 30246,
           "refunds": 0,
           "revenue_money": 30246,
-          "points_accrued": 70607.38,
+          "points_accrued": 72580.84,
           "svc": {
             "Размещение (комиссия)": 333.44,
             "Программа лояльности и отзывы": 0,
@@ -2766,7 +2766,7 @@
           "svc_points": 38333.14,
           "svc_total": 40763.64,
           "result_money": 27815.5,
-          "result_points": 60089.74,
+          "result_points": 62063.2,
           "cogs": 13664,
           "cogs_known": true,
           "ship_our": 2247,
@@ -2792,7 +2792,7 @@
           "buyer_pay": 29264,
           "refunds": 0,
           "revenue_money": 29264,
-          "points_accrued": 57064.02,
+          "points_accrued": 58658.95,
           "svc": {
             "Размещение (комиссия)": 288.46,
             "Программа лояльности и отзывы": 0,
@@ -2831,7 +2831,7 @@
           "svc_points": 32132.73,
           "svc_total": 34266.21,
           "result_money": 27130.52,
-          "result_points": 52061.81,
+          "result_points": 53656.74,
           "cogs": 13868,
           "cogs_known": true,
           "ship_our": 4385.9,
@@ -2857,7 +2857,7 @@
           "buyer_pay": 28430,
           "refunds": 0,
           "revenue_money": 28430,
-          "points_accrued": 39658.64,
+          "points_accrued": 40767.1,
           "svc": {
             "Размещение (комиссия)": 239.61,
             "Программа лояльности и отзывы": 1,
@@ -2896,7 +2896,7 @@
           "svc_points": 25386.44,
           "svc_total": 27111.82,
           "result_money": 26704.62,
-          "result_points": 40976.82,
+          "result_points": 42085.28,
           "cogs": 20103,
           "cogs_known": true,
           "ship_our": 1000,
@@ -2922,7 +2922,7 @@
           "buyer_pay": 26255,
           "refunds": 0,
           "revenue_money": 26255,
-          "points_accrued": 37490.42,
+          "points_accrued": 38538.27,
           "svc": {
             "Размещение (комиссия)": 232.08,
             "Программа лояльности и отзывы": 0,
@@ -2961,7 +2961,7 @@
           "svc_points": 24254.25,
           "svc_total": 26839.17,
           "result_money": 23670.08,
-          "result_points": 36906.25,
+          "result_points": 37954.1,
           "cogs": 9552,
           "cogs_known": true,
           "ship_our": 0,
@@ -2987,7 +2987,7 @@
           "buyer_pay": 25762,
           "refunds": 0,
           "revenue_money": 25762,
-          "points_accrued": 62099.2,
+          "points_accrued": 63834.86,
           "svc": {
             "Размещение (комиссия)": 295.36,
             "Программа лояльности и отзывы": 0,
@@ -3026,7 +3026,7 @@
           "svc_points": 34001.05,
           "svc_total": 37067.53,
           "result_money": 22695.52,
-          "result_points": 50793.67,
+          "result_points": 52529.33,
           "cogs": 11912,
           "cogs_known": true,
           "ship_our": 0,
@@ -3052,7 +3052,7 @@
           "buyer_pay": 23204,
           "refunds": 0,
           "revenue_money": 23204,
-          "points_accrued": 50026.57,
+          "points_accrued": 51424.81,
           "svc": {
             "Размещение (комиссия)": 249.7,
             "Программа лояльности и отзывы": 0,
@@ -3091,7 +3091,7 @@
           "svc_points": 29714.76,
           "svc_total": 32471.6,
           "result_money": 20447.16,
-          "result_points": 40758.97,
+          "result_points": 42157.21,
           "cogs": 11909,
           "cogs_known": true,
           "ship_our": 0,
@@ -3117,7 +3117,7 @@
           "buyer_pay": 19852,
           "refunds": 0,
           "revenue_money": 19852,
-          "points_accrued": 46783.59,
+          "points_accrued": 48091.19,
           "svc": {
             "Размещение (комиссия)": 224.64,
             "Программа лояльности и отзывы": 0,
@@ -3156,7 +3156,7 @@
           "svc_points": 29310.96,
           "svc_total": 31917.56,
           "result_money": 17245.4,
-          "result_points": 34718.03,
+          "result_points": 36025.63,
           "cogs": 9760,
           "cogs_known": true,
           "ship_our": 0,
@@ -3182,16 +3182,16 @@
           "buyer_pay": 19318,
           "refunds": 0,
           "revenue_money": 19318,
-          "points_accrued": 47710.66,
+          "points_accrued": 49044.16,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 224.64,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 43.53,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 30.34,
             "Доставка невыкупов и возвратов": 0,
             "Приём платежа покупателя": 0.12,
-            "Перевод платежа покупателя": 0,
+            "Перевод платежа покупателя": 1310.4,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -3217,11 +3217,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0.12,
+          "svc_money": 2609.03,
           "svc_points": 29551.89,
-          "svc_total": 29552.01,
-          "result_money": 19317.88,
-          "result_points": 37476.65,
+          "svc_total": 32160.92,
+          "result_money": 16708.97,
+          "result_points": 36201.24,
           "cogs": 9760,
           "cogs_known": true,
           "ship_our": 0,
@@ -3247,7 +3247,7 @@
           "buyer_pay": 18112,
           "refunds": 0,
           "revenue_money": 18112,
-          "points_accrued": 57102.79,
+          "points_accrued": 58698.8,
           "svc": {
             "Размещение (комиссия)": 244.82,
             "Программа лояльности и отзывы": 0,
@@ -3286,7 +3286,7 @@
           "svc_points": 29996.89,
           "svc_total": 32728.12,
           "result_money": 15380.77,
-          "result_points": 42486.67,
+          "result_points": 44082.68,
           "cogs": 12651,
           "cogs_known": true,
           "ship_our": 0,
@@ -3312,7 +3312,7 @@
           "buyer_pay": 18086,
           "refunds": 0,
           "revenue_money": 18086,
-          "points_accrued": 53998.7,
+          "points_accrued": 55507.95,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -3333,9 +3333,9 @@
           "svc_pts": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 3467.3,
             "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Доставка (средняя миля)": 3582.81,
             "Доставка невыкупов и возвратов": 0,
             "Приём платежа покупателя": 0,
             "Перевод платежа покупателя": 0,
@@ -3348,10 +3348,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 0.12,
-          "svc_points": 0,
-          "svc_total": 0.12,
+          "svc_points": 7050.11,
+          "svc_total": 7050.23,
           "result_money": 18085.88,
-          "result_points": 72084.58,
+          "result_points": 66543.72,
           "cogs": 10373,
           "cogs_known": true,
           "ship_our": 0,
@@ -3377,7 +3377,7 @@
           "buyer_pay": 17998,
           "refunds": 0,
           "revenue_money": 17998,
-          "points_accrued": 47642.95,
+          "points_accrued": 48974.56,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -3398,9 +3398,9 @@
           "svc_pts": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 5330.91,
             "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Доставка (средняя миля)": 3003.66,
             "Доставка невыкупов и возвратов": 0,
             "Приём платежа покупателя": 0,
             "Перевод платежа покупателя": 0,
@@ -3413,10 +3413,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 0.12,
-          "svc_points": 0,
-          "svc_total": 0.12,
+          "svc_points": 8334.57,
+          "svc_total": 8334.69,
           "result_money": 17997.88,
-          "result_points": 65640.83,
+          "result_points": 58637.87,
           "cogs": 9760,
           "cogs_known": true,
           "ship_our": 0,
@@ -3442,7 +3442,7 @@
           "buyer_pay": 16355,
           "refunds": 0,
           "revenue_money": 16355,
-          "points_accrued": 33528.71,
+          "points_accrued": 34465.83,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -3481,7 +3481,7 @@
           "svc_points": 0,
           "svc_total": 0.12,
           "result_money": 16354.88,
-          "result_points": 49883.59,
+          "result_points": 50820.71,
           "cogs": 7962,
           "cogs_known": true,
           "ship_our": 0,
@@ -3507,7 +3507,7 @@
           "buyer_pay": 26240,
           "refunds": -13120,
           "revenue_money": 13120,
-          "points_accrued": 31721.46,
+          "points_accrued": 32608.07,
           "svc": {
             "Размещение (комиссия)": 301.37,
             "Программа лояльности и отзывы": 0,
@@ -3546,7 +3546,7 @@
           "svc_points": 36387.13,
           "svc_total": 40512.76,
           "result_money": 8994.37,
-          "result_points": 4328.7,
+          "result_points": 5215.31,
           "cogs": 8557,
           "cogs_known": true,
           "ship_our": 0,
@@ -3572,7 +3572,7 @@
           "buyer_pay": 11349,
           "refunds": 0,
           "revenue_money": 11349,
-          "points_accrued": 25450.78,
+          "points_accrued": 26162.12,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -3593,9 +3593,9 @@
           "svc_pts": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1544.93,
             "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Доставка (средняя миля)": 914.76,
             "Доставка невыкупов и возвратов": 0,
             "Приём платежа покупателя": 0,
             "Перевод платежа покупателя": 0,
@@ -3608,10 +3608,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 0.12,
-          "svc_points": 0,
-          "svc_total": 0.12,
+          "svc_points": 2459.69,
+          "svc_total": 2459.81,
           "result_money": 11348.88,
-          "result_points": 36799.66,
+          "result_points": 35051.31,
           "cogs": 4411,
           "cogs_known": true,
           "ship_our": 0,
@@ -3637,7 +3637,7 @@
           "buyer_pay": 11209,
           "refunds": 0,
           "revenue_money": 11209,
-          "points_accrued": 32796.08,
+          "points_accrued": 33712.73,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -3656,11 +3656,11 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 14452.51,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 2157.44,
             "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Доставка (средняя миля)": 2904.66,
             "Доставка невыкупов и возвратов": 0,
             "Приём платежа покупателя": 0,
             "Перевод платежа покупателя": 0,
@@ -3673,10 +3673,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 0.12,
-          "svc_points": 0,
-          "svc_total": 0.12,
+          "svc_points": 19514.61,
+          "svc_total": 19514.73,
           "result_money": 11208.88,
-          "result_points": 44004.96,
+          "result_points": 25407,
           "cogs": 9446,
           "cogs_known": true,
           "ship_our": 0,
@@ -3702,7 +3702,7 @@
           "buyer_pay": 11204,
           "refunds": 0,
           "revenue_money": 11204,
-          "points_accrued": 32804.77,
+          "points_accrued": 33721.65,
           "svc": {
             "Размещение (комиссия)": 145.99,
             "Программа лояльности и отзывы": 0,
@@ -3741,7 +3741,7 @@
           "svc_points": 19514.61,
           "svc_total": 21554.66,
           "result_money": 9163.95,
-          "result_points": 22454.11,
+          "result_points": 23370.99,
           "cogs": 9446,
           "cogs_known": true,
           "ship_our": 0,
@@ -3767,7 +3767,7 @@
           "buyer_pay": 10603,
           "refunds": 0,
           "revenue_money": 10603,
-          "points_accrued": 25607.02,
+          "points_accrued": 26322.73,
           "svc": {
             "Размещение (комиссия)": 7934.69,
             "Программа лояльности и отзывы": 0,
@@ -3806,7 +3806,7 @@
           "svc_points": 6956.69,
           "svc_total": 16626.32,
           "result_money": 933.37,
-          "result_points": 19583.7,
+          "result_points": 20299.41,
           "cogs": 4411,
           "cogs_known": true,
           "ship_our": 0,
@@ -3832,7 +3832,7 @@
           "buyer_pay": 10572,
           "refunds": 0,
           "revenue_money": 10572,
-          "points_accrued": 28172.93,
+          "points_accrued": 28960.36,
           "svc": {
             "Размещение (комиссия)": 129.98,
             "Программа лояльности и отзывы": 0,
@@ -3871,7 +3871,7 @@
           "svc_points": 17784.28,
           "svc_total": 19714.44,
           "result_money": 8641.84,
-          "result_points": 19030.49,
+          "result_points": 19817.92,
           "cogs": 9097,
           "cogs_known": true,
           "ship_our": 0,
@@ -3897,7 +3897,7 @@
           "buyer_pay": 9639,
           "refunds": 0,
           "revenue_money": 9639,
-          "points_accrued": 28534.03,
+          "points_accrued": 29331.56,
           "svc": {
             "Размещение (комиссия)": 126.47,
             "Программа лояльности и отзывы": 0,
@@ -3936,7 +3936,7 @@
           "svc_points": 16978.17,
           "svc_total": 18879.9,
           "result_money": 7737.27,
-          "result_points": 19293.13,
+          "result_points": 20090.66,
           "cogs": 9097,
           "cogs_known": true,
           "ship_our": 0,
@@ -3962,7 +3962,7 @@
           "buyer_pay": 9417,
           "refunds": 0,
           "revenue_money": 9417,
-          "points_accrued": 25745.91,
+          "points_accrued": 26465.5,
           "svc": {
             "Размещение (комиссия)": 118.82,
             "Программа лояльности и отзывы": 0,
@@ -4001,7 +4001,7 @@
           "svc_points": 14817.52,
           "svc_total": 16646.25,
           "result_money": 7588.27,
-          "result_points": 18516.66,
+          "result_points": 19236.25,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -4027,7 +4027,7 @@
           "buyer_pay": 9002,
           "refunds": 0,
           "revenue_money": 9002,
-          "points_accrued": 28282.3,
+          "points_accrued": 29072.79,
           "svc": {
             "Размещение (комиссия)": 123.94,
             "Программа лояльности и отзывы": 0,
@@ -4066,7 +4066,7 @@
           "svc_points": 15173.2,
           "svc_total": 17034.79,
           "result_money": 7140.41,
-          "result_points": 20249.51,
+          "result_points": 21040,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -4092,7 +4092,7 @@
           "buyer_pay": 8863,
           "refunds": 0,
           "revenue_money": 8863,
-          "points_accrued": 21183.52,
+          "points_accrued": 21775.59,
           "svc": {
             "Размещение (комиссия)": 102.17,
             "Программа лояльности и отзывы": 0,
@@ -4131,7 +4131,7 @@
           "svc_points": 12633.26,
           "svc_total": 14350.82,
           "result_money": 7145.44,
-          "result_points": 15695.7,
+          "result_points": 16287.77,
           "cogs": 0,
           "cogs_known": false,
           "ship_our": 0,
@@ -4157,7 +4157,7 @@
           "buyer_pay": 8335,
           "refunds": 0,
           "revenue_money": 8335,
-          "points_accrued": 26935.11,
+          "points_accrued": 27687.95,
           "svc": {
             "Размещение (комиссия)": 116.87,
             "Программа лояльности и отзывы": 0,
@@ -4196,7 +4196,7 @@
           "svc_points": 16032.57,
           "svc_total": 17862.45,
           "result_money": 6505.12,
-          "result_points": 17407.66,
+          "result_points": 18160.5,
           "cogs": 3230,
           "cogs_known": true,
           "ship_our": 0,
@@ -4222,7 +4222,7 @@
           "buyer_pay": 7582,
           "refunds": 0,
           "revenue_money": 7582,
-          "points_accrued": 17581.17,
+          "points_accrued": 18072.56,
           "svc": {
             "Размещение (комиссия)": 8588.87,
             "Программа лояльности и отзывы": 0,
@@ -4261,7 +4261,7 @@
           "svc_points": 891,
           "svc_total": 10870.29,
           "result_money": -2397.29,
-          "result_points": 14292.88,
+          "result_points": 14784.27,
           "cogs": 4665,
           "cogs_known": true,
           "ship_our": 0,
@@ -4334,18 +4334,18 @@
         }
       ],
       "overhead_money": 0,
-      "overhead_points": 49372.05,
+      "overhead_points": 51701.27,
       "overhead": {},
       "overhead_pts": {
-        "Полка": 8910.21,
-        "Буст продаж": 40461.84
+        "Полка": 9405.21,
+        "Буст продаж": 42296.06
       },
       "overhead_src": "ledger",
       "overhead_ledger": 0,
-      "overhead_points_report": 49372.05,
+      "overhead_points_report": 51701.27,
       "points_src": "report",
-      "points_report": 3295117,
-      "points_spent_report": 3239050.99,
+      "points_report": 3387215,
+      "points_spent_report": 3276409.97,
       "overhead_daily": {
         "2026-09-04": {
           "m": 0,
@@ -4612,18 +4612,32 @@
               1837.97
             ]
           }
+        },
+        "2026-09-20": {
+          "m": 0,
+          "p": 2329.22,
+          "c": {
+            "Полка": [
+              0,
+              495
+            ],
+            "Буст продаж": [
+              0,
+              1834.22
+            ]
+          }
         }
       },
-      "points_acc": 3399745,
+      "points_acc": 3491843,
       "points_ded": 104628,
       "svc_months": [
         "2026-09"
       ],
       "orders_without_ledger": 0,
       "svc_settled": false,
-      "ledger_outside": 11858.11,
-      "ledger_outside_orders": 55,
-      "ledger_status": 11858.11,
+      "ledger_outside": 11858.71,
+      "ledger_outside_orders": 59,
+      "ledger_status": 11858.71,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "missing_accrued": 0,
@@ -75653,7 +75667,7 @@
           "buyer_pay": 43831,
           "refunds": 0,
           "revenue_money": 43831,
-          "points_accrued": 4048,
+          "points_accrued": 581168,
           "svc": {
             "Размещение (комиссия)": 146.04,
             "Программа лояльности и отзывы": 0,
@@ -75692,39 +75706,480 @@
           "svc_points": 15196.5,
           "svc_total": 16445.91,
           "result_money": 42581.59,
-          "result_points": 31433.09,
+          "result_points": 608553.09,
           "cogs": 8864,
           "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         }
       ],
-      "overhead_money": 0,
-      "overhead_points": 0,
-      "overhead": {},
-      "overhead_pts": {},
-      "overhead_src": "ledger",
-      "overhead_ledger": 0,
-      "overhead_points_report": 0,
-      "points_src": "orders",
-      "points_report": 0,
-      "points_spent_report": 0,
-      "overhead_daily": {},
-      "points_acc": 4048,
-      "points_ded": 0,
+      "overhead_money": 7366.67,
+      "overhead_points": 21045.52,
+      "overhead": {
+        "Полка": 4377.05,
+        "Буст продаж": 2989.62
+      },
+      "overhead_pts": {
+        "Полка": 14059.75,
+        "Буст продаж": 6985.77
+      },
+      "overhead_src": "act",
+      "overhead_ledger": 8213.06,
+      "overhead_points_report": 21045.52,
+      "points_src": "report",
+      "points_report": 581168,
+      "points_spent_report": 535714.52,
+      "overhead_daily": {
+        "2026-01-01": {
+          "m": 771.01,
+          "p": 0,
+          "c": {
+            "Полка": [
+              472.03,
+              0
+            ],
+            "Буст продаж": [
+              298.98,
+              0
+            ]
+          }
+        },
+        "2026-01-02": {
+          "m": 13.24,
+          "p": 1213.59,
+          "c": {
+            "Полка": [
+              9,
+              794.26
+            ],
+            "Буст продаж": [
+              4.24,
+              419.33
+            ]
+          }
+        },
+        "2026-01-03": {
+          "m": 13.68,
+          "p": 1260.64,
+          "c": {
+            "Полка": [
+              9,
+              798.2
+            ],
+            "Буст продаж": [
+              4.68,
+              462.44
+            ]
+          }
+        },
+        "2026-01-04": {
+          "m": 1176.53,
+          "p": 33.65,
+          "c": {
+            "Полка": [
+              757.74,
+              0
+            ],
+            "Буст продаж": [
+              418.79,
+              33.65
+            ]
+          }
+        },
+        "2026-01-05": {
+          "m": 13.39,
+          "p": 1229.53,
+          "c": {
+            "Полка": [
+              8.39,
+              734.53
+            ],
+            "Буст продаж": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-06": {
+          "m": 1170.36,
+          "p": 0,
+          "c": {
+            "Полка": [
+              728.71,
+              0
+            ],
+            "Буст продаж": [
+              441.65,
+              0
+            ]
+          }
+        },
+        "2026-01-07": {
+          "m": 12.23,
+          "p": 1114.17,
+          "c": {
+            "Полка": [
+              8.09,
+              704.79
+            ],
+            "Буст продаж": [
+              4.14,
+              409.38
+            ]
+          }
+        },
+        "2026-01-08": {
+          "m": 13.81,
+          "p": 1270.81,
+          "c": {
+            "Полка": [
+              8.9,
+              784.99
+            ],
+            "Буст продаж": [
+              4.91,
+              485.82
+            ]
+          }
+        },
+        "2026-01-09": {
+          "m": 1201.43,
+          "p": 0,
+          "c": {
+            "Полка": [
+              718.74,
+              0
+            ],
+            "Буст продаж": [
+              482.69,
+              0
+            ]
+          }
+        },
+        "2026-01-10": {
+          "m": 14,
+          "p": 1289.94,
+          "c": {
+            "Полка": [
+              9,
+              794.94
+            ],
+            "Буст продаж": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-11": {
+          "m": 13.8,
+          "p": 1268.25,
+          "c": {
+            "Полка": [
+              9,
+              793.85
+            ],
+            "Буст продаж": [
+              4.8,
+              474.4
+            ]
+          }
+        },
+        "2026-01-12": {
+          "m": 990.75,
+          "p": 0,
+          "c": {
+            "Полка": [
+              617.03,
+              0
+            ],
+            "Буст продаж": [
+              373.72,
+              0
+            ]
+          }
+        },
+        "2026-01-13": {
+          "m": 10.04,
+          "p": 898.12,
+          "c": {
+            "Полка": [
+              6.24,
+              522.12
+            ],
+            "Буст продаж": [
+              3.8,
+              376
+            ]
+          }
+        },
+        "2026-01-14": {
+          "m": 7.91,
+          "p": 687.62,
+          "c": {
+            "Полка": [
+              4.79,
+              379.3
+            ],
+            "Буст продаж": [
+              3.12,
+              308.32
+            ]
+          }
+        },
+        "2026-01-15": {
+          "m": 7.71,
+          "p": 668.64,
+          "c": {
+            "Полка": [
+              4.91,
+              391.59
+            ],
+            "Буст продаж": [
+              2.8,
+              277.05
+            ]
+          }
+        },
+        "2026-01-16": {
+          "m": 7.04,
+          "p": 599.47,
+          "c": {
+            "Полка": [
+              4.74,
+              372.16
+            ],
+            "Буст продаж": [
+              2.3,
+              227.31
+            ]
+          }
+        },
+        "2026-01-17": {
+          "m": 8.78,
+          "p": 771.44,
+          "c": {
+            "Полка": [
+              6.28,
+              524.04
+            ],
+            "Буст продаж": [
+              2.5,
+              247.4
+            ]
+          }
+        },
+        "2026-01-18": {
+          "m": 12,
+          "p": 1090.41,
+          "c": {
+            "Полка": [
+              8.9,
+              784.04
+            ],
+            "Буст продаж": [
+              3.1,
+              306.37
+            ]
+          }
+        },
+        "2026-01-19": {
+          "m": 8.1,
+          "p": 708.65,
+          "c": {
+            "Полка": [
+              5.4,
+              441.91
+            ],
+            "Буст продаж": [
+              2.7,
+              266.74
+            ]
+          }
+        },
+        "2026-01-20": {
+          "m": 6.94,
+          "p": 592.29,
+          "c": {
+            "Полка": [
+              4.66,
+              366.79
+            ],
+            "Буст продаж": [
+              2.28,
+              225.5
+            ]
+          }
+        },
+        "2026-01-21": {
+          "m": 11.13,
+          "p": 1004.44,
+          "c": {
+            "Полка": [
+              9.21,
+              815.12
+            ],
+            "Буст продаж": [
+              1.92,
+              189.32
+            ]
+          }
+        },
+        "2026-01-22": {
+          "m": 10.62,
+          "p": 956.81,
+          "c": {
+            "Полка": [
+              8.65,
+              762.27
+            ],
+            "Буст продаж": [
+              1.97,
+              194.54
+            ]
+          }
+        },
+        "2026-01-23": {
+          "m": 9.38,
+          "p": 831.08,
+          "c": {
+            "Полка": [
+              8.1,
+              704.79
+            ],
+            "Буст продаж": [
+              1.28,
+              126.29
+            ]
+          }
+        },
+        "2026-01-24": {
+          "m": 11.74,
+          "p": 1068.62,
+          "c": {
+            "Полка": [
+              9.87,
+              883.74
+            ],
+            "Буст продаж": [
+              1.87,
+              184.88
+            ]
+          }
+        },
+        "2026-01-25": {
+          "m": 13.42,
+          "p": 1234.14,
+          "c": {
+            "Полка": [
+              11.03,
+              998.39
+            ],
+            "Буст продаж": [
+              2.39,
+              235.75
+            ]
+          }
+        },
+        "2026-01-26": {
+          "m": 781.27,
+          "p": 0,
+          "c": {
+            "Полка": [
+              395.25,
+              0
+            ],
+            "Буст продаж": [
+              386.02,
+              0
+            ]
+          }
+        },
+        "2026-01-27": {
+          "m": 664.34,
+          "p": 0,
+          "c": {
+            "Полка": [
+              285.97,
+              0
+            ],
+            "Буст продаж": [
+              378.37,
+              0
+            ]
+          }
+        },
+        "2026-01-28": {
+          "m": 376.44,
+          "p": 0,
+          "c": {
+            "Полка": [
+              237.36,
+              0
+            ],
+            "Буст продаж": [
+              139.08,
+              0
+            ]
+          }
+        },
+        "2026-01-29": {
+          "m": 5.27,
+          "p": 425.75,
+          "c": {
+            "Полка": [
+              3.27,
+              228.1
+            ],
+            "Буст продаж": [
+              2,
+              197.65
+            ]
+          }
+        },
+        "2026-01-30": {
+          "m": 4.57,
+          "p": 354.73,
+          "c": {
+            "Полка": [
+              2.99,
+              198.9
+            ],
+            "Буст продаж": [
+              1.58,
+              155.83
+            ]
+          }
+        },
+        "2026-01-31": {
+          "m": 5.74,
+          "p": 472.73,
+          "c": {
+            "Полка": [
+              3.8,
+              280.93
+            ],
+            "Буст продаж": [
+              1.94,
+              191.8
+            ]
+          }
+        }
+      },
+      "points_acc": 622313,
+      "points_ded": 41145,
       "svc_months": [
         "2026-01",
         "2026-02"
       ],
       "orders_without_ledger": 0,
       "svc_settled": true,
-      "ledger_outside": 107938.47,
-      "ledger_outside_orders": 37,
+      "ledger_outside": 792005.51,
+      "ledger_outside_orders": 67,
       "ledger_status": 0,
-      "ledger_missing": 107938.47,
-      "ledger_missing_orders": 37,
-      "missing_accrued": 761727.13,
-      "missing_accrued_orders": 31,
+      "ledger_missing": 792005.51,
+      "ledger_missing_orders": 67,
+      "missing_accrued": 1889102.13,
+      "missing_accrued_orders": 53,
       "orders_period": 2,
       "orders_inflight": 0,
       "inflight_rows": [],
@@ -75758,7 +76213,7 @@
           "buyer_pay": 41939,
           "refunds": 0,
           "revenue_money": 41939,
-          "points_accrued": 3178,
+          "points_accrued": 7287.15,
           "svc": {
             "Размещение (комиссия)": 121.82,
             "Программа лояльности и отзывы": 0,
@@ -75797,7 +76252,7 @@
           "svc_points": 13020.08,
           "svc_total": 19352.21,
           "result_money": 35606.87,
-          "result_points": 25764.79,
+          "result_points": 29873.94,
           "cogs": 11119,
           "cogs_known": true,
           "ship_our": 0,
@@ -75823,7 +76278,7 @@
           "buyer_pay": 34237,
           "refunds": 0,
           "revenue_money": 34237,
-          "points_accrued": 19821,
+          "points_accrued": 45449.54,
           "svc": {
             "Размещение (комиссия)": 145.96,
             "Программа лояльности и отзывы": 0,
@@ -75842,9 +76297,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 14449.7,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 2049.71,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -75859,10 +76314,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 5522.72,
-          "svc_points": 0,
-          "svc_total": 5522.72,
+          "svc_points": 16499.41,
+          "svc_total": 22022.13,
           "result_money": 28714.28,
-          "result_points": 48535.28,
+          "result_points": 57664.41,
           "cogs": 11477,
           "cogs_known": true,
           "ship_our": 0,
@@ -75888,16 +76343,16 @@
           "buyer_pay": 32924,
           "refunds": 0,
           "revenue_money": 32924,
-          "points_accrued": 16441,
+          "points_accrued": 37699.2,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 143.16,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 47.64,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 2750,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 823.1,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -75907,9 +76362,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 14172.69,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 4716.08,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -75923,11 +76378,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 32924,
-          "result_points": 49365,
+          "svc_money": 4764.02,
+          "svc_points": 18888.77,
+          "svc_total": 23652.79,
+          "result_money": 28159.98,
+          "result_points": 46970.41,
           "cogs": 12464,
           "cogs_known": true,
           "ship_our": 0,
@@ -75953,16 +76408,16 @@
           "buyer_pay": 32885,
           "refunds": 0,
           "revenue_money": 32885,
-          "points_accrued": 16534,
+          "points_accrued": 37912.45,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 1091.55,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 49.42,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 4000,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 822.13,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -75972,9 +76427,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 13239.96,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 4892.48,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -75988,11 +76443,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 32885,
-          "result_points": 49419,
+          "svc_money": 6963.22,
+          "svc_points": 18132.44,
+          "svc_total": 25095.66,
+          "result_money": 25921.78,
+          "result_points": 45701.79,
           "cogs": 0,
           "cogs_known": false,
           "ship_our": 0,
@@ -76018,7 +76473,7 @@
           "buyer_pay": 32601,
           "refunds": 0,
           "revenue_money": 32601,
-          "points_accrued": 12059,
+          "points_accrued": 27651.28,
           "svc": {
             "Размещение (комиссия)": 140.68,
             "Программа лояльности и отзывы": 0,
@@ -76037,7 +76492,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 13927.22,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
             "Доставка покупателю": 0,
@@ -76047,17 +76502,17 @@
             "Перевод платежа покупателя": 0,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 0,
+            "Штрафы (не вовремя)": 1980,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
             "Прочие услуги": 0
           },
           "svc_money": 5475.83,
-          "svc_points": 0,
-          "svc_total": 5475.83,
+          "svc_points": 15907.22,
+          "svc_total": 21383.05,
           "result_money": 27125.17,
-          "result_points": 39184.17,
+          "result_points": 38869.23,
           "cogs": 12651,
           "cogs_known": true,
           "ship_our": 0,
@@ -76083,7 +76538,7 @@
           "buyer_pay": 32255,
           "refunds": 0,
           "revenue_money": 32255,
-          "points_accrued": 21893,
+          "points_accrued": 50200.63,
           "svc": {
             "Размещение (комиссия)": 146.2,
             "Программа лояльности и отзывы": 0,
@@ -76102,9 +76557,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 14473.76,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 5307.04,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76119,10 +76574,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 4756.31,
-          "svc_points": 0,
-          "svc_total": 4756.31,
+          "svc_points": 19780.8,
+          "svc_total": 24537.11,
           "result_money": 27498.69,
-          "result_points": 49391.69,
+          "result_points": 57918.52,
           "cogs": 11477,
           "cogs_known": true,
           "ship_our": 0,
@@ -76148,7 +76603,7 @@
           "buyer_pay": 31575,
           "refunds": 0,
           "revenue_money": 31575,
-          "points_accrued": 20266,
+          "points_accrued": 46469.92,
           "svc": {
             "Размещение (комиссия)": 2620.62,
             "Программа лояльности и отзывы": 450,
@@ -76187,7 +76642,7 @@
           "svc_points": 16308.55,
           "svc_total": 25910.49,
           "result_money": 21973.06,
-          "result_points": 25930.51,
+          "result_points": 52134.43,
           "cogs": 0,
           "cogs_known": false,
           "ship_our": 0,
@@ -76213,16 +76668,16 @@
           "buyer_pay": 31526,
           "refunds": 0,
           "revenue_money": 31526,
-          "points_accrued": 16194,
+          "points_accrued": 37132.83,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 138.39,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 38.18,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 4000,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 788.15,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -76232,9 +76687,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 13700.41,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 3779.42,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76248,11 +76703,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 31526,
-          "result_points": 47720,
+          "svc_money": 5964.84,
+          "svc_points": 17479.83,
+          "svc_total": 23444.67,
+          "result_money": 25561.16,
+          "result_points": 45214.16,
           "cogs": 11465,
           "cogs_known": true,
           "ship_our": 0,
@@ -76278,16 +76733,16 @@
           "buyer_pay": 31052,
           "refunds": 0,
           "revenue_money": 31052,
-          "points_accrued": 15522,
+          "points_accrued": 35591.94,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 12772.88,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 37.73,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 776.3,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -76297,9 +76752,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 733.58,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 3734.76,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76313,11 +76768,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 31052,
-          "result_points": 46574,
+          "svc_money": 18087.03,
+          "svc_points": 4468.34,
+          "svc_total": 22555.37,
+          "result_money": 12964.97,
+          "result_points": 44088.57,
           "cogs": 11119,
           "cogs_known": true,
           "ship_our": 0,
@@ -76343,7 +76798,7 @@
           "buyer_pay": 30400,
           "refunds": 0,
           "revenue_money": 30400,
-          "points_accrued": 23172,
+          "points_accrued": 53133.38,
           "svc": {
             "Размещение (комиссия)": 155.36,
             "Программа лояльности и отзывы": 0,
@@ -76362,9 +76817,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 15380.52,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 5303.62,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76379,10 +76834,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 5969.06,
-          "svc_points": 0,
-          "svc_total": 5969.06,
+          "svc_points": 20684.14,
+          "svc_total": 26653.2,
           "result_money": 24430.94,
-          "result_points": 47602.94,
+          "result_points": 56880.18,
           "cogs": 12464,
           "cogs_known": true,
           "ship_our": 0,
@@ -76408,16 +76863,16 @@
           "buyer_pay": 29956,
           "refunds": 0,
           "revenue_money": 29956,
-          "points_accrued": 14705,
+          "points_accrued": 33718.55,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 109.42,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 4000,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 748.9,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -76427,7 +76882,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 10832.53,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
             "Доставка покупателю": 0,
@@ -76443,11 +76898,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 29956,
-          "result_points": 44661,
+          "svc_money": 5858.44,
+          "svc_points": 10832.53,
+          "svc_total": 16690.97,
+          "result_money": 24097.56,
+          "result_points": 46983.58,
           "cogs": 14260,
           "cogs_known": true,
           "ship_our": 0,
@@ -76473,7 +76928,7 @@
           "buyer_pay": 28487,
           "refunds": 0,
           "revenue_money": 28487,
-          "points_accrued": 18909,
+          "points_accrued": 43358.32,
           "svc": {
             "Размещение (комиссия)": 137.45,
             "Программа лояльности и отзывы": 0,
@@ -76492,9 +76947,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 13607.39,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 3645.84,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76509,10 +76964,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 5886.58,
-          "svc_points": 0,
-          "svc_total": 5886.58,
+          "svc_points": 17253.23,
+          "svc_total": 23139.81,
           "result_money": 22600.42,
-          "result_points": 41509.42,
+          "result_points": 48705.51,
           "cogs": 11912,
           "cogs_known": true,
           "ship_our": 0,
@@ -76538,16 +76993,16 @@
           "buyer_pay": 28127,
           "refunds": 0,
           "revenue_money": 28127,
-          "points_accrued": 13229,
+          "points_accrued": 30334.09,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 101.33,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 29.12,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 4000,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 703.18,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -76557,9 +77012,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 10030.89,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 2882.34,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76573,11 +77028,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 28127,
-          "result_points": 41356,
+          "svc_money": 5833.75,
+          "svc_points": 12913.23,
+          "svc_total": 18746.98,
+          "result_money": 22293.25,
+          "result_points": 39714.11,
           "cogs": 14260,
           "cogs_known": true,
           "ship_our": 0,
@@ -76603,7 +77058,7 @@
           "buyer_pay": 27266,
           "refunds": 0,
           "revenue_money": 27266,
-          "points_accrued": 17485,
+          "points_accrued": 40093.09,
           "svc": {
             "Размещение (комиссия)": 12977.79,
             "Программа лояльности и отзывы": 0,
@@ -76611,7 +77066,7 @@
             "Доставка покупателю": 1000,
             "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
             "Перевод платежа покупателя": 681.65,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
@@ -76624,7 +77079,7 @@
           "svc_pts": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 996.83,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76638,11 +77093,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 18169.51,
-          "svc_points": 0,
-          "svc_total": 18169.51,
-          "result_money": 9096.49,
-          "result_points": 26581.49,
+          "svc_money": 18169.63,
+          "svc_points": 996.83,
+          "svc_total": 19166.46,
+          "result_money": 9096.37,
+          "result_points": 48192.63,
           "cogs": 11225,
           "cogs_known": true,
           "ship_our": 0,
@@ -76668,7 +77123,7 @@
           "buyer_pay": 26900,
           "refunds": 0,
           "revenue_money": 26900,
-          "points_accrued": 18443,
+          "points_accrued": 42289.79,
           "svc": {
             "Размещение (комиссия)": 6130.8,
             "Программа лояльности и отзывы": 0,
@@ -76676,7 +77131,7 @@
             "Доставка покупателю": 1000,
             "Доставка (средняя миля)": 4000,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
             "Перевод платежа покупателя": 672.5,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
@@ -76687,9 +77142,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 7018.67,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 4488.95,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76703,11 +77158,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 11848.65,
-          "svc_points": 0,
-          "svc_total": 11848.65,
-          "result_money": 15051.35,
-          "result_points": 33494.35,
+          "svc_money": 11848.77,
+          "svc_points": 11507.62,
+          "svc_total": 23356.39,
+          "result_money": 15051.23,
+          "result_points": 45833.4,
           "cogs": 11912,
           "cogs_known": true,
           "ship_our": 0,
@@ -76733,7 +77188,7 @@
           "buyer_pay": 26308,
           "refunds": 0,
           "revenue_money": 26308,
-          "points_accrued": 12529,
+          "points_accrued": 28728.99,
           "svc": {
             "Размещение (комиссия)": 95.16,
             "Программа лояльности и отзывы": 0,
@@ -76752,7 +77207,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 9419.91,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
             "Доставка покупателю": 0,
@@ -76769,10 +77224,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 5252.98,
-          "svc_points": 0,
-          "svc_total": 5252.98,
+          "svc_points": 9419.91,
+          "svc_total": 14672.89,
           "result_money": 21055.02,
-          "result_points": 33584.02,
+          "result_points": 40364.1,
           "cogs": 13577,
           "cogs_known": true,
           "ship_our": 0,
@@ -76798,7 +77253,7 @@
           "buyer_pay": 25908,
           "refunds": 0,
           "revenue_money": 25908,
-          "points_accrued": 14450,
+          "points_accrued": 33133.84,
           "svc": {
             "Размещение (комиссия)": 10896.66,
             "Программа лояльности и отзывы": 0,
@@ -76837,7 +77292,7 @@
           "svc_points": 3831.62,
           "svc_total": 21070.81,
           "result_money": 8668.81,
-          "result_points": 19287.19,
+          "result_points": 37971.03,
           "cogs": 14260,
           "cogs_known": true,
           "ship_our": 0,
@@ -76863,7 +77318,7 @@
           "buyer_pay": 25608,
           "refunds": 0,
           "revenue_money": 25608,
-          "points_accrued": 14533,
+          "points_accrued": 33324.16,
           "svc": {
             "Размещение (комиссия)": 98.35,
             "Программа лояльности и отзывы": 0,
@@ -76882,9 +77337,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 9736.2,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 3203,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76899,10 +77354,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 5271.03,
-          "svc_points": 0,
-          "svc_total": 5271.03,
+          "svc_points": 12939.2,
+          "svc_total": 18210.23,
           "result_money": 20336.97,
-          "result_points": 34869.97,
+          "result_points": 40721.93,
           "cogs": 12651,
           "cogs_known": true,
           "ship_our": 0,
@@ -76928,16 +77383,16 @@
           "buyer_pay": 25379,
           "refunds": 0,
           "revenue_money": 25379,
-          "points_accrued": 10619,
+          "points_accrued": 24349.36,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 88.2,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 35.21,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 634.48,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -76947,9 +77402,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 8731.31,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 3485.39,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -76963,11 +77418,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 25379,
-          "result_points": 35998,
+          "svc_money": 5258.01,
+          "svc_points": 12216.7,
+          "svc_total": 17474.71,
+          "result_money": 20120.99,
+          "result_points": 32253.65,
           "cogs": 7605,
           "cogs_known": true,
           "ship_our": 0,
@@ -76993,16 +77448,16 @@
           "buyer_pay": 25379,
           "refunds": 0,
           "revenue_money": 25379,
-          "points_accrued": 10619,
+          "points_accrued": 24349.36,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 88.2,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 34.6,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 634.48,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -77012,9 +77467,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 8731.31,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 3424.81,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -77028,11 +77483,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 25379,
-          "result_points": 35998,
+          "svc_money": 5257.4,
+          "svc_points": 12156.12,
+          "svc_total": 17413.52,
+          "result_money": 20121.6,
+          "result_points": 32314.84,
           "cogs": 7605,
           "cogs_known": true,
           "ship_our": 0,
@@ -77058,7 +77513,7 @@
           "buyer_pay": 25107,
           "refunds": 0,
           "revenue_money": 25107,
-          "points_accrued": 17762,
+          "points_accrued": 40728.25,
           "svc": {
             "Размещение (комиссия)": 115.75,
             "Программа лояльности и отзывы": 0,
@@ -77097,7 +77552,7 @@
           "svc_points": 11458.88,
           "svc_total": 18434.43,
           "result_money": 18131.45,
-          "result_points": 24434.57,
+          "result_points": 47400.82,
           "cogs": 11912,
           "cogs_known": true,
           "ship_our": 0,
@@ -77123,7 +77578,7 @@
           "buyer_pay": 24713,
           "refunds": 0,
           "revenue_money": 24713,
-          "points_accrued": 18535,
+          "points_accrued": 42500.74,
           "svc": {
             "Размещение (комиссия)": 147.05,
             "Программа лояльности и отзывы": 0,
@@ -77162,7 +77617,7 @@
           "svc_points": 19688.48,
           "svc_total": 26737.32,
           "result_money": 17664.16,
-          "result_points": 16510.68,
+          "result_points": 40476.42,
           "cogs": 11912,
           "cogs_known": true,
           "ship_our": 0,
@@ -77188,16 +77643,16 @@
           "buyer_pay": 24706,
           "refunds": 0,
           "revenue_money": 24706,
-          "points_accrued": 12524,
+          "points_accrued": 28717.52,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 91.22,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 13.63,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 2750,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 617.65,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -77207,9 +77662,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 9030.13,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1348.99,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -77223,11 +77678,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 24706,
-          "result_points": 37230,
+          "svc_money": 4472.62,
+          "svc_points": 10379.12,
+          "svc_total": 14851.74,
+          "result_money": 20233.38,
+          "result_points": 38571.78,
           "cogs": 11909,
           "cogs_known": true,
           "ship_our": 0,
@@ -77253,16 +77708,16 @@
           "buyer_pay": 24371,
           "refunds": 0,
           "revenue_money": 24371,
-          "points_accrued": 11614,
+          "points_accrued": 26630.89,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 88.17,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 32.64,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 2750,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 609.28,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -77272,9 +77727,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 8728.16,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 3231.2,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -77288,11 +77743,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 24371,
-          "result_points": 35985,
+          "svc_money": 4480.21,
+          "svc_points": 11959.36,
+          "svc_total": 16439.57,
+          "result_money": 19890.79,
+          "result_points": 34562.32,
           "cogs": 11780,
           "cogs_known": true,
           "ship_our": 0,
@@ -77318,7 +77773,7 @@
           "buyer_pay": 24220,
           "refunds": 0,
           "revenue_money": 24220,
-          "points_accrued": 14242,
+          "points_accrued": 32656.9,
           "svc": {
             "Размещение (комиссия)": 19.24,
             "Программа лояльности и отзывы": 0,
@@ -77337,9 +77792,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 1903.86,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1347.93,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -77354,10 +77809,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 5138.48,
-          "svc_points": 0,
-          "svc_total": 5138.48,
+          "svc_points": 3251.79,
+          "svc_total": 8390.27,
           "result_money": 19081.52,
-          "result_points": 33323.52,
+          "result_points": 48486.63,
           "cogs": 0,
           "cogs_known": false,
           "ship_our": 0,
@@ -77383,7 +77838,7 @@
           "buyer_pay": 23429,
           "refunds": 0,
           "revenue_money": 23429,
-          "points_accrued": 13233.72,
+          "points_accrued": 30344.91,
           "svc": {
             "Размещение (комиссия)": 88.13,
             "Программа лояльности и отзывы": 0,
@@ -77402,9 +77857,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 8724.03,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1292.58,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -77419,10 +77874,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 4437.04,
-          "svc_points": 0,
-          "svc_total": 4437.04,
+          "svc_points": 10016.61,
+          "svc_total": 14453.65,
           "result_money": 18991.96,
-          "result_points": 32225.68,
+          "result_points": 39320.26,
           "cogs": 11909,
           "cogs_known": true,
           "ship_our": 0,
@@ -77448,7 +77903,7 @@
           "buyer_pay": 23235,
           "refunds": 0,
           "revenue_money": 23235,
-          "points_accrued": 14862,
+          "points_accrued": 34078.56,
           "svc": {
             "Размещение (комиссия)": 102.87,
             "Программа лояльности и отзывы": 0,
@@ -77487,7 +77942,7 @@
           "svc_points": 13800.28,
           "svc_total": 19720.69,
           "result_money": 17314.59,
-          "result_points": 18376.31,
+          "result_points": 37592.87,
           "cogs": 13577,
           "cogs_known": true,
           "ship_our": 0,
@@ -77513,7 +77968,7 @@
           "buyer_pay": 23129,
           "refunds": 0,
           "revenue_money": 23129,
-          "points_accrued": 20000,
+          "points_accrued": 45859.99,
           "svc": {
             "Размещение (комиссия)": 125.08,
             "Программа лояльности и отзывы": 0,
@@ -77532,9 +77987,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 12382.33,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 4269.77,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -77549,10 +78004,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 5246.56,
-          "svc_points": 0,
-          "svc_total": 5246.56,
+          "svc_points": 16652.1,
+          "svc_total": 21898.66,
           "result_money": 17882.44,
-          "result_points": 37882.44,
+          "result_points": 47090.33,
           "cogs": 10587,
           "cogs_known": true,
           "ship_our": 0,
@@ -77578,7 +78033,7 @@
           "buyer_pay": 22734,
           "refunds": 0,
           "revenue_money": 22734,
-          "points_accrued": 17462,
+          "points_accrued": 40040.35,
           "svc": {
             "Размещение (комиссия)": 120.59,
             "Программа лояльности и отзывы": 0,
@@ -77597,9 +78052,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 11938.21,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 3979.4,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -77614,10 +78069,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 10729.26,
-          "svc_points": 0,
-          "svc_total": 10729.26,
+          "svc_points": 15917.61,
+          "svc_total": 26646.87,
           "result_money": 12004.74,
-          "result_points": 29466.74,
+          "result_points": 36127.48,
           "cogs": 6460,
           "cogs_known": true,
           "ship_our": 0,
@@ -77643,7 +78098,7 @@
           "buyer_pay": 22278,
           "refunds": 0,
           "revenue_money": 22278,
-          "points_accrued": 21151,
+          "points_accrued": 48499.23,
           "svc": {
             "Размещение (комиссия)": 21.72,
             "Программа лояльности и отзывы": 0,
@@ -77662,9 +78117,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 2149.73,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 4299.47,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -77679,10 +78134,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 5622.22,
-          "svc_points": 0,
-          "svc_total": 5622.22,
+          "svc_points": 6449.2,
+          "svc_total": 12071.42,
           "result_money": 16655.78,
-          "result_points": 37806.78,
+          "result_points": 58705.81,
           "cogs": 11912,
           "cogs_known": true,
           "ship_our": 0,
@@ -77708,7 +78163,7 @@
           "buyer_pay": 19901,
           "refunds": 0,
           "revenue_money": 19901,
-          "points_accrued": 13497,
+          "points_accrued": 30948.61,
           "svc": {
             "Размещение (комиссия)": 90.18,
             "Программа лояльности и отзывы": 0,
@@ -77747,7 +78202,7 @@
           "svc_points": 12233.68,
           "svc_total": 17662.91,
           "result_money": 14471.77,
-          "result_points": 15735.09,
+          "result_points": 33186.7,
           "cogs": 7605,
           "cogs_known": true,
           "ship_our": 0,
@@ -77773,16 +78228,16 @@
           "buyer_pay": 18827,
           "refunds": 0,
           "revenue_money": 18827,
-          "points_accrued": 6581,
+          "points_accrued": 15090.23,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 62.25,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 1600,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 470.68,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -77792,7 +78247,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6162.71,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
             "Доставка покупателю": 0,
@@ -77808,11 +78263,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 18827,
-          "result_points": 25408,
+          "svc_money": 3133.05,
+          "svc_points": 6162.71,
+          "svc_total": 9295.76,
+          "result_money": 15693.95,
+          "result_points": 24621.47,
           "cogs": 4411,
           "cogs_known": true,
           "ship_our": 0,
@@ -77838,7 +78293,7 @@
           "buyer_pay": 18335,
           "refunds": 0,
           "revenue_money": 18335,
-          "points_accrued": 11077.28,
+          "points_accrued": 25400.2,
           "svc": {
             "Размещение (комиссия)": 73.77,
             "Программа лояльности и отзывы": 0,
@@ -77857,9 +78312,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 7302.45,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 2366.59,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -77874,10 +78329,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 4306.18,
-          "svc_points": 0,
-          "svc_total": 4306.18,
+          "svc_points": 9669.04,
+          "svc_total": 13975.22,
           "result_money": 14028.82,
-          "result_points": 25106.1,
+          "result_points": 29759.98,
           "cogs": 9222,
           "cogs_known": true,
           "ship_our": 0,
@@ -77903,7 +78358,7 @@
           "buyer_pay": 16140,
           "refunds": 0,
           "revenue_money": 16140,
-          "points_accrued": 6607,
+          "points_accrued": 15149.85,
           "svc": {
             "Размещение (комиссия)": 47.77,
             "Программа лояльности и отзывы": 0,
@@ -77922,7 +78377,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 4729.1,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
             "Доставка покупателю": 0,
@@ -77939,10 +78394,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 5451.39,
-          "svc_points": 0,
-          "svc_total": 5451.39,
+          "svc_points": 4729.1,
+          "svc_total": 10180.49,
           "result_money": 10688.61,
-          "result_points": 17295.61,
+          "result_points": 21109.36,
           "cogs": 6123,
           "cogs_known": true,
           "ship_our": 0,
@@ -77968,7 +78423,7 @@
           "buyer_pay": 16098,
           "refunds": 0,
           "revenue_money": 16098,
-          "points_accrued": 7244,
+          "points_accrued": 16610.49,
           "svc": {
             "Размещение (комиссия)": 49.02,
             "Программа лояльности и отзывы": 0,
@@ -77987,7 +78442,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 4852.8,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
             "Доставка покупателю": 0,
@@ -78004,10 +78459,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 4951.59,
-          "svc_points": 0,
-          "svc_total": 4951.59,
+          "svc_points": 4852.8,
+          "svc_total": 9804.39,
           "result_money": 11146.41,
-          "result_points": 18390.41,
+          "result_points": 22904.1,
           "cogs": 5720,
           "cogs_known": true,
           "ship_our": 0,
@@ -78033,16 +78488,16 @@
           "buyer_pay": 14693,
           "refunds": 0,
           "revenue_money": 14693,
-          "points_accrued": 8643,
+          "points_accrued": 19818.39,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 70.01,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 11.07,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 367.33,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -78052,9 +78507,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6930.79,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1095.06,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78068,11 +78523,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 14693,
-          "result_points": 23336,
+          "svc_money": 4948.53,
+          "svc_points": 8025.85,
+          "svc_total": 12974.38,
+          "result_money": 9744.47,
+          "result_points": 21537.01,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78098,16 +78553,16 @@
           "buyer_pay": 14693,
           "refunds": 0,
           "revenue_money": 14693,
-          "points_accrued": 8643,
+          "points_accrued": 19818.39,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 70.01,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 22.43,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 367.33,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -78117,9 +78572,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6930.79,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 2220.16,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78133,11 +78588,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 14693,
-          "result_points": 23336,
+          "svc_money": 4959.89,
+          "svc_points": 9150.95,
+          "svc_total": 14110.84,
+          "result_money": 9733.11,
+          "result_points": 20400.55,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78163,7 +78618,7 @@
           "buyer_pay": 14672,
           "refunds": 0,
           "revenue_money": 14672,
-          "points_accrued": 6264,
+          "points_accrued": 14363.35,
           "svc": {
             "Размещение (комиссия)": 43.97,
             "Программа лояльности и отзывы": 0,
@@ -78182,7 +78637,7 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 4352.59,
             "Программа лояльности и отзывы": 0,
             "Буст продаж": 0,
             "Доставка покупателю": 0,
@@ -78199,10 +78654,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 4910.89,
-          "svc_points": 0,
-          "svc_total": 4910.89,
+          "svc_points": 4352.59,
+          "svc_total": 9263.48,
           "result_money": 9761.11,
-          "result_points": 16025.11,
+          "result_points": 19771.87,
           "cogs": 0,
           "cogs_known": false,
           "ship_our": 0,
@@ -78228,16 +78683,16 @@
           "buyer_pay": 14540,
           "refunds": 0,
           "revenue_money": 14540,
-          "points_accrued": 8553,
+          "points_accrued": 19612.02,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 69.28,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 10.97,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 363.5,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -78247,9 +78702,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6858.62,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1085.95,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78263,11 +78718,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 14540,
-          "result_points": 23093,
+          "svc_money": 4943.87,
+          "svc_points": 7944.57,
+          "svc_total": 12888.44,
+          "result_money": 9596.13,
+          "result_points": 21263.58,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78293,16 +78748,16 @@
           "buyer_pay": 14089,
           "refunds": 0,
           "revenue_money": 14089,
-          "points_accrued": 8528,
+          "points_accrued": 19554.7,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 3968.29,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 22.28,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 352.23,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -78312,9 +78767,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 2816.81,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 2205.49,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78328,11 +78783,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 14089,
-          "result_points": 22617,
+          "svc_money": 8842.92,
+          "svc_points": 5022.3,
+          "svc_total": 13865.22,
+          "result_money": 5246.08,
+          "result_points": 19778.48,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78358,7 +78813,7 @@
           "buyer_pay": 13810,
           "refunds": 0,
           "revenue_money": 13810,
-          "points_accrued": 8588,
+          "points_accrued": 19692.28,
           "svc": {
             "Размещение (комиссия)": 67.2,
             "Программа лояльности и отзывы": 0,
@@ -78377,9 +78832,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6652.2,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 352.56,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78394,10 +78849,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 4916.14,
-          "svc_points": 0,
-          "svc_total": 4916.14,
+          "svc_points": 7004.76,
+          "svc_total": 11920.9,
           "result_money": 8893.86,
-          "result_points": 17481.86,
+          "result_points": 21581.38,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78423,7 +78878,7 @@
           "buyer_pay": 13742,
           "refunds": 0,
           "revenue_money": 13742,
-          "points_accrued": 8884,
+          "points_accrued": 20371.01,
           "svc": {
             "Размещение (комиссия)": 67.88,
             "Программа лояльности и отзывы": 0,
@@ -78442,9 +78897,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6719.92,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 2125.73,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78459,10 +78914,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 4933.03,
-          "svc_points": 0,
-          "svc_total": 4933.03,
+          "svc_points": 8845.65,
+          "svc_total": 13778.68,
           "result_money": 8808.97,
-          "result_points": 17692.97,
+          "result_points": 20334.33,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78488,7 +78943,7 @@
           "buyer_pay": 13742,
           "refunds": 0,
           "revenue_money": 13742,
-          "points_accrued": 8884,
+          "points_accrued": 20371.01,
           "svc": {
             "Размещение (комиссия)": 67.88,
             "Программа лояльности и отзывы": 0,
@@ -78507,9 +78962,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6719.92,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1063.99,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78524,10 +78979,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 4922.3,
-          "svc_points": 0,
-          "svc_total": 4922.3,
+          "svc_points": 7783.91,
+          "svc_total": 12706.21,
           "result_money": 8819.7,
-          "result_points": 17703.7,
+          "result_points": 21406.8,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78553,7 +79008,7 @@
           "buyer_pay": 13390,
           "refunds": 0,
           "revenue_money": 13390,
-          "points_accrued": 8643,
+          "points_accrued": 19818.39,
           "svc": {
             "Размещение (комиссия)": 69.41,
             "Программа лояльности и отзывы": 0,
@@ -78572,9 +79027,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6870.99,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1686.11,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78582,17 +79037,17 @@
             "Перевод платежа покупателя": 0,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 0,
+            "Штрафы (не вовремя)": 1030.64,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
             "Прочие услуги": 0
           },
           "svc_money": 4931.74,
-          "svc_points": 0,
-          "svc_total": 4931.74,
+          "svc_points": 9587.74,
+          "svc_total": 14519.48,
           "result_money": 8458.26,
-          "result_points": 17101.26,
+          "result_points": 18688.91,
           "cogs": 9097,
           "cogs_known": true,
           "ship_our": 0,
@@ -78618,16 +79073,16 @@
           "buyer_pay": 13384,
           "refunds": 0,
           "revenue_money": 13384,
-          "points_accrued": 9233,
+          "points_accrued": 21171.26,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 67.86,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 22.1,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 334.6,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -78637,9 +79092,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6717.24,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 2187.58,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78653,11 +79108,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 13384,
-          "result_points": 22617,
+          "svc_money": 4924.68,
+          "svc_points": 8904.82,
+          "svc_total": 13829.5,
+          "result_money": 8459.32,
+          "result_points": 20725.76,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78683,16 +79138,16 @@
           "buyer_pay": 13240,
           "refunds": 0,
           "revenue_money": 13240,
-          "points_accrued": 9377,
+          "points_accrued": 21501.45,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 67.86,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 10.73,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 331,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -78702,9 +79157,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6717.24,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1061.32,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78718,11 +79173,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 13240,
-          "result_points": 22617,
+          "svc_money": 4909.71,
+          "svc_points": 7778.56,
+          "svc_total": 12688.27,
+          "result_money": 8330.29,
+          "result_points": 22053.18,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78748,16 +79203,16 @@
           "buyer_pay": 13008,
           "refunds": 0,
           "revenue_money": 13008,
-          "points_accrued": 10328,
+          "points_accrued": 23682.1,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 70.01,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 11.07,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 3500,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 325.2,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -78767,9 +79222,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6930.79,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1095.06,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78783,11 +79238,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 13008,
-          "result_points": 23336,
+          "svc_money": 4906.4,
+          "svc_points": 8025.85,
+          "svc_total": 12932.25,
+          "result_money": 8101.6,
+          "result_points": 23757.85,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -78813,7 +79268,7 @@
           "buyer_pay": 11097,
           "refunds": 0,
           "revenue_money": 11097,
-          "points_accrued": 8798,
+          "points_accrued": 20173.81,
           "svc": {
             "Размещение (комиссия)": 73.62,
             "Программа лояльности и отзывы": 0,
@@ -78832,9 +79287,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 7287.53,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1955.81,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78842,17 +79297,17 @@
             "Перевод платежа покупателя": 0,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 0,
+            "Штрафы (не вовремя)": 1093.12,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
             "Прочие услуги": 0
           },
           "svc_money": 5376.73,
-          "svc_points": 0,
-          "svc_total": 5376.73,
+          "svc_points": 10336.46,
+          "svc_total": 15713.19,
           "result_money": 5720.27,
-          "result_points": 14518.27,
+          "result_points": 15557.62,
           "cogs": 3230,
           "cogs_known": true,
           "ship_our": 0,
@@ -78878,16 +79333,16 @@
           "buyer_pay": 10330,
           "refunds": 0,
           "revenue_money": 10330,
-          "points_accrued": 9971,
+          "points_accrued": 22863.5,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 60.91,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 18.42,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 4000,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 258.25,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -78897,9 +79352,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 6029.39,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1822.88,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78913,11 +79368,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 10330,
-          "result_points": 20301,
+          "svc_money": 5337.7,
+          "svc_points": 7852.27,
+          "svc_total": 13189.97,
+          "result_money": 4992.3,
+          "result_points": 20003.53,
           "cogs": 3230,
           "cogs_known": true,
           "ship_our": 0,
@@ -78943,16 +79398,16 @@
           "buyer_pay": 9387,
           "refunds": 0,
           "revenue_money": 9387,
-          "points_accrued": 10914,
+          "points_accrued": 25025.79,
           "svc": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 3871.86,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
-            "Доставка покупателю": 0,
-            "Доставка (средняя миля)": 0,
+            "Буст продаж": 9.63,
+            "Доставка покупателю": 1000,
+            "Доставка (средняя миля)": 4000,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
-            "Перевод платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
+            "Перевод платежа покупателя": 234.68,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -78962,9 +79417,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 2218.44,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 952.64,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -78978,11 +79433,11 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 0,
-          "svc_points": 0,
-          "svc_total": 0,
-          "result_money": 9387,
-          "result_points": 20301,
+          "svc_money": 9116.29,
+          "svc_points": 3171.08,
+          "svc_total": 12287.37,
+          "result_money": 270.71,
+          "result_points": 22125.42,
           "cogs": 3230,
           "cogs_known": true,
           "ship_our": 0,
@@ -79008,7 +79463,7 @@
           "buyer_pay": 7463,
           "refunds": 0,
           "revenue_money": 7463,
-          "points_accrued": 6720,
+          "points_accrued": 15408.96,
           "svc": {
             "Размещение (комиссия)": 34.75,
             "Программа лояльности и отзывы": 0,
@@ -79027,9 +79482,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 3440.09,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 1402.71,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -79044,10 +79499,10 @@
             "Прочие услуги": 0
           },
           "svc_money": 3194.77,
-          "svc_points": 0,
-          "svc_total": 3194.77,
+          "svc_points": 4842.8,
+          "svc_total": 8037.57,
           "result_money": 4268.23,
-          "result_points": 10988.23,
+          "result_points": 14834.39,
           "cogs": 0,
           "cogs_known": false,
           "ship_our": 0,
@@ -79073,7 +79528,7 @@
           "buyer_pay": 7168,
           "refunds": 0,
           "revenue_money": 7168,
-          "points_accrued": 7099,
+          "points_accrued": 16278,
           "svc": {
             "Размещение (комиссия)": 42.81,
             "Программа лояльности и отзывы": 0,
@@ -79081,7 +79536,7 @@
             "Доставка покупателю": 713.35,
             "Доставка (средняя миля)": 1600,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0,
+            "Приём платежа покупателя": 0.12,
             "Перевод платежа покупателя": 179.2,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
@@ -79092,9 +79547,9 @@
             "Прочие услуги": 0
           },
           "svc_pts": {
-            "Размещение (комиссия)": 0,
+            "Размещение (комиссия)": 4237.29,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 0,
+            "Буст продаж": 988.7,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
@@ -79108,17 +79563,262 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 2545.35,
-          "svc_points": 0,
-          "svc_total": 2545.35,
-          "result_money": 4622.65,
-          "result_points": 11721.65,
+          "svc_money": 2545.47,
+          "svc_points": 5225.99,
+          "svc_total": 7771.46,
+          "result_money": 4622.53,
+          "result_points": 15674.54,
           "cogs": 4665,
           "cogs_known": true,
           "ship_our": 0,
           "ship_known": false
         }
       ],
+      "overhead_money": 100,
+      "overhead_points": 9900,
+      "overhead": {
+        "Полка": 100
+      },
+      "overhead_pts": {
+        "Полка": 9900,
+        "Буст продаж": 0
+      },
+      "overhead_src": "act",
+      "overhead_ledger": 12265.16,
+      "overhead_points_report": 9900,
+      "points_src": "report",
+      "points_report": 1524989,
+      "points_spent_report": 1429875.96,
+      "overhead_daily": {
+        "2026-01-12": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-13": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-14": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-15": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-16": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-17": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-18": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-19": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-20": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-21": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-22": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-23": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-24": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-25": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-26": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-27": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-28": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-29": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-30": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        },
+        "2026-01-31": {
+          "m": 5,
+          "p": 495,
+          "c": {
+            "Полка": [
+              5,
+              495
+            ]
+          }
+        }
+      },
+      "points_acc": 1542881,
+      "points_ded": 17892,
+      "svc_months": [
+        "2026-01",
+        "2026-02"
+      ],
+      "orders_without_ledger": 0,
+      "svc_settled": true,
+      "ledger_outside": 1225005.38,
+      "ledger_outside_orders": 79,
+      "ledger_status": 22000.84,
+      "ledger_missing": 1203004.54,
+      "ledger_missing_orders": 72,
+      "missing_accrued": 2429826,
+      "missing_accrued_orders": 41,
+      "orders_period": 65,
+      "orders_inflight": 0,
+      "inflight_rows": [],
+      "points_on_delivery": 0,
+      "cogs_cov": 90.3,
+      "ship_orders": 0,
+      "ship_cov": 0
+    },
+    {
+      "business": "1023124",
+      "ym": "2025-12",
+      "orders": 0,
+      "rows": [],
       "overhead_money": 0,
       "overhead_points": 0,
       "overhead": {},
@@ -79130,28 +79830,57 @@
       "points_report": 0,
       "points_spent_report": 0,
       "overhead_daily": {},
-      "points_acc": 665063,
+      "points_acc": 0,
       "points_ded": 0,
-      "svc_months": [
-        "2026-01",
-        "2026-02"
-      ],
-      "orders_without_ledger": 20,
+      "svc_months": [],
+      "orders_without_ledger": 0,
       "svc_settled": true,
-      "ledger_outside": 44231.19,
-      "ledger_outside_orders": 30,
-      "ledger_status": 18500.36,
-      "ledger_missing": 25730.83,
-      "ledger_missing_orders": 25,
-      "missing_accrued": 930125,
-      "missing_accrued_orders": 21,
-      "orders_period": 65,
+      "ledger_outside": 108673.15,
+      "ledger_outside_orders": 47,
+      "ledger_status": 0,
+      "ledger_missing": 108673.15,
+      "ledger_missing_orders": 47,
+      "missing_accrued": 962419.53,
+      "missing_accrued_orders": 35,
+      "orders_period": 0,
       "orders_inflight": 0,
       "inflight_rows": [],
       "points_on_delivery": 0,
-      "cogs_cov": 90.3,
-      "ship_orders": 0,
-      "ship_cov": 0
+      "cogs_cov": 0
+    },
+    {
+      "business": "74986385",
+      "ym": "2025-12",
+      "orders": 0,
+      "rows": [],
+      "overhead_money": 0,
+      "overhead_points": 0,
+      "overhead": {},
+      "overhead_pts": {},
+      "overhead_src": "ledger",
+      "overhead_ledger": 0,
+      "overhead_points_report": 0,
+      "points_src": "orders",
+      "points_report": 0,
+      "points_spent_report": 0,
+      "overhead_daily": {},
+      "points_acc": 0,
+      "points_ded": 0,
+      "svc_months": [],
+      "orders_without_ledger": 0,
+      "svc_settled": true,
+      "ledger_outside": 276596.83,
+      "ledger_outside_orders": 87,
+      "ledger_status": 0,
+      "ledger_missing": 276596.83,
+      "ledger_missing_orders": 87,
+      "missing_accrued": 3171673.47,
+      "missing_accrued_orders": 84,
+      "orders_period": 0,
+      "orders_inflight": 0,
+      "inflight_rows": [],
+      "points_on_delivery": 0,
+      "cogs_cov": 0
     }
   ]
 }

@@ -40,6 +40,8 @@ async function main() {
   const nameById: Record<number, string> = {};
   try { for (const t of await seller.accrualTypes()) nameById[t.id] = t.name; } catch { /* имена не критичны */ }
   const byType: Record<number, { name: string; bucket: string; sum: number; n: number }> = {};
+  const rfbsSet = new Set<string>();   // постинги с realFBS-начислениями -> схема доставки rFBS
+  const logiSet = new Set<string>();   // постинги со сбором «Логистика» (type 32) -> OZON везёт (FBO/FBS)
   for (const p of acc) {
     const b = (accByOrder[p.posting_number] ||= zero());
     for (const a of (p.accruals || [])) {
@@ -47,7 +49,10 @@ async function main() {
       const bk = (bmap[tid] || "other") as Bucket;
       const amt = Number(a?.accrued?.amount ?? a?.accrued ?? a?.amount ?? 0);
       b[bk] += amt;
-      const rec = (byType[tid] ||= { name: nameById[tid] || String(tid), bucket: bk, sum: 0, n: 0 });
+      const nm = nameById[tid] || String(tid);
+      if (/rfbs|realfbs/i.test(nm)) rfbsSet.add(p.posting_number);
+      if (tid === 32 || /^logistic$|логистик/i.test(nm)) logiSet.add(p.posting_number);
+      const rec = (byType[tid] ||= { name: nm, bucket: bk, sum: 0, n: 0 });
       rec.sum += amt; rec.n += 1;
     }
   }
@@ -64,9 +69,12 @@ async function main() {
     const revenue = p.products.reduce((s, x) => s + (x.price || 0) * (x.qty || 0), 0);
     const top = p.products.slice().sort((a, x) => (x.price * x.qty) - (a.price * a.qty))[0] || { sku: "", offer: "" };
     const b = accByOrder[p.posting_number] || zero();
+    // Схема доставки: rFBS (доставка силами продавца - есть realFBS-начисления) > FBO/FBS (склад/логистика
+    // OZON). Если явных признаков нет - берём источник постинга (FBO/FBS из эндпоинта).
+    const scheme = rfbsSet.has(p.posting_number) ? "rFBS" : (logiSet.has(p.posting_number) ? ((p as any).src || "FBS") : ((p as any).src || ""));
     const feesSum = b.commission + b.acquiring + b.storage + b.delivery + b.ads + b.other; // buyerDelivery компенсируется, в payout не входит
     rows.push({
-      order: p.posting_number, d: p.date, status: p.status,
+      order: p.posting_number, d: p.date, status: p.status, scheme,
       sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
       commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(b.acquiring),
       storage: Math.round(b.storage), buyer_delivery: Math.round(b.buyerDelivery), ads: Math.round(b.ads),

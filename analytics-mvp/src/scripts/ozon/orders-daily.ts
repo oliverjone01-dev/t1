@@ -57,6 +57,30 @@ async function main() {
   writeFileSync("data/orders_accrual_types.json", JSON.stringify(typesArr, null, 1));
   console.log(`  типов начислений по заказам: ${typesArr.length} -> data/orders_accrual_types.json`);
 
+  // Сборы уровня ЗАКАЗА (ЭКВАЙРИНГ и ДОСТАВКА ОТ ПОКУПАТЕЛЯ) OZON привязывает к БАЗОВОМУ номеру
+  // заказа (без суффикса отправки «-N»), поэтому accrual/postings по суффиксному постингу их почти
+  // не отдаёт: эквайринг=0, доставка покупателя ~3%. Проверено по отчёту «Начисления» (эквайринг -
+  // 402 строки под базой против 13 под постингом; доставка покупателя +605k под базой). Дозапрашиваем
+  // те же начисления по БАЗОВЫМ номерам и берём оттуда ТОЛЬКО эти два бакета (полные), чтобы получать
+  // корректные данные ИЗ API без ручных отчётов. Так «убрать последнюю цифру».
+  const orderBase = (o: string) => o.replace(/-\d+$/, "");
+  const bases = Array.from(new Set(posts.map((p) => orderBase(p.posting_number)).filter(Boolean)));
+  let accBaseRaw: Array<{ posting_number: string; accruals: any[] }> = [];
+  try { accBaseRaw = await seller.accrualPostings(bases); } catch (e) { console.warn("  accrual по базовым номерам не удался:", (e as Error).message); }
+  const accBase: Record<string, { acquiring: number; buyerDelivery: number }> = {};
+  for (const p of accBaseRaw) {
+    const bkey = orderBase(String(p.posting_number));
+    const rec = (accBase[bkey] ||= { acquiring: 0, buyerDelivery: 0 });
+    for (const a of (p.accruals || [])) {
+      const bk = (bmap[Number(a.type_id)] || "other") as Bucket;
+      if (bk !== "acquiring" && bk !== "buyerDelivery") continue;
+      rec[bk] += Number(a?.accrued?.amount ?? a?.accrued ?? a?.amount ?? 0);
+    }
+  }
+  const baseUsed: Record<string, number> = {}; // база -> уже присвоено (не задвоить на мультиотправках)
+  const acqN = Object.values(accBase).filter((v) => v.acquiring).length;
+  console.log(`  базовых номеров: ${bases.length} | из них с эквайрингом: ${acqN} | Σ эквайринг ${Math.round(Object.values(accBase).reduce((s, v) => s + v.acquiring, 0)).toLocaleString("ru")} | Σ дост.покуп ${Math.round(Object.values(accBase).reduce((s, v) => s + v.buyerDelivery, 0)).toLocaleString("ru")}`);
+
   const rows: any[] = [];
   for (const p of posts) {
     if (!p.posting_number || !p.date) continue;
@@ -64,12 +88,19 @@ async function main() {
     const revenue = p.products.reduce((s, x) => s + (x.price || 0) * (x.qty || 0), 0);
     const top = p.products.slice().sort((a, x) => (x.price * x.qty) - (a.price * a.qty))[0] || { sku: "", offer: "" };
     const b = accByOrder[p.posting_number] || zero();
-    const feesSum = b.commission + b.acquiring + b.storage + b.delivery + b.ads + b.other; // buyerDelivery компенсируется, в payout не входит
+    // Эквайринг/доставку покупателя берём из БАЗОВОГО запроса (полные), привязываем к базе ОДИН раз
+    // (guard), иначе мультиотправки задвоят. Фолбэк на постинговый бакет, если по базе пусто.
+    const bkey = orderBase(p.posting_number);
+    const bf = (accBase[bkey] && !baseUsed[bkey]) ? accBase[bkey] : { acquiring: 0, buyerDelivery: 0 };
+    if (accBase[bkey] && !baseUsed[bkey]) baseUsed[bkey] = 1;
+    const acquiring = bf.acquiring || b.acquiring;
+    const buyerDeliv = bf.buyerDelivery || b.buyerDelivery;
+    const feesSum = b.commission + acquiring + b.storage + b.delivery + b.ads + b.other; // buyerDelivery компенсируется, в payout не входит
     rows.push({
       order: p.posting_number, d: p.date, status: p.status,
       sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
-      commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(b.acquiring),
-      storage: Math.round(b.storage), buyer_delivery: Math.round(b.buyerDelivery), ads: Math.round(b.ads),
+      commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(acquiring),
+      storage: Math.round(b.storage), buyer_delivery: Math.round(buyerDeliv), ads: Math.round(b.ads),
       other: Math.round(b.other), payout: Math.round(revenue + feesSum),
     });
   }

@@ -26,6 +26,7 @@ async function main() {
 
   const posts = await seller.postings(from, to);
   console.log(`  постингов: ${posts.length}`);
+  { const p0 = posts.find((p) => p.financial_data) || posts[0]; console.log("  DEBUG posting keys:", Object.keys(p0 as any).join(",")); console.log("  DEBUG financial_data:", JSON.stringify((p0 as any).financial_data).slice(0, 700)); }
 
   // типы начислений -> бакеты
   let bmap: Record<number, Bucket> = {};
@@ -94,6 +95,7 @@ async function main() {
   const baseUsed: Record<string, number> = {}; // база -> уже присвоено (не задвоить на мультиотправках)
   const sB = (k: "acquiring" | "storage" | "buyerDelivery") => Math.round(Object.values(accBase).reduce((s, v) => s + v[k], 0)).toLocaleString("ru");
   console.log(`  by-day: дней ${days.length}, записей ${byDayRecs} | баз с эквайрингом ${Object.values(accBase).filter((v) => v.acquiring).length} | Σ эквайринг ${sB("acquiring")} | Σ хранение ${sB("storage")} | Σ дост.покуп ${sB("buyerDelivery")}`);
+  { const pbases = new Set(posts.map((p) => orderBase(p.posting_number))); const abases = Object.keys(accBase); const overlap = abases.filter((b) => pbases.has(b)).length; console.log(`  DEBUG overlap: accBase ключей ${abases.length}, постинг-баз ${pbases.size}, совпало ${overlap} | примеры accBase: ${abases.slice(0, 3).join(" ")}`); }
 
   const rows: any[] = [];
   for (const p of posts) {

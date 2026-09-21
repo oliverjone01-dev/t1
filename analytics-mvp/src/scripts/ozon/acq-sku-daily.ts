@@ -14,7 +14,8 @@ import { OzonSeller } from "../../connector/ozon-seller.js";
 import { bucketMap, type Bucket } from "./accrual-buckets.js";
 
 const OUT = "data/acq_sku_daily.ndjson";
-const OUT_BD = "data/buyer_delivery_daily.ndjson"; // кабинетная доставка от покупателя (NON_ITEM, без SKU) по дням
+const OUT_BD = "data/buyer_delivery_daily.ndjson"; // кабинетная доставка от покупателя (NON_ITEM) по дням
+const OUT_BDO = "data/buyer_delivery_orders.ndjson"; // доставка от покупателя ПО ЗАКАЗУ (NON_ITEM несёт ключ заказа)
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
 async function main() {
@@ -37,6 +38,8 @@ async function main() {
   const agg: Record<string, { d: string; sku: string; acq: number; sto: number; bd: number }> = {};
   const key = (sku: string, d: string) => sku + "|" + d;
   const bdCab: Record<string, number> = {}; // дата -> доставка покупателя (NON_ITEM, кабинет, >0)
+  const bdOrd: Record<string, number> = {}; // база заказа -> доставка покупателя (NON_ITEM несёт ключ заказа)
+  const oBase = (o: string) => String(o || "").replace(/-\d+$/, "");
   let recs = 0, bdNonItem = 0, bdWithKey = 0;
   for (const day of days) {
     let arr: any[] = [];
@@ -61,7 +64,8 @@ async function main() {
       if (nf && (bmap[Number(nf.type_id)] as Bucket) === "buyerDelivery") {
         const amt = Number(nf?.accrued?.amount ?? nf?.accrued ?? 0);
         bdNonItem += amt; bdCab[d] = (bdCab[d] || 0) + amt;
-        if (a?.unit_number || a?.posting) bdWithKey += amt; // ПРОБА: есть ли ключ заказа для per-order склейки
+        const okey = oBase(String(a?.posting || a?.unit_number || ""));
+        if (okey) { bdWithKey += amt; bdOrd[okey] = (bdOrd[okey] || 0) + amt; } // per-order ключ (posting/unit_number)
       }
     }
   }
@@ -70,6 +74,8 @@ async function main() {
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   const bdRows = Object.entries(bdCab).map(([d, bd]) => ({ d, bd: Math.round(bd) })).filter((r) => r.bd).sort((a, b) => a.d.localeCompare(b.d));
   writeFileSync(OUT_BD, bdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  const bdOrdRows = Object.entries(bdOrd).map(([order, bd]) => ({ order, bd: Math.round(bd) })).filter((r) => r.bd).sort((a, b) => a.order.localeCompare(b.order));
+  writeFileSync(OUT_BDO, bdOrdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   // само-сверка по месяцам
   const bm: Record<string, { acq: number; sto: number; bdc: number }> = {};
   for (const r of rows) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acq: 0, sto: 0, bdc: 0 }); b.acq += r.acq; b.sto += r.sto; }

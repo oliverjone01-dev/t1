@@ -606,6 +606,20 @@ export interface SvodRow {
   business: string; ym: string; d: string; order: string; sku: string; name: string; line: string;
   orders: number; units_delivered: number; units_returned: number; units_net: number;
   price: number; ship_buyer: number; disc_mp: number; disc_plus: number;
+  // Доля МАРКЕТА в цене доставки. Строка доставки, как и товарная, делится на BUYER и
+  // MARKETPLACE/CASHBACK/SPASIBO: часть доставки Маркет оплачивает за покупателя и возвращает
+  // её продавцу баллами. ship_buyer держит только долю покупателя (колонка так и называется),
+  // поэтому доля Маркета нуждалась в отдельном поле: без него она не попадала в доход ВООБЩЕ,
+  // хотя баллы за неё начислены и их трата сидит в svc_points. За февраль-сентябрь 2026 это
+  // 2 599 ₽ (проверено суммой по svod_orders.json). У товарной строки такой дыры нет: там в
+  // доход идёт price целиком, вместе с долей Маркета.
+  //
+  // НЕ ПУТАТЬ с points_on_delivery (804 344 ₽ за тот же период). Это другое и на итог месяца
+  // НЕ влияет: доля начисленных баллов, осевшая на строке доставки при разнесении по
+  // позициям. Месячный итог баллов приводится к отчёту о баллах кабинета (строка ~1259),
+  // поэтому осевшее возвращается на товарные строки, и разнесение остаётся только между
+  // артикулами. Число 804 344 однажды было названо занижением прибыли - это была ошибка.
+  ship_mp: number;
   buyer_pay: number; refunds: number; revenue_money: number; points_accrued: number;
   svc: Record<string, number>; svc_pts: Record<string, number>; svc_money: number; svc_points: number; svc_total: number;
   result_money: number; result_points: number;
@@ -866,7 +880,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     if (!s) {
       s = { business: r.business, ym: k.split("|")[1]!, d: day, order: r.order, sku: r.sku, name: r.name, line: r.line,
         orders: 0, units_delivered: 0, units_returned: 0, units_net: 0,
-        price: 0, ship_buyer: 0, disc_mp: 0, disc_plus: 0, buyer_pay: 0, refunds: 0, revenue_money: 0, points_accrued: 0,
+        price: 0, ship_buyer: 0, ship_mp: 0, disc_mp: 0, disc_plus: 0, buyer_pay: 0, refunds: 0, revenue_money: 0, points_accrued: 0,
         svc: svcZero(), svc_pts: svcZero(), svc_money: 0, svc_points: 0, svc_total: 0, result_money: 0, result_points: 0,
         cogs: 0, cogs_known: cogsAt(r.sku) != null, ship_our: 0, ship_known: false };
       acc.set(kk, s);
@@ -896,6 +910,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
         const share = base > 0 ? (it.price || 0) * (it.count || 0) / base : 1 / (items.length || 1);
         const s2 = touch(k, it);
         s2.ship_buyer += ship * share;
+        s2.ship_mp += shipMp * share;
         s2.disc_mp += shipMp * share;
       }
       if (droppedPts) pointsOnDelivery.set(k, (pointsOnDelivery.get(k) || 0) + droppedPts);
@@ -1211,7 +1226,7 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     s.result_points = r2(s.revenue_money + s.points_accrued - s.svc_total);
     for (const c of Object.keys(s.svc)) s.svc[c] = r2(s.svc[c]!);
     for (const c of Object.keys(s.svc_pts)) s.svc_pts[c] = r2(s.svc_pts[c]!);
-    s.price = r2(s.price); s.ship_buyer = r2(s.ship_buyer); s.ship_our = r2(s.ship_our); s.disc_mp = r2(s.disc_mp); s.disc_plus = r2(s.disc_plus);
+    s.price = r2(s.price); s.ship_buyer = r2(s.ship_buyer); s.ship_mp = r2(s.ship_mp); s.ship_our = r2(s.ship_our); s.disc_mp = r2(s.disc_mp); s.disc_plus = r2(s.disc_plus);
     s.buyer_pay = r2(s.buyer_pay + s.ship_buyer); s.refunds = r2(s.refunds); s.points_accrued = r2(s.points_accrued);
     s.svc_money = r2(s.svc_money); s.svc_points = r2(s.svc_points); s.cogs = r2(s.cogs);
     const k = `${s.business}|${s.ym}`; months.get(k)!.rows.push(s);

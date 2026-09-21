@@ -22,6 +22,25 @@ function windows(from: string, to: string): Array<[string, string]> {
   return out;
 }
 
+// Верхняя граница уже собранного ПО КАЖДОЙ КАМПАНИИ. Кампании нет в ключах - истории нет.
+export function campaignHighWater(rows: Array<{ campaign?: string; created?: string }>): Map<string, string> {
+  const hw = new Map<string, string>();
+  for (const r of rows) {
+    const c = String(r.campaign || "");
+    const d = String(r.created || "");
+    if (!c || !d) continue;
+    const prev = hw.get(c);
+    if (!prev || d > prev) hw.set(c, d);
+  }
+  return hw;
+}
+
+// С какого дня тянуть заказы этой кампании по дате создания.
+export function campaignFrom(hw: Map<string, string>, campaign: string, floor: string): string {
+  const seen = hw.get(campaign);
+  return seen ? addDays(seen, 1) : floor;
+}
+
 async function main() {
   loadEnv();
   ensureDir();
@@ -34,11 +53,19 @@ async function main() {
   const refetch = process.env.YM_ORDERS_REFETCH === "1";
   const existing = refetch ? [] : readNdjson<OrderRow>(OUT);
   if (refetch) console.log("ym-orders: YM_ORDERS_REFETCH=1 - полный пересбор истории с " + FLOOR);
+  // Верхняя граница собранного - ПО КАЖДОЙ КАМПАНИИ, а не одна на файл. Общая граница считала
+  // мебель за все кабинеты: как только мебель добиралась до вчера, fullFrom становился «вчера+1»
+  // и для КАЖДОЙ кампании, включая кабинет зеркал, который завели позже и чью историю ни разу не
+  // тянули. Зеркалам доставался только хвост перетяжки (45 дней по дате обновления), поэтому в
+  // снимке у них март 2, апрель 36, май 16, июнь 42, а июль уже 198 - не спад продаж, а дыра
+  // сбора. Реестр платежей эти заказы знает: январь-март 2026 - 135 заказов и 4 131 402 ₽
+  // начислений, которых свод не видел ни выручкой, ни расходами (поля missing_accrued /
+  // missing_accrued_orders месяца). С границей по кампании новая кампания backfill'ится с FLOOR.
+  const lastByCampaign = campaignHighWater(existing);
   const lastCreated = existing.reduce((m, r) => (r.created > m ? r.created : m), "");
   const to = yesterday();
-  const fullFrom = lastCreated ? addDays(lastCreated, 1) : FLOOR;
   const tailFrom = addDays(to, -(TAIL_DAYS - 1)) < FLOOR ? FLOOR : addDays(to, -(TAIL_DAYS - 1));
-  console.log(`ym-orders: в файле ${existing.length} строк (по ${lastCreated || "-"}); новые с ${fullFrom}, хвост перетяжки с ${tailFrom}`);
+  console.log(`ym-orders: в файле ${existing.length} строк (по ${lastCreated || "-"}); хвост перетяжки с ${tailFrom}`);
 
   const fresh: OrderRow[] = [];
   let nOrders = 0;
@@ -46,6 +73,8 @@ async function main() {
   let okCampaigns = 0;
   for (const { campaign: c, account } of targets) {
     const api = account.api;
+    const fullFrom = campaignFrom(lastByCampaign, c.id, FLOOR);
+    if (!lastByCampaign.has(c.id)) console.log(`  ${c.id}: истории нет - полный бэкфилл с ${FLOOR}`);
     try {
     // 1) новые заказы по дате создания
     if (fullFrom <= to) for (const [wf, wt] of windows(fullFrom, to)) {
@@ -122,4 +151,9 @@ async function main() {
   console.log(`ym-orders: кампаний ${okCampaigns}/${targets.length} (пропущено ${skipped.length}), заказов прочитано ${nOrders}, строк новых ${added}, обновлено ${replaced}, всего ${merged.length} -> ${OUT}`);
 }
 
-main().catch((e) => { console.error("ym-orders FAILED:", (e as Error).message); process.exit(1); });
+// Сеть дёргается ТОЛЬКО при прямом запуске: campaignHighWater/campaignFrom импортирует тест,
+// и без этой проверки импорт функции уходил в кабинет Маркета (та же защита, что в catalog.ts).
+const entry = process.argv[1] ? new URL(`file://${process.argv[1]}`).pathname : "";
+if (/[\\/]orders\.ts$/.test(entry)) {
+  main().catch((e) => { console.error("ym-orders FAILED:", (e as Error).message); process.exit(1); });
+}

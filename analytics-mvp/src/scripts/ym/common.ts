@@ -5,7 +5,11 @@ import { YmPartner, ymBusinessIdsFromEnv, BUSINESS_NAMES, type YmCampaign } from
 
 export const PLATFORM = "ym";
 export const YM_DIR: string = process.env.YM_DATA_DIR || "data-ym";
-export const FLOOR: string = process.env.YM_FLOOR || "2026-02-01"; // пол данных (как у OZON); уточнится по первым заказам
+// Пол данных по умолчанию. Держится отдельной константой, потому что гейт свежести обязан
+// отличать обычный прогон от бэкфилла вглубь: месяцы НИЖЕ этого пола собираются впервые, и
+// их рост - ожидаемый результат, а не задвоение.
+export const FLOOR_DEFAULT = "2026-02-01";
+export const FLOOR: string = process.env.YM_FLOOR || FLOOR_DEFAULT; // уточнится по первым заказам
 export const yp = (f: string): string => `${YM_DIR}/${f}`;
 
 export const pad = (n: number): string => String(n).padStart(2, "0");

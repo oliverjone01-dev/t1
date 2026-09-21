@@ -5,6 +5,7 @@
 // если защиту снова ослабят. Гоняем реальный CLI, а не копию его логики: копия логики в тесте -
 // это ровно тот дефект, за который аудит снял балл дважды.
 import { describe, it, expect } from "vitest";
+import { backfillBelow } from "./validate-facts.js";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -199,5 +200,57 @@ describe("знаковые файлы в ym-snapshots.yml сверяются п�
       const line = yml.split("\n").find((l) => l.trim().startsWith(`check ${f}`)) || "";
       expect(/--abs\b/.test(line), `${f}: --abs поставлен зря`).toBe(false);
     }
+  });
+});
+
+// Бэкфилл вглубь против задвоения. Прогон 2026-09-21 с YM_FLOOR=2026-01-01 встал на январе
+// (netting: 201 -> 524 и 335 -> 1061): гейт назвал задвоением первый полный сбор месяца.
+// Послабление обязано быть узким - только потолок роста и только ниже дефолтного пола.
+describe("бэкфилл вглубь: рост месяцев ниже дефолтного пола - не задвоение", () => {
+  const DEF = "2026-02-01";
+
+  it("опущенный пол открывает месяцы ниже дефолтного", () => {
+    expect(backfillBelow("2026-01-01", DEF)).toBe("2026-02");
+    expect(backfillBelow("2025-06-15", DEF)).toBe("2026-02");
+  });
+
+  it("обычный прогон послабления не получает", () => {
+    expect(backfillBelow(undefined, DEF)).toBe("");
+    expect(backfillBelow("", DEF)).toBe("");
+    expect(backfillBelow(DEF, DEF)).toBe("");
+    expect(backfillBelow("2026-05-01", DEF), "пол ВЫШЕ дефолтного ничего не открывает").toBe("");
+  });
+
+  // Сквозная проверка: одной правильной функции мало, важна её провязка в цикле сравнения.
+  it("живьём: январь вырос втрое - блок на обычном прогоне, проход при опущенном поле", () => {
+    // Январь собирался частично (100 строк), после опущенного пола собрался целиком (400).
+    const jan = (n: number) => Array.from({ length: n }, (_, i) => ({ d: `2026-01-${10 + (i % 20)}`, business: "74986385", amount: 100 }));
+    const feb = Array.from({ length: 300 }, (_, i) => ({ d: `2026-02-${10 + (i % 18)}`, business: "74986385", amount: 100 }));
+    const mar = Array.from({ length: 300 }, (_, i) => ({ d: `2026-03-${10 + (i % 18)}`, business: "74986385", amount: 100 }));
+    const before = put("bf-base.ndjson", [...jan(100), ...feb, ...mar]);
+    const after = put("bf-cur.ndjson", [...jan(400), ...feb, ...mar]);
+    expect(gate(after, before, KEY), "обычный прогон обязан считать это задвоением").toBe(1);
+    expect(gate(after, before, KEY, { YM_FLOOR: "2026-01-01" }), "бэкфилл вглубь обязан пройти").toBe(0);
+    expect(gate(after, before, KEY, { YM_FLOOR: "01.01.2026" }), "мусор в поле пола не снимает защиту").toBe(1);
+  });
+
+  it("послабление НЕ распространяется на потерю и на месяцы выше пола", () => {
+    const jan = Array.from({ length: 400 }, (_, i) => ({ d: `2026-01-${10 + (i % 20)}`, business: "74986385", amount: 100 }));
+    const feb = (n: number) => Array.from({ length: n }, (_, i) => ({ d: `2026-02-${10 + (i % 18)}`, business: "74986385", amount: 100 }));
+    const mar = Array.from({ length: 300 }, (_, i) => ({ d: `2026-03-${10 + (i % 18)}`, business: "74986385", amount: 100 }));
+    // Февраль (ВЫШЕ пола) вырос так же втрое - это по-прежнему задвоение, пол его не прикрывает.
+    expect(gate(put("bf-feb.ndjson", [...jan, ...feb(300), ...mar]), put("bf-feb0.ndjson", [...jan, ...feb(100), ...mar]),
+      KEY, { YM_FLOOR: "2026-01-01" })).toBe(1);
+    // Январь (НИЖЕ пола) потерял половину - потеря не бывает ожидаемой ни на каком прогоне.
+    expect(gate(put("bf-loss.ndjson", [...jan.slice(0, 100), ...feb(300), ...mar]), put("bf-loss0.ndjson", [...jan, ...feb(300), ...mar]),
+      KEY, { YM_FLOOR: "2026-01-01" })).toBe(1);
+  });
+
+  it("мусор в поле пола не включает послабление", () => {
+    // Сравнения дат лексикографические: "01.01.2026" < "2026-02-01" было бы true и молча
+    // сняло бы потолок роста со всей истории.
+    expect(backfillBelow("01.01.2026", DEF)).toBe("");
+    expect(backfillBelow("2026-1-1", DEF)).toBe("");
+    expect(backfillBelow("вчера", DEF)).toBe("");
   });
 });

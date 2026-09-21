@@ -30,10 +30,12 @@ async function main() {
   const days: string[] = [];
   for (let t = Date.parse(from + "T00:00:00Z"); t <= Date.parse(to + "T00:00:00Z"); t += 86400000) days.push(new Date(t).toISOString().slice(0, 10));
 
-  // (sku, date) -> {acq, sto}
-  const agg: Record<string, { d: string; sku: string; acq: number; sto: number }> = {};
+  // (sku, date) -> {acq, sto, bd}. bd - «перечисление за доставку от покупателя» (ДОХОД, >0), если оно
+  // приходит в by-day ITEM (с SKU). Отдельно считаем NON_ITEM-остаток доставки покупателя (без SKU) -
+  // если он большой, значит по SKU её не собрать и нужен другой путь.
+  const agg: Record<string, { d: string; sku: string; acq: number; sto: number; bd: number }> = {};
   const key = (sku: string, d: string) => sku + "|" + d;
-  let recs = 0;
+  let recs = 0, bdNonItem = 0;
   for (const day of days) {
     let arr: any[] = [];
     try { arr = await seller.accrualByDay(day); } catch { continue; }
@@ -45,23 +47,26 @@ async function main() {
         const sku = String(sf?.sku ?? ""); if (!sku) continue;
         for (const f of (sf?.fees || [])) {
           const bk = (bmap[Number(f?.type_id)] || "other") as Bucket;
-          if (bk !== "acquiring" && bk !== "storage") continue;
+          if (bk !== "acquiring" && bk !== "storage" && bk !== "buyerDelivery") continue;
           const amt = Number(f?.accrued?.amount ?? f?.accrued ?? f?.amount ?? 0);
-          const r = (agg[key(sku, d)] ||= { d, sku, acq: 0, sto: 0 });
-          if (bk === "acquiring") r.acq += amt; else r.sto += amt;
+          const r = (agg[key(sku, d)] ||= { d, sku, acq: 0, sto: 0, bd: 0 });
+          if (bk === "acquiring") r.acq += amt; else if (bk === "storage") r.sto += amt; else r.bd += amt;
         }
       }
+      // NON_ITEM доставка покупателя (без SKU) - только для диагностики покрытия
+      const nf = a?.non_item_fee;
+      if (nf && (bmap[Number(nf.type_id)] as Bucket) === "buyerDelivery") bdNonItem += Number(nf?.accrued?.amount ?? nf?.accrued ?? 0);
     }
   }
-  const rows = Object.values(agg).map((r) => ({ d: r.d, sku: r.sku, acq: Math.round(r.acq), sto: Math.round(r.sto) }))
-    .filter((r) => r.acq || r.sto);
+  const rows = Object.values(agg).map((r) => ({ d: r.d, sku: r.sku, acq: Math.round(r.acq), sto: Math.round(r.sto), bd: Math.round(r.bd) }))
+    .filter((r) => r.acq || r.sto || r.bd);
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   // само-сверка по месяцам
-  const bm: Record<string, { acq: number; sto: number }> = {};
-  for (const r of rows) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acq: 0, sto: 0 }); b.acq += r.acq; b.sto += r.sto; }
-  console.log(`  by-day записей ${recs} | строк (sku,день) ${rows.length}`);
-  console.log("  по месяцам (эквайринг | хранение):");
-  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m].acq.toLocaleString("ru")} | ${bm[m].sto.toLocaleString("ru")}`);
+  const bm: Record<string, { acq: number; sto: number; bd: number }> = {};
+  for (const r of rows) { const m = r.d.slice(0, 7); const b = (bm[m] ||= { acq: 0, sto: 0, bd: 0 }); b.acq += r.acq; b.sto += r.sto; b.bd += r.bd; }
+  console.log(`  by-day записей ${recs} | строк (sku,день) ${rows.length} | доставка покупателя NON_ITEM (без SKU): ${Math.round(bdNonItem).toLocaleString("ru")}`);
+  console.log("  по месяцам (эквайринг | хранение | дост.покуп по SKU):");
+  for (const m of Object.keys(bm).sort()) console.log(`    ${m}: ${bm[m].acq.toLocaleString("ru")} | ${bm[m].sto.toLocaleString("ru")} | ${bm[m].bd.toLocaleString("ru")}`);
   console.log(`  -> ${OUT}`);
 }
 

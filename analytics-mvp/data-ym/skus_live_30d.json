@@ -2,7 +2,7 @@
   "platform": "ym",
   "dateFrom": "2026-08-22",
   "dateTo": "2026-09-20",
-  "generated_at": "2026-09-21T10:09:05.337Z",
+  "generated_at": "2026-09-21T10:35:18.409Z",
   "totals": {
     "rev": 18581297,
     "units": 299,
@@ -221,7 +221,7 @@
       "retp": 0,
       "aov": 45556,
       "offer": "GGL-09-2",
-      "stock": 81,
+      "stock": 80,
       "pidx": null,
       "pcol": "",
       "price": 42240,

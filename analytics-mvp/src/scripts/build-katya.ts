@@ -1777,16 +1777,23 @@ function render(cur,cmp){
   // OZON привязывает эквайринг к базовому номеру заказа (без суффикса «-N»), а API accrual/postings
   // по суффиксному номеру его НЕ отдаёт - поэтому в orders_daily эквайринг=0 у всех (потеря ~-1,07 млн).
   // Отчёт закрывает пробел. Покрыты только месяцы, за которые загружен отчёт (accrualMonths).
+  // ВАЖНО (ограничение API): эквайринг и «перечисление за доставку от покупателя» OZON привязывает к
+  // per-item id (unit_number) в accrual/by-day, а он НЕ сходится с номером постинга (проверено: overlap
+  // 0/37; financial_data эквайринга не содержит). Значит per-order эквайринг из чистого API недостижим -
+  // единственный источник со связкой заказ↔сбор это отчёт «Начисления» (data/order_accruals.ndjson).
   const acqByOrder: Record<string, number> = {};   // база -> эквайринг (signed, <0)
-  const acqUsed: Record<string, number> = {};       // база -> уже присвоен (чтобы не задвоить на мультиотправках)
+  const acqUsed: Record<string, number> = {};       // база -> эквайринг уже присвоен (guard мультиотправок)
+  const bdByOrder: Record<string, number> = {};     // база -> доставка покупателя (доход, signed>0)
+  const bdUsed: Record<string, number> = {};        // база -> доставка покупателя уже присвоена (guard)
   const accrualMonths: Record<string, number> = {}; // ym -> 1 (есть отчёт)
   try {
     for (const l of readFileSync(dp("order_accruals.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); const b = String(r.order || ""); if (!b) continue;
       if (r.acquiring) acqByOrder[b] = Number(r.acquiring);
+      if (r.buyer_delivery) bdByOrder[b] = Number(r.buyer_delivery); // «Перечисление за доставку от покупателя» - ДОХОД
       if (r.ym) accrualMonths[String(r.ym)] = 1;
     }
-  } catch { /* нет отчётов - эквайринг по заказам останется 0 */ }
+  } catch { /* нет отчётов - эквайринг/доставка покупателя по заказам останутся 0 */ }
 
   const anOrders: any[] = [];
   try {
@@ -1809,6 +1816,11 @@ function render(cur,cmp){
       const acqRep = (acqByOrder[_b] != null && !acqUsed[_b]) ? acqByOrder[_b] : null;
       if (acqRep != null) acqUsed[_b] = 1;
       const acqSigned = (acqRep != null) ? acqRep : Math.round(r.acquiring || 0);
+      // Доставка покупателя (ДОХОД, «перечисление за доставку от покупателя») - из отчёта по базе, guard;
+      // где отчёта нет, фолбэк на ведомость (dl.deliv). Это доход, не расход - колонка «Доставка покупателя».
+      const bdRep = (bdByOrder[_b] != null && !bdUsed[_b]) ? bdByOrder[_b] : null;
+      if (bdRep != null) bdUsed[_b] = 1;
+      const dincVal = (bdRep != null) ? Math.round(bdRep) : Math.round(dl.deliv);
       // К выплате: payout из orders_daily НЕ содержал эквайринга (был 0), поэтому досчитываем его тут.
       const amtNet = Math.round((r.payout || 0) + (acqRep != null ? acqRep : 0) - adv);
       anOrders.push({
@@ -1817,7 +1829,7 @@ function render(cur,cmp){
         units, dlv, acc: Math.round(r.revenue || 0),
         com: -Math.round(r.commission || 0), del: -Math.round(r.delivery || 0), acq: -Math.round(acqSigned),
         sto: -Math.round(r.storage || 0), oth: -Math.round(r.other || 0),
-        adv, ship: Math.round(dl.ship), dinc: Math.round(dl.deliv),
+        adv, ship: Math.round(dl.ship), dinc: dincVal,
         amt: amtNet, amtS: (units > 0 ? amtNet : 0),
         cc: Math.round((cogs[sk] || 0) * units), noCs: (units > 0 && cogs[sk] == null),
       });

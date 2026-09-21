@@ -62,6 +62,10 @@ async function main() {
   writeFileSync("data/orders_accrual_types.json", JSON.stringify(typesArr, null, 1));
   console.log(`  типов начислений по заказам: ${typesArr.length} -> data/orders_accrual_types.json`);
 
+  // ВОЗВРАТЫ вычитаются НЕ здесь: эндпоинт /v1/returns/list отдаёт заявки/отправки возвратов, а не
+  // финансовые рефанды (233 заказа против 64 по отчёту, часть реальных пропускает). Финансовый возврат
+  // выручки живёт только в реестре «Начисления» (transaction/list мёртв, by-day - только сборы), поэтому
+  // блок по заказам вычитает возврат из order_accruals (отчёт) на этапе build-katya, а не из API.
   const rows: any[] = [];
   for (const p of posts) {
     if (!p.posting_number || !p.date) continue;

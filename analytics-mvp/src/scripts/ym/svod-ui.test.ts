@@ -1284,8 +1284,8 @@ describe("свод по заказам: порядок блоков, город 
 
   it("блок «Доставка по городам» есть и считает итог", () => {
     expect(titles()).toContain("Доставка по городам");
-    expect(ctHead()).toEqual(["Город", "Заказов", "Доход с покупателя", "Наш перевозчик",
-      "Сбор Маркета", "Итог по доставке", "На заказ", "Без ведомости"]);
+    expect(ctHead()).toEqual(["Город / кто везёт", "Заказов", "Доход с покупателя", "Наш перевозчик",
+      "Сбор Маркета", "Итог по доставке", "На заказ", "Нет счёта перевозчика"]);
     const tot = D().querySelector("#ct-t tbody tr.so-total");
     expect(tot, "строки ИТОГО в блоке доставки нет").not.toBeNull();
     const n = num(tot!.children[1]?.textContent);
@@ -1364,5 +1364,101 @@ describe("доставка: два режима не пересекаются и
     const our = num(tot!.children[3]?.textContent) || 0;
     const want = rows().reduce((a: number, r: any) => a + (r.ship_our || 0), 0);
     expect(Math.abs(our - want), `в блоке ${our}, в своде ${Math.round(want)}`).toBeLessThan(Math.max(50, want * 0.002));
+  });
+});
+
+// Катя 22.09.2026: «обе доставки разбей на строки: наша доставка, доставка маркета - не понятно
+// что минусит, что значат проценты ведомости». Общая строка города складывала сбор площадки и
+// счёт нашего перевозчика в один итог, и по нему нельзя было сказать, дорого везём мы или дорого
+// берёт Маркет. Это разные выводы и разные действия.
+describe("доставка по городам: разбивка по тому, кто везёт", () => {
+  const ct = () => [...D().querySelectorAll("#ct-t tbody tr")];
+  const txt = (r: Element, i: number) => (r.children[i]?.textContent || "").trim();
+
+  it("под ИТОГО стоят две строки режимов, и они дают ИТОГО", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const rows = ct();
+    const tot = rows.find((r) => r.classList.contains("so-total"))!;
+    const modes = rows.filter((r) => r.classList.contains("ct-mode"));
+    expect(modes.length, "строк режимов под ИТОГО нет").toBe(2);
+    expect(txt(modes[0]!, 0)).toContain("везёт Маркет");
+    expect(txt(modes[1]!, 0)).toContain("везём мы");
+    const sum = modes.reduce((a, r) => a + (num(txt(r, 5)) || 0), 0);
+    expect(Math.abs(sum - (num(txt(tot, 5)) || 0)), "две строки режимов не складываются в ИТОГО").toBeLessThan(2);
+    const ord = modes.reduce((a, r) => a + (num(txt(r, 1)) || 0), 0);
+    expect(ord).toBe(num(txt(tot, 1)));
+  });
+
+  // Главное, ради чего разбивка: у Маркет-доставки дохода с покупателя нет по построению (он
+  // платит площадке), а у нашей нет сбора площадки. Если это перемешается, вывод «кто минусит»
+  // станет неверным, а заметить это по одному итогу невозможно.
+  // Два признака СТРУКТУРНЫЕ и обязаны держаться: у Маркет-доставки нет нашего дохода (покупатель
+  // платит площадке), у нашей нет сбора площадки за логистику. Третьего - «у Маркета нет нашего
+  // перевозчика» - НЕ существует: три заказа из 1122 (5 272 ₽) везёт Маркет, а счёт перевозчика
+  // всё равно наш. Это первая миля: мы довезли товар до сортировки Маркета и заплатили за это.
+  // Расход настоящий, и прятать его нельзя - он остаётся в строке Маркета своей колонкой.
+  it("у «везёт Маркет» нет нашего дохода, у «везём мы» нет сбора площадки", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const modes = ct().filter((r) => r.classList.contains("ct-mode"));
+    const mk = modes.find((r) => /везёт Маркет/.test(txt(r, 0)))!;
+    const own = modes.find((r) => /везём мы/.test(txt(r, 0)))!;
+    expect(num(txt(mk, 2)) ?? 0, "у Маркет-доставки появился наш доход с покупателя").toBe(0);
+    expect(num(txt(own, 4)) ?? 0, "у нашей доставки появился сбор Маркета за логистику").toBe(0);
+  });
+
+  // Первая миля - редкий случай, и именно поэтому он обязан быть виден: молчащая колонка на трёх
+  // заказах из тысячи - это как раз то, что замечают через полгода и не могут объяснить.
+  it("первая миля у Маркет-доставки не теряется и подписана", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const DEL = ["Доставка покупателю", "Доставка (средняя миля)", "Доставка невыкупов и возвратов"];
+    const byOrder = new Map<string, { led: number; our: number }>();
+    for (const m of svod.months || svod) for (const r of m.rows || []) {
+      const o = byOrder.get(r.order) || { led: 0, our: 0 };
+      o.led += DEL.reduce((a, k) => a + ((r.svc || {})[k] || 0) + ((r.svc_pts || {})[k] || 0), 0);
+      o.our += r.ship_our || 0;
+      byOrder.set(r.order, o);
+    }
+    const want = [...byOrder.values()].filter((o) => o.led > 0 && o.our > 0).reduce((a, o) => a + o.our, 0);
+    const mk = ct().filter((r) => r.classList.contains("ct-mode")).find((r) => /везёт Маркет/.test(txt(r, 0)))!;
+    const shown = num(txt(mk, 3)) || 0;
+    expect(Math.abs(shown - want), `в строке Маркета ${shown}, в своде ${Math.round(want)}`).toBeLessThan(2);
+    if (want > 0) {
+      const cell = mk.children[3] as HTMLElement;
+      expect(cell.getAttribute("title") || "", "первая миля показана числом без объяснения").toMatch(/перв|сортиров/i);
+    }
+  });
+
+  it("город с одним режимом подписан прямо в строке, а не молчит", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const plain = ct().filter((r) => !r.classList.contains("so-total") && !r.classList.contains("ct-mode")
+      && !r.classList.contains("ct-sub") && !r.classList.contains("ct-city"));
+    expect(plain.length, "городов с одним режимом не нашлось").toBeGreaterThan(0);
+    const bad = plain.filter((r) => !/\((везёт Маркет|везём мы)\)/.test(txt(r, 0))).map((r) => txt(r, 0));
+    expect(bad).toEqual([]);
+  });
+
+  it("клик по смешанному городу раскрывает те же две строки, и они дают его итог", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const city = ct().find((r) => r.classList.contains("ct-city"));
+    if (!city) return;                       // в окне нет города с обоими режимами - проверять нечего
+    const want = num(txt(city, 5)) || 0;
+    (city as any).dispatchEvent(new (dom.window as any).MouseEvent("click", { bubbles: true }));
+    const after = ct();
+    const i = after.findIndex((r) => r.classList.contains("ct-city"));
+    const subs = after.slice(i + 1, i + 3).filter((r) => r.classList.contains("ct-sub"));
+    expect(subs.length, "город не раскрылся").toBe(2);
+    const sum = subs.reduce((a, r) => a + (num(txt(r, 5)) || 0), 0);
+    expect(Math.abs(sum - want), "подстроки города не складываются в его итог").toBeLessThan(2);
+  });
+
+  // «Нет счёта перевозчика» - только про НАШИ перевозки. На строке Маркета этот процент не значит
+  // ничего, и раньше он там всё равно печатался.
+  it("«нет счёта перевозчика» не печатается у Маркет-доставки", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const mk = ct().filter((r) => /везёт Маркет/.test(txt(r, 0)));
+    expect(mk.length).toBeGreaterThan(0);
+    const bad = mk.filter((r) => /%/.test(txt(r, 7))).map((r) => `${txt(r, 0)}: ${txt(r, 7)}`);
+    expect(bad, "у Маркет-доставки печатается доля без счёта, хотя своего счёта там нет").toEqual([]);
   });
 });

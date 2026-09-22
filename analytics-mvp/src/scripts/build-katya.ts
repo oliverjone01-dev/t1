@@ -3802,65 +3802,117 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
 //            «Доставка» свода). Второе - тоже наши деньги: Маркет удерживает его из выплаты.
 // Город без ведомости показывает расход НИЖЕ настоящего, поэтому доля таких заказов стоит в
 // строке: без неё «плюс» по городу читался бы как факт, а он может быть следствием пробела.
+var CT_OPEN={};
 function ctDraw(){
   var el=document.getElementById('ct-t'); if(!el)return;
   var noteEl=document.getElementById('ct-note'), gapEl=document.getElementById('ct-gap');
   var w=svWin(),ms=svPick(w);
   if(!ms.length){el.innerHTML='';noteEl.textContent='';gapEl.style.display='none';return;}
+  // Собираем ПО ЗАКАЗУ и сразу помечаем, кто вёз: у заказа режим один (проверено тестом - строк с
+  // обоими признаками нет ни одной, заказов со смешанными режимами тоже).
   var byOrder={};
   ms.forEach(function(m){(m.rows||[]).forEach(function(r){
     if(!svInWin(r.d,w))return;
     var k=r.order||'—',o=byOrder[k];
-    if(!o)o=byOrder[k]={city:'',inc:0,our:0,fee:0,un:0,kn:false,own:false,n:1};
+    if(!o)o=byOrder[k]={city:'',inc:0,our:0,fee:0,kn:false,mode:''};
     if(!o.city&&r.region)o.city=r.region;
-    o.inc+=r.ship_buyer||0; o.our+=r.ship_our||0; o.un+=r.units_net||0;
+    o.inc+=r.ship_buyer||0; o.our+=r.ship_our||0;
     SV_DEL_COLS.forEach(function(n){o.fee+=(r.svc&&r.svc[n]||0)+(r.svc_pts&&r.svc_pts[n]||0);});
-    o.kn=o.kn||!!r.ship_known; var _m=svMode(r); o.own=o.own||_m==='own'||_m==='unk';
+    o.kn=o.kn||!!r.ship_known;
+    var md=svMode(r); if(md==='mk')o.mode='mk'; else if((md==='own'||md==='unk')&&o.mode!=='mk')o.mode='own';
   });});
-  var cities={},noCity=0,total={inc:0,our:0,fee:0,ord:0,noVed:0};
+  // Город держит ДВЕ корзины: везёт Маркет и везём мы. Вопрос Кати 22.09.2026 - «не понятно, что
+  // минусит»: в общей строке сбор Маркета и счёт нашего перевозчика складывались в один итог, и
+  // по нему нельзя было сказать, дорогая у нас перевозка или дорого берёт площадка.
+  var Z=function(){return {inc:0,our:0,fee:0,ord:0,noVed:0};};
+  var cities={},noCity=0,T={mk:Z(),own:Z()};
   Object.keys(byOrder).forEach(function(k){var o=byOrder[k];
-    total.inc+=o.inc;total.our+=o.our;total.fee+=o.fee;total.ord++;
-    if(o.own&&!o.kn)total.noVed++;
+    var b=o.mode==='mk'?'mk':(o.mode==='own'?'own':null);
+    if(b){ T[b].inc+=o.inc;T[b].our+=o.our;T[b].fee+=o.fee;T[b].ord++; if(b==='own'&&!o.kn)T[b].noVed++; }
     if(!o.city){noCity++;return;}
-    var c=cities[o.city]||(cities[o.city]={city:o.city,inc:0,our:0,fee:0,ord:0,noVed:0});
-    c.inc+=o.inc;c.our+=o.our;c.fee+=o.fee;c.ord++; if(o.own&&!o.kn)c.noVed++;
+    var c=cities[o.city]||(cities[o.city]={city:o.city,mk:Z(),own:Z()});
+    if(!b)return;
+    c[b].inc+=o.inc;c[b].our+=o.our;c[b].fee+=o.fee;c[b].ord++;
+    if(b==='own'&&!o.kn)c[b].noVed++;
   });
-  var rows=Object.keys(cities).map(function(k){var c=cities[k];c.res=c.inc-c.our-c.fee;return c;});
+  var res=function(x){return x.inc-x.our-x.fee;};
+  var rows=Object.keys(cities).map(function(k){var c=cities[k];
+    c.ord=c.mk.ord+c.own.ord; c.res=res(c.mk)+res(c.own); return c;});
   rows.sort(function(a,b){return a.res-b.res;});   // худшие сверху: вопрос был «где минус»
-  var H=['Город','Заказов','Доход с покупателя','Наш перевозчик','Сбор Маркета','Итог по доставке','На заказ','Без ведомости'];
-  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
-  var resT=total.inc-total.our-total.fee;
+  var H=['Город / кто везёт','Заказов','Доход с покупателя','Наш перевозчик','Сбор Маркета','Итог по доставке','На заказ','Нет счёта перевозчика'];
+  var TIP={'Нет счёта перевозчика':'Доля заказов, которые везли МЫ, а счёт перевозчика в ведомость не занесли. По ним расход неизвестен, и итог по городу лучше настоящего. У заказов, которые везёт Маркет, своего счёта нет по построению - там прочерк.'};
+  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+(TIP[x]?' title="'+TIP[x]+'"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   var cell=function(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';};
   var resCell=function(v,b){var c=v>=0?'var(--up)':'var(--dn)';
     return '<td class="r" style="color:'+c+'">'+(b?'<b>':'')+svRub(v)+(b?'</b>':'')+'</td>';};
-  var vedCell=function(c){
-    if(!c.noVed)return '<td class="r" style="color:var(--ink-3)">—</td>';
-    var pct=Math.round(c.noVed/c.ord*100);
-    return '<td class="r" style="color:#E5B567" title="по '+c.noVed+' из '+c.ord+' заказов ведомость доставки не заполнена: наш расход занижен, итог по городу лучше настоящего">'+pct+'%</td>';
+  var vedCell=function(x,isMk){
+    if(isMk)return '<td class="r" style="color:var(--ink-3)" title="везёт Маркет - нашего счёта за перевозку здесь не бывает">—</td>';
+    if(!x.ord||!x.noVed)return '<td class="r" style="color:var(--ink-3)">—</td>';
+    var pct=Math.round(x.noVed/x.ord*100);
+    return '<td class="r" style="color:#E5B567" title="'+x.noVed+' из '+x.ord+' наших перевозок без счёта в ведомости: расход по ним в итог не вошёл">'+pct+'%</td>';
   };
-  h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+total.ord+' заказов)</span></td>'
-    +'<td class="r"><b>'+total.ord+'</b></td>'+cell(total.inc)+cell(total.our)+cell(total.fee)
-    +resCell(resT,true)+'<td class="r">'+(total.ord?svRub(resT/total.ord):'—')+'</td>'
-    +vedCell({noVed:total.noVed,ord:total.ord})+'</tr>';
-  rows.forEach(function(c){
-    var bad=c.res<0;
-    h+='<tr'+(bad?' style="background:rgba(255,90,95,.05)"':'')+'><td>'+c.city+'</td>'
-      +'<td class="r">'+c.ord+'</td>'+cell(c.inc)+cell(c.our)+cell(c.fee)
-      +resCell(c.res)+'<td class="r">'+svRub(c.res/c.ord)+'</td>'+vedCell(c)+'</tr>';
+  // Наш перевозчик у заказа, который вёз Маркет, - первая миля: мы довезли товар до сортировки
+  // площадки и заплатили за это. Три заказа из 1122 на 5 272 ₽. Молчащее число на трёх заказах из
+  // тысячи - это то, что замечают через полгода и не могут объяснить, поэтому оно подписано.
+  var ourCell=function(v,isMk){
+    if(!Math.round(v))return '<td class="r">—</td>';
+    return isMk
+      ? '<td class="r" title="первая миля: заказ вёз Маркет, но до его сортировки товар довезли мы и заплатили перевозчику">'+svRub(v)+'</td>'
+      : '<td class="r">'+svRub(v)+'</td>';
+  };
+  var line=function(name,x,isMk,cls,pad){
+    if(!x.ord)return '';
+    var r=res(x);
+    return '<tr'+(cls?' class="'+cls+'"':'')+(r<0&&!cls?' style="background:rgba(255,90,95,.05)"':'')+'>'
+      +'<td'+(pad?' style="padding-left:22px;color:var(--ink-2)"':'')+'>'+name+'</td>'
+      +'<td class="r">'+x.ord+'</td>'+cell(x.inc)+ourCell(x.our,isMk)+cell(x.fee)
+      +resCell(r)+'<td class="r">'+svRub(r/x.ord)+'</td>'+vedCell(x,isMk)+'</tr>';
+  };
+  var tAll={inc:T.mk.inc+T.own.inc,our:T.mk.our+T.own.our,fee:T.mk.fee+T.own.fee,
+            ord:T.mk.ord+T.own.ord,noVed:T.own.noVed};
+  var rT=res(tAll);
+  h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+tAll.ord+' заказов)</span></td>'
+    +'<td class="r"><b>'+tAll.ord+'</b></td>'+cell(tAll.inc)+cell(tAll.our)+cell(tAll.fee)
+    +resCell(rT,true)+'<td class="r">'+(tAll.ord?svRub(rT/tAll.ord):'—')+'</td>'
+    +vedCell(T.own,false)+'</tr>';
+  // Две строки итога по режимам сразу под ИТОГО: это и есть ответ на «что минусит».
+  h+=line('<span style="color:var(--ink-2)">из них везёт Маркет</span>',T.mk,true,'ct-mode',true);
+  h+=line('<span style="color:var(--ink-2)">из них везём мы</span>',T.own,false,'ct-mode',true);
+  rows.forEach(function(c,ci){
+    var open=!!CT_OPEN[c.city], both=c.mk.ord&&c.own.ord;
+    h+='<tr'+(both?' class="ct-city" data-city="'+ci+'" style="cursor:pointer"':'')+(c.res<0?' style="background:rgba(255,90,95,.05)'+(both?';cursor:pointer':'')+'"':'')+'>'
+      +'<td>'+(both?(open?'▾ ':'▸ '):'')+c.city+'</td>'
+      +'<td class="r">'+c.ord+'</td>'+cell(c.mk.inc+c.own.inc)+cell(c.mk.our+c.own.our)+cell(c.mk.fee+c.own.fee)
+      +resCell(c.res)+'<td class="r">'+svRub(c.res/c.ord)+'</td>'+vedCell(c.own,!c.own.ord)+'</tr>';
+    // Город с одним режимом не раскрываем: подстрока повторила бы саму строку. Вместо этого
+    // подписываем режим прямо в строке - иначе непонятно, чей это минус.
+    if(both&&open){
+      h+=line('везёт Маркет',c.mk,true,'ct-sub',true);
+      h+=line('везём мы',c.own,false,'ct-sub',true);
+    } else if(!both){
+      var only=c.mk.ord?'Маркет':'мы';
+      h=h.slice(0,h.lastIndexOf('<tr'))+h.slice(h.lastIndexOf('<tr')).replace('>'+c.city+'</td>',
+        '>'+c.city+' <span style="color:var(--ink-3);font-size:11.5px">('+(only==='Маркет'?'везёт Маркет':'везём мы')+')</span></td>');
+    }
   });
   el.innerHTML=h+'</tbody>';
+  Array.prototype.forEach.call(el.querySelectorAll('.ct-city'),function(tr){
+    tr.onclick=function(){var c=rows[+tr.getAttribute('data-city')];CT_OPEN[c.city]=!CT_OPEN[c.city];ctDraw();};});
   var minus=rows.filter(function(c){return c.res<0;});
   var minusV=minus.reduce(function(a,c){return a+c.res;},0);
   if(noCity){
     gapEl.style.display='';
-    gapEl.innerHTML='<b>'+noCity+' из '+total.ord+' заказов без города.</b> Снимок заказов собран до того, как строка стала нести город доставки: эти заказы в разбивку ниже не попали, их деньги видны только в строке ИТОГО. Пропадёт после ближайшего полного пересбора заказов.';
+    gapEl.innerHTML='<b>'+noCity+' из '+tAll.ord+' заказов без города.</b> Эти заказы в разбивку по городам не попали, их деньги видны только в строке ИТОГО.';
   } else gapEl.style.display='none';
+  var rMk=res(T.mk), rOwn=res(T.own);
   noteEl.innerHTML = rows.length
     ? 'Городов '+rows.length+', в минусе '+minus.length+' на '+svRub(Math.abs(minusV))+'. '
-      +'Итог по доставке = доход с покупателя − счёт перевозчика − сбор Маркета за логистику. '
-      +'Там, где везёт Маркет, дохода у нас нет по построению, и минус по такому городу - это его сбор, а не наша переплата перевозчику.'
+      +'<b>Где минус:</b> у заказов, которые везёт Маркет, '+svRub(rMk)+' ('+T.mk.ord+' зак.) - дохода с покупателя у нас там нет вовсе, он платит Маркету, а сбор за логистику Маркет удерживает с нас. '
+      +'У заказов, которые везём мы, '+svRub(rOwn)+' ('+T.own.ord+' зак.) - здесь доход есть, и минус означает, что перевозчик дороже того, что заплатил покупатель. '
+      +'Клик по городу раскрывает те же две строки по нему.'
     : 'За выбранный период городов нет: либо нет доставленных заказов, либо снимок собран без городов.';
 }
+
 function svInit(){
   if(!document.getElementById('sv-t'))return;
   // Оба свода перерисовываются одним обработчиком: они стоят на одной базе, и разъехаться по

@@ -28,6 +28,7 @@ type Row = Record<string, number>;
 type TestDef = {
   id: string; название: string; гипотеза: string; старт?: string; замер?: string;
   горизонт_дней?: number; тест?: string[]; контроль?: string[]; правило?: string; статус?: string;
+  стоп?: string;
   этап2?: string; заметка?: string;
 };
 
@@ -94,9 +95,27 @@ for (const r of readNd(dp("position_daily.ndjson"))) {
 }
 const HAS_POS = posCount > 0;
 
+const artSet = new Set<string>();
+for (const t of (JSON.parse(readFileSync("tools/tests/tests.json", "utf-8")).тесты || []) as TestDef[])
+  for (const a of [...(t.тест || []), ...(t.контроль || [])]) artSet.add(a);
+for (const r of readNd(dp("ads_daily.ndjson"))) {
+  const art = String(r.off || "").trim();
+  if (!artSet.has(art)) continue;              // кампания названа не артикулом - мимо
+  const c = cell(art, r.d);
+  c["clicks"] = (c["clicks"] || 0) + (r.cl || 0);
+  c["adspend"] = (c["adspend"] || 0) + (r.sp || 0);
+  c["adviews"] = (c["adviews"] || 0) + (r.vw || 0);
+}
+
+// Цена на витрине: тот же ряд, что и соинвест (prices-daily.ts пишет обе цены).
 const priceRows = readNd(dp("prices_daily.ndjson"));
 const HAS_COINV = priceRows.length > 0;
-for (const r of priceRows) if (r.coinv != null) cell(r.offer, r.d)["coinv"] = r.coinv;
+for (const r of priceRows) {
+  if (r.coinv != null) cell(r.offer, r.d)["coinv"] = r.coinv;
+  if (r.price) cell(r.offer, r.d)["price"] = r.price;
+  if (r.before) cell(r.offer, r.d)["cap"] = r.before;
+}
+const HAS_PRICE = priceRows.length > 0;
 
 let LAST = "";
 for (const [, m] of series) for (const d of m.keys()) if (d > LAST) LAST = d;
@@ -109,22 +128,23 @@ const measured = (rea.tests || []).filter((t: any) => t.status === "измере
 // raw   - как есть: обе группы в одной единице и сравнимы напрямую.
 // testOnly - метрика рисуется одной линией: у контроля рекламы нет по построению,
 // и вторая линия была бы плоским нулём, который только мешает.
-const METRICS: Array<[string, string, "index" | "raw", string, boolean?]> = [
-  ["vsearch", "Показы в поиске", "index", ""],
-  ["views", "Показы всего", "index", ""],
-  ["pdp", "Карточка", "index", ""],
-  ["cart", "Корзина", "index", ""],
-  ["spend", "Расход на рекламу", "raw", " ₽", true],
-  ["revenue", "Выручка", "raw", " ₽"],
-  ["drr", "ДРР", "raw", " %", true],
-];
-if (HAS_COINV) METRICS.push(["coinv", "Соинвест", "raw", " %"]);
-// Позиция: меньше - лучше, поэтому в таблице по артикулам её знак переворачивается.
+const METRICS: Array<[string, string, "index" | "raw", string, boolean?]> = [];
+if (HAS_COINV) METRICS.push(["coinv", "Соинвест", "raw", " %"]);          // предмет теста
+METRICS.push(["adspend", "Расход на клики", "raw", " ₽", true]);          // цена эффекта
+METRICS.push(["cpc", "CPC", "raw", " ₽", true]);
+METRICS.push(["clicks", "Клики", "raw", "", true]);
 if (HAS_POS) METRICS.push(["pos", "Позиция в поиске", "raw", ""]);
+METRICS.push(["vsearch", "Показы в поиске", "index", ""]);
+METRICS.push(["views", "Показы всего", "index", ""]);
+METRICS.push(["pdp", "Карточка", "index", ""]);
+METRICS.push(["cart", "Корзина", "index", ""]);
+if (HAS_PRICE) METRICS.push(["price", "Цена на витрине", "raw", " ₽"]);
+METRICS.push(["revenue", "Выручка", "raw", " ₽"]);
+METRICS.push(["drr", "ДРР", "raw", " %", true]);
 
 // Соинвест - уровень, а не количество: по группе берём среднее по тем артикулам,
 // у которых значение есть, а не сумму.
-const LEVEL = new Set(["coinv", "pos"]);   // уровни, а не количества: усредняем, не суммируем
+const LEVEL = new Set(["coinv", "pos", "price", "cap"]);   // уровни, а не количества: усредняем, не суммируем
 const median = (v: number[]): number | null => {
   if (!v.length) return null;
   const a = [...v].sort((x, y) => x - y), m = a.length >> 1;
@@ -288,6 +308,8 @@ function perArticle(t: TestDef): string {
     + `</table></div><div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
 }
 
+const lowerTitle = (t: string) => t === t.toUpperCase() ? t : t.toLowerCase();
+
 function chart(t: TestDef, cid: string): string {
   const st = t.старт!;
   const days: string[] = [];
@@ -299,10 +321,11 @@ function chart(t: TestDef, cid: string): string {
   const post = days.filter((d) => d >= st);
   if (!post.length) return "";
   const avg = (g: string[], win: string[], key: string) => {
-    if (key === "drr") {
-      const sp = nums(groupDaily(g, win, "spend")).reduce((x, y) => x + y, 0);
-      const rv = nums(groupDaily(g, win, "revenue")).reduce((x, y) => x + y, 0);
-      return rv ? sp / rv * 100 : NaN;    // ДРР периода - из сумм; без выручки его нет
+    if (key === "drr" || key === "cpc") {
+      const [n, d, k] = key === "drr" ? ["spend", "revenue", 100] as const : ["adspend", "clicks", 1] as const;
+      const sn = nums(groupDaily(g, win, n)).reduce((x, y) => x + y, 0);
+      const sd = nums(groupDaily(g, win, d)).reduce((x, y) => x + y, 0);
+      return sd ? sn / sd * k : NaN;      // отношение периода - из сумм, а не среднее дневных долей
     }
     const v = nums(groupDaily(g, win, key));
     return v.length ? v.reduce((x, y) => x + y, 0) / v.length : 0;
@@ -311,13 +334,17 @@ function chart(t: TestDef, cid: string): string {
   const panes: Record<string, string> = {}, reads: Record<string, string> = {};
   const subs: Record<string, string> = {}, tip: Record<string, any> = {};
   const si2 = t.этап2 ? days.indexOf(t.этап2) : -1;
-  const ratio = (num: Array<number | null>, den: Array<number | null>): Array<number | null> =>
-    num.map((v, i) => { const d = den[i]; return (v == null || !d) ? null : v / d * 100; });
+  const ratio = (num: Array<number | null>, den: Array<number | null>, k = 100): Array<number | null> =>
+    num.map((v, i) => { const d = den[i]; return (v == null || !d) ? null : v / d * k; });
   for (const [key, title, mode, unit, testOnly] of METRICS) {
-    const rawT = key === "drr"
+    const rawT = key === "cpc"
+      ? ratio(groupDaily(t.тест!, days, "adspend"), groupDaily(t.тест!, days, "clicks"), 1)
+      : key === "drr"
       ? ratio(groupDaily(t.тест!, days, "spend"), groupDaily(t.тест!, days, "revenue"))
       : groupDaily(t.тест!, days, key);
-    const rawC = key === "drr"
+    const rawC = key === "cpc"
+      ? ratio(groupDaily(t.контроль!, days, "adspend"), groupDaily(t.контроль!, days, "clicks"), 1)
+      : key === "drr"
       ? ratio(groupDaily(t.контроль!, days, "spend"), groupDaily(t.контроль!, days, "revenue"))
       : groupDaily(t.контроль!, days, key);
     const bT = avg(t.тест!, base, key), bC = avg(t.контроль!, base, key);
@@ -345,10 +372,10 @@ function chart(t: TestDef, cid: string): string {
       const alarm = Math.abs(dd - dd1) > Math.max(Math.abs(dd), Math.abs(dd1)) * 0.5
         ? `<div class="dyn-alarm">Неделя перед стартом была нетипичной: по ней медиана разницы вышла бы <b>${dd1 >= 0 ? "+" : ""}${dd1.toFixed(0)}</b> пунктов вместо <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)}</b>. Считаем по двум неделям.</div>`
         : "";
-      reads[key] = `<div class="dyn-read">Медиана по парам, ${title.toLowerCase()}: тест <b>${mT == null ? "-" : (mT >= 0 ? "+" : "") + mT.toFixed(0) + " %"}</b>, контроль <b>${mC == null ? "-" : (mC >= 0 ? "+" : "") + mC.toFixed(0) + " %"}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b> (пар в счёте ${per.length}). База - две недели перед стартом, после старта ${post.length} дн, данные по ${LAST}.</div>${alarm}`;
+      reads[key] = `<div class="dyn-read">Медиана по парам, ${lowerTitle(title)}: тест <b>${mT == null ? "-" : (mT >= 0 ? "+" : "") + mT.toFixed(0) + " %"}</b>, контроль <b>${mC == null ? "-" : (mC >= 0 ? "+" : "") + mC.toFixed(0) + " %"}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b> (пар в счёте ${per.length}). База - две недели перед стартом, после старта ${post.length} дн, данные по ${LAST}.</div>${alarm}`;
     } else {
       const v = (x: number) => Number.isFinite(x) ? nbsp(x) + unit : "нет данных";
-      reads[key] = `<div class="dyn-read">${testOnly ? "Тестовая группа" : "Средний день"}, ${title.toLowerCase()}: `
+      reads[key] = `<div class="dyn-read">${testOnly ? "Тестовая группа" : "Средний день"}, ${lowerTitle(title)}: `
         + (testOnly
           ? `<b>${v(bT)} → ${v(pT)}</b> за день. У контроля рекламы нет по построению, поэтому вторая линия не рисуется.`
           : `тест <b>${v(bT)} → ${v(pT)}</b>, контроль <b>${v(bC)} → ${v(pC)}</b>.`)
@@ -452,6 +479,7 @@ const cards = T.тесты.map((t) => {
     + (t.этап2 !== undefined ? `<span>Выход из акции: <b>${esc(t.этап2 || "не зафиксирован")}</b></span>` : "")
     + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b></span></div>`
     + `<div class="rule"><b>Правило:</b> ${esc(t.правило || "")}</div>`
+    + (t.стоп ? `<div class="stop"><b>Стоп-сигнал:</b> ${esc(t.стоп)}</div>` : "")
     + (t.заметка ? `<div class="cov" style="border-top:none;padding-top:0">${esc(t.заметка)}</div>` : "")
     + `${body}</section>`;
 }).join("");
@@ -512,7 +540,8 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .dyn-read{font-size:12px;color:var(--ink2);margin:6px 2px 0}.dyn-read b{color:var(--ink)}
 .dyn-note{font-size:11.5px;color:var(--ink3);margin:4px 2px 0}
 .dyn-alarm{font-size:12px;color:var(--ink2);background:rgba(229,181,103,.08);border-left:3px solid var(--warn);padding:7px 10px;border-radius:6px;margin:8px 2px 0}
-.dyn-alarm b{color:var(--warn)}.dl2{margin:6px 0 6px 18px;padding:0}.dl2 li{margin:2px 0}
+.dyn-alarm b{color:var(--warn)}
+.stop{font-size:12.5px;color:var(--ink2);background:rgba(255,90,95,.09);border-left:3px solid #FF5A5F;padding:7px 10px;border-radius:6px;margin:8px 0}.stop b{color:#FF7A7E}.dl2{margin:6px 0 6px 18px;padding:0}.dl2 li{margin:2px 0}
 .muted{color:var(--ink3)}.mrow{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:12px 16px;margin-bottom:10px}
 .res{font-weight:700;color:var(--up);margin:6px 0}.notes{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:10px 16px}
 .notes li{color:var(--ink2);margin:4px 0}.legend{font-size:12px;color:var(--ink3);margin:2px 2px 14px}.legend b{color:var(--ink2)}`;

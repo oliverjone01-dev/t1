@@ -11,12 +11,38 @@
 - `claude/traces-flush-20260920` - только трейсы наблюдаемости (не продукт; стоп-хук требует их коммитить каждый ход).
 - Деплой: workflow `deploy-pages.yml` (ref main). /dialog/ пересобирается build-dialog.ts (фетчит dialog-export-v1). /rop/ копирует готовый public/rop-command.html.
 
-## ГЛАВНОЕ НЕЗАКРЫТОЕ: гейт ФЕНИКСА перед деплоем /dialog/
-- Изменения «Диалоги v2» (калибровка весов + новые факторы + очередь дел) - это смена методики оценки менеджеров -> обязателен ФЕНИКС Step 12.5 (CLAUDE.md §4/§15) ДО прода.
-- Раунд 1: ФЕНИКС вернул **return 7.5/10** (ядро калибровки go-качества, но client_chase давал ложные обвинения - проба L1 FAIL).
-- Раунд 2 (коммит cecc4710): все дефекты rework_tz исправлены (подробно в методичке, раздел «РАУНД 2»). Отправил ФЕНИКСУ на повторный аудит - НЕ дождался вердикта (переехали ради токенов).
-- **Действие в новой сессии:** перепрогнать ФЕНИКС на dialog-export-v1@cecc4710 (`/feniks` или Agent feniks; материалы - методичка + score-dialog.ts блоки «НОВЫЕ ПОВЕДЕНЧЕСКИЕ СИГНАЛЫ»/«КАЛИБРОВКА»/«ЛОГ СОСТОЯНИЙ», template блок «ОЧЕРЕДЬ ДЕЛ РОПа»). Если go (>=7.5) - деплой; если return - добить по gaps; veto (<6) - Ивану.
-- **Деплой после go:** dispatch `deploy-pages.yml` (ref main), дождаться шага «Build DIALOG page (isolated, /dialog/)» + «Run actions/deploy-pages@v4» = success. Проверять через mcp github actions_list/actions_get (resource_id = run id).
+## ИНВЕНТАРЬ ДАШБОРДОВ (все, база https://oliverjone01-dev.github.io/t1)
+Каждый собирается в deploy-pages.yml из СВОЕЙ ветки-источника (правим через worktree этой ветки, деплой копирует/пересобирает в /site/<путь>).
+
+| Дашборд | URL | Ветка-источник | Как собирается / снимок |
+|---|---|---|---|
+| **Хаб (общая страница)** | `/` (+ логотип ГГ ведёт сюда) | main | `analytics-mvp/public/dashboards/index.html`; пароль HUB_PASS. Меню всех дашбордов. |
+| **РОП ГГ** | `/rop/` (+ `/rop2/`) | rop-dashboard-v1 | build-rop.ts -> public/rop-command.html; снимок b24-snapshots.yml (cron 02:20). Меню-якорь по разделам. |
+| **РОП ГМ** (Metal-GM) | `/rop-gm/` | rop-gm-dashboard-v1 | build-rop-gm.ts на деплое; снимок b24-gm-snapshots -> rop-gm.json. |
+| **Менеджеры (личные)** | `/rop-<фамилия>/` | manager-lakomova + rop-dashboard-v1 | build-managers-all.mjs (MIN_DEALS=5). Лакомова/Лысанова/Шура-Бура/Платонова/Зазноба/Лобова и др. У каждого свой лого/периоды (личные - в этой сессии НЕ трогали по просьбе Ивана). |
+| **Экономика** | `/economics/` (+ `/econ-control/`) | economics-dashboard-v1 | build-econ-control.mjs -> public/econ-control.html (это боевой /economics/). layers.html = старый economics-command. Лого+периоды+цветная дата обновления сделаны. |
+| **Диалог (хронология коммуникаций)** | `/dialog/` | dialog-export-v1 | build-dialog.ts на деплое; снимок b24-dialog-cron -> dialog.json (~93МБ). |
+| **ИИ-анализатор в Диалогах** | внутри `/dialog/` | dialog-export-v1 | score-dialog.ts (модель: prob/градусник/факторы/очередь/калибровка) + ai-review.ts (API-разбор) + ручной оверлей `dialog/data/ai-tags-manual.json`. Колонка «Разметка», очередь дел, температура. **Тут идут изменения v2 (ждут ФЕНИКС+деплой).** |
+| **Диалог-эксперименты (песочница Ивана)** | `/dialog-experiments/` | dialog-experiments | build-svod2.ts (СВОД) + dialog.html; отрезана от боевого 2026-08-28, /dialog/ не трогает. |
+| **Производство (PROD)** | `/prod/` (+ `/prod2/`) | prod-dashboard-v1 | prod-command.html. |
+| **Офис-менеджеры** | `/office/` | office-dashboard-v1 | office-command.html (лид-интейк, не оценивается регламентом продавца). |
+| **Маркетплейсы (WB/ЯМ + Katya OZON)** | `/market/` | main (data-ym) | build-site.ts + build-katya.ts (PLATFORM=ym). Katya OZON - свод по OZON. |
+| **Яндекс.Директ** | `/direct/` (превью `/direct-preview/`) | main (yandex-direct/) | dashboard/public. Владелец скилла - timur. |
+| **Отчёты (Telegram-бот)** | чат `-1004401671894` | main | `rop-tg-bot.yml`: режимы plan(🌅)/itogi(🌙)/report(md)/probe/test. Данные из rop.json. «Срез дня» отключён. |
+| Прочее в хабе | `/seo/` `/plan/`(+v2) `/markplan/` `/integra/`(GENTERO) `/ozon-research/` `/phoenix/` `/op-gm/` `/messages/` `/academy/`(разборы Кости, запечатано) `/kp-gm/` | свои ветки | см. соответствующие шаги deploy-pages.yml |
+
+Отчёты «все»: (1) Telegram-дайджесты plan/itog (rop-tg-bot); (2) режим report - готовые md-отчёты в чат; (3) Kostya-AI ежедневный разбор менеджеров (skill kostya-ai -> /academy/); (4) аналитика OZON/МП (analytics-mvp/, Katya). Все живут поверх снимков Bitrix/OZON.
+
+## ГЕЙТ ФЕНИКСА ЗАКРЫТ (go 8.4/10) - «Диалоги v2» задеплоено
+- Изменения «Диалоги v2» (калибровка весов + новые факторы + очередь дел) - смена методики оценки менеджеров -> прошли ФЕНИКС Step 12.5 (CLAUDE.md §4/§15).
+- Раунд 1: return 7.5 (client_chase давал ложные обвинения - L1 FAIL). Раунд 2 (cecc4710): дефекты исправлены -> **ФЕНИКС go 8.4/10**, блокеров нет, деплой разрешён и выполнен (deploy-pages, ref main).
+- Отчёты ФЕНИКСА (эфемерно, scratchpad прошлой сессии): feniks-report.json (iter1), feniks-report2.json (iter2 go). Суть - в этой методичке.
+
+### Остаточные gaps ФЕНИКСА (НЕ блокеры, СЛЕДУЮЩАЯ ИТЕРАЦИЯ - в dialog-export-v1)
+1. **ball не загейчен на !hotSlow** (score-dialog.ts, строка с `push("ball"...)`). hot_slow+ball стекаются на ~320 сделках, одна незакрытая горячая реплика штрафует дважды (0.6×0.7). Не ложное обвинение, но магнитуда ~+40%. Фикс: добавить `&& !hotSlow` к ball ИЛИ брать min (как сделано для slow_resp).
+2. **hot_slow вес 0.6 не откалиброван**, теперь на ~461 сделке. Следить по приёмке item2 (владелец Иван, +2 нед по calib-log false-positive rate).
+3. Мелочь: RE_HOT содержит широкое «есть ли» (~4.7% срабатываний только на нём); framing непоследователен - hot_slow тон bad, а client_chase warn+«повод спросить» при схожей мягкости. Выровнять.
+4. Через 2-4 недели: чистая калибровка из calib-log (вариант B) без конфаундинга.
 
 ## Что уже В ПРОДЕ (задеплоено в прошлых сессиях)
 - Диалоги: фикс «Разметка» (механический разбор коммуникаций не прячется, порепличный fallback ИИ/regex). deploy #2467.

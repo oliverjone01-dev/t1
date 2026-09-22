@@ -46,7 +46,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, kontur-dashboard/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -292,26 +292,32 @@ jobs:
       # === КОНТУР: SEO, GEO и Директ по проектам (из main, статика public/) ===
       # Страница самодостаточна: данные вшиты на этапе сборки в kontur-dashboard,
       # поэтому здесь только копирование. Обновляет kontur-snapshot.yml.
+      # Пароль приходит из секрета, дефолта в странице нет. Без секрета раздел не
+      # публикуется вовсе: репозиторий публичный, и зашитый дефолтный хэш означал бы
+      # общеизвестный пароль на боевой странице. Паттерн тот же, что у ACADEMY_PASS
+      # выше. Подстановка идёт во временный каталог и только успешный результат
+      # переезжает в _site, поэтому сбой между копированием и подстановкой не может
+      # выложить страницу без пароля.
       - name: Build KONTUR dashboard (/kontur/)
-        continue-on-error: true
         env:
           HUB_PASS: ${{ secrets.HUB_PASS }}
         run: |
           set -euo pipefail
-          if [ -f "kontur-dashboard/public/index.html" ]; then
-            mkdir -p "$GITHUB_WORKSPACE/_site/kontur"
-            cp -r kontur-dashboard/public/. "$GITHUB_WORKSPACE/_site/kontur/"
-            # Тот же пароль, что у /seo/ и /phoenix/: хэш зашит в собранный бандл,
-            # меняем его так же, как в шаге "Assemble site (prod)".
-            if [ -n "${HUB_PASS:-}" ]; then
-              HASH=$(printf '%s' "$HUB_PASS" | sha256sum | cut -d' ' -f1)
-              sed -i "s/window.HUB_PASS_HASH = \"[a-f0-9]*\"/window.HUB_PASS_HASH = \"$HASH\"/" "$GITHUB_WORKSPACE/_site/kontur/index.html"
-              echo "Контур опубликован в /kontur/, HUB_PASS: хэш подменён из секрета"
-            else
-              echo "Контур опубликован в /kontur/ с дефолтным паролем (секрет HUB_PASS не задан)"
-            fi
-          else
+          if [ ! -f "kontur-dashboard/public/index.html" ]; then
             echo "kontur-dashboard/public/index.html отсутствует в main - пропуск"
+          elif [ -z "${HUB_PASS:-}" ]; then
+            echo "::warning::Секрет HUB_PASS не задан, раздел /kontur/ не опубликован"
+          else
+            HASH=$(printf '%s' "$HUB_PASS" | sha256sum | cut -d' ' -f1)
+            rm -rf /tmp/kontur-site
+            cp -r kontur-dashboard/public /tmp/kontur-site
+            sed -i "s/window.HUB_PASS_HASH = \"[a-f0-9]*\"/window.HUB_PASS_HASH = \"$HASH\"/" /tmp/kontur-site/index.html
+            if ! grep -q "window.HUB_PASS_HASH = \"$HASH\"" /tmp/kontur-site/index.html; then
+              echo "::error::Хэш пароля не подставился в /kontur/, публикация раздела остановлена"; exit 1
+            fi
+            mkdir -p "$GITHUB_WORKSPACE/_site/kontur"
+            cp -r /tmp/kontur-site/. "$GITHUB_WORKSPACE/_site/kontur/"
+            echo "Контур опубликован в /kontur/, пароль из секрета HUB_PASS"
           fi
 
       - name: Build DIRECT dashboard (/direct/)

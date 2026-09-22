@@ -2,9 +2,11 @@
 HEAD = r'''<title>Контур: SEO, GEO, Директ</title>
 <meta name="robots" content="noindex,nofollow">
 <script>
-/* Тот же пароль, что у /seo/ и /phoenix/: genmonster2026 по умолчанию.
-   При деплое с секретом HUB_PASS хэш подменяется автоматически (deploy-pages.yml). */
-window.HUB_PASS_HASH = "2ef8f96e6281d75d01cec0c80866292dbeff89683f008467ab13fae421a5f868";
+/* Хэш пароля приходит из секрета HUB_PASS при публикации (deploy-pages.yml).
+   Дефолта здесь нет намеренно: репозиторий публичный, и зашитый хэш означал бы
+   общеизвестный пароль на боевой странице. Пустая строка это локальная сборка,
+   гейт в ней пропускает сразу; шаг публикации без секрета страницу не выкладывает. */
+window.HUB_PASS_HASH = "";
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +21,14 @@ tailwind.config = { darkMode:'class', theme:{ extend:{
    страница всё равно должна выглядеть правильно. Все поверхности заданы в <style> ниже. */
 </script>
 <style>
+  /* Своя модель коробки, а не из preflight Tailwind. Иначе обещание строкой выше
+     («если play-CDN не догрузится, страница всё равно должна выглядеть правильно»)
+     не выполняется: поля ввода на экране «Мост до денег» имеют width:100% плюс
+     padding и рамку, и без border-box вылезают за вьюпорт вместе со всей страницей. */
+  *,*::before,*::after{box-sizing:border-box}
+  /* По той же причине: блок с примером JSON прокручивается сам, а не тянет за собой
+     всю страницу, даже когда класс прокрутки из Tailwind не подгрузился. */
+  pre{overflow-x:auto;max-width:100%}
   html{background:#F4F6FA} html.dark{background:#0A0C0E}
   body{margin:0;font-family:"DM Sans",system-ui,sans-serif;font-size:14px;background:#F4F6FA;color:#5A6A85}
   html.dark body{background:#0A0C0E;color:#949BA6}

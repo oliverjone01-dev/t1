@@ -3,7 +3,7 @@ BODY = r'''
 <div class="gate" id="gate">
   <div class="box">
     <div class="glogo hd">Контур: SEO, GEO, Директ</div>
-    <p>Внутренняя панель GENGROUP. Доступ по паролю (защита от случайных глаз, не криптография).</p>
+    <p>Страница общедоступна по ссылке. Пароль отсекает случайный заход, данные он не закрывает: они лежат в исходном коде этой же страницы.</p>
     <form id="gateForm">
       <input type="password" id="gatePass" placeholder="Пароль" autocomplete="current-password" autofocus>
       <span class="gerr" id="gateErr">Неверный пароль</span>
@@ -127,6 +127,9 @@ function boot(){
   let _rt; window.addEventListener('resize',()=>{ clearTimeout(_rt); _rt=setTimeout(draw,250); });
 }
 (function gateInit(){
+  // Пустой хэш это локальная сборка без секрета. Наружу такая страница не уезжает:
+  // шаг публикации без HUB_PASS её не выкладывает вовсе.
+  if(!window.HUB_PASS_HASH){ boot(); return; }
   const authed = sessionStorage.getItem('kontur.auth') === '1';
   if(authed){ boot(); return; }
   document.getElementById('gateForm').addEventListener('submit', async (e) => {

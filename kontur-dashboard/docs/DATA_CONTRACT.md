@@ -58,9 +58,11 @@
 
 | Раздел | Источник | Обновляет |
 |---|---|---|
-| Позиции, органика, семантика | `gg-seo-geo-monster/data/*/keysso.json` | `keyso-collect.yml` |
+| Позиции, органика, семантика | `gg-seo-geo-monster/data/*/keysso.json` | `harvest.yml`, ежедневно 03:00 МСК |
 | Конкуренты в органике | `gg-seo-geo-monster/data/keyso/<домен>/competitors.json` | `keyso-collect.yml` |
-| Видимость в ИИ | `keysso.json`, поля `visibility` и `ai_answers` | `keyso-collect.yml` |
+| Видимость в ИИ | `keysso.json`, поля `visibility` и `ai_answers` | `harvest.yml`, ежедневно 03:00 МСК |
+| Заявки по целям счётчика | `yandex-direct/data/direct_metrika.json` | `direct-snapshots.yml`, ежедневно 09:20 МСК |
+| Список целей счётчика | `yandex-direct/data/raw/metrika-goals.json` | никто, снято руками |
 | Визиты и поведение | `gg-seo-geo-monster/data/*/metrika.json` | сборщик Метрики |
 | Реклама | `gg-seo-geo-monster/data/*/direct.json` | `direct-snapshots.yml` |
 | Ряд по дням | `data/history/positions.ndjson` | `kontur-snapshot.yml` |

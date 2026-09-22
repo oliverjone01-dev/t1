@@ -6,7 +6,7 @@
 конверте Протокола 9: значение, класс, источник, дата съёма, примечание.
 Если выгрузки нет, ставится null и класс ДЕМО. Правдоподобное число не выдумывается.
 """
-import json, os, sys, datetime
+import json, os, sys, datetime, subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]          # корень репозитория
@@ -15,15 +15,25 @@ SRC  = ROOT / 'gg-seo-geo-monster' / 'data'         # выгрузки сосе�
 HIST = HERE / 'data' / 'history' / 'positions.ndjson'
 
 # Цели счётчика Метрики. gg-seo-geo-monster/data/*/metrika.json их не запрашивает,
-# поэтому свой goals там пустой всегда. Реальный список целей есть в сырой выгрузке
-# Management API, которую тянет соседний проект yandex-direct для отчётов Директа.
-# Без достижений (reaches) - это отдельный отчёт Stats API, его в репозитории нет.
+# поэтому свой goals там пустой всегда. Список целей лежит в сырой выгрузке
+# Management API, снятой руками: ни один скрипт и ни один воркфлоу её не обновляет
+# (grep 'data/raw' по yandex-direct/ и .github/ даёт только упоминание в аудите).
+# Поэтому список показывается без даты замера и с прямой оговоркой на экране.
 GOALS_RAW_PATH = ROOT / 'yandex-direct' / 'data' / 'raw' / 'metrika-goals.json'
 GOALS_RAW_SRC  = 'yandex-direct/data/raw/metrika-goals.json'
-# Дата коммита файла в репозиторий (git log), не дата самой выгрузки: поле замера
-# в файле Management API не проставлено.
-GOALS_RAW_AT   = '2026-09-16'
+
+# Достижения по целям. Вопреки тому, что тут стояло раньше, их собирают ежедневно:
+# yandex-direct/dashboard/make-snapshots.mjs запрашивает ym:s:goal<id>reaches по
+# целям 487033158 (CRM | Все лиды) и 477925360 (Отправка контактов), воркфлоу
+# direct-snapshots.yml, крон 20 6 * * *. Здесь они только читаются.
 DIRECT_METRIKA_PATH = ROOT / 'yandex-direct' / 'data' / 'direct_metrika.json'
+DIRECT_METRIKA_SRC  = 'yandex-direct/data/direct_metrika.json'
+
+# Метки источника точки ряда. Оба варианта приходят из одного файла на диске:
+# ни snapshot.py, ни сборка в keys.so не ходят. Разница не в способе съёма,
+# а в том, какая часть файла прочитана, и её видно в «Журнале съёмов».
+SRC_SNAP  = 'срез keysso.json'          # верхний блок файла: все шесть показателей
+SRC_RETRO = 'ретроспектива keysso.json' # history внутри файла: только топ-10 и видимость
 
 DANN, GIPO, DEMO = 'ДАННЫЕ', 'ГИПОТЕЗА', 'ДЕМО'
 
@@ -41,8 +51,8 @@ def load_goals_fallback(ym_counter):
 
     Сверяется по id счётчика с yandex-direct/data/direct_metrika.json, чтобы не
     подставить список целей одного проекта другому. Возвращает только активные
-    цели с их названиями и id; достижений (reaches) здесь нет и быть не может -
-    это другой отчёт API, его никто не собирает.
+    цели с их названиями и id. Достижений по ним в этом файле нет, они берутся
+    отдельно, функцией ниже.
     """
     dm = load(DIRECT_METRIKA_PATH)
     # Счётчик в двух выгрузках хранится разными типами (int в одной, str в другой),
@@ -59,6 +69,61 @@ def load_goals_fallback(ym_counter):
     goals = (raw or {}).get('goals') or []
     active = [g for g in goals if g.get('status') == 'Active']
     return active or None
+
+
+def git_file_date(path):
+    """Дата последнего коммита файла. Не дата замера, и подписывается именно так.
+
+    Нужна там, где в самой выгрузке даты нет: без даты класс ДАННЫЕ не проходит
+    сторожа, а выдумывать дату замера нельзя. Константой её зашивать тоже нельзя -
+    она молча устареет ровно в тот день, когда файл обновят.
+    """
+    try:
+        out = subprocess.run(['git', 'log', '-1', '--format=%cs', '--', str(path)],
+                             cwd=str(ROOT), capture_output=True, text=True, timeout=10)
+        return (out.stdout or '').strip()[:10]
+    except Exception:
+        return ''
+
+
+# Как источник трафика в выгрузке Метрики называется у нас на экране.
+CONV_SOURCES = {'Search engine traffic': 'organic', 'Ad traffic': 'ad'}
+
+def load_conversion(ym_counter):
+    """Измеренная конверсия визита в лид по счётчику, из живой выгрузки Директа.
+
+    Берёт достижения цели «CRM | Все лиды» в разрезе источника трафика и делит
+    на визиты того же источника. Выгрузку обновляет direct-snapshots.yml
+    ежедневно, поэтому дата замера берётся из самого файла, а не из константы.
+    Органика и реклама не смешиваются: у них разная конверсия и разный смысл.
+    """
+    dm = load(DIRECT_METRIKA_PATH)
+    if not dm or str(dm.get('counter')) != str(ym_counter):
+        return None
+    at = (dm.get('generated_at') or '')[:10]
+    out = {'at': at, 'goal_id': (dm.get('goals') or {}).get('leads')}
+    for row in (dm.get('by_source') or []):
+        key = CONV_SOURCES.get(row.get('source'))
+        visits, leads = row.get('visits'), row.get('leads')
+        if not key or not visits or leads is None:
+            continue
+        out[key] = {'visits': visits, 'leads': leads, 'cr': round(leads / visits * 100, 2)}
+    return out if ('organic' in out or 'ad' in out) else None
+
+def build_conv(conv):
+    """Конверты конверсии для экрана. Визиты и заявки лежат отдельными полями,
+    чтобы экран брал их как числа, а не выковыривал регуляркой из примечания."""
+    if not conv or 'organic' not in conv or 'ad' not in conv:
+        return None
+    out = {'goal_id': conv['goal_id'], 'at': conv['at']}
+    for key, human in (('organic', 'из поиска'), ('ad', 'из рекламы')):
+        row = conv[key]
+        env = F(row['cr'], DANN, DIRECT_METRIKA_SRC, conv['at'],
+                f"{row['leads']} заявок на {row['visits']} визитов {human} за 30 дней")
+        env['visits'], env['leads'] = row['visits'], row['leads']
+        out[key] = env
+    return out
+
 
 PROJECTS = {
     'gm': {'dir': 'glass-memory', 'name': 'GLASS-MEMORY', 'dom': 'glass-memory.ru', 'plan': 22_000_000},
@@ -132,31 +197,56 @@ def build_project(code, cfg, hist):
     for r in (ks.get('history') or []):
         if r.get('date'):
             ser.append({'date': r['date'], 'top10': r.get('top10'), 'vis': r.get('visibility'),
-                        'top50': r.get('top50'), 'src': 'keysso.json'})
+                        'top50': r.get('top50'), 'src': SRC_RETRO})
     for r in hist.get(code, []):
-        # Источник берём из самой точки, а не подставляем одно слово всем строкам:
-        # snapshot.py пишет 'keys.so' для настоящего съёма и 'keysso.json history'
-        # для добора задним числом из ретроспективы выгрузки - это разные вещи,
-        # и «Журнал съёмов» существует ровно затем, чтобы их различать.
+        # Источник берём из самой точки, а не подписываем одним словом весь ряд:
+        # snapshot.py помечает съём верхнего блока и добор из ретроспективы разными
+        # метками, и «Журнал съёмов» существует ровно затем, чтобы их различать.
+        mark = {'keys.so': SRC_SNAP, 'keysso.json history': SRC_RETRO}.get(r.get('source'), SRC_SNAP)
         ser.append({'date': r['date'], 'top10': r.get('top10'), 'vis': r.get('visibility'),
                     'top50': r.get('top50'), 'top1': r.get('top1'), 'top3': r.get('top3'),
-                    'ai': r.get('ai_answers'), 'src': r.get('source') or 'snapshot'})
+                    'ai': r.get('ai_answers'), 'src': mark})
+    # Свежий срез - такая же точка ряда, просто ещё не записанная snapshot.py: он
+    # коммитит в main по будням, а сборка идёт где угодно и когда угодно. Без этой
+    # строки карточка берёт значение из свежего среза, дельта считается по последней
+    # записанной точке, и на экране появляется пара, которой в ряду нет.
+    if at:
+        ser.append({'date': at, 'top10': ks.get('top10'), 'vis': ks.get('visibility'),
+                    'top50': ks.get('top50'), 'top1': ks.get('top1'), 'top3': ks.get('top3'),
+                    'ai': ks.get('ai_answers'), 'src': SRC_SNAP})
     byday = {}
     for r in ser:
         byday[r['date']] = {**byday.get(r['date'], {}), **{k: v for k, v in r.items() if v is not None}}
     p['series'] = [byday[k] for k in sorted(byday)]
 
+    # Покрытие ряда по полям. Ретроспектива выгрузки несёт только топ-10 и видимость,
+    # поэтому топ-50 и ответы ИИ есть на считанных точках. Показывать это обязан сам
+    # дашборд (корневой CLAUDE.md §15 п.3), а не выяснять читатель по расхождению цифр.
+    COV = {'top10': 'запросы в топ-10', 'top50': 'запросы в топ-50',
+           'vis': 'видимость в ИИ', 'ai': 'ответы ИИ'}
+    p['coverage'] = {
+        'total': len(p['series']),
+        'fields': [{'key': k, 'name': n,
+                    'pts': sum(1 for s in p['series'] if s.get(k) is not None)}
+                   for k, n in COV.items()],
+    }
+
     # Метрика
     if ym and ym.get('visits_30d'):
         own_goals = ym.get('goals') or []
-        goals_configured, goals_note, goals_src, goals_at = [], '', '', ''
+        conv = load_conversion(ym.get('counter'))
+        goals_configured = None
         if not own_goals:
             fb = load_goals_fallback(ym.get('counter'))
             if fb:
-                goals_configured = [{'name': g.get('name'), 'id': g.get('id')} for g in fb]
-                goals_src, goals_at = GOALS_RAW_SRC, GOALS_RAW_AT
-                goals_note = ('Выгрузка geo-monster их не запрашивает, поэтому достижений '
-                              '(reaches) по ним здесь нет.')
+                # Список целей едет в конверте, как и любая другая цифра на экране:
+                # в нём число целей, источник и прямая оговорка, что файл снят руками
+                # и не обновляется ничем. Иначе сторож этих данных не видит.
+                goals_configured = F(
+                    len(fb), DANN, GOALS_RAW_SRC, git_file_date(GOALS_RAW_PATH),
+                    'дата появления файла в репозитории, не дата замера: список снят '
+                    'руками и не обновляется ни одним скриптом')
+                goals_configured['list'] = [{'name': g.get('name'), 'id': g.get('id')} for g in fb]
         p['ym'] = {
             'counter': F(ym.get('counter'), DANN, f"gg-seo-geo-monster/data/{cfg['dir']}/metrika.json", ym.get('measured', '')),
             'days': ym['visits_30d'],
@@ -166,9 +256,9 @@ def build_project(code, cfg, hist):
                        'metrika.json', ym.get('measured', '')),
             'goals': own_goals,
             'goals_configured': goals_configured,
-            'goals_note': goals_note,
-            'goals_src': goals_src,
-            'goals_at': goals_at,
+            # Измеренная конверсия визита в лид. Органика и реклама раздельно:
+            # у них разная цифра и разный смысл, средняя по ним не значит ничего.
+            'conv': build_conv(conv),
             'top_pages': ym.get('top_pages') or [],
             'top_phrases': ym.get('top_phrases') or [],
             'at': ym.get('measured', ''),

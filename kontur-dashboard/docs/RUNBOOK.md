@@ -1,12 +1,13 @@
 # Регламент обновления
 
-## Раз в неделю, пятница
+## Раз в неделю, пятница (сверка руками)
 
 ```bash
 cd kontur-dashboard
 
 # 1. Убедиться, что свежие выгрузки keys.so приехали
-#    (их кладёт .github/workflows/keyso-collect.yml)
+#    (их кладёт .github/workflows/harvest.yml, ежедневно в 03:00 МСК;
+#     keyso-collect.yml собирает другое - рынок конкурентов, раз в неделю)
 ls -l ../gg-seo-geo-monster/data/genglass/keysso.json
 
 # 2. Записать точку в дневной ряд. Это то, что не восстановится задним числом

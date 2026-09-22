@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0F0D">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%230A0F0D%22/><text x=%2216%22 y=%2221%22 font-family=%22sans-serif%22 font-weight=%22800%22 font-size=%2213%22 fill=%22%234EEAC0%22 text-anchor=%22middle%22>Tb</text></svg>">
+<title>TURBIUM / Strategy Room · Новые модели роста</title>
+<style>
+:root{
+  --bg:#0A0F0D;--surface:#131A16;--surface-2:#0E1512;--surface-3:#18211C;
+  --line:#1E2A25;--line-hi:#31443C;--mint:#4EEAC0;--mint-soft:#A7F7DF;--teal:#00BFA5;
+  --amber:#FF8C42;--peach:#FFB88C;--white:#F2F7F5;--grey:#8A9A94;--grey-hi:#B7C3BE;
+  --red:#FF6B6B;
+  --disp:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+  --mono:"SFMono-Regular","Cascadia Code","Roboto Mono",ui-monospace,monospace;
+  --rail:264px;
+}
+*{box-sizing:border-box}
+html{background:var(--bg);scroll-behavior:smooth}
+body{margin:0;min-width:320px;color:var(--white);font-family:var(--disp);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--mint);text-decoration:none}
+a:hover{text-decoration:underline}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:14px 22px;background:rgba(10,15,13,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.mark{width:38px;height:38px;border:1px solid var(--mint);border-radius:8px 8px 8px 3px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--mint);position:relative;flex:none}
+.mark small{position:absolute;top:2px;left:4px;font:8px var(--mono);font-weight:400}
+.topbar b{font-size:15px;letter-spacing:.05em;text-transform:uppercase}
+.topbar .meta{margin-left:auto;font:11px var(--mono);color:var(--grey);letter-spacing:.06em;text-align:right}
+.layout{display:grid;grid-template-columns:var(--rail) 1fr;max-width:1460px;margin:0 auto}
+nav.rail{position:sticky;top:67px;align-self:start;height:calc(100vh - 67px);overflow-y:auto;padding:26px 14px 40px;border-right:1px solid var(--line)}
+nav.rail a{display:block;padding:9px 12px;margin:2px 0;border-radius:8px;color:var(--grey-hi);font-size:13.5px;letter-spacing:.02em;border:1px solid transparent}
+nav.rail a small{display:inline-block;width:26px;font:10.5px var(--mono);color:var(--grey)}
+nav.rail a.on{color:var(--white);background:var(--surface);border-color:var(--line-hi)}
+nav.rail a.on small{color:var(--mint)}
+nav.rail a:hover{text-decoration:none;color:var(--white)}
+nav.rail .cap{margin:20px 12px 6px;font:10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--grey)}
+main{padding:34px clamp(20px,4vw,60px) 120px;min-width:0}
+section.page{display:none;max-width:930px}
+section.page.on{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.kicker{font:11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mint);margin:0 0 10px}
+h1{font-size:clamp(26px,3.4vw,40px);line-height:1.15;letter-spacing:-.015em;margin:0 0 14px}
+h2{font-size:22px;letter-spacing:-.01em;margin:44px 0 12px;padding-top:26px;border-top:1px solid var(--line)}
+h3{font-size:17px;margin:26px 0 8px}
+p{margin:0 0 14px;color:var(--grey-hi)}
+p.lead{font-size:18.5px;color:var(--white);max-width:64ch}
+strong{color:var(--white)}
+ul,ol{color:var(--grey-hi);padding-left:22px;margin:0 0 16px}
+li{margin:6px 0}
+li::marker{color:var(--mint)}
+.tag{display:inline-block;font:10.5px var(--mono);letter-spacing:.06em;padding:2px 8px;border-radius:999px;border:1px solid var(--line-hi);color:var(--grey-hi);white-space:nowrap;vertical-align:1px}
+.tag.data{border-color:rgba(78,234,192,.5);color:var(--mint)}
+.tag.synth{border-color:rgba(78,234,192,.3);color:#8fd9c2}
+.tag.est{border-color:rgba(255,184,140,.5);color:var(--peach)}
+.tag.hyp{border-color:rgba(255,140,66,.55);color:var(--amber)}
+.tag.veto{border-color:rgba(255,107,107,.55);color:var(--red)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:16px 0}
+.panel.warn{border-color:rgba(255,140,66,.4)}
+.panel.good{border-color:rgba(78,234,192,.35)}
+.panel h3{margin-top:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tbl{width:100%;overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--grey);text-align:left;padding:9px 12px;border-bottom:1px solid var(--line-hi)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--grey-hi);vertical-align:top}
+td b{color:var(--white)}
+tr.hl td{background:rgba(78,234,192,.05)}
+tr.dim td{opacity:.6}
+.score{font:13px var(--mono);color:var(--mint)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;margin:18px 0}
+.card .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-bottom:8px}
+.card .letter{width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid var(--mint);border-radius:8px 8px 8px 3px;color:var(--mint);font-weight:800;font-size:15px}
+.card h3{margin:0;flex:1;min-width:200px}
+.card .sc{font:13px var(--mono);color:var(--mint);white-space:nowrap}
+.card .comp{font:11px var(--mono);color:var(--grey)}
+.verdict{display:inline-block;font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:6px;margin-top:10px}
+.verdict.go{background:rgba(78,234,192,.12);color:var(--mint)}
+.verdict.block{background:rgba(255,140,66,.12);color:var(--amber)}
+.verdict.no{background:rgba(255,107,107,.12);color:var(--red)}
+.steps{counter-reset:st;list-style:none;padding:0}
+.steps li{counter-increment:st;position:relative;padding:14px 16px 14px 56px;background:var(--surface);border:1px solid var(--line);border-radius:12px;margin:10px 0}
+.steps li::before{content:counter(st,decimal-leading-zero);position:absolute;left:16px;top:14px;font:13px var(--mono);color:var(--mint)}
+.note{font-size:13px;color:var(--grey);border-left:2px solid var(--line-hi);padding:2px 0 2px 14px;margin:14px 0}
+.big{font-size:clamp(30px,4vw,44px);font-weight:800;letter-spacing:-.02em;color:var(--white);line-height:1.1}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.stat .cap{font:10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--grey);margin-top:6px}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:18px 0}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--surface-3);border:1px solid var(--line-hi);border-radius:999px;padding:6px 14px;font-size:13px;color:var(--grey-hi);margin:4px 6px 4px 0}
+@media(max-width:960px){
+  .layout{grid-template-columns:1fr}
+  nav.rail{position:static;height:auto;display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:10px 14px;gap:4px}
+  nav.rail .cap{display:none}
+  nav.rail a{white-space:nowrap;flex:none}
+  .grid2{grid-template-columns:1fr}
+}
+@media print{
+  nav.rail,.topbar .meta{display:none}
+  section.page{display:block!important;page-break-after:always}
+  body{background:#fff;color:#111}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <span class="mark"><small>65</small>Tb</span>
+  <b>Strategy Room</b>
+  <span class="meta">ВНУТРЕННИЙ ДОКУМЕНТ · v1.0 · 22.07.2026<br>гейты: РОМАН + ФЕНИКС GO 8.5/10</span>
+</header>
+<div class="layout">
+<nav class="rail" id="rail">
+  <div class="cap">Навигация</div>
+  <a href="#summary"><small>01</small>Сводка для решения</a>
+  <a href="#west"><small>02</small>Запад: что работает</a>
+  <a href="#russia"><small>03</small>Россия: где платят</a>
+  <a href="#threats"><small>04</small>Угрозы и окна</a>
+  <a href="#catalog"><small>05</small>Каталог 13 моделей</a>
+  <a href="#ranking"><small>06</small>Ранжирование</a>
+  <a href="#unit"><small>07</small>Unit-экономика</a>
+  <a href="#apply"><small>08</small>Применение в TURBIUM</a>
+  <a href="#data"><small>09</small>Данные и гейты</a>
+</nav>
+<main>
+
+<!-- 01 -->
+<section class="page" id="summary">
+  <p class="kicker">01 / Сводка</p>
+  <h1>Куда расти TURBIUM, если не в клиентские проекты</h1>
+  <p class="lead">Исследование западного и российского рынков под один вопрос: как двум собственникам с нулём в кассе продавать готовые цифровые и учебные продукты на стыке AI + маркетинг + продажи для МСБ и расти месяц к месяцу.</p>
+  <div class="statrow">
+    <div class="stat"><div class="big">13</div><div class="cap">моделей в каталоге</div></div>
+    <div class="stat"><div class="big">60+</div><div class="cap">источников разведки</div></div>
+    <div class="stat"><div class="big">8.5<span style="font-size:.5em;color:var(--grey)">/10</span></div><div class="cap">ФЕНИКС, раунд 2: GO</div></div>
+    <div class="stat"><div class="big">1-6К&nbsp;₽</div><div class="cap">кэш-риск старта в месяц</div></div>
+  </div>
+  <h2>Вывод в четыре строки</h2>
+  <ol>
+    <li><strong>Побеждает не продукт, а лестница:</strong> курс «Telegram Ads для МСБ» → практикум «AI в продажах за 30 дней» → подписка на библиотеку сценариев + комьюнити. Каждая ступень финансирует и снабжает следующую.</li>
+    <li><strong>Кассовый разрыв убивается механикой предпродажи:</strong> курс пишется только после ≥10 платных предзаказов за 14 дней. Тогда даже худший сценарий (x0.3) стоит времени, но не денег.</li>
+    <li><strong>Не идти:</strong> генерация карточек для маркетплейсов (война с самими Ozon/WB) и вертикальный micro-SaaS (все живые примеры - венчурные, команды 7+).</li>
+    <li><strong>Главный системный риск - не конкуренты, а регуляторика:</strong> весь верх рейтинга сидит на одной оси «инфобизнес/образование» (НДС-пороги, возможное лицензирование школ). Траектория обхода прописана.</li>
+  </ol>
+  <div class="panel warn">
+    <h3>Что это НЕ значит</h3>
+    <p>Ни одна цифра выручки здесь не обещана. Вся модель - <span class="tag hyp">ГИПОТЕЗА</span> до пилота: у TURBIUM ноль собственных данных о продажах. Часть рыночных цифр помечена <span class="tag synth">ДАННЫЕ-СИНТЕЗ</span> - первоисточники (НАФИ, GetCourse, CNews) отдавали 403, данные получены через поисковый синтез и подлежат ручной проверке до любых финансовых решений. Формулу «экспоненциальный рост» из документа убрал ФЕНИКС - и правильно сделал.</p>
+  </div>
+  <h2>Как читать этот документ</h2>
+  <p>Разделы 02-04 - сырьё: что реально происходит на рынках и какие категории умирают. Раздел 05 - каталог всех найденных моделей с оценками. Раздел 06 - честная матрица ранжирования. Раздел 07 - деньги: затраты, цены, точки слома. Раздел 08 - главный: пошаговое применение в TURBIUM. Раздел 09 - дисциплина данных и вердикты гейтов.</p>
+</section>
+
+<!-- 02 -->
+<section class="page" id="west">
+  <p class="kicker">02 / Запад</p>
+  <h1>Что работает у маленьких команд в 2024-2026</h1>
+  <p class="lead">18 поисковых сессий по шести направлениям. Почти все громкие цифры - self-reported и завышены; ценность отчёта - в повторяющихся паттернах, а не в чужих заголовках.</p>
+
+  <h2>Шесть направлений</h2>
+  <div class="card"><div class="head"><h3>1. Micro-SaaS / AI-обёртки</h3></div>
+    <p>Leadmore AI: $30K MRR за 4 месяца при $0 на маркетинг - но у фаундера было комьюнити 300 человек ДО запуска <span class="tag">self-reported, Indie Hackers</span>. Кейс $23K MRR за 6 месяцев: ~650 клиентов по $39/мес <span class="tag">self-reported</span>.</p>
+    <p><strong>Фон, который прячут кейсы:</strong> 60-70% AI-обёрток - нулевая выручка, лишь 3-5% пробивают $10K MRR <span class="tag hyp">ГИПОТЕЗА</span>. Маржа обёртки 25-60% против 70-90% у классического SaaS.</p>
+  </div>
+  <div class="card"><div class="head"><h3>2. Productized-подписки (DFY)</h3></div>
+    <p>Designjoy: один человек, $5 995/мес flat fee за «безлимит» дизайна. Цифры расходятся между источниками ($145K MRR vs $3.1M ARR на пике) - неаудировано; бренд строился с 2018 года, это не «с нуля за полгода». Реалистичный потолок для одного исполнителя - $10-20K MRR <span class="tag est">ОЦЕНКА</span>.</p>
+    <p><strong>Для TURBIUM модель отклонена</strong> - это продажа своих рук по подписке, прямое нарушение ограничения «без погружения в клиентов». Заимствуем только приём fixed-scope: фиксированная цена + фиксированный объём убирают торг.</p>
+  </div>
+  <div class="card"><div class="head"><h3>3. Шаблоны и цифровые товары</h3></div>
+    <p>Notion-шаблоны: один кейс $239K суммарно <span class="tag">self-reported</span> при медиане $14-31K/год. n8n-автоматизации: «$47K на трёх workflow» без первоисточника; проверяемее - $3.2K/мес с пяти автоматизаций <span class="tag hyp">низкая достоверность</span>. GPT Store как канал монетизации мёртв: медиана выплат меньше $100/квартал - работает только как лид-магнит для консалтинга.</p>
+  </div>
+  <div class="card"><div class="head"><h3>4. Обучение и платные комьюнити</h3></div>
+    <p>Skool: ~$26.6M ARR <span class="tag est">Latka-оценка</span> при сокращении штата с 242 до ~30 человек. Skool Games ужесточил правила подсчёта MRR - косвенный признак накруток в предыдущих раундах. Данных о выживаемости участников нет. Механика (комьюнити + челленджи + прогресс) переносима на русскоязычную аудиторию; конкурировать за западную без личного бренда нереалистично.</p>
+  </div>
+  <div class="card"><div class="head"><h3>5. Вертикальные AI-агенты продаж</h3></div>
+    <p>Artisan ($25M Series A, ~$5M ARR, публичный churn), 11x ($50M Series B + критика завышений), Synthflow ($20M, команда 10), Loman.ai («bootstrap» при $4.12M в PitchBook - легенда) <span class="tag data">ДАННЫЕ, раунды</span>. <strong>В лоб некопируемо без капитала.</strong> Копируем только паттерн узкой ниши.</p>
+  </div>
+  <div class="card"><div class="head"><h3>6. White-label реселлерство</h3></div>
+    <p>GoHighLevel: вход $497/мес, безубыток ~15 клиентов по $99; 30 клиентов = $2-3K/мес чистыми <span class="tag hyp">ГИПОТЕЗА из гайдов</span>. Верифицированных исходов реселлеров не нашлось - только «потенциал». Экономика включается после критической массы, то есть упирается в канал продаж.</p>
+  </div>
+
+  <h2>Пять паттернов, которые повторяются везде</h2>
+  <ol>
+    <li><strong>Дистрибуция дешевле продукта.</strong> Везде, где цифры проверяемы, рост держится на бесплатном канале с аудиторией, собранной ДО запуска.</li>
+    <li><strong>Узкая вертикаль, не «инструмент для всех».</strong> Основная масса нулевой выручки - универсальные обёртки.</li>
+    <li><strong>Fixed-scope подписка убирает переговоры о цене.</strong></li>
+    <li><strong>Self-reported цифры завышены системно.</strong> Планировать от нижней границы.</li>
+    <li><strong>Выживаемость много ниже витрины кейсов.</strong> 40% AI-стартапов когорты 2021-2023 уже закрылись <span class="tag hyp">ГИПОТЕЗА</span>.</li>
+  </ol>
+</section>
+
+<!-- 03 -->
+<section class="page" id="russia">
+  <p class="kicker">03 / Россия</p>
+  <h1>Где МСБ уже платит деньгами, а не интересом</h1>
+  <p class="lead">Оговорка честности: часть первоисточников (vc.ru, cnews, getcourse, nafi) отдавала разведке 403 - эти цифры получены поисковым синтезом, помечены <span class="tag synth">ДАННЫЕ-СИНТЕЗ</span> и требуют ручной проверки до финансовых решений.</p>
+
+  <h2>Проникновение AI в МСБ</h2>
+  <p>НАФИ: 30% МСП используют AI, маркетинг и реклама - задача №1; доверие: Яндекс 72%, VK 43%, Сбер 35% <span class="tag synth">ДАННЫЕ-СИНТЕЗ</span>. Другой опрос даёт 94% <span class="tag synth">СИНТЕЗ, источник опроса не назван</span> - разброс 30-94% означает несопоставимые методологии («сотрудник разок открыл ChatGPT» ≠ «внедрили в процесс»). Средний чек МСБ на AI-инструменты: 5-30К ₽/мес <span class="tag hyp">ГИПОТЕЗА</span>.</p>
+
+  <h2>Инфобизнес и EdTech по AI</h2>
+  <div class="tbl"><table>
+    <tr><th>Факт</th><th>Число</th><th>Метка</th></tr>
+    <tr><td>Рынок онлайн-школ на GetCourse, 2025</td><td><b>168 млрд ₽</b></td><td><span class="tag synth">СИНТЕЗ</span></td></tr>
+    <tr><td>Новые AI-школы</td><td><b>10 за весь 2024 → 17 за полгода 2025</b></td><td><span class="tag synth">СИНТЕЗ</span></td></tr>
+    <tr><td>Выручка топ-100 edtech, 3кв2025, драйвер - AI-курсы</td><td><b>~42 млрд ₽, +12% г/г</b></td><td><span class="tag synth">СИНТЕЗ</span></td></tr>
+    <tr><td>Skillbox «Нейросети для бизнеса»</td><td><b>94 991 ₽ / 2 мес</b></td><td><span class="tag data">ДАННЫЕ</span></td></tr>
+    <tr><td>Новые школы 2025, дошедшие до 1 млн быстрее 6 мес</td><td><b>40%</b></td><td><span class="tag synth">СИНТЕЗ</span></td></tr>
+  </table></div>
+  <p class="note">Регуляторный фон: закон о просветительской деятельности действует с 2021; законопроекты о лицензировании онлайн-школ подготовлены, но не приняты. НДС: базовая ставка 22% с 2026 <span class="tag synth">СИНТЕЗ, ФЗ №425-ФЗ / moedelo.org</span>; порог УСН→НДС снижается 20 млн (2026) → 15 млн (2027) → 10 млн (2028) [ФЗ №425-ФЗ]. Грань «образовательная деятельность (льгота) vs информационно-консультационная (облагается)» юридически размыта.</p>
+
+  <h2>Telegram-экономика</h2>
+  <p>100+ млн MAU в РФ. TG Ads: <strong>5 → 20 млрд ₽ за 2025</strong> <span class="tag data">ДАННЫЕ, Коммерсантъ</span>, прогноз 35 млрд на 2026 <span class="tag est">ОЦЕНКА</span>. Обратная сторона: CPM вырос в 5 раз, конверсия упала втрое - канал перегрет, дешёвый вход закрывается. Mini-apps: GMV $1.2-1.5 млрд глобально, но Stars/TON-платежи в РФ штатно не работают - монетизация сломана.</p>
+
+  <h2>Готовые AI-сервисы продаж</h2>
+  <p>Речевая аналитика: 1.35 млрд ₽ (2024), +16% прогноз <span class="tag hyp">ГИПОТЕЗА со ссылкой на TelecomDaily - верифицировать</span>. Zvonobot - 0.8 ₽/звонок; Aimylogic от 990 ₽/мес с хостингом под 152-ФЗ; AI-карточки для WB/Ozon - десятки конкурирующих сервисов. Botamin - 200+ внедрений, 20 млн ₽ от ФРИИ. Ниши заняты или непрозрачны.</p>
+
+  <h2>Каналы дистрибуции</h2>
+  <p>Битрикс24.Маркет: 4000+ приложений, аудитория 12 млн - но экономика паблишера не раскрыта. То же у 1С:Фреш и amoCRM/Kommo. <strong>Слепая зона всего рынка:</strong> никто не публикует реальные доходы разработчиков. Kwork: бот «под ключ» от 30К ₽.</p>
+
+  <h2>Пять платёжеспособных болей</h2>
+  <ol>
+    <li>Контроль качества звонков и заявок (речевая аналитика, обзвон) - монетизируется, занято, растёт.</li>
+    <li>Обучение сотрудников системному внедрению AI - драйвер edtech-роста.</li>
+    <li>AI-производство контента для маркетплейсов - большой объём рутины, конкурентно.</li>
+    <li>Compliance: ОРД + 152-ФЗ при использовании AI - вынужденный растущий спрос.</li>
+    <li>Грамотный вход в TG Ads - спрос высокий, системного обучения мало.</li>
+  </ol>
+  <h2>Три пустые ниши</h2>
+  <ol>
+    <li>Бенчмарк экономики паблишера CRM-маркетплейсов (платный отчёт).</li>
+    <li>Compliance-продукт для микро-МСБ - юрфирмы не таргетируют этот чек.</li>
+    <li>Системное обучение именно Telegram Ads для МСБ - не «нейросети вообще».</li>
+  </ol>
+</section>
+
+<!-- 04 -->
+<section class="page" id="threats">
+  <p class="kicker">04 / Угрозы и окна</p>
+  <h1>Кто умрёт, кто выживет, где окно 12-24 месяца</h1>
+  <p class="lead">Механизм смерти одинаковый: цена инференса упала на ~80% за 2023-2025, и любой продукт «API-вызов + тонкая обёртка» умирает, как только платформа встраивает ту же функцию бесплатно.</p>
+
+  <h2>Мертвецы ходячие</h2>
+  <div class="tbl"><table>
+    <tr><th>Категория</th><th>Доказательство смертности</th></tr>
+    <tr><td><b>Копирайтинг-генераторы «вообще»</b></td><td>Jasper: ~$120M (2023) → $35-55M (2024), 4 волны увольнений <span class="tag data">ДАННЫЕ</span></td></tr>
+    <tr><td><b>Транскрибация и саммари встреч</b></td><td>Съедены нативными функциями Zoom / Teams / Meet</td></tr>
+    <tr><td><b>Тонкие GPT-обёртки</b></td><td>Прогноз 90% мёртвых к концу 2026 <span class="tag est">ОЦЕНКА</span></td></tr>
+    <tr><td><b>Промпт-паки, GPT Store приложения</b></td><td>Каннибализированы релизами самого OpenAI</td></tr>
+    <tr><td><b>Вводные курсы «как пользоваться ChatGPT»</b></td><td>Платформы бесплатно учат пользоваться собой; спрос уходит в узкие измеримые программы</td></tr>
+  </table></div>
+  <p>Контрпример: DeepL и EvenUp выжили и выросли - у обоих проприетарный актив (модель, данные, вертикальная экспертиза), а не обёртка. 85% прибыльных AI-стартапов 2025 контролировали собственный датасет <span class="tag data">ДАННЫЕ по источнику разведки</span>.</p>
+
+  <h2>Платформы: куда не идти</h2>
+  <div class="tbl"><table>
+    <tr><th>Платформа</th><th>Что уже раздаёт МСБ</th></tr>
+    <tr><td><b>Yandex AI Studio</b> (07.2026)</td><td>No-code конструктор агентов, пресеты «маркетинговый аналитик», «аналитик тендеров» - прямой удар по нише «настрою вам агента»</td></tr>
+    <tr><td><b>Сбер GigaChat B2B</b></td><td>От 1 000 ₽/мес</td></tr>
+    <tr><td><b>Битрикс24 BitrixGPT</b></td><td>100 запросов/мес бесплатно, YandexGPT и GigaChat встроены</td></tr>
+    <tr><td><b>Google Workspace</b></td><td>Gemini во всех платных тарифах от $7</td></tr>
+    <tr><td><b>amoCRM</b></td><td>AI слабый (сторонние виджеты) - единственное пустое место в ряду</td></tr>
+  </table></div>
+
+  <h2>Регуляторика, которая меняет правила</h2>
+  <ul>
+    <li><strong>Закон о развитии ИИ</strong> принят 08.07.2026: маркировка «социально значимого» AI-контента, режим мягкий <span class="tag data">ДАННЫЕ, Ведомости</span>.</li>
+    <li><strong>289-ФЗ о платформенной экономике</strong> с 01.10.2026: рост издержек селлеров МСБ = окно для помощи с адаптацией.</li>
+    <li><strong>Маркировка рекламы (ОРД):</strong> контроль ужесточён, штрафы 100-500К ₽ на обе стороны сделки. Один штраф при кассе 0 = смерть компании.</li>
+    <li><strong>OpenAI недоступен из РФ легально:</strong> архитектура на одном западном API - единая точка отказа. Мультипровайдерность (YandexGPT + GigaChat) - требование выживания, не опция.</li>
+  </ul>
+
+  <h2>Четыре окна на 12-24 месяца</h2>
+  <ol>
+    <li><strong>Комплаенс-инструменты</strong> под три новых закона сразу - каждая платформа решает только свой периметр. Окно 12-18 мес.</li>
+    <li><strong>Вертикальные шаблоны агентов</strong> поверх Yandex AI Studio / GigaChat - US-прецедент даёт премию 40-60% ACV за отраслевую настройку <span class="tag hyp">ГИПОТЕЗА для РФ</span>. Окно 12-24 мес, риск: платформы сами выкатят пресеты.</li>
+    <li><strong>Узкие измеримые учебные продукты</strong> - «встроить AI в процесс продаж и измерить за 30 дней», не «AI-грамотность».</li>
+    <li><strong>Данные как продукт</strong> - курируемые библиотеки с валидированными метриками; не копируется релизом фичи.</li>
+  </ol>
+
+  <h2>Anti-pattern чеклист для двоих с нулём</h2>
+  <div class="grid2">
+    <div class="panel"><ol><li>Enterprise-цикл продаж 6+ месяцев</li><li>Обещание поддержки 24/7</li><li>Один API-провайдер, тем более западный</li><li>Ценовая война с бесплатной кнопкой платформ</li><li>Тонкая обёртка без проприетарных данных</li></ol></div>
+    <div class="panel"><ol start="6"><li>Сползание в кастом «настроим именно под вас»</li><li>Широкий вводный AI-курс как основной продукт</li><li>Игнор маркировки: один штраф = закрытие</li><li>Продажа на обещании «утроит продажи» без данных</li></ol></div>
+  </div>
+</section>
+
+<!-- 05 -->
+<section class="page" id="catalog">
+  <p class="kicker">05 / Каталог</p>
+  <h1>13 моделей: 11 оценённых + 2 отклонённых на входе</h1>
+  <p class="lead">Оценка по пяти критериям (1-5 каждый): S скорость до выручки · M масштаб без людей · P платформоустойчивость · B порог входа для двоих · D подтверждённый платящий спрос. Балл = честная сумма; вето и ограничения - отдельно, словами.</p>
+
+  <div class="card"><div class="head"><span class="letter">A</span><h3>Курс «Telegram Ads для МСБ»</h3><span class="sc">21</span></div>
+    <p class="comp">S5 · M5 · P3 · B5 · D3</p>
+    <p>Самоходный учебный продукт: запуск TG Ads без агентства - настройка, креативы через AI, маркировка ОРД, юнит-математика канала. За: рост канала 5→20 млрд ₽ <span class="tag data">ДАННЫЕ</span> и дефицит системного обучения. Почему D3, а не D4: платящий спрос подтверждён на РЕКЛАМУ, а не на курс о ней. Перегрев канала бьёт дважды: сокращает окно и повышает риск «курс не окупился у ученика» - в программу обязателен модуль «когда TG Ads вам НЕ нужен».</p>
+    <span class="verdict go">Стартовый SKU через предпродажу</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">B</span><h3>Практикум «AI в отделе продаж за 30 дней»</h3><span class="sc">21</span></div>
+    <p class="comp">S4 · M4 · P4 · B5 · D4</p>
+    <p>Узкая измеримая программа на российских моделях (YandexGPT/GigaChat - без серых оплат), финал - измеренный до/после. За AI-курсы в РФ уже платят (драйвер edtech) - поэтому D4. Ограничения: когорты не масштабируются без людей; публичное измерение обоюдоостро; сверху давят Skillbox/Нетология.</p>
+    <span class="verdict go">Второй SKU, когорта от 3 мест</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">C</span><h3>Compliance-пакет: ОРД + маркировка AI + 289-ФЗ</h3><span class="sc">19</span></div>
+    <p class="comp">S3 · M4 · P5 · B3 · D4</p>
+    <p>Курс + шаблоны + регламенты, НЕ юруслуга. Три обязательных закона почти одновременно; продаёт «избежание штрафа 100-500К ₽». Жёсткое ограничение: без юриста-партнёра выпускать нельзя - ошибка в трактовке закона = штраф клиенту = правовой риск TURBIUM.</p>
+    <span class="verdict block">BLOCK до юриста-партнёра · отдельный трек за долю</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">E</span><h3>Библиотека сценариев с верифицированными метриками</h3><span class="sc">19</span></div>
+    <p class="comp">S3 · M5 · P4 · B4 · D3</p>
+    <p>Подписка на курируемые связки «сценарий → инструмент → метрика». Честно про moat: на self-reported анкетах его НЕТ (сами же зафиксировали: такие цифры завышены системно). Moat возникает только при верифицируемом механизме - выгрузка из кабинета TG Ads / Метрики / CRM в обмен на скидку. Холодный старт: данные приносят выпускники A/B.</p>
+    <span class="verdict block">BLOCK до данных выпускников</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">I</span><h3>Платное комьюнити (Skool-механика на RU)</h3><span class="sc">19</span></div>
+    <p class="comp">S2 · M5 · P5 · B4 · D3</p>
+    <p>Механика Skool переносима; с нуля без аудитории не заводится (S2 это и отражает). Роль - слой удержания после первых когорт.</p>
+    <span class="verdict block">Слой удержания, не старт</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">G</span><h3>White-label реселлерство</h3><span class="sc">17</span></div>
+    <p class="comp">S3 · M3 · P3 · B4 · D4</p>
+    <p>До безубытка нужен канал на 15-20 клиентов; «настройка» тянет в сервис; экономика RU-реселлера непрозрачна, западных верифицированных исходов нет.</p>
+    <span class="verdict block">Только как апселл</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">D</span><h3>Вертикальные пресеты агентов</h3><span class="sc">16</span></div>
+    <p class="comp">S3 · M4 · P2 · B4 · D3</p>
+    <p>Готовые «прошивки» под вертикали поверх Yandex AI Studio / GigaChat. Худший платформенный риск после F: Яндекс уже выкатывает свои пресеты - окно может закрыться одним релизом.</p>
+    <span class="verdict block">Эксперимент малым усилием</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">F</span><h3>AI-карточки для маркетплейсов</h3><span class="sc">16 <span class="tag veto">ВЕТО</span></h3></div>
+    <p class="comp">S3 · M4 · P1 · B3 · D5</p>
+    <p>Максимальный подтверждённый спрос каталога (D5) - и худшая платформоустойчивость (P1): Ozon/WB встраивают генерацию сами, плюс ценовая война десятков сервисов. Вето - качественное решение, не арифметика: при равных 16 баллах с D и H на дне здесь лежит прямая война с платформами.</p>
+    <span class="verdict no">Не идти</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">H</span><h3>Шаблоны автоматизаций на маркетплейсах</h3><span class="sc">16</span></div>
+    <p class="comp">S3 · M4 · P3 · B4 · D2</p>
+    <p>Экономика паблишера нигде не раскрыта; западные медианы низкие. Дополнение к основной модели, не ставка.</p>
+    <span class="verdict block">Дополнение</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">K</span><h3>Платные аналитические отчёты</h3><span class="sc">15</span></div>
+    <p class="comp">S3 · M2 · P4 · B4 · D2</p>
+    <p>Пустая ниша (бенчмарк паблишеров CRM-маркетплейсов), но one-off с малой ёмкостью. Роль: лид-магнит, PR.</p>
+    <span class="verdict block">Лид-магнит</span>
+  </div>
+  <div class="card"><div class="head"><span class="letter">J</span><h3>Вертикальный micro-SaaS (обзвон, ресепшн)</h3><span class="sc">11</span></div>
+    <p class="comp">S1 · M3 · P2 · B1 · D4</p>
+    <p>Спрос есть (Zvonobot, 0.8 ₽/звонок), но все живые примеры - венчурные ($4-50M, команды 7+). Нужны разработка, поддержка, телефония. Три anti-pattern из четырёх сразу.</p>
+    <span class="verdict no">Не идти при кассе 0</span>
+  </div>
+  <div class="panel">
+    <h3>Отклонены на входе, без скоринга</h3>
+    <p><strong>DFY-подписка (модель Designjoy):</strong> нарушает ограничение «без погружения в бизнесы клиентов» - это продажа своих рук. Забираем только приём fixed-scope.<br>
+    <strong>Telegram mini-apps:</strong> GMV $1.2-1.5 млрд глобально, но Stars/TON-платежи в РФ штатно не работают - монетизация для РФ-аудитории структурно сломана.</p>
+  </div>
+</section>
+
+<!-- 06 -->
+<section class="page" id="ranking">
+  <p class="kicker">06 / Ранжирование</p>
+  <h1>Матрица: честная арифметика, вето отдельно</h1>
+  <p class="lead">Первая версия матрицы содержала скрытые штрафы «неудобным» вариантам - ФЕНИКС это поймал (RETURN 6.9) и заставил пересчитать. Ниже версия, где сумма компонент равна баллу у всех 11 вариантов, проверено повторным аудитом.</p>
+  <div class="tbl"><table>
+    <tr><th>Место</th><th>Модель</th><th>S</th><th>M</th><th>P</th><th>B</th><th>D</th><th>Балл</th><th>Вердикт</th></tr>
+    <tr class="hl"><td>1-2</td><td><b>A. Курс «Telegram Ads для МСБ»</b></td><td>5</td><td>5</td><td>3</td><td>5</td><td>3</td><td class="score">21</td><td>Стартовый SKU через предпродажу</td></tr>
+    <tr class="hl"><td>1-2</td><td><b>B. Практикум «AI в продажах»</b></td><td>4</td><td>4</td><td>4</td><td>5</td><td>4</td><td class="score">21</td><td>Второй SKU, когорта ≥3</td></tr>
+    <tr><td>3-5</td><td>C. Compliance-пакет</td><td>3</td><td>4</td><td>5</td><td>3</td><td>4</td><td class="score">19</td><td>BLOCK до юриста</td></tr>
+    <tr><td>3-5</td><td>E. Библиотека-подписка</td><td>3</td><td>5</td><td>4</td><td>4</td><td>3</td><td class="score">19</td><td>BLOCK до данных A/B</td></tr>
+    <tr><td>3-5</td><td>I. Комьюнити</td><td>2</td><td>5</td><td>5</td><td>4</td><td>3</td><td class="score">19</td><td>Слой удержания</td></tr>
+    <tr><td>6</td><td>G. White-label реселлерство</td><td>3</td><td>3</td><td>3</td><td>4</td><td>4</td><td class="score">17</td><td>Апселл</td></tr>
+    <tr><td>7-9</td><td>D. Пресеты агентов</td><td>3</td><td>4</td><td>2</td><td>4</td><td>3</td><td class="score">16</td><td>Эксперимент</td></tr>
+    <tr><td>7-9</td><td>F. Карточки маркетплейсов</td><td>3</td><td>4</td><td>1</td><td>3</td><td>5</td><td class="score">16</td><td><span class="tag veto">ВЕТО</span> война с платформами</td></tr>
+    <tr><td>7-9</td><td>H. Шаблоны автоматизаций</td><td>3</td><td>4</td><td>3</td><td>4</td><td>2</td><td class="score">16</td><td>Дополнение</td></tr>
+    <tr class="dim"><td>10</td><td>K. Платные отчёты</td><td>3</td><td>2</td><td>4</td><td>4</td><td>2</td><td class="score">15</td><td>Лид-магнит</td></tr>
+    <tr class="dim"><td>11</td><td>J. Micro-SaaS</td><td>1</td><td>3</td><td>2</td><td>1</td><td>4</td><td class="score">11</td><td>Не идти</td></tr>
+  </table></div>
+  <div class="panel">
+    <h3>Как читать таблицу</h3>
+    <p>A и B выигрывают не с отрывом в 6-10 баллов, а на 2 балла от кластера C/E/I. Разница создаётся вердиктами, а не арифметикой: у C блокер - юрист, у E - отсутствие данных, у I - отсутствие аудитории. Именно поэтому рекомендация - последовательность (раздел 08), где блокеры снимаются по очереди, а не игнорируются.</p>
+  </div>
+</section>
+
+<!-- 07 -->
+<section class="page" id="unit">
+  <p class="kicker">07 / Unit-экономика</p>
+  <h1>Деньги: расчёт РОМАНА (CFO-гейт)</h1>
+  <p class="lead">База: старт на самозанятости (0 ₽ регистрация, налог 4-6%, без онлайн-кассы <span class="tag data">ДАННЫЕ, режим НПД</span>); эквайринг ~3-3.5% <span class="tag hyp">ГИПОТЕЗА</span>; час собственника - 2 000 ₽ теневой цены <span class="tag hyp">ГИПОТЕЗА</span>. ROMI не считается принципиально: при нуле собственных продаж любой ROMI - фикция.</p>
+
+  <div class="tbl"><table>
+    <tr><th>SKU</th><th>Цена <span class="tag hyp">ГИПОТЕЗА</span></th><th>Затраты запуска</th><th>Продаж до 100К / 300К / 1М ₽ в мес</th><th>Вердикт РОМАНА</th></tr>
+    <tr class="hl"><td><b>A курс</b></td><td>7-15К ₽, медиана 10К<br><small>якорь: в 6-13 раз ниже Skillbox</small></td><td>125-195 ч + 1-6К ₽/мес</td><td>10 / 30 / 100</td><td><span class="verdict go">PILOT: go на предпродажу</span></td></tr>
+    <tr><td><b>B практикум</b></td><td>20-50К ₽, медиана 30К</td><td>80-125 ч + 40-70 ч/когорта + 8-10К ₽/мес</td><td>3-4 / 10 / 33<br><small>33 - нереально вдвоём</small></td><td><span class="verdict go">PILOT после A, когорта ≥3</span></td></tr>
+    <tr><td><b>C compliance</b></td><td>10-30К ₽<br><small>якорь - доля предотвращаемого штрафа</small></td><td>60-100 ч + юрист 50-150К ₽ или доля</td><td>5 / 15 / 50</td><td><span class="verdict block">BLOCK до юриста</span></td></tr>
+    <tr><td><b>E подписка</b></td><td>990-3000 ₽/мес, ARPU ~1500</td><td>60-100 ч + 15-30 ч/мес + 3-8К ₽/мес</td><td>67 / 200 / 667 активных</td><td><span class="verdict block">BLOCK до данных</span></td></tr>
+  </table></div>
+
+  <h2>Точки слома по каждому SKU</h2>
+  <ul>
+    <li><strong>A - единственный, выживающий в downside x0.3:</strong> ~3 продажи/мес = ~30К ₽ при кэш-расходе 1-6К - плюс по кассе даже в худшем сценарии, ЕСЛИ курс строился после предзаказов. Построенный «в стол» курс в downside сжигает 125-195 часов (~250-390К ₽ теневых) - это единственный реальный убыток сценария.</li>
+    <li><strong>B ломается на недоборе:</strong> когорта из 1-2 мест = 40-70 часов ведения в минус. Правило: меньше 3 мест - перенос запуска.</li>
+    <li><strong>E при churn 15%/мес <span class="tag hyp">ГИПОТЕЗА</span>:</strong> LTV ≈ 10 000 ₽; чтобы база в 200 подписчиков не таяла, нужно ~30 новых ежемесячно только на замещение оттока. Запущенная первой - гарантированное сжигание кассы.</li>
+    <li><strong>Возвраты инфопродуктов:</strong> RU-бенчмарка нет <span class="tag hyp">ГИПОТЕЗА 5-15%, ЗоЗПП</span>. Митигация - помодульная выдача доступа.</li>
+  </ul>
+
+  <h2>Налоговая траектория роста</h2>
+  <p>Успех дважды триггерит смену режима: <strong>НПД</strong> (потолок 2.4 млн ₽/год - умирает уже на ~200К ₽/мес выручки) → <strong>ИП/УСН</strong> → <strong>НДС</strong> (порог 20 млн в 2026 → 15 млн в 2027 → 10 млн в 2028; цель 1 млн ₽/мес = 12 млн/год пробивает порог 2028). Действия: закладывать НДС в цену при планировании 2027+, консультация по образовательной лицензии до достижения 60% порога.</p>
+
+  <div class="panel good">
+    <h3>Главный финансовый вывод</h3>
+    <p>Кассовый разрыв убивается не выбором продукта, а механикой предпродажи A: курс строится только после платных предзаказов - и downside перестаёт стоить денег, оставаясь риском только по времени.</p>
+  </div>
+</section>
+
+<!-- 08 -->
+<section class="page" id="apply">
+  <p class="kicker">08 / Применение в TURBIUM</p>
+  <h1>Как это использовать: лестница, активы, пилот</h1>
+  <p class="lead">Исследование делалось в отрыве от текущего позиционирования - так просил Иван. Но применяться оно будет внутри TURBIUM, где уже есть активы. Здесь - карта переиспользования.</p>
+
+  <h2>Лестница запуска</h2>
+  <ol class="steps">
+    <li><strong>Недели 1-2 · Пилот SKU-1 (курс TG Ads).</strong> Лендинг + предпродажа, 14 дней. Стоп-порог: <strong>≥10 платных предзаказов по ~10К ₽</strong> - go на запись; 5-9 - переработка оффера и второй заход; меньше 5 - стоп, возврат денег, разбор. До сигнала бюджет на продвижение &gt;200К ₽ заблокирован (Hard Rule P9).</li>
+    <li><strong>Недели 3-6 · Запись курса.</strong> 125-195 часов. Внутри - модуль маркировки ОРД (зародыш compliance-продукта без юррисков: учим процессу, не даём юрзаключений) и модуль «когда TG Ads вам НЕ нужен» (честность = защита от возвратов).</li>
+    <li><strong>Месяцы 2-4 · SKU-2 (практикум).</strong> Продажа выпускникам A: CAC близок к нулю. Запуск когорты при 3+ местах. С первого дня в оффере обоих SKU - бонус за верифицированную выгрузку метрик (кабинет TG Ads / Метрика / CRM).</li>
+    <li><strong>Месяцы 4-8 · Retention-слой.</strong> Подписка на библиотеку сценариев запускается при ≥20 верифицированных кейсов <span class="tag hyp">порог - ГИПОТЕЗА</span>; если механизм сбора не взлетел - E не запускается, удержание остаётся на комьюнити.</li>
+    <li><strong>Параллельно, малым усилием.</strong> Compliance-пакет - только с юристом-партнёром за долю. 3-5 вертикальных пресетов агентов - как апселл, пока окно открыто. Честно: этот хедж сам хрупкий (пресеты - P2), настоящая диверсификация появится из данных пилотов.</li>
+  </ol>
+
+  <h2>Какие активы TURBIUM уже работают на эту модель</h2>
+  <div class="tbl"><table>
+    <tr><th>Актив</th><th>Как используется</th></tr>
+    <tr><td><b>Сайт m1 (8 страниц + пакет правок v5)</b></td><td>Витрина доверия и площадка лендинга SKU-1. Страница «Разборы» - канал контент-дистрибуции (паттерн №1: аудитория до запуска). Аудит-квиз - готовый лид-магнит: сегментирует боль посетителя до продажи курса</td></tr>
+    <tr><td><b>Калькулятор потерь (pricing)</b></td><td>Прогрев к SKU-1: показывает деньги в утечке до того, как человек увидел цену курса</td></tr>
+    <tr><td><b>Словарь ЭММЫ + humanizer-дисциплина</b></td><td>Готовый языковой стандарт для всех учебных материалов: «заявка», не «лид»; без обещаний результата - защита и от возвратов, и от регуляторного риска рекламных обещаний</td></tr>
+    <tr><td><b>Компетенция перформанс-маркетинга</b></td><td>Содержание SKU-1 не закупается - оно уже в команде</td></tr>
+    <tr><td><b>Правила честности (m1, блок «Шесть правил»)</b></td><td>Переносятся в оффер курса дословно: источник рядом с цифрой, нет примера - не выдумываем. Это дифференциатор на рынке, сожжённом инфобиз-обещаниями</td></tr>
+    <tr><td><b>Протоколы (P9, Step 12.5)</b></td><td>Каждый учебный модуль и каждый лендинг проходят ФЕНИКСА до публикации - так же, как этот документ</td></tr>
+  </table></div>
+
+  <h2>Как это меняет позиционирование (и как НЕ меняет)</h2>
+  <p class="note">Фактология активов в таблице (8 страниц, аудит-квиз, калькулятор, блок «Шесть правил») - из пакета правок m1-fix, сверена при его сборке в июле 2026, вне эталонов ТЗ-07.</p>
+  <p>Текущий сайт m1 продаёт «продуктовую команду, которая чинит путь заявки». Лестница НЕ требует это ломать: курс и практикум - это та же экспертиза, упакованная в самоходный продукт. Возможная эволюция подачи: «мы чиним путь заявки - и учим ваших людей делать это без нас» (созвучно принципу m1 «хороший подрядчик делает систему понятнее»). Решение о смене акцентов - за Иваном, после данных пилота.</p>
+
+  <h2>Чек-лист Ивана до старта пилота</h2>
+  <ol>
+    <li>Подтвердить или переранжировать связку A→B→(E+I).</li>
+    <li>Верифицировать вручную цифры <span class="tag synth">ДАННЫЕ-СИНТЕЗ</span>: НАФИ, GetCourse, CNews, TelecomDaily (раздел 09).</li>
+    <li>Юрбаза: самозанятость, оферта, помодульная выдача, возвраты по ЗоЗПП.</li>
+    <li>ОРД-регистрация до первого платного размещения рекламы курса.</li>
+    <li>Задать окончательный стоп-порог предзаказов (рекомендация: 10, диапазон 8-12).</li>
+  </ol>
+  <div class="panel warn">
+    <h3>Что НЕ делать (из anti-pattern чеклиста)</h3>
+    <p>Не строить курс до предзаказов. Не обещать ученикам результат в цифрах. Не привязываться к OpenAI API. Не конкурировать ценой с бесплатными кнопками платформ. Не сползать в кастомные внедрения «под клиента» - это отменяет всю модель.</p>
+  </div>
+</section>
+
+<!-- 09 -->
+<section class="page" id="data">
+  <p class="kicker">09 / Данные и гейты</p>
+  <h1>Дисциплина данных и вердикты аудита</h1>
+  <p class="lead">Protocol 9: ни одна цифра без метки. Легенда меток, использованных во всех разделах:</p>
+  <p>
+    <span class="pill"><span class="tag data">ДАННЫЕ</span> источник проверен</span>
+    <span class="pill"><span class="tag synth">ДАННЫЕ-СИНТЕЗ</span> первоисточник отдавал 403, получено поисковым синтезом - верифицировать вручную</span>
+    <span class="pill"><span class="tag est">ОЦЕНКА</span> прогноз или агрегация</span>
+    <span class="pill"><span class="tag hyp">ГИПОТЕЗА</span> допущение, требует пилота</span>
+  </p>
+  <h2>Что верифицировать вручную до финансовых решений</h2>
+  <ul>
+    <li>НАФИ: 30% проникновение AI в МСП, маркетинг как задача №1.</li>
+    <li>GetCourse: 168 млрд ₽ рынок, динамика AI-школ, +12% топ-100 edtech.</li>
+    <li>CNews: 40% школ с первым миллионом быстрее 6 мес.</li>
+    <li>TelecomDaily: 1.35 млрд ₽ рынок речевой аналитики.</li>
+  </ul>
+  <h2>Вердикты гейтов</h2>
+  <div class="tbl"><table>
+    <tr><th>Гейт</th><th>Вердикт</th><th>Главное</th></tr>
+    <tr><td><b>РОМАН (CFO)</b></td><td>A: PILOT · B: PILOT после A · C: BLOCK до юриста · E: BLOCK до данных</td><td>«Кассовый разрыв убивается механикой предпродажи A, а не выбором продукта»</td></tr>
+    <tr><td><b>ФЕНИКС, раунд 1</b></td><td>RETURN 6.9/10</td><td>Поймал скрытые штрафы в матрице (подгонка под курсы), снятые caveat с RU-цифр, отсутствие unit-экономики, регуляторную монокультуру портфеля. 11 пунктов доработки - все приняты</td></tr>
+    <tr><td><b>ФЕНИКС, раунд 2</b></td><td><b>GO 8.5/10</b></td><td>Арифметика матрицы верифицирована 11/11. Условие: ручная верификация ДАННЫЕ-СИНТЕЗ до финансовых действий</td></tr>
+  </table></div>
+  <p class="note">Первоисточники и полные полевые отчёты: репозиторий turbium, папка research/ (2026-07-west-trends-raw.md, 2026-07-russia-market-raw.md, 2026-07-threats-windows-raw.md) и production/TZ_07_new_market_options.md. Этот сайт - их дословная упаковка, без новых утверждений.</p>
+</section>
+
+</main>
+</div>
+<script>
+(function(){
+  var ids=['summary','west','russia','threats','catalog','ranking','unit','apply','data'];
+  var links=document.querySelectorAll('#rail a');
+  function show(){
+    var h=(location.hash||'#summary').slice(1);
+    if(ids.indexOf(h)<0)h='summary';
+    ids.forEach(function(id){document.getElementById(id).classList.toggle('on',id===h)});
+    links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+h)});
+    window.scrollTo({top:0});
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body>
+</html>

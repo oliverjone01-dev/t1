@@ -1,0 +1,142 @@
+/* ============================================================
+   TURBIUM v5 patch · доступность 60+, иконки, сцены, труба
+   Подключается ПОСЛЕ базовых правил (конец site.css).
+   ============================================================ */
+
+/* --- 1. Типографика для возрастной ЦА: ничего мельче 11px,
+       смысловой текст >= 13px, вторичный текст на grey-hi --- */
+@media (max-width:600px){ body{font-size:16px} }
+.meta{font-size:11px}
+.tag{font-size:10px;min-height:26px}
+.eyebrow{font-size:11px}
+.brand-copy span{font-size:9px}
+.desktop-nav a{font-size:14px}
+.button{font-size:14px}
+.text-link{font-size:14px}
+.section-kicker{font-size:11px}
+.section-index{font-size:11px}
+.hero-assurance{font-size:13px;color:var(--grey-hi)}
+.hero-footnote{font-size:10px}
+.hero-status{font-size:10px}
+.proof-link b{font-size:13px}
+.proof-link small{font-size:12px}
+.console-id{font-size:10px}
+.console-score small{font-size:10px}
+.console-score .score-cap{margin-top:10px;color:var(--grey-hi);font-size:13px;font-family:var(--display);text-transform:none;letter-spacing:0}
+.score-ring b{font-size:14px}
+.score-ring span{font-size:10px}
+.journey-head{font-size:10px}
+.journey-row b{font-size:13px}
+.journey-row small{font-size:12px;color:var(--grey-hi)}
+.journey-row em{font-size:10px}
+.console-action small{font-size:10px}
+.console-action b{font-size:13px}
+.pain-strip b{font-size:15px}
+.pain-strip small{font-size:13px;color:var(--grey-hi)}
+.pain-strip span{font-size:10px}
+.situation-row small{font-size:10px}
+.situation-row b{font-size:21px}
+.situation-row p{font-size:13.5px;color:var(--grey-hi)}
+.situation-row em{font-size:13px}
+.system-step p{font-size:14px;color:var(--grey-hi)}
+.system-step a{min-height:44px;display:inline-flex;align-items:center;font-size:14px}
+.system-step aside small{font-size:10px}
+.system-step aside b{font-size:13px}
+.honesty-head{font-size:10px}
+.honesty-row span{font-size:10px}
+.honesty-row b{font-size:14px}
+.honesty-row p{font-size:13px;color:var(--grey-hi)}
+.process-timeline article>span{font-size:10px}
+.process-timeline p{font-size:13.5px;color:var(--grey-hi)}
+.process-timeline a{min-height:44px;display:inline-flex;align-items:center;font-size:14px}
+.faq-v4>div>div:first-child>a{font-size:14px}
+.footer-v4-top p{font-size:14px}
+.footer-v4-links span{font-size:10px}
+.footer-v4-links a{min-height:32px;display:inline-flex;align-items:center;font-size:14px}
+.footer-bottom{font-size:10px}
+.footer-nav h3{font-size:10px}
+.footer-nav a{font-size:14px}
+.final-actions small{font-size:12px}
+.page-hero-aside p{font-size:14.5px;color:var(--grey-hi)}
+.audit-step{font-size:13px}
+.option small{font-size:12.5px;color:var(--grey-hi)}
+.model-note{font-size:11px;line-height:1.6}
+.price-card p{font-size:14px}
+.price-card li{font-size:13.5px}
+.service-card p,.value-card p{font-size:14.5px}
+.service-card li{font-size:13.5px}
+.process-step p{font-size:13.5px;color:var(--grey-hi)}
+.fact span{font-size:13.5px}
+.source-row p{font-size:13px}
+.article-card p{font-size:13.5px;color:var(--grey-hi)}
+.aside-card p{font-size:13px}
+.comparison th{font-size:10px}
+.dash-item{font-size:13px}
+.range-output{font-size:13px}
+.field label{font-size:14px}
+
+/* --- 2. Иконки (inline SVG спрайт) --- */
+.ico{width:22px;height:22px;flex:none}
+.icon-box .ico{width:22px;height:22px}
+.pain-ico{grid-row:1/3;align-self:center;color:var(--amber)}
+.pain-strip p{grid-template-columns:34px 1fr;column-gap:14px}
+.honesty-row .h-ico{color:var(--teal);width:18px;height:18px}
+.honesty-row{grid-template-columns:26px 100px 1fr auto}
+.aside-ico{color:var(--mint);width:20px;height:20px;margin-bottom:8px}
+.gb-ico{color:var(--teal);width:18px;height:18px;margin-right:8px;vertical-align:-4px}
+
+/* --- 3. Сцена «труба с утечкой» (hero) --- */
+.hero-pipe{grid-column:1/-1;margin-top:clamp(10px,2vw,26px)}
+.hero-pipe svg{width:100%;height:auto;display:block}
+.hero-pipe figcaption{margin-top:10px;color:var(--grey-hi);font-size:13px;text-align:center}
+.pipe-coin{animation:pipeflow 6s linear infinite}
+.pipe-coin.c2{animation-delay:1.5s}
+.pipe-coin.c3{animation-delay:3s}
+.pipe-drop{animation:pipedrop 6s var(--ease) infinite}
+@keyframes pipeflow{0%{transform:translateX(0)}100%{transform:translateX(440px)}}
+@keyframes pipedrop{0%,55%{transform:translateY(0);opacity:1}80%{transform:translateY(46px);opacity:1}92%,100%{transform:translateY(46px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.pipe-coin,.pipe-drop{animation:none}}
+@media (max-width:860px){
+  .hero-v4-grid{display:grid}
+  .hero-v4-copy{order:1}
+  .hero-pipe{order:2;margin-top:6px}
+  .leak-console{order:3}
+}
+
+/* --- 4. Мобильный аккордеон консоли --- */
+.journey-more{display:none;width:100%;min-height:46px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--mint);font-size:14px;font-weight:650}
+@media (max-width:600px){
+  .journey-map:not(.expanded) .journey-row.muted{display:none}
+  .journey-more{display:block}
+  .journey-map.expanded .journey-more{display:none}
+}
+
+/* --- 5. Мини-сцены ситуаций --- */
+.situation-row{grid-template-columns:82px 96px 1.2fr 1fr 170px}
+.situation-art{width:88px;height:88px;color:var(--grey-hi)}
+.situation-art .a{color:var(--amber)}
+.situation-art .m{color:var(--mint)}
+@media (max-width:1120px){.situation-row{grid-template-columns:68px 1fr 1fr 150px}.situation-art{display:none}}
+@media (max-width:860px){.situation-row{grid-template-columns:60px 1fr auto}}
+@media (max-width:600px){.situation-row{grid-template-columns:52px 1fr}}
+
+/* --- 6. Подписи к столбикам графика (products) --- */
+.chart-labels{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px;color:var(--grey);font-size:11px;text-align:center;line-height:1.3}
+
+/* --- 7. Светофор-сцена (method) --- */
+.traffic-scene{display:flex;align-items:center;gap:14px;margin-top:16px}
+.traffic-scene svg{width:64px;height:auto;flex:none}
+.traffic-scene p{color:var(--grey-hi);font-size:13.5px;margin:0}
+
+/* --- 8. Мобайл: вернуть «Что вы получите» у шагов --- */
+@media (max-width:600px){
+  .system-step{grid-template-columns:42px 1fr}
+  .system-step aside{display:grid;grid-column:2;min-height:0;margin-top:10px;padding:10px 0 0;border-left:0;border-top:1px dashed var(--line-hi)}
+}
+
+/* --- 9. Ценовые подсказки в ситуациях (solutions) --- */
+.sol-price{margin-left:8px}
+
+/* --- 10. Фокус и тач --- */
+.situation-row:focus-visible,.article-card:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+.mobile-nav a .label{font-size:clamp(19px,5.4vw,26px)}

@@ -1,0 +1,74 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "turbium-full-audit-20260710",
+  "timestamp": "2026-07-10T23:30:00Z",
+  "deliverable_ref": "TURBIUM/ (10 files: content x5, research x3, references x2)",
+  "comprehension_gate": {
+    "applies": true,
+    "passed": false,
+    "defects": [
+      "Карусель #8 слайд 1 (хук): 'Automation rate 73%. CSAT 4.2/5.0' - жаргон на хук-слайде. Замена: 'Бот сам отвечает на 7 из 10 заявок. Ночью. За 8 тысяч в месяц.'",
+      "Карусель #3 слайд 5: 'покажите CPL, CAC, LTV' - собственный research фиксирует, что ЦА эти термины не понимает. Замена: 'спросите: сколько стоит один клиент, сколько он приносит, какая реклама его привела'",
+      "Карусели #6/#9: 'GigaChat понимает русский на 35-45% лучше GPT' - мутное сравнение без базы и источника",
+      "Пост 2: 'CPM взлетает' - термин без расшифровки в клиентском тексте",
+      "Пост 9: 'Никаких продаж' рядом с 'Только до конца недели' - фальшивый дедлайн, запрещённый собственными правилами фабрики",
+      "Карусель #2 (launch plan): провокация 'менеджер работает на конкурента' без немедленного разворота на слайде 2"
+    ]
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 0,
+    "accuracy_4_glossary_terminology": 1,
+    "accuracy_5_brand_names_correct": 1,
+    "actionability_6_owner_assigned": 1,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 1,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 0,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 2,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 1,
+    "brand_18_no_em_dash": 0,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 0,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 0,
+    "risk_23_crisis_scenarios": 0,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 4.0,
+    "actionability": 7.0,
+    "insight": 6.0,
+    "brand_fit": 5.0,
+    "risk_awareness": 3.0
+  },
+  "weighted_total": 5.15,
+  "verdict": "veto",
+  "gaps": [
+    "B1: вымышленные кейсы (стоматология Казань +183%, салон красоты, Новосибирск) поданы как реальные - нарушение P9 hard rule и риск по ФЗ 'О рекламе'",
+    "B2: минимум 8 цифр в контенте без источника или с фальшивой атрибуцией, противоречат собственной research-базе",
+    "B3: Instagram-first стратегия против собственного research (штрафы 500К за рекламу на заблокированных платформах, Telegram - самый растущий канал); плана Б на блок канала нет (триггер P8)",
+    "B4: продуктовая лестница расходится в 3 документах (расширенный аудит 2 990 vs 14 990; аудит 3/5/15/30 минут)",
+    "B5: unit-экономика самого TURBIUM не посчитана (цель месяца 15-30К выручки при непосчитанных затратах)",
+    "Comprehension Gate: 6 дефектов в клиентских текстах",
+    "Версионный хаос: Master Prompt v1 vs Visual DNA v3, 4 vs 5 сегментов, отсутствует JTBD_Segmentation_v2.docx, на который ссылается Factory"
+  ],
+  "rework_tz": "1) Канальное решение (Иван): Telegram-first либо осознанный Instagram-риск с планом Б + анализ 2 альтернатив. 2) Все цифры контента провести через research-базу: источник, [ГИПОТЕЗА] или удалить. 3) Кейсы: заменить на разборы публичных кейсов / модельные расчёты с явной пометкой, до появления реальных клиентов. 4) Единый прайс-документ, синхронизировать все файлы, убрать фальшивую urgency. 5) Unit-экономика TURBIUM + ROMI-санити (РОМАН). 6) Переписать 6 дефектов Comprehension Gate. 7) Гигиена версий (v1 superseded, 5 сегментов везде, Nano Banana, добавить JTBD v2). Повторный гейт после п.2, 3, 6 минимум. Прогноз при полном выполнении: 7.5-8.2 (go).",
+  "iteration": 1,
+  "confidence": 0.82,
+  "strengths": [
+    "research/edinoe_issledovanie_msb.docx: образцовая работа с источниками и честными ограничениями (~8.3)",
+    "research/svodny_otchet_msb.docx: перекрёстная верификация с разбором противоречий, 12 готовых инсайтов",
+    "Carousel Factory: грамотная архитектура (формат-ротация, loop, лимит 12 слов, запрет инфоцыганства, обязательные источники)",
+    "Эталонная карусель #1: тексты проходят Comprehension Gate, планка качества для пака",
+    "JTBD-сегментация: структура и CJM пригодны после маркировки долей как [ГИПОТЕЗА]"
+  ]
+}

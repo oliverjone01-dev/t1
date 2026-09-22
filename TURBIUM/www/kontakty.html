@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Контакты · TURBIUM</title>
+<meta name="description" content="Связаться с TURBIUM: Telegram-бот, бесплатный AI-аудит за 15 минут, почта. Без созвонов и продаж на первом шаге.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="index.html"><span class="tb-mark">Tb<small>65</small></span> TURBIUM</a>
+    <button class="burger" id="burger" aria-label="Меню" aria-expanded="false">≡</button>
+    <nav class="nav-links" id="navlinks">
+      <a href="uslugi.html">Услуги</a>
+      <a href="podhod.html">Как работаем</a>
+      <a href="o-nas.html">О нас</a>
+      <a href="blog.html">Блог</a>
+      <a href="kontakty.html" class="here">Контакты</a>
+      <a class="btn btn-primary nav-cta" href="#audit">AI-аудит</a>
+    </nav>
+  </div>
+</header>
+
+<section class="phead">
+  <div class="wrap">
+    <div class="crumbs rv"><a href="index.html">Главная</a> / Контакты</div>
+    <h1 class="rv d1">Давайте<br>на связи</h1>
+    <p class="lead rv d2">Самый быстрый способ, написать в Telegram-бот: он за 15 минут разберёт ваш маркетинг и передаст нам. Без созвонов, без карты, без продаж на первом шаге.</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section>
+  <div class="wrap">
+    <div class="grid g2 rv" style="align-items:start">
+      <div>
+        <div class="eyebrow">Куда писать</div>
+        <h2 class="mt-s">Три способа начать</h2>
+        <div class="contacts-list mt-l">
+          <a class="card lift contact-row" href="https://t.me/turbium_bot" rel="noopener">
+            <div class="contact-ic">TG</div>
+            <div><h3>Telegram-бот</h3><p class="muted mt-s">@turbium_bot. Пройдите AI-аудит за 15 минут прямо в переписке. Это наш главный вход.</p></div>
+            <span class="arr">→</span>
+          </a>
+          <a class="card lift contact-row" href="#audit">
+            <div class="contact-ic">✱</div>
+            <div><h3>Форма на сайте</h3><p class="muted mt-s">Оставьте телефон или ник, мы сами свяжемся и пришлём разбор в течение рабочего дня.</p></div>
+            <span class="arr">→</span>
+          </a>
+          <a class="card lift contact-row" href="mailto:hello@turbium.ru">
+            <div class="contact-ic">@</div>
+            <div><h3>Почта</h3><p class="muted mt-s">hello@turbium.ru. Для партнёрств, вопросов и всего, что не про срочный аудит.</p></div>
+            <span class="arr">→</span>
+          </a>
+        </div>
+        <div class="card rv d1 mt-l" style="border-style:dashed">
+          <p class="muted" style="margin:0">Работаем по всей России, онлайн. Часовой пояс не важен: бот принимает заявки круглосуточно, отвечаем в рабочее время.</p>
+        </div>
+      </div>
+      <figure class="gfx has-img rv d1" data-ratio="1:1">
+        <img src="img/contacts-map-glow.jpg" alt="Работаем по всей России: города светятся, заявки сходятся к центру Tb" loading="lazy" decoding="async" width="1254" height="1254">
+      </figure>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section class="lead-block" id="audit">
+  <div class="wrap">
+    <div class="sec-head center rv" style="margin:0 auto 32px">
+      <h2>Оставьте заявку на аудит</h2>
+      <p class="lead muted" style="margin:0 auto">Заполните одно поле, остальное по желанию. Мы пришлём разбор вашего маркетинга и покажем, где теряются заявки. Решать, работать дальше или нет, будете вы.</p>
+    </div>
+    <div class="form-tile rv d1" id="formTile">
+      <form id="leadForm">
+        <div class="field">
+          <label for="lf-contact">Телефон или ник в Telegram</label>
+          <input class="first-field" id="lf-contact" name="contact" type="text" placeholder="+7 999 000-00-00 или @username" required>
+        </div>
+        <div class="form-extra">
+          <div class="field">
+            <label for="lf-name">Как к вам обращаться</label>
+            <input id="lf-name" name="name" type="text" placeholder="Имя">
+          </div>
+          <div class="field">
+            <label for="lf-task">Что за бизнес и что болит</label>
+            <textarea id="lf-task" name="task" placeholder="Например: кофейня, заявки теряются, не понимаю какая реклама работает"></textarea>
+          </div>
+        </div>
+        <label class="consent"><input type="checkbox" name="agree" required><span>Соглашаюсь на обработку персональных данных и с <a href="politika.html" target="_blank" rel="noopener">политикой конфиденциальности</a>.</span></label>
+        <button class="btn btn-solid btn-lg" type="submit">Разобрать мой бизнес бесплатно <span class="arr">→</span></button>
+        <p class="form-risk">Или сразу в бот: <a class="mint" href="https://t.me/turbium_bot" rel="noopener">@turbium_bot</a>. Аудит за 15 минут, без карты и без созвонов.</p>
+      </form>
+      <div class="form-ok" id="formOk">
+        <div class="big">Готово</div>
+        <p class="muted mt-s">Спасибо. Мы свяжемся в течение рабочего дня. Хотите быстрее, напишите прямо в бот <a class="mint" href="https://t.me/turbium_bot" rel="noopener">@turbium_bot</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand"><a class="brand" href="index.html"><span class="tb-mark">Tb<small>65</small></span> TURBIUM</a><p>Независимое AI-агентство для малого бизнеса. Приводим заявки и показываем цену каждой.</p></div>
+    <div><h4>Разделы</h4><a href="uslugi.html">Услуги и связки</a><a href="podhod.html">Как мы работаем</a><a href="o-nas.html">О нас</a><a href="blog.html">Блог</a></div>
+    <div><h4>Связаться</h4><a href="#audit">Бесплатный AI-аудит</a><a href="https://t.me/turbium_bot" rel="noopener">Telegram-бот</a><a href="mailto:hello@turbium.ru">hello@turbium.ru</a></div>
+  </div>
+  <div class="wrap foot-bottom"><span>© TURBIUM 2026 · Элемент вашего роста</span><span>Каждую цифру подкрепляем источником</span></div>
+</footer>
+
+<div class="echo" id="echo"><a href="#audit"><span class="tb-mark" style="width:26px;height:26px;font-size:12px;border-color:rgba(6,35,27,.3);color:#06231b;box-shadow:none;background:none">Tb</span><span class="txt">Бесплатный аудит</span></a></div>
+<script src="app.js"></script>
+</body>
+</html>

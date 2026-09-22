@@ -1,0 +1,157 @@
+{
+ "agent": "feniks",
+ "skill": "phoenix-eval",
+ "task_id": "feniks-op-gm-v4-20260922-iter3",
+ "timestamp": "2026-09-23T00:16:05+03:00",
+ "deliverable_ref": "op-gm v4 dashboards итерация 3: build4/index.html 21:11:44, build4/av.app.js 21:11:19, avito/av.json 21:10:44 (scratchpad сессии 7a773ec9)",
+ "iteration": 3,
+ "artifact_class": "dashboard",
+ "audience": "менеджеры ОП GLASS-MEMORY (часть 50+) и РОП",
+ "anchor": "8.1 feniks-return-reestr (итерация 2, go) - наш 7.95, расхождение 0.15: все 5 блокирующих пунктов закрыты и воспроизведены (неделя 14-20.09 до минуты, бейджи на трёх экранах, владелец и веха); остаток - формулировки и ручная выгрузка без резерва. Серия этого артефакта 5.60 veto, 6.90 return, 7.95 go",
+ "p9_triggers_fired": [
+  "p9_required по брифу; финансовых прогнозов нет"
+ ],
+ "probes": [
+  {
+   "id": "B1",
+   "result": "PASS",
+   "evidence": "независимый пересчёт недели 14-20.09 МСК (feniks/week3.py): OLD-G n 52, медиана 9 ч 41 мин; NEW-B n 17, медиана 2 ч 36 мин. Совпадает с автором"
+  },
+  {
+   "id": "B6",
+   "result": "PASS",
+   "evidence": "smoke.json 21:11:57 после index.html 21:11:44"
+  },
+  {
+   "id": "B7",
+   "result": "PARTIAL",
+   "evidence": "бейджи точности на 4 детекторных виджетах «Пульса» и на 11 из 11 правил в «Типовых проблемах»; виджет гарантии на «Пульсе» без бейджа (probe3)"
+  },
+  {
+   "id": "O1",
+   "result": "PASS",
+   "evidence": "OWNER_NOTE «Выгрузку обновляет Иван раз в неделю, по понедельникам.» на «Сегодня», «Пульс ОП», «Откуда цифры» (probe3); решение в ivan-decisions-op-gm-v4-20260922.md"
+  },
+  {
+   "id": "M1",
+   "result": "PARTIAL",
+   "evidence": "веха «Первая проверка эффекта: 06.10.2026. Смотрят Иван и РОП» и 4 метрики есть; 06.10.2026 вторник, на следующий день после выгрузки; недели в тексте вехи вт-пн (15-21.09, 29.09-05.10), а weekStart (d-((d+3)%7)) выравнивает на понедельник: для 22.09 даёт 2026-09-21"
+  },
+  {
+   "id": "C1",
+   "result": "PASS",
+   "evidence": "«Звонки»: «Через Авито менеджеры почти не звонят сами: исходящих за полгода 1 в OLD-G и 0 в NEW-B. Звонки с мобильного Авито не видит...» - противоречие снято"
+  },
+  {
+   "id": "T1",
+   "result": "PASS",
+   "evidence": "«Сегодня»: жалобы 0, ждёт ответа 0, вопрос последним 3, телефон 2, цена 0 - те же 5 верных карточек; idx 925 и 1521 теперь vendor"
+  },
+  {
+   "id": "C3",
+   "result": "PASS",
+   "evidence": "em dash в index.html и av.app.js: 0"
+  },
+  {
+   "id": "C4",
+   "result": "PASS",
+   "evidence": "blocklist CLAUDE.md §7 по av.app.js: 0"
+  },
+  {
+   "id": "P1",
+   "result": "PASS",
+   "evidence": "открытая часть HTML: 0 id чатов, 0 из 145 телефонов, 0 из 1867 фраз, 0 email, пароля нет (pii.py)"
+  },
+  {
+   "id": "P3",
+   "result": "PARTIAL",
+   "evidence": "m1-m3 без плашки - принятый риск, прямая запись Ивана в knowledge/episodes/2026-09/ivan-decisions-op-gm-v4-20260922.md"
+  }
+ ],
+ "comprehension_gate": {
+  "applies": true,
+  "passed": true,
+  "defects": []
+ },
+ "checkpoints": {
+  "accuracy_1_figures_tagged": 1,
+  "accuracy_2_sources_verifiable": 2,
+  "accuracy_3_no_conflict_with_rag": 2,
+  "accuracy_4_glossary_terminology": 2,
+  "accuracy_5_brand_names_correct": 2,
+  "actionability_6_owner_assigned": 2,
+  "actionability_7_deadline_buffer": 1,
+  "actionability_8_resources_listed": 1,
+  "actionability_9_metric_concrete": 2,
+  "actionability_10_milestone": 1,
+  "insight_11_nontrivial": 2,
+  "insight_12_second_order": 2,
+  "insight_13_alternatives_analyzed": 1,
+  "insight_14_anti_median": 2,
+  "insight_15_cross_domain": 0,
+  "brand_16_voice": 2,
+  "brand_17_anti_slop": 2,
+  "brand_18_no_em_dash": 2,
+  "brand_19_output_routing": 1,
+  "brand_20_tone_audience": 2,
+  "risk_21_downside": 2,
+  "risk_22_p9_hard_rules": 2,
+  "risk_23_crisis_scenarios": 1,
+  "risk_24_dependencies": 2,
+  "risk_25_reversibility": 1
+ },
+ "scores": {
+  "accuracy": 9.0,
+  "actionability": 7.0,
+  "insight": 7.0,
+  "brand_fit": 9.0,
+  "risk_awareness": 8.0
+ },
+ "weighted_total": 7.95,
+ "verdict": "go",
+ "gaps": [
+  "Веха сравнивает недели «15-21.09» и «29.09-05.10» (вторник-понедельник), а weekStart (av.app.js:26, (d-((d+3)%7))) начинает недели с понедельника: для 22.09 это 21.09. Таких строк в таблице нет. Заменить на «14-20.09» и «28.09-04.10»",
+  "Действие «Поручить ответ и завтра проверить, что список стал короче» не выполнить при выгрузке раз в неделю (OWNER_NOTE). Заменить на «после следующей выгрузки в понедельник»",
+  "Виджет гарантии на «Пульсе» без бейджа (probe3 pulse_tags). В «Типовых проблемах» у него «точность не замерялась». Мой замер итерации 1: 25 из 25 совпадений действительно называют срок в годах",
+  "Выгрузку вручную делает один человек (Иван, по понедельникам). Автоматизация отдана БОРИСУ отдельной задачей. «Сегодня» по построению отстаёт до 7 дней, плашка свежести это честно показывает",
+  "m1-m3: принятый риск, прямая запись Ивана в ivan-decisions-op-gm-v4-20260922.md. Раскрытие оценочных профилей коллегам необратимо (risk_25 = 1)",
+  "misscall изменился с 6 до 21 без пояснения в брифе (week3.py); флаг жалоб и его точность не проверялись (вне 5 блокирующих пунктов). У обоих бейдж «не замерялась»",
+  "idx 1939 (не клиент) остаётся в «Не ответили», учтён в бейдже 21 из 22. Сверка гарантии с шаблоном договора открыта по записи Ивана"
+ ],
+ "confidence": 0.85,
+ "primary_gap": "Остаток не блокирует: формулировки действий под недельный цикл и ручная выгрузка у одного человека",
+ "sources_of_truth": [
+  "avito/av.json 21:10:44",
+  "knowledge/episodes/2026-09/ivan-decisions-op-gm-v4-20260922.md",
+  "feniks/week3.py, probe3.cjs, pii.py"
+ ],
+ "evidence_ledger": [
+  {
+   "gap": "веха и строки таблицы",
+   "evidence": "av.app.js:26 weekStart = (d-((d+3)%7))*86400-10800; расчёт для 22.09.2026 даёт 2026-09-21 Monday; 15.09.2026 Tuesday",
+   "checkpoint": "actionability_10",
+   "weight": -1
+  },
+  {
+   "gap": "«завтра проверить» при недельной выгрузке",
+   "evidence": "probe3 pulse_actions[2]; OWNER_NOTE av.app.js:23",
+   "checkpoint": "actionability_7",
+   "weight": -1
+  },
+  {
+   "gap": "виджет гарантии без бейджа",
+   "evidence": "probe3 pulse_tags: «Срок гарантии называют без опоры на базу => НЕТ БЕЙДЖА»",
+   "checkpoint": "accuracy_1",
+   "weight": -1
+  },
+  {
+   "gap": "один владелец ручной выгрузки",
+   "evidence": "ivan-decisions-op-gm-v4-20260922.md: «Иван сам, раз в неделю», автоматизация - БОРИС",
+   "checkpoint": "actionability_8",
+   "weight": -1
+  }
+ ],
+ "telemetry": {
+  "model": "claude-opus-5-5"
+ }
+}

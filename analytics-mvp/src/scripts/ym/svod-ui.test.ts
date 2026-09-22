@@ -478,8 +478,26 @@ describe("свод Маркета: числа на странице", () => {
   // старый базис и заявлял прибыль там, где таблица показывает пустоту. За 28.02 это было
   // «Чистая прибыль 147 464 ₽» при нуле строк свода - ровно то противоречие, ради снятия
   // которого водопад и переводили на свод. Ни один из прежних тестов пустое окно не трогал.
+  // Дни берутся ИЗ ДАННЫХ, а не списком: 15.09 был пустым на снимке 21.09 и перестал быть таким
+  // после пересбора заказов 22.09. Тест на захардкоженной дате проверяет не свойство страницы, а
+  // возраст снимка, и падает на обновлении данных, ничего при этом не найдя.
+  const emptyDays = (n: number): string[] => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const has = new Set<string>();
+    for (const m of svod.months || svod) for (const r of m.rows || []) has.add(r.d);
+    const all = [...has].sort();
+    const out: string[] = [];
+    for (let d = all[0]!; d <= all[all.length - 1]! && out.length < n; ) {
+      if (!has.has(d)) out.push(d);
+      const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + 1); d = t.toISOString().slice(0, 10);
+    }
+    return out;
+  };
+
   it("пустое окно: водопад и план молчат, а не считают по другому источнику", () => {
-    for (const day of ["2026-02-28", "2026-09-15"]) {
+    const days = emptyDays(2);
+    expect(days.length, "в снимке не нашлось ни одного дня без доставленных заказов").toBeGreaterThan(0);
+    for (const day of days) {
       setRange(day, day);
       expect(T().querySelectorAll("tbody tr").length, `${day}: в своде есть строки, окно не пустое`).toBe(0);
       const wf = D().getElementById("wf")!;

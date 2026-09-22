@@ -2914,7 +2914,11 @@ function svodLite(svod: any): any {
       rows: (m.rows || []).map((row: any) => {
         // ship_known - булево, в NUM ему не место: там «ноль не пишем», а здесь именно false несёт
         // смысл «ведомость этот заказ не знает» и обязан доехать до страницы.
+        // region - строка, а не число: через NUM он бы не прошёл, а без него блок «Доставка по
+        // городам» показывал «нет данных» даже тогда, когда свод города уже знал. Пустой не пишем:
+        // компактность копии в том и состоит, что отсутствующее поле не занимает места.
         const o: any = { business: row.business, ym: row.ym, d: row.d, order: row.order, sku: row.sku, cogs_known: row.cogs_known, ship_known: !!row.ship_known };
+        if (row.region) o.region = row.region;
         for (const k of NUM) if (row[k]) o[k] = r2(row[k]);
         const svc: Record<string, number> = {};
         for (const [k, v] of Object.entries(row.svc || {})) if (v) svc[k] = r2(v as number);

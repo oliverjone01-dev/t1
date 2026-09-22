@@ -1187,6 +1187,7 @@ describe("свод: колонка «Кто везёт»", () => {
       click(shut[0]!);
     }
     const iM = ix(t, "Кто везёт"), iB = ix(t, "Доставка покупателя"), iD = ix(t, "Доставка");
+    const iO = ix(t, "Наша доставка");
     const orders = [...t.querySelectorAll("tbody tr")]
       .filter((r) => /^\d{8,}$/.test((r.children[0]!.textContent || "").trim()));
     expect(orders.length, "заказы не раскрылись").toBeGreaterThan(20);
@@ -1199,7 +1200,13 @@ describe("свод: колонка «Кто везёт»", () => {
       // «Маркет» обязан иметь сбор за логистику; «своя» - платёж покупателя и НЕ иметь сбора.
       if (mode === "Маркет" && fee <= 0) bad.push(`${no}: «Маркет», а сбора за доставку нет`);
       if (mode.startsWith("своя") && fee > 0) bad.push(`${no}: «своя», а сбор Маркета есть`);
-      if (mode.startsWith("своя") && inc <= 0) bad.push(`${no}: «своя», а покупатель за доставку не платил`);
+      // Раньше здесь стояло «своя ⇒ покупатель заплатил». Это было МОЁ допущение, а не свойство
+      // данных: доставка бывает бесплатной для покупателя, платежа нет, а счёт перевозчика есть
+      // (5 заказов на 20 549 ₽ в снимке, вопрос Кати 22.09.2026). Признак свой: платёж ИЛИ расход.
+      const our = (r.children[iO]!.textContent || "").trim();
+      const ourV = num(our) || 0;
+      const ourKnown = ourV > 0 || /нет вед/.test(our);
+      if (mode.startsWith("своя") && inc <= 0 && !ourKnown) bad.push(`${no}: «своя», а ни платежа покупателя, ни нашего расхода нет`);
       if (mode === "—" && (fee > 0 || inc > 0)) bad.push(`${no}: «—», хотя деньги за доставку есть`);
     }
     expect(bad.slice(0, 8)).toEqual([]);
@@ -1289,5 +1296,55 @@ describe("свод по заказам: порядок блоков, город 
     const fee = num(tot.children[4]?.textContent) || 0;
     const res = num(tot.children[5]?.textContent) || 0;
     expect(Math.abs(res - (inc - our - fee))).toBeLessThan(2);
+  });
+});
+
+// Вопрос Кати 22.09.2026: «ты проверяешь состыковку по строкам: если доставка маркета - то расход
+// средняя миля, если наша доставка - то доставка покупателя». Проверяю. Эти два режима - не
+// соглашение и не допущение, а свойство данных, и тест держит его на снимке, а не на памяти.
+describe("доставка: два режима не пересекаются и не теряются", () => {
+  const svod = () => JSON.parse(readFileSync("data-ym/svod_orders.json", "utf8"));
+  const DEL = ["Доставка покупателю", "Доставка (средняя миля)", "Доставка невыкупов и возвратов"];
+  const rows = () => { const sv = svod(); return (sv.months || sv).flatMap((m: any) => m.rows || []); };
+  const led = (r: any) => DEL.reduce((a, k) => a + ((r.svc || {})[k] || 0) + ((r.svc_pts || {})[k] || 0), 0);
+
+  it("ни одна строка не несёт сбор Маркета за логистику И платёж покупателя нам", () => {
+    const both = rows().filter((r: any) => led(r) > 0 && (r.ship_buyer || 0) > 0)
+      .map((r: any) => `${r.d} заказ ${r.order} ${r.sku}`);
+    expect(both, "строка, где и Маркет взял за логистику, и покупатель заплатил нам").toEqual([]);
+  });
+
+  it("ни один заказ не смешивает режимы: доставку заказа везёт кто-то один", () => {
+    const byOrder = new Map<string, Set<string>>();
+    for (const r of rows()) {
+      const m = led(r) > 0 ? "маркет" : ((r.ship_buyer || 0) > 0 || (r.ship_our || 0) > 0 || r.ship_known ? "своя" : "нет");
+      if (m === "нет") continue;
+      const s = byOrder.get(r.order) || new Set<string>(); s.add(m); byOrder.set(r.order, s);
+    }
+    const mixed = [...byOrder.entries()].filter(([, v]) => v.size > 1).map(([k]) => k);
+    expect(mixed, "заказы, часть строк которых вёз Маркет, а часть мы").toEqual([]);
+  });
+
+  // Главное, что вскрыл вопрос Кати: доставка бывает бесплатной для покупателя. Платежа нет,
+  // расход есть. Такая строка обязана считаться НАШЕЙ доставкой, иначе её расход выпадает из
+  // счётчика перевозок и из оценки пробела по ведомости, а заказ подписывается «—».
+  it("наш счёт перевозчика без платежа покупателя - это наша доставка, а не «никто не вёз»", () => {
+    const orphan = rows().filter((r: any) => led(r) <= 0 && (r.ship_buyer || 0) <= 0 && ((r.ship_our || 0) > 0 || r.ship_known));
+    if (!orphan.length) return;                 // снимок изменился - проверять нечего, но и врать не о чем
+    const W: any = dom.window as any;
+    const bad = orphan.filter((r: any) => {
+      const m = W.svMode ? W.svMode(r) : null;
+      return m !== "own" && m !== "unk";
+    }).map((r: any) => `${r.d} заказ ${r.order}: режим ${W.svMode ? W.svMode(r) : "?"}, наш расход ${r.ship_our}`);
+    expect(bad, "заказ везли мы и платили перевозчику, а страница считает, что не везли").toEqual([]);
+  });
+
+  it("ИТОГО блока доставки по городам видит расход по таким заказам", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const tot = D().querySelector("#ct-t tbody tr.so-total");
+    expect(tot).not.toBeNull();
+    const our = num(tot!.children[3]?.textContent) || 0;
+    const want = rows().reduce((a: number, r: any) => a + (r.ship_our || 0), 0);
+    expect(Math.abs(our - want), `в блоке ${our}, в своде ${Math.round(want)}`).toBeLessThan(Math.max(50, want * 0.002));
   });
 });

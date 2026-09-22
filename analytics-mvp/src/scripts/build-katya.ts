@@ -94,7 +94,10 @@ if (DELIVERED_BASIS) {
       // снимали в своде 21.09.2026). Признак берём из данных: сбор за логистику против платежа
       // покупателя нам. По снимку эти два режима не пересекаются ни в одной из 1119 строк.
       const led = DEL_SVC.reduce((a, k) => a + ((r.svc || {})[k] || 0) + ((r.svc_pts || {})[k] || 0), 0);
-      const ourDelivery = led <= 0 && (r.ship_buyer || 0) > 0;
+      // Тот же признак, что у svMode на странице: платёж покупателя ИЛИ наш счёт перевозчика.
+      // Бесплатная для покупателя доставка - это тоже наша доставка, и её пробел по ведомости
+      // обязан считаться (Катя 22.09.2026).
+      const ourDelivery = led <= 0 && ((r.ship_buyer || 0) > 0 || (r.ship_our || 0) > 0 || !!r.ship_known);
       const mk = String(r.d || "").slice(0, 7);
       unByMonth[mk] = (unByMonth[mk] || 0) + n;
       salesRows.push({ d: String(r.d || ""), sku: String(r.sku), rev: d > 0 ? (r.price || 0) * n / d : (r.price || 0), units: n, ret: r.units_returned || 0,
@@ -3107,8 +3110,14 @@ var SV_DEL_COLS=['Доставка','Доставка покупателю','Д�
 function svMode(r){
   var led=0;SV_DEL_COLS.forEach(function(k){led+=(r.svc&&r.svc[k]||0)+(r.svc_pts&&r.svc_pts[k]||0);});
   if(led>0)return 'mk';                        // вёз Маркет
-  if((r.ship_buyer||0)>0)return r.ship_known?'own':'unk';   // везли мы: с ведомостью или без
-  return 'none';                               // ни сбора, ни дохода - самовывоз или включено в цену
+  // Везли мы - если покупатель заплатил НАМ за доставку ИЛИ если есть наш счёт перевозчика.
+  // Второе условие добавлено 22.09.2026 по вопросу Кати про состыковку строк: доставка бывает
+  // бесплатной для покупателя, и тогда платежа нет, а расход есть. Таких строк в снимке 5 на
+  // 20 549 ₽ нашей перевозки; раньше они падали в 'none' и подписывались «—», то есть заказ,
+  // который мы везли за свой счёт, выглядел как «никто не вёз», а его расход не попадал ни в
+  // счётчик наших перевозок, ни в оценку пробела по ведомости.
+  if((r.ship_buyer||0)>0||(r.ship_our||0)>0||r.ship_known)return r.ship_known?'own':'unk';
+  return 'none';                               // ни сбора, ни дохода, ни расхода - самовывоз или включено в цену
 }
 // Подпись колонки по накопленным счётчикам строки/категории/итога.
 function svModeTxt(m){
@@ -3719,7 +3728,7 @@ function ctDraw(){
     if(!o.city&&r.region)o.city=r.region;
     o.inc+=r.ship_buyer||0; o.our+=r.ship_our||0; o.un+=r.units_net||0;
     SV_DEL_COLS.forEach(function(n){o.fee+=(r.svc&&r.svc[n]||0)+(r.svc_pts&&r.svc_pts[n]||0);});
-    o.kn=o.kn||!!r.ship_known; o.own=o.own||svMode(r)==='own'||svMode(r)==='unk';
+    o.kn=o.kn||!!r.ship_known; var _m=svMode(r); o.own=o.own||_m==='own'||_m==='unk';
   });});
   var cities={},noCity=0,total={inc:0,our:0,fee:0,ord:0,noVed:0};
   Object.keys(byOrder).forEach(function(k){var o=byOrder[k];

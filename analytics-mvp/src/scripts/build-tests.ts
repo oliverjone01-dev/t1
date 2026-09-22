@@ -282,15 +282,16 @@ function perArticle(t: TestDef): string {
   const ordT = (a: string) => nums(artDaily(a, days, "units")).reduce((x, y) => x + y, 0);
   const first = byKey.get("vsearch") || [];
   if (!first.length) return "";
-  const cell = (d: PairDelta | undefined) => {
+  const cell = (d: PairDelta | undefined, key = "") => {
     if (!d) return '<td class="r muted">-</td>';
-    const cls = Math.abs(d.dd) >= 20 ? (d.dd > 0 ? "up" : "dn") : "";
+    const good = key === "pos" ? d.dd < 0 : d.dd > 0;   // у позиции меньше - лучше
+    const cls = Math.abs(d.dd) >= 20 ? (good ? "up" : "dn") : "";
     return `<td class="r ${cls}" title="тест ${d.dT >= 0 ? "+" : ""}${d.dT.toFixed(0)} %, контроль ${d.dC >= 0 ? "+" : ""}${d.dC.toFixed(0)} %">${d.dd >= 0 ? "+" : ""}${d.dd.toFixed(0)}</td>`;
   };
   const rows = first.map((p) => {
     const sb = meanOf(p.test, base, "spend"), sp = meanOf(p.test, days, "spend");
     return `<tr><td>${esc(p.test)}</td><td class="muted">${esc(p.ctl)}</td>`
-      + cols.map(([k]) => cell(byKey.get(k)!.find((x) => x.test === p.test))).join("")
+      + cols.map(([k]) => cell(byKey.get(k)!.find((x) => x.test === p.test), k)).join("")
       + `<td class="r sep">${(sb || sp) ? nbsp(sb) + " → " + nbsp(sp) : "-"}</td>`
       + `<td class="r">${ordT(p.test)} / ${ordT(p.ctl)}</td></tr>`;
   }).join("");
@@ -300,12 +301,12 @@ function perArticle(t: TestDef): string {
   }).join("");
   return `<div class="sub2">Показатели по артикулам</div><div class="tbl-wrap"><table class="gtbl single">`
     + `<thead><tr><th>Артикул</th><th>Контроль</th>`
-    + cols.map(([, n]) => `<th class="r" title="Разница в пунктах: прирост теста минус прирост контроля. Наведите на ячейку, чтобы увидеть оба прироста">${n}</th>`).join("")
+    + cols.map(([k, n]) => `<th class="r" title="Разница в пунктах: прирост теста минус прирост контроля. Наведите на ячейку, чтобы увидеть оба прироста${k === "pos" ? ". У позиции меньше - лучше, поэтому рост числа здесь это ухудшение" : ""}">${n}${k === "pos" ? " ↓" : ""}</th>`).join("")
     + `<th class="r sep" title="Расход на рекламу по тестовому артикулу, ₽ в день: две недели до старта → после старта">Расход т., ₽/дн</th>`
     + `<th class="r" title="Заказано штук после старта: тест / контроль">Заказы т/к</th></tr></thead>`
     + `<tbody>${rows}</tbody>`
     + `<tfoot><tr class="mrow2"><td colspan="2">Медиана по парам</td>${med}<td class="sep"></td><td></td></tr></tfoot>`
-    + `</table></div><div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
+    + `</table></div><div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов; у позиции цвет перевёрнут, потому что меньше - лучше. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
 }
 
 const lowerTitle = (t: string) => t === t.toUpperCase() ? t : t.toLowerCase();
@@ -379,6 +380,7 @@ function chart(t: TestDef, cid: string): string {
         + (testOnly
           ? `<b>${v(bT)} → ${v(pT)}</b> за день. У контроля рекламы нет по построению, поэтому вторая линия не рисуется.`
           : `тест <b>${v(bT)} → ${v(pT)}</b>, контроль <b>${v(bC)} → ${v(pC)}</b>.`)
+        + (key === "pos" ? " Меньше - лучше." : "")
         + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.</div>`;
     }
   }

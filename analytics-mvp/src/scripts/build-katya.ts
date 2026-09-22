@@ -1177,10 +1177,16 @@ const EXTRA_CSS = `
    видно разное число строк, но всегда с запасом под прокрутку. */
 .kt-box{max-height:72vh;overflow:auto;position:relative}
 .kt-box table{font-size:11.5px}
-.kt-box th{position:sticky;top:0;z-index:2;background:var(--bg-card,#12151c);box-shadow:inset 0 -1px 0 var(--bg-soft)}
+.kt-box th{position:sticky;z-index:2;background:var(--bg-card,#12151c);box-shadow:inset 0 -1px 0 var(--bg-soft)}
 /* ИТОГО липнет под шапкой: сверять строку с итогом, прокручивая к нему, - это и есть работа
    с этой таблицей. Второй уровень липкости, поэтому top не 0, а высота шапки. */
-.kt-box tr.sv-total td,.kt-box tr.so-total td{position:sticky;top:30px;z-index:1;background:var(--bg-card,#12151c)}
+.kt-box tr.sv-total td,.kt-box tr.so-total td{position:sticky;z-index:1;background:var(--bg-card,#12151c)}
+/* Горизонтальный ползунок у таблицы на двадцать колонок живёт внизу, а таблица на сотни строк -
+   в окне: чтобы сдвинуть её вправо, приходилось прокручивать к нижнему краю (Катя 22.09.2026).
+   Второй ползунок стоит СРАЗУ ПОД ШАПКОЙ и липнет там же: это пустая полоса, чья внутренняя
+   ширина равна ширине таблицы, а прокрутка синхронизирована с настоящей в обе стороны. */
+.kt-xbar{position:sticky;top:0;left:0;z-index:4;overflow-x:auto;overflow-y:hidden;height:14px;background:var(--bg-card,#12151c)}
+.kt-xbar>div{height:1px}
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
 .kt-src{display:inline-block;font-size:10.5px;border:1px solid var(--bg-soft);border-radius:6px;padding:2px 7px;color:var(--ink-3);margin-left:8px}.kt-src.live{border-color:#22D3EE;color:#22D3EE}
 .kt-wf{display:flex;align-items:flex-end;gap:6px;height:190px;padding:8px 4px}.kt-wf>div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-3)}.kt-wf .bar{border-radius:6px 6px 0 0;margin:0 auto;width:78%}
@@ -3688,7 +3694,7 @@ function soDraw(){
   });
   el.innerHTML=h+'</tbody>';
   Array.prototype.forEach.call(el.querySelectorAll('.so-cat'),function(tr){
-    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SO_OPEN[g.cat]=!SO_OPEN[g.cat];soDraw();};});
+    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SO_OPEN[g.cat]=!SO_OPEN[g.cat];soDraw();ktXbarAll();};});
   moreEl.textContent='заказов за период: '+list.length+' · клик по категории раскрывает заказы';
 }
 
@@ -3837,9 +3843,9 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   h+=body+'</tbody>';
   var el=document.getElementById('sv-t');el.innerHTML=h;
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
-    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
+    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();ktXbarAll();};});
   Array.prototype.forEach.call(el.querySelectorAll('.sv-lost-h'),function(tr){
-    tr.onclick=function(){SV_LOST_OPEN=!SV_LOST_OPEN;svDraw();};});
+    tr.onclick=function(){SV_LOST_OPEN=!SV_LOST_OPEN;svDraw();ktXbarAll();};});
   noteEl.innerHTML='';
 }
 // Доставка по городам. Вопрос Кати 22.09.2026: «куда у нас доставка в минус». Ответ считается
@@ -3946,7 +3952,7 @@ function ctDraw(){
   });
   el.innerHTML=h+'</tbody>';
   Array.prototype.forEach.call(el.querySelectorAll('.ct-city'),function(tr){
-    tr.onclick=function(){var c=rows[+tr.getAttribute('data-city')];CT_OPEN[c.city]=!CT_OPEN[c.city];ctDraw();};});
+    tr.onclick=function(){var c=rows[+tr.getAttribute('data-city')];CT_OPEN[c.city]=!CT_OPEN[c.city];ctDraw();ktXbarAll();};});
   var minus=rows.filter(function(c){return c.res<0;});
   var minusV=minus.reduce(function(a,c){return a+c.res;},0);
   if(noCity){
@@ -3962,11 +3968,43 @@ function ctDraw(){
     : 'За выбранный период городов нет: либо нет доставленных заказов, либо снимок собран без городов.';
 }
 
+// Верхний ползунок для каждой таблицы в окне. Зовётся после КАЖДОЙ перерисовки: ширина таблицы
+// меняется вместе с раскладкой (раскрыли категорию, сменили период), и полоса обязана меняться с
+// ней. Синхронизация двусторонняя: тянуть можно любой из двух, содержимое едет одинаково.
+function ktXbar(box){
+  if(!box)return;
+  var tbl=box.querySelector('table'); if(!tbl)return;
+  var bar=box.querySelector(':scope > .kt-xbar');
+  if(!bar){
+    bar=document.createElement('div'); bar.className='kt-xbar';
+    bar.appendChild(document.createElement('div'));
+    box.insertBefore(bar,box.firstChild);
+    var lock=false;
+    bar.addEventListener('scroll',function(){if(lock)return;lock=true;box.scrollLeft=bar.scrollLeft;lock=false;});
+    box.addEventListener('scroll',function(){if(lock)return;lock=true;bar.scrollLeft=box.scrollLeft;lock=false;});
+  }
+  // Три уровня липкости, и порядок между ними обязан считаться от ЖИВЫХ высот: подписи столбцов
+  // бывают в две строки (65px на снимке), и зашитая константа накрывала бы шапку полосой.
+  // Полоса сверху, под ней подписи, под ними ИТОГО.
+  var th=tbl.querySelector('thead th');
+  var barH=bar.getBoundingClientRect().height||14;
+  var thH=th?th.getBoundingClientRect().height:30;
+  Array.prototype.forEach.call(tbl.querySelectorAll('thead th'),function(e){e.style.top=barH+'px';});
+  Array.prototype.forEach.call(tbl.querySelectorAll('tr.sv-total td,tr.so-total td'),function(e){e.style.top=(barH+thH)+'px';});
+  bar.style.width=box.clientWidth+'px';
+  bar.firstChild.style.width=tbl.scrollWidth+'px';
+  // Прокручивать нечего - полосу не показываем: пустой серый прямоугольник под шапкой сбивает.
+  bar.style.display=(tbl.scrollWidth>box.clientWidth+1)?'':'none';
+}
+function ktXbarAll(){
+  Array.prototype.forEach.call(document.querySelectorAll('.kt-box'),ktXbar);
+}
 function svInit(){
   if(!document.getElementById('sv-t'))return;
   // Оба свода перерисовываются одним обработчиком: они стоят на одной базе, и разъехаться по
   // ставке или периоду не должны.
-  var both=function(){svDraw();soDraw();ctDraw();};
+  var both=function(){svDraw();soDraw();ctDraw();ktXbarAll();};
+  window.addEventListener('resize',ktXbarAll);
   ['sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=both;});
   // Свод перерисовывается вместе со всей страницей: шелл зовёт render(cur,cmp) на каждой смене
   // периода, а window.__guruPeriod к этому моменту уже обновлён. Своего состояния периода у

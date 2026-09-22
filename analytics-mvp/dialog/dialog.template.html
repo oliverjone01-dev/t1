@@ -615,19 +615,8 @@ input#q{min-width:220px}
 .cal-pop{position:fixed;z-index:120;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:32px 12px 12px;box-shadow:0 16px 44px rgba(0,0,0,.55);font-size:12px;color:var(--ink-1)}
 .cal-x{position:absolute;top:8px;right:10px;width:24px;height:24px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--ink-3);border-radius:7px;font-size:17px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;z-index:1}
 .cal-x:hover{color:var(--ink);border-color:var(--accent)}
-/* Очередь дел РОПа - главный экран «что дожать сегодня» */
-.qcard{border:1px solid var(--border);border-radius:12px;background:var(--bg-elevated);margin:0 0 16px;overflow:hidden}
-.qhd{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:baseline;gap:10px}
-.qhd>b{font-size:14px}
-.qsub{font-size:11.5px;color:var(--ink-3)}
-.qtbl{width:100%;border-collapse:collapse;font-size:12.5px}
-.qtbl th{position:sticky;top:0;background:var(--bg-elevated);text-align:left;color:var(--ink-3);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;padding:6px 10px;border-bottom:1px solid var(--border)}
-.qtbl td{padding:8px 10px;border-bottom:1px solid var(--border-soft);vertical-align:top}
-.qtbl tr:hover td{background:rgba(127,135,148,.06)}
-.qburn{display:inline-block;font-size:11px;font-weight:700;color:#E8590C;background:#E8590C14;border:1px solid #E8590C44;border-radius:999px;padding:2px 8px;white-space:nowrap}
-.qmore{display:block;width:100%;padding:8px;background:transparent;border:0;border-top:1px solid var(--border-soft);color:var(--accent);font:inherit;font-size:12px;cursor:pointer}
-.qmore:hover{background:rgba(34,211,238,.06)}
-.qcal{font-size:10.5px;color:var(--ink-3);padding:2px 14px 10px}
+/* Плашка калибровки весов над таблицей (раскрытие методики, rework #5 ФЕНИКСА) */
+.qcal{font-size:10.5px;color:var(--ink-3);padding:0 2px 12px}
 .cal-nav{display:flex;align-items:flex-start;gap:8px}
 .cal-nav>button{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:15px;line-height:1;flex:0 0 auto;margin-top:2px}
 .cal-nav>button:hover{border-color:var(--accent);color:var(--ink)}
@@ -1420,32 +1409,15 @@ function renderTree(){
     // Дрил по отделу: показываем сделки всего отдела (внутри emitRow deptMgr уже отрисован выше).
   }
   html+=`</table></div>`;
-  // ===== ОЧЕРЕДЬ ДЕЛ РОПа (главный экран): что дожать сегодня, по приоритету =====
-  // Приоритет уже посчитан в score-dialog: деньги × шанс × вес срочности. Здесь только
-  // выводим открытые сделки с «горящей» причиной, самые дорогие и срочные сверху.
-  const QF=n=>{n=Math.round(n||0);return n>=1e6?(n/1e6).toFixed(1)+' млн':n>=1e3?Math.round(n/1e3)+'к':String(n);};
-  const TC=b=>b==='boiling'?'#F76808':b==='hot'?'#E8590C':b==='warm'?'#C2873C':'#5B8DEF';
-  const openQ=DEALS.filter(d=>d.outcome==='open'&&!d.goalReached&&d.urgency).sort((a,b)=>(b.prio||0)-(a.prio||0));
-  const qMoney=openQ.reduce((s,d)=>s+(d.budget||0),0);
-  const QN=S.qAll?openQ.length:Math.min(openQ.length,40);
-  const qRows=openQ.slice(0,QN).map(d=>{
-    const id=d.dealId||d.leadId; const url='https://glassmemory.bitrix24.ru/crm/'+(d.dealId?'deal':'lead')+'/details/'+id+'/';
-    const c=TC(d.tempBucket); const nx=esc((d.next||'').slice(0,130));
-    return `<tr>
-      <td style="text-align:center"><b style="color:${c}">${d.temp}°</b></td>
-      <td class="l"><a href="${url}" target="_blank" style="color:var(--ink);font-weight:600;text-decoration:none">${esc(d.title.slice(0,44))}</a><div style="font-size:11px;color:var(--ink-3)">${esc(d.mgr)}${d.budget?' · '+QF(d.budget):''}</div></td>
-      <td class="l"><span class="qburn">${esc(d.urgency)}</span></td>
-      <td class="l" style="font-size:11.5px;color:var(--ink-2)">${nx}</td></tr>`;
-  }).join('');
+  // Очередь дел РОПа убрана по решению Ивана 2026-09-22: верхний экран дублировал работу
+  // с таблицей ниже, где та же срочность видна в колонке «Что горит». Данные (prio, urgency)
+  // остаются в dialog.json, поэтому блок возвращается правкой шаблона, без пересчёта.
+  // Плашка калибровки весов сохранена: ФЕНИКС потребовал её в rework #5 раунда 2 как
+  // раскрытие методики (def->mult, n, conf), она не относится к очереди.
   const CALNAME={slow_resp:'медленные ответы',refuse:'отказ',ready:'сигнал оплаты'};
-  const calApplied=SC&&SC.calibration?Object.entries(SC.calibration).filter(([,v])=>v.applied).map(([k,v])=>`${CALNAME[k]||k} ${v.def}→${v.mult} (n=${v.n}, ${v.conf})`):[];
-  const queueHTML=`<div class="qcard">
-    <div class="qhd"><b>🎯 Очередь дел - что дожать сегодня</b><span class="qsub">${openQ.length} сделок в работе · ${QF(qMoney)} под контролем · сортировка по приоритету (деньги × шанс × срочность)</span></div>
-    <div class="scrollx" style="max-height:520px;overflow:auto"><table class="qtbl"><thead><tr><th>°</th><th class="l">Сделка / менеджер</th><th class="l">Что горит</th><th class="l">Следующий шаг</th></tr></thead><tbody>${qRows||'<tr><td colspan="4" class="empty">очередь пуста</td></tr>'}</tbody></table></div>
-    ${openQ.length>40?`<button class="qmore" onclick="S.qAll=!S.qAll;renderTree()">${S.qAll?'свернуть до 40':'показать все '+openQ.length}</button>`:''}
-    ${calApplied.length?`<div class="qcal">Веса вероятности, откалиброванные на исходах закрытых сделок (дефолт→вес после демпфирования к дефолту 70/30): ${calApplied.join('; ')}. Остальные факторы - экспертные веса; копится лог для чистой калибровки без конфаундинга.</div>`:''}
-  </div>`;
-  list.innerHTML=queueHTML+html;
+  const calApplied=SC&&SC.calibration?Object.entries(SC.calibration).filter(([,v])=>v.applied).map(([k,v])=>`${CALNAME[k]||k} ${v.def}\u2192${v.mult} (n=${v.n}, ${v.conf})`):[];
+  const calHTML=calApplied.length?`<div class="qcal">Веса вероятности, откалиброванные на исходах закрытых сделок (дефолт\u2192вес после демпфирования к дефолту 70/30): ${calApplied.join('; ')}. Остальные факторы - экспертные веса; копится лог для чистой калибровки без конфаундинга.</div>`:'';
+  list.innerHTML=calHTML+html;
   // Возвращаем прокрутку на место после перерисовки (фокус остаётся на раскрытой строке).
   const _sxNew=list.querySelector('.scrollx'); if(_sxNew) _sxNew.scrollTop=_sxTop; if(_winY) window.scrollTo(0,_winY);
   const db=list.querySelector('#dateBtn');

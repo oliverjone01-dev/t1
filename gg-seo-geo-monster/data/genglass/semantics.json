@@ -1,5 +1,5 @@
 {
- "measured": "2026-09-21",
+ "measured": "2026-09-22",
  "phrases": [
   {
    "phrase": "бронированное стекло цена",
@@ -28,7 +28,7 @@
   {
    "phrase": "стол стеклянный кухонный",
    "pos": null,
-   "freq": 5454,
+   "freq": 5557,
    "url": "",
    "cluster": "стол",
    "intent": "commercial"
@@ -60,7 +60,7 @@
   {
    "phrase": "рал 1004",
    "pos": null,
-   "freq": 271,
+   "freq": 301,
    "url": "",
    "cluster": "1004",
    "intent": "commercial"
@@ -92,7 +92,7 @@
   {
    "phrase": "стеклянная столешница",
    "pos": null,
-   "freq": 7098,
+   "freq": 7203,
    "url": "",
    "cluster": "стеклянная",
    "intent": "commercial"
@@ -100,7 +100,7 @@
   {
    "phrase": "раздвижная перегородка гармошка",
    "pos": null,
-   "freq": 558,
+   "freq": 835,
    "url": "",
    "cluster": "раздвижная",
    "intent": "commercial"
@@ -124,7 +124,7 @@
   {
    "phrase": "треснуло зеркало к чему",
    "pos": null,
-   "freq": 482,
+   "freq": 655,
    "url": "",
    "cluster": "треснуло",
    "intent": "commercial"
@@ -156,7 +156,7 @@
   {
    "phrase": "стеклянное ограждение для душа",
    "pos": null,
-   "freq": 348,
+   "freq": 311,
    "url": "",
    "cluster": "стеклянное",
    "intent": "commercial"
@@ -220,7 +220,7 @@
   {
    "phrase": "стекло м1 купить",
    "pos": null,
-   "freq": 158,
+   "freq": 206,
    "url": "",
    "cluster": "стекло",
    "intent": "transactional"
@@ -276,7 +276,7 @@
   {
    "phrase": "скинали недорого",
    "pos": null,
-   "freq": 51,
+   "freq": 60,
    "url": "",
    "cluster": "скинали",
    "intent": "commercial"
@@ -284,7 +284,7 @@
   {
    "phrase": "радио в ванную",
    "pos": null,
-   "freq": 278,
+   "freq": 237,
    "url": "",
    "cluster": "радио",
    "intent": "commercial"
@@ -292,7 +292,7 @@
   {
    "phrase": "стеклянные скинали для кухни",
    "pos": null,
-   "freq": 33,
+   "freq": 29,
    "url": "",
    "cluster": "стеклянные",
    "intent": "commercial"
@@ -316,7 +316,7 @@
   {
    "phrase": "сколько стоит плафон",
    "pos": null,
-   "freq": 365,
+   "freq": 485,
    "url": "",
    "cluster": "сколько",
    "intent": "informational"
@@ -364,7 +364,7 @@
   {
    "phrase": "стол журнальный со стеклом",
    "pos": null,
-   "freq": 255,
+   "freq": 318,
    "url": "",
    "cluster": "стол",
    "intent": "commercial"
@@ -420,7 +420,7 @@
   {
    "phrase": "стеклянные полки для кухни",
    "pos": null,
-   "freq": 130,
+   "freq": 106,
    "url": "",
    "cluster": "стеклянные",
    "intent": "commercial"
@@ -436,7 +436,7 @@
   {
    "phrase": "стол журнальный квадратный",
    "pos": null,
-   "freq": 387,
+   "freq": 442,
    "url": "",
    "cluster": "стол",
    "intent": "commercial"
@@ -444,7 +444,7 @@
   {
    "phrase": "тонированное зеркало",
    "pos": null,
-   "freq": 1017,
+   "freq": 1097,
    "url": "",
    "cluster": "тонированное",
    "intent": "commercial"
@@ -468,7 +468,7 @@
   {
    "phrase": "производство столов",
    "pos": null,
-   "freq": 10132,
+   "freq": 13324,
    "url": "",
    "cluster": "производство",
    "intent": "commercial"
@@ -500,7 +500,7 @@
   {
    "phrase": "резка стекла зеленоград",
    "pos": null,
-   "freq": 56,
+   "freq": 136,
    "url": "",
    "cluster": "резка",
    "intent": "commercial"
@@ -514,6 +514,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "шкафы для ванной комнаты подвесные с зеркалом",
+   "pos": null,
+   "freq": 54,
+   "url": "",
+   "cluster": "шкафы",
+   "intent": "commercial"
+  },
+  {
    "phrase": "зеркало трехстворчатое настенное",
    "pos": null,
    "freq": 167,
@@ -524,7 +532,7 @@
   {
    "phrase": "треснуло зеркало примета",
    "pos": null,
-   "freq": 456,
+   "freq": 473,
    "url": "",
    "cluster": "треснуло",
    "intent": "commercial"
@@ -540,7 +548,7 @@
   {
    "phrase": "узорчатое стекло купить",
    "pos": null,
-   "freq": 310,
+   "freq": 261,
    "url": "",
    "cluster": "узорчатое",
    "intent": "transactional"
@@ -564,7 +572,7 @@
   {
    "phrase": "стеклянная плитка для кухни на фартук",
    "pos": null,
-   "freq": 21,
+   "freq": 39,
    "url": "",
    "cluster": "стеклянная",
    "intent": "commercial"
@@ -586,6 +594,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "стол кухонный под заказ",
+   "pos": null,
+   "freq": 181,
+   "url": "",
+   "cluster": "стол",
+   "intent": "transactional"
+  },
+  {
    "phrase": "полка с зеркалом в ванную",
    "pos": null,
    "freq": 4875,
@@ -596,7 +612,7 @@
   {
    "phrase": "стеклянные панели для стен",
    "pos": null,
-   "freq": 229,
+   "freq": 295,
    "url": "",
    "cluster": "стеклянные",
    "intent": "commercial"
@@ -756,7 +772,7 @@
   {
    "phrase": "стеклянный фартук с фотопечатью",
    "pos": null,
-   "freq": 54,
+   "freq": 91,
    "url": "",
    "cluster": "стеклянный",
    "intent": "commercial"
@@ -764,7 +780,7 @@
   {
    "phrase": "светильник потолочный классика",
    "pos": null,
-   "freq": 366,
+   "freq": 391,
    "url": "",
    "cluster": "светильник",
    "intent": "commercial"
@@ -781,22 +797,6 @@
    "phrase": "зеркало на кухне по фен шуй",
    "pos": null,
    "freq": 12,
-   "url": "",
-   "cluster": "зеркало",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "каленое стекло цена",
-   "pos": null,
-   "freq": 703,
-   "url": "",
-   "cluster": "каленое",
-   "intent": "transactional"
-  },
-  {
-   "phrase": "зеркало рисунок",
-   "pos": null,
-   "freq": 5329,
    "url": "",
    "cluster": "зеркало",
    "intent": "commercial"

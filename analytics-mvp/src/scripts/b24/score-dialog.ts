@@ -534,23 +534,50 @@ function main() {
     // в ленте видно, какая именно фраза греет или холодит сделку.
     if (a && Array.isArray(a.msgTags)) for (const t of a.msgTags) { if (t && t.src) (evTags[t.src] ||= []).push({ t: String(t.t || ""), tone: t.tone || "warn", sec: "process", quote: t.quote || "", ai: true, deg: typeof t.deg === "number" ? t.deg : undefined }); }
 
+    // --- НОВЫЕ ПОВЕДЕНЧЕСКИЕ СИГНАЛЫ (item 2) ------------------------------------
+    // Инициатива: клиент тянет сам. Подряд входящие сообщения без ответа менеджера между
+    // ними - клиент напоминает о себе (сделка 96755/99809 Лысановой: «со мной никто не
+    // связался»). Пассивность менеджера предсказывает потерю раньше формальной тишины.
+    let clientChase = 0;
+    for (let i = 1; i < msgs.length; i++) {
+      if (msgs[i]!.dir === "входящее" && msgs[i - 1]!.dir === "входящее") {
+        clientChase++;
+        // Метим только последнее в пачке напоминаний, чтобы не шуметь.
+        if (msgs[i]!.src && !(msgs[i + 1] && msgs[i + 1]!.dir === "входящее"))
+          mark(msgs[i]!.src!, "Клиент напоминает сам", "bad", "speed");
+      }
+    }
+    // Латентность на ГОРЯЧЕЙ реплике: сигнал покупки (счёт/оплата/наличие/сроки/реквизиты)
+    // требует мгновенного ответа. 2 дня молчания на «зеркало в наличии?» убивают сделку
+    // вернее, чем медленная медиана (сделка 100633). Меряем задержку именно на таких репликах.
+    let hotSlow = false, hotFast = false, hotMax = 0;
+    for (let i = 0; i < msgs.length; i++) {
+      const m = msgs[i]!; if (m.dir !== "входящее" || !RE.ready.test(String(m.body || ""))) continue;
+      const nxt = msgs.slice(i + 1).find((x) => x.dir === "исходящее" && isRealAnswer(x));
+      const lat = nxt ? workMinutes(m.ts, nxt.ts) : workMinutes(m.ts, now);
+      if (lat > hotMax) hotMax = lat;
+      if (!nxt || lat > SLOW_ANSWER_MIN) { hotSlow = true; if (m.src) mark(m.src, `Сигнал покупки без быстрого ответа (${fmtMin(lat)})`, "bad", "speed", hit(RE.ready, String(m.body || ""))); }
+      else if (lat <= FAST_ANSWER_MIN) hotFast = true;
+    }
+
     // --- вероятность ---
     const base = BASE_RATES[stageCode]?.win ?? BASE_FALLBACK;
-    const factors: { label: string; mult: number }[] = [];
-    const push = (label: string, mult: number) => factors.push({ label, mult });
-    if (RE.ready.test(inText)) push("клиент говорит об оплате", 1.3);
-    if (respMed !== null && respMed <= FAST_ANSWER_MIN) push(`быстрые ответы (${fmtMin(respMed)})`, 1.1);
-    if (respMed !== null && respMed > SLOW_ANSWER_MIN) push(`медленные ответы (${fmtMin(respMed)})`, 0.8);
-    if (ballWait > BALL_STUCK_MIN) push(`клиент ждёт ${fmtMin(ballWait)}`, 0.7);
-    if (silenceD >= SILENCE_BAD_D) push(`тишина ${silenceD} дн`, postSale ? 0.9 : 0.6);
-    else if (silenceD >= SILENCE_WARN_D) push(`пауза ${silenceD} дн`, postSale ? 0.95 : 0.85);
-    if (!nextStep) push("нет следующего шага", 0.85);
-    if (overdue) push(`дело просрочено на ${overdueD} дн`, 0.85);
-    if (objTotal && objWorked < objTotal) push(`возражение без контраргумента (${objTotal - objWorked})`, 0.8);
-    else if (objTotal) push("возражение отработано аргументом", 1.05);
-    if (RE.refuse.test(inText)) push("клиент говорит об отказе", 0.5);
-    if (ghostMove) push("стадия двигалась, касаний в CRM нет", 0.7);
-    else if (internalOnly) push("нет следов общения в CRM", 0.75);
+    // key нужен для калибровки весов на исходах (см. пост-цикловый блок calibrate()).
+    const factors: { key: string; label: string; mult: number }[] = [];
+    const push = (key: string, label: string, mult: number) => factors.push({ key, label, mult });
+    if (RE.ready.test(inText)) push("ready", "клиент говорит об оплате", 1.3);
+    if (respMed !== null && respMed <= FAST_ANSWER_MIN) push("fast_resp", `быстрые ответы (${fmtMin(respMed)})`, 1.1);
+    if (respMed !== null && respMed > SLOW_ANSWER_MIN) push("slow_resp", `медленные ответы (${fmtMin(respMed)})`, 0.8);
+    if (ballWait > BALL_STUCK_MIN) push("ball", `клиент ждёт ${fmtMin(ballWait)}`, 0.7);
+    if (silenceD >= SILENCE_BAD_D) push(postSale ? "silence_post" : "silence", `тишина ${silenceD} дн`, postSale ? 0.9 : 0.6);
+    else if (silenceD >= SILENCE_WARN_D) push(postSale ? "pause_post" : "pause", `пауза ${silenceD} дн`, postSale ? 0.95 : 0.85);
+    if (!nextStep) push("nostep", "нет следующего шага", 0.85);
+    if (overdue) push("overdue", `дело просрочено на ${overdueD} дн`, 0.85);
+    if (objTotal && objWorked < objTotal) push("obj_open", `возражение без контраргумента (${objTotal - objWorked})`, 0.8);
+    else if (objTotal) push("obj_worked", "возражение отработано аргументом", 1.05);
+    if (RE.refuse.test(inText)) push("refuse", "клиент говорит об отказе", 0.5);
+    if (ghostMove) push("ghost", "стадия двигалась, касаний в CRM нет", 0.7);
+    else if (internalOnly) push("internal", "нет следов общения в CRM", 0.75);
     else {
       // Слепая зона: касания есть, но видимой коммуникации с клиентом почти нет - лента
       // держится на системных делах/заметках. Не видно, с чем пришёл клиент, его боли,
@@ -558,12 +585,16 @@ function main() {
       const commEv = mix.msg + mix.call + mix.mail, sysEv = mix.task + mix.note;
       const visShare = (commEv + sysEv) ? commEv / (commEv + sysEv) : 1;
       if (!postSale && (commEv + sysEv) >= 4 && visShare < 0.34)
-        push("слепая зона: видимой коммуникации почти нет", commEv === 0 ? 0.7 : 0.82);
+        push("blind", "слепая зона: видимой коммуникации почти нет", commEv === 0 ? 0.7 : 0.82);
     }
-    if (promiseBroken) push(`обещал и не сделал: ${promiseBroken}`, promiseBroken > 1 ? 0.7 : 0.8);
-    else if (vagueProm > 1) push(`обещания без срока: ${vagueProm}`, 0.9);
-    if (taskNoContact) push(`дел закрыто без контакта: ${taskNoContact}`, taskNoContact > 1 ? 0.75 : 0.85);
-    if (a && typeof a.probDelta === "number") push(`оценка ИИ: ${a.verdict || "разбор"}`, Math.max(0.5, Math.min(1.4, 1 + a.probDelta / 100)));
+    if (promiseBroken) push("promise_broken", `обещал и не сделал: ${promiseBroken}`, promiseBroken > 1 ? 0.7 : 0.8);
+    else if (vagueProm > 1) push("promise_vague", `обещания без срока: ${vagueProm}`, 0.9);
+    if (taskNoContact) push("fakedone", `дел закрыто без контакта: ${taskNoContact}`, taskNoContact > 1 ? 0.75 : 0.85);
+    // item 2: новые факторы (дефолтные веса, чистая калибровка накопится логированием B).
+    if (hotSlow) push("hot_slow", `медленно на сигнале покупки (${fmtMin(hotMax)})`, 0.6);
+    else if (hotFast) push("hot_fast", "быстро на сигнале покупки", 1.2);
+    if (clientChase >= 2) push("client_chase", `клиент тянет сам (${clientChase})`, 0.75);
+    if (a && typeof a.probDelta === "number") push("ai", `оценка ИИ: ${a.verdict || "разбор"}`, Math.max(0.5, Math.min(1.4, 1 + a.probDelta / 100)));
     let prob = base; for (const x of factors) prob *= x.mult;
     prob = Math.max(0.03, Math.min(0.97, prob));
     // Почему шанс такой: вклад каждой причины в процентных пунктах и в рублях.
@@ -650,9 +681,91 @@ function main() {
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
+      clientChase, hotSlow, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),
       lastTs: last.ts, lastDt: last.dt,
     });
   }
+
+  // ===== КАЛИБРОВКА ВЕСОВ НА ИСХОДАХ (item 1, вариант A - осторожный) =====
+  // Наивный obs/exp на терминальном срезе конфаундится прогрессом сделки: закрытые схлопнуты
+  // в «успех/провал» (base=fallback), а «плохие» сигналы копятся на длинных активных сделках,
+  // которые и так ближе к закрытию (проверено: «обещал и не сделал» наивно даёт вес 2.5).
+  // Поэтому двигаем ТОЛЬКО направленно-устойчивые сигналы, с контролем по макс. достигнутой
+  // стадии и предохранителями: направление залочено (плохой тег не >1, хороший не <1),
+  // сдвиг к ручному дефолту 70/30, min-n>=50, кламп [0.3,1.6]. Остальное - логом B (ниже).
+  const CAL_KEYS: Record<string, { def: number; bad: boolean }> = {
+    slow_resp: { def: 0.8, bad: true }, refuse: { def: 0.5, bad: true }, ready: { def: 1.3, bad: false },
+  };
+  const stageWin = (code: string) => BASE_RATES[code]?.win ?? 0;
+  const maxReached = (d: any) => { let b = 0; for (const r of (d.stageRows || [])) { const v = stageWin(r.code); if (v > b) b = v; } return b || BASE_FALLBACK; };
+  const bucketOf = (x: number) => x < 0.3 ? 0 : x < 0.7 ? 1 : 2;
+  const closedC = deals.filter((d) => d.outcome === "won" || d.outcome === "lost");
+  const calibration: Record<string, any> = {};
+  for (const key of Object.keys(CAL_KEYS)) {
+    const def = CAL_KEYS[key]!.def, bad = CAL_KEYS[key]!.bad;
+    const withK = closedC.filter((d) => (d.factors || []).some((f: any) => f.key === key));
+    const woK = closedC.filter((d) => !(d.factors || []).some((f: any) => f.key === key));
+    const nWith = withK.length;
+    let ratioNum = 0, ratioDen = 0;
+    for (let b = 0; b < 3; b++) {
+      const w = withK.filter((d) => bucketOf(maxReached(d)) === b);
+      const o = woK.filter((d) => bucketOf(maxReached(d)) === b);
+      if (!w.length || !o.length) continue;
+      const winW = w.filter((d) => d.outcome === "won").length / w.length;
+      const winO = o.filter((d) => d.outcome === "won").length / o.length;
+      if (winO <= 0) continue;
+      ratioNum += (winW / winO) * w.length; ratioDen += w.length;   // пул по n «с сигналом»
+    }
+    const raw = ratioDen ? ratioNum / ratioDen : null;
+    const obsWin = nWith ? withK.filter((d) => d.outcome === "won").length / nWith : 0;
+    let mult = def, applied = false, conf = "none";
+    if (raw !== null && nWith >= 50) {
+      let g = bad ? Math.min(1, raw) : Math.max(1, raw);         // направление залочено
+      g = Math.max(0.3, Math.min(1.6, g));
+      mult = Math.max(0.3, Math.min(1.6, Math.round((def * 0.7 + g * 0.3) * 100) / 100));   // сдвиг к дефолту 70/30
+      applied = true; conf = nWith >= 200 ? "high" : "mid";
+    }
+    calibration[key] = { n: nWith, obsWin: Math.round(obsWin * 100), raw: raw === null ? null : Math.round(raw * 100) / 100, def, mult, applied, conf, bad };
+  }
+  // Пересчёт prob/whyProb/temp/prio по калиброванным весам (только 3 ключа применены,
+  // остальные факторы используют свой ручной mult). Делаем ДО profile/queues/temperature.
+  const CM = (f: any) => (calibration[f.key] && calibration[f.key].applied) ? calibration[f.key].mult : f.mult;
+  for (const d of deals) {
+    const base = (d.base || 0) / 100;
+    let p = base; for (const f of (d.factors || [])) p *= CM(f);
+    p = Math.max(0.03, Math.min(0.97, p));
+    const moneyBase = d.budget || 0;
+    const why: any[] = [];
+    for (const f of (d.factors || [])) {
+      const m = CM(f);
+      const without = Math.max(0.03, Math.min(0.97, p / m));
+      const pp = Math.round((p - without) * 100); if (!pp) continue;
+      why.push({ label: f.label, pp, rub: Math.round(moneyBase * (p - without)), bad: m < 1, who: d.mgr || "" });
+    }
+    why.sort((a, b) => a.pp - b.pp);
+    d.prob = Math.round(p * 100); d.whyProb = why;
+    d.needToClose = why.filter((w) => w.bad).map((w) => ({ label: w.label.replace(/\s*\([^)]*\)/, ""), deg: -w.pp, rub: -w.rub })).sort((a, b) => b.deg - a.deg).slice(0, 5);
+    d.temp = Math.round(p * 100); d.tempDelta = d.temp - d.entryTemp; d.tempBucket = d.goalReached ? "goal" : tempBucket(d.temp);
+    if (d.uKey === "ok" || d.uKey === "lowprob") {   // lowprob-хвост срочности зависит от prob
+      if (!d.won && !d.lost && d.prob < 25 && (d.budget || 0) >= 300000) { d.uKey = "lowprob"; d.urgency = `Шанс низкий (${d.prob}%)`; d.uw = 0.35; }
+      else if (d.uKey === "lowprob") { d.uKey = "ok"; d.urgency = ""; d.uw = 0.1; }
+    }
+    d.prio = Math.round((d.budget || 60000) * p * d.uw);
+  }
+  // ===== ЛОГ СОСТОЯНИЙ для чистой калибровки (item 1, вариант B) =====
+  // Пишем состояние каждой ОТКРЫТОЙ сделки на дату снимка (стадия, сработавшие факторы, prob).
+  // Через недели join этих состояний с будущим исходом сделки даст веса без конфаундинга
+  // (состояние в момент времени -> forward outcome), в отличие от терминального среза.
+  try {
+    const LOG = "dialog/data/calib-log.ndjson";
+    const today = (dlg.to || new Date().toISOString()).slice(0, 10);
+    const prev = existsSync(LOG) ? readFileSync(LOG, "utf8").split("\n").filter((l) => l && !l.includes(`"d":"${today}"`)) : [];
+    const rows = deals.filter((d) => d.outcome === "open" && d.dealId)
+      .map((d) => JSON.stringify({ d: today, id: d.dealId, st: d.stageCode, mgr: d.mgr, keys: (d.factors || []).map((f: any) => f.key), prob: d.prob, bud: d.budget || 0 }));
+    const all = [...prev, ...rows].slice(-150000);
+    writeFileSync(LOG, all.join("\n") + "\n");
+    console.log(`Калибро-лог: +${rows.length} строк за ${today} (всего ${all.length})`);
+  } catch (e: any) { console.warn("калибро-лог пропущен:", e && e.message); }
 
   // ===== ДОСЬЕ РОПа: кто сильный и почему, кто слабый и что чинить =====
   // Каждая метрика сравнивается с медианой отдела: сильная сторона это не «хорошо вообще»,
@@ -896,6 +1009,7 @@ function main() {
   dlg.scoring = {
     queues: QUEUES, temperature,
     trend: days.slice(-14),
+    calibration,
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
     sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length, aiDemo: !!aiFile.demo, aiModel: aiFile.model || "",
     aiAgg: aiFile.aggregates || null,

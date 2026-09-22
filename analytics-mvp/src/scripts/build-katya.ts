@@ -2167,6 +2167,11 @@ function render(cur,cmp){
   let svodJson: any = null;
   if (!IS_OZON) { try { svodJson = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svodJson = null; } }
   const svodSection = IS_OZON ? "" : `
+  <section class="card"><div class="card-h"><div><div class="card-title">Свод по заказам</div><div class="card-sub">та же база и те же колонки, что в своде по артикулам ниже &middot; строка - заказ, а не артикул &middot; сгруппировано по категориям, клик раскрывает заказы &middot; период из фильтра наверху страницы</div></div>
+    </div>
+    <div class="kt-scroll"><table class="kt-table" id="so-t"></table></div>
+    <div id="so-more" class="kt-note" style="padding:6px 0 0"></div>
+  </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Свод по дате заказа</div><div class="card-sub">доставлено минус отмены и возвраты &middot; все кабинеты &middot; период берётся из фильтра наверху страницы, по дате оформления заказа</div></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
       <span id="sv-rates" style="display:none"><label style="color:var(--ink-2);font-size:12.5px">АДМ % <input id="sv-adm" type="number" value="30" min="0" max="100" style="width:54px;background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:6px;padding:4px 6px;font:inherit"></label>
@@ -2178,11 +2183,12 @@ function render(cur,cmp){
     <div class="kt-scroll"><table class="kt-table" id="sv-t"></table></div>
     <div id="sv-note" class="kt-note" style="margin-top:8px"></div>
   </section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Свод по заказам</div><div class="card-sub">та же база и те же колонки, что в своде выше &middot; строка - заказ, а не артикул &middot; сгруппировано по категориям, клик раскрывает заказы &middot; период из фильтра наверху страницы</div></div>
-    </div>
-    <div class="kt-scroll"><table class="kt-table" id="so-t"></table></div>
-    <div id="so-more" class="kt-note" style="padding:6px 0 0"></div>
-  </section>`;
+  <section class="card"><div class="card-h"><div><div class="card-title">Доставка по городам</div><div class="card-sub">куда возим в минус &middot; доход - то, что покупатель заплатил нам за доставку &middot; расход - счёт перевозчика из ведомости плюс сбор Маркета за логистику &middot; период из фильтра наверху страницы</div></div></div>
+    <div id="ct-gap" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
+    <div class="kt-scroll"><table class="kt-table" id="ct-t"></table></div>
+    <div id="ct-note" class="kt-note" style="margin-top:8px"></div>
+  </section>
+`;
   // Иван 18.09.2026: «поменяй местами водопад и свод место расположения». На Маркете водопад идёт
   // первым: он отвечает на «куда делись деньги» одной картинкой, а свод - подробностями под ней.
   // У OZON порядок прежний (свод там пуст, водопад стоит после плана): его страницы правятся
@@ -3394,13 +3400,30 @@ function svTotals(w){
 // Наша доставка здесь точнее, чем в разрезе по артикулу: счёт перевозчика выставлен НА ЗАКАЗ, и
 // делить его между позициями не приходится.
 var SO_OPEN={};
+// Ячейка города. У строки заказа город один, у категории и ИТОГО - набор: показываем «N городов»
+// и перечисляем крупнейшие в подсказке. Пустой город - это НЕ «город неизвестен», а «снимок
+// заказов собран до того, как строка стала нести deliveryRegion»: пишем «нет данных», чтобы
+// пробел был виден (§15 п.3), а не выглядел как доставка в никуда.
+function soCityAdd(dst,city,n){var k=city||'';if(!k)return;dst[k]=(dst[k]||0)+(n||1);}
+function soCityCell(x){
+  if(x&&x.city) return '<td style="color:var(--ink-2);font-size:11.5px">'+x.city+'</td>';
+  var c=x&&x.cities||{},ks=Object.keys(c);
+  if(!ks.length) return '<td class="r" style="color:var(--ink-3);font-size:11.5px" title="города появятся после ближайшего пересбора заказов: снимок собран до того, как строка стала нести город доставки">нет данных</td>';
+  ks.sort(function(a,b){return c[b]-c[a];});
+  var top=ks.slice(0,8).map(function(k){return k+' ('+c[k]+')';}).join(', ');
+  return '<td style="color:var(--ink-2);font-size:11.5px" title="'+top+(ks.length>8?' и ещё '+(ks.length-8):'')+'">'+ks.length+' '+svCityWord(ks.length)+'</td>';
+}
+function svCityWord(n){var m=n%100,k=n%10;if(m>=11&&m<=14)return 'городов';if(k===1)return 'город';if(k>=2&&k<=4)return 'города';return 'городов';}
 function soAgg(ms,w){
   w=w||svWin();
   var a={};
   ms.forEach(function(m){(m.rows||[]).forEach(function(r){
     if(!svInWin(r.d,w))return;
     var k=r.order||'—',o=a[k];
-    if(!o){o=a[k]={order:k,d:r.d,skuRev:{},un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,dm:{}};}
+    if(!o){o=a[k]={order:k,d:r.d,skuRev:{},un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,dm:{},city:''};}
+    // Город - свойство ЗАКАЗА, а не строки: у всех позиций одного заказа он один. Берём первый
+    // непустой. Пусто = снимок заказов собран до 22.09.2026, когда строка города ещё не несла.
+    if(!o.city&&r.region)o.city=r.region;
     if(r.d<o.d)o.d=r.d;
     var _d=r.units_delivered||0,_n=r.units_net||0;
     var _p=_d>0?((r.price||0)*_n/_d):(r.price||0);
@@ -3446,16 +3469,16 @@ function soDraw(){
   // ничего не объясняют, а колонок и так восемнадцать.
   var cats={};
   list.forEach(function(x){
-    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false});
+    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,cities:{}});
     g.rows.push(x);if(!g.dm)g.dm={};Object.keys(x.dm||{}).forEach(function(k){svModeAdd(g.dm,k,x.dm[k]);});g.un+=x.un;g.priceNet+=x.priceNet;g.ship+=x.ship;g.sp+=x.sp;g.cogs+=x.cogs;
-    g.shipOur+=x.shipOur;g.shipKn=g.shipKn||x.shipKn;if(!x.ck)g.ck=false;
+    g.shipOur+=x.shipOur;g.shipKn=g.shipKn||x.shipKn;if(!x.ck)g.ck=false;soCityAdd(g.cities,x.city,1);
     SV_COLS.forEach(function(p){g.svc[p[0]]=(g.svc[p[0]]||0)+(x.svc[p[0]]||0);});});
   var groups=Object.keys(cats).map(function(k){return cats[k];});
   groups.forEach(function(g){g._c=calc(g);});
   groups.sort(function(p,q){return q._c.net-p._c.net;});
   var FEE=SV_COLS.map(function(p){return p[0];});
   var H=['Категория / Заказ','Продажи','Доставка покупателя'].concat(FEE)
-    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','Кто везёт','С\\С произв.',
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','Кто везёт','Город','С\\С произв.',
              'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.']);
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
@@ -3469,18 +3492,20 @@ function soDraw(){
         ?'<td class="r" style="color:#E5B567" title="везли мы, а ведомость доставки эти заказы не знает - наш расход на перевозку неизвестен, прибыль завышена">нет вед.</td>'
         :'<td class="r" title="вёз Маркет - своего расхода на перевозку у нас нет, и ведомости здесь взяться неоткуда">—</td>'))
       +'<td class="r" style="color:var(--ink-2);font-size:11.5px">'+svModeTxt(x.dm)+'</td>'
+      +soCityCell(x)
       +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="себестоимости по части артикулов нет в листе - валовая и рентабельность завышены"')+'>'+(Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
       +'<td class="r" style="color:'+(c.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.gp)+'</td>'+pc(c.gp,c.net)
       +money(c.adm)+money(c.tax)
       +'<td class="r" style="color:'+(c.np>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.np)+'</td>'+pc(c.np,c.net);
   }
   // ИТОГО по ВСЕМ заказам периода, первой строкой - как в своде по артикулам.
-  var T={priceNet:0,ship:0,sp:0,un:0,cogs:0,shipOur:0,ck:true,shipKn:false,svc:{}},TN={net:0,gp:0,adm:0,tax:0,np:0};
+  var T={priceNet:0,ship:0,sp:0,un:0,cogs:0,shipOur:0,ck:true,shipKn:false,svc:{},cities:{}},TN={net:0,gp:0,adm:0,tax:0,np:0};
   FEE.forEach(function(n){T.svc[n]=0;});
   groups.forEach(function(g){var c=g._c;
     if(!T.dm)T.dm={};Object.keys(g.dm||{}).forEach(function(k){svModeAdd(T.dm,k,g.dm[k]);});
     T.priceNet+=g.priceNet;T.ship+=g.ship;T.sp+=g.sp;T.un+=g.un;T.cogs+=g.cogs;T.shipOur+=g.shipOur;
     T.shipKn=T.shipKn||g.shipKn;if(!g.ck)T.ck=false;
+    Object.keys(g.cities||{}).forEach(function(k){soCityAdd(T.cities,k,g.cities[k]);});
     TN.net+=c.net;TN.gp+=c.gp;TN.adm+=c.adm;TN.tax+=c.tax;TN.np+=c.np;
     FEE.forEach(function(n){T.svc[n]+=g.svc[n]||0;});});
   // Отправки по отменённым и возвратам: у такого заказа строк свода нет вовсе (выручки нет), а
@@ -3494,6 +3519,7 @@ function soDraw(){
     +'<td class="r"><b>'+svRub(TN.net)+'</b></td>'
     +'<td class="r"><b>'+(Math.round(T.shipOur)?svRub(T.shipOur):'—')+'</b></td>'
     +'<td class="r" style="font-size:11.5px"><b>'+svModeTxt(T.dm)+'</b></td>'
+    +soCityCell(T)
     +'<td class="r"><b>'+(Math.round(T.cogs)?svRub(T.cogs):'—')+'</b></td>'
     +'<td class="r"><b>'+svRub(TN.gp)+'</b></td>'+pc(TN.gp,TN.net)
     +'<td class="r"><b>'+svRub(TN.adm)+'</b></td><td class="r"><b>'+svRub(TN.tax)+'</b></td>'
@@ -3671,11 +3697,79 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
     tr.onclick=function(){SV_LOST_OPEN=!SV_LOST_OPEN;svDraw();};});
   noteEl.innerHTML='';
 }
+// Доставка по городам. Вопрос Кати 22.09.2026: «куда у нас доставка в минус». Ответ считается
+// по ЗАКАЗУ, а не по артикулу: город и перевозка - свойства заказа, и делить их между позициями
+// значило бы придумать разнесение там, где его нет.
+//   доход  = доставка, которую покупатель заплатил НАМ (ship_buyer). Там, где везёт Маркет,
+//            покупатель платит ему, и дохода у нас нет вовсе - это нормально, а не пропажа.
+//   расход = счёт перевозчика из ведомости (ship_our) + сбор Маркета за логистику (колонка
+//            «Доставка» свода). Второе - тоже наши деньги: Маркет удерживает его из выплаты.
+// Город без ведомости показывает расход НИЖЕ настоящего, поэтому доля таких заказов стоит в
+// строке: без неё «плюс» по городу читался бы как факт, а он может быть следствием пробела.
+function ctDraw(){
+  var el=document.getElementById('ct-t'); if(!el)return;
+  var noteEl=document.getElementById('ct-note'), gapEl=document.getElementById('ct-gap');
+  var w=svWin(),ms=svPick(w);
+  if(!ms.length){el.innerHTML='';noteEl.textContent='';gapEl.style.display='none';return;}
+  var byOrder={};
+  ms.forEach(function(m){(m.rows||[]).forEach(function(r){
+    if(!svInWin(r.d,w))return;
+    var k=r.order||'—',o=byOrder[k];
+    if(!o)o=byOrder[k]={city:'',inc:0,our:0,fee:0,un:0,kn:false,own:false,n:1};
+    if(!o.city&&r.region)o.city=r.region;
+    o.inc+=r.ship_buyer||0; o.our+=r.ship_our||0; o.un+=r.units_net||0;
+    SV_DEL_COLS.forEach(function(n){o.fee+=(r.svc&&r.svc[n]||0)+(r.svc_pts&&r.svc_pts[n]||0);});
+    o.kn=o.kn||!!r.ship_known; o.own=o.own||svMode(r)==='own'||svMode(r)==='unk';
+  });});
+  var cities={},noCity=0,total={inc:0,our:0,fee:0,ord:0,noVed:0};
+  Object.keys(byOrder).forEach(function(k){var o=byOrder[k];
+    total.inc+=o.inc;total.our+=o.our;total.fee+=o.fee;total.ord++;
+    if(o.own&&!o.kn)total.noVed++;
+    if(!o.city){noCity++;return;}
+    var c=cities[o.city]||(cities[o.city]={city:o.city,inc:0,our:0,fee:0,ord:0,noVed:0});
+    c.inc+=o.inc;c.our+=o.our;c.fee+=o.fee;c.ord++; if(o.own&&!o.kn)c.noVed++;
+  });
+  var rows=Object.keys(cities).map(function(k){var c=cities[k];c.res=c.inc-c.our-c.fee;return c;});
+  rows.sort(function(a,b){return a.res-b.res;});   // худшие сверху: вопрос был «где минус»
+  var H=['Город','Заказов','Доход с покупателя','Наш перевозчик','Сбор Маркета','Итог по доставке','На заказ','Без ведомости'];
+  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  var resT=total.inc-total.our-total.fee;
+  var cell=function(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';};
+  var resCell=function(v,b){var c=v>=0?'var(--up)':'var(--dn)';
+    return '<td class="r" style="color:'+c+'">'+(b?'<b>':'')+svRub(v)+(b?'</b>':'')+'</td>';};
+  var vedCell=function(c){
+    if(!c.noVed)return '<td class="r" style="color:var(--ink-3)">—</td>';
+    var pct=Math.round(c.noVed/c.ord*100);
+    return '<td class="r" style="color:#E5B567" title="по '+c.noVed+' из '+c.ord+' заказов ведомость доставки не заполнена: наш расход занижен, итог по городу лучше настоящего">'+pct+'%</td>';
+  };
+  h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+total.ord+' заказов)</span></td>'
+    +'<td class="r"><b>'+total.ord+'</b></td>'+cell(total.inc)+cell(total.our)+cell(total.fee)
+    +resCell(resT,true)+'<td class="r">'+(total.ord?svRub(resT/total.ord):'—')+'</td>'
+    +vedCell({noVed:total.noVed,ord:total.ord})+'</tr>';
+  rows.forEach(function(c){
+    var bad=c.res<0;
+    h+='<tr'+(bad?' style="background:rgba(255,90,95,.05)"':'')+'><td>'+c.city+'</td>'
+      +'<td class="r">'+c.ord+'</td>'+cell(c.inc)+cell(c.our)+cell(c.fee)
+      +resCell(c.res)+'<td class="r">'+svRub(c.res/c.ord)+'</td>'+vedCell(c)+'</tr>';
+  });
+  el.innerHTML=h+'</tbody>';
+  var minus=rows.filter(function(c){return c.res<0;});
+  var minusV=minus.reduce(function(a,c){return a+c.res;},0);
+  if(noCity){
+    gapEl.style.display='';
+    gapEl.innerHTML='<b>'+noCity+' из '+total.ord+' заказов без города.</b> Снимок заказов собран до того, как строка стала нести город доставки: эти заказы в разбивку ниже не попали, их деньги видны только в строке ИТОГО. Пропадёт после ближайшего полного пересбора заказов.';
+  } else gapEl.style.display='none';
+  noteEl.innerHTML = rows.length
+    ? 'Городов '+rows.length+', в минусе '+minus.length+' на '+svRub(Math.abs(minusV))+'. '
+      +'Итог по доставке = доход с покупателя − счёт перевозчика − сбор Маркета за логистику. '
+      +'Там, где везёт Маркет, дохода у нас нет по построению, и минус по такому городу - это его сбор, а не наша переплата перевозчику.'
+    : 'За выбранный период городов нет: либо нет доставленных заказов, либо снимок собран без городов.';
+}
 function svInit(){
   if(!document.getElementById('sv-t'))return;
   // Оба свода перерисовываются одним обработчиком: они стоят на одной базе, и разъехаться по
   // ставке или периоду не должны.
-  var both=function(){svDraw();soDraw();};
+  var both=function(){svDraw();soDraw();ctDraw();};
   ['sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=both;});
   // Свод перерисовывается вместе со всей страницей: шелл зовёт render(cur,cmp) на каждой смене
   // периода, а window.__guruPeriod к этому моменту уже обновлён. Своего состояния периода у

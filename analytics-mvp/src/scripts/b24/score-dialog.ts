@@ -37,6 +37,25 @@ const BASE_RATES: Record<string, { name: string; n: number; win: number }> = {
   "C49:UC_8JTBV2": { name: "Долгострой", n: 21, win: 0.095 },
 };
 const BASE_FALLBACK = 0.219;
+
+// Старт градусника. Решение Ивана 2026-09-22: новая сделка = 10 градусов всем, дальше рост -
+// заслуга менеджера. Раньше точкой отсчёта была база стадии входа, и сделка, зашедшая на
+// «Расчёт», стартовала с 75 градусов и могла только падать, а менеджер выглядел виноватым
+// за чужой хороший вход. 10 согласуется с методикой sales-director: вес прогноза у «Новой
+// сделки» 0.05, у «Квалификации» 0.10.
+const ENTRY_TEMP = 10;
+
+// Ранг стадии = P(выиграл | дошёл до стадии) по ЗАКРЫТЫМ сделкам C49 с created >= 2026-04-01
+// [ДАННЫЕ: rop.json 2026-09-22, n=1555 закрытых]. Нужен только для фактора stage_up: движение
+// в стадию с более высоким рангом. Лестница НЕ монотонна по номинальному порядку воронки:
+// «КП отправлено» даёт те же 21%, что и «Новая сделка» (n=767 и n=1498), то есть отправка КП
+// сама по себе вероятность не двигает. Реально делит воронку «Расчёт» (70%, n=375).
+const STAGE_RANK: Record<string, number> = {
+  "C49:UC_8JTBV2": 4, "C49:UC_LRFLH9": 20, "C49:NEW": 21, "C49:PREPAYMENT_INVOIC": 21,
+  "C49:PREPARATION": 22, "C49:3": 34, "C49:UC_OGZUU0": 70, "C49:EXECUTING": 95,
+  "C49:FINAL_INVOICE": 98, "C49:2": 98, "C49:1": 99,
+};
+const STAGE_UP_DAYS = 21;
 const CALIBRATED_AT = "2026-08-17";
 
 // --- Градусник температуры клиента ---
@@ -613,6 +632,20 @@ function main() {
     const factors: { key: string; label: string; mult: number }[] = [];
     const push = (key: string, label: string, mult: number) => factors.push({ key, label, mult });
     if (RE.ready.test(inText)) push("ready", "клиент говорит об оплате", 1.3);
+    // СИММЕТРИЯ. До этой правки поднять градус умели 4 фактора, опустить - 19, и на 611 сделках
+    // со стадией срабатываний вниз было в 5.4 раза больше, чем вверх (медианный множитель 0.50).
+    // Нормально ведомая сделка всё равно делилась пополам. Три сигнала ниже - про работу
+    // менеджера, а не про возраст сделки, и они умеют греть.
+    if (promiseKept > 0 && !promiseBroken) push("promise_kept", `обещания выполнены: ${promiseKept}`, 1.15);
+    if (firstResp !== null && firstResp <= FIRST_ANSWER_MIN) push("first_fast", `первый ответ за ${fmtMin(firstResp)}`, 1.1);
+    // Движение вперёд по воронке за последние 3 недели: сделка перешла в стадию с более высоким
+    // эмпирическим шансом. Именно это «в руках менеджера», в отличие от того, где сделка зашла.
+    if (stageRows.length >= 2) {
+      const last2 = stageRows[stageRows.length - 1]!, prev2 = stageRows[stageRows.length - 2]!;
+      const rNew = STAGE_RANK[last2.code], rOld = STAGE_RANK[prev2.code];
+      if (rNew != null && rOld != null && rNew > rOld && (now - last2.ts) / 864e5 <= STAGE_UP_DAYS)
+        push("stage_up", `продвинул стадию: ${prev2.name} -> ${last2.name}`, 1.15);
+    }
     if (respMed !== null && respMed <= FAST_ANSWER_MIN) push("fast_resp", `быстрые ответы (${fmtMin(respMed)})`, 1.1);
     // Гасим общий «медленные ответы», если уже штрафуем за медленную ГОРЯЧУЮ реплику -
     // иначе одна задержка наказывается дважды (ФЕНИКС L4).
@@ -623,10 +656,24 @@ function main() {
     // реплику ответили поздно, а потом клиент написал снова и ждёт сейчас. Это два разных дефекта,
     // оба остаются (при hotSlow без hotOpen ball продолжает начисляться).
     if (ballWait > BALL_STUCK_MIN && !hotOpen) push("ball", `клиент ждёт ${fmtMin(ballWait)}`, 0.7);
-    if (silenceD >= SILENCE_BAD_D) push(postSale ? "silence_post" : "silence", `тишина ${silenceD} дн`, postSale ? 0.9 : 0.6);
-    else if (silenceD >= SILENCE_WARN_D) push(postSale ? "pause_post" : "pause", `пауза ${silenceD} дн`, postSale ? 0.95 : 0.85);
-    if (!nextStep) push("nostep", "нет следующего шага", 0.85);
-    if (overdue) push("overdue", `дело просрочено на ${overdueD} дн`, 0.85);
+    // СЕМЬЯ «ДРЕЙФ»: тишина, отсутствие следующего шага, просрочка дела и обещания без срока -
+    // это четыре описания одного и того же: сделкой не занимаются. Раньше они перемножались, и
+    // просто старая сделка получала 0.6 x 0.85 x 0.85 x 0.9 = 0.39, то есть менеджер выглядел
+    // виноватым за возраст. Берём ОДИН сильнейший сигнал, остальные показываем в подсказке.
+    // Тот же принцип уже применён к паре slow_resp / hot_slow (ФЕНИКС L4).
+    const drift: { key: string; label: string; mult: number }[] = [];
+    if (silenceD >= SILENCE_BAD_D) drift.push({ key: postSale ? "silence_post" : "silence", label: `тишина ${silenceD} дн`, mult: postSale ? 0.9 : 0.6 });
+    else if (silenceD >= SILENCE_WARN_D) drift.push({ key: postSale ? "pause_post" : "pause", label: `пауза ${silenceD} дн`, mult: postSale ? 0.95 : 0.85 });
+    if (!nextStep) drift.push({ key: "nostep", label: "нет следующего шага", mult: 0.85 });
+    if (overdue) drift.push({ key: "overdue", label: `дело просрочено на ${overdueD} дн`, mult: 0.85 });
+    if (!promiseBroken && vagueProm > 1) drift.push({ key: "promise_vague", label: `обещания без срока: ${vagueProm}`, mult: 0.9 });
+    let driftAlso: string[] = [];
+    if (drift.length) {
+      drift.sort((x, y) => x.mult - y.mult);
+      const top = drift[0]!;
+      driftAlso = drift.slice(1).map((x) => x.label);
+      push(top.key, driftAlso.length ? `${top.label} (плюс: ${driftAlso.join(", ")})` : top.label, top.mult);
+    }
     if (objTotal && objWorked < objTotal) push("obj_open", `возражение без контраргумента (${objTotal - objWorked})`, 0.8);
     else if (objTotal) push("obj_worked", "возражение отработано аргументом", 1.05);
     if (RE.refuse.test(inText)) push("refuse", "клиент говорит об отказе", 0.5);
@@ -641,8 +688,9 @@ function main() {
       if (!postSale && (commEv + sysEv) >= 4 && visShare < 0.34)
         push("blind", "слепая зона: видимой коммуникации почти нет", commEv === 0 ? 0.7 : 0.82);
     }
+    // promise_broken остаётся отдельным: «обещал и не сделал» это проверяемый факт, а не дрейф.
+    // promise_vague ушёл в семью «дрейф» выше.
     if (promiseBroken) push("promise_broken", `обещал и не сделал: ${promiseBroken}`, promiseBroken > 1 ? 0.7 : 0.8);
-    else if (vagueProm > 1) push("promise_vague", `обещания без срока: ${vagueProm}`, 0.9);
     if (taskNoContact) push("fakedone", `дел закрыто без контакта: ${taskNoContact}`, taskNoContact > 1 ? 0.75 : 0.85);
     // item 2: новые факторы (дефолтные веса, чистая калибровка накопится логированием B;
     // приёмка: владелец Иван, дата проверки false-positive rate по calib-log +2 недели).
@@ -711,7 +759,7 @@ function main() {
     // --- ГРАДУСНИК: температура клиента = вероятность покупки в моменте (0-100°). Цель отдела -
     // довести до ПРЕДОПЛАТЫ; после неё (POST_SALE) сделка «в цеху», грев окончен -> goalReached.
     const temp = Math.round(prob * 100);
-    const entryTemp = stageRows.length ? stageTemp(stageRows[0]!.code) : Math.round(BASE_FALLBACK * 100);
+    const entryTemp = ENTRY_TEMP;   // старт один для всех, см. комментарий у ENTRY_TEMP
     const goalReached = POST_SALE.has(stageCode) || isWon;
     const tempDelta = temp - entryTemp;                 // насколько прогрели с входа (или остудили)
     const tBucket = goalReached ? "goal" : tempBucket(temp);
@@ -737,7 +785,7 @@ function main() {
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
-      clientChase, hotSlow, hotOpen, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),
+      clientChase, hotSlow, hotOpen, driftAlso, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),
       lastTs: last.ts, lastDt: last.dt,
     });
   }

@@ -1147,7 +1147,12 @@ function renderTree(){
     return `<div class="thermo" data-tip="${tip.replace(/"/g,'&quot;')}"><div class="thg"><div class="thtube"><span class="thliq" style="height:${Math.max(4,Math.min(100,t))}%;background:${c}"></span><i class="thmark" style="bottom:${Math.min(100,e)}%" title="на входе ${e}°"></i></div><span class="thbulb" style="background:${c}"></span></div><div class="thnum"><b class="tht" style="color:${c}">${t}°</b>${dl?`<span class="thd" style="color:${dl>0?'#2E9E74':'#C25252'}">${dl>0?'▲+'+dl:'▼'+dl}</span>`:''}</div></div>`;
   };
   // Распределение сделок менеджера/группы/отдела по температуре + СИЛА НАГРЕВА (медиана Δ).
-  const tempCell=(key)=>{ const ds=(byM[key]||[]).filter(d=>d.outcome==='open'); if(!ds.length) return '<span class="na2">-</span>';
+  const tempCell=(key)=>{ const all=(byM[key]||[]).filter(d=>d.outcome==='open');
+    // Лиды вне градусника: у них нет стадии и бюджета, они падают на заглушку 21.9 градуса и
+    // красят портфель в холодный. На 2026-09-22 это 2316 сущностей из 2927, то есть 79% -
+    // полоска показывала воронку лидов, а не портфель сделок. Лидам нужна своя воронка.
+    const nLead=all.filter(d=>d.isLead).length; const ds=all.filter(d=>!d.isLead);
+    if(!ds.length) return '<span class="na2">-</span>'+(nLead?`<span class="na2" data-tip="Только лиды (${nLead}), сделок со стадией нет. Лиды в градуснике не участвуют."> · ${nLead} лид.</span>`:'');
     const b={boiling:0,hot:0,warm:0,cold:0,goal:0}; for(const d of ds) b[d.tempBucket==null?'cold':d.tempBucket]++;
     const order=[['boiling','#E5484D','кипят'],['hot','#F76808','горячие'],['warm','#E2A336','тёплые'],['cold','#5B8DEF','холодные'],['goal','#2E9E74','предоплата']];
     const tot=ds.length;
@@ -1172,7 +1177,8 @@ function renderTree(){
         +((lvlAi.weaknesses&&lvlAi.weaknesses.length)?`<br><b style="color:#E08585">Слабые:</b> ${esc(lvlAi.weaknesses.join('; '))}`:'')
         +(lvlAi.action?`<br><b style="color:#7FD1A6">Что делать:</b> ${esc(lvlAi.action)}`:'')
       : '';
-    const hpTip=hp===null?('Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).'+aiTip):`Сила нагрева = медиана Δ температуры с входа до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${whyBlock}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
+    const leadNote=nLead?`<br><i>Вне градусника ${nLead} лид. без стадии - у них своя воронка.</i>`:'';
+    const hpTip=hp===null?('Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).'+leadNote+aiTip):`Сила нагрева = медиана Δ температуры от старта ${10}° до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${leadNote}${whyBlock}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
     return `<div class="tempcell"><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
   // «Почему остывают» с конкретными цифрами (сделок, до +N°, что делать) для агрегатного
   // ИИ-итога отдела/подотдела - те же данные, что в подсказке градусника.

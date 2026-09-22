@@ -96,40 +96,39 @@ def statuschip(t):
 # Одна строка = одна пара «тест против контроля». Контроль берём из лога кампаний
 # (колонка `контроль`), а не из порядка в tests.json: в логе зафиксировано, с кем
 # именно сравнивали, и там же лежат показы контроля на ту же неделю.
+def wk_search(art, end, n=14):
+    """Показы в поиске за n дней, заканчивая днём end. Окно то же, что у базы замера (две
+    недели): мерить сопоставимость одним окном, а эффект другим - значит подгонять.
+    Обе стороны пары меряются одинаково, поэтому расхождение между ними честное. Недельная цифра из лога кабинета
+    осталась как запись условий на момент запуска, но сравнивать с ней нельзя: другая шкала."""
+    e = datetime.date.fromisoformat(end)
+    return sum((series.get(art, {}).get((e - datetime.timedelta(days=k)).isoformat()) or {}).get("vsearch", 0)
+               for k in range(n))
+
+
 def pairrow(sku):
     r = log.get(sku)
     if not r:
         return (f'<tr><td>{esc(sku)}</td><td colspan="4" class="muted">нет в логе кампаний</td>'
-                f'<td class="sep muted" colspan="3">пара не зафиксирована</td><td class="r muted">-</td></tr>'), None
+                f'<td class="sep muted" colspan="2">пара не зафиксирована</td><td class="r muted">-</td></tr>'), None
     ct = r.get("контроль", "").strip()
-    vt, vc = num(r.get("показы_за_неделю_до")), num(r.get("контроль_показы"))
-    delta = (vt - vc) / vc * 100 if (vt and vc and vc > 0) else None
+    start = r.get("старт", "")[:10]
+    prev = (datetime.date.fromisoformat(start) - datetime.timedelta(days=1)).isoformat() if start else None
+    vt = wk_search(sku, prev) if prev else 0
+    vc = wk_search(ct, prev) if (prev and ct) else 0
+    delta = (vt - vc) / vc * 100 if vc else None
     dcls = "warn" if (delta is not None and abs(delta) > 20) else ""
     dtxt = "-" if delta is None else f"{delta:+.0f} %"
     rec = esc(r.get("ставка_рекоменд", "") or "-")
     fin = esc(r.get("ставка_финальная", "") or "-")
-    start = esc(r.get("старт", "")[:16].replace("T", " "))
-    return (f'<tr><td>{esc(sku)}</td><td class="r">{esc(r.get("показы_за_неделю_до", ""))}</td>'
-            f'<td class="r">{esc(r.get("соинвест_%", ""))}</td>'
-            f'<td class="r">{rec} → <b>{fin}</b></td><td class="nw">{start}</td>'
+    return (f'<tr><td>{esc(sku)}</td><td class="r">{fmt(vt)}</td>'
+            f'<td class="r">{esc(r.get("соинвест_%", "") or "-")}</td>'
+            f'<td class="r">{rec} → <b>{fin}</b></td>'
+            f'<td class="nw">{esc(r.get("старт", "")[:16].replace("T", " "))}</td>'
             f'<td class="sep">{esc(ct) if ct else "-"}</td>'
-            f'<td class="r">{esc(r.get("контроль_показы", "") or "-")}</td>'
-            f'<td class="r muted" title="Соинвест контроля считается из cur_prices.psv по product_id; '
-            f'маппинг product_id → артикул лежит в выгрузке кабинета, её в репозитории нет">нет данных</td>'
+            f'<td class="r">{fmt(vc) if vc else "-"}</td>'
             f'<td class="r {dcls}">{dtxt}</td></tr>'), (vt, vc)
 
-# mode: index - линии приводятся к своему уровню до старта (уровни групп разные);
-#       raw   - рисуем как есть, обе группы в одной единице и сравнимы напрямую.
-METRICS = [("vsearch", "Показы в поиске", "index", ""), ("views", "Показы всего", "index", ""),
-           ("pdp", "Карточка", "index", ""), ("cart", "Корзина", "index", ""),
-           ("spend", "Расход на рекламу", "raw", " ₽")]
-if HAS_COINV:
-    METRICS.append(("coinv", "Соинвест", "raw", " %"))
-if HAS_POS:
-    METRICS.append(("pos", "Позиция в поиске", "raw", ""))
-
-# Контроль обязан быть чистым: по нему нельзя крутить рекламу, иначе он не контроль,
-# а вторая тестовая группа. Проверяем по накопителю расхода, а не на слово.
 def dirty_control(t):
     st = datetime.date.fromisoformat(t["старт"])
     win = [(st - datetime.timedelta(days=k)).isoformat() for k in range(1, 15)]
@@ -174,6 +173,16 @@ def group_daily(grp, days, key="vsearch"):
 # База - две недели перед стартом (решение Ивана 22.09): неделя перед стартом может
 # оказаться ямой, и тогда прирост считается от неё, а не от нормы. Две шкалы на одной
 # картинке - запрещённый приём, индекс решает ту же задачу без вранья.
+# mode: index - линии приводятся к своему уровню до старта (уровни групп разные);
+#       raw   - рисуем как есть, обе группы в одной единице и сравнимы напрямую.
+METRICS = [("vsearch", "Показы в поиске", "index", ""), ("views", "Показы всего", "index", ""),
+           ("pdp", "Карточка", "index", ""), ("cart", "Корзина", "index", ""),
+           ("spend", "Расход на рекламу", "raw", " ₽")]
+if HAS_COINV:
+    METRICS.append(("coinv", "Соинвест", "raw", " %"))
+if HAS_POS:
+    METRICS.append(("pos", "Позиция в поиске", "raw", ""))
+
 W, H, L, R, TP, B = 620, 170, 40, 62, 14, 24
 
 def chart(t, cid):
@@ -296,8 +305,8 @@ for t in T["тесты"]:
                     cov_v += 1
         used = {log[s]["контроль"] for s in tst if s in log}
         orphan = [c for c in ctl if c not in used]
-        cov = (f'Пар: <b>{paired}</b> из {len(tst)}. Показы обеих сторон есть у <b>{cov_v}</b>. '
-               f'Соинвест контроля: <b>нет ни у одной пары</b> (нужен маппинг product_id из выгрузки кабинета). ')
+        cov = (f'Пар: <b>{paired}</b> из {len(tst)}. Трафик обеих сторон посчитан у <b>{cov_v}</b>. '
+               f'Соинвест контроля появится, когда накопится посуточный ряд цен (сбор добавлен в ночной снимок). ')
         cov += (f'Контроль без пары: {esc(", ".join(orphan))}.' if orphan else "Весь контроль разобран по парам.")
         dirty = dirty_control(t)
         dirt = ""
@@ -314,15 +323,19 @@ for t in T["тесты"]:
                        "Расход был до старта, на замер он влияет только через базу.")
                     + '</div>')
         grp = ('<div class="tbl-wrap"><table class="gtbl"><thead>'
-               '<tr class="grp"><th colspan="5">Тест</th><th class="sep" colspan="3">Контроль</th><th></th></tr>'
-               '<tr><th>Артикул</th><th class="r">Показы/нед</th><th class="r">Соинвест %</th>'
+               '<tr class="grp"><th colspan="5">Тест</th><th class="sep" colspan="2">Контроль</th><th></th></tr>'
+               '<tr><th>Артикул</th><th class="r" title="Показы в поиске за 7 дней до старта пары, '
+               'из посуточного снимка OZON. Окно то же, что у базы замера">Поиск/2нед</th>'
+               '<th class="r" title="Соинвест на момент запуска, из лога кабинета">Соинвест %</th>'
                '<th class="r">Ставка рек.→фин.</th><th>Старт</th>'
-               '<th class="sep">Артикул</th><th class="r">Показы/нед</th><th class="r">Соинвест %</th>'
-               '<th class="r" title="Насколько показы теста расходятся с показами контроля. '
-               'Больше 20 % - пара плохо сопоставима">Δ показов</th></tr>'
+               '<th class="sep">Артикул</th><th class="r">Поиск/2нед</th>'
+               '<th class="r" title="Насколько трафик теста расходится с контролем до старта. '
+               'Больше 20 % - пара плохо сопоставима">Δ поиска</th></tr>'
                f'</thead><tbody>{rows}</tbody></table></div><div class="cov">{cov}</div>{dirt}'
-               '<div class="cov">Числа в таблице сняты в кабинете на момент запуска и с тех пор не двигаются. '
-               'Что происходит с тестом дальше - на графике ниже.</div>'
+               '<div class="cov">Соинвест и ставка в таблице сняты в кабинете на момент запуска и с тех пор '
+               'не двигаются. Трафик в колонках «Поиск/2нед» посчитан из посуточного снимка OZON одинаково '
+               'для теста и контроля, поэтому Δ между ними сравнима. Что происходит с тестом дальше - '
+               'на графике ниже.</div>'
                + chart(t, "dyn-" + t["id"]))
     else:
         grp = '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>'

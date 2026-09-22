@@ -11,6 +11,7 @@ export const KPAGES: [string, string, string][] = [
   ["katya-money.html", "Деньги", "money"],
   ["katya-competitors.html", "Конкуренты", "competitors"],
   ["katya-reakciya.html", "Реакция", "reakciya"],
+  ["katya-tests.html", "Тесты", "tests"],
 ];
 
 // Разметка одной кнопки шапки. Держим ровно ту же, что была инлайном в banner().

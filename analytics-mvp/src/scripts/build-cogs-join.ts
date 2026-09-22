@@ -86,10 +86,28 @@ function main() {
   let nExtra = 0;
   for (const [sku, cost] of skuCost) { if (!(sku in map)) { map[sku] = cost; nExtra++; } }
 
+  // Реализованные в периоде, но ВНЕ живого снимка 30 дн SKU без прямого ключа в листе (напр.
+  // GGT-28-3-2-200-100 - вариант ARFEO Duo 200, в снимке нет). У них СС по SKU в листе не заведена,
+  // но модель таксономии есть и матчится на модель листа тем же нечётким матчем, что и у снимка.
+  // Раньше fuzzy бежал только по снимку, поэтому такие SKU падали в «нет СС» и подсвечивались в
+  // дашборде, хотя цена модели известна. Догоняем: полная карта sku->offer -> модель -> fuzzy.
+  let nFuzzyOffer = 0;
+  try {
+    const skuOffer: Record<string, string> = JSON.parse(readFileSync(dp("sku_offer.json"), "utf-8"));
+    for (const [sku, offer] of Object.entries(skuOffer)) {
+      if (sku in map) continue;
+      const t = oi.get(offer || "");
+      const model = t ? t.model : "";
+      if (!model) continue;
+      const m = matchCogs(model, prodIdx) || matchCogs(model, oldIdx);
+      if (m) { map[sku] = Math.round(m.cost); nFuzzyOffer++; }
+    }
+  } catch { /* нет sku_offer.json - пропуск, покрытие как было */ }
 
   writeFileSync(dp("sku_cogs.json"), JSON.stringify(map, null, 0));
   const nCov = nDirect + nFuzzyNew + nFuzzyOld;
   console.log(`Плюс ${nExtra} SKU из листа СС вне живого снимка (прямой ключ) - чтобы не терять СС по неактивным артикулам.`);
+  console.log(`Плюс ${nFuzzyOffer} SKU вне снимка по нечёткому матчу модели (sku->offer->модель таксономии->лист) - реализованные артикулы без прямого ключа.`);
   console.log(`СС произв.: ${prodRows.length} строк листа OZON${ymRows.length ? `, ${ymRows.length} строк листа ЯМ (приоритет)` : ""}, ${prodModelRows.length} моделей для fuzzy.`);
   console.log(`Связка sku->СС: ${nCov}/${nSku} SKU (${Math.round((nCov / nSku) * 100)}%): прямой SKU ${nDirect}, по нормализованному артикулу ${nNorm}, fuzzy(новый лист) ${nFuzzyNew}, fuzzy(старый лист) ${nFuzzyOld}. Покрытие оборота ${Math.round((revCov / revTotal) * 100)}%.`);
   console.log(`Не сматчено: ${unmatched.size}. Примеры: ${[...unmatched].slice(0, 12).join(" | ")}`);

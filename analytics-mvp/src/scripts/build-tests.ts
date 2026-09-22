@@ -283,6 +283,23 @@ const PER_ART: Array<[string, string]> = [["vsearch", "Поиск"], ["views", "
 if (HAS_POS) PER_ART.push(["pos", "Позиция"]);
 if (HAS_COINV) PER_ART.push(["coinv", "Соинвест"]);
 
+function deadControl(t: TestDef): string {
+  const st = t.старт!;
+  const last7 = Array.from({ length: 7 }, (_, k) => addDays(st, -(k + 1)));
+  const post: string[] = [];
+  for (let k = 0; k <= 40; k++) { const d = addDays(st, k); if (d <= LAST) post.push(d); }
+  const sv = (a: string, ds: string[]) => ds.reduce((x, d) => x + (series.get(a)?.get(d)?.["vsearch"] || 0), 0);
+  const bad: string[] = [];
+  for (const test of t.тест || []) {
+    const c = (log.get(test)?.["контроль"] || "").trim(); if (!c) continue;
+    const a = sv(c, last7), b = sv(c, post);
+    if (!a || !b) bad.push(`<b>${esc(c)}</b> (пара к ${esc(test)}): ${a ? "" : "нет показов за 7 дней до старта"}${(!a && !b) ? ", " : ""}${b ? "" : "нет показов после старта"}`);
+  }
+  if (!bad.length) return "";
+  return `<div class="dyn-alarm"><b>Мёртвый контроль.</b> Эти артикулы не получают показов, значит сдвинуться не могут, и разница тест минус контроль на них завышается:<ul class="dl2">`
+    + bad.map((x) => `<li>${x}</li>`).join("") + `</ul>Пару надо переподобрать до замера.</div>`;
+}
+
 function perArticle(t: TestDef): string {
   const st = t.старт!;
   const base = Array.from({ length: 14 }, (_, k) => addDays(st, -(k + 1)));
@@ -492,7 +509,7 @@ const cards = T.тесты.map((t) => {
       + `<th class="r">Ставка рек.→фин.</th><th>Старт</th>`
       + `<th class="sep">Артикул</th><th class="r">Поиск/2нед</th>`
       + `<th class="r" title="Насколько трафик теста расходится с контролем до старта. Больше 20 % - пара плохо сопоставима">Δ поиска</th></tr>`
-      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${dirtyControl(t)}${chart(t, "dyn-" + t.id)}${perArticle(t)}`;
+      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${dirtyControl(t)}${deadControl(t)}${chart(t, "dyn-" + t.id)}${perArticle(t)}`;
   } else {
     body = '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>';
   }

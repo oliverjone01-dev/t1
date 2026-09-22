@@ -26,6 +26,8 @@
     "ads:attrd": "tsx src/scripts/ozon/ad-attribution-daily.ts",
     "totals:daily": "tsx src/scripts/ozon/daily-totals.ts",
     "views:daily": "tsx src/scripts/ozon/sku-views.ts",
+    "prices:daily": "tsx src/scripts/ozon/prices-daily.ts",
+    "probe:metrics": "tsx src/scripts/ozon/analytics-metrics-probe.ts",
     "pnl:daily": "tsx src/scripts/ozon/pnl-daily.ts",
     "pnl:sku:daily": "tsx src/scripts/ozon/pnl-sku-daily.ts",
     "pnl:account:daily": "tsx src/scripts/ozon/pnl-account-daily.ts",

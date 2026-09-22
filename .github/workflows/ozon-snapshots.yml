@@ -237,6 +237,15 @@ jobs:
           # из-за чего «Воронка по категориям» замораживалась. Догрузка от последнего дня до вчера.
           npm run views:daily || { echo "sku-views не собрался (OZON Seller недоступен)" >> /tmp/ozon-sync-failures.txt; echo "::warning::sku-views не собрался (OZON Seller недоступен)"; }
 
+      - name: Снимок цен по артикулам за день (соинвест)
+        run: |
+          set -euo pipefail
+          # prices_daily.ndjson: цена для покупателя и цена до акций по offer_id, из них соинвест.
+          # Историю задним числом не восстановить (/v5/product/info/prices отдаёт только текущее
+          # состояние), поэтому ряд копится с первого запуска. Нужен A/B-тестам по рекламе:
+          # соинвест - их главная метрика, а посуточного ряда по артикулам до сих пор не было.
+          npm run prices:daily || { echo "prices-daily не собрался (OZON Seller недоступен)" >> /tmp/ozon-sync-failures.txt; echo "::warning::prices-daily не собрался (OZON Seller недоступен)"; }
+
       - name: per-SKU attribution по дням (основная/объединённая, любой период)
         run: |
           set -euo pipefail

@@ -42,6 +42,28 @@ for line in open(os.path.join(DATA, "sku_views.ndjson"), encoding="utf-8"):
     for k in cell:
         cell[k] += r.get(k) or 0
 LAST = max((d for a in series for d in series[a]), default="")
+# Рекламный расход по артикулу и дню (накопитель ad-sku-daily.ts). Ключ - sku, переводим в артикул.
+for line in open(os.path.join(DATA, "ads_sku_daily.ndjson"), encoding="utf-8"):
+    r = json.loads(line)
+    art = sku2art.get(str(r["sku"]))
+    if not art:
+        continue
+    cell = series[art].setdefault(r["d"], {})
+    cell["spend"] = cell.get("spend", 0) + (r.get("sp") or 0)
+
+# Соинвест по артикулу и дню - ряд prices-daily.ts. Копится с первого ночного запуска,
+# задним числом не восстанавливается, поэтому файла может ещё не быть.
+PRICES = os.path.join(DATA, "prices_daily.ndjson")
+HAS_COINV = os.path.exists(PRICES)
+if HAS_COINV:
+    for line in open(PRICES, encoding="utf-8"):
+        r = json.loads(line)
+        if r.get("coinv") is not None:
+            series[r["offer"]].setdefault(r["d"], {})["coinv"] = r["coinv"]
+
+# Позиция в поиске появится в sku_views, когда метрику примет ночной сбор (см. probe:metrics).
+HAS_POS = any("pos" in v for a in series for v in series[a].values())
+
 
 TODAY = datetime.date.today()
 
@@ -96,10 +118,55 @@ def pairrow(sku):
             f'маппинг product_id → артикул лежит в выгрузке кабинета, её в репозитории нет">нет данных</td>'
             f'<td class="r {dcls}">{dtxt}</td></tr>'), (vt, vc)
 
-METRICS = [("vsearch", "Показы в поиске"), ("views", "Показы всего"),
-           ("pdp", "Карточка"), ("cart", "Корзина")]
+# mode: index - линии приводятся к своему уровню до старта (уровни групп разные);
+#       raw   - рисуем как есть, обе группы в одной единице и сравнимы напрямую.
+METRICS = [("vsearch", "Показы в поиске", "index", ""), ("views", "Показы всего", "index", ""),
+           ("pdp", "Карточка", "index", ""), ("cart", "Корзина", "index", ""),
+           ("spend", "Расход на рекламу", "raw", " ₽")]
+if HAS_COINV:
+    METRICS.append(("coinv", "Соинвест", "raw", " %"))
+if HAS_POS:
+    METRICS.append(("pos", "Позиция в поиске", "raw", ""))
+
+# Контроль обязан быть чистым: по нему нельзя крутить рекламу, иначе он не контроль,
+# а вторая тестовая группа. Проверяем по накопителю расхода, а не на слово.
+def dirty_control(t):
+    st = datetime.date.fromisoformat(t["старт"])
+    win = [(st - datetime.timedelta(days=k)).isoformat() for k in range(1, 15)]
+    win += [(st + datetime.timedelta(days=k)).isoformat() for k in range(0, 40)]
+    out = []
+    for a in t.get("контроль", []):
+        days = [d for d in win if (series.get(a, {}).get(d) or {}).get("spend", 0) > 0]
+        if days:
+            total = sum((series[a][d] or {}).get("spend", 0) for d in days)
+            after = [d for d in days if d >= t["старт"]]
+            out.append((a, total, len(days), bool(after)))
+    return sorted(out, key=lambda x: -x[1])
+
+
+def missing_note():
+    """Честно говорим, каких рядов ещё нет. Оба копятся с первого ночного запуска."""
+    gaps = ([] if HAS_COINV else ["соинвест"]) + ([] if HAS_POS else ["позиция в поиске"])
+    if not gaps:
+        return ""
+    return (f' Пока нет посуточного ряда: {" и ".join(gaps)}. Сбор добавлен в ночной снимок,'
+            f' ряд копится с первого запуска, задним числом не восстанавливается.')
+
+
+def fmt(v, unit=""):
+    return f"{v:,.0f}".replace(",", "\u00a0") + unit
+
 
 def group_daily(grp, days, key="vsearch"):
+    """Сумма по группе за день. Для соинвеста и позиции сумма бессмысленна: это уровни,
+    а не количества, поэтому там берём среднее по тем артикулам, у которых значение есть."""
+    if key in ("coinv", "pos"):
+        out = []
+        for d in days:
+            vals = [(series.get(a, {}).get(d) or {}).get(key) for a in grp]
+            vals = [v for v in vals if v is not None]
+            out.append(sum(vals) / len(vals) if vals else 0)
+        return out
     return [sum((series.get(a, {}).get(d) or {}).get(key, 0) for a in grp) for d in days]
 
 # График динамики. Две группы живут на разных уровнях трафика (у bid_min_8 контроль
@@ -122,30 +189,36 @@ def chart(t, cid):
     si = days.index(t["старт"])
     x = lambda i: L + i * (W - L - R) / max(len(days) - 1, 1)
 
-    panes, readouts, tipdata = {}, {}, {}
-    for key, title in METRICS:
+    panes, readouts, tipdata, subs = {}, {}, {}, {}
+    for key, title, mode, unit in METRICS:
         rawT, rawC = group_daily(t["тест"], days, key), group_daily(t["контроль"], days, key)
         def stat(grp, win):
             return sum(group_daily(grp, win, key)) / len(win)
         bT, bC = stat(t["тест"], base), stat(t["контроль"], base)
         pT, pC = stat(t["тест"], post), stat(t["контроль"], post)
         b1T, b1C = stat(t["тест"], base1), stat(t["контроль"], base1)
-        if not (bT and bC):
-            continue
-        idxT = [v / bT * 100 for v in rawT]
-        idxC = [v / bC * 100 for v in rawC]
-        lo = min(min(idxT), min(idxC), 100) * 0.92
-        hi = max(max(idxT), max(idxC), 100) * 1.06
+        if mode == "index":
+            if not (bT and bC):
+                continue          # база в нуле - индекс не построить
+            idxT = [v / bT * 100 for v in rawT]
+            idxC = [v / bC * 100 for v in rawC]
+        else:
+            if not any(rawT) and not any(rawC):
+                continue          # ряда ещё нет
+            idxT, idxC = rawT, rawC
+        anchor_ = 100 if mode == "index" else min(min(idxT), min(idxC))
+        lo = min(min(idxT), min(idxC), anchor_) * 0.92
+        hi = max(max(idxT), max(idxC), anchor_) * 1.06 or 1
         y = lambda v: TP + (hi - v) / (hi - lo) * (H - TP - B)
         span = hi - lo
         step = next((s_ for s_ in (25, 50, 100, 200, 500, 1000, 2000) if span / s_ <= 4), 5000)
         ticks = [v for v in range(0, int(hi) + step, step) if lo <= v <= hi]
-        if 100 not in ticks and lo <= 100 <= hi:
+        if mode == "index" and 100 not in ticks and lo <= 100 <= hi:
             ticks = sorted(set(ticks + [100]))
         ticks = [v for v in ticks if v > 0]
 
         def gline(v):
-            dash = ' stroke-dasharray="3 3"' if v == 100 else ""
+            dash = ' stroke-dasharray="3 3"' if (v == 100 and mode == "index") else ""
             return (f'<line class="gl" x1="{L}" x2="{W - R}" y1="{y(v):.1f}" y2="{y(v):.1f}"{dash}/>'
                     f'<text class="ax" x="{L - 6}" y="{y(v) + 3.5:.1f}" text-anchor="end">{v:.0f}</text>')
         path = lambda idx: "M" + " L".join(f"{x(i):.1f} {y(v):.1f}" for i, v in enumerate(idx))
@@ -162,29 +235,40 @@ def chart(t, cid):
             + f'<text class="dl" x="{W - R + 6}" y="{y(idxC[-1]) + 3.5:.1f}">контроль</text>'
             + f'<line class="ch" x1="0" x2="0" y1="{TP}" y2="{H - B}" style="display:none"/>'
             + f'<rect class="hit" x="{L}" y="{TP}" width="{W - L - R}" height="{H - TP - B}" fill="transparent"/>')
-        dd = (pT / bT - pC / bC) * 100
-        dd1 = (pT / b1T - pC / b1C) * 100 if (b1T and b1C) else dd
+        dd = ((pT / bT - pC / bC) * 100) if (bT and bC) else 0
+        dd1 = ((pT / b1T - pC / b1C) * 100) if (b1T and b1C and mode == "index") else dd
         alarm = ""
-        if abs(dd - dd1) > max(abs(dd), abs(dd1)) * 0.5:
+        if mode == "index" and abs(dd - dd1) > max(abs(dd), abs(dd1)) * 0.5:
             alarm = (f'<div class="dyn-alarm">Неделя перед стартом была нетипичной: по ней разница вышла бы '
                      f'<b>{dd1:+.0f}</b> пунктов вместо <b>{dd:+.0f}</b>. Считаем по двум неделям.</div>')
-        readouts[key] = (
-            f'<div class="dyn-read">Средний день, {title.lower()}: тест <b>{bT:.0f} → {pT:.0f}</b> '
-            f'({(pT / bT - 1) * 100:+.0f} %), контроль <b>{bC:.0f} → {pC:.0f}</b> ({(pC / bC - 1) * 100:+.0f} %), '
-            f'разница <b>{dd:+.0f} пунктов</b>. База - две недели перед стартом. '
-            f'После старта прошло {len(post)} дн, данные по {LAST}.</div>{alarm}')
+        if mode == "index":
+            readouts[key] = (
+                f'<div class="dyn-read">Средний день, {title.lower()}: тест <b>{bT:.0f} → {pT:.0f}</b> '
+                f'({(pT / bT - 1) * 100:+.0f} %), контроль <b>{bC:.0f} → {pC:.0f}</b> ({(pC / bC - 1) * 100:+.0f} %), '
+                f'разница <b>{dd:+.0f} пунктов</b>. База - две недели перед стартом. '
+                f'После старта прошло {len(post)} дн, данные по {LAST}.</div>{alarm}')
+        else:
+            # Деньги, соинвест и позиция сравниваются напрямую: обе группы в одной единице,
+            # приводить их к индексу значит прятать сам уровень.
+            readouts[key] = (
+                f'<div class="dyn-read">Средний день, {title.lower()}: тест '
+                f'<b>{fmt(bT, unit)} → {fmt(pT, unit)}</b>, контроль '
+                f'<b>{fmt(bC, unit)} → {fmt(pC, unit)}</b>. Слева две недели перед стартом, '
+                f'справа {len(post)} дн после старта. Данные по {LAST}.</div>')
         tipdata[key] = {"t": [round(v, 1) for v in idxT], "c": [round(v, 1) for v in idxC],
-                        "rt": rawT, "rc": rawC}
+                        "rt": rawT, "rc": rawC, "mode": mode, "unit": unit}
+        subs[key] = ("100 = средний день двух недель перед стартом" if mode == "index"
+                     else f"по дням, как есть{unit and ', ' + unit.strip()}")
 
     if not panes:
         return ""
     uT = sum(group_daily(t["тест"], post, "units"))
     uC = sum(group_daily(t["контроль"], post, "units"))
     btns = "".join(f'<button class="mb{" on" if k == "vsearch" else ""}" data-m="{k}">{n}</button>'
-                   for k, n in METRICS if k in panes)
+                   for k, n, _m, _u in METRICS if k in panes)
     return (
         f'<div class="dyn"><div class="dyn-h">Динамика по дням. '
-        f'<span class="dyn-sub">100 = средний день двух недель перед стартом</span></div>'
+        f'<span class="dyn-sub" id="{cid}-sub">{subs["vsearch"]}</span></div>'
         f'<div class="mrow-b">{btns}</div>'
         f'<div class="lg"><span class="lgi"><i style="background:{C_TEST}"></i>тест, {len(t["тест"])} арт.</span>'
         f'<span class="lgi"><i style="background:{C_CTRL}"></i>контроль, {len(t["контроль"])} арт.</span></div>'
@@ -193,10 +277,10 @@ def chart(t, cid):
         f'{panes["vsearch"]}</svg><div class="tip" id="{cid}-tip"></div>'
         f'<div id="{cid}-read">{readouts["vsearch"]}</div>'
         f'<div class="dyn-note">Заказов после старта: тест <b>{uT:.0f}</b> шт, контроль <b>{uC:.0f}</b> шт. '
-        f'Линией не рисуем: заказы идут по 0-2 в день на группу, посуточный график был бы шумом. '
-        f'Соинвеста и позиции в поиске здесь нет, они пока не собираются по артикулам и дням.</div></div>'
+        f'Линией не рисуем: заказы идут по 0-2 в день на группу, посуточный график был бы шумом.'
+        f'{missing_note()}</div></div>'
         f'<script>window.DYN=window.DYN||{{}};window.DYN["{cid}"]='
-        f'{json.dumps({"d": days, "m": tipdata, "panes": panes, "reads": readouts}, ensure_ascii=False)};</script>')
+        f'{json.dumps({"d": days, "m": tipdata, "panes": panes, "reads": readouts, "subs": subs}, ensure_ascii=False)};</script>')
 
 cards = ""
 for t in T["тесты"]:
@@ -215,6 +299,20 @@ for t in T["тесты"]:
         cov = (f'Пар: <b>{paired}</b> из {len(tst)}. Показы обеих сторон есть у <b>{cov_v}</b>. '
                f'Соинвест контроля: <b>нет ни у одной пары</b> (нужен маппинг product_id из выгрузки кабинета). ')
         cov += (f'Контроль без пары: {esc(", ".join(orphan))}.' if orphan else "Весь контроль разобран по парам.")
+        dirty = dirty_control(t)
+        dirt = ""
+        if dirty:
+            items = "".join(
+                f'<li><b>{esc(a)}</b>: {tot:,.0f} ₽ за {n} дн'
+                f'{", в том числе после старта теста" if aft else ", только до старта"}</li>'.replace(",", " ")
+                for a, tot, n, aft in dirty)
+            hot = any(aft for _a, _t, _n, aft in dirty)
+            dirt = (f'<div class="dyn-alarm"><b>Контроль под рекламой.</b> По этим артикулам в окне теста '
+                    f'шёл рекламный расход, значит контрольной группой они не являются:<ul class="dl2">{items}</ul>'
+                    + ("Пока реклама крутится по контролю, разницу тест-контроль читать нельзя: "
+                       "сравниваются две рекламируемые группы." if hot else
+                       "Расход был до старта, на замер он влияет только через базу.")
+                    + '</div>')
         grp = ('<div class="tbl-wrap"><table class="gtbl"><thead>'
                '<tr class="grp"><th colspan="5">Тест</th><th class="sep" colspan="3">Контроль</th><th></th></tr>'
                '<tr><th>Артикул</th><th class="r">Показы/нед</th><th class="r">Соинвест %</th>'
@@ -222,7 +320,7 @@ for t in T["тесты"]:
                '<th class="sep">Артикул</th><th class="r">Показы/нед</th><th class="r">Соинвест %</th>'
                '<th class="r" title="Насколько показы теста расходятся с показами контроля. '
                'Больше 20 % - пара плохо сопоставима">Δ показов</th></tr>'
-               f'</thead><tbody>{rows}</tbody></table></div><div class="cov">{cov}</div>'
+               f'</thead><tbody>{rows}</tbody></table></div><div class="cov">{cov}</div>{dirt}'
                '<div class="cov">Числа в таблице сняты в кабинете на момент запуска и с тех пор не двигаются. '
                'Что происходит с тестом дальше - на графике ниже.</div>'
                + chart(t, "dyn-" + t["id"]))
@@ -294,7 +392,7 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .tip{position:absolute;pointer-events:none;display:none;background:#0b0f17;border:1px solid var(--soft);border-radius:7px;padding:6px 9px;font-size:11.5px;color:var(--ink);white-space:nowrap;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 .tip b{color:var(--ink)}.tip .k{color:var(--ink3)}.tip i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
 .dyn-read{font-size:12px;color:var(--ink2);margin:6px 2px 0}.dyn-read b{color:var(--ink)}.dyn-read .k2{color:var(--ink3)}
-.dyn-alarm{font-size:12px;color:var(--ink2);background:rgba(229,181,103,.08);border-left:3px solid var(--warn);padding:7px 10px;border-radius:6px;margin:8px 2px 0}.dyn-alarm b{color:var(--warn)}
+.dyn-alarm{font-size:12px;color:var(--ink2);background:rgba(229,181,103,.08);border-left:3px solid var(--warn);padding:7px 10px;border-radius:6px;margin:8px 2px 0}.dyn-alarm b{color:var(--warn)}.dl2{margin:6px 0 6px 18px;padding:0}.dl2 li{margin:2px 0}
 .dyn-note{font-size:11.5px;color:var(--ink3);margin:4px 2px 0}
 .muted{color:var(--ink3)}.mrow{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:12px 16px;margin-bottom:10px}
 .res{font-weight:700;color:var(--up);margin:6px 0}.notes{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:10px 16px}
@@ -306,7 +404,7 @@ JS = """
   var NAMES={vsearch:'показов в поиске',views:'показов всего',pdp:'заходов в карточку',cart:'в корзину'};
   Object.keys(window.DYN||{}).forEach(function(id){
     var svg=document.getElementById(id); if(!svg) return;
-    var D=window.DYN[id], tip=document.getElementById(id+'-tip'), read=document.getElementById(id+'-read');
+    var D=window.DYN[id], tip=document.getElementById(id+'-tip'), read=document.getElementById(id+'-read'), sub=document.getElementById(id+'-sub');
     var cur='vsearch';
     function wire(){
       var ch=svg.querySelector('.ch'), hit=svg.querySelector('.hit');
@@ -322,9 +420,17 @@ JS = """
         var gx=L+i*Wi/(D.d.length-1);
         ch.setAttribute('x1',gx); ch.setAttribute('x2',gx); ch.style.display='';
         var d=D.d[i], M=D.m[cur], u=NAMES[cur]||'';
+        // В режиме raw линия и есть значение, второй раз его в скобках не повторяем.
+        function cell(col,idx,raw){
+          var v=M.mode==='raw' ? (Math.round(raw)+(M.unit||'')) : (idx+' <span class="k">('+Math.round(raw)+' '+u+')</span>');
+          return '<i style="background:'+col+'"></i>';
+        }
+        var fin=function(x){ return (''+x).replace(/\B(?=([0-9]{3})+(?![0-9]))/g,'\u00a0'); };
         tip.innerHTML='<b>'+d.slice(8,10)+'.'+d.slice(5,7)+'</b><br>'+
-          '<i style="background:'+C1+'"></i>тест <b>'+M.t[i]+'</b> <span class="k">('+M.rt[i]+' '+u+')</span><br>'+
-          '<i style="background:'+C2+'"></i>контроль <b>'+M.c[i]+'</b> <span class="k">('+M.rc[i]+' '+u+')</span>';
+          '<i style="background:'+C1+'"></i>тест <b>'+(M.mode==='raw'?fin(Math.round(M.rt[i]))+(M.unit||''):M.t[i])+'</b>'+
+          (M.mode==='raw'?'':' <span class="k">('+fin(M.rt[i])+' '+u+')</span>')+'<br>'+
+          '<i style="background:'+C2+'"></i>контроль <b>'+(M.mode==='raw'?fin(Math.round(M.rc[i]))+(M.unit||''):M.c[i])+'</b>'+
+          (M.mode==='raw'?'':' <span class="k">('+fin(M.rc[i])+' '+u+')</span>');
         tip.style.display='block';
         // Подсказку держим внутри блока графика, иначе она накрывает сводку под ним.
         var hb=svg.parentNode.getBoundingClientRect();
@@ -341,6 +447,7 @@ JS = """
       cur=k;
       host.querySelectorAll('.mb').forEach(function(x){ x.classList.toggle('on', x===b); });
       svg.innerHTML=D.panes[k]; read.innerHTML=D.reads[k];
+      if(sub&&D.subs&&D.subs[k]) sub.textContent=D.subs[k];
       tip.style.display='none';
       wire();
     });

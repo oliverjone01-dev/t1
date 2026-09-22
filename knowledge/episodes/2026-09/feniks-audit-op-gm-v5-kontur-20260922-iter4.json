@@ -1,0 +1,171 @@
+{
+ "agent": "feniks",
+ "skill": "phoenix-eval",
+ "task_id": "feniks-op-gm-v5-kontur-20260922-iter4",
+ "timestamp": "2026-09-23T01:48:21+03:00",
+ "deliverable_ref": "op-gm на Контур DS 1.2: opgm/op-gm-automation/src (opgm.js 22:39, shell.html, legacy.js), public/index.html 22:39, данные avito/av.json 21:10",
+ "artifact_class": "dashboard",
+ "audience": "менеджеры ОП GLASS-MEMORY (часть 50+) и РОП",
+ "anchor": "8.1 feniks-return-reestr (итерация 2, go) - наш 8.25: ядро v4 сохранено (очередь «Сегодня», бейджи, веха с критерием 14-20.09, PII 0), переходы работают, граничные случаи периода корректны; новый слой сравнения периодов методически слабее (шум, счётчики вместо долей, окна не по данным). Серия: 5.60 veto, 6.90 return, 7.95 go, 8.25 go",
+ "p9_triggers_fired": [
+  "p9_required по брифу; финансовых прогнозов нет"
+ ],
+ "probes": [
+  {
+   "id": "V1",
+   "result": "PASS",
+   "evidence": "live: «весь ряд» - 8 плиток «весь ряд: сравнивать не с чем», вердикт «Сравнить не с чем»; 7 дней - 4 плитки NEW-B «мало диалогов для сравнения», «В вердикт не вошли: NEW-B (3 и 17)»"
+  },
+  {
+   "id": "V2",
+   "result": "PARTIAL",
+   "evidence": "OLD-G 7д «Стало хуже»: медиана +3 ч 57 мин, bootstrap 90% CI (-3 ч 10 мин; +9 ч 6 мин); 90д «вопрос или телефон» +3 (+38%) по счётчику при доле 3,9% в 3,2%; покрытие прошлого окна 90д 94,2% (feniks/period4.py)"
+  },
+  {
+   "id": "V3",
+   "result": "PARTIAL",
+   "evidence": "dlt() MIN_N только по nPrev (opgm.js:90), verdict() по обоим (opgm.js:144); в данных 7/30/90 случаев расхождения 0"
+  },
+  {
+   "id": "B1",
+   "result": "PASS",
+   "evidence": "независимо: OLD-G 30д n 150 (было 123), 5 ч 53 мин (2 ч 33 мин), 5,3% (16,3%) - как у автора; 7д разница медиан +3 ч 57 мин совпадает с live"
+  },
+  {
+   "id": "N1",
+   "result": "PASS",
+   "evidence": "live: плитка открывает .ks-drawer (648 симв.), Esc закрывает; строка «Объявления» ведёт в диалоги «Найдено: 3»; карточка открывает переписку (5 сообщений)"
+  },
+  {
+   "id": "L1",
+   "result": "PARTIAL",
+   "evidence": "«Сегодня» 5 карточек как в итерации 3 (жалоба 0, ждёт 0, вопрос 3, телефон 2, цена 0); бейджи «Типовые проблемы» 11 из 11; веха 06.10.2026 с критерием по 14-20.09; OWNER_NOTE на «Сегодня» и «Откуда цифры», на «Пульсе» нет"
+  },
+  {
+   "id": "G1",
+   "result": "FAIL",
+   "evidence": "подписи оси -57 и -9 у графиков-счётчиков во всех 4 периодах (live)"
+  },
+  {
+   "id": "E1",
+   "result": "PARTIAL",
+   "evidence": "запрос https://fonts.googleapis.com/css2?family=Golos+Text при загрузке; ApexCharts локально с MIT-лицензией (public/vendor)"
+  },
+  {
+   "id": "P1",
+   "result": "PASS",
+   "evidence": "index.html без шифроблока, app/opgm.js, app/legacy.js, css: 0 id чатов, 0 из 145 телефонов, 0 из 1867 фраз, 0 имён m1-m3, 0 email, пароля нет (feniks/pii4.py)"
+  },
+  {
+   "id": "C3",
+   "result": "PASS",
+   "evidence": "em dash в src и public: 0"
+  },
+  {
+   "id": "C4",
+   "result": "PASS",
+   "evidence": "blocklist по opgm.js и legacy.js: 0"
+  },
+  {
+   "id": "D1",
+   "result": "N/A",
+   "evidence": "сторож check_ds.py и живой контраст ФЕНИКС не перепрогонял (лимит 10 шагов); принимаются как [ДАННЫЕ автора]: «СТОРОЖ DS: чисто», 0 провалов контраста"
+  }
+ ],
+ "comprehension_gate": {
+  "applies": true,
+  "passed": true,
+  "defects": [
+   "Ось счётчиков ниже нуля (-57, -9) и «-100%» на единичных событиях - дефекты читаемости графиков, не смысла блока; учтены в brand_20 = 1"
+  ]
+ },
+ "checkpoints": {
+  "accuracy_1_figures_tagged": 2,
+  "accuracy_2_sources_verifiable": 2,
+  "accuracy_3_no_conflict_with_rag": 2,
+  "accuracy_4_glossary_terminology": 2,
+  "accuracy_5_brand_names_correct": 2,
+  "actionability_6_owner_assigned": 2,
+  "actionability_7_deadline_buffer": 2,
+  "actionability_8_resources_listed": 1,
+  "actionability_9_metric_concrete": 2,
+  "actionability_10_milestone": 2,
+  "insight_11_nontrivial": 2,
+  "insight_12_second_order": 2,
+  "insight_13_alternatives_analyzed": 1,
+  "insight_14_anti_median": 2,
+  "insight_15_cross_domain": 0,
+  "brand_16_voice": 2,
+  "brand_17_anti_slop": 2,
+  "brand_18_no_em_dash": 2,
+  "brand_19_output_routing": 1,
+  "brand_20_tone_audience": 1,
+  "risk_21_downside": 1,
+  "risk_22_p9_hard_rules": 2,
+  "risk_23_crisis_scenarios": 1,
+  "risk_24_dependencies": 1,
+  "risk_25_reversibility": 1
+ },
+ "scores": {
+  "accuracy": 10.0,
+  "actionability": 9.0,
+  "insight": 7.0,
+  "brand_fit": 8.0,
+  "risk_awareness": 6.0
+ },
+ "weighted_total": 8.25,
+ "verdict": "go",
+ "gaps": [
+  "OWNER_NOTE пропал с «Пульса» (регресс v4): fresh() с заметкой вызывается только в SCREENS.today (opgm.js:233), live-проба на «Пульсе» его не находит. На «Сегодня» и «Откуда цифры» он есть",
+  "Вердикт без порога шума: «Стало хуже за 7 дней» у OLD-G держится на медиане +3 ч 57 мин (bootstrap 90% CI разницы от -3 ч 10 мин до +9 ч 6 мин, ноль внутри) и на -2,9 п.п. (3 из 56 против 2 из 24). MIN_N=10 мало. Нужен порог или пометка «разница в пределах случайности»",
+  "Счётчики вместо долей: за 90 дней «Вопрос или телефон · OLD-G: +3 (+38%)» помечено как хуже, но доля улучшилась с 3,9% до 3,2% при росте объёма с 206 до 345 диалогов (period4.py). В плитках и вердикте сравнивать доли от n",
+  "Окна не обрезаны по данным: прошлое окно 90 дней начинается 26.03, а выгрузка с 01.04, покрытие 94,2%. У NEW-B текущее окно заходит на 2 ч 42 мин за его выгрузку (EXPORT_TS = max, opgm.js:535)",
+  "Ось счётчиков уходит ниже нуля: live «-57» и «-9» во всех периодах. Для менеджера 50+ это «минус диалоги». Задать min 0 у рядов-счётчиков",
+  "Проценты на единичных событиях: «-1 (-100%)», «+3 (+100%)» (30 дней). Не показывать относительный % при базе меньше 10",
+  "Скрытая несогласованность MIN_N: dlt() проверяет только прошлый период (opgm.js:90), verdict() оба (opgm.js:144). На текущих данных случаев нет (period4.py)",
+  "Внешний запрос Google Fonts при загрузке (fonts.googleapis.com css2 Golos Text, fonts.gstatic.com): зависимость не заявлена, IP и Referer посетителя уходят третьей стороне. Положить шрифт в public/vendor, как ApexCharts",
+  "Без изменений: выгрузку вручную делает один человек; m1-m3 остаются принятым риском Ивана"
+ ],
+ "confidence": 0.8,
+ "primary_gap": "Сравнение периодов показывает «Стало лучше/хуже» без учёта шума и объёма; на 7 днях у OLD-G вывод держится на разнице в пределах случайности",
+ "sources_of_truth": [
+  "avito/av.json 21:10",
+  "opgm/op-gm-automation/src/opgm.js",
+  "feniks/period4.py, probe4.cjs, pii4.py, live-пробы итерации 4"
+ ],
+ "evidence_ledger": [
+  {
+   "gap": "OWNER_NOTE на Пульсе",
+   "evidence": "grep fresh() в opgm.js: определение :118, вызов только :233 (SCREENS.today); live pulse_owner=false",
+   "checkpoint": "actionability_8",
+   "weight": -0.5
+  },
+  {
+   "gap": "вердикт на шуме",
+   "evidence": "period4.py bootstrap 2000, seed 4: OLD-G 7д CI (-3 ч 10 мин; +9 ч 6 мин)",
+   "checkpoint": "risk_21",
+   "weight": -1
+  },
+  {
+   "gap": "счётчики вместо долей",
+   "evidence": "period4.py 90д OLD-G: quest 11 из 345 (3,2%) против 8 из 206 (3,9%); live «+3 (+38%)»",
+   "checkpoint": "insight_13",
+   "weight": -1
+  },
+  {
+   "gap": "ось ниже нуля",
+   "evidence": "live .apexcharts-yaxis-label: «-57», «-9»",
+   "checkpoint": "brand_20",
+   "weight": -1
+  },
+  {
+   "gap": "Google Fonts",
+   "evidence": "grep public: fonts.googleapis.com/css2, fonts.gstatic.com; live request Golos Text",
+   "checkpoint": "risk_24",
+   "weight": -1
+  }
+ ],
+ "telemetry": {
+  "model": "claude-opus-5-5"
+ }
+}

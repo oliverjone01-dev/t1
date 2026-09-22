@@ -894,7 +894,11 @@ function main() {
     const today = (dlg.to || new Date().toISOString()).slice(0, 10);
     const prev = existsSync(LOG) ? readFileSync(LOG, "utf8").split("\n").filter((l) => l && !l.includes(`"d":"${today}"`)) : [];
     const rows = deals.filter((d) => d.outcome === "open" && d.dealId)
-      .map((d) => JSON.stringify({ d: today, id: d.dealId, st: d.stageCode, mgr: d.mgr, keys: (d.factors || []).map((f: any) => f.key), prob: d.prob, bud: d.budget || 0 }));
+      // hl (вклад ведения поверх стадии) и pre (наследство амо) пишем в лог с 2026-09-22:
+      // через 2-4 недели по нему проверяется не только вероятность, но и метрика оценки
+      // менеджера. Без этого поля валидировать «силу нагрева» будет нечем: на терминальном
+      // срезе она непроверяема (закрытые сделки все лежат на WON/LOSE с одной базой).
+      .map((d) => JSON.stringify({ d: today, id: d.dealId, st: d.stageCode, mgr: d.mgr, keys: (d.factors || []).map((f: any) => f.key), prob: d.prob, hl: d.heatLift, pre: d.preMig ? 1 : 0, bud: d.budget || 0 }));
     const all = [...prev, ...rows].slice(-150000);
     writeFileSync(LOG, all.join("\n") + "\n");
     console.log(`Калибро-лог: +${rows.length} строк за ${today} (всего ${all.length})`);

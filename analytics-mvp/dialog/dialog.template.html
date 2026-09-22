@@ -1437,12 +1437,13 @@ function renderTree(){
       <td class="l"><span class="qburn">${esc(d.urgency)}</span></td>
       <td class="l" style="font-size:11.5px;color:var(--ink-2)">${nx}</td></tr>`;
   }).join('');
-  const calApplied=SC&&SC.calibration?Object.entries(SC.calibration).filter(([,v])=>v.applied).map(([k])=>({slow_resp:'медленные ответы',refuse:'отказ',ready:'сигнал оплаты'}[k]||k)):[];
+  const CALNAME={slow_resp:'медленные ответы',refuse:'отказ',ready:'сигнал оплаты'};
+  const calApplied=SC&&SC.calibration?Object.entries(SC.calibration).filter(([,v])=>v.applied).map(([k,v])=>`${CALNAME[k]||k} ${v.def}→${v.mult} (n=${v.n}, ${v.conf})`):[];
   const queueHTML=`<div class="qcard">
     <div class="qhd"><b>🎯 Очередь дел - что дожать сегодня</b><span class="qsub">${openQ.length} сделок в работе · ${QF(qMoney)} под контролем · сортировка по приоритету (деньги × шанс × срочность)</span></div>
     <div class="scrollx" style="max-height:520px;overflow:auto"><table class="qtbl"><thead><tr><th>°</th><th class="l">Сделка / менеджер</th><th class="l">Что горит</th><th class="l">Следующий шаг</th></tr></thead><tbody>${qRows||'<tr><td colspan="4" class="empty">очередь пуста</td></tr>'}</tbody></table></div>
     ${openQ.length>40?`<button class="qmore" onclick="S.qAll=!S.qAll;renderTree()">${S.qAll?'свернуть до 40':'показать все '+openQ.length}</button>`:''}
-    ${calApplied.length?`<div class="qcal">Веса вероятности откалиброваны на исходах закрытых сделок: ${calApplied.join(', ')} (остальное - экспертные веса, копится лог для чистой калибровки).</div>`:''}
+    ${calApplied.length?`<div class="qcal">Веса вероятности, откалиброванные на исходах закрытых сделок (дефолт→вес после демпфирования к дефолту 70/30): ${calApplied.join('; ')}. Остальные факторы - экспертные веса; копится лог для чистой калибровки без конфаундинга.</div>`:''}
   </div>`;
   list.innerHTML=queueHTML+html;
   // Возвращаем прокрутку на место после перерисовки (фокус остаётся на раскрытой строке).

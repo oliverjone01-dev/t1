@@ -535,28 +535,34 @@ function main() {
     if (a && Array.isArray(a.msgTags)) for (const t of a.msgTags) { if (t && t.src) (evTags[t.src] ||= []).push({ t: String(t.t || ""), tone: t.tone || "warn", sec: "process", quote: t.quote || "", ai: true, deg: typeof t.deg === "number" ? t.deg : undefined }); }
 
     // --- НОВЫЕ ПОВЕДЕНЧЕСКИЕ СИГНАЛЫ (item 2) ------------------------------------
-    // Инициатива: клиент тянет сам. Подряд входящие сообщения без ответа менеджера между
-    // ними - клиент напоминает о себе (сделка 96755/99809 Лысановой: «со мной никто не
-    // связался»). Пассивность менеджера предсказывает потерю раньше формальной тишины.
+    // Инициатива: клиент ТЯНЕТ САМ. Два входящих подряд (ответа менеджера между ними нет) -
+    // это НАПОМИНАНИЕ только если между ними прошло ощутимое ожидание. Иначе это пачка бабблов
+    // Telegram/MAX (одно логическое сообщение в 3-4 строки), а не re-ping (ФЕНИКС L1: 88%
+    // срабатываний были <15 мин - штрафовать за них нельзя). Порог = окно «мяча» (4 раб.часа).
+    const CHASE_MIN = BALL_STUCK_MIN;
     let clientChase = 0;
     for (let i = 1; i < msgs.length; i++) {
-      if (msgs[i]!.dir === "входящее" && msgs[i - 1]!.dir === "входящее") {
+      if (msgs[i]!.dir === "входящее" && msgs[i - 1]!.dir === "входящее"
+          && workMinutes(msgs[i - 1]!.ts, msgs[i]!.ts) >= CHASE_MIN) {
         clientChase++;
-        // Метим только последнее в пачке напоминаний, чтобы не шуметь.
+        // Метим только последнее в пачке. Тон warn (не bad) + «повод спросить»: клиент мог
+        // напоминать по своей причине - это сигнал разобраться, а не обвинение менеджеру.
         if (msgs[i]!.src && !(msgs[i + 1] && msgs[i + 1]!.dir === "входящее"))
-          mark(msgs[i]!.src!, "Клиент напоминает сам", "bad", "speed");
+          mark(msgs[i]!.src!, "Клиент напоминает сам (повод спросить)", "warn", "speed");
       }
     }
-    // Латентность на ГОРЯЧЕЙ реплике: сигнал покупки (счёт/оплата/наличие/сроки/реквизиты)
-    // требует мгновенного ответа. 2 дня молчания на «зеркало в наличии?» убивают сделку
-    // вернее, чем медленная медиана (сделка 100633). Меряем задержку именно на таких репликах.
+    // Латентность на ГОРЯЧЕЙ реплике: запрос про оплату/наличие/сроки/склад/готовность/реквизиты
+    // требует мгновенного ответа. 2 дня молчания на «зеркало в наличии?» убивают сделку вернее
+    // медленной медианы (сделка 100633). RE.ready ловит только платёж, поэтому отдельный RE_HOT
+    // покрывает и наличие/сроки/готовность/отгрузку (ФЕНИКС L2: было 345 таких сигналов мимо).
+    const RE_HOT = /(в наличии|на складе|есть ли|когда готов|какие сроки|срок[аи]\b|когда будет|сколько ждать|когда отправ|отгруз|реквизит|выставите сч|сч[её]т|оплат|договор|когда монтаж|дата монтаж)/i;
     let hotSlow = false, hotFast = false, hotMax = 0;
     for (let i = 0; i < msgs.length; i++) {
-      const m = msgs[i]!; if (m.dir !== "входящее" || !RE.ready.test(String(m.body || ""))) continue;
+      const m = msgs[i]!; if (m.dir !== "входящее" || !RE_HOT.test(String(m.body || ""))) continue;
       const nxt = msgs.slice(i + 1).find((x) => x.dir === "исходящее" && isRealAnswer(x));
       const lat = nxt ? workMinutes(m.ts, nxt.ts) : workMinutes(m.ts, now);
       if (lat > hotMax) hotMax = lat;
-      if (!nxt || lat > SLOW_ANSWER_MIN) { hotSlow = true; if (m.src) mark(m.src, `Сигнал покупки без быстрого ответа (${fmtMin(lat)})`, "bad", "speed", hit(RE.ready, String(m.body || ""))); }
+      if (!nxt || lat > SLOW_ANSWER_MIN) { hotSlow = true; if (m.src) mark(m.src, `Горячая реплика без быстрого ответа (${fmtMin(lat)})`, "bad", "speed", hit(RE_HOT, String(m.body || ""))); }
       else if (lat <= FAST_ANSWER_MIN) hotFast = true;
     }
 
@@ -567,7 +573,9 @@ function main() {
     const push = (key: string, label: string, mult: number) => factors.push({ key, label, mult });
     if (RE.ready.test(inText)) push("ready", "клиент говорит об оплате", 1.3);
     if (respMed !== null && respMed <= FAST_ANSWER_MIN) push("fast_resp", `быстрые ответы (${fmtMin(respMed)})`, 1.1);
-    if (respMed !== null && respMed > SLOW_ANSWER_MIN) push("slow_resp", `медленные ответы (${fmtMin(respMed)})`, 0.8);
+    // Гасим общий «медленные ответы», если уже штрафуем за медленную ГОРЯЧУЮ реплику -
+    // иначе одна задержка наказывается дважды (ФЕНИКС L4).
+    if (respMed !== null && respMed > SLOW_ANSWER_MIN && !hotSlow) push("slow_resp", `медленные ответы (${fmtMin(respMed)})`, 0.8);
     if (ballWait > BALL_STUCK_MIN) push("ball", `клиент ждёт ${fmtMin(ballWait)}`, 0.7);
     if (silenceD >= SILENCE_BAD_D) push(postSale ? "silence_post" : "silence", `тишина ${silenceD} дн`, postSale ? 0.9 : 0.6);
     else if (silenceD >= SILENCE_WARN_D) push(postSale ? "pause_post" : "pause", `пауза ${silenceD} дн`, postSale ? 0.95 : 0.85);
@@ -590,10 +598,12 @@ function main() {
     if (promiseBroken) push("promise_broken", `обещал и не сделал: ${promiseBroken}`, promiseBroken > 1 ? 0.7 : 0.8);
     else if (vagueProm > 1) push("promise_vague", `обещания без срока: ${vagueProm}`, 0.9);
     if (taskNoContact) push("fakedone", `дел закрыто без контакта: ${taskNoContact}`, taskNoContact > 1 ? 0.75 : 0.85);
-    // item 2: новые факторы (дефолтные веса, чистая калибровка накопится логированием B).
-    if (hotSlow) push("hot_slow", `медленно на сигнале покупки (${fmtMin(hotMax)})`, 0.6);
-    else if (hotFast) push("hot_fast", "быстро на сигнале покупки", 1.2);
-    if (clientChase >= 2) push("client_chase", `клиент тянет сам (${clientChase})`, 0.75);
+    // item 2: новые факторы (дефолтные веса, чистая калибровка накопится логированием B;
+    // приёмка: владелец Иван, дата проверки false-positive rate по calib-log +2 недели).
+    if (hotSlow) push("hot_slow", `медленно на горячей реплике (${fmtMin(hotMax)})`, 0.6);
+    else if (hotFast) push("hot_fast", "быстро на горячей реплике", 1.2);
+    // clientChase - уже настоящие re-ping (порог ожидания). Мягкий вес: сигнал разобраться.
+    if (clientChase >= 1) push("client_chase", `клиент напоминает сам (${clientChase})`, 0.85);
     if (a && typeof a.probDelta === "number") push("ai", `оценка ИИ: ${a.verdict || "разбор"}`, Math.max(0.5, Math.min(1.4, 1 + a.probDelta / 100)));
     let prob = base; for (const x of factors) prob *= x.mult;
     prob = Math.max(0.03, Math.min(0.97, prob));

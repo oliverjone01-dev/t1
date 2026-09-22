@@ -82,6 +82,18 @@ for (const r of readNd(dp("history.ndjson"))) {
   if (!art) continue;
   const c = cell(art, r.date); c["revenue"] = (c["revenue"] || 0) + (r.revenue || 0);
 }
+// Позиция в поиске по артикулу и дню. Файла может ещё не быть: ряд появится, когда
+// выгрузку положат в data/position_daily.ndjson. Принимаем оба написания полей.
+let posCount = 0;
+for (const r of readNd(dp("position_daily.ndjson"))) {
+  const art = String(r.offer ?? r.art ?? r.артикул ?? "").trim();
+  const d = String(r.d ?? r.date ?? r.дата ?? "").slice(0, 10);
+  const v = Number(r.pos ?? r.position ?? r.позиция);
+  if (!art || !d || !Number.isFinite(v) || v <= 0) continue;
+  cell(art, d)["pos"] = v; posCount++;
+}
+const HAS_POS = posCount > 0;
+
 const priceRows = readNd(dp("prices_daily.ndjson"));
 const HAS_COINV = priceRows.length > 0;
 for (const r of priceRows) if (r.coinv != null) cell(r.offer, r.d)["coinv"] = r.coinv;
@@ -107,16 +119,42 @@ const METRICS: Array<[string, string, "index" | "raw", string, boolean?]> = [
   ["drr", "ДРР", "raw", " %", true],
 ];
 if (HAS_COINV) METRICS.push(["coinv", "Соинвест", "raw", " %"]);
+// Позиция: меньше - лучше, поэтому в таблице по артикулам её знак переворачивается.
+if (HAS_POS) METRICS.push(["pos", "Позиция в поиске", "raw", ""]);
 
 // Соинвест - уровень, а не количество: по группе берём среднее по тем артикулам,
 // у которых значение есть, а не сумму.
-const LEVEL = new Set(["coinv"]);
+const LEVEL = new Set(["coinv", "pos"]);   // уровни, а не количества: усредняем, не суммируем
+const median = (v: number[]): number | null => {
+  if (!v.length) return null;
+  const a = [...v].sort((x, y) => x - y), m = a.length >> 1;
+  return a.length % 2 ? a[m]! : (a[m - 1]! + a[m]!) / 2;
+};
+// Ряд артикула за дни (пропуск остаётся пропуском только у уровневых метрик).
+const artDaily = (art: string, days: string[], key: string): Array<number | null> =>
+  days.map((d) => {
+    const v = series.get(art)?.get(d)?.[key];
+    return v == null ? (LEVEL.has(key) ? null : 0) : v;
+  });
+// «Общее» по группе для индексных метрик: медиана поартикульных индексов.
+// Артикул с нулевой базой в медиану не входит: его нельзя привести к 100.
+const groupIndexed = (grp: string[], days: string[], key: string, base: string[]): Array<number | null> => {
+  const idx: Array<Array<number | null>> = [];
+  for (const a of grp) {
+    const bv = nums0(artDaily(a, base, key));
+    const bm = bv.length ? bv.reduce((x, y) => x + y, 0) / bv.length : 0;
+    if (!bm) continue;
+    idx.push(artDaily(a, days, key).map((v) => v == null ? null : v / bm * 100));
+  }
+  return days.map((_, i) => median(idx.map((r) => r[i]).filter((v): v is number => v != null)));
+};
 const groupDaily = (grp: string[], days: string[], key: string): Array<number | null> => days.map((d) => {
   const vals = grp.map((a) => series.get(a)?.get(d)?.[key]).filter((v): v is number => v != null);
   if (!vals.length) return LEVEL.has(key) ? null : 0;   // уровень без данных - пропуск, количество - ноль
   return LEVEL.has(key) ? vals.reduce((x, y) => x + y, 0) / vals.length : vals.reduce((x, y) => x + y, 0);
 });
 const nums = (arr: Array<number | null>): number[] => arr.filter((v): v is number => v != null);
+const nums0 = nums;
 const wkSearch = (art: string, end: string, n = 14): number => {
   let s = 0; for (let k = 0; k < n; k++) s += series.get(art)?.get(addDays(end, -k))?.["vsearch"] || 0;
   return s;
@@ -178,6 +216,78 @@ function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw
     + `<rect class="hit" x="${L}" y="${TP}" width="${W - L - R}" height="${H - TP - B}" fill="transparent"/>`;
 }
 
+type PairDelta = { test: string; ctl: string; bT: number; pT: number; bC: number; pC: number;
+                   dT: number; dC: number; dd: number };
+
+// Изменение по каждой паре отдельно: сколько прибавил тест, сколько контроль, и разница
+// между ними в пунктах. Из этих чисел собирается и медиана группы, и таблица по артикулам.
+function pairDeltas(t: TestDef, key: string, base: string[], post: string[]): PairDelta[] {
+  const out: PairDelta[] = [];
+  const mean = (a: string, win: string[]) => {
+    const v = nums(artDaily(a, win, key));
+    return v.length ? v.reduce((x, y) => x + y, 0) / v.length : 0;
+  };
+  for (const test of t.тест || []) {
+    const ctl = (log.get(test)?.["контроль"] || "").trim(); if (!ctl) continue;
+    const bT = mean(test, base), pT = mean(test, post);
+    const bC = mean(ctl, base), pC = mean(ctl, post);
+    if (!bT || !bC) continue;
+    const dT = (pT / bT - 1) * 100, dC = (pC / bC - 1) * 100;
+    out.push({ test, ctl, bT, pT, bC, pC, dT, dC, dd: dT - dC });
+  }
+  return out;
+}
+
+// Разрез по артикулам: что произошло с каждой парой отдельно. Медиана в шапке скрывает,
+// что внутри группы товары расходятся, и без этой таблицы нельзя увидеть, кто тянет итог.
+const PER_ART: Array<[string, string]> = [["vsearch", "Поиск"], ["views", "Показы"],
+  ["pdp", "Карточка"], ["cart", "Корзина"]];
+if (HAS_POS) PER_ART.push(["pos", "Позиция"]);
+
+function perArticle(t: TestDef): string {
+  const st = t.старт!;
+  const base = Array.from({ length: 14 }, (_, k) => addDays(st, -(k + 1)));
+  const days: string[] = [];
+  for (let k = 0; k <= 40; k++) { const d = addDays(st, k); if (d <= LAST) days.push(d); }
+  if (!days.length) return "";
+  const cols = PER_ART.filter(([k]) => k === "vsearch" || true);
+  const byKey = new Map<string, PairDelta[]>();
+  for (const [k] of cols) byKey.set(k, pairDeltas(t, k, base, days));
+  // Расход берём напрямую по тестовому артикулу: через пару он бы выпал, потому что
+  // у контроля рекламы нет по построению и база пары равна нулю.
+  const meanOf = (a: string, win: string[], key: string) => {
+    const v = nums(artDaily(a, win, key));
+    return v.length ? v.reduce((x, y) => x + y, 0) / v.length : 0;
+  };
+  const ordT = (a: string) => nums(artDaily(a, days, "units")).reduce((x, y) => x + y, 0);
+  const first = byKey.get("vsearch") || [];
+  if (!first.length) return "";
+  const cell = (d: PairDelta | undefined) => {
+    if (!d) return '<td class="r muted">-</td>';
+    const cls = Math.abs(d.dd) >= 20 ? (d.dd > 0 ? "up" : "dn") : "";
+    return `<td class="r ${cls}" title="тест ${d.dT >= 0 ? "+" : ""}${d.dT.toFixed(0)} %, контроль ${d.dC >= 0 ? "+" : ""}${d.dC.toFixed(0)} %">${d.dd >= 0 ? "+" : ""}${d.dd.toFixed(0)}</td>`;
+  };
+  const rows = first.map((p) => {
+    const sb = meanOf(p.test, base, "spend"), sp = meanOf(p.test, days, "spend");
+    return `<tr><td>${esc(p.test)}</td><td class="muted">${esc(p.ctl)}</td>`
+      + cols.map(([k]) => cell(byKey.get(k)!.find((x) => x.test === p.test))).join("")
+      + `<td class="r sep">${(sb || sp) ? nbsp(sb) + " → " + nbsp(sp) : "-"}</td>`
+      + `<td class="r">${ordT(p.test)} / ${ordT(p.ctl)}</td></tr>`;
+  }).join("");
+  const med = cols.map(([k]) => {
+    const m = median(byKey.get(k)!.map((x) => x.dd));
+    return `<td class="r"><b>${m == null ? "-" : (m >= 0 ? "+" : "") + m.toFixed(0)}</b></td>`;
+  }).join("");
+  return `<div class="sub2">Показатели по артикулам</div><div class="tbl-wrap"><table class="gtbl single">`
+    + `<thead><tr><th>Артикул</th><th>Контроль</th>`
+    + cols.map(([, n]) => `<th class="r" title="Разница в пунктах: прирост теста минус прирост контроля. Наведите на ячейку, чтобы увидеть оба прироста">${n}</th>`).join("")
+    + `<th class="r sep" title="Расход на рекламу по тестовому артикулу, ₽ в день: две недели до старта → после старта">Расход т., ₽/дн</th>`
+    + `<th class="r" title="Заказано штук после старта: тест / контроль">Заказы т/к</th></tr></thead>`
+    + `<tbody>${rows}</tbody>`
+    + `<tfoot><tr class="mrow2"><td colspan="2">Медиана по парам</td>${med}<td class="sep"></td><td></td></tr></tfoot>`
+    + `</table></div><div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
+}
+
 function chart(t: TestDef, cid: string): string {
   const st = t.старт!;
   const days: string[] = [];
@@ -214,8 +324,9 @@ function chart(t: TestDef, cid: string): string {
     const pT = avg(t.тест!, post, key), pC = avg(t.контроль!, post, key);
     let a: Pt[] = rawT, b: Pt[] = rawC;
     if (mode === "index") {
-      if (!bT || !bC) continue;
-      a = rawT.map((v) => v == null ? null : v / bT * 100); b = rawC.map((v) => v == null ? null : v / bC * 100);
+      a = groupIndexed(t.тест!, days, key, base);
+      b = groupIndexed(t.контроль!, days, key, base);
+      if (!nums(a).length || !nums(b).length) continue;
     } else if (!nums(rawT).some(Boolean) && !(testOnly || nums(rawC).some(Boolean))) continue;
     panes[key] = testOnly
       ? pane(days, si, a, a.map(() => null), mode, ["тест", ""], si2, "акция off")
@@ -224,13 +335,17 @@ function chart(t: TestDef, cid: string): string {
       : `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
     tip[key] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: rawT, rc: rawC, mode, unit };
     if (mode === "index") {
-      const dd = (pT / bT - pC / bC) * 100;
-      const b1T = avg(t.тест!, base1, key), b1C = avg(t.контроль!, base1, key);
-      const dd1 = (b1T && b1C) ? (pT / b1T - pC / b1C) * 100 : dd;
+      // Вердикт тоже по медиане: считаем изменение у каждой пары отдельно и берём
+      // середину. Средним по группе один крупный артикул перетянул бы весь итог.
+      const per = pairDeltas(t, key, base, post);
+      const mT = median(per.map((x) => x.dT)), mC = median(per.map((x) => x.dC));
+      const dd = median(per.map((x) => x.dd)) ?? 0;
+      const per1 = pairDeltas(t, key, base1, post);
+      const dd1 = median(per1.map((x) => x.dd)) ?? dd;
       const alarm = Math.abs(dd - dd1) > Math.max(Math.abs(dd), Math.abs(dd1)) * 0.5
-        ? `<div class="dyn-alarm">Неделя перед стартом была нетипичной: по ней разница вышла бы <b>${dd1 >= 0 ? "+" : ""}${dd1.toFixed(0)}</b> пунктов вместо <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)}</b>. Считаем по двум неделям.</div>`
+        ? `<div class="dyn-alarm">Неделя перед стартом была нетипичной: по ней медиана разницы вышла бы <b>${dd1 >= 0 ? "+" : ""}${dd1.toFixed(0)}</b> пунктов вместо <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)}</b>. Считаем по двум неделям.</div>`
         : "";
-      reads[key] = `<div class="dyn-read">Средний день, ${title.toLowerCase()}: тест <b>${nbsp(bT)} → ${nbsp(pT)}</b> (${pT >= bT ? "+" : ""}${((pT / bT - 1) * 100).toFixed(0)} %), контроль <b>${nbsp(bC)} → ${nbsp(pC)}</b> (${pC >= bC ? "+" : ""}${((pC / bC - 1) * 100).toFixed(0)} %), разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b>. База - две недели перед стартом. После старта прошло ${post.length} дн, данные по ${LAST}.</div>${alarm}`;
+      reads[key] = `<div class="dyn-read">Медиана по парам, ${title.toLowerCase()}: тест <b>${mT == null ? "-" : (mT >= 0 ? "+" : "") + mT.toFixed(0) + " %"}</b>, контроль <b>${mC == null ? "-" : (mC >= 0 ? "+" : "") + mC.toFixed(0) + " %"}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b> (пар в счёте ${per.length}). База - две недели перед стартом, после старта ${post.length} дн, данные по ${LAST}.</div>${alarm}`;
     } else {
       const v = (x: number) => Number.isFinite(x) ? nbsp(x) + unit : "нет данных";
       reads[key] = `<div class="dyn-read">${testOnly ? "Тестовая группа" : "Средний день"}, ${title.toLowerCase()}: `
@@ -250,6 +365,7 @@ function chart(t: TestDef, cid: string): string {
   // Магазин продаёт 4-16 штук в день на весь ассортимент, поэтому выручка и ДРР по группе
   // из десятка артикулов почти двоичные: день с заказом или без. Молчать об этом нельзя,
   // иначе «выручка упала до нуля» прочитается как провал теста.
+  const posNote = HAS_POS ? "" : " Позиция в поиске пока не показана: посуточного ряда по артикулам нет.";
   const thin = " Выручка и ДРР по группе рваные: магазин продаёт 4-16 штук в день на весь ассортимент, так что день без заказа у десятка артикулов - обычное дело, а не провал.";
   return `<div class="dyn"><div class="dyn-h">Динамика по дням. <span class="dyn-sub" id="${cid}-sub">${subs["vsearch"]}</span></div>`
     + `<div class="mrow-b">${btns}</div>`
@@ -257,7 +373,7 @@ function chart(t: TestDef, cid: string): string {
     + `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>контроль, ${t.контроль!.length} арт.</span></div>`
     + `<svg class="cv" id="${cid}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Динамика по дням, тест против контроля">${panes["vsearch"]}</svg>`
     + `<div class="tip" id="${cid}-tip"></div><div id="${cid}-read">${reads["vsearch"]}</div>`
-    + `<div class="dyn-note">Заказов после старта: тест <b>${uT}</b> шт, контроль <b>${uC}</b> шт. Линией не рисуем: заказы идут по 0-2 в день на группу, посуточный график был бы шумом. Позиция в поиске по отдельным артикулам не собирается, она ниже, в блоке по магазину.${gap}${thin}</div></div>`
+    + `<div class="dyn-note">Заказов после старта: тест <b>${uT}</b> шт, контроль <b>${uC}</b> шт. Линией не рисуем: заказы идут по 0-2 в день на группу, посуточный график был бы шумом. ${posNote}${gap}${thin}</div></div>`
     + `<script>window.DYN=window.DYN||{};window.DYN[${JSON.stringify(cid)}]=${JSON.stringify({ d: days, m: tip, panes, reads, subs })};window.SOLO=window.SOLO||{};window.SOLO[${JSON.stringify(cid)}]=${solo};</script>`;
 }
 
@@ -325,7 +441,7 @@ const cards = T.тесты.map((t) => {
       + `<th class="r">Ставка рек.→фин.</th><th>Старт</th>`
       + `<th class="sep">Артикул</th><th class="r">Поиск/2нед</th>`
       + `<th class="r" title="Насколько трафик теста расходится с контролем до старта. Больше 20 % - пара плохо сопоставима">Δ поиска</th></tr>`
-      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${dirtyControl(t)}${chart(t, "dyn-" + t.id)}`;
+      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${dirtyControl(t)}${chart(t, "dyn-" + t.id)}${perArticle(t)}`;
   } else {
     body = '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>';
   }
@@ -339,56 +455,6 @@ const cards = T.тесты.map((t) => {
     + (t.заметка ? `<div class="cov" style="border-top:none;padding-top:0">${esc(t.заметка)}</div>` : "")
     + `${body}</section>`;
 }).join("");
-
-// ---------- магазин целиком: с рекламой против без рекламы ----------
-// Единственное место, где есть позиция в поиске и соинвест по дням: ряды считает
-// tools/reakciya/build.py по группам магазина. По нашим тестовым группам их нет.
-function storePanel(): string {
-  const da = rea.daily; if (!da || !da["С рекламой"] || !da["Без рекламы"]) return "";
-  const dates: string[] = da._dates, met: string[] = da._met;
-  const NAMES: Record<string, [string, string]> = {
-    coinv: ["Соинвест", " %"], search_position: ["Позиция в поиске", ""],
-    search_views: ["Показы в поиске", ""], pdp_views: ["Карточка", ""], ordered_units: ["Заказы", " шт"],
-  };
-  const order = ["coinv", "search_position", "search_views", "pdp_views", "ordered_units"].filter((m) => met.includes(m));
-  const panes: Record<string, string> = {}, reads: Record<string, string> = {}, tip: Record<string, any> = {};
-  const tailAvg = (arr: Pt[], n = 7): [number, string] => {
-    const idx: number[] = [];
-    for (let i = arr.length - 1; i >= 0 && idx.length < n; i--) if (arr[i] != null) idx.push(i);
-    if (!idx.length) return [0, "-"];
-    const v = idx.reduce((s, i) => s + (arr[i] as number), 0) / idx.length;
-    return [v, dates[idx[0]!]!];
-  };
-  for (const m of order) {
-    const i = met.indexOf(m);
-    const a: Pt[] = da["С рекламой"][i], b: Pt[] = da["Без рекламы"][i];
-    if (!a.some((v) => v != null) && !b.some((v) => v != null)) continue;
-    panes[m] = pane(dates, dates.length - 1, a, b, "raw", ["с рекламой", "без рекламы"])
-      .replace('<text class="ax st-t"', '<text class="ax st-t" style="display:none"')
-      .replace(/<line class="st"[^>]*\/>/, "");
-    const [nm, unit] = NAMES[m]!;
-    const [va, la] = tailAvg(a), [vb, lb] = tailAvg(b);
-    const end = la > lb ? la : lb;
-    const stale = end < dates[dates.length - 1]!
-      ? ` <b class="warn">Ряд обрывается ${end}</b>, дальше кабинет значений не дал: линия там прерывается, а не продолжается по последнему дню.`
-      : "";
-    reads[m] = `<div class="dyn-read">${nm}, среднее за 7 последних дней с данными: с рекламой <b>${nbsp(va)}${unit}</b>, без рекламы <b>${nbsp(vb)}${unit}</b>.`
-      + (m === "search_position" ? " Меньше - лучше." : "") + stale + `</div>`;
-    tip[m] = { t: a, c: b, rt: a, rc: b, mode: "raw", unit };
-  }
-  const first = order.find((m) => panes[m]); if (!first) return "";
-  const btns = order.filter((m) => panes[m]).map((m) =>
-    `<button class="mb${m === first ? " on" : ""}" data-m="${m}">${NAMES[m]![0]}</button>`).join("");
-  return `<h2 class="sec">Магазин целиком: с рекламой против без рекламы</h2>`
-    + `<div class="card"><div class="dyn"><div class="dyn-h">По дням. <span class="dyn-sub" id="store-sub">по дням, как есть</span></div>`
-    + `<div class="mrow-b">${btns}</div>`
-    + `<div class="lg"><span class="lgi"><i style="background:${C_TEST}"></i>с рекламой</span>`
-    + `<span class="lgi"><i style="background:${C_CTRL}"></i>без рекламы</span></div>`
-    + `<svg class="cv" id="store" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Магазин: с рекламой против без рекламы">${panes[first]}</svg>`
-    + `<div class="tip" id="store-tip"></div><div id="store-read">${reads[first]}</div>`
-    + `<div class="dyn-note">Это весь магазин, а не наши тестовые группы: 26 артикулов с рекламой против ${rea.coinv?.["Без рекламы"]?.[1] ?? "?"} без неё. Позиция в поиске и соинвест по дням есть только в этом разрезе, по отдельным артикулам их никто не собирает. Источник - срез кабинета, обновлён ${esc(rea.updated)}.</div></div></div>`
-    + `<script>window.DYN=window.DYN||{};window.DYN["store"]=${JSON.stringify({ d: dates, m: tip, panes, reads, subs: {} })};</script>`;
-}
 
 const mblock = measured.length ? `<h2 class="sec">Измеренные тесты</h2>` + measured.map((t: any) =>
   `<div class="mrow"><div class="ctitle">${esc(t.name)} <span class="chip chip-done">измерен</span></div>`
@@ -416,11 +482,16 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .gtbl th{color:var(--ink3);text-align:left;font-weight:600;padding:5px 7px;border-bottom:1px solid var(--soft);position:sticky;background:var(--card);z-index:1}
 .gtbl thead tr.grp th{top:0;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);border-bottom:none;padding-bottom:1px}
 .gtbl thead tr:not(.grp) th{top:19px}
+.gtbl.single thead tr th{top:0}
 .gtbl td{padding:5px 7px;border-bottom:1px solid rgba(255,255,255,.04)}.gtbl .r{text-align:right}.gtbl .nw{white-space:nowrap}
 .gtbl .sep{border-left:1px solid var(--soft)}
 .gtbl tbody td.sep,.gtbl tbody td.sep~td{background:rgba(93,116,132,.06)}
 .gtbl tbody tr:hover td{background:rgba(34,211,238,.06)}
 .warn{color:var(--warn);font-weight:700}
+.up{color:var(--up);font-weight:700}
+.dn{color:var(--warn);font-weight:700}
+.sub2{font-size:12.5px;color:var(--ink2);font-weight:600;margin:16px 2px 0}
+.gtbl tfoot td{padding:6px 7px;border-top:1px solid var(--soft);color:var(--ink2);font-size:12px;position:sticky;bottom:0;background:var(--card)}
 .cov{font-size:12px;color:var(--ink3);margin:8px 2px 0;border-top:1px dashed var(--soft);padding-top:7px}.cov b{color:var(--ink2)}
 .dyn{margin-top:14px;position:relative}
 .dyn-h{font-size:12.5px;color:var(--ink2);font-weight:600;margin:0 2px 2px}.dyn-sub{color:var(--ink3);font-weight:400}
@@ -510,7 +581,7 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>`
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта, окно то же, что у базы замера.</p>`
-  + cards + storePanel() + mblock
+  + cards + mblock
   + `<h2 class="sec">Заметки и предупреждения</h2><div class="notes"><ul>${notes}</ul></div></div>`
   + `<script>${JS}</script></body></html>`;
 

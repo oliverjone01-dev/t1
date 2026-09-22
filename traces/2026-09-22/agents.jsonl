@@ -70,3 +70,4 @@
 {"ts": "2026-09-22T10:41:04+00:00", "event": "subagent_stop", "agent": "feniks", "tier": "0", "session_id": "904c4d0b-fedf-553b-a184-5d526db51a57", "agent_id": "ad1a595e0bbd1d49c", "msg_chars": 1067, "outcome": "unknown", "feniks_score": 7.85}
 {"ts": "2026-09-22T10:48:28+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "904c4d0b-fedf-553b-a184-5d526db51a57", "agent_id": "a21ba51cad2dd4a98"}
 {"ts": "2026-09-22T10:49:57+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/S/v3keep"}
+{"ts": "2026-09-22T10:50:38+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/(x.evTags"}

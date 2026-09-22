@@ -1905,6 +1905,22 @@ function render(cur,cmp){
   const prtResidByYm: Record<string, number> = {};
   for (const r of prtRepRows) { if (!matchedBases.has(r.order) && r.ym) prtResidByYm[r.ym] = (prtResidByYm[r.ym] || 0) + r.prt; }
   const prtResid = Object.entries(prtResidByYm).map(([ym, v]) => [ym + "-15", Math.round(v)]).sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+  // Доставка ПО SKU из per-order (для таблицы по артикулам, ВСЕ периоды - как в блоке по заказам).
+  // Раньше таблица брала доставку из ручной ведомости по offer (только закрытые месяцы), и текущий
+  // месяц был пуст. Теперь: наша доставка - delivery_orders (per-order), доставка покупателя - AN_BDORD
+  // (API, один раз на базовый заказ), обе агрегируются по SKU и дате заказа.
+  const shipSkuMap: Record<string, Record<string, number>> = {};
+  const dincSkuMap: Record<string, Record<string, number>> = {};
+  const bdBaseUsed: Record<string, boolean> = {};
+  for (const o of anOrders) {
+    const sk = String(o.sk || ""); const d = String(o.d || ""); const b = orderBase(String(o.order));
+    if (!sk || !d) continue;
+    const dl = delivByOrder[String(o.order)] || delivByOrder[b];
+    if (dl && dl.ship) { (shipSkuMap[sk] ||= {})[d] = (shipSkuMap[sk][d] || 0) + Math.round(dl.ship); }
+    if (bdByOrderApi[b] != null && !bdBaseUsed[b]) { bdBaseUsed[b] = true; (dincSkuMap[sk] ||= {})[d] = (dincSkuMap[sk][d] || 0) + Math.round(bdByOrderApi[b]); }
+  }
+  const anShipSku: Record<string, any[]> = {}; for (const sk in shipSkuMap) { anShipSku[sk] = []; for (const d in shipSkuMap[sk]) anShipSku[sk]!.push([d, shipSkuMap[sk]![d]]); }
+  const anDincSku: Record<string, any[]> = {}; for (const sk in dincSkuMap) { anDincSku[sk] = []; for (const d in dincSkuMap[sk]) anDincSku[sk]!.push([d, dincSkuMap[sk]![d]]); }
 
   // Свод по дате заказа - только у Маркета: у OZON закрытие месяца идёт из подписанных Актов,
   // а базис «по дате оформления заказа» там не строится. Ключ добавляется условно, чтобы страница
@@ -1952,7 +1968,7 @@ function render(cur,cmp){
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORDERS=${J(anOrders)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_DINCSKU=${J(anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORDERS=${J(anOrders)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -2136,8 +2152,11 @@ function renderSkuAnalytics(cur){
     var cpo=anSum(AN_CPOSKU[sk],from,to,1)[0]||0;
     // ship = наш расход на отправку; dinc = доход от покупателя за доставку (ведомость, закрытые мес).
     var _off=AN_META[sk].off;
-    var ship=anSum(AN_DELIV[_off],from,to,1)[0]||0;
-    var dinc=anSum(AN_DELIV_INC[_off],from,to,1)[0]||0;
+    // Доставка ПО SKU из per-order (все периоды, как в блоке по заказам): наша - delivery_orders,
+    // покупателя - AN_BDORD (API). Раньше брали из ведомости по offer (только закрытые месяцы) - текущий
+    // месяц был пуст. Теперь и таблица по артикулам, и блок по заказам берут доставку из одного источника.
+    var ship=anSum(AN_SHIPSKU[sk],from,to,1)[0]||0;
+    var dinc=anSum(AN_DINCSKU[sk],from,to,1)[0]||0;
     if(!sa[0]&&!sa[1]&&!sa[2]&&!sa[3]&&!sa[4]&&!ad[0]&&!fi[0]&&!fi[6]&&!cpo&&!ship&&!dinc)continue;
     var m=AN_META[sk];
     // units = «Реализовано с учётом возвратов» по отчёту о реализации (УПД); cc = СС/шт × реализовано
@@ -2179,8 +2198,8 @@ function renderSkuAnalytics(cur){
   // «Наша доставка», не разнесённая по артикулу: у части отправок артикул из ведомости не сходится
   // с каталогом дашборда (старые варианты/брак в коде артикула). Чтобы ИТОГО отражал ВЕСЬ реальный
   // расход на доставку, остаток (весь период − разнесённое по строкам grand.ship) добавляем строкой.
-  var totalDeliv=0;for(var _o in AN_DELIV){totalDeliv+=anSum(AN_DELIV[_o],from,to,1)[0]||0;}
-  var totalInc=0;for(var _i in AN_DELIV_INC){totalInc+=anSum(AN_DELIV_INC[_i],from,to,1)[0]||0;}
+  var totalDeliv=0;for(var _o in AN_SHIPSKU){totalDeliv+=anSum(AN_SHIPSKU[_o],from,to,1)[0]||0;}
+  var totalInc=0;for(var _i in AN_DINCSKU){totalInc+=anSum(AN_DINCSKU[_i],from,to,1)[0]||0;}
   var unmDeliv=Math.max(0,Math.round(totalDeliv-(grand.ship||0)));
   var unmInc=Math.max(0,Math.round(totalInc-(grand.dinc||0)));
   if(at||unmDeliv||unmInc){var acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:-aDel,acq:0,sto:0,cof:0,promo:0,oth:-aOth,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:at};

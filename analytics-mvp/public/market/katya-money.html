@@ -722,7 +722,7 @@
   <div>таксономия: 130 SKU (31.9%), 58.1% оборота · без категории 37 935 332 ₽ - в разрезах по категориям этот оборот не виден</div></div><div style="margin-top:6px"><b>откуда сборы по месяцам</b> (где ledger'а нет, ставка занижена и маржа завышена)
   <div style="color:inherit">2026-01: взаиморасчёты 1 853 325 ₽ (49.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-02: взаиморасчёты 3 803 613 ₽ (43.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-03: взаиморасчёты 5 078 529 ₽ (48.1%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-04: взаиморасчёты 8 174 239 ₽ (47.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-05: взаиморасчёты 7 247 462 ₽ (47.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-06: взаиморасчёты 5 512 980 ₽ (50.5%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-07: взаиморасчёты 9 854 423 ₽ (59.6%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-08: взаиморасчёты 8 717 046 ₽ (56.3%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-09: взаиморасчёты 5 013 717 ₽ (48.3%) · комиссии заказа 0 ₽</div></div></details></div></div></details></div>
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-21</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 22.09.2026 13:22 МСК</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-21</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 22.09.2026 14:28 МСК</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/ym-snapshots.yml" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
@@ -756,7 +756,6 @@
     </div></div>
     <div id="sv-cov" class="kt-note" style="padding:2px 0 8px"></div>
     <div id="sv-gaps" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
-    <div id="sv-pts" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #8AA0FF;background:rgba(138,160,255,.08)"></div>
     <div class="kt-scroll kt-box"><table class="kt-table" id="sv-t"></table></div>
     <div id="sv-note" class="kt-note" style="margin-top:8px"></div>
   </section>
@@ -769,6 +768,9 @@
   
   
   <section class="card"><div class="card-h"><div><div class="card-title">Общие расходы</div><div class="card-sub">Расходы кабинета, не привязанные к заказу: полки, подписки, баннеры, буст за показы. Период задаётся фильтром наверху страницы, разбивка - та же, что в своде, и ровно эта сумма вычтена в его строке «Общие расходы кабинета». Прогноза тут нет: часть расходов приходит месячным актом одной датой, и растягивать её по дневному run-rate значило бы придумывать числа.</div></div></div><div class="kt-scroll"><table class="kt-table" id="acct-t"><thead id="acct-h"></thead><tbody id="acct"></tbody></table></div></section>
+  <section class="card" id="sv-pts-card" style="display:none"><div class="card-h"><div><div class="card-title">Баллы Маркета за период</div><div class="card-sub">начислено, потрачено и сальдо &middot; период из фильтра наверху страницы</div></div></div>
+    <div id="sv-pts" class="kt-note" style="padding:2px 0 0"></div>
+  </section>
   
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}#ordan-t th,#ordan-t td{white-space:nowrap}.ord-cat{cursor:pointer;font-weight:700}.ord-cat:hover{background:rgba(255,255,255,.03)}.ord-row td:first-child{padding-left:24px;color:var(--ink-2)}#logi-t th,#logi-t td{white-space:nowrap}.logi-loss td{background:rgba(255,90,95,.07)}.logi-vscroll{max-height:min(70vh,560px);overflow:auto}#logi-t thead th{position:sticky;top:0;z-index:2;background:var(--bg-card);box-shadow:inset 0 -1px 0 var(--bg-soft)}.an-vscroll{max-height:min(74vh,640px);overflow:auto}.an-htop{overflow-x:auto;overflow-y:hidden}.an-htop>div{height:1px}#skuan-t,#ordan-t{font-size:11px}#skuan-t th,#skuan-t td,#ordan-t th,#ordan-t td{padding:5px 6px}#skuan-t thead th,#ordan-t thead th{position:sticky;top:0;z-index:2;background:var(--bg-card);box-shadow:inset 0 -1px 0 var(--bg-soft)}</style></main>
 <script>window.__GG_MAXD='2026-09-21';
@@ -1641,7 +1643,7 @@ function svOwnDeliv(m){return !!((m&&m.own||0)+(m&&m.unk||0));}
 function svDraw(){
   var ms=svPick();
   var cov=document.getElementById('sv-cov'),gapsEl=document.getElementById('sv-gaps'),noteEl=document.getElementById('sv-note');
-  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.';gapsEl.style.display='none';noteEl.textContent='';var _p=document.getElementById('sv-pts');if(_p){_p.style.display='none';_p.innerHTML='';}return;}
+  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.';gapsEl.style.display='none';noteEl.textContent='';var _p=document.getElementById('sv-pts');if(_p){_p.style.display='none';_p.innerHTML='';}var _pc=document.getElementById('sv-pts-card');if(_pc)_pc.style.display='none';return;}
   var orders=0,periodOrd=0,inflight=0,noLed=0,acts={},outSt=0,outMi=0,outMiN=0,ptsDel=0,ptsOrd=0,ptsDed=0,ptsRepSpent=0,missAcc=0,missOrd=0;
   var missByB={};
   var oh=svOverhead(ms),ohM=oh.m,ohP=oh.p,ohAct=oh.act,ohLed=oh.ledger;
@@ -1735,7 +1737,11 @@ function svDraw(){
     var el=document.getElementById('sv-pts'); if(!el)return;
     var pAcc=0,pOrd=0; list.forEach(function(a){pAcc+=a.pts||0;pOrd+=a.sp||0;});
     var pOh=ohP||0, bal=pAcc-pOrd-pOh;
-    if(!Math.round(pAcc)&&!Math.round(pOrd)&&!Math.round(pOh)){el.style.display='none';return;}
+    // Блок переехал отдельной карточкой вниз страницы, после «Общих расходов» (Катя 22.09.2026),
+    // поэтому прятать надо саму карточку: пустая рамка с заголовком и без чисел хуже, чем ничего.
+    var card=document.getElementById('sv-pts-card');
+    if(!Math.round(pAcc)&&!Math.round(pOrd)&&!Math.round(pOh)){if(card)card.style.display='none';el.style.display='none';return;}
+    if(card)card.style.display='';
     el.style.display='';
     // Плитками, а не строкой. Первая версия была тонкой заметкой между длинной жёлтой плашкой
     // пробелов и широкой таблицей, и Катя её просто не нашла на странице (21.09.2026).
@@ -1744,7 +1750,9 @@ function svDraw(){
     var tile=function(k,t,v,c){return '<div data-pts="'+k+'" style="flex:1 1 140px;min-width:140px">'
       +'<div style="color:var(--ink-3);font-size:11.5px;line-height:1.3">'+t+'</div>'
       +'<div data-v="'+Math.round(v)+'" style="font-size:17px;font-weight:700;font-variant-numeric:tabular-nums'+(c?';color:'+c:'')+'">'+(v<0?'-':'')+svRub(Math.abs(v))+' ₽</div></div>';};
-    el.innerHTML='<div style="font-weight:700;margin-bottom:8px">Баллы Маркета за период</div>'
+    // Заголовок теперь несёт сама карточка (блок переехал вниз страницы 22.09.2026), внутри его
+    // повторять не надо - он печатался дважды подряд.
+    el.innerHTML=''
       +'<div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px">'
       +tile('acc','Начислено<br>скидка Маркета и Плюса',pAcc,'')
       +tile('ord','Потрачено<br>на услуги заказов',-pOrd,'')

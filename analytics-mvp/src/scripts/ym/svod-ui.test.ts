@@ -1556,3 +1556,63 @@ describe("своды: горизонтальный ползунок сверху
     expect(html, "нет кода, который считает уровни липкости").toMatch(/barH\s*\+\s*thH/);
   });
 });
+
+// Катя 22.09.2026: «этот блок по баллам перенеси вниз страницы после блока общие расходы».
+// Раньше он стоял плашкой внутри свода по дате заказа - между жёлтой плашкой пробелов и широкой
+// таблицей, и его там уже один раз не находили (21.09).
+describe("баллы Маркета: отдельной карточкой в конце страницы", () => {
+  const titles = () => [...D().querySelectorAll(".card-title")].map((t) => (t.textContent || "").replace(/ИИ-разбор$/, "").trim());
+
+  it("карточка есть и стоит ПОСЛЕ «Общих расходов»", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const t = titles();
+    const p = t.indexOf("Баллы Маркета за период");
+    const o = t.indexOf("Общие расходы");
+    expect(p, "карточки баллов нет").toBeGreaterThanOrEqual(0);
+    expect(o, "блока «Общие расходы» нет").toBeGreaterThanOrEqual(0);
+    expect(p, "баллы стоят не после общих расходов").toBeGreaterThan(o);
+  });
+
+  it("плашка баллов больше не живёт внутри свода", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const note = D().getElementById("sv-pts")!;
+    expect(note.closest("#sv-pts-card"), "плашка не в своей карточке").not.toBeNull();
+    const svCard = [...D().querySelectorAll(".card")].find((c) => /Свод по дате заказа/.test(c.querySelector(".card-title")?.textContent || ""));
+    expect(svCard?.contains(note) || false, "плашка осталась внутри свода").toBe(false);
+  });
+
+  // Заголовок печатался и карточкой, и внутри плашки - подряд, двумя строками.
+  it("заголовок не задвоен", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const inner = D().getElementById("sv-pts")!.textContent || "";
+    expect((inner.match(/Баллы Маркета за период/g) || []).length, "заголовок повторён внутри карточки").toBe(0);
+    expect([...D().querySelectorAll("[data-pts]")].length, "плитки баллов пропали").toBe(4);
+  });
+
+  // Пустая рамка с заголовком и без чисел хуже, чем ничего: прячется сама карточка, а не плашка.
+  it("на периоде без баллов прячется вся карточка", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const has = new Set<string>();
+    for (const m of svod.months || svod) for (const r of m.rows || []) has.add(r.d);
+    const all = [...has].sort();
+    let empty = "";
+    for (let d = all[0]!; d <= all[all.length - 1]!; ) {
+      if (!has.has(d)) { empty = d; break; }
+      const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + 1); d = t.toISOString().slice(0, 10);
+    }
+    if (!empty) return;
+    setRange(empty, empty);
+    const card = D().getElementById("sv-pts-card") as HTMLElement;
+    // «Нет доставленных заказов» НЕ равно «нет движения баллов»: общие расходы кабинета Маркет
+    // списывает своими датами, и в день без продаж траты баллов бывают. Поэтому правило не
+    // «пустой день - прячем», а «карточка висит, только если хоть одна плитка ненулевая».
+    const tiles = [...D().querySelectorAll("[data-pts] [data-v]")]
+      .map((e) => num(e.textContent) || 0);
+    const any = tiles.some((v) => Math.round(v) !== 0);
+    if (card.style.display === "none") {
+      expect(any, `${empty}: карточка спрятана, хотя числа есть`).toBe(false);
+    } else {
+      expect(any, `${empty}: карточка висит с одними нулями`).toBe(true);
+    }
+  });
+});

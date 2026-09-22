@@ -1,29 +1,29 @@
 {
- "dateFrom": "2026-08-22",
- "dateTo": "2026-09-20",
- "generated_at": "2026-09-21T12:52:15.186Z",
+ "dateFrom": "2026-08-23",
+ "dateTo": "2026-09-21",
+ "generated_at": "2026-09-22T11:41:47.351Z",
  "counter": 104369223,
  "goals": {
   "leads": 487033158,
   "contacts": 477925360
  },
  "totals": {
-  "direct_clicks_30d": 1556,
-  "ad_visits_30d": 4546,
-  "yd_visits_30d": 4509,
-  "ad_leads_30d": 104
+  "direct_clicks_30d": 1568,
+  "ad_visits_30d": 4568,
+  "yd_visits_30d": 4531,
+  "ad_leads_30d": 105
  },
  "by_engine": [
   {
    "engine": "Yandex: Direct",
-   "visits": 4402,
-   "users": 3795,
-   "leads": 100,
-   "contacts": 88
+   "visits": 4425,
+   "users": 3814,
+   "leads": 101,
+   "contacts": 90
   },
   {
    "engine": "Yandex.Direct: Undetermined",
-   "visits": 107,
+   "visits": 106,
    "users": 71,
    "leads": 3,
    "contacts": 1
@@ -31,7 +31,7 @@
   {
    "engine": "Instagram",
    "visits": 22,
-   "users": 18,
+   "users": 17,
    "leads": 0,
    "contacts": 0
   },
@@ -53,19 +53,19 @@
  "by_utm": [
   {
    "utm": "peregorodki",
-   "visits": 2992,
-   "leads": 63,
-   "contacts": 51
+   "visits": 3003,
+   "leads": 64,
+   "contacts": 52
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 434,
+   "visits": 441,
    "leads": 10,
    "contacts": 8
   },
   {
    "utm": "peregorodki_713589837",
-   "visits": 381,
+   "visits": 374,
    "leads": 8,
    "contacts": 8
   },
@@ -73,23 +73,23 @@
    "utm": "peregorodki_712877517",
    "visits": 355,
    "leads": 17,
-   "contacts": 16
+   "contacts": 17
   },
   {
    "utm": "peregorodki_712877513",
-   "visits": 146,
+   "visits": 152,
    "leads": 6,
    "contacts": 6
   },
   {
    "utm": "peregorodki_713496953",
-   "visits": 110,
+   "visits": 111,
    "leads": 0,
    "contacts": 1
   },
   {
    "utm": "organization",
-   "visits": 45,
+   "visits": 49,
    "leads": 6,
    "contacts": 3
   },
@@ -160,6 +160,12 @@
    "contacts": 0
   },
   {
+   "utm": "Главная_интерьерная выставка страны ",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "utm": "Новые_станки на нашем производстве. Больше форм, чище металл и умная экономия",
    "visits": 2,
    "leads": 1,
@@ -179,6 +185,12 @@
   },
   {
    "utm": "name_704582421",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_704736563",
    "visits": 1,
    "leads": 0,
    "contacts": 0
@@ -229,65 +241,65 @@
  "by_source": [
   {
    "source": "Ad traffic",
-   "visits": 4546,
-   "users": 3880,
-   "bounce": 22.48130224,
-   "leads": 104,
-   "contacts": 90
+   "visits": 4568,
+   "users": 3899,
+   "bounce": 22.2854641,
+   "leads": 105,
+   "contacts": 92
   },
   {
    "source": "Search engine traffic",
-   "visits": 2945,
-   "users": 2217,
-   "bounce": 17.79286927,
-   "leads": 142,
-   "contacts": 107
+   "visits": 3012,
+   "users": 2264,
+   "bounce": 17.49667995,
+   "leads": 144,
+   "contacts": 110
   },
   {
    "source": "Link traffic",
-   "visits": 2022,
-   "users": 1796,
-   "bounce": 3.70919881,
-   "leads": 8,
-   "contacts": 7
+   "visits": 2101,
+   "users": 1863,
+   "bounce": 3.61732508,
+   "leads": 9,
+   "contacts": 8
   },
   {
    "source": "Direct traffic",
-   "visits": 1498,
-   "users": 1341,
-   "bounce": 19.02536716,
-   "leads": 26,
-   "contacts": 18
+   "visits": 1526,
+   "users": 1360,
+   "bounce": 18.41415465,
+   "leads": 30,
+   "contacts": 20
   },
   {
    "source": "Internal traffic",
    "visits": 255,
    "users": 199,
-   "bounce": 25.49019608,
+   "bounce": 25.09803922,
    "leads": 7,
    "contacts": 5
   },
   {
    "source": "Messenger traffic",
-   "visits": 28,
-   "users": 9,
-   "bounce": 10.71428571,
-   "leads": 0,
-   "contacts": 0
+   "visits": 33,
+   "users": 10,
+   "bounce": 9.09090909,
+   "leads": 1,
+   "contacts": 1
   },
   {
    "source": "Social network traffic",
-   "visits": 27,
-   "users": 13,
-   "bounce": 18.51851852,
+   "visits": 29,
+   "users": 14,
+   "bounce": 13.79310345,
    "leads": 1,
    "contacts": 0
   },
   {
    "source": "Mailing traffic",
-   "visits": 7,
-   "users": 3,
-   "bounce": 14.28571429,
+   "visits": 9,
+   "users": 5,
+   "bounce": 11.11111111,
    "leads": 1,
    "contacts": 1
   },

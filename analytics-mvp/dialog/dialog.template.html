@@ -1158,7 +1158,10 @@ function renderTree(){
     const tot=ds.length;
     const seg=order.filter(([k])=>b[k]).map(([k,c,l])=>{ const on=aiPickActive('tp',key,k);
       return `<span class="tseg${on?' tsegon':''}" data-temp="${k}" style="flex:${b[k]};background:${c}" data-tip="<span class='tdot' style='background:${c}'></span><b>${l}</b>: ${b[k]} сдел. · ${Math.round(b[k]/tot*100)}% портфеля · клик - показать эти сделки"></span>`; }).join('');
-    const dd=ds.filter(d=>!d.goalReached&&(d.stageRows||[]).length&&d.tempDelta!=null).map(d=>d.tempDelta).sort((a,b)=>a-b);
+    // Переехавшие из амо в марте 2026 в силу нагрева не идут: у них стадия проставлена
+    // импортом, а не работой менеджера, и медиана Δ у них -3° против +3° у живых сделок.
+    const dd=ds.filter(d=>!d.goalReached&&!d.preMig&&(d.stageRows||[]).length&&d.tempDelta!=null).map(d=>d.tempDelta).sort((a,b)=>a-b);
+    const nMig=ds.filter(d=>d.preMig).length;
     const hp=dd.length>=3?dd[Math.floor(dd.length/2)]:null;
     const hpc=hp===null?'var(--ink-4)':hp>0?'#2E9E74':hp<0?'#C25252':'var(--ink-3)';
     // Почему остывают: агрегируем «чего не хватает» (needToClose) по открытым сделкам + что делать.
@@ -1177,8 +1180,9 @@ function renderTree(){
         +((lvlAi.weaknesses&&lvlAi.weaknesses.length)?`<br><b style="color:#E08585">Слабые:</b> ${esc(lvlAi.weaknesses.join('; '))}`:'')
         +(lvlAi.action?`<br><b style="color:#7FD1A6">Что делать:</b> ${esc(lvlAi.action)}`:'')
       : '';
+    const migNote=nMig?`<br><i>Вне силы нагрева ${nMig} сдел., переехавших из амо в марте: стадия проставлена импортом, а не менеджером.</i>`:'';
     const leadNote=nLead?`<br><i>Вне градусника ${nLead} лид. без стадии - у них своя воронка.</i>`:'';
-    const hpTip=hp===null?('Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).'+leadNote+aiTip):`Сила нагрева = медиана Δ температуры от старта ${10}° до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${leadNote}${whyBlock}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
+    const hpTip=hp===null?('Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).'+leadNote+migNote+aiTip):`Сила нагрева = медиана Δ температуры от старта ${10}° до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${leadNote}${migNote}${whyBlock}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
     return `<div class="tempcell"><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
   // «Почему остывают» с конкретными цифрами (сделок, до +N°, что делать) для агрегатного
   // ИИ-итога отдела/подотдела - те же данные, что в подсказке градусника.

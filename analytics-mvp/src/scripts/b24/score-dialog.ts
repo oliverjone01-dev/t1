@@ -63,6 +63,15 @@ const STAGE_ORDER: Record<string, number> = {
 // Поэтому градусник к этой лестнице не привязан, старт у всех 10°, а stage_up меряет
 // продвижение по ПОРЯДКУ стадий. Вопрос «почему КП не работает» вынесен Ивану и РОПу.
 const STAGE_UP_DAYS = 21;
+
+// ПЕРЕЕЗД С AMOCRM. В марте 2026 в Bitrix перенесли 21 465 сделок, и все легли на те же стадии,
+// что были в амо [ДАННЫЕ: rop.json 2026-09-22, created по месяцам - март 21465, апрель 418,
+// май 320, июнь 302, июль 351, август 391, сентябрь 313]. У этих сделок нет честной истории:
+// стадия проставлена импортом, а не работой менеджера. Их нельзя пускать ни в калибровку весов,
+// ни в «силу нагрева». Решение Ивана: анализируем только то, что родилось после переезда.
+// Эффект загрязнения [ДАННЫЕ]: в калибровке весов 583 переехавших из 2123 закрытых (27%),
+// и у них win-rate 30% против 22% у живых, то есть они тянут отношения вверх.
+const MIGRATION_CUTOFF = "2026-04-01";
 const CALIBRATED_AT = "2026-08-17";
 
 // --- Градусник температуры клиента ---
@@ -792,6 +801,7 @@ function main() {
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
+      preMig: !!createdAt && createdAt < MIGRATION_CUTOFF,
       clientChase, hotSlow, hotOpen, driftAlso, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),
       lastTs: last.ts, lastDt: last.dt,
     });
@@ -810,7 +820,8 @@ function main() {
   const stageWin = (code: string) => BASE_RATES[code]?.win ?? 0;
   const maxReached = (d: any) => { let b = 0; for (const r of (d.stageRows || [])) { const v = stageWin(r.code); if (v > b) b = v; } return b || BASE_FALLBACK; };
   const bucketOf = (x: number) => x < 0.3 ? 0 : x < 0.7 ? 1 : 2;
-  const closedC = deals.filter((d) => d.outcome === "won" || d.outcome === "lost");
+  // Только сделки, родившиеся после переезда: у переехавших стадия проставлена импортом.
+  const closedC = deals.filter((d) => (d.outcome === "won" || d.outcome === "lost") && !d.preMig);
   const calibration: Record<string, any> = {};
   for (const key of Object.keys(CAL_KEYS)) {
     const def = CAL_KEYS[key]!.def, bad = CAL_KEYS[key]!.bad;
@@ -1036,7 +1047,7 @@ function main() {
     const openDs = ds.filter((d) => d.outcome === "open");
     const tempDist = { cold: 0, warm: 0, hot: 0, boiling: 0, goal: 0 };
     for (const d of openDs) (tempDist as any)[d.tempBucket] = ((tempDist as any)[d.tempBucket] || 0) + 1;
-    const heatVals = openDs.filter((d) => !d.goalReached && (d.stageRows || []).length).map((d) => d.tempDelta);
+    const heatVals = openDs.filter((d) => !d.goalReached && !d.preMig && (d.stageRows || []).length).map((d) => d.tempDelta);
     const heatPower = heatVals.length >= 3 ? med(heatVals) : null;
     const hotMoneyTemp = openDs.filter((d) => d.tempBucket === "hot" || d.tempBucket === "boiling").reduce((s2, d) => s2 + (d.budget || 0), 0);
     return {

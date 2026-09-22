@@ -655,6 +655,22 @@
 .kt-table tr.sv-total td,.kt-table tr.so-total td{font-weight:700;font-size:13px;background:rgba(255,255,255,.05);border-top:1px solid var(--bg-soft);border-bottom:2px solid var(--accent-deep)}
 .kt-table tr.sv-total td:first-child,.kt-table tr.so-total td:first-child{letter-spacing:.03em}
 .kt-scroll{overflow-x:auto}.kt-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
+/* Свод разворачивался на всю высоту (сотни строк) и уносил шапку за экран: без названий колонок
+   таблица из восемнадцати столбцов читается как лист цифр. Окно фиксированной высоты с прокруткой
+   ВНУТРИ и залипающей шапкой. Высота в vh, а не в пикселях: на ноутбуке и на большом мониторе
+   видно разное число строк, но всегда с запасом под прокрутку. */
+.kt-box{max-height:72vh;overflow:auto;position:relative}
+.kt-box table{font-size:11.5px}
+.kt-box th{position:sticky;z-index:2;background:var(--bg-card,#12151c);box-shadow:inset 0 -1px 0 var(--bg-soft)}
+/* ИТОГО липнет под шапкой: сверять строку с итогом, прокручивая к нему, - это и есть работа
+   с этой таблицей. Второй уровень липкости, поэтому top не 0, а высота шапки. */
+.kt-box tr.sv-total td,.kt-box tr.so-total td{position:sticky;z-index:1;background:var(--bg-card,#12151c)}
+/* Горизонтальный ползунок у таблицы на двадцать колонок живёт внизу, а таблица на сотни строк -
+   в окне: чтобы сдвинуть её вправо, приходилось прокручивать к нижнему краю (Катя 22.09.2026).
+   Второй ползунок стоит СРАЗУ ПОД ШАПКОЙ и липнет там же: это пустая полоса, чья внутренняя
+   ширина равна ширине таблицы, а прокрутка синхронизирована с настоящей в обе стороны. */
+.kt-xbar{position:sticky;top:0;left:0;z-index:4;overflow-x:auto;overflow-y:hidden;height:14px;background:var(--bg-card,#12151c)}
+.kt-xbar>div{height:1px}
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
 .kt-src{display:inline-block;font-size:10.5px;border:1px solid var(--bg-soft);border-radius:6px;padding:2px 7px;color:var(--ink-3);margin-left:8px}.kt-src.live{border-color:#22D3EE;color:#22D3EE}
 .kt-wf{display:flex;align-items:flex-end;gap:6px;height:190px;padding:8px 4px}.kt-wf>div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-3)}.kt-wf .bar{border-radius:6px 6px 0 0;margin:0 auto;width:78%}
@@ -706,7 +722,7 @@
   <div>таксономия: 130 SKU (31.9%), 58.1% оборота · без категории 37 935 332 ₽ - в разрезах по категориям этот оборот не виден</div></div><div style="margin-top:6px"><b>откуда сборы по месяцам</b> (где ledger'а нет, ставка занижена и маржа завышена)
   <div style="color:inherit">2026-01: взаиморасчёты 1 853 325 ₽ (49.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-02: взаиморасчёты 3 803 613 ₽ (43.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-03: взаиморасчёты 5 078 529 ₽ (48.1%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-04: взаиморасчёты 8 174 239 ₽ (47.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-05: взаиморасчёты 7 247 462 ₽ (47.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-06: взаиморасчёты 5 512 980 ₽ (50.5%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-07: взаиморасчёты 9 854 423 ₽ (59.6%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-08: взаиморасчёты 8 717 046 ₽ (56.3%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-09: взаиморасчёты 5 013 717 ₽ (48.3%) · комиссии заказа 0 ₽</div></div></details></div></div></details></div>
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Воронка · живой Яндекс Маркет · данные по 2026-09-21</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 22.09.2026 11:56 МСК</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Воронка · живой Яндекс Маркет · данные по 2026-09-21</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 22.09.2026 13:22 МСК</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/ym-snapshots.yml" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">

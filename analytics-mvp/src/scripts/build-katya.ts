@@ -1177,10 +1177,16 @@ const EXTRA_CSS = `
    видно разное число строк, но всегда с запасом под прокрутку. */
 .kt-box{max-height:72vh;overflow:auto;position:relative}
 .kt-box table{font-size:11.5px}
-.kt-box th{position:sticky;top:0;z-index:2;background:var(--bg-card,#12151c);box-shadow:inset 0 -1px 0 var(--bg-soft)}
+.kt-box th{position:sticky;z-index:2;background:var(--bg-card,#12151c);box-shadow:inset 0 -1px 0 var(--bg-soft)}
 /* ИТОГО липнет под шапкой: сверять строку с итогом, прокручивая к нему, - это и есть работа
    с этой таблицей. Второй уровень липкости, поэтому top не 0, а высота шапки. */
-.kt-box tr.sv-total td,.kt-box tr.so-total td{position:sticky;top:30px;z-index:1;background:var(--bg-card,#12151c)}
+.kt-box tr.sv-total td,.kt-box tr.so-total td{position:sticky;z-index:1;background:var(--bg-card,#12151c)}
+/* Горизонтальный ползунок у таблицы на двадцать колонок живёт внизу, а таблица на сотни строк -
+   в окне: чтобы сдвинуть её вправо, приходилось прокручивать к нижнему краю (Катя 22.09.2026).
+   Второй ползунок стоит СРАЗУ ПОД ШАПКОЙ и липнет там же: это пустая полоса, чья внутренняя
+   ширина равна ширине таблицы, а прокрутка синхронизирована с настоящей в обе стороны. */
+.kt-xbar{position:sticky;top:0;left:0;z-index:4;overflow-x:auto;overflow-y:hidden;height:14px;background:var(--bg-card,#12151c)}
+.kt-xbar>div{height:1px}
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
 .kt-src{display:inline-block;font-size:10.5px;border:1px solid var(--bg-soft);border-radius:6px;padding:2px 7px;color:var(--ink-3);margin-left:8px}.kt-src.live{border-color:#22D3EE;color:#22D3EE}
 .kt-wf{display:flex;align-items:flex-end;gap:6px;height:190px;padding:8px 4px}.kt-wf>div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-3)}.kt-wf .bar{border-radius:6px 6px 0 0;margin:0 auto;width:78%}
@@ -2198,7 +2204,6 @@ function render(cur,cmp){
     </div></div>
     <div id="sv-cov" class="kt-note" style="padding:2px 0 8px"></div>
     <div id="sv-gaps" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
-    <div id="sv-pts" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #8AA0FF;background:rgba(138,160,255,.08)"></div>
     <div class="kt-scroll kt-box"><table class="kt-table" id="sv-t"></table></div>
     <div id="sv-note" class="kt-note" style="margin-top:8px"></div>
   </section>
@@ -2228,6 +2233,9 @@ function render(cur,cmp){
       : `<th class="r">Доставка</th><th class="r">Приём и перевод платежа</th><th class="r">Хранение</th><th class="r">Софинансирование скидок</th><th class="r">Буст продаж</th><th class="r">Прочие</th>`}<th class="r">Всего сборов</th><th class="r">К выплате</th>${IS_OZON ? `<th class="r" title="Наш расход на отправку заказа (счёт перевозчика ПЭК/СДЭК и т.п.) из ведомости доставки, разбор по номеру заказа, реальный расход, закрытые месяцы. НЕ входит в «К выплате» - вычитается из прибыли ниже.">Наша доставка</th><th class="r" title="Доход: сколько за доставку заплатил клиент (из ведомости), по артикулу, закрытые месяцы. НЕ входит в «К выплате» - плюсуется в прибыль ниже.">Доставка покупателя</th>` : ``}<th class="r">СС произв.</th><th class="r">Валовая прибыль</th><th class="r">АДМ 30%</th><th class="r">Налоги 15%</th><th class="r">Чистая прибыль</th><th class="r">Рентаб.</th>${IS_OZON ? `<th title="Города доставки по нашей отправке этого артикула (справочно)">Города доставки</th>` : ``}
   </tr>` : ``}<tbody id="skuan"></tbody></table></div></section>` : ``}
   <section class="card"><div class="card-h"><div><div class="card-title">Общие расходы</div><div class="card-sub"${IS_OZON ? ` style="display:none"` : ``}>${IS_OZON ? `За выбранный период. Это то, что OZON списывает отдельными операциями, не привязанными к одному артикулу - поэтому их нет в таблице по артикулам. «Сумма по артикулам (К выплате) + Итого этого блока = P&L канала». Источник - транзакции OZON (operation_type_name). Прогноз до конца периода - <b>[ГИПОТЕЗА]</b>: реклама/realFBS/подписки/доставка экстраполируются по дневному run-rate, штрафы и прочее - по факту (не прогнозируются). За закрытый прошлый месяц прогноз = факт.` : `Расходы кабинета, не привязанные к заказу: полки, подписки, баннеры, буст за показы. Период задаётся фильтром наверху страницы, разбивка - та же, что в своде, и ровно эта сумма вычтена в его строке «Общие расходы кабинета». Прогноза тут нет: часть расходов приходит месячным актом одной датой, и растягивать её по дневному run-rate значило бы придумывать числа.`}</div></div></div><div class="kt-scroll"><table class="kt-table" id="acct-t"><thead id="acct-h">${IS_OZON ? `<tr><th></th><th class="r">Реклама (клик+заказ)</th><th class="r">Штрафы + гибкий график</th><th class="r">realFBS + сервис + страховка</th><th class="r">Бейдж/сеть/отзывы/Premium</th><th class="r" title="Кабинетное перечисление за доставку от покупателя МИНУС уже разнесённое по артикулам (столбец «Доставка покупателя» в таблице). Основная часть учтена по артикулам, здесь - только нераспределённый остаток.">Доставка покуп. (остаток)</th><th class="r">Прочее (компенс./эквайринг)</th><th class="r">Итого сборов</th></tr>` : ``}</thead><tbody id="acct"></tbody></table></div></section>
+  ${IS_OZON ? `` : `<section class="card" id="sv-pts-card" style="display:none"><div class="card-h"><div><div class="card-title">Баллы Маркета за период</div><div class="card-sub">начислено, потрачено и сальдо &middot; период из фильтра наверху страницы</div></div></div>
+    <div id="sv-pts" class="kt-note" style="padding:2px 0 0"></div>
+  </section>`}
   ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Логистика по городам (наша перевозка)</div><div class="card-sub">Куда наша доставка везёт в убыток: <b>расход перевозчика (ПЭК/СДЭК, счёт из ведомости) больше дохода с покупателя за доставку</b>. Строка = город назначения, считается <b>по отправке</b> (город и перевозка - свойства заказа, между позициями не делятся). Убыточные города (расход > доход) - сверху и подсвечены. Период - из фильтра наверху страницы. <b>Только наша перевозка и только закрытые месяцы</b> (в ведомости текущего месяца ещё нет): заказы на логистике OZON и на услугах партнёров сюда не входят - у них города в данных нет. Расход тут - по дате ОТГРУЗКИ из ведомости, поэтому сумма может немного отличаться от столбца «Наша доставка» в таблице выше (там - по дате заказа); суть та же, ведомость одна. Сверху - сверка: каждый доставленный заказ должен ехать одним из трёх способов (логистика OZON / услуги партнёров / наша перевозка).</div></div></div><div id="logi-recon" class="kt-note" style="margin:2px 0 8px;padding:8px 12px;border-left:3px solid #34D399;background:rgba(52,211,153,.08)"></div><div id="logi-sum" class="kt-note" style="margin:2px 0 8px"></div><div class="kt-scroll logi-vscroll"><table class="kt-table" id="logi-t"><thead><tr><th>Город назначения</th><th class="r">Отправок</th><th class="r" title="Сколько за доставку заплатил покупатель (ведомость)">Доход с покупателя</th><th class="r" title="Наш счёт перевозчика за отправку (ведомость)">Расход перевозчика</th><th class="r" title="Доход − расход. Минус = возим в убыток">Нетто</th><th class="r" title="Средний расход на отправку по городу">Ср. расход/отпр.</th></tr></thead><tbody id="logi"></tbody></table></div></section>` : ``}
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}#ordan-t th,#ordan-t td{white-space:nowrap}.ord-cat{cursor:pointer;font-weight:700}.ord-cat:hover{background:rgba(255,255,255,.03)}.ord-row td:first-child{padding-left:24px;color:var(--ink-2)}#logi-t th,#logi-t td{white-space:nowrap}.logi-loss td{background:rgba(255,90,95,.07)}.logi-vscroll{max-height:min(70vh,560px);overflow:auto}#logi-t thead th{position:sticky;top:0;z-index:2;background:var(--bg-card);box-shadow:inset 0 -1px 0 var(--bg-soft)}.an-vscroll{max-height:min(74vh,640px);overflow:auto}.an-htop{overflow-x:auto;overflow-y:hidden}.an-htop>div{height:1px}#skuan-t,#ordan-t{font-size:11px}#skuan-t th,#skuan-t td,#ordan-t th,#ordan-t td{padding:5px 6px}#skuan-t thead th,#ordan-t thead th{position:sticky;top:0;z-index:2;background:var(--bg-card);box-shadow:inset 0 -1px 0 var(--bg-soft)}</style>`;
   const pageJs = `
@@ -3269,7 +3277,7 @@ function svOwnDeliv(m){return !!((m&&m.own||0)+(m&&m.unk||0));}
 function svDraw(){
   var ms=svPick();
   var cov=document.getElementById('sv-cov'),gapsEl=document.getElementById('sv-gaps'),noteEl=document.getElementById('sv-note');
-  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.';gapsEl.style.display='none';noteEl.textContent='';var _p=document.getElementById('sv-pts');if(_p){_p.style.display='none';_p.innerHTML='';}return;}
+  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.';gapsEl.style.display='none';noteEl.textContent='';var _p=document.getElementById('sv-pts');if(_p){_p.style.display='none';_p.innerHTML='';}var _pc=document.getElementById('sv-pts-card');if(_pc)_pc.style.display='none';return;}
   var orders=0,periodOrd=0,inflight=0,noLed=0,acts={},outSt=0,outMi=0,outMiN=0,ptsDel=0,ptsOrd=0,ptsDed=0,ptsRepSpent=0,missAcc=0,missOrd=0;
   var missByB={};
   var oh=svOverhead(ms),ohM=oh.m,ohP=oh.p,ohAct=oh.act,ohLed=oh.ledger;
@@ -3363,7 +3371,11 @@ function svDraw(){
     var el=document.getElementById('sv-pts'); if(!el)return;
     var pAcc=0,pOrd=0; list.forEach(function(a){pAcc+=a.pts||0;pOrd+=a.sp||0;});
     var pOh=ohP||0, bal=pAcc-pOrd-pOh;
-    if(!Math.round(pAcc)&&!Math.round(pOrd)&&!Math.round(pOh)){el.style.display='none';return;}
+    // Блок переехал отдельной карточкой вниз страницы, после «Общих расходов» (Катя 22.09.2026),
+    // поэтому прятать надо саму карточку: пустая рамка с заголовком и без чисел хуже, чем ничего.
+    var card=document.getElementById('sv-pts-card');
+    if(!Math.round(pAcc)&&!Math.round(pOrd)&&!Math.round(pOh)){if(card)card.style.display='none';el.style.display='none';return;}
+    if(card)card.style.display='';
     el.style.display='';
     // Плитками, а не строкой. Первая версия была тонкой заметкой между длинной жёлтой плашкой
     // пробелов и широкой таблицей, и Катя её просто не нашла на странице (21.09.2026).
@@ -3372,7 +3384,9 @@ function svDraw(){
     var tile=function(k,t,v,c){return '<div data-pts="'+k+'" style="flex:1 1 140px;min-width:140px">'
       +'<div style="color:var(--ink-3);font-size:11.5px;line-height:1.3">'+t+'</div>'
       +'<div data-v="'+Math.round(v)+'" style="font-size:17px;font-weight:700;font-variant-numeric:tabular-nums'+(c?';color:'+c:'')+'">'+(v<0?'-':'')+svRub(Math.abs(v))+' ₽</div></div>';};
-    el.innerHTML='<div style="font-weight:700;margin-bottom:8px">Баллы Маркета за период</div>'
+    // Заголовок теперь несёт сама карточка (блок переехал вниз страницы 22.09.2026), внутри его
+    // повторять не надо - он печатался дважды подряд.
+    el.innerHTML=''
       +'<div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px">'
       +tile('acc','Начислено<br>скидка Маркета и Плюса',pAcc,'')
       +tile('ord','Потрачено<br>на услуги заказов',-pOrd,'')
@@ -3688,7 +3702,7 @@ function soDraw(){
   });
   el.innerHTML=h+'</tbody>';
   Array.prototype.forEach.call(el.querySelectorAll('.so-cat'),function(tr){
-    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SO_OPEN[g.cat]=!SO_OPEN[g.cat];soDraw();};});
+    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SO_OPEN[g.cat]=!SO_OPEN[g.cat];soDraw();ktXbarAll();};});
   moreEl.textContent='заказов за период: '+list.length+' · клик по категории раскрывает заказы';
 }
 
@@ -3837,9 +3851,9 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   h+=body+'</tbody>';
   var el=document.getElementById('sv-t');el.innerHTML=h;
   Array.prototype.forEach.call(el.querySelectorAll('.sv-cat'),function(tr){
-    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();};});
+    tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];SV_OPEN[g.cat]=!SV_OPEN[g.cat];svDraw();ktXbarAll();};});
   Array.prototype.forEach.call(el.querySelectorAll('.sv-lost-h'),function(tr){
-    tr.onclick=function(){SV_LOST_OPEN=!SV_LOST_OPEN;svDraw();};});
+    tr.onclick=function(){SV_LOST_OPEN=!SV_LOST_OPEN;svDraw();ktXbarAll();};});
   noteEl.innerHTML='';
 }
 // Доставка по городам. Вопрос Кати 22.09.2026: «куда у нас доставка в минус». Ответ считается
@@ -3946,7 +3960,7 @@ function ctDraw(){
   });
   el.innerHTML=h+'</tbody>';
   Array.prototype.forEach.call(el.querySelectorAll('.ct-city'),function(tr){
-    tr.onclick=function(){var c=rows[+tr.getAttribute('data-city')];CT_OPEN[c.city]=!CT_OPEN[c.city];ctDraw();};});
+    tr.onclick=function(){var c=rows[+tr.getAttribute('data-city')];CT_OPEN[c.city]=!CT_OPEN[c.city];ctDraw();ktXbarAll();};});
   var minus=rows.filter(function(c){return c.res<0;});
   var minusV=minus.reduce(function(a,c){return a+c.res;},0);
   if(noCity){
@@ -3962,11 +3976,43 @@ function ctDraw(){
     : 'За выбранный период городов нет: либо нет доставленных заказов, либо снимок собран без городов.';
 }
 
+// Верхний ползунок для каждой таблицы в окне. Зовётся после КАЖДОЙ перерисовки: ширина таблицы
+// меняется вместе с раскладкой (раскрыли категорию, сменили период), и полоса обязана меняться с
+// ней. Синхронизация двусторонняя: тянуть можно любой из двух, содержимое едет одинаково.
+function ktXbar(box){
+  if(!box)return;
+  var tbl=box.querySelector('table'); if(!tbl)return;
+  var bar=box.querySelector(':scope > .kt-xbar');
+  if(!bar){
+    bar=document.createElement('div'); bar.className='kt-xbar';
+    bar.appendChild(document.createElement('div'));
+    box.insertBefore(bar,box.firstChild);
+    var lock=false;
+    bar.addEventListener('scroll',function(){if(lock)return;lock=true;box.scrollLeft=bar.scrollLeft;lock=false;});
+    box.addEventListener('scroll',function(){if(lock)return;lock=true;bar.scrollLeft=box.scrollLeft;lock=false;});
+  }
+  // Три уровня липкости, и порядок между ними обязан считаться от ЖИВЫХ высот: подписи столбцов
+  // бывают в две строки (65px на снимке), и зашитая константа накрывала бы шапку полосой.
+  // Полоса сверху, под ней подписи, под ними ИТОГО.
+  var th=tbl.querySelector('thead th');
+  var barH=bar.getBoundingClientRect().height||14;
+  var thH=th?th.getBoundingClientRect().height:30;
+  Array.prototype.forEach.call(tbl.querySelectorAll('thead th'),function(e){e.style.top=barH+'px';});
+  Array.prototype.forEach.call(tbl.querySelectorAll('tr.sv-total td,tr.so-total td'),function(e){e.style.top=(barH+thH)+'px';});
+  bar.style.width=box.clientWidth+'px';
+  bar.firstChild.style.width=tbl.scrollWidth+'px';
+  // Прокручивать нечего - полосу не показываем: пустой серый прямоугольник под шапкой сбивает.
+  bar.style.display=(tbl.scrollWidth>box.clientWidth+1)?'':'none';
+}
+function ktXbarAll(){
+  Array.prototype.forEach.call(document.querySelectorAll('.kt-box'),ktXbar);
+}
 function svInit(){
   if(!document.getElementById('sv-t'))return;
   // Оба свода перерисовываются одним обработчиком: они стоят на одной базе, и разъехаться по
   // ставке или периоду не должны.
-  var both=function(){svDraw();soDraw();ctDraw();};
+  var both=function(){svDraw();soDraw();ctDraw();ktXbarAll();};
+  window.addEventListener('resize',ktXbarAll);
   ['sv-adm','sv-tax'].forEach(function(id){var e=document.getElementById(id);if(e)e.onchange=both;});
   // Свод перерисовывается вместе со всей страницей: шелл зовёт render(cur,cmp) на каждой смене
   // периода, а window.__guruPeriod к этому моменту уже обновлён. Своего состояния периода у

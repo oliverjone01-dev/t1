@@ -1512,3 +1512,107 @@ describe("своды: окно с прокруткой, липкая шапка,
     }
   });
 });
+
+// Катя 22.09.2026: «ползунок снизу таблиц перенеси вверх таблиц под подписи столбцов». У таблицы
+// на двадцать колонок горизонтальный ползунок живёт внизу, а таблица на сотни строк - в окне:
+// чтобы сдвинуть её вправо, приходилось прокручивать к нижнему краю.
+//
+// Проверено в настоящем Chromium (jsdom не считает ширины и высоты, поэтому здесь - структура и
+// правила, а раскладка сверялась браузером): полоса 972..986, подписи 986..1051, ИТОГО 1051 -
+// три липких уровня подряд, при прокрутке на 800px все три остаются на местах, синхронизация
+// двусторонняя (полоса->таблица 150, таблица->полоса 90).
+describe("своды: горизонтальный ползунок сверху", () => {
+  const box = (id: string) => D().querySelector(`#${id}`)?.parentElement as HTMLElement | null;
+
+  it("полоса есть у каждой таблицы и стоит ПЕРВОЙ в окне, до таблицы", () => {
+    for (const id of ["so-t", "sv-t", "ct-t"]) {
+      const b = box(id)!;
+      const bar = b.querySelector(":scope > .kt-xbar");
+      expect(bar, `${id}: верхней полосы нет`).not.toBeNull();
+      expect(b.firstElementChild, `${id}: полоса не первая - окажется под таблицей`).toBe(bar);
+      expect(bar!.firstElementChild, `${id}: у полосы нет внутренней распорки, прокручивать будет нечего`).not.toBeNull();
+    }
+  });
+
+  it("полоса липкая и лежит выше шапки по слоям", () => {
+    const css = [...D().querySelectorAll("style")].map((x) => x.textContent || "").join("\n");
+    const bar = /\.kt-xbar\{([^}]*)\}/.exec(css)?.[1] || "";
+    expect(bar, "полоса не липкая").toContain("position:sticky");
+    expect(bar, "полоса не прижата к левому краю - уедет вместе с таблицей").toContain("left:0");
+    expect(bar, "полоса не прижата к верху окна").toContain("top:0");
+    expect(bar, "полоса без горизонтальной прокрутки").toContain("overflow-x:auto");
+    const z = /z-index:(\d+)/.exec(bar)?.[1];
+    const thZ = /\.kt-box th\{[^}]*z-index:(\d+)/.exec(css)?.[1];
+    expect(Number(z), "полоса ниже шапки по слоям - шапка её накроет").toBeGreaterThan(Number(thZ));
+  });
+
+  // Уровни липкости считаются от живых высот, а не зашиты числом: подписи столбцов бывают в две
+  // строки (65px на снимке), и константа 30px накрывала бы шапку полосой.
+  it("уровни липкости проставляются из измеренных высот, а не константой", () => {
+    const css = [...D().querySelectorAll("style")].map((x) => x.textContent || "").join("\n");
+    expect(/\.kt-box th\{[^}]*top:\s*\d+px/.test(css), "высота шапки зашита в CSS").toBe(false);
+    expect(/\.kt-box tr\.(sv|so)-total td\{[^}]*top:\s*\d+px/.test(css), "уровень ИТОГО зашит в CSS").toBe(false);
+    const html = dom.serialize();
+    expect(html, "нет кода, который считает уровни липкости").toMatch(/barH\s*\+\s*thH/);
+  });
+});
+
+// Катя 22.09.2026: «этот блок по баллам перенеси вниз страницы после блока общие расходы».
+// Раньше он стоял плашкой внутри свода по дате заказа - между жёлтой плашкой пробелов и широкой
+// таблицей, и его там уже один раз не находили (21.09).
+describe("баллы Маркета: отдельной карточкой в конце страницы", () => {
+  const titles = () => [...D().querySelectorAll(".card-title")].map((t) => (t.textContent || "").replace(/ИИ-разбор$/, "").trim());
+
+  it("карточка есть и стоит ПОСЛЕ «Общих расходов»", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const t = titles();
+    const p = t.indexOf("Баллы Маркета за период");
+    const o = t.indexOf("Общие расходы");
+    expect(p, "карточки баллов нет").toBeGreaterThanOrEqual(0);
+    expect(o, "блока «Общие расходы» нет").toBeGreaterThanOrEqual(0);
+    expect(p, "баллы стоят не после общих расходов").toBeGreaterThan(o);
+  });
+
+  it("плашка баллов больше не живёт внутри свода", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const note = D().getElementById("sv-pts")!;
+    expect(note.closest("#sv-pts-card"), "плашка не в своей карточке").not.toBeNull();
+    const svCard = [...D().querySelectorAll(".card")].find((c) => /Свод по дате заказа/.test(c.querySelector(".card-title")?.textContent || ""));
+    expect(svCard?.contains(note) || false, "плашка осталась внутри свода").toBe(false);
+  });
+
+  // Заголовок печатался и карточкой, и внутри плашки - подряд, двумя строками.
+  it("заголовок не задвоен", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const inner = D().getElementById("sv-pts")!.textContent || "";
+    expect((inner.match(/Баллы Маркета за период/g) || []).length, "заголовок повторён внутри карточки").toBe(0);
+    expect([...D().querySelectorAll("[data-pts]")].length, "плитки баллов пропали").toBe(4);
+  });
+
+  // Пустая рамка с заголовком и без чисел хуже, чем ничего: прячется сама карточка, а не плашка.
+  it("на периоде без баллов прячется вся карточка", () => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const has = new Set<string>();
+    for (const m of svod.months || svod) for (const r of m.rows || []) has.add(r.d);
+    const all = [...has].sort();
+    let empty = "";
+    for (let d = all[0]!; d <= all[all.length - 1]!; ) {
+      if (!has.has(d)) { empty = d; break; }
+      const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + 1); d = t.toISOString().slice(0, 10);
+    }
+    if (!empty) return;
+    setRange(empty, empty);
+    const card = D().getElementById("sv-pts-card") as HTMLElement;
+    // «Нет доставленных заказов» НЕ равно «нет движения баллов»: общие расходы кабинета Маркет
+    // списывает своими датами, и в день без продаж траты баллов бывают. Поэтому правило не
+    // «пустой день - прячем», а «карточка висит, только если хоть одна плитка ненулевая».
+    const tiles = [...D().querySelectorAll("[data-pts] [data-v]")]
+      .map((e) => num(e.textContent) || 0);
+    const any = tiles.some((v) => Math.round(v) !== 0);
+    if (card.style.display === "none") {
+      expect(any, `${empty}: карточка спрятана, хотя числа есть`).toBe(false);
+    } else {
+      expect(any, `${empty}: карточка висит с одними нулями`).toBe(true);
+    }
+  });
+});

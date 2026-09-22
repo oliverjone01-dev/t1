@@ -2259,7 +2259,7 @@ function renderOrdersAnalytics(cur){
   // начисление доставки упало позже), они к видимым заказам не относятся, разносить их нельзя. Заказы без
   // per-order значения (доставка ещё не начислена или её не было) показывают 0 - честно.
   var bdUsed={};
-  for(var r2=0;r2<rows.length;r2++){var o2=rows[r2];var ob=(o2.order||'').replace(/-\d+$/,'');
+  for(var r2=0;r2<rows.length;r2++){var o2=rows[r2];var ob=(o2.order||'').replace(/-[0-9]+$/,'');
     if(AN_BDORD[ob]!=null&&!bdUsed[ob]){bdUsed[ob]=1;o2.dinc=(o2.dinc||0)+Math.round(AN_BDORD[ob]);}}
   // Партнёры NON_ITEM (realFBS-услуги без SKU) НЕ разносим по заказам per-order: в by-day у них ключа
   // заказа нет, а те же деньги уже учтены кабинетным рядом AN_ACCT.realfbs - применять AN_PRTORD поверх

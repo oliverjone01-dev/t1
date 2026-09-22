@@ -1171,6 +1171,16 @@ const EXTRA_CSS = `
 .kt-table tr.sv-total td,.kt-table tr.so-total td{font-weight:700;font-size:13px;background:rgba(255,255,255,.05);border-top:1px solid var(--bg-soft);border-bottom:2px solid var(--accent-deep)}
 .kt-table tr.sv-total td:first-child,.kt-table tr.so-total td:first-child{letter-spacing:.03em}
 .kt-scroll{overflow-x:auto}.kt-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
+/* Свод разворачивался на всю высоту (сотни строк) и уносил шапку за экран: без названий колонок
+   таблица из восемнадцати столбцов читается как лист цифр. Окно фиксированной высоты с прокруткой
+   ВНУТРИ и залипающей шапкой. Высота в vh, а не в пикселях: на ноутбуке и на большом мониторе
+   видно разное число строк, но всегда с запасом под прокрутку. */
+.kt-box{max-height:72vh;overflow:auto;position:relative}
+.kt-box table{font-size:11.5px}
+.kt-box th{position:sticky;top:0;z-index:2;background:var(--bg-card,#12151c);box-shadow:inset 0 -1px 0 var(--bg-soft)}
+/* ИТОГО липнет под шапкой: сверять строку с итогом, прокручивая к нему, - это и есть работа
+   с этой таблицей. Второй уровень липкости, поэтому top не 0, а высота шапки. */
+.kt-box tr.sv-total td,.kt-box tr.so-total td{position:sticky;top:30px;z-index:1;background:var(--bg-card,#12151c)}
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
 .kt-src{display:inline-block;font-size:10.5px;border:1px solid var(--bg-soft);border-radius:6px;padding:2px 7px;color:var(--ink-3);margin-left:8px}.kt-src.live{border-color:#22D3EE;color:#22D3EE}
 .kt-wf{display:flex;align-items:flex-end;gap:6px;height:190px;padding:8px 4px}.kt-wf>div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-3)}.kt-wf .bar{border-radius:6px 6px 0 0;margin:0 auto;width:78%}
@@ -2178,7 +2188,7 @@ function render(cur,cmp){
   const svodSection = IS_OZON ? "" : `
   <section class="card"><div class="card-h"><div><div class="card-title">Свод по заказам</div><div class="card-sub">та же база и те же колонки, что в своде по артикулам ниже &middot; строка - заказ, а не артикул &middot; сгруппировано по категориям, клик раскрывает заказы &middot; период из фильтра наверху страницы</div></div>
     </div>
-    <div class="kt-scroll"><table class="kt-table" id="so-t"></table></div>
+    <div class="kt-scroll kt-box"><table class="kt-table" id="so-t"></table></div>
     <div id="so-more" class="kt-note" style="padding:6px 0 0"></div>
   </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Свод по дате заказа</div><div class="card-sub">доставлено минус отмены и возвраты &middot; все кабинеты &middot; период берётся из фильтра наверху страницы, по дате оформления заказа</div></div>
@@ -2189,12 +2199,12 @@ function render(cur,cmp){
     <div id="sv-cov" class="kt-note" style="padding:2px 0 8px"></div>
     <div id="sv-gaps" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
     <div id="sv-pts" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #8AA0FF;background:rgba(138,160,255,.08)"></div>
-    <div class="kt-scroll"><table class="kt-table" id="sv-t"></table></div>
+    <div class="kt-scroll kt-box"><table class="kt-table" id="sv-t"></table></div>
     <div id="sv-note" class="kt-note" style="margin-top:8px"></div>
   </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Доставка по городам</div><div class="card-sub">куда возим в минус &middot; доход - то, что покупатель заплатил нам за доставку &middot; расход - счёт перевозчика из ведомости плюс сбор Маркета за логистику &middot; период из фильтра наверху страницы</div></div></div>
     <div id="ct-gap" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
-    <div class="kt-scroll"><table class="kt-table" id="ct-t"></table></div>
+    <div class="kt-scroll kt-box"><table class="kt-table" id="ct-t"></table></div>
     <div id="ct-note" class="kt-note" style="margin-top:8px"></div>
   </section>
 `;
@@ -3573,9 +3583,13 @@ function soDraw(){
   groups.forEach(function(g){g._c=calc(g);});
   groups.sort(function(p,q){return q._c.net-p._c.net;});
   var FEE=SV_COLS.map(function(p){return p[0];});
+  // «Кто везёт» и «Город» стоят В КОНЦЕ (Катя 22.09.2026): это признаки заказа, а не деньги, и
+  // между «Нашей доставкой» и «С\\С произв.» они разрывали денежную цепочку прайс -> сборы ->
+  // поступление -> себестоимость -> прибыль, по которой строку и читают.
   var H=['Категория / Заказ','Продажи','Доставка покупателя'].concat(FEE)
-    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','Кто везёт','Город','С\\С произв.',
-             'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.']);
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
+             'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.',
+             'Кто везёт','Город']);
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
   function pc(v,b){return '<td class="r">'+(b>0?(Math.round(v/b*1000)/10)+'%':'—')+'</td>';}
@@ -3587,12 +3601,12 @@ function soDraw(){
       +(x.shipKn?money(x.shipOur):(svOwnDeliv(x.dm)
         ?'<td class="r" style="color:#E5B567" title="везли мы, а ведомость доставки эти заказы не знает - наш расход на перевозку неизвестен, прибыль завышена">нет вед.</td>'
         :'<td class="r" title="вёз Маркет - своего расхода на перевозку у нас нет, и ведомости здесь взяться неоткуда">—</td>'))
-      +'<td class="r" style="color:var(--ink-2);font-size:11.5px">'+svModeTxt(x.dm)+'</td>'
-      +soCityCell(x)
       +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="себестоимости по части артикулов нет в листе - валовая и рентабельность завышены"')+'>'+(Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
       +'<td class="r" style="color:'+(c.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.gp)+'</td>'+pc(c.gp,c.net)
       +money(c.adm)+money(c.tax)
-      +'<td class="r" style="color:'+(c.np>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.np)+'</td>'+pc(c.np,c.net);
+      +'<td class="r" style="color:'+(c.np>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.np)+'</td>'+pc(c.np,c.net)
+      +'<td class="r" style="color:var(--ink-2)">'+svModeTxt(x.dm)+'</td>'
+      +soCityCell(x);
   }
   // ИТОГО по ВСЕМ заказам периода, первой строкой - как в своде по артикулам.
   var T={priceNet:0,ship:0,sp:0,un:0,cogs:0,shipOur:0,ck:true,shipKn:false,svc:{},cities:{}},TN={net:0,gp:0,adm:0,tax:0,np:0};
@@ -3614,12 +3628,12 @@ function soDraw(){
     +'<td class="r"><b>'+svRub(T.sp)+'</b></td><td class="r"><b>'+T.un+'</b></td>'
     +'<td class="r"><b>'+svRub(TN.net)+'</b></td>'
     +'<td class="r"><b>'+(Math.round(T.shipOur)?svRub(T.shipOur):'—')+'</b></td>'
-    +'<td class="r" style="font-size:11.5px"><b>'+svModeTxt(T.dm)+'</b></td>'
-    +soCityCell(T)
     +'<td class="r"><b>'+(Math.round(T.cogs)?svRub(T.cogs):'—')+'</b></td>'
     +'<td class="r"><b>'+svRub(TN.gp)+'</b></td>'+pc(TN.gp,TN.net)
     +'<td class="r"><b>'+svRub(TN.adm)+'</b></td><td class="r"><b>'+svRub(TN.tax)+'</b></td>'
-    +'<td class="r"><b>'+svRub(TN.np)+'</b></td>'+pc(TN.np,TN.net)+'</tr>';
+    +'<td class="r"><b>'+svRub(TN.np)+'</b></td>'+pc(TN.np,TN.net)
+    +'<td class="r"><b>'+svModeTxt(T.dm)+'</b></td>'
+    +soCityCell(T)+'</tr>';
   if(Math.round(lost.v)){
     var iShip=H.indexOf('Наша доставка'),tds='';
     for(var ci=1;ci<H.length;ci++){
@@ -3659,9 +3673,9 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   // своим столбцом; спрятать их совсем нельзя - строка перестала бы сходиться.
   // «Поступление на штуку» и «С\С за штуку» убраны: обе получаются делением соседних колонок.
   var H=['Категория / Артикул','Продажи','Доставка покупателя'].concat(FEE)
-    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','Кто везёт','С\\С произв.',
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
              'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.',
-             'В пути, шт','В пути, ₽']);
+             'В пути, шт','В пути, ₽','Кто везёт']);
   // ИТОГО стоит ПЕРВОЙ строкой под шапкой (Иван 18.09.2026: «в своде ИТОГО перенеси вверх под
   // шапку»): при длинной таблице итог уезжал за экран, и сверять его приходилось прокруткой.
   // Поэтому строки категорий собираются отдельно и приклеиваются после итоговых.
@@ -3687,7 +3701,6 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
       +'<td class="r">'+a.un+'</td>'
       +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
       +svShipCell(a,c)
-      +'<td class="r" style="color:var(--ink-2);font-size:11.5px">'+svModeTxt(a.dm)+'</td>'
       +'<td class="r"'+(a.ck?'':' style="color:var(--ink-3)" title="себестоимости по этому артикулу нет в листе - валовая и рентабельность в строке завышены на неизвестную С\\С"')+'>'+(a.ck&&Math.round(a.cogs)?svRub(a.cogs):'—')+'</td>'
       +'<td class="r" style="color:'+(c.gp===null?'var(--ink-3)':(c.gp>=0?'var(--up)':'var(--dn)'))+'">'+(c.gp===null?'не считается':svRub(c.gp))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.gp===null||c.cov<=0)?'—':(Math.round(c.gp/c.cov*1000)/10)+'%')+'</td>'
@@ -3695,7 +3708,8 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
       +'<td class="r" style="color:'+(c.np===null?'var(--ink-3)':(c.np>=0?'var(--up)':'var(--dn)'))+'">'+(c.np===null?'не считается':svRub(c.np))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.np===null||c.cov<=0)?'—':(Math.round(c.np/c.cov*1000)/10)+'%')+'</td>'
       +'<td class="r" style="color:var(--ink-3)">'+(a.fly?a.fly:'—')+'</td>'
-      +'<td class="r" style="color:var(--ink-3)">'+(a.flyP?svRub(a.flyP):'—')+'</td>';
+      +'<td class="r" style="color:var(--ink-3)">'+(a.flyP?svRub(a.flyP):'—')+'</td>'
+      +'<td class="r" style="color:var(--ink-2)">'+svModeTxt(a.dm)+'</td>';
   }
   groups.forEach(function(g,gi){
     var c=calc(g), open=!!SV_OPEN[g.cat];
@@ -3747,7 +3761,6 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
     // (Поступление − без С\С) − Наша доставка − СС = Валовая.
     +'<td class="r"><b>'+svRub(T.net)+'</b></td>'
     +'<td class="r"><b>'+(T.shipKn||Math.round(lost.v)?(Math.round(T.shipOur+lost.v)?svRub(T.shipOur+lost.v):'—'):'<span style="color:#E5B567">нет ведомости</span>')+'</b></td>'
-    +'<td class="r" style="font-size:11.5px"><b>'+svModeTxt(T.dm)+'</b></td>'
     +'<td class="r"><b>'+svRub(T.cogs)+'</b></td>'
     +'<td class="r"><b>'+(some?svRub(gpT):'—')+'</b></td>'
     +'<td class="r"'+svBase({gp:some?gpT:null,cov:T.cover,net:T.net})+'><b>'+mS(gpT)+'</b></td>'
@@ -3755,7 +3768,8 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
     +'<td class="r"><b>'+(some?svRub(npT):'—')+'</b></td>'
     +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net})+'><b>'+mS(npT)+'</b></td>'
     +'<td class="r" style="color:var(--ink-3)"><b>'+(T.fly?T.fly:'—')+'</b></td>'
-    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td></tr>';
+    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td>'
+    +'<td class="r"><b>'+svModeTxt(T.dm)+'</b></td></tr>';
   // СТРОКА ПРОБЕЛА, сразу под ИТОГО (выбор Кати 21.09.2026 из трёх вариантов). Смысл: итог выше
   // неполон, и видно, НАСКОЛЬКО. В сумму ИТОГО не входит ни одной ячейкой и входить не должна:
   // это не наши цифры того же базиса, а начисления реестра по заказам, которых в своде нет.

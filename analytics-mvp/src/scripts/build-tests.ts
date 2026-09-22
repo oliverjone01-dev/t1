@@ -86,14 +86,26 @@ for (const r of readNd(dp("history.ndjson"))) {
 // Позиция в поиске по артикулу и дню. Файла может ещё не быть: ряд появится, когда
 // выгрузку положат в data/position_daily.ndjson. Принимаем оба написания полей.
 let posCount = 0;
-for (const r of readNd(dp("position_daily.ndjson"))) {
-  const art = String(r.offer ?? r.art ?? r.артикул ?? "").trim();
-  const d = String(r.d ?? r.date ?? r.дата ?? "").slice(0, 10);
-  const v = Number(r.pos ?? r.position ?? r.позиция);
-  if (!art || !d || !Number.isFinite(v) || v <= 0) continue;
-  cell(art, d)["pos"] = v; posCount++;
+for (const r of [...readNd(dp("funnel_sku_daily.ndjson")), ...readNd(dp("position_daily.ndjson"))]) {
+  const art = String(r.art ?? r.offer ?? r.артикул ?? "").trim();
+  const d = String(r.date ?? r.d ?? r.дата ?? "").slice(0, 10);
+  if (!art || !d) continue;
+  const v = Number(r.search_position ?? r.pos ?? r.position ?? r.позиция);
+  if (Number.isFinite(v) && v > 0) { cell(art, d)["pos"] = v; posCount++; }
 }
 const HAS_POS = posCount > 0;
+
+// Ставка оплаты за заказ по товару: главный риск теста 2 (по закону 3 при выходе из
+// рекламы OZON поднимает её с 10 % до 23 %, а это убыток с каждого заказа).
+let cpoCount = 0;
+for (const r of readNd(dp("cpo_sku_status.ndjson"))) {
+  const art = String(r.art ?? r.offer ?? "").trim();
+  const d = String(r.date ?? r.d ?? "").slice(0, 10);
+  const v = Number(r.bid_percent);
+  if (!art || !d || !Number.isFinite(v)) continue;
+  cell(art, d)["cpo"] = v; cpoCount++;
+}
+const HAS_CPO = cpoCount > 0;
 
 const artSet = new Set<string>();
 for (const t of (JSON.parse(readFileSync("tools/tests/tests.json", "utf-8")).тесты || []) as TestDef[])
@@ -111,9 +123,14 @@ for (const r of readNd(dp("ads_daily.ndjson"))) {
 const priceRows = readNd(dp("prices_daily.ndjson"));
 const HAS_COINV = priceRows.length > 0;
 for (const r of priceRows) {
-  if (r.coinv != null) cell(r.offer, r.d)["coinv"] = r.coinv;
-  if (r.price) cell(r.offer, r.d)["price"] = r.price;
-  if (r.before) cell(r.offer, r.d)["cap"] = r.before;
+  const art = String(r.offer ?? r.art ?? "").trim();
+  const d = String(r.d ?? r.date ?? "").slice(0, 10);
+  if (!art || !d) continue;
+  const site = Number(r.price ?? r.site), cap = Number(r.before ?? r.cap);
+  const co = r.coinv ?? r.coinv_pct;
+  if (co != null && Number.isFinite(Number(co))) cell(art, d)["coinv"] = Number(co);
+  if (Number.isFinite(site) && site > 0) cell(art, d)["price"] = site;
+  if (Number.isFinite(cap) && cap > 0) cell(art, d)["cap"] = cap;
 }
 const HAS_PRICE = priceRows.length > 0;
 
@@ -133,6 +150,7 @@ if (HAS_COINV) METRICS.push(["coinv", "Соинвест", "raw", " %"]);        
 METRICS.push(["adspend", "Расход на клики", "raw", " ₽", true]);          // цена эффекта
 METRICS.push(["cpc", "CPC", "raw", " ₽", true]);
 METRICS.push(["clicks", "Клики", "raw", "", true]);
+if (HAS_CPO) METRICS.push(["cpo", "Ставка CPO", "raw", " %"]);
 if (HAS_POS) METRICS.push(["pos", "Позиция в поиске", "raw", ""]);
 METRICS.push(["vsearch", "Показы в поиске", "index", ""]);
 METRICS.push(["views", "Показы всего", "index", ""]);
@@ -144,7 +162,7 @@ METRICS.push(["drr", "ДРР", "raw", " %", true]);
 
 // Соинвест - уровень, а не количество: по группе берём среднее по тем артикулам,
 // у которых значение есть, а не сумму.
-const LEVEL = new Set(["coinv", "pos", "price", "cap"]);   // уровни, а не количества: усредняем, не суммируем
+const LEVEL = new Set(["coinv", "pos", "price", "cap", "cpo"]);   // уровни, а не количества: усредняем, не суммируем
 const median = (v: number[]): number | null => {
   if (!v.length) return null;
   const a = [...v].sort((x, y) => x - y), m = a.length >> 1;
@@ -263,6 +281,7 @@ function pairDeltas(t: TestDef, key: string, base: string[], post: string[]): Pa
 const PER_ART: Array<[string, string]> = [["vsearch", "Поиск"], ["views", "Показы"],
   ["pdp", "Карточка"], ["cart", "Корзина"]];
 if (HAS_POS) PER_ART.push(["pos", "Позиция"]);
+if (HAS_COINV) PER_ART.push(["coinv", "Соинвест"]);
 
 function perArticle(t: TestDef): string {
   const st = t.старт!;
@@ -309,7 +328,9 @@ function perArticle(t: TestDef): string {
     + `</table></div><div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов; у позиции цвет перевёрнут, потому что меньше - лучше. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
 }
 
-const lowerTitle = (t: string) => t === t.toUpperCase() ? t : t.toLowerCase();
+// Аббревиатуры внутри названия остаются как есть: «ставка cpo» читается как опечатка.
+const lowerTitle = (t: string) => t.split(' ')
+  .map((w) => w === w.toUpperCase() && w.length > 1 ? w : w.toLowerCase()).join(' ');
 
 function chart(t: TestDef, cid: string): string {
   const st = t.старт!;
@@ -329,7 +350,8 @@ function chart(t: TestDef, cid: string): string {
       return sd ? sn / sd * k : NaN;      // отношение периода - из сумм, а не среднее дневных долей
     }
     const v = nums(groupDaily(g, win, key));
-    return v.length ? v.reduce((x, y) => x + y, 0) / v.length : 0;
+    if (v.length) return v.reduce((x, y) => x + y, 0) / v.length;
+    return LEVEL.has(key) ? NaN : 0;
   };
 
   const panes: Record<string, string> = {}, reads: Record<string, string> = {};
@@ -355,7 +377,7 @@ function chart(t: TestDef, cid: string): string {
       a = groupIndexed(t.тест!, days, key, base);
       b = groupIndexed(t.контроль!, days, key, base);
       if (!nums(a).length || !nums(b).length) continue;
-    } else if (!nums(rawT).some(Boolean) && !(testOnly || nums(rawC).some(Boolean))) continue;
+    } else if (!nums(rawT).length && !(testOnly || nums(rawC).length)) continue;
     panes[key] = testOnly
       ? pane(days, si, a, a.map(() => null), mode, ["тест", ""], si2, "акция off")
       : pane(days, si, a, b, mode, ["тест", "контроль"], si2, "акция off");

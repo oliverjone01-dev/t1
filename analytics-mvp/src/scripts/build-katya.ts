@@ -897,7 +897,7 @@ function banner(active: string): string {
     `<a href="${href}" style="color:${on ? "#0B0F15" : "#22D3EE"};background:${on ? "#22D3EE" : "transparent"};border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">${label}</a>`;
   return `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">
   <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
-    ${KPAGES.filter(([, , key]) => key !== "reakciya" || IS_OZON).map(([h, l, key]) => k(h, l, key === active)).join(" ")}
+    ${KPAGES.filter(([, , key]) => (key !== "reakciya" && key !== "tests") || IS_OZON).map(([h, l, key]) => k(h, l, key === active)).join(" ")}
     ${marketplaceSwitch(active)}
     <span style="color:#5d7484;margin-left:8px">живой ${IS_OZON ? "OZON" : "Яндекс Маркет"} (${snap}) · прочие каналы/клиенты/план - нет данных</span>
   </div></div>${coverageStrip()}`;

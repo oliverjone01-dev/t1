@@ -3088,6 +3088,14 @@ function svodJs(svod: any): string {
     nameOf[r.sku] = r.name || "";
     cat[r.sku] = taxOf(r.sku).category || autoTax(r.name || "").category || "Без категории";
   }
+  // Артикул отменённого заказа может не встретиться в строках свода ни разу: его ни разу не
+  // доставили. Без этого прохода такой заказ в своде по заказам падал в «Без категории», хотя
+  // категория у товара есть - в июле-августе так терялись три заказа на 12 890 ₽.
+  for (const m of svod.months as any[]) for (const r of (m.ship_lost_rows || []) as any[]) {
+    if (!r.sku || cat[r.sku]) continue;
+    nameOf[r.sku] = r.name || "";
+    cat[r.sku] = taxOf(r.sku).category || autoTax(r.name || "").category || "Без категории";
+  }
   const COLS: Array<[string, string[]]> = [
     // Порядок и состав - как в файле Ивана «свод июль». Штрафы он складывает в «Размещение», и
     // здесь так же. Приём и перевод платежа, подписка, обработка и хранение сведены в «Прочее»
@@ -3171,7 +3179,8 @@ function svShipLost(ms,w){
     // попадал хоть один его день: окно 1-15 показывало семь заказов там, где их три.
     (m.ship_lost_rows||[]).forEach(function(r){
       if(!svInWin(r.d,w))return;
-      rows.push({order:r.order,d:r.d,v:r.v||0,status:r.status||'',business:m.business});
+      rows.push({order:r.order,d:r.d,v:r.v||0,status:r.status||'',business:m.business,
+                 sku:r.sku||'',name:r.name||'',line:r.line||'',city:r.city||''});
       v+=r.v||0;n++;
     });
     // Снимок собран до появления ship_lost_rows - падаем на дневной ряд, счётчик месячный.
@@ -3569,7 +3578,7 @@ function soCityCell(x){
   return '<td style="color:var(--ink-2);font-size:11.5px" title="'+top+(ks.length>8?' и ещё '+(ks.length-8):'')+'">'+ks.length+' '+svCityWord(ks.length)+'</td>';
 }
 function svCityWord(n){var m=n%100,k=n%10;if(m>=11&&m<=14)return 'городов';if(k===1)return 'город';if(k>=2&&k<=4)return 'города';return 'городов';}
-function soAgg(ms,w){
+function soAgg(ms,w,lost){
   w=w||svWin();
   var a={};
   ms.forEach(function(m){(m.rows||[]).forEach(function(r){
@@ -3593,18 +3602,54 @@ function soAgg(ms,w){
     o.cogs+=r.cogs||0;o.ck=o.ck&&r.cogs_known;
     o.shipOur+=r.ship_our||0;o.shipKn=o.shipKn||!!r.ship_known;svModeAdd(o.dm,svMode(r));
     SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
+  // Заказы, по которым мы заплатили перевозчику, а выручки нет (отменили или вернули). В своде
+  // по АРТИКУЛАМ им места нет: расход без продажи обрушил бы рентабельность артикула, и там они
+  // стоят отдельной строкой (решение Ивана 18.09). Но здесь строка - это ЗАКАЗ, и такой заказ
+  // ничем не отличается от остальных: у него есть номер, дата, категория и наш расход
+  // (Катя 22.09.2026: «мы знаем по какому это заказу расход - туда его и переместить»).
+  (lost&&lost.rows||[]).forEach(function(r){
+    var o=a[r.order];
+    if(!o){o=a[r.order]={order:r.order,d:r.d,skuRev:{},un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,dm:{},city:'',lost:true};
+      SV_COLS.forEach(function(p){o.svc[p[0]]=0;});
+      svModeAdd(o.dm,'own');}                 // везли мы - иначе счёта перевозчика не было бы
+    if(!o.city&&r.city)o.city=r.city;
+    o.shipOur+=r.v||0; o.shipKn=true;
+    o.lostV=(o.lostV||0)+(r.v||0); o.lostSt=r.status||''; o.lostSku=r.sku||''; o.lostLine=r.line||'';
+    // Заказ, который доставили, а вернули потом: ведомость помечает возвратную ногу, и класс
+    // «lost» накрывает ВЕСЬ заказ, поэтому строки свода остались без расхода и подписывались
+    // «нет вед.». Расход нашёлся - подпись «нет вед.» здесь больше не правда.
+    if(o.dm&&o.dm.unk){o.dm.own=(o.dm.own||0)+o.dm.unk;delete o.dm.unk;}
+  });
   return Object.keys(a).map(function(k){var o=a[k];
     var top=null,best=-Infinity;
     Object.keys(o.skuRev).forEach(function(sk){if(o.skuRev[sk]>best){best=o.skuRev[sk];top=sk;}});
-    o.cat=(top&&SV_CAT[top])||'Без категории';
+    // У отменённого заказа выручки нет, значит и skuRev пуст: категорию берём из его же артикула,
+    // который derive положил в строку расхода (самая крупная позиция заказа).
+    o.cat=(top&&SV_CAT[top])||(o.lostSku&&SV_CAT[o.lostSku])||'Без категории';
     return o;});
+}
+// Подпись заказа. Заказ, по которому мы заплатили перевозчику, а денег не получили, обязан быть
+// видно: без пометки строка читается как обычный заказ с нулевой выручкой и минусом непонятно
+// откуда. Статус берётся из снимка заказов, он же объясняет, почему выручки нет.
+var SO_ST={CANCELLED_IN_PROCESSING:'отменён до отгрузки',CANCELLED_IN_DELIVERY:'отменён в доставке',
+  CANCELLED_BEFORE_PROCESSING:'отменён до сборки',RETURNED:'возврат',UNPAID:'не оплачен',
+  PROCESSING:'в сборке',DELIVERY:'в пути',PICKUP:'ждёт в ПВЗ',DELIVERED:'доставлен',PENDING:'ждёт подтверждения'};
+function soOrdName(x){
+  if(!x.lostV)return x.order;
+  var st=SO_ST[x.lostSt]||x.lostSt||'без статуса';
+  var t=x.lost
+    ?'Перевозку оплатили, выручки по заказу нет: '+st+'. Товар - '+(x.lostLine||'без линейки')+' ('+(x.lostSku||'?')+'). Расход стоит на заказе, потому что мы знаем, на каком он заказе.'
+    :'Заказ доставлен, но по нему была возвратная нога - ведомость помечает такую отправку, и её '+svRub(x.lostV)+' попадали в общий котёл. Теперь они на самом заказе.';
+  return '<span style="color:#FF5A5F" title="'+t+'">\u25CF</span> '+x.order
+    +(x.lost?' <span style="color:var(--ink-3);font-size:10.5px">'+st+'</span>':'');
 }
 function soDraw(){
   var el=document.getElementById('so-t'); if(!el)return;
   var moreEl=document.getElementById('so-more');
   var w=svWin(),ms=svPick(w);
   if(!ms.length){el.innerHTML='';moreEl.textContent='';return;}
-  var list=soAgg(ms,w), oh=svOverhead(ms,w), lost=svShipLost(ms,w);
+  var oh=svOverhead(ms,w), lost=svShipLost(ms,w);
+  var list=soAgg(ms,w,lost);
   var ae=document.getElementById('sv-adm'),te=document.getElementById('sv-tax');
   var adm=Number((ae&&ae.value)||30)/100, tax=Number((te&&te.value)||15)/100;
   // Общие расходы кабинета к заказу не привязаны - разносим ПО ШТУКАМ, ровно как в своде по
@@ -3667,9 +3712,8 @@ function soDraw(){
     Object.keys(g.cities||{}).forEach(function(k){soCityAdd(T.cities,k,g.cities[k]);});
     TN.net+=c.net;TN.gp+=c.gp;TN.adm+=c.adm;TN.tax+=c.tax;TN.np+=c.np;
     FEE.forEach(function(n){T.svc[n]+=g.svc[n]||0;});});
-  // Отправки по отменённым и возвратам: у такого заказа строк свода нет вовсе (выручки нет), а
-  // перевозку мы оплатили. Без этой строки два свода разошлись бы ровно на неё.
-  T.shipOur+=lost.v; TN.gp-=lost.v; TN.np-=lost.v;
+  // Отдельной добавки больше нет: отменённые заказы стоят в списке своими строками, и их расход
+  // уже сложен циклом выше. Прибавить его ещё раз значило бы посчитать дважды.
   T.svc['Прочее']=(T.svc['Прочее']||0)+(oh.m+oh.p);
   h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' заказов)</span></td>'
     +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
@@ -3683,21 +3727,16 @@ function soDraw(){
     +'<td class="r"><b>'+svRub(TN.np)+'</b></td>'+pc(TN.np,TN.net)
     +'<td class="r"><b>'+svModeTxt(T.dm)+'</b></td>'
     +soCityCell(T)+'</tr>';
-  if(Math.round(lost.v)){
-    var iShip=H.indexOf('Наша доставка'),tds='';
-    for(var ci=1;ci<H.length;ci++){
-      if(ci===iShip) tds+='<td class="r" style="color:#FF5A5F">'+svRub(lost.v)+'</td>';
-      else if(H[ci]==='Валовая прибыль'||H[ci]==='Чистая прибыль') tds+='<td class="r" style="color:var(--dn)">'+svRub(-lost.v)+'</td>';
-      else tds+='<td class="r">—</td>';
-    }
-    h+='<tr class="so-extra" style="background:rgba(255,90,95,.06);border-bottom:2px solid var(--bd)"><td title="Мы оплатили перевозку, а заказ отменили или вернули. Строк свода у такого заказа нет - выручки по нему нет, поэтому расход стоит отдельной строкой.">Отправки по отменённым и возвратам <span style="color:var(--ink-3)">('+lost.n+' заказов)</span></td>'+tds+'</tr>';
-  }
+  // Отдельной строки «Отправки по отменённым и возвратам» здесь больше нет (Катя 22.09.2026:
+  // «мы знаем по какому это заказу расход - туда его и переместить»). В своде по АРТИКУЛАМ она
+  // остаётся: там строка - артикул, и расход без продажи обрушил бы его рентабельность. Здесь
+  // строка - ЗАКАЗ, а заказ у этого расхода есть, с номером, датой и категорией.
   groups.forEach(function(g,gi){
     var open=!!SO_OPEN[g.cat];
     h+='<tr class="so-cat" data-cat="'+gi+'" style="cursor:pointer"><td><b>'+(open?'▾':'▸')+' '+g.cat+'</b> <span style="color:var(--ink-3)">('+g.rows.length+' зак.)</span></td>'+cells(g,g._c)+'</tr>';
     if(open){
       g.rows.slice().sort(function(p,q){return q._c.net-p._c.net;}).forEach(function(x){
-        h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+x.order+'</td>'+cells(x,x._c)+'</tr>';});
+        h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)">'+soOrdName(x)+'</td>'+cells(x,x._c)+'</tr>';});
     }
   });
   el.innerHTML=h+'</tbody>';

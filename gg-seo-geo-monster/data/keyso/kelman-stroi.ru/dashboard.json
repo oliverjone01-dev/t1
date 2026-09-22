@@ -2,7 +2,7 @@
   "domain": "kelman-stroi.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-09-14T08:11:04.160Z",
+  "measured": "2026-09-21T08:14:43.873Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=kelman-stroi.ru",
   "data": {
     "id": 280352249,
@@ -12,89 +12,89 @@
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 4893,
-        "it50": 50913320,
-        "vis": 4336257,
-        "perc": 0.009610451646052546
+        "cnt": 4891,
+        "it50": 50895583,
+        "vis": 4304502,
+        "perc": 0.009609871253464176
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 4428,
-        "it50": 50198217,
-        "vis": 3783422,
-        "perc": 0.008821030436200554
+        "cnt": 4425,
+        "it50": 50271590,
+        "vis": 4085933,
+        "perc": 0.008802188273734727
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 3999,
-        "it50": 3123260,
-        "vis": 509835,
-        "perc": 0.12803929227794036
+        "cnt": 3996,
+        "it50": 3130907,
+        "vis": 509083,
+        "perc": 0.12763074725630624
       },
       {
         "did": 29917304,
         "name": "rutube.ru",
-        "cnt": 3918,
-        "it50": 30604329,
-        "vis": 2263269,
-        "perc": 0.012802110446531928
+        "cnt": 3909,
+        "it50": 30639185,
+        "vis": 2262160,
+        "perc": 0.012758172255560977
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 3804,
-        "it50": 47482263,
-        "vis": 11253503,
-        "perc": 0.00801141259842649
+        "cnt": 3791,
+        "it50": 47498722,
+        "vis": 11180773,
+        "perc": 0.007981267369677863
       },
       {
         "did": 37692261,
         "name": "m-strana.ru",
-        "cnt": 3756,
-        "it50": 1383955,
-        "vis": 16611,
-        "perc": 0.2713961075323981
+        "cnt": 3767,
+        "it50": 1387243,
+        "vis": 17006,
+        "perc": 0.27154579262609363
       },
       {
         "did": 270071578,
         "name": "znaet.petrovich.ru",
-        "cnt": 3344,
-        "it50": 670078,
-        "vis": 42529,
-        "perc": 0.499046379675202
+        "cnt": 3337,
+        "it50": 669603,
+        "vis": 43523,
+        "perc": 0.49835499542266093
       },
       {
         "did": 30030622,
         "name": "169.ru",
-        "cnt": 3286,
-        "it50": 91029,
-        "vis": 5097,
-        "perc": 3.6098386228564525
+        "cnt": 3282,
+        "it50": 91082,
+        "vis": 4799,
+        "perc": 3.6033464350804767
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 3067,
-        "it50": 20507725,
-        "vis": 2158472,
-        "perc": 0.014955339999926856
+        "cnt": 3056,
+        "it50": 20480106,
+        "vis": 2104424,
+        "perc": 0.014921797768038897
       },
       {
         "did": 30015208,
         "name": "ivd.ru",
-        "cnt": 3014,
-        "it50": 890908,
-        "vis": 13528,
-        "perc": 0.33830653670188165
+        "cnt": 3018,
+        "it50": 891033,
+        "vis": 13617,
+        "perc": 0.33870799398002094
       }
     ],
     "it1": 13,
-    "it3": 76,
-    "it5": 155,
-    "it10": 463,
-    "it50": 7363,
+    "it3": 74,
+    "it5": 154,
+    "it10": 458,
+    "it50": 7356,
     "childsCount": 0,
     "keys": [
       {
@@ -135,9 +135,9 @@
       },
       {
         "pos": 1,
-        "word": "келман",
-        "ws": 325,
-        "wsk": 8
+        "word": "перегородка гармошка подвесная",
+        "ws": 23,
+        "wsk": 12
       },
       {
         "pos": 1,
@@ -147,33 +147,33 @@
       },
       {
         "pos": 1,
-        "word": "кельман строй",
-        "ws": 5,
-        "wsk": 4
+        "word": "келман",
+        "ws": 325,
+        "wsk": 8
       },
       {
         "pos": 1,
-        "word": "перегородка из дсп своими руками",
-        "ws": 10,
-        "wsk": 2
+        "word": "кельман строй",
+        "ws": 5,
+        "wsk": 4
       }
     ],
-    "topkeys": 53522,
+    "topkeys": 53594,
     "pages": [
       {
         "it50": 375,
         "url": "/blog/ustanovit-korobku-dveri-svoimi-rukami"
       },
       {
-        "it50": 369,
+        "it50": 370,
         "url": "/blog/otkosy-dverej-svoimi-rukami"
       },
       {
-        "it50": 345,
+        "it50": 344,
         "url": "/blog/chem-zakryt-i-kak-oformit-proem-vmesto-dveri"
       },
       {
-        "it50": 302,
+        "it50": 303,
         "url": "/blog/peregorodka-iz-reek-svoimi-rukami"
       },
       {
@@ -181,11 +181,11 @@
         "url": "/blog/montazh-stenovyh-panelej-svoimi-rukami"
       },
       {
-        "it50": 228,
+        "it50": 226,
         "url": "/blog/porog-dverej-svoimi-rukami"
       },
       {
-        "it50": 200,
+        "it50": 199,
         "url": "/blog/dveri-kupe-svoimi-rukami"
       },
       {
@@ -193,107 +193,107 @@
         "url": "/blog/peregorodki-iz-gazobetonnyh-blokov-svoimi-rukami"
       },
       {
-        "it50": 178,
+        "it50": 177,
         "url": "/blog/dver-v-banyu-svoimi-rukami"
       },
       {
-        "it50": 174,
+        "it50": 175,
         "url": "/blog/kak-sdelat-peregorodku-iz-gipsokartona"
       }
     ],
-    "pagesinindex": 203,
+    "pagesinindex": 204,
     "vis": 16,
-    "topvis": 209262,
+    "topvis": 205307,
     "adconcs": [
       {
         "did": 29917770,
         "name": "vseinstrumenti.ru",
-        "cnt": 108,
-        "it50": 4208057,
-        "vis": 432337,
-        "adkeyscnt": 2791072,
-        "adscnt": 1485943
+        "cnt": 107,
+        "it50": 4241654,
+        "vis": 472047,
+        "adkeyscnt": 2731116,
+        "adscnt": 1470106
       },
       {
         "did": 29919264,
         "name": "moscow.petrovich.ru",
         "cnt": 73,
-        "it50": 964142,
-        "vis": 120233,
-        "adkeyscnt": 778686,
-        "adscnt": 282416
+        "it50": 970343,
+        "vis": 128347,
+        "adkeyscnt": 768549,
+        "adscnt": 281479
       },
       {
         "did": 29917793,
         "name": "santehnika-online.ru",
-        "cnt": 72,
-        "it50": 390868,
-        "vis": 23354,
-        "adkeyscnt": 263838,
-        "adscnt": 116354
+        "cnt": 71,
+        "it50": 392633,
+        "vis": 24516,
+        "adkeyscnt": 259510,
+        "adscnt": 115299
       },
       {
         "did": 30030613,
         "name": "dveribravo.ru",
-        "cnt": 65,
-        "it50": 12423,
-        "vis": 419,
-        "adkeyscnt": 9102,
-        "adscnt": 2624
+        "cnt": 64,
+        "it50": 12520,
+        "vis": 429,
+        "adkeyscnt": 8965,
+        "adscnt": 2605
       },
       {
         "did": 30556300,
         "name": "volhovec.ru",
-        "cnt": 52,
-        "it50": 7985,
-        "vis": 587,
-        "adkeyscnt": 11979,
-        "adscnt": 2342
+        "cnt": 51,
+        "it50": 8062,
+        "vis": 657,
+        "adkeyscnt": 11849,
+        "adscnt": 2328
       },
       {
         "did": 132609763,
         "name": "holdis.ru",
-        "cnt": 46,
-        "it50": 1679,
+        "cnt": 45,
+        "it50": 1660,
         "vis": 4,
-        "adkeyscnt": 380,
-        "adscnt": 181
+        "adkeyscnt": 375,
+        "adscnt": 180
       },
       {
         "did": 30263453,
         "name": "portaprima.ru",
         "cnt": 42,
-        "it50": 16880,
-        "vis": 553,
-        "adkeyscnt": 3936,
-        "adscnt": 1454
+        "it50": 16940,
+        "vis": 571,
+        "adkeyscnt": 3857,
+        "adscnt": 1436
       },
       {
         "did": 125649525,
         "name": "alfaporta.ru",
-        "cnt": 41,
-        "it50": 9753,
-        "vis": 1643,
-        "adkeyscnt": 2395,
-        "adscnt": 644
+        "cnt": 40,
+        "it50": 9739,
+        "vis": 1885,
+        "adkeyscnt": 2328,
+        "adscnt": 637
       },
       {
         "did": 30066226,
         "name": "dver1.ru",
-        "cnt": 39,
-        "it50": 17859,
-        "vis": 223,
-        "adkeyscnt": 2100,
-        "adscnt": 616
+        "cnt": 38,
+        "it50": 17977,
+        "vis": 272,
+        "adkeyscnt": 2046,
+        "adscnt": 611
       },
       {
-        "did": 29974585,
-        "name": "zakaz-dverey.ru",
+        "did": 374680290,
+        "name": "lemanapro.ru",
         "cnt": 35,
-        "it50": 2280,
-        "vis": 117,
-        "adkeyscnt": 2102,
-        "adscnt": 1010
+        "it50": 3130907,
+        "vis": 509083,
+        "adkeyscnt": 597150,
+        "adscnt": 146566
       }
     ],
     "adkeys": [
@@ -322,17 +322,6 @@
       {
         "p": [
           0,
-          17
-        ],
-        "pos": 17,
-        "sr": 0,
-        "word": "поворотная перегородка",
-        "ws": 2280,
-        "wsk": 29
-      },
-      {
-        "p": [
-          0,
           45
         ],
         "pos": 45,
@@ -340,6 +329,17 @@
         "word": "двери гармошка межкомнатные купить в спб",
         "ws": 78,
         "wsk": 35
+      },
+      {
+        "p": [
+          0,
+          21
+        ],
+        "pos": 21,
+        "sr": 0,
+        "word": "панели для перегородок в комнате до потолка",
+        "ws": 43,
+        "wsk": 41
       },
       {
         "p": [
@@ -377,17 +377,6 @@
       {
         "p": [
           0,
-          39
-        ],
-        "pos": 39,
-        "sr": 0,
-        "word": "офисные двери межкомнатные",
-        "ws": 214,
-        "wsk": 26
-      },
-      {
-        "p": [
-          0,
           24
         ],
         "pos": 24,
@@ -406,15 +395,26 @@
         "word": "двери межкомнатные складные и поворотные",
         "ws": 42,
         "wsk": 25
+      },
+      {
+        "p": [
+          1,
+          15
+        ],
+        "pos": 15,
+        "sr": 1,
+        "word": "дверь гармошка уличная в беседку",
+        "ws": 72,
+        "wsk": 67
       }
     ],
-    "adkeyscnt": 539,
+    "adkeyscnt": 534,
     "ads": [
       {
         "facts": "",
         "header": "Раздвижные двери москва",
         "id": 4156947937,
-        "keyscnt": 18,
+        "keyscnt": 17,
         "links": "О нас, Портфолио, Доставка и оплата, Цены",
         "txt": "Раздвижные двери москва! Визуализация в подарок!"
       },
@@ -436,14 +436,6 @@
       },
       {
         "facts": "",
-        "header": "Складные двери гармошка. Москва",
-        "id": 523226153,
-        "keyscnt": 12,
-        "links": "О нас, Портфолио, Доставка и оплата, Цены",
-        "txt": "Складные двери гармошка! Визуализация в подарок!"
-      },
-      {
-        "facts": "",
         "header": "Раздвижные межкомнатные двери. Москва",
         "id": 1794512089,
         "keyscnt": 12,
@@ -452,9 +444,17 @@
       },
       {
         "facts": "",
+        "header": "Складные двери гармошка. Москва",
+        "id": 523226153,
+        "keyscnt": 12,
+        "links": "О нас, Портфолио, Доставка и оплата, Цены",
+        "txt": "Складные двери гармошка! Визуализация в подарок!"
+      },
+      {
+        "facts": "",
         "header": "Купить складные двери гармошка. Москва",
         "id": 1681798334,
-        "keyscnt": 11,
+        "keyscnt": 10,
         "links": "О нас, Портфолио, Доставка и оплата, Цены",
         "txt": "Складная дверь гармошка купить! Визуализация в подарок!"
       },
@@ -462,7 +462,7 @@
         "facts": "",
         "header": "Стеклянные двери с размерами. Москва",
         "id": 1650668381,
-        "keyscnt": 10,
+        "keyscnt": 9,
         "links": "О нас, Портфолио, Доставка и оплата, Цены",
         "txt": "Стеклянные двери! Визуализация в подарок!"
       },
@@ -491,16 +491,16 @@
         "txt": "Раздвижные перегородки! Визуализация в подарок!"
       }
     ],
-    "adscnt": 290,
-    "adtraf": 3,
+    "adscnt": 291,
+    "adtraf": 2,
     "adcost": {
-      "average": 34924,
-      "bdg100": 84799,
-      "bdg5": 2802,
-      "bdg62": 33539,
-      "bdg85": 50404,
-      "bdg9": 3075,
-      "max": 84799
+      "average": 30804,
+      "bdg100": 75477,
+      "bdg5": 2564,
+      "bdg62": 28809,
+      "bdg85": 44414,
+      "bdg9": 2752,
+      "max": 75477
     },
     "restop5": 2,
     "history": {
@@ -710,15 +710,15 @@
       },
       "2026.09": {
         "it1": 13,
-        "it3": 76,
-        "it5": 155,
-        "it10": 463,
-        "it50": 7363,
-        "pagesInIndex": 203,
-        "adsCount": 290,
-        "adKeysCount": 539,
+        "it3": 74,
+        "it5": 154,
+        "it10": 458,
+        "it50": 7356,
+        "pagesInIndex": 204,
+        "adsCount": 291,
+        "adKeysCount": 534,
         "visAvg": 16,
-        "aiCnt": 931
+        "aiCnt": 894
       }
     },
     "linksHistory": {
@@ -856,7 +856,7 @@
         281
       ]
     },
-    "aiAnswersCnt": 931,
+    "aiAnswersCnt": 894,
     "aiState": 0,
     "dr": 24,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/015db3e43086e2778d6ce48d12156cee9d7143e9682f0d73ff3a50b759a1f4db.png",

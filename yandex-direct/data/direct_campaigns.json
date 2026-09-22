@@ -1,15 +1,15 @@
 {
- "dateFrom": "2026-08-19",
- "dateTo": "2026-09-17",
- "generated_at": "2026-09-18T11:18:32.545Z",
+ "dateFrom": "2026-08-23",
+ "dateTo": "2026-09-21",
+ "generated_at": "2026-09-22T11:41:47.351Z",
  "totals": {
   "campaigns": 35,
   "active": 6,
-  "moderation": 28,
-  "spend": 171735.44,
-  "clicks": 1549,
-  "impressions": 167048,
-  "conversions": 1257
+  "moderation": 29,
+  "spend": 173585.30000000002,
+  "clicks": 1568,
+  "impressions": 171363,
+  "conversions": 1241
  },
  "campaigns": [
   {
@@ -464,12 +464,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 1777,
-   "clicks": 175,
-   "ctr": 9.85,
-   "cpc": 154.76,
-   "spend": 27082.82,
-   "conv": 157
+   "imp": 1746,
+   "clicks": 170,
+   "ctr": 9.74,
+   "cpc": 152.25,
+   "spend": 25883.01,
+   "conv": 152
   },
   {
    "id": 712877517,
@@ -481,12 +481,12 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 3270,
-   "clicks": 355,
-   "ctr": 10.86,
-   "cpc": 126.39,
-   "spend": 44869.19,
-   "conv": 321
+   "imp": 3582,
+   "clicks": 351,
+   "ctr": 9.8,
+   "cpc": 122.42,
+   "spend": 42970.74,
+   "conv": 317
   },
   {
    "id": 712877525,
@@ -498,19 +498,19 @@
    "start": "2026-07-19",
    "dailyBudget": null,
    "strategy": "AVERAGE_CPC",
-   "imp": 2789,
-   "clicks": 415,
-   "ctr": 14.88,
-   "cpc": 123.54,
-   "spend": 51270.17,
-   "conv": 375
+   "imp": 2917,
+   "clicks": 411,
+   "ctr": 14.09,
+   "cpc": 122.69,
+   "spend": 50426.37,
+   "conv": 371
   },
   {
    "id": 712877530,
    "name": "[На заказ] Перегородки | ТГ | НБ=8т.р. | CPC=135 |",
    "type": "TEXT_CAMPAIGN",
-   "status": "ACCEPTED",
-   "state": "SUSPENDED",
+   "status": "MODERATION",
+   "state": "ARCHIVED",
    "payment": "ALLOWED",
    "start": "2026-07-19",
    "dailyBudget": null,
@@ -566,12 +566,12 @@
    "start": "2026-08-12",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 32764,
-   "clicks": 172,
-   "ctr": 0.52,
-   "cpc": 79.83,
-   "spend": 13731.05,
-   "conv": 75
+   "imp": 40055,
+   "clicks": 190,
+   "ctr": 0.47,
+   "cpc": 91.48,
+   "spend": 17382.14,
+   "conv": 77
   },
   {
    "id": 713589837,
@@ -583,16 +583,16 @@
    "start": "2026-08-16",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 126447,
-   "clicks": 432,
-   "ctr": 0.34,
-   "cpc": 80.51,
-   "spend": 34782.21,
-   "conv": 329
+   "imp": 123029,
+   "clicks": 446,
+   "ctr": 0.36,
+   "cpc": 82.79,
+   "spend": 36923.04,
+   "conv": 324
   },
   {
    "id": 714445486,
-   "name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=600 |",
+   "name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=300 |",
    "type": "TEXT_CAMPAIGN",
    "status": "ACCEPTED",
    "state": "ON",
@@ -600,7 +600,7 @@
    "start": "2026-09-15",
    "dailyBudget": null,
    "strategy": "SERVING_OFF",
-   "imp": 1,
+   "imp": 34,
    "clicks": 0,
    "ctr": 0,
    "cpc": 0,

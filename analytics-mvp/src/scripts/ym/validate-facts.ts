@@ -19,6 +19,7 @@
 // а делает её применимой к знаковым файлам.
 // Запуск: tsx validate-facts.ts <файл.ndjson> <прошлый.ndjson|""> [--month-key=d|date|ym] [--sum=amount] [--abs]
 import { readFileSync, existsSync } from "node:fs";
+import { FLOOR_DEFAULT } from "./common.js";
 
 // Порог просадки месяца. ФЕНИКС 2026-09-07: Number('abc') = NaN, и тогда ВСЕ сравнения давали false -
 // гейт печатал «потерь нет» при минус половине; а значение 1 отключало его целиком. Значение вне
@@ -38,6 +39,20 @@ const DROP = threshold(process.env.YM_FACTS_DROP_GATE, "YM_FACTS_DROP_GATE", 0.1
 // Верхняя граница 0.9, а не 2: при 2 ровное удвоение (+100%) проходило под порогом, то есть
 // разрешённое значение оставалось выключателем детектора - просто более узким (ФЕНИКС iter4).
 const GROW = threshold(process.env.YM_FACTS_GROW_GATE, "YM_FACTS_GROW_GATE", 0.25, 0.9); // рост ЗАКРЫТОГО месяца
+
+// Бэкфилл вглубь. Прогон с опущенным YM_FLOOR впервые запрашивает месяцы НИЖЕ дефолтного
+// пола, и там рост закрытого месяца - ровно то, ради чего прогон запущен, а не задвоение.
+// Живой факт 2026-09-21: прогон с YM_FLOOR=2026-01-01 встал на netting.ndjson, где январь
+// вырос 201 -> 524 и 335 -> 1061. Раньше в январе лежали только строки, залетевшие в окно
+// февраля; теперь месяц собран целиком.
+// Ослабляется ТОЛЬКО потолок роста и ТОЛЬКО ниже дефолтного пола. Детектор ПОТЕРИ не
+// трогается нигде и никогда: потеря не бывает ожидаемой ни на каком прогоне.
+export function backfillBelow(ymFloor: string | undefined, floorDefault = FLOOR_DEFAULT): string {
+  const f = String(ymFloor || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(f)) return "";   // пол не задан или задан мусором - обычный прогон
+  return f < floorDefault ? floorDefault.slice(0, 7) : "";
+}
+const BACKFILL_BELOW = backfillBelow(process.env.YM_FLOOR);
 
 function rows(p: string): any[] {
   if (!p || !existsSync(p)) return [];
@@ -121,6 +136,7 @@ function main() {
       bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} при неизменном числе строк ${c.n} - это задвоение, а не добор (добор растит число строк)`);
     }
     else if (!growOn || monthOf(mth) >= newest) continue; // текущий месяц ещё набирается - потолок роста не про него
+    else if (BACKFILL_BELOW && monthOf(mth) < BACKFILL_BELOW) continue;  // месяц собирается впервые: см. backfillBelow
     else if (c.n >= p.n * (1 + GROW)) bad.push(`${mth}: строк было ${p.n}, стало ${c.n} (закрытый месяц вырос на ${Math.round((c.n / p.n - 1) * 100)}% - похоже на задвоение)`);
     else if (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) >= Math.abs(p.s) * (1 + GROW)) bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} (закрытый месяц вырос на ${Math.round((Math.abs(c.s) / Math.abs(p.s) - 1) * 100)}% - похоже на задвоение)`);
   }

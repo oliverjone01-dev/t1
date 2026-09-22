@@ -294,13 +294,16 @@ export class OzonSeller {
 
   // Отправления (FBO + FBS) за период с товарами и финданными: по каждому заказу - дата, статус,
   // список товаров {sku, offer, qty, price} и financial_data (если OZON отдал). Для блока «по заказам».
-  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any }>> {
+  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; src: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any }>> {
     const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
     const out: Array<any> = [];
-    const mapP = (p: any) => ({
+    // src - откуда пришёл заказ: FBO (склад OZON) или FBS (склад продавца). rFBS (доставка силами
+    // продавца) - подтип FBS, определяется по realFBS-начислениям, поэтому выводится в orders-daily.
+    const mapP = (p: any, src: string) => ({
       posting_number: String(p.posting_number ?? ""),
       status: String(p.status ?? ""),
       date: String(p.in_process_at ?? p.created_at ?? p.shipment_date ?? "").slice(0, 10),
+      src,
       products: (p.products ?? []).map((it: any) => ({
         sku: String(it.sku ?? ""), offer: String(it.offer_id ?? ""),
         qty: Number(it.quantity ?? 0), price: Number(it.price ?? 0),
@@ -310,14 +313,43 @@ export class OzonSeller {
     for (let offset = 0; offset < 200000; offset += 1000) {
       const d = await this.post<any>("/v2/posting/fbo/list", { dir: "ASC", filter: { since: from, to, status: "" }, limit: 1000, offset, with: { financial_data: true } });
       const arr: any[] = d.result ?? [];
-      for (const p of arr) if (p?.posting_number) out.push(mapP(p));
+      for (const p of arr) if (p?.posting_number) out.push(mapP(p, "FBO"));
       if (arr.length < 1000) break;
     }
     for (let offset = 0; offset < 200000; offset += 1000) {
       const d = await this.post<any>("/v3/posting/fbs/list", { dir: "ASC", filter: { since: from, to }, limit: 1000, offset, with: { financial_data: true } });
       const arr: any[] = d.result?.postings ?? d.result ?? [];
-      for (const p of arr) if (p?.posting_number) out.push(mapP(p));
+      for (const p of arr) if (p?.posting_number) out.push(mapP(p, "FBS"));
       if (arr.length < 1000) break;
+    }
+    return out;
+  }
+
+  // Возвраты за период (/v1/returns/list). Нужны, чтобы вычесть выручку возвращённых заказов из блока
+  // по заказам: в начислениях по постингу возврата выручки нет (ClientReturn=0), только отдельный
+  // эндпоинт возвратов несёт связь заказ<->возвращённый товар. Возвращает [{posting_number, sku, qty,
+  // price, status}]. Схема ответа у OZON плавает - разбираем оборонительно (несколько имён полей).
+  async returns(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; sku: string; offer: string; qty: number; price: number; status: string }>> {
+    const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
+    const out: Array<any> = [];
+    let lastId: any = 0;
+    for (let guard = 0; guard < 500; guard++) {
+      let d: any;
+      try {
+        d = await this.post<any>("/v1/returns/list", { filter: { logistic_return_date: { time_from: from, time_to: to } }, limit: 500, last_id: lastId });
+      } catch { break; }
+      const arr: any[] = d.returns ?? d.result?.returns ?? [];
+      for (const r of arr) {
+        const prods = r.products ?? (r.product ? [r.product] : []);
+        const posting = String(r.posting_number ?? r.posting?.posting_number ?? r.order_number ?? "");
+        const status = String(r.visual?.status?.display_name ?? r.visual?.status?.sys_name ?? r.status ?? "");
+        for (const p of prods) {
+          const price = Number(p.price?.price ?? p.price ?? p.commission_price ?? 0);
+          out.push({ posting_number: posting, sku: String(p.sku ?? ""), offer: String(p.offer_id ?? ""), qty: Number(p.quantity ?? p.qty ?? 1), price, status });
+        }
+      }
+      lastId = d.last_id ?? d.result?.last_id ?? 0;
+      if (!(d.has_next ?? d.result?.has_next) || !arr.length) break;
     }
     return out;
   }

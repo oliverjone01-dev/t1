@@ -28,6 +28,7 @@ type Row = Record<string, number>;
 type TestDef = {
   id: string; название: string; гипотеза: string; старт?: string; замер?: string;
   горизонт_дней?: number; тест?: string[]; контроль?: string[]; правило?: string; статус?: string;
+  этап2?: string; заметка?: string;
 };
 
 const esc = (s: unknown): string => String(s ?? "").replace(/[&<>"]/g, (c) =>
@@ -76,6 +77,11 @@ for (const r of readNd(dp("ads_sku_daily.ndjson"))) {
   const art = sku2art[String(r.sku)]; if (!art) continue;
   const c = cell(art, r.d); c["spend"] = (c["spend"] || 0) + (r.sp || 0);
 }
+for (const r of readNd(dp("history.ndjson"))) {
+  const art = r.offer_id && r.offer_id !== "__empty__" ? r.offer_id : sku2art[String(r.sku)];
+  if (!art) continue;
+  const c = cell(art, r.date); c["revenue"] = (c["revenue"] || 0) + (r.revenue || 0);
+}
 const priceRows = readNd(dp("prices_daily.ndjson"));
 const HAS_COINV = priceRows.length > 0;
 for (const r of priceRows) if (r.coinv != null) cell(r.offer, r.d)["coinv"] = r.coinv;
@@ -89,12 +95,16 @@ const measured = (rea.tests || []).filter((t: any) => t.status === "измере
 // ---------- метрики графика ----------
 // index - обе линии приводятся к своему уровню до старта (уровни групп разные);
 // raw   - как есть: обе группы в одной единице и сравнимы напрямую.
-const METRICS: Array<[string, string, "index" | "raw", string]> = [
+// testOnly - метрика рисуется одной линией: у контроля рекламы нет по построению,
+// и вторая линия была бы плоским нулём, который только мешает.
+const METRICS: Array<[string, string, "index" | "raw", string, boolean?]> = [
   ["vsearch", "Показы в поиске", "index", ""],
   ["views", "Показы всего", "index", ""],
   ["pdp", "Карточка", "index", ""],
   ["cart", "Корзина", "index", ""],
-  ["spend", "Расход на рекламу", "raw", " ₽"],
+  ["spend", "Расход на рекламу", "raw", " ₽", true],
+  ["revenue", "Выручка", "raw", " ₽"],
+  ["drr", "ДРР", "raw", " %", true],
 ];
 if (HAS_COINV) METRICS.push(["coinv", "Соинвест", "raw", " %"]);
 
@@ -123,7 +133,7 @@ type Pt = number | null;
 // значение вперёд значит рисовать данные, которых нет (ряды соинвеста и позиции из
 // среза кабинета обрываются на несколько дней раньше воронки).
 function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw",
-              labels: [string, string] = ["тест", "контроль"]) {
+              labels: [string, string] = ["тест", "контроль"], si2 = -1, lbl2 = "") {
   const all = [...a, ...b].filter((v): v is number => v != null);
   if (!all.length) return "";
   const lo0 = Math.min(...all), hi0 = Math.max(...all);
@@ -158,6 +168,8 @@ function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw
   return grid + xt
     + `<line class="st" x1="${x(si).toFixed(1)}" x2="${x(si).toFixed(1)}" y1="${TP}" y2="${H - B}"/>`
     + `<text class="ax st-t" x="${(x(si) + 4).toFixed(1)}" y="${TP + 9}">старт</text>`
+    + (si2 >= 0 ? `<line class="st2" x1="${x(si2).toFixed(1)}" x2="${x(si2).toFixed(1)}" y1="${TP}" y2="${H - B}"/>`
+        + `<text class="ax st-t" x="${(x(si2) + 4).toFixed(1)}" y="${TP + 20}">${lbl2}</text>` : "")
     + `<path d="${path(b)}" fill="none" stroke="${C_CTRL}" stroke-width="2" stroke-linejoin="round"/>`
     + `<path d="${path(a)}" fill="none" stroke="${C_TEST}" stroke-width="2" stroke-linejoin="round"/>`
     + (lastOf(a) != null ? `<text class="dl" x="${W - R + 6}" y="${(y(lastOf(a)!) + 3.5).toFixed(1)}">${labels[0]}</text>` : "")
@@ -177,22 +189,37 @@ function chart(t: TestDef, cid: string): string {
   const post = days.filter((d) => d >= st);
   if (!post.length) return "";
   const avg = (g: string[], win: string[], key: string) => {
+    if (key === "drr") {
+      const sp = nums(groupDaily(g, win, "spend")).reduce((x, y) => x + y, 0);
+      const rv = nums(groupDaily(g, win, "revenue")).reduce((x, y) => x + y, 0);
+      return rv ? sp / rv * 100 : NaN;    // ДРР периода - из сумм; без выручки его нет
+    }
     const v = nums(groupDaily(g, win, key));
     return v.length ? v.reduce((x, y) => x + y, 0) / v.length : 0;
   };
 
   const panes: Record<string, string> = {}, reads: Record<string, string> = {};
   const subs: Record<string, string> = {}, tip: Record<string, any> = {};
-  for (const [key, title, mode, unit] of METRICS) {
-    const rawT = groupDaily(t.тест!, days, key), rawC = groupDaily(t.контроль!, days, key);
+  const si2 = t.этап2 ? days.indexOf(t.этап2) : -1;
+  const ratio = (num: Array<number | null>, den: Array<number | null>): Array<number | null> =>
+    num.map((v, i) => { const d = den[i]; return (v == null || !d) ? null : v / d * 100; });
+  for (const [key, title, mode, unit, testOnly] of METRICS) {
+    const rawT = key === "drr"
+      ? ratio(groupDaily(t.тест!, days, "spend"), groupDaily(t.тест!, days, "revenue"))
+      : groupDaily(t.тест!, days, key);
+    const rawC = key === "drr"
+      ? ratio(groupDaily(t.контроль!, days, "spend"), groupDaily(t.контроль!, days, "revenue"))
+      : groupDaily(t.контроль!, days, key);
     const bT = avg(t.тест!, base, key), bC = avg(t.контроль!, base, key);
     const pT = avg(t.тест!, post, key), pC = avg(t.контроль!, post, key);
     let a: Pt[] = rawT, b: Pt[] = rawC;
     if (mode === "index") {
       if (!bT || !bC) continue;
       a = rawT.map((v) => v == null ? null : v / bT * 100); b = rawC.map((v) => v == null ? null : v / bC * 100);
-    } else if (!nums(rawT).some(Boolean) && !nums(rawC).some(Boolean)) continue;
-    panes[key] = pane(days, si, a, b, mode);
+    } else if (!nums(rawT).some(Boolean) && !(testOnly || nums(rawC).some(Boolean))) continue;
+    panes[key] = testOnly
+      ? pane(days, si, a, a.map(() => null), mode, ["тест", ""], si2, "акция off")
+      : pane(days, si, a, b, mode, ["тест", "контроль"], si2, "акция off");
     subs[key] = mode === "index" ? "100 = средний день двух недель перед стартом"
       : `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
     tip[key] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: rawT, rc: rawC, mode, unit };
@@ -205,23 +232,33 @@ function chart(t: TestDef, cid: string): string {
         : "";
       reads[key] = `<div class="dyn-read">Средний день, ${title.toLowerCase()}: тест <b>${nbsp(bT)} → ${nbsp(pT)}</b> (${pT >= bT ? "+" : ""}${((pT / bT - 1) * 100).toFixed(0)} %), контроль <b>${nbsp(bC)} → ${nbsp(pC)}</b> (${pC >= bC ? "+" : ""}${((pC / bC - 1) * 100).toFixed(0)} %), разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b>. База - две недели перед стартом. После старта прошло ${post.length} дн, данные по ${LAST}.</div>${alarm}`;
     } else {
-      reads[key] = `<div class="dyn-read">Средний день, ${title.toLowerCase()}: тест <b>${nbsp(bT)}${unit} → ${nbsp(pT)}${unit}</b>, контроль <b>${nbsp(bC)}${unit} → ${nbsp(pC)}${unit}</b>. Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.</div>`;
+      const v = (x: number) => Number.isFinite(x) ? nbsp(x) + unit : "нет данных";
+      reads[key] = `<div class="dyn-read">${testOnly ? "Тестовая группа" : "Средний день"}, ${title.toLowerCase()}: `
+        + (testOnly
+          ? `<b>${v(bT)} → ${v(pT)}</b> за день. У контроля рекламы нет по построению, поэтому вторая линия не рисуется.`
+          : `тест <b>${v(bT)} → ${v(pT)}</b>, контроль <b>${v(bC)} → ${v(pC)}</b>.`)
+        + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.</div>`;
     }
   }
   if (!panes["vsearch"]) return "";
   const uT = nums(groupDaily(t.тест!, post, "units")).reduce((x, y) => x + y, 0);
   const uC = nums(groupDaily(t.контроль!, post, "units")).reduce((x, y) => x + y, 0);
+  const solo = JSON.stringify(METRICS.filter(([k, , , , to]) => panes[k] && to).map(([k]) => k));
   const btns = METRICS.filter(([k]) => panes[k]).map(([k, n]) =>
     `<button class="mb${k === "vsearch" ? " on" : ""}" data-m="${k}">${n}</button>`).join("");
   const gap = HAS_COINV ? "" : " Соинвест по артикулам начнёт собираться ночным снимком, задним числом он не восстанавливается.";
+  // Магазин продаёт 4-16 штук в день на весь ассортимент, поэтому выручка и ДРР по группе
+  // из десятка артикулов почти двоичные: день с заказом или без. Молчать об этом нельзя,
+  // иначе «выручка упала до нуля» прочитается как провал теста.
+  const thin = " Выручка и ДРР по группе рваные: магазин продаёт 4-16 штук в день на весь ассортимент, так что день без заказа у десятка артикулов - обычное дело, а не провал.";
   return `<div class="dyn"><div class="dyn-h">Динамика по дням. <span class="dyn-sub" id="${cid}-sub">${subs["vsearch"]}</span></div>`
     + `<div class="mrow-b">${btns}</div>`
-    + `<div class="lg"><span class="lgi"><i style="background:${C_TEST}"></i>тест, ${t.тест!.length} арт.</span>`
-    + `<span class="lgi"><i style="background:${C_CTRL}"></i>контроль, ${t.контроль!.length} арт.</span></div>`
+    + `<div class="lg" id="${cid}-lg"><span class="lgi"><i style="background:${C_TEST}"></i>тест, ${t.тест!.length} арт.</span>`
+    + `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>контроль, ${t.контроль!.length} арт.</span></div>`
     + `<svg class="cv" id="${cid}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Динамика по дням, тест против контроля">${panes["vsearch"]}</svg>`
     + `<div class="tip" id="${cid}-tip"></div><div id="${cid}-read">${reads["vsearch"]}</div>`
-    + `<div class="dyn-note">Заказов после старта: тест <b>${uT}</b> шт, контроль <b>${uC}</b> шт. Линией не рисуем: заказы идут по 0-2 в день на группу, посуточный график был бы шумом. Позиция в поиске по отдельным артикулам не собирается, она ниже, в блоке по магазину.${gap}</div></div>`
-    + `<script>window.DYN=window.DYN||{};window.DYN[${JSON.stringify(cid)}]=${JSON.stringify({ d: days, m: tip, panes, reads, subs })};</script>`;
+    + `<div class="dyn-note">Заказов после старта: тест <b>${uT}</b> шт, контроль <b>${uC}</b> шт. Линией не рисуем: заказы идут по 0-2 в день на группу, посуточный график был бы шумом. Позиция в поиске по отдельным артикулам не собирается, она ниже, в блоке по магазину.${gap}${thin}</div></div>`
+    + `<script>window.DYN=window.DYN||{};window.DYN[${JSON.stringify(cid)}]=${JSON.stringify({ d: days, m: tip, panes, reads, subs })};window.SOLO=window.SOLO||{};window.SOLO[${JSON.stringify(cid)}]=${solo};</script>`;
 }
 
 // ---------- карточки тестов ----------
@@ -296,8 +333,11 @@ const cards = T.тесты.map((t) => {
     + `<div class="hyp">${esc(t.гипотеза)}</div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span><span>Замер: <b>${esc(t.замер || "-")}</b></span>`
     + `<span>Горизонт: <b>${esc(t.горизонт_дней ?? "")} дн</b></span>`
+    + (t.этап2 !== undefined ? `<span>Выход из акции: <b>${esc(t.этап2 || "не зафиксирован")}</b></span>` : "")
     + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b></span></div>`
-    + `<div class="rule"><b>Правило:</b> ${esc(t.правило || "")}</div>${body}</section>`;
+    + `<div class="rule"><b>Правило:</b> ${esc(t.правило || "")}</div>`
+    + (t.заметка ? `<div class="cov" style="border-top:none;padding-top:0">${esc(t.заметка)}</div>` : "")
+    + `${body}</section>`;
 }).join("");
 
 // ---------- магазин целиком: с рекламой против без рекламы ----------
@@ -393,7 +433,8 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .cv{width:100%;height:170px;display:block;overflow:visible}
 .cv .gl{stroke:var(--soft);stroke-width:1}.cv .ax{fill:var(--ink3);font:10px system-ui}
 .cv .dl{fill:var(--ink2);font:10.5px system-ui}
-.cv .st{stroke:var(--ink3);stroke-width:1;stroke-dasharray:2 3}.cv .st-t{fill:var(--ink3)}
+.cv .st{stroke:var(--ink3);stroke-width:1;stroke-dasharray:2 3}
+.cv .st2{stroke:var(--warn);stroke-width:1;stroke-dasharray:2 3}.cv .st-t{fill:var(--ink3)}
 .cv .ch{stroke:var(--ink2);stroke-width:1}
 .tip{position:absolute;pointer-events:none;display:none;background:#0b0f17;border:1px solid var(--soft);border-radius:7px;padding:6px 9px;font-size:11.5px;color:var(--ink);white-space:nowrap;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 .tip .k{color:var(--ink3)}.tip i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
@@ -410,7 +451,7 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 const JS = `
 (function(){
   var C1=${JSON.stringify(C_TEST)}, C2=${JSON.stringify(C_CTRL)};
-  var NAMES={vsearch:'показов в поиске',views:'показов всего',pdp:'заходов в карточку',cart:'в корзину',
+  var NAMES={vsearch:'показов в поиске',views:'показов всего',pdp:'заходов в карточку',cart:'в корзину',revenue:'выручка',drr:'ДРР',spend:'расход',
              coinv:'%',search_position:'позиция',search_views:'показов в поиске',pdp_views:'заходов',ordered_units:'шт'};
   function fin(x){ var s=String(Math.round(x)), o='', n=s.length;
     for(var i=0;i<n;i++){ o+=s[i]; if((n-i-1)%3===0 && i<n-1) o+='\\u00a0'; } return o; }
@@ -452,6 +493,8 @@ const JS = `
       host.querySelectorAll('.mb').forEach(function(x){ x.classList.toggle('on', x===b); });
       svg.innerHTML=D.panes[k]; read.innerHTML=D.reads[k];
       if(sub&&D.subs&&D.subs[k]) sub.textContent=D.subs[k];
+      var lg=document.getElementById(id+'-lg'), solo=(window.SOLO||{})[id]||[];
+      if(lg){ var one=solo.indexOf(k)>=0; var c=lg.querySelector('.ctl'); if(c) c.style.display=one?'none':''; }
       tip.style.display='none'; wire();
     });
   });

@@ -45,6 +45,12 @@ export interface OrderRow {
   price: number; p_buyer: number; p_mp: number; p_cashback: number; p_spasibo: number;
   revenue: number; accruals: number;
   shop_order: string;
+  // Город доставки заказа (deliveryRegion.name из stats/orders). Маркет отдаёт его живьём
+  // (проба data-ym/_probe/orders.json: {"deliveryRegion":{"id":"number","name":"string"}}), но до
+  // 22.09.2026 строка его не несла, и «куда мы возим» на дашборде не было вообще. Поле
+  // опциональное: в строках, собранных старым кодом, его нет, и выдавать пустоту за «нет города»
+  // нельзя - это «мы его не спрашивали». Отличать пустое от отсутствующего умеет только undefined.
+  region?: string;
   pos: number;      // номер позиции в заказе: у товара и доставки один shopSku, ключ строки без него схлопывает их
   service: boolean; // позиция-услуга (доставка/подъём): деньги заказа - да, проданные штуки - нет
   fees: Record<string, number>; fee_total: number; payout: number; fee_actual: boolean;
@@ -149,7 +155,7 @@ export function normalizeOrder(o: YmOrder, campaignId: string, businessId: strin
     ft = r2(ft);
     return {
       platform: PLATFORM, business: businessId, campaign: campaignId, order: o.id, shop_order: o.partnerOrderId || "", pos: x.idx, service: x.service,
-      created, statusDate, status: o.status, fin,
+      created, statusDate, status: o.status, fin, region: o.deliveryRegion || undefined,
       sku: x.it.shopSku || x.it.marketSku, market_sku: x.it.marketSku, name: x.it.offerName, line: lineOf(x.it.offerName),
       units: x.units, count: x.count, delivered: x.delivered, returned: x.returned, cancelled: x.cancelledUnits,
       price: r2(x.price), p_buyer: r2(x.p_buyer), p_mp: r2(x.p_mp), p_cashback: r2(x.p_cashback), p_spasibo: r2(x.p_spasibo),
@@ -631,6 +637,11 @@ export interface SvodRow {
   // Ведомость знает этот заказ. Отличается от ship_our===0: за февраль-март лист не заполняли
   // вовсе, и ноль там означал бы «возили бесплатно». §15 п.3: пробел обязан быть виден.
   ship_known: boolean;
+  // Город доставки заказа. Нужен, чтобы видеть, КУДА доставка убыточна: расход на перевозку
+  // зависит от плеча, а доход с покупателя - нет. Поле опционально: пока снимок заказов собран
+  // старым кодом, города в нём нет, и пустая строка означала бы «город неизвестен», а не
+  // «мы его не сохраняли». Разницу держит undefined.
+  region?: string;
 }
 export interface SvodMonth {
   business: string; ym: string; orders: number; rows: SvodRow[];
@@ -886,7 +897,8 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
         orders: 0, units_delivered: 0, units_returned: 0, units_net: 0,
         price: 0, ship_buyer: 0, ship_mp: 0, disc_mp: 0, disc_plus: 0, buyer_pay: 0, refunds: 0, revenue_money: 0, points_accrued: 0,
         svc: svcZero(), svc_pts: svcZero(), svc_money: 0, svc_points: 0, svc_total: 0, result_money: 0, result_points: 0,
-        cogs: 0, cogs_known: cogsAt(r.sku) != null, ship_our: 0, ship_known: false };
+        cogs: 0, cogs_known: cogsAt(r.sku) != null, ship_our: 0, ship_known: false,
+        ...(r.region ? { region: r.region } : {}) };
       acc.set(kk, s);
     }
     return s;

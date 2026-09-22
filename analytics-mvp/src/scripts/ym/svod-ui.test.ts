@@ -570,7 +570,7 @@ describe("свод Маркета: числа на странице", () => {
     // 2026-09-18: между «Поступлением» и С\С встала «Наша доставка» - счёт перевозчика из ручной
     // ведомости (Иван: «нашу доставку поставь перед СС»). Этого расхода в дашборде не было вовсе.
     const tail = ["Баллы Маркета", "Штуки", "Поступление",
-      "Наша доставка", "СС произв.", "Валовая прибыль", "Маржа", "АДМ 30%", "Налоги 15%", "Чистая прибыль", "Рентаб.",
+      "Наша доставка", "Кто везёт", "СС произв.", "Валовая прибыль", "Маржа", "АДМ 30%", "Налоги 15%", "Чистая прибыль", "Рентаб.",
       "В пути, шт", "В пути, ₽"];
     expect(h.slice(-tail.length)).toEqual(tail);
     expect(errs).toEqual([]);
@@ -649,8 +649,11 @@ describe("свод: колонка «Наша доставка»", () => {
     const i = h.indexOf("Наша доставка");
     expect(i, "колонки нет").toBeGreaterThan(0);
     expect(h[i - 1]).toBe("Поступление");
-    expect(h[i + 1]).toBe("СС произв.");
-    expect(h[i + 2]).toBe("Валовая прибыль");
+    // 21.09.2026 между ними встала «Кто везёт»: модель доставки объясняет, почему у части
+    // строк сбор Маркета пуст, и стоит рядом с обеими колонками доставки.
+    expect(h[i + 1]).toBe("Кто везёт");
+    expect(h[i + 2]).toBe("СС произв.");
+    expect(h[i + 3]).toBe("Валовая прибыль");
     expect(errs).toEqual([]);
   });
 
@@ -756,9 +759,20 @@ describe("свод: колонка «Наша доставка»", () => {
     expect(c, "пробел выдан за ноль").not.toMatch(/^—$/);
     // Не только ИТОГО: в строках категорий пробел обязан быть виден так же, иначе пользователь
     // увидит «—» напротив товара и прочтёт его как «возили бесплатно».
-    const marchRows = shipCells();
+    // 21.09.2026: «—» здесь стало ЗАКОННЫМ там, где вёз Маркет - своей перевозки у нас нет, и
+    // ведомости взяться неоткуда. Поэтому проверяем не «у всех нет ведомости», а связку с
+    // колонкой «Кто везёт»: везли мы - обязано стоять «нет ведомости», вёз Маркет - «—».
+    const hh = head().map((x) => x.trim());
+    const iShip = hh.indexOf("Наша доставка"), iMode = hh.indexOf("Кто везёт");
+    const marchRows = [...T().querySelectorAll("tr.sv-cat")].map((r) => ({
+      ship: (r.children[iShip]!.textContent || "").trim(),
+      mode: (r.children[iMode]!.textContent || "").trim(),
+      name: (r.children[0]!.textContent || "").trim(),
+    }));
     expect(marchRows.length, "март не дал ни одной строки").toBeGreaterThan(0);
-    expect(marchRows.every((x) => x.includes("нет ведомости")), `строки марта: ${marchRows.join(" | ")}`).toBe(true);
+    const bad = marchRows.filter((r) => (r.mode === "Маркет") ? r.ship !== "—" : !r.ship.includes("нет ведомости"));
+    expect(bad.map((r) => `${r.name}: ${r.mode} / ${r.ship}`), "пробел ведомости разошёлся с моделью доставки").toEqual([]);
+    expect(marchRows.some((r) => r.ship.includes("нет ведомости")), "в марте ни одна строка не показала пробел").toBe(true);
 
     setRange("2026-08-01", "2026-08-31");
     expect(cell("Наша доставка")).not.toContain("нет ведомости");
@@ -1137,5 +1151,72 @@ describe("свод: отправки по отменённым раскрыва�
     setRange("2026-06-01", "2026-06-10");
     const part = hdr() ? num((hdr().textContent || "").match(/\((\d+) заказов\)/)![1])! : 0;
     expect(part, "часть месяца показала столько же заказов, сколько весь месяц").toBeLessThan(whole);
+  });
+});
+
+// Колонка «Кто везёт». Катя 21.09.2026: в своде видно, что покупатель заплатил за доставку, а
+// расхода нет - и непонятно, потерялись данные или так и должно быть. У Маркета две модели:
+// везёт он (берёт сбор за логистику, платёж покупателя до нас не доходит) или везём мы (платёж
+// приходит нам, Маркет за доставку не берёт ничего, наш расход - только из ведомости).
+// Колонка показывает, какая модель у строки, чтобы пустой сбор читался как норма, а не как пропажа.
+describe("свод: колонка «Кто везёт»", () => {
+  const T2 = () => D().getElementById("so-t")!;
+  const ix = (t: Element, name: string) => [...t.querySelectorAll("thead th")]
+    .map((x) => (x.textContent || "").trim()).indexOf(name);
+
+  it("колонка есть в обоих сводах и не сдвинула строки", () => {
+    setRange("2026-07-01", "2026-07-31");
+    for (const t of [T(), T2()]) {
+      const n = t.querySelectorAll("thead th").length;
+      expect(ix(t, "Кто везёт"), "колонки «Кто везёт» нет").toBeGreaterThan(0);
+      const bad = [...t.querySelectorAll("tbody tr")].filter((r) => r.children.length !== n);
+      expect(bad.length, "снятие/добавление колонки сдвинуло строки").toBe(0);
+    }
+  });
+
+  it("у каждого заказа подпись совпадает с его же числами", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const t = T2();
+    for (let p = 0; p < 12; p++) {
+      const shut = [...t.querySelectorAll("tr.so-cat")].filter((c) => (c.textContent || "").trim().startsWith("▸"));
+      if (!shut.length) break;
+      click(shut[0]!);
+    }
+    const iM = ix(t, "Кто везёт"), iB = ix(t, "Доставка покупателя"), iD = ix(t, "Доставка");
+    const orders = [...t.querySelectorAll("tbody tr")]
+      .filter((r) => /^\d{8,}$/.test((r.children[0]!.textContent || "").trim()));
+    expect(orders.length, "заказы не раскрылись").toBeGreaterThan(20);
+    const bad: string[] = [];
+    for (const r of orders) {
+      const mode = (r.children[iM]!.textContent || "").trim();
+      const inc = num(r.children[iB]!.textContent) || 0;
+      const fee = num(r.children[iD]!.textContent) || 0;
+      const no = (r.children[0]!.textContent || "").trim();
+      // «Маркет» обязан иметь сбор за логистику; «своя» - платёж покупателя и НЕ иметь сбора.
+      if (mode === "Маркет" && fee <= 0) bad.push(`${no}: «Маркет», а сбора за доставку нет`);
+      if (mode.startsWith("своя") && fee > 0) bad.push(`${no}: «своя», а сбор Маркета есть`);
+      if (mode.startsWith("своя") && inc <= 0) bad.push(`${no}: «своя», а покупатель за доставку не платил`);
+      if (mode === "—" && (fee > 0 || inc > 0)) bad.push(`${no}: «—», хотя деньги за доставку есть`);
+    }
+    expect(bad.slice(0, 8)).toEqual([]);
+  });
+
+  it("«своя, нет вед.» стоит ровно там, где нашего расхода не знают", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const t = T2();
+    for (let p = 0; p < 12; p++) {
+      const shut = [...t.querySelectorAll("tr.so-cat")].filter((c) => (c.textContent || "").trim().startsWith("▸"));
+      if (!shut.length) break;
+      click(shut[0]!);
+    }
+    const iM = ix(t, "Кто везёт"), iO = ix(t, "Наша доставка");
+    const rows = [...t.querySelectorAll("tbody tr")]
+      .filter((r) => /^\d{8,}$/.test((r.children[0]!.textContent || "").trim()));
+    const bad = rows.filter((r) => {
+      const mode = (r.children[iM]!.textContent || "").trim();
+      const own = (r.children[iO]!.textContent || "").trim();
+      return (mode === "своя, нет вед.") !== (own === "нет вед.");
+    }).map((r) => (r.children[0]!.textContent || "").trim());
+    expect(bad.slice(0, 6), "подпись режима разошлась с колонкой «Наша доставка»").toEqual([]);
   });
 });

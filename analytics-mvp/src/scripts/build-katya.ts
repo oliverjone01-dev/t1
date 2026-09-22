@@ -2259,7 +2259,7 @@ function renderOrdersAnalytics(cur){
   // начисление доставки упало позже), они к видимым заказам не относятся, разносить их нельзя. Заказы без
   // per-order значения (доставка ещё не начислена или её не было) показывают 0 - честно.
   var bdUsed={};
-  for(var r2=0;r2<rows.length;r2++){var o2=rows[r2];var ob=(o2.order||'').replace(/-\d+$/,'');
+  for(var r2=0;r2<rows.length;r2++){var o2=rows[r2];var ob=(o2.order||'').replace(/-[0-9]+$/,'');
     if(AN_BDORD[ob]!=null&&!bdUsed[ob]){bdUsed[ob]=1;o2.dinc=(o2.dinc||0)+Math.round(AN_BDORD[ob]);}}
   // Партнёры NON_ITEM (realFBS-услуги без SKU) НЕ разносим по заказам per-order: в by-day у них ключа
   // заказа нет, а те же деньги уже учтены кабинетным рядом AN_ACCT.realfbs - применять AN_PRTORD поверх
@@ -2704,7 +2704,7 @@ function svInWin(d,w){w=w||svWin();return d>=w.from&&d<=w.to;}
 function svAgg(ms,w){
   w=w||svWin();
   var a={};ms.forEach(function(m){m.rows.forEach(function(r){if(!svInWin(r.d,w))return;var k=r.sku,o=a[k];
-    if(!o){o=a[k]={sku:r.sku,name:r.name,un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:r.cogs_known,svc:{},shipOur:0,shipKn:false};}
+    if(!o){o=a[k]={sku:r.sku,name:r.name,un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,pts:0,sm:0,sp:0,cogs:0,ck:r.cogs_known,svc:{},shipOur:0,shipKn:false,dm:{}};}
     // ||0 обязателен: в страницу уходит компактная копия свода, где нулевые поля просто не
     // записаны. Без защиты первая же строка с нулевыми штуками давала NaN во всём итоге.
     // «Продажи» с вычетом возвратов. Прайс строки относится ко ВСЕМ доставленным штукам, поэтому
@@ -2717,7 +2717,7 @@ function svAgg(ms,w){
     o.pts+=r.points_accrued||0;o.sm+=r.svc_money||0;o.sp+=r.svc_points||0;o.cogs+=r.cogs||0;o.ck=o.ck&&r.cogs_known;
     // Наша доставка - расход из ручной ведомости. shipKn отделяет «возили бесплатно» от «ведомость
     // за этот месяц не заполняли»: за март лист пуст при 120 заказах, и ноль там был бы враньём.
-    o.shipOur+=r.ship_our||0; o.shipKn=o.shipKn||!!r.ship_known;
+    o.shipOur+=r.ship_our||0; o.shipKn=o.shipKn||!!r.ship_known;svModeAdd(o.dm,svMode(r));
     SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
   // Недоставленные заказы периода, по артикулам. В расчёт не идут ни одной строкой: свод считает
   // только доставленное. Артикул, у которого доставок нет вовсе, заводится отдельной строкой с
@@ -2815,6 +2815,35 @@ function svMissing(w){
   });
   return o;
 }
+
+// Кто вёз заказ. Признак берётся из данных, а не из предположения: сбор Маркета за логистику
+// значит, что вёз он; платёж покупателя за доставку нам (ship_buyer) значит, что везли мы (DBS),
+// и тогда Маркет за доставку не берёт ничего, а наш расход может прийти только из ведомости.
+// Сверено 21.09.2026: у 468 строк логистика есть И в комиссиях заказа, И в реестре платежей;
+// строк, где она есть только в одном источнике, НЕТ ни одной - источники сходятся полностью.
+// Два режима не пересекаются ни в одной из 1119 строк снимка, поэтому «смеш.» возможен только
+// у категории или артикула, собранного из разных заказов.
+var SV_DEL_COLS=['Доставка','Доставка покупателю','Доставка (средняя миля)','Доставка невыкупов и возвратов'];
+function svMode(r){
+  var led=0;SV_DEL_COLS.forEach(function(k){led+=(r.svc&&r.svc[k]||0)+(r.svc_pts&&r.svc_pts[k]||0);});
+  if(led>0)return 'mk';                        // вёз Маркет
+  if((r.ship_buyer||0)>0)return r.ship_known?'own':'unk';   // везли мы: с ведомостью или без
+  return 'none';                               // ни сбора, ни дохода - самовывоз или включено в цену
+}
+// Подпись колонки по накопленным счётчикам строки/категории/итога.
+function svModeTxt(m){
+  if(!m)return '—';
+  var own=(m.own||0)+(m.unk||0);
+  if(m.mk&&own)return '<span title="часть заказов вёз Маркет, часть мы">смеш.</span>';
+  if(m.mk)return 'Маркет';
+  if(own)return m.unk&&!m.own?'<span style="color:#E5B567" title="везли мы, а ведомость доставки этих заказов не знает - нашего расхода в расчёте НЕТ">своя, нет вед.</span>'
+    :(m.unk?'<span title="везли мы; по части заказов ведомость расхода не знает">своя, частично</span>':'своя');
+  return '—';
+}
+function svModeAdd(dst,mode,n){dst[mode]=(dst[mode]||0)+(n||1);}
+// Везли ли МЫ хоть часть строки. Где вёз только Маркет, ведомости доставки взяться неоткуда,
+// и «нет вед.» там - ложная тревога: она читается как пропавший расход, которого не существует.
+function svOwnDeliv(m){return !!((m&&m.own||0)+(m&&m.unk||0));}
 
 function svDraw(){
   var ms=svPick();
@@ -3023,7 +3052,7 @@ function svCalcAll(list,ohM,ohP,adm,tax){
   list.forEach(function(a){var c=SV_CAT[a.sku]||'Без категории';
     var g=cats[c]||(cats[c]={cat:c,rows:[],un:0,price:0,priceNet:0,ship:0,dmp:0,rev:0,sp:0,cogs:0,ck:true,netCov:0,noCogs:0,svc:{},fly:0,flyP:0,shipOur:0,shipKn:false});
     SV_COLS.forEach(function(p){g.svc[p[0]]=(g.svc[p[0]]||0)+(a.svc[p[0]]||0);});
-    g.rows.push(a);g.un+=a.un;g.price+=a.price;g.priceNet+=a.priceNet||0;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;g.sp+=a.sp||0;g.fly+=a.fly||0;g.flyP+=a.flyP||0;g.shipOur+=a.shipOur||0;g.shipKn=g.shipKn||!!a.shipKn;
+    g.rows.push(a);if(!g.dm)g.dm={};Object.keys(a.dm||{}).forEach(function(k){svModeAdd(g.dm,k,a.dm[k]);});g.un+=a.un;g.price+=a.price;g.priceNet+=a.priceNet||0;g.ship+=a.ship;g.dmp+=a.dmp;g.rev+=a.rev;g.sp+=a.sp||0;g.fly+=a.fly||0;g.flyP+=a.flyP||0;g.shipOur+=a.shipOur||0;g.shipKn=g.shipKn||!!a.shipKn;
     g.cogs+=a.cogs;g.netCov+=calc(a).net;g.shipCov=(g.shipCov||0)+(a.shipOur||0);
     if(!a.ck){g.ck=false;g.noCogs++;}});
   var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(x,y){return calc(y).net-calc(x).net;});
@@ -3031,6 +3060,7 @@ function svCalcAll(list,ohM,ohP,adm,tax){
   SV_COLS.forEach(function(p){TC[p[0]]=0;});
   groups.forEach(function(g){
     var c=calc(g);
+    if(!T.dm)T.dm={};Object.keys(g.dm||{}).forEach(function(k){svModeAdd(T.dm,k,g.dm[k]);});
     T.un+=g.un;T.price+=g.price;T.priceNet+=g.priceNet;T.ship+=g.ship;T.dmp+=g.dmp;T.rev+=g.rev;T.sp+=g.sp;
     T.net+=c.net;T.adm+=c.adm;T.tax+=c.tax;T.fee+=c.fee;T.oh+=c.oh;T.fly+=g.fly||0;T.flyP+=g.flyP||0;
     SV_COLS.forEach(function(p){TC[p[0]]+=g.svc[p[0]]||0;});
@@ -3096,7 +3126,7 @@ function soAgg(ms,w){
   ms.forEach(function(m){(m.rows||[]).forEach(function(r){
     if(!svInWin(r.d,w))return;
     var k=r.order||'—',o=a[k];
-    if(!o){o=a[k]={order:k,d:r.d,skuRev:{},un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false};}
+    if(!o){o=a[k]={order:k,d:r.d,skuRev:{},un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,dm:{}};}
     if(r.d<o.d)o.d=r.d;
     var _d=r.units_delivered||0,_n=r.units_net||0;
     var _p=_d>0?((r.price||0)*_n/_d):(r.price||0);
@@ -3109,7 +3139,7 @@ function soAgg(ms,w){
     o.priceNet+=_p+(r.ship_mp||0);
     o.un+=r.units_net||0;o.ship+=r.ship_buyer||0;o.sp+=r.svc_points||0;
     o.cogs+=r.cogs||0;o.ck=o.ck&&r.cogs_known;
-    o.shipOur+=r.ship_our||0;o.shipKn=o.shipKn||!!r.ship_known;
+    o.shipOur+=r.ship_our||0;o.shipKn=o.shipKn||!!r.ship_known;svModeAdd(o.dm,svMode(r));
     SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
   return Object.keys(a).map(function(k){var o=a[k];
     var top=null,best=-Infinity;
@@ -3143,7 +3173,7 @@ function soDraw(){
   var cats={};
   list.forEach(function(x){
     var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false});
-    g.rows.push(x);g.un+=x.un;g.priceNet+=x.priceNet;g.ship+=x.ship;g.sp+=x.sp;g.cogs+=x.cogs;
+    g.rows.push(x);if(!g.dm)g.dm={};Object.keys(x.dm||{}).forEach(function(k){svModeAdd(g.dm,k,x.dm[k]);});g.un+=x.un;g.priceNet+=x.priceNet;g.ship+=x.ship;g.sp+=x.sp;g.cogs+=x.cogs;
     g.shipOur+=x.shipOur;g.shipKn=g.shipKn||x.shipKn;if(!x.ck)g.ck=false;
     SV_COLS.forEach(function(p){g.svc[p[0]]=(g.svc[p[0]]||0)+(x.svc[p[0]]||0);});});
   var groups=Object.keys(cats).map(function(k){return cats[k];});
@@ -3151,7 +3181,7 @@ function soDraw(){
   groups.sort(function(p,q){return q._c.net-p._c.net;});
   var FEE=SV_COLS.map(function(p){return p[0];});
   var H=['Категория / Заказ','Продажи','Доставка покупателя'].concat(FEE)
-    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','Кто везёт','С\\С произв.',
              'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.']);
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
@@ -3161,7 +3191,10 @@ function soDraw(){
       +FEE.map(function(n){return money(x.svc[n]||0);}).join('')
       +money(x.sp)+'<td class="r">'+x.un+'</td>'
       +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
-      +(x.shipKn?money(x.shipOur):'<td class="r" style="color:#E5B567" title="ведомость доставки эти заказы не знает - наш расход на перевозку неизвестен, прибыль завышена">нет вед.</td>')
+      +(x.shipKn?money(x.shipOur):(svOwnDeliv(x.dm)
+        ?'<td class="r" style="color:#E5B567" title="везли мы, а ведомость доставки эти заказы не знает - наш расход на перевозку неизвестен, прибыль завышена">нет вед.</td>'
+        :'<td class="r" title="вёз Маркет - своего расхода на перевозку у нас нет, и ведомости здесь взяться неоткуда">—</td>'))
+      +'<td class="r" style="color:var(--ink-2);font-size:11.5px">'+svModeTxt(x.dm)+'</td>'
       +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="себестоимости по части артикулов нет в листе - валовая и рентабельность завышены"')+'>'+(Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
       +'<td class="r" style="color:'+(c.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.gp)+'</td>'+pc(c.gp,c.net)
       +money(c.adm)+money(c.tax)
@@ -3171,6 +3204,7 @@ function soDraw(){
   var T={priceNet:0,ship:0,sp:0,un:0,cogs:0,shipOur:0,ck:true,shipKn:false,svc:{}},TN={net:0,gp:0,adm:0,tax:0,np:0};
   FEE.forEach(function(n){T.svc[n]=0;});
   groups.forEach(function(g){var c=g._c;
+    if(!T.dm)T.dm={};Object.keys(g.dm||{}).forEach(function(k){svModeAdd(T.dm,k,g.dm[k]);});
     T.priceNet+=g.priceNet;T.ship+=g.ship;T.sp+=g.sp;T.un+=g.un;T.cogs+=g.cogs;T.shipOur+=g.shipOur;
     T.shipKn=T.shipKn||g.shipKn;if(!g.ck)T.ck=false;
     TN.net+=c.net;TN.gp+=c.gp;TN.adm+=c.adm;TN.tax+=c.tax;TN.np+=c.np;
@@ -3185,6 +3219,7 @@ function soDraw(){
     +'<td class="r"><b>'+svRub(T.sp)+'</b></td><td class="r"><b>'+T.un+'</b></td>'
     +'<td class="r"><b>'+svRub(TN.net)+'</b></td>'
     +'<td class="r"><b>'+(Math.round(T.shipOur)?svRub(T.shipOur):'—')+'</b></td>'
+    +'<td class="r" style="font-size:11.5px"><b>'+svModeTxt(T.dm)+'</b></td>'
     +'<td class="r"><b>'+(Math.round(T.cogs)?svRub(T.cogs):'—')+'</b></td>'
     +'<td class="r"><b>'+svRub(TN.gp)+'</b></td>'+pc(TN.gp,TN.net)
     +'<td class="r"><b>'+svRub(TN.adm)+'</b></td><td class="r"><b>'+svRub(TN.tax)+'</b></td>'
@@ -3228,7 +3263,7 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   // своим столбцом; спрятать их совсем нельзя - строка перестала бы сходиться.
   // «Поступление на штуку» и «С\С за штуку» убраны: обе получаются делением соседних колонок.
   var H=['Категория / Артикул','Продажи','Доставка покупателя'].concat(FEE)
-    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','Кто везёт','С\\С произв.',
              'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.',
              'В пути, шт','В пути, ₽']);
   // ИТОГО стоит ПЕРВОЙ строкой под шапкой (Иван 18.09.2026: «в своде ИТОГО перенеси вверх под
@@ -3243,7 +3278,9 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   // 120 заказах, и ноль в колонке читался бы как «возили бесплатно». §15 п.3 требует показать
   // пробел, а не спрятать его за нулём.
   function svShipCell(a,c){
-    if(!a.shipKn)return '<td class="r" style="color:#E5B567" title="ведомость доставки по этим заказам не заполнена - наш расход на перевозку неизвестен, прибыль в строке завышена">нет ведомости</td>';
+    if(!a.shipKn)return svOwnDeliv(a.dm)
+      ? '<td class="r" style="color:#E5B567" title="везли мы, а ведомость доставки по этим заказам не заполнена - наш расход на перевозку неизвестен, прибыль в строке завышена">нет ведомости</td>'
+      : '<td class="r" title="вёз Маркет - своего расхода на перевозку у нас нет, и ведомости здесь взяться неоткуда">—</td>';
     return '<td class="r">'+(Math.round(a.shipOur||0)?svRub(a.shipOur):'—')+'</td>';
   }
   function per(v,u){return '<td class="r" style="color:var(--ink-3)">'+(u>0&&Math.round(v)?svRub(v/u):'—')+'</td>';}
@@ -3254,6 +3291,7 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
       +'<td class="r">'+a.un+'</td>'
       +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
       +svShipCell(a,c)
+      +'<td class="r" style="color:var(--ink-2);font-size:11.5px">'+svModeTxt(a.dm)+'</td>'
       +'<td class="r"'+(a.ck?'':' style="color:var(--ink-3)" title="себестоимости по этому артикулу нет в листе - валовая и рентабельность в строке завышены на неизвестную С\\С"')+'>'+(a.ck&&Math.round(a.cogs)?svRub(a.cogs):'—')+'</td>'
       +'<td class="r" style="color:'+(c.gp===null?'var(--ink-3)':(c.gp>=0?'var(--up)':'var(--dn)'))+'">'+(c.gp===null?'не считается':svRub(c.gp))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.gp===null||c.cov<=0)?'—':(Math.round(c.gp/c.cov*1000)/10)+'%')+'</td>'
@@ -3313,6 +3351,7 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
     // (Поступление − без С\С) − Наша доставка − СС = Валовая.
     +'<td class="r"><b>'+svRub(T.net)+'</b></td>'
     +'<td class="r"><b>'+(T.shipKn||Math.round(lost.v)?(Math.round(T.shipOur+lost.v)?svRub(T.shipOur+lost.v):'—'):'<span style="color:#E5B567">нет ведомости</span>')+'</b></td>'
+    +'<td class="r" style="font-size:11.5px"><b>'+svModeTxt(T.dm)+'</b></td>'
     +'<td class="r"><b>'+svRub(T.cogs)+'</b></td>'
     +'<td class="r"><b>'+(some?svRub(gpT):'—')+'</b></td>'
     +'<td class="r"'+svBase({gp:some?gpT:null,cov:T.cover,net:T.net})+'><b>'+mS(gpT)+'</b></td>'

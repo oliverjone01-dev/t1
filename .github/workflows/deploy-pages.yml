@@ -294,12 +294,22 @@ jobs:
       # поэтому здесь только копирование. Обновляет kontur-snapshot.yml.
       - name: Build KONTUR dashboard (/kontur/)
         continue-on-error: true
+        env:
+          HUB_PASS: ${{ secrets.HUB_PASS }}
         run: |
           set -euo pipefail
           if [ -f "kontur-dashboard/public/index.html" ]; then
             mkdir -p "$GITHUB_WORKSPACE/_site/kontur"
             cp -r kontur-dashboard/public/. "$GITHUB_WORKSPACE/_site/kontur/"
-            echo "Контур опубликован в /kontur/"
+            # Тот же пароль, что у /seo/ и /phoenix/: хэш зашит в собранный бандл,
+            # меняем его так же, как в шаге "Assemble site (prod)".
+            if [ -n "${HUB_PASS:-}" ]; then
+              HASH=$(printf '%s' "$HUB_PASS" | sha256sum | cut -d' ' -f1)
+              sed -i "s/window.HUB_PASS_HASH = \"[a-f0-9]*\"/window.HUB_PASS_HASH = \"$HASH\"/" "$GITHUB_WORKSPACE/_site/kontur/index.html"
+              echo "Контур опубликован в /kontur/, HUB_PASS: хэш подменён из секрета"
+            else
+              echo "Контур опубликован в /kontur/ с дефолтным паролем (секрет HUB_PASS не задан)"
+            fi
           else
             echo "kontur-dashboard/public/index.html отсутствует в main - пропуск"
           fi

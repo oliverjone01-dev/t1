@@ -1,6 +1,18 @@
 # -*- coding: utf-8 -*-
 BODY = r'''
-<div class="min-h-screen flex">
+<div class="gate" id="gate">
+  <div class="box">
+    <div class="glogo hd">Контур: SEO, GEO, Директ</div>
+    <p>Внутренняя панель GENGROUP. Доступ по паролю (защита от случайных глаз, не криптография).</p>
+    <form id="gateForm">
+      <input type="password" id="gatePass" placeholder="Пароль" autocomplete="current-password" autofocus>
+      <span class="gerr" id="gateErr">Неверный пароль</span>
+      <button class="gbtn" type="submit">Войти</button>
+    </form>
+  </div>
+</div>
+
+<div class="min-h-screen flex" id="app" hidden>
   <div id="bd" onclick="sbClose()" class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden"></div>
   <aside id="sb" class="w-[258px] shrink-0 border-r bdr pane flex flex-col fixed lg:sticky top-0 z-40 h-screen -translate-x-full lg:translate-x-0">
     <div class="h-[58px] flex items-center gap-2.5 px-4 border-b bdr shrink-0">
@@ -101,7 +113,32 @@ function render(){
 }
 try{ if(localStorage.getItem('kontur-theme')==='dark') document.documentElement.classList.add('dark');
      const sp = localStorage.getItem('kontur-period'); if(sp && PERIODS[sp]) PERIOD = sp; }catch(e){}
-thIcon(); buildNav(); render();
-let _rt; window.addEventListener('resize',()=>{ clearTimeout(_rt); _rt=setTimeout(draw,250); });
+/* Меню строится сразу, а не в boot(): оно не содержит данных, только пункты,
+   а render() (внутри boot) на него опирается через openFor/refreshBadges. */
+buildNav();
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function boot(){
+  document.getElementById('gate').remove();
+  document.getElementById('app').hidden = false;
+  thIcon(); render();
+  let _rt; window.addEventListener('resize',()=>{ clearTimeout(_rt); _rt=setTimeout(draw,250); });
+}
+(function gateInit(){
+  const authed = sessionStorage.getItem('kontur.auth') === '1';
+  if(authed){ boot(); return; }
+  document.getElementById('gateForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const h = await sha256(document.getElementById('gatePass').value);
+    if(h === window.HUB_PASS_HASH){
+      sessionStorage.setItem('kontur.auth', '1');
+      boot();
+    } else {
+      document.getElementById('gateErr').style.display = 'block';
+    }
+  });
+})();
 </script>
 '''

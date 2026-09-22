@@ -14,6 +14,17 @@ HERE = Path(__file__).resolve().parents[1]          # kontur-dashboard/
 SRC  = ROOT / 'gg-seo-geo-monster' / 'data'         # выгрузки соседнего проекта
 HIST = HERE / 'data' / 'history' / 'positions.ndjson'
 
+# Цели счётчика Метрики. gg-seo-geo-monster/data/*/metrika.json их не запрашивает,
+# поэтому свой goals там пустой всегда. Реальный список целей есть в сырой выгрузке
+# Management API, которую тянет соседний проект yandex-direct для отчётов Директа.
+# Без достижений (reaches) - это отдельный отчёт Stats API, его в репозитории нет.
+GOALS_RAW_PATH = ROOT / 'yandex-direct' / 'data' / 'raw' / 'metrika-goals.json'
+GOALS_RAW_SRC  = 'yandex-direct/data/raw/metrika-goals.json'
+# Дата коммита файла в репозиторий (git log), не дата самой выгрузки: поле замера
+# в файле Management API не проставлено.
+GOALS_RAW_AT   = '2026-09-16'
+DIRECT_METRIKA_PATH = ROOT / 'yandex-direct' / 'data' / 'direct_metrika.json'
+
 DANN, GIPO, DEMO = 'ДАННЫЕ', 'ГИПОТЕЗА', 'ДЕМО'
 
 def F(v, k, s='', at='', n=''):
@@ -24,6 +35,30 @@ def load(p):
         return json.loads(Path(p).read_text(encoding='utf-8'))
     except Exception:
         return None
+
+def load_goals_fallback(ym_counter):
+    """Цели, настроенные на счётчике, когда выгрузка geo-monster их не отдаёт.
+
+    Сверяется по id счётчика с yandex-direct/data/direct_metrika.json, чтобы не
+    подставить список целей одного проекта другому. Возвращает только активные
+    цели с их названиями и id; достижений (reaches) здесь нет и быть не может -
+    это другой отчёт API, его никто не собирает.
+    """
+    dm = load(DIRECT_METRIKA_PATH)
+    # Счётчик в двух выгрузках хранится разными типами (int в одной, str в другой),
+    # сверяем строковым представлением, а не значением как есть.
+    if not dm or str(dm.get('counter')) != str(ym_counter):
+        return None
+    # Файл не чистый JSON: первая строка - ответ API, вторая - служебный
+    # 'HTTP 200' от инструмента, которым его сняли. Берём только первую строку.
+    try:
+        first_line = GOALS_RAW_PATH.read_text(encoding='utf-8').splitlines()[0]
+        raw = json.loads(first_line)
+    except Exception:
+        return None
+    goals = (raw or {}).get('goals') or []
+    active = [g for g in goals if g.get('status') == 'Active']
+    return active or None
 
 PROJECTS = {
     'gm': {'dir': 'glass-memory', 'name': 'GLASS-MEMORY', 'dom': 'glass-memory.ru', 'plan': 22_000_000},
@@ -99,9 +134,13 @@ def build_project(code, cfg, hist):
             ser.append({'date': r['date'], 'top10': r.get('top10'), 'vis': r.get('visibility'),
                         'top50': r.get('top50'), 'src': 'keysso.json'})
     for r in hist.get(code, []):
+        # Источник берём из самой точки, а не подставляем одно слово всем строкам:
+        # snapshot.py пишет 'keys.so' для настоящего съёма и 'keysso.json history'
+        # для добора задним числом из ретроспективы выгрузки - это разные вещи,
+        # и «Журнал съёмов» существует ровно затем, чтобы их различать.
         ser.append({'date': r['date'], 'top10': r.get('top10'), 'vis': r.get('visibility'),
                     'top50': r.get('top50'), 'top1': r.get('top1'), 'top3': r.get('top3'),
-                    'ai': r.get('ai_answers'), 'src': 'snapshot'})
+                    'ai': r.get('ai_answers'), 'src': r.get('source') or 'snapshot'})
     byday = {}
     for r in ser:
         byday[r['date']] = {**byday.get(r['date'], {}), **{k: v for k, v in r.items() if v is not None}}
@@ -109,6 +148,15 @@ def build_project(code, cfg, hist):
 
     # Метрика
     if ym and ym.get('visits_30d'):
+        own_goals = ym.get('goals') or []
+        goals_configured, goals_note, goals_src, goals_at = [], '', '', ''
+        if not own_goals:
+            fb = load_goals_fallback(ym.get('counter'))
+            if fb:
+                goals_configured = [{'name': g.get('name'), 'id': g.get('id')} for g in fb]
+                goals_src, goals_at = GOALS_RAW_SRC, GOALS_RAW_AT
+                goals_note = ('Выгрузка geo-monster их не запрашивает, поэтому достижений '
+                              '(reaches) по ним здесь нет.')
         p['ym'] = {
             'counter': F(ym.get('counter'), DANN, f"gg-seo-geo-monster/data/{cfg['dir']}/metrika.json", ym.get('measured', '')),
             'days': ym['visits_30d'],
@@ -116,7 +164,11 @@ def build_project(code, cfg, hist):
                         f"metrika.json", ym.get('measured', '')),
             'depth': F(ym.get('depth'), DANN if ym.get('depth') is not None else DEMO,
                        'metrika.json', ym.get('measured', '')),
-            'goals': ym.get('goals') or [],
+            'goals': own_goals,
+            'goals_configured': goals_configured,
+            'goals_note': goals_note,
+            'goals_src': goals_src,
+            'goals_at': goals_at,
             'top_pages': ym.get('top_pages') or [],
             'top_phrases': ym.get('top_phrases') or [],
             'at': ym.get('measured', ''),

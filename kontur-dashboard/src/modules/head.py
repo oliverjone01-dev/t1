@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 HEAD = r'''<title>Контур: SEO, GEO, Директ</title>
+<meta name="robots" content="noindex,nofollow">
+<script>
+/* Тот же пароль, что у /seo/ и /phoenix/: genmonster2026 по умолчанию.
+   При деплое с секретом HUB_PASS хэш подменяется автоматически (deploy-pages.yml). */
+window.HUB_PASS_HASH = "2ef8f96e6281d75d01cec0c80866292dbeff89683f008467ab13fae421a5f868";
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -86,5 +92,18 @@ tailwind.config = { darkMode:'class', theme:{ extend:{
     .cd{break-inside:avoid;box-shadow:none!important;border-color:#ccc!important}
     #main{padding:0!important}
   }
+  .gate{position:fixed;inset:0;z-index:100;background:#F4F6FA;display:flex;align-items:center;justify-content:center}
+  html.dark .gate{background:#0A0C0E}
+  .gate .box{width:min(360px,92vw);background:#fff;border:1px solid #E7EAF0;border-radius:16px;padding:30px}
+  html.dark .gate .box{background:#101317;border-color:#232830}
+  .gate .glogo{padding:0 0 6px;font-size:13px;font-weight:700}
+  .gate p{font-size:13px;color:#5A6A85;margin-bottom:16px}
+  html.dark .gate p{color:#949BA6}
+  .gate form{display:flex;flex-direction:column;gap:10px}
+  .gate input{background:#F4F6FA;border:1px solid #E7EAF0;border-radius:7px;padding:8px 10px;font-size:14px;font-family:"DM Sans",system-ui,sans-serif}
+  html.dark .gate input{background:#0D1013;border-color:#232830;color:#E7EAEF}
+  .gate .gerr{color:#B3261E;font-size:12.5px;display:none}
+  html.dark .gate .gerr{color:#FF6B6B}
+  .gate .gbtn{background:#5D87FF;color:#fff;border:0;border-radius:8px;padding:9px 14px;font-size:13.5px;font-weight:600;cursor:pointer}
 </style>
 '''

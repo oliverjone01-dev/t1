@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-ICONS = open('/home/claude/gm/build/icons.txt', encoding='utf-8').read()
-
 CORE = r'''
 /* ============ ПАЛИТРА ГРАФИКОВ ============
    Проверена scripts/validate_palette.js из скилла dataviz.

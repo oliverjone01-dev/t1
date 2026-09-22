@@ -1171,6 +1171,16 @@ const EXTRA_CSS = `
 .kt-table tr.sv-total td,.kt-table tr.so-total td{font-weight:700;font-size:13px;background:rgba(255,255,255,.05);border-top:1px solid var(--bg-soft);border-bottom:2px solid var(--accent-deep)}
 .kt-table tr.sv-total td:first-child,.kt-table tr.so-total td:first-child{letter-spacing:.03em}
 .kt-scroll{overflow-x:auto}.kt-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
+/* Свод разворачивался на всю высоту (сотни строк) и уносил шапку за экран: без названий колонок
+   таблица из восемнадцати столбцов читается как лист цифр. Окно фиксированной высоты с прокруткой
+   ВНУТРИ и залипающей шапкой. Высота в vh, а не в пикселях: на ноутбуке и на большом мониторе
+   видно разное число строк, но всегда с запасом под прокрутку. */
+.kt-box{max-height:72vh;overflow:auto;position:relative}
+.kt-box table{font-size:11.5px}
+.kt-box th{position:sticky;top:0;z-index:2;background:var(--bg-card,#12151c);box-shadow:inset 0 -1px 0 var(--bg-soft)}
+/* ИТОГО липнет под шапкой: сверять строку с итогом, прокручивая к нему, - это и есть работа
+   с этой таблицей. Второй уровень липкости, поэтому top не 0, а высота шапки. */
+.kt-box tr.sv-total td,.kt-box tr.so-total td{position:sticky;top:30px;z-index:1;background:var(--bg-card,#12151c)}
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
 .kt-src{display:inline-block;font-size:10.5px;border:1px solid var(--bg-soft);border-radius:6px;padding:2px 7px;color:var(--ink-3);margin-left:8px}.kt-src.live{border-color:#22D3EE;color:#22D3EE}
 .kt-wf{display:flex;align-items:flex-end;gap:6px;height:190px;padding:8px 4px}.kt-wf>div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-3)}.kt-wf .bar{border-radius:6px 6px 0 0;margin:0 auto;width:78%}
@@ -2178,7 +2188,7 @@ function render(cur,cmp){
   const svodSection = IS_OZON ? "" : `
   <section class="card"><div class="card-h"><div><div class="card-title">Свод по заказам</div><div class="card-sub">та же база и те же колонки, что в своде по артикулам ниже &middot; строка - заказ, а не артикул &middot; сгруппировано по категориям, клик раскрывает заказы &middot; период из фильтра наверху страницы</div></div>
     </div>
-    <div class="kt-scroll"><table class="kt-table" id="so-t"></table></div>
+    <div class="kt-scroll kt-box"><table class="kt-table" id="so-t"></table></div>
     <div id="so-more" class="kt-note" style="padding:6px 0 0"></div>
   </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Свод по дате заказа</div><div class="card-sub">доставлено минус отмены и возвраты &middot; все кабинеты &middot; период берётся из фильтра наверху страницы, по дате оформления заказа</div></div>
@@ -2189,12 +2199,12 @@ function render(cur,cmp){
     <div id="sv-cov" class="kt-note" style="padding:2px 0 8px"></div>
     <div id="sv-gaps" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
     <div id="sv-pts" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #8AA0FF;background:rgba(138,160,255,.08)"></div>
-    <div class="kt-scroll"><table class="kt-table" id="sv-t"></table></div>
+    <div class="kt-scroll kt-box"><table class="kt-table" id="sv-t"></table></div>
     <div id="sv-note" class="kt-note" style="margin-top:8px"></div>
   </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Доставка по городам</div><div class="card-sub">куда возим в минус &middot; доход - то, что покупатель заплатил нам за доставку &middot; расход - счёт перевозчика из ведомости плюс сбор Маркета за логистику &middot; период из фильтра наверху страницы</div></div></div>
     <div id="ct-gap" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
-    <div class="kt-scroll"><table class="kt-table" id="ct-t"></table></div>
+    <div class="kt-scroll kt-box"><table class="kt-table" id="ct-t"></table></div>
     <div id="ct-note" class="kt-note" style="margin-top:8px"></div>
   </section>
 `;
@@ -3592,9 +3602,13 @@ function soDraw(){
   groups.forEach(function(g){g._c=calc(g);});
   groups.sort(function(p,q){return q._c.net-p._c.net;});
   var FEE=SV_COLS.map(function(p){return p[0];});
+  // «Кто везёт» и «Город» стоят В КОНЦЕ (Катя 22.09.2026): это признаки заказа, а не деньги, и
+  // между «Нашей доставкой» и «С\\С произв.» они разрывали денежную цепочку прайс -> сборы ->
+  // поступление -> себестоимость -> прибыль, по которой строку и читают.
   var H=['Категория / Заказ','Продажи','Доставка покупателя'].concat(FEE)
-    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','Кто везёт','Город','С\\С произв.',
-             'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.']);
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
+             'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.',
+             'Кто везёт','Город']);
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
   function pc(v,b){return '<td class="r">'+(b>0?(Math.round(v/b*1000)/10)+'%':'—')+'</td>';}
@@ -3606,12 +3620,12 @@ function soDraw(){
       +(x.shipKn?money(x.shipOur):(svOwnDeliv(x.dm)
         ?'<td class="r" style="color:#E5B567" title="везли мы, а ведомость доставки эти заказы не знает - наш расход на перевозку неизвестен, прибыль завышена">нет вед.</td>'
         :'<td class="r" title="вёз Маркет - своего расхода на перевозку у нас нет, и ведомости здесь взяться неоткуда">—</td>'))
-      +'<td class="r" style="color:var(--ink-2);font-size:11.5px">'+svModeTxt(x.dm)+'</td>'
-      +soCityCell(x)
       +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="себестоимости по части артикулов нет в листе - валовая и рентабельность завышены"')+'>'+(Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
       +'<td class="r" style="color:'+(c.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.gp)+'</td>'+pc(c.gp,c.net)
       +money(c.adm)+money(c.tax)
-      +'<td class="r" style="color:'+(c.np>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.np)+'</td>'+pc(c.np,c.net);
+      +'<td class="r" style="color:'+(c.np>=0?'var(--up)':'var(--dn)')+'">'+svRub(c.np)+'</td>'+pc(c.np,c.net)
+      +'<td class="r" style="color:var(--ink-2)">'+svModeTxt(x.dm)+'</td>'
+      +soCityCell(x);
   }
   // ИТОГО по ВСЕМ заказам периода, первой строкой - как в своде по артикулам.
   var T={priceNet:0,ship:0,sp:0,un:0,cogs:0,shipOur:0,ck:true,shipKn:false,svc:{},cities:{}},TN={net:0,gp:0,adm:0,tax:0,np:0};
@@ -3633,12 +3647,12 @@ function soDraw(){
     +'<td class="r"><b>'+svRub(T.sp)+'</b></td><td class="r"><b>'+T.un+'</b></td>'
     +'<td class="r"><b>'+svRub(TN.net)+'</b></td>'
     +'<td class="r"><b>'+(Math.round(T.shipOur)?svRub(T.shipOur):'—')+'</b></td>'
-    +'<td class="r" style="font-size:11.5px"><b>'+svModeTxt(T.dm)+'</b></td>'
-    +soCityCell(T)
     +'<td class="r"><b>'+(Math.round(T.cogs)?svRub(T.cogs):'—')+'</b></td>'
     +'<td class="r"><b>'+svRub(TN.gp)+'</b></td>'+pc(TN.gp,TN.net)
     +'<td class="r"><b>'+svRub(TN.adm)+'</b></td><td class="r"><b>'+svRub(TN.tax)+'</b></td>'
-    +'<td class="r"><b>'+svRub(TN.np)+'</b></td>'+pc(TN.np,TN.net)+'</tr>';
+    +'<td class="r"><b>'+svRub(TN.np)+'</b></td>'+pc(TN.np,TN.net)
+    +'<td class="r"><b>'+svModeTxt(T.dm)+'</b></td>'
+    +soCityCell(T)+'</tr>';
   if(Math.round(lost.v)){
     var iShip=H.indexOf('Наша доставка'),tds='';
     for(var ci=1;ci<H.length;ci++){
@@ -3678,9 +3692,9 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
   // своим столбцом; спрятать их совсем нельзя - строка перестала бы сходиться.
   // «Поступление на штуку» и «С\С за штуку» убраны: обе получаются делением соседних колонок.
   var H=['Категория / Артикул','Продажи','Доставка покупателя'].concat(FEE)
-    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','Кто везёт','С\\С произв.',
+    .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\\С произв.',
              'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.',
-             'В пути, шт','В пути, ₽']);
+             'В пути, шт','В пути, ₽','Кто везёт']);
   // ИТОГО стоит ПЕРВОЙ строкой под шапкой (Иван 18.09.2026: «в своде ИТОГО перенеси вверх под
   // шапку»): при длинной таблице итог уезжал за экран, и сверять его приходилось прокруткой.
   // Поэтому строки категорий собираются отдельно и приклеиваются после итоговых.
@@ -3706,7 +3720,6 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
       +'<td class="r">'+a.un+'</td>'
       +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
       +svShipCell(a,c)
-      +'<td class="r" style="color:var(--ink-2);font-size:11.5px">'+svModeTxt(a.dm)+'</td>'
       +'<td class="r"'+(a.ck?'':' style="color:var(--ink-3)" title="себестоимости по этому артикулу нет в листе - валовая и рентабельность в строке завышены на неизвестную С\\С"')+'>'+(a.ck&&Math.round(a.cogs)?svRub(a.cogs):'—')+'</td>'
       +'<td class="r" style="color:'+(c.gp===null?'var(--ink-3)':(c.gp>=0?'var(--up)':'var(--dn)'))+'">'+(c.gp===null?'не считается':svRub(c.gp))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.gp===null||c.cov<=0)?'—':(Math.round(c.gp/c.cov*1000)/10)+'%')+'</td>'
@@ -3714,7 +3727,8 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
       +'<td class="r" style="color:'+(c.np===null?'var(--ink-3)':(c.np>=0?'var(--up)':'var(--dn)'))+'">'+(c.np===null?'не считается':svRub(c.np))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.np===null||c.cov<=0)?'—':(Math.round(c.np/c.cov*1000)/10)+'%')+'</td>'
       +'<td class="r" style="color:var(--ink-3)">'+(a.fly?a.fly:'—')+'</td>'
-      +'<td class="r" style="color:var(--ink-3)">'+(a.flyP?svRub(a.flyP):'—')+'</td>';
+      +'<td class="r" style="color:var(--ink-3)">'+(a.flyP?svRub(a.flyP):'—')+'</td>'
+      +'<td class="r" style="color:var(--ink-2)">'+svModeTxt(a.dm)+'</td>';
   }
   groups.forEach(function(g,gi){
     var c=calc(g), open=!!SV_OPEN[g.cat];
@@ -3766,7 +3780,6 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
     // (Поступление − без С\С) − Наша доставка − СС = Валовая.
     +'<td class="r"><b>'+svRub(T.net)+'</b></td>'
     +'<td class="r"><b>'+(T.shipKn||Math.round(lost.v)?(Math.round(T.shipOur+lost.v)?svRub(T.shipOur+lost.v):'—'):'<span style="color:#E5B567">нет ведомости</span>')+'</b></td>'
-    +'<td class="r" style="font-size:11.5px"><b>'+svModeTxt(T.dm)+'</b></td>'
     +'<td class="r"><b>'+svRub(T.cogs)+'</b></td>'
     +'<td class="r"><b>'+(some?svRub(gpT):'—')+'</b></td>'
     +'<td class="r"'+svBase({gp:some?gpT:null,cov:T.cover,net:T.net})+'><b>'+mS(gpT)+'</b></td>'
@@ -3774,7 +3787,8 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
     +'<td class="r"><b>'+(some?svRub(npT):'—')+'</b></td>'
     +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net})+'><b>'+mS(npT)+'</b></td>'
     +'<td class="r" style="color:var(--ink-3)"><b>'+(T.fly?T.fly:'—')+'</b></td>'
-    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td></tr>';
+    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td>'
+    +'<td class="r"><b>'+svModeTxt(T.dm)+'</b></td></tr>';
   // СТРОКА ПРОБЕЛА, сразу под ИТОГО (выбор Кати 21.09.2026 из трёх вариантов). Смысл: итог выше
   // неполон, и видно, НАСКОЛЬКО. В сумму ИТОГО не входит ни одной ячейкой и входить не должна:
   // это не наши цифры того же базиса, а начисления реестра по заказам, которых в своде нет.
@@ -3821,65 +3835,117 @@ function svTabPnl(list,ohM,ohP,noteEl,lost){
 //            «Доставка» свода). Второе - тоже наши деньги: Маркет удерживает его из выплаты.
 // Город без ведомости показывает расход НИЖЕ настоящего, поэтому доля таких заказов стоит в
 // строке: без неё «плюс» по городу читался бы как факт, а он может быть следствием пробела.
+var CT_OPEN={};
 function ctDraw(){
   var el=document.getElementById('ct-t'); if(!el)return;
   var noteEl=document.getElementById('ct-note'), gapEl=document.getElementById('ct-gap');
   var w=svWin(),ms=svPick(w);
   if(!ms.length){el.innerHTML='';noteEl.textContent='';gapEl.style.display='none';return;}
+  // Собираем ПО ЗАКАЗУ и сразу помечаем, кто вёз: у заказа режим один (проверено тестом - строк с
+  // обоими признаками нет ни одной, заказов со смешанными режимами тоже).
   var byOrder={};
   ms.forEach(function(m){(m.rows||[]).forEach(function(r){
     if(!svInWin(r.d,w))return;
     var k=r.order||'—',o=byOrder[k];
-    if(!o)o=byOrder[k]={city:'',inc:0,our:0,fee:0,un:0,kn:false,own:false,n:1};
+    if(!o)o=byOrder[k]={city:'',inc:0,our:0,fee:0,kn:false,mode:''};
     if(!o.city&&r.region)o.city=r.region;
-    o.inc+=r.ship_buyer||0; o.our+=r.ship_our||0; o.un+=r.units_net||0;
+    o.inc+=r.ship_buyer||0; o.our+=r.ship_our||0;
     SV_DEL_COLS.forEach(function(n){o.fee+=(r.svc&&r.svc[n]||0)+(r.svc_pts&&r.svc_pts[n]||0);});
-    o.kn=o.kn||!!r.ship_known; var _m=svMode(r); o.own=o.own||_m==='own'||_m==='unk';
+    o.kn=o.kn||!!r.ship_known;
+    var md=svMode(r); if(md==='mk')o.mode='mk'; else if((md==='own'||md==='unk')&&o.mode!=='mk')o.mode='own';
   });});
-  var cities={},noCity=0,total={inc:0,our:0,fee:0,ord:0,noVed:0};
+  // Город держит ДВЕ корзины: везёт Маркет и везём мы. Вопрос Кати 22.09.2026 - «не понятно, что
+  // минусит»: в общей строке сбор Маркета и счёт нашего перевозчика складывались в один итог, и
+  // по нему нельзя было сказать, дорогая у нас перевозка или дорого берёт площадка.
+  var Z=function(){return {inc:0,our:0,fee:0,ord:0,noVed:0};};
+  var cities={},noCity=0,T={mk:Z(),own:Z()};
   Object.keys(byOrder).forEach(function(k){var o=byOrder[k];
-    total.inc+=o.inc;total.our+=o.our;total.fee+=o.fee;total.ord++;
-    if(o.own&&!o.kn)total.noVed++;
+    var b=o.mode==='mk'?'mk':(o.mode==='own'?'own':null);
+    if(b){ T[b].inc+=o.inc;T[b].our+=o.our;T[b].fee+=o.fee;T[b].ord++; if(b==='own'&&!o.kn)T[b].noVed++; }
     if(!o.city){noCity++;return;}
-    var c=cities[o.city]||(cities[o.city]={city:o.city,inc:0,our:0,fee:0,ord:0,noVed:0});
-    c.inc+=o.inc;c.our+=o.our;c.fee+=o.fee;c.ord++; if(o.own&&!o.kn)c.noVed++;
+    var c=cities[o.city]||(cities[o.city]={city:o.city,mk:Z(),own:Z()});
+    if(!b)return;
+    c[b].inc+=o.inc;c[b].our+=o.our;c[b].fee+=o.fee;c[b].ord++;
+    if(b==='own'&&!o.kn)c[b].noVed++;
   });
-  var rows=Object.keys(cities).map(function(k){var c=cities[k];c.res=c.inc-c.our-c.fee;return c;});
+  var res=function(x){return x.inc-x.our-x.fee;};
+  var rows=Object.keys(cities).map(function(k){var c=cities[k];
+    c.ord=c.mk.ord+c.own.ord; c.res=res(c.mk)+res(c.own); return c;});
   rows.sort(function(a,b){return a.res-b.res;});   // худшие сверху: вопрос был «где минус»
-  var H=['Город','Заказов','Доход с покупателя','Наш перевозчик','Сбор Маркета','Итог по доставке','На заказ','Без ведомости'];
-  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
-  var resT=total.inc-total.our-total.fee;
+  var H=['Город / кто везёт','Заказов','Доход с покупателя','Наш перевозчик','Сбор Маркета','Итог по доставке','На заказ','Нет счёта перевозчика'];
+  var TIP={'Нет счёта перевозчика':'Доля заказов, которые везли МЫ, а счёт перевозчика в ведомость не занесли. По ним расход неизвестен, и итог по городу лучше настоящего. У заказов, которые везёт Маркет, своего счёта нет по построению - там прочерк.'};
+  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+(TIP[x]?' title="'+TIP[x]+'"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   var cell=function(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';};
   var resCell=function(v,b){var c=v>=0?'var(--up)':'var(--dn)';
     return '<td class="r" style="color:'+c+'">'+(b?'<b>':'')+svRub(v)+(b?'</b>':'')+'</td>';};
-  var vedCell=function(c){
-    if(!c.noVed)return '<td class="r" style="color:var(--ink-3)">—</td>';
-    var pct=Math.round(c.noVed/c.ord*100);
-    return '<td class="r" style="color:#E5B567" title="по '+c.noVed+' из '+c.ord+' заказов ведомость доставки не заполнена: наш расход занижен, итог по городу лучше настоящего">'+pct+'%</td>';
+  var vedCell=function(x,isMk){
+    if(isMk)return '<td class="r" style="color:var(--ink-3)" title="везёт Маркет - нашего счёта за перевозку здесь не бывает">—</td>';
+    if(!x.ord||!x.noVed)return '<td class="r" style="color:var(--ink-3)">—</td>';
+    var pct=Math.round(x.noVed/x.ord*100);
+    return '<td class="r" style="color:#E5B567" title="'+x.noVed+' из '+x.ord+' наших перевозок без счёта в ведомости: расход по ним в итог не вошёл">'+pct+'%</td>';
   };
-  h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+total.ord+' заказов)</span></td>'
-    +'<td class="r"><b>'+total.ord+'</b></td>'+cell(total.inc)+cell(total.our)+cell(total.fee)
-    +resCell(resT,true)+'<td class="r">'+(total.ord?svRub(resT/total.ord):'—')+'</td>'
-    +vedCell({noVed:total.noVed,ord:total.ord})+'</tr>';
-  rows.forEach(function(c){
-    var bad=c.res<0;
-    h+='<tr'+(bad?' style="background:rgba(255,90,95,.05)"':'')+'><td>'+c.city+'</td>'
-      +'<td class="r">'+c.ord+'</td>'+cell(c.inc)+cell(c.our)+cell(c.fee)
-      +resCell(c.res)+'<td class="r">'+svRub(c.res/c.ord)+'</td>'+vedCell(c)+'</tr>';
+  // Наш перевозчик у заказа, который вёз Маркет, - первая миля: мы довезли товар до сортировки
+  // площадки и заплатили за это. Три заказа из 1122 на 5 272 ₽. Молчащее число на трёх заказах из
+  // тысячи - это то, что замечают через полгода и не могут объяснить, поэтому оно подписано.
+  var ourCell=function(v,isMk){
+    if(!Math.round(v))return '<td class="r">—</td>';
+    return isMk
+      ? '<td class="r" title="первая миля: заказ вёз Маркет, но до его сортировки товар довезли мы и заплатили перевозчику">'+svRub(v)+'</td>'
+      : '<td class="r">'+svRub(v)+'</td>';
+  };
+  var line=function(name,x,isMk,cls,pad){
+    if(!x.ord)return '';
+    var r=res(x);
+    return '<tr'+(cls?' class="'+cls+'"':'')+(r<0&&!cls?' style="background:rgba(255,90,95,.05)"':'')+'>'
+      +'<td'+(pad?' style="padding-left:22px;color:var(--ink-2)"':'')+'>'+name+'</td>'
+      +'<td class="r">'+x.ord+'</td>'+cell(x.inc)+ourCell(x.our,isMk)+cell(x.fee)
+      +resCell(r)+'<td class="r">'+svRub(r/x.ord)+'</td>'+vedCell(x,isMk)+'</tr>';
+  };
+  var tAll={inc:T.mk.inc+T.own.inc,our:T.mk.our+T.own.our,fee:T.mk.fee+T.own.fee,
+            ord:T.mk.ord+T.own.ord,noVed:T.own.noVed};
+  var rT=res(tAll);
+  h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+tAll.ord+' заказов)</span></td>'
+    +'<td class="r"><b>'+tAll.ord+'</b></td>'+cell(tAll.inc)+cell(tAll.our)+cell(tAll.fee)
+    +resCell(rT,true)+'<td class="r">'+(tAll.ord?svRub(rT/tAll.ord):'—')+'</td>'
+    +vedCell(T.own,false)+'</tr>';
+  // Две строки итога по режимам сразу под ИТОГО: это и есть ответ на «что минусит».
+  h+=line('<span style="color:var(--ink-2)">из них везёт Маркет</span>',T.mk,true,'ct-mode',true);
+  h+=line('<span style="color:var(--ink-2)">из них везём мы</span>',T.own,false,'ct-mode',true);
+  rows.forEach(function(c,ci){
+    var open=!!CT_OPEN[c.city], both=c.mk.ord&&c.own.ord;
+    h+='<tr'+(both?' class="ct-city" data-city="'+ci+'" style="cursor:pointer"':'')+(c.res<0?' style="background:rgba(255,90,95,.05)'+(both?';cursor:pointer':'')+'"':'')+'>'
+      +'<td>'+(both?(open?'▾ ':'▸ '):'')+c.city+'</td>'
+      +'<td class="r">'+c.ord+'</td>'+cell(c.mk.inc+c.own.inc)+cell(c.mk.our+c.own.our)+cell(c.mk.fee+c.own.fee)
+      +resCell(c.res)+'<td class="r">'+svRub(c.res/c.ord)+'</td>'+vedCell(c.own,!c.own.ord)+'</tr>';
+    // Город с одним режимом не раскрываем: подстрока повторила бы саму строку. Вместо этого
+    // подписываем режим прямо в строке - иначе непонятно, чей это минус.
+    if(both&&open){
+      h+=line('везёт Маркет',c.mk,true,'ct-sub',true);
+      h+=line('везём мы',c.own,false,'ct-sub',true);
+    } else if(!both){
+      var only=c.mk.ord?'Маркет':'мы';
+      h=h.slice(0,h.lastIndexOf('<tr'))+h.slice(h.lastIndexOf('<tr')).replace('>'+c.city+'</td>',
+        '>'+c.city+' <span style="color:var(--ink-3);font-size:11.5px">('+(only==='Маркет'?'везёт Маркет':'везём мы')+')</span></td>');
+    }
   });
   el.innerHTML=h+'</tbody>';
+  Array.prototype.forEach.call(el.querySelectorAll('.ct-city'),function(tr){
+    tr.onclick=function(){var c=rows[+tr.getAttribute('data-city')];CT_OPEN[c.city]=!CT_OPEN[c.city];ctDraw();};});
   var minus=rows.filter(function(c){return c.res<0;});
   var minusV=minus.reduce(function(a,c){return a+c.res;},0);
   if(noCity){
     gapEl.style.display='';
-    gapEl.innerHTML='<b>'+noCity+' из '+total.ord+' заказов без города.</b> Снимок заказов собран до того, как строка стала нести город доставки: эти заказы в разбивку ниже не попали, их деньги видны только в строке ИТОГО. Пропадёт после ближайшего полного пересбора заказов.';
+    gapEl.innerHTML='<b>'+noCity+' из '+tAll.ord+' заказов без города.</b> Эти заказы в разбивку по городам не попали, их деньги видны только в строке ИТОГО.';
   } else gapEl.style.display='none';
+  var rMk=res(T.mk), rOwn=res(T.own);
   noteEl.innerHTML = rows.length
     ? 'Городов '+rows.length+', в минусе '+minus.length+' на '+svRub(Math.abs(minusV))+'. '
-      +'Итог по доставке = доход с покупателя − счёт перевозчика − сбор Маркета за логистику. '
-      +'Там, где везёт Маркет, дохода у нас нет по построению, и минус по такому городу - это его сбор, а не наша переплата перевозчику.'
+      +'<b>Где минус:</b> у заказов, которые везёт Маркет, '+svRub(rMk)+' ('+T.mk.ord+' зак.) - дохода с покупателя у нас там нет вовсе, он платит Маркету, а сбор за логистику Маркет удерживает с нас. '
+      +'У заказов, которые везём мы, '+svRub(rOwn)+' ('+T.own.ord+' зак.) - здесь доход есть, и минус означает, что перевозчик дороже того, что заплатил покупатель. '
+      +'Клик по городу раскрывает те же две строки по нему.'
     : 'За выбранный период городов нет: либо нет доставленных заказов, либо снимок собран без городов.';
 }
+
 function svInit(){
   if(!document.getElementById('sv-t'))return;
   // Оба свода перерисовываются одним обработчиком: они стоят на одной базе, и разъехаться по

@@ -1528,12 +1528,15 @@ function renderTree(){
       for(const e of evs) if(e.type==='Резюме BitrixGPT'&&e.refId) SUMBY['act#'+e.refId]=e;
       const rows=evs.map((e,ei)=>{
         const allTags=(CUR_TAGS[e.src]||[]);
-        // ИИ заменяет механические regex-теги: если по реплике есть разбор ИИ - показываем
-        // только его (конкретная ошибка + подчёркнутая цитата), regex прячем.
-        // Пока AI_UI выключен - показываем только regex-теги, как было раньше.
+        // ИИ заменяет механические regex-теги ПОРЕПЛИЧНО: если по конкретной реплике есть
+        // разбор ИИ - показываем только его (ошибка + подчёркнутая цитата), regex по ней прячем.
+        // Но полный ИИ-прогон по всем сделкам ещё не сделан (ИИ пока по 89 из 5036), поэтому
+        // там, где ИИ по реплике нет, показываем механический разбор коммуникаций, а НЕ пустоту:
+        // иначе «Разметка» валится в 0°-заглушку у 98% сделок (баг: не было тегов коммуникаций).
         const aiTags=allTags.filter(t=>t.ai);
-        // AI_UI on: показываем ТОЛЬКО ИИ-теги, regex-теги скрыты (по просьбе Ивана).
-        const tags=AI_UI?aiTags:allTags.filter(t=>!t.ai);
+        const regexTags=allTags.filter(t=>!t.ai);
+        // AI_UI on: ИИ там, где он есть по реплике, иначе - механические теги коммуникаций.
+        const tags=AI_UI?(aiTags.length?aiTags:regexTags):regexTags;
         const bad=tags.some(t=>t.tone==='bad'), good=tags.some(t=>t.tone==='good')&&!bad;
         const isM=e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок';
         const c3=typeColor(e.type);

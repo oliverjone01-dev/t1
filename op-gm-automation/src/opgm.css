@@ -1,0 +1,83 @@
+/* ==========================================================================
+   ОП ГМ на Контур DS 1.2: стили экранов проекта.
+   Только токены системы: ни одного своего цвета, размера шрифта в пикселях,
+   анимации по ширине или высоте.
+   ========================================================================== */
+
+/* ---------- вход ---------- */
+.op-gate{ min-height:100vh; min-height:100dvh; display:grid; place-items:center; padding:var(--sp-4); background:var(--bg); }
+.op-gate .ks-card{ width:100%; max-width:380px; padding:var(--sp-6); }
+.op-gate .ks-h1{ margin:var(--sp-2) 0 var(--sp-1); }
+.op-gate form{ display:flex; flex-direction:column; gap:var(--sp-3); margin-top:var(--sp-4); }
+.op-gate .ks-btn{ width:100%; }
+.op-gate-err{ min-height:18px; font-size:var(--fs-small); color:var(--crit); }
+.op-gate-note{ font-size:var(--fs-micro); color:var(--text-muted); border-top:1px solid var(--border); padding-top:var(--sp-3); line-height:var(--lh-snug); }
+
+/* ---------- метки без капса: проблема, отметка, кабинет ---------- */
+.op-chips{ display:flex; flex-wrap:wrap; gap:var(--sp-1); }
+.op-chip{ display:inline-flex; align-items:center; gap:var(--sp-1); font-size:var(--fs-caption); line-height:1.4; padding:1px var(--sp-2);
+  border-radius:var(--r-sm); background:var(--surface-2); color:var(--text); white-space:nowrap; }
+.op-chip--crit{ background:var(--crit-soft); color:var(--crit); }
+.op-chip--warn{ background:var(--warn-soft); color:var(--warn); }
+.op-chip--ok{ background:var(--ok-soft); color:var(--ok); }
+.op-chip--info{ background:var(--info-soft); color:var(--info); }
+.op-cab{ display:inline-flex; align-items:center; gap:var(--sp-1-5); font-weight:var(--fw-semi); color:var(--text-strong); white-space:nowrap; }
+.op-cab::before{ content:""; width:9px; height:9px; border-radius:var(--r-full); background:var(--slot); flex-shrink:0; }
+
+/* ---------- фильтры внутри экрана ---------- */
+.op-filters{ display:grid; gap:var(--sp-3); grid-template-columns:minmax(0,1fr); }
+@media (min-width:1024px){ .op-filters{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+.op-filters .ks-select{ width:100%; }
+.op-count{ font-size:var(--fs-small); color:var(--text-muted); }
+.op-count b{ color:var(--text-strong); }
+.op-more{ display:flex; justify-content:center; }
+
+/* ---------- карточка диалога в списке ---------- */
+.op-dlg-head{ display:flex; flex-wrap:wrap; gap:var(--sp-1) var(--sp-3); align-items:baseline; font-size:var(--fs-small); color:var(--text-muted); }
+.op-dlg-name{ font-size:var(--fs-base); font-weight:var(--fw-semi); color:var(--text-strong); }
+.op-dlg-said{ margin:var(--sp-2) 0; font-size:var(--fs-body); color:var(--text); line-height:var(--lh-snug); }
+
+/* ---------- Сегодня: крупный текст для чтения с телефона ---------- */
+.op-queue{ display:flex; flex-direction:column; gap:var(--sp-3); }
+.op-stack-head{ display:flex; align-items:center; gap:var(--sp-2); margin-top:var(--sp-2); }
+.op-stack-why{ font-size:var(--fs-base); color:var(--text-muted); margin:0; }
+.op-q .op-q-name{ font-size:var(--fs-h1); font-weight:var(--fw-bold); color:var(--text-strong); display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap; }
+.op-q .op-q-wait{ font-size:var(--fs-base); font-weight:var(--fw-semi); color:var(--crit); margin-top:var(--sp-1); }
+.op-q .op-q-said{ font-size:var(--fs-h2); line-height:var(--lh-body); color:var(--text-strong); margin:var(--sp-3) 0; }
+.op-q .op-q-hint{ font-size:var(--fs-base); color:var(--text); line-height:var(--lh-snug); }
+.op-q .op-q-hint b{ color:var(--ok); }
+.op-q .op-q-meta{ font-size:var(--fs-small); color:var(--text-muted); margin-top:var(--sp-2); }
+.op-q .ks-row{ margin-top:var(--sp-3); }
+.op-q .ks-btn{ height:40px; font-size:var(--fs-base); }
+
+/* ---------- переписка в панели ---------- */
+.op-path{ font-size:var(--fs-micro); color:var(--text-muted); }
+.op-tl{ display:flex; flex-direction:column; gap:var(--sp-1-5); }
+.op-who{ font-size:var(--fs-micro); color:var(--text-muted); margin-top:var(--sp-2); }
+.op-who.is-r{ text-align:right; }
+.op-bub{ max-width:86%; border-radius:var(--r-lg); padding:var(--sp-2) var(--sp-3); font-size:var(--fs-body); line-height:var(--lh-snug);
+  color:var(--text-strong); overflow-wrap:anywhere; }
+.op-bub .op-tm{ display:block; font-size:var(--fs-micro); color:var(--text-muted); margin-top:var(--sp-0-5); }
+.op-bub.is-c{ background:var(--surface-2); border:1px solid var(--border); align-self:flex-start; }
+.op-bub.is-m{ background:var(--primary-soft); border:1px solid var(--border); align-self:flex-end; }
+.op-bub.is-s, .op-bub.is-a{ background:transparent; border:1px dashed var(--border-strong); color:var(--text-muted); align-self:center; font-size:var(--fs-small); }
+.op-bub.is-flag{ outline:2px solid var(--warn); outline-offset:1px; }
+.op-gap{ text-align:center; font-size:var(--fs-micro); color:var(--text-muted); margin:var(--sp-1) 0; }
+.op-gap.is-bad{ color:var(--crit); font-weight:var(--fw-semi); }
+
+/* ---------- определения на экране «Откуда цифры» ---------- */
+.op-defs{ display:flex; flex-direction:column; gap:var(--sp-3); margin:0; }
+.op-defs dt{ font-weight:var(--fw-semi); color:var(--text-strong); font-size:var(--fs-body); display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; }
+.op-defs dd{ margin:var(--sp-1) 0 0; font-size:var(--fs-small); color:var(--text); line-height:var(--lh-snug); }
+
+/* ---------- мелочи ---------- */
+.op-muted{ color:var(--text-muted); font-size:var(--fs-small); }
+.op-hint{ font-size:var(--fs-small); color:var(--text); line-height:var(--lh-snug); }
+.op-hint b{ color:var(--text-strong); }
+.op-tpl{ background:var(--surface-3); border:1px solid var(--border); border-radius:var(--r-md); padding:var(--sp-3); font-size:var(--fs-body); color:var(--text-strong); line-height:var(--lh-snug); }
+.ks-table td .op-chip{ margin:1px 0; }
+/* разделы v3 со своей липкой строкой фильтров встают под шапку каркаса */
+.ks-legacy .filterbar{ top:var(--topbar-h); z-index:5; }
+
+/* кнопка-ссылка: у тега a подчёркивание браузера снимаем, вид берётся из .ks-btn */
+a.ks-btn{ text-decoration:none; }

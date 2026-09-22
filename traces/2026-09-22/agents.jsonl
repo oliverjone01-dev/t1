@@ -102,3 +102,4 @@
 {"ts": "2026-09-22T20:10:57+00:00", "event": "subagent_start", "agent": "spartak", "tier": "chairman", "session_id": "7a773ec9-494b-508c-bc3e-da55559e1286", "agent_id": "a4ddd248a1dcccc84"}
 {"ts": "2026-09-22T20:12:43+00:00", "event": "subagent_stop", "agent": "spartak", "tier": "chairman", "session_id": "7a773ec9-494b-508c-bc3e-da55559e1286", "agent_id": "a4ddd248a1dcccc84", "msg_chars": 2237, "outcome": "unknown"}
 {"ts": "2026-09-22T20:24:38+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "7a773ec9-494b-508c-bc3e-da55559e1286", "agent_id": "a24bc07f4831307ec"}
+{"ts": "2026-09-22T20:27:32+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/=100:, /home/user/t1/first], /home/user/t1/indep.py"}

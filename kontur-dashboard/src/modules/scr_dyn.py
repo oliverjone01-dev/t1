@@ -89,7 +89,7 @@ const SCREENS_DYN = {
             ].map(x=>'<div class="flex gap-2"><span class="crit-i shrink-0 mt-[2px]">'+ic('warn','',14)+'</span><span>'+esc(x)+'</span></div>').join('')
           + '</div>')
      + '</div>'
-     + '<div class="mt-4">'+act('Дать номер счётчика Метрики по '+esc(V().dom)+' и доступ на чтение','Иван','до 11.09','счётчик отдаёт визиты по API, ряд появляется в этом экране без правок')+'</div>';
+     + '<div class="mt-4">'+act('Дать номер счётчика Метрики по '+esc(V().dom)+' и доступ на чтение','Иван','срок 11.09 пропущен, нужен новый','счётчик отдаёт визиты по API, ряд появляется в этом экране без правок')+'</div>';
   }
   const days = ym.days || [];
   const cut = days.slice(Math.max(0, days.length - Math.min(PERIODS[PERIOD], days.length)));

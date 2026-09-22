@@ -27,7 +27,12 @@ jobs:
   snapshot:
     runs-on: ubuntu-latest
     steps:
+      # Полная история нужна сборке данных: дата файла со списком целей берётся из
+      # git log. В мелком клоне git отдал бы дату последнего коммита вместо даты
+      # файла, и на экране появился бы сегодняшний «замер», которого не было.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:

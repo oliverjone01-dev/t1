@@ -115,6 +115,18 @@ export class OzonSeller {
     }).filter((r) => r.sku && r.sku !== "0");
   }
 
+  // Зонд одной метрики: OZON отвергает запрос целиком при неизвестном имени, поэтому
+  // проверяем имена по одному (см. scripts/ozon/analytics-metrics-probe.ts). Не для
+  // ночного сбора - только разведка.
+  async analyticsMetricsProbe(date: string, metrics: string[]): Promise<Array<{ sku: string; value: number }>> {
+    const data = await this.post<{ result?: { data?: any[] } }>("/v1/analytics/data", {
+      date_from: date, date_to: date, metrics, dimension: ["sku"], limit: 50,
+    });
+    return (data.result?.data ?? []).map((r: any) => ({
+      sku: String(r.dimensions?.[0]?.id ?? ""), value: Number(r.metrics?.[0]) || 0,
+    }));
+  }
+
   // POST /v1/analytics/data, dimension day | sku
   async analytics(
     dateFrom: string,
@@ -185,8 +197,8 @@ export class OzonSeller {
   }
 
   // POST /v5/product/info/prices - пагинация по cursor
-  async prices(): Promise<Array<{ offer_id: string; price_index_value: number | null; color_index: string | null; price: number | null }>> {
-    const out: Array<{ offer_id: string; price_index_value: number | null; color_index: string | null; price: number | null }> = [];
+  async prices(): Promise<Array<{ offer_id: string; price_index_value: number | null; color_index: string | null; price: number | null; price_before: number | null }>> {
+    const out: Array<{ offer_id: string; price_index_value: number | null; color_index: string | null; price: number | null; price_before: number | null }> = [];
     let cursor = "";
     do {
       const data = await this.post<any>("/v5/product/info/prices", {
@@ -207,6 +219,11 @@ export class OzonSeller {
           price_index_value: ext.price_index_value != null ? Number(ext.price_index_value) : null,
           color_index: it.price_indexes?.color_index ?? null,
           price: clientPrice,
+          // Цена ДО акций продавца (зачёркнутая). Пара price/price_before даёт соинвест:
+          // (1 - price / price_before). Раньше наружу отдавалась только клиентская цена,
+          // и соинвест по артикулам взять было неоткуда - приходилось брать разовую
+          // выгрузку кабинета, ключованную по product_id, а тесты живут по артикулам.
+          price_before: Number(pr.price) || null,
         });
       }
       cursor = data.cursor ?? "";

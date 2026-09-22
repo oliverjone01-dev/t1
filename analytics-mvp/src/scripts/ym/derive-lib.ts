@@ -717,7 +717,12 @@ export interface SvodMonth {
   // Те же отправки ПО ЗАКАЗАМ. Одной суммой строка отвечала «сколько», но не «за что»:
   // 7 заказов на 33 595 ₽ за июнь нечем было проверить и не с чем сверить. Объём мал
   // (25 заказов на 128 273 ₽ за всю историю), поэтому носим их целиком.
-  ship_lost_rows?: Array<{ order: string; d: string; v: number; status: string }>;
+  // sku/name/line - чем был заказ, за который мы заплатили перевозчику и не получили выручки.
+  // Без них строка в своде по заказам не знает своей категории и не может встать рядом с
+  // остальными заказами (Катя 22.09.2026: «мы знаем по какому это заказу расход - туда его и
+  // переместить»). Берётся САМАЯ КРУПНАЯ по деньгам позиция заказа - тем же правилом, каким свод
+  // определяет категорию обычного заказа.
+  ship_lost_rows?: Array<{ order: string; d: string; v: number; status: string; sku?: string; name?: string; line?: string; city?: string }>;
   ship_orders?: number;           // заказов месяца, которые ведомость знает
   ship_cov?: number;              // % заказов месяца, покрытых ведомостью
 }
@@ -872,6 +877,15 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     orderRetBase.set(r.order, (orderRetBase.get(r.order) || 0) + (r.price || 0) * (r.returned || 0));
   }
 
+  // Самая крупная по деньгам позиция КАЖДОГО заказа, включая отменённые: у них itemsOf пуст
+  // (он собирается только по доставленным), а категорию знать надо.
+  const topItemOf = new Map<string, OrderRow>();
+  for (const r of rows) {
+    if (r.service) continue;
+    const v = (r.price || 0) * (r.count || r.units || 1);
+    const cur = topItemOf.get(r.order);
+    if (!cur || v > (cur.price || 0) * (cur.count || cur.units || 1)) topItemOf.set(r.order, r);
+  }
   const itemsOf = new Map<string, OrderRow[]>();
   for (const r of rows) {
     if (!delivered.has(r.order)) continue;
@@ -1018,7 +1032,12 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
       m.ship_lost_orders = (m.ship_lost_orders || 0) + 1;
       const day = dayOfOrder.get(ord);
       if (day) { (m.ship_lost_daily ||= {})[day] = r2(((m.ship_lost_daily || {})[day] || 0) + d.ship); }
-      (m.ship_lost_rows ||= []).push({ order: ord, d: day || "", v: r2(d.ship), status: statusOfOrder.get(ord) || "" });
+      const top = topItemOf.get(ord);
+      // Город - такой же признак заказа, как дата и статус: у отменённого заказа он тоже есть,
+      // просто строки свода, из которой его обычно берут, у такого заказа нет.
+      (m.ship_lost_rows ||= []).push({ order: ord, d: day || "", v: r2(d.ship), status: statusOfOrder.get(ord) || "",
+        ...(top ? { sku: top.sku, name: top.name, line: top.line } : {}),
+        ...(top && top.region ? { city: top.region } : {}) });
     }
     for (const [k, m] of months) {
       const known = (ordersKnown.get(k) || new Set()).size;

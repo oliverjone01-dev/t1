@@ -2409,7 +2409,13 @@ function renderSkuAnalytics(cur){
     // месяц был пуст. Теперь и таблица по артикулам, и блок по заказам берут доставку из одного источника.
     var ship=anSum(AN_SHIPSKU[sk],from,to,1)[0]||0;
     var dinc=anSum(AN_DINCSKU[sk],from,to,1)[0]||0;
-    if(!sa[0]&&!sa[1]&&!sa[2]&&!sa[3]&&!sa[4]&&!ad[0]&&!fi[0]&&!fi[6]&&!cpo&&!ship&&!dinc)continue;
+    // Эквайринг/хранение ПО SKU из accrual/by-day (AN_ACQSKU/AN_STOSKU) - тот же источник, что в блоке
+    // по заказам и в водопаде. Раньше брали из AN_FIN (fi[3]/fi[4], transaction/list), а он для OZON мёртв
+    // с 08.09 -> в открытом месяце столбцы стояли прочерком. Теперь и таблица, и ИТОГО, и водопад - один
+    // базис. Значения signed (сбор < 0), столбец показывает положительным -> берём со знаком минус.
+    var acq=-(anSum(AN_ACQSKU[sk],from,to,1)[0]||0);
+    var sto=-(anSum(AN_STOSKU[sk],from,to,1)[0]||0);
+    if(!sa[0]&&!sa[1]&&!sa[2]&&!sa[3]&&!sa[4]&&!ad[0]&&!fi[0]&&!fi[6]&&!cpo&&!ship&&!dinc&&!acq&&!sto)continue;
     var m=AN_META[sk];
     // units = «Реализовано с учётом возвратов» по отчёту о реализации (УПД); cc = СС/шт × реализовано
     var ru=realUnits(sk,covM,from,to);
@@ -2418,12 +2424,17 @@ function renderSkuAnalytics(cur){
     // adv = собранная реклама по SKU за период (положит. расход); вычитается из К выплате (amt).
     // CPC (AN_ADSSKU) + CPO «за заказ» (AN_CPOSKU, ручной отчёт закрытых месяцев).
     var adv=(anSum(AN_ADSSKU[sk],from,to,1)[0]||0)+cpo;
-    var amtNet=fi[6]-adv; // К выплате после разнесённой рекламы
+    // К выплате приводим к тому же эквайрингу/хранению, что и в столбцах: снимаем сумму, зашитую в
+    // fi[6] (fi[3]/fi[4], transaction - для OZON нули в открытом месяце, слегка расходятся в закрытом),
+    // и вычитаем реальный сбор из accrual/by-day (acq/sto). Итог: и столбцы, и К выплате на одном базисе,
+    // как в блоке по заказам (там spread с cutAmt=true). Без этого в открытом месяце К выплате была
+    // завышена на весь эквайринг/хранение (fi[6] их не знал), а столбцы стояли прочерком.
+    var amtNet=fi[6]-fi[3]-fi[4]-acq-sto-adv; // К выплате: единый эквайринг/хранение + разнесённая реклама
     // amtS = К выплате как база АДМ/налогов; по позициям с реализовано=0 не начисляем (amtS=0)
     var _cl=AN_DELIV_CITY[_off]||[];
     var citiesTxt=_cl.slice(0,3).map(function(c){return c[0]+' ('+c[1]+')';}).join(', ')+(_cl.length>3?' …':'');
     var citiesTip=_cl.map(function(c){return c[0]+' ('+c[1]+')';}).join('\\n');
-    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:ru,deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:-fi[3],sto:-fi[4],oth:-fi[5],cof:-fi[7],promo:-fi[8],adv:adv,amt:amtNet,amtS:(ru>0?amtNet:0),cc:(AN_COGS[sk]||0)*ru,ship:ship,dinc:dinc,citiesTxt:citiesTxt,citiesTip:citiesTip,noCs:noCs};
+    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:ru,deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:acq,sto:sto,oth:-fi[5],cof:-fi[7],promo:-fi[8],adv:adv,amt:amtNet,amtS:(ru>0?amtNet:0),cc:(AN_COGS[sk]||0)*ru,ship:ship,dinc:dinc,citiesTxt:citiesTxt,citiesTip:citiesTip,noCs:noCs};
     if(noCs)miss.push(x);
     (groups[x.cat]||(groups[x.cat]=[])).push(x);
   }

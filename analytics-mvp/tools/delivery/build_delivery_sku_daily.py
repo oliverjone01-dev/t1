@@ -24,6 +24,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 RAW = os.path.join(ROOT, "tools", "delivery", "raw")
 OUT = os.path.join(ROOT, "data", "delivery_sku_daily.ndjson")
 OUT_CITY = os.path.join(ROOT, "data", "delivery_cities.json")
+# P&L НАШЕЙ перевозки по городу и дню: {d, city, ship, deliv, n}. Город - свойство ОТПРАВКИ, а не
+# позиции, поэтому агрегат на уровне события (полный ship/deliv раз на отправку, без деления по
+# артикулам). Питает блок «Логистика по городам» на «Деньгах»: расход перевозчика vs доход с
+# покупателя, убыточные города (ship > deliv). Только закрытые месяцы (в ведомости текущего нет).
+OUT_CITYDAILY = os.path.join(ROOT, "data", "delivery_city_daily.ndjson")
 CUR_MONTH = datetime.date.today().strftime("%Y-%m")  # текущий месяц исключаем (закрытые только)
 YEAR = 2026
 MES = {"янв": 1, "фев": 2, "мар": 3, "апр": 4, "мая": 5, "май": 5, "июн": 6, "июл": 7,
@@ -174,6 +179,7 @@ def main():
 
     daily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (offer,d)->[ship,deliv,отправок]
     cities = collections.defaultdict(collections.Counter)     # offer-> Counter(city)
+    citydaily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (city,d)->[ship,deliv,отправок] (на уровне отправки)
     permon = collections.defaultdict(float)
     permon_deliv = collections.defaultdict(float)
     bystatus = collections.defaultdict(lambda: [0, 0.0])       # статус -> [отправок, сумма] (инфо)
@@ -198,6 +204,10 @@ def main():
         share = e["ship"] / len(arts)     # мультиартикульная отправка - делим поровну
         dshare = e["deliv"] / len(arts)
         used += 1
+        # По городу - на уровне ОТПРАВКИ (полный ship/deliv раз на событие, не делим по артикулам:
+        # город и перевозка - свойства отправки). Σ по городам сходится с permon (сверка ниже).
+        cd = citydaily[(e["city"], d)]
+        cd[0] += e["ship"]; cd[1] += e["deliv"]; cd[2] += 1
         permon[d[:7]] += e["ship"]
         permon_deliv[d[:7]] += e["deliv"]
         bystatus[e["st"] or "(пусто)"][0] += 1
@@ -216,6 +226,16 @@ def main():
     city_out = {off: c.most_common(12) for off, c in cities.items()}
     with open(OUT_CITY, "w", encoding="utf-8") as w:
         json.dump(city_out, w, ensure_ascii=False)
+    # P&L перевозки по городу и дню (закрытые месяцы) - для блока «Логистика по городам».
+    cd_rows = [{"d": d, "city": city, "ship": round(sh, 2), "deliv": round(dl, 2), "n": n}
+               for (city, d), (sh, dl, n) in sorted(citydaily.items())]
+    with open(OUT_CITYDAILY, "w", encoding="utf-8") as w:
+        for r in cd_rows:
+            w.write(json.dumps(r, ensure_ascii=False) + "\n")
+    # сверка: Σ по городам == Σ по offer×день (обе из тех же отправок)
+    cd_ship = round(sum(r["ship"] for r in cd_rows)); off_ship = round(sum(o["ship"] for o in out))
+    print("город×день строк:", len(cd_rows), "| городов:", len({r["city"] for r in cd_rows}),
+          "| Σship город", cd_ship, "vs offer", off_ship, "(Δ", cd_ship - off_ship, ")")
     print("OZON строк прочитано:", ozon, "| уник отправок (заказ+дата+сумма):", len(events), "| учтено:", used, "| пропущено (текущий месяц", CUR_MONTH, "):", skipped_cur)
     print("«Стоимость отправки» реальный расход по месяцам:", {k: round(v) for k, v in sorted(permon.items())})
     print("«Стоимость доставки» (клиент, ТОЛЬКО сверка) по месяцам:", {k: round(v) for k, v in sorted(permon_deliv.items())})

@@ -478,8 +478,26 @@ describe("свод Маркета: числа на странице", () => {
   // старый базис и заявлял прибыль там, где таблица показывает пустоту. За 28.02 это было
   // «Чистая прибыль 147 464 ₽» при нуле строк свода - ровно то противоречие, ради снятия
   // которого водопад и переводили на свод. Ни один из прежних тестов пустое окно не трогал.
+  // Дни берутся ИЗ ДАННЫХ, а не списком: 15.09 был пустым на снимке 21.09 и перестал быть таким
+  // после пересбора заказов 22.09. Тест на захардкоженной дате проверяет не свойство страницы, а
+  // возраст снимка, и падает на обновлении данных, ничего при этом не найдя.
+  const emptyDays = (n: number): string[] => {
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
+    const has = new Set<string>();
+    for (const m of svod.months || svod) for (const r of m.rows || []) has.add(r.d);
+    const all = [...has].sort();
+    const out: string[] = [];
+    for (let d = all[0]!; d <= all[all.length - 1]! && out.length < n; ) {
+      if (!has.has(d)) out.push(d);
+      const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + 1); d = t.toISOString().slice(0, 10);
+    }
+    return out;
+  };
+
   it("пустое окно: водопад и план молчат, а не считают по другому источнику", () => {
-    for (const day of ["2026-02-28", "2026-09-15"]) {
+    const days = emptyDays(2);
+    expect(days.length, "в снимке не нашлось ни одного дня без доставленных заказов").toBeGreaterThan(0);
+    for (const day of days) {
       setRange(day, day);
       expect(T().querySelectorAll("tbody tr").length, `${day}: в своде есть строки, окно не пустое`).toBe(0);
       const wf = D().getElementById("wf")!;
@@ -868,13 +886,17 @@ describe("свод по заказам", () => {
   const tot2 = () => [...T2().querySelectorAll("tr.so-total td")].map((x) => (x.textContent || "").trim());
   const cell2 = (c: string) => tot2()[head2().indexOf(c)];
 
-  it("блок есть, стоит после свода по артикулам и не пуст", () => {
+  // Порядок поменян 22.09.2026 по просьбе Кати: свод по заказам встал ПЕРВЫМ. Раньше этот тест
+  // требовал обратного - он держал прежнюю раскладку, и его пришлось перенацелить, а не удалить:
+  // порядок блоков остаётся проверяемым, просто ожидание другое.
+  it("блок есть, стоит перед сводом по артикулам и не пуст", () => {
     setRange("2026-07-01", "2026-07-31");
     const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
     const sv = titles.findIndex((x) => /Свод по дате заказа/.test(x));
     const so = titles.findIndex((x) => /Свод по заказам/.test(x));
     expect(so, "блока «Свод по заказам» нет").toBeGreaterThanOrEqual(0);
-    expect(so, "свод по заказам встал выше свода по артикулам").toBeGreaterThan(sv);
+    expect(sv, "блока «Свод по дате заказа» нет").toBeGreaterThanOrEqual(0);
+    expect(so, "свод по заказам должен стоять выше свода по артикулам").toBeLessThan(sv);
     expect(T2().querySelectorAll("tr.so-cat").length, "категорий в своде по заказам нет").toBeGreaterThan(1);
     expect(errs).toEqual([]);
   });
@@ -1183,6 +1205,7 @@ describe("свод: колонка «Кто везёт»", () => {
       click(shut[0]!);
     }
     const iM = ix(t, "Кто везёт"), iB = ix(t, "Доставка покупателя"), iD = ix(t, "Доставка");
+    const iO = ix(t, "Наша доставка");
     const orders = [...t.querySelectorAll("tbody tr")]
       .filter((r) => /^\d{8,}$/.test((r.children[0]!.textContent || "").trim()));
     expect(orders.length, "заказы не раскрылись").toBeGreaterThan(20);
@@ -1195,7 +1218,13 @@ describe("свод: колонка «Кто везёт»", () => {
       // «Маркет» обязан иметь сбор за логистику; «своя» - платёж покупателя и НЕ иметь сбора.
       if (mode === "Маркет" && fee <= 0) bad.push(`${no}: «Маркет», а сбора за доставку нет`);
       if (mode.startsWith("своя") && fee > 0) bad.push(`${no}: «своя», а сбор Маркета есть`);
-      if (mode.startsWith("своя") && inc <= 0) bad.push(`${no}: «своя», а покупатель за доставку не платил`);
+      // Раньше здесь стояло «своя ⇒ покупатель заплатил». Это было МОЁ допущение, а не свойство
+      // данных: доставка бывает бесплатной для покупателя, платежа нет, а счёт перевозчика есть
+      // (5 заказов на 20 549 ₽ в снимке, вопрос Кати 22.09.2026). Признак свой: платёж ИЛИ расход.
+      const our = (r.children[iO]!.textContent || "").trim();
+      const ourV = num(our) || 0;
+      const ourKnown = ourV > 0 || /нет вед/.test(our);
+      if (mode.startsWith("своя") && inc <= 0 && !ourKnown) bad.push(`${no}: «своя», а ни платежа покупателя, ни нашего расхода нет`);
       if (mode === "—" && (fee > 0 || inc > 0)) bad.push(`${no}: «—», хотя деньги за доставку есть`);
     }
     expect(bad.slice(0, 8)).toEqual([]);
@@ -1218,5 +1247,122 @@ describe("свод: колонка «Кто везёт»", () => {
       return (mode === "своя, нет вед.") !== (own === "нет вед.");
     }).map((r) => (r.children[0]!.textContent || "").trim());
     expect(bad.slice(0, 6), "подпись режима разошлась с колонкой «Наша доставка»").toEqual([]);
+  });
+});
+
+// Катя 22.09.2026: «свод по заказам поменяй местами со сводом по дате заказа, по заказам не вижу
+// столбца с типом доставки и городами. Дополнительно сделай блок по доставке с городами, по
+// которым у нас доставка в минус».
+describe("свод по заказам: порядок блоков, город и доставка по городам", () => {
+  const titles = () => [...D().querySelectorAll(".card-title")].map((t) => (t.textContent || "").replace(/ИИ-разбор$/, "").trim());
+  const soHead = () => [...D().querySelectorAll("#so-t thead th")].map((t) => (t.textContent || "").trim());
+  const ctHead = () => [...D().querySelectorAll("#ct-t thead th")].map((t) => (t.textContent || "").trim());
+
+  it("свод по заказам стоит ВЫШЕ свода по артикулам", () => {
+    const t = titles();
+    const a = t.indexOf("Свод по заказам"), b = t.indexOf("Свод по дате заказа");
+    expect(a, "блока «Свод по заказам» нет").toBeGreaterThanOrEqual(0);
+    expect(b, "блока «Свод по дате заказа» нет").toBeGreaterThanOrEqual(0);
+    expect(a, "порядок блоков не поменялся").toBeLessThan(b);
+  });
+
+  it("в своде по заказам есть и «Кто везёт», и «Город»", () => {
+    const h = soHead();
+    expect(h).toContain("Кто везёт");
+    expect(h).toContain("Город");
+    expect(h.indexOf("Город")).toBe(h.indexOf("Кто везёт") + 1);
+  });
+
+  it("добавленные колонки не сдвинули строки", () => {
+    const n = soHead().length;
+    const rows = [...D().querySelectorAll("#so-t tbody tr")].slice(0, 30);
+    expect(rows.length).toBeGreaterThan(0);
+    const bad = rows.filter((r) => r.children.length !== n)
+      .map((r) => `${(r.children[0]?.textContent || "").trim().slice(0, 30)}: ячеек ${r.children.length}, колонок ${n}`);
+    expect(bad).toEqual([]);
+  });
+
+  it("блок «Доставка по городам» есть и считает итог", () => {
+    expect(titles()).toContain("Доставка по городам");
+    expect(ctHead()).toEqual(["Город", "Заказов", "Доход с покупателя", "Наш перевозчик",
+      "Сбор Маркета", "Итог по доставке", "На заказ", "Без ведомости"]);
+    const tot = D().querySelector("#ct-t tbody tr.so-total");
+    expect(tot, "строки ИТОГО в блоке доставки нет").not.toBeNull();
+    const n = num(tot!.children[1]?.textContent);
+    expect(n, "ИТОГО не посчитало ни одного заказа").toBeGreaterThan(0);
+  });
+
+  // Пробел обязан быть виден, а не подразумеваться (§15 п.3). Пока снимок заказов собран старым
+  // кодом, города пусты: тест держит оба состояния, чтобы не упасть, когда пересбор их подтянет.
+  it("заказы без города либо пересчитаны в плашке, либо их нет", () => {
+    const gap = D().querySelector("#ct-gap") as HTMLElement | null;
+    const rows = [...D().querySelectorAll("#ct-t tbody tr")].filter((r) => !r.classList.contains("so-total"));
+    const shown = gap && gap.style.display !== "none";
+    if (shown) {
+      expect(gap!.textContent || "", "плашка есть, а числа в ней нет").toMatch(/\d+ из \d+ заказов без города/);
+    } else {
+      expect(rows.length, "плашки нет, но и городов нет - значит пробел просто не показан").toBeGreaterThan(0);
+    }
+  });
+
+  // Итог по доставке = доход − наш перевозчик − сбор Маркета. Проверяем на самой строке ИТОГО:
+  // формула, посчитанная в другом месте, разойдётся с нарисованной ровно тогда, когда её тронут.
+  it("итог по доставке сходится со своими же слагаемыми", () => {
+    const tot = D().querySelector("#ct-t tbody tr.so-total")!;
+    const inc = num(tot.children[2]?.textContent) || 0;
+    const our = num(tot.children[3]?.textContent) || 0;
+    const fee = num(tot.children[4]?.textContent) || 0;
+    const res = num(tot.children[5]?.textContent) || 0;
+    expect(Math.abs(res - (inc - our - fee))).toBeLessThan(2);
+  });
+});
+
+// Вопрос Кати 22.09.2026: «ты проверяешь состыковку по строкам: если доставка маркета - то расход
+// средняя миля, если наша доставка - то доставка покупателя». Проверяю. Эти два режима - не
+// соглашение и не допущение, а свойство данных, и тест держит его на снимке, а не на памяти.
+describe("доставка: два режима не пересекаются и не теряются", () => {
+  const svod = () => JSON.parse(readFileSync("data-ym/svod_orders.json", "utf8"));
+  const DEL = ["Доставка покупателю", "Доставка (средняя миля)", "Доставка невыкупов и возвратов"];
+  const rows = () => { const sv = svod(); return (sv.months || sv).flatMap((m: any) => m.rows || []); };
+  const led = (r: any) => DEL.reduce((a, k) => a + ((r.svc || {})[k] || 0) + ((r.svc_pts || {})[k] || 0), 0);
+
+  it("ни одна строка не несёт сбор Маркета за логистику И платёж покупателя нам", () => {
+    const both = rows().filter((r: any) => led(r) > 0 && (r.ship_buyer || 0) > 0)
+      .map((r: any) => `${r.d} заказ ${r.order} ${r.sku}`);
+    expect(both, "строка, где и Маркет взял за логистику, и покупатель заплатил нам").toEqual([]);
+  });
+
+  it("ни один заказ не смешивает режимы: доставку заказа везёт кто-то один", () => {
+    const byOrder = new Map<string, Set<string>>();
+    for (const r of rows()) {
+      const m = led(r) > 0 ? "маркет" : ((r.ship_buyer || 0) > 0 || (r.ship_our || 0) > 0 || r.ship_known ? "своя" : "нет");
+      if (m === "нет") continue;
+      const s = byOrder.get(r.order) || new Set<string>(); s.add(m); byOrder.set(r.order, s);
+    }
+    const mixed = [...byOrder.entries()].filter(([, v]) => v.size > 1).map(([k]) => k);
+    expect(mixed, "заказы, часть строк которых вёз Маркет, а часть мы").toEqual([]);
+  });
+
+  // Главное, что вскрыл вопрос Кати: доставка бывает бесплатной для покупателя. Платежа нет,
+  // расход есть. Такая строка обязана считаться НАШЕЙ доставкой, иначе её расход выпадает из
+  // счётчика перевозок и из оценки пробела по ведомости, а заказ подписывается «—».
+  it("наш счёт перевозчика без платежа покупателя - это наша доставка, а не «никто не вёз»", () => {
+    const orphan = rows().filter((r: any) => led(r) <= 0 && (r.ship_buyer || 0) <= 0 && ((r.ship_our || 0) > 0 || r.ship_known));
+    if (!orphan.length) return;                 // снимок изменился - проверять нечего, но и врать не о чем
+    const W: any = dom.window as any;
+    const bad = orphan.filter((r: any) => {
+      const m = W.svMode ? W.svMode(r) : null;
+      return m !== "own" && m !== "unk";
+    }).map((r: any) => `${r.d} заказ ${r.order}: режим ${W.svMode ? W.svMode(r) : "?"}, наш расход ${r.ship_our}`);
+    expect(bad, "заказ везли мы и платили перевозчику, а страница считает, что не везли").toEqual([]);
+  });
+
+  it("ИТОГО блока доставки по городам видит расход по таким заказам", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const tot = D().querySelector("#ct-t tbody tr.so-total");
+    expect(tot).not.toBeNull();
+    const our = num(tot!.children[3]?.textContent) || 0;
+    const want = rows().reduce((a: number, r: any) => a + (r.ship_our || 0), 0);
+    expect(Math.abs(our - want), `в блоке ${our}, в своде ${Math.round(want)}`).toBeLessThan(Math.max(50, want * 0.002));
   });
 });

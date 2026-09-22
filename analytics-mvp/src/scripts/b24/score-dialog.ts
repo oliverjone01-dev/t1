@@ -659,7 +659,11 @@ function main() {
     if (stageRows.length >= 2) {
       const last2 = stageRows[stageRows.length - 1]!, prev2 = stageRows[stageRows.length - 2]!;
       const rNew = STAGE_ORDER[last2.code], rOld = STAGE_ORDER[prev2.code];
-      if (rNew != null && rOld != null && rNew > rOld && (now - last2.ts) / 864e5 <= STAGE_UP_DAYS)
+      // Бонус только если шаг вперёд И ПО КАНБАНУ, И по эмпирическому шансу. Одного канбана мало:
+      // 86 из 280 срабатываний (31%) приходились на переходы, где шанс падает - 51 раз «ТЗ в КП»,
+      // 27 раз «Расчёт в КП». Награждать за движение, снижающее вероятность, нельзя (ФЕНИКС G2).
+      const wNew = BASE_RATES[last2.code]?.win ?? BASE_FALLBACK, wOld = BASE_RATES[prev2.code]?.win ?? BASE_FALLBACK;
+      if (rNew != null && rOld != null && rNew > rOld && wNew >= wOld && (now - last2.ts) / 864e5 <= STAGE_UP_DAYS)
         push("stage_up", `продвинул стадию: ${prev2.name} -> ${last2.name}`, 1.15);
     }
     if (respMed !== null && respMed <= FAST_ANSWER_MIN) push("fast_resp", `быстрые ответы (${fmtMin(respMed)})`, 1.1);
@@ -777,7 +781,14 @@ function main() {
     const temp = Math.round(prob * 100);
     const entryTemp = ENTRY_TEMP;   // старт один для всех, см. комментарий у ENTRY_TEMP
     const goalReached = POST_SALE.has(stageCode) || isWon;
-    const tempDelta = temp - entryTemp;                 // насколько прогрели с входа (или остудили)
+    const tempDelta = temp - entryTemp;                 // путь сделки от старта, для карточки
+    // ВКЛАД МЕНЕДЖЕРА = температура минус структурная температура ТЕКУЩЕЙ стадии.
+    // Только он и годится для оценки человека. tempDelta при постоянном старте вырождается:
+    // tempDelta = temp - 10 тождественно на всех 5050 строках, то есть «сила нагрева» по нему
+    // была ранговой копией состава портфеля (Spearman с долей сделок на дорогих стадиях = 1.000).
+    // Менеджер, которому достались сделки на «Расчёте», выигрывал столбец не работой, а входом.
+    // heatLift этого не умеет: стадия из него вычтена, остаётся то, что добавило поведение.
+    const heatLift = temp - stageTemp(stageCode);
     const tBucket = goalReached ? "goal" : tempBucket(temp);
     // Кривая нагрева: структурная температура по стадиям [ДАННЫЕ] + текущая точка с учётом поведения.
     const tempCurve: { d: string; t: number; n: string }[] = (stageRows as any[]).map((s) => ({ d: s.date, t: stageTemp(s.code), n: s.name }));
@@ -789,7 +800,7 @@ function main() {
       .sort((a, b) => b.deg - a.deg).slice(0, 5);
 
     deals.push({
-      temp, entryTemp, tempDelta, tempBucket: tBucket, goalReached, tempCurve, needToClose,
+      temp, entryTemp, tempDelta, heatLift, tempBucket: tBucket, goalReached, tempCurve, needToClose,
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
@@ -867,7 +878,7 @@ function main() {
     why.sort((a, b) => a.pp - b.pp);
     d.prob = Math.round(p * 100); d.whyProb = why;
     d.needToClose = why.filter((w) => w.bad).map((w) => ({ label: w.label.replace(/\s*\([^)]*\)/, ""), deg: -w.pp, rub: -w.rub })).sort((a, b) => b.deg - a.deg).slice(0, 5);
-    d.temp = Math.round(p * 100); d.tempDelta = d.temp - d.entryTemp; d.tempBucket = d.goalReached ? "goal" : tempBucket(d.temp);
+    d.temp = Math.round(p * 100); d.tempDelta = d.temp - d.entryTemp; d.heatLift = d.temp - stageTemp(d.stageCode); d.tempBucket = d.goalReached ? "goal" : tempBucket(d.temp);
     if (d.uKey === "ok" || d.uKey === "lowprob") {   // lowprob-хвост срочности зависит от prob
       if (!d.won && !d.lost && d.prob < 25 && (d.budget || 0) >= 300000) { d.uKey = "lowprob"; d.urgency = `Шанс низкий (${d.prob}%)`; d.uw = 0.35; }
       else if (d.uKey === "lowprob") { d.uKey = "ok"; d.urgency = ""; d.uw = 0.1; }
@@ -1047,7 +1058,7 @@ function main() {
     const openDs = ds.filter((d) => d.outcome === "open");
     const tempDist = { cold: 0, warm: 0, hot: 0, boiling: 0, goal: 0 };
     for (const d of openDs) (tempDist as any)[d.tempBucket] = ((tempDist as any)[d.tempBucket] || 0) + 1;
-    const heatVals = openDs.filter((d) => !d.goalReached && !d.preMig && (d.stageRows || []).length).map((d) => d.tempDelta);
+    const heatVals = openDs.filter((d) => !d.goalReached && !d.preMig && (d.stageRows || []).length).map((d) => d.heatLift);
     const heatPower = heatVals.length >= 3 ? med(heatVals) : null;
     const hotMoneyTemp = openDs.filter((d) => d.tempBucket === "hot" || d.tempBucket === "boiling").reduce((s2, d) => s2 + (d.budget || 0), 0);
     return {

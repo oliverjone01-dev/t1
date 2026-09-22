@@ -1143,7 +1143,7 @@ function renderTree(){
         +(a.problem?`<br><b style="color:#E08585">Риск потери:</b> ${esc(a.problem)}`:'')
         +(a.recommendation?`<br><b style="color:#7FD1A6">Что сделать:</b> ${esc(a.recommendation)}`:'')
       : '';
-    const tip=`Температура клиента = шанс покупки в моменте: <b>${t}°</b>. На входе ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Цель - предоплата.${gaps?'<br><b>Не хватает до горячего:</b><br>'+gaps:''}${aiTip}`;
+    const tip=`Температура клиента = шанс покупки в моменте: <b>${t}°</b>. Старт ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Вклад ведения поверх стадии: ${d.heatLift>0?'+':''}${d.heatLift==null?'-':d.heatLift}°. Цель - предоплата.${gaps?'<br><b>Не хватает до горячего:</b><br>'+gaps:''}${aiTip}`;
     return `<div class="thermo" data-tip="${tip.replace(/"/g,'&quot;')}"><div class="thg"><div class="thtube"><span class="thliq" style="height:${Math.max(4,Math.min(100,t))}%;background:${c}"></span><i class="thmark" style="bottom:${Math.min(100,e)}%" title="на входе ${e}°"></i></div><span class="thbulb" style="background:${c}"></span></div><div class="thnum"><b class="tht" style="color:${c}">${t}°</b>${dl?`<span class="thd" style="color:${dl>0?'#2E9E74':'#C25252'}">${dl>0?'▲+'+dl:'▼'+dl}</span>`:''}</div></div>`;
   };
   // Распределение сделок менеджера/группы/отдела по температуре + СИЛА НАГРЕВА (медиана Δ).
@@ -1160,7 +1160,7 @@ function renderTree(){
       return `<span class="tseg${on?' tsegon':''}" data-temp="${k}" style="flex:${b[k]};background:${c}" data-tip="<span class='tdot' style='background:${c}'></span><b>${l}</b>: ${b[k]} сдел. · ${Math.round(b[k]/tot*100)}% портфеля · клик - показать эти сделки"></span>`; }).join('');
     // Переехавшие из амо в марте 2026 в силу нагрева не идут: у них стадия проставлена
     // импортом, а не работой менеджера, и медиана Δ у них -3° против +3° у живых сделок.
-    const dd=ds.filter(d=>!d.goalReached&&!d.preMig&&(d.stageRows||[]).length&&d.tempDelta!=null).map(d=>d.tempDelta).sort((a,b)=>a-b);
+    const dd=ds.filter(d=>!d.goalReached&&!d.preMig&&(d.stageRows||[]).length&&d.heatLift!=null).map(d=>d.heatLift).sort((a,b)=>a-b);
     const nMig=ds.filter(d=>d.preMig).length;
     const hp=dd.length>=3?dd[Math.floor(dd.length/2)]:null;
     const hpc=hp===null?'var(--ink-4)':hp>0?'#2E9E74':hp<0?'#C25252':'var(--ink-3)';
@@ -1182,7 +1182,7 @@ function renderTree(){
       : '';
     const migNote=nMig?`<br><i>Вне силы нагрева ${nMig} сдел., переехавших из амо в марте: стадия проставлена импортом, а не менеджером.</i>`:'';
     const leadNote=nLead?`<br><i>Вне градусника ${nLead} лид. без стадии - у них своя воронка.</i>`:'';
-    const hpTip=hp===null?('Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).'+leadNote+migNote+aiTip):`Сила нагрева = медиана Δ температуры от старта ${10}° до сейчас: <b>${hp>0?'+':''}${hp}°</b>. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${leadNote}${migNote}${whyBlock}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
+    const hpTip=hp===null?('Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).'+leadNote+migNote+aiTip):`Сила нагрева = медиана вклада менеджера: температура сделки минус структурная температура её стадии, <b>${hp>0?'+':''}${hp}°</b>. Стадия вычтена намеренно, иначе столбец ранжировал бы по составу портфеля, а не по работе. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${leadNote}${migNote}${whyBlock}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
     return `<div class="tempcell"><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
   // «Почему остывают» с конкретными цифрами (сделок, до +N°, что делать) для агрегатного
   // ИИ-итога отдела/подотдела - те же данные, что в подсказке градусника.
@@ -1606,8 +1606,10 @@ function renderTree(){
       const au=a&&a.audit;
       const daItem=(ic,t,v)=>v?`<div class="da-item"><b>${ic} ${t}</b> ${esc(v)}</div>`:'';
       // Оценка (температура + не хватает до горячего) - ВНУТРИ аудита, первым разделом.
-      const daTemp=(d.temp!=null&&!d.goalReached)
-        ? `<div class="da-temp">🌡 <b style="color:${TEMPCOL(d.temp)}">${d.temp}°</b> шанс покупки в моменте${d.entryTemp!=null?`, на входе ${d.entryTemp}°`:''}${d.tempDelta?`, ${d.tempDelta>0?'прогрет +'+d.tempDelta:'остыл '+d.tempDelta}°`:''}. Цель - предоплата.`
+      // Лид - не сделка: у него нет стадии, температура падает на заглушку, и слово «прогрет»
+      // на молчащем месяц лиде это ложь. Раньше «прогрет» показывалось 1245 лидам (ФЕНИКС G4).
+      const daTemp=(d.temp!=null&&!d.goalReached&&!d.isLead)
+        ? `<div class="da-temp">🌡 <b style="color:${TEMPCOL(d.temp)}">${d.temp}°</b> шанс покупки в моменте${d.entryTemp!=null?`, старт ${d.entryTemp}°`:''}${d.heatLift!=null?`, вклад ведения поверх стадии ${d.heatLift>0?'+':''}${d.heatLift}°`:''}. Цель - предоплата.`
           +(gapsList?`<div class="da-gaps"><b>Не хватает до горячего:</b><br>${gapsList}</div>`:'')+`</div>`
         : (d.goalReached?`<div class="da-temp">🎯 Предоплата получена, грев завершён.</div>`:'');
       const daBlock=au?`<div class="dabox"><div class="da-h">🔬 Подробный разбор коммуникации</div>`

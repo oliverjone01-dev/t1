@@ -11,7 +11,7 @@ function ref(from:string,to:string){
   const ohM:any={},unM:any={};
   for(const m of ms){ for(const r of m.rows||[]){const k=String(r.d||"").slice(0,7); unM[k]=(unM[k]||0)+(r.units_net||0);}
     for(const [d,v] of Object.entries((m.overhead_daily||{}) as any)){const k=String(d).slice(0,7); ohM[k]=(ohM[k]||0)+(((v as any).m||0)+((v as any).p||0));}}
-  let net=0,cogs=0,ship=0;
+  let net=0,cogs=0,ship=0,paid=0;
   for(const m of ms) for(const r of m.rows||[]){
     const d0=String(r.d||""); if(d0<from||d0>to) continue;
     const d=r.units_delivered||0,n=r.units_net||0,k=d0.slice(0,7);
@@ -19,9 +19,11 @@ function ref(from:string,to:string){
     const pn=(d>0?(r.price||0)*n/d:(r.price||0))+(r.ship_mp||0);
     const fee=Object.values((r.svc||{}) as any).reduce((a:any,b:any)=>a+(b||0),0) as number;
     net+=pn+(r.ship_buyer||0)-fee-(r.svc_points||0)-per*n; cogs+=r.cogs||0; ship+=r.ship_our||0;
+    paid+=r.revenue_money||0;
   }
-  const gp=net-cogs-ship, np=gp-net*0.30-net*0.15;
-  return {net,np,rent:net!==0?np/net*100:0};
+  // 23.09.2026: налог - от платежа покупателя, АДМ - от поступления.
+  const gp=net-cogs-ship, np=gp-net*0.30-paid*0.15;
+  return {net,np,paid,rent:net!==0?np/net*100:0};
 }
 beforeAll(async()=>{const out=mkdtempSync(join(tmpdir(),"per-"));
   execFileSync("npx",["tsx","src/scripts/build-katya.ts"],{env:{...process.env,DATA_DIR:"data-ym",OUT_DIR:out,PLATFORM:"ym"},stdio:"pipe"});

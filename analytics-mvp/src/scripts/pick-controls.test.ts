@@ -8,10 +8,10 @@ import {
 import { type CardMap } from "./card-kin.js";
 
 const D = (n: number): string => `2026-09-${String(n).padStart(2, "0")}`;
-const noCards: CardMap = { card: new Map(), groups: 0, source: "", real: false };
+const noCards: CardMap = { card: new Map(), groups: 0, source: "", real: false, importedAt: "" };
 /** Настоящая карта карточек: правила 6 и 7 работают только по ней, префикс убран 23.09. */
 const withCards = (pairs: Array<[string, string]>): CardMap =>
-  ({ card: new Map(pairs), groups: 99, source: "test", real: true });
+  ({ card: new Map(pairs), groups: 99, source: "test", real: true, importedAt: "2026-09-23" });
 
 /** Ряд: артикул -> дни. По умолчанию товар живой, без рекламы и с ровным соинвестом. */
 function mk(arts: Record<string, Partial<Day> & { views?: number; coinvBy?: (d: number) => number }>): Series {

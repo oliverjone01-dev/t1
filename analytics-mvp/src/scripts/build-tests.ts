@@ -14,7 +14,7 @@
 // Запуск: npm run tests:page (или npm run katya, он зовёт этот скрипт).
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { dp, op, IS_OZON } from "../paths.js";
-import { loadCardMap, kinOfTests, collapseByCard } from "./card-kin.js";
+import { loadCardMap, kinOfTests, collapseByCard, mapHealth } from "./card-kin.js";
 import {
   controlByDay, gapSeries, readiness, loadMoves, loadCpoDays,
   ARRIVED, FLAT_RANGE, FLAT_DAYS, BASE_DAYS, LATE_AFTER, BACK_TO_BASE,
@@ -910,6 +910,9 @@ const mblock = measured.length ? `<h2 class="sec">Измеренные тест�
 // Пробелы снимка цен - в заметки страницы: §15 требует подсвечивать их в дашборде, а не
 // ждать, пока кто-то заметит расхождение сам.
 const gaps: string[] = [];
+/** Предупреждения идут выше заметок и отдельной плашкой: заметку прочитают когда-нибудь,
+ *  а устаревшая карта портит цифру уже сегодня. */
+const warns: string[] = [];
 if (coinvSkipped) gaps.push(`Дней без наблюдения в снимке цен: ${nbsp(coinvSkipped)} строк.`
   + ` Такие дни идут пробелом, а не точкой: 19 и 20.09 снимок продублировал вчерашние цены,`
   + ` и рисовать по ним линию значило бы показывать данные, которых нет.`);
@@ -935,6 +938,30 @@ gaps.push(`Правило отбора контроля зафиксирован
   + ` объединённую карточку OZON с артикулом этого теста. Группа считается по каждому тесту`
   + ` отдельно: ` + T.тесты.map((t) => `${t.id} ${nbsp(ctlGroupOf(t).length)}`).join(", ")
   + ` ${plural(ctlGroupOf(T.тесты[0]!).length, "артикул", "артикула", "артикулов")} из ${nbsp(PANEL.length)} в панели.`);
+// Карта карточек лежит в репозитории отдельным файлом и сама себя не обновляет: сырая
+// выгрузка в git не едет, а npm run cards запускается руками. Если каталог поедет, а карту
+// никто не пересоберёт, родство протухнет молча и разница поедет вместе с ним. Поэтому
+// возраст карты и её покрытие стоят прямо в заметках, а расхождение выше порога это
+// предупреждение, а не примечание. Пороги и решение в card-kin.ts: mapHealth.
+{
+  const covered = [...new Set(coinvRows.filter((r) => r.date === LAST).map((r) => r.art))];
+  const miss = covered.filter((a) => !CARDS.card.has(a));
+  const { age, stale } = mapHealth(CARDS, LAST, covered);
+  const share = covered.length ? miss.length / covered.length : 0;
+  const head = `Карта объединённых карточек: ${nbsp(CARDS.groups)} ${plural(CARDS.groups, "карточка", "карточки", "карточек")}`
+    + `, выгрузка от ${esc(CARDS.importedAt || "неизвестной даты")}`
+    + (age == null ? "" : `, это ${nbsp(age)} ${plural(age, "день", "дня", "дней")} назад`)
+    + `. Без карточки в снимке на ${LAST} ${nbsp(miss.length)} ${plural(miss.length, "артикул", "артикула", "артикулов")}`
+    + ` из ${nbsp(covered.length)} (${(share * 100).toFixed(1)} %).`;
+  const why = ` Карта не обновляется сама: сырая выгрузка в репозиторий не едет, её превращает в файл`
+    + ` npm run cards. Пока карта не пересобрана, родство считается по старому составу.`;
+  if (stale) {
+    warns.push(`КАРТА КАРТОЧЕК УСТАРЕЛА. ${head}${why} Пересоберите карту до замера: на устаревшей`
+      + ` карте из контроля уходит не та родня, и разница поедет вместе с ней.`);
+  } else {
+    gaps.push(`${head}${why}`);
+  }
+}
 gaps.push(`Родство считается только по настоящей карточке OZON. Префикс артикула (линия) как`
   + ` признак родства убран 23.09: линия объединяет разные модели, то есть это догадка,`
   + ` выглядящая как данные. Замены на уровне панели нет, и это проверено: правило «родня это`
@@ -977,6 +1004,8 @@ gaps.push("Соинвест считается по цене, которую п�
   + " Отношение «факт к нашей цене по карте» 0.999. Разницу между предельной ценой и тем, что"
   + " заплатил покупатель, оплачивает Ozon.");
 const notes = [...(T.заметки || []), ...gaps].map((n) => `<li>${esc(n)}</li>`).join("");
+const warnBlock = warns.map((w) => `<div class="stop"><b>${esc(w.split(".")[0] ?? "")}.</b>`
+  + `${esc(w.slice((w.split(".")[0] ?? "").length + 1))}</div>`).join("");
 const nav = KPAGES.map(([h, l, key]) => navButton(h, l, key === "tests")).join(" ");
 
 const CSS = `:root{--bg:#0b0f17;--card:#12161f;--soft:#232B36;--ink:#e8eef2;--ink2:#9fb2c0;--ink3:#5d7484;--cy:#22D3EE;--up:#34D399;--warn:#E5B567;--s1:${C_TEST};--s2:${C_CTRL}}
@@ -1098,7 +1127,7 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта. Сама разница считается не к паре, а к групповому контролю: панель снимка без тестовых товаров и их родни по карточке. Пара осталась подписью и ловушкой для мёртвого и грязного контроля; родство в ней доказано корреляцией остатков, а не карточкой.</p>`
   + cards + boostCard() + mblock
-  + `<h2 class="sec">Заметки и предупреждения</h2><div class="notes"><ul>${notes}</ul></div></div>`
+  + `<h2 class="sec">Заметки и предупреждения</h2>${warnBlock}<div class="notes"><ul>${notes}</ul></div></div>`
   + `<script>${JS}</script></body></html>`;
 
 writeFileSync(op("katya-tests.html"), html);

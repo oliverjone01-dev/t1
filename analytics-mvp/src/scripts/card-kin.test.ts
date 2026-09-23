@@ -1,14 +1,14 @@
 // Родство решает, кого нельзя брать в контроль и что считать одним наблюдением. Ошибка тут
 // не видна в числах: она просто делает разницу тест минус контроль меньше, чем есть.
 import { describe, it, expect } from "vitest";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import {
-  loadCardMap, kinKey, isKin, kinOfTests, collapseByCard, CARD_MAP_PATHS,
+  loadCardMap, kinKey, isKin, kinOfTests, collapseByCard, mapHealth, CARD_MAP_PATHS,
   type CardMap,
 } from "./card-kin.js";
 
 const map = (pairs: Array<[string, string]>, groups = 99): CardMap =>
-  ({ card: new Map(pairs), groups, source: "test", real: groups >= 20 });
+  ({ card: new Map(pairs), groups, source: "test", real: groups >= 20, importedAt: "2026-09-23" });
 const none = map([], 0);
 
 describe("префикс артикула роднёй больше не считается", () => {
@@ -122,5 +122,55 @@ describe("склейка GGT-35", () => {
     const m = loadCardMap();
     expect(m.card.get("GGT-35-1-3-100-180")).toBe(m.card.get("GGT-35-3-3-100-180"));
     expect(isKin("GGT-35-1-3-100-180", "GGT-35-3-3-100-180", m)).toBe(true);
+  });
+});
+
+describe("здоровье карты карточек", () => {
+  const m = (pairs: Array<[string, string]>, importedAt: string): CardMap =>
+    ({ card: new Map(pairs), groups: 30, source: "test", real: true, importedAt });
+
+  it("свежая карта, покрывающая снимок, тревоги не поднимает", () => {
+    const h = mapHealth(m([["A", "c1"], ["B", "c1"]], "2026-09-23"), "2026-09-23", ["A", "B"]);
+    expect(h.age).toBe(0);
+    expect(h.missShare).toBe(0);
+    expect(h.stale).toBe(false);
+  });
+
+  it("карта старше порога это тревога, даже если покрытие полное", () => {
+    const h = mapHealth(m([["A", "c1"], ["B", "c1"]], "2026-09-01"), "2026-09-23", ["A", "B"]);
+    expect(h.age).toBe(22);
+    expect(h.stale).toBe(true);
+  });
+
+  it("свежая дата не спасает, если каталог вырос мимо карты", () => {
+    // Ровно этот случай карта датой не ловит: выгрузка сегодняшняя, а товаров стало больше.
+    const arts = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+    const h = mapHealth(m([["A", "c1"], ["B", "c1"]], "2026-09-23"), "2026-09-23", arts);
+    expect(h.age).toBe(0);
+    expect(h.missShare).toBe(0.8);
+    expect(h.stale).toBe(true);
+  });
+
+  it("одиночный непокрытый артикул из полутысячи тревоги не поднимает", () => {
+    const arts = Array.from({ length: 500 }, (_, i) => `A${i}`);
+    const pairs = arts.slice(0, 499).map((a) => [a, "c1"] as [string, string]);
+    const h = mapHealth(m(pairs, "2026-09-23"), "2026-09-23", arts);
+    expect(h.missShare).toBeLessThan(0.05);
+    expect(h.stale).toBe(false);
+  });
+
+  it("карта без даты не притворяется свежей, но и не врёт про возраст", () => {
+    const h = mapHealth(m([["A", "c1"], ["B", "c1"]], ""), "2026-09-23", ["A", "B"]);
+    expect(h.age).toBeNull();
+    expect(h.stale).toBe(false);   // покрытие полное, врать не о чем
+  });
+
+  it("на живой карте и живом снимке тревоги сегодня нет", () => {
+    const rows = readFileSync("data/coinv_daily.ndjson", "utf-8").trim().split("\n")
+      .filter(Boolean).map((l) => JSON.parse(l) as { date: string; art: string });
+    const last = rows.reduce((a, r) => (r.date > a ? r.date : a), "");
+    const arts = [...new Set(rows.filter((r) => r.date === last).map((r) => r.art))];
+    const h = mapHealth(loadCardMap(), last, arts);
+    expect(h.stale, `карта карточек отстала: возраст ${h.age}, без карточки ${(h.missShare * 100).toFixed(1)} %`).toBe(false);
   });
 });

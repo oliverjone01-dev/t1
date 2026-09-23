@@ -53,6 +53,43 @@ const setRange = (from: string, to: string) => {
   (D().getElementById("range-to") as any).value = to;
   click(D().getElementById("range-apply"));
 };
+// Расход по отменённым и возвращённым заказам с 22.09.2026 живёт НА АРТИКУЛЕ, а не отдельной
+// строкой. Проверять его теперь нужно в двух местах: подпись под таблицей (сколько разнесено и
+// на сколько артикулов) и сами помеченные строки.
+const rub = (s: string | null | undefined): number =>
+  Number(String(s ?? "").replace(/[^\d]/g, "")) || 0;
+const lostNote = (): { orders: number; sum: number; skus: number } | null => {
+  const m = (D().body.textContent || "")
+    .match(/перевозка по (\d+) заказ\S*, которые отменили или вернули, на ([\d\s\u00a0]+) ₽ разнесена на (\d+) артикул/);
+  return m ? { orders: +m[1]!, sum: rub(m[2]), skus: +m[3]! } : null;
+};
+// Клик перерисовывает таблицу, поэтому строку каждый раз ищем заново; кликаем только по
+// СВЁРНУТЫМ («▸»), иначе закроем то, что открыл предыдущий тест - состояние общее на страницу.
+const openAllCats = (t: Element, cls: string) => {
+  const n = t.querySelectorAll(cls).length;
+  for (let i = 0; i < n; i++) {
+    const c = [...t.querySelectorAll(cls)][i]!;
+    if (/\u25B8/.test(c.textContent || "")) click(c);
+  }
+};
+const markedSkus = (): Array<{ sku: string; lost: number; only: boolean; title: string }> => {
+  openAllCats(T(), "tr.sv-cat");
+  return [...T().querySelectorAll("tbody tr")]
+    .filter((r) => !r.classList.contains("sv-cat") && !r.classList.contains("sv-total")
+      && /\u25CF/.test(r.children[0]?.textContent || ""))
+    .map((r) => {
+      const td = r.children[0]!;
+      const title = td.querySelector("span[title]")?.getAttribute("title") || "";
+      const m = title.match(/: ([\d\s\u00a0]+) ₽\./);
+      return {
+        sku: (td.textContent || "").replace(/\u25CF/, "").replace(/только отменённые отправки/, "").trim(),
+        lost: m ? rub(m[1]) : 0,
+        only: /только отменённые отправки/.test(td.textContent || ""),
+        title,
+      };
+    });
+};
+
 const MONTHS = ["2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08"];
 const monthEnd = (m: string) => new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7), 0)).toISOString().slice(0, 10);
 
@@ -801,20 +838,27 @@ describe("свод: колонка «Наша доставка»", () => {
     expect(errs).toEqual([]);
   });
 
-  // Решение Ивана 18.09.2026: «считать, отдельной строкой». Перевозку по отменённому заказу мы
-  // оплатили, выручки по нему в своде нет - в строку артикула такой расход класть нельзя.
-  it("отправки по отменённым идут своей строкой и уменьшают итог", () => {
+  // Катя 22.09.2026: «в свод по дате заказа тоже разнеси этот расход по артикулам». Решение Ивана
+  // 18.09 («считать, отдельной строкой») этим отменено, и тест перенацелен, а не удалён: свойство
+  // то же - расход посчитан ровно один раз, - но место у него теперь другое, сам артикул.
+  it("отправки по отменённым сидят в артикулах, а не отдельной строкой", () => {
     setRange("2026-05-01", "2026-05-31");
-    const tr = [...T().querySelectorAll("tbody tr")].find((x) => /Отправки по отменённым/.test(x.textContent || ""));
-    expect(tr, "строки по отменённым отправкам нет").toBeTruthy();
-    const lost = [...tr!.children].map((c) => num(c.textContent)).filter((v) => v !== null) as number[];
-    expect(Math.max(...lost.map(Math.abs)), "строка пустая").toBeGreaterThan(40_000);
-    // Тот же расход не должен одновременно сидеть в строках артикулов.
+    expect([...T().querySelectorAll("tbody tr")].some((x) => /Отправки по отменённым/.test(x.textContent || "")),
+      "строка-котёл осталась в своде по артикулам").toBe(false);
+    const n = lostNote();
+    expect(n, "свод молчит о разнесённом расходе - пробел спрятан (§15 п.3)").toBeTruthy();
+    expect(n!.sum, "разнесено подозрительно мало").toBeGreaterThan(40_000);
+    // Ровно один раз: ИТОГО складывается из категорий, ничего снаружи них не осталось.
     const cats = [...T().querySelectorAll("tr.sv-cat")]
       .map((x) => num([...x.children][head().indexOf("Наша доставка")]?.textContent) || 0)
       .reduce((a, b) => a + b, 0);
     const itogo = num(cell("Наша доставка"))!;
-    expect(itogo - cats, "отменённые отправки не попали в ИТОГО").toBeGreaterThan(40_000);
+    expect(Math.abs(itogo - cats), `ИТОГО ${itogo} не равно сумме категорий ${Math.round(cats)}`).toBeLessThan(2);
+    // И не потерян: без него итог был бы меньше ровно на эту сумму.
+    const marked = markedSkus();
+    expect(marked.length, "ни один артикул не помечен отменённой отправкой").toBe(n!.skus);
+    expect(Math.abs(marked.reduce((a, x) => a + x.lost, 0) - n!.sum),
+      "сумма помеченных артикулов разошлась с подписью").toBeLessThan(2);
     expect(errs).toEqual([]);
   });
 
@@ -1176,50 +1220,68 @@ describe("свод: заказы вне выгрузки стоят строко
   });
 });
 
-// Раскрытие отправок по отменённым. Одной суммой строка отвечала «сколько», но не «за что»:
-// 7 заказов на 33 595 ₽ за июнь нечем было проверить (Катя 21.09.2026).
-describe("свод: отправки по отменённым раскрываются по заказам", () => {
-  const hdr = () => T().querySelector("tr.sv-lost-h") as any;
-  const rows = () => [...T().querySelectorAll("tr.sv-lost-r")];
-  const shipIx = () => head().indexOf("Наша доставка");
-
-  it("июнь: сумма заказов равна сумме в шапке строки", () => {
+// Разнесение отправок по отменённым на артикулы (Катя 22.09.2026). Раньше эти три теста держали
+// раскрытие строки-котла по заказам; котла больше нет, но защищаемое ими свойство осталось тем же:
+// расход не безымянный, он привязан к конкретной единице и считается по датам своих заказов.
+// Детализация по заказам (номер, дата, статус) никуда не делась - она в своде ПО ЗАКАЗАМ.
+describe("свод: отправки по отменённым разнесены по артикулам", () => {
+  it("июнь: сумма помеченных артикулов равна сумме в подписи", () => {
     setRange("2026-06-01", "2026-06-30");
-    const h = hdr();
-    expect(h, "строки отправок по отменённым нет").toBeTruthy();
-    expect(rows().length, "заказы раскрыты до клика").toBe(0);
-    const total = num(h.children[shipIx()].textContent)!;
-    click(h);
-    const rr = rows();
-    expect(rr.length, "клик не раскрыл заказы").toBeGreaterThan(0);
-    expect(h.textContent).toContain(`${rr.length} заказов`);
-    const sum = rr.reduce((a, r) => a + (num(r.children[shipIx()].textContent) || 0), 0);
-    expect(Math.abs(sum - total), "сумма раскрытых заказов разошлась с итогом строки").toBeLessThan(2);
-    click(h);
-    expect(rows().length, "повторный клик не свернул").toBe(0);
+    const n = lostNote();
+    expect(n, "подписи о разнесённом расходе нет").toBeTruthy();
+    expect(n!.orders, "июнь: заказов должно быть несколько").toBeGreaterThan(1);
+    const marked = markedSkus();
+    expect(marked.length, "помеченных артикулов нет").toBe(n!.skus);
+    const sum = marked.reduce((a, x) => a + x.lost, 0);
+    expect(Math.abs(sum - n!.sum), `артикулы дают ${sum}, подпись ${n!.sum}`).toBeLessThan(2);
+    expect(errs).toEqual([]);
   });
 
-  it("у каждого заказа свой номер, дата и внятный статус", () => {
+  it("у каждого помеченного артикула подпись объясняет, откуда расход", () => {
     setRange("2026-05-01", "2026-06-30");
-    click(hdr());
-    const rr = rows();
-    expect(rr.length).toBeGreaterThan(1);
-    for (const r of rr) {
-      const t = (r.children[0].textContent || "").trim();
-      expect(t, `в строке нет даты: ${t}`).toMatch(/^\d{4}-\d{2}-\d{2}/);
-      expect(t, `в строке нет номера заказа: ${t}`).toMatch(/заказ \d+/);
-      expect(t, `статус не переведён: ${t}`).toMatch(/\((отмена|возврат|—|[A-Z_]+),/);
+    const marked = markedSkus();
+    expect(marked.length).toBeGreaterThan(1);
+    for (const m of marked) {
+      expect(m.sku, `в строке нет артикула: ${m.sku}`).toMatch(/^GG/);
+      expect(m.title, `подпись не называет заказы: ${m.title}`).toMatch(/заказ(у|ам), которые отменили или вернули/);
+      expect(m.lost, `подпись не называет сумму: ${m.title}`).toBeGreaterThan(0);
+      // Артикул без продаж обязан быть назван словами: иначе строка с нулём и минусом необъяснима.
+      const zero = m.only;
+      expect(zero === /Продаж по артикулу за период нет/.test(m.title),
+        `пометка «только отменённые отправки» разошлась с подсказкой: ${m.sku}`).toBe(true);
     }
-    click(hdr());
+    expect(errs).toEqual([]);
   });
 
   it("счёт заказов идёт по их датам, а не по месяцу целиком", () => {
     // Раньше сюда шёл ship_lost_orders всего месяца, если в окно попадал хоть один его день.
     setRange("2026-06-01", "2026-06-30");
-    const whole = num((hdr().textContent || "").match(/\((\d+) заказов\)/)![1])!;
+    const whole = lostNote();
+    expect(whole, "за июнь отменённых отправок нет - сравнивать не с чем").toBeTruthy();
     setRange("2026-06-01", "2026-06-10");
-    const part = hdr() ? num((hdr().textContent || "").match(/\((\d+) заказов\)/)![1])! : 0;
-    expect(part, "часть месяца показала столько же заказов, сколько весь месяц").toBeLessThan(whole);
+    const part = lostNote();
+    expect(part ? part.orders : 0, "часть месяца показала столько же заказов, сколько весь месяц")
+      .toBeLessThan(whole!.orders);
+    expect(errs).toEqual([]);
+  });
+
+  // Детализация не потерялась: заказы с номером, датой и статусом стоят в своде ПО ЗАКАЗАМ.
+  it("сами заказы по-прежнему видно - в своде по заказам", () => {
+    setRange("2026-05-01", "2026-06-30");
+    const T2 = D().getElementById("so-t")!;
+    openAllCats(T2, "tr.so-cat");
+    const h = [...T2.querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+    const iNet = h.indexOf("Поступление"), iShip = h.indexOf("Наша доставка");
+    const lost = [...T2.querySelectorAll("tbody tr")].filter((r) =>
+      !r.classList.contains("so-cat") && !r.classList.contains("so-total")
+      && (num(r.children[iNet]!.textContent) || 0) === 0 && (num(r.children[iShip]!.textContent) || 0) > 0);
+    expect(lost.length, "заказов с оплаченной перевозкой и без выручки в своде по заказам нет").toBeGreaterThan(0);
+    for (const r of lost) {
+      const t = (r.children[0]!.textContent || "").trim();
+      expect(t, `в строке нет номера заказа: ${t}`).toMatch(/\d{8,}/);
+      expect(/отмен|возврат|сборк|пути|ПВЗ|оплачен|подтвержд/i.test(t), `заказ без статуса: ${t}`).toBe(true);
+    }
+    expect(errs).toEqual([]);
   });
 });
 

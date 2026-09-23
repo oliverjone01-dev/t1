@@ -722,7 +722,7 @@
   <div>таксономия: 130 SKU (31.9%), 58.1% оборота · без категории 37 935 332 ₽ - в разрезах по категориям этот оборот не виден</div></div><div style="margin-top:6px"><b>откуда сборы по месяцам</b> (где ledger'а нет, ставка занижена и маржа завышена)
   <div style="color:inherit">2026-01: взаиморасчёты 1 853 325 ₽ (49.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-02: взаиморасчёты 3 803 613 ₽ (43.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-03: взаиморасчёты 5 078 529 ₽ (48.1%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-04: взаиморасчёты 8 174 239 ₽ (47.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-05: взаиморасчёты 7 247 462 ₽ (47.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-06: взаиморасчёты 5 512 980 ₽ (50.5%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-07: взаиморасчёты 9 854 423 ₽ (59.6%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-08: взаиморасчёты 8 717 046 ₽ (56.3%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-09: взаиморасчёты 5 013 717 ₽ (54.4%) · комиссии заказа 0 ₽</div></div></details></div></div></details></div>
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-21</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 23.09.2026 12:29 МСК</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-21</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 23.09.2026 12:44 МСК</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/ym-snapshots.yml" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
@@ -1863,7 +1863,10 @@ function svDraw(){
     cov.innerHTML='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.'
       +(fu?' <span style="color:#E5B567">Заказано, но ещё не доставлено: '+fu+' шт на '+svRub(fp)+' ₽ - попадут в продажи этого периода, когда доедут.</span>':'')
       // Таблицы нет, а расход есть: промолчать о нём значило бы спрятать деньги за пустым окном.
-      +(Math.round(lv)?' <span style="color:#FF5A5F">Отправки по отменённым и возвратам: '+svRub(lv)+' ₽ по '+svZak(ln)+' - перевозку оплатили, выручки нет. В таблице их не видно, потому что показывать не с чем.</span>':'');
+      +(Math.round(lv)?' <span style="color:#FF5A5F">Отправки по отменённым и возвратам: '+svRub(lv)+' ₽ по '+svZak(ln)+' - перевозку оплатили, выручки нет. В таблице их не видно, потому что показывать не с чем.</span>':'')
+      // То же про общие расходы кабинета: они идут по календарю, и в окне без продаж это чистый
+      // убыток. Свод по заказам показывает его строкой ИТОГО, здесь таблицы нет - значит словами.
+      +(Math.round((ohM||0)+(ohP||0))?' <span style="color:#FF5A5F">Общие расходы кабинета за период: '+svRub((ohM||0)+(ohP||0))+' ₽. Разносить их не на что - продаж нет, поэтому за окно это чистый убыток. Он же стоит строкой ИТОГО в своде по заказам.</span>':'');
     noteEl.textContent='';
     return;
   }
@@ -2178,7 +2181,17 @@ function soDraw(){
   // Отдельной добавки больше нет: отменённые заказы стоят в списке своими строками, и их расход
   // уже сложен циклом выше. Прибавить его ещё раз значило бы посчитать дважды.
   T.svc['Прочее']=(T.svc['Прочее']||0)+(oh.m+oh.p);
-  h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' заказов)</span></td>'
+  // Общие расходы кабинета разносятся по штукам. Если штук в окне нет - разносить не на что, а
+  // расход есть: подписка, полки и буст списываются по календарю, а не по продажам. Катя
+  // 23.09.2026: «пока нет заказов и раскидывать некуда - клади в общие расходы». До этого такой
+  // остаток попадал только в колонку «Прочее», а поступление и чистая оставались нулями, и строка
+  // одновременно утверждала «потратили 9 334 ₽» и «прибыль ноль». Теперь он вычитается: за
+  // 18-21.09 это поступление -9 334 и чистая -9 334. Когда штуки есть, остаток равен нулю
+  // (ohPer × штуки = расход целиком), и эта поправка ничего не меняет.
+  var ohRest=(oh.m+oh.p)-ohPer*unAll;
+  if(Math.round(ohRest)){TN.net-=ohRest;TN.gp-=ohRest;TN.np-=ohRest;}
+  h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' заказов)</span>'
+    +(Math.round(ohRest)?' <span style="color:#E5B567;font-size:11px" title="Доставленных заказов в окне нет, а кабинет всё равно списал '+svRub(ohRest)+' ₽: подписка, полки и буст идут по календарю, а не по продажам. Разносить эту сумму не на что, поэтому она целиком стоит расходом периода.">расход без продаж</span>':'')+'</td>'
     +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td>'
     +'<td class="r" style="color:var(--ink-3)" title="'+SO_PAID_TIP+'"><b>'+(Math.round(T.paid)?svRub(T.paid):'—')+'</b></td>'
     +'<td class="r"><b>'+svRub(T.ship)+'</b></td>'

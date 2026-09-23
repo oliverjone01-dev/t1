@@ -257,6 +257,37 @@ export class OzonSeller {
     return out;
   }
 
+  // POST /v4/product/info/attributes - атрибуты товара, пагинация по last_id.
+  // Нужен ради model_info: OZON склеивает несколько SKU в одну карточку, и ключ этой
+  // склейки живёт здесь, а не в прайсе и не в остатках. Возвращаем элементы как есть:
+  // форму ответа подтверждает card-groups-probe, гадать по памяти тут нельзя.
+  async attributesAll(pageLimit = 1000, maxPages = 0): Promise<any[]> {
+    const out: any[] = [];
+    let lastId = "";
+    let page = 0;
+    do {
+      const data = await this.post<any>("/v4/product/info/attributes", {
+        filter: { visibility: "ALL" },
+        limit: pageLimit,
+        last_id: lastId,
+      });
+      const items = data.result ?? data.items ?? [];
+      out.push(...(Array.isArray(items) ? items : []));
+      lastId = data.last_id ?? data.result_last_id ?? "";
+      page += 1;
+    } while (lastId && (maxPages <= 0 || page < maxPages));
+    return out;
+  }
+
+  // Первая страница атрибутов - для probe (разведка формы ответа).
+  async attributesRaw(limit = 100): Promise<any[]> {
+    const data = await this.post<any>("/v4/product/info/attributes", {
+      filter: { visibility: "ALL" }, limit, last_id: "",
+    });
+    const items = data.result ?? data.items ?? [];
+    return Array.isArray(items) ? items : [];
+  }
+
   // Сырые элементы первой страницы /v5/product/info/prices - для probe (разведка полей цены).
   async pricesRaw(): Promise<any[]> {
     const data = await this.post<any>("/v5/product/info/prices", { filter: { visibility: "ALL" }, limit: 100, cursor: "" });

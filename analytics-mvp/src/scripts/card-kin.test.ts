@@ -3,7 +3,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync } from "node:fs";
 import {
-  loadCardMap, lineKey, kinKey, isKin, kinOfTests, collapseByCard, CARD_MAP_PATHS,
+  loadCardMap, kinKey, isKin, kinOfTests, collapseByCard, CARD_MAP_PATHS,
   type CardMap,
 } from "./card-kin.js";
 
@@ -11,35 +11,44 @@ const map = (pairs: Array<[string, string]>, groups = 99): CardMap =>
   ({ card: new Map(pairs), groups, source: "test", real: groups >= 20 });
 const none = map([], 0);
 
-describe("линия как догадка", () => {
-  it("берёт первые два сегмента артикула", () => {
-    expect(lineKey("GGT-47-3-3-90")).toBe("GGT-47");
-    expect(lineKey("GGT-03-2-1-E-14080")).toBe("GGT-03");
-    expect(lineKey("GGM-01-1")).toBe("GGM-01");
-  });
-
-  it("без карты родство определяется по линии", () => {
-    expect(isKin("GGT-47-3-3-90", "GGT-47-2-2-80", none)).toBe(true);
+describe("префикс артикула роднёй больше не считается", () => {
+  it("без карты родни нет вовсе: догадка дороже пропуска", () => {
+    // До 23.09 эти двое считались роднёй по линии GGT-47. Линия объединяет разные модели,
+    // поэтому признак убран, а замены на уровне панели нет: корреляция остатков с порогом
+    // 0.3 помечает роднёй 490 артикулов из 493, ровно как случайная двадцатка нетестовых.
+    expect(isKin("GGT-47-3-3-90", "GGT-47-2-2-80", none)).toBe(false);
     expect(isKin("GGT-47-3-3-90", "GGM-01-1", none)).toBe(false);
-    expect(isKin("GGT-47-3-3-90", "GGT-47-3-3-90", none)).toBe(false);  // сам себе не родня
+    expect(kinKey("GGT-47-3-3-90", none)).toBe("");
   });
 
-  it("карточка перебивает линию", () => {
-    // Разные линии, но одна карточка: родня. И наоборот, одна линия, разные карточки: нет.
+  it("сам себе не родня, даже когда карточка известна", () => {
+    const m = map([["A-1-1", "card1"]]);
+    expect(isKin("A-1-1", "A-1-1", m)).toBe(false);
+  });
+
+  it("родня только по карточке, и неизвестность не склеивает", () => {
+    // Разные линии, одна карточка: родня. Одна линия, разные карточки: нет.
+    // Двое, которых в карте нет, роднёй не становятся, хотя ключ у обоих пустой.
     const m = map([["A-1-1", "card1"], ["B-9-9", "card1"], ["C-1-1", "card2"], ["C-1-2", "card3"]]);
     expect(isKin("A-1-1", "B-9-9", m)).toBe(true);
     expect(isKin("C-1-1", "C-1-2", m)).toBe(false);
-    expect(kinKey("Z-1-1", m)).toBe("Z-1");   // нет в карте - откат на линию
+    expect(kinKey("Z-1-1", m)).toBe("");
+    expect(isKin("Z-1-1", "Z-1-2", m)).toBe(false);
   });
 });
 
 describe("родня тестовых товаров", () => {
-  it("собирает всех родственников, но не сами тестовые", () => {
+  it("собирает родню по карточке, но не сами тестовые", () => {
+    const m = map([["T-1", "c1"], ["K-1", "c1"], ["K-2", "c1"], ["X-1", "c2"]]);
+    const kin = kinOfTests(["T-1", "K-1", "K-2", "X-1"], new Set(["T-1"]), m);
+    expect([...kin].sort()).toEqual(["K-1", "K-2"]);
+    expect(kin.has("T-1")).toBe(false);
+    expect(kin.has("X-1")).toBe(false);
+  });
+
+  it("без карты набор пуст, а не собран по префиксу", () => {
     const all = ["GGT-47-3-3-90", "GGT-47-2-2-80", "GGT-47-3-5-90", "GGM-01-1"];
-    const kin = kinOfTests(all, new Set(["GGT-47-3-3-90"]), none);
-    expect([...kin].sort()).toEqual(["GGT-47-2-2-80", "GGT-47-3-5-90"]);
-    expect(kin.has("GGT-47-3-3-90")).toBe(false);
-    expect(kin.has("GGM-01-1")).toBe(false);
+    expect(kinOfTests(all, new Set(["GGT-47-3-3-90"]), none).size).toBe(0);
   });
 });
 
@@ -83,8 +92,8 @@ describe("карта из data/", () => {
   it.skipIf(!has)("читается, но пока помечена заглушкой", () => {
     const m = loadCardMap();
     expect(m.groups).toBeGreaterThan(0);
-    // Две модели от 25.06 это заметка. Когда выгрузка из кабинета придёт, real станет true,
-    // и правило по карточке перестанет быть догадкой на префиксе.
+    // Две модели от 25.06 это заметка, а не карта. Когда card_id поедет из кабинета,
+    // real станет true, и правило по карточке заработает в полную силу.
     expect(m.real).toBe(false);
   });
 

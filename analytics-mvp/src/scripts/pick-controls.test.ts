@@ -10,6 +10,9 @@ import { type CardMap } from "./card-kin.js";
 
 const D = (n: number): string => `2026-09-${String(n).padStart(2, "0")}`;
 const noCards: CardMap = { card: new Map(), groups: 0, source: "", real: false };
+/** Настоящая карта карточек: правила 6 и 7 работают только по ней, префикс убран 23.09. */
+const withCards = (pairs: Array<[string, string]>): CardMap =>
+  ({ card: new Map(pairs), groups: 99, source: "test", real: true });
 
 /** Ряд: артикул -> дни. По умолчанию товар живой, без рекламы и с ровным соинвестом. */
 function mk(arts: Record<string, Partial<Day> & { views?: number; coinvBy?: (d: number) => number }>): Series {
@@ -105,20 +108,31 @@ describe("восемь правил", () => {
     expect(p.rejected.find((r) => r.art === "GGL-09-9")!.why).toContain("нет показов после старта");
   });
 
-  it("правило 6: брат по линии не контроль, даже если идеально похож", () => {
+  it("правило 6: брат по КАРТОЧКЕ не контроль, даже если идеально похож", () => {
     // Ровно та ошибка, из-за которой 8 пар из 21 получили контролем родню.
+    const cards = withCards([["GGL-01-1", "c1"], ["GGL-01-2", "c1"]]);
     const s = mk({ "GGL-01-1": {}, "GGL-01-2": {} });
-    const p = pickFor("GGL-01-1", START, input(s, ["GGL-01-1"]), new Set());
+    const p = pickFor("GGL-01-1", START, input(s, ["GGL-01-1"], { cards }), new Set());
     expect(p.ctl).toBeNull();
     expect(p.rejected.find((r) => r.art === "GGL-01-2")!.rule).toBe(6);
   });
 
   it("правило 7: родня тестового товара ДРУГОГО теста тоже не контроль", () => {
-    // GGL-02-2 тестовый в другом тесте, GGL-02-9 его брат. В контроль не годится.
+    // GGL-02-2 тестовый в другом тесте, GGL-02-9 с ним на одной карточке.
+    const cards = withCards([["GGL-02-2", "c2"], ["GGL-02-9", "c2"]]);
     const s = mk({ "GGL-01-1": {}, "GGL-02-2": {}, "GGL-02-9": {} });
-    const p = pickFor("GGL-01-1", START, input(s, ["GGL-01-1", "GGL-02-2"]), new Set());
+    const p = pickFor("GGL-01-1", START, input(s, ["GGL-01-1", "GGL-02-2"], { cards }), new Set());
     expect(p.ctl).toBeNull();
     expect(p.rejected.find((r) => r.art === "GGL-02-9")!.rule).toBe(7);
+  });
+
+  it("без карты карточек правила 6 и 7 молчат, а не отсекают всех подряд", () => {
+    // Пустой ключ это «карточка неизвестна». Если считать его общим, роднёй окажутся
+    // все кандидаты разом и подбор молча вернёт пусто по каждому тесту.
+    const s = mk({ "GGL-01-1": {}, "GGL-01-2": {} });
+    const p = pickFor("GGL-01-1", START, input(s, ["GGL-01-1"]), new Set());
+    expect(p.ctl).toBe("GGL-01-2");
+    expect(p.rejected.some((r) => r.rule === 6 || r.rule === 7)).toBe(false);
   });
 
   it("правило 8: высокая корреляция остатков отсекает скрытую родню", () => {

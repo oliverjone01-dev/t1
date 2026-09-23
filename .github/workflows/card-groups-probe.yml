@@ -1,0 +1,43 @@
+name: Probe карты объединённых карточек OZON (откуда брать состав)
+
+# Гугл-таблица неполная, поэтому карта карточек нужна из API. Ставка на
+# /v4/product/info/attributes и model_info.model_id. Форму ответа из контейнера сессии не
+# проверить (OZON закрыт сетевой политикой), поэтому проба печатает сырые ключи в лог.
+# Ничего не пишет в репозиторий, запуск вручную.
+
+on:
+  workflow_dispatch:
+    inputs:
+      offer:
+        description: "Offer ID для подробного дампа (пусто = первый в ответе)"
+        required: false
+        default: "GGT-35-1-3-100-180"
+      full:
+        description: "Весь каталог вместо первой страницы (1 = да)"
+        required: false
+        default: "0"
+
+permissions:
+  contents: read
+
+env:
+  OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+  OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Probe карты карточек
+        run: npx tsx src/scripts/ozon/card-groups-probe.ts "${{ github.event.inputs.offer }}" "${{ github.event.inputs.full }}"

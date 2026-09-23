@@ -54,7 +54,8 @@
     "ym:join": "DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-taxonomy-join.ts && DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-cogs-join.ts",
     "ym:build": "DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-site.ts && DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-katya.ts",
     "ym:smoke": "DATA_DIR=data-ym PLATFORM=ym OUT_DIR=public/market tsx src/scripts/smoke.ts",
-    "ym:recon:realization": "tsx src/scripts/ym/recon-realization.ts"
+    "ym:recon:realization": "tsx src/scripts/ym/recon-realization.ts",
+    "eb": "tsx src/scripts/ozon/eb-daily.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

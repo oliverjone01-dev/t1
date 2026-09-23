@@ -2,7 +2,7 @@
  "agent": "feniks",
  "skill": "phoenix-eval",
  "task_id": "feniks-kontur-dashboard-pr358-008",
- "timestamp": "2026-09-23T22:46:48+00:00",
+ "timestamp": "2026-09-23T22:46:59+00:00",
  "deliverable_ref": "kontur-dashboard/ (ветка claude/kontur-dashboard, HEAD eacdd054; на origin 79fb0bc9, сверху только traces), PR #358; мини-PR #401 (claude/kontur-snapshot-only, 98b6d90c)",
  "artifact_class": "mixed",
  "audience": "Иван (HITL по CLAUDE.md §9: атрибуция принятого риска; решение о продолжении цикла и о PR #401), автор PR #358 и #401",

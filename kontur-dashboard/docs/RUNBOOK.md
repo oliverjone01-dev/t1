@@ -73,3 +73,13 @@ python3 tools/tamper.py     # ждём: 18 из 18
 `.github/workflows/deploy-pages.yml`, шаг «Build KONTUR dashboard». Копирует
 `kontur-dashboard/public/` в `/kontur/` на сайте. Отдельной сборки не требует:
 в `public/index.html` уже всё вшито.
+
+## Дымовой тест вне песочницы автора
+
+`tools/smoke.mjs` берёт зеркала tailwind и apexcharts из каталога `KONTUR_LIBS`
+(по умолчанию `/tmp/claude-0`), пишет страницу в `KONTUR_TMP`, браузер берёт из
+`KONTUR_CHROMIUM` или ставленный playwright. Файлы зеркал: `tw.js` (play-CDN
+Tailwind или заранее скомпилированный Tailwind 3 под классы страницы) и `apex.js`
+(ApexCharts 3.54.1). Код выхода проверять отдельно от вывода: тест печатает
+счётчики до прохода на 390 px, а ошибки этого прохода выводит последней строкой.
+

@@ -24,6 +24,12 @@ function mk(id, opt){
   if(CH[id]){ try{ CH[id].destroy(); }catch(e){} }
   CH[id] = new ApexCharts(el, opt); CH[id].render();
 }
+/* Графики прежнего экрана уничтожаются до смены разметки. Иначе их DOM уже выброшен,
+   а ApexCharts продолжает перерисовывать их на каждое изменение размера окна: в консоли
+   сыплются NaN и отрицательные размеры SVG, а экземпляры копятся в памяти. */
+function killCharts(){
+  Object.keys(CH).forEach(k => { try{ CH[k].destroy(); }catch(e){} delete CH[k]; });
+}
 const wkCats = ['н-1','н-2','н-3','н-4','н-5','н-6','н-7'];
 
 function draw(){

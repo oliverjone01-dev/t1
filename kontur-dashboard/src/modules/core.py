@@ -26,7 +26,15 @@ const SURF = () => A() ? '#101317' : '#FFFFFF';
 
 /* ============ ФОРМАТ И РАЗМЕТКА ПО ПРОТОКОЛУ 9 ============ */
 const esc = t => String(t==null?'':t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const nf  = n => (n==null||n==='') ? '-' : String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+/* Десятичная запятая, неразрывный пробел в разрядах только у целой части: в русском
+   тексте «4,78%» рядом с «+2,6%», а не «4.78%». Раньше точка оставалась точкой. */
+const nf  = n => { if(n==null||n==='') return '-';
+  const [i, f] = String(n).split('.');
+  return i.replace(/\B(?=(\d{3})+(?!\d))/g,' ') + (f!==undefined ? ','+f : ''); };
+/* Открытые вопросы текущего проекта: свои и общие. Строка про один проект
+   на экранах другого уже дважды выдавала собственнику неправду. */
+const BL = () => DB.blockers.filter(b => !b[4] || b[4]===CUR);
+const BLN = { gg:'GENGLASS', gm:'GLASS-MEMORY' };
 const money = n => (n==null||!isFinite(n)) ? '-' : nf(Math.round(n)) + ' ₽';
 const pc  = n => (n==null||!isFinite(n)) ? '-' : (n*100).toFixed(n<0.1?1:0).replace('.',',') + '%';
 

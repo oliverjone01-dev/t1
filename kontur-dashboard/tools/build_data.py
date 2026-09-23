@@ -16,9 +16,9 @@ HIST = HERE / 'data' / 'history' / 'positions.ndjson'
 
 # Цели счётчика Метрики. gg-seo-geo-monster/data/*/metrika.json их не запрашивает,
 # поэтому свой goals там пустой всегда. Список целей лежит в сырой выгрузке
-# Management API, снятой руками: ни один скрипт и ни один воркфлоу её не обновляет
-# (grep 'data/raw' по yandex-direct/ и .github/ даёт только упоминание в аудите).
-# Поэтому список показывается без даты замера и с прямой оговоркой на экране.
+# Management API, снятой руками 08.07.2026 при аудите кабинета Директа
+# (yandex-direct/audit/2026-07-08-atomic-audit.md): ни один скрипт и ни один
+# воркфлоу её не обновляет. Дата берётся из git, оговорка стоит на экране.
 GOALS_RAW_PATH = ROOT / 'yandex-direct' / 'data' / 'raw' / 'metrika-goals.json'
 GOALS_RAW_SRC  = 'yandex-direct/data/raw/metrika-goals.json'
 
@@ -78,18 +78,27 @@ def git_file_date(path):
     сторожа, а выдумывать дату замера нельзя. Константой её зашивать тоже нельзя -
     она молча устареет ровно в тот день, когда файл обновят.
 
-    В мелком клоне (`actions/checkout` без `fetch-depth`) история обрезана, и git
-    отдаёт дату HEAD вместо даты файла. Такую дату брать нельзя: она выглядит как
-    свежий замер и меняется каждый день. Признак мелкого клона проверяем прямо.
+    В мелком клоне история обрезана, и если последний коммит файла лежит за
+    границей, git приписывает файл граничному коммиту. Так metrika-goals.json в
+    клоне глубиной 50 выглядел снятым 16.09, хотя попал в репозиторий 08.07 при
+    аудите кабинета. Поэтому дата отбрасывается, если коммит файла граничный,
+    а не всегда, когда клон мелкий: внутри истории дата настоящая.
     """
     try:
-        shallow = subprocess.run(['git', 'rev-parse', '--is-shallow-repository'],
-                                 cwd=str(ROOT), capture_output=True, text=True, timeout=10)
-        if (shallow.stdout or '').strip() == 'true':
-            return ''
-        out = subprocess.run(['git', 'log', '-1', '--format=%cs', '--', str(path)],
+        out = subprocess.run(['git', 'log', '-1', '--format=%H %cs', '--', str(path)],
                              cwd=str(ROOT), capture_output=True, text=True, timeout=10)
-        return (out.stdout or '').strip()[:10]
+        parts = (out.stdout or '').split()
+        if len(parts) != 2:
+            return ''
+        commit, date = parts
+        sf = subprocess.run(['git', 'rev-parse', '--git-path', 'shallow'],
+                            cwd=str(ROOT), capture_output=True, text=True, timeout=10)
+        shallow = Path(sf.stdout.strip())
+        if not shallow.is_absolute():
+            shallow = ROOT / shallow
+        if shallow.exists() and commit in shallow.read_text().split():
+            return ''
+        return date[:10]
     except Exception:
         return ''
 
@@ -260,10 +269,9 @@ def build_project(code, cfg, hist):
                 gdate = git_file_date(GOALS_RAW_PATH)
                 goals_configured = F(
                     len(fb), DANN if gdate else GIPO, GOALS_RAW_SRC, gdate,
-                    ('дата появления файла в репозитории, не дата замера: список снят '
-                     'руками и не обновляется ни одним скриптом') if gdate else
-                    ('список снят руками, не обновляется ни одним скриптом, и дату '
-                     'файла в этой сборке определить не удалось'))
+                    'список снят руками при аудите кабинета и автоматически не обновляется'
+                    if gdate else
+                    'список снят руками и автоматически не обновляется, дата снятия неизвестна')
                 goals_configured['list'] = [{'name': g.get('name'), 'id': g.get('id')} for g in fb]
         p['ym'] = {
             'counter': F(ym.get('counter'), DANN, f"gg-seo-geo-monster/data/{cfg['dir']}/metrika.json", ym.get('measured', '')),
@@ -319,6 +327,23 @@ def build_project(code, cfg, hist):
     else:
         p['direct'] = None
 
+    # Цена заявки из рекламы. Расход из кабинета Директа, заявки из Метрики по цели:
+    # две выгрузки, и сведены они только по длине окна (30 дней), а не по датам.
+    # Кроме того, заявки считаются по всему рекламному трафику, а расход только по
+    # Директу (визитов из Директа 4531 из 4568 рекламных). Поэтому класс ГИПОТЕЗА.
+    conv_ad = (p.get('ym') or {}).get('conv') and p['ym']['conv'].get('ad')
+    if p['direct'] and not p['direct']['twin'] and conv_ad and conv_ad.get('leads'):
+        spend = p['direct']['spend']['v']
+        p['direct']['cpl'] = F(
+            round(spend / conv_ad['leads']) if spend else None,
+            GIPO if spend else DEMO,
+            f"direct.json (расход) и {DIRECT_METRIKA_SRC} (заявки)",
+            conv_ad['at'] if spend else '',
+            f"{spend} ₽ расхода на {conv_ad['leads']} заявок из рекламы за 30 дней; "
+            f"две выгрузки сведены по длине окна, а не по датам")
+    elif p['direct']:
+        p['direct']['cpl'] = None
+
     p['facts'] = FACTS.get(code, {})
     # Органические конкуренты: отдельная выгрузка keys.so, есть не по каждому домену.
     comp = load(SRC / 'keyso' / cfg['dom'] / 'competitors.json')
@@ -355,10 +380,12 @@ def main():
             'crd':  F(11.0, DANN, 'Roistat GENGROUP, D2C', '2026-07-01', 'нижняя граница коридора 11-15%, %'),
             'chk':  F(None, GIPO, 'подтверждённой цифры нет, вводится вручную', '', 'средний чек, ₽'),
         },
+        # Пятое поле - проект: 'gg', 'gm' или без него для общего вопроса. Экраны
+        # проекта берут только свои и общие строки (BL() в core.py).
         'blockers': [
             ['Прайс за м2 по перегородкам', 'Иван', 'без него нельзя ставить цену в тексты и в Директ', 'открыт'],
             ['Средний чек по проектам', 'Иван', 'без него мост до денег не считается', 'открыт'],
-            ['Сверка визитов из поиска', 'Иван', 'две выгрузки дают разное число по одной метрике, пока не сверены - звено «визиты» в мосте до денег остаётся гипотезой', 'открыт'],
+            ['Сверка визитов из поиска', 'Иван', 'две выгрузки Метрики дают разное число визитов из поиска, а модель моста до денег расходится с ними в разы; пока не сверено, звено «визиты» остаётся гипотезой', 'открыт', 'gg'],
             ['Разработчик: имя и срок', 'Иван', 'главный блокер, без него не публикуются посадочные', 'открыт'],
             ['Выгрузка сделок по каналу из CRM', 'Иван', 'без неё графа «факт» по деньгам пустая', 'открыт'],
         ],

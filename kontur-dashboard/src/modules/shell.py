@@ -87,6 +87,7 @@ function render(){
   const v=document.getElementById('view');
   const mth = method(VIEW), rd = reading(VIEW);
   const tail = (rd||mth) ? '<div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">'+(rd||'')+(mth||'')+'</div>' : '';
+  killCharts();
   v.innerHTML='<div class="fade">'+fn()+tail+'</div>';
 
   document.querySelectorAll('[data-v]').forEach(b=>{

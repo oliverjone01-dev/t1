@@ -4,8 +4,9 @@ name: "Контур: съём позиций и пересборка дашбо�
 # и страницу. Смысл в первом шаге: у сводки домена в keys.so нет ретроспективы,
 # поэтому пропущенная точка не восстанавливается задним числом никогда.
 #
-# Данные берутся из выгрузок, которые кладёт keyso-collect.yml. Своих походов
-# в сеть здесь нет: воркфлоу работает только с файлами репозитория.
+# Данные берутся из выгрузок, которые кладёт harvest.yml (ежедневно, 03:00 МСК).
+# В сеть воркфлоу ходит только за зеркалами tailwind и apexcharts для дымового
+# теста; данные он берёт исключительно из файлов репозитория.
 
 on:
   schedule:
@@ -55,23 +56,64 @@ jobs:
           python3 src/build.py
 
       - name: Сторож
+        id: guard
+        continue-on-error: true
         working-directory: kontur-dashboard
         run: python3 tools/check_dash.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Сторож проверяет разметку и конверты, но не исполняет экраны: на коде, где
+      # «Мост до денег» падал с TypeError, он был чист. Дымовой тест открывает все
+      # экраны обоих проектов в браузере и ловит любую ошибку консоли.
+      - name: Дымовой тест
+        id: smoke
+        continue-on-error: true
+        working-directory: kontur-dashboard
+        env:
+          KONTUR_LIBS: /tmp/kontur-libs
+          KONTUR_TMP: /tmp/kontur-smoke
+        run: |
+          set -euo pipefail
+          npm ci
+          npx playwright install --with-deps chromium
+          mkdir -p "$KONTUR_LIBS"
+          curl -fsSL https://cdn.tailwindcss.com -o "$KONTUR_LIBS/tw.js"
+          curl -fsSL https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js -o "$KONTUR_LIBS/apex.js"
+          node tools/smoke.mjs
 
       - name: Проверить ряд на разрывы
         working-directory: kontur-dashboard
         continue-on-error: true      # разрыв это повод разобраться, а не валить сборку
         run: python3 tools/snapshot.py --check
 
+      # Точка съёма коммитится всегда: пропущенную не восстановить. Данные и страница
+      # коммитятся только при зелёных стороже и дымовом тесте, иначе бот выложит в
+      # main страницу с упавшим экраном.
       - name: Закоммитить, если что-то изменилось
+        env:
+          CHECKS_OK: ${{ steps.guard.outcome == 'success' && steps.smoke.outcome == 'success' }}
         run: |
           set -euo pipefail
           git config user.name  "kontur-bot"
           git config user.email "kontur-bot@users.noreply.github.com"
-          git add kontur-dashboard/data kontur-dashboard/public
+          git add kontur-dashboard/data/history
+          if [ "$CHECKS_OK" = "true" ]; then
+            git add kontur-dashboard/data kontur-dashboard/public
+          else
+            echo "::warning::Сторож или дымовой тест не прошли: коммитится только точка съёма, страница не обновляется"
+          fi
           if git diff --cached --quiet; then
             echo "изменений нет"
           else
             git commit -m "kontur: точка съёма $(date -u +%Y-%m-%d)"
             git push
           fi
+
+      - name: Сторож и дымовой тест должны быть зелёными
+        if: steps.guard.outcome != 'success' || steps.smoke.outcome != 'success'
+        run: |
+          echo "::error::Сторож: ${{ steps.guard.outcome }}, дымовой тест: ${{ steps.smoke.outcome }}. Страница в main не обновлена."
+          exit 1

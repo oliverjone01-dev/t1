@@ -300,6 +300,15 @@ function deadControl(t: TestDef): string {
     + bad.map((x) => `<li>${x}</li>`).join("") + `</ul>Пару надо переподобрать до замера.</div>`;
 }
 
+function levelGap(test: string, ctl: string, key: string): { v: number; d: string } | null {
+  const a = series.get(test), b = series.get(ctl);
+  if (!a || !b) return null;
+  const days = [...a.keys()].filter((d) => a.get(d)?.[key] != null && b.get(d)?.[key] != null).sort();
+  const d = days[days.length - 1];
+  if (!d) return null;
+  return { v: (a.get(d)![key] as number) - (b.get(d)![key] as number), d };
+}
+
 function perArticle(t: TestDef): string {
   const st = t.старт!;
   const base = Array.from({ length: 14 }, (_, k) => addDays(st, -(k + 1)));
@@ -318,6 +327,12 @@ function perArticle(t: TestDef): string {
   const ordT = (a: string) => nums(artDaily(a, days, "units")).reduce((x, y) => x + y, 0);
   const first = byKey.get("vsearch") || [];
   if (!first.length) return "";
+  const gapCell = (test: string, ctl: string, key: string) => {
+    const g = levelGap(test, ctl, key);
+    if (!g) return '<td class="r muted">-</td>';
+    const cls = Math.abs(g.v) >= 2 ? (g.v > 0 ? "up" : "dn") : "";
+    return `<td class="r ${cls}" title="Разрыв уровней на ${g.d}: у соинвеста нет базы «до», ряд начался 19.09">${g.v >= 0 ? "+" : ""}${g.v.toFixed(1)}</td>`;
+  };
   const cell = (d: PairDelta | undefined, key = "") => {
     if (!d) return '<td class="r muted">-</td>';
     const good = key === "pos" ? d.dd < 0 : d.dd > 0;   // у позиции меньше - лучше
@@ -327,17 +342,29 @@ function perArticle(t: TestDef): string {
   const rows = first.map((p) => {
     const sb = meanOf(p.test, base, "spend"), sp = meanOf(p.test, days, "spend");
     return `<tr><td>${esc(p.test)}</td><td class="muted">${esc(p.ctl)}</td>`
-      + cols.map(([k]) => cell(byKey.get(k)!.find((x) => x.test === p.test), k)).join("")
+      + cols.map(([k]) => k === "coinv" ? gapCell(p.test, p.ctl, k) : cell(byKey.get(k)!.find((x) => x.test === p.test), k)).join("")
       + `<td class="r sep">${(sb || sp) ? nbsp(sb) + " → " + nbsp(sp) : "-"}</td>`
       + `<td class="r">${ordT(p.test)} / ${ordT(p.ctl)}</td></tr>`;
   }).join("");
   const med = cols.map(([k]) => {
+    if (k === "coinv") {
+      const g = first.map((p) => levelGap(p.test, p.ctl, k)).filter((x): x is { v: number; d: string } => !!x);
+      const m = median(g.map((x) => x.v));
+      return `<td class="r"><b>${m == null ? "-" : (m >= 0 ? "+" : "") + m.toFixed(1)}</b></td>`;
+    }
     const m = median(byKey.get(k)!.map((x) => x.dd));
     return `<td class="r"><b>${m == null ? "-" : (m >= 0 ? "+" : "") + m.toFixed(0)}</b></td>`;
   }).join("");
   return `<div class="sub2">Показатели по артикулам</div><div class="tbl-wrap"><table class="gtbl single">`
     + `<thead><tr><th>Артикул</th><th>Контроль</th>`
-    + cols.map(([k, n]) => `<th class="r" title="Разница в пунктах: прирост теста минус прирост контроля. Наведите на ячейку, чтобы увидеть оба прироста${k === "pos" ? ". У позиции меньше - лучше, поэтому рост числа здесь это ухудшение" : ""}">${n}${k === "pos" ? " ↓" : ""}</th>`).join("")
+    + cols.map(([k, n]) => {
+      const hint = k === "coinv"
+        ? "Разрыв уровней в пунктах: соинвест теста минус соинвест его контроля на последний общий день. Прироста к базе здесь нет: ряд цен начался 19.09, а тесты стартовали 18 и 20.09"
+        : k === "pos"
+          ? "Разница в пунктах: прирост теста минус прирост контроля. У позиции меньше - лучше, поэтому рост числа здесь это ухудшение"
+          : "Разница в пунктах: прирост теста минус прирост контроля. Наведите на ячейку, чтобы увидеть оба прироста";
+      return `<th class="r" title="${hint}">${n}${k === "pos" ? " ↓" : ""}</th>`;
+    }).join("")
     + `<th class="r sep" title="Расход на рекламу по тестовому артикулу, ₽ в день: две недели до старта → после старта">Расход т., ₽/дн</th>`
     + `<th class="r" title="Заказано штук после старта: тест / контроль">Заказы т/к</th></tr></thead>`
     + `<tbody>${rows}</tbody>`
@@ -415,12 +442,23 @@ function chart(t: TestDef, cid: string): string {
       reads[key] = `<div class="dyn-read">Медиана по парам, ${lowerTitle(title)}: тест <b>${mT == null ? "-" : (mT >= 0 ? "+" : "") + mT.toFixed(0) + " %"}</b>, контроль <b>${mC == null ? "-" : (mC >= 0 ? "+" : "") + mC.toFixed(0) + " %"}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b> (пар в счёте ${per.length}). База - две недели перед стартом, после старта ${post.length} дн, данные по ${LAST}.</div>${alarm}`;
     } else {
       const v = (x: number) => Number.isFinite(x) ? nbsp(x) + unit : "нет данных";
+      let extra = "";
+      if (key === "coinv") {
+        const g = (t.тест || []).map((a) => {
+          const c = (log.get(a)?.["контроль"] || "").trim();
+          return c ? levelGap(a, c, "coinv") : null;
+        }).filter((x): x is { v: number; d: string } => !!x);
+        const m = median(g.map((x) => x.v));
+        extra = m == null ? ""
+          : ` Медиана разрыва по парам на ${g[0]!.d}: <b>${m >= 0 ? "+" : ""}${m.toFixed(1)} пункта</b>.`
+            + " Прироста к базе здесь нет: ряд цен начался 19.09, а тесты стартовали 18 и 20.09.";
+      }
       reads[key] = `<div class="dyn-read">${testOnly ? "Тестовая группа" : "Средний день"}, ${lowerTitle(title)}: `
         + (testOnly
           ? `<b>${v(bT)} → ${v(pT)}</b> за день. У контроля рекламы нет по построению, поэтому вторая линия не рисуется.`
           : `тест <b>${v(bT)} → ${v(pT)}</b>, контроль <b>${v(bC)} → ${v(pC)}</b>.`)
         + (key === "pos" ? " Меньше - лучше." : "")
-        + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.</div>`;
+        + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.${extra}</div>`;
     }
   }
   if (!panes["vsearch"]) return "";

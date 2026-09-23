@@ -1264,7 +1264,7 @@
 {"d":"2026-09-23","id":"93979","st":"C49:UC_8JTBV2","mgr":"Лакомова Татьяна","keys":["first_fast","fast_resp","ball","ai"],"prob":8,"hl":-2,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"93987","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["fakedone"],"prob":16,"hl":-3,"pre":0,"bud":29165}
 {"d":"2026-09-23","id":"90793","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["silence","ghost"],"prob":4,"hl":-6,"pre":1,"bud":18600}
-{"d":"2026-09-23","id":"81995","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["first_fast","fast_resp","ball"],"prob":8,"hl":-2,"pre":1,"bud":352192}
+{"d":"2026-09-23","id":"81995","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["first_fast","fast_resp","ball","pause"],"prob":7,"hl":-3,"pre":1,"bud":352192}
 {"d":"2026-09-23","id":"94125","st":"C49:1","mgr":"Лысанова Юлия","keys":["promise_kept","slow_resp","promise_vague","fakedone","ai"],"prob":53,"hl":-47,"pre":0,"bud":269800}
 {"d":"2026-09-23","id":"94159","st":"C49:UC_VXNMQB","mgr":"Зазноба Екатерина","keys":["ready","fast_resp","promise_vague","hot_fast"],"prob":36,"hl":14,"pre":0,"bud":24499}
 {"d":"2026-09-23","id":"94185","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["silence","ghost","fakedone","ai"],"prob":3,"hl":-7,"pre":0,"bud":3417400}
@@ -1281,7 +1281,7 @@
 {"d":"2026-09-23","id":"86639","st":"C49:UC_8JTBV2","mgr":"Шура-Бура Юлия","keys":["fast_resp","ball","silence"],"prob":5,"hl":-5,"pre":1,"bud":201900}
 {"d":"2026-09-23","id":"94409","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["slow_resp","client_chase"],"prob":11,"hl":-8,"pre":0,"bud":82713}
 {"d":"2026-09-23","id":"90231","st":"C49:UC_8JTBV2","mgr":"Шура-Бура Юлия","keys":["first_fast","silence","obj_open","hot_slow"],"prob":3,"hl":-7,"pre":1,"bud":184300}
-{"d":"2026-09-23","id":"80711","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["fast_resp","hot_fast"],"prob":13,"hl":3,"pre":1,"bud":51500}
+{"d":"2026-09-23","id":"80711","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["fast_resp","pause","hot_fast"],"prob":11,"hl":1,"pre":1,"bud":51500}
 {"d":"2026-09-23","id":"94443","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["silence","blind","fakedone","ai"],"prob":3,"hl":-7,"pre":0,"bud":3500550}
 {"d":"2026-09-23","id":"94445","st":"C49:UC_VXNMQB","mgr":"Шура-Бура Юлия","keys":["promise_kept","silence","fakedone"],"prob":13,"hl":-9,"pre":0,"bud":542758.22}
 {"d":"2026-09-23","id":"94451","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["silence","ghost","fakedone"],"prob":4,"hl":-6,"pre":0,"bud":586500}
@@ -1348,7 +1348,7 @@
 {"d":"2026-09-23","id":"96183","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["ready","first_fast","silence","hot_slow","client_chase"],"prob":5,"hl":-5,"pre":0,"bud":69400}
 {"d":"2026-09-23","id":"96257","st":"C49:1","mgr":"Ерина Екатерина","keys":["nostep"],"prob":85,"hl":-15,"pre":0,"bud":125800}
 {"d":"2026-09-23","id":"96293","st":"C49:EXECUTING","mgr":"Ерина Екатерина","keys":["nostep"],"prob":81,"hl":-14,"pre":0,"bud":80900}
-{"d":"2026-09-23","id":"98347","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["first_fast","fast_resp","fakedone"],"prob":20,"hl":1,"pre":0,"bud":72034}
+{"d":"2026-09-23","id":"98347","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["first_fast","fast_resp","pause","fakedone"],"prob":17,"hl":-2,"pre":0,"bud":72034}
 {"d":"2026-09-23","id":"87149","st":"C49:FINAL_INVOICE","mgr":"Лысанова Юлия","keys":["first_fast","fast_resp","ball","nostep","ai"],"prob":57,"hl":-42,"pre":1,"bud":45500}
 {"d":"2026-09-23","id":"96431","st":"C49:1","mgr":"Платонова Алина","keys":["stage_up","promise_broken","fakedone"],"prob":78,"hl":-22,"pre":0,"bud":125200}
 {"d":"2026-09-23","id":"96433","st":"C49:FINAL_INVOICE","mgr":"Платонова Алина","keys":["ready","first_fast","fast_resp","ball","promise_broken","fakedone","hot_fast","client_chase"],"prob":71,"hl":-28,"pre":0,"bud":1316245}
@@ -1360,12 +1360,12 @@
 {"d":"2026-09-23","id":"96635","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["silence","fakedone"],"prob":10,"hl":-9,"pre":0,"bud":418397}
 {"d":"2026-09-23","id":"47819","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["silence"],"prob":6,"hl":-4,"pre":1,"bud":28900}
 {"d":"2026-09-23","id":"96669","st":"C49:FINAL_INVOICE","mgr":"Лысенко Ольга","keys":["nostep","fakedone"],"prob":63,"hl":-36,"pre":0,"bud":442612}
-{"d":"2026-09-23","id":"96675","st":"C49:UC_8JTBV2","mgr":"Лакомова Татьяна","keys":["silence","ai"],"prob":5,"hl":-5,"pre":0,"bud":190000}
+{"d":"2026-09-23","id":"96675","st":"C49:UC_8JTBV2","mgr":"Лакомова Татьяна","keys":["nostep","ai"],"prob":7,"hl":-3,"pre":0,"bud":190000}
 {"d":"2026-09-23","id":"96693","st":"C49:1","mgr":"Ерина Екатерина","keys":["nostep"],"prob":85,"hl":-15,"pre":0,"bud":107900}
 {"d":"2026-09-23","id":"96699","st":"C49:UC_8JTBV2","mgr":"Лакомова Татьяна","keys":["fast_resp","silence","fakedone","hot_slow","client_chase"],"prob":3,"hl":-7,"pre":0,"bud":217900}
 {"d":"2026-09-23","id":"96895","st":"C49:1","mgr":"Ерина Екатерина","keys":["ready","first_fast","fast_resp","ball","nostep","hot_fast","client_chase"],"prob":97,"hl":-3,"pre":0,"bud":1}
 {"d":"2026-09-23","id":"99939","st":"C49:PREPAYMENT_INVOIC","mgr":"Платонова Алина","keys":["first_fast","promise_broken","fakedone","hot_slow","client_chase"],"prob":7,"hl":-12,"pre":0,"bud":97050}
-{"d":"2026-09-23","id":"96725","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["first_fast","fast_resp","ball"],"prob":8,"hl":-2,"pre":0,"bud":400500}
+{"d":"2026-09-23","id":"96725","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["first_fast","fast_resp","ball","pause"],"prob":7,"hl":-3,"pre":0,"bud":400500}
 {"d":"2026-09-23","id":"96755","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["silence","ai"],"prob":5,"hl":-5,"pre":0,"bud":4012800}
 {"d":"2026-09-23","id":"96763","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["blind","fakedone","hot_slow"],"prob":4,"hl":-6,"pre":0,"bud":708000}
 {"d":"2026-09-23","id":"96783","st":"C49:FINAL_INVOICE","mgr":"Платонова Алина","keys":["promise_kept","stage_up","promise_vague","fakedone"],"prob":97,"hl":-2,"pre":0,"bud":157880}
@@ -1406,7 +1406,7 @@
 {"d":"2026-09-23","id":"97509","st":"C49:3","mgr":"Лысанова Юлия","keys":["silence","blind","fakedone","ai"],"prob":13,"hl":-28,"pre":0,"bud":339471}
 {"d":"2026-09-23","id":"97553","st":"C49:1","mgr":"Ерина Екатерина","keys":["overdue"],"prob":85,"hl":-15,"pre":0,"bud":102900}
 {"d":"2026-09-23","id":"97623","st":"C49:EXECUTING","mgr":"Лакомова Татьяна","keys":["ready","fast_resp","ball","silence_post","obj_worked","fakedone","hot_fast","client_chase","ai"],"prob":62,"hl":-33,"pre":0,"bud":386600}
-{"d":"2026-09-23","id":"97587","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["slow_resp","fakedone"],"prob":11,"hl":-8,"pre":0,"bud":131305}
+{"d":"2026-09-23","id":"97587","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["slow_resp","pause","fakedone"],"prob":9,"hl":-10,"pre":0,"bud":131305}
 {"d":"2026-09-23","id":"97605","st":"C49:UC_8JTBV2","mgr":"Лобова Надежда","keys":["first_fast","fast_resp","promise_vague","obj_open","hot_fast"],"prob":10,"hl":0,"pre":0,"bud":119000}
 {"d":"2026-09-23","id":"97655","st":"C49:FINAL_INVOICE","mgr":"Платонова Алина","keys":["fakedone"],"prob":74,"hl":-25,"pre":0,"bud":1299509}
 {"d":"2026-09-23","id":"97661","st":"C49:UC_8JTBV2","mgr":"Лакомова Татьяна","keys":["first_fast","fast_resp","nostep","obj_open","fakedone","ai"],"prob":6,"hl":-4,"pre":0,"bud":94000}
@@ -1455,7 +1455,7 @@
 {"d":"2026-09-23","id":"98421","st":"C49:PREPARATION","mgr":"Шура-Бура Юлия","keys":["promise_kept","first_fast","fast_resp","silence"],"prob":26,"hl":-5,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"98431","st":"C49:2","mgr":"Зазноба Екатерина","keys":["fast_resp","ball","nostep","promise_broken","fakedone","hot_fast"],"prob":52,"hl":-46,"pre":0,"bud":229560}
 {"d":"2026-09-23","id":"92305","st":"C49:EXECUTING","mgr":"Лысанова Юлия","keys":["silence_post","fakedone"],"prob":73,"hl":-22,"pre":1,"bud":130100}
-{"d":"2026-09-23","id":"98489","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["client_chase"],"prob":16,"hl":-3,"pre":0,"bud":130226}
+{"d":"2026-09-23","id":"98489","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["pause","client_chase"],"prob":14,"hl":-5,"pre":0,"bud":130226}
 {"d":"2026-09-23","id":"80707","st":"C49:FINAL_INVOICE","mgr":"Лысанова Юлия","keys":["stage_up","ball","promise_vague","fakedone","hot_fast","client_chase","ai"],"prob":56,"hl":-43,"pre":1,"bud":45500}
 {"d":"2026-09-23","id":"91039","st":"C49:PREPARATION","mgr":"Шура-Бура Юлия","keys":["silence","ghost"],"prob":13,"hl":-18,"pre":1,"bud":0}
 {"d":"2026-09-23","id":"98483","st":"C49:PREPARATION","mgr":"Системный пользователь GG","keys":["silence"],"prob":19,"hl":-12,"pre":0,"bud":0}
@@ -1466,7 +1466,7 @@
 {"d":"2026-09-23","id":"98497","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["silence","ghost"],"prob":4,"hl":-6,"pre":0,"bud":226800}
 {"d":"2026-09-23","id":"98513","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["first_fast","fast_resp","silence","fakedone"],"prob":6,"hl":-4,"pre":0,"bud":228100}
 {"d":"2026-09-23","id":"98507","st":"C49:FINAL_INVOICE","mgr":"Сячинова Александра","keys":["nostep"],"prob":84,"hl":-15,"pre":0,"bud":73801}
-{"d":"2026-09-23","id":"98563","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["fakedone"],"prob":9,"hl":-1,"pre":0,"bud":873960}
+{"d":"2026-09-23","id":"98563","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["pause","fakedone"],"prob":7,"hl":-3,"pre":0,"bud":873960}
 {"d":"2026-09-23","id":"98523","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["ball","silence","blind"],"prob":3,"hl":-7,"pre":0,"bud":587600}
 {"d":"2026-09-23","id":"98525","st":"C49:UC_VXNMQB","mgr":"Зазноба Екатерина","keys":["ready","first_fast","fast_resp","ball","silence","fakedone","hot_fast","client_chase"],"prob":13,"hl":-9,"pre":0,"bud":88790}
 {"d":"2026-09-23","id":"98535","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["ball","fakedone","hot_slow"],"prob":7,"hl":-12,"pre":0,"bud":117106}
@@ -1477,7 +1477,7 @@
 {"d":"2026-09-23","id":"98591","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["promise_kept","silence"],"prob":7,"hl":-3,"pre":0,"bud":164480}
 {"d":"2026-09-23","id":"98621","st":"C49:3","mgr":"Шура-Бура Юлия","keys":["promise_kept","silence","fakedone"],"prob":24,"hl":-17,"pre":0,"bud":1600000}
 {"d":"2026-09-23","id":"98629","st":"C49:1","mgr":"Платонова Алина","keys":["silence_post","fakedone"],"prob":77,"hl":-23,"pre":0,"bud":61750}
-{"d":"2026-09-23","id":"98637","st":"C49:1","mgr":"Шура-Бура Юлия","keys":["stage_up","ball","overdue","promise_broken","fakedone","client_chase"],"prob":35,"hl":-65,"pre":0,"bud":78854}
+{"d":"2026-09-23","id":"98637","st":"C49:1","mgr":"Шура-Бура Юлия","keys":["stage_up","overdue","promise_broken","fakedone","hot_fast","client_chase"],"prob":59,"hl":-41,"pre":0,"bud":78854}
 {"d":"2026-09-23","id":"99383","st":"C49:3","mgr":"Системный пользователь GG","keys":["stage_up","hot_slow","client_chase"],"prob":24,"hl":-17,"pre":0,"bud":67832}
 {"d":"2026-09-23","id":"99347","st":"C49:3","mgr":"Платонова Алина","keys":["stage_up","silence","fakedone","hot_slow"],"prob":14,"hl":-27,"pre":0,"bud":431300}
 {"d":"2026-09-23","id":"99349","st":"C49:PREPARATION","mgr":"Шура-Бура Юлия","keys":["silence"],"prob":19,"hl":-12,"pre":0,"bud":0}
@@ -1505,11 +1505,11 @@
 {"d":"2026-09-23","id":"99577","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["first_fast","fast_resp","pause","promise_broken","fakedone","hot_slow","client_chase"],"prob":7,"hl":-12,"pre":0,"bud":258111}
 {"d":"2026-09-23","id":"99569","st":"C49:EXECUTING","mgr":"Лысанова Юлия","keys":["stage_up","promise_vague","fakedone","hot_slow","client_chase","ai"],"prob":28,"hl":-67,"pre":0,"bud":251200}
 {"d":"2026-09-23","id":"99571","st":"C49:UC_8JTBV2","mgr":"Лобова Надежда","keys":["first_fast","fast_resp","silence","obj_worked"],"prob":8,"hl":-2,"pre":0,"bud":37800}
-{"d":"2026-09-23","id":"99579","st":"C49:3","mgr":"Платонова Алина","keys":["stage_up","slow_resp"],"prob":32,"hl":-9,"pre":0,"bud":30755}
+{"d":"2026-09-23","id":"99579","st":"C49:3","mgr":"Платонова Алина","keys":["stage_up","slow_resp","pause"],"prob":27,"hl":-14,"pre":0,"bud":30755}
 {"d":"2026-09-23","id":"99583","st":"C49:FINAL_INVOICE","mgr":"Королькова Наталья","keys":["overdue","fakedone"],"prob":72,"hl":-27,"pre":0,"bud":6500}
 {"d":"2026-09-23","id":"99597","st":"C49:3","mgr":"Лакомова Татьяна","keys":["fast_resp","promise_vague","client_chase","ai"],"prob":31,"hl":-10,"pre":0,"bud":330200}
 {"d":"2026-09-23","id":"82767","st":"C49:3","mgr":"Лысанова Юлия","keys":["silence","internal"],"prob":18,"hl":-23,"pre":1,"bud":1319030}
-{"d":"2026-09-23","id":"99603","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["promise_kept","promise_vague","obj_open","hot_fast","client_chase"],"prob":8,"hl":-2,"pre":0,"bud":295205}
+{"d":"2026-09-23","id":"99603","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["promise_kept","pause","obj_open","hot_fast","client_chase"],"prob":8,"hl":-2,"pre":0,"bud":295205}
 {"d":"2026-09-23","id":"99605","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["silence"],"prob":11,"hl":-8,"pre":0,"bud":203115}
 {"d":"2026-09-23","id":"99611","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["promise_kept","promise_vague","hot_slow","ai"],"prob":5,"hl":-5,"pre":0,"bud":1830000}
 {"d":"2026-09-23","id":"99613","st":"C49:UC_8JTBV2","mgr":"Лысанова Юлия","keys":["promise_kept","fast_resp","promise_vague","obj_open","client_chase","ai"],"prob":6,"hl":-4,"pre":0,"bud":549000}
@@ -1538,7 +1538,7 @@
 {"d":"2026-09-23","id":"99763","st":"C49:EXECUTING","mgr":"Лакомова Татьяна","keys":["stage_up","fakedone"],"prob":82,"hl":-13,"pre":0,"bud":200000}
 {"d":"2026-09-23","id":"99775","st":"C49:3","mgr":"Лакомова Татьяна","keys":["promise_kept","stage_up","fast_resp","fakedone","hot_fast","ai"],"prob":48,"hl":7,"pre":0,"bud":105300}
 {"d":"2026-09-23","id":"99779","st":"C49:PREPARATION","mgr":"Шура-Бура Юлия","keys":["ball","silence","blind","fakedone"],"prob":9,"hl":-22,"pre":0,"bud":0}
-{"d":"2026-09-23","id":"99783","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["fast_resp","ball"],"prob":15,"hl":-4,"pre":0,"bud":112050}
+{"d":"2026-09-23","id":"99783","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["fast_resp","ball","pause"],"prob":12,"hl":-7,"pre":0,"bud":112050}
 {"d":"2026-09-23","id":"99793","st":"C49:EXECUTING","mgr":"Зазноба Екатерина","keys":["stage_up","nostep"],"prob":93,"hl":-2,"pre":0,"bud":434759}
 {"d":"2026-09-23","id":"99791","st":"C49:PREPAYMENT_INVOIC","mgr":"Лакомова Татьяна","keys":["slow_resp","silence","fakedone"],"prob":6,"hl":-13,"pre":0,"bud":478600}
 {"d":"2026-09-23","id":"99787","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["slow_resp","client_chase"],"prob":6,"hl":-4,"pre":0,"bud":1092235}
@@ -1581,7 +1581,7 @@
 {"d":"2026-09-23","id":"100075","st":"C49:FINAL_INVOICE","mgr":"Лысанова Юлия","keys":["stage_up","silence_post","fakedone"],"prob":87,"hl":-12,"pre":0,"bud":70200}
 {"d":"2026-09-23","id":"100079","st":"C49:FINAL_INVOICE","mgr":"Лобова Надежда","keys":["promise_kept","stage_up","fast_resp","ball","nostep","hot_slow"],"prob":51,"hl":-48,"pre":0,"bud":64372}
 {"d":"2026-09-23","id":"100325","st":"C49:NEW","mgr":"Турченко Анна","keys":["ball","silence","blind"],"prob":7,"hl":-14,"pre":0,"bud":0}
-{"d":"2026-09-23","id":"100099","st":"C49:EXECUTING","mgr":"Зазноба Екатерина","keys":["stage_up","fakedone"],"prob":82,"hl":-13,"pre":0,"bud":189790}
+{"d":"2026-09-23","id":"100099","st":"C49:EXECUTING","mgr":"Зазноба Екатерина","keys":["stage_up","pause_post","fakedone"],"prob":78,"hl":-17,"pre":0,"bud":189790}
 {"d":"2026-09-23","id":"100097","st":"C49:PREPARATION","mgr":"Шура-Бура Юлия","keys":["slow_resp","silence"],"prob":12,"hl":-19,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"100103","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["pause","blind","fakedone","hot_slow"],"prob":7,"hl":-12,"pre":0,"bud":304904}
 {"d":"2026-09-23","id":"100101","st":"C49:UC_8JTBV2","mgr":"Лобова Надежда","keys":["fast_resp","silence"],"prob":7,"hl":-3,"pre":0,"bud":118020}
@@ -1598,7 +1598,7 @@
 {"d":"2026-09-23","id":"100161","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["silence","fakedone"],"prob":10,"hl":-9,"pre":0,"bud":94859}
 {"d":"2026-09-23","id":"100171","st":"C49:1","mgr":"Ерина Екатерина","keys":["stage_up","overdue"],"prob":97,"hl":-3,"pre":0,"bud":417800}
 {"d":"2026-09-23","id":"100173","st":"C49:UC_OGZUU0","mgr":"Лысенко Ольга","keys":["silence","ghost"],"prob":31,"hl":-44,"pre":0,"bud":0}
-{"d":"2026-09-23","id":"100175","st":"C49:PREPAYMENT_INVOIC","mgr":"Платонова Алина","keys":[],"prob":19,"hl":0,"pre":0,"bud":16900}
+{"d":"2026-09-23","id":"100175","st":"C49:PREPAYMENT_INVOIC","mgr":"Платонова Алина","keys":["pause"],"prob":16,"hl":-3,"pre":0,"bud":16900}
 {"d":"2026-09-23","id":"100183","st":"C49:1","mgr":"Ерина Екатерина","keys":["stage_up","overdue"],"prob":97,"hl":-3,"pre":0,"bud":93957}
 {"d":"2026-09-23","id":"100189","st":"C49:EXECUTING","mgr":"Лакомова Татьяна","keys":["fakedone","ai"],"prob":61,"hl":-34,"pre":0,"bud":267300}
 {"d":"2026-09-23","id":"100203","st":"C49:3","mgr":"Зазноба Екатерина","keys":["stage_up","pause","blind","fakedone"],"prob":28,"hl":-13,"pre":0,"bud":248790}
@@ -1633,11 +1633,11 @@
 {"d":"2026-09-23","id":"100383","st":"C49:PREPARATION","mgr":"Шура-Бура Юлия","keys":["stage_up","silence","blind"],"prob":18,"hl":-13,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"100385","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["fast_resp","silence"],"prob":13,"hl":-6,"pre":0,"bud":350727}
 {"d":"2026-09-23","id":"100395","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["promise_kept","pause"],"prob":19,"hl":0,"pre":0,"bud":148471}
-{"d":"2026-09-23","id":"100397","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["first_fast","fast_resp"],"prob":23,"hl":4,"pre":0,"bud":124432}
+{"d":"2026-09-23","id":"100397","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["first_fast","fast_resp","pause"],"prob":20,"hl":1,"pre":0,"bud":124432}
 {"d":"2026-09-23","id":"100399","st":"C49:PREPARATION","mgr":"Шура-Бура Юлия","keys":["first_fast","stage_up","fast_resp","silence","promise_broken"],"prob":21,"hl":-10,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"100405","st":"C49:PREPARATION","mgr":"Платонова Алина","keys":["stage_up","silence","blind"],"prob":18,"hl":-13,"pre":0,"bud":43900}
 {"d":"2026-09-23","id":"100409","st":"C49:PREPARATION","mgr":"Платонова Алина","keys":["stage_up","fast_resp","silence"],"prob":24,"hl":-7,"pre":0,"bud":0}
-{"d":"2026-09-23","id":"100401","st":"C49:PREPAYMENT_INVOIC","mgr":"Лакомова Татьяна","keys":["first_fast","fast_resp","fakedone","ai"],"prob":16,"hl":-3,"pre":0,"bud":394600}
+{"d":"2026-09-23","id":"100401","st":"C49:PREPAYMENT_INVOIC","mgr":"Лакомова Татьяна","keys":["first_fast","fast_resp","pause","fakedone","ai"],"prob":13,"hl":-6,"pre":0,"bud":394600}
 {"d":"2026-09-23","id":"100421","st":"C49:PREPAYMENT_INVOIC","mgr":"Лакомова Татьяна","keys":["slow_resp","silence","ai"],"prob":6,"hl":-13,"pre":0,"bud":111900}
 {"d":"2026-09-23","id":"100413","st":"C49:UC_OGZUU0","mgr":"Лысанова Юлия","keys":["stage_up","ball","silence","blind"],"prob":30,"hl":-45,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"100419","st":"C49:3","mgr":"Лакомова Татьяна","keys":["stage_up","hot_slow","ai"],"prob":25,"hl":-16,"pre":0,"bud":35000}
@@ -1653,7 +1653,7 @@
 {"d":"2026-09-23","id":"100463","st":"C49:UC_8JTBV2","mgr":"Лобова Надежда","keys":["first_fast","fast_resp","silence"],"prob":7,"hl":-3,"pre":0,"bud":60420}
 {"d":"2026-09-23","id":"100465","st":"C49:EXECUTING","mgr":"Лысанова Юлия","keys":["stage_up","fast_resp","promise_vague","hot_fast","client_chase","ai"],"prob":97,"hl":2,"pre":0,"bud":30800}
 {"d":"2026-09-23","id":"100477","st":"C49:UC_OGZUU0","mgr":"Зазноба Екатерина","keys":["stage_up","silence","blind","fakedone"],"prob":32,"hl":-43,"pre":0,"bud":0}
-{"d":"2026-09-23","id":"100479","st":"C49:EXECUTING","mgr":"Шура-Бура Юлия","keys":["promise_kept","first_fast","stage_up","fast_resp","ball","promise_vague","client_chase"],"prob":81,"hl":-14,"pre":0,"bud":213000}
+{"d":"2026-09-23","id":"100479","st":"C49:EXECUTING","mgr":"Шура-Бура Юлия","keys":["promise_kept","first_fast","stage_up","fast_resp","promise_vague","hot_fast","client_chase"],"prob":97,"hl":2,"pre":0,"bud":213000}
 {"d":"2026-09-23","id":"100483","st":"C49:FINAL_INVOICE","mgr":"Лысанова Юлия","keys":["stage_up","slow_resp","fakedone","ai"],"prob":52,"hl":-47,"pre":0,"bud":115100}
 {"d":"2026-09-23","id":"100491","st":"C49:3","mgr":"Платонова Алина","keys":["stage_up"],"prob":47,"hl":6,"pre":0,"bud":34900}
 {"d":"2026-09-23","id":"100497","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["silence","fakedone"],"prob":10,"hl":-9,"pre":0,"bud":168076}
@@ -1676,7 +1676,7 @@
 {"d":"2026-09-23","id":"100583","st":"C49:3","mgr":"Лакомова Татьяна","keys":["promise_kept","stage_up","slow_resp","promise_vague","ai"],"prob":23,"hl":-18,"pre":0,"bud":174600}
 {"d":"2026-09-23","id":"100561","st":"C49:UC_8JTBV2","mgr":"Зазноба Екатерина","keys":["fakedone"],"prob":9,"hl":-1,"pre":0,"bud":68400}
 {"d":"2026-09-23","id":"100577","st":"C49:EXECUTING","mgr":"Платонова Алина","keys":["promise_kept","stage_up","promise_vague"],"prob":97,"hl":2,"pre":0,"bud":67900}
-{"d":"2026-09-23","id":"100581","st":"C49:3","mgr":"Платонова Алина","keys":["stage_up","fast_resp"],"prob":52,"hl":11,"pre":0,"bud":43900}
+{"d":"2026-09-23","id":"100581","st":"C49:3","mgr":"Платонова Алина","keys":["stage_up","fast_resp","pause"],"prob":44,"hl":3,"pre":0,"bud":43900}
 {"d":"2026-09-23","id":"100579","st":"C49:PREPAYMENT_INVOIC","mgr":"Лакомова Татьяна","keys":["promise_kept","fakedone","ai"],"prob":17,"hl":-2,"pre":0,"bud":349300}
 {"d":"2026-09-23","id":"100585","st":"C49:FINAL_INVOICE","mgr":"Лысанова Юлия","keys":["stage_up","silence_post"],"prob":97,"hl":-2,"pre":0,"bud":63500}
 {"d":"2026-09-23","id":"100587","st":"C49:EXECUTING","mgr":"Лысанова Юлия","keys":["stage_up","silence_post","ai"],"prob":88,"hl":-7,"pre":0,"bud":49000}
@@ -1709,7 +1709,7 @@
 {"d":"2026-09-23","id":"100689","st":"C49:PREPAYMENT_INVOIC","mgr":"Лакомова Татьяна","keys":["slow_resp","ai"],"prob":11,"hl":-8,"pre":0,"bud":25000}
 {"d":"2026-09-23","id":"100693","st":"C49:PREPAYMENT_INVOIC","mgr":"Лобова Надежда","keys":["promise_kept","first_fast","fast_resp","promise_vague"],"prob":24,"hl":5,"pre":0,"bud":214050}
 {"d":"2026-09-23","id":"100695","st":"C49:PREPARATION","mgr":"Лакомова Татьяна","keys":["stage_up","ai"],"prob":29,"hl":-2,"pre":0,"bud":0}
-{"d":"2026-09-23","id":"100697","st":"C49:1","mgr":"Лысанова Юлия","keys":["stage_up","fakedone"],"prob":97,"hl":-3,"pre":0,"bud":55640}
+{"d":"2026-09-23","id":"100697","st":"C49:1","mgr":"Лысанова Юлия","keys":["stage_up","pause_post","fakedone"],"prob":93,"hl":-7,"pre":0,"bud":55640}
 {"d":"2026-09-23","id":"100707","st":"C49:3","mgr":"Зазноба Екатерина","keys":["stage_up","fast_resp","promise_vague"],"prob":47,"hl":6,"pre":0,"bud":186300}
 {"d":"2026-09-23","id":"100705","st":"C49:PREPAYMENT_INVOIC","mgr":"Лакомова Татьяна","keys":["promise_kept","slow_resp","ai"],"prob":13,"hl":-6,"pre":0,"bud":189600}
 {"d":"2026-09-23","id":"100711","st":"C49:3","mgr":"Лысанова Юлия","keys":["stage_up","silence","ghost"],"prob":20,"hl":-21,"pre":0,"bud":18000}
@@ -1732,7 +1732,7 @@
 {"d":"2026-09-23","id":"100771","st":"C49:PREPAYMENT_INVOIC","mgr":"Лобова Надежда","keys":["hot_slow"],"prob":11,"hl":-8,"pre":0,"bud":225760}
 {"d":"2026-09-23","id":"100773","st":"C49:UC_8JTBV2","mgr":"Лакомова Татьяна","keys":["first_fast","fast_resp"],"prob":12,"hl":2,"pre":0,"bud":380000}
 {"d":"2026-09-23","id":"100785","st":"C49:UC_8JTBV2","mgr":"Платонова Алина","keys":["slow_resp"],"prob":7,"hl":-3,"pre":0,"bud":24900}
-{"d":"2026-09-23","id":"100777","st":"C49:1","mgr":"Зазноба Екатерина","keys":["ready","stage_up","fakedone","hot_slow"],"prob":82,"hl":-18,"pre":0,"bud":27820}
+{"d":"2026-09-23","id":"100777","st":"C49:1","mgr":"Зазноба Екатерина","keys":["ready","stage_up","pause_post","fakedone","hot_slow"],"prob":77,"hl":-23,"pre":0,"bud":27820}
 {"d":"2026-09-23","id":"100779","st":"C49:PREPARATION","mgr":"Шура-Бура Юлия","keys":["stage_up","silence","blind"],"prob":18,"hl":-13,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"100787","st":"C49:1","mgr":"Зазноба Екатерина","keys":["stage_up","hot_slow"],"prob":69,"hl":-31,"pre":0,"bud":19730}
 {"d":"2026-09-23","id":"100783","st":"C49:PREPARATION","mgr":"Шура-Бура Юлия","keys":["stage_up","silence","ghost"],"prob":15,"hl":-16,"pre":0,"bud":0}
@@ -1747,7 +1747,7 @@
 {"d":"2026-09-23","id":"100819","st":"C49:FINAL_INVOICE","mgr":"Лысанова Юлия","keys":["stage_up","silence_post"],"prob":97,"hl":-2,"pre":0,"bud":24200}
 {"d":"2026-09-23","id":"100821","st":"","mgr":"Лысанова Юлия","keys":["silence","hot_slow"],"prob":8,"hl":-14,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"100823","st":"C49:UC_OGZUU0","mgr":"Зазноба Екатерина","keys":["stage_up","ball","fakedone"],"prob":51,"hl":-24,"pre":0,"bud":0}
-{"d":"2026-09-23","id":"100825","st":"C49:PREPAYMENT_INVOIC","mgr":"Платонова Алина","keys":["first_fast","fast_resp"],"prob":23,"hl":4,"pre":0,"bud":191340}
+{"d":"2026-09-23","id":"100825","st":"C49:PREPAYMENT_INVOIC","mgr":"Платонова Алина","keys":["first_fast","fast_resp","pause"],"prob":20,"hl":1,"pre":0,"bud":191340}
 {"d":"2026-09-23","id":"100827","st":"C49:PREPAYMENT_INVOIC","mgr":"Платонова Алина","keys":["fast_resp","silence"],"prob":13,"hl":-6,"pre":0,"bud":33900}
 {"d":"2026-09-23","id":"100829","st":"C49:2","mgr":"Зазноба Екатерина","keys":["first_fast","fast_resp","nostep","obj_open","hot_fast"],"prob":97,"hl":-1,"pre":0,"bud":84800}
 {"d":"2026-09-23","id":"100831","st":"C49:PREPAYMENT_INVOIC","mgr":"Платонова Алина","keys":["slow_resp","promise_broken"],"prob":10,"hl":-9,"pre":0,"bud":109220}
@@ -1763,7 +1763,7 @@
 {"d":"2026-09-23","id":"100857","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["silence"],"prob":11,"hl":-8,"pre":0,"bud":159181}
 {"d":"2026-09-23","id":"100893","st":"C49:PREPAYMENT_INVOIC","mgr":"Зазноба Екатерина","keys":["ready","fast_resp","promise_vague","hot_fast","client_chase"],"prob":27,"hl":8,"pre":0,"bud":299100}
 {"d":"2026-09-23","id":"100853","st":"C49:EXECUTING","mgr":"Лобова Надежда","keys":["first_fast","stage_up","fast_resp","promise_vague","obj_open","hot_fast"],"prob":97,"hl":2,"pre":0,"bud":72900}
-{"d":"2026-09-23","id":"100859","st":"C49:3","mgr":"Зазноба Екатерина","keys":["stage_up","blind","hot_slow"],"prob":23,"hl":-18,"pre":0,"bud":48800}
+{"d":"2026-09-23","id":"100859","st":"C49:3","mgr":"Зазноба Екатерина","keys":["stage_up","pause","blind","hot_slow"],"prob":20,"hl":-21,"pre":0,"bud":48800}
 {"d":"2026-09-23","id":"100867","st":"C49:PREPARATION","mgr":"Зазноба Екатерина","keys":["stage_up","ball","pause"],"prob":21,"hl":-10,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"100869","st":"C49:PREPAYMENT_INVOIC","mgr":"Платонова Алина","keys":["ready"],"prob":26,"hl":7,"pre":0,"bud":52900}
 {"d":"2026-09-23","id":"100871","st":"C49:EXECUTING","mgr":"Лысанова Юлия","keys":["stage_up","silence_post"],"prob":97,"hl":2,"pre":0,"bud":48600}
@@ -1803,8 +1803,8 @@
 {"d":"2026-09-23","id":"100959","st":"C49:PREPAYMENT_INVOIC","mgr":"Платонова Алина","keys":["ghost"],"prob":13,"hl":-6,"pre":0,"bud":4000}
 {"d":"2026-09-23","id":"92385","st":"C49:PREPAYMENT_INVOIC","mgr":"Шура-Бура Юлия","keys":["fast_resp","client_chase"],"prob":18,"hl":-1,"pre":1,"bud":47304}
 {"d":"2026-09-23","id":"100965","st":"C49:PREPARATION","mgr":"Платонова Алина","keys":["stage_up","ball","blind"],"prob":20,"hl":-11,"pre":0,"bud":0}
-{"d":"2026-09-23","id":"100971","st":"C49:UC_OGZUU0","mgr":"Шура-Бура Юлия","keys":["stage_up","ghost"],"prob":60,"hl":-15,"pre":0,"bud":44000}
-{"d":"2026-09-23","id":"100975","st":"C49:PREPAYMENT_INVOIC","mgr":"Лакомова Татьяна","keys":["blind"],"prob":16,"hl":-3,"pre":0,"bud":12900}
+{"d":"2026-09-23","id":"100971","st":"C49:UC_OGZUU0","mgr":"Шура-Бура Юлия","keys":["first_fast","stage_up","fast_resp","hot_fast"],"prob":97,"hl":22,"pre":0,"bud":44000}
+{"d":"2026-09-23","id":"100975","st":"C49:PREPAYMENT_INVOIC","mgr":"Лакомова Татьяна","keys":["blind","fakedone"],"prob":13,"hl":-6,"pre":0,"bud":12900}
 {"d":"2026-09-23","id":"100977","st":"C49:FINAL_INVOICE","mgr":"Ерина Екатерина","keys":["stage_up","nostep"],"prob":97,"hl":-2,"pre":0,"bud":109900}
 {"d":"2026-09-23","id":"100981","st":"C49:EXECUTING","mgr":"Платонова Алина","keys":["stage_up"],"prob":97,"hl":2,"pre":0,"bud":26900}
 {"d":"2026-09-23","id":"100983","st":"C49:PREPARATION","mgr":"Лакомова Татьяна","keys":["stage_up","ball","ai"],"prob":22,"hl":-9,"pre":0,"bud":0}
@@ -1816,7 +1816,7 @@
 {"d":"2026-09-23","id":"101007","st":"C49:PREPAYMENT_INVOIC","mgr":"Лысанова Юлия","keys":["blind","hot_slow"],"prob":9,"hl":-10,"pre":0,"bud":39900}
 {"d":"2026-09-23","id":"101015","st":"C49:PREPARATION","mgr":"Лакомова Татьяна","keys":["stage_up","ai"],"prob":32,"hl":1,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"101009","st":"C49:NEW","mgr":"Зазноба Екатерина","keys":["hot_slow"],"prob":13,"hl":-8,"pre":0,"bud":0}
-{"d":"2026-09-23","id":"101013","st":"C49:NEW","mgr":"Шура-Бура Юлия","keys":[],"prob":21,"hl":0,"pre":0,"bud":0}
+{"d":"2026-09-23","id":"101013","st":"C49:NEW","mgr":"Шура-Бура Юлия","keys":["ball"],"prob":15,"hl":-6,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"101011","st":"C49:NEW","mgr":"Лакомова Татьяна","keys":[],"prob":21,"hl":0,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"101017","st":"C49:PREPARATION","mgr":"Лакомова Татьяна","keys":["stage_up","ai"],"prob":32,"hl":1,"pre":0,"bud":0}
 {"d":"2026-09-23","id":"101019","st":"C49:UC_OGZUU0","mgr":"Зазноба Екатерина","keys":["stage_up","blind"],"prob":71,"hl":-4,"pre":0,"bud":0}

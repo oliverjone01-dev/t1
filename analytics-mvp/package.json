@@ -55,7 +55,8 @@
     "ym:build": "DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-site.ts && DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-katya.ts",
     "ym:smoke": "DATA_DIR=data-ym PLATFORM=ym OUT_DIR=public/market tsx src/scripts/smoke.ts",
     "ym:recon:realization": "tsx src/scripts/ym/recon-realization.ts",
-    "eb": "tsx src/scripts/ozon/eb-daily.ts"
+    "eb": "tsx src/scripts/ozon/eb-daily.ts",
+    "cards": "tsx src/scripts/ozon/cards-extract.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

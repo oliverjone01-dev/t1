@@ -114,16 +114,34 @@ describe("чтение рядов eb_pct", () => {
     expect(loadEbDaily("data/нет-такого-файла.ndjson").size).toBe(0);
   });
 
-  it("вытяжка в репозитории читается: 500 товаров, 29 в нуле на 23.09", () => {
+  it("вытяжка в репозитории читается и выглядит как каталог, а не как обрывок", () => {
     // Сам снимок кабинета в git не едет, репозиторий публичный. В репозитории только eb_pct.
+    // Числа берём из файла, а не из календаря: съём идёт каждый день, и прибитое «500 товаров
+    // на 23.09» сломалось бы завтра, не поймав при этом ни одной настоящей ошибки.
     const s = loadEbDaily();
-    expect(s.size).toBe(500);
-    const zero = [...s.values()].filter((p) => p.some((x) => x.date === "2026-09-23" && x.pct === 0));
-    expect(zero.length).toBe(29);
+    expect(s.size).toBeGreaterThan(400);
+    const days = [...new Set([...s.values()].flat().map((p) => p.date))].sort();
+    const last = days[days.length - 1]!;
+    const onLast = [...s.values()].filter((p) => p.some((x) => x.date === last));
+    expect(onLast.length).toBeGreaterThan(400);            // последний день снят целиком
+    const zero = onLast.filter((p) => p.some((x) => x.date === last && x.pct === 0));
+    expect(zero.length).toBeGreaterThan(0);                // кто-то из бустинга уже вышел
+    expect(zero.length).toBeLessThan(onLast.length);       // но не весь каталог разом
   });
 
-  it("на одном дне автодаты нет ни у кого: подтверждать нечем", () => {
-    expect([...loadEbSeries().values()].filter((p) => autoExitDate(p) !== null).length).toBe(0);
+  it("автодата появляется только когда в ряду есть и ненулевые дни, и подтверждённый ноль", () => {
+    // На одном снимке её нет ни у кого; когда ряд дорастёт, тест продолжит проверять смысл,
+    // а не число дней.
+    const s = loadEbSeries();
+    for (const [, pts] of s) {
+      const d = autoExitDate(pts);
+      if (d == null) continue;
+      const sorted = [...pts].sort((a, b) => a.date.localeCompare(b.date));
+      const i = sorted.findIndex((x) => x.date === d);
+      expect(sorted.slice(0, i).some((x) => x.pct !== 0)).toBe(true);   // до неё был бустинг
+      expect(sorted[i]!.pct).toBe(0);
+      expect(sorted[i + 1]!.pct).toBe(0);                               // и он подтверждён
+    }
   });
 });
 

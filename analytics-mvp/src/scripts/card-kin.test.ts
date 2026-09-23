@@ -87,19 +87,40 @@ describe("схлопывание по карточке", () => {
   });
 });
 
-describe("карта из data/", () => {
-  const has = CARD_MAP_PATHS.some((p) => existsSync(p));
-  it.skipIf(!has)("читается, но пока помечена заглушкой", () => {
+
+describe("карта карточек из кабинета", () => {
+  it("прочитана и помечена настоящей, а не заметкой", () => {
+    // Размер карты сверяем с самим файлом: выгрузка обновляется, и прибитое «35 карточек»
+    // однажды упало бы на новом снимке, не поймав при этом ни одной ошибки.
     const m = loadCardMap();
-    expect(m.groups).toBeGreaterThan(0);
-    // Две модели от 25.06 это заметка, а не карта. Когда card_id поедет из кабинета,
-    // real станет true, и правило по карточке заработает в полную силу.
-    expect(m.real).toBe(false);
+    expect(m.groups).toBeGreaterThanOrEqual(20);
+    expect(m.real).toBe(true);
+    expect(m.card.size).toBeGreaterThan(m.groups * 2 - 1);   // в каждой карточке минимум двое
   });
 
-  it.skipIf(!has)("знает про склейку GGT-35, оба варианта тестовые в тесте 1", () => {
+  it("в карте нет одиночек: карточка из одного товара родни не создаёт", () => {
     const m = loadCardMap();
-    expect(m.card.get("GGT-35-1-3-100-180")).toBeDefined();
+    const size = new Map<string, number>();
+    for (const c of m.card.values()) size.set(c, (size.get(c) ?? 0) + 1);
+    expect([...size.values()].filter((n) => n < 2)).toEqual([]);
+  });
+
+  it("эталон правила плато делит карточку с соседями по линии L", () => {
+    // Из-за них июльская база была занижена на 5.1 пункта: плато выходило +17.4 вместо +22.5.
+    // Это факт о товаре, а не о снимке, поэтому проверяется по существу, а не по числу.
+    const m = loadCardMap();
+    const ref = m.card.get("GGT-47-3-3-90");
+    expect(ref).toBeTruthy();
+    const mates = [...m.card.entries()].filter(([a, c]) => c === ref && a !== "GGT-47-3-3-90").map(([a]) => a);
+    expect(mates.length).toBeGreaterThan(10);
+    expect(mates.filter((a) => a.startsWith("GGT-03-") && /-L-\d/.test(a)).length).toBeGreaterThan(10);
+  });
+});
+
+describe("склейка GGT-35", () => {
+  it("оба варианта в одной карточке, поэтому идут в медиану один раз", () => {
+    const m = loadCardMap();
     expect(m.card.get("GGT-35-1-3-100-180")).toBe(m.card.get("GGT-35-3-3-100-180"));
+    expect(isKin("GGT-35-1-3-100-180", "GGT-35-3-3-100-180", m)).toBe(true);
   });
 });

@@ -17,28 +17,23 @@
 //   4. один артикул не контроль дважды;
 //   5. живой: показы есть и в последние 7 дней до старта, и после него.
 // И три новых, из ревью:
-//   6. не брат по объединённой карточке (только по настоящей карте, префикс убран 23.09);
+//   6. не брат по объединённой карточке (карта кабинета, префикс убран 23.09);
 //   7. не родня тестового товара ЛЮБОГО теста, не только своего;
-//   8. корреляция остатков с любым тестовым товаром ниже порога.
 //
-// ПРО ПРАВИЛО 8. Сырая корреляция рядов соинвеста здесь бесполезна: магазин двигался целиком
-// в 48 днях из 96, поэтому коррелирует всё со всем, фон по 400 случайным парам панели 0.316.
-// Считаем корреляцию ОСТАТКОВ, то есть соинвеста минус медиана панели в тот же день. Фон
-// остатков 0.011, а у настоящей родни 0.73..0.90. Порог 0.3 стоит посередине с запасом в обе
-// стороны.
+// ПРАВИЛО 8 (КОРРЕЛЯЦИЯ ОСТАТКОВ) СНЯТО 23.09.2026, решение Ивана. Оно держалось на фоне
+// 0.011, измеренном на ОДНОЙ паре, и на панели не работало: метило роднёй 490 артикулов из
+// 493, ровно столько же, сколько случайная двадцатка нетестовых (99.6 %). Родство теперь
+// доказывает только карточка, и она наконец есть: выгрузка кабинета от 23.09, 500 товаров,
+// 35 карточек.
 //
 // ПРАВИЛА 1 И 6 ПРОТИВОРЕЧАТ ДРУГ ДРУГУ. Правило 1 тянет к похожему товару, правило 6
 // запрещает брата. Правило 1 работает на уровне КАТЕГОРИИ (первый сегмент артикула: GGL
 // зеркала, GGT столы, GGM светильники), правило 6 - на уровне карточки.
 //
 // ПРЕФИКС ИЗ ПРАВИЛА 6 УБРАН 23.09.2026 по решению Ивана: линия (два сегмента артикула)
-// объединяет разные модели, то есть это догадка, выглядящая как данные. Пока настоящей
-// карты карточек нет, правила 6 и 7 не срабатывают ни разу, и всю работу по родству
-// делает правило 8. Это сознательный размен: пропустить родню неприятно, но выдать
-// догадку за измеренное родство хуже, потому что второе не видно.
-//
-// Пары, отобранные правилом 8, подписываются «родство по корреляции, не по карточке»:
-// читатель должен видеть, чем именно доказано родство.
+// объединяет разные модели, то есть это догадка, выглядящая как данные. Теперь вместо неё
+// карта кабинета, и правила 6 и 7 работают в полную силу: на прогоне 23.09 в одной карточке
+// с тестом сидели 11 действующих контролей из 21.
 //
 // Без категории как гейта подбор ломается тихо: на прогоне 23.09 зеркало GGL-07-XL-2
 // получило в пару стол GGT-47-3-5-90 просто потому, что трафик совпал на 10 %. Пара теперь
@@ -57,8 +52,6 @@ const OUT = "tools/tests/control_picks.json";
 
 /** Порог корреляции остатков, выше которого товар считается роднёй. Фон 0.011, родня
  *  0.73..0.90, так что порог не чувствителен к своему точному значению. */
-export const KIN_CORR = 0.3;
-/** Окно сопоставления по трафику, дней до старта. */
 export const MATCH_DAYS = 14;
 /** Предел расхождения трафика: «ближайший» обязан быть действительно близким. Без этого
  *  правило 2 вырождается в «хоть кто-нибудь»: на прогоне 23.09 оно выдало пары с
@@ -86,32 +79,7 @@ export interface Pick {
 
 const mean = (v: number[]): number => (v.length ? v.reduce((a, b) => a + b, 0) / v.length : NaN);
 
-/** Корреляция Пирсона по общим дням. Меньше 20 общих дней - не считаем: на коротком ряду
- *  коэффициент скачет и отсечёт кого попало. */
-export function corr(a: Map<string, number>, b: Map<string, number>, minDays = 20): number | null {
-  const days = [...a.keys()].filter((d) => b.has(d));
-  if (days.length < minDays) return null;
-  const x = days.map((d) => a.get(d)!), y = days.map((d) => b.get(d)!);
-  const mx = mean(x), my = mean(y);
-  const sx = Math.sqrt(mean(x.map((v) => (v - mx) ** 2))), sy = Math.sqrt(mean(y.map((v) => (v - my) ** 2)));
-  if (!sx || !sy) return null;
-  return mean(x.map((v, i) => (v - mx) * (y[i]! - my))) / (sx * sy);
-}
 
-/** Остаток: соинвест товара минус медиана панели в тот же день. Убирает общее движение
- *  магазина, без которого корреляция ничего не различает. */
-export function residuals(series: Series, panelMedian: Map<string, number>): Map<string, Map<string, number>> {
-  const out = new Map<string, Map<string, number>>();
-  for (const [art, days] of series) {
-    const m = new Map<string, number>();
-    for (const [d, row] of days) {
-      const c = panelMedian.get(d);
-      if (row.coinv != null && c != null) m.set(d, row.coinv - c);
-    }
-    if (m.size) out.set(art, m);
-  }
-  return out;
-}
 
 const addDays = (d: string, k: number): string => {
   const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + k); return t.toISOString().slice(0, 10);
@@ -138,7 +106,6 @@ export interface PickInput {
  *  решение нечитаемо, а спорить с ним невозможно. */
 export function pickFor(test: string, start: string, inp: PickInput, taken: Set<string>): Pick {
   const { series, cards, allTestArts } = inp;
-  const res = residuals(series, inp.panelMedian);
   const matchWin = range(start, -MATCH_DAYS, -1);
   const aliveBefore = range(start, -ALIVE_DAYS, -1);
   const spendWin = range(start, SPEND_FROM, SPEND_TO);
@@ -166,11 +133,6 @@ export function pickFor(test: string, start: string, inp: PickInput, taken: Set<
     if (!before || !after) {
       rejected.push({ art: c, rule: 5, why: !before ? "нет показов за 7 дней до старта" : "нет показов после старта" });
       continue;
-    }
-    const rc = res.get(c), rt = res.get(test);
-    if (rc && rt) {
-      const k = corr(rc, rt);
-      if (k != null && k >= KIN_CORR) { rejected.push({ art: c, rule: 8, why: `корреляция остатков ${k.toFixed(2)} при пороге ${KIN_CORR}` }); continue; }
     }
     ok.push({ art: c, views: sum(series, c, matchWin, "vsearch") });
   }
@@ -285,7 +247,7 @@ function main(): void {
   console.log(`\nпар подобрано ${paired} из ${total}; отказов по родству (правила 6 и 7): ${kinRejects}`);
   console.log(`карта карточек: ${inp.cards.groups} групп из ${inp.cards.source || "нет файла"}`
     + (inp.cards.real ? "" : ", это заглушка - родство идёт по префиксу артикула"));
-  writeFileSync(OUT, JSON.stringify({ built: new Date().toISOString().slice(0, 10), rules: { KIN_CORR, MATCH_DAYS, ALIVE_DAYS }, picks }, null, 1) + "\n");
+  writeFileSync(OUT, JSON.stringify({ built: new Date().toISOString().slice(0, 10), rules: { MATCH_DAYS, MATCH_MAX_DELTA, ALIVE_DAYS, SPEND_FROM, SPEND_TO }, picks }, null, 1) + "\n");
   console.log(`-> ${OUT}`);
 }
 

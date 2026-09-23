@@ -183,18 +183,41 @@ const coinvRows = readNd(dp("coinv_daily.ndjson")) as CoinvRow[];
 const CARDS = loadCardMap();
 const TEST_ARTS = new Set<string>();
 for (const t of T.тесты) for (const a of t.тест || []) TEST_ARTS.add(a);
-// Родня тестовых товаров: в контроль их пускать нельзя, они едут за тестом.
-const KIN = kinOfTests(new Set(coinvRows.map((r) => r.art)), TEST_ARTS, CARDS);
-// Группа контроля для СЧЁТА: панель снимка минус тестовые товары и минус их родня ПО
-// КАРТОЧКЕ. Разрыв считается к ней, а не к паре: групповой контроль точнее (размах 11.4
+// Панель снимка: товары, по которым соинвест снимается каждый день. Она и есть основа
+// контроля, потому что контролю нужен ряд, а не только факт существования в каталоге.
+const PANEL = [...new Set(coinvRows.filter((r) => r.in_panel !== false).map((r) => r.art))];
+const CATALOG = new Set(coinvRows.map((r) => r.art));
+
+// РОДНЯ СЧИТАЕТСЯ ПО КАЖДОМУ ТЕСТУ ОТДЕЛЬНО (правило Ивана от 23.09). Из контроля теста
+// уходит тот, кто делит карточку с артикулом ЭТОГО теста. Родня чужого теста не мешает:
+// её товар в этом тесте ничем не тронут, и выбрасывать его значит без нужды сужать группу.
+const kinCache = new Map<string, Set<string>>();
+function kinOf(t: TestDef): Set<string> {
+  const key = t.id || (t.тест || []).join(",");
+  let k = kinCache.get(key);
+  if (!k) { k = kinOfTests(CATALOG, new Set(t.тест || []), CARDS); kinCache.set(key, k); }
+  return k;
+}
+
+// Группа контроля для СЧЁТА: панель минус тестовые товары этого теста и минус их родня по
+// карточке. Разрыв считается к ней, а не к паре: групповой контроль точнее (размах 11.4
 // против 21.5 на тесте 1) и устойчивее, а парный есть лишь у 11 товаров из 21.
-//
-// Чистки по префиксу артикула здесь больше нет (убрана 23.09), и замены ей не поставлено.
-// Проверено прямым прогоном: медиана группы к составу нечувствительна, разница по соинвесту
-// на тесте 1 равна +9.0 пункта и при 232 артикулах контроля, и при 445, и при 493. Чистка
-// догадкой меняла бы только подпись под числом, а не само число.
-const CTL_GROUP = [...new Set(coinvRows.filter((r) => r.in_panel !== false).map((r) => r.art))]
-  .filter((a) => !TEST_ARTS.has(a) && !KIN.has(a));
+const ctlCache = new Map<string, string[]>();
+function ctlGroupOf(t: TestDef): string[] {
+  const key = t.id || (t.тест || []).join(",");
+  let g = ctlCache.get(key);
+  if (!g) {
+    const own = new Set(t.тест || []);
+    const kin = kinOf(t);
+    g = PANEL.filter((a) => !own.has(a) && !kin.has(a));
+    ctlCache.set(key, g);
+  }
+  return g;
+}
+
+// Родня ЛЮБОГО теста: нужна только карточке готовности, где контрольный ряд по дням один
+// на всю волну.
+const KIN_ANY = kinOfTests(CATALOG, TEST_ARTS, CARDS);
 
 // Ряды eb_pct из снимков кабинета: факт площадки «бустинг больше не показывается».
 // Пусто, пока снимки не доедут: до 23.09 в коммит шли только reakciya.json, две страницы
@@ -256,16 +279,16 @@ const kinBanner = `<div class="stop"><b>Контроль заражён.</b> ${e
  *  карточек: префикс артикула убран 23.09, а корреляция остатков на уровне панели не
  *  работает (метит роднёй 490 из 493, столько же, сколько случайная двадцатка). Пока карты
  *  нет, функция не помечает никого, и это честнее пометок по догадке. */
-const kinCtl = (ctl: string): boolean => !!ctl && KIN.has(ctl);
+const kinCtl = (ctl: string, t: TestDef): boolean => !!ctl && kinOf(t).has(ctl);
 
 /** Ячейка контроля. Родственника НЕ прячем: именно ряды близнецов показывают перетекание,
- *  в июле пять братьев без единого рубля рекламы дали +8.3. Прочерк выбросил бы наблюдение,
+ *  в июле соседи по карточке занижали базу эталона на 5.1 пункта. Прочерк выбросил бы наблюдение,
  *  которое объясняет, почему цифра занижена. Поэтому родственник остаётся виден, приглушён
  *  и подписан, а в разницу не идёт: она считается к групповому контролю. */
-function ctlCell(test: string, ctl: string): string {
+function ctlCell(test: string, ctl: string, t: TestDef): string {
   if (!ctl) return '<span class="muted">пары нет</span>';
-  if (!kinCtl(ctl)) return esc(ctl);
-  return `<span class="kinart" title="Родня тестового товара: правило от 23.09, корреляция остатков или общая карточка либо линия">${esc(ctl)}</span>`
+  if (!kinCtl(ctl, t)) return esc(ctl);
+  return `<span class="kinart" title="Контроль сидит в одной объединённой карточке OZON с тестовым товаром этого теста: он едет за тестом и занижает разницу">${esc(ctl)}</span>`
     + ` <span class="kin">родственник, в расчёт не идёт</span>`;
 }
 
@@ -405,9 +428,9 @@ const winMean = (a: string, win: string[], key: string) => {
 
 /** Прирост ГРУППОВОГО контроля по метрике: медиана приростов по артикулам группы.
  *  Считается один раз на метрику и служит контрольной стороной всем парам сразу. */
-function groupGrowth(key: string, base: string[], post: string[]): { d: number; n: number; bC: number; pC: number } {
+function groupGrowth(grp: string[], key: string, base: string[], post: string[]): { d: number; n: number; bC: number; pC: number } {
   const ds: number[] = []; const bs: number[] = []; const ps: number[] = [];
-  for (const a of CTL_GROUP) {
+  for (const a of grp) {
     const b = winMean(a, base, key), p = winMean(a, post, key);
     if (!b) continue;
     ds.push((p / b - 1) * 100); bs.push(b); ps.push(p);
@@ -421,7 +444,7 @@ function groupGrowth(key: string, base: string[], post: string[]): { d: number; 
  *  контролем стояла родня, а родня едет за тестом и занижает разницу. */
 function pairDeltas(t: TestDef, key: string, base: string[], post: string[]): PairDelta[] {
   const out: PairDelta[] = [];
-  const g = groupGrowth(key, base, post);
+  const g = groupGrowth(ctlGroupOf(t), key, base, post);
   for (const test of t.тест || []) {
     const ctl = (log.get(test)?.["контроль"] || "").trim();
     const bT = winMean(test, base, key), pT = winMean(test, post, key);
@@ -485,7 +508,7 @@ function perArticle(t: TestDef): string {
   };
   const rows = first.map((p) => {
     const sb = meanOf(p.test, base, "spend"), sp = meanOf(p.test, days, "spend");
-    return `<tr><td>${esc(p.test)}</td><td class="muted">${ctlCell(p.test, p.ctl)}</td>`
+    return `<tr><td>${esc(p.test)}</td><td class="muted">${ctlCell(p.test, p.ctl, t)}</td>`
       + cols.map(([k]) => cell(byKey.get(k)!.find((x) => x.test === p.test), k)).join("")
       + `<td class="r sep">${(sb || sp) ? nbsp(sb) + " → " + nbsp(sp) : "-"}</td>`
       + `<td class="r">${ordT(p.test)} / ${ordT(p.ctl)}</td></tr>`;
@@ -525,6 +548,7 @@ function chart(t: TestDef, cid: string): string {
   const base1 = Array.from({ length: 7 }, (_, k) => addDays(st, -(k + 1)));
   const post = days.filter((d) => d >= st);
   if (!post.length) return "";
+  const CTL = ctlGroupOf(t);
   const avg = (g: string[], win: string[], key: string) => {
     if (key === "drr" || key === "cpc") {
       const [n, d, k] = key === "drr" ? ["spend", "revenue", 100] as const : ["adspend", "clicks", 1] as const;
@@ -549,16 +573,16 @@ function chart(t: TestDef, cid: string): string {
       ? ratio(groupDaily(t.тест!, days, "spend"), groupDaily(t.тест!, days, "revenue"))
       : groupDaily(t.тест!, days, key);
     const rawC = key === "cpc"
-      ? ratio(groupDaily(CTL_GROUP, days, "adspend"), groupDaily(CTL_GROUP, days, "clicks"), 1)
+      ? ratio(groupDaily(CTL, days, "adspend"), groupDaily(CTL, days, "clicks"), 1)
       : key === "drr"
-      ? ratio(groupDaily(CTL_GROUP, days, "spend"), groupDaily(CTL_GROUP, days, "revenue"))
-      : groupDaily(CTL_GROUP, days, key);
-    const bT = avg(t.тест!, base, key), bC = avg(CTL_GROUP, base, key);
-    const pT = avg(t.тест!, post, key), pC = avg(CTL_GROUP, post, key);
+      ? ratio(groupDaily(CTL, days, "spend"), groupDaily(CTL, days, "revenue"))
+      : groupDaily(CTL, days, key);
+    const bT = avg(t.тест!, base, key), bC = avg(CTL, base, key);
+    const pT = avg(t.тест!, post, key), pC = avg(CTL, post, key);
     let a: Pt[] = rawT, b: Pt[] = rawC;
     if (mode === "index") {
       a = groupIndexed(t.тест!, days, key, base);
-      b = groupIndexed(CTL_GROUP, days, key, base);
+      b = groupIndexed(CTL, days, key, base);
       if (!nums(a).length || !nums(b).length) continue;
     } else if (!nums(rawT).length && !(testOnly || nums(rawC).length)) continue;
     panes[key] = testOnly
@@ -613,7 +637,7 @@ function chart(t: TestDef, cid: string): string {
   }
   if (!panes["vsearch"]) return "";
   const uT = nums(groupDaily(t.тест!, post, "units")).reduce((x, y) => x + y, 0);
-  const uC = nums(groupDaily(CTL_GROUP, post, "units")).reduce((x, y) => x + y, 0);
+  const uC = nums(groupDaily(CTL, post, "units")).reduce((x, y) => x + y, 0);
   const solo = JSON.stringify(METRICS.filter(([k, , , , to]) => panes[k] && to).map(([k]) => k));
   const btns = METRICS.filter(([k]) => panes[k]).map(([k, n]) =>
     `<button class="mb${k === "vsearch" ? " on" : ""}" data-m="${k}">${n}</button>`).join("");
@@ -626,7 +650,7 @@ function chart(t: TestDef, cid: string): string {
   return `<div class="dyn"><div class="dyn-h">Динамика по дням. <span class="dyn-sub" id="${cid}-sub">${subs["vsearch"]}</span></div>`
     + `<div class="mrow-b">${btns}</div>`
     + `<div class="lg" id="${cid}-lg"><span class="lgi"><i style="background:${C_TEST}"></i>тест, ${t.тест!.length} арт.</span>`
-    + `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>групповой контроль, ${CTL_GROUP.length} арт.</span></div>`
+    + `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>групповой контроль, ${CTL.length} арт.</span></div>`
     + `<svg class="cv" id="${cid}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Динамика по дням, тест против контроля">${panes["vsearch"]}</svg>`
     + `<div class="tip" id="${cid}-tip"></div><div id="${cid}-read">${reads["vsearch"]}</div>`
     + `<div class="dyn-note">Заказов после старта: тест <b>${uT}</b> шт, контроль <b>${uC}</b> шт. Линией не рисуем: заказы идут по 0-2 в день на группу, посуточный график был бы шумом. ${posNote}${gap}${thin}</div></div>`
@@ -642,7 +666,7 @@ function statusChip(t: TestDef): string {
   return '<span class="chip chip-done">пора мерить</span>';
 }
 
-function pairRow(sku: string): string {
+function pairRow(sku: string, t: TestDef): string {
   const r = log.get(sku);
   if (!r) return `<tr><td>${esc(sku)}</td><td colspan="4" class="muted">нет в логе кампаний</td><td class="sep muted" colspan="2">пара не зафиксирована</td><td class="r muted">-</td></tr>`;
   const ct = (r["контроль"] || "").trim();
@@ -656,7 +680,7 @@ function pairRow(sku: string): string {
     + `<td class="r">${esc(r["соинвест_%"] || "-")}</td>`
     + `<td class="r">${esc(r["ставка_рекоменд"] || "-")} → <b>${esc(r["ставка_финальная"] || "-")}</b></td>`
     + `<td class="nw">${esc((r["старт"] || "").slice(0, 16).replace("T", " "))}</td>`
-    + `<td class="sep">${ctlCell(sku, ct)}</td><td class="r">${vc ? nbsp(vc) : "-"}</td>`
+    + `<td class="sep">${ctlCell(sku, ct, t)}</td><td class="r">${vc ? nbsp(vc) : "-"}</td>`
     + `<td class="r ${cls}">${delta == null ? "-" : (delta >= 0 ? "+" : "") + delta.toFixed(0) + " %"}</td></tr>`;
 }
 
@@ -683,7 +707,7 @@ const cards = T.тесты.map((t) => {
   const tst = t.тест || [], ctl = t.контроль || [];
   let body: string;
   if (tst.length || ctl.length) {
-    const rows = tst.map(pairRow).join("");
+    const rows = tst.map((s) => pairRow(s, t)).join("");
     const paired = tst.filter((s) => log.has(s)).length;
     const used = new Set(tst.map((s) => log.get(s)?.["контроль"]).filter(Boolean));
     const orphan = ctl.filter((c) => !used.has(c));
@@ -792,7 +816,7 @@ function boostRowHtml(r: BoostRow, label = ""): string {
 function boostCard(): string {
   const wave = T.тесты.find((t) => t.id === "cpc_boost_exit");
   if (!wave || !coinvRows.length) return "";
-  const ctl = controlByDay(coinvRows, TEST_ARTS, KIN);
+  const ctl = controlByDay(coinvRows, TEST_ARTS, KIN_ANY);
   const mk = (it: WaveItem) => readiness(it, gapSeries(coinvRows, it.art, ctl), storeMoves);
 
   // Дата снятия берётся по решению гейта, а не прямо из ручного поля: пустое поле не
@@ -866,6 +890,13 @@ function boostCard(): string {
     + `плато началось на четвёртый и держалось до конца кампании; после снятия бустинга сдвиг прожил ${ref.heldDays ?? "-"} дн и вернулся к базе ${esc(ref.backToBaseOn || "-")}. `
     + `Пороги ${FLAT_DAYS} дня, ${FLAT_RANGE} пункта, +${ARRIVED} и возврат ниже +${BACK_TO_BASE} подобраны под этот случай и на других не проверены. `
     + `Что именно двигает разрыв, карточка не утверждает: вето от 23.09 в силе.</div>`
+    + `<div class="cov"><b>База эталона пересчитана 23.09 с чистым контролем.</b> ${esc(REF.art)} сидит в объединённой`
+    + ` карточке 5728188877 вместе с двадцатью GGT-03-*-L-80/90, и все двадцать были в контроле, потому что карты`
+    + ` карточек не было. База при этом выходила -4.5, а плато +17.4. С исключённой карточкой база -9.3, плато +22.5:`
+    + ` заражённый контроль прятал 5.1 пункта, то есть около четверти эффекта.`
+    + ` Порог +${ARRIVED} пересчитывать не пришлось, и это не удача, а свойство ряда: сдвиг прыгает с +2.6 сразу на`
+    + ` +14.8 за сутки, поэтому любой порог от 3 до 14 даёт одну и ту же дату выхода 2026-07-09. Переехала величина`
+    + ` эффекта, а не дата и не правило.</div>`
     + `<div class="cov">${esc(movesNote)}</div>${cpoNote}</section>`;
 }
 
@@ -900,10 +931,10 @@ if (panelFixed) {
   }
 }
 gaps.push(`Правило отбора контроля зафиксировано 23.09.2026, ДО замеров 2 и 4 октября, и по`
-  + ` июльским данным, а не по результату волны: контролем не может быть родня тестового товара`
-  + ` любого теста. Разница считается к групповому контролю: панель снимка без тестовых товаров`
-  + ` и их родни, сейчас это ${nbsp(CTL_GROUP.length)} ${plural(CTL_GROUP.length, "артикул", "артикула", "артикулов")}`
-  + ` из ${nbsp(new Set(coinvRows.filter((r) => r.in_panel !== false).map((r) => r.art)).size)} в панели.`);
+  + ` июльским данным, а не по результату волны: контролем не может быть товар, который делит`
+  + ` объединённую карточку OZON с артикулом этого теста. Группа считается по каждому тесту`
+  + ` отдельно: ` + T.тесты.map((t) => `${t.id} ${nbsp(ctlGroupOf(t).length)}`).join(", ")
+  + ` ${plural(ctlGroupOf(T.тесты[0]!).length, "артикул", "артикула", "артикулов")} из ${nbsp(PANEL.length)} в панели.`);
 gaps.push(`Родство считается только по настоящей карточке OZON. Префикс артикула (линия) как`
   + ` признак родства убран 23.09: линия объединяет разные модели, то есть это догадка,`
   + ` выглядящая как данные. Замены на уровне панели нет, и это проверено: правило «родня это`
@@ -912,19 +943,30 @@ gaps.push(`Родство считается только по настояще�
   + ` работает: одно сравнение, тест против своего кандидата в пару. Пока карты карточек нет,`
   + ` группа не чистится вовсе, и на число это не влияет: разница по соинвесту равна +9 пунктов`
   + ` и при 232 артикулах контроля, и при 445, и при 493.`);
-gaps.push(`Ставка оплаты за заказ «все товары» равна 5 % непрерывно с 07.09. Журнал изменений`
-  + ` последнюю смену пишет 2026-09-07 08:14, «9 % -> 5 %». Оговорка «журнал за 08-19.09`
-  + ` недоступен» снимается: лента кабинета за эти дни НЕ пуста, в ней 35 событий (16 ставок`
-  + ` за клик, 10 включений кампаний, 8 бюджетов, 1 выключение) и ни одного изменения ставки`
-  + ` оплаты за заказ. Отсутствие записи здесь значит отсутствие события, а не отсутствие`
-  + ` наблюдения. Сдвиги магазина в 10 днях из 12 в этом окне на вылазку ставки не указывают:`
-  + ` они двигают 513-514 артикулов разом и чередуют направление, то есть это механика скидок`
-  + ` OZON, а не смена нашей ставки по подмножеству.`);
-gaps.push(`26 артикулов есть в реестре начислений, но отсутствуют в снимке цен на 514 товаров.`
-  + ` Проверка воронки: живы все 26, у каждого ненулевые показы, последний наблюдаемый день`
-  + ` с 20 по 22.09. Самый крупный GGT-03-2-5-E-16080-K, 117 878 показов за 207 дней. Значит`
-  + ` это не архив: дыра в снимке цен, а не в каталоге, и пометка «архив, ноль показов» была`
-  + ` бы неверной. В тесты они не входят, на разницу тест минус контроль не влияют.`);
+gaps.push(`Ставка оплаты за заказ «все товары» равна 5 %: подтверждено замерами 20, 21 и 23.09,`
+  + ` журнал изменений за 08-19.09 недоступен. Наблюдений три, поэтому слова «непрерывно» здесь`
+  + ` нет. Последняя запись журнала 2026-09-07 08:14, «9 % -> 5 %»; в ленте кабинета за 08-19.09`
+  + ` лежат 35 событий других типов и ни одного изменения этой ставки, но ленту и журнал`
+  + ` собирает один и тот же съём, так что это не независимое подтверждение. Сдвиги магазина`
+  + ` в 10 днях из 12 в этом окне на вылазку ставки не указывают: они двигают 513-514 артикулов`
+  + ` разом и чередуют направление, то есть это механика скидок OZON, а не смена нашей ставки`
+  + ` по подмножеству.`);
+gaps.push(`26 артикулов есть в реестре начислений, но цены по ним снимок не отдаёт. Статус:`
+  + ` ЖИВЫ, ЦЕНЫ НЕТ. Проверка воронки: живы все 26, у каждого ненулевые показы, последний`
+  + ` наблюдаемый день с 20 по 22.09; самый крупный GGT-03-2-5-E-16080-K, 117 878 показов за`
+  + ` 207 дней. Слово «архив» к ним не применимо, и ноля показов у них нет. В тесты они не`
+  + ` входят, на разницу тест минус контроль не влияют. Срок закрытия дыры конец октября.`);
+gaps.push(`Каталог на ${LAST} это ${nbsp(CARDS.card.size)} ${plural(CARDS.card.size, "товар", "товара", "товаров")}`
+  + ` по выгрузке кабинета. В снимке соинвеста строк больше (${nbsp(new Set(coinvRows.map((r) => r.art)).size)}):`
+  + ` он держит и те артикулы, что из каталога уже ушли, чтобы не терять их историю. Число 514`
+  + ` это ширина снимка, а не размер каталога.`);
+gaps.push(`Просадки охвата воронки нет, хотя по числу строк она видна. До 09.09 в`
+  + ` funnel_sku_daily было 514 строк в сутки и все 514 с позицией и показами. 10.09 ширина`
+  + ` выгрузки выросла до 816, но из 302 добавленных 287 пришли пустыми. 21.09 ширина упала`
+  + ` до 521, и в тот же день строк С ДАННЫМИ стало БОЛЬШЕ: 519 против 513 накануне. То есть`
+  + ` менялась ширина списка, а не охват: строк с позицией все две недели было 510..529.`
+  + ` Замер по показам это не ломает. Файл в репозитории доезжает по 21.09, дни 22 и 23.09`
+  + ` нужно пересчитать тем же способом, когда они приедут.`);
 gaps.push(`search_promo_products не собирается, и это не пробел: через seller-proxy ручка`
   + ` отдаёт 405 и 404, настоящие данные лежат на performance.ozon.ru за логином. Единственный`
   + ` доехавший файл (19.09) содержал одну строку, то есть полным не был никогда. Расход, клики`

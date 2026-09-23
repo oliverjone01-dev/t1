@@ -1,29 +1,26 @@
 {
  "built": "2026-09-23",
- "broken": [
-  {
-   "id": "05063721-0463-1",
-   "art": "GGR-10-2",
-   "residual": -29890
-  }
- ],
+ "broken": [],
  "periods": [
   {
    "period": "2026-08",
-   "ordersTotal": 310,
-   "ordersMatched": 273,
+   "ordersTotal": 311,
+   "ordersMatched": 274,
+   "exactDay": 239,
+   "noDay": 0,
+   "bySpread": 0,
    "artsTotal": 146,
    "artsMatched": 120,
-   "artsWithPaid": 120,
-   "revenueTotal": 19475627,
-   "revenueMatched": 17459920,
-   "listed": 49.2,
-   "paid": 54.3,
-   "withFactBuyer": 57.4,
-   "withFactCap": 49.9,
+   "artsWithPaid": 112,
+   "revenueTotal": 19505517,
+   "revenueMatched": 17489810,
+   "listed": 51.6,
+   "paid": 56.4,
+   "withFactBuyer": 57.3,
+   "withFactCap": 52.6,
    "fact": 57.4,
-   "buyerToListed": 0.864,
-   "buyerToPaid": 0.96,
+   "buyerToListed": 0.899,
+   "buyerToPaid": 0.999,
    "capRatio": 1,
    "missing": [
     "GGK-05-2-2-12040",
@@ -56,151 +53,151 @@
    "snaps": [
     {
      "art": "GGK-02-1-4-80",
-     "days": 29,
+     "days": 1,
      "cap": 41900,
-     "listed": 33038,
-     "paid": 29740.94,
-     "spread": 0.12
+     "listed": 41455,
+     "paid": 37317.95,
+     "spread": 0
     },
     {
      "art": "GGK-02-2-2-80",
-     "days": 29,
+     "days": 23,
      "cap": 43395,
-     "listed": 34745,
-     "paid": 31278.34,
-     "spread": 0.331
+     "listed": 36623,
+     "paid": 32968.96,
+     "spread": 0.519
     },
     {
      "art": "GGK-02-3-5-80",
-     "days": 29,
+     "days": 1,
      "cap": 41900,
-     "listed": 33038,
-     "paid": 29740.94,
-     "spread": 0.292
+     "listed": 33955,
+     "paid": 30566.43,
+     "spread": 0
     },
     {
      "art": "GGK-06-1-5-120",
-     "days": 29,
+     "days": 1,
      "cap": 51898,
-     "listed": 29519,
-     "paid": 26573.03,
-     "spread": 0.119
+     "listed": 37412,
+     "paid": 33678.31,
+     "spread": 0
     },
     {
      "art": "GGKP-02-1",
-     "days": 29,
+     "days": 13,
      "cap": 47900,
-     "listed": 21167,
-     "paid": 19054.63,
-     "spread": 0.729
+     "listed": 19420,
+     "paid": 17481.97,
+     "spread": 0.145
     },
     {
      "art": "GGKP-02-2",
-     "days": 29,
+     "days": 1,
      "cap": 47900,
-     "listed": 21228,
-     "paid": 19109.54,
-     "spread": 0.727
+     "listed": 17419,
+     "paid": 15680.66,
+     "spread": 0
     },
     {
      "art": "GGL-01-L-2",
-     "days": 29,
+     "days": 13,
      "cap": 43151,
-     "listed": 22694,
-     "paid": 20428.46,
-     "spread": 0.25
+     "listed": 22615,
+     "paid": 20357.34,
+     "spread": 0.118
     },
     {
      "art": "GGL-01-S-2",
-     "days": 29,
+     "days": 1,
      "cap": 18900,
-     "listed": 12935,
-     "paid": 11644.21,
-     "spread": 0.304
+     "listed": 11036,
+     "paid": 9934.72,
+     "spread": 0
     },
     {
      "art": "GGL-02-L-2",
-     "days": 29,
+     "days": 7,
      "cap": 43061,
-     "listed": 22712,
-     "paid": 20444.88,
-     "spread": 0.243
+     "listed": 22449,
+     "paid": 20208.13,
+     "spread": 0.119
     },
     {
      "art": "GGL-02-M-2",
-     "days": 29,
+     "days": 1,
      "cap": 27349,
-     "listed": 18851,
-     "paid": 16969.17,
-     "spread": 0.211
+     "listed": 17293,
+     "paid": 15566.7,
+     "spread": 0
     },
     {
      "art": "GGL-04-S-2",
-     "days": 29,
+     "days": 1,
      "cap": 29900,
-     "listed": 12934,
-     "paid": 11643.16,
-     "spread": 0.494
+     "listed": 11196,
+     "paid": 10078.62,
+     "spread": 0
     },
     {
      "art": "GGL-05-XL-slim-2",
-     "days": 29,
+     "days": 1,
      "cap": 52160,
-     "listed": 26409,
-     "paid": 23772.77,
-     "spread": 0.248
+     "listed": 26770,
+     "paid": 24097.74,
+     "spread": 0
     },
     {
      "art": "GGL-07-XL-2",
-     "days": 29,
+     "days": 1,
      "cap": 73900,
-     "listed": 35254,
-     "paid": 31736.23,
-     "spread": 0.503
+     "listed": 45062,
+     "paid": 40565.55,
+     "spread": 0
     },
     {
      "art": "GGL-08-2",
-     "days": 29,
+     "days": 9,
      "cap": 76934,
-     "listed": 24931,
-     "paid": 22442.93,
-     "spread": 0.355
+     "listed": 26470,
+     "paid": 23828.34,
+     "spread": 0.176
     },
     {
      "art": "GGL-09-2",
-     "days": 29,
+     "days": 17,
      "cap": 59900,
-     "listed": 32287,
-     "paid": 29064.47,
-     "spread": 0.434
+     "listed": 26900,
+     "paid": 24215.14,
+     "spread": 0.368
     },
     {
      "art": "GGM-01-1",
-     "days": 29,
+     "days": 22,
      "cap": 39457,
-     "listed": 19271,
-     "paid": 17348.04,
-     "spread": 0.274
+     "listed": 18360,
+     "paid": 16527.95,
+     "spread": 0.168
     },
     {
      "art": "GGM-01-2",
-     "days": 29,
+     "days": 13,
      "cap": 39547,
-     "listed": 20068,
-     "paid": 18065.86,
-     "spread": 0.252
+     "listed": 19823,
+     "paid": 17845.31,
+     "spread": 0.159
     },
     {
      "art": "GGM-02-1-1",
-     "days": 29,
+     "days": 12,
      "cap": 30415,
-     "listed": 15980,
-     "paid": 14385,
-     "spread": 0.223
+     "listed": 15451.5,
+     "paid": 13909.255000000001,
+     "spread": 0.115
     },
     {
      "art": "GGM-02-1-2",
-     "days": 29,
+     "days": 25,
      "cap": 39437,
      "listed": 17842,
      "paid": 16061.46,
@@ -208,1055 +205,1469 @@
     },
     {
      "art": "GGM-02-2-1",
-     "days": 29,
+     "days": 3,
      "cap": 30449,
-     "listed": 16035,
-     "paid": 14434.11,
-     "spread": 0.209
+     "listed": 16195,
+     "paid": 14578.13,
+     "spread": 0.018
     },
     {
      "art": "GGM-02-2-2",
-     "days": 29,
+     "days": 3,
      "cap": 39457,
-     "listed": 19909,
-     "paid": 17921.96,
-     "spread": 0.271
+     "listed": 18544,
+     "paid": 16693.19,
+     "spread": 0.05
     },
     {
      "art": "GGM-02-3-1",
-     "days": 29,
+     "days": 1,
      "cap": 22900,
-     "listed": 10725,
-     "paid": 9654.6,
-     "spread": 0.722
+     "listed": 7088,
+     "paid": 6380.58,
+     "spread": 0
     },
     {
      "art": "GGM-03-2-1",
-     "days": 29,
+     "days": 1,
      "cap": 38559,
-     "listed": 18162,
-     "paid": 16349.28,
-     "spread": 0.837
+     "listed": 18924,
+     "paid": 17035.23,
+     "spread": 0
     },
     {
      "art": "GGM-15-1-3",
-     "days": 29,
+     "days": 1,
      "cap": 50900,
-     "listed": 22605,
-     "paid": 20349.44,
-     "spread": 0.464
+     "listed": 23057,
+     "paid": 20756.33,
+     "spread": 0
     },
     {
      "art": "GGM-15-2-2-L",
-     "days": 29,
+     "days": 22,
      "cap": 55494,
-     "listed": 28965,
-     "paid": 26075.03,
-     "spread": 0.228
+     "listed": 28329,
+     "paid": 25502.485,
+     "spread": 0.138
     },
     {
      "art": "GGM-15-2-2-S",
-     "days": 28,
+     "days": 1,
      "cap": 35900,
-     "listed": 16837.5,
-     "paid": 15156.825,
-     "spread": 0.645
+     "listed": 15738,
+     "paid": 14167.07,
+     "spread": 0
     },
     {
      "art": "GGM-15-3-2-M",
-     "days": 29,
+     "days": 1,
      "cap": 33900,
-     "listed": 16545,
-     "paid": 14894.3,
-     "spread": 0.57
+     "listed": 10458,
+     "paid": 9414.6,
+     "spread": 0
     },
     {
      "art": "GGM-16-1-2",
-     "days": 29,
+     "days": 19,
      "cap": 43756,
-     "listed": 26239,
-     "paid": 23620.44,
-     "spread": 0.396
-    },
-    {
-     "art": "GGM-16-1-3",
-     "days": 29,
-     "cap": 58257,
-     "listed": 30891,
-     "paid": 27808.14,
-     "spread": 0.482
-    },
-    {
-     "art": "GGM-16-1-3-LED",
-     "days": 29,
-     "cap": 87900,
-     "listed": 40931,
-     "paid": 36846.79,
-     "spread": 0.579
-    },
-    {
-     "art": "GGM-16-2-1",
-     "days": 29,
-     "cap": 37457,
-     "listed": 19711,
-     "paid": 17744.22,
-     "spread": 0.246
-    },
-    {
-     "art": "GGM-16-2-2",
-     "days": 29,
-     "cap": 47655,
-     "listed": 24200,
-     "paid": 21784.44,
-     "spread": 0.245
-    },
-    {
-     "art": "GGM-16-2-3",
-     "days": 29,
-     "cap": 61900,
-     "listed": 29394,
-     "paid": 26459.85,
-     "spread": 0.248
-    },
-    {
-     "art": "GGM-16-2-3-LED",
-     "days": 29,
-     "cap": 87900,
-     "listed": 41781,
-     "paid": 37611.97,
-     "spread": 0.564
-    },
-    {
-     "art": "GGM-17-2-2",
-     "days": 29,
-     "cap": 44863,
-     "listed": 23601,
-     "paid": 21245.16,
-     "spread": 0.216
-    },
-    {
-     "art": "GGM-18-1-1",
-     "days": 29,
-     "cap": 45675,
-     "listed": 24022,
-     "paid": 21624.5,
-     "spread": 0.249
-    },
-    {
-     "art": "GGM-18-1-1-LED",
-     "days": 29,
-     "cap": 81688,
-     "listed": 38861,
-     "paid": 34983.06,
-     "spread": 0.322
-    },
-    {
-     "art": "GGM-18-2-1",
-     "days": 29,
-     "cap": 51240,
-     "listed": 25026,
-     "paid": 22528.15,
-     "spread": 0.25
-    },
-    {
-     "art": "GGM-18-2-2",
-     "days": 29,
-     "cap": 55234,
-     "listed": 24526,
-     "paid": 22078.64,
-     "spread": 0.538
-    },
-    {
-     "art": "GGM-18-3-2",
-     "days": 29,
-     "cap": 55234,
-     "listed": 28848,
-     "paid": 25968.95,
-     "spread": 0.251
-    },
-    {
-     "art": "GGM-20-1",
-     "days": 29,
-     "cap": 90897,
-     "listed": 52303,
-     "paid": 47082.47,
-     "spread": 0.232
-    },
-    {
-     "art": "GGM-20-2",
-     "days": 29,
-     "cap": 97793,
-     "listed": 40681,
-     "paid": 36620.9,
-     "spread": 0.579
-    },
-    {
-     "art": "GGM-20-3",
-     "days": 29,
-     "cap": 90897,
-     "listed": 51999,
-     "paid": 46810.42,
-     "spread": 0.363
-    },
-    {
-     "art": "GGM-23-2-1",
-     "days": 29,
-     "cap": 63222,
-     "listed": 33564,
-     "paid": 30214.7,
-     "spread": 0.251
-    },
-    {
-     "art": "GGM-23-3-1",
-     "days": 29,
-     "cap": 63871,
-     "listed": 33573,
-     "paid": 30221.61,
-     "spread": 0.251
-    },
-    {
-     "art": "GGM-24-1",
-     "days": 29,
-     "cap": 59202,
-     "listed": 33350,
-     "paid": 30021.78,
-     "spread": 0.233
-    },
-    {
-     "art": "GGM-24-1-M",
-     "days": 29,
-     "cap": 59900,
-     "listed": 26296,
-     "paid": 23671.26,
-     "spread": 0.271
-    },
-    {
-     "art": "GGM-24-2",
-     "days": 29,
-     "cap": 63900,
-     "listed": 25534,
-     "paid": 22986,
-     "spread": 0.561
-    },
-    {
-     "art": "GGM-24-2-M",
-     "days": 28,
-     "cap": 68475,
-     "listed": 28135.5,
-     "paid": 25327.45,
-     "spread": 0.415
-    },
-    {
-     "art": "GGP-01-2-B-240-100",
-     "days": 29,
-     "cap": 111663,
-     "listed": 58738,
-     "paid": 52875.06,
+     "listed": 22918,
+     "paid": 20630.87,
      "spread": 0.171
     },
     {
+     "art": "GGM-16-1-3",
+     "days": 21,
+     "cap": 58257,
+     "listed": 27331,
+     "paid": 24603.42,
+     "spread": 0.545
+    },
+    {
+     "art": "GGM-16-1-3-LED",
+     "days": 1,
+     "cap": 87900,
+     "listed": 52386,
+     "paid": 47158.77,
+     "spread": 0
+    },
+    {
+     "art": "GGM-16-2-1",
+     "days": 20,
+     "cap": 37457,
+     "listed": 19609.5,
+     "paid": 17652.855,
+     "spread": 0.153
+    },
+    {
+     "art": "GGM-16-2-2",
+     "days": 2,
+     "cap": 47655,
+     "listed": 23395.5,
+     "paid": 21060.235,
+     "spread": 0.012
+    },
+    {
+     "art": "GGM-16-2-3",
+     "days": 21,
+     "cap": 61900,
+     "listed": 28777,
+     "paid": 25904.44,
+     "spread": 0.147
+    },
+    {
+     "art": "GGM-17-2-2",
+     "days": 24,
+     "cap": 44863,
+     "listed": 23646,
+     "paid": 21285.67,
+     "spread": 0.123
+    },
+    {
+     "art": "GGM-18-1-1",
+     "days": 4,
+     "cap": 45675,
+     "listed": 24012.5,
+     "paid": 21615.949999999997,
+     "spread": 0.112
+    },
+    {
+     "art": "GGM-18-1-1-LED",
+     "days": 3,
+     "cap": 81688,
+     "listed": 33140,
+     "paid": 29832.96,
+     "spread": 0.024
+    },
+    {
+     "art": "GGM-18-2-1",
+     "days": 15,
+     "cap": 51240,
+     "listed": 24095,
+     "paid": 21690.07,
+     "spread": 0.123
+    },
+    {
+     "art": "GGM-18-2-2",
+     "days": 25,
+     "cap": 55234,
+     "listed": 24526,
+     "paid": 22078.64,
+     "spread": 0.408
+    },
+    {
+     "art": "GGM-18-3-2",
+     "days": 1,
+     "cap": 55234,
+     "listed": 26559,
+     "paid": 23908.39,
+     "spread": 0
+    },
+    {
+     "art": "GGM-20-1",
+     "days": 1,
+     "cap": 90897,
+     "listed": 48661,
+     "paid": 43803.99,
+     "spread": 0
+    },
+    {
+     "art": "GGM-20-2",
+     "days": 3,
+     "cap": 97793,
+     "listed": 31534,
+     "paid": 28386.8,
+     "spread": 0.18
+    },
+    {
+     "art": "GGM-20-3",
+     "days": 20,
+     "cap": 90897,
+     "listed": 53851.5,
+     "paid": 48478.07,
+     "spread": 0.226
+    },
+    {
+     "art": "GGM-23-2-1",
+     "days": 4,
+     "cap": 63222,
+     "listed": 33256,
+     "paid": 29937.434999999998,
+     "spread": 0.077
+    },
+    {
+     "art": "GGM-23-3-1",
+     "days": 1,
+     "cap": 63871,
+     "listed": 33741,
+     "paid": 30372.84,
+     "spread": 0
+    },
+    {
+     "art": "GGM-24-1",
+     "days": 14,
+     "cap": 59202,
+     "listed": 33647,
+     "paid": 30289.144999999997,
+     "spread": 0.149
+    },
+    {
+     "art": "GGM-24-1-M",
+     "days": 1,
+     "cap": 59900,
+     "listed": 26163,
+     "paid": 23551.54,
+     "spread": 0
+    },
+    {
+     "art": "GGM-24-2",
+     "days": 1,
+     "cap": 63900,
+     "listed": 24892,
+     "paid": 22408.06,
+     "spread": 0
+    },
+    {
+     "art": "GGM-24-2-M",
+     "days": 4,
+     "cap": 68475,
+     "listed": 24502.5,
+     "paid": 22057.035,
+     "spread": 0.051
+    },
+    {
+     "art": "GGP-01-2-B-240-100",
+     "days": 1,
+     "cap": 111663,
+     "listed": 59204,
+     "paid": 53294.55,
+     "spread": 0
+    },
+    {
      "art": "GGR-10-1",
-     "days": 28,
+     "days": 15,
      "cap": 26486,
-     "listed": 13643,
-     "paid": 12281.055,
-     "spread": 0.138
+     "listed": 13579,
+     "paid": 12223.45,
+     "spread": 0.106
     },
     {
      "art": "GGR-10-2",
-     "days": 29,
+     "days": 20,
      "cap": 25659,
-     "listed": 13434,
-     "paid": 12092.56,
-     "spread": 0.197
+     "listed": 13374.5,
+     "paid": 12039.009999999998,
+     "spread": 0.128
     },
     {
      "art": "GGR-11-1",
-     "days": 29,
+     "days": 6,
      "cap": 29333,
-     "listed": 15785,
-     "paid": 14209.15,
-     "spread": 0.138
+     "listed": 14983.5,
+     "paid": 13487.67,
+     "spread": 0.015
     },
     {
      "art": "GGR-11-2",
-     "days": 29,
+     "days": 16,
      "cap": 29333,
-     "listed": 15390,
-     "paid": 13854.26,
-     "spread": 0.126
+     "listed": 15082.5,
+     "paid": 13577.445,
+     "spread": 0.093
     },
     {
      "art": "GGR-11-3",
-     "days": 29,
+     "days": 1,
      "cap": 30897,
-     "listed": 15785,
-     "paid": 14209.9,
-     "spread": 0.138
+     "listed": 16290,
+     "paid": 14664.51,
+     "spread": 0
     },
     {
      "art": "GGT-03-1-3-E-14080",
-     "days": 28,
+     "days": 1,
      "cap": 81900,
-     "listed": 43993.5,
-     "paid": 39602.915,
-     "spread": 0.568
+     "listed": 44451,
+     "paid": 40014.76,
+     "spread": 0
     },
     {
      "art": "GGT-03-1-3-O-18090",
-     "days": 29,
+     "days": 2,
      "cap": 105900,
-     "listed": 57638,
-     "paid": 51886.06,
-     "spread": 0.25
-    },
-    {
-     "art": "GGT-03-1-4-E-12080",
-     "days": 29,
-     "cap": 75900,
-     "listed": 41585,
-     "paid": 37435.22,
-     "spread": 0.252
+     "listed": 50712,
+     "paid": 45651.235,
+     "spread": 0
     },
     {
      "art": "GGT-03-1-5-E-16080",
-     "days": 28,
+     "days": 18,
      "cap": 96900,
-     "listed": 54091.5,
-     "paid": 48693.43,
-     "spread": 0.326
+     "listed": 40249,
+     "paid": 36232.345,
+     "spread": 0.253
     },
     {
      "art": "GGT-03-2-1-E-14080",
-     "days": 29,
+     "days": 1,
      "cap": 81900,
-     "listed": 43552,
-     "paid": 39205.48,
-     "spread": 0.126
+     "listed": 44008,
+     "paid": 39615.97,
+     "spread": 0
     },
     {
      "art": "GGT-03-2-1-O-18090",
-     "days": 29,
+     "days": 1,
      "cap": 105900,
-     "listed": 57638,
-     "paid": 51886.06,
-     "spread": 0.25
+     "listed": 50717,
+     "paid": 45655.74,
+     "spread": 0
     },
     {
      "art": "GGT-03-2-1-O-20090",
-     "days": 29,
+     "days": 1,
      "cap": 109900,
-     "listed": 58658,
-     "paid": 52803.94,
-     "spread": 0.237
+     "listed": 50923,
+     "paid": 45840.89,
+     "spread": 0
     },
     {
      "art": "GGT-03-2-2-E-12080",
-     "days": 29,
+     "days": 5,
      "cap": 79900,
-     "listed": 41023,
-     "paid": 36929.28,
-     "spread": 0.475
+     "listed": 53050,
+     "paid": 47756.09,
+     "spread": 0.204
     },
     {
      "art": "GGT-03-2-2-E-16080",
-     "days": 29,
+     "days": 16,
      "cap": 85900,
-     "listed": 44915,
-     "paid": 40433.37,
-     "spread": 1.04
+     "listed": 46240,
+     "paid": 41626.16,
+     "spread": 0.092
     },
     {
      "art": "GGT-03-2-2-L-120",
-     "days": 29,
+     "days": 1,
      "cap": 79900,
-     "listed": 42166,
-     "paid": 37958.22,
-     "spread": 0.296
+     "listed": 42219,
+     "paid": 38005.93,
+     "spread": 0
     },
     {
      "art": "GGT-03-2-2-M-60",
-     "days": 29,
+     "days": 1,
      "cap": 69900,
-     "listed": 35013,
-     "paid": 31518.49,
-     "spread": 0.198
+     "listed": 34018,
+     "paid": 30622.8,
+     "spread": 0
     },
     {
      "art": "GGT-03-2-2-O-18090",
-     "days": 29,
+     "days": 12,
      "cap": 105900,
-     "listed": 47459,
-     "paid": 42722.87,
-     "spread": 0.343
+     "listed": 50690.5,
+     "paid": 45631.880000000005,
+     "spread": 0.246
     },
     {
      "art": "GGT-03-2-3-R-120-160-80",
-     "days": 29,
+     "days": 1,
      "cap": 99900,
-     "listed": 48635,
-     "paid": 43781.74,
-     "spread": 0.271
+     "listed": 55217,
+     "paid": 49706.93,
+     "spread": 0
     },
     {
      "art": "GGT-03-2-4-E-14080",
-     "days": 29,
+     "days": 1,
      "cap": 81900,
-     "listed": 43268,
-     "paid": 38949.82,
-     "spread": 0.281
+     "listed": 33608,
+     "paid": 30253.9,
+     "spread": 0
     },
     {
      "art": "GGT-03-2-4-E-16080",
-     "days": 29,
+     "days": 7,
      "cap": 85900,
-     "listed": 43441,
-     "paid": 39106.44,
-     "spread": 0.322
+     "listed": 46171,
+     "paid": 41564.04,
+     "spread": 0.272
     },
     {
      "art": "GGT-03-2-4-O-20090",
-     "days": 29,
+     "days": 1,
      "cap": 105900,
-     "listed": 52322,
-     "paid": 47100.57,
-     "spread": 0.311
+     "listed": 52410,
+     "paid": 47179.78,
+     "spread": 0
     },
     {
      "art": "GGT-03-2-5-E-16080",
-     "days": 29,
+     "days": 1,
      "cap": 96900,
-     "listed": 52486,
-     "paid": 47248.15,
-     "spread": 0.279
+     "listed": 43747,
+     "paid": 39381.26,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-1-E-12080",
-     "days": 29,
+     "days": 1,
      "cap": 75900,
-     "listed": 40987,
-     "paid": 36896.9,
-     "spread": 0.285
+     "listed": 39506,
+     "paid": 35563.69,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-1-E-14080",
-     "days": 27,
+     "days": 1,
      "cap": 81900,
-     "listed": 44464,
-     "paid": 40026.46,
-     "spread": 0.106
-    },
-    {
-     "art": "GGT-03-3-1-E-16080",
-     "days": 29,
-     "cap": 85900,
-     "listed": 45734,
-     "paid": 41170.65,
-     "spread": 0.236
+     "listed": 44966,
+     "paid": 40478.36,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-1-L-120",
-     "days": 29,
+     "days": 1,
      "cap": 71899,
-     "listed": 42219,
-     "paid": 38004.72,
-     "spread": 0.367
+     "listed": 42673,
+     "paid": 38413.4,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-1-O-18090",
-     "days": 29,
+     "days": 25,
      "cap": 105900,
-     "listed": 52118,
-     "paid": 46916.92,
-     "spread": 0.299
-    },
-    {
-     "art": "GGT-03-3-1-O-20090",
-     "days": 29,
-     "cap": 109900,
-     "listed": 52322,
-     "paid": 47100.27,
-     "spread": 0.317
-    },
-    {
-     "art": "GGT-03-3-3-E-12080",
-     "days": 29,
-     "cap": 79900,
-     "listed": 41023,
-     "paid": 36929.28,
-     "spread": 0.475
-    },
-    {
-     "art": "GGT-03-3-3-E-14080",
-     "days": 29,
-     "cap": 81900,
-     "listed": 35255,
-     "paid": 31736.52,
-     "spread": 0.33
-    },
-    {
-     "art": "GGT-03-3-3-E-16080",
-     "days": 29,
-     "cap": 96900,
-     "listed": 47070,
-     "paid": 42371.9,
-     "spread": 0.647
-    },
-    {
-     "art": "GGT-03-3-3-L-110",
-     "days": 29,
-     "cap": 77900,
-     "listed": 42783,
-     "paid": 38513.12,
-     "spread": 0.157
-    },
-    {
-     "art": "GGT-03-3-3-L-120",
-     "days": 29,
-     "cap": 79900,
-     "listed": 35346,
-     "paid": 31818.79,
-     "spread": 0.23
-    },
-    {
-     "art": "GGT-03-3-3-L-80",
-     "days": 29,
-     "cap": 67900,
-     "listed": 36606,
-     "paid": 32953.03,
-     "spread": 0.29
-    },
-    {
-     "art": "GGT-03-3-3-L-90",
-     "days": 29,
-     "cap": 71900,
-     "listed": 38226,
-     "paid": 34411.34,
+     "listed": 51219,
+     "paid": 46107.64,
      "spread": 0.294
     },
     {
-     "art": "GGT-03-3-3-L-90-12090",
-     "days": 29,
-     "cap": 107900,
-     "listed": 50681,
-     "paid": 45623.14,
-     "spread": 0.394
+     "art": "GGT-03-3-1-O-20090",
+     "days": 5,
+     "cap": 109900,
+     "listed": 52410,
+     "paid": 47179.49,
+     "spread": 0.043
+    },
+    {
+     "art": "GGT-03-3-3-E-12080",
+     "days": 9,
+     "cap": 79900,
+     "listed": 42166,
+     "paid": 37958.22,
+     "spread": 0.065
+    },
+    {
+     "art": "GGT-03-3-3-E-14080",
+     "days": 38,
+     "cap": 81900,
+     "listed": 44381,
+     "paid": 39951.745,
+     "spread": 0.494
+    },
+    {
+     "art": "GGT-03-3-3-E-16080",
+     "days": 32,
+     "cap": 96900,
+     "listed": 36514,
+     "paid": 32869.505000000005,
+     "spread": 0.542
+    },
+    {
+     "art": "GGT-03-3-3-L-110",
+     "days": 17,
+     "cap": 77900,
+     "listed": 41655,
+     "paid": 37497.7,
+     "spread": 0.119
+    },
+    {
+     "art": "GGT-03-3-3-L-120",
+     "days": 12,
+     "cap": 79900,
+     "listed": 33867.5,
+     "paid": 30487.83,
+     "spread": 0.115
+    },
+    {
+     "art": "GGT-03-3-3-L-90",
+     "days": 1,
+     "cap": 71900,
+     "listed": 38298,
+     "paid": 34476.16,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-3-M-100",
-     "days": 28,
+     "days": 1,
      "cap": 81900,
-     "listed": 44368,
-     "paid": 39940.04,
-     "spread": 0.327
+     "listed": 34575,
+     "paid": 31124.39,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-3-M-80",
-     "days": 29,
+     "days": 1,
      "cap": 76900,
-     "listed": 41664,
-     "paid": 37506.01,
-     "spread": 0.344
+     "listed": 31491,
+     "paid": 28348.26,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-3-O-18090",
-     "days": 29,
+     "days": 2,
      "cap": 105900,
-     "listed": 57638,
-     "paid": 51886.06,
-     "spread": 0.25
+     "listed": 49779.5,
+     "paid": 44811.79,
+     "spread": 0.094
     },
     {
      "art": "GGT-03-3-3-O-20090",
-     "days": 29,
+     "days": 15,
      "cap": 109900,
-     "listed": 62732,
-     "paid": 56471.3,
-     "spread": 0.56
+     "listed": 39015,
+     "paid": 35121.27,
+     "spread": 0.49
     },
     {
      "art": "GGT-03-3-5-E-12080",
-     "days": 29,
+     "days": 1,
      "cap": 79900,
-     "listed": 40987,
-     "paid": 36896.87,
-     "spread": 0.285
+     "listed": 42278,
+     "paid": 38059.04,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-5-E-14080",
-     "days": 29,
+     "days": 1,
      "cap": 81900,
-     "listed": 43526,
-     "paid": 39182.07,
-     "spread": 0.106
+     "listed": 44311,
+     "paid": 39888.73,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-5-E-16080",
-     "days": 29,
+     "days": 1,
      "cap": 96900,
-     "listed": 53417,
-     "paid": 48086.25,
-     "spread": 0.245
+     "listed": 43747,
+     "paid": 39381.26,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-5-L-110",
-     "days": 29,
+     "days": 1,
      "cap": 77898,
-     "listed": 38998,
-     "paid": 35105.78,
-     "spread": 0.316
+     "listed": 50503,
+     "paid": 45462.51,
+     "spread": 0
     },
     {
      "art": "GGT-03-3-5-O-18090",
-     "days": 29,
+     "days": 2,
      "cap": 105900,
-     "listed": 52118,
-     "paid": 46915.88,
-     "spread": 0.312
+     "listed": 58363.5,
+     "paid": 52537.99,
+     "spread": 0.028
     },
     {
      "art": "GGT-03-3-5-O-20090",
-     "days": 29,
+     "days": 9,
      "cap": 109898,
-     "listed": 46797,
-     "paid": 42126.58,
-     "spread": 0.442
-    },
-    {
-     "art": "GGT-03-3-6-L-90-12090",
-     "days": 29,
-     "cap": 93900,
-     "listed": 51737,
-     "paid": 46573.7,
-     "spread": 0.309
+     "listed": 41302,
+     "paid": 37179.99,
+     "spread": 0.117
     },
     {
      "art": "GGT-12-2",
-     "days": 29,
+     "days": 25,
      "cap": 29987,
-     "listed": 15810,
-     "paid": 14232.53,
-     "spread": 0.172
+     "listed": 15795,
+     "paid": 14219.03,
+     "spread": 0.139
     },
     {
      "art": "GGT-12-3",
-     "days": 29,
+     "days": 13,
      "cap": 30731,
-     "listed": 16211,
-     "paid": 14592.73,
-     "spread": 0.17
+     "listed": 16198,
+     "paid": 14581.02,
+     "spread": 0.082
     },
     {
      "art": "GGT-20-1-3-18090",
-     "days": 29,
+     "days": 1,
      "cap": 82900,
-     "listed": 45401,
-     "paid": 40870.7,
-     "spread": 0.221
-    },
-    {
-     "art": "GGT-20-3-3-16080",
-     "days": 29,
-     "cap": 70180,
-     "listed": 35652,
-     "paid": 32093.89,
-     "spread": 0.251
+     "listed": 42219,
+     "paid": 38006.21,
+     "spread": 0
     },
     {
      "art": "GGT-35-1-3-100-180",
-     "days": 29,
+     "days": 52,
      "cap": 121900,
-     "listed": 53150,
-     "paid": 47845.55,
-     "spread": 0.23
+     "listed": 51170,
+     "paid": 46063.155,
+     "spread": 0.831
     },
     {
      "art": "GGT-35-2-2-100-180",
-     "days": 28,
+     "days": 36,
      "cap": 121900,
-     "listed": 66859,
-     "paid": 60186.369999999995,
-     "spread": 0.146
+     "listed": 79008,
+     "paid": 71122.88,
+     "spread": 0.34
     },
     {
      "art": "GGT-35-2-3-100-180",
-     "days": 29,
+     "days": 36,
      "cap": 121900,
-     "listed": 66345,
-     "paid": 59723.67,
-     "spread": 0.291
+     "listed": 67464,
+     "paid": 60730.99,
+     "spread": 0.539
     },
     {
      "art": "GGT-35-3-3-100-180",
-     "days": 29,
+     "days": 35,
      "cap": 121900,
-     "listed": 54144,
-     "paid": 48740.35,
-     "spread": 0.357
+     "listed": 67640,
+     "paid": 60889.42,
+     "spread": 0.683
     },
     {
      "art": "GGT-35-5-1-100-180",
-     "days": 19,
+     "days": 1,
      "cap": 121670,
-     "listed": 52930,
-     "paid": 47647.85,
-     "spread": 0.768
+     "listed": 68953,
+     "paid": 62071.83,
+     "spread": 0
     },
     {
      "art": "GGT-47-2-2-80",
-     "days": 29,
+     "days": 12,
      "cap": 51898,
-     "listed": 25546,
-     "paid": 22996.53,
-     "spread": 0.356
+     "listed": 31590,
+     "paid": 28437.34,
+     "spread": 0.288
     },
     {
      "art": "GGT-47-2-2-90",
-     "days": 29,
+     "days": 1,
      "cap": 55898,
-     "listed": 31548,
-     "paid": 28398.52,
-     "spread": 0.234
+     "listed": 33827,
+     "paid": 30450.01,
+     "spread": 0
     },
     {
      "art": "GGT-47-3-3-80",
-     "days": 29,
+     "days": 1,
      "cap": 51898,
-     "listed": 23296,
-     "paid": 20971.32,
-     "spread": 0.432
+     "listed": 32100,
+     "paid": 28896.78,
+     "spread": 0
     },
     {
      "art": "GGT-47-3-3-90",
-     "days": 29,
+     "days": 18,
      "cap": 55898,
-     "listed": 30289,
-     "paid": 27265.21,
-     "spread": 0.419
+     "listed": 27329.5,
+     "paid": 24601.165,
+     "spread": 0.125
     },
     {
      "art": "GGT-47-3-5-90",
-     "days": 29,
+     "days": 1,
      "cap": 55898,
-     "listed": 31548,
-     "paid": 28398.52,
-     "spread": 0.402
+     "listed": 32145,
+     "paid": 28935.93,
+     "spread": 0
     },
     {
      "art": "GGT-48-2-2-100-180",
-     "days": 17,
+     "days": 1,
      "cap": 91898,
-     "listed": 41055,
-     "paid": 36957.23,
-     "spread": 0.68
+     "listed": 43668,
+     "paid": 39309.42,
+     "spread": 0
     },
     {
      "art": "GGT-48-3-3-100-180",
-     "days": 17,
+     "days": 1,
      "cap": 91900,
-     "listed": 41086,
-     "paid": 36985.22,
-     "spread": 0.679
+     "listed": 40751,
+     "paid": 36683.66,
+     "spread": 0
     },
     {
      "art": "GGT-48-5-1-100-180",
-     "days": 17,
+     "days": 1,
      "cap": 91898,
-     "listed": 41086,
-     "paid": 36985.5,
-     "spread": 0.679
+     "listed": 53914,
+     "paid": 48533.24,
+     "spread": 0
     },
     {
      "art": "GGTP-03-2-M",
-     "days": 29,
+     "days": 13,
      "cap": 54900,
-     "listed": 27079,
-     "paid": 24376.51,
-     "spread": 0.626
+     "listed": 34906,
+     "paid": 31422.38,
+     "spread": 0.445
     },
     {
      "art": "GGTP-03-3-M",
-     "days": 29,
+     "days": 1,
      "cap": 54900,
-     "listed": 22898,
-     "paid": 20612.78,
-     "spread": 0.899
-    },
-    {
-     "art": "GGTP-03-3-O",
-     "days": 29,
-     "cap": 75900,
-     "listed": 37991,
-     "paid": 34199.87,
-     "spread": 0.208
+     "listed": 21328,
+     "paid": 19199.46,
+     "spread": 0
     },
     {
      "art": "GGTP-20-2",
-     "days": 29,
+     "days": 7,
      "cap": 30900,
-     "listed": 13373,
-     "paid": 12037.88,
-     "spread": 0.808
+     "listed": 11821,
+     "paid": 10640.83,
+     "spread": 0.857
     },
     {
      "art": "GGTP-20-2x2",
-     "days": 29,
+     "days": 11,
      "cap": 51900,
-     "listed": 21809,
-     "paid": 19632.07,
-     "spread": 0.825
+     "listed": 20908,
+     "paid": 18821.01,
+     "spread": 0.163
     },
     {
      "art": "GGTW-04-18090",
-     "days": 19,
+     "days": 1,
      "cap": 31800,
-     "listed": 17197,
-     "paid": 15480.75,
-     "spread": 0.096
+     "listed": 16326,
+     "paid": 14696.67,
+     "spread": 0
     }
    ],
    "stable": {
     "period": "2026-08",
-    "ordersTotal": 310,
-    "ordersMatched": 23,
+    "ordersTotal": 311,
+    "ordersMatched": 159,
+    "exactDay": 137,
+    "noDay": 0,
+    "bySpread": 115,
     "artsTotal": 146,
-    "artsMatched": 11,
-    "artsWithPaid": 11,
-    "revenueTotal": 19475627,
-    "revenueMatched": 1156967,
-    "listed": 46.2,
-    "paid": 51.6,
-    "withFactBuyer": 51.8,
-    "withFactCap": 48.9,
-    "fact": 52.1,
-    "buyerToListed": 0.91,
-    "buyerToPaid": 1.011,
-    "capRatio": 1.053,
+    "artsMatched": 92,
+    "artsWithPaid": 84,
+    "revenueTotal": 19505517,
+    "revenueMatched": 9226752,
+    "listed": 49.2,
+    "paid": 54.3,
+    "withFactBuyer": 54.8,
+    "withFactCap": 51.7,
+    "fact": 55.2,
+    "buyerToListed": 0.899,
+    "buyerToPaid": 0.998,
+    "capRatio": 1.032,
     "missing": [
-     "GGK-02-2-2-80",
-     "GGK-02-3-5-80",
      "GGK-05-2-2-12040",
-     "GGKP-02-1",
-     "GGKP-02-2",
-     "GGL-01-L-2",
      "GGL-01-L-3000-1",
      "GGL-01-L-4000-1",
-     "GGL-01-S-2",
-     "GGL-02-L-2",
-     "GGL-02-M-2",
      "GGL-02-M-3000-1",
      "GGL-02-M-4000-1",
-     "GGL-04-S-2",
      "GGL-04-S-4000-1",
      "GGL-05-L-2",
      "GGL-05-S-2",
-     "GGL-05-XL-slim-2",
-     "GGL-07-XL-2",
      "GGL-07-XL-3000-1",
-     "GGL-08-2",
-     "GGL-09-2",
-     "GGM-01-1",
-     "GGM-01-2",
      "GGM-01-3",
-     "GGM-02-1-1",
-     "GGM-02-1-2",
-     "GGM-02-2-1",
-     "GGM-02-2-2",
-     "GGM-02-3-1",
      "GGM-02-4-2",
      "GGM-03-1-1",
-     "GGM-03-2-1",
      "GGM-04-2",
      "GGM-08-2-M",
-     "GGM-15-1-3",
-     "GGM-15-2-2-L",
      "GGM-15-2-2-M",
-     "GGM-15-2-2-S",
      "GGM-15-3-1",
-     "GGM-15-3-2-M",
-     "GGM-16-1-2",
-     "GGM-16-1-3",
-     "GGM-16-1-3-LED",
-     "GGM-16-2-1",
-     "GGM-16-2-2",
-     "GGM-16-2-3",
-     "GGM-16-2-3-LED",
-     "GGM-17-2-2",
-     "GGM-18-1-1",
-     "GGM-18-1-1-LED",
-     "GGM-18-2-1",
-     "GGM-18-2-2",
-     "GGM-18-3-2",
-     "GGM-20-1",
-     "GGM-20-2",
-     "GGM-20-3",
-     "GGM-23-2-1",
-     "GGM-23-3-1",
-     "GGM-24-1",
-     "GGM-24-1-M",
-     "GGM-24-2",
-     "GGM-24-2-M",
-     "GGP-01-2-B-240-100",
-     "GGR-10-2",
      "GGR-10-4",
-     "GGT-03-1-3-E-14080",
-     "GGT-03-1-3-O-18090",
-     "GGT-03-1-4-E-12080",
      "GGT-03-1-5-E-14080-K",
-     "GGT-03-1-5-E-16080",
-     "GGT-03-2-1-O-18090",
-     "GGT-03-2-1-O-20090",
-     "GGT-03-2-2-E-12080",
-     "GGT-03-2-2-E-16080",
-     "GGT-03-2-2-L-120",
-     "GGT-03-2-2-M-60",
-     "GGT-03-2-2-O-18090",
-     "GGT-03-2-3-R-120-160-80",
-     "GGT-03-2-4-E-14080",
-     "GGT-03-2-4-E-16080",
-     "GGT-03-2-4-O-20090",
-     "GGT-03-2-5-E-16080",
      "GGT-03-2-5-E-16080-K",
      "GGT-03-2-5-O-20090",
-     "GGT-03-3-1-E-12080",
-     "GGT-03-3-1-E-16080",
-     "GGT-03-3-1-L-120",
-     "GGT-03-3-1-O-18090",
-     "GGT-03-3-1-O-20090",
-     "GGT-03-3-3-E-12080",
-     "GGT-03-3-3-E-14080",
-     "GGT-03-3-3-E-16080",
-     "GGT-03-3-3-L-110",
-     "GGT-03-3-3-L-120",
-     "GGT-03-3-3-L-80",
-     "GGT-03-3-3-L-90",
-     "GGT-03-3-3-L-90-12090",
-     "GGT-03-3-3-M-100",
-     "GGT-03-3-3-M-80",
-     "GGT-03-3-3-O-18090",
-     "GGT-03-3-3-O-20090",
      "GGT-03-3-4-E-16080",
-     "GGT-03-3-5-E-12080",
-     "GGT-03-3-5-E-16080",
-     "GGT-03-3-5-L-110",
-     "GGT-03-3-5-O-18090",
-     "GGT-03-3-5-O-20090",
-     "GGT-03-3-6-L-90-12090",
      "GGT-05-B-200-90",
-     "GGT-12-2",
-     "GGT-12-3",
-     "GGT-20-1-3-18090",
      "GGT-20-1-5-120-190-80",
-     "GGT-20-3-3-16080",
-     "GGT-35-1-3-100-180",
-     "GGT-35-2-3-100-180",
-     "GGT-35-3-3-100-180",
-     "GGT-35-5-1-100-180",
-     "GGT-47-2-2-80",
-     "GGT-47-2-2-90",
-     "GGT-47-3-3-80",
-     "GGT-47-3-3-90",
-     "GGT-47-3-5-90",
-     "GGT-48-2-2-100-180",
-     "GGT-48-3-3-100-180",
-     "GGT-48-5-1-100-180",
      "GGTP-03-2-C",
-     "GGTP-03-2-M",
-     "GGTP-03-3-M",
-     "GGTP-03-3-O",
-     "GGTP-20-2",
-     "GGTP-20-2x2",
      "GGTW-02-d80",
      "GGTW-03-16080"
     ],
     "snaps": [
      {
       "art": "GGK-02-1-4-80",
-      "days": 29,
+      "days": 1,
       "cap": 41900,
-      "listed": 33038,
-      "paid": 29740.94,
-      "spread": 0.12
+      "listed": 41455,
+      "paid": 37317.95,
+      "spread": 0
+     },
+     {
+      "art": "GGK-02-3-5-80",
+      "days": 1,
+      "cap": 41900,
+      "listed": 33955,
+      "paid": 30566.43,
+      "spread": 0
      },
      {
       "art": "GGK-06-1-5-120",
-      "days": 29,
+      "days": 1,
       "cap": 51898,
-      "listed": 29519,
-      "paid": 26573.03,
+      "listed": 37412,
+      "paid": 33678.31,
+      "spread": 0
+     },
+     {
+      "art": "GGKP-02-1",
+      "days": 13,
+      "cap": 47900,
+      "listed": 19420,
+      "paid": 17481.97,
+      "spread": 0.145
+     },
+     {
+      "art": "GGKP-02-2",
+      "days": 1,
+      "cap": 47900,
+      "listed": 17419,
+      "paid": 15680.66,
+      "spread": 0
+     },
+     {
+      "art": "GGL-01-L-2",
+      "days": 13,
+      "cap": 43151,
+      "listed": 22615,
+      "paid": 20357.34,
+      "spread": 0.118
+     },
+     {
+      "art": "GGL-01-S-2",
+      "days": 1,
+      "cap": 18900,
+      "listed": 11036,
+      "paid": 9934.72,
+      "spread": 0
+     },
+     {
+      "art": "GGL-02-L-2",
+      "days": 7,
+      "cap": 43061,
+      "listed": 22449,
+      "paid": 20208.13,
       "spread": 0.119
      },
      {
-      "art": "GGR-10-1",
-      "days": 28,
-      "cap": 26486,
-      "listed": 13643,
-      "paid": 12281.055,
+      "art": "GGL-02-M-2",
+      "days": 1,
+      "cap": 27349,
+      "listed": 17293,
+      "paid": 15566.7,
+      "spread": 0
+     },
+     {
+      "art": "GGL-04-S-2",
+      "days": 1,
+      "cap": 29900,
+      "listed": 11196,
+      "paid": 10078.62,
+      "spread": 0
+     },
+     {
+      "art": "GGL-05-XL-slim-2",
+      "days": 1,
+      "cap": 52160,
+      "listed": 26770,
+      "paid": 24097.74,
+      "spread": 0
+     },
+     {
+      "art": "GGL-07-XL-2",
+      "days": 1,
+      "cap": 73900,
+      "listed": 45062,
+      "paid": 40565.55,
+      "spread": 0
+     },
+     {
+      "art": "GGM-02-1-1",
+      "days": 12,
+      "cap": 30415,
+      "listed": 15451.5,
+      "paid": 13909.255000000001,
+      "spread": 0.115
+     },
+     {
+      "art": "GGM-02-2-1",
+      "days": 3,
+      "cap": 30449,
+      "listed": 16195,
+      "paid": 14578.13,
+      "spread": 0.018
+     },
+     {
+      "art": "GGM-02-2-2",
+      "days": 3,
+      "cap": 39457,
+      "listed": 18544,
+      "paid": 16693.19,
+      "spread": 0.05
+     },
+     {
+      "art": "GGM-02-3-1",
+      "days": 1,
+      "cap": 22900,
+      "listed": 7088,
+      "paid": 6380.58,
+      "spread": 0
+     },
+     {
+      "art": "GGM-03-2-1",
+      "days": 1,
+      "cap": 38559,
+      "listed": 18924,
+      "paid": 17035.23,
+      "spread": 0
+     },
+     {
+      "art": "GGM-15-1-3",
+      "days": 1,
+      "cap": 50900,
+      "listed": 23057,
+      "paid": 20756.33,
+      "spread": 0
+     },
+     {
+      "art": "GGM-15-2-2-L",
+      "days": 22,
+      "cap": 55494,
+      "listed": 28329,
+      "paid": 25502.485,
       "spread": 0.138
+     },
+     {
+      "art": "GGM-15-2-2-S",
+      "days": 1,
+      "cap": 35900,
+      "listed": 15738,
+      "paid": 14167.07,
+      "spread": 0
+     },
+     {
+      "art": "GGM-15-3-2-M",
+      "days": 1,
+      "cap": 33900,
+      "listed": 10458,
+      "paid": 9414.6,
+      "spread": 0
+     },
+     {
+      "art": "GGM-16-1-3-LED",
+      "days": 1,
+      "cap": 87900,
+      "listed": 52386,
+      "paid": 47158.77,
+      "spread": 0
+     },
+     {
+      "art": "GGM-16-2-2",
+      "days": 2,
+      "cap": 47655,
+      "listed": 23395.5,
+      "paid": 21060.235,
+      "spread": 0.012
+     },
+     {
+      "art": "GGM-16-2-3",
+      "days": 21,
+      "cap": 61900,
+      "listed": 28777,
+      "paid": 25904.44,
+      "spread": 0.147
+     },
+     {
+      "art": "GGM-17-2-2",
+      "days": 24,
+      "cap": 44863,
+      "listed": 23646,
+      "paid": 21285.67,
+      "spread": 0.123
+     },
+     {
+      "art": "GGM-18-1-1",
+      "days": 4,
+      "cap": 45675,
+      "listed": 24012.5,
+      "paid": 21615.949999999997,
+      "spread": 0.112
+     },
+     {
+      "art": "GGM-18-1-1-LED",
+      "days": 3,
+      "cap": 81688,
+      "listed": 33140,
+      "paid": 29832.96,
+      "spread": 0.024
+     },
+     {
+      "art": "GGM-18-2-1",
+      "days": 15,
+      "cap": 51240,
+      "listed": 24095,
+      "paid": 21690.07,
+      "spread": 0.123
+     },
+     {
+      "art": "GGM-18-3-2",
+      "days": 1,
+      "cap": 55234,
+      "listed": 26559,
+      "paid": 23908.39,
+      "spread": 0
+     },
+     {
+      "art": "GGM-20-1",
+      "days": 1,
+      "cap": 90897,
+      "listed": 48661,
+      "paid": 43803.99,
+      "spread": 0
+     },
+     {
+      "art": "GGM-23-2-1",
+      "days": 4,
+      "cap": 63222,
+      "listed": 33256,
+      "paid": 29937.434999999998,
+      "spread": 0.077
+     },
+     {
+      "art": "GGM-23-3-1",
+      "days": 1,
+      "cap": 63871,
+      "listed": 33741,
+      "paid": 30372.84,
+      "spread": 0
+     },
+     {
+      "art": "GGM-24-1",
+      "days": 14,
+      "cap": 59202,
+      "listed": 33647,
+      "paid": 30289.144999999997,
+      "spread": 0.149
+     },
+     {
+      "art": "GGM-24-1-M",
+      "days": 1,
+      "cap": 59900,
+      "listed": 26163,
+      "paid": 23551.54,
+      "spread": 0
+     },
+     {
+      "art": "GGM-24-2",
+      "days": 1,
+      "cap": 63900,
+      "listed": 24892,
+      "paid": 22408.06,
+      "spread": 0
+     },
+     {
+      "art": "GGM-24-2-M",
+      "days": 4,
+      "cap": 68475,
+      "listed": 24502.5,
+      "paid": 22057.035,
+      "spread": 0.051
+     },
+     {
+      "art": "GGP-01-2-B-240-100",
+      "days": 1,
+      "cap": 111663,
+      "listed": 59204,
+      "paid": 53294.55,
+      "spread": 0
+     },
+     {
+      "art": "GGR-10-1",
+      "days": 15,
+      "cap": 26486,
+      "listed": 13579,
+      "paid": 12223.45,
+      "spread": 0.106
+     },
+     {
+      "art": "GGR-10-2",
+      "days": 20,
+      "cap": 25659,
+      "listed": 13374.5,
+      "paid": 12039.009999999998,
+      "spread": 0.128
      },
      {
       "art": "GGR-11-1",
-      "days": 29,
+      "days": 6,
       "cap": 29333,
-      "listed": 15785,
-      "paid": 14209.15,
-      "spread": 0.138
+      "listed": 14983.5,
+      "paid": 13487.67,
+      "spread": 0.015
      },
      {
       "art": "GGR-11-2",
-      "days": 29,
+      "days": 16,
       "cap": 29333,
-      "listed": 15390,
-      "paid": 13854.26,
-      "spread": 0.126
+      "listed": 15082.5,
+      "paid": 13577.445,
+      "spread": 0.093
      },
      {
       "art": "GGR-11-3",
-      "days": 29,
+      "days": 1,
       "cap": 30897,
-      "listed": 15785,
-      "paid": 14209.9,
-      "spread": 0.138
+      "listed": 16290,
+      "paid": 14664.51,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-1-3-E-14080",
+      "days": 1,
+      "cap": 81900,
+      "listed": 44451,
+      "paid": 40014.76,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-1-3-O-18090",
+      "days": 2,
+      "cap": 105900,
+      "listed": 50712,
+      "paid": 45651.235,
+      "spread": 0
      },
      {
       "art": "GGT-03-2-1-E-14080",
-      "days": 29,
+      "days": 1,
       "cap": 81900,
-      "listed": 43552,
-      "paid": 39205.48,
-      "spread": 0.126
+      "listed": 44008,
+      "paid": 39615.97,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-2-1-O-18090",
+      "days": 1,
+      "cap": 105900,
+      "listed": 50717,
+      "paid": 45655.74,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-2-1-O-20090",
+      "days": 1,
+      "cap": 109900,
+      "listed": 50923,
+      "paid": 45840.89,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-2-2-E-16080",
+      "days": 16,
+      "cap": 85900,
+      "listed": 46240,
+      "paid": 41626.16,
+      "spread": 0.092
+     },
+     {
+      "art": "GGT-03-2-2-L-120",
+      "days": 1,
+      "cap": 79900,
+      "listed": 42219,
+      "paid": 38005.93,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-2-2-M-60",
+      "days": 1,
+      "cap": 69900,
+      "listed": 34018,
+      "paid": 30622.8,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-2-3-R-120-160-80",
+      "days": 1,
+      "cap": 99900,
+      "listed": 55217,
+      "paid": 49706.93,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-2-4-E-14080",
+      "days": 1,
+      "cap": 81900,
+      "listed": 33608,
+      "paid": 30253.9,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-2-4-O-20090",
+      "days": 1,
+      "cap": 105900,
+      "listed": 52410,
+      "paid": 47179.78,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-2-5-E-16080",
+      "days": 1,
+      "cap": 96900,
+      "listed": 43747,
+      "paid": 39381.26,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-3-1-E-12080",
+      "days": 1,
+      "cap": 75900,
+      "listed": 39506,
+      "paid": 35563.69,
+      "spread": 0
      },
      {
       "art": "GGT-03-3-1-E-14080",
-      "days": 27,
+      "days": 1,
       "cap": 81900,
-      "listed": 44464,
-      "paid": 40026.46,
-      "spread": 0.106
+      "listed": 44966,
+      "paid": 40478.36,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-3-1-L-120",
+      "days": 1,
+      "cap": 71899,
+      "listed": 42673,
+      "paid": 38413.4,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-3-1-O-20090",
+      "days": 5,
+      "cap": 109900,
+      "listed": 52410,
+      "paid": 47179.49,
+      "spread": 0.043
+     },
+     {
+      "art": "GGT-03-3-3-E-12080",
+      "days": 9,
+      "cap": 79900,
+      "listed": 42166,
+      "paid": 37958.22,
+      "spread": 0.065
+     },
+     {
+      "art": "GGT-03-3-3-L-110",
+      "days": 17,
+      "cap": 77900,
+      "listed": 41655,
+      "paid": 37497.7,
+      "spread": 0.119
+     },
+     {
+      "art": "GGT-03-3-3-L-120",
+      "days": 12,
+      "cap": 79900,
+      "listed": 33867.5,
+      "paid": 30487.83,
+      "spread": 0.115
+     },
+     {
+      "art": "GGT-03-3-3-L-90",
+      "days": 1,
+      "cap": 71900,
+      "listed": 38298,
+      "paid": 34476.16,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-3-3-M-100",
+      "days": 1,
+      "cap": 81900,
+      "listed": 34575,
+      "paid": 31124.39,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-3-3-M-80",
+      "days": 1,
+      "cap": 76900,
+      "listed": 31491,
+      "paid": 28348.26,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-3-3-O-18090",
+      "days": 2,
+      "cap": 105900,
+      "listed": 49779.5,
+      "paid": 44811.79,
+      "spread": 0.094
+     },
+     {
+      "art": "GGT-03-3-5-E-12080",
+      "days": 1,
+      "cap": 79900,
+      "listed": 42278,
+      "paid": 38059.04,
+      "spread": 0
      },
      {
       "art": "GGT-03-3-5-E-14080",
-      "days": 29,
+      "days": 1,
       "cap": 81900,
-      "listed": 43526,
-      "paid": 39182.07,
-      "spread": 0.106
+      "listed": 44311,
+      "paid": 39888.73,
+      "spread": 0
      },
      {
-      "art": "GGT-35-2-2-100-180",
-      "days": 28,
-      "cap": 121900,
-      "listed": 66859,
-      "paid": 60186.369999999995,
-      "spread": 0.146
+      "art": "GGT-03-3-5-E-16080",
+      "days": 1,
+      "cap": 96900,
+      "listed": 43747,
+      "paid": 39381.26,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-3-5-L-110",
+      "days": 1,
+      "cap": 77898,
+      "listed": 50503,
+      "paid": 45462.51,
+      "spread": 0
+     },
+     {
+      "art": "GGT-03-3-5-O-18090",
+      "days": 2,
+      "cap": 105900,
+      "listed": 58363.5,
+      "paid": 52537.99,
+      "spread": 0.028
+     },
+     {
+      "art": "GGT-03-3-5-O-20090",
+      "days": 9,
+      "cap": 109898,
+      "listed": 41302,
+      "paid": 37179.99,
+      "spread": 0.117
+     },
+     {
+      "art": "GGT-12-2",
+      "days": 25,
+      "cap": 29987,
+      "listed": 15795,
+      "paid": 14219.03,
+      "spread": 0.139
+     },
+     {
+      "art": "GGT-12-3",
+      "days": 13,
+      "cap": 30731,
+      "listed": 16198,
+      "paid": 14581.02,
+      "spread": 0.082
+     },
+     {
+      "art": "GGT-20-1-3-18090",
+      "days": 1,
+      "cap": 82900,
+      "listed": 42219,
+      "paid": 38006.21,
+      "spread": 0
+     },
+     {
+      "art": "GGT-35-5-1-100-180",
+      "days": 1,
+      "cap": 121670,
+      "listed": 68953,
+      "paid": 62071.83,
+      "spread": 0
+     },
+     {
+      "art": "GGT-47-2-2-90",
+      "days": 1,
+      "cap": 55898,
+      "listed": 33827,
+      "paid": 30450.01,
+      "spread": 0
+     },
+     {
+      "art": "GGT-47-3-3-80",
+      "days": 1,
+      "cap": 51898,
+      "listed": 32100,
+      "paid": 28896.78,
+      "spread": 0
+     },
+     {
+      "art": "GGT-47-3-3-90",
+      "days": 18,
+      "cap": 55898,
+      "listed": 27329.5,
+      "paid": 24601.165,
+      "spread": 0.125
+     },
+     {
+      "art": "GGT-47-3-5-90",
+      "days": 1,
+      "cap": 55898,
+      "listed": 32145,
+      "paid": 28935.93,
+      "spread": 0
+     },
+     {
+      "art": "GGT-48-2-2-100-180",
+      "days": 1,
+      "cap": 91898,
+      "listed": 43668,
+      "paid": 39309.42,
+      "spread": 0
+     },
+     {
+      "art": "GGT-48-3-3-100-180",
+      "days": 1,
+      "cap": 91900,
+      "listed": 40751,
+      "paid": 36683.66,
+      "spread": 0
+     },
+     {
+      "art": "GGT-48-5-1-100-180",
+      "days": 1,
+      "cap": 91898,
+      "listed": 53914,
+      "paid": 48533.24,
+      "spread": 0
+     },
+     {
+      "art": "GGTP-03-3-M",
+      "days": 1,
+      "cap": 54900,
+      "listed": 21328,
+      "paid": 19199.46,
+      "spread": 0
      },
      {
       "art": "GGTW-04-18090",
-      "days": 19,
+      "days": 1,
       "cap": 31800,
-      "listed": 17197,
-      "paid": 15480.75,
-      "spread": 0.096
+      "listed": 16326,
+      "paid": 14696.67,
+      "spread": 0
      }
     ]
    }

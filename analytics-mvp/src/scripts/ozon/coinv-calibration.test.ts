@@ -2,10 +2,10 @@
 // дороже, чем в самом соинвесте: по вердикту калибровки решают, что чинить в сборе данных.
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
-import { brokenRows, calibrate, verdict, pts, median, type FactRow, type OurRow } from "./coinv-calibration.js";
+import { brokenRows, calibrate, nearestDay, verdict, pts, median, type FactRow, type OurRow } from "./coinv-calibration.js";
 
-const fact = (art: string, buyer: number, ozon: number, seller: number): FactRow => ({
-  accrual_id: `${art}-1`, art, qty: 1,
+const fact = (art: string, buyer: number, ozon: number, seller: number, order = "2026-08-10"): FactRow => ({
+  accrual_id: `${art}-1`, art, qty: 1, order_date: order, accrual_date: "2026-08-25",
   seller_price_unit: seller, seller_price_total: seller,
   paid_by_buyer: buyer, paid_by_ozon: ozon, partner_programs: 0,
   ozon_share_pct: Math.round(1000 * ozon / seller) / 10, period: "2026-08",
@@ -72,18 +72,20 @@ describe("калибровка называет виновную цену", () =
     expect(c.artsWithPaid).toBe(0);
   });
 
-  it("день без наблюдения в свёртку не попадает", () => {
-    const bad = { ...our("A", 10, 100, "2026-08-11"), observed: false };
-    const c = calibrate([fact("A", 40, 60, 100)], [our("A", 50, 100), bad], "2026-08");
-    expect(c.listed).toBe(50);   // не 70, как было бы со средним по обоим дням
-    expect(c.snaps[0]!.days).toBe(1);
+  it("день без наблюдения в счёт не идёт: берётся соседний наблюдённый", () => {
+    const bad = { ...our("A", 10, 100, "2026-08-10"), observed: false };
+    const c = calibrate([fact("A", 40, 60, 100, "2026-08-10")], [our("A", 50, 100, "2026-08-09"), bad], "2026-08");
+    expect(c.listed).toBe(50);     // не 90, как было бы по продублированному дню
+    expect(c.exactDay).toBe(0);    // ровно своего дня нет, взят соседний
+    expect(c.ordersMatched).toBe(1);
   });
 
-  it("считает разброс цены внутри периода и отсекает по нему", () => {
+  it("считает разброс цены в окне заказов артикула и отсекает по нему", () => {
     const rows = [our("A", 50, 100, "2026-08-01"), our("A", 80, 100, "2026-08-02")];
-    const wide = calibrate([fact("A", 40, 60, 100)], rows, "2026-08");
+    const f = [fact("A", 40, 60, 100, "2026-08-01"), { ...fact("A", 40, 60, 100, "2026-08-02"), accrual_id: "A-2" }];
+    const wide = calibrate(f, rows, "2026-08");
     expect(wide.snaps[0]!.spread).toBe(0.462);   // (80-50)/65
-    expect(calibrate([fact("A", 40, 60, 100)], rows, "2026-08", 0.15).ordersMatched).toBe(0);
+    expect(calibrate(f, rows, "2026-08", 0.15).ordersMatched).toBe(0);
   });
 
   it("считает по заказам, а не по артикулам: частый артикул весит больше", () => {
@@ -121,6 +123,38 @@ describe("калибровка называет виновную цену", () =
   });
 });
 
+describe("цена берётся на день заказа", () => {
+  const days = new Map([
+    ["2026-07-01", { date: "2026-07-01", art: "A", cap: 100, site_listed: 70 } as OurRow],
+    ["2026-08-10", { date: "2026-08-10", art: "A", cap: 100, site_listed: 50 } as OurRow],
+  ]);
+
+  it("точное совпадение дня выигрывает", () => {
+    expect(nearestDay(days, "2026-08-10")!.site_listed).toBe(50);
+    expect(nearestDay(days, "2026-07-01")!.site_listed).toBe(70);
+  });
+
+  it("без своего дня берёт соседний в пределах трёх суток", () => {
+    expect(nearestDay(days, "2026-08-12")!.date).toBe("2026-08-10");
+    expect(nearestDay(days, "2026-08-14")).toBeNull();   // четыре дня - уже далеко
+  });
+
+  it("июльский заказ в августовском начислении считается по июльской цене", () => {
+    // Классический случай: начисление за август, а заказ сделан 1 июля, когда цена была другой.
+    const july = fact("A", 40, 60, 100, "2026-07-01");
+    const c = calibrate([july], [our("A", 70, 100, "2026-07-01"), our("A", 50, 100, "2026-08-10")], "2026-08");
+    expect(c.exactDay).toBe(1);
+    expect(c.listed).toBe(30);   // 1 - 70/100, а не 50 по августовской цене
+  });
+
+  it("заказ без наблюдения рядом не сопоставляется и считается отдельно", () => {
+    const c = calibrate([fact("A", 40, 60, 100, "2026-08-25")], [our("A", 50, 100, "2026-08-10")], "2026-08");
+    expect(c.ordersMatched).toBe(0);
+    expect(c.noDay).toBe(1);
+    expect(c.missing).toEqual([]);   // артикул мы знаем, не хватает именно дня
+  });
+});
+
 describe("склонение пунктов", () => {
   it("склоняет по-русски", () => {
     expect(pts(1)).toBe("1 пункт");
@@ -145,11 +179,17 @@ describe("медиана", () => {
 describe("эталон августа из data/", () => {
   const P = "data/payout_orders.ndjson";
   const has = existsSync(P);
-  it.skipIf(!has)("тождество сходится у всех строк, кроме известной одной", () => {
+  it.skipIf(!has)("тождество сходится на всех строках", () => {
     const rows = readFileSync(P, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l) as FactRow);
     expect(rows.length).toBeGreaterThan(300);
-    const bad = brokenRows(rows);
-    // 05063721-0463-1: в выгрузке у строки qty=1, а суммы покупателя и Ozon идут за две штуки.
-    expect(bad.map((b) => b.id)).toEqual(["05063721-0463-1"]);
+    expect(brokenRows(rows)).toEqual([]);
+  });
+
+  it.skipIf(!has)("у каждой строки есть дата заказа, и она не равна дате начисления", () => {
+    const rows = readFileSync(P, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l) as FactRow);
+    expect(rows.every((r) => /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(r.order_date))).toBe(true);
+    // Часть августовских начислений относится к заказам прошлых месяцев: именно ради этого
+    // цена и берётся на дату заказа, а не на месяц начисления.
+    expect(rows.filter((r) => r.order_date.slice(0, 7) !== r.period).length).toBeGreaterThan(50);
   });
 });

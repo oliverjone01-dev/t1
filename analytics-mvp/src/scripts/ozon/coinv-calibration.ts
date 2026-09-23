@@ -17,11 +17,11 @@
 // товарам 57 %. Это разные совокупности, а не расхождение метрики. Поэтому каждый заказ
 // берёт снимок своего артикула, и медиана считается по заказам с обеих сторон.
 //
-// Эталон без даты заказа: в выгрузке есть только период (YYYY-MM), поэтому снимок артикула
-// сворачивается в медиану за период. Это стоит нескольких пунктов там, где цена внутри месяца
-// гуляла, и спутать этот шум с ошибкой метрики легко. Поэтому рядом всегда считается срез по
-// артикулам со стабильной ценой: по августу на всей выборке остаётся 3.1 пункта, а на срезе
-// 0.5 пункта, и видно, что виновата свёртка, а не показатель.
+// ЦЕНА БЕРЁТСЯ НА ДЕНЬ ЗАКАЗА, не на месяц начисления. В эталоне есть order_date и
+// accrual_date, и это разные вещи: в августовских начислениях 113 заказов из 312 сделаны в
+// июне и июле. Месячная свёртка это скрывала и давала около трёх пунктов ложного расхождения.
+// Срез по артикулам со стабильной ценой поправкой больше не служит, но остаётся как проверка:
+// если он расходится с полной выборкой, значит сопоставление по датам где-то хромает.
 //
 // Запуск: npm run coinv:calib   (сети не требует, читает только data/)
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -29,12 +29,17 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 const FACT = "data/payout_orders.ndjson";
 const OURS = "data/coinv_daily.ndjson";
 const OUT = "data/coinv_calibration.json";
-/** Порог разброса витринной цены для среза «стабильные». 15 % это цена одной акции: выше него
- *  месячная медиана перестаёт представлять конкретный день заказа. */
+/** Порог разброса витринной цены для контрольного среза «стабильные». 15 % это примерно
+ *  глубина одной акции. */
 const STABLE_SPREAD = 0.15;
 
 export interface FactRow {
   accrual_id: string; art: string; qty: number;
+  /** Дата ЗАКАЗА. По ней берётся цена: часть начислений месяца относится к заказам прошлых
+   *  месяцев (в августе 113 из 312 заказов июньские и июльские). */
+  order_date: string;
+  /** Дата начисления, то есть выплаты. Для цены не годится: между заказом и выплатой дни. */
+  accrual_date?: string;
   seller_price_unit: number; seller_price_total: number;
   paid_by_buyer: number; paid_by_ozon: number; partner_programs: number;
   ozon_share_pct: number; period: string;
@@ -66,6 +71,9 @@ export interface PeriodCalib {
   period: string;
   /** Заказов в эталоне и сколько из них удалось сопоставить со снимком. */
   ordersTotal: number; ordersMatched: number;
+  /** Сколько заказов легло на снимок ровно своего дня, сколько отброшено за отсутствием
+   *  наблюдения рядом, сколько отсечено порогом разброса цены. */
+  exactDay: number; noDay: number; bySpread: number;
   artsTotal: number; artsMatched: number; artsWithPaid: number;
   revenueTotal: number; revenueMatched: number;
   /** Всё ниже - медианы ПО ЗАКАЗАМ сопоставленного множества. */
@@ -74,11 +82,10 @@ export interface PeriodCalib {
   buyerToListed: number; buyerToPaid: number | null; capRatio: number;
   missing: string[];
   snaps: ArtSnap[];
-  /** Та же калибровка, но только по артикулам со стабильной ценой внутри периода.
-   *  Эталон не несёт даты заказа, поэтому снимок артикула сворачивается в медиану за месяц.
-   *  Там, где цена внутри месяца гуляла, эта свёртка сама по себе даёт несколько пунктов
-   *  шума, и его легко принять за ошибку метрики. Срез по стабильным ценам этот шум убирает:
-   *  чем уже разброс, тем ближе отношение «факт / цена с картой» к единице. */
+  /** Та же калибровка, но только по артикулам, у которых цена в окне их заказов почти не
+   *  двигалась. Поправкой это не служит (цена и так берётся на день заказа), это проверка:
+   *  срез и полная выборка должны давать одно и то же. Разойдутся - значит в сопоставлении
+   *  по датам что-то сломалось. */
   stable?: PeriodCalib;
 }
 
@@ -113,9 +120,8 @@ export function brokenRows(fact: FactRow[]): Array<{ id: string; art: string; re
   return out;
 }
 
-/** Снимок артикула, свёрнутый в одну точку за период. Дни без наблюдения выброшены.
- *  spread - относительный разброс витринной цены внутри периода, им отсекают артикулы,
- *  у которых месячная медиана не представляет ни один конкретный день. */
+/** Снимок артикула, свёрнутый в одну точку за окно его заказов. Дни без наблюдения выброшены.
+ *  Нужен ради spread: сами цены для сравнения берутся на день заказа, а не отсюда. */
 export function snapOf(art: string, rows: OurRow[]): ArtSnap | null {
   const ok = rows.filter(isObserved);
   const cap = median(ok.map((x) => x.cap).filter((x) => x > 0));
@@ -130,19 +136,54 @@ export function snapOf(art: string, rows: OurRow[]): ArtSnap | null {
   };
 }
 
+/** Максимальный отход от даты заказа, если снимка ровно за этот день нет. Три дня это
+ *  пропуск выходных в сборе; дальше цена успевает съехать, и такой заказ лучше не считать. */
+const MAX_DAY_GAP = 3;
+
+/** Снимок артикула на день заказа. Точное совпадение, иначе ближайший наблюдённый день в
+ *  пределах MAX_DAY_GAP, при равенстве - более ранний (цена на день заказа уже действовала). */
+export function nearestDay(days: Map<string, OurRow>, order: string): OurRow | null {
+  const exact = days.get(order);
+  if (exact) return exact;
+  let best: OurRow | null = null, bestGap = Infinity;
+  for (const [d, r] of days) {
+    const gap = Math.abs(Math.round((Date.parse(d + "T00:00:00Z") - Date.parse(order + "T00:00:00Z")) / 864e5));
+    if (gap > MAX_DAY_GAP) continue;
+    if (gap < bestGap || (gap === bestGap && best && d < best.date)) { best = r; bestGap = gap; }
+  }
+  return best;
+}
+
 /** Калибровка за один период. Единица счёта - заказ: каждый заказ подтягивает снимок своего
  *  артикула, и медианы берутся по заказам с обеих сторон. Возвраты (отрицательные суммы) не
  *  берём: доля Ozon в возврате это та же доля продажи с обратным знаком. */
 export function calibrate(fact: FactRow[], ours: OurRow[], period: string, maxSpread = Infinity): PeriodCalib {
   const f = fact.filter((o) => o.period === period && o.seller_price_unit > 0 && o.qty > 0);
-  const o = ours.filter((x) => x.date.slice(0, 7) === period);
 
+  // Снимок по артикулу и ДНЮ. Ряд не режем по периоду начисления: часть августовских
+  // начислений относится к июньским и июльским заказам, и цену надо брать на день заказа.
   const byArtOurs = new Map<string, OurRow[]>();
-  for (const x of o) { const a = byArtOurs.get(x.art); if (a) a.push(x); else byArtOurs.set(x.art, [x]); }
+  for (const x of ours) { const a = byArtOurs.get(x.art); if (a) a.push(x); else byArtOurs.set(x.art, [x]); }
+  const byDay = new Map<string, Map<string, OurRow>>();
+  for (const [art, rows] of byArtOurs) {
+    const m = new Map<string, OurRow>();
+    for (const r of rows) if (isObserved(r) && r.cap > 0 && listedOf(r)) m.set(r.date, r);
+    byDay.set(art, m);
+  }
+  // Разброс цены считаем на окне, которое реально покрывают заказы артикула, а не за весь
+  // месяц начисления: теперь это только диагностика, поправкой она больше не служит.
+  const span = new Map<string, [string, string]>();
+  for (const x of f) {
+    const cur = span.get(x.art);
+    if (!cur) span.set(x.art, [x.order_date, x.order_date]);
+    else span.set(x.art, [x.order_date < cur[0] ? x.order_date : cur[0], x.order_date > cur[1] ? x.order_date : cur[1]]);
+  }
   const snaps = new Map<string, ArtSnap>();
   for (const [art, rows] of byArtOurs) {
-    const s = snapOf(art, rows);
-    if (s && s.spread <= maxSpread) snaps.set(art, s);
+    const w = span.get(art);
+    if (!w) continue;
+    const s = snapOf(art, rows.filter((r) => r.date >= w[0] && r.date <= w[1]));
+    if (s) snaps.set(art, s);
   }
 
   // Ряды по ЗАКАЗАМ. У каждого заказа своя строка в каждом ряду, поэтому медианы сопоставимы.
@@ -150,28 +191,34 @@ export function calibrate(fact: FactRow[], ours: OurRow[], period: string, maxSp
   const factSh: number[] = [], bToListed: number[] = [], bToPaid: number[] = [], capR: number[] = [];
   const missing = new Set<string>();
   const matchedArts = new Set<string>();
-  let revenueMatched = 0, ordersMatched = 0;
+  let revenueMatched = 0, ordersMatched = 0, exactDay = 0, noDay = 0, bySpread = 0;
   for (const x of f) {
-    const s = snaps.get(x.art);
-    if (!s) { missing.add(x.art); continue; }
+    const days = byDay.get(x.art);
+    if (!days || !days.size) { missing.add(x.art); continue; }
+    const snap = snaps.get(x.art);
+    if (snap && snap.spread > maxSpread) { bySpread++; continue; }
+    const r = nearestDay(days, x.order_date);
+    if (!r) { noDay++; continue; }
+    if (r.date === x.order_date) exactDay++;
+    const cap = r.cap, sListed = listedOf(r)!, sPaid = paidOf(r) ?? null;
     ordersMatched += 1;
     matchedArts.add(x.art);
     revenueMatched += x.seller_price_total;
     const buyer = x.paid_by_buyer / x.qty;
-    listed.push(100 * (1 - s.listed / s.cap));
-    if (s.paid) { paid.push(100 * (1 - s.paid / s.cap)); bToPaid.push(buyer / s.paid); }
-    wBuyer.push(100 * (1 - buyer / s.cap));
+    listed.push(100 * (1 - sListed / cap));
+    if (sPaid) { paid.push(100 * (1 - sPaid / cap)); bToPaid.push(buyer / sPaid); }
+    wBuyer.push(100 * (1 - buyer / cap));
     if (x.seller_price_unit > 0) {
-      wCap.push(100 * (1 - s.listed / x.seller_price_unit));
-      capR.push(x.seller_price_unit / s.cap);
+      wCap.push(100 * (1 - sListed / x.seller_price_unit));
+      capR.push(x.seller_price_unit / cap);
     }
     factSh.push(x.ozon_share_pct);
-    bToListed.push(buyer / s.listed);
+    bToListed.push(buyer / sListed);
   }
   const m1 = (v: number[]) => (v.length ? r1(median(v)) : NaN);
   return {
     period,
-    ordersTotal: f.length, ordersMatched,
+    ordersTotal: f.length, ordersMatched, exactDay, noDay, bySpread,
     artsTotal: new Set(f.map((x) => x.art)).size,
     artsMatched: matchedArts.size,
     artsWithPaid: [...matchedArts].filter((a) => snaps.get(a)?.paid != null).length,
@@ -196,15 +243,15 @@ export function verdict(p: PeriodCalib): string {
   const best = p.paid != null && Math.abs(p.fact - p.paid) < Math.abs(p.fact - p.listed) ? p.paid : p.listed;
   const which = best === p.paid ? "по цене с картой" : "по витрине";
   const gap = p.fact - best;
-  // Срез по стабильным ценам решает спор «ошибка метрики или шум сопоставления»: если там
-  // расхождение уходит, виновата месячная свёртка, а не сам показатель.
+  // Срез по стабильной цене - контроль сопоставления по датам, а не поправка.
   const st = p.stable;
   const stBest = st && (st.paid != null && Math.abs(st.fact - st.paid) < Math.abs(st.fact - st.listed) ? st.paid : st.listed);
   const stGap = st && stBest != null ? st.fact - stBest : null;
-  if (Math.abs(gap) < 1) return `соинвест ${which} сходится с фактом, расхождение меньше пункта`;
-  if (stGap != null && Math.abs(stGap) < 1 && st) {
-    return `соинвест ${which} расходится на ${pts(gap)} по всей выборке, но на ${st.ordersMatched} заказах`
-      + ` со стабильной ценой расхождение ${pts(stGap)}: это шум месячной свёртки, а не ошибка метрики`;
+  if (Math.abs(gap) < 1) {
+    const warn = stGap != null && Math.abs(stGap) >= 1
+      ? `; но на ${st!.ordersMatched} заказах со стабильной ценой расхождение ${pts(stGap)} - проверьте сопоставление по датам`
+      : "";
+    return `соинвест ${which} сходится с фактом, расхождение меньше пункта${warn}`;
   }
   const byBuyer = Math.abs(p.fact - p.withFactBuyer);
   const byCap = Number.isFinite(p.withFactCap) ? Math.abs(p.fact - p.withFactCap) : Infinity;
@@ -244,6 +291,8 @@ function main(): void {
     console.log(`\n=== ${period} ===`);
     console.log(`  заказов сопоставлено ${c.ordersMatched} из ${c.ordersTotal},`
       + ` артикулов ${c.artsMatched} из ${c.artsTotal} (с ценой по карте ${c.artsWithPaid})`);
+    console.log(`  цена взята на день заказа: точно в день ${c.exactDay}, рядом ${c.ordersMatched - c.exactDay},`
+      + ` без наблюдения рядом ${c.noDay}`);
     console.log(`  оборот покрыт: ${c.revenueMatched.toLocaleString("ru")} из ${c.revenueTotal.toLocaleString("ru")} ₽`
       + ` (${Math.round(100 * c.revenueMatched / (c.revenueTotal || 1))} %)`);
     console.log(`  Всё ниже - медианы ПО ЗАКАЗАМ сопоставленного множества.`);

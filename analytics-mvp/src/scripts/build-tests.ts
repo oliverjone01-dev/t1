@@ -14,6 +14,7 @@
 // Запуск: npm run tests:page (или npm run katya, он зовёт этот скрипт).
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { dp, op, IS_OZON } from "../paths.js";
+import { loadCardMap, kinOfTests, collapseByCard, lineKey } from "./card-kin.js";
 import {
   controlByDay, gapSeries, readiness, loadMoves, loadCpoDays,
   ARRIVED, FLAT_RANGE, FLAT_DAYS, BASE_DAYS, LATE_AFTER, BACK_TO_BASE,
@@ -170,6 +171,33 @@ for (const [, m] of series) for (const d of m.keys()) if (d > LAST) LAST = d;
 
 const rea = JSON.parse(readFileSync(dp("reakciya.json"), "utf-8")) as any;
 const measured = (rea.tests || []).filter((t: any) => t.status === "измерен");
+
+const coinvRows = readNd(dp("coinv_daily.ndjson")) as CoinvRow[];
+const CARDS = loadCardMap();
+const TEST_ARTS = new Set<string>();
+for (const t of T.тесты) for (const a of t.тест || []) TEST_ARTS.add(a);
+// Родня тестовых товаров: в контроль их пускать нельзя, они едут за тестом.
+const KIN = kinOfTests(new Set(coinvRows.map((r) => r.art)), TEST_ARTS, CARDS);
+
+// Плашка о заражении контроля. Текст согласован с Иваном 23.09 и намеренно не содержит
+// множителя: «нижняя граница» это всё, что даёт одно наблюдение на одной линии. Сказать
+// «примерно вдвое» значило бы через неделю получить константу, которой никто не мерил.
+const KIN_WARN = "Контроль заражён. У 8 пар из 21 контроль это товар той же линии, а реклама"
+  + " одного варианта тянет за собой соседей по объединённой карточке: в июле кампания была"
+  + " только у GGT-47-3-3-90, он дал +17,4 п.п., пять его братьев без рекламы по +8,3."
+  + " В групповом контроле братьев тестовых товаров 224 из 475. Поэтому сдвиг на карточке это"
+  + " нижняя граница, а не измеренная величина. Пересбор контроля в работе.";
+const kinBanner = `<div class="stop"><b>Контроль заражён.</b> ${esc(KIN_WARN.replace("Контроль заражён. ", ""))}</div>`;
+
+/** Медиана по наблюдениям, а не по артикулам. Варианты одной объединённой карточки OZON это
+ *  один товар для покупателя и одна реакция площадки, поэтому в медиану они идут один раз.
+ *  В тесте 1 это GGT-35-1-3-100-180 и GGT-35-3-3-100-180: до схлопывания медиана считала их
+ *  дважды, то есть тест был не из 11 наблюдений, а из 10. */
+function medByCard(items: Array<{ test: string }>, valueOf: (x: any) => number | null): number | null {
+  const { values } = collapseByCard(items, (x) => x.test, valueOf, CARDS);
+  return median(values);
+}
+
 
 // ---------- метрики графика ----------
 // index - обе линии приводятся к своему уровню до старта (уровни групп разные);
@@ -366,7 +394,7 @@ function perArticle(t: TestDef): string {
       + `<td class="r">${ordT(p.test)} / ${ordT(p.ctl)}</td></tr>`;
   }).join("");
   const med = cols.map(([k]) => {
-    const m = median(byKey.get(k)!.map((x) => x.dd));
+    const m = medByCard(byKey.get(k)!, (x) => x.dd);
     return `<td class="r"><b>${m == null ? "-" : (m >= 0 ? "+" : "") + m.toFixed(0)}</b></td>`;
   }).join("");
   return `<div class="sub2">Показатели по артикулам</div><div class="tbl-wrap"><table class="gtbl single">`
@@ -382,7 +410,7 @@ function perArticle(t: TestDef): string {
     + `<th class="r sep" title="Расход на рекламу по тестовому артикулу, ₽ в день: две недели до старта → после старта">Расход т., ₽/дн</th>`
     + `<th class="r" title="Заказано штук после старта: тест / контроль">Заказы т/к</th></tr></thead>`
     + `<tbody>${rows}</tbody>`
-    + `<tfoot><tr class="mrow2"><td colspan="2">Медиана по парам</td>${med}<td class="sep"></td><td></td></tr></tfoot>`
+    + `<tfoot><tr class="mrow2"><td colspan="2" title="Варианты одной объединённой карточки OZON идут в медиану одним наблюдением, а не несколькими">Медиана по наблюдениям</td>${med}<td class="sep"></td><td></td></tr></tfoot>`
     + `</table></div><div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов; у позиции цвет перевёрнут, потому что меньше - лучше. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
 }
 
@@ -446,14 +474,14 @@ function chart(t: TestDef, cid: string): string {
       // Вердикт тоже по медиане: считаем изменение у каждой пары отдельно и берём
       // середину. Средним по группе один крупный артикул перетянул бы весь итог.
       const per = pairDeltas(t, key, base, post);
-      const mT = median(per.map((x) => x.dT)), mC = median(per.map((x) => x.dC));
-      const dd = median(per.map((x) => x.dd)) ?? 0;
+      const mT = medByCard(per, (x) => x.dT), mC = medByCard(per, (x) => x.dC);
+      const dd = medByCard(per, (x) => x.dd) ?? 0;
       const per1 = pairDeltas(t, key, base1, post);
-      const dd1 = median(per1.map((x) => x.dd)) ?? dd;
+      const dd1 = medByCard(per1, (x) => x.dd) ?? dd;
       const alarm = Math.abs(dd - dd1) > Math.max(Math.abs(dd), Math.abs(dd1)) * 0.5
         ? `<div class="dyn-alarm">Неделя перед стартом была нетипичной: по ней медиана разницы вышла бы <b>${dd1 >= 0 ? "+" : ""}${dd1.toFixed(0)}</b> пунктов вместо <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)}</b>. Считаем по двум неделям.</div>`
         : "";
-      reads[key] = `<div class="dyn-read">Медиана по парам, ${lowerTitle(title)}: тест <b>${mT == null ? "-" : (mT >= 0 ? "+" : "") + mT.toFixed(0) + " %"}</b>, контроль <b>${mC == null ? "-" : (mC >= 0 ? "+" : "") + mC.toFixed(0) + " %"}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b> (пар в счёте ${per.length}). База - две недели перед стартом, после старта ${post.length} дн, данные по ${LAST}.</div>${alarm}`;
+      reads[key] = `<div class="dyn-read">Медиана по наблюдениям, ${lowerTitle(title)}: тест <b>${mT == null ? "-" : (mT >= 0 ? "+" : "") + mT.toFixed(0) + " %"}</b>, контроль <b>${mC == null ? "-" : (mC >= 0 ? "+" : "") + mC.toFixed(0) + " %"}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b> (наблюдений в счёте ${collapseByCard(per, (x) => x.test, (x) => x.dd, CARDS).values.length}). База - две недели перед стартом, после старта ${post.length} дн, данные по ${LAST}.</div>${alarm}`;
     } else {
       const v = (x: number) => Number.isFinite(x) ? nbsp(x) + unit : "нет данных";
       let extra = "";
@@ -572,7 +600,7 @@ const cards = T.тесты.map((t) => {
       + `<th class="r">Ставка рек.→фин.</th><th>Старт</th>`
       + `<th class="sep">Артикул</th><th class="r">Поиск/2нед</th>`
       + `<th class="r" title="Насколько трафик теста расходится с контролем до старта. Больше 20 % - пара плохо сопоставима">Δ поиска</th></tr>`
-      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${dirtyControl(t)}${deadControl(t)}${chart(t, "dyn-" + t.id)}${perArticle(t)}`;
+      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${kinBanner}${dirtyControl(t)}${deadControl(t)}${chart(t, "dyn-" + t.id)}${perArticle(t)}`;
   } else {
     body = '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>';
   }
@@ -590,7 +618,6 @@ const cards = T.тесты.map((t) => {
 
 // ---------- карточка «Готовность к выходу из бустинга» ----------
 // Формулировки описательные: сдвиг разрыва к контролю, и только. Вето ФЕНИКСА от 23.09 в силе.
-const coinvRows = readNd(dp("coinv_daily.ndjson")) as CoinvRow[];
 const cpoDays = loadCpoDays("tools/tests/cpo_history.psv");
 const storeMoves = loadMoves(dp("store_moves.ndjson"), cpoDays);
 
@@ -666,9 +693,7 @@ function boostRowHtml(r: BoostRow, label = ""): string {
 function boostCard(): string {
   const wave = T.тесты.find((t) => t.id === "cpc_boost_exit");
   if (!wave || !coinvRows.length) return "";
-  const testArts = new Set<string>();
-  for (const t of T.тесты) for (const a of t.тест || []) testArts.add(a);
-  const ctl = controlByDay(coinvRows, testArts);
+  const ctl = controlByDay(coinvRows, TEST_ARTS, KIN);
   const mk = (it: WaveItem) => readiness(it, gapSeries(coinvRows, it.art, ctl), storeMoves);
 
   const items: WaveItem[] = (wave.тест || []).map((a) => ({ art: a, on: (wave.старт || "").slice(0, 10), off: wave.этап2 || undefined }));
@@ -718,6 +743,7 @@ function boostCard(): string {
     : "";
 
   return `<section class="card"><div class="chead"><div class="ctitle">Готовность к выходу из бустинга</div></div>`
+    + kinBanner
     + `<div class="hyp">Сдвиг разрыва к контролю по дням с включения кампании. Контроль - панель снимка без тестовых артикулов, `
     + `разрыв считается по цене с картой Ozon. База - медиана разрыва за ${BASE_DAYS} ЧИСТЫХ наблюдаемых дней до включения, то есть дней без общего сдвига магазина; на нашей частоте сдвигов такое окно растягивается на две календарные недели.</div>`
     + `<div class="rule"><b>Статусы:</b> плато - ${FLAT_DAYS} подряд наблюдаемых дня, размах не больше ${FLAT_RANGE} пунктов, сдвиг не ниже +${ARRIVED}. `

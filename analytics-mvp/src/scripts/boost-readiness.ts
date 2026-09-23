@@ -7,7 +7,7 @@
 //
 // КАК СЧИТАЕТСЯ
 //   разрыв(день) = coinv_paid_pct товара - медиана coinv_paid_pct контроля в тот же день;
-//   контроль     = панель снимка (in_panel) минус тестовые артикулы;
+//   контроль     = панель снимка (in_panel) минус тестовые артикулы и минус их родня;
 //   база         = медиана разрыва за 7 ЧИСТЫХ наблюдаемых дней до включения;
 //   сдвиг(день)  = разрыв(день) - база.
 // Берём именно coinv_paid_pct, то есть долю от цены с картой Ozon: ряд по витрине занижен,
@@ -92,12 +92,20 @@ const r1 = (x: number) => Math.round(x * 10) / 10;
 const observed = (r: CoinvRow): boolean => r.observed !== false;
 const coinvOf = (r: CoinvRow): number | undefined => r.coinv_paid_pct ?? r.coinv_pct;
 
-/** Медиана соинвеста контроля по дням. Контроль это панель снимка минус тестовые артикулы:
- *  парный контроль здесь не годится, у волны нет пары на каждый товар. */
-export function controlByDay(rows: CoinvRow[], testArts: Set<string>): Map<string, number> {
+/** Медиана соинвеста контроля по дням. Контроль это панель снимка минус тестовые артикулы и
+ *  минус их родня: парный контроль здесь не годится, у волны нет пары на каждый товар.
+ *
+ *  Родню (exclude) выбрасывать обязательно, и по двум причинам сразу.
+ *  Первая - перетекание: брат без рекламы в июле дал +8.3 против +17.4 у товара с кампанией,
+ *  то есть контроль едет за тестом и занижает разницу.
+ *  Вторая - устойчивость: родни в панели 224 артикула из 475, почти половина. Когда половина
+ *  группы сдвинута, медиана садится ровно на границу между сдвинутыми и несдвинутыми и
+ *  прыгает от любого пустяка. Чистка нужна ради статистики, а не только ради величины. */
+export function controlByDay(rows: CoinvRow[], testArts: Set<string>, exclude?: Set<string>): Map<string, number> {
   const by = new Map<string, number[]>();
   for (const r of rows) {
     if (!observed(r) || r.in_panel === false || testArts.has(r.art)) continue;
+    if (exclude?.has(r.art)) continue;
     const v = coinvOf(r);
     if (v == null || !Number.isFinite(v)) continue;
     const a = by.get(r.date); if (a) a.push(v); else by.set(r.date, [v]);

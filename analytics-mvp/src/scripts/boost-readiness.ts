@@ -8,16 +8,22 @@
 // КАК СЧИТАЕТСЯ
 //   разрыв(день) = coinv_paid_pct товара - медиана coinv_paid_pct контроля в тот же день;
 //   контроль     = панель снимка (in_panel) минус тестовые артикулы;
-//   база         = медиана разрыва за 7 наблюдаемых дней до включения;
+//   база         = медиана разрыва за 7 ЧИСТЫХ наблюдаемых дней до включения;
 //   сдвиг(день)  = разрыв(день) - база.
 // Берём именно coinv_paid_pct, то есть долю от цены с картой Ozon: ряд по витрине занижен,
 // сверка с реестром начислений за август это показала (npm run coinv:calib).
 // Дни с observed=false пропускаются везде: и в базе, и в статусе, и на спарклайне.
 //
-// ОБЩИЕ СДВИГИ МАГАЗИНА (data/store_moves.ndjson, необязательный файл). Магазин двигается
-// целиком, и половина таких движений наша: смена ставки CPO «все товары» двигает витрину по
-// всему каталогу в тот же день. Такой день помечается на спарклайне, не засчитывается днём
-// плато и не может стоять первым или последним в окне базы.
+// ОБЩИЕ СДВИГИ МАГАЗИНА (data/store_moves.ndjson). Магазин двигается целиком, и половина таких
+// движений наша: смена ставки CPO «все товары» двигает витрину по всему каталогу в тот же день.
+// Такой день помечается на спарклайне и не засчитывается днём плато.
+//
+// ОКНО БАЗЫ НАБИРАЕТСЯ ПО ЧИСТЫМ ДНЯМ, А НЕ ПО КАЛЕНДАРЮ. Сначала правило было мягче: день
+// общего сдвига просто не мог стоять краем окна. Иван показал, почему этого мало: в окне
+// 29.06-05.07 пять дней из семи оказались днями общего сдвига, и все пять стояли в середине.
+// Из 99 дней наблюдения магазин двигался в 48, а в сентябре почти каждый день, так что на
+// нашей частоте в календарной семидневке чистых дней остаётся два-три. Поэтому окно набирается
+// назад, пока не наберётся BASE_DAYS чистых дней, сколько бы календарных на это ни ушло.
 import { readFileSync, existsSync } from "node:fs";
 
 export interface CoinvRow {
@@ -25,8 +31,13 @@ export interface CoinvRow {
   observed?: boolean; in_panel?: boolean;
   coinv_paid_pct?: number; coinv_listed_pct?: number; coinv_pct?: number;
 }
-/** Строка data/store_moves.ndjson: день, когда витрина двинулась по всему каталогу. */
-export interface StoreMove { date: string; source?: string; note?: string }
+/** Строка data/store_moves.ndjson: день наблюдения по магазину целиком. store_move=false это
+ *  обычный день, он в файле тоже есть, и путать одно с другим нельзя. */
+export interface StoreMove {
+  date: string; store_move?: boolean; direction?: string;
+  median_shift_pct?: number; observed_arts?: number;
+  source?: string; note?: string;
+}
 /** Товар волны: артикул, день включения кампании, день снятия бустинга (если уже снят).
  *  until обрезает ряд справа: после снятия бустинга хвост ещё интересен несколько дней, а
  *  дальше он уже не про эту кампанию и в карточке только мешает. */
@@ -44,7 +55,8 @@ export interface BoostRow {
   art: string; on: string; off?: string;
   /** Длина кампании в днях, если она уже закончилась. */
   ranDays?: number;
-  base: number | null; baseFrom?: string; baseTo?: string; baseShifted: boolean;
+  base: number | null; baseFrom?: string; baseTo?: string;
+  baseDays: number; baseSpan: number; baseDirty: boolean;
   day: number | null; shift: number | null; lastDate?: string;
   status: Status;
   plateauFrom?: string; plateauDay?: number;
@@ -108,32 +120,36 @@ export function gapSeries(rows: CoinvRow[], art: string, ctl: Map<string, number
   return out;
 }
 
-/** База: медиана разрыва за BASE_DAYS наблюдаемых дней до включения. Окно двигается назад,
- *  пока его первый и последний день не окажутся обычными: день общего сдвига магазина на краю
- *  окна тянул бы базу за собой, а вместе с ней и все сдвиги товара. */
+export interface BaseInfo {
+  base: number | null;
+  from?: string; to?: string;
+  /** Сколько чистых дней удалось набрать и сколько календарных дней на это ушло. */
+  days: number; span: number;
+  /** true - чистых дней не хватило, база посчитана по дням с общим сдвигом. Такую базу
+   *  двигает весь магазин, и сдвиги товара от неё читать нельзя без оговорки. */
+  dirty: boolean;
+}
+
+/** База: медиана разрыва за BASE_DAYS чистых наблюдаемых дней до включения. Чистый день это
+ *  день без общего сдвига магазина. Если чистых дней меньше FLAT_DAYS, базу всё же считаем по
+ *  последним наблюдаемым дням, но помечаем её грязной: молчаливого отката тут быть не должно. */
 export function baseOf(
   series: Array<{ date: string; gap: number }>,
   on: string,
   moves: Set<string>,
-): { base: number | null; from?: string; to?: string; shifted: boolean } {
+): BaseInfo {
   const before = series.filter((p) => p.date < on);
-  if (before.length < FLAT_DAYS) return { base: null, shifted: false };
-  const n = Math.min(BASE_DAYS, before.length);
-  // Сначала ищем окно полной длины, двигая его назад; если такого нет (общий сдвиг стоит
-  // слишком близко к включению), окно укорачивается, но не короче FLAT_DAYS.
-  for (let size = n; size >= FLAT_DAYS; size--) {
-    for (let end = before.length; end >= size; end--) {
-      const w = before.slice(end - size, end);
-      if (moves.has(w[0]!.date) || moves.has(w[w.length - 1]!.date)) continue;
-      return {
-        base: r1(median(w.map((p) => p.gap))),
-        from: w[0]!.date, to: w[w.length - 1]!.date,
-        shifted: size !== n || end !== before.length,
-      };
-    }
-  }
-  const w = before.slice(before.length - n);
-  return { base: r1(median(w.map((p) => p.gap))), from: w[0]!.date, to: w[w.length - 1]!.date, shifted: true };
+  if (before.length < FLAT_DAYS) return { base: null, days: 0, span: 0, dirty: false };
+  const clean = before.filter((p) => !moves.has(p.date));
+  const use = clean.length >= FLAT_DAYS ? clean : before;
+  const w = use.slice(Math.max(0, use.length - BASE_DAYS));
+  return {
+    base: r1(median(w.map((p) => p.gap))),
+    from: w[0]!.date, to: w[w.length - 1]!.date,
+    days: w.length,
+    span: daysBetween(w[0]!.date, w[w.length - 1]!.date) + 1,
+    dirty: use !== clean,
+  };
 }
 
 /** Первое плато: FLAT_DAYS подряд наблюдаемых дней, размах не больше FLAT_RANGE, и самый
@@ -168,7 +184,8 @@ export function readiness(
   const b = baseOf(series, item.on, new Set(moves.keys()));
   const row: BoostRow = {
     art: item.art, on: item.on, off: item.off,
-    base: b.base, baseFrom: b.from, baseTo: b.to, baseShifted: b.shifted,
+    base: b.base, baseFrom: b.from, baseTo: b.to,
+    baseDays: b.days, baseSpan: b.span, baseDirty: b.dirty,
     day: null, shift: null, status: "нет данных", series: [],
   };
   if (b.base == null) return row;
@@ -211,7 +228,10 @@ export function loadMoves(path: string, cpoDays?: Set<string>): Map<string, Move
     let r: StoreMove;
     try { r = JSON.parse(l) as StoreMove; } catch { continue; }
     const d = String(r.date || "").slice(0, 10);
-    if (!d) continue;
+    // В файле лежат ВСЕ дни, и спокойные тоже. Берём только те, где магазин действительно
+    // двинулся: иначе пометку получит каждый день, плато не соберётся никогда, а база
+    // окажется «грязной» на ровном месте.
+    if (!d || r.store_move === false) continue;
     const src = r.source === "our_cpo" || r.source === "cpo" ? "our_cpo"
       : (cpoDays && cpoDays.has(d)) ? "our_cpo" : "unknown";
     out.set(d, src);

@@ -3,7 +3,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import {
-  controlByDay, gapSeries, baseOf, plateauOf, statusOf, readiness, loadCpoDays,
+  controlByDay, gapSeries, baseOf, plateauOf, statusOf, readiness, loadCpoDays, loadMoves,
   daysBetween, median, ARRIVED,
   type CoinvRow, type DayPoint, type MoveSource,
 } from "./boost-readiness.js";
@@ -53,20 +53,32 @@ describe("база", () => {
     const b = baseOf(ser([1, 2, 3, 4, 5, 6, 7, 100]), "2026-07-08", new Set());
     expect(b.base).toBe(4);            // сотня 08.07 это уже день включения, в базу не идёт
     expect([b.from, b.to]).toEqual(["2026-07-01", "2026-07-07"]);
+    expect([b.days, b.span, b.dirty]).toEqual([7, 7, false]);
   });
 
-  it("день общего сдвига на краю окна двигает окно назад", () => {
-    // 07.07 это день общего сдвига: окно уезжает на сутки, и база считается по 01-06.07.
-    const b = baseOf(ser([1, 2, 3, 4, 5, 6, 40]), "2026-07-08", new Set(["2026-07-07"]));
-    expect(b.shifted).toBe(true);
-    expect(b.to).toBe("2026-07-06");
-    expect(b.base).toBe(3.5);
+  it("окно набирается по ЧИСТЫМ дням, а не по календарю", () => {
+    // 04, 05 и 06.07 - дни общего сдвига. Календарная семидневка взяла бы их и уехала,
+    // окно по чистым дням достаёт до 01.07 и растягивается на десять календарных.
+    const b = baseOf(ser([1, 2, 3, 4, 5, 6, 7, 40, 40, 40]), "2026-07-11",
+      new Set(["2026-07-08", "2026-07-09", "2026-07-10"]));
+    expect(b.base).toBe(4);            // медиана 1..7, сороковки не вошли
+    expect([b.from, b.to]).toEqual(["2026-07-01", "2026-07-07"]);
+    expect([b.days, b.span, b.dirty]).toEqual([7, 7, false]);
   });
 
-  it("день общего сдвига внутри окна оставляем", () => {
+  it("день общего сдвига в середине окна тоже выбрасывается", () => {
+    // Старое правило ловило только края; Иван показал, что 5 дней из 7 были в середине.
     const b = baseOf(ser([1, 2, 3, 40, 5, 6, 7]), "2026-07-08", new Set(["2026-07-04"]));
-    expect(b.shifted).toBe(false);
-    expect(b.base).toBe(5);            // медиана 1,2,3,40,5,6,7 это 5, сороковка тянет только хвост
+    expect(b.base).toBe(4);            // медиана 1,2,3,5,6,7 это 4, сороковка выброшена
+    expect(b.days).toBe(6);
+    expect(b.span).toBe(7);            // шесть чистых дней растянулись на семь календарных
+  });
+
+  it("чистых дней не хватило - база считается, но помечается грязной", () => {
+    const b = baseOf(ser([1, 2, 3, 4, 5]), "2026-07-06", new Set(["2026-07-02", "2026-07-03", "2026-07-04"]));
+    expect(b.dirty).toBe(true);
+    expect(b.base).toBe(3);            // по всем пяти дням, включая грязные
+    expect(b.days).toBe(5);
   });
 
   it("меньше трёх дней до включения - базы нет", () => {
@@ -168,9 +180,33 @@ describe("строка карточки", () => {
   });
 });
 
-describe("лог смены ставки CPO", () => {
+describe("загрузка дней общего сдвига", () => {
+  it("спокойные дни пометку не получают", () => {
+    // В store_moves.ndjson лежат ВСЕ дни, и спокойные тоже. Если брать их все подряд,
+    // помеченным окажется каждый день, плато не соберётся никогда, а база станет грязной.
+    const P = "data/store_moves.ndjson";
+    if (!existsSync(P)) return;
+    const all = readFileSync(P, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
+    const m = loadMoves(P);
+    expect(m.size).toBeLessThan(all.length);
+    expect(m.size).toBe(all.filter((r) => r.store_move).length);
+    for (const r of all.filter((r) => !r.store_move)) expect(m.has(r.date)).toBe(false);
+  });
+
+  it("по логу CPO день размечается как наша смена ставки", () => {
+    const P = "data/store_moves.ndjson", C = "tools/tests/cpo_history.psv";
+    if (!existsSync(P) || !existsSync(C)) return;
+    const cpo = loadCpoDays(C);
+    expect(cpo.size).toBeGreaterThan(10);
+    const m = loadMoves(P, cpo);
+    const ours = [...m.entries()].filter(([, v]) => v === "our_cpo").map(([d]) => d);
+    expect(ours.length).toBeGreaterThan(10);
+    for (const d of ours) expect(cpo.has(d)).toBe(true);
+  });
+
   it("нет файла - пустое множество, а не падение", () => {
     expect(loadCpoDays("data/нет-такого-файла.psv").size).toBe(0);
+    expect(loadMoves("data/нет-такого-файла.ndjson").size).toBe(0);
   });
 });
 
@@ -192,18 +228,46 @@ describe("мелочи, на которых легко ошибиться", () =
 describe("эталон июля из data/", () => {
   const P = "data/coinv_daily.ndjson";
   const has = existsSync(P);
-  it.skipIf(!has)("скачок на третий день, плато с четвёртого, после снятия держится пять дней", () => {
-    const rows = readFileSync(P, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l) as CoinvRow);
+  const load = () => readFileSync(P, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l) as CoinvRow);
+  const refRow = (moves = new Map<string, MoveSource>()) => {
+    const rows = load();
     const ctl = controlByDay(rows, new Set(["GGT-47-3-3-90"]));
-    const series = gapSeries(rows, "GGT-47-3-3-90", ctl);
-    const r = readiness({ art: "GGT-47-3-3-90", on: "2026-07-06", off: "2026-08-05" }, series, new Map());
+    return readiness({ art: "GGT-47-3-3-90", on: "2026-07-06", off: "2026-08-05" },
+      gapSeries(rows, "GGT-47-3-3-90", ctl), moves);
+  };
 
+  it.skipIf(!has)("скачок на третий день, после снятия держится пять дней", () => {
+    const r = refRow();
     const at = (d: number) => r.series.find((p) => p.day === d)?.shift;
     expect(at(2)).toBeLessThan(ARRIVED);       // на второй день ещё ничего
     expect(at(3)).toBeGreaterThan(ARRIVED);    // скачок на третий
-    expect(r.plateauDay).toBe(4);              // плато с четвёртого
     expect(at(4)).toBeGreaterThan(17);
+    expect(r.plateauDay).toBe(4);              // без пометок сдвигов плато видно с четвёртого
     expect(r.heldDays).toBe(5);                // после снятия держится пять дней
     expect(r.backToBaseOn).toBe("2026-08-11"); // уходит на шестой
+  });
+
+  it.skipIf(!has || !existsSync("data/store_moves.ndjson"))("с пометками сдвигов плато сдвигается на шестой день", () => {
+    // 10 и 11.07 это дни общего сдвига магазина, и днями плато они не считаются. Первое
+    // окно из трёх чистых дней подряд открывается только 12.07. Само плато при этом то же,
+    // сдвинулась лишь дата, с которой мы готовы его так назвать.
+    const r = refRow(loadMoves("data/store_moves.ndjson"));
+    expect(r.plateauDay).toBe(6);
+    expect(r.plateauFrom).toBe("2026-07-12");
+    expect(r.heldDays).toBe(5);
+  });
+
+  it.skipIf(!has || !existsSync("data/boost_reference_july.ndjson"))("сходится с эталоном Ивана в пределах 1.5 пункта", () => {
+    const r = refRow(loadMoves("data/store_moves.ndjson"));
+    const ref = new Map<string, any>(readFileSync("data/boost_reference_july.ndjson", "utf-8")
+      .trim().split("\n").filter(Boolean).map((l) => { const o = JSON.parse(l); return [o.date, o]; }));
+    const diffs = r.series.map((p) => ref.get(p.date))
+      .map((e, i) => (e ? Math.abs(r.series[i]!.shift - e.shift_base_clean_pp) : null))
+      .filter((x): x is number => x != null);
+    expect(diffs.length).toBeGreaterThan(30);
+    // Расхождение идёт от контроля: он у нас на 0.2 пункта выше (медиана по 51 дню), а на
+    // дне скачка, где разрыв за сутки прыгает на 10 пунктов, это множится.
+    expect(Math.max(...diffs)).toBeLessThan(1.5);
+    expect(median(diffs)).toBeLessThan(0.5);
   });
 });

@@ -598,6 +598,15 @@ const storeMoves = loadMoves(dp("store_moves.ndjson"), cpoDays);
 // обязана это говорить: по одному случаю пороги проверены, но не подтверждены.
 const REF: WaveItem = { art: "GGT-47-3-3-90", on: "2026-07-06", off: "2026-08-05", until: "2026-08-19" };
 
+/** «1 день», «2 дня», «7 дней»: карточку читают люди. */
+function plural(n: number, one: string, few: string, many: string): string {
+  const d = Math.abs(n) % 100, u = d % 10;
+  if (d >= 11 && d <= 14) return many;
+  if (u === 1) return one;
+  if (u >= 2 && u <= 4) return few;
+  return many;
+}
+
 const STATUS_CHIP: Record<string, string> = {
   "плато": "chip-done", "едет": "chip-run", "не пришло": "chip-off", "ждём": "chip-off", "нет данных": "chip-off",
 };
@@ -639,7 +648,9 @@ function boostRowHtml(r: BoostRow, label = ""): string {
   const sgn = (v: number | null) => (v == null ? "-" : (v >= 0 ? "+" : "") + v.toFixed(1));
   const chip = STATUS_CHIP[r.status] || "chip-off";
   const plateau = r.plateauFrom ? ` · плато с ${r.plateauFrom} (день ${r.plateauDay})` : "";
-  const baseNote = r.base == null ? "базы нет" : `база ${sgn(r.base)} по ${r.baseFrom}..${r.baseTo}${r.baseShifted ? ", окно сдвинуто из-за общего движения магазина" : ""}`;
+  const baseNote = r.base == null ? "базы нет"
+    : `база ${sgn(r.base)} по ${r.baseDays} чистым дням ${r.baseFrom}..${r.baseTo} (${r.baseSpan} календарных)`
+      + (r.baseDirty ? ". ЧИСТЫХ ДНЕЙ НЕ ХВАТИЛО: база посчитана по дням с общим сдвигом магазина" : "");
   // У законченной кампании в колонке «День» стоит её длина, иначе счётчик уехал бы за
   // пределы кампании и читался бы как «идёт 77-й день».
   const dayCell = r.ranDays != null
@@ -685,13 +696,30 @@ function boostCard(): string {
       + `</tbody></table></div>`
     : `<div class="sub2">Бустинг снят</div><div class="cov">Ни по одному товару волны бустинг ещё не снят: в tests.json поле «этап2» пустое. Как только дату проставят, здесь появятся счётчик дней после снятия и день, когда сдвиг вернулся к базе.</div>`;
 
+  // Сводка по общим сдвигам. Она же объясняет, почему окно базы растягивается на две недели:
+  // чистых дней на нашей частоте сдвигов в календарной семидневке просто не набирается.
+  const ours = [...storeMoves.values()].filter((v) => v === "our_cpo").length;
+  const obsDays = new Set(coinvRows.filter((r) => r.observed !== false).map((r) => r.date));
+  const clean = [...obsDays].filter((d) => !storeMoves.has(d)).length;
+  const sep = [...obsDays].filter((d) => d.startsWith("2026-09"));
+  const sepClean = sep.filter((d) => !storeMoves.has(d)).length;
   const movesNote = storeMoves.size
-    ? `Дней общего сдвига магазина в ряду: ${storeMoves.size}, из них по нашей смене ставки CPO ${[...storeMoves.values()].filter((v) => v === "our_cpo").length}. Такие дни помечены засечкой, днём плато не считаются и не стоят на краю окна базы.`
+    ? `Магазин двигался целиком в ${storeMoves.size} днях из ${obsDays.size} наблюдаемых, чистых осталось ${clean}.`
+      + ` В сентябре из ${sep.length} наблюдаемых дней чистых всего ${sepClean}.`
+      + ` По логу ставки CPO «все товары» ${ours} из этих дней наши собственные: смена ставки двигает витрину по всему каталогу в тот же день.`
+      + ` Такие дни помечены засечкой и днём плато не считаются, а окно базы набирается по чистым дням, а не по календарю, и потому растягивается.`
     : `Файла data/store_moves.ndjson нет, поэтому дни общего сдвига магазина не помечены. Пока его нет, плато может собраться на дне, когда двигался весь каталог.`;
+
+  // Практический вывод, который стоит держать на виду у команды, а не в переписке.
+  const cpoNote = cpoDays.size
+    ? `<div class="stop"><b>На время тестов:</b> ставку CPO «все товары» держать на 5 % и не трогать.`
+      + ` В логе ${cpoDays.size} ${plural(cpoDays.size, "день", "дня", "дней")} смены ставки, последний ${[...cpoDays].sort().pop()};`
+      + ` каждая смена двигает витрину по всему каталогу в тот же день и въезжает в середину замера.</div>`
+    : "";
 
   return `<section class="card"><div class="chead"><div class="ctitle">Готовность к выходу из бустинга</div></div>`
     + `<div class="hyp">Сдвиг разрыва к контролю по дням с включения кампании. Контроль - панель снимка без тестовых артикулов, `
-    + `${coinvRows.length ? "" : ""}разрыв считается по цене с картой Ozon. База - медиана разрыва за ${BASE_DAYS} наблюдаемых дней до включения.</div>`
+    + `разрыв считается по цене с картой Ozon. База - медиана разрыва за ${BASE_DAYS} ЧИСТЫХ наблюдаемых дней до включения, то есть дней без общего сдвига магазина; на нашей частоте сдвигов такое окно растягивается на две календарные недели.</div>`
     + `<div class="rule"><b>Статусы:</b> плато - ${FLAT_DAYS} подряд наблюдаемых дня, размах не больше ${FLAT_RANGE} пунктов, сдвиг не ниже +${ARRIVED}. `
     + `Едет - растёт, плато ещё нет. Не пришло - прошло ${LATE_AFTER}+ дней, сдвиг ниже +${ARRIVED}. Ждём - меньше ${FLAT_DAYS} дней.</div>`
     + tbl(onBoost)
@@ -703,7 +731,7 @@ function boostCard(): string {
     + `плато началось на четвёртый и держалось до конца кампании; после снятия бустинга сдвиг прожил ${ref.heldDays ?? "-"} дн и вернулся к базе ${esc(ref.backToBaseOn || "-")}. `
     + `Пороги ${FLAT_DAYS} дня, ${FLAT_RANGE} пункта, +${ARRIVED} и возврат ниже +${BACK_TO_BASE} подобраны под этот случай и на других не проверены. `
     + `Что именно двигает разрыв, карточка не утверждает: вето от 23.09 в силе.</div>`
-    + `<div class="cov">${esc(movesNote)}</div></section>`;
+    + `<div class="cov">${esc(movesNote)}</div>${cpoNote}</section>`;
 }
 
 const mblock = measured.length ? `<h2 class="sec">Измеренные тесты</h2>` + measured.map((t: any) =>

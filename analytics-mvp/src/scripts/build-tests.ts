@@ -120,6 +120,18 @@ for (const r of readNd(dp("ads_daily.ndjson"))) {
 }
 
 // Цена на витрине: тот же ряд, что и соинвест (prices-daily.ts пишет обе цены).
+let coinvSkipped = 0;
+for (const r of readNd(dp("coinv_daily.ndjson"))) {
+  const art = String(r.art ?? r.offer ?? "").trim();
+  const d = String(r.date ?? r.d ?? "").slice(0, 10);
+  if (!art || !d) continue;
+  if (r.cap_reliable === false) { coinvSkipped++; continue; }
+  const co = Number(r.coinv_pct ?? r.coinv);
+  if (Number.isFinite(co)) cell(art, d)["coinv"] = co;
+  if (Number(r.site) > 0) cell(art, d)["price"] = Number(r.site);
+  if (Number(r.cap) > 0) cell(art, d)["cap"] = Number(r.cap);
+}
+
 const priceRows = readNd(dp("prices_daily.ndjson"));
 const HAS_COINV = priceRows.length > 0;
 for (const r of priceRows) {
@@ -443,15 +455,24 @@ function chart(t: TestDef, cid: string): string {
     } else {
       const v = (x: number) => Number.isFinite(x) ? nbsp(x) + unit : "нет данных";
       let extra = "";
-      if (key === "coinv") {
-        const g = (t.тест || []).map((a) => {
-          const c = (log.get(a)?.["контроль"] || "").trim();
-          return c ? levelGap(a, c, "coinv") : null;
-        }).filter((x): x is { v: number; d: string } => !!x);
-        const m = median(g.map((x) => x.v));
-        extra = m == null ? ""
-          : ` Медиана разрыва по парам на ${g[0]!.d}: <b>${m >= 0 ? "+" : ""}${m.toFixed(1)} пункта</b>.`
-            + " Прироста к базе здесь нет: ряд цен начался 19.09, а тесты стартовали 18 и 20.09.";
+      if (LEVEL.has(key)) {
+        const gb = bT - bC, gp = pT - pC;      // разрыв в базе и после старта, в пунктах
+        if (Number.isFinite(gb) && Number.isFinite(gp)) {
+          const sgn = (x: number) => (x >= 0 ? "+" : "") + x.toFixed(1);
+          // Средний разрыв за весь период после старта размывает момент прихода эффекта:
+          // надбавка приходит через двое-трое суток, и первые дни тянут среднее вниз.
+          // Поэтому рядом со средним всегда стоит разрыв на последний день ряда.
+          let lastTxt = "";
+          for (let i = days.length - 1; i >= 0; i--) {
+            const x = a[i], y = b[i];
+            if (x != null && y != null) {
+              lastTxt = ` На последний день ряда (${days[i]}) разрыв <b>${sgn(x - y)}</b>.`;
+              break;
+            }
+          }
+          extra = ` Разрыв тест минус контроль: <b>${sgn(gb)}</b> в базе → <b>${sgn(gp)}</b> в среднем после старта,`
+            + ` сдвиг <b>${sgn(gp - gb)} пункта</b>.${lastTxt}`;
+        }
       }
       reads[key] = `<div class="dyn-read">${testOnly ? "Тестовая группа" : "Средний день"}, ${lowerTitle(title)}: `
         + (testOnly

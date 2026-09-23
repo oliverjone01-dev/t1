@@ -722,7 +722,7 @@
   <div>таксономия: 130 SKU (31.9%), 58.1% оборота · без категории 37 935 332 ₽ - в разрезах по категориям этот оборот не виден</div></div><div style="margin-top:6px"><b>откуда сборы по месяцам</b> (где ledger'а нет, ставка занижена и маржа завышена)
   <div style="color:inherit">2026-01: взаиморасчёты 1 853 325 ₽ (49.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-02: взаиморасчёты 3 803 613 ₽ (43.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-03: взаиморасчёты 5 078 529 ₽ (48.1%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-04: взаиморасчёты 8 174 239 ₽ (47.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-05: взаиморасчёты 7 247 462 ₽ (47.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-06: взаиморасчёты 5 512 980 ₽ (50.5%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-07: взаиморасчёты 9 854 423 ₽ (59.6%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-08: взаиморасчёты 8 717 046 ₽ (56.3%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-09: взаиморасчёты 5 013 717 ₽ (54.4%) · комиссии заказа 0 ₽</div></div></details></div></div></details></div>
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-21</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 22.09.2026 16:04 МСК</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-21</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 23.09.2026 09:41 МСК</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/ym-snapshots.yml" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
@@ -1978,7 +1978,7 @@ function soAgg(ms,w,lost){
   ms.forEach(function(m){(m.rows||[]).forEach(function(r){
     if(!svInWin(r.d,w))return;
     var k=r.order||'—',o=a[k];
-    if(!o){o=a[k]={order:k,d:r.d,skuRev:{},un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,dm:{},city:''};}
+    if(!o){o=a[k]={order:k,d:r.d,skuRev:{},un:0,priceNet:0,paid:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,dm:{},city:''};}
     // Город - свойство ЗАКАЗА, а не строки: у всех позиций одного заказа он один. Берём первый
     // непустой. Пусто = снимок заказов собран до 22.09.2026, когда строка города ещё не несла.
     if(!o.city&&r.region)o.city=r.region;
@@ -1993,6 +1993,11 @@ function soAgg(ms,w,lost){
     // разошлись бы ровно на неё (тест «итоги обоих сводов совпадают по всем колонкам»).
     o.priceNet+=_p+(r.ship_mp||0);
     o.un+=r.units_net||0;o.ship+=r.ship_buyer||0;o.sp+=r.svc_points||0;
+    // Сколько заказ СТОИЛ ПОКУПАТЕЛЮ. Не наша выручка и не часть расчёта: в «Продажах» стоит прайс
+    // целиком, вместе с долей Маркета, которую он платит за покупателя и возвращает нам баллами.
+    // За июль прайс 9.86 млн, а покупатели отдали 5.07 млн - разницу в 4.79 млн внёс Маркет своей
+    // скидкой. Без этой колонки такой вопрос закрывался только выгрузкой.
+    o.paid+=r.revenue_money||0;
     o.cogs+=r.cogs||0;o.ck=o.ck&&r.cogs_known;
     o.shipOur+=r.ship_our||0;o.shipKn=o.shipKn||!!r.ship_known;svModeAdd(o.dm,svMode(r));
     SV_COLS.forEach(function(p){var v=0;p[1].forEach(function(n){v+=(r.svc||{})[n]||0;});o.svc[p[0]]=(o.svc[p[0]]||0)+v;});});});
@@ -2003,7 +2008,7 @@ function soAgg(ms,w,lost){
   // (Катя 22.09.2026: «мы знаем по какому это заказу расход - туда его и переместить»).
   (lost&&lost.rows||[]).forEach(function(r){
     var o=a[r.order];
-    if(!o){o=a[r.order]={order:r.order,d:r.d,skuRev:{},un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,dm:{},city:'',lost:true};
+    if(!o){o=a[r.order]={order:r.order,d:r.d,skuRev:{},un:0,priceNet:0,paid:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,dm:{},city:'',lost:true};
       SV_COLS.forEach(function(p){o.svc[p[0]]=0;});
       svModeAdd(o.dm,'own');}                 // везли мы - иначе счёта перевозчика не было бы
     if(!o.city&&r.city)o.city=r.city;
@@ -2063,8 +2068,8 @@ function soDraw(){
   // ничего не объясняют, а колонок и так восемнадцать.
   var cats={};
   list.forEach(function(x){
-    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],un:0,priceNet:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,cities:{}});
-    g.rows.push(x);if(!g.dm)g.dm={};Object.keys(x.dm||{}).forEach(function(k){svModeAdd(g.dm,k,x.dm[k]);});g.un+=x.un;g.priceNet+=x.priceNet;g.ship+=x.ship;g.sp+=x.sp;g.cogs+=x.cogs;
+    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],un:0,priceNet:0,paid:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,cities:{}});
+    g.rows.push(x);if(!g.dm)g.dm={};Object.keys(x.dm||{}).forEach(function(k){svModeAdd(g.dm,k,x.dm[k]);});g.un+=x.un;g.priceNet+=x.priceNet;g.paid+=x.paid||0;g.ship+=x.ship;g.sp+=x.sp;g.cogs+=x.cogs;
     g.shipOur+=x.shipOur;g.shipKn=g.shipKn||x.shipKn;if(!x.ck)g.ck=false;soCityAdd(g.cities,x.city,1);
     SV_COLS.forEach(function(p){g.svc[p[0]]=(g.svc[p[0]]||0)+(x.svc[p[0]]||0);});});
   var groups=Object.keys(cats).map(function(k){return cats[k];});
@@ -2074,15 +2079,28 @@ function soDraw(){
   // «Кто везёт» и «Город» стоят В КОНЦЕ (Катя 22.09.2026): это признаки заказа, а не деньги, и
   // между «Нашей доставкой» и «С\С произв.» они разрывали денежную цепочку прайс -> сборы ->
   // поступление -> себестоимость -> прибыль, по которой строку и читают.
-  var H=['Категория / Заказ','Продажи','Доставка покупателя'].concat(FEE)
+  // «Оплатил клиент» - СПРАВОЧНАЯ колонка (Катя 23.09.2026). Стоит сразу после «Продаж», потому
+  // что смысл у неё ровно в сравнении с ними, а через восемнадцать колонок это сравнение не
+  // делается. В цепочку «Продажи + Доставка покупателя − сборы = Поступление» она НЕ входит и в
+  // ИТОГО ничего не добавляет; доставка покупателя внутри неё уже сидит, складывать их нельзя.
+  var H=['Категория / Заказ','Продажи','Оплатил клиент','Доставка покупателя'].concat(FEE)
     .concat(['Баллы Маркета','Штуки','Поступление','Наша доставка','С\С произв.',
              'Валовая прибыль','Маржа','АДМ '+svPct(adm),'Налоги '+svPct(tax),'Чистая прибыль','Рентаб.',
              'Кто везёт','Город']);
-  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  var SO_PAID_TIP='Справочно, в расчёт не входит. Сколько заказ стоил САМОМУ ПОКУПАТЕЛЮ: его платёж за товар и доставку за вычетом возвратов. С «Продажами» не совпадает и совпадать не должен: там прайс целиком, вместе с долей Маркета - скидку на кассе Маркет платит за покупателя и возвращает нам баллами. Доставка покупателя уже внутри этого числа, складывать колонки нельзя.';
+  var h='<thead><tr>'+H.map(function(x,i){
+    return '<th'+(i?' class="r"':'')+(x==='Оплатил клиент'?' style="color:var(--ink-2)" title="'+SO_PAID_TIP+'"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
   function pc(v,b){return '<td class="r">'+(b>0?(Math.round(v/b*1000)/10)+'%':'—')+'</td>';}
+  // Приглушена нарочно: колонка справочная, и в денежной цепочке её быть не должно даже глазами.
+  function paidCell(x){
+    var v=x.paid||0;
+    return '<td class="r" style="color:var(--ink-3)"'+(Math.round(v)&&Math.round(x.priceNet)
+      ? ' title="покупатель отдал '+svRub(v)+' ₽ при прайсе '+svRub(x.priceNet)+' ₽ - разницу '+svRub(x.priceNet-v)+' ₽ внёс Маркет скидкой и вернул нам баллами"' : '')
+      +'>'+(Math.round(v)?svRub(v):'—')+'</td>';
+  }
   function cells(x,c){
-    return '<td class="r">'+svRub(x.priceNet)+'</td>'+money(x.ship)
+    return '<td class="r">'+svRub(x.priceNet)+'</td>'+paidCell(x)+money(x.ship)
       +FEE.map(function(n){return money(x.svc[n]||0);}).join('')
       +money(x.sp)+'<td class="r">'+x.un+'</td>'
       +'<td class="r"><b>'+svRub(c.net)+'</b></td>'
@@ -2097,11 +2115,11 @@ function soDraw(){
       +soCityCell(x);
   }
   // ИТОГО по ВСЕМ заказам периода, первой строкой - как в своде по артикулам.
-  var T={priceNet:0,ship:0,sp:0,un:0,cogs:0,shipOur:0,ck:true,shipKn:false,svc:{},cities:{}},TN={net:0,gp:0,adm:0,tax:0,np:0};
+  var T={priceNet:0,paid:0,ship:0,sp:0,un:0,cogs:0,shipOur:0,ck:true,shipKn:false,svc:{},cities:{}},TN={net:0,gp:0,adm:0,tax:0,np:0};
   FEE.forEach(function(n){T.svc[n]=0;});
   groups.forEach(function(g){var c=g._c;
     if(!T.dm)T.dm={};Object.keys(g.dm||{}).forEach(function(k){svModeAdd(T.dm,k,g.dm[k]);});
-    T.priceNet+=g.priceNet;T.ship+=g.ship;T.sp+=g.sp;T.un+=g.un;T.cogs+=g.cogs;T.shipOur+=g.shipOur;
+    T.priceNet+=g.priceNet;T.paid+=g.paid||0;T.ship+=g.ship;T.sp+=g.sp;T.un+=g.un;T.cogs+=g.cogs;T.shipOur+=g.shipOur;
     T.shipKn=T.shipKn||g.shipKn;if(!g.ck)T.ck=false;
     Object.keys(g.cities||{}).forEach(function(k){soCityAdd(T.cities,k,g.cities[k]);});
     TN.net+=c.net;TN.gp+=c.gp;TN.adm+=c.adm;TN.tax+=c.tax;TN.np+=c.np;
@@ -2110,7 +2128,9 @@ function soDraw(){
   // уже сложен циклом выше. Прибавить его ещё раз значило бы посчитать дважды.
   T.svc['Прочее']=(T.svc['Прочее']||0)+(oh.m+oh.p);
   h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' заказов)</span></td>'
-    +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td><td class="r"><b>'+svRub(T.ship)+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td>'
+    +'<td class="r" style="color:var(--ink-3)" title="'+SO_PAID_TIP+'"><b>'+(Math.round(T.paid)?svRub(T.paid):'—')+'</b></td>'
+    +'<td class="r"><b>'+svRub(T.ship)+'</b></td>'
     +FEE.map(function(n){return '<td class="r"><b>'+(Math.round(T.svc[n])?svRub(T.svc[n]):'—')+'</b></td>';}).join('')
     +'<td class="r"><b>'+svRub(T.sp)+'</b></td><td class="r"><b>'+T.un+'</b></td>'
     +'<td class="r"><b>'+svRub(TN.net)+'</b></td>'

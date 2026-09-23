@@ -1036,6 +1036,57 @@ describe("свод по заказам", () => {
     expect(errs).toEqual([]);
   });
 
+  // Катя 23.09.2026: «можем в свод по заказам добавить справочную колонку по общей стоимости за
+  // которую оплатил клиент?». Колонка справочная: в цепочку «Продажи + Доставка покупателя −
+  // сборы = Поступление» она не входит и входить не должна.
+  it("«Оплатил клиент» стоит после «Продаж» и складывается снизу вверх", () => {
+    const iP = () => head2().indexOf("Оплатил клиент");
+    for (const [from, to] of [["2026-07-01", "2026-07-31"], ["2026-07-01", "2026-07-15"], ["2026-09-01", "2026-09-30"]]) {
+      setRange(from!, to!);
+      expect(iP(), "колонки «Оплатил клиент» нет").toBeGreaterThan(0);
+      expect(iP(), "колонка уехала от «Продаж»").toBe(head2().indexOf("Продажи") + 1);
+      // Ни одна строка не разъехалась по ширине.
+      const n = T2().querySelectorAll("thead th").length;
+      expect([...T2().querySelectorAll("tbody tr")].filter((r) => r.children.length !== n).length,
+        "новая колонка сдвинула строки").toBe(0);
+      const itogo = num(cell2("Оплатил клиент"))!;
+      expect(itogo, `${from}: платёж покупателя пустой`).toBeGreaterThan(0);
+      // Категории дают ИТОГО.
+      const cats = [...T2().querySelectorAll("tr.so-cat")]
+        .reduce((a, r) => a + (num(r.children[iP()]!.textContent) || 0), 0);
+      expect(Math.abs(itogo - cats), `${from}: ИТОГО ${itogo}, категории ${Math.round(cats)}`).toBeLessThan(2);
+      // Покупатель платит МЕНЬШЕ прайса: разницу вносит Маркет своей скидкой на кассе.
+      const sales = num(cell2("Продажи"))!;
+      expect(itogo, `${from}: платёж покупателя ${itogo} не меньше прайса ${sales}`).toBeLessThan(sales);
+    }
+    expect(errs).toEqual([]);
+  });
+
+  it("«Оплатил клиент» в расчёт не входит и в свод по артикулам не просочилась", () => {
+    setRange("2026-07-01", "2026-07-31");
+    // Тождество видимых колонок не сломано: справочная колонка в сумму не попала.
+    const FEE = ["Размещение", "Программа лояльности и отзывы", "Продвижение", "Доставка", "Прочее", "Баллы Маркета"];
+    const fee = FEE.reduce((a, n) => a + (num(cell2(n)) || 0), 0);
+    const byCols = (num(cell2("Продажи")) || 0) + (num(cell2("Доставка покупателя")) || 0) - fee;
+    expect(Math.abs(byCols - (num(cell2("Поступление")) || 0)),
+      "справочная колонка просочилась в поступление").toBeLessThan(2);
+    // Просили её только в своде по заказам - в своде по артикулам её быть не должно.
+    expect(head().map((x) => x.trim()), "колонка уехала и в свод по артикулам").not.toContain("Оплатил клиент");
+    // У отменённого заказа платежа нет: прочерк, а не ноль и не чужое число.
+    setRange("2026-08-01", "2026-08-31");
+    const iP = head2().indexOf("Оплатил клиент"), iNet = head2().indexOf("Поступление"), iShip = head2().indexOf("Наша доставка");
+    openAllCats(T2(), "tr.so-cat");
+    const lost = [...T2().querySelectorAll("tbody tr")].filter((r) =>
+      !r.classList.contains("so-cat") && !r.classList.contains("so-total")
+      && (num(r.children[iNet]!.textContent) || 0) === 0 && (num(r.children[iShip]!.textContent) || 0) > 0);
+    expect(lost.length, "отменённых заказов в августе нет - проверять не на чем").toBeGreaterThan(0);
+    for (const r of lost) {
+      expect((r.children[iP]!.textContent || "").trim(),
+        `у отменённого заказа появился платёж: ${r.children[0]!.textContent}`).toBe("—");
+    }
+    expect(errs).toEqual([]);
+  });
+
   // Катя 22.09.2026: «этот расход лежит в своде по заказам, мы знаем по какому это заказу расход -
   // туда его и переместить». Раньше тест требовал обратного - отдельной строки-котла под ИТОГО.
   // Он перенацелен, а не удалён: проверяемое свойство то же - расход не должен ни пропасть, ни

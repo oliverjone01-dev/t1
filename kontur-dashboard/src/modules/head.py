@@ -92,7 +92,21 @@ pre{ overflow-x:auto; max-width:100%; }
 .gate-err{ display:none; color:var(--crit); font-size:var(--fs-small); }
 
 @media print{
+  @page{ size:A4; margin:10mm; }
   .ks-sidebar, .ks-topbar, .ks-noprint{ display:none !important; }
-  .ks-card{ break-inside:avoid; box-shadow:none !important; }
+  /* на бумаге не нужны служебные значки шапки, строка источника экрана и хвост
+     «Что смотреть / Метод»: лист собственнику обязан помещаться на один A4 */
+  .ks-page-head .ks-badge, .ks-page-head .ks-help, .ks-page-src, .scr > .scr-tail{ display:none !important; }
+  .ks-main, .ks-view{ padding:0 !important; }
+  .ks-card{ break-inside:avoid; box-shadow:none !important; padding:var(--sp-2-5) var(--sp-3) !important; }
+  .ks-stack{ gap:var(--sp-2) !important; }
+  .ks-card-head{ margin-bottom:var(--sp-1-5) !important; }
+  .ks-table th, .ks-table td{ padding-top:var(--sp-0-5) !important; padding-bottom:var(--sp-0-5) !important; }
+  .ks-lead{ padding:var(--sp-1-5) var(--sp-2-5) !important; margin-top:var(--sp-1-5) !important; }
+  .scr p{ margin:0 0 var(--sp-1) !important; }
+  .scr .space-y-3 > * + *{ margin-top:var(--sp-1-5) !important; }
+  .scr .space-y-1\.5 > * + *{ margin-top:var(--sp-0-5) !important; }
+  /* целиком уменьшить, а не резать: весь лист на одном A4, как просит собственник */
+  .scr{ zoom:.8; }
 }
 '''

@@ -8,9 +8,14 @@
 
   python3 tools/snapshot.py           # записать точку за сегодня
   python3 tools/snapshot.py --seed    # доложить историю из keysso.json (разово)
+  python3 tools/snapshot.py --backfill # добрать свои точки из истории keysso.json в git
   python3 tools/snapshot.py --check   # проверить ряд на разрывы, ничего не писать
+
+Свой съём можно восстановить задним числом, только если в тот день сборщик
+(harvest.yml) закоммитил keysso.json: --backfill проходит по истории git и берёт
+верхний блок каждой выгрузки. Дня, когда выгрузки в git нет, не вернуть ничем.
 """
-import json, sys, datetime
+import json, sys, datetime, subprocess
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parents[1]
@@ -83,6 +88,45 @@ def cmd_seed():
     write_rows(rows)
     print(f'добрано из выгрузки: {added}, всего в ряду: {len(rows)}')
 
+def ok_point(ks):
+    """Выгрузка, где сборщик упал, приходит с нулями и без ответов ИИ: это не точка."""
+    return bool(ks) and bool(ks.get('top10') or ks.get('top50'))
+
+def cmd_backfill():
+    """Свои точки из истории git: одна на дату measured, свежий коммит за день важнее.
+
+    Своя точка, уже записанная в ряд, не перезаписывается. Строка ретроспективы за тот
+    же день (только топ-10 и видимость) заменяется полной точкой из выгрузки.
+    Нужна полная история: в CI checkout с fetch-depth: 0.
+    """
+    rows = read_rows(); added = 0
+    for code, d in DIRS.items():
+        rel = f'gg-seo-geo-monster/data/{d}/keysso.json'
+        try:
+            revs = subprocess.run(['git', '-C', str(ROOT), 'log', '--format=%H', '--', rel],
+                                  capture_output=True, text=True, check=True).stdout.split()
+        except Exception as e:
+            print(f'  {code}: история git недоступна ({e}), добор пропущен'); continue
+        seen = set()
+        for h in revs:                       # от свежих к старым
+            try:
+                ks = json.loads(subprocess.run(['git', '-C', str(ROOT), 'show', f'{h}:{rel}'],
+                                               capture_output=True, text=True, check=True).stdout)
+            except Exception:
+                continue
+            date = (ks.get('measured') or '')[:10]
+            if not date or date in seen or not ok_point(ks):
+                continue
+            seen.add(date)
+            cur = rows.get((code, date))
+            if cur and str(cur.get('source', '')).startswith('keys.so'):
+                continue                     # своя точка уже есть
+            rows[(code, date)] = dict(point(code, ks, date), source='keys.so git')
+            added += 1
+        print(f'  {code}: выгрузок в истории {len(revs)}, дат с данными {len(seen)}')
+    write_rows(rows)
+    print(f'добрано своих точек из истории git: {added}, всего в ряду: {len(rows)}')
+
 def cmd_check():
     rows = read_rows()
     if not rows: print('ряд пуст'); return 1
@@ -98,7 +142,14 @@ def cmd_check():
                 gaps.append(f'{prev.isoformat()} -> {s} ({(cur - prev).days} дн.)')
             prev = cur
         stale = (datetime.date.today() - last).days
-        print(f'{code}: точек {len(ds)}, с {first} по {last}, свежесть {stale} дн.')
+        own = sorted(d for (c, d), r in rows.items() if c == code and str(r.get('source', '')).startswith('keys.so'))
+        print(f'{code}: точек {len(ds)}, своих съёмов {len(own)}, с {first} по {last}, свежесть {stale} дн.')
+        prev = None
+        for s_ in own:
+            cur = datetime.date.fromisoformat(s_)
+            if prev and (cur - prev).days > 8:
+                print(f'   разрыв своих съёмов: {prev.isoformat()} -> {s_} ({(cur - prev).days} дн.)')
+            prev = cur
         for g in gaps: print(f'   разрыв: {g}')
         if stale > 8:
             print(f'   ПРОСРОЧКА: последняя точка старше восьми дней'); bad += 1
@@ -107,5 +158,6 @@ def cmd_check():
 if __name__ == '__main__':
     a = sys.argv[1:]
     if '--seed' in a: cmd_seed()
+    elif '--backfill' in a: cmd_backfill()
     elif '--check' in a: sys.exit(cmd_check())
     else: cmd_write()

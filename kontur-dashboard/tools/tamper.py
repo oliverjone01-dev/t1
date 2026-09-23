@@ -28,6 +28,7 @@ CASES = [
  ('цвет в графике через rgb()', lambda s: s.replace("KS.charts.line('c-h10', {","KS.charts.line('c-h10', { colors:['rgb(240,0,170)'],",1)),
  ('именованный цвет в графике', lambda s: s.replace("KS.charts.line('c-h10', {","KS.charts.line('c-h10', { colors:['hotpink'],",1)),
  ('цвет в графике через hwb()', lambda s: s.replace("KS.charts.line('c-h10', {","KS.charts.line('c-h10', { fill:{ gradient:{ gradientToColors:[ 'hwb(330 0% 0%)' ] } },",1)),
+ ('цвет в графике через foreColor', lambda s: s.replace("KS.charts.line('c-h10', {","KS.charts.line('c-h10', { chart:{ foreColor:'hotpink' },",1)),
  ('пункт меню без экрана', lambda s: s.replace("{id:'compare', t:'Сравнение проектов', i:'cmp'}","{id:'compare', t:'Сравнение проектов', i:'cmp'},{id:'nesushestvuet', t:'Пусто', i:'grid'}",1)),
 ]
 shutil.copy(SRC, BAK)

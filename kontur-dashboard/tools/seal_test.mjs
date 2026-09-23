@@ -87,6 +87,7 @@ function srcCase(name, edit) {
 }
 const patch = (ws, rel, from, to) => { const f = ws + '/' + rel, t = fs.readFileSync(f, 'utf8');
   if (!t.includes(from)) throw new Error('правка не нашла место: ' + rel); fs.writeFileSync(f, t.replace(from, to)); };
+const inHead = (x) => (ws) => patch(ws, 'kontur-dashboard/src/modules/head.py', '<title>Контур: SEO, GEO, Директ</title>', '<title>Контур: SEO, GEO, Директ</title>\n' + x);
 const inBody = (x) => (ws) => patch(ws, 'kontur-dashboard/src/modules/shell.py', '<div class="gate" id="gate">', x + '\n<div class="gate" id="gate">');
 const SRC_BAD = [
   ['исходники: расход в правиле kit.css', (ws) => fs.appendFileSync(ws + '/kontur-ds/kit/kit.css', '\n.x::after{ content:"Расход 175 968 ₽"; }\n')],
@@ -97,6 +98,14 @@ const SRC_BAD = [
   ['исходники: <img onerror>', inBody('<img alt="" src="data:," onerror="window.__h=1">')],
   ['исходники: <svg/onload>', inBody('<svg/onload="window.__h=1"></svg>')],
   ['исходники: <SCRIPT> заглавными', inBody('<SCRIPT>window.__s=1</SCRIPT>')],
+  // итерация 8
+  ['исходники: meta description с «240 млн»', inHead('<meta name="description" content="План 240 млн ₽, расход 176 тыс. ₽">')],
+  ['исходники: meta og с расходом', inHead('<meta property="og:description" content="Расход 175 968 ₽">')],
+  ['исходники: второй блок ks-tokens', inHead('<style id="ks-tokens">/* CRM | Все лиды */</style>')],
+  ['исходники: второй блок ks-kit', inHead('<style id="ks-kit">.x::after{ content:"175 968 ₽"; }</style>')],
+  ['исходники: iframe srcdoc', inBody('<iframe srcdoc="<p>x</p>" hidden></iframe>')],
+  ['исходники: дробная цена клика', inBody('<p hidden>Клик 110,3 ₽</p>')],
+  ['исходники: «1,6 тыс.» кликов', inBody('<p hidden>Кликов 1,6 тыс.</p>')],
 ];
 const ctl = srcCase('чистая копия', null);
 if (!ctl.ok) { console.log('  ЧИСТАЯ КОПИЯ НЕ ПРОШЛА, случаи с исходниками не проверить: ' + ctl.err); bad++; }

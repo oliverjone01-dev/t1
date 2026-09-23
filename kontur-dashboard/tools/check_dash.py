@@ -57,7 +57,7 @@ for col in sorted(set(re.findall(r'#[0-9A-Fa-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|oklc
     bad('COLOR', f'в графиках цвет «{col}» мимо токенов --cat-1..5')
 # Цвет задаётся только слотом пресета (slot:1..5). Любое поле colors или color в коде
 # графиков значит цвет в обход слота, в том числе именованный: 'hotpink', 'red'.
-for m_ in re.finditer(r'\bcolors?\s*:\s*[^,}\n]{0,40}', draw):
+for m_ in re.finditer(r'\b\w*[cC]olors?\s*:\s*[^,}\n]{0,40}', draw):
     bad('COLOR', f'в графиках цвет задан в обход слота: «{m_.group(0).strip()}»')
 # Вид из пакета: токены и кит вшиты, Tailwind не подключается.
 if 'id="ks-tokens"' not in s or 'id="ks-kit"' not in s:
@@ -73,6 +73,9 @@ for mp in sorted(MODS.glob('*.py')):
     for i, line in enumerate(mp.read_text(encoding='utf-8').splitlines(), 1):
         if re.search(r'(?<![\w-])opacity\s*[:(]', line):
             bad('OPACITY', f'{mp.name}:{i}: прозрачность в своём коде; приглушённый текст это ks-muted, а не opacity')
+        # заливка глифов поверх color: контраст по ней не мерится, и в своём коде её нет
+        if re.search(r'text-fill-color', line):
+            bad('OPACITY', f'{mp.name}:{i}: -webkit-text-fill-color в своём коде; цвет текста только через color и токены')
         # цвет текста, смешанный с прозрачным, это та же прозрачность (фон так смешивать можно)
         if re.search(r'(?<![\w-])color\s*:\s*color-mix\([^;"]*transparent', line):
             bad('OPACITY', f'{mp.name}:{i}: цвет текста смешан с прозрачным; бери --text-muted')
@@ -119,7 +122,7 @@ else:
     # печатается здесь и стоит на экранах, но сборку не валит. Валит только ряд,
     # в котором своих съёмов нет вовсе.
     for proj in ('gm', 'gg'):
-        own = sorted(r['date'] for r in rows if r.get('project') == proj and r.get('source') == 'keys.so')
+        own = sorted(r['date'] for r in rows if r.get('project') == proj and str(r.get('source', '')).startswith('keys.so'))
         if not own:
             bad('NOSNAP', f'{proj}: в ряду нет ни одного своего съёма, только ретроспектива выгрузки'); continue
         prev = None

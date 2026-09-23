@@ -12,7 +12,7 @@ function render(){
   const s = screens(), fn = s[VIEW] || s.obzor;
   if(!s[VIEW]) VIEW = 'obzor';
   const mth = method(VIEW), rd = reading(VIEW);
-  const tail = (rd || mth) ? '<div class="ks-grid-2">' + (rd || '') + (mth || '') + '</div>' : '';
+  const tail = (rd || mth) ? '<div class="ks-grid-2 scr-tail">' + (rd || '') + (mth || '') + '</div>' : '';
   $id('view').innerHTML = '<div class="ks-fade"><div class="ks-stack scr">' + fn() + tail + '</div></div>';
   KS.charts.prune();   /* графики прежнего экрана: их контейнеры только что исчезли */
   $id('nav').innerHTML = KS.nav(NAV, VIEW);

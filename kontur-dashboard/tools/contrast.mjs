@@ -66,7 +66,9 @@ const CHECK = () => {
           const cs = getComputedStyle(el);
           if (cs.visibility === 'hidden' || cs.display === 'none') continue;
           const isSvg = el instanceof SVGElement;
-          let fg = parse(isSvg ? (el.getAttribute('fill') && el.getAttribute('fill').startsWith('rgb') ? el.getAttribute('fill') : cs.fill) : cs.color);
+          // -webkit-text-fill-color рисует глифы поверх color: мерить надо то, что видно
+          const tf = cs.webkitTextFillColor, fillVis = tf && tf !== cs.color && !/currentcolor/i.test(tf) ? tf : cs.color;
+          let fg = parse(isSvg ? (el.getAttribute('fill') && el.getAttribute('fill').startsWith('rgb') ? el.getAttribute('fill') : cs.fill) : fillVis);
           if (isSvg && (!fg || cs.fill === 'none')) { const h = el.getAttribute('fill'); if (h && /^#[0-9a-f]{6}$/i.test(h)) fg = { r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16), a: 1 }; }
           if (!fg) { out.push(`${name(el)}  цвет текста не разобран: ${cs.color}  «${el.textContent.trim().slice(0, 40)}»`); continue; }
           const bg = bgOf(isSvg ? (el.closest('div') || el) : el);

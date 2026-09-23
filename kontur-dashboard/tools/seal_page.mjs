@@ -123,17 +123,32 @@ const sha = t => createHash("sha256").update(t, "utf8").digest("hex");
 // Текст для поиска: разметка и текст как есть; у стилей и скрипта окна пароля только
 // комментарии и строки (объявления CSS и код не данные, а в них полно чисел вида 400 и 1024).
 for (const id of Object.keys(PINNED)) {
+  // Ровно один блок на id: второй блок с тем же id иначе вырезался бы из поиска без проверки.
+  const all = [...openPart.matchAll(new RegExp('<style\\b[^>]*\\bid="' + id + '"[^>]*>([\\s\\S]*?)</style>', 'gi'))];
+  if (all.length !== 1) fail("Блоков стилей с id " + id + " вне шифроблока " + all.length + ", а должен быть ровно один.");
   const blk = openPart.match(new RegExp('<style id="' + id + '">\\n([\\s\\S]*?)\\n</style>'));
   if (!blk || sha(blk[1]) !== PINNED[id])
     fail("Стили пакета Контур DS (" + id + ") не совпадают с закреплённой версией: пакет правили или обновили. "
       + "Проверь правку и пересчитай хэши в tools/seal_page.mjs (docs/RUNBOOK.md, «Что проверяет шифровальщик»).");
 }
+// Разрешённые теги открытой части: шапка документа, каркас, окно пароля, иконки.
+// iframe srcdoc, object, embed, base, form action и подобные исполняют или подменяют
+// код вне шифра; их нет в исходниках, и появиться они не должны.
+const TAGS = new Set(["html", "head", "meta", "title", "link", "style", "script", "body", "div", "aside", "nav",
+  "header", "main", "button", "select", "option", "span", "svg", "path", "form", "input", "p"]);
+const markup = openPart.replace(/(<style\b[^>]*>)[\s\S]*?(<\/style>)/gi, "$1$2").replace(/(<script\b[^>]*>)[\s\S]*?(<\/script\s*>)/gi, "$1$2");
+for (const [, tag] of markup.matchAll(/<\s*([a-zA-Z][\w:-]*)/g))
+  if (!TAGS.has(tag.toLowerCase())) fail("Вне шифроблока запрещённый тег <" + tag + ">.");
+const badAttr = markup.match(/\s(srcdoc|http-equiv|formaction|action)\s*=|javascript:/i);
+if (badAttr) fail("Вне шифроблока запрещённый атрибут или адрес: " + badAttr[0].trim());
 let scan = openPart.replace(/<style id="(ks-tokens|ks-kit)">[\s\S]*?<\/style>/g, " ");
 const keepTalk = t => (t.match(/\/\*[\s\S]*?\*\/|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`[^`]*`/g) || []).join(" ");
 scan = scan.replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi, (a0, o, body, c) => o + keepTalk(body) + c)
   .replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script\s*>)/gi, (a0, o, body, c) => o + keepTalk(body) + c)
-  // служебные атрибуты: адрес шрифта (wght@400;500), геометрия иконок, цвет темы
-  .replace(/<(link|meta)\b[^>]*>/gi, " ").replace(/\s(d|viewBox|width|height|stroke-width)="[^"]*"/g, " ")
+  // служебные теги и атрибуты: адрес шрифта (wght@400;500), кодировка, окно, цвет темы,
+  // геометрия иконок. Содержимое остальных meta (description, og:*) ищется как текст.
+  .replace(/<link\b[^>]*>/gi, " ").replace(/<meta\s+(charset|name="(viewport|theme-color|robots)")[^>]*>/gi, " ")
+  .replace(/\s(d|viewBox|width|height|stroke-width)="[^"]*"/g, " ")
   .replace(/#[0-9a-fA-F]{3,8}\b/g, "#");
 const openText = scan;
 const leaks = new Set();
@@ -146,14 +161,17 @@ const dec = (x, d) => x.toFixed(d).replace(/\.?0+$/, "").replace(".", ",");
     // Число ищется в сыром виде, с разрядами через любой пробел, как их печатает nf(),
     // и в коротких формах: тыс., млн, млрд.
     const x = Math.abs(o), i = String(Math.trunc(x));
-    const forms = [String(o), ...SEP.map(sp => grp(i, sp))];
+    const fr = String(x).includes(".") ? String(x).split(".")[1] : "";
+    const forms = [String(o), ...SEP.map(sp => grp(i, sp) + (fr ? "," + fr : ""))];
+    if (fr) forms.push(String(x).replace(".", ","), dec(x, 1));
     for (const sp of SEP) {
-      if (x >= 1e4) forms.push(dec(x / 1e3, 0) + sp + "тыс", dec(x / 1e3, 1) + sp + "тыс");
+      if (x >= 1e3) forms.push(dec(x / 1e3, 0) + sp + "тыс", dec(x / 1e3, 1) + sp + "тыс");
       if (x >= 1e6) forms.push(dec(x / 1e6, 0) + sp + "млн", dec(x / 1e6, 1) + sp + "млн", dec(x / 1e6, 2) + sp + "млн");
       if (x >= 1e8) forms.push(dec(x / 1e9, 1) + sp + "млрд", dec(x / 1e9, 2) + sp + "млрд");
     }
     for (const f of new Set(forms)) {
-      const re = new RegExp("(?<![\\w.,])" + f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w]|,\\d)");
+      // целым токеном: не кусок более длинного числа («600» внутри «600 000»)
+      const re = new RegExp("(?<![\\w.,]|\\d[ \\u00a0\\u202f\\u2009])" + f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w]|,\\d|[ \\u00a0\\u202f\\u2009]\\d{3})");
       if (re.test(openText)) { leaks.add(f); break; }
     }
   } else if (typeof o === "string" && o.length >= 8 && !PUBLIC.has(o)) {

@@ -47,6 +47,8 @@ jobs:
             python3 tools/snapshot.py --seed
           fi
           python3 tools/snapshot.py
+          # пропущенные дни из истории выгрузок в git (нужен fetch-depth: 0 выше)
+          python3 tools/snapshot.py --backfill
 
       # Точка съёма коммитится сразу, до пересборки: пропущенную не восстановить, и
       # падение любого следующего шага (сборка, setup-node, тест) не должно её терять.

@@ -437,7 +437,17 @@ tests=[
 # успешного съёма: цифры обновлялись, а подпись врала. Это и выглядело как «не работает».
 import datetime as _dt
 _DATA_UNTIL=str(pd.to_datetime(an['date']).max())[:10]
-_PRICES_UNTIL=str(pd.to_datetime(ph['ts']).max())[:10] if 'ts' in getattr(ph,'columns',[]) else _DATA_UNTIL
+# Дата цен = максимум по ДВУМ источникам. price_history.pkl ежедневным прогоном не
+# обновляется и с 18.09 заморожен, свежая витрина приходит в prices_raw_<дата>.psv.
+# Раньше штамп читался только из price_history и врал на все последующие дни.
+# Правка Ивана от 23.09; в его патче колонка названа date, в этом файле она ts.
+_PU=[]
+if 'ts' in getattr(ph,'columns',[]):
+    _PU.append(str(pd.to_datetime(ph['ts']).max())[:10])
+for _f in sorted(glob.glob(D+'prices_raw_*.psv')):
+    _d=os.path.basename(_f)[len('prices_raw_'):-len('.psv')]
+    if len(_d)==10: _PU.append(_d)
+_PRICES_UNTIL=max(_PU) if _PU else _DATA_UNTIL
 _UPDATED=_dt.date.today().isoformat()
 print('Свежесть: data_until',_DATA_UNTIL,'| prices_until',_PRICES_UNTIL,'| updated',_UPDATED)
 if _DATA_UNTIL < (_dt.date.today()-_dt.timedelta(days=7)).isoformat():

@@ -7,7 +7,7 @@
 //
 // КАК СЧИТАЕТСЯ
 //   разрыв(день) = coinv_paid_pct товара - медиана coinv_paid_pct контроля в тот же день;
-//   контроль     = панель снимка (in_panel) минус тестовые артикулы;
+//   контроль     = панель снимка (in_panel) минус тестовые артикулы и минус их родня;
 //   база         = медиана разрыва за 7 ЧИСТЫХ наблюдаемых дней до включения;
 //   сдвиг(день)  = разрыв(день) - база.
 // Берём именно coinv_paid_pct, то есть долю от цены с картой Ozon: ряд по витрине занижен,
@@ -60,6 +60,8 @@ export interface BoostRow {
   day: number | null; shift: number | null; lastDate?: string;
   status: Status;
   plateauFrom?: string; plateauDay?: number;
+  /** Раньше этой даты плато собраться не может: не хватает подряд идущих наблюдений. */
+  plateauNotBefore?: string;
   series: DayPoint[];
   /** Вторая часть карточки, для товаров со снятым бустингом. */
   daysSinceOff?: number;
@@ -72,6 +74,11 @@ export const ARRIVED = 8;
 export const FLAT_RANGE = 2;
 /** Сколько подряд наблюдаемых дней образуют плато. */
 export const FLAT_DAYS = 3;
+/** Максимальный календарный разрыв между соседними днями внутри окна плато.
+ *  «Три подряд наблюдаемых дня» это именно подряд: окно, перешагивающее потерянный день,
+ *  проверяет устойчивость не на трёх сутках, а на четырёх с дырой посередине, и плато на
+ *  нём собирается раньше, чем на него есть право. Цена ошибки тут снятие акции. */
+export const MAX_PLATEAU_GAP = 1;
 /** Длина окна базы, в наблюдаемых днях. */
 export const BASE_DAYS = 7;
 /** Сколько дней без прихода, чтобы сказать «не пришло». */
@@ -92,12 +99,20 @@ const r1 = (x: number) => Math.round(x * 10) / 10;
 const observed = (r: CoinvRow): boolean => r.observed !== false;
 const coinvOf = (r: CoinvRow): number | undefined => r.coinv_paid_pct ?? r.coinv_pct;
 
-/** Медиана соинвеста контроля по дням. Контроль это панель снимка минус тестовые артикулы:
- *  парный контроль здесь не годится, у волны нет пары на каждый товар. */
-export function controlByDay(rows: CoinvRow[], testArts: Set<string>): Map<string, number> {
+/** Медиана соинвеста контроля по дням. Контроль это панель снимка минус тестовые артикулы и
+ *  минус их родня: парный контроль здесь не годится, у волны нет пары на каждый товар.
+ *
+ *  Родню (exclude) выбрасывать обязательно, и по двум причинам сразу.
+ *  Первая - перетекание: брат без рекламы в июле дал +8.3 против +17.4 у товара с кампанией,
+ *  то есть контроль едет за тестом и занижает разницу.
+ *  Вторая - устойчивость: родни в панели 224 артикула из 475, почти половина. Когда половина
+ *  группы сдвинута, медиана садится ровно на границу между сдвинутыми и несдвинутыми и
+ *  прыгает от любого пустяка. Чистка нужна ради статистики, а не только ради величины. */
+export function controlByDay(rows: CoinvRow[], testArts: Set<string>, exclude?: Set<string>): Map<string, number> {
   const by = new Map<string, number[]>();
   for (const r of rows) {
     if (!observed(r) || r.in_panel === false || testArts.has(r.art)) continue;
+    if (exclude?.has(r.art)) continue;
     const v = coinvOf(r);
     if (v == null || !Number.isFinite(v)) continue;
     const a = by.get(r.date); if (a) a.push(v); else by.set(r.date, [v]);
@@ -153,17 +168,37 @@ export function baseOf(
 }
 
 /** Первое плато: FLAT_DAYS подряд наблюдаемых дней, размах не больше FLAT_RANGE, и самый
- *  низкий день окна уже не ниже ARRIVED. День общего сдвига магазина в окно не пускаем. */
+ *  низкий день окна уже не ниже ARRIVED. День общего сдвига магазина в окно не пускаем,
+ *  и окно не имеет права перешагивать потерянный день. */
 export function plateauOf(points: DayPoint[]): { from: string; day: number } | null {
   for (let i = 0; i + FLAT_DAYS <= points.length; i++) {
     const w = points.slice(i, i + FLAT_DAYS);
     if (w.some((p) => p.move)) continue;
+    if (w.some((p, k) => k > 0 && p.day - w[k - 1]!.day > MAX_PLATEAU_GAP)) continue;
     const v = w.map((p) => p.shift);
     if (Math.max(...v) - Math.min(...v) > FLAT_RANGE) continue;
     if (Math.min(...v) < ARRIVED) continue;
     return { from: w[0]!.date, day: w[0]!.day };
   }
   return null;
+}
+
+/** Самый ранний день, когда плато МОЖЕТ собраться: FLAT_DAYS подряд идущих суток, ни одни
+ *  из которых не потеряны и не помечены общим сдвигом, считая от последнего наблюдения.
+ *  Возвращает дату, а не число: «раньше 25.09 нельзя» читается сразу, «нужно ещё 2 дня» нет. */
+export function earliestPlateau(points: DayPoint[], lastDate: string): string | null {
+  if (!points.length) return null;
+  // Хвост подряд идущих наблюдаемых суток на конец ряда.
+  let run = 1;
+  for (let i = points.length - 1; i > 0; i--) {
+    if (points[i]!.day - points[i - 1]!.day > MAX_PLATEAU_GAP || points[i]!.move) break;
+    run += 1;
+  }
+  if (points[points.length - 1]!.move) run = 0;
+  const need = Math.max(0, FLAT_DAYS - run);
+  const t = new Date(lastDate + "T00:00:00Z");
+  t.setUTCDate(t.getUTCDate() + need);
+  return t.toISOString().slice(0, 10);
 }
 
 export function statusOf(points: DayPoint[], plateau: { day: number } | null): Status {
@@ -202,6 +237,7 @@ export function readiness(
   row.series = pts;
   const plateau = plateauOf(pts);
   if (plateau) { row.plateauFrom = plateau.from; row.plateauDay = plateau.day; }
+  else if (pts.length) row.plateauNotBefore = earliestPlateau(pts, pts[pts.length - 1]!.date) ?? undefined;
   row.status = statusOf(pts, plateau);
   const last = pts[pts.length - 1];
   if (last) { row.day = last.day; row.shift = last.shift; row.lastDate = last.date; }

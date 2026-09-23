@@ -31,6 +31,7 @@
     "probe:metrics": "tsx src/scripts/ozon/analytics-metrics-probe.ts",
     "probe:prices": "tsx src/scripts/ozon/seller-prices-probe.ts",
     "coinv:calib": "tsx src/scripts/ozon/coinv-calibration.ts",
+    "picks": "tsx src/scripts/pick-controls.ts",
     "pnl:daily": "tsx src/scripts/ozon/pnl-daily.ts",
     "pnl:sku:daily": "tsx src/scripts/ozon/pnl-sku-daily.ts",
     "pnl:account:daily": "tsx src/scripts/ozon/pnl-account-daily.ts",

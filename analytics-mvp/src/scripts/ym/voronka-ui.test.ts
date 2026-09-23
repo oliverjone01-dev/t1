@@ -4,6 +4,7 @@ import { readFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM } from "jsdom";
+import { readDays, windowWithInFlight, inFlightUnits } from "./test-window.js";
 
 // «Воронка продаж» и «Воронка по категориям» стояли на одной странице и давали разные числа:
 // 386 868 показов против 702 634, 162 заказа против 151, выкуплено 125 против 151. Smoke это не
@@ -159,11 +160,16 @@ describe("воронка Маркета: два блока считают одн
   });
 
   it("подпись называет, сколько штук периода ещё едет", () => {
-    const T2 = L("data-ym/daily_totals.ndjson").filter((t: any) => inWin(t.date));
-    const s = (k: string) => T2.reduce((a: number, t: any) => a + (t[k] || 0), 0);
-    const fly = s("units") - s("delivered") - s("cancellations") - s("returns");
+    // Окно берём у хвоста данных, а не из WIN: заказы доезжают, и в фиксированном окне
+    // «ещё едет» рано или поздно станет нулём. Тогда проверка либо замолчит, либо упадёт
+    // без причины, как это случилось 23.09.2026 с карточкой «Оборот».
+    const rows = readDays();
+    const [from, to] = windowWithInFlight(rows);
+    const fly = inFlightUnits(rows, from, to);
     expect(fly).toBeGreaterThan(0);
+    setRange(from, to);
     expect((D().getElementById("fsub")!.textContent || "").replace(/\s/g, ""))
       .toContain("впути" + String(fly));
+    setRange(WIN[0], WIN[1]);   // возвращаем общее окно следующим проверкам
   });
 });

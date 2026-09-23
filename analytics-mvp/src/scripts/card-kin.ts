@@ -34,6 +34,8 @@ export interface CardMap {
   groups: number; source: string;
   /** true - карта настоящая, false - её нет или в файле пара моделей (заметка, а не карта) */
   real: boolean;
+  /** Дата выгрузки кабинета, из которой собрана карта. Пусто - файл её не назвал. */
+  importedAt: string;
 }
 
 /** Ниже этого числа групп карта считается заметкой, а не картой. В кабинете у товаров
@@ -46,6 +48,7 @@ export function loadCardMap(paths: string[] = CARD_MAP_PATHS): CardMap {
     if (!existsSync(p)) continue;
     const card = new Map<string, string>();
     let groups = 0;
+    let importedAt = "";
     const txt = readFileSync(p, "utf-8");
     if (p.endsWith(".ndjson")) {
       for (const l of txt.trim().split("\n").filter(Boolean)) {
@@ -58,6 +61,7 @@ export function loadCardMap(paths: string[] = CARD_MAP_PATHS): CardMap {
       }
     } else {
       let d: any; try { d = JSON.parse(txt); } catch { continue; }
+      importedAt = String(d.imported_at ?? "").slice(0, 10);
       for (const g of (d.groups || [])) {
         const id = String(g.main ?? g.model ?? "").trim();
         const arts: string[] = (g.skus || []).map((x: any) => String(x.offer ?? "").trim());
@@ -67,9 +71,9 @@ export function loadCardMap(paths: string[] = CARD_MAP_PATHS): CardMap {
       }
     }
     if (!groups) continue;
-    return { card, groups, source: p, real: groups >= REAL_MAP_MIN_GROUPS };
+    return { card, groups, source: p, real: groups >= REAL_MAP_MIN_GROUPS, importedAt };
   }
-  return { card: new Map(), groups: 0, source: "", real: false };
+  return { card: new Map(), groups: 0, source: "", real: false, importedAt: "" };
 }
 
 /** Ключ родства: только настоящая карточка. Пустая строка означает «неизвестно», и
@@ -128,4 +132,32 @@ export function collapseByCard<T>(
     if (g.arts.length > 1) collapsed.push({ card: key, arts: g.arts });
   }
   return { values, collapsed };
+}
+
+/** Сколько дней карте можно быть старше данных, прежде чем это станет предупреждением. */
+export const MAP_STALE_DAYS = 7;
+/** Доля артикулов снимка без карточки, выше которой карта считается отставшей от каталога. */
+export const MAP_MISS_WARN = 0.05;
+
+export interface MapHealth {
+  /** Дней между выгрузкой карты и последним днём данных. null - карта не назвала дату. */
+  age: number | null;
+  /** Доля артикулов снимка, которых в карте нет. */
+  missShare: number;
+  /** true - карту пора пересобрать до замера. */
+  stale: boolean;
+}
+
+/** Здоровье карты карточек. Карта лежит в репозитории отдельным файлом и сама себя не
+ *  обновляет: сырая выгрузка в git не едет, а npm run cards запускается руками. Если каталог
+ *  поехал, а карту никто не пересобрал, родство протухнет молча, и вместе с ним поедет
+ *  разница тест минус контроль. Отсюда две независимые причины тревоги: карта СТАРАЯ по дате
+ *  и карта НЕ ПОКРЫВАЕТ снимок. Вторая ловит случай, когда дата свежая, а каталог вырос. */
+export function mapHealth(m: CardMap, lastDate: string, artsOnLastDay: string[]): MapHealth {
+  const miss = artsOnLastDay.filter((a) => !m.card.has(a)).length;
+  const missShare = artsOnLastDay.length ? miss / artsOnLastDay.length : 0;
+  const age = m.importedAt && lastDate
+    ? Math.round((Date.parse(lastDate) - Date.parse(m.importedAt)) / 86400000)
+    : null;
+  return { age, missShare, stale: (age != null && age > MAP_STALE_DAYS) || missShare > MAP_MISS_WARN };
 }

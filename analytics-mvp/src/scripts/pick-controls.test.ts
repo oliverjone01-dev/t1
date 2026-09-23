@@ -2,17 +2,16 @@
 // она просто делает разницу меньше, чем есть, и выглядит как отсутствие эффекта.
 import { describe, it, expect } from "vitest";
 import {
-  corr, residuals, pickFor, pickAll, catKey,
-  KIN_CORR, MATCH_MAX_DELTA,
+  pickFor, pickAll, catKey, MATCH_MAX_DELTA,
   type Series, type PickInput, type Day,
 } from "./pick-controls.js";
 import { type CardMap } from "./card-kin.js";
 
 const D = (n: number): string => `2026-09-${String(n).padStart(2, "0")}`;
-const noCards: CardMap = { card: new Map(), groups: 0, source: "", real: false };
+const noCards: CardMap = { card: new Map(), groups: 0, source: "", real: false, importedAt: "" };
 /** Настоящая карта карточек: правила 6 и 7 работают только по ней, префикс убран 23.09. */
 const withCards = (pairs: Array<[string, string]>): CardMap =>
-  ({ card: new Map(pairs), groups: 99, source: "test", real: true });
+  ({ card: new Map(pairs), groups: 99, source: "test", real: true, importedAt: "2026-09-23" });
 
 /** Ряд: артикул -> дни. По умолчанию товар живой, без рекламы и с ровным соинвестом. */
 function mk(arts: Record<string, Partial<Day> & { views?: number; coinvBy?: (d: number) => number }>): Series {
@@ -44,27 +43,7 @@ const input = (series: Series, tests: string[], extra: Partial<PickInput> = {}):
 
 const START = D(20);
 
-describe("корреляция остатков", () => {
-  it("на коротком ряду не считается", () => {
-    const a = new Map([["d1", 1], ["d2", 2]]);
-    expect(corr(a, a)).toBeNull();
-  });
-
-  it("ровный ряд без разброса корреляции не даёт", () => {
-    const flat = new Map(Array.from({ length: 30 }, (_, i) => [D(i + 1), 5]));
-    expect(corr(flat, flat)).toBeNull();
-  });
-
-  it("остаток это соинвест минус медиана панели того же дня", () => {
-    const s = mk({ A: { coinvBy: (n) => 50 + n } });
-    const r = residuals(s, new Map([[D(1), 50], [D(2), 50]]));
-    expect(r.get("A")!.get(D(1))).toBe(1);
-    expect(r.get("A")!.get(D(2))).toBe(2);
-    expect(r.get("A")!.has(D(3))).toBe(false);   // нет медианы панели - нет остатка
-  });
-});
-
-describe("восемь правил", () => {
+describe("семь правил", () => {
   it("правило 1: чужая категория не рассматривается вовсе", () => {
     const s = mk({ "GGL-01-1": {}, "GGT-99-1": {} });
     const p = pickFor("GGL-01-1", START, input(s, ["GGL-01-1"]), new Set());
@@ -135,21 +114,7 @@ describe("восемь правил", () => {
     expect(p.rejected.some((r) => r.rule === 6 || r.rule === 7)).toBe(false);
   });
 
-  it("правило 8: высокая корреляция остатков отсекает скрытую родню", () => {
-    // Разные линии, но ряды ходят вместе: родство есть, хоть в артикуле оно и не написано.
-    const s = mk({ "GGL-01-1": { coinvBy: (n) => 50 + (n % 7) }, "GGL-09-9": { coinvBy: (n) => 50 + (n % 7) } });
-    const p = pickFor("GGL-01-1", START, input(s, ["GGL-01-1"]), new Set());
-    expect(p.ctl).toBeNull();
-    const r = p.rejected.find((x) => x.art === "GGL-09-9")!;
-    expect(r.rule).toBe(8);
-    expect(r.why).toContain(String(KIN_CORR));
-  });
 
-  it("независимый ряд правилом 8 не отсекается", () => {
-    const s = mk({ "GGL-01-1": { coinvBy: (n) => 50 + (n % 7) }, "GGL-09-9": { coinvBy: (n) => 50 + ((n * 13) % 5) } });
-    const p = pickFor("GGL-01-1", START, input(s, ["GGL-01-1"]), new Set());
-    expect(p.ctl).toBe("GGL-09-9");
-  });
 });
 
 describe("подбор по всем тестам", () => {

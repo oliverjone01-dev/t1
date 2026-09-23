@@ -263,18 +263,7 @@ function draw(){
       tooltip:{enabled:true, theme:A()?'dark':'light'} }));
   }
 
-  /* расход и лиды: две серии, значит легенда обязательна */
-  if(document.getElementById('c-cost')){
-    mk('c-cost', Object.assign(base(280,'bar'), {
-      series:[{name:'Расход, ₽', data:[0,0,0,0,0,0,0]},{name:'Лиды', data:[0,0,0,0,0,0,0]}],
-      xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
-      plotOptions:{bar:{borderRadius:4, borderRadiusApplication:'end', columnWidth:'54%'}},
-      colors:[P(2), P(1)],
-      stroke:{width:2, colors:[SURF()]},
-      legend:{show:true, position:'top', horizontalAlign:'left', fontSize:'11.5px', markers:{width:9,height:9,radius:3}},
-      noData:{text:'Кабинет не подключён', style:{fontSize:'13px', color:INK()}},
-      tooltip:{enabled:true, theme:A()?'dark':'light', shared:true, intersect:false} }));
-  }
+
 
   /* покрытие индексом */
   if(document.getElementById('c-idx')){

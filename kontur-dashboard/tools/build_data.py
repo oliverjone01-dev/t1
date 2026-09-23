@@ -103,6 +103,27 @@ def git_file_date(path):
         return ''
 
 
+def direct_owner():
+    """Каталог проекта, которому принадлежит выгрузка Директа.
+
+    Выгрузки direct.json двух проектов сейчас совпадают побайтно, значит одна из
+    них копия. Какая, решают данные, а не симметричная пометка «обе под
+    вопросом»: владелец тот, чей счётчик Метрики совпадает со счётчиком в
+    direct_metrika.json и у кого клики в direct.json до единицы равны кликам
+    Директа по этому счётчику. Не нашлось такого проекта - None.
+    """
+    dm = load(DIRECT_METRIKA_PATH)
+    clicks = ((dm or {}).get('totals') or {}).get('direct_clicks_30d')
+    if not dm or not clicks:
+        return None
+    for cfg in PROJECTS.values():
+        ym = load(SRC / cfg['dir'] / 'metrika.json') or {}
+        dr = load(SRC / cfg['dir'] / 'direct.json') or {}
+        if str(ym.get('counter')) == str(dm.get('counter')) and dr.get('clicks') == clicks:
+            return cfg['dir']
+    return None
+
+
 # Как источник трафика в выгрузке Метрики называется у нас на экране.
 CONV_SOURCES = {'Search engine traffic': 'organic', 'Ad traffic': 'ad'}
 
@@ -308,9 +329,19 @@ def build_project(code, cfg, hist):
         od = load(SRC / other / 'direct.json')
         if od and json.dumps(od, sort_keys=True) == json.dumps(dr, sort_keys=True):
             twin = other
+    owner = direct_owner() if twin else None
+    p['direct_copy'] = None
+    if dr and twin and owner and owner != cfg['dir']:
+        # Файл этого проекта - копия чужого кабинета. Своих цифр Директа у проекта нет.
+        oname = next(c['name'] for c in PROJECTS.values() if c['dir'] == owner)
+        p['direct_copy'] = {'of': oname, 'at': dr.get('measured', ''),
+                            'camps': sorted({c.get('name', '') for c in (dr.get('campaigns') or [])})}
+        dr = None
+    elif dr and twin and owner == cfg['dir']:
+        twin = None      # совпадение с копией у соседа не делает свой кабинет сомнительным
     if dr:
-        # Две выгрузки совпали побайтно, значит правой может быть в лучшем случае одна.
-        # Пока не разведены по кабинетам, обе идут как гипотеза, а не как данные.
+        # Две выгрузки совпали побайтно, и владельца по кликам установить не удалось:
+        # верной может быть в лучшем случае одна, поэтому обе идут как гипотеза.
         dk = GIPO if twin else DANN
         dn = f'файл совпадает с выгрузкой {twin}, разделение по кабинетам не подтверждено' if twin else ''
         p['direct'] = {
@@ -331,16 +362,25 @@ def build_project(code, cfg, hist):
     # две выгрузки, и сведены они только по длине окна (30 дней), а не по датам.
     # Кроме того, заявки считаются по всему рекламному трафику, а расход только по
     # Директу (визитов из Директа 4531 из 4568 рекламных). Поэтому класс ГИПОТЕЗА.
+    # Заявок из Директа меньше, чем из всей рекламы: по источнику «Yandex: Direct»
+    # их 101 из 105, остальное прочие площадки. Отсюда коридор, а не одна цифра.
     conv_ad = (p.get('ym') or {}).get('conv') and p['ym']['conv'].get('ad')
     if p['direct'] and not p['direct']['twin'] and conv_ad and conv_ad.get('leads'):
         spend = p['direct']['spend']['v']
+        dm = load(DIRECT_METRIKA_PATH) or {}
+        ld_direct = next((e.get('leads') for e in (dm.get('by_engine') or [])
+                          if e.get('engine') == 'Yandex: Direct'), None)
+        lo_leads, hi_leads = conv_ad['leads'], (ld_direct or conv_ad['leads'])
         p['direct']['cpl'] = F(
-            round(spend / conv_ad['leads']) if spend else None,
+            round(spend / lo_leads) if spend else None,
             GIPO if spend else DEMO,
             f"direct.json (расход) и {DIRECT_METRIKA_SRC} (заявки)",
             conv_ad['at'] if spend else '',
-            f"{spend} ₽ расхода на {conv_ad['leads']} заявок из рекламы за 30 дней; "
-            f"две выгрузки сведены по длине окна, а не по датам")
+            f"от {round(spend / lo_leads)} до {round(spend / hi_leads)} ₽: {spend} ₽ расхода на "
+            f"{lo_leads} заявок со всей рекламы или {hi_leads} из Директа за 30 дней; "
+            f"окна двух выгрузок сведены по длине, а не по датам" if spend else '')
+        if spend:
+            p['direct']['cpl']['hi'] = round(spend / hi_leads)
     elif p['direct']:
         p['direct']['cpl'] = None
 
@@ -377,7 +417,10 @@ def main():
         'assum': {
             'ctr':  F(6.0,  GIPO, 'отраслевой ориентир, своей выгрузки нет', '', 'средний CTR по текущим позициям, %'),
             'crl':  F(3.0,  GIPO, 'бенчмарк ФЕНИКС: посадочная в РФ даёт 2-5%', '', 'конверсия визита в лид, %'),
-            'crd':  F(11.0, DANN, 'Roistat GENGROUP, D2C', '2026-07-01', 'нижняя граница коридора 11-15%, %'),
+            # Источник назван «Roistat GENGROUP, D2C», но выгрузки в репозитории нет
+            # (git grep по Roistat даёт только упоминания в описаниях агентов).
+            'crd':  F(11.0, GIPO, 'со слов команды: Roistat GENGROUP, D2C; выгрузки в репозитории нет', '',
+                      'нижняя граница коридора 11-15%, %'),
             'chk':  F(None, GIPO, 'подтверждённой цифры нет, вводится вручную', '', 'средний чек, ₽'),
         },
         # Пятое поле - проект: 'gg', 'gm' или без него для общего вопроса. Экраны

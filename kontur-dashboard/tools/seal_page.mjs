@@ -44,6 +44,13 @@ const file = process.argv[2];
 const password = process.env.KONTUR_PASS || "";
 if (!file) fail("Использование: KONTUR_PASS=... node tools/seal_page.mjs <файл.html>");
 if (password.length < 12) fail("KONTUR_PASS короче 12 знаков: утёкший файл подбирается офлайн, публикация остановлена.");
+// Пароли, которые уже лежат открытым текстом в этом публичном репозитории
+// (дефолт хаба, gg-seo-geo-monster/README.md). С таким паролем шифр ничего не закрывает.
+const KNOWN_PUBLIC = ["genmonster2026"];
+if (KNOWN_PUBLIC.includes(password)) fail("KONTUR_PASS совпадает с паролем, опубликованным в репозитории, публикация остановлена.");
+// Общий пароль хаба нельзя: /seo/ публикует его быстрый SHA-256, по нему пароль
+// подбирается офлайн в обход PBKDF2. Шаг публикации передаёт HUB_PASS только для сверки.
+if (process.env.HUB_PASS && process.env.HUB_PASS === password) fail("KONTUR_PASS совпадает с HUB_PASS, публикация остановлена.");
 
 const html = readFileSync(file, "utf8");
 const a = html.indexOf(OPEN);
@@ -58,6 +65,27 @@ const out = html.slice(0, a)
   + '<script id="app-sealed" type="application/json">' + JSON.stringify(sealed) + "</script>\n"
   + html.slice(b + CLOSE.length);
 
-if (out.includes("const DB = ") || out.includes('id="app-js"')) fail("После шифрования в странице остались открытые данные.");
+// Проверка разрешающая, а не по списку запретных слов: всё вне шифроблока обязано
+// совпасть с исходной страницей вне блока app-js, и ни одно значение из данных
+// (числа от 1000 и строки от 8 знаков) не должно встречаться в открытой части.
+const openPart = out.replace(/<script id="app-sealed" type="application\/json">[^<]*<\/script>\n/, "");
+if (openPart !== html.slice(0, a) + html.slice(b + CLOSE.length)) fail("Шифрование изменило страницу вне блока app-js.");
+const m = code.match(/const DB = (\{.*?\});\n/s);
+if (!m) fail("В блоке app-js нет данных DB: сборка страницы изменилась, проверка невозможна.");
+const db = JSON.parse(m[1]);
+// Имена проектов и домены публичны и стоят в разметке переключателя проектов.
+const PUBLIC = new Set(Object.values(db.projects || {}).flatMap(p => [p.name, p.dom]));
+// Цвета CSS вида #232830 не данные: убираем их, а числа ищем целым токеном.
+const openText = openPart.replace(/#[0-9a-fA-F]{3,8}\b/g, "#");
+const leaks = new Set();
+(function walk(o) {
+  if (o == null) return;
+  if (typeof o === "number" && Math.abs(o) >= 1000) {
+    if (new RegExp("(?<![\\w.])" + String(o).replace(".", "\\.") + "(?![\\w])").test(openText)) leaks.add(String(o));
+  } else if (typeof o === "string" && o.length >= 8 && !PUBLIC.has(o)) {
+    if (openText.includes(o)) leaks.add(o.slice(0, 40));
+  } else if (typeof o === "object") Object.values(o).forEach(walk);
+})(db);
+if (leaks.size) fail("Вне шифроблока нашлись значения из данных: " + [...leaks].slice(0, 5).join(" | "));
 writeFileSync(file, out);
 console.error(`зашифровано: ${code.length} символов приложения, файл ${out.length} символов`);

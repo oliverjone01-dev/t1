@@ -35,6 +35,15 @@ const nf  = n => { if(n==null||n==='') return '-';
    на экранах другого уже дважды выдавала собственнику неправду. */
 const BL = () => DB.blockers.filter(b => !b[4] || b[4]===CUR);
 const BLN = { gg:'GENGLASS', gm:'GLASS-MEMORY' };
+/* Выгрузка Директа по проекту оказалась копией чужого кабинета (build_data.py,
+   direct_owner): своих цифр Директа у проекта нет, и экран говорит это прямо. */
+function copyNote(){
+  const c = V().direct_copy; if(!c) return '';
+  return note('Своей выгрузки Директа у проекта нет',
+    'В файле direct.json по этому проекту лежит копия кабинета '+esc(c.of)+': те же '+nf(c.camps.length)
+    +' кампаний «Перегородки», тот же расход и те же клики, что у Директа по счётчику '+esc(c.of)
+    +'. Поэтому цифр Директа здесь нет. Если у проекта есть свой кабинет, его выгрузку нужно подключить отдельно.','warn');
+}
 const money = n => (n==null||!isFinite(n)) ? '-' : nf(Math.round(n)) + ' ₽';
 const pc  = n => (n==null||!isFinite(n)) ? '-' : (n*100).toFixed(n<0.1?1:0).replace('.',',') + '%';
 

@@ -28,7 +28,7 @@ function workRows(){ const d=V();
       ['Опубликовано из них', nf(d.facts.units.v), '0 '+kmark('ДАННЫЕ')]]
    : [['Страниц на сайте', '<span class="opacity-40">не задан</span>', nf(d.pages.v)+' '+kmark('ДАННЫЕ')],
       ['Запросов в топ-10', '<span class="opacity-40">не задан</span>', nf(d.top10.v)+' '+kmark('ДАННЫЕ')],
-      ['Упоминаний в Алисе', '<span class="opacity-40">не задан</span>', nf(d.aians.v)+' '+kmark('ДАННЫЕ')],
+      ['Ответов ИИ с упоминанием', '<span class="opacity-40">не задан</span>', nf(d.aians.v)+' '+kmark('ДАННЫЕ')],
       ['Объявлений в контексте', '<span class="opacity-40">не задан</span>', nf((d.adk||[]).length)+' '+kmark('ДАННЫЕ')]];
 }
 

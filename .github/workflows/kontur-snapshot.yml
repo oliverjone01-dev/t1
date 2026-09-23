@@ -48,6 +48,23 @@ jobs:
           fi
           python3 tools/snapshot.py
 
+      # Точка съёма коммитится сразу, до пересборки: пропущенную не восстановить, и
+      # падение любого следующего шага (сборка, setup-node, тест) не должно её терять.
+      # pull --rebase перед push: пока шла сборка, в main мог прийти коммит сборщика.
+      - name: Закоммитить точку съёма
+        run: |
+          set -euo pipefail
+          git config user.name  "kontur-bot"
+          git config user.email "kontur-bot@users.noreply.github.com"
+          git add kontur-dashboard/data/history
+          if git diff --cached --quiet; then
+            echo "новой точки нет"
+          else
+            git commit -m "kontur: точка съёма $(date -u +%Y-%m-%d)"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+          fi
+
       - name: Пересобрать данные и страницу
         working-directory: kontur-dashboard
         run: |
@@ -89,27 +106,19 @@ jobs:
         continue-on-error: true      # разрыв это повод разобраться, а не валить сборку
         run: python3 tools/snapshot.py --check
 
-      # Точка съёма коммитится всегда: пропущенную не восстановить. Данные и страница
-      # коммитятся только при зелёных стороже и дымовом тесте, иначе бот выложит в
-      # main страницу с упавшим экраном.
-      - name: Закоммитить, если что-то изменилось
-        env:
-          CHECKS_OK: ${{ steps.guard.outcome == 'success' && steps.smoke.outcome == 'success' }}
+      # Данные и страница коммитятся только при зелёных стороже и дымовом тесте,
+      # иначе бот выложит в main страницу с упавшим экраном.
+      - name: Закоммитить данные и страницу
+        if: steps.guard.outcome == 'success' && steps.smoke.outcome == 'success'
         run: |
           set -euo pipefail
-          git config user.name  "kontur-bot"
-          git config user.email "kontur-bot@users.noreply.github.com"
-          git add kontur-dashboard/data/history
-          if [ "$CHECKS_OK" = "true" ]; then
-            git add kontur-dashboard/data kontur-dashboard/public
-          else
-            echo "::warning::Сторож или дымовой тест не прошли: коммитится только точка съёма, страница не обновляется"
-          fi
+          git add kontur-dashboard/data kontur-dashboard/public
           if git diff --cached --quiet; then
             echo "изменений нет"
           else
-            git commit -m "kontur: точка съёма $(date -u +%Y-%m-%d)"
-            git push
+            git commit -m "kontur: пересборка $(date -u +%Y-%m-%d)"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin HEAD:"${GITHUB_REF_NAME}"
           fi
 
       - name: Сторож и дымовой тест должны быть зелёными

@@ -307,6 +307,7 @@ jobs:
         continue-on-error: true
         env:
           KONTUR_PASS: ${{ secrets.KONTUR_PASS }}
+          HUB_PASS: ${{ secrets.HUB_PASS }}      # только для сверки: KONTUR_PASS не должен с ним совпадать
         run: |
           set -euo pipefail
           if [ ! -f "kontur-dashboard/public/index.html" ]; then
@@ -316,7 +317,7 @@ jobs:
           else
             rm -rf /tmp/kontur-site
             cp -r kontur-dashboard/public /tmp/kontur-site
-            KONTUR_PASS="$KONTUR_PASS" node kontur-dashboard/tools/seal_page.mjs /tmp/kontur-site/index.html
+            KONTUR_PASS="$KONTUR_PASS" HUB_PASS="${HUB_PASS:-}" node kontur-dashboard/tools/seal_page.mjs /tmp/kontur-site/index.html
             # Проверка по факту, а не по коду выхода: шифротекст на месте, открытых
             # данных и открытого кода приложения в файле нет.
             if ! grep -q 'id="app-sealed"' /tmp/kontur-site/index.html \

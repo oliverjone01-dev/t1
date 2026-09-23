@@ -3,7 +3,8 @@ BODY = r'''
 <div class="gate" id="gate">
   <div class="box">
     <div class="glogo hd">Контур: SEO, GEO, Директ</div>
-    <p>Внутренняя панель GENGROUP. Все цифры на этой странице зашифрованы паролем: без него в её коде нет ни одного числа. После входа страницу можно сохранить или переслать, поэтому пароль не передают дальше.</p>
+    <p>Внутренняя панель GENGROUP. Вход по паролю.</p>
+    <p>Открытую страницу можно сохранить и переслать вместе со всеми цифрами. Не пересылайте ни пароль, ни сохранённую копию.</p>
     <form id="gateForm">
       <input type="password" id="gatePass" placeholder="Пароль" autocomplete="current-password" autofocus>
       <span class="gerr" id="gateErr">Неверный пароль</span>

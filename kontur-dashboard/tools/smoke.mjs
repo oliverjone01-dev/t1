@@ -4,18 +4,22 @@
    чтобы тест не зависел от сети. */
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { execFileSync } from 'child_process';
 /* Зеркала tailwind и apexcharts: тест не зависит от сети на время прогона.
    В CI их кладёт шаг воркфлоу, локально - любой каталог через KONTUR_LIBS. */
 const LIBS = process.env.KONTUR_LIBS || '/tmp/claude-0';
 const OUT  = process.env.KONTUR_TMP  || '/tmp/claude-0';
 const CHROME = process.env.KONTUR_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
+function prep(src, name){
+  const cut = src.indexOf('<div class="min-h-screen');
+  const hp = src.slice(0,cut)
+   .replace(/<script src="https:\/\/cdn\.tailwindcss\.com"><\/script>/,'<script>window.tailwind={config:{}}</script><script src="file://'+LIBS+'/tw.js"></script>')
+   .replace(/<script src="https:\/\/cdnjs[^"]+"><\/script>/,'<script src="file://'+LIBS+'/apex.js"></script>')
+   .replace(/<link rel="stylesheet" href="https:\/\/fonts[^"]+">/,'');
+  fs.writeFileSync(OUT+'/'+name,'<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html{color-scheme:light}body{margin:0;font:14px system-ui}</style>'+hp+'</head><body>'+src.slice(cut)+'</body></html>');
+}
 const html = fs.readFileSync(new URL('../public/index.html', import.meta.url),'utf8');
-const cut = html.indexOf('<div class="min-h-screen');
-let hp = html.slice(0,cut)
- .replace(/<script src="https:\/\/cdn\.tailwindcss\.com"><\/script>/,'<script>window.tailwind={config:{}}</script><script src="file://'+LIBS+'/tw.js"></script>')
- .replace(/<script src="https:\/\/cdnjs[^"]+"><\/script>/,'<script src="file://'+LIBS+'/apex.js"></script>')
- .replace(/<link rel="stylesheet" href="https:\/\/fonts[^"]+">/,'');
-fs.mkdirSync(OUT,{recursive:true}); fs.writeFileSync(OUT+'/page.html','<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html{color-scheme:light}body{margin:0;font:14px system-ui}</style>'+hp+'</head><body>'+html.slice(cut)+'</body></html>');
+fs.mkdirSync(OUT,{recursive:true}); prep(html, 'page.html');
 
 const b = await chromium.launch(CHROME ? {executablePath:CHROME} : {});
 const p = await b.newPage({viewport:{width:1440,height:1000}});
@@ -63,5 +67,33 @@ for(const proj of ['gm','gg']){
 console.log('горизонтальный скролл на 390px:', narrow.length); narrow.slice(0,20).forEach(x=>console.log('  ·',x));
 const late = errs.length - errsBeforeNarrow;
 console.log('ошибок консоли на узком проходе:', late); [...new Set(errs.slice(errsBeforeNarrow))].slice(0,10).forEach(e=>console.log('  !',e.slice(0,200)));
+
+/* Запечатанная копия: тот же путь, что проходит опубликованная страница. Пароль
+   тестовый и живёт только в этом прогоне. До пароля данных и кода быть не должно,
+   неверный пароль не открывает, верный открывает все экраны без ошибок. */
+const sealErr = [];
+const TEST_PASS = 'smoke-test-'+Math.random().toString(36).slice(2,10);
+fs.copyFileSync(new URL('../public/index.html', import.meta.url), OUT+'/sealed-src.html');
+execFileSync('node', [new URL('./seal_page.mjs', import.meta.url).pathname, OUT+'/sealed-src.html'],
+  {env:{...process.env, KONTUR_PASS:TEST_PASS, HUB_PASS:''}, stdio:['ignore','ignore','inherit']});
+prep(fs.readFileSync(OUT+'/sealed-src.html','utf8'), 'sealed.html');
+const sp = await (await b.newContext({viewport:{width:1440,height:1000}})).newPage();
+sp.on('console', m=>{ if(m.type()==='error') sealErr.push(m.text()); });
+sp.on('pageerror', e=>sealErr.push('PAGEERROR: '+e.message));
+await sp.goto('file://'+OUT+'/sealed.html', {waitUntil:'load', timeout:60000});
+const before = await sp.evaluate(()=>({db: typeof DB, start: typeof appStart, gate: !!document.getElementById('gate')}));
+if(before.db!=='undefined' || before.start!=='undefined' || !before.gate) sealErr.push('до пароля доступно: '+JSON.stringify(before));
+await sp.fill('#gatePass','wrong-password-000'); await sp.click('#gateForm button');
+await sp.waitForFunction(()=>getComputedStyle(document.getElementById('gateErr')).display==='block', null, {timeout:15000}).catch(()=>sealErr.push('неверный пароль не дал ошибку'));
+if(await sp.evaluate(()=>typeof DB)!=='undefined') sealErr.push('неверный пароль открыл данные');
+await sp.fill('#gatePass', TEST_PASS); await sp.click('#gateForm button');
+await sp.waitForFunction(()=>typeof DB!=='undefined' && !document.getElementById('gate'), null, {timeout:20000}).catch(()=>sealErr.push('верный пароль не открыл страницу'));
+if(await sp.evaluate(()=>typeof DB)!=='undefined'){
+  for(const proj of ['gm','gg']) for(const v of all){
+    const n = await sp.evaluate(([pr,v])=>{ CUR=pr; VIEW=v; render(); return document.getElementById('view').innerText.length; }, [proj,v]);
+    if(n<300) sealErr.push('тонкий экран после расшифровки: '+proj+'/'+v);
+  }
+}
+console.log('запечатанная копия, проблем:', sealErr.length); [...new Set(sealErr)].slice(0,10).forEach(e=>console.log('  !',e.slice(0,200)));
 await b.close();
-process.exit(errs.length || bad.length || narrow.length ? 1 : 0);
+process.exit(errs.length || bad.length || narrow.length || sealErr.length ? 1 : 0);

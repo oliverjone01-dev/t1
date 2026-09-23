@@ -87,19 +87,30 @@ describe("схлопывание по карточке", () => {
   });
 });
 
-describe("карта из data/", () => {
-  const has = CARD_MAP_PATHS.some((p) => existsSync(p));
-  it.skipIf(!has)("читается, но пока помечена заглушкой", () => {
+
+describe("карта из кабинета (23.09)", () => {
+  it("прочитана и помечена настоящей, а не заметкой", () => {
     const m = loadCardMap();
-    expect(m.groups).toBeGreaterThan(0);
-    // Две модели от 25.06 это заметка, а не карта. Когда card_id поедет из кабинета,
-    // real станет true, и правило по карточке заработает в полную силу.
-    expect(m.real).toBe(false);
+    expect(m.groups).toBe(35);
+    expect(m.real).toBe(true);
+    // 500 товаров в выгрузке минус два одиночки: карточка из одного товара родни не создаёт.
+    expect(m.card.size).toBe(498);
   });
 
-  it.skipIf(!has)("знает про склейку GGT-35, оба варианта тестовые в тесте 1", () => {
+  it("эталон правила плато делит карточку с двадцатью соседями", () => {
+    // Из-за них июльская база была занижена на 5.1 пункта: плато выходило +17.4 вместо +22.5.
     const m = loadCardMap();
-    expect(m.card.get("GGT-35-1-3-100-180")).toBeDefined();
+    const ref = m.card.get("GGT-47-3-3-90");
+    expect(ref).toBe("5728188877");
+    const mates = [...m.card.entries()].filter(([a, c]) => c === ref && a !== "GGT-47-3-3-90");
+    expect(mates.length).toBe(20);
+  });
+});
+
+describe("склейка GGT-35", () => {
+  it("оба варианта в одной карточке, поэтому идут в медиану один раз", () => {
+    const m = loadCardMap();
     expect(m.card.get("GGT-35-1-3-100-180")).toBe(m.card.get("GGT-35-3-3-100-180"));
+    expect(isKin("GGT-35-1-3-100-180", "GGT-35-3-3-100-180", m)).toBe(true);
   });
 });

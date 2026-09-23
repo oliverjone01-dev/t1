@@ -616,7 +616,6 @@ input#q{min-width:220px}
 .cal-x{position:absolute;top:8px;right:10px;width:24px;height:24px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--ink-3);border-radius:7px;font-size:17px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;z-index:1}
 .cal-x:hover{color:var(--ink);border-color:var(--accent)}
 /* Плашка калибровки весов над таблицей (раскрытие методики, rework #5 ФЕНИКСА) */
-.qcal{font-size:10.5px;color:var(--ink-3);padding:0 2px 12px}
 .cal-nav{display:flex;align-items:flex-start;gap:8px}
 .cal-nav>button{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:15px;line-height:1;flex:0 0 auto;margin-top:2px}
 .cal-nav>button:hover{border-color:var(--accent);color:var(--ink)}
@@ -1422,12 +1421,11 @@ function renderTree(){
   // Очередь дел РОПа убрана по решению Ивана 2026-09-22: верхний экран дублировал работу
   // с таблицей ниже, где та же срочность видна в колонке «Что горит». Данные (prio, urgency)
   // остаются в dialog.json, поэтому блок возвращается правкой шаблона, без пересчёта.
-  // Плашка калибровки весов сохранена: ФЕНИКС потребовал её в rework #5 раунда 2 как
-  // раскрытие методики (def->mult, n, conf), она не относится к очереди.
-  const CALNAME={slow_resp:'медленные ответы',refuse:'отказ',ready:'сигнал оплаты'};
-  const calApplied=SC&&SC.calibration?Object.entries(SC.calibration).filter(([,v])=>v.applied).map(([k,v])=>`${CALNAME[k]||k} ${v.def}\u2192${v.mult} (n=${v.n}, ${v.conf})`):[];
-  const calHTML=calApplied.length?`<div class="qcal">Веса вероятности, откалиброванные на исходах закрытых сделок (дефолт\u2192вес после демпфирования к дефолту 70/30): ${calApplied.join('; ')}. Остальные факторы - экспертные веса; копится лог для чистой калибровки без конфаундинга.</div>`:'';
-  list.innerHTML=calHTML+html;
+  // Плашка калибровки весов убрана по решению Ивана 2026-09-23. ФЕНИКС требовал её в rework #5
+  // раунда 2 как раскрытие методики; раскрытие никуда не делось, оно живёт в scoring.calibration
+  // внутри dialog.json (def, mult, n, conf по каждому откалиброванному фактору) и в методичке
+  // knowledge/episodes/2026-09/. Возврат плашки - правка шаблона, пересчёт не нужен.
+  list.innerHTML=html;
   // Возвращаем прокрутку на место после перерисовки (фокус остаётся на раскрытой строке).
   const _sxNew=list.querySelector('.scrollx'); if(_sxNew) _sxNew.scrollTop=_sxTop; if(_winY) window.scrollTo(0,_winY);
   const db=list.querySelector('#dateBtn');

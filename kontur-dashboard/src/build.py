@@ -25,6 +25,7 @@ from meth import METH
 from read import READ
 from draw import DRAW
 from shell import BODY
+from app import APP
 
 ICONS = (HERE / 'modules' / 'icons.txt').read_text(encoding='utf-8')
 data = json.loads((ROOT / 'data' / 'kontur.json').read_text(encoding='utf-8'))
@@ -32,9 +33,10 @@ data = json.loads((ROOT / 'data' / 'kontur.json').read_text(encoding='utf-8'))
 js = '\n'.join([
     'const DB = ' + json.dumps(data, ensure_ascii=False) + ';',
     ICONS, CORE, WIDGETS, NAV,
-    SCR_A, SCR_DYN, SCR_B, SCR_C, SCR_D, METH, READ, DRAW,
+    SCR_A, SCR_DYN, SCR_B, SCR_C, SCR_D, METH, READ, DRAW, APP,
 ])
-html = HEAD + '<script>\n' + js + '\n</script>\n' + BODY
+# id нужен tools/seal_page.mjs: при публикации блок целиком заменяется шифротекстом.
+html = HEAD + '<script id="app-js">\n' + js + '\n</script>\n' + BODY
 
 out = ROOT / 'public' / 'index.html'
 out.parent.mkdir(parents=True, exist_ok=True)

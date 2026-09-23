@@ -292,37 +292,42 @@ jobs:
       # === КОНТУР: SEO, GEO и Директ по проектам (из main, статика public/) ===
       # Страница самодостаточна: данные вшиты на этапе сборки в kontur-dashboard,
       # поэтому здесь только копирование. Обновляет kontur-snapshot.yml.
-      # Пароль приходит из секрета, дефолта в странице нет. Без секрета раздел не
-      # публикуется вовсе: репозиторий публичный, и зашитый дефолтный хэш означал бы
-      # общеизвестный пароль на боевой странице. Паттерн тот же, что у ACADEMY_PASS
-      # выше. Подстановка идёт во временный каталог и только успешный результат
-      # переезжает в _site, поэтому сбой между копированием и подстановкой не может
-      # выложить страницу без пароля.
-      # continue-on-error оставлен, как у двадцати соседних шагов: проверка ниже
-      # гарантирует, что /kontur/ либо уедет с паролем, либо не уедет вовсе, а
-      # ронять публикацию всего сайта из-за одного раздела незачем. Без этого флага
-      # шаг был единственным в задании, чей exit 1 останавливал и upload, и deploy.
+      # Приложение вместе с данными шифруется паролем из секрета KONTUR_PASS
+      # (tools/seal_page.mjs: PBKDF2-SHA256 600 000 итераций, AES-256-GCM, схема
+      # академии). Решение Ивана от 23.09: шифровать, а не прятать за хэшем, потому
+      # что хэш не закрывал данные, они читались из кода страницы без пароля.
+      # Секрет свой, не общий: /seo/ публикует быстрый SHA-256 от общего пароля, по
+      # нему пароль подбирается офлайн в обход PBKDF2, и шифрование теряло бы смысл.
+      # Академия по той же причине живёт на своём ACADEMY_PASS.
+      # Без секрета раздел не публикуется вовсе. Шифрование идёт во временном
+      # каталоге, в _site попадает только файл, прошедший проверку на открытые данные.
+      # continue-on-error оставлен, как у двадцати соседних шагов: сбой раздела не
+      # должен ронять публикацию всего сайта, а /kontur/ при сбое просто не выкладывается.
       - name: Build KONTUR dashboard (/kontur/)
         continue-on-error: true
         env:
-          HUB_PASS: ${{ secrets.HUB_PASS }}
+          KONTUR_PASS: ${{ secrets.KONTUR_PASS }}
         run: |
           set -euo pipefail
           if [ ! -f "kontur-dashboard/public/index.html" ]; then
             echo "kontur-dashboard/public/index.html отсутствует в main - пропуск"
-          elif [ -z "${HUB_PASS:-}" ]; then
-            echo "::warning::Секрет HUB_PASS не задан, раздел /kontur/ не опубликован"
+          elif [ -z "${KONTUR_PASS:-}" ]; then
+            echo "::warning::Секрет KONTUR_PASS не задан, раздел /kontur/ не опубликован"
           else
-            HASH=$(printf '%s' "$HUB_PASS" | sha256sum | cut -d' ' -f1)
             rm -rf /tmp/kontur-site
             cp -r kontur-dashboard/public /tmp/kontur-site
-            sed -i "s/window.HUB_PASS_HASH = \"[a-f0-9]*\"/window.HUB_PASS_HASH = \"$HASH\"/" /tmp/kontur-site/index.html
-            if ! grep -q "window.HUB_PASS_HASH = \"$HASH\"" /tmp/kontur-site/index.html; then
-              echo "::error::Хэш пароля не подставился в /kontur/, публикация раздела остановлена"; exit 1
+            KONTUR_PASS="$KONTUR_PASS" node kontur-dashboard/tools/seal_page.mjs /tmp/kontur-site/index.html
+            # Проверка по факту, а не по коду выхода: шифротекст на месте, открытых
+            # данных и открытого кода приложения в файле нет.
+            if ! grep -q 'id="app-sealed"' /tmp/kontur-site/index.html \
+               || grep -qF 'const DB = ' /tmp/kontur-site/index.html \
+               || grep -qF '"projects"' /tmp/kontur-site/index.html \
+               || grep -qF 'function render' /tmp/kontur-site/index.html; then
+              echo "::error::В /kontur/ после шифрования остались открытые данные, публикация раздела остановлена"; exit 1
             fi
             mkdir -p "$GITHUB_WORKSPACE/_site/kontur"
             cp -r /tmp/kontur-site/. "$GITHUB_WORKSPACE/_site/kontur/"
-            echo "Контур опубликован в /kontur/, пароль из секрета HUB_PASS"
+            echo "Контур опубликован в /kontur/, данные зашифрованы паролем из секрета KONTUR_PASS"
           fi
 
       - name: Build DIRECT dashboard (/direct/)

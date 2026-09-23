@@ -3,7 +3,7 @@ BODY = r'''
 <div class="gate" id="gate">
   <div class="box">
     <div class="glogo hd">Контур: SEO, GEO, Директ</div>
-    <p>Страница общедоступна по ссылке. Пароль отсекает случайный заход, данные он не закрывает: они лежат в исходном коде этой же страницы.</p>
+    <p>Внутренняя панель GENGROUP. Все цифры на этой странице зашифрованы паролем: без него в её коде нет ни одного числа. После входа страницу можно сохранить или переслать, поэтому пароль не передают дальше.</p>
     <form id="gateForm">
       <input type="password" id="gatePass" placeholder="Пароль" autocomplete="current-password" autofocus>
       <span class="gerr" id="gateErr">Неверный пароль</span>
@@ -52,97 +52,48 @@ BODY = r'''
 </div>
 
 <script>
-const wide = () => window.matchMedia('(min-width:1024px)').matches;
-function sbTog(){
-  const s=document.getElementById('sb');
-  if(!wide()){ // на узком экране меню выезжает поверх
-    const open = s.classList.toggle('-translate-x-full');
-    document.getElementById('bd').classList.toggle('hidden', open);
-    return;
+/* Окно пароля. Единственный код страницы, который читается без пароля.
+   В опубликованной странице всё приложение вместе с данными лежит в блоке
+   app-sealed шифротекстом: PBKDF2-SHA256 на 600 000 итераций, AES-256-GCM,
+   та же схема, что у академии. Неверный пароль не проходит проверку GCM,
+   хэша пароля в странице нет, подбирать его офлайн можно только через
+   медленный PBKDF2. В локальной сборке блока нет, и приложение стартует сразу. */
+(function(){
+  const box = document.getElementById('app-sealed');
+  if(!box){ appStart(); return; }
+  const S = JSON.parse(box.textContent);
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const toB64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+  async function derive(pass){
+    const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({name:'PBKDF2', salt:b64(S.salt), iterations:S.iter, hash:'SHA-256'},
+      km, {name:'AES-GCM', length:256}, true, ['decrypt']);
   }
-  const n = s.classList.toggle('w-[72px]');
-  s.classList.toggle('w-[258px]', !n);
-  document.querySelectorAll('.lbl').forEach(e=>e.classList.toggle('hidden', n));
-}
-function sbClose(){
-  document.getElementById('sb').classList.add('-translate-x-full');
-  document.getElementById('bd').classList.add('hidden');
-}
-function setP(p){ CUR=p; render(); }
-function setPer(v){ PERIOD=v; try{ localStorage.setItem('kontur-period', v); }catch(e){} render(); }
-function th(){
-  const dk=document.documentElement.classList.toggle('dark');
-  try{ localStorage.setItem('kontur-theme', dk?'dark':'light'); }catch(e){}
-  thIcon(); render();
-}
-function thIcon(){
-  const dk=document.documentElement.classList.contains('dark');
-  document.getElementById('thi').innerHTML = dk
-   ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>'
-   : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>';
-}
-function render(){
-  if(!wide()) sbClose();
-  const s=screens(), fn=s[VIEW]||s.obzor;
-  const v=document.getElementById('view');
-  const mth = method(VIEW), rd = reading(VIEW);
-  const tail = (rd||mth) ? '<div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">'+(rd||'')+(mth||'')+'</div>' : '';
-  killCharts();
-  v.innerHTML='<div class="fade">'+fn()+tail+'</div>';
-
-  document.querySelectorAll('[data-v]').forEach(b=>{
-    b.classList.toggle('navon', b.dataset.v===VIEW);
-  });
-  openFor(VIEW);
-  refreshBadges();
-
-  ['gm','gg'].forEach(p=>{
-    const b=document.getElementById('p'+p), on=(p===CUR);
-    b.classList.toggle('pane', on);
-    b.classList.toggle('hd', on);
-    b.classList.toggle('shadow-sm', on);
-    b.classList.toggle('opacity-55', !on);
-  });
-  const ss = SER();
-  document.getElementById('stamp').textContent =
-    V().name + ' · ' + V().dom + (ss.length ? ' · последний съём ' + ruD(ss[ss.length-1].date) + ' · точек ' + ss.length : ' · ряда нет');
-  const sel = document.getElementById('per'); if(sel) sel.value = PERIOD;
-  const ft = document.getElementById('foot');
-  if(ft) ft.textContent = 'Сборка данных ' + (DB.built||'').slice(0,10).split('-').reverse().join('.')
-    + '. Метрика: ' + (V().ym ? 'подключена' : 'нет') + '. Директ: ' + (V().direct ? 'выгрузка есть' : 'нет') + '.';
-  requestAnimationFrame(()=>{ draw(); if(document.getElementById('calcout')) recalc(); });
-}
-try{ if(localStorage.getItem('kontur-theme')==='dark') document.documentElement.classList.add('dark');
-     const sp = localStorage.getItem('kontur-period'); if(sp && PERIODS[sp]) PERIOD = sp; }catch(e){}
-/* Меню строится сразу, а не в boot(): оно не содержит данных, только пункты,
-   а render() (внутри boot) на него опирается через openFor/refreshBadges. */
-buildNav();
-async function sha256(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-function boot(){
-  document.getElementById('gate').remove();
-  document.getElementById('app').hidden = false;
-  thIcon(); render();
-  let _rt; window.addEventListener('resize',()=>{ clearTimeout(_rt); _rt=setTimeout(draw,250); });
-}
-(function gateInit(){
-  // Пустой хэш это локальная сборка без секрета. Наружу такая страница не уезжает:
-  // шаг публикации без HUB_PASS её не выкладывает вовсе.
-  if(!window.HUB_PASS_HASH){ boot(); return; }
-  const authed = sessionStorage.getItem('kontur.auth') === '1';
-  if(authed){ boot(); return; }
-  document.getElementById('gateForm').addEventListener('submit', async (e) => {
+  async function open(key){
+    const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64(S.iv)}, key, b64(S.ct));
+    const el = document.createElement('script');
+    el.textContent = new TextDecoder().decode(pt);
+    document.head.appendChild(el);
+    appStart();
+  }
+  const form = document.getElementById('gateForm'), err = document.getElementById('gateErr'),
+        btn = form.querySelector('button');
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const h = await sha256(document.getElementById('gatePass').value);
-    if(h === window.HUB_PASS_HASH){
-      sessionStorage.setItem('kontur.auth', '1');
-      boot();
-    } else {
-      document.getElementById('gateErr').style.display = 'block';
+    err.style.display = 'none'; btn.disabled = true; btn.textContent = 'Проверяю...';
+    try{
+      const key = await derive(document.getElementById('gatePass').value);
+      await open(key);
+      try{ sessionStorage.setItem('kontur.key', toB64(await crypto.subtle.exportKey('raw', key))); }catch(x){}
+    }catch(x){
+      err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Войти';
     }
   });
+  let saved = null; try{ saved = sessionStorage.getItem('kontur.key'); }catch(x){}
+  if(saved){
+    crypto.subtle.importKey('raw', b64(saved), {name:'AES-GCM'}, false, ['decrypt'])
+      .then(open).catch(() => { try{ sessionStorage.removeItem('kontur.key'); }catch(x){} });
+  }
 })();
 </script>
 '''

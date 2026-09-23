@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
 HEAD = r'''<title>Контур: SEO, GEO, Директ</title>
 <meta name="robots" content="noindex,nofollow">
-<script>
-/* Хэш пароля приходит из секрета HUB_PASS при публикации (deploy-pages.yml).
-   Дефолта здесь нет намеренно: репозиторий публичный, и зашитый хэш означал бы
-   общеизвестный пароль на боевой странице. Пустая строка это локальная сборка,
-   гейт в ней пропускает сразу; шаг публикации без секрета страницу не выкладывает. */
-window.HUB_PASS_HASH = "";
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">

@@ -316,7 +316,7 @@ jobs:
           elif [ -z "${KONTUR_PASS:-}" ]; then
             echo "::warning::Секрет KONTUR_PASS не задан, раздел /kontur/ не опубликован"
           else
-            # Сначала тест на подмену самого шифровальщика: 23 заведомо плохие страницы
+            # Сначала тест на подмену самого шифровальщика: заведомо плохие страницы, исходники
             # и пароля обязаны остановить публикацию. Не прошёл - раздел не выкладывается.
             KONTUR_TMP=/tmp/kontur-seal-test node kontur-dashboard/tools/seal_test.mjs
             rm -rf /tmp/kontur-site

@@ -19,8 +19,24 @@ fs.writeFileSync(OUT + '/contrast.html', html
   .replace(/<link rel="stylesheet" href="https:\/\/fonts[^"]+">/, ''));
 
 const CHECK = () => {
-        const parse = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null;
-          const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; };
+        // Разбор вычисленного цвета: rgb(), color(srgb ...), oklab(), oklch(). Функция пакета
+        // понимала только rgb и молча пропускала остальное: color-mix на тексте не мерился.
+        const num = (x, pct) => x.endsWith('%') ? parseFloat(x) / 100 * pct : parseFloat(x);
+        const enc = c => { c = Math.max(0, Math.min(1, c)); return 255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055); };
+        const fromOklab = (L, A, B) => { const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3, m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3,
+          s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
+          return { r: enc(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s), g: enc(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+                   b: enc(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s) }; };
+        const parse = s => {
+          const f = s.match(/^(rgba?|color|oklab|oklch)\((.*)\)$/); if (!f) return null;
+          const [main, al] = f[2].split('/'); const p = main.trim().split(/[ ,]+/).filter(Boolean);
+          const a = al ? num(al.trim(), 1) : (f[1] === 'rgba' && p[3] != null ? parseFloat(p[3]) : 1);
+          if (f[1].startsWith('rgb')) return { r: num(p[0], 255), g: num(p[1], 255), b: num(p[2], 255), a };
+          if (f[1] === 'color') { if (p[0] !== 'srgb') return null; return { r: num(p[1], 1) * 255, g: num(p[2], 1) * 255, b: num(p[3], 1) * 255, a }; }
+          if (f[1] === 'oklab') return { ...fromOklab(num(p[0], 1), num(p[1], 0.4), num(p[2], 0.4)), a };
+          const L = num(p[0], 1), C = num(p[1], 0.4), h = (parseFloat(p[2]) || 0) * Math.PI / 180;
+          return { ...fromOklab(L, C * Math.cos(h), C * Math.sin(h)), a };
+        };
         const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
         const L = c => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
         const ratio = (a, b) => { const x = L(a), y = L(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
@@ -52,12 +68,14 @@ const CHECK = () => {
           const isSvg = el instanceof SVGElement;
           let fg = parse(isSvg ? (el.getAttribute('fill') && el.getAttribute('fill').startsWith('rgb') ? el.getAttribute('fill') : cs.fill) : cs.color);
           if (isSvg && (!fg || cs.fill === 'none')) { const h = el.getAttribute('fill'); if (h && /^#[0-9a-f]{6}$/i.test(h)) fg = { r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16), a: 1 }; }
-          if (!fg) continue;
+          if (!fg) { out.push(`${name(el)}  цвет текста не разобран: ${cs.color}  «${el.textContent.trim().slice(0, 40)}»`); continue; }
           const bg = bgOf(isSvg ? (el.closest('div') || el) : el);
           if (bg === 'gradient') continue;
           // Прозрачность самого элемента и всех предков гасит текст так же, как альфа цвета:
           // функция пакета её не видела, и opacity .3 на тексте проходила все экраны.
-          for (let n = el; n && n.nodeType === 1; n = n.parentElement) { const o = parseFloat(getComputedStyle(n).opacity); if (o < 1) fg = { ...fg, a: fg.a * o }; }
+          for (let n = el; n && n.nodeType === 1; n = n.parentElement) { const ns = getComputedStyle(n); let o = parseFloat(ns.opacity);
+            const fo = (ns.filter || '').match(/opacity\(([\d.]+)(%?)\)/); if (fo) o *= fo[2] ? parseFloat(fo[1]) / 100 : parseFloat(fo[1]);
+            if (o < 1) fg = { ...fg, a: fg.a * o }; }
           const fgc = fg.a < 1 ? over(fg, bg) : fg;
           const px = parseFloat(cs.fontSize), w = parseInt(cs.fontWeight) || 400;
           const need = (px >= 24 || (px >= 18.66 && w >= 700)) ? 3 : 4.5;

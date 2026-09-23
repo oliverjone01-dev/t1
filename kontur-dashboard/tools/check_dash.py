@@ -53,8 +53,12 @@ for rx, why in BANS:
 # Графики красятся пресетами KS.charts по слотам --cat-1..5 текущей темы. Любой hex
 # в коде графиков значит цвет мимо проверенной палитры и мимо смены темы.
 draw = s[s.find('function draw()'):]
-for col in sorted(set(re.findall(r'#[0-9A-Fa-f]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab)\s*\(', draw))):
+for col in sorted(set(re.findall(r'#[0-9A-Fa-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|oklch|oklab|lch|lab|color)\s*\(', draw))):
     bad('COLOR', f'в графиках цвет «{col}» мимо токенов --cat-1..5')
+# Цвет задаётся только слотом пресета (slot:1..5). Любое поле colors или color в коде
+# графиков значит цвет в обход слота, в том числе именованный: 'hotpink', 'red'.
+for m_ in re.finditer(r'\bcolors?\s*:\s*[^,}\n]{0,40}', draw):
+    bad('COLOR', f'в графиках цвет задан в обход слота: «{m_.group(0).strip()}»')
 # Вид из пакета: токены и кит вшиты, Tailwind не подключается.
 if 'id="ks-tokens"' not in s or 'id="ks-kit"' not in s:
     bad('KIT', 'в странице нет токенов или кита Контур DS (kontur-ds/): сборка идёт мимо пакета')
@@ -67,8 +71,11 @@ if re.search(r'class=["\'][^"\']*\bopacity-\d+\b', s):
 MODS = Path(__file__).resolve().parents[1] / 'src' / 'modules'
 for mp in sorted(MODS.glob('*.py')):
     for i, line in enumerate(mp.read_text(encoding='utf-8').splitlines(), 1):
-        if re.search(r'(?<![\w-])opacity\s*:', line):
+        if re.search(r'(?<![\w-])opacity\s*[:(]', line):
             bad('OPACITY', f'{mp.name}:{i}: прозрачность в своём коде; приглушённый текст это ks-muted, а не opacity')
+        # цвет текста, смешанный с прозрачным, это та же прозрачность (фон так смешивать можно)
+        if re.search(r'(?<![\w-])color\s*:\s*color-mix\([^;"]*transparent', line):
+            bad('OPACITY', f'{mp.name}:{i}: цвет текста смешан с прозрачным; бери --text-muted')
 
 # --- 5. запрещённые приёмы визуализации ---
 # annotations:{yaxis:[...]} это подпись на оси, а не вторая ось: её не считаем

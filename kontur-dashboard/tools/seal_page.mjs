@@ -21,6 +21,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 
 const ITERATIONS = 600_000;
 const OPEN = '<script id="app-js">\n';
@@ -90,37 +91,69 @@ if (openSrc !== want) {
 // Скрипты вне шифра: ровно ApexCharts по закреплённому адресу и окно пароля.
 const openPart = out.replace(/<script id="app-sealed" type="application\/json">[^<]*<\/script>\n/, "");
 const APEX = "https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js";
-const scripts = [...openPart.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
+const scripts = [...openPart.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)];
 const allowed = (attrs, body) =>
   (/\bintegrity="sha384-[A-Za-z0-9+/=]+"/.test(attrs) && (attrs.match(/\bsrc="([^"]*)"/) || [])[1] === APEX && !body.trim()) ||
   (!/\bsrc=/.test(attrs) && body.includes("getElementById('app-sealed')"));
 const extra = scripts.filter(([, attrs, body]) => !allowed(attrs, body));
 if (extra.length) fail("Вне шифроблока лишний скрипт: " + extra[0][0].slice(0, 80));
 if (scripts.length !== 2) fail("Вне шифроблока скриптов " + scripts.length + ", а должно быть ровно два: ApexCharts и окно пароля.");
-// Обработчики событий в атрибутах исполняются так же, как скрипт.
-const handler = openPart.match(/<[^>]*\son[a-z]+\s*=/i);
+// Обработчики событий в атрибутах исполняются так же, как скрипт: <img onerror>,
+// <svg/onload>, в любом регистре.
+const handler = openPart.match(/<[^>]*[\s/"']on[a-z]+\s*=/i);
 if (handler) fail("Вне шифроблока обработчик события в атрибуте: " + handler[0].slice(0, 80));
 const m = code.match(/const DB = (\{.*?\});\n/s);
 if (!m) fail("В блоке app-js нет данных DB: сборка страницы изменилась, проверка невозможна.");
 const db = JSON.parse(m[1]);
 // Имена проектов и домены публичны и стоят в разметке переключателя проектов.
 const PUBLIC = new Set(Object.values(db.projects || {}).flatMap(p => [p.name, p.dom]));
-// Стили пакета Контур DS совпали с файлами пакета (проверка выше), в них данных нет:
-// их текст («подсветка», «данные») не ищем. Всё остальное ищем целиком, вместе с
-// комментариями: они уходят в опубликованный файл как есть. Цвета вида #232830 не данные.
-const openText = openPart.replace(/<style id="ks-(tokens|kit)">[\s\S]*?<\/style>/g, " ")
+// Параметры шифра открыто названы в окне пароля (AES-256, SHA-256, 600 000 итераций):
+// совпадение с таким числом в данных не утечка.
+const PUBLIC_NUM = new Set([256, ITERATIONS]);
+
+// Стили пакета Контур DS пропускаются, только если это ровно файлы закреплённой версии
+// пакета: sha256 блока равен записанному здесь. Правило content:"175 968 ₽" в kit.css
+// меняет хэш, и публикация останавливается с прямой причиной. Новая версия пакета: пересчитать
+// хэши (команда в docs/RUNBOOK.md, «Что проверяет шифровальщик») и записать сюда.
+const PINNED = {
+  "ks-tokens": "d735d2032c1b50ad6efcd9540284de27996a861c8cfc5d01a66f7c50cdef9ef8",
+  "ks-kit":    "ca434457bf1842091942d7494ea199aa7950eb6bf25ff7c9b6b8d2ce58a8b4d6",
+};
+const sha = t => createHash("sha256").update(t, "utf8").digest("hex");
+// Текст для поиска: разметка и текст как есть; у стилей и скрипта окна пароля только
+// комментарии и строки (объявления CSS и код не данные, а в них полно чисел вида 400 и 1024).
+for (const id of Object.keys(PINNED)) {
+  const blk = openPart.match(new RegExp('<style id="' + id + '">\\n([\\s\\S]*?)\\n</style>'));
+  if (!blk || sha(blk[1]) !== PINNED[id])
+    fail("Стили пакета Контур DS (" + id + ") не совпадают с закреплённой версией: пакет правили или обновили. "
+      + "Проверь правку и пересчитай хэши в tools/seal_page.mjs (docs/RUNBOOK.md, «Что проверяет шифровальщик»).");
+}
+let scan = openPart.replace(/<style id="(ks-tokens|ks-kit)">[\s\S]*?<\/style>/g, " ");
+const keepTalk = t => (t.match(/\/\*[\s\S]*?\*\/|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`[^`]*`/g) || []).join(" ");
+scan = scan.replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi, (a0, o, body, c) => o + keepTalk(body) + c)
+  .replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script\s*>)/gi, (a0, o, body, c) => o + keepTalk(body) + c)
+  // служебные атрибуты: адрес шрифта (wght@400;500), геометрия иконок, цвет темы
+  .replace(/<(link|meta)\b[^>]*>/gi, " ").replace(/\s(d|viewBox|width|height|stroke-width)="[^"]*"/g, " ")
   .replace(/#[0-9a-fA-F]{3,8}\b/g, "#");
+const openText = scan;
 const leaks = new Set();
+const SEP = [" ", "\u00a0", "\u202f", "\u2009"];
+const grp = (i, sp) => i.replace(/\B(?=(\d{3})+(?!\d))/g, sp);
+const dec = (x, d) => x.toFixed(d).replace(/\.?0+$/, "").replace(".", ",");
 (function walk(o) {
   if (o == null) return;
-  if (typeof o === "number" && Math.abs(o) >= 1000) {
-    // Число ищется и в сыром виде, и в экранном: разряды через пробел или
-    // неразрывный пробел, как их печатает nf(), и в миллионах.
-    const i = String(Math.trunc(Math.abs(o)));
-    const forms = [String(o), i.replace(/\B(?=(\d{3})+(?!\d))/g, " "), i.replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0")];
-    if (Math.abs(o) >= 1e6 && Math.abs(o) % 1e6 === 0) forms.push(Math.abs(o) / 1e6 + " млн", Math.abs(o) / 1e6 + "\u00a0млн");
-    for (const f of forms) {
-      const re = new RegExp("(?<![\\w.])" + f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w])");
+  if (typeof o === "number" && Math.abs(o) >= 100 && !PUBLIC_NUM.has(Math.abs(o))) {
+    // Число ищется в сыром виде, с разрядами через любой пробел, как их печатает nf(),
+    // и в коротких формах: тыс., млн, млрд.
+    const x = Math.abs(o), i = String(Math.trunc(x));
+    const forms = [String(o), ...SEP.map(sp => grp(i, sp))];
+    for (const sp of SEP) {
+      if (x >= 1e4) forms.push(dec(x / 1e3, 0) + sp + "тыс", dec(x / 1e3, 1) + sp + "тыс");
+      if (x >= 1e6) forms.push(dec(x / 1e6, 0) + sp + "млн", dec(x / 1e6, 1) + sp + "млн", dec(x / 1e6, 2) + sp + "млн");
+      if (x >= 1e8) forms.push(dec(x / 1e9, 1) + sp + "млрд", dec(x / 1e9, 2) + sp + "млрд");
+    }
+    for (const f of new Set(forms)) {
+      const re = new RegExp("(?<![\\w.,])" + f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w]|,\\d)");
       if (re.test(openText)) { leaks.add(f); break; }
     }
   } else if (typeof o === "string" && o.length >= 8 && !PUBLIC.has(o)) {

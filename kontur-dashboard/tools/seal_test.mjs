@@ -22,7 +22,7 @@ const GOOD = 'Kontur-Seal-Test-' + Math.random().toString(36).slice(2, 10);
 
 const BAD = [
   ['скрытый абзац с расходом', before('<p hidden>Расход 175 968 ₽, клики 1 595</p>\n')],
-  ['план с неразрывными пробелами', before('<p hidden>План 240 000 000 ₽</p>\n')],
+  ['план с неразрывными пробелами', before('<p hidden>План 240\u00a0000\u00a0000 ₽</p>\n')],
   ['число в CSS content', before('<style>.x::after{content:"175 968 ₽"}</style>\n')],
   ['план в комментарии HTML', before('<!-- план GENGLASS 240 000 000 ₽ -->\n')],
   ['имя цели в комментарии HTML', before('<!-- CRM | Все лиды | 18.11.25 -->\n')],
@@ -30,7 +30,7 @@ const BAD = [
   ['производное число', before('<p hidden>Потолок 36 000 000 ₽, вернуть 252 000 000 ₽</p>\n')],
   ['мелкие числа', before('<p hidden>147 заявок, 19 посадочных, 101 из 105</p>\n')],
   ['короткие формы', before('<p hidden>Расход 176 тыс. ₽, план 0,24 млрд ₽</p>\n')],
-  ['узкий пробел', before('<p hidden>План 240 000 000 ₽</p>\n')],
+  ['узкий пробел', before('<p hidden>План 240\u202f000\u202f000 ₽</p>\n')],
   ['число в заголовке окна', (h) => h.replace(TITLE, '<title>Контур: план 240 000 000 ₽</title>')],
   ['обработчик события', before('<img alt="" src="data:," onerror="window.__h=1">\n')],
   ['лишний JSON-скрипт', before('<script type="application/json" id="x">{"a":"b"}</script>\n')],
@@ -68,12 +68,50 @@ for (const [name, pass, hub] of PASS) {
   const r = run(name, SRC, pass, hub);
   if (r.ok) { console.log('  ПРОСКОЧИЛО: ' + name); bad++; } else console.log('  поймано: ' + name + '  ->  ' + r.err.slice(0, 90));
 }
+// Правка исходников: копия проекта во временном каталоге, правка, пересборка,
+// шифрование. Первый слой здесь пройдёт (страница совпадает со своими исходниками),
+// поймать обязан второй. Без второго слоя эти случаи проскакивают.
+const ROOT = new URL('../..', import.meta.url).pathname;
+function srcCase(name, edit) {
+  const ws = OUT + '/ws';
+  fs.rmSync(ws, { recursive: true, force: true });
+  for (const d of ['kontur-dashboard', 'kontur-ds'])
+    fs.cpSync(ROOT + d, ws + '/' + d, { recursive: true, filter: f => !/node_modules|__pycache__|\/rive\/|specimen/.test(f) });
+  if (edit) edit(ws);
+  try {
+    execFileSync('python3', [ws + '/kontur-dashboard/src/build.py'], { stdio: ['ignore', 'ignore', 'pipe'] });
+    execFileSync('node', [ws + '/kontur-dashboard/tools/seal_page.mjs', ws + '/kontur-dashboard/public/index.html'],
+      { env: { ...process.env, KONTUR_PASS: GOOD, HUB_PASS: '' }, stdio: ['ignore', 'ignore', 'pipe'] });
+    return { ok: true };
+  } catch (e) { return { ok: false, err: String(e.stderr || '').trim().split('\n').pop() }; }
+}
+const patch = (ws, rel, from, to) => { const f = ws + '/' + rel, t = fs.readFileSync(f, 'utf8');
+  if (!t.includes(from)) throw new Error('правка не нашла место: ' + rel); fs.writeFileSync(f, t.replace(from, to)); };
+const inBody = (x) => (ws) => patch(ws, 'kontur-dashboard/src/modules/shell.py', '<div class="gate" id="gate">', x + '\n<div class="gate" id="gate">');
+const SRC_BAD = [
+  ['исходники: расход в правиле kit.css', (ws) => fs.appendFileSync(ws + '/kontur-ds/kit/kit.css', '\n.x::after{ content:"Расход 175 968 ₽"; }\n')],
+  ['исходники: «147 заявок» в разметке', inBody('<p hidden>147 заявок</p>')],
+  ['исходники: расход в тысячах', inBody('<p hidden>Расход 176 тыс. ₽</p>')],
+  ['исходники: план с узким пробелом', inBody('<p hidden>План 240\u2009000\u2009000 ₽</p>')],
+  ['исходники: план в комментарии своего CSS', (ws) => patch(ws, 'kontur-dashboard/src/modules/head.py', "LOCAL_CSS = r'''", "LOCAL_CSS = r'''\n/* план 240 000 000 ₽ */")],
+  ['исходники: <img onerror>', inBody('<img alt="" src="data:," onerror="window.__h=1">')],
+  ['исходники: <svg/onload>', inBody('<svg/onload="window.__h=1"></svg>')],
+  ['исходники: <SCRIPT> заглавными', inBody('<SCRIPT>window.__s=1</SCRIPT>')],
+];
+const ctl = srcCase('чистая копия', null);
+if (!ctl.ok) { console.log('  ЧИСТАЯ КОПИЯ НЕ ПРОШЛА, случаи с исходниками не проверить: ' + ctl.err); bad++; }
+else for (const [name, edit] of SRC_BAD) {
+  const r = srcCase(name, edit);
+  if (r.ok) { console.log('  ПРОСКОЧИЛО: ' + name); bad++; } else console.log('  поймано: ' + name + '  ->  ' + r.err.slice(0, 90));
+}
+fs.rmSync(OUT + '/ws', { recursive: true, force: true });
+
 const g = run('чистая страница', SRC, GOOD);
 const leftovers = g.ok ? ['const DB = ', '"projects"', 'function render', 'KS.head', '240 000 000'].filter(x => g.out.includes(x)) : [];
 if (!g.ok) { console.log('  ЧИСТАЯ СТРАНИЦА НЕ ПРОШЛА: ' + g.err); bad++; }
 else if (leftovers.length) { console.log('  ПОСЛЕ ШИФРОВАНИЯ ОСТАЛОСЬ: ' + leftovers.join(' | ')); bad++; }
 else console.log('  чистая страница зашифрована, данных и кода вне шифра нет');
 
-const total = BAD.length + PASS.length + 1;
+const total = BAD.length + PASS.length + SRC_BAD.length + 2;
 console.log(`\nитог: ${total - bad} из ${total}`);
 process.exit(bad ? 1 : 0);

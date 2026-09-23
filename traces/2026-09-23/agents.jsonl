@@ -14,3 +14,4 @@
 {"ts": "2026-09-23T15:48:53+00:00", "event": "subagent_stop", "agent": "feniks", "tier": "0", "session_id": "7a773ec9-494b-508c-bc3e-da55559e1286", "agent_id": "a5893c8c486c22f52", "msg_chars": 3886, "outcome": "unknown"}
 {"ts": "2026-09-23T15:59:01+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "7a773ec9-494b-508c-bc3e-da55559e1286", "agent_id": "a0ab9780778e46498"}
 {"ts": "2026-09-23T15:59:54+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/S/fx6/i2src, /home/user/t1/S/fx6/i3"}
+{"ts": "2026-09-23T16:05:40+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/i3/bld_run.txt"}

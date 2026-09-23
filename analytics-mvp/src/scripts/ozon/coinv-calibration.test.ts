@@ -10,8 +10,14 @@ const fact = (art: string, buyer: number, ozon: number, seller: number): FactRow
   paid_by_buyer: buyer, paid_by_ozon: ozon, partner_programs: 0,
   ozon_share_pct: Math.round(1000 * ozon / seller) / 10, period: "2026-08",
 });
-const our = (art: string, site: number, cap: number, date = "2026-08-10"): OurRow => ({
-  date, art, site, cap, coinv_pct: Math.round(1000 * (1 - site / cap)) / 10,
+const our = (art: string, listed: number, cap: number, date = "2026-08-10", paid?: number): OurRow => ({
+  date, art, cap, site_listed: listed, site_paid: paid, observed: true, in_panel: true,
+  coinv_listed_pct: Math.round(1000 * (1 - listed / cap)) / 10,
+  coinv_paid_pct: paid ? Math.round(1000 * (1 - paid / cap)) / 10 : undefined,
+});
+/** Снимок старой схемы (до 23.09): другие имена полей, флага observed нет. */
+const ourOld = (art: string, site: number, cap: number, date = "2026-08-10"): OurRow => ({
+  date, art, cap, site, coinv_pct: Math.round(1000 * (1 - site / cap)) / 10,
 });
 
 describe("эталон начислений", () => {
@@ -29,17 +35,17 @@ describe("калибровка называет виновную цену", () =
   it("витрина снята выше фактической - виновата витрина", () => {
     // Покупатель платит 40, мы записали витрину 50. Предельная у нас верная.
     const c = calibrate([fact("A", 40, 60, 100)], [our("A", 50, 100)], "2026-08");
-    expect(c.our).toBe(50);            // 1 - 50/100
+    expect(c.listed).toBe(50);         // 1 - 50/100
     expect(c.withFactBuyer).toBe(60);  // 1 - 40/100, вышли на факт
     expect(c.withFactCap).toBe(50);    // предельная и так верная, ничего не изменилось
     expect(c.fact).toBe(60);
-    expect(verdict(c)).toContain("витрина");
+    expect(verdict(c)).toContain("цена, которую платит покупатель");
   });
 
   it("предельная снята ниже фактической - виновата предельная", () => {
     // Витрина у нас верная (40), а предельную записали 80 вместо 100.
     const c = calibrate([fact("A", 40, 60, 100)], [our("A", 40, 80)], "2026-08");
-    expect(c.our).toBe(50);
+    expect(c.listed).toBe(50);
     expect(c.withFactCap).toBe(60);
     expect(verdict(c)).toContain("предельная цена");
   });
@@ -49,10 +55,51 @@ describe("калибровка называет виновную цену", () =
     expect(verdict(c)).toContain("сходится с фактом");
   });
 
+  it("цена по карте вытягивает показатель на факт там, где витрина не дотягивает", () => {
+    // Витрина 50, по карте 40, платит покупатель 40. Ряд по карте и есть верный.
+    const c = calibrate([fact("A", 40, 60, 100)], [our("A", 50, 100, "2026-08-10", 40)], "2026-08");
+    expect(c.listed).toBe(50);
+    expect(c.paid).toBe(60);
+    expect(c.fact).toBe(60);
+    expect(c.artsWithPaid).toBe(1);
+    expect(verdict(c)).toContain("по цене с картой");
+  });
+
+  it("читает снимок старой схемы, а не обнуляет его", () => {
+    const c = calibrate([fact("A", 40, 60, 100)], [ourOld("A", 50, 100)], "2026-08");
+    expect(c.listed).toBe(50);
+    expect(c.paid).toBeNull();
+    expect(c.artsWithPaid).toBe(0);
+  });
+
+  it("день без наблюдения в свёртку не попадает", () => {
+    const bad = { ...our("A", 10, 100, "2026-08-11"), observed: false };
+    const c = calibrate([fact("A", 40, 60, 100)], [our("A", 50, 100), bad], "2026-08");
+    expect(c.listed).toBe(50);   // не 70, как было бы со средним по обоим дням
+    expect(c.snaps[0]!.days).toBe(1);
+  });
+
+  it("считает разброс цены внутри периода и отсекает по нему", () => {
+    const rows = [our("A", 50, 100, "2026-08-01"), our("A", 80, 100, "2026-08-02")];
+    const wide = calibrate([fact("A", 40, 60, 100)], rows, "2026-08");
+    expect(wide.snaps[0]!.spread).toBe(0.462);   // (80-50)/65
+    expect(calibrate([fact("A", 40, 60, 100)], rows, "2026-08", 0.15).ordersMatched).toBe(0);
+  });
+
+  it("считает по заказам, а не по артикулам: частый артикул весит больше", () => {
+    // У A два заказа, у B один. Медиана по заказам идёт по A, по артикулам была бы посередине.
+    const f = [fact("A", 40, 60, 100), { ...fact("A", 40, 60, 100), accrual_id: "A-2" }, fact("B", 10, 90, 100)];
+    const c = calibrate(f, [our("A", 50, 100), our("B", 20, 100)], "2026-08");
+    expect(c.ordersMatched).toBe(3);
+    expect(c.listed).toBe(50);   // медиана по трём заказам: 50, 50, 80
+    expect(c.fact).toBe(60);
+  });
+
   it("артикул без нашего снимка идёт в пробел, а не в среднее", () => {
     const c = calibrate([fact("A", 40, 60, 100), fact("B", 30, 70, 100)], [our("A", 50, 100)], "2026-08");
     expect(c.artsTotal).toBe(2);
     expect(c.artsMatched).toBe(1);
+    expect(c.ordersMatched).toBe(1);
     expect(c.missing).toEqual(["B"]);
     expect(c.revenueTotal).toBe(200);
     expect(c.revenueMatched).toBe(100);
@@ -69,7 +116,7 @@ describe("калибровка называет виновную цену", () =
     const july = { ...fact("A", 10, 90, 100), period: "2026-07", accrual_id: "A-7" };
     const c = calibrate([fact("A", 40, 60, 100), july], [our("A", 50, 100), our("A", 10, 100, "2026-07-10")], "2026-08");
     expect(c.ordersTotal).toBe(1);
-    expect(c.our).toBe(50);
+    expect(c.listed).toBe(50);
     expect(c.fact).toBe(60);
   });
 });

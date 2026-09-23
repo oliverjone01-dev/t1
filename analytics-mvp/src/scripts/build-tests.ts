@@ -119,16 +119,29 @@ for (const r of readNd(dp("ads_daily.ndjson"))) {
   c["adviews"] = (c["adviews"] || 0) + (r.vw || 0);
 }
 
-// Цена на витрине: тот же ряд, что и соинвест (prices-daily.ts пишет обе цены).
+// Соинвест и цена на витрине. Считаем по цене, которую покупатель реально платит (с картой
+// Ozon), а не по витринной: сверка с реестром начислений за август показала, что витрина
+// занижает долю Ozon на пять пунктов, потому что скидку по карте платит тоже Ozon.
+// Проверка воспроизводится: npm run coinv:calib.
+const coinvOf = (r: Record<string, unknown>): number => Number(r["coinv_paid_pct"] ?? r["coinv_pct"] ?? r["coinv"]);
+const siteOf = (r: Record<string, unknown>): number => Number(r["site_paid"] ?? r["site_listed"] ?? r["site"] ?? r["price"]);
+// День без наблюдения (у Ивана это 19 и 20.09: снимок продублировался) - пробел, а не точка.
+// Флага нет в снимках до 23.09, там наблюдение считаем состоявшимся.
+const observedOf = (r: Record<string, unknown>): boolean => r["observed"] !== false;
+
 let coinvSkipped = 0;
+const panel = new Set<string>();
+let panelFixed = false;
 for (const r of readNd(dp("coinv_daily.ndjson"))) {
   const art = String(r.art ?? r.offer ?? "").trim();
   const d = String(r.date ?? r.d ?? "").slice(0, 10);
   if (!art || !d) continue;
-  if (r.cap_reliable === false) { coinvSkipped++; continue; }
-  const co = Number(r.coinv_pct ?? r.coinv);
+  if (r.in_panel != null) { panelFixed = true; if (r.in_panel) panel.add(art); }
+  if (!observedOf(r)) { coinvSkipped++; continue; }
+  const co = coinvOf(r);
   if (Number.isFinite(co)) cell(art, d)["coinv"] = co;
-  if (Number(r.site) > 0) cell(art, d)["price"] = Number(r.site);
+  const site = siteOf(r);
+  if (Number.isFinite(site) && site > 0) cell(art, d)["price"] = site;
   if (Number(r.cap) > 0) cell(art, d)["cap"] = Number(r.cap);
 }
 
@@ -138,8 +151,9 @@ for (const r of priceRows) {
   const art = String(r.offer ?? r.art ?? "").trim();
   const d = String(r.d ?? r.date ?? "").slice(0, 10);
   if (!art || !d) continue;
-  const site = Number(r.price ?? r.site), cap = Number(r.before ?? r.cap);
-  const co = r.coinv ?? r.coinv_pct;
+  // Свой снимок: paid это цена по карте, price - витрина. Второе берём только если первого нет.
+  const site = Number(r.paid ?? r.price ?? r.site), cap = Number(r.before ?? r.cap);
+  const co = r.coinv_paid ?? r.coinv ?? r.coinv_pct;
   if (co != null && Number.isFinite(Number(co))) cell(art, d)["coinv"] = Number(co);
   if (Number.isFinite(site) && site > 0) cell(art, d)["price"] = site;
   if (Number.isFinite(cap) && cap > 0) cell(art, d)["cap"] = cap;
@@ -293,7 +307,9 @@ function pairDeltas(t: TestDef, key: string, base: string[], post: string[]): Pa
 const PER_ART: Array<[string, string]> = [["vsearch", "Поиск"], ["views", "Показы"],
   ["pdp", "Карточка"], ["cart", "Корзина"]];
 if (HAS_POS) PER_ART.push(["pos", "Позиция"]);
-if (HAS_COINV) PER_ART.push(["coinv", "Соинвест"]);
+// Колонки «Соинвест» в разрезе по артикулам нет: она показывала разрыв тест минус контроль,
+// то есть заявленный эффект, а вывод по нему снят вето ФЕНИКСА 23.09 (окно замера непригодно).
+// Ряд и график соинвеста остаются, они описательные.
 
 function deadControl(t: TestDef): string {
   const st = t.старт!;
@@ -312,14 +328,6 @@ function deadControl(t: TestDef): string {
     + bad.map((x) => `<li>${x}</li>`).join("") + `</ul>Пару надо переподобрать до замера.</div>`;
 }
 
-function levelGap(test: string, ctl: string, key: string): { v: number; d: string } | null {
-  const a = series.get(test), b = series.get(ctl);
-  if (!a || !b) return null;
-  const days = [...a.keys()].filter((d) => a.get(d)?.[key] != null && b.get(d)?.[key] != null).sort();
-  const d = days[days.length - 1];
-  if (!d) return null;
-  return { v: (a.get(d)![key] as number) - (b.get(d)![key] as number), d };
-}
 
 function perArticle(t: TestDef): string {
   const st = t.старт!;
@@ -339,12 +347,6 @@ function perArticle(t: TestDef): string {
   const ordT = (a: string) => nums(artDaily(a, days, "units")).reduce((x, y) => x + y, 0);
   const first = byKey.get("vsearch") || [];
   if (!first.length) return "";
-  const gapCell = (test: string, ctl: string, key: string) => {
-    const g = levelGap(test, ctl, key);
-    if (!g) return '<td class="r muted">-</td>';
-    const cls = Math.abs(g.v) >= 2 ? (g.v > 0 ? "up" : "dn") : "";
-    return `<td class="r ${cls}" title="Разрыв уровней на ${g.d}: у соинвеста нет базы «до», ряд начался 19.09">${g.v >= 0 ? "+" : ""}${g.v.toFixed(1)}</td>`;
-  };
   const cell = (d: PairDelta | undefined, key = "") => {
     if (!d) return '<td class="r muted">-</td>';
     const good = key === "pos" ? d.dd < 0 : d.dd > 0;   // у позиции меньше - лучше
@@ -354,16 +356,11 @@ function perArticle(t: TestDef): string {
   const rows = first.map((p) => {
     const sb = meanOf(p.test, base, "spend"), sp = meanOf(p.test, days, "spend");
     return `<tr><td>${esc(p.test)}</td><td class="muted">${esc(p.ctl)}</td>`
-      + cols.map(([k]) => k === "coinv" ? gapCell(p.test, p.ctl, k) : cell(byKey.get(k)!.find((x) => x.test === p.test), k)).join("")
+      + cols.map(([k]) => cell(byKey.get(k)!.find((x) => x.test === p.test), k)).join("")
       + `<td class="r sep">${(sb || sp) ? nbsp(sb) + " → " + nbsp(sp) : "-"}</td>`
       + `<td class="r">${ordT(p.test)} / ${ordT(p.ctl)}</td></tr>`;
   }).join("");
   const med = cols.map(([k]) => {
-    if (k === "coinv") {
-      const g = first.map((p) => levelGap(p.test, p.ctl, k)).filter((x): x is { v: number; d: string } => !!x);
-      const m = median(g.map((x) => x.v));
-      return `<td class="r"><b>${m == null ? "-" : (m >= 0 ? "+" : "") + m.toFixed(1)}</b></td>`;
-    }
     const m = median(byKey.get(k)!.map((x) => x.dd));
     return `<td class="r"><b>${m == null ? "-" : (m >= 0 ? "+" : "") + m.toFixed(0)}</b></td>`;
   }).join("");
@@ -455,7 +452,9 @@ function chart(t: TestDef, cid: string): string {
     } else {
       const v = (x: number) => Number.isFinite(x) ? nbsp(x) + unit : "нет данных";
       let extra = "";
-      if (LEVEL.has(key)) {
+      // Соинвест из этого правила исключён: разрыв и сдвиг это заявка на эффект теста,
+      // а она снята вето 23.09. График и сам ряд остаются.
+      if (LEVEL.has(key) && key !== "coinv") {
         const gb = bT - bC, gp = pT - pC;      // разрыв в базе и после старта, в пунктах
         if (Number.isFinite(gb) && Number.isFinite(gp)) {
           const sgn = (x: number) => (x >= 0 ? "+" : "") + x.toFixed(1);
@@ -591,7 +590,25 @@ const mblock = measured.length ? `<h2 class="sec">Измеренные тест�
   + `<div class="res">${(t.res || []).map(([a, b]: [string, string]) => `${esc(a)}: ${esc(b)}`).join(" · ")}</div>`
   + `<div class="muted">${esc(t.note || "")}</div></div>`).join("") : "";
 
-const notes = (T.заметки || []).map((n) => `<li>${esc(n)}</li>`).join("");
+// Пробелы снимка цен - в заметки страницы: §15 требует подсвечивать их в дашборде, а не
+// ждать, пока кто-то заметит расхождение сам.
+const gaps: string[] = [];
+if (coinvSkipped) gaps.push(`Дней без наблюдения в снимке цен: ${nbsp(coinvSkipped)} строк.`
+  + ` Такие дни идут пробелом, а не точкой: 19 и 20.09 снимок продублировал вчерашние цены,`
+  + ` и рисовать по ним линию значило бы показывать данные, которых нет.`);
+if (panelFixed) {
+  const outside = [...artSet].filter((a) => !panel.has(a));
+  gaps.push(`Состав панели снимка зафиксирован: ${nbsp(panel.size)} артикулов.`
+    + (outside.length
+      ? ` Вне панели ${outside.length} из ${artSet.size} артикулов тестов: ${outside.slice(0, 6).map(esc).join(", ")}${outside.length > 6 ? " и ещё " + (outside.length - 6) : ""}. По ним соинвеста нет.`
+      : ` Все ${artSet.size} артикулов тестов в панель входят.`));
+}
+gaps.push("Соинвест считается по цене, которую покупатель платит с картой Ozon, а не по"
+  + " витринной. Сверка с реестром начислений за август (npm run coinv:calib): по витрине"
+  + " 49.2 %, по цене с картой 54.3 %, факт 57.4 %; на артикулах со стабильной внутри месяца"
+  + " ценой расхождение с фактом 0.5 пункта. Разницу между предельной ценой и тем, что заплатил"
+  + " покупатель, оплачивает Ozon.");
+const notes = [...(T.заметки || []), ...gaps].map((n) => `<li>${esc(n)}</li>`).join("");
 const nav = KPAGES.map(([h, l, key]) => navButton(h, l, key === "tests")).join(" ");
 
 const CSS = `:root{--bg:#0b0f17;--card:#12161f;--soft:#232B36;--ink:#e8eef2;--ink2:#9fb2c0;--ink3:#5d7484;--cy:#22D3EE;--up:#34D399;--warn:#E5B567;--s1:${C_TEST};--s2:${C_CTRL}}

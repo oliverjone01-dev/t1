@@ -1,0 +1,365 @@
+{
+ "agent": "feniks",
+ "skill": "phoenix-eval",
+ "task_id": "feniks-kontur-dashboard-pr358-008",
+ "timestamp": "2026-09-23T22:46:48+00:00",
+ "deliverable_ref": "kontur-dashboard/ (ветка claude/kontur-dashboard, HEAD eacdd054; на origin 79fb0bc9, сверху только traces), PR #358; мини-PR #401 (claude/kontur-snapshot-only, 98b6d90c)",
+ "artifact_class": "mixed",
+ "audience": "Иван (HITL по CLAUDE.md §9: атрибуция принятого риска; решение о продолжении цикла и о PR #401), автор PR #358 и #401",
+ "anchor": "6.7 return реестр замечаний (dialogs-registry) - наш артефакт выше на 0.40. Профиль тот же, что у реестра до доработки: правки есть, но часть поверхностей и один класс утверждений остались. Выше, потому что три блокера итерации 7 закрыты и проверены исполнением: метка ГИПОТЕЗА доехала до печати (PDF листа собственнику, 7 меток в каждом проекте), «кто / когда» совпадают на всех экранах, второй слой гейта закрыл формы утечки итерации 7, а выбивание слоя теперь роняет тест (без второго слоя 8 случаев проскочили, exit 1). Ниже 7.6 (ТИМУР, итерация 1): там один непройденный гейт, здесь провален Comprehension Gate на листе собственнику (два листа при обещании одного), в гейте три новых класса обхода (meta, дубль блока пакета, srcdoc), утверждение «потеряно без возврата» опровергает история main, решение о публикации без действия Ивана. Серия 6.60 -> 6.85 -> 7.10, расхождение с якорем 0.40, дрейфа нет.",
+ "p9_triggers_fired": [
+  "ROI / ROMI (экран «Пороги и ROI», правило 2 на «Расходе и CPL»)",
+  "эффект на выручку («Мост до денег», лист собственнику)",
+  "«в разы» без числа на пяти поверхностях P0 при посчитанных 10,5",
+  "«без возврата» о точках съёма против истории main"
+ ],
+ "sources_of_truth": [
+  "knowledge/episodes/2026-09/feniks-audit-kontur-dashboard-iter7-20260923.json (gaps, rework_tz п.1-10, comprehension_gate)",
+  "git: claude/kontur-dashboard eacdd054 (origin 79fb0bc9), claude/kontur-snapshot-only 98b6d90c, origin/main d94fead5 (git ls-remote 23.09 около 22:15 UTC)",
+  "api.github.com /pulls/358, /pulls/358/reviews, /issues/358/comments, /issues/comments/5803581255, /pulls/401, /pulls/401/files (23.09 около 22:15 UTC)",
+  "gg-seo-geo-monster/data/{genglass,glass-memory}/keysso.json на коммитах harvest в origin/main 02.09-22.09 (git show)",
+  "kontur-dashboard/tools/seal_page.mjs и seal_test.mjs @6299b7f6; дословный шаг «Build KONTUR» из .github/workflows/deploy-pages.yml @a04e8daa",
+  "kontur-dashboard/data/kontur.json 05562962 против eacdd054 (kdiff.py)",
+  "PDF листа собственнику (Playwright page.pdf A4, печатные стили), текст через pdf.js",
+  "traces/2026-09-23/agents.jsonl"
+ ],
+ "probes": [
+  {
+   "id": "S1",
+   "result": "PASS",
+   "evidence": "Все проверки автора повторены на клоне ветки (scratchpad/it8/run_pipeline8.sh), коды по отдельности: build_data 0, build 0, check_dash 0, check_ds 0, tamper 24/24, seal_test 33/33, text_scan 0 (104 экрана), smoke 0 (с запечатанной копией), contrast 0 (416 проходов), snapshot.py --check 0 (gm 39 точек, gg 41, по 22.09). Пересборка равна закоммиченным kontur.json и index.html с точностью до поля built, positions.ndjson прогоном не меняется."
+  },
+  {
+   "id": "A1",
+   "result": "PASS",
+   "evidence": "Копия, запечатанная дословным шагом «Build KONTUR» из deploy-pages.yml @a04e8daa (gate_cases8.sh, случай good), живой Chromium (live_gate8.mjs): до пароля DB, appStart, render не определены, окно пароля на месте, #app hidden, групп из 3+ цифр в тексте 0."
+  },
+  {
+   "id": "A1r",
+   "result": "PARTIAL",
+   "evidence": "Сдвиг с итерации 7: в PR #358 появился комментарий 5803581255 (23.09 21:53:52Z, учётная запись oliverjone01-dev, OWNER) с дословными ответами владельца сессии. Сам комментарий пишет: «написан Claude по поручению владельца сессии от учётной записи, подключённой к сессии. Это не запись Ивана его собственной учётной записью». Подделки голоса Ивана нет, это честно, и поэтому п.1 не закрыт: запись сделал агент, а CLAUDE.md §9 отдаёт решение о публикации Ивану. Ревью 0, комментариев к коду 0, PR draft (api.github.com, 23.09 около 22:15 UTC). RISK.md:19-20 без ссылки на действие Ивана, в traces/2026-09-23 события решения нет. [РАССУЖДЕНИЕ] Владелец сессии называет Ивана в третьем лице («2 Иван - конец отчетного мес»), учётные данные сессии в моём контексте не указывают на Ивана Раюшкина. «Согласовано, делай» в ответ на просьбу о комментарии Ивана передаёт действие агенту и не заменяет подпись человека."
+  },
+  {
+   "id": "A2",
+   "result": "PASS",
+   "evidence": "Поддельный kontur.key плюс kontur.auth=1 и перезагрузка: ключ удалён, DB не определён (live_gate8.mjs)."
+  },
+  {
+   "id": "A3",
+   "result": "PASS",
+   "evidence": "Дословный шаг: секрета нет -> ::warning::, exit 0, не опубликовано; 11 знаков, genmonster2026!, KONTUR_PASS = HUB_PASS -> exit 1. Замечание без веса прежнее: kontur123456 принят, политика только по длине."
+  },
+  {
+   "id": "A4",
+   "result": "PASS",
+   "evidence": "Неверный пароль: сообщение об ошибке за 223 мс, DB не определён."
+  },
+  {
+   "id": "A5",
+   "result": "PARTIAL",
+   "evidence": "Второй слой закрыл все формы итерации 7 в исходниках (gate_cases8.sh, шифровальщик сам, без теста): 147, «176 тыс», «0,24 млрд», «240 млн», U+2009, U+202F, <img/onerror>, <svg/onload>, <SCRIPT>, комментарии HTML и CSS с целью и планом. Проходят и публикуются дословным шагом новые формы. (1) Содержимое <meta> не ищется вовсе: seal_page.mjs:136 вырезает теги link и meta целиком. <meta name=\"description\" content=\"Контур: план 240 млн ₽, расход 176 тыс. ₽\"> в head.py опубликован, в файле «240 млн» и «176 тыс» (src_meta_desc_short). Тот же og:description с «240 000 000» останавливает только буквальный поиск этой строки в seal_test.mjs:110, сам шифровальщик его пропускает (src_meta_og). (2) Дробные значения от 100 в русской записи: «Цена клика 110,3 ₽, по кампаниям 151,1 и 121,7 ₽» опубликована (src_decimal_cpc), :156 отсекает продолжение «,\\d». (3) «Клики 1,6 тыс.» (1 595) опубликованы (src_small_thousand): формы «тыс» строятся только от 10 000 (:151). Производное 36 000 000 ловится случайно: в данных есть 252."
+  },
+  {
+   "id": "A5p",
+   "result": "PARTIAL",
+   "evidence": "PINNED работает на правках пакета: pkg_comment_goal, pkg_rule_spend, src_ds_tokens_comment, src_ds_kit_content дают exit 1 с прямой причиной, команда из RUNBOOK.md:164 даёт ровно закреплённые хэши. Новый обход того же механизма: хэш проверяется у первого блока с id (seal_page.mjs:126, match), а из поиска вырезаются все блоки с этим id (:131, replace /g). Второй блок <style id=\"ks-tokens\"> с комментарием «CRM | Все лиды | 18.11.25, расход 175 968 ₽» в shell.py опубликован дословным шагом, обе строки в файле (src_dup_tokens_comment). Такой же блок ks-kit с «240 000 000» остановлен только буквальным поиском в seal_test (src_dup_kit_block, шифровальщик сам его пропускает). Критерий п.6 итерации 7 («исключать, только если sha256 блока равен закреплённому») для второго блока не выполняется."
+  },
+  {
+   "id": "A5s",
+   "result": "PARTIAL",
+   "evidence": "Код вне шифра без тега script: <iframe hidden srcdoc=\"&lt;script&gt;...&lt;/script&gt;\"> в shell.py проходит оба слоя и публикуется (src_iframe_srcdoc). Живьём (live_gate8.mjs srcdoc): скрипт выполнился до пароля (window.__srcdoc = 1), после верного пароля кадр того же происхождения читает kontur.key из sessionStorage (44 символа). Правила seal_page.mjs:94-104 запрещают строки, а не разрешают теги. Вектор для того, кто правит исходники, а не случайная утечка, поэтому PARTIAL."
+  },
+  {
+   "id": "A5t",
+   "result": "PASS",
+   "evidence": "Выбивание слоёв (layer_causality8.sh): без второго слоя seal_test exit 1, проскочили 8 случаев с правкой исходников; без проверки PINNED exit 1 (проскочило правило в kit.css); без первого слоя 32 из 33. Критерий п.6 итерации 7 выполнен."
+  },
+  {
+   "id": "A6",
+   "result": "PASS",
+   "evidence": "Верный пароль: окно ушло за 340 мс, 104 экрана рисуются, пустых 0, ошибок страницы 0."
+  },
+  {
+   "id": "A7",
+   "result": "PASS",
+   "evidence": "В sessionStorage 44 символа (ключ, не пароль), перезагрузка держит сессию."
+  },
+  {
+   "id": "A8",
+   "result": "PASS",
+   "evidence": "integrity в странице тот же sha384 (KNaFJ+EK516R...), что проверен живьём в итерации 7; тег ApexCharts не менялся."
+  },
+  {
+   "id": "B1",
+   "result": "PASS",
+   "evidence": "facts.published переведён в ГИПОТЕЗА «со слов команды: документа в репозитории нет» (kdiff.py). Конверты ДАННЫЕ ведут на файл или метод API."
+  },
+  {
+   "id": "B1h",
+   "result": "FAIL",
+   "evidence": "Утверждение о невосстановимых точках не сходится с историей main. «Позиции по дням» и «Журнал съёмов» (botLine, core.py) пишут «каждый будний день теряется точка по топ-50 и ответам ИИ», «Журнал съёмов» добавляет «Пропущенный съём не восстанавливается», коммит и описание PR #401: «будни с 19.09 потеряны без возврата». Проба backfill_probe.py (git show по коммитам harvest в origin/main): у каждого проекта 12 коммитов keysso.json с 02.09 по 22.09, в каждом measured, top50 и ai_answers. Например ad1ad292 (21.09): GENGLASS топ-50 2 118, ответов ИИ 104; GLASS-MEMORY 568 и 68. Своими точками в ряду стоят 3 из них (07.09, 19.09, 22.09), остальные 9 дат есть только строками --seed без топ-50 и ответов ИИ, отсюда «3 из 41» на «Обзоре». Бот читает тот же keysso.json и от потери не защищает: если harvest прошёл, точка уже в git; если нет (23.09), боту нечего записать. Моя доля: gap 9 и п.2 итерации 7 стояли на той же ложной посылке."
+  },
+  {
+   "id": "B2",
+   "result": "PASS",
+   "evidence": "Числа не менялись с 05562962: kdiff.py нашёл 11 изменённых листьев kontur.json (bot, built, decisions, класс и источник facts.published, подписи двух точек ряда), ни одного числового. Сверка итерации 7 с исходными выгрузками (15 из 15) действует, пересборка равна закоммиченному."
+  },
+  {
+   "id": "B2b",
+   "result": "PASS",
+   "evidence": "У GLASS-MEMORY «Своей выгрузки Директа у проекта нет», цифр Директа на экране нет (дамп gm/yd-cost)."
+  },
+  {
+   "id": "B3",
+   "result": "PASS",
+   "evidence": "Согласование числа и слова на четырёх периодах (agree_all.py по screens8.all.txt): 0 ошибок, единственное совпадение «11-15 позиции» это диапазон."
+  },
+  {
+   "id": "B4",
+   "result": "PASS",
+   "evidence": "«Кто / когда» по дампу: средний чек и сверка моста - Иван, до 30.09.2026 на каждом экране, где стоит срок; выгрузка сделок - «Иван ставит задачу, исполнитель не назначен», «срок не назначен» на «Плане и факте», «Иван» на «Обзоре», «Что блокирует» и «Решениях», «все на Иване» на листе. Противоречий нет. У GLASS-MEMORY цель заявки подключается после номера счётчика."
+  },
+  {
+   "id": "B5",
+   "result": "PASS",
+   "evidence": "«около двух визитов», «287», «минимум на неделю»: 0 вхождений в дампе 416 отрисовок (в итерации 7: 24, 8 и 8)."
+  },
+  {
+   "id": "B6",
+   "result": "PASS",
+   "evidence": "direct_metrika снята 23.09, keys.so 22.09, пересборка на файлах ветки равна закоммиченной."
+  },
+  {
+   "id": "B7",
+   "result": "PASS",
+   "evidence": "Лист собственнику напечатан в PDF (dump8.mjs: page.pdf A4 с печатными стилями), текст извлечён pdf.js: у 144 / 19 / 29 / 0 и у «29 готовых» стоит «гипотеза», 7 меток в каждом проекте; заголовок раздела 2 «Работа GENGLASS со слов команды, документов в репозитории нет, проверить по ним пока нельзя». Остаток без веса блокера (в accuracy_1): потолок 36 000 000 и 3 300 000 ₽ и «правило 15%» на листе без метки, на «Расходе и CPL» и «Плане и факте» тот же потолок помечен «гипотеза»; план на листе подписан словами «со слов собственника, документа с ним в репозитории нет»."
+  },
+  {
+   "id": "C1",
+   "result": "FAIL",
+   "evidence": "Comprehension Gate: 3 дефекта на P0 и группа мелких (см. comprehension_gate). Из 7 дефектов итерации 7 сняты 5, два частично: «в разы» и вводная «Плана и факта»."
+  },
+  {
+   "id": "C2",
+   "result": "PARTIAL",
+   "evidence": "Коды кластеров объяснены («два кластера карты посадочных (коды С-STAL и В-03)»), 301 и «по интенту» переведены. Остались «база msk» на «Обзоре» обоих проектов, «Срок изготовления: принять разрыв / играем на индивидуальном размере», на печати значки «api» и «P0»."
+  },
+  {
+   "id": "C3",
+   "result": "PASS",
+   "evidence": "U+2014: дамп 416 отрисовок 0, public/index.html 0, CSS и JS пакета 0, файлы PR #401 0, комментарий в PR #358 и описание PR #401 0."
+  },
+  {
+   "id": "C4",
+   "result": "PASS",
+   "evidence": "Шаблоны CLAUDE.md §7 по дампу 416 отрисовок: 0."
+  },
+  {
+   "id": "D1",
+   "result": "PASS",
+   "evidence": "grep самопровозглашённых оценок вида N.N/10 по kontur-dashboard без моих отчётов: 0."
+  },
+  {
+   "id": "O1",
+   "result": "PARTIAL",
+   "evidence": "Прозрачность на тексте, 6 способов (scratchpad/it8/guard_neg8.sh, правка head.py и пересборка): css_opacity: check_dash 1, check_ds 0, contrast 1; filter_opacity: check_dash 1, check_ds 0, contrast 1; color_mix: check_dash 1, check_ds 0, contrast 1; rgb_alpha: check_dash 0, check_ds 0, contrast 1; color_mix_hex0000: check_dash 0, check_ds 0, contrast 1; text_fill_color: check_dash 0, check_ds 0, contrast 0. Проходят все сторожа: text_fill_color (-webkit-text-fill-color: rgb(34 40 48 / 25%) на .ks-page-sub, .ks-note-body, .ks-card-sub, .ks-tile-src): contrast.mjs считает контраст по вычисленному color, а текст рисуется цветом заливки. Способы итерации 7 (filter: opacity(), color-mix с transparent) теперь ловятся обоими сторожами."
+  },
+  {
+   "id": "K2",
+   "result": "PARTIAL",
+   "evidence": "Цвет в графиках мимо слота, 5 способов внутри function draw() (guard_neg8.sh): named: check_dash 1, check_ds 0, contrast skip; hwb: check_dash 1, check_ds 0, contrast skip; forecolor_named: check_dash 0, check_ds 0, contrast skip; strokecolors_named: check_dash 0, check_ds 0, contrast skip; gradient_named: check_dash 0, check_ds 0, contrast skip. check_dash пропускает forecolor_named, strokecolors_named, gradient_named: правило COLOR (check_dash.py:60) ищет только ключи colors и color, а у ApexCharts цвет задают и foreColor, strokeColors, gradientToColors."
+  },
+  {
+   "id": "K3",
+   "result": "PARTIAL",
+   "evidence": "Без изменений: check_ds.py --live при незапущенном браузере печатает «чисто». Задача владельцу пакета kontur-ds, вне этого PR."
+  },
+  {
+   "id": "P1",
+   "result": "PASS",
+   "evidence": "Полный kontur-snapshot.yml в #358 коммитит точку отдельным шагом до пересборки и тестов (шаг «Закоммитить точку съёма» перед «Пересобрать данные и страницу»): красный сторож точку не теряет."
+  },
+  {
+   "id": "P2",
+   "result": "PARTIAL",
+   "evidence": "RUNBOOK.md:158-167 описывает стоп по PINNED и команду пересчёта. Не сказано главное для доступности: безобидная правка пакета (src_ds_kit_harmless: шаг exit 1, не опубликовано) снимает /kontur/ с сайта на ближайшем деплое Pages (суточный по расписанию; kontur-ds/** в paths деплоя нет), и вернуть раздел может только человек, пересчитав хэши. Бот этого не делает."
+  },
+  {
+   "id": "P3",
+   "result": "PASS",
+   "evidence": "PR #401: ровно 3 файла (api /pulls/401/files), в воркфлоу 0 упоминаний secrets, будни 06:00 UTC и workflow_dispatch. snapshot.py и positions.ndjson побайтно равны ветке #358 (git diff eacdd054 98b6d90c: 0 строк). На дереве #401 (git archive) запись идемпотентна: 0 новых точек, md5 файла прежний; --check exit 0, gm 39, gg 41, по 22.09."
+  },
+  {
+   "id": "P4",
+   "result": "PASS",
+   "evidence": "Порядок слияний (git merge-tree): main + #401 чисто; после #401 ветка #358 даёт add/add конфликт в kontur-snapshot.yml, positions.ndjson пока совпадает. Разрешение записано в описании PR #401 («kontur-snapshot.yml взять полный из #358, positions.ndjson объединить построчно»). С первой точкой бота в main конфликт появится и в positions.ndjson."
+  }
+ ],
+ "comprehension_gate": {
+  "applies": true,
+  "passed": false,
+  "defects": [
+   "P0 «Одна страница собственнику» (оба проекта): подзаголовок «Печатается на один лист.», а печать даёт 2 листа A4 (page.pdf без полей, pages = 2 у обоих проектов), на второй лист уходят разделы 4-5 с рекомендацией. Формат «одна страница, три минуты чтения» задал сам собственник (экран «Пороги и ROI», «Правило отказа»). На печать выходят значки «api» и «P0» и фраза «сборка из экранов выше», а на бумаге экранов выше нет. Замена: уложить печать в один лист A4 или писать «Печатается на двух листах A4»; значки на печати скрыть, «сборка из экранов выше» заменить на «собрано из экранов дашборда».",
+   "P0 «Обзор», «Что блокирует», «Решения» GENGLASS и лист собственнику (оба проекта): «модель моста до денег расходится с ними в разы»; P0 «Мост до денег» GENGLASS: «звено «визиты» расходится со счётчиком в разы», а абзацем ниже на том же экране посчитано «завышено как минимум в 10,5 раза». Замена: «модель даёт как минимум в 10,5 раза больше визитов, чем видит счётчик». Моя доля: в итерации 7 я процитировал одно из двух вхождений на листе.",
+   "P0 «План и факт», GENGLASS: вводная «Ниже то, что уже можно сверять: работа, а не деньги.», а карточка ниже «Цифры со слов команды, документа в репозитории нет: сверять пока не с чем». Экран противоречит сам себе. Замена для GENGLASS: «Ниже работа по плану команды. Цифры с её слов, сверять пока не с чем». У GLASS-MEMORY вводная верна, там факт из выгрузок keys.so.",
+   "Мелкие, моя доля (в итерациях 6-7 не вынесены): «база msk» на «Обзоре» обоих проектов, замена «база keys.so по Москве»; «Срок изготовления: принять разрыв» и «играем на индивидуальном размере» («Что блокирует», GENGLASS): непонятно, между чем разрыв. Замена: назвать словами, чей срок короче и на сколько, и «продаём изготовление по размеру клиента»."
+  ]
+ },
+ "checkpoints": {
+  "accuracy_1_figures_tagged": 1,
+  "accuracy_2_sources_verifiable": 2,
+  "accuracy_3_no_conflict_with_rag": 1,
+  "accuracy_4_glossary_terminology": 2,
+  "accuracy_5_brand_names_correct": 2,
+  "actionability_6_owner_assigned": 2,
+  "actionability_7_deadline_buffer": 1,
+  "actionability_8_resources_listed": 1,
+  "actionability_9_metric_concrete": 2,
+  "actionability_10_milestone": 1,
+  "insight_11_nontrivial": 2,
+  "insight_12_second_order": 1,
+  "insight_13_alternatives_analyzed": 2,
+  "insight_14_anti_median": 2,
+  "insight_15_cross_domain": 0,
+  "brand_16_voice": 1,
+  "brand_17_anti_slop": 2,
+  "brand_18_no_em_dash": 2,
+  "brand_19_output_routing": 1,
+  "brand_20_tone_audience": 0,
+  "risk_21_downside": 1,
+  "risk_22_p9_hard_rules": 1,
+  "risk_23_crisis_scenarios": 1,
+  "risk_24_dependencies": 2,
+  "risk_25_reversibility": 2
+ },
+ "scores": {
+  "accuracy": 8.0,
+  "actionability": 7.0,
+  "insight": 7.0,
+  "brand_fit": 6.0,
+  "risk_awareness": 7.0
+ },
+ "weighted_total": 7.1,
+ "verdict": "return",
+ "verdict_override_reason": "weighted_total 7.10 сам по себе даёт return. Выше return вердикт не поднялся бы и при 7.5+: провален Comprehension Gate на листе собственнику, и HITL п.1 не закрыт действием Ивана (CLAUDE.md §9; roster-protocol §5: HITL -> return). Итерация закрыла исполнением три блокера итерации 7 (B7 в PDF, B4, критерий гейта п.6 через выбивание слоя), формы утечки п.7, п.9 и п.10. Оценку держат лист собственнику (формат и «в разы»), ложная посылка о невосстановимых точках (моя доля в итерации 7) и три новых класса обхода гейта.",
+ "evidence_ledger": [
+  {
+   "gap": "A1r PARTIAL: решение о публикации записано агентом, действия Ивана нет",
+   "evidence": "api.github.com /issues/358/comments: 1 комментарий (5803581255, 21:53:52Z, oliverjone01-dev), в тексте «Это не запись Ивана его собственной учётной записью»; /pulls/358/reviews 0; RISK.md:19-20; traces/2026-09-23 без события решения",
+   "checkpoint": "risk_22_p9_hard_rules",
+   "weight": -0.5
+  },
+  {
+   "gap": "B1h FAIL: «потеряны без возврата» при 12 коммитах harvest с топ-50 и ответами ИИ в истории main",
+   "evidence": "scratchpad/it8/backfill_probe.py: gg и gm по 12 коммитов keysso.json 02.09-22.09 (ad1ad292 21.09: 2 118 / 104 и 568 / 68); своих точек в ряду 3; core.py botLine; описание PR #401",
+   "checkpoint": "insight_12_second_order",
+   "weight": -1
+  },
+  {
+   "gap": "Тот же B1h как неверное утверждение продукта",
+   "evidence": "дамп screens8.txt: gg/dyn-pos и gm/dyn-pos, gg/dyn-log и gm/dyn-log: «каждый будний день теряется точка по топ-50 и ответам ИИ», «Пропущенный съём не восстанавливается»",
+   "checkpoint": "accuracy_3_no_conflict_with_rag",
+   "weight": -1
+  },
+  {
+   "gap": "C1: лист печатается на двух листах при «Печатается на один лист», значки api / P0 на печати",
+   "evidence": "scratchpad/it8/dump8.mjs -> screens8.json print.gg.pages = 2, print.gm.pages = 2; screens8.onepage.gg.pdf.txt, страница 2 = разделы 4-5; gg/mn-thr «Формат для решения: одна страница»",
+   "checkpoint": "brand_20_tone_audience",
+   "weight": -1
+  },
+  {
+   "gap": "C1: «в разы» на пяти поверхностях P0 при посчитанных 10,5",
+   "evidence": "awk по screens8.txt: gg/obzor, gg/mn-block, gg/rg-dec, gg/onepage, gm/onepage, gg/mn-bridge (там же «как минимум в 10,5 раза»)",
+   "checkpoint": "brand_20_tone_audience",
+   "weight": -0.5
+  },
+  {
+   "gap": "C1: вводная «Плана и факта» GENGLASS противоречит карточке",
+   "evidence": "screens8.txt gg/mn-plan: «Ниже то, что уже можно сверять» и «сверять пока не с чем»",
+   "checkpoint": "brand_20_tone_audience",
+   "weight": -0.5
+  },
+  {
+   "gap": "Формат листа не выдержан (правило собственника «одна страница»)",
+   "evidence": "print.pages = 2 (dump8.mjs); gg/mn-thr",
+   "checkpoint": "brand_19_output_routing",
+   "weight": -0.5
+  },
+  {
+   "gap": "A5 PARTIAL: meta не ищется, дробные и «1,6 тыс.» проходят",
+   "evidence": "scratchpad/it8/gate_cases8.sh: src_meta_desc_short, src_decimal_cpc, src_small_thousand published=yes; src_meta_og остановлен только seal_test.mjs:110; seal_page.mjs:136, :151, :156",
+   "checkpoint": "risk_22_p9_hard_rules",
+   "weight": -0.5
+  },
+  {
+   "gap": "A5p PARTIAL: дубль блока пакета вырезается без проверки хэша",
+   "evidence": "gate_cases8.sh: src_dup_tokens_comment published=yes, в файле «175 968» и «CRM | Все лиды»; src_dup_kit_block пойман только seal_test; seal_page.mjs:126, :131",
+   "checkpoint": "risk_22_p9_hard_rules",
+   "weight": -0.5
+  },
+  {
+   "gap": "A5s PARTIAL: iframe srcdoc исполняет код вне шифра",
+   "evidence": "gate_cases8.sh src_iframe_srcdoc published=yes; live_gate8.mjs srcdoc: srcdocRan true до пароля, keyLenSeenFromFrame 44 после",
+   "checkpoint": "risk_22_p9_hard_rules",
+   "weight": -0.25
+  },
+  {
+   "gap": "Потолок и «правило 15%» на печатном листе без метки класса",
+   "evidence": "screens8.onepage.gg.pdf.txt стр. 1; дамп gg/yd-cost «Потолок расхода H2 гипотеза 36 000 000», gg/mn-plan «Бюджет маркетинга, потолок 36 000 000 ₽ гипотеза»",
+   "checkpoint": "accuracy_1_figures_tagged",
+   "weight": -1
+  },
+  {
+   "gap": "30.09 без буфера и промежуточной точки; слияние #401 без ответственного и даты",
+   "evidence": "core.py WHO (bridge, chk: 30.09; deals: срок не назначен); описание PR #401, раздел «После слияния»",
+   "checkpoint": "actionability_7_deadline_buffer",
+   "weight": -1
+  },
+  {
+   "gap": "P2: доступность /kontur/ после правки пакета не описана",
+   "evidence": "gate_cases8.sh src_ds_kit_harmless: exit 1, published=no; RUNBOOK.md:158-167; paths деплоя без kontur-ds/**",
+   "checkpoint": "risk_24_dependencies",
+   "weight": 0
+  },
+  {
+   "gap": "C2: «база msk», «принять разрыв», значки на печати (моя доля)",
+   "evidence": "screens8.txt gg/obzor, gm/obzor, gg/mn-block; screens8.onepage.gg.pdf.txt строка 1",
+   "checkpoint": "brand_16_voice",
+   "weight": -0.25
+  },
+  {
+   "gap": "Не сделано из итерации 6: п.12 и п.13",
+   "evidence": "screens8.txt: «CRM | Успешная сделка» только в списке целей gg/ym-goal, звено 4 моста «гипотеза»; check_ds --live без изменений",
+   "checkpoint": "insight_15_cross_domain",
+   "weight": 0
+  },
+  {
+   "gap": "K2 PARTIAL: цвет графика через foreColor / strokeColors / gradientToColors",
+   "evidence": "guard_neg8.sh: forecolor_named: check_dash 0, check_ds 0, contrast skip; strokecolors_named: check_dash 0, check_ds 0, contrast skip; gradient_named: check_dash 0, check_ds 0, contrast skip; check_dash.py:60",
+   "checkpoint": "brand_19_output_routing",
+   "weight": -0.25
+  },
+  {
+   "gap": "O1 PARTIAL: прозрачность текста новым способом",
+   "evidence": "guard_neg8.sh: text_fill_color: check_dash 0, check_ds 0, contrast 0",
+   "checkpoint": "brand_19_output_routing",
+   "weight": -0.25
+  }
+ ],
+ "gaps": [
+  "HITL (A1r PARTIAL): решение о публикации записано агентом от учётной записи владельца репозитория, и запись прямо говорит, что это не Иван. Действия Ивана в PR #358 нет: ревью 0, единственный комментарий написан Claude. Закрывает одна строка Ивана его учётной записью или его явное решение делегировать §9 владельцу сессии",
+  "Точность и второй порядок (B1h FAIL): «каждый будний день теряется точка» и «будни с 19.09 потеряны без возврата» неверны. В истории main по 12 коммитов harvest на проект с топ-50 и ответами ИИ за 02.09-22.09, своих точек в ряду из них 3, экран показывает «3 из 41». Бот от потери не защищает: он читает тот же файл. Моя доля: gap 9 и п.2 итерации 7",
+  "БЛОКЕР (C1 FAIL): лист собственнику обещает один лист и печатается на двух (формат собственника «одна страница»), на печати значки api / P0; «в разы» на пяти поверхностях P0 при посчитанных 10,5; вводная «Плана и факта» GENGLASS противоречит карточке под ней",
+  "Гейт (A5 PARTIAL): содержимое <meta> не ищется (seal_page.mjs:136), description с «240 млн» и «176 тыс» опубликован; дробные от 100 (110,3) и «1,6 тыс.» проходят",
+  "Гейт (A5p PARTIAL): второй блок с id ks-tokens или ks-kit вырезается из поиска без проверки хэша (:126 проверяет первый, :131 вырезает все): «175 968» и имя цели опубликованы",
+  "Гейт (A5s PARTIAL): iframe srcdoc исполняет код вне шифра до пароля и после пароля читает ключ сессии (live)",
+  "Accuracy: на печатном листе потолок 36 000 000 / 3 300 000 ₽ и «правило 15%» без метки класса, на «Расходе и CPL» и «Плане и факте» тот же потолок помечен «гипотеза»",
+  "Actionability: 30.09 без буфера и промежуточной точки при задаче на 7 дней; у слияния PR #401 и его первого ручного запуска нет ответственного и даты",
+  "Не блокирующее: RUNBOOK не говорит, что правка пакета без пересчёта хэшей снимает /kontur/ с сайта на ближайшем суточном деплое и что вернуть раздел может только человек (P2); из итерации 6 не сделаны п.12 (цель «CRM | Успешная сделка» как замер четвёртого звена моста) и п.13 (check_ds --live)",
+  "Сторож (O1, K2 PARTIAL): случаи итерации 7 ловятся, новые формы тех же классов проходят. Именованный цвет через foreColor, strokeColors и gradientToColors внутри function draw() даёт check_dash 0 (COLOR ищет только ключи colors и color). -webkit-text-fill-color с прозрачностью 25% на тексте проходит check_dash, check_ds и contrast.mjs (контраст считается по color)"
+ ],
+ "rework_tz": "ЭСКАЛАЦИЯ ИВАНУ, повторно: return 7.10 на восьмой итерации, цикл return исчерпан с четвёртой. 1) Иван, HITL: одна строка в PR #358 своей учётной записью («принятый риск подтверждаю») или его прямое решение передать §9 владельцу сессии. Комментарий 5803581255 написан агентом и сам это говорит; без действия Ивана go нет при любом коде. 2) Автор, история съёма: добавить в snapshot.py добор своих точек из git (git log по gg-seo-geo-monster/data/*/keysso.json, одна точка на дату measured, свои точки не перезаписывать), в воркфлоу checkout с fetch-depth: 0. Убрать «каждый будний день теряется точка» из botLine (core.py) и «Пропущенный съём не восстанавливается» с «Журнала съёмов», в описании PR #401 поправить «без возврата». Критерий: на «Обзоре» «запросы в топ-50: N из 41» и «ответы ИИ: N из 41» с N не меньше 12 у каждого проекта, snapshot.py --check 0. PR #401 вреда не несёт, но срочности у него нет: история уже в main. 3) Comprehension Gate: лист собственнику печатается на одном листе A4 (критерий: page.pdf A4 даёт pages = 1 у обоих проектов) или подзаголовок говорит правду о двух листах; значки api и P0 и «сборка из экранов выше» на печати скрыты. «В разы» в тексте вопроса о сверке визитов и на «Мосте до денег» заменить на «как минимум в 10,5 раза». Вводная «Плана и факта» по состоянию проекта. Критерий: в дампе P0 обоих проектов «в разы» только в методической заметке Wordstat. 4) Гейт: искать в содержимом meta, кроме charset, viewport, theme-color и robots; ровно один блок на каждый id из PINNED, иначе стоп; запрет srcdoc, iframe, object, embed, base, meta http-equiv и javascript: вне шифра (лучше список разрешённых тегов открытой части); формы с запятой для дробных от 100 и «тыс» от 1 000. Шесть случаев добавить в SRC_BAD seal_test. Критерий: мои фикстуры scratchpad/it8/gate_cases8.sh (src_meta_desc_short, src_meta_og, src_dup_tokens_comment, src_dup_kit_block, src_iframe_srcdoc, src_decimal_cpc, src_small_thousand) дают exit 1 самим шифровальщиком, без опоры на буквальный поиск «240 000 000» в тесте. 5) Лист: у потолка 36 000 000 / 3 300 000 ₽ и «правила 15%» видимая при печати метка класса, как на «Расходе и CPL». 6) Сроки: у 30.09 промежуточная точка (например 27.09: сверка по одной странице карты посадочных), у слияния #401 и первого ручного запуска ответственный и дата. Не блокирующее: RUNBOOK про снятие /kontur/ с сайта после правки пакета и возврат только человеком; п.12 и п.13 итерации 6; «база msk», «принять разрыв». Достижимость go: п.2-5 от автора и п.1 от Ивана дают реалистичный вектор 9 / 7 / 8 / 9 / 8 = 8.15. Без п.1 return при любом коде (CLAUDE.md §9).",
+ "escalate_to": "Иван",
+ "primary_gap": "Решение о публикации по-прежнему без действия Ивана; лист собственнику печатается на двух листах при обещании одного; «потерянные без возврата» точки топ-50 и ответов ИИ лежат в истории main",
+ "confidence": 0.8
+}

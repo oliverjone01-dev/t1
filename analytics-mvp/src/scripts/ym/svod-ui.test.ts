@@ -4,6 +4,7 @@ import { readFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM } from "jsdom";
+import { readDays, inFlightUnits } from "./test-window.js";
 
 // Числа свода живут в браузерном JS внутри собранной страницы, поэтому vitest над модулями их не
 // видит: 220 зелёных тестов и smoke на 17 страниц проходили, пока свод показывал возвращённый
@@ -649,13 +650,24 @@ describe("свод Маркета: числа на странице", () => {
   // читается как провал продаж: сентябрь на 17.09 показывает 38 доставленных штук, а 85 штук
   // на 5 064 813 ₽ ещё едут и попадут в продажи СВОЕГО месяца задним числом, когда доедут.
   it("недоставленные заказы показаны колонками и в расчёт не входят", () => {
-    setRange("2026-09-01", "2026-09-30");
+    // Месяц берём по краю данных, а не по календарю: сентябрь доедет, и прибитый «2026-09»
+    // сначала перестанет что-либо проверять, а потом уронит CI на пустых колонках.
+    const rows = readDays();
+    const last = rows[rows.length - 1]!.date;
+    const ym = last.slice(0, 7);
+    // Последний день месяца считаем, а не подставляем 31: «2026-09-31» страница не разберёт
+    // и молча покажет весь период, а тест начнёт сравнивать сентябрь со всей историей.
+    const mEnd = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).toISOString().slice(0, 10);
+    expect(inFlightUnits(rows, `${ym}-01`, mEnd),
+      `в месяце ${ym} нет заказов в пути: колонки проверять нечем, снимок либо устарел, либо всё доехало`)
+      .toBeGreaterThan(0);
+    setRange(`${ym}-01`, mEnd);
     const flyU = num(cell("В пути, шт")), flyP = num(cell("В пути, ₽"));
-    expect(flyU, "сентябрь без заказов в пути - проверять нечего").toBeGreaterThan(0);
+    expect(flyU).toBeGreaterThan(0);
     expect(flyP).toBeGreaterThan(0);
     // Свод считает только доставленное: «в пути» не должно попасть ни в штуки, ни в продажи.
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
-    const sep = svod.months.filter((m: any) => m.ym === "2026-09");
+    const sep = svod.months.filter((m: any) => m.ym === ym);
     const sold = sep.reduce((a: number, m: any) => a + m.rows.reduce((x: number, r: any) => x + (r.units_net || 0), 0), 0);
     expect(num(cell("Штуки"))).toBe(Math.round(sold));
     const wantFly = sep.reduce((a: number, m: any) => a + (m.inflight_rows || []).reduce((x: number, r: any) => x + (r.units || 0), 0), 0);

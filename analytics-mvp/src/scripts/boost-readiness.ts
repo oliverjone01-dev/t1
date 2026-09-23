@@ -60,6 +60,8 @@ export interface BoostRow {
   day: number | null; shift: number | null; lastDate?: string;
   status: Status;
   plateauFrom?: string; plateauDay?: number;
+  /** Раньше этой даты плато собраться не может: не хватает подряд идущих наблюдений. */
+  plateauNotBefore?: string;
   series: DayPoint[];
   /** Вторая часть карточки, для товаров со снятым бустингом. */
   daysSinceOff?: number;
@@ -72,6 +74,11 @@ export const ARRIVED = 8;
 export const FLAT_RANGE = 2;
 /** Сколько подряд наблюдаемых дней образуют плато. */
 export const FLAT_DAYS = 3;
+/** Максимальный календарный разрыв между соседними днями внутри окна плато.
+ *  «Три подряд наблюдаемых дня» это именно подряд: окно, перешагивающее потерянный день,
+ *  проверяет устойчивость не на трёх сутках, а на четырёх с дырой посередине, и плато на
+ *  нём собирается раньше, чем на него есть право. Цена ошибки тут снятие акции. */
+export const MAX_PLATEAU_GAP = 1;
 /** Длина окна базы, в наблюдаемых днях. */
 export const BASE_DAYS = 7;
 /** Сколько дней без прихода, чтобы сказать «не пришло». */
@@ -161,17 +168,37 @@ export function baseOf(
 }
 
 /** Первое плато: FLAT_DAYS подряд наблюдаемых дней, размах не больше FLAT_RANGE, и самый
- *  низкий день окна уже не ниже ARRIVED. День общего сдвига магазина в окно не пускаем. */
+ *  низкий день окна уже не ниже ARRIVED. День общего сдвига магазина в окно не пускаем,
+ *  и окно не имеет права перешагивать потерянный день. */
 export function plateauOf(points: DayPoint[]): { from: string; day: number } | null {
   for (let i = 0; i + FLAT_DAYS <= points.length; i++) {
     const w = points.slice(i, i + FLAT_DAYS);
     if (w.some((p) => p.move)) continue;
+    if (w.some((p, k) => k > 0 && p.day - w[k - 1]!.day > MAX_PLATEAU_GAP)) continue;
     const v = w.map((p) => p.shift);
     if (Math.max(...v) - Math.min(...v) > FLAT_RANGE) continue;
     if (Math.min(...v) < ARRIVED) continue;
     return { from: w[0]!.date, day: w[0]!.day };
   }
   return null;
+}
+
+/** Самый ранний день, когда плато МОЖЕТ собраться: FLAT_DAYS подряд идущих суток, ни одни
+ *  из которых не потеряны и не помечены общим сдвигом, считая от последнего наблюдения.
+ *  Возвращает дату, а не число: «раньше 25.09 нельзя» читается сразу, «нужно ещё 2 дня» нет. */
+export function earliestPlateau(points: DayPoint[], lastDate: string): string | null {
+  if (!points.length) return null;
+  // Хвост подряд идущих наблюдаемых суток на конец ряда.
+  let run = 1;
+  for (let i = points.length - 1; i > 0; i--) {
+    if (points[i]!.day - points[i - 1]!.day > MAX_PLATEAU_GAP || points[i]!.move) break;
+    run += 1;
+  }
+  if (points[points.length - 1]!.move) run = 0;
+  const need = Math.max(0, FLAT_DAYS - run);
+  const t = new Date(lastDate + "T00:00:00Z");
+  t.setUTCDate(t.getUTCDate() + need);
+  return t.toISOString().slice(0, 10);
 }
 
 export function statusOf(points: DayPoint[], plateau: { day: number } | null): Status {
@@ -210,6 +237,7 @@ export function readiness(
   row.series = pts;
   const plateau = plateauOf(pts);
   if (plateau) { row.plateauFrom = plateau.from; row.plateauDay = plateau.day; }
+  else if (pts.length) row.plateauNotBefore = earliestPlateau(pts, pts[pts.length - 1]!.date) ?? undefined;
   row.status = statusOf(pts, plateau);
   const last = pts[pts.length - 1];
   if (last) { row.day = last.day; row.shift = last.shift; row.lastDate = last.date; }

@@ -674,7 +674,9 @@ function spark(row: BoostRow): string {
 function boostRowHtml(r: BoostRow, label = ""): string {
   const sgn = (v: number | null) => (v == null ? "-" : (v >= 0 ? "+" : "") + v.toFixed(1));
   const chip = STATUS_CHIP[r.status] || "chip-off";
-  const plateau = r.plateauFrom ? ` · плато с ${r.plateauFrom} (день ${r.plateauDay})` : "";
+  const plateau = r.plateauFrom
+    ? ` · плато с ${r.plateauFrom} (день ${r.plateauDay})`
+    : (r.plateauNotBefore ? ` · плато не раньше ${r.plateauNotBefore}` : "");
   const baseNote = r.base == null ? "базы нет"
     : `база ${sgn(r.base)} по ${r.baseDays} чистым дням ${r.baseFrom}..${r.baseTo} (${r.baseSpan} календарных)`
       + (r.baseDirty ? ". ЧИСТЫХ ДНЕЙ НЕ ХВАТИЛО: база посчитана по дням с общим сдвигом магазина" : "");
@@ -779,6 +781,16 @@ if (panelFixed) {
     + (outside.length
       ? ` Вне панели ${outside.length} из ${artSet.size} артикулов тестов: ${outside.slice(0, 6).map(esc).join(", ")}${outside.length > 6 ? " и ещё " + (outside.length - 6) : ""}. По ним соинвеста нет.`
       : ` Все ${artSet.size} артикулов тестов в панель входят.`));
+}
+{
+  const last = [...new Set(coinvRows.map((r) => r.date))].sort().pop() ?? "";
+  const day = coinvRows.filter((r) => r.date === last);
+  const exact = day.filter((r) => (r as any).oa_source === "exact").length;
+  if (exact) {
+    gaps.push(`Цена покупателя с картой Ozon за ${last} снята напрямую у ${nbsp(exact)} товаров`
+      + ` из ${nbsp(day.length)}; у остальных она выведена коэффициентом от витрины, и поле`
+      + ` oa_source это показывает. Выведенная цена годится для уровня, но не для дневного сдвига.`);
+  }
 }
 gaps.push("Соинвест считается по цене, которую покупатель платит с картой Ozon, а не по"
   + " витринной. Сверка с реестром начислений за август (npm run coinv:calib, 274 заказа, цена"

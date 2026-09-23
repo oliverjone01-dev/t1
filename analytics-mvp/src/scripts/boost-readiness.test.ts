@@ -4,7 +4,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import {
   controlByDay, gapSeries, baseOf, plateauOf, statusOf, readiness, loadCpoDays, loadMoves,
-  daysBetween, median, ARRIVED,
+  daysBetween, median, earliestPlateau, ARRIVED,
   type CoinvRow, type DayPoint, type MoveSource,
 } from "./boost-readiness.js";
 
@@ -101,10 +101,35 @@ describe("плато", () => {
     expect(plateauOf([pt(0, 1), pt(1, 1), pt(2, 1)])).toBeNull();
   });
 
+  it("окно не перешагивает потерянный день", () => {
+    // Ровно случай волны: 21.09 есть, 22.09 потерян, 23.09 есть. Окно 21+23+24 проверяет
+    // устойчивость на четырёх сутках с дырой, а не на трёх подряд, и права на плато не даёт.
+    expect(plateauOf([pt(1, 17), pt(3, 17.2), pt(4, 17.1)])).toBeNull();
+    expect(plateauOf([pt(3, 17.2), pt(4, 17.1), pt(5, 17)])).toEqual({ from: "2026-07-04", day: 3 });
+  });
+
   it("день общего сдвига магазина днём плато не считается", () => {
     expect(plateauOf([pt(0, 17), pt(1, 17.5, "our_cpo"), pt(2, 17.2)])).toBeNull();
     expect(plateauOf([pt(0, 17), pt(1, 17.5, "our_cpo"), pt(2, 17.2), pt(3, 17.4), pt(4, 17.1)]))
       .toEqual({ from: "2026-07-03", day: 2 });
+  });
+});
+
+describe("когда плато сможет собраться", () => {
+  it("на хвосте из одного дня ждать ещё двое суток", () => {
+    expect(earliestPlateau([pt(0, 1), pt(3, 9)], "2026-09-23")).toBe("2026-09-25");
+  });
+
+  it("на хвосте из двух подряд дней ждать одни сутки", () => {
+    expect(earliestPlateau([pt(2, 9), pt(3, 10)], "2026-09-23")).toBe("2026-09-24");
+  });
+
+  it("день общего сдвига в хвосте обнуляет счёт", () => {
+    expect(earliestPlateau([pt(2, 9), pt(3, 10, "our_cpo")], "2026-09-23")).toBe("2026-09-26");
+  });
+
+  it("пустой ряд даты не выдумывает", () => {
+    expect(earliestPlateau([], "2026-09-23")).toBeNull();
   });
 });
 

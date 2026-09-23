@@ -36,7 +36,10 @@ for (const e of events) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= [
 // Очередь строится ровно как в ai-review.ts: те же фильтры, тот же порядок.
 const raw = Object.entries(byKey)
   .map(([k, evs]) => { evs.sort((a, b) => a.ts - b.ts); const h = evs[evs.length - 1]!; return { k, evs, last: h.ts, mgr: h.mgr || "" }; })
-  .filter((x) => x.evs.filter((e) => e.type.startsWith("Сообщение") || e.type === "Письмо").length >= 2)
+  // Коммуникацией считаем то же, что и скоринг: сообщения, письма, открытые линии. Раньше
+  // «Мессенджер ОЛ» сюда не попадал, и сделки, где переписка идёт через открытую линию,
+  // выпадали из разбора целиком - 76 из 128 приоритетных.
+  .filter((x) => x.evs.filter((e) => e.type.startsWith("Сообщение") || e.type === "Письмо" || e.type === "Мессенджер ОЛ").length >= 2)
   .filter((x) => !MGR.length || MGR.includes(x.mgr))
   // OLD - только то, что разобрано другой моделью: переразбор старого прогона.
   // FORCE - всё подряд. По умолчанию только новое и изменившееся.

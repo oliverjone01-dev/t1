@@ -14,6 +14,11 @@
 // Запуск: npm run tests:page (или npm run katya, он зовёт этот скрипт).
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { dp, op, IS_OZON } from "../paths.js";
+import {
+  controlByDay, gapSeries, readiness, loadMoves, loadCpoDays,
+  ARRIVED, FLAT_RANGE, FLAT_DAYS, BASE_DAYS, LATE_AFTER, BACK_TO_BASE,
+  type BoostRow, type CoinvRow, type WaveItem,
+} from "./boost-readiness.js";
 import { KPAGES, navButton } from "./katya-nav.js";
 
 if (!IS_OZON) {
@@ -583,6 +588,124 @@ const cards = T.тесты.map((t) => {
     + `${body}</section>`;
 }).join("");
 
+// ---------- карточка «Готовность к выходу из бустинга» ----------
+// Формулировки описательные: сдвиг разрыва к контролю, и только. Вето ФЕНИКСА от 23.09 в силе.
+const coinvRows = readNd(dp("coinv_daily.ndjson")) as CoinvRow[];
+const cpoDays = loadCpoDays("tools/tests/cpo_history.psv");
+const storeMoves = loadMoves(dp("store_moves.ndjson"), cpoDays);
+
+// Эталон, на котором откалибровано правило. Единственное наблюдение, и подпись под карточкой
+// обязана это говорить: по одному случаю пороги проверены, но не подтверждены.
+const REF: WaveItem = { art: "GGT-47-3-3-90", on: "2026-07-06", off: "2026-08-05", until: "2026-08-19" };
+
+const STATUS_CHIP: Record<string, string> = {
+  "плато": "chip-done", "едет": "chip-run", "не пришло": "chip-off", "ждём": "chip-off", "нет данных": "chip-off",
+};
+
+/** Спарклайн сдвига по дням. Один ряд, поэтому легенды нет: заголовок колонки его и называет.
+ *  Пропуски не соединяем - день без наблюдения это пробел, а не прямая между соседями.
+ *  Дни общего сдвига магазина помечены засечкой под нулевой линией: форма, а не только цвет. */
+function spark(row: BoostRow): string {
+  const pts = row.series;
+  if (pts.length < 2) return '<span class="muted">-</span>';
+  const W = 150, H = 30, PAD = 2;
+  const vals = pts.map((p) => p.shift);
+  const lo = Math.min(0, ...vals), hi = Math.max(ARRIVED, ...vals);
+  const span = hi - lo || 1;
+  const d0 = pts[0]!.day, dN = pts[pts.length - 1]!.day || 1;
+  const x = (p: { day: number }) => PAD + (W - 2 * PAD) * ((p.day - d0) / (dN - d0 || 1));
+  const y = (v: number) => PAD + (H - 2 * PAD) * (1 - (v - lo) / span);
+  // Разрыв по календарю больше суток - ряд рвётся.
+  const segs: string[] = [];
+  let cur: string[] = [];
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i]!;
+    if (i && p.day - pts[i - 1]!.day > 1) { if (cur.length > 1) segs.push(cur.join(" ")); cur = []; }
+    cur.push(`${cur.length ? "L" : "M"}${x(p).toFixed(1)} ${y(p.shift).toFixed(1)}`);
+  }
+  if (cur.length > 1) segs.push(cur.join(" "));
+  const line = segs.map((d) => `<path d="${d}" fill="none" stroke="${C_TEST}" stroke-width="2" stroke-linejoin="round"/>`).join("");
+  const zero = `<line x1="0" x2="${W}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="#2a3441" stroke-width="1" stroke-dasharray="2 3"/>`;
+  const gate = `<line x1="0" x2="${W}" y1="${y(ARRIVED).toFixed(1)}" y2="${y(ARRIVED).toFixed(1)}" stroke="#2a3441" stroke-width="1"/>`;
+  const marks = pts.filter((p) => p.move).map((p) =>
+    `<line x1="${x(p).toFixed(1)}" x2="${x(p).toFixed(1)}" y1="${H - 5}" y2="${H}" stroke="var(--warn)" stroke-width="2"><title>${p.date}: общий сдвиг магазина, ${p.move === "our_cpo" ? "наша смена ставки CPO" : "причина неизвестна"}</title></line>`).join("");
+  const last = pts[pts.length - 1]!;
+  const dot = `<circle cx="${x(last).toFixed(1)}" cy="${y(last.shift).toFixed(1)}" r="2.5" fill="${C_TEST}" stroke="var(--card)" stroke-width="2"/>`;
+  const alt = `Сдвиг по дням с ${pts[0]!.date} по ${last.date}, последний ${last.shift >= 0 ? "+" : ""}${last.shift}`;
+  return `<svg class="spk" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(alt)}">${zero}${gate}${line}${marks}${dot}</svg>`;
+}
+
+function boostRowHtml(r: BoostRow, label = ""): string {
+  const sgn = (v: number | null) => (v == null ? "-" : (v >= 0 ? "+" : "") + v.toFixed(1));
+  const chip = STATUS_CHIP[r.status] || "chip-off";
+  const plateau = r.plateauFrom ? ` · плато с ${r.plateauFrom} (день ${r.plateauDay})` : "";
+  const baseNote = r.base == null ? "базы нет" : `база ${sgn(r.base)} по ${r.baseFrom}..${r.baseTo}${r.baseShifted ? ", окно сдвинуто из-за общего движения магазина" : ""}`;
+  // У законченной кампании в колонке «День» стоит её длина, иначе счётчик уехал бы за
+  // пределы кампании и читался бы как «идёт 77-й день».
+  const dayCell = r.ranDays != null
+    ? `<td class="r" title="Кампания шла ${r.ranDays} дн, на графике ещё ${(r.day ?? r.ranDays) - r.ranDays} дн после снятия">${r.ranDays}</td>`
+    : `<td class="r">${r.day == null ? "-" : r.day}</td>`;
+  return `<tr><td>${esc(r.art)}${label ? ` <span class="muted">${esc(label)}</span>` : ""}</td>`
+    + dayCell
+    + `<td class="r" title="${esc(baseNote)}">${sgn(r.shift)}</td>`
+    + `<td class="spkc">${spark(r)}</td>`
+    + `<td><span class="chip ${chip}">${esc(r.status)}</span><span class="muted">${esc(plateau)}</span></td></tr>`;
+}
+
+function boostCard(): string {
+  const wave = T.тесты.find((t) => t.id === "cpc_boost_exit");
+  if (!wave || !coinvRows.length) return "";
+  const testArts = new Set<string>();
+  for (const t of T.тесты) for (const a of t.тест || []) testArts.add(a);
+  const ctl = controlByDay(coinvRows, testArts);
+  const mk = (it: WaveItem) => readiness(it, gapSeries(coinvRows, it.art, ctl), storeMoves);
+
+  const items: WaveItem[] = (wave.тест || []).map((a) => ({ art: a, on: (wave.старт || "").slice(0, 10), off: wave.этап2 || undefined }));
+  const rows = items.map(mk);
+  const onBoost = rows.filter((r) => !r.off);
+  const offBoost = rows.filter((r) => r.off);
+  const ref = mk(REF);
+
+  const head = `<tr><th>Артикул</th><th class="r" title="Дней с включения кампании. День включения нулевой">День</th>`
+    + `<th class="r" title="Сдвиг разрыва к контролю от базы, в пунктах. Наведите, чтобы увидеть базу">Сдвиг</th>`
+    + `<th title="Сдвиг по дням. Пунктир - ноль, сплошная - порог ${ARRIVED} пунктов. Разрыв линии это день без наблюдения, засечка снизу - общий сдвиг магазина">Динамика</th>`
+    + `<th>Статус</th></tr>`;
+
+  const tbl = (rs: BoostRow[], extra = "") => rs.length
+    ? `<div class="tbl-wrap"><table class="gtbl single"><thead>${head}</thead><tbody>${rs.map((r) => boostRowHtml(r)).join("")}${extra}</tbody></table></div>`
+    : "";
+
+  const offTbl = offBoost.length
+    ? `<div class="sub2">Бустинг снят</div><div class="tbl-wrap"><table class="gtbl single"><thead>`
+      + `<tr><th>Артикул</th><th class="r">Дней после снятия</th><th class="r">Сдвиг</th><th>Динамика</th><th>Возврат к базе</th></tr></thead><tbody>`
+      + offBoost.map((r) => `<tr><td>${esc(r.art)}</td><td class="r">${r.daysSinceOff ?? "-"}</td>`
+        + `<td class="r">${r.shift == null ? "-" : (r.shift >= 0 ? "+" : "") + r.shift.toFixed(1)}</td>`
+        + `<td class="spkc">${spark(r)}</td>`
+        + `<td>${r.backToBaseOn ? `${esc(r.backToBaseOn)} <span class="muted">держался ${r.heldDays} дн</span>` : '<span class="muted">ещё держится</span>'}</td></tr>`).join("")
+      + `</tbody></table></div>`
+    : `<div class="sub2">Бустинг снят</div><div class="cov">Ни по одному товару волны бустинг ещё не снят: в tests.json поле «этап2» пустое. Как только дату проставят, здесь появятся счётчик дней после снятия и день, когда сдвиг вернулся к базе.</div>`;
+
+  const movesNote = storeMoves.size
+    ? `Дней общего сдвига магазина в ряду: ${storeMoves.size}, из них по нашей смене ставки CPO ${[...storeMoves.values()].filter((v) => v === "our_cpo").length}. Такие дни помечены засечкой, днём плато не считаются и не стоят на краю окна базы.`
+    : `Файла data/store_moves.ndjson нет, поэтому дни общего сдвига магазина не помечены. Пока его нет, плато может собраться на дне, когда двигался весь каталог.`;
+
+  return `<section class="card"><div class="chead"><div class="ctitle">Готовность к выходу из бустинга</div></div>`
+    + `<div class="hyp">Сдвиг разрыва к контролю по дням с включения кампании. Контроль - панель снимка без тестовых артикулов, `
+    + `${coinvRows.length ? "" : ""}разрыв считается по цене с картой Ozon. База - медиана разрыва за ${BASE_DAYS} наблюдаемых дней до включения.</div>`
+    + `<div class="rule"><b>Статусы:</b> плато - ${FLAT_DAYS} подряд наблюдаемых дня, размах не больше ${FLAT_RANGE} пунктов, сдвиг не ниже +${ARRIVED}. `
+    + `Едет - растёт, плато ещё нет. Не пришло - прошло ${LATE_AFTER}+ дней, сдвиг ниже +${ARRIVED}. Ждём - меньше ${FLAT_DAYS} дней.</div>`
+    + tbl(onBoost)
+    + (onBoost.length ? "" : `<div class="cov">По волне пока нет ни одного товара в бустинге с включённой кампанией.</div>`)
+    + offTbl
+    + `<div class="sub2">Эталон, на котором откалибровано правило</div>`
+    + `<div class="tbl-wrap"><table class="gtbl single"><thead>${head}</thead><tbody>${boostRowHtml(ref, "кампания 06.07-05.08")}</tbody></table></div>`
+    + `<div class="cov"><b>Правило откалибровано на одном наблюдении.</b> ${esc(REF.art)}: сдвиг вышел за +${ARRIVED} на третий день, `
+    + `плато началось на четвёртый и держалось до конца кампании; после снятия бустинга сдвиг прожил ${ref.heldDays ?? "-"} дн и вернулся к базе ${esc(ref.backToBaseOn || "-")}. `
+    + `Пороги ${FLAT_DAYS} дня, ${FLAT_RANGE} пункта, +${ARRIVED} и возврат ниже +${BACK_TO_BASE} подобраны под этот случай и на других не проверены. `
+    + `Что именно двигает разрыв, карточка не утверждает: вето от 23.09 в силе.</div>`
+    + `<div class="cov">${esc(movesNote)}</div></section>`;
+}
+
 const mblock = measured.length ? `<h2 class="sec">Измеренные тесты</h2>` + measured.map((t: any) =>
   `<div class="mrow"><div class="ctitle">${esc(t.name)} <span class="chip chip-done">измерен</span></div>`
   + `<div class="meta"><span>Старт <b>${esc(t.started)}</b></span><span>Замер <b>${esc(t.read)}</b></span>`
@@ -658,6 +781,7 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .dyn-note{font-size:11.5px;color:var(--ink3);margin:4px 2px 0}
 .dyn-alarm{font-size:12px;color:var(--ink2);background:rgba(229,181,103,.08);border-left:3px solid var(--warn);padding:7px 10px;border-radius:6px;margin:8px 2px 0}
 .dyn-alarm b{color:var(--warn)}
+.spk{width:150px;height:30px;display:block}.spkc{width:160px}
 .stop{font-size:12.5px;color:var(--ink2);background:rgba(255,90,95,.09);border-left:3px solid #FF5A5F;padding:7px 10px;border-radius:6px;margin:8px 0}.stop b{color:#FF7A7E}.dl2{margin:6px 0 6px 18px;padding:0}.dl2 li{margin:2px 0}
 .muted{color:var(--ink3)}.mrow{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:12px 16px;margin-bottom:10px}
 .res{font-weight:700;color:var(--up);margin:6px 0}.notes{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:10px 16px}
@@ -727,7 +851,7 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>`
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта, окно то же, что у базы замера.</p>`
-  + cards + mblock
+  + cards + boostCard() + mblock
   + `<h2 class="sec">Заметки и предупреждения</h2><div class="notes"><ul>${notes}</ul></div></div>`
   + `<script>${JS}</script></body></html>`;
 

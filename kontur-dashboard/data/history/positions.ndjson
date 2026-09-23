@@ -62,5 +62,19 @@
 {"ai_answers": null, "date": "2026-09-06", "project": "gm", "source": "keysso.json history", "top1": null, "top10": 47, "top3": null, "top50": null, "visibility": 2}
 {"ai_answers": 84, "date": "2026-09-07", "project": "gg", "source": "keys.so", "top1": 16, "top10": 444, "top3": 80, "top50": 2145, "visibility": 17}
 {"ai_answers": 54, "date": "2026-09-07", "project": "gm", "source": "keys.so", "top1": 5, "top10": 47, "top3": 12, "top50": 547, "visibility": 2}
+{"ai_answers": null, "date": "2026-09-10", "project": "gg", "source": "keysso.json history", "top1": null, "top10": 426, "top3": null, "top50": null, "visibility": 17}
+{"ai_answers": null, "date": "2026-09-10", "project": "gm", "source": "keysso.json history", "top1": null, "top10": 47, "top3": null, "top50": null, "visibility": 2}
+{"ai_answers": null, "date": "2026-09-13", "project": "gg", "source": "keysso.json history", "top1": null, "top10": 428, "top3": null, "top50": null, "visibility": 17}
+{"ai_answers": null, "date": "2026-09-14", "project": "gm", "source": "keysso.json history", "top1": null, "top10": 48, "top3": null, "top50": null, "visibility": 1}
+{"ai_answers": null, "date": "2026-09-15", "project": "gg", "source": "keysso.json history", "top1": null, "top10": 426, "top3": null, "top50": null, "visibility": 17}
+{"ai_answers": null, "date": "2026-09-15", "project": "gm", "source": "keysso.json history", "top1": null, "top10": 48, "top3": null, "top50": null, "visibility": 1}
+{"ai_answers": null, "date": "2026-09-18", "project": "gg", "source": "keysso.json history", "top1": null, "top10": 432, "top3": null, "top50": null, "visibility": 23}
+{"ai_answers": null, "date": "2026-09-18", "project": "gm", "source": "keysso.json history", "top1": null, "top10": 48, "top3": null, "top50": null, "visibility": 1}
 {"ai_answers": 104, "date": "2026-09-19", "project": "gg", "source": "keys.so", "top1": 16, "top10": 432, "top3": 79, "top50": 2118, "visibility": 23}
 {"ai_answers": 67, "date": "2026-09-19", "project": "gm", "source": "keys.so", "top1": 6, "top10": 48, "top3": 13, "top50": 568, "visibility": 1}
+{"ai_answers": null, "date": "2026-09-20", "project": "gg", "source": "keysso.json history", "top1": null, "top10": 432, "top3": null, "top50": null, "visibility": 23}
+{"ai_answers": null, "date": "2026-09-20", "project": "gm", "source": "keysso.json history", "top1": null, "top10": 48, "top3": null, "top50": null, "visibility": 1}
+{"ai_answers": null, "date": "2026-09-21", "project": "gg", "source": "keysso.json history", "top1": null, "top10": 432, "top3": null, "top50": null, "visibility": 23}
+{"ai_answers": null, "date": "2026-09-21", "project": "gm", "source": "keysso.json history", "top1": null, "top10": 48, "top3": null, "top50": null, "visibility": 1}
+{"ai_answers": 103, "date": "2026-09-22", "project": "gg", "source": "keys.so", "top1": 18, "top10": 434, "top3": 81, "top50": 2180, "visibility": 25}
+{"ai_answers": 69, "date": "2026-09-22", "project": "gm", "source": "keys.so", "top1": 6, "top10": 50, "top3": 12, "top50": 577, "visibility": 2}

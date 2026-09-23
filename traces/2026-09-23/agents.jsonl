@@ -7,3 +7,6 @@
 {"ts": "2026-09-23T14:47:42+00:00", "event": "subagent_stop", "agent": "feniks", "tier": "0", "session_id": "7a773ec9-494b-508c-bc3e-da55559e1286", "agent_id": "ac7465e3caa981f22", "msg_chars": 6106, "outcome": "unknown", "confidence": 0.85}
 {"ts": "2026-09-23T14:48:09+00:00", "event": "subagent_stop", "agent": "feniks", "tier": "0", "session_id": "7a773ec9-494b-508c-bc3e-da55559e1286", "agent_id": "ac7465e3caa981f22", "msg_chars": 702, "outcome": "error"}
 {"ts": "2026-09-23T15:15:37+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "7a773ec9-494b-508c-bc3e-da55559e1286", "agent_id": "a5893c8c486c22f52"}
+{"ts": "2026-09-23T15:18:55+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/+x, /home/user/t1/S/fx6/run.sh"}
+{"ts": "2026-09-23T15:19:51+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/fx6/i2"}
+{"ts": "2026-09-23T15:28:46+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/ab_v6.json, /home/user/t1/i2/ab_v6i2.json"}

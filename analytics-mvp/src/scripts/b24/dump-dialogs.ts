@@ -8,6 +8,7 @@
 // DONE=dialog/data/ai-review.json - уже разобранное пропускаем
 // FORCE=1             - брать и уже разобранное (переразбор на новом каталоге)
 // OLD=1               - брать ТОЛЬКО разобранное чужой моделью (переразбор старого)
+// KEYS=/tmp/keys.json - взять ровно эти ключи и в этом порядке (очередь приоритета)
 // OUT=/tmp/part.txt    - куда писать транскрипты (по умолчанию stdout)
 // MAP=/tmp/part.map.json - карта номеров строк в src, нужна применяющему скрипту
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -21,6 +22,7 @@ const DONE = process.env.DONE || "dialog/data/ai-review.json";
 const FORCE = process.env.FORCE === "1";
 const OLD = process.env.OLD === "1";
 const BY = process.env.REVIEW_BY || "claude-code";
+const KEYS: string[] = process.env.KEYS ? JSON.parse(readFileSync(process.env.KEYS, "utf8")) : [];
 const OUT = process.env.OUT || "";
 const MAP = process.env.MAP || "";
 
@@ -42,7 +44,12 @@ const raw = Object.entries(byKey)
     : FORCE ? true : (!done[x.k] || done[x.k].lastTs !== x.last))
   .sort((a, b) => b.last - a.last);
 
-const part = raw.slice(SKIP, SKIP + N);
+// Очередь приоритета важнее сортировки по свежести: разбираем сначала те сделки, где
+// от разбора зависит решение по деньгам, а не те, где просто недавно писали.
+const ordered = KEYS.length
+  ? KEYS.map((k) => raw.find((x) => x.k === k)).filter(Boolean) as typeof raw
+  : raw;
+const part = ordered.slice(SKIP, SKIP + N);
 const map: Record<string, { mgr: string; last: number; srcs: Record<number, string>; bodies: Record<number, string>; who: Record<number, string>; dir: Record<number, string> }> = {};
 const out: string[] = [];
 
@@ -71,7 +78,7 @@ for (const x of part) {
   out.push(`\n##### ${x.k} | менеджер: ${head.mgr} | ${head.dealT || head.leadT || ""}\n${lines.join("\n").slice(0, 12000)}`);
 }
 
-const text = `Порция: ${part.length} диалогов (пропущено ${SKIP}, в очереди всего ${raw.length})\n` + out.join("\n");
+const text = `Порция: ${part.length} диалогов (пропущено ${SKIP}, в очереди всего ${ordered.length})\n` + out.join("\n");
 if (OUT) writeFileSync(OUT, text); else console.log(text);
 if (MAP) writeFileSync(MAP, JSON.stringify(map));
-console.error(`Выгружено ${part.length} из ${raw.length} в очереди${MGR.length ? " (" + MGR.join(", ") + ")" : ""}`);
+console.error(`Выгружено ${part.length} из ${ordered.length} в очереди${MGR.length ? " (" + MGR.join(", ") + ")" : ""}`);

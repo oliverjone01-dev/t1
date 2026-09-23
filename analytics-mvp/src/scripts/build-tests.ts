@@ -22,6 +22,10 @@ import {
 } from "./boost-readiness.js";
 import { KPAGES, navButton } from "./katya-nav.js";
 import { gapFiller, coverage } from "./metric-gap.js";
+import {
+  readFunnelTests, missingDays, FUNNEL_TESTS_FILE,
+  type FunnelRow, type FunnelKey,
+} from "./funnel-tests.js";
 import { loadEbSeries, decideExit, CLEAN_DAYS_FOR_GATE, type ExitDecision } from "./boost-exit.js";
 
 if (!IS_OZON) {
@@ -91,17 +95,26 @@ for (const r of readNd(dp("history.ndjson"))) {
   if (!art) continue;
   const c = cell(art, r.date); c["revenue"] = (c["revenue"] || 0) + (r.revenue || 0);
 }
-// Позиция в поиске по артикулу и дню. Файла может ещё не быть: ряд появится, когда
-// выгрузку положат в data/position_daily.ndjson. Принимаем оба написания полей.
-let posCount = 0;
-for (const r of [...readNd(dp("funnel_sku_daily.ndjson")), ...readNd(dp("position_daily.ndjson"))]) {
-  const art = String(r.art ?? r.offer ?? r.артикул ?? "").trim();
-  const d = String(r.date ?? r.d ?? r.дата ?? "").slice(0, 10);
-  if (!art || !d) continue;
-  const v = Number(r.search_position ?? r.pos ?? r.position ?? r.позиция);
-  if (Number.isFinite(v) && v > 0) { cell(art, d)["pos"] = v; posCount++; }
-}
-const HAS_POS = posCount > 0;
+// ВОРОНКА ТЕСТОВ. Источник с 24.09.2026 один: data/funnel_tests.ndjson. Прежний
+// funnel_sku_daily.ndjson был разовой выгрузкой, он кончился 21.09 и вкладка замерла,
+// хотя позиция всё это время снималась ежедневно. Ломалась доставка, не сбор.
+//
+// Файл перекрывает то, что по тем же товарам даёт sku_views: там общий ночной синк, здесь
+// срез, собранный специально под тесты, с починенным списком sku и сторожем на охват.
+const FT = readFunnelTests(dp(FUNNEL_TESTS_FILE));
+/** Имена полей контракта -> имена колонок страницы. */
+const FUNNEL_MAP: Array<[FunnelKey, string]> = [
+  ["search_position", "pos"], ["search_views", "vsearch"], ["pdp_views", "pdp"],
+  ["hits_to_cart", "cart"], ["ordered_units", "units"],
+];
+const putFunnel = (c: Row, r: FunnelRow): void => {
+  for (const [from, to] of FUNNEL_MAP) {
+    const v = r[from];
+    if (v != null) c[to] = v;          // null у позиции это «не в выдаче», клетку не трогаем
+  }
+};
+for (const [art, byDay] of FT.byArt) for (const [d, r] of byDay) putFunnel(cell(art, d), r);
+const HAS_POS = FT.rows.some((r) => r.search_position != null);
 
 // Ставка оплаты за заказ по товару: главный риск теста 2 (по закону 3 при выходе из
 // рекламы OZON поднимает её с 10 % до 23 %, а это убыток с каждого заказа).
@@ -435,16 +448,45 @@ const winMean = (a: string, win: string[], key: string) => {
   return v.length ? v.reduce((x, y) => x + y, 0) / v.length : 0;
 };
 
-/** Прирост ГРУППОВОГО контроля по метрике: медиана приростов по артикулам группы.
- *  Считается один раз на метрику и служит контрольной стороной всем парам сразу. */
-function groupGrowth(grp: string[], key: string, base: string[], post: string[]): { d: number; n: number; bC: number; pC: number } {
+/** Метрики, у которых контрольная сторона приходит готовой медианой из funnel_tests. */
+const MEDIAN_KEYS = new Set(["pos", "vsearch", "pdp", "cart", "units"]);
+
+/** Ряд готовой медианы группового контроля по дням: тест -> метрика -> день -> значение. */
+function medianDay(t: TestDef, key: string, day: string): number | null {
+  const byDay = FT.medians.get(t.id || "");
+  const r = byDay?.get(day);
+  if (!r) return null;
+  const pair = FUNNEL_MAP.find(([, to]) => to === key);
+  if (!pair) return null;
+  const v = r[pair[0]];
+  return v == null ? null : v;
+}
+const medWin = (t: TestDef, key: string, win: string[]): number | null => {
+  const v = win.map((d) => medianDay(t, key, d)).filter((x): x is number => x != null);
+  return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+};
+
+/** Прирост ГРУППОВОГО контроля по метрике.
+ *
+ *  ДВА РАЗНЫХ СПОСОБА, И ЭТО НЕ НЕБРЕЖНОСТЬ.
+ *  Соинвест, цена и ставка считаются здесь: медиана ПРИРОСТОВ по артикулам группы.
+ *  Воронка (позиция, показы, заходы, корзина, заказы) приходит из funnel_tests готовой
+ *  медианой УРОВНЯ за день, очищенной на маке по карте карточек. По ней можно посчитать
+ *  только прирост медианы, а не медиану приростов. Величины близкие, но не тождественные,
+ *  и подменять одно другим молча нельзя, поэтому разница названа в заметках страницы. */
+function groupGrowth(grp: string[], key: string, base: string[], post: string[], t?: TestDef): { d: number; n: number; bC: number; pC: number; ready: boolean } {
+  if (t && MEDIAN_KEYS.has(key) && FT.medians.has(t.id || "")) {
+    const b = medWin(t, key, base), p = medWin(t, key, post);
+    if (b == null || p == null || !b) return { d: 0, n: 0, bC: b ?? 0, pC: p ?? 0, ready: true };
+    return { d: (p / b - 1) * 100, n: 1, bC: b, pC: p, ready: true };
+  }
   const ds: number[] = []; const bs: number[] = []; const ps: number[] = [];
   for (const a of grp) {
     const b = winMean(a, base, key), p = winMean(a, post, key);
     if (!b) continue;
     ds.push((p / b - 1) * 100); bs.push(b); ps.push(p);
   }
-  return { d: median(ds) ?? 0, n: ds.length, bC: median(bs) ?? 0, pC: median(ps) ?? 0 };
+  return { d: median(ds) ?? 0, n: ds.length, bC: median(bs) ?? 0, pC: median(ps) ?? 0, ready: false };
 }
 
 /** Изменение по каждому тестовому товару против ГРУППОВОГО контроля.
@@ -453,7 +495,7 @@ function groupGrowth(grp: string[], key: string, base: string[], post: string[])
  *  контролем стояла родня, а родня едет за тестом и занижает разницу. */
 function pairDeltas(t: TestDef, key: string, base: string[], post: string[]): PairDelta[] {
   const out: PairDelta[] = [];
-  const g = groupGrowth(ctlGroupOf(t), key, base, post);
+  const g = groupGrowth(ctlGroupOf(t), key, base, post, t);
   for (const test of t.тест || []) {
     const ctl = (log.get(test)?.["контроль"] || "").trim();
     const bT = winMean(test, base, key), pT = winMean(test, post, key);
@@ -581,17 +623,26 @@ function chart(t: TestDef, cid: string): string {
       : key === "drr"
       ? ratio(groupDaily(t.тест!, days, "spend"), groupDaily(t.тест!, days, "revenue"))
       : groupDaily(t.тест!, days, key);
-    const rawC = key === "cpc"
+    // Воронка: контрольная сторона это готовая медиана из funnel_tests, а не пересчёт по
+    // группе. Иначе картинка спорила бы с числом под ней, посчитанным по той же медиане.
+    const byMed = MEDIAN_KEYS.has(key) && FT.medians.has(t.id || "");
+    const medSeries = (win: string[]): Pt[] => win.map((d) => medianDay(t, key, d));
+    const rawC = byMed ? medSeries(days)
+      : key === "cpc"
       ? ratio(groupDaily(CTL, days, "adspend"), groupDaily(CTL, days, "clicks"), 1)
       : key === "drr"
       ? ratio(groupDaily(CTL, days, "spend"), groupDaily(CTL, days, "revenue"))
       : groupDaily(CTL, days, key);
-    const bT = avg(t.тест!, base, key), bC = avg(CTL, base, key);
-    const pT = avg(t.тест!, post, key), pC = avg(CTL, post, key);
+    const bT = avg(t.тест!, base, key);
+    const bC = byMed ? (medWin(t, key, base) ?? NaN) : avg(CTL, base, key);
+    const pT = avg(t.тест!, post, key);
+    const pC = byMed ? (medWin(t, key, post) ?? NaN) : avg(CTL, post, key);
     let a: Pt[] = rawT, b: Pt[] = rawC;
     if (mode === "index") {
       a = groupIndexed(t.тест!, days, key, base);
-      b = groupIndexed(CTL, days, key, base);
+      b = byMed
+        ? (Number.isFinite(bC) && bC ? medSeries(days).map((v) => v == null ? null : v / bC * 100) : [])
+        : groupIndexed(CTL, days, key, base);
       if (!nums(a).length || !nums(b).length) continue;
     } else if (!nums(rawT).length && !(testOnly || nums(rawC).length)) continue;
     panes[key] = testOnly
@@ -1016,13 +1067,56 @@ gaps.push(`Каталог на ${LAST} это ${nbsp(CARDS.card.size)} ${plural(
   + ` по выгрузке кабинета. В снимке соинвеста строк больше (${nbsp(new Set(coinvRows.map((r) => r.art)).size)}):`
   + ` он держит и те артикулы, что из каталога уже ушли, чтобы не терять их историю. Число 514`
   + ` это ширина снимка, а не размер каталога.`);
-gaps.push(`Просадки охвата воронки нет, хотя по числу строк она видна. До 09.09 в`
-  + ` funnel_sku_daily было 514 строк в сутки и все 514 с позицией и показами. 10.09 ширина`
-  + ` выгрузки выросла до 816, но из 302 добавленных 287 пришли пустыми. 21.09 ширина упала`
-  + ` до 521, и в тот же день строк С ДАННЫМИ стало БОЛЬШЕ: 519 против 513 накануне. То есть`
-  + ` менялась ширина списка, а не охват: строк с позицией все две недели было 510..529.`
-  + ` Замер по показам это не ломает. Файл в репозитории доезжает по 21.09, дни 22 и 23.09`
-  + ` нужно пересчитать тем же способом, когда они приедут.`);
+// Источник воронки: состояние, потери и метод. Пустой файл это не «нет данных», а
+// сломанная доставка, и молчать об этом нельзя: вкладка уже один раз замерла так на два дня.
+{
+  const LOST = ["GGT-48-2-2-100-180", "GGM-17-2-1", "GGK-02-1-5-120", "GGT-03-1-3-S-40"];
+  if (!FT.exists) {
+    warns.push(`ВОРОНКА ТЕСТОВ НЕ ПРИЕХАЛА. Файл data/${FUNNEL_TESTS_FILE} в репозитории`
+      + ` отсутствует, поэтому позиции, показов, заходов, корзины и заказов на вкладке нет вовсе.`
+      + ` Прежний источник funnel_sku_daily.ndjson отключён: он был разовой выгрузкой, кончился`
+      + ` 21.09 и держал вкладку замершей, пока позиция снималась каждый день. Съём кладёт новый`
+      + ` файл с 24.09, первый прогон зальёт историю с 12.06.`);
+  } else {
+    const days = [...new Set(FT.rows.map((r) => r.date))].sort();
+    const arts = [...FT.byArt.keys()];
+    gaps.push(`Воронка тестов идёт из data/${FUNNEL_TESTS_FILE}: ${nbsp(FT.rows.length)}`
+      + ` ${plural(FT.rows.length, "строка", "строки", "строк")}, ${nbsp(days.length)}`
+      + ` ${plural(days.length, "день", "дня", "дней")} с ${FT.first} по ${FT.last},`
+      + ` ${nbsp(arts.length)} ${plural(arts.length, "артикул", "артикула", "артикулов")}`
+      + ` и медианы по ${nbsp(FT.medians.size)} ${plural(FT.medians.size, "тесту", "тестам", "тестам")}.`
+      + ` Выручки в файле нет намеренно: репозиторий публичный, поартикульная выручка в него не едет.`);
+    if (FT.bad.length) {
+      warns.push(`ВОРОНКА: контракт не прошли ${nbsp(FT.bad.length)}`
+        + ` ${plural(FT.bad.length, "строка", "строки", "строк")}, в расчёт не взяты. Первые: `
+        + FT.bad.slice(0, 3).map((b) => `строка ${b.line} (${b.why})`).join("; ") + `.`);
+    }
+    // Пропажа внутри ряда: товар был до и после, а в этот день его нет. Ровно так 22.09
+    // молча выпали четыре тестовых артикула, и заметили это только по числу строк.
+    const holes: string[] = [];
+    for (const [art, byDay] of FT.byArt) {
+      const miss = missingDays(byDay, days);
+      if (miss.length) holes.push(`${art}: ${miss.join(", ")}`);
+    }
+    if (holes.length) {
+      warns.push(`ВОРОНКА: у части артикулов пропали дни, которые в файле есть у других.`
+        + ` Это не ноль и не конец жизни товара, это потеря съёма. `
+        + holes.slice(0, 8).join("; ") + (holes.length > 8 ? ` и ещё ${holes.length - 8}` : "") + `.`);
+    }
+  }
+  gaps.push(`22 и 23 сентября из воронки выпали четыре тестовых товара: ${LOST.join(", ")}.`
+    + ` Причина в списке sku запроса, а не в товарах: из 279 выпавших в тот день 146 при этом`
+    + ` присутствовали в снимке цен. По 21.09 позиция была у 20 тестовых из 20, с 22.09 стала`
+    + ` у 16. В съёме починено (список = снимок цен плюс воронка за 14 дней, сторож на охват`
+    + ` и поимённая проверка артикулов тестов), но эти два дня потеряны навсегда.`
+    + ` В тесте 1 это один артикул из 11, в тесте 2 три из 10. Динамику за полное окно по ним`
+    + ` читать нельзя, только по усечённому.`);
+  gaps.push(`Контрольная сторона считается двумя способами, и это не небрежность. Соинвест,`
+    + ` цена и ставка: медиана ПРИРОСТОВ по артикулам группы. Воронка: прирост МЕДИАНЫ, потому`
+    + ` что медиана приходит из съёма уже посчитанной и очищенной по карте карточек, и по ней`
+    + ` восстановить приросты отдельных артикулов невозможно. Величины близкие, но не`
+    + ` тождественные, и сравнивать их между собой напрямую нельзя.`);
+}
 gaps.push(`search_promo_products не собирается, и это не пробел: через seller-proxy ручка`
   + ` отдаёт 405 и 404, настоящие данные лежат на performance.ozon.ru за логином. Единственный`
   + ` доехавший файл (19.09) содержал одну строку, то есть полным не был никогда. Расход, клики`

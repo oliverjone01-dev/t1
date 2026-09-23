@@ -146,7 +146,7 @@ function svodPnl() {
       ohM[k] = (ohM[k] || 0) + ((v.m || 0) + (v.p || 0));
     }
   }
-  let net = 0, cogs = 0, ship = 0, un = 0, unOur = 0, unKn = 0;
+  let net = 0, cogs = 0, ship = 0, un = 0, unOur = 0, unKn = 0, paid = 0;
   for (const m of ms) for (const r of m.rows || []) {
     const d = r.units_delivered || 0, n = r.units_net || 0;
     const k = String(r.d || "").slice(0, 7);
@@ -154,14 +154,16 @@ function svodPnl() {
     const priceNet = (d > 0 ? (r.price || 0) * n / d : (r.price || 0)) + (r.ship_mp || 0);
     const fee = Object.values((r.svc || {}) as Record<string, number>).reduce((a, b) => a + (b || 0), 0);
     net += priceNet + (r.ship_buyer || 0) - fee - (r.svc_points || 0) - per * n;
-    cogs += r.cogs || 0; ship += r.ship_our || 0; un += n;
+    cogs += r.cogs || 0; ship += r.ship_our || 0; un += n; paid += r.revenue_money || 0;
     // Ведомость нужна только там, где везём мы: Маркет-доставка нашего расхода не создаёт.
     const led = DEL.reduce((a: number, k: string) => a + ((r.svc || {})[k] || 0) + ((r.svc_pts || {})[k] || 0), 0);
     const our = led <= 0 && (r.ship_buyer || 0) > 0;
     if (our) { unOur += n; if (r.ship_known) unKn += n; }
   }
-  const gp = net - cogs - ship, np = gp - net * 0.30 - net * 0.15;
-  return { net, np, rent: net !== 0 ? (np / net) * 100 : 0, un, unOur, unKn };
+  // 23.09.2026: налог - от платежа покупателя, АДМ по-прежнему от поступления (Катя: «перестрой
+  // расчет налогов - 15% от суммы оплатил клиент»).
+  const gp = net - cogs - ship, np = gp - net * 0.30 - paid * 0.15;
+  return { net, np, paid, rent: net !== 0 ? (np / net) * 100 : 0, un, unOur, unKn };
 }
 
 describe("«Товары»: рентабельность считается из свода", () => {

@@ -16,14 +16,24 @@
 // с полными данными. AI_BATCH=0 полностью возвращает старый синхронный режим.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 
+// Параметры прогона. Воркфлоу b24-dialog-cron живёт на main и прокидывает только AI_LIMIT и
+// AI_BATCH, поэтому модель, менеджер и путь вывода берём ещё и из необязательного файла
+// dialog/ai-run.json в этой же ветке данных: задать их можно коммитом, не трогая main.
+// Приоритет: переменная окружения -> файл -> значение по умолчанию. Нет файла - прежнее поведение.
+function runCfg(): Record<string, string> {
+  try { return JSON.parse(readFileSync("dialog/ai-run.json", "utf8")) || {}; } catch { return {}; }
+}
+const CFG = runCfg();
+const pick = (env: string, key: string, def = "") => (process.env[env] || CFG[key] || def).toString().trim();
+
 const KEY = process.env.ANTHROPIC_API_KEY || "";
-const MODEL = process.env.AI_MODEL || "claude-sonnet-5";
+const MODEL = pick("AI_MODEL", "model", "claude-sonnet-5");
 const LIMIT = Number(process.env.AI_LIMIT || 120);
 // AI_MGR="Имя Фамилия" - разобрать только сделки этого менеджера и принудительно ре-разобрать
 // их даже если разбор уже есть (пилот стоимости по одному менеджеру). Пусто = обычный режим.
 // AI_MGR="Имя Фамилия" ограничивает разбор одним менеджером и принудительно ре-разбирает
 // его сделки (пилот стоимости). Пусто = обычный режим по всему отделу.
-const MGR_ONLY = (process.env.AI_MGR || "").trim();
+const MGR_ONLY = pick("AI_MGR", "mgr");
 const CONC = 4;
 // Учёт токенов для отчёта о стоимости (Protocol 9). Считаем по всем ответам API.
 const usage = { in: 0, out: 0, cacheR: 0, cacheW: 0 };
@@ -35,7 +45,10 @@ function addUsage(u: any) {
 const USE_BATCH = (process.env.AI_BATCH ?? "1") !== "0";
 const BATCH_WAIT_MIN = Number(process.env.AI_BATCH_WAIT_MIN || 30);
 const DLG = "dialog/data/dialog.json";
-const OUT = "dialog/data/ai-review.json";
+// AI_OUT - куда писать разбор. По умолчанию боевой файл, который читает score-dialog.
+// Отдельный путь нужен для замера: прогнать тот же набор сделок другой моделью и сравнить,
+// не перетирая то, что уже стоит в дашборде.
+const OUT = pick("AI_OUT", "out", "dialog/data/ai-review.json");
 
 if (!KEY) { console.log("ANTHROPIC_API_KEY не задан - ИИ-слой пропущен (это не ошибка)"); process.exit(0); }
 

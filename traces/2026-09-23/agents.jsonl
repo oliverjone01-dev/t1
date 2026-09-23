@@ -81,3 +81,4 @@
 {"ts": "2026-09-23T16:16:06+00:00", "event": "subagent_stop", "agent": "feniks", "tier": "0", "session_id": "35b51466-2267-51bd-bef3-fa7175295f18", "agent_id": "abeb60710317401f5", "msg_chars": 62, "outcome": "unknown"}
 {"ts": "2026-09-23T21:54:31+00:00", "event": "subagent_start", "agent": "spartak", "tier": "chairman", "session_id": "35b51466-2267-51bd-bef3-fa7175295f18", "agent_id": "a3168de591685b09f"}
 {"ts": "2026-09-23T21:56:00+00:00", "event": "subagent_stop", "agent": "spartak", "tier": "chairman", "session_id": "35b51466-2267-51bd-bef3-fa7175295f18", "agent_id": "a3168de591685b09f", "msg_chars": 3330, "outcome": "unknown"}
+{"ts": "2026-09-23T22:02:59+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "35b51466-2267-51bd-bef3-fa7175295f18", "agent_id": "ac757787ec42df793"}

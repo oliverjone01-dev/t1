@@ -1,0 +1,314 @@
+/* ==========================================================================
+   Контур DS · токены
+   Единственный источник значений. Компоненты берут цвет, размер и время
+   только отсюда. Каждая пара «текст на поверхности» проверена по WCAG,
+   каждая палитра графиков проверена validate_palette.mjs в своей теме.
+
+   Три состояния темы:
+     - html[data-theme="dark"]  явный выбор тёмной
+     - html[data-theme="light"] явный выбор светлой
+     - без атрибута             следуем системе через prefers-color-scheme
+   Для совместимости класс html.dark работает как data-theme="dark".
+   ========================================================================== */
+
+:root{
+  /* ---------- шрифты ---------- */
+  /* На Mac и iPhone системный SF (Display на крупном, Text на мелком включаются сами).
+     У остальных Golos Text: гротеск с кириллицей и табличными цифрами. SF нельзя
+     вложить файлом, лицензия Apple разрешает его только для макетов. DM Sans убран:
+     в нём нет табличных цифр, столбцы чисел не выравнивались. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Golos Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* моноширинный только для кода и имён токенов; цифры набираются --font-sans с табличными цифрами */
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* ---------- шкала текста: восемь ролей, а не девять близких размеров ---------- */
+  --fs-badge:  12px;     /* бейдж: строчными, средней жирности; капс остался только в коротких метках */
+  --fs-micro:  11px;     /* строка источника, подписи осей */
+  --fs-caption:12px;     /* подпись плитки, подзаголовок карточки */
+  --fs-small:  12.5px;   /* таблицы, текст во врезках */
+  --fs-body:   13px;     /* основной текст в карточках */
+  --fs-base:   14px;     /* заголовок карточки, базовый размер страницы */
+  --fs-h2:     16px;     /* заголовок раздела внутри экрана */
+  --fs-h1:     22px;     /* заголовок экрана */
+  --fs-h1-sm:  19px;     /* заголовок экрана на телефоне */
+  --fs-hero:   clamp(24px, 20.7px + 0.85vw, 30px); /* значение на плитке: 24px на телефоне 390, 30px от 1100 */
+
+  --lh-tight: 1.2;
+  --lh-snug:  1.4;
+  --lh-body:  1.55;
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semi:    600;
+  --fw-bold:    700;
+
+  --tracking-hero: -0.025em;
+  --tracking-h:    -0.015em; /* заголовки экрана и раздела: плотнее, как у Linear и Vercel */
+  --tracking-num:  -0.01em;
+  --tracking-caps:  0.04em;
+
+  /* ---------- отступы: шаг 4 пикселя, половинки только 2, 6, 10, 14 ---------- */
+  --sp-0-5: 2px;  --sp-1: 4px;   --sp-1-5: 6px;  --sp-2: 8px;
+  --sp-2-5: 10px; --sp-3: 12px;  --sp-3-5: 14px; --sp-4: 16px;
+  --sp-5: 20px;   --sp-6: 24px;  --sp-8: 32px;   --sp-10: 40px;
+
+  /* ---------- радиусы ---------- */
+  --r-xs: 4px;     /* клавиша, мелкая метка */
+  --r-sm: 6px;     /* кнопка, поле, сегмент, бейдж, чип дельты */
+  --r-md: 8px;     /* пункт меню, подсказка, пункт палитры команд */
+  --r-lg: 12px;    /* карточка, врезка, группа плиток, палитра команд */
+  --r-full: 999px; /* полоса прогресса, точка */
+  /* Роли радиусов (приём daisyUI и Geist): поле заметно мельче коробки. Один радиус
+     на всём подряд это главный признак шаблона. */
+  --r-field: var(--r-sm);
+  --r-box:   var(--r-lg);
+
+  /* Глубина: множитель тени и верхнего блика карточки. 0 даёт плоский интерфейс,
+     1 это норма, больше 1 не ставить: тень начинает спорить с данными. */
+  --depth: 1;
+  /* Стекло: только для слоёв поверх контента (подсказка, палитра команд, уведомление,
+     подсказка графика). Карточки с цифрами стеклянными не бывают. */
+  --glass-blur: blur(20px) saturate(160%);
+
+  /* ---------- движение ---------- */
+  --ease-std: cubic-bezier(.4,0,.2,1);
+  --ease-out: cubic-bezier(.2,.8,.2,1);   /* вход: панель, экран */
+  --ease-in:  cubic-bezier(.4,0,1,1);     /* выход: закрытие панели; пружины и отскоки запрещены */
+  --dur-fast:  160ms;  /* наведение на пункт меню, кнопку */
+  --dur-base:  250ms;  /* подъём карточки, поворот стрелки */
+  --dur-slow:  300ms;  /* раскрытие аккордеона, выезд панели */
+  --dur-enter: 420ms;  /* появление экрана */
+  --dur-chart: 520ms;  /* анимация графика */
+
+  /* ---------- каркас ---------- */
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 72px;
+  --topbar-h: 58px;
+  --content-pad: 24px;
+  --content-pad-sm: 16px;
+  --drawer-w: 560px;
+  --content-max: 1480px;
+
+  /* касание: минимальная цель пальца (Apple HIG 44 pt) */
+  --tap: 44px;
+  --tap-sm: 36px;
+  /* точки перелома (в медиазапросах переменные не работают, значения записаны числами):
+     sm 640 телефон/планшет, md 768, lg 1024 меню у края, xl 1280, 2xl 1536 */
+
+  --z-topbar: 20; --z-backdrop: 30; --z-sidebar: 40; --z-drawer: 50; --z-cmdk: 55; --z-toast: 60;
+
+  /* ---------- плотность (1.4) ----------
+     Здесь значения «просторно», вид 1.3 без изменений. data-density="compact" на корне или
+     на любом контейнере сжимает поля, зазоры, строки таблиц и высоту кнопок.
+     Цели пальца (--tap) плотность не трогает никогда. */
+  --pad-box:      var(--sp-4);  /* поле карточки, плитки, вердикта */
+  --pad-box-lg:   var(--sp-5);  /* то же от контейнера 720 */
+  --gap-stack:    var(--sp-4);  /* зазор стопки и сеток */
+  --gap-stack-lg: var(--sp-5);  /* то же от контейнера 900 */
+  --cell-y:       9px;          /* строка таблицы */
+  --cell-x:       12px;
+  --cell-head-y:  8px;          /* шапка таблицы */
+  --ctl-h:        32px;         /* кнопка */
+  --ctl-h-sm:     26px;         /* мелкая кнопка */
+  --field-h:      34px;         /* поле ввода */
+  --select-h:     30px;         /* выпадающий список, кнопка палитры команд */
+  --nav-y:        7px;          /* пункт меню */
+
+}
+
+/* Компактно: больше строк на экране, для тех, кто работает с таблицами весь день */
+[data-density="compact"]{
+  --pad-box: var(--sp-3); --pad-box-lg: var(--sp-3-5);
+  --gap-stack: var(--sp-3); --gap-stack-lg: var(--sp-3-5);
+  --cell-y: 5px; --cell-x: 10px; --cell-head-y: 6px;
+  --ctl-h: 28px; --ctl-h-sm: 24px; --field-h: 30px; --select-h: 28px;
+  --nav-y: 5px;
+  --topbar-h: 52px; --content-pad: 20px;
+  --fs-hero: clamp(22px, 19.5px + 0.65vw, 26px);
+}
+/* Просторно внутри компактной страницы: те же значения, что в :root (сторож сверяет) */
+[data-density="comfortable"]{
+  --pad-box: var(--sp-4); --pad-box-lg: var(--sp-5);
+  --gap-stack: var(--sp-4); --gap-stack-lg: var(--sp-5);
+  --cell-y: 9px; --cell-x: 12px; --cell-head-y: 8px;
+  --ctl-h: 32px; --ctl-h-sm: 26px; --field-h: 34px; --select-h: 30px;
+  --nav-y: 7px;
+  --topbar-h: 58px; --content-pad: 24px;
+  --fs-hero: clamp(24px, 20.7px + 0.85vw, 30px);
+}
+
+/* ================= СВЕТЛАЯ ТЕМА (по умолчанию) =================
+   Действует на корень и на любой контейнер с data-theme="light": так светлый
+   блок можно вложить в тёмную страницу, а витрину показать в двух темах рядом. */
+:root, [data-theme="light"]{
+  color-scheme: light;
+
+  /* Нейтрали 1.3: почти без синевы. Сине-серый slate из 1.2 читался как тема по умолчанию. */
+  --bg:        #F6F7F9;   /* фон страницы */
+  --surface:   #FFFFFF;   /* карточка */
+  --surface-2: #F1F3F6;   /* наведение, подложка сегмента, строка про деньги */
+  --surface-3: #F6F7F9;   /* поле ввода, код */
+  --overlay:   rgba(255,255,255,.82);  /* шапка поверх контента */
+  --backdrop:  rgba(15,20,30,.40);
+
+  --border:        #E3E6EA;
+  --border-strong: #C8CDD5;
+  --divider:       #EEF0F3;   /* строки таблицы */
+
+  /* текст: четыре ступени, все проверены на странице, карточке и подложке */
+  --text-strong: #16191E;   /* 16.4:1 на странице */
+  --text:        #3A404A;   /*  9.7:1 */
+  --text-muted:  #5A616C;   /*  5.8:1, минимум для мелкого текста */
+  --text-faint:  #858B96;   /*  3.2:1, НЕ для чтения: выключенное и значки-указатели */
+  --text-link:   #3561C9;   /*  5.3:1 */
+  --primary-foreground: #FFFFFF;
+
+  /* основное действие: почти чёрное, а не синее. Синий остаётся акцентом: ссылка, фокус, выбор */
+  --action:            #16191E;
+  --action-hover:      #2B3038;
+  --action-foreground: #FFFFFF;
+  --pill:              #FFFFFF;   /* плашка выбранного в сегменте */
+  --spot:              rgba(53,97,201,.06);   /* подсветка под курсором на кликабельном */
+
+  /* интерактив */
+  --primary:       #3561C9;  /* белый текст на нём 5.7:1 */
+  --primary-hover: #2A4FA8;
+  --primary-soft:  rgba(53,97,201,.10);
+  --primary-ink:   #3561C9;  /* активный пункт меню */
+  --focus:        #3561C9;  /* 5.7:1 к карточке */
+
+  /* статус: зарезервирован, никогда не цвет серии */
+  --ok:      #0D7049;  --ok-soft:      rgba(13,112,73,.10);
+  --warn:    #855A00;  --warn-soft:    rgba(133,90,0,.12);
+  --serious: #A44C17;  --serious-soft: rgba(164,76,23,.10);
+  --crit:    #B3261E;  --crit-soft:    rgba(179,38,30,.10);
+  --neutral: #5A616C;  --neutral-soft: rgba(90,97,108,.10);
+  --info:    #3560C7;  --info-soft:    rgba(53,96,199,.10);
+
+  /* графики: категориальные, фиксированный порядок, никогда по кругу */
+  --cat-1: #7B3BC4;  --cat-2: #00806A;  --cat-3: #3561C9;  --cat-4: #A87400;  --cat-5: #0F7CB8;
+  /* последовательная шкала, один тон, светлее к темнее */
+  --seq-1: #96B2EB;  --seq-2: #6F93E0;  --seq-3: #4A71CB;  --seq-4: #2E52AB;  --seq-5: #1C3D82;
+  /* расходящаяся пара */
+  --div-warm: #A85A00;  --div-cool: #3561C9;  --div-mid: #9AA4B4;
+  /* служебное графиков */
+  --grid:     #EDEFF2;
+  --axis:     #5A616C;
+  --neutral-bar: #C6CBD3;   /* «остальные» при выделении одного столбца */
+  --track:    rgba(0,0,0,.055);
+
+  --sh-card:  0 1px 2px rgba(16,24,40,calc(.05 * var(--depth))), 0 1px 1px rgba(16,24,40,calc(.02 * var(--depth)));
+  --sh-hover: 0 8px 24px -6px rgba(16,24,40,.12);
+  --sh-pop:   0 12px 32px rgba(15,20,30,.16);
+  --sh-drawer:-12px 0 40px rgba(15,20,30,.14);
+
+  --glass-bg:     rgba(255,255,255,.86);
+  --glass-border: rgba(16,24,40,.09);
+  --glass-shadow: 0 16px 36px -10px rgba(16,24,40,.22), 0 2px 6px rgba(16,24,40,.06), inset 0 1px 0 rgba(255,255,255,.7);
+
+  --scroll-thumb: #CDD2D9;
+}
+
+/* ================= ТЁМНАЯ ТЕМА ================= */
+/* Фон на ступень темнее тёмного интерфейса Claude (#151515, светлота OKLCH 0,196): 0,181.
+   Цветность поверхностей 0,008-0,016 по OKLCH, тон 258: синий как отлив, не как цвет. */
+[data-theme="dark"], :root.dark{
+  color-scheme: dark;
+
+  --bg:        #0F1216;   /* на ступень темнее тёмного Claude (#151515), еле заметный синий */
+  --surface:   #171A1F;
+  --surface-2: #1F2227;
+  --surface-3: #131619;
+  --overlay:   rgba(15,18,22,.88);
+  --backdrop:  rgba(0,0,0,.55);
+
+  --border:        #2A2E34;
+  --border-strong: #3B4149;
+  --divider:       #21252A;
+
+  --text-strong: #E9EBEF;   /* 14.6:1 на карточке */
+  --text:        #BAC0C9;   /*  9.5:1 */
+  --text-muted:  #989FAA;   /*  6.5:1 */
+  --text-faint:  #727984;   /*  4.0:1, НЕ для чтения */
+  --text-link:   #8FB0FF;   /*  8.2:1 */
+  --primary-foreground: #0A0C0E;
+
+  --action:            #E9EBEF;
+  --action-hover:      #FFFFFF;
+  --action-foreground: #0F1216;
+  --pill:              #2C3037;
+  --spot:              rgba(143,176,255,.07);
+
+  --primary:       #5D8AFF;  /* тёмный текст на нём 6.1:1 */
+  --primary-hover: #7FA2FF;
+  --primary-soft:  rgba(93,138,255,.15);
+  --primary-ink:   #93B2FF;
+  --focus:        #8FB0FF;
+
+  --ok:      #37D39B;  --ok-soft:      rgba(55,211,155,.14);
+  --warn:    #E0A82E;  --warn-soft:    rgba(224,168,46,.14);
+  --serious: #F0873F;  --serious-soft: rgba(240,135,63,.12);
+  --crit:    #FF6B6B;  --crit-soft:    rgba(255,107,107,.14);
+  --neutral: #959CA8;  --neutral-soft: rgba(149,156,168,.12);
+  --info:    #8FB0FF;  --info-soft:    rgba(143,176,255,.14);
+
+  --cat-1: #8A5FE9;  --cat-2: #00AD81;  --cat-3: #5D8AFF;  --cat-4: #CE7F00;  --cat-5: #009EEC;
+  --seq-1: #33507F;  --seq-2: #3E6BC0;  --seq-3: #5081E4;  --seq-4: #6E96FF;  --seq-5: #A6C0FF;
+  --div-warm: #C57E14;  --div-cool: #5D8AFF;  --div-mid: #64748B;
+  --grid:     #24272C;
+  --axis:     #989FAA;
+  --neutral-bar: #444952;
+  --track:    rgba(255,255,255,.08);
+
+  --sh-card:  inset 0 1px 0 rgba(255,255,255,calc(.045 * var(--depth)));
+  --sh-hover: 0 10px 30px rgba(0,0,0,.55);
+  --sh-pop:   0 14px 36px rgba(0,0,0,.60);
+  --sh-drawer:-14px 0 44px rgba(0,0,0,.55);
+
+  --glass-bg:     rgba(30,33,39,.86);
+  --glass-border: rgba(255,255,255,.09);
+  --glass-shadow: 0 18px 44px -10px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.06);
+
+  --scroll-thumb: #373C43;
+}
+
+/* Системная тема, когда пользователь ничего не выбирал явно */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]):not(.light){
+    color-scheme: dark;
+    --bg:#0F1216; --surface:#171A1F; --surface-2:#1F2227; --surface-3:#131619;
+    --overlay:rgba(15,18,22,.88); --backdrop:rgba(0,0,0,.55);
+    --border:#2A2E34; --border-strong:#3B4149; --divider:#21252A;
+    --text-strong:#E9EBEF; --text:#BAC0C9; --text-muted:#989FAA; --text-faint:#727984; --text-link:#8FB0FF; --primary-foreground:#0A0C0E;
+    --action:#E9EBEF; --action-hover:#FFFFFF; --action-foreground:#0F1216; --pill:#2C3037; --spot:rgba(143,176,255,.07);
+    --primary:#5D8AFF; --primary-hover:#7FA2FF; --primary-soft:rgba(93,138,255,.15); --primary-ink:#93B2FF; --focus:#8FB0FF;
+    --ok:#37D39B; --ok-soft:rgba(55,211,155,.14); --warn:#E0A82E; --warn-soft:rgba(224,168,46,.14);
+    --serious:#F0873F; --serious-soft:rgba(240,135,63,.12); --crit:#FF6B6B; --crit-soft:rgba(255,107,107,.14);
+    --neutral:#959CA8; --neutral-soft:rgba(149,156,168,.12); --info:#8FB0FF; --info-soft:rgba(143,176,255,.14);
+    --cat-1:#8A5FE9; --cat-2:#00AD81; --cat-3:#5D8AFF; --cat-4:#CE7F00; --cat-5:#009EEC;
+    --seq-1:#33507F; --seq-2:#3E6BC0; --seq-3:#5081E4; --seq-4:#6E96FF; --seq-5:#A6C0FF;
+    --div-warm:#C57E14; --div-cool:#5D8AFF; --div-mid:#64748B;
+    --grid:#24272C; --axis:#989FAA; --neutral-bar:#444952; --track:rgba(255,255,255,.08);
+    --sh-card:inset 0 1px 0 rgba(255,255,255,calc(.045 * var(--depth)));
+    --sh-hover:0 10px 30px rgba(0,0,0,.55); --sh-pop:0 14px 36px rgba(0,0,0,.60); --sh-drawer:-14px 0 44px rgba(0,0,0,.55);
+    --glass-bg:rgba(30,33,39,.86); --glass-border:rgba(255,255,255,.09); --glass-shadow:0 18px 44px -10px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.06);
+    --scroll-thumb:#373C43;
+  }
+}
+
+/* Тот, кто просил больше контраста (настройка системы), получает его */
+@media (prefers-contrast: more){
+  :root, [data-theme]{ --text-muted: var(--text); --border: var(--border-strong); --glass-bg: var(--surface); }
+}
+/* Тот, кто просил меньше прозрачности, получает сплошные слои вместо стекла */
+@media (prefers-reduced-transparency: reduce){
+  :root, [data-theme]{ --glass-bg: var(--surface); --glass-blur: none; --overlay: var(--surface); }
+}
+
+/* Движение выключено в настройках вида (KS.prefs): то же, что системное «меньше движения» */
+[data-motion="off"]{ --dur-fast:0ms; --dur-base:0ms; --dur-slow:0ms; --dur-enter:0ms; --dur-chart:0ms; }
+
+/* Тот, кто просил меньше движения, получает его меньше */
+@media (prefers-reduced-motion: reduce){
+  :root{ --dur-fast:0ms; --dur-base:0ms; --dur-slow:0ms; --dur-enter:0ms; --dur-chart:0ms; }
+}

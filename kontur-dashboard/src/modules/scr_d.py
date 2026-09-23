@@ -8,15 +8,15 @@ const SCREENS_D = {
       'Обновление занимает столько же времени, сколько выгрузка. Верстку при этом трогать не нужно ни разу.')
    + '<div class="'+g2+' mb-4">'
    +   card('Формат одной цифры','Пять полей, все обязательны кроме примечания',
-        '<pre class="text-[11.5px] font-mono leading-relaxed overflow-x-auto p-3 rounded-lg soft">'+esc(sample)+'</pre>'
+        '<pre class="t-cap ks-mono leading-relaxed overflow-x-auto p-3 rounded-lg soft">'+esc(sample)+'</pre>'
         + '<div class="mt-3">'+tbl([['Поле'],['Что значит']],[
-            ['<span class="font-mono">v</span>','значение, число или null если выгрузки нет'],
-            ['<span class="font-mono">k</span>','класс: ДАННЫЕ, ГИПОТЕЗА или ДЕМО'],
-            ['<span class="font-mono">s</span>','источник: метод API или название документа'],
-            ['<span class="font-mono">at</span>','дата съёма в формате ГГГГ-ММ-ДД'],
-            ['<span class="font-mono">n</span>','примечание, можно пустое']])+'</div>')
+            ['<span class="ks-mono">v</span>','значение, число или null если выгрузки нет'],
+            ['<span class="ks-mono">k</span>','класс: ДАННЫЕ, ГИПОТЕЗА или ДЕМО'],
+            ['<span class="ks-mono">s</span>','источник: метод API или название документа'],
+            ['<span class="ks-mono">at</span>','дата съёма в формате ГГГГ-ММ-ДД'],
+            ['<span class="ks-mono">n</span>','примечание, можно пустое']])+'</div>')
    +   card('Порядок съёма','Последовательно, аккаунт не держит параллельные заходы',
-        '<div class="space-y-2.5 text-[12.5px]">'
+        '<div class="space-y-2.5 t-small">'
         + [['Опросить лимиты','GET /limits/all, чтобы не упереться в суточный'],
            ['Снять сводку по домену','organic/summary по каждому проекту'],
            ['Снять запросы и страницы','organic/keywords и sitepages, страницами по 500'],
@@ -24,12 +24,12 @@ const SCREENS_D = {
            ['Снять трекер ИИ','ai_tracker/{id}/chart и /citation'],
            ['Обновить блок DB','подставить значения, дату съёма поставить одной и той же'],
            ['Проверить сторожем','скрипт валится, если появилась цифра без источника']
-          ].map((r,i)=>'<div class="flex items-start gap-2.5"><span class="w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-[11px] font-bold num" style="background:color-mix(in oklab, '+PS(Math.min(4,Math.floor(i/1.6)))+' 30%, transparent);color:'+INKH()+'">'+(i+1)+'</span>'
-           +'<div><span class="hd font-medium">'+esc(r[0])+'</span><div class="opacity-70 leading-tight">'+esc(r[1])+'</div></div></div>').join('')
+          ].map((r,i)=>'<div class="flex items-start gap-2.5"><span class="w-6 h-6 rounded-md shrink-0 flex items-center justify-center t-micro font-bold num" style="background:color-mix(in oklab, '+PS(Math.min(4,Math.floor(i/1.6)))+' 30%, transparent);color:'+INKH()+'">'+(i+1)+'</span>'
+           +'<div><span class="hd font-medium">'+esc(r[0])+'</span><div class="ks-muted leading-tight">'+esc(r[1])+'</div></div></div>').join('')
         + '</div>')
    + '</div>'
    + note('Правило, которое нельзя обойти',
-      'Если выгрузки нет, ставится <span class="font-mono">v: null</span> и класс ДЕМО. Подставлять правдоподобное число запрещено: рядом с настоящими цифрами заглушка перестаёт читаться как заглушка, и через неделю никто уже не помнит, какая из них какая.','crit');
+      'Если выгрузки нет, ставится <span class="ks-mono">v: null</span> и класс ДЕМО. Подставлять правдоподобное число запрещено: рядом с настоящими цифрами заглушка перестаёт читаться как заглушка, и через неделю никто уже не помнит, какая из них какая.','crit');
 },
 'rg-api': () => {
   return head('Источники и API', 'В keys.so 50 инструментов, по API доступны 49. Единственное исключение это «Структура сайта»: прямого метода нет, дерево собирается из выгрузки страниц на нашей стороне.',
@@ -38,9 +38,9 @@ const SCREENS_D = {
    + '<div class="'+g2+' mb-4">'
    +   card('Аутентификация и лимиты','',
         tbl([['Параметр'],['Значение']],[
-          ['Адрес','<span class="font-mono text-[12px]">https://api.keys.so</span>'],
-          ['Заголовок','<span class="font-mono text-[12px]">X-Keyso-TOKEN</span>'],
-          ['Альтернатива','<span class="font-mono text-[12px]">auth-token</span> в строке запроса'],
+          ['Адрес','<span class="ks-mono t-cap">https://api.keys.so</span>'],
+          ['Заголовок','<span class="ks-mono t-cap">X-Keyso-TOKEN</span>'],
+          ['Альтернатива','<span class="ks-mono t-cap">auth-token</span> в строке запроса'],
           ['Частота','10 запросов за 10 секунд'],
           ['HTTP 202','отчёт ещё строится, повторить позже'],
           ['HTTP 429','вернёт Retry-After, ждать ровно столько']]))
@@ -75,10 +75,10 @@ onepage: () => {
   return '<div class="max-w-3xl">'
    + head('Одна страница собственнику', 'Формат для трёхминутного чтения: что есть, чего нет, что просим. Печатается на один лист.',
        'сборка из экранов выше', 'P0', bAPI, '')
-   + '<div class="noprint mb-4"><button onclick="window.print()" class="text-[12.5px] px-3 py-1.5 rounded-lg border bdr hovr transition inline-flex items-center gap-2">'+ic('doc','',15)+'Печать</button></div>'
+   + '<div class="ks-noprint mb-4"><button type="button" onclick="window.print()" class="ks-btn ks-btn--secondary ks-btn--sm">'+ic('doc','',15)+'Печать</button></div>'
    + card('1. Сколько это в деньгах',
        'Ответ на первый вопрос',
-       '<div class="text-[13px] leading-relaxed space-y-2">'
+       '<div class="t-body leading-relaxed space-y-2">'
        + '<p>Цифры выручки от поиска сейчас нет, и подставлять расчётную нельзя. '
          + (gg.ym && gg.ym.conv
            ? 'По GENGLASS доля визитов, оставивших заявку, уже посчитана по цели счётчика: '+nf(gg.ym.conv.organic.leads)+' заявки на '+nf(gg.ym.conv.organic.visits)+' визитов из поиска за 30 дней. Но три звена из пяти остаются гипотезами: доля показов, по которым кликают (CTR), доля заявок, закрытых в сделку, и средний чек. Кроме того, модель даёт в разы больше визитов, чем видит счётчик. Пока это не сверено и нет среднего чека, любая сумма здесь была бы выдумкой.'
@@ -94,17 +94,17 @@ onepage: () => {
          ['Запросов в топ-50, GLASS-MEMORY', val(gm.top50)],
          ['Ответов ИИ с упоминанием, GLASS-MEMORY', val(gm.aians)]]))+'</div>'
    + '<div class="mt-4">'+card('3. Что просим', nf(DB.blockers.length)+' вопросов, все на Иване',
-       '<ol class="text-[13px] leading-relaxed space-y-1.5 pl-5 list-decimal">'
+       '<ol class="t-body leading-relaxed space-y-1.5 pl-5 list-decimal">'
        + DB.blockers.map(b=>'<li><span class="hd font-medium">'+esc(b[0])+(b[4]? ' ('+BLN[b[4]]+')' : '')+'</span> - '+esc(b[2])+'</li>').join('')
        + '</ol>')+'</div>'
    + '<div class="mt-4">'+card('4. Два варианта', 'С ценой каждого',
-       '<div class="text-[13px] leading-relaxed space-y-3">'
+       '<div class="t-body leading-relaxed space-y-3">'
        + '<div><span class="hd font-semibold">Вариант А. Ждать полного комплекта данных.</span> Публикация начинается после того, как закрыты все открытые вопросы. Цена: волна 1 сдвигается минимум на неделю, '+nf(gg.facts.units.v)+' готовых контент-единиц лежат без движения.</div>'
        + '<div><span class="hd font-semibold">Вариант Б. Стартовать волной 1 сейчас.</span> Из '+nf(gg.facts.units.v)+' готовых единиц в работу уходят те, что не ждут прайса и разработчика, остальные ждут. Цена: часть текстов придётся править после того, как придёт прайс.</div>'
-       + '<div class="pt-1 opacity-80">Рекомендация: Б. Ожидание не делает данные точнее, оно только отодвигает первую точку замера.</div>'
+       + '<div class="pt-1 ks-muted">Рекомендация: Б. Ожидание не делает данные точнее, оно только отодвигает первую точку замера.</div>'
        + '</div>')+'</div>'
    + '<div class="mt-4">'+card('5. Чем закончится, если не сработает','Downside честно',
-       '<div class="text-[13px] leading-relaxed">Худший сценарий: волна 1 выходит, позиций не приносит, и мы теряем время подряда на внешние материалы плюс внутренние часы на приёмку. Точка проверки: через месяц после публикации смотрим мониторинг. Если через месяц после публикации ни одна посадочная волны 1 не вошла в топ-50 по своему кластеру, канал сворачивается и бюджет уходит в контекст.</div>')+'</div>'
+       '<div class="t-body leading-relaxed">Худший сценарий: волна 1 выходит, позиций не приносит, и мы теряем время подряда на внешние материалы плюс внутренние часы на приёмку. Точка проверки: через месяц после публикации смотрим мониторинг. Если через месяц после публикации ни одна посадочная волны 1 не вошла в топ-50 по своему кластеру, канал сворачивается и бюджет уходит в контекст.</div>')+'</div>'
    + '</div>';
 }
 };

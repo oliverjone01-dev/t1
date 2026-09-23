@@ -5,8 +5,8 @@ SCR_A = r'''
    коэффициенты это [ГИПОТЕЗА] с явным источником, средний чек вводит Иван.
    Пока чек не введён, итог не рисуется - вместо него стоит прочерк. */
 function cinp(id, v, ph, suf){
-  return '<div class="flex items-center gap-2"><input class="fld" id="'+id+'" value="'+(v==null?'':v)+'" placeholder="'+esc(ph)+'" oninput="recalc()">'
-       + (suf? '<span class="text-[11.5px] opacity-60 shrink-0">'+esc(suf)+'</span>':'')+'</div>';
+  return '<div class="flex items-center gap-2"><input class="ks-input" id="'+id+'" value="'+(v==null?'':v)+'" placeholder="'+esc(ph)+'" oninput="recalc()">'
+       + (suf? '<span class="t-cap ks-muted shrink-0">'+esc(suf)+'</span>':'')+'</div>';
 }
 function num(id){ const e=document.getElementById(id); if(!e) return null;
   const s=String(e.value).replace(/\s/g,'').replace(',','.'); const n=parseFloat(s); return isFinite(n)?n:null; }
@@ -63,8 +63,8 @@ obzor: () => {
           tbl([['Ступень'],['Запросов',1]], funRows()))
    +   card('Открытые вопросы','Пока они открыты, часть работы стоит',
           '<div class="space-y-2">'+BL().map(b=>
-            '<div class="flex items-start gap-2 text-[12.5px]"><span class="crit-i mt-[2px] shrink-0">'+ic('warn','',15)+'</span>'
-            +'<div><span class="hd font-medium">'+esc(b[0])+'</span> <span class="opacity-60">· '+esc(b[1])+'</span><div class="opacity-70 leading-tight">'+esc(b[2])+'</div></div></div>').join('')+'</div>')
+            '<div class="flex items-start gap-2 t-small"><span class="crit-i mt-[2px] shrink-0">'+ic('warn','',15)+'</span>'
+            +'<div><span class="hd font-medium">'+esc(b[0])+'</span> <span class="ks-muted">· '+esc(b[1])+'</span><div class="ks-muted leading-tight">'+esc(b[2])+'</div></div></div>').join('')+'</div>')
    + '</div>'
    + act('Снять точку keys.so и записать её в ряд, затем обновить блок данных',
          'съём автоматический, средний чек за Иваном', 'каждый будний день в 09:00',
@@ -89,35 +89,35 @@ obzor: () => {
    + '<div class="'+g2+' mb-4">'
    +   card('Входные данные','Поля с меткой ГИПОТЕЗА можно и нужно переспорить',
         '<div class="space-y-3">'
-        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Суммарная частотность '+kmark(imp!=null? core.k : 'ДЕМО')+'</div>'
+        + '<div><div class="t-cap mb-1 flex items-center gap-1.5">Суммарная частотность '+kmark(imp!=null? core.k : 'ДЕМО')+'</div>'
         +   cinp('i_imp', imp!=null? imp : '', imp!=null? '' : 'нет выгрузки, снять в keys.so', 'показов в месяц')
-        +   '<div class="text-[10.5px] mt-1 opacity-55">'+(imp!=null? esc(core.s)+', '+ruD(core.at) : 'по этому проекту выгрузка частотности не снята')+'</div></div>'
-        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Доля показов, по которым кликают (CTR) '+kmark(a.ctr.k)+'</div>'
+        +   '<div class="t-micro mt-1 ks-muted">'+(imp!=null? esc(core.s)+', '+ruD(core.at) : 'по этому проекту выгрузка частотности не снята')+'</div></div>'
+        + '<div><div class="t-cap mb-1 flex items-center gap-1.5">Доля показов, по которым кликают (CTR) '+kmark(a.ctr.k)+'</div>'
         +   cinp('i_ctr', nf(ctr), '', '%')
-        +   '<div class="text-[10.5px] mt-1 opacity-55">'+esc(a.ctr.s)+'</div></div>'
-        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Доля визитов, оставивших заявку '+kmark(cv? cv.k : a.crl.k)+'</div>'
+        +   '<div class="t-micro mt-1 ks-muted">'+esc(a.ctr.s)+'</div></div>'
+        + '<div><div class="t-cap mb-1 flex items-center gap-1.5">Доля визитов, оставивших заявку '+kmark(cv? cv.k : a.crl.k)+'</div>'
         +   cinp('i_crl', nf(cv? cv.v : a.crl.v), '', '%')
-        +   '<div class="text-[10.5px] mt-1 opacity-55 break-words">'+(cv
+        +   '<div class="t-micro mt-1 ks-muted break-words">'+(cv
               ? esc(cv.n)+'<br>источник: <span class="break-all">'+esc(cv.s)+'</span>, снято '+ruD(cv.at)
               : esc(a.crl.s))+'</div></div>'
-        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Доля заявок, закрытых в сделку '+kmark(a.crd.k)+'</div>'
+        + '<div><div class="t-cap mb-1 flex items-center gap-1.5">Доля заявок, закрытых в сделку '+kmark(a.crd.k)+'</div>'
         +   cinp('i_crd', nf(a.crd.v), '', '%')
-        +   '<div class="text-[10.5px] mt-1 opacity-55">'+esc(a.crd.s)+', '+esc(a.crd.n)+'</div></div>'
-        + '<div><div class="text-[12px] mb-1 flex items-center gap-1.5">Средний чек '+kmark(a.chk.k)+'</div>'
+        +   '<div class="t-micro mt-1 ks-muted">'+esc(a.crd.s)+', '+esc(a.crd.n)+'</div></div>'
+        + '<div><div class="t-cap mb-1 flex items-center gap-1.5">Средний чек '+kmark(a.chk.k)+'</div>'
         +   cinp('i_chk', a.chk.v==null? '' : a.chk.v, 'не заполнено', '₽')
-        +   '<div class="text-[10.5px] mt-1 opacity-55">'+esc(a.chk.s)+'</div></div>'
+        +   '<div class="t-micro mt-1 ks-muted">'+esc(a.chk.s)+'</div></div>'
         + '</div>')
    +   card('Как читать цепочку','Каждая стрелка это допущение, пока у неё нет метки ДАННЫЕ',
-        '<div class="space-y-2.5 text-[12.5px]">'
+        '<div class="space-y-2.5 t-small">'
         + [['Показы','частотность запросов из keys.so', imp!=null? core.k : 'ДЕМО'],
            ['Визиты','показы × CTR', a.ctr.k],
            ['Заявки', cv? 'визиты × измеренная доля заявок из поиска' : 'визиты × доля заявок', cv? cv.k : a.crl.k],
            ['Сделки','заявки × доля, закрытая в сделку', a.crd.k],
            ['Выручка','сделки × средний чек', a.chk.k]].map((r,i)=>
-           '<div class="flex items-start gap-2.5"><span class="w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-[11px] font-bold" style="background:color-mix(in oklab, '+PS(i)+' 30%, transparent);color:'+INKH()+'">'+(i+1)+'</span>'
-           +'<div class="flex-1"><span class="hd font-medium">'+esc(r[0])+'</span> '+kmark(r[2])+'<div class="opacity-70 leading-tight">'+esc(r[1])+'</div></div></div>').join('')
+           '<div class="flex items-start gap-2.5"><span class="w-6 h-6 rounded-md shrink-0 flex items-center justify-center t-micro font-bold" style="background:color-mix(in oklab, '+PS(i)+' 30%, transparent);color:'+INKH()+'">'+(i+1)+'</span>'
+           +'<div class="flex-1"><span class="hd font-medium">'+esc(r[0])+'</span> '+kmark(r[2])+'<div class="ks-muted leading-tight">'+esc(r[1])+'</div></div></div>').join('')
         + '</div>'
-        + '<div class="mt-3 pt-3 border-t bdr text-[12px] leading-snug opacity-80">'
+        + '<div class="mt-3 pt-3 border-t bdr t-cap leading-snug ks-muted">'
         + 'Гипотезы в цепочке: '+esc(hyp.join(', '))+'.'
         + (cv? ' Доля визитов из поиска, оставивших заявку, измерена по цели счётчика, но звено «визиты» расходится со счётчиком в разы.' : '')
         + ' Значит итог тоже гипотеза, и в план идёт только пессимистичный сценарий, то есть коэффициенты, умноженные на 0,3.'
@@ -145,9 +145,9 @@ obzor: () => {
    + '<div class="'+g2+' mb-4">'
    +   card('Выручка H2 по проекту','План против факта',
         tbl([['Показатель'],['План',1],['Факт',1],['Класс']],[
-          ['Выручка H2 2026', money(plan.v), '<span class="opacity-40">нет выгрузки</span>', kmark(plan.k)],
-          ['Доля поиска в выручке', '<span class="opacity-40">не задана</span>', '<span class="opacity-40">нет выгрузки</span>', kmark('ГИПОТЕЗА')],
-          ['Бюджет маркетинга, потолок', money(plan.v*DB.thresh.mkt_share.v), '<span class="opacity-40">нет выгрузки</span>', kmark(CAPF(V()).k)]
+          ['Выручка H2 2026', money(plan.v), '<span class="ks-muted">нет выгрузки</span>', kmark(plan.k)],
+          ['Доля поиска в выручке', '<span class="ks-muted">не задана</span>', '<span class="ks-muted">нет выгрузки</span>', kmark('ГИПОТЕЗА')],
+          ['Бюджет маркетинга, потолок', money(plan.v*DB.thresh.mkt_share.v), '<span class="ks-muted">нет выгрузки</span>', kmark(CAPF(V()).k)]
         ]))
    +   card('Работа, которую можно сверять уже сейчас','Здесь источники есть',
         tbl([['Показатель'],['План',1],['Факт',1]], workRows()),'','',
@@ -181,7 +181,7 @@ obzor: () => {
         +(plan*t.mkt_share.v*t.roi_crisis.v > plan ? ', а это больше всего плана H2 по проекту ('+money(plan)+').' : '.')
         +' Если читать как «(выручка - расход) / расход», множитель '+nf(t.roi_crisis.v+1)+' и сумма ещё больше. Значит, реальную границу расхода задаёт не доля 15%, а ROI: при нём канал может тратить не больше той выручки от поиска, которую он приносит, делённой на '+nf(t.roi_crisis.v)+'. Какую формулу ROI держит в голове собственник, в репозитории не записано.','warn')+'</div>'
    +   card('Правило отказа','Дословная рамка, без смягчений',
-        '<div class="space-y-2.5 text-[12.5px] leading-snug">'
+        '<div class="space-y-2.5 t-small leading-snug">'
         + ['Расход без обоснования цифрой не проходит.',
            'Копия конкурента без своего отличия проходит только ценой на 30-50% ниже.',
            'Идея, открывающая новый фронт вместо углубления работающего, проигрывает по умолчанию.',
@@ -199,7 +199,7 @@ obzor: () => {
    + card('Открытые вопросы','Все на Иване',
       tbl([['Вопрос'],['Кто'],['Что стоит'],['Статус']],
         BL().map(b=>[esc(b[0]), esc(b[1]), esc(b[2]),
-          '<span class="kmark k-crit">'+esc(b[3])+'</span>'])))
+          KS.status(b[3],'crit')])))
    + '<div class="mt-4">'
    + card('Уже решено','Четыре решения от 07.09, они сняли часть блока',
       tbl([['Решение'],['Кто'],['Когда'],['Эффект']],
@@ -210,9 +210,9 @@ obzor: () => {
 };
 function serTable(f){
   const rows = slice().cur.filter(r=>r[f]!=null).map(r=>[ruD(r.date), nf(r[f])]);
-  return rows.length ? tbl([['Дата'],['Значение',1]], rows) : '<div class="text-[12.5px] opacity-70">В выбранном периоде точек нет.</div>';
+  return rows.length ? tbl([['Дата'],['Значение',1]], rows) : '<div class="t-small ks-muted">В выбранном периоде точек нет.</div>';
 }
 function funRows(){ const d=V();
   return [['топ-1',d.top1],['топ-3',d.top3],['топ-10',d.top10],['топ-50',d.top50]]
-    .map(r=>[esc(r[0]), (r[1]&&r[1].v!=null)? nf(r[1].v)+' '+kmark(r[1].k) : '<span class="opacity-40">нет</span> '+kmark('ДЕМО')]); }
+    .map(r=>[esc(r[0]), (r[1]&&r[1].v!=null)? nf(r[1].v)+' '+kmark(r[1].k) : '<span class="ks-muted">нет</span> '+kmark('ДЕМО')]); }
 '''

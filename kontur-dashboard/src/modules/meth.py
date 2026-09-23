@@ -50,8 +50,8 @@ function method(v){
   const m = MS[v]; if(!m) return '';
   return card('Метод и его границы','Откуда цифра, чем обновляется и чего метод не даёт',
     tbl([['Что'],['Значение']],[
-      ['Запрос','<span class="font-mono text-[11.5px]">'+esc(m[0])+'</span>'],
-      ['Параметры','<span class="font-mono text-[11.5px]">'+esc(m[1])+'</span>'],
+      ['Запрос','<span class="ks-mono t-cap">'+esc(m[0])+'</span>'],
+      ['Параметры','<span class="ks-mono t-cap">'+esc(m[1])+'</span>'],
       ['Что возвращает', esc(m[2])],
       ['Как часто снимаем', esc(m[3])],
       ['Чего метод не даёт', '<span class="crit-i">'+esc(typeof m[4]==='function' ? m[4]() : m[4])+'</span>']]));

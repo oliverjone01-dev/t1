@@ -66,16 +66,14 @@ const out = html.slice(0, a)
   + '<script id="app-sealed" type="application/json">' + JSON.stringify(sealed) + "</script>\n"
   + html.slice(b + CLOSE.length);
 
-// Проверка разрешающая. Открытая часть страницы - это стили, разметка и ровно
-// четыре скрипта: tailwind и apexcharts с CDN, конфиг tailwind и окно пароля.
-// Любой другой скрипт вне шифроблока - повод остановить публикацию.
+// Проверка разрешающая. Открытая часть страницы - это стили Контур DS, разметка
+// и ровно два скрипта: apexcharts с CDN и окно пароля. Кит DS лежит в шифроблоке
+// вместе с приложением. Любой другой скрипт вне шифроблока - повод остановить публикацию.
 const openPart = out.replace(/<script id="app-sealed" type="application\/json">[^<]*<\/script>\n/, "");
 const scripts = [...openPart.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
 const allowed = (attrs, body) =>
-  /src="https:\/\/cdn\.tailwindcss\.com"/.test(attrs) ||
-  /src="https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/apexcharts\//.test(attrs) ||
-  /^\s*tailwind\.config\s*=/.test(body) ||
-  body.includes("getElementById('app-sealed')");
+  (/src="https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/apexcharts\//.test(attrs) && !body.trim()) ||
+  (!/\bsrc=/.test(attrs) && body.includes("getElementById('app-sealed')"));
 const extra = scripts.filter(([, attrs, body]) => !allowed(attrs, body));
 if (extra.length) fail("Вне шифроблока лишний скрипт: " + extra[0][0].slice(0, 80));
 const m = code.match(/const DB = (\{.*?\});\n/s);
@@ -83,8 +81,10 @@ if (!m) fail("В блоке app-js нет данных DB: сборка стра
 const db = JSON.parse(m[1]);
 // Имена проектов и домены публичны и стоят в разметке переключателя проектов.
 const PUBLIC = new Set(Object.values(db.projects || {}).flatMap(p => [p.name, p.dom]));
-// Цвета CSS вида #232830 не данные: убираем их, а числа ищем целым токеном.
-const openText = openPart.replace(/#[0-9a-fA-F]{3,8}\b/g, "#");
+// Цвета CSS вида #232830 и комментарии кита («подсветка», «данные») не данные:
+// убираем их, а числа ищем целым токеном. Комментарии пишет сборка, а не выгрузка.
+const openText = openPart.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/<!--[\s\S]*?-->/g, " ")
+  .replace(/#[0-9a-fA-F]{3,8}\b/g, "#");
 const leaks = new Set();
 (function walk(o) {
   if (o == null) return;

@@ -14,12 +14,12 @@ const SCREENS_DYN = {
       tbl([['Метрика'],['Было',1],['Стало',1],['Изменение',1],['Отрезком раньше',1],['Точек',1]],
         rows.map(([n,f,y])=>[
           esc(n),
-          (y.was==null || y.one)? '<span class="opacity-40">нет</span>' : nf(y.was),
-          y.now==null? '<span class="opacity-40">нет</span>' : nf(y.now),
-          y.one? '<span class="opacity-40">одна точка</span>' : y.abs==null? '<span class="opacity-40">нет</span>'
+          (y.was==null || y.one)? '<span class="ks-muted">нет</span>' : nf(y.was),
+          y.now==null? '<span class="ks-muted">нет</span>' : nf(y.now),
+          y.one? '<span class="ks-muted">одна точка</span>' : y.abs==null? '<span class="ks-muted">нет</span>'
             : '<span style="color:'+(tone(f,y.abs)==='good'?ST('ok'):tone(f,y.abs)==='bad'?ST('crit'):INK())+'">'
               +(y.abs>0?'+':'')+nf(y.abs)+'</span>',
-          y.prev==null? '<span class="opacity-40">нет</span>' : nf(y.prev),
+          y.prev==null? '<span class="ks-muted">нет</span>' : nf(y.prev),
           nf(y.points)])))
    + '<div class="mt-4">'+card('Все метрики на одной шкале','Индекс: первая точка периода это 100. Разные по величине ряды иначе не сравнить на одной оси',
       ch('c-idx100',300),'',bAPI, idxTable())+'</div>'
@@ -73,7 +73,7 @@ const SCREENS_DYN = {
         +', ряд из '+(om? nf((om.days||[]).length) : '0')+' дней. Значит механика работает и упирается только в номер счётчика по этому домену.','warn')
      + '<div class="'+g2+' mt-4">'
      +   card('Что появится сразу после подключения','Ни одной новой строки кода для этого не нужно',
-          '<div class="space-y-2 text-[12.5px]">'
+          '<div class="space-y-2 t-small">'
           + ['визиты и визиты из поиска по дням за любой период',
              'страницы входа с числом визитов',
              'поисковые фразы, по которым реально приходят',
@@ -82,7 +82,7 @@ const SCREENS_DYN = {
             ].map(x=>'<div class="flex gap-2"><span class="ok-i shrink-0 mt-[2px]">'+ic('check','',14)+'</span><span>'+esc(x)+'</span></div>').join('')
           + '</div>')
      +   card('Чего не даст даже подключение','Это придётся закрывать отдельно',
-          '<div class="space-y-2 text-[12.5px]">'
+          '<div class="space-y-2 t-small">'
           + ['долю заявок: на новом счётчике понадобится своя цель заявки',
              'вклад рекламы отдельно от органики: нужна разметка utm',
              'выручку по каналу: нужна выгрузка сделок из CRM'
@@ -113,7 +113,7 @@ const SCREENS_DYN = {
       'Первая половина: '+nf(sum(a1))+' визитов. Вторая: '+nf(sum(a2))+'. Разница '+(dv>0?'+':'')+nf(dv)+'. '
       +'Сравнение половинами устойчивее к выходным, чем сравнение последнего дня с первым.', dv>0?'ok':dv<0?'crit':'info')+'</div>'
    + '<div class="mt-4">'+g2Cards(
-      card('Страницы входа','По визитам', tbl([['Страница'],['Визиты',1]], (ym.top_pages||[]).slice(0,10).map(r=>['<span class="font-mono text-[12px]">'+esc(r.url)+'</span>', nf(r.visits)]))),
+      card('Страницы входа','По визитам', tbl([['Страница'],['Визиты',1]], (ym.top_pages||[]).slice(0,10).map(r=>['<span class="ks-mono t-cap">'+esc(r.url)+'</span>', nf(r.visits)]))),
       card('Поисковые фразы','По визитам', tbl([['Фраза'],['Визиты',1]], (ym.top_phrases||[]).slice(0,10).map(r=>[esc(r.phrase), nf(r.visits)]))))+'</div>'
    + ((ym.goals||[]).length ? '' : ym.conv
       ? '<div class="mt-4">'+note('Сколько визитов стали заявками',
@@ -128,7 +128,7 @@ const SCREENS_DYN = {
     ruD(r.date),
     r.top10==null?'-':nf(r.top10), r.top50==null?'-':nf(r.top50),
     r.vis==null?'-':nf(r.vis), r.ai==null?'-':nf(r.ai),
-    '<span class="opacity-60">'+esc(r.src||'-')+'</span>']);
+    '<span class="ks-muted">'+esc(r.src||'-')+'</span>']);
   return head('Журнал съёмов', 'Каждая точка ряда с датой и источником. Экран нужен, чтобы видеть не только цифру, но и то, откуда она взялась и не пропущена ли неделя.',
       'data/history/positions.ndjson', 'P1', bAPI,
       'Пропущенный съём не восстанавливается. Любая дыра в этом журнале это дыра в сравнении периодов на всех остальных экранах.')
@@ -183,6 +183,6 @@ function idxTable(){
   const rows = s.map(r=>[ruD(r.date)].concat(['top10','top50','vis'].map(f=>
     (r[f]==null || !base[f]) ? '-' : Math.round(r[f]/base[f]*100))));
   return rows.length ? tbl([['Дата'],['Топ-10',1],['Топ-50',1],['Видимость',1]], rows)
-                     : '<div class="text-[12.5px] opacity-70">В периоде нет точек.</div>';
+                     : '<div class="t-small ks-muted">В периоде нет точек.</div>';
 }
 '''

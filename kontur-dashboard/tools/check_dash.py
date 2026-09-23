@@ -49,25 +49,26 @@ BANS = [
 for rx, why in BANS:
     if re.search(rx, s, re.I): bad('BAN', f'{why} (шаблон {rx})')
 
-# --- 4. палитра: в графиках только проверенные значения ---
-ALLOWED = set("""#7B3BC4 #00806A #3561C9 #A87400 #0F7CB8
-#8A5FE9 #00AD81 #5D8AFF #CE7F00 #009EEC
-#96B2EB #6F93E0 #4A71CB #2E52AB #1C3D82
-#33507F #3E6BC0 #5081E4 #6E96FF #A6C0FF
-#A85A00 #C57E14 #9AA4B4 #64748B
-#0F7A52 #37D39B #9A6A00 #E0A82E #B5541A #F0873F #B3261E #FF6B6B
-#C3CBD9 #FFFFFF #EEF1F6 #5D87FF #49BEFF #949BA6 #5A6A85 #2A3547 #E7EAEF #101317 #39404A #1A1E24""".split())
+# --- 4. цвет только из токенов Контур DS ---
+# Графики красятся пресетами KS.charts по слотам --cat-1..5 текущей темы. Любой hex
+# в коде графиков значит цвет мимо проверенной палитры и мимо смены темы.
 draw = s[s.find('function draw()'):]
-for hexv in set(re.findall(r'#[0-9A-Fa-f]{6}', draw)):
-    if hexv.upper() not in {a.upper() for a in ALLOWED}:
-        bad('COLOR', f'в графиках цвет {hexv} мимо проверенной палитры')
+for hexv in sorted(set(re.findall(r'#[0-9A-Fa-f]{6}\b', draw))):
+    bad('COLOR', f'в графиках цвет {hexv} мимо токенов --cat-1..5')
+# Вид из пакета: токены и кит вшиты, Tailwind не подключается.
+if 'id="ks-tokens"' not in s or 'id="ks-kit"' not in s:
+    bad('KIT', 'в странице нет токенов или кита Контур DS (kontur-ds/): сборка идёт мимо пакета')
+if 'cdn.tailwindcss.com' in s:
+    bad('KIT', 'страница снова тянет Tailwind: вид должен идти только из Контур DS')
+if re.search(r'class=["\'][^"\']*\bopacity-(40|45|50|55|60|70|80)\b', s):
+    bad('OPACITY', 'текст приглушён прозрачностью; бери класс ks-muted (--text-muted)')
 
 # --- 5. запрещённые приёмы визуализации ---
 # annotations:{yaxis:[...]} это подпись на оси, а не вторая ось: её не считаем
 _d = re.sub(r'annotations:\{[^{}]*yaxis:\s*\[', 'annotations:{__ann__[', draw)
 if re.search(r'(?<!__ann__)\byaxis:\s*\[', _d): bad('DUALAXIS', 'две оси Y на одном графике')
-for mm in re.finditer(r"colors:\[([^\]]*)\]", draw):
-    lst = [x.strip().strip("'") for x in mm.group(1).split(',')]
+for mm in re.finditer(r"colors:\s*\[([^\]]*)\]", draw):
+    lst = [x.strip().strip("'").upper() for x in mm.group(1).split(',')]
     hexes = [x for x in lst if x.startswith('#')]
     if '#5D87FF' in hexes and '#49BEFF' in hexes:
         i, j = hexes.index('#5D87FF'), hexes.index('#49BEFF')

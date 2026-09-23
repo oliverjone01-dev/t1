@@ -1,75 +1,92 @@
 # -*- coding: utf-8 -*-
-# Оболочка приложения. Входит в основной скрипт страницы вместе с данными, поэтому
-# при публикации шифруется целиком (tools/seal_page.mjs). Сам ничего не запускает:
-# старт идёт из appStart(), которую вызывает окно пароля после расшифровки.
+# Оболочка приложения по kontur-ds/templates/starter.html. Входит в основной скрипт
+# страницы вместе с данными и китом, поэтому при публикации шифруется целиком
+# (tools/seal_page.mjs). Сама ничего не запускает: старт идёт из appStart(), которую
+# вызывает окно пароля после расшифровки.
 APP = r'''
-const wide = () => window.matchMedia('(min-width:1024px)').matches;
-function sbTog(){
-  const s=document.getElementById('sb');
-  if(!wide()){ // на узком экране меню выезжает поверх
-    const open = s.classList.toggle('-translate-x-full');
-    document.getElementById('bd').classList.toggle('hidden', open);
-    return;
-  }
-  const n = s.classList.toggle('w-[72px]');
-  s.classList.toggle('w-[258px]', !n);
-  document.querySelectorAll('.lbl').forEach(e=>e.classList.toggle('hidden', n));
-}
-function sbClose(){
-  document.getElementById('sb').classList.add('-translate-x-full');
-  document.getElementById('bd').classList.add('hidden');
-}
-function setP(p){ CUR=p; render(); }
-function setPer(v){ PERIOD=v; try{ localStorage.setItem('kontur-period', v); }catch(e){} render(); }
-function th(){
-  const dk=document.documentElement.classList.toggle('dark');
-  try{ localStorage.setItem('kontur-theme', dk?'dark':'light'); }catch(e){}
-  thIcon(); render();
-}
-function thIcon(){
-  const dk=document.documentElement.classList.contains('dark');
-  document.getElementById('thi').innerHTML = dk
-   ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>'
-   : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>';
-}
+const $id = x => document.getElementById(x);
+function setP(p){ if(DB.projects[p]){ CUR = p; render(); } }
+function setPer(v){ if(PERIODS[v]){ PERIOD = v; $id('per').value = v; render(); } }
+
 function render(){
-  if(!wide()) sbClose();
-  const s=screens(), fn=s[VIEW]||s.obzor;
-  const v=document.getElementById('view');
+  const s = screens(), fn = s[VIEW] || s.obzor;
+  if(!s[VIEW]) VIEW = 'obzor';
   const mth = method(VIEW), rd = reading(VIEW);
-  const tail = (rd||mth) ? '<div class="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">'+(rd||'')+(mth||'')+'</div>' : '';
-  killCharts();
-  v.innerHTML='<div class="fade">'+fn()+tail+'</div>';
-
-  document.querySelectorAll('[data-v]').forEach(b=>{
-    b.classList.toggle('navon', b.dataset.v===VIEW);
-  });
-  openFor(VIEW);
-  refreshBadges();
-
-  ['gm','gg'].forEach(p=>{
-    const b=document.getElementById('p'+p), on=(p===CUR);
-    b.classList.toggle('pane', on);
-    b.classList.toggle('hd', on);
-    b.classList.toggle('shadow-sm', on);
-    b.classList.toggle('opacity-55', !on);
-  });
+  const tail = (rd || mth) ? '<div class="ks-grid-2">' + (rd || '') + (mth || '') + '</div>' : '';
+  $id('view').innerHTML = '<div class="ks-fade"><div class="ks-stack scr">' + fn() + tail + '</div></div>';
+  KS.charts.prune();   /* графики прежнего экрана: их контейнеры только что исчезли */
+  $id('nav').innerHTML = KS.nav(NAV, VIEW);
+  $id('seg').querySelectorAll('[data-p]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === CUR)));
   const ss = SER();
-  document.getElementById('stamp').textContent =
-    V().name + ' · ' + V().dom + (ss.length ? ' · последний съём ' + ruD(ss[ss.length-1].date) + ' · точек ' + ss.length : ' · ряда нет');
-  const sel = document.getElementById('per'); if(sel) sel.value = PERIOD;
-  const ft = document.getElementById('foot');
-  if(ft) ft.textContent = 'Сборка данных ' + (DB.built||'').slice(0,10).split('-').reverse().join('.')
+  $id('stamp').textContent = V().name + ' · ' + V().dom
+    + (ss.length ? ' · последний съём ' + ruD(ss[ss.length-1].date) + ' · точек ' + ss.length : ' · ряда нет');
+  $id('per').value = PERIOD;
+  $id('foot').textContent = 'Сборка данных ' + (DB.built || '').slice(0,10).split('-').reverse().join('.')
     + '. Метрика: ' + (V().ym ? 'подключена' : 'нет') + '. Директ: ' + (V().direct ? 'выгрузка есть' : 'нет') + '.';
-  requestAnimationFrame(()=>{ draw(); if(document.getElementById('calcout')) recalc(); });
+  $id('theme').innerHTML = KS.theme.icon();
+  KS.route.set({ project:CUR, view:VIEW, period:PERIOD });
+  KS.ticker.run($id('view'));
+  scheduleDraw();
 }
+/* Несколько отрисовок в одном кадре дают одну перерисовку графиков: иначе второй вызов
+   уничтожает график посреди анимации первого, и SVG получает размеры NaN. */
+let _raf = 0;
+function scheduleDraw(){ cancelAnimationFrame(_raf); _raf = requestAnimationFrame(() => { draw(); if($id('calcout')) recalc(); }); }
+
+/* Палитра команд (Cmd+K, Ctrl+K): все экраны, проекты, периоды и действия. */
+function commands(){
+  const items = [];
+  NAV.forEach(g => (g.ch ? g.ch.map(c => [g.t, c]) : [[null, g]]).forEach(([grp, c]) =>
+    items.push({ group:'Экраны', label:c.t, hint:grp || '', icon:g.i, keywords:grp || '',
+                 run:() => KS.vt(() => { go(c.id); window.scrollTo(0, 0); }) })));
+  Object.entries(DB.projects).forEach(([k, p]) =>
+    items.push({ group:'Проект', label:p.name, hint:p.dom, icon:'layers', run:() => setP(k) }));
+  Object.keys(PERIODS).forEach(k =>
+    items.push({ group:'Период', label:PERIOD_LABEL[k], icon:'calendar', run:() => setPer(k) }));
+  items.push(
+    { group:'Действия', label:'Сменить тему', icon:'moon', keywords:'тёмная светлая', run:() => KS.theme.toggle() },
+    { group:'Действия', label:'Переключить плотность', hint:'просторно или компактно', icon:'rows', keywords:'компактно просторно', run:() => KS.density.toggle() },
+    { group:'Действия', label:'Скопировать ссылку на экран', icon:'link', run:() => {
+        const bad = () => KS.toast('Не удалось скопировать: выдели адрес вручную', 'warn');
+        try{ navigator.clipboard.writeText(location.href).then(() => KS.toast('Ссылка на экран скопирована'), bad); }catch(e){ bad(); } } });
+  return items;
+}
+
 function appStart(){
-  try{ if(localStorage.getItem('kontur-theme')==='dark') document.documentElement.classList.add('dark');
+  const g = $id('gate'); if(g) g.remove();
+  $id('app').hidden = false;
+  /* прежние ключи хранения: выбор темы и периода не теряется при переходе на кит */
+  try{ const t = localStorage.getItem('kontur-theme');
+       if(t && !localStorage.getItem('ks-theme')) localStorage.setItem('ks-theme', t);
        const sp = localStorage.getItem('kontur-period'); if(sp && PERIODS[sp]) PERIOD = sp; }catch(e){}
-  buildNav();
-  const g = document.getElementById('gate'); if(g) g.remove();
-  document.getElementById('app').hidden = false;
-  thIcon(); render();
-  let _rt; window.addEventListener('resize',()=>{ clearTimeout(_rt); _rt=setTimeout(draw,250); });
+
+  $id('seg').innerHTML = Object.entries(DB.projects).map(([k, p]) =>
+    '<button type="button" data-p="' + k + '" aria-pressed="false">' + esc(p.name) + '</button>').join('');
+  KS.seg.wire($id('seg'));
+  $id('cmdkb').outerHTML = KS.cmdk.button('Поиск');
+  KS.cmdk.set(commands());
+
+  KS.charts.onTheme = () => render();
+  KS.navWire($id('nav'), v => KS.vt(() => { VIEW = v; render(); window.scrollTo(0, 0); }));
+  $id('seg').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if(b) setP(b.dataset.p); });
+  $id('per').addEventListener('change', e => {
+    PERIOD = e.target.value; try{ localStorage.setItem('kontur-period', PERIOD); }catch(x){} render(); });
+  $id('theme').addEventListener('click', () => KS.theme.toggle());
+  KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
+
+  /* Старт: сначала адрес, потом тема. Смена темы перерисовывает экран и переписывает
+     адрес, поэтому присланную ссылку надо прочитать до неё. */
+  const r = KS.route.parse();
+  KS.theme.init();
+  if(r.project && DB.projects[r.project]) CUR = r.project;
+  if(r.view && screens()[r.view]) VIEW = r.view;
+  if(r.period && PERIODS[r.period]) PERIOD = r.period;
+  render();
+
+  const densUi = () => { const b = $id('dens'); b.innerHTML = KS.density.icon();
+    b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase()); };
+  $id('dens').addEventListener('click', () => KS.density.toggle());
+  document.addEventListener('ks:density', () => { densUi(); KS.toast('Плотность: ' + KS.density.label().toLowerCase()); });
+  densUi();
 }
 '''

@@ -120,9 +120,9 @@ const RD = {
 function reading(v){
   const r = typeof RD[v]==='function' ? RD[v]() : RD[v]; if(!r) return '';
   return card('Что смотреть','Три правила чтения этого экрана',
-    '<div class="space-y-2.5 text-[12.5px] leading-snug">'
+    '<div class="space-y-2.5 t-small leading-snug">'
     + r.map((x,i)=>'<div class="flex items-start gap-2.5">'
-      + '<span class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center text-[10.5px] font-bold num" style="background:color-mix(in oklab, '+P(i)+' 18%, transparent);color:'+P(i)+'">'+(i+1)+'</span>'
+      + '<span class="w-5 h-5 rounded-md shrink-0 flex items-center justify-center t-micro font-bold num" style="background:color-mix(in oklab, '+P(i)+' 18%, transparent);color:var(--text-strong)">'+(i+1)+'</span>'
       + '<span>'+esc(x)+'</span></div>').join('')
     + '</div>');
 }

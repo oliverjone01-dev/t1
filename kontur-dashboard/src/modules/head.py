@@ -1,115 +1,96 @@
 # -*- coding: utf-8 -*-
-HEAD = r'''<title>Контур: SEO, GEO, Директ</title>
+# Шапка документа. Вид целиком из Контур DS 1.5 (kontur-ds/ в корне репозитория):
+# src/build.py вставляет tokens.css и kit.css вместо меток /*TOKENS*/ и /*KIT*/.
+# Tailwind больше не подключается: экранам хватает кита и короткого слоя ниже.
+HEAD = r'''<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1216" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
+<title>Контур: SEO, GEO, Директ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
-<script>
-tailwind.config = { darkMode:'class', theme:{ extend:{
-  fontFamily:{ sans:['"DM Sans"','system-ui','sans-serif'], mono:['"IBM Plex Mono"','monospace'] }
-}}}
-/* Цвета намеренно НЕ живут в конфиге Tailwind: если play-CDN не догрузится,
-   страница всё равно должна выглядеть правильно. Все поверхности заданы в <style> ниже. */
-</script>
-<style>
-  /* Своя модель коробки, а не из preflight Tailwind. Иначе обещание строкой выше
-     («если play-CDN не догрузится, страница всё равно должна выглядеть правильно»)
-     не выполняется: поля ввода на экране «Мост до денег» имеют width:100% плюс
-     padding и рамку, и без border-box вылезают за вьюпорт вместе со всей страницей. */
-  *,*::before,*::after{box-sizing:border-box}
-  /* Атрибут hidden должен побеждать любой класс раскладки. Иначе .flex из Tailwind
-     перебивает браузерное правило, и под окном пароля рисуется каркас страницы. */
-  [hidden]{display:none!important}
-  /* По той же причине: блок с примером JSON прокручивается сам, а не тянет за собой
-     всю страницу, даже когда класс прокрутки из Tailwind не подгрузился. */
-  pre{overflow-x:auto;max-width:100%}
-  html{background:#F4F6FA} html.dark{background:#0A0C0E}
-  body{margin:0;font-family:"DM Sans",system-ui,sans-serif;font-size:14px;background:#F4F6FA;color:#5A6A85}
-  html.dark body{background:#0A0C0E;color:#949BA6}
-  .num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-  .hero{font-family:"DM Sans",system-ui,sans-serif;font-variant-numeric:proportional-nums;letter-spacing:-.03em}
-  .cd{background:#fff;border:1px solid #E7EAF0;border-radius:10px;transition:box-shadow .25s,transform .25s,border-color .25s}
-  .cd:hover{box-shadow:0 6px 24px rgba(42,53,71,.09);transform:translateY(-2px)}
-  html.dark .cd{background:#101317;border-color:#232830}
-  html.dark .cd:hover{box-shadow:0 10px 30px rgba(0,0,0,.55);border-color:#2E343D}
-  .nv{transition:background .16s,color .16s}
-  #sb{transition:width .28s cubic-bezier(.4,0,.2,1),transform .28s cubic-bezier(.4,0,.2,1)}
-  #view{min-width:0}
-  .cd{min-width:0}
-  .fade{animation:fd .42s ease both}
-  @keyframes fd{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
-  .sub{max-height:0;overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1)}
-  .sub.on{max-height:640px}
-  .chev{transition:transform .25s}
-  .chev.on{transform:rotate(90deg)}
-  ::-webkit-scrollbar{width:7px;height:7px}
-  ::-webkit-scrollbar-thumb{background:#c9d1de;border-radius:4px}
-  html.dark ::-webkit-scrollbar-thumb{background:#2b3038}
-  .apexcharts-tooltip{border-radius:8px!important;border:none!important;box-shadow:0 8px 26px rgba(0,0,0,.22)!important}
-  .apexcharts-legend-text{color:inherit!important}
-  table.dv{width:100%;border-collapse:collapse;font-size:12.5px}
-  table.dv th{text-align:left;font-weight:600;padding:7px 10px;border-bottom:1px solid #E7EAF0;color:#2A3547;white-space:nowrap}
-  table.dv td{padding:7px 10px;border-bottom:1px solid #F1F3F7}
-  html.dark table.dv th{border-color:#232830;color:#E7EAEF}
-  html.dark table.dv td{border-color:#1A1E24}
-  .kmark{font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:1px 5px;border-radius:4px;vertical-align:middle}
-  .scroll-x{overflow-x:auto}
-  input.fld{width:100%;background:#F4F6FA;border:1px solid #E7EAF0;border-radius:7px;padding:6px 9px;font-size:13px;color:#2A3547;font-family:"IBM Plex Mono",monospace}
-  html.dark input.fld{background:#0D1013;border-color:#232830;color:#E7EAEF}
-  input.fld:focus{outline:2px solid #5D87FF;outline-offset:-1px}
-  /* Поверхности заданы обычным CSS: если конфиг Tailwind не подхватится, страница
-     всё равно выглядит правильно, а не белым пятном в тёмной теме. */
-  .pane{background:#fff;border-color:#E7EAF0}
-  html.dark .pane{background:#101317;border-color:#232830}
-  .topbar{background:rgba(255,255,255,.86);border-color:#E7EAF0}
-  html.dark .topbar{background:rgba(13,16,19,.88);border-color:#232830}
-  .soft{background:#F4F6FA} html.dark .soft{background:#161A1F}
-  .hd{color:#2A3547} html.dark .hd{color:#E7EAEF}
-  .bdr{border-color:#E7EAF0} html.dark .bdr{border-color:#232830}
-  .hovr:hover{background:rgba(0,0,0,.045)} html.dark .hovr:hover{background:rgba(255,255,255,.055)}
-  .k-ok{color:#0F7A52;background:rgba(15,122,82,.10)}
-  .k-warn{color:#9A6A00;background:rgba(154,106,0,.12)}
-  .k-crit{color:#B3261E;background:rgba(179,38,30,.10)}
-  .k-neu{color:#5A6A85;background:rgba(90,106,133,.10)}
-  html.dark .k-ok{color:#37D39B;background:rgba(55,211,155,.14)}
-  html.dark .k-warn{color:#E0A82E;background:rgba(224,168,46,.14)}
-  html.dark .k-crit{color:#FF6B6B;background:rgba(255,107,107,.14)}
-  html.dark .k-neu{color:#949BA6;background:rgba(148,155,166,.12)}
-  .nt{border:1px solid;border-radius:10px;padding:14px;display:flex;gap:10px}
-  .nt-ok{border-color:rgba(15,122,82,.28);background:rgba(15,122,82,.05);--ni:#0F7A52}
-  .nt-warn{border-color:rgba(154,106,0,.30);background:rgba(154,106,0,.06);--ni:#9A6A00}
-  .nt-crit{border-color:rgba(179,38,30,.28);background:rgba(179,38,30,.05);--ni:#B3261E}
-  .nt-info{border-color:rgba(181,84,26,.26);background:rgba(181,84,26,.05);--ni:#B5541A}
-  html.dark .nt-ok{border-color:rgba(55,211,155,.26);background:rgba(55,211,155,.07);--ni:#37D39B}
-  html.dark .nt-warn{border-color:rgba(224,168,46,.26);background:rgba(224,168,46,.07);--ni:#E0A82E}
-  html.dark .nt-crit{border-color:rgba(255,107,107,.26);background:rgba(255,107,107,.07);--ni:#FF6B6B}
-  html.dark .nt-info{border-color:rgba(240,135,63,.24);background:rgba(240,135,63,.06);--ni:#F0873F}
-  .nt-i{color:var(--ni);flex-shrink:0;margin-top:1px}
-  .navon{background:rgba(93,135,255,.13);color:#3561C9;font-weight:600}
-  html.dark .navon{background:rgba(93,138,255,.15);color:#93B2FF}
-  .ok-i{color:#0F7A52} html.dark .ok-i{color:#37D39B}
-  .crit-i{color:#B3261E} html.dark .crit-i{color:#FF6B6B}
-  .trk{background:rgba(0,0,0,.055)} html.dark .trk{background:rgba(255,255,255,.07)}
-  @media print{
-    #sb,#topbar,.noprint{display:none!important}
-    body,html{background:#fff!important;color:#000!important}
-    .cd{break-inside:avoid;box-shadow:none!important;border-color:#ccc!important}
-    #main{padding:0!important}
-  }
-  .gate{position:fixed;inset:0;z-index:100;background:#F4F6FA;display:flex;align-items:center;justify-content:center}
-  html.dark .gate{background:#0A0C0E}
-  .gate .box{width:min(360px,92vw);background:#fff;border:1px solid #E7EAF0;border-radius:16px;padding:30px}
-  html.dark .gate .box{background:#101317;border-color:#232830}
-  .gate .glogo{padding:0 0 6px;font-size:13px;font-weight:700}
-  .gate p{font-size:13px;color:#5A6A85;margin-bottom:16px}
-  html.dark .gate p{color:#949BA6}
-  .gate form{display:flex;flex-direction:column;gap:10px}
-  .gate input{background:#F4F6FA;border:1px solid #E7EAF0;border-radius:7px;padding:8px 10px;font-size:14px;font-family:"DM Sans",system-ui,sans-serif}
-  html.dark .gate input{background:#0D1013;border-color:#232830;color:#E7EAEF}
-  .gate .gerr{color:#B3261E;font-size:12.5px;display:none}
-  html.dark .gate .gerr{color:#FF6B6B}
-  .gate .gbtn{background:#5D87FF;color:#fff;border:0;border-radius:8px;padding:9px 14px;font-size:13.5px;font-weight:600;cursor:pointer}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<style id="ks-tokens">
+/*TOKENS*/
 </style>
+<style id="ks-kit">
+/*KIT*/
+</style>
+<style id="kontur-local">
+/*LOCAL*/
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+</head>
+'''
+
+# Локальный слой. Только раскладка и типографика экранов, все значения из токенов:
+# ни одного своего цвета, размера шрифта мельче 11 пикселей и прозрачности на тексте.
+LOCAL_CSS = r'''
+/* блок с примером JSON прокручивается сам, а не тянет за собой всю страницу */
+pre{ overflow-x:auto; max-width:100%; }
+.ks-view{ min-width:0; }
+
+/* раскладка внутри карточек */
+.flex{ display:flex; } .inline-flex{ display:inline-flex; }
+.flex-1{ flex:1 1 0%; min-width:0; } .shrink-0{ flex-shrink:0; }
+.items-center{ align-items:center; } .items-start{ align-items:flex-start; } .justify-center{ justify-content:center; }
+.gap-1\.5{ gap:var(--sp-1-5); } .gap-2{ gap:var(--sp-2); } .gap-2\.5{ gap:var(--sp-2-5); }
+.space-y-1\.5 > * + *{ margin-top:var(--sp-1-5); } .space-y-2 > * + *{ margin-top:var(--sp-2); }
+.space-y-2\.5 > * + *{ margin-top:var(--sp-2-5); } .space-y-3 > * + *{ margin-top:var(--sp-3); }
+.mt-\[2px\]{ margin-top:var(--sp-0-5); } .mt-1{ margin-top:var(--sp-1); } .mt-3{ margin-top:var(--sp-3); }
+.mt-4{ margin-top:var(--gap-stack); } .mb-1{ margin-bottom:var(--sp-1); } .mb-4{ margin-bottom:var(--gap-stack); }
+.p-3{ padding:var(--sp-3); } .px-3{ padding-left:var(--sp-3); padding-right:var(--sp-3); }
+.py-1\.5{ padding-top:var(--sp-1-5); padding-bottom:var(--sp-1-5); }
+.pt-1{ padding-top:var(--sp-1); } .pt-3{ padding-top:var(--sp-3); } .pl-5{ padding-left:var(--sp-5); }
+.w-5{ width:20px; } .h-5{ height:20px; } .w-6{ width:24px; } .h-6{ height:24px; }
+.max-w-3xl{ max-width:48rem; } .overflow-x-auto{ overflow-x:auto; }
+.break-words{ overflow-wrap:anywhere; } .break-all{ word-break:break-all; }
+.list-decimal{ list-style:decimal; }
+.rounded-md{ border-radius:var(--r-md); } .rounded-lg{ border-radius:var(--r-md); }
+.border{ border:1px solid var(--border); } .border-t{ border-top:1px solid var(--border); }
+.bdr{ border-color:var(--border); }
+.soft{ background:var(--surface-2); }
+
+/* типографика: четыре ступени кита, пол 11 пикселей */
+.t-micro{ font-size:var(--fs-micro); } .t-cap{ font-size:var(--fs-caption); }
+.t-small{ font-size:var(--fs-small); } .t-body{ font-size:var(--fs-body); }
+.font-medium{ font-weight:var(--fw-medium); } .font-semibold{ font-weight:var(--fw-semi); } .font-bold{ font-weight:var(--fw-bold); }
+.leading-tight{ line-height:var(--lh-tight); } .leading-snug{ line-height:var(--lh-snug); } .leading-relaxed{ line-height:var(--lh-body); }
+.hd{ color:var(--text-strong); }
+.num{ font-variant-numeric:tabular-nums; }
+.ok-i{ color:var(--ok); } .crit-i{ color:var(--crit); }
+
+/* Экран это стопка кита: блоки идут через --gap-stack и поднимаются по очереди
+   (.ks-fade > .ks-stack). Старые отступы блоков верхнего уровня гасятся, иначе
+   расстояние удваивается или пропадает там, где его никто не поставил. */
+.scr > .mt-4, .scr > .mb-4, .scr > .ks-page-head{ margin-top:0; margin-bottom:0; }
+
+/* Бейдж раздела в меню («данные» или «нет»): в ките у его обёртки flex:0, и на
+   ширине меню 248 бейдж уезжал за край под стрелку. Держим его по содержимому. */
+.ks-nav-item > .ks-lbl:has(> .ks-badge){ flex:0 0 auto !important; }
+
+/* Источник у плитки бывает путём файла без пробелов: переносим где угодно,
+   иначе на телефоне он вылезает за плитку. */
+.ks-tile-src{ overflow-wrap:anywhere; }
+
+/* между ячейками таблицы и знаком класса цифры */
+.ks-table .ks-kind{ margin-left:var(--sp-1); }
+
+/* окно пароля: те же поверхности и поля, что у приложения */
+.gate{ position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
+  padding:var(--sp-4); background:var(--bg); color:var(--text); font-family:var(--font-sans); }
+.gate-box{ width:min(380px, 100%); }
+.gate-box .ks-card-title{ margin-bottom:var(--sp-2); }
+.gate-box p{ margin:0 0 var(--sp-3); font-size:var(--fs-body); line-height:var(--lh-body); color:var(--text-muted); }
+.gate-form{ display:flex; flex-direction:column; gap:var(--sp-2-5); }
+.gate-err{ display:none; color:var(--crit); font-size:var(--fs-small); }
+
+@media print{
+  .ks-sidebar, .ks-topbar, .ks-noprint{ display:none !important; }
+  .ks-card{ break-inside:avoid; box-shadow:none !important; }
+}
 '''

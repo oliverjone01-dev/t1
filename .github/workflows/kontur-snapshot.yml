@@ -5,8 +5,8 @@ name: "Контур: съём позиций и пересборка дашбо�
 # поэтому пропущенная точка не восстанавливается задним числом никогда.
 #
 # Данные берутся из выгрузок, которые кладёт harvest.yml (ежедневно, 03:00 МСК).
-# В сеть воркфлоу ходит только за зеркалами tailwind и apexcharts для дымового
-# теста; данные он берёт исключительно из файлов репозитория.
+# В сеть воркфлоу ходит только за зеркалом apexcharts для дымового теста; вид
+# страницы собирается из пакета kontur-ds/ в репозитории, данные только из файлов.
 
 on:
   schedule:
@@ -76,7 +76,11 @@ jobs:
         id: guard
         continue-on-error: true
         working-directory: kontur-dashboard
-        run: python3 tools/check_dash.py
+        run: |
+          set -euo pipefail
+          python3 tools/check_dash.py
+          # сторож Контур DS без --live: тире, прозрачность, шрифт, оси, конверты
+          python3 ../kontur-ds/tools/check_ds.py public/index.html
 
       - uses: actions/setup-node@v4
         with:
@@ -84,7 +88,8 @@ jobs:
 
       # Сторож проверяет разметку и конверты, но не исполняет экраны: на коде, где
       # «Мост до денег» падал с TypeError, он был чист. Дымовой тест открывает все
-      # экраны обоих проектов в браузере и ловит любую ошибку консоли.
+      # экраны обоих проектов в браузере и ловит любую ошибку консоли, проверка
+      # контраста меряет каждый видимый текст на каждом экране.
       - name: Дымовой тест
         id: smoke
         continue-on-error: true
@@ -97,9 +102,10 @@ jobs:
           npm ci
           npx playwright install --with-deps chromium
           mkdir -p "$KONTUR_LIBS"
-          curl -fsSL https://cdn.tailwindcss.com -o "$KONTUR_LIBS/tw.js"
           curl -fsSL https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js -o "$KONTUR_LIBS/apex.js"
           node tools/smoke.mjs
+          # живой контраст Контур DS на всех экранах, обе темы, 1280 и 390
+          node tools/contrast.mjs
 
       - name: Проверить ряд на разрывы
         working-directory: kontur-dashboard

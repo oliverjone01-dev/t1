@@ -5,18 +5,17 @@
 import { chromium } from 'playwright';
 import fs from 'fs';
 import { execFileSync } from 'child_process';
-/* Зеркала tailwind и apexcharts: тест не зависит от сети на время прогона.
-   В CI их кладёт шаг воркфлоу, локально - любой каталог через KONTUR_LIBS. */
+/* Зеркало apexcharts: тест не зависит от сети на время прогона. В CI его кладёт
+   шаг воркфлоу, локально - любой каталог через KONTUR_LIBS. Стили и кит Контур DS
+   уже внутри страницы; шрифт с Google Fonts вырезается, вместо него системный. */
 const LIBS = process.env.KONTUR_LIBS || '/tmp/claude-0';
 const OUT  = process.env.KONTUR_TMP  || '/tmp/claude-0';
 const CHROME = process.env.KONTUR_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
 function prep(src, name){
-  const cut = src.indexOf('<div class="min-h-screen');
-  const hp = src.slice(0,cut)
-   .replace(/<script src="https:\/\/cdn\.tailwindcss\.com"><\/script>/,'<script>window.tailwind={config:{}}</script><script src="file://'+LIBS+'/tw.js"></script>')
+  if(!src.includes('<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/')) throw new Error('в странице нет ApexCharts с cdnjs: сборка изменилась');
+  fs.writeFileSync(OUT+'/'+name, src
    .replace(/<script src="https:\/\/cdnjs[^"]+"><\/script>/,'<script src="file://'+LIBS+'/apex.js"></script>')
-   .replace(/<link rel="stylesheet" href="https:\/\/fonts[^"]+">/,'');
-  fs.writeFileSync(OUT+'/'+name,'<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html{color-scheme:light}body{margin:0;font:14px system-ui}</style>'+hp+'</head><body>'+src.slice(cut)+'</body></html>');
+   .replace(/<link rel="stylesheet" href="https:\/\/fonts[^"]+">/,''));
 }
 const html = fs.readFileSync(new URL('../public/index.html', import.meta.url),'utf8');
 fs.mkdirSync(OUT,{recursive:true}); prep(html, 'page.html');
@@ -33,7 +32,7 @@ const dyn = all.filter(v=>v.startsWith('dyn-')||v==='obzor'||v.startsWith('ym-')
 console.log('экранов:', all.length, '| из них зависят от периода:', dyn.length);
 const bad=[];
 async function pass(list, proj, mode, per, thin){
-  await p.evaluate(([m,pr,pe])=>{ document.documentElement.classList.toggle('dark', m==='dark'); CUR=pr; PERIOD=pe; render(); }, [mode,proj,per]);
+  await p.evaluate(([m,pr,pe])=>{ document.documentElement.setAttribute('data-theme', m); CUR=pr; PERIOD=pe; render(); }, [mode,proj,per]);
   await p.waitForTimeout(260);
   for(const v of list){
     await p.evaluate(x=>go(x), v);

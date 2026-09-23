@@ -17,11 +17,13 @@ CASES = [
  ('запрет: гарантия 5 лет', lambda s: s.replace('Обзор','гарантия на каркас 5 лет',1)),
  ('запрет: цена за м2', lambda s: s.replace('Обзор','от 25 000 ₽/м2',1)),
  ('запрет: внутреннее имя', lambda s: s.replace('Обзор','ДомГласс',1)),
- ('цвет мимо палитры', lambda s: s.replace("colors:[P(2)]","colors:['#FF00AA']",1)),
- ('запрещённая пара при дальтонизме', lambda s: s.replace("series:ser, colors:[P(2),P(1),P(0)]","series:ser, colors:['#5D87FF','#49BEFF',P(0)]",1)),
- ('две оси Y', lambda s: s.replace("yaxis:{logarithmic:true","yaxis:[{logarithmic:true",1)),
+ ('цвет мимо палитры', lambda s: s.replace("KS.charts.line('c-h10', {","KS.charts.line('c-h10', { colors:['#FF00AA'],",1)),
+ ('запрещённая пара при дальтонизме', lambda s: s.replace("KS.charts.index('c-idx100', {","KS.charts.index('c-idx100', { colors:['#5D87FF','#49BEFF'],",1)),
+ ('две оси Y', lambda s: s.replace("KS.charts.multi('c-pos', {","KS.charts.multi('c-pos', { yaxis:[{},{}],",1)),
  ('дата съёма зашита в вёрстку', lambda s: s.replace('Обзор','съём 08.09.2026',1)),
  ('график без отрисовки', lambda s: s.replace("ch('c-pos',320)","ch('c-prizrak',320)",1)),
+ ('Tailwind вместо кита', lambda s: s.replace('</head>','<script src="https://cdn.tailwindcss.com"></script>\n</head>',1)),
+ ('текст приглушён прозрачностью', lambda s: s.replace('class="ks-muted"','class="opacity-55"',1)),
  ('пункт меню без экрана', lambda s: s.replace("{id:'compare', t:'Сравнение проектов', i:'cmp'}","{id:'compare', t:'Сравнение проектов', i:'cmp'},{id:'nesushestvuet', t:'Пусто', i:'grid'}",1)),
 ]
 shutil.copy(SRC, BAK)

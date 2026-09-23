@@ -1,28 +1,15 @@
 # -*- coding: utf-8 -*-
 CORE = r'''
-/* ============ ПАЛИТРА ГРАФИКОВ ============
-   Проверена scripts/validate_palette.js из скилла dataviz.
-   Категориальные, фиксированный порядок: purple, teal, blue, amber, cyan.
-   light /#FFFFFF  и  dark /#101317 - обе прошли все пять проверок без послаблений. */
-const PAL = {
-  cat:  { l:['#7B3BC4','#00806A','#3561C9','#A87400','#0F7CB8'],
-          d:['#8A5FE9','#00AD81','#5D8AFF','#CE7F00','#009EEC'] },
-  seq:  { l:['#96B2EB','#6F93E0','#4A71CB','#2E52AB','#1C3D82'],
-          d:['#33507F','#3E6BC0','#5081E4','#6E96FF','#A6C0FF'] },
-  div:  { l:{warm:'#A85A00',cool:'#3561C9',mid:'#9AA4B4'},
-          d:{warm:'#C57E14',cool:'#5D8AFF',mid:'#64748B'} },
-  /* статусные цвета зарезервированы: никогда не используются как «серия N» */
-  st:   { l:{ok:'#0F7A52',warn:'#9A6A00',ser:'#B5541A',crit:'#B3261E'},
-          d:{ok:'#37D39B',warn:'#E0A82E',ser:'#F0873F',crit:'#FF6B6B'} }
-};
-const A = () => document.documentElement.classList.contains('dark');
-const P  = i => PAL.cat[A()?'d':'l'][i % 5];
-const PS = i => PAL.seq[A()?'d':'l'][Math.max(0,Math.min(4,i))];
-const ST = n => PAL.st[A()?'d':'l'][n];
-const INK  = () => A() ? '#949BA6' : '#5A6A85';
-const INKH = () => A() ? '#E7EAEF' : '#2A3547';
-const GRID = () => A() ? '#1C2026' : '#EFF2F7';
-const SURF = () => A() ? '#101317' : '#FFFFFF';
+/* ============ ЦВЕТ ============
+   Своих цветов у дашборда нет: всё из токенов Контур DS (kontur-ds/tokens/tokens.css).
+   В разметке цвет пишется ссылкой на переменную, поэтому тема меняет его сама.
+   Графики красятся пресетами KS.charts по слотам --cat-1..5 (draw.py).
+   Порядок слотов фиксирован: фиолетовый, бирюзовый, синий, янтарный, голубой. */
+const P  = i => 'var(--cat-' + (((i % 5) + 5) % 5 + 1) + ')';
+const PS = i => 'var(--seq-' + (Math.max(0, Math.min(4, i)) + 1) + ')';
+const ST = n => 'var(--' + ({ ser:'serious' }[n] || n) + ')';
+const INK  = () => 'var(--text-muted)';
+const INKH = () => 'var(--text-strong)';
 
 /* ============ ФОРМАТ И РАЗМЕТКА ПО ПРОТОКОЛУ 9 ============ */
 const esc = t => String(t==null?'':t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -53,29 +40,12 @@ const CAPF = d => { const k = [d.plan.k, DB.thresh.mkt_share.k].includes('ГИП
 const money = n => (n==null||!isFinite(n)) ? '-' : nf(Math.round(n)) + ' ₽';
 const pc  = n => (n==null||!isFinite(n)) ? '-' : (n*100).toFixed(n<0.1?1:0).replace('.',',') + '%';
 
-const KMAP = {
-  'ДАННЫЕ':  {cl:'ok',   t:'ДАННЫЕ',   h:'Есть источник и дата съёма. Можно нести Богдану.'},
-  'ГИПОТЕЗА':{cl:'warn', t:'ГИПОТЕЗА', h:'Источника нет или это бенчмарк. В план идёт только пессимистичный сценарий.'},
-  'ДЕМО':    {cl:'crit', t:'ДЕМО',     h:'Заглушка. Кабинет не подключён, цифра выдумана для вёрстки.'}
-};
-function kmark(kind){
-  const m = KMAP[kind]; if(!m) return '';
-  const c = {ok:'k-ok', warn:'k-warn', crit:'k-crit'}[m.cl];
-  return '<span class="kmark '+c+'" title="'+esc(m.h)+'">'+m.t+'</span>';
-}
-/* Каждая цифра проходит через val(): класс, источник и дата приклеены к самой цифре,
-   а не к шапке карточки. Скриншот одной плитки уносит с собой свою разметку. */
-function val(f, fmt){
-  if(!f) return '-';
-  const v = (f.v==null) ? null : (fmt? fmt(f.v) : nf(f.v));
-  const ttl = f.k + (f.s? ' · '+f.s : '') + (f.at? ' · снято '+f.at : '') + (f.n? ' · '+f.n : '');
-  return '<span title="'+esc(ttl)+'">'+(v==null?'<span class="opacity-40">нет</span>':v)+'</span>';
-}
+/* Класс цифры, значение и источник рисует кит: точка и слово строчными, источник и
+   дата приклеены к самой цифре подсказкой. Скриншот плитки уносит с собой разметку. */
+const kmark = kind => KS.kind(kind);
+const val = (f, fmt) => f ? KS.val(f, fmt) : '-';
 const rud = d => !d ? '' : d.split('-').reverse().join('.');
-const srcline = f => !f ? '' : '<div class="text-[10.5px] mt-1 opacity-55 leading-tight">'
-  + esc(f.s || (f.k==='ДЕМО' ? 'выгрузки нет, поле ждёт подключения' : 'источник не указан'))
-  + (f.at ? '<br><span class="whitespace-nowrap">снято ' + esc(rud(f.at)) + '</span>' : '')
-  + '</div>';
+const srcline = f => f ? KS.src(f) : '';
 '''
 
 CORE += r'''
@@ -139,21 +109,10 @@ function tone(field, abs){
   const up = GOODUP[field] !== 0;
   return (abs > 0) === !!up ? 'good' : 'bad';
 }
+/* Дельта чипом кита. Даты периода кит ждёт строками ГГГГ-ММ-ДД. */
 function dbadge(field){
-  const d = dyn(field);
-  if(d.one) return '<span class="text-[11px] opacity-45" title="в выбранном периоде по этой метрике одна точка, сравнивать не с чем">одна точка</span>';
-  if(d.abs==null) return '<span class="text-[11px] opacity-45">нет ряда</span>';
-  const t = tone(field, d.abs);
-  const col = t==='good' ? ST('ok') : t==='bad' ? ST('crit') : INK();
-  if(d.abs===0) return '<span class="text-[11px] font-semibold whitespace-nowrap" style="color:'+INK()+'" '
-    + 'title="' + esc('за период не менялось: ' + nf(d.now)) + '">без изменений</span>';
-  const ar = d.abs>0 ? '▲' : '▼';
-  const rel = d.rel==null ? '' : ' ' + (d.rel>0?'+':'') + (d.rel*100).toFixed(Math.abs(d.rel)<0.1?1:0).replace('.',',') + '%';
-  return '<span class="text-[11px] font-semibold whitespace-nowrap" style="color:'+col+'" '
-    + 'title="' + esc('было ' + nf(d.was) + ' на ' + ruD(d.from ? d.from.toISOString().slice(0,10) : '')
-      + ', стало ' + nf(d.now) + ' на ' + ruD(d.to ? d.to.toISOString().slice(0,10) : '')
-      + (d.vsPrev!=null ? '; отрезком раньше было ' + nf(d.prev) : '')) + '">'
-    + ar + ' ' + (d.abs>0?'+':'') + nf(d.abs) + rel + '</span>';
+  const d = dyn(field), iso = x => x ? x.toISOString().slice(0,10) : null;
+  return KS.delta(Object.assign({}, d, { from: iso(d.from), to: iso(d.to) }), GOODUP[field] !== 0);
 }
 '''
 

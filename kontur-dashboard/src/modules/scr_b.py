@@ -22,7 +22,7 @@ function wkCard(f, title, sub, h, label){
   if(n < 2) return note(title+': ряда пока нет',
     'По показателю «'+label+'» в последних семи неделях '+nf(n)+' '+pl(n,'точка','точки','точек')+'. Ретроспектива выгрузки этот показатель не несёт, ряд копится с ежедневного съёма. Сравнивать недели можно будет, когда точек станет хотя бы две.','warn');
   return card(title, sub, ch(id,h), '', bAPI,
-    tbl([['Неделя'],[label,1]], w.map((v,i)=>[wkCats[i], v==null? '<span class="opacity-40">нет точки</span>' : nf(v)])));
+    tbl([['Неделя'],[label,1]], w.map((v,i)=>[wkCats[i], v==null? '<span class="ks-muted">нет точки</span>' : nf(v)])));
 }
 /* Разделы сайта из настоящей выгрузки топ-страниц: первый сегмент URL. */
 function treeRows(){
@@ -39,10 +39,10 @@ function workRows(){ const d=V();
       ['Кластеров разобрано', nf(d.facts.clusters.v), nf(d.facts.clusters.v)+' '+kmark('ДАННЫЕ')],
       ['Контент-единиц в заданиях', nf(d.facts.units.v), nf(d.facts.units.v)+' '+kmark('ДАННЫЕ')],
       ['Опубликовано из них', nf(d.facts.units.v), '0 '+kmark('ДАННЫЕ')]]
-   : [['Страниц на сайте', '<span class="opacity-40">не задан</span>', nf(d.pages.v)+' '+kmark('ДАННЫЕ')],
-      ['Запросов в топ-10', '<span class="opacity-40">не задан</span>', nf(d.top10.v)+' '+kmark('ДАННЫЕ')],
-      ['Ответов ИИ с упоминанием', '<span class="opacity-40">не задан</span>', nf(d.aians.v)+' '+kmark('ДАННЫЕ')],
-      ['Объявлений в контексте', '<span class="opacity-40">не задан</span>', nf((d.adk||[]).length)+' '+kmark('ДАННЫЕ')]];
+   : [['Страниц на сайте', '<span class="ks-muted">не задан</span>', nf(d.pages.v)+' '+kmark('ДАННЫЕ')],
+      ['Запросов в топ-10', '<span class="ks-muted">не задан</span>', nf(d.top10.v)+' '+kmark('ДАННЫЕ')],
+      ['Ответов ИИ с упоминанием', '<span class="ks-muted">не задан</span>', nf(d.aians.v)+' '+kmark('ДАННЫЕ')],
+      ['Объявлений в контексте', '<span class="ks-muted">не задан</span>', nf((d.adk||[]).length)+' '+kmark('ДАННЫЕ')]];
 }
 
 const SCREENS_B = {
@@ -84,9 +84,9 @@ const SCREENS_B = {
       'Пять страниц обычно дают больше половины видимости. Работать надо с ними, а не с «сайтом целиком».')
    + card('Топ страниц','Запросов и суммарная частотность',
       tbl([['Страница'],['Запросов',1],['Частотность',1]],
-        (V().pg||[]).map(r=>['<span class="font-mono text-[12px]">'+esc(r.url)+'</span>', nf(r.keywords_top50)+' '+kmark('ДАННЫЕ'), '-'])))
-   + ((V().pg||[]).length ? '<div class="mt-4">'+card('Вес страниц','Площадь пропорциональна числу запросов страницы в топ-50',ch('c-tree',300),'',bAPI,
-        tbl([['Страница'],['Запросов в топ-50',1]], (V().pg||[]).map(r=>['<span class="font-mono text-[12px]">'+esc(r.url)+'</span>', nf(r.keywords_top50)])))+'</div>' : '');
+        (V().pg||[]).map(r=>['<span class="ks-mono t-cap">'+esc(r.url)+'</span>', nf(r.keywords_top50)+' '+kmark('ДАННЫЕ'), '-'])))
+   + ((V().pg||[]).length ? '<div class="mt-4">'+card('Вес страниц','Десять страниц с наибольшим числом запросов в топ-50',ch('c-tree',300),'',bAPI,
+        tbl([['Страница'],['Запросов в топ-50',1]], (V().pg||[]).map(r=>['<span class="ks-mono t-cap">'+esc(r.url)+'</span>', nf(r.keywords_top50)])))+'</div>' : '');
 },
 'org-lost': () => {
   return head('Потерянные позиции', 'Запросы, по которым мы просели. Это самый быстрый источник роста: страница уже есть, её надо чинить, а не писать заново.',
@@ -112,7 +112,7 @@ const SCREENS_B = {
    + (treeRows().length
       ? card('Разделы сайта','Собрано из выгрузки топ-страниц: только страницы, у которых есть запросы в топ-50',
           tbl([['Раздел'],['Страниц в выгрузке',1],['Запросов в топ-50',1]],
-            treeRows().map(([s,v])=>['<span class="font-mono text-[12px]">'+esc(s)+'</span>', nf(v.pages), nf(v.kw)])))
+            treeRows().map(([s,v])=>['<span class="ks-mono t-cap">'+esc(s)+'</span>', nf(v.pages), nf(v.kw)])))
       : note('Выгрузки страниц нет','Дерево собирается из отчёта по страницам, а его по проекту нет.','warn'));
 },
 'sem-cl': () => { const d=V();

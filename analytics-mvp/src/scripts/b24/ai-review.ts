@@ -33,7 +33,10 @@ const LIMIT = Number(process.env.AI_LIMIT || 120);
 // их даже если разбор уже есть (пилот стоимости по одному менеджеру). Пусто = обычный режим.
 // AI_MGR="Имя Фамилия" ограничивает разбор одним менеджером и принудительно ре-разбирает
 // его сделки (пилот стоимости). Пусто = обычный режим по всему отделу.
-const MGR_ONLY = pick("AI_MGR", "mgr");
+// AI_MGR / mgr - один менеджер или несколько через «;». Список нужен, чтобы переразобрать
+// уже прогнанных на исправленном промпте одним прогоном, а не по одному.
+const MGR_LIST = pick("AI_MGR", "mgr").split(";").map((x) => x.trim()).filter(Boolean);
+const MGR_ONLY = MGR_LIST.length === 1 ? MGR_LIST[0]! : "";
 // AI_FORCE=1 (или force в ai-run.json) - переразобрать даже то, что уже разобрано.
 // Нужно для замера на одном и том же наборе: другой промпт, те же сделки.
 const FORCE = pick("AI_FORCE", "force") === "1";
@@ -262,7 +265,7 @@ async function main() {
   // а если дошёл - обновляем только реальные разборы, демо остаётся как есть.
   // При таргет-прогоне по менеджеру (AI_MGR) сохраняем уже сделанные разборы (демо и чужих
   // менеджеров) и мёржим - иначе фильтр по одному менеджеру стёр бы остальные карточки.
-  const reviews: Record<string, any> = MGR_ONLY ? (prev.reviews || {}) : (prev.demo ? {} : (prev.reviews || {}));
+  const reviews: Record<string, any> = MGR_LIST.length ? (prev.reviews || {}) : (prev.demo ? {} : (prev.reviews || {}));
   const mgrOf: Record<string, string> = {};
 
   const byKey: Record<string, Ev[]> = {};
@@ -272,7 +275,7 @@ async function main() {
   const raw = Object.entries(byKey)
     .map(([k, evs]) => { evs.sort((a, b) => a.ts - b.ts); const head = evs[evs.length - 1]!; return { k, evs, last: head.ts, mgr: head.mgr || "" }; })
     .filter((x) => x.evs.filter((e) => e.type.startsWith("Сообщение") || e.type === "Письмо").length >= 2)
-    .filter((x) => !MGR_ONLY || x.mgr === MGR_ONLY)
+    .filter((x) => !MGR_LIST.length || MGR_LIST.includes(x.mgr))
     // Форс-переразбор только по явному флагу. Раньше его включал сам AI_MGR, и тогда прогон
     // пачками топтался на месте: каждый следующий брал те же первые LIMIT сделок. Теперь
     // менеджера можно закрывать порциями - каждая порция берёт ещё не разобранное.
@@ -337,7 +340,7 @@ async function main() {
   const byMgr: Record<string, any[]> = {};
   for (const [k, r] of Object.entries(reviews)) { const mg = (r as any).mgr || mgrOf[k]; if (mg) (byMgr[mg] ||= []).push(r); }
   const managers: Record<string, any> = MGR_ONLY ? { ...(prev.managers || {}) } : {};
-  const mgrList = Object.entries(byMgr).filter(([mg, rs]) => rs.length >= 1 && (!MGR_ONLY || mg === MGR_ONLY));
+  const mgrList = Object.entries(byMgr).filter(([mg, rs]) => rs.length >= 1 && (!MGR_LIST.length || MGR_LIST.includes(mg)));
   let mdone = 0;
   await Promise.all(mgrList.map(async ([mgr, rs]) => {
     const digest = rs.slice(0, 40).map((r: any, i: number) => `${i + 1}. [${r.tone || "?"}] ${r.verdict || ""}${r.problem ? " Проблема: " + r.problem : ""}`).join("\n");

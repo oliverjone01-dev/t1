@@ -151,7 +151,14 @@ function parseReview(message: any): any {
   try { return m ? JSON.parse(m[0]) : null; } catch { return null; }
 }
 
+// Ошибки, после которых повторять запросы бессмысленно: ключ, доступ, деньги. Раньше при
+// пустом балансе скрипт честно отправлял все 600 запросов, каждый получал один и тот же отказ,
+// прогон заканчивался нулём разборов и рапортовал success. Первый такой ответ гасит прогон.
+let FATAL = "";
+const isFatal = (m: string) => /credit balance|billing|invalid x-api-key|authentication|permission|not_found_error/i.test(m);
+
 async function callAI(prompt: string, system: string = SYSTEM): Promise<any> {
+  if (FATAL) return null;
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
       const res = await fetch(`${API}/messages`, {
@@ -161,7 +168,12 @@ async function callAI(prompt: string, system: string = SYSTEM): Promise<any> {
       });
       if (res.status === 429 || res.status >= 500) { await new Promise((r) => setTimeout(r, 2000 * (attempt + 1))); continue; }
       const j: any = await res.json();
-      if (j.error) { console.log("  ошибка API:", j.error.message || j.error.type); return null; }
+      if (j.error) {
+        const msg = String(j.error.message || j.error.type || "");
+        if (!FATAL && isFatal(msg)) { FATAL = msg; console.log("::error::Прогон остановлен, ответ API:", msg); }
+        else console.log("  ошибка API:", msg);
+        return null;
+      }
       addUsage(j.usage);
       return parseReview(j);
     } catch (e: any) { if (attempt === 3) { console.log("  сбой:", e.message); return null; } await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); }
@@ -349,9 +361,14 @@ async function main() {
     if (r) { managers[mgr] = { ...r, deals: rs.length, at: new Date().toISOString() }; mdone++; }
   }));
 
-  mkdirSync("dialog/data", { recursive: true });
-  writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString(), model: MODEL, reviews, managers }));
-  console.log(`Готово: разборов сделок ${done}, менеджеров ${mdone}, сбоев ${failed} -> ${OUT}`);
+  // Пустой разбор не записываем: файл из нулей перетёр бы боевой, а в отдельном файле он
+  // выглядит как «ИИ отработал и ничего не нашёл». Очередь была, разборов нет - это сбой.
+  const wipe = items.length > 0 && done === 0;
+  if (!wipe) {
+    mkdirSync("dialog/data", { recursive: true });
+    writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString(), model: MODEL, reviews, managers }));
+  }
+  console.log(`Готово: разборов сделок ${done}, менеджеров ${mdone}, сбоев ${failed} -> ${wipe ? "файл НЕ записан" : OUT}`);
 
   // --- Отчёт о стоимости (Protocol 9). Прайс $/1М по модели, batch = -50%. -----------
   const PRICE: Record<string, { in: number; out: number; cr: number; cw: number }> = {
@@ -366,11 +383,17 @@ async function main() {
   const rub = usd * RUB;
   const perDeal = done ? rub / done : 0;
   console.log("===== СТОИМОСТЬ ПРОГОНА =====");
-  console.log(`Менеджер-фильтр: ${MGR_ONLY || "(весь отдел)"}`);
+  console.log(`Менеджер-фильтр: ${MGR_LIST.length ? MGR_LIST.join(", ") : "(весь отдел)"}`);
   console.log(`Модель: ${MODEL}${USE_BATCH ? " (Batch API, -50%)" : " (sync)"} · курс ${RUB} ₽/$`);
   console.log(`Токены: input ${usage.in}, output ${usage.out}, cache_read ${usage.cacheR}, cache_write ${usage.cacheW}`);
   console.log(`Итого: $${usd.toFixed(4)} = ${rub.toFixed(2)} ₽ за ${done} сделок`);
   console.log(`НА 1 СДЕЛКУ: ${perDeal.toFixed(2)} ₽`);
   console.log("============================");
+
+  // Шаг workflow должен краснеть, когда разбор не состоялся. Молчаливый success здесь уже
+  // однажды выдал пустой прогон за выполненную задачу.
+  if (FATAL) { console.log(`::error::ИИ-разбор не выполнен: ${FATAL}`); process.exit(1); }
+  if (wipe) { console.log(`::error::ИИ-разбор не выполнен: очередь ${items.length}, разборов 0, сбоев ${failed}`); process.exit(1); }
+  if (failed > done) { console.log(`::error::Сбоев больше, чем разборов: ${failed} против ${done}`); process.exit(1); }
 }
 main().catch((e) => { console.error("FATAL", e); process.exit(1); });

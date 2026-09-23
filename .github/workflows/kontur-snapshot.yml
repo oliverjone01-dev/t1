@@ -103,7 +103,16 @@ jobs:
           npx playwright install --with-deps chromium
           mkdir -p "$KONTUR_LIBS"
           curl -fsSL https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js -o "$KONTUR_LIBS/apex.js"
+          # хэш из страницы (SRI) должен совпасть с файлом на cdnjs, иначе браузер не
+          # загрузит ApexCharts и все графики на /kontur/ останутся пустыми
+          want=$(grep -o 'integrity="sha384-[^"]*"' public/index.html | head -1 | sed 's/integrity="sha384-//; s/"$//')
+          got=$(openssl dgst -sha384 -binary "$KONTUR_LIBS/apex.js" | base64 -w0)
+          if [ "$want" != "$got" ]; then echo "::error::SRI ApexCharts: в странице $want, на cdnjs $got"; exit 1; fi
           node tools/smoke.mjs
+          # тест на подмену шифровальщика: утечки вне шифра и слабые пароли
+          node tools/seal_test.mjs
+          # согласование числа и слова в отрисованном тексте всех экранов
+          node tools/text_scan.mjs
           # живой контраст Контур DS на всех экранах, обе темы, 1280 и 390
           node tools/contrast.mjs
 

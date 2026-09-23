@@ -8,7 +8,7 @@ const CHROME = process.env.KONTUR_CHROMIUM || (fs.existsSync('/opt/pw-browsers/c
 fs.mkdirSync(OUT, { recursive:true });
 const page = OUT + '/page.html';
 fs.writeFileSync(page, fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8')
-  .replace(/<script src="https:\/\/cdnjs[^"]+"><\/script>/, '<script src="file://' + LIBS + '/apex.js"></script>'));
+  .replace(/<script src="https:\/\/cdnjs[^"]+"[^>]*><\/script>/, '<script src="file://' + LIBS + '/apex.js"></script>'));
 const b = await chromium.launch(CHROME ? { executablePath:CHROME } : {});
 const shots = [[1440,'light','gg','obzor'],[1440,'dark','gg','obzor'],[1440,'light','gg','mn-bridge'],
                [1440,'dark','gm','org-pg'],[390,'light','gg','obzor'],[390,'dark','gg','dyn-sum']];

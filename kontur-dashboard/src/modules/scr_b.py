@@ -35,21 +35,21 @@ function treeRows(){
 function compRows(){ const c=V().comp; return (c && c.rows.length) ? c.rows.slice(0,8).map(r=>[r.domain, r.common]) : []; }
 function workRows(){ const d=V();
   return CUR==='gg'
-   ? [['Посадочных описано в карте', nf(d.facts.landings.v), nf(d.facts.landings.v)+' '+kmark('ДАННЫЕ')],
-      ['Кластеров разобрано', nf(d.facts.clusters.v), nf(d.facts.clusters.v)+' '+kmark('ДАННЫЕ')],
-      ['Контент-единиц в заданиях', nf(d.facts.units.v), nf(d.facts.units.v)+' '+kmark('ДАННЫЕ')],
-      ['Опубликовано из них', nf(d.facts.units.v), '0 '+kmark('ДАННЫЕ')]]
-   : [['Страниц на сайте', '<span class="ks-muted">не задан</span>', nf(d.pages.v)+' '+kmark('ДАННЫЕ')],
-      ['Запросов в топ-10', '<span class="ks-muted">не задан</span>', nf(d.top10.v)+' '+kmark('ДАННЫЕ')],
-      ['Ответов ИИ с упоминанием', '<span class="ks-muted">не задан</span>', nf(d.aians.v)+' '+kmark('ДАННЫЕ')],
-      ['Объявлений в контексте', '<span class="ks-muted">не задан</span>', nf((d.adk||[]).length)+' '+kmark('ДАННЫЕ')]];
+   ? [['Посадочных описано в карте', nf(d.facts.landings.v), nf(d.facts.landings.v)+' '+kmark(d.facts.landings.k)],
+      ['Кластеров разобрано', nf(d.facts.clusters.v), nf(d.facts.clusters.v)+' '+kmark(d.facts.clusters.k)],
+      ['Контент-единиц в заданиях', nf(d.facts.units.v), nf(d.facts.units.v)+' '+kmark(d.facts.units.k)],
+      ['Опубликовано из них', nf(d.facts.units.v), '0 '+kmark(d.facts.units.k)]]
+   : [['Страниц в выгрузке топ-страниц', '<span class="ks-muted">не задан</span>', val(d.pages)+' '+kmark(d.pages.k)],
+      ['Запросов в топ-10', '<span class="ks-muted">не задан</span>', val(d.top10)+' '+kmark(d.top10.k)],
+      ['Ответов ИИ с упоминанием', '<span class="ks-muted">не задан</span>', val(d.aians)+' '+kmark(d.aians.k)],
+      ['Ключевых слов в рекламной выгрузке keys.so', '<span class="ks-muted">не задан</span>', nf((d.adk||[]).length)+' '+kmark((d.adk||[]).length ? 'ДАННЫЕ' : 'ДЕМО')]];
 }
 
 const SCREENS_B = {
 'org-sum': () => { const d=V(), gm=CUR==='gm';
   return head('Сводка по домену', 'Верхнеуровневые цифры по органике. Ретроспективы у этого метода нет, поэтому историю ведём сами через Мониторинг.',
       'GET /report/simple/organic/summary', 'P1', bAPI,
-      'Каждый запрос, поднятый из топ-50 в топ-10, меняет цифру визитов примерно в восемь раз. Пересчёт в рубли на экране «Мост до денег».')
+      'Рублей на этом экране нет: переход запросов из топ-50 в топ-10 это то, из чего потом складываются визиты и заявки. Пересчёт в рубли на экране «Мост до денег».')
    + '<div class="'+g3+' mb-4">'
    +   [mini('Запросов в топ-10', d.top10, 0, 'target', 'top10'), mini('Запросов в топ-50', d.top50, 1, 'search', 'top50'),
        mini('Страниц в топ-выгрузке', d.pages, 2, 'doc'),
@@ -123,7 +123,7 @@ const SCREENS_B = {
    + (CUR==='gg'
       ? '<div class="'+g3+' mb-4">'+[mini('Кластеров в работе', d.facts.clusters, 0,'layers'), mini('Тем', d.facts.themes, 1,'tag'),
           mini('Посадочных в карте', d.facts.landings, 2,'doc'), mini('Рабочее ядро, показов', d.facts.core, 3,'bolt')].join('')+'</div>'
-        + note('Рабочее ядро 537 874 показов','Это уже очищенная цифра. Из первоначального разбора отброшен 91 кластер на 10 575 показов: нерелевантные, дублирующие и те, что уходят на чужие посадочные. Прежнее, большее число в отчётах не используем, чтобы его нельзя было процитировать по ошибке.','info')
+        + note('Рабочее ядро: '+npl(d.facts.core.v,'показ','показа','показов')+' в месяц', 'Это уже очищенная цифра. Из первоначального разбора отброшено '+npl(d.facts.dropped.v,'кластер','кластера','кластеров')+' на '+npl(d.facts.dropped_core.v,'показ','показа','показов')+': нерелевантные, дублирующие и те, что уходят на чужие посадочные. Прежнее, большее число в отчётах не используем, чтобы его нельзя было процитировать по ошибке. Все эти цифры '+kmark(d.facts.core.k)+': '+esc(d.facts.core.s)+'.','info')
       : note('Кластеризация не запускалась','По этому проекту '+nf(V().top50.v)+' запросов в топ-50. Кластеризовать имеет смысл после того, как соберём базу шире выдачи, иначе разобьём то, что и так помещается в один список.','warn'));
 },
 'sem-base': () => {

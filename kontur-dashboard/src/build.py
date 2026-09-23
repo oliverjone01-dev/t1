@@ -50,10 +50,16 @@ js = '\n'.join([
 head = (HEAD.replace('/*TOKENS*/', ds('tokens/tokens.css'))
             .replace('/*KIT*/', ds('kit/kit.css'))
             .replace('/*LOCAL*/', LOCAL_CSS.strip()))
+# Открытая часть страницы: всё, что остаётся без шифра. tools/seal_page.mjs берёт её
+# отсюда (build.py --shell) и требует, чтобы опубликованная страница вне шифроблока
+# совпадала с ней до символа: вне шифра не может оказаться ничего, чего нет в исходниках.
+prefix = head + '<body>\n' + BODY
+suffix = GATE + '</body>\n</html>\n'
+if '--shell' in sys.argv:
+    sys.stdout.write(json.dumps({'prefix': prefix, 'suffix': suffix}, ensure_ascii=False))
+    sys.exit(0)
 # id нужен tools/seal_page.mjs: при публикации блок целиком заменяется шифротекстом.
-html = (head + '<body>\n' + BODY
-        + '<script id="app-js">\n' + js + '\n</script>\n'
-        + GATE + '</body>\n</html>\n')
+html = prefix + '<script id="app-js">\n' + js + '\n</script>\n' + suffix
 
 out = ROOT / 'public' / 'index.html'
 out.parent.mkdir(parents=True, exist_ok=True)

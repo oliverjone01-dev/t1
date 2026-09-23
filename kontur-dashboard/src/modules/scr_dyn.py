@@ -31,7 +31,7 @@ const SCREENS_DYN = {
   const s = slice();
   return head('Позиции по дням', 'Накопленный ряд по ступеням топа. Это то, что нельзя восстановить задним числом: у сводки домена в keys.so нет ретроспективы.',
       'data/history/positions.ndjson', 'P0', bAPI,
-      'Каждый запрос, поднятый из топ-50 в топ-10, меняет визиты примерно в восемь раз. Скорость этого перехода и есть смысл экрана.')
+      'Рублей на этом экране нет: скорость перехода запросов из топ-50 в топ-10 это то, из чего потом складываются визиты. Пересчёт в рубли на экране «Мост до денег».')
    + '<div class="'+g3+' mb-4">'+[
       mini('Запросов в топ-1', V().top1, 0,'up','top1'),
       mini('Запросов в топ-3', V().top3, 1,'target','top3'),
@@ -98,7 +98,7 @@ const SCREENS_DYN = {
   const half = Math.floor(cut.length/2);
   const a1 = cut.slice(0,half), a2 = cut.slice(half);
   const dv = (sum(a2)-sum(a1));
-  return head('Визиты по дням', 'Данные Яндекс.Метрики, счётчик '+esc(String(ym.counter.v))+'. Ряд из '+nf(days.length)+' дней.',
+  return head('Визиты по дням', 'Данные Яндекс.Метрики, счётчик '+esc(String(ym.counter.v))+'. Ряд из '+npl(days.length,'дня','дней','дней')+'.',
       'gg-seo-geo-monster/data/'+(CUR==='gg'?'genglass':'glass-memory')+'/metrika.json · снято '+ruD(ym.at), 'P0', bAPI,
       'Визиты берём только из Метрики. Выгрузок Метрики две, и они по-разному определяют источник визита: разница на экране «Цели и конверсии». Оценку трафика от keys.so не используем нигде: на GLASS-MEMORY при пятистах с лишним запросах в топ-50 она показывала около двух визитов.')
    + '<div class="'+g3+' mb-4">'+[
@@ -110,7 +110,7 @@ const SCREENS_DYN = {
       tbl([['Дата'],['Визиты',1],['Из поиска',1]], cut.map(r=>[ruD(r.date), nf(r.visits), nf(r.search_visits)])))
    + '<div class="mt-4">'+note(
       dv>0 ? 'Вторая половина периода выше первой' : dv<0 ? 'Вторая половина периода ниже первой' : 'Половины периода равны',
-      'Первая половина: '+nf(sum(a1))+' визитов. Вторая: '+nf(sum(a2))+'. Разница '+(dv>0?'+':'')+nf(dv)+'. '
+      'Первая половина: '+npl(sum(a1),'визит','визита','визитов')+'. Вторая: '+npl(sum(a2),'визит','визита','визитов')+'. Разница '+(dv>0?'+':'')+nf(dv)+'. '
       +'Сравнение половинами устойчивее к выходным, чем сравнение последнего дня с первым.', dv>0?'ok':dv<0?'crit':'info')+'</div>'
    + '<div class="mt-4">'+g2Cards(
       card('Страницы входа','По визитам', tbl([['Страница'],['Визиты',1]], (ym.top_pages||[]).slice(0,10).map(r=>['<span class="ks-mono t-cap">'+esc(r.url)+'</span>', nf(r.visits)]))),
@@ -135,8 +135,8 @@ const SCREENS_DYN = {
    + '<div class="'+g3+' mb-4">'+[
       mini('Точек в ряду', {v:s.length,k:'ДАННЫЕ',s:'positions.ndjson, ретроспектива и свежий срез keysso.json',at:s.length? s[s.length-1].date:''}, 0,'db'),
       mini('Первая точка', s.length? ruD(s[0].date):'нет', 1,'clock'),
-      mini('Последняя точка', s.length? ruD(s[s.length-1].date):'нет', 2,'check'),
-      mini('Разрывов больше 8 дней', String(gaps().length), 3, gaps().length? 'warn':'check')].join('')+'</div>'
+      mini('Последний свой съём', ownSnaps().length? ruD(ownSnaps()[ownSnaps().length-1]):'нет', 2,'check'),
+      mini('Разрывов между своими съёмами больше 8 дней', String(gaps().length), 3, gaps().length? 'warn':'check')].join('')+'</div>'
    + gapNote()
    + covNote()
    + '<div class="mt-4">'+card('Последние 60 точек','Новые сверху. Источник «срез» это верхний блок выгрузки со всеми шестью показателями, «ретроспектива» это её внутренняя история, где есть только топ-10 и видимость',
@@ -144,24 +144,41 @@ const SCREENS_DYN = {
 }
 };
 
+/* Свои съёмы. Ряд на экранах склеен из двух источников: ретроспективы выгрузки keys.so
+   (топ-10 и видимость за прошлые дни, её отдаёт сама выгрузка) и своих съёмов верхнего
+   блока (все шесть показателей, их пишет tools/snapshot.py). Съём это только второе:
+   разрыв в своих съёмах ретроспектива не закрывает, топ-50 и ответы ИИ в ней нет.
+   Порог разрыва один на всё: 8 дней, как у snapshot.py --check и check_dash.py. */
+const SNAP_SRC = 'срез keysso.json', GAP_DAYS = 8;
+const ownSnaps = () => SER().filter(r => r.src === SNAP_SRC).map(r => r.date);
+const pendingSnap = () => { const r = SER().find(r => String(r.src || '').indexOf('не записан') >= 0); return r ? r.date : null; };
+const daysAgo = d => Math.round((Date.now() - dOf(d)) / 86400000);
 function gaps(){
-  const s = SER(); const out=[];
-  for(let i=1;i<s.length;i++){
-    const dd = (dOf(s[i].date) - dOf(s[i-1].date)) / 86400000;
-    if(dd > 8) out.push([s[i-1].date, s[i].date, Math.round(dd)]);
+  const s = ownSnaps(), out = [];
+  for(let i = 1; i < s.length; i++){
+    const dd = Math.round((dOf(s[i]) - dOf(s[i-1])) / 86400000);
+    if(dd > GAP_DAYS) out.push([s[i-1], s[i], dd]);
   }
   return out;
 }
 function gapNote(){
-  const g = gaps(), s = SER();
-  if(!s.length) return note('Ряда нет','Ни одной точки не записано. Запусти tools/snapshot.py.','crit');
-  const stale = Math.round((Date.now() - dOf(s[s.length-1].date)) / 86400000);
-  if(g.length) return note('В ряду есть разрывы',
-    g.map(x=>'с '+ruD(x[0])+' по '+ruD(x[1])+', '+x[2]+' дней без съёма').join('; ')
-    + '. Сравнение периодов на этих отрезках опирается на интерполяцию глазом, а не на данные.','warn');
-  if(stale > 8) return note('Последний съём просрочен',
-    'Свежей точке '+stale+' дней. Регламент требует еженедельного съёма, иначе недельное сравнение теряет смысл.','crit');
-  return note('Ряд без разрывов','Последняя точка '+ruD(s[s.length-1].date)+', свежесть '+stale+' дн. Съём идёт по регламенту.','ok');
+  const own = ownSnaps(), g = gaps(), pend = pendingSnap();
+  const pendTxt = pend ? ' Точка ' + ruD(pend) + ' взята из свежей выгрузки и в ряд ещё не записана: если выгрузка обновится раньше съёма, её топ-50 и ответы ИИ пропадут.' : '';
+  const cost = ' Съём пишет бот kontur-snapshot.yml по будням. Пропущенный день не восстанавливается: keys.so не отдаёт топ-50 и ответы ИИ задним числом.';
+  if(!own.length) return note('Своих съёмов нет',
+    'В ряду только ретроспектива выгрузки keys.so: топ-10 и видимость. Топ-50 и ответов ИИ по дням нет.' + cost + pendTxt, 'crit');
+  const shown = own.slice(-6).map(ruD).join(', ');
+  const list = 'Свои съёмы: ' + nf(own.length) + ' ' + pl(own.length, 'точка', 'точки', 'точек')
+    + (own.length > 6 ? ', последние ' : ', ') + shown + '.';
+  const last = own[own.length - 1], stale = daysAgo(last);
+  if(g.length) return note('Между своими съёмами есть разрывы',
+    list + ' ' + g.map(x => 'С ' + ruD(x[0]) + ' по ' + ruD(x[1]) + ' ' + nf(x[2]) + ' ' + pl(x[2], 'день', 'дня', 'дней') + ' без съёма').join('; ') + '.'
+    + (stale > GAP_DAYS ? ' Последний съём ' + ruD(last) + ', ' + nf(stale) + ' ' + pl(stale, 'день', 'дня', 'дней') + ' назад.' : '')
+    + cost + pendTxt, 'warn');
+  if(stale > GAP_DAYS) return note('Последний свой съём просрочен',
+    list + ' Последнему ' + nf(stale) + ' ' + pl(stale, 'день', 'дня', 'дней') + ', порог ' + GAP_DAYS + ' дней.' + cost + pendTxt, 'crit');
+  return note('Разрывов между своими съёмами нет',
+    list + ' Последний ' + ruD(last) + ', ' + nf(stale) + ' ' + pl(stale, 'день', 'дня', 'дней') + ' назад.' + pendTxt, 'ok');
 }
 /* Покрытие ряда. Показатели лежат в ряду неравномерно: внутренняя история выгрузки
    несёт только топ-10 и видимость, поэтому топ-50 и ответы ИИ есть на считанных
@@ -174,7 +191,10 @@ function covNote(){
   if(!thin.length) return '';
   return '<div class="mt-4">'+note('Не все показатели есть на всех точках',
     thin.map(f=>'«'+esc(f.name)+'»: '+nf(f.pts)+' из '+nf(c.total)).join('; ')
-    + '. На остальных точках в этих колонках стоит прочерк, и динамика по ним строится по тем точкам, что есть. Это ограничение выгрузки, а не пропущенный съём.','warn')+'</div>';
+    + '. Ретроспектива выгрузки keys.so несёт только топ-10 и видимость, топ-50 и ответы ИИ есть только в своих съёмах'
+    + (ownSnaps().length ? ' (' + ownSnaps().map(ruD).slice(-6).join(', ') + ')' : '')
+    + (pendingSnap() ? ' и в свежей выгрузке ' + ruD(pendingSnap()) : '')
+    + '. На остальных точках в этих колонках прочерк, динамика по ним строится по тем точкам, что есть.','warn')+'</div>';
 }
 function g2Cards(a,b){ return '<div class="'+g2+'">'+a+b+'</div>'; }
 function idxTable(){

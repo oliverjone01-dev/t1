@@ -1,6 +1,7 @@
 /* Живой контраст на всех экранах: каждый видимый текст, его реальный цвет и
    реальный фон под ним сверяются с WCAG AA (4,5:1, крупный текст 3:1).
-   Функция замера взята как есть из kontur-ds/tools/contrast_live.mjs (Контур DS 1.5).
+   Функция замера взята из kontur-ds/tools/contrast_live.mjs (Контур DS 1.5) и дополнена
+   учётом прозрачности (opacity) элемента и его предков.
    Пакетный сторож check_ds.py --live открывает только первый экран и при сбое запуска
    браузера молчит (код выхода 1 он читает как «провалы найдены», а их нет в выводе):
    здесь обходятся все экраны обоих проектов в двух темах на 1280 и 390, а сбой
@@ -14,7 +15,7 @@ const CHROME = process.env.KONTUR_CHROMIUM || (fs.existsSync('/opt/pw-browsers/c
 const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 fs.mkdirSync(OUT, { recursive:true });
 fs.writeFileSync(OUT + '/contrast.html', html
-  .replace(/<script src="https:\/\/cdnjs[^"]+"><\/script>/, '<script src="file://' + LIBS + '/apex.js"></script>')
+  .replace(/<script src="https:\/\/cdnjs[^"]+"[^>]*><\/script>/, '<script src="file://' + LIBS + '/apex.js"></script>')
   .replace(/<link rel="stylesheet" href="https:\/\/fonts[^"]+">/, ''));
 
 const CHECK = () => {
@@ -54,6 +55,9 @@ const CHECK = () => {
           if (!fg) continue;
           const bg = bgOf(isSvg ? (el.closest('div') || el) : el);
           if (bg === 'gradient') continue;
+          // Прозрачность самого элемента и всех предков гасит текст так же, как альфа цвета:
+          // функция пакета её не видела, и opacity .3 на тексте проходила все экраны.
+          for (let n = el; n && n.nodeType === 1; n = n.parentElement) { const o = parseFloat(getComputedStyle(n).opacity); if (o < 1) fg = { ...fg, a: fg.a * o }; }
           const fgc = fg.a < 1 ? over(fg, bg) : fg;
           const px = parseFloat(cs.fontSize), w = parseInt(cs.fontWeight) || 400;
           const need = (px >= 24 || (px >= 18.66 && w >= 700)) ? 3 : 4.5;
@@ -70,7 +74,9 @@ const CHECK = () => {
 const browser = await chromium.launch(CHROME ? { executablePath:CHROME } : {});
 let total = 0, pages = 0; const agg = new Map(), errs = [];
 for (const width of [1280, 390]) for (const theme of ['light', 'dark']) {
-  const page = await browser.newPage({ viewport:{ width, height:900 } });
+  // «меньше движения»: кит и графики рисуются сразу в конечном виде. Иначе замер
+  // попадает в середину появления, и прозрачность анимации считается провалом.
+  const page = await browser.newPage({ viewport:{ width, height:900 }, reducedMotion:'reduce' });
   page.on('pageerror', e => errs.push(e.message));
   await page.goto('file://' + OUT + '/contrast.html', { waitUntil:'load', timeout:60000 });
   await page.waitForTimeout(1000);

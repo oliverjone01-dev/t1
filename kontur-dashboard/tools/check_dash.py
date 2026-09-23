@@ -53,15 +53,22 @@ for rx, why in BANS:
 # Графики красятся пресетами KS.charts по слотам --cat-1..5 текущей темы. Любой hex
 # в коде графиков значит цвет мимо проверенной палитры и мимо смены темы.
 draw = s[s.find('function draw()'):]
-for hexv in sorted(set(re.findall(r'#[0-9A-Fa-f]{6}\b', draw))):
-    bad('COLOR', f'в графиках цвет {hexv} мимо токенов --cat-1..5')
+for col in sorted(set(re.findall(r'#[0-9A-Fa-f]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab)\s*\(', draw))):
+    bad('COLOR', f'в графиках цвет «{col}» мимо токенов --cat-1..5')
 # Вид из пакета: токены и кит вшиты, Tailwind не подключается.
 if 'id="ks-tokens"' not in s or 'id="ks-kit"' not in s:
     bad('KIT', 'в странице нет токенов или кита Контур DS (kontur-ds/): сборка идёт мимо пакета')
 if 'cdn.tailwindcss.com' in s:
     bad('KIT', 'страница снова тянет Tailwind: вид должен идти только из Контур DS')
-if re.search(r'class=["\'][^"\']*\bopacity-(40|45|50|55|60|70|80)\b', s):
-    bad('OPACITY', 'текст приглушён прозрачностью; бери класс ks-muted (--text-muted)')
+if re.search(r'class=["\'][^"\']*\bopacity-\d+\b', s):
+    bad('OPACITY', 'текст приглушён классом opacity-*; бери класс ks-muted (--text-muted)')
+# Прозрачность в своём коде: во встроенных стилях экранов и в локальном слое CSS.
+# Стили и скрипты пакета Контур DS не проверяются: там opacity только у анимаций.
+MODS = Path(__file__).resolve().parents[1] / 'src' / 'modules'
+for mp in sorted(MODS.glob('*.py')):
+    for i, line in enumerate(mp.read_text(encoding='utf-8').splitlines(), 1):
+        if re.search(r'(?<![\w-])opacity\s*:', line):
+            bad('OPACITY', f'{mp.name}:{i}: прозрачность в своём коде; приглушённый текст это ks-muted, а не opacity')
 
 # --- 5. запрещённые приёмы визуализации ---
 # annotations:{yaxis:[...]} это подпись на оси, а не вторая ось: её не считаем
@@ -98,15 +105,21 @@ else:
     rows = [json.loads(l) for l in HIST.read_text(encoding='utf-8').splitlines() if l.strip()]
     if len(rows) < 2:
         bad('SHORTHIST', f'в ряду {len(rows)} точек, сравнение периодов невозможно')
+    # Разрыв считается по своим съёмам (source keys.so), а не по ряду вместе с
+    # ретроспективой выгрузки: ретроспектива не несёт топ-50 и ответов ИИ и разрыв в
+    # съёмах не закрывает. Порог 8 дней, как у snapshot.py --check и экранов.
+    # Разрыв это факт, а не дефект страницы (правило 7 CLAUDE.md дашборда): он
+    # печатается здесь и стоит на экранах, но сборку не валит. Валит только ряд,
+    # в котором своих съёмов нет вовсе.
     for proj in ('gm', 'gg'):
-        ds = sorted(r['date'] for r in rows if r.get('project') == proj)
-        if not ds:
-            bad('NOPROJHIST', f'в ряду нет ни одной точки по проекту {proj}'); continue
+        own = sorted(r['date'] for r in rows if r.get('project') == proj and r.get('source') == 'keys.so')
+        if not own:
+            bad('NOSNAP', f'{proj}: в ряду нет ни одного своего съёма, только ретроспектива выгрузки'); continue
         prev = None
-        for x in ds:
+        for x in own:
             cur = datetime.date.fromisoformat(x)
-            if prev and (cur - prev).days > 14:
-                bad('GAP', f'{proj}: разрыв в ряду с {prev} по {x}')
+            if prev and (cur - prev).days > 8:
+                print(f'  разрыв {proj}: {prev} -> {x} ({(cur - prev).days} дн. без своего съёма), показан на экранах')
             prev = cur
 
 # --- 10. в вёрстке не должно остаться зашитых данных ---

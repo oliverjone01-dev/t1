@@ -294,8 +294,9 @@ jobs:
       # поэтому здесь только копирование. Обновляет kontur-snapshot.yml.
       # Приложение вместе с данными шифруется паролем из секрета KONTUR_PASS
       # (tools/seal_page.mjs: PBKDF2-SHA256 600 000 итераций, AES-256-GCM, схема
-      # академии). Решение Ивана от 23.09: шифровать, а не прятать за хэшем, потому
-      # что хэш не закрывал данные, они читались из кода страницы без пароля.
+      # академии). Шифровать, а не прятать за хэшем, выбрано ответом в сессии 23.09
+      # и действует после подтверждения Ивана (kontur-dashboard/docs/RISK.md): хэш не
+      # закрывал данные, они читались из кода страницы без пароля.
       # Секрет свой, не общий: /seo/ публикует быстрый SHA-256 от общего пароля, по
       # нему пароль подбирается офлайн в обход PBKDF2, и шифрование теряло бы смысл.
       # Академия по той же причине живёт на своём ACADEMY_PASS.
@@ -315,6 +316,9 @@ jobs:
           elif [ -z "${KONTUR_PASS:-}" ]; then
             echo "::warning::Секрет KONTUR_PASS не задан, раздел /kontur/ не опубликован"
           else
+            # Сначала тест на подмену самого шифровальщика: 23 заведомо плохие страницы
+            # и пароля обязаны остановить публикацию. Не прошёл - раздел не выкладывается.
+            KONTUR_TMP=/tmp/kontur-seal-test node kontur-dashboard/tools/seal_test.mjs
             rm -rf /tmp/kontur-site
             cp -r kontur-dashboard/public /tmp/kontur-site
             KONTUR_PASS="$KONTUR_PASS" HUB_PASS="${HUB_PASS:-}" node kontur-dashboard/tools/seal_page.mjs /tmp/kontur-site/index.html

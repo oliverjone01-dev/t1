@@ -14,7 +14,7 @@
 ```bash
 python3 tools/build_data.py && python3 src/build.py
 python3 tools/check_dash.py && python3 ../kontur-ds/tools/check_ds.py public/index.html
-node tools/smoke.mjs && node tools/contrast.mjs
+node tools/smoke.mjs && node tools/contrast.mjs && node tools/seal_test.mjs && node tools/text_scan.mjs
 ```
 
 Сборка без зелёного сторожа и дымового теста не считается сделанной.

@@ -17,9 +17,10 @@ function render(){
   KS.charts.prune();   /* графики прежнего экрана: их контейнеры только что исчезли */
   $id('nav').innerHTML = KS.nav(NAV, VIEW);
   $id('seg').querySelectorAll('[data-p]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === CUR)));
-  const ss = SER();
+  const own = ownSnaps(), pend = pendingSnap();
   $id('stamp').textContent = V().name + ' · ' + V().dom
-    + (ss.length ? ' · последний съём ' + ruD(ss[ss.length-1].date) + ' · точек ' + ss.length : ' · ряда нет');
+    + (own.length ? ' · свой съём ' + ruD(own[own.length-1]) : ' · своих съёмов нет')
+    + (pend ? ' · срез ' + ruD(pend) + ' не записан' : '');
   $id('per').value = PERIOD;
   $id('foot').textContent = 'Сборка данных ' + (DB.built || '').slice(0,10).split('-').reverse().join('.')
     + '. Метрика: ' + (V().ym ? 'подключена' : 'нет') + '. Директ: ' + (V().direct ? 'выгрузка есть' : 'нет') + '.';

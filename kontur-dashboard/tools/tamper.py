@@ -24,6 +24,8 @@ CASES = [
  ('график без отрисовки', lambda s: s.replace("ch('c-pos',320)","ch('c-prizrak',320)",1)),
  ('Tailwind вместо кита', lambda s: s.replace('</head>','<script src="https://cdn.tailwindcss.com"></script>\n</head>',1)),
  ('текст приглушён прозрачностью', lambda s: s.replace('class="ks-muted"','class="opacity-55"',1)),
+ ('цвет в графике трёхзначным hex', lambda s: s.replace("KS.charts.line('c-h10', {","KS.charts.line('c-h10', { colors:['#f0a'],",1)),
+ ('цвет в графике через rgb()', lambda s: s.replace("KS.charts.line('c-h10', {","KS.charts.line('c-h10', { colors:['rgb(240,0,170)'],",1)),
  ('пункт меню без экрана', lambda s: s.replace("{id:'compare', t:'Сравнение проектов', i:'cmp'}","{id:'compare', t:'Сравнение проектов', i:'cmp'},{id:'nesushestvuet', t:'Пусто', i:'grid'}",1)),
 ]
 shutil.copy(SRC, BAK)

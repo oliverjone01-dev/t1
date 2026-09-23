@@ -14,7 +14,7 @@ const CHROME = process.env.KONTUR_CHROMIUM || (fs.existsSync('/opt/pw-browsers/c
 function prep(src, name){
   if(!src.includes('<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/')) throw new Error('в странице нет ApexCharts с cdnjs: сборка изменилась');
   fs.writeFileSync(OUT+'/'+name, src
-   .replace(/<script src="https:\/\/cdnjs[^"]+"><\/script>/,'<script src="file://'+LIBS+'/apex.js"></script>')
+   .replace(/<script src="https:\/\/cdnjs[^"]+"[^>]*><\/script>/,'<script src="file://'+LIBS+'/apex.js"></script>')
    .replace(/<link rel="stylesheet" href="https:\/\/fonts[^"]+">/,''));
 }
 const html = fs.readFileSync(new URL('../public/index.html', import.meta.url),'utf8');

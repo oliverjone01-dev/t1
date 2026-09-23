@@ -19,6 +19,8 @@
 // пароля, и по нему пароль подбирался бы офлайн в обход PBKDF2.
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const ITERATIONS = 600_000;
 const OPEN = '<script id="app-js">\n';
@@ -66,24 +68,47 @@ const out = html.slice(0, a)
   + '<script id="app-sealed" type="application/json">' + JSON.stringify(sealed) + "</script>\n"
   + html.slice(b + CLOSE.length);
 
-// Проверка разрешающая. Открытая часть страницы - это стили Контур DS, разметка
-// и ровно два скрипта: apexcharts с CDN и окно пароля. Кит DS лежит в шифроблоке
-// вместе с приложением. Любой другой скрипт вне шифроблока - повод остановить публикацию.
+// Проверка первая и главная: открытая часть страницы совпадает до символа с тем, что
+// собирается из исходников (src/build.py --shell: шапка, стили пакета Контур DS и свои,
+// разметка каркаса, окно пароля). Вне шифроблока не может оказаться ничего, чего нет в
+// исходниках: ни комментария с цифрой, ни производного числа, ни обработчика событий.
+// Страница собрана из других исходников, чем лежат рядом: публикация останавливается.
+let shell;
+try {
+  shell = JSON.parse(execFileSync("python3", [fileURLToPath(new URL("../src/build.py", import.meta.url)), "--shell"],
+    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 64 << 20 }));
+} catch (e) { fail("Не удалось получить эталон открытой части (python3 src/build.py --shell): " + String(e.stderr || e.message).trim().slice(0, 300)); }
+const openSrc = html.slice(0, a) + html.slice(b + CLOSE.length), want = shell.prefix + shell.suffix;
+if (openSrc !== want) {
+  let i = 0; while (i < openSrc.length && openSrc[i] === want[i]) i++;
+  fail("Вне шифроблока страница расходится с исходниками с символа " + i
+    + ": в странице «" + openSrc.slice(i, i + 80).replace(/\s+/g, " ") + "», в исходниках «" + want.slice(i, i + 80).replace(/\s+/g, " ")
+    + "». Пересобери страницу (python3 src/build.py) и не правь public/index.html руками.");
+}
+
+// Второй слой, на случай если утечка попадёт в сами исходники открытой части.
+// Скрипты вне шифра: ровно ApexCharts по закреплённому адресу и окно пароля.
 const openPart = out.replace(/<script id="app-sealed" type="application\/json">[^<]*<\/script>\n/, "");
+const APEX = "https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js";
 const scripts = [...openPart.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
 const allowed = (attrs, body) =>
-  (/src="https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/apexcharts\//.test(attrs) && !body.trim()) ||
+  (/\bintegrity="sha384-[A-Za-z0-9+/=]+"/.test(attrs) && (attrs.match(/\bsrc="([^"]*)"/) || [])[1] === APEX && !body.trim()) ||
   (!/\bsrc=/.test(attrs) && body.includes("getElementById('app-sealed')"));
 const extra = scripts.filter(([, attrs, body]) => !allowed(attrs, body));
 if (extra.length) fail("Вне шифроблока лишний скрипт: " + extra[0][0].slice(0, 80));
+if (scripts.length !== 2) fail("Вне шифроблока скриптов " + scripts.length + ", а должно быть ровно два: ApexCharts и окно пароля.");
+// Обработчики событий в атрибутах исполняются так же, как скрипт.
+const handler = openPart.match(/<[^>]*\son[a-z]+\s*=/i);
+if (handler) fail("Вне шифроблока обработчик события в атрибуте: " + handler[0].slice(0, 80));
 const m = code.match(/const DB = (\{.*?\});\n/s);
 if (!m) fail("В блоке app-js нет данных DB: сборка страницы изменилась, проверка невозможна.");
 const db = JSON.parse(m[1]);
 // Имена проектов и домены публичны и стоят в разметке переключателя проектов.
 const PUBLIC = new Set(Object.values(db.projects || {}).flatMap(p => [p.name, p.dom]));
-// Цвета CSS вида #232830 и комментарии кита («подсветка», «данные») не данные:
-// убираем их, а числа ищем целым токеном. Комментарии пишет сборка, а не выгрузка.
-const openText = openPart.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/<!--[\s\S]*?-->/g, " ")
+// Стили пакета Контур DS совпали с файлами пакета (проверка выше), в них данных нет:
+// их текст («подсветка», «данные») не ищем. Всё остальное ищем целиком, вместе с
+// комментариями: они уходят в опубликованный файл как есть. Цвета вида #232830 не данные.
+const openText = openPart.replace(/<style id="ks-(tokens|kit)">[\s\S]*?<\/style>/g, " ")
   .replace(/#[0-9a-fA-F]{3,8}\b/g, "#");
 const leaks = new Set();
 (function walk(o) {

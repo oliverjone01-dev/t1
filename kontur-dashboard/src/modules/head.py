@@ -2,6 +2,8 @@
 # Шапка документа. Вид целиком из Контур DS 1.5 (kontur-ds/ в корне репозитория):
 # src/build.py вставляет tokens.css и kit.css вместо меток /*TOKENS*/ и /*KIT*/.
 # Tailwind больше не подключается: экранам хватает кита и короткого слоя ниже.
+# ApexCharts закреплён хэшем (SRI): хэш снят с npm-пакета apexcharts@3.54.1, тот же файл
+# лежит на cdnjs; kontur-snapshot.yml перед тестами сверяет хэш файла с cdnjs.
 HEAD = r'''<!doctype html>
 <html lang="ru">
 <head>
@@ -23,7 +25,7 @@ HEAD = r'''<!doctype html>
 <style id="kontur-local">
 /*LOCAL*/
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js" integrity="sha384-KNaFJ+EK516RuHsoycvreec5pD7BkTKJEkjMrVSQWu9KGTl7En4dhIDv7t1DFJ+g" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 '''
 

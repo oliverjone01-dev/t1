@@ -21,6 +21,7 @@ import {
   type BoostRow, type CoinvRow, type WaveItem,
 } from "./boost-readiness.js";
 import { KPAGES, navButton } from "./katya-nav.js";
+import { gapFiller, coverage } from "./metric-gap.js";
 import { loadEbSeries, decideExit, CLEAN_DAYS_FOR_GATE, type ExitDecision } from "./boost-exit.js";
 
 if (!IS_OZON) {
@@ -325,6 +326,14 @@ METRICS.push(["drr", "ДРР", "raw", " %", true]);
 // Соинвест - уровень, а не количество: по группе берём среднее по тем артикулам,
 // у которых значение есть, а не сумму.
 const LEVEL = new Set(["coinv", "pos", "price", "cap", "cpo"]);   // уровни, а не количества: усредняем, не суммируем
+
+// ДЕНЬ БЕЗ СЪЁМА ЭТО НЕ НОЛЬ. Количества (показы, клики, заказы) раньше на любом пустом дне
+// давали 0, и пропуск выгрузки рисовался обвалом до нуля: 23.09 график показывал, будто тест
+// рухнул в показах, хотя воронка просто доехала только по 21.09. Отличить «ноль показов» от
+// «день не снят» можно только по всему снимку разом: если метрику в этот день не отдал НИ ОДИН
+// артикул, значит её не снимали. Настоящий ноль по всем пятистам товарам невозможен, а если он
+// когда-нибудь случится, разрыв линии это безопасная ошибка, в отличие от нарисованного обвала.
+const gapOf = gapFiller(series, (k) => LEVEL.has(k));
 const median = (v: number[]): number | null => {
   if (!v.length) return null;
   const a = [...v].sort((x, y) => x - y), m = a.length >> 1;
@@ -334,7 +343,7 @@ const median = (v: number[]): number | null => {
 const artDaily = (art: string, days: string[], key: string): Array<number | null> =>
   days.map((d) => {
     const v = series.get(art)?.get(d)?.[key];
-    return v == null ? (LEVEL.has(key) ? null : 0) : v;
+    return v == null ? gapOf(key, d) : v;
   });
 // «Общее» по группе для индексных метрик: медиана поартикульных индексов.
 // Артикул с нулевой базой в медиану не входит: его нельзя привести к 100.
@@ -350,7 +359,7 @@ const groupIndexed = (grp: string[], days: string[], key: string, base: string[]
 };
 const groupDaily = (grp: string[], days: string[], key: string): Array<number | null> => days.map((d) => {
   const vals = grp.map((a) => series.get(a)?.get(d)?.[key]).filter((v): v is number => v != null);
-  if (!vals.length) return LEVEL.has(key) ? null : 0;   // уровень без данных - пропуск, количество - ноль
+  if (!vals.length) return gapOf(key, d);   // уровень без данных - пропуск; количество - ноль, но только если день снят
   return LEVEL.has(key) ? vals.reduce((x, y) => x + y, 0) / vals.length : vals.reduce((x, y) => x + y, 0);
 });
 const nums = (arr: Array<number | null>): number[] => arr.filter((v): v is number => v != null);
@@ -960,6 +969,26 @@ gaps.push(`Правило отбора контроля зафиксирован
       + ` карте из контроля уходит не та родня, и разница поедет вместе с ней.`);
   } else {
     gaps.push(`${head}${why}`);
+  }
+}
+// Шапка пишет одну дату на всю страницу, а метрики доезжают по-разному: соинвест снимается
+// ежедневно, воронка отстаёт. Без этой строки читатель видит «данные по 23.09» и принимает
+// конец линии показов за провал, хотя там просто нет дня.
+{
+  const LABEL: Record<string, string> = {
+    coinv: "соинвест", price: "цена на витрине", pos: "позиция в поиске",
+    vsearch: "показы в поиске", pdp: "заходы в карточку", units: "заказы",
+    adspend: "расход на рекламу",
+  };
+  const till = coverage(series, Object.keys(LABEL)).map((x) => [LABEL[x.key]!, x.last] as const);
+  const behind = till.filter(([, d]) => d < LAST);
+  if (till.length) {
+    const list = till.map(([l, d]) => `${l} по ${d}`).join(", ");
+    const text = `Метрики доезжают до разных дней: ${list}. В шапке стоит самая поздняя дата`
+      + ` (${LAST}), поэтому у отстающих метрик линия на графике обрывается раньше правого края.`
+      + ` Обрыв это отсутствие дня, а не падение до нуля: день без съёма мы больше не рисуем нулём.`;
+    if (behind.length) warns.push(`МЕТРИКИ ОТСТАЮТ ОТ ШАПКИ. ${text}`);
+    else gaps.push(text);
   }
 }
 gaps.push(`Родство считается только по настоящей карточке OZON. Префикс артикула (линия) как`

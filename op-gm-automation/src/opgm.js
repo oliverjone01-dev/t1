@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ОП ГМ v5 на Контур DS 1.2
+   ОП ГМ v6 на Контур DS 1.5
    Данные: D.av (выгрузка Авито API двух кабинетов) и разделы v3 из legacy.js.
    Все цифры экранов на API считаются здесь, одна версия правды.
    ========================================================================== */
@@ -53,9 +53,12 @@ function monOf(c){ return iso(c.t).slice(5,7); }
 function weekStart(ts){ const d = Math.floor((ts + 10800) / DAY); return (d - ((d + 3) % 7)) * DAY - 10800; }
 function cabsIn(){ return OP.cab === 'all' ? CABS : [OP.cab]; }
 function cabTag(c){ return '<span class="op-cab" style="--slot:var(--cat-' + CABSLOT[c] + ')">' + E(c) + '</span>'; }
-function chip(t, tone){ return '<span class="op-chip' + (tone ? ' op-chip--' + tone : '') + '">' + E(t) + '</span>'; }
-function prec(p){ return PRECISION[p] ? chip('проверено вручную: ' + PRECISION[p], 'ok') : chip('точность вручную не замерялась', 'warn'); }
+/* 1.3: статус точкой и словом, без цветной плашки */
+function chip(t, tone, hint){ return KS.status(t, tone || 'neutral', hint); }
+function prec(p){ return PRECISION[p] ? chip('проверено вручную: ' + PRECISION[p], 'ok', 'Правило проверено на живых диалогах: сколько срабатываний оказались верными') : chip('точность вручную не замерялась', 'warn', 'Правило работает, но его точность на живых диалогах не проверяли: используйте как ориентир'); }
 function avitoUrl(id){ return 'https://www.avito.ru/profile/messenger/channel/' + encodeURIComponent(id); }
+/* 1.4: широкая таблица живёт в своей области прокрутки, тогда липкая шапка держится внутри неё */
+function scrollWrap(html){ return html.replace('class="ks-table-wrap"', 'class="ks-table-wrap ks-table-wrap--scroll"'); }
 function goAttr(o){ return " data-go='" + JSON.stringify(o).replace(/'/g, '&#39;') + "'"; }
 
 /* ---------------- выборки ---------------- */
@@ -84,17 +87,19 @@ function callStats(L){
 }
 
 /* ---------------- дельта к прошлому периоду ---------------- */
+/* число с согласованным словом: 1 диалог, 2 диалога, 5 диалогов */
+function dlgN(n){ const a = Math.abs(n) % 100, b = a % 10; return NF(n) + ' ' + (a > 10 && a < 20 ? 'диалогов' : b === 1 ? 'диалог' : b >= 2 && b <= 4 ? 'диалога' : 'диалогов'); }
 const MIN_N = 10;   /* меньше 10 диалогов в прошлом периоде: сравнение это шум, дельту не показываем */
 function dlt(now, was, fmt, goodUp, nPrev){
   if(OP.days === 'all') return '<div class="ks-delta is-na">весь ряд: сравнивать не с чем</div>';
-  if(nPrev != null && nPrev < MIN_N) return '<div class="ks-delta is-na" title="в прошлом периоде ' + nPrev + ' диалогов, для сравнения нужно от ' + MIN_N + '">мало диалогов для сравнения</div>';
+  if(nPrev != null && nPrev < MIN_N) return '<div class="ks-delta is-na" data-tip="в прошлом периоде ' + dlgN(nPrev) + ', для сравнения нужно от ' + MIN_N + '">мало диалогов для сравнения</div>';
   if(now == null || was == null) return '<div class="ks-delta is-na">нет данных за прошлый период</div>';
   const abs = Math.round((now - was) * 10) / 10;
   if(abs === 0) return '<div class="ks-delta is-flat">без изменений</div>';
   const t = (abs > 0) === (goodUp !== false) ? 'good' : 'bad';
   const rel = Math.abs(was) >= MIN_N ? ' (' + (abs > 0 ? '+' : '') + Math.round(abs / was * 100) + '%)' : '';   /* процент от базы меньше 10 это шум */
   const title = 'было ' + fmt(was) + ' за прошлые ' + OP.days + ' дн, стало ' + fmt(now);
-  return '<div class="ks-delta is-' + t + '" title="' + E(title) + '">' + ic(abs > 0 ? 'arrow-up' : 'arrow-down', 12)
+  return '<div class="ks-delta is-' + t + '" data-tip="' + E(title) + '">' + ic(abs > 0 ? 'arrow-up' : 'arrow-down', 12)
     + '<span class="ks-num">' + (abs > 0 ? '+' : '-') + fmt(Math.abs(abs)) + rel + '</span></div>';
 }
 const pp = v => String(v).replace('.', ',') + ' п.п.';
@@ -126,36 +131,49 @@ function fresh(){
 /* ---------- Пульс ОП ---------- */
 function tilesFor(cab){
   const w = win(OP.days), cur = stats(sel({ cab, from:w.from, to:w.to })), prv = w.pfrom != null ? stats(sel({ cab, from:w.pfrom, to:w.pto })) : null;
+  /* спарклайн: 12 полных недель, минуты для медианы; пропуск недели рвёт линию */
+  const sp = fn => weekSeries(L => L.length ? fn(stats(L)) : null, cab);
   return '<div class="ks-grid-kpi">'
-    + KS.tile({ label:'Медиана первого ответа · ' + cab, f:env(fL(cur.med), cab, cur.n), slot:CABSLOT[cab], icon:'clock', drill:'speed-' + cab,
+    + KS.tile({ label:'Медиана первого ответа · ' + cab, f:env(fL(cur.med), cab, cur.n), slot:CABSLOT[cab], icon:'clock', drill:'speed-' + cab, spark:sp(x => x.med == null ? null : Math.round(x.med / 60)),
         delta:dlt(cur.med, prv && prv.med, fL, false, prv && prv.n) })
-    + KS.tile({ label:'Ответ за 15 минут · ' + cab, f:env(P(cur.f15), cab, cur.n), slot:CABSLOT[cab], icon:'bolt', drill:'f15-' + cab,
+    + KS.tile({ label:'Ответ за 15 минут · ' + cab, f:env(P(cur.f15), cab, cur.n), slot:CABSLOT[cab], icon:'bolt', drill:'f15-' + cab, spark:sp(x => x.f15),
         delta:dlt(cur.f15, prv && prv.f15, pp, true, prv && prv.n) })
-    + KS.tile({ label:'Не ответили вообще · ' + cab, f:env(cur.noresp, cab, cur.n), slot:CABSLOT[cab], icon:'warn', drill:'noresp-' + cab,
+    + KS.tile({ label:'Не ответили вообще · ' + cab, f:env(cur.noresp, cab, cur.n), slot:CABSLOT[cab], icon:'warn', drill:'noresp-' + cab, spark:sp(x => x.noresp),
         delta:dlt(cur.noresp, prv && prv.noresp, NF, false, prv && prv.n) })
-    + KS.tile({ label:'Вопрос или телефон без ответа · ' + cab, f:env(cur.quest, cab, cur.n), slot:CABSLOT[cab], icon:'users', drill:'quest-' + cab,
+    + KS.tile({ label:'Вопрос или телефон без ответа · ' + cab, f:env(cur.quest, cab, cur.n), slot:CABSLOT[cab], icon:'users', drill:'quest-' + cab, spark:sp(x => x.quest),
         delta:dlt(cur.quest, prv && prv.quest, NF, false, prv && prv.n) })
     + '</div>';
 }
 function verdict(){
   const w = win(OP.days); if(w.pfrom == null) return KS.note('Сравнить не с чем', 'Выбран весь ряд. Для вердикта выберите 7, 30 или 90 дней в шапке.', 'warn');
-  const rows = [], add = (cab, name, now, was, goodUp, fmt) => { if(now == null || was == null) return;
-    const t = now === was ? 'flat' : ((now > was) === goodUp ? 'good' : 'bad'); rows.push({ cab, name, now, was, t, fmt }); };
+  /* третья точка: отрезок той же длины перед прошлым. Видно, не шум ли разница между двумя соседними отрезками */
+  const p2from = w.pfrom - (w.pto - w.pfrom);
+  const rows = [], add = (cab, name, now, was, pre, goodUp, fmt) => { if(now == null || was == null) return;
+    const t = now === was ? 'flat' : ((now > was) === goodUp ? 'good' : 'bad'); rows.push({ cab, name, now, was, pre, t, fmt, goodUp }); };
   const few = [];
   cabsIn().forEach(cab => { const c = stats(sel({ cab, from:w.from, to:w.to })), p = stats(sel({ cab, from:w.pfrom, to:w.pto }));
+    const q = stats(sel({ cab, from:p2from, to:w.pfrom })), qq = q.n >= MIN_N ? q : null;
     if(p.n < MIN_N || c.n < MIN_N){ few.push(cab + ' (' + p.n + ' и ' + c.n + ')'); return; }
-    add(cab, 'медиана первого ответа', c.med, p.med, false, fL); add(cab, 'ответ за 15 минут', c.f15, p.f15, true, P);
-    add(cab, 'не ответили вообще', c.noresp, p.noresp, false, NF); add(cab, 'вопрос или телефон без ответа', c.quest, p.quest, false, NF); });
-  const fewNote = few.length ? '<div class="ks-muted" style="margin-top:var(--sp-2)">В вердикт не вошли: ' + E(few.join(', ')) + '. Меньше ' + MIN_N + ' диалогов в одном из периодов, сравнение было бы шумом.</div>' : '';
+    add(cab, 'медиана первого ответа', c.med, p.med, qq && qq.med, false, fL); add(cab, 'ответ за 15 минут', c.f15, p.f15, qq && qq.f15, true, P);
+    add(cab, 'не ответили вообще', c.noresp, p.noresp, qq && qq.noresp, false, NF); add(cab, 'вопрос или телефон без ответа', c.quest, p.quest, qq && qq.quest, false, NF); });
   if(!rows.length) return KS.note('Сравнить не с чем', 'Меньше ' + MIN_N + ' диалогов в одном из периодов: ' + E(few.join(', ')) + '. Выберите период длиннее.', 'warn');
   const good = rows.filter(r => r.t === 'good').length, bad = rows.filter(r => r.t === 'bad').length;
   const headT = bad === 0 ? 'Стало лучше' : good === 0 ? 'Стало хуже' : 'Разнонаправленно';
   const tone = bad === 0 ? 'ok' : good === 0 ? 'crit' : 'warn';
-  const col = t => t === 'good' ? 'var(--ok)' : t === 'bad' ? 'var(--crit)' : 'var(--text-muted)';
-  const body = rows.map(r => '<div class="ks-row" style="gap:var(--sp-2);align-items:baseline">' + cabTag(r.cab)
-    + '<span class="ks-strong" style="font-weight:500">' + E(r.name) + ':</span><span class="ks-num">' + E(r.fmt(r.was)) + '</span><span class="ks-muted">до</span>'
-    + '<span class="ks-num" style="font-weight:600;color:' + col(r.t) + '">' + E(r.fmt(r.now)) + '</span></div>').join('');
-  return KS.note(headT + ' за ' + OP.days + ' дней к прошлым ' + OP.days, '<div class="ks-stack" style="gap:var(--sp-1-5);margin-top:var(--sp-1)">' + body + '</div>' + fewNote, tone);
+  const body = rows.map(r => '<div class="ks-verdict-row">'
+    + '<span class="ks-verdict-name">' + cabTag(r.cab) + ' ' + E(r.name) + '</span>'
+    + '<span class="ks-verdict-path" data-tip="' + E('было ' + r.fmt(r.was) + ' за ' + fDay(w.pfrom) + '-' + fDay(w.pto - 1) + ', стало ' + r.fmt(r.now) + ' за ' + fDay(w.from) + '-' + fDay(w.to - 1)) + '">'
+    +   '<span>' + E(r.fmt(r.was)) + '</span><span class="ks-muted">с ' + fDay(w.pfrom) + '</span><span class="ks-muted" aria-hidden="true">→</span>'
+    +   '<b style="font-weight:var(--fw-semi)">' + E(r.fmt(r.now)) + '</b><span class="ks-muted">с ' + fDay(w.from) + '</span></span>'
+    + '<span class="ks-delta-cell">' + dlt(r.now, r.was, r.fmt === fL ? fL : r.fmt === P ? pp : NF, r.goodUp) + '</span>'
+    + '<span class="ks-verdict-prev"' + (r.pre == null ? ' data-tip="' + E('за ' + fDay(p2from) + '-' + fDay(w.pfrom - 1) + ' меньше ' + MIN_N + ' диалогов или выгрузка не доходит') + '">отрезком раньше: нет' : '>отрезком раньше ' + E(r.fmt(r.pre))) + '</span></div>').join('');
+  return '<section class="ks-verdict ks-verdict--' + tone + '" aria-label="Вердикт">'
+    + '<div class="ks-verdict-head">' + ic(tone === 'ok' ? 'up' : tone === 'crit' ? 'loss' : 'cmp', 18)
+    + '<span class="ks-verdict-title">' + headT + '</span>'
+    + '<span class="ks-verdict-per">за ' + OP.days + ' дней к прошлым ' + OP.days + ' · по каждому кабинету отдельно</span></div>'
+    + '<div class="ks-verdict-rows">' + body + '</div>'
+    + (few.length ? '<div class="ks-verdict-note">В вердикт не вошли: ' + E(few.join(', ')) + '. Меньше ' + MIN_N + ' диалогов в одном из периодов, сравнение было бы шумом.</div>' : '')
+    + '</section>';
 }
 function weekCats(){ return fullWeeks(12).map(w => fDay(w)); }
 const SCREENS = {};
@@ -173,14 +191,15 @@ SCREENS.pulse = function(){
       + '<div>' + prec('noprice') + '</div><div class="op-hint">Утвердить один ответ про цену с числом. Через неделю сравнить в таблице по неделям.</div></div>',
     actions:'<button type="button" class="ks-btn ks-btn--ghost ks-btn--sm"' + goAttr({ view:'dlg', prob:'noprice' }) + '>диалоги</button>' });
   const callCard = KS.card({ title:'Звонки через Авито', sub:'Все чаты, включая те, где клиент только звонил · ' + periodLabel(),
-    body:KS.table([['Кабинет'],['Исходящих', true],['Принято входящих', true],['Пропущено', true],['Медиана разговора', true]],
-      cabs.map(cab => { const r = callStats(sel({ cab, kind:'all', from:w.from, to:w.to })); return [cabTag(cab), NF(r.out), NF(r.inn), NF(r.miss), r.med == null ? null : Math.round(r.med) + ' с']; }), { stack:false })
+    body:KS.table([['Кабинет'],['Исходящих', true],['Принято входящих', true],['Пропущено входящих', true],['Медиана разговора', true]],
+      cabs.map(cab => { const r = callStats(sel({ cab, kind:'all', from:w.from, to:w.to }));
+        return [cabTag(cab), NF(r.out), NF(r.inn), NF(r.miss) + ' <span class="ks-muted">из ' + NF(r.inn + r.miss) + '</span>', r.med == null ? null : Math.round(r.med) + ' с']; }))
       + '<div class="op-hint" style="margin-top:var(--sp-2)">Звонки с мобильного Авито не видит: их надо проверять по телефону или в Bitrix24. Правило: на каждый пропущенный перезвонить в течение часа.</div>',
     actions:'<button type="button" class="ks-btn ks-btn--ghost ks-btn--sm"' + goAttr({ view:'calls' }) + '>подробнее</button>' });
   const ads = D.av.ads.map((a, i) => ({ i, a, L:sel({ ad:i, from:w.from, to:w.to }) })).filter(x => x.L.length >= 10).sort((x, y) => y.L.length - x.L.length).slice(0, 7);
   const probs = ['slow','noprice','noquestion','nofollow'];
-  const mtx = '<div class="ks-table-wrap"><table class="ks-table"><thead><tr><th scope="col">Объявление</th><th class="is-num" scope="col">Диалогов</th>'
-    + probs.map(p => '<th class="is-num" scope="col" title="' + E(PROB[p].rule) + '">' + E({ slow:'Ответ дольше часа', noprice:'Цена без суммы', noquestion:'Без вопроса клиенту', nofollow:'Нет дожима' }[p]) + '</th>').join('') + '</tr></thead><tbody>'
+  const mtx = '<div class="ks-table-wrap ks-table-wrap--scroll"><table class="ks-table"><thead><tr><th scope="col">Объявление</th><th class="is-num" scope="col">Диалогов</th>'
+    + probs.map(p => '<th class="is-num" scope="col" data-tip="' + E(PROB[p].rule) + '">' + E({ slow:'Ответ дольше часа', noprice:'Цена без суммы', noquestion:'Без вопроса клиенту', nofollow:'Нет дожима' }[p]) + '</th>').join('') + '</tr></thead><tbody>'
     + ads.map(x => { const pq = x.L.filter(c => c.pq).length;
       return '<tr class="is-interactive" tabindex="0"' + goAttr({ view:'dlg', ad:String(x.i), prob:'all' }) + '><td>' + E(x.a) + '</td><td class="is-num">' + x.L.length + '</td>'
         + probs.map(p => '<td class="is-num">' + P(share(x.L.filter(c => c.p.includes(p)).length, p === 'noprice' ? pq : x.L.length)) + '</td>').join('') + '</tr>'; }).join('')
@@ -253,10 +272,15 @@ SCREENS.speed2 = function(){
   const hours = Array.from({ length:24 }, (_, h) => String(h)), matrix = WD.map((_, d) => hours.map((__, h) => (cell[d + '_' + h] || []).length));
   const mx = Math.max(1, ...matrix.flat()), q = Math.max(1, Math.ceil(mx / 5));
   const ranges = [0,1,2,3,4].map(i => [i === 0 ? 0 : i * q + 1, i === 4 ? Math.max(mx, 4 * q + 1) : (i + 1) * q]);
-  job(() => KS.charts.heat('ch-heat', { rows:WD, cols:hours, matrix, ranges, h:300 }));
+  /* числовой форматтер оси кита превращает «Пн» в прочерк: подписи дней возвращаем как есть.
+     ApexCharts рисует ряды снизу вверх, поэтому ряды переворачиваем: понедельник сверху */
+  job(() => { const ch = KS.charts.heat('ch-heat', { rows:WD.slice().reverse(), cols:hours, matrix:matrix.slice().reverse(), ranges, h:300 });
+    /* легенда: «2», а не «2-2», когда в ступени одно значение */
+    if(ch && ch.updateOptions) ch.updateOptions({ yaxis:{ labels:{ style:{ fontSize:'11px' }, formatter:x => x } },
+      plotOptions:{ heatmap:{ colorScale:{ ranges:ranges.map((r, i) => ({ from:r[0], to:r[1], color:KS.charts.seq(i + 1), name:r[0] === r[1] ? String(r[0]) : r[0] + '-' + r[1] })) } } } }, false, false); });
   const bk = [[0,900,'до 15 мин'],[900,3600,'15-60 мин'],[3600,14400,'1-4 часа'],[14400,DAY,'4-24 часа'],[DAY,1e12,'больше суток']];
   const dist = cabs.map(cab => { const L = sel({ cab, from:w.from, to:w.to }), n = L.length;
-    return KS.card({ title:'Как быстро отвечаем · ' + cab, sub:n + ' диалогов · ' + periodLabel(),
+    return KS.card({ title:'Как быстро отвечаем · ' + cab, sub:dlgN(n) + ' · ' + periodLabel(),
       body:KS.bars(bk.map(([a, b, l]) => { const k = L.filter(c => c.lag != null && c.lag >= a && c.lag < b).length; return [l, k, P(share(k, n))]; })
         .concat([[ 'живого ответа не было', L.filter(c => c.p.includes('noresp')).length, P(share(L.filter(c => c.p.includes('noresp')).length, n)) ]]), CABSLOT[cab]) }); }).join('');
   const tiles = cabs.map(cab => { const s = stats(sel({ cab, from:w.from, to:w.to })), p = w.pfrom != null ? stats(sel({ cab, from:w.pfrom, to:w.pto })) : null;
@@ -273,9 +297,10 @@ SCREENS.speed2 = function(){
     + KS.card({ title:'Медиана по месяцам', sub:'Минут · сентябрь неполный, до 22.09 · весь ряд', body:KS.chart('ch-mon', 260),
         table:KS.table([['Месяц']].concat(byMon.map(s => [s.name, true])), cats.map((c, i) => [c].concat(byMon.map(s => s.data[i] == null ? null : NF(s.data[i]) + ' мин')))) })
     + KS.card({ title:'Когда пишут клиенты', sub:'Число обращений по дню недели и часу, МСК · ' + periodLabel(), body:KS.chart('ch-heat', 300),
-        table:KS.table([['День']].concat(hours.map(h => [h, true])), WD.map((d, i) => [d].concat(matrix[i].map(NF))), { stack:false }) })
+        table:scrollWrap(KS.table([['День']].concat(hours.map(h => [h, true])), WD.map((d, i) => [d].concat(matrix[i].map(NF))), { stack:false })) })
     + '</div><div class="ks-grid-2">' + dist + '</div>'
     + KS.note('Что значат цифры', 'Медиана: половина клиентов ждала меньше, половина дольше. Среднее не используем: один ответ через неделю испортил бы всё. Вечер и ночь: с 18:00 до 9:00 по Москве.', 'info')
+    + KS.action({ what:'Сравнить медиану первого ответа и долю ответов за 15 минут: неделя 28.09-04.10 против 14-20.09, по каждому кабинету.', who:'Иван и РОП', when:MILESTONE, crit:'медиана ниже и доля за 15 минут выше в обоих кабинетах' })
     + '</div>';
 };
 
@@ -291,6 +316,7 @@ SCREENS.probs = function(){
       return KS.card({ title:PROB[p].l, sub:PROB[p].rule,
         body:'<div class="ks-stack" style="gap:var(--sp-3)">' + KS.bars(items, 3) + '<div>' + prec(p) + '</div><div class="op-hint"><b>Что делать:</b> ' + E(PROB[p].todo) + '</div></div>',
         actions:'<button type="button" class="ks-btn ks-btn--ghost ks-btn--sm"' + goAttr({ view:'dlg', prob:p }) + '>диалоги</button>' }); }).join('')
+    + KS.action({ what:'Сверить счётчики трёх самых частых проблем: неделя 28.09-04.10 против 14-20.09. Кнопка «диалоги» у проблемы открывает сами переписки.', who:'Иван и РОП', when:MILESTONE, crit:'каждый из трёх счётчиков за неделю ниже, чем 14-20.09' })
     + '</div>';
 };
 
@@ -302,7 +328,7 @@ SCREENS.ads = function(){
     return { i, a, n:L.length, t:T.length, g:L.filter(c => c.cab === 'OLD-G').length, b:L.filter(c => c.cab === 'NEW-B').length, med:med(T.map(c => c.lag)),
       np:share(T.filter(c => c.p.includes('noprice')).length, pq), q:share(T.filter(c => c.p.includes('abandoned') || c.p.includes('phoneleft')).length, T.length), nf:share(T.filter(c => c.p.includes('nofollow')).length, T.length) }; })
     .filter(Boolean).sort((x, y) => y.n - x.n);
-  const tbl = '<div class="ks-table-wrap"><table class="ks-table"><thead><tr>' + ['Объявление','Всего чатов','OLD-G','NEW-B','Клиенты','Медиана ответа','Цена без суммы','Вопрос без ответа','Нет дожима']
+  const tbl = '<div class="ks-table-wrap ks-table-wrap--scroll"><table class="ks-table"><thead><tr>' + ['Объявление','Всего чатов','OLD-G','NEW-B','Клиенты','Медиана ответа','Цена без суммы','Вопрос без ответа','Нет дожима']
       .map((h, i) => '<th scope="col"' + (i ? ' class="is-num"' : '') + '>' + h + '</th>').join('') + '</tr></thead><tbody>'
     + rows.map(r => '<tr class="is-interactive" tabindex="0"' + goAttr({ view:'dlg', ad:String(r.i), prob:'all' }) + '><td>' + E(r.a) + '</td><td class="is-num">' + r.n + '</td><td class="is-num">' + r.g + '</td><td class="is-num">' + r.b
       + '</td><td class="is-num">' + r.t + '</td><td class="is-num">' + fL(r.med) + '</td><td class="is-num">' + P(r.np) + '</td><td class="is-num">' + P(r.q) + '</td><td class="is-num">' + P(r.nf) + '</td></tr>').join('')
@@ -319,7 +345,7 @@ SCREENS.calls = function(){
     return '<div class="ks-grid-kpi">'
       + KS.tile({ label:'Исходящих через Авито · ' + cab, f:env(r.out, cab), slot:CABSLOT[cab], icon:'arrow-up', delta:dlt(r.out, p && p.out, NF, true) })
       + KS.tile({ label:'Принято входящих · ' + cab, f:env(r.inn, cab), slot:CABSLOT[cab], icon:'arrow-down', delta:dlt(r.inn, p && p.inn, NF, true) })
-      + KS.tile({ label:'Пропущено · ' + cab, f:env(r.miss, cab), slot:CABSLOT[cab], icon:'warn', delta:dlt(r.miss, p && p.miss, NF, false) })
+      + KS.tile({ label:'Пропущено входящих · ' + cab, f:env(r.miss, cab), slot:CABSLOT[cab], icon:'warn', delta:dlt(r.miss, p && p.miss, NF, false) })
       + KS.tile({ label:'Медиана разговора · ' + cab, f:env(r.med == null ? null : Math.round(r.med) + ' с', cab), slot:CABSLOT[cab], icon:'clock', delta:dlt(r.med, p && p.med, x => Math.round(x) + ' с', true) })
       + '</div>'; }).join('');
   const L = sel({ kind:'all', from:w.from, to:w.to }).filter(c => c.cin || c.cmiss || c.cout).sort((a, b) => b.last - a.last);
@@ -327,9 +353,14 @@ SCREENS.calls = function(){
       lead:'Сумм по звонкам нет: итог разговора Авито не сохраняет.' })
     + '<div class="ks-stack">' + tiles
     + KS.note('Главное', 'Через Авито менеджеры почти не звонят сами. Звонки с мобильного Авито не видит, их надо проверять по телефону или в Bitrix24. Пропущенный входящий без перезвона - это клиент, который уже набрал нас и ушёл.', 'warn')
-    + KS.card({ title:'Диалоги со звонками', sub:L.length + ' за период', body:L.length ? '<div class="ks-stack" style="gap:var(--sp-2)">' + L.slice(0, 40).map(dcard).join('') + '</div>' : '<div class="ks-muted">Звонков за период нет.</div>' })
+    + KS.card({ title:'Диалоги со звонками', sub:(L.length > 40 ? 'последние 40 из ' + L.length : L.length) + ' за период · нажмите строку, чтобы открыть переписку',
+        body:L.length ? '<div class="op-list">' + L.slice(0, 40).map(dcard).join('') + '</div>' : '<div class="ks-muted">Звонков за период нет.</div>' })
+    + KS.action({ what:'Сравнить число пропущенных входящих: неделя 28.09-04.10 против 14-20.09. Перезвоны сверить по Bitrix24: Авито звонки с мобильного не видит.', who:'Иван и РОП', when:MILESTONE, crit:'пропущенных меньше, по каждому есть перезвон в Bitrix24' })
     + '</div>';
 };
+
+/* строки диалогов одним списком внутри одной карточки, без карточек в карточке */
+function dlist(L){ return KS.card({ body:'<div class="op-list">' + L.map(dcard).join('') + '</div>' }); }
 
 /* ---------- Холодная рассылка ---------- */
 SCREENS.cold = function(){
@@ -356,13 +387,14 @@ SCREENS.cold = function(){
 /* ---------- Все диалоги ---------- */
 function dcard(c){
   const said = lastClient(c), M = D.av.msgs[c.id] || [];
-  const marks = [c.cin || c.cmiss ? chip('звонок') : '', c.phone ? chip('оставил телефон', 'warn') : '', c.b2b ? chip('партнёр или опт', 'info') : '',
-    c.both ? chip('писал в оба кабинета', 'info') : '', c.kind === 'vendor' ? chip('не клиент') : '', c.compl ? chip('жалоба', 'crit') : ''].join('');
-  return '<section class="ks-card is-interactive" role="button" tabindex="0" data-th="' + E(c.id) + '">'
+  const marks = [c.compl ? chip('жалоба', 'crit') : '', c.phone ? chip('оставил телефон', 'warn') : '', c.cin || c.cmiss ? chip('звонок') : '',
+    c.b2b ? chip('партнёр или опт', 'info') : '', c.both ? chip('писал в оба кабинета', 'info') : '', c.kind === 'vendor' ? chip('не клиент') : ''].join('');
+  return '<div class="op-li is-interactive" role="button" tabindex="0" data-th="' + E(c.id) + '">'
     + '<div class="op-dlg-head"><span class="op-dlg-name">' + E(firstName(c.cn)) + '</span>' + cabTag(c.cab) + '<span>' + fD(c.t) + '</span><span>' + E(adName(c.ad).slice(0, 44)) + '</span>'
     + (c.lag != null ? '<span>первый ответ через ' + fL(c.lag) + '</span>' : '') + '</div>'
     + (said ? '<div class="op-dlg-said">«' + E(said.slice(0, 180)) + (said.length > 180 ? '...' : '') + '»</div>' : '')
-    + '<div class="op-chips">' + c.p.map(p => chip(PROB[p].l, HOT.includes(p) ? 'crit' : '')).join('') + (c.p.length ? '' : chip('без замечаний', 'ok')) + marks + chip(M.length + ' сообщ.') + '</div></section>';
+    + '<div class="op-chips">' + c.p.map(p => chip(PROB[p].l, HOT.includes(p) ? 'crit' : 'neutral', PROB[p].rule)).join('') + (c.p.length ? '' : chip('без замечаний', 'ok')) + marks
+    + '<span class="op-muted">' + M.length + ' сообщ.</span></div></div>';
 }
 SCREENS.dlg = function(){
   const f = OP.dlg, w = win(OP.days);
@@ -387,7 +419,7 @@ SCREENS.dlg = function(){
         + '<label class="ks-field" style="grid-column:span 1"><span class="ks-field-label">Поиск</span><input class="ks-input" id="f-q" placeholder="слово в переписке или имя" value="' + E(f.q) + '"></label>'
         + '</div>' })
     + '<div class="op-count">Найдено: <b>' + L.length + '</b> · ' + periodLabel() + (OP.cab === 'all' ? ' · оба кабинета' : ' · ' + E(CABNAME[OP.cab])) + '</div>'
-    + (L.length ? L.slice(0, f.limit).map(dcard).join('') : KS.note('Ничего не нашлось', 'Попробуйте период «весь ряд» в шапке или снимите фильтры.', 'info'))
+    + (L.length ? dlist(L.slice(0, f.limit)) : KS.note('Ничего не нашлось', 'Попробуйте период «весь ряд» в шапке или снимите фильтры.', 'info'))
     + (L.length > f.limit ? '<div class="op-more"><button type="button" class="ks-btn ks-btn--secondary" id="f-more">показать ещё ' + Math.min(40, L.length - f.limit) + '</button></div>' : '')
     + '</div>';
 };
@@ -427,21 +459,22 @@ SCREENS.data = function(){
         ['Сборка', 'src/build_av.py собирает слой данных, src/build.cjs шифрует и собирает сайт; пароль только из переменной окружения'],
         ['Проверка', 'сверка цифр с независимым пересчётом, сторож Контур DS, Step 12.5 ФЕНИКСА'],
         ['Первая проверка эффекта', MILESTONE + ', Иван и РОП'] ]) })
-    + KS.note('Что исправлено против скриншотов', 'По скриншотам июля выходило «в среднем 46 минут» до ответа, «по имени 0,6%», «цену не назвали 48%». Точные цифры из API на этом сайте. Разделы по скриншотам лежат в группе «Архив» для сравнения.', 'info')
+    + KS.card({ title:'Что исправлено против скриншотов', body:'<p class="op-hint">По скриншотам июля выходило «в среднем 46 минут» до ответа, «по имени 0,6%», «цену не назвали 48%». Точные цифры из API на этом сайте. Разделы по скриншотам лежат в группе «Архив» для сравнения.</p>' })
     + '</div>';
 };
 
 /* ---------- разделы v3 ---------- */
-const LEGACY = { overview:() => renderOverview(), problems:() => renderProblems(), speed:() => renderSpeed(), quality:() => renderQuality(), funnel:() => renderFunnel(),
-  dialogues:() => buildFilterUI(), teardowns:() => renderTeardowns(), scripts:() => renderScripts(), actions:() => renderActions() };
+const LEGACY = { overview:renderOverview, problems:renderProblems, speed:renderSpeed, quality:renderQuality, funnel:renderFunnel,
+  dialogues:buildFilterUI, teardowns:renderTeardowns, scripts:renderScripts, actions:renderActions };
 const ARCHIVE = ['overview','problems','speed','quality','funnel','dialogues'];
-function legacyScreen(id){
-  const note = ARCHIVE.includes(id)
+function legacyNote(id){
+  return ARCHIVE.includes(id)
     ? KS.note('Архив: цифры по скриншотам июля', 'Они частью неточны. Актуальные цифры по API на экране «Пульс ОП», правила подсчёта на экране «Откуда цифры».', 'warn')
     : (D.MGRS[id] ? KS.note('Отдельный источник', 'Профиль построен штатным аналитиком по сделкам Bitrix24. С цифрами Авито он не связан.', 'info')
       : KS.note('Раздел составлен в июле по скриншотам переписок', 'Цифры в нём не пересчитаны по выгрузке API. Актуальные цифры на экране «Пульс ОП».', 'info'));
-  return '<div class="ks-stack">' + note + '<section class="ks-legacy" id="p-' + E(id) + '"></section></div>';
 }
+/* разделы v3 рисуют себя сами (legacy.js): шапка экрана, под ней врезка, дальше компоненты кита */
+function legacyScreen(id){ return '<div class="ks-stack" id="p-' + E(id) + '"></div>'; }
 
 /* ==========================================================================
    ПАНЕЛЬ ДЕТАЛЕЙ
@@ -464,7 +497,7 @@ function drillProvider(metric, cab){
         + '<div style="margin-top:var(--sp-3)"><button type="button" class="ks-btn ks-btn--secondary ks-btn--sm"' + goAttr({ view:'dlg', prob:M.key, cab }) + '>все ' + X.length + ' в «Все диалоги»</button></div>'
         : '<div class="ks-muted">За период таких диалогов нет.</div>';
     }
-    return { title:M.t + ' · ' + cab, kind:'ДАННЫЕ', sub:periodLabel() + ' · ' + L.length + ' диалогов',
+    return { title:M.t + ' · ' + cab, kind:'ДАННЫЕ', sub:periodLabel() + ' · ' + dlgN(L.length),
       compose, trend:KS.chart(id, 220), afterOpen:() => floor0(KS.charts.line(id, { cats, data:series, name:M.t, slot:CABSLOT[cab], h:220, suffix:' ' + M.unit })),
       trendTable:KS.table([['Неделя с'],[M.unit, true]], cats.map((c, i) => [c, series[i] == null ? null : NF(series[i])])),
       source:'<div class="op-hint">Авито API, кабинет ' + E(cab) + ', выгрузка ' + fD(EXP[cab]) + ' МСК. ' + E(PROB[M.key].rule) + '</div><div style="margin-top:var(--sp-2)">' + prec(M.key) + '</div>',
@@ -481,12 +514,12 @@ function openThread(id){
     + '<div class="ks-card-sub">' + (c.lag != null ? 'первый ответ через ' + fL(c.lag) : (c.nc > 0 ? 'живого ответа не было' : 'клиент не писал текстом')) + ' · начало ' + fD(M.length ? M[0][0] : c.t) + '</div></div>'
     + '<button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" aria-label="Закрыть" onclick="KS.drawer.close()">' + ic('x', 18) + '</button></div><div class="ks-drawer-body">'
     + '<div><a class="ks-btn ks-btn--primary" href="' + avitoUrl(c.id) + '" target="_blank" rel="noopener">' + ic('external', 15) + 'Открыть в Авито</a></div>';
-  if(c.p.length) h += KS.card({ title:'Что пошло не так', body:'<div class="ks-stack" style="gap:var(--sp-2)">' + c.p.map(p => '<div><div class="ks-strong" style="font-weight:600">' + E(PROB[p].l) + '</div><div class="op-hint">' + E(PROB[p].rule) + '</div><div class="op-hint"><b>Как надо:</b> ' + E(PROB[p].todo) + '</div></div>').join('') + '</div>' });
+  if(c.p.length) h += KS.card({ title:'Что пошло не так', body:'<div class="ks-stack" style="gap:var(--sp-2)">' + c.p.map(p => '<div><div class="ks-strong" style="font-weight:var(--fw-semi)">' + E(PROB[p].l) + '</div><div class="op-hint">' + E(PROB[p].rule) + '</div><div class="op-hint"><b>Как надо:</b> ' + E(PROB[p].todo) + '</div></div>').join('') + '</div>' });
   let tl = '<div class="op-tl">', prev = null, prevWho = null;
   M.forEach(m => { const [ts, who, tp, tx] = m;
     if(prev != null && (who === 'c' || who === 'm') && ts - prev >= 3600){ const bad = prevWho === 'c' && who === 'm';
       tl += '<div class="op-gap' + (bad ? ' is-bad' : '') + '">' + (bad ? 'клиент ждал ответа ' : 'прошло ') + fL(ts - prev) + '</div>'; }
-    if((who === 'c' || who === 'm') && who !== prevWho) tl += '<div class="op-who' + (who === 'm' ? ' is-r' : '') + '">' + (who === 'm' ? 'Glass Memory (' + E(c.cab) + ')' : 'Клиент') + '</div>';
+    if((who === 'c' || who === 'm') && who !== prevWho) tl += '<div class="op-who' + (who === 'm' ? ' is-r' : '') + '">' + (who === 'm' ? 'GLASS-MEMORY (' + E(c.cab) + ')' : 'Клиент') + '</div>';
     const flag = who === 'c' && c.p.includes('noprice') && PQ.test(tx) ? ' is-flag' : '';
     tl += '<div class="op-bub is-' + who + flag + '">' + (who === 'a' ? 'Автоответ: ' : '') + (tp === 'c' ? 'Звонок. ' : '') + E(tx) + '<span class="op-tm">' + fD(ts) + '</span></div>';
     if(who === 'c' || who === 'm'){ prev = ts; prevWho = who; } });
@@ -520,17 +553,45 @@ function render(){
   KS.charts.destroyAll();
   view.innerHTML = '<div class="ks-fade">' + (isLegacy(v) ? legacyScreen(v) : (SCREENS[v] || SCREENS.pulse)()) + '</div>';
   KS.charts.prune();
-  if(LEGACY[v]) LEGACY[v](); else if(D.MGRS[v]) renderManager(v);
+  if(LEGACY[v]) LEGACY[v](legacyNote(v)); else if(D.MGRS[v]) renderManager(v, legacyNote(v));
   if(v === 'dlg') wireDlg();
   document.getElementById('nav').innerHTML = KS.nav(navTree(), v);
-  document.getElementById('seg').innerHTML = [['all','Оба']].concat(CABS.map(c => [c, c])).map(([k, l]) => '<button type="button" data-cab="' + k + '" aria-pressed="' + (OP.cab === k) + '">' + l + '</button>').join('');
+  /* 1.3: сегмент строится один раз, экран только переключает aria-pressed; плашка переезжает сама */
+  document.querySelectorAll('#seg [data-cab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cab === OP.cab)));
+  view.querySelectorAll('.ks-seg').forEach(el => KS.seg.wire(el));
   document.getElementById('tools').hidden = isLegacy(v);
   document.getElementById('stamp').textContent = 'Авито API · выгрузка ' + fDay(EXPORT_TS) + '.2026';
   document.getElementById('theme').innerHTML = KS.theme.icon();
+  document.getElementById('sb-theme').innerHTML = KS.theme.icon() + '<span>Сменить тему</span>';
   KS.route.set({ project:OP.cab, view:v, period:String(OP.days) });
+  KS.ticker.run(view);
   scheduleDraw();
 }
-function go(v){ OP.view = v; render(); window.scrollTo(0, 0); }
+/* 1.4: переход между экранами через View Transitions, при «меньше движения» сразу */
+function go(v){ return KS.vt(() => { OP.view = v; render(); window.scrollTo(0, 0); }); }
+function setCab(c){ OP.cab = c; OP.dlg.limit = 40; render(); }
+function setDays(d){ OP.days = d; document.getElementById('per').value = String(d); render(); }
+function densUi(){ const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase());
+  document.getElementById('sb-dens').innerHTML = KS.density.icon() + '<span>Плотность: ' + E(KS.density.label().toLowerCase()) + '</span>'; }
+function cmdkItems(){
+  const V = [['today','Сегодня','check'],['pulse','Пульс ОП','grid'],['speed2','Скорость ответа','clock'],['probs','Типовые проблемы','warn'],['ads','Объявления','tag'],
+    ['calls','Звонки','bolt'],['cold','Холодная рассылка','mega'],['dlg','Все диалоги','list'],['data','Откуда цифры','info'],['teardowns','Детальные разборы','doc'],
+    ['scripts','Скрипты и магниты','pen'],['actions','Что делать дальше','target']].concat(D.ORDER.map(k => [k, D.MGRS[k].name, 'users']))
+    .concat([['overview','Архив: обзор'],['problems','Архив: проблемы'],['speed','Архив: скорость'],['quality','Архив: как общаемся'],['funnel','Архив: куда уходят деньги'],['dialogues','Архив: диалоги']]
+      .map(([id, t]) => [id, t + ' по скриншотам', 'layers']));
+  return V.map(([id, label, icon]) => ({ group:'Экраны', label, icon, run:() => go(id) }))
+    .concat([['all','Оба кабинета'],['OLD-G','OLD-G, старый кабинет'],['NEW-B','NEW-B, новый кабинет']].map(([c, label]) => ({ group:'Кабинет', label, icon:'layers', run:() => setCab(c) })))
+    .concat([[7,'7 дней'],[30,'30 дней'],[90,'90 дней'],['all','весь ряд']].map(([d, label]) => ({ group:'Период', label:'Период: ' + label, icon:'calendar', run:() => setDays(d) })))
+    .concat(PORDER.map(p => ({ group:'Диалоги по проблеме', label:PROB[p].l, icon:'filter', keywords:'диалоги список', run:() => { Object.assign(OP.dlg, { prob:p, ad:'all', flag:'all', limit:40 }); go('dlg'); } })))
+    .concat(CABS.flatMap(cab => [['speed','Медиана первого ответа'],['f15','Ответ за 15 минут'],['noresp','Не ответили вообще'],['quest','Вопрос или телефон без ответа']]
+      .map(([m, label]) => ({ group:'Детали', label:label + ' · ' + cab, hint:'по неделям', icon:'chart', keywords:'панель детали график', run:() => { go('pulse'); KS.drawer.open(m + '-' + cab); } }))))
+    .concat([{ group:'Действия', label:'Сменить тему', icon:'moon', keywords:'тёмная светлая', run:() => KS.theme.toggle() },
+             { group:'Действия', label:'Переключить плотность', hint:'просторно или компактно', icon:'rows', keywords:'компактно просторно строки таблица', run:() => KS.density.toggle() },
+             { group:'Действия', label:'Скопировать ссылку на экран', hint:'откроется за паролем', icon:'link', run:() => {
+                 const ok = () => KS.toast('Ссылка на экран скопирована'), no = () => KS.toast('Не удалось скопировать: выделите адрес вручную', 'warn');
+                 try{ navigator.clipboard.writeText(location.href).then(ok, no); }catch(e){ no(); } } },
+             { group:'Действия', label:'Выйти', icon:'x', run:() => location.reload() }]);
+}
 
 function start(){
   const cs = D.av.recon; CABS.forEach(c => { EXP[c] = Math.floor(Date.parse(cs[c].exported) / 1000); });
@@ -543,9 +604,20 @@ function start(){
   KS.charts.onTheme = () => render();
   KS.navWire(document.getElementById('nav'), go);
   KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
-  document.getElementById('seg').addEventListener('click', e => { const b = e.target.closest('[data-cab]'); if(b){ OP.cab = b.dataset.cab; OP.dlg.limit = 40; render(); } });
-  document.getElementById('per').addEventListener('change', e => { OP.days = e.target.value === 'all' ? 'all' : +e.target.value; render(); });
+  const seg = document.getElementById('seg');
+  seg.innerHTML = [['all','Оба']].concat(CABS.map(c => [c, c])).map(([k, l]) => '<button type="button" data-cab="' + k + '" aria-pressed="' + (OP.cab === k) + '">' + l + '</button>').join('');
+  KS.seg.wire(seg);
+  seg.addEventListener('click', e => { const b = e.target.closest('[data-cab]'); if(b) setCab(b.dataset.cab); });
+  document.getElementById('per').addEventListener('change', e => setDays(e.target.value === 'all' ? 'all' : +e.target.value));
   document.getElementById('theme').addEventListener('click', () => KS.theme.toggle());
+  /* телефон: тема и плотность живут в меню, в шапке им нет места без сжатия ниже 44 px */
+  document.getElementById('sb-theme').addEventListener('click', () => KS.theme.toggle());
+  document.getElementById('sb-dens').addEventListener('click', () => KS.density.toggle());
+  if(matchMedia('(max-width:639px)').matches) [...document.getElementById('per').options].forEach(o => { o.textContent = { '7':'7 дн', '30':'30 дн', '90':'90 дн', all:'всё' }[o.value]; });
+  document.getElementById('cmdkb').outerHTML = KS.cmdk.button();
+  KS.cmdk.set(cmdkItems());
+  document.getElementById('dens').addEventListener('click', () => KS.density.toggle());
+  document.addEventListener('ks:density', densUi); densUi();
   /* переходы из карточек, строк таблиц и панели: data-go='{"view":"dlg","prob":"noresp"}' */
   document.addEventListener('click', e => {
     const t = e.target.closest('[data-today]'); if(t){ OP.today = t.dataset.today === 'all' ? 'all' : +t.dataset.today; render(); return; }

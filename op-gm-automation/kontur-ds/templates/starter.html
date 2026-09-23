@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1216" media="(prefers-color-scheme: dark)">
 <title>Новый проект на Контур DS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,9 +14,11 @@
 <link rel="stylesheet" href="../tokens/tokens.css">
 <link rel="stylesheet" href="../kit/kit.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+<script src="../kit/brand.js"></script>
 <script src="../kit/icons.js"></script>
 <script src="../kit/kit.js"></script>
 <script src="../kit/charts.js"></script>
+<script src="../kit/motion.riv.js"></script>
 </head>
 <body>
 <div class="ks-app">
@@ -42,6 +44,7 @@
       </div>
       <div class="ks-topbar-spacer"></div>
       <div class="ks-stamp ks-hide-sm" id="stamp"></div>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="dens" aria-label="Плотность интерфейса"></button>
       <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="theme" aria-label="Тема"></button>
     </header>
     <main class="ks-view" id="view"></main>
@@ -132,7 +135,7 @@ function render(){
 let _raf = 0;
 function scheduleDraw(){ cancelAnimationFrame(_raf); _raf = requestAnimationFrame(draw); }
 KS.charts.onTheme = () => { render(); };
-KS.navWire(document.getElementById('nav'), v => { VIEW = v; render(); window.scrollTo(0, 0); });
+KS.navWire(document.getElementById('nav'), v => KS.vt(() => { VIEW = v; render(); window.scrollTo(0, 0); }));
 document.getElementById('seg').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if(b){ CUR = b.dataset.p; render(); } });
 document.getElementById('per').addEventListener('change', e => { DAYS = +e.target.value; render(); });
 document.getElementById('theme').addEventListener('click', () => KS.theme.toggle());
@@ -149,6 +152,12 @@ if(r.period) DAYS = +r.period || 30;
 document.getElementById('per').value = String(DAYS);
 render();
 if(r.drill) KS.drawer.open(r.drill);
+/* плотность: просторно или компактно, выбор запоминается */
+const densUi = () => { const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase()); };
+document.getElementById('dens').addEventListener('click', () => KS.density.toggle());
+document.addEventListener('ks:density', densUi);
+densUi();
+/* анимации Rive поверх родных, по желанию (рантайм 2,8 МБ с jsdelivr): KS.rive.enable(); */
 </script>
 </body>
 </html>

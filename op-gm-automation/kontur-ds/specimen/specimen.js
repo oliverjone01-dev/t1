@@ -22,7 +22,7 @@ const mixHex = (fg,bg,a) => '#'+[0,2,4].map(i=>Math.round(parseInt(fg.slice(1+i,
 /* ================= шапка ================= */
 function hero(){
   document.getElementById('sp-theme').innerHTML = KS.theme.icon() + '<span>' + (KS.theme.isDark() ? 'Светлая тема' : 'Тёмная тема') + '</span>';
-  const facts = [['53','цветовых токена на тему, все проверены'],['16','компонентов с состояниями'],['24 из 24','испорченных версий ловит сторож'],['5','ширин проверены: 360, 390, 768, 1024, 1440']];
+  const facts = [['53','цветовых токена на тему, все проверены'],['27','компонентов с состояниями'],['31 из 31','испорченной версии ловит сторож'],['5','ширин проверены: 360, 390, 768, 1024, 1440']];
   document.getElementById('sp-facts').innerHTML = facts.map(f => '<div class="sp-fact"><b>'+f[0]+'</b><span>'+esc(f[1])+'</span></div>').join('');
   const rules = [
     ['Деньги первыми','На каждом экране строка про рубли. Если цифры нет, так и написано, а не нарисовано.'],
@@ -50,7 +50,7 @@ function color(){
   const S = ['--bg','--surface','--surface-2'];
   document.getElementById('sw-surface').innerHTML = [
     sw('--bg','фон страницы'), sw('--surface','карточка, плитка, меню'), sw('--surface-2','подложка, наведение'),
-    sw('--surface-3','поле ввода, код'), sw('--border','граница карточки'), sw('--border-strong','граница при наведении, пунктир строки денег')].join('');
+    sw('--surface-3','поле ввода, код'), sw('--border','граница карточки'), sw('--border-strong','граница при наведении')].join('');
   document.getElementById('sw-text').innerHTML = [
     sw('--text-strong','заголовки и значения, не ниже 7:1',{text:1,against:S,need:7}),
     sw('--text','основной текст, не ниже 4,5:1',{text:1,against:S,need:4.5}),
@@ -103,6 +103,7 @@ function foundations(){
 /* ================= компоненты ================= */
 const comp = (name, api, when, stage) => '<div><div class="sp-comp-head"><span class="sp-comp-name">'+esc(name)+'</span><span class="sp-comp-api">'+esc(api)+'</span></div>'
   + '<p class="sp-comp-when">'+when+'</p><div class="sp-stage">'+stage+'</div></div>';
+const SPROWS = [['Р-1','Регистр бренда','не начато'],['Р-2','Мета-теги приоритета 1','не начато'],['З-3','Зеркала с подсветкой','ждёт ответа'],['СТ-1','Статья в блог','ждёт ресурса'],['СТ-2','Статья в блог','ждёт ответа'],['Р-3','Два чужих H2','не начато'],['Р-4','Форма «объект, объём м2»','не начато'],['Р-5','Пять страниц вместо 404','не начато'],['Р-6','Разметка FAQPage','не начато'],['Р-7','Убрать <p> из <h1>','не проверялось']];
 function components(){
   const d10 = KS.series.dyn(SER,'top10',30), dvis = KS.series.dyn(SER,'vis',30);
   const html = [
@@ -111,24 +112,25 @@ function components(){
       KS.head({ title:'Стало лучше или хуже', sub:'Экран, который открывают перед собственником: начало периода, конец и предыдущий отрезок такой же длины.',
         src:'наш ряд positions.ndjson плюс history из keysso.json', badges:[KS.badge('API','ok')], prio:'P0',
         lead:'План H2 по проекту: <b class="ks-strong">240 000 000 ₽</b>. Сколько из него закрывает поиск, пока не считается: нет среднего чека.' })),
-    comp('Плитка показателя','KS.tile({label, f, slot, icon, delta, drill})',
-      'Число, класс, дельта за период, подпись, источник с датой. Четыре состояния: подтверждено, гипотеза, нет выгрузки, одна точка. Плитка с drill кликается и открывает панель деталей: попробуй первую.',
+    comp('Плитки показателей','KS.tile({label, f, slot, icon, delta, drill, spark})',
+      'Подпись сверху, число, дельта чипом, спарклайн, источник с датой. Плитки стоят одной панелью с волосяными разделителями, а не четырьмя карточками. Четыре состояния: данные, гипотеза, нет выгрузки, одна точка. Плитка со стрелкой у подписи открывает панель деталей: попробуй первую.',
       '<div class="ks-grid-kpi">'
-      + KS.tile({ label:'Запросов в топ-10', f:F(432,'ДАННЫЕ',SRC,'2026-09-19'), slot:3, icon:'target', delta:KS.delta(d10), drill:'sp-top10' })
-      + KS.tile({ label:'Видимость в ИИ, %', f:F(23,'ДАННЫЕ',SRC,'2026-09-19'), slot:1, icon:'ai', delta:KS.delta(dvis) })
+      + KS.tile({ label:'Запросов в топ-10', f:F(432,'ДАННЫЕ',SRC,'2026-09-19'), slot:3, icon:'target', delta:KS.delta(d10), drill:'sp-top10', spark:SER.slice(-10).map(r => r.top10) })
+      + KS.tile({ label:'Видимость в ИИ, %', f:F(23,'ДАННЫЕ',SRC,'2026-09-19'), slot:1, icon:'ai', delta:KS.delta(dvis), spark:SER.slice(-10).map(r => r.vis) })
       + KS.tile({ label:'Конверсия визита в лид, %', f:F(3,'ГИПОТЕЗА','бенчмарк 2-5%, своей выгрузки нет'), slot:4, icon:'users', delta:KS.delta({one:true,now:3}) })
       + KS.tile({ label:'Визитов за неделю', f:F(null,'ДЕМО'), slot:2, icon:'globe', delta:KS.delta({abs:null}) })
       + '</div>'),
-    comp('Бейджи','KS.badge(text, tone) · KS.kind(k)',
-      'Класс цифры по Протоколу 9, статус раздела, приоритет. Статусные цвета никогда не используются как цвет серии графика.',
-      '<div class="ks-row">' + ['ДАННЫЕ','ГИПОТЕЗА','ДЕМО'].map(KS.kind).join('') + '<span style="width:var(--sp-4)"></span>'
-      + [['API','ok'],['СБОРКА','warn'],['НЕТ','crit'],['P0','neutral'],['НОВОЕ','info'],['РИСК','serious']].map(b=>KS.badge(b[0],b[1])).join('') + '</div>'),
+    comp('Класс цифры, статус, бейдж','KS.kind(k) · KS.status(text, tone, hint) · KS.badge(text, tone, hint)',
+      'Класс цифры точкой и словом: обычное тихое, исключение цветное. Статус в таблицах точкой, а не плашкой: столбец из двадцати плашек пестрит. Бейдж строчными, только в шапке экрана и карточки. Статусные цвета никогда не цвет серии графика.',
+      '<div class="ks-stack" style="gap:var(--sp-3)"><div class="ks-row" style="gap:var(--sp-4)">' + ['ДАННЫЕ','ГИПОТЕЗА','ДЕМО'].map(KS.kind).join('') + '</div>'
+      + '<div class="ks-row" style="gap:var(--sp-4)">' + [['сделано','ok'],['ждёт ответа','serious'],['не начато','crit'],['в работе','info'],['резерв','neutral']].map(b=>KS.status(b[0],b[1])).join('') + '</div>'
+      + '<div class="ks-row">' + [['API','ok'],['сборка','warn'],['нет выгрузки','crit'],['P0','neutral'],['новое','info'],['риск','serious']].map(b=>KS.badge(b[0],b[1])).join('') + '</div></div>'),
     comp('Карточка с графиком и таблицей-двойником','KS.card({title, sub, body, actions, table, drill})',
       'Контейнер для графика или таблицы. У каждого графика есть таблица-двойник: кнопка «таблица» в шапке карточки. Это требование доступности, а не украшение.',
       KS.card({ title:'Запросы в топ-10 по дням', sub:'Одна серия, подпись только на конце', actions:KS.badge('API','ok'), body:KS.chart('sp-c-line',240),
         table:KS.table([['Дата'],['Топ-10',true]], SER.map(r=>[ruDate(r.date), nf(r.top10)])) })),
     comp('Таблица','KS.table(cols, rows, {foot, interactive})',
-      'Числовые столбцы вправо, моноширинные табличные цифры, пустое значение прочерком. Широкая таблица прокручивается в своём контейнере, страница вбок не едет никогда.',
+      'Числовые столбцы вправо, табличные цифры шрифта интерфейса, пустое значение прочерком, заголовок столбца тихий. Широкая таблица прокручивается в своём контейнере, страница вбок не едет никогда.',
       KS.table([['Метрика'],['Было',true],['Стало',true],['Изменение',true],['Отрезком раньше',true]], [
         ['Запросов в топ-10', nf(423), nf(432), '<span style="color:var(--ok)">+9</span>', nf(410)],
         ['Запросов в топ-50', nf(2145), nf(2118), '<span style="color:var(--crit)">-27</span>', null],
@@ -157,7 +159,7 @@ function components(){
       '<div class="ks-grid-2"><div>' + KS.steps([['Снять выгрузку','keyso-collect.yml, понедельник'],['Записать точку в ряд','tools/snapshot.py'],['Собрать данные и страницу','build_data.py, build.py'],['Проверить сторожем','check_ds.py должен быть зелёным']]) + '</div><div class="ks-stack" style="gap:var(--sp-3)">'
       + KS.checks(['мета-описание в пределах длины','каждая цифра со ссылкой на источник'],'ok') + KS.checks(['гарантия сверх двенадцати месяцев','цена без подтверждённого прайса'],'crit') + '</div></div>'),
     comp('Кнопки и поля','.ks-btn--primary · --secondary · --ghost · --sm · --icon · .ks-seg · .ks-select · .ks-input',
-      'Основная кнопка одна на экран. Сегмент для переключения проектов и режимов, выбранный отмечен aria-pressed. Поля моноширинные: в них вводят числа.',
+      'Основная кнопка одна на экран, почти чёрная, а не синяя: синий остаётся акцентом выбора и фокуса. Сегмент с плашкой, которая переезжает к выбранному (KS.seg.wire). Поля с табличными цифрами: в них вводят числа.',
       '<div class="ks-stack"><div class="ks-row"><button type="button" class="ks-btn ks-btn--primary">Сохранить</button><button type="button" class="ks-btn ks-btn--secondary">Отмена</button>'
       + '<button type="button" class="ks-btn ks-btn--ghost">Подробнее</button><button type="button" class="ks-btn ks-btn--secondary ks-btn--sm">таблица</button>'
       + '<button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" aria-label="Меню">'+ic('menu',17)+'</button><button type="button" class="ks-btn ks-btn--primary" disabled>Недоступно</button></div>'
@@ -169,16 +171,65 @@ function components(){
       'Проваливание в виджет. Открывается кликом, Enter или ссылкой вида #проект.экран.период.показатель. Четыре обязательных блока: из чего сложилась цифра, как менялась, откуда взята, что делать. Закрывается Esc, кликом мимо и крестиком, фокус возвращается туда, откуда пришёл. Один уровень вложенности: панель из панели не открывается.',
       '<div class="ks-row"><button type="button" class="ks-btn ks-btn--primary" data-drill="sp-top10">'+ic('eye',16)+'Открыть панель деталей</button>'
       + '<button type="button" class="ks-btn ks-btn--secondary" data-drill="sp-missing">Показатель без разложения</button></div>'),
+    comp('Палитра команд','KS.cmdk.set(items) · KS.cmdk.button() · Cmd+K или Ctrl+K',
+      'Быстрый переход к экрану, задаче, периоду или действию с клавиатуры, как в Linear и Vercel. Поиск по словам в любом порядке, стрелки, Enter, Esc. Стекло поверх затемнения.',
+      '<div class="ks-row">' + KS.cmdk.button('Экран или действие') + '<span class="ks-muted" style="font-size:var(--fs-small)">или нажми <kbd class="ks-kbd">Ctrl</kbd> <kbd class="ks-kbd">K</kbd></span></div>'),
+    comp('Подсказка и клавиша','data-tip="текст" · .ks-kbd',
+      'Источник, дата и класс цифры живут в подсказке у самого значения: наведи на число в плитке. Подсказка появляется по мыши через 300 мс и по фокусу с клавиатуры, стеклянная, не выходит за край экрана.',
+      '<div class="ks-row" style="gap:var(--sp-4)"><span class="ks-help" tabindex="0" data-tip="Подсказка по фокусу и наведению.\nВторая строка через перенос.">?</span>'
+      + '<span tabindex="0" class="ks-badge ks-badge--neutral" data-tip="API keys.so, снято 19.09.2026">наведи на меня</span><span><kbd class="ks-kbd">Esc</kbd> закрыть · <kbd class="ks-kbd">Enter</kbd> открыть</span></div>'),
+    comp('Уведомление','KS.toast(text, tone)',
+      'Короткое подтверждение действия: ссылка скопирована, выгрузка обновлена. Живёт 2,8 секунды, объявляется экранным диктором, не перекрывает данные.',
+      '<div class="ks-row"><button type="button" class="ks-btn ks-btn--secondary" onclick="KS.toast(\'Ссылка на экран скопирована\')">Показать уведомление</button>'
+      + '<button type="button" class="ks-btn ks-btn--ghost" onclick="KS.toast(\'Выгрузка keys.so не пришла\', \'warn\')">С предупреждением</button></div>'),
+    comp('Загрузка','KS.skeleton(lines, height)',
+      'Пока выгрузка едет, на месте цифр мерцающие заглушки. Не путать с ДЕМО: там выгрузки нет вовсе и стоит прочерк.',
+      '<div class="ks-grid-2"><div class="ks-card">' + KS.skeleton(3) + '</div><div class="ks-card">' + KS.skeleton(0, 120) + '</div></div>'),
+    comp('Плотность','KS.density.set(\'compact\') · KS.density.toggle() · data-density="compact"',
+      'Просторно по умолчанию, компактно для тех, кто весь день в таблицах: поля, зазоры, строки и высота кнопок меньше, шрифт тот же. Выбор запоминается. Цели пальца на телефоне остаются 44, плотность их не трогает (сторож DENSITYTAP). Слева просторно, справа компактно, кнопка переключает всю витрину.',
+      '<div class="ks-stack"><div class="ks-row"><button type="button" class="ks-btn ks-btn--secondary" id="sp-dens">' + KS.density.icon(16) + '<span>Плотность витрины: ' + KS.density.label().toLowerCase() + '</span></button></div>'
+      + '<div class="ks-grid-2">' + ['comfortable','compact'].map(m => '<div' + (m === 'compact' ? ' data-density="compact"' : ' data-density="comfortable"') + '>'
+        + KS.card({ title: m === 'compact' ? 'Компактно' : 'Просторно', sub: m === 'compact' ? 'строка 5 пикселей, кнопка 28' : 'строка 9 пикселей, кнопка 32',
+            body: KS.table([['Задача'],['Статус']], SPROWS.slice(0, 4).map(r => [esc(r[0] + ' · ' + r[1]), KS.status(r[2], r[2] === 'не начато' ? 'crit' : 'serious')])) }) + '</div>').join('') + '</div></div>'),
+    comp('Липкая шапка таблицы','.ks-table-wrap · .ks-table-wrap--scroll · KS.tables',
+      'Шапка таблицы держится под шапкой страницы, пока таблица на экране, в панели деталей и в своей области прокрутки. Под прилипшей шапкой мягкая тень. Широкая таблица, которая прокручивается вбок, держит шапку внутри себя. Прокрути этот список.',
+      '<div class="ks-card" style="padding:0;overflow:hidden">' + KS.table([['Задача'],['Название'],['Статус']], SPROWS.map(r => [esc(r[0]), esc(r[1]), KS.status(r[2], r[2] === 'не начато' ? 'crit' : r[2] === 'не проверялось' ? 'neutral' : 'serious')]), { stack:false }).replace('ks-table-wrap', 'ks-table-wrap ks-table-wrap--scroll" style="--table-max-h:220px') + '</div>'),
+    comp('Переходы между экранами','KS.vt(update, {types})',
+      'Смена экрана: старое гаснет за 120 мс, новое проявляется за 200 мс, подложка пункта меню переезжает к новому. Смена темы и плотности: мягкий кросс-фейд всей страницы. Шапка и меню не мигают. Без поддержки View Transitions и при «меньше движения» всё меняется сразу. Переход экранов виден в шаблонах, тему можно сменить здесь.',
+      '<div class="ks-row"><button type="button" class="ks-btn ks-btn--secondary" onclick="KS.theme.toggle()">' + ic('moon', 16) + 'Сменить тему кросс-фейдом</button><span class="ks-muted" style="font-size:var(--fs-small)">в шаблонах: пункты меню и Cmd+K</span></div>'),
+    comp('Микроанимации','KS.motion.sync(state) · KS.motion.check(size) · KS.motion.emptyArt()',
+      'Индикатор синхронизации: покой, загрузка (единственный допустимый цикл), готово, ошибка. Только для настоящей загрузки: изображать работу без работы нельзя. Галочка подтверждения рисуется в уведомлении. Пустой график рисует линию с разрывом пунктиром. Всё на SVG и CSS, при «меньше движения» стоит на месте.',
+      '<div class="ks-stack"><div class="ks-row" style="gap:var(--sp-4)"><span id="sp-sync">' + KS.motion.sync('idle', 24) + '</span>'
+      + '<div class="ks-seg" role="group" aria-label="Состояние" id="sp-sync-seg">' + [['idle','покой'],['loading','загрузка'],['done','готово'],['error','ошибка']].map((x, i) => '<button type="button" data-s="' + x[0] + '" aria-pressed="' + (i === 0) + '">' + x[1] + '</button>').join('') + '</div></div>'
+      + '<div class="ks-row" style="gap:var(--sp-6)"><span id="sp-check">' + KS.motion.check(40) + '</span><span id="sp-empty">' + KS.motion.emptyArt() + '</span>'
+      + '<button type="button" class="ks-btn ks-btn--ghost" id="sp-replay">Повторить</button></div></div>'),
+    comp('Анимации Rive','KS.rive.enable() · data-rive="sync|success|empty" · kit/motion.riv.js',
+      'Те же три анимации, собранные официальным Rive CLI из RML: sync, success, empty. KS.rive.enable() подгружает рантайм с jsdelivr (около 2,8 МБ, один раз) и ставит холст Rive поверх родной картинки; цвета берутся из токенов и меняются с темой. Нет сети, запрет WASM, «меньше движения»: остаются родные, ничего не ломается.',
+      '<div class="ks-row"><span id="sp-rive-state">' + KS.status('родные анимации', 'neutral') + '</span></div>'),
+    comp('Настройки вида','KS.prefs · templates/nastroyki.html · kit/brand.js',
+      'Страница настроек шаблона: логотип и дескриптор под ним, размер и разрядка шрифта, цвета кнопок, акцента и элементов управления, плавные или острые графики, палитра серий с проверкой различимости, скругления, тени, раскладка, движение. Все цвета проверяются на контраст в обеих темах и подправляются до нормы. Сохраняется в браузере; код для kit/brand.js переносит вид в проект для всех.',
+      '<div class="ks-row"><a class="ks-btn ks-btn--secondary" href="templates/nastroyki.html">' + ic('gear', 16) + 'Открыть настройки вида</a><span class="ks-muted" style="font-size:var(--fs-small)">в пакете: templates/nastroyki.html</span></div>'),
     comp('Меню','KS.nav(tree, active) · KS.navWire(root, onGo)',
       'Два уровня, аккордеон. Бейдж раздела зависит от проекта и пересчитывается при каждой отрисовке. Активный пункт получает aria-current="page".',
       '<div style="max-width:280px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg)"><nav class="ks-nav" id="sp-nav" style="max-height:none"></nav></div>')
   ];
   document.getElementById('sp-components').innerHTML = html.join('');
   const tree = [{id:'o',t:'Обзор',i:'grid'},{t:'Динамика',i:'up',ch:[{id:'d1',t:'Стало лучше или хуже'},{id:'d2',t:'Позиции по дням'}]},
-    {t:'Метрика',i:'globe',badge:()=>KS.badge('ДАННЫЕ','ok'),ch:[{id:'m1',t:'Визиты по дням'}]},{t:'Директ',i:'bolt',badge:()=>KS.badge('НЕТ','crit'),ch:[{id:'y1',t:'Кампании'}]}];
+    {t:'Метрика',i:'globe',badge:()=>KS.kind('ДАННЫЕ'),ch:[{id:'m1',t:'Визиты по дням'}]},{t:'Директ',i:'bolt',badge:()=>KS.kind('ДЕМО'),ch:[{id:'y1',t:'Кампании'}]}];
   let act = 'd1'; const nav = document.getElementById('sp-nav');
   const drawNav = () => { nav.innerHTML = KS.nav(tree, act); };
   drawNav(); KS.navWire(nav, v => { act = v; drawNav(); });
+  document.querySelectorAll('#sp-components .ks-seg').forEach(KS.seg.wire);
+  const db = document.getElementById('sp-dens');
+  const densLbl = () => { db.innerHTML = KS.density.icon(16) + '<span>Плотность витрины: ' + KS.density.label().toLowerCase() + '</span>'; };
+  db.addEventListener('click', () => KS.density.toggle()); document.addEventListener('ks:density', densLbl);
+  document.getElementById('sp-sync-seg').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if(!b) return;
+    KS.motion.setSync(document.querySelector('#sp-sync .ks-sync'), b.dataset.s); });
+  document.getElementById('sp-replay').addEventListener('click', () => {
+    document.getElementById('sp-check').innerHTML = KS.motion.check(40); document.getElementById('sp-empty').innerHTML = KS.motion.emptyArt(); });
+  KS.rive.enable().then(on => { document.getElementById('sp-rive-state').innerHTML = on ? KS.status('Rive включён: холсты поверх родных', 'ok') : KS.status('родные анимации: Rive не подключился или «меньше движения»', 'neutral'); });
+  document.querySelectorAll('#sp-components .ks-seg button').forEach(b => b.addEventListener('click', () =>
+    b.parentNode.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)))));
 }
 KS.drawer.register('sp-top10', () => ({
   title:'Запросов в топ-10', kind:'ДАННЫЕ', sub:'GENGLASS · период 30 дней · пример',
@@ -301,7 +352,13 @@ function rules(){
     ['CONTRAST','реальный текст на реальном фоне ниже WCAG, ключ --live','ловит подложку поверх подложки и подписи на плашках'],
     ['VIEWPORT','у страницы нет meta viewport','телефон показывает страницу уменьшенной копией десктопа'],
     ['HOVERLIFT','подъём по наведению вне @media (hover:hover)','на касании плитка залипает приподнятой'],
-    ['MONONUM','цифры в столбик моноширинным','в 1.2 цифры идут шрифтом интерфейса с табличными цифрами']];
+    ['MONONUM','цифры в столбик моноширинным','в 1.2 цифры идут шрифтом интерфейса с табличными цифрами'],
+    ['SIDESTRIPE','цветная полоса сбоку у врезки или карточки','главный признак шаблонного интерфейса'],
+    ['CAPSBADGE','бейдж капсом','капс на каждой плашке кричит'],
+    ['GRADMARK','градиент на знаке бренда','подпись сгенерированного интерфейса'],
+    ['LOOPANIM','бесконечная анимация вне загрузки','мигающие точки и бегущие рамки отвлекают от цифр'],
+    ['DENSITYTAP','компактная плотность уменьшила цели пальца','на телефоне промахи'],
+    ['VTMOTION','переходы без отключения при «меньше движения»','человек просил, чтобы не двигалось']];
   document.getElementById('sp-bans').innerHTML = KS.table([['Код'],['Что ловит'],['Почему']], bans.map(b=>['<span class="ks-mono ks-strong">'+b[0]+'</span>', esc(b[1]), '<span class="ks-muted">'+esc(b[2])+'</span>']))
     + '<div class="ks-grid-2" style="margin-top:var(--sp-4)">'
     + KS.card({ title:'Чего система не делает сама', body:KS.checks(['не проверяет, что у каждого графика есть таблица-двойник: это на приёмке глазами','не оценивает смысл строки про деньги, только её наличие','не видит графиков, отрисованных вне пресетов'],'warn') })

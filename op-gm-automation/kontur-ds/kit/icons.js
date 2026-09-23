@@ -53,7 +53,10 @@ const P = {
   download:'M10 3v10M6 9l4 4 4-4M4 17h12',
   sun:'M10 6.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M4 4l1.4 1.4M14.6 14.6 16 16M16 4l-1.4 1.4M5.4 14.6 4 16',
   moon:'M17 11.2A7 7 0 1 1 8.8 3a5.5 5.5 0 0 0 8.2 8.2z',
-  quote:'M4 5h5v5H6.5v3H4zM11 5h5v5h-2.5v3H11z'
+  quote:'M4 5h5v5H6.5v3H4zM11 5h5v5h-2.5v3H11z',
+  /* плотность: три строки просторно, четыре компактно */
+  rows:'M3 3.5h14v13H3zM3 7.8h14M3 12.2h14',
+  'rows-dense':'M3 3.5h14v13H3zM3 6.75h14M3 10h14M3 13.25h14'
 };
 /* Имена Lucide (lucide.dev, лицензия ISC): агенты знают их лучше других наборов,
    поэтому ic('trending-up') и ic('up') рисуют одно и то же. */
@@ -61,7 +64,7 @@ const ALIAS = {
   'layout-grid':'grid', 'chart-line':'chart', 'file-text':'doc', 'sparkles':'ai', 'megaphone':'mega', 'pencil':'pen',
   'settings':'gear', 'scale':'cmp', 'plug':'plug', 'database':'db', 'zap':'bolt', 'network':'tree', 'list':'list',
   'trending-up':'up', 'trending-down':'loss', 'triangle-alert':'warn', 'lightbulb':'bulb', 'chevron-right':'chev',
-  'chevron-down':'chev-down', 'external-link':'external', 'funnel':'filter', 'circle-help':'info'
+  'chevron-down':'chev-down', 'external-link':'external', 'funnel':'filter', 'circle-help':'info', 'rows-3':'rows', 'rows-4':'rows-dense'
 };
 const BOX = {};
 /* Недостающую иконку берём из Lucide как есть, в её сетке 24x24:

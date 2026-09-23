@@ -20,6 +20,11 @@ module.exports = {
       "text-faint": "var(--text-faint)",
       "text-link": "var(--text-link)",
       "primary-foreground": "var(--primary-foreground)",
+      "action": "var(--action)",
+      "action-hover": "var(--action-hover)",
+      "action-foreground": "var(--action-foreground)",
+      "pill": "var(--pill)",
+      "spot": "var(--spot)",
       "primary": "var(--primary)",
       "primary-hover": "var(--primary-hover)",
       "primary-soft": "var(--primary-soft)",
@@ -53,7 +58,10 @@ module.exports = {
       "grid": "var(--grid)",
       "axis": "var(--axis)",
       "neutral-bar": "var(--neutral-bar)",
-      "track": "var(--track)"
+      "track": "var(--track)",
+      "glass-bg": "var(--glass-bg)",
+      "glass-border": "var(--glass-border)",
+      "glass-shadow": "var(--glass-shadow)"
 },
     fontFamily: { sans: ['var(--font-sans)'], mono: ['var(--font-mono)'] },
     fontSize: {
@@ -65,6 +73,7 @@ module.exports = {
       "base": "var(--fs-base)",
       "h2": "var(--fs-h2)",
       "h1": "var(--fs-h1)",
+      "h1-sm": "var(--fs-h1-sm)",
       "hero": "var(--fs-hero)"
 },
     spacing: {
@@ -86,7 +95,9 @@ module.exports = {
       "sm": "var(--r-sm)",
       "md": "var(--r-md)",
       "lg": "var(--r-lg)",
-      "full": "var(--r-full)"
+      "full": "var(--r-full)",
+      "field": "var(--r-field)",
+      "box": "var(--r-box)"
 },
     boxShadow: { hover: 'var(--sh-hover)', pop: 'var(--sh-pop)', drawer: 'var(--sh-drawer)' },
     screens: { sm: '640px', md: '768px', lg: '1024px', xl: '1280px', '2xl': '1536px' },

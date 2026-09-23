@@ -10,7 +10,7 @@ KCSS = HERE/'kit'/'kit.css'
 EM = '\u2014'
 PAGE = HERE/'tools'/'_tamper_page.html'
 CASES = [
- ('приглушённый текст провалил контраст', TOK, lambda s: s.replace('--text-muted:  #5F6B80;', '--text-muted:  #A9B1BF;', 1)),
+ ('приглушённый текст провалил контраст', TOK, lambda s: s.replace('--text-muted:  #5A616C;', '--text-muted:  #A9B1BF;', 1)),
  ('тёмный текст провалил контраст',       TOK, lambda s: s.replace('--text:        #BAC0C9;', '--text:        #3A3F47;', 1)),
  ('бейдж внимания провалил контраст',      TOK, lambda s: s.replace('--warn:    #855A00;', '--warn:    #C99A2E;', 1)),
  ('кнопка: текст на акценте',              TOK, lambda s: s.replace('--primary:       #3561C9;', '--primary:       #9DB6F0;', 1)),
@@ -19,15 +19,22 @@ CASES = [
  ('hex в графиках',                        CH,  lambda s: s.replace("colors:[C.cat(slot || 3)]", "colors:['#FF00AA']", 1)),
  ('две оси Y',                             CH,  lambda s: s.replace("yaxis:{ min:lo, max:hi,", "yaxis:[{ min:lo, max:hi,", 1)),
  ('длинное тире',                          KIT, lambda s: s.replace('Следующий шаг', 'Следующий ' + EM + ' шаг', 1)),
- ('бейдж на поднятом слое',                TOK, lambda s: s.replace('--ok:      #0E754E;', '--ok:      #0F7A52;', 1)),
+ ('бейдж на поднятом слое',                TOK, lambda s: s.replace('--ok:      #0D7049;', '--ok:      #0F7A52;', 1)),
  ('анимация ширины',                       KCSS, lambda s: s.replace('.ks-chev{ transition:transform', '.ks-chev{ transition:width', 1)),
  ('пружинящая кривая',                     TOK, lambda s: s.replace('--ease-out: cubic-bezier(.2,.8,.2,1);', '--ease-out: cubic-bezier(.34,1.56,.64,1);', 1)),
  ('шрифт мельче 11px в токенах',           TOK, lambda s: s.replace('--fs-micro:  11px;', '--fs-micro:  10px;', 1)),
  ('шрифт мельче 11px в графике',           CH,  lambda s: s.replace("labels:{ style:{ fontSize:'11px' }, rotate:-38", "labels:{ style:{ fontSize:'9px' }, rotate:-38", 1)),
  ('копии тёмной темы разъехались',         TOK, lambda s: s.replace('--neutral:#959CA8; --neutral-soft', '--neutral:#8C93A0; --neutral-soft', 1)),
- ('подъём по наведению на касании',        KCSS, lambda s: s.replace('@media (hover:hover){ .ks-tile.is-interactive:hover{ box-shadow:var(--sh-hover); transform:translateY(-2px); border-color:var(--border-strong); } }', '.ks-tile.is-interactive:hover{ box-shadow:var(--sh-hover); transform:translateY(-2px); border-color:var(--border-strong); }', 1)),
+ ('подъём по наведению на касании',        KCSS, lambda s: s.replace('@media (hover:hover){ .ks-tile.is-interactive:hover{ background-color:var(--surface-2); } }', '.ks-tile.is-interactive:hover{ background-color:var(--surface-2); transform:translateY(-2px); }', 1)),
+ ('цветная полоса сбоку',                  KCSS, lambda s: s.replace('.ks-note--warn{ --tone:var(--warn); }', '.ks-note--warn{ --tone:var(--warn); border-left:3px solid var(--warn); }', 1)),
+ ('бейдж капсом',                          KCSS, lambda s: s.replace('padding:2px 7px; border-radius:var(--r-sm); line-height:1.35;', 'padding:2px 7px; text-transform:uppercase; border-radius:var(--r-sm); line-height:1.35;', 1)),
+ ('градиент на знаке бренда',              KCSS, lambda s: s.replace('color:var(--surface); background:var(--text-strong); flex-shrink:0; }', 'color:var(--surface); background:linear-gradient(135deg,var(--cat-3),var(--cat-1)); flex-shrink:0; }', 1)),
  ('цифры моноширинным',                    KCSS, lambda s: s.replace('.ks-num{ font-family:var(--font-sans);', '.ks-num{ font-family:var(--font-mono);', 1)),
  ('бледный текст для чтения',              KCSS, lambda s: s.replace('.ks-empty{ color:var(--text-muted); }', '.ks-empty{ color:var(--text-faint); }', 1)),
+ ('пульсирующая плитка',                   KCSS, lambda s: s.replace('.ks-tile.is-interactive{ cursor:pointer; }', '.ks-tile.is-interactive{ cursor:pointer; animation:ks-rise 2s ease infinite; }', 1)),
+ ('компакт уменьшил цель пальца',          TOK, lambda s: s.replace('  --nav-y: 5px;\n  --topbar-h: 52px;', '  --nav-y: 5px; --tap: 32px;\n  --topbar-h: 52px;', 1)),
+ ('текст на основной кнопке',              TOK, lambda s: s.replace('--action-foreground: #FFFFFF;', '--action-foreground: #3A404A;', 1)),
+ ('переход без «меньше движения»',         KCSS, lambda s: s.replace('  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){ animation:none !important; }\n', '', 1)),
 ]
 PAGE_CASES = [
  ('страница без viewport', '<!doctype html><html><head><title>x</title></head><body>телефон</body></html>'),

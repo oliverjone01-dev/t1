@@ -1,31 +1,26 @@
 /* ==========================================================================
-   ОП ГМ на Контур DS 1.2: стили экранов проекта.
-   Только токены системы: ни одного своего цвета, размера шрифта в пикселях,
+   ОП ГМ на Контур DS 1.5: стили экранов проекта. Только токены системы: ни одного своего цвета, размера шрифта в пикселях,
    анимации по ширине или высоте.
    ========================================================================== */
 
 /* ---------- вход ---------- */
 .op-gate{ min-height:100vh; min-height:100dvh; display:grid; place-items:center; padding:var(--sp-4); background:var(--bg); }
-.op-gate .ks-card{ width:100%; max-width:380px; padding:var(--sp-6); }
+.op-gate .ks-card{ width:100%; max-width:380px; padding:var(--pad-box-lg); }
 .op-gate .ks-h1{ margin:var(--sp-2) 0 var(--sp-1); }
 .op-gate form{ display:flex; flex-direction:column; gap:var(--sp-3); margin-top:var(--sp-4); }
 .op-gate .ks-btn{ width:100%; }
 .op-gate-err{ min-height:18px; font-size:var(--fs-small); color:var(--crit); }
 .op-gate-note{ font-size:var(--fs-micro); color:var(--text-muted); border-top:1px solid var(--border); padding-top:var(--sp-3); line-height:var(--lh-snug); }
 
-/* ---------- метки без капса: проблема, отметка, кабинет ---------- */
-.op-chips{ display:flex; flex-wrap:wrap; gap:var(--sp-1); }
-.op-chip{ display:inline-flex; align-items:center; gap:var(--sp-1); font-size:var(--fs-caption); line-height:1.4; padding:1px var(--sp-2);
-  border-radius:var(--r-sm); background:var(--surface-2); color:var(--text); white-space:nowrap; }
-.op-chip--crit{ background:var(--crit-soft); color:var(--crit); }
-.op-chip--warn{ background:var(--warn-soft); color:var(--warn); }
-.op-chip--ok{ background:var(--ok-soft); color:var(--ok); }
-.op-chip--info{ background:var(--info-soft); color:var(--info); }
+/* ---------- ряд статусов (точка и слово, KS.status) и кабинет ---------- */
+.op-chips{ display:flex; flex-wrap:wrap; gap:var(--sp-1) var(--sp-3); align-items:center; font-size:var(--fs-small); }
 .op-cab{ display:inline-flex; align-items:center; gap:var(--sp-1-5); font-weight:var(--fw-semi); color:var(--text-strong); white-space:nowrap; }
-.op-cab::before{ content:""; width:9px; height:9px; border-radius:var(--r-full); background:var(--slot); flex-shrink:0; }
+.ks-verdict-name .op-cab{ margin-right:var(--sp-1-5); }
+.op-cab::before{ content:""; width:8px; height:8px; border-radius:var(--r-full); background:var(--slot); flex-shrink:0; }
 
 /* ---------- фильтры внутри экрана ---------- */
 .op-filters{ display:grid; gap:var(--sp-3); grid-template-columns:minmax(0,1fr); }
+@media (min-width:360px) and (max-width:1023px){ .op-filters{ grid-template-columns:repeat(2,minmax(0,1fr)); } .op-filters .ks-field:has(.ks-input){ grid-column:1 / -1; } }
 @media (min-width:1024px){ .op-filters{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
 .op-filters .ks-select{ width:100%; }
 .op-count{ font-size:var(--fs-small); color:var(--text-muted); }
@@ -48,14 +43,14 @@
 .op-q .op-q-hint b{ color:var(--ok); }
 .op-q .op-q-meta{ font-size:var(--fs-small); color:var(--text-muted); margin-top:var(--sp-2); }
 .op-q .ks-row{ margin-top:var(--sp-3); }
-.op-q .ks-btn{ height:40px; font-size:var(--fs-base); }
+.op-q .ks-btn{ font-size:var(--fs-base); }
 
 /* ---------- переписка в панели ---------- */
 .op-path{ font-size:var(--fs-micro); color:var(--text-muted); }
 .op-tl{ display:flex; flex-direction:column; gap:var(--sp-1-5); }
 .op-who{ font-size:var(--fs-micro); color:var(--text-muted); margin-top:var(--sp-2); }
 .op-who.is-r{ text-align:right; }
-.op-bub{ max-width:86%; border-radius:var(--r-lg); padding:var(--sp-2) var(--sp-3); font-size:var(--fs-body); line-height:var(--lh-snug);
+.op-bub{ max-width:86%; border-radius:var(--r-box); padding:var(--sp-2) var(--sp-3); font-size:var(--fs-body); line-height:var(--lh-snug);
   color:var(--text-strong); overflow-wrap:anywhere; }
 .op-bub .op-tm{ display:block; font-size:var(--fs-micro); color:var(--text-muted); margin-top:var(--sp-0-5); }
 .op-bub.is-c{ background:var(--surface-2); border:1px solid var(--border); align-self:flex-start; }
@@ -74,10 +69,33 @@
 .op-muted{ color:var(--text-muted); font-size:var(--fs-small); }
 .op-hint{ font-size:var(--fs-small); color:var(--text); line-height:var(--lh-snug); }
 .op-hint b{ color:var(--text-strong); }
-.op-tpl{ background:var(--surface-3); border:1px solid var(--border); border-radius:var(--r-md); padding:var(--sp-3); font-size:var(--fs-body); color:var(--text-strong); line-height:var(--lh-snug); }
-.ks-table td .op-chip{ margin:1px 0; }
-/* разделы v3 со своей липкой строкой фильтров встают под шапку каркаса */
-.ks-legacy .filterbar{ top:var(--topbar-h); z-index:5; }
+.op-tpl{ background:var(--surface-3); border:1px solid var(--card-border, var(--border)); border-radius:var(--r-field); padding:var(--pad-box); font-size:var(--fs-body); color:var(--text-strong); line-height:var(--lh-snug); }
+/* ---------- разделы v3: список диалогов и разбор переписки ---------- */
+.op-list{ display:flex; flex-direction:column; }
+.op-li{ padding:var(--sp-3) 0; border-bottom:1px solid var(--divider); }
+.op-li:first-child{ padding-top:0; }
+.op-li:last-child{ border-bottom:0; padding-bottom:0; }
+.op-li.is-interactive{ cursor:pointer; border-radius:var(--r-field); padding-inline:var(--sp-2); margin-inline:calc(-1 * var(--sp-2)); transition:background var(--dur-fast); }
+.op-li.is-interactive:hover{ background:var(--surface-2); }
+.op-li.is-interactive:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.op-quote{ font-size:var(--fs-small); color:var(--text-muted); font-style:italic; margin-bottom:var(--sp-1); overflow-wrap:anywhere; }
+.op-td{ margin-top:var(--sp-4); }
+.op-td-h{ font-size:var(--fs-small); font-weight:var(--fw-semi); color:var(--text-strong); margin-bottom:var(--sp-2); }
+.op-fix{ margin-top:var(--sp-4); padding-top:var(--sp-3); border-top:1px solid var(--divider); }
+.op-after{ margin-top:var(--sp-2); }
+
+/* ---------- шапка на телефоне ----------
+   Кнопки шапки не сжимаются ниже цели пальца. Тема и плотность на телефоне переезжают в меню (op-sb-tools),
+   у кнопок кабинета поля уже, чтобы период помещался в ленту фильтров целиком на 390. */
+.ks-topbar > .ks-btn, .ks-topbar > .ks-cmdk-btn{ flex-shrink:0; }
+.op-sb-tools{ display:none; flex-direction:column; align-items:flex-start; margin-top:var(--sp-2); }
+.op-sb-tools .ks-btn{ padding-left:0; gap:var(--sp-2); }
+@media (max-width:639px){
+  .op-sb-tools{ display:flex; }
+  #seg button{ padding-inline:var(--sp-2); }
+  .ks-topbar .ks-cmdk-btn{ width:var(--tap-sm); }
+  .ks-topbar-tools{ gap:var(--sp-1-5); }
+}
 
 /* кнопка-ссылка: у тега a подчёркивание браузера снимаем, вид берётся из .ks-btn */
 a.ks-btn{ text-decoration:none; }

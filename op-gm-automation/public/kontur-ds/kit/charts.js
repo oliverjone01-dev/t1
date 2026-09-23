@@ -32,19 +32,30 @@ C.dark = () => { const box = C._el && C._el.closest('[data-theme]');
   return KS.theme ? KS.theme.isDark() : matchMedia('(prefers-color-scheme: dark)').matches; };
 const nf = x => KS.fmt ? KS.fmt.nf(x) : String(x);
 
+/* Настройки вида (1.5): форма линии и толщина берутся из ближайшего контейнера с data-curve и
+   data-line-w (так работает предпросмотр на странице настроек), иначе из KS.prefs.
+   Плавные линии идут через monotoneCubic: кривая не выходит за соседние точки и не рисует
+   провалов и пиков, которых нет в данных. Обычный smooth (сплайн) запрещён. */
+const pfc = () => ((KS.prefs && KS.prefs.get().chart) || {});
+const near = a => { const e = C._el && C._el.closest('[' + a + ']'); return e ? e.getAttribute(a) : null; };
+C.curve = () => (near('data-curve') || pfc().curve) === 'smooth' ? 'monotoneCubic' : 'straight';
+C.lineW = () => { const w = +(near('data-line-w') || pfc().line); return w >= 1 && w <= 3 ? w : 2; };
+C.animate = () => !matchMedia('(prefers-reduced-motion: reduce)').matches && !document.documentElement.hasAttribute('data-motion');
+
 /* на телефоне у дат вида 20.08.2026 отрезается год: пять подписей помещаются в строку */
 C.shortDate = v => typeof v === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(v) ? v.slice(0, 5) : v;
 C.base = function(h, type){
   return {
     chart:{ type, height:h, fontFamily:v('--font-sans') || '-apple-system, BlinkMacSystemFont, Golos Text, sans-serif', foreColor:C.ink(),
             toolbar:{ show:false }, parentHeightOffset:0,
-            animations:{ enabled:!matchMedia('(prefers-reduced-motion: reduce)').matches, easing:'easeinout', speed:520 } },
-    grid:{ borderColor:v('--grid'), strokeDashArray:0, padding:{ left:14, right:18, top:0, bottom:12 } },
+            animations:{ enabled:C.animate(), easing:'easeinout', speed:520 } },
+    grid:{ borderColor:v('--grid'), strokeDashArray:0, xaxis:{ lines:{ show:false } }, yaxis:{ lines:{ show:true } }, padding:{ left:14, right:18, top:0, bottom:12 } },
     dataLabels:{ enabled:false },
     legend:{ show:false },
-    stroke:{ width:2, lineCap:'round', curve:'straight' },
+    stroke:{ width:C.lineW(), lineCap:'round', curve:C.curve() },
     tooltip:{ theme:C.dark() ? 'dark' : 'light', style:{ fontSize:'12px' } },
-    xaxis:{ axisBorder:{ show:false }, axisTicks:{ show:false }, labels:{ style:{ fontSize:'11px' } } },
+    xaxis:{ axisBorder:{ show:false }, axisTicks:{ show:false }, labels:{ style:{ fontSize:'11px' } }, tooltip:{ enabled:false },
+            crosshairs:{ show:true, width:1, position:'back', stroke:{ color:v('--border-strong'), width:1, dashArray:0 } } },
     yaxis:{ labels:{ style:{ fontSize:'11px' }, formatter: x => nf(Math.round(x)) } },
     states:{ hover:{ filter:{ type:'lighten', value:.06 } } },
     /* телефон: ниже, меньше подписей по оси, уже поля; значения из ширины окна */
@@ -57,15 +68,18 @@ C.pad = function(arr, share){
   const mn = Math.min(...x), mx = Math.max(...x), span = Math.max(1, mx - mn), k = share == null ? 0.18 : share;
   return { min: mn - span * k, max: mx + span * k };
 };
+/* Шаг оси из ряда 1, 2, 2,5, 5, 10: 676 на четыре деления даёт шаг 200 и верх 800.
+   Верх берётся с запасом 14% под число за торцом полосы, иначе оно садится на рамку. */
+C.niceStep = raw => { const m = Math.pow(10, Math.floor(Math.log10(raw || 1))); return m * [1, 2, 2.5, 5, 10].find(k => k * m >= raw); };
 C.dateAxis = cats => ({ categories:cats, axisBorder:{ show:false }, axisTicks:{ show:false }, tickAmount:Math.min(6, Math.max(2, cats.length)),
+  tooltip:{ enabled:false }, crosshairs:{ show:true, width:1, position:'back', stroke:{ color:v('--border-strong'), width:1, dashArray:0 } },
   labels:{ style:{ fontSize:'11px' }, rotate:-38, hideOverlappingLabels:true } });
 /* Пустой ряд в ApexCharts даёт размеры NaN и пустую рамку. Вместо этого пишем,
    чего не хватает: график без данных должен выглядеть как отсутствие данных. */
 C.empty = function(el, text){
   if(C.inst[el.id]){ try{ C.inst[el.id].destroy(); }catch(e){} delete C.inst[el.id]; }
-  el.innerHTML = '<div style="height:100%;min-height:inherit;display:grid;place-items:center;text-align:center;'
-    + 'color:var(--text-muted);font-size:var(--fs-small);border:1px dashed var(--border);border-radius:var(--r-md);padding:var(--sp-4)">'
-    + (text || 'Данных за период нет') + '</div>';
+  el.innerHTML = '<div class="ks-empty-state">' + (KS.motion ? KS.motion.emptyArt() : KS.ic ? KS.ic('chart', 20) : '') + '<b>' + (text || 'Данных за период нет') + '</b>'
+    + '<span>График появится, когда в ряду будет хотя бы одна точка</span></div>';
   return null;
 };
 const hasData = opt => {
@@ -100,7 +114,7 @@ C.line = function(id, { cats, data, name, slot, h, area, suffix } = {}){
   return C.render(id, Object.assign(o, {
     series:[{ name: name || '', data }], colors:[C.cat(slot || 3)], xaxis:C.dateAxis(cats),
     yaxis:Object.assign({ labels:{ style:{ fontSize:'11px' }, formatter: x => nf(Math.round(x)) } }, C.pad(data)),
-    markers:{ size: data.filter(x => x != null).length <= 3 ? 6 : 0, hover:{ size:8 }, strokeWidth:2, strokeColors:C.surface() },
+    markers:{ size: data.filter(x => x != null).length <= 3 ? 5 : 0, hover:{ size:5 }, strokeWidth:2, strokeColors:C.surface() },
     fill: area ? { type:'gradient', gradient:{ shadeIntensity:.25, opacityFrom:.28, opacityTo:.02, stops:[0,100] } } : { type:'solid' },
     dataLabels:{ enabled:true, background:{ enabled:false }, offsetY:-9, style:{ fontSize:'11px', fontWeight:600, colors:[C.ink()] },
       formatter:(x, op) => op.dataPointIndex === data.length - 1 && x != null ? nf(x) + (suffix || '') : '' },
@@ -116,7 +130,7 @@ C.multi = function(id, { cats, series, h, log, area } = {}){
     series, colors:series.map((s, i) => C.cat(s.slot || i + 1)), xaxis:C.dateAxis(cats), legend:C.legend(),
     yaxis: log ? { logarithmic:true, labels:{ style:{ fontSize:'11px' }, formatter: x => nf(Math.round(x)) } }
                : Object.assign({ labels:{ style:{ fontSize:'11px' }, formatter: x => nf(Math.round(x)) } }, C.pad(all)),
-    markers:{ size:series.map(s => s.data.filter(x => x != null).length <= 3 ? 6 : 0), hover:{ size:8 }, strokeWidth:2, strokeColors:C.surface() },
+    markers:{ size:series.map(s => s.data.filter(x => x != null).length <= 3 ? 5 : 0), hover:{ size:5 }, strokeWidth:2, strokeColors:C.surface() },
     fill: area ? { type:'gradient', gradient:{ opacityFrom:.24, opacityTo:.02 } } : { type:'solid' },
     tooltip:{ enabled:true, theme:C.dark() ? 'dark' : 'light', shared:true, intersect:false }
   }));
@@ -133,9 +147,9 @@ C.index = function(id, { cats, series, h } = {}){
   return C.render(id, Object.assign(o, {
     series:idx, colors:idx.map(s => C.cat(s.slot)), xaxis:C.dateAxis(cats), legend:C.legend(),
     yaxis:{ min:lo, max:hi, tickAmount:Math.min(8, Math.max(3, Math.round((hi - lo) / 10))), labels:{ style:{ fontSize:'11px' }, formatter: x => Math.round(x) } },
-    markers:{ size:idx.map(s => s.data.filter(x => x != null).length <= 3 ? 6 : 0), hover:{ size:8 }, strokeWidth:2, strokeColors:C.surface() },
+    markers:{ size:idx.map(s => s.data.filter(x => x != null).length <= 3 ? 5 : 0), hover:{ size:5 }, strokeWidth:2, strokeColors:C.surface() },
     annotations:{ yaxis:[{ y:100, borderColor:v('--border-strong'), strokeDashArray:0,
-      label:{ text:'старт периода', position:'left', offsetX:78, offsetY:-2, style:{ fontSize:'11px', background:C.surface(), color:C.ink() } } }] },
+      label:{ text:'старт периода', position:'right', textAnchor:'end', offsetX:0, offsetY:-2, style:{ fontSize:'11px', background:C.surface(), color:C.ink() } } }] },
     tooltip:{ enabled:true, theme:C.dark() ? 'dark' : 'light', shared:true, intersect:false }
   }));
 };
@@ -143,12 +157,20 @@ C.index = function(id, { cats, series, h } = {}){
 C.hbar = function(id, { cats, data, name, slot, h } = {}){
   at(id);
   const o = C.base(h || 260, 'bar');
+  const need = Math.max(1, ...(data || []).filter(x => x != null)) * 1.14;
+  const step = Math.max(1, C.niceStep(need / 4)), ticks = Math.ceil(need / step), top = ticks * step;
+  /* на телефоне у полос свой responsive: общий из C.base режет ось на четыре и ломает шаг */
+  o.responsive = [{ breakpoint:640, options:{ chart:{ height:Math.round((h || 260) * 0.9) }, xaxis:{ tickAmount:ticks }, grid:{ padding:{ left:6, right:14, top:0, bottom:8 } } } }];
   return C.render(id, Object.assign(o, {
     series:[{ name: name || '', data }], colors:[C.cat(slot || 3)],
-    xaxis:{ categories:cats, axisBorder:{ show:false }, axisTicks:{ show:false }, labels:{ style:{ fontSize:'11px' }, formatter: x => nf(Math.round(x)) } },
+    xaxis:{ categories:cats, min:0, max:top, tickAmount:ticks, axisBorder:{ show:false }, axisTicks:{ show:false },
+      labels:{ style:{ fontSize:'11px' }, formatter: x => nf(Math.round(x)) } },
+    /* У горизонтальных полос на оси Y стоят названия, а не числа. Числовой форматтер из C.base
+       превращал их в прочерк: Math.round('топ-10') это NaN. */
+    yaxis:{ labels:{ style:{ fontSize:'11px' }, maxWidth:180, formatter: x => x } },
     plotOptions:{ bar:{ horizontal:true, borderRadius:4, borderRadiusApplication:'end', barHeight:'56%', dataLabels:{ position:'top' } } },
     dataLabels:{ enabled:true, textAnchor:'start', offsetX:9, offsetY:1, style:{ fontSize:'11px', fontWeight:600, colors:[C.ink()] }, formatter: x => nf(x) },
-    tooltip:{ enabled:true, theme:C.dark() ? 'dark' : 'light' }
+    tooltip:{ enabled:true, theme:C.dark() ? 'dark' : 'light', y:{ formatter: x => nf(x) } }
   }));
 };
 /* Столбцы с выделением одного: наш цветом слота, остальные нейтральным. Это единственный
@@ -156,11 +178,16 @@ C.hbar = function(id, { cats, data, name, slot, h } = {}){
 C.emphasis = function(id, { cats, data, focus, slot, h } = {}){
   at(id);
   const o = C.base(h || 290, 'bar');
+  /* число над столбцом, а не в его середине: у короткого столбца оно иначе садится на сам столбец.
+     Верх оси с запасом 14%, чтобы число над самым высоким не обрезалось. */
+  const need = Math.max(1, ...(data || []).filter(x => x != null)) * 1.14;
+  const step = Math.max(1, C.niceStep(need / 5)), ticks = Math.ceil(need / step);
   return C.render(id, Object.assign(o, {
     series:[{ name:'', data }], colors:cats.map((_, i) => i === (focus || 0) ? C.cat(slot || 3) : C.neutral()),
     xaxis:{ categories:cats, axisBorder:{ show:false }, axisTicks:{ show:false }, labels:{ style:{ fontSize:'11px' } } },
-    plotOptions:{ bar:{ borderRadius:4, borderRadiusApplication:'end', columnWidth:'50%', distributed:true } },
-    dataLabels:{ enabled:true, offsetY:-18, style:{ fontSize:'11px', fontWeight:600, colors:[C.ink()] }, formatter: x => nf(x) },
+    yaxis:{ min:0, max:ticks * step, tickAmount:ticks, labels:{ style:{ fontSize:'11px' }, formatter: x => nf(Math.round(x)) } },
+    plotOptions:{ bar:{ borderRadius:4, borderRadiusApplication:'end', columnWidth:'50%', distributed:true, dataLabels:{ position:'top' } } },
+    dataLabels:{ enabled:true, offsetY:-20, style:{ fontSize:'11px', fontWeight:600, colors:[C.ink()] }, formatter: x => nf(x) },
     tooltip:{ enabled:true, theme:C.dark() ? 'dark' : 'light' }
   }));
 };

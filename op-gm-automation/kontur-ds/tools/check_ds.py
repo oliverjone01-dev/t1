@@ -21,6 +21,12 @@
   VIEWPORT  у страницы нет meta viewport с width=device-width: телефон покажет её уменьшенной копией
   HOVERLIFT подъём по наведению (transform в :hover) вне @media (hover:hover): на касании залипает
   MONONUM   цифры в столбик набраны моноширинным: в 1.2 они идут шрифтом интерфейса с табличными цифрами
+  SIDESTRIPE толстая цветная полоса сбоку (border-left 2px и толще тоном или цветом): главный признак шаблона
+  CAPSBADGE бейдж капсом: с 1.3 бейджи строчными, капс только в коротких метках
+  GRADMARK  градиент на знаке бренда: подпись сгенерированного интерфейса
+  LOOPANIM  бесконечная анимация вне вращения загрузки и мерцания заглушки: мигающие точки, пульс, бегущие рамки
+  DENSITYTAP компактная плотность уменьшила цели пальца (--tap): на касании промахи
+  VTMOTION  переходы View Transitions без отключения при «меньше движения»
   SYNC      копия тёмной темы для системной настройки совпадает с [data-theme="dark"]
   CONTRAST  с ключом --live: реальный контраст каждого текста в браузере, обе темы, 1280 и 390
 
@@ -108,8 +114,22 @@ for name, t in (('светлая', LIGHT), ('тёмная', DARK)):
     # текст на акцентной кнопке и фокус
     acc, on = hexv(t, '--primary'), hexv(t, '--primary-foreground')
     if acc and on and ratio(on, acc) < 4.5: bad('TOKENS', f'{name}: текст на кнопке {ratio(on,acc):.2f}:1')
+    act, aon = hexv(t, '--action'), hexv(t, '--action-foreground')
+    if act and aon and ratio(aon, act) < 4.5: bad('TOKENS', f'{name}: текст на основной кнопке {ratio(aon,act):.2f}:1')
     foc, card = hexv(t, '--focus'), hexv(t, '--surface')
     if foc and card and ratio(foc, card) < 3: bad('TOKENS', f'{name}: кольцо фокуса {ratio(foc,card):.2f}:1')
+
+# ---------- плотность: компактно не трогает цели пальца ----------
+try:
+    DENSE = block('[data-density="compact"]{')
+    for k in ('--tap', '--tap-sm'):
+        if k in DENSE: bad('DENSITYTAP', f'компактная плотность меняет {k}; цели пальца всегда 44 и 36')
+    BASE = block(':root{'); AIRY = block('[data-density="comfortable"]{')
+    for k in DENSE:
+        if k not in AIRY: bad('SYNC', f'плотность: {k} есть в compact, но нет в comfortable')
+        elif AIRY[k].replace(' ', '') != BASE.get(k, '').replace(' ', ''): bad('SYNC', f'плотность: {k} в comfortable {AIRY[k]} не совпадает с :root {BASE.get(k)}')
+except ValueError:
+    pass
 
 # ---------- пол шрифта и кривые в самих токенах ----------
 for k, v in re.findall(r'(--fs-[\w-]+):\s*([^;]+);', css):
@@ -184,6 +204,19 @@ for p in targets:
         if re.search(r'(?<![\w-])color\s*:\s*var\(--text-faint\)', decl) and not re.search(r'chev|disabled|ks-ic|icon|decor', sel):
             bad('FAINTTEXT', f'{rel}: {sel[-60:]} красит текст в --text-faint; для чтения бери --text-muted')
     if re.search(r'style=[\'"][^\'"]*(?<![\w-])color:\s*var\(--text-faint\)', body): bad('FAINTTEXT', f'{rel}: встроенный стиль с --text-faint на тексте')
+    # --- движение (1.4) ---
+    for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', body):
+        sel, decl = m.group(1).strip(), m.group(2)
+        for a in re.findall(r'animation(?:-iteration-count)?\s*:([^;]*infinite[^;]*)', decl):
+            if not re.search(r'\bks-(?:spin|shimmer)\b', a): bad('LOOPANIM', f'{rel}: {sel[-50:]} крутит бесконечную анимацию; цикл допустим только у загрузки')
+    if '::view-transition-' in body and not re.search(r'prefers-reduced-motion[^{]*\{(?:[^{}]*\{[^{}]*\})*?[^{}]*::view-transition-group\(\*\)', body):
+        bad('VTMOTION', f'{rel}: переходы View Transitions не выключаются при «меньше движения»')
+    # --- признаки шаблонного интерфейса (1.3) ---
+    for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', body):
+        sel, decl = m.group(1).strip(), m.group(2)
+        if re.search(r'border-(?:left|inline-start)\s*:\s*(?:[2-9]|\d{2,})px[^;]*(?:var\(--(?:ok|warn|serious|crit|info|primary|tone|slot|cat-\d)|#[0-9a-fA-F]{3,6}|rgb)', decl): bad('SIDESTRIPE', f'{rel}: {sel[-50:]} рисует цветную полосу сбоку; тон передаёт значок или слово')
+        if 'ks-badge' in sel and 'uppercase' in decl: bad('CAPSBADGE', f'{rel}: {sel[-50:]} набирает бейдж капсом')
+        if 'brand-mark' in sel and 'gradient' in decl: bad('GRADMARK', f'{rel}: {sel[-50:]} с градиентом')
     for m in re.finditer(r'const DB\s*=\s*(\{.*?\});\s*\n', s, re.S):
         try: db = json.loads(m.group(1))
         except Exception: continue

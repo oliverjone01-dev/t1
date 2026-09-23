@@ -22,6 +22,8 @@ out = {
   'radius': group(base, ['r-']),
   'motion': group(base, ['ease', 'dur']),
   'layout': group(base, ['sidebar', 'topbar', 'content', 'drawer', 'z-', 'tap']),
+  'density': {'comfortable': group(base, ['pad-box', 'gap-stack', 'cell-', 'ctl-h', 'field-h', 'select-h', 'nav-y']),
+              'compact': {k[2:]: v for k, v in block('[data-density="compact"]{').items()}},
   'breakpoints': {'sm': '640px', 'md': '768px', 'lg': '1024px', 'xl': '1280px', '2xl': '1536px'},
   'container': {'kpi-1col-max': '300px', 'kpi-4col-min': '680px', 'grid-2-min': '720px', 'grid-3-min': '1080px', 'table-stack-max': '520px'},
   'color':  {'light': light, 'dark': dark},
@@ -70,8 +72,8 @@ MAP = [
   ('destructive', 'crit'), ('destructive-foreground', 'primary-foreground'),
   ('input', 'border-strong'), ('ring', 'focus'), ('radius', 'r-lg'),
   ('chart-1', 'cat-1'), ('chart-2', 'cat-2'), ('chart-3', 'cat-3'), ('chart-4', 'cat-4'), ('chart-5', 'cat-5'),
-  ('sidebar', 'surface'), ('sidebar-foreground', 'text'), ('sidebar-primary', 'primary'),
-  ('sidebar-primary-foreground', 'primary-foreground'), ('sidebar-accent', 'surface-2'),
+  ('sidebar', 'surface'), ('sidebar-foreground', 'text'), ('sidebar-primary', 'action'),
+  ('sidebar-primary-foreground', 'action-foreground'), ('sidebar-accent', 'surface-2'),
   ('sidebar-accent-foreground', 'text-strong'), ('sidebar-border', 'border'), ('sidebar-ring', 'focus'),
 ]
 known = set(light) | set(base)
@@ -81,23 +83,40 @@ colors4 = ['background','foreground','card','card-foreground','popover','popover
            'secondary','secondary-foreground','muted','muted-foreground','accent','accent-foreground','destructive',
            'border','input','ring','chart-1','chart-2','chart-3','chart-4','chart-5','sidebar','sidebar-foreground',
            'sidebar-primary','sidebar-primary-foreground','sidebar-accent','sidebar-accent-foreground','sidebar-border','sidebar-ring']
+# primary и sidebar-primary ведут на почти чёрную основную кнопку через промежуточную переменную,
+# чтобы data-shadcn-primary="blue" мог вернуть синий без пересборки Tailwind
+SH = {'primary': 'sh-primary', 'primary-foreground': 'sh-primary-foreground',
+      'sidebar-primary': 'sh-primary', 'sidebar-primary-foreground': 'sh-primary-foreground'}
 bridge = """/* Контур DS · мост для shadcn/ui. Генерируется tools/export_tokens.py, руками не править.
    Подключение: tokens.css, затем этот файл. Компоненты shadcn берут цвета, радиус и обе темы Контура.
-   --primary, --primary-foreground и --border у Контура уже совпадают с shadcn по смыслу и не переопределяются.
-   Тёмная тема: data-theme="dark" на любом контейнере или класс .dark на корне, как ждёт shadcn. */
+   Тёмная тема: data-theme="dark" на любом контейнере или класс .dark на корне, как ждёт shadcn.
+
+   1.4: основная кнопка shadcn (bg-primary, text-primary-foreground) почти чёрная, как .ks-btn--primary
+   (в тёмной теме почти белая). Синий --primary Контура не трогается: он остаётся акцентом выбора,
+   фокуса и ссылки, а в Tailwind доступен как bg-primary-blue. Вернуть синюю основную кнопку в одном
+   проекте или блоке: data-shadcn-primary="blue" на корне или на контейнере. */
 :root, [data-theme]{
 %s
+  --sh-primary: var(--action);
+  --sh-primary-foreground: var(--action-foreground);
+}
+[data-shadcn-primary="blue"], [data-shadcn-primary="blue"] [data-theme]{
+  --sh-primary: var(--primary);
+  --sh-primary-foreground: var(--primary-foreground);
 }
 
 /* Tailwind v4: утилиты bg-background, text-muted-foreground, rounded-lg и так далее.
    Браузер без Tailwind этот блок просто пропускает. */
 @theme inline {
 %s
+  --color-primary-blue: var(--primary);
+  --color-primary-blue-foreground: var(--primary-foreground);
+  --color-link: var(--text-link);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
-""" % ('\n'.join(f'  --{a}: var(--{b});' for a, b in MAP), '\n'.join(f'  --color-{c}: var(--{c});' for c in colors4))
+""" % ('\n'.join(f'  --{a}: var(--{b});' for a, b in MAP), '\n'.join(f'  --color-{c}: var(--{SH.get(c, c)});' for c in colors4))
 (HERE/'tokens'/'shadcn.css').write_text(bridge, encoding='utf-8')
 print('shadcn.css записан:', len(MAP), 'имён')

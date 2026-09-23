@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#F4F6FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1216" media="(prefers-color-scheme: dark)">
 <title>Автоматизация ОП ГМ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,22 +12,29 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="kontur-ds/tokens/tokens.css?v={{V}}">
 <link rel="stylesheet" href="kontur-ds/kit/kit.css?v={{V}}">
-<link rel="stylesheet" href="app/legacy.css?v={{V}}">
 <link rel="stylesheet" href="app/opgm.css?v={{V}}">
 <script src="vendor/apexcharts.min.js?v={{V}}"></script>
+<script src="kontur-ds/kit/brand.js?v={{V}}"></script>
 <script src="kontur-ds/kit/icons.js?v={{V}}"></script>
 <script src="kontur-ds/kit/kit.js?v={{V}}"></script>
+<script>
+/* KS.prefs читает общий для всего адреса ключ localStorage 'ks-prefs': чужая страница на Контур DS на том же
+   github.io могла бы сменить нам логотип, цвета и движение. Даём проекту свой ключ и применяем вид заново
+   (до первой отрисовки: скрипты в head блокирующие). Пакет кита при этом не правится. */
+KS.prefs.KEY = 'opgm:ks-prefs'; KS.prefs.apply(KS.prefs.load());
+</script>
 <script src="kontur-ds/kit/charts.js?v={{V}}"></script>
+<script src="kontur-ds/kit/motion.riv.js?v={{V}}"></script>
 </head>
 <body>
 <div id="gate" class="op-gate">
   <section class="ks-card">
     <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 15l4-5 3 3 4-6 3 4"/></svg></div>
     <h1 class="ks-h1">Автоматизация ОП ГМ</h1>
-    <p class="ks-page-sub">Разбор переговоров отдела продаж Glass Memory. Доступ по паролю.</p>
+    <p class="ks-page-sub">Разбор переговоров отдела продаж GLASS-MEMORY. Доступ по паролю.</p>
     <form id="gateForm">
       <label class="ks-field"><span class="ks-field-label">Пароль</span>
-        <input class="ks-input" type="password" id="pw" autocomplete="current-password" autofocus></label>
+        <input class="ks-input" type="password" id="pw" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus></label>
       <button type="submit" class="ks-btn ks-btn--primary" id="gateBtn">Войти</button>
       <div class="op-gate-err" id="gateErr" role="alert"></div>
     </form>
@@ -40,10 +47,11 @@
   <aside id="sb" class="ks-sidebar" aria-label="Разделы">
     <div class="ks-brand">
       <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 15l4-5 3 3 4-6 3 4"/></svg></div>
-      <div class="ks-lbl"><div class="ks-brand-name">ОП ГМ</div><div class="ks-brand-sub">Glass Memory · переговоры</div></div>
+      <div class="ks-lbl"><div class="ks-brand-name">ОП ГМ</div><div class="ks-brand-sub">GLASS-MEMORY · переговоры</div></div>
     </div>
     <nav id="nav" class="ks-nav"></nav>
     <div class="ks-sidebar-foot ks-lbl">Выгрузка Авито по API, кабинеты OLD-G и NEW-B. Архив: 561 скриншот июля.<br>
+      <div class="op-sb-tools"><button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" id="sb-theme"></button><button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" id="sb-dens"></button></div>
       <button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" style="margin-top:var(--sp-2);padding-left:0" onclick="location.reload()">Выйти</button></div>
   </aside>
 
@@ -58,8 +66,10 @@
         </select>
       </div>
       <div class="ks-topbar-spacer"></div>
-      <div class="ks-stamp ks-hide-sm" id="stamp"></div>
-      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="theme" aria-label="Тема"></button>
+      <div class="ks-stamp ks-hide-md" id="stamp"></div>
+      <span id="cmdkb"></span>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon ks-hide-sm" id="dens" aria-label="Плотность интерфейса"></button>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon ks-hide-sm" id="theme" aria-label="Сменить тему"></button>
     </header>
     <main class="ks-view" id="view"></main>
   </div>
@@ -71,9 +81,11 @@
 <script>
 /* Вход: пароль расшифровывает данные в браузере (PBKDF2 250 000, AES-256-GCM, внутри gzip) */
 KS.theme.init();
+/* нормализация ввода: как normPw в src/build.cjs */
+const normPw = x => x.normalize('NFC').trim().toLowerCase().replace(/ё/g, 'е').replace(/[\s_]+/g, '-');
 async function decryptData(pw){
   const E = window.OPGM_ENC, b = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-  const bk = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  const bk = await crypto.subtle.importKey('raw', new TextEncoder().encode(normPw(pw)), 'PBKDF2', false, ['deriveKey']);
   const key = await crypto.subtle.deriveKey({ name:'PBKDF2', salt:b(E.salt), iterations:E.iter, hash:'SHA-256' }, bk, { name:'AES-GCM', length:256 }, false, ['decrypt']);
   const u = new Uint8Array(await crypto.subtle.decrypt({ name:'AES-GCM', iv:b(E.iv) }, key, b(E.ct)));
   if(u[0] === 0x1f && u[1] === 0x8b) return JSON.parse(await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).text());

@@ -22,15 +22,16 @@
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
   /* ---------- шкала текста: восемь ролей, а не девять близких размеров ---------- */
-  --fs-badge:  11px;     /* бейджи класса и статуса, капс и жирный; меньше 11px функциональный текст не бывает */
+  --fs-badge:  12px;     /* бейдж: строчными, средней жирности; капс остался только в коротких метках */
   --fs-micro:  11px;     /* строка источника, подписи осей */
   --fs-caption:12px;     /* подпись плитки, подзаголовок карточки */
   --fs-small:  12.5px;   /* таблицы, текст во врезках */
   --fs-body:   13px;     /* основной текст в карточках */
   --fs-base:   14px;     /* заголовок карточки, базовый размер страницы */
   --fs-h2:     16px;     /* заголовок раздела внутри экрана */
-  --fs-h1:     19px;     /* заголовок экрана */
-  --fs-hero:   clamp(19px, 17.35px + 0.42vw, 22px); /* значение на плитке: 19px на телефоне 390, 22px от 1100 */
+  --fs-h1:     22px;     /* заголовок экрана */
+  --fs-h1-sm:  19px;     /* заголовок экрана на телефоне */
+  --fs-hero:   clamp(24px, 20.7px + 0.85vw, 30px); /* значение на плитке: 24px на телефоне 390, 30px от 1100 */
 
   --lh-tight: 1.2;
   --lh-snug:  1.4;
@@ -41,7 +42,8 @@
   --fw-semi:    600;
   --fw-bold:    700;
 
-  --tracking-hero: -0.03em;
+  --tracking-hero: -0.025em;
+  --tracking-h:    -0.015em; /* заголовки экрана и раздела: плотнее, как у Linear и Vercel */
   --tracking-num:  -0.01em;
   --tracking-caps:  0.04em;
 
@@ -51,11 +53,22 @@
   --sp-5: 20px;   --sp-6: 24px;  --sp-8: 32px;   --sp-10: 40px;
 
   /* ---------- радиусы ---------- */
-  --r-xs: 4px;     /* бейдж */
-  --r-sm: 6px;     /* мелкая кнопка, чип */
-  --r-md: 8px;     /* кнопка, поле, пункт меню, тонированный квадрат иконки */
-  --r-lg: 10px;    /* карточка, врезка, выдвижная панель */
+  --r-xs: 4px;     /* клавиша, мелкая метка */
+  --r-sm: 6px;     /* кнопка, поле, сегмент, бейдж, чип дельты */
+  --r-md: 8px;     /* пункт меню, подсказка, пункт палитры команд */
+  --r-lg: 12px;    /* карточка, врезка, группа плиток, палитра команд */
   --r-full: 999px; /* полоса прогресса, точка */
+  /* Роли радиусов (приём daisyUI и Geist): поле заметно мельче коробки. Один радиус
+     на всём подряд это главный признак шаблона. */
+  --r-field: var(--r-sm);
+  --r-box:   var(--r-lg);
+
+  /* Глубина: множитель тени и верхнего блика карточки. 0 даёт плоский интерфейс,
+     1 это норма, больше 1 не ставить: тень начинает спорить с данными. */
+  --depth: 1;
+  /* Стекло: только для слоёв поверх контента (подсказка, палитра команд, уведомление,
+     подсказка графика). Карточки с цифрами стеклянными не бывают. */
+  --glass-blur: blur(20px) saturate(160%);
 
   /* ---------- движение ---------- */
   --ease-std: cubic-bezier(.4,0,.2,1);
@@ -68,7 +81,7 @@
   --dur-chart: 520ms;  /* анимация графика */
 
   /* ---------- каркас ---------- */
-  --sidebar-w: 258px;
+  --sidebar-w: 248px;
   --sidebar-w-collapsed: 72px;
   --topbar-h: 58px;
   --content-pad: 24px;
@@ -82,8 +95,46 @@
   /* точки перелома (в медиазапросах переменные не работают, значения записаны числами):
      sm 640 телефон/планшет, md 768, lg 1024 меню у края, xl 1280, 2xl 1536 */
 
-  --z-topbar: 20; --z-backdrop: 30; --z-sidebar: 40; --z-drawer: 50; --z-toast: 60;
+  --z-topbar: 20; --z-backdrop: 30; --z-sidebar: 40; --z-drawer: 50; --z-cmdk: 55; --z-toast: 60;
 
+  /* ---------- плотность (1.4) ----------
+     Здесь значения «просторно», вид 1.3 без изменений. data-density="compact" на корне или
+     на любом контейнере сжимает поля, зазоры, строки таблиц и высоту кнопок.
+     Цели пальца (--tap) плотность не трогает никогда. */
+  --pad-box:      var(--sp-4);  /* поле карточки, плитки, вердикта */
+  --pad-box-lg:   var(--sp-5);  /* то же от контейнера 720 */
+  --gap-stack:    var(--sp-4);  /* зазор стопки и сеток */
+  --gap-stack-lg: var(--sp-5);  /* то же от контейнера 900 */
+  --cell-y:       9px;          /* строка таблицы */
+  --cell-x:       12px;
+  --cell-head-y:  8px;          /* шапка таблицы */
+  --ctl-h:        32px;         /* кнопка */
+  --ctl-h-sm:     26px;         /* мелкая кнопка */
+  --field-h:      34px;         /* поле ввода */
+  --select-h:     30px;         /* выпадающий список, кнопка палитры команд */
+  --nav-y:        7px;          /* пункт меню */
+
+}
+
+/* Компактно: больше строк на экране, для тех, кто работает с таблицами весь день */
+[data-density="compact"]{
+  --pad-box: var(--sp-3); --pad-box-lg: var(--sp-3-5);
+  --gap-stack: var(--sp-3); --gap-stack-lg: var(--sp-3-5);
+  --cell-y: 5px; --cell-x: 10px; --cell-head-y: 6px;
+  --ctl-h: 28px; --ctl-h-sm: 24px; --field-h: 30px; --select-h: 28px;
+  --nav-y: 5px;
+  --topbar-h: 52px; --content-pad: 20px;
+  --fs-hero: clamp(22px, 19.5px + 0.65vw, 26px);
+}
+/* Просторно внутри компактной страницы: те же значения, что в :root (сторож сверяет) */
+[data-density="comfortable"]{
+  --pad-box: var(--sp-4); --pad-box-lg: var(--sp-5);
+  --gap-stack: var(--sp-4); --gap-stack-lg: var(--sp-5);
+  --cell-y: 9px; --cell-x: 12px; --cell-head-y: 8px;
+  --ctl-h: 32px; --ctl-h-sm: 26px; --field-h: 34px; --select-h: 30px;
+  --nav-y: 7px;
+  --topbar-h: 58px; --content-pad: 24px;
+  --fs-hero: clamp(24px, 20.7px + 0.85vw, 30px);
 }
 
 /* ================= СВЕТЛАЯ ТЕМА (по умолчанию) =================
@@ -92,24 +143,32 @@
 :root, [data-theme="light"]{
   color-scheme: light;
 
-  --bg:        #F4F6FA;   /* фон страницы */
+  /* Нейтрали 1.3: почти без синевы. Сине-серый slate из 1.2 читался как тема по умолчанию. */
+  --bg:        #F6F7F9;   /* фон страницы */
   --surface:   #FFFFFF;   /* карточка */
-  --surface-2: #F4F6FA;   /* поднятый слой, наведение, мягкая подложка */
-  --surface-3: #F4F6FA;   /* поле ввода, код */
-  --overlay:   rgba(255,255,255,.86);  /* шапка поверх контента */
+  --surface-2: #F1F3F6;   /* наведение, подложка сегмента, строка про деньги */
+  --surface-3: #F6F7F9;   /* поле ввода, код */
+  --overlay:   rgba(255,255,255,.82);  /* шапка поверх контента */
   --backdrop:  rgba(15,20,30,.40);
 
-  --border:        #E4E8EF;
-  --border-strong: #CBD2DE;
-  --divider:       #F1F3F7;   /* строки таблицы */
+  --border:        #E3E6EA;
+  --border-strong: #C8CDD5;
+  --divider:       #EEF0F3;   /* строки таблицы */
 
   /* текст: четыре ступени, все проверены на странице, карточке и подложке */
-  --text-strong: #2A3547;   /* 11.4:1 на странице */
-  --text:        #45536B;   /*  7.2:1 */
-  --text-muted:  #5F6B80;   /*  5.0:1, минимум для мелкого текста */
-  --text-faint:  #7F889A;   /*  3.3:1, НЕ для чтения: выключенное и значки-указатели */
-  --text-link:   #3561C9;   /*  5.2:1 */
+  --text-strong: #16191E;   /* 16.4:1 на странице */
+  --text:        #3A404A;   /*  9.7:1 */
+  --text-muted:  #5A616C;   /*  5.8:1, минимум для мелкого текста */
+  --text-faint:  #858B96;   /*  3.2:1, НЕ для чтения: выключенное и значки-указатели */
+  --text-link:   #3561C9;   /*  5.3:1 */
   --primary-foreground: #FFFFFF;
+
+  /* основное действие: почти чёрное, а не синее. Синий остаётся акцентом: ссылка, фокус, выбор */
+  --action:            #16191E;
+  --action-hover:      #2B3038;
+  --action-foreground: #FFFFFF;
+  --pill:              #FFFFFF;   /* плашка выбранного в сегменте */
+  --spot:              rgba(53,97,201,.06);   /* подсветка под курсором на кликабельном */
 
   /* интерактив */
   --primary:       #3561C9;  /* белый текст на нём 5.7:1 */
@@ -119,11 +178,11 @@
   --focus:        #3561C9;  /* 5.7:1 к карточке */
 
   /* статус: зарезервирован, никогда не цвет серии */
-  --ok:      #0E754E;  --ok-soft:      rgba(14,117,78,.10);
+  --ok:      #0D7049;  --ok-soft:      rgba(13,112,73,.10);
   --warn:    #855A00;  --warn-soft:    rgba(133,90,0,.12);
   --serious: #A44C17;  --serious-soft: rgba(164,76,23,.10);
   --crit:    #B3261E;  --crit-soft:    rgba(179,38,30,.10);
-  --neutral: #5C677B;  --neutral-soft: rgba(92,103,123,.10);
+  --neutral: #5A616C;  --neutral-soft: rgba(90,97,108,.10);
   --info:    #3560C7;  --info-soft:    rgba(53,96,199,.10);
 
   /* графики: категориальные, фиксированный порядок, никогда по кругу */
@@ -133,16 +192,21 @@
   /* расходящаяся пара */
   --div-warm: #A85A00;  --div-cool: #3561C9;  --div-mid: #9AA4B4;
   /* служебное графиков */
-  --grid:     #EFF2F7;
-  --axis:     #5F6B80;
-  --neutral-bar: #C3CBD9;   /* «остальные» при выделении одного столбца */
+  --grid:     #EDEFF2;
+  --axis:     #5A616C;
+  --neutral-bar: #C6CBD3;   /* «остальные» при выделении одного столбца */
   --track:    rgba(0,0,0,.055);
 
-  --sh-hover: 0 6px 24px rgba(42,53,71,.09);
+  --sh-card:  0 1px 2px rgba(16,24,40,calc(.05 * var(--depth))), 0 1px 1px rgba(16,24,40,calc(.02 * var(--depth)));
+  --sh-hover: 0 8px 24px -6px rgba(16,24,40,.12);
   --sh-pop:   0 12px 32px rgba(15,20,30,.16);
   --sh-drawer:-12px 0 40px rgba(15,20,30,.14);
 
-  --scroll-thumb: #C9D1DE;
+  --glass-bg:     rgba(255,255,255,.86);
+  --glass-border: rgba(16,24,40,.09);
+  --glass-shadow: 0 16px 36px -10px rgba(16,24,40,.22), 0 2px 6px rgba(16,24,40,.06), inset 0 1px 0 rgba(255,255,255,.7);
+
+  --scroll-thumb: #CDD2D9;
 }
 
 /* ================= ТЁМНАЯ ТЕМА ================= */
@@ -169,6 +233,12 @@
   --text-link:   #8FB0FF;   /*  8.2:1 */
   --primary-foreground: #0A0C0E;
 
+  --action:            #E9EBEF;
+  --action-hover:      #FFFFFF;
+  --action-foreground: #0F1216;
+  --pill:              #2C3037;
+  --spot:              rgba(143,176,255,.07);
+
   --primary:       #5D8AFF;  /* тёмный текст на нём 6.1:1 */
   --primary-hover: #7FA2FF;
   --primary-soft:  rgba(93,138,255,.15);
@@ -190,9 +260,14 @@
   --neutral-bar: #444952;
   --track:    rgba(255,255,255,.08);
 
+  --sh-card:  inset 0 1px 0 rgba(255,255,255,calc(.045 * var(--depth)));
   --sh-hover: 0 10px 30px rgba(0,0,0,.55);
   --sh-pop:   0 14px 36px rgba(0,0,0,.60);
   --sh-drawer:-14px 0 44px rgba(0,0,0,.55);
+
+  --glass-bg:     rgba(30,33,39,.86);
+  --glass-border: rgba(255,255,255,.09);
+  --glass-shadow: 0 18px 44px -10px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.06);
 
   --scroll-thumb: #373C43;
 }
@@ -205,6 +280,7 @@
     --overlay:rgba(15,18,22,.88); --backdrop:rgba(0,0,0,.55);
     --border:#2A2E34; --border-strong:#3B4149; --divider:#21252A;
     --text-strong:#E9EBEF; --text:#BAC0C9; --text-muted:#989FAA; --text-faint:#727984; --text-link:#8FB0FF; --primary-foreground:#0A0C0E;
+    --action:#E9EBEF; --action-hover:#FFFFFF; --action-foreground:#0F1216; --pill:#2C3037; --spot:rgba(143,176,255,.07);
     --primary:#5D8AFF; --primary-hover:#7FA2FF; --primary-soft:rgba(93,138,255,.15); --primary-ink:#93B2FF; --focus:#8FB0FF;
     --ok:#37D39B; --ok-soft:rgba(55,211,155,.14); --warn:#E0A82E; --warn-soft:rgba(224,168,46,.14);
     --serious:#F0873F; --serious-soft:rgba(240,135,63,.12); --crit:#FF6B6B; --crit-soft:rgba(255,107,107,.14);
@@ -213,15 +289,24 @@
     --seq-1:#33507F; --seq-2:#3E6BC0; --seq-3:#5081E4; --seq-4:#6E96FF; --seq-5:#A6C0FF;
     --div-warm:#C57E14; --div-cool:#5D8AFF; --div-mid:#64748B;
     --grid:#24272C; --axis:#989FAA; --neutral-bar:#444952; --track:rgba(255,255,255,.08);
+    --sh-card:inset 0 1px 0 rgba(255,255,255,calc(.045 * var(--depth)));
     --sh-hover:0 10px 30px rgba(0,0,0,.55); --sh-pop:0 14px 36px rgba(0,0,0,.60); --sh-drawer:-14px 0 44px rgba(0,0,0,.55);
+    --glass-bg:rgba(30,33,39,.86); --glass-border:rgba(255,255,255,.09); --glass-shadow:0 18px 44px -10px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.06);
     --scroll-thumb:#373C43;
   }
 }
 
 /* Тот, кто просил больше контраста (настройка системы), получает его */
 @media (prefers-contrast: more){
-  :root, [data-theme]{ --text-muted: var(--text); --border: var(--border-strong); }
+  :root, [data-theme]{ --text-muted: var(--text); --border: var(--border-strong); --glass-bg: var(--surface); }
 }
+/* Тот, кто просил меньше прозрачности, получает сплошные слои вместо стекла */
+@media (prefers-reduced-transparency: reduce){
+  :root, [data-theme]{ --glass-bg: var(--surface); --glass-blur: none; --overlay: var(--surface); }
+}
+
+/* Движение выключено в настройках вида (KS.prefs): то же, что системное «меньше движения» */
+[data-motion="off"]{ --dur-fast:0ms; --dur-base:0ms; --dur-slow:0ms; --dur-enter:0ms; --dur-chart:0ms; }
 
 /* Тот, кто просил меньше движения, получает его меньше */
 @media (prefers-reduced-motion: reduce){

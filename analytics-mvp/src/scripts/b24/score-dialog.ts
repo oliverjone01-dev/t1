@@ -322,7 +322,19 @@ function main() {
     const ballWaitRaw = lastMsg && lastMsg.dir === "входящее" ? workMinutes(lastMsg.ts, now) : 0;
     const waitAgreed = ballWaitRaw > 0 && promiseCovers(now);   // срок назван и ещё не истёк
     const ballWait = waitAgreed ? 0 : ballWaitRaw;
-    const silenceD = Math.floor((now - last.ts) / 864e5);
+    // Тишина считается по РАЗГОВОРУ с клиентом, а не по любой активности в карточке.
+    // Раньше отсчёт шёл от последнего события вообще, и автоматическое дело, заметка или
+    // смена стадии обнуляли счётчик: сделка без единого слова 150 дней показывала «тишины
+    // нет». Правило Ивана: идут дела автоматические или от сотрудника, а коммуникаций нет -
+    // это сигнал к остыванию. Разговор - сообщение, письмо, открытая линия, звонок.
+    const talks = evs.filter((e) => isMsg(e) || e.type === "Звонок");
+    const lastTalk = talks.length ? talks[talks.length - 1]! : null;
+    // Разговора не было ни разу - считаем от первого события: столько сделка живёт молча.
+    const silenceD = Math.floor((now - (lastTalk ? lastTalk.ts : evs[0]!.ts)) / 864e5);
+    const noTalk = !lastTalk;
+    // Последняя активность любого рода. Нужна в карточке, чтобы менеджер видел разницу
+    // между «в сделке ничего не происходит» и «дела идут, а клиенту не написали».
+    const silenceAnyD = Math.floor((now - last.ts) / 864e5);
     const calls = evs.filter((e) => e.type === "Звонок").length;
     const tasksOpen = f ? (f.tasksOpen || 0) : 0;
     const nextStep = f ? tasksOpen > 0 : evs.some((e) => e.type === "Дело" && e.status === "запланировано");
@@ -539,7 +551,9 @@ function main() {
     else if (RE.dated.test(outText)) add("Называет конкретные даты", "deadline", "good");
     if (overdue) add(`Дело просрочено на ${overdueD} дн`, "deadline", "bad");
     const postSale = POST_SALE.has(stageCode);
-    if (silenceD >= SILENCE_BAD_D) add(`Тишина ${silenceD} дн`, "deadline", postSale ? "warn" : "bad");
+    const silLbl = noTalk ? `Разговора нет ${silenceD} дн` : silenceAnyD < silenceD - 1
+      ? `Тишина ${silenceD} дн (дела идут, клиенту не пишут)` : `Тишина ${silenceD} дн`;
+    if (silenceD >= SILENCE_BAD_D) add(silLbl, "deadline", postSale ? "warn" : "bad");
     else if (silenceD >= SILENCE_WARN_D) add(`Пауза ${silenceD} дн`, "deadline", "warn");
     // 4. Вежливость
     if (outs.length && RE.hello.test(outText)) add("Приветствие и обращение", "polite", "good");
@@ -817,7 +831,7 @@ function main() {
       won: isWon, lost: isLost, outcome: isWon ? "won" : isLost ? "lost" : "open",
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null } : null,
-      msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
+      msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, silenceAnyD, noTalk, overdueD, nextStep, stageDays,
       preMig: !!createdAt && createdAt < MIGRATION_CUTOFF,
       clientChase, hotSlow, hotOpen, driftAlso, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),
       lastTs: last.ts, lastDt: last.dt,

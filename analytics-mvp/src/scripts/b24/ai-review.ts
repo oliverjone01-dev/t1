@@ -34,6 +34,9 @@ const LIMIT = Number(process.env.AI_LIMIT || 120);
 // AI_MGR="Имя Фамилия" ограничивает разбор одним менеджером и принудительно ре-разбирает
 // его сделки (пилот стоимости). Пусто = обычный режим по всему отделу.
 const MGR_ONLY = pick("AI_MGR", "mgr");
+// AI_FORCE=1 (или force в ai-run.json) - переразобрать даже то, что уже разобрано.
+// Нужно для замера на одном и том же наборе: другой промпт, те же сделки.
+const FORCE = pick("AI_FORCE", "force") === "1";
 const CONC = 4;
 // Учёт токенов для отчёта о стоимости (Protocol 9). Считаем по всем ответам API.
 const usage = { in: 0, out: 0, cacheR: 0, cacheW: 0 };
@@ -43,7 +46,9 @@ function addUsage(u: any) {
   usage.cacheR += u.cache_read_input_tokens || 0; usage.cacheW += u.cache_creation_input_tokens || 0;
 }
 const USE_BATCH = (process.env.AI_BATCH ?? "1") !== "0";
-const BATCH_WAIT_MIN = Number(process.env.AI_BATCH_WAIT_MIN || 30);
+// Ожидание пакета. 30 минут оказалось мало даже на 83 диалогах: прогон свалился в
+// синхронный добор, а он без скидки 50%. Значение задаётся в ai-run.json полем wait.
+const BATCH_WAIT_MIN = Number(pick("AI_BATCH_WAIT_MIN", "wait", "30"));
 const DLG = "dialog/data/dialog.json";
 // AI_OUT - куда писать разбор. По умолчанию боевой файл, который читает score-dialog.
 // Отдельный путь нужен для замера: прогнать тот же набор сделок другой моделью и сравнить,
@@ -245,7 +250,10 @@ async function main() {
     .map(([k, evs]) => { evs.sort((a, b) => a.ts - b.ts); const head = evs[evs.length - 1]!; return { k, evs, last: head.ts, mgr: head.mgr || "" }; })
     .filter((x) => x.evs.filter((e) => e.type.startsWith("Сообщение") || e.type === "Письмо").length >= 2)
     .filter((x) => !MGR_ONLY || x.mgr === MGR_ONLY)
-    .filter((x) => MGR_ONLY ? true : (!reviews[x.k] || reviews[x.k].lastTs !== x.last))
+    // Форс-переразбор только по явному флагу. Раньше его включал сам AI_MGR, и тогда прогон
+    // пачками топтался на месте: каждый следующий брал те же первые LIMIT сделок. Теперь
+    // менеджера можно закрывать порциями - каждая порция берёт ещё не разобранное.
+    .filter((x) => FORCE ? true : (!reviews[x.k] || reviews[x.k].lastTs !== x.last))
     .sort((a, b) => b.last - a.last)
     .slice(0, LIMIT);
 

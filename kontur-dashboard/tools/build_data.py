@@ -28,6 +28,9 @@ GOALS_RAW_SRC  = 'yandex-direct/data/raw/metrika-goals.json'
 # direct-snapshots.yml, крон 20 6 * * *. Здесь они только читаются.
 DIRECT_METRIKA_PATH = ROOT / 'yandex-direct' / 'data' / 'direct_metrika.json'
 DIRECT_METRIKA_SRC  = 'yandex-direct/data/direct_metrika.json'
+# Тот же прогон direct-snapshots.yml, что и direct_metrika.json: даты окна и расход.
+DIRECT_DAILY_PATH = ROOT / 'yandex-direct' / 'data' / 'direct_daily.json'
+DIRECT_DAILY_SRC  = 'yandex-direct/data/direct_daily.json'
 
 # Метки источника точки ряда. Оба варианта приходят из одного файла на диске:
 # ни snapshot.py, ни сборка в keys.so не ходят. Разница не в способе съёма,
@@ -36,6 +39,16 @@ SRC_SNAP  = 'срез keysso.json'          # верхний блок файла
 SRC_RETRO = 'ретроспектива keysso.json' # history внутри файла: только топ-10 и видимость
 
 DANN, GIPO, DEMO = 'ДАННЫЕ', 'ГИПОТЕЗА', 'ДЕМО'
+
+def plural(n, one, few, many):
+    """Русское согласование: 1 заявка, 2 заявки, 5 заявок."""
+    n = abs(int(n)) % 100
+    if 11 <= n <= 14: return many
+    return one if n % 10 == 1 else few if 2 <= n % 10 <= 4 else many
+
+def num(n):
+    """Число с неразрывным пробелом в разрядах, как nf() на странице."""
+    return f"{int(n):,}".replace(',', '\u00a0')
 
 def F(v, k, s='', at='', n=''):
     return {'v': v, 'k': k, 's': s, 'at': at, 'n': n}
@@ -103,25 +116,25 @@ def git_file_date(path):
         return ''
 
 
-def direct_owner():
-    """Каталог проекта, которому принадлежит выгрузка Директа.
+# Чей кабинет Директа. harvest.mjs ходит в Директ одним Client-Login (YD_LOGIN) на
+# все проекты и с пустым SelectionCriteria, поэтому direct.json у всех проектов
+# побайтно одинаковые: это один кабинет, разложенный по папкам. Чей он, из выгрузки
+# не вывести, это факт настройки. Основание (проверено 22-23.09.2026): все шесть
+# кампаний называются «[На заказ] Перегородки», а 22.09 клики в direct.json до
+# единицы равны кликам Директа по счётчику GENGLASS 104369223 (1 568 = 1 568).
+# Сравнивать клики на каждой сборке нельзя: два файла пишут разные воркфлоу в
+# разное время (harvest 00:00 UTC, direct-snapshots после 06:20 UTC), и из 14 утр
+# 10-23.09 равенство выполнилось одно. Подтверждение настройки за ТИМУРом.
+DIRECT_ACCOUNT_OWNER = 'genglass'
 
-    Выгрузки direct.json двух проектов сейчас совпадают побайтно, значит одна из
-    них копия. Какая, решают данные, а не симметричная пометка «обе под
-    вопросом»: владелец тот, чей счётчик Метрики совпадает со счётчиком в
-    direct_metrika.json и у кого клики в direct.json до единицы равны кликам
-    Директа по этому счётчику. Не нашлось такого проекта - None.
+def direct_owner():
+    """Каталог проекта-владельца кабинета, если выгрузки проектов одинаковые.
+
+    Одинаковые файлы значат один кабинет на все проекты (так устроен harvest.mjs),
+    и тогда владелец берётся из DIRECT_ACCOUNT_OWNER. Если у проектов появятся
+    свои кабинеты, файлы разойдутся, и каждый проект получит свою выгрузку.
     """
-    dm = load(DIRECT_METRIKA_PATH)
-    clicks = ((dm or {}).get('totals') or {}).get('direct_clicks_30d')
-    if not dm or not clicks:
-        return None
-    for cfg in PROJECTS.values():
-        ym = load(SRC / cfg['dir'] / 'metrika.json') or {}
-        dr = load(SRC / cfg['dir'] / 'direct.json') or {}
-        if str(ym.get('counter')) == str(dm.get('counter')) and dr.get('clicks') == clicks:
-            return cfg['dir']
-    return None
+    return DIRECT_ACCOUNT_OWNER if DIRECT_ACCOUNT_OWNER in {c['dir'] for c in PROJECTS.values()} else None
 
 
 # Как источник трафика в выгрузке Метрики называется у нас на экране.
@@ -157,7 +170,8 @@ def build_conv(conv):
     for key, human in (('organic', 'из поиска'), ('ad', 'из рекламы')):
         row = conv[key]
         env = F(row['cr'], DANN, DIRECT_METRIKA_SRC, conv['at'],
-                f"{row['leads']} заявок на {row['visits']} визитов {human} за 30 дней")
+                f"{num(row['leads'])} {plural(row['leads'], 'заявка', 'заявки', 'заявок')} на "
+                f"{num(row['visits'])} {plural(row['visits'], 'визит', 'визита', 'визитов')} {human} за 30 дней")
         env['visits'], env['leads'] = row['visits'], row['leads']
         out[key] = env
     return out
@@ -220,7 +234,9 @@ def build_project(code, cfg, hist):
 
     p = {
         'code': code, 'name': cfg['name'], 'dom': cfg['dom'], 'db': 'msk',
-        'plan': F(cfg['plan'], DANN, 'Roadmap H2 2026, план по брендам', '2026-07-01', 'выручка за H2'),
+        # Выписки Roadmap H2 в репозитории нет (git grep по сумме плана вне Контура: 0),
+        # поэтому план идёт как ГИПОТЕЗА со ссылкой на названный источник.
+        'plan': F(cfg['plan'], GIPO, 'Roadmap H2 2026, план по брендам; документа в репозитории нет', '', 'выручка за H2'),
         'top1':  ksf('top1'), 'top3': ksf('top3'), 'top10': ksf('top10'), 'top50': ksf('top50'),
         'aivis': ksf('visibility', 'процент видимости в ответах нейросетей'),
         'aians': ksf('ai_answers', 'число ответов ИИ с нашим упоминанием'),
@@ -364,23 +380,31 @@ def build_project(code, cfg, hist):
     # Директу (визитов из Директа 4531 из 4568 рекламных). Поэтому класс ГИПОТЕЗА.
     # Заявок из Директа меньше, чем из всей рекламы: по источнику «Yandex: Direct»
     # их 101 из 105, остальное прочие площадки. Отсюда коридор, а не одна цифра.
+    # Расход для цены заявки берётся из direct_daily.json того же прогона, что и
+    # заявки: direct.json пишет другой воркфлоу в другое время, и его окно «последние
+    # 30 дней» может уехать на день от окна заявок.
     conv_ad = (p.get('ym') or {}).get('conv') and p['ym']['conv'].get('ad')
     if p['direct'] and not p['direct']['twin'] and conv_ad and conv_ad.get('leads'):
-        spend = p['direct']['spend']['v']
         dm = load(DIRECT_METRIKA_PATH) or {}
+        dd = load(DIRECT_DAILY_PATH) or {}
+        same = (dd.get('dateFrom'), dd.get('dateTo')) == (dm.get('dateFrom'), dm.get('dateTo')) and dd.get('dateFrom')
+        spend = round(((dd.get('totals') or {}).get('spend') or 0)) if same else None
         ld_direct = next((e.get('leads') for e in (dm.get('by_engine') or [])
                           if e.get('engine') == 'Yandex: Direct'), None)
         lo_leads, hi_leads = conv_ad['leads'], (ld_direct or conv_ad['leads'])
-        p['direct']['cpl'] = F(
-            round(spend / lo_leads) if spend else None,
-            GIPO if spend else DEMO,
-            f"direct.json (расход) и {DIRECT_METRIKA_SRC} (заявки)",
-            conv_ad['at'] if spend else '',
-            f"от {round(spend / lo_leads)} до {round(spend / hi_leads)} ₽: {spend} ₽ расхода на "
-            f"{lo_leads} заявок со всей рекламы или {hi_leads} из Директа за 30 дней; "
-            f"окна двух выгрузок сведены по длине, а не по датам" if spend else '')
         if spend:
-            p['direct']['cpl']['hi'] = round(spend / hi_leads)
+            win = f"{dm['dateFrom'][8:10]}.{dm['dateFrom'][5:7]}-{dm['dateTo'][8:10]}.{dm['dateTo'][5:7]}"
+            p['direct']['cpl'] = F(
+                round(spend / lo_leads), GIPO,
+                f"{DIRECT_DAILY_SRC} (расход) и {DIRECT_METRIKA_SRC} (заявки), один прогон", conv_ad['at'],
+                f"от {num(round(spend / lo_leads))} до {num(round(spend / hi_leads))} ₽: {num(spend)} ₽ расхода "
+                f"за {win} на {num(lo_leads)} {plural(lo_leads, 'заявку', 'заявки', 'заявок')} со всей рекламы "
+                f"или {num(hi_leads)} из Директа; гипотезой цифру делает атрибуция: заявки считает Метрика, "
+                f"и из {num(lo_leads)} рекламных к Директу она относит {num(hi_leads)}")
+            p['direct']['cpl'].update({'hi': round(spend / hi_leads), 'spend': spend, 'win': win,
+                                       'leads': lo_leads, 'leads_direct': hi_leads})
+        else:
+            p['direct']['cpl'] = None
     elif p['direct']:
         p['direct']['cpl'] = None
 
@@ -408,19 +432,20 @@ def main():
     out = {
         'built': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'projects': {c: build_project(c, cfg, hist) for c, cfg in PROJECTS.items()},
+        # Пороги собственника названы со ссылкой на Богдана, но выписки в репозитории нет.
         'thresh': {
-            'mkt_share': F(0.15, DANN, 'Правило бюджета Богдана', '2026-07-10', 'маркетинг не более 15% выручки'),
-            'roi_crisis': F(7.0, DANN, 'Порог Богдана, кризисный минимум', '2026-07-10', 'ROI 700%'),
-            'roi_ideal': F(10.0, DANN, 'Ориентир Богдана', '2026-07-10', 'ROI 1000%'),
-            'romi_plan': F(7.0, DANN, 'Roadmap H2 2026', '2026-07-01', 'целевой ROMI канала'),
+            'mkt_share': F(0.15, GIPO, 'Правило бюджета Богдана; документа в репозитории нет', '', 'маркетинг не более 15% выручки'),
+            'roi_crisis': F(7.0, GIPO, 'Порог Богдана, кризисный минимум; документа в репозитории нет', '', 'ROI 700%'),
+            'roi_ideal': F(10.0, GIPO, 'Ориентир Богдана; документа в репозитории нет', '', 'ROI 1000%'),
+            'romi_plan': F(7.0, GIPO, 'Roadmap H2 2026; документа в репозитории нет', '', 'целевой ROMI канала'),
         },
         'assum': {
             'ctr':  F(6.0,  GIPO, 'отраслевой ориентир, своей выгрузки нет', '', 'средний CTR по текущим позициям, %'),
-            'crl':  F(3.0,  GIPO, 'бенчмарк ФЕНИКС: посадочная в РФ даёт 2-5%', '', 'конверсия визита в лид, %'),
+            'crl':  F(3.0,  GIPO, 'бенчмарк phoenix-eval: SEO органический даёт 2-4%', '', 'доля визитов, оставивших заявку'),
             # Источник назван «Roistat GENGROUP, D2C», но выгрузки в репозитории нет
             # (git grep по Roistat даёт только упоминания в описаниях агентов).
-            'crd':  F(11.0, GIPO, 'со слов команды: Roistat GENGROUP, D2C; выгрузки в репозитории нет', '',
-                      'нижняя граница коридора 11-15%, %'),
+            'crd':  F(11.0, GIPO, 'со слов команды (Roistat GENGROUP, D2C), выгрузки в репозитории нет', '',
+                      'нижняя граница коридора 11-15%'),
             'chk':  F(None, GIPO, 'подтверждённой цифры нет, вводится вручную', '', 'средний чек, ₽'),
         },
         # Пятое поле - проект: 'gg', 'gm' или без него для общего вопроса. Экраны
@@ -435,7 +460,7 @@ def main():
         'decisions': [
             ['metal-gm.ru: развести по интенту', 'Иван', '2026-09-07', 'разблокировало С-STAL и В-03'],
             ['301 по зеркалам: не трогаем', 'Иван', '2026-09-07', 'С-ZRAM и С-ZBOL заморожены'],
-            ['Внешние материалы: подряд', 'Иван', '2026-09-07', 'внутренняя нагрузка с 86-245 ч до 54-155 ч'],
+            ['Внешние материалы: подряд', 'Иван', '2026-09-07', 'внутренняя нагрузка с 86-245 ч до 54-155 ч [ШИРОКИЙ ДИАПАЗОН - НЕПРОВЕРЕНО]: оценка из разбора направления, замера нет'],
             ['Срок изготовления: принять разрыв', 'Иван', '2026-09-07', 'играем на индивидуальном размере'],
         ],
         'limits': [

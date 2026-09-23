@@ -135,24 +135,14 @@ function draw(){
       tooltip:{enabled:true, theme:A()?'dark':'light'} }));
   }
 
-  /* доля в ответах ИИ: одна серия, девять систем */
-  if(document.getElementById('c-ai')){
-    mk('c-ai', Object.assign(base(280,'bar'), {
-      series:[{name:'Видимость, %', data:dd.ai.map(r=>r[1])}],
-      xaxis:{categories:dd.ai.map(r=>r[0]), labels:{rotate:-38, style:{fontSize:'10px'}}, axisBorder:{show:false}, axisTicks:{show:false}},
-      plotOptions:{bar:{borderRadius:4, borderRadiusApplication:'end', columnWidth:'52%'}},
-      colors:[P(0)],
-      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
-  }
-
   /* динамика топ-50 по неделям: одна серия, точка только на последней */
   if(document.getElementById('c-wk')){
     mk('c-wk', Object.assign(base(270,'line'), {
       series:[{name:'Топ-50', data:dd.wk}],
       xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
       colors:[P(1)],
-      markers:{size:0, hover:{size:8}, strokeWidth:2, strokeColors:SURF()},
-      dataLabels:{enabled:true, formatter:(v,o)=> o.dataPointIndex===dd.wk.length-1 ? nf(v) : '',
+      markers:{size:5, hover:{size:8}, strokeWidth:2, strokeColors:SURF()},
+      dataLabels:{enabled:true, formatter:(v,o)=> o.dataPointIndex===dd.wk.length-1 && v!=null ? nf(v) : '',
                   offsetY:-9, style:{fontSize:'11px', fontWeight:600, colors:[INK()]}, background:{enabled:false}},
       tooltip:{enabled:true, theme:A()?'dark':'light'} }));
   }
@@ -164,14 +154,14 @@ function draw(){
       xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
       colors:[P(0)],
       fill:{type:'gradient', gradient:{shadeIntensity:.25, opacityFrom:.30, opacityTo:.02, stops:[0,100]}},
-      markers:{size:0, hover:{size:8}, strokeWidth:2, strokeColors:SURF()},
+      markers:{size:4, hover:{size:8}, strokeWidth:2, strokeColors:SURF()},
       tooltip:{enabled:true, theme:A()?'dark':'light'} }));
   }
 
   /* вес страниц: один тон, площадь уже несёт величину */
   if(document.getElementById('c-tree')){
     mk('c-tree', Object.assign(base(300,'treemap'), {
-      series:[{data: dd.pg.map(r=>({x:r[0], y:r[2]}))}],
+      series:[{data: (d.pg||[]).map(r=>{ let u=String(r.url||''); try{ u=new URL(u).pathname; }catch(e){} return {x:u, y:r.keywords_top50||0}; })}],
       colors:[P(2)],
       plotOptions:{treemap:{distributed:false, enableShades:false}},
       dataLabels:{enabled:true, style:{fontSize:'11.5px', fontWeight:600}, offsetY:-2},
@@ -179,100 +169,17 @@ function draw(){
       tooltip:{enabled:true, theme:A()?'dark':'light', y:{formatter:v=>nf(v)}} }));
   }
 
-  /* пончики: пять долей, легенда всегда, подписи процентов на секторах */
-  [['c-src', dd.src, ['Свой сайт','Подборки «Топ-N»','Каталоги','Маркетплейсы','Прочее']],
-   ['c-ymsrc',[52,18,15,9,6], ['Поиск Яндекс','Прямые','Google','Переходы','Соцсети']],
-   ['c-anc', dd.anc.map(r=>r[1]), dd.anc.map(r=>r[0])]].forEach(([id,ser,lab])=>{
-    if(!document.getElementById(id)) return;
-    mk(id, Object.assign(base(300,'donut'), {
-      series:ser, labels:lab,
-      colors:[P(0),P(1),P(2),P(3),P(4)],
-      stroke:{width:2, colors:[SURF()]},
-      legend:{show:true, position:'bottom', fontSize:'11.5px', markers:{width:9,height:9,radius:3}, itemMargin:{horizontal:7,vertical:3}},
-      dataLabels:{enabled:true, style:{fontSize:'11px', fontWeight:600}, dropShadow:{enabled:false}, formatter:v=>Math.round(v)+'%'},
-      plotOptions:{pie:{donut:{size:'62%', labels:{show:true, total:{show:true, label:'всего', fontSize:'12px',
-        formatter:()=>ser.reduce((a,b)=>a+b,0)+'%'}}}}},
-      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
-  });
-
-  /* история выдачи: ось перевёрнута, первая позиция сверху */
-  if(document.getElementById('c-serp')){
-    mk('c-serp', Object.assign(base(280,'line'), {
-      series:[{name:'Позиция', data:[9,8,8,6,7,5,5]}],
-      xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
-      yaxis:{reversed:true, min:1, max:10, tickAmount:9, labels:{style:{fontSize:'11px'}}},
-      colors:[P(1)],
-      markers:{size:5, strokeWidth:2, strokeColors:SURF(), hover:{size:8}},
-      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
-  }
-
-  /* тепловая карта: последовательная шкала, один тон светлее к темнее */
-  if(document.getElementById('c-heat')){
-    const q = ['запрос 1','запрос 2','запрос 3','запрос 4','запрос 5'];
-    const m = [[10,6,4,2,1],[6,10,5,3,2],[4,5,10,6,3],[2,3,6,10,7],[1,2,3,7,10]];
-    mk('c-heat', Object.assign(base(320,'heatmap'), {
-      series: q.map((n,i)=>({name:n, data:q.map((nn,j)=>({x:nn, y:m[i][j]}))})),
-      colors:[PS(3)],
-      plotOptions:{heatmap:{shadeIntensity:.55, radius:3, useFillColorAsStroke:false,
-        colorScale:{ranges:[
-          {from:0,to:2,color:PS(0),name:'0-2 общих URL'},
-          {from:3,to:4,color:PS(1),name:'3-4'},
-          {from:5,to:6,color:PS(2),name:'5-6'},
-          {from:7,to:8,color:PS(3),name:'7-8'},
-          {from:9,to:10,color:PS(4),name:'9-10'}]}}},
-      stroke:{width:2, colors:[SURF()]},
-      legend:{show:true, position:'bottom', fontSize:'11px', markers:{width:9,height:9,radius:3}},
-      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
-  }
-
-  /* объём рекламы: выделение одного столбца, остальные нейтральны */
-  [['c-ads', 290],['c-ads2', 290]].forEach(([id,h])=>{
-    if(!document.getElementById(id)) return;
-    const our = CUR==='gm' ? (d.ads? d.ads.v : 0) : 0;
-    const cats = ['мы','лидер ниши','второй','третий'];
-    const vals = [our, 314, 186, 70];
-    const neutral = A() ? '#39404A' : '#C3CBD9';
-    mk(id, Object.assign(base(h,'bar'), {
-      series:[{name:'Объявлений', data:vals}],
-      xaxis:{categories:cats, axisBorder:{show:false}, axisTicks:{show:false}, labels:{style:{fontSize:'11px'}}},
-      plotOptions:{bar:{borderRadius:4, borderRadiusApplication:'end', columnWidth:'50%', distributed:true}},
-      colors:[P(2), neutral, neutral, neutral],
-      legend:{show:false},
+  /* объём рекламы у первой пятёрки конкурентов: настоящие объявления из выгрузки keys.so */
+  if(document.getElementById('c-ads')){
+    const top = (d.adc||[]).slice(0,5);
+    mk('c-ads', Object.assign(base(290,'bar'), {
+      series:[{name:'Объявлений', data:top.map(r=>r.ads_count||0)}],
+      xaxis:{categories:top.map(r=>r.domain), axisBorder:{show:false}, axisTicks:{show:false}, labels:{style:{fontSize:'11px'}}},
+      plotOptions:{bar:{borderRadius:4, borderRadiusApplication:'end', columnWidth:'50%'}},
+      colors:[P(2)],
       dataLabels:{enabled:true, offsetY:-18, style:{fontSize:'11px', fontWeight:600, colors:[INK()]}, formatter:v=>nf(v)},
       tooltip:{enabled:true, theme:A()?'dark':'light'} }));
-  });
-
-  /* рост доноров */
-  if(document.getElementById('c-don')){
-    mk('c-don', Object.assign(base(280,'line'), {
-      series:[{name:'Доноров', data:[498,503,507,511,514,517,519]}],
-      xaxis:{categories:wkCats, axisBorder:{show:false}, axisTicks:{show:false}},
-      colors:[P(4)], markers:{size:0, hover:{size:8}},
-      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
   }
 
-  /* визиты Метрики: площадь, заглушка */
-  if(document.getElementById('c-traf')){
-    mk('c-traf', Object.assign(base(280,'area'), {
-      series:[{name:'Визиты', data:[0,0,0,0,0,0,0]}],
-      xaxis:{categories:['пн','вт','ср','чт','пт','сб','вс'], axisBorder:{show:false}, axisTicks:{show:false}},
-      yaxis:{max:10, labels:{style:{fontSize:'11px'}}},
-      colors:[P(3)],
-      fill:{type:'gradient', gradient:{opacityFrom:.20, opacityTo:.02}},
-      noData:{text:'Счётчик не подключён', style:{fontSize:'13px', color:INK()}},
-      tooltip:{enabled:true, theme:A()?'dark':'light'} }));
-  }
-
-
-
-  /* покрытие индексом */
-  if(document.getElementById('c-idx')){
-    mk('c-idx', Object.assign(base(260,'radialBar'), {
-      series:[0], labels:['в индексе'],
-      colors:[P(2)],
-      plotOptions:{radialBar:{hollow:{size:'62%'}, track:{background:A()?'#1A1E24':'#EEF1F6'},
-        dataLabels:{name:{fontSize:'12px', color:INK()}, value:{fontSize:'22px', fontWeight:700, color:INKH(), formatter:v=>v+'%'}}}},
-      tooltip:{enabled:false} }));
-  }
 }
 '''

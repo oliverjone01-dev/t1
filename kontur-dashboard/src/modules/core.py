@@ -44,6 +44,12 @@ function copyNote(){
     +' кампаний «Перегородки», тот же расход и те же клики, что у Директа по счётчику '+esc(c.of)
     +'. Поэтому цифр Директа здесь нет. Если у проекта есть свой кабинет, его выгрузку нужно подключить отдельно.','warn');
 }
+/* Согласование числа и слова: pl(144,'заявка','заявки','заявок') -> «заявки». */
+const pl = (n, one, few, many) => { const m = Math.abs(Math.round(n)) % 100, d = m % 10;
+  return (m>=11 && m<=14) ? many : d===1 ? one : (d>=2 && d<=4) ? few : many; };
+/* Потолок маркетинга по проекту как конверт: класс наследует от плана и доли. */
+const CAPF = d => { const k = [d.plan.k, DB.thresh.mkt_share.k].includes('ГИПОТЕЗА') ? 'ГИПОТЕЗА' : 'ДАННЫЕ';
+  return {v:d.plan.v*DB.thresh.mkt_share.v, k, s:'план H2 × доля маркетинга', at:'', n: k==='ГИПОТЕЗА' ? 'план и доля названы без документа в репозитории' : ''}; };
 const money = n => (n==null||!isFinite(n)) ? '-' : nf(Math.round(n)) + ' ₽';
 const pc  = n => (n==null||!isFinite(n)) ? '-' : (n*100).toFixed(n<0.1?1:0).replace('.',',') + '%';
 
@@ -163,7 +169,10 @@ function anomalies(field, relLimit){
     if(r[f]==null) continue;
     if(prev && prev.v) {
       const rel = (r[f] - prev.v) / prev.v;
-      if(Math.abs(rel) >= lim) out.push({from: prev.d, to: r.date, was: prev.v, now: r[f], rel});
+      // Порог и в долях, и в абсолютных единицах: 1 -> 2 это +100%, но при видимости в
+      // единицы процентов такой шаг шум, а не скачок.
+      const absLim = f==='vis' ? 5 : f==='ai' ? 10 : f==='top10' ? 10 : 50;
+      if(Math.abs(rel) >= lim && Math.abs(r[f]-prev.v) >= absLim) out.push({from: prev.d, to: r.date, was: prev.v, now: r[f], rel});
     }
     prev = {d: r.date, v: r[f]};
   }
@@ -175,7 +184,8 @@ function anomalyNote(field, label){
   const x = a[a.length-1];
   return note('Резкий скачок в ряду: ' + label,
     'С ' + ruD(x.from) + ' по ' + ruD(x.to) + ' значение изменилось с ' + nf(x.was) + ' на ' + nf(x.now)
-    + ' (' + (x.rel>0?'+':'') + Math.round(x.rel*100) + '%). За три дня органика так не двигается. '
+    + ' (' + (x.rel>0?'+':'') + Math.round(x.rel*100) + '%). '
+    + (()=>{ const dd = Math.round((dOf(x.to)-dOf(x.from))/86400000); return 'За '+nf(dd)+' '+pl(dd,'день','дня','дней')+' органика так не двигается. '; })()
     + 'Прежде чем нести это собственнику, надо проверить в кабинете keys.so, не сменился ли состав промптов или методика счёта. '
     + 'Скачок оставлен в ряду как есть: подчищать данные, чтобы график выглядел ровнее, нельзя.', 'warn');
 }

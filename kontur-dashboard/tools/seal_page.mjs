@@ -46,8 +46,9 @@ if (!file) fail("Использование: KONTUR_PASS=... node tools/seal_pag
 if (password.length < 12) fail("KONTUR_PASS короче 12 знаков: утёкший файл подбирается офлайн, публикация остановлена.");
 // Пароли, которые уже лежат открытым текстом в этом публичном репозитории
 // (дефолт хаба, gg-seo-geo-monster/README.md). С таким паролем шифр ничего не закрывает.
-const KNOWN_PUBLIC = ["genmonster2026"];
-if (KNOWN_PUBLIC.includes(password)) fail("KONTUR_PASS совпадает с паролем, опубликованным в репозитории, публикация остановлена.");
+// Сравнение без регистра и по корню: «Genmonster2026!» подбирается тем же словарём.
+const KNOWN_PUBLIC = ["genmonster"];
+if (KNOWN_PUBLIC.some(w => password.toLowerCase().includes(w))) fail("KONTUR_PASS построен на пароле, опубликованном в репозитории, публикация остановлена.");
 // Общий пароль хаба нельзя: /seo/ публикует его быстрый SHA-256, по нему пароль
 // подбирается офлайн в обход PBKDF2. Шаг публикации передаёт HUB_PASS только для сверки.
 if (process.env.HUB_PASS && process.env.HUB_PASS === password) fail("KONTUR_PASS совпадает с HUB_PASS, публикация остановлена.");
@@ -65,11 +66,18 @@ const out = html.slice(0, a)
   + '<script id="app-sealed" type="application/json">' + JSON.stringify(sealed) + "</script>\n"
   + html.slice(b + CLOSE.length);
 
-// Проверка разрешающая, а не по списку запретных слов: всё вне шифроблока обязано
-// совпасть с исходной страницей вне блока app-js, и ни одно значение из данных
-// (числа от 1000 и строки от 8 знаков) не должно встречаться в открытой части.
+// Проверка разрешающая. Открытая часть страницы - это стили, разметка и ровно
+// четыре скрипта: tailwind и apexcharts с CDN, конфиг tailwind и окно пароля.
+// Любой другой скрипт вне шифроблока - повод остановить публикацию.
 const openPart = out.replace(/<script id="app-sealed" type="application\/json">[^<]*<\/script>\n/, "");
-if (openPart !== html.slice(0, a) + html.slice(b + CLOSE.length)) fail("Шифрование изменило страницу вне блока app-js.");
+const scripts = [...openPart.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
+const allowed = (attrs, body) =>
+  /src="https:\/\/cdn\.tailwindcss\.com"/.test(attrs) ||
+  /src="https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/apexcharts\//.test(attrs) ||
+  /^\s*tailwind\.config\s*=/.test(body) ||
+  body.includes("getElementById('app-sealed')");
+const extra = scripts.filter(([, attrs, body]) => !allowed(attrs, body));
+if (extra.length) fail("Вне шифроблока лишний скрипт: " + extra[0][0].slice(0, 80));
 const m = code.match(/const DB = (\{.*?\});\n/s);
 if (!m) fail("В блоке app-js нет данных DB: сборка страницы изменилась, проверка невозможна.");
 const db = JSON.parse(m[1]);
@@ -81,7 +89,15 @@ const leaks = new Set();
 (function walk(o) {
   if (o == null) return;
   if (typeof o === "number" && Math.abs(o) >= 1000) {
-    if (new RegExp("(?<![\\w.])" + String(o).replace(".", "\\.") + "(?![\\w])").test(openText)) leaks.add(String(o));
+    // Число ищется и в сыром виде, и в экранном: разряды через пробел или
+    // неразрывный пробел, как их печатает nf(), и в миллионах.
+    const i = String(Math.trunc(Math.abs(o)));
+    const forms = [String(o), i.replace(/\B(?=(\d{3})+(?!\d))/g, " "), i.replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0")];
+    if (Math.abs(o) >= 1e6 && Math.abs(o) % 1e6 === 0) forms.push(Math.abs(o) / 1e6 + " млн", Math.abs(o) / 1e6 + "\u00a0млн");
+    for (const f of forms) {
+      const re = new RegExp("(?<![\\w.])" + f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w])");
+      if (re.test(openText)) { leaks.add(f); break; }
+    }
   } else if (typeof o === "string" && o.length >= 8 && !PUBLIC.has(o)) {
     if (openText.includes(o)) leaks.add(o.slice(0, 40));
   } else if (typeof o === "object") Object.values(o).forEach(walk);

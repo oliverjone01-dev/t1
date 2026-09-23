@@ -170,7 +170,7 @@ function transcript(evs: Ev[]): { text: string; srcs: Record<number, string> } {
 // Записываем разбор сделки в reviews с переводом msgTags.i -> src сообщения.
 function applyReview(reviews: Record<string, any>, it: Item, r: any) {
   const msgTags = Array.isArray(r.msgTags)
-    ? r.msgTags.map((t: any) => ({ src: it.srcs[Number(t.i)] || "", tone: t.tone, t: t.t, quote: t.quote })).filter((t: any) => t.src)
+    ? r.msgTags.map((t: any) => ({ src: it.srcs[Number(t.i)] || "", k: t.k || "", tone: t.tone, t: t.t, quote: t.quote })).filter((t: any) => t.src)
     : [];
   reviews[it.k] = { ...r, msgTags, mgr: it.mgr, lastTs: it.last, at: new Date().toISOString(), model: MODEL };
 }

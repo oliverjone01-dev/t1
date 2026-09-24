@@ -1,200 +1,221 @@
 // @ts-nocheck
-// Дашборд ПТО: все запуски стадии «Расчёт» в воронке C49 и что с ними стало.
+// Дашборд ПТО: все запуски стадии «Расчёт» воронки C49 и что с ними стало.
 //
-// Вопрос, ради которого собрано: правда ли, что к концу месяца сделок передают
-// в расчёт больше. Страница отвечает на него не мнением, а распределением по дням
-// месяца, нормированным на рабочие дни, плюс перестановочный тест.
+// Вопрос, ради которого собрано: правда ли, что к концу месяца в расчёт отдают больше.
+//
+// ВАЖНО про методику. Первая версия этой страницы вывела на герой одно окно хвоста
+// («последние 5 рабочих дней», отношение 1.15x, p=0.061) и получила от ФЕНИКСА veto 5.55:
+// это окно оказалось единственным удачным из девяти, то есть подгонкой. Здесь считаются
+// ВСЕ окна сразу и показываются таблицей, плюс два сценария очистки данных. Вывод строится
+// по таблице, а не по одной клетке.
+//
+// Два режима сборки:
+//   PTO_PUBLIC=1 - публичная версия для GitHub Pages: без названий сделок (в них имена
+//                  заказчиков), без бюджетов, без фамилий, без ссылок в CRM. Только даты,
+//                  стадии, счётчики и номер сделки. На вопрос ПТО этого хватает.
+//   без флага     - полная версия для Ивана, отдаётся файлом, не по ссылке.
 //
 // Источник: rop.json из ветки rop-dashboard-v1 (тот же снимок, что и РОП-дашборд).
-// Запуск: ROP_JSON=/путь/rop.json npx tsx src/scripts/b24/build-pto.ts
+// Запуск: ROP_JSON=/путь/rop.json [PTO_PUBLIC=1] npx tsx src/scripts/b24/build-pto.ts
 import { readFileSync, writeFileSync } from "node:fs";
 
 const ROP = process.env.ROP_JSON || "../rop.json";
 const TPL = "pto/pto.template.html";
-const OUT = "public/pto-command.html";
+const PUBLIC = process.env.PTO_PUBLIC === "1";
+const OUT = PUBLIC ? "public/pto-command.html" : "public/pto-full.html";
 
-// Стадия «Расчёт» воронки «GG RF Заказы» (категория 49).
-const CALC = "C49:UC_OGZUU0";
-// Март 2026 - месяц переезда из amoCRM: 20k+ сделок перенесли пачкой на те же стадии,
-// даты переходов у них искусственные. В статистику не берём (решение Ивана 2026-09-22).
-const FROM = "2026-04-01";
+const CALC = "C49:UC_OGZUU0";   // стадия «Расчёт» воронки «GG RF Заказы»
+const FROM = "2026-04-01";      // март 2026 - месяц переезда из amoCRM, даты переходов искусственные
+const REPLUMB = "2026-07-23";   // день, когда из воронки исчезла стадия C49:UC_LRFLH9
 
 const rop = JSON.parse(readFileSync(ROP, "utf-8"));
-const ST: Record<string, string> = rop.refs.dealStages;
+const ST = rop.refs.dealStages;
+const deals = rop.deals.filter((d) => String(d.category) === "49");
+const byId = Object.fromEntries(deals.map((d) => [d.id, d]));
 
-const deals = rop.deals.filter((d: any) => String(d.category) === "49");
-
-// В истории встречаются коды стадий, которых уже нет в воронке: их удалили из Bitrix,
-// а переходы в карточках остались. Показывать сырой код пользователю нельзя, выдумывать
-// название тоже. Подписываем как удалённую стадию и даём срок её жизни по данным.
-const gone: Record<string, { first: string; last: string; n: number }> = {};
-for (const d of deals) for (const [c, t] of (d.hist || []) as [string, string][]) {
+// Коды стадий, которых больше нет в воронке: подписываем сроком жизни, а не сырым кодом.
+const gone = {};
+for (const d of deals) for (const [c, t] of (d.hist || [])) {
   if (ST[c]) continue;
   const day = String(t).slice(0, 10);
   const g = (gone[c] ||= { first: day, last: day, n: 0 });
   g.n++; if (day < g.first) g.first = day; if (day > g.last) g.last = day;
 }
-const ru = (s: string) => s.split("-").reverse().join(".");
-const nameOf = (c: string | null) => {
-  if (!c) return "";
-  if (ST[c]) return ST[c];
-  const g = gone[c];
-  return g ? `удалённая стадия (была ${ru(g.first)} - ${ru(g.last)})` : c;
-};
-const byId: Record<string, any> = {};
-for (const d of deals) byId[d.id] = d;
+const ru = (s) => s.split("-").reverse().join(".");
+const nameOf = (c) => !c ? "" : ST[c] ? ST[c] : gone[c] ? `удалённая стадия (была ${ru(gone[c].first)} - ${ru(gone[c].last)})` : c;
 
-type Run = {
-  d: string; id: string; title: string; mgr: string; budget: number;
-  dir: string; assort: string; from: string; to: string; days: number | null;
-  cur: string; out: "won" | "lost" | "open";
-};
-const runs: Run[] = [];
-let noHist = 0;
+// --- запуски -----------------------------------------------------------------
+const runs = [];
 for (const d of deals) {
-  const h: [string, string][] = d.hist || [];
-  if (!h.length) { noHist++; continue; }
+  const h = d.hist || [];
   h.forEach(([code, ts], i) => {
     if (code !== CALC) return;
     const day = String(ts).slice(0, 10);
     if (day < FROM) return;
     const nx = h[i + 1];
-    const days = nx ? Math.round((Date.parse(nx[1].slice(0, 10)) - Date.parse(day)) / 864e5) : null;
     runs.push({
-      d: day, id: String(d.id), title: d.title || "", mgr: d.mgr || "не указан",
-      budget: Number(d.budget) || 0, dir: d.dir || "", assort: d.assort || "",
-      from: nameOf(h[i - 1] ? h[i - 1][0] : null), to: nameOf(nx ? nx[0] : null), days,
+      d: day, id: String(d.id),
+      title: d.title || "", mgr: d.mgr || "не указан", budget: Number(d.budget) || 0,
+      from: nameOf(h[i - 1] ? h[i - 1][0] : null), to: nameOf(nx ? nx[0] : null),
+      days: nx ? Math.round((Date.parse(nx[1].slice(0, 10)) - Date.parse(day)) / 864e5) : null,
       cur: d.stage || "", out: d.won ? "won" : d.lost ? "lost" : "open",
     });
   });
 }
 runs.sort((a, b) => (a.d < b.d ? 1 : a.d > b.d ? -1 : 0));
 
-// --- календарь рабочих дней -------------------------------------------------
-// Рабочий день = пн-пт. Производственный календарь РФ с праздниками не заводим:
-// он сместил бы 8-10 дней за полгода, а вывод строится на отношении декад, где
-// такой сдвиг тонет. Помечено как допущение в самой странице.
-const isWd = (s: string) => { const w = new Date(s + "T00:00:00Z").getUTCDay(); return w >= 1 && w <= 5; };
-const daysInMonth = (m: string) => new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7), 0)).getUTCDate();
-const dayStr = (m: string, day: number) => `${m}-${String(day).padStart(2, "0")}`;
+// Дедуп по (сделка, день): одна сделка может за день заходить в «Расчёт» несколько раз,
+// это прокликивание карточки, а не новая работа ПТО. ФЕНИКС: 106 строк из 867, и без
+// дедупа эффект хвоста завышен (p 0.061 против 0.240).
+const seenKey = new Set();
+for (const r of runs.slice().reverse()) { const k = r.id + "|" + r.d; r.dup = seenKey.has(k); seenKey.add(k); }
+const dedup = runs.filter((r) => !r.dup);
 
-const months = Array.from(new Set(runs.map(r => r.d.slice(0, 7)))).sort();
-// Последний месяц снимка не закрыт, значит его конец ещё не наблюдался.
-// Включать его в проверку «конца месяца» нельзя: это занизит хвост.
+// --- календарь рабочих дней ---------------------------------------------------
+const isWd = (s) => { const w = new Date(s + "T00:00:00Z").getUTCDay(); return w >= 1 && w <= 5; };
+const dim = (m) => new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7), 0)).getUTCDate();
+const dstr = (m, day) => `${m}-${String(day).padStart(2, "0")}`;
+// Нерабочие дни РФ, попавшие на будни в окне анализа. Список собран вручную и с официальным
+// производственным календарём не сверялся; в данных у всех трёх ровно ноль запусков, поэтому
+// в знаменателе они завышают базу. Показываем сценарии и с ними, и без них.
+const HOLIDAYS = new Set(["2026-05-01", "2026-05-11", "2026-06-12"]);
+
+const months = [...new Set(runs.map((r) => r.d.slice(0, 7)))].sort();
 const today = String(rop.generated_at || "").slice(0, 10);
 const openMonth = today.slice(0, 7);
-const closedMonths = months.filter(m => m < openMonth);
+const closed = months.filter((m) => m < openMonth);
 
-function last5wd(m: string): string[] {
-  const out: string[] = [];
-  for (let day = daysInMonth(m); day >= 1 && out.length < 5; day--) {
-    const s = dayStr(m, day); if (isWd(s)) out.push(s);
+const wdaysOf = (ms, drop) => {
+  const out = [];
+  for (const m of ms) for (let day = 1; day <= dim(m); day++) {
+    const s = dstr(m, day); if (isWd(s) && !(drop && drop.has(s))) out.push(s);
+  }
+  return out;
+};
+const tailOf = (ms, n, drop) => {
+  const L = new Set();
+  for (const m of ms) { let k = 0;
+    for (let day = dim(m); day >= 1 && k < n; day--) { const s = dstr(m, day); if (isWd(s) && !(drop && drop.has(s))) { L.add(s); k++; } } }
+  return L;
+};
+
+// Монте-Карло биномиального: раскидываем те же события случайно по рабочим дням периода.
+// Детерминированный mulberry32 на Math.imul - наивный LCG в JS переполняет double и врёт
+// (давал p=0.018 вместо 0.063, сверено с Python).
+function mc(evDays, pool, L, rounds = 20000, seed = 20260924) {
+  const inL = evDays.filter((x) => L.has(x)).length;
+  const poolSet = new Set(pool);
+  const outL = evDays.filter((x) => poolSet.has(x) && !L.has(x)).length;
+  const nL = L.size, nO = pool.length - nL;
+  if (!nL || !nO || !(inL + outL)) return null;
+  let s = seed >>> 0;
+  const rnd = () => { s = (s + 0x6d2b79f5) >>> 0; let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const n = inL + outL; let ge = 0;
+  for (let k = 0; k < rounds; k++) {
+    let c = 0; for (let j = 0; j < n; j++) if (L.has(pool[Math.floor(rnd() * pool.length)])) c++;
+    if (c >= inL) ge++;
+  }
+  const rL = inL / nL, rO = outL / nO;
+  return { inL, outL, nL, nO, rateL: rL, rateO: rO, ratio: rO ? rL / rO : 0, p: ge / rounds };
+}
+
+const daysOf = (rows, ms) => rows.filter((r) => ms.includes(r.d.slice(0, 7))).map((r) => r.d);
+
+// Таблица устойчивости: все окна хвоста и три декады, на сырых и на очищенных данных.
+function stability(rows, drop) {
+  const pool = wdaysOf(closed, drop), ev = daysOf(rows, closed);
+  const out = [];
+  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 10]) {
+    const r = mc(ev, pool, tailOf(closed, n, drop));
+    if (r) out.push({ kind: "tail", label: `последние ${n} раб. дн`, n, ...r });
+  }
+  for (const [lo, hi, label] of [[1, 10, "декада 1-10"], [11, 20, "декада 11-20"], [21, 31, "декада 21-конец"]]) {
+    const D = new Set(pool.filter((s) => { const d = +s.slice(8, 10); return d >= lo && d <= hi; }));
+    const r = mc(ev, pool, D);
+    if (r) out.push({ kind: "dec", label, ...r });
   }
   return out;
 }
+const scenarios = [
+  { key: "raw", label: "как есть", rows: runs, drop: null },
+  { key: "dedup", label: "дедуп по (сделка, день)", rows: dedup, drop: null },
+  { key: "clean", label: "дедуп + без нерабочих дней", rows: dedup, drop: HOLIDAYS },
+].map((s) => ({ key: s.key, label: s.label, n: daysOf(s.rows, closed).length, rows: stability(s.rows, s.drop) }));
 
-// Календарь: по каждому месяцу счётчик на каждый день.
-const cal = months.map(m => {
-  const n = daysInMonth(m);
-  const cnt: number[] = Array(n + 1).fill(0);
-  const rub: number[] = Array(n + 1).fill(0);
-  for (const r of runs) if (r.d.slice(0, 7) === m) { const dd = +r.d.slice(8, 10); cnt[dd]++; rub[dd] += r.budget; }
-  const L = new Set(last5wd(m));
-  return {
-    m, n, cnt: cnt.slice(1), rub: rub.slice(1),
-    wd: Array.from({ length: n }, (_, i) => isWd(dayStr(m, i + 1))),
-    last5: Array.from({ length: n }, (_, i) => L.has(dayStr(m, i + 1))),
-    partial: m === openMonth ? +today.slice(8, 10) : 0,
-  };
+// Реальная работа ПТО: расчёт, который занял хотя бы сутки. Всё, что уходит со стадии
+// в тот же день, это прокликивание карточки.
+const realWork = dedup.filter((r) => r.days != null && r.days >= 1);
+const sameDay = dedup.filter((r) => r.days === 0);
+const realTail = mc(daysOf(realWork, closed), wdaysOf(closed, HOLIDAYS), tailOf(closed, 5, HOLIDAYS));
+
+// Перестройка воронки 23.07: до и после, темп на рабочий день.
+const rate = (rows, ms, lo, hi, drop) => {
+  const pool = wdaysOf(ms, drop).filter((s) => (!lo || s >= lo) && (!hi || s <= hi));
+  const ev = rows.filter((r) => pool.includes(r.d));
+  return { n: ev.length, wd: pool.length, perDay: pool.length ? ev.length / pool.length : 0 };
+};
+const period = {
+  before: rate(dedup, months, FROM, REPLUMB, HOLIDAYS),
+  after: rate(dedup, months, REPLUMB, today, HOLIDAYS),
+  byMonth: months.map((m) => ({ m, ...rate(dedup, [m], null, m === openMonth ? today : null, HOLIDAYS), closed: closed.includes(m) })),
+};
+// Та самая стадия, чей уход совпал с ростом.
+const lrByMonth = {};
+for (const d of deals) for (const [c, t] of (d.hist || [])) if (c === "C49:UC_LRFLH9") { const m = String(t).slice(0, 7); lrByMonth[m] = (lrByMonth[m] || 0) + 1; }
+
+// --- календарь ----------------------------------------------------------------
+const cal = months.map((m) => {
+  const n = dim(m), cnt = Array(n).fill(0);
+  for (const r of dedup) if (r.d.slice(0, 7) === m) cnt[+r.d.slice(8, 10) - 1]++;
+  return { m, n, cnt,
+    wd: Array.from({ length: n }, (_, i) => isWd(dstr(m, i + 1))),
+    hol: Array.from({ length: n }, (_, i) => HOLIDAYS.has(dstr(m, i + 1))),
+    last5: (() => { const L = tailOf([m], 5, HOLIDAYS); return Array.from({ length: n }, (_, i) => L.has(dstr(m, i + 1))); })(),
+    partial: m === openMonth ? +today.slice(8, 10) : 0 };
 });
 
-// Декады, нормированные на рабочий день. Незакрытый месяц считаем отдельно и
-// в сводную строку не берём.
-function decades(ms: string[]) {
-  const cnt = [0, 0, 0], wd = [0, 0, 0];
-  for (const m of ms) {
-    const n = daysInMonth(m);
-    for (let day = 1; day <= n; day++) {
-      const i = day <= 10 ? 0 : day <= 20 ? 1 : 2;
-      if (isWd(dayStr(m, day))) wd[i]++;
-    }
-    for (const r of runs) if (r.d.slice(0, 7) === m) { const day = +r.d.slice(8, 10); cnt[day <= 10 ? 0 : day <= 20 ? 1 : 2]++; }
-  }
-  return [0, 1, 2].map(i => ({ n: cnt[i], wd: wd[i], perDay: wd[i] ? cnt[i] / wd[i] : 0 }));
-}
-const decAll = decades(closedMonths);
-const decByMonth = months.map(m => ({ m, dec: decades([m]), closed: closedMonths.includes(m) }));
-
-// Хвост месяца: последние 5 рабочих дней против остальных рабочих дней.
-const Lall = new Set(closedMonths.flatMap(last5wd));
-const wdAll: string[] = [];
-for (const m of closedMonths) for (let day = 1; day <= daysInMonth(m); day++) { const s = dayStr(m, day); if (isWd(s)) wdAll.push(s); }
-const inL = runs.filter(r => Lall.has(r.d)).length;
-const outL = runs.filter(r => !Lall.has(r.d) && isWd(r.d) && closedMonths.includes(r.d.slice(0, 7))).length;
-const nL = Lall.size, nO = wdAll.length - nL;
-const rateL = nL ? inL / nL : 0, rateO = nO ? outL / nO : 0;
-
-// Перестановочный тест: раскидываем то же число запусков случайно по рабочим дням
-// периода и смотрим, как часто в хвост попадает не меньше, чем на самом деле.
-// Детерминированный ГПСЧ, чтобы сборка была воспроизводимой.
-// mulberry32: 32-битная арифметика через Math.imul. Наивный LCG здесь использовать нельзя -
-// произведение seed*1103515245 выходит за 2^53 и double теряет младшие биты, отчего тест
-// давал p=0.018 вместо 0.062 (сверено с независимым прогоном на Python).
-let seed = 20260924 >>> 0;
-const rnd = () => {
-  seed = (seed + 0x6d2b79f5) >>> 0;
-  let t = seed;
-  t = Math.imul(t ^ (t >>> 15), t | 1);
-  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+const tally = (rows, key) => {
+  const acc = {};
+  for (const r of rows) { const k = key(r) || "(не указано)"; acc[k] = (acc[k] || 0) + 1; }
+  return Object.entries(acc).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n);
 };
-const R = 20000, N = inL + outL;
-let ge = 0;
-for (let k = 0; k < R; k++) {
-  let s = 0;
-  for (let j = 0; j < N; j++) if (Lall.has(wdAll[Math.floor(rnd() * wdAll.length)])) s++;
-  if (s >= inL) ge++;
-}
-const pTail = ge / R;
-
-// Куда уходят из Расчёта и где стоят сейчас.
-const tally = (key: (r: Run) => string) => {
-  const m: Record<string, { n: number; rub: number }> = {};
-  for (const r of runs) { const k = key(r) || "(не указано)"; (m[k] ||= { n: 0, rub: 0 }); m[k].n++; m[k].rub += r.budget; }
-  return Object.entries(m).map(([k, v]) => ({ k, ...v })).sort((a, b) => b.n - a.n);
-};
-const uniq = new Set(runs.map(r => r.id));
-const dwell = runs.filter(r => r.days != null).map(r => r.days as number).sort((a, b) => a - b);
-const q = (p: number) => (dwell.length ? dwell[Math.min(dwell.length - 1, Math.floor(dwell.length * p))] : 0);
+const uniq = new Set(dedup.map((r) => r.id));
+const dw = realWork.map((r) => r.days).concat(sameDay.map(() => 0)).sort((a, b) => a - b);
+const q = (p) => (dw.length ? dw[Math.min(dw.length - 1, Math.floor(dw.length * p))] : 0);
 
 const DATA = {
-  bakedAt: new Date().toISOString(),
-  snapshot: rop.generated_at, today, from: FROM,
-  runs, cal, months, closedMonths, openMonth,
-  decAll, decByMonth,
-  tail: { inL, outL, nL, nO, rateL, rateO, ratio: rateO ? rateL / rateO : 0, p: pTail, rounds: R },
+  bakedAt: new Date().toISOString(), public: PUBLIC,
+  snapshot: rop.generated_at, today, from: FROM, replumb: REPLUMB,
+  months, closed, openMonth, holidays: [...HOLIDAYS],
+  cal, scenarios, realTail, period, lrByMonth,
   totals: {
-    runs: runs.length, deals: uniq.size,
-    repeat: runs.length - uniq.size,
-    // Сумма по УНИКАЛЬНЫМ сделкам: 115 сделок заходили в расчёт повторно, и суммирование
-    // по запускам задвоило бы их бюджет.
-    rub: [...uniq].reduce((s, id) => s + (Number(byId[id].budget) || 0), 0),
-    noHist,
+    rows: runs.length, events: dedup.length, dup: runs.length - dedup.length,
+    deals: uniq.size, sameDay: sameDay.length, realWork: realWork.length,
     dwellMed: q(0.5), dwellP75: q(0.75), dwellP90: q(0.9),
-    stuck: runs.filter(r => r.days == null).length,
+    stuck: dedup.filter((r) => r.days == null).length,
+    rub: PUBLIC ? null : [...uniq].reduce((s, id) => s + (Number(byId[id].budget) || 0), 0),
   },
-  toStage: tally(r => r.to || "(перехода ещё не было)"),
-  fromStage: tally(r => r.from || "(создана сразу здесь)"),
-  curStage: (() => {
-    const m: Record<string, { n: number; rub: number }> = {};
-    for (const id of uniq) { const d = byId[id]; const k = d.stage || "(нет)"; (m[k] ||= { n: 0, rub: 0 }); m[k].n++; m[k].rub += Number(d.budget) || 0; }
-    return Object.entries(m).map(([k, v]) => ({ k, ...v })).sort((a, b) => b.n - a.n);
-  })(),
-  mgrs: tally(r => r.mgr),
+  toStage: tally(dedup, (r) => r.to || "(перехода ещё не было)"),
+  fromStage: tally(dedup, (r) => r.from || "(создана сразу здесь)"),
+  curStage: tally([...uniq].map((id) => ({ cur: byId[id].stage })), (r) => r.cur),
+  mgrs: PUBLIC ? null : tally(dedup, (r) => r.mgr),
   gone: Object.entries(gone).map(([c, g]) => ({ c, ...g })).sort((a, b) => b.n - a.n),
+  // Строки таблицы. В публичной версии остаются только дата, номер сделки, стадии и дни:
+  // ни названия (в нём имя заказчика), ни суммы, ни фамилии, ни ссылки в CRM.
+  runs: dedup.map((r) => PUBLIC
+    ? { d: r.d, id: r.id, from: r.from, to: r.to, days: r.days, cur: r.cur, out: r.out }
+    : r),
 };
 
 const html = readFileSync(TPL, "utf-8").replace("__PTO_DATA__", JSON.stringify(DATA));
 writeFileSync(OUT, html);
-console.log(`-> ${OUT} (${(html.length / 1024).toFixed(0)} КБ) · запусков ${runs.length}, сделок ${uniq.size}, месяцев ${months.length}`);
-console.log(`   хвост месяца: ${rateL.toFixed(2)}/дн против ${rateO.toFixed(2)}/дн, отношение ${(rateL / rateO).toFixed(2)}x, p=${pTail.toFixed(4)}`);
+const bytes = Buffer.byteLength(html, "utf8");
+console.log(`-> ${OUT} (${(bytes / 1024).toFixed(0)} КиБ, режим ${PUBLIC ? "ПУБЛИЧНЫЙ" : "полный"})`);
+console.log(`   строк истории ${runs.length}, событий после дедупа ${dedup.length}, сделок ${uniq.size}`);
+for (const sc of scenarios) {
+  const t5 = sc.rows.find((x) => x.kind === "tail" && x.n === 5);
+  console.log(`   сценарий «${sc.label}»: хвост 5 раб.дн ratio ${t5.ratio.toFixed(3)} p ${t5.p.toFixed(4)}`);
+}
+console.log(`   темп до ${REPLUMB}: ${period.before.perDay.toFixed(2)}/дн, после: ${period.after.perDay.toFixed(2)}/дн`);

@@ -8,3 +8,4 @@ dist/
 data/*.db
 public/data.json
 # data/history.ndjson - текстовый снапшот истории, КОММИТИТСЯ (персистентность синка)
+public/pto-full.html

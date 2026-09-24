@@ -1,0 +1,85 @@
+name: "PTO snapshot (смарт «Расчёт» 1060 -> ветка pto-dashboard-v1)"
+
+# Снимок смарт-процесса «Расчёт» (entityTypeId=1060) для дашборда ПТО: карточки, история
+# стадий, товарные строки (штуки), связь со сделкой воронки 49. Именно здесь живут стадии
+# чертежей, которых нет в воронке C49, поэтому без этого снимка дашборд ПТО отвечает
+# только про расчёты и молчит про чертежи.
+#
+# Живёт на main, потому что GitHub запускает cron и workflow_dispatch только из воркфлоу
+# дефолтной ветки. Чекаутит ветку данных, пишет снимок туда же. Аналог prod-cron.yml.
+#
+# Публикация /pto/ этим воркфлоу НЕ дёргается: контур публикации дашборда ПТО не решён
+# (ФЕНИКС, проба B7 от 2026-09-24: на странице данные уровня сделки без пароля).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "47 5 * * *" # ~08:47 МСК, смещён от РОП 08:17 и ПРОИЗВОДСТВА 08:37
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pto-data
+  cancel-in-progress: true
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+  B24_PORTAL: https://glassmemory.bitrix24.ru
+  DATA_BRANCH: pto-dashboard-v1
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: pto-dashboard-v1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Проверить секрет
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан (Settings -> Secrets -> Actions)."; exit 1
+          fi
+          echo "Секрет на месте."
+
+      - name: Снимок СП Расчёт -> pto/data/pto.json
+        run: npx tsx src/scripts/b24/fetch-pto.ts
+
+      - name: Проверить снимок
+        run: |
+          set -euo pipefail
+          test -s pto/data/pto.json || { echo "::error::pto.json пуст"; exit 1; }
+          node -e '
+            const d = require("./pto/data/pto.json");
+            const c = d.counts || {};
+            console.log("карточек", c.items, "· с историей", c.withHist, "· со сделкой", c.withDeal, "· штук", c.qtySum);
+            console.log("стадий", (d.refs?.stageOrder || []).length);
+            if (!c.items) { console.error("::error::в снимке ноль карточек"); process.exit(1); }
+            if (!(d.refs?.stageOrder || []).length) { console.error("::error::не выгрузились стадии смарта"); process.exit(1); }
+          '
+
+      - name: Закоммитить снимок в ветку данных
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add analytics-mvp/pto/data/pto.json
+          if git diff --cached --quiet; then
+            echo "Снимок не изменился - коммита нет."
+          else
+            git commit -m "data(pto): снимок смарта «Расчёт» $(date -u +%F)"
+            git push origin HEAD:"$DATA_BRANCH"
+          fi

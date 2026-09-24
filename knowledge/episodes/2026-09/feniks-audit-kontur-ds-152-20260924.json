@@ -1,0 +1,192 @@
+{
+ "agent": "feniks",
+ "skill": "phoenix-eval",
+ "task_id": "feniks-kontur-ds-152-20260924-narrow",
+ "timestamp": "2026-09-24T14:33:34+00:00",
+ "deliverable_ref": "scratchpad/pkg152/kontur-ds (Контур DS 1.5.2: tools/check_ds.py, style_live.mjs, contrast_live.mjs, tamper_ds.py; база git b3045b0f)",
+ "artifact_class": "gate",
+ "anchor": "7.9 timur-activation итерация 2 (return) - наш 7.95 выше на 0.05: как у ТИМУРА, live-атака прошла мимо заявленного ограничения (выключатель одного элемента гасит HEX соседнего, выключатель на body гасит HEX всех записей el.style файла, rc=0); выше, потому что дыра ограничена правилом без второго слоя (HEX) и скрытыми при загрузке экранами (видимый чужой элемент живой слой ловит, P1c rc=1), а у ТИМУРА подделка вела к реальной мутации API; ниже 8.5 timur итерация 3, где ни одна атака не прошла. От узкой проверки 1.5.1 (8.60): accuracy 9 -> 7 (accuracy_3 1 -> 0, шесть опровергнутых строк §20; accuracy_2 2 -> 1, регресс автора на стороже 1.5.1), risk 8 -> 7 (risk_21 2 -> 1, risk_23 2 -> 1, risk_24 1 -> 2), остальное без изменений. Расхождение с якорем 0.05, дрейфа нет",
+ "probes": [
+  {
+   "id": "A6a",
+   "result": "FAIL",
+   "evidence": "P1a (статика): <span class=op-tag style=\"--ks-allow:'HEX: цвет партнёра по брендбуку'; color:#1a4b8c\"> и соседний <span class=op-tag style=\"color:#b00020\"> без выключателя: rc=0, две заметки «выключено [HEX] ... span.op-tag[style=\"\"] ... ['#b00020'] | причина: цвет партнёра по брендбуку»; контроль P1a_ctl: rc=1 [HEX]. P1b (--live): строка с полосой того же тега и класса в закрытом <dialog>: rc=0, отдельной заметки нет (hit() склеивает одинаковое сообщение, check_ds.py:322), живой слой скрытое не проверяет; контроль P1b_ctl: rc=1 [SIDESTRIPE]. P1c: тот же чужой элемент видимым ловит живой слой (rc=1), дыра = HEX и скрытые при загрузке экраны. Причина: ключ style=\"\" синтезирован из тега+id+class+aria-label (check_ds.py:235-238), выключатель ищется по ключу (:305, :324)"
+  },
+  {
+   "id": "A6b",
+   "result": "FAIL",
+   "evidence": "P2 (статика): document.body.style.setProperty('--ks-allow', 'HEX: служебная пометка страницы') и document.getElementById('b').style.color = '#b00020': rc=0, заметка «выключено [HEX] ... [el.style] (js) ... ['#b00020']»; контроль P2_ctl: rc=1 [HEX]. Все записи стиля из JS идут под одним ключом '[el.style]' (check_ds.py:249-259). Опровергает DESIGN_SYSTEM.md:1579-1581 («только на сам элемент», «целый блок через родителя нельзя»); HEX проверяет только статика (DESIGN_SYSTEM.md:1505)"
+  },
+  {
+   "id": "A1",
+   "result": "PASS",
+   "evidence": "P3 (--live): --ks-allow с CONTRAST, GRADMARK, «SIDESTRIPE, CONTRAST: ...», строчными буквами, причиной из 7 знаков: [ALLOW] в статике и живьём у каждого, полосы и [GRADMARK] остаются; текст цветом var(--border) рядом с валидным «OPACITY: ...» даёт [CONTRAST] 1.17:1 (светлая) и 1.38:1 (тёмная): контраст выключателем не гасится, contrast_live.mjs выключатель не читает"
+  },
+  {
+   "id": "A6c",
+   "result": "PASS",
+   "evidence": "P4a (--live): --ks-allow на body и на обёртке .p4wrap, полоса у дочерней .p4row: [SIDESTRIPE] в статике и живьём. В CSS выключить блок через родителя нельзя, как заявлено. P4d: выключатель через var(--why): статика [ALLOW], итог провал (слои расходятся, но в сторону запрета)"
+  },
+  {
+   "id": "A5a",
+   "result": "FAIL",
+   "evidence": "Выключатель не действует в заявленных местах одного из слоёв (в сторону запрета, но §20 обещает обратное). P4b по инструкции (на элементе .p4ps, полоса в ::before): статика [SIDESTRIPE] .p4ps::before, живьём ВЫКЛ; P4c на самом ::before: статика ВЫКЛ, живьём [SIDESTRIPE]. P4e: вложенный .op-node с тем же выключателем: живьём [SIDESTRIPE] (style_live.mjs:19 if (v === pv) return null). P10: LOOPANIM из element.animate(..., {iterations: Infinity}) и SMIL с выключателем на элементе: статика [LOOPANIM] x2, живьём ВЫКЛ x2. f04b, f04c: <link color> и <rect fill=\"#1a4b8c\"> с --ks-allow:'HEX: ...' на самом элементе: [HEX]. Причина: cur[0] = None до атрибутного HEX и циклов из JS/SMIL (check_ds.py:456-477), ключ '.x' не равен '.x::before' (:324). Противоречит DESIGN_SYSTEM.md:1576, :1581, :1610"
+  },
+  {
+   "id": "A3",
+   "result": "PARTIAL",
+   "evidence": "P5 (--live): скрипт страницы window.__ksAllow = () => ({codes:['SIDESTRIPE','GRADMARK'], why:'служебная функция страницы'}): живые [SIDESTRIPE] и невыключаемый [GRADMARK] стали заметками «выключено живьём», [ALLOW] нет; контроль P5_ctl: оба провала. Класс не новый: P5_old с Element.prototype.getClientRects = () => [] глушит живой слой целиком, rc=0 без заметок; в §19 и §20 предел не описан. Новый экземпляр старого класса"
+  },
+  {
+   "id": "A5b",
+   "result": "PASS",
+   "evidence": "P6: 15 заявленных записей HEX (let/var, ${ c } с пробелами, el.style['color'] = C, без ; в конце скрипта, style без кавычек с rgb(), экранированные \\' и \\\", stop-color, flood-color, lighting-color, fill без кавычек и с пробелами у =, hsl(), константа rgb() и шаблонной строкой) пойманы 15 из 15, сторож 1.5.1 на тех же страницах 0 из 15. Мимо: FILL=\"#D00\" заглавными (атрибуты HTML без регистра, регулярка check_ds.py:459 с регистром)"
+  },
+  {
+   "id": "A5c",
+   "result": "PARTIAL",
+   "evidence": "P7, 11 законных записей: молчит на currentColor и var() в атрибутах, fill=\"url(#fade)\", href/id/use #bad #add #face, input type=color, meta theme-color, константе-якоре в href. Новые ложные [HEX] (сторож 1.5.1 rc=0): <link rel=mask-icon color=\"#5bbad5\">; data-color=\"#abc\" (печатается как <div color=...>); url(#${ID}) при const ID = 'fade'; style=\\\"fill:url(#fade)\\\" из JS; i<n ... state.color = '#abc' в коде JS (печатается как <n color=...>). Унаследовано из 1.5.1: style=\"fill:url(#fade)\" в разметке. Причины: \\b перед color внутри data-color и <(\\w+) на сравнении в JS (check_ds.py:459), #[0-9A-Fa-f]{3,8}\\b по тексту объявления вместе с url(#id) (:438), подстановка констант и снятие \\\" (:242-245) подают это в правило"
+  },
+  {
+   "id": "A5d",
+   "result": "PASS",
+   "evidence": "P8 (--live): копия пакета в папке «proj #1 %41 ?q Кир k/kontur-ds», шаблон со ссылками ../kit и ../tokens: templates/starter.html «СТОРОЖ DS: чисто»; страница «стр #2 bad.html» с полосой из внешнего файла: [SIDESTRIPE] живьём, слой открыл и проверил страницу. Сторож 1.5.1 в той же папке: [LIVE] x2"
+  },
+  {
+   "id": "A5e",
+   "result": "PARTIAL",
+   "evidence": "Подсказка про путь не срабатывает: check_ds.py 1.5.2 со старыми live-скриптами в папке с '#' печатает «[LIVE] живой контраст не запустился: Node.js v22.22.2; нужен Node и Playwright ...». Строка Playwright «page.goto: net::ERR_FILE_NOT_FOUND at file:///...» (fx155/probes/old_goto_stderr.txt:5) не проходит фильтр errs (check_ds.py:571), err = последняя строка stderr, регулярка need (:573) не совпадает. Провал громкий (rc=1), неверна только подсказка. Опровергает DESIGN_SYSTEM.md:1595-1596"
+  },
+  {
+   "id": "R1",
+   "result": "PASS",
+   "evidence": "Цифры и регресс на копиях пакета: tamper_ds.py --live «итог: 171 из 171; ложных тревог 0 из 41; живьём 16 из 16, ложных 0» (7 мин 18 с); my_variants.py 26 из 26, ложных 0 из 12; my_regress.py 0 регрессий из 66 входов; run3.py (проба итерации 3) на копии 1.5.2 fx155/ds3_152: 38 случаев, статикой 23, живьём 31, хоть одним 37, ложных F 0 из 5, по случаям совпадает с прогоном автора. Шаблоны и витрина: 5 шаблонов и specimen.html с --live: «СТОРОЖ DS: чисто», rc=0, 0 заметок, выключатель в них не используется (2 мин 5 с); сайт ОП ГМ в узкую проверку не входил"
+  }
+ ],
+ "comprehension_gate": {
+  "applies": false,
+  "passed": true,
+  "defects": []
+ },
+ "checkpoints": {
+  "accuracy_1_figures_tagged": 2,
+  "accuracy_2_sources_verifiable": 1,
+  "accuracy_3_no_conflict_with_rag": 0,
+  "accuracy_4_glossary_terminology": 2,
+  "accuracy_5_brand_names_correct": 2,
+  "actionability_6_owner_assigned": 2,
+  "actionability_7_deadline_buffer": 2,
+  "actionability_8_resources_listed": 1,
+  "actionability_9_metric_concrete": 2,
+  "actionability_10_milestone": 2,
+  "insight_11_nontrivial": 2,
+  "insight_12_second_order": 1,
+  "insight_13_alternatives_analyzed": 2,
+  "insight_14_anti_median": 1,
+  "insight_15_cross_domain": 1,
+  "brand_16_voice": 2,
+  "brand_17_anti_slop": 2,
+  "brand_18_no_em_dash": 2,
+  "brand_19_output_routing": 2,
+  "brand_20_tone_audience": 2,
+  "risk_21_downside": 1,
+  "risk_22_p9_hard_rules": 1,
+  "risk_23_crisis_scenarios": 1,
+  "risk_24_dependencies": 2,
+  "risk_25_reversibility": 2
+ },
+ "scores": {
+  "accuracy": 7.0,
+  "actionability": 9.0,
+  "insight": 7.0,
+  "brand_fit": 10.0,
+  "risk_awareness": 7.0
+ },
+ "weighted_total": 7.95,
+ "verdict": "return",
+ "verdict_override_reason": "FAIL проб класса A (Hard Rule 9): A6a и A6b, одна первопричина: ключ выключателя в статике синтезирован (style=\"\" = тег+id+class+aria-label, все записи стиля из JS = '[el.style]'). Выключатель одного span.op-tag гасит HEX соседнего span.op-tag, выключатель на document.body.style гасит HEX другого элемента, rc=0; в закрытом <dialog> полоса чужого элемента не печатается даже заметкой. Weighted 7.95 >= 7.5, verdict return по правилу, не по баллу",
+ "primary_gap": "Выключатель шире заявленного: статика ищет его по синтезированному ключу (style=\"\" = тег+id+class, все записи стиля из JS = '[el.style]'), поэтому выключатель одного элемента или body гасит находки чужих элементов с rc=0; для HEX (только статика) и скрытых при загрузке экранов второго слоя нет.",
+ "gaps": [
+  "1. Выключатель гасит чужие элементы (A6a, A6b FAIL). Статика ищет выключатель по синтезированному ключу: у style=\"\" это тег+id+class+aria-label (check_ds.py:235-238), у всех записей стиля из JS один ключ '[el.style]' (:249-259). P1a: выключатель HEX на одном span.op-tag гасит HEX соседнего span.op-tag без выключателя, rc=0. P2: document.body.style.setProperty('--ks-allow', 'HEX: ...') гасит el.style.color = '#b00020' другого элемента, rc=0. HEX проверяет только статика (DESIGN_SYSTEM.md:1505), второго слоя нет. P1b: в закрытом <dialog> полоса чужого элемента не печатается даже заметкой (склейка по сообщению, :322). Видимый чужой элемент ловит живой слой (P1c rc=1). Опровергнуто DESIGN_SYSTEM.md:1579-1582.",
+  "2. Выключатель не действует там, где §20 его обещает (A5a FAIL, в сторону запрета). Псевдоэлемент по инструкции «ставится на его элемент»: статика всё равно [SIDESTRIPE] (ключ .x не равен .x::before); на самом ::before молчит статика, кричит живой слой. Вложенный элемент того же класса с тем же выключателем живой слой считает унаследованным (style_live.mjs:19). LOOPANIM из element.animate и SMIL, HEX атрибутом fill и color: выключатель не читается, потому что эти правила срабатывают после cur[0] = None (check_ds.py:456-477). Строка миграции DESIGN_SYSTEM.md:1610 «либо поставить выключатель с причиной» для fill=\"#...\" не работает (f04c).",
+  "3. Живой слой берёт решение из глобала страницы window.__ksAllow (style_live.mjs:15, :36, :155): скрипт страницы переопределяет его и выключает [SIDESTRIPE] и невыключаемый [GRADMARK] без [ALLOW] (P5, A3 PARTIAL). Класс старый (Element.prototype.getClientRects = () => [] глушит живой слой целиком, rc=0), в §19 и §20 не описан.",
+  "4. Новые ложные [HEX] на законном (A5c PARTIAL): <link rel=mask-icon color>, data-color, url(#${ID}) при const ID = 'fade', style=\\\"fill:url(#fade)\\\" из JS, сравнение i<n в коде JS рядом с state.color. Сторож 1.5.1 на всех пяти молчал. FILL=\"#D00\" заглавными правило не видит.",
+  "5. Подсказка про путь не срабатывает (A5e PARTIAL): строка Playwright «page.goto: net::ERR_FILE_NOT_FOUND» не проходит фильтр errs (check_ds.py:571), в сообщении остаётся «Node.js v22.22.2; нужен Node и Playwright». Причина та же, что в gap 3 узкой проверки 1.5.1: берётся последняя строка stderr, а не строка с ошибкой.",
+  "6. Процесс: регресс «проба ФЕНИКСА итерации 3 без изменений: 37 из 38, ложных 0 из 5» (DESIGN_SYSTEM.md, §20 «Замер»; самопроверка п.3) автор прогнал на стороже 1.5.1: run3.py:3 указывает на ds3mine, файлы ds3mine/lp записаны 13:53-13:59, grep ALLOWABLE в ds3mine/tools/check_ds.py = 0. Мой прогон на копии 1.5.2: те же 23/31/37 из 38 и F 0 из 5, по случаям без расхождений. Цифра верна, доказательство автора её не доказывало.",
+  "Подтверждено без замечаний: невыключаемые правила (контраст, GRADMARK, смешанный список, строчные буквы, короткая причина) дают [ALLOW] в обоих слоях; родитель и body в CSS блок не выключают; 15 из 15 заявленных записей HEX пойманы; путь с #, пробелом, %41, ? и кириллицей открывается, живое нарушение на такой странице ловится; tamper 171 из 171, ложных 0 из 41, живьём 16 из 16 и 0 воспроизведены; список «Переход с 1.5.1» совпадает с diff (4 файла), кит и токены не менялись; тире и Anti-Slop в изменённых файлах 0.",
+  "Вне оценки по решению Ивана: мягкие тона и M10 заново не оценивались (M10 в регрессе остался единственным пропуском)."
+ ],
+ "evidence_ledger": [
+  {
+   "gap": "Выключатель гасит чужие элементы: ключ style=\"\" = тег+id+class, у всех записей стиля из JS один ключ [el.style]; выключатель одного элемента или body гасит HEX другого, в скрытом экране полоса чужого элемента не печатается даже заметкой",
+   "evidence": "run_probes.py P1a_hex_foreign/P1a_ctl rc 0/1, P2_js_body_allow/P2_ctl rc 0/1, P1b_stripe_hidden_foreign/P1b_ctl rc 0/1 (--live), run_p1c.py rc 1; check_ds.py:235-238, :249-259, :305, :322, :324",
+   "checkpoint": "risk_22, risk_23, accuracy_3",
+   "weight": -0.4
+  },
+  {
+   "gap": "«Выключенное не молчит» неверно для чужого элемента с тем же сообщением: находка склеивается с заметкой законного элемента",
+   "evidence": "P1b и P1c: одна статическая заметка на два элемента; check_ds.py:322 (seen по (code, msg)); DESIGN_SYSTEM.md:1582",
+   "checkpoint": "accuracy_3",
+   "weight": -0.1
+  },
+  {
+   "gap": "Выключатель не действует там, где §20 его обещает: псевдоэлемент по инструкции, LOOPANIM из JS и SMIL, HEX атрибутом (строка миграции для fill=\"#...\")",
+   "evidence": "P4b, P4c, P10 (--live), run_hex.py f04b и f04c rc=1; check_ds.py:456-477, :324; DESIGN_SYSTEM.md:1576, :1581, :1610",
+   "checkpoint": "actionability_8, accuracy_3",
+   "weight": -0.4
+  },
+  {
+   "gap": "Вложенный элемент того же класса с тем же выключателем: живой слой считает его выключатель унаследованным, дерево и вложенные списки выключить нельзя",
+   "evidence": "run_p4e.py: статика ВЫКЛ, живьём родитель ВЫКЛ, вложенный [SIDESTRIPE], rc=1; style_live.mjs:19",
+   "checkpoint": "accuracy_3",
+   "weight": -0.05
+  },
+  {
+   "gap": "Живой слой берёт решение из глобала страницы window.__ksAllow: скрипт страницы выключает любые коды, включая невыключаемый GRADMARK; предел «скрипт страницы обманывает живой слой» не описан",
+   "evidence": "run_probes.py P5_override_ksallow против P5_ctl; P5_old_class_getClientRects rc=0; style_live.mjs:15, :36, :155",
+   "checkpoint": "risk_21",
+   "weight": -0.15
+  },
+  {
+   "gap": "Новые ложные HEX на законном (mask-icon color, data-color, url(#${ID}) и url(#fade) из JS, сравнение i<n в коде JS); FILL заглавными мимо",
+   "evidence": "run_hex.py: f04, f05, f06, f07, f11 rc=1 в 1.5.2 и rc=0 в 1.5.1; v14 rc=0; check_ds.py:438, :459",
+   "checkpoint": "insight_12",
+   "weight": -0.2
+  },
+  {
+   "gap": "Подсказка «проверьте путь к файлу» не срабатывает на ошибке page.goto",
+   "evidence": "fx155/probes/old_goto_stderr.txt:5; вывод check_ds.py 1.5.2 в папке с # при упавшем page.goto; check_ds.py:571-573; DESIGN_SYSTEM.md:1595-1596",
+   "checkpoint": "accuracy_3",
+   "weight": -0.1
+  },
+  {
+   "gap": "Регресс «проба ФЕНИКСА итерации 3 без изменений» автор прогнал на стороже 1.5.1, не на 1.5.2; цифра подтвердилась только моим прогоном",
+   "evidence": "run3.py:3 DS=SP+/ds3mine; ds3mine/lp/M01.html..M38.html записаны 13:53-13:59 24.09; grep -c ALLOWABLE ds3mine/tools/check_ds.py = 0; cmp_run3.py: по случаям совпадает с run3 на копии 1.5.2",
+   "checkpoint": "accuracy_2",
+   "weight": -0.25
+  },
+  {
+   "gap": "На новое не гонялись чужие пробы (самопроверка п.14 «частично», признано автором): оба класса дыр найдены первой же атакой на область выключателя",
+   "evidence": "scratchpad/selfcheck-ds152.md:18; наборы 1.5.2 в tamper_ds.py: 3 неправильных выключателя, все на том же элементе",
+   "checkpoint": "insight_14",
+   "weight": -0.2
+  },
+  {
+   "gap": "Отсылка к eslint-disable без переноса главного: у eslint директива действует на строку или блок, здесь на синтезированный ключ",
+   "evidence": "scratchpad/selfcheck-ds152.md:19; check_ds.py:235-238, :249-259",
+   "checkpoint": "insight_15",
+   "weight": -0.2
+  }
+ ],
+ "rework_tz": "1. Область выключателя = блок, где он объявлен. Для style=\"\" и записей стиля из JS ('[el.style]', '[el.style.cssText]', '[setAttribute style]') выключатель действует только на тот же блок (тот же атрибут, та же запись); у CSS-правил остаётся селектор. Склейку находок делать по блоку, а не по тексту сообщения, чтобы находка чужого элемента не пряталась за заметкой. Приёмка: мой новый набор «выключатель у X, нарушение у Y» (style=\"\" того же тега и класса, без класса, с aria-label; setProperty на body и на другом элементе, Object.assign, cssText; скрытые экраны dialog, hidden, вкладка), в этом отчёте его нет: все находки Y печатаются провалом. 2. Покрытие выключателя совпадает с §20: атрибутный HEX по выключателю самого элемента, LOOPANIM из JS и SMIL по выключателю цели, выключатель на .x покрывает .x::before и .x::after в статике, как в живом слое; вложенный элемент, который объявляет выключатель сам, не считается унаследовавшим. Либо сузить §20 до того, что работает, и убрать строку миграции про выключатель для fill. Приёмка: псевдоэлемент по инструкции, element.animate, SMIL, fill=\"#...\" и вложенный элемент с выключателем дают заметки в обоих слоях и rc=0, без выключателя провал. 3. Живой слой: функцию выключателя объявить внутри scan, tapScan и наблюдателя, не глобалом страницы. В §19 или §20 записать предел: скрипт страницы работает в том же окне и может обмануть живой слой. 4. HEX атрибутом: имя атрибута целиком и без учёта регистра (не хвост data-color), только внутри тегов разметки и строк JS, не в коде; ссылки url(#id) исключить из поиска hex в объявлениях; решить mask-icon (исключение или рабочий выключатель). Приёмка: законные url(#hex-похожий id) из HTML и JS, data-*, mask-icon, сравнения в JS дают 0 тревог, 15 заявленных записей по-прежнему пойманы. 5. Подсказка про путь: брать в err строку с net::ERR или page.goto:, в тесте на подмену случай с упавшим page.goto и проверкой текста подсказки. 6. Регресс прогонять тем сторожем, который выпускается: в харнесе путь к tools пакета, в отчёте cmp или версия из заголовка check_ds.py. 7. §20 и строку §19 про 1.5.2 привести к коду по пунктам 1-5.",
+ "iteration": 1,
+ "confidence": 0.86,
+ "escalate_to": "нет: return автору; выпуск 1.5.2 решает Иван",
+ "sources_of_truth": [
+  "scratchpad/pkg152/kontur-ds/tools (check_ds.py, style_live.mjs, contrast_live.mjs, tamper_ds.py)",
+  "git show b3045b0f:op-gm-automation/kontur-ds/tools/ (1.5.1)",
+  "scratchpad/pkg152/kontur-ds/DESIGN_SYSTEM.md §19-§20",
+  "scratchpad/selfcheck-ds152.md",
+  "scratchpad/fx155/probes (run_probes.py, run_hex.py, run_path.py, run_p1c.py, run_p4e.py, run3_152.py, res_*.json, old_goto_stderr.txt)"
+ ]
+}

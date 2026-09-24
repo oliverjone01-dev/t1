@@ -54,7 +54,7 @@ jobs:
     env:
       PAGES: ${{ inputs.pages || 'kontur-ds/templates/*.html kontur-ds/specimen.html' }}
       DS: ${{ inputs.ds-path || 'kontur-ds' }}
-      NODE_PATH: ${{ github.workspace }}/.pw/node_modules
+      NODE_PATH: ${{ github.workspace }}/kontur-pw/node_modules
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -66,7 +66,7 @@ jobs:
       - name: Playwright с Chromium (для живого слоя)
         working-directory: ${{ github.workspace }}
         run: |
-          mkdir -p .pw && cd .pw
+          mkdir -p kontur-pw && cd kontur-pw
           npm init -y >/dev/null
           npm i --no-audit --no-fund playwright@1.56.1
           npx playwright install --with-deps chromium

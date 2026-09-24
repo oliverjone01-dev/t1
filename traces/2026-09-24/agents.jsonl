@@ -26,3 +26,5 @@
 {"ts": "2026-09-24T14:31:37+00:00", "event": "subagent_start", "agent": "roman", "tier": "4", "session_id": "ed3be3c5-4fde-5576-8ae1-2ef556941d8c", "agent_id": "ac0d630353c4d3c7b"}
 {"ts": "2026-09-24T14:32:47+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/dump.mjs"}
 {"ts": "2026-09-24T14:33:07+00:00", "event": "subagent_stop", "agent": "roman", "tier": "4", "session_id": "ed3be3c5-4fde-5576-8ae1-2ef556941d8c", "agent_id": "ac0d630353c4d3c7b", "msg_chars": 4133, "outcome": "unknown"}
+{"ts": "2026-09-24T14:41:54+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/=1887"}
+{"ts": "2026-09-24T14:45:40+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/0.5:"}

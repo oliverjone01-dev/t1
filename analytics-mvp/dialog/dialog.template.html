@@ -1163,7 +1163,9 @@ function renderTree(){
     const seg=shown.map(([k,c,l])=>{ const on=aiPickActive('tp',key,k);
       return `<span class="tseg${on?' tsegon':''}" data-temp="${k}" style="flex:${b[k]};background:${c}" data-tip="<span class='tdot' style='background:${c}'></span><b>${l}</b>: ${b[k]} сдел. · ${Math.round(b[k]/tot*100)}% портфеля · клик - показать эти сделки"></span>`; }).join('');
     // Числа под сегментами - те же доли, что и в полосе, поэтому цифра стоит под своим цветом.
-    const nums=shown.map(([k,c])=>`<span class="tnum" style="flex:${b[k]};color:${c}">${b[k]}</span>`).join('');
+    // У зелёной зоны и холодных цифру не печатаем: их доля уже стоит процентом слева и справа,
+    // а пустой span той же ширины сохраняет выравнивание остальных чисел под своими сегментами.
+    const nums=shown.map(([k,c])=>`<span class="tnum" style="flex:${b[k]};color:${c}">${(k==='goal'||k==='cold')?'':b[k]}</span>`).join('');
     // Два процента по краям: слева зелёная зона (предоплата + кипят + горячие), справа холодные.
     const nWarmSide=b.goal+b.boiling+b.hot, pWarm=Math.round(nWarmSide/tot*100), pCold=Math.round(b.cold/tot*100);
     const warmTip=`Зелёная зона: ${nWarmSide} из ${tot} сдел. (${pWarm}%) - предоплата, кипят и горячие. Это портфель, который реально близок к деньгам.`;

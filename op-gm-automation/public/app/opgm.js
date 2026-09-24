@@ -272,12 +272,7 @@ SCREENS.speed2 = function(){
   const hours = Array.from({ length:24 }, (_, h) => String(h)), matrix = WD.map((_, d) => hours.map((__, h) => (cell[d + '_' + h] || []).length));
   const mx = Math.max(1, ...matrix.flat()), q = Math.max(1, Math.ceil(mx / 5));
   const ranges = [0,1,2,3,4].map(i => [i === 0 ? 0 : i * q + 1, i === 4 ? Math.max(mx, 4 * q + 1) : (i + 1) * q]);
-  /* числовой форматтер оси кита превращает «Пн» в прочерк: подписи дней возвращаем как есть.
-     ApexCharts рисует ряды снизу вверх, поэтому ряды переворачиваем: понедельник сверху */
-  job(() => { const ch = KS.charts.heat('ch-heat', { rows:WD.slice().reverse(), cols:hours, matrix:matrix.slice().reverse(), ranges, h:300 });
-    /* легенда: «2», а не «2-2», когда в ступени одно значение */
-    if(ch && ch.updateOptions) ch.updateOptions({ yaxis:{ labels:{ style:{ fontSize:'11px' }, formatter:x => x } },
-      plotOptions:{ heatmap:{ colorScale:{ ranges:ranges.map((r, i) => ({ from:r[0], to:r[1], color:KS.charts.seq(i + 1), name:r[0] === r[1] ? String(r[0]) : r[0] + '-' + r[1] })) } } } }, false, false); });
+  job(() => KS.charts.heat('ch-heat', { rows:WD, cols:hours, matrix, ranges, h:300 }));
   const bk = [[0,900,'до 15 мин'],[900,3600,'15-60 мин'],[3600,14400,'1-4 часа'],[14400,DAY,'4-24 часа'],[DAY,1e12,'больше суток']];
   const dist = cabs.map(cab => { const L = sel({ cab, from:w.from, to:w.to }), n = L.length;
     return KS.card({ title:'Как быстро отвечаем · ' + cab, sub:dlgN(n) + ' · ' + periodLabel(),
@@ -562,7 +557,6 @@ function render(){
   document.getElementById('tools').hidden = isLegacy(v);
   document.getElementById('stamp').textContent = 'Авито API · выгрузка ' + fDay(EXPORT_TS) + '.2026';
   document.getElementById('theme').innerHTML = KS.theme.icon();
-  document.getElementById('sb-theme').innerHTML = KS.theme.icon() + '<span>Сменить тему</span>';
   KS.route.set({ project:OP.cab, view:v, period:String(OP.days) });
   KS.ticker.run(view);
   scheduleDraw();
@@ -571,8 +565,7 @@ function render(){
 function go(v){ return KS.vt(() => { OP.view = v; render(); window.scrollTo(0, 0); }); }
 function setCab(c){ OP.cab = c; OP.dlg.limit = 40; render(); }
 function setDays(d){ OP.days = d; document.getElementById('per').value = String(d); render(); }
-function densUi(){ const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase());
-  document.getElementById('sb-dens').innerHTML = KS.density.icon() + '<span>Плотность: ' + E(KS.density.label().toLowerCase()) + '</span>'; }
+function densUi(){ const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase()); }
 function cmdkItems(){
   const V = [['today','Сегодня','check'],['pulse','Пульс ОП','grid'],['speed2','Скорость ответа','clock'],['probs','Типовые проблемы','warn'],['ads','Объявления','tag'],
     ['calls','Звонки','bolt'],['cold','Холодная рассылка','mega'],['dlg','Все диалоги','list'],['data','Откуда цифры','info'],['teardowns','Детальные разборы','doc'],
@@ -610,9 +603,7 @@ function start(){
   seg.addEventListener('click', e => { const b = e.target.closest('[data-cab]'); if(b) setCab(b.dataset.cab); });
   document.getElementById('per').addEventListener('change', e => setDays(e.target.value === 'all' ? 'all' : +e.target.value));
   document.getElementById('theme').addEventListener('click', () => KS.theme.toggle());
-  /* телефон: тема и плотность живут в меню, в шапке им нет места без сжатия ниже 44 px */
-  document.getElementById('sb-theme').addEventListener('click', () => KS.theme.toggle());
-  document.getElementById('sb-dens').addEventListener('click', () => KS.density.toggle());
+  /* телефон: тема и плотность в меню (.ks-sidebar-tools в shell.html), их включает кит 1.5.1 */
   if(matchMedia('(max-width:639px)').matches) [...document.getElementById('per').options].forEach(o => { o.textContent = { '7':'7 дн', '30':'30 дн', '90':'90 дн', all:'всё' }[o.value]; });
   document.getElementById('cmdkb').outerHTML = KS.cmdk.button();
   KS.cmdk.set(cmdkItems());

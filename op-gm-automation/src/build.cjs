@@ -4,7 +4,7 @@
      смена пароля: OPGM_PW_OLD=<старый> OPGM_PW=<новый> node src/build.cjs ...
    1) расшифровывает текущие данные из public/index.html паролем из OPGM_PW;
    2) подменяет слой Авито (D.av) свежим av.json и recon.json;
-   3) копирует файлы Контур DS из kontur-ds/ на сайт как есть, без правок;
+   3) копирует файлы Контур DS из kontur-ds/ на сайт как есть (токены, кит, шаблоны, витрина);
    4) кладёт код экранов в public/app/, собирает index.html из src/shell.html;
    5) шифрует данные заново: gzip + AES-256-GCM, ключ PBKDF2 250 000.
    Пароль и данные в открытом виде в репозиторий не попадают. */
@@ -37,11 +37,14 @@ D.av = JSON.parse(fs.readFileSync(avPath, 'utf8'));
 D.av.recon = JSON.parse(fs.readFileSync(reconPath, 'utf8'));
 
 /* 3. Контур DS на сайт как есть: только то, что нужно браузеру */
-for(const sub of ['tokens', 'kit']){
+for(const sub of ['tokens', 'kit', 'templates']){
   const src = path.join(ROOT, 'kontur-ds', sub), dst = path.join(PUB, 'kontur-ds', sub);
   fs.mkdirSync(dst, { recursive:true });
   for(const f of fs.readdirSync(src)) fs.copyFileSync(path.join(src, f), path.join(dst, f));
 }
+/* шаблоны и витрина Контур DS тоже на сайте: страница настройки вида kontur-ds/templates/nastroyki.html,
+   образцы obzor/treker/otchet/starter и витрина kontur-ds/specimen.html. Данных ОП ГМ в них нет */
+fs.copyFileSync(path.join(ROOT, 'kontur-ds', 'specimen.html'), path.join(PUB, 'kontur-ds', 'specimen.html'));
 
 /* 4. код экранов и страница */
 fs.mkdirSync(path.join(PUB, 'app'), { recursive:true });

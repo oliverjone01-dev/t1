@@ -8,6 +8,7 @@ body{ padding-inline:0; }
 .sp-toc-nav a{ display:block; padding:7px var(--sp-3); border-radius:var(--r-md); color:var(--text); text-decoration:none; font-size:var(--fs-body);
   transition:background var(--dur-fast), color var(--dur-fast); }
 @media (hover:hover){ .sp-toc-nav a:hover{ background:var(--surface-2); } }
+@media (pointer:coarse){ .sp-toc-nav a{ min-height:var(--tap-sm); display:flex; align-items:center; } }
 .sp-toc-nav a.is-active{ background:var(--primary-soft); color:var(--primary-ink); font-weight:var(--fw-semi); }
 .sp-main{ flex:1; min-width:0; padding-inline:var(--sp-8); padding-block:var(--sp-8) var(--sp-10); max-width:1180px; }
 .sp-hero{ padding-bottom:var(--sp-6); border-bottom:1px solid var(--border); }

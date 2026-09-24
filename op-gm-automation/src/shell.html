@@ -17,12 +17,6 @@
 <script src="kontur-ds/kit/brand.js?v={{V}}"></script>
 <script src="kontur-ds/kit/icons.js?v={{V}}"></script>
 <script src="kontur-ds/kit/kit.js?v={{V}}"></script>
-<script>
-/* KS.prefs читает общий для всего адреса ключ localStorage 'ks-prefs': чужая страница на Контур DS на том же
-   github.io могла бы сменить нам логотип, цвета и движение. Даём проекту свой ключ и применяем вид заново
-   (до первой отрисовки: скрипты в head блокирующие). Пакет кита при этом не правится. */
-KS.prefs.KEY = 'opgm:ks-prefs'; KS.prefs.apply(KS.prefs.load());
-</script>
 <script src="kontur-ds/kit/charts.js?v={{V}}"></script>
 <script src="kontur-ds/kit/motion.riv.js?v={{V}}"></script>
 </head>
@@ -51,8 +45,8 @@ KS.prefs.KEY = 'opgm:ks-prefs'; KS.prefs.apply(KS.prefs.load());
     </div>
     <nav id="nav" class="ks-nav"></nav>
     <div class="ks-sidebar-foot ks-lbl">Выгрузка Авито по API, кабинеты OLD-G и NEW-B. Архив: 561 скриншот июля.<br>
-      <div class="op-sb-tools"><button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" id="sb-theme"></button><button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" id="sb-dens"></button></div>
       <button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" style="margin-top:var(--sp-2);padding-left:0" onclick="location.reload()">Выйти</button></div>
+    <div class="ks-sidebar-tools"><button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" data-ks-act="theme"></button><button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" data-ks-act="density"></button></div>
   </aside>
 
   <div class="ks-main">

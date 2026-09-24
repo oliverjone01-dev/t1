@@ -774,82 +774,127 @@ function deptDQBlock(){
 //   в работе  - дело на ближайшие 30 дней: здоровое состояние.
 // Разрез по менеджерам, клик по строке - раскрыть проблемные сделки со ссылками в Б24.
 // ===== СМАРТ ЗАДАЧИ: KPI менеджеров с разворотом до сделок =====
-// Часы зоны - те же, что в «Календаре горячих сделок» (см. ageAt в offerCalendarBlock):
-// возраст = дни с ДАТЫ ПОСЛЕДНЕЙ АКТИВНОСТИ (дела в таймлайне), откат на дату создания,
-// если активности нет. Проработал сделку - она освежается и уходит из красной зоны.
-// Банды: ≤14 зелёная · 15-30 жёлтая · 31+ красная. Это решение Ивана 24.09.2026.
+// Переписано 24.09.2026 после вето ФЕНИКСА (5.85/10). Что изменилось и почему:
+//
+// 1. ЧАСЫ ЗОНЫ. Была дата последней активности (d.activity = LAST_ACTIVITY_TIME
+//    Битрикса, fetch-rop.ts:440). Это поле обновляет ЛЮБОЕ изменение карточки:
+//    робот, правка поля, смена стадии. Итог был «зелёная зона 81%», хотя из 192
+//    просроченных дел 166 сидели в зелёной, и у 157 из них активность свежее
+//    реального касания клиента. Теперь часы идут по d.lastTouch (звонок, письмо,
+//    мессенджер): зелёных 52%, а не 81%. Активность карточки осталась вторым
+//    числом в тултипе - видно, где робот подкрашивает сделку свежей.
+//    Оговорка: lastTouch собирается за 90 дней, поэтому сделки без касания в окне
+//    идут отдельной корзиной «нет касания 90 дн», а не молча падают в красную.
+// 2. ПОСТ-ПРОДАЖНЫЕ СТАДИИ. 189 из 556 открытых (25% денег) стоят на Предоплата
+//    получена / В производстве / Произведен / Отправлен / РЕКЛАМАЦИЯ и давали 35 из
+//    58 красных. Молчание по сделке в цеху - вопрос к производству, а не «менеджер
+//    бросил клиента». Зона считается только по до-продажному пайплайну, бэклог
+//    показан отдельной цифрой.
+// 3. AMO-ДАМП. Фильтр created!==MIGDATE стоял только на открытых, закрытые шли с
+//    дампом: на пресете «Всё» конверсия выходила 57,4% вместо 21,7% (91% закрытых -
+//    это залитые 05.03.2026). Теперь фильтр симметричный.
+// 4. «УСПЕХ ₽» был prepayAmt||budget: у 29 из 109 предоплаты нет и подставлялся
+//    полный бюджет. Теперь две цифры раздельно, без гибрида.
+// 5. Уволенные и внеростерные менеджеры помечены.
+// Банды 0-14 / 15-30 / 31+ - те же, что в «Календаре горячих сделок», но точка
+// отсчёта здесь DATA.to, а в календаре конец последнего бакета (до +6 дней разницы).
 function smartTasksBlock(){
   const P2=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00").getTime();
   const nowT=NOWD.getTime(), today=DATA.to;
-  const openAll=flt(AD,true).filter(d=>!d.won&&!d.lost&&isOP(d.mgr)&&d.created!==MIGDATE);
+  const noAmo=d=>d.created!==MIGDATE;
+  const openAll=flt(AD,true).filter(d=>!d.won&&!d.lost&&isOP(d.mgr)&&noAmo(d));
   if(!openAll.length) return '';
-  const closedP=flt(AD,true).filter(d=>isOP(d.mgr)&&(d.won||d.lost)&&d.closed&&inP(d.closed));
-  const ageOf=d=>{const a=d.activity?P2(d.activity):P2(d.created);return Math.round((nowT-Math.min(a,nowT))/DAYMS);};
-  const zoneOf=d=>{const a=ageOf(d);return a<=14?'g':a<=30?'y':'r';};
-  const ZC={g:'#2E9E74',y:'#C2873C',r:'#CC5867'};
-  const ZL={g:'зелёная ≤14 дн',y:'жёлтая 14-30 дн',r:'красная 30+ дн'};
+  // Фильтр amo симметричный: и открытые, и закрытые. Иначе знаменатель конверсии
+  // на широких пресетах забивается дампом 05.03.2026.
+  const closedP=flt(AD,true).filter(d=>isOP(d.mgr)&&noAmo(d)&&(d.won||d.lost)&&d.closed&&inP(d.closed));
+  const POST=new Set(['C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:UC_VXNMQB']);
+  const isPost=d=>POST.has(d.stageCode);
+  const FIRED=new Set(DATA.firedManagers||[]);
+  const ROSTER=new Set(PLAN_MGRS);
+  // Возраст по РЕАЛЬНОМУ касанию клиента. null = за 90 дней касаний не было.
+  const touchAge=d=>{if(!d.lastTouch)return null;return Math.round((nowT-Math.min(P2(d.lastTouch),nowT))/DAYMS);};
+  const cardAge=d=>{const a=d.activity?P2(d.activity):P2(d.created);return Math.round((nowT-Math.min(a,nowT))/DAYMS);};
+  const zoneOf=d=>{const a=touchAge(d);if(a===null)return 'n';return a<=14?'g':a<=30?'y':'r';};
+  const ZC={g:'#2E9E74',y:'#C2873C',r:'#CC5867',n:'#8794A5'};
+  const ZL={g:'зелёная 0-14 дн',y:'жёлтая 15-30 дн',r:'красная 31+ дн',n:'нет касания за 90 дн'};
+  const fakeDue=d=>!!(d.taskDue&&String(d.taskDue).slice(0,4)==='9999'); // дело-заглушка, просрочится никогда
+  const isOvd=d=>!!(d.taskDue&&!fakeDue(d)&&String(d.taskDue).slice(0,10)<today);
   const M={};
-  const mk=nm=>M[nm]=M[nm]||{nm,op:[],sum:0,g:0,y:0,r:0,ovd:0,noTask:0,wonN:0,wonM:0,lostN:0};
-  openAll.forEach(d=>{const o=mk(d.mgr);o.op.push(d);o.sum+=(d.budget||0);o[zoneOf(d)]++;
-    if(d.taskDue&&String(d.taskDue).slice(0,10)<today)o.ovd++;
-    if(!d.tasksOpen)o.noTask++;});
-  closedP.forEach(d=>{const o=mk(d.mgr);if(d.won){o.wonN++;o.wonM+=(d.prepayAmt||d.budget||0);}else o.lostN++;});
-  const rows=Object.values(M).filter(o=>o.op.length||o.wonN||o.lostN);
-  rows.forEach(o=>{const cl=o.wonN+o.lostN;o.cr=cl?o.wonN/cl:null;o.zpct=o.op.length?o.g/o.op.length:null;});
-  const T={n:0,sum:0,g:0,y:0,r:0,ovd:0,noTask:0,wonN:0,wonM:0,lostN:0};
-  rows.forEach(o=>{T.n+=o.op.length;T.sum+=o.sum;T.g+=o.g;T.y+=o.y;T.r+=o.r;T.ovd+=o.ovd;T.noTask+=o.noTask;T.wonN+=o.wonN;T.wonM+=o.wonM;T.lostN+=o.lostN;});
-  T.cr=(T.wonN+T.lostN)?T.wonN/(T.wonN+T.lostN):null;T.zpct=T.n?T.g/T.n:null;
+  const mk=nm=>M[nm]=M[nm]||{nm,pre:[],post:[],sum:0,postSum:0,g:0,y:0,r:0,n:0,ovd:0,noTask:0,fake:0,robot:0,wonN:0,prepay:0,budg:0,noPrepay:0,lostN:0};
+  openAll.forEach(d=>{const o=mk(d.mgr);
+    if(isPost(d)){o.post.push(d);o.postSum+=(d.budget||0);}
+    else {o.pre.push(d);o.sum+=(d.budget||0);o[zoneOf(d)]++;}
+    if(isOvd(d))o.ovd++;
+    if(fakeDue(d))o.fake++;
+    if(!d.tasksOpen)o.noTask++;
+    // сделка, которую подкрашивает робот: карточка свежая, а касания клиента давно нет
+    if(cardAge(d)<=14&&(touchAge(d)===null||touchAge(d)>14))o.robot++;});
+  closedP.forEach(d=>{const o=mk(d.mgr);if(d.won){o.wonN++;o.prepay+=(d.prepayAmt||0);o.budg+=(d.budget||0);if(!d.prepayAmt)o.noPrepay++;}else o.lostN++;});
+  const rows=Object.values(M).filter(o=>o.pre.length||o.post.length||o.wonN||o.lostN);
+  rows.forEach(o=>{const cl=o.wonN+o.lostN;o.cr=cl?o.wonN/cl:null;o.zpct=o.pre.length?o.g/o.pre.length:null;});
+  const T={pre:0,post:0,sum:0,postSum:0,g:0,y:0,r:0,n:0,ovd:0,noTask:0,fake:0,robot:0,wonN:0,prepay:0,budg:0,noPrepay:0,lostN:0};
+  rows.forEach(o=>{T.pre+=o.pre.length;T.post+=o.post.length;T.sum+=o.sum;T.postSum+=o.postSum;['g','y','r','n','ovd','noTask','fake','robot','wonN','prepay','budg','noPrepay','lostN'].forEach(k=>T[k]+=o[k]);});
+  T.cr=(T.wonN+T.lostN)?T.wonN/(T.wonN+T.lostN):null;T.zpct=T.pre?T.g/T.pre:null;
   const SK=S.smSort||'cnt', SA=!!S.smAsc;
-  const val=(o,k)=>({cnt:o.op.length,sum:o.sum,zpct:o.zpct==null?-1:o.zpct,r:o.r,ovd:o.ovd,noTask:o.noTask,wonN:o.wonN,wonM:o.wonM,cr:o.cr==null?-1:o.cr}[k]);
+  const val=(o,k)=>({cnt:o.pre.length,sum:o.sum,r:o.r+o.n,ovd:o.ovd,noTask:o.noTask,robot:o.robot,wonN:o.wonN,cr:o.cr==null?-1:o.cr}[k]);
   rows.sort((a,b)=>{const x=val(a,SK),y=val(b,SK);if(x===y)return a.nm.localeCompare(b.nm);return SA?x-y:y-x;});
   const th=(k,t,tip)=>`<th data-smsort="${k}" class="${SK===k?'sorted'+(SA?' asc':''):''}" style="cursor:pointer;text-align:center;white-space:nowrap">${t}${tip?info(tip):''}</th>`;
-  const zoneBar=(o,tot)=>{if(!tot)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
+  const _tdot=c=>`<i style='display:inline-block;width:8px;height:8px;border-radius:50%;background:${c};margin-right:6px;vertical-align:-1px'></i>`;
+  const zoneBar=(o,tot,robot)=>{if(!tot)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
     const sg=(v,c)=>v?`<div style="height:100%;width:${(v/tot*100).toFixed(2)}%;background:${c}"></div>`:'';
-    const tp=(`<div class='tl'>Зона по последней активности</div>`+[['g',o.g],['y',o.y],['r',o.r]].map(([k,v])=>`<div class='tr'><span><i style='display:inline-block;width:8px;height:8px;border-radius:50%;background:${ZC[k]};margin-right:6px;vertical-align:-1px'></i>${ZL[k]}</span><span>${v} (${tot?Math.round(v/tot*100):0}%)</span></div>`).join('')+`<div style='color:var(--ink-3);font-size:10px;margin-top:6px;white-space:normal;text-transform:none;letter-spacing:0'>Возраст считается от даты последней активности - те же часы, что в «Календаре горячих сделок». Проработал сделку - она вернулась в зелёную.</div>`).replace(/"/g,'&quot;');
-    return `<td style="min-width:112px;width:112px"><div data-tip="${tp}" style="display:flex;height:11px;border-radius:6px;overflow:hidden;background:var(--bg-base)">${sg(o.g,ZC.g)}${sg(o.y,ZC.y)}${sg(o.r,ZC.r)}</div><div style="display:flex;justify-content:space-between;gap:6px;font-size:9.5px;margin-top:2px;font-variant-numeric:tabular-nums"><span style="color:${ZC.g};font-weight:700">${o.g}</span><span style="color:${ZC.y}">${o.y}</span><span style="color:${ZC.r};font-weight:${o.r?700:400}">${o.r}</span></div></td>`;};
+    const tp=(`<div class='tl'>Зона по касанию клиента</div>`+[['g',o.g],['y',o.y],['r',o.r],['n',o.n]].map(([k,v])=>`<div class='tr'><span>${_tdot(ZC[k])}${ZL[k]}</span><span>${v} (${Math.round(v/tot*100)}%)</span></div>`).join('')+`<div style='color:var(--ink-3);font-size:10px;margin-top:6px;white-space:normal;text-transform:none;letter-spacing:0'>Считается по дате последнего звонка, письма или сообщения клиенту, а НЕ по дате изменения карточки: правку поля и роботную задачу за работу с клиентом не считаем.${robot?` Карточка выглядит свежей, а касания клиента нет: <b>${robot}</b> сделок.`:''} Касания собираются за 90 дней, поэтому «нет касания за 90 дн» - отдельная корзина, а не красная зона.</div>`).replace(/"/g,'&quot;');
+    return `<td style="min-width:120px;width:120px"><div data-tip="${tp}" style="display:flex;height:11px;border-radius:6px;overflow:hidden;background:var(--bg-base)">${sg(o.g,ZC.g)}${sg(o.y,ZC.y)}${sg(o.r,ZC.r)}${sg(o.n,ZC.n)}</div><div style="display:flex;justify-content:space-between;gap:5px;font-size:9.5px;margin-top:2px;font-variant-numeric:tabular-nums"><span style="color:${ZC.g};font-weight:700">${o.g}</span><span style="color:${ZC.y}">${o.y}</span><span style="color:${ZC.r};font-weight:${o.r?700:400}">${o.r}</span><span style="color:${ZC.n}">${o.n||'·'}</span></div></td>`;};
   const head=`<tr><th style="text-align:left">Менеджер</th>`
-    +th('cnt','Открытых','Открытые сделки воронки C49, созданные после переезда из amoCRM (5 марта 2026). Снимок «сейчас», на период сверху не реагирует.')
-    +th('sum','Портфель ₽','Сумма бюджетов открытых сделок менеджера.')
-    +th('r','Зона','Зелёная ≤14 дн · жёлтая 14-30 · красная 30+. Возраст - по дате последней активности (дела в таймлайне), те же часы, что в «Календаре горячих сделок». Сортировка - по числу красных (клик ещё раз - обратный порядок).')
-    +th('ovd','Просроч. дел','Открытые сделки, у которых ближайшее дело просрочено (дата дела раньше сегодняшней).')
-    +th('noTask','Без дела','Открытые сделки без единого открытого дела. Менеджер не назначил следующий шаг.')
-    +th('wonN','Успех','Сделки, ушедшие в успех за выбранный период сверху. Деньги - предоплата (если есть) либо бюджет, это НЕ отгруженная выручка.')
-    +th('cr','Конверсия','Успех ÷ (успех + отказ) за период. Знаменатель - закрытые сделки периода, поэтому цифра отличается от сквозной конверсии лид→сделка в блоке «Отдел продаж».')
-    +`<th style="text-align:center;white-space:nowrap;color:var(--ink-4)">Рентабельность ${info('Маржа по сделке. Источника пока нет: калькулятор стал обязательным, смарт-процессы дорабатываются. Столбец включится, когда поле поедет в снимок. До этого - пусто, а не выдуманная цифра.')}</th></tr>`;
+    +th('cnt','До продажи','Открытые сделки ДО продажи: Новая, Формирование ТЗ, Расчёт, КП отправлено, Принимают решение, Долгострой. Amo-дамп (созданные 05.03.2026) исключён. Снимок «сейчас», фильтр периода сверху на него не влияет. Пост-продажный бэклог вынесен отдельной цифрой - он к работе с клиентом не относится.')
+    +th('sum','Портфель ₽','Сумма бюджетов до-продажных сделок. Пост-продажные в неё не входят.')
+    +th('r','Зона по касанию клиента','Возраст = дни с последнего звонка, письма или сообщения КЛИЕНТУ (поле lastTouch). 0-14 зелёная · 15-30 жёлтая · 31+ красная · серая = касаний за 90 дней не было. Раньше здесь стояла дата изменения карточки - её двигают роботы и правки полей, и зелёная зона выходила 81% вместо 52%. Сортировка - по сумме красной и серой.')
+    +th('robot','Красит робот','Карточка изменена за последние 14 дней, а касания клиента за это время не было. Сделка выглядит свежей в Битриксе, хотя с клиентом не работали.')
+    +th('ovd','Просроч. дел','Открытые сделки, у которых ближайшее дело просрочено. Дела с датой 9999 (заглушки) не считаются - они не просрочатся никогда, но и работой не являются.')
+    +th('noTask','Без дела','Открытые сделки без единого открытого дела: следующий шаг не назначен.')
+    +th('wonN','Закрыто в успех','Сделки, у которых дата закрытия попала в выбранный период и исход - успех. Это ДРУГОЕ определение, чем у карточки «Дашборды менеджеров» выше: там успех = вход в стадию «Предоплата получена». Пересечение множеств за 30 дней - 17 сделок из 109, цифры сойтись не должны.')
+    +th('cr','Конверсия','Успех ÷ (успех + отказ) по дате закрытия за период. Знаменатель иной, чем у сквозной конверсии в разделе «Отдел продаж».')
+    +`<th style="text-align:center;white-space:nowrap;color:var(--ink-4)">Рентабельность ${info('Маржа по сделке. Источника пока нет: калькулятор стал обязательным, смарт-процессы дорабатываются. Владелец - Иван, включаем, когда поле поедет в снимок. До этого колонка пустая, а не заполненная выдуманной цифрой.')}</th></tr>`;
   const portal=DATA.b24Portal||'';
   const dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">#${esc(id)}</a>`:'#'+esc(id);
+  const mgrMark=nm=>{const f=FIRED.has(nm),o=!ROSTER.has(nm);if(!f&&!o)return '';
+    const t=f?'уволен':'вне план-ростера';const c=f?'#CC5867':'#C2873C';
+    return `<span data-tip="${(f?'Помечен уволенным в Битриксе (ACTIVE=false), но сделки на нём числятся. Портфель нужно передать.':'Менеджера нет в план-ростере отдела: планы и нормативы на него не считаются, сделки при этом открыты.').replace(/"/g,'&quot;')}" style="margin-left:6px;font-size:9px;font-weight:700;color:${c};background:${c}1e;border:1px solid ${c}55;border-radius:5px;padding:1px 5px">${t}</span>`;};
   const mrow=o=>{
-    const opn=!!(S.smOpen&&S.smOpen[o.nm]), tot=o.op.length;
-    const zc=o.zpct==null?'var(--ink-4)':o.zpct>=0.8?ZC.g:o.zpct>=0.6?ZC.y:ZC.r;
-    const main=`<tr data-smmgr="${esc(o.nm)}" style="cursor:pointer"><td class="name" style="text-align:left"><span style="color:#A78BFA">${opn?'▾ ':'▸ '}</span>${esc(o.nm)}${o.zpct!=null?`<span style="margin-left:7px;font-size:10px;font-weight:700;color:${zc}">${Math.round(o.zpct*100)}% зел.</span>`:''}</td>
-      <td style="text-align:center;font-weight:700">${tot||'·'}</td>
-      <td style="text-align:center">${o.sum?fmtK(o.sum):'·'}</td>
-      ${zoneBar(o,tot)}
-      <td style="text-align:center;font-weight:${o.ovd?700:400};color:${o.ovd?'#F8717A':'var(--ink-3)'}">${o.ovd||'·'}</td>
+    const opn=!!(S.smOpen&&S.smOpen[o.nm]), tot=o.pre.length;
+    const zc=o.zpct==null?'var(--ink-4)':o.zpct>=0.7?ZC.g:o.zpct>=0.5?ZC.y:ZC.r;
+    const main=`<tr data-smmgr="${esc(o.nm)}" style="cursor:pointer"><td class="name" style="text-align:left"><span style="color:#A78BFA">${opn?'▾ ':'▸ '}</span>${esc(o.nm)}${o.zpct!=null?`<span style="margin-left:7px;font-size:10px;font-weight:700;color:${zc}">${Math.round(o.zpct*100)}% зел.</span>`:''}${mgrMark(o.nm)}</td>
+      <td style="text-align:center;font-weight:700">${tot||'·'}${o.post.length?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)" data-tip="Пост-продажный бэклог: предоплата получена, в производстве, произведён, отправлен, рекламация. К работе с клиентом не относится, в зону не входит.">+${o.post.length} в цеху</div>`:''}</td>
+      <td style="text-align:center">${o.sum?fmtK(o.sum):'·'}${o.postSum?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)">+${fmtK(o.postSum)} в цеху</div>`:''}</td>
+      ${zoneBar(o,tot,o.robot)}
+      <td style="text-align:center;font-weight:${o.robot?700:400};color:${o.robot?'#C2873C':'var(--ink-3)'}">${o.robot||'·'}</td>
+      <td style="text-align:center;font-weight:${o.ovd?700:400};color:${o.ovd?'#F8717A':'var(--ink-3)'}">${o.ovd||'·'}${o.fake?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)" data-tip="Дела с датой 9999 - заглушки, просрочены не будут никогда">${o.fake} заглушк.</div>`:''}</td>
       <td style="text-align:center;font-weight:${o.noTask?700:400};color:${o.noTask?'#C2873C':'var(--ink-3)'}">${o.noTask||'·'}</td>
-      <td style="text-align:center;font-weight:700">${o.wonN||'·'}${o.wonM?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${fmtK(o.wonM)}</div>`:''}</td>
-      <td style="text-align:center;font-weight:700;color:${o.cr==null||(o.wonN+o.lostN)<5?'var(--ink-3)':o.cr>=0.25?ZC.g:o.cr>=0.15?ZC.y:ZC.r}" ${(o.wonN+o.lostN)&&(o.wonN+o.lostN)<5?`data-tip="Закрытых за период всего ${o.wonN+o.lostN} - выборка мала, проценту не верить"`:''}>${o.cr==null?'—':pct(o.cr)}${(o.wonN+o.lostN)?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${o.wonN}✓/${o.lostN}✗</div>`:''}</td>
+      <td style="text-align:center;font-weight:700">${o.wonN||'·'}${o.wonN?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)" data-tip="${('Предоплата по этим сделкам '+fmtK(o.prepay)+', полная сумма сделок '+fmtK(o.budg)+(o.noPrepay?'. У '+o.noPrepay+' сделок предоплаты нет вовсе.':'')+' Это не отгруженная выручка.').replace(/"/g,'&quot;')}">предопл. ${fmtK(o.prepay)}</div>`:''}</td>
+      <td style="text-align:center;font-weight:700;color:${o.cr==null||(o.wonN+o.lostN)<5?'var(--ink-3)':o.cr>=0.25?ZC.g:o.cr>=0.15?ZC.y:ZC.r}" ${(o.wonN+o.lostN)&&(o.wonN+o.lostN)<5?`data-tip="Закрытых за период всего ${o.wonN+o.lostN} - выборка мала, проценту не верить"`:''}>${o.cr==null?'нет':pct(o.cr)}${(o.wonN+o.lostN)?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${o.wonN}✓/${o.lostN}✗</div>`:''}</td>
       <td style="text-align:center;color:var(--ink-4);font-size:10px">готовится</td></tr>`;
     if(!opn)return main;
-    const ds=o.op.slice().sort((a,b)=>ageOf(b)-ageOf(a));
-    const drows=ds.map(d=>{const z=zoneOf(d),a=ageOf(d);
-      const ov=d.taskDue&&String(d.taskDue).slice(0,10)<today;
-      const task=!d.tasksOpen?'<span style="color:#C2873C">нет дела</span>':(ov?`<span style="color:#F8717A;font-weight:700">просрочено ${esc(String(d.taskDue).slice(0,10))}</span>`:esc(String(d.taskDue||'').slice(0,10)||'·'));
-      return `<tr><td style="text-align:left;white-space:nowrap">${dl(d.id)}</td><td style="text-align:left;color:var(--ink-3)">${esc(d.stage||'')}<div style="font-size:9.5px;color:var(--ink-4)">${esc(d.client||'')}${d.assort?' · '+esc(d.assort):''}</div></td>
-        <td style="text-align:center;font-weight:700;color:${ZC[z]}">${a} дн</td>
-        <td style="text-align:center;color:var(--ink-3)">${esc(d.activity||'нет активности')}</td>
+    const byTouch=(a,b)=>{const x=touchAge(a),y=touchAge(b);return (y===null?1e9:y)-(x===null?1e9:x);};
+    const ds=o.pre.slice().sort(byTouch).concat(o.post.slice().sort(byTouch));
+    const drows=ds.map(d=>{const ta=touchAge(d),z=isPost(d)?null:zoneOf(d),ca=cardAge(d);
+      const ov=isOvd(d), fk=fakeDue(d);
+      const task=fk?'<span style="color:var(--ink-4)">дело-заглушка (9999)</span>':!d.tasksOpen?'<span style="color:#C2873C">нет дела</span>':(ov?`<span style="color:#F8717A;font-weight:700">просрочено ${esc(String(d.taskDue).slice(0,10))}</span>`:esc(String(d.taskDue||'').slice(0,10)||'·'));
+      const tcell=ta===null?'<span style="color:#8794A5">нет за 90 дн</span>':`<span style="font-weight:700;color:${isPost(d)?'var(--ink-3)':ZC[z]}">${ta} дн</span>`;
+      return `<tr><td style="text-align:left;white-space:nowrap">${dl(d.id)}</td><td style="text-align:left;color:var(--ink-3)">${esc(d.stage||'')}${isPost(d)?'<span style="margin-left:5px;font-size:9px;color:var(--ink-4)">в цеху</span>':''}<div style="font-size:9.5px;color:var(--ink-4)">${esc(d.client||'')}${d.assort?' · '+esc(d.assort):''}</div></td>
+        <td style="text-align:center">${tcell}</td>
+        <td style="text-align:center;color:${ca<=14&&(ta===null||ta>14)?'#C2873C':'var(--ink-4)'}">${ca} дн</td>
         <td style="text-align:left">${task}</td>
         <td style="text-align:right;font-weight:700">${d.budget?fmtK(d.budget):'·'}</td></tr>`;}).join('');
-    const dtbl=`<div class="scroll" style="max-height:340px"><table class="tbl"><thead><tr><th style="text-align:left">Сделка</th><th style="text-align:left">Стадия / клиент и изделие</th><th>Возраст</th><th>Посл. активность</th><th style="text-align:left">Ближайшее дело</th><th style="text-align:right">Бюджет</th></tr></thead><tbody>${drows}</tbody></table></div>`;
-    return main+`<tr style="background:var(--bg-base)"><td colspan="9" style="padding:10px 16px"><div class="card-sub" style="margin-bottom:5px">${esc(o.nm)} · открытые сделки, самые холодные сверху · клик по номеру - карточка в Битрикс24</div>${dtbl}</td></tr>`;
+    const dtbl=`<div class="scroll" style="max-height:340px"><table class="tbl"><thead><tr><th style="text-align:left">Сделка</th><th style="text-align:left">Стадия / клиент и изделие</th><th>Без касания клиента</th><th>Карточка менялась</th><th style="text-align:left">Ближайшее дело</th><th style="text-align:right">Бюджет</th></tr></thead><tbody>${drows}</tbody></table></div>`;
+    return main+`<tr style="background:var(--bg-base)"><td colspan="10" style="padding:10px 16px"><div class="card-sub" style="margin-bottom:5px">${esc(o.nm)} · открытые сделки, дольше всех без касания клиента сверху · разрыв между двумя столбцами дат и есть работа робота · клик по номеру - карточка в Битрикс24</div>${dtbl}</div></td></tr>`;
   };
   const body=rows.map(mrow).join('');
-  const trow=`<tr class="total" style="font-weight:800"><td style="text-align:left">Итог по отделу</td><td style="text-align:center">${T.n}</td><td style="text-align:center">${fmtK(T.sum)}</td>${zoneBar(T,T.n)}<td style="text-align:center;color:#F8717A">${T.ovd||'·'}</td><td style="text-align:center;color:#C2873C">${T.noTask||'·'}</td><td style="text-align:center">${T.wonN||'·'}<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${fmtK(T.wonM)}</div></td><td style="text-align:center">${T.cr==null?'—':pct(T.cr)}</td><td style="text-align:center;color:var(--ink-4)">·</td></tr>`;
+  const trow=`<tr class="total" style="font-weight:800"><td style="text-align:left">Итог по отделу</td><td style="text-align:center">${T.pre}<div style="font-size:9px;font-weight:400;color:var(--ink-4)">+${T.post} в цеху</div></td><td style="text-align:center">${fmtK(T.sum)}<div style="font-size:9px;font-weight:400;color:var(--ink-4)">+${fmtK(T.postSum)} в цеху</div></td>${zoneBar(T,T.pre,T.robot)}<td style="text-align:center;color:#C2873C">${T.robot||'·'}</td><td style="text-align:center;color:#F8717A">${T.ovd||'·'}</td><td style="text-align:center;color:#C2873C">${T.noTask||'·'}</td><td style="text-align:center">${T.wonN||'·'}<div style="font-size:9px;font-weight:400;color:var(--ink-4)">предопл. ${fmtK(T.prepay)}</div></td><td style="text-align:center">${T.cr==null?'нет':pct(T.cr)}</td><td style="text-align:center;color:var(--ink-4)">·</td></tr>`;
   const tbl=`<div class="scroll" style="max-height:620px"><table class="tbl" id="smTbl"><thead>${head}</thead><tbody>${body}${trow}</tbody></table></div>`;
-  const zp=T.n?Math.round(T.g/T.n*100):0;
-  const vc=zp>=80?ZC.g:zp>=60?ZC.y:ZC.r;
-  const verdict=`<div style="margin-top:10px;padding:10px 13px;border-radius:9px;background:${vc}12;border:1px solid ${vc}55"><div style="font-weight:800;font-size:13px;color:${vc}">Зелёная зона отдела: ${zp}% (${T.g} из ${T.n} открытых)</div><div class="card-sub" style="margin-top:4px">В красной зоне (30+ дней без активности) <b style="color:${ZC.r}">${T.r}</b> сделок. Дел просрочено на <b style="color:#F8717A">${T.ovd}</b> сделках, без единого дела стоят <b style="color:#C2873C">${T.noTask}</b>. Сначала разбирать красные с просроченным делом: клиент ждёт, а шага нет.</div>${T.ovd>T.r?`<div class="card-sub" style="margin-top:5px;color:#C2873C">Внимание на расхождение: просроченных дел (${T.ovd}) больше, чем красных сделок (${T.r}). Зона считается по последней активности в таймлайне, а туда попадают и роботные задачи - сделка выглядит свежей, хотя менеджер к ней не возвращался. Столбец «Просроч. дел» в этом случае честнее зоны.</div>`:''}</div>`;
-  return `<div class="card" id="smarttasks"><div class="card-h"><div><div class="card-title">Смарт Задачи - KPI по менеджерам ${info('Рабочая таблица РОПа: один менеджер - одна строка, клик разворачивает до сделок. Зона (зелёная/жёлтая/красная) считается по ТЕМ ЖЕ часам, что «Календарь горячих сделок» ниже: возраст = дни с даты последней активности (дела в таймлайне), откат на дату создания, если активности не было. Проработал сделку - она освежилась и вернулась в зелёную. Открытых / Портфель / Зона / Просроченные дела / Без дела - снимок СЕЙЧАС, фильтр периода сверху на них не влияет. Успех и Конверсия - за выбранный период. Вопрос: у кого портфель остывает и где менеджер не назначил следующий шаг. Вывод: красная зона + просроченное дело = сделка брошена, разбирать первой.')}</div><div class="card-sub">${fmt(T.n)} открытых сделок на ${fmtK(T.sum)} · сортировка по клику на заголовок · клик по менеджеру разворачивает сделки</div></div></div>${verdict}<div style="margin-top:12px">${tbl}</div></div>`;
+  const zp=T.pre?Math.round(T.g/T.pre*100):0;
+  const vc=zp>=70?ZC.g:zp>=50?ZC.y:ZC.r;
+  const migWarn=migInRange()?`<div class="card-sub" style="margin-top:5px;color:#F8717A">В выбранный период попал переезд из amoCRM (05.03.2026). Сделки дампа исключены и из открытых, и из закрытых, поэтому периодные колонки здесь считают только живую воронку - они не сойдутся с блоками, которые дамп не вырезают.</div>`:'';
+  const verdict=`<div style="margin-top:10px;padding:10px 13px;border-radius:9px;background:${vc}12;border:1px solid ${vc}55"><div style="font-weight:800;font-size:13px;color:${vc}">Зелёная зона до-продажного пайплайна: ${zp}% (${T.g} из ${T.pre})</div><div class="card-sub" style="margin-top:4px">Без касания клиента больше 30 дней стоят <b style="color:${ZC.r}">${T.r}</b> сделок, ещё <b style="color:${ZC.n}">${T.n}</b> не касались за все 90 дней снимка. Дел просрочено на <b style="color:#F8717A">${T.ovd}</b> сделках, без единого дела стоят <b style="color:#C2873C">${T.noTask}</b>. Отдельно <b style="color:#C2873C">${T.robot}</b> сделок карточка показывает свежими, хотя клиента не касались: это работа роботов, по ним сделка выглядит в работе, а её нет.</div><div class="card-sub" style="margin-top:4px">Пост-продажный бэклог (${T.post} сделок на ${fmtK(T.postSum)}) в зону не входит: молчание по сделке в цеху - вопрос к производству, не к менеджеру.</div>${migWarn}</div>`;
+  return `<div class="card" id="smarttasks"><div class="card-h"><div><div class="card-title">Смарт Задачи - KPI по менеджерам ${info('Рабочая таблица РОПа: строка - менеджер, клик разворачивает его сделки. Зона считается по дате последнего касания КЛИЕНТА (звонок, письмо, сообщение), а не по дате изменения карточки: поле LAST_ACTIVITY_TIME двигают роботы и правки полей, и по нему зелёная зона выходила 81% вместо 52%. Столбец «Красит робот» показывает разрыв между этими двумя датами напрямую. Пост-продажные стадии (предоплата, цех, отгрузка, рекламация) в зону не входят и вынесены отдельной цифрой. Amo-дамп 05.03.2026 исключён и из открытых, и из закрытых. Открытых / Портфель / Зона / Просроч. дел / Без дела - снимок СЕЙЧАС, период сверху на них не влияет; Закрыто в успех и Конверсия - за период. Вопрос: у кого пайплайн остывает и где следующий шаг не назначен. Вывод: красная или серая зона плюс просроченное дело - клиент ждёт, а шага нет, разбирать первой.')}</div><div class="card-sub">${fmt(T.pre)} сделок до продажи на ${fmtK(T.sum)} · сортировка по клику на заголовок · клик по менеджеру разворачивает сделки</div></div></div>${verdict}<div style="margin-top:12px">${tbl}</div></div>`;
 }
 
 function taskDisciplineBlock(){

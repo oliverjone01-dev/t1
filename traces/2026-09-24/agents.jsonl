@@ -12,3 +12,4 @@
 {"ts": "2026-09-24T09:40:50+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/="}
 {"ts": "2026-09-24T09:41:30+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/analytics-mvp/package.json"}
 {"ts": "2026-09-24T09:50:41+00:00", "event": "subagent_stop", "agent": "feniks", "tier": "0", "session_id": "ed3be3c5-4fde-5576-8ae1-2ef556941d8c", "agent_id": "aa2400410bfc32ff1", "msg_chars": 1216, "outcome": "unknown"}
+{"ts": "2026-09-24T11:57:48+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "ed3be3c5-4fde-5576-8ae1-2ef556941d8c", "agent_id": "a48bfdc72ee3ce745"}

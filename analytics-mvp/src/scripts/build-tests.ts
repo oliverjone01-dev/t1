@@ -22,6 +22,8 @@ import {
 } from "./boost-readiness.js";
 import { KPAGES, navButton } from "./katya-nav.js";
 import { gapFiller, coverage } from "./metric-gap.js";
+import { seLog, detectable, ordersNeeded } from "./mde.js";
+import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
 import {
   readFunnelTests, missingDays, aggDay, FUNNEL_TESTS_FILE,
   type FunnelRow, type FunnelKey, type FunnelRole,
@@ -50,7 +52,7 @@ type TestDef = {
   id: string; название: string; гипотеза: string; старт?: string; замер?: string;
   горизонт_дней?: number; тест?: string[]; контроль?: string[]; правило?: string; статус?: string;
   стоп?: string;
-  этап2?: string; заметка?: string;
+  этап2?: string; заметка?: string; ответственный?: string;
   /** true - поле «контроль» это группа целиком, а не список пар к тестовым товарам. */
   контроль_группа?: boolean;
   /** Акция, выход из которой меряется. Различается окном дат, а не одним типом. */
@@ -531,16 +533,6 @@ function aggDensity(t: TestDef, key: string, day: string): number | null {
 const funnelArts = (role: FunnelRole): string[] =>
   [...FT.roleOf].filter(([, r]) => r === role).map(([a]) => a);
 
-/** Откуда взята контрольная сторона. Название источника всегда показывается рядом с числом:
- *  три источника дают близкие, но не тождественные величины, и молча подменять один другим
- *  нельзя. */
-export type CtlSrc = "funnel_arts" | "funnel_agg" | "panel";
-const CTL_SRC_NAME: Record<CtlSrc, string> = {
-  funnel_arts: "контрольные артикулы из funnel_tests",
-  funnel_agg: "готовый агрегат из funnel_tests",
-  panel: "панель снимка без тестовых и их родни",
-};
-
 /** Матрица «артикул × день» по нашим рядам. Пропуск остаётся пропуском у уровней, а у
  *  количеств становится нулём только если день вообще снят (см. metric-gap.ts). */
 const matrixOf = (arts: string[], days: string[], key: string): Matrix =>
@@ -548,18 +540,25 @@ const matrixOf = (arts: string[], days: string[], key: string): Matrix =>
 
 /** Контрольная сторона по приоритету источников. */
 function controlSide(t: TestDef, days: string[], key: string): { m: Matrix; src: CtlSrc; n: number; arts: string[] } {
-  if (FUNNEL_PAGE_KEYS.has(key) && FT.exists) {
-    const ctlArts = funnelArts("control");
-    if (ctlArts.length) return { m: matrixOf(ctlArts, days, key), src: "funnel_arts", n: ctlArts.length, arts: ctlArts };
-    if (FT.agg.has(t.id || "")) {
-      // Готовый агрегат это уже одно число на группу: делить его на карточки нечем и не нужно.
-      const row = days.map((d) => aggValue(t, key, d));
-      const n = aggDay(FT, t.id || "", aggRoleFor(key), FT.last)?.n ?? 0;
-      return { m: [row], src: "funnel_agg", n, arts: [] };
-    }
+  const ctlArts = FT.exists ? funnelArts("control") : [];
+  // Правило выбора и его подписи живут в ctl-src.ts и покрыты тестами: 24.09 страница называла
+  // явный список из tests.json «панелью снимка», то есть один источник другим.
+  const src = pickCtlSrc({
+    funnelMetric: FUNNEL_PAGE_KEYS.has(key),
+    funnelFile: FT.exists,
+    funnelArts: ctlArts.length,
+    funnelAgg: FT.agg.has(t.id || ""),
+    explicit: !!(t.контроль_группа && t.контроль?.length),
+  });
+  if (src === "funnel_arts") return { m: matrixOf(ctlArts, days, key), src, n: ctlArts.length, arts: ctlArts };
+  if (src === "funnel_agg") {
+    // Готовый агрегат это уже одно число на группу: делить его на карточки нечем и не нужно.
+    const row = days.map((d) => aggValue(t, key, d));
+    const n = aggDay(FT, t.id || "", aggRoleFor(key), FT.last)?.n ?? 0;
+    return { m: [row], src, n, arts: [] };
   }
   const g = ctlGroupOf(t);
-  return { m: matrixOf(g, days, key), src: "panel", n: g.length, arts: g };
+  return { m: matrixOf(g, days, key), src, n: g.length, arts: g };
 }
 /** Индексы окна внутри ряда дней. */
 const idxOf = (days: string[], win: Set<string>): number[] =>
@@ -810,11 +809,18 @@ function chart(t: TestDef, cid: string): string {
         ? `<div class="dyn-alarm">Неделя перед стартом была нетипичной: по ней разница вышла бы <b>${dd1 >= 0 ? "+" : ""}${dd1.toFixed(0)}</b> пунктов вместо <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)}</b>. Считаем по двум неделям.</div>`
         : "";
       const pc = (x: number | null) => x == null ? "-" : (x >= 0 ? "+" : "") + x.toFixed(0) + " %";
+      // У количеств статистика не переключается, но число наблюдений за линией надо называть:
+      // прирост суммы на четырёх процентах ненулевых клеток это законная величина и хрупкая.
+      const thinNote = estOf(key) === "sum" && sideC!.share < DENSITY_MIN
+        ? ` <span class="warnv">Ненулевое значение есть лишь у ${(sideC!.share * 100).toFixed(0)} % наблюдений контроля`
+          + ` при пороге ${(DENSITY_MIN * 100).toFixed(0)} %: линия и число стоят на редких событиях.</span>`
+        : "";
       reads[key] = `<div class="dyn-read">${EST_NAME[estOf(key)]}, ${lowerTitle(title)}: тест <b>${pc(dT)}</b>, `
         + `групповой контроль <b>${pc(dC)}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b>. `
         + `Контроль: ${CTL_SRC_NAME[ctlInfo!.src]}, ${nbsp(ctlInfo!.n)} ${plural(ctlInfo!.n, "артикул", "артикула", "артикулов")}. `
         + `База - две недели перед стартом, после старта ${post.length} дн, данные по ${LAST}. `
-        + `Ненулевое значение есть у ${(sideC!.share * 100).toFixed(0)} % наблюдений контроля.</div>${alarm}`;
+        + `Наблюдений за числом: тест ${nbsp(sideT!.n)}, контроль ${nbsp(sideC!.n)}.`
+        + `${thinNote}</div>${alarm}`;
     } else {
       const v = (x: number) => Number.isFinite(x) ? nbsp(x) + unit : "нет данных";
       let extra = "";
@@ -949,13 +955,12 @@ function ctlPromoNote(t: TestDef): string {
  *  ничего не проверяет: если критерий не в силах различить разницу меньше, чем в несколько
  *  раз, то любой «просели не больше чем на 20 %» это решение подбрасыванием монеты.
  *
- *  КАК СЧИТАЕТСЯ. Заказы редкие и считаются штуками, поэтому берём пуассоновскую оценку
- *  отношения приростов: SE = sqrt(1/kТб + 1/kТп + 1/kКб + 1/kКп) по числу заказов в каждом
- *  окне, минимально различимая разница = 2.8 × SE (80 % мощности, 5 % двусторонний).
- *  Ожидаемое число заказов в окне после выхода берётся по наблюдаемому темпу базы.
+ *  ШКАЛА. Математика в mde.ts и покрыта тестами. Печатаются ДВА конца в относительных
+ *  единицах, а не одно симметричное число: 24.09 ФЕНИКС поймал здесь ровно эту ошибку, порог
+ *  выводился как «288 %», хотя падения глубже 100 % не бывает.
  *
- *  ЭТО НИЖНЯЯ ГРАНИЦА. Умножение на предельную цену добавляет разброс (товары разной цены),
- *  поэтому настоящая различимая разница по деньгам не меньше этой. */
+ *  ПРО «НЕ ЛУЧШЕ ЭТОГО». Умножение на предельную цену добавляет разброс (товары разной цены),
+ *  поэтому настоящий порог по деньгам не мягче порога по штукам, а жёстче. */
 function mdeBlock(t: TestDef): string {
   const post = t.горизонт_дней ?? 14;
   const baseDays: string[] = [];
@@ -964,28 +969,32 @@ function mdeBlock(t: TestDef): string {
   const sumUnits = (arts: string[]) =>
     arts.reduce((s, a) => s + baseDays.reduce((x, d) => x + (series.get(a)?.get(d)?.["units"] || 0), 0), 0);
   const kTb = sumUnits(t.тест || []), kCb = sumUnits(ctlArts);
-  const kTp = kTb / 14 * post, kCp = kCb / 14 * post;
-  if (!kTb || !kCb) {
-    return `<div class="dyn-alarm"><b>Итоговый критерий посчитать не на чем.</b> За последние 14 дней`
-      + ` тестовая группа набрала ${nbsp(kTb)} ${plural(kTb, "заказ", "заказа", "заказов")}, контрольная ${nbsp(kCb)}.`
-      + ` Без заказов ни порог, ни различимая разница не определены.</div>`;
+  const se = seLog({ kTb, kTp: kTb / 14 * post, kCb, kCp: kCb / 14 * post });
+  const nT = (t.тест || []).length;
+  const head = `За последние 14 дней тестовая группа набрала <b>${nbsp(kTb)}</b>`
+    + ` ${plural(kTb, "заказ", "заказа", "заказов")} на ${nbsp(nT)} ${plural(nT, "артикул", "артикула", "артикулов")},`
+    + ` контрольная <b>${nbsp(kCb)}</b> на ${nbsp(ctlArts.length)}.`;
+  if (se == null) {
+    return `<div class="dyn-alarm"><b>Итоговый критерий посчитать не на чем.</b> ${head}`
+      + ` Без заказов хотя бы в одном из четырёх окон ни порог, ни различимая разница не определены.</div>`;
   }
-  const se = Math.sqrt(1 / kTb + 1 / Math.max(kTp, 1e-9) + 1 / kCb + 1 / Math.max(kCp, 1e-9));
-  const mde = 2.8 * se * 100;
-  // Сколько заказов нужно в каждом окне, чтобы различить разницу в 30 % и в 100 %.
-  const need = (rel: number) => Math.ceil(2 / Math.pow(rel / 100 / 2.8, 2));
-  const perArt = kTb / Math.max((t.тест || []).length, 1) / 14;
-  const artsFor = (rel: number) => Math.ceil(need(rel) / Math.max(perArt * post, 1e-9));
-  return `<div class="dyn-alarm"><b>Итоговый критерий сейчас ничего не различает.</b>`
-    + ` За последние 14 дней тестовая группа набрала <b>${nbsp(kTb)}</b> ${plural(kTb, "заказ", "заказа", "заказов")}`
-    + ` на ${nbsp((t.тест || []).length)} ${plural((t.тест || []).length, "артикул", "артикула", "артикулов")},`
-    + ` контрольная <b>${nbsp(kCb)}</b> на ${nbsp(ctlArts.length)}.`
-    + ` При окне замера ${post} дн минимально различимая разница по «предельная цена × заказы»`
-    + ` составляет <b>${mde.toFixed(0)} %</b> (Пуассон, 80 % мощности, 5 % двусторонний), и это нижняя граница:`
-    + ` умножение на цену добавляет разброс.`
-    + ` Чтобы различить падение на 30 %, в каждом окне нужно около ${nbsp(need(30))} заказов, то есть примерно`
-    + ` ${nbsp(artsFor(30))} таких артикулов; чтобы различить двукратное, около ${nbsp(need(100))} заказов`
-    + ` и примерно ${nbsp(artsFor(100))} артикулов.`
+  const d = detectable(se);
+  // Сколько заказов нужно в КАЖДОМ из четырёх окон и сколько это артикулов при нынешнем темпе.
+  const perArtWin = kTb / Math.max(nT, 1) / 14 * post;
+  const artsFor = (k: number | null) => k == null ? null : Math.ceil(k / Math.max(perArtWin, 1e-9));
+  const n30 = ordersNeeded(30), n50 = ordersNeeded(50);
+  const needTxt = (rel: number, k: number | null) => k == null
+    ? ``
+    : ` Чтобы различить падение на ${rel} %, в каждом из четырёх окон нужно около ${nbsp(k)}`
+      + ` ${plural(k, "заказа", "заказов", "заказов")}, то есть примерно ${nbsp(artsFor(k)!)}`
+      + ` ${plural(artsFor(k)!, "такой артикул", "таких артикула", "таких артикулов")}.`;
+  return `<div class="dyn-alarm"><b>Итоговый критерий сейчас ничего не различает.</b> ${head}`
+    + ` При окне замера ${post} дн различимо только <b>падение глубже ${Math.abs(d.drop).toFixed(0)} %</b>`
+    + ` или <b>рост выше ${nbsp(d.rise)} %</b> (Пуассон, 80 % мощности, 5 % двусторонний).`
+    + ` Проще говоря, по деньгам мы увидим только практическое исчезновение заказов, и ничего слабее.`
+    + ` По деньгам порог не мягче этого, а жёстче: умножение на предельную цену добавляет разброс.`
+    + needTxt(30, n30) + needTxt(50, n50)
+    + ` В панели снимка ${nbsp(PANEL.length)} ${plural(PANEL.length, "артикул", "артикула", "артикулов")}, то есть нужного объёма нет и не будет.`
     + ` Порог по деньгам поэтому не назначается: решение принимается по быстрому признаку (цена с картой Ozon),`
     + ` а деньги показываются как наблюдение, а не как критерий.</div>`;
 }
@@ -1023,7 +1032,9 @@ const cards = T.тесты.map((t) => {
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span><span>Замер: <b>${esc(t.замер || "-")}</b></span>`
     + `<span>Горизонт: <b>${esc(t.горизонт_дней ?? "")} дн</b></span>`
     + (t.акция ? exitMeta(t) : "")
-    + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b></span></div>`
+    + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b></span>`
+    + (t.ответственный ? `<span>Ответственный: <b>${esc(t.ответственный)}</b></span>` : "")
+    + `</div>`
     + `<div class="rule"><b>Правило:</b> ${esc(t.правило || "")}</div>`
     + (t.акция ? COINV_MECH + mdeBlock(t) : "")
     + (t.стоп ? stopBlock(t.стоп) : "")
@@ -1114,16 +1125,40 @@ function boostCard(): string {
   const AD = wave.роли?.test_ad || [];
   const SIB = wave.роли?.test_sibling || [];
 
-  // ПЛАТО СЧИТАЕТСЯ ТОЛЬКО ПО СНЯТЫМ ЦЕНАМ. До 23.09 цена с картой выводилась из
-  // коэффициента 09.09 (oa_source = ratio_2026-09-09 у всех 514 строк), с 23.09 она снята
-  // с витрины (exact у 498 из 514). Склеивать эти дни в один ряд нельзя: база разная.
+  // БАЗА И ПЛАТО СЧИТАЮТСЯ НА ОДНОМ ИСТОЧНИКЕ ЦЕНЫ, И ИСТОЧНИК ПОДПИСАН.
+  //
+  // До 23.09 цена с картой выводилась из коэффициента, замороженного на 09.09
+  // (oa_source = ratio_2026-09-09 у всех 514 строк), с 23.09 она снята с витрины
+  // (exact у 498 из 514). Склеивать выведенные и снятые дни в один ряд нельзя: база разная.
+  //
+  // ПОЧЕМУ НЕ ПРОСТО «ТОЛЬКО exact». Так и было сделано 24.09, и ФЕНИКС показал, что гейт от
+  // этого умер: база требует FLAT_DAYS точек СТРОГО РАНЬШЕ старта волны (boost-readiness.ts,
+  // baseOf), старт 20.09, а единственный exact-день это 23.09. Будущие дни прошлыми не
+  // станут, значит база оставалась бы null навсегда, плато не сложилось бы ни при каком
+  // развитии событий, и страница при этом обещала «три дня наберутся не раньше 25.09».
+  // Мёртвый гейт хуже отсутствующего: он выглядит работающим.
+  //
+  // ПОЭТОМУ источник выбирается по наличию данных ДО СТАРТА и называется на странице. Когда
+  // снятых дней до старта следующей волны наберётся FLAT_DAYS, переключение произойдёт само.
   const exactDays = [...new Set(coinvRows.filter((r) => r.observed !== false && isExact(r)).map((r) => r.date))].sort();
   const exactFrom = exactDays[0] ?? "";
-  const ctl = controlByDay(coinvRows, TEST_ARTS, KIN_ANY, true);
+  const waveOn = (wave.старт || "").slice(0, 10);
+  const exactBefore = exactDays.filter((d) => d < waveOn).length;
+  const EXACT_ONLY = exactBefore >= FLAT_DAYS;
+  const basisNote = EXACT_ONLY
+    ? `База и плато считаются по снятой цене покупателя (снятых дней до старта ${exactBefore}).`
+    : `<b>База и плато считаются по выведенной цене.</b> Цена с картой Ozon снимается с витрины`
+      + ` только с ${esc(exactFrom || "-")}, а база требует ${FLAT_DAYS} дня строго раньше старта`
+      + ` ${esc(waveOn)}; таких снятых дней ${exactBefore}. До этой даты цена покупателя выводилась из`
+      + ` коэффициента, замороженного на 09.09, поэтому ряд описывает модель цены, а не наблюдение.`
+      + ` Величина сдвига на таком ряду смещена неизвестно насколько, и одно это уже основание`
+      + ` не принимать решение о выводе по цифре, а смотреть на форму ряда.`
+      + ` Переключение на снятую цену произойдёт само, когда её наберётся ${FLAT_DAYS} дня до старта волны.`;
+  const ctl = controlByDay(coinvRows, TEST_ARTS, KIN_ANY, EXACT_ONLY);
   const per = exitByArt(wave);
-  const mk = (it: WaveItem) => readiness(it, gapSeries(coinvRows, it.art, ctl, true), storeMoves);
+  const mk = (it: WaveItem) => readiness(it, gapSeries(coinvRows, it.art, ctl, EXACT_ONLY), storeMoves);
   const items = (arts: string[]): WaveItem[] => arts.map((a) => ({
-    art: a, on: (wave.старт || "").slice(0, 10), off: per.get(a)?.exit ?? undefined,
+    art: a, on: waveOn, off: per.get(a)?.exit ?? undefined,
   }));
   const adRows = items(AD).map(mk);
   const sibRows = items(SIB).map(mk);
@@ -1142,25 +1177,38 @@ function boostCard(): string {
   // панели у пяти рекламных разошёлся от -0.8 до +13.5 при пороге +8: двое похожи на товар с
   // надбавкой, у троих её не видно. Выводим только тех, у кого плато сложилось.
   const ready = adRows.filter((r) => r.plateauFrom);
+  // Разрыв на последний день ряда: считается ТЕМ ЖЕ источником цены, что база и плато выше.
+  // Брать его по снятой цене, когда база по выведенной, значит показать рядом два числа из
+  // разных шкал и предложить читателю сравнить их с порогом.
   const gapsNow = AD.map((a) => {
-    const g = gapSeries(coinvRows, a, ctl, true);
+    const g = gapSeries(coinvRows, a, ctl, EXACT_ONLY);
     const last = g[g.length - 1];
     return { art: a, gap: last?.gap ?? null, on: last?.date ?? "" };
   });
   const gapsTxt = gapsNow.map((g) => `<b>${esc(g.art)}</b> ${g.gap == null ? "нет" : (g.gap >= 0 ? "+" : "") + g.gap.toFixed(1)}`).join(", ");
+  const overThr = gapsNow.filter((g) => g.gap != null && g.gap >= ARRIVED).length;
+  const withGap = gapsNow.filter((g) => g.gap != null).length;
+  const gapDay = gapsNow.find((g) => g.on)?.on ?? "";
 
-  const needDays = FLAT_DAYS;
-  const earliest = exactFrom ? addDays(exactFrom, needDays - 1) : "";
   const win = wave.окно_выхода;
-  const exitPlan = `<div class="hyp"><b>Когда выводим.</b> Плато требует ${needDays} подряд наблюдаемых дня, а ряд начинается `
-    + `${exactFrom ? `с ${esc(exactFrom)}` : "с первого дня со снятой ценой"}: до этого цена с картой выводилась из коэффициента `
-    + `09.09, и такие дни в ряд не идут. Значит ${needDays} дня наберутся не раньше ${esc(earliest || "-")}, и только при чистых прогонах подряд. `
-    + (win ? `Окно выхода: <b>${esc(win.от)}..${esc(win.до)}</b>.` : "")
-    + ` Плато ждём по каждому товару отдельно, и выводим только тех, у кого оно сложилось.</div>`;
+  // Когда плато МОЖЕТ сложиться: FLAT_DAYS наблюдаемых дней после старта, считая по тому же
+  // источнику, на котором стоит база. Раньше здесь стояла дата, посчитанная от первого
+  // снятого дня и не смотревшая на дату старта, и она обещала недостижимое.
+  const seriesDays = [...new Set(coinvRows
+    .filter((r) => r.observed !== false && (!EXACT_ONLY || isExact(r)) && r.date >= waveOn)
+    .map((r) => r.date))].sort();
+  const haveAfter = seriesDays.length;
+  const earliest = haveAfter >= FLAT_DAYS ? seriesDays[FLAT_DAYS - 1]! : addDays(LAST, FLAT_DAYS - haveAfter);
+  const exitPlan = `<div class="hyp"><b>Когда выводим.</b> Плато требует ${FLAT_DAYS} подряд наблюдаемых дня после старта `
+    + `${esc(waveOn)}. Наблюдаемых дней после старта уже ${haveAfter}, значит плато может сложиться `
+    + (haveAfter >= FLAT_DAYS ? `с ${esc(earliest)}` : `не раньше ${esc(earliest)} и только при чистых прогонах подряд`) + `. `
+    + (win ? `Окно выхода: <b>${esc(win.от)}..${esc(win.до)}</b>. ` : "")
+    + `Плато ждём по каждому товару отдельно, и выводим только тех, у кого оно сложилось.</div>`
+    + `<div class="cov">${basisNote}</div>`;
 
-  const gapNote = `<div class="cov"><b>Разрыв к медиане панели на последний снятый день:</b> ${gapsTxt}. `
-    + `Порог плато +${ARRIVED} пунктов. Двое из пяти похожи на товар с надбавкой, у троих её не видно, `
-    + `и это ещё один довод против группового решения: вывести всех разом значило бы вывести троих вслепую.</div>`;
+  const gapNote = `<div class="cov"><b>Разрыв к медиане панели${gapDay ? ` на ${esc(gapDay)}` : ""}:</b> ${gapsTxt}. `
+    + `Порог плато +${ARRIVED} пунктов, за него вышли <b>${overThr}</b> из ${withGap}. `
+    + `Это довод против группового решения: вывести всех разом значило бы вывести остальных вслепую.</div>`;
 
   const exitedTbl = sum.out.length
     ? `<div class="sub2">Вышли из акции</div><div class="tbl-wrap"><table class="gtbl single"><thead>`
@@ -1358,8 +1406,11 @@ gaps.push(`Каталог на ${LAST} это ${nbsp(CARDS.card.size)} ${plural(
 {
   const LOST = ["GGT-48-2-2-100-180", "GGM-17-2-1", "GGK-02-1-5-120", "GGT-03-1-3-S-40"];
   if (!FT.exists) {
-    warns.push(`ВОРОНКА ТЕСТОВ НЕ ПРИЕХАЛА. Файл data/${FUNNEL_TESTS_FILE} в репозитории`
-      + ` отсутствует, поэтому позиции, показов, заходов, корзины и заказов на вкладке нет вовсе.`
+    // Перечисляем ровно ту метрику, которой нет. Прежний текст отрицал все пять, и рядом на
+    // той же странице стояли графики показов и число заказов: баннер спорил со страницей.
+    warns.push(`ВОРОНКА ТЕСТОВ НЕ ПРИЕХАЛА. Файла data/${FUNNEL_TESTS_FILE} в репозитории нет,`
+      + ` поэтому позиции в поиске на вкладке нет вовсе, а показы, заходы, корзина и заказы идут`
+      + ` из ночного синка data/sku_views.ndjson, то есть из общей выгрузки, а не из среза под тесты.`
       + ` Прежний источник funnel_sku_daily.ndjson отключён: он был разовой выгрузкой, кончился`
       + ` 21.09 и держал вкладку замершей, пока позиция снималась каждый день. Съём кладёт новый`
       + ` файл с 24.09, первый прогон зальёт историю с 12.06.`);

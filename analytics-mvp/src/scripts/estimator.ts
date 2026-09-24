@@ -28,7 +28,9 @@ export const ESTIMATOR: Record<string, Est> = {
 };
 export const estOf = (key: string): Est => ESTIMATOR[key] ?? "median";
 export const EST_NAME: Record<Est, string> = {
-  median: "медиана индексов по артикулам",
+  // «по карточкам», а не «по артикулам»: варианты одной объединённой карточки идут одним
+  // наблюдением (см. collapse ниже), и называть базу артикулами значит завышать её втрое.
+  median: "медиана индексов по карточкам",
   sum: "индекс суммы по группе",
 };
 

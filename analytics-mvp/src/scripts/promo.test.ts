@@ -9,6 +9,7 @@ import {
   parseActs, parsePromoRow, readPromoDaily, exitOf, inPromoOn, membersOn, winKey,
   loadPromoFromSnapshots, type PromoRow,
 } from "./promo.js";
+import { degraded } from "./ozon/promo-daily.js";
 
 const US = winKey("STO", "2026-09-13", "2026-10-06");     // «Максимальный бустинг: усиление»
 const MAX = winKey("STO", "2026-09-08", "2026-10-06");    // «Максимальный бустинг»
@@ -126,5 +127,32 @@ describe("вытяжка из снимков", () => {
     const usArts = new Set(inUs.map((r) => r.art));
     expect(inMax.some((r) => usArts.has(r.art))).toBe(true);
     expect(inMax.some((r) => !usArts.has(r.art))).toBe(true);
+  });
+});
+
+describe("сторож на деградировавший снимок", () => {
+  const day = (n: number) => `2026-09-${String(n).padStart(2, "0")}`;
+  const us = { t: "STO", from: "2026-09-13", to: "2026-10-06" };
+  const full = (n: number, k: number): PromoRow[] =>
+    Array.from({ length: k }, (_, i) => ({ date: day(n), art: `A${i}`, promos: [us] }));
+
+  it("пустая колонка acts у всех товаров это сбой, а не массовый выход", () => {
+    // Иначе страница напишет «вышли все», дата выхода уедет на день сбоя, и merge закрепит
+    // это в файле навсегда: историю задним числом кабинет не отдаёт.
+    const fresh = full(24, 56).map((r) => ({ ...r, promos: [] }));
+    expect(degraded(full(23, 56), fresh)).toContain("было 56");
+  });
+
+  it("обычный день проходит", () => {
+    expect(degraded(full(23, 56), full(24, 56))).toBeNull();
+    expect(degraded(full(23, 56), full(24, 40))).toBeNull();
+  });
+
+  it("падение больше чем вдвое отклоняется", () => {
+    expect(degraded(full(23, 56), full(24, 20))).toContain("стало 20");
+  });
+
+  it("первый день сравнивать не с чем, он принимается", () => {
+    expect(degraded([], full(23, 56))).toBeNull();
   });
 });

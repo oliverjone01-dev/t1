@@ -18,6 +18,32 @@ export function merge(existing: PromoRow[], fresh: PromoRow[]): PromoRow[] {
   return [...kept, ...fresh].sort((a, b) => a.date.localeCompare(b.date) || a.art.localeCompare(b.art));
 }
 
+/** Насколько просел состав акций против предыдущего дня, ниже чего день не принимается. */
+export const PROMO_DROP_LIMIT = 0.5;
+
+/** Сторож на деградировавший снимок.
+ *
+ *  ЗАЧЕМ. Участие в акции читается из колонки acts, и достаточно смены формата выгрузки или
+ *  пустой колонки, чтобы у всех 500 товаров вышел пустой список. Тогда страница напишет
+ *  «вышли все», дата выхода уедет на день сбоя, и быстрый признак начнёт отсчёт от неё.
+ *  Хуже того, merge перезаписывает день целиком, а кабинет истории задним числом не отдаёт,
+ *  значит битый день останется в файле навсегда.
+ *
+ *  Проверка простая: число записей об акциях не должно падать больше чем вдвое за сутки.
+ *  Настоящий массовый выход возможен (6 октября кончаются обе STO), поэтому это не запрет, а
+ *  требование подтвердить руками: день отклоняется, причина печатается. */
+export function degraded(existing: PromoRow[], fresh: PromoRow[]): string | null {
+  const count = (rows: PromoRow[]) => rows.reduce((s, r) => s + r.promos.length, 0);
+  const days = [...new Set(existing.map((r) => r.date))].sort();
+  const prevDay = days.filter((d) => d < (fresh[0]?.date ?? "")).pop();
+  if (!prevDay) return null;                       // сравнивать не с чем, первый день
+  const was = count(existing.filter((r) => r.date === prevDay)), now = count(fresh);
+  if (was === 0) return null;
+  if (now >= was * PROMO_DROP_LIMIT) return null;
+  return `записей об акциях было ${was} на ${prevDay}, стало ${now}`
+    + ` (падение больше чем в ${Math.round(1 / PROMO_DROP_LIMIT)} раза)`;
+}
+
 function main(): void {
   const fresh = loadPromoFromSnapshots();
   if (!fresh.length) {
@@ -30,6 +56,13 @@ function main(): void {
     for (const l of readFileSync(path, "utf-8").trim().split("\n").filter(Boolean)) {
       try { existing.push(JSON.parse(l) as PromoRow); } catch { /* битая строка - мимо */ }
     }
+  }
+  const bad = degraded(existing, fresh);
+  if (bad) {
+    console.log(`promo-daily: день ОТКЛОНЁН, похоже на сбой выгрузки: ${bad}.`);
+    console.log("  Если акции действительно кончились, удали эту проверку осознанно или залей день руками:");
+    console.log("  иначе ложный массовый выход уедет на страницу и останется в файле навсегда.");
+    return;
   }
   const rows = merge(existing, fresh);
   writeFileSync(path, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");

@@ -16,6 +16,7 @@ name: Deploy to GitHub Pages
 #   /direct-preview/   - Дашборд Яндекс.Директ, ПРЕВЬЮ (из рабочей ветки)
 #   /market/           - Дашборд KATYA для Яндекс Маркета, БОЙ (из main, данные ym-snapshots.yml -> analytics-mvp/data-ym/)
 #   /prod/             - Дашборд Производство, БОЙ (из ветки prod-dashboard-v1)
+#   /pto/              - Дашборд ПТО, запуски расчётов (из ветки pto-dashboard-v1)
 #   /op-gm/            - Автоматизация ОП ГМ (из ветки op-gm-automation-v1, статика public/)
 #   /messages/         - GG Message Automation (из ветки claude/gg-message-automation-ffpwpd, статика public/)
 #   /economics/        - Экономика сделок (из ветки economics-dashboard-v1, данные economics-cron.yml)
@@ -299,6 +300,23 @@ jobs:
           else
             echo "yandex-direct/dashboard/public отсутствует в main - пропуск"
           fi
+
+      # === ПТО (изолированно, из ветки pto-dashboard-v1, в /pto/) ===
+      # Дашборд отдела ПТО: запуски стадии «Расчёт» и проверка гипотезы «к концу месяца больше».
+      # Страница самодостаточна: данные запечены build-pto.ts в момент коммита в ветку, поэтому
+      # здесь только копирование, без npm и без обращения к Bitrix. Падение не валит остальной сайт.
+      - name: Build PTO dashboard (isolated, /pto/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin pto-dashboard-v1
+          git worktree add /tmp/pto FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/pto"
+          cp /tmp/pto/analytics-mvp/public/pto-command.html "$GITHUB_WORKSPACE/_site/pto/index.html"
+          # v.txt = штамп сборки страницы, как у /rop/ и /dialog/
+          STAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/pto/analytics-mvp/public/pto-command.html | head -1 | cut -d'"' -f4)
+          printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/pto/v.txt"
+          echo "ПТО опубликован в /pto/, сборка $STAMP ($(du -h /tmp/pto/analytics-mvp/public/pto-command.html | cut -f1))"
 
       # === ДИРЕКТ-ПРЕВЬЮ (ИЗОЛИРОВАННО, из рабочей ветки, в /direct-preview/) ===
       - name: Build DIRECT preview (isolated, /direct-preview/)

@@ -30,6 +30,9 @@ export interface CoinvRow {
   date: string; art: string;
   observed?: boolean; in_panel?: boolean;
   coinv_paid_pct?: number; coinv_listed_pct?: number; coinv_pct?: number;
+  /** Откуда взята цена с картой Ozon: exact - снята с витрины, ratio_<дата> - выведена из
+   *  коэффициента того дня. Ряды на разных источниках склеивать нельзя, это разные базы. */
+  oa_source?: string;
 }
 /** Строка data/store_moves.ndjson: день наблюдения по магазину целиком. store_move=false это
  *  обычный день, он в файле тоже есть, и путать одно с другим нельзя. */
@@ -97,6 +100,14 @@ export const median = (v: number[]): number => {
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
 const observed = (r: CoinvRow): boolean => r.observed !== false;
+/** Цена с картой снята, а не выведена из коэффициента.
+ *
+ *  ЗАЧЕМ. До 23.09 поле oa_source у всех 514 строк равно ratio_2026-09-09: цена покупателя
+ *  считалась по коэффициенту, замороженному на 09.09, потому что колонка marketing_oa_price
+ *  появилась в выгрузке только 23.09 (за 20 и 21.09 её нет, за 19.09 файл вовсе в старом
+ *  формате). Плато, собранное наполовину из выведенных дней и наполовину из снятых, было бы
+ *  плато по двум разным базам. */
+export const isExact = (r: CoinvRow): boolean => r.oa_source === "exact";
 const coinvOf = (r: CoinvRow): number | undefined => r.coinv_paid_pct ?? r.coinv_pct;
 
 /** Медиана соинвеста контроля по дням. Контроль это панель снимка минус тестовые артикулы и
@@ -109,10 +120,13 @@ const coinvOf = (r: CoinvRow): number | undefined => r.coinv_paid_pct ?? r.coinv
  *  Вторая - устойчивость: родни в панели 224 артикула из 475, почти половина. Когда половина
  *  группы сдвинута, медиана садится ровно на границу между сдвинутыми и несдвинутыми и
  *  прыгает от любого пустяка. Чистка нужна ради статистики, а не только ради величины. */
-export function controlByDay(rows: CoinvRow[], testArts: Set<string>, exclude?: Set<string>): Map<string, number> {
+export function controlByDay(
+  rows: CoinvRow[], testArts: Set<string>, exclude?: Set<string>, exactOnly = false,
+): Map<string, number> {
   const by = new Map<string, number[]>();
   for (const r of rows) {
     if (!observed(r) || r.in_panel === false || testArts.has(r.art)) continue;
+    if (exactOnly && !isExact(r)) continue;
     if (exclude?.has(r.art)) continue;
     const v = coinvOf(r);
     if (v == null || !Number.isFinite(v)) continue;
@@ -124,10 +138,13 @@ export function controlByDay(rows: CoinvRow[], testArts: Set<string>, exclude?: 
 }
 
 /** Ряд разрыва по дням. Только наблюдаемые дни, у которых есть и товар, и контроль. */
-export function gapSeries(rows: CoinvRow[], art: string, ctl: Map<string, number>): Array<{ date: string; gap: number }> {
+export function gapSeries(
+  rows: CoinvRow[], art: string, ctl: Map<string, number>, exactOnly = false,
+): Array<{ date: string; gap: number }> {
   const out: Array<{ date: string; gap: number }> = [];
   for (const r of rows) {
     if (r.art !== art || !observed(r)) continue;
+    if (exactOnly && !isExact(r)) continue;
     const v = coinvOf(r), c = ctl.get(r.date);
     if (v == null || c == null || !Number.isFinite(v)) continue;
     out.push({ date: r.date, gap: v - c });

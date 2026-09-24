@@ -9,7 +9,7 @@
 // Запуск: npm run eb (сети не требует). Снимков нет - файл не трогаем, а не обнуляем.
 import { writeFileSync, existsSync, readFileSync } from "node:fs";
 import { dp } from "../../paths.js";
-import { loadEbFromSnapshots } from "../boost-exit.js";
+import { loadEbFromSnapshots } from "../eb-level.js";
 
 export interface EbRow { date: string; art: string; eb_pct: number }
 

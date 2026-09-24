@@ -409,8 +409,14 @@ input#q{min-width:220px}
 .trrole{display:inline-block;font-size:9.5px;font-weight:700;padding:0 5px;border-radius:4px;border:1px solid;margin-right:5px;vertical-align:baseline;white-space:nowrap}
 .trnote{margin-top:4px;font-size:9.5px;color:var(--ink-4);font-style:italic}
 /* Градусник температуры клиента */
-.tempcell{display:flex;align-items:center;gap:6px;min-width:118px}
+.tempcell{display:flex;align-items:center;gap:5px;min-width:118px}
+/* Вид как в РОП-дашборде: процент зелёной зоны слева, полоса, процент холодных справа,
+   под полосой - количество сделок по каждому сегменту в цвет сегмента. */
+.tbwrap{display:flex;flex-direction:column;gap:2px;width:116px;flex:0 0 auto}
 .tbar{display:flex;height:14px;width:116px;border-radius:3px;overflow:hidden;background:var(--line,#e5e7eb);flex:0 0 auto;gap:1px}
+.tnums{display:flex;gap:1px;width:116px;line-height:1;font-size:9px;font-variant-numeric:tabular-nums}
+.tnum{min-width:8px;text-align:center;white-space:nowrap;overflow:hidden;font-weight:700}
+.tpct{font-size:10px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 /* min-width - чтобы мелкий сегмент можно было навести/кликнуть; небольшой, чтобы не искажать доли. */
 .tseg{display:block;min-width:8px;height:100%;cursor:pointer;transition:filter .1s}
 .tseg:hover{filter:brightness(1.35)}
@@ -1153,8 +1159,15 @@ function renderTree(){
     const b={boiling:0,hot:0,warm:0,cold:0,goal:0}; for(const d of ds) b[d.tempBucket==null?'cold':d.tempBucket]++;
     const order=[['boiling','#E5484D','кипят'],['hot','#F76808','горячие'],['warm','#E2A336','тёплые'],['cold','#5B8DEF','холодные'],['goal','#2E9E74','предоплата']];
     const tot=ds.length;
-    const seg=order.filter(([k])=>b[k]).map(([k,c,l])=>{ const on=aiPickActive('tp',key,k);
+    const shown=order.filter(([k])=>b[k]);
+    const seg=shown.map(([k,c,l])=>{ const on=aiPickActive('tp',key,k);
       return `<span class="tseg${on?' tsegon':''}" data-temp="${k}" style="flex:${b[k]};background:${c}" data-tip="<span class='tdot' style='background:${c}'></span><b>${l}</b>: ${b[k]} сдел. · ${Math.round(b[k]/tot*100)}% портфеля · клик - показать эти сделки"></span>`; }).join('');
+    // Числа под сегментами - те же доли, что и в полосе, поэтому цифра стоит под своим цветом.
+    const nums=shown.map(([k,c])=>`<span class="tnum" style="flex:${b[k]};color:${c}">${b[k]}</span>`).join('');
+    // Два процента по краям: слева зелёная зона (предоплата + кипят + горячие), справа холодные.
+    const nWarmSide=b.goal+b.boiling+b.hot, pWarm=Math.round(nWarmSide/tot*100), pCold=Math.round(b.cold/tot*100);
+    const warmTip=`Зелёная зона: ${nWarmSide} из ${tot} сдел. (${pWarm}%) - предоплата, кипят и горячие. Это портфель, который реально близок к деньгам.`;
+    const coldTip=`Холодные: ${b.cold} из ${tot} сдел. (${pCold}%). Клиент не двигается к покупке - нужен повод вернуться в разговор, а не очередное «актуально ли».`;
     // Переехавшие из амо в марте 2026 в силу нагрева не идут: у них стадия проставлена
     // импортом, а не работой менеджера, и медиана Δ у них -3° против +3° у живых сделок.
     const dd=ds.filter(d=>!d.goalReached&&!d.preMig&&(d.stageRows||[]).length&&d.heatLift!=null).map(d=>d.heatLift).sort((a,b)=>a-b);
@@ -1180,7 +1193,10 @@ function renderTree(){
     const migNote=nMig?`<br><i>Вне силы нагрева ${nMig} сдел., переехавших из амо в марте: стадия проставлена импортом, а не менеджером.</i>`:'';
     const leadNote=nLead?`<br><i>Вне градусника ${nLead} лид. без стадии - у них своя воронка.</i>`:'';
     const hpTip=hp===null?('Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).'+leadNote+migNote+aiTip):`Сила нагрева = медиана вклада менеджера: температура сделки минус структурная температура её стадии, <b>${hp>0?'+':''}${hp}°</b>. Стадия вычтена намеренно, иначе столбец ранжировал бы по составу портфеля, а не по работе. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${leadNote}${migNote}${whyBlock}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
-    return `<div class="tempcell"><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
+    return `<div class="tempcell"><span class="tpct" style="color:#2E9E74" data-tip="${warmTip.replace(/"/g,'&quot;')}">${pWarm}%</span>`
+      +`<div class="tbwrap"><div class="tbar">${seg}</div><div class="tnums">${nums}</div></div>`
+      +`<span class="tpct" style="color:#C25252" data-tip="${coldTip.replace(/"/g,'&quot;')}">${pCold}%</span>`
+      +`<span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
   // «Почему остывают» с конкретными цифрами (сделок, до +N°, что делать) для агрегатного
   // ИИ-итога отдела/подотдела - те же данные, что в подсказке градусника.
   const RESOLVE_AGG=[[/ждёт|ожида/i,'ответить сегодня, назвать конкретный срок'],[/тишина|пауза|молч/i,'написать с новым поводом, назначить дату след. контакта'],[/возражени/i,'вернуться с расчётом разницы или альтернативой, не скидкой'],[/скидк/i,'обосновать цену составом и ценностью'],[/следующего шага|шаг/i,'поставить дело с датой'],[/обещал|без срока/i,'выполнить обещание, дать дату'],[/стадия двигал|нет следов|касаний/i,'вести общение в CRM, не двигать стадию в тишине'],[/вхолостую|контакта/i,'закрывать дела только после контакта'],[/медленн|ответ/i,'ускорить первый ответ'],[/отказ/i,'спросить, что изменит решение']];

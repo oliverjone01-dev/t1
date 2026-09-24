@@ -2,6 +2,7 @@
 // день: медиана контроля посчиталась бы по удвоенной группе и выглядела бы нормально.
 import { describe, it, expect } from "vitest";
 import { mergeCoinv, SLICE_SOURCE, type StoredRow, type SliceRow } from "./ozon/coinv-merge.js";
+import { isExact } from "./boost-readiness.js";
 
 const stored = (d: string, art: string, extra: Record<string, unknown> = {}): StoredRow =>
   ({ date: d, art, coinv_paid_pct: 50, cap: 100, in_panel: true, oa_source: "ratio_2026-09-09", ...extra });
@@ -49,5 +50,25 @@ describe("слияние среза соинвеста", () => {
     const r = mergeCoinv([], [slice("2026-09-24", "B", 1), slice("2026-09-23", "C", 2), slice("2026-09-23", "A", 3)]);
     expect(r.rows.map((x) => `${x.date}/${x.art}`))
       .toEqual(["2026-09-23/A", "2026-09-23/C", "2026-09-24/B"]);
+  });
+});
+
+describe("метка источника не штампуется", () => {
+  it("берётся из среза, а не константой", () => {
+    // 24.09: слияние ставило snapshot всем подряд, и строка, называвшая себя моделью,
+    // выходила «снятой с витрины». Происхождение нельзя придумывать за источник.
+    const r = mergeCoinv([], [{ ...slice("2026-09-09", "A", 51), src: "ratio_2026-09-09" }]);
+    expect(r.rows[0]!.oa_source).toBe("ratio_2026-09-09");
+  });
+
+  it("срез без метки получает значение по умолчанию, а не чужое", () => {
+    const { src, ...noSrc } = slice("2026-09-24", "A", 51);
+    const r = mergeCoinv([stored("2026-09-24", "A", { oa_source: "exact" })], [noSrc]);
+    expect(r.rows[0]!.oa_source).toBe(SLICE_SOURCE);
+  });
+
+  it("честная метка модели не проходит за наблюдение", () => {
+    const r = mergeCoinv([], [{ ...slice("2026-09-09", "A", 51), src: "ratio_2026-09-09" }]);
+    expect(isExact(r.rows[0] as never)).toBe(false);
   });
 });

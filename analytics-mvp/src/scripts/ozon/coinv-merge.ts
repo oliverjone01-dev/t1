@@ -25,8 +25,16 @@ export interface SliceRow {
 }
 export type StoredRow = Record<string, unknown> & { date: string; art: string };
 
-/** Источник цены покупателя для строки среза: снимок кабинета это наблюдение. */
+/** Источник цены покупателя по умолчанию, если срез его не назвал. */
 export const SLICE_SOURCE = "snapshot";
+
+/** Метка источника берётся ИЗ СРЕЗА, а не штампуется константой.
+ *
+ *  24.09 ФЕНИКС показал, чем это плохо: строка, которая сама называет себя ratio_2026-09-09,
+ *  выходила из слияния помеченной snapshot и проходила проверку «цена снята», то есть
+ *  происхождение отмывалось. Метка это утверждение о том, откуда число, и придумывать его
+ *  за источник нельзя. */
+export const sourceOf = (s: SliceRow): string => String(s.src ?? "").trim() || SLICE_SOURCE;
 
 export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: StoredRow[]; added: number; updated: number; panelCarried: number } {
   const key = (d: string, a: string) => `${d}|${a}`;
@@ -46,7 +54,7 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
     if (s.coinv_pct != null) row.coinv_paid_pct = s.coinv_pct;
     if (s.oa != null) row.site_paid = s.oa;
     if (s.seller != null) row.cap = s.seller;
-    row.oa_source = SLICE_SOURCE;
+    row.oa_source = sourceOf(s);
     if (row.in_panel === undefined) {
       const p = lastPanel.get(s.art);
       // Товара не было в прежнем ряду вовсе: он есть в снимке цен, значит соинвест по нему

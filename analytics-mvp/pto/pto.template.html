@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ПТО · Запуски расчётов</title>
+<style>
+:root{
+  color-scheme:light;
+  --plane:#f9f9f7; --surf:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --s0:#f0efec; --s1:#cde2fb; --s2:#9ec5f4; --s3:#5598e7; --s4:#2a78d6; --s5:#184f95;
+  --bar:#2a78d6;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  color-scheme:dark;
+  --plane:#0d0d0d; --surf:#1a1a19; --ink:#fff; --ink-2:#c3c2b7; --ink-3:#898781;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+  --s0:#232322; --s1:#0d366b; --s2:#184f95; --s3:#256abf; --s4:#3987e5; --s5:#86b6ef;
+  --bar:#3987e5;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --plane:#0d0d0d; --surf:#1a1a19; --ink:#fff; --ink-2:#c3c2b7; --ink-3:#898781;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+  --s0:#232322; --s1:#0d366b; --s2:#184f95; --s3:#256abf; --s4:#3987e5; --s5:#86b6ef;
+  --bar:#3987e5;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 72px}
+h1{font-size:21px;margin:0 0 2px;letter-spacing:-.01em}
+h2{font-size:15px;margin:0 0 10px;letter-spacing:-.005em}
+.sub{color:var(--ink-3);font-size:12px;margin:0 0 22px}
+.card{background:var(--surf);border:1px solid var(--ring);border-radius:12px;padding:16px 18px;margin:0 0 16px}
+.muted{color:var(--ink-3)}
+.sec{color:var(--ink-2)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--grid);vertical-align:top}
+th{color:var(--ink-3);font-weight:500;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* --- вердикт --- */
+.verdict{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.hero{font-size:38px;line-height:1;font-weight:600;letter-spacing:-.02em}
+.vbadge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
+  padding:3px 9px;border-radius:999px;border:1px solid var(--ring)}
+.vtext{flex:1 1 380px;min-width:280px}
+/* --- календарь --- */
+.mrow{display:flex;gap:16px;flex-wrap:wrap}
+.mon{margin:0 0 14px}
+.mon h3{font-size:12.5px;margin:0 0 6px;color:var(--ink-2);font-weight:600}
+.dow{display:grid;grid-template-columns:repeat(7,30px);gap:3px;margin:0 0 3px}
+.dow span{font-size:10px;color:var(--ink-3);text-align:center}
+.grid{display:grid;grid-template-columns:repeat(7,30px);gap:3px}
+.cell{width:30px;height:30px;border-radius:4px;background:var(--s0);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+  font-variant-numeric:tabular-nums;color:var(--ink-2);position:relative;cursor:default}
+.cell.void{background:transparent}
+.cell.we{opacity:.42}
+.cell.future{background:transparent;border:1px dashed var(--grid);color:var(--ink-3)}
+.cell.tail{outline:2px solid var(--ink-3);outline-offset:-2px}
+.cell.hi{color:#fff}
+.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);margin-top:10px}
+.lgsteps{display:flex;align-items:center;gap:3px}
+.lgsteps i{width:16px;height:16px;border-radius:3px;display:block}
+/* --- столбики --- */
+.bars{display:flex;align-items:flex-end;gap:26px;height:150px;padding:18px 4px 0;border-bottom:1px solid var(--axis)}
+.bcol{flex:0 0 96px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.bval{font-size:13px;font-weight:600;margin-bottom:5px;font-variant-numeric:tabular-nums}
+.bfill{width:100%;background:var(--bar);border-radius:4px 4px 0 0;min-height:3px}
+.blab{font-size:11.5px;color:var(--ink-3);margin-top:7px;text-align:center}
+/* --- фильтры и таблица --- */
+.fl{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+select,input{font:13px system-ui,sans-serif;color:var(--ink);background:var(--surf);
+  border:1px solid var(--ring);border-radius:7px;padding:5px 9px}
+input{min-width:190px}
+.scroll{max-height:560px;overflow:auto}
+.pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--ring);color:var(--ink-2)}
+.pill.won{color:var(--good);border-color:var(--good)}
+.pill.lost{color:var(--crit);border-color:var(--crit)}
+.tt{position:fixed;z-index:9;pointer-events:none;background:var(--surf);color:var(--ink);
+  border:1px solid var(--ring);border-radius:8px;padding:7px 10px;font-size:12px;
+  box-shadow:0 6px 22px rgba(0,0,0,.14);display:none;max-width:260px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){.two{grid-template-columns:1fr}}
+a{color:inherit}
+.tgl{position:absolute;right:16px;top:20px;font-size:12px;color:var(--ink-3);cursor:pointer;
+  background:none;border:1px solid var(--ring);border-radius:7px;padding:4px 9px}
+</style></head>
+<body>
+<div class="wrap" style="position:relative">
+<button class="tgl" id="tgl">тема</button>
+<h1>ПТО · запуски расчётов</h1>
+<p class="sub" id="stamp"></p>
+<div id="app"></div>
+</div>
+<div class="tt" id="tt"></div>
+<script>
+const D = __PTO_DATA__;
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const rub = n => (Math.round(n)||0).toLocaleString('ru-RU')+' ₽';
+const MON = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONR = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const monTitle = m => MON[+m.slice(5,7)-1]+' '+m.slice(0,4);
+const monDay = (m,d) => d+' '+MONR[+m.slice(5,7)-1];
+const plural = (n,a,b,c)=>{const n10=n%10,n100=n%100;return n10===1&&n100!==11?a:n10>=2&&n10<=4&&(n100<12||n100>14)?b:c;};
+
+$('#stamp').textContent =
+  `Снимок Bitrix24 ${String(D.snapshot).slice(0,10)} · воронка «GG RF Заказы» · запуски с ${D.from.split('-').reverse().join('.')} · собрано ${String(D.bakedAt).slice(0,16).replace('T',' ')}`;
+
+$('#tgl').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches;
+  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+};
+
+/* ---------- вердикт ---------- */
+function verdict(){
+  const t = D.tail, up = (t.ratio-1)*100;
+  // Вторая, независимая от теста проверка: в скольких месяцах последняя декада была плотнее
+  // первых двух. Если «эффект конца месяца» реален, она должна выигрывать почти всегда.
+  const closed = D.decByMonth.filter(x=>x.closed);
+  const DEC = ['1-10','11-20','21-конец'];
+  const best = closed.map(x => { const p=x.dec.map(d=>d.perDay); const mx=Math.max(...p); return {m:x.m, i:p.indexOf(mx), tie:p.filter(v=>v===mx).length>1}; });
+  const winTail = best.filter(b=>b.i===2).length;
+  const winList = best.map(b=>`${monTitle(b.m)} - ${DEC[b.i]}${b.tie?' (поровну)':''}`).join('; ') + '.';
+  const sig = t.p < 0.05, weak = t.ratio < 1.25;
+  const col = sig ? (up>0?'var(--serious)':'var(--good)') : 'var(--ink-3)';
+  const label = sig ? (up>0?'подтверждается':'обратное') : 'не подтверждается';
+  return `<section class="card"><h2>Правда ли, что к концу месяца в расчёт отдают больше</h2>
+  <div class="verdict">
+    <div>
+      <div class="hero" style="color:${col}">${t.ratio.toFixed(2)}×</div>
+      <div class="vbadge" style="color:${col};margin-top:8px">${label}</div>
+    </div>
+    <div class="vtext">
+      <p style="margin:0 0 8px">В последние 5 рабочих дней месяца запусков
+      <b>${t.rateL.toFixed(2)}</b> в день, в остальные рабочие дни <b>${t.rateO.toFixed(2)}</b>.
+      Разница ${up>0?'+':''}${up.toFixed(0)}%.</p>
+      <p style="margin:0 0 8px" class="sec">Перестановочный тест, ${t.rounds.toLocaleString('ru-RU')} прогонов:
+      такой же или больший хвост получается случайно с вероятностью <b>${t.p.toFixed(3)}</b>.
+      ${sig ? 'Порог 0.05 пройден.' : 'Порог 0.05 не пройден, то есть одними этими данными эффект не доказан.'}</p>
+      <p style="margin:0 0 8px">${winTail} из ${closed.length}: в скольких закрытых месяцах самой плотной
+      оказалась последняя декада. ${winList}</p>
+      <p style="margin:0" class="muted">Считано по ${D.closedMonths.length} ${plural(D.closedMonths.length,'закрытому месяцу','закрытым месяцам','закрытым месяцам')}
+      (${D.closedMonths.map(monTitle).join(', ')}). Текущий месяц не участвует: его конец ещё не наступил,
+      и включение занизило бы хвост.</p>
+    </div>
+  </div></section>`;
+}
+
+/* ---------- календарь ---------- */
+function steps(max){
+  // 5 ступеней последовательной шкалы: чем больше запусков, тем темнее.
+  const b = [];
+  for (let i=1;i<=5;i++) b.push(Math.max(i, Math.ceil(max*i/5)));
+  return b;
+}
+function stepOf(v,b){ if(!v) return 0; for(let i=0;i<5;i++) if(v<=b[i]) return i+1; return 5; }
+
+function calendar(){
+  const max = Math.max(1, ...D.cal.flatMap(c=>c.cnt));
+  const b = steps(max);
+  const months = D.cal.map(c=>{
+    const first = new Date(c.m+'-01T00:00:00Z').getUTCDay();
+    const lead = (first+6)%7;                       // неделя с понедельника
+    let cells = '<div class="cell void"></div>'.repeat(lead);
+    for(let i=0;i<c.n;i++){
+      const day=i+1, v=c.cnt[i], s=stepOf(v,b);
+      const future = c.partial && day>c.partial;
+      const cls = ['cell', c.wd[i]?'':'we', c.last5[i]?'tail':'', s>=4?'hi':'', future?'future':''].filter(Boolean).join(' ');
+      const bg = future||!s ? '' : `background:var(--s${s});`;
+      cells += `<div class="${cls}" style="${bg}" data-tip="${esc(monDay(c.m,day))} · запусков ${v} · ${esc(rub(c.rub[i]))}${c.last5[i]?' · последние 5 раб. дней':''}">${future?'':(v||'')}</div>`;
+    }
+    const sum = c.cnt.reduce((a,x)=>a+x,0);
+    return `<div class="mon"><h3>${monTitle(c.m)} <span class="muted" style="font-weight:400">· ${sum}${c.partial?' (месяц не закрыт)':''}</span></h3>
+      <div class="dow"><span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>вс</span></div>
+      <div class="grid">${cells}</div></div>`;
+  }).join('');
+  const lg = [0,1,2,3,4,5].map(i=>`<i style="background:var(--s${i})"></i>`).join('');
+  return `<section class="card"><h2>Календарь запусков в «Расчёт»</h2>
+    <div class="mrow">${months}</div>
+    <div class="legend">
+      <span>меньше</span><span class="lgsteps">${lg}</span><span>больше (до ${max} за день)</span>
+      <span style="margin-left:12px"><i style="display:inline-block;width:14px;height:14px;border-radius:3px;outline:2px solid var(--ink-3);outline-offset:-2px;vertical-align:-2px"></i> последние 5 рабочих дней месяца</span>
+      <span>приглушённые ячейки - суббота и воскресенье</span>
+    </div></section>`;
+}
+
+/* ---------- декады ---------- */
+function decades(){
+  const L = ['1-10 число','11-20 число','21 и до конца'];
+  const mx = Math.max(...D.decAll.map(d=>d.perDay), 0.1);
+  const bars = D.decAll.map((d,i)=>`<div class="bcol">
+    <div class="bval">${d.perDay.toFixed(1)}</div>
+    <div class="bfill" style="height:${Math.max(3,(d.perDay/mx)*100)}%"
+      data-tip="${esc(L[i])} · ${d.n} запусков за ${d.wd} рабочих дней"></div>
+    <div class="blab">${L[i]}</div></div>`).join('');
+  const rows = D.decByMonth.map(x=>`<tr><td>${monTitle(x.m)}${x.closed?'':' <span class="muted">(не закрыт)</span>'}</td>`+
+    x.dec.map(d=>`<td class="n">${d.n} <span class="muted">(${d.perDay.toFixed(1)}/дн)</span></td>`).join('')+'</tr>').join('');
+  return `<section class="card"><h2>Запусков на один рабочий день, по декадам</h2>
+    <div class="bars">${bars}</div>
+    <p class="muted" style="margin:14px 0 16px;font-size:12px">Столбики по закрытым месяцам. Деление на рабочие дни нужно,
+    потому что в третьей декаде их всегда больше: без нормировки она «растёт» сама по себе.
+    Рабочий день здесь это пн-пт; производственный календарь с праздниками не применялся.</p>
+    <table><thead><tr><th>Месяц</th><th class="n">1-10</th><th class="n">11-20</th><th class="n">21-конец</th></tr></thead>
+    <tbody>${rows}</tbody></table></section>`;
+}
+
+/* ---------- срезы ---------- */
+function slices(){
+  const tbl = (title,rows,note) => `<div class="card"><h2>${title}</h2><table><tbody>`+
+    rows.slice(0,12).map(r=>`<tr><td>${esc(r.k)}</td><td class="n">${r.n}</td><td class="n muted">${esc(rub(r.rub))}</td></tr>`).join('')+
+    `</tbody></table>${note?`<p class="muted" style="margin:10px 0 0;font-size:12px">${note}</p>`:''}</div>`;
+  const t = D.totals;
+  return `<div class="two">
+    ${tbl('Куда ушли из «Расчёта»', D.toStage, 'Следующая стадия после расчёта. «Перехода ещё не было» значит сделка стоит в расчёте прямо сейчас.')}
+    ${tbl('Где эти сделки сейчас', D.curStage, 'Текущая стадия уникальных сделок, побывавших в расчёте.')}
+    ${tbl('Откуда пришли в «Расчёт»', D.fromStage)}
+    ${tbl('Кто отправляет в расчёт', D.mgrs)}
+  </div>`;
+}
+
+/* ---------- итоги ---------- */
+function totals(){
+  const t = D.totals;
+  const cell = (v,l) => `<div><div style="font-size:22px;font-weight:600;font-variant-numeric:tabular-nums">${v}</div><div class="muted" style="font-size:12px">${l}</div></div>`;
+  return `<section class="card"><h2>Итого с ${D.from.split('-').reverse().join('.')}</h2>
+  <div style="display:flex;gap:30px;flex-wrap:wrap">
+    ${cell(t.runs,'запусков расчёта')}
+    ${cell(t.deals,'уникальных сделок')}
+    ${cell(t.repeat,'повторных заходов')}
+    ${cell(rub(t.rub),'сумма уникальных сделок')}
+    ${cell(t.dwellMed+' дн','медиана в расчёте')}
+    ${cell(t.dwellP90+' дн','p90 в расчёте')}
+    ${cell(t.stuck,'стоят в расчёте сейчас')}
+  </div></section>`;
+}
+
+/* ---------- таблица запусков ---------- */
+let F = {m:'',mgr:'',cur:'',q:''};
+function table(){
+  const opt = (arr,cur) => ['<option value="">все</option>'].concat(arr.map(v=>`<option${v===cur?' selected':''}>${esc(v)}</option>`)).join('');
+  const mgrs = [...new Set(D.runs.map(r=>r.mgr))].sort();
+  const curs = [...new Set(D.runs.map(r=>r.cur))].sort();
+  return `<section class="card"><h2>Все запуски, по датам</h2>
+  <div class="fl">
+    <select id="fm">${opt(D.months,F.m)}</select>
+    <select id="fmgr">${opt(mgrs,F.mgr)}</select>
+    <select id="fcur">${opt(curs,F.cur)}</select>
+    <input id="fq" placeholder="поиск по сделке или клиенту" value="${esc(F.q)}">
+    <span class="muted" id="fcnt" style="align-self:center"></span>
+  </div>
+  <div class="scroll"><table><thead><tr>
+    <th>Дата</th><th>Сделка</th><th>Менеджер</th><th class="n">Сумма</th>
+    <th>Пришла из</th><th>Ушла в</th><th class="n">Дней</th><th>Сейчас</th>
+  </tr></thead><tbody id="tb"></tbody></table></div></section>`;
+}
+function rows(){
+  const f = D.runs.filter(r =>
+    (!F.m || r.d.startsWith(F.m)) && (!F.mgr || r.mgr===F.mgr) && (!F.cur || r.cur===F.cur) &&
+    (!F.q || (r.title+' '+r.id).toLowerCase().includes(F.q.toLowerCase())));
+  // Деньги считаем по уникальным сделкам: повторный заход в расчёт не удваивает бюджет.
+  const seen = new Set(), money = f.reduce((s,r)=>{ if(seen.has(r.id)) return s; seen.add(r.id); return s+r.budget; },0);
+  $('#fcnt').textContent = `${f.length} ${plural(f.length,'запуск','запуска','запусков')} · ${seen.size} ${plural(seen.size,'сделка','сделки','сделок')} · ${rub(money)}`;
+  $('#tb').innerHTML = f.slice(0,600).map(r=>`<tr>
+    <td style="white-space:nowrap">${r.d.split('-').reverse().join('.')}</td>
+    <td><a href="https://glassmemory.bitrix24.ru/crm/deal/details/${esc(r.id)}/" target="_blank" rel="noopener">${esc(r.id)}</a> ${esc(r.title).slice(0,48)}</td>
+    <td>${esc(r.mgr)}</td><td class="n">${r.budget?esc(rub(r.budget)):'<span class="muted">-</span>'}</td>
+    <td class="sec">${esc(r.from)||'<span class="muted">-</span>'}</td>
+    <td class="sec">${esc(r.to)||'<span class="muted">стоит здесь</span>'}</td>
+    <td class="n">${r.days==null?'<span class="muted">-</span>':r.days}</td>
+    <td><span class="pill ${r.out}">${esc(r.cur)}</span></td></tr>`).join('') +
+    (f.length>600?`<tr><td colspan="8" class="muted">Показаны первые 600 из ${f.length}. Сузь фильтр.</td></tr>`:'');
+}
+
+/* ---------- чего нет в данных ---------- */
+function gaps(){
+  return `<section class="card"><h2>Чего в этих данных нет</h2>
+  <ul style="margin:0;padding-left:18px;color:var(--ink-2)">
+    <li><b>Чертежей здесь нет.</b> Стадии «ОЖИДАЕТ РАСЧЕТА», «ЧЕРТЁЖ В РАБОТУ», «ЧЕРТЁЖ ГОТОВ»,
+      «ПОДГОТОВКА ЧЕРТЕЖЕЙ» живут в отдельной воронке «⚒️GEN GROUP» (категория 13), а ночной
+      снимок тянет только категорию 49. Чтобы ответить и про чертежи, надо расширить выгрузку
+      на категорию 13, это правка скрипта сбора и один прогон в GitHub Actions.</li>
+    <li><b>Март 2026 исключён.</b> Месяц переезда из amoCRM: сделки перенесли пачкой на те же
+      стадии, даты переходов у них искусственные.</li>
+    <li><b>Рабочий день = пн-пт.</b> Производственный календарь с праздниками не применялся,
+      это допущение, а не факт. На отношении декад оно почти не сказывается, на отдельных
+      днях мая и июня может.</li>
+    <li><b>В истории есть удалённые стадии.</b> ${D.gone.length?D.gone.map(g=>`<code>${esc(g.c)}</code> (${g.n} переходов, ${g.first.split('-').reverse().join('.')} - ${g.last.split('-').reverse().join('.')})`).join(', '):'нет'}.
+      Эти стадии убрали из воронки Bitrix, а переходы в карточках остались, и названия по снимку
+      не восстановить. Если скажешь, чем была <code>C49:UC_LRFLH9</code>, подпишу её по-человечески.</li>
+    <li><b>Считаются переходы, а не задачи ПТО.</b> Запуск расчёта здесь это вход сделки на стадию
+      «Расчёт» в CRM. Если расчёт считали, не двигая стадию, в этих числах его нет.</li>
+  </ul></section>`;
+}
+
+/* ---------- сборка ---------- */
+$('#app').innerHTML = verdict() + calendar() + decades() + totals() + slices() + table() + gaps();
+rows();
+for (const [id,k] of [['fm','m'],['fmgr','mgr'],['fcur','cur']])
+  $('#'+id).onchange = e => { F[k]=e.target.value; rows(); };
+$('#fq').oninput = e => { F.q=e.target.value; rows(); };
+
+/* подсказки при наведении */
+const tt = $('#tt');
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest('[data-tip]'); if(!el) return;
+  tt.textContent = el.dataset.tip; tt.style.display='block';
+  const r = el.getBoundingClientRect();
+  tt.style.left = Math.min(innerWidth-270, r.left) + 'px';
+  tt.style.top  = Math.max(6, r.top - tt.offsetHeight - 8) + 'px';
+});
+document.addEventListener('mouseout', e => { if(e.target.closest('[data-tip]')) tt.style.display='none'; });
+</script></body></html>

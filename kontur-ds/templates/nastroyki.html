@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Настройки вида · Контур DS</title>
+<meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1216" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../kit/kit.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+<script src="../kit/brand.js"></script>
+<script src="../kit/icons.js"></script>
+<script src="../kit/kit.js"></script>
+<script src="../kit/charts.js"></script>
+<script src="../kit/palette-check.js"></script>
+<style>
+/* Страница настроек вида: только токены Контура, своих цветов нет */
+.st-layout{ display:grid; gap:var(--gap-stack-lg); grid-template-columns:minmax(0,1fr); align-items:start; }
+@container (min-width:1060px){ .st-layout{ grid-template-columns:minmax(0,1fr) minmax(0,1.08fr); } .st-preview{ position:sticky; top:calc(var(--topbar-h) + 16px); } }
+.st-form{ display:flex; flex-direction:column; gap:var(--gap-stack); min-width:0; }
+.st-sec{ scroll-margin-top:calc(var(--topbar-h) + 16px); }
+.st-fields{ display:grid; gap:var(--sp-4); }
+.st-two{ display:grid; gap:var(--sp-3); grid-template-columns:repeat(2,minmax(0,1fr)); }
+@container (max-width:560px){ .st-two{ grid-template-columns:minmax(0,1fr); } }
+.st-help{ font-size:var(--fs-caption); color:var(--text-muted); line-height:var(--lh-snug); margin:0; }
+.st-drop{ display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; padding:var(--sp-3); border:1px dashed var(--border-strong); border-radius:var(--r-field); background:var(--surface-3); }
+.st-drop.is-over{ border-color:var(--focus); background:var(--primary-soft); }
+.st-drop-txt{ flex:1; min-width:180px; font-size:var(--fs-small); color:var(--text); }
+.st-logos{ display:flex; gap:var(--sp-2); }
+.st-logo{ width:64px; height:48px; border-radius:var(--r-md); border:1px solid var(--border); background:var(--surface); display:grid; place-items:center; overflow:hidden; }
+.st-logo .ks-brand-mark{ width:44px; height:28px; }
+.st-logo .ks-brand-mark:not(.has-img){ width:28px; }
+.st-range-row{ display:flex; align-items:center; gap:var(--sp-3); }
+.st-range{ flex:1; min-width:0; accent-color:var(--primary); height:var(--tap-sm); }
+.st-out{ min-width:150px; text-align:right; font-size:var(--fs-small); color:var(--text-strong); font-variant-numeric:tabular-nums; }
+@container (max-width:460px){ .st-out{ min-width:96px; } }
+.st-color{ display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap; }
+.st-color input[type="color"]{ width:38px; height:34px; padding:2px; border:1px solid var(--border); border-radius:var(--r-field); background:var(--surface); cursor:pointer; }
+.st-color .ks-input{ width:112px; font-family:var(--font-mono); text-transform:uppercase; }
+.st-chips{ display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.st-chip{ display:inline-flex; align-items:center; gap:7px; height:var(--ctl-h); padding:0 var(--sp-3); border-radius:var(--r-field); border:1px solid var(--border);
+  background:var(--surface); color:var(--text-strong); font:inherit; font-size:var(--fs-small); cursor:pointer; }
+.st-chip:hover{ border-color:var(--border-strong); }
+/* 1.5.1: на касании фишка не ниже цели пальца (было 28 px в компактной плотности) */
+@media (pointer:coarse){ .st-chip{ min-height:var(--tap-sm); } .st-color input[type="color"]{ min-width:var(--tap-sm); min-height:var(--tap-sm); } }
+.st-chip[aria-pressed="true"]{ border-color:var(--focus); box-shadow:0 0 0 3px var(--primary-soft); }
+.st-dot{ width:12px; height:12px; border-radius:var(--r-full); background:var(--c); flex-shrink:0; }
+.st-dots{ display:inline-flex; gap:3px; }
+.st-dots .st-dot{ width:10px; height:10px; }
+.st-report{ display:grid; gap:6px; font-size:var(--fs-small); }
+.st-report-row{ display:flex; justify-content:space-between; gap:var(--sp-3); }
+.st-report-row .ks-num{ color:var(--text-strong); }
+.st-code{ width:100%; min-height:96px; max-height:160px; resize:vertical; font-family:var(--font-mono); font-size:var(--fs-micro); line-height:1.5;
+  padding:var(--sp-2) var(--sp-2-5); border:1px solid var(--border); border-radius:var(--r-field); background:var(--surface-3); color:var(--text); }
+.st-actions{ display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.st-status{ font-size:var(--fs-small); }
+/* предпросмотр: мини-дашборд с настройками черновика, своя тема */
+.st-pv-head{ display:flex; align-items:center; justify-content:space-between; gap:var(--sp-2); flex-wrap:wrap; margin-bottom:var(--sp-2-5); }
+.st-pv{ --sticky-top:0px; border:1px solid var(--border); border-radius:var(--r-box); overflow:hidden; background:var(--bg); color:var(--text);
+  font-size:var(--fs-base); letter-spacing:var(--tracking-body, 0); }
+.st-pv .ks-table th{ position:static; }
+.st-pv-app{ display:grid; grid-template-columns:172px minmax(0,1fr); min-height:560px; }
+.st-pv-app.is-collapsed{ grid-template-columns:60px minmax(0,1fr); }
+.st-pv-app.is-collapsed .ks-lbl{ display:none; }
+.st-pv-side{ background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; min-width:0; }
+.st-pv-side .ks-brand{ min-height:52px; padding:var(--sp-2) var(--sp-3); }
+.st-pv-side .ks-nav{ flex:none; padding:var(--sp-2); }
+.st-pv-main{ min-width:0; display:flex; flex-direction:column; }
+.st-pv-top{ display:flex; align-items:center; gap:var(--sp-2); padding:var(--sp-2) var(--sp-3); border-bottom:1px solid var(--border);
+  background:var(--overlay); backdrop-filter:var(--topbar-blur, blur(12px) saturate(180%)); -webkit-backdrop-filter:var(--topbar-blur, blur(12px) saturate(180%)); min-width:0; }
+.st-pv-body{ padding:var(--sp-3); display:flex; flex-direction:column; gap:var(--gap-stack); min-width:0; }
+.st-pv-note{ margin-top:var(--sp-2); font-size:var(--fs-caption); color:var(--text-muted); }
+@container (max-width:560px){ .st-pv-app, .st-pv-app.is-collapsed{ grid-template-columns:minmax(0,1fr); } .st-pv-side{ display:none; } }
+</style>
+</head>
+<body>
+<div class="ks-app">
+  <div id="bd" class="ks-backdrop" hidden></div>
+  <aside id="sb" class="ks-sidebar" aria-label="Разделы настроек">
+    <div class="ks-brand" id="page-brand">
+      <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 15l4-5 3 3 4-6 3 4"/></svg></div>
+      <div class="ks-lbl"><div class="ks-brand-name">Контур</div><div class="ks-brand-sub">настройки вида</div></div>
+    </div>
+    <nav class="ks-nav" id="nav"></nav>
+    <div class="ks-sidebar-foot ks-lbl">Шаблон Контур DS 1.5.2. Настройки не меняют ни одной цифры, только вид.</div>
+  </aside>
+  <div class="ks-main">
+    <header class="ks-topbar">
+      <button type="button" id="menu" class="ks-btn ks-btn--ghost ks-btn--icon" aria-label="Меню"></button>
+      <span class="ks-stamp" id="stamp">настройки вида шаблона</span>
+      <div class="ks-topbar-spacer"></div>
+      <button type="button" class="ks-btn ks-btn--ghost ks-hide-sm" id="to-kontur">Вид Контура</button>
+      <button type="button" class="ks-btn ks-btn--primary" id="save">Сохранить</button>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="theme" aria-label="Сменить тему"></button>
+    </header>
+    <main class="ks-view" id="view">
+      <div id="head"></div>
+      <div class="st-layout">
+        <div class="st-form" id="form"></div>
+        <aside class="st-preview" aria-label="Предпросмотр">
+          <div class="st-pv-head">
+            <div><div class="ks-card-title">Предпросмотр</div><div class="ks-card-sub">пример данных GENGLASS, меняется сразу</div></div>
+            <div class="ks-seg" role="group" aria-label="Тема предпросмотра" id="pv-theme">
+              <button type="button" data-t="light" aria-pressed="true">Светлая</button><button type="button" data-t="dark" aria-pressed="false">Тёмная</button>
+            </div>
+          </div>
+          <div class="st-pv" id="pv" data-theme="light" inert></div>
+          <p class="st-pv-note" id="pv-note"></p>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   Страница настроек вида. Черновик живёт в памяти, предпросмотр показывает его сразу.
+   «Сохранить» кладёт настройки в этот браузер: их подхватывают страницы той же папки (шаблоны рядом).
+   Для страницы из другой папки на обеих задать одинаковый window.KS_PREFS_KEY до подключения кита.
+   «Код для проекта» даёт kit/brand.js: так вид увидят все, кто открывает шаблоны.
+   Все цвета проверяются на контраст по WCAG в обеих темах и подправляются до нормы.
+   ========================================================================== */
+const P = KS.prefs, { esc, nf } = KS.fmt, ic = KS.ic, el = id => document.getElementById(id);
+/* сама страница остаётся в виде Контура: настройки видны в предпросмотре, а не в рабочем интерфейсе */
+const SAVED = P.get();
+P.apply(null);
+(function(){ let d = null; try{ d = localStorage.getItem('ks-density'); }catch(e){} if(!d) document.documentElement.removeAttribute('data-density'); })();
+
+/* ---------------- цвет: WCAG и OKLCH ---------------- */
+const s2l = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+const l2s = c => c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+const hexOk = h => /^#[0-9a-f]{6}$/i.test(h || '');
+const rgbOf = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+const hexOf = r => '#' + r.map(x => Math.round(Math.min(1, Math.max(0, x)) * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+function lab(h){ const [r, g, b] = rgbOf(h).map(s2l);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b), m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b), s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s, 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s]; }
+function rgbFromLab(L, a, b){ const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3, m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3, s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s].map(l2s); }
+const lch = h => { const [L, a, b] = lab(h); return [L, Math.hypot(a, b), Math.atan2(b, a)]; };
+function fromLch(L, C, H){ L = Math.min(0.99, Math.max(0.02, L));
+  for(let c = C; c >= 0; c -= 0.004){ const rgb = rgbFromLab(L, c * Math.cos(H), c * Math.sin(H)); if(rgb.every(x => x >= -0.0005 && x <= 1.0005)) return hexOf(rgb); }
+  return hexOf(rgbFromLab(L, 0, 0)); }
+const withL = (h, L) => { const [, C, H] = lch(h); return fromLch(L, C, H); };
+const lum = h => { const [r, g, b] = rgbOf(h).map(s2l); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+/* двигаем светлоту по OKLCH, пока цвет не пройдёт проверку: тон и насыщенность сохраняются */
+function fit(h, ok, dir){ let [L, C, H] = lch(h), x = h; for(let i = 0; i < 90 && !ok(x); i++){ L += dir * 0.01; x = fromLch(L, C, H); } return x; }
+const mix = (a, b, t) => { const A = rgbOf(a), B = rgbOf(b); return hexOf(A.map((x, i) => x * t + B[i] * (1 - t))); };
+const rgba = (h, a) => 'rgba(' + rgbOf(h).map(x => Math.round(x * 255)).join(',') + ',' + a + ')';
+const r1 = x => x.toFixed(1).replace('.', ',');
+
+/* токены обеих тем читаются из самих токенов, а не переписываются руками */
+const probe = t => { const d = document.createElement('div'); d.setAttribute('data-theme', t); d.hidden = true; document.body.appendChild(d); return d; };
+const PROBE = { light: probe('light'), dark: probe('dark') };
+const tok = (n, t) => getComputedStyle(PROBE[t]).getPropertyValue(n).trim().toUpperCase();
+const TK = {};
+['light', 'dark'].forEach(t => { TK[t] = {}; ['--bg', '--surface', '--surface-2', '--text-strong', '--primary', '--primary-foreground', '--action', '--action-foreground', '--pill'].forEach(n => TK[t][n] = tok(n, t)); });
+
+/* ---------------- что можно настроить ---------------- */
+const ACCENTS = [
+  { id:'kontur', name:'Контур', hex:null }, { id:'emerald', name:'Изумруд', hex:'#0E7C5A' }, { id:'violet', name:'Фиолетовый', hex:'#6C47D9' },
+  { id:'graphite', name:'Графит', hex:'#4A5568' }, { id:'amber', name:'Янтарь', hex:'#B45309' }, { id:'rose', name:'Малиновый', hex:'#C0365E' } ];
+/* палитры серий прошли validate_palette.mjs в обеих темах; других готовых порядков из цветов Контура нет */
+const PALETTES = {
+  kontur: { name:'Контур', light:null, dark:null },
+  blue:   { name:'Синий первым', light:['#3561C9','#00806A','#7B3BC4','#A87400','#0F7CB8'], dark:['#5D8AFF','#00AD81','#8A5FE9','#CE7F00','#009EEC'] } };
+const KONTUR_CAT = { light:['#7B3BC4','#00806A','#3561C9','#A87400','#0F7CB8'], dark:['#8A5FE9','#00AD81','#5D8AFF','#CE7F00','#009EEC'] };
+const FS = { '--fs-badge':12, '--fs-micro':11, '--fs-caption':12, '--fs-small':12.5, '--fs-body':13, '--fs-base':14, '--fs-h2':16, '--fs-h1':22, '--fs-h1-sm':19 };
+const DEF = { v:1,
+  brand:{ name:'', sub:'', logo:null, logoDark:null, logoMode:'mark', darkLogo:'same' },
+  type:{ scale:100, trackH:-15, trackBody:0 },
+  color:{ accent:null, button:'ink', buttonColor:'#1F6F5C', pill:'neutral', nav:'neutral' },
+  chart:{ curve:'straight', line:2, palette:'kontur', custom:['#7B3BC4','#00806A','#3561C9','#A87400','#0F7CB8'] },
+  shape:{ radius:12, depth:1, borders:'line', glass:'on' },
+  layout:{ width:1480, density:'comfortable', theme:'system', collapsed:false },
+  motion:'full' };
+const clone = o => JSON.parse(JSON.stringify(o));
+function merge(base, src){ const out = clone(base); if(!src || typeof src !== 'object') return out;
+  Object.keys(out).forEach(k => { if(src[k] == null) return;
+    if(typeof out[k] === 'object' && out[k] && !Array.isArray(out[k])) Object.keys(out[k]).forEach(j => { if(src[k][j] !== undefined) out[k][j] = src[k][j]; });
+    else out[k] = src[k]; });
+  return out; }
+let D = merge(DEF, SAVED);
+const pure = d => { const x = clone(d); delete x.vars; return x; };
+let savedJson = JSON.stringify(pure(merge(DEF, SAVED)));
+
+/* ---------------- черновик в переменные CSS ---------------- */
+function derive(d){
+  const V = { base:{}, light:{}, dark:{}, compact:{}, comfortable:{} }, R = { light:[], dark:[], notes:[] };
+  const L = TK.light, K = TK.dark;
+  /* шрифт */
+  const s = (+d.type.scale || 100) / 100;
+  if(s !== 1){
+    Object.entries(FS).forEach(([k, v]) => V.base[k] = Math.max(11, Math.round(v * s * 2) / 2) + 'px');
+    const hero = (a, b, c, e) => 'clamp(' + +(a * s).toFixed(1) + 'px, ' + +(b * s).toFixed(2) + 'px + ' + +(c * s).toFixed(2) + 'vw, ' + +(e * s).toFixed(1) + 'px)';
+    V.base['--fs-hero'] = hero(24, 20.7, 0.85, 30); V.comfortable['--fs-hero'] = V.base['--fs-hero'];
+    V.compact['--fs-hero'] = hero(22, 19.5, 0.65, 26);
+  }
+  if(+d.type.trackH !== -15){ V.base['--tracking-h'] = (d.type.trackH / 1000) + 'em'; V.base['--tracking-hero'] = ((d.type.trackH - 10) / 1000) + 'em'; }
+  if(+d.type.trackBody !== 0) V.base['--tracking-body'] = (d.type.trackBody / 1000) + 'em';
+  /* акцент: выбор, фокус, ссылка */
+  const A = hexOk(d.color.accent) ? d.color.accent.toUpperCase() : null;
+  let PL = L['--primary'], PD = K['--primary'], LD = PD, FL = L['--primary-foreground'], FD = K['--primary-foreground'];
+  if(A){
+    PL = fit(A, h => ratio(h, FL) >= 4.5 && ratio(h, L['--bg']) >= 4.5 && ratio(h, L['--surface-2']) >= 4.5, -1);
+    PD = fit(withL(A, Math.max(lch(A)[0], 0.64)), h => ratio(h, FD) >= 4.5 && ratio(h, K['--surface']) >= 4.5, 1);
+    LD = fit(withL(PD, Math.max(lch(PD)[0], 0.76)), h => ratio(h, K['--surface-2']) >= 4.5 && ratio(h, K['--bg']) >= 4.5, 1);
+    Object.assign(V.light, { '--primary':PL, '--primary-hover':withL(PL, lch(PL)[0] - 0.07), '--primary-soft':rgba(PL, 0.10), '--primary-ink':PL, '--focus':PL, '--text-link':PL, '--spot':rgba(PL, 0.06) });
+    Object.assign(V.dark, { '--primary':PD, '--primary-hover':withL(PD, lch(PD)[0] + 0.07), '--primary-soft':rgba(PD, 0.15), '--primary-ink':LD, '--focus':LD, '--text-link':LD, '--spot':rgba(LD, 0.07) });
+    if(PL !== A) R.notes.push('Акцент в светлой теме затемнён до ' + PL + ': исходный цвет не давал 4,5:1 с белым текстом и фоном.');
+  } else LD = tok('--text-link', 'dark');
+  R.light.push(['Ссылка и фокус на фоне', ratio(PL, L['--bg'])]); R.dark.push(['Ссылка и фокус на фоне', ratio(LD, K['--bg'])]);
+  /* основная кнопка */
+  let AL = L['--action'], AFL = L['--action-foreground'], AD = K['--action'], AFD = K['--action-foreground'];
+  if(d.color.button === 'accent'){ AL = PL; AFL = FL; AD = PD; AFD = FD; }
+  if(d.color.button === 'custom' && hexOk(d.color.buttonColor)){
+    const B = d.color.buttonColor.toUpperCase(), best = (c, a, b) => ratio(c, a) >= ratio(c, b) ? a : b;
+    AFL = best(B, '#FFFFFF', L['--text-strong']); AL = fit(B, h => ratio(h, AFL) >= 4.5, AFL === '#FFFFFF' ? -1 : 1);
+    AD = fit(B, h => ratio(h, K['--surface']) >= 3, 1); AFD = best(AD, '#FFFFFF', FD); AD = fit(AD, h => ratio(h, AFD) >= 4.5, AFD === '#FFFFFF' ? -1 : 1);
+    if(AL !== B) R.notes.push('Цвет кнопки подправлен до ' + AL + ', чтобы надпись читалась (4,5:1).');
+  }
+  if(d.color.button !== 'ink'){
+    Object.assign(V.light, { '--action':AL, '--action-hover':withL(AL, lch(AL)[0] + (lch(AL)[0] > 0.6 ? 0.05 : -0.06)), '--action-foreground':AFL });
+    Object.assign(V.dark, { '--action':AD, '--action-hover':withL(AD, lch(AD)[0] + (lch(AD)[0] > 0.6 ? 0.05 : -0.06)), '--action-foreground':AFD });
+  }
+  R.light.push(['Текст на основной кнопке', ratio(AL, AFL)]); R.dark.push(['Текст на основной кнопке', ratio(AD, AFD)]);
+  /* элементы управления: плашка переключателя и выбранный пункт меню */
+  let pl = L['--pill'], pfl = L['--text-strong'], pd = K['--pill'], pfd = K['--text-strong'];
+  if(d.color.pill === 'solid') d.color.pill = 'tint';
+  if(d.color.pill === 'tint'){ pl = mix(PL, L['--surface'], 0.14); pd = mix(PD, K['--surface-2'], 0.26); }
+  /* сплошной акцент под переключателем не предлагается: белая надпись успевает оказаться на светлой дорожке, пока плашка едет */
+  if(d.color.pill !== 'neutral'){ Object.assign(V.light, { '--pill':pl, '--pill-foreground':pfl }); Object.assign(V.dark, { '--pill':pd, '--pill-foreground':pfd }); }
+  R.light.push(['Текст на плашке переключателя', ratio(pl, pfl)]); R.dark.push(['Текст на плашке переключателя', ratio(pd, pfd)]);
+  if(d.color.nav === 'tint'){ const nl = mix(PL, L['--surface'], 0.10), nd = mix(PD, K['--surface'], 0.18);
+    V.light['--nav-active'] = nl; V.dark['--nav-active'] = nd;
+    R.light.push(['Выбранный пункт меню', ratio(nl, L['--text-strong'])]); R.dark.push(['Выбранный пункт меню', ratio(nd, K['--text-strong'])]); }
+  /* палитра серий графиков */
+  const pal = palOf(d);
+  if(pal){ pal.light.forEach((c, i) => V.light['--cat-' + (i + 1)] = c); pal.dark.forEach((c, i) => V.dark['--cat-' + (i + 1)] = c); }
+  /* форма и глубина */
+  const rad = +d.shape.radius;
+  if(rad !== 12) Object.assign(V.base, { '--r-lg':rad + 'px', '--r-box':rad + 'px', '--r-md':Math.round(rad * 2 / 3) + 'px', '--r-sm':Math.round(rad / 2) + 'px', '--r-field':Math.round(rad / 2) + 'px', '--r-xs':Math.round(rad / 3) + 'px' });
+  let dep = +d.shape.depth;
+  if(d.shape.borders === 'shadow'){ V.base['--card-border'] = 'transparent'; if(dep === 0){ dep = 0.5; R.notes.push('Без рамок карточкам нужна тень: глубина поднята до «мягко».'); } }
+  if(dep !== 1) V.base['--depth'] = String(dep);
+  if(d.shape.glass === 'off'){ V.base['--topbar-blur'] = 'none'; V.light['--overlay'] = L['--surface']; V.dark['--overlay'] = K['--surface']; }
+  /* раскладка */
+  if(+d.layout.width !== 1480) V.base['--content-max'] = +d.layout.width ? d.layout.width + 'px' : 'none';
+  Object.keys(V).forEach(k => { if(!Object.keys(V[k]).length) delete V[k]; });
+  return { vars:V, report:R };
+}
+/* своя палитра серий: тёмные варианты считаются сами, обе темы проходят валидатор dataviz */
+function customPal(d){
+  const light = (d.chart.custom || []).map(c => hexOk(c) ? c.toUpperCase() : '#888888');
+  const dark = light.map(c => { const [Lc, C, H] = lch(c); return fromLch(Math.min(0.66, Math.max(0.52, Lc + 0.08)), C, H); });
+  const chk = window.KS_PALCHECK;
+  const vl = chk ? chk.validate(light, { mode:'light', surface:TK.light['--surface'] }) : null;
+  const vd = chk ? chk.validate(dark, { mode:'dark', surface:TK.dark['--surface'] }) : null;
+  const clean = v => v && v.ok && !v.report.some(r => r[1] === 'relief' || r[1] === 'floor');
+  return { light, dark, vl, vd, ok: clean(vl) && clean(vd) };
+}
+function palOf(d){
+  if(d.chart.palette === 'blue') return PALETTES.blue;
+  if(d.chart.palette === 'custom'){ const c = customPal(d); return c.ok ? c : null; }
+  return null;
+}
+const current = () => Object.assign(pure(D), { vars: derive(D).vars });
+
+/* ---------------- форма ---------------- */
+const SECS = [['s-brand','Логотип и подпись','tag'],['s-type','Шрифт','doc'],['s-color','Цвета','bolt'],['s-chart','Графики','chart'],
+  ['s-shape','Форма и глубина','layers'],['s-layout','Раскладка','grid'],['s-motion','Движение','clock'],['s-save','Сохранение и перенос','download']];
+const seg = (id, label, opts) => '<div class="ks-seg" role="group" aria-label="' + esc(label) + '" id="' + id + '">'
+  + opts.map(o => '<button type="button" data-v="' + esc(String(o[0])) + '" aria-pressed="false">' + esc(o[1]) + '</button>').join('') + '</div>';
+const field = (label, body, hint, forId) => '<div class="ks-field">' + (forId ? '<label class="ks-field-label" for="' + forId + '">' : '<span class="ks-field-label">') + esc(label)
+  + (forId ? '</label>' : '</span>') + body + (hint ? '<p class="st-help">' + hint + '</p>' : '') + '</div>';
+const range = (id, min, max, step, label) => '<div class="st-range-row"><input class="st-range" type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" aria-label="' + esc(label) + '"><output class="st-out" id="' + id + '-out" for="' + id + '"></output></div>';
+const color = (id, label) => '<div class="st-color"><input type="color" id="' + id + '" aria-label="' + esc(label) + '"><input class="ks-input" id="' + id + '-hex" maxlength="7" spellcheck="false" aria-label="' + esc(label) + ', код цвета"></div>';
+const sec = (i, sub, body) => KS.card({ title:SECS[i][1], sub, body:'<div class="st-fields">' + body + '</div>', cls:'st-sec' }).replace('class="ks-card st-sec"', 'class="ks-card st-sec" id="' + SECS[i][0] + '"');
+
+function formHtml(){
+  return [
+    sec(0, 'PNG, SVG, JPG или WebP; хранится уменьшенной копией до 128 пикселей в высоту',
+      '<div class="st-drop" id="drop"><div class="st-logos"><div class="st-logo" title="Светлая тема"><div class="ks-brand-mark" id="lg-l">' + ic('chart', 17) + '</div></div>'
+      + '<div class="st-logo" data-theme="dark" title="Тёмная тема"><div class="ks-brand-mark" id="lg-d">' + ic('chart', 17) + '</div></div></div>'
+      + '<div class="st-drop-txt">Перетащите файл логотипа сюда или выберите его</div>'
+      + '<div class="st-actions"><button type="button" class="ks-btn ks-btn--secondary" id="logo-pick">' + ic('download', 15) + 'Выбрать файл</button>'
+      + '<button type="button" class="ks-btn ks-btn--ghost" id="logo-del">Убрать</button></div>'
+      + '<input type="file" id="logo-file" accept="image/png,image/svg+xml,image/jpeg,image/webp" hidden></div>'
+      + field('Как показывать', seg('logo-mode', 'Как показывать логотип', [['mark','Знак в квадрате'],['wide','Логотип целиком']]),
+          'Знак: квадрат 28 пикселей рядом с названием. Целиком: логотип до 176 пикселей в ширину, название скрыто, подпись остаётся под логотипом.')
+      + field('В тёмной теме', seg('logo-dark', 'Логотип в тёмной теме', [['same','Как есть'],['invert','Инвертировать'],['file','Свой файл']])
+          + '<div class="st-actions" id="dark-file-row" hidden><button type="button" class="ks-btn ks-btn--secondary ks-btn--sm" id="logo-dark-pick">Файл для тёмной темы</button>'
+          + '<input type="file" id="logo-dark-file" accept="image/png,image/svg+xml,image/jpeg,image/webp" hidden></div>',
+          'Тёмный логотип на тёмном фоне пропадает. Одноцветный можно инвертировать, цветной лучше загрузить отдельным файлом.')
+      + '<div class="st-two">' + field('Название', '<input class="ks-input" id="b-name" maxlength="40" placeholder="как в шаблоне">', '', 'b-name')
+      + field('Дескриптор под логотипом', '<input class="ks-input" id="b-sub" maxlength="60" placeholder="как в шаблоне">', '', 'b-sub') + '</div>'),
+    sec(1, 'Масштаб всей шкалы и разрядка. Пол 11 пикселей держится при любом масштабе',
+      field('Размер текста', range('t-scale', 90, 115, 5, 'Размер текста'))
+      + field('Разрядка заголовков', range('t-track-h', -30, 20, 5, 'Разрядка заголовков'), 'Минус плотнее, как у Linear и Vercel; в Контуре -0,015 em.')
+      + field('Разрядка основного текста', range('t-track-b', -10, 30, 5, 'Разрядка основного текста'), 'Немного воздуха помогает мелкому тексту на плотных экранах.')),
+    sec(2, 'Кнопки, акцент и элементы управления. Контраст считается в обеих темах и подправляется до нормы',
+      field('Акцент: выбор, ссылки, фокус', '<div class="st-chips" id="accents">' + ACCENTS.map(a => '<button type="button" class="st-chip" data-a="' + a.id + '" aria-pressed="false"><span class="st-dot" style="--c:' + (a.hex || TK.light['--primary']) + '"></span>' + esc(a.name) + '</button>').join('') + '</div>'
+        + color('c-accent', 'Свой цвет акцента'))
+      + field('Основная кнопка', seg('c-button', 'Основная кнопка', [['ink','Почти чёрная'],['accent','Цвет акцента'],['custom','Свой цвет']]) + '<div id="c-button-row" hidden>' + color('c-button-color', 'Цвет основной кнопки') + '</div>',
+          'Почти чёрная кнопка это вид Контура: синий остаётся для выбора и фокуса. В тёмной теме кнопка светлая.')
+      + '<div class="st-two">' + field('Выбранное в переключателях', seg('c-pill', 'Выбранное в переключателях', [['neutral','Белая плашка'],['tint','Тон акцента']]))
+      + field('Выбранный пункт меню', seg('c-nav', 'Выбранный пункт меню', [['neutral','Нейтральный'],['tint','Тон акцента']])) + '</div>'
+      + '<div class="st-report" id="c-report"></div>'),
+    sec(3, 'Форма линий, толщина и палитра серий',
+      field('Линии', seg('g-curve', 'Форма линий', [['straight','Острые'],['smooth','Плавные']]),
+          'Плавные идут через monotone: линия не выходит за соседние точки и не рисует провалов и пиков, которых нет в данных.')
+      + field('Толщина линии', seg('g-line', 'Толщина линии', [['1.5','1,5'],['2','2'],['2.5','2,5']]))
+      + field('Палитра серий', '<div class="st-chips" id="g-pal">'
+          + [['kontur','Контур', KONTUR_CAT.light], ['blue','Синий первым', PALETTES.blue.light], ['custom','Свои цвета', null]].map(p => '<button type="button" class="st-chip" data-p="' + p[0] + '" aria-pressed="false">'
+            + (p[2] ? '<span class="st-dots">' + p[2].map(c => '<span class="st-dot" style="--c:' + c + '"></span>').join('') + '</span>' : ic('pen', 14)) + esc(p[1]) + '</button>').join('') + '</div>'
+          + '<div id="g-custom" hidden><div class="st-color" id="g-custom-row"></div><div class="st-report" id="g-check"></div></div>',
+          'Готовые палитры прошли проверку различимости (скилл dataviz) в обеих темах. Свои цвета проверяются здесь же; не прошли, значит остаётся палитра Контура.')),
+    sec(4, 'Скругления, тени, рамки и стекло верхней панели',
+      field('Скругление', range('s-radius', 0, 16, 2, 'Скругление'), 'Роли сохраняются: кнопки и поля вдвое мельче коробок.')
+      + '<div class="st-two">' + field('Тени', seg('s-depth', 'Тени', [['0','Плоско'],['0.5','Мягко'],['1','Обычно']]))
+      + field('Рамки карточек', seg('s-borders', 'Рамки карточек', [['line','Линия'],['shadow','Только тень']])) + '</div>'
+      + field('Стекло верхней панели', seg('s-glass', 'Стекло верхней панели', [['on','Включено'],['off','Сплошная']]), 'Сплошная панель спокойнее на слабых компьютерах и при печати снимков экрана.')),
+    sec(5, 'Что человек видит при первом открытии. Его собственный выбор кнопками в шапке важнее',
+      field('Ширина контента', seg('l-width', 'Ширина контента', [['1280','1280'],['1480','1480'],['0','Во всю ширину']]), 'На мониторе 27 дюймов «во всю ширину» даёт больше колонок, 1280 удобнее читать.')
+      + '<div class="st-two">' + field('Плотность', seg('l-density', 'Плотность по умолчанию', [['comfortable','Просторно'],['compact','Компактно']]))
+      + field('Меню', seg('l-collapsed', 'Меню при открытии', [['false','Развёрнуто'],['true','Свёрнуто']])) + '</div>'
+      + field('Тема', seg('l-theme', 'Тема по умолчанию', [['system','Как в системе'],['light','Светлая'],['dark','Тёмная']]))),
+    sec(6, 'Независимо от системной настройки «меньше движения», которая всегда важнее',
+      field('Анимации', seg('m-motion', 'Анимации', [['full','Полные'],['calm','Сдержанные'],['off','Без анимаций']]),
+        'Полные: переходы экранов, прорисовка графиков, анимации Rive. Сдержанные: только отклик на наведение и нажатие. Без анимаций: всё сразу на месте.')),
+    sec(7, 'Настройки хранятся в этом браузере. Чтобы вид увидели все, положите код в проект',
+      '<div class="st-status" id="save-status"></div>'
+      + '<div class="st-actions"><button type="button" class="ks-btn ks-btn--primary" id="save2">Сохранить в этом браузере</button>'
+      + '<button type="button" class="ks-btn ks-btn--secondary" id="to-kontur2">Вернуть вид Контура</button>'
+      + '<button type="button" class="ks-btn ks-btn--ghost" id="forget">Удалить из браузера</button></div>'
+      + field('Файл настроек', '<div class="st-actions"><button type="button" class="ks-btn ks-btn--secondary" id="exp-dl">' + ic('download', 15) + 'Скачать kontur-vid.json</button>'
+        + '<button type="button" class="ks-btn ks-btn--ghost" id="exp-copy">Скопировать</button><button type="button" class="ks-btn ks-btn--ghost" id="imp-pick">Загрузить файл</button>'
+        + '<input type="file" id="imp-file" accept="application/json,.json" hidden></div>', 'Перенос на другой компьютер или в другой браузер.')
+      + field('Код для проекта', '<textarea class="st-code" id="code" readonly spellcheck="false" aria-label="Код файла kit/brand.js"></textarea>'
+        + '<div class="st-actions"><button type="button" class="ks-btn ks-btn--secondary" id="code-copy">Скопировать код</button><button type="button" class="ks-btn ks-btn--ghost" id="code-dl">Скачать brand.js</button></div>',
+        'Замените этим кодом файл kontur-ds/kit/brand.js: вид получат все, кто открывает шаблоны. Настройки, сохранённые в браузере, важнее кода проекта.')
+      + '<div class="st-actions"><a class="ks-link" href="obzor.html">Открыть обзор</a><a class="ks-link" href="treker.html">трекер</a><a class="ks-link" href="otchet.html">отчёт</a></div>')
+  ].join('');
+}
+
+/* ---------------- предпросмотр ---------------- */
+const F = KS.F, SRC = 'отчёт качества, цикл 3', AT = '2026-09-18';
+const SER = [410,423,423,417,417,417,417,434,434,444,444,444,426,428,426,432,432], VIS = [39,38,38,37,37,37,37,37,37,17,17,17,17,17,17,23,23];
+const CATS = ['20.08','25.08','26.08','28.08','29.08','30.08','31.08','01.09','02.09','05.09','06.09','07.09','10.09','13.09','15.09','18.09','19.09'].map(x => x + '.2026');
+function pvHtml(){
+  const tiles = '<div class="ks-grid-kpi">'
+    + KS.tile({ label:'Вопросов к Ивану без ответа', f:F(17, 'ДАННЫЕ', SRC, AT), slot:4, icon:'list', delta:KS.delta({ one:false, now:17, was:8, abs:9, rel:1.125, from:'2026-09-06', to:'2026-09-18' }, false), spark:[8, 14, 17] })
+    + KS.tile({ label:'Просмотры архива на VC', f:F(3575, 'ДАННЫЕ', 'vc.ru, 8 материалов', AT), slot:3, icon:'eye', delta:KS.delta({ one:false, now:3575, was:2973, abs:602, rel:0.2, from:'2026-09-06', to:'2026-09-18' }), spark:[2973, 3575] })
+    + KS.tile({ label:'Единиц волны 2 сдано из 8', f:F(0, 'ДАННЫЕ', SRC, AT), slot:2, icon:'doc', delta:KS.delta({ abs:0, now:0, was:0 }) }) + '</div>';
+  const rows = [['Р-1', 'Регистр бренда', 'не начато', 'crit'], ['З-3', 'Зеркала с подсветкой', 'ждёт ответа', 'serious'], ['СТ-1', 'Статья в блог', 'сделано', 'ok']];
+  return '<div class="st-pv-app" id="pv-app"><div class="st-pv-side">'
+    + '<div class="ks-brand" id="pv-brand"><div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 15l4-5 3 3 4-6 3 4"/></svg></div>'
+    + '<div class="ks-lbl"><div class="ks-brand-name">Контур</div><div class="ks-brand-sub">SEO и GEO по неделям</div></div></div>'
+    + '<div class="ks-nav" id="pv-nav"><button type="button" class="ks-nav-item is-active" tabindex="-1">' + ic('grid', 17) + '<span class="ks-lbl">Обзор недели</span></button>'
+    + '<button type="button" class="ks-nav-item" tabindex="-1">' + ic('globe', 17) + '<span class="ks-lbl">Каналы</span></button>'
+    + '<button type="button" class="ks-nav-item" tabindex="-1">' + ic('doc', 17) + '<span class="ks-lbl">Метод и границы</span></button></div></div>'
+    + '<div class="st-pv-main"><div class="st-pv-top"><div class="ks-seg" id="pv-seg"><button type="button" aria-pressed="true" tabindex="-1">GENGLASS</button><button type="button" aria-pressed="false" tabindex="-1">GLASS-MEMORY</button></div>'
+    + '<div class="ks-topbar-spacer"></div><button type="button" class="ks-btn ks-btn--primary ks-btn--sm" tabindex="-1">Выгрузить</button></div>'
+    + '<div class="st-pv-body ks-cq"><div><div class="ks-row" style="gap:var(--sp-2)"><h3 class="ks-h1" style="font-size:var(--fs-h2)">Обзор недели</h3>' + KS.badge('P0', 'neutral') + '</div>'
+    + '<p class="ks-page-sub" style="font-size:var(--fs-body)">Что сдвинулось за неделю. <a class="ks-link" href="#s-color" tabindex="-1">Как читать</a></p></div>'
+    + tiles
+    + KS.card({ title:'Топ-10 и видимость в ИИ', sub:'индекс: 20.08 это 100, пример ряда keys.so', body:KS.chart('pv-chart', 240) })
+    + KS.card({ title:'Задачи', body:KS.table([['Задача'], ['Название'], ['Статус']], rows.map(r => [esc(r[0]), esc(r[1]), KS.status(r[2], r[3])]), { stack:false }) })
+    + '<div class="ks-row"><button type="button" class="ks-btn ks-btn--primary" tabindex="-1">Сохранить</button><button type="button" class="ks-btn ks-btn--secondary" tabindex="-1">Отмена</button>'
+    + '<input class="ks-input" style="width:120px" value="11,5" aria-label="пример поля" tabindex="-1"></div></div></div></div>';
+}
+let _raf = 0;
+function drawPv(){ cancelAnimationFrame(_raf); _raf = requestAnimationFrame(() => {
+  KS.charts.index('pv-chart', { cats:CATS, h:240, series:[{ name:'Топ-10', data:SER, slot:1 }, { name:'Видимость в ИИ', data:VIS, slot:2 }] }); }); }
+
+/* ---------------- синхронизация формы и черновика ---------------- */
+const setSeg = (id, v) => el(id).querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v))));
+const setColor = (id, v) => { el(id).value = hexOk(v) ? v.toLowerCase() : '#000000'; el(id + '-hex').value = hexOk(v) ? v.toUpperCase() : ''; };
+function fill(){
+  const d = D;
+  setSeg('logo-mode', d.brand.logoMode); setSeg('logo-dark', d.brand.darkLogo); el('dark-file-row').hidden = d.brand.darkLogo !== 'file';
+  el('b-name').value = d.brand.name || ''; el('b-sub').value = d.brand.sub || '';
+  el('t-scale').value = d.type.scale; el('t-track-h').value = d.type.trackH; el('t-track-b').value = d.type.trackBody;
+  el('accents').querySelectorAll('.st-chip').forEach(b => { const a = ACCENTS.find(x => x.id === b.dataset.a);
+    b.setAttribute('aria-pressed', String((a.hex || null) === (d.color.accent ? d.color.accent.toUpperCase() : null))); });
+  setColor('c-accent', d.color.accent || TK.light['--primary']);
+  setSeg('c-button', d.color.button); el('c-button-row').hidden = d.color.button !== 'custom'; setColor('c-button-color', d.color.buttonColor);
+  setSeg('c-pill', d.color.pill); setSeg('c-nav', d.color.nav);
+  setSeg('g-curve', d.chart.curve); setSeg('g-line', d.chart.line);
+  el('g-pal').querySelectorAll('.st-chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === d.chart.palette)));
+  el('g-custom').hidden = d.chart.palette !== 'custom';
+  el('g-custom-row').innerHTML = d.chart.custom.map((c, i) => '<input type="color" data-i="' + i + '" value="' + (hexOk(c) ? c.toLowerCase() : '#888888') + '" aria-label="Серия ' + (i + 1) + '">').join('');
+  el('s-radius').value = d.shape.radius; setSeg('s-depth', d.shape.depth); setSeg('s-borders', d.shape.borders); setSeg('s-glass', d.shape.glass);
+  setSeg('l-width', d.layout.width); setSeg('l-density', d.layout.density); setSeg('l-collapsed', d.layout.collapsed); setSeg('l-theme', d.layout.theme);
+  setSeg('m-motion', d.motion);
+}
+function update(){
+  const d = D, der = derive(d), rep = der.report;
+  /* подписи бегунков */
+  el('t-scale-out').textContent = d.type.scale + '% · основной ' + r1(Math.max(11, 14 * d.type.scale / 100)).replace(',0', '') + ' px';
+  el('t-track-h-out').textContent = (d.type.trackH / 1000).toFixed(3).replace('.', ',') + ' em';
+  el('t-track-b-out').textContent = (d.type.trackBody / 1000).toFixed(3).replace('.', ',') + ' em';
+  el('s-radius-out').textContent = d.shape.radius + ' px коробки, ' + Math.round(d.shape.radius / 2) + ' px кнопки';
+  /* отчёт о контрасте */
+  const line = (t, pair) => '<div class="st-report-row"><span>' + esc(t) + ': ' + esc(pair[0].toLowerCase()) + '</span>'
+    + KS.status(r1(pair[1]) + ':1', pair[1] >= 4.5 ? 'ok' : pair[1] >= 3 ? 'warn' : 'crit', pair[1] >= 4.5 ? 'норма WCAG для текста 4,5:1' : 'ниже нормы') + '</div>';
+  el('c-report').innerHTML = rep.light.map(p => line('светлая', p)).join('') + rep.dark.map(p => line('тёмная', p)).join('')
+    + rep.notes.map(n => '<div class="ks-muted" style="font-size:var(--fs-caption)">' + esc(n) + '</div>').join('');
+  /* своя палитра */
+  if(d.chart.palette === 'custom'){
+    const c = customPal(d), NAMES = { 'Lightness band':'светлота в полосе', 'Chroma floor':'насыщенность', 'CVD separation':'различимость при дальтонизме', 'Normal-vision floor':'различимость соседей', 'Contrast vs surface':'контраст с карточкой' };
+    const rows = (v, t) => v ? v.report.map(r => '<div class="st-report-row"><span>' + t + ': ' + (NAMES[r[0]] || r[0]) + '</span>'
+      + KS.status(r[1] === true || r[1] === 'pass' ? 'да' : r[1] === 'floor' || r[1] === 'relief' ? 'на грани' : 'нет', r[1] === true || r[1] === 'pass' ? 'ok' : r[1] === 'floor' || r[1] === 'relief' ? 'warn' : 'crit') + '</div>').join('') : '';
+    el('g-check').innerHTML = (window.KS_PALCHECK ? rows(c.vl, 'светлая') + rows(c.vd, 'тёмная') : '<div class="ks-muted">Проверка палитры не загрузилась.</div>')
+      + '<div style="font-size:var(--fs-caption)" class="' + (c.ok ? 'ks-muted' : '') + '">' + (c.ok ? 'Палитра прошла проверку в обеих темах, тёмные варианты посчитаны сами: ' + c.dark.join(', ') + '.'
+        : KS.status('Не прошла: сохранится палитра Контура. Поменяйте соседние цвета местами или разведите по светлоте.', 'warn')) + '</div>';
+  }
+  /* предпросмотр */
+  let st = el('pv-style'); if(!st){ st = document.createElement('style'); st.id = 'pv-style'; document.head.appendChild(st); }
+  st.textContent = P.css({ vars:der.vars }, '#pv');
+  const pv = el('pv');
+  pv.setAttribute('data-density', d.layout.density); pv.setAttribute('data-curve', d.chart.curve); pv.setAttribute('data-line-w', String(d.chart.line));
+  el('pv-app').classList.toggle('is-collapsed', String(d.layout.collapsed) === 'true');
+  P.brandDom({ brand:d.brand }, pv); P.brandDom({ brand:d.brand }, el('drop')); P.brandDom({ brand:d.brand }, el('sb'));
+  el('lg-l').classList.toggle('has-img', !!d.brand.logo); el('lg-d').classList.toggle('has-img', !!d.brand.logo);
+  el('pv-note').textContent = (+d.layout.width ? 'Ширина контента ' + d.layout.width + ' пикселей' : 'Контент во всю ширину') + ', тема по умолчанию: '
+    + ({ system:'как в системе', light:'светлая', dark:'тёмная' })[d.layout.theme] + ', анимации: ' + ({ full:'полные', calm:'сдержанные', off:'выключены' })[d.motion] + '.';
+  /* код и статус */
+  el('code').value = P.code(current());
+  const dirty = JSON.stringify(pure(d)) !== savedJson;
+  el('stamp').textContent = dirty ? 'есть несохранённые изменения' : 'сохранено в этом браузере';
+  el('save-status').innerHTML = dirty ? KS.status('Есть несохранённые изменения', 'warn') : KS.status('Черновик совпадает с сохранённым видом', 'ok');
+  drawPv();
+}
+const change = fn => { fn(D); update(); };
+
+/* ---------------- логотип: файл в PNG до 128 пикселей в высоту ---------------- */
+function readLogo(file, cb){
+  if(!file) return;
+  if(!/^image\/(png|svg\+xml|jpeg|webp)$/.test(file.type)){ KS.toast('Нужен PNG, SVG, JPG или WebP', 'warn'); return; }
+  if(file.size > 8 * 1024 * 1024){ KS.toast('Файл больше 8 МБ: сожмите логотип', 'warn'); return; }
+  const fr = new FileReader();
+  fr.onload = () => { const img = new Image();
+    img.onload = () => { const w0 = img.naturalWidth || 256, h0 = img.naturalHeight || 256, k = Math.min(1, 128 / h0, 512 / w0);
+      const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(w0 * k)); cv.height = Math.max(1, Math.round(h0 * k));
+      const g = cv.getContext('2d'); g.drawImage(img, 0, 0, cv.width, cv.height);
+      /* средний цвет непрозрачных пикселей: тёмный логотип пропадёт в тёмной теме, светлый в светлой */
+      let tone = null;
+      try{ const px = g.getImageData(0, 0, cv.width, cv.height).data; let r = 0, gg = 0, bb = 0, n = 0;
+        for(let i = 0; i < px.length; i += 16){ if(px[i + 3] > 128){ r += px[i]; gg += px[i + 1]; bb += px[i + 2]; n++; } }
+        if(n) tone = hexOf([r / n / 255, gg / n / 255, bb / n / 255]); }catch(e){}
+      try{ cb(cv.toDataURL('image/png'), tone); }catch(e){ KS.toast('Не удалось прочитать логотип', 'warn'); } };
+    img.onerror = () => KS.toast('Файл не открылся как картинка', 'warn');
+    img.src = fr.result; };
+  fr.readAsDataURL(file);
+}
+
+/* ---------------- сохранение и перенос ---------------- */
+function save(){
+  const p = current();
+  if(!P.save(p)){ KS.toast('Браузер не дал сохранить: закончилось место или запрещено хранилище', 'warn'); return; }
+  P.apply(null);   /* страница настроек остаётся в виде Контура */
+  savedJson = JSON.stringify(pure(D)); update();
+  KS.toast('Сохранено: шаблоны этой папки в этом браузере откроются с новым видом');
+}
+function download(name, text, type){
+  try{ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }catch(e){ KS.toast('Скачивание недоступно: скопируйте текст', 'warn'); }
+}
+function copy(text, ok){ try{ navigator.clipboard.writeText(text).then(() => KS.toast(ok), () => KS.toast('Не удалось скопировать: выделите текст вручную', 'warn')); }
+  catch(e){ KS.toast('Не удалось скопировать: выделите текст вручную', 'warn'); } }
+function twoStep(btn, label, fn){ if(btn._armed){ btn._armed = false; btn.textContent = label; fn(); return; }
+  btn._armed = true; const t = btn.textContent; btn.textContent = 'Точно? Нажмите ещё раз';
+  setTimeout(() => { if(btn._armed){ btn._armed = false; btn.textContent = t; } }, 3000); }
+
+/* ---------------- сборка страницы ---------------- */
+el('head').innerHTML = KS.head({ title:'Настройки вида', sub:'Логотип, подпись, шрифт, цвета, графики и поведение шаблона. Слева настройки, справа предпросмотр.',
+  src:'Контур DS 1.5.2 · контраст считается по WCAG в обеих темах',
+  lead:'Настройки вида не меняют ни одной цифры и ни одного рубля в отчётах: только то, как они выглядят.' });
+el('form').innerHTML = formHtml();
+el('pv').innerHTML = pvHtml();
+el('nav').innerHTML = SECS.map((s, i) => '<button type="button" class="ks-nav-item' + (i === 0 ? ' is-active' : '') + '" data-view="' + s[0] + '">' + ic(s[2], 17) + '<span class="ks-lbl">' + esc(s[1]) + '</span></button>').join('');
+el('theme').innerHTML = KS.theme.icon();
+el('menu').innerHTML = ic('menu', 18);
+KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
+KS.navWire(el('nav'), v => { const t = el(v); if(t) t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start' }); });
+/* пункт меню следует за разделом на экране */
+if(window.IntersectionObserver){ const io = new IntersectionObserver(es => { es.forEach(e => { if(e.isIntersecting){
+    el('nav').querySelectorAll('.ks-nav-item').forEach(b => b.classList.toggle('is-active', b.dataset.view === e.target.id)); } }); }, { rootMargin:'-30% 0px -60% 0px' });
+  SECS.forEach(s => io.observe(el(s[0]))); }
+document.querySelectorAll('.ks-seg').forEach(KS.seg.wire);
+
+/* события формы */
+const onSeg = (id, fn) => el(id).addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b) change(d => fn(d, b.dataset.v)) || fill(); });
+onSeg('logo-mode', (d, v) => d.brand.logoMode = v);
+onSeg('logo-dark', (d, v) => { d.brand.darkLogo = v; });
+onSeg('c-button', (d, v) => d.color.button = v);
+onSeg('c-pill', (d, v) => d.color.pill = v);
+onSeg('c-nav', (d, v) => d.color.nav = v);
+onSeg('g-curve', (d, v) => d.chart.curve = v);
+onSeg('g-line', (d, v) => d.chart.line = +v);
+onSeg('s-depth', (d, v) => d.shape.depth = +v);
+onSeg('s-borders', (d, v) => d.shape.borders = v);
+onSeg('s-glass', (d, v) => d.shape.glass = v);
+onSeg('l-width', (d, v) => d.layout.width = +v);
+onSeg('l-density', (d, v) => d.layout.density = v);
+onSeg('l-collapsed', (d, v) => d.layout.collapsed = v === 'true');
+onSeg('l-theme', (d, v) => d.layout.theme = v);
+onSeg('m-motion', (d, v) => d.motion = v);
+['b-name', 'b-sub'].forEach(id => el(id).addEventListener('input', () => change(d => { d.brand[id === 'b-name' ? 'name' : 'sub'] = el(id).value.trim(); })));
+el('t-scale').addEventListener('input', () => change(d => d.type.scale = +el('t-scale').value));
+el('t-track-h').addEventListener('input', () => change(d => d.type.trackH = +el('t-track-h').value));
+el('t-track-b').addEventListener('input', () => change(d => d.type.trackBody = +el('t-track-b').value));
+el('s-radius').addEventListener('input', () => change(d => d.shape.radius = +el('s-radius').value));
+el('accents').addEventListener('click', e => { const b = e.target.closest('[data-a]'); if(!b) return; const a = ACCENTS.find(x => x.id === b.dataset.a); change(d => d.color.accent = a.hex); fill(); });
+const colorPair = (id, set) => { el(id).addEventListener('input', () => { el(id + '-hex').value = el(id).value.toUpperCase(); change(d => set(d, el(id).value.toUpperCase())); fill(); });
+  el(id + '-hex').addEventListener('change', () => { let v = el(id + '-hex').value.trim(); if(v && v[0] !== '#') v = '#' + v;
+    if(hexOk(v)){ change(d => set(d, v.toUpperCase())); fill(); } else KS.toast('Код цвета в виде #3561C9', 'warn'); }); };
+colorPair('c-accent', (d, v) => d.color.accent = v);
+colorPair('c-button-color', (d, v) => d.color.buttonColor = v);
+el('g-pal').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if(!b) return; change(d => d.chart.palette = b.dataset.p); fill(); });
+el('g-custom-row').addEventListener('input', e => { const i = e.target.dataset.i; if(i == null) return; change(d => d.chart.custom[+i] = e.target.value.toUpperCase()); });
+el('g-custom-row').addEventListener('change', () => fill());
+/* логотип */
+const drop = el('drop');
+el('logo-pick').addEventListener('click', () => el('logo-file').click());
+function gotLogo(url, tone){
+  change(d => d.brand.logo = url);
+  if(tone && ratio(tone, TK.dark['--surface']) < 3 && D.brand.darkLogo === 'same'){ change(d => d.brand.darkLogo = 'invert');
+    KS.toast('Логотип тёмный: в тёмной теме он инвертируется. Можно загрузить свой файл', 'info'); }
+  else if(tone && ratio(tone, TK.light['--surface']) < 3) KS.toast('Логотип светлый и не виден в светлой теме: загрузите тёмный вариант, а светлый как файл для тёмной', 'warn');
+  else KS.toast('Логотип загружен');
+  fill();
+}
+el('logo-file').addEventListener('change', e => readLogo(e.target.files[0], (url, tone) => { gotLogo(url, tone); e.target.value = ''; }));
+el('logo-dark-pick').addEventListener('click', () => el('logo-dark-file').click());
+el('logo-dark-file').addEventListener('change', e => readLogo(e.target.files[0], url => { change(d => d.brand.logoDark = url); KS.toast('Логотип для тёмной темы загружен'); e.target.value = ''; }));
+el('logo-del').addEventListener('click', () => { change(d => { d.brand.logo = null; d.brand.logoDark = null; }); fill(); });
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('is-over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('is-over'); }));
+drop.addEventListener('drop', e => readLogo(e.dataTransfer.files[0], gotLogo));
+/* предпросмотр: своя тема */
+el('pv-theme').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if(!b) return;
+  el('pv-theme').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); el('pv').setAttribute('data-theme', b.dataset.t); drawPv(); });
+/* сохранение */
+el('save').addEventListener('click', save); el('save2').addEventListener('click', save);
+const toKontur = () => { D = clone(DEF); fill(); update(); KS.toast('Черновик вернулся к виду Контура. Чтобы применить, сохраните', 'info'); };
+el('to-kontur').addEventListener('click', toKontur); el('to-kontur2').addEventListener('click', toKontur);
+el('forget').addEventListener('click', e => twoStep(e.currentTarget, 'Удалить из браузера', () => { P.reset(); P.apply(null); savedJson = JSON.stringify(pure(merge(DEF, window.KS_BRAND))); update(); KS.toast('Настройки удалены из этого браузера', 'info'); }));
+el('exp-dl').addEventListener('click', () => download('kontur-vid.json', JSON.stringify(current(), null, 2), 'application/json'));
+el('exp-copy').addEventListener('click', () => copy(JSON.stringify(current()), 'Настройки скопированы'));
+el('imp-pick').addEventListener('click', () => el('imp-file').click());
+el('imp-file').addEventListener('change', e => { const f = e.target.files[0]; if(!f) return; const fr = new FileReader();
+  fr.onload = () => { try{ const j = JSON.parse(fr.result); if(!j || typeof j !== 'object' || !j.v) throw 0; D = merge(DEF, j); fill(); update(); KS.toast('Настройки загружены. Чтобы применить, сохраните', 'info'); }
+    catch(err){ KS.toast('Это не файл настроек Контура', 'warn'); } e.target.value = ''; };
+  fr.readAsText(f); });
+el('code-copy').addEventListener('click', () => copy(el('code').value, 'Код для kit/brand.js скопирован'));
+el('code-dl').addEventListener('click', () => download('brand.js', el('code').value, 'text/javascript'));
+el('theme').addEventListener('click', () => KS.theme.toggle());
+document.addEventListener('ks:theme', () => { el('theme').innerHTML = KS.theme.icon(); drawPv(); });
+KS.cmdk.set(SECS.map(s => ({ group:'Разделы', label:s[1], icon:s[2], run:() => el(s[0]).scrollIntoView({ block:'start' }) }))
+  .concat([{ group:'Действия', label:'Сохранить настройки', icon:'check', run:save }, { group:'Действия', label:'Сменить тему', icon:'moon', run:() => KS.theme.toggle() }]));
+
+KS.theme.init();
+el('theme').innerHTML = KS.theme.icon();
+fill(); update();
+</script>
+</body>
+</html>

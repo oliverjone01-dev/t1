@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1216" media="(prefers-color-scheme: dark)">
+<title>Отчёт качества GENGLASS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<!-- Шаблон 3 из 3: отчёт для чтения. Без бокового меню, одна колонка, печатается.
+     Данные: недельный отчёт качества GENGLASS, цикл 3, 18.09.2026. -->
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+/* всё на токенах: своих цветов у шаблона нет */
+.rp-top{ gap:var(--sp-3); }
+.rp-brand{ display:flex; align-items:center; gap:var(--sp-2-5); min-width:0; }
+.rp-name{ font-weight:var(--fw-bold); color:var(--text-strong); font-size:var(--fs-base); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rp-doc{ max-width:880px; margin-inline:auto; }
+.rp-sec{ display:flex; flex-direction:column; gap:var(--sp-3); }
+.rp-h{ display:flex; align-items:baseline; gap:var(--sp-2); margin-top:var(--sp-5); scroll-margin-top:calc(var(--topbar-h) + 16px); }
+.rp-n{ font-variant-numeric:tabular-nums; color:var(--text-muted); font-weight:var(--fw-medium); }
+.rp-p{ margin:0; font-size:var(--fs-body); line-height:var(--lh-body); color:var(--text); max-width:68ch; }
+.rp-quote{ margin:0; padding-left:var(--sp-3); border-left:2px solid var(--border-strong); font-size:var(--fs-body); line-height:var(--lh-body); color:var(--text-strong); }
+.rp-foot{ font-size:var(--fs-micro); color:var(--text-muted); padding-block:var(--sp-6) var(--sp-2); border-top:1px solid var(--border); margin-top:var(--sp-6); }
+@media print{ .rp-doc{ max-width:none; } .rp-h{ break-after:avoid; } }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+<script src="../kit/brand.js"></script>
+<script src="../kit/icons.js"></script>
+<script src="../kit/kit.js"></script>
+<script src="../kit/charts.js"></script>
+<script src="../kit/motion.riv.js"></script>
+</head>
+<body>
+<header class="ks-topbar rp-top">
+  <div class="rp-brand">
+    <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 2h7l3 3v13H5zM12 2v3h3"/></svg></div>
+    <div class="rp-name">GENGLASS · отчёт качества</div>
+  </div>
+  <div class="ks-topbar-spacer"></div>
+  <div class="ks-stamp ks-hide-md">цикл 3 · 18.09.2026</div>
+  <span id="cmdkb"></span>
+  <button type="button" class="ks-btn ks-btn--secondary ks-btn--sm" id="print" hidden>Печать</button>
+  <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="dens" aria-label="Плотность интерфейса"></button>
+  <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="theme" aria-label="Сменить тему"></button>
+</header>
+<main class="ks-view rp-doc" id="doc"></main>
+
+<script>
+const F = KS.F, { nf, esc, ruDate } = KS.fmt;
+const R3 = 'отчёт качества, цикл 3', AT = '2026-09-18';
+/* три цикла отчёта: 06.09, 11.09, 18.09. arch: просмотры 16 материалов VC и DTF */
+const SERIES = [
+  { date:'2026-09-06', q:8,  dev:0, units:null, arch:3902 },
+  { date:'2026-09-11', q:14, dev:0, units:0,    arch:null },
+  { date:'2026-09-18', q:17, dev:0, units:0,    arch:4945 }
+];
+const DB = {
+  units: F(0,    'ДАННЫЕ', R3 + ', раздел 3', AT, '0 из 8'),
+  q:     F(17,   'ДАННЫЕ', R3 + ', раздел 11', AT),
+  chars: F(2450, 'ДАННЫЕ', R3 + ', раздел 9.1', AT, 'план 42 000-52 500'),
+  arch:  F(4945, 'ДАННЫЕ', 'vc.ru и dtf.ru, 16 материалов', AT)
+};
+const dyn = f => KS.series.dyn(SERIES, f, 100000);
+const SECS = [];
+const sec = (n, title) => { SECS[n] = title; return '<h2 class="ks-h2 rp-h" id="s' + n + '"><span class="rp-n">' + n + '</span>' + esc(title) + '</h2>'; };
+const p = t => '<p class="rp-p">' + t + '</p>';
+/* оценки аудита по пяти осям: полоса считается от 10, а не от максимума */
+const score = items => '<div class="ks-bars" style="--slot:var(--cat-3)">' + items.map(i =>
+  '<div><div class="ks-bar-head"><span class="ks-bar-name">' + esc(i[0]) + '</span><span class="ks-bar-value">' + nf(i[1]) + ' <span class="ks-muted" style="font-weight:400">из 10</span></span></div>'
+  + '<div class="ks-bar-track"><div class="ks-bar-fill" style="width:' + i[1] * 10 + '%"></div></div></div>').join('') + '</div>';
+
+function doc(){
+  return KS.head({ title:'Недельный отчёт качества SEO и GEO', sub:'Цикл 3, волна 2: пятница 12.09 - пятница 18.09. Автор СПАРТАК, заказчик Иван, CMO GENGROUP.',
+      src:'аудит 8,4 из 10, к выдаче допущено · данные сняты 18.09.2026', badges:[KS.badge('принимать нечего', 'crit')],
+      lead:'Партия 3 даёт +1,3-10,8 заявки в месяц, в downside +0,3-2,7 ' + KS.kind('ГИПОТЕЗА') + '. Это 0,2-1,7% целевого потока 650 заявок, и в сентябре эффект ноль.' })
+    + '<div class="ks-stack">'
+    + KS.verdict(SERIES, [['q','вопросов к Ивану без ответа',false],['units','единиц сдано по адресу'],['dev','задач разработчика сделано']], 100000, 'три цикла')
+
+    + '<section class="rp-sec">' + sec(1, 'Главное в семи строках')
+    + KS.card({ body:KS.steps([
+        ['Ни одной опубликованной единицы за неделю', 'Волна 2 из восьми единиц стартовала 12.09, на 18.09 не изменилась ни одна страница.'],
+        ['Три приоритетные страницы не менялись двенадцать дней', 'Title и description категории, офисных и раздвижных совпали побайтово: 51/155, 49/171, 44/164.'],
+        ['КЕ-1 не доработана', 'Из тринадцати правок от 11.09 не закрыта ни одна: 4-12 мм вместо 4-19, срок 30-35 дней при витрине 20-25.'],
+        ['Корневая категория перегородок без H2', 'Тема на 101 289 показов, 19% рабочего ядра, не закрыта третью неделю.'],
+        ['Блок разработчика: ноль из десяти', 'Два адреса из стоп-листа отдают 404, в title категорий по-прежнему GenGlass.'],
+        ['Выдуманная фактура на живой странице', 'Кельвины, IP44+ и сенсорное управление на странице зеркал с подсветкой. В базе знаний их нет.'],
+        ['Архив на VC и DTF вырос сам', '+1 043 просмотра за 12 дней при нуле новых публикаций.']]) })
+    + '<div class="ks-grid-kpi">'
+    +   KS.tile({ label:'Единиц волны 2 сдано из 8', f:DB.units, slot:3, icon:'doc', delta:KS.delta(dyn('units')) })
+    +   KS.tile({ label:'Вопросов без ответа', f:DB.q, slot:4, icon:'info', delta:KS.delta(dyn('q'), false) })
+    +   KS.tile({ label:'Знаков за две недели', f:DB.chars, slot:1, icon:'pen', delta:KS.delta({ one:true, now:DB.chars.v }) })
+    +   KS.tile({ label:'Просмотры архива, 16 материалов', f:DB.arch, slot:2, icon:'eye', delta:KS.delta(dyn('arch')) })
+    + '</div></section>'
+
+    + '<section class="rp-sec">' + sec(2, 'Выработка: план и факт')
+    + p('Две недели по 21 часу дали 2 450 знаков и 3 изображения. Это 5-6% от плана волны 2. Поэтому партия 3 сокращена до двух единиц на 11-18 часов из 21.')
+    + KS.card({ title:'Знаков за две недели', sub:'Выделен факт, план серым', body:KS.chart('c-plan', 260),
+        table:KS.table([['Что'],['Знаков',true]], [['План, минимум', nf(42000)], ['План, максимум', nf(52500)], ['Факт', nf(2450)]]) })
+    + KS.card({ title:'Цикл за циклом', sub:'Одно и то же третью неделю', body:KS.table([['Что'],['06.09',true],['11.09',true],['18.09',true]], [
+        ['Единиц сдано по адресу из карточки', null, '0 из 2', '0 из 8'],
+        ['Задач разработчика сделано', '0 из 8', '0 из 8', '0 из 10'],
+        ['Вопросов к Ивану без ответа', '8', '14', '17'],
+        ['Знаков мета изменилось на трёх страницах', null, '0', '0']]) })
+    + '</section>'
+
+    + '<section class="rp-sec">' + sec(3, 'Выдуманная фактура на живой странице')
+    + KS.note('Четыре группы чисел без подтверждения', 'На сайте стоят числа, которых нет в базе знаний: акустика 36-40 дБ и 100 000 циклов на странице раздвижных, кельвины, IP44+ и сенсор на странице зеркал с подсветкой, 4-12 мм и 30-35 дней в статье КЕ-1. Вопросы 12 и 20 теперь звучат как «подтвердить или снять».', 'crit')
+    + '</section>'
+
+    + '<section class="rp-sec">' + sec(4, 'Площадки: цепочка до заявок')
+    + p('Архив растёт на 87 просмотров в сутки без единой публикации. В заявках это почти ничего не меняет, но это аргумент за перенос архива в блог на нашем домене.')
+    + KS.card({ title:'Расчёт по площадкам', sub:'Класс у каждой цифры', body:KS.table([['Шаг'],['Значение',true],['Метод']], [
+        ['Просмотров в сутки без публикаций', '87', KS.kind('ДАННЫЕ')], ['Просмотров в месяц', 'около 2 600', KS.kind('ГИПОТЕЗА')],
+        ['CTR просмотр в переход', '1-3%', KS.kind('ГИПОТЕЗА')], ['Переходов в месяц', '26-78', 'расчёт'],
+        ['CR переход в заявку', '1-2%', KS.kind('ГИПОТЕЗА')], ['Заявок в месяц', '0,3-1,6', 'расчёт']],
+        { foot:['Downside, -50% по двум коэффициентам', '0,07-0,4', null] }) })
+    + '</section>'
+
+    + '<section class="rp-sec">' + sec(5, 'Конкурент: одна находка')
+    + p('Проверены две страницы lain-loft.ru, второго в выдаче по «лофт перегородки» на 06.09. Цена за м2 у них в title и в H1, то есть видна до клика. Их слабое место: ни одной таблицы с техническими числами.')
+    + KS.card({ body:KS.table([['Что'],['lain-loft.ru'],['GENGLASS']], [
+        ['Цена за м2', 'в title и H1: от 4 800 и 8 800 ₽', 'нет нигде, прайса нет (вопрос 5)'],
+        ['Срок', 'от 2 до 7 дней, 14-28 дней', '20-25 дней, лофт и раздвижные 30-35'],
+        ['Гарантия', 'до 3 лет и 5 лет', '12 месяцев, не меняем'],
+        ['Таблицы с числами', 'ни одной на странице с 17 H2', 'обязательны в каждой карточке'],
+        ['H2', '17, с переспамом', '5-8 чистых']].map(r => r.map(esc))) })
+    + '</section>'
+
+    + '<section class="rp-sec">' + sec(6, 'Что нужно от Ивана до 22.09, 12:00')
+    + KS.card({ body:KS.table([['Пункт'],['Что решить'],['Если ответа нет']], [
+        ['A', 'Волна 2 не начата: доработка, сдвиг срока или сокращение до партии 3', 'действует партия 3 из двух единиц'],
+        ['B', 'КЕ-1: ноль из тринадцати правок за семь дней', 'считаю отправленной на доработку третий раз'],
+        ['C', 'Состав партии 3 на 19-26.09', 'исполнитель идёт по составу раздела 9.2']].map(r => r.map(esc))) })
+    + KS.card({ title:'Блокирующие вопросы', body:KS.checks(['7. Разработчик: имя и срок', '16. Доступ контент-менеджера к шаблону категории',
+        '20. Кельвины, IP44+, сенсор: подтвердить или снять', '12. 100 000 циклов и 36-40 дБ: подтвердить или снять', '5. Прайс «от ... ₽ за м2»'], 'warn') })
+    + KS.note('Правило остановки', '<blockquote class="rp-quote">Если к понедельнику 22.09, 12:00 МСК, не будет ни имени разработчика, ни ответа по доступу к шаблону категории, я прекращаю выпускать новые пакеты заданий.</blockquote>', 'warn')
+    + KS.action({ what:'Назвать разработчика и срок или ответить по доступу к шаблону категории', who:'Иван', when:'понедельник 22.09, 12:00 МСК',
+        crit:'есть имя разработчика или ответ по вопросу 16' })
+    + '</section>'
+
+    + '<section class="rp-sec">' + sec(7, 'Аудит')
+    + p('Регламент ФЕНИКСА, пять осей, один прогон. До правок 6,0, после 8,4: к выдаче допущено. Скилл аудита в облачной сессии не был подключён, это названо прямо.')
+    + KS.card({ title:'Оценка по осям', body:score([['C1 полнота', 8], ['C2 точность', 9], ['C3 практичность', 9], ['C4 качество текста', 8], ['C5 связность', 8]]) })
+    + KS.card({ title:'Метод и его границы', body:KS.table([['Что снято'],['Как'],['Ограничение']], [
+        ['Мета, H1, H2, FAQ по семи страницам', 'инструмент выборки', 'не сырой HTML'],
+        ['Ленты VC и DTF', 'тот же инструмент', 'сняты полностью'],
+        ['Лента Дзена', 'не снята', 'закрыта robots.txt'],
+        ['Позиции и выдача Яндекса', 'не сняты', 'закрыты robots.txt']].map(r => r.map(esc))) })
+    + '</section>'
+    + '<div class="rp-foot">Шаблон отчёта Контур DS 1.5.2. Ни одна рекламная кампания этим отчётом не запускается и не финансируется.</div>'
+    + '</div>';
+}
+function draw(){
+  if(document.getElementById('c-plan')) KS.charts.emphasis('c-plan', { cats:['План, минимум', 'План, максимум', 'Факт'], data:[42000, 52500, 2450], focus:2, slot:4, h:260 });
+}
+function render(){
+  document.getElementById('doc').innerHTML = doc();
+  KS.charts.prune();
+  document.getElementById('theme').innerHTML = KS.theme.icon();
+  cancelAnimationFrame(_raf); _raf = requestAnimationFrame(draw);
+}
+let _raf = 0;
+/* Печать работает с диска и с Pages. Внутри артефакта Claude она заблокирована, там кнопки нет. */
+const pr = document.getElementById('print');
+if(window.self === window.top){ pr.hidden = false; pr.addEventListener('click', () => window.print()); }
+KS.charts.onTheme = () => { render(); };
+document.getElementById('theme').addEventListener('click', () => KS.theme.toggle());
+KS.theme.init();
+render();
+
+/* плотность: просторно или компактно, выбор запоминается */
+const densUi = () => { const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase()); };
+document.getElementById('dens').addEventListener('click', () => KS.density.toggle());
+document.addEventListener('ks:density', () => { densUi(); KS.toast('Плотность: ' + KS.density.label().toLowerCase()); });
+densUi();
+/* анимации Rive поверх родных; без сети или при «меньше движения» остаются родные */
+KS.rive.enable();
+/* палитра команд в отчёте: переход к разделу */
+el_cmd();
+function el_cmd(){
+  document.getElementById('cmdkb').outerHTML = KS.cmdk.button('Раздел отчёта');
+  KS.cmdk.set(SECS.map((t, n) => t ? { group:'Разделы', label:n + '. ' + t, icon:'doc',
+      run:() => document.getElementById('s' + n).scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start' }) } : null).filter(Boolean)
+    .concat([{ group:'Действия', label:'Сменить тему', icon:'moon', run:() => KS.theme.toggle() }, { group:'Действия', label:'Переключить плотность', hint:'просторно или компактно', icon:'rows', keywords:'компактно просторно строки таблица', run:() => KS.density.toggle() }]));
+}
+</script>
+</body>
+</html>

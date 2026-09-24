@@ -1,0 +1,84 @@
+name: "Контур DS: сторож"
+
+# Проверка страниц сторожем Контур DS (check_ds.py --live): правила системы в исходниках и в отрисовке,
+# контраст WCAG AA в обеих темах на 1280 и 390, цели пальца. Красный прогон = страница нарушает систему.
+#
+# Два режима:
+# 1. Подключаемый шаблон для любого проекта (workflow_call). Проект кладёт к себе копию kontur-ds/ нужной
+#    версии и файл из kontur-ds/ci/kontur-ds.yml, где указаны его страницы. Проверяется копия проекта.
+# 2. Самопроверка пакета в этом репозитории: на PR, который трогает kontur-ds/, гоняются шаблоны и
+#    витрина, плюс тест на подмену tamper_ds.py (сторож обязан ловить подмены и молчать на законном).
+#
+# Предел: страница за паролем видна сторожу только экраном входа. Для таких проектов нужен свой прогон
+# по экранам (как у ОП ГМ) или страница-копия без шифроблока.
+
+on:
+  workflow_call:
+    inputs:
+      pages:
+        description: "Страницы через пробел, можно маски: public/*.html src/**/*.html"
+        required: true
+        type: string
+      ds-path:
+        description: "Папка пакета в проекте"
+        required: false
+        type: string
+        default: kontur-ds
+      working-directory:
+        description: "Папка проекта в репозитории"
+        required: false
+        type: string
+        default: "."
+  pull_request:
+    paths:
+      - "kontur-ds/**"
+      - ".github/workflows/kontur-ds-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kontur-ds-check-${{ github.ref }}-${{ inputs.working-directory || 'self' }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: "сторож --live"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working-directory || '.' }}
+    env:
+      PAGES: ${{ inputs.pages || 'kontur-ds/templates/*.html kontur-ds/specimen.html' }}
+      DS: ${{ inputs.ds-path || 'kontur-ds' }}
+      NODE_PATH: ${{ github.workspace }}/.pw/node_modules
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Playwright с Chromium (для живого слоя)
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p .pw && cd .pw
+          npm init -y >/dev/null
+          npm i --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Сторож
+        run: |
+          shopt -s globstar nullglob
+          files=( $PAGES )
+          if [ ${#files[@]} -eq 0 ]; then echo "::error::по маскам '$PAGES' не найдено ни одной страницы"; exit 1; fi
+          test -f "$DS/tools/check_ds.py" || { echo "::error::нет $DS/tools/check_ds.py: положите копию kontur-ds в проект"; exit 1; }
+          echo "Контур DS: $(head -1 "$DS/README.md")"
+          python3 "$DS/tools/check_ds.py" "${files[@]}" --live
+      - name: Тест на подмену (только пакет)
+        # в подключённом режиме pages задан всегда; пусто только у самопроверки пакета (PR, ручной запуск)
+        if: ${{ !inputs.pages }}
+        run: python3 "$DS/tools/tamper_ds.py" --live

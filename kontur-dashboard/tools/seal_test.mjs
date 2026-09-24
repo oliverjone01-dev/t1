@@ -87,26 +87,35 @@ function srcCase(name, edit) {
 }
 const patch = (ws, rel, from, to) => { const f = ws + '/' + rel, t = fs.readFileSync(f, 'utf8');
   if (!t.includes(from)) throw new Error('правка не нашла место: ' + rel); fs.writeFileSync(f, t.replace(from, to)); };
+// Числа для случаев с правкой исходников берутся из текущих данных страницы: второй
+// слой ищет значения, которые есть в данных, а выгрузки обновляются каждый день.
+const DBX = JSON.parse(SRC.match(/const DB = (\{.*?\});\n/s)[1]);
+const gg = DBX.projects.gg, dr = gg.direct || {};
+const NB = '\u00a0', grp = (n) => String(Math.trunc(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const SPEND = dr.spend && dr.spend.v, CPC = dr.cpc && dr.cpc.v, CLICKS = dr.clicks && dr.clicks.v;
+const LEADS = gg.ym && gg.ym.conv && gg.ym.conv.organic && gg.ym.conv.organic.leads, PLAN = gg.plan.v;
+const dec = (x, d) => x.toFixed(d).replace(/\.?0+$/, '').replace('.', ',');
 const inHead = (x) => (ws) => patch(ws, 'kontur-dashboard/src/modules/head.py', '<title>Контур: SEO, GEO, Директ</title>', '<title>Контур: SEO, GEO, Директ</title>\n' + x);
 const inBody = (x) => (ws) => patch(ws, 'kontur-dashboard/src/modules/shell.py', '<div class="gate" id="gate">', x + '\n<div class="gate" id="gate">');
 const SRC_BAD = [
   ['исходники: расход в правиле kit.css', (ws) => fs.appendFileSync(ws + '/kontur-ds/kit/kit.css', '\n.x::after{ content:"Расход 175 968 ₽"; }\n')],
-  ['исходники: «147 заявок» в разметке', inBody('<p hidden>147 заявок</p>')],
-  ['исходники: расход в тысячах', inBody('<p hidden>Расход 176 тыс. ₽</p>')],
+  ['исходники: заявки из поиска в разметке', inBody('<p hidden>' + LEADS + ' заявок</p>')],
+  ['исходники: расход в тысячах', inBody('<p hidden>Расход ' + dec(SPEND / 1000, 0) + ' тыс. ₽</p>')],
   ['исходники: план с узким пробелом', inBody('<p hidden>План 240\u2009000\u2009000 ₽</p>')],
   ['исходники: план в комментарии своего CSS', (ws) => patch(ws, 'kontur-dashboard/src/modules/head.py', "LOCAL_CSS = r'''", "LOCAL_CSS = r'''\n/* план 240 000 000 ₽ */")],
   ['исходники: <img onerror>', inBody('<img alt="" src="data:," onerror="window.__h=1">')],
   ['исходники: <svg/onload>', inBody('<svg/onload="window.__h=1"></svg>')],
   ['исходники: <SCRIPT> заглавными', inBody('<SCRIPT>window.__s=1</SCRIPT>')],
   // итерация 8
-  ['исходники: meta description с «240 млн»', inHead('<meta name="description" content="План 240 млн ₽, расход 176 тыс. ₽">')],
-  ['исходники: meta og с расходом', inHead('<meta property="og:description" content="Расход 175 968 ₽">')],
+  ['исходники: meta description с планом в млн', inHead('<meta name="description" content="План ' + dec(PLAN / 1e6, 0) + ' млн ₽">')],
+  ['исходники: meta og с расходом', inHead('<meta property="og:description" content="Расход ' + grp(SPEND) + ' ₽">')],
   ['исходники: второй блок ks-tokens', inHead('<style id="ks-tokens">/* CRM | Все лиды */</style>')],
   ['исходники: второй блок ks-kit', inHead('<style id="ks-kit">.x::after{ content:"175 968 ₽"; }</style>')],
   ['исходники: iframe srcdoc', inBody('<iframe srcdoc="<p>x</p>" hidden></iframe>')],
-  ['исходники: дробная цена клика', inBody('<p hidden>Клик 110,3 ₽</p>')],
-  ['исходники: «1,6 тыс.» кликов', inBody('<p hidden>Кликов 1,6 тыс.</p>')],
+  ['исходники: дробная цена клика', inBody('<p hidden>Клик ' + String(CPC).replace('.', ',') + ' ₽</p>')],
+  ['исходники: клики в тысячах с запятой', inBody('<p hidden>Кликов ' + dec(CLICKS / 1000, 1) + ' тыс.</p>')],
 ];
+if (!SPEND || !CPC || !CLICKS || !LEADS || !PLAN || !String(CPC).includes('.')) { console.log('  В ДАННЫХ НЕТ ЧИСЕЛ ДЛЯ СЛУЧАЕВ С ИСХОДНИКАМИ: расход, цена клика (дробная), клики, заявки, план'); bad++; }
 const ctl = srcCase('чистая копия', null);
 if (!ctl.ok) { console.log('  ЧИСТАЯ КОПИЯ НЕ ПРОШЛА, случаи с исходниками не проверить: ' + ctl.err); bad++; }
 else for (const [name, edit] of SRC_BAD) {

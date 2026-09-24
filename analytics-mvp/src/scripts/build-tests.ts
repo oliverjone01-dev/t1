@@ -16,7 +16,7 @@ import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { dp, op, IS_OZON } from "../paths.js";
 import { loadCardMap, kinOfTests, collapseByCard, mapHealth } from "./card-kin.js";
 import {
-  controlByDay, gapSeries, readiness, loadMoves, loadCpoDays, isExact,
+  controlByDay, gapSeries, pairGapSeries, pairFit, readiness, loadMoves, loadCpoDays, isExact,
   ARRIVED, FLAT_RANGE, FLAT_DAYS, BASE_DAYS, LATE_AFTER, BACK_TO_BASE,
   type BoostRow, type CoinvRow, type WaveItem,
 } from "./boost-readiness.js";
@@ -1254,6 +1254,14 @@ function boostCard(): string {
   const waveOn = (wave.старт || "").slice(0, 10);
   const exactBefore = exactDays.filter((d) => d < waveOn).length;
   const EXACT_ONLY = exactBefore >= FLAT_DAYS;
+  const pairNote = `<div class="cov"><b>Плато считается на разнице с соседом по карточке, а не на уровне.</b>`
+    + ` Магазин двигает цены почти каждый день: в сентябре чистых дней 7 из 21, а с 20.09 их нет вовсе,`
+    + ` и правило «три подряд чистых дня» на таком каталоге не выполнится ни при каком раскладе.`
+    + ` Сосед по объединённой карточке делит с рекламируемым товаром акцию и индекс цены и отличается`
+    + ` только рекламой, поэтому общий сдвиг двигает обоих и в разнице сокращается: 21.09 цену сдвинули`
+    + ` 99.8 % каталога на медианные 5.24 %, а разница в парах осталась от -0.6 до +1.5 пункта.`
+    + ` До включения рекламы разница тоже около нуля, после неё 7.9-9.1. Поэтому в парном ряду дни`
+    + ` общего сдвига не выбрасываются. Товар без соседа в акции считается по-старому, к медиане панели.</div>`;
   const basisNote = EXACT_ONLY
     ? `База и плато считаются по снятой цене покупателя (снятых дней до старта ${exactBefore}).`
     : `<b>База и плато считаются по выведенной цене.</b> Цена с картой Ozon снимается с витрины`
@@ -1265,7 +1273,32 @@ function boostCard(): string {
       + ` Переключение на снятую цену произойдёт само, когда её наберётся ${FLAT_DAYS} дня до старта волны.`;
   const ctl = controlByDay(coinvRows, TEST_ARTS, KIN_ANY, EXACT_ONLY);
   const per = exitByArt(wave);
-  const mk = (it: WaveItem) => readiness(it, gapSeries(coinvRows, it.art, ctl, EXACT_ONLY), storeMoves);
+  // Соседи по объединённой карточке из роли test_sibling: у рекламируемого товара это самый
+  // чистый контроль, какой у нас есть, и в разнице с ним общий сдвиг магазина сокращается.
+  const sibsOf = (art: string): string[] => {
+    const c = CARDS.card.get(art);
+    return c ? SIB.filter((x) => CARDS.card.get(x) === c) : [];
+  };
+  const PAIRED = new Set<string>();
+  const UNFIT = new Map<string, string>();
+  const pairedOf = (art: string, on: string) => {
+    const sibs = sibsOf(art);
+    if (!sibs.length) return null;
+    const ser = pairGapSeries(coinvRows, art, sibs, EXACT_ONLY);
+    if (!ser.length) return null;
+    const fit = pairFit(ser, on);
+    if (!fit.ok) { UNFIT.set(art, fit.why); return null; }
+    return ser;
+  };
+  const mk = (it: WaveItem) => {
+    const paired = pairedOf(it.art, it.on);
+    if (paired) {
+      PAIRED.add(it.art);
+      // Дни общего сдвига в парном ряду не дисквалифицируются: он их и так сокращает.
+      return readiness(it, paired, new Map());
+    }
+    return readiness(it, gapSeries(coinvRows, it.art, ctl, EXACT_ONLY), storeMoves);
+  };
   const items = (arts: string[]): WaveItem[] => arts.map((a) => ({
     art: a, on: waveOn, off: per.get(a)?.exit ?? undefined,
   }));
@@ -1290,10 +1323,12 @@ function boostCard(): string {
   // Брать его по снятой цене, когда база по выведенной, значит показать рядом два числа из
   // разных шкал и предложить читателю сравнить их с порогом.
   const gapsNow = AD.map((a) => {
-    const g = gapSeries(coinvRows, a, ctl, EXACT_ONLY);
+    const g = pairedOf(a, waveOn) ?? gapSeries(coinvRows, a, ctl, EXACT_ONLY);
     const last = g[g.length - 1];
     return { art: a, gap: last?.gap ?? null, on: last?.date ?? "" };
   });
+  const adUnfit = AD.map((a) => [a, UNFIT.get(a)] as const)
+    .filter((x): x is readonly [string, string] => !!x[1]);
   const gapsTxt = gapsNow.map((g) => `<b>${esc(g.art)}</b> ${g.gap == null ? "нет" : (g.gap >= 0 ? "+" : "") + g.gap.toFixed(1)}`).join(", ");
   const overThr = gapsNow.filter((g) => g.gap != null && g.gap >= ARRIVED).length;
   const withGap = gapsNow.filter((g) => g.gap != null).length;
@@ -1313,9 +1348,15 @@ function boostCard(): string {
     + (haveAfter >= FLAT_DAYS ? `с ${esc(earliest)}` : `не раньше ${esc(earliest)} и только при чистых прогонах подряд`) + `. `
     + (win ? `Окно выхода: <b>${esc(win.от)}..${esc(win.до)}</b>. ` : "")
     + `Плато ждём по каждому товару отдельно, и выводим только тех, у кого оно сложилось.</div>`
+    + pairNote
     + `<div class="cov">${basisNote}</div>`;
 
-  const gapNote = `<div class="cov"><b>Разрыв к медиане панели${gapDay ? ` на ${esc(gapDay)}` : ""}:</b> ${gapsTxt}. `
+  const gapNote = `<div class="cov"><b>Разрыв к соседу по карточке${gapDay ? ` на ${esc(gapDay)}` : ""}:</b> ${gapsTxt}. `
+    + `Парный ряд у ${nbsp(AD.filter((a) => PAIRED.has(a)).length)} из ${nbsp(AD.length)}`
+    + (adUnfit.length
+        ? `; у остальных разрыв к медиане панели, потому что пара не прошла проверку: `
+          + adUnfit.map(([a, w]) => `<b>${esc(a)}</b> ${esc(w)}`).join(", ") + `. `
+        : `. `)
     + `Порог плато +${ARRIVED} пунктов, за него вышли <b>${overThr}</b> из ${withGap}. `
     + `Это довод против группового решения: вывести всех разом значило бы вывести остальных вслепую.</div>`;
 

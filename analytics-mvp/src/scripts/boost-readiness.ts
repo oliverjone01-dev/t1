@@ -89,6 +89,34 @@ export const LATE_AFTER = 5;
 /** Сдвиг, ниже которого считаем, что разрыв вернулся к базе. */
 export const BACK_TO_BASE = 2;
 
+/** Пара годится в контроль, если до включения рекламы разница держалась около нуля.
+ *  Пороги подобраны по факту: у трёх годных пар медиана 0..1.2 и размах 2.5..7.1, у негодной
+ *  25.2 и 29.3. Любая граница между ними даёт одно и то же разбиение. */
+export const PAIR_BASE_MAX = 3;
+export const PAIR_RANGE_MAX = 8;
+
+export interface PairFit { ok: boolean; median: number; range: number; days: number; why: string }
+
+/** Пригодна ли пара: считается по дням ДО включения рекламы. */
+export function pairFit(series: Array<{ date: string; gap: number }>, on: string, window = 14): PairFit {
+  const before = series.filter((p) => p.date < on).slice(-window);
+  if (before.length < FLAT_DAYS) {
+    return { ok: false, median: 0, range: 0, days: before.length,
+      why: `дней до старта всего ${before.length}, проверить пару не на чем` };
+  }
+  const v = before.map((p) => p.gap);
+  const m = r1(median(v)), range = r1(Math.max(...v) - Math.min(...v));
+  if (Math.abs(m) > PAIR_BASE_MAX) {
+    return { ok: false, median: m, range, days: before.length,
+      why: `до старта разница держалась на ${m > 0 ? "+" : ""}${m}, а не около нуля` };
+  }
+  if (range > PAIR_RANGE_MAX) {
+    return { ok: false, median: m, range, days: before.length,
+      why: `до старта разница гуляла на ${range} пункта, это не контроль` };
+  }
+  return { ok: true, median: m, range, days: before.length, why: `до старта ${m > 0 ? "+" : ""}${m} при размахе ${range}` };
+}
+
 const day = (d: string): number => Date.parse(d + "T00:00:00Z") / 864e5;
 export const daysBetween = (a: string, b: string): number => Math.round(day(b) - day(a));
 
@@ -138,6 +166,50 @@ export function controlByDay(
   }
   const out = new Map<string, number>();
   for (const [d, v] of by) out.set(d, median(v));
+  return out;
+}
+
+/** Ряд разрыва к СОСЕДУ ПО ОБЪЕДИНЁННОЙ КАРТОЧКЕ, а не к медиане панели.
+ *
+ *  ЗАЧЕМ. Магазин двигает цены почти каждый день: в сентябре 2026 чистых дней всего 7 из 21, и
+ *  с 20.09 их нет вовсе. Правило «плато это три подряд чистых дня» на таком каталоге не
+ *  выполнится ни при каком раскладе, и дело не в дыре в разметке, а в самом магазине.
+ *
+ *  Сосед по карточке решает это лучше любой подобранной группы: один товар, одна акция, один
+ *  индекс цены, различается только реклама. Общий сдвиг двигает обоих и в разнице сокращается.
+ *  Проверено на 21.09, когда цену сдвинули 99.8 % каталога на медианные 5.24 %: разница в парах
+ *  осталась -0.6, -0.3, -0.1, 0.0 и +1.5 пункта, то есть около нуля. До включения рекламы
+ *  разница тоже около нуля (09.09: от -0.7 до +1.5), после неё 7.9-9.1 пункта.
+ *
+ *  Поэтому в парном режиме дни общего сдвига НЕ дисквалифицируются: сокращать нечего.
+ *  У товара без соседа в акции парного ряда нет, и он считается по-старому.
+ *
+ *  НО ПАРА ГОДИТСЯ НЕ ВСЕГДА, и проверять это надо на окне, а не на одной дате. Из четырёх пар
+ *  ростера три держат разницу около нуля всё лето (медиана до старта +1.2, -0.5 и 0.0 при
+ *  размахе 2.5, 2.5 и 7.1 пункта), а четвёртая, GGL-07-XL-2 против GGL-01-M-2, идёт с медианой
+ *  +25.2 и размахом 29.3: у товаров разная ценовая история, и соседство по карточке этого не
+ *  лечит. На одной дате 09.09 та же пара давала +1.5, то есть выглядела чистой. */
+export function pairGapSeries(
+  rows: CoinvRow[], art: string, siblings: string[], exactOnly = false,
+): Array<{ date: string; gap: number }> {
+  if (!siblings.length) return [];
+  const sib = new Set(siblings);
+  const mine = new Map<string, number>();
+  const theirs = new Map<string, number[]>();
+  for (const r of rows) {
+    if (!observed(r)) continue;
+    if (exactOnly && !isExact(r)) continue;
+    const v = coinvOf(r);
+    if (v == null || !Number.isFinite(v)) continue;
+    if (r.art === art) mine.set(r.date, v);
+    else if (sib.has(r.art)) (theirs.get(r.date) ?? theirs.set(r.date, []).get(r.date)!).push(v);
+  }
+  const out: Array<{ date: string; gap: number }> = [];
+  for (const [d, v] of mine) {
+    const t = theirs.get(d);
+    if (t?.length) out.push({ date: d, gap: r1(v - median(t)) });
+  }
+  out.sort((a, b) => a.date.localeCompare(b.date));
   return out;
 }
 
@@ -289,7 +361,11 @@ export function loadMoves(path: string, cpoDays?: Set<string>): Map<string, Move
     // В файле лежат ВСЕ дни, и спокойные тоже. Берём только те, где магазин действительно
     // двинулся: иначе пометку получит каждый день, плато не соберётся никогда, а база
     // окажется «грязной» на ровном месте.
-    if (!d || r.store_move === false) continue;
+    //
+    // null это «нет наблюдения цен за этот день», а не сдвиг. Такой день и так не попадёт в
+    // ряд, потому что цен за него нет; пометить его сдвигом значило бы вдобавок запретить
+    // окну плато его перешагнуть, то есть наказать за пропуск съёма дважды.
+    if (!d || r.store_move !== true) continue;
     const src = r.source === "our_cpo" || r.source === "cpo" ? "our_cpo"
       : (cpoDays && cpoDays.has(d)) ? "our_cpo" : "unknown";
     out.set(d, src);

@@ -1,0 +1,175 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-kontur-ds-151-20260924-narrow",
+  "timestamp": "2026-09-24T13:50:00+03:00",
+  "deliverable_ref": "scratchpad/opgm/op-gm-automation (застейджено; git ls-files -s из op-gm-automation: sha256 97d6249d30168906 до и после проверки, продукт не правился): Контур DS 1.5.1, короткий проход по варианту А (решение Ивана 24.09, knowledge/episodes/2026-09/ivan-decisions-op-gm-v6-20260923.md:19-29): tools/contrast_live.mjs, палитра в tools/check_ds.py, §19 DESIGN_SYSTEM.md и docstring check_ds.py; публикация templates/ и specimen.html в public/kontur-ds (src/build.cjs); архив scratchpad/kontur-ds-1.5.1-r4.zip (44 из 44 = пакет). Узкая проверка после итерации 3 из 3 (поле iteration не ставится, схема допускает максимум 3): только три пункта и утечка данных ОП ГМ, новый набор обходов не строился",
+  "artifact_class": "mixed",
+  "anchor": "8.5 timur-activation итерация 3 (go) - наш 8.60 на уровне якоря: как у ТИМУРА на итерации 3, ни одна атака на поставляемый код не прошла (A12, A10, A4 моим же харнесом итерации 3: C2-C4 1.63/1.68/1.70 пойманы, папка с '#' и сломанный модуль дают [PALETTE], 23/31/37 из 38, M10 назван, F 0 из 5), регресс-контроли не сдвинулись (tamper 159/159, P1 54/58, P2 35/37, R1 0 регрессов); выше на 0.1, потому что каждая цифра автора воспроизведена независимым прогоном; ниже 8.9 annotate, потому что у annotate расхождений не было, а у нас в проверяемом тексте два: строка «Переход с 1.5» не доносит правку пункта 1 до обновлённого проекта (воспроизведено) и заявление статики про svg-знак в обёртке опровергнуто M15. Расхождение с ближайшим якорем 0.1, дрейфа нет. От итерации 3 (8.30): +0.25 accuracy_3 (0 -> 1), +0.15 risk_22 (0 -> 1), +0.15 risk_21 (1 -> 2), -0.25 actionability_8 (2 -> 1, строка перехода)",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "A12",
+      "result": "PARTIAL",
+      "evidence": "Пункт 1. python3 scratchpad/fx154/contrast_probe.py (моя fx153/contrast_probe.py, DS -> копия r4): C1 rgb 1.67:1, C2 oklch 1.63:1, C3 color-mix oklab 1.68:1, C4 color-mix srgb 1.70:1 -> [CONTRAST], rc=1 все четыре; python3 scratchpad/fx154/c5_unparsed.py: подпись svg с fill url(#nope) -> «цвет текста не разобран: url(#nope)», [CONTRAST], rc=1 (неразобранный цвет = провал, contrast_live.mjs:28-36 и :69, :73). Приёмка пункта 1 пройдена. Путь обновления: python3 scratchpad/fx154/migration_c2.py - пакет 1.5 из архива Ивана + 7 файлов строки «Переход с 1.5» (DESIGN_SYSTEM.md:1552-1553) из застейдженного пакета -> C2 oklch 1.63:1 «СТОРОЖ DS: чисто», rc=0; тот же проект + tools/contrast_live.mjs из r4 -> [CONTRAST] 1.63:1, rc=1. Код исправлен, текст обновления правку не доносит; PARTIAL по прецеденту A9 итерации 3 (провал в одном сценарии установки)"
+    },
+    {
+      "id": "A10",
+      "result": "PASS",
+      "evidence": "Пункт 2. python3 scratchpad/fx154/palette_probe.py (мои fx153/palette_hash.py и probes_a9a10.py, часть A10, на копии r4): папка proj#2 с чистой палитрой -> «чисто» rc=0; та же папка, cat-2 #2F74D0 -> [PALETTE] x2 rc=1; модуль бросает, модуля нет, пустой отчёт, нет поля report, нет node на PATH -> [PALETTE] в обеих темах, rc=1; тот же дефект палитры при сломанном модуле -> [PALETTE] rc=1; контроль: чистая палитра, рабочий модуль -> «чисто» rc=0. python3 scratchpad/fx154/m15_space.py: папка «my proj» (пробел) чисто rc=0, дефект [PALETTE] x2 rc=1. check_ds.py:158-172: импорт json.dumps(VAL.resolve().as_uri()), rc и JSON проверяются, сбой = bad('PALETTE'). validate_palette.mjs r3 -> r4: изменён только текст сообщений, длинных тире 0"
+    },
+    {
+      "id": "A4",
+      "result": "PASS",
+      "evidence": "Пункт 3, случаи. python3 scratchpad/fx154/probe3.py (моя fx153/probe3.py пачкой, как в итерации 3) -> scratchpad/fx154/probe3.out: контроли K01-K07 7 из 7; M: статикой 23, живьём 31, хоть одним слоем 37 из 38, мимо обоих 1 (M10); M10 назван строкой DESIGN_SYSTEM.md:1486-1487 «узкую цветную планку в середине строки между подписями (вариант M10 ФЕНИКСА)»; законные приёмы F01-F05: тревог 0 из 5. Цифры автора (по одному, scratchpad/run3.py) совпали до единицы"
+    },
+    {
+      "id": "A4d",
+      "result": "PARTIAL",
+      "evidence": "Пункт 3, текст. Из десяти заявлений итерации 3 девять закрыты кодом или текстом: контраст (docstring check_ds.py:31-32, C2-C4), HEX в style/el.style/setAttribute (M36-M38 статикой), именованная функция (M17, M18), цели пальца (M27, M31, M32 живьём), стиль из непереданных файлов (M01, M04, M09, M11, M16, M23, M24 живьём), рамка состояния (M02), край градиента (M08), альфа в любой записи (M23, M24, M26 живьём), рамка с одной стороны (M01-M03 живьём). Оговорки о таймере (DESIGN_SYSTEM.md:1493-1494) и узких блоках (:1437-1438, :1498) возвращены в точной форме. Заявление 4 закрыто наполовину: M14 статикой пойман, M15 нет, а :1443-1444 обещает статике «SVG с linearGradient/radialGradient внутри такого элемента»; python3 scratchpad/fx154/m15_space.py: регулярка check_ds.py:439 берёт хостом <html> (291 знак до <svg>), обёртка <a class=op-home> поглощена, static rc=0 codes []; ловит только живой слой. Строка «Переход с 1.5» (:1552-1553) не называет tools/contrast_live.mjs и tools/validate_palette.mjs (см. A12). Мелкие: «картиночный фон не проверяется» (:1462, docstring :32) против contrast_live.mjs:45 (фон url() проверяется против цвета под картинкой); range исключён style_live.mjs:140 и в §19 не назван; «--surface*» (:1438) против check_ds.py:182 (только --surface и --surface-цифра)"
+    },
+    {
+      "id": "T1",
+      "result": "PASS",
+      "evidence": "python3 scratchpad/fx154/tamper_run.py (tamper_ds.py --live на свежей копии пакета, NODE_PATH): «итог: 159 из 159; ложных тревог 0 из 37; живьём 13 из 13, ложных 0; чистая система после восстановления: зелёная», rc=0, 339 с; копия после прогона побайтно равна пакету, 44 из 44 файлов. Цифра автора подтверждена"
+    },
+    {
+      "id": "P1",
+      "result": "PASS",
+      "evidence": "Регресс-контроль. python3 scratchpad/fx154/probe_guard_r4.py (мой набор итерации 1 на r4): группа B 54 из 58 статикой, промахи S6, S7, S18, S19 (узкие блоки без контекста, домен живого слоя), как в итерации 3; группа C ложных 0 из 10"
+    },
+    {
+      "id": "P2",
+      "result": "PASS",
+      "evidence": "Регресс-контроль. python3 scratchpad/fx154/probe2_r4.py (набор итерации 2 на r4): K 7 из 7, N 35 из 37 (N13, N31 - домен живого слоя), F 0 из 6, как в итерации 3"
+    },
+    {
+      "id": "R1",
+      "result": "PASS",
+      "evidence": "Регресс-контроль. python3 scratchpad/fx154/regress_r4.py: 66 входов на check_ds.py 1.5 и r4: регрессов 0, оба ловят 9, только 1.5.1 ловит 53, как в итерации 3; послабление мягких тонов check_ds.py:182, :289 регресса на этих наборах не дало"
+    },
+    {
+      "id": "G1",
+      "result": "PASS",
+      "evidence": "Ложные тревоги холста на реальных страницах. check_ds.py templates/obzor, starter, treker, otchet, nastroyki и specimen.html --live на копии r4 с NODE_PATH: «СТОРОЖ DS: чисто», rc=0, 2 мин 01 с (среда рабочая: C1-C5 и probe3 в ней дают находки); python3 kontur-ds/tools/check_ds.py src/shell.html src/opgm.css src/opgm.js в worktree: «чисто», rc=0"
+    },
+    {
+      "id": "S2",
+      "result": "PASS",
+      "evidence": "Публикация шаблонов без данных ОП ГМ. python3 scratchpad/fx154/publeak.py: 6 опубликованных страниц (public/kontur-ds/templates/*.html и specimen.html) побайтно равны файлам пакета; из 13 630 строковых значений данных ОП ГМ (расшифрованный снимок v6 scratchpad/D.json и слой Авито scratchpad/avito/*.json, 8 файлов) в страницах встречаются 28 коротких (6-13 знаков), все 28 уже были в страницах Контур DS 1.5 из архива Ивана до работы с ОП ГМ, новых 0; телефонов 0 из 158; сетевых вызовов (fetch, XMLHttpRequest, sendBeacon, WebSocket, EventSource, form action, import()) 0; упоминаний opgm, ОП ГМ, OPGM_ENC 0. public/kontur-ds/kit = kontur-ds/kit (diff -rq пусто), сетевых вызовов 0, только localStorage. Скрипт печатает счётчики и пути JSON, значений не печатает"
+    },
+    {
+      "id": "S1",
+      "result": "PASS",
+      "evidence": "python3 scratchpad/fx154/secret_scan4.py (печатает только сумму): git grep --cached и git log -S в op-gm и /home/user/t1, застейдженный пакет, z151r4, knowledge/episodes/2026-09, traces, run3.py: 0"
+    },
+    {
+      "id": "Z1",
+      "result": "PASS",
+      "evidence": "kontur-ds-1.5.1-r4.zip: 44 записи, 44 побайтно равны застейдженному пакету, лишних и недостающих 0"
+    },
+    {
+      "id": "C3",
+      "result": "PASS",
+      "evidence": "grep длинного и среднего тире (e2 80 94, e2 80 93) по 39 застейдженным файлам: 0 и 0"
+    },
+    {
+      "id": "C4",
+      "result": "PASS",
+      "evidence": "python3 scratchpad/fx152/slop2.py: 1030 добавленных строк, совпадений с блоклистом CLAUDE.md §7: 0"
+    }
+  ],
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 1,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 1,
+    "risk_23_crisis_scenarios": 2,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9.0,
+    "actionability": 9.0,
+    "insight": 7.0,
+    "brand_fit": 10.0,
+    "risk_awareness": 8.0
+  },
+  "weighted_total": 8.6,
+  "verdict": "go",
+  "primary_gap": "Строка «Переход с 1.5» (DESIGN_SYSTEM.md:1552-1553) не называет tools/contrast_live.mjs: проект на 1.5, обновлённый по ней, остаётся с дырой A12 (C2 oklch 1.63:1 -> «СТОРОЖ DS: чисто», воспроизведено), хотя §19:1461-1462 обещает перевод любого цвета через холст. Правка текстовая, одна строка",
+  "gaps": [
+    "1. Пункт 1 и 3: строка «Переход с 1.5» (DESIGN_SYSTEM.md:1552-1553) перечисляет 7 файлов и не называет tools/contrast_live.mjs и tools/validate_palette.mjs, изменённые в 1.5.1 (diff -rq с пакетом 1.5). Проект, обновлённый по этой строке, сохраняет старый разбор цвета: scratchpad/fx154/migration_c2.py даёт на C2 «чисто» rc=0, с contrast_live.mjs из r4 [CONTRAST] rc=1. Правка: дописать оба файла в строку. Архив r4 несёт этот текст, поэтому правку разумно сделать до архива; приёмка: первая строка вывода migration_c2.py с [CONTRAST]",
+    "2. Пункт 3: DESIGN_SYSTEM.md:1443-1444 обещает статике «SVG с linearGradient/radialGradient внутри такого элемента», а M15 (svg с градиентом внутри <a class=op-home aria-label=«...на главную»>) статикой не ловится: регулярка check_ds.py:439 берёт хостом первый открытый тег в 600 знаках (в пробе <html>), обёртка-знак поглощается (scratchpad/fx154/m15_space.py). Ловит живой слой. Правка: одна строка в §19 («статика видит градиентный svg-знак по классу brand|logo|emblem|mark у svg или обёртки; обёртку по home/главн, id, aria-label видит живой слой») или якорить регулярку на атрибуте знака, как старая проверка check_ds.py:444-446",
+    "3. Пункт 2: при сбое валидатора в строке [PALETTE] причина подменяется последней строкой stderr «Node.js v22.22.2» (check_ds.py:167; palette_probe.py A10b, A10c, A10g). Провал громкий, приёмка пройдена, но строка не говорит, что сломалось. Правка: как в run_live, брать первую строку с Error или Cannot find module",
+    "4. Пункт 3, мелкое: «текст на картиночном фоне не проверяется» (DESIGN_SYSTEM.md:1462, docstring check_ds.py:32) против contrast_live.mjs:45: фон url() проверяется против цвета под картинкой; input[type=range] исключён из целей пальца (style_live.mjs:140) и в §19 не назван; «--surface*» (:1438) шире кода check_ds.py:182 (только --surface и --surface-цифра)",
+    "1.5.2 (вне трёх пунктов, на вердикт не влияет): SKILL.md:76 «разделы 13-18 про переходы между версиями» устарело, раздел 19 есть",
+    "1.5.2: послабление мягких тонов (check_ds.py:182 и :289, style_live.mjs:34) добавлено в этом проходе, хотя Иван отнёс ложные тревоги к 1.5.2: боковая полоса цветом --*-soft или с контрастом к поверхности меньше 1,3 теперь молчит в обоих слоях. Описано в §19:1438-1439 и :1466, регресса на моих наборах нет; подтвердить как решение по дизайну [рассуждение по коду, отдельной пробой не проверялось]",
+    "1.5.2: в этом проходе сделаны пункты, которые решение Ивана 24.09 отнесло к 1.5.2 (цели summary, tabindex, switch, поле цвета, HEX в разметке и JS, зона касания псевдоэлементом, правки кита .ks-help и бейджей с tabindex). Проверено регрессом: T1 159/159, P1, P2, R1, G1 без изменений, F 0 из 5. Записываю как факт расширения охвата",
+    "Процесс: просьба Ивана опубликовать шаблоны и витрину рядом с сайтом ОП ГМ и «уточнение 24.09 узкая проверка и выпуск» в эпизоде ivan-decisions-op-gm-v6-20260923.md не записаны (в файле только раздел 24.09 с вариантом А); публикацию проверил на утечку (S2 PASS), запись решения за автором"
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Строка «Переход с 1.5» не доносит правку пункта 1 до обновлённого проекта",
+      "evidence": "python3 scratchpad/fx154/migration_c2.py: файлы строки DESIGN_SYSTEM.md:1552-1553 = kit.js, kit.css, charts.js, kit/palette-check.js, tools/check_ds.py, tools/tamper_ds.py, tools/style_live.mjs; пакет 1.5 + эти файлы -> C2 oklch 1.63:1 «СТОРОЖ DS: чисто» rc=0; + tools/contrast_live.mjs из r4 -> [CONTRAST] 1.63:1 rc=1; diff -rq scratchpad/ds15raw/kontur-ds с пакетом: изменены tools/contrast_live.mjs и tools/validate_palette.mjs",
+      "checkpoint": "actionability_8, risk_22",
+      "weight": -1
+    },
+    {
+      "gap": "Заявление статики про svg-знак с градиентом внутри обёртки опровергнуто M15",
+      "evidence": "python3 scratchpad/fx154/m15_space.py: check_ds.py:439 match host tag html, host attrs mark-like False, 291 знак до <svg>, обёртка op-home внутри поглощённого участка; check_ds.py lp/M15.html rc=0 codes []; живьём GRADMARK «svg-знак с градиентом в .op-home» (scratchpad/fx154/probe3.out); DESIGN_SYSTEM.md:1443-1444",
+      "checkpoint": "accuracy_3",
+      "weight": -1
+    },
+    {
+      "gap": "Причина сбоя валидатора палитры в строке [PALETTE] подменяется версией Node",
+      "evidence": "python3 scratchpad/fx154/palette_probe.py: A10b, A10c, A10g -> «валидатор палитры не запустился (RuntimeError: Node.js v22.22.2)»; check_ds.py:167 берёт последнюю строку stderr",
+      "checkpoint": "risk_24",
+      "weight": -1
+    },
+    {
+      "gap": "Мелкие расхождения §19 и кода: картиночный фон, range, --surface*",
+      "evidence": "contrast_live.mjs:45 (!cs.backgroundImage.startsWith('url')) против DESIGN_SYSTEM.md:1462 и check_ds.py:32; style_live.mjs:140 (input[type=range] continue); check_ds.py:182 SOFT_VARS против DESIGN_SYSTEM.md:1438 [файл:строка, отдельной пробой не гонялось]",
+      "checkpoint": "accuracy_3",
+      "weight": 0
+    }
+  ],
+  "rework_tz": "",
+  "audience": "Иван Раюшкин (CMO), автор пакета",
+  "p9_triggers_fired": [],
+  "sources_of_truth": [
+    "knowledge/episodes/2026-09/ivan-decisions-op-gm-v6-20260923.md",
+    "knowledge/episodes/2026-09/feniks-audit-kontur-ds-151-20260924-iter3.json",
+    "scratchpad/opgm/op-gm-automation/kontur-ds/tools/contrast_live.mjs",
+    "scratchpad/opgm/op-gm-automation/kontur-ds/tools/check_ds.py",
+    "scratchpad/opgm/op-gm-automation/kontur-ds/tools/style_live.mjs",
+    "scratchpad/opgm/op-gm-automation/kontur-ds/DESIGN_SYSTEM.md",
+    "scratchpad/opgm/op-gm-automation/src/build.cjs",
+    "scratchpad/ds15raw/kontur-ds",
+    "scratchpad/fx154/probe3.out",
+    ".claude/skills/phoenix-eval/references/calibration-anchors.md"
+  ],
+  "confidence": 0.87
+}

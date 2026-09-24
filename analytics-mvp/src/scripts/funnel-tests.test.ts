@@ -148,3 +148,58 @@ describe("поиск пропавших дней", () => {
     expect(missingDays(days(["2026-09-22", "2026-09-23"]), all)).toEqual([]);
   });
 });
+
+describe("формы записи id теста", () => {
+  const agg2 = { ...agg, art: "AGG:bid_min_8" };
+  delete (agg2 as Record<string, unknown>).test_id;
+
+  it("префикс AGG: в поле art принимается как id теста", () => {
+    // Так приехал первый живой файл 24.09: съём следовал прежней конвенции «MEDIAN:<id>».
+    const r = parseRow(agg2);
+    expect(typeof r === "string" ? r : r.test_id).toBe("bid_min_8");
+    expect(typeof r === "string" ? "x" : r.art).toBe("");
+  });
+
+  it("прежний префикс MEDIAN: тоже понимается", () => {
+    const r = parseRow({ ...agg2, art: "MEDIAN:cpc_bid_down" });
+    expect(typeof r === "string" ? r : r.test_id).toBe("cpc_bid_down");
+  });
+
+  it("агрегат без id в обеих формах отвергается с внятной причиной", () => {
+    expect(parseRow({ ...agg2, art: "GGM-02-1-1" })).toContain("агрегат относится к группе");
+    expect(parseRow({ ...agg2, art: "" })).toContain("без test_id");
+  });
+
+  it("товарная строка с агрегатным префиксом отвергается", () => {
+    expect(parseRow({ ...ok, art: "AGG:bid_min_8" })).toContain("только у агрегатов");
+  });
+
+  it("роль reference принимается: июльский эталон вне текущих групп", () => {
+    const r = parseRow({ ...ok, role: "reference", art: "GGT-47-3-3-90" });
+    expect(typeof r === "string" ? r : r.role).toBe("reference");
+  });
+});
+
+describe("живой файл из репозитория", () => {
+  it("проходит контракт целиком, без единой отвергнутой строки", () => {
+    // Числа берём из самого файла: съём идёт каждый день, прибитое «4515 строк» сломалось бы
+    // завтра, не поймав ни одной настоящей ошибки.
+    const r = readFunnelTests("data/funnel_tests.ndjson");
+    if (!r.exists) return;
+    expect(r.rows.length).toBeGreaterThan(1000);
+    expect(r.bad).toEqual([]);
+  });
+
+  it("агрегаты несут плотность по метрикам, иначе ноль приходит молча", () => {
+    const r = readFunnelTests("data/funnel_tests.ndjson");
+    if (!r.exists || !r.agg.size) return;
+    for (const [, byRole] of r.agg) {
+      for (const [, byDay] of byRole) {
+        for (const [, row] of byDay) {
+          expect(row.n).toBeGreaterThan(0);
+          expect(row.n_nonzero).not.toBeNull();
+        }
+      }
+    }
+  });
+});

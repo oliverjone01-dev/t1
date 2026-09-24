@@ -10,6 +10,7 @@ import {
   loadPromoFromSnapshots, type PromoRow,
 } from "./promo.js";
 import { degraded } from "./ozon/promo-daily.js";
+import { readActsDaily, actKey, parseActsRow } from "./promo.js";
 
 const US = winKey("STO", "2026-09-13", "2026-10-06");     // «Максимальный бустинг: усиление»
 const MAX = winKey("STO", "2026-09-08", "2026-10-06");    // «Максимальный бустинг»
@@ -154,5 +155,51 @@ describe("сторож на деградировавший снимок", () => 
 
   it("первый день сравнивать не с чем, он принимается", () => {
     expect(degraded([], full(23, 56))).toBeNull();
+  });
+});
+
+describe("acts_daily: участие по названию акции", () => {
+  const dir = mkdtempSync(join(tmpdir(), "acts-"));
+  const write = (rows: unknown[]): string => {
+    const p = join(dir, `a${Math.random().toString(36).slice(2)}.ndjson`);
+    writeFileSync(p, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+    return p;
+  };
+  const row = (d: string, art: string, title: string) =>
+    ({ date: `2026-09-${d}`, art, title, date_from: "2026-09-13", date_to: "2026-10-06" });
+  const US = "Максимальный бустинг: усиление";
+  const MX = "Максимальный бустинг";
+  const obs = (d: string, arts: string[]) => new Map([[`2026-09-${d}`, new Set(arts)]]);
+
+  it("две акции различаются названием, а не окном дат", () => {
+    const r = readActsDaily(write([row("23", "A", US), row("23", "A", MX), row("23", "B", US)]), new Map());
+    expect(actKey(US)).not.toBe(actKey(MX));
+    expect(membersOn(r, actKey(US), "2026-09-23")).toEqual(["A", "B"]);
+    expect(membersOn(r, actKey(MX), "2026-09-23")).toEqual(["A"]);
+  });
+
+  it("хвостовой пробел в названии не создаёт вторую акцию", () => {
+    const r = readActsDaily(write([row("23", "A", MX + " "), row("23", "B", MX)]), new Map());
+    expect(membersOn(r, actKey(MX), "2026-09-23")).toEqual(["A", "B"]);
+  });
+
+  it("снятый товар без строк акций это наблюдение «акций нет», а не пропуск", () => {
+    // В файле строка только на факт участия, поэтому наблюдаемость приходит из снимка цен.
+    const r = readActsDaily(write([row("23", "A", US)]), obs("23", ["A", "C"]));
+    expect(inPromoOn(r, "C", actKey(US), "2026-09-23")).toBe(false);
+    expect(inPromoOn(r, "D", actKey(US), "2026-09-23")).toBeNull();
+  });
+
+  it("выход виден как исчезновение названия, а не как пропавшая строка", () => {
+    const r = readActsDaily(
+      write([row("23", "A", US), row("24", "A", MX)]),
+      new Map([["2026-09-23", new Set(["A"])], ["2026-09-24", new Set(["A"])]]),
+    );
+    expect(exitOf(r, "A", actKey(US)).exit).toBe("2026-09-24");
+    expect(exitOf(r, "A", actKey(MX)).exit).toBeNull();
+  });
+
+  it("акция без названия отвергается", () => {
+    expect(parseActsRow({ date: "2026-09-23", art: "A", title: "  " })).toContain("без названия");
   });
 });

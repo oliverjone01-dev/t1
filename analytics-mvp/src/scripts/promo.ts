@@ -21,6 +21,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 export const PROMO_DAILY_FILE = "promo_daily.ndjson";
+export const ACTS_DAILY_FILE = "acts_daily.ndjson";
 
 export interface PromoWin { t: string; from: string; to: string }
 export interface PromoRow { date: string; art: string; promos: PromoWin[] }
@@ -152,4 +153,64 @@ export function loadPromoFromSnapshots(dir = "tools/reakciya/data-cabinet"): Pro
     }
   }
   return out;
+}
+
+
+// ---------- acts_daily.ndjson: участие по НАЗВАНИЮ акции ----------
+//
+// ЗАЧЕМ ВТОРОЙ ЧИТАТЕЛЬ. 24.09 выяснилось, что акции снимаются не в колонку acts снимка, а в
+// отдельный файл кабинета (actions_<дата>.psv), и там у акции есть НАЗВАНИЕ. Это лучше связки
+// «тип плюс окно»: две STO различались только окном дат, а «Максимальный бустинг» и
+// «Максимальный бустинг: усиление» различаются прямо в названии. Числа сошлись с прежним
+// разбором точь-в-точь: 56 товаров в усилении, 21 в бустинге, 18 в обеих.
+//
+// ПУСТОГО СПИСКА ЗДЕСЬ НЕТ. В файле строка только на факт участия, поэтому «товар акций не
+// имеет» выражается отсутствием строк. Отличить это от «товар не снят» по самому файлу нельзя,
+// и наблюдаемость берётся снаружи, из снимка цен: если товар в снимке за этот день есть, а
+// строк акций нет, значит акций у него нет. Без этого выход из последней акции был бы
+// неотличим от несостоявшегося съёма, и дата выхода уехала бы на первый же пропущенный день.
+
+export interface ActsRow { date: string; art: string; title: string; date_from: string; date_to: string }
+
+/** Ключ акции по названию. Пробелы по краям режутся: в исходнике у одной из акций был хвостовой. */
+export const actKey = (title: string): string => title.trim();
+
+export function parseActsRow(raw: unknown): ActsRow | string {
+  if (!raw || typeof raw !== "object") return "не объект";
+  const r = raw as Record<string, unknown>;
+  const date = String(r.date ?? "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return `дата «${String(r.date ?? "")}» не вида ГГГГ-ММ-ДД`;
+  const art = String(r.art ?? "").trim();
+  if (!art) return "пустой артикул";
+  const title = actKey(String(r.title ?? ""));
+  if (!title) return "акция без названия";
+  return { date, art, title, date_from: String(r.date_from ?? "").slice(0, 10), date_to: String(r.date_to ?? "").slice(0, 10) };
+}
+
+/** Чтение acts_daily в тот же вид, что и promo_daily.
+ *
+ *  observed: день -> артикулы, снятые в этот день (обычно из снимка цен). Товар из этого
+ *  набора без строк акций получает пустое множество, то есть «наблюдали, акций нет». */
+export function readActsDaily(path: string, observed: Map<string, Set<string>>): PromoRead {
+  if (!existsSync(path)) return EMPTY;
+  const byArt = new Map<string, Map<string, Set<string>>>();
+  const days = new Set<string>();
+  const put = (art: string, date: string): Set<string> => {
+    const m = byArt.get(art) ?? new Map<string, Set<string>>();
+    const s = m.get(date) ?? new Set<string>();
+    m.set(date, s); byArt.set(art, m);
+    return s;
+  };
+  for (const l of readFileSync(path, "utf-8").split(/\r?\n/)) {
+    if (!l.trim()) continue;
+    let raw: unknown;
+    try { raw = JSON.parse(l); } catch { continue; }
+    const r = parseActsRow(raw);
+    if (typeof r === "string") continue;
+    put(r.art, r.date).add(r.title);
+    days.add(r.date);
+  }
+  // Наблюдавшиеся в этот день товары без единой акции: пустое множество это наблюдение.
+  for (const d of days) for (const art of observed.get(d) ?? []) put(art, d);
+  return { byArt, days: [...days].sort(), exists: true };
 }

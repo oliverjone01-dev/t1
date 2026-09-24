@@ -30,10 +30,21 @@ export const FUNNEL_TESTS_FILE = "funnel_tests.ndjson";
 
 /** Роли строк. Товарные: test_ad (в рекламе, ждёт плато), test_sibling (сосед по карточке,
  *  рекламы нет), control. Агрегатные: agg_median и agg_sum, обе по группе контроля. */
-export type FunnelRole = "test_ad" | "test_sibling" | "control" | "agg_median" | "agg_sum";
-const ROLES = new Set<FunnelRole>(["test_ad", "test_sibling", "control", "agg_median", "agg_sum"]);
+export type FunnelRole = "test_ad" | "test_sibling" | "control" | "reference" | "agg_median" | "agg_sum";
+const ROLES = new Set<FunnelRole>(["test_ad", "test_sibling", "control", "reference", "agg_median", "agg_sum"]);
+
+/** Id теста может приехать полем test_id или префиксом в поле art. Первый прогон 24.09 писал
+ *  «AGG:<id>», следуя конвенции прежнего контракта («MEDIAN:<id>»), и отвергать из-за этого
+ *  420 строк значило бы выбросить данные из-за формы записи. Обе формы несут одно и то же. */
+const AGG_PREFIXES = ["AGG:", "MEDIAN:"];
+export const idFromArt = (art: string): string => {
+  for (const p of AGG_PREFIXES) if (art.startsWith(p)) return art.slice(p.length);
+  return "";
+};
 export const AGG_ROLES = new Set<FunnelRole>(["agg_median", "agg_sum"]);
 export const TEST_ROLES = new Set<FunnelRole>(["test_ad", "test_sibling"]);
+/** Июльский эталон: товар вне текущих групп, нужен карточке калибровки. */
+export const REFERENCE_ROLE: FunnelRole = "reference";
 
 /** Метрики файла в порядке воронки. Позиция стоит особняком: она уровень, у неё меньше
  *  значит лучше, и её пустое значение это null, а не ноль. */
@@ -104,12 +115,21 @@ export function parseRow(raw: unknown): FunnelRow | string {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return `дата «${String(r.date ?? "")}» не вида ГГГГ-ММ-ДД`;
   const role = String(r.role ?? "") as FunnelRole;
   if (!ROLES.has(role)) return `роль «${String(r.role ?? "")}» не из ${[...ROLES].join("|")}`;
-  const art = String(r.art ?? "").trim();
-  const testId = String(r.test_id ?? "").trim();
+  const rawArt = String(r.art ?? "").trim();
   const isAgg = AGG_ROLES.has(role);
+  // У агрегата id теста берётся из test_id либо из префикса в art, а сам art обнуляется:
+  // агрегат относится к группе, а не к товару, и дальше по коду art у него должен быть пуст.
+  const fromArt = isAgg ? idFromArt(rawArt) : "";
+  const testId = String(r.test_id ?? "").trim() || fromArt;
+  const art = isAgg ? "" : rawArt;
+  // Артикул у агрегата допустим ТОЛЬКО как носитель id («AGG:<id>»). Настоящий артикул в
+  // агрегатной строке это перепутанные роли, и молча обнулять его нельзя.
+  if (isAgg && rawArt && !fromArt) {
+    return `роль ${role} с артикулом «${rawArt}»: агрегат относится к группе, а не к товару`;
+  }
   if (isAgg && !testId) return `роль ${role} без test_id`;
-  if (isAgg && art) return `роль ${role} с артикулом «${art}»: агрегат относится к группе, а не к товару`;
-  if (!isAgg && !art) return `роль ${role} без артикула`;
+  if (!isAgg && !rawArt) return `роль ${role} без артикула`;
+  if (!isAgg && idFromArt(rawArt)) return `роль ${role} с артикулом «${rawArt}»: этот префикс только у агрегатов`;
 
   // Позиция: число или null. Ноль позицией не бывает, это «не в выдаче».
   const rawPos = r.search_position;

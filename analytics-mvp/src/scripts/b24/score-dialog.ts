@@ -929,7 +929,6 @@ function main() {
   // а «заметно лучше коллег на сопоставимой выборке». Ниже порога выборки не судим.
   const METRICS = [
     { key: "resp", label: "скорость ответа", unit: "мин", better: "less",
-      how: "Доля ранних сделок, где менеджер спросил хотя бы два из трёх: размеры или ТЗ, срок, бюджет. Ранние стадии - до расчёта: Новая, Квалификация, КП отправлено, Формирование ТЗ, Принимают решение.",
       how: "Медиана времени от сообщения клиента до первого содержательного ответа менеджера. Считается в рабочих минутах (09:00-19:00 МСК), паузы внутри названного срока не учитываются. Ответом не считается реплика короче 25 символов без цифр и вопроса.",
       calc: (ds: any[]) => med(ds.map((d) => d.respMed).filter((x) => x !== null) as number[]),
       good: (v: number) => `отвечает клиенту за ${v} мин`, bad: (v: number) => `отвечает за ${fmtMin(v)}` },
@@ -946,6 +945,7 @@ function main() {
       calc: (ds: any[]) => Math.round(ds.filter((d) => d.nextStep).length / ds.length * 100),
       good: (v: number) => `следующий шаг стоит в ${v}% сделок`, bad: (v: number) => `следующий шаг есть только в ${v}% сделок` },
     { key: "qual", label: "квалификация", unit: "%", better: "more",
+      how: "Доля ранних сделок, где менеджер спросил хотя бы два из трёх: размеры или ТЗ, срок, бюджет. Ранние стадии - до расчёта: Новая, Квалификация, КП отправлено, Формирование ТЗ, Принимают решение.",
       calc: (ds: any[]) => { const e = ds.filter((d) => EARLY.has(d.stageCode) || !d.stageCode); return e.length >= 3 ? Math.round(e.filter((d) => d.tags.some((t: Tag) => t.sec === "qual" && t.tone === "good")).length / e.length * 100) : null; },
       good: (v: number) => `собирает ТЗ, срок и бюджет в ${v}% ранних сделок`, bad: (v: number) => `квалификация собрана лишь в ${v}% ранних сделок` },
     { key: "fake", label: "дела вхолостую", unit: "шт", better: "less",
@@ -1044,10 +1044,6 @@ function main() {
       const enoughSec = touched.length >= MIN_SEC_N;
       return { key: s.key, label: s.label, n: touched.length, pos: enoughSec ? Math.round((1 - bad.length / touched.length) * 100) : null, bad: bad.length };
     });
-    const enough = ds.length >= MIN_SAMPLE;
-    const scored = sections.filter((s) => s.pos !== null);
-    const wsum = scored.reduce((s, x) => s + SECTIONS.find((y) => y.key === x.key)!.weight, 0);
-    const rating = enough && wsum ? Number((scored.reduce((s, x) => s + (x.pos as number) * SECTIONS.find((y) => y.key === x.key)!.weight, 0) / wsum / 20).toFixed(1)) : null;
     // Цена ошибок: сколько рублей потенциала съели дефекты в сделках этого менеджера.
     const lossBy: Record<string, number> = {};
     let lossRub = 0;
@@ -1086,7 +1082,7 @@ function main() {
     const heatPower = heatVals.length >= 3 ? med(heatVals) : null;
     const hotMoneyTemp = openDs.filter((d) => d.tempBucket === "hot" || d.tempBucket === "boiling").reduce((s2, d) => s2 + (d.budget || 0), 0);
     return {
-      mgr, role, deals: ds.length, rating: role === "office" ? null : rating, sections, ai,
+      mgr, role, deals: ds.length, sections, ai,
       tempDist, heatPower, hotMoneyTemp,
       lossRub: Math.round(lossRub),
       lossPerDeal: Math.round(lossRub / Math.max(ds.length, 1)),
@@ -1095,12 +1091,11 @@ function main() {
       profile: profile[mgr] || null,
       internal: ds.filter((d) => d.internalOnly).length,
       fakedone: ds.reduce((s2, d) => s2 + (d.taskNoContact || 0), 0),
-      noRating: enough ? "" : `мало данных (${ds.length} из ${MIN_SAMPLE})`,
       probAvg: Math.round(ds.reduce((s, d) => s + d.prob, 0) / ds.length),
       pipeline: ds.reduce((s, d) => s + (d.budget || 0), 0),
       alerts: ds.filter((d) => d.tags.some((t: Tag) => t.tone === "bad")).length,
     };
-  }).sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.deals - a.deals);
+  }).sort((a, b) => b.deals - a.deals);
 
   // Каталог тегов для кликов: нормализованное имя -> раздел, тон, счётчик
   const tagIndex: Record<string, { sec: string; tone: string; n: number }> = {};
@@ -1112,10 +1107,8 @@ function main() {
 
   // --- Тренд: срез дня, чтобы было видно, двигается ли отдел (метрика успеха инструмента) ---
   const day = (dlg.to || new Date().toISOString()).slice(0, 10);
-  const rated = managers.filter((m) => m.rating !== null);
   const snap = {
     day, deals: deals.length,
-    ratingAvg: rated.length ? Number((rated.reduce((s, m) => s + (m.rating as number), 0) / rated.length).toFixed(2)) : null,
     ballOurs: deals.filter((d) => d.ballWait > BALL_STUCK_MIN).length,
     noNextStep: deals.filter((d) => !d.nextStep).length,
     silence: deals.filter((d) => d.silenceD >= SILENCE_BAD_D).length,
@@ -1177,6 +1170,6 @@ function main() {
   writeFileSync(OWN, JSON.stringify(ownDb));
   writeFileSync(DLG, JSON.stringify(dlg));
   console.log(`Разбор: диалогов ${deals.length}, менеджеров ${managers.length}, тегов ${Object.keys(tagIndex).length}`);
-  for (const m of managers.filter((x) => x.rating !== null)) console.log(`   ${m.rating} ★  ${m.mgr} - ${m.deals} диал · ${m.sections.map((s) => s.label + " " + (s.pos ?? "-") + "%").join(" · ")}`);
+  for (const m of managers) console.log(`   ${m.mgr} - ${m.deals} диал · ${m.sections.map((s) => s.label + " " + (s.pos ?? "-") + "%").join(" · ")}`);
 }
 main();

@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1216" media="(prefers-color-scheme: dark)">
+<title>Трекер задач GENGLASS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<!-- Шаблон 2 из 3: трекер задач. Фильтры, поиск, таблица, которая на телефоне становится
+     карточками, панель деталей по клику на строку. Данные: пакет заданий GENGLASS, редакция 7. -->
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../kit/kit.css">
+<style>
+/* всё на токенах: своих цветов у шаблона нет */
+.tr-id{ font-weight:var(--fw-semi); color:var(--text-strong); white-space:nowrap; }
+.tr-sub{ font-size:var(--fs-caption); color:var(--text-muted); margin-top:2px; line-height:var(--lh-tight); }
+.tr-filter{ display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:center; margin-bottom:var(--sp-3); }
+.tr-filter .ks-input{ max-width:320px; }
+.tr-count{ font-size:var(--fs-caption); color:var(--text-muted); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+<script src="../kit/brand.js"></script>
+<script src="../kit/icons.js"></script>
+<script src="../kit/kit.js"></script>
+<script src="../kit/charts.js"></script>
+<script src="../kit/motion.riv.js"></script>
+</head>
+<body>
+<div class="ks-app">
+  <div id="bd" class="ks-backdrop" hidden></div>
+  <aside id="sb" class="ks-sidebar" aria-label="Разделы">
+    <div class="ks-brand">
+      <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h12M4 10h12M4 14h8"/></svg></div>
+      <div class="ks-lbl"><div class="ks-brand-name">Трекер</div><div class="ks-brand-sub">контент и разработка</div></div>
+    </div>
+    <nav id="nav" class="ks-nav"></nav>
+    <div class="ks-sidebar-foot ks-lbl">Шаблон Контур DS 1.5. Данные: пакет заданий GENGLASS, редакция 7 от 18.09.2026.</div>
+  </aside>
+
+  <div class="ks-main">
+    <header class="ks-topbar">
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="menu" aria-label="Меню"></button>
+      <div class="ks-topbar-tools">
+        <div class="ks-seg" role="group" aria-label="Кто делает" id="seg"></div>
+        <select class="ks-select" id="st" aria-label="Статус"></select>
+      </div>
+      <div class="ks-topbar-spacer"></div>
+      <div class="ks-stamp ks-hide-md">GENGLASS · снимок 18.09.2026</div>
+      <span id="cmdkb"></span>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="dens" aria-label="Плотность интерфейса"></button>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="theme" aria-label="Сменить тему"></button>
+    </header>
+    <main class="ks-view" id="view"></main>
+  </div>
+</div>
+
+<script>
+const F = KS.F, { nf, esc, ruDate } = KS.fmt;
+const PK = 'пакет заданий GENGLASS, редакция 7', AT = '2026-09-18';
+
+/* Статус задачи и его тон. Статусные цвета зарезервированы: они никогда не цвет серии. */
+const STATUS = {
+  'партия 3':      { tone:'info',    hint:'выдана на 19-26.09' },
+  'резерв':        { tone:'neutral', hint:'берётся, если партия 3 сдана до 24.09' },
+  'ждёт ответа':   { tone:'serious', hint:'держится вопросом к Ивану' },
+  'ждёт ресурса':  { tone:'warn',    hint:'не заблокирована, нет часов' },
+  'не начато':     { tone:'crit',    hint:'выдано 06.09, движения нет' },
+  'не проверялось':{ tone:'neutral', hint:'статус неизвестен' },
+  'новая':         { tone:'info',    hint:'заведена 18.09' },
+  'сделано':       { tone:'ok',      hint:'закрыто' }
+};
+const CRIT_KE1 = ['опубликовано по тому же URL, редиректа нет', '4-12 мм в тексте не осталось, стоит 4-19 мм', 'блока «Сколько стоит межкомнатная перегородка» нет',
+  'ровно пять H2 из карточки, дословно, в порядке', 'таблица шести типов без колонок цены и срока', 'объём 4 000-5 000 знаков'];
+const CRIT_KE2 = ['блок на странице офисных, не новым URL', 'ровно пять H2 из карточки, про акустику и цену за м2 нет', 'две таблицы с числами, таблица толщин в первом экране',
+  'ни одной цифры в дБ, ни одной цены за м2', 'срок назван как 20-25 рабочих дней', 'объём 6 000-7 000 знаков'];
+const DEV = 'разработчик';
+/* k: ключ латиницей для адреса. h: оценка в часах, hMax: верх оценки. shows: показов в теме. */
+const TASKS = [
+  { k:'ke-1r-a', id:'КЕ-1Р-А', t:'Статья «Из чего делают перегородки»: 11 правок по текущему адресу', g:'content', who:'контент-менеджер', st:'партия 3', block:null, h:'3-4', hMax:4, shows:0,
+    crit:CRIT_KE1, hist:[['11.09','КЕ-1: 13 правок, на доработку'],['18.09','разделена на А и Б, часть А выдана в партии 3']],
+    next:{ what:'Сдать 11 правок и прислать ссылку СПАРТАКУ в тот же день', who:'контент-менеджер', when:'до 26.09', crit:'все критерии приёмки карточки' } },
+  { k:'ke-2a', id:'КЕ-2А', t:'Лендинг офисных перегородок, 5 H2 из 7', g:'content', who:'контент-менеджер', st:'партия 3', block:null, h:'6-10', hMax:10, shows:16823,
+    crit:CRIT_KE2, hist:[['11.09','выдана в волне 2'],['18.09','не начата, выдана повторно в партии 3']],
+    next:{ what:'Сдать лендинг по карточке, один проход поверх структуры из AI-документа', who:'контент-менеджер', when:'до 26.09', crit:'все критерии приёмки карточки' } },
+  { k:'p-3', id:'П-3', t:'Лендинг раздвижных перегородок', g:'content', who:'контент-менеджер', st:'резерв', block:null, h:'9-14', hMax:14, shows:62470,
+    hist:[['11.09','выдана в волне 2'],['18.09','не начата, переведена в резерв']],
+    next:{ what:'Взять в работу, если КЕ-1Р-А и КЕ-2А сданы', who:'контент-менеджер', when:'не раньше 24.09' } },
+  { k:'ke-1r-b', id:'КЕ-1Р-Б', t:'Перенос доработанного текста под витрину категории', g:'content', who:'контент-менеджер', st:'ждёт ответа', block:'вопрос 16, задача Р-9',
+    hist:[['11.09','часть КЕ-1Р, заблокирована вопросом 16'],['18.09','выделена отдельно']] },
+  { k:'z-1', id:'З-1', t:'Категория «Зеркало в раме»: текст с нуля', g:'content', who:'контент-менеджер', st:'ждёт ответа', block:'вопросы 16, 17, 19',
+    hist:[['11.09','выдана в волне 2'],['18.09','не начата; H2 на странице ноль, развилка снята']] },
+  { k:'z-2', id:'З-2', t:'Страница «Зеркала на заказ»', g:'content', who:'контент-менеджер', st:'ждёт ответа', block:'вопрос 17', hist:[['11.09','выдана в волне 2'],['18.09','не начата']] },
+  { k:'z-3', id:'З-3', t:'Зеркала с подсветкой: сократить и снять неподтверждённые числа', g:'content', who:'контент-менеджер', st:'ждёт ответа', block:'вопросы 17, 20',
+    hist:[['11.09','выдана в волне 2'],['18.09','не начата; кельвины и IP44+ на странице, задача стала «снять»']] },
+  { k:'st-1', id:'СТ-1', t:'Статья в блог, 5 000-6 000 знаков', g:'content', who:'контент-менеджер', st:'ждёт ресурса', block:null, hist:[['11.09','выдана в волне 2'],['18.09','не начата']] },
+  { k:'st-2', id:'СТ-2', t:'Статья в блог, 5 000-6 000 знаков', g:'content', who:'контент-менеджер', st:'ждёт ответа', block:'вопрос 17', hist:[['11.09','выдана в волне 2'],['18.09','не начата']] },
+  { k:'r-1', id:'Р-1', t:'Регистр бренда: GENGLASS везде', g:'dev', who:DEV, st:'не начато', block:null, hist:[['11.09','не начато'],['18.09','в title категорий по-прежнему GenGlass']] },
+  { k:'r-2', id:'Р-2', t:'Мета-теги приоритета 1', g:'dev', who:DEV, st:'не начато', block:null, hist:[['11.09','не начато'],['18.09','6 из 6 значений совпали с 06.09']] },
+  { k:'r-3', id:'Р-3', t:'Два чужих H2 на раздвижных', g:'dev', who:DEV, st:'не начато', block:null, hist:[['11.09','не начато'],['18.09','оба на месте, держит П-3']] },
+  { k:'r-4', id:'Р-4', t:'Форма «объект, объём м2» на офисных', g:'dev', who:DEV, st:'не начато', block:null, hist:[['11.09','не начато'],['18.09','не начато']] },
+  { k:'r-5', id:'Р-5', t:'Пять страниц вместо 404', g:'dev', who:DEV, st:'не начато', block:null, hist:[['11.09','не начато'],['18.09','два адреса перепроверены, оба 404']] },
+  { k:'r-6', id:'Р-6', t:'Разметка FAQPage на коммерческих страницах', g:'dev', who:DEV, st:'не начато', block:null, hist:[['11.09','не начато'],['18.09','JSON-LD нет ни на одной из семи страниц']] },
+  { k:'r-7', id:'Р-7', t:'Убрать <p> из <h1>', g:'dev', who:DEV, st:'не проверялось', block:null, hist:[['11.09','не проверялось'],['18.09','не проверялось']] },
+  { k:'r-8', id:'Р-8', t:'Двойной пробел в H1 раздвижных и офисных', g:'dev', who:DEV, st:'не начато', block:null, hist:[['11.09','не начато'],['18.09','оба на месте']] },
+  { k:'r-9', id:'Р-9', t:'Публикация текстового блока под витриной категорий', g:'dev', who:DEV, st:'ждёт ответа', block:'вопрос 16', hist:[['11.09','заводится при ответе «доступа нет»'],['18.09','то же']] },
+  { k:'r-10', id:'Р-10', t:'Проверить H2 на категории зеркал в раме', g:'dev', who:DEV, st:'сделано', block:null, hist:[['11.09','нужна до старта З-1'],['18.09','закрыта: H2 ноль, З-1 пишется с нуля']] },
+  { k:'r-11', id:'Р-11', t:'Статья блога с query-строкой отдаёт 404', g:'dev', who:DEV, st:'новая', block:null, hist:[['18.09','заведена: ломает замер переноса статей']] },
+  { k:'r-12', id:'Р-12', t:'Длинные тире в H2 трёх страниц', g:'dev', who:DEV, st:'новая', block:null, hist:[['18.09','заведена, требует посимвольного подтверждения']] }
+];
+const QUESTIONS = [
+  [7, 'Разработчик: имя и срок', 'задачи Р-1...Р-12', true], [16, 'Доступ контент-менеджера к шаблону категории', 'КЕ-1Р-Б, З-1, Р-9', true],
+  [20, 'Кельвины, IP44+, сенсор: подтвердить или снять', 'З-3', true], [12, '100 000 циклов и 36-40 дБ: подтвердить или снять', 'страница раздвижных', true],
+  [5, 'Прайс «от ... ₽ за м2»', 'КЕ-2А, П-3', true], [17, 'Работа по зеркальной ветке без 301', 'З-1, З-2, З-3, СТ-2', true],
+  [19, 'Снять позиции по зеркальной ветке', 'З-1, З-3', true], [8, 'Как снимать позиции', 'раздел позиций в отчёте', true],
+  [9, 'Цифры акустики в дБ', 'КЕ-2Б', true], [21, 'Статья блога с query-строкой отдаёт 404', 'Р-11', true],
+  [6, 'Выгрузка Метрики по UTM', 'вердикт по площадкам', false], [10, 'ИНН и юрлицо', null, false], [11, 'Имя и должность автора', null, false],
+  [13, 'Кто разместил ТОП-10 на DTF', null, false], [14, 'Брать ли тему PROC', null, false], [15, 'Что делать со статьёй в блоге от 11.09', null, false],
+  [18, 'Судьба девяти зеркальных лендингов', null, false]
+];
+/* Сводные цифры в конверте. Ряд «сделано» по циклам: 06.09, 11.09, 18.09. */
+const DONE = [{ date:'2026-09-06', done:0 }, { date:'2026-09-11', done:0 }, { date:'2026-09-18', done:1 }];
+const SUM = {
+  total:  F(TASKS.length, 'ДАННЫЕ', PK, AT, '9 контентных, 12 разработчика'),
+  done:   F(TASKS.filter(t => t.st === 'сделано').length, 'ДАННЫЕ', PK + ', раздел 5', AT),
+  wait:   F(TASKS.filter(t => t.st === 'ждёт ответа').length, 'ДАННЫЕ', PK + ', разделы 4 и 5', AT),
+  hours:  F('11-18', 'ГИПОТЕЗА', 'текст 9-14 ч по карточкам, изображения 2-4 ч оценкой', AT, 'из 21 доступного')
+};
+
+let VIEW = 'tasks', GROUP = 'all', ST = 'all', Q = '';
+const el = id => document.getElementById(id);
+const one = f => ({ one:true, now: f && f.v });
+/* статус точкой и словом: в таблице из 21 строки цветные плашки превращались в пёстрый столбец */
+const stBadge = s => KS.status(s, (STATUS[s] || {}).tone || 'neutral', (STATUS[s] || {}).hint);
+const NAV = [
+  { id:'tasks', t:'Задачи', i:'list' },
+  { id:'questions', t:'Вопросы Ивану', i:'info' },
+  { id:'rules', t:'Правила работы', i:'gear' }
+];
+
+function filtered(){
+  const q = Q.trim().toLowerCase();
+  return TASKS.filter(t => (GROUP === 'all' || t.g === GROUP) && (ST === 'all' || t.st === ST)
+    && (!q || [t.id, t.t, t.who, t.block || '', t.st].join(' ').toLowerCase().includes(q)));
+}
+function tableHtml(){
+  const rows = filtered();
+  el('cnt').textContent = 'показано ' + rows.length + ' из ' + TASKS.length;
+  if(!rows.length) return KS.note('Под фильтр не попала ни одна задача', 'Сбрось поиск или выбери «все статусы» в шапке.', 'info');
+  return KS.table([['Задача'],['Кто'],['Статус'],['Чем держится'],['Часов',true],['Показов',true]], rows.map(t => [
+    '<div class="tr-id">' + esc(t.id) + '</div><div class="tr-sub">' + esc(t.t) + '</div>',
+    esc(t.who), stBadge(t.st), t.block ? esc(t.block) : (t.st === 'сделано' ? null : t.g === 'dev' ? 'нет исполнителя, вопрос 7' : '<span class="ks-muted">ничем</span>'),
+    t.h ? esc(t.h) : null, t.shows == null ? null : nf(t.shows)]), { interactive:true });
+}
+function drawTable(){
+  el('tbl').innerHTML = tableHtml();
+  /* строка открывает панель деталей: мышью, Enter, пробелом */
+  const rows = filtered();
+  el('tbl').querySelectorAll('tbody tr').forEach((tr, i) => { tr.dataset.drill = rows[i].k; tr.setAttribute('aria-label', rows[i].id + ': ' + rows[i].t); });
+}
+
+const SCREENS = {
+  tasks(){
+    const d = KS.series.dyn(DONE, 'done', 30);
+    return KS.head({ title:'Задачи · GENGLASS', sub:'Контент и разработка в одном списке. Кликни строку, чтобы открыть карточку задачи.',
+        src:'пакет заданий, редакция 7 · статусы сняты по живым страницам 18.09.2026', prio:'P0',
+        badges:[KS.badge('12 дней без движения', 'crit')],
+        lead:'Ни одна задача разработчика не стоит денег наружу. Партия 3 закрывает 16 823 показа в месяц и даёт +1,3-10,8 заявки ' + KS.kind('ГИПОТЕЗА') + ', эффект с ноября.' })
+      + '<div class="ks-stack"><div class="ks-grid-kpi">'
+      +   KS.tile({ label:'Задач в трекере', f:SUM.total, slot:3, icon:'list', delta:KS.delta(one(SUM.total)) })
+      +   KS.tile({ label:'Сделано', f:SUM.done, slot:2, icon:'check', delta:KS.delta(d) })
+      +   KS.tile({ label:'Ждут ответа Ивана', f:SUM.wait, slot:4, icon:'clock', delta:KS.delta(one(SUM.wait)) })
+      +   KS.tile({ label:'Часов в партии 3 из 21', f:SUM.hours, slot:1, icon:'calendar', delta:KS.delta(one(SUM.hours)) })
+      + '</div>'
+      + '<div class="ks-grid-2">'
+      +   KS.card({ title:'Загрузка партии 3', sub:'Верх оценки против 21 часа в неделю. Изображения оценены, не замерены',
+             body:KS.bars([['КЕ-1Р-А', 4, 'ч, оценка 3-4'], ['КЕ-2А', 10, 'ч, оценка 6-10'], ['Изображения, 6 штук', 4, 'ч, оценка 2-4'], ['Доступно в неделю', 21, 'ч']], 3)
+               + '<p class="tr-sub" style="margin:var(--sp-3) 0 0">Итого 11-18 ч из 21, запас 3-10 ч. Резерв П-3 на 9-14 ч в этот запас не входит, поэтому он берётся только после сдачи двух единиц.</p>' })
+      +   KS.card({ title:'Статусы', sub:'Сколько задач в каждом', body:KS.chart('c-st', 250),
+             table:KS.table([['Статус'],['Задач',true]], statusCounts().map(x => [stBadge(x[0]), String(x[1])])) })
+      + '</div>'
+      + KS.card({ title:'Все задачи', sub:'Фильтры в шапке: кто делает и статус',
+          body:'<div class="tr-filter"><input class="ks-input" id="q" type="search" placeholder="Поиск: номер, страница, вопрос" aria-label="Поиск по задачам" value="' + esc(Q) + '"><span class="tr-count" id="cnt"></span></div><div id="tbl"></div>' })
+      + KS.note('Правило 10', 'Задача не блокируется целиком, пока хотя бы часть работы возможна. Так КЕ-1Р разделена на А и Б: одиннадцать правок из тринадцати делаются без ответа на вопрос 16.', 'info')
+      + '</div>';
+  },
+  questions(){
+    const blocking = QUESTIONS.filter(q => q[3]).length;
+    return KS.head({ title:'Вопросы Ивану', sub:'Что держит задачи. По каждому нужен один из трёх ответов: принять, сдвинуть срок, отправить на доработку.',
+        src:'отчёт качества, цикл 3, раздел 11', badges:[KS.badge('срок 22.09, 12:00', 'serious')],
+        lead:'Вопрос 5 про прайс за м2 подорожал: у прямого конкурента цена стоит в title и в H1, видна в выдаче до клика.' })
+      + '<div class="ks-stack"><div class="ks-grid-kpi">'
+      +   KS.tile({ label:'Вопросов без ответа', f:F(QUESTIONS.length, 'ДАННЫЕ', 'отчёт качества, цикл 3', AT), slot:4, icon:'info',
+             delta:KS.delta(KS.series.dyn([{date:'2026-09-06',q:8},{date:'2026-09-11',q:14},{date:'2026-09-18',q:17}], 'q', 30), false) })
+      +   KS.tile({ label:'Из них блокирующих', f:F(blocking, 'ДАННЫЕ', 'отчёт качества, цикл 3', AT), slot:1, icon:'warn', delta:KS.delta({ one:true, now:blocking }) })
+      + '</div>'
+      + KS.card({ title:'Список', body:KS.table([['№',true],['Вопрос'],['Что держит'],['Тип']], QUESTIONS.map(q =>
+          [String(q[0]), esc(q[1]), q[2] ? esc(q[2]) : null, q[3] ? KS.badge('блокирует', 'serious') : KS.badge('без ответа с 06.09', 'neutral')])) })
+      + KS.action({ what:'Ответить хотя бы на вопросы 7 и 16', who:'Иван', when:'понедельник 22.09, 12:00 МСК', crit:'есть имя разработчика или ответ по доступу к шаблону категории' })
+      + '</div>';
+  },
+  rules(){
+    return KS.head({ title:'Правила работы', sub:'Дисциплина пакета заданий. Действует для контента и разработки.', src:'пакет заданий, редакция 7, раздел 7' })
+      + KS.card({ title:'Двенадцать правил', body:KS.steps([
+          ['Единица сдана, когда опубликована по адресу из карточки', 'пункт 28 чек-листа'],
+          ['Единица не отбирает фразы у другой страницы', 'пункт 29, три вопроса с ответом «нет»'],
+          ['Реестр кластеров старше карточки', 'если расходятся, права карточка не имеет'],
+          ['Карточка сверяется с библиотекой фактов', 'а не с картой семантики'],
+          ['Статья не таргетирует коммерческий кластер', 'цен, продающих CTA и FAQPage на статье нет'],
+          ['Ни одна цифра не выдумывается', 'нет в базе знаний: не пишем или запрашиваем'],
+          ['Неподтверждённое число на странице снимается при первой правке', 'новое в редакции 7'],
+          ['Ссылка на несуществующую страницу не публикуется', 'стоп-лист из пяти адресов'],
+          ['Нет доступа: пишем в рабочий чат в тот же день', 'и делаем ту часть, что выполнима'],
+          ['Единица не блокируется целиком', 'карточка называет выполнимую часть'],
+          ['Ссылка на сданную единицу уходит СПАРТАКУ в тот же день', 'за две недели не прислана ни одна'],
+          ['Реклама этим пакетом не запускается и не финансируется', 'запуск и бюджет только по команде Ивана']]) });
+  }
+};
+function statusCounts(){
+  return Object.keys(STATUS).map(s => [s, TASKS.filter(t => t.st === s).length]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+}
+
+/* Карточка задачи: из чего состоит, как менялась, откуда, что дальше */
+TASKS.forEach(t => KS.drawer.register(t.k, () => ({
+  title: t.id + ' · ' + t.t, kind:'ДАННЫЕ', sub: STATUS[t.st] ? t.st + ': ' + STATUS[t.st].hint : t.st,
+  compose: KS.table([['Поле'],['Значение']], [
+      ['Кто делает', esc(t.who) + (t.g === 'dev' ? ' <span class="ks-muted">(имя не назначено, вопрос 7)</span>' : '')],
+      ['Статус', stBadge(t.st)], ['Чем держится', t.block ? esc(t.block) : t.st === 'сделано' ? null : t.g === 'dev' ? 'нет исполнителя, вопрос 7' : 'ничем'],
+      ['Оценка, часов', t.h ? esc(t.h) : null], ['Показов в теме', t.shows == null ? null : nf(t.shows)]], { stack:false })
+    + (t.crit ? '<div class="ks-card-sub" style="margin:var(--sp-3) 0 var(--sp-2)">Критерии приёмки, главные</div>' + KS.steps(t.crit.map(c => [c])) : ''),
+  trend: KS.table([['Дата'],['Что было']], t.hist.map(h => [h[0], esc(h[1])]), { stack:false }),
+  source: 'Пакет заданий GENGLASS, редакция 7 от 18.09.2026. Статус снят по живой странице, а не со слов исполнителя.',
+  action: t.next || { what:'Назначить исполнителя и срок', who: t.g === 'dev' ? null : t.who }
+})));
+
+/* ---------------- отрисовка ---------------- */
+function draw(){
+  if(el('c-st')){ const c = statusCounts(); KS.charts.hbar('c-st', { cats:c.map(x => x[0]), data:c.map(x => x[1]), name:'Задач', slot:3, h:250 }); }
+}
+function render(){
+  el('view').innerHTML = '<div class="ks-fade">' + (SCREENS[VIEW] || SCREENS.tasks)() + '</div>';
+  KS.charts.prune();
+  if(el('tbl')){
+    drawTable();
+    el('q').addEventListener('input', e => { Q = e.target.value; drawTable(); });
+  }
+  el('nav').innerHTML = KS.nav(NAV, VIEW);
+  el('seg').querySelectorAll('[data-g]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.g === GROUP)));
+  el('theme').innerHTML = KS.theme.icon();
+  KS.route.set({ project:'gg', view:VIEW, period:GROUP });
+  cancelAnimationFrame(_raf); _raf = requestAnimationFrame(draw);
+}
+let _raf = 0;
+el('st').innerHTML = '<option value="all">все статусы</option>' + Object.keys(STATUS).map(s => '<option value="' + esc(s) + '">' + esc(s) + '</option>').join('');
+KS.charts.onTheme = () => { render(); };
+const goV = v => KS.vt(() => { VIEW = v; render(); window.scrollTo(0, 0); });
+KS.navWire(el('nav'), goV);
+el('seg').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if(!b) return; GROUP = b.dataset.g;
+  el('seg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  if(el('tbl')) drawTable(); else { VIEW = 'tasks'; render(); } KS.route.set({ period:GROUP }); });
+el('st').addEventListener('change', e => { ST = e.target.value; if(el('tbl')) drawTable(); else { VIEW = 'tasks'; render(); } });
+el('theme').addEventListener('click', () => KS.theme.toggle());
+KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
+el('seg').innerHTML = [['all','Все'],['content','Контент'],['dev','Разработчик']].map(([k, n]) => '<button type="button" data-g="' + k + '" aria-pressed="false">' + n + '</button>').join('');
+KS.seg.wire(el('seg'));
+el('cmdkb').outerHTML = KS.cmdk.button('Задача или экран');
+
+/* палитра команд: каждая задача открывается по номеру или словам из названия */
+const setGroup = g => { GROUP = g; VIEW = 'tasks'; render(); };
+const setSt = v => { ST = v; el('st').value = v; VIEW = 'tasks'; render(); };
+KS.cmdk.set([
+  { group:'Экраны', label:'Задачи', icon:'list', run:() => goV('tasks') },
+  { group:'Экраны', label:'Вопросы Ивану', icon:'info', run:() => goV('questions') },
+  { group:'Экраны', label:'Правила работы', icon:'gear', run:() => goV('rules') },
+  { group:'Фильтр', label:'Только контент', icon:'filter', run:() => setGroup('content') },
+  { group:'Фильтр', label:'Только разработчик', icon:'filter', run:() => setGroup('dev') },
+  { group:'Фильтр', label:'Ждут ответа Ивана', icon:'filter', run:() => setSt('ждёт ответа') },
+  { group:'Фильтр', label:'Сбросить фильтры', icon:'x', run:() => { GROUP = 'all'; setSt('all'); } },
+  ...TASKS.map(t => ({ group:'Задачи', label:t.id + ' · ' + t.t, hint:t.st, icon: t.g === 'dev' ? 'gear' : 'doc', keywords:t.block || '',
+    run:() => { if(VIEW !== 'tasks'){ VIEW = 'tasks'; render(); } KS.drawer.open(t.k); } })),
+  { group:'Действия', label:'Сменить тему', icon:'moon', keywords:'тёмная светлая', run:() => KS.theme.toggle() },
+  { group:'Действия', label:'Переключить плотность', hint:'просторно или компактно', icon:'rows', keywords:'компактно просторно строки таблица', run:() => KS.density.toggle() }
+]);
+
+const r = KS.route.parse();
+KS.theme.init();
+if(r.view && SCREENS[r.view]) VIEW = r.view;
+if(r.period && ['all','content','dev'].includes(r.period)) GROUP = r.period;
+render();
+if(r.drill) KS.drawer.open(r.drill);
+/* плотность: просторно или компактно, выбор запоминается */
+const densUi = () => { const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase()); };
+document.getElementById('dens').addEventListener('click', () => KS.density.toggle());
+document.addEventListener('ks:density', () => { densUi(); KS.toast('Плотность: ' + KS.density.label().toLowerCase()); });
+densUi();
+/* анимации Rive поверх родных; без сети или при «меньше движения» остаются родные */
+KS.rive.enable();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Сторож Контур DS 1.5.1. Запускается в любом проекте, куда перенесена система.
+"""Сторож Контур DS 1.5.2. Запускается в любом проекте, куда перенесена система.
 
   python3 tools/check_ds.py                 # проверить саму систему
   python3 tools/check_ds.py путь/к/page.html # плюс страницу проекта
@@ -27,6 +27,7 @@
   LOOPANIM  бесконечная анимация вне вращения загрузки и мерцания заглушки: мигающие точки, пульс, бегущие рамки
   DENSITYTAP компактная плотность уменьшила цели пальца (--tap): на касании промахи
   VTMOTION  переходы View Transitions без отключения при «меньше движения»
+  ALLOW     (1.5.2) выключатель --ks-allow без причины или для правила, которое не выключается
   SYNC      копия тёмной темы для системной настройки совпадает с [data-theme="dark"]
   CONTRAST  с ключом --live: контраст каждого видимого текста в браузере (любая запись цвета через холст,
             кроме текста на градиентном и картиночном фоне), обе темы, 1280 и 390
@@ -39,6 +40,9 @@ setAttribute('style'), Object.assign(el.style), insertRule, <style> из JS, в�
 подставляются. Охват измерен на наборах подмен tools/tamper_ds.py, это не обещание поймать всё. Чего сторож не
 видит (стиль из непереданных файлов, картинки и canvas, капс буквами, циклы на requestAnimationFrame, узкий блок
 без контекста, состояния по наведению) и пределы живого слоя: DESIGN_SYSTEM.md, раздел 19.
+1.5.2: выключатель ложной тревоги в том же правиле или в style="" элемента: --ks-allow: "SIDESTRIPE: причина".
+Выключаются SIDESTRIPE, DENSITYTAP, OPACITY, CAPSBADGE, LOOPANIM, HEX; выключенное печатается заметкой с причиной.
+HEX видит цвет в разметке строкой в JS (константы в ${...}, style без кавычек, \" ) и атрибутами fill/stroke/color.
 С --live живой слой обязан запуститься: нет Node, Playwright или браузера = провал [LIVE], а не «чисто».
 
 Правила LAYOUTANIM, BOUNCE, FONTFLOOR, FAINTTEXT взяты из детектора Impeccable
@@ -220,23 +224,30 @@ def flatten_css(text):
     parse(text, [])
     return out
 def css_sources(p, s):
-    blocks, js = [], []
+    blocks, js, raw = [], [], []
     def add_css(text, where):
         text = re.sub(r'/\*.*?\*/', '', text, flags=re.S)
         for sel, d in flatten_css(text): blocks.append((sel, d, where))
     def add_attrs(text, where):
         # у встроенного стиля селектор собирается из самого элемента: тег, id, class, aria-label (знак бренда по id и т.п.)
-        for m in re.finditer(r'<(\w+)\b([^>]*?)\bstyle\s*=\s*(?:"([^"]*)"|\'([^\']*)\')([^>]*)>', text):
-            attrs = m.group(2) + ' ' + m.group(5)
+        for m in re.finditer(r'<(\w+)\b([^>]*?)\bstyle\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+))([^>]*)>', text):
+            attrs = m.group(2) + ' ' + m.group(6)
             ident = m.group(1).lower() + ''.join(('#' + x) for x in re.findall(r'\bid\s*=\s*["\']([^"\']+)', attrs)) \
                 + ''.join(('.' + x.replace(' ', '.')) for x in re.findall(r'\bclass\s*=\s*["\']([^"\']+)', attrs)) \
                 + ''.join(('[aria-label=' + x + ']') for x in re.findall(r'\baria-label\s*=\s*["\']([^"\']+)', attrs))
-            blocks.append((ident + '[style=""]', m.group(3) or m.group(4) or '', where))
+            blocks.append((ident + '[style=""]', m.group(3) or m.group(4) or m.group(5) or '', where))
     def add_js(text):
+        # 1.5.2: разметка строкой в JS: экранированные кавычки (\\") снимаются, простые строковые константы
+        # (const c = '#d00') подставляются в ${c} шаблона и в el.style.x = c
+        consts = {k: v for k, _, v in re.findall(r'\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*([\'"`])([^\'"`\n]{0,80})\2\s*[;,\n]', text)}
+        text = re.sub(r'\$\{\s*([A-Za-z_$][\w$]*)\s*\}', lambda m: consts.get(m.group(1), m.group(0)), text)
+        text = re.sub(r'(\.style(?:\.[a-zA-Z]+|\[\s*[\'"][\w-]+[\'"]\s*\])\s*=\s*)([A-Za-z_$][\w$]*)(?=\s*[;\n)])', lambda m: m.group(1) + "'" + consts[m.group(2)] + "'" if m.group(2) in consts else m.group(0), text)
+        raw.append(text)
+        text = text.replace('\\"', '"').replace("\\'", "'")
         js.append(text)
         for m in re.finditer(r'<style[^>]*>(.*?)</style>', text, re.S): add_css(m.group(1), 'css-in-js')
         add_attrs(text, 'js')
-        for m in re.finditer(r'\.style\.([a-zA-Z]+)\s*=\s*([\'"`])(.*?)\2', text): blocks.append(('[el.style]', kebab(m.group(1)) + ':' + m.group(3), 'js'))
+        for m in re.finditer(r'\.style\.(?!cssText\b)([a-zA-Z]+)\s*=\s*([\'"`])(.*?)\2', text): blocks.append(('[el.style]', kebab(m.group(1)) + ':' + m.group(3), 'js'))
         for m in re.finditer(r'\.style\[\s*[\'"]([\w-]+)[\'"]\s*\]\s*=\s*([\'"`])(.*?)\2', text): blocks.append(('[el.style]', kebab(m.group(1)) + ':' + m.group(3), 'js'))
         for m in re.finditer(r'\.style\.cssText\s*(?:\+?=)\s*([\'"`])(.*?)\1', text, re.S): blocks.append(('[el.style.cssText]', m.group(2), 'js'))
         for m in re.finditer(r'setAttribute\(\s*[\'"]style[\'"]\s*,\s*([\'"`])(.*?)\1', text, re.S): blocks.append(('[setAttribute style]', m.group(2), 'js'))
@@ -262,7 +273,7 @@ def css_sources(p, s):
     def res(v, depth=0):
         nv = re.sub(r'var\(\s*(--[\w-]+)\s*(?:,[^()]*)?\)', lambda m: props.get(m.group(1), m.group(0)), v)
         return nv if nv == v or depth > 5 else res(nv, depth + 1)
-    return blocks, '\n'.join(js), markup, props, res
+    return blocks, '\n'.join(js), markup, props, res, '\n'.join(raw)
 
 def decls(d):
     out = {}
@@ -275,8 +286,35 @@ def length_px(t):
     return {'thin': 1, 'medium': 3, 'thick': 5}.get(t)
 STYLE_KW = r'\b(?:solid|dashed|dotted|double|groove|ridge|inset|outset)\b'
 
+# 1.5.2: выключатель ложной тревоги для законного приёма. В том же правиле (или в style="" элемента):
+# --ks-allow: "SIDESTRIPE: рельс таймлайна, мягкий тон". Коды только из ALLOWABLE, причина обязательна (от 8 знаков).
+# Выключенное не молчит: оно печатается заметкой с причиной. Контраст, тире и знак бренда не выключаются.
+ALLOWABLE = {'SIDESTRIPE', 'DENSITYTAP', 'OPACITY', 'CAPSBADGE', 'LOOPANIM', 'HEX'}
+def parse_allow(v):
+    m = re.fullmatch(r'\s*["\']?\s*([A-Z][A-Z ,]*?)\s*:\s*(.+?)\s*["\']?\s*', v or '')
+    if not m or len(m.group(2)) < 8: return None
+    codes = {c for c in re.split(r'[ ,]+', m.group(1)) if c}
+    return (codes, m.group(2)) if codes <= ALLOWABLE else None
+
 def style_rules(p, s, rel):
-    blocks, js, markup, props, res = css_sources(p, s)
+    blocks, js, markup, props, res, rawjs = css_sources(p, s)
+    # Область выключателя. Встроенный стиль (style="", el.style, cssText, setAttribute) действует только на свой блок:
+    # его «селектор» собран из тега и класса или общий ('[el.style]'), по нему нельзя отличить соседний элемент.
+    # Правило CSS действует на свой селектор; правило элемента покрывает и его ::before/::after.
+    INLINE = lambda sel, where: where in ('markup', 'js') and (sel.endswith('[style=""]') or sel.startswith('[el.style') or sel.startswith('[setAttribute'))
+    allow_blk, allow_sel = {}, {}
+    for i, (sel, d, where) in enumerate(blocks):
+        v = decls(d).get('--ks-allow')
+        if v is None: continue
+        a = parse_allow(v)
+        if not a: bad('ALLOW', f'{rel}: {sel[-50:]} --ks-allow без причины или с правилом, которое не выключается: {v[:60]}; можно {sorted(ALLOWABLE)}'); continue
+        tgt = allow_blk.setdefault(i, [set(), a[1]]) if INLINE(sel, where) else allow_sel.setdefault(sel, [set(), a[1]])
+        tgt[0].update(a[0])
+    def lookup(i, sel):
+        if i is not None and i in allow_blk: return allow_blk[i]
+        if i is not None and INLINE(*blocks[i][::2]): return None
+        return allow_sel.get(sel) or allow_sel.get(re.sub(r'::?(?:before|after)\s*$', '', sel))
+    cur = [[]]
     neutral_broken = {k for k in NEUTRAL_VARS if k in props and not re.fullmatch(r'var\(--(?:' + '|'.join(x[2:] for x in NEUTRAL_VARS) + r')\)', props[k])}
     def colored(v):
         # цвет полосы: всё, что не нейтральная линия, не прозрачно и не «нет». Цвет не указан = currentColor = цвет
@@ -291,10 +329,18 @@ def style_rules(p, s, rel):
     def has_style(v): return not re.search(r'(?i)\bnone\b|\bhidden\b', v)
     seen = set()
     def hit(code, msg):
-        if (code, msg) not in seen: seen.add((code, msg)); bad(code, msg)
+        # склейка по блоку, а не по тексту: два элемента с одинаковой находкой это две находки
+        key = (code, msg, tuple(cur[0]))
+        if key in seen: return
+        seen.add(key)
+        for i, sel in cur[0]:
+            a = lookup(i, sel)
+            if a and code in a[0]: notes.append(f'выключено [{code}] {msg} | причина: {a[1]}'); return
+        bad(code, msg)
     geom = []  # узкие блоки без цвета: цвет может прийти из соседнего правила того же элемента
     sides = []  # рамка сбоку прозрачная или нейтральная: цвет может прийти в правиле состояния (.is-active, .is-warn)
-    for sel, d, where in blocks:
+    for bi, (sel, d, where) in enumerate(blocks):
+        cur[0] = [(bi, sel)]
         D = {k: res(v) for k, v in decls(d).items()}
         lab = f'{rel}: {sel[-50:]}' + ('' if where in ('css', 'style') else f' ({where})')
         # --- SIDESTRIPE ---
@@ -402,22 +448,42 @@ def style_rules(p, s, rel):
             if v and length_px(v) is not None and length_px(v) < lim: hit('DENSITYTAP', f'{lab} переопределяет {k} = {v}; цели пальца не меньше {lim}px')
         # --- HEX на странице проекта: цвет мимо токенов ---
         if where in ('css', 'style', 'css-in-js', 'markup', 'js', 'insertRule', 'style из JS') and p.parent.name != 'kit':
-            hx = sorted(set(re.findall(r'#[0-9A-Fa-f]{3,8}\b', d)))
+            hx = sorted(set(re.findall(r'#[0-9A-Fa-f]{3,8}\b', re.sub(r'url\([^)]*\)', '', d))))
             if hx: hit('HEX', f'{lab}: цвет мимо токенов {hx[:4]}')
             for k, v in decls(d).items():
                 if re.match(r'(?:color|background|background-color|border(?:-[\w-]+)?-color|border(?:-[\w-]+)?|fill|stroke|outline(?:-color)?)$', k) and re.search(r'(?:rgba?|hsla?)\(\s*\d', v):
                     hit('HEX', f'{lab}: цвет {k} литералом {v[:30]} мимо токенов'); break
     # цвет узкого блока в соседнем правиле того же элемента (.bar{width:3px;height:17px} .bar.is-hot{background:...})
     for gsel in geom:
-        for sel, d, where in blocks:
+        for bi, (sel, d, where) in enumerate(blocks):
             if sel != gsel and sel.startswith(gsel) and re.match(r'[.:\[]', sel[len(gsel):]):
                 bg = decls(d).get('background-color') or decls(d).get('background')
+                cur[0] = [(bi, sel), (None, gsel)]
                 if bg and colored(res(bg)): hit('SIDESTRIPE', f'{rel}: {sel[-50:]} красит узкий блок {gsel} в цвет: полоса сбоку')
     for bsel, side in sides:
-        for sel, d, where in blocks:
+        for bi, (sel, d, where) in enumerate(blocks):
             if sel != bsel and sel.startswith(bsel) and re.match(r'[.:\[]', sel[len(bsel):]):
                 dd = decls(d); c = dd.get(f'border-{side}-color') or dd.get('border-color')
+                cur[0] = [(bi, sel), (None, bsel)]
                 if c and colored(res(c)): hit('SIDESTRIPE', f'{rel}: {sel[-50:]} красит рамку {side} элемента {bsel[-30:]} в цвет: полоса сбоку в состоянии')
+    cur[0] = []
+    # --- 1.5.2: цвет атрибутом разметки (fill, stroke, color, bgcolor, stop-color) в HTML и в разметке строкой в JS ---
+    # Имя атрибута целиком (data-color не считается), без учёта регистра; в JS только внутри строковых литералов,
+    # а не в коде (i<n ... не тег). <link> и <meta> пропускаются (mask-icon, theme-color: цвет для браузера, не для
+    # интерфейса). Выключатель: --ks-allow в style="" того же тега.
+    if p.parent.name != 'kit':
+        lits = [re.sub(r'\\(["\'])', r'\1', l[1:-1]) for l in re.findall(r"'(?:[^'\\\n]|\\.)*'|\"(?:[^\"\\\n]|\\.)*\"|`(?:[^`\\]|\\.)*`", rawjs)]
+        ATTR = re.compile(r'<(\w+)\b[^<>]*?\s(fill|stroke|color|bgcolor|stop-color|flood-color|lighting-color)\s*=\s*["\']?\s*(#[0-9a-f]{3,8}\b|(?:rgba?|hsla?)\(\s*\d[^)"\'>]*\))[^<>]*>?', re.I)
+        for src in [markup] + lits:
+            for m in ATTR.finditer(src):
+                if m.group(1).lower() in ('link', 'meta'): continue
+                st = re.search(r'\sstyle\s*=\s*(?:"([^"]*)"|\'([^\']*)\')', m.group(0), re.I)
+                a = parse_allow(decls(st.group(1) or st.group(2)).get('--ks-allow')) if st and '--ks-allow' in m.group(0) else None
+                msg = f'{rel}: <{m.group(1)} {m.group(2)}="{m.group(3)[:24]}"> цвет атрибутом мимо токенов'
+                if a and 'HEX' in a[0]: notes.append(f'выключено [HEX] {msg} | причина: {a[1]}')
+                else: hit('HEX', msg)
+        for m in re.finditer(r'setAttribute(?:NS)?\(\s*(?:[^,()]+,\s*)?[\'"](fill|stroke|color|bgcolor|stop-color|flood-color|lighting-color)[\'"]\s*,\s*[\'"`]\s*(#[0-9a-f]{3,8}\b|(?:rgba?|hsla?)\(\s*\d)', js, re.I):
+            hit('HEX', f'{rel}: setAttribute({m.group(1)}, {m.group(2)[:24]}) цвет атрибутом мимо токенов')
     # --- JS и разметка: циклы, которых нет в CSS ---
     # служебные имена кита: разрешение цикла действует только на вращение и перелив кита, а не на свою анимацию под тем же именем
     KIT_KF = {'spin': 'to{transform:rotate(360deg);}', 'shimmer': 'from{background-position:120%0;}to{background-position:-120%0;}'}
@@ -528,9 +594,11 @@ def run_live(script, marker, label):
     last = [l for l in r.stdout.splitlines() if l.strip()]
     ok = r.returncode in (0, 1) and last and (last[-1].startswith(marker) or last[-1].startswith('ИТОГО провалов контраста'))
     if not ok:
-        errs = [l.strip() for l in r.stderr.splitlines() if re.search(r'^\s*\w*Error:|Cannot find module|Executable doesn.t exist|ENOENT', l)]
+        errs = [l.strip() for l in r.stderr.splitlines() if re.search(r'net::ERR|page\.goto:', l)] \
+            + [l.strip() for l in r.stderr.splitlines() if re.search(r'^\s*\w*Error:|Cannot find module|Executable doesn.t exist|ENOENT', l)]
         err = (errs[0] if errs else (r.stderr.strip().splitlines() or ['нет итоговой строки'])[-1])[:160]
-        bad('LIVE', f'{label} не запустился: {err}; {LIVE_NEED}'); return None
+        need = 'страница не открылась в браузере: проверьте путь к файлу' if re.search(r'net::ERR|ERR_FILE|ENOENT.*\.html', err) else LIVE_NEED
+        bad('LIVE', f'{label} не запустился: {err}; {need}'); return None
     return r
 if LIVE and pages:
     r = run_live('contrast_live.mjs', 'КОНТРАСТ:', 'живой контраст')
@@ -544,6 +612,8 @@ if LIVE and pages:
         for line in r.stdout.splitlines():
             m = re.match(r'\s{3}\[([A-Z]+)\]\s*(.*)', line)
             if m: bad(m.group(1), 'живьём: ' + m.group(2))
+            m = re.match(r'\s{3}ВЫКЛ \[([A-Z]+)\]\s*(.*)', line)
+            if m: notes.append(f'выключено живьём [{m.group(1)}] {m.group(2)}')
 elif LIVE:
     bad('LIVE', 'ключ --live без страниц: живой слой не проверил ничего; укажи html-файлы')
 

@@ -175,6 +175,24 @@ PAGE_CASES = [
  ('свой html[data-density] button', '<style>html[data-density="compact"] button{ height:30px; }</style>', 'html', 'DENSITYTAP'),
  ('свой ссылка-кнопка a.op-more', "<style>[data-density='compact'] a.op-more{ min-height:24px; }</style>", 'html', 'DENSITYTAP'),
  ('свой --tap-sm в своём классе', '<style>.op-panel{ --tap-sm:30px; }</style>', 'html', 'DENSITYTAP'),
+ # 1.5.2: цвет мимо токенов в разметке, собранной скриптом, и атрибутами разметки
+ ('1.5.2 hex через константу в шаблоне', "const c = '#d00';\nel.innerHTML = `<span style=\"color:${c}\">x</span>`;\n", 'js', 'HEX'),
+ ('1.5.2 hex в style без кавычек', "el.innerHTML = '<span style=color:#d00>x</span>';\n", 'js', 'HEX'),
+ ('1.5.2 hex с экранированными кавычками', 'el.innerHTML = "<span style=\\"color:#d00\\">x</span>";\n', 'js', 'HEX'),
+ ('1.5.2 fill в SVG из скрипта', "el.innerHTML = '<svg><rect fill=\"#d00\"/></svg>';\n", 'js', 'HEX'),
+ ('1.5.2 fill в SVG разметки', '<svg><rect fill="#d00" width="4" height="4"/></svg>', 'html', 'HEX'),
+ ('1.5.2 атрибут color', '<font color="#d00">x</font>', 'html', 'HEX'),
+ ('1.5.2 bgcolor из скрипта', "el.innerHTML = '<td bgcolor=\"#d00\">x</td>';\n", 'js', 'HEX'),
+ ('1.5.2 el.style через константу', "const C = '#d00';\nel.style.color = C;\n", 'js', 'HEX'),
+ ('1.5.2 stroke rgb() в SVG', '<svg><path stroke="rgb(200,0,0)" d="M0 0L4 4"/></svg>', 'html', 'HEX'),
+ # выключатель: без причины, с правилом, которое не выключается, у предка вместо самого правила
+ ('1.5.2 выключатель без причины', '<style>.op-rail{ border-left:3px solid var(--primary); --ks-allow:SIDESTRIPE; }</style>', 'html', 'ALLOW'),
+ ('1.5.2 выключатель для контраста', '<style>.op-rail{ border-left:3px solid var(--primary); --ks-allow:"CONTRAST: хочу серый текст"; }</style>', 'html', 'ALLOW'),
+ ('1.5.2 выключатель у соседа с тем же классом (ФЕНИКС P1a)', '<span class="op-tag" style="--ks-allow:\'HEX: служебная метка тега\'; color:var(--text)">a</span><span class="op-tag" style="color:#b00020">b</span>', 'html', 'HEX'),
+ ('1.5.2 выключатель на body из JS (ФЕНИКС P2)', "document.body.style.setProperty('--ks-allow', 'HEX: служебная пометка страницы');\nb.style.color = '#b00020';\n", 'js', 'HEX'),
+ ('1.5.2 setAttribute fill', "el.setAttribute('fill', '#d00');\n", 'js', 'HEX'),
+ ('1.5.2 атрибут заглавными FILL', '<svg><rect FILL="#D00" width="4" height="4"/></svg>', 'html', 'HEX'),
+ ('1.5.2 выключатель у предка не действует', '<style>.op-tl{ --ks-allow:"SIDESTRIPE: весь блок целиком"; } .op-tl .op-rail{ border-left:3px solid var(--primary); }</style>', 'html', 'SIDESTRIPE'),
 ]
 # Законные приёмы: сторож обязан молчать. Сторож, который кричит на всё, так же бесполезен.
 CLEAN_CASES = [
@@ -215,6 +233,17 @@ CLEAN_CASES = [
  ('свой updateOptions fill.opacity', 'chart.updateOptions({ fill:{ opacity:.3 } });\n', 'js'),
  ('свой правило в тексте <code>', '<p>Нельзя: <code>border-left:3px solid var(--warn)</code></p>', 'html'),
  ('свой градиент на аватаре', '<style>.op-avatar{ background:linear-gradient(135deg,var(--cat-1),var(--cat-2)); }</style>', 'html'),
+ ('1.5.2 рельс таймлайна с выключателем и причиной', '<style>.op-rail{ border-left:3px solid var(--primary); --ks-allow:"SIDESTRIPE: рельс таймлайна событий"; }</style>', 'html'),
+ ('1.5.2 токен в разметке из скрипта', "el.innerHTML = `<span style=\"color:var(--danger)\">x</span>`;\n", 'js'),
+ ('1.5.2 якорь #fff1 и хеш адреса', "location.hash = '#abc';\nel.innerHTML = '<a href=\"#fff1\">x</a>';\n", 'js'),
+ ('1.5.2 mask-icon в link', '<link rel="mask-icon" href="x.svg" color="#5bbad5">', 'html'),
+ ('1.5.2 data-color не атрибут цвета', '<div data-color="#abc">x</div>', 'html'),
+ ('1.5.2 url(#id) через константу', "const ID = 'fade';\nel.innerHTML = `<rect fill=\"url(#${ID})\"/>`;\n", 'js'),
+ ('1.5.2 экранированный style fill:url(#fade)', 'el.innerHTML = "<rect style=\\"fill:url(#fade)\\"/>";\n', 'js'),
+ ('1.5.2 i<n в коде рядом с color', "for (let i = 0; i<n; i++) { state.color = '#abc'; }\n", 'js'),
+ ('1.5.2 fill с выключателем в том же теге', '<svg><rect fill="#d00" style="--ks-allow:\'HEX: цвет логотипа партнёра\'" width="4" height="4"/></svg>', 'html'),
+ ('1.5.2 псевдоэлемент, выключатель на его элементе', '<style>.op-ev{ position:relative; --ks-allow:"SIDESTRIPE: рельс у подписи события"; } .op-ev::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--primary); }</style>', 'html'),
+ ('1.5.2 svg-значок fill currentColor', '<svg><path fill="currentColor" stroke="none" d="M0 0L4 4"/></svg>', 'html'),
 ]
 EXPECT = {'приглушённый текст провалил контраст': 'TOKENS', 'тёмный текст провалил контраст': 'TOKENS', 'бейдж внимания провалил контраст': 'TOKENS', 'кнопка: текст на акценте': 'TOKENS', 'палитра: синий рядом с голубым': 'PALETTE', 'hex в компонентах': 'HEX', 'hex в графиках': 'HEX', 'две оси Y': 'DUALAXIS', 'длинное тире': 'EMDASH', 'бейдж на поднятом слое': 'TOKENS', 'анимация ширины': 'LAYOUTANIM', 'пружинящая кривая': 'BOUNCE', 'шрифт мельче 11px в токенах': 'FONTFLOOR', 'шрифт мельче 11px в графике': 'FONTFLOOR', 'копии тёмной темы разъехались': 'SYNC', 'подъём по наведению на касании': 'HOVERLIFT', 'цветная полоса сбоку': 'SIDESTRIPE', 'бейдж капсом': 'CAPSBADGE', 'градиент на знаке бренда': 'GRADMARK', 'цифры моноширинным': 'MONONUM', 'бледный текст для чтения': 'FAINTTEXT', 'пульсирующая плитка': 'LOOPANIM', 'компакт уменьшил цель пальца': 'DENSITYTAP', 'текст на основной кнопке': 'TOKENS', 'переход без «меньше движения»': 'VTMOTION'}
 def run(extra=None):
@@ -272,6 +301,11 @@ if '--live' in sys.argv:
      ('узкий блок min-height', '<div style="display:flex;gap:8px"><i style="width:3px;min-height:24px;background:var(--primary)"></i><span>текст</span></div>', 'SIDESTRIPE'),
      ('узкий блок логическими размерами рядом с текстом', '<div style="display:flex;gap:8px;block-size:40px"><i style="inline-size:3px;block-size:100%;background:var(--warn)"></i><span>текст</span></div>', 'SIDESTRIPE'),
      ('компакт уменьшил кнопку полями, без высоты', '<style>[data-density="compact"] .op-btn{ padding:2px 6px; font-size:12px; line-height:1; }</style><button class="op-btn">ок</button>', 'DENSITYTAP'),
+     ('1.5.2 выключатель у родителя не действует', '<style>.tlw{ --ks-allow:"SIDESTRIPE: весь блок целиком"; }</style><div class="tlw"><div style="position:relative;padding-left:14px">Событие<i style="position:absolute;left:0;top:0;width:3px;height:40px;background:var(--primary)"></i></div></div>', 'SIDESTRIPE'),
+     ('1.5.2 выключатель без причины', '<div style="position:relative;padding-left:14px">Событие<i style="position:absolute;left:0;top:0;width:3px;height:40px;background:var(--primary);--ks-allow:SIDESTRIPE"></i></div>', 'ALLOW'),
+     ('1.5.2 выключатель у соседа, полоса у второго', '<style>.ev{ position:relative; padding-left:14px; margin:8px; } .ev i{ position:absolute; left:0; top:0; width:3px; height:40px; background:var(--primary); }</style><div class="ev"><i style="--ks-allow:\'SIDESTRIPE: рельс таймлайна событий\'"></i>Первое</div><div class="ev"><i></i>Второе</div>', 'SIDESTRIPE'),
+     ('1.5.2 страница подменяет функцию выключателя (ФЕНИКС P5)', '<div style="position:relative;padding-left:14px">Событие<i style="position:absolute;left:0;top:0;width:3px;height:40px;background:var(--primary)"></i></div><script>window.__ksAllow = () => ({ codes: ["SIDESTRIPE"], why: "подмена со страницы" });</script>', 'SIDESTRIPE'),
+     ('1.5.2 мелкая цель без выключателя', '<span role="button" tabindex="0" style="display:inline-block;width:28px;height:28px">x</span>', 'DENSITYTAP'),
      ('полоса у элемента aria-hidden', '<div style="display:flex;gap:8px"><i aria-hidden="true" style="width:3px;height:24px;background:var(--warn)"></i><span>текст</span></div>', 'SIDESTRIPE'),
     ]
     LIVE_CLEAN = [
@@ -279,6 +313,11 @@ if '--live' in sys.argv:
      ('рамка вокруг выбранной карточки', '<div class="ks-card" style="border:2px solid var(--primary)"><div class="ks-card-title">выбрана</div></div>'),
      ('ручка ширины столбца', '<div style="position:relative;padding:8px">Заголовок<i style="position:absolute;right:0;top:0;bottom:0;width:4px;background:var(--primary);cursor:col-resize"></i></div>'),
      ('ссылка в строке текста', '<p>Подробнее <a href="#x">здесь</a> в отчёте.</p>'),
+     ('1.5.2 рельс с выключателем и причиной', '<div style="position:relative;padding-left:14px">Событие<i style="position:absolute;left:0;top:0;width:3px;height:40px;background:var(--primary);--ks-allow:\'SIDESTRIPE: рельс таймлайна событий\'"></i></div>'),
+     ('1.5.2 псевдоэлемент, выключатель на его элементе', '<style>.ev2{ position:relative; padding-left:14px; --ks-allow:"SIDESTRIPE: рельс у подписи события"; } .ev2::before{ content:""; position:absolute; left:0; top:0; width:3px; height:40px; background:var(--primary); }</style><div class="ev2">Событие</div>'),
+     ('1.5.2 выключатель на самом ::before', '<style>.ev3{ position:relative; padding-left:14px; } .ev3::before{ content:""; position:absolute; left:0; top:0; width:3px; height:40px; background:var(--primary); --ks-allow:"SIDESTRIPE: рельс у подписи события"; }</style><div class="ev3">Событие</div>'),
+     ('1.5.2 вложенный элемент того же класса с выключателем', '<style>.ev4{ position:relative; padding-left:14px; margin:6px; } .ev4 > i{ position:absolute; left:0; top:0; width:3px; height:40px; background:var(--primary); --ks-allow:"SIDESTRIPE: рельс таймлайна событий"; }</style><div class="ev4"><i></i>Внешнее<div class="ev4"><i></i>Вложенное</div></div>'),
+     ('1.5.2 кнопка-значок с выключателем и причиной', '<span role="button" tabindex="0" style="display:inline-block;width:28px;height:28px;--ks-allow:\'DENSITYTAP: кнопка-значок в плотной таблице\'">x</span>'),
     ]
     for name, body, want in LIVE_CASES:
         live_total += 1
@@ -296,8 +335,22 @@ if '--live' in sys.argv:
             fa = int(r.returncode != 0); live_fa += fa
             print(f'  живьём {name}: ' + ('ЛОЖНАЯ ТРЕВОГА ' + r.stdout.strip().splitlines()[-1] if fa else 'молчит, как надо'))
         finally: PAGE.unlink()
-    # живой слой, который не запустился, обязан провалить проверку, а не сказать «чисто»
+    # 1.5.2: страница в папке с '#' и пробелом в имени открывается, живой слой проверяет её, а не падает
     import tempfile, os
+    with tempfile.TemporaryDirectory(prefix='ks #1 ') as hd:
+        hp = Path(hd)/'стр #2.html'
+        hp.write_text(base.replace('../tokens/', (HERE/'tokens').as_uri() + '/').replace('../kit/', (HERE/'kit').as_uri() + '/').replace('_tamper_ext.css', ext.as_uri()) + '<p>Чистая страница</p></body></html>', encoding='utf-8')
+        r = subprocess.run([sys.executable, str(HERE/'tools'/'check_ds.py'), '--live', str(hp)], capture_output=True, text=True)
+        fa = int(r.returncode != 0); live_fa += fa
+        print('  живьём страница в папке с #: ' + ('ЛОЖНАЯ ТРЕВОГА ' + r.stdout.strip().splitlines()[-1] if fa else 'открылась и молчит, как надо'))
+    # 1.5.2: страница не открылась (битая ссылка на файл): подсказка про путь, а не про Playwright
+    with tempfile.TemporaryDirectory() as bd:
+        lk = Path(bd)/'нет.html'; os.symlink(Path(bd)/'пропала.html', lk)
+        r = subprocess.run([sys.executable, str(HERE/'tools'/'check_ds.py'), '--live', str(lk)], capture_output=True, text=True)
+        live_total += 1
+        if r.returncode != 0 and 'проверьте путь' in r.stdout: live_caught += 1; print('  живьём поймано: страница не открылась, подсказка про путь -> [LIVE]')
+        else: print('  ЖИВЬЁМ ПРОСКОЧИЛО: подсказка при битом пути: ' + ' | '.join(l.strip() for l in r.stdout.splitlines() if 'LIVE' in l)[:200])
+    # живой слой, который не запустился, обязан провалить проверку, а не сказать «чисто»
     with tempfile.TemporaryDirectory() as nob:
         PAGE.write_text(base + '<p>текст</p></body></html>', encoding='utf-8')
         env = {k: v for k, v in os.environ.items() if k != 'NODE_PATH'}; env['PLAYWRIGHT_BROWSERS_PATH'] = nob

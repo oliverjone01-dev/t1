@@ -279,7 +279,7 @@ function render(){
   el('nav').innerHTML = KS.nav(NAV, VIEW);
   el('seg').querySelectorAll('[data-p]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === CUR)));
   el('stamp').textContent = V().name + (has() ? ' · снимок ' + ruDate(V().series.at(-1).date) : ' · ряда нет');
-  el('foot').textContent = 'Шаблон Контур DS 1.5.1. Данные GENGLASS: отчёт качества, цикл 3.';
+  el('foot').textContent = 'Шаблон Контур DS 1.5.2. Данные GENGLASS: отчёт качества, цикл 3.';
   el('theme').innerHTML = KS.theme.icon();
   KS.route.set({ project:CUR, view:VIEW, period:String(DAYS) });
   KS.ticker.run(el('view'));

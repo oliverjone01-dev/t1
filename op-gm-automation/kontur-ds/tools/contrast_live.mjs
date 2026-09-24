@@ -7,6 +7,7 @@
 import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('playwright'); // берёт и локальный, и глобальный (NODE_PATH) пакет
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const files = process.argv.slice(2);
 if (!files.length) { console.log('укажите html-файлы'); process.exit(2); }
@@ -17,7 +18,7 @@ for (const f of files) {
   for (const theme of ['light', 'dark']) {
     for (const width of [1280, 390]) {
       const page = await browser.newPage({ viewport: { width, height: 900 } });
-      await page.goto('file://' + path.resolve(f));
+      await page.goto(pathToFileURL(path.resolve(f)).href);
       await page.evaluate(t => { document.documentElement.setAttribute('data-theme', t); }, theme);
       await page.waitForTimeout(1600);
       const fails = await page.evaluate(() => {

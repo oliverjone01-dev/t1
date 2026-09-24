@@ -142,13 +142,52 @@ const units = [
   { key: "qty", label: "по штукам", hint: "товарные строки карточек смарта; где их нет, берётся поле «Кол-во товара»", series: seriesQty, available: !!smartStats },
 ];
 
-// Карточки для таблицы по клику: у сделок свои строки, у смарта свои.
+// Строки изделий для второго уровня таблицы. Публичная версия отдаёт техническую часть
+// (название изделия это спецификация продукта с внутренним номером заказа, имён заказчиков
+// в ней нет) и убирает то, что относится к людям и деньгам: название сделки, бюджет,
+// менеджера, конструктора, исполнителя.
+const itemRow = (i) => {
+  const base = {
+    d: i.created, id: String(i.id), dealId: i.dealId || null,
+    t: i.title || "", stage: i.stage, stageCode: i.stageCode,
+    qty: i.qty != null ? i.qty : i.qtyText, qtySrc: i.qty != null ? "строки" : i.qtyText != null ? "поле" : null,
+    kind: i.calcKind || null, draw: i.drawApproval || null,
+    type: i.productType !== "не указано" ? i.productType : null,
+    assort: i.assort !== "не указано" ? i.assort : null,
+    dir: i.dirSp !== "не указано" ? i.dirSp : (i.dir !== "не указано" ? i.dir : null),
+    moved: i.moved, toProd: i.dateToProd, contract: i.contractDate,
+    verbal: i.verbalDeadline, ready: i.readyByContract, close: i.close,
+  };
+  return PUBLIC ? base : { ...base, constructor: i.constructor, executor: i.executor,
+    mgr: i.dealMgr, dealTitle: i.dealTitle, opportunity: i.opportunity, dealBudget: i.dealBudget };
+};
 const smartRows = SMART && Array.isArray(SMART.items)
-  ? SMART.items.filter((i) => i.created && i.created >= FROM).map((i) => PUBLIC
-      ? { d: i.created, id: String(i.id), dealId: i.dealId || null, stage: i.stage, qty: i.qty != null ? i.qty : i.qtyText, kind: i.calcKind || null }
-      : { d: i.created, id: String(i.id), dealId: i.dealId || null, stage: i.stage, qty: i.qty != null ? i.qty : i.qtyText, kind: i.calcKind || null,
-          title: i.title || "", constructor: i.constructor || null, mgr: i.dealMgr || null })
+  ? SMART.items.filter((i) => i.created && i.created >= FROM).map(itemRow)
   : [];
+
+// Индекс первого уровня: сделка. Собирается из ОБЪЕДИНЕНИЯ двух источников, потому что
+// часть сделок заходила в «Расчёт» без карточки смарта, а часть карточек висит на сделках,
+// которых в выборке «Расчёт» нет. Молча терять ни те, ни другие нельзя.
+const dealIdx = {};
+const touch = (id) => (dealIdx[id] ||= { id, runs: [], items: [] });
+for (const r of dedup) touch(r.id).runs.push(r.d);
+for (const it of smartRows) if (it.dealId) touch(it.dealId).items.push(it.id);
+const dealsTable = Object.values(dealIdx).map((x) => {
+  const d = byId[x.id];
+  const its = smartRows.filter((i) => i.dealId === x.id);
+  const qty = its.reduce((s, i) => s + (i.qty || 0), 0);
+  const base = {
+    id: x.id,
+    runs: x.runs.sort(), items: its.length, qty,
+    stage: d ? d.stage : null, out: d ? (d.won ? "won" : d.lost ? "lost" : "open") : null,
+    created: d ? String(d.created || "").slice(0, 10) : null,
+    firstItem: its.length ? its.map((i) => i.d).sort()[0] : null,
+    lastItem: its.length ? its.map((i) => i.d).sort().slice(-1)[0] : null,
+    stages: [...new Set(its.map((i) => i.stage))],
+  };
+  return PUBLIC ? base : { ...base, title: d ? d.title : (its[0] ? its[0].dealTitle : ""),
+    mgr: d ? d.mgr : (its[0] ? its[0].mgr : null), budget: d ? Number(d.budget) || 0 : (its[0] ? its[0].dealBudget : 0) };
+});
 
 const DATA = {
   bakedAt: new Date().toISOString(), public: PUBLIC,
@@ -161,7 +200,7 @@ const DATA = {
   runs: dedup.map((r) => PUBLIC
     ? { d: r.d, id: r.id, from: r.from, to: r.to, days: r.days, cur: r.cur, out: r.out }
     : r),
-  smartRows,
+  smartRows, dealsTable,
   totals: {
     rows: runs.length, events: dedup.length, dup: runs.length - dedup.length,
     deals: new Set(dedup.map((r) => r.id)).size,

@@ -122,10 +122,32 @@ a{color:inherit}
 .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:999px;
   border:1px solid var(--ring);background:var(--surf);cursor:pointer;color:var(--ink-2)}
 .note{font-size:12px;color:var(--ink-3);margin:10px 0 0}
+/* Двухуровневая таблица по образцу /economics/: строка сделки разворачивается
+   в карточку с её изделиями и сводкой сверху. */
+tr.lvl1{cursor:pointer}
+tr.lvl1:hover td{background:var(--s0)}
+tr.lvl1.open td{background:var(--s0);border-bottom-color:transparent}
+.chev{display:inline-block;width:12px;color:var(--ink-3);transition:transform .12s}
+tr.lvl1.open .chev{transform:rotate(90deg);color:var(--ink)}
+td.dwrap{padding:0 0 14px}
+.dcard{background:var(--s0);border-radius:10px;padding:12px 14px;margin:2px 0 0}
+.dsum{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin:0 0 10px}
+.dsum span b{display:block;font-size:10.5px;color:var(--ink-3);font-weight:500;
+  text-transform:uppercase;letter-spacing:.04em}
+.dcard table{font-size:12.5px}
+.dcard th,.dcard td{padding:5px 9px 5px 0;border-bottom:1px solid var(--grid)}
+.dcard tr:last-child td{border-bottom:0}
+.itname{max-width:420px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Названия стадий длинные («В производство/Сборку»), и в узкой колонке плашка ломалась
+   на три строки, раздувая высоту строки втрое. Запрещаем перенос внутри плашки. */
+.pill{white-space:nowrap}
+.dcard td,.dcard th{white-space:nowrap}
+.dcard td .itname{max-width:360px}
 </style>
 <script>
 const D = __PTO_DATA__;
 const $ = s => document.querySelector(s);
+const rub = n => (Math.round(n)||0).toLocaleString('ru-RU')+' ₽';
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MON=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const MONR=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -232,48 +254,108 @@ function calendar(){
   </section>`;
 }
 
-/* ---------- таблица по клику ---------- */
-function table(){
-  if(!S.sel) return `<section class="card"><h2>Все запуски, по датам</h2>
-    <p class="sec" style="margin:0">Кликни ячейку календаря, чтобы увидеть, что в ней.</p></section>`;
-  const nm=UNAME[S.unit];
-  const head = `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px">
-    <h2 style="margin:0">Все запуски · ${esc(labelOf(S.sel.k,S.sel.gran))}</h2>
-    <button class="chip" data-clear>× сбросить выбор</button></div>`;
+/* ---------- таблица по клику: сделки, внутри изделия ---------- */
+const openRows = new Set();
 
-  if(S.unit==='deals'){
-    const f=D.runs.filter(r=>inSel(r.d)).sort((a,b)=>a.d<b.d?1:-1);
-    return `<section class="card">${head}
-      <div class="muted" style="margin:0 0 10px;font-size:12px">${f.length} ${plural(f.length,nm[0],nm[1],nm[2])}</div>
-      <div class="scroll"><table><thead><tr>
-        <th>Дата</th><th>Сделка</th>${D.public?'':'<th>Название</th><th>Менеджер</th>'}
-        <th>Пришла из</th><th>Ушла в</th><th class="n">Дней</th><th>Сейчас</th>
-      </tr></thead><tbody>${f.map(r=>`<tr>
-        <td style="white-space:nowrap">${dru(r.d)}</td>
-        <td style="font-variant-numeric:tabular-nums">${esc(r.id)}</td>
-        ${D.public?'':`<td>${esc(String(r.title||'').slice(0,46))}</td><td>${esc(r.mgr||'')}</td>`}
-        <td class="sec">${esc(r.from)||'<span class="muted">-</span>'}</td>
-        <td class="sec">${esc(r.to)||'<span class="muted">стоит здесь</span>'}</td>
-        <td class="n">${r.days==null?'<span class="muted">-</span>':r.days}</td>
-        <td><span class="pill ${r.out}">${esc(r.cur)}</span></td></tr>`).join('')}</tbody></table></div>
-      ${D.public?'<p class="note">Номер сделки без названия и суммы: имя заказчика и деньги в публичную версию не выгружаются.</p>':''}
-    </section>`;
-  }
-  const f=D.smartRows.filter(r=>inSel(r.d)).sort((a,b)=>a.d<b.d?1:-1);
-  const sumQty=f.reduce((s,r)=>s+(r.qty||0),0);
+// Какие сделки попадают в выбранную ячейку. Для «сделок» отбор по дате входа на стадию
+// «Расчёт», для «изделий» и «штук» по дате создания карточки смарта: у единиц разные
+// источники, и период должен считаться по тому же источнику, что и календарь.
+function dealsInSel(){
+  if(!S.sel) return [];
+  if(S.unit==='deals') return D.dealsTable.filter(d=>d.runs.some(inSel));
+  const ids=new Set(D.smartRows.filter(r=>inSel(r.d)&&r.dealId).map(r=>r.dealId));
+  const noDeal=D.smartRows.filter(r=>inSel(r.d)&&!r.dealId);
+  const list=D.dealsTable.filter(d=>ids.has(d.id));
+  if(noDeal.length) list.push({id:'(без сделки)', runs:[], items:noDeal.length,
+    qty:noDeal.reduce((s,r)=>s+(r.qty||0),0), stage:null, out:null, orphan:true,
+    stages:[...new Set(noDeal.map(r=>r.stage))]});
+  return list;
+}
+function itemsOfDeal(id){
+  return (id==='(без сделки)'
+    ? D.smartRows.filter(r=>!r.dealId&&inSel(r.d))
+    : D.smartRows.filter(r=>r.dealId===id)).sort((a,b)=>a.d<b.d?1:-1);
+}
+
+const dcell = v => v ? dru(v) : '<span class="muted">-</span>';
+function detail(id){
+  const its=itemsOfDeal(id);
+  if(!its.length) return `<div class="dcard"><span class="muted">По этой сделке карточек в смарте «Расчёт» нет.
+    Значит расчёт вели без карточки либо она заведена до 01.04.</span></div>`;
+  const qty=its.reduce((s,i)=>s+(i.qty||0),0);
+  const byStage={}; for(const i of its) byStage[i.stage]=(byStage[i.stage]||0)+1;
+  const per=S.sel?its.filter(i=>inSel(i.d)).length:its.length;
+  const sum=[
+    ['изделий', its.length + (per!==its.length?` <span class="muted">(в периоде ${per})</span>`:'')],
+    ['штук', fmt(qty)],
+    ['стадии', Object.entries(byStage).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k)} ${v}`).join(' · ')],
+    ['первое', dcell(its[its.length-1].d)],
+    ['последнее', dcell(its[0].d)],
+  ].map(([l,v])=>`<span><b>${l}</b>${v}</span>`).join('');
+  const cols = D.public
+    ? ['Карточка','Изделие','Стадия','Вид расчёта','Согласование чертежа','Тип','Направление','Штук','Создана','Смена стадии','В производство','Договор','Устный срок','Готовность']
+    : ['Карточка','Изделие','Стадия','Вид расчёта','Согласование чертежа','Конструктор','Исполнитель','Тип','Направление','Штук','Сумма','Создана','Смена стадии','В производство','Договор','Устный срок','Готовность'];
+  const rows=its.map(i=>{
+    const inP=S.sel&&inSel(i.d);
+    const q=i.qty==null?'<span class="muted">-</span>':`${fmt(i.qty)}${i.qtySrc==='поле'?'<span class="muted" title="из поля «Кол-во товара», товарных строк нет">*</span>':''}`;
+    const cells=[
+      `<span style="font-variant-numeric:tabular-nums">${esc(i.id)}</span>`,
+      `<span class="itname" title="${esc(i.t)}">${esc(i.t)}</span>`,
+      `<span class="pill">${esc(i.stage)}</span>`,
+      esc(i.kind||'')||'<span class="muted">-</span>',
+      esc(i.draw||'')||'<span class="muted">-</span>',
+      ...(D.public?[]:[esc(i.constructor||'')||'<span class="muted">-</span>', esc(i.executor||'')||'<span class="muted">-</span>']),
+      esc(i.type||'')||'<span class="muted">-</span>',
+      esc(i.dir||'')||'<span class="muted">-</span>',
+      `<span class="n">${q}</span>`,
+      ...(D.public?[]:[i.opportunity?rub(i.opportunity):'<span class="muted">-</span>']),
+      dcell(i.d), dcell(i.moved), dcell(i.toProd), dcell(i.contract), dcell(i.verbal), dcell(i.ready),
+    ];
+    return `<tr${inP?' style="font-weight:500"':''}>`+cells.map((c,k)=>`<td${k>=cells.length-6||/class="n"/.test(c)?' class="n"':''}>${c}</td>`).join('')+'</tr>';
+  }).join('');
+  return `<div class="dcard"><div class="dsum">${sum}</div>
+    <div style="overflow-x:auto"><table><thead><tr>${cols.map(c=>`<th${/Штук|Сумма|Создана|стадии|производство|Договор|срок|Готовность/.test(c)?' class="n"':''}>${c}</th>`).join('')}</tr></thead>
+    <tbody>${rows}</tbody></table></div>
+    <p class="note" style="margin:8px 0 0">Звёздочка у количества значит, что товарных строк нет и взято поле «Кол-во товара».
+    Жирным выделены изделия, попавшие в выбранный период.</p></div>`;
+}
+
+function table(){
+  if(!S.sel) return `<section class="card"><h2>Сделки и изделия</h2>
+    <p class="sec" style="margin:0">Кликни ячейку календаря, чтобы увидеть, что в ней.</p></section>`;
+  const ds=dealsInSel().sort((a,b)=>{
+    const ak=a.runs[0]||a.firstItem||'', bk=b.runs[0]||b.firstItem||'';
+    return ak<bk?1:ak>bk?-1:0;
+  });
+  const tQty=ds.reduce((s,d)=>s+d.qty,0), tIt=ds.reduce((s,d)=>s+d.items,0);
+  const head=`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px">
+    <h2 style="margin:0">Сделки и изделия · ${esc(labelOf(S.sel.k,S.sel.gran))}</h2>
+    <button class="chip" data-clear>× сбросить выбор</button></div>`;
+  const cols = D.public
+    ? ['','Сделка','Стадия сделки','Запусков расчёта','Изделий','Штук','Первый запуск','Последний']
+    : ['','Сделка','Название','Менеджер','Сумма','Стадия сделки','Запусков расчёта','Изделий','Штук','Первый запуск','Последний'];
+  const rows=ds.map(d=>{
+    const op=openRows.has(d.id);
+    const runsIn=d.runs.filter(inSel).length;
+    const cells=[
+      `<span class="chev">›</span>`,
+      d.orphan?'<span class="muted">без сделки</span>':`<span style="font-variant-numeric:tabular-nums">${esc(d.id)}</span>`,
+      ...(D.public?[]:[`<span class="itname">${esc(String(d.title||'').slice(0,50))}</span>`, esc(d.mgr||'')||'<span class="muted">-</span>', d.budget?rub(d.budget):'<span class="muted">-</span>']),
+      d.stage?`<span class="pill ${d.out}">${esc(d.stage)}</span>`:'<span class="muted">-</span>',
+      `<span class="n">${d.runs.length}${runsIn&&runsIn!==d.runs.length?` <span class="muted">(${runsIn} в периоде)</span>`:''}</span>`,
+      `<span class="n">${d.items}</span>`,
+      `<span class="n">${fmt(d.qty)}</span>`,
+      dcell(d.runs[0]||d.firstItem), dcell(d.runs[d.runs.length-1]||d.lastItem),
+    ];
+    const tr=`<tr class="lvl1${op?' open':''}" data-deal="${esc(d.id)}">`+
+      cells.map((c,k)=>`<td${/class="n"/.test(c)||k>=cells.length-2?' class="n"':''}>${c}</td>`).join('')+'</tr>';
+    return tr + (op?`<tr><td class="dwrap" colspan="${cols.length}">${detail(d.id)}</td></tr>`:'');
+  }).join('');
   return `<section class="card">${head}
-    <div class="muted" style="margin:0 0 10px;font-size:12px">${f.length} ${plural(f.length,'изделие','изделия','изделий')} · ${fmt(sumQty)} ${plural(Math.round(sumQty),'штука','штуки','штук')}</div>
-    <div class="scroll"><table><thead><tr>
-      <th>Дата</th><th>Карточка</th>${D.public?'':'<th>Название</th><th>Конструктор</th>'}
-      <th>Сделка</th><th>Вид расчёта</th><th class="n">Штук</th><th>Стадия</th>
-    </tr></thead><tbody>${f.map(r=>`<tr>
-      <td style="white-space:nowrap">${dru(r.d)}</td>
-      <td style="font-variant-numeric:tabular-nums">${esc(r.id)}</td>
-      ${D.public?'':`<td>${esc(String(r.title||'').slice(0,46))}</td><td>${esc(r.constructor||'')}</td>`}
-      <td style="font-variant-numeric:tabular-nums">${r.dealId?esc(r.dealId):'<span class="muted">-</span>'}</td>
-      <td class="sec">${esc(r.kind||'')||'<span class="muted">-</span>'}</td>
-      <td class="n">${r.qty==null?'<span class="muted">-</span>':fmt(r.qty)}</td>
-      <td><span class="pill">${esc(r.stage||'')}</span></td></tr>`).join('')}</tbody></table></div>
+    <div class="muted" style="margin:0 0 10px;font-size:12px">${ds.length} ${plural(ds.length,'сделка','сделки','сделок')} · ${tIt} ${plural(tIt,'изделие','изделия','изделий')} · ${fmt(tQty)} ${plural(Math.round(tQty),'штука','штуки','штук')} · клик по строке раскрывает изделия</div>
+    <div class="scroll" style="overflow-x:auto"><table><thead><tr>${cols.map((c,k)=>`<th${k>=cols.length-2||/Запусков|Изделий|Штук|Сумма/.test(c)?' class="n"':''}>${c}</th>`).join('')}</tr></thead>
+    <tbody>${rows}</tbody></table></div>
+    ${D.public?'<p class="note">Публичная версия: без названий сделок, сумм и фамилий. Название изделия это спецификация продукта, имён заказчиков в нём нет.</p>':''}
   </section>`;
 }
 
@@ -291,15 +373,20 @@ function foot(){
 /* ---------- рендер ---------- */
 function render(){
   $('#app').innerHTML = calendar() + table() + foot();
-  $('#app').querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>{ S.unit=b.dataset.unit; S.sel=null; render(); });
-  $('#app').querySelectorAll('[data-gran]').forEach(b=>b.onclick=()=>{ S.gran=b.dataset.gran; S.sel=null; render(); });
+  $('#app').querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>{ S.unit=b.dataset.unit; S.sel=null; openRows.clear(); render(); });
+  $('#app').querySelectorAll('[data-gran]').forEach(b=>b.onclick=()=>{ S.gran=b.dataset.gran; S.sel=null; openRows.clear(); render(); });
   $('#app').querySelectorAll('[data-k]').forEach(el=>el.onclick=()=>{
     const k=el.dataset.k;
-    S.sel = (S.sel && S.sel.k===k) ? null : {k, gran:S.gran};
+    S.sel = (S.sel && S.sel.k===k) ? null : {k, gran:S.gran}; openRows.clear();
     render();
     if(S.sel) document.querySelectorAll('.card')[1]?.scrollIntoView({behavior:'smooth',block:'start'});
   });
-  const c=$('#app').querySelector('[data-clear]'); if(c) c.onclick=()=>{ S.sel=null; render(); };
+  $('#app').querySelectorAll('tr.lvl1').forEach(tr=>tr.onclick=()=>{
+    const k=tr.dataset.deal;
+    openRows.has(k)?openRows.delete(k):openRows.add(k);
+    render();
+  });
+  const c=$('#app').querySelector('[data-clear]'); if(c) c.onclick=()=>{ S.sel=null; openRows.clear(); render(); };
 }
 
 $('#stamp').textContent =

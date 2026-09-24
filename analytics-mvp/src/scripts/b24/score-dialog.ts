@@ -564,7 +564,7 @@ function main() {
     if (a && Array.isArray(a.tags)) for (const t of a.tags) add(String(t.t || t), t.sec || "process", (t.tone as Tag["tone"]) || "warn");
     // Теги ИИ по КОНКРЕТНЫМ сообщениям: вешаем на нужную реплику (evTags[src]) с цитатой -
     // в ленте видно, какая именно фраза греет или холодит сделку.
-    if (a && Array.isArray(a.msgTags)) for (const t of a.msgTags) { if (t && t.src) (evTags[t.src] ||= []).push({ t: String(t.t || ""), tone: t.tone || "warn", sec: "process", quote: t.quote || "", ai: true, deg: typeof t.deg === "number" ? t.deg : undefined }); }
+    if (a && Array.isArray(a.msgTags)) for (const t of a.msgTags) { if (t && t.src) (evTags[t.src] ||= []).push({ t: String(t.t || ""), tone: t.tone || "warn", sec: "process", quote: t.quote || "", ai: true, k: t.k || "", deg: typeof t.deg === "number" ? t.deg : undefined }); }
 
     // --- НОВЫЕ ПОВЕДЕНЧЕСКИЕ СИГНАЛЫ (item 2) ------------------------------------
     // Инициатива: клиент ТЯНЕТ САМ. Два входящих подряд (ответа менеджера между ними нет) -
@@ -813,7 +813,10 @@ function main() {
       dir: f ? (f.dir || "") : "", cycle: f && f.cycle != null ? f.cycle : null, lossReason: f ? (f.reason || "") : "",
       won: isWon, lost: isLost, outcome: isWon ? "won" : isLost ? "lost" : "open",
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
-      ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null } : null,
+      ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null,
+        // Разметка по репликам едет в разбор целиком: в ленте она видна точечно, а в итоге
+        // по сделке из неё собираются два столбца - сильные стороны (G) и дефекты (T).
+        marks: (a.msgTags || []).filter((t: any) => t && (t.k || t.t)).map((t: any) => ({ k: t.k || "", tone: t.tone || "warn", t: t.t || "", quote: t.quote || "" })) } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, silenceAnyD, noTalk, overdueD, nextStep, stageDays,
       preMig: !!createdAt && createdAt < MIGRATION_CUTOFF,
       clientChase, hotSlow, hotOpen, driftAlso, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),

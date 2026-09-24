@@ -248,6 +248,15 @@ input#q{min-width:220px}
 .da-gaps{font-size:11px;line-height:1.5;color:var(--ink-3);margin-top:4px}
 .da-gaps b{color:#E2A336}
 .dsum-none{color:var(--ink-4);font-size:11.5px}
+/* Оценки по пяти осям и разметка «хорошо / ошибки» внутри разбора сделки */
+.sc-grid{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 9px;padding:8px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.sc-i{flex:1 1 92px;min-width:92px}
+.sc-t{font-size:9.5px;color:var(--ink-3);margin-bottom:3px;white-space:nowrap}
+.sc-bar{height:5px;border-radius:3px;background:var(--line,#e5e7eb);overflow:hidden;display:inline-block;width:calc(100% - 16px);vertical-align:middle}
+.sc-bar span{display:block;height:100%}
+.sc-v{font-size:11px;margin-left:4px;font-variant-numeric:tabular-nums}
+.mk-q{color:var(--ink-3);font-size:11px;line-height:1.45;margin-top:2px;font-style:italic}
+.mk-qs{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
 /* Развёрнутый разбор коммуникации по сделке */
 .dabox{width:100%;box-sizing:border-box;border:1px solid #8B7BF033;background:#8B7BF008;border-radius:9px;padding:11px 13px;margin:0 0 10px}
 .da-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8B7BF0;margin-bottom:8px}
@@ -1582,12 +1591,38 @@ function renderTree(){
       // Температура-оценка и «не хватает до горячего» живут ВНУТРИ ИИ-аудита (см. daBlock ниже),
       // а не перед ним. В шапке итога - только градус рядом с заголовком.
       const gapsList=(d.needToClose||[]).slice(0,4).map(g=>`+${g.deg}° ${esc(g.label)}${g.rub?` (${money(g.rub)} ₽)`:''}`).join('<br>');
+      // Расшифровка кодов разметки: в ленте на реплике стоит короткий текст, а в итоге по
+      // сделке рядом с цитатой нужен сам дефект/сильная сторона словами.
+      const MARKC={T01:'пустое письмо',T02:'без имени',T03:'размытый срок',T04:'жаргон в извинении',T05:'обезличенное касание',T06:'защита вместо решения',T07:'орфография',T08:'обещал и не сделал',T09:'штамп не к месту',
+        G01:'быстрая первая реакция',G02:'расчёт за минуты',G03:'настойчивость в касаниях',G04:'честность про брак или срыв',G05:'признание ошибки без защиты',G06:'возражение снято аргументом',G07:'риск назван заранее',G08:'цикл завершён чисто'};
+      // Пять осей оценки менеджера по сделке. Показываем полосой: РОПу нужно видеть провал
+      // взглядом, а не читать пять чисел.
+      const SCAX=[['polite','Вежливость'],['qual','Квалификация'],['deadline','Сроки'],['process','Ведение'],['result','Результат']];
+      const scBar=sc=>{ if(!sc) return '';
+        const cells=SCAX.filter(([k])=>typeof sc[k]==='number').map(([k,t])=>{ const v=sc[k], col=v>=4?'#2E9E74':v>=3?'#E2A336':'#C25252';
+          return `<div class="sc-i"><div class="sc-t">${t}</div><div class="sc-bar"><span style="width:${v*20}%;background:${col}"></span></div><b class="sc-v" style="color:${col}">${v}</b></div>`; }).join('');
+        return cells?`<div class="sc-grid">${cells}</div>`:''; };
+      // Два столбца из разметки по репликам: что сделано хорошо (коды G) и что не так (коды T).
+      // Это и есть «ошибки и плюсы» по сделке - с цитатой той самой фразы.
+      const markCols=ms=>{ if(!ms||!ms.length) return '';
+        const li=t=>`<li><b>${esc(t.k?(MARKC[t.k]||t.k):'')}</b>${t.t?` — ${esc(String(t.t).replace(/^ИИ · /,''))}`:''}${t.quote?`<div class="mk-q">«${esc(t.quote)}»</div>`:''}</li>`;
+        const good=ms.filter(t=>t.tone==='good'), bad=ms.filter(t=>t.tone!=='good');
+        if(!good.length&&!bad.length) return '';
+        return `<div class="da-cols">`
+          +`<div class="da-col da-good"><div class="da-t">Что сделано хорошо</div>${good.length?'<ul>'+good.map(li).join('')+'</ul>':'<div class="dsum-none">в этой сделке сильных ходов не отмечено</div>'}</div>`
+          +`<div class="da-col da-gap"><div class="da-t">Ошибки и риски</div>${bad.length?'<ul>'+bad.map(li).join('')+'</ul>':'<div class="dsum-none">дефектов не отмечено</div>'}</div>`
+          +`</div>`; };
+      // Реплики клиента, на которых держится вывод: РОП читает их первыми, до текста разбора.
+      const qBlock=qs=>(qs&&qs.length)?`<div class="mk-qs"><div class="da-t">Ключевые реплики</div>${qs.slice(0,3).map(q=>`<div class="mk-q">«${esc(q)}»</div>`).join('')}</div>`:'';
       const aiSum=(a&&(a.verdict||a.problem||a.recommendation))
-        ? `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div>`
+        ? `<div class="dsum-h">🤖 Разбор ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div>`
           +(a.verdict?`<div class="dsum-v">${esc(a.verdict)}</div>`:'')
+          +scBar(a.scores)
+          +markCols(a.marks)
           +(a.problem?`<div class="dsum-p"><b>Риск потери:</b> ${esc(a.problem)}</div>`:'')
           +(a.recommendation?`<div class="dsum-r"><b>Что сделать:</b> ${esc(a.recommendation)}</div>`:'')
-        : `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
+          +qBlock(a.quotes)
+        : `<div class="dsum-h">🤖 Разбор ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
       // Краткий «Итог ИИ» ВОЗВРАЩЁН в ленту 24.09.2026. Его убирали как дубль подсказки
       // градусника, но подсказка висит на строке сделки уровнем выше, а внутри открытой ленты
       // не показывалось ничего. Подробный audit есть лишь у 8 разборов из 938, поэтому для

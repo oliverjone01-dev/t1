@@ -294,6 +294,8 @@ tr.izdeal:hover>td{background:rgba(255,255,255,.02)}
 .smcell{white-space:nowrap;overflow:visible}
 /* квадратики смартов, из которых сложилась Σ с/с: прямые углы, цвет смарта */
 /* буквы источника Σ с/с: каждая в рамке цветом своего смарта, углы прямые */
+.amt-pre{display:inline-block;font-style:normal;font-size:8.5px;font-weight:700;line-height:11px;padding:0 3px;margin-left:4px;border-radius:3px;color:#7fd1a6;border:1px solid rgba(127,209,166,.45);background:rgba(127,209,166,.10);vertical-align:1px}
+.amt-sub{font-size:9px;color:var(--ink-3);font-weight:400;line-height:1.1;margin-top:1px}
 .ss-src{white-space:nowrap;margin-left:5px}
 .ss-src i{display:inline-block;font-style:normal;font-size:9px;font-weight:700;line-height:11px;min-width:11px;text-align:center;padding:0 2px;margin-left:2px;border-radius:0;border:1px solid rgba(255,255,255,.28);vertical-align:middle}
 .smseg{display:inline-block;box-sizing:border-box;width:9px;height:9px;margin-right:2px;border-radius:2px;border:1px solid transparent;vertical-align:middle;background:rgba(200,205,215,.10)}
@@ -454,8 +456,29 @@ const qtyOf=d=>(d.products||[]).reduce((a,p)=>a+(+p.qty||0),0);
 // с/с за партию = Σ по карточкам (с/с за 1 шт × Кол-во товара). Поля с/с в Bitrix - за 1 шт,
 // бюджет и «Сумма» - за партию, поэтому маржу считаем на одной базе (за партию).
 function spBatch(sp){ if(!sp) return {v:0,empty:true}; let v=0,any=false; for(const c of (sp.cards||[])){ if(c.bad)continue; const b=cardBatch(c); if(b>0){any=true; v+=b;} } return {v,empty:!any}; }
-function prodSS(d){ const pr=spBatch(byKey(d,'Производство  GG')),ra=spBatch(byKey(d,'Расчёт')),za=spBatch(byKey(d,'Закупка'));
-  const base=(pr&&!pr.empty)?pr.v:((ra&&!ra.empty)?ra.v:0); const glass=(za&&!za.empty)?za.v:0; return base+glass; }
+// Калькулятор годится как итог ПО СДЕЛКЕ только если он закрыт по ВСЕМ товарам сделки.
+// Иначе одна заполненная карточка на сделку с шестью изделиями занизила бы с/с в разы.
+// Проверено на снимке: из 116 сделок с заполненным калькулятором у 25 он покрывает не все
+// товары (напр. 97849 - три товара, одна карточка), ещё у 19 товарных строк нет вовсе.
+function calcCoversAll(d){ const ka=byKey(d,'Калькулятор GG'); if(!ka)return false;
+  const filled=(ka.cards||[]).filter(c=>!c.bad&&cardBatch(c)>0).length;
+  const prods=(d.products||[]).length;
+  return prods>0&&filled>=prods; }
+function prodSS(d){ const ka=spBatch(byKey(d,'Калькулятор GG'));
+  if(ka&&!ka.empty&&ka.v>0&&calcCoversAll(d)) return ka.v;
+  const ra=spBatch(byKey(d,'Расчёт')),za=spBatch(byKey(d,'Закупка'));
+  const R=(ra&&!ra.empty)?ra.v:0, Z=(za&&!za.empty)?za.v:0;
+  if(R||Z) return R+Z;
+  const pr=spBatch(byKey(d,'Производство  GG'));
+  return (pr&&!pr.empty)?pr.v:0; }
+// Источник итоговой с/с сделки - буквой, тем же приоритетом (К/Р/З/П).
+function prodSSsrc(d){ const ka=spBatch(byKey(d,'Калькулятор GG'));
+  if(ka&&!ka.empty&&ka.v>0&&calcCoversAll(d)) return ['К'];
+  const ra=spBatch(byKey(d,'Расчёт')),za=spBatch(byKey(d,'Закупка'));
+  const R=(ra&&!ra.empty)?ra.v:0, Z=(za&&!za.empty)?za.v:0;
+  if(R||Z){ const o=[]; if(R)o.push('Р'); if(Z)o.push('З'); return o; }
+  const pr=spBatch(byKey(d,'Производство  GG'));
+  return (pr&&!pr.empty&&pr.v>0)?['П']:[]; }
 // ячейка Маржа с чтением минуса: бюджет≈0 при наличии с/с = «нет цены» (ложный минус); цена реальная < с/с = «убыток»
 // источник бюджета: какой смарт несёт бюджет-поле (Сумма/БЮДЖЕТ/Бюджет заказ). Приоритет Р>К>...
 const BUDF=/^сумма$|бюджет/i;
@@ -520,7 +543,7 @@ function detailInner(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
         if(e&&e.vB) return '<td class="num cell-g"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>';
         if(e&&e.cards&&e.cards.length) return '<td class="num"><a class="nocs" href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">нет с/с</a></td>';
         return '<td class="num cell-o">·</td>'; }).join('');
-      const ssTot=((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0)+((g.sp['Закупка']&&g.sp['Закупка'].vB)||0);
+      const ssTot=izSS(g);
       const _si=izdStageInfo(g); const _pr=izPrice(d,g), _q=izQty(d,g), _rev=_pr*_q; tQty+=_q; tSs+=ssTot; tRev+=_rev;
       inner+='<tr>'
         +'<td class="pnm"><span class="art-code">'+esc(g.art||g.ns||('#'+g.firstId))+'</span></td>'
@@ -853,11 +876,12 @@ function izdeliaCalc(d){
   return Object.values(g).filter(it=>Object.values(it.sp).some(e=>e.vB>0)||(it.sp['Расчёт']&&it.sp['Расчёт'].cards.length)||(it.sp['Производство  GG']&&it.sp['Производство  GG'].cards.length));
 }
 function izdRow(d,g){
-  // Σ с/с за партию = производственная база (Производство, иначе Расчёт) + стекло (Закупка), уже × кол-во
-  const baseB=((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0);
-  const baseU=((g.sp['Производство  GG']&&g.sp['Производство  GG'].vU)||(g.sp['Расчёт']&&g.sp['Расчёт'].vU)||0);
-  const glassB=(g.sp['Закупка']&&g.sp['Закупка'].vB)||0, glassU=(g.sp['Закупка']&&g.sp['Закупка'].vU)||0;
-  const ssTot=baseB+glassB, ssU=baseU+glassU;
+  // Σ с/с за партию, единый приоритет: Калькулятор -> Расчёт + Закупка -> Производство.
+  const _vb=k=>(g.sp[k]&&g.sp[k].vB)||0, _vu=k=>(g.sp[k]&&g.sp[k].vU)||0;
+  let ssTot,ssU;
+  if(_vb('Калькулятор GG')){ ssTot=_vb('Калькулятор GG'); ssU=_vu('Калькулятор GG'); }
+  else if(_vb('Расчёт')||_vb('Закупка')){ ssTot=_vb('Расчёт')+_vb('Закупка'); ssU=_vu('Расчёт')+_vu('Закупка'); }
+  else { ssTot=_vb('Производство  GG'); ssU=_vu('Производство  GG'); }
   const perU=k=>{ const e=g.sp[k]; if(!e||!e.vB)return ''; return (g.qty&&Math.abs(e.vB-e.vU*g.qty)<1)?(fmt(e.vU)+'/шт × '+g.qty+' шт = '+fmt(e.vB)):('с/с за партию '+fmt(e.vB)); };
   const spCells=ORDER.map(k=>{ const e=g.sp[k];
     if(e&&e.vB) return '<td class="num cell-g" title="'+esc(perU(k))+'"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>';
@@ -925,7 +949,9 @@ const _gv=id=>{const e=document.getElementById(id);return e?e.value:'';};
 let econDateBasis='created'; // «Период по»: created | prepay - какое поле даты фильтрует верхний период
 let econAmt='budget'; // «Сумма»: budget | prepay - чем считать сумму сделки в экране «Сделки»
 // Сумма сделки для экрана «Сделки»: бюджет (поле сделки) или полученная предоплата (поле «Предоплата»).
-const dBud=d=>econAmt==='prepay'?(d.prepayAmt||0):(d.budget||0);
+const dBud=d=>econAmt==='prepay'?((d.prepayAmt||0)||(d.budget||0)):(d.budget||0);
+// показанное число - это предоплата (true) или бюджет (false)
+const dIsPre=d=>econAmt==='prepay'&&(d.prepayAmt||0)>0;
 function passesBase(d,skipStage){
   const _qe=document.getElementById('q'); const q=_qe?_qe.value.trim().toLowerCase():'';
   const df=document.getElementById('dfrom').value, dt=document.getElementById('dto').value;
@@ -1331,7 +1357,14 @@ function dealCells(d,op){
     +'<td class="ctype" title="'+esc(d.assort||'')+'">'+(d.assort?esc(d.assort):'<span class="cell-o">-</span>')+'</td>'
     +smartCell(d)
     +'<td class="num" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; ').slice(0,300))+'">'+(svc.length?'<span class="cell-g">'+fmt(sSum)+'</span> <span class="cell-o">('+svc.length+')</span>':'<span class="cell-o">-</span>')+'</td>'
-    +'<td class="num" title="'+esc(econAmt==='prepay'?('полученная предоплата (поле «Предоплата»)'+(d.budget?'; бюджет сделки '+fmt(d.budget):'')):(bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал'))+'">'+fmt(dBud(d))+'</td>'
+    +(function(){ const pre=dIsPre(d), b=d.budget||0, p=d.prepayAmt||0;
+        const tip=econAmt==='prepay'
+          ? (pre?('показана ПРЕДОПЛАТА '+fmt(p)+(b?('; бюджет сделки '+fmt(b)+(p<b?(', недоплата '+fmt(b-p)):(p>b?(', сверх бюджета '+fmt(p-b)):', оплачено полностью'))):'; бюджета у сделки нет'))
+                 :('предоплаты нет, показан БЮДЖЕТ '+fmt(b)))
+          : (bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал');
+        const mark=pre?' <i class="amt-pre" title="это предоплата, а не бюджет">предопл.</i>':'';
+        const sub=(econAmt==='prepay'&&pre&&b&&p!==b)?'<div class="amt-sub">бюджет '+fmt(b)+'</div>':'';
+        return '<td class="num'+(pre?' amt-p':'')+'" title="'+esc(tip)+'">'+fmt(dBud(d))+mark+sub+'</td>'; })()
     +'<td class="num" title="наименований (товарных строк): '+goods.length+'">'+(goods.length?goods.length:'<span class="cell-o">-</span>')+'</td>'
     +'<td class="num" title="'+esc(goods.map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(goods.length?gQty+' <span class="cell-o">шт</span>':'<span class="cell-o">-</span>')+'</td>'
     +ssCell(d,ss)

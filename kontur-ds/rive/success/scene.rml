@@ -1,0 +1,117 @@
+<Rive version="1" kind="fragment">
+    <Artboard defaultStateMachineId="0:100" viewModelId="0:500" viewModelInstanceId="0:501" styleId="0:3" width="48" height="48" name="success" id="0:2">
+        <LayoutComponentStyle name="Artboard Style" id="0:3" />
+        <Node x="24" y="24" name="mark" id="0:5">
+            <Shape name="check" id="0:31">
+                <PointsPath isClosed="false" name="Path">
+                    <StraightVertex x="-6.6" y="0" />
+                    <StraightVertex x="-2.2" y="4.4" />
+                    <StraightVertex x="6.6" y="-4.4" />
+                </PointsPath>
+                <Stroke thickness="4.08" cap="round" join="round" name="Stroke">
+                    <SolidColor colorValue="FF0D7049" name="Color">
+                        <DataBindContext sourcePathIds="0:500-0:514" propertyKey="37" />
+                    </SolidColor>
+                    <TrimPath start="0" end="0" modeValue="sequential" name="Trim" id="0:32" />
+                </Stroke>
+            </Shape>
+            <Shape name="circle" id="0:33">
+                <Ellipse width="36" height="36" name="Path" />
+                <Stroke thickness="4.08" cap="round" join="round" name="Stroke">
+                    <SolidColor colorValue="FF0D7049" name="Color">
+                        <DataBindContext sourcePathIds="0:500-0:514" propertyKey="37" />
+                    </SolidColor>
+                    <TrimPath start="0" end="0" modeValue="sequential" name="Trim" id="0:34" />
+                </Stroke>
+            </Shape>
+        </Node>
+        <LinearAnimation fps="60" duration="29" name="draw" id="0:200">
+            <KeyedObject objectId="0:5">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="1" frame="0" interpolationType="linear" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:34">
+                <KeyedProperty propertyKey="115">
+                    <KeyFrameDouble value="0" frame="0" interpolationType="cubic">
+                        <CubicEaseInterpolator x1="0" y1="0" x2="0.58" y2="1" />
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1" frame="21" interpolationType="linear" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:5">
+                <KeyedProperty propertyKey="16">
+                    <KeyFrameDouble value="0.96" frame="0" interpolationType="cubic">
+                        <CubicEaseInterpolator x1="0.2" y1="0.8" x2="0.2" y2="1" />
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1" frame="21" interpolationType="linear" />
+                </KeyedProperty>
+                <KeyedProperty propertyKey="17">
+                    <KeyFrameDouble value="0.96" frame="0" interpolationType="cubic">
+                        <CubicEaseInterpolator x1="0.2" y1="0.8" x2="0.2" y2="1" />
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1" frame="21" interpolationType="linear" />
+                </KeyedProperty>
+            </KeyedObject>
+            <KeyedObject objectId="0:32">
+                <KeyedProperty propertyKey="115">
+                    <KeyFrameDouble value="0" frame="0" interpolationType="hold" />
+                    <KeyFrameDouble value="0" frame="14" interpolationType="cubic">
+                        <CubicEaseInterpolator x1="0" y1="0" x2="0.58" y2="1" />
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="1" frame="29" interpolationType="linear" />
+                </KeyedProperty>
+            </KeyedObject>
+        </LinearAnimation>
+        <LinearAnimation fps="60" duration="9" name="fade out" id="0:201">
+            <KeyedObject objectId="0:5">
+                <KeyedProperty propertyKey="18">
+                    <KeyFrameDouble value="1" frame="0" interpolationType="cubic">
+                        <CubicEaseInterpolator x1="0.4" y1="0" x2="1" y2="1" />
+                    </KeyFrameDouble>
+                    <KeyFrameDouble value="0" frame="9" interpolationType="linear" />
+                </KeyedProperty>
+            </KeyedObject>
+        </LinearAnimation>
+        <StateMachine name="success" id="0:100">
+            <StateMachineLayer name="main" id="0:101">
+                <AnyState x="160" y="-120" id="0:110">
+                    <StateTransition stateToId="0:114" duration="0">
+                        <TransitionViewModelCondition>
+                            <TransitionPropertyViewModelComparator>
+                                <BindablePropertyTrigger>
+                                    <DataBindContext sourcePathIds="0:500-0:510" propertyKey="686" />
+                                </BindablePropertyTrigger>
+                            </TransitionPropertyViewModelComparator>
+                            <TransitionValueTriggerComparator />
+                        </TransitionViewModelCondition>
+                    </StateTransition>
+                </AnyState>
+                <ExitState x="520" y="-120" id="0:111" />
+                <EntryState x="0" y="0" id="0:112">
+                    <StateTransition stateToId="0:113" duration="0" />
+                </EntryState>
+                <AnimationState x="160" y="0" animationId="0:200" stateName="draw" id="0:113" />
+                <AnimationState x="360" y="0" animationId="0:201" stateName="fade out" id="0:114">
+                    <StateTransition stateToId="0:113" duration="0" enableExitTime="true" exitTimeIsPercetange="true" exitTime="100" />
+                </AnimationState>
+            </StateMachineLayer>
+        </StateMachine>
+    </Artboard>
+    <ViewModel defaultInstanceId="0:501" name="Success" id="0:500">
+        <ViewModelPropertyTrigger name="play" id="0:510" />
+        <ViewModelPropertyColor name="ink" id="0:511" />
+        <ViewModelPropertyColor name="muted" id="0:512" />
+        <ViewModelPropertyColor name="accent" id="0:513" />
+        <ViewModelPropertyColor name="ok" id="0:514" />
+        <ViewModelPropertyColor name="crit" id="0:515" />
+        <ViewModelInstance exports="true" name="Default" id="0:501">
+            <ViewModelInstanceTrigger viewModelPropertyId="0:510" />
+            <ViewModelInstanceColor propertyValue="FF16191E" viewModelPropertyId="0:511" />
+            <ViewModelInstanceColor propertyValue="FF5A616C" viewModelPropertyId="0:512" />
+            <ViewModelInstanceColor propertyValue="FF3561C9" viewModelPropertyId="0:513" />
+            <ViewModelInstanceColor propertyValue="FF0D7049" viewModelPropertyId="0:514" />
+            <ViewModelInstanceColor propertyValue="FFB3261E" viewModelPropertyId="0:515" />
+        </ViewModelInstance>
+    </ViewModel>
+</Rive>

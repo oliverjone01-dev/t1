@@ -533,6 +533,23 @@ function aggDensity(t: TestDef, key: string, day: string): number | null {
 const funnelArts = (role: FunnelRole): string[] =>
   [...FT.roleOf].filter(([, r]) => r === role).map(([a]) => a);
 
+/** Сколько контрольных артикулов теста должно найтись в файле, чтобы брать контроль оттуда. */
+export const FUNNEL_CTL_MIN_SHARE = 0.5;
+
+/** Контроль ЭТОГО теста из файла воронки.
+ *
+ *  ЗАЧЕМ ПЕРЕСЕЧЕНИЕ, А НЕ ПРОСТО РОЛЬ. Роль control в файле одна на все тесты, поля test_id у
+ *  товарных строк нет. Первый живой прогон 24.09 это и показал: в файле 19 контрольных из
+ *  реестра, каким он был ДО пересборки теста 2, и к нашему тесту 1 из них относится один
+ *  артикул из одиннадцати, к тесту 2 ни одного из сорока шести. Взять их как контроль значило
+ *  бы сравнить тест с чужой группой и не сказать об этом ни слова. */
+function funnelCtlOf(t: TestDef): { arts: string[]; want: number; have: number } {
+  const inFile = new Set(funnelArts("control"));
+  const want = ctlGroupOf(t);
+  const arts = want.filter((a) => inFile.has(a));
+  return { arts, want: want.length, have: arts.length };
+}
+
 /** Матрица «артикул × день» по нашим рядам. Пропуск остаётся пропуском у уровней, а у
  *  количеств становится нулём только если день вообще снят (см. metric-gap.ts). */
 const matrixOf = (arts: string[], days: string[], key: string): Matrix =>
@@ -540,7 +557,9 @@ const matrixOf = (arts: string[], days: string[], key: string): Matrix =>
 
 /** Контрольная сторона по приоритету источников. */
 function controlSide(t: TestDef, days: string[], key: string): { m: Matrix; src: CtlSrc; n: number; arts: string[] } {
-  const ctlArts = FT.exists ? funnelArts("control") : [];
+  const fc = FT.exists ? funnelCtlOf(t) : { arts: [], want: 0, have: 0 };
+  // Источник берётся только если в файле нашлась хотя бы половина контроля ИМЕННО этого теста.
+  const ctlArts = fc.want && fc.have >= fc.want * FUNNEL_CTL_MIN_SHARE ? fc.arts : [];
   // Правило выбора и его подписи живут в ctl-src.ts и покрыты тестами: 24.09 страница называла
   // явный список из tests.json «панелью снимка», то есть один источник другим.
   const src = pickCtlSrc({
@@ -1424,6 +1443,28 @@ gaps.push(`Каталог на ${LAST} это ${nbsp(CARDS.card.size)} ${plural(
       + ` и агрегаты по ${nbsp(FT.agg.size)} ${plural(FT.agg.size, "тесту", "тестам", "тестам")}`
       + ` (${[...new Set(FT.rows.filter((r) => r.n != null).map((r) => r.role))].sort().join(", ") || "агрегатных строк нет"}).`
       + ` Выручки в файле нет намеренно: репозиторий публичный, поартикульная выручка в него не едет.`);
+    // СОВПАДАЮТ ЛИ ГРУППЫ ФАЙЛА С РЕЕСТРОМ. Роль в файле одна на все тесты, а поля test_id у
+    // товарных строк нет, поэтому «контроль» в файле это контроль того разбиения, каким оно
+    // было на момент прогона. Первый живой файл 24.09 приехал по реестру ДО пересборки теста 2.
+    for (const t of T.тесты) {
+      const fc = funnelCtlOf(t);
+      if (!fc.want) continue;
+      if (fc.have < fc.want * FUNNEL_CTL_MIN_SHARE) {
+        warns.push(`ВОРОНКА: контроль теста «${t.id}» в файле не найден (${nbsp(fc.have)} из`
+          + ` ${nbsp(fc.want)}), поэтому контрольная сторона по воронке считается по панели снимка,`
+          + ` а не по срезу под тесты. Съём собирает роли по своей версии реестра: строки role=control`
+          + ` относятся к тому разбиению, каким оно было на момент прогона.`);
+      }
+    }
+    const aggIds = [...FT.agg.keys()].sort();
+    const mine = new Set(T.тесты.map((t) => t.id));
+    const alien = aggIds.filter((id) => !mine.has(id));
+    if (alien.length) {
+      warns.push(`ВОРОНКА: агрегаты в файле посчитаны по тестам ${alien.map((x) => `«${x}»`).join(", ")},`
+        + ` а в реестре тесты ${[...mine].map((x) => `«${x}»`).join(", ")}. Это разные разбиения групп,`
+        + ` поэтому готовые медианы и суммы НЕ подставляются под наши тесты: подставить их значило бы`
+        + ` сравнить тест с чужой контрольной группой. Чтобы агрегаты заработали, съёму нужны id из tests.json.`);
+    }
     if (FT.bad.length) {
       warns.push(`ВОРОНКА: контракт не прошли ${nbsp(FT.bad.length)}`
         + ` ${plural(FT.bad.length, "строка", "строки", "строк")}, в расчёт не взяты. Первые: `

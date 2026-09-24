@@ -96,223 +96,226 @@ a{color:inherit}
 <div id="app"></div>
 </div>
 <div class="tt" id="tt"></div>
+<style>
+.bar{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:0 0 16px}
+.seg{display:inline-flex;border:1px solid var(--ring);border-radius:9px;overflow:hidden;background:var(--surf)}
+.seg button{font:13px system-ui,sans-serif;color:var(--ink-2);background:none;border:0;
+  padding:6px 13px;cursor:pointer;border-right:1px solid var(--ring)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--s3);color:#fff;font-weight:600}
+.seg button[disabled]{opacity:.38;cursor:not-allowed}
+.seglab{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.strip{display:flex;gap:4px;flex-wrap:wrap}
+/* Подпись периода вынесена ИЗ цветной плашки на поверхность карточки: внутри заливки
+   серый текст на средних ступенях шкалы читался с контрастом около 1.6:1. Внутри остаётся
+   только число, и оно белое начиная с третьей ступени. */
+.scell{border:0;background:none;padding:0;cursor:pointer;text-align:left;min-width:82px}
+.scell .v{display:block;padding:10px 11px;border-radius:8px;background:var(--s0);
+  font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1;
+  color:var(--ink);border:1px solid transparent}
+.scell.hi .v{color:#fff}
+.scell .l{display:block;font-size:10.5px;color:var(--ink-3);margin-top:5px;white-space:nowrap}
+.scell.sel .v{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.cell{cursor:pointer}
+.cell.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.cellsum{font-size:12px;color:var(--ink-3);margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:999px;
+  border:1px solid var(--ring);background:var(--surf);cursor:pointer;color:var(--ink-2)}
+.note{font-size:12px;color:var(--ink-3);margin:10px 0 0}
+</style>
 <script>
 const D = __PTO_DATA__;
 const $ = s => document.querySelector(s);
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const rub = n => (Math.round(n)||0).toLocaleString('ru-RU')+' ₽';
-const MON = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const MONR = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-const monTitle = m => MON[+m.slice(5,7)-1]+' '+m.slice(0,4);
-const monDay = (m,d) => d+' '+MONR[+m.slice(5,7)-1];
-const dru = s => s.split('-').reverse().join('.');
-const plural = (n,a,b,c)=>{const x=n%10,y=n%100;return x===1&&y!==11?a:x>=2&&x<=4&&(y<12||y>14)?b:c;};
+const MON=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONR=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const monTitle=m=>MON[+m.slice(5,7)-1]+' '+m.slice(0,4);
+const monDay=(m,d)=>d+' '+MONR[+m.slice(5,7)-1];
+const dru=s=>s.split('-').reverse().join('.');
+const plural=(n,a,b,c)=>{const x=n%10,y=n%100;return x===1&&y!==11?a:x>=2&&x<=4&&(y<12||y>14)?b:c;};
+const fmt=n=>Number.isInteger(n)?n.toLocaleString('ru-RU'):n.toFixed(1);
 
-$('#stamp').textContent =
-  `Снимок Bitrix24 ${String(D.snapshot).slice(0,10)} · воронка «GG RF Заказы» · запуски с ${dru(D.from)}`
-  + (D.public ? ' · публичная версия: без названий сделок, сумм и фамилий' : ' · полная версия')
-  + ` · собрано ${String(D.bakedAt).slice(0,16).replace('T',' ')}`;
+/* ---------- состояние ---------- */
+const S = { unit:'deals', gran:'day', sel:null };
+const unitOf = k => D.units.find(u=>u.key===k);
+const UNAME = {deals:['сделка','сделки','сделок'], items:['изделие','изделия','изделий'], qty:['штука','штуки','штук']};
 
-$('#tgl').onclick = () => {
-  const cur = document.documentElement.getAttribute('data-theme');
-  const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches;
-  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+/* ---------- даты ---------- */
+const dt = s => new Date(s+'T00:00:00Z');
+const iso = d => d.toISOString().slice(0,10);
+const monday = s => { const d=dt(s); d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7)); return iso(d); };
+const keyOf = (day,gran) => gran==='day'?day : gran==='week'?monday(day) : day.slice(0,7);
+const labelOf = (k,gran) => {
+  if(gran==='month') return monTitle(k);
+  if(gran==='week'){ const e=dt(k); e.setUTCDate(e.getUTCDate()+6); return dru(k).slice(0,5)+'-'+dru(iso(e)).slice(0,5); }
+  return dru(k);
 };
 
-const sc = k => D.scenarios.find(s=>s.key===k);
-const cell = (v,l) => `<div><div style="font-size:22px;font-weight:600;font-variant-numeric:tabular-nums">${v}</div><div class="muted" style="font-size:12px">${l}</div></div>`;
-
-/* ---------- вердикт: строится по таблице, а не по одной клетке ---------- */
-function verdict(){
-  const clean = sc('clean'), raw = sc('raw');
-  const t5c = clean.rows.find(r=>r.kind==='tail'&&r.n===5);
-  const t5r = raw.rows.find(r=>r.kind==='tail'&&r.n===5);
-  const tails = clean.rows.filter(r=>r.kind==='tail');
-  const above = tails.filter(r=>r.ratio>1.10).length;
-  const best = clean.rows.reduce((a,b)=>b.p<a.p?b:a);
-  return `<section class="card"><h2>Правда ли, что к концу месяца в расчёт отдают больше</h2>
-  <div class="verdict">
-    <div style="flex:0 0 220px">
-      <div class="hero" style="font-size:26px;line-height:1.15;color:var(--ink)">Нет,<br>это не подтверждается</div>
-      <div class="vbadge" style="margin-top:10px;color:var(--ink-3)">на очищенных данных ${t5c.ratio.toFixed(2)}×, p ${t5c.p.toFixed(3)}</div>
-    </div>
-    <div class="vtext">
-      <p style="margin:0 0 8px">Проверено <b>${clean.rows.length} определений «конца месяца»</b> сразу, а не одно.
-      ${above ? `Из ${tails.length} окон по рабочим дням выше 1.10 держатся ${above}.`
-              : `Ни одно из ${tails.length} окон по рабочим дням не поднимается выше 1.10.`}
-      Самым «значимым» получается не конец месяца, а <b>${esc(best.label)}</b> (${best.ratio.toFixed(2)}×, p ${best.p.toFixed(3)}),
-      но и это не находка: когда смотришь ${clean.rows.length} окон, одно «значимое» появляется само собой.
-      Поправка на ${clean.rows.length} просмотров даёт ${(1-Math.pow(1-best.p, clean.rows.length)).toFixed(2)} вместо ${best.p.toFixed(3)}.</p>
-      <p style="margin:0 0 8px" class="sec">Две очистки убирают остаток эффекта. Дедуп по паре (сделка, день) снимает
-      ${D.totals.dup} ${plural(D.totals.dup,'строку','строки','строк')} из ${D.totals.rows}: это повторный вход одной
-      сделки за день, прокликивание карточки. Ещё ${D.holidays.length} нерабочих дня стояли в знаменателе как рабочие,
-      хотя запусков в них ровно ноль. Хвост 5 рабочих дней: ${t5r.ratio.toFixed(2)}× (p ${t5r.p.toFixed(3)}) на сырых
-      данных против <b>${t5c.ratio.toFixed(2)}× (p ${t5c.p.toFixed(3)})</b> на очищенных.</p>
-      <p style="margin:0" class="muted">Считано по ${D.closed.length} закрытым месяцам (${D.closed.map(monTitle).join(', ')}).
-      Текущий месяц в проверку хвоста не входит: его конец ещё не наступил.</p>
-    </div>
-  </div></section>`;
+/* ---------- агрегация ---------- */
+function buckets(){
+  const src = unitOf(S.unit).series, out = {};
+  for(const day in src){ const k=keyOf(day,S.gran); out[k]=(out[k]||0)+src[day]; }
+  return out;
+}
+function inSel(day){
+  if(!S.sel) return true;
+  return keyOf(day,S.sel.gran)===S.sel.k;
 }
 
-/* ---------- что выросло на самом деле ---------- */
-function realCause(){
-  const b=D.period.before, a=D.period.after;
-  const up = b.perDay ? (a.perDay/b.perDay-1)*100 : 0;
-  const lr = Object.entries(D.lrByMonth).sort();
-  return `<section class="card"><h2>Что действительно изменилось</h2>
-  <div class="verdict">
-    <div style="flex:0 0 220px">
-      <div class="hero" style="color:var(--serious)">${up>0?'+':''}${up.toFixed(0)}%</div>
-      <div class="vbadge" style="margin-top:8px;color:var(--serious)">темп после ${dru(D.replumb)}</div>
-    </div>
-    <div class="vtext">
-      <p style="margin:0 0 8px">До ${dru(D.replumb)} в расчёт заходило <b>${b.perDay.toFixed(2)}</b> сделки на рабочий день,
-      после <b>${a.perDay.toFixed(2)}</b>. Ощущение ПТО «стало больше» похоже на правду, но дело не в конце месяца.</p>
-      <p style="margin:0 0 8px" class="sec">Ровно в этот день из воронки исчезла стадия <code>C49:UC_LRFLH9</code>.
-      Через неё прошло ${Object.values(D.lrByMonth).reduce((s,x)=>s+x,0)} переходов, больше чем через сам «Расчёт»:
-      ${lr.map(([m,n])=>`${monTitle(m).split(' ')[0].toLowerCase()} ${n}`).join(', ')}, дальше ноль.
-      Часть потока, которая шла через неё, теперь идёт в «Расчёт».</p>
-      <p style="margin:0" class="muted">Это совпадение по датам, а не доказанная причина. Чем была эта стадия и почему
-      её сняли, по снимку не восстановить: названия удалённых стадий Bitrix не хранит.</p>
-    </div>
-  </div></section>`;
-}
-
-/* ---------- таблица устойчивости ---------- */
-function stability(){
-  const keys = D.scenarios.map(s=>s.key);
-  const rows = sc('raw').rows.map((r,i)=>{
-    const cells = D.scenarios.map(s=>{
-      const x = s.rows[i];
-      const strong = x.p<0.05;
-      return `<td class="n"${strong?' style="font-weight:600"':''}>${x.ratio.toFixed(2)}<span class="muted" style="font-weight:400"> · p ${x.p.toFixed(3)}</span></td>`;
-    }).join('');
-    return `<tr${r.kind==='dec'?' style="border-top:1px solid var(--axis)"':''}><td>${esc(r.label)}</td>${cells}</tr>`;
-  }).join('');
-  return `<section class="card"><h2>Устойчивость: все определения «конца месяца» сразу</h2>
-  <p class="muted" style="margin:0 0 12px;font-size:12px">Отношение «запусков на рабочий день внутри окна» к «вне окна»,
-  и вероятность получить такой же результат случайно. Единица означает «никакой разницы».
-  Порог значимости 0.05. Если бы эффект был настоящим, высокие значения стояли бы подряд, а не в одной клетке.</p>
-  <table><thead><tr><th>Окно</th>${D.scenarios.map(s=>`<th class="n">${esc(s.label)}<br><span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">${s.n} событий</span></th>`).join('')}</tr></thead>
-  <tbody>${rows}</tbody></table>
-  <p class="muted" style="margin:12px 0 0;font-size:12px">Тест: Монте-Карло биномиального, 20 000 прогонов на клетку,
-  детерминированный генератор. Разброс третьего знака p около ±0.002, поэтому сравнивать надо порядок величины, а не цифры после запятой.</p>
-  </section>`;
-}
-
-/* ---------- прокликивание против работы ---------- */
-function work(){
-  const t=D.totals, share = t.events? t.sameDay/t.events*100 : 0;
-  const rt = D.realTail;
-  return `<section class="card"><h2>Что из этого вообще работа ПТО</h2>
-  <div style="display:flex;gap:30px;flex-wrap:wrap;margin-bottom:12px">
-    ${cell(t.events,'событий после дедупа')}
-    ${cell(t.sameDay+' ('+share.toFixed(0)+'%)','ушли со стадии в тот же день')}
-    ${cell(t.realWork,'заняли сутки и дольше')}
-    ${cell(t.dwellMed+' дн','медиана')}
-    ${cell(t.dwellP90+' дн','p90')}
-    ${cell(t.stuck,'стоят в расчёте сейчас')}
-  </div>
-  <p class="sec" style="margin:0">Больше половины «запусков расчёта» покидают стадию в тот же день. Это движение карточки
-  по воронке, а не работа конструктора. Если считать только расчёты длиннее суток, эффект конца месяца
-  ${rt?`составляет ${rt.ratio.toFixed(2)}× при p ${rt.p.toFixed(3)}`:'не считается: мало данных'}.</p>
-  </section>`;
+/* ---------- панель ---------- */
+function bar(){
+  const u = D.units.map(u=>`<button data-unit="${u.key}" aria-pressed="${S.unit===u.key}"${u.available?'':' disabled title="нужна выгрузка смарта «Расчёт»"'}>${esc(u.label)}</button>`).join('');
+  const g = [['day','по дням'],['week','по неделям'],['month','по месяцам']]
+    .map(([k,l])=>`<button data-gran="${k}" aria-pressed="${S.gran===k}">${l}</button>`).join('');
+  return `<div class="bar">
+    <span><span class="seglab">считать</span><span class="seg">${u}</span></span>
+    <span><span class="seglab">группировать</span><span class="seg">${g}</span></span>
+  </div>`;
 }
 
 /* ---------- календарь ---------- */
 function calendar(){
-  const max = Math.max(1, ...D.cal.flatMap(c=>c.cnt));
-  const b = []; for(let i=1;i<=5;i++) b.push(Math.max(i, Math.ceil(max*i/5)));
-  const step = v => { if(!v) return 0; for(let i=0;i<5;i++) if(v<=b[i]) return i+1; return 5; };
-  const months = D.cal.map(c=>{
-    const lead = (new Date(c.m+'-01T00:00:00Z').getUTCDay()+6)%7;
-    let cells = '<div class="cell void"></div>'.repeat(lead);
-    for(let i=0;i<c.n;i++){
-      const day=i+1, v=c.cnt[i], s=step(v), future = c.partial && day>c.partial;
-      const cls=['cell', c.wd[i]&&!c.hol[i]?'':'we', c.last5[i]?'tail':'', s>=4?'hi':'', future?'future':''].filter(Boolean).join(' ');
-      const bg = future||!s ? '' : `background:var(--s${s});`;
-      const tip = `${monDay(c.m,day)} · запусков ${v}${c.hol[i]?' · нерабочий день':''}${c.last5[i]?' · последние 5 раб. дней':''}`;
-      cells += `<div class="${cls}" style="${bg}" data-tip="${esc(tip)}">${future?'':(v||'')}</div>`;
-    }
-    const sum = c.cnt.reduce((a,x)=>a+x,0);
-    return `<div class="mon"><h3>${monTitle(c.m)} <span class="muted" style="font-weight:400">· ${sum}${c.partial?' (не закрыт)':''}</span></h3>
-      <div class="dow"><span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>вс</span></div>
-      <div class="grid">${cells}</div></div>`;
-  }).join('');
-  return `<section class="card"><h2>Календарь запусков (после дедупа)</h2>
-    <div class="mrow">${months}</div>
+  const un = unitOf(S.unit);
+  if(!un.available) return `<section class="card">${bar()}
+    <p class="sec" style="margin:0">Единица «${esc(un.label)}» пока недоступна: нужен снимок смарт-процесса «Расчёт».
+    Он приезжает воркфлоу <code>pto-cron.yml</code>. Переключись на «по сделкам» или дождись выгрузки.</p></section>`;
+  const b = buckets();
+  const vals = Object.values(b);
+  const max = Math.max(1, ...vals);
+  const steps=[]; for(let i=1;i<=5;i++) steps.push(max*i/5);
+  const st = v => { if(!v) return 0; for(let i=0;i<5;i++) if(v<=steps[i]) return i+1; return 5; };
+  const total = vals.reduce((a,x)=>a+x,0);
+
+  let body;
+  if(S.gran==='day'){
+    const months=[...new Set(Object.keys(un.series).map(d=>d.slice(0,7)))].sort();
+    body = '<div class="mrow">'+months.map(m=>{
+      const n=new Date(Date.UTC(+m.slice(0,4),+m.slice(5,7),0)).getUTCDate();
+      const lead=(dt(m+'-01').getUTCDay()+6)%7;
+      let cells='<div class="cell void"></div>'.repeat(lead);
+      let sum=0;
+      for(let i=0;i<n;i++){
+        const day=`${m}-${String(i+1).padStart(2,'0')}`;
+        const v=b[day]||0; sum+=v;
+        const s=st(v), w=dt(day).getUTCDay(), we=(w===0||w===6)||D.holidays.includes(day);
+        const future=day>D.today;
+        const cls=['cell',we?'we':'',s>=3?'hi':'',future?'future':'',S.sel&&S.sel.k===day?'sel':''].filter(Boolean).join(' ');
+        cells+=`<div class="${cls}" style="${future||!s?'':`background:var(--s${s});`}" data-k="${day}"
+          data-tip="${esc(monDay(m,i+1))} · ${fmt(v)}">${future?'':(v?fmt(v):'')}</div>`;
+      }
+      return `<div class="mon"><h3>${monTitle(m)} <span class="muted" style="font-weight:400">· ${fmt(sum)}</span></h3>
+        <div class="dow"><span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>вс</span></div>
+        <div class="grid">${cells}</div></div>`;
+    }).join('')+'</div>';
+  } else {
+    const keys=Object.keys(b).sort();
+    body='<div class="strip">'+keys.map(k=>{
+      const v=b[k], s=st(v);
+      return `<button class="scell ${s>=3?'hi':''} ${S.sel&&S.sel.k===k?'sel':''}" data-k="${k}"
+        data-tip="${esc(labelOf(k,S.gran))} · ${fmt(v)}">
+        <span class="v"${s?` style="background:var(--s${s})"`:''}>${fmt(v)}</span>
+        <span class="l">${esc(labelOf(k,S.gran))}</span></button>`;
+    }).join('')+'</div>';
+  }
+
+  const nm=UNAME[S.unit];
+  return `<section class="card">${bar()}
+    <h2>Календарь запусков</h2>
+    <p class="muted" style="margin:0 0 12px;font-size:12px">${esc(un.hint)}. Клик по ячейке показывает, что внутри.</p>
+    ${body}
     <div class="legend">
-      <span>меньше</span><span class="lgsteps">${[0,1,2,3,4,5].map(i=>`<i style="background:var(--s${i})"></i>`).join('')}</span><span>больше (до ${max} за день)</span>
-      <span style="margin-left:12px"><i style="display:inline-block;width:14px;height:14px;border-radius:3px;outline:2px solid var(--ink-3);outline-offset:-2px;vertical-align:-2px"></i> последние 5 рабочих дней</span>
-      <span>приглушённые ячейки - выходные и нерабочие дни</span>
-    </div></section>`;
-}
-
-/* ---------- срезы ---------- */
-function slices(){
-  const tbl=(title,rows,note)=>`<div class="card"><h2>${title}</h2><table><tbody>`+
-    rows.slice(0,12).map(r=>`<tr><td>${esc(r.k)}</td><td class="n">${r.n}</td></tr>`).join('')+
-    `</tbody></table>${note?`<p class="muted" style="margin:10px 0 0;font-size:12px">${note}</p>`:''}</div>`;
-  return `<div class="two">
-    ${tbl('Куда ушли из «Расчёта»', D.toStage, '«Перехода ещё не было» значит сделка стоит в расчёте прямо сейчас.')}
-    ${tbl('Где эти сделки сейчас', D.curStage)}
-    ${tbl('Откуда пришли в «Расчёт»', D.fromStage)}
-    ${D.mgrs?tbl('Кто отправляет в расчёт', D.mgrs):''}
-  </div>`;
-}
-
-/* ---------- таблица ---------- */
-let F={m:'',cur:'',q:''};
-function table(){
-  const opt=(arr,cur)=>['<option value="">все</option>'].concat(arr.map(v=>`<option${v===cur?' selected':''}>${esc(v)}</option>`)).join('');
-  const curs=[...new Set(D.runs.map(r=>r.cur))].sort();
-  return `<section class="card"><h2>Все запуски, по датам</h2>
-  <div class="fl">
-    <select id="fm">${opt(D.months,F.m)}</select>
-    <select id="fcur">${opt(curs,F.cur)}</select>
-    <input id="fq" placeholder="номер сделки" value="${esc(F.q)}">
-    <span class="muted" id="fcnt" style="align-self:center"></span>
-  </div>
-  <div class="scroll"><table><thead><tr>
-    <th>Дата</th><th>Сделка</th><th>Пришла из</th><th>Ушла в</th><th class="n">Дней</th><th>Сейчас</th>
-  </tr></thead><tbody id="tb"></tbody></table></div>
-  ${D.public?'<p class="muted" style="margin:10px 0 0;font-size:12px">Номер сделки без названия и суммы: имя заказчика и деньги в публичную версию не выгружаются.</p>':''}
+      <span>меньше</span><span class="lgsteps">${[0,1,2,3,4,5].map(i=>`<i style="background:var(--s${i})"></i>`).join('')}</span>
+      <span>больше (до ${fmt(max)} в ячейке)</span>
+      ${S.gran==='day'?'<span>приглушённые ячейки - выходные и нерабочие дни</span>':''}
+    </div>
+    <div class="cellsum">Всего за период: <b>${fmt(total)}</b> ${plural(Math.round(total),nm[0],nm[1],nm[2])}</div>
   </section>`;
 }
-function rows(){
-  const f=D.runs.filter(r=>(!F.m||r.d.startsWith(F.m))&&(!F.cur||r.cur===F.cur)&&(!F.q||r.id.includes(F.q)));
-  $('#fcnt').textContent = `${f.length} ${plural(f.length,'запуск','запуска','запусков')}`;
-  $('#tb').innerHTML = f.slice(0,600).map(r=>`<tr>
-    <td style="white-space:nowrap">${dru(r.d)}</td>
-    <td style="font-variant-numeric:tabular-nums">${esc(r.id)}</td>
-    <td class="sec">${esc(r.from)||'<span class="muted">-</span>'}</td>
-    <td class="sec">${esc(r.to)||'<span class="muted">стоит здесь</span>'}</td>
-    <td class="n">${r.days==null?'<span class="muted">-</span>':r.days}</td>
-    <td><span class="pill ${r.out}">${esc(r.cur)}</span></td></tr>`).join('')
-    + (f.length>600?`<tr><td colspan="6" class="muted">Показаны первые 600 из ${f.length}. Сузь фильтр.</td></tr>`:'');
+
+/* ---------- таблица по клику ---------- */
+function table(){
+  if(!S.sel) return `<section class="card"><h2>Все запуски, по датам</h2>
+    <p class="sec" style="margin:0">Кликни ячейку календаря, чтобы увидеть, что в ней.</p></section>`;
+  const nm=UNAME[S.unit];
+  const head = `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px">
+    <h2 style="margin:0">Все запуски · ${esc(labelOf(S.sel.k,S.sel.gran))}</h2>
+    <button class="chip" data-clear>× сбросить выбор</button></div>`;
+
+  if(S.unit==='deals'){
+    const f=D.runs.filter(r=>inSel(r.d)).sort((a,b)=>a.d<b.d?1:-1);
+    return `<section class="card">${head}
+      <div class="muted" style="margin:0 0 10px;font-size:12px">${f.length} ${plural(f.length,nm[0],nm[1],nm[2])}</div>
+      <div class="scroll"><table><thead><tr>
+        <th>Дата</th><th>Сделка</th>${D.public?'':'<th>Название</th><th>Менеджер</th>'}
+        <th>Пришла из</th><th>Ушла в</th><th class="n">Дней</th><th>Сейчас</th>
+      </tr></thead><tbody>${f.map(r=>`<tr>
+        <td style="white-space:nowrap">${dru(r.d)}</td>
+        <td style="font-variant-numeric:tabular-nums">${esc(r.id)}</td>
+        ${D.public?'':`<td>${esc(String(r.title||'').slice(0,46))}</td><td>${esc(r.mgr||'')}</td>`}
+        <td class="sec">${esc(r.from)||'<span class="muted">-</span>'}</td>
+        <td class="sec">${esc(r.to)||'<span class="muted">стоит здесь</span>'}</td>
+        <td class="n">${r.days==null?'<span class="muted">-</span>':r.days}</td>
+        <td><span class="pill ${r.out}">${esc(r.cur)}</span></td></tr>`).join('')}</tbody></table></div>
+      ${D.public?'<p class="note">Номер сделки без названия и суммы: имя заказчика и деньги в публичную версию не выгружаются.</p>':''}
+    </section>`;
+  }
+  const f=D.smartRows.filter(r=>inSel(r.d)).sort((a,b)=>a.d<b.d?1:-1);
+  const sumQty=f.reduce((s,r)=>s+(r.qty||0),0);
+  return `<section class="card">${head}
+    <div class="muted" style="margin:0 0 10px;font-size:12px">${f.length} ${plural(f.length,'изделие','изделия','изделий')} · ${fmt(sumQty)} ${plural(Math.round(sumQty),'штука','штуки','штук')}</div>
+    <div class="scroll"><table><thead><tr>
+      <th>Дата</th><th>Карточка</th>${D.public?'':'<th>Название</th><th>Конструктор</th>'}
+      <th>Сделка</th><th>Вид расчёта</th><th class="n">Штук</th><th>Стадия</th>
+    </tr></thead><tbody>${f.map(r=>`<tr>
+      <td style="white-space:nowrap">${dru(r.d)}</td>
+      <td style="font-variant-numeric:tabular-nums">${esc(r.id)}</td>
+      ${D.public?'':`<td>${esc(String(r.title||'').slice(0,46))}</td><td>${esc(r.constructor||'')}</td>`}
+      <td style="font-variant-numeric:tabular-nums">${r.dealId?esc(r.dealId):'<span class="muted">-</span>'}</td>
+      <td class="sec">${esc(r.kind||'')||'<span class="muted">-</span>'}</td>
+      <td class="n">${r.qty==null?'<span class="muted">-</span>':fmt(r.qty)}</td>
+      <td><span class="pill">${esc(r.stage||'')}</span></td></tr>`).join('')}</tbody></table></div>
+  </section>`;
 }
 
-/* ---------- чего нет ---------- */
-function gaps(){
-  return `<section class="card"><h2>Чего в этих данных нет</h2>
-  <ul style="margin:0;padding-left:18px;color:var(--ink-2)">
-    <li><b>Чертежей здесь нет.</b> Стадии чертежей живут в смарт-процессе «Расчёт» (1141 карточка, 13 стадий),
-      а этот снимок тянет только воронку сделок. Выгрузка смарта написана и ждёт запуска.</li>
-    <li><b>Март 2026 исключён</b> как месяц переезда из amoCRM: сделки перенесли пачкой, даты переходов искусственные.</li>
-    <li><b>Рабочий день = пн-пт.</b> Список нерабочих дней (${D.holidays.map(dru).join(', ')}) собран вручную и с
-      официальным производственным календарём не сверялся. Поэтому в таблице устойчивости стоят оба сценария.</li>
-    <li><b>Удалённые стадии.</b> ${D.gone.length?D.gone.map(g=>`<code>${esc(g.c)}</code> (${g.n}, ${dru(g.first)} - ${dru(g.last)})`).join(', '):'нет'}.
-      Названий по снимку не восстановить.</li>
-    <li><b>Считаются переходы, а не задачи ПТО.</b> Если расчёт считали, не двигая стадию, здесь его нет.</li>
-    ${D.public?'<li><b>Это публичная версия.</b> Названия сделок, суммы и фамилии не выгружены. Разрез по людям есть только в полной версии.</li>':''}
-  </ul></section>`;
+/* ---------- сноска ---------- */
+function foot(){
+  const s=D.smart;
+  return `<p class="note" style="margin:6px 2px 0">
+    Сделки считаются по воронке C49, дубли одной сделки за день схлопнуты (${D.totals.rows} строк истории → ${D.totals.events} событий).
+    ${s?`Изделия и штуки из смарта «Расчёт»: ${s.items} карточек, штуки из товарных строк у ${s.fromProductRows}, из поля «Кол-во товара» у ${s.fromText}, без количества ${s.noQty}.`
+       :'Изделия и штуки станут доступны после первой выгрузки смарта «Расчёт».'}
+    Март 2026 исключён как месяц переезда из amoCRM. Считаются переходы в CRM: расчёт, сделанный без движения стадии, сюда не попадает.
+    ${D.public?'Публичная версия: без названий, сумм и фамилий.':''}</p>`;
 }
 
-$('#app').innerHTML = verdict() + realCause() + stability() + work() + calendar() + slices() + table() + gaps();
-rows();
-$('#fm').onchange = e => { F.m=e.target.value; rows(); };
-$('#fcur').onchange = e => { F.cur=e.target.value; rows(); };
-$('#fq').oninput = e => { F.q=e.target.value; rows(); };
+/* ---------- рендер ---------- */
+function render(){
+  $('#app').innerHTML = calendar() + table() + foot();
+  $('#app').querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>{ S.unit=b.dataset.unit; S.sel=null; render(); });
+  $('#app').querySelectorAll('[data-gran]').forEach(b=>b.onclick=()=>{ S.gran=b.dataset.gran; S.sel=null; render(); });
+  $('#app').querySelectorAll('[data-k]').forEach(el=>el.onclick=()=>{
+    const k=el.dataset.k;
+    S.sel = (S.sel && S.sel.k===k) ? null : {k, gran:S.gran};
+    render();
+    if(S.sel) document.querySelectorAll('.card')[1]?.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  const c=$('#app').querySelector('[data-clear]'); if(c) c.onclick=()=>{ S.sel=null; render(); };
+}
+
+$('#stamp').textContent =
+  `Снимок Bitrix24 ${String(D.snapshot).slice(0,10)}`
+  + (D.smartSnapshot?` · смарт «Расчёт» ${String(D.smartSnapshot).slice(0,10)}`:' · смарт «Расчёт» ещё не выгружен')
+  + ` · запуски с ${dru(D.from)}`
+  + (D.public?' · публичная версия':'')
+  + ` · собрано ${String(D.bakedAt).slice(0,16).replace('T',' ')}`;
+
+$('#tgl').onclick = () => {
+  const cur=document.documentElement.getAttribute('data-theme');
+  const dark=cur?cur==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+  document.documentElement.setAttribute('data-theme', dark?'light':'dark');
+};
+
+render();
 
 const tt=$('#tt');
 document.addEventListener('mouseover', e=>{ const el=e.target.closest('[data-tip]'); if(!el)return;

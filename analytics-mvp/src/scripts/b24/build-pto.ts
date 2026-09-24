@@ -29,6 +29,13 @@ const FROM = "2026-04-01";      // март 2026 - месяц переезда �
 const REPLUMB = "2026-07-23";   // день, когда из воронки исчезла стадия C49:UC_LRFLH9
 
 const rop = JSON.parse(readFileSync(ROP, "utf-8"));
+
+// Снимок смарт-процесса «Расчёт» (1060). Он появляется после прогона pto-cron.yml;
+// пока его нет, единицы «изделия» и «штуки» в календаре недоступны, и страница об этом говорит,
+// вместо того чтобы молча показывать нули.
+let SMART = null;
+try { SMART = JSON.parse(readFileSync("pto/data/pto.json", "utf-8")); }
+catch { console.log("   снимка смарта «Расчёт» ещё нет - единицы «изделия» и «штуки» будут недоступны"); }
 const ST = rop.refs.dealStages;
 const deals = rop.deals.filter((d) => String(d.category) === "49");
 const byId = Object.fromEntries(deals.map((d) => [d.id, d]));
@@ -82,140 +89,96 @@ const HOLIDAYS = new Set(["2026-05-01", "2026-05-11", "2026-06-12"]);
 
 const months = [...new Set(runs.map((r) => r.d.slice(0, 7)))].sort();
 const today = String(rop.generated_at || "").slice(0, 10);
-const openMonth = today.slice(0, 7);
-const closed = months.filter((m) => m < openMonth);
+// Статистическая часть (тесты на «конец месяца», таблица устойчивости, разрез до и после
+// перестройки воронки) убрана из страницы по решению Ивана 2026-09-24: дашборд ПТО это
+// инструмент, а не отчёт. Сами выводы и цифры остались в отчёте ФЕНИКСА
+// knowledge/episodes/2026-09/feniks-audit-pto-dashboard-20260924.md и в переписке.
 
-const wdaysOf = (ms, drop) => {
-  const out = [];
-  for (const m of ms) for (let day = 1; day <= dim(m); day++) {
-    const s = dstr(m, day); if (isWd(s) && !(drop && drop.has(s))) out.push(s);
-  }
-  return out;
-};
-const tailOf = (ms, n, drop) => {
-  const L = new Set();
-  for (const m of ms) { let k = 0;
-    for (let day = dim(m); day >= 1 && k < n; day--) { const s = dstr(m, day); if (isWd(s) && !(drop && drop.has(s))) { L.add(s); k++; } } }
-  return L;
-};
+// --- ряды для календаря ------------------------------------------------------
+// Три единицы измерения. «Сделки» считаются по воронке C49 (вход на стадию «Расчёт»),
+// «изделия» и «штуки» по смарт-процессу «Расчёт»: карточка = изделие, товарные строки = штуки.
+// Это РАЗНЫЕ объекты, а не разрезы одного, поэтому переключатель меняет источник, и страница
+// подписывает, что именно сейчас на экране.
+const addDay = (acc, day, v) => { if (day) acc[day] = (acc[day] || 0) + v; };
 
-// Монте-Карло биномиального: раскидываем те же события случайно по рабочим дням периода.
-// Детерминированный mulberry32 на Math.imul - наивный LCG в JS переполняет double и врёт
-// (давал p=0.018 вместо 0.063, сверено с Python).
-function mc(evDays, pool, L, rounds = 20000, seed = 20260924) {
-  const inL = evDays.filter((x) => L.has(x)).length;
-  const poolSet = new Set(pool);
-  const outL = evDays.filter((x) => poolSet.has(x) && !L.has(x)).length;
-  const nL = L.size, nO = pool.length - nL;
-  if (!nL || !nO || !(inL + outL)) return null;
-  let s = seed >>> 0;
-  const rnd = () => { s = (s + 0x6d2b79f5) >>> 0; let t = s;
-    t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  const n = inL + outL; let ge = 0;
-  for (let k = 0; k < rounds; k++) {
-    let c = 0; for (let j = 0; j < n; j++) if (L.has(pool[Math.floor(rnd() * pool.length)])) c++;
-    if (c >= inL) ge++;
+const seriesDeals = {};
+for (const r of dedup) addDay(seriesDeals, r.d, 1);
+
+const seriesItems = {}, seriesQty = {};
+let smartStats = null;
+if (SMART && Array.isArray(SMART.items)) {
+  // Дата запуска для карточки смарта - дата создания. Именно она отвечает на вопрос
+  // «когда расчёт запустили», в отличие от даты смены стадии.
+  let noQty = 0, noDate = 0, preMig = 0;
+  for (const it of SMART.items) {
+    const day = it.created;
+    if (!day) { noDate++; continue; }
+    // Тот же отсчёт, что и у сделок: март 2026 это месяц переезда из amoCRM. Без этого
+    // фильтра календарь рисовал март, а клик по нему давал пустую таблицу, потому что
+    // строки под таблицу отсекались по FROM, а ряды календаря нет.
+    if (day < FROM) { preMig++; continue; }
+    addDay(seriesItems, day, 1);
+    // Штуки: приоритет у товарных строк, поле «Кол-во товара» это ручной ввод и расходится.
+    const q = it.qty != null ? it.qty : (it.qtyText != null ? it.qtyText : null);
+    if (q == null) noQty++; else addDay(seriesQty, day, q);
   }
-  const rL = inL / nL, rO = outL / nO;
-  return { inL, outL, nL, nO, rateL: rL, rateO: rO, ratio: rO ? rL / rO : 0, p: ge / rounds };
+  smartStats = {
+    items: SMART.items.length - preMig, itemsRaw: SMART.items.length, preMig, noDate, noQty,
+    fromProductRows: SMART.items.filter((i) => i.created >= FROM && i.qty != null).length,
+    fromText: SMART.items.filter((i) => i.created >= FROM && i.qty == null && i.qtyText != null).length,
+    qtySum: Math.round(Object.values(seriesQty).reduce((a, b) => a + b, 0)),
+    stages: (SMART.refs && SMART.refs.stageOrder || []).map((c) => ({ c, n: SMART.refs.stageName[c] })),
+    snapshot: SMART.generated_at,
+  };
 }
 
-const daysOf = (rows, ms) => rows.filter((r) => ms.includes(r.d.slice(0, 7))).map((r) => r.d);
+// Диапазон дат календаря: объединение всех рядов, но не раньше FROM.
+const allDays = [...new Set([...Object.keys(seriesDeals), ...Object.keys(seriesItems)])].filter((d) => d >= FROM).sort();
+const minDay = allDays[0] || FROM, maxDay = allDays[allDays.length - 1] || today;
 
-// Таблица устойчивости: все окна хвоста и три декады, на сырых и на очищенных данных.
-function stability(rows, drop) {
-  const pool = wdaysOf(closed, drop), ev = daysOf(rows, closed);
-  const out = [];
-  for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 10]) {
-    const r = mc(ev, pool, tailOf(closed, n, drop));
-    if (r) out.push({ kind: "tail", label: `последние ${n} раб. дн`, n, ...r });
-  }
-  for (const [lo, hi, label] of [[1, 10, "декада 1-10"], [11, 20, "декада 11-20"], [21, 31, "декада 21-конец"]]) {
-    const D = new Set(pool.filter((s) => { const d = +s.slice(8, 10); return d >= lo && d <= hi; }));
-    const r = mc(ev, pool, D);
-    if (r) out.push({ kind: "dec", label, ...r });
-  }
-  return out;
-}
-const scenarios = [
-  { key: "raw", label: "как есть", rows: runs, drop: null },
-  { key: "dedup", label: "дедуп по (сделка, день)", rows: dedup, drop: null },
-  { key: "clean", label: "дедуп + без нерабочих дней", rows: dedup, drop: HOLIDAYS },
-].map((s) => ({ key: s.key, label: s.label, n: daysOf(s.rows, closed).length, rows: stability(s.rows, s.drop) }));
+const units = [
+  { key: "deals", label: "по сделкам", hint: "вход сделки на стадию «Расчёт» воронки C49, дубли за день схлопнуты", series: seriesDeals, available: true },
+  { key: "items", label: "по изделиям", hint: "карточки смарт-процесса «Расчёт», дата создания карточки", series: seriesItems, available: !!smartStats },
+  { key: "qty", label: "по штукам", hint: "товарные строки карточек смарта; где их нет, берётся поле «Кол-во товара»", series: seriesQty, available: !!smartStats },
+];
 
-// Реальная работа ПТО: расчёт, который занял хотя бы сутки. Всё, что уходит со стадии
-// в тот же день, это прокликивание карточки.
-const realWork = dedup.filter((r) => r.days != null && r.days >= 1);
-const sameDay = dedup.filter((r) => r.days === 0);
-const realTail = mc(daysOf(realWork, closed), wdaysOf(closed, HOLIDAYS), tailOf(closed, 5, HOLIDAYS));
-
-// Перестройка воронки 23.07: до и после, темп на рабочий день.
-const rate = (rows, ms, lo, hi, drop) => {
-  const pool = wdaysOf(ms, drop).filter((s) => (!lo || s >= lo) && (!hi || s <= hi));
-  const ev = rows.filter((r) => pool.includes(r.d));
-  return { n: ev.length, wd: pool.length, perDay: pool.length ? ev.length / pool.length : 0 };
-};
-const period = {
-  before: rate(dedup, months, FROM, REPLUMB, HOLIDAYS),
-  after: rate(dedup, months, REPLUMB, today, HOLIDAYS),
-  byMonth: months.map((m) => ({ m, ...rate(dedup, [m], null, m === openMonth ? today : null, HOLIDAYS), closed: closed.includes(m) })),
-};
-// Та самая стадия, чей уход совпал с ростом.
-const lrByMonth = {};
-for (const d of deals) for (const [c, t] of (d.hist || [])) if (c === "C49:UC_LRFLH9") { const m = String(t).slice(0, 7); lrByMonth[m] = (lrByMonth[m] || 0) + 1; }
-
-// --- календарь ----------------------------------------------------------------
-const cal = months.map((m) => {
-  const n = dim(m), cnt = Array(n).fill(0);
-  for (const r of dedup) if (r.d.slice(0, 7) === m) cnt[+r.d.slice(8, 10) - 1]++;
-  return { m, n, cnt,
-    wd: Array.from({ length: n }, (_, i) => isWd(dstr(m, i + 1))),
-    hol: Array.from({ length: n }, (_, i) => HOLIDAYS.has(dstr(m, i + 1))),
-    last5: (() => { const L = tailOf([m], 5, HOLIDAYS); return Array.from({ length: n }, (_, i) => L.has(dstr(m, i + 1))); })(),
-    partial: m === openMonth ? +today.slice(8, 10) : 0 };
-});
-
-const tally = (rows, key) => {
-  const acc = {};
-  for (const r of rows) { const k = key(r) || "(не указано)"; acc[k] = (acc[k] || 0) + 1; }
-  return Object.entries(acc).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n);
-};
-const uniq = new Set(dedup.map((r) => r.id));
-const dw = realWork.map((r) => r.days).concat(sameDay.map(() => 0)).sort((a, b) => a - b);
-const q = (p) => (dw.length ? dw[Math.min(dw.length - 1, Math.floor(dw.length * p))] : 0);
+// Карточки для таблицы по клику: у сделок свои строки, у смарта свои.
+const smartRows = SMART && Array.isArray(SMART.items)
+  ? SMART.items.filter((i) => i.created && i.created >= FROM).map((i) => PUBLIC
+      ? { d: i.created, id: String(i.id), dealId: i.dealId || null, stage: i.stage, qty: i.qty != null ? i.qty : i.qtyText, kind: i.calcKind || null }
+      : { d: i.created, id: String(i.id), dealId: i.dealId || null, stage: i.stage, qty: i.qty != null ? i.qty : i.qtyText, kind: i.calcKind || null,
+          title: i.title || "", constructor: i.constructor || null, mgr: i.dealMgr || null })
+  : [];
 
 const DATA = {
   bakedAt: new Date().toISOString(), public: PUBLIC,
-  snapshot: rop.generated_at, today, from: FROM, replumb: REPLUMB,
-  months, closed, openMonth, holidays: [...HOLIDAYS],
-  cal, scenarios, realTail, period, lrByMonth,
-  totals: {
-    rows: runs.length, events: dedup.length, dup: runs.length - dedup.length,
-    deals: uniq.size, sameDay: sameDay.length, realWork: realWork.length,
-    dwellMed: q(0.5), dwellP75: q(0.75), dwellP90: q(0.9),
-    stuck: dedup.filter((r) => r.days == null).length,
-    rub: PUBLIC ? null : [...uniq].reduce((s, id) => s + (Number(byId[id].budget) || 0), 0),
-  },
-  toStage: tally(dedup, (r) => r.to || "(перехода ещё не было)"),
-  fromStage: tally(dedup, (r) => r.from || "(создана сразу здесь)"),
-  curStage: tally([...uniq].map((id) => ({ cur: byId[id].stage })), (r) => r.cur),
-  mgrs: PUBLIC ? null : tally(dedup, (r) => r.mgr),
-  gone: Object.entries(gone).map(([c, g]) => ({ c, ...g })).sort((a, b) => b.n - a.n),
-  // Строки таблицы. В публичной версии остаются только дата, номер сделки, стадии и дни:
-  // ни названия (в нём имя заказчика), ни суммы, ни фамилии, ни ссылки в CRM.
+  snapshot: rop.generated_at, smartSnapshot: smartStats ? smartStats.snapshot : null,
+  today, from: FROM, minDay, maxDay,
+  units: units.map((u) => ({ key: u.key, label: u.label, hint: u.hint, available: u.available, series: u.series })),
+  smart: smartStats,
+  holidays: [...HOLIDAYS],
+  // Строки для таблицы «Все запуски, по датам». Показываются по клику на ячейку календаря.
   runs: dedup.map((r) => PUBLIC
     ? { d: r.d, id: r.id, from: r.from, to: r.to, days: r.days, cur: r.cur, out: r.out }
     : r),
+  smartRows,
+  totals: {
+    rows: runs.length, events: dedup.length, dup: runs.length - dedup.length,
+    deals: new Set(dedup.map((r) => r.id)).size,
+  },
+  gone: Object.entries(gone).map(([c, g]) => ({ c, ...g })).sort((a, b) => b.n - a.n),
 };
 
 const html = readFileSync(TPL, "utf-8").replace("__PTO_DATA__", JSON.stringify(DATA));
 writeFileSync(OUT, html);
 const bytes = Buffer.byteLength(html, "utf8");
 console.log(`-> ${OUT} (${(bytes / 1024).toFixed(0)} КиБ, режим ${PUBLIC ? "ПУБЛИЧНЫЙ" : "полный"})`);
-console.log(`   строк истории ${runs.length}, событий после дедупа ${dedup.length}, сделок ${uniq.size}`);
-for (const sc of scenarios) {
-  const t5 = sc.rows.find((x) => x.kind === "tail" && x.n === 5);
-  console.log(`   сценарий «${sc.label}»: хвост 5 раб.дн ratio ${t5.ratio.toFixed(3)} p ${t5.p.toFixed(4)}`);
+console.log(`   сделки: строк истории ${runs.length}, после дедупа ${dedup.length}, уникальных сделок ${DATA.totals.deals}`);
+if (smartStats) {
+  console.log(`   смарт «Расчёт»: карточек ${smartStats.items} с ${FROM} (в снимке ${smartStats.itemsRaw}, до переезда отсечено ${smartStats.preMig}), штук ${smartStats.qtySum}`);
+  console.log(`   штуки: из товарных строк ${smartStats.fromProductRows}, из поля «Кол-во товара» ${smartStats.fromText}, без количества ${smartStats.noQty}`);
+  console.log(`   стадии смарта: ${smartStats.stages.map((x) => x.n).join(" · ")}`);
+} else {
+  console.log(`   смарт «Расчёт» не подключён: единицы «изделия» и «штуки» недоступны`);
 }
-console.log(`   темп до ${REPLUMB}: ${period.before.perDay.toFixed(2)}/дн, после: ${period.after.perDay.toFixed(2)}/дн`);
+console.log(`   диапазон календаря ${minDay} .. ${maxDay}`);

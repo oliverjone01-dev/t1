@@ -1598,10 +1598,9 @@ function renderTree(){
           +(a.problem?`<div class="dsum-p"><b>Риск потери:</b> ${esc(a.problem)}</div>`:'')
           +(a.recommendation?`<div class="dsum-r"><b>Что сделать:</b> ${esc(a.recommendation)}</div>`:'')
         : `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
-      // Краткий блок «Итог ИИ» убран (он дублирует подсказку градусника). Оставляем только
-      // строку происхождения сделки; подробный разбор идёт отдельным блоком ниже.
+      // Блок «Итог ИИ» показываем прямо в раскрытой сделке: раньше он жил только в подсказке
+      // градусника, и разбор был не виден тому, кто открыл ленту (а именно там он и нужен).
       const sumRow=originNote?`<div class="dsum-origin">${originNote}</div>`:'';
-      void aiSum;
       // Развёрнутый ROP-аудит по сделке: даты, ранние стадии, дела/задачи/комментарии и что
       // после них, стиль, хорошо/не хватает, правила продаж, итог по коммуникации.
       const au=a&&a.audit;
@@ -1628,7 +1627,10 @@ function renderTree(){
           +`</div>`:'')
         +(au.conclusion?`<div class="da-concl"><b>Итог по коммуникации:</b> ${esc(au.conclusion)}</div>`:'')
         +`</div>`:'';
-      host.innerHTML=sumRow+daBlock+`<div class="feedscroll"><table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table></div>`;
+      // Температуру внутрь этой плашки кладём только когда полного ROP-аудита нет: иначе
+      // daBlock ниже покажет её второй раз.
+      const aiBox=`<div class="dabox">${aiSum}${au?'':daTemp}</div>`;
+      host.innerHTML=sumRow+aiBox+daBlock+`<div class="feedscroll"><table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table></div>`;
       CUR_TAGS={};
       host.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
         if(S.sE.k===th.dataset.k) S.sE.d=-S.sE.d; else { S.sE.k=th.dataset.k; S.sE.d=1; } renderTree(); });

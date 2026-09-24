@@ -57,7 +57,8 @@
     "ym:recon:realization": "tsx src/scripts/ym/recon-realization.ts",
     "eb": "tsx src/scripts/ozon/eb-daily.ts",
     "cards": "tsx src/scripts/ozon/cards-extract.ts",
-    "promo": "tsx src/scripts/ozon/promo-daily.ts"
+    "promo": "tsx src/scripts/ozon/promo-daily.ts",
+    "coinv:merge": "tsx src/scripts/ozon/coinv-merge.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

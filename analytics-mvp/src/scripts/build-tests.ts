@@ -30,7 +30,8 @@ import {
 } from "./funnel-tests.js";
 import { loadEbSeries, ebOn } from "./eb-level.js";
 import {
-  readPromoDaily, exitOf, inPromoOn, membersOn, winKey, PROMO_DAILY_FILE,
+  readPromoDaily, readActsDaily, exitOf, inPromoOn, membersOn, winKey, actKey,
+  PROMO_DAILY_FILE, ACTS_DAILY_FILE,
   type PromoRead, type PromoExit,
 } from "./promo.js";
 import {
@@ -47,7 +48,7 @@ const C_TEST = "#3987e5", C_CTRL = "#d95926";   // проверены validate_p
 const TODAY = new Date().toISOString().slice(0, 10);
 
 type Row = Record<string, number>;
-type PromoDef = { тип: string; от: string; до: string; имя: string; заметка?: string };
+type PromoDef = { тип?: string; от: string; до: string; имя: string; заметка?: string };
 type TestDef = {
   id: string; название: string; гипотеза: string; старт?: string; замер?: string;
   горизонт_дней?: number; тест?: string[]; контроль?: string[]; правило?: string; статус?: string;
@@ -138,9 +139,24 @@ const HAS_POS = FT.rows.some((r) => r.search_position != null);
 
 // Участие в акциях по дням. Признак участия это запись в acts с нужным окном, а не eb_pct:
 // проверка 24.09 показала, что eb_pct описывает другую акцию (см. promo.ts и eb-level.ts).
-const PROMO = readPromoDaily(dp(PROMO_DAILY_FILE));
+// acts_daily главнее: там у акции есть НАЗВАНИЕ, а не только тип и окно, и «Максимальный
+// бустинг» с «Максимальным бустингом: усиление» различаются прямо, а не по датам окна.
+// Наблюдаемость берётся из снимка цен: строка в acts_daily есть только на факт участия,
+// поэтому «акций нет» и «день не снят» по самому файлу неотличимы.
+const OBSERVED_BY_DAY = new Map<string, Set<string>>();
+{
+  const rows = readNd(dp("coinv_daily.ndjson")) as Array<{ date?: string; art?: string; observed?: boolean }>;
+  for (const r of rows) {
+    if (!r.date || !r.art || r.observed === false) continue;
+    const s = OBSERVED_BY_DAY.get(r.date) ?? new Set<string>();
+    s.add(r.art); OBSERVED_BY_DAY.set(r.date, s);
+  }
+}
+const ACTS = readActsDaily(dp(ACTS_DAILY_FILE), OBSERVED_BY_DAY);
+const PROMO = ACTS.exists ? ACTS : readPromoDaily(dp(PROMO_DAILY_FILE));
+const PROMO_SRC = ACTS.exists ? ACTS_DAILY_FILE : PROMO_DAILY_FILE;
 const promoKeyOf = (t: TestDef): string =>
-  t.акция ? winKey(t.акция.тип, t.акция.от, t.акция.до) : "";
+  !t.акция ? "" : ACTS.exists ? actKey(t.акция.имя) : winKey(t.акция.тип ?? "STO", t.акция.от, t.акция.до);
 
 // Ставка оплаты за заказ по товару: главный риск теста 2 (по закону 3 при выходе из
 // рекламы OZON поднимает её с 10 % до 23 %, а это убыток с каждого заказа).
@@ -242,6 +258,35 @@ function kinOf(t: TestDef): Set<string> {
 // Группа контроля для СЧЁТА: панель минус тестовые товары этого теста и минус их родня по
 // карточке. Разрыв считается к ней, а не к паре: групповой контроль точнее (размах 11.4
 // против 21.5 на тесте 1) и устойчивее, а парный есть лишь у 11 товаров из 21.
+/** Рекламный расход по артикулу в окне, начиная со дня старта теста.
+ *
+ *  ЗАЧЕМ. 24.09 при сверке с журналом кампаний выяснилось, что контроль теста 2 загрязнён: у
+ *  части контрольных товаров реклама включена в тот же день, что и у тестовых. Такой товар
+ *  движется вместе с тестом, и разность разностей по нему занижает эффект. Расход до старта
+ *  влияет только через базу, и это на странице сказано отдельно, поэтому из группы выбрасывают
+ *  по расходу ПОСЛЕ старта. */
+function adsAfter(art: string, from: string): { days: number; total: number } {
+  const m = series.get(art);
+  if (!m) return { days: 0, total: 0 };
+  let days = 0, total = 0;
+  for (const [d, cell] of m) {
+    if (d < from) continue;
+    const sp = cell["spend"] || 0;
+    if (sp > 0) { days++; total += sp; }
+  }
+  return { days, total };
+}
+/** Контрольные товары теста, у которых после старта шла реклама. */
+function adsInCtl(t: TestDef): Array<{ art: string; days: number; total: number }> {
+  if (!t.старт) return [];
+  const src = t.контроль_группа && t.контроль?.length ? t.контроль : PANEL;
+  const own = new Set(t.тест || []); const kin = kinOf(t);
+  return src.filter((a) => !own.has(a) && !kin.has(a))
+    .map((a) => ({ art: a, ...adsAfter(a, t.старт!) }))
+    .filter((x) => x.days > 0)
+    .sort((x, y) => y.total - x.total);
+}
+
 const ctlCache = new Map<string, string[]>();
 function ctlGroupOf(t: TestDef): string[] {
   const key = t.id || (t.тест || []).join(",");
@@ -253,7 +298,10 @@ function ctlGroupOf(t: TestDef): string[] {
     // Панель здесь не годится, в ней 465 товаров, из которых в акции не состоит почти никто,
     // и сравнивать участника акции с неучастником значит мерить саму акцию, а не выход.
     const src = t.контроль_группа && t.контроль?.length ? t.контроль : PANEL;
-    g = src.filter((a) => !own.has(a) && !kin.has(a));
+    // Товар под рекламой это не контроль, а вторая тестовая группа. Кого выбросили и сколько
+    // они потратили, страница называет поимённо: молча сужать группу нельзя.
+    const ads = new Set(adsInCtl(t).map((x) => x.art));
+    g = src.filter((a) => !own.has(a) && !kin.has(a) && !ads.has(a));
     ctlCache.set(key, g);
   }
   return g;
@@ -316,7 +364,7 @@ function exitMeta(t: TestDef): string {
   const total = (t.тест || []).length;
   const label = esc(t.акция.имя);
   if (!PROMO.exists || !PROMO.days.length) {
-    return `<span class="warnv" title="Файл ${PROMO_DAILY_FILE} не доехал">Выход из акции: <b>данных об участии нет</b></span>`;
+    return `<span class="warnv" title="Файл ${PROMO_SRC} не доехал">Выход из акции: <b>данных об участии нет</b></span>`;
   }
   const last = PROMO.days[PROMO.days.length - 1]!;
   const inAct = (t.тест || []).filter((a) => inPromoOn(PROMO, a, key, last) === true).length;
@@ -921,23 +969,62 @@ function pairRow(sku: string, t: TestDef): string {
     + `<td class="r ${cls}">${delta == null ? "-" : (delta >= 0 ? "+" : "") + delta.toFixed(0) + " %"}</td></tr>`;
 }
 
+/** Что тест на самом деле меняет у тестовых товаров.
+ *
+ *  ЗАЧЕМ. Гипотеза теста 1 говорит «ставку понизили, кампании оставили активными». Сверка с
+ *  расходом 24.09 показала другое: у части товаров кампания стояла неделями и была включена
+ *  заново на низкой ставке, а у части рекламы не было вовсе. Тогда и внутри группы, и между
+ *  группами сравнивается одно и то же, реклама против её отсутствия, а размер ставки не
+ *  варьируется ни в одном плече. Это не дефект данных, это дефект дизайна, и он должен быть
+ *  виден на карточке теста, а не всплыть при замере. */
+function adsContinuity(t: TestDef): string {
+  if (!t.старт || !(t.тест || []).length) return "";
+  const rows = (t.тест || []).map((a) => {
+    const m = series.get(a);
+    let last = "", beforeDays = 0, afterDays = 0;
+    for (const [d, cell] of m ?? []) {
+      if (!((cell["spend"] ?? 0) > 0)) continue;
+      if (d < t.старт!) { beforeDays += 1; if (d > last) last = d; } else afterDays += 1;
+    }
+    const gap = last ? daysBetween(last, t.старт!) : null;
+    return { art: a, beforeDays, afterDays, last, gap };
+  });
+  const never = rows.filter((r) => !r.beforeDays);
+  const paused = rows.filter((r) => r.beforeDays && r.gap != null && r.gap > 7);
+  const cont = rows.filter((r) => r.beforeDays && (r.gap == null || r.gap <= 7));
+  if (!never.length && !paused.length) return "";
+  const li = (r: typeof rows[number]) => `<li><b>${esc(r.art)}</b>: `
+    + (r.beforeDays
+        ? `последний расход ${esc(r.last)}, пауза ${r.gap} ${plural(r.gap!, "день", "дня", "дней")} до старта`
+        : `рекламного расхода до старта не было вовсе`)
+    + `</li>`;
+  return `<div class="dyn-alarm"><b>Ставка в этом тесте почти не варьируется.</b>`
+    + ` Гипотеза говорит «ставку понизили, кампании оставили активными», но по расходу это верно`
+    + ` только у ${nbsp(cont.length)} из ${nbsp(rows.length)} ${plural(rows.length, "товара", "товаров", "товаров")}.`
+    + ` У остальных кампания либо стояла неделями и включена заново на низкой ставке,`
+    + ` либо её не было совсем:<ul class="dl2">`
+    + [...paused, ...never].map(li).join("")
+    + `</ul>Тогда обе группы сравнивают одно и то же, рекламу против её отсутствия, а размер ставки`
+    + ` не меняется ни в одном плече. Ответить на заявленный вопрос этот дизайн не может.`
+    + ` Дешёвая починка без новых товаров: тем, кто уже крутится на 8-12 ₽, поднять ставку до 40-60 ₽`
+    + ` и смотреть, двинется ли соинвест. Реклама при этом не прерывается, меняется ровно ставка.</div>`;
+}
+
 // Контроль обязан быть без рекламы, иначе это не контроль, а вторая тестовая группа.
+// Такие товары ИЗ ГРУППЫ ВЫБРОШЕНЫ (см. ctlGroupOf), и здесь сказано, кто именно и сколько
+// потратил: сужение группы без имён это молчаливая подмена базы сравнения.
 function dirtyControl(t: TestDef): string {
-  if (!t.старт || !t.контроль?.length) return "";
-  const win: string[] = [];
-  for (let k = -14; k <= 40; k++) win.push(addDays(t.старт, k));
-  const bad: Array<[string, number, number, boolean]> = [];
-  for (const a of t.контроль) {
-    const ds = win.filter((d) => (series.get(a)?.get(d)?.["spend"] || 0) > 0);
-    if (!ds.length) continue;
-    bad.push([a, ds.reduce((s, d) => s + (series.get(a)!.get(d)!["spend"] || 0), 0), ds.length, ds.some((d) => d >= t.старт!)]);
-  }
+  const bad = adsInCtl(t);
   if (!bad.length) return "";
-  bad.sort((x, y) => y[1] - x[1]);
-  const hot = bad.some((x) => x[3]);
-  return `<div class="dyn-alarm"><b>Контроль под рекламой.</b> По этим артикулам в окне теста шёл рекламный расход, значит контрольной группой они не являются:<ul class="dl2">`
-    + bad.map(([a, tot, n, aft]) => `<li><b>${esc(a)}</b>: ${nbsp(tot)} ₽ за ${n} дн${aft ? ", в том числе после старта теста" : ", только до старта"}</li>`).join("")
-    + `</ul>${hot ? "Пока реклама крутится по контролю, разницу тест-контроль читать нельзя: сравниваются две рекламируемые группы." : "Расход был до старта, на замер он влияет только через базу."}</div>`;
+  const src = t.контроль_группа && t.контроль?.length ? t.контроль.length : PANEL.length;
+  const top = bad.slice(0, 12);
+  return `<div class="dyn-alarm"><b>Из контроля выброшены ${nbsp(bad.length)}`
+    + ` ${plural(bad.length, "артикул", "артикула", "артикулов")} под рекламой.</b>`
+    + ` После старта ${esc(t.старт || "")} по ним шёл рекламный расход, значит они двигались вместе с тестом,`
+    + ` а не стояли на месте. В счёте осталось ${nbsp(ctlGroupOf(t).length)} из ${nbsp(src)}:<ul class="dl2">`
+    + top.map((x) => `<li><b>${esc(x.art)}</b>: ${nbsp(x.total)} ₽ за ${x.days} ${plural(x.days, "день", "дня", "дней")}</li>`).join("")
+    + (bad.length > top.length ? `<li class="muted">и ещё ${nbsp(bad.length - top.length)}</li>` : "")
+    + `</ul>Расход ДО старта товар из группы не выбрасывает: он влияет только через базу.</div>`;
 }
 
 /** Контроль, сидящий ещё и в соседней акции того же типа.
@@ -954,7 +1041,10 @@ function ctlPromoNote(t: TestDef): string {
   const also = new Map<string, string[]>();
   for (const a of ctl) {
     for (const k of PROMO.byArt.get(a)?.get(day) ?? []) {
-      if (k === own || !k.startsWith(t.акция.тип + ":")) continue;   // чужие типы акций не считаем
+      // Считаем только соседние акции того же семейства: «Максимальный бустинг» рядом с
+      // «Максимальный бустинг: усиление». Эластичный бустинг идёт у 471 товара из 500 и
+      // рассрочки у большинства, про расслоение контроля они ничего не говорят.
+      if (k === own || !k.startsWith("Максимальный бустинг")) continue;
       (also.get(k) ?? also.set(k, []).get(k)!).push(a);
     }
   }
@@ -1042,7 +1132,7 @@ const cards = T.тесты.map((t) => {
       + `<th class="r">Ставка рек.→фин.</th><th>Старт</th>`
       + `<th class="sep">Артикул</th><th class="r">Поиск/2нед</th>`
       + `<th class="r" title="Насколько трафик теста расходится с контролем до старта. Больше 20 % - пара плохо сопоставима">Δ поиска</th></tr>`
-      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${kinBanner}${ctlPromoNote(t)}${dirtyControl(t)}${deadControl(t)}${chart(t, "dyn-" + t.id)}${perArticle(t)}`;
+      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${kinBanner}${adsContinuity(t)}${ctlPromoNote(t)}${dirtyControl(t)}${deadControl(t)}${chart(t, "dyn-" + t.id)}${perArticle(t)}`;
   } else {
     body = '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>';
   }
@@ -1241,7 +1331,7 @@ function boostCard(): string {
       + ` Дата выхода нигде не фиксируется руками: запись акции исчезает из колонки acts в тот же день, и это и есть дата.`
       + (PROMO.exists
           ? ` Снимков участия в репозитории: ${PROMO.days.length} (${esc(PROMO.days[0] || "")}..${esc(PROMO.days[PROMO.days.length - 1] || "")}).`
-          : ` Файла ${PROMO_DAILY_FILE} пока нет, участие не отслеживается: это сломанная доставка, а не «никто не вышел».`)
+          : ` Файла ${PROMO_SRC} пока нет, участие не отслеживается: это сломанная доставка, а не «никто не вышел».`)
       + `</div>`;
 
   // ЗАПАСНАЯ ВЕТКА. Её надо держать на виду заранее, а не сочинять 29-го: если плато не

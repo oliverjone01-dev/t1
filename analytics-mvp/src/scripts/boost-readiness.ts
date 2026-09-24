@@ -102,12 +102,16 @@ const r1 = (x: number) => Math.round(x * 10) / 10;
 const observed = (r: CoinvRow): boolean => r.observed !== false;
 /** Цена с картой снята, а не выведена из коэффициента.
  *
+ *  Значений два: exact (снято разбором витрины) и snapshot (взято из среза кабинета). Оба это
+ *  наблюдение, поэтому оба считаются снятыми; ratio_<дата> это модель.
+ *
  *  ЗАЧЕМ. До 23.09 поле oa_source у всех 514 строк равно ratio_2026-09-09: цена покупателя
  *  считалась по коэффициенту, замороженному на 09.09, потому что колонка marketing_oa_price
  *  появилась в выгрузке только 23.09 (за 20 и 21.09 её нет, за 19.09 файл вовсе в старом
  *  формате). Плато, собранное наполовину из выведенных дней и наполовину из снятых, было бы
  *  плато по двум разным базам. */
-export const isExact = (r: CoinvRow): boolean => r.oa_source === "exact";
+export const EXACT_SOURCES = new Set(["exact", "snapshot"]);
+export const isExact = (r: CoinvRow): boolean => EXACT_SOURCES.has(String(r.oa_source ?? ""));
 const coinvOf = (r: CoinvRow): number | undefined => r.coinv_paid_pct ?? r.coinv_pct;
 
 /** Медиана соинвеста контроля по дням. Контроль это панель снимка минус тестовые артикулы и

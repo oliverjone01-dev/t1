@@ -44,6 +44,44 @@ export interface AnalyticsRow {
   metrics: number[]; // в порядке ANALYTICS_METRICS
 }
 
+export interface PriceItem {
+  offer_id: string;
+  price_index_value: number | null;
+  color_index: string | null;
+  /** Цена на витрине: акции продавца, БЕЗ скидки по карте Ozon. */
+  price: number | null;
+  /** Цена, которую платит покупатель с картой Ozon: все акции, включая скидки самого Ozon. */
+  price_paid: number | null;
+  /** Предельная цена продавца, она же зачёркнутая. С неё считается и комиссия, и соинвест. */
+  price_before: number | null;
+}
+
+/** Разбор price-объекта /v5/product/info/prices. Вынесено ради теста: без ключей ответ не получить,
+ *  а перепутать три цены здесь стоило бы 5 пунктов соинвеста (сверка с реестром начислений, 23.09).
+ *
+ *  Три уровня, сверху вниз:
+ *    price                  - предельная цена продавца (зачёркнутая);
+ *    marketing_seller_price - минус акции ПРОДАВЦА, это цена на витрине;
+ *    marketing_price        - минус все акции, включая скидки самого Ozon, это цена по карте.
+ *  В BFF кабинета последнее поле называется marketing_oa_price и приходит в get-common-prices.
+ *  Покупатель платит именно её: по 273 заказам августа отношение «факт / цена по карте» = 0.998,
+ *  а к витрине 0.899. Отсутствующее или нулевое поле НЕ подменяем витриной: пусть лучше будет
+ *  пробел, чем занижённый на 5 пунктов соинвест, который выглядит как настоящий. */
+export function priceItem(offerId: string, pr: Record<string, unknown>): PriceItem {
+  const num = (k: string): number | null => {
+    const v = Number(pr[k]);
+    return Number.isFinite(v) && v > 0 ? v : null;
+  };
+  return {
+    offer_id: offerId,
+    price_index_value: null,
+    color_index: null,
+    price: num("marketing_seller_price") ?? num("price"),
+    price_paid: num("marketing_price") ?? num("marketing_oa_price"),
+    price_before: num("price"),
+  };
+}
+
 export class OzonSeller {
   constructor(private creds: SellerCreds) {}
 
@@ -197,8 +235,8 @@ export class OzonSeller {
   }
 
   // POST /v5/product/info/prices - пагинация по cursor
-  async prices(): Promise<Array<{ offer_id: string; price_index_value: number | null; color_index: string | null; price: number | null; price_before: number | null }>> {
-    const out: Array<{ offer_id: string; price_index_value: number | null; color_index: string | null; price: number | null; price_before: number | null }> = [];
+  async prices(): Promise<PriceItem[]> {
+    const out: PriceItem[] = [];
     let cursor = "";
     do {
       const data = await this.post<any>("/v5/product/info/prices", {
@@ -209,26 +247,45 @@ export class OzonSeller {
       const items = data.items ?? data.result?.items ?? [];
       for (const it of items) {
         const ext = it.price_indexes?.external_index_data ?? {};
-        const pr = it.price ?? {};
-        // Цена для клиента = marketing_seller_price (цена с учётом акций продавца - её видит
-        // покупатель на витрине), иначе обычная price. Поля marketing_price в ответе нет;
-        // price - это цена продавца ДО акций (≈ зачёркнутая), поэтому она завышена.
-        const clientPrice = Number(pr.marketing_seller_price) || Number(pr.price) || null;
-        out.push({
-          offer_id: String(it.offer_id ?? ""),
-          price_index_value: ext.price_index_value != null ? Number(ext.price_index_value) : null,
-          color_index: it.price_indexes?.color_index ?? null,
-          price: clientPrice,
-          // Цена ДО акций продавца (зачёркнутая). Пара price/price_before даёт соинвест:
-          // (1 - price / price_before). Раньше наружу отдавалась только клиентская цена,
-          // и соинвест по артикулам взять было неоткуда - приходилось брать разовую
-          // выгрузку кабинета, ключованную по product_id, а тесты живут по артикулам.
-          price_before: Number(pr.price) || null,
-        });
+        const row = priceItem(String(it.offer_id ?? ""), it.price ?? {});
+        row.price_index_value = ext.price_index_value != null ? Number(ext.price_index_value) : null;
+        row.color_index = it.price_indexes?.color_index ?? null;
+        out.push(row);
       }
       cursor = data.cursor ?? "";
     } while (cursor);
     return out;
+  }
+
+  // POST /v4/product/info/attributes - атрибуты товара, пагинация по last_id.
+  // Нужен ради model_info: OZON склеивает несколько SKU в одну карточку, и ключ этой
+  // склейки живёт здесь, а не в прайсе и не в остатках. Возвращаем элементы как есть:
+  // форму ответа подтверждает card-groups-probe, гадать по памяти тут нельзя.
+  async attributesAll(pageLimit = 1000, maxPages = 0): Promise<any[]> {
+    const out: any[] = [];
+    let lastId = "";
+    let page = 0;
+    do {
+      const data = await this.post<any>("/v4/product/info/attributes", {
+        filter: { visibility: "ALL" },
+        limit: pageLimit,
+        last_id: lastId,
+      });
+      const items = data.result ?? data.items ?? [];
+      out.push(...(Array.isArray(items) ? items : []));
+      lastId = data.last_id ?? data.result_last_id ?? "";
+      page += 1;
+    } while (lastId && (maxPages <= 0 || page < maxPages));
+    return out;
+  }
+
+  // Первая страница атрибутов - для probe (разведка формы ответа).
+  async attributesRaw(limit = 100): Promise<any[]> {
+    const data = await this.post<any>("/v4/product/info/attributes", {
+      filter: { visibility: "ALL" }, limit, last_id: "",
+    });
+    const items = data.result ?? data.items ?? [];
+    return Array.isArray(items) ? items : [];
   }
 
   // Сырые элементы первой страницы /v5/product/info/prices - для probe (разведка полей цены).

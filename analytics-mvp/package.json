@@ -29,6 +29,9 @@
     "views:daily": "tsx src/scripts/ozon/sku-views.ts",
     "prices:daily": "tsx src/scripts/ozon/prices-daily.ts",
     "probe:metrics": "tsx src/scripts/ozon/analytics-metrics-probe.ts",
+    "probe:prices": "tsx src/scripts/ozon/seller-prices-probe.ts",
+    "coinv:calib": "tsx src/scripts/ozon/coinv-calibration.ts",
+    "picks": "tsx src/scripts/pick-controls.ts",
     "pnl:daily": "tsx src/scripts/ozon/pnl-daily.ts",
     "pnl:sku:daily": "tsx src/scripts/ozon/pnl-sku-daily.ts",
     "pnl:account:daily": "tsx src/scripts/ozon/pnl-account-daily.ts",
@@ -51,7 +54,9 @@
     "ym:join": "DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-taxonomy-join.ts && DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-cogs-join.ts",
     "ym:build": "DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-site.ts && DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-katya.ts",
     "ym:smoke": "DATA_DIR=data-ym PLATFORM=ym OUT_DIR=public/market tsx src/scripts/smoke.ts",
-    "ym:recon:realization": "tsx src/scripts/ym/recon-realization.ts"
+    "ym:recon:realization": "tsx src/scripts/ym/recon-realization.ts",
+    "eb": "tsx src/scripts/ozon/eb-daily.ts",
+    "cards": "tsx src/scripts/ozon/cards-extract.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

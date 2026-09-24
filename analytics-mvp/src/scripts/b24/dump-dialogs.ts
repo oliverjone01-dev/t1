@@ -8,10 +8,13 @@
 // DONE=dialog/data/ai-review.json - уже разобранное пропускаем
 // FORCE=1             - брать и уже разобранное (переразбор на новом каталоге)
 // OLD=1               - брать ТОЛЬКО разобранное чужой моделью (переразбор старого)
+// ROP_JSON=/tmp/rop.json - снимок РОПа, из него берётся список уволенных
+// ALL_MGR=1          - не отсеивать уволенных, офис-менеджера и не-продавцов
 // KEYS=/tmp/keys.json - взять ровно эти ключи и в этом порядке (очередь приоритета)
 // OUT=/tmp/part.txt    - куда писать транскрипты (по умолчанию stdout)
 // MAP=/tmp/part.map.json - карта номеров строк в src, нужна применяющему скрипту
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { isHidden, loadFired, OFFICE_MGR } from "./mgr-roster.js";
 
 type Ev = { ts: number; dt: string; dealId: string; leadId: string; mgr: string; type: string; dir: string; who: string; body: string; dealT: string; leadT: string; src?: string };
 
@@ -23,6 +26,8 @@ const FORCE = process.env.FORCE === "1";
 const OLD = process.env.OLD === "1";
 const BY = process.env.REVIEW_BY || "claude-code";
 const KEYS: string[] = process.env.KEYS ? JSON.parse(readFileSync(process.env.KEYS, "utf8")) : [];
+const ALL_MGR = process.env.ALL_MGR === "1";
+const FIRED = loadFired(process.env.ROP_JSON || "/tmp/rop.json");
 const OUT = process.env.OUT || "";
 const MAP = process.env.MAP || "";
 
@@ -36,8 +41,15 @@ for (const e of events) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= [
 // Очередь строится ровно как в ai-review.ts: те же фильтры, тот же порядок.
 const raw = Object.entries(byKey)
   .map(([k, evs]) => { evs.sort((a, b) => a.ts - b.ts); const h = evs[evs.length - 1]!; return { k, evs, last: h.ts, mgr: h.mgr || "" }; })
-  .filter((x) => x.evs.filter((e) => e.type.startsWith("Сообщение") || e.type === "Письмо").length >= 2)
+  // Коммуникацией считаем то же, что и скоринг: сообщения, письма, открытые линии. Раньше
+  // «Мессенджер ОЛ» сюда не попадал, и сделки, где переписка идёт через открытую линию,
+  // выпадали из разбора целиком - 76 из 128 приоритетных.
+  .filter((x) => x.evs.filter((e) => e.type.startsWith("Сообщение") || e.type === "Письмо" || e.type === "Мессенджер ОЛ").length >= 2)
   .filter((x) => !MGR.length || MGR.includes(x.mgr))
+  // Разбираем только действующих продавцов отдела. Уволенные, офис-менеджер (лид-интейк)
+  // и явно названные не-наши в очередь не идут: их диалоги дашборд всё равно не оценивает,
+  // а время разбора они съедают. ALL_MGR=1 - взять всех.
+  .filter((x) => ALL_MGR || (!isHidden(x.mgr, FIRED) && x.mgr !== OFFICE_MGR))
   // OLD - только то, что разобрано другой моделью: переразбор старого прогона.
   // FORCE - всё подряд. По умолчанию только новое и изменившееся.
   .filter((x) => OLD ? (done[x.k] && done[x.k].model !== BY)

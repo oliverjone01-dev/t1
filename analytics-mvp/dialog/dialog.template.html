@@ -409,8 +409,14 @@ input#q{min-width:220px}
 .trrole{display:inline-block;font-size:9.5px;font-weight:700;padding:0 5px;border-radius:4px;border:1px solid;margin-right:5px;vertical-align:baseline;white-space:nowrap}
 .trnote{margin-top:4px;font-size:9.5px;color:var(--ink-4);font-style:italic}
 /* Градусник температуры клиента */
-.tempcell{display:flex;align-items:center;gap:6px;min-width:118px}
+.tempcell{display:flex;align-items:center;gap:5px;min-width:118px}
+/* Вид как в РОП-дашборде: процент зелёной зоны слева, полоса, процент холодных справа,
+   под полосой - количество сделок по каждому сегменту в цвет сегмента. */
+.tbwrap{display:flex;flex-direction:column;gap:2px;width:116px;flex:0 0 auto}
 .tbar{display:flex;height:14px;width:116px;border-radius:3px;overflow:hidden;background:var(--line,#e5e7eb);flex:0 0 auto;gap:1px}
+.tnums{display:flex;gap:1px;width:116px;line-height:1;font-size:9px;font-variant-numeric:tabular-nums}
+.tnum{min-width:8px;text-align:center;white-space:nowrap;overflow:hidden;font-weight:700}
+.tpct{font-size:10px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 /* min-width - чтобы мелкий сегмент можно было навести/кликнуть; небольшой, чтобы не искажать доли. */
 .tseg{display:block;min-width:8px;height:100%;cursor:pointer;transition:filter .1s}
 .tseg:hover{filter:brightness(1.35)}
@@ -991,7 +997,6 @@ const COLHELP={
   deals:['Диалогов','Сколько сделок и лидов этого менеджера были в переписке за окно снимка (7 дней).'],
   prob:['Вероятность','Средний шанс закрыть сделку по его портфелю. Считается от фактической доли выигранных на этой стадии, поправленной на поведение в переписке.'],
   alerts:['Тревог','Сколько его сделок имеют хотя бы один красный тег: клиент ждёт ответа, тишина, нет следующего шага, риск отказа.'],
-  rating:['Рейтинг','Взвешенная оценка по шести разделам, шкала 0-5. Меряет дисциплину ведения сделки, а не выручку. Не считается, если у менеджера меньше 10 диалогов.'],
 };
 function tone2col(t){ return t==='good'?'#2E9E74':t==='bad'?'#C25252':'#C2873C'; }
 function pctCol(p){ return p>=70?'#2E9E74':p>=40?'#C2873C':'#C25252'; }
@@ -1085,7 +1090,6 @@ function renderTree(){
     if(k==='sum') return dsm.reduce((s2,d)=>s2+(d.budget||0),0);
     if(k==='act') return dsm.reduce((s2,d)=>s2+((mixOf(d,dFrom,dTo)||{}).total||0),0);
     const p=m.profile; if(!p) return null;
-    if(k==='rating') return m.rating;
     return p.metrics? p.metrics[k] : null; };
   // Что менеджер делал за выбранный период: суммарная лента по его сделкам.
   const actOf=(mgr)=>{ const t={msg:0,call:0,mail:0,task:0,note:0,ai:0,total:0};
@@ -1155,8 +1159,15 @@ function renderTree(){
     const b={boiling:0,hot:0,warm:0,cold:0,goal:0}; for(const d of ds) b[d.tempBucket==null?'cold':d.tempBucket]++;
     const order=[['boiling','#E5484D','кипят'],['hot','#F76808','горячие'],['warm','#E2A336','тёплые'],['cold','#5B8DEF','холодные'],['goal','#2E9E74','предоплата']];
     const tot=ds.length;
-    const seg=order.filter(([k])=>b[k]).map(([k,c,l])=>{ const on=aiPickActive('tp',key,k);
+    const shown=order.filter(([k])=>b[k]);
+    const seg=shown.map(([k,c,l])=>{ const on=aiPickActive('tp',key,k);
       return `<span class="tseg${on?' tsegon':''}" data-temp="${k}" style="flex:${b[k]};background:${c}" data-tip="<span class='tdot' style='background:${c}'></span><b>${l}</b>: ${b[k]} сдел. · ${Math.round(b[k]/tot*100)}% портфеля · клик - показать эти сделки"></span>`; }).join('');
+    // Числа под сегментами - те же доли, что и в полосе, поэтому цифра стоит под своим цветом.
+    const nums=shown.map(([k,c])=>`<span class="tnum" style="flex:${b[k]};color:${c}">${b[k]}</span>`).join('');
+    // Два процента по краям: слева зелёная зона (предоплата + кипят + горячие), справа холодные.
+    const nWarmSide=b.goal+b.boiling+b.hot, pWarm=Math.round(nWarmSide/tot*100), pCold=Math.round(b.cold/tot*100);
+    const warmTip=`Зелёная зона: ${nWarmSide} из ${tot} сдел. (${pWarm}%) - предоплата, кипят и горячие. Это портфель, который реально близок к деньгам.`;
+    const coldTip=`Холодные: ${b.cold} из ${tot} сдел. (${pCold}%). Клиент не двигается к покупке - нужен повод вернуться в разговор, а не очередное «актуально ли».`;
     // Переехавшие из амо в марте 2026 в силу нагрева не идут: у них стадия проставлена
     // импортом, а не работой менеджера, и медиана Δ у них -3° против +3° у живых сделок.
     const dd=ds.filter(d=>!d.goalReached&&!d.preMig&&(d.stageRows||[]).length&&d.heatLift!=null).map(d=>d.heatLift).sort((a,b)=>a-b);
@@ -1182,7 +1193,10 @@ function renderTree(){
     const migNote=nMig?`<br><i>Вне силы нагрева ${nMig} сдел., переехавших из амо в марте: стадия проставлена импортом, а не менеджером.</i>`:'';
     const leadNote=nLead?`<br><i>Вне градусника ${nLead} лид. без стадии - у них своя воронка.</i>`:'';
     const hpTip=hp===null?('Сила нагрева: мало данных (нужно 3+ сделки с историей стадий).'+leadNote+migNote+aiTip):`Сила нагрева = медиана вклада менеджера: температура сделки минус структурная температура её стадии, <b>${hp>0?'+':''}${hp}°</b>. Стадия вычтена намеренно, иначе столбец ранжировал бы по составу портфеля, а не по работе. ${hp>0?'В среднем прогревает клиента к покупке.':hp<0?'В среднем клиент остывает под ведением - тревожно.':'Держит температуру.'} Гипотеза: корреляция, часть клиентов стынет сами.${leadNote}${migNote}${whyBlock}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
-    return `<div class="tempcell"><div class="tbar">${seg}</div><span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
+    return `<div class="tempcell"><span class="tpct" style="color:#2E9E74" data-tip="${warmTip.replace(/"/g,'&quot;')}">${pWarm}%</span>`
+      +`<div class="tbwrap"><div class="tbar">${seg}</div><div class="tnums">${nums}</div></div>`
+      +`<span class="tpct" style="color:#C25252" data-tip="${coldTip.replace(/"/g,'&quot;')}">${pCold}%</span>`
+      +`<span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
   // «Почему остывают» с конкретными цифрами (сделок, до +N°, что делать) для агрегатного
   // ИИ-итога отдела/подотдела - те же данные, что в подсказке градусника.
   const RESOLVE_AGG=[[/ждёт|ожида/i,'ответить сегодня, назвать конкретный срок'],[/тишина|пауза|молч/i,'написать с новым поводом, назначить дату след. контакта'],[/возражени/i,'вернуться с расчётом разницы или альтернативой, не скидкой'],[/скидк/i,'обосновать цену составом и ценностью'],[/следующего шага|шаг/i,'поставить дело с датой'],[/обещал|без срока/i,'выполнить обещание, дать дату'],[/стадия двигал|нет следов|касаний/i,'вести общение в CRM, не двигать стадию в тишине'],[/вхолостую|контакта/i,'закрывать дела только после контакта'],[/медленн|ответ/i,'ускорить первый ответ'],[/отказ/i,'спросить, что изменит решение']];
@@ -1286,16 +1300,11 @@ function renderTree(){
     if(!p) return `Мало данных: у менеджера меньше 10 диалогов в окне (${(byM[m.mgr]||[]).length}). Меньше выборки - не судим, это был бы шум.`;
     const st=(p.strengths||[]).map(x=>typeof x==='string'?x:(x.text||x.label||'')).filter(Boolean);
     const wk=(p.weaknesses||[]).map(x=>typeof x==='string'?x:(x.text||x.label||'')).filter(Boolean);
-    return `Вердикт - от сильных и слабых сторон против медианы отдела (не от рейтинга). Правило: слабых нет - сильный; сильных больше - норма; слабых 3+ - в разборе.<br><b>Сильные (${st.length}):</b> ${st.length?esc(st.join('; ')):'-'}<br><b>Слабые (${wk.length}):</b> ${wk.length?esc(wk.join('; ')):'-'}`; };
-  const rateTip=(m)=>{ if(m.role==='dept') return 'Сводка по отделу - рейтинг не считается, это агрегат по всем менеджерам.';
-    if(m.role==='office') return 'Рейтинг продавца для офис-менеджера не считается: у лид-интейка другая задача, не доведение до оплаты.';
-    if(m.rating===null) return `Рейтинг не выставлен: ${esc(m.noRating||'мало данных')}. Нужно минимум 10 диалогов.`;
-    const secs=(m.sections||[]).map(s=>`${esc(s.label)} ${s.pos==null?'-':s.pos+'%'}`).join(' · ');
-    return `Рейтинг - взвешенная оценка по 6 разделам регламента (Отклик 22%, Сроки 20%, Ведение 20%, Квалификация 18%, Вежливость 10%, Результат 10%), шкала 0-5. Меряет дисциплину ведения, не выручку. Разделы: ${secs||'-'}. Раздел, затронутый меньше чем в 5 сделках, в рейтинг не идёт.`; };
+    return `Вердикт - от сильных и слабых сторон против медианы отдела. Правило: слабых нет - сильный; сильных больше - норма; слабых 3+ - в разборе.<br><b>Сильные (${st.length}):</b> ${st.length?esc(st.join('; ')):'-'}<br><b>Слабые (${wk.length}):</b> ${wk.length?esc(wk.join('; ')):'-'}`; };
   // Верхняя строка «ВЕСЬ ОТДЕЛ»: агрегат по всем показанным менеджерам. Клик по её воронке/
   // каналу/«Горит» показывает сделки всего отдела на этом этапе - без настройки фильтра.
   byM[DEPT_KEY]=mgrs.flatMap(mm=>byM[mm.mgr]||[]);
-  const deptMgr={ mgr:DEPT_KEY, role:'dept', profile:null, rating:null, sections:[] };
+  const deptMgr={ mgr:DEPT_KEY, role:'dept', profile:null, sections:[] };
   // Блок «Как читать таблицу» убран по просьбе Ивана; легенда доступна из подсказок в шапке.
   let html=scope+fbar+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   // «Весь отдел» - уровень 0: его стрелка сворачивает всех менеджеров. Дрил-фильтр отдела
@@ -1329,7 +1338,6 @@ function renderTree(){
           return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет цифры тем ярче, чем больше горящих.${v?' Клик - показать эти горящие сделки.':''}" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
         if(c.k==='hot'){ const v=mval(m,'hot')||0; const on=aiPickActive('hot',m.mgr,'hot');
           return `<td class="${v?'hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Под риском - сумма бюджетов горящих сделок менеджера.${v?' Клик - показать эти сделки.':''}">${money(v)} ₽</td>`; }
-        if(c.k==='rating') return `<td data-tip="${rateTip(m).replace(/"/g,'&quot;')}" style="cursor:help">${office||m.rating===null?'<span class="na2">-</span>':`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`}</td>`;
         return `<td style="${cellCol(c.k,mval(m,c.k))}">${fmtM(c.k,mval(m,c.k))}</td>`; }).join('')
       +`</tr>`;
     if(openM){
@@ -1396,7 +1404,6 @@ function renderTree(){
         if(c.k==='compl') return `<td class="l">${complCell(key)}</td>`;
         if(c.k==='alerts'){ const v=mval(gm,'alerts')||0; return `<td class="gorit" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
         if(c.k==='hot'){ const v=mval(gm,'hot')||0; return `<td>${money(v)} ₽</td>`; }
-        if(c.k==='rating') return `<td><span class="na2">-</span></td>`;
         return `<td style="${cellCol(c.k,mval(gm,c.k))}">${fmtM(c.k,mval(gm,c.k))}</td>`; }).join('')
       +`</tr>`;
   };

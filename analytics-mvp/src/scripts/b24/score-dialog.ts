@@ -16,6 +16,7 @@
 //
 // Вероятность = эмпирическая база стадии [ДАННЫЕ] x поведенческие коэффициенты [ГИПОТЕЗА].
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { isHidden, OFFICE_MGR } from "./mgr-roster.js";
 
 const DLG = "dialog/data/dialog.json";
 const ROP = process.env.ROP_JSON || "/tmp/rop.json";
@@ -102,25 +103,8 @@ const POST_SALE = new Set(["C49:EXECUTING", "C49:FINAL_INVOICE", "C49:1", "C49:2
 const WORK_FROM = 9, WORK_TO = 19, TZ_SHIFT = 3;
 
 // Кого не показывать в таблице рейтинга: роботы портала, числовые ID вместо имени,
-// уволенные (список firedManagers из снимка РОПа) и явно названные Иваном не-наши.
-// KEEP_MGR - исключения из списка уволенных: числится уволенным в CRM, но работает.
-const EXCLUDE_MGR = new Set(["Лысенко Ольга", "Сячинова Александра", "Мавлина Юлия", "Ерина Екатерина", "Королькова Наталья", "Павлова Анна"]);
-// Лобова: в портале два пользователя с этим ФИО. ID 7999 - рабочая (активна, вход
-// ежедневно, 15 сделок C49, 60 активностей), ID 8001 - ошибочный дубль (отключена,
-// ноль сделок). В firedManagers попал дубль, поэтому по имени фильтр снёс бы живого
-// человека. Проверено пробой 18.08.2026.
-// Турченко Анна - офис-менеджер, ведёт первичную работу с лидами. В firedManagers
-// попала ошибочно (в портале несколько учёток с этой фамилией), поэтому держим явно.
-const KEEP_MGR = new Set(["Лобова Надежда", "Турченко Анна"]);
-const swapName = (n: string) => { const p = n.trim().split(/\s+/); return p.length === 2 ? p[1] + " " + p[0] : n; };
-function isHidden(mgr: string, fired: Set<string>): string {
-  if (KEEP_MGR.has(mgr)) return "";
-  if (/^Системный пользователь/i.test(mgr) || mgr === "(не указан)") return "робот портала";
-  if (!/[A-Za-zА-Яа-яЁё]/.test(mgr)) return "ID без имени";
-  if (EXCLUDE_MGR.has(mgr)) return "не в отделе продаж";
-  if (fired.has(mgr) || fired.has(swapName(mgr))) return "уволен";
-  return "";
-}
+// Ростер отдела продаж (кого показываем и оцениваем) вынесен в mgr-roster.ts:
+// тот же список читает выгрузка очереди на разбор, чтобы люди не расходились.
 
 type Ev = { ts: number; dt: string; stage: string; leadId: string; dealId: string; leadT: string; dealT: string; mgr: string; type: string; dir: string; who: string; body: string; title: string; status: string; src: string };
 const isMsg = (e: Ev) => e.type.startsWith("Сообщение") || e.type === "Письмо" || e.type === "Мессенджер ОЛ";
@@ -260,7 +244,6 @@ function main() {
   // Офис-менеджер: работа с лидами под системным пользователем - это Турченко Анна
   // (решение Ивана). Событиям ЧИСТЫХ лидов (без сделки) с владельцем-системой ставим Аню,
   // чтобы её лид-интейк был виден отдельной строкой, а не терялся в «роботе портала».
-  const OFFICE_MGR = "Турченко Анна";
   const isSysUser = (m: string) => /^Системный пользователь/i.test(m || "") || /^\d+$/.test(m || "");
   let annaLeadEv = 0;
   for (const e of events) if (!e.dealId && isSysUser(e.mgr || "")) { e.mgr = OFFICE_MGR; annaLeadEv++; }
@@ -322,7 +305,19 @@ function main() {
     const ballWaitRaw = lastMsg && lastMsg.dir === "входящее" ? workMinutes(lastMsg.ts, now) : 0;
     const waitAgreed = ballWaitRaw > 0 && promiseCovers(now);   // срок назван и ещё не истёк
     const ballWait = waitAgreed ? 0 : ballWaitRaw;
-    const silenceD = Math.floor((now - last.ts) / 864e5);
+    // Тишина считается по РАЗГОВОРУ с клиентом, а не по любой активности в карточке.
+    // Раньше отсчёт шёл от последнего события вообще, и автоматическое дело, заметка или
+    // смена стадии обнуляли счётчик: сделка без единого слова 150 дней показывала «тишины
+    // нет». Правило Ивана: идут дела автоматические или от сотрудника, а коммуникаций нет -
+    // это сигнал к остыванию. Разговор - сообщение, письмо, открытая линия, звонок.
+    const talks = evs.filter((e) => isMsg(e) || e.type === "Звонок");
+    const lastTalk = talks.length ? talks[talks.length - 1]! : null;
+    // Разговора не было ни разу - считаем от первого события: столько сделка живёт молча.
+    const silenceD = Math.floor((now - (lastTalk ? lastTalk.ts : evs[0]!.ts)) / 864e5);
+    const noTalk = !lastTalk;
+    // Последняя активность любого рода. Нужна в карточке, чтобы менеджер видел разницу
+    // между «в сделке ничего не происходит» и «дела идут, а клиенту не написали».
+    const silenceAnyD = Math.floor((now - last.ts) / 864e5);
     const calls = evs.filter((e) => e.type === "Звонок").length;
     const tasksOpen = f ? (f.tasksOpen || 0) : 0;
     const nextStep = f ? tasksOpen > 0 : evs.some((e) => e.type === "Дело" && e.status === "запланировано");
@@ -539,7 +534,9 @@ function main() {
     else if (RE.dated.test(outText)) add("Называет конкретные даты", "deadline", "good");
     if (overdue) add(`Дело просрочено на ${overdueD} дн`, "deadline", "bad");
     const postSale = POST_SALE.has(stageCode);
-    if (silenceD >= SILENCE_BAD_D) add(`Тишина ${silenceD} дн`, "deadline", postSale ? "warn" : "bad");
+    const silLbl = noTalk ? `Разговора нет ${silenceD} дн` : silenceAnyD < silenceD - 1
+      ? `Тишина ${silenceD} дн (дела идут, клиенту не пишут)` : `Тишина ${silenceD} дн`;
+    if (silenceD >= SILENCE_BAD_D) add(silLbl, "deadline", postSale ? "warn" : "bad");
     else if (silenceD >= SILENCE_WARN_D) add(`Пауза ${silenceD} дн`, "deadline", "warn");
     // 4. Вежливость
     if (outs.length && RE.hello.test(outText)) add("Приветствие и обращение", "polite", "good");
@@ -817,7 +814,7 @@ function main() {
       won: isWon, lost: isLost, outcome: isWon ? "won" : isLost ? "lost" : "open",
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null } : null,
-      msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
+      msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, silenceAnyD, noTalk, overdueD, nextStep, stageDays,
       preMig: !!createdAt && createdAt < MIGRATION_CUTOFF,
       clientChase, hotSlow, hotOpen, driftAlso, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),
       lastTs: last.ts, lastDt: last.dt,
@@ -915,7 +912,6 @@ function main() {
   // а «заметно лучше коллег на сопоставимой выборке». Ниже порога выборки не судим.
   const METRICS = [
     { key: "resp", label: "скорость ответа", unit: "мин", better: "less",
-      how: "Доля ранних сделок, где менеджер спросил хотя бы два из трёх: размеры или ТЗ, срок, бюджет. Ранние стадии - до расчёта: Новая, Квалификация, КП отправлено, Формирование ТЗ, Принимают решение.",
       how: "Медиана времени от сообщения клиента до первого содержательного ответа менеджера. Считается в рабочих минутах (09:00-19:00 МСК), паузы внутри названного срока не учитываются. Ответом не считается реплика короче 25 символов без цифр и вопроса.",
       calc: (ds: any[]) => med(ds.map((d) => d.respMed).filter((x) => x !== null) as number[]),
       good: (v: number) => `отвечает клиенту за ${v} мин`, bad: (v: number) => `отвечает за ${fmtMin(v)}` },
@@ -932,6 +928,7 @@ function main() {
       calc: (ds: any[]) => Math.round(ds.filter((d) => d.nextStep).length / ds.length * 100),
       good: (v: number) => `следующий шаг стоит в ${v}% сделок`, bad: (v: number) => `следующий шаг есть только в ${v}% сделок` },
     { key: "qual", label: "квалификация", unit: "%", better: "more",
+      how: "Доля ранних сделок, где менеджер спросил хотя бы два из трёх: размеры или ТЗ, срок, бюджет. Ранние стадии - до расчёта: Новая, Квалификация, КП отправлено, Формирование ТЗ, Принимают решение.",
       calc: (ds: any[]) => { const e = ds.filter((d) => EARLY.has(d.stageCode) || !d.stageCode); return e.length >= 3 ? Math.round(e.filter((d) => d.tags.some((t: Tag) => t.sec === "qual" && t.tone === "good")).length / e.length * 100) : null; },
       good: (v: number) => `собирает ТЗ, срок и бюджет в ${v}% ранних сделок`, bad: (v: number) => `квалификация собрана лишь в ${v}% ранних сделок` },
     { key: "fake", label: "дела вхолостую", unit: "шт", better: "less",
@@ -1030,10 +1027,6 @@ function main() {
       const enoughSec = touched.length >= MIN_SEC_N;
       return { key: s.key, label: s.label, n: touched.length, pos: enoughSec ? Math.round((1 - bad.length / touched.length) * 100) : null, bad: bad.length };
     });
-    const enough = ds.length >= MIN_SAMPLE;
-    const scored = sections.filter((s) => s.pos !== null);
-    const wsum = scored.reduce((s, x) => s + SECTIONS.find((y) => y.key === x.key)!.weight, 0);
-    const rating = enough && wsum ? Number((scored.reduce((s, x) => s + (x.pos as number) * SECTIONS.find((y) => y.key === x.key)!.weight, 0) / wsum / 20).toFixed(1)) : null;
     // Цена ошибок: сколько рублей потенциала съели дефекты в сделках этого менеджера.
     const lossBy: Record<string, number> = {};
     let lossRub = 0;
@@ -1072,7 +1065,7 @@ function main() {
     const heatPower = heatVals.length >= 3 ? med(heatVals) : null;
     const hotMoneyTemp = openDs.filter((d) => d.tempBucket === "hot" || d.tempBucket === "boiling").reduce((s2, d) => s2 + (d.budget || 0), 0);
     return {
-      mgr, role, deals: ds.length, rating: role === "office" ? null : rating, sections, ai,
+      mgr, role, deals: ds.length, sections, ai,
       tempDist, heatPower, hotMoneyTemp,
       lossRub: Math.round(lossRub),
       lossPerDeal: Math.round(lossRub / Math.max(ds.length, 1)),
@@ -1081,12 +1074,11 @@ function main() {
       profile: profile[mgr] || null,
       internal: ds.filter((d) => d.internalOnly).length,
       fakedone: ds.reduce((s2, d) => s2 + (d.taskNoContact || 0), 0),
-      noRating: enough ? "" : `мало данных (${ds.length} из ${MIN_SAMPLE})`,
       probAvg: Math.round(ds.reduce((s, d) => s + d.prob, 0) / ds.length),
       pipeline: ds.reduce((s, d) => s + (d.budget || 0), 0),
       alerts: ds.filter((d) => d.tags.some((t: Tag) => t.tone === "bad")).length,
     };
-  }).sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.deals - a.deals);
+  }).sort((a, b) => b.deals - a.deals);
 
   // Каталог тегов для кликов: нормализованное имя -> раздел, тон, счётчик
   const tagIndex: Record<string, { sec: string; tone: string; n: number }> = {};
@@ -1098,10 +1090,8 @@ function main() {
 
   // --- Тренд: срез дня, чтобы было видно, двигается ли отдел (метрика успеха инструмента) ---
   const day = (dlg.to || new Date().toISOString()).slice(0, 10);
-  const rated = managers.filter((m) => m.rating !== null);
   const snap = {
     day, deals: deals.length,
-    ratingAvg: rated.length ? Number((rated.reduce((s, m) => s + (m.rating as number), 0) / rated.length).toFixed(2)) : null,
     ballOurs: deals.filter((d) => d.ballWait > BALL_STUCK_MIN).length,
     noNextStep: deals.filter((d) => !d.nextStep).length,
     silence: deals.filter((d) => d.silenceD >= SILENCE_BAD_D).length,
@@ -1163,6 +1153,6 @@ function main() {
   writeFileSync(OWN, JSON.stringify(ownDb));
   writeFileSync(DLG, JSON.stringify(dlg));
   console.log(`Разбор: диалогов ${deals.length}, менеджеров ${managers.length}, тегов ${Object.keys(tagIndex).length}`);
-  for (const m of managers.filter((x) => x.rating !== null)) console.log(`   ${m.rating} ★  ${m.mgr} - ${m.deals} диал · ${m.sections.map((s) => s.label + " " + (s.pos ?? "-") + "%").join(" · ")}`);
+  for (const m of managers) console.log(`   ${m.mgr} - ${m.deals} диал · ${m.sections.map((s) => s.label + " " + (s.pos ?? "-") + "%").join(" · ")}`);
 }
 main();

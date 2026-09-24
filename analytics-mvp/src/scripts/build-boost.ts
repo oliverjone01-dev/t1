@@ -81,10 +81,10 @@ const compRows = [...partDays].sort((a, b) => b[1] - a[1]).map(([k, n]) => {
 
 // Индекс цены по товарам тестов: тут и видно, что внутри одной карточки он разный.
 const T = existsSync("tools/tests/tests.json")
-  ? JSON.parse(readFileSync("tools/tests/tests.json", "utf-8")) as { тесты: Array<{ id: string; роли?: Record<string, string[]>; закрыт?: { эталонная_пара?: { карточка: string; строки: Array<{ артикул: string; режим: string }> } } }> }
+  ? JSON.parse(readFileSync("tools/tests/tests.json", "utf-8")) as { тесты: Array<{ id: string; роли?: Record<string, string[]>; промежуточный_вывод?: { эталонная_пара?: { карточка: string; строки: Array<{ артикул: string; режим: string }> } } }> }
   : { тесты: [] };
 const wave = T.тесты.find((t) => t.id === "boost_plus_exit");
-const closed = T.тесты.find((t) => t.закрыт?.эталонная_пара)?.закрыт?.эталонная_пара;
+const closed = T.тесты.find((t) => t.промежуточный_вывод?.эталонная_пара)?.промежуточный_вывод?.эталонная_пара;
 const cards = existsSync(dp("card_groups.json"))
   ? (JSON.parse(readFileSync(dp("card_groups.json"), "utf-8")).groups as Array<{ main: string; skus: Array<{ offer: string }> }>)
   : [];
@@ -167,7 +167,7 @@ const body = rows.length
         ? `<h2 style="font-size:14px">Волна выхода из акции</h2><div class="tw"><table><thead>${head}</thead><tbody>${groupRows(waveList)}</tbody></table></div>`
         : "")
     + (closedList.length
-        ? `<h2 style="font-size:14px">Карточка ${esc(closed!.карточка)}, на которой закрыт тест про ставку</h2>`
+        ? `<h2 style="font-size:14px">Карточка ${esc(closed!.карточка)}, на которой стоит промежуточный вывод теста про ставку</h2>`
           + `<div class="tw"><table><thead>${head}</thead><tbody>${groupRows(closedList)}</tbody></table></div>`
           + `<div class="cov">У трёх рекламируемых индекс на последний снимок «супер», у двоих без рекламы он ниже.`
           + ` Это не эффект рекламы сам по себе: индекс считается от цены на полке, а цену на полке двигает соинвест,`

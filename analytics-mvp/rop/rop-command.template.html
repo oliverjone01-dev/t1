@@ -319,7 +319,7 @@ const GM_OWNED=new Set(['Юлия Мавлина','Виктория Пресня
 const notForeign=x=>!GM_OWNED.has(x.mgr);
 const AD=(DATA.deals||[]).filter(notForeign),AL=(DATA.leads||[]).filter(notForeign),KSS=DATA.keyStageStats;
 const GROUPS=[
- ['Новые и квалификация',['C49:NEW','C49:UC_LRFLH9'],'#22D3EE'],
+ ['Новые',['C49:NEW','C49:UC_LRFLH9'],'#22D3EE'], // UC_LRFLH9 удалена 23.07.2026, код оставлен ради истории
  ['Формируется предложение',['C49:PREPARATION','C49:UC_OGZUU0'],'#60A5FA'],
  ['Предложение отправлено',['C49:PREPAYMENT_INVOIC'],'#F472B6'],
  ['Принимают решение',['C49:3'],'#FB923C'],
@@ -1201,7 +1201,15 @@ function funnelChart(){
   const FUN=prepay
     ?[['Новая сделка','C49:NEW'],['Квалификация','C49:UC_LRFLH9'],['Формируется предложение','C49:PREPARATION'],['Предложение отправлено','C49:PREPAYMENT_INVOIC'],['Принимают решение','C49:3'],['Продажи (от предоплаты)','C49:EXECUTING']]
     :[['Новая сделка','C49:NEW'],['Квалификация','C49:UC_LRFLH9'],['Формируется предложение','C49:PREPARATION'],['Предложение отправлено','C49:PREPAYMENT_INVOIC'],['Принимают решение','C49:3'],['Предоплата','C49:EXECUTING'],['В производстве','C49:FINAL_INVOICE'],['В логистике','C49:2'],['Успешно','C49:WON']];
-  const F=FUN.map(([name,code])=>{const th=ord[code];const sub=DD.filter((d,i)=>reached[i]>=th);
+  // Стадия «Квалификация» (C49:UC_LRFLH9) удалена из воронки C49 23.07.2026: последний вход
+  // 23.07, после неё сделка идёт из «Новая» сразу в «Формирование ТЗ». Труба кумулятивная
+  // («дошёл не ниже чем»), поэтому шаг не исчезал сам, а превращался в дубль следующего:
+  // 400 из 400, конверсия 100%, при нуле сделок, реально побывавших на стадии. Показываем шаг
+  // только там, где он был настоящим - в периодах до 23.07.
+  const qOrd=ord['C49:UC_LRFLH9'];
+  const qualStuck=reached.filter(x=>x===qOrd).length;
+  const FUN2=FUN.filter(([,code])=>code!=='C49:UC_LRFLH9'||qualStuck>0);
+  const F=FUN2.map(([name,code])=>{const th=ord[code];const sub=DD.filter((d,i)=>reached[i]>=th);
     const dws=[];DD.forEach(d=>{const h=d.hist||[];for(let k=0;k<h.length;k++){if(h[k][0]===code){const nxt=h[k+1]?h[k+1][1]:((d.won||d.lost)?d.closed:DATA.to);const dd=ddiffJS(h[k][1],nxt);if(dd!=null&&dd>=0)dws.push(dd);}}});
     return {name,count:sub.length,money:sub.reduce((s,d)=>s+(d.budget||0),0),dwell:median(dws)};});
   F.forEach((f,k)=>f.conv=k===0?1:(F[k-1].count?f.count/F[k-1].count:0));
@@ -1251,8 +1259,11 @@ function dwellByStage(deals){
 // Сегментированные столбцы по этапам: высота = деньги (или сделки), сегменты по сроку
 // (свежие <14д / тёплые 14-30д / застрявшие >30д). Видно где заперт пайплайн И что протухает.
 function dwellStageChart(deals){
-  const stages=['Из Взят в работу/Квалифицирован','Расчёт','КП отправлено','Принимают решение','Долгострой'];
-  const lab={'Из Взят в работу/Квалифицирован':'Квал','Расчёт':'Расчёт','КП отправлено':'КП','Принимают решение':'Решение','Долгострой':'Долгострой'};
+  // Стадия «Из Взят в работу/Квалифицирован» удалена из Битрикса 23.07.2026 - фильтр по её имени
+  // давал пустую колонку. На её месте теперь «Формирование ТЗ», куда после удаления уходит
+  // сделка прямо из «Новой»; раньше этот этап в блоке не показывался вообще.
+  const stages=['Формирование ТЗ','Расчёт','КП отправлено','Принимают решение','Долгострой'];
+  const lab={'Формирование ТЗ':'ТЗ','Расчёт':'Расчёт','КП отправлено':'КП','Принимают решение':'Решение','Долгострой':'Долгострой'};
   const op=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null&&isOP(d.mgr)&&stages.includes(d.stage));
   if(!op.length)return '';
   const med=xs=>{if(!xs.length)return null;const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);return a[Math.floor(a.length/2)];};
@@ -1289,8 +1300,11 @@ function dwellStageChart(deals){
     ${leg?`<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;justify-content:center">${leg}</div>`:''}</div>`;
 }
 function mgrDwellHeat(deals){
-  const stages=['Из Взят в работу/Квалифицирован','Расчёт','КП отправлено','Принимают решение','Долгострой'];
-  const lab={'Из Взят в работу/Квалифицирован':'Квал','Расчёт':'Расчёт','КП отправлено':'КП','Принимают решение':'Решение','Долгострой':'Долгострой'};
+  // Стадия «Из Взят в работу/Квалифицирован» удалена из Битрикса 23.07.2026 - фильтр по её имени
+  // давал пустую колонку. На её месте теперь «Формирование ТЗ», куда после удаления уходит
+  // сделка прямо из «Новой»; раньше этот этап в блоке не показывался вообще.
+  const stages=['Формирование ТЗ','Расчёт','КП отправлено','Принимают решение','Долгострой'];
+  const lab={'Формирование ТЗ':'ТЗ','Расчёт':'Расчёт','КП отправлено':'КП','Принимают решение':'Решение','Долгострой':'Долгострой'};
   const op=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null&&isOP(d.mgr)&&stages.includes(d.stage));
   if(!op.length)return '<div class="card-sub">нет открытых сделок на этих этапах</div>';
   const mgrs=[...new Set(op.map(d=>d.mgr))];

@@ -257,6 +257,14 @@ input#q{min-width:220px}
 .sc-v{font-size:11px;margin-left:4px;font-variant-numeric:tabular-nums}
 .mk-q{color:var(--ink-3);font-size:11px;line-height:1.45;margin-top:2px;font-style:italic}
 .mk-qs{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+/* Хронология работы по сделке против нормы отдела */
+.chrono{margin-top:9px;padding-top:8px;border-top:1px solid var(--border)}
+.ch-tbl{border-collapse:collapse;font-size:11.5px;margin-top:4px}
+.ch-tbl td{padding:2px 0;vertical-align:baseline}
+.ch-t{color:var(--ink-3);padding-right:12px!important;white-space:nowrap}
+.ch-v{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:10px!important}
+.ch-n{color:var(--ink-4);font-size:10.5px;white-space:nowrap}
+.ch-f{margin-top:6px;font-size:11px;line-height:1.5;color:var(--ink-3)}
 /* Развёрнутый разбор коммуникации по сделке */
 .dabox{width:100%;box-sizing:border-box;border:1px solid #8B7BF033;background:#8B7BF008;border-radius:9px;padding:11px 13px;margin:0 0 10px}
 .da-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8B7BF0;margin-bottom:8px}
@@ -1614,6 +1622,38 @@ function renderTree(){
           +`</div>`; };
       // Реплики клиента, на которых держится вывод: РОП читает их первыми, до текста разбора.
       const qBlock=qs=>(qs&&qs.length)?`<div class="mk-qs"><div class="da-t">Ключевые реплики</div>${qs.slice(0,3).map(q=>`<div class="mk-q">«${esc(q)}»</div>`).join('')}</div>`:'';
+      // Норма отдела по сырым метрикам времени. deptMedians в снимке хранит проценты секций,
+      // а сравнивать надо часы и дни, поэтому медианы считаем здесь по открытым сделкам отдела
+      // и кешируем: иначе пересчёт шёл бы на каждое раскрытие сделки.
+      const NORM=(()=>{ let c=null; return ()=>{ if(c) return c; const op=SC.deals.filter(x=>x.outcome==='open');
+        const med=f=>{ const v=op.map(f).filter(x=>typeof x==='number'&&isFinite(x)).sort((a,b)=>a-b); return v.length>=5?v[Math.floor(v.length/2)]:null; };
+        c={take:med(x=>x.takeH),first:med(x=>x.firstResp),resp:med(x=>x.respMed),sil:med(x=>x.silenceD),stage:med(x=>x.stageDays),msgs:med(x=>x.msgs)}; return c; }; })();
+      // Хронология работы по сделке: сколько шли к первому ответу, как отвечали дальше, сколько
+      // молчали, сколько держат стадию. Рядом - норма отдела, чтобы «13 часов» читались как
+      // лучше или хуже среднего, а не как абстрактное число.
+      const hrs=v=>v==null?null:(v<1?Math.max(1,Math.round(v*60))+' мин':v<48?Math.round(v)+' ч':Math.round(v/24)+' дн');
+      const chrono=()=>{ const n=NORM();
+        const rows=[
+          ['Взял в работу', hrs(d.takeH), hrs(n.take), d.takeH!=null&&n.take!=null?d.takeH<=n.take:null],
+          ['Первый ответ клиенту', hrs(d.firstResp), hrs(n.first), d.firstResp!=null&&n.first!=null?d.firstResp<=n.first:null],
+          ['Обычный ответ в переписке', hrs(d.respMed), hrs(n.resp), d.respMed!=null&&n.resp!=null?d.respMed<=n.resp:null],
+          ['Тишина после нас', d.silenceD!=null?d.silenceD+' дн':null, n.sil!=null?n.sil+' дн':null, d.silenceD!=null&&n.sil!=null?d.silenceD<=n.sil:null],
+          ['Держится на стадии', d.stageDays!=null?d.stageDays+' дн':null, n.stage!=null?n.stage+' дн':null, d.stageDays!=null&&n.stage!=null?d.stageDays<=n.stage:null],
+        ].filter(r=>r[1]!=null);
+        if(!rows.length) return '';
+        const tr=rows.map(([t,v,nv,ok])=>`<tr><td class="ch-t">${t}</td><td class="ch-v"${ok===null?'':` style="color:${ok?'#2E9E74':'#C25252'}"`}>${v}</td><td class="ch-n">${nv?'норма '+nv:''}</td></tr>`).join('');
+        // Вторая строка - что происходило в переписке: объём, кто тянул, что с обещаниями.
+        const facts=[];
+        if(d.msgs) facts.push(`${d.msgs} ${plu(d.msgs,'сообщение','сообщения','сообщений')}`);
+        if(d.calls) facts.push(`${d.calls} ${plu(d.calls,'звонок','звонка','звонков')}`);
+        if(d.clientChase) facts.push(`<b style="color:#C25252">клиент напоминал ${d.clientChase} ${plu(d.clientChase,'раз','раза','раз')}</b>`);
+        if(d.promiseBroken) facts.push(`<b style="color:#C25252">обещал и не сделал: ${d.promiseBroken}</b>`);
+        if(d.promiseKept) facts.push(`<span style="color:#2E9E74">обещание выполнено: ${d.promiseKept}</span>`);
+        if(d.vagueProm) facts.push(`обещаний без срока: ${d.vagueProm}`);
+        if(d.objTotal) facts.push(d.objWorked>=d.objTotal?`<span style="color:#2E9E74">возражения отработаны: ${d.objTotal}</span>`:`<b style="color:#C25252">возражений без ответа: ${d.objTotal-d.objWorked}</b>`);
+        if(d.overdueD) facts.push(`<b style="color:#C25252">просрочка дел: ${d.overdueD} дн</b>`);
+        return `<div class="chrono"><div class="da-t">Как шла работа</div><table class="ch-tbl">${tr}</table>`
+          +(facts.length?`<div class="ch-f">${facts.join(' · ')}</div>`:'')+`</div>`; };
       const aiSum=(a&&(a.verdict||a.problem||a.recommendation))
         ? `<div class="dsum-h">🤖 Разбор ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div>`
           +(a.verdict?`<div class="dsum-v">${esc(a.verdict)}</div>`:'')
@@ -1621,6 +1661,7 @@ function renderTree(){
           +markCols(a.marks)
           +(a.problem?`<div class="dsum-p"><b>Риск потери:</b> ${esc(a.problem)}</div>`:'')
           +(a.recommendation?`<div class="dsum-r"><b>Что сделать:</b> ${esc(a.recommendation)}</div>`:'')
+          +chrono()
           +qBlock(a.quotes)
         : `<div class="dsum-h">🤖 Разбор ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
       // Краткий «Итог ИИ» ВОЗВРАЩЁН в ленту 24.09.2026. Его убирали как дубль подсказки

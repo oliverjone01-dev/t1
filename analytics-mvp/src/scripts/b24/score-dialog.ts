@@ -16,6 +16,7 @@
 //
 // Вероятность = эмпирическая база стадии [ДАННЫЕ] x поведенческие коэффициенты [ГИПОТЕЗА].
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { isHidden, OFFICE_MGR } from "./mgr-roster.js";
 
 const DLG = "dialog/data/dialog.json";
 const ROP = process.env.ROP_JSON || "/tmp/rop.json";
@@ -102,25 +103,8 @@ const POST_SALE = new Set(["C49:EXECUTING", "C49:FINAL_INVOICE", "C49:1", "C49:2
 const WORK_FROM = 9, WORK_TO = 19, TZ_SHIFT = 3;
 
 // Кого не показывать в таблице рейтинга: роботы портала, числовые ID вместо имени,
-// уволенные (список firedManagers из снимка РОПа) и явно названные Иваном не-наши.
-// KEEP_MGR - исключения из списка уволенных: числится уволенным в CRM, но работает.
-const EXCLUDE_MGR = new Set(["Лысенко Ольга", "Сячинова Александра", "Мавлина Юлия", "Ерина Екатерина", "Королькова Наталья", "Павлова Анна"]);
-// Лобова: в портале два пользователя с этим ФИО. ID 7999 - рабочая (активна, вход
-// ежедневно, 15 сделок C49, 60 активностей), ID 8001 - ошибочный дубль (отключена,
-// ноль сделок). В firedManagers попал дубль, поэтому по имени фильтр снёс бы живого
-// человека. Проверено пробой 18.08.2026.
-// Турченко Анна - офис-менеджер, ведёт первичную работу с лидами. В firedManagers
-// попала ошибочно (в портале несколько учёток с этой фамилией), поэтому держим явно.
-const KEEP_MGR = new Set(["Лобова Надежда", "Турченко Анна"]);
-const swapName = (n: string) => { const p = n.trim().split(/\s+/); return p.length === 2 ? p[1] + " " + p[0] : n; };
-function isHidden(mgr: string, fired: Set<string>): string {
-  if (KEEP_MGR.has(mgr)) return "";
-  if (/^Системный пользователь/i.test(mgr) || mgr === "(не указан)") return "робот портала";
-  if (!/[A-Za-zА-Яа-яЁё]/.test(mgr)) return "ID без имени";
-  if (EXCLUDE_MGR.has(mgr)) return "не в отделе продаж";
-  if (fired.has(mgr) || fired.has(swapName(mgr))) return "уволен";
-  return "";
-}
+// Ростер отдела продаж (кого показываем и оцениваем) вынесен в mgr-roster.ts:
+// тот же список читает выгрузка очереди на разбор, чтобы люди не расходились.
 
 type Ev = { ts: number; dt: string; stage: string; leadId: string; dealId: string; leadT: string; dealT: string; mgr: string; type: string; dir: string; who: string; body: string; title: string; status: string; src: string };
 const isMsg = (e: Ev) => e.type.startsWith("Сообщение") || e.type === "Письмо" || e.type === "Мессенджер ОЛ";
@@ -260,7 +244,6 @@ function main() {
   // Офис-менеджер: работа с лидами под системным пользователем - это Турченко Анна
   // (решение Ивана). Событиям ЧИСТЫХ лидов (без сделки) с владельцем-системой ставим Аню,
   // чтобы её лид-интейк был виден отдельной строкой, а не терялся в «роботе портала».
-  const OFFICE_MGR = "Турченко Анна";
   const isSysUser = (m: string) => /^Системный пользователь/i.test(m || "") || /^\d+$/.test(m || "");
   let annaLeadEv = 0;
   for (const e of events) if (!e.dealId && isSysUser(e.mgr || "")) { e.mgr = OFFICE_MGR; annaLeadEv++; }

@@ -352,27 +352,39 @@ async function main() {
   const mgrName: Record<string, string> = {};
   const mgrPhoto: Record<string, string> = {}; // имя -> URL фото профиля Bitrix (для карточек «Дашборды менеджеров»)
   const nmOf = (u: any) => `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim();
-  const firedSet = new Set<string>();
+  // Уволенных собираем по ID аккаунта, а НЕ по имени. У человека может быть два профиля
+  // (старый отключённый и текущий рабочий) с одинаковым ФИО: при сборе по имени живой
+  // сотрудник получал клеймо «уволен» из мёртвого аккаунта. Поймано на Надежде Лобовой
+  // 24.09.2026 - сделка создана 23.09, активность в день снимка, 6 успехов за сентябрь.
+  const firedIds = new Set<string>();
+  const activeNames = new Set<string>();
   for (const u of users) {
     const nm = nmOf(u) || `id${u.ID}`;
     mgrName[String(u.ID)] = nm;
     if (u.PERSONAL_PHOTO && typeof u.PERSONAL_PHOTO === "string") mgrPhoto[nm] = u.PERSONAL_PHOTO;
     // ACTIVE может прийти как boolean или "Y"/"N"; уволенные = неактивные аккаунты.
     const active = u.ACTIVE === true || u.ACTIVE === "Y" || u.ACTIVE === 1 || u.ACTIVE === "1";
-    if (nm && u.ACTIVE !== undefined && !active) firedSet.add(nm);
+    if (u.ACTIVE !== undefined && !active) firedIds.add(String(u.ID));
+    else if (nm) activeNames.add(nm);
   }
   // Bitrix по умолчанию может отдавать только активных - добираем уволенных явным фильтром.
   try {
     const inactive: any[] = await pageAll("user.get", { ACTIVE: false });
     for (const u of inactive) {
       const nm = nmOf(u);
-      if (nm) { firedSet.add(nm); if (!mgrName[String(u.ID)]) mgrName[String(u.ID)] = nm; }
+      firedIds.add(String(u.ID));
+      if (nm && !mgrName[String(u.ID)]) mgrName[String(u.ID)] = nm;
     }
   } catch (e) {
     console.warn("user.get ACTIVE=false недоступен:", e instanceof Error ? e.message : e);
   }
-  const firedManagers = [...firedSet];
-  console.log(`Уволенных сотрудников (ACTIVE=false): ${firedManagers.length}`);
+  // В список имён уходят только те, у кого нет НИ ОДНОГО активного аккаунта с тем же ФИО.
+  // Дубли профилей (старый отключён, новый работает) из списка выпадают.
+  const firedNamesAll = [...firedIds].map((id) => mgrName[id]).filter(Boolean);
+  const firedManagers = [...new Set(firedNamesAll.filter((nm) => !activeNames.has(nm)))];
+  const dupProfiles = [...new Set(firedNamesAll.filter((nm) => activeNames.has(nm)))];
+  console.log(`Уволенных сотрудников (ACTIVE=false): ${firedManagers.length} из ${firedIds.size} отключённых аккаунтов`);
+  if (dupProfiles.length) console.log(`Два профиля на одно ФИО (уволенным НЕ считаем): ${dupProfiles.join(", ")}`);
 
   const dealFields: any = (await call("crm.deal.fields", {})).result || {};
   const leadFields: any = (await call("crm.lead.fields", {})).result || {};
@@ -428,6 +440,7 @@ async function main() {
       id: d.ID,
       title: d.TITLE || "",
       mgr: mgrName[String(d.ASSIGNED_BY_ID)] || `id${d.ASSIGNED_BY_ID}`,
+      mgrId: String(d.ASSIGNED_BY_ID || ""),
       category: Number(DEAL_CATEGORY),
       categoryName: catName[DEAL_CATEGORY] || DEAL_CATEGORY,
       stage: stageName[sid] || sid,

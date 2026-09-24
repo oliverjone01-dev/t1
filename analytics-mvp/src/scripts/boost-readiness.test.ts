@@ -6,7 +6,7 @@ import {
   controlByDay, gapSeries, baseOf, plateauOf, statusOf, readiness, loadCpoDays, loadMoves,
   daysBetween, median, earliestPlateau, ARRIVED,
   type CoinvRow, type DayPoint, type MoveSource,
-  pairGapSeries, pairFit,
+  pairGapSeries, pairFit, adFreeFrom,
 } from "./boost-readiness.js";
 
 const row = (date: string, art: string, v: number, extra: Partial<CoinvRow> = {}): CoinvRow =>
@@ -334,7 +334,7 @@ describe("парный ряд и пригодность пары", () => {
 
   it("пара годится, если до старта разница держалась около нуля", () => {
     const ser = [18, 19, 20].map((d) => ({ date: D(d), gap: 0.5 }));
-    const f = pairFit(ser, D(21));
+    const f = pairFit(ser, D(21), D(1));
     expect(f.ok).toBe(true);
     expect(f.days).toBe(3);
   });
@@ -342,26 +342,59 @@ describe("парный ряд и пригодность пары", () => {
   it("пара со смещённой разницей отвергается с числом", () => {
     // Живой случай: GGL-07-XL-2 против GGL-01-M-2, до старта медиана +25.
     const ser = [18, 19, 20].map((d) => ({ date: D(d), gap: 25 }));
-    const f = pairFit(ser, D(21));
+    const f = pairFit(ser, D(21), D(1));
     expect(f.ok).toBe(false);
     expect(f.why).toContain("+25");
   });
 
   it("пара с гуляющей разницей отвергается, даже если медиана нулевая", () => {
     const ser = [{ date: D(18), gap: -15 }, { date: D(19), gap: 0 }, { date: D(20), gap: 15 }];
-    const f = pairFit(ser, D(21));
+    const f = pairFit(ser, D(21), D(1));
     expect(f.ok).toBe(false);
     expect(f.why).toContain("гуляла");
   });
 
   it("проверять не на чем: пара не принимается молча", () => {
-    const f = pairFit([{ date: D(20), gap: 0 }], D(21));
+    const f = pairFit([{ date: D(20), gap: 0 }], D(21), D(1));
     expect(f.ok).toBe(false);
     expect(f.why).toContain("не на чем");
   });
 
   it("дни после старта в проверку не идут: там и должен быть эффект", () => {
     const ser = [...[18, 19, 20].map((d) => ({ date: D(d), gap: 0 })), { date: D(25), gap: 30 }];
-    expect(pairFit(ser, D(21)).ok).toBe(true);
+    expect(pairFit(ser, D(21), D(1)).ok).toBe(true);
+  });
+
+  it("окно обрезает дни до первой рекламы: грязный день в проверку не идёт", () => {
+    // 18-е было с рекламой, поэтому окно открывается только с 19-го, и разница 25 за 18-е
+    // пару больше не бракует: она не про сопоставимость, она про уже включённую рекламу.
+    const ser = [{ date: D(18), gap: 25 }, { date: D(19), gap: 0 }, { date: D(20), gap: 0.5 }];
+    expect(pairFit(ser, D(21), D(18)).ok).toBe(false);
+    const f = pairFit(ser, D(21), D(19));
+    expect(f.ok).toBe(true);
+    expect(f.days).toBe(2);
+    expect(f.from).toBe(D(19));
+  });
+
+  it("реклама шла накануне старта: пара непроверяема, а не годна", () => {
+    const ser = [18, 19, 20].map((d) => ({ date: D(d), gap: 0 }));
+    const f = pairFit(ser, D(21), null);
+    expect(f.ok).toBe(false);
+    expect(f.why).toContain("накануне");
+  });
+});
+
+describe("adFreeFrom: окно до первой рекламы", () => {
+  const D = (n: number) => `2026-09-${String(n).padStart(2, "0")}`;
+  it("идёт назад от старта и останавливается на дне с расходом", () => {
+    expect(adFreeFrom(D(21), new Set([D(17)]))).toBe(D(18));
+  });
+
+  it("расход накануне старта закрывает окно совсем", () => {
+    expect(adFreeFrom(D(21), new Set([D(20)]))).toBe(null);
+  });
+
+  it("расхода не было вовсе: окно ограничено только глубиной поиска", () => {
+    expect(adFreeFrom(D(21), new Set(), 3)).toBe(D(18));
   });
 });

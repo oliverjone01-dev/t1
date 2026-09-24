@@ -1,0 +1,167 @@
+{
+ "agent": "feniks",
+ "skill": "phoenix-eval",
+ "task_id": "feniks-kontur-ds-152-20260924-iter2",
+ "timestamp": "2026-09-24T15:02:07+00:00",
+ "deliverable_ref": "scratchpad/pkg152b/kontur-ds (Контур DS 1.5.2, итерация 2: tools/check_ds.py, style_live.mjs, tamper_ds.py, DESIGN_SYSTEM.md §20; итерация 1 scratchpad/pkg152)",
+ "artifact_class": "gate",
+ "anchor": "8.5 timur-activation итерация 3 - наш 8.6 выше на 0.1, в пределах шума: как у ТИМУРА итерации 3, ни одна атака в сторону пропуска не прошла (13 случаев «выключатель у X, нарушение у Y», подмена функции выключателя страницей, регистрация --ks-allow страницей тремя способами); ниже 8.9 annotate, потому что три строки §20 расходятся с кодом (cssText через =, отдельные записи el.style, «по одной на каждый элемент», все в сторону запрета) и регресс автора снова на копии ds4. От итерации 1 (7.95 return): accuracy 7 -> 8 (accuracy_3 0 -> 1), actionability 9 -> 8 (actionability_9 2 -> 1: цифр замера в §20 нет), insight 7 -> 8 (insight_15 1 -> 2: область выключателя теперь блок, аналогия с eslint-disable переносится), risk 7 -> 10 (risk_21, risk_22, risk_23 1 -> 2: утечки на чужие элементы нет, предел живого слоя записан). Расхождение с якорем 0.1, дрейфа нет; по признаку шкалы (8.5-9.0: расхождений нет) это верхняя граница допустимого, остаток учтён в accuracy_3 и actionability_8",
+ "probes": [
+  {
+   "id": "A6a",
+   "result": "PASS",
+   "evidence": "Набор п.1 rework_tz, разметка, статика: выключатель у X, нарушение у Y. Тот же тег и класс (P1a), без класса (I1b), с тем же aria-label (I1c), с тем же id (I1d), два элемента в разметке строкой JS (I1m): rc=1, [HEX] у Y, заметка только у X. Скрытые экраны с --live: полоса чужого элемента в dialog (P1b) rc=1; три чужих полосы в dialog, [hidden] и вкладке display:none (I1j): три отдельные находки [SIDESTRIPE], rc=1 (склейка по блоку, check_ds.py:333). Смешанные: выключатель в правиле .op-row, чужая полоса в style=\"\" (I1k) и наоборот, выключатель в style=\"\", чужое правило .op-row.hot (I1l): rc=1. Область встроенного стиля по индексу блока: check_ds.py:304-316"
+  },
+  {
+   "id": "A6b",
+   "result": "PASS",
+   "evidence": "Записи стиля из JS, выключатель у X, нарушение у Y: setProperty на body (P2), setProperty на другом элементе (I1f), Object.assign (I1g), cssText (I1h), setAttribute('style') (I1i): у Y [HEX], rc=1 во всех пяти. Контроли P1a_ctl и P2_ctl rc=1"
+  },
+  {
+   "id": "A6c",
+   "result": "PASS",
+   "evidence": "P4a (--live): выключатель на body и на обёртке не гасит полосу потомка ни в статике, ни живьём, rc=1. Регистрация --ks-allow страницей до проверки: CSS.registerProperty inherits:true (I3a), inherits:false с initialValue 'SIDESTRIPE: служебная причина страницы' (I3b), @property inherits:true (I3c): [SIDESTRIPE] в обоих слоях, rc=1. Проверка ненаследуемости и возврат к сравнению с родителем (style_live.mjs:18-26) срабатывают"
+  },
+  {
+   "id": "A1",
+   "result": "PASS",
+   "evidence": "Невыключаемое и неверный выключатель: tamper_ds.py на копии выпускаемого «выключатель без причины -> [ALLOW]», «выключатель для контраста -> [ALLOW]», живьём «выключатель без причины -> [ALLOW]»; P4d: выключатель через var(--why) в статике [ALLOW], итог rc=1, как записано в §20:1578-1579"
+  },
+  {
+   "id": "A3",
+   "result": "PASS",
+   "evidence": "P5 (--live): window.__ksAllow = () => ({codes:['SIDESTRIPE','GRADMARK'], ...}) со страницы: те же три провала, что в контроле P5_ctl ([SIDESTRIPE], [GRADMARK], [DENSITYTAP] живьём), rc=1: функция выключателя локальна: __ksAllow объявлена в ALLOW_FN и подставляется в каждую проверку через wrap() (style_live.mjs:28, :36), глобал страницы не читается. P5_old: Element.prototype.getClientRects = () => [] глушит живой слой, rc=0, без заметок: это предел, записанный в §20:1610-1612"
+  },
+  {
+   "id": "A5a",
+   "result": "PARTIAL",
+   "evidence": "Приёмка rework_tz 2 выполнена: псевдоэлемент по инструкции ::before (P4b) и ::after (I2d), выключатель на самом ::before (P4c), вложенный элемент со своим выключателем (P4e): заметки в обоих слоях, rc=0; fill с выключателем в том же теге в HTML (I2a, f04c) и в строке JS (I2c): заметка, rc=0; выключатель на родителе <svg> fill потомка не гасит (I2b rc=1); LOOPANIM из element.animate и SMIL (P10): живьём ВЫКЛ x2, статика [LOOPANIM] x2, как сужено в §20:1588. Не как в §20:1582: законный a.style.cssText = \"--ks-allow:'HEX: ...'; color:#1a4b8c\" без чужих элементов даёт rc=1 [HEX] '[el.style] (js)' при заметке '[el.style.cssText]' (I1z_csstext_legit_alone), та же строка через += rc=0 (I1z_csstext_plus_eq_legit): check_ds.py:250 разбирает cssText = второй раз как свойство css-text, у блока-двойника выключателя нет. el.style.setProperty('--ks-allow', ...) и el.style.color на том же элементе: rc=1 (I1y), каждая запись свой блок. Три элемента под одним правилом с выключателем: одна заметка в статике и одна живьём (I2e), §20:1591 обещает по одной на элемент. PARTIAL, а не FAIL: все случаи приёмки п.2 проходят, расхождение на двух путях JS, в сторону запрета, громко (rc=1), дыры в сторону пропуска нет"
+  },
+  {
+   "id": "A5b",
+   "result": "PASS",
+   "evidence": "run_hex на копии выпускаемого: все 14 записей класса claim (v01-v13, v15) дают [HEX]; FILL заглавными (v14) и el.setAttribute('fill', '#d00') (v17) тоже; склейка строкой (v16) не заявлена и молчит; сторож 1.5.1 на тех же страницах 0"
+  },
+  {
+   "id": "A5c",
+   "result": "PASS",
+   "evidence": "run_hex, 13 законных записей f01-f11 (currentColor и var() в атрибутах, fill=\"url(#fade)\", якоря #bad #add #face, link mask-icon с выключателем и без, fill с выключателем в том же теге, data-color, url(#${ID}) и url(#fade) из JS и в style разметки, input color и meta theme-color, константа-якорь в href, i<n рядом с state.color): rc=0 у всех 13; у f04c заметка выключателя. Ложные [HEX] итерации 1 (f04, f05, f06, f07, f11) закрыты; f08 молчит, 1.5.1 на нём [HEX]"
+  },
+  {
+   "id": "A5e",
+   "result": "PASS",
+   "evidence": "run_path5: (а) сторож 1.5.2 с живыми скриптами 1.5.1 в папке с '#': «[LIVE] живой контраст не запустился: page.goto: net::ERR_FILE_NOT_FOUND at file:///... ; страница не открылась в браузере: проверьте путь к файлу», то же для живого стиля, rc=1; (б) битая ссылка на файл и (в) несуществующий файл со скриптами 1.5.2: то же, rc=1. Строки net::ERR и page.goto: берутся первыми (check_ds.py:597-598). Tamper: «страница в папке с #: открылась и молчит», «страница не открылась, подсказка про путь -> [LIVE]». Мелочь вне rework: строка ошибки обрезана до 160 знаков (:599), в длинном пути имя файла не видно"
+  },
+  {
+   "id": "R1",
+   "result": "PASS",
+   "evidence": "Копия выпускаемого fx157/k (cmp с pkg152b по check_ds.py, style_live.mjs, tamper_ds.py, contrast_live.mjs: совпадает): tamper_ds.py --live «итог: 175 из 175; ложных тревог 0 из 48; живьём 19 из 19, ложных 0; чистая система после восстановления: зелёная», rc=0. Проба итерации 3 (run3_152.py) на копии fx157/ds3_152b: 38 случаев, статикой 23, живьём 31, хоть одним 37, ложных F 0 из 5, по случаям совпадает с итерацией 1 (fx155/probes/run3_152.json, расхождений 0). Шаблоны (5) и specimen.html с --live: «СТОРОЖ DS: чисто», rc=0, 0 заметок; сторож на самой системе: чисто, rc=0"
+  },
+  {
+   "id": "R2",
+   "result": "PARTIAL",
+   "evidence": "Регресс автора п.6: run3b.py:3 DS=SP+'/ds4'; diff ds4/tools/check_ds.py с выпускаемым: 2 строки (правило setAttribute fill, check_ds.py:485-486); tamper_ds.py в ds4 без случая «1.5.2 setAttribute fill», итог tamper на ds4 будет на 1 случай меньше выпускаемого (174 против 175). Версия в заголовке у обоих «1.5.2», копии не различает; cmp в брифе нет. Пробы автора в fx156/k шли на выпускаемом check_ds.py и style_live.mjs (cmp совпадает)"
+  }
+ ],
+ "comprehension_gate": {
+  "applies": false,
+  "passed": true,
+  "defects": []
+ },
+ "checkpoints": {
+  "accuracy_1_figures_tagged": 2,
+  "accuracy_2_sources_verifiable": 1,
+  "accuracy_3_no_conflict_with_rag": 1,
+  "accuracy_4_glossary_terminology": 2,
+  "accuracy_5_brand_names_correct": 2,
+  "actionability_6_owner_assigned": 2,
+  "actionability_7_deadline_buffer": 2,
+  "actionability_8_resources_listed": 1,
+  "actionability_9_metric_concrete": 1,
+  "actionability_10_milestone": 2,
+  "insight_11_nontrivial": 2,
+  "insight_12_second_order": 1,
+  "insight_13_alternatives_analyzed": 2,
+  "insight_14_anti_median": 1,
+  "insight_15_cross_domain": 2,
+  "brand_16_voice": 2,
+  "brand_17_anti_slop": 2,
+  "brand_18_no_em_dash": 2,
+  "brand_19_output_routing": 2,
+  "brand_20_tone_audience": 2,
+  "risk_21_downside": 2,
+  "risk_22_p9_hard_rules": 2,
+  "risk_23_crisis_scenarios": 2,
+  "risk_24_dependencies": 2,
+  "risk_25_reversibility": 2
+ },
+ "scores": {
+  "accuracy": 8.0,
+  "actionability": 8.0,
+  "insight": 8.0,
+  "brand_fit": 10.0,
+  "risk_awareness": 10.0
+ },
+ "weighted_total": 8.6,
+ "verdict": "go",
+ "primary_gap": "Выключатель во встроенном стиле из JS работает не везде, где его перечисляет §20:1582: законный a.style.cssText = \"--ks-allow:'HEX: ...'; color:...\" даёт [HEX] rc=1 (check_ds.py:250 создаёт блок-двойник css-text без выключателя), отдельные записи el.style на том же элементе не связываются. В сторону запрета и громко; дыр в сторону пропуска пробы не нашли.",
+ "gaps": [
+  "1. Законный cssText через = с выключателем даёт [HEX] (A5a PARTIAL). I1z_csstext_legit_alone: a.style.cssText = \"--ks-allow:'HEX: цвет партнёра по брендбуку'; color:#1a4b8c\", чужих элементов нет: rc=1, провал '[el.style] (js)' рядом с заметкой '[el.style.cssText]'; та же строка через += rc=0. Причина: check_ds.py:250 (\\.style\\.([a-zA-Z]+)\\s*=) ловит cssText = как свойство css-text и создаёт блок-двойник, decls() читает --ks-allow как значение css-text, выключателя у двойника нет. Правка на следующую итерацию: исключить cssText в :250 (\\.style\\.(?!cssText\\b)), в tamper_ds.py случай «законный cssText = с выключателем молчит».",
+  "2. §20:1582 шире кода: «встроенный стиль (style=\"\", el.style, cssText, setAttribute): только на этот элемент». Код связывает выключатель с блоком, то есть с одной записью: el.style.setProperty('--ks-allow', ...) и el.style.color = '#1a4b8c' на одном элементе дают [HEX] rc=1 (I1y); в Object.assign ключ '--ks-allow' не читается (check_ds.py:258-259, ключи [a-zA-Z]+); el.setAttribute('fill', '#...') ловится (:485), а выключить его нечем, в §20 это не сказано. Правка: «в той же записи: style=\"\" того же тега, одна строка cssText или setAttribute('style'); отдельные записи el.style.x, setProperty и setAttribute('fill') выключателем не покрываются, для них токен или правило CSS».",
+  "3. §20:1591 «по одной на каждый элемент» неверно: три элемента под одним правилом с выключателем дают одну заметку в статике (блок один) и одну живьём (склейка по коду и имени места, style_live.mjs:195) (I2e). Правка: «по одной на блок стиля (правило, style=\"\", запись в JS), живьём по одной на место».",
+  "4. Процесс, п.6 rework_tz закрыт частично: регресс автора снова на копии, а не на выпускаемом стороже. run3b.py:3 указывает на ds4, ds4/tools/check_ds.py отличается от выпускаемого на 2 строки (:485-486, правило setAttribute fill), tamper_ds.py в ds4 без случая «1.5.2 setAttribute fill»; cmp в брифе нет, заголовок «1.5.2» у обеих версий. Цифры для замера брать с выпускаемого пакета (ниже), прогон на ds4 даст tamper 174, а не 175. Пробы автора в fx156/k шли на выпускаемом check_ds.py и style_live.mjs.",
+  "Цифры с выпускаемого сторожа (копия fx157/k, cmp с pkg152b по 4 файлам совпадает): tamper_ds.py --live «175 из 175; ложных тревог 0 из 48; живьём 19 из 19, ложных 0; чистая система после восстановления: зелёная» (rc=0); проба итерации 3: 38 случаев, статикой 23, живьём 31, хоть одним 37, ложных F 0 из 5, по случаям как в итерации 1; 5 шаблонов и витрина с --live: «СТОРОЖ DS: чисто», 0 заметок; сторож на самой системе: чисто. Заглушку ЗАМЕР_152 по договорённости gap не считаю; actionability_9 = 1 по факту: цифр в §20 сейчас нет, go на цифры, которых нет, не распространяется.",
+  "Подтверждено без замечаний: п.1 область выключателя (13 случаев «выключатель у X, нарушение у Y» в разметке, JS и скрытых экранах: rc=1 у всех, заметка только у X; три скрытых экрана дают три находки); п.2 псевдоэлемент ::before и ::after, выключатель на самом ::before, вложенный элемент, fill с выключателем в том же теге из HTML и строки JS, LOOPANIM из JS и SMIL (сужен в §20 и ведёт себя так); п.3 функция выключателя локальна, подмена со страницы не действует, регистрация --ks-allow страницей тремя способами выключатель не включает, предел getClientRects записан; п.4 все claim HEX, FILL заглавными и setAttribute пойманы, 13 законных записей молчат; п.5 подсказка про путь со строкой net::ERR в трёх случаях; тире 0 и Anti-Slop 0 в изменённых файлах; пакет pkg152b не менялся (mtime 14:45:06), git status --porcelain: только traces/2026-09-24/agents.jsonl.",
+  "Вне оценки по решению Ивана: мягкие тона и M10."
+ ],
+ "evidence_ledger": [
+  {
+   "gap": "Законный cssText через = с выключателем: провал [HEX] от блока-двойника css-text; выключатель на пути, который §20 перечисляет, не действует",
+   "evidence": "fx157/probes/res_i2_csstext.json: I1z_csstext_legit_alone rc=1 [HEX] '[el.style] (js) ... #1a4b8c' + заметка '[el.style.cssText]'; I1z_csstext_plus_eq_legit rc=0; check_ds.py:250, :252",
+   "checkpoint": "actionability_8",
+   "weight": -0.25
+  },
+  {
+   "gap": "Второй порядок: выключатель добавлен во встроенный стиль JS без проверки, что cssText уже разбирается дважды",
+   "evidence": "check_ds.py:250 и :252 оба срабатывают на .style.cssText =; res_i2_static.json I1h: одна запись cssText даёт находки '[el.style]' и '[el.style.cssText]'",
+   "checkpoint": "insight_12",
+   "weight": -0.2
+  },
+  {
+   "gap": "§20 расходится с кодом в трёх строках (в сторону запрета): el.style и cssText в перечне мест выключателя, «по одной на каждый элемент», setAttribute('fill') без слова о выключателе",
+   "evidence": "DESIGN_SYSTEM.md:1582, :1591, :1598; I1y rc=1, I1z_csstext_legit_alone rc=1, I2e одна заметка на три элемента (res_i2_live.json); check_ds.py:258-259, :485; style_live.mjs:195",
+   "checkpoint": "accuracy_3",
+   "weight": -0.25
+  },
+  {
+   "gap": "Регресс автора (п.6) снова на копии ds4, не на выпускаемом стороже; cmp не приложен",
+   "evidence": "run3b.py:3 DS=SP+'/ds4'; diff ds4/tools/check_ds.py pkg152b/kontur-ds/tools/check_ds.py: 484a485,486 (setAttribute fill); diff ds4/tools/tamper_ds.py: 192a193 (случай setAttribute fill)",
+   "checkpoint": "accuracy_2",
+   "weight": -0.25
+  },
+  {
+   "gap": "На новый код автор гонял только мои харнесы; путь cssText = нашёл первый же законный контроль набора п.1",
+   "evidence": "бриф итерации 2 («Мой прогон твоих харнесов на новом стороже»); fx157/probes/run_i2.py I1z и I1y",
+   "checkpoint": "insight_14",
+   "weight": -0.2
+  },
+  {
+   "gap": "Не gap по договорённости с автором: в §20 «Замер» стоит заглушка, цифр замера в артефакте нет (чекпоинт по факту)",
+   "evidence": "grep -n ЗАМЕР_152 DESIGN_SYSTEM.md: 1614; цифры выпускаемого: fx157/tamper157.txt (последняя строка итога), fx157/probes/run3_152b.out, fx157/templates157.txt",
+   "checkpoint": "actionability_9",
+   "weight": -0.25
+  }
+ ],
+ "rework_tz": "",
+ "iteration": 2,
+ "confidence": 0.85,
+ "escalate_to": "нет: go автору, выпуск 1.5.2 решает Иван. Gaps 1-4 на следующую итерацию сторожа; «Замер» вне этого аудита по договорённости, сверка с цифрами выпускаемого из gaps",
+ "sources_of_truth": [
+  "scratchpad/pkg152b/kontur-ds/tools (check_ds.py, style_live.mjs, tamper_ds.py, contrast_live.mjs), копии fx157/k и fx157/ds3_152b (cmp совпадает)",
+  "scratchpad/pkg152/kontur-ds (итерация 1) для diff; scratchpad/ds4 и scratchpad/run3b.py (регресс автора)",
+  "scratchpad/pkg152b/kontur-ds/DESIGN_SYSTEM.md §19 (:1505-1515), §20 (:1564-1623)",
+  "knowledge/episodes/2026-09/feniks-audit-kontur-ds-152-20260924.json (rework_tz 1-7)",
+  "scratchpad/fx157/probes (run_i2.py, run_probes.py, run_p4e.py, run_hex.py, run_path5.py, run3_152.py, res_*.json, i2_live.out, p_old.out, p4e.out, run3_152b.out), fx157/tamper157.txt, fx157/templates157.txt, fx157/self157.txt",
+  "scratchpad/selfcheck-ds152.md (самопроверка итерации 1, 25 пунктов) и перечень закрытия 1-7 в брифе итерации 2"
+ ]
+}

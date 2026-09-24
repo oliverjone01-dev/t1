@@ -773,6 +773,85 @@ function deptDQBlock(){
 //                  формально активность есть, по факту сделкой не занимаются;
 //   в работе  - дело на ближайшие 30 дней: здоровое состояние.
 // Разрез по менеджерам, клик по строке - раскрыть проблемные сделки со ссылками в Б24.
+// ===== СМАРТ ЗАДАЧИ: KPI менеджеров с разворотом до сделок =====
+// Часы зоны - те же, что в «Календаре горячих сделок» (см. ageAt в offerCalendarBlock):
+// возраст = дни с ДАТЫ ПОСЛЕДНЕЙ АКТИВНОСТИ (дела в таймлайне), откат на дату создания,
+// если активности нет. Проработал сделку - она освежается и уходит из красной зоны.
+// Банды: ≤14 зелёная · 15-30 жёлтая · 31+ красная. Это решение Ивана 24.09.2026.
+function smartTasksBlock(){
+  const P2=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00").getTime();
+  const nowT=NOWD.getTime(), today=DATA.to;
+  const openAll=flt(AD,true).filter(d=>!d.won&&!d.lost&&isOP(d.mgr)&&d.created!==MIGDATE);
+  if(!openAll.length) return '';
+  const closedP=flt(AD,true).filter(d=>isOP(d.mgr)&&(d.won||d.lost)&&d.closed&&inP(d.closed));
+  const ageOf=d=>{const a=d.activity?P2(d.activity):P2(d.created);return Math.round((nowT-Math.min(a,nowT))/DAYMS);};
+  const zoneOf=d=>{const a=ageOf(d);return a<=14?'g':a<=30?'y':'r';};
+  const ZC={g:'#2E9E74',y:'#C2873C',r:'#CC5867'};
+  const ZL={g:'зелёная ≤14 дн',y:'жёлтая 14-30 дн',r:'красная 30+ дн'};
+  const M={};
+  const mk=nm=>M[nm]=M[nm]||{nm,op:[],sum:0,g:0,y:0,r:0,ovd:0,noTask:0,wonN:0,wonM:0,lostN:0};
+  openAll.forEach(d=>{const o=mk(d.mgr);o.op.push(d);o.sum+=(d.budget||0);o[zoneOf(d)]++;
+    if(d.taskDue&&String(d.taskDue).slice(0,10)<today)o.ovd++;
+    if(!d.tasksOpen)o.noTask++;});
+  closedP.forEach(d=>{const o=mk(d.mgr);if(d.won){o.wonN++;o.wonM+=(d.prepayAmt||d.budget||0);}else o.lostN++;});
+  const rows=Object.values(M).filter(o=>o.op.length||o.wonN||o.lostN);
+  rows.forEach(o=>{const cl=o.wonN+o.lostN;o.cr=cl?o.wonN/cl:null;o.zpct=o.op.length?o.g/o.op.length:null;});
+  const T={n:0,sum:0,g:0,y:0,r:0,ovd:0,noTask:0,wonN:0,wonM:0,lostN:0};
+  rows.forEach(o=>{T.n+=o.op.length;T.sum+=o.sum;T.g+=o.g;T.y+=o.y;T.r+=o.r;T.ovd+=o.ovd;T.noTask+=o.noTask;T.wonN+=o.wonN;T.wonM+=o.wonM;T.lostN+=o.lostN;});
+  T.cr=(T.wonN+T.lostN)?T.wonN/(T.wonN+T.lostN):null;T.zpct=T.n?T.g/T.n:null;
+  const SK=S.smSort||'cnt', SA=!!S.smAsc;
+  const val=(o,k)=>({cnt:o.op.length,sum:o.sum,zpct:o.zpct==null?-1:o.zpct,r:o.r,ovd:o.ovd,noTask:o.noTask,wonN:o.wonN,wonM:o.wonM,cr:o.cr==null?-1:o.cr}[k]);
+  rows.sort((a,b)=>{const x=val(a,SK),y=val(b,SK);if(x===y)return a.nm.localeCompare(b.nm);return SA?x-y:y-x;});
+  const th=(k,t,tip)=>`<th data-smsort="${k}" class="${SK===k?'sorted'+(SA?' asc':''):''}" style="cursor:pointer;text-align:center;white-space:nowrap">${t}${tip?info(tip):''}</th>`;
+  const zoneBar=(o,tot)=>{if(!tot)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
+    const sg=(v,c)=>v?`<div style="height:100%;width:${(v/tot*100).toFixed(2)}%;background:${c}"></div>`:'';
+    const tp=(`<div class='tl'>Зона по последней активности</div>`+[['g',o.g],['y',o.y],['r',o.r]].map(([k,v])=>`<div class='tr'><span><i style='display:inline-block;width:8px;height:8px;border-radius:50%;background:${ZC[k]};margin-right:6px;vertical-align:-1px'></i>${ZL[k]}</span><span>${v} (${tot?Math.round(v/tot*100):0}%)</span></div>`).join('')+`<div style='color:var(--ink-3);font-size:10px;margin-top:6px;white-space:normal;text-transform:none;letter-spacing:0'>Возраст считается от даты последней активности - те же часы, что в «Календаре горячих сделок». Проработал сделку - она вернулась в зелёную.</div>`).replace(/"/g,'&quot;');
+    return `<td style="min-width:112px;width:112px"><div data-tip="${tp}" style="display:flex;height:11px;border-radius:6px;overflow:hidden;background:var(--bg-base)">${sg(o.g,ZC.g)}${sg(o.y,ZC.y)}${sg(o.r,ZC.r)}</div><div style="display:flex;justify-content:space-between;gap:6px;font-size:9.5px;margin-top:2px;font-variant-numeric:tabular-nums"><span style="color:${ZC.g};font-weight:700">${o.g}</span><span style="color:${ZC.y}">${o.y}</span><span style="color:${ZC.r};font-weight:${o.r?700:400}">${o.r}</span></div></td>`;};
+  const head=`<tr><th style="text-align:left">Менеджер</th>`
+    +th('cnt','Открытых','Открытые сделки воронки C49, созданные после переезда из amoCRM (5 марта 2026). Снимок «сейчас», на период сверху не реагирует.')
+    +th('sum','Портфель ₽','Сумма бюджетов открытых сделок менеджера.')
+    +th('r','Зона','Зелёная ≤14 дн · жёлтая 14-30 · красная 30+. Возраст - по дате последней активности (дела в таймлайне), те же часы, что в «Календаре горячих сделок». Сортировка - по числу красных (клик ещё раз - обратный порядок).')
+    +th('ovd','Просроч. дел','Открытые сделки, у которых ближайшее дело просрочено (дата дела раньше сегодняшней).')
+    +th('noTask','Без дела','Открытые сделки без единого открытого дела. Менеджер не назначил следующий шаг.')
+    +th('wonN','Успех','Сделки, ушедшие в успех за выбранный период сверху. Деньги - предоплата (если есть) либо бюджет, это НЕ отгруженная выручка.')
+    +th('cr','Конверсия','Успех ÷ (успех + отказ) за период. Знаменатель - закрытые сделки периода, поэтому цифра отличается от сквозной конверсии лид→сделка в блоке «Отдел продаж».')
+    +`<th style="text-align:center;white-space:nowrap;color:var(--ink-4)">Рентабельность ${info('Маржа по сделке. Источника пока нет: калькулятор стал обязательным, смарт-процессы дорабатываются. Столбец включится, когда поле поедет в снимок. До этого - пусто, а не выдуманная цифра.')}</th></tr>`;
+  const portal=DATA.b24Portal||'';
+  const dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">#${esc(id)}</a>`:'#'+esc(id);
+  const mrow=o=>{
+    const opn=!!(S.smOpen&&S.smOpen[o.nm]), tot=o.op.length;
+    const zc=o.zpct==null?'var(--ink-4)':o.zpct>=0.8?ZC.g:o.zpct>=0.6?ZC.y:ZC.r;
+    const main=`<tr data-smmgr="${esc(o.nm)}" style="cursor:pointer"><td class="name" style="text-align:left"><span style="color:#A78BFA">${opn?'▾ ':'▸ '}</span>${esc(o.nm)}${o.zpct!=null?`<span style="margin-left:7px;font-size:10px;font-weight:700;color:${zc}">${Math.round(o.zpct*100)}% зел.</span>`:''}</td>
+      <td style="text-align:center;font-weight:700">${tot||'·'}</td>
+      <td style="text-align:center">${o.sum?fmtK(o.sum):'·'}</td>
+      ${zoneBar(o,tot)}
+      <td style="text-align:center;font-weight:${o.ovd?700:400};color:${o.ovd?'#F8717A':'var(--ink-3)'}">${o.ovd||'·'}</td>
+      <td style="text-align:center;font-weight:${o.noTask?700:400};color:${o.noTask?'#C2873C':'var(--ink-3)'}">${o.noTask||'·'}</td>
+      <td style="text-align:center;font-weight:700">${o.wonN||'·'}${o.wonM?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${fmtK(o.wonM)}</div>`:''}</td>
+      <td style="text-align:center;font-weight:700;color:${o.cr==null||(o.wonN+o.lostN)<5?'var(--ink-3)':o.cr>=0.25?ZC.g:o.cr>=0.15?ZC.y:ZC.r}" ${(o.wonN+o.lostN)&&(o.wonN+o.lostN)<5?`data-tip="Закрытых за период всего ${o.wonN+o.lostN} - выборка мала, проценту не верить"`:''}>${o.cr==null?'—':pct(o.cr)}${(o.wonN+o.lostN)?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${o.wonN}✓/${o.lostN}✗</div>`:''}</td>
+      <td style="text-align:center;color:var(--ink-4);font-size:10px">готовится</td></tr>`;
+    if(!opn)return main;
+    const ds=o.op.slice().sort((a,b)=>ageOf(b)-ageOf(a));
+    const drows=ds.map(d=>{const z=zoneOf(d),a=ageOf(d);
+      const ov=d.taskDue&&String(d.taskDue).slice(0,10)<today;
+      const task=!d.tasksOpen?'<span style="color:#C2873C">нет дела</span>':(ov?`<span style="color:#F8717A;font-weight:700">просрочено ${esc(String(d.taskDue).slice(0,10))}</span>`:esc(String(d.taskDue||'').slice(0,10)||'·'));
+      return `<tr><td style="text-align:left;white-space:nowrap">${dl(d.id)}</td><td style="text-align:left;color:var(--ink-3)">${esc(d.stage||'')}<div style="font-size:9.5px;color:var(--ink-4)">${esc(d.client||'')}${d.assort?' · '+esc(d.assort):''}</div></td>
+        <td style="text-align:center;font-weight:700;color:${ZC[z]}">${a} дн</td>
+        <td style="text-align:center;color:var(--ink-3)">${esc(d.activity||'нет активности')}</td>
+        <td style="text-align:left">${task}</td>
+        <td style="text-align:right;font-weight:700">${d.budget?fmtK(d.budget):'·'}</td></tr>`;}).join('');
+    const dtbl=`<div class="scroll" style="max-height:340px"><table class="tbl"><thead><tr><th style="text-align:left">Сделка</th><th style="text-align:left">Стадия / клиент и изделие</th><th>Возраст</th><th>Посл. активность</th><th style="text-align:left">Ближайшее дело</th><th style="text-align:right">Бюджет</th></tr></thead><tbody>${drows}</tbody></table></div>`;
+    return main+`<tr style="background:var(--bg-base)"><td colspan="9" style="padding:10px 16px"><div class="card-sub" style="margin-bottom:5px">${esc(o.nm)} · открытые сделки, самые холодные сверху · клик по номеру - карточка в Битрикс24</div>${dtbl}</td></tr>`;
+  };
+  const body=rows.map(mrow).join('');
+  const trow=`<tr class="total" style="font-weight:800"><td style="text-align:left">Итог по отделу</td><td style="text-align:center">${T.n}</td><td style="text-align:center">${fmtK(T.sum)}</td>${zoneBar(T,T.n)}<td style="text-align:center;color:#F8717A">${T.ovd||'·'}</td><td style="text-align:center;color:#C2873C">${T.noTask||'·'}</td><td style="text-align:center">${T.wonN||'·'}<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${fmtK(T.wonM)}</div></td><td style="text-align:center">${T.cr==null?'—':pct(T.cr)}</td><td style="text-align:center;color:var(--ink-4)">·</td></tr>`;
+  const tbl=`<div class="scroll" style="max-height:620px"><table class="tbl" id="smTbl"><thead>${head}</thead><tbody>${body}${trow}</tbody></table></div>`;
+  const zp=T.n?Math.round(T.g/T.n*100):0;
+  const vc=zp>=80?ZC.g:zp>=60?ZC.y:ZC.r;
+  const verdict=`<div style="margin-top:10px;padding:10px 13px;border-radius:9px;background:${vc}12;border:1px solid ${vc}55"><div style="font-weight:800;font-size:13px;color:${vc}">Зелёная зона отдела: ${zp}% (${T.g} из ${T.n} открытых)</div><div class="card-sub" style="margin-top:4px">В красной зоне (30+ дней без активности) <b style="color:${ZC.r}">${T.r}</b> сделок. Дел просрочено на <b style="color:#F8717A">${T.ovd}</b> сделках, без единого дела стоят <b style="color:#C2873C">${T.noTask}</b>. Сначала разбирать красные с просроченным делом: клиент ждёт, а шага нет.</div>${T.ovd>T.r?`<div class="card-sub" style="margin-top:5px;color:#C2873C">Внимание на расхождение: просроченных дел (${T.ovd}) больше, чем красных сделок (${T.r}). Зона считается по последней активности в таймлайне, а туда попадают и роботные задачи - сделка выглядит свежей, хотя менеджер к ней не возвращался. Столбец «Просроч. дел» в этом случае честнее зоны.</div>`:''}</div>`;
+  return `<div class="card" id="smarttasks"><div class="card-h"><div><div class="card-title">Смарт Задачи - KPI по менеджерам ${info('Рабочая таблица РОПа: один менеджер - одна строка, клик разворачивает до сделок. Зона (зелёная/жёлтая/красная) считается по ТЕМ ЖЕ часам, что «Календарь горячих сделок» ниже: возраст = дни с даты последней активности (дела в таймлайне), откат на дату создания, если активности не было. Проработал сделку - она освежилась и вернулась в зелёную. Открытых / Портфель / Зона / Просроченные дела / Без дела - снимок СЕЙЧАС, фильтр периода сверху на них не влияет. Успех и Конверсия - за выбранный период. Вопрос: у кого портфель остывает и где менеджер не назначил следующий шаг. Вывод: красная зона + просроченное дело = сделка брошена, разбирать первой.')}</div><div class="card-sub">${fmt(T.n)} открытых сделок на ${fmtK(T.sum)} · сортировка по клику на заголовок · клик по менеджеру разворачивает сделки</div></div></div>${verdict}<div style="margin-top:12px">${tbl}</div></div>`;
+}
+
 function taskDisciplineBlock(){
   const PD2=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
   const now=NOWD.getTime(), PARK=30;
@@ -2500,7 +2579,7 @@ function offerControlBlock(){
 
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
-    + divider(3,'Менеджеры','кто тянет, кто отстаёт')+managerDashboardsBlock()+B_rating+taskDisciplineBlock()+B_mgrPlanFactPair
+    + divider(3,'Менеджеры','кто тянет, кто отстаёт')+managerDashboardsBlock()+smartTasksBlock()+B_rating+taskDisciplineBlock()+B_mgrPlanFactPair
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()+deptDQBlock()
     + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+healthBlock()+offerReasonsBlock();
@@ -2895,7 +2974,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const su=e.target.closest('[data-st]');if(su){const k=su.dataset.st;if(S.stSort===k)S.stAsc=!S.stAsc;else{S.stSort=k;S.stAsc=(k==='created'||k==='mgr'||k==='biz'||k==='emp'||k==='stage'||k==='src'||k==='id');}render();}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}const rn=e.target.closest('[data-ocrn]');if(rn){S.ocReasonsN=+rn.dataset.ocrn;render();return;}});
   document.addEventListener('click',e=>{const sg=e.target.closest('[data-ocseg]');if(sg){const v=sg.dataset.ocseg.split('|');S.ocSeg={dim:v[0],val:v.slice(1).join('|')};render();return;}if(e.target&&e.target.closest('[data-ocsegclose]')){S.ocSeg=null;render();return;}});
-  document.addEventListener('click',e=>{const m=e.target.closest('[data-mdmgr]');if(m){const k=m.dataset.mdmgr;S.mdOpen=S.mdOpen||{};S.mdOpen[k]=!S.mdOpen[k];render();return;}const so=e.target.closest('[data-mdsort]');if(so){const k=so.dataset.mdsort;if(S.mdSort===k)S.mdAsc=!S.mdAsc;else{S.mdSort=k;S.mdAsc=false;}render();return;}});
+  document.addEventListener('click',e=>{const sm=e.target.closest('[data-smmgr]');if(sm){const k=sm.dataset.smmgr;S.smOpen=S.smOpen||{};S.smOpen[k]=!S.smOpen[k];render();return;}const ss=e.target.closest('[data-smsort]');if(ss){const k=ss.dataset.smsort;if(S.smSort===k)S.smAsc=!S.smAsc;else{S.smSort=k;S.smAsc=false;}render();return;}const m=e.target.closest('[data-mdmgr]');if(m){const k=m.dataset.mdmgr;S.mdOpen=S.mdOpen||{};S.mdOpen[k]=!S.mdOpen[k];render();return;}const so=e.target.closest('[data-mdsort]');if(so){const k=so.dataset.mdsort;if(S.mdSort===k)S.mdAsc=!S.mdAsc;else{S.mdSort=k;S.mdAsc=false;}render();return;}});
   document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const wmm=e.target.closest('[data-calwipmode]');if(wmm){S.calWipMode=wmm.dataset.calwipmode;S.calRowOpen=S.calRowOpen||{};render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}const csrt=e.target.closest('[data-cellsort]');if(csrt){const kk=csrt.dataset.cellsort;if((S.cellSort||'due')===kk)S.cellAsc=(S.cellAsc===false);else{S.cellSort=kk;S.cellAsc=true;}render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}const tdp=e.target.closest('[data-tdprob]');if(tdp){S.tdProb=tdp.dataset.tdprob;render();return;}const tds=e.target.closest('[data-tdsort]');if(tds){const kk=tds.dataset.tdsort;S.tdSort=S.tdSort||{k:'prob',a:false};if(S.tdSort.k===kk)S.tdSort.a=!S.tdSort.a;else S.tdSort={k:kk,a:false};render();return;}const tfm=e.target.closest('[data-tdfmgr]');if(tfm){const k=tfm.dataset.tdfmgr;S.tdMgr=(S.tdMgr===k)?'':k;render();return;}const tvw=e.target.closest('[data-tdview]');if(tvw){S.tdView=tvw.dataset.tdview;S.tdMgr='';S.tdProb='all';render();return;}const tcl=e.target.closest('[data-tdcell]');if(tcl){const p=tcl.dataset.tdcell.split('|'),mg=p[0]||'',st=p[1]||'all';S.tdProb=st;S.tdMgr=mg||'';S.tdDept=true;render();return;}const tcs=e.target.closest('[data-tdchanseg]');if(tcs){const p=tcs.dataset.tdchanseg.split('|'),mg=p[0]||'',ch=p[1]||'';S.tdChan=ch;S.tdMgr=mg||'';S.tdDept=true;render();return;}const tch=e.target.closest('[data-tdchan]');if(tch){const k=tch.dataset.tdchan;S.tdChan=(S.tdChan===k)?'':k;render();return;}if(e.target.closest('[data-tdprobclear]')){S.tdProb='all';render();return;}if(e.target.closest('[data-tdchanclear]')){S.tdChan='';render();return;}const tdm=e.target.closest('[data-tdmgr]');if(tdm){const k=tdm.dataset.tdmgr;S.tdMgr=(S.tdMgr===k)?'':k;render();return;}const tdd=e.target.closest('[data-tddept]');if(tdd){S.tdDept=(S.tdDept===false);render();return;}});
   document.addEventListener('change',e=>{const ms=e.target.closest('[data-tdmgrsel]');if(ms){S.tdMgr=ms.value||'';if(S.tdMgr)S.tdDept=true;render();return;}});
   const _db=document.getElementById('dateBtn');

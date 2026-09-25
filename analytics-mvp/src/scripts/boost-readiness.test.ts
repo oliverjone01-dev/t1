@@ -4,8 +4,9 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import {
   controlByDay, gapSeries, baseOf, plateauOf, statusOf, readiness, loadCpoDays, loadMoves,
-  daysBetween, median, ARRIVED,
+  daysBetween, median, earliestPlateau, ARRIVED,
   type CoinvRow, type DayPoint, type MoveSource,
+  pairGapSeries, pairFit, adFreeFrom,
 } from "./boost-readiness.js";
 
 const row = (date: string, art: string, v: number, extra: Partial<CoinvRow> = {}): CoinvRow =>
@@ -101,10 +102,35 @@ describe("плато", () => {
     expect(plateauOf([pt(0, 1), pt(1, 1), pt(2, 1)])).toBeNull();
   });
 
+  it("окно не перешагивает потерянный день", () => {
+    // Ровно случай волны: 21.09 есть, 22.09 потерян, 23.09 есть. Окно 21+23+24 проверяет
+    // устойчивость на четырёх сутках с дырой, а не на трёх подряд, и права на плато не даёт.
+    expect(plateauOf([pt(1, 17), pt(3, 17.2), pt(4, 17.1)])).toBeNull();
+    expect(plateauOf([pt(3, 17.2), pt(4, 17.1), pt(5, 17)])).toEqual({ from: "2026-07-04", day: 3 });
+  });
+
   it("день общего сдвига магазина днём плато не считается", () => {
     expect(plateauOf([pt(0, 17), pt(1, 17.5, "our_cpo"), pt(2, 17.2)])).toBeNull();
     expect(plateauOf([pt(0, 17), pt(1, 17.5, "our_cpo"), pt(2, 17.2), pt(3, 17.4), pt(4, 17.1)]))
       .toEqual({ from: "2026-07-03", day: 2 });
+  });
+});
+
+describe("когда плато сможет собраться", () => {
+  it("на хвосте из одного дня ждать ещё двое суток", () => {
+    expect(earliestPlateau([pt(0, 1), pt(3, 9)], "2026-09-23")).toBe("2026-09-25");
+  });
+
+  it("на хвосте из двух подряд дней ждать одни сутки", () => {
+    expect(earliestPlateau([pt(2, 9), pt(3, 10)], "2026-09-23")).toBe("2026-09-24");
+  });
+
+  it("день общего сдвига в хвосте обнуляет счёт", () => {
+    expect(earliestPlateau([pt(2, 9), pt(3, 10, "our_cpo")], "2026-09-23")).toBe("2026-09-26");
+  });
+
+  it("пустой ряд даты не выдумывает", () => {
+    expect(earliestPlateau([], "2026-09-23")).toBeNull();
   });
 });
 
@@ -191,6 +217,8 @@ describe("загрузка дней общего сдвига", () => {
     expect(m.size).toBeLessThan(all.length);
     expect(m.size).toBe(all.filter((r) => r.store_move).length);
     for (const r of all.filter((r) => !r.store_move)) expect(m.has(r.date)).toBe(false);
+    // День без наблюдения цен пометки не получает: это пропуск съёма, а не сдвиг магазина.
+    for (const r of all.filter((r) => r.store_move === null)) expect(m.has(r.date)).toBe(false);
   });
 
   it("по логу CPO день размечается как наша смена ставки", () => {
@@ -247,14 +275,18 @@ describe("эталон июля из data/", () => {
     expect(r.backToBaseOn).toBe("2026-08-11"); // уходит на шестой
   });
 
-  it.skipIf(!has || !existsSync("data/store_moves.ndjson"))("с пометками сдвигов плато сдвигается на шестой день", () => {
-    // 10 и 11.07 это дни общего сдвига магазина, и днями плато они не считаются. Первое
-    // окно из трёх чистых дней подряд открывается только 12.07. Само плато при этом то же,
-    // сдвинулась лишь дата, с которой мы готовы его так назвать.
-    const r = refRow(loadMoves("data/store_moves.ndjson"));
-    expect(r.plateauDay).toBe(6);
-    expect(r.plateauFrom).toBe("2026-07-12");
-    expect(r.heldDays).toBe(5);
+  it.skipIf(!has || !existsSync("data/store_moves.ndjson"))("пометки сдвигов отодвигают плато, но не отменяют его", () => {
+    // Числа берём из самого файла разметки: он пересобирается по явному правилу, и прибитая
+    // дата ломалась бы при каждом пересчёте, не поймав ни одной настоящей ошибки. Проверяем
+    // смысл: плато не может начаться в день общего сдвига и не может быть раньше, чем без
+    // пометок, а сам эффект от разметки не исчезает.
+    const moves = loadMoves("data/store_moves.ndjson");
+    const bare = refRow(new Map());
+    const r = refRow(moves);
+    expect(r.plateauFrom).toBeTruthy();
+    expect(moves.has(r.plateauFrom!)).toBe(false);
+    expect(r.plateauDay!).toBeGreaterThanOrEqual(bare.plateauDay!);
+    expect(r.heldDays).toBe(bare.heldDays);
   });
 
   it.skipIf(!has || !existsSync("data/boost_reference_july.ndjson"))("сходится с эталоном Ивана в пределах 1.5 пункта", () => {
@@ -269,5 +301,100 @@ describe("эталон июля из data/", () => {
     // дне скачка, где разрыв за сутки прыгает на 10 пунктов, это множится.
     expect(Math.max(...diffs)).toBeLessThan(1.5);
     expect(median(diffs)).toBeLessThan(0.5);
+  });
+});
+
+describe("парный ряд и пригодность пары", () => {
+  const D = (n: number) => `2026-09-${String(n).padStart(2, "0")}`;
+  const rows = (spec: Array<[number, string, number]>): CoinvRow[] =>
+    spec.map(([d, art, v]) => ({ date: D(d), art, coinv_paid_pct: v }));
+
+  it("общий сдвиг магазина сокращается в разнице пары", () => {
+    // 21.09 цену сдвинули оба товара: уровень уехал, разница осталась на месте.
+    const s = pairGapSeries(rows([
+      [20, "A", 50], [20, "B", 50],
+      [21, "A", 55], [21, "B", 55],
+    ]), "A", ["B"]);
+    expect(s.map((x) => x.gap)).toEqual([0, 0]);
+  });
+
+  it("несколько соседей сводятся медианой, а не первым попавшимся", () => {
+    const s = pairGapSeries(rows([[20, "A", 60], [20, "B", 50], [20, "C", 52], [20, "D", 70]]), "A", ["B", "C", "D"]);
+    expect(s[0]!.gap).toBe(8);      // медиана соседей 52
+  });
+
+  it("день без соседа в ряд не попадает", () => {
+    const s = pairGapSeries(rows([[20, "A", 60], [21, "A", 61], [20, "B", 50]]), "A", ["B"]);
+    expect(s.map((x) => x.date)).toEqual([D(20)]);
+  });
+
+  it("соседей нет: ряда нет, а не ряд из нулей", () => {
+    expect(pairGapSeries(rows([[20, "A", 60]]), "A", [])).toEqual([]);
+  });
+
+  it("пара годится, если до старта разница держалась около нуля", () => {
+    const ser = [18, 19, 20].map((d) => ({ date: D(d), gap: 0.5 }));
+    const f = pairFit(ser, D(21), D(1));
+    expect(f.ok).toBe(true);
+    expect(f.days).toBe(3);
+  });
+
+  it("пара со смещённой разницей отвергается с числом", () => {
+    // Живой случай: GGL-07-XL-2 против GGL-01-M-2, до старта медиана +25.
+    const ser = [18, 19, 20].map((d) => ({ date: D(d), gap: 25 }));
+    const f = pairFit(ser, D(21), D(1));
+    expect(f.ok).toBe(false);
+    expect(f.why).toContain("+25");
+  });
+
+  it("пара с гуляющей разницей отвергается, даже если медиана нулевая", () => {
+    const ser = [{ date: D(18), gap: -15 }, { date: D(19), gap: 0 }, { date: D(20), gap: 15 }];
+    const f = pairFit(ser, D(21), D(1));
+    expect(f.ok).toBe(false);
+    expect(f.why).toContain("гуляла");
+  });
+
+  it("проверять не на чем: пара не принимается молча", () => {
+    const f = pairFit([{ date: D(20), gap: 0 }], D(21), D(1));
+    expect(f.ok).toBe(false);
+    expect(f.why).toContain("не на чем");
+  });
+
+  it("дни после старта в проверку не идут: там и должен быть эффект", () => {
+    const ser = [...[18, 19, 20].map((d) => ({ date: D(d), gap: 0 })), { date: D(25), gap: 30 }];
+    expect(pairFit(ser, D(21), D(1)).ok).toBe(true);
+  });
+
+  it("окно обрезает дни до первой рекламы: грязный день в проверку не идёт", () => {
+    // 18-е было с рекламой, поэтому окно открывается только с 19-го, и разница 25 за 18-е
+    // пару больше не бракует: она не про сопоставимость, она про уже включённую рекламу.
+    const ser = [{ date: D(18), gap: 25 }, { date: D(19), gap: 0 }, { date: D(20), gap: 0.5 }];
+    expect(pairFit(ser, D(21), D(18)).ok).toBe(false);
+    const f = pairFit(ser, D(21), D(19));
+    expect(f.ok).toBe(true);
+    expect(f.days).toBe(2);
+    expect(f.from).toBe(D(19));
+  });
+
+  it("реклама шла накануне старта: пара непроверяема, а не годна", () => {
+    const ser = [18, 19, 20].map((d) => ({ date: D(d), gap: 0 }));
+    const f = pairFit(ser, D(21), null);
+    expect(f.ok).toBe(false);
+    expect(f.why).toContain("накануне");
+  });
+});
+
+describe("adFreeFrom: окно до первой рекламы", () => {
+  const D = (n: number) => `2026-09-${String(n).padStart(2, "0")}`;
+  it("идёт назад от старта и останавливается на дне с расходом", () => {
+    expect(adFreeFrom(D(21), new Set([D(17)]))).toBe(D(18));
+  });
+
+  it("расход накануне старта закрывает окно совсем", () => {
+    expect(adFreeFrom(D(21), new Set([D(20)]))).toBe(null);
+  });
+
+  it("расхода не было вовсе: окно ограничено только глубиной поиска", () => {
+    expect(adFreeFrom(D(21), new Set(), 3)).toBe(D(18));
   });
 });

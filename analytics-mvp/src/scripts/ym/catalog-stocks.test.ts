@@ -60,18 +60,18 @@ describe("остатки каталога: «не назван» это не н�
 // «неизвестно» не отличается от нуля, и страницы OZON обязаны остаться байт-в-байт (гейт в
 // ym-snapshots.yml). Дважды за одну правку null протекал в OZON: сперва через stockOf, потом
 // через артикул, которого вообще нет в живом снимке. Сторож ловит оба пути сразу.
-// Пока сборка OZON отключена (Иван, 18.09.2026: «вообще отключи озон, оставь только маркет,
-// объединим потом»), проверять байты его страниц не на чем. Сторож меняет предмет, но не
-// исчезает: он следит, что сборщик действительно не пишет страницы OZON. При объединении
-// вернуть проверку на "stockQty":null - она ловила две реальные протечки.
+// С 18.09 по 25.09.2026 сборка OZON была отключена, и сторож следил только за тем, что она
+// страниц не пишет. Иван 25.09.2026 включил её обратно, поэтому вернулась исходная проверка на
+// "stockQty":null: она ловила две реальные протечки.
 describe("остаток OZON не трогаем", () => {
-  it("сборка OZON отключена и страниц не пишет", () => {
+  it("страницы OZON пишутся и null в остаток не протекает", () => {
     const out = mkdtempSync(join(tmpdir(), "oz-stock-"));
-    const log = execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], {
+    execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], {
       env: { ...process.env, OUT_DIR: out }, encoding: "utf8",
     });
-    expect(log).toContain("сборка OZON временно отключена");
-    expect(existsSync(join(out, "katya.html"))).toBe(false);
-    expect(existsSync(join(out, "katya-tovary.html"))).toBe(false);
+    for (const f of ["katya.html", "katya-tovary.html"]) {
+      expect(existsSync(join(out, f)), `${f}: страница OZON должна писаться`).toBe(true);
+      expect(readFileSync(join(out, f), "utf8"), `${f}: неизвестный остаток протёк в OZON`).not.toContain('"stockQty":null');
+    }
   }, 120_000);
 });

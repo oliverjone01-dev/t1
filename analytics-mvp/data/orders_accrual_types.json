@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -64831039,
-  "n": 2927
+  "sum": -65767971,
+  "n": 2946
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2592914,
-  "n": 1434
+  "sum": -2599906,
+  "n": 1443
  },
  {
   "type_id": 3,
@@ -24,15 +24,15 @@
   "type_id": 64,
   "name": "RfbsDomesticDelivery",
   "bucket": "partner",
-  "sum": -837043,
-  "n": 165
+  "sum": -839544,
+  "n": 166
  },
  {
   "type_id": 51,
   "name": "PremiumMembership",
   "bucket": "other",
-  "sum": -792912,
-  "n": 1339
+  "sum": -811748,
+  "n": 1359
  },
  {
   "type_id": 74,
@@ -45,8 +45,8 @@
   "type_id": 59,
   "name": "ReturnFlowLogistic",
   "bucket": "delivery",
-  "sum": -300474,
-  "n": 181
+  "sum": -301357,
+  "n": 183
  },
  {
   "type_id": 22,
@@ -59,8 +59,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -228811,
-  "n": 1281
+  "sum": -234097,
+  "n": 1300
  },
  {
   "type_id": 94,
@@ -80,15 +80,15 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -41440,
-  "n": 150
+  "sum": -42280,
+  "n": 153
  },
  {
   "type_id": 68,
   "name": "RfbsServiceFee",
-  "bucket": "partner",
-  "sum": -28020,
-  "n": 1401
+  "bucket": "other",
+  "sum": -28240,
+  "n": 1412
  },
  {
   "type_id": 16,
@@ -108,8 +108,8 @@
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -6404,
-  "n": 720
+  "sum": -6443,
+  "n": 724
  },
  {
   "type_id": 92,
@@ -122,22 +122,22 @@
   "type_id": 63,
   "name": "RfbsDomesticAgentFee",
   "bucket": "partner",
-  "sum": -3240,
-  "n": 162
+  "sum": -3260,
+  "n": 163
  },
  {
   "type_id": 98,
   "name": "DeliveryToHandoverPlaceByOzon",
   "bucket": "delivery",
-  "sum": -2350,
-  "n": 96
+  "sum": -2425,
+  "n": 99
  },
  {
   "type_id": 45,
   "name": "PickUpPointReturnAcceptance",
   "bucket": "delivery",
-  "sum": -1050,
-  "n": 70
+  "sum": -1065,
+  "n": 71
  },
  {
   "type_id": 6,
@@ -157,7 +157,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 840770,
-  "n": 163
+  "sum": 841139,
+  "n": 164
  }
 ]

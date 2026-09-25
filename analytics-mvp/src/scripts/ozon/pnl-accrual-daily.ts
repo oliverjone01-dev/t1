@@ -18,6 +18,10 @@ import { bucketMap, type Bucket } from "./accrual-buckets.js";
 
 const OUT_CH = "data/pnl_channel_accrual_daily.ndjson";
 const OUT_AC = "data/pnl_account_accrual_daily.ndjson";
+// Итоги кабинетных сборов по типу начисления и месяцу - только имена типов и суммы, без SKU и заказов.
+// Нужны, чтобы видеть, в какую колонку «Общих расходов» попал каждый тип: так нашлось, что «Гибкий
+// график выплат» после 08.09 уходил в «Прочее», а не в «Штрафы» (Иван 25.09.2026, аудит «Денег»).
+const OUT_TYPES = "data/pnl_account_accrual_types.json";
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
 // Категория кабинетного сбора по ИМЕНИ типа начисления (как bucketOf в pnl-account-daily, но по accrual-типам).
@@ -79,6 +83,7 @@ async function main() {
   // --- КАБИНЕТНЫЙ ряд + сервисные сборы канала из by-day (по дате начисления) ---
   const ac: Record<string, { adv: number; fines: number; realfbs: number; badge: number; delivery: number; other: number }> = {};
   const acD = (d: string) => (ac[d] ||= { adv: 0, fines: 0, realfbs: 0, badge: 0, delivery: 0, other: 0 });
+  const byType: Record<string, { cat: string; months: Record<string, number> }> = {};
   const days: string[] = [];
   for (let t = Date.parse(from + "T00:00:00Z"); t <= Date.parse(to + "T00:00:00Z"); t += 86400000) days.push(new Date(t).toISOString().slice(0, 10));
   let byDayRecs = 0;
@@ -97,8 +102,11 @@ async function main() {
       // NON_ITEM: кабинетные сборы -> категории Общих расходов
       const nf = a?.non_item_fee;
       if (nf) {
-        const cat = acctCat(nameById[Number(nf.type_id)] || "");
-        acD(d)[cat] += Number(nf?.accrued?.amount ?? nf?.accrued ?? 0);
+        const nm = nameById[Number(nf.type_id)] || `type_${nf.type_id}`;
+        const cat = acctCat(nm);
+        const v = Number(nf?.accrued?.amount ?? nf?.accrued ?? 0);
+        acD(d)[cat] += v;
+        const t = (byType[nm] ||= { cat, months: {} }); t.months[d.slice(0, 7)] = (t.months[d.slice(0, 7)] || 0) + v;
       }
     }
   }
@@ -112,6 +120,8 @@ async function main() {
     .filter((r) => r.adv || r.fines || r.realfbs || r.badge || r.delivery || r.other);
   writeFileSync(OUT_CH, chRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   writeFileSync(OUT_AC, acRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
+  for (const k in byType) for (const m in byType[k]!.months) byType[k]!.months[m] = Math.round(byType[k]!.months[m]!);
+  writeFileSync(OUT_TYPES, JSON.stringify(byType, null, 1) + "\n");
 
   // само-сверка по месяцам
   const bm: Record<string, { acc: number; pay: number }> = {};

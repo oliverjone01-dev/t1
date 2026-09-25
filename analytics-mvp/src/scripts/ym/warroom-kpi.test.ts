@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, cpSync, existsSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM } from "jsdom";
+import { readDays, immatureWindow, flyShare, FLY_SHARE } from "./test-window.js";
 
 // Карточка «Оборот» на командном центре показывала одно число - заказанное. У Маркета это врёт:
 // за 01-16.09 заказано 10,28 млн, а доставлено 2,33 млн, потому что треть заказов отменяют, а
@@ -55,8 +56,8 @@ beforeAll(async () => {
     env: { ...process.env, DATA_DIR: "data-ym", OUT_DIR: out, PLATFORM: "ym" },
     stdio: "pipe",
   });
-  // Сборка OZON отключена (Иван, 18.09.2026), поэтому сторож проверяет не байты его страницы,
-  // а что сборщик её и не пишет. При объединении площадок вернуть сравнение разметки.
+  // Сборка OZON снова включена (Иван, 25.09.2026). Сторож проверяет, что правка карточки Маркета
+  // не протекла в страницу OZON: у OZON своя карточка «Оборот», без «заказано минус отменено».
   ozonOut = mkdtempSync(join(tmpdir(), "warroom-kpi-ozon-"));
   ozonLog = execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], {
     env: { ...process.env, OUT_DIR: ozonOut }, encoding: "utf8",
@@ -158,9 +159,17 @@ describe("карточка «Оборот» Маркета: заказано м�
   });
 
   it("на недозревшем окне вместо дельты стоит пометка, а не красная стрелка", () => {
-    // За 10-16.09 дельта по доставленному дала бы ▼91.9% при движении бизнеса −13.8%:
-    // 92% заказов окна ещё летят. Такая стрелка на командном центре - ложный триггер P8.
-    setRange("2026-09-10", "2026-09-16");
+    // На недозревшем окне дельта по доставленному даёт ▼90% при движении бизнеса в единицы
+    // процентов: почти все заказы окна ещё летят. Такая стрелка на командном центре это
+    // ложный триггер P8.
+    //
+    // Окно берём из данных, а не из календаря. Прибитое 10-16.09 жило ровно до 23.09.2026:
+    // доля «в пути» в нём упала с 0.85 до 0.44, окно дозрело, и тест начал ронять CI на
+    // каждом PR, не поймав при этом ни одной настоящей ошибки.
+    const rows = readDays();
+    const [from, to] = immatureWindow(rows);
+    expect(flyShare(rows, from, to)).toBeGreaterThan(FLY_SHARE);   // окно и правда недозрело
+    setRange(from, to);
     const d = card().querySelector(".kt-d")!;
     expect(d.textContent).toContain("не дозрело");
     expect(d.className).not.toContain("dn");
@@ -222,10 +231,13 @@ describe("карточка «Оборот» Маркета: заказано м�
     expect(card().textContent || "").not.toContain("снимок без полей");
   });
 
-  it("сборка OZON отключена и её страниц не появляется", () => {
-    expect(ozonLog).toContain("сборка OZON временно отключена");
+  it("страницы OZON пишутся, а карточка Маркета в них не протекает", () => {
+    expect(ozonLog).not.toContain("сборка OZON временно отключена");
     for (const f of ["katya-command.html", "katya.html", "katya-money.html"]) {
-      expect(existsSync(join(ozonOut, f)), `${f}: страница OZON писаться не должна`).toBe(false);
+      expect(existsSync(join(ozonOut, f)), `${f}: страница OZON должна писаться`).toBe(true);
     }
+    const oz = readFileSync(join(ozonOut, "katya-command.html"), "utf8");
+    expect(oz, "подпись карточки Маркета попала в OZON").not.toContain("заказано минус отменено");
+    expect(oz, "флаг снимка Маркета попал в OZON").not.toContain("MONEY_GAP");
   });
 });

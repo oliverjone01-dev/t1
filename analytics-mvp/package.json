@@ -15,9 +15,10 @@
     "fetch:live": "tsx src/scripts/fetch-live.ts",
     "import:competitors": "tsx src/scripts/competitors/import-sheet.ts",
     "build:site": "tsx src/scripts/build-site.ts",
-    "katya": "tsx src/scripts/build-katya.ts && tsx src/scripts/build-reakciya.ts && tsx src/scripts/build-tests.ts",
+    "katya": "tsx src/scripts/build-katya.ts && tsx src/scripts/build-reakciya.ts && tsx src/scripts/build-tests.ts && tsx src/scripts/build-boost.ts",
     "reakciya": "tsx src/scripts/build-reakciya.ts",
     "tests:page": "tsx src/scripts/build-tests.ts",
+    "boost:page": "tsx src/scripts/build-boost.ts",
     "join:taxonomy": "tsx src/scripts/build-taxonomy-join.ts",
     "join:cogs": "tsx src/scripts/build-cogs-join.ts",
     "smoke": "tsx src/scripts/smoke.ts",
@@ -31,6 +32,7 @@
     "probe:metrics": "tsx src/scripts/ozon/analytics-metrics-probe.ts",
     "probe:prices": "tsx src/scripts/ozon/seller-prices-probe.ts",
     "coinv:calib": "tsx src/scripts/ozon/coinv-calibration.ts",
+    "picks": "tsx src/scripts/pick-controls.ts",
     "pnl:daily": "tsx src/scripts/ozon/pnl-daily.ts",
     "pnl:sku:daily": "tsx src/scripts/ozon/pnl-sku-daily.ts",
     "pnl:account:daily": "tsx src/scripts/ozon/pnl-account-daily.ts",
@@ -53,7 +55,11 @@
     "ym:join": "DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-taxonomy-join.ts && DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-cogs-join.ts",
     "ym:build": "DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-site.ts && DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-katya.ts",
     "ym:smoke": "DATA_DIR=data-ym PLATFORM=ym OUT_DIR=public/market tsx src/scripts/smoke.ts",
-    "ym:recon:realization": "tsx src/scripts/ym/recon-realization.ts"
+    "ym:recon:realization": "tsx src/scripts/ym/recon-realization.ts",
+    "eb": "tsx src/scripts/ozon/eb-daily.ts",
+    "cards": "tsx src/scripts/ozon/cards-extract.ts",
+    "promo": "tsx src/scripts/ozon/promo-daily.ts",
+    "coinv:merge": "tsx src/scripts/ozon/coinv-merge.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

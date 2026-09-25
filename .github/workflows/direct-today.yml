@@ -1,0 +1,47 @@
+name: Direct today (трафик за сегодня)
+
+# Read-only: Reports API (TODAY) + stat Метрики. Токены из GitHub Secrets, в файлы не пишутся.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/tender-galileo-ujs35b]
+    paths:
+      - yandex-direct/dashboard/direct-today.mjs
+      - .github/workflows/direct-today.yml
+      - yandex-direct/today.trigger
+
+permissions:
+  contents: write
+
+concurrency:
+  group: direct-today
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Трафик за сегодня
+        env:
+          YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || secrets.YD_TOKEN }}
+          YANDEX_DIRECT_LOGIN: ${{ secrets.YANDEX_DIRECT_LOGIN || secrets.YD_LOGIN }}
+          YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || secrets.YM_TOKEN }}
+          YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
+        run: node yandex-direct/dashboard/direct-today.mjs
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add yandex-direct/data/direct_today.json
+          git diff --staged --quiet && { echo "нет изменений"; exit 0; }
+          git commit -m "direct: трафик за сегодня $(TZ=Europe/Moscow date +%Y-%m-%d\ %H:%M) МСК"
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && exit 0
+            sleep $((2**i))
+          done
+          exit 1

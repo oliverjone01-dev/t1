@@ -1255,7 +1255,9 @@ function renderTree(){
   // иначе кнопка обещает больше строк, чем отдел показывает, и цифры расходятся на глазах.
   const _mset=new Set((SC.managers||[]).map(m=>m.mgr));
   const OCN={all:0,open:0,won:0,lost:0};
-  INPER.forEach(d=>{if(!_mset.has(d.mgr))return;OCN.all++;const k=ocOf(d);if(OCN[k]!==undefined)OCN[k]++;});
+  let _ocUnk=0;   // «в работе» без подтверждённого статуса: считаем и говорим вслух
+  INPER.forEach(d=>{if(!_mset.has(d.mgr))return;OCN.all++;const k=ocOf(d);if(OCN[k]!==undefined)OCN[k]++;
+    if(k==='open'&&d.outKnown===false)_ocUnk++;});
   const DEALS=INPER.filter(d=>S.oc==='all'||ocOf(d)===S.oc);
   const filtered=DEALS.length!==SC.deals.length;
   const byM={}; for(const d of DEALS) (byM[d.mgr] ||= []).push(d);
@@ -1492,7 +1494,7 @@ function renderTree(){
     <button class="dbtn${S.showMetrics?' on':' gray'}" data-metrics="1">${S.showMetrics?'скрыть метрики регламента':'метрики регламента'}</button>
     <span class="cdiv"></span>
     <span class="ctl-lbl">Сделки</span>
-    <div class="seg" id="ocseg">${[['all','все','Все сделки периода'],['open','в работе','Ещё в воронке: не выиграны и не проиграны'],['won','успех','Закрыты успехом'],['lost','отказ','Закрыты отказом']]
+    <div class="seg" id="ocseg">${[['all','все','Все сделки и лиды периода'],['open','в работе','Ещё в воронке: не успех и не отказ. У сделки исход из карточки воронки, у лида из статуса.'+(_ocUnk?' Из них '+fmt2(_ocUnk)+' без подтверждённого статуса: лид чужого бренда или новее ночного снимка РОПа, откуда берутся статусы лидов.':'')],['won','успех','Сделки на успешной стадии и лиды со статусом «Создание сделки»: лид дошёл до сделки.'],['lost','отказ','Сделки на отказной стадии и лиды со статусом отказ, некачественный, спам или дубль.']]
       .map(([k,t,ttl])=>`<button data-oc="${k}"${S.oc===k?' class="on"':''} title="${ttl}">${t} <b style="opacity:.6;font-weight:600">${fmt2(OCN[k])}</b></button>`).join('')}</div>
   </div>`;
   // Компактная справка: 4 коротких карточки + сетка столбцов. Полные формулы - в подсказке

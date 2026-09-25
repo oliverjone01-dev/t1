@@ -2333,7 +2333,7 @@ function render(cur,cmp){
   // первым: он отвечает на «куда делись деньги» одной картинкой, а свод - подробностями под ней.
   // У OZON порядок прежний (свод там пуст, водопад стоит после плана): его страницы правятся
   // отдельно, и менять их раскладку из этой ветки нельзя.
-  const wfSection = `<section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note" style="display:none">начислено → комиссия → услуги OZON → к выплате (канал) → −доставка от покупателя (компенсируется, в расчёт не входит) → −СС произв. → −(АДМ 30% + Налоги 15%) → чистая прибыль. Канальный «к выплате» = к выплате по SKU + доставка от покупателя; СС, база АДМ/налогов и чистая - из аналитики по SKU за тот же период (совпадают с ИТОГО таблицы).</div></section>`;
+  const wfSection = `<section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note"${IS_OZON ? `` : ` style="display:none"`}>Строится на ИТОГО таблицы «Аналитика по артикулам» - базис «Начислений» OZON (дата реализации), по нему OZON платит и считается налог: начислено → сборы → к выплате → СС → наша доставка → доставка покупателя → АДМ 30% от «К выплате» и налоги 15% от «Реализовано» → чистая прибыль, те же числа, что в строке ИТОГО. Что заказано за период и ещё едет - в таблице по заказам.</div></section>`;
   const body = `
   ${IS_OZON ? svodSection : wfSection}
   <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub">${IS_OZON
@@ -2465,14 +2465,17 @@ function paint(p,src,ordGrand){
     return;
   }
   if(!wfSteps&&ordGrand){
-    // OZON: водопад строится на СВОДЕ ПО ЗАКАЗАМ (ordGrand = ИТОГО блока «Аналитика по заказам»,
-    // базис - по дате заказа). Цепочка замкнута на тех же числах, что ИТОГО свода: Начислено − Всего
-    // сборов = К выплате − СС − Наша доставка + Доставка покупателя − (АДМ+Налоги) = Чистая.
+    // OZON: водопад строится на ИТОГО ТАБЛИЦЫ ПО АРТИКУЛАМ (Иван 25.09.2026, п. 2.3): это базис
+    // «Начислений» OZON - дата реализации, - по нему OZON платит и по нему считается налог. Раньше
+    // водопад стоял на своде по заказам (дата заказа, летящие заказы со сборами оценкой) и за месяц
+    // не совпадал ни с выплатами, ни с таблицей по артикулам. Цепочка - те же числа, что ИТОГО:
+    // Начислено − Всего сборов = К выплате − СС − Наша доставка + Доставка покупателя − АДМ − Налоги
+    // = Чистая. Переменная по-прежнему зовётся ordGrand, чтобы не трогать сигнатуру paint.
     var g=ordGrand;var fmtF=function(v){return fmtRu(Math.round(v));};
     var feeTot=Math.round((g.amt||0)-(g.acc||0)); // Всего сборов (знак<0)
-    var feeTip='Всего сборов: комиссия '+fmtF(-(g.com||0))+', логистика '+fmtF(-(g.del||0))
-      +(Math.round(g.acq)?', эквайринг '+fmtF(-g.acq):'')+(Math.round(g.sto)?', хранение '+fmtF(-g.sto):'')
-      +(Math.round(g.prt)?', услуги партнёров '+fmtF(-g.prt):'')+', прочие '+fmtF(-(g.oth||0))+', реклама '+fmtF(-(g.adv||0));
+    var feeTip='Всего сборов: комиссия '+fmtF(g.com||0)+', логистика '+fmtF(g.del||0)
+      +(Math.round(g.acq)?', эквайринг '+fmtF(g.acq):'')+(Math.round(g.sto)?', хранение '+fmtF(g.sto):'')
+      +', прочие '+fmtF(g.oth||0)+', реклама '+fmtF(g.adv||0);
     var admtax=0.30*(g.amtS||0)+0.15*(g.tb||0); // АДМ - от «К выплате», налог - от «Реализовано»
     var net=(g.amt||0)-(g.cc||0)-(g.ship||0)+(g.dinc||0)-admtax;
     var steps2=[['Начислено',g.acc||0,'#22D3EE','Начислено']];
@@ -2591,7 +2594,9 @@ function anCells(x){
   var tbCell=(x.tb!=null)?R(x.tb):''; // «Реализовано (база налога)» - перед «Налогами»
   return I(x.units)+dlvCell+R(x.acc)+R(x.com)+mid+R(fees)+R(x.amt)+shipCell+incCell+R(x.cc)+P(gp)+R(adm)+tbCell+R(tax)+P(net)+PC(rent)+cityCell;
 }
+var skuGrandLast=null;
 function renderSkuAnalytics(cur){
+  skuGrandLast=null;
   var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);var miss=[];
   for(var sk in AN_META){
     var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,9);
@@ -2674,6 +2679,7 @@ function renderSkuAnalytics(cur){
   }
   var totalRow='<tr style="font-weight:800;background:rgba(34,211,238,.16);border-top:2px solid #22D3EE;border-bottom:2px solid #22D3EE"><td style="color:#22D3EE">ИТОГО</td>'+anCells(grand)+'</tr>';
   el.innerHTML=totalRow+html; // ИТОГО - вверху, под шапкой (по просьбе Ивана)
+  skuGrandLast=grand; // ИТОГО таблицы по артикулам - для водопада
   // Сводка-предупреждение о пробелах в данных (нет производственной СС) - чтобы дырка была видна
   var warn=document.getElementById('skuan-warn');
   if(warn){
@@ -3090,9 +3096,10 @@ function render(cur,cmp){
   // ВАЖЕН порядок: сначала таблицы (в т.ч. свод по заказам), потом водопад - он строится на ИТОГО
   // свода по заказам (ordGrand), который возвращает renderOrdersAnalytics.
   if(${IS_OZON})renderSkuAnalytics(cur); // аналитика по SKU за период (на Маркете - svSkuTable из свода)
-  var ordGrand=${IS_OZON}?renderOrdersAnalytics(cur):null; // свод по заказам (в разрезе заказа) + его ИТОГО
+  ${IS_OZON}?renderOrdersAnalytics(cur):null; // свод по заказам (в разрезе заказа)
+  var ordGrand=${IS_OZON}?skuGrandLast:null; // водопад OZON - на ИТОГО таблицы по артикулам (п. 2.3)
   if(${IS_OZON})renderCityLogistics(cur); // логистика по городам (наша перевозка) + сверка способов доставки
-  paint(p,p.daily?'daily':'snap',ordGrand); // водопад OZON строится на ordGrand
+  paint(p,p.daily?'daily':'snap',ordGrand); // водопад OZON строится на ИТОГО таблицы по артикулам
   initPlan(); // блок плана - один раз, со своим выбором месяца
   renderAccountFees(cur); // сборы уровня заказа/кабинета за период (+прогноз)
   try{syncTopScroll();}catch(e){} // верхний горизонтальный скроллбар над таблицами (после отрисовки)

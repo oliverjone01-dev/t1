@@ -15,6 +15,7 @@
 // MAP=/tmp/part.map.json - карта номеров строк в src, нужна применяющему скрипту
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { isHidden, loadFired, OFFICE_MGR } from "./mgr-roster.js";
+import { isMsg, isTalk, isEligible, makeKey } from "./ai-eligible.js";
 
 type Ev = { ts: number; dt: string; dealId: string; leadId: string; mgr: string; type: string; dir: string; who: string; body: string; dealT: string; leadT: string; src?: string };
 
@@ -35,10 +36,10 @@ const dlg = JSON.parse(readFileSync("dialog/data/dialog.json", "utf8"));
 const events: Ev[] = dlg.events || [];
 const done = existsSync(DONE) ? (JSON.parse(readFileSync(DONE, "utf8")).reviews || {}) : {};
 
-// Лид, конвертированный в сделку, в очередь отдельно не идёт - так же считает покрытие в score-dialog.ts.
-const conv = new Set(events.filter((e) => e.dealId && e.leadId).map((e) => e.leadId));
+// Ключ и правило «что разбирать» - общие со счётчиком покрытия (ai-eligible.ts).
+const keyOf = makeKey(events);
 const byKey: Record<string, Ev[]> = {};
-for (const e of events) if (e.dealId || !conv.has(e.leadId)) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= []).push(e);
+for (const e of events) (byKey[keyOf(e)] ||= []).push(e);
 
 // Очередь строится ровно как в ai-review.ts: те же фильтры, тот же порядок.
 const raw = Object.entries(byKey)
@@ -46,7 +47,8 @@ const raw = Object.entries(byKey)
   // Коммуникацией считаем то же, что и скоринг: сообщения, письма, открытые линии. Раньше
   // «Мессенджер ОЛ» сюда не попадал, и сделки, где переписка идёт через открытую линию,
   // выпадали из разбора целиком - 76 из 128 приоритетных.
-  .filter((x) => x.evs.filter((e) => e.type.startsWith("Сообщение") || e.type === "Письмо" || e.type === "Мессенджер ОЛ").length >= 2)
+  // Расшифровки звонков, резюме и заметки с итогом разговора тоже считаются (ai-eligible.ts).
+  .filter((x) => isEligible(x.evs.filter(isMsg).length, x.evs.filter(isTalk).length))
   .filter((x) => !MGR.length || MGR.includes(x.mgr))
   // Разбираем только действующих продавцов отдела. Уволенные, офис-менеджер (лид-интейк)
   // и явно названные не-наши в очередь не идут: их диалоги дашборд всё равно не оценивает,
@@ -85,11 +87,11 @@ for (const x of part) {
     dir[n] = e.dir || "";
     const att = /^(Отправлено|Принято|Получено)\s+(Файл|Изображение|Видео|Документ|Аудио)\.?$/i.test(raw2.trim());
     const body = att ? "[ВЛОЖЕНИЕ, тело не выгружено]"
-      : (raw2.length > 400 ? raw2.slice(0, 400) + " …[обрезано скриптом]" : raw2);
+      : (raw2.length > (isTalk(e) ? 3000 : 400) ? raw2.slice(0, isTalk(e) ? 3000 : 400) + " …[обрезано скриптом]" : raw2);
     return `[${n}] ${e.dt.slice(5, 16).replace("T", " ")} [${e.type}] ${author ? `${author} (${role})` : role}: ${body}`;
   });
   map[x.k] = { mgr: head.mgr || "", last: x.last, srcs, bodies, who, dir };
-  out.push(`\n##### ${x.k} | менеджер: ${head.mgr} | ${head.dealT || head.leadT || ""}\n${lines.join("\n").slice(0, 12000)}`);
+  out.push(`\n##### ${x.k} | менеджер: ${head.mgr} | ${head.dealT || head.leadT || ""}\n${lines.join("\n").slice(0, 20000)}`);
 }
 
 const text = `Порция: ${part.length} диалогов (пропущено ${SKIP}, в очереди всего ${ordered.length})\n` + out.join("\n");

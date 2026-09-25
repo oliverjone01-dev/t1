@@ -1,0 +1,18 @@
+# Сторож Контур DS для проекта. Скопируйте этот файл в .github/workflows/ своего репозитория
+# и укажите свои страницы в pages. Версия шаблона проверки берётся по метке пакета (@kontur-ds-v1.5.2),
+# проверяется копия kontur-ds/, лежащая в проекте.
+name: "Контур DS: сторож"
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  kontur-ds:
+    uses: oliverjone01-dev/t1/.github/workflows/kontur-ds-check.yml@kontur-ds-v1.5.2
+    with:
+      pages: "public/*.html"          # страницы проекта через пробел, маски можно
+      ds-path: kontur-ds              # папка пакета относительно working-directory
+      working-directory: "."          # если проект в подпапке монорепозитория: "my-project"

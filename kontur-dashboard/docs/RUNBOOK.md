@@ -22,7 +22,7 @@ python3 src/build.py
 
 # 5. Проверить
 python3 tools/check_dash.py      # сторож: цифры, цвет, запреты, ряд
-python3 ../kontur-ds/tools/check_ds.py public/index.html   # сторож Контур DS
+python3 kontur-ds/tools/check_ds.py public/index.html   # сторож Контур DS
 python3 tools/snapshot.py --check # ряд без разрывов и не просрочен
 node   tools/smoke.mjs           # все экраны в двух темах и на трёх периодах
 node   tools/contrast.mjs        # контраст каждого текста: 52 экрана × 2 проекта × 2 темы × 2 ширины
@@ -162,7 +162,7 @@ PBKDF2-SHA256 на 600 000 итераций. Схема та же, что у а�
 и бот не коммитит страницу, пока хэши не обновлены. Новая версия пакета:
 
 ```bash
-python3 -c "import hashlib,pathlib;[print(f, hashlib.sha256(pathlib.Path('../kontur-ds/'+f).read_text(encoding='utf-8').strip().encode()).hexdigest()) for f in ('tokens/tokens.css','kit/kit.css')]"
+python3 -c "import hashlib,pathlib;[print(f, hashlib.sha256(pathlib.Path('kontur-ds/'+f).read_text(encoding='utf-8').strip().encode()).hexdigest()) for f in ('tokens/tokens.css','kit/kit.css')]"
 ```
 
 Хэши записать в `PINNED`, пересобрать страницу, прогнать `node tools/seal_test.mjs`.

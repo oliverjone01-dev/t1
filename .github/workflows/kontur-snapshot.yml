@@ -6,7 +6,7 @@ name: "Контур: съём позиций и пересборка дашбо�
 #
 # Данные берутся из выгрузок, которые кладёт harvest.yml (ежедневно, 03:00 МСК).
 # В сеть воркфлоу ходит только за зеркалом apexcharts для дымового теста; вид
-# страницы собирается из пакета kontur-ds/ в репозитории, данные только из файлов.
+# страницы собирается из своей копии пакета kontur-dashboard/kontur-ds/, данные только из файлов.
 
 on:
   schedule:
@@ -82,7 +82,7 @@ jobs:
           set -euo pipefail
           python3 tools/check_dash.py
           # сторож Контур DS без --live: тире, прозрачность, шрифт, оси, конверты
-          python3 ../kontur-ds/tools/check_ds.py public/index.html
+          python3 kontur-ds/tools/check_ds.py public/index.html
 
       - uses: actions/setup-node@v4
         with:

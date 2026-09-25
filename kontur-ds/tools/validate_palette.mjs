@@ -171,12 +171,12 @@ export function validate(palette, { mode = "light", surface, pairs = "adjacent" 
   if (norState === "fail") ok = false;
   report.push(["Normal-vision floor", norState,
     nworst ? `worst ${label} ${nworst[2]}\u2194${nworst[1]} \u0394E ${nd.toFixed(1)} (normal)`
-      + (nd >= NORMAL_FLOOR ? "" : ` \u2014 below ${NORMAL_FLOOR.toFixed(0)}, hard to tell apart even with full color vision`) : "n/a"]);
+      + (nd >= NORMAL_FLOOR ? "" : `: below ${NORMAL_FLOOR.toFixed(0)}, hard to tell apart even with full color vision`) : "n/a"]);
 
   // 5. contrast vs surface - sub-3:1 is a documented conditional relax (visible labels / table view), not a hard fail
   const low = palette.filter(c => contrast(c, surface) < CONTRAST_MIN).map(c => [c, +contrast(c, surface).toFixed(2)]);
   report.push(["Contrast vs surface", low.length ? "relief" : "pass",
-    low.length ? `below ${CONTRAST_MIN}:1 \u2014 relief required (visible labels or table view): ${JSON.stringify(low)}`
+    low.length ? `below ${CONTRAST_MIN}:1: relief required (visible labels or table view): ${JSON.stringify(low)}`
                : `all ${palette.length} >= ${CONTRAST_MIN}:1`]);
 
   return { report, ok };
@@ -201,7 +201,7 @@ export function validateOrdinal(palette, { mode = "light", surface } = {}) {
   const mono = fwd || rev;
   if (!mono) ok = false;
   report.push(["Lightness monotone", mono,
-    mono ? "steps read light\u2192dark" : `out of order \u2014 L values ${JSON.stringify(Ls.map(l => +l.toFixed(3)))}`]);
+    mono ? "steps read light\u2192dark" : `out of order: L values ${JSON.stringify(Ls.map(l => +l.toFixed(3)))}`]);
 
   // Adjacent delta L - each step must be visibly distinct from its neighbour.
   const gaps = Ls.slice(1).map((l, i) => Math.abs(l - Ls[i]));
@@ -218,7 +218,7 @@ export function validateOrdinal(palette, { mode = "light", surface } = {}) {
   const cr = contrast(lightest, surface);
   if (cr < ORDINAL_LIGHT_FLOOR) ok = false;
   report.push(["Light-end contrast", cr >= ORDINAL_LIGHT_FLOOR,
-    `${lightest} at ${cr.toFixed(2)}:1 vs surface` + (cr >= ORDINAL_LIGHT_FLOOR ? "" : ` \u2014 below ${ORDINAL_LIGHT_FLOOR}:1 floor`)]);
+    `${lightest} at ${cr.toFixed(2)}:1 vs surface` + (cr >= ORDINAL_LIGHT_FLOOR ? "" : `: below ${ORDINAL_LIGHT_FLOOR}:1 floor`)]);
 
   // Single hue - an ordinal ramp is one hue; a hue jump means it's categorical.
   const hues = palette.map(okhue);
@@ -227,7 +227,7 @@ export function validateOrdinal(palette, { mode = "light", surface } = {}) {
   const oneHue = spread <= 40;
   if (!oneHue) ok = false;
   report.push(["Single hue", oneHue,
-    `hue spread ${spread.toFixed(0)}°` + (oneHue ? "" : " \u2014 >40°, not a one-hue ramp")]);
+    `hue spread ${spread.toFixed(0)}°` + (oneHue ? "" : ": >40°, not a one-hue ramp")]);
 
   return { report, ok };
 }
@@ -242,10 +242,10 @@ function printReport({ report, ok }, { mode, surface, ordinal, n }) {
     console.log(`  [${(GLYPH[state] ?? state).padEnd(4)}] ${name.padEnd(22)} ${detail}`);
   }
   if (ordinal) {
-    console.log(`\n  \u2192 ${ok ? "ALL CHECKS PASS" : "FAILED \u2014 fix the marked checks"}`
+    console.log(`\n  \u2192 ${ok ? "ALL CHECKS PASS" : "FAILED: fix the marked checks"}`
       + "  (ordinal: one hue, monotone L, visible step gaps, light end clears surface)");
   } else {
-    console.log(`\n  \u2192 ${ok ? "ALL CHECKS PASS" : "FAILED \u2014 fix the marked checks"}`
+    console.log(`\n  \u2192 ${ok ? "ALL CHECKS PASS" : "FAILED: fix the marked checks"}`
       + "  (CVD in the 6\u20138 floor band is legal ONLY with secondary encoding: direct labels, gaps, or texture)");
     console.log("  scope: categorical palettes only. For a lone status/text color check WCAG"
       + " text contrast; for a sequential ramp, lightness monotonicity.\n");
@@ -280,7 +280,7 @@ if (typeof process !== "undefined" && process.argv && process.argv[1] && process
   const rawSurface = opts.surface != null ? stripWs(opts.surface) : "";
   const surface = rawSurface || DEFAULT_SURFACE[mode];
   const badHex = [...palette, surface].filter((c) => !isHexColor(c));
-  if (badHex.length) { console.error(`invalid hex value(s): ${badHex.join(", ")} \u2014 expected #rrggbb`); process.exit(2); }
+  if (badHex.length) { console.error(`invalid hex value(s): ${badHex.join(", ")}: expected #rrggbb`); process.exit(2); }
   const pairs = opts.pairs || "adjacent";
   const result = opts.ordinal ? validateOrdinal(palette, { mode, surface }) : validate(palette, { mode, surface, pairs });
   printReport(result, { mode, surface, ordinal: !!opts.ordinal, n: palette.length });
@@ -306,11 +306,11 @@ if (typeof document !== "undefined") {
     const badHex = [...palette, surface].filter((c) => !isHexColor(c));
     if (!palette.length || badEnum || badHex.length) {
       // Module top level - no `return` here; skip validating instead.
-      console.warn(`validate_palette: ${!palette.length ? "empty palette" : badEnum ? `unrecognized ${badEnum}` : `invalid hex value(s): ${badHex.join(", ")} \u2014 expected #rrggbb`} \u2014 not validating`);
+      console.warn(`validate_palette: ${!palette.length ? "empty palette" : badEnum ? `unrecognized ${badEnum}` : `invalid hex value(s): ${badHex.join(", ")}: expected #rrggbb`}: not validating`);
     } else {
       const result = ordinal ? validateOrdinal(palette, { mode, surface }) : validate(palette, { mode, surface, pairs });
       console.table(result.report.map(([name, state, detail]) => ({ check: name, result: GLYPH[state] ?? state, detail })));
-      if (!result.ok) console.warn("validate_palette: FAILED \u2014 fix the marked checks");
+      if (!result.ok) console.warn("validate_palette: FAILED: fix the marked checks");
     }
   }
 }

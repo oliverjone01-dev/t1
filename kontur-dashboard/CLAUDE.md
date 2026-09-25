@@ -13,7 +13,7 @@
 
 ```bash
 python3 tools/build_data.py && python3 src/build.py
-python3 tools/check_dash.py && python3 ../kontur-ds/tools/check_ds.py public/index.html
+python3 tools/check_dash.py && python3 kontur-ds/tools/check_ds.py public/index.html
 node tools/smoke.mjs && node tools/contrast.mjs && node tools/seal_test.mjs && node tools/text_scan.mjs
 ```
 
@@ -25,11 +25,11 @@ node tools/smoke.mjs && node tools/contrast.mjs && node tools/seal_test.mjs && n
    дата съёма. Выгрузки нет, значит `v: null` и класс `ДЕМО`. Правдоподобное число
    вместо прочерка запрещено.
 2. **Ни одного длинного тире.** Только дефис. Ловится сторожем.
-3. **Вид только из Контур DS 1.5** (`kontur-ds/` в корне репозитория). Цвета,
+3. **Вид только из Контур DS 1.5** (своя копия `kontur-dashboard/kontur-ds/`; общий дом Контура с новыми версиями в `/kontur-ds`). Цвета,
    шрифт, отступы и компоненты берутся из пакета: токены `tokens.css`, кит `KS.*`,
    графики пресетами `KS.charts` по слотам `--cat-1..5`. Своих hex в модулях нет,
    прозрачность на тексте запрещена (приглушённый текст это класс `ks-muted`).
-   Пакет здесь не правится: новая версия кладётся в `kontur-ds/` целиком.
+   Пакет здесь не правится: новая версия кладётся в `kontur-dashboard/kontur-ds/` целиком по `/kontur-ds/INSTALL.md`, затем пересборка и пересчёт хэшей (RUNBOOK).
 4. **Две оси Y на одном графике запрещены.** Разные по величине ряды приводятся
    к индексу: первая точка периода это 100.
 5. **У каждого графика таблица-двойник.**

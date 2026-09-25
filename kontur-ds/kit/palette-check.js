@@ -136,12 +136,12 @@ function validate(palette, { mode = "light", surface, pairs = "adjacent" } = {})
   if (norState === "fail") ok = false;
   report.push(["Normal-vision floor", norState,
     nworst ? `worst ${label} ${nworst[2]}\u2194${nworst[1]} \u0394E ${nd.toFixed(1)} (normal)`
-      + (nd >= NORMAL_FLOOR ? "" : ` \u2014 below ${NORMAL_FLOOR.toFixed(0)}, hard to tell apart even with full color vision`) : "n/a"]);
+      + (nd >= NORMAL_FLOOR ? "" : `: below ${NORMAL_FLOOR.toFixed(0)}, hard to tell apart even with full color vision`) : "n/a"]);
 
   // 5. contrast vs surface - sub-3:1 is a documented conditional relax (visible labels / table view), not a hard fail
   const low = palette.filter(c => contrast(c, surface) < CONTRAST_MIN).map(c => [c, +contrast(c, surface).toFixed(2)]);
   report.push(["Contrast vs surface", low.length ? "relief" : "pass",
-    low.length ? `below ${CONTRAST_MIN}:1 \u2014 relief required (visible labels or table view): ${JSON.stringify(low)}`
+    low.length ? `below ${CONTRAST_MIN}:1: relief required (visible labels or table view): ${JSON.stringify(low)}`
                : `all ${palette.length} >= ${CONTRAST_MIN}:1`]);
 
   return { report, ok };

@@ -30,6 +30,7 @@
     </div>
     <nav id="nav" class="ks-nav"></nav>
     <div class="ks-sidebar-foot ks-lbl" id="foot"></div>
+    <div class="ks-sidebar-tools"><button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" data-ks-act="theme"></button><button type="button" class="ks-btn ks-btn--ghost ks-btn--sm" data-ks-act="density"></button></div>
   </aside>
 
   <div class="ks-main">
@@ -45,8 +46,8 @@
       <div class="ks-topbar-spacer"></div>
       <div class="ks-stamp ks-hide-md" id="stamp"></div>
       <span id="cmdkb"></span>
-      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="dens" aria-label="Плотность интерфейса"></button>
-      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="theme" aria-label="Сменить тему"></button>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon ks-hide-sm" id="dens" aria-label="Плотность интерфейса"></button>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon ks-hide-sm" id="theme" aria-label="Сменить тему"></button>
     </header>
     <main class="ks-view" id="view"></main>
   </div>
@@ -278,7 +279,7 @@ function render(){
   el('nav').innerHTML = KS.nav(NAV, VIEW);
   el('seg').querySelectorAll('[data-p]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === CUR)));
   el('stamp').textContent = V().name + (has() ? ' · снимок ' + ruDate(V().series.at(-1).date) : ' · ряда нет');
-  el('foot').textContent = 'Шаблон Контур DS 1.5. Данные GENGLASS: отчёт качества, цикл 3.';
+  el('foot').textContent = 'Шаблон Контур DS 1.5.2. Данные GENGLASS: отчёт качества, цикл 3.';
   el('theme').innerHTML = KS.theme.icon();
   KS.route.set({ project:CUR, view:VIEW, period:String(DAYS) });
   KS.ticker.run(el('view'));

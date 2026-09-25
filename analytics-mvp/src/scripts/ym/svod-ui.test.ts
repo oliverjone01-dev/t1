@@ -586,11 +586,14 @@ describe("свод Маркета: числа на странице", () => {
     expect(D().getElementById("sv-note")!.textContent || "").toBe("");
   });
 
-  // Иван 2026-09-17: «этот блок убирай». Таблица «Аналитика по артикулам» с Маркета снята -
-  // она отвечала на вопрос «за что заплатили» теми же статьями, что и свод, и дублировала его.
+  // Иван 2026-09-17: «этот блок убирай». Таблица `skuan-t` с Маркета снята - она отвечала на
+  // вопрос «за что заплатили» теми же статьями, что и свод, и дублировала его.
   // Сторож нужен, потому что прежние два теста про эту таблицу проходили БЕЗ НЕЁ: они молча
   // пропускали периоды, где нет строк, и с исчезнувшей таблицей стали зелёными ни о чём.
-  it("таблицы «Аналитика по артикулам» на Маркете нет", () => {
+  // 25.09.2026: имя «Аналитика по артикулам» на Маркете теперь носит ДРУГОЙ блок (бывший «Свод по
+  // дате заказа», id `sv-t`), поэтому сторож проверяется только по id снятой таблицы - по
+  // заголовку он с этого дня ловил бы не то.
+  it("снятая таблица skuan-t на Маркет не вернулась", () => {
     setRange("2026-07-01", "2026-07-31");
     expect(D().getElementById("skuan-t"), "блок аналитики по артикулам вернулся на Маркет").toBeNull();
     expect(D().getElementById("skuan")).toBeNull();
@@ -953,7 +956,7 @@ describe("страница денег: водопад выше свода", () =
   it("порядок блоков - водопад, план, свод", () => {
     const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
     const wf = titles.findIndex((x) => /Водопад P&L/.test(x));
-    const sv = titles.findIndex((x) => /Свод по дате заказа/.test(x));
+    const sv = titles.findIndex((x) => /Аналитика по артикулам/.test(x));
     expect(wf, "блока водопада на странице нет").toBeGreaterThanOrEqual(0);
     expect(sv, "блока свода на странице нет").toBeGreaterThanOrEqual(0);
     expect(wf, "свод снова выше водопада").toBeLessThan(sv);
@@ -979,10 +982,10 @@ describe("свод по заказам", () => {
   it("блок есть, стоит перед сводом по артикулам и не пуст", () => {
     setRange("2026-07-01", "2026-07-31");
     const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
-    const sv = titles.findIndex((x) => /Свод по дате заказа/.test(x));
-    const so = titles.findIndex((x) => /Свод по заказам/.test(x));
-    expect(so, "блока «Свод по заказам» нет").toBeGreaterThanOrEqual(0);
-    expect(sv, "блока «Свод по дате заказа» нет").toBeGreaterThanOrEqual(0);
+    const sv = titles.findIndex((x) => /Аналитика по артикулам/.test(x));
+    const so = titles.findIndex((x) => /Аналитика по заказам/.test(x));
+    expect(so, "блока «Аналитика по заказам» нет").toBeGreaterThanOrEqual(0);
+    expect(sv, "блока «Аналитика по артикулам» нет").toBeGreaterThanOrEqual(0);
     expect(so, "свод по заказам должен стоять выше свода по артикулам").toBeLessThan(sv);
     expect(T2().querySelectorAll("tr.so-cat").length, "категорий в своде по заказам нет").toBeGreaterThan(1);
     expect(errs).toEqual([]);
@@ -1546,9 +1549,9 @@ describe("свод по заказам: порядок блоков, город 
 
   it("свод по заказам стоит ВЫШЕ свода по артикулам", () => {
     const t = titles();
-    const a = t.indexOf("Свод по заказам"), b = t.indexOf("Свод по дате заказа");
-    expect(a, "блока «Свод по заказам» нет").toBeGreaterThanOrEqual(0);
-    expect(b, "блока «Свод по дате заказа» нет").toBeGreaterThanOrEqual(0);
+    const a = t.indexOf("Аналитика по заказам"), b = t.indexOf("Аналитика по артикулам");
+    expect(a, "блока «Аналитика по заказам» нет").toBeGreaterThanOrEqual(0);
+    expect(b, "блока «Аналитика по артикулам» нет").toBeGreaterThanOrEqual(0);
     expect(a, "порядок блоков не поменялся").toBeLessThan(b);
   });
 
@@ -1860,7 +1863,7 @@ describe("баллы Маркета: отдельной карточкой в к
     setRange("2026-07-01", "2026-07-31");
     const note = D().getElementById("sv-pts")!;
     expect(note.closest("#sv-pts-card"), "плашка не в своей карточке").not.toBeNull();
-    const svCard = [...D().querySelectorAll(".card")].find((c) => /Свод по дате заказа/.test(c.querySelector(".card-title")?.textContent || ""));
+    const svCard = [...D().querySelectorAll(".card")].find((c) => /Аналитика по артикулам/.test(c.querySelector(".card-title")?.textContent || ""));
     expect(svCard?.contains(note) || false, "плашка осталась внутри свода").toBe(false);
   });
 

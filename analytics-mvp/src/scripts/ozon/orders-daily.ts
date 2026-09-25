@@ -42,13 +42,25 @@ async function main() {
   const byType: Record<number, { name: string; bucket: string; sum: number; n: number }> = {};
   const rfbsSet = new Set<string>();   // постинги с realFBS-начислениями -> схема доставки rFBS
   const logiSet = new Set<string>();   // постинги со сбором «Логистика» (type 32) -> OZON везёт (FBO/FBS)
+  // Дата начисления сборов по продаже (комиссия, логистика) = дата реализации заказа. Нужна таблице по
+  // артикулам, которая с сентября считает по дате реализации (Иван 25.09.2026, п. 2.2): логистика OZON
+  // приходит только здесь, в by-day её нет. Имя поля даты у OZON не документировано - берём первое
+  // найденное и печатаем только ИМЕНА полей начисления (репозиторий публичный, логи открыты).
+  const saleDate: Record<string, string> = {};
+  // Логистика по заказу С РАЗБИВКОЙ ПО ДАТАМ начисления: OZON может дослать логистику позже выручки,
+  // в другом месяце (август: 8 заказов из 317). Каждый сбор встаёт на свою дату, а не на последнюю.
+  const dlvByDate: Record<string, Record<string, number>> = {};
+  const dateOf = (a: any): string => String(a?.date ?? a?.accrual_date ?? a?.operation_date ?? a?.created_at ?? a?.accrued_at ?? "").slice(0, 10);
+  let keysShown = false, withDate = 0, sale = 0;
   for (const p of acc) {
     const b = (accByOrder[p.posting_number] ||= zero());
+    if (!keysShown && (p.accruals || [])[0]) { console.log("  поля начисления по заказу:", Object.keys(p.accruals[0]).join(", ")); keysShown = true; }
     for (const a of (p.accruals || [])) {
       const tid = Number(a.type_id);
       const bk = (bmap[tid] || "other") as Bucket;
       const amt = Number(a?.accrued?.amount ?? a?.accrued ?? a?.amount ?? 0);
       b[bk] += amt;
+      if (bk === "commission" || bk === "delivery") { sale++; const dd = dateOf(a); if (/^\d{4}-\d{2}-\d{2}$/.test(dd)) { withDate++; if (!saleDate[p.posting_number] || dd > saleDate[p.posting_number]!) saleDate[p.posting_number] = dd; if (bk === "delivery") { const m = (dlvByDate[p.posting_number] ||= {}); m[dd] = (m[dd] || 0) + amt; } } }
       const nm = nameById[tid] || String(tid);
       if (/rfbs|realfbs/i.test(nm)) rfbsSet.add(p.posting_number);
       if (tid === 32 || /^logistic$|логистик/i.test(nm)) logiSet.add(p.posting_number);
@@ -58,6 +70,7 @@ async function main() {
   }
   // ПРОБ: разбивка начислений по заказу по ТИПУ (с бакетом) - убедиться, что в «other» нет
   // замаскированного эквайринга/хранения. Пишем отдельным файлом.
+  console.log(`  сборов по продаже ${sale}, из них с датой начисления ${withDate}`);
   const typesArr = Object.entries(byType).map(([tid, v]) => ({ type_id: Number(tid), ...v, sum: Math.round(v.sum) })).sort((a, b) => a.sum - b.sum);
   writeFileSync("data/orders_accrual_types.json", JSON.stringify(typesArr, null, 1));
   console.log(`  типов начислений по заказам: ${typesArr.length} -> data/orders_accrual_types.json`);
@@ -77,12 +90,19 @@ async function main() {
     // OZON). Если явных признаков нет - берём источник постинга (FBO/FBS из эндпоинта).
     const scheme = rfbsSet.has(p.posting_number) ? "rFBS" : (logiSet.has(p.posting_number) ? ((p as any).src || "FBS") : ((p as any).src || ""));
     const feesSum = b.commission + b.acquiring + b.storage + b.delivery + b.ads + b.partner + b.other; // buyerDelivery компенсируется, в payout не входит
+    // Сколько заплатил покупатель (Иван 25.09.2026, п. 1.4): financial_data.products[].customer_price ×
+    // quantity. Это «Реализовано на сумму» (F) отчёта о реализации по заказу; база налога = paid + G.
+    // Нет financial_data - null (build-katya тогда оценивает базу долей).
+    const fdp: any[] = (p as any).financial_data?.products ?? [];
+    const paidRaw = fdp.reduce((s, x) => s + (Number(x?.customer_price) || 0) * (Number(x?.quantity) || 1), 0);
+    const paid = fdp.length && paidRaw > 0 ? Math.round(paidRaw * 100) / 100 : null;
     rows.push({
       order: p.posting_number, d: p.date, status: p.status, scheme,
       sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
       commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(b.acquiring),
       storage: Math.round(b.storage), buyer_delivery: Math.round(b.buyerDelivery), ads: Math.round(b.ads),
-      partner: Math.round(b.partner), other: Math.round(b.other), payout: Math.round(revenue + feesSum),
+      partner: Math.round(b.partner), other: Math.round(b.other), payout: Math.round(revenue + feesSum), paid, sd: saleDate[p.posting_number] || null,
+      dl: dlvByDate[p.posting_number] ? Object.entries(dlvByDate[p.posting_number]!).map(([d, v]) => [d, Math.round(v)]).filter((x) => x[1]) : null,
     });
   }
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");

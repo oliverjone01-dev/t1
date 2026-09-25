@@ -10,6 +10,7 @@ on:
       - yandex-direct/dashboard/direct-today.mjs
       - .github/workflows/direct-today.yml
       - yandex-direct/today.trigger
+      - yandex-direct/dashboard/account-history.mjs
 
 permissions:
   contents: write
@@ -33,11 +34,19 @@ jobs:
           YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || secrets.YM_TOKEN }}
           YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
         run: node yandex-direct/dashboard/direct-today.mjs
+      - name: История аккаунта (дни × кампании + Метрика)
+        env:
+          YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || secrets.YD_TOKEN }}
+          YANDEX_DIRECT_LOGIN: ${{ secrets.YANDEX_DIRECT_LOGIN || secrets.YD_LOGIN }}
+          YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || secrets.YM_TOKEN }}
+          YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
+          DATE_FROM: "2026-06-01"
+        run: node yandex-direct/dashboard/account-history.mjs
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add yandex-direct/data/direct_today.json
+          git add yandex-direct/data/direct_today.json yandex-direct/data/account_history.json
           git diff --staged --quiet && { echo "нет изменений"; exit 0; }
           git commit -m "direct: трафик за сегодня $(TZ=Europe/Moscow date +%Y-%m-%d\ %H:%M) МСК"
           for i in 1 2 3 4 5; do

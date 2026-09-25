@@ -658,7 +658,7 @@ input#q{min-width:220px}
 .cal-io input{width:88px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--ink-1);font-size:11px;padding:3px 6px;margin-left:3px}
 .cal-sp{flex:1}
 @media(max-width:720px){.cal-months{flex-direction:column;gap:8px}}
-.aicov{display:inline-block;white-space:nowrap;font-weight:700;font-size:12px;padding:2px 8px;border:1px solid;border-radius:10px;cursor:default}.aicov i{font-style:normal;font-weight:500;opacity:.85}.aistale,.aiwait{opacity:.8}
+.aicov{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;cursor:default;vertical-align:middle;line-height:1}.airing{width:14px;height:14px;flex:none;display:block}.aicov b{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}.aistale,.aiwait{opacity:.8}
 </style>
 </head>
 <body>
@@ -1163,7 +1163,14 @@ function renderTree(){
       +(c.none?`<br>Ещё не разбирались: <b>${c.none}</b>`:'')
       +`<br><br>В счёт идут диалоги, где не меньше двух реплик переписки. Любое новое событие в сделке снимает галочку, пока ночной прогон не разберёт её заново.`
       +(SC.aiCoverage&&SC.aiCoverage.at?`<br>Пересчитано: ${esc(new Date(SC.aiCoverage.at).toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}))}`:'');
-    return `<span class="aicov" style="color:${col};border-color:${col}55;background:${col}12" data-tip="${tip.replace(/"/g,'&quot;')}">${ok?'✓ ':''}${c.fresh}/${c.elig}${ok?'':` <i>· ждут ${left}</i>`}</span>`; };
+    // Полное покрытие - зелёный кружок с галочкой. Неполное - незамкнутое кольцо и рядом число
+    // диалогов, которые ждут разбора. Дуга не длиннее 3/4 круга: при 95% кольцо иначе выглядит
+    // замкнутым и читается как «готово». Точная доля - в подсказке.
+    const R=6, L=2*Math.PI*R, arc=(L*Math.min(c.fresh/c.elig,.75)).toFixed(2);
+    const ring=ok
+      ? `<svg class="airing" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.5" fill="${col}"/><path d="M4.6 8.2l2.3 2.3 4.5-4.7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : `<svg class="airing" viewBox="0 0 16 16"><circle cx="8" cy="8" r="${R}" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="2.4"/><circle cx="8" cy="8" r="${R}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="${arc} ${L.toFixed(2)}" transform="rotate(-90 8 8)"/></svg>`;
+    return `<span class="aicov" data-tip="${tip.replace(/"/g,'&quot;')}">${ring}${ok?'':`<b style="color:${col}">${left}</b>`}</span>`; };
   // --- ГРАДУСНИК: цвет по температуре, термометр сделки, распределение по менеджеру/отделу ---
   const TEMPCOL=(t)=> t>=80?'#E5484D':t>=50?'#F76808':t>=25?'#E2A336':'#5B8DEF';
   // Термометр одной сделки: шкала 0-100, засечка на температуре входа, стрелка Δ, в подсказке -
@@ -1227,7 +1234,7 @@ function renderTree(){
   const coolListHtml=(ds)=>{ const op=ds.filter(d=>d.outcome==='open'); if(!op.length) return '';
     const top=Object.entries(cool).sort((a,b)=>b[1].deg-a[1].deg).slice(0,5); if(!top.length) return '';
     return `<ul class="cool-ul">`+top.map(([l,v])=>`<li><b class="cool-l">${esc(l)}</b> <span class="cool-n">${v.n} сдел. · до +${v.deg}°</span><span class="cool-fix">→ ${esc(resolveAgg(l))}</span></li>`).join('')+`</ul>`; };
-  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'aicov',t:'Разбор ИИ',l:1,full:'Сколько диалогов разобрано ИИ и не устарело. Галочка - разобрано всё; новое событие в сделке снимает галочку до следующего прогона'},{k:'sum',t:'Портфель'},
+  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'aicov',t:'ИИ',l:1,full:'Сколько диалогов разобрано ИИ и не устарело. Галочка - разобрано всё; новое событие в сделке снимает галочку до следующего прогона'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'temp',t:'Градусник',l:1,full:'Температура клиентов (шанс покупки) + сила нагрева менеджера'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
     .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
     .concat([{k:'compl',t:'Полнота',l:1}]);

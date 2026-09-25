@@ -284,6 +284,16 @@ input#q{min-width:220px}
 .callchip{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:5px;border:1px solid;white-space:nowrap}
 .callchip.ca-ans{color:#2E9E74;border-color:#2E9E7455;background:#2E9E7414}
 .callchip.ca-miss{color:#C25252;border-color:#C2525255;background:#C2525214}
+.trchip{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:5px;border:1px solid;white-space:nowrap;cursor:help}
+.trchip.tr-yes{color:#2C7BE5;border-color:#2C7BE555;background:#2C7BE512}
+.trchip.tr-no{color:#8794A5;border-color:#8794A540;background:transparent;font-weight:600}
+.vtbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.vtbl th{text-align:right;font-size:10.5px;font-weight:700;color:var(--ink-3);padding:4px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+.vtbl th.l,.vtbl td.l{text-align:left}
+.vtbl td{text-align:right;padding:4px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+.vtbl tr.vtot td{font-weight:800;border-top:2px solid var(--accent);background:var(--accent-soft)}
+.vbar{display:inline-block;height:7px;border-radius:4px;background:#2C7BE5;vertical-align:middle;margin-right:6px}
+.vbarbg{display:inline-block;width:70px;height:7px;border-radius:4px;background:var(--border);vertical-align:middle;overflow:hidden}
 /* Итог ИИ по менеджеру (над таблицей его сделок) */
 .msum{background:#8B7BF00d;border:1px solid #8B7BF033;border-radius:9px;padding:11px 13px;margin:2px 0 12px}
 .msum-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8B7BF0;margin-bottom:6px}
@@ -701,15 +711,120 @@ function trHtml(e){
 // Звонок: явная метка входящий/исходящий + отвечен/пропущенный. Отвечен/пропущен считаем по
 // ДЛИТЕЛЬНОСТИ (0:00 или пусто = пропущенный), а не по статусу COMPLETED - он у звонков врёт
 // (бывает «не состоялся» при длительности 10 мин).
+// ================= Склейка звонков и расшифровок =================
+// Расшифровка приходит отдельным комментарием в карточке сделки. Время этого комментария -
+// когда расшифровку залили, а НЕ когда был звонок: в снимке 24.09 медиана разрыва 27 дней,
+// поэтому «ближайший по времени звонок» даёт мусор. Единственный надёжный ключ - шапка
+// внутри самого текста расшифровки:
+//   «Звонок от 25.09.2026 09:25, длительность 2:07, входящий, номер 79185850072»
+// Время в шапке идёт в UTC, события Bitrix - в МСК. Проверено на записи 24.09: шапка 07:53
+// против звонка 10:53:15 МСК (= 07:53:15 UTC), расхождение 15 секунд.
+const TR_HEAD=/Звонок\s+от\s+(\d{2})\.(\d{2})\.(\d{4})[\s,]+(\d{2}):(\d{2})\s*,\s*длительность\s+(\d+):(\d{2})\s*,\s*(вход|исход)\S*\s*,\s*номер\s*\+?(\d[\d\s\-()]*)/i;
+const TR_EXACT_MS=180000;              // «точно»: шапка и звонок сходятся с точностью до 3 минут
+const dig10=s=>{const x=String(s||'').replace(/\D/g,'');return x.length>10?x.slice(-10):x;};
+const durSec=t=>{const m=/^(\d+):(\d{2})$/.exec(String(t||''));return m?(+m[1])*60+(+m[2]):null;};
+function trHead(e){
+  // Шапка может лежать и в тексте реплик (разбор по ролям), и в сыром теле.
+  const src=(e.speakers&&e.speakers.length?e.speakers.map(t=>t.text||'').join('\n'):'')+'\n'+String(e.body||'');
+  const m=TR_HEAD.exec(src); if(!m) return null;
+  return { at:Date.parse(m[3]+'-'+m[2]+'-'+m[1]+'T'+m[4]+':'+m[5]+':00Z'),
+           dur:(+m[6])*60+(+m[7]), durTxt:(+m[6])+':'+m[7],
+           dir:m[8].toLowerCase().indexOf('вход')===0?'входящее':'исходящее', phone:dig10(m[9]) };
+}
+// Индекс строится один раз на всю страницу: событий больше ста тысяч, на каждый рендер дорого.
+let CALLTR=null;
+function callTrIndex(){
+  if(CALLTR) return CALLTR;
+  const ent=e=>e.dealId?'D'+e.dealId:'L'+e.leadId;
+  const calls={}, trs=[];
+  for(const e of DATA.events){
+    if(e.type==='Звонок') (calls[ent(e)] ||= []).push(e);
+    else if(e.type==='Транскрипт звонка') trs.push(e);
+  }
+  const byCall={}, byTr={};
+  for(const t of trs){
+    const h=trHead(t);
+    if(!h){ byTr[t.src]={how:'нет шапки'}; continue; }
+    const cand=(calls[ent(t)]||[]).filter(c=>!byCall[c.src]);
+    const samePhone=cand.filter(c=>dig10(c.title)===h.phone);
+    const pool=samePhone.length?samePhone:cand;
+    let best=null,bestD=Infinity;
+    for(const c of pool){ const dt=Math.abs(c.ts-h.at); if(dt<bestD){bestD=dt;best=c;} }
+    let how=null;
+    if(best&&bestD<=TR_EXACT_MS) how='точно';
+    else if(samePhone.length){
+      // Время не сошлось: держимся за номер. Длительность - второй ключ, она в шапке точная.
+      const byDur=samePhone.filter(c=>durSec(c.dur)===h.dur);
+      if(byDur.length===1){ best=byDur[0]; how='по номеру и длительности'; }
+      else if(samePhone.length===1){ best=samePhone[0]; how='по номеру'; }
+      else how=null;
+    }
+    if(how&&best){ byCall[best.src]={tr:t,how,head:h}; byTr[t.src]={call:best,how,head:h}; }
+    else byTr[t.src]={how:'звонок не найден',head:h};
+  }
+  return (CALLTR={byCall,byTr});
+}
+// Карточка «Голос: звонки и расшифровки». Отвечает на один вопрос: какую долю разговоров
+// вообще можно разобрать, и где обрыв - нет записи, нет расшифровки или расшифровка есть,
+// но её не к чему привязать.
+function voiceCard(dFrom,dTo){
+  const IX=callTrIndex();
+  const inW=e=>(!dFrom||e.ts>=dFrom)&&(!dTo||e.ts<=dTo);
+  const M={}; const E=m=>M[m] ||= {mgr:m,n:0,ans:0,sec:0,rec:0,tr:0,exact:0};
+  let trTot=0,trLinked=0,trNoHead=0,trLost=0;
+  for(const e of DATA.events){
+    if(!inW(e)) continue;
+    if(e.type==='Звонок'){
+      const a=E(e.mgr||'(без ответственного)'); a.n++;
+      const gc=IX.byCall[e.src];
+      const sec=durSec(e.dur)||(gc&&gc.head?gc.head.dur:0)||0; if(sec>0){a.ans++;a.sec+=sec;}
+      if(/запись есть/.test(String(e.body||''))||e.link) a.rec++;
+      const g=IX.byCall[e.src]; if(g){a.tr++; if(g.how==='точно') a.exact++;}
+    } else if(e.type==='Транскрипт звонка'){
+      trTot++; const g=IX.byTr[e.src]||{};
+      if(g.call) trLinked++; else if(g.how==='нет шапки') trNoHead++; else trLost++;
+    }
+  }
+  const rows=Object.values(M).filter(a=>a.n).sort((a,b)=>b.n-a.n);
+  if(!rows.length) return '';
+  const T={n:0,ans:0,sec:0,rec:0,tr:0,exact:0};
+  rows.forEach(a=>{for(const k in T)T[k]+=a[k];});
+  const hhmm=sec=>{const h=Math.floor(sec/3600),m=Math.round(sec%3600/60);return h?h+' ч '+m+' м':m+' м';};
+  const p1=(x,y)=>y?Math.round(x/y*100)+'%':'-';
+  const bar=(x,y)=>{const w=y?Math.round(x/y*70):0;return `<span class="vbarbg"><span class="vbar" style="width:${w}px"></span></span>`;};
+  const tip=t=>`data-tip="${String(t).replace(/"/g,'&quot;')}"`;
+  const tr=(a,cls)=>`<tr class="${cls||''}"><td class="l">${esc(a.mgr)}</td><td>${fmt2(a.n)}</td><td>${fmt2(a.ans)}</td><td>${hhmm(a.sec)}</td><td>${fmt2(a.rec)} <span class="st">${p1(a.rec,a.n)}</span></td><td>${fmt2(a.tr)} <span class="st">${p1(a.tr,a.n)}</span></td><td>${bar(a.tr,a.n)} ${p1(a.tr,a.n)}</td></tr>`;
+  const head=`<tr><th class="l">Ответственный</th><th ${tip('Все звонки Bitrix за период, включая непринятые.')}>Звонков</th><th ${tip('Звонки с ненулевой длительностью. Разница с «Звонков» - пропущенные и недозвоны.')}>Состоялось</th><th ${tip('Сумма длительностей состоявшихся звонков.')}>Минут в эфире</th><th ${tip('У звонка есть файл записи в карточке Bitrix. Без записи расшифровку взять неоткуда.')}>Запись</th><th ${tip('Звонки, к которым удалось привязать текст расшифровки по шапке «Звонок от … длительность … номер …».')}>Расшифровка</th><th ${tip('Доля звонков, разбираемых по тексту.')}>Покрытие</th></tr>`;
+  const note=`<div class="card-sub" style="margin-top:8px;line-height:1.55">Расшифровок в CRM за период: <b>${fmt2(trTot)}</b>. Привязано к звонку: <b>${fmt2(trLinked)}</b>.`
+    + (trNoHead?` Без шапки со временем и номером: <b>${fmt2(trNoHead)}</b> - привязать не к чему, время комментария показывает загрузку, а не разговор.`:'')
+    + (trLost?` Шапка есть, но звонка с таким номером и временем в карточке нет: <b>${fmt2(trLost)}</b>.`:'')
+    + `</div>`;
+  return `<div class="legend" style="padding:10px 12px"><div class="lgh" data-vhelp="1"><i>${S.voice?'▾':'▸'}</i>Голос: звонки и расшифровки${S.voice?'':` <span class="st">покрытие ${p1(T.tr,T.n)} · ${fmt2(T.n)} звонков</span>`}</div>`
+    + (S.voice?`<div class="lgb"><div class="scrollx"><table class="vtbl">${head}${rows.map(a=>tr(a)).join('')}${tr({mgr:'Итого',...T},'vtot')}</table></div>${note}</div>`:'')
+    + `</div>`;
+}
 function callCell(e){
   const inb=e.dir==='входящее', out=e.dir==='исходящее';
-  const answered=e.dur && e.dur!=='0:00' && e.dur!=='0';
+  const g0=callTrIndex().byCall[e.src];
+  // Статистика звонка (CALL_DURATION) приходит не по всем активностям: у части звонков
+  // длительность пустая, и раньше такой разговор показывался как пропущенный. Если к звонку
+  // привязана расшифровка, берём длительность из её шапки - она точная.
+  const hdur=g0&&g0.head?g0.head.durTxt:'';
+  const own=e.dur && e.dur!=='0:00' && e.dur!=='0';
+  const answered=own||!!hdur;
   const arrow=inb?'↙':out?'↗':'•';
   const dirw=inb?'входящий':out?'исходящий':'звонок';
-  const st=answered?('отвечен · '+esc(e.dur)):'пропущенный';
+  const st=answered?('отвечен · '+esc(own?e.dur:hdur)+(own?'':' <span class="st">из расшифровки</span>')):'пропущенный';
   const chip=`<span class="callchip ${answered?'ca-ans':'ca-miss'}">${arrow} ${dirw} · ${st}</span>`;
-  const tail=String(e.body||'').replace(/^Звонок[^·]*/,'').replace(/^·\s*/,'').trim();
-  return chip+(tail?` <span class="st">${esc(tail)}</span>`:'');
+  // Хвост тела - это пометка Bitrix про запись. Состояние расшифровки берём из склейки,
+  // а не из тела: собственное поле TRANSCRIPT_ID у внешней телефонии всегда пустое.
+  const hasRec=/запись есть/.test(String(e.body||''))||!!e.link;
+  const g=callTrIndex().byCall[e.src];
+  const trc=g
+    ? `<span class="trchip tr-yes" data-tip="Расшифровка привязана (${esc(g.how)}). Текст - отдельной строкой ниже в ленте.">🗒 расшифровка${g.how==='точно'?'':' · '+esc(g.how)}</span>`
+    : `<span class="trchip tr-no" data-tip="${hasRec?'Запись в карточке Bitrix есть, расшифровки нет: её либо ещё не залили, либо звонок не отправляли на распознавание.':'Ни записи, ни расшифровки: слушать нечего, для разбора звонок непрозрачен.'}">${hasRec?'без расшифровки':'без записи и расшифровки'}</span>`;
+  const tail=String(e.body||'').replace(/^Звонок[^·]*/,'').replace(/^·\s*/,'').replace(/·?\s*(есть расшифровка|транскрипта нет)\s*/g,'').replace(/^·\s*/,'').trim();
+  return chip+' '+trc+(tail?` <span class="st">${esc(tail)}</span>`:'');
 }
 const typeColor = t => t && t.indexOf('Сообщение')===0 ? '#2E9E74' : (TCOL[t]||'#5D6B77');
 // Плавающая подсказка: тот же механизм, что в РОП-дашборде (наведение на элемент с data-tip).
@@ -727,7 +842,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'tree', oc:'all', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
+const S = { mode:'tree', oc:'all', voice:false, dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
   fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, clMgr:'', clKind:'', deptOpen:true, grpOpen:{office:false,sales:false,other:false}, evHi:null, picks:[],
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), question:'', obj:'auto', inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
@@ -1355,7 +1470,7 @@ function renderTree(){
   byM[DEPT_KEY]=mgrs.flatMap(mm=>byM[mm.mgr]||[]);
   const deptMgr={ mgr:DEPT_KEY, role:'dept', profile:null, sections:[] };
   // Блок «Как читать таблицу» убран по просьбе Ивана; легенда доступна из подсказок в шапке.
-  let html=scope+fbar+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
+  let html=scope+fbar+voiceCard(dFrom,dTo)+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   // «Весь отдел» - уровень 0: его стрелка сворачивает всех менеджеров. Дрил-фильтр отдела
   // (клик по воронке/каналу/«Горит») показывает сделки всего отдела вместо списка менеджеров.
   const deptDrill = (S.fnMgr===DEPT_KEY&&S.fnGrp)||(S.cmMgr===DEPT_KEY&&S.cmType)||(S.hotMgr===DEPT_KEY);
@@ -1508,6 +1623,7 @@ function renderTree(){
   list.querySelectorAll('[data-oc]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.oc=b.dataset.oc; S.td.clear(); renderTree(); });
   const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); S.dFrom=''; S.dTo=''; renderTree(); };
   const hb=list.querySelector('[data-help]'); if(hb) hb.onclick=e=>{ e.stopPropagation(); S.help=!S.help; renderTree(); };
+  const vb=list.querySelector('[data-vhelp]'); if(vb) vb.onclick=e=>{ e.stopPropagation(); S.voice=!S.voice; renderTree(); };
   list.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
     const st = th.dataset.lvl==='m'?S.sM : th.dataset.lvl==='d'?S.sD : S.sE;
     if(st.k===th.dataset.k) st.d=-st.d; else { st.k=th.dataset.k; st.d=(th.dataset.k==='mgr'||th.dataset.k==='title'||th.dataset.k==='stage')?1:-1; }
@@ -1814,6 +1930,14 @@ function sumLink(e,SUMBY){
   // У самого резюме BitrixGPT показываем, к какому звонку оно относится. Дубль-подпись
   // «↳ разбор BitrixGPT» на самом звонке убрана: резюме идёт отдельной строкой ниже.
   if(e.type==='Резюме BitrixGPT') return e.ref?`<div class="ref">↳ ${esc(e.ref)}</div>`:'';
+  if(e.type==='Транскрипт звонка'){
+    const g=callTrIndex().byTr[e.src]; if(!g) return '';
+    const h=g.head;
+    const when=h?new Date(h.at).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+    if(g.call) return `<div class="ref">↳ к звонку ${esc(when)} · ${esc(h.durTxt)} · ${esc(h.dir==='входящее'?'входящий':'исходящий')}${g.how==='точно'?'':' · привязка '+esc(g.how)}</div>`;
+    if(g.how==='нет шапки') return `<div class="ref">↳ звонок не определён: в тексте нет шапки «Звонок от … длительность … номер …». Время комментария - когда расшифровку залили, по нему привязывать нельзя.</div>`;
+    return `<div class="ref">↳ звонок не найден: шапка есть (${esc(when)} · ${esc(h.durTxt)}), но в карточке нет звонка с этим номером и временем.</div>`;
+  }
   return '';
 }
 // У дел в Bitrix есть выставленный срок (DEADLINE/END_TIME). Показываем его рядом со

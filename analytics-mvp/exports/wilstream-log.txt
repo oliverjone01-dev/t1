@@ -1,0 +1,30 @@
+Источники (SOURCE) всего 108; похожие на Wilstream: нет
+Пользовательские поля «Источник»:
+  contact.UF_CRM_6728E4D459C36 «UF_CRM_6728E4D459C36 / Канал обращения / Канал обращения / Канал обращения» тип string; значений-Wilstream: -
+  contact.UF_CRM_67FDFD4D8E73E «UF_CRM_67FDFD4D8E73E / Адрес диалога Jivosite / Адрес диалога Jivosite / UF_CRM_PJ_SOURCE» тип string; значений-Wilstream: -
+  contact.UF_CRM_69AFD3557E059 «UF_CRM_69AFD3557E059 / UTM Source / UTM Source / UTM Source» тип string; значений-Wilstream: -
+  deal.UF_CRM_1731851141928 «UF_CRM_1731851141928 / Источник обращения по вакансии / Источник обращения по вакансии / Источник обращения по вакансии» тип string; значений-Wilstream: -
+  deal.UF_CRM_67CAB80062E46 «UF_CRM_67CAB80062E46 / Адрес диалога Jivosite / Адрес диалога Jivosite / UF_CRM_PJ_SOURCE» тип string; значений-Wilstream: -
+  deal.UF_CRM_1768567176206 «UF_CRM_1768567176206 / Канал (utm_medium) / Канал (utm_medium) / Канал (utm_medium)» тип string; значений-Wilstream: -
+  deal.UF_CRM_1768567201823 «UF_CRM_1768567201823 / Источник (utm_source) / Источник (utm_source) / Источник (utm_source)» тип string; значений-Wilstream: -
+  deal.UF_CRM_69AFC821CD83E «UF_CRM_69AFC821CD83E / UTM Source / UTM Source / UTM Source» тип string; значений-Wilstream: -
+  deal.UF_CRM_MGO_CC_CHANNEL_TYPE «UF_CRM_MGO_CC_CHANNEL_TYPE / Канал обращения / Канал обращения / Канал обращения» тип string; значений-Wilstream: -
+  deal.UF_CRM_1680961042274 «UF_CRM_1680961042274 / Ссылка на источник / Ссылка на источник / Ссылка на источник» тип string; значений-Wilstream: -
+  deal.UF_CRM_DEAL_AMO_PYJAXXFIQEGYHXOW «UF_CRM_DEAL_AMO_PYJAXXFIQEGYHXOW / GG Источник / GG Источник / GG Источник» тип enumeration; значений-Wilstream: -
+  deal.UF_CRM_DEAL_AMO_HBCBHVZQUEJZXIHY «UF_CRM_DEAL_AMO_HBCBHVZQUEJZXIHY / ---ДКТ: Канал---» тип string; значений-Wilstream: -
+  deal.UF_CRM_DEAL_AMO_FSDQTTRXLPCKHVGE «UF_CRM_DEAL_AMO_FSDQTTRXLPCKHVGE / openstat_source» тип string; значений-Wilstream: -
+  lead.UF_CRM_MGO_CC_CHANNEL_TYPE «UF_CRM_MGO_CC_CHANNEL_TYPE / Канал обращения / Канал обращения / Канал обращения» тип string; значений-Wilstream: -
+  lead.UF_CRM_PJ_SOURCE «UF_CRM_PJ_SOURCE / Адрес диалога Jivosite / Адрес диалога Jivosite / UF_CRM_PJ_SOURCE» тип string; значений-Wilstream: -
+  lead.UF_CRM_1772800855 «UF_CRM_1772800855 / UTM Source / UTM Source / UTM Source» тип string; значений-Wilstream: -
+  company.UF_CRM_6729DE5B89BC5 «UF_CRM_6729DE5B89BC5 / Канал обращения / Канал обращения / Канал обращения» тип string; значений-Wilstream: -
+  company.UF_CRM_67CE96BB6F355 «UF_CRM_67CE96BB6F355 / Адрес диалога Jivosite / Адрес диалога Jivosite / UF_CRM_PJ_SOURCE» тип string; значений-Wilstream: -
+  company.UF_CRM_69C66B106A370 «UF_CRM_69C66B106A370 / UTM Source / UTM Source / UTM Source» тип string; значений-Wilstream: -
+  company.UF_CRM_COMPANY_AMO_IPFOCPUCAMXNP «UF_CRM_COMPANY_AMO_IPFOCPUCAMXNP / Источник» тип string; значений-Wilstream: -
+Стадии сделок Wilstream: GG+V Дизайнеры / ОБЗВОН WL (C59:UC_AIEXEV); GG+V Дизайнеры / WILSTREAM (C59:UC_12U53W)
+Сделок: 141
+Лидов: 34
+Контактов по источнику/полю: 0
+Контактов всего: 128
+Дел/писем просмотрено: 241
+Анкет распознано: 57
+Итог: контактов 128, анкет 50, сделок 141, лидов 34

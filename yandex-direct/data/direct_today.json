@@ -1,6 +1,382 @@
 {
  "date": "2026-09-25",
- "generated_at": "2026-09-25T14:32:00.561Z",
+ "groups": {
+  "712877525": {
+   "direct": [
+    {
+     "gid": "5774336347",
+     "group": "Арочные перегородки",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336348",
+     "group": "Арочные перегородки | Заказ",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336356",
+     "group": "Арочные перегородки | Москве",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 1,
+     "spend": 175.08
+    },
+    {
+     "gid": "5774336363",
+     "group": "Дизайнерские перегородки | Стеклянные",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336367",
+     "group": "Зеркальные перегородки",
+     "crit_type": "KEYWORD",
+     "imp": 1,
+     "clicks": 1,
+     "spend": 180.18
+    },
+    {
+     "gid": "5774336369",
+     "group": "Зеркальные перегородки | Заказ",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336373",
+     "group": "Зеркальные перегородки | Комнату",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336374",
+     "group": "Зеркальные перегородки | Раздвижные",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336377",
+     "group": "Перегородки стекло металл",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336378",
+     "group": "Матовые перегородки",
+     "crit_type": "AUTOTARGETING",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336380",
+     "group": "Матовые перегородки | Заказ",
+     "crit_type": "AUTOTARGETING",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336382",
+     "group": "Матовые перегородки | Зонирования",
+     "crit_type": "AUTOTARGETING",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336384",
+     "group": "Матовые перегородки | Производителя",
+     "crit_type": "AUTOTARGETING",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336388",
+     "group": "Телескопические перегородки | Производителя",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336389",
+     "group": "Телескопические перегородки | Заказ",
+     "crit_type": "AUTOTARGETING",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336392",
+     "group": "Телескопические перегородки",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336395",
+     "group": "Телескопические перегородки | Телескоп",
+     "crit_type": "AUTOTARGETING",
+     "imp": 6,
+     "clicks": 1,
+     "spend": 295.82
+    },
+    {
+     "gid": "5774336396",
+     "group": "Телескопические перегородки | Изготовление Телескопических Перегородок",
+     "crit_type": "AUTOTARGETING",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336399",
+     "group": "Каскадные перегородки | Установкой",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336401",
+     "group": "Каскадные перегородки | Заказ",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336405",
+     "group": "Каскадные перегородки",
+     "crit_type": "KEYWORD",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336410",
+     "group": "Распашные перегородки | Маятниковые",
+     "crit_type": "AUTOTARGETING",
+     "imp": 3,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336412",
+     "group": "Распашные перегородки | Маятниковой Дверью",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336417",
+     "group": "Складные перегородки | Заказ",
+     "crit_type": "AUTOTARGETING",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336418",
+     "group": "Складные перегородки | Зонирования",
+     "crit_type": "AUTOTARGETING",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336419",
+     "group": "Складные перегородки",
+     "crit_type": "AUTOTARGETING",
+     "imp": 5,
+     "clicks": 1,
+     "spend": 50.28
+    },
+    {
+     "gid": "5774336419",
+     "group": "Складные перегородки",
+     "crit_type": "KEYWORD",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336420",
+     "group": "Складные перегородки | Гармошка",
+     "crit_type": "AUTOTARGETING",
+     "imp": 6,
+     "clicks": 1,
+     "spend": 287.31
+    },
+    {
+     "gid": "5774336423",
+     "group": "Складные перегородки | Москве",
+     "crit_type": "AUTOTARGETING",
+     "imp": 4,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336424",
+     "group": "Стальные перегородки | Металлические",
+     "crit_type": "KEYWORD",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336430",
+     "group": "Стальные перегородки | Металлические Зонирования",
+     "crit_type": "KEYWORD",
+     "imp": 3,
+     "clicks": 1,
+     "spend": 24.51
+    },
+    {
+     "gid": "5774336432",
+     "group": "Стационарные перегородки",
+     "crit_type": "KEYWORD",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336436",
+     "group": "Стационарные перегородки | Зонирования",
+     "crit_type": "KEYWORD",
+     "imp": 1,
+     "clicks": 1,
+     "spend": 139.85
+    },
+    {
+     "gid": "5774336440",
+     "group": "Перегородки для кухни",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336442",
+     "group": "Перегородки для кухни | Стеклянные",
+     "crit_type": "AUTOTARGETING",
+     "imp": 4,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336444",
+     "group": "Перегородки для кухни | Кухней Гостиной",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336444",
+     "group": "Перегородки для кухни | Кухней Гостиной",
+     "crit_type": "KEYWORD",
+     "imp": 2,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336448",
+     "group": "Перегородки для гостиной | Раздвижные",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
+     "gid": "5774336450",
+     "group": "Перегородки для студии",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    }
+   ],
+   "metrika": [
+    {
+     "gid": "5774336356",
+     "group": "Арочные перегородки | Москве",
+     "visits": 1,
+     "bounce": 0,
+     "leads": 0,
+     "contacts": 0
+    },
+    {
+     "gid": "5774336367",
+     "group": "Зеркальные перегородки",
+     "visits": 1,
+     "bounce": 100,
+     "leads": 0,
+     "contacts": 0
+    },
+    {
+     "gid": "5774336395",
+     "group": "Телескопические перегородки | Телескоп",
+     "visits": 1,
+     "bounce": 0,
+     "leads": 0,
+     "contacts": 0
+    },
+    {
+     "gid": "5774336419",
+     "group": "Складные перегородки",
+     "visits": 1,
+     "bounce": 0,
+     "leads": 0,
+     "contacts": 0
+    },
+    {
+     "gid": "5774336420",
+     "group": "Складные перегородки | Гармошка",
+     "visits": 1,
+     "bounce": 0,
+     "leads": 0,
+     "contacts": 0
+    },
+    {
+     "gid": "5774336430",
+     "group": "Стальные перегородки | Металлические Зонирования",
+     "visits": 1,
+     "bounce": 0,
+     "leads": 0,
+     "contacts": 0
+    },
+    {
+     "gid": "5774336436",
+     "group": "Стационарные перегородки | Зонирования",
+     "visits": 1,
+     "bounce": 0,
+     "leads": 0,
+     "contacts": 0
+    }
+   ]
+  }
+ },
+ "generated_at": "2026-09-25T14:36:06.356Z",
  "timezone": "Europe/Moscow",
  "campaigns": [
   {
@@ -225,28 +601,28 @@
   {
    "cid": "712877517",
    "name": "[На заказ] Перегородки | Поиск СЧ | НБ=9т.р. | CPC=108 |",
-   "imp": 158,
+   "imp": 159,
    "clicks": 9,
    "spend": 1098.75
   },
   {
    "cid": "712877525",
    "name": "[На заказ] Перегородки | Поиск НЧ | НБ=11т.р. | CPC=110 |",
-   "imp": 72,
+   "imp": 74,
    "clicks": 7,
    "spend": 1153.03
   },
   {
    "cid": "713496953",
    "name": "[На заказ] Перегородки | РТ | НБ=5т.р. | CPC = 100 |",
-   "imp": 775,
+   "imp": 777,
    "clicks": 4,
    "spend": 101.55
   },
   {
    "cid": "713589837",
    "name": "[На заказ] Перегородки | РСЯ - ПК | НБ=8т.р. | CPC=80 |",
-   "imp": 2711,
+   "imp": 2722,
    "clicks": 19,
    "spend": 1686.69
   },

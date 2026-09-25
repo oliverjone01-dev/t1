@@ -22,18 +22,25 @@ export interface CtlAvail {
   funnelFile: boolean;
   /** В файле есть строки с ролью control. */
   funnelArts: number;
-  /** В файле есть агрегаты по этому тесту. */
-  funnelAgg: boolean;
+  /** Доля дней окна (база + после старта), за которые в файле есть агрегат этого теста, 0..1.
+   *  25.09 агрегаты пришли только за один день: источник по наличию выбирал их, база до старта
+   *  оставалась пустой, и график «Динамика по дням» пропадал со страницы целиком. */
+  funnelAgg: number;
   /** В tests.json контроль задан группой целиком, а не парами. */
   explicit: boolean;
 }
+
+/** Какая доля дней окна должна быть покрыта агрегатом, чтобы брать контроль из него. Агрегат
+ *  это одно число на группу в день: дыра в нём не заполняется соседними карточками, а база
+ *  из пары дней против двух недель после старта сравнивает разные периоды. */
+export const FUNNEL_AGG_MIN_COVER = 0.8;
 
 /** Приоритет источников. Порядок от точного к грубому: поартикульные строки среза под тесты,
  *  готовый агрегат, явный список из tests.json, панель снимка. */
 export function pickCtlSrc(a: CtlAvail): CtlSrc {
   if (a.funnelMetric && a.funnelFile) {
     if (a.funnelArts > 0) return "funnel_arts";
-    if (a.funnelAgg) return "funnel_agg";
+    if (a.funnelAgg >= FUNNEL_AGG_MIN_COVER) return "funnel_agg";
   }
   return a.explicit ? "explicit" : "panel";
 }

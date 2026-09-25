@@ -1,0 +1,49 @@
+name: Direct NCh history (кампания с запуска, по группам)
+
+# Read-only выгрузка истории одной кампании: Reports API + adgroups.get + stat Метрики.
+# Токены из GitHub Secrets, маскируются, в файлы не пишутся. Результат - JSON в yandex-direct/data/.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/tender-galileo-ujs35b]
+    paths:
+      - yandex-direct/dashboard/nch-history.mjs
+      - .github/workflows/direct-nch-history.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: direct-nch-history
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: История НЧ
+        env:
+          YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || secrets.YD_TOKEN }}
+          YANDEX_DIRECT_LOGIN: ${{ secrets.YANDEX_DIRECT_LOGIN || secrets.YD_LOGIN }}
+          YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || secrets.YM_TOKEN }}
+          YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
+          CAMPAIGN_ID: "712877525"
+          DATE_FROM: "2026-07-19"
+        run: node yandex-direct/dashboard/nch-history.mjs
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add yandex-direct/data/nch_history_*.json
+          git diff --staged --quiet && { echo "нет изменений"; exit 0; }
+          git commit -m "direct: история НЧ 712877525 с запуска $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && exit 0
+            sleep $((2**i))
+          done
+          exit 1

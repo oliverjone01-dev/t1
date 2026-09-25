@@ -1955,9 +1955,10 @@ function render(cur,cmp){
   const anRday: Record<string, any[]> = {};
   let rdFrom = "", rdTo = "";
   if (IS_OZON) {
-    // Логистика OZON в by-day не приходит - только в начислениях по заказу (orders_daily.delivery). Ставим
-    // её на дату начисления сборов по продаже (sd = дата реализации заказа); где OZON даты не отдал -
-    // на дату заказа (доля таких печатается). Партнёрская доставка rFBS и прочие ITEM-сборы - из by-day.
+    // Логистика OZON в by-day не приходит - только в начислениях по заказу (orders_daily). Каждый сбор
+    // встаёт на СВОЮ дату начисления (dl: [[дата, сумма]]): OZON может дослать логистику позже выручки,
+    // в другом месяце. Нет разбивки - на дату последнего сбора по продаже (sd), нет и её - на дату заказа
+    // (доли печатаются). Партнёрская доставка rFBS и прочие ITEM-сборы - из by-day.
     const fee: Record<string, { del: number; oth: number }> = {};
     const addFee = (sk: string, d: string, del: number, oth: number) => { const f = (fee[sk + "|" + d] ||= { del: 0, oth: 0 }); f.del += del; f.oth += oth; };
     try { for (const l of readFileSync(dp("acq_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (String(r.d) < FIN_CUT) continue; addFee(String(r.sku), String(r.d), (Number(r.del) || 0) + (Number(r.prt) || 0), Number(r.oth) || 0); } } catch { /* нет by-day */ }
@@ -1965,12 +1966,13 @@ function render(cur,cmp){
     try {
       for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
         const r = JSON.parse(l); const v = Number(r.delivery) || 0; if (!v) continue;
+        if (Array.isArray(r.dl) && r.dl.length) { for (const [d, x] of r.dl) { if (String(d) < FIN_CUT) continue; logSd += Number(x) || 0; addFee(String(r.sku), String(d), Number(x) || 0, 0); } continue; }
         const d = String(r.sd || r.d); if (d < FIN_CUT) continue;
         if (r.sd) logSd += v; else logOd += v;
         addFee(String(r.sku), d, v, 0);
       }
     } catch { /* нет заказов */ }
-    console.log(`katya: логистика OZON с ${FIN_CUT} - по дате реализации ${Math.round(-logSd)} ₽, по дате заказа (дата начисления не пришла) ${Math.round(-logOd)} ₽`);
+    console.log(`katya: логистика OZON с ${FIN_CUT} - по дате начисления ${Math.round(-logSd)} ₽, по дате заказа (дата начисления не пришла) ${Math.round(-logOd)} ₽`);
     const money: Record<string, { acc: number; com: number }> = {};
     try {
       for (const l of readFileSync(dp("realization_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {

@@ -47,6 +47,9 @@ async function main() {
   // приходит только здесь, в by-day её нет. Имя поля даты у OZON не документировано - берём первое
   // найденное и печатаем только ИМЕНА полей начисления (репозиторий публичный, логи открыты).
   const saleDate: Record<string, string> = {};
+  // Логистика по заказу С РАЗБИВКОЙ ПО ДАТАМ начисления: OZON может дослать логистику позже выручки,
+  // в другом месяце (август: 8 заказов из 317). Каждый сбор встаёт на свою дату, а не на последнюю.
+  const dlvByDate: Record<string, Record<string, number>> = {};
   const dateOf = (a: any): string => String(a?.date ?? a?.accrual_date ?? a?.operation_date ?? a?.created_at ?? a?.accrued_at ?? "").slice(0, 10);
   let keysShown = false, withDate = 0, sale = 0;
   for (const p of acc) {
@@ -57,7 +60,7 @@ async function main() {
       const bk = (bmap[tid] || "other") as Bucket;
       const amt = Number(a?.accrued?.amount ?? a?.accrued ?? a?.amount ?? 0);
       b[bk] += amt;
-      if (bk === "commission" || bk === "delivery") { sale++; const dd = dateOf(a); if (/^\d{4}-\d{2}-\d{2}$/.test(dd)) { withDate++; if (!saleDate[p.posting_number] || dd > saleDate[p.posting_number]!) saleDate[p.posting_number] = dd; } }
+      if (bk === "commission" || bk === "delivery") { sale++; const dd = dateOf(a); if (/^\d{4}-\d{2}-\d{2}$/.test(dd)) { withDate++; if (!saleDate[p.posting_number] || dd > saleDate[p.posting_number]!) saleDate[p.posting_number] = dd; if (bk === "delivery") { const m = (dlvByDate[p.posting_number] ||= {}); m[dd] = (m[dd] || 0) + amt; } } }
       const nm = nameById[tid] || String(tid);
       if (/rfbs|realfbs/i.test(nm)) rfbsSet.add(p.posting_number);
       if (tid === 32 || /^logistic$|логистик/i.test(nm)) logiSet.add(p.posting_number);
@@ -99,6 +102,7 @@ async function main() {
       commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(b.acquiring),
       storage: Math.round(b.storage), buyer_delivery: Math.round(b.buyerDelivery), ads: Math.round(b.ads),
       partner: Math.round(b.partner), other: Math.round(b.other), payout: Math.round(revenue + feesSum), paid, sd: saleDate[p.posting_number] || null,
+      dl: dlvByDate[p.posting_number] ? Object.entries(dlvByDate[p.posting_number]!).map(([d, v]) => [d, Math.round(v)]).filter((x) => x[1]) : null,
     });
   }
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");

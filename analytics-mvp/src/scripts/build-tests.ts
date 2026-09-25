@@ -649,7 +649,9 @@ function controlSide(t: TestDef, days: string[], key: string): { m: Matrix; src:
     funnelMetric: FUNNEL_PAGE_KEYS.has(key),
     funnelFile: FT.exists,
     funnelArts: ctlArts.length,
-    funnelAgg: FT.agg.has(t.id || ""),
+    // Доля дней окна с агрегатом, а не факт его наличия: 25.09 агрегаты пришли за один день.
+    funnelAgg: FT.agg.has(t.id || "") && days.length
+      ? days.filter((d) => aggDay(FT, t.id || "", aggRoleFor(key), d)).length / days.length : 0,
     explicit: !!(t.контроль_группа && t.контроль?.length),
   });
   if (src === "funnel_arts") return { m: matrixOf(ctlArts, days, key), src, n: ctlArts.length, arts: ctlArts };

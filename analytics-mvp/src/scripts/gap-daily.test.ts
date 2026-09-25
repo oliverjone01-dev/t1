@@ -129,10 +129,26 @@ describe("гейт плато на живом gap_daily", () => {
   it("плато не собирается раньше 25.09: 22.09 в ряду нет", () => {
     if (!G.exists) return;
     const ctl = controlByDay(G.rows, new Set([...AD, ...SIB]));
+    const last = G.days[G.days.length - 1]!;
     for (const a of AD) {
       const r = readiness({ art: a, on }, gapSeries(G.rows, a, ctl), new Map(), BASE_MIN, false);
-      expect(r.plateauFrom).toBeUndefined();
-      expect(r.plateauNotBefore).toBe("2026-09-25");
+      if (last < "2026-09-25" || !r.plateauFrom) {
+        // До 25.09 в ряду три дня подряд после дыры 22.09 не набирается ни у кого.
+        expect(r.plateauFrom).toBeUndefined();
+        expect(r.plateauNotBefore).toBe("2026-09-25");
+      } else {
+        // Плато начинается не раньше первого дня после дыры и подтверждено третьим днём.
+        expect(r.plateauFrom >= "2026-09-23").toBe(true);
+        expect(G.days.filter((d) => d >= r.plateauFrom!).length).toBeGreaterThanOrEqual(3);
+      }
     }
+  });
+
+  it("25.09: плато сложилось только у GGL-07-XL-2 (сдвиг 8.9, 9.0, 8.4 с 23.09)", () => {
+    if (!G.exists || !G.days.includes("2026-09-25")) return;
+    const ctl = controlByDay(G.rows, new Set([...AD, ...SIB]));
+    const got = AD.filter((a) => readiness({ art: a, on }, gapSeries(G.rows, a, ctl), new Map(), BASE_MIN, false).plateauFrom);
+    // Цифры Ивана 8.8, 8.7, 8.2 посчитаны его контролем; порог +8 и три дня держатся в обоих.
+    if (G.days[G.days.length - 1] === "2026-09-25") expect(got).toEqual(["GGL-07-XL-2"]);
   });
 });

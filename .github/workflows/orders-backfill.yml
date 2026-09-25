@@ -57,6 +57,18 @@ jobs:
         run: npx tsx src/scripts/ozon/acq-sku-daily.ts "${{ github.event.inputs.from }}" "${{ github.event.inputs.to }}"
       - name: Канальный P&L и Общие расходы из accrual (замена мёртвых транзакций)
         run: npx tsx src/scripts/ozon/pnl-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}"
+      - name: Отчёт о реализации по SKU (штуки и база налога F+G-J-K)
+        # Иван 25.09.2026: база налога OZON - «Реализовано» отчёта о реализации (F + G за вычетом
+        # возвратов). Хвост из двух месяцев перетягивается каждый раз, месяцы без базы - один раз.
+        id: realm
+        continue-on-error: true
+        run: npm run pnl:realization
+      - name: Отчёт о реализации за день по SKU (накопительно, OZON хранит 32 дня)
+        # Иван 25.09.2026, п. 1.4 и 2.2: база налога и деньги таблицы по артикулам за незакрытый месяц
+        # - из отчёта о реализации за день, а не оценкой. Каждый прогон перетягивает последние 31 день.
+        id: reald
+        continue-on-error: true
+        run: npx tsx src/scripts/ozon/realization-daily.ts 31
       - name: Калибровка соинвеста по эталону начислений
         # Сети не требует, поэтому не падает вместе с OZON. Вердикт виден прямо в логе шага:
         # он говорит, какая из двух цен снимка разошлась с фактом и на сколько пунктов.
@@ -66,10 +78,20 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add analytics-mvp/data/orders_daily.ndjson analytics-mvp/data/orders_accrual_types.json analytics-mvp/data/pnl_sku_accrual_daily.ndjson analytics-mvp/data/acq_sku_daily.ndjson analytics-mvp/data/buyer_delivery_daily.ndjson analytics-mvp/data/buyer_delivery_orders.ndjson analytics-mvp/data/partner_daily.ndjson analytics-mvp/data/partner_orders.ndjson analytics-mvp/data/pnl_channel_accrual_daily.ndjson analytics-mvp/data/pnl_account_accrual_daily.ndjson analytics-mvp/data/coinv_calibration.json
+          git add analytics-mvp/data/orders_daily.ndjson analytics-mvp/data/orders_accrual_types.json analytics-mvp/data/pnl_sku_accrual_daily.ndjson analytics-mvp/data/acq_sku_daily.ndjson analytics-mvp/data/buyer_delivery_daily.ndjson analytics-mvp/data/buyer_delivery_orders.ndjson analytics-mvp/data/partner_daily.ndjson analytics-mvp/data/partner_orders.ndjson analytics-mvp/data/pnl_channel_accrual_daily.ndjson analytics-mvp/data/pnl_account_accrual_daily.ndjson analytics-mvp/data/coinv_calibration.json analytics-mvp/data/realization_monthly.ndjson analytics-mvp/data/pnl_account_accrual_types.json analytics-mvp/data/realization_daily.ndjson
           if git diff --cached --quiet; then
             echo "нет изменений в orders_daily.ndjson"
           else
             git commit -m "data(orders): начисления и калибровка соинвеста ${{ github.event_name == 'schedule' && '(ежедневный сбор)' || format('{0}..{1}', github.event.inputs.from, github.event.inputs.to) }} [skip ci]"
             for i in 1 2 3 4; do git push origin "HEAD:${{ github.ref_name }}" && break || sleep $((2**i)); done
+          fi
+      - name: Отчёты о реализации получены целиком
+        # Аудит ФЕНИКСА 25.09: сбор отчёта о реализации раньше глотал сбой, CI оставался зелёным, а
+        # OZON хранит отчёт за день 32 дня - пропуск становился необратимым. Шаги выше не рвут
+        # коммит остальных данных (continue-on-error), а этот шаг красит прогон, если они упали.
+        if: ${{ !cancelled() }}
+        run: |
+          if [ "${{ steps.realm.outcome }}" = "failure" ] || [ "${{ steps.reald.outcome }}" = "failure" ]; then
+            echo "::error::отчёт о реализации: месячный ${{ steps.realm.outcome }}, за день ${{ steps.reald.outcome }} - перезапусти workflow"
+            exit 1
           fi

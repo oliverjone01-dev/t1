@@ -586,11 +586,14 @@ describe("свод Маркета: числа на странице", () => {
     expect(D().getElementById("sv-note")!.textContent || "").toBe("");
   });
 
-  // Иван 2026-09-17: «этот блок убирай». Таблица «Аналитика по артикулам» с Маркета снята -
-  // она отвечала на вопрос «за что заплатили» теми же статьями, что и свод, и дублировала его.
+  // Иван 2026-09-17: «этот блок убирай». Таблица `skuan-t` с Маркета снята - она отвечала на
+  // вопрос «за что заплатили» теми же статьями, что и свод, и дублировала его.
   // Сторож нужен, потому что прежние два теста про эту таблицу проходили БЕЗ НЕЁ: они молча
   // пропускали периоды, где нет строк, и с исчезнувшей таблицей стали зелёными ни о чём.
-  it("таблицы «Аналитика по артикулам» на Маркете нет", () => {
+  // 25.09.2026: имя «Аналитика по артикулам» на Маркете теперь носит ДРУГОЙ блок (бывший «Свод по
+  // дате заказа», id `sv-t`), поэтому сторож проверяется только по id снятой таблицы - по
+  // заголовку он с этого дня ловил бы не то.
+  it("снятая таблица skuan-t на Маркет не вернулась", () => {
     setRange("2026-07-01", "2026-07-31");
     expect(D().getElementById("skuan-t"), "блок аналитики по артикулам вернулся на Маркет").toBeNull();
     expect(D().getElementById("skuan")).toBeNull();
@@ -953,7 +956,7 @@ describe("страница денег: водопад выше свода", () =
   it("порядок блоков - водопад, план, свод", () => {
     const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
     const wf = titles.findIndex((x) => /Водопад P&L/.test(x));
-    const sv = titles.findIndex((x) => /Свод по дате заказа/.test(x));
+    const sv = titles.findIndex((x) => /Аналитика по артикулам/.test(x));
     expect(wf, "блока водопада на странице нет").toBeGreaterThanOrEqual(0);
     expect(sv, "блока свода на странице нет").toBeGreaterThanOrEqual(0);
     expect(wf, "свод снова выше водопада").toBeLessThan(sv);
@@ -979,10 +982,10 @@ describe("свод по заказам", () => {
   it("блок есть, стоит перед сводом по артикулам и не пуст", () => {
     setRange("2026-07-01", "2026-07-31");
     const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
-    const sv = titles.findIndex((x) => /Свод по дате заказа/.test(x));
-    const so = titles.findIndex((x) => /Свод по заказам/.test(x));
-    expect(so, "блока «Свод по заказам» нет").toBeGreaterThanOrEqual(0);
-    expect(sv, "блока «Свод по дате заказа» нет").toBeGreaterThanOrEqual(0);
+    const sv = titles.findIndex((x) => /Аналитика по артикулам/.test(x));
+    const so = titles.findIndex((x) => /Аналитика по заказам/.test(x));
+    expect(so, "блока «Аналитика по заказам» нет").toBeGreaterThanOrEqual(0);
+    expect(sv, "блока «Аналитика по артикулам» нет").toBeGreaterThanOrEqual(0);
     expect(so, "свод по заказам должен стоять выше свода по артикулам").toBeLessThan(sv);
     expect(T2().querySelectorAll("tr.so-cat").length, "категорий в своде по заказам нет").toBeGreaterThan(1);
     expect(errs).toEqual([]);
@@ -1397,6 +1400,110 @@ describe("свод: заказы вне выгрузки стоят строко
   });
 });
 
+// Блок «Аналитика по артикулам (за выбранный период)», базис НАЧИСЛЕНИЙ (Катя 25.09.2026:
+// «на маркете можно собрать такой же блок как на Озон по начислениям, чтобы он сходился с
+// отчетными документами»). Источник - отчёт по взаиморасчётам, разнесённый по артикулу и дню
+// проводки, поэтому с самим отчётом блок сходится тождественно; сверять его надо с УПД и
+// проверять, что он НЕ выдаёт себя за блок по дате заказа.
+describe("Маркет: аналитика по артикулам за выбранный период (начисления)", () => {
+  const TA = () => D().getElementById("acc-t")!;
+  const headA = () => [...TA().querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+  const totA = () => [...TA().querySelectorAll("tr.sv-total td")].map((x) => (x.textContent || "").trim());
+  const cellA = (c: string) => totA()[headA().indexOf(c)];
+
+  it("блок есть, отделён от блока по дате заказа и стоит после него", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
+    const byOrderDate = titles.findIndex((x) => /Аналитика по артикулам \(по дате заказа\)/.test(x));
+    const byPeriod = titles.findIndex((x) => /Аналитика по артикулам \(за выбранный период\)/.test(x));
+    expect(byOrderDate, "блока по дате заказа нет").toBeGreaterThanOrEqual(0);
+    expect(byPeriod, "блока за выбранный период нет").toBeGreaterThanOrEqual(0);
+    expect(byPeriod, "блок по начислениям встал выше блока по дате заказа").toBeGreaterThan(byOrderDate);
+    // Две таблицы с почти одинаковым именем обязаны быть различимы на экране, а не только по id.
+    expect(titles.filter((x) => x === "Аналитика по артикулам").length, "остался блок без уточнения базиса").toBe(0);
+    expect(errs).toEqual([]);
+  });
+
+  it("тождество блока: начислено − сборы = к выплате", () => {
+    for (const [from, to] of [["2026-07-01", "2026-07-31"], ["2026-08-01", "2026-08-31"], ["2026-01-01", "2026-12-31"]]) {
+      setRange(from!, to!);
+      const acc = num(cellA("Начислено"))!, fee = num(cellA("Всего сборов"))!, pay = num(cellA("К выплате"))!;
+      expect(acc, `${from}: начислений нет`).toBeGreaterThan(0);
+      // Допуск - построчное округление до рубля, по рублю на строку; строк меньше 1500.
+      expect(Math.abs(acc - fee - pay), `${from}: ${acc} − ${fee} = ${acc - fee}, а «К выплате» ${pay}`).toBeLessThan(1500);
+    }
+    expect(errs).toEqual([]);
+  });
+
+  it("ИТОГО складывается из категорий", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const iA = headA().indexOf("Начислено"), iP = headA().indexOf("К выплате");
+    const cats = [...TA().querySelectorAll("tr.acc-cat")];
+    expect(cats.length, "категорий нет").toBeGreaterThan(1);
+    const sum = (i: number) => cats.reduce((a, r) => a + (num(r.children[i]!.textContent) || 0), 0);
+    expect(Math.abs(sum(iA) - num(cellA("Начислено"))!), "начислено: ИТОГО не равно сумме категорий").toBeLessThan(2);
+    expect(Math.abs(sum(iP) - num(cellA("К выплате"))!), "к выплате: ИТОГО не равно сумме категорий").toBeLessThan(2);
+    expect(errs).toEqual([]);
+  });
+
+  it("базис другой, чем у блока по дате заказа - числа не обязаны совпадать и не совпадают", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const accPay = num(cellA("К выплате"))!;
+    const svNet = num(cell("Поступление"))!;
+    expect(accPay, "к выплате пустое").toBeGreaterThan(0);
+    expect(svNet, "поступление свода пустое").toBeGreaterThan(0);
+    // Если однажды сойдутся до рубля - значит кто-то склеил базисы, и это надо заметить.
+    expect(Math.abs(accPay - svNet), "два базиса дали одно число - похоже, блок считает не то, что подписан")
+      .toBeGreaterThan(1000);
+    expect(errs).toEqual([]);
+  });
+
+  // 25.09.2026, вторым заходом: АДМ и налог в блоке ПОЯВИЛИСЬ. Сперва я сказала Кате, что базы
+  // налога здесь нет, потому что смотрела только в реестр взаиморасчётов (там статья «Платёж
+  // покупателя» дырявая). Платёж есть в выгрузке заказов за все девять месяцев. Тест перенацелен
+  // с «их нет» на «они есть и считаются на тех же базах, что в блоке по дате заказа».
+  it("АДМ от «К выплате», налог от «Оплатил клиент», чистая читается подряд", () => {
+    for (const [from, to] of [["2026-07-01", "2026-07-31"], ["2026-01-01", "2026-12-31"]]) {
+      setRange(from!, to!);
+      const h = headA();
+      const admH = h.find((x) => x.indexOf("АДМ ") === 0)!, taxH = h.find((x) => x.indexOf("Налоги ") === 0)!;
+      expect(admH, "АДМ в блоке по начислениям нет").toBeTruthy();
+      expect(taxH, "налога в блоке по начислениям нет").toBeTruthy();
+      const pay = num(cellA("Оплатил клиент"))!, payout = num(cellA("К выплате"))!;
+      const adm = num(cellA(admH))!, tax = num(cellA(taxH))!;
+      const gp = num(cellA("Валовая прибыль"))!, np = num(cellA("Чистая прибыль"))!;
+      expect(pay, `${from}: платёж покупателя пустой`).toBeGreaterThan(0);
+      // Базы разные и обе отсекают минус на строке, поэтому ИТОГО не равно ставке от столбца, но
+      // и уйти от неё далеко не может: отсечение только добавляет.
+      expect(adm, `${from}: АДМ ниже ставки от «К выплате»`).toBeGreaterThan(payout * 0.30 - 2);
+      expect(adm, `${from}: АДМ слишком далёк от ставки от «К выплате»`).toBeLessThan(payout * 0.30 * 1.1);
+      expect(tax, `${from}: налог ниже ставки от платежа`).toBeGreaterThan(pay * 0.15 - 2);
+      expect(tax, `${from}: налог слишком далёк от ставки от платежа`).toBeLessThan(pay * 0.15 * 1.1);
+      // И налог не считается от «К выплате» - это была бы другая база, и её надо заметить.
+      expect(Math.abs(tax - payout * 0.15), `${from}: налог уехал на базу «К выплате»`).toBeGreaterThan(2);
+      expect(Math.abs(np - (gp - adm - tax)), `${from}: чистая не сходится со своими же колонками`).toBeLessThan(2);
+    }
+    expect(errs).toEqual([]);
+  });
+
+  it("сверка с УПД показана, и пробел назван", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const cov = D().getElementById("acc-cov")!.textContent || "";
+    expect(cov, "сверки с УПД в блоке нет").toMatch(/сверка с УПД/);
+    // За январь и текущий месяц УПД нет - блок обязан это сказать, а не молчать.
+    expect(cov, "пробел по УПД не назван").toMatch(/нет за/);
+    expect(errs).toEqual([]);
+  });
+
+  it("окно без проводок гасит таблицу, а не показывает прошлые числа", () => {
+    setRange("2025-01-01", "2025-01-31");
+    expect(TA().querySelectorAll("tbody tr").length, "в пустом окне остались строки").toBe(0);
+    expect(D().getElementById("acc-cov")!.textContent, "пустое окно молчит")
+      .toMatch(/проводок по взаиморасчётам нет/);
+    expect(errs).toEqual([]);
+  });
+});
+
 // Разнесение отправок по отменённым на артикулы (Катя 22.09.2026). Раньше эти три теста держали
 // раскрытие строки-котла по заказам; котла больше нет, но защищаемое ими свойство осталось тем же:
 // расход не безымянный, он привязан к конкретной единице и считается по датам своих заказов.
@@ -1546,9 +1653,11 @@ describe("свод по заказам: порядок блоков, город 
 
   it("свод по заказам стоит ВЫШЕ свода по артикулам", () => {
     const t = titles();
-    const a = t.indexOf("Свод по заказам"), b = t.indexOf("Свод по дате заказа");
-    expect(a, "блока «Свод по заказам» нет").toBeGreaterThanOrEqual(0);
-    expect(b, "блока «Свод по дате заказа» нет").toBeGreaterThanOrEqual(0);
+    // 25.09.2026: у блока по артикулам появился базис в подписи - рядом встал второй блок с тем
+    // же именем, но по начислениям. Ищем точное имя, иначе тест поймает соседа.
+    const a = t.indexOf("Аналитика по заказам"), b = t.indexOf("Аналитика по артикулам (по дате заказа)");
+    expect(a, "блока «Аналитика по заказам» нет").toBeGreaterThanOrEqual(0);
+    expect(b, "блока «Аналитика по артикулам (по дате заказа)» нет").toBeGreaterThanOrEqual(0);
     expect(a, "порядок блоков не поменялся").toBeLessThan(b);
   });
 
@@ -1860,7 +1969,7 @@ describe("баллы Маркета: отдельной карточкой в к
     setRange("2026-07-01", "2026-07-31");
     const note = D().getElementById("sv-pts")!;
     expect(note.closest("#sv-pts-card"), "плашка не в своей карточке").not.toBeNull();
-    const svCard = [...D().querySelectorAll(".card")].find((c) => /Свод по дате заказа/.test(c.querySelector(".card-title")?.textContent || ""));
+    const svCard = [...D().querySelectorAll(".card")].find((c) => /Аналитика по артикулам/.test(c.querySelector(".card-title")?.textContent || ""));
     expect(svCard?.contains(note) || false, "плашка осталась внутри свода").toBe(false);
   });
 

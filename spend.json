@@ -43,5 +43,14 @@
   "outTok": 1601,
   "usd": 0.0224,
   "rub": 2.1
+ },
+ {
+  "ts": "2026-09-25T14:24:07.096Z",
+  "mode": "weekly",
+  "model": "claude-sonnet-5",
+  "inTok": 3238,
+  "outTok": 3874,
+  "usd": 0.0452,
+  "rub": 4.3
  }
 ]

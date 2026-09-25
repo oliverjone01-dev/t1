@@ -3391,7 +3391,7 @@ function accJs(): string {
     rows = readFileSync(dp("pnl_sku_daily.ndjson"), "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
   } catch { rows = []; }
   if (!rows.length) return "var ACC=[];var ACC_META={rows:0};";
-  const F = ["units", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"];
+  const F = ["units", "pay", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"];
   const compact = rows.map((r) => [String(r.d || ""), String(r.sku || ""), ...F.map((k) => Math.round(Number(r[k]) || 0))]);
   const skus = [...new Set(rows.map((r) => String(r.sku || "")))].filter(Boolean);
   const cat: Record<string, string> = {}, nm: Record<string, string> = {}, cc: Record<string, number> = {};
@@ -4220,20 +4220,31 @@ function soDraw(){
 // в разметке скрытыми - их читают расчёты, и через них ставку по-прежнему можно поменять.
 // ---------- Аналитика по артикулам (за выбранный период), базис НАЧИСЛЕНИЙ ----------
 // Строится из ACC (pnl_sku_daily = отчёт по взаиморасчётам, разнесённый по артикулу и дню
-// проводки). Колонки АДМ и налога здесь НЕТ, и это не забывчивость: база налога - то, что
-// оплатил клиент, а в реестре статья «Платёж покупателя» собрана не за все месяцы (за
-// февраль-апрель её нет вовсе), и софинансирование Маркета, из которого её можно было бы
-// вывести, собрано тоже частично. Поставить сюда налог значило бы показать число, которого
-// данные не подтверждают. Пробел назван прямо в блоке.
-var ACC_F=['units','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount'];
+// проводки). Полный P&L: с АДМ, налогом и чистой прибылью, на тех же базах, что блок по дате
+// заказа. 25.09.2026 я сперва сказала Кате, что базы налога здесь нет - это было неверно:
+// смотрела только в реестр взаиморасчётов, где статья «Платёж покупателя» дырявая (нет
+// февраля-апреля). Платёж есть в выгрузке заказов, за все девять месяцев, и разносится по дате
+// проводки так же, как всё остальное в этом блоке.
+var ACC_F=['units','pay','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount'];
+// Ставки читаются из тех же полей, что и свод: одно место правки на всю страницу.
+var ACC_RATE={adm:0.30,tax:0.15};
+function accRates(){
+  var ae=document.getElementById('sv-adm'), te=document.getElementById('sv-tax');
+  ACC_RATE={adm:Number((ae&&ae.value)||30)/100, tax:Number((te&&te.value)||15)/100};
+  return ACC_RATE;
+}
 function accAgg(w){
-  w=w||svWin();
+  w=w||svWin(); accRates();
   var a={};
   (typeof ACC!=='undefined'?ACC:[]).forEach(function(r){
     var d=r[0]; if(d<w.from||d>w.to)return;
     var sk=r[1], o=a[sk];
-    if(!o){o=a[sk]={sku:sk,units:0,accruals:0,commission:0,delivery:0,acquiring:0,storage:0,cofin:0,promo:0,otherSvc:0,amount:0};}
+    if(!o){o=a[sk]={sku:sk,units:0,pay:0,accruals:0,commission:0,delivery:0,acquiring:0,storage:0,cofin:0,promo:0,otherSvc:0,amount:0,admBase:0};}
     for(var i=0;i<ACC_F.length;i++)o[ACC_F[i]]+=r[i+2]||0;
+    // База АДМ копится на СТРОКЕ (день, артикул) и только положительная - то же правило, что в
+    // своде: минус одной строки не должен гасить расход соседних. Здесь роль «Поступления»
+    // играет «К выплате»: это то, что осталось после сборов площадки.
+    o.admBase+=Math.max(0,r[ACC_F.indexOf('amount')+2]||0);
   });
   return Object.keys(a).map(function(k){var o=a[k];
     // Сборы в файле лежат со знаком минус (расход). В таблице показываем положительными, как в
@@ -4242,6 +4253,12 @@ function accAgg(w){
     o.cogs=(ACC_COGS[k]||0)*Math.max(0,o.units);
     o.ck=ACC_COGS[k]!=null;
     o.gp=o.amount-o.cogs;
+    // АДМ - от «К выплате», налог - от «Оплатил клиент». Те же базы и те же ставки, что в блоке
+    // по дате заказа (решение Кати и подтверждение Ивана 23.09.2026,
+    // knowledge/semantic/ym-rates-adm-tax.md); отличается только базис периода.
+    o.adm=o.admBase*ACC_RATE.adm;
+    o.tax=Math.max(0,o.pay)*ACC_RATE.tax;
+    o.np=o.gp-o.adm-o.tax;
     o.cat=ACC_CAT[k]||'Прочее';
     return o;});
 }
@@ -4256,30 +4273,47 @@ function accDraw(){
   }
   var CF=[['Комиссия','commission'],['Доставка','delivery'],['Эквайринг','acquiring'],['Хранение','storage'],
           ['Софинанс. скидок','cofin'],['Продвижение','promo'],['Прочие услуги','otherSvc']];
-  var H=['Категория / Артикул','Реализовано, шт','Начислено'].concat(CF.map(function(x){return x[0];}))
-    .concat(['Всего сборов','К выплате','С\\С произв.','Валовая прибыль','Маржа']);
-  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')+'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  var H=['Категория / Артикул','Реализовано, шт','Начислено','Оплатил клиент'].concat(CF.map(function(x){return x[0];}))
+    .concat(['Всего сборов','К выплате','С\\С произв.','Валовая прибыль','Маржа',
+             'АДМ '+svPct(ACC_RATE.adm),'Налоги '+svPct(ACC_RATE.tax),'Чистая прибыль','Рентаб.']);
+  var ACC_PAID_TIP='Платёж покупателя за товар и доставку, разнесённый по дате проводки. Считается тем же способом, что «Оплатил клиент» в блоке по дате заказа: доля покупателя в цене по нетто-штукам. От него считается налог. С «Начислено» не совпадает: там цена целиком, вместе с долей Маркета, которую он платит за покупателя скидкой.';
+  var ACC_ADM_TIP='Считается от «К выплате» - это то, что осталось после сборов площадки, роль «Поступления» в базисе начислений. Строка с отрицательным «К выплате» АДМ не облагается, поэтому ИТОГО равно сумме строк, а не ставке от сложенного столбца.';
+  // В базисе проводок платёж по артикулу БЫВАЕТ отрицательным: возврат пришёл в этом месяце, а
+  // продажа была в прошлом. В своде такого не бывает, поэтому там налог просто ставка от колонки,
+  // а здесь ИТОГО расходится со ставкой от столбца - на июле на 9 567 ₽. Это отсечение, а не
+  // ошибка сложения, и молчать о нём нельзя.
+  var ACC_TAX_TIP='Считается от «Оплатил клиент». Артикул, у которого за период возвратов больше, чем платежей, налогом не облагается и чужой налог не гасит, поэтому ИТОГО не равно ставке от сложенного столбца, а равно сумме строк. В блоке по дате заказа такого не бывает: там платёж отрицательным не выходит.';
+  var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')
+    +(x==='Оплатил клиент'?' style="color:var(--ink-2)" title="'+ACC_PAID_TIP+'"':'')
+    +(x.indexOf('Налоги ')===0?' title="'+ACC_TAX_TIP+'"':'')
+    +(x.indexOf('АДМ ')===0?' title="'+ACC_ADM_TIP+'"':'')
+    +'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
   function cells(x){
     return '<td class="r">'+x.units+'</td><td class="r"><b>'+svRub(x.accruals)+'</b></td>'
+      +'<td class="r" style="color:var(--ink-3)">'+(Math.round(x.pay)?svRub(x.pay):'—')+'</td>'
       +CF.map(function(c){return money(-(x[c[1]]||0));}).join('')
       +'<td class="r">'+svRub(x.fee)+'</td>'
       +'<td class="r"><b>'+svRub(x.amount)+'</b></td>'
       +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="себестоимости по этому артикулу нет в листе - валовая завышена на неизвестную С\\С"')+'>'+(x.ck&&Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
       +'<td class="r" style="color:'+(x.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(x.gp)+'</td>'
-      +'<td class="r">'+(x.amount>0?(Math.round(x.gp/x.amount*1000)/10)+'%':'—')+'</td>';
+      +'<td class="r">'+(x.amount>0?(Math.round(x.gp/x.amount*1000)/10)+'%':'—')+'</td>'
+      +money(x.adm)+money(x.tax)
+      +'<td class="r" style="color:'+(x.np>=0?'var(--up)':'var(--dn)')+'">'+svRub(x.np)+'</td>'
+      +'<td class="r">'+(x.amount>0?(Math.round(x.np/x.amount*1000)/10)+'%':'—')+'</td>';
   }
   // Категории и ИТОГО складываются из тех же строк, поэтому проверяются сложением на экране.
   var cats={};
   list.forEach(function(x){
-    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],units:0,accruals:0,fee:0,amount:0,cogs:0,ck:true,gp:0});
+    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],units:0,pay:0,accruals:0,fee:0,amount:0,cogs:0,ck:true,gp:0,adm:0,tax:0,np:0});
     ACC_F.forEach(function(f){g[f]=(g[f]||0)+(x[f]||0);});
-    g.rows.push(x);g.fee+=x.fee;g.cogs+=x.cogs;g.gp+=x.gp;if(!x.ck)g.ck=false;});
+    g.rows.push(x);g.fee+=x.fee;g.cogs+=x.cogs;g.gp+=x.gp;g.adm+=x.adm;g.tax+=x.tax;g.np+=x.np;if(!x.ck)g.ck=false;});
   var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(p,q){return q.amount-p.amount;});
-  var T={units:0,accruals:0,fee:0,amount:0,cogs:0,ck:true,gp:0};
+  var T={units:0,pay:0,accruals:0,fee:0,amount:0,cogs:0,ck:true,gp:0,adm:0,tax:0,np:0};
   CF.forEach(function(c){T[c[1]]=0;});
   groups.forEach(function(g){
-    T.units+=g.units;T.accruals+=g.accruals;T.fee+=g.fee;T.amount+=g.amount;T.cogs+=g.cogs;T.gp+=g.gp;
+    T.units+=g.units;T.pay+=g.pay;T.accruals+=g.accruals;T.fee+=g.fee;T.amount+=g.amount;T.cogs+=g.cogs;T.gp+=g.gp;
+    T.adm+=g.adm;T.tax+=g.tax;T.np+=g.np;
     if(!g.ck)T.ck=false; CF.forEach(function(c){T[c[1]]+=g[c[1]]||0;});});
   h+='<tr class="sv-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' артикулов)</span></td>'+cells(T)+'</tr>';
   groups.forEach(function(g,gi){
@@ -4316,7 +4350,7 @@ function accDraw(){
   if(Math.round(idn))tips.push('Начислено минус сборы даёт '+svRub(T.accruals-T.fee)+' ₽ против '+svRub(T.amount)+' ₽ «К выплате»: расхождение '+svRub(idn)+' ₽ от построчного округления до рубля. Если оно вырастет заметно, это уже не округление.');
   if(dd.length)tips.push('Штуки против УПД - '+dd.join('; ')+'. Расхождение нормально: УПД идёт по дате реализации, а блок по дате проводки, и Маркет рассчитывается не в тот же день.');
   if(miss.length)tips.push('За '+miss.join(', ')+' отчёта о реализации нет. Маркет отдаёт его помесячно и упирается в лимит генерации, поэтому бэкфилл собирается прогонами; за незакрытый месяц документа не существует вовсе.');
-  tips.push('АДМ и налога в этом блоке нет намеренно. База налога - то, что оплатил клиент, а в реестре статья «Платёж покупателя» собрана не за все месяцы (за февраль-апрель её нет), и софинансирование Маркета, через которое её можно было бы вывести, собрано частично. Показать здесь налог значило бы показать число, которого данные не подтверждают. Прибыль с налогами - в блоке по дате заказа выше.');
+  tips.push('АДМ и налог считаются на тех же базах и теми же ставками, что в блоке по дате заказа: АДМ от «К выплате» (строка с минусом не облагается), налог от «Оплатил клиент». Отличается только базис периода - здесь дата проводки. Источник ставок: knowledge/semantic/ym-rates-adm-tax.md.');
   note.innerHTML=tips.join(' ');
 }
 function svPct(v){return (Math.round(v*1000)/10)+'%';}

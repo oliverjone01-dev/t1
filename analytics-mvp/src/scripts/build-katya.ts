@@ -2220,8 +2220,11 @@ function render(cur,cmp){
     for (const r of rowsD) {
       if (r.status !== "delivered" || r.d < since || !(r.revenue > 0)) continue;
       for (const k of [String(r.sku || ""), "*"]) {
-        const f = (feeShare[k] ||= { rev: 0, com: 0, del: 0, oth: 0, prt: 0 });
+        const f = (feeShare[k] ||= { rev: 0, com: 0, del: 0, oth: 0, prt: 0, comRev: 0 });
         f.rev += r.revenue; f.com -= r.commission || 0; f.del -= r.delivery || 0; f.oth -= r.other || 0; f.prt -= r.partner || 0;
+        // Доля комиссии - только по заказам, где она начислена: доставленные без комиссии (не пришла,
+        // возврат) занижали бы ставку, а именно их комиссию мы этой ставкой и досчитываем.
+        if (Math.round(r.commission || 0)) f.comRev += r.revenue;
       }
     }
   } catch { /* нет orders_daily */ }
@@ -2266,19 +2269,25 @@ function render(cur,cmp){
       let amtNet = Math.round((r.payout || 0) - adv - retAmt);
       const fly = st !== "delivered";
       const est: Record<string, number> = { com: 0, del: 0, oth: 0, prt: 0 };
-      const sh = fly ? shareOf(sk) : null;
-      if (sh && accNet > 0) { let tot = 0; for (const k of FEE_K) { est[k] = Math.round(accNet * sh[k] / sh.rev); tot += est[k]!; } amtNet -= tot; }
+      // Доставлен, а комиссии за продажу нет (не возврат): Иван 25.09.2026 - «делаем второй», досчитываем
+      // её оценкой той же долей артикула. Пришлёт OZON комиссию - строка перестанет сюда попадать.
+      const noCom = st === "delivered" && !retAmt && Math.round(r.revenue || 0) > 0 && !Math.round(r.commission || 0);
+      const sh = (fly || noCom) ? shareOf(sk) : null;
+      const comRate = (f: any) => (f.comRev > 0 ? f.com / f.comRev : f.com / f.rev);
+      if (sh && accNet > 0 && fly) { let tot = 0; for (const k of FEE_K) { est[k] = Math.round(k === "com" ? accNet * comRate(sh) : accNet * sh[k] / sh.rev); tot += est[k]!; } amtNet -= tot; }
+      if (sh && accNet > 0 && noCom) { est.com = Math.round(accNet * comRate(sh)); amtNet -= est.com; }
       anOrders.push({
         order: r.order, d: r.d, st, sk, scheme: String(r.scheme || ""),
         cat: catOf(sk) || "Прочее", off: String(r.offer || offerOf(sk)), nm: (skuName[sk] || sk).slice(0, 48),
         units, dlv, acc: accNet,
         com: -Math.round(r.commission || 0) + est.com!, del: -Math.round(r.delivery || 0) + est.del!, acq: -Math.round(acqSigned),
         sto: -Math.round(r.storage || 0), oth: -Math.round(r.other || 0) + est.oth!, prt: -Math.round(r.partner || 0) + est.prt!, // партнёры per-order из API (accrual/postings), в payout уже учтены; у летящих - оценка
-        estFee: est.com! + est.del! + est.oth! + est.prt!,
+        estFee: fly ? est.com! + est.del! + est.oth! + est.prt! : 0, // оценка сборов заказов в пути
+        estNoCom: noCom ? est.com! : 0, // оценка комиссии доставленных без начисленной комиссии
         eCom: est.com!, eDel: est.del!, eOth: est.oth!, ePrt: est.prt!, // оценочная часть каждой колонки - для выделения цветом
         // Доставлен, а комиссии нет (Иван 25.09.2026: «да, выделяй»): начисление ещё не пришло или заказ с
         // нулевой комиссией. Белым такой заказ выглядел бы как полный факт, а «К выплате» в нём может быть завышен.
-        nNoFee: (st === "delivered" && !retAmt && Math.round(r.revenue || 0) > 0 && !Math.round(r.commission || 0)) ? 1 : 0, // возврат OZON обнуляет комиссию сам - это не пропуск
+        nNoFee: noCom ? 1 : 0, // возврат OZON обнуляет комиссию сам - это не пропуск
         paid: (r.paid == null ? null : Math.round(Number(r.paid) - (r.revenue > 0 ? Number(r.paid) * Math.min(1, retAmt / r.revenue) : 0))), // оплата покупателя за вычетом возврата
         adv, ship: Math.round(dl.ship), dinc: 0, // дост.покуп добирается глобально в render (кабинетный ряд)
         amt: amtNet, amtS: (units > 0 ? amtNet : 0), ret: retAmt,
@@ -2622,7 +2631,7 @@ function anCells(x){
   // оценочные (заказ в пути): в итогах категорий они смешанные, и цвет там ничего бы не различал.
   var EST=(x.estFee!=null), flyRow=EST&&(x.fly||0)>0&&(x.dlv||0)===0;
   var ES=function(v,e,what){if(!EST||!Math.round(e||0))return R(v);
-    return '<td class="r an-est" title="'+(what||'В том числе оценка')+': '+fmtRu(Math.round(e))+' ₽ из '+fmtRu(Math.round(v||0))+' ₽. OZON начислит сборы только при доставке заказа, до того они посчитаны долей сборов доставленных заказов артикула за 120 дней">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
+    return '<td class="r an-est" title="'+(what||'В том числе оценка')+': '+fmtRu(Math.round(e))+' ₽ из '+fmtRu(Math.round(v||0))+' ₽. Оценка - доля сборов артикула по доставленным заказам за 120 дней: по заказу в пути OZON начислит сборы только при доставке, у доставленного без комиссии она ещё не пришла">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var EF=function(td){return flyRow?td.replace('<td class="r"','<td class="r an-est" title="Расчётное: заказ ещё в пути, его сборы и налог посчитаны оценкой"').replace(/ style="color:[^"]*"/,''):td;};
   var eAll=(x.eCom||0)+(x.eDel||0)+(x.eOth||0)+(x.ePrt||0);
   var prtCell=(x.prt!=null)?ES(x.prt,x.ePrt):'';
@@ -2771,7 +2780,7 @@ function renderOrdersAnalytics(cur){
     // В пути = заказано, но ещё не доставлено (отменённые в AN_ORDERS не попадают). Выручка - та же
     // «Начислено» строки: сколько денег ещё дойдёт, если заказ не отменят и не вернут.
     var fl=(s.st!=='delivered');
-    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,paid:s.paid,citiesTxt:(AN_DELIV_CITY[s.off]||[]).slice(0,3).map(function(c){return c[0]+' ('+c[1]+')';}).join(', ')+((AN_DELIV_CITY[s.off]||[]).length>3?' …':''),citiesTip:(AN_DELIV_CITY[s.off]||[]).map(function(c){return c[0]+' ('+c[1]+')';}).join('\\n')};
+    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,estNoCom:s.estNoCom||0,paid:s.paid,citiesTxt:(AN_DELIV_CITY[s.off]||[]).slice(0,3).map(function(c){return c[0]+' ('+c[1]+')';}).join(', ')+((AN_DELIV_CITY[s.off]||[]).length>3?' …':''),citiesTip:(AN_DELIV_CITY[s.off]||[]).map(function(c){return c[0]+' ('+c[1]+')';}).join('\\n')};
     rows.push(o);(bySku[o.sk]||(bySku[o.sk]=[])).push(o);
   }
   // ДОБОР ПО АРТИКУЛАМ (сопоставление артикул↔заказ). Чего в разрезе заказа нет вовсе или неполно,
@@ -2831,7 +2840,7 @@ function renderOrdersAnalytics(cur){
   // ноль: заказ, где сборы съели выручку, и отменённый заказ АДМ не уменьшают.
   for(var r0=0;r0<rows.length;r0++){rows[r0].amtS=Math.max(0,rows[r0].amt||0);}
   var groups={};for(var r=0;r<rows.length;r++){(groups[rows[r].cat]||(groups[rows[r].cat]=[])).push(rows[r]);}
-  var SUMK=['units','dlv','fly','flyAcc','tb','tbFly','estFee','eCom','eDel','eOth','ePrt','nNoFee','acc','com','del','acq','sto','oth','prt','adv','amt','amtS','cc','ship','dinc'];
+  var SUMK=['units','dlv','fly','flyAcc','tb','tbFly','estFee','eCom','eDel','eOth','ePrt','nNoFee','estNoCom','acc','com','del','acq','sto','oth','prt','adv','amt','amtS','cc','ship','dinc'];
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.acc-a.acc;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.acc-a.t.acc;});
   if(!cats.length){el.innerHTML='<tr><td colspan="26" class="kt-note">нет заказов за период</td></tr>';return;}
   var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
@@ -2840,7 +2849,7 @@ function renderOrdersAnalytics(cur){
     // падает при доставке. У летящих схема пуста (не показываем предварительный FBS - он может смениться).
     var schCat=(function(){var s={};g.arr.forEach(function(x){if(x.scheme&&x.st==='delivered')s[x.scheme]=(s[x.scheme]||0)+1;});return Object.keys(s).sort(function(a,b){return s[b]-s[a];}).join('/');})();
     html+='<tr class="ord-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+' зак.)</span></td><td style="color:var(--ink-3)">'+schCat+'</td>'+anCells(g.t)+'</tr>';
-    g.arr.forEach(function(x){var stb=(x.st==='cancelled')?' <span style="color:#FF5A5F" title="Заказ отменён: выручки нет, а сборы OZON (логистика, прочее) списаны - строка несёт только их">отменён, только расходы</span>':((x.st&&x.st!=='delivered')?' <span style="color:#E5B567">'+x.st+'</span>'+(x.estFee?' <span style="color:#E5B567" title="Заказ ещё не доставлен: OZON начислит сборы при доставке. Комиссия, логистика, партнёры и прочее в этой строке - оценка долей сборов по доставленным заказам этого артикула за 120 дней: '+fmtRu(x.estFee)+' ₽">сборы оценкой</span>':''):'');if(x.ret)stb+=' <span style="color:#FF5A5F;font-weight:600">возврат</span>';if(x.nNoFee)stb+=' <span class="an-nofee" title="'+NOFEE_TIP+'">доставлен, комиссия не начислена</span>';var lbl=(x.off||x.order)+' <span style="color:var(--ink-3);font-weight:400">'+x.order+'</span>'+stb;html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm||'').replace(/"/g,'&quot;')+'">'+lbl+'</td><td>'+((x.st==='delivered')?(x.scheme||'—'):'—')+'</td>'+anCells(x)+'</tr>';});
+    g.arr.forEach(function(x){var stb=(x.st==='cancelled')?' <span style="color:#FF5A5F" title="Заказ отменён: выручки нет, а сборы OZON (логистика, прочее) списаны - строка несёт только их">отменён, только расходы</span>':((x.st&&x.st!=='delivered')?' <span style="color:#E5B567">'+x.st+'</span>'+(x.estFee?' <span style="color:#E5B567" title="Заказ ещё не доставлен: OZON начислит сборы при доставке. Комиссия, логистика, партнёры и прочее в этой строке - оценка долей сборов по доставленным заказам этого артикула за 120 дней: '+fmtRu(x.estFee)+' ₽">сборы оценкой</span>':''):'');if(x.ret)stb+=' <span style="color:#FF5A5F;font-weight:600">возврат</span>';if(x.nNoFee)stb+=(x.estNoCom?' <span class="an-est" title="'+NOFEE_TIP+' Комиссия досчитана оценкой: '+fmtRu(x.estNoCom)+' ₽ - доля комиссии артикула по заказам, где она начислена, за 120 дней.">доставлен, комиссия не начислена - оценкой</span>':' <span class="an-nofee" title="'+NOFEE_TIP+'">доставлен, комиссия не начислена</span>');var lbl=(x.off||x.order)+' <span style="color:var(--ink-3);font-weight:400">'+x.order+'</span>'+stb;html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm||'').replace(/"/g,'&quot;')+'">'+lbl+'</td><td>'+((x.st==='delivered')?(x.scheme||'—'):'—')+'</td>'+anCells(x)+'</tr>';});
   });
   // «Общие расходы» - как в таблице по артикулам: сборы уровня кабинета (остаток рекламы, штрафы,
   // realFBS, бейдж, эквайринг/компенсации) + доставка по заказам, чей артикул не сошёлся с каталогом.
@@ -2870,7 +2879,7 @@ function renderOrdersAnalytics(cur){
   if(estEl){var eTx=[];
     if(grand.estFee)eTx.push('В том числе <b>оценка сборов по заказам в пути: '+fmtRu(Math.round(grand.estFee))+' ₽</b> ('+fmtRu(Math.round(grand.fly))+' шт на '+fmtRu(Math.round(grand.flyAcc))+' ₽). OZON начислит их при доставке; до того они посчитаны долей сборов доставленных заказов того же артикула за 120 дней и стоят в «Комиссии», «Логистике», «Услугах партнёров» и «Прочих».');
     if(Math.round(grand.tbFly||0))eTx.push('<b>Оценка базы налога по заказам в пути: '+fmtRu(Math.round(grand.tbFly))+' ₽</b> из '+fmtRu(Math.round(grand.tb))+' ₽ (налог '+fmtRu(Math.round(0.15*grand.tbFly))+' ₽): оплата покупателя по заказу плюс доля выплат по механикам лояльности, как будто заказ будет доставлен. Реализованной выручкой она станет только после доставки.');
-    if(grand.nNoFee)eTx.push('<span class="an-nofee">Доставленных заказов без начисленной комиссии: '+grand.nNoFee+'</span> (возвраты не в счёт - по ним комиссию обнуляет сам OZON). Строки помечены «доставлен, комиссия не начислена», ячейка комиссии - оранжевая с пунктиром: «К выплате» по ним может быть завышен на размер комиссии.');
+    if(grand.nNoFee)eTx.push('<b>Доставленных заказов без начисленной комиссии: '+grand.nNoFee+'</b> (возвраты не в счёт - по ним комиссию обнуляет сам OZON). Их комиссия досчитана оценкой: <b>'+fmtRu(Math.round(grand.estNoCom||0))+' ₽</b> - доля комиссии артикула по заказам, где она начислена, за 120 дней; строки помечены «доставлен, комиссия не начислена - оценкой». Пришлёт OZON комиссию - оценка заменится фактом.'+' <span class="an-nofee">Оранжевым с пунктиром</span> - заказ без комиссии, для которого долю посчитать не из чего.');
     if(eTx.length)eTx.push('<span class="an-est">Фиолетовым курсивом</span> в этой таблице и в таблице по артикулам по дате заказа выделены расчётные числа: ячейки с оценочной частью (сумма оценки - в подсказке), а у заказов в пути - и прибыль целиком.');
     estEl.innerHTML=eTx.join('<br>');estEl.style.display=eTx.length?'':'none';}
   renderOrdSku(rows,SUMK,acctRow,grand);

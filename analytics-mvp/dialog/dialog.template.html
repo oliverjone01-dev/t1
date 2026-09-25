@@ -1165,15 +1165,17 @@ function renderTree(){
     if(st==='na_mgr') return 'Не разбирается: сделку ведёт офис-менеджер, уволенный сотрудник или не продавец отдела.';
     return 'Разбора по этой сделке нет.';
   };
-  // Метка разбора ИИ в строке сделки - в стиле индикатора менеджера, но тише: сделок в списке
-  // много, поэтому актуальный разбор - едва заметная точка, внимание забирают только
-  // устаревший (незамкнутое янтарное кольцо) и неразобранный (пунктирное кольцо).
+  // Метка разбора ИИ в строке сделки: зелёная точка - разбор актуален, янтарное незамкнутое
+  // кольцо - устарел, красная метка - разбора нет (причина в подсказке).
   const aiDealMark=(d)=>{
     const svg=(inner,tip)=>`<span class="aimark" title="${tip}"><svg viewBox="0 0 12 12">${inner}</svg></span>`;
     if(d.aiState==='stale') return svg(`<circle cx="6" cy="6" r="4.2" fill="none" stroke="#E2A336" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="19.8 26.4" transform="rotate(-90 6 6)"/>`,'Разбор ИИ устарел: после него в сделке появились новые события. Обновится ночным прогоном');
     if(d.ai&&(d.ai.audit||d.ai.verdict)) return svg(`<circle cx="6" cy="6" r="2.6" fill="#2E9E74"/>`,'Есть актуальный разбор ИИ по этой сделке');
-    if(d.aiState==='none') return svg(`<circle cx="6" cy="6" r="4.2" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="1.6 1.8"/>`,'Диалог ещё не разобран ИИ');
-    return '';
+    // Разбора нет - красная метка. В очереди: пунктирное красное кольцо (появится после прогона).
+    // Разбирать нечего или не продавец: сплошная красная точка, причина - в подсказке.
+    const why=esc(aiNoReviewWhy(d));
+    if(d.aiState==='none') return svg(`<circle cx="6" cy="6" r="4.2" fill="none" stroke="#C25252" stroke-width="1.6" stroke-dasharray="1.8 1.6"/>`,why);
+    return svg(`<circle cx="6" cy="6" r="3" fill="#C25252"/>`,why);
   };
   const aiCovOf=(ds)=>{ const c={elig:0,fresh:0,stale:0,none:0}; for(const d of ds){ const st=d.aiState||'na'; if(st.startsWith('na')) continue; c.elig++; c[st]++; } return c; };
   const aiCovCell=(mgr)=>{ const c=aiCovOf(byM[mgr]||[]);

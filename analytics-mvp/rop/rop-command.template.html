@@ -351,8 +351,11 @@ const isSys=n=>/систем|^id\s?\d/i.test(n||'');
 // Ростер плана ОП (решение Ивана): единственный источник имён, по которым считаем план и портфель.
 // Используется и в «Дашбордах менеджеров» (_MShow), и в «Календаре горячих сделок» (все с планом видны,
 // даже при нуле успехов). Нового менеджера добавлять сюда - подхватят оба блока.
-const PLAN_MGRS=["Ольга Лысенко","Юлия Лысанова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];
-const OP=new Set(DATA.opUsers||[]);const INTSET=new Set((DATA.intStaff||[]).map(x=>x.name));
+const PLAN_MGRS=["Ольга Лысенко","Юлия Лысанова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова","Татьяна Фомичева"];
+// Новичок отдела виден во ВСЕХ виджетах по менеджерам с нулями, а не появляется задним
+// числом после первых сделок: иначе РОП не видит, что человек взят и ещё не начал.
+// Виджеты строятся из сделок, поэтому каждый набор строк досевается ростером (PLAN_MGRS).
+const OP=new Set([...(DATA.opUsers||[]),...PLAN_MGRS]);const INTSET=new Set((DATA.intStaff||[]).map(x=>x.name));
 const isOP=n=>OP.has(n);const isInt=n=>INTSET.has(n);
 const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
 // Дата переезда CRM из AmoCRM в Битрикс24: вся история сделок залита одним днём
@@ -559,7 +562,7 @@ function tipColumn(label,totalLabel,total,rows,money,totColor){const f=v=>money?
   return h;}
 function rankColor(arr,v,inv){const a=arr.filter(x=>x!=null);if(!a.length||v==null)return '';const mn=Math.min(...a),mx=Math.max(...a);let t=mx===mn?.5:(v-mn)/(mx-mn);if(inv)t=1-t;const c=t>=.66?'16,185,129':t>=.33?'245,158,11':'244,63,94';return `background:rgba(${c},${(.05+t*.20).toFixed(3)})`;}
 // per-manager agg over a deal/lead set
-function byManager(D,L){const names=[...new Set([...D.map(d=>d.mgr),...L.map(l=>l.mgr)])].filter(n=>isOP(n));
+function byManager(D,L){const names=[...new Set([...D.map(d=>d.mgr),...L.map(l=>l.mgr),...PLAN_MGRS])].filter(n=>isOP(n));
   // лиды/сделки - по дате создания (intake); успех/выручка/чек/потери - по дате ИСХОДА в периоде.
   const so=soldSet(),lo=lostSet();
   return names.map(m=>{const dd=D.filter(d=>d.mgr===m),ll=L.filter(l=>l.mgr===m);
@@ -844,7 +847,8 @@ function smartTasksBlock(){
     if(cardAge(d)<=14&&(touchAge(d)===null||touchAge(d)>14))o.robot++;});
   paidP.forEach(d=>{const o=mk(d.mgr);o.wonN++;o.prepay+=(d.prepayAmt||0);o.budg+=(d.budget||0);if(!d.prepayAmt)o.noPrepay++;});
   lostP.forEach(d=>{const o=mk(d.mgr);o.lostN++;});
-  const rows=Object.values(M).filter(o=>o.pre.length||o.post.length||o.wonN||o.lostN);
+  PLAN_MGRS.forEach(nm=>mk(nm)); // действующий продавец виден даже с нулём
+  const rows=Object.values(M).filter(o=>o.pre.length||o.post.length||o.wonN||o.lostN||ROSTER.has(o.nm));
   rows.forEach(o=>{const cl=o.wonN+o.lostN;o.cr=cl?o.wonN/cl:null;o.zpct=o.pre.length?o.g/o.pre.length:null;});
   const T={pre:0,post:0,sum:0,postSum:0,g:0,y:0,r:0,n:0,ovd:0,noTask:0,fake:0,robot:0,wonN:0,prepay:0,budg:0,noPrepay:0,lostN:0};
   rows.forEach(o=>{T.pre+=o.pre.length;T.post+=o.post.length;T.sum+=o.sum;T.postSum+=o.postSum;['g','y','r','n','ovd','noTask','fake','robot','wonN','prepay','budg','noPrepay','lostN'].forEach(k=>T[k]+=o[k]);});
@@ -977,7 +981,8 @@ function taskDisciplineBlock(){
   const _disp={};
   const gkey=d=>{if(view==='mgr')return d.mgr;if(!d.taskDue)return 'Без дела';const raw=(d.taskSubj||'без темы').trim()||'без темы';const k=raw.toLowerCase().replace(/\s+/g,' ');if(!_disp[k])_disp[k]=raw;return k;};
   const glabel=k=>view==='mgr'?k:(k==='Без дела'?'Без дела':(_disp[k]||k));
-  const perM={};let tN=0,tNone=0,tOver=0,tPark=0,tOk=0,tRisk=0,tEmp=0;
+  const perM={};PLAN_MGRS.forEach(nm=>{perM[nm]={n:nm,tot:0,none:0,over:0,park:0,ok:0,risk:0,ch:{call:0,msg:0,email:0},noch:0,emp:0};});
+  let tN=0,tNone=0,tOver=0,tPark=0,tOk=0,tRisk=0,tEmp=0;
   open.forEach(d=>{const c=cls(d);const key=gkey(d);const m=perM[key]=perM[key]||{n:key,tot:0,none:0,over:0,park:0,ok:0,risk:0,ch:{call:0,msg:0,email:0},noch:0,emp:0};m.tot++;m[c]++;const _emp=d.tasksNoContact||0;m.emp+=_emp;tEmp+=_emp;if(d.lastTouchChan&&m.ch[d.lastTouchChan]!=null)m.ch[d.lastTouchChan]++;else if(!d.lastTouch)m.noch++;tN++;if(c==='none')tNone++;else if(c==='over')tOver++;else if(c==='park')tPark++;else tOk++;if(c!=='ok'){m.risk+=(d.budget||0);tRisk+=(d.budget||0);}});
   const tProb=tNone+tOver+tPark;
   // каналы коммуникации: DATA.channelMix - карта «менеджер -> {call_in,call_out,email_in,email_out,msg_in,msg_out}»
@@ -1109,7 +1114,9 @@ function managerDashboardsBlock(){
   const _Mcnt={};(DATA.deals||[]).filter(d=>!_MExcl.has(d.mgr)&&d.dir!=="glass-memory").forEach(d=>{if(d.mgr)_Mcnt[d.mgr]=(_Mcnt[d.mgr]||0)+1;});
   const _Mtl={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
   const _translit=s=>s.toLowerCase().split("").map(c=>c in _Mtl?_Mtl[c]:c).join("").replace(/[^a-z0-9-]/g,"").replace(/-+/g,"-").replace(/^-|-$/g,"");
-  const _Mroster=Object.keys(_Mcnt).filter(n=>_Mcnt[n]>=5&&!_MnotOP.has(n)&&!_Msys(n)).sort((a,b)=>_Mcnt[b]-_Mcnt[a]);
+  // Порог 5 сделок отсекает «призраков», но действующего продавца из ростера показываем
+  // всегда, даже с нулём: у него ещё нет личной страницы, и карточка это отдельно скажет.
+  const _Mroster=[...new Set(Object.keys(_Mcnt).filter(n=>_Mcnt[n]>=5&&!_MnotOP.has(n)&&!_Msys(n)).concat(PLAN_MGRS))].sort((a,b)=>(_Mcnt[b]||0)-(_Mcnt[a]||0));
   const _Mused=new Map();
   const _slugFor=name=>{const p=name.trim().split(/\s+/),sur=p[p.length-1]||name,fir=p[0]||"";let base=_translit(sur)||"mgr",slug=base;if(_Mused.has(slug)&&_Mused.get(slug)!==name){slug=base+"-"+(_translit(fir)||"x");let i=2;while(_Mused.has(slug)&&_Mused.get(slug)!==name)slug=base+"-"+(i++);}_Mused.set(slug,name);return slug;};
   const DASH=_Mroster.map(name=>[name,_slugFor(name)]).filter(([name])=>_MShow.has(name));
@@ -1175,6 +1182,7 @@ function managerDashboardsBlock(){
   // Рейтинг (места/кубки) считаем по тому же белому списку, что и свайп: только действующие продавцы ОП.
   // Уволенные, офис-менеджеры и CEO в расчёт мест не идут - иначе они держат верхние места, а показанные съезжают вниз.
   // pmDays - дни ТЕКУЩЕГО МЕСЯЦА с предоплатой (не зависит от периода дашборда); fact/rev - за выбранный период (для других вкладок).
+  PLAN_MGRS.forEach(m=>{_byDept[m]=_byDept[m]||{fact:0,otk:0,rev:0,mine:[],ctot:0,cbad:0,pmDays:new Set(),lastPrep:null};});
   passed.filter(d=>isOP(d.mgr)&&_MShow.has(d.mgr)).forEach(d=>{const m=d.mgr,o=_byDept[m]||(_byDept[m]={fact:0,otk:0,rev:0,mine:[],ctot:0,cbad:0,pmDays:new Set(),lastPrep:null});o.mine.push(d);const e=enterExec(d);if(e){const _ed=e.slice(0,10);if(inR(e)){o.fact++;o.rev+=amt(d);}if(_ed.slice(0,7)===_curMon)o.pmDays.add(_ed);if(!o.lastPrep||_ed>o.lastPrep)o.lastPrep=_ed;}const l=enterLoseOff(d);if(l&&inR(l))o.otk++;if(!d.lost){o.ctot++;if(_isDirty(d))o.cbad++;}});
   const _TODAY=String(DATA.to||'').slice(0,10);
   const deptRows=Object.entries(_byDept).map(([m,o])=>{const wip=wipMgr(o.mine);const miss=o.lastPrep?Math.max(0,Math.round((Date.parse(_TODAY)-Date.parse(o.lastPrep))/864e5)):null;return {name:m,fact:o.fact,otk:o.otk,rev:o.rev,wip,cr:wip?o.fact/wip:null,clean:o.ctot?(o.ctot-o.cbad)/o.ctot:null,bad:o.cbad,ctot:o.ctot,miss,todayPrep:o.pmDays.has(_TODAY)};});
@@ -1973,7 +1981,8 @@ function healthBlock(){
   const _crShow=new Set(PLAN_MGRS);
   const names=[...new Set(passed.map(d=>d.mgr))].filter(m=>_crShow.has(m));
   const _crHidden=[...new Set(passed.map(d=>d.mgr))].filter(m=>!_crShow.has(m)&&passed.some(d=>d.mgr===m&&openEnd(d))).length;
-  const mrows=names.map(m=>{const sc=passed.filter(d=>d.mgr===m);const w=sc.filter(openEnd).length,su=sc.filter(d=>inR(enterExec(d))).length;return {m,w,su,cr:w?(su/w)/_moN:0};}).filter(x=>x.w>0).sort((a,b)=>b.cr-a.cr);
+  const _crNames=[...new Set(names.concat(PLAN_MGRS.filter(m=>_crShow.has(m))))];
+  const mrows=_crNames.map(m=>{const sc=passed.filter(d=>d.mgr===m);const w=sc.filter(openEnd).length,su=sc.filter(d=>inR(enterExec(d))).length;return {m,w,su,cr:w?(su/w)/_moN:0};}).filter(x=>x.w>0||_crShow.has(x.m)).sort((a,b)=>b.cr-a.cr);
   const crMax=Math.max(crDept,...mrows.map(x=>x.cr),0.01);
   const selArr=Array.isArray(S.hmSel)?S.hmSel:(S.hmSel?[S.hmSel]:[]);
   const MPAL=['#22D3EE','#F59E0B','#34D399','#F472B6','#60A5FA','#FB923C','#2DD4BF','#C084FC'];
@@ -2659,7 +2668,7 @@ function offerControlBlock(){
   const earlyN={};AD.filter(d=>!d.won&&!d.lost&&EARLY.has(d.stageCode)).forEach(d=>{earlyN[d.mgr]=(earlyN[d.mgr]||0)+1;});
 
   // ---- 2) таблица по менеджерам ----
-  const G={};open.forEach(d=>{(G[d.mgr]=G[d.mgr]||[]).push(d);});
+  const G={};PLAN_MGRS.forEach(m=>{G[m]=[];});open.forEach(d=>{(G[d.mgr]=G[d.mgr]||[]).push(d);});
   let mrows=Object.entries(G).map(([mgr,ds])=>{
     const c=checks(ds),h=H[mgr]||{won:0,lost:0,wc:[]},cr=(h.won+h.lost)?h.won/(h.won+h.lost):null;
     return {mgr,ds,n:ds.length,kp:ds.filter(d=>d.stageCode==="C49:PREPAYMENT_INVOIC").length,dec:ds.filter(d=>d.stageCode==="C49:3").length,lng:ds.filter(d=>d.stageCode==="C49:UC_8JTBV2").length,
@@ -2741,8 +2750,10 @@ function mgrScatter(L){
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${grid}${xg}${refV}${refH}${pts}<text x="${((pl+W-pr)/2).toFixed(0)}" y="${H-4}" text-anchor="middle" font-size="9.5" fill="var(--ink-3)">объём лидов, шт →</text></svg>`;}
 function mgrHeatmap(L){
   const keys=buckets(S.gran);const showNum=keys.length<=14;
-  const A={};L.forEach(l=>{if(!isOP(l.mgr))return;const a=A[l.mgr]=A[l.mgr]||{t:0,w:{}};a.t++;const k=bkey(l.created,S.gran);a.w[k]=(a.w[k]||0)+1;});
-  const arr=Object.entries(A).map(([m,a])=>({m,t:a.t,w:a.w})).sort((x,y)=>y.t-x.t).slice(0,12);
+  const A={};PLAN_MGRS.forEach(m=>{A[m]={t:0,w:{}};});
+  L.forEach(l=>{if(!isOP(l.mgr))return;const a=A[l.mgr]=A[l.mgr]||{t:0,w:{}};a.t++;const k=bkey(l.created,S.gran);a.w[k]=(a.w[k]||0)+1;});
+  const _rost=new Set(PLAN_MGRS);
+  const arr=Object.entries(A).map(([m,a])=>({m,t:a.t,w:a.w})).sort((x,y)=>(y.t-x.t)||(_rost.has(y.m)?1:0)-(_rost.has(x.m)?1:0)).slice(0,12);
   if(!arr.length)return '<div class="card-sub" style="margin-top:14px">в периоде нет лидов на менеджерах ОП</div>';
   let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
   const head=`<div class="hm-row hm-head"><div class="hm-name"></div>${keys.map(k=>`<div class="hm-cell-h">${blabel(k,S.gran)}</div>`).join('')}<div class="hm-tot"></div></div>`;
@@ -2751,6 +2762,7 @@ function mgrHeatmap(L){
   return `<div class="hm" style="--wk:${keys.length}">${head}${rows}</div>`;}
 function mgrPF(L,D,metric,keys){const A={};
   const E=m=>A[m]=A[m]||{leads:0,deals:0,won:0,rev:0,prod:0,lw:{},dw:{},ww:{},rw:{},pw:{}};
+  PLAN_MGRS.forEach(m=>E(m));
   L.filter(l=>isOP(l.mgr)).forEach(l=>{const a=E(l.mgr);a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
   D.filter(d=>isOP(d.mgr)).forEach(d=>{const a=E(d.mgr);a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
     if(prodDate(d)){a.prod++;const kp=bkey(prodKey(d),S.gran);a.pw[kp]=(a.pw[kp]||0)+1;}
@@ -2788,7 +2800,9 @@ function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,ext
   const isR=(metric==='conv'||metric==='check');
   let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
   const head=`<div class="hm-row hm-head"><div class="hm-name"></div>${keys.map(k=>`<div class="hm-cell-h">${blabel(k,S.gran)}</div>`).join('')}<div class="hm-tot">Σ</div><div class="hm-tot">${attain?'план':'норма'}</div><div class="hm-tot">%</div></div>`;
-  const rows=arr.slice(0,12).map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell,bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)',col=t>0.55?'#06121a':'var(--ink-2)';
+  // Топ-12 по объёму + добить ростером: новичок с нулём иначе не попадает в матрицу и выглядит как «нет менеджера».
+  const _top=arr.slice(0,12),_seen=new Set(_top.map(x=>x.m)),_ros=PLAN_MGRS.filter(m=>!_seen.has(m)).map(m=>arr.find(x=>x.m===m)).filter(Boolean);
+  const rows=_top.concat(_ros).map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell,bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)',col=t>0.55?'#06121a':'var(--ink-2)';
       const td=dt(x.m+' · '+blabel(k,S.gran),[['План на период',fP(planCell),'dim'],['Факт',fM(v),'hl']]).replace(/"/g,'&quot;');
       return `<div class="hm-cell" style="background:${bg};color:${col}" data-tip="${td}">${showNum?fM(v):''}</div>`;}).join('');
     const att=planMgr?x.tot/planMgr:0,ac=planTone(att);

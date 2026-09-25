@@ -1165,7 +1165,7 @@ const EXTRA_CSS = `
 .kt-kpi .card:nth-child(4)::before{background:linear-gradient(90deg,var(--d6),transparent)}
 .kt-kpi .card:nth-child(5)::before{background:linear-gradient(90deg,var(--d5),transparent)}
 .kt-kpi .card:nth-child(6)::before{background:linear-gradient(90deg,var(--up),transparent)}
-.kt-table{width:100%;border-collapse:collapse;font-size:12.5px}.kt-table th{color:var(--ink-3);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--bg-soft)}.kt-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04)}.kt-table .r{text-align:right;font-variant-numeric:tabular-nums}
+.kt-table{width:100%;border-collapse:collapse;font-size:12.5px}.kt-table th{color:var(--ink-3);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--bg-soft)}.kt-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04)}.kt-table .r{text-align:right;font-variant-numeric:tabular-nums}.an-est,.kt-table td.an-est{color:#B794F6;font-style:italic}
 /* Строка ИТОГО стоит ПЕРВОЙ под шапкой (решение Ивана 18.09.2026), и на широкой таблице в
    полсотни колонок терялась среди строк артикулов: те же 12.5px, тот же фон, отличие только
    в жирности. Отделяем её как отдельный ярус: подложка, акцентная линия снизу и чуть крупнее
@@ -2275,6 +2275,7 @@ function render(cur,cmp){
         com: -Math.round(r.commission || 0) + est.com!, del: -Math.round(r.delivery || 0) + est.del!, acq: -Math.round(acqSigned),
         sto: -Math.round(r.storage || 0), oth: -Math.round(r.other || 0) + est.oth!, prt: -Math.round(r.partner || 0) + est.prt!, // партнёры per-order из API (accrual/postings), в payout уже учтены; у летящих - оценка
         estFee: est.com! + est.del! + est.oth! + est.prt!,
+        eCom: est.com!, eDel: est.del!, eOth: est.oth!, ePrt: est.prt!, // оценочная часть каждой колонки - для выделения цветом
         paid: (r.paid == null ? null : Math.round(Number(r.paid) - (r.revenue > 0 ? Number(r.paid) * Math.min(1, retAmt / r.revenue) : 0))), // оплата покупателя за вычетом возврата
         adv, ship: Math.round(dl.ship), dinc: 0, // дост.покуп добирается глобально в render (кабинетный ряд)
         amt: amtNet, amtS: (units > 0 ? amtNet : 0), ret: retAmt,
@@ -2610,9 +2611,19 @@ function anCells(x){
   // колонка «Реклама» стояла пустой, а «Прочие» держали 92% всех сборов и ничего не объясняли.
   // «Услуги партнёров» (стоимость доставки rFBS силами партнёров OZON) - только в блоке по заказам
   // (там x.prt определён); в таблице по артикулам колонки нет. Ставим после «Прочие», перед «Реклама».
-  var prtCell=(x.prt!=null)?R(x.prt):'';
+  // РАСЧЁТНЫЕ ДАННЫЕ (Иван 25.09.2026: «выдели расчётные данные другим цветом»). Только в таблицах по
+  // дате заказа (там строка несёт estFee): сборы заказов в пути OZON ещё не начислил - они оценкой, как
+  // и база налога этих заказов. Ячейка, где есть оценочная часть, - фиолетовым курсивом, в подсказке
+  // сумма оценки. Валовая, АДМ, чистая и рентабельность выделяются только у строки, где ВСЕ сборы
+  // оценочные (заказ в пути): в итогах категорий они смешанные, и цвет там ничего бы не различал.
+  var EST=(x.estFee!=null), flyRow=EST&&(x.fly||0)>0&&(x.dlv||0)===0;
+  var ES=function(v,e,what){if(!EST||!Math.round(e||0))return R(v);
+    return '<td class="r an-est" title="'+(what||'В том числе оценка')+': '+fmtRu(Math.round(e))+' ₽ из '+fmtRu(Math.round(v||0))+' ₽. OZON начислит сборы только при доставке заказа, до того они посчитаны долей сборов доставленных заказов артикула за 120 дней">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
+  var EF=function(td){return flyRow?td.replace('<td class="r"','<td class="r an-est" title="Расчётное: заказ ещё в пути, его сборы и налог посчитаны оценкой"').replace(/ style="color:[^"]*"/,''):td;};
+  var eAll=(x.eCom||0)+(x.eDel||0)+(x.eOth||0)+(x.ePrt||0);
+  var prtCell=(x.prt!=null)?ES(x.prt,x.ePrt):'';
   var mid=${IS_OZON}
-    ? R(x.del)+R(x.acq)+R(x.sto)+R(x.oth)+prtCell+R(x.adv)
+    ? ES(x.del,x.eDel)+R(x.acq)+R(x.sto)+ES(x.oth,x.eOth)+prtCell+R(x.adv)
     : R(x.del)+R(x.acq)+R(x.sto)+R(x.cof)+R(x.promo)+R(x.oth);
   // «Доставлено» - только в блоке по заказам (там x.dlv определён); в таблице по артикулам колонки нет.
   var dlvCell=(x.dlv!=null)?('<td class="r">'+(x.dlv?fmtRu(x.dlv):'—')+'</td>'):'';
@@ -2622,8 +2633,10 @@ function anCells(x){
   if(x.fly!=null)dlvCell+=FLY(x.fly)+FLY(x.flyAcc);
   // «Наша доставка»/«Доставка покупателя» - ПОСЛЕ «К выплате»: в неё они не входят, вычитаются/
   // плюсуются уже в «Валовой прибыли».
-  var tbCell=(x.tb!=null)?R(x.tb):''; // «Реализовано (база налога)» - перед «Налогами»
-  return I(x.units)+dlvCell+R(x.acc)+R(x.com)+mid+R(fees)+R(x.amt)+shipCell+incCell+R(x.cc)+P(gp)+R(adm)+tbCell+R(tax)+P(net)+PC(rent)+cityCell;
+  var tbE=EST?(x.tbFly||0):0;
+  var tbCell=(x.tb!=null)?(tbE?ES(x.tb,tbE,'В том числе оценка базы по заказам в пути'):R(x.tb)):''; // «Реализовано (база налога)» - перед «Налогами»
+  var taxCell=tbE?ES(tax,0.15*tbE,'В том числе оценка налога по заказам в пути'):R(tax);
+  return I(x.units)+dlvCell+R(x.acc)+ES(x.com,x.eCom)+mid+ES(fees,eAll,'В том числе оценка сборов')+ES(x.amt,-eAll,'В том числе за вычетом оценки сборов')+shipCell+incCell+R(x.cc)+EF(P(gp))+EF(R(adm))+tbCell+taxCell+EF(P(net))+EF(PC(rent))+cityCell;
 }
 var skuGrandLast=null;
 function renderSkuAnalytics(cur){
@@ -2751,7 +2764,7 @@ function renderOrdersAnalytics(cur){
     // В пути = заказано, но ещё не доставлено (отменённые в AN_ORDERS не попадают). Выручка - та же
     // «Начислено» строки: сколько денег ещё дойдёт, если заказ не отменят и не вернут.
     var fl=(s.st!=='delivered');
-    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,paid:s.paid,citiesTxt:(AN_DELIV_CITY[s.off]||[]).slice(0,3).map(function(c){return c[0]+' ('+c[1]+')';}).join(', ')+((AN_DELIV_CITY[s.off]||[]).length>3?' …':''),citiesTip:(AN_DELIV_CITY[s.off]||[]).map(function(c){return c[0]+' ('+c[1]+')';}).join('\\n')};
+    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,paid:s.paid,citiesTxt:(AN_DELIV_CITY[s.off]||[]).slice(0,3).map(function(c){return c[0]+' ('+c[1]+')';}).join(', ')+((AN_DELIV_CITY[s.off]||[]).length>3?' …':''),citiesTip:(AN_DELIV_CITY[s.off]||[]).map(function(c){return c[0]+' ('+c[1]+')';}).join('\\n')};
     rows.push(o);(bySku[o.sk]||(bySku[o.sk]=[])).push(o);
   }
   // ДОБОР ПО АРТИКУЛАМ (сопоставление артикул↔заказ). Чего в разрезе заказа нет вовсе или неполно,
@@ -2811,7 +2824,7 @@ function renderOrdersAnalytics(cur){
   // ноль: заказ, где сборы съели выручку, и отменённый заказ АДМ не уменьшают.
   for(var r0=0;r0<rows.length;r0++){rows[r0].amtS=Math.max(0,rows[r0].amt||0);}
   var groups={};for(var r=0;r<rows.length;r++){(groups[rows[r].cat]||(groups[rows[r].cat]=[])).push(rows[r]);}
-  var SUMK=['units','dlv','fly','flyAcc','tb','tbFly','estFee','acc','com','del','acq','sto','oth','prt','adv','amt','amtS','cc','ship','dinc'];
+  var SUMK=['units','dlv','fly','flyAcc','tb','tbFly','estFee','eCom','eDel','eOth','ePrt','acc','com','del','acq','sto','oth','prt','adv','amt','amtS','cc','ship','dinc'];
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.acc-a.acc;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.acc-a.t.acc;});
   if(!cats.length){el.innerHTML='<tr><td colspan="26" class="kt-note">нет заказов за период</td></tr>';return;}
   var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
@@ -2850,6 +2863,7 @@ function renderOrdersAnalytics(cur){
   if(estEl){var eTx=[];
     if(grand.estFee)eTx.push('В том числе <b>оценка сборов по заказам в пути: '+fmtRu(Math.round(grand.estFee))+' ₽</b> ('+fmtRu(Math.round(grand.fly))+' шт на '+fmtRu(Math.round(grand.flyAcc))+' ₽). OZON начислит их при доставке; до того они посчитаны долей сборов доставленных заказов того же артикула за 120 дней и стоят в «Комиссии», «Логистике», «Услугах партнёров» и «Прочих».');
     if(Math.round(grand.tbFly||0))eTx.push('<b>Оценка базы налога по заказам в пути: '+fmtRu(Math.round(grand.tbFly))+' ₽</b> из '+fmtRu(Math.round(grand.tb))+' ₽ (налог '+fmtRu(Math.round(0.15*grand.tbFly))+' ₽): оплата покупателя по заказу плюс доля выплат по механикам лояльности, как будто заказ будет доставлен. Реализованной выручкой она станет только после доставки.');
+    if(eTx.length)eTx.push('<span class="an-est">Фиолетовым курсивом</span> в этой таблице и в таблице по артикулам по дате заказа выделены расчётные числа: ячейки с оценочной частью (сумма оценки - в подсказке), а у заказов в пути - и прибыль целиком.');
     estEl.innerHTML=eTx.join('<br>');estEl.style.display=eTx.length?'':'none';}
   renderOrdSku(rows,SUMK,acctRow,grand);
   return grand; // ИТОГО свода по заказам - для водопада (строится на этом своде)

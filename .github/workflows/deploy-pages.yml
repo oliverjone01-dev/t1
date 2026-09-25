@@ -12,6 +12,7 @@ name: Deploy to GitHub Pages
 #   /stand-protocol/   - Протокол стенда MEBELIT x VALONTI, БОЙ (из main, статика public/, правка ?edit=1)
 #   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
 #   /rop-preview/      - РОП-дашборд, ПРЕВЬЮ (из ветки ozon-dashboard-dima-fork, изолированная копия Ивана)
+#   /kontur/           - Контур: SEO, GEO и Директ по проектам (из main, статика public/)
 #   /direct/           - Дашборд Яндекс.Директ, БОЙ (из main, данные direct-snapshots.yml)
 #   /direct-preview/   - Дашборд Яндекс.Директ, ПРЕВЬЮ (из рабочей ветки)
 #   /market/           - Дашборд KATYA для Яндекс Маркета, БОЙ (из main, данные ym-snapshots.yml -> analytics-mvp/data-ym/)
@@ -46,7 +47,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, kontur-dashboard/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -289,6 +290,52 @@ jobs:
       # === ДИРЕКТ (из main, в /direct/; многостраничный) ===
       # Дашборд Яндекс.Директ: страницы запечены build.mjs из снимков yandex-direct/data/
       # (обновляет direct-snapshots.yml ночью). Токенов в HTML нет. Падение не валит сайт.
+      # === КОНТУР: SEO, GEO и Директ по проектам (из main, статика public/) ===
+      # Страница самодостаточна: данные вшиты на этапе сборки в kontur-dashboard,
+      # поэтому здесь только копирование. Обновляет kontur-snapshot.yml.
+      # Приложение вместе с данными шифруется паролем из секрета KONTUR_PASS
+      # (tools/seal_page.mjs: PBKDF2-SHA256 600 000 итераций, AES-256-GCM, схема
+      # академии). Шифровать, а не прятать за хэшем, выбрано ответом в сессии 23.09
+      # и подтверждено там же (kontur-dashboard/docs/RISK.md): хэш не
+      # закрывал данные, они читались из кода страницы без пароля.
+      # Секрет свой, не общий: /seo/ публикует быстрый SHA-256 от общего пароля, по
+      # нему пароль подбирается офлайн в обход PBKDF2, и шифрование теряло бы смысл.
+      # Академия по той же причине живёт на своём ACADEMY_PASS.
+      # Без секрета раздел не публикуется вовсе. Шифрование идёт во временном
+      # каталоге, в _site попадает только файл, прошедший проверку на открытые данные.
+      # continue-on-error оставлен, как у двадцати соседних шагов: сбой раздела не
+      # должен ронять публикацию всего сайта, а /kontur/ при сбое просто не выкладывается.
+      - name: Build KONTUR dashboard (/kontur/)
+        continue-on-error: true
+        env:
+          KONTUR_PASS: ${{ secrets.KONTUR_PASS }}
+          HUB_PASS: ${{ secrets.HUB_PASS }}      # только для сверки: KONTUR_PASS не должен с ним совпадать
+        run: |
+          set -euo pipefail
+          if [ ! -f "kontur-dashboard/public/index.html" ]; then
+            echo "kontur-dashboard/public/index.html отсутствует в main - пропуск"
+          elif [ -z "${KONTUR_PASS:-}" ]; then
+            echo "::warning::Секрет KONTUR_PASS не задан, раздел /kontur/ не опубликован"
+          else
+            # Сначала тест на подмену самого шифровальщика: заведомо плохие страницы, исходники
+            # и пароля обязаны остановить публикацию. Не прошёл - раздел не выкладывается.
+            KONTUR_TMP=/tmp/kontur-seal-test node kontur-dashboard/tools/seal_test.mjs
+            rm -rf /tmp/kontur-site
+            cp -r kontur-dashboard/public /tmp/kontur-site
+            KONTUR_PASS="$KONTUR_PASS" HUB_PASS="${HUB_PASS:-}" node kontur-dashboard/tools/seal_page.mjs /tmp/kontur-site/index.html
+            # Проверка по факту, а не по коду выхода: шифротекст на месте, открытых
+            # данных и открытого кода приложения в файле нет.
+            if ! grep -q 'id="app-sealed"' /tmp/kontur-site/index.html \
+               || grep -qF 'const DB = ' /tmp/kontur-site/index.html \
+               || grep -qF '"projects"' /tmp/kontur-site/index.html \
+               || grep -qF 'function render' /tmp/kontur-site/index.html; then
+              echo "::error::В /kontur/ после шифрования остались открытые данные, публикация раздела остановлена"; exit 1
+            fi
+            mkdir -p "$GITHUB_WORKSPACE/_site/kontur"
+            cp -r /tmp/kontur-site/. "$GITHUB_WORKSPACE/_site/kontur/"
+            echo "Контур опубликован в /kontur/, данные зашифрованы паролем из секрета KONTUR_PASS"
+          fi
+
       - name: Build DIRECT dashboard (/direct/)
         continue-on-error: true
         run: |

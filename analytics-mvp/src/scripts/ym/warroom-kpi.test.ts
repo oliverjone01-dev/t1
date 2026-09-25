@@ -56,8 +56,8 @@ beforeAll(async () => {
     env: { ...process.env, DATA_DIR: "data-ym", OUT_DIR: out, PLATFORM: "ym" },
     stdio: "pipe",
   });
-  // Сборка OZON отключена (Иван, 18.09.2026), поэтому сторож проверяет не байты его страницы,
-  // а что сборщик её и не пишет. При объединении площадок вернуть сравнение разметки.
+  // Сборка OZON снова включена (Иван, 25.09.2026). Сторож проверяет, что правка карточки Маркета
+  // не протекла в страницу OZON: у OZON своя карточка «Оборот», без «заказано минус отменено».
   ozonOut = mkdtempSync(join(tmpdir(), "warroom-kpi-ozon-"));
   ozonLog = execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], {
     env: { ...process.env, OUT_DIR: ozonOut }, encoding: "utf8",
@@ -231,10 +231,13 @@ describe("карточка «Оборот» Маркета: заказано м�
     expect(card().textContent || "").not.toContain("снимок без полей");
   });
 
-  it("сборка OZON отключена и её страниц не появляется", () => {
-    expect(ozonLog).toContain("сборка OZON временно отключена");
+  it("страницы OZON пишутся, а карточка Маркета в них не протекает", () => {
+    expect(ozonLog).not.toContain("сборка OZON временно отключена");
     for (const f of ["katya-command.html", "katya.html", "katya-money.html"]) {
-      expect(existsSync(join(ozonOut, f)), `${f}: страница OZON писаться не должна`).toBe(false);
+      expect(existsSync(join(ozonOut, f)), `${f}: страница OZON должна писаться`).toBe(true);
     }
+    const oz = readFileSync(join(ozonOut, "katya-command.html"), "utf8");
+    expect(oz, "подпись карточки Маркета попала в OZON").not.toContain("заказано минус отменено");
+    expect(oz, "флаг снимка Маркета попал в OZON").not.toContain("MONEY_GAP");
   });
 });

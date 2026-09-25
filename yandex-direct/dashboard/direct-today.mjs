@@ -78,7 +78,24 @@ const byHourAd = (await metrika({ dimensions: 'ym:s:hour', metrics: M, filters: 
 const bySource = (await metrika({ dimensions: 'ym:s:lastsignTrafficSource', metrics: M, sort: '-ym:s:visits' }))
   .map(r => ({ source: r.dimensions[0].name, ...mrow(r) }));
 
-const out = { date: TODAY, generated_at: now.toISOString(), timezone: 'Europe/Moscow',
+// Разбивка по группам для выбранных кампаний (по умолчанию НЧ)
+const GROUP_CIDS = (process.env.GROUP_CAMPAIGN_IDS || '712877525').split(',').filter(Boolean);
+const groups = {};
+for (const cid of GROUP_CIDS) {
+  const d = (await directReport(`today-groups-${cid}`, {
+    SelectionCriteria: { Filter: [{ Field: 'CampaignId', Operator: 'EQUALS', Values: [cid] }] },
+    FieldNames: ['AdGroupId', 'AdGroupName', 'CriterionType', 'Impressions', 'Clicks', 'Cost'],
+    ReportType: 'CUSTOM_REPORT',
+  })).map(r => ({ gid: r.AdGroupId, group: r.AdGroupName, crit_type: r.CriterionType, imp: num(r.Impressions), clicks: num(r.Clicks), spend: num(r.Cost) }));
+  let m = [];
+  try {
+    m = (await metrika({ dimensions: 'ym:s:lastsignDirectBannerGroup', metrics: M, filters: `ym:s:lastsignUTMCampaign=='peregorodki_${cid}'` }))
+      .map(r => ({ gid: String(r.dimensions[0].id ?? ''), group: r.dimensions[0].name, ...mrow(r) }));
+  } catch (e) { console.log(`WARN metrika groups ${cid}: ${e.message}`); }
+  groups[cid] = { direct: d, metrika: m };
+}
+
+const out = { date: TODAY, groups, generated_at: now.toISOString(), timezone: 'Europe/Moscow',
   campaigns: camps.map(c => ({ id: c.Id, name: c.Name, state: c.State, status: c.Status })),
   direct, metrika_by_utm: byUtm, metrika_ad_by_hour: byHourAd, metrika_by_source: bySource };
 writeFileSync(join(DATA, 'direct_today.json'), JSON.stringify(out, null, 1));

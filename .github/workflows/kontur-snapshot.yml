@@ -1,17 +1,12 @@
 name: "Контур: съём позиций и пересборка дашборда"
 
-# Фиксирует дневную точку по позициям и видимости в ИИ. У сводки домена в keys.so
-# нет ретроспективы по топ-50 и ответам ИИ, поэтому пропущенная точка не
-# восстанавливается задним числом никогда.
-#
-# Это урезанная версия: только запись точки в kontur-dashboard/data/history.
-# Её вынесли в main отдельно от дашборда (PR #358), потому что задание по
-# расписанию запускается только из ветки по умолчанию, и пока бот жил в ветке
-# дашборда, он не запускался ни разу. Полная версия (пересборка данных и
-# страницы, сторож, тесты) придёт вместе с дашбордом и заменит этот файл.
+# Фиксирует дневную точку по позициям и видимости в ИИ, пересобирает блок данных
+# и страницу. Смысл в первом шаге: у сводки домена в keys.so нет ретроспективы,
+# поэтому пропущенная точка не восстанавливается задним числом никогда.
 #
 # Данные берутся из выгрузок, которые кладёт harvest.yml (ежедневно, 03:00 МСК).
-# Секретов воркфлоу не использует, в сеть не ходит.
+# В сеть воркфлоу ходит только за зеркалом apexcharts для дымового теста; вид
+# страницы собирается из своей копии пакета kontur-dashboard/kontur-ds/, данные только из файлов.
 
 on:
   schedule:
@@ -33,7 +28,12 @@ jobs:
   snapshot:
     runs-on: ubuntu-latest
     steps:
+      # Полная история нужна сборке данных: дата файла со списком целей берётся из
+      # git log. В мелком клоне git отдал бы дату последнего коммита вместо даты
+      # файла, и на экране появился бы сегодняшний «замер», которого не было.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -47,9 +47,12 @@ jobs:
             python3 tools/snapshot.py --seed
           fi
           python3 tools/snapshot.py
-          python3 tools/snapshot.py --check
+          # пропущенные дни из истории выгрузок в git (нужен fetch-depth: 0 выше)
+          python3 tools/snapshot.py --backfill
 
-      # pull --rebase перед push: пока шёл съём, в main мог прийти коммит сборщика.
+      # Точка съёма коммитится сразу, до пересборки: пропущенную не восстановить, и
+      # падение любого следующего шага (сборка, setup-node, тест) не должно её терять.
+      # pull --rebase перед push: пока шла сборка, в main мог прийти коммит сборщика.
       - name: Закоммитить точку съёма
         run: |
           set -euo pipefail
@@ -63,3 +66,80 @@ jobs:
             git pull --rebase origin "${GITHUB_REF_NAME}"
             git push origin HEAD:"${GITHUB_REF_NAME}"
           fi
+
+      - name: Пересобрать данные и страницу
+        working-directory: kontur-dashboard
+        run: |
+          set -euo pipefail
+          python3 tools/build_data.py
+          python3 src/build.py
+
+      - name: Сторож
+        id: guard
+        continue-on-error: true
+        working-directory: kontur-dashboard
+        run: |
+          set -euo pipefail
+          python3 tools/check_dash.py
+          # сторож Контур DS без --live: тире, прозрачность, шрифт, оси, конверты
+          python3 kontur-ds/tools/check_ds.py public/index.html
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Сторож проверяет разметку и конверты, но не исполняет экраны: на коде, где
+      # «Мост до денег» падал с TypeError, он был чист. Дымовой тест открывает все
+      # экраны обоих проектов в браузере и ловит любую ошибку консоли, проверка
+      # контраста меряет каждый видимый текст на каждом экране.
+      - name: Дымовой тест
+        id: smoke
+        continue-on-error: true
+        working-directory: kontur-dashboard
+        env:
+          KONTUR_LIBS: /tmp/kontur-libs
+          KONTUR_TMP: /tmp/kontur-smoke
+        run: |
+          set -euo pipefail
+          npm ci
+          npx playwright install --with-deps chromium
+          mkdir -p "$KONTUR_LIBS"
+          curl -fsSL https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js -o "$KONTUR_LIBS/apex.js"
+          # хэш из страницы (SRI) должен совпасть с файлом на cdnjs, иначе браузер не
+          # загрузит ApexCharts и все графики на /kontur/ останутся пустыми
+          want=$(grep -o 'integrity="sha384-[^"]*"' public/index.html | head -1 | sed 's/integrity="sha384-//; s/"$//')
+          got=$(openssl dgst -sha384 -binary "$KONTUR_LIBS/apex.js" | base64 -w0)
+          if [ "$want" != "$got" ]; then echo "::error::SRI ApexCharts: в странице $want, на cdnjs $got"; exit 1; fi
+          node tools/smoke.mjs
+          # тест на подмену шифровальщика: утечки вне шифра и слабые пароли
+          node tools/seal_test.mjs
+          # согласование числа и слова в отрисованном тексте всех экранов
+          node tools/text_scan.mjs
+          # живой контраст Контур DS на всех экранах, обе темы, 1280 и 390
+          node tools/contrast.mjs
+
+      - name: Проверить ряд на разрывы
+        working-directory: kontur-dashboard
+        continue-on-error: true      # разрыв это повод разобраться, а не валить сборку
+        run: python3 tools/snapshot.py --check
+
+      # Данные и страница коммитятся только при зелёных стороже и дымовом тесте,
+      # иначе бот выложит в main страницу с упавшим экраном.
+      - name: Закоммитить данные и страницу
+        if: steps.guard.outcome == 'success' && steps.smoke.outcome == 'success'
+        run: |
+          set -euo pipefail
+          git add kontur-dashboard/data kontur-dashboard/public
+          if git diff --cached --quiet; then
+            echo "изменений нет"
+          else
+            git commit -m "kontur: пересборка $(date -u +%Y-%m-%d)"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+          fi
+
+      - name: Сторож и дымовой тест должны быть зелёными
+        if: steps.guard.outcome != 'success' || steps.smoke.outcome != 'success'
+        run: |
+          echo "::error::Сторож: ${{ steps.guard.outcome }}, дымовой тест: ${{ steps.smoke.outcome }}. Страница в main не обновлена."
+          exit 1

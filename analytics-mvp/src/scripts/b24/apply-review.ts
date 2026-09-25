@@ -40,6 +40,13 @@ let deals = 0, kept = 0, dropped = 0;
 for (const [k, r] of Object.entries<any>(inp)) {
   const m = map[k];
   if (!m) { rej.push(`${k}: нет в карте порции, весь разбор отброшен`); continue; }
+  // Шкала оценок 0-5 (как в каталоге ai-review.ts). Разбор с оценками вне шкалы или с тоном
+  // вне good/warn/bad не принимается целиком: дашборд рисует полосы по шкале 0-5, и одна
+  // пачка в 0-10 уже однажды сделала все полосы зелёными.
+  const sc = r.scores || {};
+  const badSc = ["polite", "qual", "deadline", "process", "result"].filter((x) => !Number.isInteger(sc[x]) || sc[x] < 0 || sc[x] > 5);
+  if (badSc.length) { rej.push(`${k}: оценки вне шкалы 0-5 (${badSc.join(", ")}), весь разбор отброшен`); continue; }
+  if (!["good", "warn", "bad"].includes(r.tone)) { rej.push(`${k}: тон «${r.tone}» вне good/warn/bad, весь разбор отброшен`); continue; }
   const tags: any[] = [];
   for (const t of (r.msgTags || [])) {
     const i = Number(t.i);

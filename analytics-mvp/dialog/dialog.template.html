@@ -1000,6 +1000,46 @@ function toggle(el, forceOpen){
 
 const SC = DATA.scoring || null;
 const SCD = {}; if(SC) for(const d of SC.deals) SCD[d.key]=d;
+// Глубина истории событий в снимке (дней). Раньше в подсказках было зашито «7 дней» - это
+// окно ночного пересчёта метрик, а лента событий тянется на histDays (сейчас 180).
+const HIST_DAYS = DATA.histDays || DATA.days || 180;
+// Менеджеры, которые есть в таблице. Уволенные и не-продавцы (SC.hiddenMgr) в таблицу не
+// попадают, значит и в панель ИИ их сделки идти не должны - иначе счётчики панели и таблицы
+// расходятся (было: 1668 сделок скрытых менеджеров в выборке ИИ).
+const TABLE_MGRS = new Set(SC ? SC.managers.map(m=>m.mgr) : []);
+// Даты пресетов - по московскому календарю. toISOString() даёт дату по UTC, и с 00:00 до
+// 03:00 МСК «сегодня» указывало на вчера, а границы периода считаются в +03:00.
+const mskDay = (shiftDays=0) => new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()+shiftDays*864e5));
+function presetRange(k){ const today=mskDay(), y=+today.slice(0,4), m=+today.slice(5,7);
+  if(k==='all') return ['',''];
+  if(k==='today') return [today,today];
+  if(k==='yst'){ const d=mskDay(-1); return [d,d]; }
+  if(k==='tm') return [today.slice(0,8)+'01', today];
+  if(k==='lm'){ const py=m===1?y-1:y, pm=m===1?12:m-1, last=new Date(Date.UTC(py,pm,0)).getUTCDate();
+    return [py+'-'+p2(pm)+'-01', py+'-'+p2(pm)+'-'+p2(last)]; }
+  return [mskDay(-(Number(k)-1)), today]; }
+// Температура сделки на конец выбранного периода. Градусник раньше всегда показывал
+// температуру «сейчас», и выбор прошлого периода менял только состав сделок, а не градусы.
+// tempCurve - история температуры по сменам стадий ({d,t,n}, последняя точка «сейчас»).
+// Период без конца или кончается не раньше последней точки - берём текущие поля снимка
+// один в один (поведение «как было»). Иначе - последняя точка кривой не позже конца периода:
+// стадия предоплаты и дальше до этой даты = цель достигнута, последняя точка «отказ» = закрыта.
+const ASOF_PAID = new Set(['Предоплата получена','Заказ в производстве','Заказ произведен','Заказ отправлен','C49:WON']);
+const tempBucketOf = t => t>=80?'boiling':t>=50?'hot':t>=25?'warm':'cold';
+function asOf(d){ const c=d.tempCurve||[], day=S.dTo;
+  if(!day||!c.length||day>=c[c.length-1].d){ const t=d.temp==null?d.prob:d.temp;
+    return {t, e:d.entryTemp==null?t:d.entryTemp, dl:d.tempDelta==null?0:d.tempDelta, goal:!!d.goalReached, open:d.outcome==='open', bucket:d.tempBucket==null?'cold':d.tempBucket, past:false}; }
+  let t=null, goal=false, open=true;
+  for(const p of c){ if(p.d>day) break; t=p.t; if(ASOF_PAID.has(p.n)) goal=true; open=p.n!=='C49:LOSE'; }
+  const e=d.entryTemp==null?t:d.entryTemp;
+  return {t, e, dl:t==null?0:t-e, goal, open:open&&t!==null, bucket:goal?'goal':(t==null?'cold':tempBucketOf(t)), past:true}; }
+// Норма отдела по сырым метрикам времени для хронологии сделки. Считается ОДИН раз за
+// загрузку по всем открытым сделкам снимка, без учёта периода и фильтров: это ориентир
+// «как обычно работает отдел за всю историю», а не среднее по текущей выборке. Раньше
+// кеш создавался заново внутри цикла по раскрытым сделкам и фактически не работал.
+const DEPT_NORM = (()=>{ let c=null; return ()=>{ if(c) return c; const op=SC?SC.deals.filter(x=>x.outcome==='open'):[];
+  const med=f=>{ const v=op.map(f).filter(x=>typeof x==='number'&&isFinite(x)).sort((a,b)=>a-b); return v.length>=5?v[Math.floor(v.length/2)]:null; };
+  c={take:med(x=>x.takeH),first:med(x=>x.firstResp),resp:med(x=>x.respMed),sil:med(x=>x.silenceD),stage:med(x=>x.stageDays),msgs:med(x=>x.msgs)}; return c; }; })();
 const probColor = p => p>=60?'#2E9E74':p>=30?'#C2873C':'#C25252';
 function stars(r){ const f=Math.round(r); return '★★★★★'.slice(0,f)+'☆☆☆☆☆'.slice(0,5-f); }
 const SECHELP={
@@ -1011,7 +1051,7 @@ const SECHELP={
   result:['Результат','Возражение отработано аргументом, сигнал оплаты доведён до счёта, отказ разобран, а не принят молча.'],
 };
 const COLHELP={
-  deals:['Диалогов','Сколько сделок и лидов этого менеджера были в переписке за окно снимка (7 дней).'],
+  deals:['Диалогов','Сколько сделок и лидов этого менеджера были в переписке за выбранный период (без периода - вся история снимка, '+HIST_DAYS+' дн).'],
   prob:['Вероятность','Средний шанс закрыть сделку по его портфелю. Считается от фактической доли выигранных на этой стадии, поправленной на поведение в переписке.'],
   alerts:['Тревог','Сколько его сделок имеют хотя бы один красный тег: клиент ждёт ответа, тишина, нет следующего шага, риск отказа.'],
 };
@@ -1091,7 +1131,9 @@ function renderTree(){
     return ts.some(t=>(!dFrom||t>=dFrom)&&(!dTo||t<=dTo));
   };
   // hidePaid: скрыть сделки с предоплатой и дальше (goalReached) - для анализа воронки ДО оплаты.
-  const DEALS=SC.deals.filter(d=>inPeriod(d)&&(!S.hidePaid||!d.goalReached));
+  // fDealIds (применённая выборка ИИ) режет сам набор сделок, а не только список внутри
+  // менеджера: иначе итоги строки, градусник и покрытие считали все сделки, а список - часть.
+  const DEALS=SC.deals.filter(d=>inPeriod(d)&&(!S.hidePaid||!d.goalReached)&&(!S.fDealIds.size||S.fDealIds.has(String(d.dealId||d.leadId))));
   const filtered=DEALS.length!==SC.deals.length;
   const byM={}; for(const d of DEALS) (byM[d.mgr] ||= []).push(d);
   const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
@@ -1200,8 +1242,12 @@ function renderTree(){
   // Термометр одной сделки: шкала 0-100, засечка на температуре входа, стрелка Δ, в подсказке -
   // «чего не хватает до предоплаты» в градусах и рублях. Цель отдела = предоплата (goalReached).
   const thermo=(d)=>{
-    if(d.goalReached) return `<span class="tgoal" data-tip="Цель достигнута: предоплата получена, грев завершён.">🎯 предоплата</span>`;
-    const t=d.temp==null?d.prob:d.temp, e=d.entryTemp==null?t:d.entryTemp, dl=d.tempDelta==null?0:d.tempDelta, c=TEMPCOL(t);
+    // Градусы на конец выбранного периода (asOf): для периода, который кончается сегодня или
+    // не задан, это ровно поля снимка; для прошлого периода - точка кривой температуры.
+    const x=asOf(d), onDay=x.past?` на ${_ruShortC(S.dTo)}`:'';
+    if(x.goal) return `<span class="tgoal" data-tip="Цель достигнута${onDay}: предоплата получена, грев завершён.">🎯 предоплата</span>`;
+    if(x.t==null) return `<span class="na2" data-tip="На ${esc(_ruShortC(S.dTo))} сделки ещё не было на стадиях - температуры нет.">-</span>`;
+    const t=x.t, e=x.e, dl=x.dl, c=TEMPCOL(t);
     // Подсказка градусника: видно без раскрытия сделки (температура + не хватает + разбор ИИ).
     const gaps=(d.needToClose||[]).slice(0,4).map(g=>`+${g.deg}° ${esc(g.label)}${g.rub?` (${money(g.rub)} ₽)`:''}`).join('<br>');
     const a=d.ai;
@@ -1211,17 +1257,19 @@ function renderTree(){
         +(a.problem?`<br><b style="color:#E08585">Риск потери:</b> ${esc(a.problem)}`:'')
         +(a.recommendation?`<br><b style="color:#7FD1A6">Что сделать:</b> ${esc(a.recommendation)}`:'')
       : '';
-    const tip=`Температура клиента = шанс покупки в моменте: <b>${t}°</b>. Старт ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Вклад ведения поверх стадии: ${d.heatLift>0?'+':''}${d.heatLift==null?'-':d.heatLift}°. Цель - предоплата.${gaps?'<br><b>Не хватает до горячего:</b><br>'+gaps:''}${aiTip}`;
+    const tip=`Температура клиента = шанс покупки ${x.past?'на конец периода ('+esc(_ruShortC(S.dTo))+', по истории стадий)':'в моменте'}: <b>${t}°</b>. Старт ${e}°, ${dl>=0?'прогрет +'+dl:'остыл '+dl}°. Вклад ведения поверх стадии: ${d.heatLift>0?'+':''}${d.heatLift==null?'-':d.heatLift}°. Цель - предоплата.${gaps?'<br><b>Не хватает до горячего:</b><br>'+gaps:''}${aiTip}`;
     return `<div class="thermo" data-tip="${tip.replace(/"/g,'&quot;')}"><div class="thg"><div class="thtube"><span class="thliq" style="height:${Math.max(4,Math.min(100,t))}%;background:${c}"></span><i class="thmark" style="bottom:${Math.min(100,e)}%" title="на входе ${e}°"></i></div><span class="thbulb" style="background:${c}"></span></div><div class="thnum"><b class="tht" style="color:${c}">${t}°</b>${dl?`<span class="thd" style="color:${dl>0?'#2E9E74':'#C25252'}">${dl>0?'▲+'+dl:'▼'+dl}</span>`:''}</div></div>`;
   };
   // Распределение сделок менеджера/группы/отдела по температуре + СИЛА НАГРЕВА (медиана Δ).
-  const tempCell=(key)=>{ const all=(byM[key]||[]).filter(d=>d.outcome==='open');
+  const tempCell=(key)=>{ const all=(byM[key]||[]).filter(d=>asOf(d).open);
     // Лиды вне градусника: у них нет стадии и бюджета, они падают на заглушку 21.9 градуса и
     // красят портфель в холодный. На 2026-09-22 это 2316 сущностей из 2927, то есть 79% -
     // полоска показывала воронку лидов, а не портфель сделок. Лидам нужна своя воронка.
     const nLead=all.filter(d=>d.isLead).length; const ds=all.filter(d=>!d.isLead);
     if(!ds.length) return '<span class="na2">-</span>'+(nLead?`<span class="na2" data-tip="Только лиды (${nLead}), сделок со стадией нет. Лиды в градуснике не участвуют."> · ${nLead} лид.</span>`:'');
-    const b={boiling:0,hot:0,warm:0,cold:0,goal:0}; for(const d of ds) b[d.tempBucket==null?'cold':d.tempBucket]++;
+    // Корзины по температуре на конец периода (asOf): без периода и для периода «до сегодня»
+    // это те же tempBucket снимка, для прошлого периода - градусы из истории стадий.
+    const b={boiling:0,hot:0,warm:0,cold:0,goal:0}; for(const d of ds) b[asOf(d).bucket]++;
     const order=[['boiling','#E5484D','кипят'],['hot','#F76808','горячие'],['warm','#E2A336','тёплые'],['cold','#5B8DEF','холодные'],['goal','#2E9E74','предоплата']];
     const tot=ds.length;
     const shown=order.filter(([k])=>b[k]);
@@ -1246,7 +1294,10 @@ function renderTree(){
         +((lvlAi.weaknesses&&lvlAi.weaknesses.length)?`<br><b style="color:#E08585">Слабые:</b> ${esc(lvlAi.weaknesses.join('; '))}`:'')
         +(lvlAi.action?`<br><b style="color:#7FD1A6">Что делать:</b> ${esc(lvlAi.action)}`:'')
       : '';
-    const hpTip=hp===null?('Сила нагрева: мало данных, нужно 3+ сделки с историей стадий.'+aiTip):`Сила нагрева <b>${hp>0?'+':''}${hp}°</b> - насколько клиент теплеет под ведением менеджера: медиана по его открытым сделкам, влияние стадии вычтено. ${hp>0?'В среднем прогревает.':hp<0?'В среднем клиент остывает - тревожно.':'Держит температуру.'} Это корреляция, а не доказанная причина.${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
+    // Сила нагрева - медиана heatLift, а он посчитан за всю историю сделки. Период её не
+    // пересчитывает (только меняет состав сделок) - прямо говорим об этом в подсказке.
+    const hpPer=(S.dFrom||S.dTo)?'<br>Сила нагрева считается за всю историю сделки: период меняет только состав сделок, а не сам прирост градусов.':'';
+    const hpTip=hp===null?('Сила нагрева: мало данных, нужно 3+ сделки с историей стадий.'+hpPer+aiTip):`Сила нагрева <b>${hp>0?'+':''}${hp}°</b> - насколько клиент теплеет под ведением менеджера: медиана по его открытым сделкам, влияние стадии вычтено. ${hp>0?'В среднем прогревает.':hp<0?'В среднем клиент остывает - тревожно.':'Держит температуру.'} Это корреляция, а не доказанная причина.${hpPer}${aiTip}<br><i>Клик по сегменту слева - показать эти сделки.</i>`;
     return `<div class="tempcell">`
       +`<div class="tbwrap"><div class="tbar">${seg}</div><div class="tnums">${nums}</div></div>`
       +`<span class="heatp" style="color:${hpc}" data-tip="${hpTip.replace(/"/g,'&quot;')}">${hp===null?'·':(hp>0?'▲+'+hp+'°':hp<0?'▼'+hp+'°':'0°')}</span></div>`; };
@@ -1256,6 +1307,9 @@ function renderTree(){
   const resolveAgg=l=>{for(const[re,fx]of RESOLVE_AGG)if(re.test(l))return fx;return 'проработать по сделкам';};
   const heatPowerDeals=(ds)=>{ const dd=ds.filter(d=>d.outcome==='open'&&!d.goalReached&&(d.stageRows||[]).length&&d.tempDelta!=null).map(d=>d.tempDelta).sort((a,b)=>a-b); return dd.length>=3?dd[Math.floor(dd.length/2)]:null; };
   const coolListHtml=(ds)=>{ const op=ds.filter(d=>d.outcome==='open'); if(!op.length) return '';
+    // Сводка «чего не хватает до горячего» по открытым сделкам: причина -> сколько сделок и
+    // максимальный недобор градусов. Раньше ссылалась на необъявленную переменную cool.
+    const cool={}; for(const d of op) for(const g of (d.needToClose||[])){ const v=(cool[g.label] ||= {n:0,deg:0}); v.n++; if(g.deg>v.deg) v.deg=g.deg; }
     const top=Object.entries(cool).sort((a,b)=>b[1].deg-a[1].deg).slice(0,5); if(!top.length) return '';
     return `<ul class="cool-ul">`+top.map(([l,v])=>`<li><b class="cool-l">${esc(l)}</b> <span class="cool-n">${v.n} сдел. · до +${v.deg}°</span><span class="cool-fix">→ ${esc(resolveAgg(l))}</span></li>`).join('')+`</ul>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'aicov',t:'ИИ',l:1,full:'Сколько диалогов разобрано ИИ и не устарело. Галочка - разобрано всё; новое событие в сделке снимает галочку до следующего прогона'},{k:'sum',t:'Портфель'},
@@ -1298,16 +1352,9 @@ function renderTree(){
   // умолчанию, состояние живёт в S.help.
   const MFULL={resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты',take:'Взял'};
   const dm=SC.deptMedians||{};
-  // Подсветка активного пресета: сверяем текущие даты с тем, что дал бы каждый пресет.
-  const psetOn=(k)=>{ const iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
-    if(k==='all') return !S.dFrom&&!S.dTo;
-    if(!S.dFrom||!S.dTo) return false;
-    if(k==='today') return S.dFrom===iso(now)&&S.dTo===iso(now);
-    if(k==='yst') return S.dFrom===iso(now-864e5)&&S.dTo===iso(now-864e5);
-    if(k==='tm'||k==='lm'){const D=new Date(now),y=D.getUTCFullYear(),m=D.getUTCMonth(),p=t=>t.toISOString().slice(0,10),py=m===0?y-1:y,pm=m===0?11:m-1;
-      if(k==='tm') return S.dFrom===p(new Date(Date.UTC(y,m,1)))&&S.dTo===iso(now);
-      return S.dFrom===p(new Date(Date.UTC(py,pm,1)))&&S.dTo===p(new Date(Date.UTC(py,pm+1,0))); }
-    return S.dTo===iso(now)&&S.dFrom===iso(now-(Number(k)-1)*864e5); };
+  // Подсветка активного пресета: сверяем текущие даты с тем, что дал бы каждый пресет
+  // (та же presetRange по московскому календарю, что и при клике).
+  const psetOn=(k)=>{ const [f,t]=presetRange(k); return S.dFrom===f&&S.dTo===t; };
   const _rs=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4):'';
   const dLbl=(S.dFrom||S.dTo)?(_rs(S.dFrom||S.dTo)+((S.dTo&&S.dTo!==S.dFrom)?(' - '+_rs(S.dTo)):'')):'даты';
   const fbar = `<div class="controls">
@@ -1328,7 +1375,7 @@ function renderTree(){
   const help = `<div class="legend"><div class="lgh" data-help="1"><i>${S.help?'▾':'▸'}</i>Как читать таблицу</div>`
    + (S.help?`<div class="lgb">
       <div class="lgcards">
-        <div class="lgc"><b>Откуда данные</b> ${helpQ('Ночной снимок Bitrix24: переписка WhatsApp/Telegram/MAX через Wazzup, письма, звонки, дела, комментарии, резюме BitrixGPT за 7 дней + снимок воронки «GG Заказы РФ» (стадии, бюджеты, дела). Оценивают правила, не нейросеть: каждый тег по конкретной фразе или факту, проверяется глазами.')} правила по фактам CRM, за 7 дней</div>
+        <div class="lgc"><b>Откуда данные</b> ${helpQ('Ночной снимок Bitrix24: переписка WhatsApp/Telegram/MAX через Wazzup, письма, звонки, дела, комментарии, резюме BitrixGPT за всю историю снимка ('+HIST_DAYS+' дн) + снимок воронки «GG Заказы РФ» (стадии, бюджеты, дела). Оценивают правила, не нейросеть: каждый тег по конкретной фразе или факту, проверяется глазами.')} правила по фактам CRM, за ${HIST_DAYS} дн</div>
         <div class="lgc"><b>Вердикт</b> ${helpQ('От сильных и слабых сторон против медианы отдела. Слабых нет - «сильный»; сильных больше - «норма»; слабых 3+ - «в разборе». Меньше 10 диалогов - «мало данных».')} сильный / норма / в разборе</div>
         <div class="lgc"><b>Рейтинг</b> ${helpQ('Шесть разделов с весами: Отклик 22%, Сроки 20%, Ведение 20%, Квалификация 18%, Вежливость 10%, Результат 10%. Внутри - доля сделок без красных меток, приведено к 5 баллам. Раздел меньше чем в 5 сделках не идёт.')} 6 разделов, шкала 0-5</div>
         <div class="lgc"><b>Горит / Под риском</b> ${helpQ('Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага). Под риском - сумма их бюджетов.')} срочные сделки и их сумма</div>
@@ -1356,6 +1403,29 @@ function renderTree(){
   // Верхняя строка «ВЕСЬ ОТДЕЛ»: агрегат по всем показанным менеджерам. Клик по её воронке/
   // каналу/«Горит» показывает сделки всего отдела на этом этапе - без настройки фильтра.
   byM[DEPT_KEY]=mgrs.flatMap(mm=>byM[mm.mgr]||[]);
+  // Сделки среза корзины (пик = kind/mgr/sub) по ТЕКУЩИМ фильтрам. Одна функция и для клика,
+  // и для пересчёта: пик хранит список ID на момент клика, и после смены периода корзина,
+  // таблица и запрос в ИИ расходились (было: 52 в корзине при 30 в таблице).
+  // Градусник-срез берёт только сделки (не лиды) и температуру на конец периода - ровно то,
+  // что считает полоска градусника, поэтому число в корзине совпадает с числом в сегменте.
+  const pickDeals=(p)=>{ const ds=byM[p.mgr]||[];
+    if(p.kind==='fn') return ds.filter(d=>touchedGrp(d,p.sub));
+    if(p.kind==='cl') return ds.filter(d=>complOf(d)===p.sub);
+    if(p.kind==='cm') return ds.filter(d=>((mixOf(d,dFrom,dTo)||{})[p.sub]||0)>0);
+    if(p.kind==='hot') return ds.filter(d=>d.urgency);
+    if(p.kind==='tp') return ds.filter(d=>{ const x=asOf(d); return !d.isLead&&x.open&&x.bucket===p.sub; });
+    if(p.kind==='all') return ds;
+    return null; };
+  const pickIds=(p)=>{ const ds=pickDeals(p); return ds?ds.map(d=>d.dealId||d.leadId):null; };
+  // Пересчёт корзины при каждой перерисовке (период, режим дат, «скрыть с предоплатой»,
+  // выборка ИИ): срез пересобирается из текущего byM. Пик отдельной сделки (kind 'deal') -
+  // явный выбор Ивана, его не трогаем. Срез, который под новым фильтром пуст, убираем из
+  // корзины: пустой список ID панель ИИ прочла бы как «все сделки по фильтру».
+  if(S.picks.length){ let changed=false; const next=[];
+    for(const p of S.picks){ const ids=pickIds(p); if(!ids){ next.push(p); continue; }
+      if(!ids.length){ changed=true; continue; }
+      if((p.deals||[]).map(String).join(',')!==ids.map(String).join(',')){ changed=true; next.push({...p,deals:ids}); } else next.push(p); }
+    if(changed){ S.picks=next; aiApplyPicks(); } }
   const deptMgr={ mgr:DEPT_KEY, role:'dept', profile:null, sections:[] };
   // Блок «Как читать таблицу» убран по просьбе Ивана; легенда доступна из подсказок в шапке.
   let html=scope+fbar+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
@@ -1490,26 +1560,19 @@ function renderTree(){
   // Возвращаем прокрутку на место после перерисовки (фокус остаётся на раскрытой строке).
   const _sxNew=list.querySelector('.scrollx'); if(_sxNew) _sxNew.scrollTop=_sxTop; if(_winY) window.scrollTo(0,_winY);
   const db=list.querySelector('#dateBtn');
-  if(db) db.onclick=e=>{ e.stopPropagation(); calOpen(db, S.dFrom, S.dTo, (f,t)=>{ S.dFrom=f||''; S.dTo=t||''; S.td.clear(); renderTree(); }); };
+  if(db) db.onclick=e=>{ e.stopPropagation(); calOpen(db, S.dFrom, S.dTo, (f,t)=>setPeriod(f,t)); };
   const sc=list.querySelector('[data-scopeclear]'); if(sc) sc.onclick=e=>{ e.stopPropagation(); aiClearDash(); };
   // Сброс дрила дашборда - только фокус таблицы, корзину фильтра ИИ не трогаем (она отдельно).
   list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; renderTree(); });
   list.querySelectorAll('[data-cmclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.cmMgr=''; S.cmType=''; renderTree(); });
   list.querySelectorAll('[data-hotclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.hotMgr=''; renderTree(); });
   list.querySelectorAll('[data-clclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.clMgr=''; S.clKind=''; renderTree(); });
-  list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
-    const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
-    if(k==='all'){ S.dFrom=''; S.dTo=''; }
-    else if(k==='today'){ S.dFrom=iso(now); S.dTo=iso(now); }
-    else if(k==='yst'){ S.dFrom=iso(now-864e5); S.dTo=iso(now-864e5); }
-    else if(k==='tm'){const D=new Date(now),y=D.getUTCFullYear(),m=D.getUTCMonth();S.dFrom=new Date(Date.UTC(y,m,1)).toISOString().slice(0,10);S.dTo=iso(now);}
-    else if(k==='lm'){const D=new Date(now),y=D.getUTCFullYear(),m=D.getUTCMonth(),py=m===0?y-1:y,pm=m===0?11:m-1;S.dFrom=new Date(Date.UTC(py,pm,1)).toISOString().slice(0,10);S.dTo=new Date(Date.UTC(py,pm+1,0)).toISOString().slice(0,10);}
-    else { S.dFrom=iso(now-(Number(k)-1)*864e5); S.dTo=iso(now); }
-    S.td.clear(); renderTree(); });
-  list.querySelectorAll('[data-dmode]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.dMode=b.dataset.dmode; renderTree(); });
+  // Все изменения периода - через setPeriod: одна правда для таблицы и панели ИИ.
+  list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); const [f,t]=presetRange(b.dataset.pset); setPeriod(f,t); });
+  list.querySelectorAll('[data-dmode]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); setPeriod(S.dFrom,S.dTo,b.dataset.dmode); });
   const mt=list.querySelector('[data-metrics]'); if(mt) mt.onclick=e=>{ e.stopPropagation(); S.showMetrics=!S.showMetrics; renderTree(); };
   const hpd=list.querySelector('[data-hidepaid]'); if(hpd) hpd.onclick=e=>{ e.stopPropagation(); S.hidePaid=!S.hidePaid; renderTree(); };
-  const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); S.dFrom=''; S.dTo=''; renderTree(); };
+  const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); setPeriod('',''); };
   const hb=list.querySelector('[data-help]'); if(hb) hb.onclick=e=>{ e.stopPropagation(); S.help=!S.help; renderTree(); };
   list.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
     const st = th.dataset.lvl==='m'?S.sM : th.dataset.lvl==='d'?S.sD : S.sE;
@@ -1528,31 +1591,31 @@ function renderTree(){
     const seg=e.target.closest&&e.target.closest('.fseg');
     if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp; const g=STAGE_GRP.find(x=>x.k===grp);
       if(!aiPickActive('fn',m,grp)&&m!==DEPT_KEY) openRow(m);
-      aiPickToggle({kind:'fn',mgr:m,sub:grp,label:`${mLabel(m)} · ${g?g.t:grp}`,deals:dealIdsOf((byM[m]||[]).filter(d=>touchedGrp(d,grp)))}); return; }
+      aiPickToggle({kind:'fn',mgr:m,sub:grp,label:`${mLabel(m)} · ${g?g.t:grp}`,deals:pickIds({kind:'fn',mgr:m,sub:grp})}); return; }
     const clc=e.target.closest&&e.target.closest('[data-compl]');
     if(clc){ e.stopPropagation(); const kind=clc.dataset.compl; const cx=COMPL.find(x=>x.k===kind);
       if(!aiPickActive('cl',m,kind)&&m!==DEPT_KEY) openRow(m);
-      aiPickToggle({kind:'cl',mgr:m,sub:kind,label:`${mLabel(m)} · ${cx?cx.t:kind}`,deals:dealIdsOf((byM[m]||[]).filter(d=>complOf(d)===kind))}); return; }
+      aiPickToggle({kind:'cl',mgr:m,sub:kind,label:`${mLabel(m)} · ${cx?cx.t:kind}`,deals:pickIds({kind:'cl',mgr:m,sub:kind})}); return; }
     const cc=e.target.closest&&e.target.closest('.cchip[data-comm]');
     if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm; const cm=COMM_TYPES.find(x=>x.k===ct);
       if(!aiPickActive('cm',m,ct)&&m!==DEPT_KEY) openRow(m);
-      aiPickToggle({kind:'cm',mgr:m,sub:ct,label:`${mLabel(m)} · ${cm?cm.t:ct}`,deals:dealIdsOf((byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0))}); return; }
+      aiPickToggle({kind:'cm',mgr:m,sub:ct,label:`${mLabel(m)} · ${cm?cm.t:ct}`,deals:pickIds({kind:'cm',mgr:m,sub:ct})}); return; }
     const hc=e.target.closest&&e.target.closest('[data-hot]');
     if(hc){ e.stopPropagation();
       if(!aiPickActive('hot',m,'hot')&&m!==DEPT_KEY) openRow(m);
-      aiPickToggle({kind:'hot',mgr:m,sub:'hot',label:`${mLabel(m)} · горящие`,deals:dealIdsOf((byM[m]||[]).filter(d=>d.urgency))}); return; }
+      aiPickToggle({kind:'hot',mgr:m,sub:'hot',label:`${mLabel(m)} · горящие`,deals:pickIds({kind:'hot',mgr:m,sub:'hot'})}); return; }
     // Сегмент градусника - фильтр сделок этого менеджера по температуре (кипят/горячие/тёплые/
     // холодные/предоплата). Как воронка и каналы: копится в корзину, раскрывает менеджера.
     const tp=e.target.closest&&e.target.closest('[data-temp]');
     if(tp&&tp.dataset.temp){ e.stopPropagation(); const tk=tp.dataset.temp;
       const TL={boiling:'кипят',hot:'горячие',warm:'тёплые',cold:'холодные',goal:'предоплата'};
       if(!aiPickActive('tp',m,tk)&&m!==DEPT_KEY) openRow(m);
-      aiPickToggle({kind:'tp',mgr:m,sub:tk,label:`${mLabel(m)} · ${TL[tk]||tk}`,deals:dealIdsOf((byM[m]||[]).filter(d=>d.outcome==='open'&&(tk==='goal'?d.goalReached:(!d.goalReached&&d.tempBucket===tk))))}); return; }
+      aiPickToggle({kind:'tp',mgr:m,sub:tk,label:`${mLabel(m)} · ${TL[tk]||tk}`,deals:pickIds({kind:'tp',mgr:m,sub:tk})}); return; }
     // Счётчик «Сделок» - весь уровень целиком (менеджер или отдел) со всеми его сделками.
     const ac=e.target.closest&&e.target.closest('[data-allrow]');
     if(ac){ e.stopPropagation();
       if(!aiPickActive('all',m,'all')&&m!==DEPT_KEY) openRow(m);
-      aiPickToggle({kind:'all',mgr:m,sub:'all',label:`${mLabel(m)} · все сделки`,deals:dealIdsOf(byM[m]||[])}); return; }
+      aiPickToggle({kind:'all',mgr:m,sub:'all',label:`${mLabel(m)} · все сделки`,deals:pickIds({kind:'all',mgr:m,sub:'all'})}); return; }
     // Клик по строке отдела - свернуть/развернуть всех менеджеров (навигация, не фильтр).
     if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; renderTree(); return; }
     // Клик по строке менеджера - раскрыть/свернуть его сделки (навигация, не фильтр).
@@ -1673,17 +1736,14 @@ function renderTree(){
           +`</div>`; };
       // Реплики клиента, на которых держится вывод: РОП читает их первыми, до текста разбора.
       const qBlock=qs=>(qs&&qs.length)?`<div class="mk-qs"><div class="da-t">Ключевые реплики</div>${qs.slice(0,3).map(q=>`<div class="mk-q">«${esc(q)}»</div>`).join('')}</div>`:'';
-      // Норма отдела по сырым метрикам времени. deptMedians в снимке хранит проценты секций,
-      // а сравнивать надо часы и дни, поэтому медианы считаем здесь по открытым сделкам отдела
-      // и кешируем: иначе пересчёт шёл бы на каждое раскрытие сделки.
-      const NORM=(()=>{ let c=null; return ()=>{ if(c) return c; const op=SC.deals.filter(x=>x.outcome==='open');
-        const med=f=>{ const v=op.map(f).filter(x=>typeof x==='number'&&isFinite(x)).sort((a,b)=>a-b); return v.length>=5?v[Math.floor(v.length/2)]:null; };
-        c={take:med(x=>x.takeH),first:med(x=>x.firstResp),resp:med(x=>x.respMed),sil:med(x=>x.silenceD),stage:med(x=>x.stageDays),msgs:med(x=>x.msgs)}; return c; }; })();
+      // Норма отдела по сырым метрикам времени (deptMedians в снимке хранит проценты секций, а
+      // сравнивать надо часы и дни) - DEPT_NORM на уровне модуля: считается один раз за загрузку,
+      // по всем открытым сделкам снимка за всю историю, период и фильтры её не меняют.
       // Хронология работы по сделке: сколько шли к первому ответу, как отвечали дальше, сколько
       // молчали, сколько держат стадию. Рядом - норма отдела, чтобы «13 часов» читались как
       // лучше или хуже среднего, а не как абстрактное число.
       const hrs=v=>v==null?null:(v<1?Math.max(1,Math.round(v*60))+' мин':v<48?Math.round(v)+' ч':Math.round(v/24)+' дн');
-      const chrono=()=>{ const n=NORM();
+      const chrono=()=>{ const n=DEPT_NORM();
         const rows=[
           ['Взял в работу', hrs(d.takeH), hrs(n.take), d.takeH!=null&&n.take!=null?d.takeH<=n.take:null],
           ['Первый ответ клиенту', hrs(d.firstResp), hrs(n.first), d.firstResp!=null&&n.first!=null?d.firstResp<=n.first:null],
@@ -1692,7 +1752,7 @@ function renderTree(){
           ['Держится на стадии', d.stageDays!=null?d.stageDays+' дн':null, n.stage!=null?n.stage+' дн':null, d.stageDays!=null&&n.stage!=null?d.stageDays<=n.stage:null],
         ].filter(r=>r[1]!=null);
         if(!rows.length) return '';
-        const tr=rows.map(([t,v,nv,ok])=>`<tr><td class="ch-t">${t}</td><td class="ch-v"${ok===null?'':` style="color:${ok?'#2E9E74':'#C25252'}"`}>${v}</td><td class="ch-n">${nv?'норма '+nv:''}</td></tr>`).join('');
+        const tr=rows.map(([t,v,nv,ok])=>`<tr><td class="ch-t">${t}</td><td class="ch-v"${ok===null?'':` style="color:${ok?'#2E9E74':'#C25252'}"`}>${v}</td><td class="ch-n">${nv?'норма отдела '+nv:''}</td></tr>`).join('');
         // Вторая строка - что происходило в переписке: объём, кто тянул, что с обещаниями.
         const facts=[];
         if(d.msgs) facts.push(`${d.msgs} ${plu(d.msgs,'сообщение','сообщения','сообщений')}`);
@@ -1703,7 +1763,7 @@ function renderTree(){
         if(d.vagueProm) facts.push(`обещаний без срока: ${d.vagueProm}`);
         if(d.objTotal) facts.push(d.objWorked>=d.objTotal?`<span style="color:#2E9E74">возражения отработаны: ${d.objTotal}</span>`:`<b style="color:#C25252">возражений без ответа: ${d.objTotal-d.objWorked}</b>`);
         if(d.overdueD) facts.push(`<b style="color:#C25252">просрочка дел: ${d.overdueD} дн</b>`);
-        return `<div class="chrono"><div class="da-t">Как шла работа</div><table class="ch-tbl">${tr}</table>`
+        return `<div class="chrono"><div class="da-t">Как шла работа <span class="na2" style="text-transform:none;letter-spacing:0;font-weight:400" title="Медиана по всем открытым сделкам отдела за всю историю снимка. Выбранный период и фильтры её не меняют.">· норма отдела - медиана за всю историю, без учёта периода</span></div><table class="ch-tbl">${tr}</table>`
           +(facts.length?`<div class="ch-f">${facts.join(' · ')}</div>`:'')+`</div>`; };
       const aiSum=(a&&(a.verdict||a.problem||a.recommendation))
         ? `<div class="dsum-h">🤖 Разбор ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div>`
@@ -1860,7 +1920,7 @@ function render(){
 // разбор возвращается текстом и вставляется в поле «Ответ ИИ» - так гоняем MVP.
 function ensureEvtIdx(){ if(window.EVTS) return; window.EVTS={}; window.EVIX={};
   for(const e of DATA.events){ const k=e.dealId?'D'+e.dealId:'L'+e.leadId; (EVTS[k] ||= []).push(e.ts); (EVIX[k] ||= []).push(e); } }
-const AI_MGRS = SC ? [...new Set(SC.deals.map(d=>d.mgr))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'ru')) : [];
+const AI_MGRS = SC ? [...new Set(SC.deals.map(d=>d.mgr))].filter(m=>m&&TABLE_MGRS.has(m)).sort((a,b)=>a.localeCompare(b,'ru')) : [];
 // Стадии для фильтра: по порядку воронки, сколько сделок в каждой. Успех/отказ - в конце.
 const STAGE_ORD = ['Формирование ТЗ','Расчёт','Квалификация','КП отправлено','Принимают решение','Долгострой','Предоплата получена','Заказ в производстве','Заказ произведен','Заказ отправлен','Сделка успешна','Сделка провалена'];
 const AI_STAGES = SC ? (()=>{ const c={}; for(const d of SC.deals){ const s=d.stage||'(без стадии)'; c[s]=(c[s]||0)+1; }
@@ -1893,6 +1953,11 @@ function aiMatchDeals(){ ensureEvtIdx(); const F=S.aiF, {a,b}=aiBounds();
   // того, что накликано (объединение срезов), но фильтруют выборку не они, а idset.
   const pickMode=S.picks.length>0;
   return SC.deals.filter(d=>{
+    // Та же база, что у таблицы: только менеджеры таблицы (уволенные и не-продавцы скрыты)
+    // и тот же переключатель «скрыть с предоплатой». Иначе «всего» в панели не сходилось с
+    // дашбордом при одинаковом фильтре.
+    if(!TABLE_MGRS.has(d.mgr)) return false;
+    if(S.hidePaid && d.goalReached) return false;
     if(!pickMode && F.mgrs.size && !F.mgrs.has(d.mgr)) return false;
     // Стадия попадает и по касательной: текущая стадия ИЛИ пройденная в истории (максимум данных).
     if(!pickMode && F.stages.size){ const touched=F.stages.has(d.stage||'(без стадии)')||(d.stageRows||[]).some(s=>F.stages.has(s.name)); if(!touched) return false; }
@@ -1997,24 +2062,26 @@ function aiCopy(){ const txt=JSON.stringify(aiScope(),null,2);
 }
 function fallbackCopy(txt,cb){ const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity=0; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); cb&&cb(); }
 
-function aiSetMode(m){ S.aiF.dMode=m; renderAIPanel(); }
+function aiSetMode(m){ setPeriod(S.dFrom,S.dTo,m); }
 function aiSetDepth(m){ S.aiF.depth=m; renderAIPanel(); }
 function aiTogInc(k){ const s=S.aiF.inc; s.has(k)?s.delete(k):s.add(k); renderAIPanel(); }
 function aiTogMgr(m){ const s=S.aiF.mgrs; s.has(m)?s.delete(m):s.add(m); renderAIPanel(); }
 function aiAllMgr(){ S.aiF.mgrs.clear(); renderAIPanel(); }
 function aiTogStage(s0){ const s=S.aiF.stages; s.has(s0)?s.delete(s0):s.add(s0); renderAIPanel(); }
 function aiAllStage(){ S.aiF.stages.clear(); renderAIPanel(); }
-function aiDate(which,v){ S.aiF[which]=v; renderAIPanel(); }
+function aiDate(which,v){ setPeriod(which==='from'?v:S.dFrom, which==='to'?v:S.dTo); }
 function aiDealIds(v){ S.aiF.dealIds=v; scheduleRep(); }
 let _repT; function scheduleRep(){ clearTimeout(_repT); _repT=setTimeout(renderRepOnly,250); }
-function aiPreset(k){ const F=S.aiF, now=new Date(), iso=d=>d.toISOString().slice(0,10);
-  if(k==='all'){F.from='';F.to='';}
-  else if(k==='today'){F.from=iso(now);F.to=iso(now);}
-  else if(k==='yst'){const y=new Date(now-864e5);F.from=iso(y);F.to=iso(y);}
-  else if(k==='3'){F.from=iso(new Date(now-2*864e5));F.to=iso(now);}
-  else if(k==='7'){F.from=iso(new Date(now-6*864e5));F.to=iso(now);}
-  renderAIPanel();
-}
+function aiPreset(k){ const [f,t]=presetRange(k); setPeriod(f,t); }
+// ЕДИНЫЙ период дашборда и панели ИИ. Раньше даты в панели (☰) жили в S.aiF и перерисовывали
+// только панель, а таблица и градусник брали S.dFrom/S.dTo из шапки - выбор дат в панели
+// не менял градусник вообще. Теперь любой ввод периода (шапка, календарь, пресеты, режим
+// «по коммуникациям/по дате создания», панель) идёт сюда: пишет обе стороны, закрывает
+// раскрытые ленты (их сделки могли выпасть из периода), сохраняет и перерисовывает всё.
+// Корзина кликов пересчитывается внутри renderTree под новый период (см. pickDeals).
+function setPeriod(f,t,mode){ S.dFrom=f||''; S.dTo=t||''; if(mode) S.dMode=mode;
+  const F=S.aiF; F.from=S.dFrom; F.to=S.dTo; F.dMode=S.dMode; S.td.clear();
+  renderTree(); aiSave(); if(S.aiOpen) renderAIPanel(); }
 
 function repHTML(){ const F=S.aiF, deals=aiFocusDeals(); const rep={full:0,partial:0,empty:0};
   const rows=deals.map(d=>{ const c=completeness(d); rep[c.k]++; return {d,c}; });
@@ -2063,7 +2130,7 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
         <span style="color:var(--ink-4)">→</span>
         <input type="date" value="${F.to}" onchange="aiDate('to',this.value)">
       </div>
-      <div class="hint">Один день - поставь одинаковые даты. Пусто - всё окно снимка (7 дней).</div>
+      <div class="hint">Один день - поставь одинаковые даты. Пусто - вся история снимка (${HIST_DAYS} дн). Период общий с таблицей: меняется здесь - меняется и дашборд.</div>
     </div>
 
     <div class="sect"><h5>Глубина коммуникации</h5>
@@ -2262,6 +2329,8 @@ function aiLoad(){ try{ const j=JSON.parse(localStorage.getItem('dlg_ai_v1')||'n
   // перезагрузке дашборд сам разворачивает менеджера, которого раскрывали в прошлый раз.
   // Восстанавливаем только применённый ИИ-фильтр и ответ.
   if(j.vdMode)S.dMode=j.vdMode; S.dFrom=j.vdFrom||''; S.dTo=j.vdTo||''; S.dashNote=j.dashNote||''; S.ansText=j.ans||'';
+  // Период один на таблицу и панель (setPeriod): старые сохранения могли развести их - сводим.
+  S.aiF.from=S.dFrom; S.aiF.to=S.dTo; S.aiF.dMode=S.dMode;
 }catch(e){} }
 function aiQInput(v){ S.aiF.question=v; aiSave(); }
 function aiSetObj(v){ S.aiF.obj=v; renderAIPanel(); }

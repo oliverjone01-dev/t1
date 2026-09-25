@@ -77,12 +77,18 @@ async function main() {
     // OZON). Если явных признаков нет - берём источник постинга (FBO/FBS из эндпоинта).
     const scheme = rfbsSet.has(p.posting_number) ? "rFBS" : (logiSet.has(p.posting_number) ? ((p as any).src || "FBS") : ((p as any).src || ""));
     const feesSum = b.commission + b.acquiring + b.storage + b.delivery + b.ads + b.partner + b.other; // buyerDelivery компенсируется, в payout не входит
+    // Сколько заплатил покупатель (Иван 25.09.2026, п. 1.4): financial_data.products[].customer_price ×
+    // quantity. Это «Реализовано на сумму» (F) отчёта о реализации по заказу; база налога = paid + G.
+    // Нет financial_data - null (build-katya тогда оценивает базу долей).
+    const fdp: any[] = (p as any).financial_data?.products ?? [];
+    const paidRaw = fdp.reduce((s, x) => s + (Number(x?.customer_price) || 0) * (Number(x?.quantity) || 1), 0);
+    const paid = fdp.length && paidRaw > 0 ? Math.round(paidRaw * 100) / 100 : null;
     rows.push({
       order: p.posting_number, d: p.date, status: p.status, scheme,
       sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
       commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(b.acquiring),
       storage: Math.round(b.storage), buyer_delivery: Math.round(b.buyerDelivery), ads: Math.round(b.ads),
-      partner: Math.round(b.partner), other: Math.round(b.other), payout: Math.round(revenue + feesSum),
+      partner: Math.round(b.partner), other: Math.round(b.other), payout: Math.round(revenue + feesSum), paid,
     });
   }
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");

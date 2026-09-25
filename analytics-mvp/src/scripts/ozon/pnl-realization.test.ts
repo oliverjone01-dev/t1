@@ -29,3 +29,19 @@ describe("отчёт о реализации: база налога F + G - J - 
     expect(parseRow({ item: { sku: 0 }, delivery_commission: { amount: 1 } })).toBeNull();
   });
 });
+
+describe("отчёт о реализации за день: те же деньги, что у месячного", () => {
+  it("строки одного SKU за день складываются, bonus в базу не входит", async () => {
+    const { aggDay } = await import("./realization-daily.js");
+    const rows = [
+      { item: { sku: 7 }, delivery_commission: { quantity: 1, amount: 100, bank_coinvestment: 1, bonus: 120, standard_fee: 90, total: 131 } },
+      { item: { sku: 7 }, delivery_commission: { quantity: 1, amount: 50, bank_coinvestment: 0.5, bonus: 60, standard_fee: 45, total: 65.5 }, return_commission: { quantity: 1, amount: 50, bank_coinvestment: 0.5, bonus: 60, standard_fee: 45, total: 65.5 } },
+    ];
+    const [r] = aggDay("2026-09-24", rows);
+    expect(r!.sold - r!.ret).toBe(1);
+    expect(r!.tb).toBeCloseTo(101, 2);           // F + G − J − K
+    expect(r!.bonus).toBe(120);                  // баллы нетто
+    expect(r!.tb + r!.bonus).toBeCloseTo(221, 2); // = цена продавца нетто, то есть «Начислено»
+    expect(r!.pay).toBeCloseTo(131, 2);
+  });
+});

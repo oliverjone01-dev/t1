@@ -22,7 +22,10 @@ const REFRESH_TAIL = 2;            // перетягивать последни�
 // три поля, которые OZON в документации называет выплатами по механикам лояльности партнёров.
 // Слагаемые G храним раздельно (g_bank/g_stars/g_pvz), чтобы сверить с отчётом и не гадать.
 //   f, g - реализовано (F, G); j, k - возвращено (J, K); tb = f + g - j - k.
-type Money = { f: number; g: number; j: number; k: number; tb: number; g_bank: number; g_stars: number; g_pvz: number };
+//   bonus - баллы за скидки нетто (продажа - возврат): OZON доплачивает их за покупателя. F + G + bonus -
+//   это цена продавца, то есть «Начислено»; в базу налога bonus не входит (проверено на отчёте за день
+//   24.09: F 203 514 + G 2 035 + bonus 254 192 = цена продавца 459 741).
+type Money = { f: number; g: number; j: number; k: number; tb: number; g_bank: number; g_stars: number; g_pvz: number; bonus: number };
 type Row = { ym: string; sku: string; sold: number; ret: number; revenue: number; commission: number; payout: number } & Money;
 
 const ym = (y: number, m: number) => `${y}-${String(m).padStart(2, "0")}`;
@@ -49,14 +52,14 @@ export function parseRow(r: any): ({ sku: string; sold: number; ret: number; rev
     revenue: n(dc.amount) - n(rc.amount),               // выручка нетто
     commission: n(dc.standard_fee) - n(rc.standard_fee), // комиссия OZON нетто (как сбор, +)
     payout: n(dc.total) - n(rc.total),                   // к выплате нетто
-    f, g, j, k, tb: f + g - j - k,
+    f, g, j, k, tb: f + g - j - k, bonus: n(dc.bonus) - n(rc.bonus),
     g_bank: n(dc.bank_coinvestment) - n(rc.bank_coinvestment),
     g_stars: n(dc.stars) - n(rc.stars),
     g_pvz: n(dc.pick_up_point_coinvestment) - n(rc.pick_up_point_coinvestment),
   };
 }
 
-const MONEY_KEYS = ["f", "g", "j", "k", "tb", "g_bank", "g_stars", "g_pvz"] as const;
+export const MONEY_KEYS = ["f", "g", "j", "k", "tb", "g_bank", "g_stars", "g_pvz", "bonus"] as const;
 
 function readExisting(): Row[] {
   if (!existsSync(OUT)) return [];
@@ -75,7 +78,7 @@ async function main() {
   const existing = readExisting();
   // Какие месяцы тянем: если файла нет - все; иначе хвост REFRESH_TAIL плюс месяцы, у которых ещё
   // нет базы налога (tb): строки старого формата несли только штуки, деньги дотягиваем один раз.
-  const noTb = new Set(existing.filter((r) => (r as any).tb == null).map((r) => r.ym));
+  const noTb = new Set(existing.filter((r) => (r as any).tb == null || (r as any).bonus == null).map((r) => r.ym));
   const targets = existing.length ? all.filter((t, i) => i >= all.length - REFRESH_TAIL || noTb.has(ym(t.y, t.m))) : all;
   const targetYms = new Set(targets.map((t) => ym(t.y, t.m)));
   const kept = existing.filter((r) => !targetYms.has(r.ym));
@@ -85,7 +88,7 @@ async function main() {
     try {
       const rows = await seller.realization(m, y);
       const byS: Record<string, Row> = {};
-      for (const r of rows) { const p = parseRow(r); if (!p) continue; const k = p.sku; const cur = byS[k] || (byS[k] = { ym: ym(y, m), sku: k, sold: 0, ret: 0, revenue: 0, commission: 0, payout: 0, f: 0, g: 0, j: 0, k: 0, tb: 0, g_bank: 0, g_stars: 0, g_pvz: 0 }); cur.sold += p.sold; cur.ret += p.ret; cur.revenue += p.revenue; cur.commission += p.commission; cur.payout += p.payout; for (const mk of MONEY_KEYS) cur[mk] += p[mk]; }
+      for (const r of rows) { const p = parseRow(r); if (!p) continue; const k = p.sku; const cur = byS[k] || (byS[k] = { ym: ym(y, m), sku: k, sold: 0, ret: 0, revenue: 0, commission: 0, payout: 0, f: 0, g: 0, j: 0, k: 0, tb: 0, g_bank: 0, g_stars: 0, g_pvz: 0, bonus: 0 }); cur.sold += p.sold; cur.ret += p.ret; cur.revenue += p.revenue; cur.commission += p.commission; cur.payout += p.payout; for (const mk of MONEY_KEYS) cur[mk] += p[mk]; }
       const monthRows = Object.values(byS);
       // Копейки в базе налога сохраняем: итог месяца сверяется с ИТОГО отчёта до копейки.
       const kop = (v: number) => Math.round(v * 100) / 100;

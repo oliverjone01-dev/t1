@@ -61,10 +61,10 @@ jobs:
         # Иван 25.09.2026: база налога OZON - «Реализовано» отчёта о реализации (F + G за вычетом
         # возвратов). Хвост из двух месяцев перетягивается каждый раз, месяцы без базы - один раз.
         run: npm run pnl:realization
-      - name: "Разведка: отчёт о реализации за день (структура и суммы, без строк)"
-        # Иван 25.09.2026, п. 1.4: можно ли брать «Реализовано» за незакрытый месяц из документа.
-        # Печатает только пути ключей и суммы за день; не пишет файлов и не валит сбор.
-        run: npx tsx src/scripts/ozon/realization-day-probe.ts 2026-09-24 2026-08-28 || true
+      - name: Отчёт о реализации за день по SKU (накопительно, OZON хранит 32 дня)
+        # Иван 25.09.2026, п. 1.4 и 2.2: база налога и деньги таблицы по артикулам за незакрытый месяц
+        # - из отчёта о реализации за день, а не оценкой. Каждый прогон перетягивает последние 31 день.
+        run: npx tsx src/scripts/ozon/realization-daily.ts 31
       - name: Калибровка соинвеста по эталону начислений
         # Сети не требует, поэтому не падает вместе с OZON. Вердикт виден прямо в логе шага:
         # он говорит, какая из двух цен снимка разошлась с фактом и на сколько пунктов.
@@ -74,7 +74,7 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add analytics-mvp/data/orders_daily.ndjson analytics-mvp/data/orders_accrual_types.json analytics-mvp/data/pnl_sku_accrual_daily.ndjson analytics-mvp/data/acq_sku_daily.ndjson analytics-mvp/data/buyer_delivery_daily.ndjson analytics-mvp/data/buyer_delivery_orders.ndjson analytics-mvp/data/partner_daily.ndjson analytics-mvp/data/partner_orders.ndjson analytics-mvp/data/pnl_channel_accrual_daily.ndjson analytics-mvp/data/pnl_account_accrual_daily.ndjson analytics-mvp/data/coinv_calibration.json analytics-mvp/data/realization_monthly.ndjson analytics-mvp/data/pnl_account_accrual_types.json
+          git add analytics-mvp/data/orders_daily.ndjson analytics-mvp/data/orders_accrual_types.json analytics-mvp/data/pnl_sku_accrual_daily.ndjson analytics-mvp/data/acq_sku_daily.ndjson analytics-mvp/data/buyer_delivery_daily.ndjson analytics-mvp/data/buyer_delivery_orders.ndjson analytics-mvp/data/partner_daily.ndjson analytics-mvp/data/partner_orders.ndjson analytics-mvp/data/pnl_channel_accrual_daily.ndjson analytics-mvp/data/pnl_account_accrual_daily.ndjson analytics-mvp/data/coinv_calibration.json analytics-mvp/data/realization_monthly.ndjson analytics-mvp/data/pnl_account_accrual_types.json analytics-mvp/data/realization_daily.ndjson
           if git diff --cached --quiet; then
             echo "нет изменений в orders_daily.ndjson"
           else

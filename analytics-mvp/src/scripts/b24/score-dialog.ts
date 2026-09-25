@@ -241,6 +241,29 @@ function main() {
   const aiMgr: Record<string, any> = aiFile.managers || {};   // разбор ИИ на уровне менеджера
   if (Object.keys(ai).length) console.log(`Слой ИИ: разборов ${Object.keys(ai).length}, менеджеров ${Object.keys(aiMgr).length}`);
 
+  // Покрытие ИИ-разбором: сколько диалогов менеджера уже разобрано и не устарело.
+  // Правило ровно как у очереди разбора (dump-dialogs.ts), иначе галочка и очередь разойдутся:
+  //   - подлежит разбору: в ленте >= 2 реплик переписки (сообщение, письмо, открытая линия)
+  //     и ведёт её действующий продавец (не уволен, не офис-менеджер);
+  //   - разбор свежий, если снят по последнему событию сделки. Пришло новое сообщение, звонок
+  //     или дело - разбор устарел, сделка снова в очереди, показатель у менеджера падает.
+  // Считаем ДО переназначения лид-событий на офис-менеджера ниже: очередь видит сырые данные.
+  const aiCov: Record<string, { ts: number; mgr: string; comm: number; state: string }> = {};
+  for (const e of events) {
+    const k = e.dealId ? "D" + e.dealId : "L" + e.leadId;
+    const c = (aiCov[k] ||= { ts: 0, mgr: "", comm: 0, state: "na" });
+    if (e.ts >= c.ts) { c.ts = e.ts; c.mgr = e.mgr || ""; }
+    if (isMsg(e)) c.comm++;
+  }
+  const covTot = { elig: 0, fresh: 0, stale: 0, none: 0 };
+  for (const [k, c] of Object.entries(aiCov)) {
+    if (c.comm < 2 || isHidden(c.mgr, fired) || c.mgr === OFFICE_MGR) continue;
+    const r = ai[k];
+    c.state = !r ? "none" : (Number(r.lastTs) || 0) >= c.ts ? "fresh" : "stale";
+    covTot.elig++; (covTot as any)[c.state]++;
+  }
+  console.log(`Покрытие ИИ-разбором: ${covTot.fresh} из ${covTot.elig} свежие, устарели ${covTot.stale}, не разобраны ${covTot.none}`);
+
   // Офис-менеджер: работа с лидами под системным пользователем - это Турченко Анна
   // (решение Ивана). Событиям ЧИСТЫХ лидов (без сделки) с владельцем-системой ставим Аню,
   // чтобы её лид-интейк был виден отдельной строкой, а не терялся в «роботе портала».
@@ -821,6 +844,7 @@ function main() {
       preMig: !!createdAt && createdAt < MIGRATION_CUTOFF,
       clientChase, hotSlow, hotOpen, driftAlso, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),
       lastTs: last.ts, lastDt: last.dt,
+      aiState: (aiCov[key] && aiCov[key]!.state) || "na",
     });
   }
 
@@ -1147,7 +1171,7 @@ function main() {
     trend: days.slice(-14),
     calibration,
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
-    sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length, aiDemo: !!aiFile.demo, aiModel: aiFile.model || "",
+    sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length, aiCoverage: { ...covTot, at: new Date().toISOString() }, aiDemo: !!aiFile.demo, aiModel: aiFile.model || "",
     aiAgg: aiFile.aggregates || null,
     thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },
     deptMedians: dept, metricDefs: METRICS.map((m) => ({ key: m.key, label: m.label, unit: m.unit, better: m.better, how: (m as any).how || "" })), tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,

@@ -53,7 +53,7 @@ const raw = Object.entries(byKey)
   // OLD - только то, что разобрано другой моделью: переразбор старого прогона.
   // FORCE - всё подряд. По умолчанию только новое и изменившееся.
   .filter((x) => OLD ? (done[x.k] && done[x.k].model !== BY)
-    : FORCE ? true : (!done[x.k] || done[x.k].lastTs !== x.last))
+    : FORCE ? true : (!done[x.k] || (Number(done[x.k].lastTs) || 0) < x.last))
   .sort((a, b) => b.last - a.last);
 
 // Очередь приоритета важнее сортировки по свежести: разбираем сначала те сделки, где

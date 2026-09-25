@@ -658,6 +658,7 @@ input#q{min-width:220px}
 .cal-io input{width:88px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--ink-1);font-size:11px;padding:3px 6px;margin-left:3px}
 .cal-sp{flex:1}
 @media(max-width:720px){.cal-months{flex-direction:column;gap:8px}}
+.aicov{display:inline-block;white-space:nowrap;font-weight:700;font-size:12px;padding:2px 8px;border:1px solid;border-radius:10px;cursor:default}.aicov i{font-style:normal;font-weight:500;opacity:.85}.aistale,.aiwait{opacity:.8}
 </style>
 </head>
 <body>
@@ -1101,6 +1102,7 @@ function renderTree(){
     // Агрегаты по сделкам считаем всегда (нужны и отделу, и менеджерам с малой выборкой).
     if(k==='funnel'||k==='deals') return dsm.length;
     if(k==='compl') return dsm.filter(d=>complOf(d)==='empty').length; // сортировка: больше пустых - выше
+    if(k==='aicov'){ const c=aiCovOf(dsm); return c.elig?c.fresh/c.elig:null; }
     if(k==='hot') return dsm.filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0);
     if(k==='alerts') return dsm.filter(d=>d.urgency).length;
     if(k==='sum') return dsm.reduce((s2,d)=>s2+(d.budget||0),0);
@@ -1146,6 +1148,22 @@ function renderTree(){
     const c={full:0,partial:0,empty:0}; for(const d of ds) c[complOf(d)]++;
     return `<div class="cwrap cvert">`+COMPL.map(x=>{ const on=aiPickActive('cl',mgr,x.k); const pct=Math.round(c[x.k]/ds.length*100);
       return `<span class="cchip${on?' con':''}" data-compl="${x.k}" style="color:${x.col}" data-tip="<span class='tdot' style='background:${x.col}'></span>${esc(x.t)}: <b>${c[x.k]}</b> из ${ds.length} (${pct}%) - ${esc(x.why)}. Клик - показать и отфильтровать эти сделки.">${x.ic}${pct}%</span>`; }).join('')+`</div>`; };
+  // --- ПОКРЫТИЕ ИИ-РАЗБОРОМ: сколько диалогов разобрано и не устарело ---
+  // aiState приходит из score-dialog: fresh - разобран по последнему событию; stale - после
+  // разбора пришло новое событие (сообщение, звонок, дело), разбор надо обновить; none - ещё
+  // не разбирался; na - не подлежит (меньше 2 реплик переписки, офис-менеджер, уволенный).
+  // Все подлежащие свежие - галочка. Любое новое событие снимает галочку до следующего прогона.
+  const aiCovOf=(ds)=>{ const c={elig:0,fresh:0,stale:0,none:0}; for(const d of ds){ const st=d.aiState||'na'; if(st==='na') continue; c.elig++; c[st]++; } return c; };
+  const aiCovCell=(mgr)=>{ const c=aiCovOf(byM[mgr]||[]);
+    if(!c.elig) return `<span class="na2" data-tip="В выбранных сделках нет диалогов, подлежащих разбору: переписки меньше двух реплик, либо сделки ведёт офис-менеджер или уволенный сотрудник.">-</span>`;
+    const pct=Math.floor(c.fresh/c.elig*100), left=c.elig-c.fresh, ok=!left;
+    const col=ok?'#2E9E74':pct>=90?'#E2A336':'#C25252';
+    const tip=`<b>Разбор ИИ</b><br>Разобрано и актуально: <b>${c.fresh}</b> из ${c.elig} (${pct}%)`
+      +(c.stale?`<br>Устарели: <b>${c.stale}</b> - после разбора пришли новые сообщения, звонки или дела`:'')
+      +(c.none?`<br>Ещё не разбирались: <b>${c.none}</b>`:'')
+      +`<br><br>В счёт идут диалоги, где не меньше двух реплик переписки. Любое новое событие в сделке снимает галочку, пока ночной прогон не разберёт её заново.`
+      +(SC.aiCoverage&&SC.aiCoverage.at?`<br>Пересчитано: ${esc(new Date(SC.aiCoverage.at).toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}))}`:'');
+    return `<span class="aicov" style="color:${col};border-color:${col}55;background:${col}12" data-tip="${tip.replace(/"/g,'&quot;')}">${ok?'✓ ':''}${c.fresh}/${c.elig}${ok?'':` <i>· ждут ${left}</i>`}</span>`; };
   // --- ГРАДУСНИК: цвет по температуре, термометр сделки, распределение по менеджеру/отделу ---
   const TEMPCOL=(t)=> t>=80?'#E5484D':t>=50?'#F76808':t>=25?'#E2A336':'#5B8DEF';
   // Термометр одной сделки: шкала 0-100, засечка на температуре входа, стрелка Δ, в подсказке -
@@ -1209,7 +1227,7 @@ function renderTree(){
   const coolListHtml=(ds)=>{ const op=ds.filter(d=>d.outcome==='open'); if(!op.length) return '';
     const top=Object.entries(cool).sort((a,b)=>b[1].deg-a[1].deg).slice(0,5); if(!top.length) return '';
     return `<ul class="cool-ul">`+top.map(([l,v])=>`<li><b class="cool-l">${esc(l)}</b> <span class="cool-n">${v.n} сдел. · до +${v.deg}°</span><span class="cool-fix">→ ${esc(resolveAgg(l))}</span></li>`).join('')+`</ul>`; };
-  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
+  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'aicov',t:'Разбор ИИ',l:1,full:'Сколько диалогов разобрано ИИ и не устарело. Галочка - разобрано всё; новое событие в сделке снимает галочку до следующего прогона'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'temp',t:'Градусник',l:1,full:'Температура клиентов (шанс покупки) + сила нагрева менеджера'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
     .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
     .concat([{k:'compl',t:'Полнота',l:1}]);
@@ -1337,6 +1355,7 @@ function renderTree(){
         if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
         if(c.k==='temp') return `<td class="l">${tempCell(m.mgr)}</td>`;
         if(c.k==='compl') return `<td class="l">${complCell(m.mgr)}</td>`;
+        if(c.k==='aicov') return `<td class="l">${aiCovCell(m.mgr)}</td>`;
         if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const on=aiPickActive('hot',m.mgr,'hot');
           return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет цифры тем ярче, чем больше горящих.${v?' Клик - показать эти горящие сделки.':''}" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
         if(c.k==='hot'){ const v=mval(m,'hot')||0; const on=aiPickActive('hot',m.mgr,'hot');
@@ -1378,7 +1397,7 @@ function renderTree(){
           <td><b>${money(d.budget)} ₽</b></td>
           <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
           <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
-          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${(d.ai&&(d.ai.audit||d.ai.verdict))?'<span class="aibadge" title="Есть разбор ИИ по этой сделке">🤖</span>':''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
+          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${d.aiState==='stale'?'<span class="aibadge aistale" title="Разбор ИИ устарел: после него в сделке появились новые события. Обновится ночным прогоном">🤖⟳</span>':(d.ai&&(d.ai.audit||d.ai.verdict))?'<span class="aibadge" title="Есть разбор ИИ по этой сделке">🤖</span>':d.aiState==='none'?'<span class="aibadge aiwait" title="Диалог ещё не разобран ИИ">⏳</span>':''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
           <td class="l dstage">${esc(d.stage||'-')}</td>
           <td>${dcell(createdTs(d))}</td>
           <td>${dcell(lastCommTs(d))}</td>
@@ -1405,6 +1424,7 @@ function renderTree(){
         if(c.k==='act') return `<td class="l">${commCell(key)}</td>`;
         if(c.k==='temp') return `<td class="l">${tempCell(key)}</td>`;
         if(c.k==='compl') return `<td class="l">${complCell(key)}</td>`;
+        if(c.k==='aicov') return `<td class="l">${aiCovCell(key)}</td>`;
         if(c.k==='alerts'){ const v=mval(gm,'alerts')||0; return `<td class="gorit" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
         if(c.k==='hot'){ const v=mval(gm,'hot')||0; return `<td>${money(v)} ₽</td>`; }
         return `<td style="${cellCol(c.k,mval(gm,c.k))}">${fmtM(c.k,mval(gm,c.k))}</td>`; }).join('')

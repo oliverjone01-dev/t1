@@ -7,7 +7,10 @@
 // ПО SKU (не по номеру заказа): агрегируем эквайринг/хранение per (sku, дата), а build-katya разносит их
 // по заказам этого SKU (как CPC-рекламу). Чистый API, без ручных отчётов.
 //
-// Строка: {d, sku, acq, sto} - эквайринг и хранение по SKU за день (знак как у OZON, сбор<0).
+// Строка: {d, sku, acq, sto, ...} - эквайринг и хранение по SKU за день (знак как у OZON, сбор<0).
+// com/del/oth - комиссия, логистика и прочие ITEM-сборы по SKU по ДАТЕ НАЧИСЛЕНИЯ (Иван 25.09.2026,
+// п. 2.2): таблица по артикулам с сентября берёт деньги из отчёта о реализации (по дате реализации),
+// а сборов, которых в отчёте нет (логистика, прочее), - отсюда, по той же дате.
 // Запуск: OZON_SELLER_* в env; из analytics-mvp: npx tsx src/scripts/ozon/acq-sku-daily.ts [FROM] [TO]
 import { writeFileSync } from "node:fs";
 import { OzonSeller } from "../../connector/ozon-seller.js";
@@ -39,7 +42,7 @@ async function main() {
   // если он большой, значит по SKU её не собрать и нужен другой путь.
   // prt - услуги партнёров (rFBS) по SKU; promo - продвижение по SKU (продвижение бренда + подписки-%,
   // НЕ CPC/CPO - те собираются отдельно). Всё из by-day ITEM (несёт SKU) - разносится по заказам в render.
-  const agg: Record<string, { d: string; sku: string; acq: number; sto: number; bd: number; prt: number; promo: number }> = {};
+  const agg: Record<string, { d: string; sku: string; acq: number; sto: number; bd: number; prt: number; promo: number; com: number; del: number; oth: number }> = {};
   const key = (sku: string, d: string) => sku + "|" + d;
   const bdCab: Record<string, number> = {}; // дата -> доставка покупателя (NON_ITEM, кабинет, >0)
   const bdOrd: Record<string, number> = {}; // база заказа -> доставка покупателя (NON_ITEM несёт ключ заказа)
@@ -58,9 +61,11 @@ async function main() {
         const sku = String(sf?.sku ?? ""); if (!sku) continue;
         for (const f of (sf?.fees || [])) {
           const bk = (bmap[Number(f?.type_id)] || "other") as Bucket;
-          if (bk !== "acquiring" && bk !== "storage" && bk !== "buyerDelivery" && bk !== "partner" && bk !== "ads") continue;
           const amt = Number(f?.accrued?.amount ?? f?.accrued ?? f?.amount ?? 0);
-          const r = (agg[key(sku, d)] ||= { d, sku, acq: 0, sto: 0, bd: 0, prt: 0, promo: 0 });
+          const r = (agg[key(sku, d)] ||= { d, sku, acq: 0, sto: 0, bd: 0, prt: 0, promo: 0, com: 0, del: 0, oth: 0 });
+          if (bk === "commission") { r.com += amt; continue; }
+          if (bk === "delivery") { r.del += amt; continue; }
+          if (bk === "other") { r.oth += amt; continue; }
           if (bk === "acquiring") r.acq += amt; else if (bk === "storage") r.sto += amt;
           else if (bk === "buyerDelivery") r.bd += amt;
           else if (bk === "partner") { r.prt += amt; prtItem += amt; }
@@ -84,8 +89,8 @@ async function main() {
       }
     }
   }
-  const rows = Object.values(agg).map((r) => ({ d: r.d, sku: r.sku, acq: Math.round(r.acq), sto: Math.round(r.sto), bd: Math.round(r.bd), prt: Math.round(r.prt), promo: Math.round(r.promo) }))
-    .filter((r) => r.acq || r.sto || r.bd || r.prt || r.promo);
+  const rows = Object.values(agg).map((r) => ({ d: r.d, sku: r.sku, acq: Math.round(r.acq), sto: Math.round(r.sto), bd: Math.round(r.bd), prt: Math.round(r.prt), promo: Math.round(r.promo), com: Math.round(r.com), del: Math.round(r.del), oth: Math.round(r.oth) }))
+    .filter((r) => r.acq || r.sto || r.bd || r.prt || r.promo || r.com || r.del || r.oth);
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   const bdRows = Object.entries(bdCab).map(([d, bd]) => ({ d, bd: Math.round(bd) })).filter((r) => r.bd).sort((a, b) => a.d.localeCompare(b.d));
   writeFileSync(OUT_BD, bdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");

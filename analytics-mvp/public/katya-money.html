@@ -692,7 +692,7 @@
     <span style="color:#5d7484;margin-left:8px">живой OZON (Май 26-Сен 26) · прочие каналы/клиенты/план - нет данных</span>
   </div></div>
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой OZON · данные по 2026-09-23</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 25.09.2026 15:01 МСК</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой OZON · данные по 2026-09-23</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 25.09.2026 15:36 МСК</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/ozon-snapshots.yml" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
@@ -906,6 +906,20 @@ function paint(p,src,ordGrand){
 }
 // === раздел «Аналитика по SKU» за выбранный период ===
 var anOpen={}; // категория -> раскрыта ли
+// База АДМ по артикулу (Иван 25.09.2026, п. 2.4, вариант Б): «К выплате» артикула считается ПО ДНЯМ,
+// и отрицательный день даёт ноль - расходы дня без продаж АДМ не уменьшают. Раньше в базу шёл
+// «К выплате» целиком у артикулов с продажами в окне, и расход, стоящий в одной половине месяца,
+// попадал в базу только при выборе всего месяца: части не складывались (сентябрь, 46 235 ₽).
+// Сумма по дням с отсечкой складывается по любым периодам. Состав дня - тот же, что у «К выплате»
+// строки: финансы по SKU за вычетом их эквайринга и хранения, минус эквайринг и хранение by-day,
+// минус реклама CPC и CPO.
+function admBase(sk,from,to){
+  var d={},add=function(rows,idx,sgn){if(!rows)return;for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]<from||r[0]>to)continue;d[r[0]]=(d[r[0]]||0)+sgn*(r[idx]||0);}};
+  add(AN_FIN[sk],7,1);add(AN_FIN[sk],4,-1);add(AN_FIN[sk],5,-1);
+  add(AN_ACQSKU[sk],1,1);add(AN_STOSKU[sk],1,1); // эквайринг и хранение by-day - со знаком OZON (сбор < 0)
+  add(AN_ADSSKU[sk],1,-1);add(AN_CPOSKU[sk],1,-1);
+  var b=0;for(var k in d)if(d[k]>0)b+=d[k];return b;
+}
 function anSum(rows,from,to,n){var s=[];for(var k=0;k<n;k++)s.push(0);if(!rows)return s;for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]<from||r[0]>to)continue;for(var k2=0;k2<n;k2++)s[k2]+=r[k2+1]||0;}return s;}
 // «Реализовано с учётом возвратов» по SKU за период: за ЦЕЛЫЕ закрытые месяцы (есть отчёт о
 // реализации) - продано − возвраты по отчёту (=УПД); дни вне таких месяцев (текущий/частичный
@@ -1033,7 +1047,7 @@ function renderSkuAnalytics(cur){
     var _cl=AN_DELIV_CITY[_off]||[];
     var citiesTxt=_cl.slice(0,3).map(function(c){return c[0]+' ('+c[1]+')';}).join(', ')+(_cl.length>3?' …':'');
     var citiesTip=_cl.map(function(c){return c[0]+' ('+c[1]+')';}).join('\n');
-    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:ru,deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:acq,sto:sto,oth:-fi[5],cof:-fi[7],promo:-fi[8],adv:adv,amt:amtNet,amtS:(ru>0?amtNet:0),tb:realBase(sk,covM,from,to),cc:(AN_COGS[sk]||0)*ru,ship:ship,dinc:dinc,citiesTxt:citiesTxt,citiesTip:citiesTip,noCs:noCs};
+    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:ru,deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:acq,sto:sto,oth:-fi[5],cof:-fi[7],promo:-fi[8],adv:adv,amt:amtNet,amtS:admBase(sk,from,to),tb:realBase(sk,covM,from,to),cc:(AN_COGS[sk]||0)*ru,ship:ship,dinc:dinc,citiesTxt:citiesTxt,citiesTip:citiesTip,noCs:noCs};
     if(noCs)miss.push(x);
     (groups[x.cat]||(groups[x.cat]=[])).push(x);
   }
@@ -1068,7 +1082,7 @@ function renderSkuAnalytics(cur){
   // Раньше итогом было только разнесённое, и за июль таблица недобирала 305 291 ₽ дохода (599 576
   // против 904 867 по «Начислениям»; аудит «Денег», Иван 25.09.2026).
   var unmInc=Math.round(aB.delivery-(grand.dinc||0));
-  if(at||unmDeliv||unmInc){var acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:-aDel,acq:0,sto:0,cof:0,promo:0,oth:-aOth,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:at,tb:0};
+  if(at||unmDeliv||unmInc){var acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:-aDel,acq:0,sto:0,cof:0,promo:0,oth:-aOth,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:Math.max(0,at),tb:0}; // расходы кабинета АДМ не уменьшают (вариант Б)
     grand.del+=acct.del;grand.oth+=acct.oth;grand.amt+=acct.amt;grand.amtS+=acct.amtS;grand.ship+=unmDeliv;grand.dinc+=unmInc; // сборы кабинета - в базе АДМ/налогов; доставка вне артикулов - в ИТОГО
     html+='<tr style="cursor:default;font-weight:600" title="realFBS/сервис/страхование -> Логистика; реклама/штрафы/бейдж/эквайринг/компенсации -> Прочие. «Наша доставка» и «Доставка покупателя» здесь - по заказам, чей артикул не сошёлся с каталогом."><td>Общие расходы</td>'+anCells(acct)+'</tr>';
   }
@@ -1155,6 +1169,9 @@ function renderOrdersAnalytics(cur){
   // = задвоить. Поэтому NON_ITEM-часть партнёров уходит строкой «Общие расходы» (столбец «Услуги
   // партнёров»), а per-order разнесены только ITEM-партнёры с SKU (AN_PRTSKU, выше). AN_PRTDAILY/AN_PRTORD
   // остаются в данных для сверки, но в отображение по заказу не подмешиваются.
+  // База АДМ строки заказа (п. 2.4, вариант Б) - её «К выплате» после всех доборов, отрицательная -
+  // ноль: заказ, где сборы съели выручку, и отменённый заказ АДМ не уменьшают.
+  for(var r0=0;r0<rows.length;r0++){rows[r0].amtS=Math.max(0,rows[r0].amt||0);}
   var groups={};for(var r=0;r<rows.length;r++){(groups[rows[r].cat]||(groups[rows[r].cat]=[])).push(rows[r]);}
   var SUMK=['units','dlv','fly','flyAcc','tb','estFee','acc','com','del','acq','sto','oth','prt','adv','amt','amtS','cc','ship','dinc'];
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.acc-a.acc;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.acc-a.t.acc;});
@@ -1182,7 +1199,7 @@ function renderOrdersAnalytics(cur){
   var unmDeliv=Math.max(0,Math.round(totalDeliv-(grand.ship||0)));
   var unmInc=Math.max(0,Math.round(totalInc-(grand.dinc||0)));
   var acctRow=null;
-  if(at||unmDeliv||unmInc){var acct=acctRow={units:0,dlv:0,fly:0,flyAcc:0,tb:0,acc:0,com:0,del:0,acq:0,sto:0,oth:-aOth,prt:-aPrtResid,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:at,cc:0};
+  if(at||unmDeliv||unmInc){var acct=acctRow={units:0,dlv:0,fly:0,flyAcc:0,tb:0,acc:0,com:0,del:0,acq:0,sto:0,oth:-aOth,prt:-aPrtResid,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:Math.max(0,at),cc:0};
     grand.prt+=acct.prt;grand.oth+=acct.oth;grand.amt+=acct.amt;grand.amtS+=acct.amtS;grand.ship+=unmDeliv;grand.dinc+=unmInc;
     html+='<tr style="cursor:default;font-weight:600" title="Услуги партнёров (rFBS-доставка) разнесены по заказам из отчёта; здесь - только остаток без заказа. Остаток рекламы/штрафы/бейдж/эквайринг -> «Прочие». «Наша доставка»/«Доставка покупателя» здесь - по заказам, чей артикул не сошёлся с каталогом."><td>Общие расходы</td><td></td>'+anCells(acct)+'</tr>';
   }
@@ -1386,13 +1403,16 @@ function periodTotals(from,to){
     // открытом месяце: fi[6] не знает эквайринг accrual). Один базис на всей странице.
     var acq=-(anSum(AN_ACQSKU[sk],from,to,1)[0]||0),sto=-(anSum(AN_STOSKU[sk],from,to,1)[0]||0);
     var adv=(anSum(AN_ADSSKU[sk],from,to,1)[0]||0)+(anSum(AN_CPOSKU[sk],from,to,1)[0]||0);var amtNet=(fi[6]||0)-(fi[3]||0)-(fi[4]||0)-acq-sto-adv; // К выплате: единый эквайринг/хранение + разнесённая реклама (CPC + CPO за заказ)
-    rev+=sa[0]||0;accr+=(fi[0]||0);realized+=ru;amt+=amtNet;amtReal+=(ru>0?amtNet:Math.min(0,amtNet));if(ru>0)amtS+=amtNet;cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;if(true)tb+=realBase(sk,covM,from,to);
+    rev+=sa[0]||0;accr+=(fi[0]||0);realized+=ru;amt+=amtNet;if(true){amtReal+=amtNet;amtS+=admBase(sk,from,to);}else{amtReal+=(ru>0?amtNet:Math.min(0,amtNet));if(ru>0)amtS+=amtNet;}cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;if(true)tb+=realBase(sk,covM,from,to);
     fComm+=fi[1]||0;fLog+=fi[2]||0;fOth+=fi[5]||0;
     fAcq+=acq;fSto+=sto;} // эквайринг/хранение по SKU из by-day (accrual) - те же acq/sto, что в К выплате
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;aB.adv+=r[1];aB.fines+=r[2];aB.realfbs+=r[3];aB.badge+=r[4];aB.delivery+=r[5];aB.other+=r[6];}
   var aDel=aB.realfbs,aOth=(aB.adv+gadv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // доставка от покупателя исключена
-  amt+=at;amtReal+=at;amtS+=at; // сборы кабинета - в базе АДМ/налогов
+  // OZON (Иван 25.09.2026, п. 4): план-факт считает ровно как ИТОГО таблицы по артикулам - «К выплате»
+  // целиком (без отдельного правила для висящих заказов) и база АДМ по дням с отсечкой минуса; расходы
+  // кабинета АДМ не уменьшают. Маркет - прежние правила.
+  amt+=at;amtReal+=at;amtS+=true?Math.max(0,at):at;
   // «Наша доставка» (наш расход на отправку, ПЭК/СДЭК) и «Доход с покупателя» за период - тот же
   // источник и та же привязка (по заказу, все месяцы), что ИТОГО таблицы: AN_SHIPSKU/AN_DINCSKU
   // (из delivery_orders). Раньше здесь была ведомость по offer (AN_DELIV, по дате ОТГРУЗКИ, закрытые

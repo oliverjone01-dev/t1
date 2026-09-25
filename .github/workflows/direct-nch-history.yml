@@ -10,6 +10,7 @@ on:
     paths:
       - yandex-direct/dashboard/nch-history.mjs
       - yandex-direct/dashboard/nch-structure.mjs
+      - yandex-direct/dashboard/nch-quality.mjs
       - .github/workflows/direct-nch-history.yml
 
 permissions:
@@ -42,11 +43,20 @@ jobs:
           YANDEX_DIRECT_LOGIN: ${{ secrets.YANDEX_DIRECT_LOGIN || secrets.YD_LOGIN }}
           CAMPAIGN_ID: "712877525"
         run: node yandex-direct/dashboard/nch-structure.mjs
+      - name: Качество трафика НЧ (объём трафика, позиции, запросы, визиты, посадочные)
+        env:
+          YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || secrets.YD_TOKEN }}
+          YANDEX_DIRECT_LOGIN: ${{ secrets.YANDEX_DIRECT_LOGIN || secrets.YD_LOGIN }}
+          YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || secrets.YM_TOKEN }}
+          YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
+          CAMPAIGN_ID: "712877525"
+          DATE_FROM: "2026-07-19"
+        run: node yandex-direct/dashboard/nch-quality.mjs
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add yandex-direct/data/nch_history_*.json yandex-direct/data/nch_structure_*.json
+          git add yandex-direct/data/nch_history_*.json yandex-direct/data/nch_structure_*.json yandex-direct/data/nch_quality_*.json
           git diff --staged --quiet && { echo "нет изменений"; exit 0; }
           git commit -m "direct: история НЧ 712877525 с запуска $(date -u +%Y-%m-%d)"
           for i in 1 2 3 4 5; do

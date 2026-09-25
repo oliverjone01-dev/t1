@@ -1,0 +1,68 @@
+# Разовый экспорт контактов дизайнеров, архитекторов, декораторов, комплектаторов в .xlsx.
+# Запускается пушем этого файла или скрипта в ветку claude/dashboard-path-git-xhd1vt.
+# Данные из Bitrix24 (секрет B24_WEBHOOK_URL), только чтение.
+name: Экспорт контактов дизайнеров и архитекторов
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [claude/dashboard-path-git-xhd1vt]
+    paths:
+      - .github/workflows/export-designers.yml
+      - analytics-mvp/src/scripts/b24/export-designers.mjs
+
+permissions:
+  contents: write
+
+concurrency:
+  group: export-designers
+  cancel-in-progress: false
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Проверка секрета
+        run: |
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан."; exit 1
+          fi
+
+      - name: Экспорт из Bitrix -> xlsx
+        working-directory: analytics-mvp
+        run: node src/scripts/b24/export-designers.mjs
+
+      - name: Артефакт
+        uses: actions/upload-artifact@v4
+        with:
+          name: designers-contacts
+          path: |
+            analytics-mvp/exports/designers-contacts.xlsx
+            analytics-mvp/exports/designers-log.txt
+          if-no-files-found: error
+
+      - name: Коммит файла в ветку
+        working-directory: analytics-mvp
+        run: |
+          set -e
+          git config user.name "gengroup-export-bot"
+          git config user.email "export-bot@gengroup.local"
+          git add -f exports/designers-contacts.xlsx exports/designers-log.txt
+          git commit -m "export: контакты дизайнеров, архитекторов, комплектаторов" || { echo "нет изменений"; exit 0; }
+          B="${GITHUB_REF_NAME}"
+          for i in 1 2 3 4; do
+            git push origin HEAD:"$B" && break || {
+              git fetch origin "$B" && git rebase origin/"$B" || true; sleep $((i*2)); }
+          done

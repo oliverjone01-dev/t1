@@ -248,8 +248,11 @@ function main() {
   //   - разбор свежий, если снят по последнему событию сделки. Пришло новое сообщение, звонок
   //     или дело - разбор устарел, сделка снова в очереди, показатель у менеджера падает.
   // Считаем ДО переназначения лид-событий на офис-менеджера ниже: очередь видит сырые данные.
+  // Лид, конвертированный в сделку, отдельно не считаем: в дашборде он живёт строкой сделки.
+  const aiConv = new Set(events.filter((e) => e.dealId && e.leadId).map((e) => e.leadId));
   const aiCov: Record<string, { ts: number; mgr: string; comm: number; state: string }> = {};
   for (const e of events) {
+    if (!e.dealId && aiConv.has(e.leadId)) continue;
     const k = e.dealId ? "D" + e.dealId : "L" + e.leadId;
     const c = (aiCov[k] ||= { ts: 0, mgr: "", comm: 0, state: "na" });
     if (e.ts >= c.ts) { c.ts = e.ts; c.mgr = e.mgr || ""; }

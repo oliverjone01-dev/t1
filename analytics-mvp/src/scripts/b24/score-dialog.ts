@@ -17,6 +17,7 @@
 // Вероятность = эмпирическая база стадии [ДАННЫЕ] x поведенческие коэффициенты [ГИПОТЕЗА].
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { isHidden, OFFICE_MGR } from "./mgr-roster.js";
+import { isTalk, isEligible, makeKey } from "./ai-eligible.js";
 
 const DLG = "dialog/data/dialog.json";
 const ROP = process.env.ROP_JSON || "/tmp/rop.json";
@@ -242,25 +243,28 @@ function main() {
   if (Object.keys(ai).length) console.log(`Слой ИИ: разборов ${Object.keys(ai).length}, менеджеров ${Object.keys(aiMgr).length}`);
 
   // Покрытие ИИ-разбором: сколько диалогов менеджера уже разобрано и не устарело.
-  // Правило ровно как у очереди разбора (dump-dialogs.ts), иначе галочка и очередь разойдутся:
-  //   - подлежит разбору: в ленте >= 2 реплик переписки (сообщение, письмо, открытая линия)
-  //     и ведёт её действующий продавец (не уволен, не офис-менеджер);
+  // Правило «что разбирать» общее с очередью разбора (ai-eligible.ts):
+  //   - подлежит разбору: две единицы общения (реплика, расшифровка звонка, резюме, заметка
+  //     с итогом разговора) или хотя бы один записанный разговор; ведёт действующий продавец;
   //   - разбор свежий, если снят по последнему событию сделки. Пришло новое сообщение, звонок
   //     или дело - разбор устарел, сделка снова в очереди, показатель у менеджера падает.
   // Считаем ДО переназначения лид-событий на офис-менеджера ниже: очередь видит сырые данные.
-  // Лид, конвертированный в сделку, отдельно не считаем: в дашборде он живёт строкой сделки.
-  const aiConv = new Set(events.filter((e) => e.dealId && e.leadId).map((e) => e.leadId));
-  const aiCov: Record<string, { ts: number; mgr: string; comm: number; state: string }> = {};
+  const aiKey = makeKey(events);
+  const aiCov: Record<string, { ts: number; mgr: string; comm: number; talk: number; tasks: number; calls: number; state: string }> = {};
   for (const e of events) {
-    if (!e.dealId && aiConv.has(e.leadId)) continue;
-    const k = e.dealId ? "D" + e.dealId : "L" + e.leadId;
-    const c = (aiCov[k] ||= { ts: 0, mgr: "", comm: 0, state: "na" });
+    const k = aiKey(e);
+    const c = (aiCov[k] ||= { ts: 0, mgr: "", comm: 0, talk: 0, tasks: 0, calls: 0, state: "na" });
     if (e.ts >= c.ts) { c.ts = e.ts; c.mgr = e.mgr || ""; }
     if (isMsg(e)) c.comm++;
+    if (isTalk(e)) c.talk++;
+    if (e.type === "Дело") c.tasks++;
+    if (e.type === "Звонок") c.calls++;
   }
   const covTot = { elig: 0, fresh: 0, stale: 0, none: 0 };
   for (const [k, c] of Object.entries(aiCov)) {
-    if (c.comm < 2 || isHidden(c.mgr, fired) || c.mgr === OFFICE_MGR) continue;
+    // Почему сделка не разбирается - для карточки, чтобы вместо «разбор не делался» стояла причина.
+    if (!isEligible(c.comm, c.talk)) { c.state = !c.comm && !c.talk ? (c.calls ? "na_calls" : "na_empty") : "na_one"; continue; }
+    if (isHidden(c.mgr, fired) || c.mgr === OFFICE_MGR) { c.state = "na_mgr"; continue; }
     const r = ai[k];
     c.state = !r ? "none" : (Number(r.lastTs) || 0) >= c.ts ? "fresh" : "stale";
     covTot.elig++; (covTot as any)[c.state]++;
@@ -848,6 +852,7 @@ function main() {
       clientChase, hotSlow, hotOpen, driftAlso, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),
       lastTs: last.ts, lastDt: last.dt,
       aiState: (aiCov[key] && aiCov[key]!.state) || "na",
+      aiWhy: aiCov[key] ? { comm: aiCov[key]!.comm, talk: aiCov[key]!.talk, calls: aiCov[key]!.calls, tasks: aiCov[key]!.tasks } : null,
     });
   }
 

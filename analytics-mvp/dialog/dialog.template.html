@@ -727,7 +727,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'tree', oc:'all', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
+const S = { mode:'tree', hidePaid:false, dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
   fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, clMgr:'', clKind:'', deptOpen:true, grpOpen:{office:false,sales:false,other:false}, evHi:null, picks:[],
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), question:'', obj:'auto', inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
@@ -1090,16 +1090,8 @@ function renderTree(){
     const ts=EVTS[d.key]||[];
     return ts.some(t=>(!dFrom||t>=dFrom)&&(!dTo||t<=dTo));
   };
-  // Фильтр по исходу сделки: «в работе» - ещё в воронке, «успех» и «отказ» - закрытые.
-  // Исход берём из поля outcome снимка, оно проставлено у каждой сделки (open / won / lost).
-  const INPER=SC.deals.filter(inPeriod);
-  const ocOf=d=>d.outcome||'open';
-  // Счётчики на кнопках считаем по тем же людям, что попадают в таблицу (ростер SC.managers),
-  // иначе кнопка обещает больше строк, чем отдел показывает, и цифры расходятся на глазах.
-  const _mset=new Set((SC.managers||[]).map(m=>m.mgr));
-  const OCN={all:0,open:0,won:0,lost:0};
-  INPER.forEach(d=>{if(!_mset.has(d.mgr))return;OCN.all++;const k=ocOf(d);if(OCN[k]!==undefined)OCN[k]++;});
-  const DEALS=INPER.filter(d=>S.oc==='all'||ocOf(d)===S.oc);
+  // hidePaid: скрыть сделки с предоплатой и дальше (goalReached) - для анализа воронки ДО оплаты.
+  const DEALS=SC.deals.filter(d=>inPeriod(d)&&(!S.hidePaid||!d.goalReached));
   const filtered=DEALS.length!==SC.deals.length;
   const byM={}; for(const d of DEALS) (byM[d.mgr] ||= []).push(d);
   const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
@@ -1161,6 +1153,18 @@ function renderTree(){
   // разбора пришло новое событие (сообщение, звонок, дело), разбор надо обновить; none - ещё
   // не разбирался; na - не подлежит (меньше 2 реплик переписки, офис-менеджер, уволенный).
   // Все подлежащие свежие - галочка. Любое новое событие снимает галочку до следующего прогона.
+  // Почему по сделке нет разбора ИИ - причина вместо безликого «не делался».
+  const aiNoReviewWhy=(d)=>{
+    const w=d.aiWhy||{}, st=d.aiState||'na';
+    const tk=w.tasks?`${w.tasks} ${plu(w.tasks,'дело','дела','дел')}`:'';
+    if(st==='none') return 'Разбор в очереди: диалог подходит для разбора, будет разобран ближайшим прогоном.';
+    if(st==='stale') return 'Разбор устарел: после него в сделке появились новые события. Обновится ближайшим прогоном.';
+    if(st==='na_calls') return `Разбирать нечего: ${w.calls} ${plu(w.calls,'звонок','звонка','звонков')} без расшифровки${tk?', '+tk:''}, переписки нет. Запись звонка есть только в Битрикс24 - расшифровка в CRM не попала.`;
+    if(st==='na_empty') return `Разбирать нечего: в CRM нет ни переписки, ни звонков${tk?', только '+tk:''}.`;
+    if(st==='na_one') return 'Разбирать нечего: в сделке одна реплика, диалога не было.';
+    if(st==='na_mgr') return 'Не разбирается: сделку ведёт офис-менеджер, уволенный сотрудник или не продавец отдела.';
+    return 'Разбора по этой сделке нет.';
+  };
   // Метка разбора ИИ в строке сделки - в стиле индикатора менеджера, но тише: сделок в списке
   // много, поэтому актуальный разбор - едва заметная точка, внимание забирают только
   // устаревший (незамкнутое янтарное кольцо) и неразобранный (пунктирное кольцо).
@@ -1171,7 +1175,7 @@ function renderTree(){
     if(d.aiState==='none') return svg(`<circle cx="6" cy="6" r="4.2" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="1.6 1.8"/>`,'Диалог ещё не разобран ИИ');
     return '';
   };
-  const aiCovOf=(ds)=>{ const c={elig:0,fresh:0,stale:0,none:0}; for(const d of ds){ const st=d.aiState||'na'; if(st==='na') continue; c.elig++; c[st]++; } return c; };
+  const aiCovOf=(ds)=>{ const c={elig:0,fresh:0,stale:0,none:0}; for(const d of ds){ const st=d.aiState||'na'; if(st.startsWith('na')) continue; c.elig++; c[st]++; } return c; };
   const aiCovCell=(mgr)=>{ const c=aiCovOf(byM[mgr]||[]);
     if(!c.elig) return `<span class="na2" data-tip="В выбранных сделках нет диалогов, подлежащих разбору: переписки меньше двух реплик, либо сделки ведёт офис-менеджер или уволенный сотрудник.">-</span>`;
     const pct=Math.floor(c.fresh/c.elig*100), left=c.elig-c.fresh, ok=!left;
@@ -1314,10 +1318,7 @@ function renderTree(){
     <div class="seg" id="dmode"><button data-dmode="comm"${S.dMode==='comm'?' class="on"':''}>по коммуникациям</button><button data-dmode="created"${S.dMode==='created'?' class="on"':''}>по дате создания</button></div>
     <span class="cdiv"></span>
     <button class="dbtn${S.showMetrics?' on':' gray'}" data-metrics="1">${S.showMetrics?'скрыть метрики регламента':'метрики регламента'}</button>
-    <span class="cdiv"></span>
-    <span class="ctl-lbl">Сделки</span>
-    <div class="seg" id="ocseg">${[['all','все','Все сделки периода'],['open','в работе','Ещё в воронке: не выиграны и не проиграны'],['won','успех','Закрыты успехом'],['lost','отказ','Закрыты отказом']]
-      .map(([k,t,ttl])=>`<button data-oc="${k}"${S.oc===k?' class="on"':''} title="${ttl}">${t} <b style="opacity:.6;font-weight:600">${fmt2(OCN[k])}</b></button>`).join('')}</div>
+    <button class="dbtn${S.hidePaid?' on':' gray'}" data-hidepaid="1" title="Скрыть сделки, дошедшие до предоплаты и дальше - анализируем воронку ДО оплаты">${S.hidePaid?'показать с предоплатой':'скрыть с предоплатой'}</button>
   </div>`;
   // Компактная справка: 4 коротких карточки + сетка столбцов. Полные формулы - в подсказке
   // (наведи на «?»), чтобы блок не растягивался на весь экран.
@@ -1505,7 +1506,7 @@ function renderTree(){
     S.td.clear(); renderTree(); });
   list.querySelectorAll('[data-dmode]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.dMode=b.dataset.dmode; renderTree(); });
   const mt=list.querySelector('[data-metrics]'); if(mt) mt.onclick=e=>{ e.stopPropagation(); S.showMetrics=!S.showMetrics; renderTree(); };
-  list.querySelectorAll('[data-oc]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.oc=b.dataset.oc; S.td.clear(); renderTree(); });
+  const hpd=list.querySelector('[data-hidepaid]'); if(hpd) hpd.onclick=e=>{ e.stopPropagation(); S.hidePaid=!S.hidePaid; renderTree(); };
   const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); S.dFrom=''; S.dTo=''; renderTree(); };
   const hb=list.querySelector('[data-help]'); if(hb) hb.onclick=e=>{ e.stopPropagation(); S.help=!S.help; renderTree(); };
   list.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
@@ -1711,7 +1712,7 @@ function renderTree(){
           +(a.recommendation?`<div class="dsum-r"><b>Что сделать:</b> ${esc(a.recommendation)}</div>`:'')
           +chrono()
           +qBlock(a.quotes)
-        : `<div class="dsum-h">🤖 Разбор ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
+        : `<div class="dsum-h">🤖 Разбор ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">${aiNoReviewWhy(d)}</div>`;
       // Краткий «Итог ИИ» ВОЗВРАЩЁН в ленту 24.09.2026. Его убирали как дубль подсказки
       // градусника, но подсказка висит на строке сделки уровнем выше, а внутри открытой ленты
       // не показывалось ничего. Подробный audit есть лишь у 8 разборов из 938, поэтому для

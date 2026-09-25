@@ -42,13 +42,22 @@ async function main() {
   const byType: Record<number, { name: string; bucket: string; sum: number; n: number }> = {};
   const rfbsSet = new Set<string>();   // постинги с realFBS-начислениями -> схема доставки rFBS
   const logiSet = new Set<string>();   // постинги со сбором «Логистика» (type 32) -> OZON везёт (FBO/FBS)
+  // Дата начисления сборов по продаже (комиссия, логистика) = дата реализации заказа. Нужна таблице по
+  // артикулам, которая с сентября считает по дате реализации (Иван 25.09.2026, п. 2.2): логистика OZON
+  // приходит только здесь, в by-day её нет. Имя поля даты у OZON не документировано - берём первое
+  // найденное и печатаем только ИМЕНА полей начисления (репозиторий публичный, логи открыты).
+  const saleDate: Record<string, string> = {};
+  const dateOf = (a: any): string => String(a?.date ?? a?.accrual_date ?? a?.operation_date ?? a?.created_at ?? a?.accrued_at ?? "").slice(0, 10);
+  let keysShown = false, withDate = 0, sale = 0;
   for (const p of acc) {
     const b = (accByOrder[p.posting_number] ||= zero());
+    if (!keysShown && (p.accruals || [])[0]) { console.log("  поля начисления по заказу:", Object.keys(p.accruals[0]).join(", ")); keysShown = true; }
     for (const a of (p.accruals || [])) {
       const tid = Number(a.type_id);
       const bk = (bmap[tid] || "other") as Bucket;
       const amt = Number(a?.accrued?.amount ?? a?.accrued ?? a?.amount ?? 0);
       b[bk] += amt;
+      if (bk === "commission" || bk === "delivery") { sale++; const dd = dateOf(a); if (/^\d{4}-\d{2}-\d{2}$/.test(dd)) { withDate++; if (!saleDate[p.posting_number] || dd > saleDate[p.posting_number]!) saleDate[p.posting_number] = dd; } }
       const nm = nameById[tid] || String(tid);
       if (/rfbs|realfbs/i.test(nm)) rfbsSet.add(p.posting_number);
       if (tid === 32 || /^logistic$|логистик/i.test(nm)) logiSet.add(p.posting_number);
@@ -58,6 +67,7 @@ async function main() {
   }
   // ПРОБ: разбивка начислений по заказу по ТИПУ (с бакетом) - убедиться, что в «other» нет
   // замаскированного эквайринга/хранения. Пишем отдельным файлом.
+  console.log(`  сборов по продаже ${sale}, из них с датой начисления ${withDate}`);
   const typesArr = Object.entries(byType).map(([tid, v]) => ({ type_id: Number(tid), ...v, sum: Math.round(v.sum) })).sort((a, b) => a.sum - b.sum);
   writeFileSync("data/orders_accrual_types.json", JSON.stringify(typesArr, null, 1));
   console.log(`  типов начислений по заказам: ${typesArr.length} -> data/orders_accrual_types.json`);
@@ -88,7 +98,7 @@ async function main() {
       sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
       commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(b.acquiring),
       storage: Math.round(b.storage), buyer_delivery: Math.round(b.buyerDelivery), ads: Math.round(b.ads),
-      partner: Math.round(b.partner), other: Math.round(b.other), payout: Math.round(revenue + feesSum), paid,
+      partner: Math.round(b.partner), other: Math.round(b.other), payout: Math.round(revenue + feesSum), paid, sd: saleDate[p.posting_number] || null,
     });
   }
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");

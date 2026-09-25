@@ -20,6 +20,14 @@
      "spend": 0
     },
     {
+     "gid": "5774336355",
+     "group": "Арочные перегородки | Дверью",
+     "crit_type": "AUTOTARGETING",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
      "gid": "5774336356",
      "group": "Арочные перегородки | Москве",
      "crit_type": "AUTOTARGETING",
@@ -244,6 +252,14 @@
      "spend": 0
     },
     {
+     "gid": "5774336425",
+     "group": "Стальные перегородки",
+     "crit_type": "KEYWORD",
+     "imp": 1,
+     "clicks": 0,
+     "spend": 0
+    },
+    {
      "gid": "5774336430",
      "group": "Стальные перегородки | Металлические Зонирования",
      "crit_type": "KEYWORD",
@@ -376,7 +392,7 @@
    ]
   }
  },
- "generated_at": "2026-09-25T14:36:06.356Z",
+ "generated_at": "2026-09-25T14:40:07.556Z",
  "timezone": "Europe/Moscow",
  "campaigns": [
   {
@@ -601,28 +617,28 @@
   {
    "cid": "712877517",
    "name": "[На заказ] Перегородки | Поиск СЧ | НБ=9т.р. | CPC=108 |",
-   "imp": 159,
+   "imp": 160,
    "clicks": 9,
    "spend": 1098.75
   },
   {
    "cid": "712877525",
    "name": "[На заказ] Перегородки | Поиск НЧ | НБ=11т.р. | CPC=110 |",
-   "imp": 74,
+   "imp": 76,
    "clicks": 7,
    "spend": 1153.03
   },
   {
    "cid": "713496953",
    "name": "[На заказ] Перегородки | РТ | НБ=5т.р. | CPC = 100 |",
-   "imp": 777,
-   "clicks": 4,
-   "spend": 101.55
+   "imp": 783,
+   "clicks": 6,
+   "spend": 219.44
   },
   {
    "cid": "713589837",
    "name": "[На заказ] Перегородки | РСЯ - ПК | НБ=8т.р. | CPC=80 |",
-   "imp": 2722,
+   "imp": 2728,
    "clicks": 19,
    "spend": 1686.69
   },
@@ -651,8 +667,8 @@
   },
   {
    "utm": "peregorodki_712877525",
-   "visits": 10,
-   "bounce": 10,
+   "visits": 11,
+   "bounce": 9.1,
    "leads": 0,
    "contacts": 0
   },
@@ -828,7 +844,7 @@
   },
   {
    "hour": "17:00",
-   "visits": 3,
+   "visits": 4,
    "bounce": 0,
    "leads": 0,
    "contacts": 0
@@ -837,8 +853,8 @@
  "metrika_by_source": [
   {
    "source": "Ad traffic",
-   "visits": 102,
-   "bounce": 15.7,
+   "visits": 103,
+   "bounce": 15.5,
    "leads": 2,
    "contacts": 3
   },

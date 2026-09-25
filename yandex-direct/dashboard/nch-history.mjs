@@ -63,6 +63,7 @@ async function directReport(name, params) {
       const lines = (await res.text()).trim().split('\n');
       // строка 0 - заголовок отчёта, 1 - имена колонок (summary отключён)
       const cols = lines[1].split('\t');
+      console.log(`cols ${name}: ${cols.join(',')}`);
       return lines.slice(2).map(l => {
         const v = l.split('\t');
         return Object.fromEntries(cols.map((c, k) => [c, v[k] === '--' ? null : v[k]]));

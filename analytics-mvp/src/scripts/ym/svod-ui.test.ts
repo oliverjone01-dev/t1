@@ -1400,6 +1400,92 @@ describe("свод: заказы вне выгрузки стоят строко
   });
 });
 
+// Блок «Аналитика по артикулам (за выбранный период)», базис НАЧИСЛЕНИЙ (Катя 25.09.2026:
+// «на маркете можно собрать такой же блок как на Озон по начислениям, чтобы он сходился с
+// отчетными документами»). Источник - отчёт по взаиморасчётам, разнесённый по артикулу и дню
+// проводки, поэтому с самим отчётом блок сходится тождественно; сверять его надо с УПД и
+// проверять, что он НЕ выдаёт себя за блок по дате заказа.
+describe("Маркет: аналитика по артикулам за выбранный период (начисления)", () => {
+  const TA = () => D().getElementById("acc-t")!;
+  const headA = () => [...TA().querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+  const totA = () => [...TA().querySelectorAll("tr.sv-total td")].map((x) => (x.textContent || "").trim());
+  const cellA = (c: string) => totA()[headA().indexOf(c)];
+
+  it("блок есть, отделён от блока по дате заказа и стоит после него", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const titles = [...D().querySelectorAll(".card-title")].map((x) => (x.textContent || "").trim());
+    const byOrderDate = titles.findIndex((x) => /Аналитика по артикулам \(по дате заказа\)/.test(x));
+    const byPeriod = titles.findIndex((x) => /Аналитика по артикулам \(за выбранный период\)/.test(x));
+    expect(byOrderDate, "блока по дате заказа нет").toBeGreaterThanOrEqual(0);
+    expect(byPeriod, "блока за выбранный период нет").toBeGreaterThanOrEqual(0);
+    expect(byPeriod, "блок по начислениям встал выше блока по дате заказа").toBeGreaterThan(byOrderDate);
+    // Две таблицы с почти одинаковым именем обязаны быть различимы на экране, а не только по id.
+    expect(titles.filter((x) => x === "Аналитика по артикулам").length, "остался блок без уточнения базиса").toBe(0);
+    expect(errs).toEqual([]);
+  });
+
+  it("тождество блока: начислено − сборы = к выплате", () => {
+    for (const [from, to] of [["2026-07-01", "2026-07-31"], ["2026-08-01", "2026-08-31"], ["2026-01-01", "2026-12-31"]]) {
+      setRange(from!, to!);
+      const acc = num(cellA("Начислено"))!, fee = num(cellA("Всего сборов"))!, pay = num(cellA("К выплате"))!;
+      expect(acc, `${from}: начислений нет`).toBeGreaterThan(0);
+      // Допуск - построчное округление до рубля, по рублю на строку; строк меньше 1500.
+      expect(Math.abs(acc - fee - pay), `${from}: ${acc} − ${fee} = ${acc - fee}, а «К выплате» ${pay}`).toBeLessThan(1500);
+    }
+    expect(errs).toEqual([]);
+  });
+
+  it("ИТОГО складывается из категорий", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const iA = headA().indexOf("Начислено"), iP = headA().indexOf("К выплате");
+    const cats = [...TA().querySelectorAll("tr.acc-cat")];
+    expect(cats.length, "категорий нет").toBeGreaterThan(1);
+    const sum = (i: number) => cats.reduce((a, r) => a + (num(r.children[i]!.textContent) || 0), 0);
+    expect(Math.abs(sum(iA) - num(cellA("Начислено"))!), "начислено: ИТОГО не равно сумме категорий").toBeLessThan(2);
+    expect(Math.abs(sum(iP) - num(cellA("К выплате"))!), "к выплате: ИТОГО не равно сумме категорий").toBeLessThan(2);
+    expect(errs).toEqual([]);
+  });
+
+  it("базис другой, чем у блока по дате заказа - числа не обязаны совпадать и не совпадают", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const accPay = num(cellA("К выплате"))!;
+    const svNet = num(cell("Поступление"))!;
+    expect(accPay, "к выплате пустое").toBeGreaterThan(0);
+    expect(svNet, "поступление свода пустое").toBeGreaterThan(0);
+    // Если однажды сойдутся до рубля - значит кто-то склеил базисы, и это надо заметить.
+    expect(Math.abs(accPay - svNet), "два базиса дали одно число - похоже, блок считает не то, что подписан")
+      .toBeGreaterThan(1000);
+    expect(errs).toEqual([]);
+  });
+
+  it("АДМ и налога в блоке нет, и это сказано словами", () => {
+    setRange("2026-07-01", "2026-07-31");
+    const h = headA();
+    expect(h.some((x) => x.indexOf("АДМ") === 0), "АДМ появился в блоке по начислениям").toBe(false);
+    expect(h.some((x) => x.indexOf("Налоги") === 0), "налог появился в блоке по начислениям").toBe(false);
+    expect(D().getElementById("acc-note")!.textContent, "пробел по базе налога не назван")
+      .toMatch(/база налога|АДМ и налога/i);
+    expect(errs).toEqual([]);
+  });
+
+  it("сверка с УПД показана, и пробел назван", () => {
+    setRange("2026-01-01", "2026-12-31");
+    const cov = D().getElementById("acc-cov")!.textContent || "";
+    expect(cov, "сверки с УПД в блоке нет").toMatch(/сверка с УПД/);
+    // За январь и текущий месяц УПД нет - блок обязан это сказать, а не молчать.
+    expect(cov, "пробел по УПД не назван").toMatch(/нет за/);
+    expect(errs).toEqual([]);
+  });
+
+  it("окно без проводок гасит таблицу, а не показывает прошлые числа", () => {
+    setRange("2025-01-01", "2025-01-31");
+    expect(TA().querySelectorAll("tbody tr").length, "в пустом окне остались строки").toBe(0);
+    expect(D().getElementById("acc-cov")!.textContent, "пустое окно молчит")
+      .toMatch(/проводок по взаиморасчётам нет/);
+    expect(errs).toEqual([]);
+  });
+});
+
 // Разнесение отправок по отменённым на артикулы (Катя 22.09.2026). Раньше эти три теста держали
 // раскрытие строки-котла по заказам; котла больше нет, но защищаемое ими свойство осталось тем же:
 // расход не безымянный, он привязан к конкретной единице и считается по датам своих заказов.
@@ -1549,9 +1635,11 @@ describe("свод по заказам: порядок блоков, город 
 
   it("свод по заказам стоит ВЫШЕ свода по артикулам", () => {
     const t = titles();
-    const a = t.indexOf("Аналитика по заказам"), b = t.indexOf("Аналитика по артикулам");
+    // 25.09.2026: у блока по артикулам появился базис в подписи - рядом встал второй блок с тем
+    // же именем, но по начислениям. Ищем точное имя, иначе тест поймает соседа.
+    const a = t.indexOf("Аналитика по заказам"), b = t.indexOf("Аналитика по артикулам (по дате заказа)");
     expect(a, "блока «Аналитика по заказам» нет").toBeGreaterThanOrEqual(0);
-    expect(b, "блока «Аналитика по артикулам» нет").toBeGreaterThanOrEqual(0);
+    expect(b, "блока «Аналитика по артикулам (по дате заказа)» нет").toBeGreaterThanOrEqual(0);
     expect(a, "порядок блоков не поменялся").toBeLessThan(b);
   });
 

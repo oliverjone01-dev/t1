@@ -241,6 +241,32 @@ function main() {
   const aiMgr: Record<string, any> = aiFile.managers || {};   // разбор ИИ на уровне менеджера
   if (Object.keys(ai).length) console.log(`Слой ИИ: разборов ${Object.keys(ai).length}, менеджеров ${Object.keys(aiMgr).length}`);
 
+  // Покрытие ИИ-разбором: сколько диалогов менеджера уже разобрано и не устарело.
+  // Правило ровно как у очереди разбора (dump-dialogs.ts), иначе галочка и очередь разойдутся:
+  //   - подлежит разбору: в ленте >= 2 реплик переписки (сообщение, письмо, открытая линия)
+  //     и ведёт её действующий продавец (не уволен, не офис-менеджер);
+  //   - разбор свежий, если снят по последнему событию сделки. Пришло новое сообщение, звонок
+  //     или дело - разбор устарел, сделка снова в очереди, показатель у менеджера падает.
+  // Считаем ДО переназначения лид-событий на офис-менеджера ниже: очередь видит сырые данные.
+  // Лид, конвертированный в сделку, отдельно не считаем: в дашборде он живёт строкой сделки.
+  const aiConv = new Set(events.filter((e) => e.dealId && e.leadId).map((e) => e.leadId));
+  const aiCov: Record<string, { ts: number; mgr: string; comm: number; state: string }> = {};
+  for (const e of events) {
+    if (!e.dealId && aiConv.has(e.leadId)) continue;
+    const k = e.dealId ? "D" + e.dealId : "L" + e.leadId;
+    const c = (aiCov[k] ||= { ts: 0, mgr: "", comm: 0, state: "na" });
+    if (e.ts >= c.ts) { c.ts = e.ts; c.mgr = e.mgr || ""; }
+    if (isMsg(e)) c.comm++;
+  }
+  const covTot = { elig: 0, fresh: 0, stale: 0, none: 0 };
+  for (const [k, c] of Object.entries(aiCov)) {
+    if (c.comm < 2 || isHidden(c.mgr, fired) || c.mgr === OFFICE_MGR) continue;
+    const r = ai[k];
+    c.state = !r ? "none" : (Number(r.lastTs) || 0) >= c.ts ? "fresh" : "stale";
+    covTot.elig++; (covTot as any)[c.state]++;
+  }
+  console.log(`Покрытие ИИ-разбором: ${covTot.fresh} из ${covTot.elig} свежие, устарели ${covTot.stale}, не разобраны ${covTot.none}`);
+
   // Офис-менеджер: работа с лидами под системным пользователем - это Турченко Анна
   // (решение Ивана). Событиям ЧИСТЫХ лидов (без сделки) с владельцем-системой ставим Аню,
   // чтобы её лид-интейк был виден отдельной строкой, а не терялся в «роботе портала».
@@ -564,7 +590,7 @@ function main() {
     if (a && Array.isArray(a.tags)) for (const t of a.tags) add(String(t.t || t), t.sec || "process", (t.tone as Tag["tone"]) || "warn");
     // Теги ИИ по КОНКРЕТНЫМ сообщениям: вешаем на нужную реплику (evTags[src]) с цитатой -
     // в ленте видно, какая именно фраза греет или холодит сделку.
-    if (a && Array.isArray(a.msgTags)) for (const t of a.msgTags) { if (t && t.src) (evTags[t.src] ||= []).push({ t: String(t.t || ""), tone: t.tone || "warn", sec: "process", quote: t.quote || "", ai: true, deg: typeof t.deg === "number" ? t.deg : undefined }); }
+    if (a && Array.isArray(a.msgTags)) for (const t of a.msgTags) { if (t && t.src) (evTags[t.src] ||= []).push({ t: String(t.t || ""), tone: t.tone || "warn", sec: "process", quote: t.quote || "", ai: true, k: t.k || "", deg: typeof t.deg === "number" ? t.deg : undefined }); }
 
     // --- НОВЫЕ ПОВЕДЕНЧЕСКИЕ СИГНАЛЫ (item 2) ------------------------------------
     // Инициатива: клиент ТЯНЕТ САМ. Два входящих подряд (ответа менеджера между ними нет) -
@@ -813,11 +839,15 @@ function main() {
       dir: f ? (f.dir || "") : "", cycle: f && f.cycle != null ? f.cycle : null, lossReason: f ? (f.reason || "") : "",
       won: isWon, lost: isLost, outcome: isWon ? "won" : isLost ? "lost" : "open",
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
-      ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null } : null,
+      ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null,
+        // Разметка по репликам едет в разбор целиком: в ленте она видна точечно, а в итоге
+        // по сделке из неё собираются два столбца - сильные стороны (G) и дефекты (T).
+        marks: (a.msgTags || []).filter((t: any) => t && (t.k || t.t)).map((t: any) => ({ k: t.k || "", tone: t.tone || "warn", t: t.t || "", quote: t.quote || "" })) } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, silenceAnyD, noTalk, overdueD, nextStep, stageDays,
       preMig: !!createdAt && createdAt < MIGRATION_CUTOFF,
       clientChase, hotSlow, hotOpen, driftAlso, readySig: RE.ready.test(inText), refuseSig: RE.refuse.test(inText),
       lastTs: last.ts, lastDt: last.dt,
+      aiState: (aiCov[key] && aiCov[key]!.state) || "na",
     });
   }
 
@@ -1144,7 +1174,7 @@ function main() {
     trend: days.slice(-14),
     calibration,
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
-    sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length, aiDemo: !!aiFile.demo, aiModel: aiFile.model || "",
+    sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length, aiCoverage: { ...covTot, at: new Date().toISOString() }, aiDemo: !!aiFile.demo, aiModel: aiFile.model || "",
     aiAgg: aiFile.aggregates || null,
     thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },
     deptMedians: dept, metricDefs: METRICS.map((m) => ({ key: m.key, label: m.label, unit: m.unit, better: m.better, how: (m as any).how || "" })), tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,

@@ -248,6 +248,23 @@ input#q{min-width:220px}
 .da-gaps{font-size:11px;line-height:1.5;color:var(--ink-3);margin-top:4px}
 .da-gaps b{color:#E2A336}
 .dsum-none{color:var(--ink-4);font-size:11.5px}
+/* Оценки по пяти осям и разметка «хорошо / ошибки» внутри разбора сделки */
+.sc-grid{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 9px;padding:8px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.sc-i{flex:1 1 92px;min-width:92px}
+.sc-t{font-size:9.5px;color:var(--ink-3);margin-bottom:3px;white-space:nowrap}
+.sc-bar{height:5px;border-radius:3px;background:var(--line,#e5e7eb);overflow:hidden;display:inline-block;width:calc(100% - 16px);vertical-align:middle}
+.sc-bar span{display:block;height:100%}
+.sc-v{font-size:11px;margin-left:4px;font-variant-numeric:tabular-nums}
+.mk-q{color:var(--ink-3);font-size:11px;line-height:1.45;margin-top:2px;font-style:italic}
+.mk-qs{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+/* Хронология работы по сделке против нормы отдела */
+.chrono{margin-top:9px;padding-top:8px;border-top:1px solid var(--border)}
+.ch-tbl{border-collapse:collapse;font-size:11.5px;margin-top:4px}
+.ch-tbl td{padding:2px 0;vertical-align:baseline}
+.ch-t{color:var(--ink-3);padding-right:12px!important;white-space:nowrap}
+.ch-v{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;padding-right:10px!important}
+.ch-n{color:var(--ink-4);font-size:10.5px;white-space:nowrap}
+.ch-f{margin-top:6px;font-size:11px;line-height:1.5;color:var(--ink-3)}
 /* Развёрнутый разбор коммуникации по сделке */
 .dabox{width:100%;box-sizing:border-box;border:1px solid #8B7BF033;background:#8B7BF008;border-radius:9px;padding:11px 13px;margin:0 0 10px}
 .da-h{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8B7BF0;margin-bottom:8px}
@@ -263,7 +280,7 @@ input#q{min-width:220px}
 .da-col li{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin:2px 0}
 .da-concl{font-size:12px;line-height:1.55;color:var(--ink-1);border-top:1px solid var(--border);padding-top:8px}
 .da-concl b{color:#8B7BF0}
-.aibadge{margin-right:5px;cursor:help}
+.aimark{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px;cursor:help}.aimark svg{display:block;width:12px;height:12px}
 .callchip{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:5px;border:1px solid;white-space:nowrap}
 .callchip.ca-ans{color:#2E9E74;border-color:#2E9E7455;background:#2E9E7414}
 .callchip.ca-miss{color:#C25252;border-color:#C2525255;background:#C2525214}
@@ -641,6 +658,7 @@ input#q{min-width:220px}
 .cal-io input{width:88px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--ink-1);font-size:11px;padding:3px 6px;margin-left:3px}
 .cal-sp{flex:1}
 @media(max-width:720px){.cal-months{flex-direction:column;gap:8px}}
+.aicov{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;cursor:default;vertical-align:middle;line-height:1}.airing{width:14px;height:14px;flex:none;display:block}.aicov b{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -1092,6 +1110,7 @@ function renderTree(){
     // Агрегаты по сделкам считаем всегда (нужны и отделу, и менеджерам с малой выборкой).
     if(k==='funnel'||k==='deals') return dsm.length;
     if(k==='compl') return dsm.filter(d=>complOf(d)==='empty').length; // сортировка: больше пустых - выше
+    if(k==='aicov'){ const c=aiCovOf(dsm); return c.elig?c.fresh/c.elig:null; }
     if(k==='hot') return dsm.filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0);
     if(k==='alerts') return dsm.filter(d=>d.urgency).length;
     if(k==='sum') return dsm.reduce((s2,d)=>s2+(d.budget||0),0);
@@ -1137,6 +1156,39 @@ function renderTree(){
     const c={full:0,partial:0,empty:0}; for(const d of ds) c[complOf(d)]++;
     return `<div class="cwrap cvert">`+COMPL.map(x=>{ const on=aiPickActive('cl',mgr,x.k); const pct=Math.round(c[x.k]/ds.length*100);
       return `<span class="cchip${on?' con':''}" data-compl="${x.k}" style="color:${x.col}" data-tip="<span class='tdot' style='background:${x.col}'></span>${esc(x.t)}: <b>${c[x.k]}</b> из ${ds.length} (${pct}%) - ${esc(x.why)}. Клик - показать и отфильтровать эти сделки.">${x.ic}${pct}%</span>`; }).join('')+`</div>`; };
+  // --- ПОКРЫТИЕ ИИ-РАЗБОРОМ: сколько диалогов разобрано и не устарело ---
+  // aiState приходит из score-dialog: fresh - разобран по последнему событию; stale - после
+  // разбора пришло новое событие (сообщение, звонок, дело), разбор надо обновить; none - ещё
+  // не разбирался; na - не подлежит (меньше 2 реплик переписки, офис-менеджер, уволенный).
+  // Все подлежащие свежие - галочка. Любое новое событие снимает галочку до следующего прогона.
+  // Метка разбора ИИ в строке сделки - в стиле индикатора менеджера, но тише: сделок в списке
+  // много, поэтому актуальный разбор - едва заметная точка, внимание забирают только
+  // устаревший (незамкнутое янтарное кольцо) и неразобранный (пунктирное кольцо).
+  const aiDealMark=(d)=>{
+    const svg=(inner,tip)=>`<span class="aimark" title="${tip}"><svg viewBox="0 0 12 12">${inner}</svg></span>`;
+    if(d.aiState==='stale') return svg(`<circle cx="6" cy="6" r="4.2" fill="none" stroke="#E2A336" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="19.8 26.4" transform="rotate(-90 6 6)"/>`,'Разбор ИИ устарел: после него в сделке появились новые события. Обновится ночным прогоном');
+    if(d.ai&&(d.ai.audit||d.ai.verdict)) return svg(`<circle cx="6" cy="6" r="2.6" fill="#2E9E74"/>`,'Есть актуальный разбор ИИ по этой сделке');
+    if(d.aiState==='none') return svg(`<circle cx="6" cy="6" r="4.2" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="1.6 1.8"/>`,'Диалог ещё не разобран ИИ');
+    return '';
+  };
+  const aiCovOf=(ds)=>{ const c={elig:0,fresh:0,stale:0,none:0}; for(const d of ds){ const st=d.aiState||'na'; if(st==='na') continue; c.elig++; c[st]++; } return c; };
+  const aiCovCell=(mgr)=>{ const c=aiCovOf(byM[mgr]||[]);
+    if(!c.elig) return `<span class="na2" data-tip="В выбранных сделках нет диалогов, подлежащих разбору: переписки меньше двух реплик, либо сделки ведёт офис-менеджер или уволенный сотрудник.">-</span>`;
+    const pct=Math.floor(c.fresh/c.elig*100), left=c.elig-c.fresh, ok=!left;
+    const col=ok?'#2E9E74':pct>=90?'#E2A336':'#C25252';
+    const tip=`<b>Разбор ИИ</b><br>Разобрано и актуально: <b>${c.fresh}</b> из ${c.elig} (${pct}%)`
+      +(c.stale?`<br>Устарели: <b>${c.stale}</b> - после разбора пришли новые сообщения, звонки или дела`:'')
+      +(c.none?`<br>Ещё не разбирались: <b>${c.none}</b>`:'')
+      +`<br><br>В счёт идут диалоги, где не меньше двух реплик переписки. Любое новое событие в сделке снимает галочку, пока ночной прогон не разберёт её заново.`
+      +(SC.aiCoverage&&SC.aiCoverage.at?`<br>Пересчитано: ${esc(new Date(SC.aiCoverage.at).toLocaleString('ru-RU',{timeZone:'Europe/Moscow'}))}`:'');
+    // Полное покрытие - зелёный кружок с галочкой. Неполное - незамкнутое кольцо и рядом число
+    // диалогов, которые ждут разбора. Дуга не длиннее 3/4 круга: при 95% кольцо иначе выглядит
+    // замкнутым и читается как «готово». Точная доля - в подсказке.
+    const R=6, L=2*Math.PI*R, arc=(L*Math.min(c.fresh/c.elig,.75)).toFixed(2);
+    const ring=ok
+      ? `<svg class="airing" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.5" fill="${col}"/><path d="M4.6 8.2l2.3 2.3 4.5-4.7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : `<svg class="airing" viewBox="0 0 16 16"><circle cx="8" cy="8" r="${R}" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="2.4"/><circle cx="8" cy="8" r="${R}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="${arc} ${L.toFixed(2)}" transform="rotate(-90 8 8)"/></svg>`;
+    return `<span class="aicov" data-tip="${tip.replace(/"/g,'&quot;')}">${ring}${ok?'':`<b style="color:${col}">${left}</b>`}</span>`; };
   // --- ГРАДУСНИК: цвет по температуре, термометр сделки, распределение по менеджеру/отделу ---
   const TEMPCOL=(t)=> t>=80?'#E5484D':t>=50?'#F76808':t>=25?'#E2A336':'#5B8DEF';
   // Термометр одной сделки: шкала 0-100, засечка на температуре входа, стрелка Δ, в подсказке -
@@ -1200,7 +1252,7 @@ function renderTree(){
   const coolListHtml=(ds)=>{ const op=ds.filter(d=>d.outcome==='open'); if(!op.length) return '';
     const top=Object.entries(cool).sort((a,b)=>b[1].deg-a[1].deg).slice(0,5); if(!top.length) return '';
     return `<ul class="cool-ul">`+top.map(([l,v])=>`<li><b class="cool-l">${esc(l)}</b> <span class="cool-n">${v.n} сдел. · до +${v.deg}°</span><span class="cool-fix">→ ${esc(resolveAgg(l))}</span></li>`).join('')+`</ul>`; };
-  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
+  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'deals',t:'Сделок'},{k:'aicov',t:'ИИ',l:1,full:'Сколько диалогов разобрано ИИ и не устарело. Галочка - разобрано всё; новое событие в сделке снимает галочку до следующего прогона'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'temp',t:'Градусник',l:1,full:'Температура клиентов (шанс покупки) + сила нагрева менеджера'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
     .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
     .concat([{k:'compl',t:'Полнота',l:1}]);
@@ -1331,6 +1383,7 @@ function renderTree(){
         if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
         if(c.k==='temp') return `<td class="l">${tempCell(m.mgr)}</td>`;
         if(c.k==='compl') return `<td class="l">${complCell(m.mgr)}</td>`;
+        if(c.k==='aicov') return `<td class="l">${aiCovCell(m.mgr)}</td>`;
         if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const on=aiPickActive('hot',m.mgr,'hot');
           return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет цифры тем ярче, чем больше горящих.${v?' Клик - показать эти горящие сделки.':''}" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
         if(c.k==='hot'){ const v=mval(m,'hot')||0; const on=aiPickActive('hot',m.mgr,'hot');
@@ -1372,7 +1425,7 @@ function renderTree(){
           <td><b>${money(d.budget)} ₽</b></td>
           <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
           <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
-          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${(d.ai&&(d.ai.audit||d.ai.verdict))?'<span class="aibadge" title="Есть разбор ИИ по этой сделке">🤖</span>':''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
+          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${aiDealMark(d)}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
           <td class="l dstage">${esc(d.stage||'-')}</td>
           <td>${dcell(createdTs(d))}</td>
           <td>${dcell(lastCommTs(d))}</td>
@@ -1399,6 +1452,7 @@ function renderTree(){
         if(c.k==='act') return `<td class="l">${commCell(key)}</td>`;
         if(c.k==='temp') return `<td class="l">${tempCell(key)}</td>`;
         if(c.k==='compl') return `<td class="l">${complCell(key)}</td>`;
+        if(c.k==='aicov') return `<td class="l">${aiCovCell(key)}</td>`;
         if(c.k==='alerts'){ const v=mval(gm,'alerts')||0; return `<td class="gorit" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
         if(c.k==='hot'){ const v=mval(gm,'hot')||0; return `<td>${money(v)} ₽</td>`; }
         return `<td style="${cellCol(c.k,mval(gm,c.k))}">${fmtM(c.k,mval(gm,c.k))}</td>`; }).join('')
@@ -1593,12 +1647,71 @@ function renderTree(){
       // Температура-оценка и «не хватает до горячего» живут ВНУТРИ ИИ-аудита (см. daBlock ниже),
       // а не перед ним. В шапке итога - только градус рядом с заголовком.
       const gapsList=(d.needToClose||[]).slice(0,4).map(g=>`+${g.deg}° ${esc(g.label)}${g.rub?` (${money(g.rub)} ₽)`:''}`).join('<br>');
+      // Расшифровка кодов разметки: в ленте на реплике стоит короткий текст, а в итоге по
+      // сделке рядом с цитатой нужен сам дефект/сильная сторона словами.
+      const MARKC={T01:'пустое письмо',T02:'без имени',T03:'размытый срок',T04:'жаргон в извинении',T05:'обезличенное касание',T06:'защита вместо решения',T07:'орфография',T08:'обещал и не сделал',T09:'штамп не к месту',
+        G01:'быстрая первая реакция',G02:'расчёт за минуты',G03:'настойчивость в касаниях',G04:'честность про брак или срыв',G05:'признание ошибки без защиты',G06:'возражение снято аргументом',G07:'риск назван заранее',G08:'цикл завершён чисто'};
+      // Пять осей оценки менеджера по сделке. Показываем полосой: РОПу нужно видеть провал
+      // взглядом, а не читать пять чисел.
+      const SCAX=[['polite','Вежливость'],['qual','Квалификация'],['deadline','Сроки'],['process','Ведение'],['result','Результат']];
+      const scBar=sc=>{ if(!sc) return '';
+        const cells=SCAX.filter(([k])=>typeof sc[k]==='number').map(([k,t])=>{ const v=sc[k], col=v>=4?'#2E9E74':v>=3?'#E2A336':'#C25252';
+          return `<div class="sc-i"><div class="sc-t">${t}</div><div class="sc-bar"><span style="width:${v*20}%;background:${col}"></span></div><b class="sc-v" style="color:${col}">${v}</b></div>`; }).join('');
+        return cells?`<div class="sc-grid">${cells}</div>`:''; };
+      // Два столбца из разметки по репликам: что сделано хорошо (коды G) и что не так (коды T).
+      // Это и есть «ошибки и плюсы» по сделке - с цитатой той самой фразы.
+      const markCols=ms=>{ if(!ms||!ms.length) return '';
+        const li=t=>`<li><b>${esc(t.k?(MARKC[t.k]||t.k):'')}</b>${t.t?` — ${esc(String(t.t).replace(/^ИИ · /,''))}`:''}${t.quote?`<div class="mk-q">«${esc(t.quote)}»</div>`:''}</li>`;
+        const good=ms.filter(t=>t.tone==='good'), bad=ms.filter(t=>t.tone!=='good');
+        if(!good.length&&!bad.length) return '';
+        return `<div class="da-cols">`
+          +`<div class="da-col da-good"><div class="da-t">Что сделано хорошо</div>${good.length?'<ul>'+good.map(li).join('')+'</ul>':'<div class="dsum-none">в этой сделке сильных ходов не отмечено</div>'}</div>`
+          +`<div class="da-col da-gap"><div class="da-t">Ошибки и риски</div>${bad.length?'<ul>'+bad.map(li).join('')+'</ul>':'<div class="dsum-none">дефектов не отмечено</div>'}</div>`
+          +`</div>`; };
+      // Реплики клиента, на которых держится вывод: РОП читает их первыми, до текста разбора.
+      const qBlock=qs=>(qs&&qs.length)?`<div class="mk-qs"><div class="da-t">Ключевые реплики</div>${qs.slice(0,3).map(q=>`<div class="mk-q">«${esc(q)}»</div>`).join('')}</div>`:'';
+      // Норма отдела по сырым метрикам времени. deptMedians в снимке хранит проценты секций,
+      // а сравнивать надо часы и дни, поэтому медианы считаем здесь по открытым сделкам отдела
+      // и кешируем: иначе пересчёт шёл бы на каждое раскрытие сделки.
+      const NORM=(()=>{ let c=null; return ()=>{ if(c) return c; const op=SC.deals.filter(x=>x.outcome==='open');
+        const med=f=>{ const v=op.map(f).filter(x=>typeof x==='number'&&isFinite(x)).sort((a,b)=>a-b); return v.length>=5?v[Math.floor(v.length/2)]:null; };
+        c={take:med(x=>x.takeH),first:med(x=>x.firstResp),resp:med(x=>x.respMed),sil:med(x=>x.silenceD),stage:med(x=>x.stageDays),msgs:med(x=>x.msgs)}; return c; }; })();
+      // Хронология работы по сделке: сколько шли к первому ответу, как отвечали дальше, сколько
+      // молчали, сколько держат стадию. Рядом - норма отдела, чтобы «13 часов» читались как
+      // лучше или хуже среднего, а не как абстрактное число.
+      const hrs=v=>v==null?null:(v<1?Math.max(1,Math.round(v*60))+' мин':v<48?Math.round(v)+' ч':Math.round(v/24)+' дн');
+      const chrono=()=>{ const n=NORM();
+        const rows=[
+          ['Взял в работу', hrs(d.takeH), hrs(n.take), d.takeH!=null&&n.take!=null?d.takeH<=n.take:null],
+          ['Первый ответ клиенту', hrs(d.firstResp), hrs(n.first), d.firstResp!=null&&n.first!=null?d.firstResp<=n.first:null],
+          ['Обычный ответ в переписке', hrs(d.respMed), hrs(n.resp), d.respMed!=null&&n.resp!=null?d.respMed<=n.resp:null],
+          ['Тишина после нас', d.silenceD!=null?d.silenceD+' дн':null, n.sil!=null?n.sil+' дн':null, d.silenceD!=null&&n.sil!=null?d.silenceD<=n.sil:null],
+          ['Держится на стадии', d.stageDays!=null?d.stageDays+' дн':null, n.stage!=null?n.stage+' дн':null, d.stageDays!=null&&n.stage!=null?d.stageDays<=n.stage:null],
+        ].filter(r=>r[1]!=null);
+        if(!rows.length) return '';
+        const tr=rows.map(([t,v,nv,ok])=>`<tr><td class="ch-t">${t}</td><td class="ch-v"${ok===null?'':` style="color:${ok?'#2E9E74':'#C25252'}"`}>${v}</td><td class="ch-n">${nv?'норма '+nv:''}</td></tr>`).join('');
+        // Вторая строка - что происходило в переписке: объём, кто тянул, что с обещаниями.
+        const facts=[];
+        if(d.msgs) facts.push(`${d.msgs} ${plu(d.msgs,'сообщение','сообщения','сообщений')}`);
+        if(d.calls) facts.push(`${d.calls} ${plu(d.calls,'звонок','звонка','звонков')}`);
+        if(d.clientChase) facts.push(`<b style="color:#C25252">клиент напоминал ${d.clientChase} ${plu(d.clientChase,'раз','раза','раз')}</b>`);
+        if(d.promiseBroken) facts.push(`<b style="color:#C25252">обещал и не сделал: ${d.promiseBroken}</b>`);
+        if(d.promiseKept) facts.push(`<span style="color:#2E9E74">обещание выполнено: ${d.promiseKept}</span>`);
+        if(d.vagueProm) facts.push(`обещаний без срока: ${d.vagueProm}`);
+        if(d.objTotal) facts.push(d.objWorked>=d.objTotal?`<span style="color:#2E9E74">возражения отработаны: ${d.objTotal}</span>`:`<b style="color:#C25252">возражений без ответа: ${d.objTotal-d.objWorked}</b>`);
+        if(d.overdueD) facts.push(`<b style="color:#C25252">просрочка дел: ${d.overdueD} дн</b>`);
+        return `<div class="chrono"><div class="da-t">Как шла работа</div><table class="ch-tbl">${tr}</table>`
+          +(facts.length?`<div class="ch-f">${facts.join(' · ')}</div>`:'')+`</div>`; };
       const aiSum=(a&&(a.verdict||a.problem||a.recommendation))
-        ? `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div>`
+        ? `<div class="dsum-h">🤖 Разбор ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div>`
           +(a.verdict?`<div class="dsum-v">${esc(a.verdict)}</div>`:'')
+          +scBar(a.scores)
+          +markCols(a.marks)
           +(a.problem?`<div class="dsum-p"><b>Риск потери:</b> ${esc(a.problem)}</div>`:'')
           +(a.recommendation?`<div class="dsum-r"><b>Что сделать:</b> ${esc(a.recommendation)}</div>`:'')
-        : `<div class="dsum-h">🤖 Итог ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
+          +chrono()
+          +qBlock(a.quotes)
+        : `<div class="dsum-h">🤖 Разбор ИИ по сделке${d.temp!=null?` · <span style="color:${TEMPCOL(d.temp)}">${d.temp}°</span>`:''}</div><div class="dsum-none">развёрнутый разбор по этой сделке пока не делался</div>`;
       // Краткий «Итог ИИ» ВОЗВРАЩЁН в ленту 24.09.2026. Его убирали как дубль подсказки
       // градусника, но подсказка висит на строке сделки уровнем выше, а внутри открытой ленты
       // не показывалось ничего. Подробный audit есть лишь у 8 разборов из 938, поэтому для

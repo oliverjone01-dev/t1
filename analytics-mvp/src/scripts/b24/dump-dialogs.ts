@@ -35,8 +35,10 @@ const dlg = JSON.parse(readFileSync("dialog/data/dialog.json", "utf8"));
 const events: Ev[] = dlg.events || [];
 const done = existsSync(DONE) ? (JSON.parse(readFileSync(DONE, "utf8")).reviews || {}) : {};
 
+// Лид, конвертированный в сделку, в очередь отдельно не идёт - так же считает покрытие в score-dialog.ts.
+const conv = new Set(events.filter((e) => e.dealId && e.leadId).map((e) => e.leadId));
 const byKey: Record<string, Ev[]> = {};
-for (const e of events) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= []).push(e);
+for (const e of events) if (e.dealId || !conv.has(e.leadId)) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= []).push(e);
 
 // Очередь строится ровно как в ai-review.ts: те же фильтры, тот же порядок.
 const raw = Object.entries(byKey)
@@ -53,7 +55,7 @@ const raw = Object.entries(byKey)
   // OLD - только то, что разобрано другой моделью: переразбор старого прогона.
   // FORCE - всё подряд. По умолчанию только новое и изменившееся.
   .filter((x) => OLD ? (done[x.k] && done[x.k].model !== BY)
-    : FORCE ? true : (!done[x.k] || done[x.k].lastTs !== x.last))
+    : FORCE ? true : (!done[x.k] || (Number(done[x.k].lastTs) || 0) < x.last))
   .sort((a, b) => b.last - a.last);
 
 // Очередь приоритета важнее сортировки по свежести: разбираем сначала те сделки, где

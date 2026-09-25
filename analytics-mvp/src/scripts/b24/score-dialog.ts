@@ -210,13 +210,18 @@ function main() {
   const now = Date.parse(dlg.to) || Math.max(...events.map((e) => e.ts));
 
   const facts: Record<string, any> = {};
+  const leadFacts: Record<string, any> = {};
   let fired = new Set<string>();
   if (existsSync(ROP)) {
     const rop = JSON.parse(readFileSync(ROP, "utf8"));
     fired = new Set((rop.firedManagers || []) as string[]);
     for (const d of (rop.deals || [])) if (String(d.category) === "49") facts[String(d.id)] = d;
-    console.log(`Факты CRM: ${Object.keys(facts).length} сделок C49 (снимок ${rop.generated_at || "?"})`);
-  } else console.log(`ВНИМАНИЕ: ${ROP} не найден - разбор без стадий и дел`);
+    // Статус лида. В снимке диалогов его нет (crm.lead.list тянет только ID/TITLE/ASSIGNED),
+    // поэтому берём из снимка РОПа. Без него КАЖДЫЙ лид читался как открытый, и лид,
+    // который в апреле стал сделкой или ушёл в спам, висел с часами «клиент ждёт 1500 ч».
+    for (const l of (rop.leads || [])) leadFacts[String(l.id)] = l;
+    console.log(`Факты CRM: ${Object.keys(facts).length} сделок C49, ${Object.keys(leadFacts).length} лидов (снимок ${rop.generated_at || "?"})`);
+  } else console.log(`ВНИМАНИЕ: ${ROP} не найден - разбор без стадий и дел, и БЕЗ статусов лидов: каждый лид уйдёт в «в работе», даже закрытый`);
   // Историю смены ответственного Bitrix через REST не отдаёт: в снимке есть только текущий
   // владелец. Поэтому ведём собственный журнал - сравниваем владельца с прошлым снимком и
   // копим переходы. С каждым днём история становится полнее, задним числом её не восстановить.
@@ -800,7 +805,14 @@ function main() {
       [prob < 0.25 && (f && f.budget ? f.budget : 0) >= 300000 ? `Шанс низкий (${Math.round(prob * 100)}%)` : "", 0.35, "lowprob"],
     ].filter((x) => x[0]) as [string, number, string][];
     // Закрытые сделки (успех/отказ) не «горят»: это исход, а не задача в очереди.
-    const isWon = !!(f && f.won), isLost = !!(f && f.lost), isClosed = isWon || isLost;
+    // Исход. У сделки - из карточки воронки, у лида - из статуса: «Создание сделки» это успех
+    // лида (он дошёл до сделки), спам/дубль/отказ/некачественный - отказ, остальное в работе.
+    const lf = !dealId && leadId ? leadFacts[leadId] : null;
+    // Флаги в снимке РОПа приходят то булевыми, то строкой, поэтому проверяем оба вида.
+    const yes = (v: any) => v === true || String(v).toLowerCase() === "true";
+    const lConv = !!(lf && (yes(lf.converted) || String(lf.statusCode) === "CONVERTED"));
+    const lJunk = !!(lf && !lConv && yes(lf.junk));
+    const isWon = !!(f && f.won) || lConv, isLost = !!(f && f.lost) || lJunk, isClosed = isWon || isLost;
     const urgency = isClosed ? "" : (urg.length ? urg[0]![0] : "");
     const uw = isClosed ? 0.05 : (urg.length ? urg[0]![1] : 0.1);
     const uKey = isWon ? "won" : isLost ? "lost" : (urg.length ? urg[0]![2] : "ok");
@@ -836,12 +848,16 @@ function main() {
       temp, entryTemp, tempDelta, heatLift, tempBucket: tBucket, goalReached, tempCurve, needToClose,
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
-      stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
+      stage: f ? f.stage : (lf ? String(lf.status || "") : ""), stageCode, budget: f ? f.budget : (lf ? Number(lf.budget || 0) : 0),
       // Доп. сигналы сделки из снимка воронки: чек уже в budget, здесь тип клиента,
       // ассортимент, источник лида, бренд, цикл. Идут в ИИ-разбор и компактно в дашборд.
       client: f ? (f.client || "") : "", assort: f ? (f.assort || "") : "", source: f ? (f.source || "") : "",
       dir: f ? (f.dir || "") : "", cycle: f && f.cycle != null ? f.cycle : null, lossReason: f ? (f.reason || "") : "",
       won: isWon, lost: isLost, outcome: isWon ? "won" : isLost ? "lost" : "open",
+      // Знаем ли исход наверняка. У лида он берётся из снимка РОПа, а тот не покрывает
+      // чужие бренды и записи свежее своей выгрузки: такой лид падает в «в работе»
+      // просто потому, что статуса нет. Флаг позволяет честно сказать это в интерфейсе.
+      outKnown: !!(f || lf),
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [], audit: a.audit || null,
         // Разметка по репликам едет в разбор целиком: в ленте она видна точечно, а в итоге

@@ -1,0 +1,505 @@
+{
+ "date": "2026-09-25",
+ "generated_at": "2026-09-25T14:32:00.561Z",
+ "timezone": "Europe/Moscow",
+ "campaigns": [
+  {
+   "id": 701081002,
+   "name": "Системная кампания eLama",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706135444,
+   "name": "[Товары] Столы | Поиск | Стратегия: Пакет Поиск",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706136297,
+   "name": "Столы | Поиск |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706138089,
+   "name": "[Товары] Столы | ТовГал | Стратегия: Пакет Товаврная галерея",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706138187,
+   "name": "Столы | ТовГал |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706138188,
+   "name": "[Товары] Столы | РСЯ | Стратегия: Пакет РСЯ",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706138190,
+   "name": "Столы | РСЯ |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706356605,
+   "name": "[Товары] Керамические столы | ТовГал |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706356610,
+   "name": "Керамические столы | Поиск |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706356620,
+   "name": "[Товары] Керамические столы | Поиск |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706356623,
+   "name": "Керамические столы | ТовГал |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706356630,
+   "name": "Керамические столы | РСЯ |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706356636,
+   "name": "[Товары] Керамические столы | РСЯ |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706370700,
+   "name": "[Товары] Межкомнатные перегородки | ТовГал |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706370706,
+   "name": "Межкомнатные перегородки | Поиск |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706370709,
+   "name": "[Товары] Межкомнатные перегородки | Поиск |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706370715,
+   "name": "Межкомнатные перегородки | ТовГал |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706370721,
+   "name": "Межкомнатные перегородки | РСЯ |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706370727,
+   "name": "[Товары] Межкомнатные перегородки | РСЯ |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706502097,
+   "name": "Зеркала | Поиск |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706502106,
+   "name": "Зеркала | ТовГал |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706502116,
+   "name": "Зеркала | РСЯ |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706983545,
+   "name": "Ретаргетинг | Товары",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 706995323,
+   "name": "Ретаргетинг | Каталог",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 710747853,
+   "name": "[На заказ] Межкомнатные перегородки | Поиск | НБ=12т.р. | CPC=300 |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 710919957,
+   "name": "[На заказ] Межкомнатные перегородки | ТГ | НБ=12т.р. | CPC=300 |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 712877513,
+   "name": "[На заказ] Перегородки | Поиск ВЧ | НБ=5т.р. | CPC=145 |",
+   "state": "ON",
+   "status": "ACCEPTED"
+  },
+  {
+   "id": 712877517,
+   "name": "[На заказ] Перегородки | Поиск СЧ | НБ=9т.р. | CPC=108 |",
+   "state": "ON",
+   "status": "ACCEPTED"
+  },
+  {
+   "id": 712877525,
+   "name": "[На заказ] Перегородки | Поиск НЧ | НБ=11т.р. | CPC=110 |",
+   "state": "ON",
+   "status": "ACCEPTED"
+  },
+  {
+   "id": 712877530,
+   "name": "[На заказ] Перегородки | ТГ | НБ=8т.р. | CPC=135 |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 712877535,
+   "name": "[На заказ] Перегородки | ТГ СЧ | НБ=3т.р. | CPC=108 |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 712877541,
+   "name": "[На заказ] Перегородки | ТГ НЧ | НБ=1т.р. | CPC=140 |",
+   "state": "ARCHIVED",
+   "status": "MODERATION"
+  },
+  {
+   "id": 713496953,
+   "name": "[На заказ] Перегородки | РТ | НБ=5т.р. | CPC = 100 |",
+   "state": "ON",
+   "status": "ACCEPTED"
+  },
+  {
+   "id": 713589837,
+   "name": "[На заказ] Перегородки | РСЯ - ПК | НБ=8т.р. | CPC=80 |",
+   "state": "ON",
+   "status": "ACCEPTED"
+  },
+  {
+   "id": 714445486,
+   "name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=300 |",
+   "state": "ON",
+   "status": "ACCEPTED"
+  }
+ ],
+ "direct": [
+  {
+   "cid": "712877513",
+   "name": "[На заказ] Перегородки | Поиск ВЧ | НБ=5т.р. | CPC=145 |",
+   "imp": 54,
+   "clicks": 4,
+   "spend": 427.11
+  },
+  {
+   "cid": "712877517",
+   "name": "[На заказ] Перегородки | Поиск СЧ | НБ=9т.р. | CPC=108 |",
+   "imp": 158,
+   "clicks": 9,
+   "spend": 1098.75
+  },
+  {
+   "cid": "712877525",
+   "name": "[На заказ] Перегородки | Поиск НЧ | НБ=11т.р. | CPC=110 |",
+   "imp": 72,
+   "clicks": 7,
+   "spend": 1153.03
+  },
+  {
+   "cid": "713496953",
+   "name": "[На заказ] Перегородки | РТ | НБ=5т.р. | CPC = 100 |",
+   "imp": 775,
+   "clicks": 4,
+   "spend": 101.55
+  },
+  {
+   "cid": "713589837",
+   "name": "[На заказ] Перегородки | РСЯ - ПК | НБ=8т.р. | CPC=80 |",
+   "imp": 2711,
+   "clicks": 19,
+   "spend": 1686.69
+  },
+  {
+   "cid": "714445486",
+   "name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=300 |",
+   "imp": 20,
+   "clicks": 1,
+   "spend": 0
+  }
+ ],
+ "metrika_by_utm": [
+  {
+   "utm": "peregorodki",
+   "visits": 56,
+   "bounce": 14.3,
+   "leads": 0,
+   "contacts": 1
+  },
+  {
+   "utm": "peregorodki_713589837",
+   "visits": 14,
+   "bounce": 7.1,
+   "leads": 1,
+   "contacts": 1
+  },
+  {
+   "utm": "peregorodki_712877525",
+   "visits": 10,
+   "bounce": 10,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "peregorodki_712877517",
+   "visits": 9,
+   "bounce": 0,
+   "leads": 1,
+   "contacts": 1
+  },
+  {
+   "utm": "peregorodki_712877513",
+   "visits": 5,
+   "bounce": 40,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "peregorodki_713496953",
+   "visits": 4,
+   "bounce": 75,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "obedennyj_razdvizhnoj_stol_quatris",
+   "visits": 2,
+   "bounce": 0,
+   "leads": 1,
+   "contacts": 0
+  },
+  {
+   "utm": "organization",
+   "visits": 2,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "peregorodki_714445486",
+   "visits": 1,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "sale",
+   "visits": 1,
+   "bounce": 100,
+   "leads": 0,
+   "contacts": 0
+  }
+ ],
+ "metrika_ad_by_hour": [
+  {
+   "hour": "00:00",
+   "visits": 4,
+   "bounce": 25,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "01:00",
+   "visits": 2,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "02:00",
+   "visits": 1,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "03:00",
+   "visits": 3,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "04:00",
+   "visits": 4,
+   "bounce": 25,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "05:00",
+   "visits": 2,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "06:00",
+   "visits": 5,
+   "bounce": 20,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "07:00",
+   "visits": 3,
+   "bounce": 33.3,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "08:00",
+   "visits": 8,
+   "bounce": 0,
+   "leads": 1,
+   "contacts": 1
+  },
+  {
+   "hour": "09:00",
+   "visits": 10,
+   "bounce": 20,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "10:00",
+   "visits": 5,
+   "bounce": 20,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "11:00",
+   "visits": 11,
+   "bounce": 18.2,
+   "leads": 1,
+   "contacts": 1
+  },
+  {
+   "hour": "12:00",
+   "visits": 7,
+   "bounce": 28.6,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "13:00",
+   "visits": 7,
+   "bounce": 14.3,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "14:00",
+   "visits": 13,
+   "bounce": 15.4,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "15:00",
+   "visits": 10,
+   "bounce": 10,
+   "leads": 0,
+   "contacts": 1
+  },
+  {
+   "hour": "16:00",
+   "visits": 4,
+   "bounce": 25,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "hour": "17:00",
+   "visits": 3,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  }
+ ],
+ "metrika_by_source": [
+  {
+   "source": "Ad traffic",
+   "visits": 102,
+   "bounce": 15.7,
+   "leads": 2,
+   "contacts": 3
+  },
+  {
+   "source": "Search engine traffic",
+   "visits": 74,
+   "bounce": 21.6,
+   "leads": 3,
+   "contacts": 2
+  },
+  {
+   "source": "Link traffic",
+   "visits": 73,
+   "bounce": 1.4,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "source": "Direct traffic",
+   "visits": 38,
+   "bounce": 21.1,
+   "leads": 1,
+   "contacts": 2
+  },
+  {
+   "source": "Internal traffic",
+   "visits": 12,
+   "bounce": 8.3,
+   "leads": 1,
+   "contacts": 0
+  },
+  {
+   "source": "Social network traffic",
+   "visits": 1,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  }
+ ]
+}

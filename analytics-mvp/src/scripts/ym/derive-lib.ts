@@ -309,7 +309,12 @@ export function buildPnlSkuDaily(rows: OrderRow[]) {
   const m = new Map<string, any>();
   for (const r of paid(rows, "0000-00-00", "9999-99-99")) {
     const k = `${r.fin}|${r.sku}`;
-    const t = m.get(k) || { d: r.fin, sku: r.sku, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, promo: 0, otherSvc: 0, amount: 0, platform: PLATFORM };
+    const t = m.get(k) || { d: r.fin, sku: r.sku, units: 0, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, promo: 0, otherSvc: 0, amount: 0, platform: PLATFORM };
+    // Штуки в базисе НАЧИСЛЕНИЙ: доставлено минус возвраты, отнесённые к дате финансового события
+    // (r.fin), а не к дате заказа. Без них у блока по начислениям нельзя посчитать себестоимость,
+    // а значит и прибыль: С\С берётся ценой за штуку. Поле добавлено 25.09.2026 по просьбе Кати
+    // собрать на Маркете блок «за выбранный период», как на OZON.
+    t.units += (r.delivered || 0) - (r.returned || 0);
     t.accruals += r.accruals; t.amount += r.payout;
     for (const [g, v] of Object.entries(r.fees)) {
       if (g === "Комиссия за продажу") t.commission -= v; else if (g === "Логистика (прямая+возвратная)") t.delivery -= v;

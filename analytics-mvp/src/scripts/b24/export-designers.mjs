@@ -136,15 +136,20 @@ const prof = (s) => { const t = String(s || "").toLowerCase();
   return /архитект|architect/.test(t) ? "архитектор" : /декоратор|decorator/.test(t) ? "декоратор" : /комплект/.test(t) ? "комплектатор" : /дизайн|designer|\bдиз\b|интерьер/.test(t) ? "дизайнер" : ""; };
 const ufText = (x) => Object.entries(x).filter(([k]) => k.startsWith("UF_")).map(([k, v]) => [].concat(v).map((i) => ufLabel[`${k}:${i}`]).filter(Boolean).join(" ")).join(" ");
 
-const shC = [["ID контакта", "ФИО / название", "Профессия", "Должность", "Компания", "Телефон", "Email", "Мессенджеры", "Сайт", "Город", "Тип контакта", "Сделок", "Из них успешных", "Сумма сделок", "Последняя сделка", "Почему в списке", "Ответственный", "Создан", "Ссылка"]];
+const shC = [["ID контакта", "ФИО / название", "Профессия", "Основание (где найдено слово)", "Должность", "Компания", "Телефон", "Email", "Мессенджеры", "Сайт", "Город", "Тип контакта", "Сделок", "Из них успешных", "Сумма сделок", "Последняя сделка", "Почему в списке", "Ответственный", "Создан", "Ссылка"]];
 const rows = Object.values(contacts).map((c) => {
   const co = companies[String(c.COMPANY_ID)] || {}, ds = byC[String(c.ID)] || [];
-  const txt = [fio(c), c.POST, co.TITLE, cTypeName[c.TYPE_ID], ufText(c), coTypeName[co.COMPANY_TYPE], c.COMMENTS].join(" ");
+  // Профессию ищем во всём, по чему контакт попал в список: его поля, тип, компания, а также
+  // названия сделок-профессионалов, где он контакт (раньше сделки не учитывались -> «уточнить»).
+  const dTitles = Object.values(deals).filter((x) => String(x.CONTACT_ID) === String(c.ID)).map((x) => x.TITLE);
+  const parts = [fio(c), c.POST, co.TITLE, cTypeName[c.TYPE_ID], ufText(c), ufText(co), coTypeName[co.COMPANY_TYPE], c.COMMENTS, ...dTitles];
+  const txt = parts.join(" ");
+  const basis = parts.map((x) => String(x || "").replace(/\s+/g, " ").trim()).filter((x) => RX.test(x)).map((x) => x.slice(0, 80))[0] || "";
   const last = ds.map((x) => String(x.DATE_CREATE).slice(0, 10)).sort().pop() || "";
-  return [c.ID, fio(c), prof(txt) || "уточнить", c.POST || "", co.TITLE || "", phonesOf(c.PHONE) || phonesOf(co.PHONE), valsOf(c.EMAIL) || valsOf(co.EMAIL), valsOf(c.IM), valsOf(c.WEB) || valsOf(co.WEB),
+  return [c.ID, fio(c), prof(txt) || "уточнить", basis, c.POST || "", co.TITLE || "", phonesOf(c.PHONE) || phonesOf(co.PHONE), valsOf(c.EMAIL) || valsOf(co.EMAIL), valsOf(c.IM), valsOf(c.WEB) || valsOf(co.WEB),
     c.ADDRESS_CITY || co.ADDRESS_CITY || "", cTypeName[c.TYPE_ID] || c.TYPE_ID || "", ds.length, ds.filter((x) => WON(x.STAGE_ID)).length, ds.reduce((s, x) => s + (+x.OPPORTUNITY || 0), 0), last,
     [...c._why].join("; "), uName[String(c.ASSIGNED_BY_ID)] || "", String(c.DATE_CREATE || "").slice(0, 10), `${B24}/contact/details/${c.ID}/`];
-}).sort((a, b) => b[13] - a[13] || String(b[14]).localeCompare(String(a[14])));
+}).sort((a, b) => b[14] - a[14] || String(b[15]).localeCompare(String(a[15])));
 shC.push(...rows);
 const shCo = [["ID компании", "Название", "Тип компании", "Телефон", "Email", "Сайт", "Город", "Почему в списке", "Ссылка"]];
 for (const x of Object.values(pros)) shCo.push([x.ID, x.TITLE || "", coTypeName[x.COMPANY_TYPE] || x.COMPANY_TYPE || "", phonesOf(x.PHONE), valsOf(x.EMAIL), valsOf(x.WEB), x.ADDRESS_CITY || "", [...x._why].join("; "), `${B24}/company/details/${x.ID}/`]);
@@ -154,7 +159,7 @@ for (const d of Object.values(deals).sort((a, b) => String(b.DATE_CREATE).locale
   shD.push([d.ID, d.TITLE || "", fio(c), phonesOf(c.PHONE), +d.OPPORTUNITY || 0, String(d.DATE_CREATE || "").slice(0, 10), d.STAGE_ID, [...d._why].join("; "), uName[String(d.ASSIGNED_BY_ID)] || "", `${B24}/deal/details/${d.ID}/`]);
 }
 const cnt = {}; for (const r of rows) cnt[r[2]] = (cnt[r[2]] || 0) + 1;
-log(`Итог: контактов ${rows.length} (${Object.entries(cnt).map(([k, v]) => `${k} ${v}`).join(", ")}), с телефоном ${rows.filter((r) => r[5]).length}, компаний ${shCo.length - 1}, сделок по названию ${shD.length - 1}`);
+log(`Итог: контактов ${rows.length} (${Object.entries(cnt).map(([k, v]) => `${k} ${v}`).join(", ")}), с телефоном ${rows.filter((r) => r[6]).length}, без профессии ${rows.filter((r) => r[2] === "уточнить").length}, компаний ${shCo.length - 1}, сделок по названию ${shD.length - 1}`);
 
 // ---------- xlsx (OOXML, ZIP без сжатия) ----------
 const X = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");

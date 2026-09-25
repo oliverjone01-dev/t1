@@ -4,11 +4,14 @@ name: orders backfill (аналитика по заказам)
 # Пишет data/orders_daily.ndjson в ветку, на которой запущен (ref).
 #
 # Раньше запускался только руками, и начисления застревали: order_accruals стоял на августе,
-# pnl_sku_accrual - на 17.09. Теперь то же самое идёт ежемесячно, 5-го числа: реестр начислений
-# за прошлый месяц к этому дню уже закрыт, а раньше 3-го он ещё доезжает.
+# pnl_sku_accrual - на 17.09. С 25.09.2026 идёт каждый день (Иван: вкладка «Деньги» должна
+# показывать последние данные кабинета), а не 5-го числа: при месячном сборе заказы и начисления
+# текущего месяца стояли до 5-го следующего. Сбор полный, от 06.02 до вчера, поэтому доначисления
+# прошлых дней подтягиваются сами. Час раньше ночного ozon-snapshots.yml: тот пересобирает
+# страницы и забирает свежие заказы; группа ozon-data не даёт им идти одновременно.
 on:
   schedule:
-    - cron: "0 5 5 * *" # 5-го числа ~08:00 МСК, за закрытый прошлый месяц
+    - cron: "0 5 * * *" # каждый день ~08:00 МСК, до ночного синка OZON (06:00 UTC)
   workflow_dispatch:
     inputs:
       from:
@@ -67,6 +70,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "нет изменений в orders_daily.ndjson"
           else
-            git commit -m "data(orders): начисления и калибровка соинвеста ${{ github.event_name == 'schedule' && '(ежемесячный сбор)' || format('{0}..{1}', github.event.inputs.from, github.event.inputs.to) }} [skip ci]"
+            git commit -m "data(orders): начисления и калибровка соинвеста ${{ github.event_name == 'schedule' && '(ежедневный сбор)' || format('{0}..{1}', github.event.inputs.from, github.event.inputs.to) }} [skip ci]"
             for i in 1 2 3 4; do git push origin "HEAD:${{ github.ref_name }}" && break || sleep $((2**i)); done
           fi

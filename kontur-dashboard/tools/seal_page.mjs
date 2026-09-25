@@ -154,7 +154,8 @@ const openText = scan;
 const leaks = new Set();
 const SEP = [" ", "\u00a0", "\u202f", "\u2009"];
 const grp = (i, sp) => i.replace(/\B(?=(\d{3})+(?!\d))/g, sp);
-const dec = (x, d) => x.toFixed(d).replace(/\.?0+$/, "").replace(".", ",");
+// нули срезаются только в дробной части: 240 остаётся «240», а не «24»
+const dec = (x, d) => x.toFixed(d).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "").replace(".", ",");
 (function walk(o) {
   if (o == null) return;
   if (typeof o === "number" && Math.abs(o) >= 100 && !PUBLIC_NUM.has(Math.abs(o))) {

@@ -94,7 +94,8 @@ const gg = DBX.projects.gg, dr = gg.direct || {};
 const NB = '\u00a0', grp = (n) => String(Math.trunc(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const SPEND = dr.spend && dr.spend.v, CPC = dr.cpc && dr.cpc.v, CLICKS = dr.clicks && dr.clicks.v;
 const LEADS = gg.ym && gg.ym.conv && gg.ym.conv.organic && gg.ym.conv.organic.leads, PLAN = gg.plan.v;
-const dec = (x, d) => x.toFixed(d).replace(/\.?0+$/, '').replace('.', ',');
+// нули срезаются только в дробной части: 240 остаётся «240», а не «24»
+const dec = (x, d) => x.toFixed(d).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '').replace('.', ',');
 const inHead = (x) => (ws) => patch(ws, 'kontur-dashboard/src/modules/head.py', '<title>Контур: SEO, GEO, Директ</title>', '<title>Контур: SEO, GEO, Директ</title>\n' + x);
 const inBody = (x) => (ws) => patch(ws, 'kontur-dashboard/src/modules/shell.py', '<div class="gate" id="gate">', x + '\n<div class="gate" id="gate">');
 const SRC_BAD = [
@@ -113,6 +114,9 @@ const SRC_BAD = [
   ['исходники: второй блок ks-kit', inHead('<style id="ks-kit">.x::after{ content:"175 968 ₽"; }</style>')],
   ['исходники: iframe srcdoc', inBody('<iframe srcdoc="<p>x</p>" hidden></iframe>')],
   ['исходники: дробная цена клика', inBody('<p hidden>Клик ' + String(CPC).replace('.', ',') + ' ₽</p>')],
+  // форма посчитана без dec(): ловит, если шифровальщик снова начнёт резать нули у целых
+  ['исходники: план в млн целым числом', inBody('<p hidden>План ' + Math.round(PLAN / 1e6) + ' млн ₽</p>')],
+  ['исходники: расход в тыс. целым числом', inBody('<p hidden>Расход ' + Math.round(SPEND / 1e3) + ' тыс. ₽</p>')],
   ['исходники: клики в тысячах с запятой', inBody('<p hidden>Кликов ' + dec(CLICKS / 1000, 1) + ' тыс.</p>')],
 ];
 if (!SPEND || !CPC || !CLICKS || !LEADS || !PLAN || !String(CPC).includes('.')) { console.log('  В ДАННЫХ НЕТ ЧИСЕЛ ДЛЯ СЛУЧАЕВ С ИСХОДНИКАМИ: расход, цена клика (дробная), клики, заявки, план'); bad++; }

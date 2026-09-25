@@ -2,7 +2,7 @@
  "campaign_id": "712877525",
  "dateFrom": "2026-07-19",
  "dateTo": "2026-09-24",
- "generated_at": "2026-09-25T13:36:06.607Z",
+ "generated_at": "2026-09-25T14:43:35.633Z",
  "goals": {
   "leads": 487033158,
   "contacts": 477925360,
@@ -27280,7 +27280,7 @@
    "gid": "5774336347",
    "group": "Арочные перегородки",
    "crit_type": "AUTOTARGETING",
-   "imp": 2,
+   "imp": 1,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -27368,17 +27368,6 @@
    "gid": "5774336367",
    "group": "Зеркальные перегородки",
    "crit_type": "KEYWORD",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-22",
-   "gid": "5774336369",
-   "group": "Зеркальные перегородки | Заказ",
-   "crit_type": "AUTOTARGETING",
    "imp": 1,
    "clicks": 0,
    "spend": 0,
@@ -27478,7 +27467,7 @@
    "gid": "5774336379",
    "group": "Матовые перегородки | Купить",
    "crit_type": "AUTOTARGETING",
-   "imp": 8,
+   "imp": 7,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -27574,21 +27563,10 @@
   },
   {
    "date": "2026-09-22",
-   "gid": "5774336398",
-   "group": "Каскадные перегородки | Цена",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-22",
    "gid": "5774336399",
    "group": "Каскадные перегородки | Установкой",
    "crit_type": "AUTOTARGETING",
-   "imp": 4,
+   "imp": 1,
    "clicks": 1,
    "spend": 18.67,
    "leads_direct": 0,
@@ -27618,21 +27596,10 @@
   },
   {
    "date": "2026-09-22",
-   "gid": "5774336407",
-   "group": "Каскадные перегородки | Зонирования",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-22",
    "gid": "5774336408",
    "group": "Распашные перегородки",
    "crit_type": "AUTOTARGETING",
-   "imp": 2,
+   "imp": 1,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -27731,9 +27698,9 @@
    "gid": "5774336420",
    "group": "Складные перегородки | Гармошка",
    "crit_type": "AUTOTARGETING",
-   "imp": 11,
-   "clicks": 2,
-   "spend": 185.48,
+   "imp": 10,
+   "clicks": 1,
+   "spend": 94.28,
    "leads_direct": 0,
    "contacts_direct": 0
   },
@@ -27808,7 +27775,7 @@
    "gid": "5774336427",
    "group": "Стальные перегородки | Черного Металла",
    "crit_type": "AUTOTARGETING",
-   "imp": 2,
+   "imp": 1,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -27831,17 +27798,6 @@
    "group": "Стационарные перегородки",
    "crit_type": "KEYWORD",
    "imp": 3,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-22",
-   "gid": "5774336433",
-   "group": "Стационарные перегородки | Заказ",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -27962,7 +27918,7 @@
    "gid": "5774336447",
    "group": "Перегородки для гостиной | Стеклянные",
    "crit_type": "AUTOTARGETING",
-   "imp": 3,
+   "imp": 2,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -27995,7 +27951,7 @@
    "gid": "5774336347",
    "group": "Арочные перегородки",
    "crit_type": "AUTOTARGETING",
-   "imp": 2,
+   "imp": 1,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -28028,7 +27984,7 @@
    "gid": "5774336352",
    "group": "Арочные перегородки | Радиусные",
    "crit_type": "AUTOTARGETING",
-   "imp": 3,
+   "imp": 2,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -28039,17 +27995,6 @@
    "gid": "5774336352",
    "group": "Арочные перегородки | Радиусные",
    "crit_type": "KEYWORD",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336353",
-   "group": "Арочные перегородки | Радиусные Заказ",
-   "crit_type": "AUTOTARGETING",
    "imp": 1,
    "clicks": 0,
    "spend": 0,
@@ -28072,20 +28017,9 @@
    "gid": "5774336357",
    "group": "Дизайнерские перегородки",
    "crit_type": "AUTOTARGETING",
-   "imp": 4,
+   "imp": 3,
    "clicks": 2,
    "spend": 407.39,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336360",
-   "group": "Дизайнерские перегородки | Зонирования",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
    "leads_direct": 0,
    "contacts_direct": 0
   },
@@ -28104,17 +28038,6 @@
    "date": "2026-09-23",
    "gid": "5774336363",
    "group": "Дизайнерские перегородки | Стеклянные",
-   "crit_type": "AUTOTARGETING",
-   "imp": 2,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336369",
-   "group": "Зеркальные перегородки | Заказ",
    "crit_type": "AUTOTARGETING",
    "imp": 2,
    "clicks": 0,
@@ -28146,21 +28069,10 @@
   },
   {
    "date": "2026-09-23",
-   "gid": "5774336374",
-   "group": "Зеркальные перегородки | Раздвижные",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
    "gid": "5774336377",
    "group": "Перегородки стекло металл",
    "crit_type": "AUTOTARGETING",
-   "imp": 13,
+   "imp": 10,
    "clicks": 1,
    "spend": 269.87,
    "leads_direct": 0,
@@ -28212,32 +28124,10 @@
   },
   {
    "date": "2026-09-23",
-   "gid": "5774336382",
-   "group": "Матовые перегородки | Зонирования",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
    "gid": "5774336384",
    "group": "Матовые перегородки | Производителя",
    "crit_type": "AUTOTARGETING",
-   "imp": 3,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336385",
-   "group": "Телескопические перегородки | Раздвижные",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
+   "imp": 2,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -28248,18 +28138,7 @@
    "gid": "5774336389",
    "group": "Телескопические перегородки | Заказ",
    "crit_type": "AUTOTARGETING",
-   "imp": 3,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336392",
-   "group": "Телескопические перегородки",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
+   "imp": 2,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -28292,20 +28171,9 @@
    "gid": "5774336399",
    "group": "Каскадные перегородки | Установкой",
    "crit_type": "AUTOTARGETING",
-   "imp": 11,
+   "imp": 7,
    "clicks": 3,
    "spend": 192.7,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336402",
-   "group": "Каскадные перегородки | Москва",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 1,
-   "spend": 77.81,
    "leads_direct": 0,
    "contacts_direct": 0
   },
@@ -28388,56 +28256,12 @@
   },
   {
    "date": "2026-09-23",
-   "gid": "5774336415",
-   "group": "Распашные перегородки | Маятниковая Стеклянная Купить",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336416",
-   "group": "Складные перегородки | Стеклянные",
-   "crit_type": "AUTOTARGETING",
-   "imp": 2,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336417",
-   "group": "Складные перегородки | Заказ",
-   "crit_type": "AUTOTARGETING",
-   "imp": 2,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336418",
-   "group": "Складные перегородки | Зонирования",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
    "gid": "5774336419",
    "group": "Складные перегородки",
    "crit_type": "AUTOTARGETING",
-   "imp": 6,
-   "clicks": 2,
-   "spend": 411.23,
+   "imp": 4,
+   "clicks": 1,
+   "spend": 293.7,
    "leads_direct": 0,
    "contacts_direct": 0
   },
@@ -28479,9 +28303,9 @@
    "gid": "5774336422",
    "group": "Складные перегородки | Стеклянные Гармошка",
    "crit_type": "AUTOTARGETING",
-   "imp": 6,
-   "clicks": 1,
-   "spend": 24.76,
+   "imp": 3,
+   "clicks": 0,
+   "spend": 0,
    "leads_direct": 0,
    "contacts_direct": 0
   },
@@ -28490,7 +28314,7 @@
    "gid": "5774336423",
    "group": "Складные перегородки | Москве",
    "crit_type": "AUTOTARGETING",
-   "imp": 10,
+   "imp": 9,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -28556,7 +28380,7 @@
    "gid": "5774336429",
    "group": "Стальные перегородки | Заказ",
    "crit_type": "AUTOTARGETING",
-   "imp": 2,
+   "imp": 1,
    "clicks": 0,
    "spend": 0,
    "leads_direct": 0,
@@ -28581,50 +28405,6 @@
    "imp": 4,
    "clicks": 1,
    "spend": 45.85,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336433",
-   "group": "Стационарные перегородки | Заказ",
-   "crit_type": "AUTOTARGETING",
-   "imp": 2,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336434",
-   "group": "Стационарные перегородки | Неподвижные",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336436",
-   "group": "Стационарные перегородки | Зонирования",
-   "crit_type": "AUTOTARGETING",
-   "imp": 1,
-   "clicks": 0,
-   "spend": 0,
-   "leads_direct": 0,
-   "contacts_direct": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336438",
-   "group": "Цветные декоративные перегородки",
-   "crit_type": "AUTOTARGETING",
-   "imp": 3,
-   "clicks": 0,
-   "spend": 0,
    "leads_direct": 0,
    "contacts_direct": 0
   },
@@ -28666,7 +28446,7 @@
    "gid": "5774336444",
    "group": "Перегородки для кухни | Кухней Гостиной",
    "crit_type": "AUTOTARGETING",
-   "imp": 6,
+   "imp": 5,
    "clicks": 2,
    "spend": 50.6,
    "leads_direct": 0,
@@ -28688,7 +28468,7 @@
    "gid": "5774336446",
    "group": "Перегородки для гостиной | Заказ",
    "crit_type": "AUTOTARGETING",
-   "imp": 4,
+   "imp": 1,
    "clicks": 1,
    "spend": 9.92,
    "leads_direct": 0,
@@ -39752,11 +39532,6 @@
   },
   {
    "date": "2026-09-22",
-   "gid": "5774336369",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-22",
    "gid": "5774336370",
    "conv_all": 0
   },
@@ -39832,11 +39607,6 @@
   },
   {
    "date": "2026-09-22",
-   "gid": "5774336398",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-22",
    "gid": "5774336399",
    "conv_all": 0
   },
@@ -39848,11 +39618,6 @@
   {
    "date": "2026-09-22",
    "gid": "5774336404",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-22",
-   "gid": "5774336407",
    "conv_all": 0
   },
   {
@@ -39933,11 +39698,6 @@
   {
    "date": "2026-09-22",
    "gid": "5774336432",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-22",
-   "gid": "5774336433",
    "conv_all": 0
   },
   {
@@ -40012,11 +39772,6 @@
   },
   {
    "date": "2026-09-23",
-   "gid": "5774336353",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
    "gid": "5774336356",
    "conv_all": 1
   },
@@ -40037,22 +39792,12 @@
   },
   {
    "date": "2026-09-23",
-   "gid": "5774336369",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
    "gid": "5774336370",
    "conv_all": 1
   },
   {
    "date": "2026-09-23",
    "gid": "5774336373",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336374",
    "conv_all": 0
   },
   {
@@ -40077,27 +39822,12 @@
   },
   {
    "date": "2026-09-23",
-   "gid": "5774336382",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
    "gid": "5774336384",
    "conv_all": 0
   },
   {
    "date": "2026-09-23",
-   "gid": "5774336385",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
    "gid": "5774336389",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336392",
    "conv_all": 0
   },
   {
@@ -40109,11 +39839,6 @@
    "date": "2026-09-23",
    "gid": "5774336399",
    "conv_all": 3
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336402",
-   "conv_all": 1
   },
   {
    "date": "2026-09-23",
@@ -40147,28 +39872,8 @@
   },
   {
    "date": "2026-09-23",
-   "gid": "5774336415",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336416",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336417",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336418",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
    "gid": "5774336419",
-   "conv_all": 3
+   "conv_all": 2
   },
   {
    "date": "2026-09-23",
@@ -40183,7 +39888,7 @@
   {
    "date": "2026-09-23",
    "gid": "5774336422",
-   "conv_all": 1
+   "conv_all": 0
   },
   {
    "date": "2026-09-23",
@@ -40229,26 +39934,6 @@
    "date": "2026-09-23",
    "gid": "5774336432",
    "conv_all": 1
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336433",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336434",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336436",
-   "conv_all": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336438",
-   "conv_all": 0
   },
   {
    "date": "2026-09-23",
@@ -40487,6 +40172,15 @@
    "contacts": 0
   },
   {
+   "date": "2026-09-23",
+   "gid": "",
+   "group": null,
+   "visits": 7,
+   "bounce": 28.57142857,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
    "date": "2026-08-19",
    "gid": "5774336420",
    "group": "Складные перегородки | Гармошка",
@@ -40600,15 +40294,6 @@
    "group": null,
    "visits": 4,
    "bounce": 0,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "",
-   "group": null,
-   "visits": 4,
-   "bounce": 25,
    "leads": 0,
    "contacts": 0
   },
@@ -40843,15 +40528,6 @@
    "group": "Каскадные перегородки | Установкой",
    "visits": 3,
    "bounce": 0,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336419",
-   "group": "Складные перегородки",
-   "visits": 3,
-   "bounce": 33.33333333,
    "leads": 0,
    "contacts": 0
   },
@@ -41610,6 +41286,15 @@
    "bounce": 0,
    "leads": 1,
    "contacts": 1
+  },
+  {
+   "date": "2026-09-23",
+   "gid": "5774336419",
+   "group": "Складные перегородки",
+   "visits": 2,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
   },
   {
    "date": "2026-09-23",
@@ -46041,28 +45726,10 @@
   },
   {
    "date": "2026-09-23",
-   "gid": "5774336402",
-   "group": "Каскадные перегородки | Москва",
-   "visits": 1,
-   "bounce": 0,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "date": "2026-09-23",
    "gid": "5774336413",
    "group": "Распашные перегородки | Цена",
    "visits": 1,
    "bounce": 100,
-   "leads": 0,
-   "contacts": 0
-  },
-  {
-   "date": "2026-09-23",
-   "gid": "5774336422",
-   "group": "Складные перегородки | Стеклянные Гармошка",
-   "visits": 1,
-   "bounce": 0,
    "leads": 0,
    "contacts": 0
   },

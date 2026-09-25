@@ -280,7 +280,7 @@ input#q{min-width:220px}
 .da-col li{font-size:11.5px;line-height:1.5;color:var(--ink-2);margin:2px 0}
 .da-concl{font-size:12px;line-height:1.55;color:var(--ink-1);border-top:1px solid var(--border);padding-top:8px}
 .da-concl b{color:#8B7BF0}
-.aibadge{margin-right:5px;cursor:help}
+.aimark{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px;cursor:help}.aimark svg{display:block;width:12px;height:12px}
 .callchip{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:5px;border:1px solid;white-space:nowrap}
 .callchip.ca-ans{color:#2E9E74;border-color:#2E9E7455;background:#2E9E7414}
 .callchip.ca-miss{color:#C25252;border-color:#C2525255;background:#C2525214}
@@ -658,7 +658,7 @@ input#q{min-width:220px}
 .cal-io input{width:88px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--ink-1);font-size:11px;padding:3px 6px;margin-left:3px}
 .cal-sp{flex:1}
 @media(max-width:720px){.cal-months{flex-direction:column;gap:8px}}
-.aicov{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;cursor:default;vertical-align:middle;line-height:1}.airing{width:14px;height:14px;flex:none;display:block}.aicov b{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}.aistale,.aiwait{opacity:.8}
+.aicov{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;cursor:default;vertical-align:middle;line-height:1}.airing{width:14px;height:14px;flex:none;display:block}.aicov b{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -1153,6 +1153,16 @@ function renderTree(){
   // разбора пришло новое событие (сообщение, звонок, дело), разбор надо обновить; none - ещё
   // не разбирался; na - не подлежит (меньше 2 реплик переписки, офис-менеджер, уволенный).
   // Все подлежащие свежие - галочка. Любое новое событие снимает галочку до следующего прогона.
+  // Метка разбора ИИ в строке сделки - в стиле индикатора менеджера, но тише: сделок в списке
+  // много, поэтому актуальный разбор - едва заметная точка, внимание забирают только
+  // устаревший (незамкнутое янтарное кольцо) и неразобранный (пунктирное кольцо).
+  const aiDealMark=(d)=>{
+    const svg=(inner,tip)=>`<span class="aimark" title="${tip}"><svg viewBox="0 0 12 12">${inner}</svg></span>`;
+    if(d.aiState==='stale') return svg(`<circle cx="6" cy="6" r="4.2" fill="none" stroke="#E2A336" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="19.8 26.4" transform="rotate(-90 6 6)"/>`,'Разбор ИИ устарел: после него в сделке появились новые события. Обновится ночным прогоном');
+    if(d.ai&&(d.ai.audit||d.ai.verdict)) return svg(`<circle cx="6" cy="6" r="2.6" fill="#2E9E74"/>`,'Есть актуальный разбор ИИ по этой сделке');
+    if(d.aiState==='none') return svg(`<circle cx="6" cy="6" r="4.2" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="1.6 1.8"/>`,'Диалог ещё не разобран ИИ');
+    return '';
+  };
   const aiCovOf=(ds)=>{ const c={elig:0,fresh:0,stale:0,none:0}; for(const d of ds){ const st=d.aiState||'na'; if(st==='na') continue; c.elig++; c[st]++; } return c; };
   const aiCovCell=(mgr)=>{ const c=aiCovOf(byM[mgr]||[]);
     if(!c.elig) return `<span class="na2" data-tip="В выбранных сделках нет диалогов, подлежащих разбору: переписки меньше двух реплик, либо сделки ведёт офис-менеджер или уволенный сотрудник.">-</span>`;
@@ -1404,7 +1414,7 @@ function renderTree(){
           <td><b>${money(d.budget)} ₽</b></td>
           <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
           <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
-          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${d.aiState==='stale'?'<span class="aibadge aistale" title="Разбор ИИ устарел: после него в сделке появились новые события. Обновится ночным прогоном">🤖⟳</span>':(d.ai&&(d.ai.audit||d.ai.verdict))?'<span class="aibadge" title="Есть разбор ИИ по этой сделке">🤖</span>':d.aiState==='none'?'<span class="aibadge aiwait" title="Диалог ещё не разобран ИИ">⏳</span>':''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
+          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${aiDealMark(d)}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
           <td class="l dstage">${esc(d.stage||'-')}</td>
           <td>${dcell(createdTs(d))}</td>
           <td>${dcell(lastCommTs(d))}</td>

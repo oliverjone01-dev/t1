@@ -1,6 +1,6 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-09-26",
+ "measured": "2026-09-27",
  "visibility": 2,
  "ai_answers": 70,
  "keywords_total": 570,
@@ -354,6 +354,11 @@
   },
   {
    "date": "2026-09-26",
+   "visibility": 2,
+   "top10": 52
+  },
+  {
+   "date": "2026-09-27",
    "visibility": 2,
    "top10": 52
   }
@@ -965,19 +970,19 @@
    "domain": "m.avito.ru",
    "visibility": 2144516,
    "common_keywords": 408,
-   "delta_visibility": 1.6
+   "delta_visibility": 0
   },
   {
    "domain": "market.yandex.ru",
    "visibility": 1224160,
    "common_keywords": 288,
-   "delta_visibility": 13.7
+   "delta_visibility": 0
   },
   {
    "domain": "wildberries.ru",
    "visibility": 1261707,
    "common_keywords": 283,
-   "delta_visibility": 5.2
+   "delta_visibility": 0
   },
   {
    "domain": "ozon.ru",
@@ -989,19 +994,19 @@
    "domain": "lemanapro.ru",
    "visibility": 540794,
    "common_keywords": 224,
-   "delta_visibility": 5
+   "delta_visibility": 0
   },
   {
    "domain": "ru.pinterest.com",
    "visibility": 825339,
    "common_keywords": 171,
-   "delta_visibility": -6.2
+   "delta_visibility": 0
   },
   {
    "domain": "uslugi.yandex.ru",
    "visibility": 202275,
    "common_keywords": 161,
-   "delta_visibility": 0.4
+   "delta_visibility": 0
   },
   {
    "domain": "aliexpress.ru",
@@ -1013,13 +1018,13 @@
    "domain": "yandex.ru",
    "visibility": 11126392,
    "common_keywords": 14,
-   "delta_visibility": -0.7
+   "delta_visibility": 0
   },
   {
    "domain": "postament.ru",
    "visibility": 1782,
    "common_keywords": 14,
-   "delta_visibility": 2.2
+   "delta_visibility": 0
   },
   {
    "domain": "glassphoto.ru",
@@ -1031,19 +1036,19 @@
    "domain": "nisp.ru",
    "visibility": 436,
    "common_keywords": 12,
-   "delta_visibility": -0.7
+   "delta_visibility": 0
   },
   {
    "domain": "dzen.ru",
    "visibility": 3501268,
    "common_keywords": 10,
-   "delta_visibility": -18.2
+   "delta_visibility": 0
   },
   {
    "domain": "livemaster.ru",
    "visibility": 106464,
    "common_keywords": 9,
-   "delta_visibility": 2.4
+   "delta_visibility": 0
   },
   {
    "domain": "grad-ex.ru",
@@ -1055,19 +1060,6 @@
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],
-  "competitor_up": [
-   {
-    "domain": "market.yandex.ru",
-    "delta": 13.7
-   },
-   {
-    "domain": "wildberries.ru",
-    "delta": 5.2
-   },
-   {
-    "domain": "lemanapro.ru",
-    "delta": 5
-   }
-  ]
+  "competitor_up": []
  }
 }

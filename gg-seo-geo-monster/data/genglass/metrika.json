@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-09-26",
+ "measured": "2026-09-27",
  "visits_30d": [
-  {
-   "date": "2026-08-27",
-   "visits": 356,
-   "search_visits": 66
-  },
   {
    "date": "2026-08-28",
    "visits": 319,
@@ -151,16 +146,21 @@
    "date": "2026-09-25",
    "visits": 428,
    "search_visits": 82
+  },
+  {
+   "date": "2026-09-26",
+   "visits": 370,
+   "search_visits": 74
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 33
+   "visits": 34
   },
   {
    "phrase": "генгласс",
-   "visits": 21
+   "visits": 20
   },
   {
    "phrase": "genglass",
@@ -299,6 +299,14 @@
    "visits": 2
   },
   {
+   "phrase": "консольные столы фото",
+   "visits": 2
+  },
+  {
+   "phrase": "перегородки гармошка",
+   "visits": 2
+  },
+  {
    "phrase": "прозрачная доска",
    "visits": 2
   },
@@ -345,32 +353,20 @@
   {
    "phrase": "\"зеркало в черной раме kvaden l, 180 х 60 см артикул ggm-17-2-2\"",
    "visits": 1
-  },
-  {
-   "phrase": "(genglass",
-   "visits": 1
-  },
-  {
-   "phrase": "3d",
-   "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 446
+   "visits": 441
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 107
+   "visits": 106
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 68
-  },
-  {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 59
+   "visits": 67
   },
   {
    "url": "/product-category/tables/",
@@ -381,27 +377,31 @@
    "visits": 59
   },
   {
-   "url": "/product-category/mirrors/",
-   "visits": 55
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
+   "visits": 56
   },
   {
-   "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 44
+   "url": "/product-category/mirrors/",
+   "visits": 53
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 43
+   "visits": 46
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 42
+   "visits": 44
   },
   {
-   "url": "/product-category/tables/kitchen-tables/",
-   "visits": 36
+   "url": "/product-category/mirrors/dizajnerskie/",
+   "visits": 43
   },
   {
    "url": "/product-category/steklyannye-doski/",
+   "visits": 36
+  },
+  {
+   "url": "/product-category/tables/kitchen-tables/",
    "visits": 35
   },
   {
@@ -410,19 +410,19 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-   "visits": 25
+   "visits": 27
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
    "visits": 24
   },
   {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 24
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
+   "visits": 23
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 22
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
+   "visits": 23
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
@@ -434,7 +434,7 @@
   },
   {
    "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
-   "visits": 18
+   "visits": 19
   },
   {
    "url": "/product-category/mirrors/rotatable/",
@@ -453,7 +453,7 @@
    "visits": 14
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/",
+   "url": "/product/zerkalo-v-zolotoj-rame-arkelo-s-102h52-sm/",
    "visits": 13
   },
   {
@@ -461,19 +461,19 @@
    "visits": 12
   },
   {
-   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
-   "visits": 12
-  },
-  {
-   "url": "/product/zerkalo-v-zolotoj-rame-arkelo-s-102h52-sm/",
-   "visits": 12
-  },
-  {
    "url": "/product-category/mirrors/floor/",
+   "visits": 12
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-dlya-zonirovaniya-komnaty/",
    "visits": 11
   },
   {
-   "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj/",
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/",
+   "visits": 11
+  },
+  {
+   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
    "visits": 11
   }
  ],

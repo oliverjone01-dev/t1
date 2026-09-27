@@ -1,6 +1,6 @@
 {
  "domain": "genglass.ru",
- "measured": "2026-09-26",
+ "measured": "2026-09-27",
  "visibility": 22,
  "ai_answers": 103,
  "keywords_total": 2208,
@@ -397,6 +397,11 @@
   },
   {
    "date": "2026-09-26",
+   "visibility": 22,
+   "top10": 439
+  },
+  {
+   "date": "2026-09-27",
    "visibility": 22,
    "top10": 439
   }
@@ -1008,7 +1013,7 @@
    "domain": "rosestar.ru",
    "visibility": 167,
    "common_keywords": 893,
-   "delta_visibility": -2.3
+   "delta_visibility": 0
   },
   {
    "domain": "зеркаласподсветкой.рф",
@@ -1026,55 +1031,55 @@
    "domain": "m.avito.ru",
    "visibility": 2144516,
    "common_keywords": 1425,
-   "delta_visibility": 1.6
+   "delta_visibility": 0
   },
   {
    "domain": "ozon.ru",
    "visibility": 2083310,
    "common_keywords": 1325,
-   "delta_visibility": 3.5
+   "delta_visibility": 0
   },
   {
    "domain": "market.yandex.ru",
    "visibility": 1224160,
    "common_keywords": 1276,
-   "delta_visibility": 13.7
+   "delta_visibility": 0
   },
   {
    "domain": "wildberries.ru",
    "visibility": 1261707,
    "common_keywords": 1217,
-   "delta_visibility": 5.2
+   "delta_visibility": 0
   },
   {
    "domain": "lemanapro.ru",
    "visibility": 540794,
    "common_keywords": 151,
-   "delta_visibility": 5
+   "delta_visibility": 0
   },
   {
    "domain": "livemaster.ru",
    "visibility": 106464,
    "common_keywords": 71,
-   "delta_visibility": 2.4
+   "delta_visibility": 0
   },
   {
    "domain": "uslugi.yandex.ru",
    "visibility": 202275,
    "common_keywords": 64,
-   "delta_visibility": 0.4
+   "delta_visibility": 0
   },
   {
    "domain": "hoff.ru",
    "visibility": 116060,
    "common_keywords": 56,
-   "delta_visibility": -1
+   "delta_visibility": 0
   },
   {
    "domain": "inmyroom.ru",
    "visibility": 8165,
    "common_keywords": 54,
-   "delta_visibility": 7.5
+   "delta_visibility": 0
   },
   {
    "domain": "zorini.ru",
@@ -1098,23 +1103,6 @@
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],
-  "competitor_up": [
-   {
-    "domain": "market.yandex.ru",
-    "delta": 13.7
-   },
-   {
-    "domain": "wildberries.ru",
-    "delta": 5.2
-   },
-   {
-    "domain": "lemanapro.ru",
-    "delta": 5
-   },
-   {
-    "domain": "inmyroom.ru",
-    "delta": 7.5
-   }
-  ]
+  "competitor_up": []
  }
 }

@@ -76,6 +76,12 @@ function weekDelta(code, wk, f, goodUp){
   return KS.delta(KS.series.dyn(s, f, 14), goodUp);
 }
 
+/* Ось от нуля: доли и счётчики не бывают отрицательными, у процентов верх 100 */
+function zeroAxis(id, pct){
+  const ch = KS.charts.inst[id];
+  if(ch) ch.updateOptions({ yaxis:{ min:0, max:pct ? 100 : undefined, forceNiceScale:true, labels:{ style:{ fontSize:'11px' }, formatter:x => nf(Math.round(x)) } } }, false, false);
+}
+
 /* ==========================================================================
    Экраны
    ========================================================================== */
@@ -239,7 +245,7 @@ const SCREENS = {
     DRAW = () => {
       KS.charts.donut('c-seg', { labels:segKeys.map(k => T('segment', k)), data:segKeys.map(k => seg[k]), h:300 });
       KS.charts.hbar('c-cat', { cats:cat.map(([k]) => T('category', k)), data:cat.map(x => x[1]), h:Math.max(220, cat.length * 38) });
-      KS.charts.multi('c-segw', { cats:weeks.map(wlabel), series:[{ name:'B2C', data:segWeek('b2c'), slot:3 }, { name:'B2B', data:segWeek('b2b'), slot:1 }], h:260 });
+      KS.charts.multi('c-segw', { cats:weeks.map(wlabel), series:[{ name:'B2C', data:segWeek('b2c'), slot:1 }, { name:'B2B', data:segWeek('b2b'), slot:2 }], h:260 }); zeroAxis('c-segw');
     };
     if(!n) return noLabels('Кто пишет и о чём');
     return KS.head({ title:'Кто пишет и о чём: ' + cabName(), sub:'Сегменты и типовые запросы за 8 недель ' + wlabel(weeks[0]) + ' - ' + wlabel(weeks[weeks.length - 1]) + '. Размечено диалогов: ' + nf(n) + '.',
@@ -261,9 +267,9 @@ const SCREENS = {
     const weeks = DETAIL, n = labN(weeks);
     if(!n) return noLabels('Возражения и вопросы');
     const ob = sorted(lab(weeks, 'objections')), qs = sorted(lab(weeks, 'questions')), lost = sorted(lab(weeks, 'lost_reason'));
-    const quotes = pickCodes().flatMap(c => (CAB(c).quotes.objection || []).filter(q => weeks.includes(q.w)).map(q => Object.assign({ c }, q)));
+    const quotes = pickCodes().flatMap(c => (CAB(c).quotes.objection || []).filter(q => weeks.includes(q.w)).map(q => Object.assign({ c }, q))).sort((a, b) => b.w.localeCompare(a.w));
     const qBlock = ob.slice(0, 6).map(([k, v]) => {
-      const qq = quotes.filter(q => q.o === k).slice(-3).reverse();
+      const qq = quotes.filter(q => q.o === k).slice(0, 3);
       return '<div class="op-ex"><div class="op-td-h">' + esc(T('objections', k)) + ' · ' + nf(v) + '</div>'
         + (qq.length ? '<ul class="op-list">' + qq.map(q => '<li>«' + esc(q.t) + '» <span class="op-muted">' + q.c + ', ' + wlabel(q.w) + '</span> · ' + chatLink(q.id) + '</li>').join('') + '</ul>' : '<p class="op-muted">цитат нет</p>') + '</div>';
     }).join('');
@@ -287,14 +293,14 @@ const SCREENS = {
     const pr = sorted(lab(weeks, 'price_reaction')).filter(([k]) => k !== 'not_applicable');
     const tot = pr.reduce((a, x) => a + x[1], 0);
     const perW = k => weeks.map(w => { const o = lab([w], 'price_reaction'); const t = Object.entries(o).filter(([x]) => x !== 'not_applicable').reduce((a, x) => a + x[1], 0); return share(o[k] || 0, t); });
-    const quotes = pickCodes().flatMap(c => (CAB(c).quotes.price || []).filter(q => weeks.includes(q.w)).map(q => Object.assign({ c }, q)));
+    const quotes = pickCodes().flatMap(c => (CAB(c).quotes.price || []).filter(q => weeks.includes(q.w)).map(q => Object.assign({ c }, q))).sort((a, b) => b.w.localeCompare(a.w));
     const grp = ['expensive', 'compares', 'negotiates', 'accepted', 'thinking'].map(k => {
-      const qq = quotes.filter(q => q.r === k).slice(-4).reverse(); if(!qq.length) return '';
+      const qq = quotes.filter(q => q.r === k).slice(0, 4); if(!qq.length) return '';
       return '<div class="op-ex"><div class="op-td-h">' + esc(T('price_reaction', k)) + '</div><ul class="op-list">' + qq.map(q => '<li>«' + esc(q.t) + '» <span class="op-muted">' + q.c + ', ' + wlabel(q.w) + '</span> · ' + chatLink(q.id) + '</li>').join('') + '</ul></div>';
     }).join('');
     DRAW = () => {
       KS.charts.hbar('c-pr', { cats:pr.map(([k]) => T('price_reaction', k)), data:pr.map(x => x[1]), slot:2, h:Math.max(200, pr.length * 38) });
-      KS.charts.multi('c-prw', { cats:weeks.map(wlabel), series:[{ name:'Принял', data:perW('accepted'), slot:3 }, { name:'Пропал после цены', data:perW('silent'), slot:1 }], h:260 });
+      KS.charts.multi('c-prw', { cats:weeks.map(wlabel), series:[{ name:'Принял', data:perW('accepted'), slot:3 }, { name:'Пропал после цены', data:perW('silent'), slot:1 }], h:260 }); zeroAxis('c-prw', true);
     };
     return KS.head({ title:'Реакция на цену: ' + cabName(), sub:'Как клиенты реагируют на названную цену. Диалогов, где обсуждали цену: ' + nf(tot) + '.', src:LBL_SRC, badges:[KS.kind('ГИПОТЕЗА')] })
       + '<div class="ks-stack"><div class="ks-grid-2">'
@@ -308,11 +314,11 @@ const SCREENS = {
 
   phr(){
     const weeks = DETAIL;
-    const mods = pickCodes().flatMap(c => (CAB(c).modules || []).filter(m => weeks.includes(m.w)).map(m => Object.assign({ cab:c }, m)));
+    const mods = pickCodes().flatMap(c => (CAB(c).modules || []).filter(m => weeks.includes(m.w)).map(m => Object.assign({ cab:c }, m))).sort((a, b) => b.w.localeCompare(a.w));
     if(!labN(weeks)) return noLabels('Фразы, которые работают');
     const tech = DATA.techniques || [];
     const byStage = [5, 4, 3, 2].map(st => {
-      const list = mods.filter(m => m.st === st).slice(-8).reverse(); if(!list.length) return '';
+      const list = mods.filter(m => m.st === st).slice(0, 8); if(!list.length) return '';
       return KS.card({ title:'После фразы клиент: ' + T('stage', String(st)).toLowerCase(), sub:nf(mods.filter(m => m.st === st).length) + ' случаев за 8 недель, показаны свежие',
         body:'<div class="op-mods">' + list.map(m => '<div class="op-mod"><div class="op-bub is-m">' + esc(m.m) + '<span class="op-tm">Менеджер · ' + m.cab + ' · ' + wlabel(m.w) + '</span></div>'
           + '<div class="op-bub is-c">' + esc(m.r) + '<span class="op-tm">Клиент · ' + chatLink(m.id) + '</span></div></div>').join('') + '</div>' });

@@ -48,7 +48,11 @@ def anon(t):
     t = PHONEISH_RE.sub("[телефон]", t)
     t = PATRONYMIC_RE.sub("[отчество]", t)
     t = re.sub(r"\b(" + "|".join(sorted(NAMES, key=len, reverse=True)) + r")\b", "[имя]", t) if NAMES else t
-    return DATE_YEAR_RE.sub("[дата]", t)
+    t = DATE_YEAR_RE.sub("[дата]", t)
+    # фамилия рядом с именем или отчеством: «Тимофеев [имя] [отчество]», «[имя] Тимофеева»
+    t = re.sub(r"\b[А-ЯЁ][а-яё]{2,}(?=\s+\[(?:имя|отчество)\])", "[фамилия]", t)
+    t = re.sub(r"(?<=\[имя\]\s)[А-ЯЁ][а-яё]{2,}\b", "[фамилия]", t)
+    return t
 
 
 def sensitive(t):
@@ -125,7 +129,9 @@ def main():
             if oq and not sensitive(oq):
                 quotes["objection"].append({"w": wk, "id": r["id"], "t": anon(oq)[:220],
                                             "o": (lab.get("objections") or ["other"])[0], "st": lab.get("stage", 0)})
-            if pq and not sensitive(pq):
+            # в price_quote иногда попадает реплика менеджера с ценой: такие не берём
+            mgr_like = bool(pq and re.search(r"^\W*(стоимость|добрый день|здравствуйте)|толщин|бесцветн|осветл", pq, re.I))
+            if pq and not sensitive(pq) and not mgr_like:
                 quotes["price"].append({"w": wk, "id": r["id"], "t": anon(pq)[:220],
                                         "r": lab.get("price_reaction"), "st": lab.get("stage", 0)})
             for m in lab.get("success_modules") or []:

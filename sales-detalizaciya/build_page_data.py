@@ -140,7 +140,21 @@ def main():
                 modules.append({"w": wk, "id": r["id"], "cat": lab.get("category"), "seg": lab.get("segment"),
                                 "m": anon(m["manager"])[:320], "r": anon(m.get("client_next") or "")[:160],
                                 "st": m.get("stage_after")})
+        # Таблица всех диалогов: ID чата Авито для связки с Bitrix24 и итог разметки
+        dialogs = []
+        for r in chats[code]:
+            if r["origin"] not in ("inbound", "mailing", "call_only"):
+                continue
+            lab = labels.get(r["id"]) or {}
+            dialogs.append({
+                "id": r["id"], "w": r["week"], "d": r["start"][:10], "o": r["origin"],
+                "seg": lab.get("segment"), "cat": lab.get("category"), "st": lab.get("stage"),
+                "pr": lab.get("price_reaction"), "s": anon(lab.get("summary")),
+                "f": [k for k in ("left_hanging", "no_dozhim", "no_dozhim_after_price", "contact_waiting") if r.get(k)]
+                     + (["unanswered"] if r["origin"] == "inbound" and r.get("answered") is False else []),
+            })
         out["cabs"][code] = {
+            "dialogs": dialogs,
             "avito_name": acc["avito_name"],
             "exported": acc["exported"],
             "detail_weeks": detail,

@@ -92,7 +92,7 @@ const NAV = [
   { t:'Детализация', i:'chart', ch:[
     { id:'sum', t:'Сводка недели' }, { id:'dyn', t:'Динамика кабинетов' }, { id:'score', t:'Плюсы и косяки' },
     { id:'who', t:'Кто пишет и о чём' }, { id:'obj', t:'Возражения и вопросы' }, { id:'price', t:'Реакция на цену' },
-    { id:'phr', t:'Фразы, которые работают' } ] },
+    { id:'phr', t:'Фразы, которые работают' }, { id:'dlg', t:'Все диалоги' } ] },
   { t:'Обучение', i:'doc', ch:[ { id:'scripts', t:'Скрипты и магниты' } ] },
   { id:'data', t:'Откуда цифры', i:'info' }
 ];
@@ -331,11 +331,57 @@ const SCREENS = {
       + byStage + '</div>';
   },
 
+  dlg(){
+    const all = pickCodes().flatMap(c => (CAB(c).dialogs || []).map(d => Object.assign({ cab:c }, d)));
+    const rows = dlgFilter(all);
+    const FL = { left_hanging:'ждёт ответа', no_dozhim:'не дожали', no_dozhim_after_price:'после цены', contact_waiting:'оставил телефон', unanswered:'без ответа' };
+    const shown = rows.slice(0, DLG_LIMIT);
+    const weeksOpt = ['all'].concat(ALLW.slice().reverse());
+    return KS.head({ title:'Все диалоги: ' + cabName(), sub:'ID чата Авито для связки с Bitrix24, итог разметки и косяки по каждому диалогу. Найдено: ' + nf(rows.length) + ' из ' + nf(all.length) + '.',
+        src:SRC(CODES[0]) + ' · ' + SRC(CODES[1]) + ' · ' + LBL_SRC, badges:[KS.kind('ДАННЫЕ'), KS.kind('ГИПОТЕЗА')] })
+      + '<div class="ks-stack">'
+      + KS.card({ body:'<div class="op-dlg-tools">'
+          + '<input class="ks-input" id="dlg-q" type="search" placeholder="ID чата или слова из итога" value="' + esc(DLG_Q) + '" aria-label="Поиск по диалогам">'
+          + '<select class="ks-select" id="dlg-w" aria-label="Неделя">' + weeksOpt.map(w => '<option value="' + w + '"' + (w === DLG_W ? ' selected' : '') + '>' + (w === 'all' ? 'все недели' : wlabel(w)) + '</option>').join('') + '</select>'
+          + '<select class="ks-select" id="dlg-f" aria-label="Косяк"><option value="">любой исход</option>' + Object.entries(FL).map(([k, t]) => '<option value="' + k + '"' + (k === DLG_F ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>'
+          + '<button type="button" class="ks-btn ks-btn--secondary" id="dlg-csv">Скачать CSV для Bitrix24</button></div>' })
+      + KS.card({ title:'Диалоги', sub:rows.length > DLG_LIMIT ? 'Показаны первые ' + nf(DLG_LIMIT) + ', в CSV попадут все ' + nf(rows.length) : 'Свежие сверху',
+          body:KS.table([['Диалог'], ['Кабинет'], ['Дата'], ['Кто'], ['Запрос'], ['Стадия'], ['Цена'], ['Косяки'], ['Итог']],
+            shown.map(d => ['<span class="op-id">' + esc(d.id) + '</span><br>' + chatLink(d.id), d.cab, d.d.split('-').reverse().join('.'),
+              d.seg ? esc(T('segment', d.seg)) : '<span class="op-muted">без переписки</span>', d.seg ? esc(T('category', d.cat || 'none')) : null, d.st == null ? null : nf(d.st) + ' · ' + esc(T('stage', String(d.st))),
+              esc(T('price_reaction', d.pr || 'not_applicable')), (d.f || []).map(f => KS.status(FL[f], 'crit')).join(' ') || '<span class="op-muted">нет</span>', esc(d.s || '')]), { stack:true }) })
+      + '</div>';
+  },
+
   data(){
     return KS.head({ title:'Откуда цифры', sub:'Источник, правила расчёта и ограничения.', src:SRC(CODES[0]) + ' · ' + SRC(CODES[1]) })
       + '<div class="ks-stack">' + KS.card({ title:'Правила', body:METHOD }) + '</div>';
   }
 };
+
+/* ---------- фильтр и выгрузка диалогов ---------- */
+let DLG_Q = '', DLG_W = 'all', DLG_F = '';
+const DLG_LIMIT = 300;
+function dlgFilter(all){
+  const q = DLG_Q.trim().toLowerCase().replace(/ё/g, 'е');
+  return all.filter(d => (DLG_W === 'all' || d.w === DLG_W) && (!DLG_F || (d.f || []).includes(DLG_F))
+      && (!q || (d.id + ' ' + (d.s || '')).toLowerCase().replace(/ё/g, 'е').includes(q)))
+    .sort((a, b) => b.d.localeCompare(a.d));
+}
+function dlgCsv(){
+  const rows = dlgFilter(pickCodes().flatMap(c => (CAB(c).dialogs || []).map(d => Object.assign({ cab:c }, d))));
+  const head = ['avito_chat_id', 'ссылка', 'кабинет', 'дата', 'неделя', 'начало', 'сегмент', 'категория', 'стадия', 'реакция_на_цену', 'косяки', 'итог'];
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const lines = [head.join(';')].concat(rows.map(d => [d.id, AVITO(d.id), d.cab, d.d, d.w, d.o, T('segment', d.seg || 'unclear'), T('category', d.cat || 'none'),
+    d.st, T('price_reaction', d.pr || 'not_applicable'), (d.f || []).join(','), d.s].map(q).join(';')));
+  const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'dialogi-avito-' + (PICK === 'all' ? 'oba' : PICK) + '.csv';
+  document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  KS.toast('CSV выгружен: ' + nf(rows.length) + ' диалогов', 'ok');
+}
+document.addEventListener('input', e => { if(e.target.id === 'dlg-q'){ DLG_Q = e.target.value; clearTimeout(dlgFilter.t); dlgFilter.t = setTimeout(() => { render(); const i = el('dlg-q'); if(i){ i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 250); } });
+document.addEventListener('change', e => { if(e.target.id === 'dlg-w'){ DLG_W = e.target.value; render(); } if(e.target.id === 'dlg-f'){ DLG_F = e.target.value; render(); } });
+document.addEventListener('click', e => { if(e.target.id === 'dlg-csv') dlgCsv(); });
 
 function noLabels(title){
   return KS.head({ title, sub:'Смысловая разметка диалогов ещё не загружена.' })
@@ -426,6 +472,7 @@ KS.cmdk.set([
   { group:'Детализация', label:'Возражения и вопросы', icon:'quote', run:() => go('obj') },
   { group:'Детализация', label:'Реакция на цену', icon:'wallet', run:() => go('price') },
   { group:'Детализация', label:'Фразы, которые работают', icon:'bulb', run:() => go('phr') },
+  { group:'Детализация', label:'Все диалоги', icon:'list', keywords:'bitrix id csv', run:() => go('dlg') },
   { group:'Действия', label:'Сменить тему', icon:'moon', keywords:'тёмная светлая', run:() => KS.theme.toggle() },
   { group:'Действия', label:'Переключить плотность', icon:'rows', keywords:'компактно просторно', run:() => KS.density.toggle() }
 ]);
@@ -435,3 +482,5 @@ const densUi = () => { const b = el('dens'); b.innerHTML = KS.density.icon(); b.
 el('dens').addEventListener('click', () => KS.density.toggle());
 document.addEventListener('ks:density', densUi);
 densUi();
+// для проверок в браузере: KS_APP.show('dlg')
+window.KS_APP = { show:v => { VIEW = v; render(); } };

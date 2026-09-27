@@ -3,3 +3,5 @@ data/transcripts/
 data/labeling/*.txt
 data/labels.jsonl
 data/labeling/*.jsonl
+.page-password
+data/page.json

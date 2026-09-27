@@ -1,1 +1,5 @@
 data/raw/
+data/transcripts/
+data/labeling/*.txt
+data/labels.jsonl
+data/labeling/*.jsonl

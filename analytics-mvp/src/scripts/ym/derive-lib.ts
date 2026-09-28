@@ -784,6 +784,11 @@ export interface SvodRow {
   // «мы его не сохраняли». Разницу держит undefined.
   region?: string;
 }
+// Строка заказа в пути. Выручка, платёж покупателя, доставка покупателя и себестоимость - из
+// самого заказа (факт заказа, ещё не доставленного). Сборы Маркета и услуги, оплаченные баллами, -
+// ОЦЕНКА: доля от «Продаж» по доставленным заказам того же артикула за 120 дней, а где их нет -
+// доля по кабинету. Маркет спишет настоящие сборы при доставке, тогда заказ станет обычной строкой.
+export interface FlyRow extends SvodRow { fly: true; est_fee: number; est_basis: string }
 export interface SvodMonth {
   business: string; ym: string; orders: number; rows: SvodRow[];
   overhead_money: number; overhead_points: number; overhead: Record<string, number>; overhead_pts: Record<string, number>;
@@ -845,6 +850,9 @@ export interface SvodMonth {
   // 17.09 показывает 36 доставленных штук при 116 заказах в пути, и без этой колонки он читается
   // как провал продаж, а не как незавершённый месяц.
   inflight_rows: Array<{ d: string; sku: string; units: number; price: number }>;
+  // Заказы месяца в пути - строками той же формы, что доставленные, с ОЦЕНКОЙ сборов (Катя
+  // 28.09.2026, вариант А: «как на OZON»). Опционально: снимки, собранные раньше, его не несут.
+  fly_rows?: FlyRow[];
   points_on_delivery: number;     // доля начисленных баллов, осевшая на строке доставки
   cogs_cov: number;               // доля выручки деньгами, закрытая себестоимостью
   // Наша доставка (ручная ведомость). Отправки по заказам, которые отменили или вернули, в строки
@@ -1498,6 +1506,75 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     const rev = m.rows.reduce((a, r) => a + r.revenue_money, 0);
     const covered = m.rows.filter((r) => r.cogs_known).reduce((a, r) => a + r.revenue_money, 0);
     m.cogs_cov = rev > 0 ? Math.round((covered / rev) * 1000) / 10 : 0;
+  }
+  // 7. ЗАКАЗЫ В ПУТИ с оценкой сборов (вариант А, Катя 28.09.2026). Доля сборов считается по
+  // доставленным строкам за 120 дней до даты снимка: сборы деньгами по статьям и услуги баллами -
+  // к «Продажам» (цена × нетто-штуки + доля Маркета в доставке). Тот же знаменатель, что у свода,
+  // поэтому оценка сопоставима с фактом соседних строк.
+  {
+    const todayD = String(today || new Date().toISOString().slice(0, 10)).slice(0, 10);
+    const from120 = new Date(Date.parse(todayD + "T00:00:00Z") - 120 * 86400000).toISOString().slice(0, 10);
+    type Rate = { base: number; cols: Record<string, number>; pts: number; n: number };
+    const bySku = new Map<string, Rate>(), byBiz = new Map<string, Rate>();
+    const add = (mp: Map<string, Rate>, key: string, r: SvodRow, base: number) => {
+      const x = mp.get(key) || { base: 0, cols: {}, pts: 0, n: 0 };
+      x.base += base; x.pts += r.svc_points || 0; x.n++;
+      for (const [c, v] of Object.entries(r.svc || {})) x.cols[c] = (x.cols[c] || 0) + (v || 0);
+      mp.set(key, x);
+    };
+    for (const m of months.values()) for (const r of m.rows) {
+      if (r.d < from120 || r.d > todayD || !(r.units_net > 0)) continue;
+      const base = (r.units_delivered > 0 ? r.price * r.units_net / r.units_delivered : r.price) + (r.ship_mp || 0);
+      if (!(base > 0)) continue;
+      add(bySku, `${r.business}|${r.sku}`, r, base); add(byBiz, r.business, r, base);
+    }
+    // Доставка по заказу в пути: строка доставки делится на позиции по их стоимости, как в своде.
+    const shipOf = new Map<string, { buyer: number; mp: number }>();
+    for (const r of rows) {
+      if (!r.service || DONE.test(String(r.status || ""))) continue;
+      const x = shipOf.get(r.order) || { buyer: 0, mp: 0 };
+      x.buyer += (r.p_buyer || 0) * (r.count || 0);
+      x.mp += ((r.p_mp || 0) + (r.p_cashback || 0) + (r.p_spasibo || 0)) * (r.count || 0);
+      shipOf.set(r.order, x);
+    }
+    const flyItems = new Map<string, OrderRow[]>();
+    for (const r of rows) {
+      if (r.service || !r.created || DONE.test(String(r.status || "")) || !(Number(r.count) > 0)) continue;
+      const a = flyItems.get(r.order) || []; a.push(r); flyItems.set(r.order, a);
+    }
+    for (const [ord, items] of flyItems) {
+      const tb = items.reduce((a, i) => a + (i.price || 0) * (i.count || 0), 0);
+      const sh = shipOf.get(ord) || { buyer: 0, mp: 0 };
+      for (const r of items) {
+        const k = `${r.business}|${String(r.created).slice(0, 7)}`;
+        const m = months.get(k);
+        if (!m) continue; // месяц без единой доставки: его строк свод не рисует
+        const n = Number(r.count) || 0;
+        const share = tb > 0 ? (r.price || 0) * n / tb : 1 / items.length;
+        const price = (r.price || 0) * n, shipB = sh.buyer * share, shipMp = sh.mp * share;
+        const base = price + shipMp;
+        const skuRate = bySku.get(`${r.business}|${r.sku}`);
+        const rt = skuRate || byBiz.get(r.business);
+        const basis = skuRate ? `артикул, ${skuRate.n} доставленных строк за 120 дней`
+          : (rt ? `кабинет целиком (по артикулу доставок за 120 дней нет), ${rt.n} строк` : "доставок за 120 дней нет - сборы не оценены");
+        const svc = svcZero(), svcPts = svcZero();
+        let money = 0, pts = 0;
+        if (rt && rt.base > 0) {
+          for (const [c, v] of Object.entries(rt.cols)) { const e = r2(base * v / rt.base); if (e) { svc[c] = e; money += e; } }
+          pts = r2(base * rt.pts / rt.base);
+        }
+        const buyer = (r.p_buyer || 0) * n;
+        const row: FlyRow = { business: r.business, ym: m.ym, d: String(r.created).slice(0, 10), order: r.order, sku: r.sku, name: r.name, line: r.line,
+          orders: 0, units_delivered: n, units_returned: 0, units_net: n,
+          price: r2(price), ship_buyer: r2(shipB), disc_mp: r2((r.p_mp || 0) * n + shipMp), disc_plus: r2(((r.p_cashback || 0) + (r.p_spasibo || 0)) * n), ship_mp: r2(shipMp),
+          buyer_pay: r2(buyer + shipB), refunds: 0, revenue_money: r2(buyer + shipB), points_accrued: 0,
+          svc, svc_pts: svcPts, svc_money: r2(money), svc_points: pts, svc_total: r2(money + pts), result_money: 0, result_points: 0,
+          cogs: cogsAt(r.sku) != null ? r2(cogsAt(r.sku)! * n) : 0, cogs_known: cogsAt(r.sku) != null, ship_our: 0, ship_known: false,
+          ...(r.region ? { region: r.region } : {}), fly: true, est_fee: r2(money + pts), est_basis: basis };
+        (m.fly_rows ||= []).push(row);
+      }
+    }
+    for (const m of months.values()) if (m.fly_rows) m.fly_rows.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.order < b.order ? -1 : 1));
   }
   return [...months.values()].sort((a, b) => (a.ym === b.ym ? a.business.localeCompare(b.business) : b.ym.localeCompare(a.ym)));
 }

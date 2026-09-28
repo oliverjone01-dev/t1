@@ -3,7 +3,7 @@
 // Реклама (CPO) и доставка (ведомость) досыпаются в build-katya по номеру заказа отдельно.
 //
 // Запуск: OZON_SELLER_* в env; из analytics-mvp: npx tsx src/scripts/ozon/orders-daily.ts [FROM] [TO]
-// FROM/TO - YYYY-MM-DD (по дате заказа). По умолчанию с 2026-05-01 по вчера.
+// FROM/TO - YYYY-MM-DD (по дате заказа). По умолчанию с 2026-02-06 по вчера.
 //
 // Строка: {order, d, status, sku, offer, units, revenue, commission, delivery, acquiring, storage,
 //          buyer_delivery, ads, other, payout}. Знак сборов - как отдаёт OZON (fee < 0).
@@ -20,7 +20,7 @@ async function main() {
   const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
   if (!clientId || !apiKey) { console.warn("orders-daily: OZON_SELLER_* нет - пропуск"); return; }
   const seller = new OzonSeller({ clientId, apiKey });
-  const from = process.argv[2] || "2026-05-01";
+  const from = process.argv[2] || "2026-02-06";
   const to = process.argv[3] || ymd(new Date(Date.now() - 86400000));
   console.log(`orders-daily: постинги ${from}..${to}`);
 

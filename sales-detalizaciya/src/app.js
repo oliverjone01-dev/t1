@@ -67,7 +67,8 @@ const sumField = (weeks, f, codes) => (codes || pickCodes()).reduce((s, c) => s 
 const SHORT = code => 'Авито, ' + code;
 const fD = (v, code, what) => F(v, 'ДАННЫЕ', SHORT(code), CAB(code).exported);
 const fH = (v, code, what) => F(v, 'ГИПОТЕЗА', SHORT(code) + ', по тексту', CAB(code).exported);
-const lowNote = n => n < LOW_N ? ' <span class="op-muted">(мало данных: ' + nf(n) + ')</span>' : '';
+const lowNote = n => n < LOW_N ? ' <span class="op-muted">(всего ' + nf(n) + ', выборка мала)</span>' : '';
+const plural = (n, one, few, many) => n % 10 === 1 && n % 100 !== 11 ? one : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? few : many;
 const chatLink = (id, text) => '<a class="op-link" href="' + AVITO(id) + '" target="_blank" rel="noopener">' + esc(text || 'открыть в Авито') + '</a>';
 const pctS = v => v == null ? '-' : nf(Math.round(v)) + '%';
 const help = t => '<span class="ks-help" tabindex="0" data-tip="' + esc(t) + '">?</span>';
@@ -129,7 +130,7 @@ function cabBlock(code){
     : '<p class="op-muted">Комментарий к этой неделе не написан.' + (isOpen() ? ' Неделя не закрыта.' : '') + '</p>';
   return '<section class="ks-stack op-cab">'
     + '<div class="ks-row op-cab-head"><h2 class="ks-h2">' + esc(code) + '</h2><span class="op-muted">в Авито «' + esc(CAB(code).avito_name) + '»</span>'
-    + (r.inbound < LOW_N ? KS.badge('мало данных', 'warn', 'Обращений меньше ' + LOW_N + ': проценты прыгают от одного диалога') : '') + '</div>'
+    + (r.inbound < LOW_N ? KS.badge(nf(r.inbound) + ' ' + plural(r.inbound, 'обращение', 'обращения', 'обращений') + ' за неделю', 'warn', 'Данные есть, но обращений за эту неделю меньше ' + LOW_N + ': проценты прыгают от одного диалога, выводы делать осторожно') : '') + '</div>'
     + '<div class="ks-grid-kpi">' + tiles + '</div>'
     + '<div class="ks-grid-2">' + verdict
     + KS.card({ title:'Комментарий к неделе', sub:'Разбор цифр и диалогов недели · ' + (cm ? cm.by || 'ручной разбор' : 'нет'), body:comment }) + '</div>'
@@ -154,7 +155,7 @@ function wowTable(){
 const SCREENS = {
   sum(){
     const wk = selW();
-    return KS.head({ title:'Детализация: неделя ' + wlabel(wk), sub:'Как отдел продаж отработал обращения в кабинетах Авито OLD-B и OLD-G, в сравнении с неделей ' + wlabel(prevW(wk)) + '.',
+    return KS.head({ title:'Детализация: неделя ' + wlabel(wk), sub:'Как отдел продаж отработал обращения в кабинетах Авито NEW-B и OLD-G, в сравнении с неделей ' + wlabel(prevW(wk)) + '.',
         src:SRC(CODES[0]) + ' · ' + SRC(CODES[1]),
         badges:[ KS.kind('ДАННЫЕ'), isOpen() ? KS.badge('неделя не закрыта', 'warn', 'В выгрузке только первые дни недели. Косяки с порогом 2 дня ещё не видны') : '',
           help('Неделя: понедельник-воскресенье по МСК.\nОбращение относится к неделе по первому сообщению или звонку клиента.\nРабочее время: пн-пт 9-13 и 14-18.\nПравила каждого показателя: «Откуда цифры».') ] })
@@ -182,7 +183,7 @@ const SCREENS = {
     };
     return KS.head({ title:'Динамика кабинетов', sub:'Полные недели с апреля по сентябрь 2026. Неполные недели (первая и текущая) есть только в таблицах.', src:SRC(CODES[0]) + ' · ' + SRC(CODES[1]), badges:[KS.kind('ДАННЫЕ')] })
       + '<div class="ks-stack">'
-      + KS.anomalyNote(CAB('OLD-B').series.filter(r => !r.partial), 'inbound', 'обращения OLD-B')
+      + KS.anomalyNote(CAB('NEW-B').series.filter(r => !r.partial), 'inbound', 'обращения NEW-B')
       + '<div class="ks-grid-2">'
       + card('c-in', 'Обращений в неделю', 'Чаты, где первым написал или позвонил клиент', 'inbound')
       + card('c-lag', 'Первый ответ, медиана, рабочих минут', 'Меньше значит лучше. Только обращения в рабочее время', 'first_resp_work_bmin_med')

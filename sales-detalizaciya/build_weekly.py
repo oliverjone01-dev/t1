@@ -17,7 +17,7 @@ MSK = timezone(timedelta(hours=3))
 
 ACCOUNTS = [
     # файл, код кабинета в отчёте, название в Авито
-    ("data/raw/avito-glassmemory-raw-apr-sep.json", "OLD-B", "Glass Memory"),
+    ("data/raw/avito-glassmemory-raw-apr-sep.json", "NEW-B", "Glass Memory"),
     ("data/raw/avito-glassmemory2-raw-apr-sep.json", "OLD-G", "GLASS MEMORY"),
 ]
 

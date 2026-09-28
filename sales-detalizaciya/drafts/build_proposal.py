@@ -174,10 +174,13 @@ def main():
     html = (ROOT / "reference/razbor-nedeli-maket.html").read_text()
     head = html[: html.index("</head>")]
     head = head.replace("<title>Разбор недели · ОП ГМ</title>", "<title>Детализация 2.0</title>")
-    tpl = (ROOT / "drafts/proposal_body.html").read_text()
+    # шаблон и выход можно задать: python3 drafts/build_proposal.py variants_body.html varianty.html
+    body_name = sys.argv[1] if len(sys.argv) > 1 else "proposal_body.html"
+    out_name = sys.argv[2] if len(sys.argv) > 2 else "predlozhenie.html"
+    tpl = (ROOT / "drafts" / body_name).read_text()
     page = head + tpl.replace("/*__DATA__*/", "window.PV = " + txt.replace("</", "<\\/") + ";")
-    (ROOT / "drafts/predlozhenie.html").write_text(page)
-    print("drafts/predlozhenie.html", round(len(page.encode()) / 1024), "KB; todo", len(out["todo"]), "pareto", [(p[0], p[2]) for p in out["pareto"]])
+    (ROOT / "drafts" / out_name).write_text(page)
+    print("drafts/" + out_name, round(len(page.encode()) / 1024), "KB; todo", len(out["todo"]), "pareto", [(p[0], p[2]) for p in out["pareto"]])
 
 
 if __name__ == "__main__":

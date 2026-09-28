@@ -1,0 +1,579 @@
+<style>
+/* ==========================================================================
+   Детализация 2.0 · три направления + дизайн-система. Токены Контур DS.
+   Движение: только transform, opacity, clip-path, stroke-dashoffset, grid-template-rows.
+   Кривые: вход .2,.8,.2,1 · выход .4,0,1,1 · стандарт .4,0,.2,1. Без пружин.
+   ========================================================================== */
+:root{ --e-in:cubic-bezier(.2,.8,.2,1); --e-out:cubic-bezier(.4,0,1,1); --e-std:cubic-bezier(.4,0,.2,1);
+  --lift:0 1px 1px rgba(16,19,24,.04), 0 2px 4px rgba(16,19,24,.04), 0 8px 24px -6px rgba(16,19,24,.10);
+  --lift-hi:0 1px 1px rgba(16,19,24,.05), 0 4px 8px rgba(16,19,24,.06), 0 18px 40px -10px rgba(16,19,24,.18); }
+[data-theme="dark"]{ --lift:inset 0 1px 0 rgba(255,255,255,.045), 0 0 0 1px rgba(255,255,255,.02); --lift-hi:inset 0 1px 0 rgba(255,255,255,.07), 0 16px 40px -12px rgba(0,0,0,.6); }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --lift:inset 0 1px 0 rgba(255,255,255,.045), 0 0 0 1px rgba(255,255,255,.02); --lift-hi:inset 0 1px 0 rgba(255,255,255,.07), 0 16px 40px -12px rgba(0,0,0,.6); } }
+html{ overflow-x:clip; }
+body{ background:var(--bg); color:var(--text); margin:0; }
+.gx{ max-width:1240px; margin:0 auto; padding:0 20px 96px; }
+.num{ font-variant-numeric:tabular-nums; }
+.muted{ color:var(--text-muted); }
+.cap{ font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); }
+.hair{ height:1px; background:var(--border); border:0; margin:0; }
+
+/* шапка витрины */
+.gx-top{ position:sticky; top:0; z-index:40; margin:0 -20px; padding:12px 20px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+  background:var(--glass-bg); -webkit-backdrop-filter:blur(20px) saturate(160%); backdrop-filter:blur(20px) saturate(160%); box-shadow:0 1px 0 var(--border); view-transition-name:gxtop; }
+.gx-top b{ font-size:14px; font-weight:600; color:var(--text-strong); letter-spacing:-.01em; }
+.gx-top .sp{ flex:1; }
+.kbd{ display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 5px; border-radius:4px; font-size:11px; font-weight:600; color:var(--text-muted);
+  background:var(--surface); box-shadow:inset 0 -1px 0 var(--border-strong), 0 0 0 1px var(--border); font-family:var(--font-sans); }
+
+/* переключатель с переезжающей плашкой */
+.seg{ position:relative; display:inline-flex; padding:3px; border-radius:10px; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--border); isolation:isolate; }
+.seg button{ position:relative; z-index:1; border:0; background:none; font:inherit; font-size:13px; font-weight:500; color:var(--text-muted); padding:6px 12px; min-height:32px; border-radius:7px; cursor:pointer; white-space:nowrap; transition:color 160ms var(--e-std); }
+.seg button[aria-pressed="true"]{ color:var(--text-strong); }
+.seg button:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+.seg .pill{ position:absolute; inset:3px; z-index:0; border-radius:7px; background:var(--surface); box-shadow:var(--lift); transition:clip-path 250ms var(--e-std); }
+
+/* кнопки */
+.b{ --h:36px; display:inline-flex; align-items:center; gap:8px; height:var(--h); padding:0 14px; border-radius:8px; border:0; font:inherit; font-size:13px; font-weight:500; cursor:pointer;
+  transition:transform 160ms var(--e-std), background 160ms var(--e-std), box-shadow 160ms var(--e-std); white-space:nowrap; }
+.b:active{ transform:translateY(1px) scale(.985); }
+.b:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.b.pri{ background:var(--action); color:var(--action-foreground); box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 1px 2px rgba(0,0,0,.2); }
+.b.pri:hover{ background:var(--action-hover); }
+.b.sec{ background:var(--surface); color:var(--text-strong); box-shadow:inset 0 0 0 1px var(--border-strong), 0 1px 1px rgba(0,0,0,.04); }
+.b.sec:hover{ background:var(--surface-2); }
+.b.gh{ background:transparent; color:var(--text); } .b.gh:hover{ background:var(--surface-2); }
+.b.dan{ background:var(--crit); color:#fff; }
+.b.sm{ --h:30px; padding:0 10px; font-size:12.5px; }
+.b.ic{ width:var(--h); padding:0; justify-content:center; }
+.b[disabled]{ opacity:.5; cursor:not-allowed; }
+.b .spin{ width:14px; height:14px; border-radius:50%; border:2px solid currentColor; border-right-color:transparent; animation:spin .8s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* поверхность и отлив под курсором (6-7% акцента, только мышь) */
+.card{ position:relative; background:var(--surface); border-radius:14px; box-shadow:var(--lift); padding:20px; isolation:isolate; }
+.spot{ overflow:hidden; }
+.spot::before{ content:""; position:absolute; inset:0; z-index:-1; opacity:0; transition:opacity 250ms var(--e-std);
+  background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%), color-mix(in oklab, var(--primary) 7%, transparent), transparent 70%); }
+@media (hover:hover){ .spot:hover::before{ opacity:1; } .lift{ transition:transform 250ms var(--e-in), box-shadow 250ms var(--e-in); } .lift:hover{ transform:translateY(-2px); box-shadow:var(--lift-hi); } }
+.click{ cursor:pointer; }
+
+/* вход блоков: из видимого состояния, шаг 35 мс, максимум 175 мс */
+.rise{ animation:rise 420ms var(--e-in) both; animation-delay:calc(min(var(--i,0) * 35ms, 175ms)); }
+@keyframes rise{ from{ transform:translateY(6px); opacity:.001; } }
+.draw{ stroke-dasharray:1; stroke-dashoffset:1; animation:draw 900ms var(--e-in) forwards; animation-delay:120ms; }
+@keyframes draw{ to{ stroke-dashoffset:0; } }
+@media (prefers-reduced-motion:reduce){ *{ animation-duration:0s !important; animation-delay:0s !important; transition-duration:0s !important; } .draw{ stroke-dashoffset:0; } }
+
+/* статус */
+.dot{ width:8px; height:8px; border-radius:50%; display:inline-block; flex:none; }
+.ok{ --tone:var(--ok); } .warn{ --tone:var(--warn); } .crit{ --tone:var(--crit); } .na{ --tone:var(--neutral-bar); }
+.dot.ok, .dot.warn, .dot.crit, .dot.na{ background:var(--tone); }
+.st{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:500; color:var(--tone); }
+.bdg{ display:inline-flex; align-items:center; gap:6px; height:22px; padding:0 8px; border-radius:6px; font-size:12px; font-weight:500; background:var(--surface-2); color:var(--text); box-shadow:inset 0 0 0 1px var(--border); }
+.dl{ font-size:12px; font-weight:600; padding:1px 6px; border-radius:6px; font-variant-numeric:tabular-nums; }
+.dl.good{ color:var(--ok); background:var(--ok-soft); } .dl.bad{ color:var(--crit); background:var(--crit-soft); }
+
+/* выбор направления */
+.gx-intro{ padding:40px 0 8px; }
+.gx-intro h1{ margin:0; font-size:clamp(28px, 3.4vw, 40px); line-height:1.1; letter-spacing:-.025em; font-weight:600; color:var(--text-strong); text-wrap:balance; }
+.gx-intro p{ margin:12px 0 0; max-width:760px; font-size:15px; line-height:1.55; color:var(--text); }
+.vpick{ display:grid; gap:12px; grid-template-columns:minmax(0,1fr); margin:24px 0 28px; }
+@media (min-width:900px){ .vpick{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+.vp{ text-align:left; font:inherit; color:inherit; border:0; background:var(--surface); border-radius:14px; padding:16px 18px; box-shadow:var(--lift); cursor:pointer; display:flex; flex-direction:column; gap:6px; }
+.vp[aria-pressed="true"]{ box-shadow:inset 0 0 0 2px var(--text-strong), var(--lift-hi); }
+.vp:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.vp b{ font-size:16px; font-weight:600; color:var(--text-strong); }
+.vp span{ font-size:13px; line-height:1.45; color:var(--text); }
+.vp small{ font-size:12px; color:var(--text-muted); }
+.stage{ view-transition-name:gxstage; }
+::view-transition-old(gxstage){ animation:120ms var(--e-out) both vtout; }
+::view-transition-new(gxstage){ animation:220ms var(--e-in) 60ms both vtin; }
+@keyframes vtout{ to{ opacity:0; transform:translateY(-4px); } } @keyframes vtin{ from{ opacity:0; transform:translateY(6px); } }
+::view-transition{ pointer-events:none; }
+
+/* ===================== A · ШТАБ ===================== */
+.va{ border-radius:20px; padding:24px; background:var(--bg); box-shadow:inset 0 0 0 1px var(--border); color:var(--text); }
+.va-head{ display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.va-head .t{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text-muted); }
+.va-grid{ display:grid; gap:14px; grid-template-columns:repeat(12,minmax(0,1fr)); }
+.va-grid > *{ grid-column:span 12; }
+@media (min-width:1000px){ .c8{ grid-column:span 8 !important; } .c4{ grid-column:span 4 !important; } .c6{ grid-column:span 6 !important; } .c3{ grid-column:span 3 !important; } }
+.hero-n{ display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap; }
+.hero-n .big{ font-size:clamp(56px, 7vw, 96px); line-height:.9; font-weight:600; letter-spacing:-.045em; color:var(--text-strong); font-variant-numeric:tabular-nums; }
+.hero-n .of{ font-size:22px; color:var(--text-muted); font-weight:500; padding-bottom:10px; letter-spacing:-.01em; }
+.hero-say{ font-size:17px; line-height:1.45; color:var(--text-strong); font-weight:500; margin:14px 0 0; max-width:620px; text-wrap:pretty; }
+.ratio{ display:flex; height:10px; gap:2px; margin-top:18px; border-radius:5px; overflow:hidden; }
+.ratio i{ display:block; height:100%; transform-origin:left; animation:grow 700ms var(--e-in) both; animation-delay:calc(var(--i,0) * 60ms); }
+@keyframes grow{ from{ transform:scaleX(0); } }
+.ratio-leg{ display:flex; flex-wrap:wrap; gap:4px 16px; margin-top:10px; font-size:12px; color:var(--text-muted); }
+.ratio-leg span{ display:inline-flex; gap:6px; align-items:center; }
+.ratio-leg i{ width:8px; height:8px; border-radius:2px; }
+.stats{ display:grid; gap:1px; background:var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--lift); grid-template-columns:repeat(2,minmax(0,1fr)); }
+@media (min-width:760px){ .stats{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+.stat{ background:var(--surface); padding:16px 18px; display:flex; flex-direction:column; gap:6px; position:relative; }
+.stat .k{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--text-muted); }
+.stat .v{ font-size:30px; font-weight:600; letter-spacing:-.025em; color:var(--text-strong); line-height:1.05; }
+.stat .s{ font-size:12.5px; color:var(--text); line-height:1.4; }
+.ring{ width:44px; height:44px; flex:none; }
+.ring circle{ fill:none; stroke-width:5; }
+.ring .tr{ stroke:var(--track); } .ring .fg{ stroke:var(--tone); stroke-linecap:round; transform:rotate(-90deg); transform-origin:50% 50%; transition:stroke-dashoffset 600ms var(--e-in); }
+.ring .nm{ stroke:var(--text-strong); stroke-width:2; }
+.steps{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; margin-top:6px; }
+@media (max-width:760px){ .steps{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+.stp{ position:relative; border:0; font:inherit; color:inherit; text-align:left; background:var(--surface-2); border-radius:10px; padding:10px 10px 12px; cursor:pointer; min-height:92px; display:flex; flex-direction:column; justify-content:space-between; transition:background 160ms var(--e-std), transform 200ms var(--e-in); }
+.stp:hover{ transform:translateY(-1px); } .stp[aria-pressed="true"]{ background:var(--text-strong); color:var(--bg); }
+.stp[aria-pressed="true"] .muted{ color:color-mix(in oklab, var(--bg) 70%, transparent); }
+.stp b{ font-size:22px; font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+.stp .lbl{ font-size:11.5px; line-height:1.3; padding-right:34px; }
+.stp .loss{ position:absolute; top:8px; right:8px; font-size:11px; font-weight:600; color:var(--crit); font-variant-numeric:tabular-nums; }
+.stp[aria-pressed="true"] .loss{ color:color-mix(in oklab, var(--crit) 55%, var(--bg)); }
+.stp:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.va-ins{ margin-top:14px; padding:14px 16px; border-radius:12px; background:var(--surface-2); display:grid; gap:12px; grid-template-columns:minmax(0,1fr); }
+@media (min-width:760px){ .va-ins{ grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); } }
+.va-ins h4{ margin:0 0 4px; font-size:15px; font-weight:600; color:var(--text-strong); }
+.va-ins p{ margin:0; font-size:13px; line-height:1.5; }
+.act-l{ display:flex; flex-direction:column; }
+.act-i{ display:grid; grid-template-columns:24px minmax(0,1fr) auto; gap:12px; align-items:start; padding:12px 0; border-top:1px solid var(--border); }
+.act-i:first-child{ border-top:0; padding-top:0; }
+.act-i b{ display:block; font-size:13.5px; font-weight:600; color:var(--text-strong); line-height:1.35; }
+.act-i span{ display:block; font-size:12.5px; color:var(--text-muted); margin-top:3px; line-height:1.4; }
+.sm-mult{ display:grid; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.sm1{ padding:12px; border-radius:10px; background:var(--surface-2); }
+.sm1 .k{ font-size:12px; color:var(--text-muted); display:flex; justify-content:space-between; }
+.sm1 .v{ font-size:18px; font-weight:600; color:var(--text-strong); letter-spacing:-.02em; margin:4px 0 2px; }
+
+/* ===================== B · ОТЧЁТ ===================== */
+.vb{ border-radius:20px; background:var(--surface); box-shadow:var(--lift); padding:clamp(20px, 4vw, 56px); }
+.vb-meta{ display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; font-size:12.5px; color:var(--text-muted); }
+.vb h2{ margin:14px 0 0; font-size:clamp(30px, 4.2vw, 52px); line-height:1.05; letter-spacing:-.035em; font-weight:600; color:var(--text-strong); max-width:980px; text-wrap:balance; }
+.vb h2 em{ font-style:normal; color:var(--crit); }
+.vb .lede{ margin:18px 0 0; font-size:18px; line-height:1.55; color:var(--text); max-width:760px; text-wrap:pretty; }
+.vb-cols{ display:grid; gap:28px; grid-template-columns:minmax(0,1fr); margin-top:36px; }
+@media (min-width:1000px){ .vb-cols{ grid-template-columns:minmax(0,1fr) 260px; } }
+.vb-fig{ margin:0; }
+.vb-fig figcaption{ font-size:13px; color:var(--text-muted); margin-top:10px; line-height:1.45; }
+.vb-side{ display:flex; flex-direction:column; gap:22px; }
+.note{ padding-left:14px; box-shadow:inset 1px 0 0 var(--border-strong); }
+.note b{ display:block; font-size:28px; font-weight:600; letter-spacing:-.025em; color:var(--text-strong); font-variant-numeric:tabular-nums; }
+.note > span{ display:block; font-size:13px; line-height:1.45; color:var(--text); margin-top:4px; }
+.vb-quote{ margin:40px 0 0; padding:28px; border-radius:16px; background:var(--surface-2); display:grid; gap:18px; grid-template-columns:minmax(0,1fr); }
+@media (min-width:900px){ .vb-quote{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
+.bub{ max-width:92%; padding:10px 14px; border-radius:14px; font-size:14px; line-height:1.45; }
+.bub.c{ background:var(--surface); box-shadow:var(--lift); border-bottom-left-radius:4px; }
+.bub.m{ background:var(--primary-soft); margin-left:auto; border-bottom-right-radius:4px; }
+.bub small{ display:block; font-size:11.5px; color:var(--text-muted); margin-top:4px; }
+.chat{ display:flex; flex-direction:column; gap:8px; }
+.vb-three{ display:grid; gap:18px; grid-template-columns:minmax(0,1fr); margin-top:40px; }
+@media (min-width:900px){ .vb-three{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+.vb-three .n{ font-size:13px; font-weight:600; color:var(--text-muted); }
+.vb-three h5{ margin:6px 0 6px; font-size:17px; line-height:1.3; font-weight:600; color:var(--text-strong); letter-spacing:-.01em; }
+.vb-three p{ margin:0; font-size:13.5px; line-height:1.5; }
+
+/* ===================== C · ПОТОК ===================== */
+.vc-top{ display:grid; gap:14px; grid-template-columns:minmax(0,1fr); }
+@media (min-width:1000px){ .vc-top{ grid-template-columns:minmax(0,1fr) 340px; } }
+.sankey svg{ display:block; width:100%; height:auto; overflow:visible; }
+.sankey .band{ transition:opacity 200ms var(--e-std); cursor:pointer; }
+.sankey.hl .band{ opacity:.18; } .sankey.hl .band.on{ opacity:1; }
+.sankey text{ font-family:var(--font-sans); }
+.sk-n{ fill:var(--text-strong); font-size:13px; font-weight:600; } .sk-s{ fill:var(--text-muted); font-size:11.5px; }
+.vc-side{ display:flex; flex-direction:column; gap:12px; }
+.vc-say{ font-size:22px; line-height:1.25; font-weight:600; letter-spacing:-.02em; color:var(--text-strong); margin:6px 0 8px; }
+.vc-cards{ display:grid; gap:14px; grid-template-columns:minmax(0,1fr); margin-top:14px; }
+@media (min-width:760px){ .vc-cards{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (min-width:1150px){ .vc-cards{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+.rc{ display:flex; flex-direction:column; gap:10px; }
+.rc .top{ display:flex; gap:12px; align-items:center; }
+.rc .top b{ display:block; font-size:24px; font-weight:600; letter-spacing:-.025em; color:var(--text-strong); }
+.rc .top span{ display:block; font-size:12.5px; color:var(--text-muted); }
+.rc p{ margin:0; font-size:13px; line-height:1.5; }
+
+/* ===================== ДИЗАЙН-СИСТЕМА ===================== */
+.ds{ margin-top:72px; }
+.ds > header h2{ margin:0; font-size:32px; letter-spacing:-.03em; font-weight:600; color:var(--text-strong); }
+.ds > header p{ margin:8px 0 0; color:var(--text); max-width:780px; font-size:14.5px; line-height:1.55; }
+.ds-sec{ margin-top:36px; }
+.ds-sec > h3{ margin:0 0 12px; font-size:13px; font-weight:600; color:var(--text-muted); letter-spacing:.06em; text-transform:uppercase; display:flex; gap:10px; align-items:baseline; }
+.ds-sec > h3 small{ text-transform:none; letter-spacing:0; font-weight:400; }
+.ds-grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); }
+.ds-row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.sw{ border-radius:12px; overflow:hidden; box-shadow:var(--lift); background:var(--surface); }
+.sw i{ display:block; height:56px; }
+.sw div{ padding:8px 10px; font-size:12px; } .sw code{ font-size:11px; color:var(--text-muted); font-family:var(--font-sans); }
+.ty{ display:grid; grid-template-columns:120px minmax(0,1fr); gap:16px; align-items:baseline; padding:10px 0; border-top:1px solid var(--border); }
+.ty code{ font-size:12px; color:var(--text-muted); font-family:var(--font-sans); }
+.rad{ display:flex; gap:12px; flex-wrap:wrap; }
+.rad div{ width:88px; height:64px; background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--border-strong); display:grid; place-items:end start; padding:6px 8px; font-size:11.5px; color:var(--text-muted); }
+.dep{ display:flex; gap:16px; flex-wrap:wrap; }
+.dep div{ width:150px; height:84px; border-radius:12px; background:var(--surface); display:grid; place-items:end start; padding:8px 10px; font-size:12px; color:var(--text-muted); }
+.mo{ display:grid; gap:10px; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); }
+.mo .card{ padding:14px; }
+.mo-track{ height:36px; border-radius:8px; background:var(--surface-2); position:relative; margin-top:10px; overflow:hidden; }
+.mo-dot{ position:absolute; top:6px; left:6px; width:24px; height:24px; border-radius:6px; background:var(--text-strong); transition:transform 520ms var(--c); }
+.mo .card:hover .mo-dot{ transform:translateX(calc(var(--w, 220px) - 36px)); }
+.field{ display:flex; flex-direction:column; gap:6px; min-width:220px; }
+.field label{ font-size:12.5px; font-weight:500; color:var(--text-strong); }
+.field .hint{ font-size:12px; color:var(--text-muted); } .field .err{ font-size:12px; color:var(--crit); }
+.in{ height:38px; border-radius:8px; border:0; background:var(--surface); box-shadow:inset 0 0 0 1px var(--border-strong); padding:0 12px; font:inherit; font-size:16px; color:var(--text-strong); transition:box-shadow 160ms var(--e-std); }
+@media (min-width:760px){ .in{ font-size:14px; } }
+.in:hover{ box-shadow:inset 0 0 0 1px var(--text-muted); } .in:focus{ outline:none; box-shadow:inset 0 0 0 1px var(--primary), 0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent); }
+.in.bad{ box-shadow:inset 0 0 0 1px var(--crit); }
+.srch{ position:relative; } .srch .in{ padding-left:34px; padding-right:44px; width:100%; }
+.srch svg{ position:absolute; left:11px; top:11px; color:var(--text-muted); } .srch .kbd{ position:absolute; right:9px; top:9px; }
+.sw-t{ position:relative; width:40px; height:24px; border-radius:12px; background:var(--border-strong); border:0; cursor:pointer; transition:background 200ms var(--e-std); flex:none; }
+.sw-t::after{ content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.25); transition:transform 200ms var(--e-in); }
+.sw-t[aria-checked="true"]{ background:var(--ok); } .sw-t[aria-checked="true"]::after{ transform:translateX(16px); }
+.sw-t:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.chk{ display:inline-flex; gap:8px; align-items:center; font-size:13.5px; cursor:pointer; }
+.chk input{ width:18px; height:18px; accent-color:var(--action); }
+input[type=range].rng{ width:220px; accent-color:var(--action); }
+.meter{ height:8px; border-radius:4px; background:var(--track); position:relative; overflow:hidden; }
+.meter i{ position:absolute; inset:0 auto 0 0; border-radius:4px; background:var(--tone, var(--ok)); transform-origin:left; animation:grow 700ms var(--e-in) both; }
+.bullet{ position:relative; height:26px; }
+.bullet .z{ position:absolute; top:6px; bottom:6px; left:0; right:0; border-radius:4px; background:linear-gradient(90deg, var(--crit-soft) 0 40%, var(--warn-soft) 40% 70%, var(--ok-soft) 70%); }
+.bullet .v{ position:absolute; top:10px; bottom:10px; left:0; border-radius:3px; background:var(--text-strong); transform-origin:left; animation:grow 700ms var(--e-in) both; }
+.bullet .t{ position:absolute; top:3px; bottom:3px; width:2px; background:var(--text-strong); }
+.tbl{ width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
+.tbl th{ position:sticky; top:0; background:var(--surface); text-align:left; font-weight:500; font-size:12px; color:var(--text-muted); padding:10px 12px; box-shadow:inset 0 -1px 0 var(--border); }
+.tbl td{ padding:11px 12px; border-top:1px solid var(--border); }
+.tbl tbody tr{ transition:background 120ms; } .tbl tbody tr:hover{ background:var(--surface-2); }
+.tbl tbody tr[aria-selected="true"]{ background:color-mix(in oklab, var(--primary) 8%, var(--surface)); }
+.tbl .r{ text-align:right; font-variant-numeric:tabular-nums; }
+.tabs{ display:flex; gap:20px; box-shadow:inset 0 -1px 0 var(--border); position:relative; }
+.tabs button{ border:0; background:none; font:inherit; font-size:13.5px; font-weight:500; color:var(--text-muted); padding:10px 0; cursor:pointer; }
+.tabs button[aria-selected="true"]{ color:var(--text-strong); }
+.tabs .ink{ position:absolute; bottom:0; left:0; height:2px; width:1px; background:var(--text-strong); transform-origin:left; transition:transform 250ms var(--e-std); }
+.acc{ border-radius:12px; box-shadow:var(--lift); background:var(--surface); overflow:hidden; }
+.acc button{ width:100%; display:flex; justify-content:space-between; align-items:center; border:0; background:none; font:inherit; font-size:14px; font-weight:500; color:var(--text-strong); padding:14px 16px; cursor:pointer; text-align:left; }
+.acc button svg{ transition:transform 250ms var(--e-std); }
+.acc button[aria-expanded="true"] svg{ transform:rotate(180deg); }
+.acc .pn{ display:grid; grid-template-rows:0fr; transition:grid-template-rows 300ms var(--e-std); }
+.acc .pn > div{ overflow:hidden; } .acc .pn > div > p{ margin:0; padding:0 16px 14px; font-size:13.5px; line-height:1.55; }
+.acc .pn.open{ grid-template-rows:1fr; }
+.acc + .acc{ margin-top:8px; }
+.alert{ display:flex; gap:12px; padding:14px 16px; border-radius:12px; background:var(--surface-2); font-size:13.5px; line-height:1.5; }
+.alert.crit{ background:var(--crit-soft); } .alert.ok{ background:var(--ok-soft); } .alert.warn{ background:var(--warn-soft); }
+.alert svg{ flex:none; color:var(--tone, var(--text-muted)); margin-top:1px; }
+.alert b{ color:var(--text-strong); }
+.sk{ border-radius:6px; background:linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3, var(--border)) 50%, var(--surface-2) 100%); background-size:200% 100%; animation:shim 1.4s linear infinite; }
+@keyframes shim{ to{ background-position:-200% 0; } }
+.empty{ text-align:center; padding:28px 16px; } .empty b{ display:block; font-size:15px; color:var(--text-strong); margin-top:10px; } .empty span{ display:block; font-size:13px; color:var(--text-muted); margin-top:4px; }
+.av{ width:32px; height:32px; flex:none; font-size:11px !important; letter-spacing:0; border-radius:50%; display:inline-grid; place-items:center; font-size:12px; font-weight:600; color:var(--text-strong); background:var(--surface-2); box-shadow:0 0 0 2px var(--surface); }
+.avs{ display:flex; } .avs .av + .av{ margin-left:-6px; }
+.crumbs{ display:flex; gap:8px; align-items:center; font-size:13px; color:var(--text-muted); } .crumbs b{ color:var(--text-strong); font-weight:500; }
+.pg{ display:flex; gap:4px; } .pg button{ min-width:32px; height:32px; border-radius:8px; border:0; background:none; font:inherit; font-size:13px; color:var(--text); cursor:pointer; } .pg button[aria-current="page"]{ background:var(--text-strong); color:var(--bg); } .pg button:hover:not([aria-current]){ background:var(--surface-2); }
+.tl{ list-style:none; margin:0; padding:0; } .tl li{ position:relative; padding:0 0 16px 22px; font-size:13px; line-height:1.45; } .tl li::before{ content:""; position:absolute; left:4px; top:5px; width:8px; height:8px; border-radius:50%; background:var(--tone, var(--neutral-bar)); }
+.tl li::after{ content:""; position:absolute; left:7.5px; top:16px; bottom:2px; width:1px; background:var(--border); } .tl li:last-child::after{ display:none; } .tl b{ color:var(--text-strong); font-weight:600; } .tl small{ display:block; color:var(--text-muted); font-size:12px; }
+
+/* стеклянные слои: подсказка, панель, палитра команд, уведомление */
+.glass{ background:var(--glass-bg); -webkit-backdrop-filter:blur(20px) saturate(160%); backdrop-filter:blur(20px) saturate(160%); box-shadow:var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,.16), 0 0 0 1px var(--glass-border); }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){ .glass{ background:var(--surface); } }
+@media (prefers-reduced-transparency:reduce){ .glass{ background:var(--surface) !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; } }
+.tip{ position:fixed; z-index:80; pointer-events:none; padding:10px 12px; border-radius:10px; font-size:12.5px; line-height:1.45; max-width:260px; opacity:0; transform:translateY(4px); transition:opacity 160ms var(--e-out), transform 160ms var(--e-out); }
+.tip.on{ opacity:1; transform:none; } .tip b{ color:var(--text-strong); }
+.toast{ position:fixed; right:18px; bottom:18px; z-index:90; display:flex; gap:10px; align-items:center; padding:12px 14px; border-radius:12px; font-size:13.5px; transform:translateY(12px); opacity:0; transition:transform 300ms var(--e-in), opacity 200ms; pointer-events:none; }
+.toast.on{ transform:none; opacity:1; } .toast svg path{ stroke-dasharray:1; stroke-dashoffset:1; } .toast.on svg path{ animation:draw 400ms var(--e-in) 120ms forwards; }
+.cmdk-bd{ position:fixed; inset:0; z-index:95; background:rgba(0,0,0,.28); opacity:0; pointer-events:none; transition:opacity 200ms; }
+.cmdk-bd.on{ opacity:1; pointer-events:auto; }
+.cmdk{ position:fixed; left:50%; top:14vh; z-index:96; width:min(600px, calc(100vw - 32px)); border-radius:16px; transform:translate(-50%, -8px) scale(.98); opacity:0; pointer-events:none; transition:transform 250ms var(--e-in), opacity 200ms; overflow:hidden; }
+.cmdk.on{ transform:translate(-50%, 0) scale(1); opacity:1; pointer-events:auto; }
+.cmdk input{ width:100%; border:0; background:transparent; font:inherit; font-size:16px; padding:16px 18px; color:var(--text-strong); outline:none; box-shadow:inset 0 -1px 0 var(--border); }
+.cmdk ul{ list-style:none; margin:0; padding:6px; max-height:320px; overflow:auto; }
+.cmdk li{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; font-size:14px; cursor:pointer; }
+.cmdk li[aria-selected="true"]{ background:color-mix(in oklab, var(--text-strong) 8%, transparent); }
+.cmdk li small{ color:var(--text-muted); font-size:12px; }
+.cmdk .grp{ padding:10px 12px 4px; font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:.06em; text-transform:uppercase; cursor:default; }
+.drw-bd{ position:fixed; inset:0; z-index:85; background:rgba(0,0,0,.25); opacity:0; pointer-events:none; transition:opacity 250ms; } .drw-bd.on{ opacity:1; pointer-events:auto; }
+.drw{ position:fixed; top:0; right:0; bottom:0; z-index:86; width:min(520px, 100vw); padding:24px; overflow:auto; transform:translateX(100%); transition:transform 300ms var(--e-in); visibility:hidden; outline:none; }
+.drw.on{ transform:none; visibility:visible; }
+.drw h3{ margin:0 80px 6px 0; font-size:22px; letter-spacing:-.02em; color:var(--text-strong); }
+</style>
+</head>
+<body>
+<div class="gx">
+  <div class="gx-top">
+    <b>Детализация 2.0 · 3 направления</b>
+    <div class="seg" id="s-cab" role="group" aria-label="Кабинет"><span class="pill"></span><button data-v="all" aria-pressed="true">оба кабинета</button><button data-v="NEW-B" aria-pressed="false">NEW-B</button><button data-v="OLD-G" aria-pressed="false">OLD-G</button></div>
+    <span class="sp"></span>
+    <button class="b sec sm" id="cmdk-open"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 3a6 6 0 1 0 0 12A6 6 0 0 0 9 3zM17 17l-3.7-3.7"/></svg>Поиск <span class="kbd">⌘</span><span class="kbd">K</span></button>
+    <button class="b gh sm ic" id="theme" aria-label="Сменить тему"></button>
+  </div>
+
+  <section class="gx-intro">
+    <div class="cap">На согласование · данные Авито по 20.09.2026</div>
+    <h1>Три направления одного экрана: выберите характер интерфейса</h1>
+    <p>Смысл и данные одинаковые, меняется подача. Во всех трёх: движение отвечает на действие, числа переходят к новым значениям при смене кабинета (попробуйте переключатель сверху), отлив под курсором на кликабельном, стекло только на слоях поверх контента, палитра команд на ⌘K. Ниже раздел дизайн-системы.</p>
+    <div class="vpick" id="vpick" role="group" aria-label="Направление">
+      <button class="vp lift" data-v="a" aria-pressed="true"><small>Направление A</small><b>Штаб</b><span>Как Linear и Vercel. Тёмный пульт, одна огромная цифра, плотный бенто, клавиатура. Для СЕО, который открывает экран каждое утро.</span></button>
+      <button class="vp lift" data-v="b" aria-pressed="false"><small>Направление B</small><b>Отчёт</b><span>Как годовой отчёт Stripe. Заголовок-вывод, аннотированный график, реальная переписка, три шага. Для разбора на планёрке и пересылки.</span></button>
+      <button class="vp lift" data-v="c" aria-pressed="false"><small>Направление C</small><b>Поток</b><span>Визуальный. Диаграмма потоков: куда уходит каждый клиент. Наведение подсвечивает путь. Для поиска узких мест.</span></button>
+    </div>
+  </section>
+
+  <div class="stage" id="stage"></div>
+
+  <section class="ds" id="ds">
+    <header><div class="cap">Контур DS · расширение для Детализации</div><h2>Дизайн-система</h2>
+      <p>Всё ниже живое: наведите, нажмите, переключите тему. Токены общие для трёх направлений, поэтому любое из них собирается из этих элементов, а новые экраны не требуют новых решений.</p></header>
+    <div id="ds-body"></div>
+  </section>
+</div>
+
+<div class="tip glass" id="tip" role="tooltip"></div>
+<div class="toast glass" id="toast" role="status" aria-live="polite"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="var(--ok)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M4 10.5 8 14l8-8.5"/></svg><span id="toast-t"></span></div>
+<div class="cmdk-bd" id="cmdk-bd"></div>
+<div class="cmdk glass" id="cmdk" role="dialog" aria-label="Палитра команд"><input id="cmdk-in" role="combobox" aria-expanded="true" aria-controls="cmdk-list" placeholder="Команда или раздел: «воронка», «тема», «NEW-B»"><ul id="cmdk-list" role="listbox"></ul></div>
+<div class="drw-bd" id="drw-bd"></div>
+<aside class="drw glass" id="drw" role="dialog" aria-modal="true" tabindex="-1"></aside>
+
+<script>
+/*__DATA__*/
+(function(){
+const D = window.PV, $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const nf = n => n == null ? '-' : String(Math.round(n * 10) / 10).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const CODES = Object.keys(D.cabs), COLOR = { 'NEW-B':'var(--cat-3)', 'OLD-G':'var(--cat-1)' };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wl = w => { const [y, n] = w.split('-W'); const d = new Date(Date.UTC(+y, 0, 4)); const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + (n - 1) * 7);
+  const f = x => String(x.getUTCDate()).padStart(2, '0') + '.' + String(x.getUTCMonth() + 1).padStart(2, '0'); return f(mon); };
+let CAB = 'all', VAR = 'a', STEP = 1;
+const cabs = () => CAB === 'all' ? CODES : [CAB];
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+const W = D.weeks.length - 1;
+function agg(f, i){ let num = 0, den = 0; cabs().forEach(c => { const r = D.cabs[c].series[i]; if(r[f] != null && r.n){ num += r[f] * r.n; den += r.n; } }); return den ? Math.round(num / den * 10) / 10 : null; }
+const fun = () => [0, 1, 2, 3, 4, 5].map(i => cabs().reduce((s, c) => s + D.cabs[c].fun.all[i], 0));
+const STG = ['Обращение', 'Вопрос по делу', 'Прислал размеры', 'Дал телефон', 'Макет, визит', 'Договор'];
+const STEP_SAY = ['Клиент не написал ничего по делу. Первое сообщение должно предлагать выбор.', 'Получил ответ и пропал. Возражений почти нет: это молчание, лечится дожимом 24 и 72 часа.',
+  'Прислал размеры, но не дал номер. Сразу после расчёта просить номер в обмен на макет.', 'Разговор ушёл в телефон, в чате не видно. Нужна связка с Bitrix24.', 'Макет есть, договора нет. Фиксация цены и оплата 70/30.'];
+
+/* ---------- переход числа: только при изменении, 450 мс, ease-out по кубу ---------- */
+const NUMS = new Map();
+function tick(root){
+  root.querySelectorAll('[data-n]').forEach(el => {
+    const key = el.dataset.key || el.dataset.n, to = parseFloat(el.dataset.n), from = NUMS.has(key) ? NUMS.get(key) : to, suf = el.dataset.suf || '';
+    NUMS.set(key, to);
+    if(from === to || reduce){ el.textContent = nf(to) + suf; return; }
+    const t0 = performance.now(), dur = 450;
+    const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = nf(Math.round((from + (to - from) * e) * 10) / 10) + suf; if(k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+}
+const N = (v, key, suf) => '<span class="num" data-n="' + (v == null ? 0 : v) + '" data-key="' + key + '" data-suf="' + (suf || '') + '">' + nf(v) + (suf || '') + '</span>';
+
+/* ---------- отлив под курсором ---------- */
+document.addEventListener('pointermove', e => { if(e.pointerType !== 'mouse') return; const el = e.target.closest('.spot'); if(!el) return;
+  const r = el.getBoundingClientRect(); el.style.setProperty('--mx', (e.clientX - r.left) + 'px'); el.style.setProperty('--my', (e.clientY - r.top) + 'px'); }, { passive:true });
+
+/* ---------- переключатель ---------- */
+function seg(el, onPick){
+  const pill = el.querySelector('.pill');
+  const place = () => { const b = el.querySelector('[aria-pressed="true"]'); if(!b || !pill) return; const r = el.getBoundingClientRect(), br = b.getBoundingClientRect();
+    pill.style.clipPath = 'inset(0 ' + (r.right - br.right - 3) + 'px 0 ' + (br.left - r.left - 3) + 'px round 7px)'; };
+  el.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); place(); onPick(b.dataset.v); });
+  new ResizeObserver(place).observe(el); requestAnimationFrame(place); return place;
+}
+
+/* ---------- кольцо и спарклайн ---------- */
+function ring(v, norm, tone){ const r = 18, c = 2 * Math.PI * r, p = Math.max(0, Math.min(100, v || 0)) / 100, a = norm / 100 * 360 - 90;
+  const nx = 22 + Math.cos(a * Math.PI / 180) * 18, ny = 22 + Math.sin(a * Math.PI / 180) * 18, nx2 = 22 + Math.cos(a * Math.PI / 180) * 12, ny2 = 22 + Math.sin(a * Math.PI / 180) * 12;
+  return '<svg class="ring ' + tone + '" viewBox="0 0 44 44" aria-hidden="true"><circle class="tr" cx="22" cy="22" r="' + r + '"/><circle class="fg" cx="22" cy="22" r="' + r + '" stroke-dasharray="' + c + '" stroke-dashoffset="' + (c * (1 - p)) + '"/><line class="nm" x1="' + nx2 + '" y1="' + ny2 + '" x2="' + nx + '" y2="' + ny + '"/></svg>'; }
+function spark(vals, color, w, h, fill){ w = w || 120; h = h || 36; const xs = vals.map((v, i) => [i, v]).filter(p => p[1] != null); if(xs.length < 2) return '';
+  const mx = Math.max(...xs.map(p => p[1]), 1), pts = xs.map(([i, v]) => [(i / (vals.length - 1)) * (w - 4) + 2, h - 3 - (v / mx) * (h - 8)]), d = 'M' + pts.map(p => p.map(x => x.toFixed(1)).join(' ')).join('L'), l = pts[pts.length - 1];
+  return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true" style="overflow:visible">' + (fill ? '<path d="' + d + 'L' + l[0] + ' ' + h + 'L' + pts[0][0] + ' ' + h + 'Z" fill="' + color + '" opacity=".1"/>' : '')
+    + '<path class="draw" pathLength="1" d="' + d + '" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><circle cx="' + l[0] + '" cy="' + l[1] + '" r="3" fill="' + color + '"/></svg>'; }
+const statusOf = (v, norm, up) => v == null ? 'na' : (up ? v >= norm : v <= norm) ? 'ok' : (up ? v >= norm * .7 : v <= norm * 1.3) ? 'warn' : 'crit';
+const HEALTH = [ ['fast', 'Скорость ответа', 70, true, 'ответов за 15 мин'], ['price', 'Цена в ответе', 85, true, 'назвали, когда спросили'], ['fu', 'Дожим', 30, true, 'вернулись к молчащему'], ['ph', 'Телефон', 20, true, 'клиент дал номер'] ];
+
+/* ===================== A · ШТАБ ===================== */
+function vA(){
+  const f = fun(), lost = f[1] - f[2];
+  const stats = HEALTH.map(([k, t, norm, up, sub], i) => { const v = agg(k, W), st = statusOf(v, norm, up), h = D.halves[k];
+    return '<div class="stat spot click rise" style="--i:' + (i + 3) + '" data-drill="' + k + '"><div class="k"><span>' + t + '</span><span class="st ' + st + '"><i class="dot ' + st + '"></i>' + ({ ok:'норма', warn:'близко', crit:'проблема', na:'нет' })[st] + '</span></div>'
+      + '<div style="display:flex;align-items:center;gap:12px">' + ring(v, norm, st) + '<div><div class="v">' + N(v, 'a' + k, '%') + '</div><div class="s muted">' + sub + ' · норма ' + norm + '%</div></div></div>'
+      + '<div class="s">' + (h[1] > h[0] + 2 ? 'Лучше' : h[1] < h[0] - 2 ? 'Хуже' : 'Без изменений') + ' за 8 недель: ' + nf(h[0]) + '% → ' + nf(h[1]) + '%</div></div>'; }).join('');
+  const steps = STG.map((s, i) => '<button class="stp" data-s="' + i + '" aria-pressed="' + (i === STEP + 1) + '"><span class="lbl muted">' + s + '</span>' + (i ? '<span class="loss">−' + nf(f[i - 1] - f[i]) + '</span>' : '') + '<b>' + N(f[i], 'af' + i) + '</b></button>').join('');
+  const multi = [['fu', 'Дожим'], ['fast', 'Ответ за 15 мин'], ['dz', 'Не дожали'], ['ph', 'Телефон']].map(([k, t]) => { const vals = D.weeks.map((_, i) => agg(k, i)), v = vals[W];
+    return '<div class="sm1"><div class="k"><span>' + t + '</span><span>8 нед.</span></div><div class="v">' + N(v, 'am' + k, '%') + '</div>' + spark(vals, 'var(--text-strong)', 150, 34, true) + '</div>'; }).join('');
+  $('stage').innerHTML = '<div class="va" data-theme="dark">'
+    + '<div class="va-head rise" style="--i:0"><div class="t"><span class="st crit"><i class="dot crit"></i>проблема</span><span>Неделя ' + wl(D.weeks[W]) + ' · ' + (CAB === 'all' ? 'оба кабинета' : CAB) + '</span></div><div class="t"><span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span> решения · <span class="kbd">⌘</span><span class="kbd">K</span> команды</div></div>'
+    + '<div class="va-grid">'
+    + '<div class="card c8 rise" style="--i:1"><div class="cap">Из обращений дошли до договора в чате</div><div class="hero-n"><span class="big">' + N(f[5], 'ah5') + '</span><span class="of">из ' + N(f[0], 'ah0') + '</span></div>'
+    + '<p class="hero-say">Отвечаем быстро и называем цену, но не ведём клиента дальше. ' + pct(lost, f[1]) + '% пропадают после первого ответа, а повторное касание упало с ' + nf(D.halves.fu[0]) + '% до ' + nf(D.halves.fu[1]) + '%.</p>'
+    + '<div class="ratio" role="img" aria-label="Куда ушли обращения">' + [[f[0] - f[1], 'var(--neutral-bar)'], [lost, 'var(--crit)'], [f[2] - f[3], 'var(--warn)'], [f[3] - f[5], 'var(--cat-3)'], [f[5], 'var(--ok)']].map((x, i) => '<i style="--i:' + i + ';flex:' + Math.max(x[0], 0.5) + ';background:' + x[1] + '"></i>').join('') + '</div>'
+    + '<div class="ratio-leg"><span><i style="background:var(--crit)"></i>пропали после ответа ' + lost + '</span><span><i style="background:var(--warn)"></i>размеры без телефона ' + (f[2] - f[3]) + '</span><span><i style="background:var(--cat-3)"></i>ушли в телефон ' + (f[3] - f[5]) + '</span><span><i style="background:var(--ok)"></i>договор ' + f[5] + '</span><span><i style="background:var(--neutral-bar)"></i>без вопроса ' + (f[0] - f[1]) + '</span></div></div>'
+    + '<div class="card c4 rise" style="--i:2"><div class="cap" style="margin-bottom:12px">3 решения на неделю</div><div class="act-l">'
+    + [['Дожим через 24 и 72 часа', 'вернуть 20% молчащих: +44 клиента до расчёта', 'fu'], ['Номер в обмен на фото и макет', '57% против 44% у «менеджер перезвонит»', 'ph'], ['На «а камень?» партнёр и крепление', 'второй по частоте вопрос клиентов', 'price']]
+      .map((a, i) => '<div class="act-i"><span class="kbd">' + (i + 1) + '</span><div><b>' + a[0] + '</b><span>' + a[1] + '</span></div><button class="b gh sm" data-drill="' + a[2] + '">открыть</button></div>').join('') + '</div></div>'
+    + '<div style="grid-column:1/-1"><div class="stats">' + stats + '</div></div>'
+    + '<div class="card c8 rise" style="--i:6"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap"><div class="cap">Воронка · нажмите на стадию</div><span class="muted" style="font-size:12px">8 недель · разметка диалогов, гипотеза</span></div><div class="steps" id="a-steps">' + steps + '</div><div class="va-ins" id="a-ins"></div></div>'
+    + '<div class="card c4 rise" style="--i:7"><div class="cap" style="margin-bottom:12px">Тренды</div><div class="sm-mult">' + multi + '</div></div>'
+    + '</div></div>';
+  const ins = () => { const s = STEP, f2 = fun(); $('a-ins').innerHTML = '<div><h4>' + STG[s] + ' → ' + STG[s + 1] + ': −' + nf(f2[s] - f2[s + 1]) + ' (' + pct(f2[s] - f2[s + 1], f2[s]) + '%)</h4><p>' + STEP_SAY[s] + '</p></div>'
+    + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><button class="b sec sm" data-drill="step">диалоги стадии</button><button class="b pri sm" data-copy="Здравствуйте! Посчитала два варианта для вашего размера: 40х60 и 50х70. Прислать фото, как они смотрятся на памятнике?">фраза в скрипт</button></div>'; };
+  $('a-steps').onclick = e => { const b = e.target.closest('[data-s]'); if(!b) return; const s = +b.dataset.s; STEP = Math.max(0, Math.min(4, s - 1));
+    $('a-steps').querySelectorAll('.stp').forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.s === STEP + 1))); ins(); };
+  ins();
+}
+
+/* ===================== B · ОТЧЁТ ===================== */
+function vB(){
+  const f = fun(), lost = f[1] - f[2];
+  const vals = D.weeks.map((_, i) => agg('fu', i)), fast = D.weeks.map((_, i) => agg('fast', i));
+  const Wd = 760, H = 300, L = 36, R = 16, T = 20, B = 30, n = vals.length, x = i => L + i * (Wd - L - R) / (n - 1), y = v => T + (1 - v / 100) * (H - T - B);
+  const path = arr => { let d = ''; arr.forEach((v, i) => { if(v == null) return; d += (d ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); }); return d; };
+  let g = [0, 50, 100].map(t => '<line x1="' + L + '" x2="' + (Wd - R) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="var(--grid)"/><text x="' + (L - 8) + '" y="' + (y(t) + 4) + '" text-anchor="end" font-size="11" fill="var(--text-muted)">' + t + '%</text>').join('');
+  g += '<rect x="' + L + '" y="' + y(100) + '" width="' + (Wd - L - R) + '" height="' + (y(30) - y(100)) + '" fill="var(--ok-soft)" opacity=".55"/>';
+  g += '<path class="draw" pathLength="1" d="' + path(fast) + '" fill="none" stroke="var(--cat-3)" stroke-width="2"/><path class="draw" pathLength="1" d="' + path(vals) + '" fill="none" stroke="var(--crit)" stroke-width="3" stroke-linecap="round"/>';
+  D.weeks.forEach((w, i) => { g += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="11" fill="var(--text-muted)">' + wl(w) + '</text>'; });
+  const ann = (i, v, txt, dy) => '<g><circle cx="' + x(i) + '" cy="' + y(v) + '" r="5" fill="var(--surface)" stroke="var(--text-strong)" stroke-width="2"/><line x1="' + x(i) + '" y1="' + y(v) + '" x2="' + x(i) + '" y2="' + (y(v) + dy) + '" stroke="var(--text-strong)"/><text x="' + (x(i) + (i === n - 1 ? -8 : 6)) + '" y="' + (y(v) + dy + (dy < 0 ? -4 : 14)) + '"' + (i === n - 1 ? ' text-anchor="end"' : '') + ' font-size="12" font-weight="600" fill="var(--text-strong)">' + txt + '</text></g>';
+  const i3 = 3, i7 = n - 1; g += ann(i3, vals[i3], 'пик дожима ' + nf(vals[i3]) + '%', -26) + ann(i7, vals[i7] || 0, 'сейчас ' + nf(vals[i7]) + '%', -34);
+  g += '<text x="' + (Wd - R) + '" y="' + (y(100) + 14) + '" text-anchor="end" font-size="11" fill="var(--ok)">зона нормы дожима: от 30%</text>';
+  $('stage').innerHTML = '<article class="vb rise"><div class="vb-meta"><span class="st crit"><i class="dot crit"></i>требует решения</span><span>Разбор недели ' + wl(D.weeks[W]) + '</span><span>' + (CAB === 'all' ? 'оба кабинета' : CAB) + '</span><span>данные Авито, разметка 1 355 диалогов</span></div>'
+    + '<h2>Клиенты уходят не из-за цены. <em>Мы перестали им писать второй раз.</em></h2>'
+    + '<p class="lede">Из ' + N(f[0], 'bf0') + ' обращений за 8 недель до договора в чате дошли ' + N(f[5], 'bf5') + '. ' + pct(lost, f[1]) + '% клиентов получают ответ и пропадают, и почти никто к ним не возвращается. Скорость ответа за это время выросла, а дожим упал в десять раз.</p>'
+    + '<div class="vb-cols"><figure class="vb-fig"><svg viewBox="0 0 ' + Wd + ' ' + H + '" style="width:100%;height:auto;overflow:visible" role="img" aria-label="Дожим и скорость по неделям">' + g + '</svg>'
+    + '<figcaption><b style="color:var(--crit)">Красная линия:</b> доля диалогов, где менеджер вернулся к молчащему клиенту. <b style="color:var(--cat-3)">Синяя:</b> ответ за 15 минут. Быстрее отвечаем, реже возвращаемся.</figcaption></figure>'
+    + '<aside class="vb-side"><div class="note"><b>' + N(D.halves.fu[0], 'bh0', '%') + ' → ' + N(D.halves.fu[1], 'bh1', '%') + '</b><span>повторное касание, первые 4 недели против последних 4</span></div>'
+    + '<div class="note"><b>' + N(pct(lost, f[1]), 'bl', '%') + '</b><span>пропадают после первого ответа, почти без возражений</span></div>'
+    + '<div class="note"><b>46-54%</b><span>пропадают после цены до 25 тыс. и после 120 тыс.: сумма не решает</span></div></aside></div>'
+    + '<div class="vb-quote"><div><div class="cap">Как это выглядит в чате</div><div class="chat" style="margin-top:12px"><div class="bub c">Добрый день. Сколько будет стоить памятник из стекла 60 на 120?<small>Клиент · 21:57</small></div><div class="bub m">Добрый день! Портрет 60х120, толщиной 22 мм от 53 400 р. Стоимость зависит от толщины, размеров и вида стекла.<small>Менеджер · 09:00</small></div><div class="bub c" style="opacity:.55">…<small>Клиент больше не написал. Второго сообщения не было.</small></div></div></div>'
+    + '<div><div class="cap">Как должно быть</div><div class="chat" style="margin-top:12px"><div class="bub m">Портрет 60х120 от 53 400 р. Для какого камня и к какой дате нужно?<small>Менеджер · 09:00</small></div><div class="bub m">Посчитала два варианта: 18 и 22 мм. Прислать фото, как они смотрятся на памятнике?<small>Менеджер · через 24 часа</small></div><div class="bub m">Руководство согласовало доп. скидку до пятницы, цену можем зафиксировать сейчас.<small>Менеджер · через 72 часа</small></div></div></div></div>'
+    + '<div class="vb-three">' + [['01', 'Дожим 24 и 72 часа', 'Каждое утро до 11:00 список «последнее слово наше больше суток». Цель: вернуться в 30% диалогов.'], ['02', 'Номер в обмен на пользу', 'Фото работ, макет, прайс в MAX. Прямая просьба приносит телефон в 57% случаев.'], ['03', 'Камень решаем партнёром', 'На «а камень, установка?» сразу мастерская в городе клиента и крепление к камню.']]
+      .map(a => '<div><span class="n">' + a[0] + '</span><h5>' + a[1] + '</h5><p>' + a[2] + '</p></div>').join('') + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:32px;flex-wrap:wrap"><button class="b pri" data-copy="Разбор недели: клиенты уходят не из-за цены, мы перестали писать второй раз.">Скопировать вывод для чата</button><button class="b sec" data-drill="fu">Подробнее о дожиме</button></div></article>';
+}
+
+/* ===================== C · ПОТОК ===================== */
+function vC(){
+  const f = fun(), RS = (D.stage_reasons[1] || []).filter(r => r[0] !== 'идёт'), rsSum = RS.reduce((s, r) => s + r[1], 0);
+  const Wd = 900, H = 440, colX = [20, 215, 410, 605, 800], nodeW = 14, maxH = 230, sc = maxH / f[0], base = H - 40;
+  const nodes = [0, 1, 2, 3, 5].map((si, k) => ({ si, x:colX[k], h:Math.max(3, f[si] * sc), y:40 }));
+  let g = '', bands = [];
+  const band = (x0, y0, h0, x1, y1, h1, col, key, title, op) => { const mx = (x0 + x1) / 2;
+    bands.push(key); return '<path class="band" data-k="' + key + '" data-t="' + esc(title) + '" d="M' + x0 + ' ' + y0 + ' C' + mx + ' ' + y0 + ' ' + mx + ' ' + y1 + ' ' + x1 + ' ' + y1 + ' L' + x1 + ' ' + (y1 + h1) + ' C' + mx + ' ' + (y1 + h1) + ' ' + mx + ' ' + (y0 + h0) + ' ' + x0 + ' ' + (y0 + h0) + ' Z" fill="' + col + '" fill-opacity="' + (op || .26) + '"/>'; };
+  g += '<line x1="0" x2="' + Wd + '" y1="' + (base + .5) + '" y2="' + (base + .5) + '" stroke="var(--grid)"/>';
+  for(let k = 0; k < nodes.length - 1; k++){ const a = nodes[k], b = nodes[k + 1], keep = b.h, drop = a.h - keep, lost = f[a.si] - f[b.si], hot = k === 1;
+    g += band(a.x + nodeW, a.y, keep, b.x, b.y, keep, 'var(--cat-3)', 'k' + k, STG[a.si] + ' → ' + STG[b.si] + ': ' + f[b.si] + ' из ' + f[a.si] + ' (' + pct(f[b.si], f[a.si]) + '%)');
+    if(lost > 0){ const ex = a.x + nodeW + 96, dh = Math.max(2, drop), ey = base - dh, col = hot ? 'var(--crit)' : 'var(--neutral-bar)';
+      g += band(a.x + nodeW, a.y + keep, dh, ex, ey, dh, col, 'd' + k, 'Ушли на шаге «' + STG[a.si] + '»: ' + lost + ' (' + pct(lost, f[a.si]) + '%)', hot ? .34 : .5);
+      g += '<rect x="' + ex + '" y="' + ey + '" width="4" height="' + dh + '" rx="1" fill="' + col + '"/>';
+      g += '<text class="sk-n" x="' + ex + '" y="' + (base + 20) + '"' + (hot ? ' style="fill:var(--crit)"' : '') + '>−' + nf(lost) + '</text><text class="sk-s" x="' + ex + '" y="' + (base + 35) + '">' + (hot ? 'пропали после ответа' : pct(lost, f[a.si]) + '% шага') + '</text>'; } }
+  nodes.forEach(nd => { g += '<rect x="' + nd.x + '" y="' + nd.y + '" width="' + nodeW + '" height="' + nd.h + '" rx="3" fill="var(--text-strong)"/><text class="sk-n" x="' + nd.x + '" y="' + (nd.y - 10) + '">' + nf(f[nd.si]) + '</text><text class="sk-s" x="' + (nd.x + nodeW + 6) + '" y="' + (nd.y + 12) + '">' + STG[nd.si] + '</text>'; });
+  const cards = HEALTH.map(([k, t, norm, up, sub], i) => { const v = agg(k, W), st = statusOf(v, norm, up);
+    return '<div class="card spot lift click rc rise" style="--i:' + (i + 2) + '" data-drill="' + k + '"><div class="top">' + ring(v, norm, st) + '<div><b>' + N(v, 'c' + k, '%') + '</b><span>' + t + ' · норма ' + norm + '%</span></div></div><p>' + sub + '. ' + (st === 'crit' ? 'Главная точка роста.' : st === 'ok' ? 'Сильная сторона.' : 'Близко к норме.') + '</p><span class="st ' + st + '"><i class="dot ' + st + '"></i>' + ({ ok:'в норме', warn:'близко к норме', crit:'проблема', na:'нет данных' })[st] + '</span></div>'; }).join('');
+  $('stage').innerHTML = '<div class="vc-top"><div class="card rise sankey" id="sk" style="--i:0"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div class="cap">Куда уходит каждый клиент · 8 недель</div><span class="muted" style="font-size:12px">наведите на поток</span></div><svg viewBox="0 0 ' + Wd + ' ' + H + '" role="img" aria-label="Поток клиентов по стадиям">' + g + '</svg></div>'
+    + '<div class="vc-side"><div class="card rise" style="--i:1"><div class="cap">Узкое место</div><div class="vc-say">' + pct(f[1] - f[2], f[1]) + '% клиентов теряем между вопросом и размерами</div><p style="margin:0;font-size:13.5px;line-height:1.5">Из них по разметке: ' + RS.slice(0, 3).map(r => ({ silent:'пропали молча', not_now:'не сейчас', mismatch:'нужно другое', unknown:'непонятно' })[r[0]] + ' ' + r[1]).join(', ') + '.</p>'
+    + '<div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">' + RS.slice(0, 4).map(r => '<div><div style="display:flex;justify-content:space-between;font-size:12.5px"><span>' + ({ silent:'пропали молча', not_now:'не сейчас', mismatch:'нужно другое', unknown:'непонятно' })[r[0]] + '</span><b class="num">' + r[1] + '</b></div><div class="meter" style="--tone:' + (r[0] === 'silent' ? 'var(--crit)' : 'var(--neutral-bar)') + '"><i style="width:' + pct(r[1], rsSum) + '%"></i></div></div>').join('') + '</div>'
+    + '<button class="b pri" style="margin-top:16px;width:100%;justify-content:center" data-drill="fu">Как вернуть этих клиентов</button></div></div></div>'
+    + '<div class="vc-cards">' + cards + '</div>';
+  const sk = $('sk'); sk.querySelectorAll('.band').forEach(p => { p.addEventListener('pointerenter', e => { sk.classList.add('hl'); p.classList.add('on'); tipShow(e, '<b>' + esc(p.dataset.t) + '</b>'); });
+    p.addEventListener('pointermove', e => tipMove(e)); p.addEventListener('pointerleave', () => { sk.classList.remove('hl'); p.classList.remove('on'); tipHide(); }); });
+}
+
+/* ---------- подсказка, уведомление, панель, палитра команд ---------- */
+function tipShow(e, html){ const t = $('tip'); t.innerHTML = html; t.classList.add('on'); tipMove(e); }
+function tipMove(e){ const t = $('tip'); t.style.left = Math.min(innerWidth - 280, e.clientX + 14) + 'px'; t.style.top = (e.clientY + 14) + 'px'; }
+function tipHide(){ $('tip').classList.remove('on'); }
+document.addEventListener('pointerover', e => { const el = e.target.closest('[data-tip]'); if(el) tipShow(e, el.dataset.tip); });
+document.addEventListener('pointerout', e => { if(e.target.closest('[data-tip]')) tipHide(); });
+function toast(t){ $('toast-t').textContent = t; const el = $('toast'); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2800); }
+document.addEventListener('click', e => { const c = e.target.closest('[data-copy]'); if(c){ (navigator.clipboard ? navigator.clipboard.writeText(c.dataset.copy) : Promise.reject()).then(() => toast('Скопировано в буфер'), () => toast('Скопируйте текст вручную')); }
+  const d = e.target.closest('[data-drill]'); if(d && !c) drawer(d.dataset.drill, d); });
+const DRILL = { fu:['Дожим', 'Доля диалогов, где менеджер сам вернулся к молчащему клиенту через 20+ часов.', 'Через 24 часа новый повод: второй вариант размера, фото, звонок. Через 72 часа вторая часть скидки с дедлайном.'],
+  fast:['Скорость ответа', 'Доля клиентов, получивших живой ответ за 15 рабочих минут.', 'Дежурный на кабинет и шаблон первого ответа: цена «от», 2-3 размера, один вопрос.'],
+  price:['Цена в ответе', 'Назвали ли сумму, когда клиент спросил цену.', 'Вилка из 2-3 реальных размеров и один вопрос. Не спорить о цене конкурента.'],
+  ph:['Телефон клиента', 'Доля обращений, где клиент прислал номер.', 'Просить номер прямо, в обмен на фото работ и макет. Не «менеджер перезвонит».'],
+  step:['Диалоги стадии', 'В чистовике здесь список реальных диалогов со ссылками в Авито.', 'Демо показывает механику панели.'] };
+let lastF = null;
+function drawer(k, from){ const d = DRILL[k] || DRILL.step; lastF = from; const vals = D.weeks.map((_, i) => agg(k === 'step' ? 'fu' : k, i));
+  $('drw').innerHTML = '<button class="b sec sm" style="position:absolute;top:18px;right:18px" id="drw-x">закрыть <span class="kbd">Esc</span></button><div class="cap">Показатель</div><h3>' + d[0] + '</h3><p style="font-size:15px;line-height:1.55;color:var(--text-strong);font-weight:500">' + d[1] + '</p>'
+    + '<div class="card" style="margin:16px 0">' + spark(vals, 'var(--text-strong)', 460, 120, true) + '<div class="muted" style="font-size:12px;margin-top:6px">8 недель, ' + (CAB === 'all' ? 'оба кабинета' : CAB) + '</div></div>'
+    + '<div class="cap" style="margin:18px 0 8px">Что делать</div><div class="alert ok"><div>' + d[2] + '</div></div>';
+  $('drw').classList.add('on'); $('drw-bd').classList.add('on'); $('drw').focus(); $('drw-x').onclick = closeD; }
+function closeD(){ $('drw').classList.remove('on'); $('drw-bd').classList.remove('on'); if(lastF && lastF.focus) lastF.focus(); }
+$('drw-bd').onclick = closeD;
+const CMDS = [ ['Направления', 'Направление A · Штаб', () => pick('a'), '1'], ['Направления', 'Направление B · Отчёт', () => pick('b'), '2'], ['Направления', 'Направление C · Поток', () => pick('c'), '3'],
+  ['Кабинет', 'Оба кабинета', () => cabSet('all')], ['Кабинет', 'NEW-B', () => cabSet('NEW-B')], ['Кабинет', 'OLD-G', () => cabSet('OLD-G')],
+  ['Показатели', 'Открыть: дожим', () => drawer('fu')], ['Показатели', 'Открыть: скорость ответа', () => drawer('fast')], ['Действия', 'Сменить тему', () => themeToggle(), 'T'], ['Действия', 'К дизайн-системе', () => $('ds').scrollIntoView({ behavior:reduce ? 'auto' : 'smooth' })] ];
+let CI = 0, CL = CMDS;
+function cmdkDraw(){ const q = $('cmdk-in').value.toLowerCase().replace(/ё/g, 'е').split(/\s+/).filter(Boolean);
+  CL = CMDS.filter(c => q.every(w => (c[0] + ' ' + c[1]).toLowerCase().replace(/ё/g, 'е').includes(w))); CI = Math.min(CI, Math.max(0, CL.length - 1)); let g = '';
+  $('cmdk-list').innerHTML = CL.map((c, i) => (c[0] !== g ? (g = c[0], '<li class="grp" role="presentation">' + c[0] + '</li>') : '') + '<li role="option" data-i="' + i + '" aria-selected="' + (i === CI) + '"><span>' + c[1] + '</span>' + (c[3] ? '<span class="kbd">' + c[3] + '</span>' : '') + '</li>').join('') || '<li class="grp">ничего не нашлось</li>'; }
+function cmdk(open){ $('cmdk').classList.toggle('on', open); $('cmdk-bd').classList.toggle('on', open); if(open){ $('cmdk-in').value = ''; CI = 0; cmdkDraw(); setTimeout(() => $('cmdk-in').focus(), 30); } }
+$('cmdk-open').onclick = () => cmdk(true); $('cmdk-bd').onclick = () => cmdk(false);
+$('cmdk-in').oninput = cmdkDraw;
+$('cmdk-in').onkeydown = e => { if(e.key === 'ArrowDown'){ CI = Math.min(CL.length - 1, CI + 1); cmdkDraw(); e.preventDefault(); } if(e.key === 'ArrowUp'){ CI = Math.max(0, CI - 1); cmdkDraw(); e.preventDefault(); } if(e.key === 'Enter' && CL[CI]){ cmdk(false); CL[CI][2](); } };
+$('cmdk-list').onclick = e => { const li = e.target.closest('[data-i]'); if(li){ cmdk(false); CL[+li.dataset.i][2](); } };
+window.addEventListener('keydown', e => { const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+  if((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'л')){ e.preventDefault(); e.stopImmediatePropagation(); cmdk(!$('cmdk').classList.contains('on')); }
+  else if(e.key === 'Escape'){ cmdk(false); closeD(); }
+  else if(!typing && ['1', '2', '3'].includes(e.key)) pick(['a', 'b', 'c'][+e.key - 1]); else if(!typing && e.key.toLowerCase() === 't') themeToggle(); }, true);
+
+/* ---------- смена направления: переход состояний, если поддерживается ---------- */
+const RENDER = { a:vA, b:vB, c:vC };
+function render(){ RENDER[VAR](); tick($('stage')); }
+function pick(v){ VAR = v; document.querySelectorAll('#vpick .vp').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+  if(document.startViewTransition && !reduce){ const t = document.startViewTransition(render); t.ready && t.ready.catch(() => {}); } else render(); }
+$('vpick').onclick = e => { const b = e.target.closest('[data-v]'); if(b) pick(b.dataset.v); };
+let cabPlace = seg($('s-cab'), v => { CAB = v; render(); });
+function cabSet(v){ CAB = v; $('s-cab').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); cabPlace(); render(); }
+function themeToggle(){ const go = () => { KS.theme.toggle(); $('theme').innerHTML = KS.theme.icon(); };
+  if(document.startViewTransition && !reduce){ const t = document.startViewTransition(go); t.ready && t.ready.catch(() => {}); } else go(); }
+$('theme').onclick = themeToggle;
+KS.theme.init(); $('theme').innerHTML = KS.theme.icon();
+
+/* ===================== ДИЗАЙН-СИСТЕМА ===================== */
+function ds(){
+  const sec = (t, sub, body) => '<div class="ds-sec"><h3>' + t + (sub ? ' <small>' + sub + '</small>' : '') + '</h3>' + body + '</div>';
+  const tok = [['--bg', 'фон'], ['--surface', 'поверхность'], ['--surface-2', 'поднятый слой'], ['--border', 'граница'], ['--text-strong', 'текст сильный'], ['--text', 'текст'], ['--text-muted', 'приглушённый'], ['--action', 'основная кнопка'],
+    ['--primary', 'акцент, фокус'], ['--ok', 'успех'], ['--warn', 'внимание'], ['--crit', 'критично'], ['--cat-1', 'серия 1'], ['--cat-2', 'серия 2'], ['--cat-3', 'серия 3'], ['--cat-4', 'серия 4'], ['--cat-5', 'серия 5'], ['--neutral-bar', 'нейтральная серия'], ['--grid', 'сетка графика'], ['--focus', 'кольцо фокуса']];
+  const colors = '<div class="ds-grid" style="grid-template-columns:repeat(auto-fill,minmax(108px,1fr))">' + tok.map(t => '<div class="sw"><i style="background:var(' + t[0] + ');' + (t[0].includes('bg') || t[0].includes('surface') ? 'box-shadow:inset 0 -1px 0 var(--border)' : '') + '"></i><div>' + t[1] + '<br><code>' + t[0] + '</code></div></div>').join('') + '</div>';
+  const type = [['Число-герой', 'font-size:64px;font-weight:600;letter-spacing:-.045em;line-height:1', '5 из 417'], ['Заголовок экрана', 'font-size:32px;font-weight:600;letter-spacing:-.03em', 'Клиенты уходят не из-за цены'], ['Заголовок блока', 'font-size:20px;font-weight:600;letter-spacing:-.015em', 'Воронка от обращения до договора'],
+    ['Ключевая фраза', 'font-size:15.5px;font-weight:500;color:var(--text-strong)', 'Дожим упал с 24,6% до 2,2%'], ['Текст', 'font-size:14px;line-height:1.55', 'Клиент получил ответ и не получил второго сообщения.'], ['Служебный', 'font-size:12px;color:var(--text-muted)', 'неделя 14.09-20.09 · 51 обращение'],
+    ['Подпись раздела', 'font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)', 'Что делать'], ['Таблица, цифры', 'font-size:13px;font-variant-numeric:tabular-nums', '1 355 · 52 600 ₽ · 86,7%']]
+    .map(t => '<div class="ty"><code>' + t[0] + '</code><div style="' + t[1] + '">' + t[2] + '</div></div>').join('');
+  const motion = [['Вход', 'cubic-bezier(.2,.8,.2,1)', 'появление, панели, числа'], ['Выход', 'cubic-bezier(.4,0,1,1)', 'закрытие, уход'], ['Стандарт', 'cubic-bezier(.4,0,.2,1)', 'плашки, аккордеон'], ['Линейная', 'linear', 'только загрузка']]
+    .map(m => '<div class="card lift"><b style="font-size:14px;color:var(--text-strong)">' + m[0] + '</b><div class="muted" style="font-size:12px">' + m[1] + ' · ' + m[2] + '</div><div class="mo-track"><div class="mo-dot" style="--c:' + m[1] + '"></div></div><div class="muted" style="font-size:11.5px;margin-top:6px">наведите</div></div>').join('');
+  const sp = D.weeks.map((_, i) => agg('fast', i));
+  $('ds-body').innerHTML =
+    sec('Цвет', 'нейтрали без синевы, цвет только как сигнал, серии графиков прошли валидатор в обеих темах', colors)
+    + sec('Типографика', 'Golos Text, на Apple системный SF; табличные цифры; 600 для заголовков', '<div class="card">' + type + '</div>')
+    + sec('Радиусы и глубина', 'роли: поле 6, пункт 8, коробка 12, панель 16', '<div class="ds-row" style="gap:28px"><div class="rad"><div style="border-radius:4px">клавиша 4</div><div style="border-radius:6px">поле 6</div><div style="border-radius:8px">пункт 8</div><div style="border-radius:12px">коробка 12</div><div style="border-radius:16px">панель 16</div></div><div class="dep"><div style="box-shadow:inset 0 0 0 1px var(--border)">плоско</div><div style="box-shadow:var(--lift)">поднято</div><div style="box-shadow:var(--lift-hi)">при наведении</div><div class="glass">стекло: только поверх</div></div></div>')
+    + sec('Движение', 'transform, opacity, clip-path, stroke-dashoffset, grid-template-rows; без пружин; «меньше движения» выключает всё', '<div class="mo">' + motion + '</div>')
+    + sec('Кнопки', 'одна основная на экран', '<div class="ds-row"><button class="b pri">Основная</button><button class="b sec">Вторичная</button><button class="b gh">Призрачная</button><button class="b dan">Удалить</button><button class="b sec" disabled>Недоступна</button><button class="b pri" id="load-b"><span class="spin" hidden></span><span>Выгрузить CSV</span></button><button class="b sec sm">Малая</button><button class="b sec ic" aria-label="Настройки" data-tip="<b>Настройки</b><br>Подсказка по наведению и фокусу"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M15.8 4.2l-1.4 1.4M5.6 14.4l-1.4 1.4"/></svg></button></div>')
+    + sec('Поля и выбор', 'поле 16 пикселей на телефоне, фокус кольцом', '<div class="ds-row" style="align-items:flex-start;gap:20px"><div class="field"><label for="f1">Кабинет</label><input class="in" id="f1" value="NEW-B"><span class="hint">Код кабинета в отчёте</span></div>'
+      + '<div class="field"><label for="f2">Норма дожима, %</label><input class="in bad" id="f2" value="300"><span class="err">Не больше 100%</span></div><div class="field" style="min-width:280px"><label for="f3">Поиск диалога</label><div class="srch"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 3a6 6 0 1 0 0 12A6 6 0 0 0 9 3zM17 17l-3.7-3.7"/></svg><input class="in" id="f3" placeholder="ID чата или слово"><span class="kbd">/</span></div></div></div>'
+      + '<div class="ds-row" style="margin-top:18px;gap:24px"><span class="ds-row" style="gap:10px"><button class="sw-t" role="switch" aria-checked="true" aria-label="Уведомления"></button><span style="font-size:13.5px">Уведомлять о клиенте, который ждёт</span></span><label class="chk"><input type="checkbox" checked>Только B2B</label><label class="chk"><input type="radio" name="r" checked>8 недель</label><label class="chk"><input type="radio" name="r">неделя</label><input type="range" class="rng" value="30" aria-label="Порог"><div class="seg" id="ds-seg"><span class="pill"></span><button data-v="1" aria-pressed="true">день</button><button data-v="2" aria-pressed="false">неделя</button><button data-v="3" aria-pressed="false">месяц</button></div></div>')
+    + sec('Статусы и метки', 'точка и слово, цвет не единственный носитель смысла', '<div class="ds-row"><span class="st ok"><i class="dot ok"></i>в норме</span><span class="st warn"><i class="dot warn"></i>близко к норме</span><span class="st crit"><i class="dot crit"></i>проблема</span><span class="st na"><i class="dot na"></i>нет данных</span><span class="bdg">гипотеза</span><span class="bdg"><i class="dot ok"></i>данные</span><span class="dl good">+16,5</span><span class="dl bad">−22,4</span><span class="kbd">⌘</span><span class="kbd">K</span><span class="avs"><span class="av">ЮМ</span><span class="av">ВК</span><span class="av">+2</span></span></div>')
+    + sec('Показатели', 'плитка, кольцо, спарклайн, шкала против нормы, прогресс', '<div class="ds-grid"><div class="card spot lift"><div class="cap">Ответ за 15 мин</div><div style="font-size:30px;font-weight:600;letter-spacing:-.025em;color:var(--text-strong)" class="num">60,6%</div><div class="ds-row" style="justify-content:space-between"><span class="dl good">+22,2</span>' + spark(sp, 'var(--cat-3)', 100, 30, true) + '</div></div>'
+      + '<div class="card"><div class="cap">Кольцо против нормы</div><div class="ds-row" style="margin-top:10px">' + ring(2, 30, 'crit') + ring(61, 70, 'warn') + ring(86, 85, 'ok') + '</div><div class="muted" style="font-size:12px;margin-top:8px">риска на кольце: норма</div></div>'
+      + '<div class="card"><div class="cap">Шкала против нормы</div><div class="bullet" style="margin-top:12px"><div class="z"></div><div class="v" style="width:61%"></div><div class="t" style="left:70%"></div></div><div class="muted" style="font-size:12px">61% при норме 70%: зоны плохо, близко, норма</div></div>'
+      + '<div class="card"><div class="cap">Прогресс</div><div class="meter ok" style="margin-top:14px"><i style="width:57%"></i></div><div class="meter crit" style="margin-top:10px"><i style="width:7%"></i></div><div class="muted" style="font-size:12px;margin-top:8px">57% телефон · 7% дожим</div></div></div>')
+    + sec('Таблица', 'липкая шапка, строки с наведением и выбором, табличные цифры', '<div class="card" style="padding:0;overflow:auto;max-height:260px"><table class="tbl"><thead><tr><th>Кабинет</th><th>Неделя</th><th class="r">Обращений</th><th class="r">Ответ за 15 мин</th><th>Статус</th></tr></thead><tbody>'
+      + CODES.flatMap(c => D.cabs[c].series.slice(-4).map((r, i) => '<tr' + (i === 3 && c === 'OLD-G' ? ' aria-selected="true"' : '') + '><td>' + c + '</td><td class="num">' + wl(r.w) + '</td><td class="r">' + r.n + '</td><td class="r">' + nf(r.fast) + '%</td><td><span class="st ' + statusOf(r.fast, 70, true) + '"><i class="dot ' + statusOf(r.fast, 70, true) + '"></i>' + ({ ok:'норма', warn:'близко', crit:'ниже' })[statusOf(r.fast, 70, true)] + '</span></td></tr>')).join('') + '</tbody></table></div>')
+    + sec('Вкладки, аккордеон, навигация', '', '<div class="ds-grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))"><div class="card"><div class="tabs" id="tabs" role="tablist"><button role="tab" aria-selected="true">Обзор</button><button role="tab" aria-selected="false">Диалоги</button><button role="tab" aria-selected="false">Скрипты</button><span class="ink"></span></div><p style="font-size:13px;margin:14px 0 0" class="muted">Полоска под вкладкой переезжает через transform.</p>'
+      + '<div class="crumbs" style="margin-top:18px"><span>ОП ГМ</span><span>/</span><span>Детализация</span><span>/</span><b>Воронка</b></div><div class="pg" style="margin-top:14px"><button>‹</button><button>1</button><button aria-current="page">2</button><button>3</button><button>›</button></div></div>'
+      + '<div>' + [['Почему 5 договоров, а не больше?', 'Большая часть сделок закрывается по телефону, в чате их не видно. После связки с Bitrix24 посчитаем точно.'], ['Как считается дожим?', 'Наше сообщение через 20+ часов после нашего же, пока клиент молчит.'], ['Что значит «гипотеза»?', 'Число из смысловой разметки диалогов. Проверено вручную на выборке.']]
+        .map((a, i) => '<div class="acc"><button aria-expanded="' + (i === 0) + '">' + a[0] + '<svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg></button><div class="pn' + (i === 0 ? ' open' : '') + '"><div><p>' + a[1] + '</p></div></div></div>').join('') + '</div></div>')
+    + sec('Врезки и лента событий', 'без цветной полосы сбоку, фон только у важного', '<div class="ds-grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))"><div style="display:flex;flex-direction:column;gap:8px"><div class="alert crit"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="var(--crit)" stroke-width="1.8" stroke-linecap="round"><path d="M10 3 2.5 16.5h15zM10 8v3.5M10 14h.01"/></svg><div><b>Клиент ждёт ответа 2 дня.</b> Оставил телефон 18.09.</div></div><div class="alert ok"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round"><path d="M4 10.5 8 14l8-8.5"/></svg><div><b>Скорость в норме:</b> 79% ответов за 15 минут.</div></div><div class="alert"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM10 9v5M10 6h.01"/></svg><div>Сделки по телефону в чате не видны.</div></div></div>'
+      + '<div class="card"><ul class="tl"><li class="crit"><b>09.09 · волна акции</b><small>19 сообщений молчащим, 3 ответа</small></li><li class="ok"><b>14.09 · скорость вернулась</b><small>медиана 18 минут в NEW-B</small></li><li><b>10.08 · смена объявлений</b><small>пик: 67 обращений за неделю</small></li></ul></div></div>')
+    + sec('Состояния', 'загрузка, пусто и нет данных различаются', '<div class="ds-grid"><div class="card"><div class="cap">Загрузка</div><div class="sk" style="height:28px;width:60%;margin-top:12px"></div><div class="sk" style="height:12px;margin-top:10px"></div><div class="sk" style="height:12px;width:80%;margin-top:6px"></div></div>'
+      + '<div class="card empty"><svg width="40" height="40" viewBox="0 0 20 20" fill="none" stroke="var(--text-muted)" stroke-width="1.3"><path d="M4 10.5 8 14l8-8.5"/></svg><b>Список пуст</b><span>Все клиенты с ответом. Так и держим.</span></div>'
+      + '<div class="card empty"><svg width="40" height="40" viewBox="0 0 20 20" fill="none" stroke="var(--text-muted)" stroke-width="1.3"><path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM10 9v5M10 6h.01"/></svg><b>Нет данных</b><span>Выгрузки за эту неделю ещё нет. Прочерк, не ноль.</span></div></div>')
+    + sec('Слои поверх', 'стекло без искажения: размытие 20, насыщенность 160%', '<div class="ds-row"><button class="b sec" id="ds-toast">Показать уведомление</button><button class="b sec" data-drill="fu">Открыть панель деталей</button><button class="b sec" id="ds-cmdk">Палитра команд <span class="kbd">⌘</span><span class="kbd">K</span></button><span class="b gh" data-tip="<b>Подсказка</b><br>Стекло, задержка 300 мс, по фокусу тоже" tabindex="0">Наведите для подсказки</span></div>');
+  // взаимодействия витрины
+  seg($('ds-seg'), () => {});
+  $('ds-toast').onclick = () => toast('Шаблон дожима сохранён в скрипты');
+  $('ds-cmdk').onclick = () => cmdk(true);
+  document.querySelectorAll('.sw-t').forEach(s => s.onclick = () => s.setAttribute('aria-checked', String(s.getAttribute('aria-checked') !== 'true')));
+  document.querySelectorAll('.acc button').forEach(b => b.onclick = () => { const on = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', String(on)); b.nextElementSibling.classList.toggle('open', on); });
+  const tabs = $('tabs'), ink = tabs.querySelector('.ink'), place = () => { const a = tabs.querySelector('[aria-selected="true"]'), r = tabs.getBoundingClientRect(), br = a.getBoundingClientRect(); ink.style.transform = 'translateX(' + (br.left - r.left) + 'px) scaleX(' + br.width + ')'; };
+  tabs.onclick = e => { const b = e.target.closest('[role=tab]'); if(!b) return; tabs.querySelectorAll('[role=tab]').forEach(x => x.setAttribute('aria-selected', String(x === b))); place(); }; requestAnimationFrame(place); new ResizeObserver(place).observe(tabs);
+  document.querySelectorAll('.mo .card').forEach(c => c.style.setProperty('--w', c.querySelector('.mo-track').clientWidth + 'px'));
+  $('load-b').onclick = () => { const b = $('load-b'), sp = b.querySelector('.spin'); sp.hidden = false; b.disabled = true; setTimeout(() => { sp.hidden = true; b.disabled = false; toast('CSV выгружен: 1 904 диалога'); }, 1200); };
+}
+render(); ds();
+})();
+</script>
+</body>
+</html>

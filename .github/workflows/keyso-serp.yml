@@ -1,0 +1,45 @@
+name: Keys.so SERP (кластеризация интентов по выдаче)
+
+# Read-only: топ-10 выдачи и частоты фраз из Keys.so. Токен из GitHub Secrets.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/tender-galileo-ujs35b]
+    paths:
+      - yandex-direct/dashboard/keyso-serp.mjs
+      - .github/workflows/keyso-serp.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: keyso-serp
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: SERP
+        env:
+          KEYSO_TOKEN: ${{ secrets.KEYSO_TOKEN || secrets.KEYSSO_API_KEY }}
+          SERP_OUT: keyso_serp_skladnye_garmoshka.json
+          SERP_PHRASES: "складные перегородки|складная перегородка|складные перегородки межкомнатные|складные перегородки гармошка|перегородка гармошка|перегородки гармошка межкомнатные|межкомнатная перегородка гармошка|стеклянная перегородка гармошка|дверь гармошка|двери гармошка на заказ|межкомнатная дверь гармошка|складные двери|складные двери межкомнатные|перегородка книжка|раздвижные перегородки|складные стеклянные перегородки"
+        run: node yandex-direct/dashboard/keyso-serp.mjs
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add yandex-direct/data/keyso_serp_*.json
+          git diff --staged --quiet && { echo "нет изменений"; exit 0; }
+          git commit -m "keyso: выдача по складным/гармошкам $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && exit 0
+            sleep $((2**i))
+          done
+          exit 1

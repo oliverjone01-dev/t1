@@ -69,7 +69,7 @@ DRIFT="$(bash .claude-plugin/sync-agents.sh --check 2>/dev/null | grep -E '^(Д�
 N="$(printf '%s\n' "$CRIT" | grep -c . || true)"
 MSG="Step 12.5 reminder (deliver-gate): git push затрагивает ${N} критических артефакт(ов), а за ${TODAY} нет трейса аудита ФЕНИКСА (event=audit в traces/${TODAY}/agents.jsonl или feniks-* в knowledge/episodes/${MONTH}/).
 $(printf '%s\n' "$CRIT" | sed 's/^/  - /')
-По CLAUDE.md §4 критический артефакт не деливерится без вердикта ФЕНИКСА. Прогони агента feniks на diff до push или явно зафиксируй в коммите/PR, почему аудит не нужен (не критика). Это напоминание, не блок.${DRIFT:+
+По CLAUDE.md, Step 12.5 (подробно knowledge/os/gates.md §4), критический артефакт не деливерится без вердикта ФЕНИКСА. Прогони агента feniks на diff до push или явно зафиксируй в коммите/PR, почему аудит не нужен (не критика). Это напоминание, не блок.${DRIFT:+
 Плагин: $DRIFT}"
 
 python3 - "$MSG" <<'PY'

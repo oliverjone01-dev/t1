@@ -17,7 +17,7 @@
 глухую стену. Кухня-гостиная, спальня-гостиная в студии, гардеробная.
 
 **Голос (brand, GENGLASS).** Premium-but-warm. Конкретика вместо эпитетов. Снятие
-страхов цифрами. Без significance-inflation и promo-fluff (блоклист CLAUDE.md §7).
+страхов цифрами. Без significance-inflation и promo-fluff (блоклист knowledge/os/style.md §7).
 
 **Термины (encyclopedia).** Палитра (цвет: ЧЁРНАЯ, ЗОЛОТАЯ), не «коллекция». Линия -
 семейство моделей. Бренд - GENGLASS.

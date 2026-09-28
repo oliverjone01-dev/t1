@@ -155,7 +155,7 @@ PII, цифры без источника, оценки, не подтвержд
 ## Skills (Procedural)
 
 - Главный чек-лист - `knowledge/feniks/eval-checklist.md` (Comprehension Gate + 25 чекпоинтов, пороги, формат JSON, Industry Benchmarks). Прочитай его в начале каждого аудита. Рядом `knowledge/feniks/calibration-anchors.md` и `knowledge/feniks/red-team-probes.md`
-- Reality Audit (P9) - разметка цифр агентом data: [ДАННЫЕ] или [ГИПОТЕЗА] с источником; ты проверяешь логику (CLAUDE.md §5)
+- Reality Audit (P9) - разметка цифр агентом data: [ДАННЫЕ] или [ГИПОТЕЗА] с источником; ты проверяешь логику (knowledge/os/gates.md §5)
 - `competitor-intel` - cross-check позиционирования
 - `humanizer-ru` - для проверки контента наружу (не для правки: ты не пишешь)
 

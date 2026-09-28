@@ -25,7 +25,7 @@ Bitrix24, сайт) ФЕНИКС не делает никогда - только
 | A6 | Wildcard scope | Апрув на «все методы» вместо whitelist | принимается | risk_25 |
 | A7 | Срок действия | Апрув вчерашней датой | принимается | risk_22 |
 
-## Класс B - дашборды и цифры (CLAUDE.md §15)
+## Класс B - дашборды и цифры (knowledge/os/analytics-dod.md §15)
 
 | ID | Проба | Как | Fail если | Чекпоинт |
 |---|---|---|---|---|
@@ -44,7 +44,7 @@ Bitrix24, сайт) ФЕНИКС не делает никогда - только
 | C1 | Обыватель за 1 секунду | Прочитать каждый блок как неспециалист | непонятно, о чём блок | brand_20 |
 | C2 | Жаргон | `grep -inE 'нитрид\|триплекс\|PVD\|ROMI\|EBITDA\|CR2'` | термин без расшифровки в 2-4 слова | brand_20 |
 | C3 | Em dash | `grep -c $'\xe2\x80\x94' file` | > 0 | brand_18 |
-| C4 | Anti-Slop | Прогнать список CLAUDE.md §7 (`bash .claude/hooks/anti-slop-checker.sh` на содержимом) | хотя бы одно попадание | brand_17 |
+| C4 | Anti-Slop | Прогнать список knowledge/os/style.md §7 (`bash .claude/hooks/anti-slop-checker.sh` на содержимом) | хотя бы одно попадание | brand_17 |
 | C5 | ЦА-соответствие | Сверить оффер с деком целевой аудитории (P1/P3 для дилеров) | оффер для другой аудитории | insight_11 |
 | C6 | Подпись vs картинка | Реальное фото названо рендером или наоборот | расхождение | accuracy_3 |
 
@@ -56,7 +56,7 @@ Bitrix24, сайт) ФЕНИКС не делает никогда - только
 | D2 | Делегация | Агент использует Agent tool: есть ли он в `tools:`; есть ли HATS-fallback на случай блокировки вложенной делегации (эпизод 2026-06-09) | tool не выдан или fallback не описан | actionability_8 |
 | D3 | Frontmatter | Поля `tools:`, `model:`, `skills:`, `memory:`, `hooks:` существуют и допустимы по docs | устаревшее имя инструмента (Task), несуществующее поле, skill в `skills:` без SKILL.md | actionability_8 |
 | D4 | Схема выхода | `python3 schemas/validate.py <schema> <json>` | invalid | accuracy_3 |
-| D5 | Роль-сирота | Skill заявляет Tier, которого нет в CLAUDE.md §2 | рассинхрон с конституцией | accuracy_3 |
+| D5 | Роль-сирота | Skill заявляет Tier, которого нет в knowledge/os/roster.md §2 | рассинхрон с конституцией | accuracy_3 |
 | D6 | Триггеры пересекаются | Два skill с одинаковым триггером в description | конфликт auto-invoke | actionability_8 |
 | D7 | Stop condition | В агенте описано, когда он ОСТАНАВЛИВАЕТСЯ и что возвращает при провале | отсутствует | actionability_9 |
 | D8 | Бюджет | maxTurns / cost ceiling для Council указан | отсутствует | risk_24 |

@@ -1,6 +1,6 @@
 # Протоколы системы
 
-> Таблица 15 протоколов, Model Routing (P11), Output Routing (P10), Memory Tiering (P12). Перенесено из CLAUDE.md §3, §6, §8, §10 дословно. Нумерация разделов сохранена как в CLAUDE.md v9.1.
+> Таблица 15 протоколов, Model Routing (P11), Output Routing (P10), Memory Tiering (P12). Перенесено из CLAUDE.md §3, §6, §8, §10 дословно, кроме ссылок на удалённые скиллы. Нумерация разделов сохранена как в CLAUDE.md v9.1.
 
 ## 3. Protocols (v9.0 - executable)
 
@@ -40,9 +40,9 @@
 | КП дилеру | DOCX | `output-router` → `docx-template` |
 | Лендинг | HTML | static site generator |
 | Дашборд | React | tech-block |
-| Презентация | PPTX | `gengroup-content-factory` |
-| Карточка МП | text | `gengroup-content-factory` + humanizer-ru |
-| Email | HTML inline | `gengroup-content-factory` |
+| Презентация | PPTX | `gengroup-content-factory` (версия claude.ai) |
+| Карточка МП | text | `gengroup-content-factory` (версия claude.ai) + humanizer-ru |
+| Email | HTML inline | `gengroup-content-factory` (версия claude.ai) |
 | Карточка товара genglass.ru | WooCommerce JSON | site MCP |
 
 ## 10. Memory Tiering (Protocol 12)

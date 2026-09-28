@@ -51,7 +51,7 @@ Agent tool) допустима, когда Иван просит «один вы
    `go` → deliver · `return` → доработка СПАРТАКОМ по rework_tz, повтор (max 3) · `veto` → стоп, Иван.
 6. **Deliver.** Эпизод `knowledge/episodes/$(date +%Y-%m)/council-<slug>-$(date +%Y%m%d-%H%M).md` по шаблону из
    `.claude/agents/spartak.md` (Output format), строка `event: council` в `traces/$(date +%F)/agents.jsonl`
-   (roster-protocol §9, `mode`, `feniks_score`, `verdict`), HITL-пометки CLAUDE.md §9 (бюджет, публикация, цены).
+   (roster-protocol §9, `mode`, `feniks_score`, `verdict`), HITL-пометки knowledge/os/gates.md §9 (бюджет, публикация, цены).
 
 ## 3. Workflow path (только по явному opt-in)
 
@@ -80,7 +80,7 @@ Workflow({ name: "council", args: { task: "<задача>", ts: "<UTC выше>"
 Ты сам проходишь роли по role-картам последовательно, каждую позицию подписываешь `Аноним X (роль)`. Peer review
 не проводится (одним голосом он бессмыслен), вместо него честный conflict scan. ФЕНИКС-шляпа надевается последней и
 отдельно от синтеза. Первая строка эпизода: `MODE: hats (причина)`. Оценка ФЕНИКСА в HATS помечается
-`[HATS: не независимый аудит]` и не считается Step 12.5 для критических артефактов (CLAUDE.md §4) - такие идут
+`[HATS: не независимый аудит]` и не считается Step 12.5 для критических артефактов (knowledge/os/gates.md §4) - такие идут
 на повторный прогон агента feniks в native-среде.
 
 ## Default Council Configs

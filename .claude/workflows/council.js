@@ -179,7 +179,7 @@ const brief = await agent(
     args.cc ? `Иван указал CC: ${args.cc}.` : 'Выбери CC из таблицы триггеров своей роли.',
     args.mode ? `Иван указал режим: ${args.mode}.` : 'Выбери режим: solo / council / debate / red_team.',
     args.roster && args.roster.length ? `Иван указал ростер: ${args.roster.join(', ')}. Не меняй его, только проверь на пересечение зон.` : `Собери ростер max 4 из: ${ALLOWED.join(', ')}. ФЕНИКС и ты в ростер не входят.`,
-    'Прогони детектор Protocol 9 (CLAUDE.md §5): если триггер сработал - p9_required=true и в ростере обязательны data и marco.',
+    'Прогони детектор Protocol 9 (knowledge/os/gates.md §5): если триггер сработал - p9_required=true и в ростере обязательны data и marco.',
     'В rag_paths укажи реальные файлы из knowledge/semantic/, knowledge/episodes/ и glossary.md, которые бойцы обязаны прочитать (проверь, что файлы существуют).',
     'stop_conditions: минимум 2 (например «два бойца вернули blocking_issues по одному факту», «нужен доступ к 1С, которого нет»).',
     'Если задачу нельзя переформулировать одной фразой - заполни clarifying_question (ровно один вопрос) и всё равно верни лучший brief.',

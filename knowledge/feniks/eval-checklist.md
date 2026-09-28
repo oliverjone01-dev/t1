@@ -82,7 +82,7 @@
 ### Brand Fit (5 чекпоинтов, по 2 балла)
 
 16. **Voice бренда** - соответствует Marco's brand DNA (GENGLASS/VALONTI/GENTERO/Metal-GM/GLASS-MEMORY)
-17. **Anti-Slop clean** - ни одного запрещённого выражения из CLAUDE.md §7
+17. **Anti-Slop clean** - ни одного запрещённого выражения из knowledge/os/style.md §7
 18. **Em dash отсутствует** - `-` нигде
 19. **Структура соответствует output routing** - формат deliverable по Protocol 10
 20. **Tone соответствует ЦА + прошёл Comprehension Gate** - premium-but-warm для дизайнеров; B2B-precision для GENTERO; и текст читается неспециалистом за 1 секунду, жаргон переведён (см. Comprehension Gate выше). Провал гейта = 0 по этому пункту

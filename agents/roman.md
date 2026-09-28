@@ -80,7 +80,7 @@ maxTurns: 40
 
 ## Protocol 9 Integration
 
-При финансовом триггере (см. CLAUDE.md §5):
+При финансовом триггере (см. knowledge/os/gates.md §5):
 1. Запросить у ДАТЫ source для каждой цифры
 2. Если ДАТА флажит `[ГИПОТЕЗА]` → snapshot funnel decomposition
 3. Применить hard rules

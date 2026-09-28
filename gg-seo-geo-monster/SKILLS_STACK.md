@@ -93,7 +93,7 @@ GENGLASS по умолчанию) + `gengroup-encyclopedia` (термины) + `
 Детерминированные проверки без модели, отсекают слоп до дорогого opus-гейта:
 
 1. em dash grep (бан, humanizer-ru Block 4 / phoenix brand_18)
-2. Anti-Slop блоклист grep (CLAUDE.md §7)
+2. Anti-Slop блоклист grep (knowledge/os/style.md §7)
 3. Термины: Metal-GM/GLASS-MEMORY/палитра-линия (gengroup-encyclopedia)
 4. geo-aeo score: 7/7 пунктов присутствуют (Entity, FAQ≥5, comparative, таблица, факт, автор, свежесть)
 5. Числа: каждая цифра имеет `[ДАННЫЕ]`/`[ГИПОТЕЗА]` (protocol-9)

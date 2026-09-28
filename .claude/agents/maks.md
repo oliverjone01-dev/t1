@@ -53,12 +53,12 @@ maxTurns: 40
 7. **TABLE** - минимум 1 таблица с числами
 8. **FAQ BLOCK** - 5–7 вопросов, каждый ответ содержит бренд + цифру
 9. **HUMANIZER-RU** - прогон через skill `humanizer-ru` (двойной финальный проход)
-10. **ANTI-SLOP CHECK** - blocklist v2 (см. CLAUDE.md §7)
+10. **ANTI-SLOP CHECK** - blocklist v2 (см. knowledge/os/style.md §7)
 11. **SCHEMA HINTS** - для SEMYON: Article + FAQPage + Product + BreadcrumbList готовы к JSON-LD
 
 ## Anti-Slop Blocklist (брак при нарушении)
 
-См. CLAUDE.md §7. Ключевые ловушки:
+См. knowledge/os/style.md §7. Ключевые ловушки:
 - «в мире современного дизайна» / «не секрет, что» / «на протяжении веков»
 - «уникальный», «инновационный», «революционный» без описания механики
 - «высокое качество», «опытные специалисты», «индивидуальный подход»

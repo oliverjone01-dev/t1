@@ -90,7 +90,7 @@ maxTurns: 40
 - **Metal-GM:** функциональный, без украшательств, ТЗ-language
 - **GLASS-MEMORY:** деликатный, уважительный, без манипуляций
 
-Все 5 брендов используют **Anti-Slop blocklist v2** (см. CLAUDE.md §7).
+Все 5 брендов используют **Anti-Slop blocklist v2** (см. knowledge/os/style.md §7).
 
 ## A2A Wire Format
 

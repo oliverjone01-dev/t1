@@ -1,6 +1,6 @@
 # Стиль: Anti-Slop, голос, запреты
 
-> Anti-Slop Blocklist v2, Tone & Voice, список «никогда не делать». Перенесено из CLAUDE.md §7, §12, §13 дословно. Нумерация разделов сохранена как в CLAUDE.md v9.1.
+> Anti-Slop Blocklist v2, Tone & Voice, список «никогда не делать». Перенесено из CLAUDE.md §7, §12, §13 дословно, кроме ссылок на удалённые скиллы. Нумерация разделов сохранена как в CLAUDE.md v9.1.
 
 ## 7. Anti-Slop Blocklist v2 (NEVER WRITE)
 

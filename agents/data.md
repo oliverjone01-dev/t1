@@ -131,7 +131,7 @@ maxTurns: 40
 
 ## Skills (Procedural)
 
-- Reality Audit (P9) - твоя часть: разметка каждой цифры [ДАННЫЕ] или [ГИПОТЕЗА] с источником (CLAUDE.md §5)
+- Reality Audit (P9) - твоя часть: разметка каждой цифры [ДАННЫЕ] или [ГИПОТЕЗА] с источником (knowledge/os/gates.md §5)
 - Карта полей Bitrix24 и rubric - `knowledge/sales/bitrix24-field-map.md`, `knowledge/sales/evaluation-rubric.md`
 - `marketplace-rocket` - unit-экономика маркетплейсов
 

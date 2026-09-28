@@ -1,6 +1,6 @@
 # Multi-agent v3: среды
 
-> Где работают агенты, skills и хуки: Claude Code, плагин, Cowork, headless. Перенесено из CLAUDE.md §16 дословно. Нумерация разделов сохранена как в CLAUDE.md v9.1.
+> Где работают агенты, skills и хуки: Claude Code, плагин, Cowork, headless. Перенесено из CLAUDE.md §16 дословно, кроме ссылок на удалённые скиллы. Нумерация разделов сохранена как в CLAUDE.md v9.1.
 
 ## 16. Multi-agent v3: где что работает
 

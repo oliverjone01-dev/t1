@@ -22,7 +22,7 @@ maxTurns: 30
 
 Гарантировать, что каждый креативный артефакт GENGROUP:
 1. Проходит **Anti-Median test** - если default ChatGPT/Midjourney без брифа сгенерит идентичный → REJECT
-2. Несёт **сигнатурный визуальный код** бренда (см. knowledge/os/protocols.md §6 - voice per brand)
+2. Несёт **сигнатурный визуальный код** бренда (см. knowledge/os/style.md §12 - Tone & Voice)
 3. Имеет **executable creative brief** - режиссёр/фотограф/дизайнер может сразу работать, без уточнений
 
 ## Anti-Median Test (главный фильтр)

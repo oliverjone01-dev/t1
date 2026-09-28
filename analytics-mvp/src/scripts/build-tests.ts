@@ -24,6 +24,7 @@ import { KPAGES, navButton } from "./katya-nav.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
 import { readGapDaily, GAP_DAILY_FILE } from "./gap-daily.js";
+import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
 import {
   readFunnelTests, missingDays, aggDay, FUNNEL_TESTS_FILE, FUNNEL_KEYS,
@@ -237,18 +238,34 @@ for (const r of readNd(dp("coinv_daily.ndjson"))) {
   if (Number(r.cap) > 0) cell(art, d)["cap"] = Number(r.cap);
 }
 
+// День, с которого ответ OZON в prices_daily.ndjson поменял смысл полей (см. ниже).
+export const PRICES_SCHEMA_BREAK = "2026-09-23";
 const priceRows = readNd(dp("prices_daily.ndjson"));
 const HAS_COINV = priceRows.length > 0;
 for (const r of priceRows) {
   const art = String(r.offer ?? r.art ?? "").trim();
   const d = String(r.d ?? r.date ?? "").slice(0, 10);
   if (!art || !d) continue;
-  // Свой снимок: paid это цена по карте, price - витрина. Второе берём только если первого нет.
-  const site = Number(r.paid ?? r.price ?? r.site), cap = Number(r.before ?? r.cap);
-  const co = r.coinv_paid ?? r.coinv ?? r.coinv_pct;
-  if (co != null && Number.isFinite(Number(co))) cell(art, d)["coinv"] = Number(co);
-  if (Number.isFinite(site) && site > 0) cell(art, d)["price"] = site;
-  if (Number.isFinite(cap) && cap > 0) cell(art, d)["cap"] = cap;
+  // Из своего API-снимка берём только цену по карте Ozon (paid, coinv_paid), и только в дни, где среза
+  // кабинета нет: срез - первоисточник. price/coinv здесь НЕ витрина и НЕ соинвест: сверка 28.09
+  // показала, что price совпадает с предельной ценой кабинета (GGM-02-1-1: 30 085 против витрины
+  // 11-12 тыс.), а coinv = 1 - price/before - это скидка самого продавца от зачёркнутой цены (28.8 %
+  // против соинвеста 61-63 %). Подстановка этих полей рисовала после 21.09 обрыв и «соинвест» до
+  // 27.09 на другом уровне (замечание Ивана 28.09). paid и coinv_paid API сейчас отдаёт пустыми.
+  // before - зачёркнутая цена (42 250 у того же товара), а не предельная, поэтому в cap не идёт.
+  // Пустую клетку не создаём: иначе день без данных сдвигает «данные по» вперёд.
+  // До 23.09 поля значили то, что написано в prices-daily.ts: price - витрина (17 130 у GGM-02-1-1
+  // 19.09), before - предельная (30 085), coinv - доля Ozon. 23.09 ответ API сменился, и 498 из 500
+  // товаров «сменили цену» разом - это смена полей, а не движение цен. Поэтому старые дни берём
+  // как витрину, новые - только по карте.
+  const oldSchema = d < PRICES_SCHEMA_BREAK;
+  const site = Number(oldSchema ? (r.paid ?? r.price) : r.paid);
+  const co = oldSchema ? (r.coinv_paid ?? r.coinv) : r.coinv_paid;
+  const hasCo = co != null && Number.isFinite(Number(co)), hasSite = Number.isFinite(site) && site > 0;
+  if (!hasCo && !hasSite) continue;
+  const c0 = cell(art, d);
+  if (c0["coinv"] == null && hasCo) c0["coinv"] = Number(co);
+  if (c0["price"] == null && hasSite) c0["price"] = site;
 }
 const HAS_PRICE = priceRows.length > 0;
 
@@ -521,11 +538,28 @@ const wkSearch = (art: string, end: string, n = 14): number => {
 };
 
 // ---------- геометрия графика ----------
-const W = 620, H = 170, L = 40, R = 62, TP = 14, B = 24;
-const niceStep = (span: number): number =>
-  [1, 2, 5, 10, 25, 50, 100, 200, 500, 1000, 2000, 5000, 10000].find((s) => span / s <= 4) || 20000;
+const W = 620, H = 170, L = 52, R = 62, TP = 14, B = 24;
+// Шаг сетки 1-2-2.5-5 × 10^k, не больше четырёх линий на любой шкале. Раньше список шагов кончался
+// на 20 000, и на выручке группы (до 700 тыс. ₽ в день) подписи оси ложились друг на друга (Иван 28.09).
+const niceStep = (span: number): number => {
+  const raw = Math.max(span, 1e-9) / 4, p = 10 ** Math.floor(Math.log10(raw));
+  return ([1, 2, 2.5, 5, 10].find((m) => m * p >= raw) ?? 10) * p;
+};
+const axLabel = (v: number): string => Math.abs(v) >= 10000 ? nbsp(Math.round(v / 1000)) + " тыс" : nbsp(v);
 
 type Pt = number | null;
+
+// Подписи «тест»/«контроль» у конца линий: если концы ближе 11 px, разводим их вверх и вниз,
+// иначе они печатаются одна поверх другой.
+function endLabels(ya: number | null, yb: number | null, labels: [string, string]): string {
+  if (ya != null && yb != null && Math.abs(ya - yb) < 11) {
+    const mid = (ya + yb) / 2, up = ya <= yb;
+    ya = mid + (up ? -5.5 : 5.5); yb = mid + (up ? 5.5 : -5.5);
+  }
+  const t = (yy: number | null, s: string) => yy == null ? ""
+    : `<text class="dl" x="${W - R + 6}" y="${(yy + 3.5).toFixed(1)}">${s}</text>`;
+  return t(ya, labels[0]) + t(yb, labels[1]);
+}
 
 // Пропуск в ряду - это пропуск, а не «как вчера»: линия рвётся. Протягивать последнее
 // значение вперёд значит рисовать данные, которых нет (ряды соинвеста и позиции из
@@ -559,7 +593,7 @@ function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw
   const grid = ticks.map((v) =>
     `<line class="gl" x1="${L}" x2="${W - R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"`
     + `${v === 100 && mode === "index" ? ' stroke-dasharray="3 3"' : ""}/>`
-    + `<text class="ax" x="${L - 6}" y="${(y(v) + 3.5).toFixed(1)}" text-anchor="end">${nbsp(v)}</text>`).join("");
+    + `<text class="ax" x="${L - 6}" y="${(y(v) + 3.5).toFixed(1)}" text-anchor="end">${axLabel(v)}</text>`).join("");
   const stepX = Math.max(1, Math.floor(days.length / 6));
   const xt = days.map((d, i) => i % stepX ? "" :
     `<text class="ax" x="${x(i).toFixed(1)}" y="${H - 7}" text-anchor="middle">${d.slice(8, 10)}.${d.slice(5, 7)}</text>`).join("");
@@ -570,8 +604,7 @@ function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw
         + `<text class="ax st-t" x="${(x(si2) + 4).toFixed(1)}" y="${TP + 20}">${lbl2}</text>` : "")
     + `<path d="${path(b)}" fill="none" stroke="${C_CTRL}" stroke-width="2" stroke-linejoin="round"/>`
     + `<path d="${path(a)}" fill="none" stroke="${C_TEST}" stroke-width="2" stroke-linejoin="round"/>`
-    + (lastOf(a) != null ? `<text class="dl" x="${W - R + 6}" y="${(y(lastOf(a)!) + 3.5).toFixed(1)}">${labels[0]}</text>` : "")
-    + (lastOf(b) != null ? `<text class="dl" x="${W - R + 6}" y="${(y(lastOf(b)!) + 3.5).toFixed(1)}">${labels[1]}</text>` : "")
+    + endLabels(lastOf(a) != null ? y(lastOf(a)!) : null, lastOf(b) != null ? y(lastOf(b)!) : null, labels)
     + `<line class="ch" x1="0" x2="0" y1="${TP}" y2="${H - B}" style="display:none"/>`
     + `<rect class="hit" x="${L}" y="${TP}" width="${W - L - R}" height="${H - TP - B}" fill="transparent"/>`;
 }
@@ -798,18 +831,29 @@ function perArticle(t: TestDef): string {
     }
     return `<td class="r"><b>${m == null ? "-" : (m >= 0 ? "+" : "") + m.toFixed(0)}</b></td>`;
   }).join("");
-  return `<div class="sub2">Показатели по артикулам</div><div class="tbl-wrap"><table class="gtbl single">`
-    + `<thead><tr><th>Артикул</th><th>Контроль</th>`
+  // Как читать - на живой строке, а не общими словами (Иван 28.09: «не понятно как читать эти данные»).
+  // Разница считается к ГРУППОВОМУ контролю, а не к паре из лога: колонка пары справочная.
+  const ex = first[0]!;
+  const pc = (x: number) => (x >= 0 ? "+" : "") + x.toFixed(0) + " %";
+  const howTo = `<div class="cov" style="margin:4px 0 6px"><b>Как читать.</b> Для каждого товара берём средний день`
+    + ` после старта и средний день за две недели до него и смотрим, на сколько процентов он изменился. Из этого`
+    + ` вычитаем, на сколько за то же время изменился групповой контроль. Остаток - число в ячейке, в пунктах.`
+    + ` Пример: <b>${esc(ex.test)}</b>, колонка «Поиск» <b>${ex.dd >= 0 ? "+" : ""}${ex.dd.toFixed(0)}</b> -`
+    + ` показы в поиске у товара ${pc(ex.dT)}, у группового контроля ${pc(ex.dC)}, разница ${ex.dd >= 0 ? "+" : ""}${ex.dd.toFixed(0)} пунктов.`
+    + ` Плюс - товар вырос сильнее контроля. У позиции наоборот: минус - товар поднялся в поиске выше.`
+    + ` Колонка «Пара из лога» справочная: разница с ней не считается.</div>`;
+  return `<div class="sub2">Показатели по артикулам</div>${howTo}<div class="tbl-wrap"><table class="gtbl single">`
+    + `<thead><tr><th>Артикул</th><th title="Пара, которую записали в лог кампаний при запуске. Разница в ячейках считается к групповому контролю, а не к ней">Пара из лога</th>`
     + cols.map(([k, n]) => {
       const hint = k === "coinv"
         ? "Разрыв уровней в пунктах: соинвест теста минус соинвест его контроля на последний общий день. Прироста к базе здесь нет: ряд цен начался 19.09, а тесты стартовали 18 и 20.09"
         : k === "pos"
           ? "Разница в пунктах: прирост теста минус прирост контроля. У позиции меньше - лучше, поэтому рост числа здесь это ухудшение"
           : "Разница в пунктах: прирост теста минус прирост контроля. Наведите на ячейку, чтобы увидеть оба прироста";
-      return `<th class="r" title="${hint}">${n}${k === "pos" ? " ↓" : ""}</th>`;
+      return `<th class="r" title="${hint}">${n}, п.${k === "pos" ? " ↓" : ""}</th>`;
     }).join("")
-    + `<th class="r sep" title="Расход на рекламу по тестовому артикулу, ₽ в день: две недели до старта → после старта">Расход т., ₽/дн</th>`
-    + `<th class="r" title="Заказано штук после старта: тест / контроль">Заказы т/к</th></tr></thead>`
+    + `<th class="r sep" title="Расход на рекламу по тестовому артикулу, ₽ в день: две недели до старта → после старта">Реклама, ₽ в день: до → после</th>`
+    + `<th class="r" title="Заказано штук после старта: тестовый товар / его пара из лога">Заказано после старта, шт: товар / пара</th></tr></thead>`
     + `<tbody>${rows}</tbody>`
     + `<tfoot><tr class="mrow2"><td colspan="2" title="Плотные метрики: медиана индексов по артикулам, варианты одной объединённой карточки OZON идут одним наблюдением. Корзина и заказы: прирост суммы по группе">Итог группы</td>${med}<td class="sep"></td><td></td></tr></tfoot>`
     + `</table></div><div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов; у позиции цвет перевёрнут, потому что меньше - лучше. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
@@ -933,7 +977,9 @@ function chart(t: TestDef, cid: string): string {
       if (LEVEL.has(key) && key !== "coinv") {
         const gb = bT - bC, gp = pT - pC;      // разрыв в базе и после старта, в пунктах
         if (Number.isFinite(gb) && Number.isFinite(gp)) {
-          const sgn = (x: number) => (x >= 0 ? "+" : "") + x.toFixed(1);
+          // Цена - в рублях, остальные уровни (позиция, ставка) - в своих единицах, не «пунктах».
+          const rub = key === "price" || key === "cap" || key === "cpo";
+          const sgn = (x: number) => (x >= 0 ? "+" : "") + (rub ? nbsp(Math.round(x)) + " ₽" : x.toFixed(1));
           // Средний разрыв за весь период после старта размывает момент прихода эффекта:
           // надбавка приходит через двое-трое суток, и первые дни тянут среднее вниз.
           // Поэтому рядом со средним всегда стоит разрыв на последний день ряда.
@@ -946,7 +992,7 @@ function chart(t: TestDef, cid: string): string {
             }
           }
           extra = ` Разрыв тест минус контроль: <b>${sgn(gb)}</b> в базе → <b>${sgn(gp)}</b> в среднем после старта,`
-            + ` сдвиг <b>${sgn(gp - gb)} пункта</b>.${lastTxt}`;
+            + ` сдвиг <b>${sgn(gp - gb)}${rub ? "" : " пункта"}</b>.${lastTxt}`;
         }
       }
       reads[key] = `<div class="dyn-read">${testOnly ? "Тестовая группа" : "Средний день"}, ${lowerTitle(title)}: `
@@ -1056,7 +1102,7 @@ function spreadNote(ep: NonNullable<NonNullable<TestDef["промежуточн�
     + ` по дням: ${rows.map((r) => `${esc(r.d.slice(5))} ${r.spread.toFixed(4)}`).join(", ")}.`
     + ` На последний день ${esc(last.d)} разброс ${last.spread.toFixed(4)} у ${last.n} рекламируемых.`
     + (alarm
-        ? ` С 21.09 он доходил до ${worst.toFixed(4)}, то есть вывод «8 ₽ и 45 ₽ неразличимы» больше не держится и требует пересмотра.`
+        ? ` С 21.09 он доходил до ${worst.toFixed(4)}, то есть вывод «8 ₽ и 12 ₽ неразличимы» больше не держится и требует пересмотра.`
         : ` Пока он равен нулю в четвёртом знаке, вывод держится. Как только разброс станет больше 0.001, эта плашка станет красной.`)
     + `</div>`;
 }
@@ -1096,8 +1142,40 @@ function bidWatch(t: TestDef): string {
     + ` Это УРОВНИ, а не эффект: у товаров разная ценовая позиция, и сравнивать строки между собой нельзя.`
     + ` До старта ${esc(t.старт || "")} в сыром ряду ${before.length === 1 ? `есть один день, ${esc(before[0]!)}` : `${before.length} дней`},`
     + ` то есть базы для поартикульного сдвига здесь нет, и таблица служит записью, а не измерением.`
-    + ` Ставка - из лога кампаний (tools/tests/tests_campaigns.psv); у двух товаров GGT-35 она стоит только`
-    + ` в кабинете, и в таблице её нет намеренно, чтобы не выдавать слова за выгрузку.</div>`;
+    + ` Ставка - из лога кампаний (tools/tests/tests_campaigns.psv) и лога изменений кабинета; у GGT-35-3-3`
+    + ` её нет ни там, ни там, и в таблице её нет намеренно, чтобы не выдавать догадку за выгрузку.</div>`;
+}
+
+/** Правило на истории, а не на одном эталоне (Иван 28.09). Считается при каждой сборке из тех же
+ *  файлов, числа в тексте не вписаны руками. Подробности метода - src/scripts/plateau-backtest.ts. */
+function backtestBlock(): string {
+  const ads = readNd(dp("ads_sku_daily.ndjson")) as Array<{ d: string; sku: string; sp: number }>;
+  const b = runBacktest(coinvRows, ads, sku2art);
+  if (!b.usable.length) return "";
+  const n = b.usable.length, pct = (x: number, m: number) => m ? Math.round(x / m * 100) + " %" : "-";
+  const med = (a: number[]) => a.length ? a[Math.floor((a.length - 1) / 2)]! : null;
+  const top = [...b.usable].filter((e) => e.maxShift != null).sort((x, y) => y.maxShift! - x.maxShift!);
+  const row = (e: typeof b.usable[number]) => `<tr><td>${esc(e.art)}</td><td class="nw">${esc(e.on.slice(8, 10))}.${esc(e.on.slice(5, 7))}-${esc(e.last.slice(8, 10))}.${esc(e.last.slice(5, 7))}</td>`
+    + `<td class="r">${e.runDays}</td><td class="r">${nbsp(e.spend)}</td><td class="r">${e.maxShift == null ? "-" : (e.maxShift >= 0 ? "+" : "") + e.maxShift.toFixed(1)}</td>`
+    + `<td class="r">${e.firstHitDay ?? '<span class="muted">нет</span>'}</td><td>${e.plateau ? "с " + esc(e.plateau.slice(8, 10)) + "." + esc(e.plateau.slice(5, 7)) : '<span class="muted">нет</span>'}</td>`
+    + `<td class="r">${e.heldAfterStop ?? "-"}</td></tr>`;
+  return `<div class="sub2">Проверка правила на истории: ${n} включений рекламы с июля</div>`
+    + `<div class="hyp"><b>Что подтвердилось.</b> Сдвиг +${ARRIVED} и больше пришёл у <b>${b.hit} из ${n}</b> включений (${pct(b.hit, n)}),`
+    + ` у товаров без рекламы в те же даты - у ${pct(b.placeboHit, b.placeboN)} (${nbsp(b.placeboHit)} из ${nbsp(b.placeboN)}): реклама разрыв двигает.`
+    + ` Приходит он на ${med(b.hitDays) ?? "-"}-й день (медиана; день включения нулевой), это совпадает с лагом 2-3 суток.`
+    + ` После выключения рекламы сдвиг держится ${med(b.heldAfterStop) ?? "-"} дн (медиана по ${b.heldAfterStop.length} случаям), у эталона было 5.`
+    + `<br><b>Что не подтвердилось.</b> Плато по правилу (${FLAT_DAYS} подряд дня, размах до ${FLAT_RANGE} пунктов) сложилось только у`
+    + ` <b>${b.plateau} из ${n}</b> (${pct(b.plateau, n)}): сдвиг приходит, но скачет сильнее ${FLAT_RANGE} пунктов. И у товаров без рекламы`
+    + ` «плато» ложно складывается в ${pct(b.placeboPlateau, b.placeboN)} случаев. Ещё у ${b.nearMiss} включений сдвиг остановился между +${ARRIVED - 1} и +${ARRIVED}, то есть порог стоит на краю.`
+    + ` Вывод: момент прихода эффекта правило ловит, а ровное плато - редкость; решение о выходе по нему стоит на более строгом условии, чем то, что бывает в жизни.</div>`
+    + `<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Артикул</th><th>Реклама</th><th class="r">Дней</th><th class="r">Расход, ₽</th>`
+    + `<th class="r" title="Наибольший сдвиг за время рекламы, пункты соинвеста">Макс. сдвиг</th><th class="r" title="День, когда сдвиг впервые дошёл до +${ARRIVED}">День +${ARRIVED}</th>`
+    + `<th>Плато</th><th class="r" title="Сколько дней после выключения рекламы сдвиг ещё держался">Держался после, дн</th></tr></thead>`
+    + `<tbody>${top.map(row).join("")}</tbody></table></div>`
+    + `<div class="cov">Как собрано: включение - первый день с расходом по артикулу (ads_sku_daily, с 03.07) после 14 дней без расхода;`
+    + ` ряд - соинвест из coinv_daily, разница к медиане товаров, которые не рекламировались ни разу. Это шкала соинвеста, как у эталона,`
+    + ` а не шкала гейта. В расчёт взяты включения, у которых есть база и хотя бы 3 наблюдения за время рекламы (${n} из ${b.events.length}).`
+    + ` Плацебо - по 20 случайных товаров без рекламы на каждую дату старта. Расход в рублях - за всё время серии.</div>`;
 }
 
 function interimBlock(t: TestDef): string {
@@ -1185,7 +1263,7 @@ function pairRow(sku: string, t: TestDef): string {
   const cls = delta != null && Math.abs(delta) > 20 ? "warn" : "";
   return `<tr><td>${esc(sku)}</td><td class="r">${nbsp(vt)}</td>`
     + `<td class="r">${esc(r["соинвест_%"] || "-")}</td>`
-    + `<td class="r">${esc(r["ставка_рекоменд"] || "-")} → <b>${esc(r["ставка_финальная"] || "-")}</b></td>`
+    + `<td class="r"><b>${esc((r["ставка_финальная"] || "-").replace(/\.0$/, ""))}</b></td>`
     + `<td class="nw">${esc((r["старт"] || "").slice(0, 16).replace("T", " "))}</td>`
     + `<td class="sep">${ctlCell(sku, ct, t)}</td><td class="r">${vc ? nbsp(vc) : "-"}</td>`
     + `<td class="r ${cls}">${delta == null ? "-" : (delta >= 0 ? "+" : "") + delta.toFixed(0) + " %"}</td></tr>`;
@@ -1229,7 +1307,7 @@ function adsContinuity(t: TestDef): string {
         : `рекламного расхода до старта не было вовсе`)
     + `</li>`;
   return `<div class="dyn-alarm"><b>Ставка в этом тесте почти не варьируется.</b>`
-    + ` Гипотеза этого теста говорит про понижение ставки при работающей кампании, но по расходу это верно`
+    + ` Прежняя формулировка теста говорила про понижение ставки при работающей кампании, но по расходу это верно`
     + ` только у ${nbsp(cont.length)} из ${nbsp(rows.length)} ${plural(rows.length, "товара", "товаров", "товаров")}.`
     + ` У остальных кампания либо стояла неделями и включена заново на низкой ставке,`
     + ` либо её не было совсем:<ul class="dl2">`
@@ -1267,7 +1345,7 @@ function dirtyControl(t: TestDef): string {
  *  реклама это загрязнение, потому что контроль по определению это «то же самое без неё».
  *
  *  Порога по величине расхода нет, и это тоже не лень. Порог имел бы смысл, если бы величина
- *  сдвига росла с расходом, но промежуточный вывод теста про ставку говорит обратное: 8 ₽ и 45 ₽
+ *  сдвига росла с расходом, но промежуточный вывод теста про ставку говорит обратное: 8 ₽ и 12 ₽
  *  дают одинаковую цену на полке до четвёртого знака. В самой тестовой группе есть дни с
  *  расходом в единицы рублей, и они из неё не выбрасываются. Значит «маленький расход» это не
  *  «маленькое загрязнение», и отсечь его по сумме нельзя. Что именно сделали с ценой те самые
@@ -1290,7 +1368,7 @@ function oneSidedNote(t: TestDef): string {
     + ` это само воздействие, и выбросить товар за неё значит выбросить тест; в контроле она загрязнение,`
     + ` потому что контроль это «то же самое без неё». Порога по сумме расхода нет: `
     + (interim
-        ? `по промежуточному выводу теста про ставку 8 ₽ и 45 ₽ за клик дают одинаковую цену на полке до четвёртого знака, `
+        ? `по промежуточному выводу теста про ставку 8 ₽ и 12 ₽ за клик дают одинаковую цену на полке до четвёртого знака, `
         : `величина сдвига с расходом не растёт, `)
     + (minArt
         ? `а в самой тестовой группе есть дни с расходом ${nbsp(minDay)} ₽ (${esc(minArt)}), и они из неё не выбрасываются. `
@@ -1400,7 +1478,7 @@ const cards = T.тесты.map((t) => {
       + `<tr class="grp"><th colspan="5">Тест</th><th class="sep" colspan="2">Контроль</th><th></th></tr>`
       + `<tr><th>Артикул</th><th class="r" title="Показы в поиске за 14 дней до старта пары, из посуточного снимка OZON. Окно то же, что у базы замера">Поиск/2нед</th>`
       + `<th class="r" title="Соинвест на момент запуска, из лога кабинета">Соинвест %</th>`
-      + `<th class="r">Ставка рек.→фин.</th><th>Старт</th>`
+      + `<th class="r" title="Ставка, с которой товар включили в кампанию. Когда товар добавляют в кампанию, Ozon сам подставляет свою ставку (в логе 47-157 ₽), и в ту же минуту её меняют на 8 или 12 ₽. Это не смена ставки: по подставленной реклама не шла ни дня (поправка Ивана 28.09)">Ставка, ₽</th><th>Старт</th>`
       + `<th class="sep">Артикул</th><th class="r">Поиск/2нед</th>`
       + `<th class="r" title="Насколько трафик теста расходится с контролем до старта. Больше 20 % - пара плохо сопоставима">Δ поиска</th></tr>`
       + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${kinBanner}${adsContinuity(t)}${ctlPromoNote(t)}${dirtyControl(t)}${deadControl(t)}${chart(t, "dyn-" + t.id)}${perArticle(t)}`;
@@ -1491,7 +1569,7 @@ function spark(row: BoostRow): string {
   const zero = `<line x1="0" x2="${W}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="#2a3441" stroke-width="1" stroke-dasharray="2 3"/>`;
   const gate = `<line x1="0" x2="${W}" y1="${y(ARRIVED).toFixed(1)}" y2="${y(ARRIVED).toFixed(1)}" stroke="#2a3441" stroke-width="1"/>`;
   const marks = pts.filter((p) => p.move).map((p) =>
-    `<line x1="${x(p).toFixed(1)}" x2="${x(p).toFixed(1)}" y1="${H - 5}" y2="${H}" stroke="var(--warn)" stroke-width="2"><title>${p.date}: общий сдвиг магазина, ${p.move === "our_cpo" ? "наша смена ставки CPO" : "причина неизвестна"}</title></line>`).join("");
+    `<line x1="${x(p).toFixed(1)}" x2="${x(p).toFixed(1)}" y1="${H - 5}" y2="${H}" stroke="var(--warn)" stroke-width="2"><title>${p.date}: витрина сдвинулась по всему каталогу разом, ${p.move === "our_cpo" ? "причина - наша смена ставки CPO «все товары»" : "причина неизвестна, похоже на пересчёт скидок Ozon"}</title></line>`).join("");
   const last = pts[pts.length - 1]!;
   const dot = `<circle cx="${x(last).toFixed(1)}" cy="${y(last.shift).toFixed(1)}" r="2.5" fill="${C_TEST}" stroke="var(--card)" stroke-width="2"/>`;
   const alt = `Сдвиг по дням с ${pts[0]!.date} по ${last.date}, последний ${last.shift >= 0 ? "+" : ""}${last.shift}`;
@@ -1580,10 +1658,15 @@ function boostCard(): string {
       + ` карточке и акции, а не по индексу. Подробнее - служебная вкладка «Бустинг».</div>`
     : "";
 
+  // «Почему магазин двигает цены?» (Иван 28.09): не магазин. Витрина в сентябре менялась каждый день у
+  // 500+ товаров из 516 (coinv_daily), а предельная цена продавца - в 4 дня у 55-157 товаров.
   const pairNote = `<div class="cov"><b>Плато считается на разнице, а не на уровне: к соседу по карточке, а где его нет - к медиане панели.</b>`
-    + ` Магазин двигает цены почти каждый день, и с 20.09 чистых дней нет вовсе, так что правило`
-    + ` «три подряд чистых дня» на уровне не выполнится ни при каком раскладе. Разница общий сдвиг`
-    + ` сокращает: 21.09 цену сдвинули 99.8 % каталога, а разница в парах осталась от -0.6 до +1.5 пункта.`
+    + ` Цену на витрине двигаем не мы: в сентябре она менялась каждый день почти у всех товаров (500+ из 516),`
+    + ` а предельная цена продавца - только в четыре дня и у 55-157 товаров. То есть витрину почти каждый день`
+    + ` пересчитывает Ozon (его скидка в акциях), иногда - наша смена ставки CPO на весь каталог. Поэтому с 20.09`
+    + ` дней, когда витрина стояла на месте, нет вовсе, и правило «три подряд спокойных дня» на самом уровне цены`
+    + ` не выполнится никогда. Разница с соседом такой общий сдвиг убирает: 21.09 витрина сдвинулась у 99.8 %`
+    + ` каталога, а разница в парах осталась от -0.6 до +1.5 пункта.`
     + ` Сосед по объединённой карточке делит с рекламируемым товаром карточку и акцию, поэтому он точнее панели;`
     + ` но панель на сырых ценах тоже держится, и это видно по плацебо-группе ниже. Поэтому в разнице дни общего`
     + ` сдвига не выбрасываются, а только помечаются.</div>`
@@ -1716,7 +1799,7 @@ function boostCard(): string {
 
   const head = `<tr><th>Артикул</th><th class="r" title="Дней с включения кампании. День включения нулевой">День</th>`
     + `<th class="r" title="Сдвиг разрыва к контролю от базы, в пунктах. Наведите, чтобы увидеть базу">Сдвиг</th>`
-    + `<th title="Сдвиг по дням. Пунктир - ноль, сплошная - порог ${ARRIVED} пунктов. Разрыв линии это день без наблюдения, засечка снизу - общий сдвиг магазина">Динамика</th>`
+    + `<th title="Сдвиг по дням. Пунктир - ноль, сплошная - порог ${ARRIVED} пунктов. Разрыв линии это день без наблюдения, засечка снизу - день, когда витрина сдвинулась по всему каталогу разом">Динамика</th>`
     + `<th>Статус</th></tr>`;
   const tbl = (rs: BoostRow[]) => rs.length
     ? `<div class="tbl-wrap"><table class="gtbl single"><thead>${head}</thead><tbody>${rs.map((r) => boostRowHtml(r)).join("")}</tbody></table></div>`
@@ -1758,6 +1841,25 @@ function boostCard(): string {
   // обещала «с 23.09», пока таблица под ней писала «не раньше 25.09».
   const notBefore = [...adRows, ...sibRows].map((r) => r.plateauNotBefore).filter((d): d is string => !!d).sort();
   const earliest = adRows.some((r) => r.plateauFrom) ? "" : (notBefore[0] ?? addDays(LAST, FLAT_DAYS));
+  // «Объясни как идёт расчёт» (Иван 28.09): тот же расчёт, что в таблице, на живом товаре и по шагам.
+  const exR = adRows.find((r) => r.plateauFrom) ?? adRows.find((r) => r.series.length) ?? null;
+  const f1 = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
+  const sg = (v: number) => (v >= 0 ? "+" : "") + f1(v);
+  const howCalc = exR && exR.base != null
+    ? `<div class="hyp"><b>Как считается, на примере ${esc(exR.art)}.</b><ol class="dl2" style="margin:4px 0 0 18px">`
+      + `<li><b>Разрыв</b> = (1 - цена на витрине / предельная цена) × 100: какую долю цены товара доплачивает Ozon.</li>`
+      + `<li>Из него вычитаем такой же разрыв соседа по карточке (где соседа нет - медианы панели) в тот же день.`
+      + ` Так уходят сдвиги, которые Ozon делает сразу по всему каталогу. Остаток называем <b>разницей</b>.</li>`
+      + `<li><b>База</b> - разница до старта: ${esc(exR.baseFrom ?? "")} и ${esc(exR.baseTo ?? "")}, в среднем ${f1(exR.base)} пункта.</li>`
+      + `<li><b>Сдвиг</b> дня = разница дня минус база: `
+      + exR.series.filter((p) => p.gap != null).map((p) => `${esc(p.date.slice(8, 10))}.${esc(p.date.slice(5, 7))} ${f1(p.gap!)} - ${f1(exR.base!)} = <b>${sg(p.shift!)}</b>`).join("; ")
+      + `.</li>`
+      + `<li><b>Плато</b> - ${FLAT_DAYS} подряд идущих наблюдаемых дня со сдвигом не ниже +${ARRIVED} и размахом не больше 2 пунктов.`
+      + (exR.plateauFrom
+          ? ` У ${esc(exR.art)} это дни с ${esc(exR.plateauFrom)}: плато сложилось, и дальше оно не отменяется, даже если сдвиг потом упал.`
+          : ` У ${esc(exR.art)} такой тройки пока нет.`)
+      + `</li></ol></div>`
+    : "";
   const exitPlan = `<div class="hyp"><b>Когда выводим.</b> Плато требует ${FLAT_DAYS} ПОДРЯД ИДУЩИХ наблюдаемых суток после старта `
     + `${esc(waveOn)}. Наблюдений после старта ${haveAfter} (${seriesDays.map((d) => esc(d.slice(5))).join(", ")}), `
     + (earliest
@@ -1765,6 +1867,7 @@ function boostCard(): string {
         : `и у части товаров плато уже сложилось. `)
     + (win ? `Окно выхода: <b>${esc(win.от)}..${esc(win.до)}</b>. ` : "")
     + `Плато ждём по каждому товару отдельно, и выводим только тех, у кого оно сложилось.</div>`
+    + howCalc
     + pairNote
     + `<div class="cov">${basisNote}</div>`;
 
@@ -1891,7 +1994,7 @@ function boostCard(): string {
   const sep = [...obsDays].filter((d) => d.startsWith("2026-09"));
   const sepClean = sep.filter((d) => !storeMoves.has(d)).length;
   const movesNote = storeMoves.size
-    ? `Магазин двигался целиком в ${storeMoves.size} днях из ${obsDays.size} наблюдаемых, чистых осталось ${clean}.`
+    ? `Витрина сдвигалась по всему каталогу разом в ${storeMoves.size} днях из ${obsDays.size} наблюдаемых, чистых осталось ${clean}.`
       + ` В сентябре из ${sep.length} наблюдаемых дней чистых всего ${sepClean}.`
       + ` По логу ставки CPO «все товары» ${ours} из этих дней наши собственные: смена ставки двигает витрину по всему каталогу в тот же день.`
       + (ON_RAW
@@ -1940,6 +2043,7 @@ function boostCard(): string {
     + `Дни здесь считаются от нуля: день включения нулевой. `
     + `Пороги ${FLAT_DAYS} дня, ${FLAT_RANGE} пункта, +${ARRIVED} и возврат ниже +${BACK_TO_BASE} подобраны под этот случай и на других не проверены. `
     + `Что именно двигает разрыв, карточка не утверждает: вето от 23.09 в силе.</div>`
+    + backtestBlock()
     + (ON_RAW
         ? `<div class="stop"><b>Эталон стоит на другой шкале, чем гейт.</b> Сырых цен за июль нет: ряд начинается с 09.09,`
           + ` поэтому эталон считается по соинвесту, как и был. Соинвест мельче разрыва к предельной цене примерно на`

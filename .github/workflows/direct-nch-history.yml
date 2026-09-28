@@ -15,7 +15,7 @@ on:
       - .github/workflows/direct-nch-history.yml
 
 env:
-  CAMPAIGN_IDS: "712877517"
+  CAMPAIGN_IDS: "712877513"
 
 permissions:
   contents: write

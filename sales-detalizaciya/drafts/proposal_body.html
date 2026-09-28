@@ -6,7 +6,7 @@
 .pv-h{ display:flex; flex-wrap:wrap; gap:8px 16px; align-items:flex-end; justify-content:space-between; margin-bottom:14px; }
 .pv-h h2{ margin:0; font-size:20px; font-weight:600; letter-spacing:-.015em; color:var(--text-strong); }
 .pv-h p{ margin:4px 0 0; color:var(--text-muted); font-size:13px; max-width:720px; line-height:1.45; }
-.pv-eyebrow{ font-size:12px; font-weight:500; color:var(--text-muted); margin-bottom:4px; }
+.pv-eyebrow{ font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.06em; }
 .pv-card{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; box-shadow:var(--sh-card); }
 .pv-tag{ font-size:11px; font-weight:500; color:var(--text-muted); border:1px solid var(--border); border-radius:6px; padding:1px 6px; white-space:nowrap; }
 .num{ font-variant-numeric:tabular-nums; letter-spacing:-.01em; }
@@ -50,8 +50,10 @@
 .hc .lbl.ok{ color:var(--ok); } .hc .lbl.warn{ color:var(--warn); } .hc .lbl.crit{ color:var(--crit); }
 .hc .v{ font-size:28px; font-weight:600; letter-spacing:-.025em; color:var(--text-strong); line-height:1.1; }
 .hc .v small{ font-size:14px; font-weight:500; color:var(--text-muted); letter-spacing:0; }
-.hc .t{ font-size:13px; line-height:1.45; color:var(--text); }
-.hc .more{ font-size:12px; color:var(--text-muted); margin-top:auto; padding-top:4px; }
+.hc .meta{ font-size:11.5px; color:var(--text-muted); line-height:1.4; }
+.hc .t{ font-size:14px; line-height:1.45; color:var(--text-strong); font-weight:500; padding-top:10px; margin-top:4px; border-top:1px solid var(--border); }
+.hc.crit .t{ border-top-color:color-mix(in oklab, var(--crit) 25%, transparent); }
+.hc .more{ font-size:12.5px; font-weight:500; color:var(--text-link, var(--primary-ink)); margin-top:auto; padding-top:6px; }
 .pv-money{ display:grid; gap:16px; grid-template-columns:minmax(0,1fr); margin-top:16px; }
 @media (min-width:1000px){ .pv-money{ grid-template-columns:minmax(0,5fr) minmax(0,7fr); } }
 .money .big{ font-size:30px; font-weight:600; letter-spacing:-.025em; color:var(--text-strong); line-height:1.1; }
@@ -62,7 +64,7 @@
 .act{ display:grid; grid-template-columns:28px minmax(0,1fr); gap:12px; align-items:start; padding:14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); }
 .act .n{ width:28px; height:28px; border-radius:8px; display:grid; place-items:center; font-weight:600; font-size:13px; background:var(--surface-2); color:var(--text-strong); }
 .act b{ display:block; font-size:14px; color:var(--text-strong); font-weight:600; line-height:1.35; }
-.act .why{ font-size:12.5px; color:var(--text-muted); margin-top:4px; line-height:1.45; }
+.act .why{ font-size:13px; color:var(--text); margin-top:4px; line-height:1.5; }
 .act .meta{ display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:8px; font-size:12px; color:var(--text-muted); align-items:center; }
 
 /* 2. воронка */
@@ -176,10 +178,23 @@
 .dbd.on{ opacity:1; pointer-events:auto; }
 .drw{ position:fixed; top:0; right:0; bottom:0; width:min(560px, 100vw); z-index:61; overflow:auto; padding:22px;
   background:var(--glass-bg); -webkit-backdrop-filter:blur(20px) saturate(160%); backdrop-filter:blur(20px) saturate(160%);
-  border-left:1px solid var(--glass-border); box-shadow:var(--sh-drawer); transform:translateX(100%); transition:transform 300ms cubic-bezier(.2,.8,.2,1); visibility:hidden; }
+  border-left:0; box-shadow:var(--sh-drawer), -1px 0 0 var(--border); outline:none; transform:translateX(100%); transition:transform 300ms cubic-bezier(.2,.8,.2,1); visibility:hidden; }
 .drw.on{ transform:none; visibility:visible; }
-.drw h3{ margin:0 40px 4px 0; font-size:18px; font-weight:600; color:var(--text-strong); letter-spacing:-.015em; }
-.drw h4{ margin:18px 0 8px; font-size:12.5px; font-weight:600; color:var(--text-muted); }
+.drw:focus, .drw:focus-visible{ outline:none; }
+.drw h3{ margin:0 90px 6px 0; font-size:22px; font-weight:600; color:var(--text-strong); letter-spacing:-.02em; line-height:1.2; }
+.drw .sub{ font-size:12.5px; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+.drw h4{ margin:26px 0 10px; font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; }
+.drw .lead{ font-size:15.5px; line-height:1.55; color:var(--text-strong); font-weight:500; }
+.drw ol li b{ color:var(--text-strong); }
+/* так не надо / так надо */
+.dd{ display:flex; flex-direction:column; gap:10px; }
+.dd-row{ display:grid; gap:8px; grid-template-columns:minmax(0,1fr); padding:12px; border-radius:12px; background:var(--surface); border:1px solid var(--border); }
+@media (min-width:520px){ .dd-row{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
+.dd-q{ font-size:13px; line-height:1.5; padding:9px 11px; border-radius:9px; }
+.dd-q small{ display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+.dd-q.bad{ background:var(--crit-soft); color:var(--text); } .dd-q.bad small{ color:var(--crit); }
+.dd-q.good{ background:var(--ok-soft); color:var(--text-strong); } .dd-q.good small{ color:var(--ok); }
+.dd-why{ grid-column:1 / -1; font-size:12.5px; color:var(--text-muted); line-height:1.45; }
 .drw ol{ padding-left:18px; margin:0; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.45; }
 .drw .x{ position:absolute; top:14px; right:14px; }
 .drw .say{ padding:12px 14px; border-radius:10px; background:var(--primary-soft); border:1px solid var(--border); font-size:13.5px; line-height:1.5; }
@@ -346,6 +361,38 @@ const FIX = { silent:'Дожим через 24 и 72 часа с новым по
   competitor:'Проверить, где проиграли: цена, технология, скорость', stone_not_included:'Показать крепление к камню и раму', price:'Подобрать толщину под бюджет',
   delivery:'Назвать ТК, страховку и цену доставки', durability:'Технология запекания и гарантия 5 лет' };
 
+/* ---------- так не надо / так надо: плохие фразы взяты из переписки кабинетов ---------- */
+const DD = {
+  fu:[ ['Если возникнут вопросы, задавайте. Я всегда на связи.', 'Здравствуйте! Посчитала два варианта для вашего размера: 40х60 и 50х70. Прислать фото, как они смотрятся на памятнике?', 'Пассивное «пишите» перекладывает шаг на клиента. Новый повод даёт ему причину ответить.'],
+    ['(тишина через сутки после цены)', 'Через 24 часа: «Успели посмотреть расчёт? Могу позвонить на 3 минуты и показать варианты крепления».', 'Клиент Авито пишет в 3-5 мастерских. Кто вернулся первым, того и выбирают.'],
+    ['Здравствуйте! Напишите, если ещё рассматриваете объявление.', 'Через 72 часа: «Руководство согласовало для вас доп. скидку до пятницы, цену можем зафиксировать сейчас».', 'Автонапоминание Авито не заменяет живого касания: в нём нет ни цены, ни пользы.'] ],
+  dz:[ ['Стоимость зависит от размеров, толщины и вида стекла.', 'Портрет 40х60 из бесцветного стекла 20 000 р., из осветлённого 25 000 р. Для какого камня и к какой дате нужно?', 'Ответ без вопроса заканчивает разговор. Вопрос в конце оставляет его открытым.'],
+    ['Мы находимся в г. Домодедово. Изделие можем изготовить и отправить ТК.', 'Производство в Домодедово, в ваш город отправляем ПЭК со страховкой, около 3-4 тыс. Какой размер посчитать?', 'Факт без следующего шага. Добавьте цену доставки и вопрос.'],
+    ['У нас на сайте Вы можете ознакомиться с нашей продукцией. [ссылка]', 'Пришлю 3 фото работ вашего размера сюда или в MAX. Какой размер нужен?', 'Ссылка уводит клиента из диалога. Фото в чате держат его в разговоре.'] ],
+  fast:[ ['Ответ через 3-4 часа на вечернее сообщение, днём', 'Первый живой ответ в течение 15 минут в рабочее время: цена «от» и один вопрос.', 'Клиент пишет в несколько компаний сразу. Кто ответил первым, того и слушают.'],
+    ['Добро пожаловать в компанию Glass Memory! Вам ответит первый освободившийся специалист.', 'Автоответ вне графика с ценой: «Портреты от 16 000 р. Утром в 9:00 посчитаю ваш размер, напишите его».', 'Автоответ без пользы клиент игнорирует. Автоответ с ценой и просьбой размера продвигает диалог.'],
+    ['Добрый день!', 'Добрый день! Портрет 40х60 от 20 000 р. Для какого памятника: уже стоит или только планируете?', 'Сообщение без содержания тратит первое касание.'] ],
+  lag:[], price:[ ['Стоимость портретов от 20 000р. Напишите размеры, которые Вас интересуют.', 'Размеры от 30х40 до 60х120. Например: 40х60 20 000 р., 60х120 из 18 мм 96 000 р. Какой ближе?', 'Вилка из 2-3 реальных размеров снимает вопрос «сколько» сразу, без встречного вопроса.'],
+    ['Есть разные способы печати на стекле. Керамическая фотопечать не может быть по такой цене. Ваш выбор.', 'За 4 500 обычно печать на плёнке, она выгорает за 2-3 года. У нас керамика, запечённая в стекло. Пришлю сравнение на фото?', 'Спор отталкивает. Объяснение разницы и доказательство оставляют клиента.'] ],
+  ph:[ ['Напишите свой номер, менеджер Вам перезвонит.', 'Напишите номер, я пришлю в MAX фото готовых работ этого размера и макет.', 'Прямая просьба номера: телефон в 57% случаев. «Менеджер перезвонит»: 44%.'],
+    ['(номер не просили, расчёт остался в чате)', 'После расчёта сразу: «Сделаю бесплатный макет с вашим фото. Куда прислать: MAX или WhatsApp?»', 'Макет даёт клиенту причину оставить контакт.'],
+    ['Клиент дважды просит номер WhatsApp, ему присылают фото креплений', 'На прямую просьбу о номере отвечать номером сразу, первым сообщением.', 'Клиент сам предлагает перейти в телефон. Потерять такого клиента обиднее всего.'] ],
+  n:[] };
+DD.silent = DD.fu.concat([DD.dz[0]]);
+DD.not_now = [ ['Хорошо, пишите, когда будете готовы.', 'Цену можем зафиксировать сегодня, а изготовить к нужной дате: хранение готового изделия бесплатное. К какому сроку ориентироваться?', 'Фиксация цены и дата превращают «потом» в конкретный план.'],
+  ['(больше не писали)', 'Напомнить за месяц до названной даты: «Вы планировали установку к весне. Макет делаем 30 дней, самое время начать».', 'Клиент с датой установки: это отложенная сделка, её надо вести.'] ];
+DD.mismatch = [ ['Мы изготавливаем только стеклянную часть. С камнем не работаем.', 'Камень и установку делает партнёрская мастерская в вашем городе, свяжем вас. Стекло считаем мы: пришлите фото памятника.', '«Не работаем» закрывает разговор. Партнёр и крепление к камню его продолжают.'],
+  ['Мрамора у нас нет.', 'Стеклянного ангела можно приклеить к мраморной плите в любой гранитной мастерской. Пришлю, как это выглядит?', 'Показать, как наше изделие встраивается в то, что хочет клиент.'] ];
+DD.stone_not_included = DD.mismatch; DD.unknown = DD.dz; DD.no_followup = DD.fu;
+DD.band = [ ['(цена названа, дальше тишина)', 'Через 2-3 дня: «Руководство согласовало доп. скидку, если оформим до пятницы. Стекло пересчитываем каждый месяц, цену можно зафиксировать сейчас».', 'Скидка вторым касанием с дедлайном даёт повод вернуться и ускоряет решение.'],
+  ['До конца августа действует скидка 20% (в первом же ответе)', 'В первом ответе цена со скидкой 10%. Вторые 10% оставить для дожима через 2-3 дня.', 'Если отдать всю скидку сразу, для дожима ничего не остаётся.'],
+  ['Скидка от 20 до 30% (разные цифры разным клиентам)', 'Одна цифра и одна дата на месяц для обоих кабинетов.', 'Разные условия в одной неделе подрывают доверие к цене.'] ];
+function ddBlock(key){
+  const L = DD[key] || []; if(!L.length) return '';
+  return '<h4>Так не надо и так надо</h4><div class="dd">' + L.slice(0, 4).map(([b, g, why]) => '<div class="dd-row"><div class="dd-q bad"><small><i class="dot crit"></i>так не надо</small>' + esc(b) + '</div>'
+    + '<div class="dd-q good"><small><i class="dot ok"></i>так надо</small>' + esc(g) + '</div><div class="dd-why">' + esc(why) + '</div></div>').join('') + '</div>';
+}
+
 /* ---------- 1. обстановка ---------- */
 function situation(){
   const w = D.weeks[WK], all = funTotals('all');
@@ -358,14 +405,14 @@ function situation(){
   const cur = r(WK);
   const HC = [
     ['fast', 'Скорость ответа', cur.fast, '%', fast, 70, true, 'ответов за 15 рабочих минут', 'Стало быстрее: ' + nf(fast[0]) + '% → ' + nf(fast[1]) + '% за 8 недель.'],
-    ['price', 'Цена в ответе', cur.price, '%', H.price, 85, true, 'называем цену, когда спросили', 'Держится на уровне 85%: это сильная сторона.'],
+    ['price', 'Цена в ответе', cur.price, '%', H.price, 85, true, 'называем цену, когда спросили', 'Около нормы: ' + nf(H.price[0]) + '% → ' + nf(H.price[1]) + '% за 8 недель. Это сильная сторона.'],
     ['fu', 'Дожим', cur.fu, '%', fu, 30, true, 'диалогов, где вернулись к молчащему клиенту', 'Обвалился: ' + nf(fu[0]) + '% → ' + nf(fu[1]) + '%. Главная причина потерь.'],
     ['ph', 'Переход в телефон', cur.ph, '%', ph, 20, true, 'обращений, где клиент дал телефон', 'Хуже: ' + nf(ph[0]) + '% → ' + nf(ph[1]) + '%. Сделка идёт по телефону, без номера её нет.']
   ];
   $('health').innerHTML = HC.map(([k, t, v, suf, hv, norm, up, what, say]) => { const st = v == null ? 'na' : v >= norm ? 'ok' : v >= norm * .7 ? 'warn' : 'crit';
     const word = { ok:'в норме', warn:'близко к норме', crit:'проблема', na:'нет данных' }[st];
     return '<button class="hc hov click ' + (st === 'crit' ? 'crit' : '') + '" data-h="' + k + '"><span class="top"><span>' + t + '</span><span class="lbl ' + st + '"><i class="dot ' + st + '"></i>' + word + '</span></span>'
-      + '<span class="v num">' + (v == null ? '-' : nf(v) + suf) + ' <small>норма ' + norm + suf + '</small></span><span class="muted" style="font-size:12px">' + what + ', неделя ' + wl(w) + '</span>'
+      + '<span class="v num">' + (v == null ? '-' : nf(v) + suf) + ' <small>норма ' + norm + suf + '</small></span><span class="meta">' + what + ' · неделя ' + wl(w) + '</span>'
       + '<span class="t">' + say + '</span><span class="more">подробнее и что делать →</span></button>'; }).join('');
   $('health').onclick = e => { const b = e.target.closest('[data-h]'); if(b) metricDrawer(b.dataset.h, b); };
   money(all);
@@ -428,7 +475,7 @@ function insight(v, drops, worst){
     + (rs.length ? '<h4>Причины по разметке, 8 недель</h4><ul>' + rs.map(x => '<li>' + (RN[x[0]] || x[0]) + ': <b class="num">' + x[1] + '</b></li>').join('') + '</ul>' : '')
     + '<h4>Что делать</h4><div class="todo">' + t[2] + '</div>'
     + (list.length ? '<div style="margin-top:12px"><button class="btn" id="fins-b">показать диалоги этой стадии (' + list.filter(d => CAB === 'all' || d.c === CAB).length + ')</button></div>' : '');
-  const b = $('fins-b'); if(b) b.onclick = () => drawer('<h3 id="drw-h">' + esc(t[0]) + '</h3><div class="muted" style="font-size:13px">Диалоги, которые остановились на стадии «' + STG[s] + '», свежие сверху</div><h4>Что делать</h4><div class="say">' + esc(t[2]) + '</div><h4>Диалоги</h4>' + dlist(list, 30), b);
+  const b = $('fins-b'); if(b) b.onclick = () => drawer('<h3 id="drw-h">' + esc(t[0]) + '</h3><div class="sub">Диалоги, которые остановились на стадии «' + STG[s] + '», свежие сверху</div><h4>Что делать</h4><div class="lead">' + esc(t[2]) + '</div>' + ddBlock(['n', 'dz', 'ph', 'ph', 'band'][s]) + '<h4>Диалоги</h4>' + dlist(list, 30), b);
 }
 
 /* ---------- 3. матрица ---------- */
@@ -439,8 +486,13 @@ const MX_SAY = { n:'Поток обращений. Зависит от объя�
   fast:'Доля клиентов, получивших живой ответ за 15 рабочих минут. Клиент Авито пишет в 3-5 компаний сразу: кто ответил первым, того и слушают.',
   price:'Когда клиент спросил цену, назвали ли сумму в рублях. Если нет, клиент уходит к тем, кто назвал.', dz:'Доля диалогов, где наш ответ последний и клиент молчит 2 дня и больше, а мы не написали снова.',
   ph:'Доля обращений, где клиент прислал телефон. Сделка идёт по телефону, без номера её почти нет.', fu:'Доля диалогов, где менеджер сам вернулся к молчащему клиенту через 20+ часов.' };
-const MX_DO = { n:'Проверить статистику объявлений в кабинете Авито: показы, ставки, статус.', lag:'Дежурный на кабинет, ответ до 15 минут в рабочее время.', fast:'Дежурный на кабинет и шаблоны первого ответа с ценой.',
-  price:'Шаблон «Цена по запросу»: вилка и один вопрос о размере.', dz:'Утренний список «последнее слово наше больше суток», закрывать до 11:00.', ph:'Просить номер в обмен на фото и макет.', fu:'Дожим через 24 и 72 часа.' };
+const MX_DO = { n:'Проверить статистику объявлений в кабинете Авито: показы, ставки, статус. Поток зависит от объявлений, а не от менеджеров.',
+  lag:'Назначить дежурного на кабинет: первый живой ответ до 15 минут в рабочее время. Вне графика автоответ с ценой «от» и просьбой размера.',
+  fast:'Назначить дежурного на кабинет и дать шаблоны первого ответа: цена «от», 2-3 примера размеров и один вопрос.',
+  price:'Отвечать на «сколько стоит» вилкой из 2-3 реальных размеров и одним вопросом. Не спорить о цене конкурента, а объяснять разницу технологий.',
+  dz:'Каждое утро до 11:00 проходить список «последнее слово наше больше суток» и писать каждому клиенту с новым поводом.',
+  ph:'Просить номер прямо и в обмен на пользу: фото работ, макет, прайс в MAX. Не передавать клиента «менеджеру, который перезвонит».',
+  fu:'Дожим по расписанию: через 24 часа новый повод (второй вариант, фото, звонок), через 72 часа вторая часть скидки с дедлайном.' };
 function spark(vals, color){
   const xs = vals.map((v, i) => [i, v]).filter(p => p[1] != null); if(xs.length < 2) return '';
   const mx = Math.max(...xs.map(p => p[1]), 1), W = 80, H = 26, pts = xs.map(([i, v]) => [(i / (vals.length - 1)) * (W - 4) + 2, H - 3 - (v / mx) * (H - 6)]), last = pts[pts.length - 1];
@@ -471,10 +523,10 @@ function miniChart(f, norm){
 function metricDrawer(f, from){
   const m = MX.find(x => x[0] === f), norm = m[3];
   const rows = CODES.map(c => { const r = D.cabs[c].series; return '<li>' + c + ': сейчас <b class="num">' + nf(r[WK][f]) + (m[5] === '%' ? '%' : '') + '</b>, 8 недель назад ' + nf(r[0][f]) + (m[5] === '%' ? '%' : '') + ', обращений на неделе ' + r[WK].n + '</li>'; }).join('');
-  drawer('<h3 id="drw-h">' + m[1] + '</h3><div class="muted" style="font-size:13px">' + m[2] + (norm ? ' · норма ' + (norm[1] === 'min' ? 'от ' : 'до ') + norm[0] + m[5] : '') + '</div>'
-    + '<h4>Что это значит</h4><div style="font-size:13.5px;line-height:1.55">' + MX_SAY[f] + '</div>'
+  drawer('<h3 id="drw-h">' + m[1] + '</h3><div class="sub">' + m[2] + (norm ? ' · норма ' + (norm[1] === 'min' ? 'от ' : 'до ') + norm[0] + m[5] : '') + '</div>'
+    + '<h4>Что это значит</h4><div class="lead">' + MX_SAY[f] + '</div>'
     + '<h4>Как менялся за 8 недель</h4>' + miniChart(f, norm) + '<ol style="margin-top:10px">' + rows + '</ol>'
-    + '<h4>Что делать</h4><div class="say">' + MX_DO[f] + '</div>', from);
+    + '<h4>Что делать</h4><div class="lead">' + MX_DO[f] + '</div>' + ddBlock(f), from);
 }
 
 /* ---------- 4. цена ---------- */
@@ -489,8 +541,8 @@ function ladder(){
       + K.map(k => { const p = t ? (b[k[0]] || 0) / t * 100 : 0; return p ? '<i style="flex:' + p + ';background:' + k[1] + '" title="' + k[2] + ' ' + Math.round(p) + '%">' + (p >= 9 ? Math.round(p) + '%' : '') + '</i>' : ''; }).join('')
       + '</span><span class="num muted" style="text-align:right">' + t + '</span></button>'; }).join('');
   $('lad').onclick = e => { const b = e.target.closest('[data-b]'); if(!b) return; const i = +b.dataset.b;
-    drawer('<h3 id="drw-h">Пропали после цены ' + BANDS[i] + '</h3><div class="muted" style="font-size:13px">' + (D.ladder[i].silent || 0) + ' клиентов с апреля. Им назвали цену и больше не писали.</div>'
-      + '<h4>Что написать через 2-3 дня</h4><div class="say">' + esc(SAY.band) + '</div><div style="margin-top:8px"><button class="btn" data-copy="' + esc(SAY.band) + '">в скрипт</button></div>'
+    drawer('<h3 id="drw-h">Пропали после цены ' + BANDS[i] + '</h3><div class="sub">' + (D.ladder[i].silent || 0) + ' клиентов с апреля. Им назвали цену и больше не писали.</div>'
+      + '<h4>Что написать через 2-3 дня</h4><div class="say">' + esc(SAY.band) + '</div><div style="margin-top:8px"><button class="btn" data-copy="' + esc(SAY.band) + '">в скрипт</button></div>' + ddBlock('band')
       + '<h4>Диалоги, свежие сверху</h4>' + dlist(D.band_lists[i], 25), b); };
 }
 
@@ -504,8 +556,8 @@ function pareto(){
 }
 function reasonDrawer(p, from){
   const say = SAY[p[1]] || SAY.unknown;
-  drawer('<h3 id="drw-h">' + esc(p[0]) + '</h3><div class="muted" style="font-size:13px">' + p[2] + ' диалогов за 8 недель не дошли до телефона по этой причине</div>'
-    + '<h4>Что делать</h4><div style="font-size:13.5px;line-height:1.55">' + esc(FIX[p[1]] || '') + '</div>'
+  drawer('<h3 id="drw-h">' + esc(p[0]) + '</h3><div class="sub">' + p[2] + ' диалогов за 8 недель не дошли до телефона по этой причине</div>'
+    + '<h4>Что делать</h4><div class="lead">' + esc(FIX[p[1]] || '') + '</div>' + ddBlock(p[1])
     + '<h4>Что написать клиенту</h4><div class="say">' + esc(say) + '</div><div style="margin-top:8px"><button class="btn" data-copy="' + esc(say) + '">в скрипт</button></div>'
     + '<h4>Диалоги, свежие сверху</h4>' + dlist(p[3], 25), from);
 }

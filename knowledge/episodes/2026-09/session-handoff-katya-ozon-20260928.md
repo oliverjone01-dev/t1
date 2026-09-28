@@ -76,7 +76,34 @@
 
 ---
 
-## 7. Константы среды
+## 7. Все вкладки дашборда OZON (шапка `KPAGES` в `src/scripts/katya-nav.ts`)
+
+| Вкладка | Файл | Сборщик | Откуда данные | Обновление |
+|---|---|---|---|---|
+| Командный центр | `katya-command.html` | `build-katya.ts` | снимки `data/*.ndjson` (history, pnl, реклама) | авто: `ozon-snapshots.yml` 06:00 UTC → деплой |
+| Обзор | `katya.html` | `build-katya.ts` | то же | авто |
+| Товары и заказы | `katya-tovary.html` | `build-katya.ts` | то же | авто |
+| Воронка | `katya-voronka.html` | `build-katya.ts` | то же | авто |
+| Маркетинг | `katya-marketing.html` | `build-katya.ts` | то же + Performance API | авто |
+| Деньги | `katya-money.html` | `build-katya.ts` | см. §3-4 | авто (`orders-backfill.yml` 05:00 UTC + снимки) |
+| Конкуренты | `katya-competitors.html` | `build-katya.ts` | **ДЕМО-заглушка**, числа не реальные (`build-katya.ts` ~стр. 4826) | - |
+| Реакция | `katya-reakciya.html` (+ `-lite`) | `build-reakciya.ts` | `data/reakciya.json` - срез из кабинета продавца (живая сессия по кукам, автосинка нет; пересчёт среза `tools/reakciya/build.py`, эндпоинты `tools/reakciya/КАБИНЕТ_эндпоинты.md`) | **вручную**: Иван присылает файлы, кладём в main |
+| Тесты | `katya-tests.html` | `build-tests.ts` | реестр `tools/tests/tests.json` + `tests_campaigns.psv`; ряды `sku_views`, `ads_sku_daily`, `history`, `coinv_daily`, `prices_daily`, `cpo_sku_status`, `ads_daily`; из кабинета (вручную): `reakciya.json`, `funnel_tests.ndjson`, `gap_daily.ndjson`, `boost_daily.ndjson`, `store_moves.ndjson`, `eb_daily`, `acts_daily`, `cur_prices.psv` | смешанное: снимки авто, файлы кабинета - вручную |
+| Бустинг (служ.) | `katya-boost.html` | `build-boost.ts` | `boost_daily.ndjson` (+ `card_groups.json`, если есть) | вручную |
+
+Все OZON-вкладки собираются одной командой `npm run katya`; деплой делает это сам. Вкладки «Реакция», «Тесты», «Бустинг» - только OZON (на Маркете их нет, фильтр в шапке).
+
+**«Тесты» - состояние на 28.09** (реестр `tools/tests/tests.json`):
+- `cpc_bid_down` «Оплата за клик: понижение ставки» - старт 18.09, замер 02.10, 11 тест / 11 контроль, статус «ответ получен, измерение продолжается».
+- `boost_plus_exit` «Выход из акции „Максимальный бустинг: усиление“» - старт 20.09, роли test_ad 5 + test_sibling 5, контроль 46 (участники той же акции, явный список), статус «идёт». Гейт плато: на 25.09 плато сложилось у GGL-07-XL-2 (сдвиг 8,9 / 9,0 / 8,4 с 23.09), у остальных четырёх - не раньше 25.09.
+- Ключевые правила страницы: контроль берётся по приоритету `funnel_arts` > `funnel_agg` (только при покрытии ≥ 80 % дней окна) > явный список из tests.json > панель (`src/scripts/ctl-src.ts`, тесты `ctl-src.test.ts`); база плато - сырые цены `gap_daily` (`boost-readiness.ts`, тест `gap-daily.test.ts`, порог +8 п., три дня).
+- Иван отложил тему тестов («пока ничего не трогаем»): гейт теста `boost_plus_exit` 26-27.09, замер `cpc_bid_down` 02.10, третий тест требует его апрува. Вето ФЕНИКСА по соинвесту в тестах: `feniks-veto-tests-coinv-20260923.md`.
+
+**«Реакция» - как читать:** последняя точка графика в день выгрузки - неполный день (снимок в течение дня), не падение; см. открытый пункт 2 в §6.
+
+---
+
+## 8. Константы среды
 
 - Коммиты заканчиваются строками `Co-Authored-By: Claude …` и `Claude-Session: <ссылка>`; тело PR - `🤖 Generated with [Claude Code](https://claude.com/claude-code)` + ссылка на сессию. Модель в тексты коммитов/PR не писать.
 - GitHub - только через MCP (`mcp__github__*`), скоуп `oliverjone01-dev/t1`. OZON API из сессии недоступен (ключи только в Actions).

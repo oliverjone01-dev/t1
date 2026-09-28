@@ -1,0 +1,1142 @@
+{
+ "generated_at": "2026-09-28T09:28:37.532Z",
+ "base": "msk",
+ "phrases": {
+  "складные перегородки": {
+   "status": 404,
+   "error": "{\"code\":404,\"message\":\"Запрос не найден.\"}"
+  },
+  "складная перегородка": {
+   "status": 200,
+   "ws": 4485,
+   "wsk": 279,
+   "adscnt": 9,
+   "wizards": [
+    "картинки",
+    "ответ Алисы",
+    "товары",
+    "товары"
+   ],
+   "top": [
+    {
+     "pos": 1,
+     "domain": "lain-loft.ru",
+     "url": "/mezhkomnatnye-peregorodki/skladnye-mezhkomnatnye-peregorodki"
+    },
+    {
+     "pos": 2,
+     "domain": "aliexpress.ru",
+     "url": "/popular/складная-перегородка"
+    },
+    {
+     "pos": 3,
+     "domain": "fdmebel.ru",
+     "url": "/product_cat/peregorodki-knizhki"
+    },
+    {
+     "pos": 4,
+     "domain": "lemanapro.ru",
+     "url": "/catalogue/shirmy/skladnye"
+    },
+    {
+     "pos": 5,
+     "domain": "ginterio.ru",
+     "url": "/catalog/peregorodki/skladnye-peregorodki"
+    },
+    {
+     "pos": 6,
+     "domain": "ajax-peregorodki.ru",
+     "url": "/produkcziya/skladnyie-peregorodki"
+    },
+    {
+     "pos": 7,
+     "domain": "doors777.ru",
+     "url": "/product/mezhkomnatnaya-loft-peregorodka-garmoshka"
+    },
+    {
+     "pos": 8,
+     "domain": "shkaffkupe.ru",
+     "url": "/catalog/mezhkomnatnye_peregorodki/skladnye"
+    },
+    {
+     "pos": 9,
+     "domain": "fantasia-stekla.ru",
+     "url": "/glass_partitions/skladnye-steklyannye-peregorodki-garmoshka"
+    },
+    {
+     "pos": 10,
+     "domain": "profldoors.ru",
+     "url": "/peregorodki/skladnye"
+    }
+   ],
+   "ads": [
+    {
+     "domain": "union.ru",
+     "header": "Раздвижные перегородки Union Складные перегородки от UNION, алюминий и стекло"
+    },
+    {
+     "domain": "shkaffkupe.ru",
+     "header": "Межкомнатные перегородки на заказ — купить перегородку в комнату по цене от производителя в Москве"
+    },
+    {
+     "domain": "dveriregionov.ru",
+     "header": "Складная перегородка гармошка W-009 – купить в Москве в интернет-магазине | Двери Регионов"
+    },
+    {
+     "domain": "ddveri.pro",
+     "header": "Межкомнатные перегородки купить от производителя. Москва. Гарантия до 5 лет. Рассрочка 0%"
+    },
+    {
+     "domain": "mossteklomontage.ru",
+     "header": "Складные перегородки"
+    },
+    {
+     "domain": "profiledoors.ru",
+     "header": "Складная перегородка «Гармошка» ProfilDoors. Официальный дилер. Рассрочка 0%"
+    },
+    {
+     "domain": "genglass.ru",
+     "header": "Межкомнатные перегородки на заказ в Москве для зонирования пространства | GenGlass"
+    },
+    {
+     "domain": "profiledoors.ru",
+     "header": "Складные межкомнатные перегородки купить в Москве."
+    },
+    {
+     "domain": "mossteklomontage.ru",
+     "header": "Складные перегородки. Замер бесплатно. Монтаж под ключ. Изготовление на заказ. Москва и МО"
+    }
+   ],
+   "similars": [
+    {
+     "word": "складная перегородка",
+     "wsk": 279,
+     "perc": 100
+    },
+    {
+     "word": "складная стенка",
+     "wsk": 8,
+     "perc": 46
+    },
+    {
+     "word": "складная межкомнатная перегородка",
+     "wsk": 60,
+     "perc": 41
+    },
+    {
+     "word": "перегородка складная гармошка для зонирования комнаты",
+     "wsk": 10,
+     "perc": 38
+    },
+    {
+     "word": "перегородка разборная",
+     "wsk": 4,
+     "perc": 38
+    },
+    {
+     "word": "складывающиеся стены",
+     "wsk": 0,
+     "perc": 36
+    },
+    {
+     "word": "складная межкомнатная перегородка гармошка",
+     "wsk": 19,
+     "perc": 33
+    },
+    {
+     "word": "складные перегородки межкомнатные гармошка с шумоизоляцией",
+     "wsk": 3,
+     "perc": 33
+    },
+    {
+     "word": "перегородка гармошка для зонирования комнаты купить",
+     "wsk": 2,
+     "perc": 30
+    },
+    {
+     "word": "складывающиеся стеклянные перегородки",
+     "wsk": 1,
+     "perc": 30
+    }
+   ]
+  },
+  "складные перегородки межкомнатные": {
+   "status": 404,
+   "error": "{\"code\":404,\"message\":\"Запрос не найден.\"}"
+  },
+  "складные перегородки гармошка": {
+   "status": 404,
+   "error": "{\"code\":404,\"message\":\"Запрос не найден.\"}"
+  },
+  "перегородка гармошка": {
+   "status": 200,
+   "ws": 3454,
+   "wsk": 259,
+   "adscnt": 6,
+   "wizards": [
+    "видео",
+    "товары",
+    "картинки",
+    "товары",
+    "товары"
+   ],
+   "top": [
+    {
+     "pos": 1,
+     "domain": "profiledoors.ru",
+     "url": "/peregorodki/skladnye"
+    },
+    {
+     "pos": 2,
+     "domain": "allinwall.ru",
+     "url": "/produkcziya/skladnyie-peregorodki-garmoshki"
+    },
+    {
+     "pos": 3,
+     "domain": "ajax-peregorodki.ru",
+     "url": "/produkcziya/skladnyie-peregorodki"
+    },
+    {
+     "pos": 4,
+     "domain": "doors777.ru",
+     "url": "/product/mezhkomnatnaya-loft-peregorodka-garmoshka"
+    },
+    {
+     "pos": 5,
+     "domain": "dveri-vdom.ru",
+     "url": "/category/myagkie-peregorodki"
+    },
+    {
+     "pos": 6,
+     "domain": "fdmebel.ru",
+     "url": "/product_cat/peregorodki-garmoshki-iz-stekla"
+    },
+    {
+     "pos": 7,
+     "domain": "aliexpress.ru",
+     "url": "/popular/перегородка-гармошка"
+    },
+    {
+     "pos": 8,
+     "domain": "peregorodok.net",
+     "url": "/peregorodki/skladnyie-peregorodki"
+    },
+    {
+     "pos": 9,
+     "domain": "genglass.ru",
+     "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka"
+    },
+    {
+     "pos": 10,
+     "domain": "zerist.ru",
+     "url": "/catalog/steklyannye-peregorodki/peregorodki-garmoshka"
+    }
+   ],
+   "ads": [
+    {
+     "domain": "profiledoors.ru",
+     "header": "Межкомнатные перегородки ProfilDoors. Официальный дилер. Рассрочка 0%. Установка под ключ"
+    },
+    {
+     "domain": "steelloft.ru",
+     "header": "Изготовление перегородок-гармошек в стиле LOFT"
+    },
+    {
+     "domain": "profiledoors.ru",
+     "header": "Межкомнатные каскадные перегородки ProfilDoors. Официальный дилер. Рассрочка 0%"
+    },
+    {
+     "domain": "steelloft.ru",
+     "header": "Изготовление перегородок-гармошек в стиле LOFT. Проверенные материалы"
+    },
+    {
+     "domain": "genglass.ru",
+     "header": "Перегородка гармошка межкомнатная на заказ. Собственное производство. Российский бренд"
+    },
+    {
+     "domain": "new.foris-msk.ru",
+     "header": "Перегородки для зонирования \"под ключ\" от производителя!"
+    }
+   ],
+   "similars": [
+    {
+     "word": "перегородка гармошка",
+     "wsk": 259,
+     "perc": 100
+    },
+    {
+     "word": "перегородка гармошка купить",
+     "wsk": 12,
+     "perc": 72
+    },
+    {
+     "word": "межкомнатная перегородка гармошка",
+     "wsk": 70,
+     "perc": 70
+    },
+    {
+     "word": "раздвижная стена гармошка",
+     "wsk": 26,
+     "perc": 67
+    },
+    {
+     "word": "перегородка складная гармошка для зонирования",
+     "wsk": 36,
+     "perc": 62
+    },
+    {
+     "word": "стена гармошка межкомнатная сдвижная",
+     "wsk": 25,
+     "perc": 60
+    },
+    {
+     "word": "стена гармошка межкомнатная",
+     "wsk": 8,
+     "perc": 60
+    },
+    {
+     "word": "перегородки складные межкомнатные гармошка для квартиры",
+     "wsk": 8,
+     "perc": 60
+    },
+    {
+     "word": "перегородка дверь гармошка",
+     "wsk": 26,
+     "perc": 58
+    },
+    {
+     "word": "складные стеклянные перегородки гармошка",
+     "wsk": 8,
+     "perc": 58
+    }
+   ]
+  },
+  "перегородки гармошка межкомнатные": {
+   "status": 404,
+   "error": "{\"code\":404,\"message\":\"Запрос не найден.\"}"
+  },
+  "межкомнатная перегородка гармошка": {
+   "status": 200,
+   "ws": 469,
+   "wsk": 70,
+   "adscnt": 5,
+   "wizards": [
+    "товары",
+    "товары",
+    "картинки"
+   ],
+   "top": [
+    {
+     "pos": 1,
+     "domain": "profiledoors.ru",
+     "url": "/peregorodki/skladnye"
+    },
+    {
+     "pos": 2,
+     "domain": "doors777.ru",
+     "url": "/product/mezhkomnatnaya-loft-peregorodka-garmoshka"
+    },
+    {
+     "pos": 3,
+     "domain": "lain-loft.ru",
+     "url": "/mezhkomnatnye-peregorodki/skladnye-mezhkomnatnye-peregorodki"
+    },
+    {
+     "pos": 4,
+     "domain": "fdmebel.ru",
+     "url": "/product/peregorodka-garmoshka-loft-s-prozrachnym-steklom"
+    },
+    {
+     "pos": 5,
+     "domain": "market.yandex.ru",
+     "url": "/search?text=складные перегородки гармошка для зонирования пространства в комнате купить"
+    },
+    {
+     "pos": 6,
+     "domain": "ozon.ru",
+     "url": "/category/razdvizhnaya-peregorodka-garmoshka"
+    },
+    {
+     "pos": 7,
+     "domain": "dveri-vdom.ru",
+     "url": "/category/myagkie-peregorodki"
+    },
+    {
+     "pos": 8,
+     "domain": "fantasia-stekla.ru",
+     "url": "/glass_partitions/skladnye-steklyannye-peregorodki-garmoshka"
+    },
+    {
+     "pos": 9,
+     "domain": "livemaster.ru",
+     "url": "/item/45907280-dlya-doma-i-interera-peregorodka-mezhkomnatnaya-garmoshka"
+    },
+    {
+     "pos": 10,
+     "domain": "dveri-garmoshka.ru",
+     "url": "/"
+    }
+   ],
+   "ads": [
+    {
+     "domain": "genglass.ru",
+     "header": "Перегородки гармошка на заказ | Genglass"
+    },
+    {
+     "domain": "profiledoors.ru",
+     "header": "Раздвижные межкомнатные перегородки. Официальный дилер. Рассрочка 0%. Установка под ключ"
+    },
+    {
+     "domain": "slidingpartition.ru",
+     "header": "Мягкие перегородки-гармошка - Раздвижные перегородки. Межкомнатные перегородки раздвижные"
+    },
+    {
+     "domain": "steelloft.ru",
+     "header": "Изготовление перегородок-гармошек в стиле LOFT. Проверенные материалы"
+    },
+    {
+     "domain": "profiledoors.ru",
+     "header": "Межкомнатные перегородки гармошка. Официальный дилер. Рассрочка 0%. Установка под ключ"
+    }
+   ],
+   "similars": [
+    {
+     "word": "межкомнатная перегородка гармошка",
+     "wsk": 70,
+     "perc": 100
+    },
+    {
+     "word": "перегородка гармошка",
+     "wsk": 259,
+     "perc": 62
+    },
+    {
+     "word": "перегородки складные межкомнатные гармошка для квартиры",
+     "wsk": 8,
+     "perc": 58
+    },
+    {
+     "word": "раздвижная стена гармошка",
+     "wsk": 26,
+     "perc": 55
+    },
+    {
+     "word": "перегородка гармошка купить",
+     "wsk": 12,
+     "perc": 53
+    },
+    {
+     "word": "стена гармошка межкомнатная",
+     "wsk": 8,
+     "perc": 53
+    },
+    {
+     "word": "перегородки гармошка для зонирования пространства в комнате",
+     "wsk": 8,
+     "perc": 50
+    },
+    {
+     "word": "перегородка дверь гармошка",
+     "wsk": 26,
+     "perc": 46
+    },
+    {
+     "word": "стена гармошка межкомнатная сдвижная",
+     "wsk": 25,
+     "perc": 46
+    },
+    {
+     "word": "складные стеклянные перегородки гармошка",
+     "wsk": 8,
+     "perc": 46
+    }
+   ]
+  },
+  "стеклянная перегородка гармошка": {
+   "status": 200,
+   "ws": 148,
+   "wsk": 43,
+   "adscnt": 5,
+   "wizards": [
+    "товары",
+    "товары",
+    "картинки"
+   ],
+   "top": [
+    {
+     "pos": 1,
+     "domain": "profiledoors.ru",
+     "url": "/peregorodki/skladnye"
+    },
+    {
+     "pos": 2,
+     "domain": "fantasia-stekla.ru",
+     "url": "/glass_partitions/skladnye-steklyannye-peregorodki-garmoshka"
+    },
+    {
+     "pos": 3,
+     "domain": "ajax-peregorodki.ru",
+     "url": "/produkcziya/skladnyie-peregorodki"
+    },
+    {
+     "pos": 4,
+     "domain": "doors777.ru",
+     "url": "/product/mezhkomnatnaya-loft-peregorodka-garmoshka"
+    },
+    {
+     "pos": 5,
+     "domain": "fdmebel.ru",
+     "url": "/product_cat/peregorodki-garmoshki-iz-stekla"
+    },
+    {
+     "pos": 6,
+     "domain": "zerist.ru",
+     "url": "/catalog/steklyannye-peregorodki/peregorodki-garmoshka"
+    },
+    {
+     "pos": 7,
+     "domain": "kinlong.ru",
+     "url": "/catalog/dveri_i_peregorodki/razdvizhnaya_peregorodka_peregorodki_garmoshka"
+    },
+    {
+     "pos": 8,
+     "domain": "glasstroy.ru",
+     "url": "/sliding-glass-partitions/razdvizhnye-peregorodki-garmoshka-lider-sredi-mezhkomnatnyh-peregorodok"
+    },
+    {
+     "pos": 9,
+     "domain": "livemaster.ru",
+     "url": "/item/48792572-dlya-doma-i-interera-skladnaya-loft-peregorodka-garmoshka"
+    },
+    {
+     "pos": 10,
+     "domain": "lain-loft.ru",
+     "url": "/mezhkomnatnye-peregorodki/skladnye-mezhkomnatnye-peregorodki"
+    }
+   ],
+   "ads": [
+    {
+     "domain": "genglass.ru",
+     "header": "Перегородка-гармошка с рифленым стеклом FLOROVIA 205.7 х 260 см"
+    },
+    {
+     "domain": "kelman-stroi.ru",
+     "header": "Складные перегородки гармошка заказать в Москве | Цена от производителя"
+    },
+    {
+     "domain": "steklofabrika-peregorodki.ru",
+     "header": "Стеклянные перегородки. Под ключ за 7 дней"
+    },
+    {
+     "domain": "peregorodka77.ru",
+     "header": "Стеклянные перегородки для зонирования. От 6 600 р/м2. Свое производство"
+    },
+    {
+     "domain": "steklofabrika-peregorodki.ru",
+     "header": "Стеклянные перегородки. Под ключ за 7 дней. Работаем по ГОСТ и ISO. Опыт более 15 лет"
+    }
+   ],
+   "similars": [
+    {
+     "word": "стеклянная перегородка гармошка",
+     "wsk": 43,
+     "perc": 100
+    },
+    {
+     "word": "перегородка гармошка для зонирования комнаты",
+     "wsk": 13,
+     "perc": 43
+    },
+    {
+     "word": "раздвижные перегородки гармошка для зонирования",
+     "wsk": 5,
+     "perc": 43
+    },
+    {
+     "word": "межкомнатные перегородки гармошка для квартиры",
+     "wsk": 2,
+     "perc": 39
+    },
+    {
+     "word": "стенка гармошка",
+     "wsk": 32,
+     "perc": 36
+    },
+    {
+     "word": "раздвижные перегородки межкомнатные гармошка",
+     "wsk": 31,
+     "perc": 36
+    },
+    {
+     "word": "перегородки гармошка для зонирования пространства",
+     "wsk": 2,
+     "perc": 34
+    },
+    {
+     "word": "сдвижная стена гармошка",
+     "wsk": 0,
+     "perc": 29
+    },
+    {
+     "word": "алюминиевые перегородки гармошка",
+     "wsk": 0,
+     "perc": 29
+    },
+    {
+     "word": "стена гармошка",
+     "wsk": 30,
+     "perc": 27
+    }
+   ]
+  },
+  "дверь гармошка": {
+   "status": 200,
+   "ws": 65908,
+   "wsk": 6323,
+   "adscnt": 3,
+   "wizards": [
+    "ответ Алисы",
+    "картинки",
+    "товары",
+    "товары",
+    "товары"
+   ],
+   "top": [
+    {
+     "pos": 1,
+     "domain": "vseinstrumenti.ru",
+     "url": "/category/dveri-garmoshki-185732"
+    },
+    {
+     "pos": 2,
+     "domain": "lemanapro.ru",
+     "url": "/catalogue/dveri-garmoshka"
+    },
+    {
+     "pos": 3,
+     "domain": "zakaz-dverey.ru",
+     "url": "/category/dveri_garmoshka"
+    },
+    {
+     "pos": 4,
+     "domain": "dvermezhkom-service.ru",
+     "url": "/catalog/dver-garmoshka-pg"
+    },
+    {
+     "pos": 5,
+     "domain": "169.ru",
+     "url": "/mezhkomnatnye-dveri/skladnye/garmoshka-na-kuhnyu"
+    },
+    {
+     "pos": 6,
+     "domain": "moscow.petrovich.ru",
+     "url": "/catalog/226932184"
+    },
+    {
+     "pos": 7,
+     "domain": "apartunity.ru",
+     "url": "/dveri/dver-garmoshka-mezhkomnatnaya-skladnaya-pvh-840x2020-mm-dver-knizhka-razdvizhnaya-vodostoykaya-kuhni-kladovoy-garderobnoy-oreh-milanskiy-remstroyplast"
+    },
+    {
+     "pos": 8,
+     "domain": "dveri-garmoshka.ru",
+     "url": "/"
+    },
+    {
+     "pos": 9,
+     "domain": "parket-sale.ru",
+     "url": "/dveri/garmoshka.html"
+    },
+    {
+     "pos": 10,
+     "domain": "zakaz-dverey.ru",
+     "url": "/category/ckladnye_dveri"
+    }
+   ],
+   "ads": [
+    {
+     "domain": "dveribravo.ru",
+     "header": "Межкомнатная дверь Гармошка ДСК 007 Венге - купить в dveribravo.ru | «Двери Браво» - интернет-магазин фабрики | Официальный сайт розницы Браво"
+    },
+    {
+     "domain": "dverra.ru",
+     "header": "Складные межкомнатные двери без посредников по цене от 850 р. в интернет-магазине «Дверра»"
+    },
+    {
+     "domain": "kelman-stroi.ru",
+     "header": "Двери гармошки в Москве от производителя"
+    }
+   ],
+   "similars": [
+    {
+     "word": "дверь гармошка",
+     "wsk": 6323,
+     "perc": 100
+    },
+    {
+     "word": "двер гармошка",
+     "wsk": 33,
+     "perc": 56
+    },
+    {
+     "word": "дверь гармошка в комнату",
+     "wsk": 5,
+     "perc": 47
+    },
+    {
+     "word": "двер гармошка межкомнатные",
+     "wsk": 49,
+     "perc": 45
+    },
+    {
+     "word": "двери межкомнатные раздвижные гармошка фото и цены",
+     "wsk": 14,
+     "perc": 45
+    },
+    {
+     "word": "дверь гармошка маленькая",
+     "wsk": 5,
+     "perc": 45
+    },
+    {
+     "word": "дверь межкомнатная раздвижная гармошка купить",
+     "wsk": 39,
+     "perc": 40
+    },
+    {
+     "word": "складная дверь гармошка на кухню",
+     "wsk": 32,
+     "perc": 40
+    },
+    {
+     "word": "дверь гармошка в кладовку",
+     "wsk": 24,
+     "perc": 40
+    },
+    {
+     "word": "дверь гофрированная",
+     "wsk": 24,
+     "perc": 40
+    }
+   ]
+  },
+  "двери гармошка на заказ": {
+   "status": 404,
+   "error": "{\"code\":404,\"message\":\"Запрос не найден.\"}"
+  },
+  "межкомнатная дверь гармошка": {
+   "status": 404,
+   "error": "{\"code\":404,\"message\":\"Запрос не найден.\"}"
+  },
+  "складные двери": {
+   "status": 404,
+   "error": "{\"code\":404,\"message\":\"Запрос не найден.\"}"
+  },
+  "складные двери межкомнатные": {
+   "status": 404,
+   "error": "{\"code\":404,\"message\":\"Запрос не найден.\"}"
+  },
+  "перегородка книжка": {
+   "status": 200,
+   "ws": 316,
+   "wsk": 16,
+   "adscnt": 5,
+   "wizards": [
+    "товары",
+    "картинки",
+    "товары"
+   ],
+   "top": [
+    {
+     "pos": 1,
+     "domain": "profiledoors.ru",
+     "url": "/peregorodki/skladnye"
+    },
+    {
+     "pos": 2,
+     "domain": "doors777.ru",
+     "url": "/product/mezhkomnatnaya-loft-peregorodka-knizhka"
+    },
+    {
+     "pos": 3,
+     "domain": "livemaster.ru",
+     "url": "/item/45923684-dlya-doma-i-interera-loft-peregorodka-garmoshka-knizhka"
+    },
+    {
+     "pos": 4,
+     "domain": "fdmebel.ru",
+     "url": "/product_cat/peregorodki-knizhki"
+    },
+    {
+     "pos": 5,
+     "domain": "forisdoor.ru",
+     "url": "/peregorogka-aluminiy-knizhka"
+    },
+    {
+     "pos": 6,
+     "domain": "peregorodki-kedr.ru",
+     "url": "/skladnie-mejkomnatnye-peregorodky"
+    },
+    {
+     "pos": 7,
+     "domain": "craftwall.ru",
+     "url": "/products/loft-peregorodki-knizhki"
+    },
+    {
+     "pos": 8,
+     "domain": "shkaffkupe.ru",
+     "url": "/catalog/mezhkomnatnye_peregorodki/skladnye"
+    },
+    {
+     "pos": 9,
+     "domain": "ivegroup.ru",
+     "url": "/product/peregorodka-knizhka"
+    },
+    {
+     "pos": 10,
+     "domain": "zavod-doors.ru",
+     "url": "/katalog/mezhkomnatnye-peregorodki/mezhkomnatnaya-peregorodka-sistemoy-otkryvaniya-knizhka"
+    }
+   ],
+   "ads": [
+    {
+     "domain": "union.ru",
+     "header": "Складная межкомнатная перегородка ТРАНСФОРМЕР | TRANSFORMER купить с установкой в Москве"
+    },
+    {
+     "domain": "union.ru",
+     "header": "Купить раздвижные перегородки в Москве | Цены на межкомнатные раздвижные системы"
+    },
+    {
+     "domain": "homesolushion.ru",
+     "header": "Купить перегородку для зонирования. Изготовление 1-2 дня. Гарантия 2 года"
+    },
+    {
+     "domain": "slavstol.ru",
+     "header": "Тишина и Комфорт: Акустические Решения для Вашего Офиса! Акустические экраны. Москва"
+    },
+    {
+     "domain": "slidingpartition.ru",
+     "header": "Раздвижные перегородки. Акции. Официальный дилер. Собственное производство"
+    }
+   ],
+   "similars": [
+    {
+     "word": "перегородка книжка",
+     "wsk": 16,
+     "perc": 100
+    },
+    {
+     "word": "перегородка книжка межкомнатная",
+     "wsk": 13,
+     "perc": 61
+    },
+    {
+     "word": "перегородка стеклянная книжка",
+     "wsk": 18,
+     "perc": 40
+    },
+    {
+     "word": "раздвижные перегородки складные",
+     "wsk": 18,
+     "perc": 15
+    },
+    {
+     "word": "стеклянная перегородка гармошка",
+     "wsk": 43,
+     "perc": 13
+    },
+    {
+     "word": "стенка гармошка",
+     "wsk": 32,
+     "perc": 13
+    },
+    {
+     "word": "складные перегородки для зонирования пространства",
+     "wsk": 23,
+     "perc": 13
+    },
+    {
+     "word": "складная перегородка в офис",
+     "wsk": 0,
+     "perc": 13
+    },
+    {
+     "word": "раздвижные перегородки межкомнатные гармошка",
+     "wsk": 31,
+     "perc": 10
+    },
+    {
+     "word": "стена гармошка",
+     "wsk": 30,
+     "perc": 10
+    }
+   ]
+  },
+  "раздвижные перегородки": {
+   "status": 200,
+   "ws": 46009,
+   "wsk": 1449,
+   "adscnt": 2,
+   "wizards": [
+    "товары",
+    "карта",
+    "товары"
+   ],
+   "top": [
+    {
+     "pos": 1,
+     "domain": "alfaporta.ru",
+     "url": "/c4-interior-partitions.html"
+    },
+    {
+     "pos": 2,
+     "domain": "doors777.ru",
+     "url": "/category/mezhkomnatnye-peregorodki/razdvizhnye-peregorodki"
+    },
+    {
+     "pos": 3,
+     "domain": "fdmebel.ru",
+     "url": "/product_cat/razdvizhnye-peregorodki"
+    },
+    {
+     "pos": 4,
+     "domain": "dver1.ru",
+     "url": "/catalog/mezhkomnatnye-peregorodki"
+    },
+    {
+     "pos": 5,
+     "domain": "shpondveri.ru",
+     "url": "/razdvizhnye-peregorodki"
+    },
+    {
+     "pos": 6,
+     "domain": "ekalum.ru",
+     "url": "/fotogalereja/razdvizhnye-peregorodki"
+    },
+    {
+     "pos": 7,
+     "domain": "mosdvery.ru",
+     "url": "/categories/mezhkomnatnye-peregorodki"
+    },
+    {
+     "pos": 8,
+     "domain": "dveriunas.ru",
+     "url": "/catalog/mezhkomnatnye-peregorodki"
+    },
+    {
+     "pos": 9,
+     "domain": "aristo.ru",
+     "url": "/produktsiya/mezhkomnatnye_peregorodki"
+    },
+    {
+     "pos": 10,
+     "domain": "mytishchi.alfamart24.ru",
+     "url": "/catalog/dveri/peregorodki"
+    }
+   ],
+   "ads": [
+    {
+     "domain": "volhovec.ru",
+     "header": "Алюминиевые межкомнатные перегородки Волховец – современные интерьерные решения для зонирования пространства"
+    },
+    {
+     "domain": "stroi-innovatsii.ru",
+     "header": "Сдвижные перегородки"
+    }
+   ],
+   "similars": [
+    {
+     "word": "раздвижные перегородки",
+     "wsk": 1449,
+     "perc": 100
+    },
+    {
+     "word": "сдвижные перегородки",
+     "wsk": 73,
+     "perc": 69
+    },
+    {
+     "word": "раздвижная перегородка купить",
+     "wsk": 48,
+     "perc": 66
+    },
+    {
+     "word": "раздвижные двери перегородки межкомнатные для зонирования",
+     "wsk": 16,
+     "perc": 66
+    },
+    {
+     "word": "выдвижная стена",
+     "wsk": 14,
+     "perc": 66
+    },
+    {
+     "word": "стильные раздвижные перегородки",
+     "wsk": 0,
+     "perc": 66
+    },
+    {
+     "word": "перегородка для комнаты раздвижная для разделения",
+     "wsk": 11,
+     "perc": 62
+    },
+    {
+     "word": "купить раздвижную перегородку в комнату",
+     "wsk": 6,
+     "perc": 62
+    },
+    {
+     "word": "купить раздвижные перегородки для зонирования пространства",
+     "wsk": 3,
+     "perc": 62
+    },
+    {
+     "word": "современные раздвижные перегородки",
+     "wsk": 2,
+     "perc": 62
+    }
+   ]
+  },
+  "складные стеклянные перегородки": {
+   "status": 200,
+   "ws": 190,
+   "wsk": 13,
+   "adscnt": 6,
+   "wizards": [
+    "ответ Алисы",
+    "картинки"
+   ],
+   "top": [
+    {
+     "pos": 1,
+     "domain": "fdmebel.ru",
+     "url": "/product_cat/skladnye-steklyannye-peregorodki"
+    },
+    {
+     "pos": 2,
+     "domain": "fantasia-stekla.ru",
+     "url": "/glass_partitions/skladnye-steklyannye-peregorodki-garmoshka"
+    },
+    {
+     "pos": 3,
+     "domain": "m.avito.ru",
+     "url": "/all/remont_i_stroitelstvo?q=%D1%81%D0%BA%D0%BB%D0%B0%D0%B4%D0%BD%D1%8B%D0%B5+%D0%BF%D0%B5%D1%80%D0%B5%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D0%BA%D0%B8"
+    },
+    {
+     "pos": 4,
+     "domain": "gstrong.ru",
+     "url": "/peregorodki/skladnye-steklyannye-peregorodki"
+    },
+    {
+     "pos": 5,
+     "domain": "dvertsov.ru",
+     "url": "/collection/steklyannye-peregorodki/skladnye"
+    },
+    {
+     "pos": 6,
+     "domain": "lain-loft.ru",
+     "url": "/mezhkomnatnye-peregorodki/skladnye-mezhkomnatnye-peregorodki"
+    },
+    {
+     "pos": 7,
+     "domain": "ekalum.ru",
+     "url": "/fotogalereja/skladnye_peregorodki"
+    },
+    {
+     "pos": 8,
+     "domain": "glasstroy.ru",
+     "url": "/steklyannye-peregorodki-dlya-doma/skladnye-mezhkomnatnye-peregorodki-kupit-pod-vashi-razmery"
+    },
+    {
+     "pos": 9,
+     "domain": "ajax-peregorodki.ru",
+     "url": "/produkcziya/skladnyie-peregorodki"
+    },
+    {
+     "pos": 10,
+     "domain": "steklostilmsk.ru",
+     "url": "/skladnye-steklyannye-peregorodki.html"
+    }
+   ],
+   "ads": [
+    {
+     "domain": "dveri-garmoshka.ru",
+     "header": "Заказать складную раздвижную дверь-гармошку"
+    },
+    {
+     "domain": "kristal360.ru",
+     "header": "Стеклянные лофт-перегородки от 16 900р/м2. Рассчитать стоимость"
+    },
+    {
+     "domain": "glassmontage.ru",
+     "header": "Перегородки межкомнатные стеклянные от 2200 р/м²!"
+    },
+    {
+     "domain": "glassmontage.ru",
+     "header": "Стеклянные Перегородки на заказ от 2200 р/м² в Москве"
+    },
+    {
+     "domain": "profiledoors.ru",
+     "header": "Межкомнатные перегородки гармошка ProfilDoors"
+    },
+    {
+     "domain": "union.ru",
+     "header": "Раздвижные перегородки Union Складные перегородки от UNION, алюминий и стекло"
+    }
+   ],
+   "similars": [
+    {
+     "word": "складные стеклянные перегородки",
+     "wsk": 13,
+     "perc": 100
+    },
+    {
+     "word": "складная перегородка из стекла",
+     "wsk": 0,
+     "perc": 56
+    },
+    {
+     "word": "складные стеклянные перегородки гармошка",
+     "wsk": 8,
+     "perc": 38
+    },
+    {
+     "word": "складная стена",
+     "wsk": 40,
+     "perc": 35
+    },
+    {
+     "word": "складная стенка перегородка",
+     "wsk": 29,
+     "perc": 33
+    },
+    {
+     "word": "раздвижная стена гармошка",
+     "wsk": 26,
+     "perc": 30
+    },
+    {
+     "word": "перегородка гармошка",
+     "wsk": 259,
+     "perc": 25
+    },
+    {
+     "word": "межкомнатная перегородка гармошка",
+     "wsk": 70,
+     "perc": 23
+    },
+    {
+     "word": "перегородка складная гармошка для зонирования",
+     "wsk": 36,
+     "perc": 23
+    },
+    {
+     "word": "перегородки гармошка для зонирования пространства в комнате",
+     "wsk": 8,
+     "perc": 23
+    }
+   ]
+  }
+ }
+}

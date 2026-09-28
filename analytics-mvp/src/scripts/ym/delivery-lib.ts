@@ -22,6 +22,27 @@ const SOLD = new Set(["Доставлен", "Собственная достав
 // Заказ не доехал или уехал обратно. Перевозку мы всё равно оплатили, и часто дважды (обратная нога).
 const LOST = new Set(["ОТМЕНЕН", "Вернули на склад", "Возврат", "Возвращается ЛК"]);
 
+// Расход по отправкам в статусе «ОТМЕНЕН» в расчёт не идёт (Катя 28.09.2026: «расход по заказам в
+// статусе Отменен не учитывай, исключай его»). Возвраты («Вернули на склад», «Возврат», «Возвращается
+// ЛК») остаются: там перевозка состоялась и оплачена.
+export const EXCLUDED_STATUSES = new Set(["ОТМЕНЕН"]);
+export const withoutCancelled = (rows: DelivRow[]): DelivRow[] => rows.filter((r) => !EXCLUDED_STATUSES.has(r.status));
+
+// Номер заказа в листе иногда записан с пояснением: «60811444291 60812411267 (новый номер)»,
+// «59256208515/2», два заказа одной отправкой. Такая ячейка не совпадала ни с одним заказом, и
+// расход терялся (28.09.2026: 4 отправки на 13 458 ₽). Берём из ячейки тот номер, который есть в
+// выгрузке заказов. Если таких несколько, предпочитаем ДОСТАВЛЕННЫЙ: «58695099523 59213615811
+// (новый номер, старый был отменён)» - первый номер отменён, отправка ушла по второму. Если
+// доставленного среди них нет - первый найденный; если ни одного - ячейку как есть.
+export function resolveOrders(rows: DelivRow[], known: Set<string>, delivered: Set<string> = new Set()): DelivRow[] {
+  return rows.map((r) => {
+    if (known.has(r.order)) return r;
+    const toks = r.order.match(/\d{9,}/g) || [];
+    const hit = toks.find((t) => delivered.has(t)) || toks.find((t) => known.has(t));
+    return hit ? { ...r, order: hit } : r;
+  });
+}
+
 export type DelivClass = "sold" | "lost" | "inflight";
 export const classOf = (status: string): DelivClass =>
   SOLD.has(status) ? "sold" : LOST.has(status) ? "lost" : "inflight";

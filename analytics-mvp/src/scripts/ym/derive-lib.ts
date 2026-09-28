@@ -1055,6 +1055,8 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
     if (!cur || v > (cur.price || 0) * (cur.count || cur.units || 1)) topItemOf.set(r.order, r);
   }
   const itemsOf = new Map<string, OrderRow[]>();
+  // Наш счёт перевозчика по заказам в пути: собирается в 3.5, ложится на fly_rows в шаге 7.
+  const flyShip = new Map<string, number>();
   for (const r of rows) {
     if (!delivered.has(r.order)) continue;
     if (r.service) continue;
@@ -1167,6 +1169,7 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
   // отправки собираются в ship_lost месяца - отдельной строкой, по решению Ивана 18.09.2026.
   {
     const dOrd = delivByOrder(deliv);
+    flyShip.clear();
     const ymOfOrder = new Map<string, string>();
     const dayOfOrder = new Map<string, string>();
     for (const r of rows) {
@@ -1191,6 +1194,14 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
           s2.ship_known = true;
         }
         const ok = ordersKnown.get(k) || new Set<string>(); ok.add(ord); ordersKnown.set(k, ok);
+        continue;
+      }
+      // Заказ ещё в пути (по Маркету не доставлен, не отменён, не возвращён), а по листу он не в
+      // отмене/возврате: мы его уже отгрузили. С 28.09.2026 такие заказы стоят в своде строками
+      // (fly_rows), и перевозка ложится на них, а не в «отправки по отменённым»: за сентябрь это
+      // 23 заказа на 89 500 ₽, которые читались как расход по несостоявшимся заказам.
+      if (!k && d.cls !== "lost" && !/^(DELIVERED|RETURNED|CANCELLED)/.test(statusOfOrder.get(ord) || "")) {
+        flyShip.set(ord, (flyShip.get(ord) || 0) + d.ship);
         continue;
       }
       const km = k || ymOfOrder.get(ord);
@@ -1588,7 +1599,8 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
           price: r2(price), ship_buyer: r2(shipB), disc_mp: r2((r.p_mp || 0) * n + shipMp), disc_plus: r2(((r.p_cashback || 0) + (r.p_spasibo || 0)) * n), ship_mp: r2(shipMp),
           buyer_pay: r2(buyer + shipB), refunds: 0, revenue_money: r2(buyer + shipB), points_accrued: 0,
           svc, svc_pts: svcPts, svc_money: r2(money), svc_points: pts, svc_total: r2(money + pts), result_money: 0, result_points: 0,
-          cogs: cogsAt(r.sku) != null ? r2(cogsAt(r.sku)! * n) : 0, cogs_known: cogsAt(r.sku) != null, ship_our: 0, ship_known: false,
+          cogs: cogsAt(r.sku) != null ? r2(cogsAt(r.sku)! * n) : 0, cogs_known: cogsAt(r.sku) != null,
+          ship_our: flyShip.has(ord) ? r2(flyShip.get(ord)! * share) : 0, ship_known: flyShip.has(ord),
           ...(r.region ? { region: r.region } : {}), fly: true, est_fee: r2(money + pts), est_basis: basis };
         (m.fly_rows ||= []).push(row);
       }

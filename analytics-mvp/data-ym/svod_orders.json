@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-28T13:15:46.110Z",
+  "generated_at": "2026-09-28T14:37:54.621Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-27",
   "split_check": {
@@ -1566,8 +1566,8 @@
           "result_points": 0,
           "cogs": 7162,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3000,
+          "ship_known": true,
           "region": "Норильск",
           "fly": true,
           "est_fee": 26415.12,
@@ -1635,8 +1635,8 @@
           "result_points": 0,
           "cogs": 15141,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2500,
+          "ship_known": true,
           "region": "Давлеканово",
           "fly": true,
           "est_fee": 41982.8,
@@ -2739,8 +2739,8 @@
           "result_points": 0,
           "cogs": 8789,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2000,
+          "ship_known": true,
           "region": "Городской округ Домодедово",
           "fly": true,
           "est_fee": 24519.68,
@@ -2808,8 +2808,8 @@
           "result_points": 0,
           "cogs": 9073,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3000,
+          "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
           "est_fee": 27299.54,
@@ -2946,8 +2946,8 @@
           "result_points": 0,
           "cogs": 19374,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2500,
+          "ship_known": true,
           "region": "Перевалово",
           "fly": true,
           "est_fee": 62906.19,
@@ -3421,8 +3421,8 @@
           "result_points": 125374.52,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4700,
+          "ship_known": true,
           "region": "Володарск"
         },
         {
@@ -3685,8 +3685,8 @@
           "result_points": 122375.11,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6000,
+          "ship_known": true,
           "region": "Омск"
         },
         {
@@ -3817,8 +3817,8 @@
           "result_points": 67592.6,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5000,
+          "ship_known": true,
           "region": "Санкт-Петербург"
         },
         {
@@ -4147,8 +4147,8 @@
           "result_points": 64506.57,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4000,
+          "ship_known": true,
           "region": "Курск"
         },
         {
@@ -5071,8 +5071,8 @@
           "result_points": 56465.1,
           "cogs": 17660,
           "cogs_known": true,
-          "ship_our": 1000,
-          "ship_known": true,
+          "ship_our": 0,
+          "ship_known": false,
           "region": "Москва"
         },
         {
@@ -6061,8 +6061,8 @@
           "result_points": 50504.13,
           "cogs": 16167,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3500,
+          "ship_known": true,
           "region": "Лопатино"
         },
         {
@@ -9023,12 +9023,25 @@
       ],
       "points_on_delivery": 97653.49,
       "cogs_cov": 99.5,
-      "ship_lost": 3168,
-      "ship_lost_orders": 1,
+      "ship_lost": 20568,
+      "ship_lost_orders": 5,
       "ship_lost_daily": {
-        "2026-09-01": 3168
+        "2026-09-01": 7168,
+        "2026-09-02": 4900,
+        "2026-09-04": 5500,
+        "2026-09-22": 3000
       },
       "ship_lost_rows": [
+        {
+          "order": "61134508864",
+          "d": "2026-09-01",
+          "v": 4000,
+          "status": "DELIVERED",
+          "sku": "GGT-03-1-3-O-20090",
+          "name": "GEN GROUP Стол обеденный овальный 200х90 см TRUBIS Wood белый с золотым металлическим подстольем",
+          "line": "TRUBIS",
+          "city": "Москва"
+        },
         {
           "order": "61140906946",
           "d": "2026-09-01",
@@ -9038,10 +9051,40 @@
           "name": "GEN GROUP Стол обеденный TRUBIS CLEVER, 90х90х75см, с черным металлическим подстольем и столешницей под черный мрамор",
           "line": "TRUBIS",
           "city": "Ромашково"
+        },
+        {
+          "order": "61195967426",
+          "d": "2026-09-02",
+          "v": 4900,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-5-L-120",
+          "name": "GEN GROUP Стол обеденный кухонный TRUBIS Wood L D120 см белый мрамор с черным подстольем",
+          "line": "TRUBIS",
+          "city": "Пермь"
+        },
+        {
+          "order": "61259504578",
+          "d": "2026-09-04",
+          "v": 5500,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-3-3-L-80",
+          "name": "GEN GROUP Кухонный обеденный стол TRUBIS Wood L D 80см, с металлическим подстольем, белый",
+          "line": "TRUBIS",
+          "city": "Иркутск"
+        },
+        {
+          "order": "62107881219",
+          "d": "2026-09-22",
+          "v": 3000,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-2-O-18090",
+          "name": "GEN GROUP Стол кухонный овальный 180х90 см TRUBIS Wood, черный",
+          "line": "TRUBIS",
+          "city": "Крёкшино"
         }
       ],
-      "ship_orders": 16,
-      "ship_cov": 19.8,
+      "ship_orders": 20,
+      "ship_cov": 24.7,
       "fly_rows": [
         {
           "business": "74986385",
@@ -9105,8 +9148,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 8500,
+          "ship_known": true,
           "region": "Биробиджан",
           "fly": true,
           "est_fee": 53882.06,
@@ -9174,8 +9217,8 @@
           "result_points": 0,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5000,
+          "ship_known": true,
           "region": "Ульяновск",
           "fly": true,
           "est_fee": 44723.05,
@@ -9864,8 +9907,8 @@
           "result_points": 0,
           "cogs": 19111,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3500,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
           "est_fee": 51302.82,
@@ -10485,8 +10528,8 @@
           "result_points": 0,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3500,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
           "est_fee": 47553.53,
@@ -10623,8 +10666,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3000,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
           "est_fee": 55588.03,
@@ -10692,8 +10735,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4500,
+          "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
           "est_fee": 55712.85,
@@ -10761,8 +10804,8 @@
           "result_points": 0,
           "cogs": 11759,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5000,
+          "ship_known": true,
           "region": "Тюмень",
           "fly": true,
           "est_fee": 41594.08,
@@ -11106,8 +11149,8 @@
           "result_points": 0,
           "cogs": 13482,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4500,
+          "ship_known": true,
           "region": "Санкт-Петербург",
           "fly": true,
           "est_fee": 41634.89,
@@ -11244,8 +11287,8 @@
           "result_points": 0,
           "cogs": 11642,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4500,
+          "ship_known": true,
           "region": "Санкт-Петербург",
           "fly": true,
           "est_fee": 34912.15,
@@ -11382,8 +11425,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4500,
+          "ship_known": true,
           "region": "Нижний Новгород",
           "fly": true,
           "est_fee": 57516.96,
@@ -11451,8 +11494,8 @@
           "result_points": 0,
           "cogs": 22598,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3500,
+          "ship_known": true,
           "region": "Красногорск",
           "fly": true,
           "est_fee": 42468.42,
@@ -11520,8 +11563,8 @@
           "result_points": 0,
           "cogs": 4411,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3000,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
           "est_fee": 20854.7,
@@ -11589,8 +11632,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3500,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
           "est_fee": 57516.96,
@@ -11658,8 +11701,8 @@
           "result_points": 0,
           "cogs": 34378,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4500,
+          "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
           "est_fee": 84759.48,
@@ -11865,8 +11908,8 @@
           "result_points": 0,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3000,
+          "ship_known": true,
           "region": "Котельники",
           "fly": true,
           "est_fee": 45663.99,
@@ -11934,8 +11977,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4500,
+          "ship_known": true,
           "region": "Колпино",
           "fly": true,
           "est_fee": 44960.25,
@@ -12003,8 +12046,8 @@
           "result_points": 0,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5000,
+          "ship_known": true,
           "region": "Стерлитамак",
           "fly": true,
           "est_fee": 41615.24,
@@ -12072,8 +12115,8 @@
           "result_points": 0,
           "cogs": 4411,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3000,
+          "ship_known": true,
           "region": "Жуковский",
           "fly": true,
           "est_fee": 16806.43,
@@ -17568,23 +17611,6 @@
       ],
       "points_on_delivery": 55287.61,
       "cogs_cov": 100,
-      "ship_lost": 3235,
-      "ship_lost_orders": 1,
-      "ship_lost_daily": {
-        "2026-08-18": 3235
-      },
-      "ship_lost_rows": [
-        {
-          "order": "60505396993",
-          "d": "2026-08-18",
-          "v": 3235,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGL-09-2",
-          "name": "Зеркало прямоугольное OSOLIS NF LED под консоль, с подсветкой 3 в 1, с сенсорным выключателем",
-          "line": "OSOLIS",
-          "city": "Иваново"
-        }
-      ],
       "ship_orders": 39,
       "ship_cov": 52.7,
       "fly_rows": [
@@ -18320,8 +18346,8 @@
           "result_points": 35408.16,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 3932.06,
-          "ship_known": true,
+          "ship_our": 0,
+          "ship_known": false,
           "region": "Санкт-Петербург"
         },
         {
@@ -19310,8 +19336,8 @@
           "result_points": 33468.88,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3794.2,
+          "ship_known": true,
           "region": "Курск"
         },
         {
@@ -20828,8 +20854,8 @@
           "result_points": 25863.66,
           "cogs": 11477,
           "cogs_known": true,
-          "ship_our": 3244.59,
-          "ship_known": true,
+          "ship_our": 0,
+          "ship_known": false,
           "region": "Москва"
         },
         {
@@ -22280,8 +22306,8 @@
           "result_points": 8991.24,
           "cogs": 3744,
           "cogs_known": true,
-          "ship_our": 3140.89,
-          "ship_known": true,
+          "ship_our": 0,
+          "ship_known": false,
           "region": "Москва"
         },
         {
@@ -23861,25 +23887,25 @@
       ],
       "points_on_delivery": 117670.07,
       "cogs_cov": 100,
-      "ship_lost": 5840.5,
+      "ship_lost": 3000,
       "ship_lost_orders": 1,
       "ship_lost_daily": {
-        "2026-08-06": 5840.5
+        "2026-08-28": 3000
       },
       "ship_lost_rows": [
         {
-          "order": "59983063232",
-          "d": "2026-08-06",
-          "v": 5840.5,
-          "status": "PROCESSING",
-          "sku": "GGP-01-2-I-200-100",
-          "name": "GEN GROUP Дизайнерская перегородка 200*100см ZONIQUE Black из металла с рифлёной плёнкой на бесцветном стекле",
-          "line": "прочее",
-          "city": "Самара"
+          "order": "60982529729",
+          "d": "2026-08-28",
+          "v": 3000,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-35-5-1-100-180",
+          "name": "Стол раздвижной обеденный KONUX D100/180 х 100см, бронзовый/экошпон",
+          "line": "столы",
+          "city": "Подольск"
         }
       ],
-      "ship_orders": 59,
-      "ship_cov": 70.2,
+      "ship_orders": 57,
+      "ship_cov": 67.9,
       "fly_rows": [
         {
           "business": "74986385",
@@ -23943,8 +23969,8 @@
           "result_points": 0,
           "cogs": 17274,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5840.5,
+          "ship_known": true,
           "region": "Самара",
           "fly": true,
           "est_fee": 28562.4,
@@ -27517,8 +27543,8 @@
           "result_points": 9956.63,
           "cogs": 6034,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3265.79,
+          "ship_known": true,
           "region": "Ростов-на-Дону"
         },
         {
@@ -30571,25 +30597,8 @@
       "inflight_rows": [],
       "points_on_delivery": 43723.09,
       "cogs_cov": 100,
-      "ship_lost": 5355.19,
-      "ship_lost_orders": 1,
-      "ship_lost_daily": {
-        "2026-07-02": 5355.19
-      },
-      "ship_lost_rows": [
-        {
-          "order": "58746494592",
-          "d": "2026-07-02",
-          "v": 5355.19,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGM-20-3",
-          "name": "GENGLASS Зеркало напольное в белой металлической раме 165x45 см OZEVIS White",
-          "line": "зеркала",
-          "city": "Дударева"
-        }
-      ],
-      "ship_orders": 28,
-      "ship_cov": 30.8
+      "ship_orders": 29,
+      "ship_cov": 31.9
     },
     {
       "business": "74986385",
@@ -32440,8 +32449,8 @@
           "result_points": 31537.93,
           "cogs": 13868,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2947.52,
+          "ship_known": true,
           "region": "Александровский район"
         },
         {
@@ -38220,25 +38229,14 @@
       "inflight_rows": [],
       "points_on_delivery": 100154.48,
       "cogs_cov": 100,
-      "ship_lost": 22310.66,
-      "ship_lost_orders": 5,
+      "ship_lost": 14788.14,
+      "ship_lost_orders": 3,
       "ship_lost_daily": {
-        "2026-07-03": 4575,
         "2026-07-06": 8765,
         "2026-07-08": 3098.8,
-        "2026-07-14": 5871.86
+        "2026-07-14": 2924.34
       },
       "ship_lost_rows": [
-        {
-          "order": "58791538497",
-          "d": "2026-07-03",
-          "v": 4575,
-          "status": "CANCELLED_IN_DELIVERY",
-          "sku": "GGT-03-2-4-E-16080",
-          "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood черный мрамор с черным металлическим подстольем",
-          "line": "TRUBIS",
-          "city": "Самара"
-        },
         {
           "order": "58884154242",
           "d": "2026-07-06",
@@ -38260,16 +38258,6 @@
           "city": "Сапроново"
         },
         {
-          "order": "59143638531",
-          "d": "2026-07-14",
-          "v": 2947.52,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGT-03-3-1-L-120",
-          "name": "GEN GROUP Стол обеденный кухонный TRUBIS Wood L D120 см орех с белым металлическим подстольем",
-          "line": "TRUBIS",
-          "city": "Рождествено"
-        },
-        {
           "order": "59143849729",
           "d": "2026-07-14",
           "v": 2924.34,
@@ -38280,8 +38268,8 @@
           "city": "Конаково"
         }
       ],
-      "ship_orders": 61,
-      "ship_cov": 56
+      "ship_orders": 62,
+      "ship_cov": 56.9
     },
     {
       "business": "1023124",
@@ -46218,14 +46206,13 @@
       "inflight_rows": [],
       "points_on_delivery": 81037.37,
       "cogs_cov": 100,
-      "ship_lost": 33595.31,
-      "ship_lost_orders": 7,
+      "ship_lost": 25744.44,
+      "ship_lost_orders": 5,
       "ship_lost_daily": {
         "2026-06-10": 13278.48,
-        "2026-06-11": 6373.45,
+        "2026-06-11": 3323.28,
         "2026-06-18": 4575,
-        "2026-06-26": 4567.68,
-        "2026-06-30": 4800.7
+        "2026-06-26": 4567.68
       },
       "ship_lost_rows": [
         {
@@ -46259,16 +46246,6 @@
           "city": "Щёлковский район"
         },
         {
-          "order": "58051191682",
-          "d": "2026-06-11",
-          "v": 3050.17,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGT-03-1-5-E-14080",
-          "name": "GEN GROUP Стол обеденный овальный 140х80 см TRUBIS Wood белый мрамор с золотым подстольем",
-          "line": "TRUBIS",
-          "city": "Апатиты"
-        },
-        {
           "order": "58297914177",
           "d": "2026-06-18",
           "v": 4575,
@@ -46287,16 +46264,6 @@
           "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood белый мрамор с белым металлическим подстольем",
           "line": "TRUBIS",
           "city": "Череповец"
-        },
-        {
-          "order": "58672223489",
-          "d": "2026-06-30",
-          "v": 4800.7,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGT-03-2-2-E-16080",
-          "name": "GEN GROUP Стол кухонный овальный 160х80 см TRUBIS Wood, черный",
-          "line": "TRUBIS",
-          "city": "Шаумян"
         }
       ],
       "ship_orders": 65,
@@ -53001,8 +52968,8 @@
           "result_points": 30935.32,
           "cogs": 13482,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3450.77,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -56319,15 +56286,13 @@
       "inflight_rows": [],
       "points_on_delivery": 117604.28,
       "cogs_cov": 100,
-      "ship_lost": 46613.73,
-      "ship_lost_orders": 8,
+      "ship_lost": 39506.34,
+      "ship_lost_orders": 6,
       "ship_lost_daily": {
+        "2026-05-17": 5403.38,
         "2026-05-02": 4073.58,
         "2026-05-03": 13515.16,
-        "2026-05-10": 3970.49,
         "2026-05-14": 13123.84,
-        "2026-05-17": 5403.38,
-        "2026-05-21": 3136.9,
         "2026-05-31": 3390.38
       },
       "ship_lost_rows": [
@@ -56350,16 +56315,6 @@
           "name": "GEN GROUP Стол овальный обеденный 120*80см TRUBIS Wood, столешница белый мрамор с черным металлическим подстольем",
           "line": "TRUBIS",
           "city": "Первоуральск"
-        },
-        {
-          "order": "56945201795",
-          "d": "2026-05-10",
-          "v": 3970.49,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGK-02-1-4-120",
-          "name": "GEN GROUP Столик консольный ARFEO 120х40 см, черный мрамор с золотым подстольем",
-          "line": "столы",
-          "city": "Кострома"
         },
         {
           "order": "57087204739",
@@ -56392,16 +56347,6 @@
           "city": "Ембаево"
         },
         {
-          "order": "57338486337",
-          "d": "2026-05-21",
-          "v": 3136.9,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGT-03-1-5-E-16080-K",
-          "name": "GEN GROUP Стол обеденный овальный TRUBIS Stone, керамогранит, 160*80см, золото/белый мрамор",
-          "line": "TRUBIS",
-          "city": "Городской округ Балашиха"
-        },
-        {
           "order": "57661008643",
           "d": "2026-05-31",
           "v": 3390.38,
@@ -56412,8 +56357,8 @@
           "city": "Городской округ Химки"
         }
       ],
-      "ship_orders": 89,
-      "ship_cov": 66.9
+      "ship_orders": 90,
+      "ship_cov": 67.7
     },
     {
       "business": "1023124",

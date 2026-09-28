@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { parseDeliveryCsv, delivByOrder, classOf } from "./delivery-lib.js";
+import { parseDeliveryCsv, delivByOrder, classOf, withoutCancelled, resolveOrders } from "./delivery-lib.js";
 
 // Ведомость доставки - ручной лист. Иван 18.09.2026: «это тоже наши расходы, которые до этого не
 // учитывали» и «проверь чтобы не было задвоений и возможно по одному заказ возвраты, отмены,
@@ -106,5 +106,22 @@ describe("ведомость доставки: статусы", () => {
     const m = delivByOrder(parseDeliveryCsv("order,ship,status\nA,FALSE,Доставлен\n"));
     expect(m.get("A")!.known, "пустая строка выдана за «возили бесплатно»").toBe(false);
     expect(m.get("A")!.ship).toBe(0);
+  });
+});
+
+// Катя 28.09.2026: «расход по заказам в статусе Отменен не учитывай, исключай его».
+describe("ведомость: отменённые отправки и номера заказов с пояснением", () => {
+  it("строка «ОТМЕНЕН» в расчёт не идёт, возврат остаётся", () => {
+    const r = withoutCancelled(parseDeliveryCsv("order,status,ship\nA,ОТМЕНЕН,1000\nB,Вернули на склад,2000\nC,Доставлен,3000\n"));
+    expect(r.map((x) => x.order)).toEqual(["B", "C"]);
+  });
+  it("из ячейки с двумя номерами берётся тот, что есть в выгрузке", () => {
+    const r = resolveOrders(parseDeliveryCsv('order,ship\n"60811444291 60812411267 (новый номер)",3794.2\n59256208515/2,100\n'), new Set(["60812411267", "59256208515"]));
+    expect(r.map((x) => x.order)).toEqual(["60812411267", "59256208515"]);
+  });
+  it("из двух известных номеров берётся доставленный, а не отменённый", () => {
+    const r = resolveOrders(parseDeliveryCsv('order,ship\n"58695099523 59213615811 (новый номер, старый был отменён)",2947.52\n'),
+      new Set(["58695099523", "59213615811"]), new Set(["59213615811"]));
+    expect(r[0]!.order).toBe("59213615811");
   });
 });

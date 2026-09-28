@@ -6,7 +6,7 @@
 // Без сети. Запуск: npm run ym:derive [days=30]
 import { existsSync, readFileSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
-import { parseDeliveryCsv, type DelivRow } from "./delivery-lib.js";
+import { parseDeliveryCsv, withoutCancelled, resolveOrders, type DelivRow } from "./delivery-lib.js";
 import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, isNettingFee, isPointsPaid, type OrderRow } from "./derive-lib.js";
 
 function main() {
@@ -73,7 +73,12 @@ function main() {
   // Ведомость доставки - ручной лист (наш расход на перевозку). Живёт в fixtures, потому что
   // источник ручной: API Маркета счёт перевозчика не отдаёт и отдать не может.
   let delivRows: DelivRow[] = [];
-  try { delivRows = parseDeliveryCsv(readFileSync("fixtures/delivery_ym.csv", "utf-8")); }
+  try {
+    const ordAll = readNdjson<OrderRow>(yp("orders.ndjson"));
+    const knownOrders = new Set(ordAll.map((r) => String(r.order)));
+    const deliveredOrders = new Set(ordAll.filter((r) => r.status === "DELIVERED").map((r) => String(r.order)));
+    delivRows = resolveOrders(withoutCancelled(parseDeliveryCsv(readFileSync("fixtures/delivery_ym.csv", "utf-8"))), knownOrders, deliveredOrders);
+  }
   catch { delivRows = []; }
   const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to, actRows, bonusRows, delivRows);
   if (delivRows.length) console.log(`ym-derive: ведомость доставки - ${delivRows.length} отправок Маркета, наш расход на перевозку разнесён по заказам`);

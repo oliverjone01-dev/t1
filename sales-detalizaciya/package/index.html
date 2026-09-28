@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glass Memory · Детализация</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<!-- Контур DS 1.3 (как в «Разборе недели»), затем расширение 1.4 -->
+<link rel="stylesheet" href="ds/tokens.css">
+<link rel="stylesheet" href="ds/kit.css">
+<link rel="stylesheet" href="ds/kx.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+<script src="ds/brand.js"></script>
+<script src="ds/icons.js"></script>
+<script src="ds/kit.js"></script>
+<script src="ds/charts.js"></script>
+<script src="ds/kx.js"></script>
+</head>
+<body>
+<div class="ks-app kx">
+  <div id="bd" class="ks-backdrop" hidden></div>
+  <aside id="sb" class="ks-sidebar" aria-label="Разделы">
+    <div class="ks-brand">
+      <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 15l4-5 3 3 4-6 3 4"/></svg></div>
+      <div class="ks-lbl"><div class="ks-brand-name">ОП ГМ</div><div class="ks-brand-sub">GLASS-MEMORY · переговоры</div></div>
+    </div>
+    <nav id="nav" class="ks-nav"></nav>
+    <div class="ks-sidebar-foot ks-lbl">Данные Авито по 20.09.2026. Числа из переписки: данные. Смысловая разметка диалогов: гипотеза.</div>
+  </aside>
+  <div class="ks-main">
+    <header class="ks-topbar">
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="menu" aria-label="Меню"></button>
+      <div class="ks-topbar-tools" id="detal-cab"></div>
+      <div class="ks-topbar-spacer"></div>
+      <button class="b sec sm kx-search" id="cmdk-open"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 3a6 6 0 1 0 0 12A6 6 0 0 0 9 3zM17 17l-3.7-3.7"/></svg><span class="lb">Поиск</span> <span class="kbd">⌘</span><span class="kbd">K</span></button>
+      <button type="button" class="b gh sm ic" id="theme" aria-label="Сменить тему"></button>
+    </header>
+    <!-- Раздел «Детализация»: GM_DETAL.mount заполняет этот контейнер семью подразделами -->
+    <main class="hx" id="detal"></main>
+  </div>
+</div>
+
+<script src="sections/detalizaciya/data.js"></script>
+<script src="sections/detalizaciya/detalizaciya.js"></script>
+<script>
+/* Каркас страницы. В общем проекте Glass Memory это делает его собственный роутер:
+   группа «Детализация» идёт первой, стартовый пункт detal-sit («Обстановка»). */
+(function(){
+const $ = id => document.getElementById(id);
+const NAV = [
+  GM_DETAL.NAV_GROUP,
+  { id:'razbor', t:'Разбор недели', i:'list' },
+  { id:'data', t:'Откуда цифры', i:'info' }
+];
+const hash = location.hash.slice(1), start = GM_DETAL.SECTIONS.some(s => s[0] === hash) ? hash : GM_DETAL.START;
+$('nav').innerHTML = KS.nav(NAV, start);
+KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
+
+/* тема: тёмная по умолчанию, пока человек сам не выбрал */
+KS.theme.init(); let stored = null; try{ stored = localStorage.getItem('ks-theme'); }catch(e){}
+if(!stored) KS.theme.set('dark', { persist:false });
+$('theme').innerHTML = KS.theme.icon();
+$('theme').onclick = () => KS.kx.themeToggle($('theme'));
+window.addEventListener('keydown', e => { const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+  if(!typing && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key.toLowerCase() === 't' || e.key.toLowerCase() === 'е')) KS.kx.themeToggle($('theme')); });
+$('cmdk-open').onclick = () => KS.kx.cmdk.open();
+
+const app = GM_DETAL.mount(window.DETAL_DATA, { root:$('detal'), cab:$('detal-cab'), nav:$('nav'), start,
+  commands:[['Действия', 'Сменить тему', () => KS.kx.themeToggle($('theme')), 'T']] });
+KS.navWire($('nav'), id => { if(!app.go(id)) KS.kx.toast('Этот раздел живёт в общем проекте Glass Memory'); });
+})();
+</script>
+</body>
+</html>

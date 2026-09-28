@@ -17,7 +17,8 @@ W8 = [f"2026-W{i}" for i in range(31, 39)]
 CODE = {"OLD-B": "NEW-B", "OLD-G": "OLD-G"}  # коды в расшифровках старые, в отчёте NEW-B
 
 
-def main():
+def build_data():
+    """Данные демо и пакета: (словарь, JSON-строка без длинных тире)."""
     bpd.NAMES = bpd.collect_names()
     anon = bpd.anon
     labels = {x["id"]: x for x in map(json.loads, open(ROOT / "data/labels.jsonl"))}
@@ -170,7 +171,11 @@ def main():
     txt = json.dumps(out, ensure_ascii=False)
     for bad in ("—", "–"):
         txt = txt.replace(bad, "-")
+    return out, txt
 
+
+def main():
+    out, txt = build_data()
     html = (ROOT / "reference/razbor-nedeli-maket.html").read_text()
     head = html[: html.index("</head>")]
     head = head.replace("<title>Разбор недели · ОП ГМ</title>", "<title>Детализация 2.0</title>")

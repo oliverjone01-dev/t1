@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Контур DS 1.4 · витрина</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="ds/tokens.css">
+<link rel="stylesheet" href="ds/kit.css">
+<link rel="stylesheet" href="ds/kx.css">
+<script src="ds/brand.js"></script>
+<script src="ds/icons.js"></script>
+<script src="ds/kit.js"></script>
+<script src="ds/kx.js"></script>
+<script src="ds/kx-showcase.js"></script>
+</head>
+<body>
+<div class="kx">
+  <main class="hx">
+    <header class="sh"><div><span class="idx">1.4</span><h2>Контур DS · расширение kx</h2><p class="say">Все детали «Детализации» живыми. Наведите, нажмите, переключите тему клавишей T. Раздел собран только из них.</p></div><button class="b sec sm" id="theme"></button></header>
+    <div id="show"></div>
+  </main>
+</div>
+<script src="sections/detalizaciya/data.js"></script>
+<script>
+(function(){
+const D = window.DETAL_DATA, $ = id => document.getElementById(id), CODES = Object.keys(D.cabs);
+/* пример данных для витрины: ответ за 15 минут по неделям и последние недели по кабинетам */
+const agg = i => { let num = 0, den = 0; CODES.forEach(c => { const r = D.cabs[c].series[i]; if(r.fast != null && r.n){ num += r.fast * r.n; den += r.n; } }); return den ? Math.round(num / den * 10) / 10 : null; };
+const wl = w => { const [y, n] = w.split('-W'); const d = new Date(Date.UTC(+y, 0, 4)); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + (n - 1) * 7); return String(d.getUTCDate()).padStart(2, '0') + '.' + String(d.getUTCMonth() + 1).padStart(2, '0'); };
+KS.theme.init(); $('theme').innerHTML = KS.theme.icon() + ' тема'; $('theme').onclick = () => { KS.kx.themeToggle(); setTimeout(() => { $('theme').innerHTML = KS.theme.icon() + ' тема'; }, 0); };
+window.addEventListener('keydown', e => { if(!/INPUT|TEXTAREA/.test(document.activeElement.tagName) && e.key.toLowerCase() === 't') $('theme').click(); });
+KS.kx.cmdk.set([['Пример', 'Показать уведомление', () => KS.kx.toast('Палитра команд работает')]]);
+KS.kx.showcase($('show'), { spark:D.weeks.map((_, i) => agg(i)), rows:CODES.flatMap(c => D.cabs[c].series.slice(-4).map(r => ({ c, w:wl(r.w), n:r.n, fast:r.fast }))) });
+KS.kx.onDrill = () => KS.kx.drawer.open('<div class="cap">Пример</div><h3>Панель деталей</h3><p class="sub">Стекло, выезд справа за 300 мс, закрытие по Esc и клику мимо, фокус возвращается на кнопку.</p>');
+})();
+</script>
+</body>
+</html>

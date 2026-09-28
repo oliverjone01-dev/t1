@@ -7,7 +7,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
 import { parseDeliveryCsv, type DelivRow } from "./delivery-lib.js";
-import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, isNettingFee, isPointsPaid, type OrderRow } from "./derive-lib.js";
+import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, isNettingFee, isPointsPaid, type OrderRow } from "./derive-lib.js";
 
 function main() {
   ensureDir();
@@ -56,7 +56,7 @@ function main() {
   writeNdjson(yp("pnl_sku_daily.ndjson"), buildPnlSkuDaily(rows));
   // Блок «за выбранный период» - по проводкам реестра и дате транзакции, как отчёт о платежах
   // Маркета (Катя 28.09.2026). Пары без колонки источника - из заказов, с пометкой.
-  const acc = buildAccNetting(netAll, readNdjson<OrderRow>(yp("orders.ndjson")));
+  const acc = buildAccNetting(netAll, readNdjson<OrderRow>(yp("orders.ndjson")), cogsLookup(readJson<Record<string, number>>(yp("sku_cogs.json"), {})));
   writeNdjson(yp("pnl_sku_netting_daily.ndjson"), acc.rows);
   if (acc.fallback.length) console.warn(`::warning::блок по начислениям: ${acc.fallback.length} пар кабинет/месяц посчитаны из заказов - реестр собран без колонки источника (${acc.fallback.join(", ")}), до перезабора схемой 3`);
   if (Object.keys(acc.unknown).length) console.warn(`::warning::блок по начислениям: проводки с неизвестным источником ушли в «Прочие услуги»: ${JSON.stringify(acc.unknown)}`);

@@ -358,6 +358,10 @@ export function buildPnlSkuDaily(rows: OrderRow[]) {
 // документами»). Баллы Маркета и их списание («Скидка за участие в совместных акциях») в отчёте о
 // платежах не участвуют, поэтому в «Начислено» и «К выплате» не входят, лежат справкой в points/cofin.
 export interface AccNetRow {
+  // contract - договор размещения (PLACEMENT_CONTRACT): отчёт о платежах Маркет выпускает по
+  // договору, а не по кабинету, поэтому сверка с ним идёт по договору. cogs - себестоимость нетто-
+  // штук строки тем же поиском по листу, что в своде; cogs_known=false - артикула в листе нет.
+  contract?: string; cogs?: number; cogs_known?: boolean;
   d: string; business: string; sku: string; basis: "netting" | "orders";
   sold: number; ret: number; units: number;
   got: number; back: number; dgot: number; dback: number;
@@ -365,7 +369,7 @@ export interface AccNetRow {
   commission: number; delivery: number; acquiring: number; storage: number; cofin: number; promo: number; otherSvc: number;
   amount: number; platform: "ym";
 }
-export interface AccNettingRow { d: string; business?: string; order?: string; sku?: string; type?: string; service?: string; src?: string; amount: number; count?: number }
+export interface AccNettingRow { d: string; business?: string; order?: string; sku?: string; type?: string; service?: string; src?: string; amount: number; count?: number; contract?: string }
 const SRC_PAY = /^плат[её]ж покупател/i, SRC_PAY_BACK = /^возврат плат[её]жа покупател/i;
 const SRC_POINTS = /баллы за скидку|возврат баллов/i;
 function accFeeKey(service: string, src: string): "commission" | "delivery" | "acquiring" | "storage" | "cofin" | "promo" | "otherSvc" {
@@ -378,7 +382,7 @@ function accFeeKey(service: string, src: string): "commission" | "delivery" | "a
   if (g === "Продвижение (буст/лояльность)") return "promo";
   return "otherSvc";
 }
-export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[]): { rows: AccNetRow[]; fallback: string[]; unknown: Record<string, number> } {
+export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], cogsAt: (sku: string) => number | undefined = () => undefined): { rows: AccNetRow[]; fallback: string[]; unknown: Record<string, number> } {
   // Пара готова к расчёту по реестру, только если у ВСЕХ её строк есть источник проводки.
   const pairOf = (b: string, d: string) => `${b}/${d.slice(0, 7)}`;
   const bad = new Set<string>(), seen = new Set<string>();
@@ -417,8 +421,9 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[]): {
     if (!r.order || !String(r.order).trim()) continue; // уровень кабинета - в pnl_account_daily
     if (!ready(pairOf(b, r.d))) continue;
     const sku = r.sku || netSku.get(r.order)?.sku || skuOfOrder.get(r.order) || "";
-    const k = `${r.d}|${b}|${sku}`;
-    const t = m.get(k) || blank(r.d, b, sku, "netting");
+    const contract = String(r.contract || "");
+    const k = `${r.d}|${b}|${contract}|${sku}`;
+    const t = m.get(k) || { ...blank(r.d, b, sku, "netting"), ...(contract ? { contract } : {}) };
     const src = String(r.src || ""), a = Number(r.amount) || 0;
     if (SRC_PAY.test(src)) { if (r.sku) { t.got += a; t.sold += qtyOf(r, false); } else t.dgot += a; }
     else if (SRC_PAY_BACK.test(src)) { if (r.sku) { t.back += a; t.ret += qtyOf(r, true); } else t.dback += a; }
@@ -463,6 +468,10 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[]): {
       // «Начислено» - деньги покупателя: «Получено от потребителей» − «Возвращено потребителям».
       t.accruals = t.pay + t.dlv;
     }
+    // Себестоимость нетто-штук, без отсечки: возврат в периоде возвращает и С\С штуки.
+    const cu = t.sku ? cogsAt(t.sku) : undefined;
+    t.cogs_known = cu != null;
+    t.cogs = cu != null ? r2(cu * t.units) : 0;
     for (const f of ["got", "back", "dgot", "dback", "pay", "dlv", "points", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"] as const) t[f] = r2(t[f]);
     return t;
   }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.business < b.business ? -1 : a.business > b.business ? 1 : a.sku < b.sku ? -1 : 1));
@@ -901,6 +910,13 @@ export function bonusKind(r: BonusRow): BonusKind {
 }
 export const isBonusAccrual = (r: BonusRow) => bonusKind(r) === "accrual";
 export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string, act: ActRow[] = [], bonus: BonusRow[] = [], deliv: DelivRow[] = []): SvodMonth[] {
+  const cogsAt = cogsLookup(cogs);
+  return buildSvodWith(rows, netting, cogsAt, today, act, bonus, deliv);
+}
+// Поиск себестоимости по артикулу - один на свод и на блок «за выбранный период». Раньше блок
+// брал лист прямым ключом и не находил то, что свод находит (Катя 28.09.2026: «почему нет данных
+// по СС - стоят прочерки»; за июль 4 из 5 «пропавших» артикулов в листе есть).
+export function cogsLookup(cogs: Record<string, number>): (sku: string) => number | undefined {
   // Часть артикулов Маркет отдаёт с кириллическими двойниками в коде: «GGМ-16-4-3» с русской «М»,
   // «GGTP-20-2х2» с русской «х». В листе себестоимости таких кодов нет ни одного, поэтому прямой
   // ключ по ним не срабатывал никогда, и четыре артикула висели без С\С при том, что в листе она
@@ -928,6 +944,9 @@ export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, c
     const v3 = bySkel.get(skel(n));
     return v3 == null ? undefined : v3;
   };
+  return cogsAt;
+}
+function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogsAt: (sku: string) => number | undefined, today?: string, act: ActRow[] = [], bonus: BonusRow[] = [], deliv: DelivRow[] = []): SvodMonth[] {
   // 1. отбор: заказы со статусом DELIVERED, месяц - по дате оформления
   const keyOf = (r: OrderRow) => `${r.business}|${String(r.created || "").slice(0, 7)}`;
   const delivered = new Map<string, string>();  // order -> ключ месяца

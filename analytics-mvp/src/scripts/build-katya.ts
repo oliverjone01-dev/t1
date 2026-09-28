@@ -3410,18 +3410,24 @@ function accJs(): string {
   if (!rows.length) return "var ACC=[];var ACC_DOC=[];var ACC_FB=[];var ACC_META={rows:0};";
   // Строка блока - (день, артикул): на ней копится база АДМ, как и раньше. Кабинеты складываются
   // здесь; разрез по кабинету нужен только сверке с отчётом о платежах, он идёт в ACC_DOC.
-  const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back"];
+  const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs"];
   const by = new Map<string, any>(), doc = new Map<string, any>(), fb = new Set<string>();
+  // Артикулы, которых нет в листе С\С (тем же поиском, что в своде). Остальные несут С\С в строке.
+  const noCogs = new Set<string>();
   for (const r of rows) {
     const d = String(r.d || ""), sk = String(r.sku || ""), b = String(r.business || "");
     const k = `${d}|${sk}`;
     const t = by.get(k) || { d, sku: sk, fb: 0, ...Object.fromEntries(F.map((f) => [f, 0])) };
     for (const f of F) t[f] += Number(r[f]) || 0;
     if (r.basis === "orders") { t.fb = 1; fb.add(`${b}/${d.slice(0, 7)}`); }
+    if (r.cogs_known === false && sk) noCogs.add(sk);
     by.set(k, t);
     if (r.basis !== "orders") {
-      const dk = `${d}|${b}`;
-      const x = doc.get(dk) || { d, b, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
+      // Отчёт о платежах Маркет выпускает по ДОГОВОРУ, а в кабинете их бывает несколько (у 1023124
+      // в июле 2026 - два). Поэтому сверка идёт по договору; без договора - по кабинету.
+      const bk = r.contract ? `${b} · договор ${r.contract}` : b;
+      const dk = `${d}|${bk}`;
+      const x = doc.get(dk) || { d, b: bk, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
       x.got += (Number(r.got) || 0) + (Number(r.dgot) || 0); x.back += (Number(r.back) || 0) + (Number(r.dback) || 0);
       x.sold += Number(r.sold) || 0; x.ret += Number(r.ret) || 0; x.amount += Number(r.amount) || 0;
       doc.set(dk, x);
@@ -3460,6 +3466,7 @@ var ACC_FB=${JSON.stringify([...fb].sort())};
 var ACC_CAT=${JSON.stringify(cat)};
 var ACC_NAME=${JSON.stringify(nm)};
 var ACC_COGS=${JSON.stringify(cc)};
+var ACC_NOCOGS=${JSON.stringify([...noCogs].sort())};
 var ACC_UPD=${JSON.stringify(upd)};
 var ACC_PEND=${JSON.stringify(pend)};
 var ACC_OPEN={};
@@ -4337,7 +4344,7 @@ function soDraw(){
 // отчёта о платежах Маркета, поэтому по артикулу блок сверяется с документом напрямую (Катя
 // 28.09.2026: GGL-09-2 за июль 15 − 3 = 12 шт на 164 576 ₽). Полный P&L: с АДМ, налогом и чистой
 // прибылью, на тех же базах, что блок по дате заказа.
-var ACC_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back'];
+var ACC_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs'];
 // Ставки читаются из тех же полей, что и свод: одно место правки на всю страницу.
 var ACC_RATE={adm:0.30,tax:0.15};
 function accRates(){
@@ -4361,8 +4368,10 @@ function accAgg(w){
     // Списание баллами (cofin) в сборы не входит: блок только про деньги, как отчёт о платежах.
     o.fee=-(o.commission+o.delivery+o.acquiring+o.storage+o.promo+o.otherSvc);
     // Без отсечки, как АДМ и налог: возврат, пришедший в периоде, возвращает и себестоимость штуки.
-    o.cogs=(ACC_COGS[k]||0)*o.units;
-    o.ck=ACC_COGS[k]!=null;
+    // С\С приходит в строке данных: тот же поиск по листу, что в своде (кириллические двойники
+    // кода, «180-90» против «18090»). Старый снимок без поля - по листу напрямую, как раньше.
+    if(o.cogs===0&&ACC_COGS[k]!=null&&typeof ACC_NOCOGS==='undefined')o.cogs=ACC_COGS[k]*o.units;
+    o.ck=(typeof ACC_NOCOGS==='undefined')?ACC_COGS[k]!=null:ACC_NOCOGS.indexOf(k)<0;
     o.gp=o.amount-o.cogs;
     // АДМ - от «К выплате», налог - от «Оплатил клиент». Те же базы и те же ставки, что в блоке
     // по дате заказа (решение Кати и подтверждение Ивана 23.09.2026,
@@ -4411,7 +4420,10 @@ function accDraw(){
       +CF.map(function(c){return money(-(x[c[1]]||0));}).join('')
       +'<td class="r">'+svRub(x.fee)+'</td>'
       +'<td class="r"><b>'+svRub(x.amount)+'</b></td>'
-      +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="себестоимости по этому артикулу нет в листе - валовая завышена на неизвестную С\\С"')+'>'+(x.ck&&Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
+      // Итог категории и ИТОГО показываются ВСЕГДА (Катя 28.09.2026: «почему нет данных по СС - стоят
+      // прочерки»): один артикул без С\С раньше гасил сумму целой категории. Сколько артикулов без
+      // С\С - в подсказке и приглушённым цветом.
+      +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="'+(x.rows&&x.noCk?('без С\\С в листе: '+svArt(x.noCk)+' - '):'себестоимости по этому артикулу нет в листе - ')+'валовая завышена на их неизвестную С\\С"')+'>'+(Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
       +'<td class="r" style="color:'+(x.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(x.gp)+'</td>'
       +'<td class="r">'+(x.amount>0?(Math.round(x.gp/x.amount*1000)/10)+'%':'—')+'</td>'
       +money(x.adm)+money(x.tax)
@@ -4421,16 +4433,16 @@ function accDraw(){
   // Категории и ИТОГО складываются из тех же строк, поэтому проверяются сложением на экране.
   var cats={};
   list.forEach(function(x){
-    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],fee:0,cogs:0,ck:true,gp:0,adm:0,tax:0,np:0});
+    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],fee:0,ck:true,gp:0,adm:0,tax:0,np:0});
     ACC_F.forEach(function(f){g[f]=(g[f]||0)+(x[f]||0);});
-    g.rows.push(x);g.fee+=x.fee;g.cogs+=x.cogs;g.gp+=x.gp;g.adm+=x.adm;g.tax+=x.tax;g.np+=x.np;if(!x.ck)g.ck=false;});
+    g.rows.push(x);g.fee+=x.fee;g.gp+=x.gp;g.adm+=x.adm;g.tax+=x.tax;g.np+=x.np;if(!x.ck){g.ck=false;g.noCk=(g.noCk||0)+1;}});
   var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(p,q){return q.amount-p.amount;});
-  var T={fee:0,cogs:0,ck:true,gp:0,adm:0,tax:0,np:0,fb:0};
+  var T={fee:0,ck:true,gp:0,adm:0,tax:0,np:0,fb:0};
   ACC_F.forEach(function(f){T[f]=0;});
   groups.forEach(function(g){
     ACC_F.forEach(function(f){T[f]+=g[f]||0;});
-    T.fee+=g.fee;T.cogs+=g.cogs;T.gp+=g.gp;T.adm+=g.adm;T.tax+=g.tax;T.np+=g.np;
-    if(!g.ck)T.ck=false;});
+    T.fee+=g.fee;T.gp+=g.gp;T.adm+=g.adm;T.tax+=g.tax;T.np+=g.np;
+    if(!g.ck){T.ck=false;T.noCk=(T.noCk||0)+(g.noCk||0);}});
   groups.forEach(function(g){g.fb=g.rows.some(function(x){return x.fb;})?1:0;if(g.fb)T.fb=1;});
   h+='<tr class="sv-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' артикулов)</span></td>'+cells(T)+'</tr>';
   groups.forEach(function(g,gi){
@@ -4455,13 +4467,13 @@ function accDraw(){
     } else miss.push(m);
   });
   // Сверка с отчётом о платежах Маркета - закрывающим документом, с которым Катя сверяет блок.
-  // Он выпускается по кабинету (договору), поэтому суммы - по кабинету: «Получено от потребителей»
+  // Он выпускается по договору, поэтому суммы - по договору (кабинет · договор): «Получено от потребителей»
   // (товар и доставка) и «Возвращено потребителям», по дате транзакции в окне.
   var docB={};
   (typeof ACC_DOC!=='undefined'?ACC_DOC:[]).forEach(function(r){if(r[0]<w.from||r[0]>w.to)return;
     var o=docB[r[1]]||(docB[r[1]]={got:0,back:0,sold:0,ret:0,amt:0});o.got+=r[2];o.back+=r[3];o.sold+=r[4];o.ret+=r[5];o.amt+=r[6]||0;});
   var docTxt=Object.keys(docB).sort().map(function(b){var o=docB[b];
-    return 'кабинет '+b+': получено <b>'+svRub(o.got)+' ₽</b>, возвращено <b>'+svRub(-o.back)+' ₽</b> ('+o.sold+' − '+o.ret+' шт), к перечислению <b>'+svRub(o.amt)+' ₽</b>';}).join('; ');
+    return b+': получено <b>'+svRub(o.got)+' ₽</b>, возвращено <b>'+svRub(-o.back)+' ₽</b> ('+o.sold+' − '+o.ret+' шт), к перечислению <b>'+svRub(o.amt)+' ₽</b>';}).join('; ');
   var fbIn=(typeof ACC_FB!=='undefined'?ACC_FB:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
   cov.innerHTML='период: <b>'+w.from+' .. '+w.to+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'
     +(docTxt?'<br><span title="Наш расчёт из реестра для сверки со строками отчёта о платежах Маркета за те же даты: «Получено от Потребителей», «Возвращено Потребителям», «Подлежит перечислению». Услуги в документе идут по актам (дата услуги), в реестре - по дате удержания, поэтому «к перечислению» может отличаться на сдвиг услуг между месяцами. По артикулу - колонки «Продано, шт», «Возвраты, шт» и подсказка ячейки «Оплатил клиент».">сверка с отчётом о платежах</span> - '+docTxt:'')

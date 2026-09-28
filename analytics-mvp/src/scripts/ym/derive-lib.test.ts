@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -496,5 +496,21 @@ describe("блок по начислениям из проводок реест�
     expect(fallback).toEqual(["1/2026-05"]);
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ basis: "orders", sku: "B", units: 1 });
+  });
+});
+
+describe("блок по начислениям: себестоимость и договор", () => {
+  it("С\\С ищется как в своде: кириллическая «М» в коде находит латинский ключ листа", () => {
+    const net = [{ d: "2026-07-03", business: "1", order: "o1", sku: "GGМ-02-4-2", type: "Начисление", src: "Платёж покупателя", service: "Товар", amount: 100, count: 2, contract: "54641824/26" }];
+    const { rows } = buildAccNetting(net, [], cogsLookup({ "GGM-02-4-2": 50 }));
+    expect(rows[0]).toMatchObject({ cogs_known: true, cogs: 100, contract: "54641824/26" });
+  });
+  it("два договора одного кабинета - разные строки", () => {
+    const net = [
+      { d: "2026-07-03", business: "1", order: "o1", sku: "A", type: "Начисление", src: "Платёж покупателя", service: "Товар", amount: 100, count: 1, contract: "X" },
+      { d: "2026-07-03", business: "1", order: "o2", sku: "A", type: "Начисление", src: "Платёж покупателя", service: "Товар", amount: 50, count: 1, contract: "Y" },
+    ];
+    const { rows } = buildAccNetting(net, []);
+    expect(rows.map((r) => [r.contract, r.pay]).sort()).toEqual([["X", 100], ["Y", 50]]);
   });
 });

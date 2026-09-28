@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
-import { matchLedger, type Posting } from "./delivery-match.js";
+import { matchLedger, accrualShipSeries, type Posting } from "./delivery-match.js";
 
 const P: Posting[] = [
   { order: "46952822-0108-1", d: "2026-08-01", status: "delivered", units: 1 },
@@ -61,5 +61,41 @@ describe("живые данные: сумма ведомости сохраня�
     const got = [...r.byPosting.values()].reduce((s, v) => s + v.ship, 0) + r.unmatched.reduce((s, u) => s + u.ship, 0);
     expect(got).toBeCloseTo(total, 1);
     expect(r.byPosting.get("46952822-0108-1")?.ship).toBe(2947.52);
+  });
+});
+
+describe("«Наша доставка» по дате начисления заказа (Иван 28.09)", () => {
+  const P2: Posting[] = [
+    { order: "A-1-1", d: "2026-07-31", sd: "2026-08-13", sku: "1", units: 1, status: "delivered" },
+    { order: "B-1-1", d: "2026-08-20", sd: null, sku: "2", units: 1, status: "delivering" },
+    { order: "C-1-1", d: "2026-08-25", sd: null, sku: "2", units: 1, status: "cancelled" },
+  ];
+  const r = matchLedger([
+    { order: "A-1-1", ship: 3666.1, deliv: 0, d_ship: "2026-08-04", d_fact: "2026-08-09" },
+    { order: "B-1-1", ship: 1000, deliv: 0, d_ship: "2026-08-22", d_fact: "2026-08-26" },
+    { order: "C-1-1", ship: 500, deliv: 0, d_ship: "2026-08-27" },
+  ], P2);
+  const s = accrualShipSeries(P2, r.byPosting);
+  it("начисленный заказ - на дату начисления, не заказа и не отгрузки", () => {
+    expect(s.bySku.get("1")!.get("2026-08-13")).toBe(3666.1);
+  });
+  it("не начисленный - на фактическую доставку, без неё - на отгрузку", () => {
+    expect(s.bySku.get("2")!.get("2026-08-26")).toBe(1000);
+    expect(s.bySku.get("2")!.get("2026-08-27")).toBe(500);
+    expect(s.fallback).toEqual({ fact: 1000, ship: 500, order: 0 });
+  });
+  it("ничего не теряется и не двоится: ряд = всё, что нашлось по номерам", () => {
+    expect(s.total).toBeCloseTo(3666.1 + 1000 + 500, 2);
+  });
+  it("живые данные: ряд по начислению = всё найденное по номерам, до копейки", () => {
+    if (!existsSync("data/delivery_orders.ndjson") || !existsSync("data/orders_daily.ndjson")) return;
+    const nd = (f: string) => readFileSync(f, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
+    const od = nd("data/orders_daily.ndjson");
+    const m = matchLedger(nd("data/delivery_orders.ndjson"), od);
+    const a = accrualShipSeries(od, m.byPosting);
+    const matched = [...m.byPosting.values()].reduce((x, v) => x + v.ship, 0);
+    expect(a.total).toBeCloseTo(matched, 1);
+    let inSeries = 0; for (const mm of a.bySku.values()) for (const v of mm.values()) inSeries += v;
+    expect(inSeries).toBeCloseTo(matched, 1);
   });
 });

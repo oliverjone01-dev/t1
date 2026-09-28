@@ -14,6 +14,9 @@
 # строке). К отправлениям OZON его сводит src/scripts/delivery-match.ts; ненайденное не раскладывается,
 # а показывается плашкой (правило Ивана 28.09: knowledge/semantic/rule-find-order-no-spread.md).
 import openpyxl, glob, os, json, re, collections
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "delivery"))
+from build_delivery_sku_daily import parse_date  # «4 августа» -> 2026-08-04, один разбор на оба сборщика
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CPO_RAW = os.path.join(ROOT, "tools", "cpo", "raw")
@@ -67,7 +70,7 @@ def main():
       print(f"CPO заказов: {len(cpo)} | сумма рекламы: {sum(cpo.values()):,.0f} -> {OUT_CPO}")
 
     # --- Доставка по номеру постинга (ведомость), дедуп по уникальной отправке ---
-    dl = collections.defaultdict(lambda: [0.0, 0.0])  # posting -> [ship, deliv]
+    dl = collections.defaultdict(lambda: [0.0, 0.0, "", ""])  # posting -> [ship, deliv, отгрузка, доставка факт]
     seen = set()
     for f in sorted(glob.glob(os.path.join(DL_RAW, "*.xlsx"))):
         wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
@@ -99,10 +102,24 @@ def main():
                 seen.add(key)
                 dl[no][0] += sp
                 dl[no][1] += dv
+                # Даты - запасные для «Нашей доставки» по дате начисления (Иван 28.09): если OZON заказ
+                # ещё не начислил, расход встаёт на фактическую доставку, а без неё - на отгрузку.
+                # При нескольких отправках заказа берём последнюю дату: расход признан, когда всё доехало.
+                ds = parse_date(r[ci["Дата отгрузки"]]) if "Дата отгрузки" in ci else None
+                df = parse_date(r[ci["Дата доставки факт."]]) if "Дата доставки факт." in ci else None
+                if ds and ds > dl[no][2]:
+                    dl[no][2] = ds
+                if df and df > dl[no][3]:
+                    dl[no][3] = df
         wb.close()
     with open(OUT_DL, "w", encoding="utf-8") as w:
-        for no, (sh, dv) in sorted(dl.items()):
-            w.write(json.dumps({"order": no, "ship": round(sh, 2), "deliv": round(dv, 2)}, ensure_ascii=False) + "\n")
+        for no, (sh, dv, ds, df) in sorted(dl.items()):
+            o = {"order": no, "ship": round(sh, 2), "deliv": round(dv, 2)}
+            if ds:
+                o["d_ship"] = ds
+            if df:
+                o["d_fact"] = df
+            w.write(json.dumps(o, ensure_ascii=False) + "\n")
     print(f"доставка заказов: {len(dl)} | наша: {sum(v[0] for v in dl.values()):,.0f} | клиент: {sum(v[1] for v in dl.values()):,.0f} -> {OUT_DL}")
 
 

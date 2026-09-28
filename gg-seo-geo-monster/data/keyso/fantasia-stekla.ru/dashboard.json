@@ -2,7 +2,7 @@
   "domain": "fantasia-stekla.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-09-21T08:15:33.885Z",
+  "measured": "2026-09-28T08:58:46.450Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=fantasia-stekla.ru",
   "data": {
     "id": 80428092,
@@ -12,102 +12,108 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 2693,
-        "it50": 20480106,
-        "vis": 2104424,
-        "perc": 0.013149346004361502
+        "cnt": 2639,
+        "it50": 20416708,
+        "vis": 2144516,
+        "perc": 0.012925688117790587
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 1989,
-        "it50": 17477100,
-        "vis": 1039795,
-        "perc": 0.011380606622380144
+        "cnt": 1939,
+        "it50": 17479026,
+        "vis": 1224160,
+        "perc": 0.01109329547310016
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 1809,
-        "it50": 3130907,
-        "vis": 509083,
-        "perc": 0.05777878423089539
+        "cnt": 1776,
+        "it50": 3124797,
+        "vis": 540794,
+        "perc": 0.05683569204655534
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 1565,
-        "it50": 18360273,
-        "vis": 1948414,
-        "perc": 0.008523838398263468
+        "cnt": 1538,
+        "it50": 18404722,
+        "vis": 2083310,
+        "perc": 0.008356551106830083
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
-        "cnt": 1490,
-        "it50": 14546740,
-        "vis": 1175422,
-        "perc": 0.010242844788591809
-      },
-      {
-        "did": 30172015,
-        "name": "zerkala-msk.ru",
-        "cnt": 1092,
-        "it50": 4815,
-        "vis": 35,
-        "perc": 22.6791277258567
+        "cnt": 1461,
+        "it50": 14586958,
+        "vis": 1261707,
+        "perc": 0.010015796302423028
       },
       {
         "did": 30172018,
         "name": "steklo-kom.ru",
-        "cnt": 1066,
-        "it50": 6592,
-        "vis": 475,
-        "perc": 16.171116504854368
+        "cnt": 1049,
+        "it50": 6621,
+        "vis": 541,
+        "perc": 15.843528167950462
       },
       {
         "did": 121577103,
         "name": "uslugi.yandex.ru",
-        "cnt": 1060,
-        "it50": 3094378,
-        "vis": 207172,
-        "perc": 0.03425567270708362
+        "cnt": 1030,
+        "it50": 3088753,
+        "vis": 202275,
+        "perc": 0.03334679075989566
+      },
+      {
+        "did": 30172015,
+        "name": "zerkala-msk.ru",
+        "cnt": 1026,
+        "it50": 4570,
+        "vis": 34,
+        "perc": 22.450765864332602
       },
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 1014,
-        "it50": 9742,
-        "vis": 169,
-        "perc": 10.408540340792445
+        "cnt": 997,
+        "it50": 9682,
+        "vis": 156,
+        "perc": 10.297459202644083
       },
       {
         "did": 255793192,
         "name": "msk-zerkala.ru",
-        "cnt": 988,
-        "it50": 5387,
-        "vis": 47,
-        "perc": 18.34044922962688
+        "cnt": 971,
+        "it50": 5292,
+        "vis": 53,
+        "perc": 18.348450491307634
       }
     ],
-    "it1": 67,
-    "it3": 247,
-    "it5": 425,
-    "it10": 998,
-    "it50": 3756,
+    "it1": 70,
+    "it3": 241,
+    "it5": 406,
+    "it10": 969,
+    "it50": 3684,
     "childsCount": 0,
     "keys": [
       {
         "pos": 1,
         "word": "стекло для душевой кабины",
-        "ws": 11305,
-        "wsk": 677
+        "ws": 12541,
+        "wsk": 746
       },
       {
         "pos": 1,
-        "word": "стекло для душевой кабинки",
-        "ws": 559,
-        "wsk": 60
+        "word": "стекло для душевой",
+        "ws": 25995,
+        "wsk": 575
+      },
+      {
+        "pos": 1,
+        "word": "фантазия стекла",
+        "ws": 204,
+        "wsk": 67
       },
       {
         "pos": 1,
@@ -117,9 +123,15 @@
       },
       {
         "pos": 1,
-        "word": "фантазия стекла",
-        "ws": 144,
-        "wsk": 48
+        "word": "стекло для душевой кабинки",
+        "ws": 553,
+        "wsk": 47
+      },
+      {
+        "pos": 1,
+        "word": "зеркало на потолок",
+        "ws": 1383,
+        "wsk": 41
       },
       {
         "pos": 1,
@@ -135,75 +147,63 @@
       },
       {
         "pos": 1,
+        "word": "стеклянная перегородка в сауну с дверью",
+        "ws": 47,
+        "wsk": 36
+      },
+      {
+        "pos": 1,
         "word": "закаленное стекло для душевой",
         "ws": 686,
         "wsk": 33
-      },
-      {
-        "pos": 1,
-        "word": "изготовление зеркал на заказ в москве",
-        "ws": 60,
-        "wsk": 27
-      },
-      {
-        "pos": 1,
-        "word": "арочная стеклянная дверь",
-        "ws": 133,
-        "wsk": 25
-      },
-      {
-        "pos": 1,
-        "word": "закаленное стекло для душевой кабины купить",
-        "ws": 66,
-        "wsk": 23
       }
     ],
-    "topkeys": 93179,
+    "topkeys": 94712,
     "pages": [
       {
-        "it50": 234,
+        "it50": 229,
         "url": "/glass_showers"
       },
       {
-        "it50": 179,
+        "it50": 176,
         "url": "/glass_showers/steklyannye-shtorki-dlya-vannoy"
       },
       {
-        "it50": 136,
+        "it50": 131,
         "url": "/glass_partitions/mezhkomnatnye-steklyannye-peregorodki"
       },
       {
-        "it50": 121,
+        "it50": 124,
         "url": "/mirrors/zerkalnoe-panno"
       },
       {
-        "it50": 115,
+        "it50": 111,
         "url": "/mirrors/bolshie-zerkala"
       },
       {
-        "it50": 114,
-        "url": "/services/stekla-dlya-dushevykh-kabin-zakaz"
-      },
-      {
-        "it50": 110,
+        "it50": 109,
         "url": "/steklyannyye-dveri/steklyannye-dveri-dlya-shkafa-kupe"
       },
       {
-        "it50": 107,
+        "it50": 106,
+        "url": "/services/stekla-dlya-dushevykh-kabin-zakaz"
+      },
+      {
+        "it50": 104,
         "url": "/mirrors"
       },
       {
-        "it50": 79,
-        "url": "/glass_showers/razdvizhnye-dushevye-peregorodki-iz-stekla"
+        "it50": 78,
+        "url": "/steklyannyye-dveri/razdvizhnye-dveri-steklyannye-na-terrasu"
       },
       {
-        "it50": 79,
+        "it50": 77,
         "url": "/services/rezka"
       }
     ],
-    "pagesinindex": 185,
-    "vis": 60,
-    "topvis": 86511,
+    "pagesinindex": 181,
+    "vis": 70,
+    "topvis": 80333,
     "adconcs": [],
     "adkeys": [
       {
@@ -485,26 +485,19 @@
         "aiCnt": 351
       },
       "2026.09": {
-        "it1": 67,
-        "it3": 247,
-        "it5": 425,
-        "it10": 998,
-        "it50": 3756,
-        "pagesInIndex": 185,
+        "it1": 70,
+        "it3": 241,
+        "it5": 406,
+        "it10": 969,
+        "it50": 3684,
+        "pagesInIndex": 181,
         "adsCount": 3,
         "adKeysCount": 3,
-        "visAvg": 60,
-        "aiCnt": 397
+        "visAvg": 70,
+        "aiCnt": 385
       }
     },
     "linksHistory": {
-      "2025.03": [
-        713,
-        1250,
-        62,
-        6,
-        94
-      ],
       "2025.04": [
         593,
         1331,
@@ -632,7 +625,7 @@
         209
       ]
     },
-    "aiAnswersCnt": 397,
+    "aiAnswersCnt": 385,
     "aiState": 10,
     "dr": 22,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/8d90010d740484b756d24cc5dff2e1f6a431ce9e144c276e30b62ce964ad3aae.png",

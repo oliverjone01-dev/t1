@@ -353,6 +353,10 @@ export function buildPnlSkuDaily(rows: OrderRow[]) {
 // покупателя и баллы Маркета там неотличимы (оба «Начисление» с названием товара). Такие пары
 // (кабинет, месяц) берутся по-старому, из заказов, и помечаются basis="orders", чтобы блок сказал об
 // этом, а не выдал их за документ. Схема реестра 3 перезабирает все месяцы, и пометка уходит сама.
+//
+// Только деньги (Катя 28.09.2026: «баллы не нужны - отчёт должен сходиться с закрывающими
+// документами»). Баллы Маркета и их списание («Скидка за участие в совместных акциях») в отчёте о
+// платежах не участвуют, поэтому в «Начислено» и «К выплате» не входят, лежат справкой в points/cofin.
 export interface AccNetRow {
   d: string; business: string; sku: string; basis: "netting" | "orders";
   sold: number; ret: number; units: number;
@@ -418,8 +422,14 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[]): {
     const src = String(r.src || ""), a = Number(r.amount) || 0;
     if (SRC_PAY.test(src)) { if (r.sku) { t.got += a; t.sold += qtyOf(r, false); } else t.dgot += a; }
     else if (SRC_PAY_BACK.test(src)) { if (r.sku) { t.back += a; t.ret += qtyOf(r, true); } else t.dback += a; }
-    else if (SRC_POINTS.test(src)) t.points += a;
-    else if (isNettingFee(r.type || "", src)) t[accFeeKey(r.service || "", src)] += a;
+    else if (SRC_POINTS.test(src)) { t.points += a; m.set(k, t); continue; }
+    else if (isNettingFee(r.type || "", src)) {
+      const f = accFeeKey(r.service || "", src);
+      t[f] += a;
+      // Списание баллами («Скидка за участие в совместных акциях») - не деньги: в отчёте о платежах
+      // его нет, как нет и самих баллов. Поле остаётся справкой, в «К выплате» не входит.
+      if (f === "cofin") { m.set(k, t); continue; }
+    }
     else { t.otherSvc += a; unknown[src || "(пусто)"] = r2((unknown[src || "(пусто)"] || 0) + a); }
     t.amount += a;
     m.set(k, t);
@@ -440,15 +450,18 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[]): {
       const t = blank(x.d, b, x.sku, "orders");
       t.units = x.units; t.sold = Math.max(0, x.units); t.ret = Math.max(0, -x.units);
       t.pay = x.pay; t.got = Math.max(0, x.pay); t.back = Math.min(0, x.pay);
-      t.accruals = x.accruals; t.points = x.accruals - x.pay;
-      for (const f of ["commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"] as const) t[f] = x[f];
+      // Только деньги, как в реестровых парах: баллы (доля Маркета в цене) и списания баллами - справкой.
+      t.accruals = x.pay; t.points = x.accruals - x.pay;
+      for (const f of ["commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc"] as const) t[f] = x[f];
+      t.amount = x.amount - t.points - x.cofin;
       m.set(`${x.d}|${b}|${x.sku}|orders`, t);
     }
   }
   const out = [...m.values()].map((t) => {
     if (t.basis === "netting") {
       t.units = t.sold - t.ret; t.pay = t.got + t.back; t.dlv = t.dgot + t.dback;
-      t.accruals = t.pay + t.dlv + t.points;
+      // «Начислено» - деньги покупателя: «Получено от потребителей» − «Возвращено потребителям».
+      t.accruals = t.pay + t.dlv;
     }
     for (const f of ["got", "back", "dgot", "dback", "pay", "dlv", "points", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"] as const) t[f] = r2(t[f]);
     return t;

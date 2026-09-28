@@ -2,7 +2,7 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-09-21T08:12:46.393Z",
+  "measured": "2026-09-28T08:57:37.494Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
     "id": 118065628,
@@ -12,89 +12,89 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 12,
-        "it50": 20480106,
-        "vis": 2104424,
-        "perc": 0.00005859344673313703
-      },
-      {
-        "did": 29918498,
-        "name": "livemaster.ru",
-        "cnt": 9,
-        "it50": 2765193,
-        "vis": 101178,
-        "perc": 0.0003254745690445477
+        "cnt": 11,
+        "it50": 20416708,
+        "vis": 2144516,
+        "perc": 0.00005387744194607672
       },
       {
         "did": 233719002,
         "name": "peregorodki.spb.ru",
         "cnt": 9,
-        "it50": 307,
-        "vis": 5,
-        "perc": 2.9315960912052117
-      },
-      {
-        "did": 30880413,
-        "name": "ginterio.ru",
-        "cnt": 8,
-        "it50": 637,
-        "vis": 1,
-        "perc": 1.2558869701726845
-      },
-      {
-        "did": 246444711,
-        "name": "infinity-glass.ru",
-        "cnt": 8,
-        "it50": 2325,
-        "vis": 10,
-        "perc": 0.34408602150537637
+        "it50": 311,
+        "vis": 6,
+        "perc": 2.8938906752411575
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
         "cnt": 8,
-        "it50": 47498722,
-        "vis": 11180773,
-        "perc": 0.000016842558416624348
+        "it50": 47464004,
+        "vis": 11126392,
+        "perc": 0.00001685487806717697
+      },
+      {
+        "did": 244319620,
+        "name": "peregorodka78.ru",
+        "cnt": 7,
+        "it50": 104,
+        "vis": 0,
+        "perc": 6.730769230769231
+      },
+      {
+        "did": 30880413,
+        "name": "ginterio.ru",
+        "cnt": 7,
+        "it50": 622,
+        "vis": 2,
+        "perc": 1.1254019292604502
+      },
+      {
+        "did": 31466309,
+        "name": "steklodel-spb.ru",
+        "cnt": 7,
+        "it50": 359,
+        "vis": 1,
+        "perc": 1.9498607242339834
       },
       {
         "did": 30777277,
         "name": "glcon.ru",
         "cnt": 7,
-        "it50": 270,
+        "it50": 261,
         "vis": 4,
-        "perc": 2.5925925925925926
+        "perc": 2.681992337164751
       },
       {
-        "did": 242157702,
-        "name": "biglas.ru",
+        "did": 29918498,
+        "name": "livemaster.ru",
         "cnt": 7,
-        "it50": 1544,
-        "vis": 8,
-        "perc": 0.4533678756476684
+        "it50": 2773473,
+        "vis": 106464,
+        "perc": 0.0002523911355906475
       },
       {
-        "did": 32073658,
-        "name": "peregorodki-spb.ru",
+        "did": 246444711,
+        "name": "infinity-glass.ru",
         "cnt": 7,
-        "it50": 207,
-        "vis": 1,
-        "perc": 3.381642512077295
+        "it50": 2324,
+        "vis": 12,
+        "perc": 0.30120481927710846
       },
       {
-        "did": 272188389,
-        "name": "fdmebel.ru",
+        "did": 30965690,
+        "name": "peregorodkalab.ru",
         "cnt": 7,
-        "it50": 2319,
-        "vis": 109,
-        "perc": 0.30185424752048295
+        "it50": 210,
+        "vis": 0,
+        "perc": 3.333333333333333
       }
     ],
     "it1": 0,
     "it3": 1,
     "it5": 1,
     "it10": 2,
-    "it50": 17,
+    "it50": 15,
     "childsCount": 0,
     "keys": [
       {
@@ -152,16 +152,16 @@
         "wsk": 2
       },
       {
-        "pos": 33,
-        "word": "лофт перегородка в ванной",
-        "ws": 4,
-        "wsk": 0
+        "pos": 34,
+        "word": "duendecor",
+        "ws": 7,
+        "wsk": 2
       }
     ],
     "topkeys": 1000000,
     "pages": [
       {
-        "it50": 17,
+        "it50": 15,
         "url": "/"
       }
     ],
@@ -188,7 +188,7 @@
         "adkeys": 0
       }
     },
-    "restop5": 6,
+    "restop5": 7,
     "history": {
       "2025.04": {
         "it1": 0,
@@ -399,7 +399,7 @@
         "it3": 1,
         "it5": 1,
         "it10": 2,
-        "it50": 17,
+        "it50": 15,
         "pagesInIndex": 1,
         "adsCount": 0,
         "adKeysCount": 0,

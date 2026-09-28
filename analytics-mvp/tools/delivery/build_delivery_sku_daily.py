@@ -30,6 +30,11 @@ OUT_CITY = os.path.join(ROOT, "data", "delivery_cities.json")
 # покупателя, убыточные города (ship > deliv). Только закрытые месяцы (в ведомости текущего нет).
 OUT_CITYDAILY = os.path.join(ROOT, "data", "delivery_city_daily.ndjson")
 CUR_MONTH = datetime.date.today().strftime("%Y-%m")  # текущий месяц исключаем (закрытые только)
+INCLUDE_CUR = os.environ.get("DELIV_SKIP_CUR", "") != "1"  # по умолчанию текущий месяц берём (Иван 28.09)
+
+
+def CANCELLED(status):
+    return "отмен" in str(status or "").lower()
 YEAR = 2026
 MES = {"янв": 1, "фев": 2, "мар": 3, "апр": 4, "мая": 5, "май": 5, "июн": 6, "июл": 7,
        "авг": 8, "сен": 9, "окт": 10, "ноя": 11, "дек": 12}
@@ -137,6 +142,7 @@ def main():
     # решение Ивана - «по артикулу реальный расход, только не задвоить».
     events = {}  # (order, date, round(ship,2)) -> {ship, deliv, date, arts, city, st}
     ozon = 0
+    cancelled_skip = [0, 0.0]  # строк со статусом «ОТМЕНЕН» и их «Стоимость отправки» (с повторами строк)
     for f in files:
         wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
         for ws in wb.worksheets:
@@ -156,6 +162,12 @@ def main():
                 ozon += 1
                 ship = num(r[ci["Стоимость отправки"]])
                 if ship <= 0:            # реальный расход: строки без отправки (0) пропускаем
+                    continue
+                # Иван 28.09.2026: статус «ОТМЕНЕН» - доставку не учитываем вовсе. «Вернули на склад»,
+                # «Возврат» и прочие статусы с оплаченной отправкой остаются реальным расходом.
+                if CANCELLED(r[ci["Статус"]]):
+                    cancelled_skip[0] += 1
+                    cancelled_skip[1] += ship
                     continue
                 no = str(r[ci["Номер заказа"]] or "").strip()
                 d = parse_date(r[ci["Дата отгрузки"]])
@@ -187,7 +199,9 @@ def main():
     used = 0
     for e in events.values():
         d = e["date"]
-        if d[:7] == CUR_MONTH:            # текущий месяц не трогаем (по требованию Ивана)
+        # Раньше текущий месяц отбрасывался целиком. 28.09.2026 Иван загрузил ведомость за сентябрь, и
+        # месяц берётся тем, что в ведомости есть; где ведомость кончается, говорит плашка на странице.
+        if d[:7] == CUR_MONTH and not INCLUDE_CUR:
             skipped_cur += 1
             continue
         # Привязка отправки к артикулу:
@@ -237,6 +251,7 @@ def main():
     print("город×день строк:", len(cd_rows), "| городов:", len({r["city"] for r in cd_rows}),
           "| Σship город", cd_ship, "vs offer", off_ship, "(Δ", cd_ship - off_ship, ")")
     print("OZON строк прочитано:", ozon, "| уник отправок (заказ+дата+сумма):", len(events), "| учтено:", used, "| пропущено (текущий месяц", CUR_MONTH, "):", skipped_cur)
+    print("пропущено со статусом «ОТМЕНЕН»: строк", cancelled_skip[0], "| сумма по строкам (с повторами)", round(cancelled_skip[1]))
     print("«Стоимость отправки» реальный расход по месяцам:", {k: round(v) for k, v in sorted(permon.items())})
     print("«Стоимость доставки» (клиент, ТОЛЬКО сверка) по месяцам:", {k: round(v) for k, v in sorted(permon_deliv.items())})
     print("строк (offer×день):", len(out), "| уник артикулов:", len(cities))

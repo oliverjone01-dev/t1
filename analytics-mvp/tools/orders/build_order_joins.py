@@ -57,10 +57,14 @@ def main():
             if no:
                 cpo[no] += num(r[ci["Расход, ₽"]])
         wb.close()
-    with open(OUT_CPO, "w", encoding="utf-8") as w:
+    # Сырья CPO нет (оно не в git) - прошлый файл не трогаем, иначе он перезапишется пустым.
+    if not cpo:
+        print("CPO: сырья нет в", CPO_RAW, "- cpo_orders.ndjson оставлен как есть")
+    else:
+      with open(OUT_CPO, "w", encoding="utf-8") as w:
         for no, sp in sorted(cpo.items()):
             w.write(json.dumps({"order": no, "sp": round(sp, 2)}, ensure_ascii=False) + "\n")
-    print(f"CPO заказов: {len(cpo)} | сумма рекламы: {sum(cpo.values()):,.0f} -> {OUT_CPO}")
+      print(f"CPO заказов: {len(cpo)} | сумма рекламы: {sum(cpo.values()):,.0f} -> {OUT_CPO}")
 
     # --- Доставка по номеру постинга (ведомость), дедуп по уникальной отправке ---
     dl = collections.defaultdict(lambda: [0.0, 0.0])  # posting -> [ship, deliv]
@@ -82,6 +86,9 @@ def main():
                     continue
                 no = norm(r[ci["Номер заказа"]])
                 if not no:
+                    continue
+                # Иван 28.09.2026: статус «ОТМЕНЕН» - доставку не учитываем.
+                if "Статус" in ci and "отмен" in norm(r[ci["Статус"]]).lower():
                     continue
                 sp = num(r[ci["Стоимость отправки"]])
                 dv = num(r[ci["Стоимость доставки"]])

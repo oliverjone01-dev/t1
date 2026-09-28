@@ -3434,7 +3434,26 @@ function accJs(): string {
     }
   }
   const compact = [...by.values()].map((t) => [t.d, t.sku, ...F.map((f) => Math.round(t[f])), t.fb]);
-  const docRows = [...doc.values()].map((x) => [x.d, x.b, Math.round(x.got), Math.round(x.back), x.sold, x.ret, Math.round(x.amount)]);
+  // Проводки БЕЗ номера заказа (удержания уровня кабинета, премия, внесено продавцом) в таблицу по
+  // артикулам не идут - им нет артикула. Но в «Подлежит перечислению» отчёта о платежах они входят,
+  // и без них сверка расходилась: июль, договор 54641824/26 - на 735 ₽ удержания без заказа,
+  // 54542918/26 - на 19 589,24 удержаний и 9 619,79 премии. С ними оба договора сходятся до копейки.
+  try {
+    for (const l of readFileSync(dp("netting.ndjson"), "utf-8").split("\n")) {
+      if (!l.trim()) continue;
+      const r = JSON.parse(l);
+      if (r.order && String(r.order).trim()) continue;
+      if (r.src === undefined) continue; // старая схема: источник неизвестен, не угадываем
+      const b = String(r.business || ""), d = String(r.d || "");
+      const bk = r.contract ? `${b} · договор ${r.contract}` : b;
+      const dk = `${d}|${bk}`;
+      const x = doc.get(dk) || { d, b: bk, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
+      const a = Number(r.amount) || 0;
+      if (/^прем/i.test(String(r.src || ""))) x.prem = (x.prem || 0) + a; else x.acct = (x.acct || 0) + a;
+      doc.set(dk, x);
+    }
+  } catch { /* реестра нет - сверка только по заказам */ }
+  const docRows = [...doc.values()].map((x) => [x.d, x.b, Math.round(x.got * 100) / 100, Math.round(x.back * 100) / 100, x.sold, x.ret, Math.round(x.amount * 100) / 100, Math.round((x.acct || 0) * 100) / 100, Math.round((x.prem || 0) * 100) / 100]);
   const skus = [...new Set(rows.map((r) => String(r.sku || "")))].filter(Boolean);
   const cat: Record<string, string> = {}, nm: Record<string, string> = {}, cc: Record<string, number> = {};
   for (const sk of skus) { cat[sk] = catOf(sk); nm[sk] = skuName[sk] || sk; if (cogs[sk]) cc[sk] = cogs[sk]; }
@@ -4471,12 +4490,18 @@ function accDraw(){
   // (товар и доставка) и «Возвращено потребителям», по дате транзакции в окне.
   var docB={};
   (typeof ACC_DOC!=='undefined'?ACC_DOC:[]).forEach(function(r){if(r[0]<w.from||r[0]>w.to)return;
-    var o=docB[r[1]]||(docB[r[1]]={got:0,back:0,sold:0,ret:0,amt:0});o.got+=r[2];o.back+=r[3];o.sold+=r[4];o.ret+=r[5];o.amt+=r[6]||0;});
+    var o=docB[r[1]]||(docB[r[1]]={got:0,back:0,sold:0,ret:0,amt:0,acct:0,prem:0});o.got+=r[2];o.back+=r[3];o.sold+=r[4];o.ret+=r[5];o.amt+=r[6]||0;o.acct+=r[7]||0;o.prem+=r[8]||0;});
+  function kop(v){var n=Math.round(v*100)/100,s=svRub(Math.trunc(n)),c=Math.round(Math.abs(n-Math.trunc(n))*100);return (n<0&&Math.trunc(n)===0?'-':'')+s+(c?','+(c<10?'0':'')+c:'');}
   var docTxt=Object.keys(docB).sort().map(function(b){var o=docB[b];
-    return b+': получено <b>'+svRub(o.got)+' ₽</b>, возвращено <b>'+svRub(-o.back)+' ₽</b> ('+o.sold+' − '+o.ret+' шт), к перечислению <b>'+svRub(o.amt)+' ₽</b>';}).join('; ');
+    var total=o.amt+o.acct+o.prem;
+    return b+': получено <b>'+kop(o.got)+' ₽</b>, возвращено <b>'+kop(-o.back)+' ₽</b> ('+o.sold+' − '+o.ret+' шт)'
+      +', по заказам к выплате '+kop(o.amt)+' ₽'
+      +(Math.round(o.acct*100)?', удержано без заказа '+kop(o.acct)+' ₽':'')
+      +(Math.round(o.prem*100)?', премия '+kop(o.prem)+' ₽':'')
+      +' = подлежит перечислению <b>'+kop(total)+' ₽</b>';}).join('<br>');
   var fbIn=(typeof ACC_FB!=='undefined'?ACC_FB:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
   cov.innerHTML='период: <b>'+w.from+' .. '+w.to+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'
-    +(docTxt?'<br><span title="Наш расчёт из реестра для сверки со строками отчёта о платежах Маркета за те же даты: «Получено от Потребителей», «Возвращено Потребителям», «Подлежит перечислению». Услуги в документе идут по актам (дата услуги), в реестре - по дате удержания, поэтому «к перечислению» может отличаться на сдвиг услуг между месяцами. По артикулу - колонки «Продано, шт», «Возвраты, шт» и подсказка ячейки «Оплатил клиент».">сверка с отчётом о платежах</span> - '+docTxt:'')
+    +(docTxt?'<br><span title="Наш расчёт из реестра для сверки со строками отчёта о платежах Маркета за те же даты: «Получено от Потребителей», «Возвращено Потребителям», «Подлежит перечислению», по договору. «Удержано без заказа» и «премия» - проводки кабинета без артикула: в таблицу они не входят, а в «Подлежит перечислению» документа входят. Июль 2026 сверен с отчётами Кати до копейки по обоим договорам. По артикулу - колонки «Продано, шт», «Возвраты, шт» и подсказка ячейки «Оплатил клиент».">сверка с отчётом о платежах</span>:<br>'+docTxt:'')
     +(fbIn.length?'<br><span style="color:#E5B567">по выгрузке заказов, а не по реестру: '+fbIn.join(', ')+' - реестр за эти месяцы собран без колонки источника, платёж покупателя там не отличить от баллов. Перезабор идёт сам (схема реестра 3); до него штуки и платёж этих месяцев с отчётом о платежах могут не совпасть</span>':'')
     +'<br><span title="Отчёт о реализации (УПД) - другой документ: он идёт по дате реализации, а не по дате платежа, поэтому штуки с блоком совпадать не обязаны.">сверка с УПД</span>: '
     +(have.length?'<span style="color:var(--up)">есть за '+have.join(', ')+'</span>':'<span style="color:#E5B567">за месяцы окна не собран</span>')

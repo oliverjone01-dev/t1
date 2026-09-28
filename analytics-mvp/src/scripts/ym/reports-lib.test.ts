@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { findCol } from "../../util/table.js";
-import { realizationRole, isRateLimit, dedupeNetting, reportMonthsToDo } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo } from "./reports-lib.js";
 
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
@@ -384,5 +384,18 @@ describe("карта колонок: документация не уходит 
     expect(findCol(heads, ["(", "^ORDER_ID$"])).toBe(1);   // битый шаблон пропускается, следующий работает
     expect(findCol(heads, ["("])).toBe(-1);
     expect(findCol(heads, "проза (а не список)" as unknown as string[])).toBe(-1);
+  });
+});
+
+// Живой факт 28.09.2026: две настоящие «Отзывы за баллы» по −1 ₽ в один день по одному заказу
+// схлопывались в одну, и услуги июля расходились с отчётом об исполнении поручения на 1 ₽.
+describe("дедуп реестра: двойники внутри выгрузки живут, пересечение выгрузок схлопывается", () => {
+  const row = { d: "2026-07-13", order: "58111614721", sku: "", type: "Удержание", service: "Отзывы за баллы", amount: -1, po: "187324" };
+  it("две одинаковые проводки одной выгрузки остаются двумя", () => {
+    expect(dedupeNetting(numberDuplicates([row, row]))).toHaveLength(2);
+  });
+  it("та же пара из соседней выгрузки не задваивается", () => {
+    const a = numberDuplicates([row, row]), b = numberDuplicates([row, row]);
+    expect(dedupeNetting(a.concat(b))).toHaveLength(2);
   });
 });

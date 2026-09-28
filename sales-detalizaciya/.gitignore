@@ -5,3 +5,4 @@ data/labels.jsonl
 data/labeling/*.jsonl
 .page-password
 data/page.json
+drafts/predlozhenie.html

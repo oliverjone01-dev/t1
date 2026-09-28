@@ -1,0 +1,50 @@
+name: Direct research (премиум, запросы-лиды, Wordstat, Keys.so)
+
+# Read-only добор данных для плана по поисковым РК. Токены из GitHub Secrets, в файлы не пишутся.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/tender-galileo-ujs35b]
+    paths:
+      - yandex-direct/dashboard/direct-research.mjs
+      - .github/workflows/direct-research.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: direct-research
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Research
+        env:
+          YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || secrets.YD_TOKEN }}
+          YANDEX_DIRECT_LOGIN: ${{ secrets.YANDEX_DIRECT_LOGIN || secrets.YD_LOGIN }}
+          YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || secrets.YM_TOKEN }}
+          YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
+          YANDEX_OAUTH_TOKEN: ${{ secrets.YANDEX_OAUTH_TOKEN }}
+          KEYSO_TOKEN: ${{ secrets.KEYSO_TOKEN || secrets.KEYSSO_API_KEY }}
+          CAMPAIGN_IDS: "712877525 712877517 712877513"
+          DATE_FROM: "2026-07-19"
+        run: node yandex-direct/dashboard/direct-research.mjs
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add yandex-direct/data/research_search_rk.json
+          git diff --staged --quiet && { echo "нет изменений"; exit 0; }
+          git commit -m "direct: research по поисковым РК $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && exit 0
+            sleep $((2**i))
+          done
+          exit 1

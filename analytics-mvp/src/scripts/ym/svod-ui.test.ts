@@ -652,14 +652,19 @@ describe("свод Маркета: числа на странице", () => {
   // Иван: «добавь колонки для информации по недоставленным товарам». Текущий месяц без них
   // читается как провал продаж: сентябрь на 17.09 показывает 38 доставленных штук, а 85 штук
   // на 5 064 813 ₽ ещё едут и попадут в продажи СВОЕГО месяца задним числом, когда доедут.
-  it("недоставленные заказы показаны колонками и в расчёт не входят", () => {
+  // Вариант А (Катя 28.09.2026): заказы в пути ВХОДЯТ в обе аналитики по дате заказа, как на OZON.
+  // Продажи и штуки - из заказа, сборы - оценкой. Колонки «В пути» показывают их долю внутри итога.
+  it("заказы в пути входят в расчёт, колонки «В пути» показывают их долю", () => {
+    const soCell = (c: string) => {
+      const T = D().getElementById("so-t")!;
+      const h = [...T.querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+      return [...T.querySelectorAll("tr.so-total td")].map((x) => (x.textContent || "").trim())[h.indexOf(c)];
+    };
     // Месяц берём по краю данных, а не по календарю: сентябрь доедет, и прибитый «2026-09»
     // сначала перестанет что-либо проверять, а потом уронит CI на пустых колонках.
     const rows = readDays();
     const last = rows[rows.length - 1]!.date;
     const ym = last.slice(0, 7);
-    // Последний день месяца считаем, а не подставляем 31: «2026-09-31» страница не разберёт
-    // и молча покажет весь период, а тест начнёт сравнивать сентябрь со всей историей.
     const mEnd = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).toISOString().slice(0, 10);
     expect(inFlightUnits(rows, `${ym}-01`, mEnd),
       `в месяце ${ym} нет заказов в пути: колонки проверять нечем, снимок либо устарел, либо всё доехало`)
@@ -668,17 +673,20 @@ describe("свод Маркета: числа на странице", () => {
     const flyU = num(cell("В пути, шт")), flyP = num(cell("В пути, ₽"));
     expect(flyU).toBeGreaterThan(0);
     expect(flyP).toBeGreaterThan(0);
-    // Свод считает только доставленное: «в пути» не должно попасть ни в штуки, ни в продажи.
     const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf-8"));
     const sep = svod.months.filter((m: any) => m.ym === ym);
     const sold = sep.reduce((a: number, m: any) => a + m.rows.reduce((x: number, r: any) => x + (r.units_net || 0), 0), 0);
-    expect(num(cell("Штуки"))).toBe(Math.round(sold));
-    const wantFly = sep.reduce((a: number, m: any) => a + (m.inflight_rows || []).reduce((x: number, r: any) => x + (r.units || 0), 0), 0);
-    expect(flyU).toBe(wantFly);
+    const fly = sep.reduce((a: number, m: any) => a + (m.fly_rows || []).reduce((x: number, r: any) => x + (r.units_net || 0), 0), 0);
+    expect(flyU, "колонка «В пути» не равна заказам в пути снимка").toBe(fly);
+    expect(num(cell("Штуки")), "в пути не вошли в штуки").toBe(Math.round(sold + fly));
+    // В таблице по заказам - те же колонки и те же числа.
+    expect(num(soCell("В пути, шт"))).toBe(flyU);
+    expect(num(soCell("В пути, ₽"))).toBe(flyP);
 
     // Июль доставлен целиком: колонки обязаны молчать прочерком, а не рисовать ноль.
     setRange("2026-07-01", "2026-07-31");
     expect(num(cell("В пути, шт"))).toBeNull();
+    expect(num(soCell("В пути, шт"))).toBeNull();
     expect(errs).toEqual([]);
   });
 
@@ -2046,5 +2054,42 @@ describe("баллы Маркета: отдельной карточкой в к
     } else {
       expect(any, `${empty}: карточка висит с одними нулями`).toBe(true);
     }
+  });
+});
+
+// Катя 28.09.2026: «все расчётные цифры в аналитиках выдели фиолетовым цветом как у OZON; по мере
+// того как их будут заменять реальные данные - они будут становиться белыми». Расчётное - только
+// оценка сборов по заказам в пути, и только в двух аналитиках по дате заказа.
+describe("Маркет: расчётные числа фиолетовым", () => {
+  const estCols = (id: string) => {
+    const T = D().getElementById(id)!;
+    const h = [...T.querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+    const tot = T.querySelector("tr.sv-total, tr.so-total");
+    return tot ? [...tot.children].map((td, i) => (td.classList.contains("an-est") ? h[i]! : "")).filter(Boolean) : [];
+  };
+  it("месяц без заказов в пути - без фиолетового и без легенды", () => {
+    setRange("2026-07-01", "2026-07-31");
+    for (const id of ["so-t", "sv-t", "acc-t"]) expect(estCols(id), `${id}: июль доставлен, а в ИТОГО есть расчётные ячейки`).toEqual([]);
+    expect(D().getElementById("sv-est")!.style.display).toBe("none");
+    expect(D().getElementById("so-est")!.style.display).toBe("none");
+    expect(errs).toEqual([]);
+  });
+  it("месяц с заказами в пути: оценочные сборы и прибыль фиолетовые, продажи и штуки - нет", () => {
+    const rows = readDays();
+    const ym = rows[rows.length - 1]!.date.slice(0, 7);
+    const mEnd = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).toISOString().slice(0, 10);
+    setRange(`${ym}-01`, mEnd);
+    for (const id of ["so-t", "sv-t"]) {
+      const c = estCols(id);
+      expect(c, `${id}: поступление не помечено`).toContain("Поступление");
+      expect(c, `${id}: чистая не помечена`).toContain("Чистая прибыль");
+      expect(c, `${id}: сборы не помечены`).toContain("Размещение");
+      for (const fact of ["Продажи", "Оплатил клиент", "Штуки", "В пути, шт", "В пути, ₽"])
+        expect(c, `${id}: «${fact}» - факт заказа, а окрашен`).not.toContain(fact);
+    }
+    // Блок «за выбранный период» оценок не несёт (Катя: «там только чёткие данные»).
+    expect(estCols("acc-t"), "в блок по начислениям попал фиолетовый").toEqual([]);
+    expect(D().getElementById("sv-est")!.style.display, "легенды нет").toBe("");
+    expect(errs).toEqual([]);
   });
 });

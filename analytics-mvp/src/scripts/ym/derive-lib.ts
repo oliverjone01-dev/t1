@@ -340,6 +340,122 @@ export function buildPnlSkuDaily(rows: OrderRow[]) {
   return [...m.values()].map((t) => { for (const k of ["pay", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"]) t[k] = Math.round(t[k]); return t; }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
 }
 
+// Блок «Аналитика по артикулам (за выбранный период)» - по ПРОВОДКАМ отчёта по взаиморасчётам, по
+// дате транзакции. Катя 28.09.2026 сверила блок с отчётом о платежах Маркета за июль: GGL-09-2 по
+// документу «Получено от потребителей» 15 шт на 205 035 ₽ и «Возвращено» 3 шт на 40 459 ₽, итого
+// 12 шт на 164 576 ₽, а в блоке стояло 8 шт. Причина: блок строился не из взаиморасчётов, как было
+// написано в шапке, а из выгрузки заказов по дате финансового закрытия ЗАКАЗА (r.fin), то есть
+// заказ, оплаченный в июле и закрытый в августе, падал в август. Отчёт о платежах идёт по дате
+// получения оплаты - это TRANSACTION_DATE реестра, и статьи «Платёж покупателя» / «Возврат платежа
+// покупателя» совпадают с его строками до рубля (кабинет 1023124, июль: возвраты 427 082 ₽ в обоих).
+//
+// Месяц, собранный до появления колонки TRANSACTION_SOURCE, по реестру не посчитать: платёж
+// покупателя и баллы Маркета там неотличимы (оба «Начисление» с названием товара). Такие пары
+// (кабинет, месяц) берутся по-старому, из заказов, и помечаются basis="orders", чтобы блок сказал об
+// этом, а не выдал их за документ. Схема реестра 3 перезабирает все месяцы, и пометка уходит сама.
+export interface AccNetRow {
+  d: string; business: string; sku: string; basis: "netting" | "orders";
+  sold: number; ret: number; units: number;
+  got: number; back: number; dgot: number; dback: number;
+  pay: number; dlv: number; points: number; accruals: number;
+  commission: number; delivery: number; acquiring: number; storage: number; cofin: number; promo: number; otherSvc: number;
+  amount: number; platform: "ym";
+}
+export interface AccNettingRow { d: string; business?: string; order?: string; sku?: string; type?: string; service?: string; src?: string; amount: number; count?: number }
+const SRC_PAY = /^плат[её]ж покупател/i, SRC_PAY_BACK = /^возврат плат[её]жа покупател/i;
+const SRC_POINTS = /баллы за скидку|возврат баллов/i;
+function accFeeKey(service: string, src: string): "commission" | "delivery" | "acquiring" | "storage" | "cofin" | "promo" | "otherSvc" {
+  const g = nettingFeeGroup(service, src);
+  if (g === COFIN_GROUP) return "cofin";
+  if (g === "Комиссия за продажу") return "commission";
+  if (g === "Логистика (прямая+возвратная)") return "delivery";
+  if (g === "Эквайринг") return "acquiring";
+  if (g === "Хранение") return "storage";
+  if (g === "Продвижение (буст/лояльность)") return "promo";
+  return "otherSvc";
+}
+export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[]): { rows: AccNetRow[]; fallback: string[]; unknown: Record<string, number> } {
+  // Пара готова к расчёту по реестру, только если у ВСЕХ её строк есть источник проводки.
+  const pairOf = (b: string, d: string) => `${b}/${d.slice(0, 7)}`;
+  const bad = new Set<string>(), seen = new Set<string>();
+  for (const r of netting) { const p = pairOf(String(r.business || ""), r.d); seen.add(p); if (r.src === undefined) bad.add(p); }
+  const ready = (p: string) => seen.has(p) && !bad.has(p);
+  // Штуки. COUNT есть в самом отчёте с 28.09.2026; для строк, собранных раньше, - из заказа.
+  const ord = new Map<string, OrderRow>(), skuOfOrder = new Map<string, string>();
+  for (const o of orders) {
+    if (o.service) continue;
+    ord.set(`${o.order}|${o.sku}`, o);
+    if (!skuOfOrder.has(o.order)) skuOfOrder.set(o.order, o.sku);
+  }
+  // Проводка по заказу без артикула (доставка, приём и перевод платежа) ложится на артикул заказа:
+  // сперва тот, что назван в самом реестре по этому заказу, затем из выгрузки заказов.
+  const netSku = new Map<string, { sku: string; v: number }>();
+  for (const r of netting) {
+    if (!r.order || !r.sku) continue;
+    const v = Math.abs(r.amount), cur = netSku.get(r.order);
+    if (!cur || v > cur.v) netSku.set(r.order, { sku: r.sku, v });
+  }
+  const qtyOf = (r: AccNettingRow, back: boolean): number => {
+    const c = Number(r.count);
+    if (c > 0) return c;
+    const o = ord.get(`${r.order}|${r.sku}`);
+    if (!o) return 1;
+    const cnt = Number(o.count) || 1;
+    if (!back) return cnt;
+    const unit = Number(o.p_buyer) || 0;
+    return unit > 0 ? Math.min(cnt, Math.max(1, Math.round(Math.abs(r.amount) / unit))) : cnt;
+  };
+  const m = new Map<string, AccNetRow>();
+  const blank = (d: string, business: string, sku: string, basis: "netting" | "orders"): AccNetRow => ({ d, business, sku, basis, sold: 0, ret: 0, units: 0, got: 0, back: 0, dgot: 0, dback: 0, pay: 0, dlv: 0, points: 0, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, promo: 0, otherSvc: 0, amount: 0, platform: PLATFORM });
+  const unknown: Record<string, number> = {};
+  for (const r of netting) {
+    const b = String(r.business || "");
+    if (!r.order || !String(r.order).trim()) continue; // уровень кабинета - в pnl_account_daily
+    if (!ready(pairOf(b, r.d))) continue;
+    const sku = r.sku || netSku.get(r.order)?.sku || skuOfOrder.get(r.order) || "";
+    const k = `${r.d}|${b}|${sku}`;
+    const t = m.get(k) || blank(r.d, b, sku, "netting");
+    const src = String(r.src || ""), a = Number(r.amount) || 0;
+    if (SRC_PAY.test(src)) { if (r.sku) { t.got += a; t.sold += qtyOf(r, false); } else t.dgot += a; }
+    else if (SRC_PAY_BACK.test(src)) { if (r.sku) { t.back += a; t.ret += qtyOf(r, true); } else t.dback += a; }
+    else if (SRC_POINTS.test(src)) t.points += a;
+    else if (isNettingFee(r.type || "", src)) t[accFeeKey(r.service || "", src)] += a;
+    else { t.otherSvc += a; unknown[src || "(пусто)"] = r2((unknown[src || "(пусто)"] || 0) + a); }
+    t.amount += a;
+    m.set(k, t);
+  }
+  // Пары без источника проводки - из заказов, как считалось до 28.09.2026.
+  const fallback = new Set<string>();
+  const byPair = new Map<string, OrderRow[]>();
+  for (const o of real(orders)) {
+    if (!DELIVERED_STATUSES.has(o.status) || !o.fin) continue;
+    const p = pairOf(String(o.business || ""), o.fin);
+    if (ready(p)) continue;
+    (byPair.get(p) || byPair.set(p, []).get(p)!).push(o);
+  }
+  for (const [p, rs] of byPair) {
+    const b = p.split("/")[0]!;
+    fallback.add(p);
+    for (const x of buildPnlSkuDaily(rs)) {
+      const t = blank(x.d, b, x.sku, "orders");
+      t.units = x.units; t.sold = Math.max(0, x.units); t.ret = Math.max(0, -x.units);
+      t.pay = x.pay; t.got = Math.max(0, x.pay); t.back = Math.min(0, x.pay);
+      t.accruals = x.accruals; t.points = x.accruals - x.pay;
+      for (const f of ["commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"] as const) t[f] = x[f];
+      m.set(`${x.d}|${b}|${x.sku}|orders`, t);
+    }
+  }
+  const out = [...m.values()].map((t) => {
+    if (t.basis === "netting") {
+      t.units = t.sold - t.ret; t.pay = t.got + t.back; t.dlv = t.dgot + t.dback;
+      t.accruals = t.pay + t.dlv + t.points;
+    }
+    for (const f of ["got", "back", "dgot", "dback", "pay", "dlv", "points", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"] as const) t[f] = r2(t[f]);
+    return t;
+  }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.business < b.business ? -1 : a.business > b.business ? 1 : a.sku < b.sku ? -1 : 1));
+  return { rows: out, fallback: [...fallback].sort(), unknown };
+}
+
 // Сборы уровня кабинета (плата за размещение, буст вне заказа, штрафы, подписки) в stats/orders не
 // приходят - [ГИПОТЕЗА] до первого netting. Источник - строки отчёта по взаиморасчётам БЕЗ номера
 // заказа: группируем по дате и смыслу услуги. Пока отчёта нет - нули, и полоса покрытия так и пишет

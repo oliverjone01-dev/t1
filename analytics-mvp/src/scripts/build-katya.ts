@@ -2348,7 +2348,7 @@ function render(cur,cmp){
     <div class="kt-scroll kt-box"><table class="kt-table" id="sv-t"></table></div>
     <div id="sv-note" class="kt-note" style="margin-top:8px"></div>
   </section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub">тот же вопрос, другой базис: здесь строки отчёта по взаиморасчётам, <b>проведённые в выбранные даты</b>, а не заказы, оформленные в них. Поэтому сюда попадают проводки по заказам прошлых месяцев и не попадают заказы, по которым Маркет ещё не рассчитался. С отчётом по взаиморасчётам сходится тождественно - блок из него и построен.</div></div></div>
+  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub">тот же вопрос, другой базис: здесь проводки отчёта по взаиморасчётам <b>по дате транзакции</b> в выбранные даты, а не заказы, оформленные в них. Это та же дата, по которой Маркет строит отчёт о платежах: «Продано, шт» и «Оплатил клиент» - его строка «Получено от потребителей», «Возвраты» - строка «Возвращено потребителям». Поэтому сюда попадают возвраты по продажам прошлых месяцев и не попадают заказы, которые покупатель ещё не оплатил.</div></div></div>
     <div id="acc-cov" class="kt-note" style="padding:2px 0 8px"></div>
     <div class="kt-scroll kt-box"><table class="kt-table" id="acc-t"></table></div>
     <div id="acc-note" class="kt-note" style="margin-top:8px"></div>
@@ -3380,19 +3380,41 @@ function svodLite(svod: any): any {
 
 // Данные блока «Аналитика по артикулам (за выбранный период)» - базис НАЧИСЛЕНИЙ.
 // Катя 25.09.2026: «на маркете можно собрать такой же блок как на Озон по начислениям, чтобы он
-// сходился с отчетными документами». Источник - pnl_sku_daily.ndjson: он строится из отчёта по
-// взаиморасчётам (united-netting), то есть из самого отчётного документа, поэтому сходится с ним
-// тождественно. Базис отличается от свода: там дата ЗАКАЗА, здесь дата ПРОВОДКИ.
-// Строка компактная, массивом: 1 136 строк × 12 полей объектами весили бы втрое больше.
+// сходился с отчетными документами». До 28.09.2026 блок читал pnl_sku_daily - а тот строится из
+// ЗАКАЗОВ по дате их финансового закрытия, а не из реестра, как было написано в шапке. Катя
+// сверила июль с отчётом о платежах Маркета и поймала: GGL-09-2 по документу 15 − 3 = 12 шт на
+// 164 576 ₽, у нас 8 шт. Теперь источник - pnl_sku_netting_daily.ndjson: проводки реестра по дате
+// транзакции, той же, по которой Маркет строит отчёт о платежах. Базис отличается от свода: там
+// дата ЗАКАЗА, здесь дата ПРОВОДКИ.
+// Строка компактная, массивом: объектами файл весил бы втрое больше.
 function accJs(): string {
   if (IS_OZON) return "";
   let rows: any[] = [];
   try {
-    rows = readFileSync(dp("pnl_sku_daily.ndjson"), "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
+    rows = readFileSync(dp("pnl_sku_netting_daily.ndjson"), "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
   } catch { rows = []; }
-  if (!rows.length) return "var ACC=[];var ACC_META={rows:0};";
-  const F = ["units", "pay", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"];
-  const compact = rows.map((r) => [String(r.d || ""), String(r.sku || ""), ...F.map((k) => Math.round(Number(r[k]) || 0))]);
+  if (!rows.length) return "var ACC=[];var ACC_DOC=[];var ACC_FB=[];var ACC_META={rows:0};";
+  // Строка блока - (день, артикул): на ней копится база АДМ, как и раньше. Кабинеты складываются
+  // здесь; разрез по кабинету нужен только сверке с отчётом о платежах, он идёт в ACC_DOC.
+  const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back"];
+  const by = new Map<string, any>(), doc = new Map<string, any>(), fb = new Set<string>();
+  for (const r of rows) {
+    const d = String(r.d || ""), sk = String(r.sku || ""), b = String(r.business || "");
+    const k = `${d}|${sk}`;
+    const t = by.get(k) || { d, sku: sk, fb: 0, ...Object.fromEntries(F.map((f) => [f, 0])) };
+    for (const f of F) t[f] += Number(r[f]) || 0;
+    if (r.basis === "orders") { t.fb = 1; fb.add(`${b}/${d.slice(0, 7)}`); }
+    by.set(k, t);
+    if (r.basis !== "orders") {
+      const dk = `${d}|${b}`;
+      const x = doc.get(dk) || { d, b, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
+      x.got += (Number(r.got) || 0) + (Number(r.dgot) || 0); x.back += (Number(r.back) || 0) + (Number(r.dback) || 0);
+      x.sold += Number(r.sold) || 0; x.ret += Number(r.ret) || 0; x.amount += Number(r.amount) || 0;
+      doc.set(dk, x);
+    }
+  }
+  const compact = [...by.values()].map((t) => [t.d, t.sku, ...F.map((f) => Math.round(t[f])), t.fb]);
+  const docRows = [...doc.values()].map((x) => [x.d, x.b, Math.round(x.got), Math.round(x.back), x.sold, x.ret, Math.round(x.amount)]);
   const skus = [...new Set(rows.map((r) => String(r.sku || "")))].filter(Boolean);
   const cat: Record<string, string> = {}, nm: Record<string, string> = {}, cc: Record<string, number> = {};
   for (const sk of skus) { cat[sk] = catOf(sk); nm[sk] = skuName[sk] || sk; if (cogs[sk]) cc[sk] = cogs[sk]; }
@@ -3419,6 +3441,8 @@ function accJs(): string {
   } catch { pend = {}; }
   return `
 var ACC=${JSON.stringify(compact)};
+var ACC_DOC=${JSON.stringify(docRows)};
+var ACC_FB=${JSON.stringify([...fb].sort())};
 var ACC_CAT=${JSON.stringify(cat)};
 var ACC_NAME=${JSON.stringify(nm)};
 var ACC_COGS=${JSON.stringify(cc)};
@@ -4219,13 +4243,13 @@ function soDraw(){
 // названо. Полосу с полями ввода Иван убрал 18.09.2026 («эту приписку тоже убери»), поля остались
 // в разметке скрытыми - их читают расчёты, и через них ставку по-прежнему можно поменять.
 // ---------- Аналитика по артикулам (за выбранный период), базис НАЧИСЛЕНИЙ ----------
-// Строится из ACC (pnl_sku_daily = отчёт по взаиморасчётам, разнесённый по артикулу и дню
-// проводки). Полный P&L: с АДМ, налогом и чистой прибылью, на тех же базах, что блок по дате
-// заказа. 25.09.2026 я сперва сказала Кате, что базы налога здесь нет - это было неверно:
-// смотрела только в реестр взаиморасчётов, где статья «Платёж покупателя» дырявая (нет
-// февраля-апреля). Платёж есть в выгрузке заказов, за все девять месяцев, и разносится по дате
-// проводки так же, как всё остальное в этом блоке.
-var ACC_F=['units','pay','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount'];
+// Строится из ACC (pnl_sku_netting_daily = проводки отчёта по взаиморасчётам, разнесённые по
+// артикулу и дню ТРАНЗАКЦИИ). Штуки и «Оплатил клиент» идут из статей «Платёж покупателя» и
+// «Возврат платежа покупателя» - это строки «Получено от потребителей» и «Возвращено потребителям»
+// отчёта о платежах Маркета, поэтому по артикулу блок сверяется с документом напрямую (Катя
+// 28.09.2026: GGL-09-2 за июль 15 − 3 = 12 шт на 164 576 ₽). Полный P&L: с АДМ, налогом и чистой
+// прибылью, на тех же базах, что блок по дате заказа.
+var ACC_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back'];
 // Ставки читаются из тех же полей, что и свод: одно место правки на всю страницу.
 var ACC_RATE={adm:0.30,tax:0.15};
 function accRates(){
@@ -4239,25 +4263,28 @@ function accAgg(w){
   (typeof ACC!=='undefined'?ACC:[]).forEach(function(r){
     var d=r[0]; if(d<w.from||d>w.to)return;
     var sk=r[1], o=a[sk];
-    if(!o){o=a[sk]={sku:sk,units:0,pay:0,accruals:0,commission:0,delivery:0,acquiring:0,storage:0,cofin:0,promo:0,otherSvc:0,amount:0,admBase:0};}
+    if(!o){o=a[sk]={sku:sk,admBase:0,fb:0};ACC_F.forEach(function(f){o[f]=0;});}
     for(var i=0;i<ACC_F.length;i++)o[ACC_F[i]]+=r[i+2]||0;
-    // База АДМ копится на СТРОКЕ (день, артикул) и только положительная - то же правило, что в
-    // своде: минус одной строки не должен гасить расход соседних. Здесь роль «Поступления»
-    // играет «К выплате»: это то, что осталось после сборов площадки.
-    o.admBase+=Math.max(0,r[ACC_F.indexOf('amount')+2]||0);
+    if(r[ACC_F.length+2])o.fb=1;
   });
   return Object.keys(a).map(function(k){var o=a[k];
     // Сборы в файле лежат со знаком минус (расход). В таблице показываем положительными, как в
     // своде: минус в колонке расхода читается как возврат, а не как трата.
-    o.fee=-(o.commission+o.delivery+o.acquiring+o.storage+o.cofin+o.promo+o.otherSvc);
-    o.cogs=(ACC_COGS[k]||0)*Math.max(0,o.units);
+    // Списание баллами (cofin) в сборы не входит: блок только про деньги, как отчёт о платежах.
+    o.fee=-(o.commission+o.delivery+o.acquiring+o.storage+o.promo+o.otherSvc);
+    // Без отсечки, как АДМ и налог: возврат, пришедший в периоде, возвращает и себестоимость штуки.
+    o.cogs=(ACC_COGS[k]||0)*o.units;
     o.ck=ACC_COGS[k]!=null;
     o.gp=o.amount-o.cogs;
     // АДМ - от «К выплате», налог - от «Оплатил клиент». Те же базы и те же ставки, что в блоке
     // по дате заказа (решение Кати и подтверждение Ивана 23.09.2026,
     // knowledge/semantic/ym-rates-adm-tax.md); отличается только базис периода.
+    // Отсечки минуса в этом блоке нет (решение Кати 28.09.2026): АДМ и налог - простая ставка от
+    // суммы, минус артикула уменьшает итог. Так ИТОГО равно ставке от столбца, а половины месяца
+    // складываются в месяц. Своды по дате заказа отсекают минус на строке, как и раньше.
+    o.admBase=o.amount;
     o.adm=o.admBase*ACC_RATE.adm;
-    o.tax=Math.max(0,o.pay)*ACC_RATE.tax;
+    o.tax=(o.pay+o.dlv)*ACC_RATE.tax;
     o.np=o.gp-o.adm-o.tax;
     o.cat=ACC_CAT[k]||'Прочее';
     return o;});
@@ -4272,26 +4299,27 @@ function accDraw(){
     return;
   }
   var CF=[['Комиссия','commission'],['Доставка','delivery'],['Эквайринг','acquiring'],['Хранение','storage'],
-          ['Софинанс. скидок','cofin'],['Продвижение','promo'],['Прочие услуги','otherSvc']];
-  var H=['Категория / Артикул','Реализовано, шт','Начислено','Оплатил клиент'].concat(CF.map(function(x){return x[0];}))
+          ['Продвижение','promo'],['Прочие услуги','otherSvc']];
+  var H=['Категория / Артикул','Продано, шт','Возвраты, шт','Итого, шт','Начислено','Оплатил клиент','Доставка покупателя'].concat(CF.map(function(x){return x[0];}))
     .concat(['Всего сборов','К выплате','С\\С произв.','Валовая прибыль','Маржа',
              'АДМ '+svPct(ACC_RATE.adm),'Налоги '+svPct(ACC_RATE.tax),'Чистая прибыль','Рентаб.']);
-  var ACC_PAID_TIP='Платёж покупателя за товар и доставку, разнесённый по дате проводки. Считается тем же способом, что «Оплатил клиент» в блоке по дате заказа: доля покупателя в цене по нетто-штукам. От него считается налог. С «Начислено» не совпадает: там цена целиком, вместе с долей Маркета, которую он платит за покупателя скидкой.';
-  var ACC_ADM_TIP='Считается от «К выплате» - это то, что осталось после сборов площадки, роль «Поступления» в базисе начислений. Строка с отрицательным «К выплате» АДМ не облагается, поэтому ИТОГО равно сумме строк, а не ставке от сложенного столбца.';
-  // В базисе проводок платёж по артикулу БЫВАЕТ отрицательным: возврат пришёл в этом месяце, а
-  // продажа была в прошлом. В своде такого не бывает, поэтому там налог просто ставка от колонки,
-  // а здесь ИТОГО расходится со ставкой от столбца - на июле на 9 567 ₽. Это отсечение, а не
-  // ошибка сложения, и молчать о нём нельзя.
-  var ACC_TAX_TIP='Считается от «Оплатил клиент». Артикул, у которого за период возвратов больше, чем платежей, налогом не облагается и чужой налог не гасит, поэтому ИТОГО не равно ставке от сложенного столбца, а равно сумме строк. В блоке по дате заказа такого не бывает: там платёж отрицательным не выходит.';
+  var ACC_PAID_TIP='Платёж покупателя за товар минус возвраты платежа, по дате транзакции: строки «Получено от потребителей» и «Возвращено потребителям» отчёта о платежах Маркета по этому артикулу, в подсказке ячейки - обе суммы. Доставка, которую оплатил покупатель, - в соседней колонке; «Начислено» = эта колонка плюс доставка. Баллов Маркета здесь нет: в закрывающих документах их тоже нет.';
+  var ACC_U_TIP={'Продано, шт':'Штуки в платежах покупателя за период (строка «Получено от потребителей» отчёта о платежах).','Возвраты, шт':'Штуки, по которым Маркет вернул покупателю деньги за период (строка «Возвращено потребителям»). Возврат может относиться к продаже прошлого месяца.','Итого, шт':'Продано минус возвраты. От этого числа считается себестоимость.','Доставка покупателя':'Что покупатель заплатил за доставку, минус возвраты этих денег. Входит в «Получено от потребителей» отчёта о платежах и в базу налога.'};
+  var ACC_ADM_TIP='Ставка от «К выплате» - денег, которые остались после удержаний Маркета. Отрицательные цифры не отсекаются (решение Кати 28.09.2026): минус артикула уменьшает итог, поэтому ИТОГО равно ставке от столбца.';
+  var ACC_TAX_TIP='Ставка от «Начислено» - всего платежа покупателя за товар и доставку минус возвраты («Получено от потребителей» − «Возвращено потребителям»). Отрицательные цифры не отсекаются (решение Кати 28.09.2026): артикул, у которого возвратов за период больше, чем платежей, уменьшает итог.';
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')
     +(x==='Оплатил клиент'?' style="color:var(--ink-2)" title="'+ACC_PAID_TIP+'"':'')
     +(x.indexOf('Налоги ')===0?' title="'+ACC_TAX_TIP+'"':'')
     +(x.indexOf('АДМ ')===0?' title="'+ACC_ADM_TIP+'"':'')
+    +(ACC_U_TIP[x]?' title="'+ACC_U_TIP[x]+'"':'')
     +'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
   function cells(x){
-    return '<td class="r">'+x.units+'</td><td class="r"><b>'+svRub(x.accruals)+'</b></td>'
-      +'<td class="r" style="color:var(--ink-3)">'+(Math.round(x.pay)?svRub(x.pay):'—')+'</td>'
+    return '<td class="r">'+(x.sold||'—')+'</td><td class="r">'+(x.ret||'—')+'</td>'
+      +'<td class="r"'+(x.fb?' style="color:#E5B567" title="часть дней посчитана по выгрузке заказов, а не по реестру: за этот месяц реестр собран без колонки источника - штуки с отчётом о платежах могут не совпасть"':'')+'><b>'+x.units+'</b></td>'
+      +'<td class="r"><b>'+svRub(x.accruals)+'</b></td>'
+      +'<td class="r" style="color:var(--ink-3)"'+(Math.round(x.back||0)?' title="получено '+svRub(x.got||0)+' ₽ − возвращено '+svRub(-(x.back||0))+' ₽"':'')+'>'+(Math.round(x.pay)?svRub(x.pay):'—')+'</td>'
+      +money(x.dlv||0)
       +CF.map(function(c){return money(-(x[c[1]]||0));}).join('')
       +'<td class="r">'+svRub(x.fee)+'</td>'
       +'<td class="r"><b>'+svRub(x.amount)+'</b></td>'
@@ -4305,16 +4333,17 @@ function accDraw(){
   // Категории и ИТОГО складываются из тех же строк, поэтому проверяются сложением на экране.
   var cats={};
   list.forEach(function(x){
-    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],units:0,pay:0,accruals:0,fee:0,amount:0,cogs:0,ck:true,gp:0,adm:0,tax:0,np:0});
+    var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],fee:0,cogs:0,ck:true,gp:0,adm:0,tax:0,np:0});
     ACC_F.forEach(function(f){g[f]=(g[f]||0)+(x[f]||0);});
     g.rows.push(x);g.fee+=x.fee;g.cogs+=x.cogs;g.gp+=x.gp;g.adm+=x.adm;g.tax+=x.tax;g.np+=x.np;if(!x.ck)g.ck=false;});
   var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(p,q){return q.amount-p.amount;});
-  var T={units:0,pay:0,accruals:0,fee:0,amount:0,cogs:0,ck:true,gp:0,adm:0,tax:0,np:0};
-  CF.forEach(function(c){T[c[1]]=0;});
+  var T={fee:0,cogs:0,ck:true,gp:0,adm:0,tax:0,np:0,fb:0};
+  ACC_F.forEach(function(f){T[f]=0;});
   groups.forEach(function(g){
-    T.units+=g.units;T.pay+=g.pay;T.accruals+=g.accruals;T.fee+=g.fee;T.amount+=g.amount;T.cogs+=g.cogs;T.gp+=g.gp;
-    T.adm+=g.adm;T.tax+=g.tax;T.np+=g.np;
-    if(!g.ck)T.ck=false; CF.forEach(function(c){T[c[1]]+=g[c[1]]||0;});});
+    ACC_F.forEach(function(f){T[f]+=g[f]||0;});
+    T.fee+=g.fee;T.cogs+=g.cogs;T.gp+=g.gp;T.adm+=g.adm;T.tax+=g.tax;T.np+=g.np;
+    if(!g.ck)T.ck=false;});
+  groups.forEach(function(g){g.fb=g.rows.some(function(x){return x.fb;})?1:0;if(g.fb)T.fb=1;});
   h+='<tr class="sv-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' артикулов)</span></td>'+cells(T)+'</tr>';
   groups.forEach(function(g,gi){
     var open=!!ACC_OPEN[g.cat];
@@ -4333,12 +4362,23 @@ function accDraw(){
   Object.keys(ms).sort().forEach(function(m){
     var u=(typeof ACC_UPD!=='undefined'?ACC_UPD:{})[m];
     if(u&&u.sold){have.push(m);
-      var mine=0;(typeof ACC!=='undefined'?ACC:[]).forEach(function(r){if(r[0].slice(0,7)===m&&r[0]>=w.from&&r[0]<=w.to)mine+=r[2]||0;});
-      dd.push(m+': начисления '+mine+' шт против УПД '+u.sold+' шт');
+      var mine=0,iu=ACC_F.indexOf('units')+2;(typeof ACC!=='undefined'?ACC:[]).forEach(function(r){if(r[0].slice(0,7)===m&&r[0]>=w.from&&r[0]<=w.to)mine+=r[iu]||0;});
+      dd.push(m+': блок '+mine+' шт против УПД '+u.sold+' шт');
     } else miss.push(m);
   });
-  cov.innerHTML='период: <b>'+w.from+' .. '+w.to+'</b> · базис: дата проводки по взаиморасчётам · артикулов: <b>'+list.length+'</b>'
-    +' · <span title="Блок построен из отчёта по взаиморасчётам, поэтому с ним он сходится тождественно - сверять там нечего. Сверка идёт с ДРУГИМ документом: отчётом о реализации (УПД), который Маркет отдаёт помесячно.">сверка с УПД</span>: '
+  // Сверка с отчётом о платежах Маркета - закрывающим документом, с которым Катя сверяет блок.
+  // Он выпускается по кабинету (договору), поэтому суммы - по кабинету: «Получено от потребителей»
+  // (товар и доставка) и «Возвращено потребителям», по дате транзакции в окне.
+  var docB={};
+  (typeof ACC_DOC!=='undefined'?ACC_DOC:[]).forEach(function(r){if(r[0]<w.from||r[0]>w.to)return;
+    var o=docB[r[1]]||(docB[r[1]]={got:0,back:0,sold:0,ret:0,amt:0});o.got+=r[2];o.back+=r[3];o.sold+=r[4];o.ret+=r[5];o.amt+=r[6]||0;});
+  var docTxt=Object.keys(docB).sort().map(function(b){var o=docB[b];
+    return 'кабинет '+b+': получено <b>'+svRub(o.got)+' ₽</b>, возвращено <b>'+svRub(-o.back)+' ₽</b> ('+o.sold+' − '+o.ret+' шт), к перечислению <b>'+svRub(o.amt)+' ₽</b>';}).join('; ');
+  var fbIn=(typeof ACC_FB!=='undefined'?ACC_FB:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
+  cov.innerHTML='период: <b>'+w.from+' .. '+w.to+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'
+    +(docTxt?'<br><span title="Наш расчёт из реестра для сверки со строками отчёта о платежах Маркета за те же даты: «Получено от Потребителей», «Возвращено Потребителям», «Подлежит перечислению». Услуги в документе идут по актам (дата услуги), в реестре - по дате удержания, поэтому «к перечислению» может отличаться на сдвиг услуг между месяцами. По артикулу - колонки «Продано, шт», «Возвраты, шт» и подсказка ячейки «Оплатил клиент».">сверка с отчётом о платежах</span> - '+docTxt:'')
+    +(fbIn.length?'<br><span style="color:#E5B567">по выгрузке заказов, а не по реестру: '+fbIn.join(', ')+' - реестр за эти месяцы собран без колонки источника, платёж покупателя там не отличить от баллов. Перезабор идёт сам (схема реестра 3); до него штуки и платёж этих месяцев с отчётом о платежах могут не совпасть</span>':'')
+    +'<br><span title="Отчёт о реализации (УПД) - другой документ: он идёт по дате реализации, а не по дате платежа, поэтому штуки с блоком совпадать не обязаны.">сверка с УПД</span>: '
     +(have.length?'<span style="color:var(--up)">есть за '+have.join(', ')+'</span>':'<span style="color:#E5B567">за месяцы окна не собран</span>')
     +(miss.length?' · <span style="color:#E5B567">нет за '+miss.join(', ')+'</span>':'');
   var tips=[];
@@ -4348,9 +4388,10 @@ function accDraw(){
   // оказаться не округление.
   var idn=T.accruals-T.fee-T.amount;
   if(Math.round(idn))tips.push('Начислено минус сборы даёт '+svRub(T.accruals-T.fee)+' ₽ против '+svRub(T.amount)+' ₽ «К выплате»: расхождение '+svRub(idn)+' ₽ от построчного округления до рубля. Если оно вырастет заметно, это уже не округление.');
-  if(dd.length)tips.push('Штуки против УПД - '+dd.join('; ')+'. Расхождение нормально: УПД идёт по дате реализации, а блок по дате проводки, и Маркет рассчитывается не в тот же день.');
+  if(dd.length)tips.push('Штуки против УПД - '+dd.join('; ')+'. Расхождение нормально: УПД идёт по дате реализации, а блок по дате платежа покупателя, и это разные дни.');
   if(miss.length)tips.push('За '+miss.join(', ')+' отчёта о реализации нет. Маркет отдаёт его помесячно и упирается в лимит генерации, поэтому бэкфилл собирается прогонами; за незакрытый месяц документа не существует вовсе.');
-  tips.push('АДМ и налог считаются на тех же базах и теми же ставками, что в блоке по дате заказа: АДМ от «К выплате» (строка с минусом не облагается), налог от «Оплатил клиент». Отличается только базис периода - здесь дата проводки. Источник ставок: knowledge/semantic/ym-rates-adm-tax.md.');
+  tips.push('Блок только про деньги, как закрывающие документы: баллы Маркета и их списание («Скидка за участие в совместных акциях») сюда не входят. АДМ - ставка от «К выплате», налог - от «Начислено» (весь платёж покупателя), отрицательные цифры не отсекаются, поэтому половины месяца складываются в месяц. Источник ставок: knowledge/semantic/ym-rates-adm-tax.md.');
+  tips.push('Сборы, списанные не по заказу (полки, подписки, буст за показы), в этот блок не входят - они в блоке сборов уровня кабинета. «Стоимость оказанных услуг по актам» в отчёте о платежах - за ПРОШЛЫЙ месяц, поэтому с колонками сборов здесь она не сверяется.');
   note.innerHTML=tips.join(' ');
 }
 function svPct(v){return (Math.round(v*1000)/10)+'%';}

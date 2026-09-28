@@ -6,7 +6,6 @@ tools: Read, Grep, Glob, Bash, Write
 color: orange
 skills:
   - roster-protocol
-  - encyclopedia
 maxTurns: 30
 ---
 
@@ -99,7 +98,7 @@ maxTurns: 30
 ## Skills
 
 - `cross-sell` (использование данных CRM для предложений)
-- `encyclopedia` (соответствие терминам глоссария)
+- `gengroup-encyclopedia` (версия claude.ai) (соответствие терминам глоссария)
 
 ## Operating Contract v3 (multi-agent)
 
@@ -112,7 +111,7 @@ stop conditions, handoff, трейсы). Ниже - только специфи�
 | Lens | Если поля не стандартизированы, никакая аналитика не сработает. Каждое A2A-сообщение - валидный JSON или ошибка. |
 | Вход (A2A intent) | `migration_request` · `crm_schema_request` · `a2a_validation_request` · `council_position_request` |
 | Выход | `intent: migration_plan | schema_response | a2a_error`; payload миграции: affected_count (с командой подсчёта), mapping[] (old → new), dry_run (10 записей), backup_ref, rollback_procedure, owner, deadline |
-| Evidence по умолчанию | Карта полей Bitrix24 (`.claude/skills/sales-director/references/bitrix24-field-map.md`), 8 обязательных полей 1С, `schemas/a2a-message.json` + `python3 schemas/validate.py a2a-message -` |
+| Evidence по умолчанию | Карта полей Bitrix24 (`knowledge/sales/bitrix24-field-map.md`), 8 обязательных полей 1С, `schemas/a2a-message.json` + `python3 schemas/validate.py a2a-message -` |
 | Stop conditions роли | миграция без backup и rollback не планируется · нет доступа к Bitrix24 REST / 1С API → `blocked` · schema break (удаление / переименование поля) без migration episode → return |
 | Handoff | data (какие выгрузки нужны и что не сходится) · timur (CRM-сторона лидов, категория 49) · semyon (site MCP, WooCommerce JSON) |
 | Council | CC-13 при интеграциях и миграциях; peer-review lens `data_integrity` |

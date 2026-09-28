@@ -138,7 +138,7 @@ const SYNTHESIS_SCHEMA = {
     steal_this: { type: 'array', items: { type: 'object', required: ['from', 'element'], properties: { from: { type: 'string' }, element: { type: 'string' } } } },
     conflicts: { type: 'array', items: { type: 'string' }, description: 'Где позиции бойцов расходятся и как разрешено' },
     open_questions: { type: 'array', items: { type: 'string' } },
-    self_check: { type: 'array', items: { type: 'string' }, description: '25 чекпоинтов phoenix-eval: «N: да|нет|частично» без оценки' },
+    self_check: { type: 'array', items: { type: 'string' }, description: '25 чекпоинтов агента feniks (knowledge/feniks/eval-checklist.md): «N: да|нет|частично» без оценки' },
   },
 }
 
@@ -196,7 +196,7 @@ if (rejected.length) log(`Ростер: отклонены не из росте�
 if (brief.mode === 'debate') {
   // DEBATE = ровно 2 голоса. Ростер Ивана не переопределяется P9-правилом (аудит 2026-09-06: [viktor,boris] молча превращались в [marco,data]).
   if (roster.length > 2) { log(`DEBATE: оставлены первые два (${roster.slice(0, 2).join(', ')}), убраны ${roster.slice(2).join(', ')}`); roster = roster.slice(0, 2) }
-  if (brief.p9_required) log('P9 в режиме DEBATE: data и marco в ростер не добавляются; цифры проверяет ФЕНИКС в Gate, рекомендуется отдельный /reality-audit')
+  if (brief.p9_required) log('P9 в режиме DEBATE: data и marco в ростер не добавляются; цифры проверяет ФЕНИКС в Gate, рекомендуется отдельная разметка цифр агентом data: [ДАННЫЕ] или [ГИПОТЕЗА] с источником')
 } else if (brief.p9_required) {
   for (const must of ['data', 'marco']) if (!roster.includes(must)) { roster.unshift(must); log(`P9: в ростер добавлен ${must}`) }
 }
@@ -288,7 +288,7 @@ const synthPrompt = (extra) => [
   ranking.map(r => `${r.id}: + ${r.strengths.join(' / ')}\n${r.id}: - ${r.weaknesses.join(' / ')}`).join('\n'),
   'Требования к deliverable_markdown: verdict и confidence вверху; каждое число с меткой; downside-сценарий; ответственный + дата первого чекпоинта; без em dash; Anti-Slop §7.',
   'conflicts: где позиции расходятся и как ты разрешил (согласие без проверки допущений запрещено). Проверь ложный консенсус: если все согласны, найди механизм, почему.',
-  'self_check: пройди 25 чекпоинтов phoenix-eval без оценок, только да/нет/частично. Это обязательно перед ФЕНИКСОМ.',
+  'self_check: пройди 25 чекпоинтов агента feniks (knowledge/feniks/eval-checklist.md) без оценок, только да/нет/частично. Это обязательно перед ФЕНИКСОМ.',
   extra || '',
   'Верни ТОЛЬКО структурированный объект.',
 ].filter(Boolean).join('\n')
@@ -304,7 +304,7 @@ let verdict = null
 for (let iter = 1; iter <= MAX_ITER; iter += 1) {
   const audit = await agent(
     [
-      `Ты ФЕНИКС. Step 12.5, итерация ${iter} из ${MAX_ITER}. Не подчиняешься СПАРТАКУ. Skill phoenix-eval: Comprehension Gate (если контент наружу), 25 чекпоинтов, калибровочные якоря (references/calibration-anchors.md), red-team пробы для класса артефакта (references/red-team-probes.md).`,
+      `Ты ФЕНИКС. Step 12.5, итерация ${iter} из ${MAX_ITER}. Не подчиняешься СПАРТАКУ. Чек-лист knowledge/feniks/eval-checklist.md: Comprehension Gate (если контент наружу), 25 чекпоинтов, калибровочные якоря (knowledge/feniks/calibration-anchors.md), red-team пробы для класса артефакта (knowledge/feniks/red-team-probes.md).`,
       'A2A (Protocol 13):',
       JSON.stringify({ from: 'spartak', to: 'feniks', intent: 'review_request', thread_id: `council-${args.ts}`, context: { cc: brief.cc, p9_required: brief.p9_required, iteration: iter }, expected_output: 'audit-report' }),
       `Задача: ${brief.clarified_task}. Класс артефакта: ${artifactClass}. Для класса gate/dashboard/agent/mixed пробы обязательны (id вида A1/B3/D11 + evidence), иначе risk_awareness <= 5.0 и verdict не выше return.`,

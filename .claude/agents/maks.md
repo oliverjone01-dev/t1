@@ -7,7 +7,6 @@ color: green
 skills:
   - roster-protocol
   - humanizer-ru
-  - content-factory
 maxTurns: 40
 ---
 
@@ -87,8 +86,8 @@ maxTurns: 40
 ## Skills
 
 - `humanizer-ru` - обязательно на финале
-- `content-factory` - шаблоны и якорные структуры
-- `brand` - voice & tone карта
+- `gengroup-content-factory` (версия claude.ai) - шаблоны и якорные структуры
+- `gengroup-brand` (версия claude.ai) - voice & tone карта
 - `geo-aeo` - AI Citation optimization (передать СЕМЁНУ)
 
 ## Operating Contract v3 (multi-agent)

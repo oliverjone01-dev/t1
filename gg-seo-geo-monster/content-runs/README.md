@@ -6,7 +6,7 @@
 непроверенные допущения.
 
 Каждый прогон - один файл `RUN-NN-<slug>.md` с полной трассой всех 4 стадий:
-PLAN → FORGE → HUMANIZE → Level-1 → GATE (feniks / phoenix-eval).
+PLAN → FORGE → HUMANIZE → Level-1 → GATE (агент feniks).
 
 ## Дисциплина данных
 

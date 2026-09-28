@@ -7,7 +7,7 @@
 | Репозиторий | Объём | Что берём |
 |---|---|---|
 | [louisblythe/Sales-Skills](https://github.com/louisblythe/Sales-Skills) | 122 скилла | Основной донор. Квалификация (BANT, MEDDIC, SPICED, SPIN, Challenger, Gap Selling), `conversation-quality-scoring`, `deal-review-win-loss`, `objection-pattern-learning`, `follow-up-discipline`, `time-to-close-prediction`, `custom-field-population` |
-| [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) | 49 скиллов | Лид-магниты и последовательности касаний. Пересекается с нашим `content-factory` |
+| [coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) | 49 скиллов | Лид-магниты и последовательности касаний. Пересекается с `gengroup-content-factory` (версия claude.ai) |
 | [VoltAgent/awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) | 1000+ | Проверено: продаж и CRM там нет, репозиторий инженерный. Не донор |
 | [BehiSecc/awesome-claude-skills](https://github.com/BehiSecc/awesome-claude-skills) | каталог | Навигация по каталогам, самостоятельной ценности для нас нет |
 
@@ -73,8 +73,8 @@
 | Речевая аналитика звонков | Проверено 18.08.2026: Bitrix REST текст транскрипта не отдаёт (метода нет, `TRANSCRIPT_ID` пустой у внешней телефонии). Доступны AI-резюме BitrixGPT и записи звонков, оба уже в снимке диалогов. Полный текст - только своей расшифровкой записей |
 | `time-to-close-prediction` | Цикл сделки у нас определяется производством, а не поведением менеджера. Прогноз будет предсказывать загрузку цеха и выдавать это за качество продаж |
 | Sentiment-скоринг всей переписки | На русском без модели даёт шум. Точечные детекторы эскалаций работают лучше и объяснимы |
-| Публичный scoreboard из sales-skills | Уже разобран в `sales-director` с учётом downside. Дублировать не нужно |
-| Автоматические рекомендации «уволить, повысить» | Зона `sales-director` плюс решение Ивана. Kostya-AI показывает факты, кадровых выводов не делает |
+| Публичный scoreboard из sales-skills | Зона performance management РОПа, не Kostya-AI. Дублировать не нужно |
+| Автоматические рекомендации «уволить, повысить» | Зона РОПа плюс решение Ивана. Kostya-AI показывает факты, кадровых выводов не делает |
 
 ## Что осталось незакрытым
 

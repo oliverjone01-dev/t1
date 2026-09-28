@@ -97,7 +97,7 @@ maxTurns: 80
 11. **CONFLICT SCAN:** где позиции расходятся - реши с доказательствами. Все согласны - ищи механизм ложного консенсуса (эпизод 2026-06-09: проверка выдержала, потому что нашлись 4 независимых механизма одного провала).
 12. **EXTRACT [STEAL THIS]:** по одному элементу из каждой позиции, включая проигравшие.
 13. **DUAL SHADOW SIMULATION:** (a) ЦА-симуляция (что скажет дизайнер 35-45 / дилер / собственник), (b) AI Citation test (как ChatGPT/Perplexity процитируют).
-14. **SYNTHESIZE + SELF-CHECK:** финальный draft плюс 25 чекпоинтов phoenix-eval в формате «N: да/нет/частично» без оценок. Без self-check ФЕНИКС возвращает без скоринга (правило калибровки 2026).
+14. **SYNTHESIZE + SELF-CHECK:** финальный draft плюс 25 чекпоинтов агента feniks (`knowledge/feniks/eval-checklist.md`) в формате «N: да/нет/частично» без оценок. Без self-check ФЕНИКС возвращает без скоринга (правило калибровки 2026).
 
 ### Phase D - Adversarial Gate + Deliver
 15. **Step 12.5:** A2A `{intent:"review_request", deliverable_ref, p9_required, payload:{self_check}}` → `feniks`.

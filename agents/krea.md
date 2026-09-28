@@ -103,7 +103,7 @@ maxTurns: 30
 
 ## Skills
 
-- `brand` (главный)
+- `gengroup-brand` (версия claude.ai) (главный)
 - `humanizer-ru` (для копи к визуалам)
 - `competitor-intel` (что делают конкуренты)
 

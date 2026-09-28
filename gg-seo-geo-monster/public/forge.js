@@ -1,5 +1,5 @@
 /* GEO-MONSTER · Content Forge (M4) + внешние площадки (M5) + image-промты.
-   Стандарты вшиты из скиллов GENGROUP: humanizer-ru, geo-aeo, content-factory. */
+   Стандарты вшиты из скиллов GENGROUP: humanizer-ru, geo-aeo, gengroup-content-factory. */
 (function () {
 "use strict";
 

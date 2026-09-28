@@ -1,233 +1,283 @@
 <style>
-/* Детализация 2.0: демо предложений. Только токены Контур DS */
-body{ background:var(--bg); color:var(--text); }
-.pv{ max-width:1180px; margin:0 auto; padding:0 16px 64px; }
-.pv-top{ position:sticky; top:0; z-index:30; margin:0 -16px; padding:10px 16px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
-  background:var(--glass-bg); -webkit-backdrop-filter:blur(20px) saturate(160%); backdrop-filter:blur(20px) saturate(160%);
-  border-bottom:1px solid var(--glass-border); box-shadow:inset 0 -1px 0 var(--border); }
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){ .pv-top{ background:var(--surface); } }
-@media (prefers-reduced-transparency:reduce){ .pv-top, .pv-drawer, .pv-tip{ background:var(--surface) !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; } }
-.pv-top h1{ font-size:16px; font-weight:600; letter-spacing:-.015em; margin:0; color:var(--text-strong); }
-.pv-top .sp{ flex:1; }
-.pv-top .ks-select{ min-height:36px; }
-.pv-hero{ padding:28px 0 8px; }
-.pv-hero h2{ font-size:26px; line-height:1.2; letter-spacing:-.02em; font-weight:600; margin:0 0 8px; color:var(--text-strong); text-wrap:balance; }
-.pv-hero p{ margin:0; max-width:760px; color:var(--text-muted); font-size:14px; line-height:1.5; }
-.pv-sec{ margin-top:28px; }
-.pv-sec > header{ display:flex; flex-wrap:wrap; gap:8px 16px; align-items:baseline; justify-content:space-between; margin-bottom:12px; }
-.pv-sec h3{ margin:0; font-size:18px; font-weight:600; letter-spacing:-.015em; color:var(--text-strong); }
-.pv-sec .lead{ margin:4px 0 0; color:var(--text-muted); font-size:13px; max-width:720px; }
+/* Детализация 2.0: демо к чистовику. Только токены Контур DS */
+.pv-view{ max-width:1180px; }
+.pv-sec{ scroll-margin-top:calc(var(--topbar-h, 56px) + 12px); margin-top:40px; }
+.pv-sec:first-child{ margin-top:8px; }
+.pv-h{ display:flex; flex-wrap:wrap; gap:8px 16px; align-items:flex-end; justify-content:space-between; margin-bottom:14px; }
+.pv-h h2{ margin:0; font-size:20px; font-weight:600; letter-spacing:-.015em; color:var(--text-strong); }
+.pv-h p{ margin:4px 0 0; color:var(--text-muted); font-size:13px; max-width:720px; line-height:1.45; }
+.pv-eyebrow{ font-size:12px; font-weight:500; color:var(--text-muted); margin-bottom:4px; }
+.pv-card{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; box-shadow:var(--sh-card); }
 .pv-tag{ font-size:11px; font-weight:500; color:var(--text-muted); border:1px solid var(--border); border-radius:6px; padding:1px 6px; white-space:nowrap; }
-.pv-card{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; box-shadow:var(--sh-card); }
-.pv-grid2{ display:grid; gap:16px; grid-template-columns:minmax(0,1fr); }
-@media (min-width:900px){ .pv-grid2{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
 .num{ font-variant-numeric:tabular-nums; letter-spacing:-.01em; }
 .muted{ color:var(--text-muted); }
-
-/* переключатель с переезжающей плашкой (clip-path, без пружины) */
-.seg{ position:relative; display:inline-flex; padding:3px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border); isolation:isolate; }
-.seg button{ position:relative; z-index:1; border:0; background:none; font:inherit; font-size:13px; font-weight:500; color:var(--text-muted); padding:6px 12px; min-height:30px; border-radius:7px; cursor:pointer; }
-.seg button[aria-pressed="true"]{ color:var(--text-strong); }
-.seg button:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
-.seg .pill{ position:absolute; inset:3px; z-index:0; border-radius:7px; background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,.08), inset 0 0 0 1px var(--border);
-  transition:clip-path 250ms var(--ease-std); }
-@media (prefers-reduced-motion:reduce){ .seg .pill{ transition:none; } .pv-fun .bar i, .pv-drawer{ transition:none !important; } }
-
-/* вывод крупно */
-.pv-big{ display:grid; gap:16px; grid-template-columns:minmax(0,1fr); }
-@media (min-width:900px){ .pv-big{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
-.pv-big > div{ padding:16px 18px; border-radius:12px; background:var(--surface); border:1px solid var(--border); }
-.pv-big b{ display:block; font-size:30px; line-height:1.1; font-weight:600; letter-spacing:-.025em; color:var(--text-strong); font-variant-numeric:tabular-nums; }
-.pv-big span{ display:block; margin-top:6px; font-size:13px; color:var(--text); line-height:1.45; }
-.pv-big small{ display:block; margin-top:6px; font-size:11.5px; color:var(--text-muted); }
-
-/* воронка */
-.pv-fun{ display:flex; flex-direction:column; gap:4px; }
-.pv-fun .row{ display:grid; grid-template-columns:minmax(120px,210px) minmax(0,1fr) 92px; gap:12px; align-items:center; }
-.pv-fun .nm{ font-size:13px; color:var(--text); }
-.pv-fun .bar{ height:28px; border-radius:6px; background:var(--track); overflow:hidden; }
-.pv-fun .bar i{ display:block; height:100%; border-radius:6px; background:var(--c, var(--primary)); transform-origin:left; transition:transform 450ms cubic-bezier(.2,.8,.2,1); }
-.pv-fun .v{ text-align:right; font-size:13px; }
-.pv-fun .v b{ font-size:15px; color:var(--text-strong); font-weight:600; }
-.pv-fun .drop{ margin-left:calc(min(210px, 30%) + 12px); font-size:12px; color:var(--text-muted); padding:2px 0 4px; display:flex; gap:6px; align-items:center; }
-.pv-fun .drop.worst{ color:var(--crit); font-weight:600; }
-.pv-fun .drop svg{ flex:none; }
-@media (max-width:640px){ .pv-fun .row{ grid-template-columns:minmax(0,1fr) 70px; } .pv-fun .bar{ grid-column:1 / -1; order:3; } .pv-fun .drop{ margin-left:0; } }
-
-/* матрица недели */
-.pv-mx{ width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
-.pv-mx th{ text-align:left; font-weight:500; color:var(--text-muted); font-size:12px; padding:0 10px 8px; border-bottom:1px solid var(--border); }
-.pv-mx td{ padding:10px; border-bottom:1px solid var(--divider, var(--border)); vertical-align:middle; }
-.pv-mx tr:last-child td{ border-bottom:0; }
-.pv-mx .val{ font-size:17px; font-weight:600; color:var(--text-strong); font-variant-numeric:tabular-nums; }
-.pv-mx .cell{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.g2{ display:grid; gap:16px; grid-template-columns:minmax(0,1fr); }
+@media (min-width:1000px){ .g2{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
 .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; flex:none; }
 .dot.ok{ background:var(--ok); } .dot.warn{ background:var(--warn); } .dot.crit{ background:var(--crit); } .dot.na{ background:var(--neutral-bar); }
+.btn{ font:inherit; font-size:13px; font-weight:500; border:1px solid var(--border); background:var(--surface); color:var(--text-strong); border-radius:8px; padding:6px 12px; min-height:34px; cursor:pointer; transition:background 160ms var(--ease-std), border-color 160ms var(--ease-std); }
+.btn:hover{ background:var(--surface-2); border-color:var(--border-strong); } .btn:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+.btn.pri{ background:var(--action); color:var(--action-foreground); border-color:var(--action); } .btn.pri:hover{ background:var(--action-hover); }
+.link{ color:var(--text-link, var(--primary-ink)); text-underline-offset:2px; white-space:nowrap; }
+.concl{ display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border); margin-bottom:16px; }
+.concl b{ display:block; font-size:15px; font-weight:600; color:var(--text-strong); line-height:1.35; }
+.concl span{ display:block; font-size:13px; color:var(--text); margin-top:4px; line-height:1.5; }
+.concl svg{ flex:none; margin-top:2px; color:var(--text-muted); }
+.hov{ transition:transform 200ms cubic-bezier(.2,.8,.2,1), box-shadow 200ms var(--ease-std), border-color 200ms var(--ease-std); }
+@media (hover:hover){ .hov:hover{ transform:translateY(-2px); box-shadow:var(--sh-hover); border-color:var(--border-strong); } }
+.click{ cursor:pointer; }
+
+/* переключатель с переезжающей плашкой */
+.seg{ position:relative; display:inline-flex; padding:3px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border); isolation:isolate; flex-wrap:nowrap; }
+.seg button{ position:relative; z-index:1; border:0; background:none; font:inherit; font-size:13px; font-weight:500; color:var(--text-muted); padding:6px 12px; min-height:30px; border-radius:7px; cursor:pointer; white-space:nowrap; }
+.seg button[aria-pressed="true"]{ color:var(--text-strong); }
+.seg button:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+.seg .pill{ position:absolute; inset:3px; z-index:0; border-radius:7px; background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,.08), inset 0 0 0 1px var(--border); transition:clip-path 250ms var(--ease-std); }
+
+/* 1. обстановка */
+.pv-verdict{ padding:24px; border-radius:14px; background:var(--surface); border:1px solid var(--border); box-shadow:var(--sh-card); }
+.pv-verdict .st{ display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--crit); margin-bottom:10px; }
+.pv-verdict h1{ margin:0; font-size:clamp(22px, 2.6vw, 30px); line-height:1.2; font-weight:600; letter-spacing:-.02em; color:var(--text-strong); text-wrap:balance; max-width:900px; }
+.pv-verdict p{ margin:10px 0 0; font-size:14.5px; line-height:1.55; color:var(--text); max-width:880px; }
+.pv-health{ display:grid; gap:12px; grid-template-columns:minmax(0,1fr); margin-top:16px; }
+@media (min-width:640px){ .pv-health{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (min-width:1100px){ .pv-health{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+.hc{ text-align:left; font:inherit; color:inherit; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:6px; }
+.hc:focus-visible{ outline:2px solid var(--focus); }
+.hc.crit{ background:var(--crit-soft); border-color:transparent; }
+.hc .top{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:var(--text-muted); }
+.hc .lbl{ display:inline-flex; align-items:center; gap:6px; font-weight:600; font-size:12.5px; }
+.hc .lbl.ok{ color:var(--ok); } .hc .lbl.warn{ color:var(--warn); } .hc .lbl.crit{ color:var(--crit); }
+.hc .v{ font-size:28px; font-weight:600; letter-spacing:-.025em; color:var(--text-strong); line-height:1.1; }
+.hc .v small{ font-size:14px; font-weight:500; color:var(--text-muted); letter-spacing:0; }
+.hc .t{ font-size:13px; line-height:1.45; color:var(--text); }
+.hc .more{ font-size:12px; color:var(--text-muted); margin-top:auto; padding-top:4px; }
+.pv-money{ display:grid; gap:16px; grid-template-columns:minmax(0,1fr); margin-top:16px; }
+@media (min-width:1000px){ .pv-money{ grid-template-columns:minmax(0,5fr) minmax(0,7fr); } }
+.money .big{ font-size:30px; font-weight:600; letter-spacing:-.025em; color:var(--text-strong); line-height:1.1; }
+.money input[type=range]{ width:100%; accent-color:var(--action); margin:14px 0 6px; min-height:28px; }
+.money .row{ display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); }
+.money .row:last-of-type{ border-bottom:0; }
+.acts{ display:flex; flex-direction:column; gap:10px; }
+.act{ display:grid; grid-template-columns:28px minmax(0,1fr); gap:12px; align-items:start; padding:14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); }
+.act .n{ width:28px; height:28px; border-radius:8px; display:grid; place-items:center; font-weight:600; font-size:13px; background:var(--surface-2); color:var(--text-strong); }
+.act b{ display:block; font-size:14px; color:var(--text-strong); font-weight:600; line-height:1.35; }
+.act .why{ font-size:12.5px; color:var(--text-muted); margin-top:4px; line-height:1.45; }
+.act .meta{ display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:8px; font-size:12px; color:var(--text-muted); align-items:center; }
+
+/* 2. воронка */
+.fun-wrap{ display:grid; gap:16px; grid-template-columns:minmax(0,1fr); }
+@media (min-width:1000px){ .fun-wrap{ grid-template-columns:minmax(0,7fr) minmax(0,5fr); } }
+.fun{ display:flex; flex-direction:column; }
+.fstep{ display:grid; grid-template-columns:minmax(110px,190px) minmax(0,1fr) 88px; gap:12px; align-items:center; padding:6px 8px; border-radius:8px; border:0; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer; transition:background 160ms var(--ease-std); }
+.fstep:hover, .fstep.on{ background:var(--surface-2); }
+.fstep:focus-visible{ outline:2px solid var(--focus); }
+.fstep .nm{ font-size:13px; }
+.fstep .bar{ height:30px; border-radius:6px; background:var(--track); overflow:hidden; }
+.fstep .bar i{ display:block; height:100%; border-radius:6px; background:var(--c); transform-origin:left; transition:transform 450ms cubic-bezier(.2,.8,.2,1), filter 160ms; }
+.fstep:hover .bar i, .fstep.on .bar i{ filter:saturate(1.15) brightness(1.05); }
+.fstep .v{ text-align:right; font-size:12.5px; color:var(--text-muted); }
+.fstep .v b{ font-size:16px; color:var(--text-strong); font-weight:600; }
+.fdrop{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); padding:1px 8px 1px calc(min(190px, 30%) + 20px); }
+.fdrop.worst{ color:var(--crit); font-weight:600; }
+@media (max-width:640px){ .fstep{ grid-template-columns:minmax(0,1fr) 72px; } .fstep .bar{ grid-column:1 / -1; } .fdrop{ padding-left:8px; } }
+.fins{ position:sticky; top:calc(var(--topbar-h, 56px) + 12px); align-self:start; }
+.fins h3{ margin:0; font-size:16px; font-weight:600; color:var(--text-strong); }
+.fins .loss{ font-size:28px; font-weight:600; letter-spacing:-.025em; color:var(--crit); margin:8px 0 2px; }
+.fins h4{ margin:14px 0 6px; font-size:12.5px; font-weight:600; color:var(--text-muted); }
+.fins ul{ margin:0; padding-left:18px; font-size:13px; line-height:1.55; }
+.fins .todo{ padding:10px 12px; border-radius:10px; background:var(--primary-soft); border:1px solid var(--border); font-size:13px; line-height:1.5; }
+
+/* 3. матрица */
+.mx{ width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
+.mx th{ text-align:left; font-weight:500; color:var(--text-muted); font-size:12px; padding:0 12px 10px; border-bottom:1px solid var(--border); vertical-align:bottom; }
+.mx th b{ display:block; color:var(--text-strong); font-size:13px; font-weight:600; }
+.mx td{ padding:12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.mx tbody tr{ cursor:pointer; transition:background 160ms; }
+.mx tbody tr:hover{ background:var(--surface-2); }
+.mx tbody tr:focus-visible{ outline:2px solid var(--focus); outline-offset:-2px; }
+.mx .nm{ font-weight:500; color:var(--text-strong); }
+.mx .nm small{ display:block; font-weight:400; color:var(--text-muted); font-size:12px; margin-top:2px; }
+.mx .cell{ display:flex; align-items:center; gap:10px; }
+.mx .val{ font-size:17px; font-weight:600; color:var(--text-strong); font-variant-numeric:tabular-nums; min-width:62px; }
 .dl{ font-size:12px; font-weight:500; padding:1px 6px; border-radius:6px; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .dl.good{ color:var(--ok); background:var(--ok-soft); } .dl.bad{ color:var(--crit); background:var(--crit-soft); } .dl.flat{ color:var(--text-muted); background:var(--surface-2); }
-.norm{ font-size:11.5px; color:var(--text-muted); }
-@media (max-width:720px){ .pv-mx thead{ display:none; } .pv-mx tr{ display:block; padding:8px 0; border-bottom:1px solid var(--border); } .pv-mx td{ display:flex; justify-content:space-between; border:0; padding:4px 0; } .pv-mx td::before{ content:attr(data-l); color:var(--text-muted); font-size:12px; } }
+.mx-leg{ display:flex; flex-wrap:wrap; gap:6px 18px; font-size:12px; color:var(--text-muted); margin-top:12px; }
+.mx-leg span{ display:inline-flex; align-items:center; gap:6px; }
+@media (max-width:760px){ .mx thead{ display:none; } .mx tr{ display:block; padding:10px 0; border-bottom:1px solid var(--border); } .mx td{ display:flex; justify-content:space-between; gap:12px; border:0; padding:4px 0; } .mx td[data-l]::before{ content:attr(data-l); color:var(--text-muted); font-size:12px; } }
 
-/* лестница цены */
-.pv-lad{ display:flex; flex-direction:column; gap:10px; }
-.pv-lad .row{ display:grid; grid-template-columns:110px minmax(0,1fr) 54px; gap:12px; align-items:center; font-size:13px; }
-.pv-lad .st{ display:flex; height:30px; gap:2px; border-radius:6px; overflow:hidden; }
-.pv-lad .st i{ display:grid; place-items:center; font-style:normal; font-size:11.5px; font-weight:600; color:var(--surface); min-width:0; overflow:hidden; white-space:nowrap; }
-.pv-legend{ display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; color:var(--text-muted); margin-top:12px; }
-.pv-legend span{ display:inline-flex; align-items:center; gap:6px; }
-.pv-legend i{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+/* 4. цена */
+.lad{ display:flex; flex-direction:column; gap:6px; }
+.lrow{ display:grid; grid-template-columns:120px minmax(0,1fr) 44px; gap:12px; align-items:center; font-size:13px; padding:6px 8px; border-radius:8px; border:0; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer; }
+.lrow:hover{ background:var(--surface-2); } .lrow:focus-visible{ outline:2px solid var(--focus); }
+.lrow .st{ display:flex; height:30px; gap:2px; border-radius:6px; overflow:hidden; }
+.lrow .st i{ display:grid; place-items:center; font-style:normal; font-size:11.5px; font-weight:600; color:var(--surface); overflow:hidden; white-space:nowrap; }
+.legend{ display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; color:var(--text-muted); margin-top:12px; }
+.legend span{ display:inline-flex; align-items:center; gap:6px; }
+.legend i{ width:10px; height:10px; border-radius:3px; display:inline-block; }
 
-/* графики SVG */
-.pv-chart{ position:relative; width:100%; }
-.pv-chart svg{ display:block; width:100%; height:auto; overflow:visible; }
-.pv-chart .grid{ stroke:var(--grid); stroke-width:1; }
-.pv-chart .ax{ fill:var(--text-muted); font-size:11px; font-family:var(--font-sans); }
-.pv-chart .hit{ fill:transparent; cursor:crosshair; }
-.pv-tip{ position:absolute; pointer-events:none; z-index:5; min-width:180px; padding:10px 12px; border-radius:10px; font-size:12px; line-height:1.5;
+/* 5. причины */
+.par{ display:flex; flex-direction:column; gap:2px; }
+.prow{ display:grid; grid-template-columns:minmax(130px,200px) minmax(0,1fr) 56px; gap:12px; align-items:center; padding:7px 8px; border-radius:8px; cursor:pointer; font:inherit; color:inherit; border:0; background:none; text-align:left; }
+.prow:hover{ background:var(--surface-2); } .prow:focus-visible{ outline:2px solid var(--focus); }
+.prow .bar{ height:18px; background:var(--track); border-radius:5px; position:relative; overflow:hidden; }
+.prow .bar i{ position:absolute; inset:0 auto 0 0; background:var(--cat-1); border-radius:5px; }
+.prow .v{ text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
+.prow .fix{ grid-column:1 / -1; font-size:12px; color:var(--text-muted); margin-top:-2px; }
+
+/* 6. что изменилось */
+.chg{ display:grid; gap:10px; grid-template-columns:minmax(0,1fr); margin-bottom:16px; }
+@media (min-width:640px){ .chg{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (min-width:1100px){ .chg{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+.chip{ text-align:left; font:inherit; color:inherit; padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); cursor:pointer; }
+.chip[aria-pressed="true"]{ border-color:var(--text-strong); box-shadow:inset 0 0 0 1px var(--text-strong); }
+.chip:focus-visible{ outline:2px solid var(--focus); }
+.chip .k{ font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px; }
+.chip .w, .chip .d, .chip .k{ display:block; }
+.chip .k{ display:flex; }
+.chip .w{ font-size:14px; font-weight:600; color:var(--text-strong); margin-top:4px; }
+.chip .w.good{ color:var(--ok); } .chip .w.bad{ color:var(--crit); }
+.chip .d{ font-size:12.5px; color:var(--text); margin-top:2px; font-variant-numeric:tabular-nums; }
+.chart{ position:relative; width:100%; }
+.chart svg{ display:block; width:100%; height:auto; overflow:visible; }
+.chart .grid{ stroke:var(--grid); stroke-width:1; }
+.chart .ax{ fill:var(--text-muted); font-size:11px; font-family:var(--font-sans); }
+.chart .hit{ fill:transparent; cursor:crosshair; }
+.chart .ann{ fill:var(--text-muted); font-size:11px; font-family:var(--font-sans); }
+.tip{ position:absolute; pointer-events:none; z-index:5; min-width:220px; max-width:280px; padding:10px 12px; border-radius:10px; font-size:12px; line-height:1.5;
   background:var(--glass-bg); -webkit-backdrop-filter:blur(20px) saturate(160%); backdrop-filter:blur(20px) saturate(160%);
   border:1px solid var(--glass-border); box-shadow:var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,.18); opacity:0; transform:translateY(4px);
   transition:opacity 160ms var(--ease-out), transform 160ms var(--ease-out); }
-.pv-tip.on{ opacity:1; transform:none; }
-.pv-tip b{ color:var(--text-strong); font-weight:600; }
-.pv-tip .r{ display:flex; justify-content:space-between; gap:14px; align-items:center; }
-.pv-tip .r span{ display:inline-flex; align-items:center; gap:6px; }
+.tip.on{ opacity:1; transform:none; }
+.tip b{ color:var(--text-strong); font-weight:600; }
+.tip .r{ display:flex; justify-content:space-between; gap:12px; align-items:center; }
+.tip .r span{ display:inline-flex; align-items:center; gap:6px; }
+.tip .say{ margin-top:6px; padding-top:6px; border-top:1px solid var(--border); color:var(--text); }
 
-/* Парето */
-.pv-par .row{ display:grid; grid-template-columns:minmax(140px,240px) minmax(0,1fr) 110px; gap:12px; align-items:center; padding:5px 6px; border-radius:8px; cursor:pointer; font-size:13px; border:0; background:none; width:100%; text-align:left; font:inherit; color:inherit; }
-.pv-par .row:hover{ background:var(--surface-2); }
-.pv-par .row:focus-visible{ outline:2px solid var(--focus); }
-.pv-par .bar{ height:20px; background:var(--track); border-radius:5px; position:relative; overflow:hidden; }
-.pv-par .bar i{ position:absolute; inset:0 auto 0 0; background:var(--cat-1); border-radius:5px; }
-.pv-par .v{ text-align:right; font-variant-numeric:tabular-nums; }
-.pv-par .v small{ color:var(--text-muted); }
-.pv-par .cut{ border-top:1px dashed var(--border-strong); margin:6px 0; font-size:11.5px; color:var(--text-muted); padding-top:4px; }
-
-/* карточки ответов и приёмов */
-.pv-cards{ display:grid; gap:12px; grid-template-columns:minmax(0,1fr); }
-@media (min-width:760px){ .pv-cards{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media (min-width:1100px){ .pv-cards.c3{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
-.pv-oc{ display:flex; flex-direction:column; gap:10px; }
-.pv-oc .q{ font-size:14px; font-weight:600; color:var(--text-strong); }
-.pv-oc .a{ font-size:13px; line-height:1.5; padding:10px 12px; border-radius:10px; background:var(--primary-soft); border:1px solid var(--border); }
-.pv-oc .meta{ display:flex; gap:8px; align-items:center; justify-content:space-between; font-size:12px; color:var(--text-muted); }
-.meter{ height:6px; border-radius:3px; background:var(--track); overflow:hidden; position:relative; }
+/* 7-9 */
+.cards{ display:grid; gap:12px; grid-template-columns:minmax(0,1fr); }
+@media (min-width:760px){ .cards{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (min-width:1150px){ .cards{ grid-template-columns:repeat(3,minmax(0,1fr)); } }
+.oc{ display:flex; flex-direction:column; gap:10px; }
+.oc .q{ font-size:14px; font-weight:600; color:var(--text-strong); }
+.oc .a{ font-size:13px; line-height:1.5; padding:10px 12px; border-radius:10px; background:var(--primary-soft); border:1px solid var(--border); }
+.oc .meta{ display:flex; gap:8px; align-items:center; justify-content:space-between; font-size:12px; color:var(--text-muted); }
+.meter{ height:6px; border-radius:3px; background:var(--track); position:relative; }
 .meter i{ position:absolute; inset:0 auto 0 0; background:var(--ok); border-radius:3px; }
 .meter u{ position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--text-muted); }
-.btn{ font:inherit; font-size:12.5px; font-weight:500; border:1px solid var(--border); background:var(--surface); color:var(--text-strong); border-radius:8px; padding:5px 10px; min-height:32px; cursor:pointer; }
-.btn:hover{ background:var(--surface-2); } .btn:focus-visible{ outline:2px solid var(--focus); }
-
-/* список на понедельник */
-.pv-todo{ width:100%; border-collapse:collapse; font-size:13px; }
-.pv-todo td, .pv-todo th{ padding:9px 8px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }
-.pv-todo th{ font-size:12px; font-weight:500; color:var(--text-muted); }
-.pv-todo .why{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
-.pv-todo a, .pv-drawer a{ color:var(--text-link, var(--primary-ink)); text-underline-offset:2px; white-space:nowrap; }
-@media (max-width:720px){ .pv-todo thead{ display:none; } .pv-todo tr{ display:block; border-bottom:1px solid var(--border); padding:8px 0; } .pv-todo td{ display:block; border:0; padding:2px 0; } }
+.todo-t{ width:100%; border-collapse:collapse; font-size:13px; }
+.todo-t td, .todo-t th{ padding:10px 8px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }
+.todo-t th{ font-size:12px; font-weight:500; color:var(--text-muted); }
+.todo-t .why{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-weight:500; }
+@media (max-width:760px){ .todo-t thead{ display:none; } .todo-t tr{ display:block; border-bottom:1px solid var(--border); padding:8px 0; } .todo-t td{ display:block; border:0; padding:2px 0; } }
 
 /* стеклянная панель деталей */
-.pv-bd{ position:fixed; inset:0; background:var(--backdrop, rgba(0,0,0,.25)); z-index:40; opacity:0; pointer-events:none; transition:opacity 250ms var(--ease-std); }
-.pv-bd.on{ opacity:1; pointer-events:auto; }
-.pv-drawer{ position:fixed; top:0; right:0; bottom:0; width:min(520px, 100vw); z-index:41; overflow:auto; padding:20px;
+.dbd{ position:fixed; inset:0; background:var(--backdrop, rgba(0,0,0,.25)); z-index:60; opacity:0; pointer-events:none; transition:opacity 250ms var(--ease-std); }
+.dbd.on{ opacity:1; pointer-events:auto; }
+.drw{ position:fixed; top:0; right:0; bottom:0; width:min(560px, 100vw); z-index:61; overflow:auto; padding:22px;
   background:var(--glass-bg); -webkit-backdrop-filter:blur(20px) saturate(160%); backdrop-filter:blur(20px) saturate(160%);
-  border-left:1px solid var(--glass-border); box-shadow:var(--sh-drawer); transform:translateX(100%); transition:transform 300ms cubic-bezier(.2,.8,.2,1); }
-.pv-drawer.on{ transform:none; }
-.pv-drawer h4{ margin:0 0 4px; font-size:17px; font-weight:600; color:var(--text-strong); }
-.pv-drawer ol{ padding-left:18px; margin:12px 0 0; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.45; }
-.pv-drawer .x{ position:absolute; top:12px; right:12px; }
-.pv-note{ font-size:12px; color:var(--text-muted); margin-top:10px; }
-.pv-feat{ display:grid; gap:12px; grid-template-columns:minmax(0,1fr); }
-@media (min-width:900px){ .pv-feat{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
-.pv-feat h5{ margin:0 0 6px; font-size:14px; font-weight:600; color:var(--text-strong); }
-.pv-feat ul{ margin:0; padding-left:18px; font-size:13px; line-height:1.55; }
-.toast{ position:fixed; right:16px; bottom:16px; z-index:50; padding:10px 14px; border-radius:10px; font-size:13px; background:var(--glass-bg);
-  -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); border:1px solid var(--glass-border); box-shadow:var(--glass-shadow); opacity:0; transition:opacity 200ms; }
+  border-left:1px solid var(--glass-border); box-shadow:var(--sh-drawer); transform:translateX(100%); transition:transform 300ms cubic-bezier(.2,.8,.2,1); visibility:hidden; }
+.drw.on{ transform:none; visibility:visible; }
+.drw h3{ margin:0 40px 4px 0; font-size:18px; font-weight:600; color:var(--text-strong); letter-spacing:-.015em; }
+.drw h4{ margin:18px 0 8px; font-size:12.5px; font-weight:600; color:var(--text-muted); }
+.drw ol{ padding-left:18px; margin:0; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.45; }
+.drw .x{ position:absolute; top:14px; right:14px; }
+.drw .say{ padding:12px 14px; border-radius:10px; background:var(--primary-soft); border:1px solid var(--border); font-size:13.5px; line-height:1.5; }
+.toast{ position:fixed; right:16px; bottom:16px; z-index:70; padding:10px 14px; border-radius:10px; font-size:13px; background:var(--glass-bg);
+  -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); border:1px solid var(--glass-border); box-shadow:var(--glass-shadow); opacity:0; transition:opacity 200ms; pointer-events:none; }
 .toast.on{ opacity:1; }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){ .drw, .tip, .toast{ background:var(--surface); } }
+@media (prefers-reduced-transparency:reduce){ .drw, .tip, .toast{ background:var(--surface) !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; } }
+@media (prefers-reduced-motion:reduce){ .seg .pill, .fstep .bar i, .drw, .hov, .tip{ transition:none !important; } }
 </style>
 </head>
 <body>
-<div class="pv">
-  <div class="pv-top" role="banner">
-    <h1>Детализация 2.0 · демо к чистовику</h1>
-    <div class="seg" id="s-cab" role="group" aria-label="Кабинет"><span class="pill" aria-hidden="true"></span>
-      <button data-v="all" aria-pressed="true">оба кабинета</button><button data-v="NEW-B" aria-pressed="false">NEW-B</button><button data-v="OLD-G" aria-pressed="false">OLD-G</button></div>
-    <select class="ks-select" id="s-week" aria-label="Неделя"></select>
-    <span class="sp"></span>
-    <button class="btn" id="b-theme" aria-label="Сменить тему">тема</button>
+<div class="ks-app">
+  <div id="bd" class="ks-backdrop" hidden></div>
+  <aside id="sb" class="ks-sidebar" aria-label="Разделы">
+    <div class="ks-brand">
+      <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 15l4-5 3 3 4-6 3 4"/></svg></div>
+      <div class="ks-lbl"><div class="ks-brand-name">ОП ГМ</div><div class="ks-brand-sub">GLASS-MEMORY · переговоры</div></div>
+    </div>
+    <nav id="nav" class="ks-nav"></nav>
+    <div class="ks-sidebar-foot ks-lbl">Демо «Детализации 2.0» на данных Авито по 20.09.2026. Числа из переписки: данные. Смысловая разметка: гипотеза.</div>
+  </aside>
+  <div class="ks-main">
+    <header class="ks-topbar">
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="menu" aria-label="Меню"></button>
+      <div class="ks-topbar-tools">
+        <div class="seg" id="s-cab" role="group" aria-label="Кабинет"><span class="pill" aria-hidden="true"></span><button data-v="all" aria-pressed="true">оба кабинета</button><button data-v="NEW-B" aria-pressed="false">NEW-B</button><button data-v="OLD-G" aria-pressed="false">OLD-G</button></div>
+        <select class="ks-select" id="s-week" aria-label="Неделя"></select>
+      </div>
+      <div class="ks-topbar-spacer"></div>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="theme" aria-label="Сменить тему"></button>
+    </header>
+    <main class="ks-view pv-view" id="view">
+
+      <section class="pv-sec" id="sit" aria-label="Обстановка">
+        <div class="pv-verdict">
+          <div class="st"><i class="dot crit"></i><span>Обстановка на неделю <span id="v-week"></span>: теряем клиентов после первого ответа</span></div>
+          <h1 id="v-h"></h1>
+          <p id="v-p"></p>
+        </div>
+        <div class="pv-health" id="health"></div>
+        <div class="pv-money">
+          <div class="pv-card money" id="money"></div>
+          <div class="pv-card"><div class="pv-eyebrow">3 решения на неделю</div><div class="acts" id="acts"></div></div>
+        </div>
+      </section>
+
+      <section class="pv-sec" id="fun" aria-labelledby="h-fun">
+        <div class="pv-h"><div><div class="pv-eyebrow">Где течёт</div><h2 id="h-fun">Воронка: от обращения до договора</h2><p>Наведите или нажмите на стадию: справа причины потерь на этом шаге и что делать.</p></div>
+          <div class="seg" id="s-fun" role="group" aria-label="Период"><span class="pill" aria-hidden="true"></span><button data-v="all" aria-pressed="true">8 недель</button><button data-v="week" aria-pressed="false">выбранная неделя</button></div></div>
+        <div class="fun-wrap"><div class="pv-card"><div class="fun" id="funnel"></div></div><div class="pv-card fins" id="fins" aria-live="polite"></div></div>
+      </section>
+
+      <section class="pv-sec" id="mxs" aria-labelledby="h-mx">
+        <div class="pv-h"><div><div class="pv-eyebrow">Неделя одним экраном</div><h2 id="h-mx">Показатели кабинетов против нормы</h2><p>Нажмите на строку: что значит показатель, как менялся и что делать.</p></div></div>
+        <div class="pv-card" style="overflow-x:auto"><table class="mx" id="mx"></table>
+          <div class="mx-leg"><span><i class="dot ok"></i>в норме</span><span><i class="dot warn"></i>близко к норме</span><span><i class="dot crit"></i>ниже нормы</span><span><span class="dl good">+5</span>изменение к прошлой неделе</span><span>линия: последние 8 недель</span><span>нормы черновые, задаёт руководитель</span></div></div>
+      </section>
+
+      <section class="pv-sec g2" id="why" aria-label="Причины потерь">
+        <div>
+          <div class="pv-h"><div><div class="pv-eyebrow">Цена или процесс</div><h2>Как клиенты реагируют на цену</h2><p>Нажмите на ценовую ступень: диалоги, где клиент пропал после этой суммы, и что ему написать.</p></div></div>
+          <div class="pv-card"><div class="concl" id="lad-c"></div><div class="lad" id="lad"></div>
+            <div class="legend"><span><i style="background:var(--cat-2)"></i>принял, идёт дальше</span><span><i style="background:var(--cat-4)"></i>«подумаем»</span><span><i style="background:var(--cat-1)"></i>пропал после цены</span><span><i style="background:var(--neutral-bar)"></i>торг, сравнение</span></div></div>
+        </div>
+        <div>
+          <div class="pv-h"><div><div class="pv-eyebrow">Почему не дошли до телефона</div><h2>Причины потерь</h2><p>Нажмите на причину: список диалогов, готовая фраза и кнопка «в скрипт».</p></div></div>
+          <div class="pv-card"><div class="concl" id="par-c"></div><div class="par" id="par"></div></div>
+        </div>
+      </section>
+
+      <section class="pv-sec" id="chg" aria-labelledby="h-chg">
+        <div class="pv-h"><div><div class="pv-eyebrow">Что изменилось за 8 недель</div><h2 id="h-chg">Лучше или хуже, и насколько</h2><p>Сравнение первых 4 недель с последними 4. Нажмите на карточку, чтобы увидеть график. Зелёная зона на графике: норма.</p></div></div>
+        <div class="chg" id="chips"></div>
+        <div class="pv-card"><div class="chart" id="dyn"></div>
+          <div class="legend" id="dyn-leg"></div></div>
+      </section>
+
+      <section class="pv-sec" id="obj" aria-labelledby="h-obj">
+        <div class="pv-h"><div><div class="pv-eyebrow">Готовые ответы</div><h2 id="h-obj">Возражение и чем отвечать</h2><p>Ответ из диалога, где клиент после возражения дал телефон. Если такого нет, предлагаю свой с пометкой.</p></div></div>
+        <div class="cards" id="objs"></div>
+      </section>
+
+      <section class="pv-sec" id="tech" aria-labelledby="h-tech">
+        <div class="pv-h"><div><div class="pv-eyebrow">Что работает</div><h2 id="h-tech">Приёмы менеджеров</h2><p>Где удалось, замерено: в скольких случаях клиент прислал телефон. Серая метка: «менеджер вам перезвонит», 44%.</p></div></div>
+        <div class="cards" id="techs"></div>
+      </section>
+
+      <section class="pv-sec" id="todo" aria-labelledby="h-todo">
+        <div class="pv-h"><div><div class="pv-eyebrow">Действие</div><h2 id="h-todo">Список на понедельник</h2><p>Диалоги двух последних недель, где клиент продвинулся или ждёт, а от нас тишина. Сначала те, где клиент ждёт.</p></div></div>
+        <div class="pv-card" style="overflow-x:auto"><table class="todo-t" id="todo-t"></table></div>
+      </section>
+      <div style="height:40px"></div>
+    </main>
   </div>
-
-  <section class="pv-hero">
-    <h2>Страница должна отвечать на один вопрос: где теряем сделки и что сделать к понедельнику</h2>
-    <p>Моя рекомендация: первым экраном воронка потерь и три вывода недели. Ниже причины потерь, реакция на цену, готовые ответы и список диалогов на дожим. Всё на реальных данных двух кабинетов за 8 недель, 27.07-20.09. Числа из переписки помечены как данные, смысловая разметка как гипотеза.</p>
-  </section>
-
-  <section class="pv-sec" aria-labelledby="h-big">
-    <header><div><h3 id="h-big">Три вывода недели</h3><p class="lead">Считаются автоматически из воронки и показателей выбранной недели. Главная строка экрана.</p></div><span class="pv-tag">P0 · новое</span></header>
-    <div class="pv-big" id="big"></div>
-  </section>
-
-  <section class="pv-sec" aria-labelledby="h-fun">
-    <header><div><h3 id="h-fun">Воронка: где уходят клиенты</h3><p class="lead">Каждая стадия из смысловой разметки диалога. Между стадиями сколько ушло. Самый большой обрыв красным.</p></div>
-      <div class="seg" id="s-fun" role="group" aria-label="Период воронки"><span class="pill" aria-hidden="true"></span><button data-v="all" aria-pressed="true">8 недель</button><button data-v="week" aria-pressed="false">выбранная неделя</button></div></header>
-    <div class="pv-card"><div class="pv-fun" id="fun"></div><p class="pv-note">Стадии: 1 задал вопрос по делу, 2 прислал размеры или фото, 3 дал телефон или перешёл в мессенджер, 4 макет или визит, 5 договор или оплата. Источник: разметка 1355 диалогов по LABELING_SPEC.md, гипотеза.</p></div>
-  </section>
-
-  <section class="pv-sec" aria-labelledby="h-mx">
-    <header><div><h3 id="h-mx">Неделя одним экраном</h3><p class="lead">Оба кабинета в одной таблице: значение, изменение к прошлой неделе, тренд за 8 недель, точка против черновой нормы. Вместо двух стопок плиток.</p></div><span class="pv-tag">P0 · замена сводки</span></header>
-    <div class="pv-card" style="overflow-x:auto"><table class="pv-mx" id="mx"></table><p class="pv-note">Нормы черновые, их задаёт руководитель: ответ за 15 мин не меньше 70%, не дожали не больше 40%, цену называем в 85%, телефон в 20%, возвращаемся к клиенту в 30%.</p></div>
-  </section>
-
-  <section class="pv-sec pv-grid2">
-    <div>
-      <header><div><h3>Цена не виновата</h3><p class="lead">Реакция клиента в зависимости от суммы, которую мы назвали. Апрель-сентябрь, оба кабинета.</p></div><span class="pv-tag">P0 · новое</span></header>
-      <div class="pv-card"><div class="pv-lad" id="lad"></div>
-        <div class="pv-legend"><span><i style="background:var(--cat-2)"></i>принял, идёт дальше</span><span><i style="background:var(--cat-4)"></i>«подумаем»</span><span><i style="background:var(--cat-1)"></i>пропал после цены</span><span><i style="background:var(--neutral-bar)"></i>торг, сравнение</span></div>
-        <p class="pv-note" id="lad-note"></p></div>
-    </div>
-    <div>
-      <header><div><h3>Почему не дошли до контакта</h3><p class="lead">Парето причин за 8 недель. Нажмите на строку: откроется список диалогов.</p></div><span class="pv-tag">P0 · клик по числу</span></header>
-      <div class="pv-card pv-par" id="par"></div>
-    </div>
-  </section>
-
-  <section class="pv-sec" aria-labelledby="h-dyn">
-    <header><div><h3 id="h-dyn">Динамика с перекрестием</h3><p class="lead">Наведите на график: перекрестие и стеклянная подсказка с обоими кабинетами и числом обращений. Полые точки: меньше 15 обращений, выводы осторожно. Пунктир: норма.</p></div>
-      <div class="seg" id="s-met" role="group" aria-label="Показатель"><span class="pill" aria-hidden="true"></span><button data-v="fast" aria-pressed="true">ответ за 15 мин</button><button data-v="dz" aria-pressed="false">не дожали</button><button data-v="ph" aria-pressed="false">телефон</button><button data-v="fu" aria-pressed="false">вернулись к клиенту</button></div></header>
-    <div class="pv-card"><div class="pv-chart" id="dyn"></div>
-      <div class="pv-legend"><span><i style="background:var(--cat-3)"></i>NEW-B</span><span><i style="background:var(--cat-1)"></i>OLD-G</span><span><i style="background:none;border-top:2px dashed var(--text-muted);height:0;border-radius:0"></i>норма</span></div></div>
-  </section>
-
-  <section class="pv-sec" aria-labelledby="h-obj">
-    <header><div><h3 id="h-obj">Возражение и чем отвечать</h3><p class="lead">Самые частые возражения. Ответ взят из диалога, где клиент после возражения дал телефон. Если такого нет, предлагаю свой, он помечен как гипотеза.</p></div><span class="pv-tag">P1 · вместо цитат</span></header>
-    <div class="pv-cards c3" id="obj"></div>
-  </section>
-
-  <section class="pv-sec" aria-labelledby="h-tech">
-    <header><div><h3 id="h-tech">Приёмы, которые работают</h3><p class="lead">Где удалось, замерено по переписке: в скольких случаях клиент прислал телефон. Серая метка на шкале: «менеджер вам перезвонит», 44%.</p></div><span class="pv-tag">P1 · кнопка «в скрипт»</span></header>
-    <div class="pv-cards c3" id="tech"></div>
-  </section>
-
-  <section class="pv-sec" aria-labelledby="h-todo">
-    <header><div><h3 id="h-todo">Список на понедельник</h3><p class="lead">Диалоги двух последних недель, где клиент продвинулся или ждёт, а от нас тишина. Сначала те, где клиент ждёт ответа.</p></div><span class="pv-tag">P0 · действие</span></header>
-    <div class="pv-card" style="overflow-x:auto"><table class="pv-todo" id="todo"></table></div>
-  </section>
-
-  <section class="pv-sec" aria-labelledby="h-kit">
-    <header><div><h3 id="h-kit">Что взято из Kokonut UI и Bklit UI</h3><p class="lead">Приёмы, а не компоненты: оба проекта на React, страница на Контур DS без фреймворка.</p></div></header>
-    <div class="pv-feat">
-      <div class="pv-card"><h5>Kokonut UI</h5><ul>
-        <li>Стекло без искажения: размытие 20, насыщенность 160%. Только на слоях поверх контента: шапка, панель деталей, подсказка графика, уведомление.</li>
-        <li>Переезжающая плашка у всех переключателей: clip-path, 250 мс, без пружины.</li>
-        <li>Не берём: жидкое стекло с искажением (размывает цифры), бегущие рамки, счётчики «от нуля».</li></ul></div>
-      <div class="pv-card"><h5>Bklit UI</h5><ul>
-        <li>Сетка только горизонтальная и тише фона. Точки на линии при наведении, у малых выборок полые всегда.</li>
-        <li>Перекрестие и одна общая подсказка на оба кабинета с числом обращений.</li>
-        <li>Прямые отрезки вместо сглаживания: кривая не рисует провалы и пики, которых нет.</li></ul></div>
-    </div>
-  </section>
 </div>
-
-<div class="pv-bd" id="bd"></div>
-<aside class="pv-drawer" id="drw" role="dialog" aria-modal="true" aria-labelledby="drw-h" tabindex="-1"></aside>
+<div class="dbd" id="dbd"></div>
+<aside class="drw" id="drw" role="dialog" aria-modal="true" aria-labelledby="drw-h" tabindex="-1"></aside>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -236,176 +286,318 @@ body{ background:var(--bg); color:var(--text); }
 const D = window.PV, $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
 const nf = n => n == null ? '-' : String(Math.round(n * 10) / 10).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const rub = n => nf(Math.round(n / 1000) * 1000) + ' ₽';
 const CODES = Object.keys(D.cabs), COLOR = { 'NEW-B':'var(--cat-3)', 'OLD-G':'var(--cat-1)' };
 const wl = w => { const [y, n] = w.split('-W'); const d = new Date(Date.UTC(+y, 0, 4)); const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + (n - 1) * 7);
   const sun = new Date(mon); sun.setUTCDate(mon.getUTCDate() + 6); const f = x => String(x.getUTCDate()).padStart(2, '0') + '.' + String(x.getUTCMonth() + 1).padStart(2, '0'); return f(mon) + '-' + f(sun); };
 const avito = id => 'https://www.avito.ru/profile/messenger/channel/' + encodeURIComponent(id);
-let TODO_ALL = false, CAB = 'all', WK = D.weeks.length - 1, FUN = 'all', MET = 'fast';
+const ICO = { i:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM10 9v5M10 6h.01"/></svg>',
+  down:'<svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 4v12M5 11l5 5 5-5"/></svg>' };
+let CAB = 'all', WK = D.weeks.length - 1, FUN = 'all', MET = 'fu', STEP = null;
 const cabs = () => CAB === 'all' ? CODES : [CAB];
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 
-/* переключатель: плашка переезжает через clip-path */
+/* сводный ряд по выбранным кабинетам: среднее, взвешенное по обращениям */
+function agg(f, i){ let num = 0, den = 0; cabs().forEach(c => { const r = D.cabs[c].series[i]; if(r[f] != null && r.n){ num += r[f] * r.n; den += r.n; } }); return den ? Math.round(num / den * 10) / 10 : null; }
+const nSum = i => cabs().reduce((s, c) => s + D.cabs[c].series[i].n, 0);
+
+/* ---------- переключатели ---------- */
 function seg(el, onPick){
   const pill = el.querySelector('.pill');
   const place = () => { const b = el.querySelector('[aria-pressed="true"]'); if(!b) return; const r = el.getBoundingClientRect(), br = b.getBoundingClientRect();
-    const L = br.left - r.left - 3, R = r.right - br.right - 3; pill.style.clipPath = 'inset(0 ' + R + 'px 0 ' + L + 'px round 7px)'; };
+    pill.style.clipPath = 'inset(0 ' + (r.right - br.right - 3) + 'px 0 ' + (br.left - r.left - 3) + 'px round 7px)'; };
   el.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return;
     el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); place(); onPick(b.dataset.v); });
   new ResizeObserver(place).observe(el); requestAnimationFrame(place);
 }
 
-/* ---------- воронка ---------- */
-const STAGES = ['Обращение', 'Задал вопрос по делу', 'Прислал размеры, фото', 'Дал телефон, мессенджер', 'Макет или визит', 'Договор, оплата'];
+/* ---------- панель деталей ---------- */
+let lastFocus = null;
+function drawer(html, from){
+  lastFocus = from || document.activeElement;
+  $('drw').innerHTML = '<button class="btn x" id="drw-x" aria-label="Закрыть">закрыть</button>' + html;
+  $('drw').classList.add('on'); $('dbd').classList.add('on'); $('drw').focus(); document.documentElement.classList.add('ks-lock');
+  $('drw-x').onclick = closeD;
+  $('drw').querySelectorAll('[data-copy]').forEach(b => b.onclick = () => copy(b.dataset.copy));
+}
+function closeD(){ $('drw').classList.remove('on'); $('dbd').classList.remove('on'); document.documentElement.classList.remove('ks-lock'); if(lastFocus && lastFocus.focus) lastFocus.focus(); }
+$('dbd').onclick = closeD; document.addEventListener('keydown', e => { if(e.key === 'Escape') closeD(); });
+const dlist = (arr, n) => '<ol>' + arr.filter(d => CAB === 'all' || d.c === CAB).slice(0, n || 25).map(d => '<li>' + esc(d.s || 'без итога') + '<br><span class="muted">' + d.c + ' · ' + wl(d.w)
+  + (d.p ? ' · названо ' + rub(d.p) : '') + '</span> · <a class="link" href="' + avito(d.id) + '" target="_blank" rel="noopener">открыть в Авито</a></li>').join('') + '</ol>';
+function copy(t){ (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Скопировано: вставьте в скрипт'), () => toast('Скопируйте текст вручную')); }
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2800); }
+
+/* ---------- фразы для дожима и действий ---------- */
+const SAY = {
+  silent:'Здравствуйте! Посчитала для вас два варианта: 40х60 и 50х70, отличаются ценой почти вдвое. Прислать фото, как они смотрятся на памятнике? Если удобнее, созвонимся на 3 минуты.',
+  not_now:'Понимаю, что сейчас не время. Цену можем зафиксировать сегодня, а изготовить к нужной дате: хранение готового изделия бесплатное. К какому сроку ориентироваться?',
+  mismatch:'Камень и установку делает партнёрская мастерская в вашем городе, мы свяжем вас с ними. Стекло считаем мы: пришлите размер ниши или фото памятника.',
+  no_followup:'Извините за паузу. Расчёт готов, отправляю. Удобно созвониться сегодня после 14:00?',
+  stone_not_included:'Мы делаем стеклянную часть: её можно приклеить к уже стоящему камню или поставить в металлическую раму. Пришлю фото обоих вариантов?',
+  competitor:'Спасибо, что написали. Если будет нужен второй портрет или накладка на цветник, у нас действует скидка для повторных заказов.',
+  price:'Давайте подберём под бюджет: толщина и вид стекла меняют цену почти вдвое. Какую сумму планируете?',
+  unknown:'Здравствуйте! Остались вопросы по размеру или креплению? Могу прислать фото готовых работ.',
+  delivery:'Отправляем ПЭК со страховкой и обрешёткой, еженедельно в разные города. Посчитаю доставку в ваш город, напишите адрес.',
+  durability:'Изображение запекается в стекло при 600 градусах, это не плёнка. Гарантия 5 лет по договору, пришлю фото работ 2017 года.',
+  band:'Здравствуйте! Руководство согласовало для вас дополнительную скидку, если оформим до пятницы: стекло пересчитываем каждый месяц, а сейчас можем зафиксировать цену. Прислать расчёт?'
+};
+const FIX = { silent:'Дожим через 24 и 72 часа с новым поводом: второй вариант размера, фото, звонок', not_now:'Фиксация цены и бесплатное хранение до нужной даты',
+  mismatch:'Сразу предлагать партнёрскую мастерскую и крепление к камню', unknown:'Уточняющий вопрос и фото работ', no_followup:'Выполнить обещание в тот же день',
+  competitor:'Проверить, где проиграли: цена, технология, скорость', stone_not_included:'Показать крепление к камню и раму', price:'Подобрать толщину под бюджет',
+  delivery:'Назвать ТК, страховку и цену доставки', durability:'Технология запекания и гарантия 5 лет' };
+
+/* ---------- 1. обстановка ---------- */
+function situation(){
+  const w = D.weeks[WK], all = funTotals('all');
+  const H = D.halves, fu = H.fu, dz = H.dz, fast = H.fast, ph = H.ph;
+  $('v-week').textContent = wl(w);
+  $('v-h').textContent = 'Отвечаем быстро и называем цену, но не ведём клиента дальше: из ' + all[0] + ' обращений до договора в чате дошли ' + all[5];
+  $('v-p').innerHTML = '<b>' + pct(all[1] - all[2], all[1]) + '% клиентов</b> пропадают после первого ответа и не присылают размеры. Менеджеры к ним почти не возвращаются: повторное касание упало с '
+    + nf(fu[0]) + '% до ' + nf(fu[1]) + '% диалогов. Цена здесь не причина: после 25 тыс. и после 120 тыс. пропадают одинаково. Деньги теряем на дожиме, а не на скидках.';
+  const r = i => ({ fast:agg('fast', i), price:agg('price', i), fu:agg('fu', i), ph:agg('ph', i) });
+  const cur = r(WK);
+  const HC = [
+    ['fast', 'Скорость ответа', cur.fast, '%', fast, 70, true, 'ответов за 15 рабочих минут', 'Стало быстрее: ' + nf(fast[0]) + '% → ' + nf(fast[1]) + '% за 8 недель.'],
+    ['price', 'Цена в ответе', cur.price, '%', H.price, 85, true, 'называем цену, когда спросили', 'Держится на уровне 85%: это сильная сторона.'],
+    ['fu', 'Дожим', cur.fu, '%', fu, 30, true, 'диалогов, где вернулись к молчащему клиенту', 'Обвалился: ' + nf(fu[0]) + '% → ' + nf(fu[1]) + '%. Главная причина потерь.'],
+    ['ph', 'Переход в телефон', cur.ph, '%', ph, 20, true, 'обращений, где клиент дал телефон', 'Хуже: ' + nf(ph[0]) + '% → ' + nf(ph[1]) + '%. Сделка идёт по телефону, без номера её нет.']
+  ];
+  $('health').innerHTML = HC.map(([k, t, v, suf, hv, norm, up, what, say]) => { const st = v == null ? 'na' : v >= norm ? 'ok' : v >= norm * .7 ? 'warn' : 'crit';
+    const word = { ok:'в норме', warn:'близко к норме', crit:'проблема', na:'нет данных' }[st];
+    return '<button class="hc hov click ' + (st === 'crit' ? 'crit' : '') + '" data-h="' + k + '"><span class="top"><span>' + t + '</span><span class="lbl ' + st + '"><i class="dot ' + st + '"></i>' + word + '</span></span>'
+      + '<span class="v num">' + (v == null ? '-' : nf(v) + suf) + ' <small>норма ' + norm + suf + '</small></span><span class="muted" style="font-size:12px">' + what + ', неделя ' + wl(w) + '</span>'
+      + '<span class="t">' + say + '</span><span class="more">подробнее и что делать →</span></button>'; }).join('');
+  $('health').onclick = e => { const b = e.target.closest('[data-h]'); if(b) metricDrawer(b.dataset.h, b); };
+  money(all);
+  acts();
+}
+function money(all){
+  const lost = D.stage_reasons[1] ? D.stage_reasons[1].find(x => x[0] === 'silent') : null, silent = lost ? lost[1] : 0;
+  const conv = all[2] ? all[5] / all[2] : 0, chk = D.median_check;
+  $('money').innerHTML = '<div class="pv-eyebrow">Цена вопроса <span class="pv-tag">гипотеза</span></div>'
+    + '<div class="big num" id="m-big"></div><div class="muted" style="font-size:13px;margin-top:4px" id="m-sub"></div>'
+    + '<input type="range" id="m-r" min="10" max="50" step="5" value="20" aria-label="Какую долю молчащих вернуть дожимом">'
+    + '<div class="row"><span>Пропали молча после первого ответа, 8 недель</span><b class="num">' + silent + '</b></div>'
+    + '<div class="row"><span>Из присланных размеров доходят до договора в чате</span><b class="num">' + nf(conv * 100) + '%</b></div>'
+    + '<div class="row"><span>Средний названный чек (медиана)</span><b class="num">' + rub(chk) + '</b></div>'
+    + '<p class="muted" style="font-size:12px;margin:10px 0 0">Нижняя оценка: считаем только договоры, видимые в чате. Большая часть сделок закрывается по телефону, поэтому реальный эффект выше. Точно посчитаем после связки с Bitrix24.</p>';
+  const upd = () => { const p = +$('m-r').value / 100, back = Math.round(silent * p), deals = back * conv;
+    $('m-big').textContent = '+' + back + ' клиентов до расчёта';
+    $('m-sub').innerHTML = 'если дожимом вернуть <b>' + Math.round(p * 100) + '%</b> молчащих. Это около <b>' + nf(Math.round(deals * 10) / 10) + '</b> договора и <b>' + rub(deals * chk) + '</b> за 8 недель только по чату.'; };
+  $('m-r').oninput = upd; upd();
+}
+function acts(){
+  const A = [
+    ['Дожим через 24 и 72 часа для каждого диалога, где последнее слово наше', 'Повторное касание упало с ' + nf(D.halves.fu[0]) + '% до ' + nf(D.halves.fu[1]) + '%. ' + (D.stage_reasons[1] || []).filter(x => x[0] === 'silent').map(x => x[1]).join('') + ' клиентов пропали молча.', 'РОП ОП ГМ', 'пн 05.10', 'вернулись к клиенту от 30%', 'silent'],
+    ['Каждый ответ с ценой заканчивать вопросом и просьбой номера в обмен на фото работ', 'Прямая просьба номера приносит телефон в 57% случаев, «менеджер перезвонит» в 44%.', 'менеджеры кабинетов', 'пн 05.10', 'телефон от 20% обращений', null],
+    ['На «а камень, установка?» сразу предлагать партнёрскую мастерскую и крепление к камню', 'Крепление и установка: второй по частоте вопрос клиентов. Ответ «с камнем не работаем» обрывает разговор.', 'РОП ОП ГМ', 'пн 05.10', 'меньше потерь «нужно другое»', 'mismatch']
+  ];
+  $('acts').innerHTML = A.map((a, i) => '<div class="act"><span class="n">' + (i + 1) + '</span><div><b>' + a[0] + '</b><div class="why">' + a[1] + '</div>'
+    + '<div class="meta"><span>кто: ' + a[2] + '</span><span>проверка: ' + a[3] + '</span><span>цель: ' + a[4] + '</span>' + (a[5] ? '<button class="btn" data-a="' + a[5] + '">диалоги и фраза</button>' : '') + '</div></div></div>').join('');
+  $('acts').onclick = e => { const b = e.target.closest('[data-a]'); if(b){ const p = D.pareto.find(x => x[1] === b.dataset.a); if(p) reasonDrawer(p, b); } };
+}
+
+/* ---------- 2. воронка ---------- */
+const STG = ['Обращение', 'Задал вопрос по делу', 'Прислал размеры, фото', 'Дал телефон, мессенджер', 'Макет или визит', 'Договор, оплата'];
+const STEP_TXT = [
+  ['Клиент не написал ничего по делу', 'Приветствие без продолжения, ответ «уже не надо», не ответил на нашу рассылку.', 'Первое сообщение с вопросом-выбором: «Что ищете: портрет на камень или памятник целиком из стекла?»'],
+  ['Получил ответ и пропал', 'Главный обрыв. Клиент спросил цену или размеры, получил ответ и больше не пишет. Чаще всего это молчание, а не отказ: возражений почти нет.', 'Заканчивать каждый ответ вопросом о размере и сроке. Через 24 и 72 часа писать снова с новым поводом: второй вариант, фото, звонок.'],
+  ['Прислал размеры, но не дал телефон', 'Клиент уже вложился: прислал фото и размеры. Если не берём номер, расчёт остаётся в чате и теряется.', 'После расчёта сразу: «Пришлю фото похожих работ и макет, напишите номер для MAX».'],
+  ['Дал телефон, но до макета не дошли', 'Разговор ушёл в телефон, в чате его не видно. Нужна связка с Bitrix24, чтобы понять, что случилось дальше.', 'Фиксировать в Bitrix24 каждый переход в телефон. После связки посчитаем эту стадию.'],
+  ['Макет есть, договора нет', 'Мало случаев, решение обычно откладывают до даты установки.', 'Фиксация цены, хранение до нужной даты, 70/30 оплата вместо 100%.']
+];
+function funTotals(key){ return STG.map((_, i) => cabs().reduce((s, c) => s + ((D.cabs[c].fun[key] || [])[i] || 0), 0)); }
 function funnel(){
-  const key = FUN === 'all' ? 'all' : D.weeks[WK];
-  const v = STAGES.map((_, i) => cabs().reduce((s, c) => s + (D.cabs[c].fun[key] || [])[i] || 0, 0));
+  const key = FUN === 'all' ? 'all' : D.weeks[WK], v = funTotals(key);
   const drops = v.slice(1).map((x, i) => v[i] - x), worst = drops.indexOf(Math.max(...drops.slice(1)));
+  if(STEP == null) STEP = worst;
   const color = CAB === 'all' ? 'var(--cat-2)' : COLOR[CAB];
-  const arrow = '<svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 4v12M5 11l5 5 5-5"/></svg>';
-  $('fun').innerHTML = v.map((x, i) => (i ? '<div class="drop' + (i - 1 === worst ? ' worst' : '') + '">' + arrow + 'ушли ' + nf(drops[i - 1]) + ' (' + (v[i - 1] ? Math.round(drops[i - 1] / v[i - 1] * 100) : 0) + '%)' + (i - 1 === worst ? ' · главный обрыв' : '') + '</div>' : '')
-    + '<div class="row"><span class="nm">' + STAGES[i] + '</span><span class="bar"><i style="--c:' + color + ';transform:scaleX(' + (v[0] ? Math.max(.01, x / v[0]) : 0) + ')"></i></span>'
-    + '<span class="v num"><b>' + nf(x) + '</b> ' + (v[0] ? Math.round(x / v[0] * 100) : 0) + '%</span></div>').join('');
-  return { v, worst };
+  $('funnel').innerHTML = v.map((x, i) => (i ? '<div class="fdrop' + (i - 1 === worst ? ' worst' : '') + '">' + ICO.down + 'ушли ' + nf(drops[i - 1]) + ' (' + pct(drops[i - 1], v[i - 1]) + '%)' + (i - 1 === worst ? ' · главный обрыв' : '') + '</div>' : '')
+    + '<button class="fstep' + (i === STEP + 1 || (i === STEP && false) ? ' on' : '') + '" data-s="' + Math.max(0, i - 1) + '" aria-label="' + STG[i] + ': ' + x + '"><span class="nm">' + STG[i] + '</span><span class="bar"><i style="--c:' + color + ';transform:scaleX(' + (v[0] ? Math.max(.012, x / v[0]) : 0) + ')"></i></span>'
+    + '<span class="v num"><b>' + nf(x) + '</b> ' + pct(x, v[0]) + '%</span></button>').join('');
+  const pick = s => { STEP = s; $('funnel').querySelectorAll('.fstep').forEach((b, i) => b.classList.toggle('on', i === s + 1)); insight(v, drops, worst); };
+  $('funnel').querySelectorAll('.fstep').forEach(b => { b.onmouseenter = () => pick(+b.dataset.s); b.onfocus = () => pick(+b.dataset.s); b.onclick = () => pick(+b.dataset.s); });
+  pick(STEP);
+}
+function insight(v, drops, worst){
+  const s = STEP, t = STEP_TXT[s], rs = (D.stage_reasons[s] || []).filter(x => x[0] !== 'идёт'), list = D.stage_lists[s] || [];
+  const RN = { silent:'пропал после ответа', not_now:'не сейчас', mismatch:'нужно другое', unknown:'непонятно', no_followup:'ждал от нас действия', competitor:'ушёл к другим', stone_not_included:'нужен камень' };
+  $('fins').innerHTML = '<div class="pv-eyebrow">' + STG[s] + ' → ' + STG[s + 1] + (s === worst ? ' · главный обрыв' : '') + '</div><h3>' + t[0] + '</h3>'
+    + '<div class="loss num">−' + nf(drops[s]) + ' <span class="muted" style="font-size:15px;font-weight:500">' + pct(drops[s], v[s]) + '% стадии</span></div>'
+    + '<div style="font-size:13px;line-height:1.5">' + t[1] + '</div>'
+    + (rs.length ? '<h4>Причины по разметке, 8 недель</h4><ul>' + rs.map(x => '<li>' + (RN[x[0]] || x[0]) + ': <b class="num">' + x[1] + '</b></li>').join('') + '</ul>' : '')
+    + '<h4>Что делать</h4><div class="todo">' + t[2] + '</div>'
+    + (list.length ? '<div style="margin-top:12px"><button class="btn" id="fins-b">показать диалоги этой стадии (' + list.filter(d => CAB === 'all' || d.c === CAB).length + ')</button></div>' : '');
+  const b = $('fins-b'); if(b) b.onclick = () => drawer('<h3 id="drw-h">' + esc(t[0]) + '</h3><div class="muted" style="font-size:13px">Диалоги, которые остановились на стадии «' + STG[s] + '», свежие сверху</div><h4>Что делать</h4><div class="say">' + esc(t[2]) + '</div><h4>Диалоги</h4>' + dlist(list, 30), b);
 }
 
-/* ---------- три вывода ---------- */
-function big(fu){
-  const s = fu.v, w = D.weeks[WK];
-  const lag = cabs().map(c => [c, D.cabs[c].series[WK]]);
-  const dzv = lag.map(([c, r]) => r.dz).filter(v => v != null); const dz = dzv.length ? nf(Math.max(...dzv)) + '%' : '-'; const dzTxt = lag.map(([c, r]) => c + ' ' + nf(r.dz) + '%').join(', ');
-  const fu0 = lag.map(([c, r]) => c + ' ' + nf(r.fu) + '%').join(', ');
-  const lead = cabs().map(c => (D.cabs[c].cm[w] || {}).fix).filter(Boolean)[0] || '';
-  $('big').innerHTML = [
-    ['<b>' + (s[1] ? Math.round((s[1] - s[2]) / s[1] * 100) : 0) + '%</b>', 'клиентов уходят после первого ответа и не присылают размеры. Это главный обрыв ' + (FUN === 'all' ? 'за 8 недель' : 'недели ' + wl(w)) + '.', 'воронка · гипотеза, разметка'],
-    ['<b>до ' + dz + '</b>', 'обращений закончились нашим ответом без дожима, неделя ' + wl(w) + ' (' + dzTxt + '). Вернулись к клиенту: ' + fu0 + '.', 'данные · переписка Авито'],
-    ['<b>Что сделать</b>', esc(lead) || 'Каждое утро закрывать диалоги, где последнее слово наше больше суток.', 'ручной разбор недели']
-  ].map(x => '<div>' + x[0] + '<span>' + x[1] + '</span><small>' + x[2] + '</small></div>').join('');
-}
-
-/* ---------- матрица ---------- */
-const MX = [ ['n', 'Обращений', null, true], ['lag', 'Первый ответ, раб. мин', [15, 'max'], false], ['fast', 'Ответ за 15 раб. мин', [70, 'min'], true, '%'],
-  ['price', 'Назвали цену, когда спросили', [85, 'min'], true, '%'], ['dz', 'Замолчал, не дожали', [40, 'max'], false, '%'],
-  ['ph', 'Получили телефон', [20, 'min'], true, '%'], ['fu', 'Вернулись к клиенту', [30, 'min'], true, '%'] ];
+/* ---------- 3. матрица ---------- */
+const MX = [ ['n', 'Обращений', 'новые клиенты за неделю', null, true, ''], ['lag', 'Первый ответ', 'медиана, рабочих минут', [15, 'max'], false, ' мин'], ['fast', 'Ответ за 15 минут', 'доля обращений', [70, 'min'], true, '%'],
+  ['price', 'Назвали цену', 'когда клиент спросил', [85, 'min'], true, '%'], ['dz', 'Не дожали', 'наш ответ последний, 2+ дня тишины', [40, 'max'], false, '%'],
+  ['ph', 'Телефон клиента', 'доля обращений', [20, 'min'], true, '%'], ['fu', 'Вернулись к клиенту', 'повторное касание через 20+ часов', [30, 'min'], true, '%'] ];
+const MX_SAY = { n:'Поток обращений. Зависит от объявлений и продвижения, а не от менеджера.', lag:'Сколько рабочих минут клиент ждёт первого живого ответа. Автоответ не считается.',
+  fast:'Доля клиентов, получивших живой ответ за 15 рабочих минут. Клиент Авито пишет в 3-5 компаний сразу: кто ответил первым, того и слушают.',
+  price:'Когда клиент спросил цену, назвали ли сумму в рублях. Если нет, клиент уходит к тем, кто назвал.', dz:'Доля диалогов, где наш ответ последний и клиент молчит 2 дня и больше, а мы не написали снова.',
+  ph:'Доля обращений, где клиент прислал телефон. Сделка идёт по телефону, без номера её почти нет.', fu:'Доля диалогов, где менеджер сам вернулся к молчащему клиенту через 20+ часов.' };
+const MX_DO = { n:'Проверить статистику объявлений в кабинете Авито: показы, ставки, статус.', lag:'Дежурный на кабинет, ответ до 15 минут в рабочее время.', fast:'Дежурный на кабинет и шаблоны первого ответа с ценой.',
+  price:'Шаблон «Цена по запросу»: вилка и один вопрос о размере.', dz:'Утренний список «последнее слово наше больше суток», закрывать до 11:00.', ph:'Просить номер в обмен на фото и макет.', fu:'Дожим через 24 и 72 часа.' };
 function spark(vals, color){
   const xs = vals.map((v, i) => [i, v]).filter(p => p[1] != null); if(xs.length < 2) return '';
-  const mx = Math.max(...xs.map(p => p[1]), 1), W = 76, H = 24;
-  const pts = xs.map(([i, v]) => [(i / (vals.length - 1)) * (W - 4) + 2, H - 3 - (v / mx) * (H - 6)]);
-  const last = pts[pts.length - 1];
+  const mx = Math.max(...xs.map(p => p[1]), 1), W = 80, H = 26, pts = xs.map(([i, v]) => [(i / (vals.length - 1)) * (W - 4) + 2, H - 3 - (v / mx) * (H - 6)]), last = pts[pts.length - 1];
   return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true"><polyline fill="none" stroke="' + color + '" stroke-width="1.6" stroke-linejoin="round" points="' + pts.map(p => p.join(',')).join(' ') + '"/><circle cx="' + last[0] + '" cy="' + last[1] + '" r="2.5" fill="' + color + '"/></svg>';
 }
+function status(norm, v){ return !norm || v == null ? 'na' : (norm[1] === 'min' ? v >= norm[0] : v <= norm[0]) ? 'ok' : (norm[1] === 'min' ? v >= norm[0] * .75 : v <= norm[0] * 1.25) ? 'warn' : 'crit'; }
 function matrix(){
   const w = WK;
-  const head = '<thead><tr><th>Показатель</th>' + CODES.map(c => '<th>' + c + '</th>').join('') + '<th>Норма</th></tr></thead>';
-  const body = MX.map(([f, name, norm, up, suf]) => '<tr><td data-l="">' + name + '</td>' + CODES.map(c => {
-    const s = D.cabs[c].series, v = s[w][f], p = w ? s[w - 1][f] : null;
-    const d = v != null && p != null ? Math.round((v - p) * 10) / 10 : null;
-    const tone = d == null || d === 0 ? 'flat' : (d > 0) === up ? 'good' : 'bad';
-    const st = !norm || v == null ? 'na' : (norm[1] === 'min' ? v >= norm[0] : v <= norm[0]) ? 'ok' : (norm[1] === 'min' ? v >= norm[0] * .75 : v <= norm[0] * 1.25) ? 'warn' : 'crit';
-    const small = s[w].n < 15 && f !== 'n' ? ' <span class="norm">n=' + s[w].n + '</span>' : '';
-    return '<td data-l="' + c + '"><span class="cell">' + (norm ? '<span class="dot ' + st + '" title="' + ({ ok:'в норме', warn:'близко к норме', crit:'ниже нормы', na:'нет данных' })[st] + '"></span>' : '')
-      + '<span class="val">' + (v == null ? '-' : nf(v) + (suf || '')) + '</span>' + small
+  const head = '<thead><tr><th>Показатель</th>' + CODES.map(c => { const n = D.cabs[c].series[w].n; return '<th><b>' + c + '</b>' + n + ' обращений' + (n < 15 ? ' · мало, выводы осторожно' : '') + '</th>'; }).join('') + '<th>Норма</th></tr></thead>';
+  const body = MX.map(([f, name, sub, norm, up, suf]) => '<tr tabindex="0" data-f="' + f + '"><td><span class="nm">' + name + '<small>' + sub + '</small></span></td>' + CODES.map(c => {
+    const s = D.cabs[c].series, v = s[w][f], p = w ? s[w - 1][f] : null, d = v != null && p != null ? Math.round((v - p) * 10) / 10 : null;
+    const tone = d == null || d === 0 ? 'flat' : (d > 0) === up ? 'good' : 'bad', st = status(norm, v);
+    return '<td data-l="' + c + '"><span class="cell">' + (norm ? '<i class="dot ' + st + '"></i>' : '<i class="dot" style="background:transparent"></i>') + '<span class="val">' + (v == null ? '-' : nf(v) + (suf === '%' ? '%' : '')) + '</span>'
       + (d == null ? '' : '<span class="dl ' + tone + '">' + (d > 0 ? '+' : '') + nf(d) + '</span>') + spark(s.map(x => x[f]), COLOR[c]) + '</span></td>';
-  }).join('') + '<td data-l="Норма" class="norm">' + (norm ? (norm[1] === 'min' ? 'от ' : 'до ') + norm[0] + (suf || '') : '') + '</td></tr>').join('');
+  }).join('') + '<td data-l="Норма" class="muted">' + (norm ? (norm[1] === 'min' ? 'от ' : 'до ') + norm[0] + suf : '') + '</td></tr>').join('');
   $('mx').innerHTML = head + '<tbody>' + body + '</tbody>';
+  $('mx').querySelectorAll('tbody tr').forEach(tr => { const go = () => metricDrawer(tr.dataset.f, tr); tr.onclick = go; tr.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } }; });
+}
+function miniChart(f, norm){
+  const W = 500, H = 170, L = 30, R = 10, T = 10, B = 24, n = D.weeks.length, all = CODES.flatMap(c => D.cabs[c].series.map(r => r[f])).filter(v => v != null);
+  const mx = f === 'n' || f === 'lag' ? Math.max(...all, norm ? norm[0] : 0) * 1.1 : 100, x = i => L + i * (W - L - R) / (n - 1), y = v => T + (1 - v / mx) * (H - T - B);
+  let g = [0, .5, 1].map(t => '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(mx * t) + '" y2="' + y(mx * t) + '"/><text class="ax" x="' + (L - 6) + '" y="' + (y(mx * t) + 4) + '" text-anchor="end">' + Math.round(mx * t) + '</text>').join('');
+  if(norm) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(norm[0]) + '" y2="' + y(norm[0]) + '" stroke="var(--ok)" stroke-width="1.5" stroke-dasharray="5 4"/>';
+  CODES.forEach(c => { const s = D.cabs[c].series; let d = ''; s.forEach((r, i) => { if(r[f] == null) return; d += (d ? 'L' : 'M') + x(i) + ' ' + y(r[f]); }); g += '<path d="' + d + '" fill="none" stroke="' + COLOR[c] + '" stroke-width="2"/>'; });
+  D.weeks.forEach((w, i) => { if(i % 2 === 0) g += '<text class="ax" x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + wl(w).slice(0, 5) + '</text>'; });
+  return '<div class="chart"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Динамика за 8 недель">' + g + '</svg></div><div class="legend"><span><i style="background:var(--cat-3)"></i>NEW-B</span><span><i style="background:var(--cat-1)"></i>OLD-G</span>' + (norm ? '<span><i style="background:var(--ok)"></i>норма</span>' : '') + '</div>';
+}
+function metricDrawer(f, from){
+  const m = MX.find(x => x[0] === f), norm = m[3];
+  const rows = CODES.map(c => { const r = D.cabs[c].series; return '<li>' + c + ': сейчас <b class="num">' + nf(r[WK][f]) + (m[5] === '%' ? '%' : '') + '</b>, 8 недель назад ' + nf(r[0][f]) + (m[5] === '%' ? '%' : '') + ', обращений на неделе ' + r[WK].n + '</li>'; }).join('');
+  drawer('<h3 id="drw-h">' + m[1] + '</h3><div class="muted" style="font-size:13px">' + m[2] + (norm ? ' · норма ' + (norm[1] === 'min' ? 'от ' : 'до ') + norm[0] + m[5] : '') + '</div>'
+    + '<h4>Что это значит</h4><div style="font-size:13.5px;line-height:1.55">' + MX_SAY[f] + '</div>'
+    + '<h4>Как менялся за 8 недель</h4>' + miniChart(f, norm) + '<ol style="margin-top:10px">' + rows + '</ol>'
+    + '<h4>Что делать</h4><div class="say">' + MX_DO[f] + '</div>', from);
 }
 
-/* ---------- ценовая лестница ---------- */
+/* ---------- 4. цена ---------- */
+const BANDS = ['до 25 тыс.', '25-60 тыс.', '60-120 тыс.', '120 тыс. и выше'];
 function ladder(){
-  const bands = ['до 25 тыс.', '25-60 тыс.', '60-120 тыс.', '120 тыс. и выше'];
-  const K = [['accepted', 'var(--cat-2)'], ['thinking', 'var(--cat-4)'], ['silent', 'var(--cat-1)'], ['other', 'var(--neutral-bar)']];
-  $('lad').innerHTML = D.ladder.map((b, i) => { const t = K.reduce((s, k) => s + (b[k[0]] || 0), 0);
-    return '<div class="row"><span>' + bands[i] + '</span><span class="st" role="img" aria-label="' + bands[i] + ': ' + K.map(k => k[0] + ' ' + (b[k[0]] || 0)).join(', ') + '">'
-      + K.map(k => { const p = t ? (b[k[0]] || 0) / t * 100 : 0; return p ? '<i style="flex:' + p + ';background:' + k[1] + '" title="' + Math.round(p) + '%">' + (p >= 9 ? Math.round(p) + '%' : '') + '</i>' : ''; }).join('')
-      + '</span><span class="num muted" style="text-align:right">' + t + '</span></div>'; }).join('');
-  const sil = D.ladder.map(b => { const t = Object.values(b).reduce((a, x) => a + x, 0); return Math.round((b.silent || 0) / t * 100); });
-  $('lad-note').innerHTML = 'Пропадают ' + Math.min(...sil) + '-' + Math.max(...sil) + '% при любой сумме. Дорогой чек не отпугивает сильнее дешёвого: теряем на следующем шаге, а не на цене. Гипотеза: сумма взята из нашего сообщения, реакция из разметки.';
+  const K = [['accepted', 'var(--cat-2)', 'приняли'], ['thinking', 'var(--cat-4)', '«подумаем»'], ['silent', 'var(--cat-1)', 'пропали'], ['other', 'var(--neutral-bar)', 'торг']];
+  const tot = b => K.reduce((s, k) => s + (b[k[0]] || 0), 0), sil = D.ladder.map(b => pct(b.silent || 0, tot(b))), acc = D.ladder.map(b => pct(b.accepted || 0, tot(b)));
+  $('lad-c').innerHTML = ICO.i + '<div><b>Уходят не из-за суммы: после 25 тыс. и после 120 тыс. пропадают одинаково, ' + Math.min(...sil) + '-' + Math.max(...sil) + '%</b>'
+    + '<span>Принимают цену ' + Math.min(...acc) + '-' + Math.max(...acc) + '% клиентов при любом чеке. Скидка в первом ответе не решает проблему: клиент пропадает, потому что ему не написали второй раз. Скидку выгоднее держать для второго касания.</span></div>';
+  $('lad').innerHTML = D.ladder.map((b, i) => { const t = tot(b);
+    return '<button class="lrow" data-b="' + i + '" aria-label="' + BANDS[i] + '"><span>' + BANDS[i] + '</span><span class="st">'
+      + K.map(k => { const p = t ? (b[k[0]] || 0) / t * 100 : 0; return p ? '<i style="flex:' + p + ';background:' + k[1] + '" title="' + k[2] + ' ' + Math.round(p) + '%">' + (p >= 9 ? Math.round(p) + '%' : '') + '</i>' : ''; }).join('')
+      + '</span><span class="num muted" style="text-align:right">' + t + '</span></button>'; }).join('');
+  $('lad').onclick = e => { const b = e.target.closest('[data-b]'); if(!b) return; const i = +b.dataset.b;
+    drawer('<h3 id="drw-h">Пропали после цены ' + BANDS[i] + '</h3><div class="muted" style="font-size:13px">' + (D.ladder[i].silent || 0) + ' клиентов с апреля. Им назвали цену и больше не писали.</div>'
+      + '<h4>Что написать через 2-3 дня</h4><div class="say">' + esc(SAY.band) + '</div><div style="margin-top:8px"><button class="btn" data-copy="' + esc(SAY.band) + '">в скрипт</button></div>'
+      + '<h4>Диалоги, свежие сверху</h4>' + dlist(D.band_lists[i], 25), b); };
 }
 
-/* ---------- Парето ---------- */
+/* ---------- 5. причины ---------- */
 function pareto(){
-  const tot = D.pareto.reduce((s, p) => s + p[2], 0), mx = D.pareto[0][2]; let acc = 0, cut = false;
-  $('par').innerHTML = D.pareto.map((p, i) => { acc += p[2]; const cum = Math.round(acc / tot * 100);
-    const line = !cut && cum >= 80 ? (cut = true, '<div class="cut">выше черты ' + cum + '% потерь</div>') : '';
-    return '<button class="row" data-i="' + i + '"><span>' + esc(p[0]) + '</span><span class="bar"><i style="width:' + (p[2] / mx * 100) + '%"></i></span><span class="v"><b>' + p[2] + '</b> <small>' + cum + '% накоп.</small></span></button>' + line; }).join('')
-    + '<p class="pv-note">Диалоги 8 недель, которые не дошли до телефона. Не клиенты исключены. Гипотеза, разметка.</p>';
-  $('par').onclick = e => { const b = e.target.closest('[data-i]'); if(b) drawer(D.pareto[+b.dataset.i], b); };
+  const P = D.pareto, tot = P.reduce((s, p) => s + p[2], 0), mx = P[0][2];
+  $('par-c').innerHTML = ICO.i + '<div><b>' + pct(P[0][2], tot) + '% потерь это молчание после нашего ответа, а не отказ</b><span>Клиент не сказал «нет». Он получил ответ и не получил второго сообщения. Это лечится дожимом, а не ценой и не скидкой.</span></div>';
+  $('par').innerHTML = P.map((p, i) => '<button class="prow" data-i="' + i + '"><span>' + esc(p[0]) + '</span><span class="bar"><i style="width:' + (p[2] / mx * 100) + '%"></i></span><span class="v">' + p[2] + '</span>'
+    + (FIX[p[1]] && i < 4 ? '<span class="fix">что делать: ' + FIX[p[1]] + '</span>' : '') + '</button>').join('');
+  $('par').onclick = e => { const b = e.target.closest('[data-i]'); if(b) reasonDrawer(P[+b.dataset.i], b); };
 }
-let lastFocus = null;
-function drawer(p, from){
-  lastFocus = from;
-  $('drw').innerHTML = '<button class="btn x" id="drw-x" aria-label="Закрыть">закрыть</button><h4 id="drw-h">' + esc(p[0]) + '</h4><div class="muted" style="font-size:13px">' + p[2] + ' диалогов за 8 недель, показаны свежие ' + p[3].length + '</div><ol>'
-    + p[3].map(d => '<li>' + esc(d.s || 'без итога') + '<br><span class="muted">' + d.c + ' · ' + wl(d.w) + ' · стадия ' + d.st + '</span> · <a href="' + avito(d.id) + '" target="_blank" rel="noopener">открыть в Авито</a></li>').join('') + '</ol>';
-  $('drw').classList.add('on'); $('bd').classList.add('on'); $('drw').focus();
-  $('drw-x').onclick = close;
+function reasonDrawer(p, from){
+  const say = SAY[p[1]] || SAY.unknown;
+  drawer('<h3 id="drw-h">' + esc(p[0]) + '</h3><div class="muted" style="font-size:13px">' + p[2] + ' диалогов за 8 недель не дошли до телефона по этой причине</div>'
+    + '<h4>Что делать</h4><div style="font-size:13.5px;line-height:1.55">' + esc(FIX[p[1]] || '') + '</div>'
+    + '<h4>Что написать клиенту</h4><div class="say">' + esc(say) + '</div><div style="margin-top:8px"><button class="btn" data-copy="' + esc(say) + '">в скрипт</button></div>'
+    + '<h4>Диалоги, свежие сверху</h4>' + dlist(p[3], 25), from);
 }
-function close(){ $('drw').classList.remove('on'); $('bd').classList.remove('on'); if(lastFocus) lastFocus.focus(); }
-$('bd').onclick = close; document.addEventListener('keydown', e => { if(e.key === 'Escape') close(); });
 
-/* ---------- динамика: SVG, перекрестие, стеклянная подсказка ---------- */
-const NORM = { fast:[70, 'от'], dz:[40, 'до'], ph:[20, 'от'], fu:[30, 'от'] };
-const MNAME = { fast:'Ответ за 15 раб. мин, %', dz:'Не дожали, %', ph:'Получили телефон, %', fu:'Вернулись к клиенту, %' };
+/* ---------- 6. что изменилось ---------- */
+const CH = [ ['fu', 'Дожим', 'вернулись к молчащему клиенту', 30, true], ['dz', 'Не дожали', 'наш ответ последний, тишина', 40, false],
+  ['fast', 'Скорость', 'ответ за 15 рабочих минут', 70, true], ['ph', 'Телефон', 'клиент дал номер', 20, true] ];
+function chips(){
+  $('chips').innerHTML = CH.map(([f, t, sub, norm, up]) => { const h = D.halves[f], d = h[1] - h[0], good = (d > 0) === up, big = Math.abs(d) >= 2;
+    const word = !big ? 'без изменений' : good ? 'стало лучше' : 'стало хуже';
+    return '<button class="chip" data-f="' + f + '" aria-pressed="' + (f === MET) + '"><span class="k"><i class="dot ' + (!big ? 'na' : good ? 'ok' : 'crit') + '"></i>' + t + ': ' + sub + '</span>'
+      + '<span class="w ' + (!big ? '' : good ? 'good' : 'bad') + '">' + word + '</span><span class="d">' + nf(h[0]) + '% → ' + nf(h[1]) + '% · норма ' + (up ? 'от ' : 'до ') + norm + '%</span></button>'; }).join('');
+  $('chips').onclick = e => { const b = e.target.closest('[data-f]'); if(!b) return; MET = b.dataset.f; $('chips').querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === b))); dyn(); };
+}
+const EVENTS = { '2026-W33':'смена объявлений, пик обращений', '2026-W36':'просадка скорости в обоих кабинетах' };
 function dyn(){
-  const W = 1000, H = 300, L = 40, R = 16, T = 16, B = 34, n = D.weeks.length;
-  const x = i => L + i * (W - L - R) / (n - 1), y = v => T + (1 - v / 100) * (H - T - B);
-  let g = '';
+  const c = CH.find(x => x[0] === MET), norm = c[3], up = c[4];
+  const W = 1000, H = 320, L = 40, R = 16, T = 28, B = 34, n = D.weeks.length, x = i => L + i * (W - L - R) / (n - 1), y = v => T + (1 - v / 100) * (H - T - B);
+  let g = '<rect x="' + L + '" width="' + (W - L - R) + '" y="' + (up ? y(100) : y(norm)) + '" height="' + (up ? y(norm) - y(100) : y(0) - y(norm)) + '" fill="var(--ok-soft)"/>'
+    + '<text class="ann" x="' + (W - R - 6) + '" y="' + (up ? y(100) + 14 : y(0) - 6) + '" text-anchor="end" style="fill:var(--ok)">зона нормы: ' + (up ? 'от ' : 'до ') + norm + '%</text>';
   [0, 25, 50, 75, 100].forEach(t => { g += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(t) + '" y2="' + y(t) + '"/><text class="ax" x="' + (L - 8) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + t + '</text>'; });
-  D.weeks.forEach((w, i) => { g += '<text class="ax" x="' + x(i) + '" y="' + (H - 10) + '" text-anchor="middle">' + wl(w).slice(0, 5) + '</text>'; });
-  const nm = NORM[MET]; g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(nm[0]) + '" y2="' + y(nm[0]) + '" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="5 4"/><text class="ax" x="' + (W - R) + '" y="' + (y(nm[0]) - 6) + '" text-anchor="end">норма ' + nm[1] + ' ' + nm[0] + '%</text>';
-  const cs = cabs();
-  cs.forEach(c => { const s = D.cabs[c].series; const pts = s.map((r, i) => r[MET] == null ? null : [x(i), y(r[MET])]);
-    let dpath = ''; pts.forEach((p, i) => { if(!p) return; dpath += (i && pts[i - 1] ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); });
-    g += '<path d="' + dpath + '" fill="none" stroke="' + COLOR[c] + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
-    s.forEach((r, i) => { if(r[MET] == null) return; const small = r.n < 15;
-      g += '<circle class="pt pt' + i + '" cx="' + x(i) + '" cy="' + y(r[MET]) + '" r="4.5" fill="' + (small ? 'var(--surface)' : COLOR[c]) + '" stroke="' + COLOR[c] + '" stroke-width="2" style="opacity:' + (small ? 1 : 0) + ';transition:opacity 120ms"/>'; }); });
+  D.weeks.forEach((w, i) => { g += '<text class="ax" x="' + x(i) + '" y="' + (H - 10) + '" text-anchor="middle">' + wl(w).slice(0, 5) + '</text>';
+    if(EVENTS[w]) g += '<line x1="' + x(i) + '" x2="' + x(i) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="var(--border-strong)" stroke-dasharray="2 3"/><text class="ann" x="' + (x(i) + 4) + '" y="' + (T - 10) + '">' + EVENTS[w] + '</text>'; });
+  const lines = CAB === 'all' ? [['all', 'оба кабинета', 'var(--text-strong)', 3]].concat(CODES.map(k => [k, k, COLOR[k], 1.5])) : [[CAB, CAB, COLOR[CAB], 3]];
+  const val = (k, i) => k === 'all' ? agg(MET, i) : D.cabs[k].series[i][MET];
+  lines.forEach(([k, , col, sw]) => { let d = ''; D.weeks.forEach((_, i) => { const v = val(k, i); if(v == null) return; d += (d ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); });
+    g += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="' + sw + '" stroke-linejoin="round" stroke-linecap="round"' + (sw < 2 ? ' opacity=".55"' : '') + '/>';
+    D.weeks.forEach((_, i) => { const v = val(k, i); if(v == null) return; g += '<circle class="pt pt' + i + '" cx="' + x(i) + '" cy="' + y(v) + '" r="' + (sw > 2 ? 5 : 3.5) + '" fill="var(--surface)" stroke="' + col + '" stroke-width="2" style="opacity:0;transition:opacity 120ms"/>'; }); });
   g += '<line id="xh" y1="' + T + '" y2="' + (H - B) + '" stroke="var(--border-strong)" stroke-width="1" style="opacity:0"/>';
-  D.weeks.forEach((w, i) => { const x0 = i ? (x(i - 1) + x(i)) / 2 : L, x1 = i < n - 1 ? (x(i) + x(i + 1)) / 2 : W - R; g += '<rect class="hit" data-i="' + i + '" x="' + x0 + '" y="' + T + '" width="' + (x1 - x0) + '" height="' + (H - T - B) + '"/>'; });
-  $('dyn').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + MNAME[MET] + ' по неделям">' + g + '</svg><div class="pv-tip" id="tip"></div>';
+  D.weeks.forEach((_, i) => { const x0 = i ? (x(i - 1) + x(i)) / 2 : L, x1 = i < n - 1 ? (x(i) + x(i + 1)) / 2 : W - R; g += '<rect class="hit" data-i="' + i + '" x="' + x0 + '" y="' + T + '" width="' + (x1 - x0) + '" height="' + (H - T - B) + '"/>'; });
+  $('dyn').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + c[1] + ' по неделям">' + g + '</svg><div class="tip" id="tip"></div>';
+  $('dyn-leg').innerHTML = lines.map(l => '<span><i style="background:' + l[2] + '"></i>' + l[1] + '</span>').join('') + '<span><i style="background:var(--ok-soft);border:1px solid var(--ok)"></i>зона нормы</span>';
   const svg = $('dyn').querySelector('svg'), tip = $('tip'), xh = $('xh');
-  const show = i => { xh.setAttribute('x1', x(i)); xh.setAttribute('x2', x(i)); xh.style.opacity = 1;
-    svg.querySelectorAll('.pt').forEach(p => { if(p.getAttribute('fill') !== 'var(--surface)') p.style.opacity = p.classList.contains('pt' + i) ? 1 : 0; });
-    tip.innerHTML = '<b>Неделя ' + wl(D.weeks[i]) + '</b><div class="muted">' + MNAME[MET] + '</div>' + cs.map(c => { const r = D.cabs[c].series[i];
-      return '<div class="r"><span><i class="dot" style="background:' + COLOR[c] + '"></i>' + c + '</span><span class="num"><b>' + (r[MET] == null ? '-' : nf(r[MET]) + '%') + '</b> <span class="muted">n=' + r.n + '</span></span></div>'; }).join('');
-    const box = $('dyn').getBoundingClientRect(), px = x(i) / W * box.width; tip.style.left = Math.min(box.width - 200, Math.max(0, px + 12)) + 'px'; tip.style.top = '8px'; tip.classList.add('on'); };
-  svg.querySelectorAll('.hit').forEach(h => { h.addEventListener('pointermove', () => show(+h.dataset.i)); });
-  svg.addEventListener('pointerleave', () => { tip.classList.remove('on'); xh.style.opacity = 0; svg.querySelectorAll('.pt').forEach(p => { if(p.getAttribute('fill') !== 'var(--surface)') p.style.opacity = 0; }); });
+  const show = i => { xh.setAttribute('x1', x(i)); xh.setAttribute('x2', x(i)); xh.style.opacity = 1; svg.querySelectorAll('.pt').forEach(p => p.style.opacity = p.classList.contains('pt' + i) ? 1 : 0);
+    const main = val(lines[0][0], i), gap = main == null ? null : Math.round((up ? main - norm : norm - main) * 10) / 10;
+    tip.innerHTML = '<b>Неделя ' + wl(D.weeks[i]) + '</b><div class="muted">' + c[1] + ': ' + c[2] + '</div>' + lines.map(([k, name, col]) => { const v = val(k, i), nn = k === 'all' ? nSum(i) : D.cabs[k].series[i].n;
+        return '<div class="r"><span><i class="dot" style="background:' + col + '"></i>' + name + '</span><span class="num"><b>' + (v == null ? '-' : nf(v) + '%') + '</b> <span class="muted">' + nn + ' обр.</span></span></div>'; }).join('')
+      + '<div class="say">' + (gap == null ? 'нет данных' : gap >= 0 ? 'В норме, запас ' + nf(gap) + ' п.п.' : 'Хуже нормы на ' + nf(-gap) + ' п.п.') + (nSum(i) < 15 ? ' Мало обращений, выводы осторожно.' : '') + '</div>';
+    const box = $('dyn').getBoundingClientRect(), px = x(i) / W * box.width; tip.style.left = Math.min(box.width - 290, Math.max(0, px + 14)) + 'px'; tip.style.top = '30px'; tip.classList.add('on'); };
+  svg.querySelectorAll('.hit').forEach(h => h.addEventListener('pointermove', () => show(+h.dataset.i)));
+  svg.addEventListener('pointerleave', () => { tip.classList.remove('on'); xh.style.opacity = 0; svg.querySelectorAll('.pt').forEach(p => p.style.opacity = 0); });
 }
 
-/* ---------- возражения и приёмы ---------- */
-function copy(t){ (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Скопировано в буфер: вставьте в скрипт'), () => toast('Скопируйте текст вручную')); }
-function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2800); }
+/* ---------- 7-9 ---------- */
 function objections(){
-  $('obj').innerHTML = D.objections.map((o, i) => { const a = o.best || o.fb;
-    return '<div class="pv-card pv-oc"><div class="q">«' + esc(o.t) + '»</div><div class="meta"><span>' + o.n + ' диалогов с апреля</span><span class="pv-tag">' + (o.best ? 'из удачного диалога' : 'гипотеза, предлагаю') + '</span></div>'
-      + '<div class="a">' + esc(a) + '</div><div><button class="btn" data-copy="o' + i + '">в скрипт</button></div></div>'; }).join('');
-  $('tech').innerHTML = D.tech.map((t, i) => { const r = t.rate, ref = D.tech_ref.rate, p = r ? Math.round(r[0] / r[1] * 100) : null, pr = Math.round(ref[0] / ref[1] * 100);
-    return '<div class="pv-card pv-oc"><div class="q">' + esc(t.name) + '</div>'
-      + (r ? '<div class="meta"><span class="num"><b style="color:var(--text-strong)">' + p + '%</b> телефон, ' + r[0] + ' из ' + r[1] + '</span><span class="pv-tag">данные</span></div><div class="meter" role="img" aria-label="' + p + '% против ' + pr + '%"><i style="width:' + p + '%"></i><u style="left:' + pr + '%"></u></div>'
+  $('objs').innerHTML = D.objections.map(o => { const a = o.best || o.fb;
+    return '<div class="pv-card oc hov"><div class="q">«' + esc(o.t) + '»</div><div class="meta"><span>' + o.n + ' диалогов с апреля</span><span class="pv-tag">' + (o.best ? 'из удачного диалога' : 'гипотеза, предлагаю') + '</span></div>'
+      + '<div class="a">' + esc(a) + '</div><div><button class="btn" data-copy="' + esc(a) + '">в скрипт</button></div></div>'; }).join('');
+  const ref = D.tech_ref.rate, pr = pct(ref[0], ref[1]);
+  $('techs').innerHTML = D.tech.map(t => { const r = t.rate, p = r ? pct(r[0], r[1]) : null;
+    return '<div class="pv-card oc hov"><div class="q">' + esc(t.name) + '</div>'
+      + (r ? '<div class="meta"><span class="num"><b style="color:var(--text-strong);font-size:15px">' + p + '%</b> дали телефон, ' + r[0] + ' из ' + r[1] + '</span><span class="pv-tag">данные</span></div><div class="meter" role="img" aria-label="' + p + '% против ' + pr + '%"><i style="width:' + p + '%"></i><u style="left:' + pr + '%"></u></div>'
            : '<div class="meta"><span>замера пока нет</span><span class="pv-tag">гипотеза</span></div>')
-      + '<div class="a">«' + esc(t.example) + '»</div><div class="muted" style="font-size:12.5px">' + esc(t.why) + '</div><div><button class="btn" data-copy="t' + i + '">в скрипт</button></div></div>'; }).join('');
-  document.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => { const k = b.dataset.copy; copy(k[0] === 'o' ? (D.objections[+k.slice(1)].best || D.objections[+k.slice(1)].fb) : D.tech[+k.slice(1)].example); });
+      + '<div class="a">«' + esc(t.example) + '»</div><div class="muted" style="font-size:12.5px;line-height:1.45">' + esc(t.why) + '</div><div><button class="btn" data-copy="' + esc(t.example) + '">в скрипт</button></div></div>'; }).join('');
+  document.querySelectorAll('#objs [data-copy], #techs [data-copy]').forEach(b => b.onclick = () => copy(b.dataset.copy));
 }
-
-/* ---------- список на понедельник ---------- */
+let TODO_ALL = false;
 function todo(){
   const tone = { 'клиент ждёт ответа':'crit', 'оставил телефон, в чате тишина':'crit', 'прислал размеры, дожима нет':'warn', 'замолчал после цены':'warn' };
   const rows = D.todo.filter(t => CAB === 'all' || t.c === CAB);
-  $('todo').innerHTML = '<thead><tr><th>Почему в списке</th><th>Кабинет</th><th>Неделя</th><th>Итог диалога</th><th></th></tr></thead><tbody>'
-    + (TODO_ALL ? rows : rows.slice(0, 12)).map(t => '<tr><td><span class="why"><i class="dot ' + tone[t.why] + '"></i>' + t.why + '</span></td><td>' + t.c + '</td><td class="num">' + wl(t.w) + '</td><td>' + esc(t.s || '') + '</td><td><a href="' + avito(t.id) + '" target="_blank" rel="noopener">открыть</a></td></tr>').join('')
-    + '</tbody>' + (rows.length > 12 ? '<tfoot><tr><td colspan="5"><button class="btn" id="todo-more">' + (TODO_ALL ? 'свернуть' : 'показать все ' + rows.length) + '</button></td></tr></tfoot>' : '');
-  const more = $('todo-more'); if(more) more.onclick = () => { TODO_ALL = !TODO_ALL; todo(); };
-  $('h-todo').textContent = 'Список на понедельник: ' + rows.length;
+  $('todo-t').innerHTML = '<thead><tr><th>Почему в списке</th><th>Кабинет</th><th>Неделя</th><th>Итог диалога</th><th></th></tr></thead><tbody>'
+    + (TODO_ALL ? rows : rows.slice(0, 10)).map(t => '<tr><td><span class="why"><i class="dot ' + tone[t.why] + '"></i>' + t.why + '</span></td><td>' + t.c + '</td><td class="num">' + wl(t.w) + '</td><td>' + esc(t.s || '') + '</td><td><a class="link" href="' + avito(t.id) + '" target="_blank" rel="noopener">открыть</a></td></tr>').join('')
+    + '</tbody>' + (rows.length > 10 ? '<tfoot><tr><td colspan="5"><button class="btn" id="todo-more">' + (TODO_ALL ? 'свернуть' : 'показать все ' + rows.length) + '</button></td></tr></tfoot>' : '');
+  const m = $('todo-more'); if(m) m.onclick = () => { TODO_ALL = !TODO_ALL; todo(); };
+  $('h-todo').textContent = 'Список на понедельник: ' + rows.length + ' диалогов';
 }
 
-/* ---------- каркас ---------- */
-function all(){ const f = funnel(); big(f); matrix(); todo(); dyn(); }
-$('s-week').innerHTML = D.weeks.map((w, i) => '<option value="' + i + '">' + wl(w) + '</option>').reverse().join('');
+/* ---------- каркас и навигация ---------- */
+const NAV = [
+  { id:'pulse', t:'Пульс ОП', i:'grid' },
+  { t:'Разборы', i:'list', ch:[ { id:'week', t:'Разбор недели' }, { id:'lib', t:'Библиотека разборов' } ] },
+  { t:'Детализация', i:'chart', ch:[ { id:'sit', t:'Обстановка' }, { id:'fun', t:'Воронка' }, { id:'mxs', t:'Неделя одним экраном' }, { id:'why', t:'Цена и причины потерь' },
+    { id:'chg', t:'Что изменилось' }, { id:'obj', t:'Ответы на возражения' }, { id:'tech', t:'Приёмы' }, { id:'todo', t:'Список на понедельник' } ] },
+  { t:'Обучение', i:'doc', ch:[ { id:'scripts', t:'Скрипты и магниты' } ] },
+  { id:'data', t:'Откуда цифры', i:'info' }
+];
+let ACTIVE = 'sit';
+const navDraw = () => { $('nav').innerHTML = KS.nav(NAV, ACTIVE); };
+KS.navWire($('nav'), id => { const el = $(id); if(el){ el.scrollIntoView({ behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start' }); KS.shell.close && KS.shell.close(); } else toast('В демо собран только раздел «Детализация»'); });
+KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
+const spy = new IntersectionObserver(es => { es.forEach(e => { if(e.isIntersecting && e.target.id !== ACTIVE){ ACTIVE = e.target.id;
+  $('nav').querySelectorAll('[data-view]').forEach(b => { const on = b.dataset.view === ACTIVE; b.classList.toggle('is-active', on); on ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'); }); } }); }, { rootMargin:'-30% 0px -60% 0px' });
+document.querySelectorAll('.pv-sec[id]').forEach(s => spy.observe(s));
+$('theme').innerHTML = KS.theme.icon(); $('theme').onclick = () => { KS.theme.toggle(); $('theme').innerHTML = KS.theme.icon(); setTimeout(dyn, 60); };
+KS.charts && (KS.charts.onTheme = () => dyn());
+$('s-week').innerHTML = D.weeks.map((w, i) => '<option value="' + i + '">неделя ' + wl(w) + '</option>').reverse().join('');
 $('s-week').value = String(WK);
+function all(){ STEP = null; situation(); funnel(); matrix(); todo(); dyn(); }
 $('s-week').onchange = e => { WK = +e.target.value; all(); };
 seg($('s-cab'), v => { CAB = v; all(); });
-seg($('s-fun'), v => { FUN = v; const f = funnel(); big(f); });
-seg($('s-met'), v => { MET = v; dyn(); });
-$('b-theme').onclick = () => { if(window.KS && KS.theme) KS.theme.toggle(); setTimeout(dyn, 50); };
-if(window.KS && KS.theme) KS.theme.init();
-ladder(); pareto(); objections(); all();
+seg($('s-fun'), v => { FUN = v; STEP = null; funnel(); });
+KS.theme.init(); navDraw(); ladder(); pareto(); chips(); objections(); all();
 window.addEventListener('resize', () => { clearTimeout(all.t); all.t = setTimeout(dyn, 150); });
 })();
 </script>

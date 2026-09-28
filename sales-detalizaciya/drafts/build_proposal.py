@@ -50,9 +50,36 @@ def main():
         out["cabs"][code] = {"name": acc["avito_name"], "fun": fun, "series": series,
                              "cm": {w: comments.get(code, {}).get(w) for w in W8}}
 
+    # Диалоги, которые остановились на стадии k (8 недель, оба кабинета)
+    stage_lists = defaultdict(list)
+    for code in chats:
+        for r in chats[code]:
+            x = labels.get(r["id"])
+            if r["origin"] == "inbound" and r["week"] in W8 and x and x["segment"] != "non_client":
+                stage_lists[x["stage"]].append({"id": r["id"], "c": code, "w": r["week"], "s": anon(x.get("summary")), "st": x["stage"],
+                                                "lr": x.get("lost_reason")})
+    out["stage_lists"] = {k: sorted(v, key=lambda d: d["w"], reverse=True)[:30] for k, v in stage_lists.items()}
+    out["stage_reasons"] = {k: Counter(d["lr"] or "идёт" for d in v).most_common(4) for k, v in stage_lists.items()}
+
+    # Первые 4 недели против последних 4: среднее, взвешенное по обращениям, оба кабинета
+    halves = {}
+    for f in ("fast", "dz", "ph", "fu", "price"):
+        res = []
+        for part in (W8[:4], W8[4:]):
+            num = den = 0
+            for code in out["cabs"]:
+                for r in out["cabs"][code]["series"]:
+                    if r["w"] in part and r[f] is not None and r["n"]:
+                        num += r[f] * r["n"]; den += r["n"]
+            res.append(round(num / den, 1) if den else None)
+        halves[f] = res
+    out["halves"] = halves
+
     # Ценовая лестница: самая крупная сумма, которую мы назвали в диалоге, и реакция клиента
     price_rx = re.compile(r"(\d{1,3}(?:[  ]?\d{3})+|\d{4,6})\s?(?:руб|р\.|₽|р\b)", re.I)
     ladder = defaultdict(Counter)
+    checks, band_lists = [], defaultdict(list)
+    wk_of = {r["id"]: (c, r["week"]) for c in chats for r in chats[c]}
     for f in ("OLD-B", "OLD-G"):
         for line in open(ROOT / f"data/transcripts/{f}.jsonl"):
             r = json.loads(line)
@@ -66,8 +93,13 @@ def main():
             p = max(ps)
             b = 0 if p <= 25000 else 1 if p <= 60000 else 2 if p <= 120000 else 3
             pr = x["price_reaction"]
+            checks.append(p)
+            if pr == "silent" and r["id"] in wk_of:
+                band_lists[b].append({"id": r["id"], "c": wk_of[r["id"]][0], "w": wk_of[r["id"]][1], "s": anon(x.get("summary")), "st": x["stage"], "p": p})
             ladder[b]["accepted" if pr == "accepted" else "silent" if pr == "silent" else "thinking" if pr == "thinking" else "other"] += 1
     out["ladder"] = [dict(ladder[b]) for b in range(4)]
+    out["median_check"] = sorted(checks)[len(checks) // 2] if checks else None
+    out["band_lists"] = [sorted(v, key=lambda d: d["w"], reverse=True)[:25] for v in (band_lists[b] for b in range(4))]
 
     # Парето потерь за 8 недель: почему диалог не дошёл до контакта (стадия меньше 3)
     reason_name = {"silent": "Пропал после нашего ответа", "not_now": "Не сейчас", "mismatch": "Нужно не то, что делаем",

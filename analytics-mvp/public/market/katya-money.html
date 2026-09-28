@@ -722,7 +722,7 @@
   <div>таксономия: 115 SKU (27.9%), 53.2% оборота · без категории 43 669 789 ₽ - в разрезах по категориям этот оборот не виден</div></div><div style="margin-top:6px"><b>откуда сборы по месяцам</b> (где ledger'а нет, ставка занижена и маржа завышена)
   <div style="color:inherit">2026-01: взаиморасчёты 1 853 325 ₽ (49.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-02: взаиморасчёты 3 803 613 ₽ (43.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-03: взаиморасчёты 5 078 529 ₽ (48.1%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-04: взаиморасчёты 8 174 239 ₽ (47.9%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-05: взаиморасчёты 7 247 462 ₽ (47.2%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-06: взаиморасчёты 5 512 980 ₽ (50.5%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-07: взаиморасчёты 9 854 423 ₽ (59.6%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-08: взаиморасчёты 8 717 046 ₽ (56.3%) · комиссии заказа 0 ₽</div><div style="color:inherit">2026-09: взаиморасчёты 6 470 387 ₽ (56.6%) · комиссии заказа 0 ₽</div></div></details></div></div></details></div>
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-26</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 28.09.2026 14:35 МСК</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой Яндекс Маркет · данные по 2026-09-26</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено 28.09.2026 15:07 МСК</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/ym-snapshots.yml" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
@@ -747,6 +747,7 @@
   <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по заказам</div><div class="card-sub">та же база и те же колонки, что в аналитике по артикулам ниже &middot; строка - заказ, а не артикул &middot; сгруппировано по категориям, клик раскрывает заказы &middot; период из фильтра наверху страницы</div></div>
     </div>
     <div class="kt-scroll kt-box"><table class="kt-table" id="so-t"></table></div>
+    <div id="so-est" class="kt-note" style="display:none;padding:6px 0 0"></div>
     <div id="so-more" class="kt-note" style="padding:6px 0 0"></div>
   </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (по дате заказа)</div><div class="card-sub">доставлено минус отмены и возвраты &middot; все кабинеты &middot; период берётся из фильтра наверху страницы, по дате оформления заказа</div></div>
@@ -757,11 +758,13 @@
     <div id="sv-cov" class="kt-note" style="padding:2px 0 8px"></div>
     <div id="sv-gaps" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div>
     <div class="kt-scroll kt-box"><table class="kt-table" id="sv-t"></table></div>
+    <div id="sv-est" class="kt-note" style="display:none;padding:6px 0 0"></div>
     <div id="sv-note" class="kt-note" style="margin-top:8px"></div>
   </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub">тот же вопрос, другой базис: здесь проводки отчёта по взаиморасчётам <b>по дате транзакции</b> в выбранные даты, а не заказы, оформленные в них. Это та же дата, по которой Маркет строит отчёт о платежах: «Продано, шт» и «Оплатил клиент» - его строка «Получено от потребителей», «Возвраты» - строка «Возвращено потребителям». Поэтому сюда попадают возвраты по продажам прошлых месяцев и не попадают заказы, которые покупатель ещё не оплатил.</div></div></div>
     <div id="acc-cov" class="kt-note" style="padding:2px 0 8px"></div>
     <div class="kt-scroll kt-box"><table class="kt-table" id="acc-t"></table></div>
+    <div id="acc-est" class="kt-note" style="display:none;padding:6px 0 0"></div>
     <div id="acc-note" class="kt-note" style="margin-top:8px"></div>
   </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Доставка по городам</div><div class="card-sub">куда возим в минус &middot; доход - то, что покупатель заплатил нам за доставку &middot; расход - счёт перевозчика из ведомости плюс сбор Маркета за логистику &middot; период из фильтра наверху страницы</div></div></div>
@@ -1680,6 +1683,48 @@ function svOhPer(ms,w,oh){
   var un=0; ms.forEach(function(m){(m.rows||[]).forEach(function(r){if(svInWin(r.d,w))un+=r.units_net||0;});});
   return un>0?(((oh&&oh.m)||0)+((oh&&oh.p)||0))/un:0;
 }
+// РАСЧЁТНЫЕ ДАННЫЕ фиолетовым курсивом, как на Яндекс Маркет (Катя 28.09.2026: «все расчётные цифры в
+// аналитиках выдели фиолетовым; по мере того как их будут заменять реальные данные - они будут
+// становиться белыми»). Признак берётся из данных, поэтому ячейка белеет сама, без правки кода:
+//  - месяц заказа ещё дозревает: Маркет списывает услуги и в следующем месяце, реестр платежей
+//    его ещё не закрыл - сборы, поступление и прибыль по таким заказам неполные;
+//  - «В пути» - заказы, которые ещё не доставлены;
+//  - блок «за выбранный период»: месяцы, посчитанные из заказов, пока реестр не перезабран.
+// Налог в своде не красится: платёж покупателя уже окончательный, от услуг он не зависит.
+function svYoung(ym){
+  var lgTo=(typeof SV!=='undefined'&&SV&&SV.ledger_to)||'';
+  if(!lgTo||!ym)return false;
+  var y=+ym.slice(0,4), mo=+ym.slice(5,7);
+  var end=new Date(Date.UTC(mo===12?y+1:y, mo===12?1:mo+1, 0)).toISOString().slice(0,10);
+  return lgTo<end;
+}
+// Красит ячейки строки по имени колонки. html - строка ячеек, off - индекс колонки первой из них
+// (1, если ячейка названия не входит). cols - имена колонок; «АДМ»/«Налоги» ловятся по началу.
+function svEstMark(html,H,off,cols,tip){
+  var p=String(html).split('<td');
+  for(var i=1;i<p.length;i++){
+    var nm=H[i-1+off]||'';
+    var hit=cols.some(function(c){return nm===c||(c.slice(-1)===' '&&nm.indexOf(c)===0);});
+    if(!hit)continue;
+    var q=p[i];
+    if(/^ class="r[^"]*"/.test(q))q=q.replace(/^ class="r([^"]*)"/,' class="r an-est$1"');
+    else q=' class="an-est"'+q;
+    q=q.replace(/^( class="[^"]*")( style="color:[^"]*")/,'$1');
+    if(tip){var gt=q.indexOf('>'),head=q.slice(0,gt);
+      q=(/ title="/.test(head)?head.replace(/ title="([^"]*)"/,' title="'+tip+' $1"'):head+' title="'+tip+'"')+q.slice(gt);}
+    p[i]=q;
+  }
+  return p.join('<td');
+}
+function svEstTip(yN){return 'Расчётное: месяц заказа ещё дозревает - Маркет досписывает услуги в следующем месяце, реестр платежей его ещё не закрыл. Поступление таких заказов в строке: '+svRub(yN)+' ₽. Станет белым, когда реестр закроет следующий месяц.';}
+var SV_EST_COLS=null;
+function svEstCols(){return SV_EST_COLS||(SV_EST_COLS=SV_COLS.map(function(p){return p[0];}).concat(['Баллы Маркета','Поступление','Валовая прибыль','Маржа','АДМ ','Чистая прибыль','Рентаб.']));}
+function svEstSum(x){if(x.rows)return x.rows.reduce(function(a,r){return a+(r.yN||0);},0);return x.yN||0;}
+function svEstHas(x){if(x.rows)return x.rows.some(function(r){return r.yF;});return !!x.yF;}
+function svEstLegend(id,on){var e=document.getElementById(id);if(!e)return;
+  e.style.display=on?'':'none';
+  e.innerHTML=on?'<span class="an-est">Фиолетовым курсивом</span> - расчётные числа: ещё не окончательные и заменятся реальными данными (сумма и причина - в подсказке ячейки). Когда данные придут, ячейка станет белой сама.':'';}
+
 // Поступление ОДНОЙ строки свода, теми же слагаемыми, что и в svCalcAll.
 function svRowNet(r,ohPer){
   var d=r.units_delivered||0,n=r.units_net||0;
@@ -1694,6 +1739,7 @@ function svAgg(ms,w,lost,ohPer){
     // База АДМ: поступление строки, если оно положительное. Минус одной строки не должен гасить
     // расход соседних (Катя 23.09.2026: «где АДМ отрицательный - отсекай»).
     o.admBase+=Math.max(0,svRowNet(r,ohPer));
+    if(svYoung(m.ym)){o.yN=(o.yN||0)+svRowNet(r,ohPer);o.yF=1;}
     // ||0 обязателен: в страницу уходит компактная копия свода, где нулевые поля просто не
     // записаны. Без защиты первая же строка с нулевыми штуками давала NaN во всём итоге.
     // «Продажи» с вычетом возвратов. Прайс строки относится ко ВСЕМ доставленным штукам, поэтому
@@ -1866,7 +1912,7 @@ function svOwnDeliv(m){return !!((m&&m.own||0)+(m&&m.unk||0));}
 function svDraw(){
   var ms=svPick();
   var cov=document.getElementById('sv-cov'),gapsEl=document.getElementById('sv-gaps'),noteEl=document.getElementById('sv-note');
-  if(!ms.length){document.getElementById('sv-t').innerHTML='';cov.textContent='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.';gapsEl.style.display='none';noteEl.textContent='';var _p=document.getElementById('sv-pts');if(_p){_p.style.display='none';_p.innerHTML='';}var _pc=document.getElementById('sv-pts-card');if(_pc)_pc.style.display='none';return;}
+  if(!ms.length){svEstLegend('sv-est',false);document.getElementById('sv-t').innerHTML='';cov.textContent='За выбранный период доставленных заказов в снимке нет. Период задаётся фильтром наверху страницы.';gapsEl.style.display='none';noteEl.textContent='';var _p=document.getElementById('sv-pts');if(_p){_p.style.display='none';_p.innerHTML='';}var _pc=document.getElementById('sv-pts-card');if(_pc)_pc.style.display='none';return;}
   var orders=0,periodOrd=0,inflight=0,noLed=0,acts={},outSt=0,outMi=0,outMiN=0,ptsDel=0,ptsOrd=0,ptsDed=0,ptsRepSpent=0,missAcc=0,missOrd=0;
   var missByB={};
   var oh=svOverhead(ms),ohM=oh.m,ohP=oh.p,ohAct=oh.act,ohLed=oh.ledger;
@@ -2194,6 +2240,7 @@ function soAgg(ms,w,lost,ohPer){
     var k=r.order||'—',o=a[k];
     if(!o){o=a[k]={order:k,d:r.d,skuRev:{},un:0,priceNet:0,paid:0,admBase:0,ship:0,sp:0,cogs:0,ck:true,svc:{},shipOur:0,shipKn:false,dm:{},city:''};}
     o.admBase+=Math.max(0,svRowNet(r,ohPer));   // та же база, та же гранулярность
+    if(svYoung(m.ym)){o.yN=(o.yN||0)+svRowNet(r,ohPer);o.yF=1;}
     // Город - свойство ЗАКАЗА, а не строки: у всех позиций одного заказа он один. Берём первый
     // непустой. Пусто = снимок заказов собран до 22.09.2026, когда строка города ещё не несла.
     if(!o.city&&r.region)o.city=r.region;
@@ -2261,7 +2308,7 @@ function soDraw(){
   var el=document.getElementById('so-t'); if(!el)return;
   var moreEl=document.getElementById('so-more');
   var w=svWin(),ms=svPick(w);
-  if(!ms.length){el.innerHTML='';moreEl.textContent='';return;}
+  if(!ms.length){el.innerHTML='';moreEl.textContent='';svEstLegend('so-est',false);return;}
   var oh=svOverhead(ms,w), lost=svShipLost(ms,w);
   var list=soAgg(ms,w,lost,svOhPer(ms,w,oh));
   var ae=document.getElementById('sv-adm'),te=document.getElementById('sv-tax');
@@ -2322,7 +2369,9 @@ function soDraw(){
       ? ' title="покупатель отдал '+svRub(v)+' ₽ при прайсе '+svRub(x.priceNet)+' ₽ - разницу '+svRub(x.priceNet-v)+' ₽ внёс Маркет скидкой и вернул нам баллами"' : '')
       +'>'+(Math.round(v)?svRub(v):'—')+'</td>';
   }
-  function cells(x,c){
+  function cells(x,c){var y=svEstHas(x);
+    return svEstMark(cells0(x,c),H,1,y?svEstCols():[],y?svEstTip(svEstSum(x)):'');}
+  function cells0(x,c){
     return '<td class="r">'+svRub(x.priceNet)+'</td>'+paidCell(x)+money(x.ship)
       +FEE.map(function(n){return money(x.svc[n]||0);}).join('')
       +money(x.sp)+'<td class="r">'+x.un+'</td>'
@@ -2359,7 +2408,8 @@ function soDraw(){
   // (ohPer × штуки = расход целиком), и эта поправка ничего не меняет.
   var ohRest=(oh.m+oh.p)-ohPer*unAll;
   if(Math.round(ohRest)){TN.net-=ohRest;TN.gp-=ohRest;TN.np-=ohRest;}
-  h+='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' заказов)</span>'
+  var _yAll=list.filter(svEstHas),_yT=list.reduce(function(q,x){return q+svEstSum(x);},0);
+  var _tot='<tr class="so-total"><td><b>ИТОГО</b> <span style="color:var(--ink-3)">('+list.length+' заказов)</span>'
     +(Math.round(ohRest)?' <span style="color:#E5B567;font-size:11px" title="Доставленных заказов в окне нет, а кабинет всё равно списал '+svRub(ohRest)+' ₽: подписка, полки и буст идут по календарю, а не по продажам. Разносить эту сумму не на что, поэтому она целиком стоит расходом периода.">расход без продаж</span>':'')+'</td>'
     +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td>'
     +'<td class="r" style="color:var(--ink-3)" title="'+SO_PAID_TIP+'"><b>'+(Math.round(T.paid)?svRub(T.paid):'—')+'</b></td>'
@@ -2374,6 +2424,8 @@ function soDraw(){
     +'<td class="r"><b>'+svRub(TN.np)+'</b></td>'+pc(TN.np,TN.net)
     +'<td class="r"><b>'+svModeTxt(T.dm)+'</b></td>'
     +soCityCell(T)+'</tr>';
+  h+=_yAll.length?svEstMark(_tot,H,0,svEstCols(),svEstTip(_yT)):_tot;
+  svEstLegend('so-est',_yAll.length>0);
   // Отдельной строки «Отправки по отменённым и возвратам» здесь больше нет (Катя 22.09.2026:
   // «мы знаем по какому это заказу расход - туда его и переместить»). В своде по АРТИКУЛАМ она
   // остаётся: там строка - артикул, и расход без продажи обрушил бы его рентабельность. Здесь
@@ -2447,7 +2499,7 @@ function accDraw(){
   var cov=document.getElementById('acc-cov'), note=document.getElementById('acc-note');
   var w=svWin(), list=accAgg(w);
   if(!list.length){
-    el.innerHTML=''; note.textContent='';
+    el.innerHTML=''; note.textContent=''; svEstLegend('acc-est',false);
     cov.innerHTML='За выбранный период проводок по взаиморасчётам нет. Период задаётся фильтром наверху страницы.';
     return;
   }
@@ -2467,9 +2519,12 @@ function accDraw(){
     +(ACC_U_TIP[x]?' title="'+ACC_U_TIP[x]+'"':'')
     +'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
-  function cells(x){
+  var ACC_EST_TIP='Расчётное: часть дней посчитана по выгрузке заказов, а не по реестру - за этот месяц реестр собран без колонки источника. Станет белым после перезабора реестра.';
+  var ACC_EST_COLS=H.slice(1).filter(function(x){return x!=='С\С произв.';});
+  function cells(x){return svEstMark(cells0(x),H,1,x.fb?ACC_EST_COLS:[],x.fb?ACC_EST_TIP:'');}
+  function cells0(x){
     return '<td class="r">'+(x.sold||'—')+'</td><td class="r">'+(x.ret||'—')+'</td>'
-      +'<td class="r"'+(x.fb?' style="color:#E5B567" title="часть дней посчитана по выгрузке заказов, а не по реестру: за этот месяц реестр собран без колонки источника - штуки с отчётом о платежах могут не совпасть"':'')+'><b>'+x.units+'</b></td>'
+      +'<td class="r"><b>'+x.units+'</b></td>'
       +'<td class="r"><b>'+svRub(x.accruals)+'</b></td>'
       +'<td class="r" style="color:var(--ink-3)"'+(Math.round(x.back||0)?' title="получено '+svRub(x.got||0)+' ₽ − возвращено '+svRub(-(x.back||0))+' ₽"':'')+'>'+(Math.round(x.pay)?svRub(x.pay):'—')+'</td>'
       +money(x.dlv||0)
@@ -2505,6 +2560,7 @@ function accDraw(){
       h+='<tr style="background:rgba(255,255,255,.02)"><td style="padding-left:22px;color:var(--ink-2)" title="'+(ACC_NAME[x.sku]||'').replace(/"/g,'&quot;')+'">'+x.sku+'</td>'+cells(x)+'</tr>';});
   });
   el.innerHTML=h+'</tbody>';
+  svEstLegend('acc-est',!!T.fb);
   Array.prototype.forEach.call(el.querySelectorAll('.acc-cat'),function(tr){
     tr.onclick=function(){var g=groups[+tr.getAttribute('data-cat')];ACC_OPEN[g.cat]=!ACC_OPEN[g.cat];accDraw();ktXbarAll();};});
   // Сверка с отчётом о реализации (УПД) - та самая, ради которой блок и просили. Показываем по
@@ -2622,7 +2678,10 @@ function svTabPnl(list,ohM,ohP,noteEl){
     return '<span style="color:#FF5A5F" title="'+t+'">●</span> '+a.sku
       +(a.lostOnly?' <span style="color:var(--ink-3);font-size:10.5px">только отменённые отправки</span>':'');
   }
-  function cells(a,c){
+  function cells(a,c){var y=svEstHas(a);if(y)svEstAny=true;
+    return svEstMark(cells0(a,c),H,1,y?svEstCols():[],y?svEstTip(svEstSum(a)):'');}
+  var svEstAny=false;
+  function cells0(a,c){
     return '<td class="r"><b>'+svRub(a.priceNet||0)+'</b></td>'+svPaidCell(a)+money(a.ship)
       +FEE.map(function(n){return money((a.svc[n]||0)+(n==='Прочее'?c.oh:0));}).join('')
       +money(a.sp||0)
@@ -2635,8 +2694,8 @@ function svTabPnl(list,ohM,ohP,noteEl){
       +money(c.adm)+money(c.tax)
       +'<td class="r" style="color:'+(c.np===null?'var(--ink-3)':(c.np>=0?'var(--up)':'var(--dn)'))+'">'+(c.np===null?'не считается':svRub(c.np))+'</td>'
       +'<td class="r"'+svBase(c)+'>'+((c.np===null||c.cov<=0)?'—':(Math.round(c.np/c.cov*1000)/10)+'%')+'</td>'
-      +'<td class="r" style="color:var(--ink-3)">'+(a.fly?a.fly:'—')+'</td>'
-      +'<td class="r" style="color:var(--ink-3)">'+(a.flyP?svRub(a.flyP):'—')+'</td>'
+      +(a.fly?'<td class="r an-est" title="Расчётное: заказы ещё в пути - станут выручкой только после доставки">'+a.fly+'</td>':'<td class="r" style="color:var(--ink-3)">—</td>')
+      +(a.flyP?'<td class="r an-est" title="Расчётное: заказы ещё в пути - станут выручкой только после доставки">'+svRub(a.flyP)+'</td>':'<td class="r" style="color:var(--ink-3)">—</td>')
       +'<td class="r" style="color:var(--ink-2)">'+svModeTxt(a.dm)+'</td>';
   }
   groups.forEach(function(g,gi){
@@ -2652,7 +2711,8 @@ function svTabPnl(list,ohM,ohP,noteEl){
   var some=groups.length>0, gpT=R.gpT, npT=R.npT;
   var mS=function(v){return (some&&T.cover>0)?(Math.round(v/T.cover*1000)/10)+'%':'—';};
   h+='<tbody>';
-  h+='<tr class="sv-total"><td><b>ИТОГО</b></td>'
+  var _yAll=list.filter(svEstHas),_yT=list.reduce(function(q,x){return q+svEstSum(x);},0);
+  var _tot='<tr class="sv-total"><td><b>ИТОГО</b></td>'
     +'<td class="r"><b>'+svRub(T.priceNet)+'</b></td>'
     +'<td class="r" style="color:var(--ink-3)" title="'+SV_PAID_TIP+'"><b>'+(Math.round(T.paid)?svRub(T.paid):'—')+'</b></td>'
     +'<td class="r"><b>'+svRub(T.ship)+'</b></td>'
@@ -2673,9 +2733,11 @@ function svTabPnl(list,ohM,ohP,noteEl){
     +'<td class="r"><b>'+svRub(T.adm)+'</b></td><td class="r"><b>'+svRub(T.tax)+'</b></td>'
     +'<td class="r"><b>'+(some?svRub(npT):'—')+'</b></td>'
     +'<td class="r"'+svBase({gp:some?npT:null,cov:T.cover,net:T.net})+'><b>'+mS(npT)+'</b></td>'
-    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.fly?T.fly:'—')+'</b></td>'
-    +'<td class="r" style="color:var(--ink-3)"><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td>'
+    +'<td class="r'+(T.fly?' an-est':'')+'"'+(T.fly?'':' style="color:var(--ink-3)"')+'><b>'+(T.fly?T.fly:'—')+'</b></td>'
+    +'<td class="r'+(T.flyP?' an-est':'')+'"'+(T.flyP?'':' style="color:var(--ink-3)"')+'><b>'+(T.flyP?svRub(T.flyP):'—')+'</b></td>'
     +'<td class="r"><b>'+svModeTxt(T.dm)+'</b></td></tr>';
+  h+=_yAll.length?svEstMark(_tot,H,0,svEstCols(),svEstTip(_yT)):_tot;
+  svEstLegend('sv-est',_yAll.length>0||!!T.fly);
   // СТРОКА ПРОБЕЛА, сразу под ИТОГО (выбор Кати 21.09.2026 из трёх вариантов). Смысл: итог выше
   // неполон, и видно, НАСКОЛЬКО. В сумму ИТОГО не входит ни одной ячейкой и входить не должна:
   // это не наши цифры того же базиса, а начисления реестра по заказам, которых в своде нет.

@@ -2048,3 +2048,37 @@ describe("баллы Маркета: отдельной карточкой в к
     }
   });
 });
+
+// Катя 28.09.2026: «все расчётные цифры в аналитиках выдели фиолетовым цветом как у OZON; по мере
+// того как их будут заменять реальные данные - они будут становиться белыми». Признак берётся из
+// данных: закрытый месяц белый, дозревающий - фиолетовый, налог (платёж покупателя) не красится.
+describe("Маркет: расчётные числа фиолетовым", () => {
+  const estCols = (id: string) => {
+    const T = D().getElementById(id)!;
+    const h = [...T.querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+    const tot = T.querySelector("tr.sv-total, tr.so-total");
+    return tot ? [...tot.children].map((td, i) => (td.classList.contains("an-est") ? h[i]! : "")).filter(Boolean) : [];
+  };
+  it("закрытый месяц без фиолетового, и легенды нет", () => {
+    setRange("2026-07-01", "2026-07-31");
+    for (const id of ["so-t", "sv-t"]) expect(estCols(id), `${id}: июль закрыт, а в ИТОГО есть расчётные ячейки`).toEqual([]);
+    expect(D().getElementById("sv-est")!.style.display).toBe("none");
+    expect(errs).toEqual([]);
+  });
+  it("дозревающий месяц: сборы, поступление и прибыль фиолетовые, налог и продажи - нет", () => {
+    // Ставка теста на снимок: реестр собран по концу сентября, значит август ещё дозревает.
+    const SV = (dom.window as any).SV;
+    if (!SV || !SV.ledger_to || SV.ledger_to >= "2026-09-30") return;
+    setRange("2026-08-01", "2026-08-31");
+    for (const id of ["so-t", "sv-t"]) {
+      const c = estCols(id);
+      expect(c, `${id}: поступление не помечено`).toContain("Поступление");
+      expect(c, `${id}: чистая не помечена`).toContain("Чистая прибыль");
+      expect(c.some((x) => x.indexOf("Налоги") === 0), `${id}: налог окрашен, а платёж покупателя окончательный`).toBe(false);
+      expect(c, `${id}: продажи окрашены`).not.toContain("Продажи");
+    }
+    expect(D().getElementById("sv-est")!.style.display, "легенды нет").toBe("");
+    expect(errs).toEqual([]);
+  });
+});
+

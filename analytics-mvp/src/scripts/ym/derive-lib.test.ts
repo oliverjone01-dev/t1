@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -441,5 +441,60 @@ describe("доля Маркета в доставке сверена с отчё
     const bad = keys.filter((k) => Math.abs((mine[k] || 0) - (theirs[k] || 0)) > 1)
       .map((k) => `${k}: свод ${mine[k] || 0}, отчёт о баллах ${theirs[k] || 0}`);
     expect(bad, "доля Маркета в доставке разошлась с отчётом Маркета").toEqual([]);
+  });
+});
+
+// Катя 28.09.2026 сверила блок «за выбранный период» с отчётом о платежах Маркета: GGL-09-2 за июль
+// «Получено от потребителей» 15 шт на 205 035 ₽, «Возвращено» 3 шт на 40 459 ₽, а в блоке стояло 8 шт -
+// блок брал заказы по дате их финансового закрытия. Теперь он строится из проводок по дате транзакции.
+describe("блок по начислениям из проводок реестра", () => {
+  const ord = (order: string, sku: string, count: number, p_buyer: number) =>
+    ({ order, sku, count, p_buyer, service: false, business: "1", status: "DELIVERED", fin: "2026-07-25", delivered: count, returned: 0, fees: {}, accruals: 0, payout: 0, fee_total: 0 } as any);
+  const pay = (d: string, order: string, amount: number, extra: any = {}) =>
+    ({ d, business: "1", order, sku: "A", type: "Начисление", src: "Платёж покупателя", service: "Товар A", amount, ...extra });
+
+  it("штуки и платёж - по дате транзакции, возврат вычитается в месяце возврата", () => {
+    const orders = [ord("o1", "A", 1, 100), ord("o2", "A", 3, 50)];
+    const net = [
+      pay("2026-07-03", "o1", 100),
+      pay("2026-07-04", "o2", 150),
+      { d: "2026-07-04", business: "1", order: "o2", sku: "", type: "Начисление", src: "Платёж покупателя", service: "Доставка", amount: 500 },
+      { d: "2026-07-04", business: "1", order: "o2", sku: "A", type: "Начисление", src: "Баллы за скидку Маркета", service: "Товар A", amount: 90 },
+      { d: "2026-07-09", business: "1", order: "o2", sku: "A", type: "Удержание", src: "Оплата услуг Маркета", service: "Размещение товарных предложений", amount: -20 },
+      { d: "2026-07-09", business: "1", order: "o2", sku: "A", type: "Списание", src: "Скидка за участие в совместных акциях", service: "Товар A", amount: -70 },
+      { d: "2026-07-20", business: "1", order: "o1", sku: "A", type: "Возврат", src: "Возврат платежа покупателя", service: "Товар A", amount: -100 },
+      { d: "2026-07-20", business: "1", order: "", sku: "", type: "Удержание", src: "Оплата услуг Маркета", service: "", amount: -5 },
+    ];
+    const { rows, fallback } = buildAccNetting(net, orders);
+    expect(fallback).toEqual([]);
+    const jul = rows.filter((r) => r.d.startsWith("2026-07"));
+    const s = (f: keyof typeof jul[0]) => jul.reduce((a, r) => a + (r[f] as number), 0);
+    expect(s("sold"), "штуки берутся из заказа, когда COUNT в реестре нет").toBe(4);
+    expect(s("ret")).toBe(1);
+    expect(s("units")).toBe(3);
+    expect(s("pay"), "получено − возвращено по товару").toBe(150);
+    expect(s("dlv"), "доставка покупателя - отдельно, на артикул заказа").toBe(500);
+    expect(jul.every((r) => r.sku === "A"), "проводка без артикула легла на артикул заказа").toBe(true);
+    expect(s("commission")).toBe(-20);
+    expect(s("cofin"), "списание баллами лежит справкой").toBe(-70);
+    expect(s("points"), "баллы лежат справкой").toBe(90);
+    // Только деньги, как в отчёте о платежах: баллы и списание баллами в начисления и к выплате не
+    // входят. Проводка уровня кабинета (без заказа) сюда тоже не входит.
+    expect(s("accruals")).toBe(150 + 500);
+    expect(s("amount")).toBe(s("accruals") - 20);
+  });
+
+  it("COUNT из реестра главнее заказа", () => {
+    const { rows } = buildAccNetting([pay("2026-07-03", "o9", 300, { count: 2 })], []);
+    expect(rows[0]).toMatchObject({ sold: 2, units: 2, pay: 300, basis: "netting" });
+  });
+
+  it("месяц, собранный без колонки источника, берётся из заказов и помечен", () => {
+    const orders = [{ ...ord("o5", "B", 1, 80), fin: "2026-05-10", price: 120, accruals: 120, fees: {}, payout: 120, fee_total: 0 }];
+    const net = [{ d: "2026-05-10", business: "1", order: "o5", sku: "B", type: "Начисление", service: "Товар B", amount: 80 }];
+    const { rows, fallback } = buildAccNetting(net as any, orders);
+    expect(fallback).toEqual(["1/2026-05"]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ basis: "orders", sku: "B", units: 1 });
   });
 });

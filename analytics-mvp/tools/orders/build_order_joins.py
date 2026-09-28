@@ -9,6 +9,10 @@
 # Реклама (ads) в OZON accrual/postings по заказу = 0 (CPO API не отдаёт), поэтому берём из CPO-файлов.
 # Доставка (наша+клиентская) в OZON по заказу разрежена - берём из ведомости, как в таблице по артикулам.
 # Запуск из analytics-mvp: python3 tools/orders/build_order_joins.py
+#
+# Номер заказа пишется в delivery_orders.ndjson как есть в ведомости («бывш.», без хвоста, два номера в
+# строке). К отправлениям OZON его сводит src/scripts/delivery-match.ts; ненайденное не раскладывается,
+# а показывается плашкой (правило Ивана 28.09: knowledge/semantic/rule-find-order-no-spread.md).
 import openpyxl, glob, os, json, re, collections
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

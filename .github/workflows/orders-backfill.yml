@@ -50,11 +50,11 @@ jobs:
           node-version: "22"
       - run: npm ci || npm install
       - name: Сбор по заказам
-        run: npx tsx src/scripts/ozon/orders-daily.ts "${{ github.event.inputs.from }}" "${{ github.event.inputs.to }}"
+        run: npx tsx src/scripts/ozon/orders-daily.ts "${{ github.event.inputs.from || '2026-02-06' }}" "${{ github.event.inputs.to }}"
       - name: Миграция финансов по SKU на accrual (параллельный файл)
         run: npx tsx src/scripts/ozon/pnl-sku-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}"
       - name: Эквайринг/хранение по SKU из accrual/by-day
-        run: npx tsx src/scripts/ozon/acq-sku-daily.ts "${{ github.event.inputs.from }}" "${{ github.event.inputs.to }}"
+        run: npx tsx src/scripts/ozon/acq-sku-daily.ts "${{ github.event.inputs.from || '2026-02-06' }}" "${{ github.event.inputs.to }}"
       - name: Канальный P&L и Общие расходы из accrual (замена мёртвых транзакций)
         run: npx tsx src/scripts/ozon/pnl-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}"
       - name: Отчёт о реализации по SKU (штуки и база налога F+G-J-K)

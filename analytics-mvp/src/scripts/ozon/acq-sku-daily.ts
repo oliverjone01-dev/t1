@@ -27,7 +27,7 @@ async function main() {
   const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
   if (!clientId || !apiKey) { console.warn("acq-sku-daily: OZON_SELLER_* нет - пропуск"); return; }
   const seller = new OzonSeller({ clientId, apiKey });
-  const from = process.argv[2] || "2026-05-01";
+  const from = process.argv[2] || "2026-02-06";
   const to = process.argv[3] || ymd(new Date(Date.now() - 86400000));
   console.log(`acq-sku-daily: by-day ${from}..${to}`);
 

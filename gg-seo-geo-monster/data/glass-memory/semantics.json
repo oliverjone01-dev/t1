@@ -1,5 +1,5 @@
 {
- "measured": "2026-09-22",
+ "measured": "2026-09-28",
  "phrases": [
   {
    "phrase": "как называется памятник",
@@ -124,7 +124,7 @@
   {
    "phrase": "чем сверлить мрамор",
    "pos": null,
-   "freq": 185,
+   "freq": 196,
    "url": "",
    "cluster": "сверлить",
    "intent": "informational"
@@ -316,7 +316,7 @@
   {
    "phrase": "франшиза мебельного производства",
    "pos": null,
-   "freq": 9,
+   "freq": 13,
    "url": "",
    "cluster": "франшиза",
    "intent": "commercial"
@@ -364,7 +364,7 @@
   {
    "phrase": "франшиза ритуальных услуг",
    "pos": null,
-   "freq": 35,
+   "freq": 37,
    "url": "",
    "cluster": "франшиза",
    "intent": "commercial"
@@ -372,7 +372,7 @@
   {
    "phrase": "что пишут на памятниках",
    "pos": null,
-   "freq": 904,
+   "freq": 833,
    "url": "",
    "cluster": "пишут",
    "intent": "informational"
@@ -412,7 +412,7 @@
   {
    "phrase": "шушарское кладбище",
    "pos": null,
-   "freq": 195,
+   "freq": 162,
    "url": "",
    "cluster": "шушарское",
    "intent": "commercial"
@@ -428,7 +428,7 @@
   {
    "phrase": "южное кладбище санкт петербург",
    "pos": null,
-   "freq": 2637,
+   "freq": 2339,
    "url": "",
    "cluster": "южное",
    "intent": "commercial"
@@ -468,7 +468,7 @@
   {
    "phrase": "чем сверлить гранит",
    "pos": null,
-   "freq": 239,
+   "freq": 223,
    "url": "",
    "cluster": "сверлить",
    "intent": "informational"
@@ -500,7 +500,7 @@
   {
    "phrase": "шуваловское кладбище санкт петербург",
    "pos": null,
-   "freq": 144,
+   "freq": 215,
    "url": "",
    "cluster": "шуваловское",
    "intent": "commercial"
@@ -596,7 +596,7 @@
   {
    "phrase": "уход за местом захоронения",
    "pos": null,
-   "freq": 163,
+   "freq": 277,
    "url": "",
    "cluster": "уход",
    "intent": "commercial"
@@ -716,7 +716,7 @@
   {
    "phrase": "цельноламельная столешница",
    "pos": null,
-   "freq": 325,
+   "freq": 283,
    "url": "",
    "cluster": "цельноламельная",
    "intent": "commercial"

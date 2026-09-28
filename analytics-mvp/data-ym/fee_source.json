@@ -1,12 +1,12 @@
 {
-  "at": "2026-09-27T12:40:59.437Z",
-  "orders_from_netting": 1471,
-  "orders_from_commissions": 297,
-  "accruals_from_netting": 56712004,
+  "at": "2026-09-28T12:13:18.463Z",
+  "orders_from_netting": 1473,
+  "orders_from_commissions": 304,
+  "accruals_from_netting": 57083231,
   "accruals_from_commissions": 0,
-  "fees_from_netting": 29577555.35,
+  "fees_from_netting": 29758252.53,
   "fees_from_commissions": 0,
-  "rate_netting": 52.2,
+  "rate_netting": 52.1,
   "rate_order": null,
   "by_month": {
     "2026-01": {
@@ -24,9 +24,9 @@
       "orders_order": 16,
       "accruals_netting": 3803613,
       "accruals_order": 0,
-      "fees_netting": 1641261.83,
+      "fees_netting": 1641040.92,
       "fees_order": 0,
-      "rate_netting": 43.2,
+      "rate_netting": 43.1,
       "rate_order": null
     },
     "2026-03": {
@@ -34,9 +34,9 @@
       "orders_order": 45,
       "accruals_netting": 5078529,
       "accruals_order": 0,
-      "fees_netting": 2444097.15,
+      "fees_netting": 2436316.63,
       "fees_order": 0,
-      "rate_netting": 48.1,
+      "rate_netting": 48,
       "rate_order": null
     },
     "2026-04": {
@@ -44,9 +44,9 @@
       "orders_order": 40,
       "accruals_netting": 8174239,
       "accruals_order": 0,
-      "fees_netting": 3916493.73,
+      "fees_netting": 3887123.07,
       "fees_order": 0,
-      "rate_netting": 47.9,
+      "rate_netting": 47.6,
       "rate_order": null
     },
     "2026-05": {
@@ -54,7 +54,7 @@
       "orders_order": 26,
       "accruals_netting": 7247462,
       "accruals_order": 0,
-      "fees_netting": 3419803.99,
+      "fees_netting": 3419670.05,
       "fees_order": 0,
       "rate_netting": 47.2,
       "rate_order": null
@@ -64,7 +64,7 @@
       "orders_order": 20,
       "accruals_netting": 5512980,
       "accruals_order": 0,
-      "fees_netting": 2783035.72,
+      "fees_netting": 2782896.51,
       "fees_order": 0,
       "rate_netting": 50.5,
       "rate_order": null
@@ -90,13 +90,13 @@
       "rate_order": null
     },
     "2026-09": {
-      "orders_netting": 179,
-      "orders_order": 42,
-      "accruals_netting": 6470387,
+      "orders_netting": 181,
+      "orders_order": 49,
+      "accruals_netting": 6841614,
       "accruals_order": 0,
-      "fees_netting": 3659162.53,
+      "fees_netting": 3877504.95,
       "fees_order": 0,
-      "rate_netting": 56.6,
+      "rate_netting": 56.7,
       "rate_order": null
     }
   },

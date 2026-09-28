@@ -1,0 +1,5926 @@
+{
+ "campaign_id": "712877513",
+ "generated_at": "2026-09-28T06:20:39.413Z",
+ "errors": [],
+ "campaign": {
+  "Id": 712877513,
+  "Name": "[На заказ] Перегородки | Поиск ВЧ | НБ=5т.р. | CPC=145 |",
+  "StartDate": "2026-07-19",
+  "Status": "ACCEPTED",
+  "State": "ON",
+  "DailyBudget": null,
+  "NegativeKeywords": {
+   "Items": [
+    "!в ванную",
+    "!в машину",
+    "!где посмотреть",
+    "!для автомойки",
+    "!для бассейна",
+    "!для беседки",
+    "!для гипсовых",
+    "!для душа",
+    "!для животных",
+    "!для сада",
+    "!для туалета",
+    "!для холодильника",
+    "!если",
+    "!из !чего",
+    "!из акрила",
+    "!из брусков",
+    "!из досок",
+    "!из какого",
+    "!из пвх",
+    "!из рейки",
+    "!из ротанга",
+    "!из шпона",
+    "!как",
+    "!как сделать",
+    "!как установить",
+    "!на карниз",
+    "!на колесиках",
+    "!на стол",
+    "!на участок",
+    "!с шумоизоляцией",
+    "!своими",
+    "!своими руками",
+    "!сип панель",
+    "!чем заполнить",
+    "!чем отличие",
+    "!что !такое",
+    "!что лучше",
+    "!что означает",
+    "89107849158",
+    "arsdomo",
+    "avito",
+    "dorwood",
+    "garden",
+    "glasstrong",
+    "ikea",
+    "leroy",
+    "loftcase",
+    "авито",
+    "автомойка",
+    "акриловый",
+    "алиэкспресс",
+    "альбом",
+    "алюминиевый",
+    "аренда",
+    "аристо",
+    "б !у",
+    "балка",
+    "балкон",
+    "балконные",
+    "балконные двери",
+    "баня",
+    "бассейн",
+    "беларусь",
+    "бесплатно",
+    "блоки !для",
+    "блоки !для перегородок",
+    "брус",
+    "брянск",
+    "бу",
+    "бумажная",
+    "бытовки",
+    "вакансии",
+    "ванной",
+    "видео",
+    "виды направляющих",
+    "википедия",
+    "витрина",
+    "вольер",
+    "воронеж",
+    "восстановление",
+    "вредна",
+    "выкуп",
+    "газобетон",
+    "газоблок",
+    "газовщиков",
+    "гипсовый",
+    "гипсокартон",
+    "гипсокартонные",
+    "гкл",
+    "гласстронг",
+    "грядки",
+    "дверь купе",
+    "делать",
+    "демонтаж",
+    "дерево",
+    "деревянные",
+    "дешевая",
+    "дешевка",
+    "дизайн квартиры",
+    "диплом",
+    "днр",
+    "доводчик !на дверь",
+    "донецк",
+    "дорвуд",
+    "дсп мебельные",
+    "душ",
+    "душевая",
+    "екатеринбург",
+    "жалюзи",
+    "забор",
+    "заборные",
+    "зазор",
+    "замена",
+    "замок",
+    "зарплата",
+    "зацепы",
+    "звукоизоляция",
+    "зеленый кирпич",
+    "земельные",
+    "иваново",
+    "икеа",
+    "индия",
+    "инструкция",
+    "иркутск",
+    "использовать",
+    "йошкара",
+    "казань",
+    "казахстан",
+    "какие",
+    "калининград",
+    "калипсо",
+    "калуга",
+    "каркасные стены",
+    "картон",
+    "киев",
+    "кирпич",
+    "кирпичная стена",
+    "кирпичные",
+    "китай",
+    "кладка",
+    "кнауф",
+    "кострома",
+    "краснодар",
+    "кровать !с перегородкой",
+    "кронштейн",
+    "курск",
+    "курсовая",
+    "ламель",
+    "ламельные",
+    "лдсп",
+    "легкие",
+    "леманампро",
+    "леруа",
+    "лотка",
+    "лофткейс",
+    "лучшие варианты",
+    "магазин",
+    "манеж детский",
+    "мариуполь",
+    "мастер класс",
+    "материал !для",
+    "мдф",
+    "мдф !для мебели",
+    "медицинских",
+    "межевые",
+    "минск",
+    "мобильная",
+    "можно !ли",
+    "мойка",
+    "мягкая",
+    "напольная",
+    "напрокат",
+    "недорогая",
+    "недорого дешево",
+    "нижний новгород",
+    "новгород",
+    "новосибирск",
+    "ножки",
+    "нужен !ли",
+    "объявления",
+    "обязательно !ли",
+    "органайзер",
+    "оргстекло",
+    "оренбург",
+    "отзывы",
+    "отзывы сотрудников",
+    "ошибки",
+    "пазогребневые",
+    "пвх",
+    "пгп",
+    "пенобетон",
+    "пеноблок",
+    "перегородка !из полок",
+    "переносные",
+    "пермь",
+    "петли",
+    "питер",
+    "пластик",
+    "пластиковой",
+    "пленке",
+    "плиссе",
+    "подвесные",
+    "подержанные",
+    "поликарбонат",
+    "полиэстер",
+    "преимущества",
+    "причина списания",
+    "продать",
+    "прокат",
+    "противопожарная",
+    "профиль",
+    "профиль !для",
+    "профиль !для установки",
+    "профиль !под",
+    "профиль дорс",
+    "профильдорс",
+    "профнастил",
+    "работа",
+    "разница",
+    "рамы !для перегородки",
+    "реечные",
+    "резюме",
+    "рейка !для",
+    "ремонт",
+    "реставрация",
+    "реферат",
+    "ростов",
+    "ротанг",
+    "руками",
+    "ручка",
+    "рязань",
+    "садовые",
+    "самара",
+    "самому",
+    "самостоятельно",
+    "санкт петербург",
+    "сантехнические",
+    "саратов",
+    "сауна",
+    "сделать самому",
+    "силикатные",
+    "система !для",
+    "скачать",
+    "смоленск",
+    "спб",
+    "стена межкомнатная",
+    "стол офисный",
+    "схема",
+    "сэндвич",
+    "тверь",
+    "теплица",
+    "тканевые",
+    "ткань",
+    "торговый",
+    "трансформируемые",
+    "требования",
+    "требуется",
+    "трек !для",
+    "туалет",
+    "туалетные",
+    "тула",
+    "тюмень",
+    "удельный вес",
+    "украина",
+    "уличная",
+    "уплотнитель",
+    "устройство",
+    "утепление",
+    "уфа",
+    "фанера",
+    "фото",
+    "фурнитура !для",
+    "хамам",
+    "чебоксары",
+    "челябинск",
+    "чертеж",
+    "чита",
+    "ширма",
+    "шкаф",
+    "шкаф купе",
+    "шкребтан",
+    "шпон",
+    "штора",
+    "шторка",
+    "является !ли",
+    "японская",
+    "ярославль"
+   ]
+  },
+  "ExcludedSites": null,
+  "TextCampaign": {
+   "BiddingStrategy": {
+    "Search": {
+     "BiddingStrategyType": "AVERAGE_CPC",
+     "AverageCpc": {
+      "AverageCpc": 145000000,
+      "WeeklySpendLimit": 5000000000,
+      "BudgetType": "WEEKLY_BUDGET"
+     }
+    },
+    "Network": {
+     "BiddingStrategyType": "SERVING_OFF"
+    }
+   },
+   "Settings": [
+    {
+     "Option": "ADD_METRICA_TAG",
+     "Value": "YES"
+    },
+    {
+     "Option": "ADD_OPENSTAT_TAG",
+     "Value": "NO"
+    },
+    {
+     "Option": "ADD_TO_FAVORITES",
+     "Value": "NO"
+    },
+    {
+     "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+     "Value": "YES"
+    },
+    {
+     "Option": "DAILY_BUDGET_ALLOWED",
+     "Value": "YES"
+    },
+    {
+     "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+     "Value": "YES"
+    },
+    {
+     "Option": "ENABLE_COMPANY_INFO",
+     "Value": "YES"
+    },
+    {
+     "Option": "ENABLE_EXTENDED_AD_TITLE",
+     "Value": "YES"
+    },
+    {
+     "Option": "ENABLE_SITE_MONITORING",
+     "Value": "YES"
+    },
+    {
+     "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+     "Value": "NO"
+    },
+    {
+     "Option": "MAINTAIN_NETWORK_CPC",
+     "Value": "NO"
+    },
+    {
+     "Option": "REQUIRE_SERVICING",
+     "Value": "NO"
+    },
+    {
+     "Option": "SHARED_ACCOUNT_ENABLED",
+     "Value": "YES"
+    },
+    {
+     "Option": "ALTERNATIVE_TEXTS_ENABLED",
+     "Value": "NO"
+    }
+   ],
+   "PriorityGoals": {
+    "Items": [
+     {
+      "GoalId": 487033158,
+      "Value": 3000000000,
+      "IsMetrikaSourceOfValue": "NO"
+     }
+    ]
+   },
+   "CounterIds": {
+    "Items": [
+     104369223,
+     94601229
+    ]
+   },
+   "RelevantKeywords": null,
+   "AttributionModel": "AUTO",
+   "NegativeKeywordSharedSetIds": {
+    "Items": []
+   }
+  }
+ },
+ "groups": [
+  {
+   "Id": 5774336213,
+   "Name": "Межкомнатные перегородки",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336214,
+   "Name": "Межкомнатные перегородки | Заказ",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336215,
+   "Name": "Межкомнатные перегородки | Купить",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336216,
+   "Name": "Межкомнатные перегородки | Цена",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336217,
+   "Name": "Межкомнатные перегородки | Москве",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336218,
+   "Name": "Межкомнатные перегородки | Производителя",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336219,
+   "Name": "Межкомнатные перегородки | Квартиру",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336220,
+   "Name": "Межкомнатные перегородки | Стеклянные",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336221,
+   "Name": "Перегородки | Заказ",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336222,
+   "Name": "Перегородки | Заказ Размерам",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336223,
+   "Name": "Перегородки | Изготовление Перегородок",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336224,
+   "Name": "Перегородки | Производство Перегородок",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336225,
+   "Name": "Перегородки | Ключ",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336226,
+   "Name": "Перегородки | Установкой",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336227,
+   "Name": "Перегородки для зонирования комнаты",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "гостиной",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "интерьерные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "раздвижные",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336228,
+   "Name": "Перегородки для зонирования комнаты | Пространства",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336229,
+   "Name": "Перегородки для зонирования комнаты | Квартиры",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336230,
+   "Name": "Перегородки для зонирования комнаты | Купить",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336231,
+   "Name": "Перегородки для зонирования комнаты | Заказ",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336232,
+   "Name": "Перегородки для зонирования комнаты | Цена",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336233,
+   "Name": "Перегородки для зонирования комнаты | Стеклянные",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336234,
+   "Name": "Перегородки для зонирования комнаты | Студии",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336235,
+   "Name": "Раздвижные перегородки",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336236,
+   "Name": "Раздвижные перегородки | Стеклянные",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336237,
+   "Name": "Раздвижные перегородки | Межкомнатные",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336238,
+   "Name": "Раздвижные перегородки | Купить",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336239,
+   "Name": "Раздвижные перегородки | Цена",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336240,
+   "Name": "Раздвижные перегородки | Заказ",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336241,
+   "Name": "Раздвижные перегородки | Заказать",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336242,
+   "Name": "Раздвижные перегородки | Стоимость",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336243,
+   "Name": "Раздвижные перегородки | Сколько Стоит",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336244,
+   "Name": "Раздвижные перегородки | Ключ",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336245,
+   "Name": "Раздвижные перегородки | Установкой",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336246,
+   "Name": "Раздвижные перегородки | Монтажом",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336247,
+   "Name": "Раздвижные перегородки | Изготовление",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336248,
+   "Name": "Раздвижные перегородки | Производство",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336249,
+   "Name": "Раздвижные перегородки | Производителя",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336250,
+   "Name": "Раздвижные перегородки | Размерам",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336251,
+   "Name": "Раздвижные перегородки | Заказ Размерам",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336252,
+   "Name": "Раздвижные перегородки | Недорого",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336253,
+   "Name": "Раздвижные перегородки | Рассчитать Стоимость",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336254,
+   "Name": "Раздвижные перегородки | Замер",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336255,
+   "Name": "Раздвижные перегородки | Зонирования",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336256,
+   "Name": "Раздвижные перегородки | Зонирования Комнаты",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336257,
+   "Name": "Раздвижные перегородки | Межкомнатные Зонирования",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336258,
+   "Name": "Раздвижные перегородки | Квартиру",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336259,
+   "Name": "Раздвижные перегородки | Студию",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336260,
+   "Name": "Раздвижные перегородки | Гостиную",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336261,
+   "Name": "Раздвижные перегородки | Между Кухней Гостиной",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336262,
+   "Name": "Раздвижные перегородки | Между Комнатой Кухней",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336263,
+   "Name": "Раздвижные перегородки | Гардеробной",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336264,
+   "Name": "Раздвижные перегородки | Офиса",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336265,
+   "Name": "Раздвижные перегородки | Москве",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336266,
+   "Name": "Раздвижные перегородки | Проем",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336267,
+   "Name": "Раздвижные перегородки | Вместо Двери",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336268,
+   "Name": "Раздвижные перегородки | Стеклянная Комнату",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336269,
+   "Name": "Раздвижные перегородки | Стеклянные Двери",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336270,
+   "Name": "Раздвижные перегородки | Купе",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336271,
+   "Name": "Раздвижные перегородки | Роликах",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336272,
+   "Name": "Раздвижные перегородки | Направляющих",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336273,
+   "Name": "Раздвижные перегородки | Откатные",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336274,
+   "Name": "Стеклянные перегородки",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336275,
+   "Name": "Стеклянные перегородки | Заказ",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336276,
+   "Name": "Стеклянные перегородки | Купить",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336277,
+   "Name": "Стеклянные перегородки | Цена",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336278,
+   "Name": "Стеклянные перегородки | Квартиру",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336279,
+   "Name": "Стеклянные перегородки | Москве",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  },
+  {
+   "Id": 5774336280,
+   "Name": "Стеклянные перегородки | Производителя",
+   "Status": "ACCEPTED",
+   "Type": "TEXT_AD_GROUP",
+   "ServingStatus": "ELIGIBLE",
+   "RegionIds": [
+    1
+   ],
+   "NegativeKeywords": {
+    "Items": [
+     "арочные",
+     "гармошка",
+     "декоративным",
+     "дизайнерские",
+     "зеркальные",
+     "каскадные",
+     "комбинированные",
+     "лофт",
+     "матовые",
+     "распашные",
+     "складные",
+     "стальные",
+     "стационарные",
+     "стеллаж",
+     "телескопические",
+     "цветные"
+    ]
+   },
+   "NegativeKeywordSharedSetIds": null,
+   "TrackingParams": "utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&ploshadka={source}&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}"
+  }
+ ],
+ "keywords": [
+  {
+   "Id": 57681375045,
+   "Keyword": "[межкомнатные] [перегородки] -гармошка -дверью -заказ -зеркальные -каскадная -квартиру -купить -металлические -москве -производителя -раздвижные -стеклянные -цена",
+   "AdGroupId": 5774336213,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375046,
+   "Keyword": "[межкомнатные] [перегородки] [заказ]",
+   "AdGroupId": 5774336214,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375047,
+   "Keyword": "[межкомнатные] [перегородки] [купить]",
+   "AdGroupId": 5774336215,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375048,
+   "Keyword": "[межкомнатные] [перегородки] [цена]",
+   "AdGroupId": 5774336216,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375049,
+   "Keyword": "[межкомнатные] [перегородки] [москве]",
+   "AdGroupId": 5774336217,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375050,
+   "Keyword": "[межкомнатные] [перегородки] [производителя]",
+   "AdGroupId": 5774336218,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375051,
+   "Keyword": "[межкомнатные] [перегородки] [квартиру]",
+   "AdGroupId": 5774336219,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375052,
+   "Keyword": "[стеклянные] [межкомнатные] [перегородки]",
+   "AdGroupId": 5774336220,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375053,
+   "Keyword": "[перегородки] [заказ] -арочные -гармошка -дверью -дизайнерские -зеркальные -зонирования -каскадные -лофт -матовые -межкомнатные -радиусные -раздвижные -размерам -распашные -складные -стальные -стационарные -стеллаж -телескопические -эксклюзивные -стеклянные -интерьерные -кухни -гостиной -студии",
+   "AdGroupId": 5774336221,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375054,
+   "Keyword": "[перегородки] [заказ] [размерам] -раздвижные",
+   "AdGroupId": 5774336222,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375055,
+   "Keyword": "[изготовление] [перегородок] -зеркальных -раздвижные -телескопических",
+   "AdGroupId": 5774336223,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375056,
+   "Keyword": "[производство] [перегородок] -раздвижные",
+   "AdGroupId": 5774336224,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375057,
+   "Keyword": "[перегородки] [ключ] -раздвижные -телескопическая",
+   "AdGroupId": 5774336225,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375058,
+   "Keyword": "[перегородки] [установкой] -каскадные -раздвижные",
+   "AdGroupId": 5774336226,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375059,
+   "Keyword": "[перегородки] [зонирования] -гармошка -дизайнерские -заказ -зеркальные -каскадная -квартиры -комнаты -купить -лофт -матовые -металлические -мобильные -передвижные -пространства -раздвижные -складные -стационарная -стеклянные -стеллаж -студии -телескопическая -интерьерные -гостиной",
+   "AdGroupId": 5774336227,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375060,
+   "Keyword": "[перегородки] [зонирования] [комнаты] -раздвижные -стеллаж -цена -интерьерные -гостиной",
+   "AdGroupId": 5774336227,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375061,
+   "Keyword": "[перегородки] [зонирования] [пространства]",
+   "AdGroupId": 5774336228,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375062,
+   "Keyword": "[перегородки] [зонирования] [квартиры]",
+   "AdGroupId": 5774336229,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375063,
+   "Keyword": "[перегородки] [зонирования] [купить]",
+   "AdGroupId": 5774336230,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375064,
+   "Keyword": "[перегородки] [зонирования] [заказ]",
+   "AdGroupId": 5774336231,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375065,
+   "Keyword": "[перегородка] [зонирования] [комнаты] [цена]",
+   "AdGroupId": 5774336232,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375066,
+   "Keyword": "[стеклянные] [перегородки] [зонирования]",
+   "AdGroupId": 5774336233,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375067,
+   "Keyword": "[перегородки] [зонирования] [студии]",
+   "AdGroupId": 5774336234,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375068,
+   "Keyword": "[раздвижные] [перегородки] -гардеробной -гостиную -дверью -заказ -заказать -замер -зеркальные -зонирования -изготовление -каскадные -квартиру -ключ -купе -купить -кухни -лофт -межкомнатные -монтажом -Москве -недорого -офиса -проем -производителя -производство -размерам -стеклянные -стоимость -студию -телескопические -установкой -цена",
+   "AdGroupId": 5774336235,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375069,
+   "Keyword": "[раздвижные] [стеклянные] [перегородки] -двери -комнату",
+   "AdGroupId": 5774336236,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375070,
+   "Keyword": "[раздвижные] [перегородки] [межкомнатные] -зонирования",
+   "AdGroupId": 5774336237,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375071,
+   "Keyword": "[раздвижные] [перегородки] [купить]",
+   "AdGroupId": 5774336238,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375072,
+   "Keyword": "[раздвижные] [перегородки] [цена]",
+   "AdGroupId": 5774336239,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375073,
+   "Keyword": "[раздвижные] [перегородки] [заказ] -размерам",
+   "AdGroupId": 5774336240,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375074,
+   "Keyword": "[раздвижные] [перегородки] [заказать]",
+   "AdGroupId": 5774336241,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375075,
+   "Keyword": "[раздвижные] [перегородки] [стоимость] -рассчитать",
+   "AdGroupId": 5774336242,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375076,
+   "Keyword": "[сколько] [стоит] [раздвижная] [перегородка]",
+   "AdGroupId": 5774336243,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375077,
+   "Keyword": "[раздвижные] [перегородки] [ключ]",
+   "AdGroupId": 5774336244,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375078,
+   "Keyword": "[раздвижные] [перегородки] [установкой]",
+   "AdGroupId": 5774336245,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375079,
+   "Keyword": "[раздвижные] [перегородки] [монтажом]",
+   "AdGroupId": 5774336246,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375080,
+   "Keyword": "[раздвижные] [перегородки] [изготовление]",
+   "AdGroupId": 5774336247,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375081,
+   "Keyword": "[раздвижные] [перегородки] [производство]",
+   "AdGroupId": 5774336248,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375082,
+   "Keyword": "[раздвижные] [перегородки] [производителя]",
+   "AdGroupId": 5774336249,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375083,
+   "Keyword": "[раздвижные] [перегородки] [размерам] -заказ",
+   "AdGroupId": 5774336250,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375084,
+   "Keyword": "[раздвижные] [перегородки] [заказ] [размерам]",
+   "AdGroupId": 5774336251,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375085,
+   "Keyword": "[раздвижные] [перегородки] [недорого]",
+   "AdGroupId": 5774336252,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375086,
+   "Keyword": "[раздвижные] [перегородки] [рассчитать] [стоимость]",
+   "AdGroupId": 5774336253,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375087,
+   "Keyword": "[раздвижные] [перегородки] [замер]",
+   "AdGroupId": 5774336254,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375088,
+   "Keyword": "[раздвижные] [перегородки] [зонирования] -комнаты -межкомнатные",
+   "AdGroupId": 5774336255,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375089,
+   "Keyword": "[раздвижные] [перегородки] [зонирования] [комнаты]",
+   "AdGroupId": 5774336256,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375090,
+   "Keyword": "[раздвижные] [межкомнатные] [перегородки] [зонирования]",
+   "AdGroupId": 5774336257,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375091,
+   "Keyword": "[раздвижные] [перегородки] [квартиру]",
+   "AdGroupId": 5774336258,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375092,
+   "Keyword": "[раздвижные] [перегородки] [студию]",
+   "AdGroupId": 5774336259,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375093,
+   "Keyword": "[раздвижные] [перегородки] [гостиную]",
+   "AdGroupId": 5774336260,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375094,
+   "Keyword": "[раздвижные] [перегородки] [между] [кухней] [гостиной]",
+   "AdGroupId": 5774336261,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375095,
+   "Keyword": "[раздвижные] [перегородки] [между] [комнатой] [кухней]",
+   "AdGroupId": 5774336262,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375096,
+   "Keyword": "[раздвижные] [перегородки] [гардеробной]",
+   "AdGroupId": 5774336263,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375097,
+   "Keyword": "[раздвижные] [перегородки] [офиса]",
+   "AdGroupId": 5774336264,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375098,
+   "Keyword": "[раздвижные] [перегородки] [Москве]",
+   "AdGroupId": 5774336265,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375099,
+   "Keyword": "[раздвижные] [перегородки] [проем]",
+   "AdGroupId": 5774336266,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375100,
+   "Keyword": "[раздвижная] [перегородка] [вместо] [двери]",
+   "AdGroupId": 5774336267,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375101,
+   "Keyword": "[раздвижная] [стеклянная] [перегородка] [комнату]",
+   "AdGroupId": 5774336268,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375102,
+   "Keyword": "[стеклянные] [раздвижные] [двери] [перегородки]",
+   "AdGroupId": 5774336269,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375103,
+   "Keyword": "[раздвижные] [перегородки] [купе]",
+   "AdGroupId": 5774336270,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375104,
+   "Keyword": "[перегородки] [роликах]",
+   "AdGroupId": 5774336271,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375105,
+   "Keyword": "[перегородки] [направляющих]",
+   "AdGroupId": 5774336272,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375106,
+   "Keyword": "[откатные] [перегородки]",
+   "AdGroupId": 5774336273,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375107,
+   "Keyword": "[стеклянные] [перегородки] -арочные -гармошка -гостиной -дверью -дизайнерские -заказ -зонирования -интерьерные -квартиру -купить -кухни -лофт -межкомнатные -москве -производителя -раздвижные -распашные -складные -студии -телескопические -цена",
+   "AdGroupId": 5774336274,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375108,
+   "Keyword": "[стеклянные] [перегородки] [заказ]",
+   "AdGroupId": 5774336275,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375109,
+   "Keyword": "[стеклянные] [перегородки] [купить] -маятниковая",
+   "AdGroupId": 5774336276,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375110,
+   "Keyword": "[стеклянные] [перегородки] [цена]",
+   "AdGroupId": 5774336277,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375111,
+   "Keyword": "[стеклянные] [перегородки] [квартиру]",
+   "AdGroupId": 5774336278,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375112,
+   "Keyword": "[стеклянные] [перегородки] [москве]",
+   "AdGroupId": 5774336279,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 57681375113,
+   "Keyword": "[стеклянные] [перегородки] [производителя]",
+   "AdGroupId": 5774336280,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE"
+  },
+  {
+   "Id": 205774336213,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336213,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336214,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336214,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336215,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336215,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336216,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336216,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336217,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336217,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336218,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336218,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336219,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336219,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336220,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336220,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336221,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336221,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336222,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336222,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336223,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336223,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336224,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336224,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336225,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336225,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336226,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336226,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336227,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336227,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336228,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336228,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336229,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336229,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336230,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336230,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336231,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336231,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336232,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336232,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336233,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336233,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336234,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336234,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336235,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336235,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336236,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336236,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336237,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336237,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336238,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336238,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336239,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336239,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336240,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336240,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336241,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336241,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336242,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336242,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336243,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336243,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336244,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336244,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336245,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336245,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336246,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336246,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336247,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336247,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336248,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336248,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336249,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336249,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336250,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336250,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336251,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336251,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336252,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336252,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336253,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336253,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336254,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336254,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336255,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336255,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336256,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336256,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336257,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336257,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336258,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336258,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336259,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336259,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336260,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336260,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336261,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336261,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336262,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336262,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336263,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336263,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336264,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336264,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336265,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336265,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336266,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336266,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336267,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336267,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336268,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336268,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336269,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336269,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336270,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336270,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336271,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336271,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336272,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336272,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336273,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336273,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336274,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336274,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336275,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336275,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336276,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336276,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336277,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336277,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336278,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336278,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336279,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336279,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  },
+  {
+   "Id": 205774336280,
+   "Keyword": "---autotargeting",
+   "AdGroupId": 5774336280,
+   "Bid": 300000,
+   "StrategyPriority": "NORMAL",
+   "State": "ON",
+   "Status": "ACCEPTED",
+   "UserParam1": null,
+   "ServingStatus": "ELIGIBLE",
+   "AutotargetingCategories": {
+    "Items": [
+     {
+      "Category": "EXACT",
+      "Value": "YES"
+     },
+     {
+      "Category": "ALTERNATIVE",
+      "Value": "NO"
+     },
+     {
+      "Category": "COMPETITOR",
+      "Value": "NO"
+     },
+     {
+      "Category": "BROADER",
+      "Value": "NO"
+     },
+     {
+      "Category": "ACCESSORY",
+      "Value": "NO"
+     }
+    ]
+   }
+  }
+ ],
+ "shared_sets": [],
+ "bidmodifiers": [
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336227,
+   "Id": 102102802424,
+   "Level": "AD_GROUP",
+   "Type": "MOBILE_ADJUSTMENT",
+   "MobileAdjustment": {
+    "BidModifier": 50,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336220,
+   "Id": 102104046754,
+   "Level": "AD_GROUP",
+   "Type": "MOBILE_ADJUSTMENT",
+   "MobileAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336257,
+   "Id": 102104046755,
+   "Level": "AD_GROUP",
+   "Type": "MOBILE_ADJUSTMENT",
+   "MobileAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336213,
+   "Id": 102104046756,
+   "Level": "AD_GROUP",
+   "Type": "MOBILE_ADJUSTMENT",
+   "MobileAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336274,
+   "Id": 102104046757,
+   "Level": "AD_GROUP",
+   "Type": "MOBILE_ADJUSTMENT",
+   "MobileAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336216,
+   "Id": 102104046758,
+   "Level": "AD_GROUP",
+   "Type": "MOBILE_ADJUSTMENT",
+   "MobileAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336237,
+   "Id": 102104046759,
+   "Level": "AD_GROUP",
+   "Type": "MOBILE_ADJUSTMENT",
+   "MobileAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336227,
+   "Id": 272102802423,
+   "Level": "AD_GROUP",
+   "Type": "TABLET_ADJUSTMENT",
+   "TabletAdjustment": {
+    "BidModifier": 50,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336237,
+   "Id": 272104046748,
+   "Level": "AD_GROUP",
+   "Type": "TABLET_ADJUSTMENT",
+   "TabletAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336220,
+   "Id": 272104046749,
+   "Level": "AD_GROUP",
+   "Type": "TABLET_ADJUSTMENT",
+   "TabletAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336257,
+   "Id": 272104046750,
+   "Level": "AD_GROUP",
+   "Type": "TABLET_ADJUSTMENT",
+   "TabletAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336274,
+   "Id": 272104046751,
+   "Level": "AD_GROUP",
+   "Type": "TABLET_ADJUSTMENT",
+   "TabletAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336213,
+   "Id": 272104046752,
+   "Level": "AD_GROUP",
+   "Type": "TABLET_ADJUSTMENT",
+   "TabletAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336216,
+   "Id": 272104046753,
+   "Level": "AD_GROUP",
+   "Type": "TABLET_ADJUSTMENT",
+   "TabletAdjustment": {
+    "BidModifier": 70,
+    "OperatingSystemType": null
+   }
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336227,
+   "Id": 282102802425,
+   "Level": "AD_GROUP",
+   "Type": "DESKTOP_ONLY_ADJUSTMENT"
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336213,
+   "Id": 282104046742,
+   "Level": "AD_GROUP",
+   "Type": "DESKTOP_ONLY_ADJUSTMENT"
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336216,
+   "Id": 282104046743,
+   "Level": "AD_GROUP",
+   "Type": "DESKTOP_ONLY_ADJUSTMENT"
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336220,
+   "Id": 282104046744,
+   "Level": "AD_GROUP",
+   "Type": "DESKTOP_ONLY_ADJUSTMENT"
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336237,
+   "Id": 282104046745,
+   "Level": "AD_GROUP",
+   "Type": "DESKTOP_ONLY_ADJUSTMENT"
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336257,
+   "Id": 282104046746,
+   "Level": "AD_GROUP",
+   "Type": "DESKTOP_ONLY_ADJUSTMENT"
+  },
+  {
+   "CampaignId": 712877513,
+   "AdGroupId": 5774336274,
+   "Id": 282104046747,
+   "Level": "AD_GROUP",
+   "Type": "DESKTOP_ONLY_ADJUSTMENT"
+  }
+ ]
+}

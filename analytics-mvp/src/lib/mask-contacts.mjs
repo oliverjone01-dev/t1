@@ -24,11 +24,14 @@ export function maskText(s) {
   if (typeof s !== 'string' || s.length < 6) return s;
   if (s.includes('http') || s.includes('www.')) {
     let res = '', last = 0;
-    for (const m of s.matchAll(URL_RE)) { res += maskPlain(s.slice(last, m.index)) + m[0]; last = m.index + m[0].length; }
+    // в ссылке маскируем только почту (mailto, «написать письмо»), цифры ID не трогаем
+    for (const m of s.matchAll(URL_RE)) { res += maskPlain(s.slice(last, m.index)) + maskEmails(m[0]); last = m.index + m[0].length; }
     return res + maskPlain(s.slice(last));
   }
   return maskPlain(s);
 }
+
+const maskEmails = (t) => (t.includes('@') ? t.replace(EMAIL, (m, local, dom) => (local.length <= 2 ? local[0] : local.slice(0, 2)) + '****@' + dom) : t);
 
 function maskPlain(s) {
   if (!s || s.length < 6) return s;

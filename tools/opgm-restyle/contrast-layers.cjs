@@ -10,7 +10,7 @@ const fs = require('fs'), path = require('path');
 const { build } = require('./harness/gen.cjs');
 function args(a){ const o = {}; for(let i = 0; i < a.length; i++) if(a[i].startsWith('--')){ const k = a[i].slice(2); o[k] = (i + 1 < a.length && !a[i + 1].startsWith('--')) ? a[++i] : true; } return o; }
 const o = args(process.argv.slice(2));
-const OP = path.resolve(o.op || '../opgm/op-gm-automation'), SRC = path.resolve(o.src || path.join(OP, 'src'));
+const OP = require('./harness/oproot.cjs')(o.op), SRC = path.resolve(o.src || path.join(OP, 'src'));
 const src = fs.readFileSync(path.join(OP, 'kontur-ds/tools/contrast_live.mjs'), 'utf8');
 const MARK = 'const fails = await page.evaluate(';
 const a = src.indexOf(MARK) + MARK.length, b = src.indexOf('});\n      console.log(`${fails.length');

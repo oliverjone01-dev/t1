@@ -1,7 +1,7 @@
 #!/bin/sh
 # Варианты кода для проверки numsnap. Исходники op-gm-automation только копируются, не меняются.
 set -e
-HERE=$(cd "$(dirname "$0")" && pwd); SRC="$HERE/../../opgm/op-gm-automation/src"
+HERE=$(cd "$(dirname "$0")" && pwd); SRC="${OP:-$HERE/../..}/src"; [ -f "$SRC/opgm.js" ] || { echo "ОШИБКА: OP=<op-gm-automation> не задан (нет $SRC/opgm.js)"; exit 2; }
 mk(){ rm -rf "$HERE/$1"; cp -r "$SRC" "$HERE/$1"; }
 # одинаковая сборка: байт в байт
 mk same

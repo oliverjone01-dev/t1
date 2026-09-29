@@ -17,6 +17,7 @@
 // Вероятность = эмпирическая база стадии [ДАННЫЕ] x поведенческие коэффициенты [ГИПОТЕЗА].
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { maskDeep } from "../../lib/mask-contacts.mjs";
+import { readDialog, writeDialog } from "./dialog-store.js";
 import { isHidden, OFFICE_MGR } from "./mgr-roster.js";
 import { isTalk, isEligible, makeKey } from "./ai-eligible.js";
 
@@ -206,7 +207,7 @@ const SECTIONS = [
 type Tag = { t: string; sec: string; tone: "good" | "bad" | "warn" };
 
 function main() {
-  const dlg = JSON.parse(readFileSync(DLG, "utf8"));
+  const dlg = readDialog(DLG);
   const events: Ev[] = dlg.events || [];
   const now = Date.parse(dlg.to) || Math.max(...events.map((e) => e.ts));
 
@@ -1204,7 +1205,7 @@ function main() {
   };
   writeFileSync(OWN, JSON.stringify(ownDb));
   // Страховка: снимок, снятый до маски, тоже уходит на дашборд замаскированным.
-  writeFileSync(DLG, JSON.stringify(maskDeep(dlg)));
+  writeDialog(maskDeep(dlg), DLG);
   console.log(`Разбор: диалогов ${deals.length}, менеджеров ${managers.length}, тегов ${Object.keys(tagIndex).length}`);
   for (const m of managers) console.log(`   ${m.mgr} - ${m.deals} диал · ${m.sections.map((s) => s.label + " " + (s.pos ?? "-") + "%").join(" · ")}`);
 }

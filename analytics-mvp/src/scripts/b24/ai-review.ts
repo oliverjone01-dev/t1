@@ -15,6 +15,7 @@
 // минут; всё, что не успело/сломалось в пакете, добираем синхронно - прогон всегда завершается
 // с полными данными. AI_BATCH=0 полностью возвращает старый синхронный режим.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readDialog } from "./dialog-store.js";
 
 // Параметры прогона. Воркфлоу b24-dialog-cron живёт на main и прокидывает только AI_LIMIT и
 // AI_BATCH, поэтому модель, менеджер и путь вывода берём ещё и из необязательного файла
@@ -258,7 +259,7 @@ async function reviewSync(items: Item[], reviews: Record<string, any>): Promise<
 }
 
 async function main() {
-  const dlg = JSON.parse(readFileSync(DLG, "utf8"));
+  const dlg = readDialog(DLG);
   const events: Ev[] = dlg.events || [];
   const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : { reviews: {} };
   // Демо-файл (разбор вручную) не перетираем: если ключа нет, скрипт вообще не доходит сюда,

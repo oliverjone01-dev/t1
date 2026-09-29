@@ -5,6 +5,8 @@
 #   -> новый коммит в «GitHub» (данные сервера переживают выкат кода) -> генерация таймеров.
 # Запуск из корня репозитория: bash infra/vps/test/smoke-local.sh
 # Нужны локально ветки-источники пилота: git fetch origin rop-dashboard-v1 office-dashboard-v1
+# ВАЖНО: без «cmd | grep -q» - при pipefail grep -q выходит на первом совпадении,
+# cmd получает SIGPIPE (код 141) и проверка падает случайно. Только grep -q <<<"$(cmd)".
 set -euo pipefail
 REPO=$(git rev-parse --show-toplevel)
 export GIT_AUTHOR_NAME=gg-smoke GIT_AUTHOR_EMAIL=gg-smoke@localhost GIT_COMMITTER_NAME=gg-smoke GIT_COMMITTER_EMAIL=gg-smoke@localhost
@@ -54,7 +56,7 @@ ROPSRC="$GG_ROOT/src/rop-dashboard-v1/current"
 [ -L "$ROPSRC/analytics-mvp/rop/data" ] && pass "данные РОПа в релизе - ссылка на /srv/gg/data" || fail "нет ссылки на данные"
 DATAHTML="$GG_ROOT/data/rop-dashboard-v1/analytics-mvp/public/rop-command.html"
 [ -s "$DATAHTML" ] && pass "данные засеяны из git" || fail "данные не засеяны"
-git -C "$GG_ROOT/data" log --oneline | grep -q seed && pass "засев закоммичен в git данных" || fail "нет seed-коммита"
+grep -q seed <<<"$(git -C "$GG_ROOT/data" log --oneline)" && pass "засев закоммичен в git данных" || fail "нет seed-коммита"
 
 echo "2. Задача: успех -> коммит данных -> пересборка сайта"
 mkdir -p "$T/jobs"
@@ -74,7 +76,7 @@ site_before=$(readlink -f "$W")
 "$BIN/gg-job" smoke-ok >"$T/job.log" 2>&1 || { cat "$T/job.log"; fail "smoke-ok"; }
 grep -q smoke-ok "$W/rop/index.html" && pass "изменение данных попало на сайт" || fail "сайт не обновился"
 [ "$(readlink -f "$W")" != "$site_before" ] && pass "новая сборка сайта" || fail "сборка не сменилась"
-git -C "$GG_ROOT/data" log -1 --format=%s | grep -q "job smoke-ok" && pass "данные закоммичены" || fail "нет коммита данных"
+grep -q "job smoke-ok" <<<"$(git -C "$GG_ROOT/data" log -1 --format=%s)" && pass "данные закоммичены" || fail "нет коммита данных"
 grep -q '"ok":true' "$GG_ROOT/state/jobs/smoke-ok.json" && pass "статус ok записан" || fail "статус"
 
 echo "3. Задача: падение -> откат данных, сайт не трогаем"
@@ -99,7 +101,14 @@ grep -q smoke-ok "$W/rop/index.html" && pass "данные сервера пер
 
 echo "6. Генерация таймеров (dry-run)"
 out=$(GG_SYSTEMD_DIR="$T/units" "$REPO/infra/vps/sbin/gg-apply-timers" --dry-run 2>&1) || { echo "$out"; fail "gg-apply-timers"; }
-echo "$out" | grep -q "OnCalendar=\*-\*-\* 00/3:17:00 UTC" && pass "таймер smoke-ok сгенерирован" || { echo "$out"; fail "таймер"; }
+grep -q "OnCalendar=\*-\*-\* 00/3:17:00 UTC" <<<"$out" && pass "таймер smoke-ok сгенерирован" || { echo "$out"; fail "таймер"; }
+mkdir -p "$T/units" && touch "$T/units/gg-job-smoke-ok.timer" "$T/units/gg-job-old.timer"
+out=$(GG_SYSTEMD_DIR="$T/units" "$REPO/infra/vps/sbin/gg-apply-timers" --dry-run 2>&1)
+if grep -q "удаляю таймер old" <<<"$out" && ! grep -q "удаляю таймер smoke-ok" <<<"$out"; then
+  pass "удаляется только таймер задачи, которой нет в jobs.conf"
+else
+  echo "$out"; fail "удаление таймеров"
+fi
 printf 'x;rm -rf / | rop | * * * | a.sh | g | no\n' >"$T/evil.conf"
 if GG_JOBS_CONF="$T/evil.conf" GG_SYSTEMD_DIR="$T/units" "$REPO/infra/vps/sbin/gg-apply-timers" --dry-run >/dev/null 2>&1; then
   fail "плохое имя задачи прошло проверку"

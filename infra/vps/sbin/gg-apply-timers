@@ -45,7 +45,8 @@ done < <(sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$conf")
 for f in "$UNIT_DIR"/gg-job-*.timer; do
   [ -e "$f" ] || continue
   n=$(basename "$f" .timer); n=${n#gg-job-}
-  if ! printf '%s\n' "${want[@]}" | grep -qx "$n"; then
+  # без «printf | grep -q»: при pipefail это гонка SIGPIPE, и нужный таймер удалился бы
+  if [[ " ${want[*]} " != *" $n "* ]]; then
     echo "удаляю таймер $n"
     [ "$dry" = 1 ] || { systemctl disable --now "gg-job-$n.timer" 2>/dev/null || true; rm -f "$f"; }
   fi

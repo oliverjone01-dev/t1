@@ -18,7 +18,7 @@ for step in "$GG_OPS"/site/steps/*.sh; do
   else
     fail=$((fail + 1)); failed+=("$name")
     gg_warn "шаг $name упал, хвост лога:"; tail -n 20 "$SITE/.step-$name.log" >&2
-    for s in $(sed -n 's/^# sections:[[:space:]]*//p' "$step" | head -1); do
+    for s in $(sed -n '/^# sections:/{s/^# sections:[[:space:]]*//p;q}' "$step"); do
       if [ -n "$PREV" ] && [ -d "$PREV/$s" ]; then
         rm -rf "${SITE:?}/$s"; cp -al "$PREV/$s" "$SITE/$s"
         gg_warn "раздел /$s/ взят из прошлой сборки"

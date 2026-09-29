@@ -36,7 +36,7 @@ if ! command -v node >/dev/null || [ "$(node -p 'process.versions.node.split("."
   apt-get install -y -q nodejs
 fi
 timedatectl set-timezone UTC   # расписания задач записаны в UTC, как в GitHub cron
-if ! swapon --show | grep -q .; then
+if [ -z "$(swapon --show --noheadings)" ]; then   # без «| grep -q»: при pipefail гонка SIGPIPE
   fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
   grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >>/etc/fstab
 fi

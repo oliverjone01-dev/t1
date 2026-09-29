@@ -98,11 +98,20 @@ async function main() {
       const sum = (mk: typeof MONEY_KEYS[number]) => kop(monthRows.reduce((s, r) => s + r[mk], 0)).toLocaleString("ru-RU");
       console.log(`pnl-realization: ${ym(y, m)} - ${monthRows.length} SKU, реализовано нетто ${net} шт, выручка ${Math.round(rev).toLocaleString("ru-RU")}, к выплате ${Math.round(pay).toLocaleString("ru-RU")}`);
       console.log(`  для сверки с отчётом: F ${sum("f")}, G ${sum("g")} (банк ${sum("g_bank")}, звёзды ${sum("g_stars")}, ПВЗ ${sum("g_pvz")}), J ${sum("j")}, K ${sum("k")}, база налога F+G-J-K ${sum("tb")}`);
-    } catch (e) { console.warn(`pnl-realization: ${ym(y, m)} пропущен - ${(e as Error).message}`); }
+    } catch (e) {
+      // Упавший месяц не теряет прежние строки: раньше они уже были отброшены в kept и файл
+      // переписывался без месяца. Текущий и прошлый месяц могут ещё не иметь отчёта (он выходит
+      // в начале следующего месяца) - это не сбой; более старый месяц без ответа - сбой.
+      const old = existing.filter((r) => r.ym === ym(y, m));
+      fresh.push(...old);
+      const lag = (curY - y) * 12 + (curM - m);
+      if (lag >= 2) { console.error(`::error::pnl-realization: ${ym(y, m)} не получен - ${(e as Error).message}; оставлены прежние строки (${old.length})`); process.exitCode = 1; }
+      else console.warn(`pnl-realization: ${ym(y, m)} пропущен (отчёт мог ещё не выйти) - ${(e as Error).message}; прежних строк ${old.length}`);
+    }
   }
   const merged = kept.concat(fresh).sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));
   writeFileSync(OUT, merged.map((r) => JSON.stringify(r)).join("\n") + "\n");
   console.log(`pnl-realization: всего ${merged.length} строк (${new Set(merged.map((r) => r.ym)).size} мес) -> ${OUT}`);
 }
 
-if (process.argv[1] && /pnl-realization\.ts$/.test(process.argv[1])) main().catch((e) => { console.error("pnl-realization FAILED:", (e as Error).message); process.exit(0); });
+if (process.argv[1] && /pnl-realization\.ts$/.test(process.argv[1])) main().catch((e) => { console.error("pnl-realization FAILED:", (e as Error).message); process.exit(1); });

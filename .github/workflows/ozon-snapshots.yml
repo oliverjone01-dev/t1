@@ -9,7 +9,7 @@ name: OZON snapshots (прямой, без n8n)
 
 on:
   schedule:
-    - cron: "0 6 * * *" # ~09:00 МСК; работает после добавления OZON_* в Secrets
+    - cron: "53 5 * * *" # ~08:53 МСК; работает после добавления OZON_* в Secrets
   workflow_dispatch:
     inputs:
       ozon_seller_client_id:
@@ -174,13 +174,23 @@ jobs:
           # пишется сюда, а шаг «Итог синка» в конце краснит прогон со списком.
           : > /tmp/ozon-sync-failures.txt
           note () { echo "$1" >> /tmp/ozon-sync-failures.txt; echo "::warning::$1"; }
+          # OZON 08.09.2026 отключил /v3/finance/transaction/list, данные этих продьюсеров заменены
+          # accrual и отчётом о реализации (orders-backfill.yml). Ровно этот отказ (404 на методе) -
+          # известное состояние: notice, в аккумулятор не идёт. Любой другой отказ тех же
+          # продьюсеров (креды, сеть, 5xx, ошибка разбора) по-прежнему красит прогон через note.
+          retired () { grep -q '/v3/finance/transaction/list -> HTTP 404' "$1"; }
           # Финансы - "мягкие": OZON 08.09.2026 отключил /v3/finance/transaction/list
           # ("obsolete method"), миграция на /v1/finance/accrual/* идёт отдельно. Пока эндпоинт
           # мёртв, финансовый под-шаг НЕ должен ронять весь синк - иначе замерзают и продажи, и
           # реклама. Падение финансов -> warning, продолжаем (прошлые pnl_* остаются).
-          if npx tsx src/scripts/ozon/pnl-sku.ts "" "" /tmp/pnlsku.json; then
+          if npx tsx src/scripts/ozon/pnl-sku.ts "" "" /tmp/pnlsku.json > /tmp/pnlsku.log 2>&1; then
+            cat /tmp/pnlsku.log
             put /tmp/pnlsku.json pnlsku pnl_sku_30d.json || note "pnl_sku_30d: дельта-гейт отсёк снимок, прошлый сохранён"
-          else note "pnl-sku пропущен: /v3/finance/transaction/list отключён OZON (миграция на /v1/finance/accrual/*)"; fi
+          else
+            cat /tmp/pnlsku.log
+            if retired /tmp/pnlsku.log; then echo "::notice::pnl-sku: /v3/finance/transaction/list отключён OZON, ряд заменён accrual"
+            else note "pnl-sku упал не на отключённом методе, прошлый снимок сохранён (см. лог выше)"; fi
+          fi
           # Продажи тоже мягкие: жёсткий skus под set -e уносил бы весь синк ровно так же, как
           # уносили его финансы - дефект не в том, КАКОЙ продьюсер падает, а в том, что падение
           # одного останавливает остальные.
@@ -188,7 +198,13 @@ jobs:
             put /tmp/skus.json skus skus_live_30d.json || note "skus_live_30d: дельта-гейт отсёк снимок, прошлый сохранён"
           else note "skus_live_30d: продьюсер упал, прошлый снимок сохранён"; fi
           # P&L канал: сырой -> snapshot-pnl пишет data/pnl_30d.json, дублируем в fixtures
-          if npx tsx src/scripts/ozon/pnl.ts "" "" /tmp/pnl_raw.json && npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json; then cp data/pnl_30d.json fixtures/pnl_30d.json; else note "P&L канал пропущен: /v3/finance/transaction/list отключён OZON (миграция на /v1/finance/accrual/*)"; fi
+          if { npx tsx src/scripts/ozon/pnl.ts "" "" /tmp/pnl_raw.json && npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json; } > /tmp/pnl.log 2>&1; then
+            cat /tmp/pnl.log; cp data/pnl_30d.json fixtures/pnl_30d.json
+          else
+            cat /tmp/pnl.log
+            if retired /tmp/pnl.log; then echo "::notice::P&L канал: /v3/finance/transaction/list отключён OZON, ряд заменён accrual"
+            else note "P&L канал упал не на отключённом методе, прошлый снимок сохранён (см. лог выше)"; fi
+          fi
           # Реклама - "мягкая": если Performance не авторизовал (401 invalid_client) или
           # OZON_PERF_* пусты - warning и продолжаем (продажи/финансы уже собраны). Под set -e
           # команда в условии if НЕ валит скрипт, поэтому битая реклама не рушит весь синк.
@@ -270,7 +286,14 @@ jobs:
           set -euo pipefail
           # Транзакции по дням -> data/pnl_daily.ndjson (весь ряд от 01.02 до вчера; финоперации
           # до-постируются задним числом, поэтому перезапись). Без Seller-кредов синк уже упал выше.
-          npx tsx src/scripts/ozon/pnl-daily.ts || { echo "финансы по дням не обновлены" >> /tmp/ozon-sync-failures.txt; echo "::warning::финансы по дням не обновлены"; }
+          # Отказ ровно на отключённом /v3/finance/transaction/list - notice (см. retired в шаге
+          # снимков), любой другой - в аккумулятор, прогон красный.
+          if npx tsx src/scripts/ozon/pnl-daily.ts > /tmp/pnl-daily.log 2>&1; then cat /tmp/pnl-daily.log
+          else
+            cat /tmp/pnl-daily.log
+            if grep -q '/v3/finance/transaction/list -> HTTP 404' /tmp/pnl-daily.log; then echo "::notice::финансы по дням: /v3/finance/transaction/list отключён OZON, ряд заменён accrual"
+            else echo "финансы по дням не обновлены" >> /tmp/ozon-sync-failures.txt; echo "::warning::финансы по дням не обновлены"; fi
+          fi
 
       - name: Per-SKU финансы по дням (раздел «Аналитика по SKU», перетяжка хвоста)
         run: |

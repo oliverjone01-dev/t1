@@ -8,7 +8,7 @@ plugin-marketplaces, desktop, workflows), проверены 2026-09-06 чере
 
 Ничего устанавливать не нужно: репозиторий сам является проектной конфигурацией.
 - Агенты: `.claude/agents/*.md` (13 ростера + 2 технических). [ДАННЫЕ: ls .claude/agents]
-- Skills: `.claude/skills/*/SKILL.md`; user-invocable: `/council`, `/feniks`, `/reality-audit`, `/crisis`, `/reflexion`.
+- Skills: `.claude/skills/*/SKILL.md`; user-invocable: `/council`, `/crisis`, `/reflexion`. Аудит ФЕНИКСА - агент feniks (чек-лист `knowledge/feniks/eval-checklist.md`).
 - Хуки: `.claude/settings.json` (P6 approvals-guard / direct-write-gate, P9 detector, Anti-Slop, P14 subagent-trace, deliver-gate).
 - Workflow: `.claude/workflows/council.js` - запуск по имени `council` только при явном opt-in Ивана.
 - Проверка: `python3 schemas/smoke-test.py` (5 схем + 2 живые фикстуры), `bash .claude/hooks/tests/run-hook-tests.sh` (гейты, 112 кейсов), `bash .claude-plugin/sync-agents.sh --check` (копии агентов плагина), `bash -n .claude/hooks/*.sh`.
@@ -53,10 +53,10 @@ Cowork берёт skills и plugins из настроек аккаунта claud
 
 | Компонент | В Cowork | Как компенсировано |
 |---|---|---|
-| `.claude/agents/*.md` проекта | не загружаются | **из плагина, включённого для аккаунта claude.ai, агенты загружаются** (как `<name>@synced`, доступны через @ и Agent tool) [ДАННЫЕ: docs plugins-reference «Agents and Hooks in Cowork/Cloud Sessions», 2026-09-06]. Без плагина: role-карты 13 ролей в `.claude/skills/council/references/roster-cards.md`; skills `/council`, `/feniks`, `/reality-audit`, `/crisis` имеют раздел «Cowork path» (general-purpose subagents с инлайн-картой, иначе HATS) |
+| `.claude/agents/*.md` проекта | не загружаются | **из плагина, включённого для аккаунта claude.ai, агенты загружаются** (как `<name>@synced`, доступны через @ и Agent tool) [ДАННЫЕ: docs plugins-reference «Agents and Hooks in Cowork/Cloud Sessions», 2026-09-06]. Без плагина: role-карты 13 ролей в `.claude/skills/council/references/roster-cards.md`; skills `/council`, `/crisis` имеют раздел «Cowork path» (general-purpose subagents с инлайн-картой, иначе HATS) |
 | Проектные хуки `.claude/settings.json` | не применяются (только `~/.claude/settings.json`) | **хуки плагина (`hooks.json`) в Cowork исполняются** [ДАННЫЕ: те же docs] - P9-детектор, Anti-Slop, P14-трейсы, гейты ФЕНИКСА; без плагина - roster-protocol §7 и §10 вручную |
 | Approval-файлы Protocol 6 | недоступны | любая мутация внешних систем = `HITL: Иван`, только подготовка |
-| `memory: project` агентов | недоступна | калибровка ФЕНИКСА читается из `phoenix-eval/references/calibration-anchors.md` (в плагине) |
+| `memory: project` агентов | недоступна | калибровка ФЕНИКСА читается из `knowledge/feniks/calibration-anchors.md` (в плагине тоже, его кладёт `export-plugin.sh`) |
 | Workflow `council.js` | [ГИПОТЕЗА] недоступен | native path / HATS |
 
 Установка в Cowork. Поправка 2026-09-06 (вечер): синхронизация ОДНОСТОРОННЯЯ, из аккаунта claude.ai вниз в Cowork и в
@@ -89,8 +89,8 @@ claude.ai»: облачная сессия скачивает плагины, в
 
 Честная оценка: без плагина в Cowork ростер работает как «skills + карты», без независимого субагента-ФЕНИКСА и без
 технических гейтов; с плагином, по docs, агенты и хуки доступны, но это [ГИПОТЕЗА] до живой проверки по чек-листу §4. Поэтому аудит ФЕНИКСА, полученный в Cowork без Bash, для гейтов, дашбордов и агентов считается
-аудитом без проб (risk_awareness ≤ 5.0, verdict не выше return; phoenix-eval, поправки v3), а критические артефакты (CLAUDE.md §4) проходят повторный
-`/feniks` в Claude Code до deliver.
+аудитом без проб (risk_awareness ≤ 5.0, verdict не выше return; `knowledge/feniks/eval-checklist.md`, поправки v3), а критические артефакты (knowledge/os/gates.md §4) проходят повторный
+прогон агента feniks в Claude Code до deliver.
 
 ## 4. Что проверить на первой установке (чек-лист Ивана / Дмитрия)
 
@@ -119,9 +119,9 @@ claude.ai»: облачная сессия скачивает плагины, в
 | Шаг | Где | Действие |
 |---|---|---|
 | A | Терминал на машине | `claude plugin marketplace add oliverjone01-dev/t1` + `claude plugin install gengroup-roster@gengroup`: ростер в Claude Code CLI и во вкладке Code для ДРУГИХ репозиториев. В этом репозитории не нужно (§1). |
-| B | Desktop → Customize → Plugins → Add marketplace | URL `oliverjone01-dev/t1#plugin` (не `oliverjone01-dev/t1`: полный клон main падает по размеру), затем установить `gengroup-roster`: Cowork и облачные сессии получают `<name>@synced` (13 агентов, 19 skills, 5 хуков). |
-| C | Desktop → Customize → Skills | выключить дубли: `gengroup-geo-aeo`, `gengroup-phoenix-eval`, `gengroup-reality-audit`, `gengroup-humanizer-ru`, `gengroup-crisis-response`, `gengroup-competitor-intel`, `gengroup-cross-sell`, `gengroup-encyclopedia`, `gengroup-content-factory`, `gengroup-brand` (в плагине те же навыки под именами без префикса, версии v3). |
-| D | там же | оставить: `gengroup-aio-recon`, `gengroup-seo-manual`, `gengroup-seo-pipeline`, `gengroup-content-expert`, `gengroup-print-design`, `bogdan-persona`, `avu-persona`, `valonti-brand` (аналогов в плагине нет). Остальные account-навыки (docx, pdf, pptx, xlsx, humanizer, skill-creator, import-memory, morning, turbium-webdis-v1) ростера не касаются. |
+| B | Desktop → Customize → Plugins → Add marketplace | URL `oliverjone01-dev/t1#plugin` (не `oliverjone01-dev/t1`: полный клон main падает по размеру), затем установить `gengroup-roster`: Cowork и облачные сессии получают `<name>@synced` (13 агентов, 11 skills, 5 хуков). |
+| C | Desktop → Customize → Skills | выключить дубли: `gengroup-geo-aeo`, `gengroup-phoenix-eval` (дубль чек-листа `knowledge/feniks/`), `gengroup-humanizer-ru`, `gengroup-crisis-response`, `gengroup-competitor-intel`, `gengroup-cross-sell` (в плагине те же навыки под именами без префикса, версии v3). |
+| D | там же | оставить: `gengroup-brand`, `gengroup-content-factory`, `gengroup-encyclopedia`, `gengroup-reality-audit` (проектные копии удалены 2026-09-28, см. `knowledge/decisions.md`), `gengroup-aio-recon`, `gengroup-seo-manual`, `gengroup-seo-pipeline`, `gengroup-content-expert`, `gengroup-print-design`, `bogdan-persona`, `avu-persona`, `valonti-brand` (аналогов в плагине нет). Остальные account-навыки (docx, pdf, pptx, xlsx, humanizer, skill-creator, import-memory, morning, turbium-webdis-v1) ростера не касаются. |
 
 Облачные сессии ДРУГОГО репозитория без шага B: объявить в его `.claude/settings.json` `extraKnownMarketplaces` +
 `enabledPlugins` (сниппет §2); плагин ставится при старте сессии из маркетплейса, нужен сетевой доступ к GitHub.

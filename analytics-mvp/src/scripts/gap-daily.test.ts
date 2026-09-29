@@ -133,9 +133,12 @@ describe("гейт плато на живом gap_daily", () => {
     for (const a of AD) {
       const r = readiness({ art: a, on }, gapSeries(G.rows, a, ctl), new Map(), BASE_MIN, false);
       if (last < "2026-09-25" || !r.plateauFrom) {
-        // До 25.09 в ряду три дня подряд после дыры 22.09 не набирается ни у кого.
+        // До 25.09 в ряду три дня подряд после дыры 22.09 не набирается ни у кого. Позже, если
+        // сдвиг прервался (28.09 у четырёх артикулов упал ниже +8), ближайшая дата плато уходит
+        // дальше 25.09, но раньше её не бывает никогда.
         expect(r.plateauFrom).toBeUndefined();
-        expect(r.plateauNotBefore).toBe("2026-09-25");
+        if (last < "2026-09-25") expect(r.plateauNotBefore).toBe("2026-09-25");
+        else expect(r.plateauNotBefore! >= "2026-09-25").toBe(true);
       } else {
         // Плато начинается не раньше первого дня после дыры и подтверждено третьим днём.
         expect(r.plateauFrom >= "2026-09-23").toBe(true);

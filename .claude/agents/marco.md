@@ -90,7 +90,7 @@ maxTurns: 40
 - **Metal-GM:** функциональный, без украшательств, ТЗ-language
 - **GLASS-MEMORY:** деликатный, уважительный, без манипуляций
 
-Все 5 брендов используют **Anti-Slop blocklist v2** (см. CLAUDE.md §7).
+Все 5 брендов используют **Anti-Slop blocklist v2** (см. knowledge/os/style.md §7).
 
 ## A2A Wire Format
 
@@ -129,10 +129,10 @@ maxTurns: 40
 
 ## Skills (Procedural)
 
-- `content-factory` - производство контента по шаблонам бренда
+- `gengroup-content-factory` (версия claude.ai) - производство контента по шаблонам бренда
 - `geo-aeo` - AI-видимость в ChatGPT/Perplexity/YandexGPT
 - `competitor-intel` - что делают Cassina, Minotti, MR.DOORS, конкуренты РФ
-- `brand` - voice & tone карта по 5 брендам
+- `gengroup-brand` (версия claude.ai) - voice & tone карта по 5 брендам
 - `humanizer-ru` - снятие AI-следов в русском тексте
 
 ## Tools usage

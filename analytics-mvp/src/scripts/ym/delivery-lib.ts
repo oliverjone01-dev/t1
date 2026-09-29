@@ -15,6 +15,7 @@
 export type DelivRow = {
   order: string; vedomost: string; offer: string; shipped: string;
   status: string; ship: number | null; buyer: number | null; tags: string;
+  note?: string;       // пометка конвертера: сумма взята не из своего столбца (tools/delivery/build_delivery_ym_csv.py)
 };
 
 // Статусы листа. «Собственная доставка» - тоже выкуп: везли своей машиной, заказ доставлен.
@@ -22,15 +23,40 @@ const SOLD = new Set(["Доставлен", "Собственная достав
 // Заказ не доехал или уехал обратно. Перевозку мы всё равно оплатили, и часто дважды (обратная нога).
 const LOST = new Set(["ОТМЕНЕН", "Вернули на склад", "Возврат", "Возвращается ЛК"]);
 
+// Расход по отправкам в статусе «ОТМЕНЕН» в расчёт не идёт (Катя 28.09.2026: «расход по заказам в
+// статусе Отменен не учитывай, исключай его»). Возвраты («Вернули на склад», «Возврат», «Возвращается
+// ЛК») остаются: там перевозка состоялась и оплачена.
+export const EXCLUDED_STATUSES = new Set(["ОТМЕНЕН"]);
+export const withoutCancelled = (rows: DelivRow[]): DelivRow[] => rows.filter((r) => !EXCLUDED_STATUSES.has(r.status));
+
+// Номер заказа в листе иногда записан с пояснением: «60811444291 60812411267 (новый номер)»,
+// «59256208515/2», два заказа одной отправкой. Такая ячейка не совпадала ни с одним заказом, и
+// расход терялся (28.09.2026: 4 отправки на 13 458 ₽). Берём из ячейки тот номер, который есть в
+// выгрузке заказов. Если таких несколько, предпочитаем ДОСТАВЛЕННЫЙ: «58695099523 59213615811
+// (новый номер, старый был отменён)» - первый номер отменён, отправка ушла по второму. Если
+// доставленного среди них нет - первый найденный; если ни одного - ячейку как есть.
+export function resolveOrders(rows: DelivRow[], known: Set<string>, delivered: Set<string> = new Set()): DelivRow[] {
+  return rows.map((r) => {
+    if (known.has(r.order)) return r;
+    const toks = r.order.match(/\d{9,}/g) || [];
+    const hit = toks.find((t) => delivered.has(t)) || toks.find((t) => known.has(t));
+    return hit ? { ...r, order: hit } : r;
+  });
+}
+
 export type DelivClass = "sold" | "lost" | "inflight";
 export const classOf = (status: string): DelivClass =>
   SOLD.has(status) ? "sold" : LOST.has(status) ? "lost" : "inflight";
 
-const numOf = (x: unknown): number | null => {
-  const s = String(x ?? "").trim().split("\n")[0]!.replace(/ /g, "").replace(/\s/g, "").replace(",", ".");
-  if (!s) return null;
-  const v = Number(s);
-  return Number.isFinite(v) ? v : null;   // «FALSE» из формулы листа - это «нет данных», а не ноль
+// Пусто и FALSE/TRUE из формулы листа - это «нет данных», а не ноль. Всё остальное обязано быть
+// числом: раньше неразборчивая ячейка молча становилась «нет данных», и расход терялся
+// (29.09.2026: «\n3 932,06» - 11 отправок на 52 226 ₽). Теперь сборка падает с номером строки.
+const numOf = (x: unknown, line: number, col: string): number | null => {
+  const raw = String(x ?? "").trim();
+  if (!raw || /^(FALSE|TRUE)$/i.test(raw)) return null;
+  const v = Number(raw.replace(/[\s\u00a0]/g, "").replace(",", "."));
+  if (!Number.isFinite(v)) throw new Error(`ведомость доставки, строка ${line}: в столбце ${col} не число «${raw}» - поправьте лист или конвертер`);
+  return v;
 };
 
 // Разбор CSV. Формат простой (кавычки только вокруг поля с запятой), поэтому свой парсер:
@@ -42,13 +68,14 @@ export function parseDeliveryCsv(text: string): DelivRow[] {
   const ix = (n: string) => head.indexOf(n);
   const out: DelivRow[] = [];
   const at = (c: string[], n: string): string => { const i = ix(n); return i < 0 ? "" : (c[i] || "").trim(); };
-  for (const l of lines.slice(1)) {
+  for (const [li, l] of lines.slice(1).entries()) {
     const c = splitCsv(l);
     const order = at(c, "order");
     if (!order) continue;
     out.push({
       order, vedomost: at(c, "vedomost"), offer: at(c, "offer"), shipped: at(c, "shipped"),
-      status: at(c, "status"), ship: numOf(at(c, "ship")), buyer: numOf(at(c, "buyer")), tags: at(c, "tags"),
+      status: at(c, "status"), ship: numOf(at(c, "ship"), li + 2, "ship"), buyer: numOf(at(c, "buyer"), li + 2, "buyer"), tags: at(c, "tags"),
+      ...(at(c, "note") ? { note: at(c, "note") } : {}),
     });
   }
   return out;
@@ -75,8 +102,8 @@ export type DelivByOrder = {
 };
 
 // Свод расхода по НОМЕРУ ЗАКАЗА.
-// Класс заказа берётся самый «тяжёлый»: если хоть одна отправка ушла в отмену или возврат, заказ
-// считается потерянным целиком - деньги за перевозку не вернулись.
+// cls - справочный класс по статусам листа. В расчёт свода он НЕ идёт: куда ложится перевозка,
+// решает статус заказа у Маркета (derive-lib, шаг 3.5), из листа исключается только «ОТМЕНЕН».
 export function delivByOrder(rows: DelivRow[]): Map<string, DelivByOrder> {
   // Стоимость берётся ОДИН РАЗ НА ВЕДОМОСТЬ, а не суммой строк. Ведомость - это документ на вывоз,
   // по нему выставляется один счёт перевозчика. В листе одна ведомость может стоять двумя строками
@@ -105,4 +132,23 @@ export function delivByOrder(rows: DelivRow[]): Map<string, DelivByOrder> {
     m.set(d.order, cur);
   }
   return m;
+}
+
+// Строки ведомости, которые надо поправить руками, для плашки над «Аналитикой по заказам»:
+//  - сумма взята не из «Стоимости отправки» (FALSE в ячейке, строка сдвинута) - пометка конвертера;
+//  - заказ доставлен (по Маркету), а в листе у него нет ни одной суммы: наш расход по нему 0.
+// Когда лист поправят, строка просто перестанет сюда попадать.
+export type DelivIssue = { order: string; shipped: string; status: string; ship: number | null; reason: string };
+export function deliveryIssues(rows: DelivRow[], delivered: Set<string>): DelivIssue[] {
+  const out: DelivIssue[] = [];
+  const byOrder = new Map<string, DelivRow[]>();
+  for (const r of rows) {
+    if (r.note) out.push({ order: r.order, shipped: r.shipped, status: r.status, ship: r.ship, reason: r.note });
+    byOrder.set(r.order, [...(byOrder.get(r.order) || []), r]);
+  }
+  for (const [ord, rs] of byOrder) {
+    if (!delivered.has(ord) || rs.some((r) => r.ship != null)) continue;
+    out.push({ order: ord, shipped: rs[0]!.shipped, status: rs[0]!.status, ship: null, reason: "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём" });
+  }
+  return out;
 }

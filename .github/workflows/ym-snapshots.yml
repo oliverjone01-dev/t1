@@ -235,7 +235,7 @@ jobs:
       - name: Джойны таксономии и СС (ключ - артикул)
         run: npm run ym:join
 
-      - name: Сверка по CLAUDE.md §15 (реализация, выплаты ЛК, СС; три типа периода)
+      - name: Сверка по knowledge/os/analytics-dod.md §15 (реализация, выплаты ЛК, СС; три типа периода)
         run: npm run ym:reconcile
 
       - name: Сборка /market/ (DATA_DIR=data-ym, PLATFORM=ym) + smoke

@@ -61,7 +61,7 @@ $(git diff --name-only --cached 2>/dev/null)"
 if [ -z "$(printf '%s' "$CHANGED" | tr -d '[:space:]')" ]; then
   CHANGED="<диапазон изменений определить не удалось: проверь вручную>"
 fi
-CRIT="$(printf '%s\n' "$CHANGED" | grep -E '^(<диапазон|CLAUDE\.md|\.claude/(agents|skills|hooks|workflows|settings\.json)|\.claude-plugin/|schemas/|knowledge/semantic/|agents-v9/|smm/public/|analytics-mvp/public/|.*\.html$)' | sort -u | head -15 || true)"
+CRIT="$(printf '%s\n' "$CHANGED" | grep -E '^(<диапазон|CLAUDE\.md|\.claude/(agents|skills|hooks|workflows|settings\.json)|\.claude-plugin/|schemas/|knowledge/semantic/|agents-v9/|smm/public/|analytics-mvp/public/|analytics-mvp/src/|tools/|.*\.html$)' | sort -u | head -15 || true)"
 [ -z "$CRIT" ] && exit 0
 
 # Дрейф копий агентов плагина (agents/ против .claude/agents/) - отдельное напоминание, не зависит от аудита
@@ -69,7 +69,7 @@ DRIFT="$(bash .claude-plugin/sync-agents.sh --check 2>/dev/null | grep -E '^(Д�
 N="$(printf '%s\n' "$CRIT" | grep -c . || true)"
 MSG="Step 12.5 reminder (deliver-gate): git push затрагивает ${N} критических артефакт(ов), а за ${TODAY} нет трейса аудита ФЕНИКСА (event=audit в traces/${TODAY}/agents.jsonl или feniks-* в knowledge/episodes/${MONTH}/).
 $(printf '%s\n' "$CRIT" | sed 's/^/  - /')
-По CLAUDE.md §4 критический артефакт не деливерится без вердикта ФЕНИКСА. Прогони /feniks на diff до push или явно зафиксируй в коммите/PR, почему аудит не нужен (не критика). Это напоминание, не блок.${DRIFT:+
+По CLAUDE.md, Step 12.5 (подробно knowledge/os/gates.md §4), критический артефакт не деливерится без вердикта ФЕНИКСА. Прогони агента feniks на diff до push или явно зафиксируй в коммите/PR, почему аудит не нужен (не критика). Это напоминание, не блок.${DRIFT:+
 Плагин: $DRIFT}"
 
 python3 - "$MSG" <<'PY'

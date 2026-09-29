@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run-hook-tests.sh - регрессионный тест гейтов ФЕНИКСА и deliver-gate (условие мержа любой правки хуков).
+# run-hook-tests.sh - регрессионный тест гейтов ФЕНИКСА, deliver-gate и датчика context-meter (условие мержа любой правки хуков).
 # Кейсы: .claude/hooks/tests/scope-cases.tsv (hook, expect, agent_type или `-`, input). Корень фикстуры создаётся
 # ВНЕ /tmp (иначе всё разрешено по дизайну), удаляется после прогона. Exit 0 = все кейсы прошли.
 # Usage: bash .claude/hooks/tests/run-hook-tests.sh [-v]
@@ -36,6 +36,34 @@ while IFS=$'\t' read -r hook expect agent input; do
     fail=$((fail+1)); echo "FAIL [$hook|$agent] $input -> $rc (expect $expect)"
   fi
 done < "$HERE/scope-cases.tsv"
+
+# context-meter (датчик переезда): порог SOFT 150K, HARD 200K, битый ввод и «без переезда» молчат, rc всегда 0.
+cm() {  # $1 имя, $2 контекст в токенах, $3 ожидаемая подстрока или "-" (тишина), $4 prompt
+  local tr="$FX/tr-$1.jsonl" ts out rc
+  ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  printf '{"type":"assistant","timestamp":"%s","message":{"usage":{"input_tokens":%s}}}\n' "$ts" "$2" > "$tr"
+  out="$(python3 -c 'import json,sys; print(json.dumps({"transcript_path": sys.argv[1], "prompt": sys.argv[2]}))' "$tr" "$4" \
+    | python3 "$REPO/.claude/hooks/context-meter.py" 2>/dev/null)"; rc=$?
+  n=$((n+1))
+  if [[ "$rc" == 0 && ( ( "$3" == "-" && -z "$out" ) || ( "$3" != "-" && "$out" == *"$3"* ) ) ]]; then
+    pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [context-meter] $1"
+  else
+    fail=$((fail+1)); echo "FAIL [context-meter] $1 -> rc=$rc out=${out:0:80}"
+  fi
+}
+cm below-soft 120000 - "привет"
+cm soft 420000 "Закончи текущий шаг" "привет"
+cm hard 510000 "ОБЯЗАТЕЛЕН" "привет"
+cm opt-out 510000 - "без переезда, продолжаем"
+n=$((n+1)); out="$(printf 'not json' | python3 "$REPO/.claude/hooks/context-meter.py" 2>/dev/null)"; rc=$?
+if [[ "$rc" == 0 && -z "$out" ]]; then pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [context-meter] broken-json"; else fail=$((fail+1)); echo "FAIL [context-meter] broken-json -> rc=$rc"; fi
+# Команда хука из settings.json при пустом CLAUDE_PROJECT_DIR не должна давать rc=2 (блок промпта).
+n=$((n+1)); cmd="$(python3 -c 'import json,sys; print(next(h["command"] for g in json.load(open(sys.argv[1]))["hooks"]["UserPromptSubmit"] for h in g["hooks"] if "context-meter" in h["command"]))' "$REPO/.claude/settings.json")"
+( cd "$REPO" && printf '{}' | env -u CLAUDE_PROJECT_DIR bash -c "$cmd" >/dev/null 2>&1 ); rc=$?
+if [[ "$rc" == 0 ]]; then pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [context-meter] settings-empty-project-dir"; else fail=$((fail+1)); echo "FAIL [context-meter] settings-empty-project-dir -> rc=$rc"; fi
+
+# data-guard (скилл .claude/skills/data-guard): свои кейсы в data-guard-tests.py
+n=$((n+1)); if python3 "$HERE/data-guard-tests.py" >/dev/null 2>&1; then pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [data-guard] data-guard-tests.py"; else fail=$((fail+1)); echo "FAIL [data-guard] data-guard-tests.py (запусти его с -v)"; fi
 
 rm -r "$FX"
 echo "hook tests: $pass/$n passed, $fail failed"

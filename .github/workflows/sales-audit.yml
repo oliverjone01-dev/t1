@@ -17,8 +17,12 @@ on:
         description: "ИИ-коучинг: 1 включить, 0 только факты"
         default: "1"
   schedule:
-    - cron: "0 9 * * 5"   # пятница 09:00 UTC = 12:00 МСК - недельный
-    - cron: "0 9 1 * *"   # 1-е число 09:00 UTC = 12:00 МСК - месячный
+    - cron: "47 8 * * 5"  # пятница 08:47 UTC = 11:47 МСК - недельный
+    - cron: "47 8 1 * *"  # 1-е число 08:47 UTC = 11:47 МСК - месячный
+
+concurrency:
+  group: sales-audit
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -27,7 +31,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     env:
-      MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 9 1 * *' && 'monthly') || 'weekly' }}
+      MODE: ${{ github.event.inputs.mode || (github.event.schedule == '47 8 1 * *' && 'monthly') || 'weekly' }}
       # ПРАВИЛО (обязательное): недельный/месячный ИИ-разбор идёт ТОЛЬКО в тест-чат, в основной - никогда.
       # Поэтому основной чат (-1004401671894) здесь принудительно перенаправляется в тест-чат,
       # даже если его передали вручную. Другой тест/отладочный chat_id допускается.

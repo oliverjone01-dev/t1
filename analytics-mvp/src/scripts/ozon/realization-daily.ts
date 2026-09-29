@@ -42,16 +42,16 @@ async function main() {
   for (let i = DEPTH; i >= 1; i--) days.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
 
   const old: Row[] = existsSync(OUT) ? readFileSync(OUT, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
-  const fresh: Row[] = []; const got = new Set<string>();
+  const fresh: Row[] = []; const got = new Set<string>(); const failed: string[] = [];
   for (const d of days) {
     const [y, m, dd] = d.split("-").map(Number);
     try {
       const res = await fetch(`${HOST}/v1/finance/realization/by-day`, { method: "POST", headers, body: JSON.stringify({ day: dd, month: m, year: y }) });
-      if (!res.ok) { console.warn(`  ${d}: HTTP ${res.status} ${(await res.text()).slice(0, 160)}`); continue; }
+      if (!res.ok) { console.warn(`  ${d}: HTTP ${res.status} ${(await res.text()).slice(0, 160)}`); failed.push(d); continue; }
       const data: any = await res.json();
       const rows: any[] = data?.result?.rows ?? data?.rows ?? [];
       fresh.push(...aggDay(d, rows)); got.add(d);
-    } catch (e) { console.warn(`  ${d}: ${(e as Error).message}`); }
+    } catch (e) { console.warn(`  ${d}: ${(e as Error).message}`); failed.push(d); }
   }
   // День, который OZON отдал, заменяет старые строки этого дня целиком (в том числе пустым ответом).
   const merged = old.filter((r) => !got.has(r.d)).concat(fresh).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.sku < b.sku ? -1 : 1));
@@ -61,6 +61,9 @@ async function main() {
   const fmt = (v: number) => (Math.round(v * 100) / 100).toLocaleString("ru-RU");
   console.log(`realization-daily: получено дней ${got.size} из ${days.length}, строк в файле ${merged.length}`);
   for (const m of Object.keys(byM).sort()) { const b = byM[m]!; console.log(`  ${m}: дней с продажами ${b.days.size}, шт ${b.n}, F ${fmt(b.f)}, G ${fmt(b.g)}, J ${fmt(b.j)}, K ${fmt(b.k)}, база ${fmt(b.tb)}, баллы ${fmt(b.bonus)}, к выплате ${fmt(b.pay)}`); }
+  // Сбой не глотается (аудит ФЕНИКСА 25.09): OZON хранит отчёт 32 дня, пропущенный день через месяц
+  // не вернуть. Полученные дни уже записаны выше, а красный шаг зовёт перезапустить сбор вовремя.
+  if (failed.length) { console.error(`::error::realization-daily: не получены дни ${failed.join(", ")} - перезапусти сбор, пока они в пределах 32 дней`); process.exitCode = 1; }
 }
 
-if (process.argv[1] && /realization-daily\.ts$/.test(process.argv[1])) main().catch((e) => { console.error("realization-daily FAILED:", (e as Error).message); process.exit(0); });
+if (process.argv[1] && /realization-daily\.ts$/.test(process.argv[1])) main().catch((e) => { console.error("realization-daily FAILED:", (e as Error).message); process.exit(1); });

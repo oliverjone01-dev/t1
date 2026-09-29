@@ -19,6 +19,8 @@
 #
 # Запуск из analytics-mvp:  python3 tools/delivery/build_delivery_sku_daily.py
 import openpyxl, glob, os, json, re, collections, datetime, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from ledger_money import ship_and_deliv, client_paid, paid_in_contacts, MoneyError, second_header  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW = os.path.join(ROOT, "tools", "delivery", "raw")
@@ -30,6 +32,11 @@ OUT_CITY = os.path.join(ROOT, "data", "delivery_cities.json")
 # покупателя, убыточные города (ship > deliv). Только закрытые месяцы (в ведомости текущего нет).
 OUT_CITYDAILY = os.path.join(ROOT, "data", "delivery_city_daily.ndjson")
 CUR_MONTH = datetime.date.today().strftime("%Y-%m")  # текущий месяц исключаем (закрытые только)
+INCLUDE_CUR = os.environ.get("DELIV_SKIP_CUR", "") != "1"  # по умолчанию текущий месяц берём (Иван 28.09)
+
+
+def CANCELLED(status):
+    return "отмен" in str(status or "").lower()
 YEAR = 2026
 MES = {"янв": 1, "фев": 2, "мар": 3, "апр": 4, "мая": 5, "май": 5, "июн": 6, "июл": 7,
        "авг": 8, "сен": 9, "окт": 10, "ноя": 11, "дек": 12}
@@ -116,12 +123,31 @@ def num(x):
         return 0.0
 
 
-def city_of(addr):
-    # Адрес вида «Регион, город/район, улица...». Берём первые два сегмента как пункт назначения.
+# Правило (Иван 29.09): в «Адресе» строки со сдвигом столбцов оказываются контакты покупателя, а адрес
+# стоит в соседней ячейке - берём его оттуда. Телефон в «город» не попадает никогда: репозиторий и
+# страница публичные (55712580-0145-1). Город = первые два сегмента адреса через запятую.
+PHONE = re.compile(r"\+7|\d[\d\s()\-]{8,}\d")
+
+
+def _city2(v):
+    parts = [p.strip() for p in str(v or "").split(",") if p.strip()]
+    if len(parts) < 2 or any(PHONE.search(p) for p in parts[:2]):
+        return None
+    return ", ".join(parts[:2])
+
+
+def city_of(addr, left=None, right=None):
     if not addr:
         return "—"
     parts = [p.strip() for p in str(addr).split(",") if p.strip()]
-    return ", ".join(parts[:2]) if parts else "—"
+    if not any(PHONE.search(p) for p in parts[:2]):
+        return ", ".join(parts[:2]) if parts else "—"
+    # в «Адресе» контакты: адрес в соседней ячейке (сдвиг влево или вправо на столбец)
+    for v in (left, right):
+        c = _city2(v)
+        if c:
+            return c
+    return "адрес не распознан"
 
 
 def main():
@@ -137,6 +163,8 @@ def main():
     # решение Ивана - «по артикулу реальный расход, только не задвоить».
     events = {}  # (order, date, round(ship,2)) -> {ship, deliv, date, arts, city, st}
     ozon = 0
+    bad_cells = []             # денежные ячейки, которые прочитать нельзя (сборка падает)
+    cancelled_skip = [0, 0.0]  # строк со статусом «ОТМЕНЕН» и их «Стоимость отправки» (с повторами строк)
     for f in files:
         wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
         for ws in wb.worksheets:
@@ -145,17 +173,40 @@ def main():
                 continue
             hdr = [norm(c) for c in rows[0]]
             ci = {h: j for j, h in enumerate(hdr)}
+            ic_cont = next((j for h, j in ci.items() if "онтакт" in str(h)), None)
             need = ["Площадка", "Номер заказа", "Артикул", "Дата отгрузки", "Стоимость отправки", "Стоимость доставки", "Адрес", "Статус"]
             if not all(k in ci for k in need):
                 continue
-            for r in rows[1:]:
+            for rix, r in enumerate(rows[1:], start=2):
                 if r is None or all(c is None for c in r):
                     continue
+                if second_header(r, ci["Площадка"]):  # ниже другая таблица со своей шапкой - не читаем
+                    print(f"ведомость: {os.path.basename(f)}:{rix} вторая шапка - дальше лист не читается")
+                    break
                 if "OZON" not in str(r[ci["Площадка"]] or "").upper():
                     continue
                 ozon += 1
-                ship = num(r[ci["Стоимость отправки"]])
-                if ship <= 0:            # реальный расход: строки без отправки (0) пропускаем
+                # Сумма при любом написании (ledger_money); непонятный текст - ошибка сборки с номером
+                # строки, а не 0. Сдвиг столбцов (FALSE в «отправке», расход в «доставке») - расход берём.
+                try:
+                    ic = ci["Стоимость доставки"]
+                    ship, dv0, _flag = ship_and_deliv(r[ci["Стоимость отправки"]], r[ic], r[ic + 1] if ic + 1 < len(r) else None)
+                except MoneyError as ex:
+                    bad_cells.append(f"{os.path.basename(f)}:{rix} «{ex}»")
+                    continue
+                # Оплата клиента для сверки с OZON - с учётом поехавших столбцов (ближайший, Иван 29.09).
+                ic = ci["Стоимость доставки"]
+                dv0 = client_paid(r[ci["Стоимость отправки"]], r[ic], r[ic + 1] if ic + 1 < len(r) else None)
+                # Пусто в «доставке» - оплата клиента бывает уехавшей в «Контакты» (Иван 29.09).
+                if not dv0 and ic_cont is not None and ic_cont < len(r):
+                    dv0 = paid_in_contacts(r[ic_cont]) or dv0
+                if not ship or ship <= 0:  # реальный расход: строки без отправки пропускаем
+                    continue
+                # Иван 28.09.2026: статус «ОТМЕНЕН» - доставку не учитываем вовсе. «Вернули на склад»,
+                # «Возврат» и прочие статусы с оплаченной отправкой остаются реальным расходом.
+                if CANCELLED(r[ci["Статус"]]):
+                    cancelled_skip[0] += 1
+                    cancelled_skip[1] += ship
                     continue
                 no = str(r[ci["Номер заказа"]] or "").strip()
                 d = parse_date(r[ci["Дата отгрузки"]])
@@ -164,8 +215,8 @@ def main():
                 key = (no, d, round(ship, 2))
                 e = events.get(key)
                 if e is None:
-                    e = events[key] = {"ship": ship, "deliv": num(r[ci["Стоимость доставки"]]),
-                                       "date": d, "arts": [], "com": [], "city": city_of(r[ci["Адрес"]]),
+                    e = events[key] = {"ship": ship, "deliv": dv0 or 0.0, "order": no,
+                                       "date": d, "arts": [], "com": [], "city": city_of(r[ci["Адрес"]], r[ci["Адрес"] - 1], r[ci["Адрес"] + 1]),
                                        "st": norm(r[ci["Статус"]])}
                 for art in clean_arts(r[ci["Артикул"]]):
                     if art not in e["arts"]:
@@ -176,10 +227,12 @@ def main():
                         if c not in e["com"]:
                             e["com"].append(c)
         wb.close()
+    if bad_cells:
+        sys.exit("ведомость: не прочитать сумму (исправьте ячейку, 0 не подставляем):\n  " + "\n  ".join(bad_cells))
 
     daily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (offer,d)->[ship,deliv,отправок]
     cities = collections.defaultdict(collections.Counter)     # offer-> Counter(city)
-    citydaily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (city,d)->[ship,deliv,отправок] (на уровне отправки)
+    citydaily = collections.defaultdict(lambda: [0.0, 0.0, 0, []])  # (city,d)->[ship,deliv,отправок,номера заказов]
     permon = collections.defaultdict(float)
     permon_deliv = collections.defaultdict(float)
     bystatus = collections.defaultdict(lambda: [0, 0.0])       # статус -> [отправок, сумма] (инфо)
@@ -187,7 +240,9 @@ def main():
     used = 0
     for e in events.values():
         d = e["date"]
-        if d[:7] == CUR_MONTH:            # текущий месяц не трогаем (по требованию Ивана)
+        # Раньше текущий месяц отбрасывался целиком. 28.09.2026 Иван загрузил ведомость за сентябрь, и
+        # месяц берётся тем, что в ведомости есть; где ведомость кончается, говорит плашка на странице.
+        if d[:7] == CUR_MONTH and not INCLUDE_CUR:
             skipped_cur += 1
             continue
         # Привязка отправки к артикулу:
@@ -208,6 +263,7 @@ def main():
         # город и перевозка - свойства отправки). Σ по городам сходится с permon (сверка ниже).
         cd = citydaily[(e["city"], d)]
         cd[0] += e["ship"]; cd[1] += e["deliv"]; cd[2] += 1
+        cd[3].append(e["order"])  # доход с покупателя страница берёт из OZON по номеру (Иван 29.09)
         permon[d[:7]] += e["ship"]
         permon_deliv[d[:7]] += e["deliv"]
         bystatus[e["st"] or "(пусто)"][0] += 1
@@ -227,8 +283,9 @@ def main():
     with open(OUT_CITY, "w", encoding="utf-8") as w:
         json.dump(city_out, w, ensure_ascii=False)
     # P&L перевозки по городу и дню (закрытые месяцы) - для блока «Логистика по городам».
-    cd_rows = [{"d": d, "city": city, "ship": round(sh, 2), "deliv": round(dl, 2), "n": n}
-               for (city, d), (sh, dl, n) in sorted(citydaily.items())]
+    # deliv - «Стоимость доставки» из ведомости, на странице только для сравнения с OZON.
+    cd_rows = [{"d": d, "city": city, "ship": round(sh, 2), "deliv": round(dl, 2), "n": n, "orders": sorted(od)}
+               for (city, d), (sh, dl, n, od) in sorted(citydaily.items())]
     with open(OUT_CITYDAILY, "w", encoding="utf-8") as w:
         for r in cd_rows:
             w.write(json.dumps(r, ensure_ascii=False) + "\n")
@@ -237,6 +294,7 @@ def main():
     print("город×день строк:", len(cd_rows), "| городов:", len({r["city"] for r in cd_rows}),
           "| Σship город", cd_ship, "vs offer", off_ship, "(Δ", cd_ship - off_ship, ")")
     print("OZON строк прочитано:", ozon, "| уник отправок (заказ+дата+сумма):", len(events), "| учтено:", used, "| пропущено (текущий месяц", CUR_MONTH, "):", skipped_cur)
+    print("пропущено со статусом «ОТМЕНЕН»: строк", cancelled_skip[0], "| сумма по строкам (с повторами)", round(cancelled_skip[1]))
     print("«Стоимость отправки» реальный расход по месяцам:", {k: round(v) for k, v in sorted(permon.items())})
     print("«Стоимость доставки» (клиент, ТОЛЬКО сверка) по месяцам:", {k: round(v) for k, v in sorted(permon_deliv.items())})
     print("строк (offer×день):", len(out), "| уник артикулов:", len(cities))

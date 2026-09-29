@@ -14,11 +14,12 @@ argument-hint: "[YYYY-MM] (по умолчанию прошлый месяц)"
 2. `ls knowledge/episodes/<YYYY-MM>/` - эпизоды, диспуты, аудиты за месяц. Прочитай заголовки и вердикты.
 3. `.claude/agent-memory/feniks/MEMORY.md`, `.claude/agent-memory/spartak/MEMORY.md`, `.claude/agent-memory/data/MEMORY.md` - что агенты сами накопили.
 4. Предыдущая рефлексия `knowledge/reflexion/<prev>.md` - какие меры обещали и что из них сделано.
+5. Реестр ошибок `knowledge/errors/registry.jsonl` и доля переделок за месяц: `python3 .claude/skills/data-guard/scripts/rework_rate.py --since <YYYY-MM>-01 --until <следующий месяц>-01`. Какие классы росли, какие записи пора поднять по лестнице (`.claude/skills/data-guard/references/retro.md`), какие 3 месяца не срабатывали.
 
 ## 2. Council CC-19 (параллельно, одним сообщением)
 
 - `feniks` - систематические ошибки: какие gaps повторяются у каких авторов, дрейф оценок против
-  `.claude/skills/phoenix-eval/references/calibration-anchors.md`, какие пробы находили дыры, где ФЕНИКС был неправ в диспутах.
+  `knowledge/feniks/calibration-anchors.md`, какие пробы находили дыры, где ФЕНИКС был неправ в диспутах.
 - `data` - предсказанный эффект vs реальный по эпизодам месяца (источники: `analytics-mvp/data/`, Bitrix24-снимки, Директ-отчёты);
   каждое расхождение с меткой и причиной.
 - `marco` - уроки механики рынка: какие допущения о ЦА и каналах не подтвердились.

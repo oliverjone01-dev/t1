@@ -1183,8 +1183,13 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
     const ordersKnown = new Map<string, Set<string>>();
     for (const [ord, d] of dOrd) {
       if (!d.known) continue;                       // в листе нет числа - это «нет данных», не ноль
+      // Куда ляжет перевозка, решает статус заказа у МАРКЕТА, а не статус строки листа. Из листа
+      // выпадает только «ОТМЕНЕН» (withoutCancelled), возвраты учитываются как обычный расход по
+      // заказу (Катя 29.09.2026: «не надо учитывать ТОЛЬКО статус ОТМЕНЕН, возвраты учитываются»).
+      // Раньше одна отправка в возврате уводила весь заказ в ship_lost, даже доставленный:
+      // 59256208515, 5 053 + 3 266 = 8 318 ₽ выпадали из городов.
       const k = delivered.get(ord);
-      if (k && d.cls !== "lost") {
+      if (k) {
         const items = itemsOf.get(ord) || [];
         const base = baseOf.get(ord) || 0;
         for (const it of items) {
@@ -1196,11 +1201,10 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
         const ok = ordersKnown.get(k) || new Set<string>(); ok.add(ord); ordersKnown.set(k, ok);
         continue;
       }
-      // Заказ ещё в пути (по Маркету не доставлен, не отменён, не возвращён), а по листу он не в
-      // отмене/возврате: мы его уже отгрузили. С 28.09.2026 такие заказы стоят в своде строками
+      // Заказ ещё в пути (по Маркету не доставлен, не отменён, не возвращён): мы его уже отгрузили. С 28.09.2026 такие заказы стоят в своде строками
       // (fly_rows), и перевозка ложится на них, а не в «отправки по отменённым»: за сентябрь это
       // 23 заказа на 89 500 ₽, которые читались как расход по несостоявшимся заказам.
-      if (!k && d.cls !== "lost" && !/^(DELIVERED|RETURNED|CANCELLED)/.test(statusOfOrder.get(ord) || "")) {
+      if (!k && !/^(DELIVERED|RETURNED|CANCELLED)/.test(statusOfOrder.get(ord) || "")) {
         flyShip.set(ord, (flyShip.get(ord) || 0) + d.ship);
         continue;
       }

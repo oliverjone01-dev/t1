@@ -17,12 +17,14 @@ import openpyxl, glob, os, json, re, collections
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "delivery"))
 from build_delivery_sku_daily import parse_date  # «4 августа» -> 2026-08-04, один разбор на оба сборщика
+from ledger_money import ship_and_deliv, MoneyError  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CPO_RAW = os.path.join(ROOT, "tools", "cpo", "raw")
 DL_RAW = os.path.join(ROOT, "tools", "delivery", "raw")
 OUT_CPO = os.path.join(ROOT, "data", "cpo_orders.ndjson")
 OUT_DL = os.path.join(ROOT, "data", "delivery_orders.ndjson")
+OUT_ISSUES = os.path.join(ROOT, "data", "delivery_ledger_issues.json")
 
 
 def num(x):
@@ -71,6 +73,8 @@ def main():
 
     # --- Доставка по номеру постинга (ведомость), дедуп по уникальной отправке ---
     dl = collections.defaultdict(lambda: [0.0, 0.0, "", ""])  # posting -> [ship, deliv, отгрузка, доставка факт]
+    bad_cells = []
+    issues = {"shift": [], "empty": []}  # сдвиг столбцов / суммы нет - для плашки на странице
     seen = set()
     for f in sorted(glob.glob(os.path.join(DL_RAW, "*.xlsx"))):
         wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
@@ -82,7 +86,7 @@ def main():
             ci = {h: j for j, h in enumerate(hdr)}
             if "Номер заказа" not in ci or "Стоимость отправки" not in ci:
                 continue
-            for r in rows[1:]:
+            for rix, r in enumerate(rows[1:], start=2):
                 if r is None or all(c is None for c in r):
                     continue
                 if "OZON" not in norm(r[ci["Площадка"]]).upper():
@@ -93,8 +97,20 @@ def main():
                 # Иван 28.09.2026: статус «ОТМЕНЕН» - доставку не учитываем.
                 if "Статус" in ci and "отмен" in norm(r[ci["Статус"]]).lower():
                     continue
-                sp = num(r[ci["Стоимость отправки"]])
-                dv = num(r[ci["Стоимость доставки"]])
+                try:
+                    sp, dv, flag = ship_and_deliv(r[ci["Стоимость отправки"]], r[ci["Стоимость доставки"]])
+                except MoneyError as ex:
+                    bad_cells.append(f"{os.path.basename(f)}:{rix} «{ex}»")
+                    continue
+                ds0 = parse_date(r[ci["Дата отгрузки"]]) if "Дата отгрузки" in ci else None
+                if sp is None:
+                    # Суммы нет (FALSE без сдвига и т.п.) - не ноль молча, а строка в списке для страницы.
+                    if str(r[ci["Стоимость отправки"]] or "").strip():
+                        issues["empty"].append({"order": no, "d_ship": ds0, "status": norm(r[ci["Статус"]]) if "Статус" in ci else ""})
+                    continue
+                if flag == "сдвиг":
+                    issues["shift"].append({"order": no, "d_ship": ds0, "ship": round(sp, 2)})
+                dv = dv or 0.0
                 dshort = norm(r[ci["Дата отгрузки"]]) if "Дата отгрузки" in ci else ""
                 key = (no, dshort, round(sp, 2))
                 if key in seen:      # схлопываем повтор строк одной отправки
@@ -112,6 +128,17 @@ def main():
                 if df and df > dl[no][3]:
                     dl[no][3] = df
         wb.close()
+    if bad_cells:
+        sys.exit("ведомость: не прочитать сумму (исправьте ячейку, 0 не подставляем):\n  " + "\n  ".join(bad_cells))
+    # Повторы строк одной отправки схлопываем и здесь.
+    for k in issues:
+        uniq = {}
+        for x in issues[k]:
+            uniq[(x["order"], x.get("d_ship"))] = x
+        issues[k] = sorted(uniq.values(), key=lambda x: (x.get("d_ship") or "", x["order"]))
+    with open(OUT_ISSUES, "w", encoding="utf-8") as w:
+        json.dump(issues, w, ensure_ascii=False, indent=1)
+    print("ведомость: сдвиг столбцов", len(issues["shift"]), "| суммы нет", len(issues["empty"]), "->", OUT_ISSUES)
     with open(OUT_DL, "w", encoding="utf-8") as w:
         for no, (sh, dv, ds, df) in sorted(dl.items()):
             o = {"order": no, "ship": round(sh, 2), "deliv": round(dv, 2)}

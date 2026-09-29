@@ -19,6 +19,8 @@
 #
 # Запуск из analytics-mvp:  python3 tools/delivery/build_delivery_sku_daily.py
 import openpyxl, glob, os, json, re, collections, datetime, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from ledger_money import ship_and_deliv, MoneyError  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW = os.path.join(ROOT, "tools", "delivery", "raw")
@@ -142,6 +144,7 @@ def main():
     # решение Ивана - «по артикулу реальный расход, только не задвоить».
     events = {}  # (order, date, round(ship,2)) -> {ship, deliv, date, arts, city, st}
     ozon = 0
+    bad_cells = []             # денежные ячейки, которые прочитать нельзя (сборка падает)
     cancelled_skip = [0, 0.0]  # строк со статусом «ОТМЕНЕН» и их «Стоимость отправки» (с повторами строк)
     for f in files:
         wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
@@ -154,14 +157,20 @@ def main():
             need = ["Площадка", "Номер заказа", "Артикул", "Дата отгрузки", "Стоимость отправки", "Стоимость доставки", "Адрес", "Статус"]
             if not all(k in ci for k in need):
                 continue
-            for r in rows[1:]:
+            for rix, r in enumerate(rows[1:], start=2):
                 if r is None or all(c is None for c in r):
                     continue
                 if "OZON" not in str(r[ci["Площадка"]] or "").upper():
                     continue
                 ozon += 1
-                ship = num(r[ci["Стоимость отправки"]])
-                if ship <= 0:            # реальный расход: строки без отправки (0) пропускаем
+                # Сумма при любом написании (ledger_money); непонятный текст - ошибка сборки с номером
+                # строки, а не 0. Сдвиг столбцов (FALSE в «отправке», расход в «доставке») - расход берём.
+                try:
+                    ship, dv0, _flag = ship_and_deliv(r[ci["Стоимость отправки"]], r[ci["Стоимость доставки"]])
+                except MoneyError as ex:
+                    bad_cells.append(f"{os.path.basename(f)}:{rix} «{ex}»")
+                    continue
+                if not ship or ship <= 0:  # реальный расход: строки без отправки пропускаем
                     continue
                 # Иван 28.09.2026: статус «ОТМЕНЕН» - доставку не учитываем вовсе. «Вернули на склад»,
                 # «Возврат» и прочие статусы с оплаченной отправкой остаются реальным расходом.
@@ -176,7 +185,7 @@ def main():
                 key = (no, d, round(ship, 2))
                 e = events.get(key)
                 if e is None:
-                    e = events[key] = {"ship": ship, "deliv": num(r[ci["Стоимость доставки"]]),
+                    e = events[key] = {"ship": ship, "deliv": dv0 or 0.0,
                                        "date": d, "arts": [], "com": [], "city": city_of(r[ci["Адрес"]]),
                                        "st": norm(r[ci["Статус"]])}
                 for art in clean_arts(r[ci["Артикул"]]):
@@ -188,6 +197,8 @@ def main():
                         if c not in e["com"]:
                             e["com"].append(c)
         wb.close()
+    if bad_cells:
+        sys.exit("ведомость: не прочитать сумму (исправьте ячейку, 0 не подставляем):\n  " + "\n  ".join(bad_cells))
 
     daily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (offer,d)->[ship,deliv,отправок]
     cities = collections.defaultdict(collections.Counter)     # offer-> Counter(city)

@@ -99,3 +99,16 @@ describe("«Наша доставка» по дате начисления за�
     expect(inSeries).toBeCloseTo(matched, 1);
   });
 });
+
+describe("ведомость: суммы текстом не превращаются в 0 (ФЕНИКС 29.09, п.1)", () => {
+  it("разбор денежных ячеек: пробелы любого вида, переносы, «1871х2», сдвиг столбцов", async () => {
+    const { execFileSync } = await import("node:child_process");
+    const out = execFileSync("python3", ["tools/delivery/ledger_money.py"], { encoding: "utf-8" });
+    expect(out).toContain("все проверки прошли");
+  });
+  it("файл данных = сама ведомость (xlsx), если сырьё есть локально", async () => {
+    const { execFileSync } = await import("node:child_process");
+    const out = execFileSync("python3", ["tools/delivery/check_ledger_raw.py"], { encoding: "utf-8" });
+    expect(out).toMatch(/ни одна сумма не потеряна|сырья нет/);
+  });
+});

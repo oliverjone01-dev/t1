@@ -2386,13 +2386,14 @@ function render(cur,cmp){
   const ymDlShifted = ymDlIssues.filter((x) => x.ship != null);
   const ymDlEmpty = ymDlIssues.filter((x) => x.ship == null);
   const ymDlWarn = ymDlIssues.length
-    ? `<div class="kt-note" id="so-dlwarn" style="margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)">`
-      + `<b style="color:#E5B567">⚠ Ведомость доставки: ${ymDlIssues.length} ${ymDlIssues.length % 10 === 1 && ymDlIssues.length % 100 !== 11 ? "строка требует" : "строк требуют"} правки</b>. `
+    ? `<div class="kt-note" id="so-dlwarn" style="margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"><details>`
+      // Свёрнуто по умолчанию (Катя 29.09.2026): список длинный и закрывал таблицу.
+      + `<summary style="cursor:pointer"><b style="color:#E5B567">⚠ Ведомость доставки: ${ymDlIssues.length} ${ymDlIssues.length % 10 === 1 && ymDlIssues.length % 100 !== 11 ? "строка требует" : "строк требуют"} правки</b> <span style="color:var(--ink-2)">(нажмите, чтобы раскрыть)</span></summary><div style="padding-top:5px">`
       + (ymDlShifted.length ? `Сумма взята не из «Стоимости отправки» (${ymDlShifted.length}, ${ymDlRub(ymDlShifted.reduce((a, x) => a + x.ship, 0))} ₽ - в расходе учтены): `
         + ymDlShifted.map((x) => `<b>${ymDlEsc(x.order)}</b> (${ymDlEsc(x.shipped)}, ${ymDlRub(x.ship)} ₽ - ${ymDlEsc(x.reason)})`).join("; ") + ". " : "")
       + (ymDlEmpty.length ? `Заказ доставлен, а суммы в ведомости нет - наша доставка по нему 0 (${ymDlEmpty.length}): `
         + ymDlEmpty.map((x) => `<b>${ymDlEsc(x.order)}</b> (${ymDlEsc(x.shipped)}, ${ymDlEsc(x.status)})`).join("; ") + ". " : "")
-      + `Когда ведомость поправят, строки перестанут сюда попадать.</div>`
+      + `Когда ведомость поправят, строки перестанут сюда попадать.</div></details></div>`
     : "";
   const svodSection = IS_OZON ? "" : `
   <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по заказам</div><div class="card-sub">та же база и те же колонки, что в аналитике по артикулам ниже &middot; строка - заказ, а не артикул &middot; сгруппировано по категориям, клик раскрывает заказы &middot; период из фильтра наверху страницы</div></div>

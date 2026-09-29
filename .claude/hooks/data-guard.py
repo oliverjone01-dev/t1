@@ -206,16 +206,36 @@ def warn_pre(text, system=None):
 WRAPPERS = {"env", "command", "nice", "nohup", "sudo", "time", "exec", "builtin"}
 
 
+OPERATORS = {"&&", "||", ";", "|", "&", ";;", "|&"}
+
+
+def _split_ops(cmd):
+    """Разбить команду на сегменты по операторам с учётом кавычек (shlex, punctuation_chars)."""
+    lex = shlex.shlex((cmd or "").replace("\n", " ; "), posix=True, punctuation_chars=True)
+    lex.whitespace_split = True
+    segs, cur = [], []
+    try:
+        for tok in lex:
+            if tok in OPERATORS:
+                if cur:
+                    segs.append(cur)
+                cur = []
+            elif tok in ("(", ")", "{", "}", "((", "))"):
+                continue
+            else:
+                cur.append(tok)
+    except ValueError:
+        return [part.split() for part in re.split(r"(?:&&|\|\||[;|\n])", cmd or "") if part.strip()]
+    if cur:
+        segs.append(cur)
+    return segs
+
+
 def segments(cmd, depth=0):
-    """Команда -> список сегментов (токены), разбитых по ; && || | и переводам строк.
-    Разворачивает обёртки (env, timeout N, command, nice, sudo, скобки) и bash -c / sh -c."""
+    """Команда -> список сегментов (токены). Разворачивает обёртки (env, timeout N, command, nice, sudo)
+    и bash -c / sh -c (рекурсивно, с учётом кавычек)."""
     res = []
-    for part in re.split(r"(?:&&|\|\||[;|\n])", cmd or ""):
-        part = part.strip().lstrip("({").rstrip(")}").strip()
-        try:
-            toks = shlex.split(part, posix=True)
-        except ValueError:
-            toks = part.split()
+    for toks in _split_ops(cmd):
         changed = True
         while toks and changed:
             changed = False
@@ -253,9 +273,14 @@ def is_main_ref(ref):
     return re.fullmatch(r"(\+)?((HEAD|[\w./-]+):)?(refs/heads/)?main", ref) is not None
 
 
-STATE_OPS = {"add", "commit", "merge", "cherry-pick", "rebase", "am", "pull", "revert", "reset", "checkout",
-             "switch", "stash", "apply", "restore", "rm", "mv"}
-REF_OPS = {"merge", "cherry-pick", "rebase", "pull"}
+VALUE_OPTS = {  # опции, после которых идёт значение (не ref)
+    "merge": {"-m", "-F", "--message", "--file", "-X", "--strategy-option", "-s", "--strategy", "--into-name", "-S"},
+    "cherry-pick": {"-m", "--mainline", "-X", "--strategy-option", "--strategy", "-S"},
+    "commit": {"-m", "-F", "--message", "--file", "-C", "-c", "--author", "--date", "-t", "--template", "--fixup", "--squash"},
+    "pull": {"-X", "--strategy-option", "-s", "--strategy", "--depth"},
+    "push": {"-o", "--push-option", "--repo", "--receive-pack", "--exec"},
+}
+GH_VALUE_OPTS = {"-t", "--subject", "-b", "--body", "-F", "--body-file", "-R", "--repo", "--match-head-commit", "-A", "--author-email"}
 
 
 def gh_sub(toks):
@@ -266,17 +291,45 @@ def gh_sub(toks):
     return toks[i:]
 
 
+def positional(args, value_opts):
+    out, skip = [], False
+    for a in args:
+        if skip:
+            skip = False
+            continue
+        if a.startswith("-"):
+            if a in value_opts:
+                skip = True
+            continue
+        out.append(a)
+    return out
+
+
+def safe_before_push(sub, pos):
+    """Сегмент, после которого итог в main предсказуем: add/commit (весь результат = рабочее дерево),
+    fetch/status/log/diff/show, pull или merge только из origin main."""
+    if sub in ("add", "commit", "fetch", "status", "log", "diff", "show", "rev-parse"):
+        return True
+    if sub == "pull":
+        return not pos or pos == ["origin"] or pos == ["origin", "main"]
+    if sub == "merge":
+        return bool(pos) and all(re.fullmatch(r"(origin/)?main", p) for p in pos)
+    return False
+
+
 def merge_targets(cmd, cur_branch):
-    """Что команда сольёт в main. Список целей: {what, pr, branch, rev, prospective, refs}.
-    prospective: перед push в той же команде меняется состояние (add/commit/merge/...), поэтому
-    оцениваем рабочее дерево и сливаемые refs, а не HEAD до выполнения."""
-    targets, state_changed, refs = [], False, []
+    """Что команда отправит или сольёт в main. Список целей: {what, pr|branch|rev, prospective, unknown}.
+    prospective: перед push в той же команде были add/commit (итог = рабочее дерево).
+    unknown: перед push были операции, итог которых до выполнения не определить
+    (смена ветки, merge/cherry-pick/rebase/am/apply/reset/checkout/restore/stash, запись файлов не-git командами):
+    такой push всегда требует подтверждения."""
+    targets, prospective, unknown_ops, br = [], False, [], cur_branch
     for t in segments(cmd):
         base = os.path.basename(t[0])
         if base == "gh":
             rest = gh_sub(t)
             if len(rest) >= 2 and rest[0] == "pr" and rest[1] == "merge":
-                pos = [a for a in rest[2:] if not a.startswith("-")]
+                pos = positional(rest[2:], GH_VALUE_OPTS)
                 arg = pos[0] if pos else None
                 m = re.search(r"/pull/(\d+)", arg or "")
                 if arg and (re.fullmatch(r"#?\d+", arg) or m):
@@ -284,43 +337,51 @@ def merge_targets(cmd, cur_branch):
                 elif arg:
                     targets.append({"what": "gh pr merge", "branch": arg})
                 else:
-                    targets.append({"what": "gh pr merge", "rev": "HEAD", "prospective": state_changed, "refs": list(refs)})
+                    targets.append({"what": "gh pr merge", "rev": "HEAD", "prospective": prospective, "unknown": list(unknown_ops)})
                 continue
             if rest and rest[0] == "api":
                 m = re.search(r"pulls/(\d+)/merge\b", " ".join(rest))
                 if m:
                     targets.append({"what": "gh api merge", "pr": m.group(1)})
                 continue
+            continue
         sub, args = git_sub(t)
         if not sub:
+            if base not in ("cd", "pwd", "echo", "true", "ls", "cat", "grep", "rg", "head", "tail", "wc", "printf", "test", "["):
+                unknown_ops.append(base)  # скрипт или команда, которая может писать файлы
+            elif any(x in t for x in (">", ">>")):
+                unknown_ops.append(base + " >")
             continue
-        pos = [a for a in args if not a.startswith("-")]
+        pos = positional(args, VALUE_OPTS.get(sub, set()))
         if sub == "push":
             rs = pos[1:]
             for r in rs:
                 if is_main_ref(r):
-                    src = (r.split(":", 1)[0] if ":" in r else r).lstrip("+")
-                    src = re.sub(r"^refs/heads/", "", src)
-                    if src in ("HEAD", "@", "") or (src == "main" and cur_branch == "main"):
-                        targets.append({"what": "git push в main", "rev": "HEAD", "prospective": state_changed, "refs": list(refs)})
+                    src = re.sub(r"^refs/heads/", "", (r.split(":", 1)[0] if ":" in r else r).lstrip("+"))
+                    if src in ("HEAD", "@", "") or src == br:
+                        targets.append({"what": "git push в main", "rev": "HEAD", "prospective": prospective, "unknown": list(unknown_ops)})
                     else:
-                        targets.append({"what": "git push в main", "rev": src})
+                        targets.append({"what": "git push в main", "rev": src, "unknown": list(unknown_ops)})
                     break
             else:
-                if cur_branch == "main" and (not rs or any(r in ("HEAD", "@") for r in rs)):
-                    targets.append({"what": "git push в main", "rev": "HEAD", "prospective": state_changed, "refs": list(refs)})
+                if br == "main" and (not rs or any(r in ("HEAD", "@") for r in rs)):
+                    targets.append({"what": "git push в main", "rev": "HEAD", "prospective": prospective, "unknown": list(unknown_ops)})
             continue
-        if sub in STATE_OPS:
-            if sub in REF_OPS:
-                if sub == "pull":
-                    refs.extend(f"{pos[0]}/{p}" for p in pos[1:]) if len(pos) >= 2 else None
-                else:
-                    refs.extend(p for p in pos if not re.fullmatch(r"(origin/)?main", p))
-            if sub == "merge" and cur_branch == "main" and not any(a in ("--abort", "--continue", "--quit") for a in args):
-                work = [p for p in pos if not re.fullmatch(r"(origin/)?main", p)]
-                for w in work:
-                    targets.append({"what": "git merge в main", "rev": w})
-            state_changed = True
+        if sub in ("checkout", "switch"):
+            if "--" in args or not pos:
+                unknown_ops.append(f"git {sub}")
+            else:
+                br = pos[-1] if sub == "switch" or "-b" not in args else pos[-1]
+                unknown_ops.append(f"git {sub} {br}")
+            continue
+        if sub == "merge" and br == "main" and not any(a in ("--abort", "--continue", "--quit") for a in args):
+            work = [p for p in pos if not re.fullmatch(r"(origin/)?main", p)]
+            for w in work:
+                targets.append({"what": "git merge в main", "rev": w})
+        if sub in ("add", "commit"):
+            prospective = True
+        elif not safe_before_push(sub, pos):
+            unknown_ops.append(f"git {sub}")
     return targets
 
 
@@ -397,15 +458,14 @@ def merge_gate(c, tgt, reason, sid):
         ask(f"data-guard (К11): не удалось получить содержимое {target} для проверки go ФЕНИКСА. Продолжить?",
             "data-guard К11: fetch головы PR или ветки не удался, проверить go на сливаемые изменения нельзя. Спроси Ивана или проверь вручную.")
         return True
-    if tgt.get("prospective"):
+    if tgt.get("unknown"):
+        missing.append("итог команды не определить до выполнения (" + ", ".join(dict.fromkeys(tgt["unknown"]))[:120] + ")")
+    elif tgt.get("prospective"):
         ch = worktree_changes()
         if ch is None:
             missing.append("рабочее дерево (не удалось определить изменения)")
         elif any(matches_any(p, c.get("numbers_globs", [])) for p in ch) and not feniks_go_for("HEAD", maxh, worktree=True):
             missing.append("изменения рабочего дерева и коммиты этой команды")
-        for r in tgt.get("refs", []):
-            if touches_numbers(c, r) and not feniks_go_for(r, maxh):
-                missing.append(f"сливаемый ref {r}")
     else:
         if touches_numbers(c, rev) and not feniks_go_for(rev, maxh):
             missing.append(target)
@@ -514,6 +574,7 @@ MODES = {"session-start": session_start, "prompt": prompt, "pre-bash": pre_bash,
          "pre-mcp-merge": pre_mcp_merge, "stop": stop}
 
 if __name__ == "__main__":
+    mode, ev = "", {}
     try:
         if os.environ.get("DATA_GUARD_OFF") == "1" or not os.path.isfile(CFG_PATH):
             sys.exit(0)
@@ -523,6 +584,15 @@ if __name__ == "__main__":
         fn = MODES.get(mode)
         if fn:
             fn(ev, cfg())
-    except Exception:
-        pass
+    except Exception as e:
+        # Сбой хука не должен молча пропускать слияние в main (fail-closed только для гейта К11).
+        try:
+            ti = ev.get("tool_input") or {}
+            text = str(ti.get("command") or "")
+            risky = mode == "pre-mcp-merge" or re.search(r"(gh\s.*pr\s+merge|pulls/\d+/merge|git\s.*\b(push|merge)\b[^\n]*\bmain\b)", text)
+            if mode in ("pre-bash", "pre-mcp-merge") and risky:
+                ask(f"data-guard: внутренняя ошибка хука ({type(e).__name__}), проверить go ФЕНИКСА не удалось. Продолжить?",
+                    "data-guard: хук упал на команде слияния или push в main, проверка К11 не выполнена. Проверь вручную или спроси Ивана.")
+        except Exception:
+            pass
     sys.exit(0)

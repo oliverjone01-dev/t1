@@ -205,7 +205,24 @@ def main():
     for c in ("git merge work && git push origin main", f"git cherry-pick {after_go} && git push origin main", "git merge work"):
         case(f"слияние ветки с цифрами в main: ask (R1): {c}", "pre-bash", bash(c), is_ask)
     case("git pull на main и push без своих изменений: молчит", "pre-bash", bash("git pull --ff-only && git push origin main"), silent)
+    # итерация 4: смена ветки, непредсказуемые операции, правка после go, bash -c с составной командой (G1, G2, G4, G5)
+    for c in ("git am fix.patch && git push origin main", "git apply fix.patch && git add -A && git commit -m x && git push origin main",
+              "git reset --hard work && git push -f origin main", "git checkout work -- . && git commit -m x && git push origin main",
+              "git restore --source work analytics-mvp && git commit -am x && git push", "git stash pop && git commit -am x && git push",
+              "echo 1 > tools/y.json && git add -A && git commit -m x && git push origin main", "python3 tools/sync.py && git commit -am x && git push",
+              "sed -i s/1/2/ tools/x.json && git add -A && git commit -m x && git push origin main",
+              "bash -c 'git merge work && git push origin main'", "sh -c \"git merge work; git push origin HEAD:main\""):
+        case(f"итог не определить до выполнения: ask (G2/G4): {c}", "pre-bash", bash(c), is_ask)
+    case("git merge --no-ff -m 'сообщение' docs на main: молчит (G3)", "pre-bash", bash("git merge --no-ff -m 'Merge docs' docs"), silent)
+    case("gh pr merge -t 'title' 13 (docs): молчит (G3)", "pre-bash", bash("gh pr merge -t 'title' 13"), silent)
+    sh(fx, "git", "branch", "-f", "goodbr", "work~1")
+    case("git merge -m 'x' ветки с go на её изменения: молчит (G3, путь go)", "pre-bash", bash("git merge --no-ff -m 'Merge: goodbr' goodbr"), silent)
+    for c in ("git checkout work && git push origin HEAD:main", "git switch work && git push origin main",
+              "git checkout main && git merge --no-ff work -m 'Merge: x' && git push origin main"):
+        case(f"смена ветки внутри команды: ask (G1): {c}", "pre-bash", bash(c), is_ask)
     sh(fx, "git", "checkout", "-q", "docs")
+    case("коммит и push текущей ветки как ветка:main: оценивается рабочее дерево (G5)", "pre-bash",
+         bash("git checkout work && git add -A && git commit -m x && git push origin work:main"), is_ask)
     for c in ("git push origin work:main", "gh pr merge work", "gh pr merge https://github.com/o/r/pull/45", "gh -R o/r pr merge 45"):
         case(f"слияние чужого содержимого с другой ветки: ask (R3): {c}", "pre-bash", bash(c), is_ask)
     h45 = sh(fx, sys.executable, os.path.join(fx, ".claude/skills/data-guard/scripts/audit_hash.py"), "--rev", after_go)
@@ -225,6 +242,14 @@ def main():
     case("stop: «Сумма тестов сошлась: 49 из 49» молчит (m-c)", "stop", {"session_id": "s8", "last_assistant_message": "Сумма тестов сошлась: 49 из 49."}, silent)
     case("stop: «совпадает с документацией» молчит", "stop", {"session_id": "s5", "last_assistant_message": "Формат хука совпадает с документацией, 2 из 2 кейсов."}, silent)
     case("stop: stop_hook_active молчит", "stop", {"session_id": "s6", "stop_hook_active": True, "last_assistant_message": "выручка сошлась 5 ₽"}, silent)
+
+    # сбой хука на команде слияния: ask, а не молча (fail-closed для К11)
+    cfgp = os.path.join(fx, ".claude/data-guard.json")
+    good = open(cfgp).read()
+    open(cfgp, "w").write("{ битый json")
+    case("сбой хука на слиянии: ask", "pre-bash", bash("gh pr merge 45"), is_ask)
+    case("сбой хука на обычной команде: молчит", "pre-bash", bash("ls"), silent)
+    open(cfgp, "w").write(good)
 
     # выключатели
     case("DATA_GUARD_OFF=1 молчит", "pre-bash", bash("gh pr merge 12"), silent, {"DATA_GUARD_OFF": "1"})

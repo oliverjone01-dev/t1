@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-29T06:59:55.059Z",
+  "generated_at": "2026-09-29T08:41:22.747Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-27",
   "split_check": {
@@ -11,6 +11,260 @@
     "act_money": 557250.2,
     "act_points": 2350590.89
   },
+  "deliv_issues": [
+    {
+      "order": "61297794049",
+      "shipped": "9 сентября",
+      "status": "Доставлен",
+      "ship": 7640.09,
+      "reason": "FALSE в «Стоимости отправки», расход взят из соседнего столбца"
+    },
+    {
+      "order": "61391251329",
+      "shipped": "10 сентября",
+      "status": "Доставлен",
+      "ship": 5183.7,
+      "reason": "расход стоит в столбце «С/С», строка сдвинута на два столбца"
+    },
+    {
+      "order": "61413630400",
+      "shipped": "10 сентября",
+      "status": "Доставлен",
+      "ship": 6025.77,
+      "reason": "расход стоит в столбце «С/С», строка сдвинута на два столбца"
+    },
+    {
+      "order": "61512388163",
+      "shipped": "11 сентября",
+      "status": "Доставлен",
+      "ship": 3313.44,
+      "reason": "расход стоит в столбце «С/С», строка сдвинута на два столбца"
+    },
+    {
+      "order": "56563946370",
+      "shipped": "7 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56233996545",
+      "shipped": "13 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56836066755",
+      "shipped": "14 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57003903552",
+      "shipped": "14 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56758515842",
+      "shipped": "15 мая",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57062249408",
+      "shipped": "18 мая",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56256574210",
+      "shipped": "20 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57062209153",
+      "shipped": "20 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56392764865",
+      "shipped": "21 мая",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57249746817",
+      "shipped": "25 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56589515585",
+      "shipped": "28 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57154805249",
+      "shipped": "9 июня",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57213302784",
+      "shipped": "10 июня",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "54812696769",
+      "shipped": "2 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58993760577",
+      "shipped": "13 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59008517760",
+      "shipped": "13 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59046427331",
+      "shipped": "14 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59019476419",
+      "shipped": "16 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59037707329",
+      "shipped": "16 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58779988547",
+      "shipped": "16 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59150410752",
+      "shipped": "17 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58994962499",
+      "shipped": "17 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58976380355",
+      "shipped": "17 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59146346179",
+      "shipped": "22 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59223823427",
+      "shipped": "23 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59197214657",
+      "shipped": "23 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59080639424",
+      "shipped": "24 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59572627331",
+      "shipped": "28 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59060109699",
+      "shipped": "22 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "60104830146",
+      "shipped": "19 августа",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "60649839426",
+      "shipped": "31 августа",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "61184760002",
+      "shipped": "3 сентября",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    }
+  ],
   "months": [
     {
       "business": "1023124",
@@ -79,8 +333,8 @@
           "result_points": 67339.79,
           "cogs": 8864,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2970.38,
+          "ship_known": true,
           "region": "Кривцово"
         },
         {
@@ -145,8 +399,8 @@
           "result_points": 62037.61,
           "cogs": 11827,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 504.07,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -277,8 +531,8 @@
           "result_points": 58246.44,
           "cogs": 8774,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 495.93,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -541,8 +795,8 @@
           "result_points": 47675.39,
           "cogs": 8295,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3202.17,
+          "ship_known": true,
           "region": "Оренбург"
         },
         {
@@ -607,8 +861,8 @@
           "result_points": 48052.98,
           "cogs": 8295,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3313.44,
+          "ship_known": true,
           "region": "Уфа"
         },
         {
@@ -1201,8 +1455,8 @@
           "result_points": 57274.16,
           "cogs": 8864,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3303.95,
+          "ship_known": true,
           "region": "Нижний Новгород"
         },
         {
@@ -1501,8 +1755,8 @@
       ],
       "points_on_delivery": 6407.02,
       "cogs_cov": 100,
-      "ship_orders": 0,
-      "ship_cov": 0,
+      "ship_orders": 5,
+      "ship_cov": 26.3,
       "fly_rows": [
         {
           "business": "1023124",
@@ -1566,7 +1820,7 @@
           "result_points": 0,
           "cogs": 7162,
           "cogs_known": true,
-          "ship_our": 3000,
+          "ship_our": 22062.87,
           "ship_known": true,
           "region": "Норильск",
           "fly": true,
@@ -1635,7 +1889,7 @@
           "result_points": 0,
           "cogs": 15141,
           "cogs_known": true,
-          "ship_our": 2500,
+          "ship_our": 6376.62,
           "ship_known": true,
           "region": "Давлеканово",
           "fly": true,
@@ -2739,7 +2993,7 @@
           "result_points": 0,
           "cogs": 8789,
           "cogs_known": true,
-          "ship_our": 2000,
+          "ship_our": 1000,
           "ship_known": true,
           "region": "Городской округ Домодедово",
           "fly": true,
@@ -2808,7 +3062,7 @@
           "result_points": 0,
           "cogs": 9073,
           "cogs_known": true,
-          "ship_our": 3000,
+          "ship_our": 4732,
           "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
@@ -2946,7 +3200,7 @@
           "result_points": 0,
           "cogs": 19374,
           "cogs_known": true,
-          "ship_our": 2500,
+          "ship_our": 6541,
           "ship_known": true,
           "region": "Перевалово",
           "fly": true,
@@ -3091,8 +3345,8 @@
           "result_points": 94907.71,
           "cogs": 37395,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -3289,8 +3543,8 @@
           "result_points": 63303.51,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3471.85,
+          "ship_known": true,
           "region": "Санкт-Петербург"
         },
         {
@@ -3421,7 +3675,7 @@
           "result_points": 127502.81,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 4700,
+          "ship_our": 9080.86,
           "ship_known": true,
           "region": "Володарск"
         },
@@ -3487,8 +3741,8 @@
           "result_points": 63157.66,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Мисайлово"
         },
         {
@@ -3685,7 +3939,7 @@
           "result_points": 124473.09,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 6000,
+          "ship_our": 9104.1,
           "ship_known": true,
           "region": "Омск"
         },
@@ -3751,8 +4005,8 @@
           "result_points": 66501.02,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Подольск"
         },
         {
@@ -3817,7 +4071,7 @@
           "result_points": 69832.63,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 5000,
+          "ship_our": 7590.92,
           "ship_known": true,
           "region": "Санкт-Петербург"
         },
@@ -3883,8 +4137,8 @@
           "result_points": 61473.49,
           "cogs": 17660,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 11969.65,
+          "ship_known": true,
           "region": "Усть-Курдюм"
         },
         {
@@ -3949,8 +4203,8 @@
           "result_points": 68749.59,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5111.18,
+          "ship_known": true,
           "region": "Заволжье"
         },
         {
@@ -4015,8 +4269,8 @@
           "result_points": 58765.07,
           "cogs": 17189,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5183.7,
+          "ship_known": true,
           "region": "Краснодар"
         },
         {
@@ -4081,7 +4335,7 @@
           "result_points": 66808.65,
           "cogs": 17189,
           "cogs_known": true,
-          "ship_our": 8783.83,
+          "ship_our": 9748.67,
           "ship_known": true,
           "region": "Тимашевск"
         },
@@ -4147,7 +4401,7 @@
           "result_points": 66651.74,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 4000,
+          "ship_our": 5342.21,
           "ship_known": true,
           "region": "Курск"
         },
@@ -4279,8 +4533,8 @@
           "result_points": 67977.62,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 7786.07,
+          "ship_known": true,
           "region": "Барнаул"
         },
         {
@@ -4345,8 +4599,8 @@
           "result_points": 66632.14,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Лайково"
         },
         {
@@ -4411,8 +4665,8 @@
           "result_points": 64858.33,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6025.77,
+          "ship_known": true,
           "region": "Екатеринбург"
         },
         {
@@ -4609,8 +4863,8 @@
           "result_points": 61283.31,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6583.19,
+          "ship_known": true,
           "region": "Падерина"
         },
         {
@@ -4675,8 +4929,8 @@
           "result_points": 60933.05,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 7875.66,
+          "ship_known": true,
           "region": "Миасс"
         },
         {
@@ -4741,8 +4995,8 @@
           "result_points": 55951.47,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Жостово"
         },
         {
@@ -4807,8 +5061,8 @@
           "result_points": 58673.34,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 8240.6,
+          "ship_known": true,
           "region": "Барнаул"
         },
         {
@@ -4939,8 +5193,8 @@
           "result_points": 64906.27,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3407.34,
+          "ship_known": true,
           "region": "Мурино"
         },
         {
@@ -5005,8 +5259,8 @@
           "result_points": 52030.97,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6273.68,
+          "ship_known": true,
           "region": "Березники"
         },
         {
@@ -5137,8 +5391,8 @@
           "result_points": 65471.32,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6419.4,
+          "ship_known": true,
           "region": "Челябинск"
         },
         {
@@ -5203,8 +5457,8 @@
           "result_points": 57035.08,
           "cogs": 13304,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4258.62,
+          "ship_known": true,
           "region": "Курчатов"
         },
         {
@@ -5269,8 +5523,8 @@
           "result_points": 60632.15,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6552.77,
+          "ship_known": true,
           "region": "Геленджик"
         },
         {
@@ -5467,8 +5721,8 @@
           "result_points": 56948.76,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5981,
+          "ship_known": true,
           "region": "Тюмень"
         },
         {
@@ -5533,8 +5787,8 @@
           "result_points": 54262.6,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -5665,7 +5919,7 @@
           "result_points": 53048.66,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 1000,
+          "ship_our": 1185,
           "ship_known": true,
           "region": "Ромашково"
         },
@@ -5863,8 +6117,8 @@
           "result_points": 48804.45,
           "cogs": 13410,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5276.5,
+          "ship_known": true,
           "region": "Оренбург"
         },
         {
@@ -5929,8 +6183,8 @@
           "result_points": 51234.73,
           "cogs": 16167,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Видное"
         },
         {
@@ -5995,8 +6249,8 @@
           "result_points": 47729.46,
           "cogs": 16167,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -6061,7 +6315,7 @@
           "result_points": 52082.39,
           "cogs": 16167,
           "cogs_known": true,
-          "ship_our": 3500,
+          "ship_our": 1000,
           "ship_known": true,
           "region": "Лопатино"
         },
@@ -9023,19 +9277,18 @@
       ],
       "points_on_delivery": 97653.49,
       "cogs_cov": 99.5,
-      "ship_lost": 20568,
-      "ship_lost_orders": 5,
+      "ship_lost": 14575,
+      "ship_lost_orders": 4,
       "ship_lost_daily": {
-        "2026-09-01": 7168,
-        "2026-09-02": 4900,
-        "2026-09-04": 5500,
-        "2026-09-22": 3000
+        "2026-09-01": 7266.8,
+        "2026-09-02": 3372.2,
+        "2026-09-04": 3936
       },
       "ship_lost_rows": [
         {
           "order": "61134508864",
           "d": "2026-09-01",
-          "v": 4000,
+          "v": 4098.8,
           "status": "DELIVERED",
           "sku": "GGT-03-1-3-O-20090",
           "name": "GEN GROUP Стол обеденный овальный 200х90 см TRUBIS Wood белый с золотым металлическим подстольем",
@@ -9055,7 +9308,7 @@
         {
           "order": "61195967426",
           "d": "2026-09-02",
-          "v": 4900,
+          "v": 3372.2,
           "status": "CANCELLED_IN_DELIVERY",
           "sku": "GGT-03-2-5-L-120",
           "name": "GEN GROUP Стол обеденный кухонный TRUBIS Wood L D120 см белый мрамор с черным подстольем",
@@ -9065,26 +9318,16 @@
         {
           "order": "61259504578",
           "d": "2026-09-04",
-          "v": 5500,
+          "v": 3936,
           "status": "CANCELLED_IN_DELIVERY",
           "sku": "GGT-03-3-3-L-80",
           "name": "GEN GROUP Кухонный обеденный стол TRUBIS Wood L D 80см, с металлическим подстольем, белый",
           "line": "TRUBIS",
           "city": "Иркутск"
-        },
-        {
-          "order": "62107881219",
-          "d": "2026-09-22",
-          "v": 3000,
-          "status": "CANCELLED_IN_DELIVERY",
-          "sku": "GGT-03-2-2-O-18090",
-          "name": "GEN GROUP Стол кухонный овальный 180х90 см TRUBIS Wood, черный",
-          "line": "TRUBIS",
-          "city": "Крёкшино"
         }
       ],
-      "ship_orders": 20,
-      "ship_cov": 24.7,
+      "ship_orders": 44,
+      "ship_cov": 54.3,
       "fly_rows": [
         {
           "business": "74986385",
@@ -9148,7 +9391,7 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 8500,
+          "ship_our": 14687.68,
           "ship_known": true,
           "region": "Биробиджан",
           "fly": true,
@@ -9217,7 +9460,7 @@
           "result_points": 0,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 5000,
+          "ship_our": 5054.62,
           "ship_known": true,
           "region": "Ульяновск",
           "fly": true,
@@ -9907,7 +10150,7 @@
           "result_points": 0,
           "cogs": 19111,
           "cogs_known": true,
-          "ship_our": 3500,
+          "ship_our": 1000,
           "ship_known": true,
           "region": "Москва",
           "fly": true,
@@ -10528,7 +10771,7 @@
           "result_points": 0,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 3500,
+          "ship_our": 1000,
           "ship_known": true,
           "region": "Москва",
           "fly": true,
@@ -10666,7 +10909,7 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 3000,
+          "ship_our": 1000,
           "ship_known": true,
           "region": "Москва",
           "fly": true,
@@ -10735,7 +10978,7 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 4500,
+          "ship_our": 5495.76,
           "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
@@ -10804,7 +11047,7 @@
           "result_points": 0,
           "cogs": 11759,
           "cogs_known": true,
-          "ship_our": 5000,
+          "ship_our": 5800.16,
           "ship_known": true,
           "region": "Тюмень",
           "fly": true,
@@ -11149,7 +11392,7 @@
           "result_points": 0,
           "cogs": 13482,
           "cogs_known": true,
-          "ship_our": 4500,
+          "ship_our": 2638.97,
           "ship_known": true,
           "region": "Санкт-Петербург",
           "fly": true,
@@ -11287,7 +11530,7 @@
           "result_points": 0,
           "cogs": 11642,
           "cogs_known": true,
-          "ship_our": 4500,
+          "ship_our": 6885.59,
           "ship_known": true,
           "region": "Санкт-Петербург",
           "fly": true,
@@ -11425,7 +11668,7 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 4500,
+          "ship_our": 2527.22,
           "ship_known": true,
           "region": "Нижний Новгород",
           "fly": true,
@@ -11494,8 +11737,8 @@
           "result_points": 0,
           "cogs": 22598,
           "cogs_known": true,
-          "ship_our": 3500,
-          "ship_known": true,
+          "ship_our": 0,
+          "ship_known": false,
           "region": "Красногорск",
           "fly": true,
           "est_fee": 42468.42,
@@ -11563,7 +11806,7 @@
           "result_points": 0,
           "cogs": 4411,
           "cogs_known": true,
-          "ship_our": 3000,
+          "ship_our": 1000,
           "ship_known": true,
           "region": "Москва",
           "fly": true,
@@ -11632,7 +11875,7 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 3500,
+          "ship_our": 1000,
           "ship_known": true,
           "region": "Москва",
           "fly": true,
@@ -11701,7 +11944,7 @@
           "result_points": 0,
           "cogs": 34378,
           "cogs_known": true,
-          "ship_our": 4500,
+          "ship_our": 12940,
           "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
@@ -11908,7 +12151,7 @@
           "result_points": 0,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 3000,
+          "ship_our": 1000,
           "ship_known": true,
           "region": "Котельники",
           "fly": true,
@@ -11977,7 +12220,7 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 4500,
+          "ship_our": 3091,
           "ship_known": true,
           "region": "Колпино",
           "fly": true,
@@ -12046,7 +12289,7 @@
           "result_points": 0,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 5000,
+          "ship_our": 5238,
           "ship_known": true,
           "region": "Стерлитамак",
           "fly": true,
@@ -12115,8 +12358,8 @@
           "result_points": 0,
           "cogs": 4411,
           "cogs_known": true,
-          "ship_our": 3000,
-          "ship_known": true,
+          "ship_our": 0,
+          "ship_known": false,
           "region": "Жуковский",
           "fly": true,
           "est_fee": 16806.43,
@@ -17611,6 +17854,34 @@
       ],
       "points_on_delivery": 55287.61,
       "cogs_cov": 100,
+      "ship_lost": 4275.09,
+      "ship_lost_orders": 2,
+      "ship_lost_daily": {
+        "2026-08-16": 1000,
+        "2026-08-20": 3275.09
+      },
+      "ship_lost_rows": [
+        {
+          "order": "60422255747",
+          "d": "2026-08-16",
+          "v": 1000,
+          "status": "CANCELLED_IN_PROCESSING",
+          "sku": "GGM-26-2-1",
+          "name": "GENGLASS Зеркало настенное в черной раме WINDIX ARKA, 180х80см",
+          "line": "зеркала",
+          "city": "Красногорск"
+        },
+        {
+          "order": "60603450945",
+          "d": "2026-08-20",
+          "v": 3275.09,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGM-20-3",
+          "name": "GENGLASS Зеркало напольное в белой металлической раме 165x45 см OZEVIS White",
+          "line": "зеркала",
+          "city": "Москва"
+        }
+      ],
       "ship_orders": 39,
       "ship_cov": 52.7,
       "fly_rows": [
@@ -18346,8 +18617,8 @@
           "result_points": 35408.16,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3932.06,
+          "ship_known": true,
           "region": "Санкт-Петербург"
         },
         {
@@ -19468,7 +19739,7 @@
           "result_points": 29931.9,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 4135.8,
+          "ship_our": 17435.8,
           "ship_known": true,
           "region": "Волосовский район"
         },
@@ -19534,7 +19805,7 @@
           "result_points": 32613.89,
           "cogs": 17189,
           "cogs_known": true,
-          "ship_our": 5178.9,
+          "ship_our": 15094.42,
           "ship_known": true,
           "region": "Перевалово"
         },
@@ -19930,7 +20201,7 @@
           "result_points": 32097.07,
           "cogs": 17189,
           "cogs_known": true,
-          "ship_our": 3794.2,
+          "ship_our": 7151.38,
           "ship_known": true,
           "region": "Курск"
         },
@@ -20854,8 +21125,8 @@
           "result_points": 25863.66,
           "cogs": 11477,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3244.59,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -21580,7 +21851,7 @@
           "result_points": 18557.79,
           "cogs": 13426,
           "cogs_known": true,
-          "ship_our": 4575,
+          "ship_our": 13275,
           "ship_known": true,
           "region": "Самара"
         },
@@ -22306,8 +22577,8 @@
           "result_points": 8991.24,
           "cogs": 3744,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3140.89,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -23887,16 +24158,93 @@
       ],
       "points_on_delivery": 117670.07,
       "cogs_cov": 100,
-      "ship_lost": 3000,
-      "ship_lost_orders": 1,
+      "ship_lost": 31517.94,
+      "ship_lost_orders": 8,
       "ship_lost_daily": {
-        "2026-08-28": 3000
+        "2026-08-03": 3050.61,
+        "2026-08-14": 4135.8,
+        "2026-08-18": 2944.93,
+        "2026-08-23": 4215.1,
+        "2026-08-22": 4215.1,
+        "2026-08-25": 5349.7,
+        "2026-08-26": 4507.9,
+        "2026-08-28": 3098.8
       },
       "ship_lost_rows": [
         {
+          "order": "59856520322",
+          "d": "2026-08-03",
+          "v": 3050.61,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-2-M-80",
+          "name": "GEN GROUP Журнальный стол TRUBIS Wood M D80 металлический черный",
+          "line": "TRUBIS",
+          "city": "Москва"
+        },
+        {
+          "order": "60325230787",
+          "d": "2026-08-14",
+          "v": 4135.8,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-5-L-100-K",
+          "name": "GEN GROUP Стол кухонный круглый TRUBIS Stone L, D100 см, керамогранит, черный/белый мрамор",
+          "line": "TRUBIS",
+          "city": "Санкт-Петербург"
+        },
+        {
+          "order": "60514081217",
+          "d": "2026-08-18",
+          "v": 2944.93,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGK-02-2-2-80",
+          "name": "GEN GROUP Столик консольный ARFEO черный с черной столешницей 80х35х80",
+          "line": "столы",
+          "city": "Мариинский"
+        },
+        {
+          "order": "60689057920",
+          "d": "2026-08-22",
+          "v": 4215.1,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-3-5-E-16080",
+          "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood белый мрамор с белым металлическим подстольем",
+          "line": "TRUBIS",
+          "city": "Зименки"
+        },
+        {
+          "order": "60725376386",
+          "d": "2026-08-23",
+          "v": 4215.1,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-20-3-5-20090",
+          "name": "GEN GROUP Стол кухонный большой 200х90 см VIOLUR, светлый мрамор с белым металлическим подстольем",
+          "line": "VIOLUR (столы)",
+          "city": "Городецкий район"
+        },
+        {
+          "order": "60814476803",
+          "d": "2026-08-25",
+          "v": 5349.7,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-3-5-E-16080",
+          "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood белый мрамор с белым металлическим подстольем",
+          "line": "TRUBIS",
+          "city": "Иноземцево"
+        },
+        {
+          "order": "60856407296",
+          "d": "2026-08-26",
+          "v": 4507.9,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-1-E-16080",
+          "name": "GEN GROUP Кухонный обеденный стол 160х80 см TRUBIS Wood орех с черным подстольем",
+          "line": "TRUBIS",
+          "city": "Тамбов"
+        },
+        {
           "order": "60982529729",
           "d": "2026-08-28",
-          "v": 3000,
+          "v": 3098.8,
           "status": "CANCELLED_IN_DELIVERY",
           "sku": "GGT-35-5-1-100-180",
           "name": "Стол раздвижной обеденный KONUX D100/180 х 100см, бронзовый/экошпон",
@@ -23904,8 +24252,8 @@
           "city": "Подольск"
         }
       ],
-      "ship_orders": 57,
-      "ship_cov": 67.9,
+      "ship_orders": 60,
+      "ship_cov": 71.4,
       "fly_rows": [
         {
           "business": "74986385",
@@ -27543,8 +27891,8 @@
           "result_points": 9956.63,
           "cogs": 6034,
           "cogs_known": true,
-          "ship_our": 3265.79,
-          "ship_known": true,
+          "ship_our": 0,
+          "ship_known": false,
           "region": "Ростов-на-Дону"
         },
         {
@@ -30597,8 +30945,36 @@
       "inflight_rows": [],
       "points_on_delivery": 43723.09,
       "cogs_cov": 100,
-      "ship_orders": 29,
-      "ship_cov": 31.9
+      "ship_lost": 13503.2,
+      "ship_lost_orders": 2,
+      "ship_lost_daily": {
+        "2026-07-17": 8318.42,
+        "2026-07-23": 5184.78
+      },
+      "ship_lost_rows": [
+        {
+          "order": "59256208515",
+          "d": "2026-07-17",
+          "v": 8318.42,
+          "status": "DELIVERED",
+          "sku": "GGM-17-1-2",
+          "name": "GENGLASS Зеркало настенное в золотой металлической раме 180x60 см KVADEN L Gold",
+          "line": "зеркала",
+          "city": "Ростов-на-Дону"
+        },
+        {
+          "order": "59453575811",
+          "d": "2026-07-23",
+          "v": 5184.78,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGL-08-2",
+          "name": "GENGLASS Зеркало прямоугольное KVANEL NF LED под консоль, с подсветкой 3 в 1, с сенсором",
+          "line": "зеркала",
+          "city": "Москва"
+        }
+      ],
+      "ship_orders": 28,
+      "ship_cov": 30.8
     },
     {
       "business": "74986385",
@@ -31327,7 +31703,7 @@
           "result_points": 34936.36,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 3190.3,
+          "ship_our": 8600.3,
           "ship_known": true,
           "region": "Боровский район"
         },
@@ -38229,12 +38605,14 @@
       "inflight_rows": [],
       "points_on_delivery": 100154.48,
       "cogs_cov": 100,
-      "ship_lost": 14788.14,
-      "ship_lost_orders": 3,
+      "ship_lost": 25710.19,
+      "ship_lost_orders": 6,
       "ship_lost_daily": {
         "2026-07-06": 8765,
         "2026-07-08": 3098.8,
-        "2026-07-14": 2924.34
+        "2026-07-14": 7867.78,
+        "2026-07-20": 4349.3,
+        "2026-07-30": 1629.31
       },
       "ship_lost_rows": [
         {
@@ -38266,6 +38644,36 @@
           "name": "GEN GROUP Кухонный стол ЛДСП TRUBIS Wood L D 80см, с металлическим подстольем, черный",
           "line": "TRUBIS",
           "city": "Конаково"
+        },
+        {
+          "order": "59149837442",
+          "d": "2026-07-14",
+          "v": 4943.44,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-1-5-E-16080-K",
+          "name": "GEN GROUP Стол обеденный овальный TRUBIS Stone, керамогранит, 160*80см, золото/белый мрамор",
+          "line": "TRUBIS",
+          "city": "Батайск"
+        },
+        {
+          "order": "59352587969",
+          "d": "2026-07-20",
+          "v": 4349.3,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-4-E-16080",
+          "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood черный мрамор с черным металлическим подстольем",
+          "line": "TRUBIS",
+          "city": "Самара"
+        },
+        {
+          "order": "59693464448",
+          "d": "2026-07-30",
+          "v": 1629.31,
+          "status": "DELIVERED",
+          "sku": "GGTP-03-2-M",
+          "name": "GEN GROUP Подстолье для стола металлическое черное трубчатое TRUBIS, круглое D600",
+          "line": "TRUBIS",
+          "city": "Немчиново"
         }
       ],
       "ship_orders": 62,

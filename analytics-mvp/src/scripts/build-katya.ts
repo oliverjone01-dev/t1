@@ -2265,12 +2265,18 @@ function render(cur,cmp){
   // (старая сборка ведомости) - доход OZON неизвестен (null), страница пишет «нет номеров».
   {
     const bdUsed: Record<string, boolean> = {};
+    const ledUsed: Record<string, boolean> = {};
     for (const row of delivCityPl) {
       const ords: string[] | null = row[5];
       // row[6] = 1: ни одного заказа отправки ещё нет в данных OZON (не начислен) - в таблицу городов не идёт
       // до начисления (Иван 29.09), в аналитике доход с покупателя по нему 0.
       row[6] = ords && ords.length && !ords.some((o) => bdKnown[o] || bdKnown[orderBase(o)]) ? 1 : 0;
+      // row[7] - оплата клиента по ведомости для сверки: один раз на заказ, как OZON (Иван 29.09). При
+      // повторном выезде ведомость повторяет оплату во второй строке (0268020898-0004-2: 10.08 и 04.09).
+      row[7] = row[3];
       if (!ords) { row[5] = null; continue; }
+      if (ords.length && ords.every((o) => ledUsed[bdByOrderApi[o] != null ? o : orderBase(o)])) row[7] = 0;
+      for (const o of ords) ledUsed[bdByOrderApi[o] != null ? o : orderBase(o)] = true;
       let inc = 0;
       for (const o of ords) {
         const k = bdByOrderApi[o] != null ? o : orderBase(o);
@@ -3153,7 +3159,7 @@ function renderCityLogistics(cur){
     // появится начисление (иначе город ложно убыточный: расход есть, доход 0). Только счёт в шапке.
     if(r[6]){wN+=r[4];wShip+=r[2];continue;}
     var c=r[1];var b=by[c]||(by[c]={ship:0,deliv:0,led:0,n:0,unk:0,cLed:0,cOz:0});b.ship+=r[2];b.n+=r[4];if(r[5]==null)b.unk+=r[4];else b.deliv+=r[5];
-    b.led+=r[3];b.cOz+=(r[5]||0);}
+    b.led+=(r[7]!=null?r[7]:r[3]);b.cOz+=(r[5]||0);}
   // deliv - доход с покупателя по OZON (Иван 29.09, вариант А), led - «Стоимость доставки» ведомости (сравнение).
   // unk - отправки без номеров заказа в файле (старая сборка): дохода OZON по ним нет, нетто не считаем.
   var rows=[];var tShip=0,tDeliv=0,tLed=0,tCOz=0,tN=0,tUnk=0,nLoss=0,lossNet=0;

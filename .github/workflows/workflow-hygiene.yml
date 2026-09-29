@@ -1,0 +1,36 @@
+name: Workflow hygiene (data-guard К12)
+
+# Проверка гигиены workflow: невалидный YAML роняет проверку, остальное (cron на :00, нет concurrency,
+# fail-open в workflow с git push, пайп без pipefail) - предупреждения в аннотациях PR.
+# Скрипт: tools/ci/workflow_hygiene.py. Методика: .claude/skills/data-guard/references/git-hygiene.md
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - "tools/ci/workflow_hygiene.py"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+
+concurrency:
+  group: workflow-hygiene-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install --quiet pyyaml
+      - run: python3 tools/ci/workflow_hygiene.py

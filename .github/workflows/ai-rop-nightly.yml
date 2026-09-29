@@ -7,7 +7,7 @@
 name: AI-ROP nightly
 on:
   schedule:
-    - cron: '0 5 * * *'
+    - cron: '49 4 * * *'
   workflow_dispatch: {}
 permissions:
   contents: write

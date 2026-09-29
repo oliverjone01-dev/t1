@@ -9,7 +9,7 @@ name: OZON snapshots (прямой, без n8n)
 
 on:
   schedule:
-    - cron: "0 6 * * *" # ~09:00 МСК; работает после добавления OZON_* в Secrets
+    - cron: "53 5 * * *" # ~08:53 МСК; работает после добавления OZON_* в Secrets
   workflow_dispatch:
     inputs:
       ozon_seller_client_id:

@@ -1,12 +1,14 @@
 #!/bin/bash
 # Приёмка метода снимка по Р8 на синтетическом стенде: снимки базы и вариантов, затем сравнения.
-# Запуск: PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers ./run-acceptance.sh [--no-snap]
-cd "$(dirname "$0")"; OP=../opgm/op-gm-automation
+# Запуск: PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers ./run-acceptance.sh [--op <op-gm-automation>] [--no-snap]  (без --op: OP из окружения или папка выше tools/)
+cd "$(dirname "$0")"; [ "$1" = "--op" ] && { OP=$2; shift 2; }; OP=${OP:-..}; export OP
+[ -f "$OP/src/opgm.js" ] || { echo "ОШИБКА: укажите --op <op-gm-automation> (нет $OP/src/opgm.js)"; exit 2; }
 if [ "$1" != "--no-snap" ]; then
-  ./variants/make.sh >/dev/null
-  node numsnap.cjs snap --op $OP --out out/base-1.json | sed 's/^/  /'
-  node numsnap.cjs snap --op $OP --out out/base-2.json >/dev/null
-  for v in same mutant hero hero-bad rename skin; do node numsnap.cjs snap --op $OP --src variants/$v --out out/v-$v.json >/dev/null || echo "снимок $v: ошибка"; done
+  ./variants/make.sh >/dev/null || exit 2; mkdir -p out
+  # снимки параллельно (по 4): каждый полный, 1280 и 390, панели, фильтры «Все диалоги»
+  printf '%s\n' "base-1 $OP/src" "base-2 $OP/src" "v-same variants/same" "v-mutant variants/mutant" "v-hero variants/hero" "v-hero-bad variants/hero-bad" "v-rename variants/rename" "v-skin variants/skin" \
+    | xargs -P 4 -L 1 sh -c 'node numsnap.cjs snap --op "$OP" --src "$1" --out out/$0.json > out/$0.snap.log 2>&1 || echo "снимок $0: код $?"'
+  sed 's/^/  /' out/base-1.snap.log
 fi
 check(){ want=$1; shift; out=$(node numsnap.cjs diff "$@" --show 4 2>&1); code=$?
   echo "\$ numsnap diff ${*#out/}"; echo "$out" | grep -E 'НЕОБЪЯСН|объяснено|ИТОГ|СТОП|^    ' | cut -c1-200

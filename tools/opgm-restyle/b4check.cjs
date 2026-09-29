@@ -8,7 +8,7 @@
 const path = require('path');
 const { build } = require('./harness/gen.cjs');
 const o = {}; process.argv.slice(2).forEach((a, i, A) => { if(a.startsWith('--')) o[a.slice(2)] = A[i + 1]; });
-const OP = path.resolve(o.op || '../opgm/op-gm-automation'), SRC = path.resolve(o.src || path.join(OP, 'src'));
+const OP = require('./harness/oproot.cjs')(o.op), SRC = path.resolve(o.src || path.join(OP, 'src'));
 const FX = o.fx ? JSON.parse(o.fx) : {};
 const HTML = build(OP, SRC, path.join(__dirname, 'out', 'b4.harness.html'));
 const num = s => { const m = String(s || '').replace(/(\d)[   ](?=\d{3}(?!\d))/g, '$1').match(/\d+/); return m ? +m[0] : null; };

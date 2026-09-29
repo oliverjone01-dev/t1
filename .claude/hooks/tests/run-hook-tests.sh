@@ -52,15 +52,18 @@ cm() {  # $1 имя, $2 контекст в токенах, $3 ожидаема�
   fi
 }
 cm below-soft 120000 - "привет"
-cm soft 170000 "Закончи текущий шаг" "привет"
-cm hard 210000 "ОБЯЗАТЕЛЕН" "привет"
-cm opt-out 210000 - "без переезда, продолжаем"
+cm soft 420000 "Закончи текущий шаг" "привет"
+cm hard 510000 "ОБЯЗАТЕЛЕН" "привет"
+cm opt-out 510000 - "без переезда, продолжаем"
 n=$((n+1)); out="$(printf 'not json' | python3 "$REPO/.claude/hooks/context-meter.py" 2>/dev/null)"; rc=$?
 if [[ "$rc" == 0 && -z "$out" ]]; then pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [context-meter] broken-json"; else fail=$((fail+1)); echo "FAIL [context-meter] broken-json -> rc=$rc"; fi
 # Команда хука из settings.json при пустом CLAUDE_PROJECT_DIR не должна давать rc=2 (блок промпта).
 n=$((n+1)); cmd="$(python3 -c 'import json,sys; print(next(h["command"] for g in json.load(open(sys.argv[1]))["hooks"]["UserPromptSubmit"] for h in g["hooks"] if "context-meter" in h["command"]))' "$REPO/.claude/settings.json")"
 ( cd "$REPO" && printf '{}' | env -u CLAUDE_PROJECT_DIR bash -c "$cmd" >/dev/null 2>&1 ); rc=$?
 if [[ "$rc" == 0 ]]; then pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [context-meter] settings-empty-project-dir"; else fail=$((fail+1)); echo "FAIL [context-meter] settings-empty-project-dir -> rc=$rc"; fi
+
+# data-guard (скилл .claude/skills/data-guard): свои кейсы в data-guard-tests.py
+n=$((n+1)); if python3 "$HERE/data-guard-tests.py" >/dev/null 2>&1; then pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [data-guard] data-guard-tests.py"; else fail=$((fail+1)); echo "FAIL [data-guard] data-guard-tests.py (запусти его с -v)"; fi
 
 rm -r "$FX"
 echo "hook tests: $pass/$n passed, $fail failed"

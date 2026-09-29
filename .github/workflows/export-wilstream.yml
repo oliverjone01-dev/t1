@@ -1,18 +1,14 @@
 # Разовый экспорт контактов Wilstream (колл-центр, обзвон мастерских для GLASS-MEMORY) в .xlsx.
-# Запускается пушем этого файла или скрипта в ветку claude/dashboard-path-git-xhd1vt.
+# Только ручной запуск. Результат - вложение к запуску (Artifacts), в репозиторий НЕ коммитится:
+# репозиторий публичный, контакты в git попадать не должны.
 # Данные из Bitrix24 (секрет B24_WEBHOOK_URL), только чтение.
 name: Экспорт контактов Wilstream
 
 on:
   workflow_dispatch: {}
-  push:
-    branches: [claude/dashboard-path-git-xhd1vt]
-    paths:
-      - .github/workflows/export-wilstream.yml
-      - analytics-mvp/src/scripts/b24/export-wilstream.mjs
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: export-wilstream
@@ -52,17 +48,3 @@ jobs:
             analytics-mvp/exports/wilstream-contacts.xlsx
             analytics-mvp/exports/wilstream-log.txt
           if-no-files-found: error
-
-      - name: Коммит файла в ветку
-        working-directory: analytics-mvp
-        run: |
-          set -e
-          git config user.name "gengroup-export-bot"
-          git config user.email "export-bot@gengroup.local"
-          git add -f exports/wilstream-contacts.xlsx exports/wilstream-log.txt
-          git commit -m "export: контакты Wilstream" || { echo "нет изменений"; exit 0; }
-          B="${GITHUB_REF_NAME}"
-          for i in 1 2 3 4; do
-            git push origin HEAD:"$B" && break || {
-              git fetch origin "$B" && git rebase origin/"$B" || true; sleep $((i*2)); }
-          done

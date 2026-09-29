@@ -1,18 +1,14 @@
 # Разовый экспорт контактов дизайнеров, архитекторов, декораторов, комплектаторов в .xlsx.
-# Запускается пушем этого файла или скрипта в ветку claude/dashboard-path-git-xhd1vt.
+# Только ручной запуск. Результат - вложение к запуску (Artifacts), в репозиторий НЕ коммитится:
+# репозиторий публичный, контакты в git попадать не должны.
 # Данные из Bitrix24 (секрет B24_WEBHOOK_URL), только чтение.
 name: Экспорт контактов дизайнеров и архитекторов
 
 on:
   workflow_dispatch: {}
-  push:
-    branches: [claude/dashboard-path-git-xhd1vt]
-    paths:
-      - .github/workflows/export-designers.yml
-      - analytics-mvp/src/scripts/b24/export-designers.mjs
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: export-designers
@@ -52,17 +48,3 @@ jobs:
             analytics-mvp/exports/designers-contacts.xlsx
             analytics-mvp/exports/designers-log.txt
           if-no-files-found: error
-
-      - name: Коммит файла в ветку
-        working-directory: analytics-mvp
-        run: |
-          set -e
-          git config user.name "gengroup-export-bot"
-          git config user.email "export-bot@gengroup.local"
-          git add -f exports/designers-contacts.xlsx exports/designers-log.txt
-          git commit -m "export: контакты дизайнеров, архитекторов, комплектаторов" || { echo "нет изменений"; exit 0; }
-          B="${GITHUB_REF_NAME}"
-          for i in 1 2 3 4; do
-            git push origin HEAD:"$B" && break || {
-              git fetch origin "$B" && git rebase origin/"$B" || true; sleep $((i*2)); }
-          done

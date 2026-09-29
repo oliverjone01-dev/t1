@@ -285,6 +285,28 @@ const coinvRows = readNd(dp("coinv_daily.ndjson")) as CoinvRow[];
 // из коэффициента, замороженного на 09.09. Подробнее - gap-daily.ts.
 // coinv_daily остаётся источником колонки «Соинвест» на странице: там он и уместен.
 const GAP = readGapDaily(dp(GAP_DAILY_FILE));
+// ГРАФИК «СОИНВЕСТ» И «ЦЕНА НА ВИТРИНЕ» ЦЕЛИКОМ ИЗ gap_daily (решение Ивана 29.09, вариант 1).
+// coinv_daily кончился 24.09, дальше съём кабинета пишет только gap_daily, и на графике с 25.09
+// стояло «нет данных». Склеивать два файла нельзя: в coinv_daily соинвест от цены с картой Ozon,
+// в gap_daily от витрины без карты, на стыке ряд прыгнул бы от смены источника. Поэтому весь ряд
+// из одного файла. Цена на витрине = предельная цена (последняя известная из coinv_daily) × доля.
+if (GAP.exists) {
+  const capOf = new Map<string, number>();
+  for (const [art, m] of series) {
+    let last = "", cap = 0;
+    for (const [d, c] of m) if (c["cap"] && d >= last) { last = d; cap = c["cap"]!; }
+    if (cap) capOf.set(art, cap);
+  }
+  for (const [, m] of series) for (const [, c] of m) { delete c["coinv"]; delete c["price"]; }
+  for (const r of GAP.rows) {
+    const g = Number(r.gap_pct);
+    if (!Number.isFinite(g)) continue;
+    const c = cell(r.art, r.date);
+    c["coinv"] = g;
+    const cap = capOf.get(r.art);
+    if (cap) c["price"] = Math.round(cap * (1 - g / 100));
+  }
+}
 // Снимок индекса бустинга. Он не участвует в гейте: три дня наблюдения, решения по нему не
 // принимаются (служебная вкладка «Бустинг», build-boost.ts). Нужен здесь ровно для одного -
 // проверить утверждение про общий индекс цены у соседей по карточке.
@@ -1001,7 +1023,16 @@ function chart(t: TestDef, cid: string): string {
           ? `<b>${v(bT)} → ${v(pT)}</b> за день. У контроля рекламы нет по построению, поэтому вторая линия не рисуется.`
           : `тест <b>${v(bT)} → ${v(pT)}</b>, контроль <b>${v(bC)} → ${v(pC)}</b>.`)
         + (key === "pos" ? " Меньше - лучше." : "")
-        + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.${extra}</div>`;
+        + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.${extra}`
+        + ((key === "coinv" || key === "price")
+          ? (() => {
+            const nb = base.filter((d) => groupDaily(t.тест!, [d], key)[0] != null).length;
+            const np = post.filter((d) => groupDaily(t.тест!, [d], key)[0] != null).length;
+            return ` Ряд из gap_daily (витрина без карты Ozon, решение Ивана 29.09): дней с наблюдением в базе <b>${nb}</b> из ${base.length}, после старта <b>${np}</b> из ${post.length}.`
+              + (nb < 3 ? ` <b>База слишком короткая, среднее «до» читать осторожно.</b>` : "");
+          })()
+          : "")
+        + `</div>`;
     }
   }
   if (!panes["vsearch"]) return "";

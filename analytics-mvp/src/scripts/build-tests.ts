@@ -1193,7 +1193,12 @@ function interimBlock(t: TestDef): string {
     if (!GAP.exists) return stored;
     const live = new Map<string, Map<string, number>>();
     for (const r of GAP.rows) {
-      const v = (r as { site_to_seller?: number }).site_to_seller ?? null;
+      // readGapDaily отдаёт gap_pct, а site_to_seller не переносит. Раньше здесь читалось
+      // site_to_seller, оно всегда было пустым, и таблица молча откатывалась к записи 24.09
+      // из tests.json. Доля цены = 1 - соинвест/100, в файле это одно и то же число до 4 знаков.
+      const g = (r as { gap_pct?: number }).gap_pct;
+      const v = (r as { site_to_seller?: number }).site_to_seller
+        ?? (g != null && Number.isFinite(g) ? Math.round((1 - g / 100) * 1e4) / 1e4 : null);
       if (v == null) continue;
       (live.get(r.art) ?? live.set(r.art, new Map()).get(r.art)!).set(r.date, v);
     }

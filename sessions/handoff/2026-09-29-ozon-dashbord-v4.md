@@ -1,4 +1,4 @@
-# OZON - Деньги и Тесты - v2
+# МЕА - Дашборд ОЗОН - v4
 
 - **Дата:** 2026-09-29
 - **Прошлая сессия:** https://claude.ai/code/session_01MN6mwFLESEyCY69sovVD51

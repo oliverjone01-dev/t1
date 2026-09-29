@@ -48,6 +48,10 @@ function main() {
     skuCost.set(to, v);
     console.log(`СС произв.: ${to} взята у ${from} (${v} ₽) - ручная связка, один товар`);
   }
+  // Ручные цены: артикула нет ни в листе ЯМ, ни в Лист1, цену назвала Катя 29.09.2026 дословно:
+  // «GGT-03-2-4-L-80 - 10587р, GGTW-05-d120 - 4503р». Живут здесь, чтобы перечитывание листа их не стёрло.
+  const MANUAL: Array<[string, number]> = [["GGT-03-2-4-L-80", 10587], ["GGTW-05-d120", 4503]];
+  for (const [sku, cost] of MANUAL) if (!skuCost.has(sku)) skuCost.set(sku, cost);
   // Запасной индекс по нормализованному артикулу - только для тех, кто не нашёлся точным ключом.
   const normCost = new Map<string, number>();
   for (const [k, v] of skuCost) { const n = normOffer(k); if (!normCost.has(n)) normCost.set(n, v); }

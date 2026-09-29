@@ -209,9 +209,14 @@ def main():
               "while ! git push origin main; do sleep 1; done", "if git merge work; then git push origin main; fi",
               "if true; then git push origin main; fi", "git push origin @:main", "git push origin HEAD~0:main",
               "git show work:tools/x.json > tools/x.json && git add -A && git commit -m x && git push origin main",
-              "echo x >| tools/a.json && git push", "git fetch . work:main && git push origin main"):
+              "echo x >| tools/a.json && git push", "git fetch . work:main && git push origin main",
+              "git push 2>&1 | tail -5", "git push > /dev/null 2>&1", "git push -q 2>/dev/null", "git push origin 2>&1 | tail -3",
+              "git add -A && git commit -m 'upd' && git push 2>&1 | tail -3", "case x in a) git push origin main;; esac",
+              "cd /tmp && git push", "git -C /tmp push"):
         case(f"push в main через конструкции оболочки и запись файлов: ask (R1-R4): {c}", "pre-bash", bash(c), is_ask)
     sh(fx, "git", "reset", "-q", "--hard", "origin/main")
+    for c in ("git pull --rebase origin main 2>&1 | tail -3 && git push origin main", "git log 2>&1 && git push", "git push 2>&1 | tail -5"):
+        case(f"перенаправление 2>&1 на чистом main без цифр: молчит (B2): {c}", "pre-bash", bash(c), silent)
     for c in ("git merge work && git push origin main", f"git cherry-pick {after_go} && git push origin main", "git merge work"):
         case(f"слияние ветки с цифрами в main: ask (R1): {c}", "pre-bash", bash(c), is_ask)
     case("git pull на main и push без своих изменений: молчит", "pre-bash", bash("git pull --ff-only && git push origin main"), silent)
@@ -238,6 +243,7 @@ def main():
          bash("git add -A && git commit -m x && git push origin work:main"), is_ask)
     case("git pull без аргументов на рабочей ветке не считается pull из main", "pre-bash",
          bash("git pull && git push origin HEAD:main"), is_ask)
+    case("gh pr merge --squash 2>&1 | tail с рабочей ветки с цифрами: ask (B1, не PR #2)", "pre-bash", bash("gh pr merge --squash 2>&1 | tail -3"), is_ask)
     sh(fx, "git", "checkout", "-q", "--", "analytics-mvp/src/scripts/build-katya.ts")
     sh(fx, "git", "checkout", "-q", "docs")
     for c in ("git push origin work:main", "gh pr merge work", "gh pr merge https://github.com/o/r/pull/45", "gh -R o/r pr merge 45"):
@@ -265,6 +271,7 @@ def main():
     good = open(cfgp).read()
     open(cfgp, "w").write("{ битый json")
     case("сбой хука на слиянии: ask", "pre-bash", bash("gh pr merge 45"), is_ask)
+    case("сбой хука на голом git push: ask (R3)", "pre-bash", bash("git push 2>&1 | tail -2"), is_ask)
     case("сбой хука на обычной команде: молчит", "pre-bash", bash("ls"), silent)
     open(cfgp, "w").write(good)
 

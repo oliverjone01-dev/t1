@@ -207,8 +207,9 @@ WRAPPERS = {"env", "command", "nice", "nohup", "sudo", "time", "exec", "builtin"
 
 
 OPERATORS = {"&&", "||", ";", "|", "&", ";;", "|&"}
-SHELL_KEYWORDS = {"do", "then", "else", "elif", "if", "while", "until", "!", "time", "{", "}", "done", "fi", "for", "in"}
-REDIRECTS = {">", ">>", ">|", "&>", "&>>", "1>", "2>", ">&"}
+SHELL_KEYWORDS = {"do", "then", "else", "elif", "if", "while", "until", "!", "time", "{", "}", "done", "fi", "for", "in", "esac"}
+REDIR_OPS = {">", ">>", ">|", "&>", "&>>", ">&", "<", "<<", "<<<", "<&", "<>"}
+WRITE_MARK = "\x00dg-write"
 
 
 def _split_ops(cmd):
@@ -217,17 +218,31 @@ def _split_ops(cmd):
     lex.whitespace_split = True
     segs, cur = [], []
     try:
-        for tok in lex:
-            if tok in OPERATORS:
-                if cur:
-                    segs.append(cur)
-                cur = []
-            elif tok in ("(", ")", "{", "}", "((", "))"):
-                continue
-            else:
-                cur.append(tok)
+        toks = list(lex)
     except ValueError:
         return [part.split() for part in re.split(r"(?:&&|\|\||[;|\n])", cmd or "") if part.strip()]
+    i = 0
+    while i < len(toks):
+        tok = toks[i]
+        if tok in OPERATORS:
+            if cur:
+                segs.append(cur)
+            cur = []
+        elif tok in ("(", ")", "{", "}", "((", "))"):
+            pass
+        elif tok in REDIR_OPS:
+            # N>&M, N>файл, >файл, &>файл, <файл: снимаем вместе с целью; дескриптор N перед оператором тоже
+            if cur and re.fullmatch(r"\d", cur[-1]):
+                cur.pop()
+            target = toks[i + 1] if i + 1 < len(toks) else ""
+            i += 1
+            if tok in (">&", "<&") or tok.startswith("<") or re.fullmatch(r"\d+|-", target) or target in ("/dev/null", "/dev/stderr", "/dev/stdout"):
+                pass  # дублирование дескриптора, ввод или /dev/null: не запись
+            else:
+                cur.append(WRITE_MARK)
+        else:
+            cur.append(tok)
+        i += 1
     if cur:
         segs.append(cur)
     return segs
@@ -253,8 +268,13 @@ def segments(cmd, depth=0):
                     toks = toks[1:]
                 if toks and re.match(r"^\d+[smhd]?$", toks[0]):
                     toks = toks[1:]
-        if toks and toks[0] in ("for", "case", "select"):
+        if toks and toks[0] in ("for", "select"):
             continue  # заголовок цикла, команд не содержит
+        if toks and toks[0] == "case":
+            k = next((n for n, x in enumerate(toks) if os.path.basename(x) in ("git", "gh")), None)
+            if k is None:
+                continue
+            toks = toks[k:]
         changed = False
         while toks and toks[0] in SHELL_KEYWORDS:  # do/then/if/while/until/! перед командой
             toks = toks[1:]
@@ -340,8 +360,12 @@ def merge_targets(cmd, cur_branch):
     такой push всегда требует подтверждения."""
     targets, prospective, unknown_ops, br = [], False, [], cur_branch
     for t in segments(cmd):
-        base = os.path.basename(t[0])
+        t_clean = [x for x in t if x != WRITE_MARK]
+        if not t_clean:
+            continue
+        base = os.path.basename(t_clean[0])
         if base == "gh":
+            t = t_clean
             rest = gh_sub(t)
             if len(rest) >= 2 and rest[0] == "pr" and rest[1] == "merge":
                 pos = positional(rest[2:], GH_VALUE_OPTS)
@@ -360,8 +384,20 @@ def merge_targets(cmd, cur_branch):
                     targets.append({"what": "gh api merge", "pr": m.group(1)})
                 continue
             continue
+        writes = WRITE_MARK in t or any(x.startswith("--output") for x in t)
+        t = [x for x in t if x != WRITE_MARK]
+        base = os.path.basename(t[0]) if t else ""
+        if not t:
+            continue
+        if base == "cd":
+            dest = t[1] if len(t) > 1 else os.path.expanduser("~")
+            if not os.path.realpath(os.path.join(ROOT, dest)).startswith(os.path.realpath(ROOT)):
+                unknown_ops.append("cd вне репо")
+            continue
         sub, args = git_sub(t)
-        writes = any(x in REDIRECTS or x.startswith(("--output", "-o/")) for x in t) or any(re.match(r"^\d?>", x) for x in t)
+        cdir = next((t[n + 1] for n in range(len(t) - 1) if t[n] == "-C"), None) if sub else None
+        if cdir and os.path.realpath(os.path.join(ROOT, cdir)) != os.path.realpath(ROOT):
+            unknown_ops.append("git -C другой каталог")
         if not sub:
             if base not in ("cd", "pwd", "echo", "true", "ls", "cat", "grep", "rg", "head", "tail", "wc", "printf", "test", "[", "sleep", "break", "continue"):
                 unknown_ops.append(base)  # скрипт или команда, которая может писать файлы
@@ -609,7 +645,7 @@ if __name__ == "__main__":
         try:
             ti = ev.get("tool_input") or {}
             text = str(ti.get("command") or "")
-            risky = mode == "pre-mcp-merge" or re.search(r"(gh\s.*pr\s+merge|pulls/\d+/merge|git\s.*\b(push|merge)\b[^\n]*\bmain\b)", text)
+            risky = mode == "pre-mcp-merge" or re.search(r"(gh\s.*pr\s+merge|pulls/\d+/merge|\bgit\b[^\n]*\bpush\b|\bgit\b[^\n]*\bmerge\b[^\n]*\bmain\b)", text)
             if mode in ("pre-bash", "pre-mcp-merge") and risky:
                 ask(f"data-guard: внутренняя ошибка хука ({type(e).__name__}), проверить go ФЕНИКСА не удалось. Продолжить?",
                     "data-guard: хук упал на команде слияния или push в main, проверка К11 не выполнена. Проверь вручную или спроси Ивана.")

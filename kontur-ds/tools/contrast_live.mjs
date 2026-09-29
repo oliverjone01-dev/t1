@@ -7,6 +7,7 @@
 import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('playwright'); // берёт и локальный, и глобальный (NODE_PATH) пакет
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const files = process.argv.slice(2);
 if (!files.length) { console.log('укажите html-файлы'); process.exit(2); }
@@ -17,12 +18,23 @@ for (const f of files) {
   for (const theme of ['light', 'dark']) {
     for (const width of [1280, 390]) {
       const page = await browser.newPage({ viewport: { width, height: 900 } });
-      await page.goto('file://' + path.resolve(f));
+      await page.goto(pathToFileURL(path.resolve(f)).href);
       await page.evaluate(t => { document.documentElement.setAttribute('data-theme', t); }, theme);
       await page.waitForTimeout(1600);
       const fails = await page.evaluate(() => {
-        const parse = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null;
-          const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; };
+        // 1.5.1: любой вычисленный цвет (oklch, color-mix, lab, color(...)) браузер переводит в sRGB на холсте 1x1.
+        // Раньше разбиралось только rgb(), остальной текст молча пропускался. Неразобранный цвет теперь провал
+        const cv = document.createElement('canvas'); cv.width = cv.height = 1;
+        const cx = cv.getContext('2d', { willReadFrequently: true });
+        const parse = s => {
+          if (!s || s === 'none') return null;
+          const m = s.match(/^rgba?\(([^()]+)\)$/);
+          if (m) { const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; }
+          cx.fillStyle = '#000'; cx.fillStyle = '#fff'; cx.fillStyle = s;
+          if (cx.fillStyle === '#ffffff' && !/^(?:#fff|#ffffff|white)$/i.test(s.trim())) return 'bad';
+          cx.clearRect(0, 0, 1, 1); cx.fillRect(0, 0, 1, 1);
+          const d = cx.getImageData(0, 0, 1, 1).data; return { r: d[0], g: d[1], b: d[2], a: d[3] / 255 };
+        };
         const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
         const L = c => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
         const ratio = (a, b) => { const x = L(a), y = L(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
@@ -33,6 +45,7 @@ for (const f of files) {
             const cs = getComputedStyle(n);
             if (cs.backgroundImage && cs.backgroundImage !== 'none' && !cs.backgroundImage.startsWith('url')) return 'gradient';
             const c = parse(cs.backgroundColor);
+            if (c === 'bad') return 'bad:' + cs.backgroundColor;
             if (c && c.a > 0) { layers.push(c); if (c.a >= 1) break; }
             n = n.parentElement;
           }
@@ -54,9 +67,11 @@ for (const f of files) {
           const isSvg = el instanceof SVGElement;
           let fg = parse(isSvg ? (el.getAttribute('fill') && el.getAttribute('fill').startsWith('rgb') ? el.getAttribute('fill') : cs.fill) : cs.color);
           if (isSvg && (!fg || cs.fill === 'none')) { const h = el.getAttribute('fill'); if (h && /^#[0-9a-f]{6}$/i.test(h)) fg = { r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16), a: 1 }; }
+          if (fg === 'bad') { out.push(`${name(el)}  цвет текста не разобран: ${isSvg ? cs.fill : cs.color}  «${el.textContent.trim().slice(0, 40)}»`); continue; }
           if (!fg) continue;
           const bg = bgOf(isSvg ? (el.closest('div') || el) : el);
           if (bg === 'gradient') continue;
+          if (typeof bg === 'string') { out.push(`${name(el)}  цвет фона не разобран: ${bg.slice(4)}  «${el.textContent.trim().slice(0, 40)}»`); continue; }
           const fgc = fg.a < 1 ? over(fg, bg) : fg;
           const px = parseFloat(cs.fontSize), w = parseInt(cs.fontWeight) || 400;
           const need = (px >= 24 || (px >= 18.66 && w >= 700)) ? 3 : 4.5;

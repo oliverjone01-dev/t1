@@ -210,10 +210,14 @@ C.heat = function(id, { rows, cols, matrix, ranges, h } = {}){
   at(id);
   const o = C.base(h || 320, 'heatmap');
   const rg = ranges || [[0,2],[3,4],[5,6],[7,8],[9,10]];
+  /* 1.5.1: подписи строк это слова (дни, часы, названия), числовой форматтер оси их портил в прочерк.
+     ApexCharts рисует ряды снизу вверх, поэтому ряды переворачиваем: первая строка входа стоит сверху.
+     Ступень из одного значения подписана «2», а не «2-2». */
+  o.yaxis = Object.assign({}, o.yaxis, { labels:Object.assign({}, o.yaxis.labels, { formatter: x => x }) });
   return C.render(id, Object.assign(o, {
-    series:rows.map((r, i) => ({ name:r, data:cols.map((c, j) => ({ x:c, y:matrix[i][j] })) })),
+    series:rows.map((r, i) => ({ name:r, data:cols.map((c, j) => ({ x:c, y:matrix[i][j] })) })).reverse(),
     plotOptions:{ heatmap:{ radius:3, enableShades:false,
-      colorScale:{ ranges:rg.map((x, i) => ({ from:x[0], to:x[1], color:C.seq(i + 1), name:x[0] + '-' + x[1] })) } } },
+      colorScale:{ ranges:rg.map((x, i) => ({ from:x[0], to:x[1], color:C.seq(i + 1), name:x[0] === x[1] ? String(x[0]) : x[0] + '-' + x[1] })) } } },
     stroke:{ width:2, colors:[C.surface()] }, legend:{ show:true, position:'bottom', fontSize:'11px', markers:{ width:9, height:9, radius:3 } },
     tooltip:{ enabled:true, theme:C.dark() ? 'dark' : 'light' }
   }));

@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1216" media="(prefers-color-scheme: dark)">
+<title>Обзор недели GENGLASS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<!-- Шаблон 1 из 3: дашборд динамики. Каркас с меню, три экрана, панель деталей.
+     Данные: недельный отчёт качества GENGLASS, цикл 3, снимок 18.09.2026. -->
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../kit/kit.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+<script src="../kit/brand.js"></script>
+<script src="../kit/icons.js"></script>
+<script src="../kit/kit.js"></script>
+<script src="../kit/charts.js"></script>
+<script src="../kit/motion.riv.js"></script>
+</head>
+<body>
+<div class="ks-app">
+  <div id="bd" class="ks-backdrop" hidden></div>
+  <aside id="sb" class="ks-sidebar" aria-label="Разделы">
+    <div class="ks-brand">
+      <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 15l4-5 3 3 4-6 3 4"/></svg></div>
+      <div class="ks-lbl"><div class="ks-brand-name">Контур</div><div class="ks-brand-sub">SEO и GEO по неделям</div></div>
+    </div>
+    <nav id="nav" class="ks-nav"></nav>
+    <div class="ks-sidebar-foot ks-lbl" id="foot"></div>
+  </aside>
+
+  <div class="ks-main">
+    <header class="ks-topbar">
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="menu" aria-label="Меню"></button>
+      <div class="ks-topbar-tools">
+        <div class="ks-seg" role="group" aria-label="Проект" id="seg"></div>
+        <select class="ks-select" id="per" aria-label="Период сравнения">
+          <option value="7">7 дней</option><option value="30" selected>30 дней</option>
+          <option value="90">90 дней</option><option value="100000">весь ряд</option>
+        </select>
+      </div>
+      <div class="ks-topbar-spacer"></div>
+      <div class="ks-stamp ks-hide-md" id="stamp"></div>
+      <span id="cmdkb"></span>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="dens" aria-label="Плотность интерфейса"></button>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="theme" aria-label="Сменить тему"></button>
+    </header>
+    <main class="ks-view" id="view"></main>
+  </div>
+</div>
+
+<script>
+/* ---------------- данные ----------------
+   Каждая цифра в конверте: значение, класс, источник, дата съёма.
+   GENGLASS: недельный отчёт качества, цикл 3, снимок 18.09.2026.
+   GLASS-MEMORY: выгрузок нет, поэтому всё null и ДЕМО. Так выглядит экран без данных. */
+const F = KS.F, { nf, esc, ruDate } = KS.fmt;
+const R3 = 'отчёт качества, цикл 3', AT = '2026-09-18';
+const DB = {
+  projects:{
+    gg:{ name:'GENGLASS',
+      /* замер VC от 11.09 признан ошибочным (раздел 7.2 отчёта): точка пустая, а не подправленная */
+      series:[
+        { date:'2026-09-06', q:8,  dev:0, units:null, vc:2973, dtf:929 },
+        { date:'2026-09-11', q:14, dev:0, units:0,    vc:null, dtf:null },
+        { date:'2026-09-18', q:17, dev:0, units:0,    vc:3575, dtf:1370 }
+      ],
+      units:  F(0,    'ДАННЫЕ', R3 + ', раздел 3', AT, '0 из 8 единиц волны 2'),
+      q:      F(17,   'ДАННЫЕ', R3 + ', раздел 11', AT),
+      dev:    F(0,    'ДАННЫЕ', R3 + ', раздел 10', AT, '0 из 10 задач'),
+      vc:     F(3575, 'ДАННЫЕ', 'vc.ru/id6027658, 8 материалов', AT),
+      dtf:    F(2110, 'ДАННЫЕ', 'dtf.ru/id3220203, 12 материалов', AT),
+      perDay: F(87,   'ДАННЫЕ', '1 043 просмотра за 12 дней на 16 материалах', AT),
+      leads:  F('0,3-1,6', 'ГИПОТЕЗА', 'CTR 1-3% и CR 1-2% взяты не из наших замеров', AT, 'downside 0,07-0,4'),
+      /* [полное название, коротко для оси, 06.09, 18.09] */
+      vcMat:[
+        ['Лофт-перегородки', 'Лофт-перегородки', 487, 593],
+        ['Как выбрать большое зеркало', 'Большое зеркало', 426, 511],
+        ['Перегородки на заказ: полный гид', 'Перегородки на заказ', 369, 456],
+        ['Распашные перегородки', 'Распашные', 335, 429],
+        ['Зеркало в интерьере 2026', 'Зеркало в интерьере', 324, 422],
+        ['Стационарные перегородки', 'Стационарные', 355, 416],
+        ['Алюминий или сталь', 'Алюминий или сталь', 363, 400],
+        ['Зеркало в раме или без рамы', 'Зеркало в раме', 314, 348]
+      ],
+      /* волна 2: [единица, страница, факт на 18.09] */
+      wave:[
+        ['КЕ-1Р', 'категория перегородок', '0 H2, текстового блока нет'],
+        ['КЕ-2А', 'офисные перегородки', 'мета прежние, таблиц 0, формы нет'],
+        ['З-1', 'зеркало в раме', '0 H2, SEO-блока нет'],
+        ['П-3', 'раздвижные перегородки', 'оба чужих H2 на месте'],
+        ['З-2', 'зеркала на заказ', '13 H2, ни одного из карточки'],
+        ['СТ-1', 'блог', 'новых материалов нет'],
+        ['СТ-2', 'блог', 'новых материалов нет'],
+        ['З-3', 'зеркала с подсветкой', 'не сокращена, неподтверждённые числа на месте']
+      ]
+    },
+    gm:{ name:'GLASS-MEMORY', series:[],
+      units:F(null,'ДЕМО'), q:F(null,'ДЕМО'), dev:F(null,'ДЕМО'), vc:F(null,'ДЕМО'), dtf:F(null,'ДЕМО'),
+      perDay:F(null,'ДЕМО'), leads:F(null,'ДЕМО'), vcMat:[], wave:[] }
+  }
+};
+/* 17 вопросов без ответа: [номер, вопрос, что держит] */
+const QUESTIONS = [
+  [7, 'Разработчик: имя и срок', 'задачи Р-1...Р-12, правило остановки'],
+  [16, 'Доступ контент-менеджера к шаблону категории', 'КЕ-1Р-Б, З-1, правило остановки'],
+  [20, 'Кельвины, IP44+, сенсор: подтвердить или снять', 'З-3'],
+  [12, '100 000 циклов и 36-40 дБ: подтвердить или снять', 'страница раздвижных'],
+  [5, 'Прайс «от ... ₽ за м2»', 'КЕ-2А, П-3, CTR в выдаче'],
+  [17, 'Работа по зеркальной ветке без 301', 'З-1, З-2, З-3, СТ-2'],
+  [19, 'Снять позиции по зеркальной ветке', 'З-1, З-3'],
+  [8, 'Как снимать позиции', 'раздел позиций в отчёте'],
+  [9, 'Цифры акустики в дБ', 'КЕ-2Б'],
+  [21, 'Статья блога с query-строкой отдаёт 404', 'замер переноса В-01Р'],
+  [6, 'Выгрузка Метрики по UTM', 'вердикт по площадкам'],
+  [10, 'ИНН и юрлицо', null], [11, 'Имя и должность автора', null], [13, 'Кто разместил ТОП-10 на DTF', null],
+  [14, 'Брать ли тему PROC', null], [15, 'Что делать со статьёй в блоге от 11.09', null], [18, 'Судьба девяти зеркальных лендингов', null]
+];
+
+let CUR = 'gg', VIEW = 'overview', DAYS = 30;
+const V = () => DB.projects[CUR];
+const has = () => V().series.length > 0;
+const dyn = f => KS.series.dyn(V().series, f, DAYS);
+const one = f => ({ one:true, now: f && f.v });   /* одна точка: сравнивать не с чем */
+const perLabel = () => DAYS >= 100000 ? 'весь ряд' : DAYS + ' дней';
+const el = id => document.getElementById(id);
+
+const NAV = [
+  { id:'overview', t:'Обзор недели', i:'grid' },
+  { t:'Каналы', i:'globe', ch:[ { id:'platforms', t:'VC и DTF' } ] },
+  { id:'method', t:'Метод и границы', i:'doc' }
+];
+
+/* ---------------- экраны ---------------- */
+const SCREENS = {
+  overview(){
+    const p = V(), s = p.series, ok = has();
+    const vcSorted = p.vcMat.slice().sort((a, b) => b[3] - a[3]);
+    return KS.head({ title:'Обзор недели · ' + p.name,
+        sub:'Что сдвинулось за неделю на сайте, в заданиях и на площадках. Первая строка отвечает, стало лучше или хуже.',
+        src: ok ? 'СПАРТАК, отчёт качества SEO и GEO, цикл 3 · снимок 18.09.2026' : 'выгрузок по проекту нет',
+        prio:'P0', badges:[ ok ? KS.badge('принимать нечего', 'crit') : KS.kind('ДЕМО'),
+          '<span class="ks-help" tabindex="0" data-tip="Вердикт сверху считает изменение за период из шапки.\nПлитки со стрелкой у подписи открывают детали: из чего цифра, как менялась, откуда.\nУ каждого графика есть таблица с теми же числами.\nCmd+K или Ctrl+K: быстрый переход к экрану или действию.">?</span>' ],
+        lead: ok ? 'Партия 3 даёт +1,3-10,8 заявки в месяц только за счёт КЕ-2А, в downside +0,3-2,7 ' + KS.kind('ГИПОТЕЗА')
+                   + '. В сентябре это ноль: индексация и цикл сделки переносят эффект на ноябрь-декабрь.'
+                 : 'Оценки в рублях нет, потому что нет ни одной выгрузки. Строка появится вместе с первым рядом.' })
+      + '<div class="ks-stack">'
+      + KS.verdict(s, [['q','вопросов без ответа',false],['dev','задач разработчика сделано'],['vc','просмотры VC'],['dtf','просмотры DTF, те же 8 материалов']], DAYS, perLabel())
+      + '<div class="ks-grid-kpi">'
+      +   KS.tile({ label:'Единиц волны 2 сдано из 8', f:p.units, slot:3, icon:'doc', delta:KS.delta(dyn('units')), spark:s.map(r => r.units) })
+      +   KS.tile({ label:'Вопросов к Ивану без ответа', f:p.q, slot:4, icon:'list', delta:KS.delta(dyn('q'), false), drill: ok ? 'q' : null, spark:s.map(r => r.q) })
+      +   KS.tile({ label:'Задач разработчика сделано из 10', f:p.dev, slot:1, icon:'gear', delta:KS.delta(dyn('dev')), spark:s.map(r => r.dev) })
+      +   KS.tile({ label:'Просмотры архива на VC', f:p.vc, slot:2, icon:'eye', delta:KS.delta(dyn('vc')), drill: ok ? 'vc' : null, spark:s.map(r => r.vc) })
+      + '</div>'
+      + '<div class="ks-grid-2">'
+      +   KS.card({ title:'Вопросы без ответа по циклам', sub:'Меньше значит лучше. Три точки, поэтому с маркерами', body:KS.chart('c-q', 250),
+             table:KS.table([['Цикл'],['Вопросов',true]], s.map(r => [ruDate(r.date), nf(r.q)])) })
+      +   KS.card({ title:'Архив на площадках растёт сам', sub:'Индекс: 06.09 это 100. Разные величины на одной оси вместо двух', body:KS.chart('c-idx', 250),
+             table:KS.table([['Дата'],['VC',true],['DTF, 8 материалов',true]], s.filter(r => r.vc != null).map(r => [ruDate(r.date), nf(r.vc), nf(r.dtf)])) })
+      + '</div>'
+      + '<div class="ks-grid-2">'
+      +   KS.card({ title:'Просмотры по материалам VC', sub:'На 18.09, всего ' + (p.vc.v == null ? 'нет' : nf(p.vc.v)), body:KS.chart('c-vc', 300),
+             table:KS.table([['Материал'],['06.09',true],['18.09',true]], vcSorted.map(m => [esc(m[0]), nf(m[2]), nf(m[3])])) })
+      +   '<div class="ks-stack">' + (ok
+            ? KS.note('Выдуманная фактура на живой странице', 'На странице зеркал с подсветкой опубликованы кельвины 2700-3000 K и 4000-6000 K, класс IP44+ и сенсорное управление. В базе знаний ни одной из этих строк нет. Вопрос 20: подтвердить у производства или снять.', 'crit')
+              + KS.note('Замер VC от 11.09 в ряд не взят', 'Он давал 2 994 и прирост только у четырёх материалов из восьми. Замер 18.09 разложен по всем восьми, рост равномерный. Точка 11.09 оставлена пустой, а не подправлена.', 'warn')
+            : KS.note('Выгрузок по проекту нет', 'Так выглядит экран без данных: плитки говорят «нет», графики пустые, вердикта нет. Правдоподобных чисел вместо пустоты не бывает.', 'warn'))
+          + '</div>'
+      + '</div>'
+      + KS.card({ title:'Волна 2: что сделано на страницах', sub:'Восемь единиц, плановый старт 12.09, проверено 18.09',
+          body: p.wave.length ? KS.table([['Единица'],['Страница'],['Факт на 18.09'],['Вердикт']], p.wave.map(w => ['<b class="ks-strong">' + esc(w[0]) + '</b>', esc(w[1]), esc(w[2]), KS.status('не начата', 'crit', 'плановый старт 12.09, на 18.09 страница не изменилась')]))
+                              : '<div class="ks-muted">Заданий по проекту нет.</div>' })
+      + (ok ? KS.action({ what:'Назвать разработчика и срок (вопрос 7) или ответить, есть ли у контент-менеджера доступ к шаблону категории (вопрос 16)',
+                          who:'Иван', when:'понедельник 22.09, 12:00 МСК',
+                          crit:'есть имя разработчика или ответ по вопросу 16. Если нет ни того, ни другого, недельный цикл сворачивается до одностраничного статуса' })
+            : KS.action({ what:'Подключить первую выгрузку' }))
+      + '</div>';
+  },
+
+  platforms(){
+    const p = V(), ok = has();
+    const grow = p.vcMat.map(m => [m[0], m[3] - m[2], 'до ' + nf(m[3])]).sort((a, b) => b[1] - a[1]);
+    return KS.head({ title:'Площадки · VC и DTF', sub:'Архив растёт без новых публикаций. Экран отвечает, меняет ли это что-то в заявках.',
+        src: ok ? 'просмотры сняты 06.09 и 18.09 по каждому материалу' : 'выгрузок по проекту нет',
+        badges:[ ok ? KS.badge('публикаций за неделю 0', 'neutral') : KS.kind('ДЕМО') ],
+        lead: ok ? 'Канал даёт 0,3-1,6 заявки в месяц ' + KS.kind('ГИПОТЕЗА') + ', это 0,05-0,25% целевого потока 650 заявок. Вердикт по каналу не меняется: решает цифра из Метрики, вопрос 6.'
+                 : 'Оценки нет: нет ни просмотров, ни переходов.' })
+      + '<div class="ks-stack"><div class="ks-grid-kpi">'
+      +   KS.tile({ label:'Просмотры VC, 8 материалов', f:p.vc, slot:3, icon:'eye', delta:KS.delta(dyn('vc')), spark:p.series.map(r => r.vc) })
+      +   KS.tile({ label:'Просмотры DTF, 12 материалов', f:p.dtf, slot:2, icon:'eye', delta:KS.delta(one(p.dtf)) })
+      +   KS.tile({ label:'Просмотров в сутки без публикаций', f:p.perDay, slot:1, icon:'clock', delta:KS.delta(one(p.perDay)) })
+      +   KS.tile({ label:'Заявок в месяц с площадок', f:p.leads, slot:4, icon:'target', delta:KS.delta({ abs:null }) })
+      + '</div><div class="ks-grid-2">'
+      +   KS.card({ title:'Где читают', sub:'Доля просмотров на 18.09', body:KS.chart('c-share', 280),
+             table:KS.table([['Площадка'],['Просмотров',true]], ok ? [['VC', nf(p.vc.v)], ['DTF', nf(p.dtf.v)]] : []) })
+      +   KS.card({ title:'Прирост за 12 дней по материалам VC', sub:'Ни одного нуля: выросли все восемь',
+             body: grow.length ? KS.bars(grow, 3) : '<div class="ks-muted">Ряда нет.</div>' })
+      + '</div>'
+      + KS.card({ title:'Цепочка до заявок', sub:'Каждый шаг с классом цифры. Гипотезы не наши замеры',
+          body: KS.table([['Шаг'],['Значение',true],['Метод']], [
+            ['Просмотров в сутки без новых публикаций', '87', KS.kind('ДАННЫЕ')],
+            ['Просмотров в месяц', 'около 2 600', KS.kind('ГИПОТЕЗА')],
+            ['CTR просмотр в переход', '1-3%', KS.kind('ГИПОТЕЗА')],
+            ['Переходов в месяц', '26-78', 'расчёт'],
+            ['CR переход в заявку', '1-2%', KS.kind('ГИПОТЕЗА')],
+            ['Заявок в месяц', '0,3-1,6', 'расчёт']
+          ], { foot:['Downside, -50% по двум коэффициентам', '0,07-0,4', null] }) })
+      + KS.note('Что это меняет', 'Аргумент за перенос архива в блог genglass.ru (В-01Р): тексты живые и читаются, а в индексе Яндекса 1 материал из 27. Это работа с уже доказанным спросом, а не ставка. Ресурса на неё сейчас нет.', 'info')
+      + KS.action({ what:'Решить, переносить ли архив VC и DTF в блог (В-01Р)', who:'Иван' })
+      + '</div>';
+  },
+
+  method(){
+    return KS.head({ title:'Метод и его границы', sub:'Чем сняты цифры этого дашборда и чего метод не даёт.', src:'обновляется раз в неделю, по пятницам' })
+      + '<div class="ks-stack">'
+      + KS.card({ title:'Что снято и как', body:KS.table([['Что снято'],['Как'],['Ограничение']], [
+          ['Мета, H1, H2, FAQ, ссылки по семи страницам', 'инструмент выборки', 'отдаёт разобранный контент, не сырой HTML'],
+          ['Тело статьи КЕ-1', 'тот же инструмент', 'счётчики знаков посчитаны локально'],
+          ['Коды ответа по стоп-листу', 'тот же инструмент', '404 видно по ошибке выборки'],
+          ['Ленты VC и DTF', 'тот же инструмент', 'сняты полностью, 8 и 12 материалов'],
+          ['Лента Дзена', 'не снята', 'dzen.ru закрыт robots.txt'],
+          ['Позиции keys.so и выдача Яндекса', 'не сняты', 'закрыты robots.txt, нужна сессия'],
+        ].map(r => r.map(esc))) })
+      + '<div class="ks-grid-2">'
+      +   KS.card({ title:'Как обновить ряд', body:KS.steps([
+            ['Снять мета и H2 по семи страницам', 'счётчики знаков считаются локально'],
+            ['Сверить шесть значений мета с прошлым замером', 'совпали побайтово: инструменту можно верить'],
+            ['Снять просмотры по каждому материалу', 'база 18.09: VC 3 575, DTF 2 110'],
+            ['Добавить точку в ряд блока DB', 'каждая цифра в конверте: значение, класс, источник, дата'],
+            ['Прогнать сторожа', 'check_ds.py страница.html --live']]) })
+      +   KS.card({ title:'Чего метод не даёт', body:KS.checks([
+            'Позиций: keys.so и выдача Яндекса закрыты для облака',
+            'Ленты Дзена: не снята третий цикл подряд',
+            'JSON-LD и веса изображений: нужен сырой HTML',
+            'Ответов Ивана, данных устно: считаются только письменные'], 'warn') })
+      + '</div></div>';
+  }
+};
+
+/* ---------------- панель деталей: четыре блока ---------------- */
+KS.drawer.register('q', () => ({
+  title:'Вопросы без ответа', kind:'ДАННЫЕ', sub:'17 на 18.09.2026, за три цикла прибавилось 9',
+  compose: KS.table([['№',true],['Вопрос'],['Что держит']], QUESTIONS.map(r => [String(r[0]), esc(r[1]), r[2] == null ? null : esc(r[2])]), { stack:false }),
+  trend: KS.chart('dr-q', 200),
+  afterOpen: () => KS.charts.line('dr-q', { cats:V().series.map(r => ruDate(r.date)), data:V().series.map(r => r.q), name:'Вопросов', slot:4, h:200 }),
+  source: 'Отчёт качества, цикл 3, раздел 11. Вопрос считается открытым, пока не пришёл один из трёх ответов: принять, сдвинуть срок, отправить на доработку. Устные ответы метод не видит.',
+  action: { what:'Ответить хотя бы на вопросы 7 и 16', who:'Иван', when:'понедельник 22.09, 12:00 МСК', crit:'по каждому один из трёх ответов письменно' }
+}));
+KS.drawer.register('vc', () => {
+  const p = V(), pl = p.series.filter(r => r.vc != null);
+  return {
+    title:'Просмотры архива на VC', kind:'ДАННЫЕ', sub:'8 материалов, 18.09.2026',
+    compose: KS.bars(p.vcMat.map(m => [m[0], m[3], 'было ' + nf(m[2])]).sort((a, b) => b[1] - a[1]), 3),
+    trend: KS.chart('dr-vc', 200),
+    afterOpen: () => KS.charts.line('dr-vc', { cats:pl.map(r => ruDate(r.date)), data:pl.map(r => r.vc), name:'Просмотров', slot:3, h:200 }),
+    trendTable: KS.table([['Дата'],['Просмотров',true]], pl.map(r => [ruDate(r.date), nf(r.vc)])),
+    source: 'vc.ru/id6027658, просмотры сняты по каждому материалу 06.09 и 18.09. Замер 11.09 (2 994) признан ошибочным, пункт 7.2 отчёта, и в ряд не взят.',
+    action: { what:'Снять просмотры следующим циклом по той же базе', who:'СПАРТАК', when:'пятница 25.09', crit:'разложение по всем восьми материалам' }
+  };
+});
+
+/* ---------------- отрисовка ---------------- */
+function draw(){
+  const p = V(), s = p.series, pl = s.filter(r => r.vc != null);
+  const vcSorted = p.vcMat.slice().sort((a, b) => b[3] - a[3]);
+  if(el('c-q')) KS.charts.line('c-q', { cats:s.map(r => ruDate(r.date)), data:s.map(r => r.q), name:'Вопросов без ответа', slot:4, h:250 });
+  if(el('c-idx')) KS.charts.index('c-idx', { cats:pl.map(r => ruDate(r.date)), h:250, series:[
+    { name:'VC, 8 материалов', data:pl.map(r => r.vc), slot:3 }, { name:'DTF, те же 8', data:pl.map(r => r.dtf), slot:2 }] });
+  if(el('c-vc')) KS.charts.hbar('c-vc', { cats:vcSorted.map(m => m[1]), data:vcSorted.map(m => m[3]), name:'Просмотров', slot:3, h:300 });
+  if(el('c-share')) KS.charts.donut('c-share', { labels:['VC','DTF'], data: p.vc.v == null ? [] : [p.vc.v, p.dtf.v], h:280 });
+}
+function render(){
+  el('view').innerHTML = '<div class="ks-fade">' + (SCREENS[VIEW] || SCREENS.overview)() + '</div>';
+  KS.charts.prune();
+  el('nav').innerHTML = KS.nav(NAV, VIEW);
+  el('seg').querySelectorAll('[data-p]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.p === CUR)));
+  el('stamp').textContent = V().name + (has() ? ' · снимок ' + ruDate(V().series.at(-1).date) : ' · ряда нет');
+  el('foot').textContent = 'Шаблон Контур DS 1.5. Данные GENGLASS: отчёт качества, цикл 3.';
+  el('theme').innerHTML = KS.theme.icon();
+  KS.route.set({ project:CUR, view:VIEW, period:String(DAYS) });
+  KS.ticker.run(el('view'));
+  scheduleDraw();
+}
+let _raf = 0;
+function scheduleDraw(){ cancelAnimationFrame(_raf); _raf = requestAnimationFrame(draw); }
+KS.charts.onTheme = () => { render(); };
+KS.navWire(el('nav'), v => KS.vt(() => { VIEW = v; render(); window.scrollTo(0, 0); }));
+el('seg').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if(b){ CUR = b.dataset.p; render(); } });
+el('per').addEventListener('change', e => { DAYS = +e.target.value; render(); });
+el('theme').addEventListener('click', () => KS.theme.toggle());
+KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
+el('seg').innerHTML = Object.entries(DB.projects).map(([k, p]) => '<button type="button" data-p="' + k + '" aria-pressed="false">' + esc(p.name) + '</button>').join('');
+KS.seg.wire(el('seg'));
+el('cmdkb').outerHTML = KS.cmdk.button();
+
+/* палитра команд: экраны, проекты, период, действия */
+const go = v => KS.vt(() => { VIEW = v; render(); window.scrollTo(0, 0); });
+const setDays = d => { DAYS = d; el('per').value = String(d); render(); };
+KS.cmdk.set([
+  { group:'Экраны', label:'Обзор недели', icon:'grid', run:() => go('overview') },
+  { group:'Экраны', label:'Площадки VC и DTF', icon:'globe', keywords:'каналы', run:() => go('platforms') },
+  { group:'Экраны', label:'Метод и границы', icon:'doc', run:() => go('method') },
+  { group:'Детали', label:'Вопросы без ответа', hint:'17 на 18.09', icon:'list', run:() => { go('overview'); KS.drawer.open('q'); } },
+  { group:'Детали', label:'Просмотры архива на VC', hint:'3 575', icon:'eye', run:() => { go('overview'); KS.drawer.open('vc'); } },
+  { group:'Проект', label:'GENGLASS', icon:'layers', run:() => { CUR = 'gg'; render(); } },
+  { group:'Проект', label:'GLASS-MEMORY', hint:'выгрузок нет', icon:'layers', run:() => { CUR = 'gm'; render(); } },
+  { group:'Период', label:'7 дней', icon:'calendar', run:() => setDays(7) },
+  { group:'Период', label:'30 дней', icon:'calendar', run:() => setDays(30) },
+  { group:'Период', label:'Весь ряд', icon:'calendar', run:() => setDays(100000) },
+  { group:'Действия', label:'Сменить тему', icon:'moon', keywords:'тёмная светлая', run:() => KS.theme.toggle() },
+  { group:'Действия', label:'Переключить плотность', hint:'просторно или компактно', icon:'rows', keywords:'компактно просторно строки таблица', run:() => KS.density.toggle() },
+  { group:'Действия', label:'Скопировать ссылку на экран', icon:'link', run:() => {
+      const u = location.href; const ok = () => KS.toast('Ссылка на экран скопирована');
+      try{ navigator.clipboard.writeText(u).then(ok, () => KS.toast('Не удалось скопировать: выдели адрес вручную', 'warn')); }catch(e){ KS.toast('Не удалось скопировать: выдели адрес вручную', 'warn'); } } }
+]);
+
+const r = KS.route.parse();
+KS.theme.init();
+if(r.project && DB.projects[r.project]) CUR = r.project;
+if(r.view && SCREENS[r.view]) VIEW = r.view;
+if(r.period) DAYS = +r.period || 30;
+el('per').value = String(DAYS);
+render();
+if(r.drill) KS.drawer.open(r.drill);
+/* плотность: просторно или компактно, выбор запоминается */
+const densUi = () => { const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase()); };
+document.getElementById('dens').addEventListener('click', () => KS.density.toggle());
+document.addEventListener('ks:density', () => { densUi(); KS.toast('Плотность: ' + KS.density.label().toLowerCase()); });
+densUi();
+/* анимации Rive поверх родных; без сети или при «меньше движения» остаются родные */
+KS.rive.enable();
+</script>
+</body>
+</html>

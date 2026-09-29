@@ -75,7 +75,7 @@ const ROOT = new URL('../..', import.meta.url).pathname;
 function srcCase(name, edit) {
   const ws = OUT + '/ws';
   fs.rmSync(ws, { recursive: true, force: true });
-  for (const d of ['kontur-dashboard', 'kontur-ds'])
+  for (const d of ['kontur-dashboard'])
     fs.cpSync(ROOT + d, ws + '/' + d, { recursive: true, filter: f => !/node_modules|__pycache__|\/rive\/|specimen/.test(f) });
   if (edit) edit(ws);
   try {
@@ -99,7 +99,7 @@ const dec = (x, d) => x.toFixed(d).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '
 const inHead = (x) => (ws) => patch(ws, 'kontur-dashboard/src/modules/head.py', '<title>Контур: SEO, GEO, Директ</title>', '<title>Контур: SEO, GEO, Директ</title>\n' + x);
 const inBody = (x) => (ws) => patch(ws, 'kontur-dashboard/src/modules/shell.py', '<div class="gate" id="gate">', x + '\n<div class="gate" id="gate">');
 const SRC_BAD = [
-  ['исходники: расход в правиле kit.css', (ws) => fs.appendFileSync(ws + '/kontur-ds/kit/kit.css', '\n.x::after{ content:"Расход 175 968 ₽"; }\n')],
+  ['исходники: расход в правиле kit.css', (ws) => fs.appendFileSync(ws + '/kontur-dashboard/kontur-ds/kit/kit.css', '\n.x::after{ content:"Расход 175 968 ₽"; }\n')],
   ['исходники: заявки из поиска в разметке', inBody('<p hidden>' + LEADS + ' заявок</p>')],
   ['исходники: расход в тысячах', inBody('<p hidden>Расход ' + dec(SPEND / 1000, 0) + ' тыс. ₽</p>')],
   ['исходники: план с узким пробелом', inBody('<p hidden>План 240\u2009000\u2009000 ₽</p>')],

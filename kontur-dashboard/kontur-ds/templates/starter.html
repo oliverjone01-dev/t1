@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F6F7F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1216" media="(prefers-color-scheme: dark)">
+<title>Новый проект на Контур DS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<!-- Для артефакта Claude вставь содержимое этих файлов внутрь <style> и <script>:
+     внешние файлы с других хостов в артефакте блокируются. -->
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../kit/kit.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js"></script>
+<script src="../kit/brand.js"></script>
+<script src="../kit/icons.js"></script>
+<script src="../kit/kit.js"></script>
+<script src="../kit/charts.js"></script>
+<script src="../kit/motion.riv.js"></script>
+</head>
+<body>
+<div class="ks-app">
+  <div id="bd" class="ks-backdrop" hidden></div>
+  <aside id="sb" class="ks-sidebar" aria-label="Разделы">
+    <div class="ks-brand">
+      <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 15l4-5 3 3 4-6 3 4"/></svg></div>
+      <div class="ks-lbl"><div class="ks-brand-name">Проект</div><div class="ks-brand-sub">что он показывает</div></div>
+    </div>
+    <nav id="nav" class="ks-nav"></nav>
+    <div class="ks-sidebar-foot ks-lbl" id="foot"></div>
+  </aside>
+
+  <div class="ks-main">
+    <header class="ks-topbar">
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="menu" aria-label="Меню"></button>
+      <div class="ks-topbar-tools">
+        <div class="ks-seg" role="group" aria-label="Проект" id="seg"></div>
+        <select class="ks-select" id="per" aria-label="Период сравнения">
+          <option value="7">7 дней</option><option value="30" selected>30 дней</option>
+          <option value="90">90 дней</option><option value="100000">весь ряд</option>
+        </select>
+      </div>
+      <div class="ks-topbar-spacer"></div>
+      <div class="ks-stamp ks-hide-sm" id="stamp"></div>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="dens" aria-label="Плотность интерфейса"></button>
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="theme" aria-label="Тема"></button>
+    </header>
+    <main class="ks-view" id="view"></main>
+  </div>
+</div>
+
+<script>
+/* ---------------- данные ----------------
+   Каждая цифра в конверте. Здесь пример: ряд помечен ДЕМО, потому что он выдуман. */
+const F = KS.F, { nf, money } = KS.fmt;
+const DB = {
+  projects:{
+    a:{ name:'Проект А', series:[
+      {date:'2026-08-20',top10:310,vis:20},{date:'2026-08-27',top10:322,vis:21},
+      {date:'2026-09-03',top10:338,vis:19},{date:'2026-09-10',top10:351,vis:23},{date:'2026-09-17',top10:366,vis:24}],
+      top10: F(366,'ДЕМО','пример данных','2026-09-17'), vis: F(24,'ДЕМО','пример данных','2026-09-17'),
+      plan: F(12000000,'ДЕМО','пример данных','2026-07-01') },
+    b:{ name:'Проект Б', series:[], top10:F(null,'ДЕМО'), vis:F(null,'ДЕМО'), plan:F(null,'ДЕМО') }
+  }
+};
+let CUR = 'a', VIEW = 'overview', DAYS = 30;
+const V = () => DB.projects[CUR];
+
+const NAV = [
+  { id:'overview', t:'Обзор', i:'grid' },
+  { t:'Динамика', i:'up', ch:[ { id:'dyn', t:'Стало лучше или хуже' } ] },
+  { id:'rules', t:'Регламент', i:'gear' }
+];
+
+/* ---------------- экраны ---------------- */
+const SCREENS = {
+  overview(){
+    const d = V(), s = d.series;
+    return KS.head({ title:'Обзор · ' + d.name, sub:'Что здесь видно и на какой вопрос экран отвечает.',
+             src:'источник данных · дата съёма', prio:'P0', badges:[KS.badge('ДЕМО','crit')],
+             lead:'Строка про деньги: план по проекту ' + KS.val(d.plan, money) + '. Если цифры нет, здесь так и написано.' })
+      + '<div class="ks-stack">'
+      + KS.verdict(s, [['top10','запросы в топ-10'],['vis','видимость']], DAYS, DAYS + ' дней')
+      + '<div class="ks-grid-kpi">'
+      +   KS.tile({ label:'Запросов в топ-10', f:d.top10, slot:3, icon:'target', delta:KS.delta(KS.series.dyn(s,'top10',DAYS)), drill:'top10' })
+      +   KS.tile({ label:'Видимость, %', f:d.vis, slot:1, icon:'ai', delta:KS.delta(KS.series.dyn(s,'vis',DAYS)) })
+      +   KS.tile({ label:'План, ₽', f:d.plan, slot:2, icon:'wallet' })
+      +   KS.tile({ label:'Точек в ряду', f:F(s.length,'ДЕМО','пример'), slot:4, icon:'db' })
+      + '</div>'
+      + '<div class="ks-grid-2">'
+      +   KS.card({ title:'Топ-10 по неделям', sub:'Одна серия, подпись на конце', body:KS.chart('c1',260),
+             table:KS.table([['Дата'],['Топ-10',true]], s.map(r=>[KS.fmt.ruDate(r.date), nf(r.top10)])) })
+      +   KS.card({ title:'Разные ряды на одной шкале', sub:'Индекс: старт периода это 100', body:KS.chart('c2',260),
+             table:KS.table([['Дата'],['Топ-10',true],['Видимость',true]], s.map(r=>[KS.fmt.ruDate(r.date), nf(r.top10), nf(r.vis)])) })
+      + '</div>'
+      + KS.note('Ряд выдуман', 'Это демонстрация стартового шаблона. Замени блок DB на свои выгрузки в конверте.', 'warn')
+      + KS.action({ what:'Подключить реальный источник данных', who:'владелец проекта', when:'до первого показа', crit:'на экране не осталось ни одного бейджа ДЕМО' })
+      + '</div>';
+  },
+  dyn(){ return KS.head({ title:'Стало лучше или хуже', sub:'Экран для собственника.' }) + KS.verdict(V().series, [['top10','запросы в топ-10'],['vis','видимость']], DAYS, DAYS + ' дней'); },
+  rules(){ return KS.head({ title:'Регламент', sub:'Как обновлять данные.' }) + KS.card({ title:'Порядок', body:KS.steps([['Снять выгрузку','откуда'],['Собрать данные','чем'],['Проверить сторожем','tools/check_ds.py']]) }); }
+};
+
+/* Детали для проваливания: четыре блока */
+KS.drawer.register('top10', () => ({
+  title:'Запросов в топ-10', kind:V().top10.k, sub:'Разложение показателя',
+  compose: KS.table([['Запрос'],['Позиция',true]], [['пример запроса', '3'], ['ещё один', '7']]),
+  trend: KS.chart('dr-c', 200), afterOpen: () => KS.charts.line('dr-c', { cats:V().series.map(r=>KS.fmt.ruDate(r.date)), data:V().series.map(r=>r.top10), slot:3, h:200 }),
+  source: 'Метод, параметры, дата съёма.',
+  action: { what:'Разобрать просадки', who:'исполнитель', when:'пятница' }
+}));
+
+/* ---------------- отрисовка ---------------- */
+function draw(){
+  const s = V().series, cats = s.map(r => KS.fmt.ruDate(r.date));
+  if(document.getElementById('c1')) KS.charts.line('c1', { cats, data:s.map(r=>r.top10), name:'Топ-10', slot:3 });
+  if(document.getElementById('c2')) KS.charts.index('c2', { cats, series:[{ name:'Топ-10', data:s.map(r=>r.top10), slot:3 }, { name:'Видимость', data:s.map(r=>r.vis), slot:1 }] });
+}
+function render(){
+  document.getElementById('view').innerHTML = '<div class="ks-fade">' + (SCREENS[VIEW] || SCREENS.overview)() + '</div>';
+  KS.charts.prune();   /* старые графики, чьи контейнеры только что исчезли */
+  document.getElementById('nav').innerHTML = KS.nav(NAV, VIEW);
+  document.getElementById('seg').innerHTML = Object.entries(DB.projects).map(([k,p]) =>
+    '<button type="button" data-p="' + k + '" aria-pressed="' + (k === CUR) + '">' + KS.fmt.esc(p.name) + '</button>').join('');
+  document.getElementById('stamp').textContent = V().name + (V().series.length ? ' · последний съём ' + KS.fmt.ruDate(V().series.at(-1).date) : ' · ряда нет');
+  document.getElementById('foot').textContent = 'Данные: пример. Замени блок DB.';
+  document.getElementById('theme').innerHTML = KS.theme.icon();
+  KS.route.set({ project:CUR, view:VIEW, period:String(DAYS) });
+  scheduleDraw();
+}
+/* Несколько отрисовок в одном кадре дают одну перерисовку графиков. Иначе второй
+   вызов уничтожает график посреди анимации первого и SVG получает размеры NaN. */
+let _raf = 0;
+function scheduleDraw(){ cancelAnimationFrame(_raf); _raf = requestAnimationFrame(draw); }
+KS.charts.onTheme = () => { render(); };
+KS.navWire(document.getElementById('nav'), v => KS.vt(() => { VIEW = v; render(); window.scrollTo(0, 0); }));
+document.getElementById('seg').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if(b){ CUR = b.dataset.p; render(); } });
+document.getElementById('per').addEventListener('change', e => { DAYS = +e.target.value; render(); });
+document.getElementById('theme').addEventListener('click', () => KS.theme.toggle());
+/* меню: на телефоне и планшете выезжает поверх, на широком экране сворачивается в иконки */
+KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
+
+/* Старт: сначала адрес, потом тема. Смена темы перерисовывает экран и переписывает
+   адрес, поэтому присланную ссылку надо прочитать до неё. */
+const r = KS.route.parse();
+KS.theme.init();
+if(r.project && DB.projects[r.project]) CUR = r.project;
+if(r.view && SCREENS[r.view]) VIEW = r.view;
+if(r.period) DAYS = +r.period || 30;
+document.getElementById('per').value = String(DAYS);
+render();
+if(r.drill) KS.drawer.open(r.drill);
+/* плотность: просторно или компактно, выбор запоминается */
+const densUi = () => { const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase()); };
+document.getElementById('dens').addEventListener('click', () => KS.density.toggle());
+document.addEventListener('ks:density', densUi);
+densUi();
+/* анимации Rive поверх родных, по желанию (рантайм 2,8 МБ с jsdelivr): KS.rive.enable(); */
+</script>
+</body>
+</html>

@@ -148,7 +148,7 @@ KS.bars = function(items, slot){
   const mx = Math.max(1, ...items.map(i => i[1] || 0));
   return '<div class="ks-bars" style="--slot:var(--cat-' + (slot || 3) + ')">' + items.map(i =>
     '<div><div class="ks-bar-head"><span class="ks-bar-name">' + esc(i[0]) + '</span>'
-    + '<span class="ks-bar-value">' + nf(i[1]) + (i[2] ? ' <span class="ks-muted" style="font-weight:400">' + esc(i[2]) + '</span>' : '') + '</span></div>'
+    + '<span class="ks-bar-value">' + nf(i[1]) + (i[2] ? ' <span class="ks-muted" style="font-weight:var(--fw-regular)">' + esc(i[2]) + '</span>' : '') + '</span></div>'
     + '<div class="ks-bar-track"><div class="ks-bar-fill" style="width:' + Math.max(2, (i[1] || 0) / mx * 100) + '%"></div></div></div>'
   ).join('') + '</div>';
 };
@@ -237,7 +237,7 @@ KS.verdict = function(series, fields, days, label){
       + '<span class="ks-verdict-name">' + esc(n) + '</span>'
       + '<span class="ks-verdict-path" data-tip="' + esc('было ' + nf(d.was) + ' на ' + ruDate(d.from) + ', стало ' + nf(d.now) + ' на ' + ruDate(d.to)) + '">'
       +   '<span>' + nf(d.was) + '</span><span class="ks-muted">' + d5(d.from) + '</span><span class="ks-muted" aria-hidden="true">→</span>'
-      +   '<b style="font-weight:600">' + nf(d.now) + '</b><span class="ks-muted">' + d5(d.to) + '</span></span>'
+      +   '<b style="font-weight:var(--fw-semi)">' + nf(d.now) + '</b><span class="ks-muted">' + d5(d.to) + '</span></span>'
       + '<span class="ks-delta-cell">' + KS.delta(d, gu) + '</span>'
       + '<span class="ks-verdict-prev">' + (d.vsPrev != null ? 'отрезком раньше ' + nf(d.prev) : '') + '</span></div>').join('');
   const head = bad === 0 ? 'Стало лучше' : good === 0 ? 'Стало хуже' : 'Разнонаправленно';
@@ -672,6 +672,22 @@ DN.set = function(mode, opts){
 DN.toggle = () => DN.set(DN.get() === 'compact' ? 'comfortable' : 'compact');
 DN.label = () => DN.get() === 'compact' ? 'Компактно' : 'Просторно';
 DN.icon = size => ic(DN.get() === 'compact' ? 'rows-dense' : 'rows', size || 17);
+
+/* 1.5.1: тема и плотность в меню на телефоне. В шапке на ширине до 639 им нет места без сжатия ниже цели пальца:
+   кнопки шапки помечаются ks-hide-sm, а в подвал меню ставится .ks-sidebar-tools с кнопками data-ks-act="theme"
+   и data-ks-act="density". Кит сам рисует им значок с подписью и включает их. */
+function sideTools(){
+  document.querySelectorAll('[data-ks-act]').forEach(b => {
+    if(b.dataset.ksAct === 'theme') b.innerHTML = T.icon() + '<span>Сменить тему</span>';
+    if(b.dataset.ksAct === 'density') b.innerHTML = DN.icon() + '<span>Плотность: ' + esc(DN.label().toLowerCase()) + '</span>';
+  });
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-ks-act]'); if(!b) return;
+  if(b.dataset.ksAct === 'theme') T.toggle(); else if(b.dataset.ksAct === 'density') DN.toggle();
+});
+document.addEventListener('ks:theme', sideTools); document.addEventListener('ks:density', sideTools);
+onReady(sideTools);
 /* выбор из прошлого визита ставится сразу при загрузке кита, до первой отрисовки */
 try{ if(localStorage.getItem('ks-density') === 'compact') document.documentElement.setAttribute('data-density', 'compact'); }catch(e){}
 
@@ -829,12 +845,16 @@ RV.enable = function(opts){
 };
 /* ==========================================================================
    1.5: настройки вида шаблона (KS.prefs)
-   Источник: настройки из этого браузера (localStorage 'ks-prefs'), иначе настройки проекта
+   Источник: настройки из этого браузера (localStorage 'ks-prefs:<папка страницы>'), иначе настройки проекта
    window.KS_BRAND (kit/brand.js), иначе вид Контура по умолчанию. Готовые значения CSS
    считает страница templates/nastroyki.html и кладёт в prefs.vars; кит их только вставляет,
    поэтому в ките нет ни одного цвета мимо токенов. Контраст проверен на странице настроек.
    ========================================================================== */
-const PF = KS.prefs = { KEY:'ks-prefs', cur:null };
+/* 1.5.1: ключ со своим пространством имён. Общий 'ks-prefs' на весь адрес давал соседней странице на том же
+   домене (например, github.io) сменить чужому проекту логотип, цвета и движение. Теперь ключ свой у каждой папки
+   сайта: страница настроек и шаблоны из одной папки его делят, соседние проекты нет. Проект может задать
+   свой ключ строкой window.KS_PREFS_KEY до подключения кита. Старый общий ключ не читается. */
+const PF = KS.prefs = { KEY:'ks-prefs:' + (window.KS_PREFS_KEY || location.pathname.replace(/[^/]*$/, '') || '/'), cur:null };
 const PF_KEY = /^--[\w-]+$/, PF_VAL = /^[#\w\s().,%+\-*/]+$/, PF_IMG = /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
 PF.get = () => PF.cur || {};
 PF.load = function(){

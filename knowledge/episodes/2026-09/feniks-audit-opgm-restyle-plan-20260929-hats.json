@@ -1,0 +1,119 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-opgm-restyle-plan-20260929-hats",
+  "timestamp": "2026-09-29T09:15:00+00:00",
+  "deliverable_ref": "scratchpad сессии 16fce438: opgm-restyle-plan.md (вне репозитория); эпизод knowledge/episodes/2026-09/council-opgm-restyle-plan-20260929-0831.md",
+  "iteration": 1,
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 1,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 1,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 8.0,
+    "insight": 8.0,
+    "brand_fit": 8.0,
+    "risk_awareness": 7.0
+  },
+  "weighted_total": 7.85,
+  "verdict": "return",
+  "verdict_override_reason": "HATS: автор и аудитор один голос (Agent tool у СПАРТАКА недоступен). По council SKILL §5 оценка не считается Step 12.5 для критического артефакта; нужен native feniks. Без этого go не выдаётся.",
+  "artifact_class": "mixed",
+  "anchor": "ближе всего к op-gm v6 iter3 go 8.35 (dashboard): ниже, потому что это план без живых проб и без инструмента приёмки; выше Детализации iter3 7.55 по дисциплине меток, так как план требует метку у каждого числа",
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "ссылки плана на opgm.js, legacy.js, kx.css, эталон сверены grep -n/sed -n; 12 ссылок на строки эталона исправлены автором до аудита"
+    },
+    {
+      "id": "B4",
+      "result": "PARTIAL",
+      "evidence": "две версии правды (8 ISO-недель до даты среза против N дней от выгрузки) названы по opgm.js:66-67, 570 и эталону стр. 2749, величина расхождения не измерена"
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "вписанные даты и месяцы найдены: opgm.js:13, 220, 267, 292, 298, 314, 353, 362, 376, 507, 585; вынесены в дефекты Д1-Д3 вне рестайлинга"
+    },
+    {
+      "id": "B6",
+      "result": "PARTIAL",
+      "evidence": "check_ds.py по src/*.css, src/*.js, shell.html на 24eb500d: СТОРОЖ DS: чисто; --live и contrast_live не запускались, эталон живого слоя перенесён в W0"
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "grep -o [0-9][0-9.,]* по плану: только строки кода, пиксели, даты, баллы аудитов, число состояний; сводных цифр раздела и персональных данных нет"
+    },
+    {
+      "id": "C3",
+      "result": "PASS",
+      "evidence": "grep -c U+2014 и U+2013 по плану и эпизоду = 0"
+    }
+  ],
+  "gaps": [
+    "Инструмента снимка чисел нет в репозитории (fx6/ab3.cjs, abdiff2.py упомянуты только в аудитах), приёмка всех волн держится на W0: план §3.4, §7",
+    "Расхождение одноимённых показателей Детализации и старых экранов не измерено, только названо: план §3.2",
+    "Вывод-заголовок (П1) в W3 новая логика текста: нужна отдельная проба на 84 состояниях и правило малой выборки, в плане есть как критерий, без скрипта",
+    "Часть утверждений об эталоне (цвет NEW-B cat-3, метка раздела) проверена по загруженному шаблону, а не по собранному detalizaciya.js: план §4.4, проверка в W0",
+    "Сроки волн оценка одного голоса без замера: план §7 [ГИПОТЕЗА]"
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "нет инструмента снимка",
+      "evidence": "find / -name ab3.cjs -o -name abdiff2.py: пусто",
+      "checkpoint": "actionability_8_resources_listed"
+    },
+    {
+      "gap": "живой слой не измерен",
+      "evidence": "check_ds.py запущен без --live",
+      "checkpoint": "accuracy_2_sources_verifiable"
+    },
+    {
+      "gap": "эталон против собранного раздела",
+      "evidence": "detalizaciya.js вне репозитория (README, раздел Разделы); цвет взят из шаблона стр. 2787",
+      "checkpoint": "accuracy_3_no_conflict_with_rag"
+    }
+  ],
+  "rework_tz": "1) Запустить native feniks по плану до W0. 2) В W0 собрать снимок чисел и эталон живого слоя, приложить отчёт покрытия. 3) Для W3 описать пробу вывода-заголовка скриптом до начала волны.",
+  "primary_gap": "HATS: аудит не независимый",
+  "escalate_to": "Иван (5 вопросов плана), основная сессия (native feniks)",
+  "confidence": 0.6,
+  "p9_triggers_fired": [
+    "план работ со сроками"
+  ],
+  "sources_of_truth": [
+    "src/opgm.js",
+    "src/legacy.js",
+    "src/kx/kx.css",
+    "kontur-ds/DESIGN_SYSTEM.md",
+    "эталон c75d702c-gibrid-template.html",
+    "knowledge/episodes/2026-09/feniks-audit-op-gm-detalizaciya-20260929-iter3.json"
+  ],
+  "audience": "Иван, РОП, основная сессия"
+}

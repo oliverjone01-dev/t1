@@ -1,0 +1,108 @@
+<div class="sp">
+  <aside class="sp-toc" aria-label="Разделы">
+    <div class="sp-toc-brand">
+      <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 15l4-5 3 3 4-6 3 4"/></svg></div>
+      <div><div class="ks-brand-name">Контур DS</div><div class="ks-brand-sub">версия 1.5 · 23.09.2026</div></div>
+    </div>
+    <nav id="toc" class="sp-toc-nav"></nav>
+  </aside>
+
+  <main class="sp-main">
+    <header class="sp-hero" id="top">
+      <div class="ks-row" style="justify-content:space-between;align-items:flex-start;gap:var(--sp-4)">
+        <div>
+          <div class="sp-eyebrow">Версия 1.5</div>
+          <h1 class="sp-title">Контур DS</h1>
+          <p class="sp-lede">Дашборды, трекеры, отчёты и панели управления. Выросла из дашборда SEO, GEO и Директ по проектам GENGROUP и проверена на нём: 52 экрана, две темы, живые данные, от телефона до монитора. Для брендовых материалов она не предназначена, там действуют гайды брендов.</p>
+        </div>
+        <button type="button" class="ks-btn ks-btn--secondary" id="sp-theme" aria-label="Переключить тему"></button>
+      </div>
+      <div class="sp-facts" id="sp-facts"></div>
+    </header>
+
+    <section class="sp-sec" id="principles">
+      <h2 class="sp-h2">Пять правил, из которых выросло всё остальное</h2>
+      <div class="sp-rules" id="sp-rules"></div>
+    </section>
+
+    <section class="sp-sec" id="color">
+      <h2 class="sp-h2">Цвет</h2>
+      <p class="sp-p">Каждая пара «текст на поверхности» проверена по WCAG на странице, карточке и подложке. Цифры контраста ниже считаются прямо сейчас из токенов текущей темы: переключи тему, и они пересчитаются.</p>
+      <h3 class="sp-h3">Поверхности и границы</h3><div class="sp-swatches" id="sw-surface" style="--cols:6"></div>
+      <h3 class="sp-h3">Текст: четыре ступени вместо прозрачности</h3><div class="sp-swatches" id="sw-text"></div>
+      <div id="sp-opacity" style="margin-top:var(--sp-3)"></div>
+      <h3 class="sp-h3">Акцент и статус</h3><div class="sp-swatches" id="sw-status"></div>
+      <h3 class="sp-h3">Графики</h3><div id="sw-charts"></div>
+    </section>
+
+    <section class="sp-sec" id="type">
+      <h2 class="sp-h2">Типографика</h2>
+      <p class="sp-p">На Mac и iPhone интерфейс набран системным SF: Display на крупном кегле, Text на мелком браузер включает сам. У всех остальных Golos Text, гротеск с хорошей кириллицей. У обоих есть табличные цифры, поэтому числа в столбик набираются тем же шрифтом, а моноширинный остался только для кода. Девять ролей, а не россыпь близких размеров; меньше 11 пикселей текста нет.</p><div id="sp-fontnow" style="margin-bottom:var(--sp-4)"></div>
+      <div class="ks-card" id="sp-typescale"></div>
+    </section>
+
+    <section class="sp-sec" id="space">
+      <h2 class="sp-h2">Отступы, радиусы, тени, движение</h2>
+      <div class="ks-grid-2">
+        <div class="ks-card"><div class="ks-card-title" style="margin-bottom:var(--sp-3)">Отступы: шаг 4 пикселя</div><div id="sp-space"></div></div>
+        <div class="ks-stack">
+          <div class="ks-card"><div class="ks-card-title" style="margin-bottom:var(--sp-3)">Радиусы</div><div class="sp-radii" id="sp-radii"></div></div>
+          <div class="ks-card"><div class="ks-card-title" style="margin-bottom:var(--sp-3)">Движение</div><div id="sp-motion"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sp-sec" id="icons">
+      <h2 class="sp-h2">Иконки</h2>
+      <p class="sp-p">Контурные, штрих 1,7, круглые концы, система координат 20×20. Цвет берут от текста. Размеры: 13 в меню-стрелке, 15-17 в строках, 18 в квадрате плитки.</p>
+      <div class="sp-icons" id="sp-icons"></div>
+    </section>
+
+    <section class="sp-sec" id="components">
+      <h2 class="sp-h2">Компоненты</h2>
+      <div id="sp-components" class="ks-stack" style="gap:var(--sp-8)"></div>
+    </section>
+
+    <section class="sp-sec" id="charts">
+      <h2 class="sp-h2">Графики</h2>
+      <p class="sp-p">Пресеты на ApexCharts 3.54.1. Цвета читаются из токенов контейнера, hex в коде графиков запрещён. Одна серия идёт без легенды, две и больше с легендой. Двух осей Y нет ни в одном пресете: разные по величине ряды сводятся к индексу.</p>
+      <div id="sp-charts" class="ks-stack"></div>
+    </section>
+
+    <section class="sp-sec" id="themes">
+      <h2 class="sp-h2">Две темы рядом</h2>
+      <p class="sp-p">Тема задаётся атрибутом data-theme на любом контейнере, а не только на корне. Поэтому светлый блок можно вложить в тёмную страницу, а витрину показать в двух темах одновременно.</p>
+      <div class="sp-pair">
+        <div class="ks-theme-pane sp-pane" data-theme="light" id="pane-light"></div>
+        <div class="ks-theme-pane sp-pane" data-theme="dark" id="pane-dark"></div>
+      </div>
+    </section>
+
+    <section class="sp-sec" id="adaptive">
+      <h2 class="sp-h2">Адаптивность: телефон, планшет, монитор</h2>
+      <p class="sp-p">Сетки подстраиваются под ширину своего контейнера, а не окна: одна и та же плитка верно ложится в полный экран, в панель деталей и в половину витрины. Каркас меняется по ширине окна. На касании цели становятся 44 пикселя, поля ввода 16, подъём по наведению выключается.</p>
+      <div id="sp-bp"></div>
+      <h3 class="sp-h3">Каркас вживую</h3>
+      <p class="sp-p">Это стартовый шаблон системы в рамке телефона и планшета. Меню, фильтры и панель деталей внутри рабочие: нажми на кнопку меню или на плитку с топ-10.</p>
+      <div class="sp-devices" id="sp-devices"></div>
+      <h3 class="sp-h3">Таблица на узком экране</h3>
+      <p class="sp-p">Таблица из четырёх и более колонок в контейнере уже 520 пикселей превращается в карточки: первая колонка становится заголовком, остальные идут парами «подпись: значение». Три колонки на телефоне ещё помещаются строкой и остаются таблицей.</p>
+      <div id="sp-stack"></div>
+      <h3 class="sp-h3">Касание и мелочи мобильного браузера</h3>
+      <div id="sp-touch"></div>
+    </section>
+
+    <section class="sp-sec" id="rules">
+      <h2 class="sp-h2">Запреты и сторож</h2>
+      <p class="sp-p">Каждый запрет стоит за ошибкой, которая уже случалась. Сторож tools/check_ds.py ловит их автоматически, тест на подмену подсовывает ему 14 испорченных версий и требует поймать все.</p>
+      <div id="sp-bans"></div>
+    </section>
+
+    <section class="sp-sec" id="transfer">
+      <h2 class="sp-h2">Как перенести в другой проект</h2>
+      <div id="sp-transfer"></div>
+    </section>
+
+    <footer class="sp-foot">Контур DS 1.5 · собрано из дашборда «Контур» · токены, кит, графики, сторож и скилл для Claude в одном пакете</footer>
+  </main>
+</div>

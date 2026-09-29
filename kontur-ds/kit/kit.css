@@ -419,7 +419,26 @@ button, a, select, [role="button"], [data-drill]{ -webkit-tap-highlight-color:tr
   font:inherit; font-size:var(--fs-small); cursor:pointer; transition:border-color var(--dur-fast), color var(--dur-fast); }
 .ks-cmdk-btn:hover{ border-color:var(--border-strong); color:var(--text-strong); }
 .ks-cmdk-btn .ks-cmdk-lbl{ min-width:90px; text-align:left; }
-@media (max-width:639px){ .ks-cmdk-btn{ width:32px; padding:0; justify-content:center; } .ks-cmdk-btn .ks-cmdk-lbl, .ks-cmdk-btn .ks-kbd{ display:none; } }
+@media (max-width:639px){ .ks-cmdk-btn{ width:var(--tap-sm); padding:0; justify-content:center; } .ks-cmdk-btn .ks-cmdk-lbl, .ks-cmdk-btn .ks-kbd{ display:none; } }
+
+/* ---------- шапка на телефоне (1.5.1) ----------
+   Кнопки шапки не сжимаются ниже цели пальца. Тема и плотность на ширине до 639 уходят в меню (.ks-sidebar-tools,
+   кнопки data-ks-act), у сегмента в шапке поля уже, лента плотнее, выбор из списка стоит в ленте первым. */
+.ks-topbar > .ks-btn, .ks-topbar > .ks-cmdk-btn{ flex-shrink:0; }
+.ks-sidebar-tools{ display:none; flex-direction:column; align-items:flex-start; flex-shrink:0;
+  padding:0 var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); }
+.ks-sidebar-tools .ks-btn{ padding-left:0; gap:var(--sp-2); }
+@media (max-width:639px){ .ks-sidebar-tools{ display:flex; } }
+/* до 1279 (телефон, планшет, ноутбук с открытым меню) лента фильтров может не влезть: выбор из списка (период,
+   статус) встаёт в ней первым и виден всегда, длинный сегмент прокручивается за ним. С 1280 порядок исходный */
+@media (max-width:1279px){ .ks-topbar-tools > .ks-select{ order:-1; flex-shrink:0; } }
+/* до 767 ещё и поиск сжимается до значка, у сегмента поля уже */
+@media (max-width:767px){
+  .ks-topbar .ks-seg button{ padding-inline:var(--sp-2); }
+  .ks-topbar-tools{ gap:var(--sp-1-5); }
+  .ks-cmdk-btn{ width:var(--tap-sm); padding:0; justify-content:center; }
+  .ks-cmdk-btn .ks-cmdk-lbl, .ks-cmdk-btn .ks-kbd{ display:none; }
+}
 
 /* ---------- касание ---------- */
 @media (pointer:coarse){
@@ -427,8 +446,15 @@ button, a, select, [role="button"], [data-drill]{ -webkit-tap-highlight-color:tr
   .ks-btn--sm{ height:var(--tap-sm); }
   .ks-btn--icon{ width:var(--tap); height:var(--tap); }
   .ks-nav-item{ min-height:var(--tap); }
-  .ks-seg button{ min-height:var(--tap-sm); padding-inline:var(--sp-3); }
+  .ks-seg button{ min-height:var(--tap-sm); min-width:var(--tap-sm); padding-inline:var(--sp-3); }
   .ks-cmdk-btn{ height:var(--tap-sm); }
+  .ks-cmdk-item{ min-height:var(--tap); }
+  /* 1.5.1: ссылка вне строки текста (в ряду, во флексе) тоже цель пальца: зона 36 px */
+  .ks-link{ padding-block:9px; }
+  /* 1.5.1: значок подсказки и бейдж с фокусом тоже цели: зона касания 36 px псевдоэлементом, вид не меняется */
+  .ks-help, .ks-badge[tabindex], .ks-status[tabindex], .ks-kind[tabindex]{ position:relative; }
+  .ks-help::before{ content:""; position:absolute; inset:-10px; }
+  .ks-badge[tabindex]::after, .ks-status[tabindex]::after, .ks-kind[tabindex]::after{ content:""; position:absolute; inset:-8px -4px; }
   /* поле мельче 16 пикселей Safari на iPhone увеличивает вместе со страницей при фокусе */
   .ks-select, .ks-input{ font-size:16px; min-height:var(--tap); }
   .ks-table tr.is-interactive td{ padding-top:12px; padding-bottom:12px; }
@@ -525,8 +551,8 @@ button, a, select, [role="button"], [data-drill]{ -webkit-tap-highlight-color:tr
   box-shadow:var(--glass-shadow) !important; border-radius:var(--r-md) !important;
   -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur); }
 .apexcharts-tooltip .apexcharts-tooltip-title{ background:transparent !important; border-bottom:1px solid var(--border) !important;
-  color:var(--text-muted) !important; font-family:var(--font-sans) !important; font-size:11px !important; font-weight:500; }
-.apexcharts-tooltip .apexcharts-tooltip-text-y-value{ font-variant-numeric:tabular-nums; font-weight:600 !important; }
+  color:var(--text-muted) !important; font-family:var(--font-sans) !important; font-size:11px !important; font-weight:var(--fw-medium); }
+.apexcharts-tooltip .apexcharts-tooltip-text-y-value{ font-variant-numeric:tabular-nums; font-weight:var(--fw-semi) !important; }
 .apexcharts-legend-text{ color:inherit !important; }
 
 /* ---------- появление экрана: блоки по очереди, 35 мс шаг, не дольше 0,2 с ---------- */

@@ -24,6 +24,7 @@ import { KPAGES, navButton } from "./katya-nav.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
 import { readGapDaily, GAP_DAILY_FILE } from "./gap-daily.js";
+import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type PairDef } from "./bid-compare.js";
 import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
 import {
@@ -1512,6 +1513,59 @@ const cards = T.тесты.map((t) => {
     + `${body}</section>`;
 }).join("");
 
+// ---------- тест «большая ставка против маленькой» (tests.json, тесты_ставок) ----------
+// Своя сводка, а не общая карточка: обе стороны под рекламой, контроль «без рекламы» тут не
+// годится по построению (см. bid-compare.ts).
+const BID_TESTS = ((JSON.parse(readFileSync("tools/tests/tests.json", "utf-8")).тесты_ставок || []) as BidTestDef[]);
+const gapByArt = new Map<string, Map<string, number>>();
+let LAST_SPEND = "";
+for (const r of readNd(dp("ads_sku_daily.ndjson"))) if (r.d > LAST_SPEND) LAST_SPEND = r.d;
+for (const r of readNd(dp(GAP_DAILY_FILE))) {
+  if (r.oa_used === true || r.gap_pct == null) continue;
+  const art = String(r.art || "").trim(), d = String(r.date || "").slice(0, 10);
+  if (!art || !d) continue;
+  (gapByArt.get(art) ?? gapByArt.set(art, new Map()).get(art)!).set(d, Number(r.gap_pct));
+}
+function bidSideRow(p: PairDef, s: SideDef, side: string): string {
+  const w = sideWindow(p, s, LAST);
+  const head = `<td>${esc(side)}</td><td>${esc(s.артикул)}</td>`
+    + `<td class="r">${esc(s.ставка ?? "-")}</td><td class="r">${s.бюджет ? nbsp(s.бюджет) : "-"}</td>`
+    + `<td class="nw">${esc(w.from.slice(5))}..${w.to >= w.from ? esc(w.to.slice(5)) : ""}</td>`;
+  if (w.to < w.from) return `<tr>${head}<td colspan="7" class="muted">окно начнётся ${esc(w.from)}</td></tr>`;
+  const st = sideStat(series.get(s.артикул), gapByArt.get(s.артикул), w.from, w.to, LAST_SPEND || w.to);
+  const wk = (v: number) => { const x = perWeek(v, st.days); return x == null ? "-" : nbsp(Math.round(x)); };
+  return `<tr>${head}<td class="r">${st.days}</td>`
+    + `<td class="r">${wk(st.vsearch)}</td><td class="r">${wk(st.pdp)}</td><td class="r">${wk(st.cart)}</td>`
+    + `<td class="r">${nbsp(st.units)}</td><td class="r">${st.spendDays ? nbsp(Math.round(st.spend / st.spendDays * 7)) : "-"}</td>`
+    + `<td class="r">${st.cartPer1k == null ? "-" : st.cartPer1k.toFixed(1).replace(".", ",")}</td>`
+    + `<td class="r">${st.gapMed == null ? "-" : st.gapMed.toFixed(1).replace(".", ",") + ` <span class="muted">(${st.gapDays} дн)</span>`}</td></tr>`;
+}
+const bidCards = BID_TESTS.map((t) => {
+  const pairs = t.пары.map((p) => `<div class="cov" style="border-top:none;padding:10px 0 4px"><b>${esc(p.название)}</b>${p.заметка ? ` <span class="muted">· ${esc(p.заметка)}</span>` : ""}</div>`
+    + `<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Сторона</th><th>Артикул</th>`
+    + `<th class="r">Ставка, ₽</th><th class="r">Бюджет, ₽/нед</th><th>Окно</th><th class="r">Дней</th>`
+    + `<th class="r" title="Показы в поиске в неделю: сумма окна, приведённая к 7 дням наблюдения">Поиск/нед</th>`
+    + `<th class="r">Карточка/нед</th><th class="r">Корзины/нед</th><th class="r">Заказы, всего</th>`
+    + `<th class="r">Расход/нед, ₽</th><th class="r" title="Корзин на 1 000 ₽ рекламного расхода, за дни, по которым расход уже выгружен: что покупает рубль">Корзин на 1 000 ₽</th>`
+    + `<th class="r" title="Медиана соинвеста (разрыв предельной цены и витрины) по дням окна, gap_daily">Соинвест, %</th></tr></thead><tbody>`
+    + bidSideRow(p, p.большая, "большая") + bidSideRow(p, p.малая, "малая")
+    + `</tbody></table></div>`).join("");
+  const dm = t.замер ? daysBetween(TODAY, t.замер) : null;
+  const chip = t.статус === TEST_STATUS.done ? `<span class="chip chip-done">завершён</span>`
+    : `<span class="chip chip-run">${esc(t.статус || "идёт")}${dm != null && dm > 0 ? ` · замер через ${dm} дн` : ""}</span>`;
+  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(t.название)} ${chip}</div></div>`
+    + (t.гипотеза ? `<div class="hyp">${esc(t.гипотеза)}</div>` : "")
+    + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
+    + (t.быстрый_признак ? `<span>Быстрый признак: <b>${esc(t.быстрый_признак)}</b></span>` : "")
+    + `<span>Замер: <b>${esc(t.замер || "-")}</b></span><span>Пар: <b>${t.пары.length}</b></span></div>`
+    + (t.условие_завершения ? `<div class="rule"><b>Тест перейдёт в «завершён», когда:</b> ${esc(t.условие_завершения)}</div>` : "")
+    + (t.правило ? `<div class="rule"><b>Правило:</b> ${esc(t.правило)}</div>` : "")
+    + (t.заметка ? `<div class="cov" style="border-top:none;padding-top:0">${esc(t.заметка)}</div>` : "")
+    + pairs
+    + `<div class="cov">Воронка из ночного синка OZON (sku_views, по тестовым товарам срез funnel_tests) по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
+    + ` Заказы с рекламы в выгрузке неполные, поэтому ДРР на замере берётся из кабинета.</div></section>`;
+}).join("");
+
 /** Подписи метрик воронки для таблицы эталона: те же слова, что в колонках выше на странице. */
 const FUNNEL_TITLE: Record<FunnelKey, string> = {
   search_position: "позиция", search_views: "показы", pdp_views: "заходы",
@@ -2396,7 +2450,7 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>`
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта. Сама разница считается не к паре, а к групповому контролю: панель снимка без тестовых товаров и их родни по карточке. Пара осталась подписью и ловушкой для мёртвого и грязного контроля; родство в ней доказано корреляцией остатков, а не карточкой.</p>`
-  + cards + boostCard() + mblock
+  + cards + bidCards + boostCard() + mblock
   + `<h2 class="sec">Заметки и предупреждения</h2>${warnBlock}<div class="notes"><ul>${notes}</ul></div></div>`
   + `<script>${JS}</script></body></html>`;
 

@@ -12,6 +12,7 @@
 // OUT=dialog/data/ai-review.json - куда вливать (боевой файл по умолчанию)
 // DRY=1                     - только проверить и напечатать отчёт, ничего не писать
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs";
 
 const IN = process.env.IN || "";
 const MAP = process.env.MAP || "";
@@ -86,5 +87,5 @@ for (const r of rej.slice(0, 40)) console.log("  ОТБРОШЕНО: " + r);
 if (rej.length > 40) console.log(`  ... ещё ${rej.length - 40}`);
 if (DRY) { console.log("DRY=1, файл не тронут"); process.exit(0); }
 mkdirSync("dialog/data", { recursive: true });
-writeFileSync(OUT, JSON.stringify({ ...prev, generatedAt: new Date().toISOString(), reviews }));
+writeFileSync(OUT, JSON.stringify(maskDeep({ ...prev, generatedAt: new Date().toISOString(), reviews })));
 console.log(`Записано -> ${OUT}`);

@@ -1,6 +1,7 @@
 // Запекает dialog/data/dialog.json в самодостаточную страницу public/dialog.html (/dialog/).
 // Запуск: npx tsx src/scripts/b24/build-dialog.ts
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs";
 
 const TPL = "dialog/dialog.template.html";
 const DATA = "dialog/data/dialog.json";
@@ -43,6 +44,9 @@ try {
 } catch (e: any) {
   console.warn(`ИИ-оверлей пропущен: ${e && e.message}`);
 }
+
+// Контакты на страницу не попадают, даже если снимок снят до маски (ЯДИ 29.09).
+try { data = JSON.stringify(maskDeep(JSON.parse(data))); } catch (e: any) { console.warn(`маска пропущена: ${e && e.message}`); }
 
 const stamp = new Date().toISOString();
 const baked = tpl

@@ -36,9 +36,11 @@ export function maskText(s) {
 }
 
 // Рекурсивно по всем строкам объекта (ключи не трогаем). Числа остаются числами.
-export function maskDeep(v) {
+// skip - имена полей, которые не маскируются: например «source» в rop.json хранит НАШИ
+// номера и почты («Звонок на номер: 7495…», «Почта info@…») - по ним считаются каналы.
+export function maskDeep(v, skip) {
   if (typeof v === 'string') return maskText(v);
-  if (Array.isArray(v)) { for (let i = 0; i < v.length; i++) v[i] = maskDeep(v[i]); return v; }
-  if (v && typeof v === 'object') { for (const k of Object.keys(v)) v[k] = maskDeep(v[k]); return v; }
+  if (Array.isArray(v)) { for (let i = 0; i < v.length; i++) v[i] = maskDeep(v[i], skip); return v; }
+  if (v && typeof v === 'object') { for (const k of Object.keys(v)) { if (skip && skip.has(k)) continue; v[k] = maskDeep(v[k], skip); } return v; }
   return v;
 }

@@ -84,18 +84,22 @@ def assert_fresh(loaded_at: str | None, max_age_hours: float, now: _dt.datetime 
         raise InvariantError(f"{name}: снимок старше {max_age_hours} ч (возраст {age:.1f} ч)")
 
 
-def merge_window(old: dict[str, Any], new: dict[str, Any], start: str, end: str) -> dict[str, Any]:
-    """К7: заменяет только дни в [start, end), остальное не трогает. Обе границы обязательны."""
+def merge_window(old: dict[str, Any], new: dict[str, Any], start: str, end: str,
+                 allow_shrink: bool = False, min_ratio: float = 0.5) -> dict[str, Any]:
+    """К7: заменяет только дни в [start, end), остальное не трогает. Обе границы обязательны.
+    Пустой или сильно усохший ответ (дней в окне меньше min_ratio от старых) роняет запись,
+    если явно не разрешено allow_shrink=True: так пустой ответ API не стирает окно (инцидент cron с дефолтом)."""
     if not start or not end:
         raise InvariantError("merge_window: нужны обе границы окна")
-    out = {d: v for d, v in old.items() if not (start <= d < end)}
-    for d, v in new.items():
+    old_in = [d for d in old if start <= d < end]
+    for d in new:
         if not (start <= d < end):
             raise InvariantError(f"merge_window: новые данные за {d} вне окна [{start}, {end})")
-        out[d] = v
-    untouched = {d for d in old if not (start <= d < end)}
-    if any(out[d] != old[d] for d in untouched):
-        raise InvariantError("merge_window: изменились данные вне окна")
+    if not allow_shrink and old_in and len(new) < min_ratio * len(old_in):
+        raise InvariantError(f"merge_window: в окне было {len(old_in)} дней, пришло {len(new)}. "
+                             "Пустой или усохший ответ не перезаписывает данные; если так и надо, allow_shrink=True")
+    out = {d: v for d, v in old.items() if not (start <= d < end)}
+    out.update(new)
     return out
 
 
@@ -160,6 +164,10 @@ def _selftest() -> None:
     assert merged == {"2026-02-01": 1, "2026-09-01": 3}
     expect_fail(merge_window, old, {"2026-05-01": 9}, "2026-09-01", "2026-10-01")
     expect_fail(merge_window, old, {}, "", "2026-10-01")
+    old30 = {f"2026-06-{d:02d}": d for d in range(1, 31)}
+    expect_fail(merge_window, old30, {}, "2026-06-01", "2026-07-01")  # пустой ответ API не стирает окно
+    expect_fail(merge_window, old30, {"2026-06-01": 1}, "2026-06-01", "2026-07-01")
+    assert merge_window(old30, {}, "2026-06-01", "2026-07-01", allow_shrink=True) == {}
     b = mark_partial([{"end": "2026-09-29T21:00:00+00:00"}, {"end": "2026-09-28T21:00:00+00:00"}], now)
     assert b[0]["partial"] is True and b[1]["partial"] is False
     assert_known_codes(["A"], ["A", "B"])

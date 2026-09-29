@@ -4,9 +4,17 @@
 Использование:
   rework_rate.py --branch <ветка> [--base origin/main]   # коммиты ветки, которых нет в base
   rework_rate.py --session <id>                          # коммиты с трейлером Claude-Session: .../session_<id>
-  rework_rate.py --since 2026-10-01 [--until 2026-10-31] # все коммиты за период
-Добавь --list, чтобы увидеть классификацию каждого коммита.
-Служебные (трейсы, мержи, пересборки данных) не входят в знаменатель.
+  rework_rate.py --since 2026-10-01 [--until 2026-11-01] # все коммиты за период (--until = первый день следующего месяца)
+  --list   показать классификацию каждого коммита
+Нужна полная история (в shallow-клоне: git fetch --unshallow или git fetch --depth=2000).
+
+Два режима счёта:
+1. Трейлер (основной, с 29.09.2026): у коммита-переделки строка `Rework: customer|self|feniks`
+   (customer = правка заказчика на сданное; self = нашёл сам после коммита; feniks = return/veto ФЕНИКСА).
+   Цель data-guard считается только по customer.
+2. Эвристика по заголовку (для истории до трейлеров): fix/revert/исправ/откат/правка/регресс.
+   Не отличает правки заказчика от своих фиксов, поэтому это верхняя оценка, а не цель.
+Служебные коммиты (трейсы, мержи, пересборки данных) не входят в знаменатель.
 """
 import re
 import subprocess
@@ -14,10 +22,14 @@ import sys
 
 REWORK = re.compile(r"(^|\W)(fix|hotfix|revert|исправ|откат|вернул|верн[уё]л|переделк|правк[аи] (ивана|заказчика|кати)|по замечани|по правке|ошибк[аи] в|не учел|не учёл|регресс)", re.I)
 SERVICE = re.compile(r"^(chore\(traces\)|traces?:|trace\b|data(-ym)?:|chore\(data\)|merge |merge:|пересбор|rebuild|снимок|snapshot|служебная запись)", re.I)
+TRAILER = re.compile(r"^Rework:\s*(customer|self|feniks)\s*$", re.I | re.M)
 
 
 def git(*args):
-    return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout
+    p = subprocess.run(["git", *args], capture_output=True, text=True)
+    if p.returncode:
+        raise SystemExit(f"rework_rate: git {' '.join(args[:3])} ... : {p.stderr.strip() or 'ошибка'}")
+    return p.stdout
 
 
 def commits(argv):
@@ -25,6 +37,9 @@ def commits(argv):
     if "--branch" in argv:
         b = argv[argv.index("--branch") + 1]
         base = argv[argv.index("--base") + 1] if "--base" in argv else "origin/main"
+        for ref in (b, base):
+            if subprocess.run(["git", "rev-parse", "--verify", "-q", ref], capture_output=True).returncode:
+                raise SystemExit(f"rework_rate: ветка или ref '{ref}' не найдена (git fetch origin {ref}?)")
         out = git("log", f"{base}..{b}", f"--format={fmt}")
     elif "--session" in argv:
         s = argv[argv.index("--session") + 1]
@@ -36,35 +51,53 @@ def commits(argv):
         if "--until" in argv:
             rng.append(f"--until={argv[argv.index('--until') + 1]}")
         out = git("log", "--all", *rng, f"--format={fmt}")
+    seen = set()
     for rec in out.split("\x1e"):
         rec = rec.strip("\n")
         if not rec:
             continue
         h, parents, subj, body = (rec.split("\x1f") + ["", "", "", ""])[:4]
+        if h in seen:
+            continue
+        seen.add(h)
         yield h, parents.split(), subj, body
 
 
+def classify(parents, subj, body):
+    if len(parents) > 1 or SERVICE.search(subj):
+        return "service", None
+    t = TRAILER.search(body or "")
+    if t:
+        return "rework", t.group(1).lower()
+    if REWORK.search(subj):
+        return "rework", "heuristic"
+    return "work", None
+
+
 def main(argv):
-    total = rework = service = 0
+    total = service = 0
+    kinds = {"customer": 0, "self": 0, "feniks": 0, "heuristic": 0}
     rows = []
     for h, parents, subj, body in commits(argv):
-        if len(parents) > 1 or SERVICE.search(subj):
+        k, who = classify(parents, subj, body)
+        if k == "service":
             service += 1
-            kind = "служебный"
-        elif REWORK.search(subj) or REWORK.search(body.split("\n")[0] if body else ""):
-            total += 1
-            rework += 1
-            kind = "переделка"
         else:
             total += 1
-            kind = "работа"
-        rows.append((h[:8], kind, subj[:90]))
+            if who:
+                kinds[who] += 1
+        rows.append((h[:8], k + (f":{who}" if who else ""), subj[:90]))
     if "--list" in argv:
         for r in rows:
             print(" | ".join(r))
-    share = (rework / total * 100) if total else 0.0
-    print(f"Содержательных коммитов: {total}, переделок: {rework} ({share:.0f}%), служебных: {service}")
-    print("Цель data-guard: ниже 15% переделок по правкам заказчика на чат.")
+    pct = lambda n: f"{(n / total * 100):.0f}%" if total else "н/д"
+    tagged = kinds["customer"] + kinds["self"] + kinds["feniks"]
+    print(f"Содержательных коммитов: {total}, служебных: {service}")
+    print(f"По трейлеру Rework: customer {kinds['customer']} ({pct(kinds['customer'])}), self {kinds['self']}, feniks {kinds['feniks']}")
+    print(f"По эвристике заголовка (без трейлера, верхняя оценка): {kinds['heuristic']} ({pct(kinds['heuristic'])})")
+    if tagged == 0:
+        print("Трейлеров Rework нет: цель по правкам заказчика не измерена, доступна только эвристика.")
+    print("Цель data-guard [ГИПОТЕЗА до замеров на 3+ задачах]: customer ниже 15% содержательных коммитов.")
     return 0
 
 

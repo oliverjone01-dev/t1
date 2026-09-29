@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Регрессионные тесты хуков data-guard. Запуск: python3 .claude/hooks/tests/data-guard-tests.py [-v]
-Создаёт временный git-репо с копией конфига, скилла и реестра, гоняет события и проверяет вывод. Exit 0 = всё прошло."""
+Временный git-репо с копией конфига, скилла, реестра и decisions.md; события гоняются через хук, вывод проверяется.
+Включает негативные кейсы из аудита ФЕНИКСА 29.09.2026 (ложные срабатывания). Exit 0 = всё прошло."""
 import datetime as dt
 import json
 import os
@@ -13,10 +14,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 HOOK = os.path.join(REPO, ".claude", "hooks", "data-guard.py")
 VERBOSE = "-v" in sys.argv
+G = ["-c", "user.email=t@t", "-c", "user.name=t"]
 
 
 def sh(cwd, *cmd):
-    subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
+    p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    if p.returncode:
+        raise SystemExit(f"{cmd}: {p.stderr}")
+    return p.stdout.strip()
 
 
 def setup():
@@ -25,89 +30,145 @@ def setup():
         src, dst = os.path.join(REPO, rel), os.path.join(fx, rel)
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         (shutil.copytree if os.path.isdir(src) else shutil.copy)(src, dst)
+    with open(os.path.join(fx, "knowledge", "decisions.md"), "w") as f:
+        f.write("# Решения\n\n## 2026-09-29 слияние data-guard без повторного аудита\nтест\n")
     sh(fx, "git", "init", "-q", "-b", "main")
     sh(fx, "git", "add", "-A")
-    sh(fx, "git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "init")
+    sh(fx, "git", *G, "commit", "-q", "-m", "init")
+    sh(fx, "git", "update-ref", "refs/remotes/origin/main", "HEAD")
     return fx
 
 
-def run(fx, mode, ev, state):
-    env = dict(os.environ, CLAUDE_PROJECT_DIR=fx, TMPDIR=state)
+def run(fx, mode, ev, state, env_extra=None):
+    env = dict(os.environ, CLAUDE_PROJECT_DIR=fx, TMPDIR=state, **(env_extra or {}))
+    env.pop("DATA_GUARD_OFF", None) if not env_extra else None
     p = subprocess.run([sys.executable, HOOK, mode], input=json.dumps(ev), capture_output=True, text=True, env=env, cwd=fx, timeout=30)
     assert p.returncode == 0, f"exit {p.returncode}: {p.stderr}"
     return json.loads(p.stdout) if p.stdout.strip() else {}
 
 
+hso = lambda o: o.get("hookSpecificOutput", {})
+bash = lambda c, sid="s": {"session_id": sid, "tool_input": {"command": c}}
+
+
 def main():
     fx = setup()
     state = tempfile.mkdtemp(prefix="dg-state-")
-    cases = []
-
-    def case(name, mode, ev, check):
-        cases.append((name, mode, ev, check))
-
-    hso = lambda o: o.get("hookSpecificOutput", {})
-    case("session-start даёт памятку", "session-start", {"source": "startup"}, lambda o: "К11" in hso(o).get("additionalContext", ""))
-    case("prompt с цифрами: скилл и прошлые ошибки", "prompt", {"session_id": "s1", "prompt": "сверь деньги озон за сентябрь по дате доставки"},
-         lambda o: "data-guard" in hso(o).get("additionalContext", "") and "E0" in hso(o).get("additionalContext", ""))
-    case("prompt без цифр молчит", "prompt", {"session_id": "s1", "prompt": "поменяй цвет кнопки на синий"}, lambda o: o == {})
-    case("merge без go: ask", "pre-bash", {"session_id": "s1", "tool_input": {"command": "gh pr merge 12 --squash"}},
-         lambda o: hso(o).get("permissionDecision") == "ask")
-    case("merge с DG_OVERRIDE: без ask, systemMessage", "pre-bash", {"session_id": "s1", "tool_input": {"command": 'DG_OVERRIDE="решение Ивана" gh pr merge 12'}},
-         lambda o: "permissionDecision" not in hso(o) and "решение Ивана" in o.get("systemMessage", ""))
-    case("обычная команда молчит", "pre-bash", {"tool_input": {"command": "ls -la"}}, lambda o: o == {})
-    case("сборка на main: ask", "pre-bash", {"tool_input": {"command": "cd analytics-mvp && npx tsx src/scripts/build-katya.ts"}},
-         lambda o: hso(o).get("permissionDecision") == "ask")
-    case("правка сгенерированного HTML: предупреждение", "pre-edit", {"tool_input": {"file_path": os.path.join(fx, "analytics-mvp/public/katya-money.html")}},
-         lambda o: "К9" in hso(o).get("additionalContext", ""))
-    case("правка билдера молчит", "pre-edit", {"tool_input": {"file_path": os.path.join(fx, "analytics-mvp/src/scripts/build-katya.ts")}}, lambda o: o == {})
-    case("MCP merge без go: ask", "pre-mcp-merge", {"tool_input": {"pullNumber": 7, "commit_title": "x"}}, lambda o: hso(o).get("permissionDecision") == "ask")
-    case("stop: «сошлось» без двух источников", "stop", {"session_id": "s2", "last_assistant_message": "Готово, выручка сошлась, 1 234 567 ₽."},
-         lambda o: "сверке" in hso(o).get("additionalContext", ""))
-    case("stop: «сошлось» с двумя цифрами и источниками молчит", "stop",
-         {"session_id": "s3", "last_assistant_message": "Сверка выручки за август: отчёт о реализации 1 234 567 ₽, выписка банка 1 234 567 ₽, разница 0. Сошлось."},
-         lambda o: o == {})
-    case("stop: stop_hook_active молчит", "stop", {"session_id": "s2", "stop_hook_active": True, "last_assistant_message": "сошлось 5"}, lambda o: o == {})
-
     ok = fail = 0
-    for name, mode, ev, check in cases:
-        o = run(fx, mode, ev, state)
-        good = False
-        try:
-            good = bool(check(o))
-        except Exception:
-            good = False
-        if good:
+
+    def check(name, cond, o):
+        nonlocal ok, fail
+        if cond:
             ok += 1
             VERBOSE and print(f"ok   {name}")
         else:
             fail += 1
             print(f"FAIL {name}: {json.dumps(o, ensure_ascii=False)[:300]}")
 
-    # go ФЕНИКСА после коммита снимает ask
-    day = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
-    os.makedirs(os.path.join(fx, "traces", day), exist_ok=True)
-    ts = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(seconds=5)).isoformat(timespec="seconds")
-    with open(os.path.join(fx, "traces", day, "agents.jsonl"), "a") as f:
-        f.write(json.dumps({"ts": ts, "event": "subagent_stop", "agent": "feniks", "verdict": "go"}) + "\n")
-    o = run(fx, "pre-bash", {"tool_input": {"command": "gh pr merge 12"}}, state)
-    if o == {}:
-        ok += 1
-        VERBOSE and print("ok   merge после go молчит")
-    else:
-        fail += 1
-        print(f"FAIL merge после go: {o}")
+    def case(name, mode, ev, pred, env_extra=None):
+        o = run(fx, mode, ev, state, env_extra)
+        try:
+            good = bool(pred(o))
+        except Exception:
+            good = False
+        check(name, good, o)
 
-    # коммит только трейсов на рабочей ветке
+    silent = lambda o: o == {}
+    is_ask = lambda o: hso(o).get("permissionDecision") == "ask"
+
+    # --- на main, до изменений ---
+    case("session-start: памятка", "session-start", {"source": "startup"}, lambda o: "К11" in hso(o).get("additionalContext", ""))
+    case("prompt с цифрами: скилл и прошлые ошибки", "prompt", {"session_id": "s1", "prompt": "сверь деньги озон за сентябрь по дате доставки"},
+         lambda o: "data-guard" in hso(o).get("additionalContext", "") and "E0" in hso(o).get("additionalContext", ""))
+    for p in ("поменяй цвет кнопки на синий", "создай директорию для логов", "напиши пост для маркетинга", "обнови чеклист онбординга",
+              "добавь unittest", "поправь рубрики блога"):
+        case(f"prompt без цифр молчит: {p}", "prompt", {"session_id": "s1", "prompt": p}, silent)
+    case("prompt: Директ ловится", "prompt", {"session_id": "s9", "prompt": "выгрузи расход Директа за неделю"}, lambda o: "data-guard" in hso(o).get("additionalContext", ""))
+    case("сборка на main: ask", "pre-bash", bash("cd analytics-mvp && npx tsx src/scripts/build-katya.ts"), is_ask)
+    case("npm run build на main: ask", "pre-bash", bash("npm run build"), is_ask)
+    for c in ("cat analytics-mvp/src/scripts/build-katya.ts", "grep -n x analytics-mvp/src/scripts/build-katya.ts",
+              "git log -- analytics-mvp/src/scripts/build-katya.ts", "git diff build-katya.ts", "node --check analytics-mvp/src/scripts/build.js",
+              "rg build_ src", "ls -la"):
+        case(f"чтение на main молчит: {c}", "pre-bash", bash(c), silent)
+    case("сборка на main с DG_OVERRIDE: молчит", "pre-bash", bash('DG_OVERRIDE="ночной фикс" npx tsx src/scripts/build-katya.ts'), silent)
+    case("правка сгенерированного HTML: предупреждение", "pre-edit", {"tool_input": {"file_path": os.path.join(fx, "analytics-mvp/public/katya-money.html")}},
+         lambda o: "К9" in hso(o).get("additionalContext", ""))
+    case("правка билдера молчит", "pre-edit", {"tool_input": {"file_path": os.path.join(fx, "analytics-mvp/src/scripts/build-katya.ts")}}, silent)
+
+    # --- рабочая ветка с изменением цифр ---
     sh(fx, "git", "checkout", "-q", "-b", "work")
+    os.makedirs(os.path.join(fx, "analytics-mvp/src/scripts"), exist_ok=True)
+    with open(os.path.join(fx, "analytics-mvp/src/scripts/build-katya.ts"), "w") as f:
+        f.write("export const x = 1;\n")
+    sh(fx, "git", "add", "analytics-mvp")
+    sh(fx, "git", *G, "commit", "-q", "-m", "numbers")
+    case("gh pr merge без go: ask", "pre-bash", bash("gh pr merge 12 --squash"), is_ask)
+    case("git -C dir push origin main: ask", "pre-bash", bash(f"git -C {fx} push origin main"), is_ask)
+    case("git push origin HEAD:main: ask", "pre-bash", bash("git push origin HEAD:main"), is_ask)
+    for c in ("git push -u origin claude/main-fix", "git push -u origin claude/ozon-main-page", "git merge origin/main --no-ff",
+              "git push -u origin work"):
+        case(f"не слияние в main молчит: {c}", "pre-bash", bash(c), silent)
+    case("DG_OVERRIDE без ссылки на решение: всё равно ask", "pre-bash", bash('DG_OVERRIDE="мелочь" gh pr merge 12'), is_ask)
+    case("DG_OVERRIDE с несуществующим якорем: ask", "pre-bash", bash('DG_OVERRIDE="decisions.md#нет такого: x" gh pr merge 12'), is_ask)
+    case("DG_OVERRIDE со ссылкой на решение: без ask, systemMessage", "pre-bash",
+         bash('DG_OVERRIDE="decisions.md#слияние data-guard без повторного аудита: решение Ивана" gh pr merge 12'),
+         lambda o: "permissionDecision" not in hso(o) and "решение Ивана" in o.get("systemMessage", ""))
+    case("MCP merge без go: ask", "pre-mcp-merge", {"tool_input": {"pullNumber": 7, "commit_title": "x"}}, is_ask)
+    case("сборка на рабочей ветке молчит", "pre-bash", bash("npx tsx src/scripts/build-katya.ts"), silent)
+
+    # go без хеша не засчитывается, с верным хешем засчитывается
+    day = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
+    tdir = os.path.join(fx, "traces", day)
+    os.makedirs(tdir, exist_ok=True)
+    ts = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    with open(os.path.join(tdir, "agents.jsonl"), "a") as f:
+        f.write(json.dumps({"ts": ts, "event": "subagent_stop", "agent": "feniks", "verdict": "go"}) + "\n")
+    case("go без audited_hash не снимает ask (проба A1)", "pre-bash", bash("gh pr merge 12"), is_ask)
+    h = sh(fx, sys.executable, os.path.join(fx, ".claude/skills/data-guard/scripts/audit_hash.py"))
+    with open(os.path.join(tdir, "agents.jsonl"), "a") as f:
+        f.write(json.dumps({"ts": ts, "event": "subagent_stop", "agent": "feniks", "verdict": "go", "audited_hash": h}) + "\n")
+    case("go с хешем текущего содержимого: молчит", "pre-bash", bash("gh pr merge 12"), silent)
+    hw = sh(fx, sys.executable, os.path.join(fx, ".claude/skills/data-guard/scripts/audit_hash.py"), "--worktree")
+    check("хеш рабочего дерева = хеш HEAD при чистом дереве (трейсы исключены)", h == hw, {"head": h, "worktree": hw})
+    with open(os.path.join(fx, "analytics-mvp/src/scripts/build-katya.ts"), "a") as f:
+        f.write("export const y = 2;\n")
+    sh(fx, "git", "add", "-A", "analytics-mvp")
+    sh(fx, "git", *G, "commit", "-q", "-m", "after go")
+    case("коммит после go: снова ask", "pre-bash", bash("gh pr merge 12"), is_ask)
+
+    # ветка без файлов с цифрами: слияние молчит
+    sh(fx, "git", "checkout", "-q", "-b", "docs", "main")
+    with open(os.path.join(fx, "knowledge", "note.md"), "w") as f:
+        f.write("x\n")
+    sh(fx, "git", "add", "knowledge/note.md")
+    sh(fx, "git", *G, "commit", "-q", "-m", "docs")
+    case("PR без цифр (только knowledge): молчит (М3)", "pre-bash", bash("gh pr merge 13"), silent)
+
+    # коммит только трейсов и снимков на рабочей ветке
     sh(fx, "git", "add", "traces")
-    o = run(fx, "pre-bash", {"tool_input": {"command": "git commit -m 'traces'"}}, state)
-    if "только из трейсов" in hso(o).get("additionalContext", ""):
-        ok += 1
-        VERBOSE and print("ok   коммит только трейсов")
-    else:
-        fail += 1
-        print(f"FAIL коммит только трейсов: {o}")
+    case("коммит только трейсов: предупреждение", "pre-bash", bash("git commit -m traces"), lambda o: "только из трейсов" in hso(o).get("additionalContext", ""))
+    sh(fx, "git", "reset", "-q")
+    os.makedirs(os.path.join(fx, "analytics-mvp/data-ym"), exist_ok=True)
+    with open(os.path.join(fx, "analytics-mvp/data-ym/svod.json"), "w") as f:
+        f.write("{}\n")
+    sh(fx, "git", "add", "analytics-mvp/data-ym/svod.json")
+    case("снимок в коммите рабочей ветки: предупреждение", "pre-bash", bash("git commit -m data"), lambda o: "снимки" in hso(o).get("additionalContext", ""))
+    case("workflow на рабочей ветке: предупреждение", "pre-bash", bash("gh workflow run ym-snapshots.yml --ref docs"), lambda o: "self-merge" in hso(o).get("additionalContext", ""))
+
+    # Stop
+    case("stop: «сошлось» с деньгами без двух источников", "stop", {"session_id": "s2", "last_assistant_message": "Готово, выручка сошлась, 1 234 567 ₽."},
+         lambda o: "сверке" in hso(o).get("additionalContext", ""))
+    case("stop: повтор того же сообщения молчит (once)", "stop", {"session_id": "s2", "last_assistant_message": "Готово, выручка сошлась, 1 234 567 ₽."}, silent)
+    case("stop: сверка с двумя цифрами и источниками молчит", "stop",
+         {"session_id": "s3", "last_assistant_message": "Сверка выручки за август: отчёт о реализации 1 234 567 ₽, выписка банка 1 234 567 ₽, разница 0. Сошлось."}, silent)
+    case("stop: «Проверено: тесты 15/15, api отвечает» молчит", "stop", {"session_id": "s4", "last_assistant_message": "Проверено: тесты 15/15, api отвечает."}, silent)
+    case("stop: «совпадает с документацией» молчит", "stop", {"session_id": "s5", "last_assistant_message": "Формат хука совпадает с документацией, 2 из 2 кейсов."}, silent)
+    case("stop: stop_hook_active молчит", "stop", {"session_id": "s6", "stop_hook_active": True, "last_assistant_message": "выручка сошлась 5 ₽"}, silent)
+
+    # выключатели
+    case("DATA_GUARD_OFF=1 молчит", "pre-bash", bash("gh pr merge 12"), silent, {"DATA_GUARD_OFF": "1"})
+    os.rename(os.path.join(fx, ".claude/data-guard.json"), os.path.join(fx, ".claude/data-guard.json.off"))
+    case("нет .claude/data-guard.json (чужой репо): молчит (М6)", "pre-bash", bash("gh pr merge 12"), silent)
 
     shutil.rmtree(fx, ignore_errors=True)
     shutil.rmtree(state, ignore_errors=True)

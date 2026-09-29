@@ -15,7 +15,9 @@ import sys
 CLASSES = {f"К{i}" for i in range(1, 15)}
 REQUIRED = ["id", "cls", "title", "trigger", "symptom", "root_cause", "prevention", "check", "evidence", "count", "status"]
 STATUSES = {"new", "checklist", "hook-candidate", "hook"}
-PII = [re.compile(r"\+?7[\s(-]*\d{3}[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}"), re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")]
+PII = [re.compile(r"\+?7[\s(-]*\d{3}[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}"), re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+"),
+       re.compile(r"(?<![\w-])\d{8}-\d{4}(-\d+)?(?![\w-])")]  # телефон, email, номер отправления Ozon
+SCOPES = {"main", "branch", "deleted-branch", "no-sha"}
 
 
 def registry_path():
@@ -118,6 +120,8 @@ def validate():
         for p in PII:
             if p.search(blob):
                 errors.append(f"{rid}: похоже на персональные данные ({p.pattern[:20]})")
+        if r.get("evidence_scope") not in SCOPES:
+            errors.append(f"{rid}: evidence_scope {r.get('evidence_scope')} (main|branch|deleted-branch|no-sha)")
         if not r.get("trigger", {}).get("keywords"):
             errors.append(f"{rid}: нет keywords")
     for e in errors:
@@ -140,7 +144,8 @@ def main(argv):
         print(json.dumps([dict(e, matched=h) for e, h in res], ensure_ascii=False))
         return 0
     if not res:
-        print("Похожих прошлых ошибок в реестре не найдено. Пройди общий список рисков из references/premortem.md.")
+        where = registry_path() or "реестр не найден (в репо t1: knowledge/errors/registry.jsonl; в скилле аккаунта: references/registry-snapshot.jsonl)"
+        print(f"Похожих прошлых ошибок не найдено ({where}). Пройди общий список рисков из references/premortem.md.")
         return 0
     print("Похожие прошлые ошибки (реестр knowledge/errors/registry.jsonl):")
     for e, h in res:

@@ -97,6 +97,9 @@ if event == "subagent_stop":
                     rec["feniks_score"] = val
             except ValueError:
                 pass
+        a = re.search(r"AUDITED:\s*([0-9a-f]{12,40})", msg)  # привязка go к содержимому (data-guard audit_hash.py)
+        if a:
+            rec["audited_hash"] = a.group(1)
     c = re.search(r"CONFIDENCE:\s*([01](?:\.[0-9]+)?)", msg, re.I)
     if c:
         rec["confidence"] = float(c.group(1))

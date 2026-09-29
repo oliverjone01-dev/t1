@@ -64,16 +64,19 @@ export function assertFresh(loadedAt: string | null | undefined, maxAgeHours: nu
   if (age > maxAgeHours) throw new InvariantError(`${name}: снимок старше ${maxAgeHours} ч (возраст ${age.toFixed(1)} ч)`);
 }
 
-/** К7: заменяет только дни в [start, end), остальное не трогает. */
-export function mergeWindow<V>(old: Record<string, V>, fresh: Record<string, V>, start: string, end: string): Record<string, V> {
+/** К7: заменяет только дни в [start, end). Пустой или усохший ответ (< minRatio старых дней окна) роняет запись, если не allowShrink. */
+export function mergeWindow<V>(old: Record<string, V>, fresh: Record<string, V>, start: string, end: string,
+  opts: { allowShrink?: boolean; minRatio?: number } = {}): Record<string, V> {
   if (!start || !end) throw new InvariantError("mergeWindow: нужны обе границы окна");
   const inWin = (d: string) => d >= start && d < end;
+  const oldIn = Object.keys(old).filter(inWin);
+  for (const d of Object.keys(fresh)) if (!inWin(d)) throw new InvariantError(`mergeWindow: новые данные за ${d} вне окна [${start}, ${end})`);
+  const n = Object.keys(fresh).length;
+  if (!opts.allowShrink && oldIn.length && n < (opts.minRatio ?? 0.5) * oldIn.length)
+    throw new InvariantError(`mergeWindow: в окне было ${oldIn.length} дней, пришло ${n}. Пустой или усохший ответ не перезаписывает данные`);
   const out: Record<string, V> = {};
   for (const [d, v] of Object.entries(old)) if (!inWin(d)) out[d] = v;
-  for (const [d, v] of Object.entries(fresh)) {
-    if (!inWin(d)) throw new InvariantError(`mergeWindow: новые данные за ${d} вне окна [${start}, ${end})`);
-    out[d] = v;
-  }
+  for (const [d, v] of Object.entries(fresh)) out[d] = v;
   return out;
 }
 
@@ -111,6 +114,10 @@ function selftest(): void {
   const m = mergeWindow({ "2026-02-01": 1, "2026-09-01": 2 }, { "2026-09-01": 3 }, "2026-09-01", "2026-10-01");
   if (m["2026-02-01"] !== 1 || m["2026-09-01"] !== 3) throw new Error("merge");
   fails(() => mergeWindow({}, { "2026-05-01": 1 }, "2026-09-01", "2026-10-01"));
+  const old30: Record<string, number> = {};
+  for (let d = 1; d <= 30; d++) old30[`2026-06-${String(d).padStart(2, "0")}`] = d;
+  fails(() => mergeWindow(old30, {}, "2026-06-01", "2026-07-01"));
+  if (Object.keys(mergeWindow(old30, {}, "2026-06-01", "2026-07-01", { allowShrink: true })).length !== 0) throw new Error("shrink");
   const p = markPartial([{ end: "2026-09-29T21:00:00Z" }], now);
   if (!p[0].partial) throw new Error("partial");
   fails(() => assertKnownCodes(["C"], ["A"]));

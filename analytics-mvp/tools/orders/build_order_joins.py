@@ -104,7 +104,8 @@ def main():
                 if "Статус" in ci and "отмен" in norm(r[ci["Статус"]]).lower():
                     continue
                 try:
-                    sp, dv, flag = ship_and_deliv(r[ci["Стоимость отправки"]], r[ci["Стоимость доставки"]])
+                    ic = ci["Стоимость доставки"]
+                    sp, dv, flag = ship_and_deliv(r[ci["Стоимость отправки"]], r[ic], r[ic + 1] if ic + 1 < len(r) else None)
                 except MoneyError as ex:
                     bad_cells.append(f"{os.path.basename(f)}:{rix} «{ex}»")
                     continue

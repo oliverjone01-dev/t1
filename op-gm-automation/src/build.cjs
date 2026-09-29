@@ -1,6 +1,6 @@
 /* Сборка сайта ОП ГМ на Контур DS 1.5.
    Запуск из папки op-gm-automation:
-     OPGM_PW=... node src/build.cjs <av.json> <recon.json>
+     OPGM_PW=... node src/build.cjs <av.json> <recon.json> [папка «Детализации»: data.js и detalizaciya.js]
      смена пароля: OPGM_PW_OLD=<старый> OPGM_PW=<новый> node src/build.cjs ...
    1) расшифровывает текущие данные из public/index.html паролем из OPGM_PW;
    2) подменяет слой Авито (D.av) свежим av.json и recon.json;
@@ -36,6 +36,18 @@ const D = JSON.parse(pt.toString('utf8'));
 D.av = JSON.parse(fs.readFileSync(avPath, 'utf8'));
 D.av.recon = JSON.parse(fs.readFileSync(reconPath, 'utf8'));
 
+/* 2а. «Детализация»: папка с data.js (window.DETAL_DATA = {...}) и кодом раздела detalizaciya.js третьим аргументом.
+   Оба файла живут вне репозитория: в данных ID диалогов, в коде сводные цифры раздела. На сайт они идут только
+   в шифроблоке. Без аргумента остаются данные и код из прошлой сборки */
+const detalDir = process.argv[4];
+if(detalDir){
+  const detalPath = path.join(detalDir, 'data.js');
+  D.detalJs = fs.readFileSync(path.join(detalDir, 'detalizaciya.js'), 'utf8');
+  const src = fs.readFileSync(detalPath, 'utf8'), m = src.match(/window\.DETAL_DATA\s*=\s*(\{[\s\S]*\})\s*;?\s*$/);
+  if(!m) throw new Error('в ' + detalPath + ' нет window.DETAL_DATA = {...}');
+  D.detal = JSON.parse(m[1]);
+}
+
 /* 3. Контур DS на сайт как есть: только то, что нужно браузеру */
 for(const sub of ['tokens', 'kit', 'templates']){
   const src = path.join(ROOT, 'kontur-ds', sub), dst = path.join(PUB, 'kontur-ds', sub);
@@ -48,9 +60,11 @@ fs.copyFileSync(path.join(ROOT, 'kontur-ds', 'specimen.html'), path.join(PUB, 'k
 
 /* 4. код экранов и страница */
 fs.mkdirSync(path.join(PUB, 'app'), { recursive:true });
-const APP = ['opgm.js', 'opgm.css', 'legacy.js'];
+const APP = ['opgm.js', 'opgm.css', 'legacy.js', 'kx/kx.css', 'kx/kx.js'];
 const h = crypto.createHash('sha256');
-for(const f of APP){ const s = fs.readFileSync(path.join(__dirname, f)); h.update(s); fs.writeFileSync(path.join(PUB, 'app', f), s); }
+for(const f of APP){ const s = fs.readFileSync(path.join(__dirname, f)); h.update(s); fs.writeFileSync(path.join(PUB, 'app', path.basename(f)), s); }
+h.update(D.detalJs || '');
+fs.rmSync(path.join(PUB, 'app', 'detalizaciya.js'), { force:true });
 for(const f of ['tokens/tokens.css', 'kit/kit.css', 'kit/kit.js', 'kit/charts.js', 'kit/icons.js', 'kit/brand.js', 'kit/motion.riv.js']) h.update(fs.readFileSync(path.join(ROOT, 'kontur-ds', f)));
 const V = h.digest('hex').slice(0, 10);
 
@@ -61,4 +75,4 @@ const c = crypto.createCipheriv('aes-256-gcm', key, iv), ct = Buffer.concat([c.u
 const ENC = JSON.stringify({ salt:salt.toString('base64'), iv:iv.toString('base64'), ct:ct.toString('base64'), iter:250000 });
 const html = fs.readFileSync(path.join(__dirname, 'shell.html'), 'utf8').split('{{V}}').join(V).replace('{{ENC}}', () => ENC);
 fs.writeFileSync(path.join(PUB, 'index.html'), html);
-console.log('готово: чатов', D.av.chats.length, '| версия', V, '| index.html', html.length, 'байт');
+console.log('готово: чатов', D.av.chats.length, '| детализация', D.detal ? D.detal.weeks.length + ' нед.' : 'нет', '| версия', V, '| index.html', html.length, 'байт');

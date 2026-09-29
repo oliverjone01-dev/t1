@@ -15,7 +15,7 @@ const OWNER_NOTE = 'Выгрузку обновляет Иван раз в не�
 const MILESTONE = '06.10.2026';
 
 let EXPORT_TS = 0, EXP = {}, AT = '2026-09-22';
-const OP = { cab:'all', view:'pulse', days:30, today:14,
+const OP = { cab:'all', view:'detal-sit', days:30, today:14,
   dlg:{ prob:'all', flag:'all', ad:'all', q:'', sort:'recent', kind:'in', limit:40 } };
 
 /* ---------------- правила проблем ---------------- */
@@ -528,8 +528,23 @@ function openThread(id){
 /* ==========================================================================
    КАРКАС, НАВИГАЦИЯ, ОТРИСОВКА
    ========================================================================== */
+/* ОП ГМ: раздел «Детализация» (sections GM_DETAL на расширении kx). Одна длинная страница из семи подразделов:
+   вход в раздел монтирует её, переход между подразделами прокручивает к якорю. Данные D.detal в шифроблоке. */
+const isDetal = v => typeof v === 'string' && v.indexOf('detal-') === 0;
+let DETAL_APP = null;
+function detalScreen(v){
+  const view = document.getElementById('view'), cab = document.getElementById('detal-cab');
+  if(!window.GM_DETAL || !D.detal){ view.innerHTML = KS.head({ title:'Детализация' }) + KS.note('Данных раздела нет', 'В этой сборке нет выгрузки «Детализации». Раздел появится после сборки с data.js.', 'warn'); DETAL_APP = null; return; }
+  if(DETAL_APP && DETAL_APP.destroy) DETAL_APP.destroy();
+  view.innerHTML = '<div class="kx"><main class="hx" id="detal"></main></div>';
+  cab.innerHTML = '';
+  DETAL_APP = GM_DETAL.mount(D.detal, { root:document.getElementById('detal'), cab, nav:document.getElementById('nav'), start:v,
+    cabStart:OP.cab, onCab:c => { OP.cab = c; KS.route.set({ project:c }); },
+    commands:[['Действия', 'Сменить тему', () => KS.theme.toggle(), 'T'], ['Экраны', 'Пульс ОП', () => go('pulse')], ['Экраны', 'Все диалоги', () => go('dlg')]] });
+}
 function navTree(){
   return [
+    GM_DETAL_NAV(),
     { id:'today', t:'Сегодня', i:'check' },
     { id:'pulse', t:'Пульс ОП', i:'grid' },
     { t:'Аналитика Авито', i:'chart', ch:[ { id:'speed2', t:'Скорость ответа' }, { id:'probs', t:'Типовые проблемы' }, { id:'ads', t:'Объявления' }, { id:'calls', t:'Звонки' }, { id:'cold', t:'Холодная рассылка' } ] },
@@ -540,12 +555,24 @@ function navTree(){
     { t:'Архив: скриншоты июля', i:'layers', ch:[ { id:'overview', t:'Обзор' }, { id:'problems', t:'Проблемы' }, { id:'speed', t:'Скорость' }, { id:'quality', t:'Как общаемся' }, { id:'funnel', t:'Куда уходят деньги' }, { id:'dialogues', t:'Диалоги' } ] }
   ];
 }
+function GM_DETAL_NAV(){ return window.GM_DETAL ? GM_DETAL.NAV_GROUP : { t:'Детализация', i:'chart', ch:[ { id:'detal-sit', t:'Обстановка' } ] }; }
 function isLegacy(v){ return !!(LEGACY[v] || (D.MGRS && D.MGRS[v])); }
 function render(){
   const v = OP.view, view = document.getElementById('view');
   JOBS = []; cancelAnimationFrame(_raf);
   /* графики уничтожаем до замены экрана: иначе недорисованный график дорисуется в удалённый узел с размерами NaN */
   KS.charts.destroyAll();
+  const dc = document.getElementById('detal-cabw');
+  if(isDetal(v)){
+    document.getElementById('tools').hidden = true; dc.hidden = false; if(KS.kx) KS.kx.active = true;
+    detalScreen(v);
+    document.getElementById('nav').innerHTML = KS.nav(navTree(), v);
+    document.getElementById('stamp').textContent = 'Авито · детализация за 8 недель';
+    document.getElementById('theme').innerHTML = KS.theme.icon();
+    KS.route.set({ project:OP.cab, view:v, period:String(OP.days) });
+    return;
+  }
+  dc.hidden = true; document.getElementById('detal-cab').innerHTML = ''; if(DETAL_APP && DETAL_APP.destroy) DETAL_APP.destroy(); DETAL_APP = null; if(KS.kx){ KS.kx.active = false; KS.kx.drawer && KS.kx.drawer.close && KS.kx.drawer.close(); KS.kx.tip && KS.kx.tip.hide(); }
   view.innerHTML = '<div class="ks-fade">' + (isLegacy(v) ? legacyScreen(v) : (SCREENS[v] || SCREENS.pulse)()) + '</div>';
   KS.charts.prune();
   if(LEGACY[v]) LEGACY[v](legacyNote(v)); else if(D.MGRS[v]) renderManager(v, legacyNote(v));
@@ -562,7 +589,18 @@ function render(){
   scheduleDraw();
 }
 /* 1.4: переход между экранами через View Transitions, при «меньше движения» сразу */
-function go(v){ return KS.vt(() => { OP.view = v; render(); window.scrollTo(0, 0); }); }
+function go(v){
+  /* внутри «Детализации»: без перерисовки, прокрутка к подразделу */
+  if(isDetal(v) && isDetal(OP.view) && DETAL_APP && document.getElementById('detal')){
+    OP.view = v; document.getElementById('nav').innerHTML = KS.nav(navTree(), v); KS.route.set({ project:OP.cab, view:v, period:String(OP.days) });
+    DETAL_APP.go(v); return;
+  }
+  /* уход из «Детализации» без перехода View Transitions: снимок длинной страницы раздела не успевает, и быстрый
+     клик после смены темы терялся (проба 29.09) */
+  if(isDetal(OP.view)){ OP.view = v; render(); window.scrollTo(0, 0); return Promise.resolve(); }
+  /* вход в подраздел «Детализации» с другого экрана: после отрисовки к подразделу, а не наверх */
+  return KS.vt(() => { OP.view = v; render(); if(isDetal(v) && DETAL_APP) DETAL_APP.go(v); else window.scrollTo(0, 0); });
+}
 function setCab(c){ OP.cab = c; OP.dlg.limit = 40; render(); }
 function setDays(d){ OP.days = d; document.getElementById('per').value = String(d); render(); }
 function densUi(){ const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase()); }
@@ -572,7 +610,8 @@ function cmdkItems(){
     ['scripts','Скрипты и магниты','pen'],['actions','Что делать дальше','target']].concat(D.ORDER.map(k => [k, D.MGRS[k].name, 'users']))
     .concat([['overview','Архив: обзор'],['problems','Архив: проблемы'],['speed','Архив: скорость'],['quality','Архив: как общаемся'],['funnel','Архив: куда уходят деньги'],['dialogues','Архив: диалоги']]
       .map(([id, t]) => [id, t + ' по скриншотам', 'layers']));
-  return V.map(([id, label, icon]) => ({ group:'Экраны', label, icon, run:() => go(id) }))
+  const DT = window.GM_DETAL ? GM_DETAL.SECTIONS.map(x => ({ group:'Детализация', label:x[1], icon:'chart', run:() => go(x[0]) })) : [];
+  return DT.concat(V.map(([id, label, icon]) => ({ group:'Экраны', label, icon, run:() => go(id) })))
     .concat([['all','Оба кабинета'],['OLD-G','OLD-G, старый кабинет'],['NEW-B','NEW-B, новый кабинет']].map(([c, label]) => ({ group:'Кабинет', label, icon:'layers', run:() => setCab(c) })))
     .concat([[7,'7 дней'],[30,'30 дней'],[90,'90 дней'],['all','весь ряд']].map(([d, label]) => ({ group:'Период', label:'Период: ' + label, icon:'calendar', run:() => setDays(d) })))
     .concat(PORDER.map(p => ({ group:'Диалоги по проблеме', label:PROB[p].l, icon:'filter', keywords:'диалоги список', run:() => { Object.assign(OP.dlg, { prob:p, ad:'all', flag:'all', limit:40 }); go('dlg'); } })))
@@ -587,14 +626,17 @@ function cmdkItems(){
 }
 
 function start(){
+  /* код «Детализации» лежит в шифроблоке (в нём сводные цифры раздела): подключается после расшифровки */
+  if(D.detalJs && !window.GM_DETAL){ const sc = document.createElement('script'); sc.textContent = D.detalJs; document.head.appendChild(sc); }
   const cs = D.av.recon; CABS.forEach(c => { EXP[c] = Math.floor(Date.parse(cs[c].exported) / 1000); });
   EXPORT_TS = Math.max(...CABS.map(c => EXP[c])); AT = iso(EXPORT_TS).slice(0, 10);
   const r = KS.route.state || KS.route.parse();
   if(r.project && (r.project === 'all' || CABS.includes(r.project))) OP.cab = r.project;
-  if(r.view && (SCREENS[r.view] || isLegacy(r.view))) OP.view = r.view;
+  if(r.view && (SCREENS[r.view] || isLegacy(r.view) || (isDetal(r.view) && window.GM_DETAL && GM_DETAL.SECTIONS.some(x => x[0] === r.view)))) OP.view = r.view;
   if(r.period) OP.days = r.period === 'all' ? 'all' : (+r.period || 30);
   document.getElementById('per').value = String(OP.days);
-  KS.charts.onTheme = () => render();
+  /* смена темы в «Детализации»: раздел перерисовывается на месте, без повторного монтирования */
+  KS.charts.onTheme = () => { if(isDetal(OP.view) && DETAL_APP && document.getElementById('detal')){ DETAL_APP.render(); document.getElementById('theme').innerHTML = KS.theme.icon(); } else render(); };
   KS.navWire(document.getElementById('nav'), go);
   KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
   const seg = document.getElementById('seg');

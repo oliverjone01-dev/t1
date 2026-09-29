@@ -223,6 +223,12 @@ for (const [ln, votes] of Object.entries(lineVote)) {
   if (top) LINE_CAT[ln] = top[0];
 }
 const NO_TAX_SUB = "Без таксономии";
+// Категория по префиксу артикула (Катя 29.09.2026): GGT - столы, GGL и GGM - зеркала, GGK - консоли,
+// GGTP - комплектующие. Названия категорий - те же, что в размеченной таксономии, иначе одна
+// категория разъехалась бы на две строки. Стоит после таксономии, но раньше «Без категории»:
+// так артикулы, которых ещё нет в таксономии, не выпадают из своих категорий. Только Маркет.
+const PREFIX_CAT: Record<string, string> = { GGT: "Столы", GGL: "Зеркала", GGM: "Зеркала", GGK: "Консоли/тумбы", GGTP: "Комплектующие" };
+const prefixCat = (sku: string): string | null => IS_OZON ? null : (PREFIX_CAT[String(sku || "").split("-")[0]!.toUpperCase()] || null);
 // --- автоген таксономии по названию товара (только канал OZON) ---
 // 167 SKU размечены вручную (data/sku_taxonomy.json), но в продажах 345 SKU -> 178 без подкатегории.
 // Достраиваем категорию/подкатегорию из названия (OZON-нейминг богат типом товара), словарь
@@ -269,7 +275,7 @@ function autoTax(name: string): { category: string | null; sub: string | null } 
   const rf = _autoRules(n);
   return (_autoCache[name] = { category: rh.category, sub: (rf.category === rh.category && rf.sub) ? rf.sub : rh.sub });
 }
-const catOf = (sku: string) => taxOf(sku).category || autoTax(skuName[sku] || "").category || LINE_CAT[skuLine[sku] || ""] || "Прочее";
+const catOf = (sku: string) => taxOf(sku).category || autoTax(skuName[sku] || "").category || prefixCat(sku) || LINE_CAT[skuLine[sku] || ""] || "Прочее";
 const subOf = (sku: string) => taxOf(sku).sub || autoTax(skuName[sku] || "").sub || NO_TAX_SUB;
 const modelOf = (sku: string) => taxOf(sku).model || taxOf(sku).offer || skuName[sku] || sku;
 
@@ -3570,7 +3576,7 @@ function svodJs(svod: any): string {
   for (const m of svod.months) for (const r of m.rows) {
     if (cat[r.sku]) continue;
     nameOf[r.sku] = r.name || "";
-    cat[r.sku] = taxOf(r.sku).category || autoTax(r.name || "").category || "Без категории";
+    cat[r.sku] = taxOf(r.sku).category || autoTax(r.name || "").category || prefixCat(r.sku) || "Без категории";
   }
   // Артикул отменённого заказа может не встретиться в строках свода ни разу: его ни разу не
   // доставили. Без этого прохода такой заказ в своде по заказам падал в «Без категории», хотя
@@ -3578,7 +3584,7 @@ function svodJs(svod: any): string {
   for (const m of svod.months as any[]) for (const r of (m.ship_lost_rows || []) as any[]) {
     if (!r.sku || cat[r.sku]) continue;
     nameOf[r.sku] = r.name || "";
-    cat[r.sku] = taxOf(r.sku).category || autoTax(r.name || "").category || "Без категории";
+    cat[r.sku] = taxOf(r.sku).category || autoTax(r.name || "").category || prefixCat(r.sku) || "Без категории";
   }
   const COLS: Array<[string, string[]]> = [
     // Порядок и состав - как в файле Ивана «свод июль». Штрафы он складывает в «Размещение», и

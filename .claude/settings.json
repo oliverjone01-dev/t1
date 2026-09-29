@@ -199,24 +199,16 @@
     "adapt": "name-only",
     "animate": "name-only",
     "arrange": "name-only",
-    "audit": "name-only",
     "bolder": "name-only",
-    "clarify": "name-only",
     "colorize": "name-only",
-    "critique": "name-only",
     "delight": "name-only",
     "distill": "name-only",
-    "extract": "name-only",
-    "harden": "name-only",
-    "normalize": "name-only",
     "onboard": "name-only",
-    "optimize": "name-only",
     "overdrive": "name-only",
     "polish": "name-only",
     "quieter": "name-only",
     "typeset": "name-only",
     "teach-impeccable": "name-only",
-    "remotion-best-practices": "name-only",
-    "frontend-design-reference": "name-only"
+    "remotion-best-practices": "name-only"
   }
 }

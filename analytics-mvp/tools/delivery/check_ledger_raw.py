@@ -9,7 +9,7 @@
 # Сырьё не в git (телефоны покупателей): без него проверка пропускается с кодом 0.
 import glob, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ledger_money import ship_and_deliv  # noqa: E402
+from ledger_money import ship_and_deliv, second_header  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 files = sorted(glob.glob(os.path.join(ROOT, "tools", "delivery", "raw", "*.xlsx")))
@@ -32,6 +32,8 @@ for f in files:
         if "Стоимость отправки" not in ci:
             continue
         for rix, r in enumerate(rows[1:], start=2):
+            if r and second_header(r, ci["Площадка"]):   # вторая таблица - сборщики её тоже не читают
+                break
             if not r or "OZON" not in str(r[ci["Площадка"]] or "").upper():
                 continue
             raw = r[ci["Стоимость отправки"]]

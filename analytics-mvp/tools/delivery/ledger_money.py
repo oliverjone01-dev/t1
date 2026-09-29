@@ -8,7 +8,7 @@
 # строки перечисляются отдельно, чтобы страница о них сказала.
 import re
 
-EMPTY = {"", "false", "ложь", "-", "—", "none", "nan"}
+EMPTY = {"", "false", "true", "ложь", "-", "—", "none", "nan"}
 _SPACES = re.compile(r"[\s    ]+")
 _NUM = r"\d+(?:[.,]\d+)?"
 
@@ -17,8 +17,13 @@ class MoneyError(ValueError):
     pass
 
 
+_CUR = re.compile(r"(₽|руб\.?|р\.)$", re.I)                       # «8 849,00 ₽» (выгрузка 29.09)
+
+
 def _one(tok):
-    t = _SPACES.sub("", tok)
+    t = _CUR.sub("", _SPACES.sub("", tok))
+    if "+" in t.rstrip("+-"):                                   # «3647+3132» - две суммы в ячейке
+        return sum(_one(x) for x in t.rstrip("+-").split("+"))
     m = re.fullmatch(rf"({_NUM})[хxXХ*×]({_NUM})", t)          # «1871х2» = 1871 × 2
     if m:
         return float(m.group(1).replace(",", ".")) * float(m.group(2).replace(",", "."))
@@ -56,9 +61,17 @@ def ship_and_deliv(ship_cell, deliv_cell):
         deliv, _ = parse_money(deliv_cell)
     except MoneyError:
         deliv = None                                            # доход - справочный, сборку не роняет
-    if ship is None and str(ship_cell or "").strip().lower() == "false" and deliv:
+    # TRUE вместо FALSE: та же строка, сдвинутая на столбец (выгрузка 29.09, 55712580-0145-1).
+    if ship is None and str(ship_cell or "").strip().lower() in ("false", "true") and deliv:
         return deliv, None, "сдвиг"
     return ship, deliv, ""
+
+
+def second_header(row, col):
+    """Строка-шапка посреди листа («Площадка» в столбце площадки): ниже идёт другая таблица со своими
+    названиями столбцов (выгрузка 29.09: «Оплата от клиента» на месте «Стоимости отправки»). Читать её
+    по шапке первой таблицы нельзя - сборщики останавливаются и называют её (решение по ней - Ивана)."""
+    return str(row[col] or "").strip() == "Площадка"
 
 
 if __name__ == "__main__":
@@ -66,6 +79,7 @@ if __name__ == "__main__":
         "3 484,00": 3484.0, "11 823 ": 11823.0, "4 884,92 \n": 4884.92,
         "\n8 643,70": 8643.7, "4 373,70 \n2 223,52": 6597.22, "1871х2": 3742.0,
         "2910.00\n": 2910.0, "6512.50": 6512.5, 5000: 5000.0, "7450\n+": 7450.0,
+        "8\u00a0849,00 ₽": 8849.0, "12\u00a0800,00 ₽": 12800.0, "3647+3132": 6779.0,
     }
     for c, want in cases.items():
         got, _ = parse_money(c)
@@ -79,5 +93,6 @@ if __name__ == "__main__":
         pass
     assert ship_and_deliv("FALSE", 7201.88) == (7201.88, None, "сдвиг")
     assert ship_and_deliv("FALSE", None) == (None, None, "")
+    assert ship_and_deliv("TRUE", 6227.47) == (6227.47, None, "сдвиг")
     assert ship_and_deliv(2947.52, 2399) == (2947.52, 2399.0, "")
     print("ledger_money: все проверки прошли")

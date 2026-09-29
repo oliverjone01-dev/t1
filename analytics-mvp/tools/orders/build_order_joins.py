@@ -17,7 +17,7 @@ import openpyxl, glob, os, json, re, collections
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "delivery"))
 from build_delivery_sku_daily import parse_date  # «4 августа» -> 2026-08-04, один разбор на оба сборщика
-from ledger_money import ship_and_deliv, MoneyError  # noqa: E402
+from ledger_money import ship_and_deliv, MoneyError, second_header  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CPO_RAW = os.path.join(ROOT, "tools", "cpo", "raw")
@@ -75,6 +75,7 @@ def main():
     dl = collections.defaultdict(lambda: [0.0, 0.0, "", ""])  # posting -> [ship, deliv, отгрузка, доставка факт]
     bad_cells = []
     issues = {"shift": [], "empty": []}  # сдвиг столбцов / суммы нет - для плашки на странице
+    table2 = []  # вторая таблица на листе со своей шапкой - не читается, называется на странице
     seen = set()
     for f in sorted(glob.glob(os.path.join(DL_RAW, "*.xlsx"))):
         wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
@@ -89,6 +90,11 @@ def main():
             for rix, r in enumerate(rows[1:], start=2):
                 if r is None or all(c is None for c in r):
                     continue
+                if second_header(r, ci["Площадка"]):
+                    tail = [x for x in rows[rix:] if x and "OZON" in norm(x[ci["Площадка"]]).upper()]
+                    table2.append({"file": os.path.basename(f), "sheet": ws.title, "row": rix, "ozon_rows": len(tail),
+                                   "cols": [norm(c) for c in r if c is not None][-3:]})
+                    break
                 if "OZON" not in norm(r[ci["Площадка"]]).upper():
                     continue
                 no = norm(r[ci["Номер заказа"]])
@@ -131,14 +137,15 @@ def main():
     if bad_cells:
         sys.exit("ведомость: не прочитать сумму (исправьте ячейку, 0 не подставляем):\n  " + "\n  ".join(bad_cells))
     # Повторы строк одной отправки схлопываем и здесь.
-    for k in issues:
+    for k in ("shift", "empty"):
         uniq = {}
         for x in issues[k]:
             uniq[(x["order"], x.get("d_ship"))] = x
         issues[k] = sorted(uniq.values(), key=lambda x: (x.get("d_ship") or "", x["order"]))
+    issues["table2"] = table2
     with open(OUT_ISSUES, "w", encoding="utf-8") as w:
         json.dump(issues, w, ensure_ascii=False, indent=1)
-    print("ведомость: сдвиг столбцов", len(issues["shift"]), "| суммы нет", len(issues["empty"]), "->", OUT_ISSUES)
+    print("ведомость: сдвиг столбцов", len(issues["shift"]), "| суммы нет", len(issues["empty"]), "| вторая таблица", table2, "->", OUT_ISSUES)
     with open(OUT_DL, "w", encoding="utf-8") as w:
         for no, (sh, dv, ds, df) in sorted(dl.items()):
             o = {"order": no, "ship": round(sh, 2), "deliv": round(dv, 2)}

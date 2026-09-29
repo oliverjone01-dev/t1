@@ -2206,10 +2206,11 @@ function render(cur,cmp){
   const dlUnSum = dlUnmatched.reduce((a, u) => a + u.ship, 0);
   // Ведомость: строки со сдвигом столбцов (расход взят из «Стоимости доставки») и строки без суммы
   // (tools/orders/build_order_joins.py -> data/delivery_ledger_issues.json, ФЕНИКС 29.09 п.1/п.10).
-  let dlIssues: { shift: any[]; empty: any[] } = { shift: [], empty: [] };
+  let dlIssues: { shift: any[]; empty: any[]; table2?: any[] } = { shift: [], empty: [] };
   try { dlIssues = JSON.parse(readFileSync(dp("delivery_ledger_issues.json"), "utf-8")); } catch { /* нет файла */ }
+  const dlT2 = dlIssues.table2 ?? [];
   const dd = (d: string) => (d ? d.slice(8, 10) + "." + d.slice(5, 7) : "без даты");
-  const dlIssueHtml = (dlIssues.shift.length || dlIssues.empty.length)
+  const dlIssueHtml = (dlIssues.shift.length || dlIssues.empty.length || dlT2.length)
     ? `<div class="kt-note" id="ordan-dlissues" style="margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)">`
       + (dlIssues.empty.length
           ? `<b style="color:#E5B567">⚠ В ведомости нет суммы отправки по ${dlIssues.empty.length} ${dlIssues.empty.length === 1 ? "заказу" : "заказам"}</b>: `
@@ -2217,8 +2218,11 @@ function render(cur,cmp){
             + `. Их доставка в расчёт не вошла - «Наша доставка» по ним занижена, пока в ведомости не появится сумма. `
           : "")
       + (dlIssues.shift.length
-          ? `<b style="color:#E5B567">Сдвиг столбцов в ведомости: ${dlIssues.shift.length} ${dlIssues.shift.length === 1 ? "строка" : "строк"} на ${fmtR(dlIssues.shift.reduce((a, x) => a + (x.ship || 0), 0))} ₽</b> - в «Стоимости отправки» стоит FALSE, а сумма перевозчика в «Стоимости доставки». Взяли её как наш расход; сколько по этим заказам заплатил покупатель, в ведомости не видно: `
+          ? `<b style="color:#E5B567">Сдвиг столбцов в ведомости: ${dlIssues.shift.length} ${dlIssues.shift.length === 1 ? "строка" : "строк"} на ${fmtR(dlIssues.shift.reduce((a, x) => a + (x.ship || 0), 0))} ₽</b> - в «Стоимости отправки» стоит FALSE или TRUE, а сумма перевозчика в «Стоимости доставки». Взяли её как наш расход; сколько по этим заказам заплатил покупатель, в ведомости не видно: `
             + dlIssues.shift.map((x) => `${String(x.order).replace(/</g, "&lt;")} (${fmtR(x.ship)} ₽)`).join(", ") + `.`
+          : "")
+      + (dlT2.length
+          ? dlT2.map((t) => ` <b style="color:#E5B567">Вторая таблица в ведомости не прочитана</b>: лист «${String(t.sheet).replace(/</g, "&lt;")}», с строки ${t.row} своя шапка (${(t.cols || []).map((c: string) => "«" + String(c).replace(/</g, "&lt;") + "»").join(", ")}), в ней ${t.ozon_rows} строк OZON. Какой столбец в ней наш расход, решает Иван; до решения её доставка в расчёт не входит.`).join("")
           : "")
       + `</div>`
     : "";
@@ -2446,7 +2450,7 @@ function render(cur,cmp){
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_TBYM=${J(anTbYm)};const AN_RDAY=${J(anRday)};const AN_RD_FROM=${J(rdFrom)};const AN_RD_TO=${J(rdTo)};const AN_RD_MISS=${J(rdMiss)};const AN_GF=${J(anGf)};const AN_GF_ALL=${J(anGfAll)};const AN_TBRATE=${J(anTbRate)};const AN_TBRATE_ALL=${J(anTbRateAll)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_SHIPVED=${J(anShipVedSku)};const AN_VED_MAXD=${J(vedMaxD)};const AN_SHIPFB=${J(shipAcc.fallback)};const AN_DLISSUE_N=${J([dlIssues.empty.length ? "нет суммы отправки по " + dlIssues.empty.length + " зак." : "", dlIssues.shift.length ? "сдвиг столбцов в " + dlIssues.shift.length + " строк (сумма взята из соседнего столбца)" : ""].filter(Boolean).join(", "))};const AN_DINCSKU=${J(anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORDERS=${J(anOrders)};const AN_DELIV_CITYPL=${J(delivCityPl)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_TBYM=${J(anTbYm)};const AN_RDAY=${J(anRday)};const AN_RD_FROM=${J(rdFrom)};const AN_RD_TO=${J(rdTo)};const AN_RD_MISS=${J(rdMiss)};const AN_GF=${J(anGf)};const AN_GF_ALL=${J(anGfAll)};const AN_TBRATE=${J(anTbRate)};const AN_TBRATE_ALL=${J(anTbRateAll)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_SHIPVED=${J(anShipVedSku)};const AN_VED_MAXD=${J(vedMaxD)};const AN_SHIPFB=${J(shipAcc.fallback)};const AN_DLISSUE_N=${J([dlIssues.empty.length ? "нет суммы отправки по " + dlIssues.empty.length + " зак." : "", dlIssues.shift.length ? "сдвиг столбцов в " + dlIssues.shift.length + " строк (сумма взята из соседнего столбца)" : "", dlT2.length ? "вторая таблица ведомости (" + dlT2.reduce((a, t) => a + t.ozon_rows, 0) + " строк OZON) не прочитана" : ""].filter(Boolean).join(", "))};const AN_DINCSKU=${J(anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORDERS=${J(anOrders)};const AN_DELIV_CITYPL=${J(delivCityPl)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){

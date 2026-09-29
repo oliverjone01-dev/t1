@@ -20,7 +20,7 @@
 # Запуск из analytics-mvp:  python3 tools/delivery/build_delivery_sku_daily.py
 import openpyxl, glob, os, json, re, collections, datetime, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ledger_money import ship_and_deliv, MoneyError  # noqa: E402
+from ledger_money import ship_and_deliv, MoneyError, second_header  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW = os.path.join(ROOT, "tools", "delivery", "raw")
@@ -160,6 +160,9 @@ def main():
             for rix, r in enumerate(rows[1:], start=2):
                 if r is None or all(c is None for c in r):
                     continue
+                if second_header(r, ci["Площадка"]):  # ниже другая таблица со своей шапкой - не читаем
+                    print(f"ведомость: {os.path.basename(f)}:{rix} вторая шапка - дальше лист не читается")
+                    break
                 if "OZON" not in str(r[ci["Площадка"]] or "").upper():
                     continue
                 ozon += 1

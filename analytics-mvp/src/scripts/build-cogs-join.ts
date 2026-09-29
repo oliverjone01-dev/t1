@@ -91,11 +91,15 @@ function main() {
   // но модель таксономии есть и матчится на модель листа тем же нечётким матчем, что и у снимка.
   // Раньше fuzzy бежал только по снимку, поэтому такие SKU падали в «нет СС» и подсвечивались в
   // дашборде, хотя цена модели известна. Догоняем: полная карта sku->offer -> модель -> fuzzy.
-  let nFuzzyOffer = 0;
+  let nFuzzyOffer = 0, nNormOffer = 0;
   try {
     const skuOffer: Record<string, string> = JSON.parse(readFileSync(dp("sku_offer.json"), "utf-8"));
     for (const [sku, offer] of Object.entries(skuOffer)) {
       if (sku in map) continue;
+      // Сначала тот же нормализованный артикул, что и для снимка: GGTP-20-3х2 (кириллица) против
+      // GGTP-20-3x2, GGTW-01-200-90 против GGTW-01-20090. Катя 29.09: «бери цену с Лист 1».
+      const nk = IS_OZON ? undefined : (normCost.get(normOffer(sku)) ?? normCost.get(normOffer(offer || "")));
+      if (nk != null) { map[sku] = nk; nNormOffer++; continue; }
       const t = oi.get(offer || "");
       const model = t ? t.model : "";
       if (!model) continue;
@@ -107,6 +111,7 @@ function main() {
   writeFileSync(dp("sku_cogs.json"), JSON.stringify(map, null, 0));
   const nCov = nDirect + nFuzzyNew + nFuzzyOld;
   console.log(`Плюс ${nExtra} SKU из листа СС вне живого снимка (прямой ключ) - чтобы не терять СС по неактивным артикулам.`);
+  console.log(`Плюс ${nNormOffer} SKU вне снимка по нормализованному артикулу.`);
   console.log(`Плюс ${nFuzzyOffer} SKU вне снимка по нечёткому матчу модели (sku->offer->модель таксономии->лист) - реализованные артикулы без прямого ключа.`);
   console.log(`СС произв.: ${prodRows.length} строк листа OZON${ymRows.length ? `, ${ymRows.length} строк листа ЯМ (приоритет)` : ""}, ${prodModelRows.length} моделей для fuzzy.`);
   console.log(`Связка sku->СС: ${nCov}/${nSku} SKU (${Math.round((nCov / nSku) * 100)}%): прямой SKU ${nDirect}, по нормализованному артикулу ${nNorm}, fuzzy(новый лист) ${nFuzzyNew}, fuzzy(старый лист) ${nFuzzyOld}. Покрытие оборота ${Math.round((revCov / revTotal) * 100)}%.`);

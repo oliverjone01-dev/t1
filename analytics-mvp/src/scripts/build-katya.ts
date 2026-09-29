@@ -2370,9 +2370,27 @@ function render(cur,cmp){
   // OZON осталась прежней.
   let svodJson: any = null;
   if (!IS_OZON) { try { svodJson = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svodJson = null; } }
+  // Плашка «ведомость доставки требует правки» (Катя 29.09.2026, те же правила, что у OZON): строки,
+  // где сумма взята из соседнего столбца (FALSE в «Стоимости отправки», сдвиг строки), и
+  // доставленные заказы, у которых в листе нет суммы. Список живёт по листу целиком, без фильтра
+  // периода: поправили ведомость - строка ушла.
+  const ymDlIssues: any[] = IS_OZON ? [] : ((svodJson && svodJson.deliv_issues) || []);
+  const ymDlEsc = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const ymDlRub = (v: number) => Math.round(v).toLocaleString("ru-RU").replace(/\u00a0/g, " ");
+  const ymDlShifted = ymDlIssues.filter((x) => x.ship != null);
+  const ymDlEmpty = ymDlIssues.filter((x) => x.ship == null);
+  const ymDlWarn = ymDlIssues.length
+    ? `<div class="kt-note" id="so-dlwarn" style="margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)">`
+      + `<b style="color:#E5B567">⚠ Ведомость доставки: ${ymDlIssues.length} ${ymDlIssues.length % 10 === 1 && ymDlIssues.length % 100 !== 11 ? "строка требует" : "строк требуют"} правки</b>. `
+      + (ymDlShifted.length ? `Сумма взята не из «Стоимости отправки» (${ymDlShifted.length}, ${ymDlRub(ymDlShifted.reduce((a, x) => a + x.ship, 0))} ₽ - в расходе учтены): `
+        + ymDlShifted.map((x) => `<b>${ymDlEsc(x.order)}</b> (${ymDlEsc(x.shipped)}, ${ymDlRub(x.ship)} ₽ - ${ymDlEsc(x.reason)})`).join("; ") + ". " : "")
+      + (ymDlEmpty.length ? `Заказ доставлен, а суммы в ведомости нет - наша доставка по нему 0 (${ymDlEmpty.length}): `
+        + ymDlEmpty.map((x) => `<b>${ymDlEsc(x.order)}</b> (${ymDlEsc(x.shipped)}, ${ymDlEsc(x.status)})`).join("; ") + ". " : "")
+      + `Когда ведомость поправят, строки перестанут сюда попадать.</div>`
+    : "";
   const svodSection = IS_OZON ? "" : `
   <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по заказам</div><div class="card-sub">та же база и те же колонки, что в аналитике по артикулам ниже &middot; строка - заказ, а не артикул &middot; сгруппировано по категориям, клик раскрывает заказы &middot; период из фильтра наверху страницы</div></div>
-    </div>
+    </div>${ymDlWarn}
     <div class="kt-scroll kt-box"><table class="kt-table" id="so-t"></table></div>
     <div id="so-est" class="kt-note" style="display:none;padding:6px 0 0"></div>
     <div id="so-more" class="kt-note" style="padding:6px 0 0"></div>

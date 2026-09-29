@@ -35,7 +35,11 @@ def setup():
     sh(fx, "git", "init", "-q", "-b", "main")
     sh(fx, "git", "add", "-A")
     sh(fx, "git", *G, "commit", "-q", "-m", "init")
-    sh(fx, "git", "update-ref", "refs/remotes/origin/main", "HEAD")
+    origin = fx + "-origin.git"
+    sh(fx, "git", "init", "-q", "--bare", origin)
+    sh(fx, "git", "remote", "add", "origin", origin)
+    sh(fx, "git", "push", "-q", "origin", "main")
+    sh(fx, "git", "fetch", "-q", "origin")
     return fx
 
 
@@ -81,7 +85,7 @@ def main():
     case("prompt с цифрами: скилл и прошлые ошибки", "prompt", {"session_id": "s1", "prompt": "сверь деньги озон за сентябрь по дате доставки"},
          lambda o: "data-guard" in hso(o).get("additionalContext", "") and "E0" in hso(o).get("additionalContext", ""))
     for p in ("поменяй цвет кнопки на синий", "создай директорию для логов", "напиши пост для маркетинга", "обнови чеклист онбординга",
-              "добавь unittest", "поправь рубрики блога"):
+              "добавь unittest", "поправь рубрики блога", "нужен маркетолог", "сделай снимок экрана", "новая директива", "это оборот речи"):
         case(f"prompt без цифр молчит: {p}", "prompt", {"session_id": "s1", "prompt": p}, silent)
     case("prompt: Директ ловится", "prompt", {"session_id": "s9", "prompt": "выгрузи расход Директа за неделю"}, lambda o: "data-guard" in hso(o).get("additionalContext", ""))
     case("сборка на main: ask", "pre-bash", bash("cd analytics-mvp && npx tsx src/scripts/build-katya.ts"), is_ask)
@@ -90,6 +94,10 @@ def main():
               "git log -- analytics-mvp/src/scripts/build-katya.ts", "git diff build-katya.ts", "node --check analytics-mvp/src/scripts/build.js",
               "rg build_ src", "ls -la"):
         case(f"чтение на main молчит: {c}", "pre-bash", bash(c), silent)
+    case("timeout + сборка на main: ask (m-b)", "pre-bash", bash("timeout 600 npx tsx src/scripts/build-katya.ts"), is_ask)
+    case("npm --prefix run build на main: ask (m-b)", "pre-bash", bash("npm --prefix analytics-mvp run build"), is_ask)
+    case("git merge --ff-only origin/main на main молчит (A5)", "pre-bash", bash("git merge --ff-only origin/main"), silent)
+    case("gh pr merge с чистого main без изменений: молчит", "pre-bash", bash("gh pr merge"), silent)
     case("сборка на main с DG_OVERRIDE: молчит", "pre-bash", bash('DG_OVERRIDE="ночной фикс" npx tsx src/scripts/build-katya.ts'), silent)
     case("правка сгенерированного HTML: предупреждение", "pre-edit", {"tool_input": {"file_path": os.path.join(fx, "analytics-mvp/public/katya-money.html")}},
          lambda o: "К9" in hso(o).get("additionalContext", ""))
@@ -108,33 +116,53 @@ def main():
     for c in ("git push -u origin claude/main-fix", "git push -u origin claude/ozon-main-page", "git merge origin/main --no-ff",
               "git push -u origin work"):
         case(f"не слияние в main молчит: {c}", "pre-bash", bash(c), silent)
-    case("DG_OVERRIDE без ссылки на решение: всё равно ask", "pre-bash", bash('DG_OVERRIDE="мелочь" gh pr merge 12'), is_ask)
-    case("DG_OVERRIDE с несуществующим якорем: ask", "pre-bash", bash('DG_OVERRIDE="decisions.md#нет такого: x" gh pr merge 12'), is_ask)
-    case("DG_OVERRIDE со ссылкой на решение: без ask, systemMessage", "pre-bash",
-         bash('DG_OVERRIDE="decisions.md#слияние data-guard без повторного аудита: решение Ивана" gh pr merge 12'),
-         lambda o: "permissionDecision" not in hso(o) and "решение Ивана" in o.get("systemMessage", ""))
-    case("MCP merge без go: ask", "pre-mcp-merge", {"tool_input": {"pullNumber": 7, "commit_title": "x"}}, is_ask)
-    case("сборка на рабочей ветке молчит", "pre-bash", bash("npx tsx src/scripts/build-katya.ts"), silent)
+    case("DG_OVERRIDE при слиянии не снимает ask (A1b)", "pre-bash", bash('DG_OVERRIDE="мелочь" gh pr merge'), is_ask)
+    case("DG_OVERRIDE со ссылкой на дату тоже ask (A1b)", "pre-bash", bash('DG_OVERRIDE="decisions.md#2026-09-29: срочно" gh pr merge'), is_ask)
+    for c in ("env X=1 git push origin main", "timeout 60 git push origin main", "command git push origin main",
+              "bash -c 'git push origin main'", "(git push origin main)", "sudo -E git push origin HEAD:main"):
+        case(f"обёртка не прячет push в main: {c}", "pre-bash", bash(c), is_ask)
+    case("сборка на рабочей ветке молчит", "pre-bash", bash("timeout 600 npx tsx src/scripts/build-katya.ts"), silent)
+    # PR по номеру: голова PR из origin, а не локальный HEAD (N3)
+    sh(fx, "git", "push", "-q", "origin", "HEAD:refs/pull/44/head")
+    case("MCP merge PR с цифрами без go: ask", "pre-mcp-merge", {"tool_input": {"pullNumber": 44, "commit_title": "x"}}, is_ask)
+    case("gh api merge PR с цифрами: ask", "pre-bash", bash("gh api -X PUT repos/o/r/pulls/44/merge"), is_ask)
+    case("PR, которого нет в origin: ask (не удалось проверить)", "pre-mcp-merge", {"tool_input": {"pullNumber": 999}}, is_ask)
 
-    # go без хеша не засчитывается, с верным хешем засчитывается
+    # go без хеша не засчитывается, с верным хешем засчитывается, поздний return отменяет go (m-e)
     day = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
     tdir = os.path.join(fx, "traces", day)
     os.makedirs(tdir, exist_ok=True)
-    ts = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
-    with open(os.path.join(tdir, "agents.jsonl"), "a") as f:
-        f.write(json.dumps({"ts": ts, "event": "subagent_stop", "agent": "feniks", "verdict": "go"}) + "\n")
-    case("go без audited_hash не снимает ask (проба A1)", "pre-bash", bash("gh pr merge 12"), is_ask)
+    now = dt.datetime.now(dt.timezone.utc)
+    tr = lambda rec: open(os.path.join(tdir, "agents.jsonl"), "a").write(json.dumps(rec) + "\n")
+    tr({"ts": now.isoformat(timespec="seconds"), "event": "audit", "agent": "feniks", "verdict": "go"})
+    case("go без audited_hash не снимает ask (A1)", "pre-bash", bash("git push origin HEAD:main"), is_ask)
     h = sh(fx, sys.executable, os.path.join(fx, ".claude/skills/data-guard/scripts/audit_hash.py"))
-    with open(os.path.join(tdir, "agents.jsonl"), "a") as f:
-        f.write(json.dumps({"ts": ts, "event": "subagent_stop", "agent": "feniks", "verdict": "go", "audited_hash": h}) + "\n")
-    case("go с хешем текущего содержимого: молчит", "pre-bash", bash("gh pr merge 12"), silent)
+    tr({"ts": (now + dt.timedelta(seconds=1)).isoformat(timespec="seconds"), "event": "audit", "agent": "feniks", "verdict": "go", "audited_hash": h})
+    case("go (event audit) с хешем изменений: молчит", "pre-bash", bash("git push origin HEAD:main"), silent)
+    case("go действует и для PR с той же головой", "pre-mcp-merge", {"tool_input": {"pullNumber": 44}}, silent)
     hw = sh(fx, sys.executable, os.path.join(fx, ".claude/skills/data-guard/scripts/audit_hash.py"), "--worktree")
     check("хеш рабочего дерева = хеш HEAD при чистом дереве (трейсы исключены)", h == hw, {"head": h, "worktree": hw})
+    tr({"ts": (now + dt.timedelta(seconds=2)).isoformat(timespec="seconds"), "event": "subagent_stop", "agent": "feniks", "verdict": "return", "audited_hash": h})
+    case("поздний return на тот же хеш отменяет go (m-e)", "pre-bash", bash("git push origin HEAD:main"), is_ask)
+    tr({"ts": (now + dt.timedelta(seconds=3)).isoformat(timespec="seconds"), "event": "audit", "agent": "feniks", "verdict": "go", "audited_hash": h})
+    # слияние main в ветку не меняет хеш изменений ветки (N4)
+    sh(fx, "git", "checkout", "-q", "main")
+    open(os.path.join(fx, "README.md"), "w").write("main moved\n")
+    sh(fx, "git", "add", "README.md")
+    sh(fx, "git", *G, "commit", "-q", "-m", "main moved")
+    sh(fx, "git", "push", "-q", "origin", "main")
+    sh(fx, "git", "fetch", "-q", "origin")
+    sh(fx, "git", "checkout", "-q", "work")
+    sh(fx, "git", *G, "merge", "-q", "--no-edit", "origin/main")
+    h2 = sh(fx, sys.executable, os.path.join(fx, ".claude/skills/data-guard/scripts/audit_hash.py"))
+    check("слияние main в ветку не меняет хеш (N4)", h == h2, {"before": h, "after": h2})
+    case("после слияния main go остаётся в силе", "pre-bash", bash("git push origin HEAD:main"), silent)
     with open(os.path.join(fx, "analytics-mvp/src/scripts/build-katya.ts"), "a") as f:
         f.write("export const y = 2;\n")
     sh(fx, "git", "add", "-A", "analytics-mvp")
     sh(fx, "git", *G, "commit", "-q", "-m", "after go")
-    case("коммит после go: снова ask", "pre-bash", bash("gh pr merge 12"), is_ask)
+    case("коммит после go: снова ask", "pre-bash", bash("git push origin HEAD:main"), is_ask)
+    sh(fx, "git", "push", "-q", "origin", "HEAD:refs/pull/45/head")
 
     # ветка без файлов с цифрами: слияние молчит
     sh(fx, "git", "checkout", "-q", "-b", "docs", "main")
@@ -142,7 +170,10 @@ def main():
         f.write("x\n")
     sh(fx, "git", "add", "knowledge/note.md")
     sh(fx, "git", *G, "commit", "-q", "-m", "docs")
+    sh(fx, "git", "push", "-q", "origin", "HEAD:refs/pull/13/head")
     case("PR без цифр (только knowledge): молчит (М3)", "pre-bash", bash("gh pr merge 13"), silent)
+    case("из ветки без цифр слияние PR 45 (цифры, без go): ask (N3)", "pre-mcp-merge", {"tool_input": {"pullNumber": 45}}, is_ask)
+    case("из ветки без цифр слияние PR 44 (цифры, go на его голову): молчит (N3)", "pre-mcp-merge", {"tool_input": {"pullNumber": 44}}, silent)
 
     # коммит только трейсов и снимков на рабочей ветке
     sh(fx, "git", "add", "traces")
@@ -162,6 +193,8 @@ def main():
     case("stop: сверка с двумя цифрами и источниками молчит", "stop",
          {"session_id": "s3", "last_assistant_message": "Сверка выручки за август: отчёт о реализации 1 234 567 ₽, выписка банка 1 234 567 ₽, разница 0. Сошлось."}, silent)
     case("stop: «Проверено: тесты 15/15, api отвечает» молчит", "stop", {"session_id": "s4", "last_assistant_message": "Проверено: тесты 15/15, api отвечает."}, silent)
+    case("stop: «Итог: 49 тестов, всё сходится» молчит (m-c)", "stop", {"session_id": "s7", "last_assistant_message": "Итог: 49 тестов, всё сходится."}, silent)
+    case("stop: «Сумма тестов сошлась: 49 из 49» молчит (m-c)", "stop", {"session_id": "s8", "last_assistant_message": "Сумма тестов сошлась: 49 из 49."}, silent)
     case("stop: «совпадает с документацией» молчит", "stop", {"session_id": "s5", "last_assistant_message": "Формат хука совпадает с документацией, 2 из 2 кейсов."}, silent)
     case("stop: stop_hook_active молчит", "stop", {"session_id": "s6", "stop_hook_active": True, "last_assistant_message": "выручка сошлась 5 ₽"}, silent)
 
@@ -171,6 +204,7 @@ def main():
     case("нет .claude/data-guard.json (чужой репо): молчит (М6)", "pre-bash", bash("gh pr merge 12"), silent)
 
     shutil.rmtree(fx, ignore_errors=True)
+    shutil.rmtree(fx + "-origin.git", ignore_errors=True)
     shutil.rmtree(state, ignore_errors=True)
     print(f"data-guard hooks: {ok} ok, {fail} fail")
     return 1 if fail else 0

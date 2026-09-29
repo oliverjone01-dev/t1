@@ -114,7 +114,11 @@ Max 2 раунда. Фиксация в `knowledge/episodes/YYYY-MM/disputes/`. 
 2. Прогони `python3 schemas/validate.py audit-report <report.json>`. Не `VALID` - чини отчёт, не деливерь.
    Схема сама ловит несоответствие порогов (`go` при <7.5 невалиден).
 3. Пересчитай weighted_total по весам вручную и сравни с полем. Расхождение >0.05 - ошибка в твоём отчёте.
-4. Строка трейса `event: audit` в `traces/YYYY-MM-DD/agents.jsonl` (`feniks_score`, `verdict`, `deliverable_ref`).
+4. Строка трейса `event: audit` в `traces/YYYY-MM-DD/agents.jsonl` (`feniks_score`, `verdict`, `deliverable_ref`, `audited_hash`).
+   `audited_hash` для артефакта в git (код, дашборд, скилл, хуки): посчитай сам `python3 -B .claude/skills/data-guard/scripts/audit_hash.py --rev <проверенный коммит>`
+   (незакоммиченное: `--worktree`) и сверь с хешем из запроса. Не совпал - аудит относится к другому содержимому, скажи об этом.
+   Последние две строки отчёта всегда: `AUDITED: <хеш>` (если артефакт в git) и `VERDICT: <go|return|veto>`. По ним хук data-guard
+   пускает слияние без запроса подтверждения (гейт К11); go без хеша слияние не открывает.
 5. Полный отчёт - `knowledge/episodes/YYYY-MM/feniks-audit-<slug>.md`.
 
 ## Evidence Ledger (обязательный раздел каждого отчёта)

@@ -4,7 +4,7 @@
 # Usage: bash .claude/skills/data-guard/scripts/build_account_zip.sh [выходной.zip]
 set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
-OUT="${1:-$ROOT/data-guard.zip}"
+OUT="${1:-${TMPDIR:-/tmp}/data-guard.zip}"
 TMP="$(mktemp -d)"
 cp -r "$ROOT/.claude/skills/data-guard" "$TMP/data-guard"
 cp "$ROOT/knowledge/errors/registry.jsonl" "$TMP/data-guard/references/registry-snapshot.jsonl"

@@ -5,8 +5,8 @@
 Вход: JSON события Claude Code в stdin. Выход: JSON в stdout (hookSpecificOutput / systemMessage).
 Сам ничего не отменяет: максимум permissionDecision "ask" (подтверждает пользователь).
 Молчит, если в репо нет .claude/data-guard.json или задано DATA_GUARD_OFF=1.
-Переопределение: DG_OVERRIDE="причина" в команде (для слияния без go: "decisions.md#<якорь>: причина"),
-причина пишется в traces/<дата>/data-guard.jsonl. Внутренняя ошибка = молча exit 0.
+Переопределение: DG_OVERRIDE="причина" в команде пишет причину в traces/<дата>/data-guard.jsonl; для сборки на main
+снимает запрос, для слияния без go ФЕНИКСА не снимает (решает человек в окне подтверждения). Внутренняя ошибка = молча exit 0.
 Настройки: .claude/data-guard.json. Тесты: python3 .claude/hooks/tests/data-guard-tests.py -v
 """
 import datetime as dt
@@ -80,19 +80,6 @@ def override_reason(text):
     return next((g for g in m.groups() if g), None) if m else None
 
 
-def decision_ref_ok(reason):
-    """Причина слияния без go должна ссылаться на существующую запись: decisions.md#<текст якоря>."""
-    m = re.match(r"\s*(?:knowledge/)?decisions\.md#([^:]+)", reason or "")
-    if not m:
-        return False
-    try:
-        text = open(os.path.join(ROOT, "knowledge", "decisions.md"), encoding="utf-8").read().lower()
-    except Exception:
-        return False
-    anchor = m.group(1).strip().lower()
-    return len(anchor) >= 4 and anchor in text
-
-
 def log_override(kind, reason, session_id):
     try:
         day = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
@@ -108,21 +95,23 @@ def log_override(kind, reason, session_id):
         pass
 
 
-def content_hash():
+def content_hash(rev="HEAD"):
     try:
         sys.path.insert(0, os.path.join(SKILL, "scripts"))
         import audit_hash  # noqa: E402
-        return audit_hash.content_hash(False, cwd=ROOT)
+        return audit_hash.content_hash(False, cwd=ROOT, rev=rev)
     except Exception:
         return None
 
 
-def feniks_go_for_head(max_age_h):
-    """go ФЕНИКСА за последние max_age_h часов, привязанный к текущему содержимому (audited_hash == хеш HEAD)."""
-    cur = content_hash()
+def feniks_go_for(rev, max_age_h):
+    """Последний вердикт ФЕНИКСА (строки event: audit и subagent_stop) с audited_hash = хешу изменений rev,
+    не старше max_age_h часов. go только если последний вердикт на этот хеш = go."""
+    cur = content_hash(rev)
     if not cur:
         return False
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=max_age_h)
+    last = None
     for f in sorted(glob.glob(os.path.join(ROOT, "traces", "*", "agents.jsonl")))[-5:]:
         try:
             lines = open(f, encoding="utf-8").read().splitlines()
@@ -134,18 +123,33 @@ def feniks_go_for_head(max_age_h):
                 ts = dt.datetime.fromisoformat(str(r.get("ts")).replace("Z", "+00:00"))
             except Exception:
                 continue
-            if r.get("agent") == "feniks" and r.get("verdict") == "go" and ts >= since and r.get("audited_hash") == cur:
-                return True
-    return False
+            if r.get("agent") == "feniks" and r.get("audited_hash") == cur and r.get("verdict") in ("go", "return", "veto") and ts >= since:
+                if last is None or ts >= last[0]:
+                    last = (ts, r.get("verdict"))
+    return bool(last and last[1] == "go")
 
 
-def touches_numbers(c):
-    """Ветка против origin/main (плюс staged) задевает файлы с цифрами."""
-    base = git("merge-base", "HEAD", "origin/main")
-    changed = git("diff", "--name-only", base, "HEAD").splitlines() if base else git("diff", "--name-only", "origin/main", "HEAD").splitlines()
-    changed += git("diff", "--name-only", "--cached").splitlines()
-    if not changed:
+def pr_head(num):
+    """sha головы PR по номеру (git fetch origin pull/N/head). None, если не удалось."""
+    if not num:
+        return "HEAD"
+    try:
+        p = subprocess.run(["git", "-C", ROOT, "fetch", "-q", "origin", f"pull/{num}/head"], capture_output=True, text=True, timeout=60)
+        if p.returncode:
+            return None
+        return git("rev-parse", "FETCH_HEAD") or None
+    except Exception:
+        return None
+
+
+def touches_numbers(c, rev="HEAD"):
+    """Изменения rev против merge-base с origin/main задевают файлы с цифрами. Нет изменений = нечего сливать."""
+    base = git("merge-base", "origin/main", rev)
+    if not base:
         return True  # не смогли определить: лучше спросить
+    changed = git("diff", "--name-only", base, rev).splitlines()
+    if rev == "HEAD":
+        changed += git("diff", "--name-only", "--cached").splitlines()
     return any(matches_any(p, c.get("numbers_globs", [])) for p in changed if p)
 
 
@@ -173,16 +177,37 @@ def warn_pre(text, system=None):
     out(o)
 
 
-def segments(cmd):
-    """Команда -> список сегментов (токены), разбитых по ; && || | и переводам строк."""
+WRAPPERS = {"env", "command", "nice", "nohup", "sudo", "time", "exec", "builtin"}
+
+
+def segments(cmd, depth=0):
+    """Команда -> список сегментов (токены), разбитых по ; && || | и переводам строк.
+    Разворачивает обёртки (env, timeout N, command, nice, sudo, скобки) и bash -c / sh -c."""
     res = []
     for part in re.split(r"(?:&&|\|\||[;|\n])", cmd or ""):
+        part = part.strip().lstrip("({").rstrip(")}").strip()
         try:
             toks = shlex.split(part, posix=True)
         except ValueError:
             toks = part.split()
-        while toks and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0]):  # VAR=... перед командой
-            toks = toks[1:]
+        changed = True
+        while toks and changed:
+            changed = False
+            while toks and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0]):  # VAR=... перед командой
+                toks, changed = toks[1:], True
+            if toks and os.path.basename(toks[0]) in WRAPPERS:
+                toks, changed = toks[1:], True
+                while toks and (toks[0].startswith("-") or re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", toks[0])):
+                    toks = toks[1:]
+            if toks and os.path.basename(toks[0]) == "timeout":
+                toks, changed = toks[1:], True
+                while toks and toks[0].startswith("-"):
+                    toks = toks[1:]
+                if toks and re.match(r"^\d+[smhd]?$", toks[0]):
+                    toks = toks[1:]
+        if len(toks) >= 3 and os.path.basename(toks[0]) in ("bash", "sh", "zsh") and toks[1] in ("-c", "-lc") and depth < 3:
+            res.extend(segments(toks[2], depth + 1))
+            continue
         if toks:
             res.append(toks)
     return res
@@ -203,17 +228,29 @@ def is_main_ref(ref):
 
 
 def merge_intent(cmd, cur_branch):
+    """-> (описание, номер PR или None) либо None."""
     for t in segments(cmd):
-        if len(t) >= 3 and os.path.basename(t[0]) == "gh" and t[1] == "pr" and t[2] == "merge":
-            return "gh pr merge"
+        base = os.path.basename(t[0])
+        if base == "gh" and len(t) >= 3 and t[1] == "pr" and t[2] == "merge":
+            num = next((a for a in t[3:] if re.fullmatch(r"#?\d+", a)), None)
+            return "gh pr merge", (num.lstrip("#") if num else None)
+        if base == "gh" and len(t) >= 2 and t[1] == "api":
+            m = re.search(r"pulls/(\d+)/merge\b", " ".join(t))
+            if m:
+                return "gh api merge", m.group(1)
         sub, args = git_sub(t)
         if sub == "push":
             pos = [a for a in args if not a.startswith("-")]
             refs = pos[1:]
-            if any(is_main_ref(r) for r in refs) or (not refs and cur_branch == "main"):
-                return "git push в main"
-        if sub == "merge" and cur_branch == "main" and not any(a in ("--abort", "--continue") for a in args):
-            return "git merge в main"
+            if any(is_main_ref(r) for r in refs):
+                return "git push в main", None
+            if cur_branch == "main" and (not refs or any(r in ("HEAD", "@") or r.startswith("HEAD:") and is_main_ref(r) for r in refs)):
+                return "git push в main", None
+        if sub == "merge" and cur_branch == "main" and not any(a in ("--abort", "--continue", "--quit") for a in args):
+            pos = [a for a in args if not a.startswith("-")]
+            if pos and all(re.fullmatch(r"(origin/)?main", p) for p in pos):
+                continue  # обновление локального main из origin/main, не слияние работы
+            return "git merge в main", None
     return None
 
 
@@ -226,8 +263,11 @@ def build_intent(cmd, c):
         if not w:
             continue
         head = os.path.basename(w[0])
-        if head in ("npm", "pnpm", "yarn") and any(a == "build" or a.startswith("build:") for a in w[1:3]):
-            return " ".join(t)
+        if head in ("npm", "pnpm", "yarn"):
+            args = [a for a in w[1:] if not a.startswith("-")]
+            if any(a == "build" or a.startswith("build:") for a in args):
+                return " ".join(t)
+            continue
         if head in ("tsx", "node", "bash", "sh", "python3", "python", "deno", "ts-node"):
             if "--check" in w or "-c" in w:
                 continue
@@ -272,22 +312,25 @@ def prompt(ev, c):
 
 
 def merge_gate(c, what, reason, sid, pr=None):
-    """Общая логика К11 для git/gh и MCP. Возвращает True, если что-то вывели."""
-    if not touches_numbers(c):
-        return False
-    if feniks_go_for_head(c.get("feniks_go_max_age_hours", 72)):
-        return False
+    """Гейт К11 для git/gh/MCP. Переопределение агентом не снимает запрос: решает человек в окне подтверждения.
+    Возвращает True, если что-то вывели."""
+    rev = pr_head(pr)
     target = f"PR #{pr}" if pr else what
-    if reason and decision_ref_ok(reason):
-        log_override("merge_without_go", reason, sid)
-        warn_pre("data-guard: слияние без go ФЕНИКСА по записанному решению, причина в traces/<дата>/data-guard.jsonl.",
-                 f"data-guard: {target} без go ФЕНИКСА. Основание: {reason}")
+    if rev is None:
+        ask(f"data-guard (К11): не удалось получить голову {target} для проверки go ФЕНИКСА. Продолжить?",
+            f"data-guard К11: git fetch origin pull/{pr}/head не удался, проверить go на содержимое PR нельзя. Спроси Ивана или проверь вручную.")
         return True
-    extra = " Ссылка в DG_OVERRIDE не найдена в knowledge/decisions.md." if reason else ""
-    ask(f"data-guard (К11): {target} меняет файлы с цифрами, а go ФЕНИКСА на текущее содержимое не найден. Продолжить?",
-        "data-guard К11: нужен go ФЕНИКСА на текущее содержимое. Посчитай хеш `python3 .claude/skills/data-guard/scripts/audit_hash.py`, "
-        "передай его в запросе ФЕНИКСУ, он пишет в отчёте `AUDITED: <хеш>` и `VERDICT: go`. После return обязателен повторный аудит. "
-        "Слияние без go только по решению Ивана, записанному в knowledge/decisions.md: DG_OVERRIDE=\"decisions.md#<текст якоря>: причина\"." + extra)
+    if not touches_numbers(c, rev):
+        return False
+    if feniks_go_for(rev, c.get("feniks_go_max_age_hours", 72)):
+        return False
+    if reason:
+        log_override("merge_without_go", reason, sid)
+    ask(f"data-guard (К11): {target} меняет файлы с цифрами, а go ФЕНИКСА на эти изменения не найден."
+        + (f" Причина агента: {reason[:200]}." if reason else "") + " Слить без go?",
+        "data-guard К11: нужен go ФЕНИКСА на текущие изменения. Посчитай хеш `python3 -B .claude/skills/data-guard/scripts/audit_hash.py` "
+        "(для PR: `--rev <голова PR>`), передай ФЕНИКСУ; он пишет audited_hash в строку event: audit и строки `AUDITED: <хеш>`, `VERDICT: go` в отчёте. "
+        "После return нужен повторный аудит. Слияние без go решает только человек в окне подтверждения; DG_OVERRIDE лишь записывает причину.")
     return True
 
 
@@ -298,8 +341,8 @@ def pre_bash(ev, c):
     br = branch()
     notes = []
 
-    what = merge_intent(cmd, br)
-    if what and merge_gate(c, what, reason, sid):
+    mi = merge_intent(cmd, br)
+    if mi and merge_gate(c, mi[0], reason, sid, mi[1]):
         return
 
     b = build_intent(cmd, c)

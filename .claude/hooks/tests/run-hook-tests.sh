@@ -52,9 +52,9 @@ cm() {  # $1 имя, $2 контекст в токенах, $3 ожидаема�
   fi
 }
 cm below-soft 120000 - "привет"
-cm soft 170000 "Закончи текущий шаг" "привет"
-cm hard 210000 "ОБЯЗАТЕЛЕН" "привет"
-cm opt-out 210000 - "без переезда, продолжаем"
+cm soft 420000 "Закончи текущий шаг" "привет"
+cm hard 510000 "ОБЯЗАТЕЛЕН" "привет"
+cm opt-out 510000 - "без переезда, продолжаем"
 n=$((n+1)); out="$(printf 'not json' | python3 "$REPO/.claude/hooks/context-meter.py" 2>/dev/null)"; rc=$?
 if [[ "$rc" == 0 && -z "$out" ]]; then pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [context-meter] broken-json"; else fail=$((fail+1)); echo "FAIL [context-meter] broken-json -> rc=$rc"; fi
 # Команда хука из settings.json при пустом CLAUDE_PROJECT_DIR не должна давать rc=2 (блок промпта).

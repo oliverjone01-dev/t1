@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# gg-poll: раз в 2 минуты (gg-poll.timer) подтягивает GitHub и выкатывает изменения.
+#  1. git fetch всех веток в зеркало (сервер сам ходит в GitHub, входящих подключений нет);
+#  2. для каждой ветки из branches.conf (+ ветка контура) с новым коммитом - gg-release;
+#  3. если сменился conf/jobs.conf - пересобрать таймеры (sudo gg-apply-timers);
+#  4. если что-то выкатилось - пересобрать сайт (gg-site).
+set -euo pipefail
+. "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
+gg_mkdirs
+
+exec 9>"$GG_ROOT/state/locks/poll.lock"
+flock -n 9 || { gg_log "gg-poll уже работает"; exit 0; }
+
+git --git-dir="$GG_GIT" fetch -q --prune origin '+refs/heads/*:refs/heads/*'
+
+changed=0
+jobs_before=$(sha256sum "$(gg_src "$GG_OPS_BRANCH" 2>/dev/null)/infra/vps/conf/jobs.conf" 2>/dev/null | cut -c1-64 || true)
+while read -r br; do
+  want=$(git --git-dir="$GG_GIT" rev-parse -q --verify "refs/heads/$br" || true)
+  if [ -z "$want" ]; then gg_warn "ветки $br нет в GitHub - пропуск"; continue; fi
+  have=$(cat "$GG_ROOT/src/$(gg_safe "$br")/current/.gg-release-ok" 2>/dev/null || true)
+  [ "$want" = "$have" ] && continue
+  if "$GG_OPS/bin/gg-release" "$br"; then
+    changed=1
+  else
+    gg_alert "❌ релиз ветки $br (${want:0:12}) не собрался - остался прежний. Лог: journalctl -u gg-poll"
+  fi
+done < <(gg_branches)
+
+jobs_after=$(sha256sum "$(gg_src "$GG_OPS_BRANCH")/infra/vps/conf/jobs.conf" | cut -c1-64)
+if [ "$jobs_before" != "$jobs_after" ] && [ "${GG_NO_TIMERS:-}" != 1 ]; then
+  sudo -n /usr/local/sbin/gg-apply-timers || gg_alert "❌ таймеры задач не пересобраны (gg-apply-timers)"
+fi
+
+if [ "$changed" = 1 ]; then
+  # сайт собирает свежая копия контура (релиз ветки контура мог только что смениться)
+  "$(gg_src "$GG_OPS_BRANCH")/infra/vps/bin/gg-site" || gg_alert "❌ сборка сайта после выката упала - на сайте прежняя версия"
+fi

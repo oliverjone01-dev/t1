@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# gg-status: сводка по серверу в терминале (то же, что страница /status/, плюс таймеры и диск).
+set -euo pipefail
+. "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
+
+echo "== Релизы веток"
+for d in "$GG_ROOT"/src/*/current; do
+  [ -e "$d" ] || continue
+  printf '  %-40s %s\n' "$(basename "$(dirname "$d")" | sed 's#__#/#g')" "$(cut -c1-12 "$d/.gg-release-ok" 2>/dev/null)"
+done
+echo "== Сайт: $(basename "$(readlink -f "$GG_ROOT/www/current" 2>/dev/null)" 2>/dev/null || echo 'ещё не собран')"
+cat "$GG_ROOT/www/current/.gg/build.json" 2>/dev/null || true
+echo "== Задачи"
+for f in "$GG_ROOT"/state/jobs/*.json; do [ -f "$f" ] && cat "$f"; done
+echo "== Таймеры"
+systemctl list-timers 'gg-*' --no-pager 2>/dev/null || echo "  (systemd недоступен)"
+echo "== Данные: последние коммиты"
+git -C "$GG_DATA" log --oneline -5 2>/dev/null || echo "  (git данных пуст)"
+echo "== Диск"
+df -h "$GG_ROOT" | tail -1
+du -sh "$GG_DATA" "$GG_GIT" "$GG_ROOT/src" "$GG_ROOT/www" "$GG_ROOT/cache" 2>/dev/null || true

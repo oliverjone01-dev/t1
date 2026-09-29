@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# gg-release <ветка> [sha]
+# Собирает неизменяемый релиз ветки из зеркала GitHub и атомарно переключает src/<ветка>/current.
+#  - код берётся из git (как есть в GitHub);
+#  - пути данных из conf/branches.conf заменяются ссылками на /srv/gg/data (данные живут на сервере,
+#    при первом релизе засеваются из того, что лежит в git);
+#  - node_modules ставятся один раз на каждый package-lock.json (кэш по хэшу).
+# Хранит 3 последних релиза ветки: откат = gg-release <ветка> <старый sha>.
+set -euo pipefail
+. "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
+
+br=${1:?"использование: gg-release <ветка> [sha]"}
+gg_mkdirs
+sha=$(git --git-dir="$GG_GIT" rev-parse --verify -q "${2:-refs/heads/$br}^{commit}") \
+  || gg_die "в зеркале нет ветки/коммита ${2:-$br} (gg-poll подтягивает ветки из branches.conf)"
+safe=$(gg_safe "$br")
+base="$GG_ROOT/src/$safe"
+dir="$base/${sha:0:12}"
+mkdir -p "$base"
+
+seeded=0
+link_data() {
+  local p tgt
+  while read -r p; do
+    case "$p" in /*|*..*) gg_die "недопустимый путь данных: $br:$p" ;; esac
+    tgt="$GG_DATA/$safe/$p"
+    if [ ! -e "$tgt" ] && [ ! -L "$tgt" ]; then
+      mkdir -p "$(dirname "$tgt")"
+      if [ -e "$dir/$p" ]; then
+        cp -a "$dir/$p" "$tgt"
+        seeded=1
+        gg_log "данные засеяны из git: $br:$p"
+      else
+        # ни в git, ни на сервере: путь с расширением = файл (создаст задача), иначе пустая папка
+        case "$(basename "$p")" in *.*) : ;; *) mkdir -p "$tgt" ;; esac
+      fi
+    fi
+    rm -rf "${dir:?}/$p"
+    mkdir -p "$(dirname "$dir/$p")"
+    ln -s "$tgt" "$dir/$p"
+  done < <(gg_data_paths "$br")
+}
+
+link_node_modules() {
+  [ "${GG_SKIP_NPM:-}" = 1 ] && { gg_log "GG_SKIP_NPM=1: node_modules не ставим"; return 0; }
+  local lock pkg hash cache
+  while read -r lock; do
+    pkg=$(dirname "$lock")
+    hash=$(sha256sum "$lock" | cut -c1-16)
+    cache="$GG_ROOT/cache/nm/$hash"
+    (
+      flock -w 1800 8 || gg_die "кэш node_modules занят: $hash"
+      if [ ! -d "$cache/node_modules" ]; then
+        gg_log "npm ci: ${pkg#"$dir"/} ($hash)"
+        (cd "$pkg" && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --no-audit --no-fund --loglevel=error)
+        mkdir -p "$cache" && mv "$pkg/node_modules" "$cache/node_modules"
+      fi
+    ) 8>"$GG_ROOT/state/locks/nm-$hash.lock"
+    rm -rf "$pkg/node_modules"
+    ln -s "$cache/node_modules" "$pkg/node_modules"
+  done < <(find "$dir" -maxdepth 2 -name package-lock.json -not -path '*/node_modules/*')
+}
+
+(
+  flock -w 1800 9 || gg_die "релиз $br уже собирается"
+  if [ ! -f "$dir/.gg-release-ok" ]; then
+    rm -rf "$dir"
+    git --git-dir="$GG_GIT" worktree prune
+    git --git-dir="$GG_GIT" worktree add -q --detach --force "$dir" "$sha"
+    link_data
+    link_node_modules
+    # коммитим только засеянное и только папку этой ветки: не прихватить чужие недописанные данные
+    [ "$seeded" = 1 ] && { gg_data_commit "seed: $br ${sha:0:12}" "$safe" || true; }
+    printf '%s\n' "$sha" >"$dir/.gg-release-ok"
+  fi
+  ln -sfn "$dir" "$base/.current.tmp"
+  mv -Tf "$base/.current.tmp" "$base/current"
+
+  # Храним 3 последних релиза (текущий не трогаем никогда)
+  cur=$(readlink -f "$base/current")
+  find "$base" -mindepth 1 -maxdepth 1 -type d -regextype posix-extended -regex '.*/[0-9a-f]{12}' -printf '%T@ %p\n' \
+    | sort -rn | awk 'NR>3{print $2}' | while read -r old; do
+      [ "$old" = "$cur" ] && continue
+      git --git-dir="$GG_GIT" worktree remove --force "$old" 2>/dev/null || rm -rf "$old"
+    done
+  git --git-dir="$GG_GIT" worktree prune
+) 9>"$GG_ROOT/state/locks/release-$safe.lock"
+
+gg_log "релиз $br -> ${sha:0:12}"

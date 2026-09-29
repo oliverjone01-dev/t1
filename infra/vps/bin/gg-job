@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# gg-job <имя>        - запустить задачу из conf/jobs.conf (так её запускает таймер gg-job-<имя>.timer)
+# gg-job --list       - список задач
+# Задача = скрипт jobs/<скрипт>.sh, выполняется в текущем релизе своей ветки (cwd), с секретами
+# из /etc/gg/secrets.env. Параллельные задачи одной lock-группы ждут друг друга (аналог
+# concurrency в GitHub Actions). Успех -> коммит данных в локальный git данных -> (site=yes)
+# пересборка сайта. Падение -> откат незакоммиченных данных ветки + алерт в Telegram.
+set -euo pipefail
+. "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
+gg_mkdirs
+
+if [ "${1:-}" = --list ]; then gg_conf_lines "$GG_JOBS_CONF"; exit 0; fi
+name=${1:?"использование: gg-job <имя> | --list"}
+fields=$(gg_job_fields "$name") || gg_die "задачи $name нет в $GG_JOBS_CONF"
+IFS=$'\t' read -r _ br _cal script lockg site <<<"$fields"
+[ -f "$GG_JOBS_DIR/$script" ] || gg_die "нет скрипта $GG_JOBS_DIR/$script"
+
+logdir="$GG_ROOT/logs/jobs/$name"; mkdir -p "$logdir"
+started=$(date -u +%FT%TZ)
+log="$logdir/$(date -u +%Y%m%dT%H%M%SZ).log"
+t0=$(date +%s)
+
+exec 8>"$GG_ROOT/state/locks/job-${lockg:-$name}.lock"
+flock -w 7200 8 || gg_die "lock-группа ${lockg:-$name} занята больше 2 часов"
+
+gg_load_secrets
+src=$(gg_src "$br")
+set +e
+(
+  cd "$src"
+  export GG_SRC="$src" GG_JOB="$name" GG_BRANCH="$br"
+  set -euo pipefail
+  . "$GG_OPS/lib/gg.sh"
+  . "$GG_JOBS_DIR/$script"
+) 2>&1 | tee -a "$log"
+rc=${PIPESTATUS[0]}
+set -e
+
+write_status() {
+  dur=$(( $(date +%s) - t0 ))
+  printf '{"name":"%s","branch":"%s","ok":%s,"rc":%s,"started":"%s","finished":"%s","seconds":%s,"changed":%s,"log":"%s"}\n' \
+    "$name" "$br" "$([ "$rc" = 0 ] && echo true || echo false)" "$rc" "$started" "$(date -u +%FT%TZ)" "$dur" "$changed" "$log" \
+    >"$GG_ROOT/state/jobs/$name.json"
+}
+
+changed=false
+if [ "$rc" = 0 ]; then
+  if gg_data_commit "job $name: $started"; then changed=true; fi
+  write_status   # до сборки сайта: /status/ в этой же сборке покажет свежий итог
+  if [ "$changed" = true ] && [ "$site" = yes ]; then
+    if ! "$GG_OPS/bin/gg-site" 2>&1 | tee -a "$log"; then
+      rc=90; gg_warn "данные сняты, но сборка сайта упала"; write_status
+    fi
+  fi
+else
+  gg_data_revert "$br"
+  write_status
+fi
+
+# логи: храним 30 последних запусков задачи
+find "$logdir" -name '*.log' -printf '%T@ %p\n' | sort -rn | awk 'NR>30{print $2}' | xargs -r rm -f
+
+if [ "$rc" != 0 ]; then
+  gg_alert "❌ задача $name упала (код $rc, ${dur}с). Хвост лога:
+$(tail -n 15 "$log")"
+  exit "$rc"
+fi
+gg_log "задача $name: ok за ${dur}с, данные изменились: $changed"

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# gg-site              - собрать сайт в www/releases/<ts> и атомарно переключить www/current
+# gg-site --rollback   - вернуть предыдущую сборку сайта
+# gg-site --list       - список сборок (* = текущая)
+# Сборку делает site/build.sh из релиза ветки контура: шаги site/steps/*.sh (порт deploy-pages.yml).
+set -euo pipefail
+. "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
+gg_mkdirs
+rel="$GG_ROOT/www/releases"
+cur=$(readlink -f "$GG_ROOT/www/current" 2>/dev/null || true)
+
+switch_to() {
+  ln -sfn "$1" "$GG_ROOT/www/.current.tmp"
+  mv -Tf "$GG_ROOT/www/.current.tmp" "$GG_ROOT/www/current"
+  gg_log "сайт -> $(basename "$1")"
+}
+
+case "${1:-}" in
+  --list)
+    for d in $(ls -1 "$rel" | sort); do
+      if [ "$rel/$d" = "$cur" ]; then echo "* $d"; else echo "  $d"; fi
+    done
+    exit 0 ;;
+  --rollback)
+    prev=$(ls -1 "$rel" | sort | awk -v c="$(basename "$cur")" '$0==c{print p; exit} {p=$0}')
+    [ -n "$prev" ] || gg_die "нет сборки старее текущей"
+    switch_to "$rel/$prev"
+    exit 0 ;;
+  "") ;;
+  *) gg_die "неизвестный аргумент: $1" ;;
+esac
+
+exec 9>"$GG_ROOT/state/locks/site.lock"
+flock -w 1800 9 || gg_die "сайт уже собирается больше 30 минут"
+
+# имя сборки сортируется по времени; две сборки в одну секунду не должны писать в одну папку
+out="$rel/$(date -u +%Y%m%dT%H%M%S.%NZ)"
+mkdir "$out" || gg_die "папка сборки $out уже существует"
+GG_SITE_OUT="$out" GG_SITE_PREV="$cur" bash "$GG_OPS/site/build.sh" || { rm -rf "$out"; gg_die "сборка сайта не удалась - остаётся $(basename "$cur")"; }
+switch_to "$out"
+
+# храним 5 последних сборок (текущую не трогаем)
+ls -1 "$rel" | sort -r | awk 'NR>5' | while read -r d; do
+  [ "$rel/$d" = "$out" ] || rm -rf "${rel:?}/$d"
+done

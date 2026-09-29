@@ -3,13 +3,15 @@
 // Запуск: npx tsx src/scripts/b24/build-prod.ts (после fetch-prod.ts).
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs";
+// Контакты клиентов (телефоны, почты, карты) в снимок и на страницу не попадают (ЯДИ 29.09).
 
 const TPL = "prod/prod-command.template.html";
 const SRC = "prod/data/prod.json";
 const OUT = "public/prod-command.html";
 const PORTAL = (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, "");
 
-const prod = JSON.parse(readFileSync(SRC, "utf-8"));
+const prod = maskDeep(JSON.parse(readFileSync(SRC, "utf-8")));
 const tpl = readFileSync(TPL, "utf-8");
 
 const DATA = {

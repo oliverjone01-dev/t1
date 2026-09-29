@@ -7,6 +7,8 @@
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/fetch-prod.ts
 
 import { writeFileSync, mkdirSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs";
+// Контакты клиентов (телефоны, почты, карты) в снимок и на страницу не попадают (ЯДИ 29.09).
 
 const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL в окружении"); process.exit(1); }
@@ -305,7 +307,7 @@ async function main() {
     items,
   };
   mkdirSync("prod/data", { recursive: true });
-  writeFileSync(OUT, JSON.stringify(out));
+  writeFileSync(OUT, JSON.stringify(maskDeep(out)));
   console.log(`Готово: ${items.length} элементов производства -> ${OUT}`);
 }
 

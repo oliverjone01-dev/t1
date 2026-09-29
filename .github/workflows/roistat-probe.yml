@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       project_id:
-        description: "ID проекта Roistat (если секрет ROISTAT_PROJECT_ID не задан)"
+        description: "ID проекта Roistat (если секрет ROISTAT_PROJECTID не задан)"
         required: false
 
 permissions:
@@ -26,15 +26,15 @@ jobs:
 
       - name: Проверка ключа и маскировка
         env:
-          KEY: ${{ secrets.ROISTAT_API_KEY }}
+          KEY: ${{ secrets.ROISTAT_API }}
         run: |
           if [ -z "$KEY" ]; then
-            echo "::error::Нет секрета ROISTAT_API_KEY. Добавить в Settings -> Secrets and variables -> Actions"; exit 1
+            echo "::error::Нет секрета ROISTAT_API. Добавить в Settings -> Secrets and variables -> Actions"; exit 1
           fi
           echo "::add-mask::$KEY"
 
       - name: Разведка
         env:
-          ROISTAT_API_KEY: ${{ secrets.ROISTAT_API_KEY }}
-          ROISTAT_PROJECT_ID: ${{ secrets.ROISTAT_PROJECT_ID || github.event.inputs.project_id }}
+          ROISTAT_API: ${{ secrets.ROISTAT_API }}
+          ROISTAT_PROJECTID: ${{ secrets.ROISTAT_PROJECTID || github.event.inputs.project_id }}
         run: node roistat/probe.mjs

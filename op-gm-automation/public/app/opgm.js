@@ -10,11 +10,14 @@ const CABNAME = { 'OLD-G':'OLD-G · старый кабинет', 'NEW-B':'NEW-B
 const CABSLOT = { 'OLD-G':1, 'NEW-B':2 };            /* цвет следует за кабинетом, порядок фиксирован */
 const DAY = 86400;
 const WD = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-const MON = { '04':'апр', '05':'май', '06':'июн', '07':'июл', '08':'авг', '09':'сен' };
+/* Д1: месяцы графиков из данных, ключ «год-месяц»; ряд с апреля 2026 до месяца выгрузки */
+const MON = { '01':'янв', '02':'фев', '03':'мар', '04':'апр', '05':'май', '06':'июн', '07':'июл', '08':'авг', '09':'сен', '10':'окт', '11':'ноя', '12':'дек' };
+const MONP = { '01':'январь', '02':'февраль', '03':'март', '04':'апрель', '05':'май', '06':'июнь', '07':'июль', '08':'август', '09':'сентябрь', '10':'октябрь', '11':'ноябрь', '12':'декабрь' };
+const MON0 = '2026-04';
 const OWNER_NOTE = 'Выгрузку обновляет Иван раз в неделю, по понедельникам.';
 const MILESTONE = '06.10.2026';
 
-let EXPORT_TS = 0, EXP = {}, AT = '2026-09-22';
+let EXPORT_TS = 0, EXP = {}, AT = '';
 const OP = { cab:'all', view:'detal-sit', days:30, today:14,
   dlg:{ prob:'all', flag:'all', ad:'all', q:'', sort:'recent', kind:'in', limit:40 } };
 
@@ -49,7 +52,13 @@ function P(v){ return v == null ? '-' : String(v).replace('.', ',') + '%'; }
 function firstName(n){ n = (n || '').trim().split(/\s+/)[0] || ''; return n || 'Клиент'; }
 function adName(i){ return (D.av.ads[i] || '-'); }
 function lastClient(c){ const M = D.av.msgs[c.id] || []; for(let i = M.length - 1; i >= 0; i--){ if(M[i][1] === 'c' && M[i][2] !== 'c' && M[i][3] !== 'Сообщение удалено') return M[i][3]; } return ''; }
-function monOf(c){ return iso(c.t).slice(5,7); }
+function monOf(c){ return iso(c.t).slice(0,7); }
+function monKeys(){ const out = [], last = iso(EXPORT_TS).slice(0,7); let [y, m] = MON0.split('-').map(Number);
+  for(let k = MON0; k <= last; m = m === 12 ? 1 : m + 1, y = m === 1 ? y + 1 : y, k = y + '-' + String(m).padStart(2, '0')) out.push(k); return out; }
+/* последний месяц неполный: «сен (до 29)»; год в подписи, только если ряд переходит через год */
+function monCats(mons){ const last = iso(EXPORT_TS).slice(0,7), multi = mons[0].slice(0,4) !== mons[mons.length - 1].slice(0,4);
+  return mons.map(k => MON[k.slice(5)] + (multi ? ' ' + k.slice(2,4) : '') + (k === last ? ' (до ' + +iso(EXPORT_TS).slice(8,10) + ')' : '')); }
+function monPartial(){ return MONP[iso(EXPORT_TS).slice(5,7)] + ' неполный, до ' + fDay(EXPORT_TS); }
 function weekStart(ts){ const d = Math.floor((ts + 10800) / DAY); return (d - ((d + 3) % 7)) * DAY - 10800; }
 function cabsIn(){ return OP.cab === 'all' ? CABS : [OP.cab]; }
 function cabTag(c){ return '<span class="op-cab" style="--slot:var(--cat-' + CABSLOT[c] + ')">' + E(c) + '</span>'; }
@@ -125,8 +134,15 @@ function srcLine(){ return 'Авито API · ' + CABS.map(c => c + ' ' + fD(EXP
 function fresh(){
   const now = Math.max(Math.floor(Date.now() / 1000), EXPORT_TS), age = Math.floor((now - EXPORT_TS) / DAY);
   return KS.note(age >= 1 ? 'С выгрузки прошло ' + age + ' дн' : 'Данные свежие',
-    'Выгрузка: ' + CABS.map(c => E(c) + ' ' + fD(EXP[c])).join(', ') + '. Перед ответом откройте чат в Авито: возможно, клиенту уже ответили. ' + E(OWNER_NOTE), age >= 1 ? 'warn' : 'info');
+    'Выгрузка: ' + CABS.map(c => E(c) + ' ' + fD(EXP[c])).join(', ') + '. ' + E(glueLine()) + 'Перед ответом откройте чат в Авито: возможно, клиенту уже ответили. ' + E(OWNER_NOTE), age >= 1 ? 'warn' : 'info');
 }
+/* Д5: данные склеены из слоёв (recon.layers): полная выгрузка с CSV и окна без CSV */
+function layersOf(c){ return (D.av.recon[c] && D.av.recon[c].layers) || null; }
+function tsOf(s){ return Math.floor(Date.parse(s) / 1000); }
+function glueLine(){ const L = layersOf(CABS[0]); if(!L || L.length < 2) return '';
+  const w = L[L.length - 1];
+  return 'Данные склеены из полной выгрузки по ' + fDay(tsOf(L[0].exported)) + ' и ' + (L.length > 2 ? 'окон, последнее' : 'окна') + ' с ' + fDay(tsOf(w.periodFrom))
+    + ': диалоги с новыми сообщениями пересчитаны, поэтому прошлые недели могут отличаться от прежних цифр. «Детализация» обновляется отдельно, её период указан в разделе. '; }
 
 /* ---------- Пульс ОП ---------- */
 function tilesFor(cab){
@@ -264,7 +280,7 @@ SCREENS.today = function(){
 
 /* ---------- Скорость ответа ---------- */
 SCREENS.speed2 = function(){
-  const cabs = cabsIn(), w = win(OP.days), mons = Object.keys(MON), cats = mons.map(m => MON[m] + (m === '09' ? ' (до 22)' : ''));
+  const cabs = cabsIn(), w = win(OP.days), mons = monKeys(), cats = monCats(mons);
   const byMon = cabs.map(cab => ({ name:cab, slot:CABSLOT[cab], data:mons.map(m => { const L = sel({ cab }).filter(c => monOf(c) === m); const v = stats(L).med; return v == null ? null : Math.round(v / 60); }) }));
   job(() => floor0(KS.charts.multi('ch-mon', { cats, series:byMon, h:260 })));
   const Lall = sel({ from:w.from, to:w.to }), cell = {};
@@ -289,7 +305,7 @@ SCREENS.speed2 = function(){
       lead:'Денег по скорости ответа посчитать нельзя: исход сделки в Авито не виден. Связь «скорость ответа - деньги» появится после связки с Bitrix24.' })
     + '<div class="ks-stack">' + tiles
     + '<div class="ks-grid-2">'
-    + KS.card({ title:'Медиана по месяцам', sub:'Минут · сентябрь неполный, до 22.09 · весь ряд', body:KS.chart('ch-mon', 260),
+    + KS.card({ title:'Медиана по месяцам', sub:'Минут · ' + monPartial() + ' · весь ряд', body:KS.chart('ch-mon', 260),
         table:KS.table([['Месяц']].concat(byMon.map(s => [s.name, true])), cats.map((c, i) => [c].concat(byMon.map(s => s.data[i] == null ? null : NF(s.data[i]) + ' мин')))) })
     + KS.card({ title:'Когда пишут клиенты', sub:'Число обращений по дню недели и часу, МСК · ' + periodLabel(), body:KS.chart('ch-heat', 300),
         table:scrollWrap(KS.table([['День']].concat(hours.map(h => [h, true])), WD.map((d, i) => [d].concat(matrix[i].map(NF))), { stack:false })) })
@@ -359,7 +375,7 @@ function dlist(L){ return KS.card({ body:'<div class="op-list">' + L.map(dcard).
 
 /* ---------- Холодная рассылка ---------- */
 SCREENS.cold = function(){
-  const cabs = cabsIn(), w = win(OP.days), mons = Object.keys(MON), cats = mons.map(m => MON[m] + (m === '09' ? ' (до 22)' : ''));
+  const cabs = cabsIn(), w = win(OP.days), mons = monKeys(), cats = monCats(mons);
   const sent = L => L.filter(c => c.kind === 'cold' || c.kind === 'cold_reply').length;
   const S = cabs.map(cab => ({ name:cab, slot:CABSLOT[cab], data:mons.map(m => sent(sel({ cab, kind:'all' }).filter(c => monOf(c) === m))) }));
   job(() => floor0(KS.charts.multi('ch-cold', { cats, series:S, h:260 })));
@@ -373,7 +389,7 @@ SCREENS.cold = function(){
   return head({ title:'Холодная рассылка', sub:'Сообщение тем, кто смотрел объявление, но не написал. Считается отдельно от входящих, иначе портит скорость ответа.', src:srcLine(),
       lead:'Стоимость рассылки в выгрузку не входит, поэтому окупаемость посчитать нельзя.' })
     + '<div class="ks-stack">' + tiles
-    + KS.card({ title:'Сколько отправили по месяцам', sub:'Весь ряд · сентябрь до 22.09', body:KS.chart('ch-cold', 260),
+    + KS.card({ title:'Сколько отправили по месяцам', sub:'Весь ряд · ' + monPartial(), body:KS.chart('ch-cold', 260),
         table:KS.table([['Месяц']].concat(S.map(s => [s.name, true])), cats.map((c, i) => [c].concat(S.map(s => NF(s.data[i]))))) })
     + KS.card({ title:'Шаблон, который уходит', body:'<div class="op-tpl">Добрый день! Вы просматривали наше объявление, можем подробно рассказать о производимых нами изделиях...</div>' })
     + '</div>';
@@ -427,6 +443,39 @@ function wireDlg(){
 }
 
 /* ---------- Откуда цифры ---------- */
+/* сверка с CSV есть только у полной выгрузки; «совпадает» пишем, только если числа равны */
+function reconText(R, miss){
+  const L0 = c => (layersOf(c) || [R[c]])[0], o = L0('OLD-G'), n = L0('NEW-B'), glued = !!layersOf(CABS[0]);
+  const pre = glued ? 'Полная выгрузка по ' + fDay(tsOf(o.exported)) + '. ' : '';
+  const eq = o.json_chats === o.csv_rows ? 'совпадает' : 'не совпадает';
+  let t = pre + 'У OLD-G число чатов в JSON и CSV ' + eq + ': ' + o.json_chats + (eq === 'совпадает' ? ' = ' : ' и ') + o.csv_rows + '. У NEW-B CSV обрывается на ' + E(R['NEW-B'].csv_max)
+    + ', поэтому в нём ' + n.csv_rows + ' строк против ' + n.json_chats + ' в JSON. Чатов, которых нет в CSV, ' + (n.json_chats - n.csv_rows)
+    + ': созданы в сентябре ' + (miss.sep || 0) + ', с 22 по 31 августа ' + (miss.late_aug || 0) + ', в середине августа ' + (miss.mid || 0) + ', раньше апреля ' + (miss.old || 0)
+    + '. Почему часть августовских чатов не попала в CSV, по файлам установить нельзя. Везде на сайте используется JSON.';
+  if(glued){ const w = layersOf(CABS[0]).slice(1);
+    t += ' CSV к ' + (w.length > 1 ? 'окнам' : 'окну') + ' ' + w.map(x => fDay(tsOf(x.periodFrom)) + '-' + fDay(tsOf(x.exported))).join(', ')
+      + ' не выгружался; полноту окна проверили по прошлой выгрузке: пропущенных чатов ' + CABS.reduce((a, c) => a + (R[c].merge.window_missing || 0), 0) + '.'; }
+  return t + ' В выгрузку попали и старые чаты: OLD-G ' + R['OLD-G'].before_apr + ', NEW-B ' + R['NEW-B'].before_apr
+    + ', в помесячные графики они не входят. В каждом чате хранится не больше 100 последних сообщений.';
+}
+function glueCards(R){
+  const lay = CABS.flatMap(c => layersOf(c).map(x => [cabTag(c), E(x.name), x.periodFrom ? 'с ' + fDay(tsOf(x.periodFrom)) : 'вся история', NF(x.json_chats), NF(x.json_msgs), x.csv ? 'есть' : 'нет', fD(tsOf(x.exported)) + ' МСК']));
+  const G = c => R[c].merge, tot = c => R[c].json_chats, pc = (a, c) => P(share(a, tot(c)));
+  const rows = [
+    ['Только в прошлом слое, взяты без изменений', c => NF(G(c).kept_old) + ' (' + pc(G(c).kept_old, c) + ')'],
+    ['Есть в прошлом слое и в окне, пересчитаны', c => NF(G(c).replaced || 0) + ' (' + pc(G(c).replaced || 0, c) + ')'],
+    ['Новые, только в окне', c => NF(G(c).added || 0) + ' (' + pc(G(c).added || 0, c) + ')'],
+    ['Упёрлись в лимит 100 сообщений', c => NF(G(c).truncated_100 || 0)],
+    ['Ранних сообщений восстановлено из прошлого слоя', c => NF(G(c).restored_from_old || 0)],
+    ['Сообщений прошлого слоя не нашлось в окне', c => NF(G(c).overlap_missing || 0)],
+    ['Чатов прошлого слоя не хватило в окне', c => NF(G(c).window_missing || 0)],
+    ['Сменилось время первого сообщения клиента', c => NF(G(c).t_changed || 0)],
+    ['Сменилось название объявления', c => NF(G(c).ad_title_changed || 0)],
+    ['Сменился флаг «писал в оба кабинета»', c => NF(G(c).both_changed || 0)],
+    ['Кабинет окна определён по channelId', c => G(c).mapping_overlap.k + ' из ' + G(c).mapping_overlap.m]];
+  return KS.card({ title:'Слои данных', sub:'Полная выгрузка с CSV и окна без CSV, склеены по channelId', body:KS.table([['Кабинет'],['Слой'],['Период'],['Чатов', true],['Сообщений', true],['CSV'],['Выгружено']], lay, { stack:true }) })
+    + KS.card({ title:'Покрытие склейки', sub:'Чатов на сайте: ' + CABS.map(c => c + ' ' + NF(tot(c))).join(', '), body:KS.table([['Что'], ...CABS.map(c => [c, true])], rows.map(([l, f]) => [E(l), ...CABS.map(f)]), { stack:true }) });
+}
 SCREENS.data = function(){
   const R = D.av.recon, nAuto = D.av.chats.reduce((a, c) => a + (D.av.msgs[c.id] || []).filter(m => m[1] === 'a').length, 0);
   const vendors = D.av.chats.filter(c => c.kind === 'vendor').length, b2b = D.av.chats.filter(c => c.b2b && c.kind !== 'vendor').length;
@@ -434,13 +483,10 @@ SCREENS.data = function(){
   return head({ title:'Откуда цифры', sub:'Что есть в выгрузке, как считаем и чего в данных нет.', src:srcLine(),
       lead:'Деньги в эту выгрузку не входят. Чтобы они появились, нужна связка чатов с Bitrix24 по телефону клиента.' })
     + '<div class="ks-stack">'
-    + KS.card({ title:'Источники', body:KS.table([['Кабинет'],['Аккаунт Авито'],['Чатов в JSON', true],['Сообщений', true],['Строк в CSV', true],['Выгружено']],
-        CABS.map(c => [cabTag(c), c === 'OLD-G' ? 'GLASS MEMORY (старый)' : 'Glass Memory (новый)', NF(R[c].json_chats), NF(R[c].json_msgs), NF(R[c].csv_rows), fD(EXP[c]) + ' МСК']), { stack:true }) })
-    + KS.note('Сверка', 'У OLD-G число чатов в JSON и CSV совпадает: ' + R['OLD-G'].json_chats + ' = ' + R['OLD-G'].csv_rows + '. У NEW-B CSV обрывается на ' + E(R['NEW-B'].csv_max)
-        + ', поэтому в нём ' + R['NEW-B'].csv_rows + ' строк против ' + R['NEW-B'].json_chats + ' в JSON. Чатов, которых нет в CSV, ' + (R['NEW-B'].json_chats - R['NEW-B'].csv_rows)
-        + ': созданы в сентябре ' + (miss.sep || 0) + ', с 22 по 31 августа ' + (miss.late_aug || 0) + ', в середине августа ' + (miss.mid || 0) + ', раньше апреля ' + (miss.old || 0)
-        + '. Почему часть августовских чатов не попала в CSV, по файлам установить нельзя. Везде на сайте используется JSON. В выгрузку попали и старые чаты: OLD-G ' + R['OLD-G'].before_apr + ', NEW-B ' + R['NEW-B'].before_apr
-        + '. В каждом чате хранится не больше 100 последних сообщений.', 'info')
+    + KS.card({ title:'Источники', body:KS.table([['Кабинет'],['Аккаунт Авито'],['Чатов на сайте', true],['Сообщений', true],['Выгружено']],
+        CABS.map(c => [cabTag(c), c === 'OLD-G' ? 'GLASS MEMORY (старый)' : 'Glass Memory (новый)', NF(R[c].json_chats), NF(R[c].json_msgs), fD(EXP[c]) + ' МСК']), { stack:true }) })
+    + (layersOf(CABS[0]) ? glueCards(R) : '')
+    + KS.note('Сверка', reconText(R, miss), 'info')
     + KS.card({ title:'Что считаем и как', body:'<dl class="op-defs">'
         + '<div><dt>Клиент</dt><dd>Написал нам сам или ответил на рассылку. Не клиенты: поставщики, соискатели и тесты (' + vendors + ' чатов) и холодная рассылка без ответа. Партнёрские и оптовые запросы (' + b2b + ') остаются клиентами с отметкой.</dd></div>'
         + '<div><dt>Первый ответ</dt><dd>От первого текстового сообщения клиента до первого сообщения живого человека. Автоответы (' + nAuto + ' шт.), звонки и напоминания робота Авито ответом не считаются. Удалённые сообщения клиента не считаются его текстом.</dd></div>'
@@ -504,7 +550,7 @@ CABS.forEach(cab => ['speed','f15','noresp','quest'].forEach(m => KS.drawer.regi
 function openThread(id){
   const c = D.av.chats.find(x => x.id === id); if(!c) return;
   const M = D.av.msgs[id] || [], PQ = /(сколько|стоимост|цена|цены|ценник|почём|почем|прайс)/i;
-  let h = '<div class="ks-drawer-head"><div><div class="op-path">' + E(c.cab) + ' › ' + E(monOf(c)) + '.2026 › ' + E(adName(c.ad)) + '</div>'
+  let h = '<div class="ks-drawer-head"><div><div class="op-path">' + E(c.cab) + ' › ' + E(iso(c.t).slice(5,7) + '.' + iso(c.t).slice(0,4)) + ' › ' + E(adName(c.ad)) + '</div>'
     + '<h2 class="ks-h2" id="ks-drawer-title">' + E(c.cn || 'Клиент') + '</h2>'
     + '<div class="ks-card-sub">' + (c.lag != null ? 'первый ответ через ' + fL(c.lag) : (c.nc > 0 ? 'живого ответа не было' : 'клиент не писал текстом')) + ' · начало ' + fD(M.length ? M[0][0] : c.t) + '</div></div>'
     + '<button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" aria-label="Закрыть" onclick="KS.drawer.close()">' + ic('x', 18) + '</button></div><div class="ks-drawer-body">'
@@ -582,7 +628,7 @@ function render(){
   document.querySelectorAll('#seg [data-cab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cab === OP.cab)));
   view.querySelectorAll('.ks-seg').forEach(el => KS.seg.wire(el));
   document.getElementById('tools').hidden = isLegacy(v);
-  document.getElementById('stamp').textContent = 'Авито API · выгрузка ' + fDay(EXPORT_TS) + '.2026';
+  document.getElementById('stamp').textContent = 'Авито API · выгрузка ' + fDay(EXPORT_TS) + '.' + iso(EXPORT_TS).slice(0,4);
   document.getElementById('theme').innerHTML = KS.theme.icon();
   KS.route.set({ project:OP.cab, view:v, period:String(OP.days) });
   KS.ticker.run(view);

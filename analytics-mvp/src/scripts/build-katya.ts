@@ -2168,7 +2168,7 @@ function render(cur,cmp){
   // Город есть только там, где везём мы (ведомость перевозчика, закрытые месяцы); у логистики OZON
   // и услуг партнёров города в данных нет, поэтому по городам раскладывается только наша перевозка.
   const delivCityPl: any[] = [];
-  try { for (const l of readFileSync(dp("delivery_city_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); delivCityPl.push([r.d, r.city, Math.round(r.ship), Math.round(r.deliv), r.n]); } } catch { /* нет файла - блок логистики по городам пуст */ }
+  try { for (const l of readFileSync(dp("delivery_city_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); delivCityPl.push([r.d, r.city, Math.round(r.ship), Math.round(r.deliv), r.n, Array.isArray(r.orders) ? r.orders.map(String) : null]); } } catch { /* нет файла - блок логистики по городам пуст */ }
   // Возврат выручки ПО ЗАКАЗУ из реестра «Начисления» (order_accruals.returns, знак<0). API финансовый
   // возврат по заказу не отдаёт (returns/list - это заявки, не рефанды; by-day - только сборы), поэтому
   // берём из отчёта - того же источника, что уже нетит возвраты в таблице по артикулам. Вычитаем ТОЛЬКО
@@ -2256,7 +2256,37 @@ function render(cur,cmp){
   // Доставка покупателя ПО ЗАКАЗУ (NON_ITEM несёт ключ заказа, ~85% сходится с базами заказов) - для
   // per-order разнесения; несматченный остаток раскидывается пропорционально в render.
   const bdByOrderApi: Record<string, number> = {};
-  try { for (const l of readFileSync(dp("buyer_delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); } } catch { /* нет файла */ }
+  const bdKnown: Record<string, boolean> = {}; // все заказы, по которым OZON уже отдал оплату доставки (в т.ч. 0)
+  try { for (const l of readFileSync(dp("buyer_delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); bdKnown[String(r.order)] = true; if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); } } catch { /* нет файла */ }
+  // «Логистика по городам»: доход с покупателя - из OZON (оплата доставки покупателем по заказу), а не из
+  // ведомости (Иван 29.09, вариант А). В ведомости «Стоимость доставки» бывает пустой при оплате в OZON
+  // (40230562-0725-1: пусто, OZON 8 100 ₽) - такой 0 читался как «бесплатно». Ведомость остаётся
+  // столбцом для сравнения. Базовый заказ считается один раз на всю таблицу. Нет номеров в файле
+  // (старая сборка ведомости) - доход OZON неизвестен (null), страница пишет «нет номеров».
+  {
+    const bdUsed: Record<string, boolean> = {};
+    const ledUsed: Record<string, boolean> = {};
+    for (const row of delivCityPl) {
+      const ords: string[] | null = row[5];
+      // row[6] = 1: ни одного заказа отправки ещё нет в данных OZON (не начислен) - в таблицу городов не идёт
+      // до начисления (Иван 29.09), в аналитике доход с покупателя по нему 0.
+      row[6] = ords && ords.length && !ords.some((o) => bdKnown[o] || bdKnown[orderBase(o)]) ? 1 : 0;
+      // row[7] - оплата клиента по ведомости для сверки: один раз на заказ, как OZON (Иван 29.09). При
+      // повторном выезде ведомость повторяет оплату во второй строке (0268020898-0004-2: 10.08 и 04.09).
+      row[7] = row[3];
+      if (!ords) { row[5] = null; continue; }
+      if (ords.length && ords.every((o) => ledUsed[bdByOrderApi[o] != null ? o : orderBase(o)])) row[7] = 0;
+      for (const o of ords) ledUsed[bdByOrderApi[o] != null ? o : orderBase(o)] = true;
+      let inc = 0;
+      for (const o of ords) {
+        const k = bdByOrderApi[o] != null ? o : orderBase(o);
+        if (bdUsed[k]) continue;
+        bdUsed[k] = true;
+        inc += bdByOrderApi[k] || 0;
+      }
+      row[5] = inc;
+    }
+  }
 
   const anOrders: any[] = [];
   // Оценка сборов у заказов В ПУТИ (Иван 25.09.2026, п. 2.1, вариант 2). OZON начисляет комиссию,
@@ -2470,7 +2500,7 @@ function render(cur,cmp){
   ${IS_OZON ? `` : `<section class="card" id="sv-pts-card" style="display:none"><div class="card-h"><div><div class="card-title">Баллы Маркета за период</div><div class="card-sub">начислено, потрачено и сальдо &middot; период из фильтра наверху страницы</div></div></div>
     <div id="sv-pts" class="kt-note" style="padding:2px 0 0"></div>
   </section>`}
-  ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Логистика по городам (наша перевозка)</div><div class="card-sub">Куда наша доставка везёт в убыток: <b>расход перевозчика (ПЭК/СДЭК, счёт из ведомости) больше дохода с покупателя за доставку</b>. Строка = город назначения, считается <b>по отправке</b> (город и перевозка - свойства заказа, между позициями не делятся). Убыточные города (расход > доход) - сверху и подсвечены. Период - из фильтра наверху страницы. <b>Только наша перевозка и только закрытые месяцы</b> (в ведомости текущего месяца ещё нет): заказы на логистике OZON и на услугах партнёров сюда не входят - у них города в данных нет. Расход тут - по дате ОТГРУЗКИ из ведомости. В таблицах выше та же ведомость стоит по номеру заказа: в таблицах «по дате заказа» - на дате заказа, в таблице «Аналитика по артикулам (за выбранный период)» - на дате начисления заказа. Поэтому за месяц суммы с ними различаются (стекло отгружают через 2-4 недели после заказа, а OZON начисляет через 3-6 дней после доставки); за всё время разница - только строки ведомости, чей заказ не нашёлся по номеру (они в плашке над «Аналитикой по заказам»). Возвраты и отмены, по которым был расход перевозчика, входят. Сверху - сверка: каждый доставленный заказ должен ехать одним из трёх способов (логистика OZON / услуги партнёров / наша перевозка).</div></div></div><div id="logi-recon" class="kt-note" style="margin:2px 0 8px;padding:8px 12px;border-left:3px solid #34D399;background:rgba(52,211,153,.08)"></div><div id="logi-sum" class="kt-note" style="margin:2px 0 8px"></div><div class="kt-scroll logi-vscroll"><table class="kt-table" id="logi-t"><thead><tr><th>Город назначения</th><th class="r">Отправок</th><th class="r" title="Сколько за доставку заплатил покупатель (ведомость)">Доход с покупателя</th><th class="r" title="Наш счёт перевозчика за отправку (ведомость)">Расход перевозчика</th><th class="r" title="Доход − расход. Минус = возим в убыток">Нетто</th><th class="r" title="Средний расход на отправку по городу">Ср. расход/отпр.</th></tr></thead><tbody id="logi"></tbody></table></div></section>` : ``}
+  ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Логистика по городам (наша перевозка)</div><div class="card-sub">Куда наша доставка везёт в убыток: <b>расход перевозчика (ПЭК/СДЭК, счёт из ведомости) больше дохода с покупателя за доставку</b>. Строка = город назначения, считается <b>по отправке</b> (город и перевозка - свойства заказа, между позициями не делятся). Убыточные города (расход > доход) - сверху и подсвечены. Период - из фильтра наверху страницы. <b>Только наша перевозка и только закрытые месяцы</b> (в ведомости текущего месяца ещё нет): заказы на логистике OZON и на услугах партнёров сюда не входят - у них города в данных нет. Расход тут - по дате ОТГРУЗКИ из ведомости. В таблицах выше та же ведомость стоит по номеру заказа: в таблицах «по дате заказа» - на дате заказа, в таблице «Аналитика по артикулам (за выбранный период)» - на дате начисления заказа. Поэтому за месяц суммы с ними различаются (стекло отгружают через 2-4 недели после заказа, а OZON начисляет через 3-6 дней после доставки); за всё время разница - только строки ведомости, чей заказ не нашёлся по номеру (они в плашке над «Аналитикой по заказам»). Возвраты и отмены, по которым был расход перевозчика, входят. Сверху - сверка: каждый доставленный заказ должен ехать одним из трёх способов (логистика OZON / услуги партнёров / наша перевозка).</div></div></div><div id="logi-chk" class="kt-note" style="margin:2px 0 8px"></div><div id="logi-recon" class="kt-note" style="margin:2px 0 8px;padding:8px 12px;border-left:3px solid #34D399;background:rgba(52,211,153,.08)"></div><div id="logi-sum" class="kt-note" style="margin:2px 0 8px"></div><div class="kt-scroll logi-vscroll"><table class="kt-table" id="logi-t"><thead><tr><th>Город назначения</th><th class="r">Отправок</th><th class="r" title="Сколько за доставку заплатил покупатель - по данным OZON, по номеру заказа">Доход с покупателя (OZON)</th><th class="r" title="Наш счёт перевозчика за отправку (ведомость)">Расход перевозчика</th><th class="r" title="Доход с покупателя по OZON − расход перевозчика. Минус = возим в убыток">Нетто</th><th class="r" title="Средний расход на отправку по городу">Ср. расход/отпр.</th></tr></thead><tbody id="logi"></tbody></table></div></section>` : ``}
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}#ordan-t th,#ordan-t td,#ordsku-t th,#ordsku-t td{white-space:nowrap}.ord-cat{cursor:pointer;font-weight:700}.ord-cat:hover{background:rgba(255,255,255,.03)}.ord-row td:first-child{padding-left:24px;color:var(--ink-2)}#logi-t th,#logi-t td{white-space:nowrap}.logi-loss td{background:rgba(255,90,95,.07)}.logi-vscroll{max-height:min(70vh,560px);overflow:auto}#logi-t thead th{position:sticky;top:0;z-index:2;background:var(--bg-card);box-shadow:inset 0 -1px 0 var(--bg-soft)}.an-vscroll{max-height:min(74vh,640px);overflow:auto}.an-htop{overflow-x:auto;overflow-y:hidden}.an-htop>div{height:1px}#skuan-t,#ordan-t,#ordsku-t{font-size:11px}#skuan-t th,#skuan-t td,#ordan-t th,#ordan-t td,#ordsku-t th,#ordsku-t td{padding:5px 6px}#skuan-t thead th,#ordan-t thead th,#ordsku-t thead th{position:sticky;top:0;z-index:2;background:var(--bg-card);box-shadow:inset 0 -1px 0 var(--bg-soft)}</style>`;
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
@@ -3123,32 +3153,49 @@ function renderCityLogistics(cur){
   }
   // --- Города: доход с покупателя vs наш расход перевозчика (ведомость, закрытые месяцы) ---
   var el=document.getElementById('logi');if(!el)return;
-  var by={};
+  var by={};var wN=0,wShip=0;
   for(var j=0;j<AN_DELIV_CITYPL.length;j++){var r=AN_DELIV_CITYPL[j];if(r[0]<from||r[0]>to)continue;
-    var c=r[1];var b=by[c]||(by[c]={ship:0,deliv:0,n:0});b.ship+=r[2];b.deliv+=r[3];b.n+=r[4];}
-  var rows=[];var tShip=0,tDeliv=0,tN=0,nLoss=0,lossNet=0;
-  for(var c in by){var b=by[c];var net=b.deliv-b.ship;rows.push({c:c,ship:b.ship,deliv:b.deliv,n:b.n,net:net});
-    tShip+=b.ship;tDeliv+=b.deliv;tN+=b.n;if(net<0){nLoss++;lossNet+=net;}}
+    // Иван 29.09: отправки, которых ещё нет в OZON (не начислены), в логистику не добавлять, пока не
+    // появится начисление (иначе город ложно убыточный: расход есть, доход 0). Только счёт в шапке.
+    if(r[6]){wN+=r[4];wShip+=r[2];continue;}
+    var c=r[1];var b=by[c]||(by[c]={ship:0,deliv:0,led:0,n:0,unk:0,cLed:0,cOz:0});b.ship+=r[2];b.n+=r[4];if(r[5]==null)b.unk+=r[4];else b.deliv+=r[5];
+    b.led+=(r[7]!=null?r[7]:r[3]);b.cOz+=(r[5]||0);}
+  // deliv - доход с покупателя по OZON (Иван 29.09, вариант А), led - «Стоимость доставки» ведомости (сравнение).
+  // unk - отправки без номеров заказа в файле (старая сборка): дохода OZON по ним нет, нетто не считаем.
+  var rows=[];var tShip=0,tDeliv=0,tLed=0,tCOz=0,tN=0,tUnk=0,nLoss=0,lossNet=0;
+  for(var c in by){var b=by[c];var net=b.unk?null:b.deliv-b.ship;rows.push({c:c,ship:b.ship,deliv:b.deliv,led:b.led,cOz:b.cOz,n:b.n,unk:b.unk,net:net});
+    tShip+=b.ship;tDeliv+=b.deliv;tLed+=b.led;tCOz+=b.cOz;tN+=b.n;tUnk+=b.unk;if(net!=null&&net<0){nLoss++;lossNet+=net;}}
   // убыточные (нетто<0) сверху, худшие первыми; затем прибыльные по убыванию нетто
-  rows.sort(function(a,b){if((a.net<0)!==(b.net<0))return a.net<0?-1:1;return a.net-b.net;});
+  rows.sort(function(a,b){var x=a.net==null?0:a.net,y=b.net==null?0:b.net;if((x<0)!==(y<0))return x<0?-1:1;return x-y;});
   var sum=document.getElementById('logi-sum');
   if(sum){
     if(!tN){sum.innerHTML='<span style="color:var(--ink-3)">За выбранный период отправок нашей перевозки в ведомости нет (текущий месяц ещё не закрыт, либо период вне закрытых месяцев март-август).</span>';}
+    else if(tUnk){sum.innerHTML='<span style="color:#FF5A5F">В файле ведомости нет номеров заказов по '+fmtRu(tUnk)+' отправкам - доход с покупателя из OZON к ним не привязать, нетто не считается. Нужна пересборка ведомости (tools/delivery/build_delivery_sku_daily.py).</span>';}
     else{var tNet=tDeliv-tShip;
       sum.innerHTML='Городов '+fmtRu(rows.length)+', из них <b style="color:#FF5A5F">убыточных '+fmtRu(nLoss)+'</b> (нетто '+fmtRu(Math.round(lossNet))+' ₽). '
-        +'Доход с покупателя '+fmtRu(Math.round(tDeliv))+' − расход перевозчика '+fmtRu(Math.round(tShip))+' = <b style="color:'+(tNet>=0?'#34D399':'#FF5A5F')+'">нетто '+fmtRu(Math.round(tNet))+' ₽</b> по '+fmtRu(tN)+' отправкам.';}
+        +'Доход с покупателя по OZON '+fmtRu(Math.round(tDeliv))+' − расход перевозчика '+fmtRu(Math.round(tShip))+' = <b style="color:'+(tNet>=0?'#34D399':'#FF5A5F')+'">нетто '+fmtRu(Math.round(tNet))+' ₽</b> по '+fmtRu(tN)+' отправкам.';}
+  }
+  // Проверка для себя (Иван 29.09: без столбца, итог в шапку): «Стоимость доставки» ведомости против
+  // дохода OZON по городам. Сходится (до 1 ₽) - зелёная строка; нет - сколько городов и на сколько.
+  var chk=document.getElementById('logi-chk');
+  if(chk){
+    if(!tN||tUnk){chk.innerHTML='';}
+    else{var bad=0,badSum=0;rows.forEach(function(x){var d=Math.round(x.led)-Math.round(x.cOz);if(Math.abs(d)>1){bad++;badSum+=d;}});
+      var wait=wN?' Ещё не начислено OZON: '+fmtRu(wN)+' отпр., расход перевозчика '+fmtRu(Math.round(wShip))+' ₽ - в таблицу не входят, появятся после начисления.':'';
+      chk.innerHTML=(bad?'<span style="color:#E5B567">Проверка «Оплата доставки» ведомости с OZON: расходится в '+fmtRu(bad)+' гор. из '+fmtRu(rows.length)+', ведомость '+fmtRu(Math.round(tLed))+' ₽ против OZON '+fmtRu(Math.round(tCOz))+' ₽ (разница '+fmtRu(Math.round(badSum))+' ₽). В расчёте - OZON.</span>'
+        :'<span style="color:#34D399">Проверка «Оплата доставки» ведомости с OZON: сходится ('+fmtRu(Math.round(tCOz))+' ₽).</span>')+(wait?'<span style="color:var(--ink-3)">'+wait+'</span>':'');}
   }
   if(!rows.length){el.innerHTML='<tr><td colspan="6" class="kt-note">нет данных за период</td></tr>';return;}
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
-  var P=function(v){var c=v<0?'var(--dn)':(v>0?'var(--up)':'');return '<td class="r"'+(c?' style="color:'+c+'"':'')+'><b>'+(v?fmtRu(Math.round(v)):'—')+'</b></td>';};
-  // Доход с покупателя: 0 показываем ЯВНЫМ нулём (а не «—»), это не пропуск данных, а бесплатная для
-  // клиента доставка - мы везём за свой счёт (проверено: все такие отправки со статусом «Доставлен»,
-  // не возвраты). Подсвечиваем янтарным, чтобы убыток читался.
-  var Rdoc=function(v){v=Math.round(v||0);if(v>0)return '<td class="r">'+fmtRu(v)+'</td>';return '<td class="r" style="color:#E5B567" title="Покупатель не платил за доставку - бесплатная для клиента (везём за свой счёт)">0 <span style="font-size:10px;color:var(--ink-3)">беспл.</span></td>';};
+  var P=function(v){if(v==null)return '<td class="r" style="color:var(--ink-3)">—</td>';var c=v<0?'var(--dn)':(v>0?'var(--up)':'');return '<td class="r"'+(c?' style="color:'+c+'"':'')+'><b>'+(v?fmtRu(Math.round(v)):'—')+'</b></td>';};
+  // Доход с покупателя - из OZON. «беспл.» только когда OZON показывает 0: покупатель за доставку не
+  // платил. Раньше 0 брался из пустой ячейки ведомости и тоже читался как «беспл.», хотя OZON деньги
+  // получил (40230562-0725-1, 80885520-0398-1). Нет номеров заказа в файле - «—».
+  var Rdoc=function(v,unk){if(unk)return '<td class="r" style="color:var(--ink-3)" title="В файле ведомости нет номеров заказов - доход из OZON не привязать">—</td>';v=Math.round(v||0);if(v>0)return '<td class="r">'+fmtRu(v)+'</td>';return '<td class="r" style="color:#E5B567" title="По данным OZON покупатель не платил за доставку - везём за свой счёт">0 <span style="font-size:10px;color:var(--ink-3)">беспл.</span></td>';};
   var html='';
-  var totNet=tDeliv-tShip;
-  html+='<tr style="font-weight:800;background:rgba(34,211,238,.14);border-bottom:2px solid #22D3EE"><td style="color:#22D3EE">ИТОГО</td>'+R(tN)+Rdoc(tDeliv)+R(tShip)+P(totNet)+R(tN?tShip/tN:0)+'</tr>';
-  rows.forEach(function(x){html+='<tr'+(x.net<0?' class="logi-loss"':'')+'><td title="'+String(x.c).replace(/"/g,'&quot;')+'">'+x.c+'</td>'+R(x.n)+Rdoc(x.deliv)+R(x.ship)+P(x.net)+R(x.n?x.ship/x.n:0)+'</tr>';});
+  var totNet=tUnk?null:tDeliv-tShip;
+  html+='<tr style="font-weight:800;background:rgba(34,211,238,.14);border-bottom:2px solid #22D3EE"><td style="color:#22D3EE">ИТОГО</td>'+R(tN)+Rdoc(tDeliv,tUnk)+R(tShip)+P(totNet)+R(tN?tShip/tN:0)+'</tr>';
+  rows.forEach(function(x){html+='<tr'+(x.net!=null&&x.net<0?' class="logi-loss"':'')+'><td title="'+String(x.c).replace(/"/g,'&quot;')+'">'+x.c+'</td>'+R(x.n)+Rdoc(x.deliv,x.unk)+R(x.ship)+P(x.net)+R(x.n?x.ship/x.n:0)+'</tr>';});
   el.innerHTML=html;
 }
 // === блок «План на месяц и выполнение» (независим от верхнего фильтра, свой выбор месяца) ===

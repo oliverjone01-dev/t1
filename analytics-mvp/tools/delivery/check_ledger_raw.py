@@ -10,14 +10,15 @@
 import glob, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ledger_money import ship_and_deliv  # noqa: E402
-import build_delivery_sku_daily as B  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 files = sorted(glob.glob(os.path.join(ROOT, "tools", "delivery", "raw", "*.xlsx")))
 if not files:
     print("check_ledger_raw: сырья нет - пропуск")
     sys.exit(0)
+# openpyxl и сборщик импортируются только при наличии сырья: в CI их нет (и не нужно).
 import openpyxl  # noqa: E402
+import build_delivery_sku_daily as B  # noqa: E402
 
 seen, total, zero_text = set(), 0.0, []
 for f in files:

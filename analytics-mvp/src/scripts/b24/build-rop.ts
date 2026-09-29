@@ -9,6 +9,10 @@
 // Запуск: npx tsx src/scripts/b24/build-rop.ts (после fetch-rop.ts).
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs";
+// Контакты клиентов (телефоны, почты, карты) в снимок не попадают (ЯДИ 29.09). «source» не
+// маскируем: там НАШИ номера и почты, по ним считаются каналы; фото менеджеров - ссылки.
+const MASK_SKIP = new Set(["source", "managerPhotos"]);
 
 const TPL = "rop/rop-command.template.html";
 const SRC = "rop/data/rop.json";
@@ -17,7 +21,7 @@ const PLAN_ID = process.env.PLAN_SHEET_ID || "14jm7EvJcZSMvmWe2leRG8hHfIvpCLDzY"
 const OUT = "public/rop-command.html";
 const TODAY = process.env.ROP_TODAY || new Date().toISOString().slice(0, 10);
 
-const rop = JSON.parse(readFileSync(SRC, "utf-8"));
+const rop = maskDeep(JSON.parse(readFileSync(SRC, "utf-8")), MASK_SKIP);
 const tpl = readFileSync(TPL, "utf-8");
 // План - необязателен: если файла нет, дашборд откатывается к ручному полю «План выручки/мес».
 let plan: any = null;

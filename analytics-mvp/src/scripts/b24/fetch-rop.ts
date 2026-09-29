@@ -9,6 +9,10 @@
 // Опц.: ROP_DATE_FROM=YYYY-MM-DD ограничивает по дате создания (пусто = всё).
 
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs";
+// Контакты клиентов (телефоны, почты, карты) в снимок не попадают (ЯДИ 29.09). «source» не
+// маскируем: там НАШИ номера и почты, по ним считаются каналы; фото менеджеров - ссылки.
+const MASK_SKIP = new Set(["source", "managerPhotos"]);
 
 const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL в окружении"); process.exit(1); }
@@ -530,7 +534,7 @@ async function main() {
       channelMix: base.channelMix || {},
     };
     mkdirSync("rop/data", { recursive: true });
-    writeFileSync(OUT, JSON.stringify(outLight));
+    writeFileSync(OUT, JSON.stringify(maskDeep(outLight, MASK_SKIP)));
     console.log(`LIGHT готово: сделок ${deals.length} (обогащение с базы: ${carried}), лидов ${leads.length}; касания/Wazzup/канал-микс/СП перенесены из базы -> ${OUT}`);
     return;
   }
@@ -639,7 +643,7 @@ async function main() {
     channelMix: channels.byMgr,
   };
   mkdirSync("rop/data", { recursive: true });
-  writeFileSync(OUT, JSON.stringify(out));
+  writeFileSync(OUT, JSON.stringify(maskDeep(out, MASK_SKIP)));
   console.log(`Готово: сделок ${deals.length}, лидов ${leads.length} -> ${OUT}`);
 }
 

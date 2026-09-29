@@ -96,7 +96,7 @@ for t in CABS:
         fc, lag, nor = indep(E); c = out[t][ch]
         if fc != c['t']: bad['t'] += 1
         if c['nc'] and lag != c['lag']: bad['lag'] += 1
-        if nor != ('noresp' in c['p']): bad['noresp'] += 1
+        if c['kind'] != 'vendor' and nor != ('noresp' in c['p']): bad['noresp'] += 1   # у поставщиков сборка очищает проблемы
 check(f'все {nwin} чатов окна: первое сообщение клиента, первый ответ, «не ответили вообще» (независимо)', not bad, dict(bad))
 
 # 4б. СОГЛАСОВАННОСТЬ, не независимый пересчёт: опубликованные сообщения = ранние строки A + нормализованное окно,

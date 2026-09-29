@@ -81,16 +81,16 @@ def money(x):
     return total
 
 
-def layout_of(r, prev):
+def layout_of(r, prev, hdr_swapped=False):
     """Раскладка строки: (раскладка, столбец нашего расхода, столбец оплаты клиента, пометка)."""
     c13, c14, c15 = kind(r[13]), kind(r[14]), kind(r[15])
     if c13 == "buyer" and c15 == "num":           # «4500\n-» | - | расход в «С/С»
         return "shift2", 15, 13, "расход стоит в столбце «С/С», строка сдвинута на два столбца"
     if c15 == "buyer":                            # FALSE | расход | «4500\n-»
         return "shift1", 14, 15, "FALSE в «Стоимости отправки», расход взят из соседнего столбца"
-    if c15 == "flag" or "rub" in (c13, c14):
+    if c15 == "flag" or (hdr_swapped and "rub" in (c13, c14)):
         return "swapped", 14, 13, ""
-    if c14 == "buyer":
+    if c14 == "buyer" or "rub" in (c13, c14):
         return "main", 13, 14, ""
     # Без признаков: раскладка предыдущей строки (сдвиги - свойство одной строки, не наследуются).
     if prev == "swapped":
@@ -109,13 +109,15 @@ def main(path, sheet):
     rows = list(ws.iter_rows(values_only=True))
     out, seen, errors = [], set(), []
     layout = "main"
+    hdr_swapped = False      # под повторённым заголовком «Оплата от клиента | Стоимость доставки»
     stat = collections.Counter()
     for i, r in enumerate(rows[1:], 2):
         r = list(r) + [None] * (16 - len(r))
         if s(r[0]) == "Площадка":          # повтор заголовка внутри листа (сентябрьская вставка)
-            layout = "swapped"
+            hdr_swapped = s(r[13]).startswith("Оплата от клиента")
+            layout = "swapped" if hdr_swapped else "main"
             continue
-        layout, si, bi, note = layout_of(r, layout)
+        layout, si, bi, note = layout_of(r, layout, hdr_swapped)
         if not (r[0] and str(r[0]).startswith("Яндекс")):
             continue
         order = s(r[1])

@@ -123,19 +123,31 @@ def num(x):
         return 0.0
 
 
-# Телефон или длинный номер в ячейке «Адрес»: строка со сдвигом столбцов, там контакты покупателя.
-# Персональные данные в репозиторий и на страницу не идут никогда (ведомость 29.09, 55712580-0145-1).
+# Правило (Иван 29.09): в «Адресе» строки со сдвигом столбцов оказываются контакты покупателя, а адрес
+# стоит в соседней ячейке - берём его оттуда. Телефон в «город» не попадает никогда: репозиторий и
+# страница публичные (55712580-0145-1). Город = первые два сегмента адреса через запятую.
 PHONE = re.compile(r"\+7|\d[\d\s()\-]{8,}\d")
 
 
-def city_of(addr):
-    # Адрес вида «Регион, город/район, улица...». Берём первые два сегмента как пункт назначения.
+def _city2(v):
+    parts = [p.strip() for p in str(v or "").split(",") if p.strip()]
+    if len(parts) < 2 or any(PHONE.search(p) for p in parts[:2]):
+        return None
+    return ", ".join(parts[:2])
+
+
+def city_of(addr, left=None, right=None):
     if not addr:
         return "—"
-    if PHONE.search(str(addr)):
-        return "адрес не распознан"
     parts = [p.strip() for p in str(addr).split(",") if p.strip()]
-    return ", ".join(parts[:2]) if parts else "—"
+    if not any(PHONE.search(p) for p in parts[:2]):
+        return ", ".join(parts[:2]) if parts else "—"
+    # в «Адресе» контакты: адрес в соседней ячейке (сдвиг влево или вправо на столбец)
+    for v in (left, right):
+        c = _city2(v)
+        if c:
+            return c
+    return "адрес не распознан"
 
 
 def main():
@@ -196,7 +208,7 @@ def main():
                 e = events.get(key)
                 if e is None:
                     e = events[key] = {"ship": ship, "deliv": dv0 or 0.0,
-                                       "date": d, "arts": [], "com": [], "city": city_of(r[ci["Адрес"]]),
+                                       "date": d, "arts": [], "com": [], "city": city_of(r[ci["Адрес"]], r[ci["Адрес"] - 1], r[ci["Адрес"] + 1]),
                                        "st": norm(r[ci["Статус"]])}
                 for art in clean_arts(r[ci["Артикул"]]):
                     if art not in e["arts"]:

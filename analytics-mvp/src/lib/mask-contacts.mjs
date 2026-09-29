@@ -17,8 +17,21 @@ const isPhoneDigits = (d, plus) =>
   (d.length === 10 && d[0] === '9') ||
   (plus && d.length >= 11 && d.length <= 13);
 
+// Ссылки не трогаем целиком: в них длинные ID (2ГИС, фото Битрикса), похожие на номер или карту.
+const URL_RE = /(?:https?:\/\/|www\.)[^\s"'<>]+/g;
+
 export function maskText(s) {
   if (typeof s !== 'string' || s.length < 6) return s;
+  if (s.includes('http') || s.includes('www.')) {
+    let res = '', last = 0;
+    for (const m of s.matchAll(URL_RE)) { res += maskPlain(s.slice(last, m.index)) + m[0]; last = m.index + m[0].length; }
+    return res + maskPlain(s.slice(last));
+  }
+  return maskPlain(s);
+}
+
+function maskPlain(s) {
+  if (!s || s.length < 6) return s;
   let out = s;
   if (out.includes('@')) out = out.replace(EMAIL, (m, local, dom) => (local.length <= 2 ? local[0] : local.slice(0, 2)) + '****@' + dom);
   if (/\d/.test(out)) {

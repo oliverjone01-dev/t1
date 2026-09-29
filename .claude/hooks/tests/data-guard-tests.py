@@ -111,15 +111,16 @@ def main():
     sh(fx, "git", "add", "analytics-mvp")
     sh(fx, "git", *G, "commit", "-q", "-m", "numbers")
     case("gh pr merge без go: ask", "pre-bash", bash("gh pr merge 12 --squash"), is_ask)
-    case("git -C dir push origin main: ask", "pre-bash", bash(f"git -C {fx} push origin main"), is_ask)
+    case("git -C dir push origin HEAD:main: ask", "pre-bash", bash(f"git -C {fx} push origin HEAD:main"), is_ask)
+    case("git push origin main с рабочей ветки (шлёт локальный main без изменений): молчит", "pre-bash", bash("git push origin main"), silent)
     case("git push origin HEAD:main: ask", "pre-bash", bash("git push origin HEAD:main"), is_ask)
     for c in ("git push -u origin claude/main-fix", "git push -u origin claude/ozon-main-page", "git merge origin/main --no-ff",
               "git push -u origin work"):
         case(f"не слияние в main молчит: {c}", "pre-bash", bash(c), silent)
     case("DG_OVERRIDE при слиянии не снимает ask (A1b)", "pre-bash", bash('DG_OVERRIDE="мелочь" gh pr merge'), is_ask)
     case("DG_OVERRIDE со ссылкой на дату тоже ask (A1b)", "pre-bash", bash('DG_OVERRIDE="decisions.md#2026-09-29: срочно" gh pr merge'), is_ask)
-    for c in ("env X=1 git push origin main", "timeout 60 git push origin main", "command git push origin main",
-              "bash -c 'git push origin main'", "(git push origin main)", "sudo -E git push origin HEAD:main"):
+    for c in ("env X=1 git push origin HEAD:main", "timeout 60 git push origin HEAD:main", "command git push origin HEAD:main",
+              "bash -c 'git push origin HEAD:main'", "(git push origin HEAD:main)", "sudo -E git push origin HEAD:main"):
         case(f"обёртка не прячет push в main: {c}", "pre-bash", bash(c), is_ask)
     case("сборка на рабочей ветке молчит", "pre-bash", bash("timeout 600 npx tsx src/scripts/build-katya.ts"), silent)
     # PR по номеру: голова PR из origin, а не локальный HEAD (N3)
@@ -185,6 +186,33 @@ def main():
     sh(fx, "git", "add", "analytics-mvp/data-ym/svod.json")
     case("снимок в коммите рабочей ветки: предупреждение", "pre-bash", bash("git commit -m data"), lambda o: "снимки" in hso(o).get("additionalContext", ""))
     case("workflow на рабочей ветке: предупреждение", "pre-bash", bash("gh workflow run ym-snapshots.yml --ref docs"), lambda o: "self-merge" in hso(o).get("additionalContext", ""))
+
+    # составные команды на main и слияние чужого содержимого (R1, R3)
+    sh(fx, "git", "push", "-q", "origin", "work:work")
+    after_go = sh(fx, "git", "rev-parse", "work")
+    sh(fx, "git", "checkout", "-q", "main")
+    os.makedirs(os.path.join(fx, "analytics-mvp/src"), exist_ok=True)
+    open(os.path.join(fx, "analytics-mvp/src/metric.ts"), "w").write("export const m = 1;\n")
+    sh(fx, "git", "add", "analytics-mvp/src/metric.ts")
+    sh(fx, "git", *G, "commit", "-q", "-m", "metric on main")
+    sh(fx, "git", "push", "-q", "origin", "main")
+    sh(fx, "git", "fetch", "-q", "origin")
+    open(os.path.join(fx, "analytics-mvp/src/metric.ts"), "a").write("export const n = 2;\n")
+    for c in ("git add -A && git commit -m x && git push origin main", "git commit -am x && git push origin main",
+              "git commit -am x && git push"):
+        case(f"составная команда на main с цифрами: ask (R1): {c}", "pre-bash", bash(c), is_ask)
+    sh(fx, "git", "checkout", "-q", "--", "analytics-mvp/src/metric.ts")
+    for c in ("git merge work && git push origin main", f"git cherry-pick {after_go} && git push origin main", "git merge work"):
+        case(f"слияние ветки с цифрами в main: ask (R1): {c}", "pre-bash", bash(c), is_ask)
+    case("git pull на main и push без своих изменений: молчит", "pre-bash", bash("git pull --ff-only && git push origin main"), silent)
+    sh(fx, "git", "checkout", "-q", "docs")
+    for c in ("git push origin work:main", "gh pr merge work", "gh pr merge https://github.com/o/r/pull/45", "gh -R o/r pr merge 45"):
+        case(f"слияние чужого содержимого с другой ветки: ask (R3): {c}", "pre-bash", bash(c), is_ask)
+    h45 = sh(fx, sys.executable, os.path.join(fx, ".claude/skills/data-guard/scripts/audit_hash.py"), "--rev", after_go)
+    fut = dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=1)
+    tr({"ts": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "event": "audit", "agent": "feniks", "verdict": "return", "audited_hash": h45})
+    tr({"ts": fut.isoformat(timespec="seconds"), "event": "audit", "agent": "feniks", "verdict": "go", "audited_hash": h45})
+    case("go с датой из будущего не перекрывает return (R6)", "pre-mcp-merge", {"tool_input": {"pullNumber": 45}}, is_ask)
 
     # Stop
     case("stop: «сошлось» с деньгами без двух источников", "stop", {"session_id": "s2", "last_assistant_message": "Готово, выручка сошлась, 1 234 567 ₽."},

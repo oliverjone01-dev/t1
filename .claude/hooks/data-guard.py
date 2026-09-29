@@ -95,24 +95,28 @@ def log_override(kind, reason, session_id):
         pass
 
 
-def content_hash(rev="HEAD"):
+def content_hash(rev="HEAD", worktree=False):
     try:
         sys.path.insert(0, os.path.join(SKILL, "scripts"))
         import audit_hash  # noqa: E402
-        return audit_hash.content_hash(False, cwd=ROOT, rev=rev)
+        return audit_hash.content_hash(worktree, cwd=ROOT, rev=rev)
     except Exception:
         return None
 
 
-def feniks_go_for(rev, max_age_h):
+def feniks_go_for(rev, max_age_h, worktree=False):
     """Последний вердикт ФЕНИКСА (строки event: audit и subagent_stop) с audited_hash = хешу изменений rev,
     не старше max_age_h часов. go только если последний вердикт на этот хеш = go."""
-    cur = content_hash(rev)
+    cur = content_hash(rev, worktree)
     if not cur:
         return False
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=max_age_h)
     last = None
-    for f in sorted(glob.glob(os.path.join(ROOT, "traces", "*", "agents.jsonl")))[-5:]:
+    now = dt.datetime.now(dt.timezone.utc)
+    today = now.strftime("%Y-%m-%d")
+    dirs = [f for f in sorted(glob.glob(os.path.join(ROOT, "traces", "*", "agents.jsonl")))
+            if os.path.basename(os.path.dirname(f)) <= today][-5:]  # каталоги с будущей датой не вытесняют настоящие
+    for f in dirs:
         try:
             lines = open(f, encoding="utf-8").read().splitlines()
         except Exception:
@@ -123,6 +127,8 @@ def feniks_go_for(rev, max_age_h):
                 ts = dt.datetime.fromisoformat(str(r.get("ts")).replace("Z", "+00:00"))
             except Exception:
                 continue
+            if ts > now + dt.timedelta(minutes=5):
+                continue  # строка из будущего не перекрывает поздний return
             if r.get("agent") == "feniks" and r.get("audited_hash") == cur and r.get("verdict") in ("go", "return", "veto") and ts >= since:
                 if last is None or ts >= last[0]:
                     last = (ts, r.get("verdict"))
@@ -134,12 +140,32 @@ def pr_head(num):
     if not num:
         return "HEAD"
     try:
-        p = subprocess.run(["git", "-C", ROOT, "fetch", "-q", "origin", f"pull/{num}/head"], capture_output=True, text=True, timeout=60)
+        p = subprocess.run(["git", "-C", ROOT, "fetch", "-q", "origin", f"pull/{num}/head"], capture_output=True, text=True, timeout=30)
         if p.returncode:
             return None
         return git("rev-parse", "FETCH_HEAD") or None
     except Exception:
         return None
+
+
+def branch_head(name):
+    """origin/<ветка> после fetch. None, если не удалось."""
+    try:
+        p = subprocess.run(["git", "-C", ROOT, "fetch", "-q", "origin", name], capture_output=True, text=True, timeout=30)
+        if p.returncode:
+            return None
+        return git("rev-parse", "FETCH_HEAD") or None
+    except Exception:
+        return None
+
+
+def worktree_changes():
+    """Пути, которые окажутся в main после add/commit всего рабочего дерева: diff origin/main..дерево + untracked."""
+    base = git("merge-base", "origin/main", "HEAD")
+    if not base:
+        return None
+    ch = git("diff", "--name-only", base).splitlines() + git("ls-files", "--others", "--exclude-standard").splitlines()
+    return [p for p in ch if p]
 
 
 def touches_numbers(c, rev="HEAD"):
@@ -227,31 +253,75 @@ def is_main_ref(ref):
     return re.fullmatch(r"(\+)?((HEAD|[\w./-]+):)?(refs/heads/)?main", ref) is not None
 
 
-def merge_intent(cmd, cur_branch):
-    """-> (описание, номер PR или None) либо None."""
+STATE_OPS = {"add", "commit", "merge", "cherry-pick", "rebase", "am", "pull", "revert", "reset", "checkout",
+             "switch", "stash", "apply", "restore", "rm", "mv"}
+REF_OPS = {"merge", "cherry-pick", "rebase", "pull"}
+
+
+def gh_sub(toks):
+    """['gh','-R','o/r','pr','merge','50'] -> ['pr','merge','50']"""
+    i = 1
+    while i < len(toks) and toks[i].startswith("-"):
+        i += 2 if toks[i] in ("-R", "--repo") else 1
+    return toks[i:]
+
+
+def merge_targets(cmd, cur_branch):
+    """Что команда сольёт в main. Список целей: {what, pr, branch, rev, prospective, refs}.
+    prospective: перед push в той же команде меняется состояние (add/commit/merge/...), поэтому
+    оцениваем рабочее дерево и сливаемые refs, а не HEAD до выполнения."""
+    targets, state_changed, refs = [], False, []
     for t in segments(cmd):
         base = os.path.basename(t[0])
-        if base == "gh" and len(t) >= 3 and t[1] == "pr" and t[2] == "merge":
-            num = next((a for a in t[3:] if re.fullmatch(r"#?\d+", a)), None)
-            return "gh pr merge", (num.lstrip("#") if num else None)
-        if base == "gh" and len(t) >= 2 and t[1] == "api":
-            m = re.search(r"pulls/(\d+)/merge\b", " ".join(t))
-            if m:
-                return "gh api merge", m.group(1)
+        if base == "gh":
+            rest = gh_sub(t)
+            if len(rest) >= 2 and rest[0] == "pr" and rest[1] == "merge":
+                pos = [a for a in rest[2:] if not a.startswith("-")]
+                arg = pos[0] if pos else None
+                m = re.search(r"/pull/(\d+)", arg or "")
+                if arg and (re.fullmatch(r"#?\d+", arg) or m):
+                    targets.append({"what": "gh pr merge", "pr": (m.group(1) if m else arg.lstrip("#"))})
+                elif arg:
+                    targets.append({"what": "gh pr merge", "branch": arg})
+                else:
+                    targets.append({"what": "gh pr merge", "rev": "HEAD", "prospective": state_changed, "refs": list(refs)})
+                continue
+            if rest and rest[0] == "api":
+                m = re.search(r"pulls/(\d+)/merge\b", " ".join(rest))
+                if m:
+                    targets.append({"what": "gh api merge", "pr": m.group(1)})
+                continue
         sub, args = git_sub(t)
+        if not sub:
+            continue
+        pos = [a for a in args if not a.startswith("-")]
         if sub == "push":
-            pos = [a for a in args if not a.startswith("-")]
-            refs = pos[1:]
-            if any(is_main_ref(r) for r in refs):
-                return "git push в main", None
-            if cur_branch == "main" and (not refs or any(r in ("HEAD", "@") or r.startswith("HEAD:") and is_main_ref(r) for r in refs)):
-                return "git push в main", None
-        if sub == "merge" and cur_branch == "main" and not any(a in ("--abort", "--continue", "--quit") for a in args):
-            pos = [a for a in args if not a.startswith("-")]
-            if pos and all(re.fullmatch(r"(origin/)?main", p) for p in pos):
-                continue  # обновление локального main из origin/main, не слияние работы
-            return "git merge в main", None
-    return None
+            rs = pos[1:]
+            for r in rs:
+                if is_main_ref(r):
+                    src = (r.split(":", 1)[0] if ":" in r else r).lstrip("+")
+                    src = re.sub(r"^refs/heads/", "", src)
+                    if src in ("HEAD", "@", "") or (src == "main" and cur_branch == "main"):
+                        targets.append({"what": "git push в main", "rev": "HEAD", "prospective": state_changed, "refs": list(refs)})
+                    else:
+                        targets.append({"what": "git push в main", "rev": src})
+                    break
+            else:
+                if cur_branch == "main" and (not rs or any(r in ("HEAD", "@") for r in rs)):
+                    targets.append({"what": "git push в main", "rev": "HEAD", "prospective": state_changed, "refs": list(refs)})
+            continue
+        if sub in STATE_OPS:
+            if sub in REF_OPS:
+                if sub == "pull":
+                    refs.extend(f"{pos[0]}/{p}" for p in pos[1:]) if len(pos) >= 2 else None
+                else:
+                    refs.extend(p for p in pos if not re.fullmatch(r"(origin/)?main", p))
+            if sub == "merge" and cur_branch == "main" and not any(a in ("--abort", "--continue", "--quit") for a in args):
+                work = [p for p in pos if not re.fullmatch(r"(origin/)?main", p)]
+                for w in work:
+                    targets.append({"what": "git merge в main", "rev": w})
+            state_changed = True
+    return targets
 
 
 def build_intent(cmd, c):
@@ -311,26 +381,44 @@ def prompt(ev, c):
     out({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": "\n".join(lines)[:2500]}})
 
 
-def merge_gate(c, what, reason, sid, pr=None):
-    """Гейт К11 для git/gh/MCP. Переопределение агентом не снимает запрос: решает человек в окне подтверждения.
-    Возвращает True, если что-то вывели."""
-    rev = pr_head(pr)
-    target = f"PR #{pr}" if pr else what
+def merge_gate(c, tgt, reason, sid):
+    """Гейт К11 для одной цели слияния. Переопределение агентом не снимает запрос. True, если вывели ask."""
+    maxh = c.get("feniks_go_max_age_hours", 72)
+    target = f"PR #{tgt['pr']}" if tgt.get("pr") else tgt["what"]
+    missing = []  # что меняет цифры и не покрыто go
+    if tgt.get("pr"):
+        rev = pr_head(tgt["pr"])
+    elif tgt.get("branch"):
+        rev = branch_head(tgt["branch"])
+        target = f"ветка {tgt['branch']}"
+    else:
+        rev = tgt.get("rev") or "HEAD"
     if rev is None:
-        ask(f"data-guard (К11): не удалось получить голову {target} для проверки go ФЕНИКСА. Продолжить?",
-            f"data-guard К11: git fetch origin pull/{pr}/head не удался, проверить go на содержимое PR нельзя. Спроси Ивана или проверь вручную.")
+        ask(f"data-guard (К11): не удалось получить содержимое {target} для проверки go ФЕНИКСА. Продолжить?",
+            "data-guard К11: fetch головы PR или ветки не удался, проверить go на сливаемые изменения нельзя. Спроси Ивана или проверь вручную.")
         return True
-    if not touches_numbers(c, rev):
-        return False
-    if feniks_go_for(rev, c.get("feniks_go_max_age_hours", 72)):
+    if tgt.get("prospective"):
+        ch = worktree_changes()
+        if ch is None:
+            missing.append("рабочее дерево (не удалось определить изменения)")
+        elif any(matches_any(p, c.get("numbers_globs", [])) for p in ch) and not feniks_go_for("HEAD", maxh, worktree=True):
+            missing.append("изменения рабочего дерева и коммиты этой команды")
+        for r in tgt.get("refs", []):
+            if touches_numbers(c, r) and not feniks_go_for(r, maxh):
+                missing.append(f"сливаемый ref {r}")
+    else:
+        if touches_numbers(c, rev) and not feniks_go_for(rev, maxh):
+            missing.append(target)
+    if not missing:
         return False
     if reason:
         log_override("merge_without_go", reason, sid)
-    ask(f"data-guard (К11): {target} меняет файлы с цифрами, а go ФЕНИКСА на эти изменения не найден."
+    ask(f"data-guard (К11): в main уходят изменения с цифрами без go ФЕНИКСА ({'; '.join(missing)})."
         + (f" Причина агента: {reason[:200]}." if reason else "") + " Слить без go?",
-        "data-guard К11: нужен go ФЕНИКСА на текущие изменения. Посчитай хеш `python3 -B .claude/skills/data-guard/scripts/audit_hash.py` "
-        "(для PR: `--rev <голова PR>`), передай ФЕНИКСУ; он пишет audited_hash в строку event: audit и строки `AUDITED: <хеш>`, `VERDICT: go` в отчёте. "
-        "После return нужен повторный аудит. Слияние без go решает только человек в окне подтверждения; DG_OVERRIDE лишь записывает причину.")
+        "data-guard К11: нужен go ФЕНИКСА на сливаемые изменения. Посчитай хеш `python3 -B .claude/skills/data-guard/scripts/audit_hash.py` "
+        "(до коммита `--worktree`, для PR или ветки `--rev <голова>`), передай ФЕНИКСУ; он пишет audited_hash в строку event: audit и строки `AUDITED: <хеш>`, `VERDICT: go`. "
+        "Составную команду (commit/merge и push в main) хук оценивает по итоговому содержимому. После return нужен повторный аудит. "
+        "Слияние без go решает только человек в окне подтверждения; DG_OVERRIDE лишь записывает причину.")
     return True
 
 
@@ -341,9 +429,9 @@ def pre_bash(ev, c):
     br = branch()
     notes = []
 
-    mi = merge_intent(cmd, br)
-    if mi and merge_gate(c, mi[0], reason, sid, mi[1]):
-        return
+    for tgt in merge_targets(cmd, br):
+        if merge_gate(c, tgt, reason, sid):
+            return
 
     b = build_intent(cmd, c)
     if b and br == "main":
@@ -388,7 +476,7 @@ def pre_edit(ev, c):
 def pre_mcp_merge(ev, c):
     ti = ev.get("tool_input") or {}
     text = " ".join(str(ti.get(k, "")) for k in ("commit_title", "commit_message"))
-    merge_gate(c, "слияние через GitHub", override_reason(text), ev.get("session_id"), ti.get("pullNumber"))
+    merge_gate(c, {"what": "слияние через GitHub", "pr": ti.get("pullNumber")}, override_reason(text), ev.get("session_id"))
 
 
 def stop(ev, c):

@@ -60,7 +60,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" stop"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" stop",
+            "timeout": 30
           }
         ]
       }
@@ -89,7 +90,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" prompt"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" prompt",
+            "timeout": 30
           }
         ]
       }
@@ -138,7 +140,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-bash"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-bash",
+            "timeout": 90
           }
         ]
       },
@@ -147,7 +150,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-edit"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-edit",
+            "timeout": 90
           }
         ]
       },
@@ -156,7 +160,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-mcp-merge"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-mcp-merge",
+            "timeout": 90
           }
         ]
       }
@@ -189,7 +194,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" session-start"
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" session-start",
+            "timeout": 30
           }
         ]
       }

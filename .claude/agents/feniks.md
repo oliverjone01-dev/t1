@@ -117,6 +117,9 @@ Max 2 раунда. Фиксация в `knowledge/episodes/YYYY-MM/disputes/`. 
 4. Строка трейса `event: audit` в `traces/YYYY-MM-DD/agents.jsonl` (`feniks_score`, `verdict`, `deliverable_ref`, `audited_hash`).
    `audited_hash` для артефакта в git (код, дашборд, скилл, хуки): посчитай сам `python3 -B .claude/skills/data-guard/scripts/audit_hash.py --rev <проверенный коммит>`
    (незакоммиченное: `--worktree`) и сверь с хешем из запроса. Не совпал - аудит относится к другому содержимому, скажи об этом.
+   Писать `audited_hash` можно только если аудит покрыл ВСЕ пути изменений ветки
+   (`git diff --name-only $(git merge-base origin/main <rev>) <rev>` минус traces/, knowledge/episodes/, knowledge/errors/, sessions/handoff/).
+   Узкий аудит (один файл, часть ветки) - поле не пиши, охват укажи в `note`: иначе go на часть откроет слияние всей ветки.
    Последние две строки отчёта всегда: `AUDITED: <хеш>` (если артефакт в git) и `VERDICT: <go|return|veto>`. По ним хук data-guard
    пускает слияние без запроса подтверждения (гейт К11); go без хеша слияние не открывает.
 5. Полный отчёт - `knowledge/episodes/YYYY-MM/feniks-audit-<slug>.md`.

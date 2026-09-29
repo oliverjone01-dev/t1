@@ -207,7 +207,7 @@ def main():
                 key = (no, d, round(ship, 2))
                 e = events.get(key)
                 if e is None:
-                    e = events[key] = {"ship": ship, "deliv": dv0 or 0.0,
+                    e = events[key] = {"ship": ship, "deliv": dv0 or 0.0, "order": no,
                                        "date": d, "arts": [], "com": [], "city": city_of(r[ci["Адрес"]], r[ci["Адрес"] - 1], r[ci["Адрес"] + 1]),
                                        "st": norm(r[ci["Статус"]])}
                 for art in clean_arts(r[ci["Артикул"]]):
@@ -224,7 +224,7 @@ def main():
 
     daily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (offer,d)->[ship,deliv,отправок]
     cities = collections.defaultdict(collections.Counter)     # offer-> Counter(city)
-    citydaily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (city,d)->[ship,deliv,отправок] (на уровне отправки)
+    citydaily = collections.defaultdict(lambda: [0.0, 0.0, 0, []])  # (city,d)->[ship,deliv,отправок,номера заказов]
     permon = collections.defaultdict(float)
     permon_deliv = collections.defaultdict(float)
     bystatus = collections.defaultdict(lambda: [0, 0.0])       # статус -> [отправок, сумма] (инфо)
@@ -255,6 +255,7 @@ def main():
         # город и перевозка - свойства отправки). Σ по городам сходится с permon (сверка ниже).
         cd = citydaily[(e["city"], d)]
         cd[0] += e["ship"]; cd[1] += e["deliv"]; cd[2] += 1
+        cd[3].append(e["order"])  # доход с покупателя страница берёт из OZON по номеру (Иван 29.09)
         permon[d[:7]] += e["ship"]
         permon_deliv[d[:7]] += e["deliv"]
         bystatus[e["st"] or "(пусто)"][0] += 1
@@ -274,8 +275,9 @@ def main():
     with open(OUT_CITY, "w", encoding="utf-8") as w:
         json.dump(city_out, w, ensure_ascii=False)
     # P&L перевозки по городу и дню (закрытые месяцы) - для блока «Логистика по городам».
-    cd_rows = [{"d": d, "city": city, "ship": round(sh, 2), "deliv": round(dl, 2), "n": n}
-               for (city, d), (sh, dl, n) in sorted(citydaily.items())]
+    # deliv - «Стоимость доставки» из ведомости, на странице только для сравнения с OZON.
+    cd_rows = [{"d": d, "city": city, "ship": round(sh, 2), "deliv": round(dl, 2), "n": n, "orders": sorted(od)}
+               for (city, d), (sh, dl, n, od) in sorted(citydaily.items())]
     with open(OUT_CITYDAILY, "w", encoding="utf-8") as w:
         for r in cd_rows:
             w.write(json.dumps(r, ensure_ascii=False) + "\n")

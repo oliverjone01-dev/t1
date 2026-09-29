@@ -10,6 +10,15 @@
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/p9-trigger-detector.sh"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/data-guard.py prompt"
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -50,6 +59,33 @@
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/feniks-bash-scope.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/data-guard.py pre-bash"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/data-guard.py pre-edit"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__github__merge_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/data-guard.py pre-mcp-merge"
+          }
+        ]
       }
     ],
     "SubagentStart": [
@@ -81,6 +117,26 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/approvals-state-monitor.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/data-guard.py stop"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/.claude/hooks/data-guard.py session-start"
           }
         ]
       }

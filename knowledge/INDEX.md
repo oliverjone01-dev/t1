@@ -9,6 +9,7 @@
 - `knowledge/facts.md` - реестр проверенных цифр: источник, тег, дата проверки
 - `knowledge/episodes/YYYY-MM/` - эпизоды: аудиты ФЕНИКСА, Council, диспуты (история, не переписывать)
 - `knowledge/semantic/` - устойчивые правила и определения метрик (ставки ЯМ, метрики диалогов, поиск заказа)
+- `knowledge/errors/registry.jsonl` - реестр прошлых ошибок работы с цифрами (скилл `data-guard`, pre-mortem и ретро); `knowledge/semantic/metrics/` - подписанные спеки метрик; `knowledge/semantic/probes/` - итоги проверки источников
 - `knowledge/reflexion/` - ежемесячные ретро системы (Protocol 15)
 - `knowledge/feniks/` - чек-лист аудита (25 чекпоинтов), калибровочные якоря, red-team пробы агента feniks
 - `knowledge/sales/` - карта полей Bitrix24 категории 49 и методика оценки менеджеров

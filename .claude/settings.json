@@ -54,6 +54,15 @@
             "command": "bash .claude/hooks/approvals-state-monitor.sh"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" stop"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -72,6 +81,15 @@
           {
             "type": "command",
             "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/context-meter.py\""
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" prompt"
           }
         ]
       }
@@ -114,6 +132,33 @@
             "command": "bash .claude/hooks/feniks-bash-scope.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-bash"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-edit"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__github__merge_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-mcp-merge"
+          }
+        ]
       }
     ],
     "SubagentStart": [
@@ -137,6 +182,41 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" session-start"
+          }
+        ]
+      }
     ]
+  },
+  "skillOverrides": {
+    "adapt": "name-only",
+    "animate": "name-only",
+    "arrange": "name-only",
+    "audit": "name-only",
+    "bolder": "name-only",
+    "clarify": "name-only",
+    "colorize": "name-only",
+    "critique": "name-only",
+    "delight": "name-only",
+    "distill": "name-only",
+    "extract": "name-only",
+    "harden": "name-only",
+    "normalize": "name-only",
+    "onboard": "name-only",
+    "optimize": "name-only",
+    "overdrive": "name-only",
+    "polish": "name-only",
+    "quieter": "name-only",
+    "typeset": "name-only",
+    "teach-impeccable": "name-only",
+    "remotion-best-practices": "name-only",
+    "frontend-design-reference": "name-only"
   }
 }

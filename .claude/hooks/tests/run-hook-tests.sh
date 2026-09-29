@@ -62,6 +62,9 @@ n=$((n+1)); cmd="$(python3 -c 'import json,sys; print(next(h["command"] for g in
 ( cd "$REPO" && printf '{}' | env -u CLAUDE_PROJECT_DIR bash -c "$cmd" >/dev/null 2>&1 ); rc=$?
 if [[ "$rc" == 0 ]]; then pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [context-meter] settings-empty-project-dir"; else fail=$((fail+1)); echo "FAIL [context-meter] settings-empty-project-dir -> rc=$rc"; fi
 
+# data-guard (скилл .claude/skills/data-guard): свои кейсы в data-guard-tests.py
+n=$((n+1)); if python3 "$HERE/data-guard-tests.py" >/dev/null 2>&1; then pass=$((pass+1)); [[ -n "$VERBOSE" ]] && echo "ok   [data-guard] data-guard-tests.py"; else fail=$((fail+1)); echo "FAIL [data-guard] data-guard-tests.py (запусти его с -v)"; fi
+
 rm -r "$FX"
 echo "hook tests: $pass/$n passed, $fail failed"
 [[ "$fail" -eq 0 ]]

@@ -3606,7 +3606,10 @@ function svodJs(svod: any): string {
   // Артикул отменённого заказа может не встретиться в строках свода ни разу: его ни разу не
   // доставили. Без этого прохода такой заказ в своде по заказам падал в «Без категории», хотя
   // категория у товара есть - в июле-августе так терялись три заказа на 12 890 ₽.
-  for (const m of svod.months as any[]) for (const r of (m.ship_lost_rows || []) as any[]) {
+  // Заказы в пути (fly_rows, inflight_rows) тоже идут строками в свод, но в rows их нет: без них
+  // артикулы, проданные только в текущем месяце, падали в «Без категории» мимо правила префикса
+  // (Катя 29.09: GGT-48-5-1-100-180, GGM-26-1 и ещё 9 в сентябре).
+  for (const m of svod.months as any[]) for (const r of [...(m.ship_lost_rows || []), ...(m.fly_rows || []), ...(m.inflight_rows || [])] as any[]) {
     if (!r.sku || cat[r.sku]) continue;
     nameOf[r.sku] = r.name || "";
     cat[r.sku] = taxOf(r.sku).category || autoTax(r.name || "").category || prefixCat(r.sku) || "Без категории";

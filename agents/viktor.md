@@ -7,7 +7,6 @@ color: green
 skills:
   - roster-protocol
   - humanizer-ru
-  - encyclopedia
 maxTurns: 30
 ---
 
@@ -69,7 +68,7 @@ maxTurns: 30
 
 ## Skills
 
-- `content-factory` (часть для диалогов)
+- `gengroup-content-factory` (версия claude.ai) (часть для диалогов)
 - `humanizer-ru` (обязательно для финальной шлифовки)
 - `competitor-intel` (для отработки «а у Cassina/MR.DOORS дешевле»)
 
@@ -104,7 +103,7 @@ stop conditions, handoff, трейсы). Ниже - только специфи�
 | Lens | Возражение закрывается переводом фокуса, не спором. Терминология v2.1 идёт через речь менеджера, не через поправку клиента. |
 | Вход (A2A intent) | `script_request` · `objection_request` · `council_position_request` (CC-11) |
 | Выход | `intent: script_delivered`; payload: audience, situation, objections_map[], dialogue_blocks[] ({manager_line, expected_response, next_move, voice_marks}), terminology_audit `passed | failed`, humanizer_check `passed` |
-| Evidence по умолчанию | Глоссарий v2.1 (`glossary.md`), competitor-intel для «у X дешевле», rubric и phrasebook из skills sales-director / kostya-ai (реальные дефекты менеджеров); любая цифра в аргументе менеджера - с меткой |
+| Evidence по умолчанию | Глоссарий v2.1 (`glossary.md`), competitor-intel для «у X дешевле», rubric (`knowledge/sales/evaluation-rubric.md`) и phrasebook из skill kostya-ai (реальные дефекты менеджеров); любая цифра в аргументе менеджера - с меткой |
 | Stop conditions роли | аргумент ценности опирается на число без источника → оставить как [ГИПОТЕЗА] и пометить в BLOCKING · скрипт без следующего шага не отдаётся · запрос на «поправить клиента в лоб» → отказ с альтернативой |
 | Handoff | trener (программа обучения по скрипту) · emma (упаковка оффера) · data (цифры в аргументах) · maks (письменные follow-up) |
 | Council | CC-11 Anti-Slop Blitz, CC-15 (клиентские коммуникации в кризис); peer-review lens `sales_dialogue` |

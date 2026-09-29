@@ -25,12 +25,27 @@ export function isRateLimit(e: unknown): boolean {
 // пересечение месячных окон. Строки без id (старые выгрузки до появления колонки) схлопываются по
 // составному ключу - это может съесть две буквально одинаковые проводки, поэтому такой путь только
 // запасной. Порядок входа задаёт приоритет: первым передавайте свежую выгрузку.
-export interface NettingLike { d: string; tx?: string; order?: string; sku?: string; type?: string; service?: string; amount: number; po?: string }
+//
+// ЖИВОЙ ФАКТ 28.09.2026 (сверка с отчётом об исполнении поручения за июль, кабинет 74986385): две
+// настоящие проводки «Отзывы за баллы» по −1 ₽ в один день по одному заказу схлопывались в одну,
+// и услуги расходились с документом на 1 ₽. Поэтому у одинаковых строк ВНУТРИ одной выгрузки есть
+// порядковый номер `n` (0, 1, ...; см. numberDuplicates). Соседние месячные выгрузки отдают ту же
+// пару с теми же номерами 0 и 1 - пересечение по-прежнему схлопывается, а настоящие двойники живут.
+export interface NettingLike { d: string; tx?: string; order?: string; sku?: string; type?: string; service?: string; amount: number; po?: string; n?: number }
+const nettingKey = (r: NettingLike) => `k:${r.d}|${r.order || ""}|${r.sku || ""}|${r.type || ""}|${r.service || ""}|${r.amount}|${r.po || ""}`;
+export function numberDuplicates<T extends NettingLike>(rows: T[]): T[] {
+  const cnt = new Map<string, number>();
+  return rows.map((r) => {
+    const k = nettingKey(r), i = cnt.get(k) || 0;
+    cnt.set(k, i + 1);
+    return i ? { ...r, n: i } : r;
+  });
+}
 export function dedupeNetting<T extends NettingLike>(rows: T[]): T[] {
   const seen = new Set<string>();
   const out: T[] = [];
   for (const r of rows) {
-    const k = r.tx ? `tx:${r.tx}` : `k:${r.d}|${r.order || ""}|${r.sku || ""}|${r.type || ""}|${r.service || ""}|${r.amount}|${r.po || ""}`;
+    const k = r.tx ? `tx:${r.tx}` : `${nettingKey(r)}|${r.n || 0}`;
     if (seen.has(k)) continue;
     seen.add(k); out.push(r);
   }

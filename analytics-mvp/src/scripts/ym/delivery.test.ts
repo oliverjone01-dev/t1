@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { parseDeliveryCsv, delivByOrder, classOf } from "./delivery-lib.js";
+import { parseDeliveryCsv, delivByOrder, classOf, withoutCancelled, resolveOrders, deliveryIssues } from "./delivery-lib.js";
 
 // Ведомость доставки - ручной лист. Иван 18.09.2026: «это тоже наши расходы, которые до этого не
 // учитывали» и «проверь чтобы не было задвоений и возможно по одному заказ возвраты, отмены,
@@ -106,5 +106,56 @@ describe("ведомость доставки: статусы", () => {
     const m = delivByOrder(parseDeliveryCsv("order,ship,status\nA,FALSE,Доставлен\n"));
     expect(m.get("A")!.known, "пустая строка выдана за «возили бесплатно»").toBe(false);
     expect(m.get("A")!.ship).toBe(0);
+  });
+});
+
+// Катя 28.09.2026: «расход по заказам в статусе Отменен не учитывай, исключай его».
+describe("ведомость: отменённые отправки и номера заказов с пояснением", () => {
+  it("строка «ОТМЕНЕН» в расчёт не идёт, возврат остаётся", () => {
+    const r = withoutCancelled(parseDeliveryCsv("order,status,ship\nA,ОТМЕНЕН,1000\nB,Вернули на склад,2000\nC,Доставлен,3000\n"));
+    expect(r.map((x) => x.order)).toEqual(["B", "C"]);
+  });
+  it("из ячейки с двумя номерами берётся тот, что есть в выгрузке", () => {
+    const r = resolveOrders(parseDeliveryCsv('order,ship\n"60811444291 60812411267 (новый номер)",3794.2\n59256208515/2,100\n'), new Set(["60812411267", "59256208515"]));
+    expect(r.map((x) => x.order)).toEqual(["60812411267", "59256208515"]);
+  });
+  it("из двух известных номеров берётся доставленный, а не отменённый", () => {
+    const r = resolveOrders(parseDeliveryCsv('order,ship\n"58695099523 59213615811 (новый номер, старый был отменён)",2947.52\n'),
+      new Set(["58695099523", "59213615811"]), new Set(["59213615811"]));
+    expect(r[0]!.order).toBe("59213615811");
+  });
+});
+
+// Катя 29.09.2026: суммы, записанные текстом, не должны молча становиться «нет данных»; сдвиг
+// столбцов учитывается; спорные строки видны на плашке. Разбор xlsx - в
+// tools/delivery/build_delivery_ym_csv.py, здесь - контракт CSV, который читает сборка.
+describe("ведомость доставки: правила 29.09.2026", () => {
+  it("не число в сумме - сборка падает с номером строки, а не читает как пусто", () => {
+    expect(() => parseDeliveryCsv("order,ship\n1,100\n2,3 932 руб\n")).toThrow(/строка 3/);
+    expect(parseDeliveryCsv("order,ship\n1,TRUE\n")[0]!.ship).toBeNull();
+  });
+
+  it("в CSV нет ни одной суммы, которую не прочитали (все заполненные ship - числа)", () => {
+    const filled = ROWS.filter((r) => r.ship != null);
+    expect(filled.length).toBeGreaterThan(500);
+    expect(filled.filter((r) => !Number.isFinite(r.ship!))).toEqual([]);
+  });
+
+  it("сентябрьская вставка с переставленными столбцами: собственная доставка стоит 1 000 ₽, а не оплату клиента", () => {
+    // Заказ 61851500611: в листе «3 500,00 ₽» (оплата клиента, совпадает с Маркетом) и «1 000,00 ₽» (наш расход).
+    const r = ROWS.find((x) => x.order === "61851500611")!;
+    expect(r.ship, "в расход попала оплата клиента").toBe(1000);
+    expect(r.buyer).toBe(3500);
+  });
+
+  it("строка с переносом перед суммой («\\n3 932,06») прочитана", () => {
+    expect(ROWS.find((x) => x.order === "59784959874")!.ship).toBe(3932.06);
+  });
+
+  it("спорные строки попадают на плашку, поправленные - нет", () => {
+    const rows = parseDeliveryCsv('order,shipped,status,ship,note\nA,1 мая,Доставлен,500,"FALSE в «Стоимости отправки», расход взят из соседнего столбца"\nB,2 мая,Доставлен,,\nC,3 мая,Доставлен,700,\nD,4 мая,Доставлен,,\n');
+    const is = deliveryIssues(rows, new Set(["A", "B", "C"]));
+    expect(is.map((x) => x.order).sort(), "D не доставлен по Маркету - не спорный, C с суммой - не спорный").toEqual(["A", "B"]);
+    expect(is.find((x) => x.order === "B")!.ship).toBeNull();
   });
 });

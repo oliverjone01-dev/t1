@@ -9,8 +9,8 @@
     {
       "name": "gengroup-roster",
       "source": "./",
-      "description": "СПАРТАК + ФЕНИКС + 11 бойцов, /council /feniks /reality-audit /crisis /reflexion, хуки P6/P9/P14, workflow council.",
-      "version": "3.0.3",
+      "description": "СПАРТАК + ФЕНИКС + 11 бойцов, /council /crisis /reflexion, хуки P6/P9/P14, workflow council.",
+      "version": "3.0.4",
       "category": "productivity",
       "tags": [
         "multi-agent",

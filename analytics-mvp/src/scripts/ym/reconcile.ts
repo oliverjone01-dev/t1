@@ -1,4 +1,4 @@
-// Этап 4: сверка Маркета по CLAUDE.md §15 -> data-ym/reconcile.json (+ Summary воркфлоу). Логика - reconcile-lib.ts.
+// Этап 4: сверка Маркета по knowledge/os/analytics-dod.md §15 -> data-ym/reconcile.json (+ Summary воркфлоу). Логика - reconcile-lib.ts.
 // Без сети. Запуск: npm run ym:reconcile
 import { appendFileSync } from "node:fs";
 import { yp, readNdjson, readJson, writeJson, today } from "./common.js";

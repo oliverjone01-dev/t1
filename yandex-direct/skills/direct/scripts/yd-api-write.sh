@@ -52,7 +52,7 @@ if [[ -z "$APPROVED_METHODS" ]] || ! printf '%s' ",$APPROVED_METHODS," | grep -q
     exit 3
 fi
 
-# --- Amount-cap (CLAUDE.md §9): мутация с деньгами >100K ₽ требует отдельного апрува ---
+# --- Amount-cap (knowledge/os/gates.md §9): мутация с деньгами >100K ₽ требует отдельного апрува ---
 # Денежные поля API Директа заданы в микрорублях (x1e6): Amount, Bid, StrategyMaximumClickBid,
 # AverageCpc/AverageCpa/AverageCrr, WeeklySpendLimit, BudgetLimit и т.п.
 MAX_MICROS="$(printf '%s' "$PARAMS" | jq '[.. | objects | to_entries[]

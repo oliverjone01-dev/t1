@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Anti-Slop checker - fires on PreToolUse for Write/Edit on .md/.html/.txt files.
-# Scans the new_string/content for forbidden patterns from CLAUDE.md §7.
+# Scans the new_string/content for forbidden patterns from knowledge/os/style.md §7.
 # Warns (does not block) by injecting additionalContext.
 
 set -euo pipefail
@@ -39,7 +39,7 @@ esac
 
 [ -z "$CONTENT" ] && exit 0
 
-# Forbidden phrases (from CLAUDE.md §7 Anti-Slop Blocklist v2)
+# Forbidden phrases (from knowledge/os/style.md §7 Anti-Slop Blocklist v2)
 PATTERNS=(
   'в мире современного дизайна'
   'не секрет, что'
@@ -73,7 +73,7 @@ done
 # ВНИМАНИЕ: здесь обязан стоять настоящий U+2014, а не ASCII-дефис. До 09.08.2026
 # в шаблоне стоял дефис, поэтому проверка срабатывала на любом тексте с дефисом,
 # то есть всегда, и не несла сигнала. Настоящий em dash при этом проходил
-# незамеченным среди постоянных ложных тревог: гейт CLAUDE.md §7 был мёртв.
+# незамеченным среди постоянных ложных тревог: гейт knowledge/os/style.md §7 был мёртв.
 # Нашёл ФЕНИКС при аудите промтов. Правя эту строку, проверяй байты: printf '%s' | xxd.
 if printf '%s' "$CONTENT" | grep -q '—'; then
   HITS+=("em dash '—'")

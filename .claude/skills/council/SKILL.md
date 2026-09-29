@@ -51,7 +51,7 @@ Agent tool) допустима, когда Иван просит «один вы
    `go` → deliver · `return` → доработка СПАРТАКОМ по rework_tz, повтор (max 3) · `veto` → стоп, Иван.
 6. **Deliver.** Эпизод `knowledge/episodes/$(date +%Y-%m)/council-<slug>-$(date +%Y%m%d-%H%M).md` по шаблону из
    `.claude/agents/spartak.md` (Output format), строка `event: council` в `traces/$(date +%F)/agents.jsonl`
-   (roster-protocol §9, `mode`, `feniks_score`, `verdict`), HITL-пометки CLAUDE.md §9 (бюджет, публикация, цены).
+   (roster-protocol §9, `mode`, `feniks_score`, `verdict`), HITL-пометки knowledge/os/gates.md §9 (бюджет, публикация, цены).
 
 ## 3. Workflow path (только по явному opt-in)
 
@@ -69,8 +69,8 @@ Workflow({ name: "council", args: { task: "<задача>", ts: "<UTC выше>"
 
 Тот же порядок фаз, но роли берутся из role-карт: `${CLAUDE_SKILL_DIR}/references/roster-cards.md`.
 - Каждый боец = general-purpose subagent, в промпт инлайнится его карта + краткая версия roster-protocol §3-§4-§7 + A2A-бриф.
-- ФЕНИКС = general-purpose subagent с картой feniks + текстом `.claude/skills/phoenix-eval/SKILL.md` (Comprehension Gate,
-  25 чекпоинтов) + `references/calibration-anchors.md`. Пробы, требующие Bash, помечает N/A.
+- ФЕНИКС = general-purpose subagent с картой feniks + текстом `knowledge/feniks/eval-checklist.md` (Comprehension Gate,
+  25 чекпоинтов) + `knowledge/feniks/calibration-anchors.md`. Пробы, требующие Bash, помечает N/A.
 - Хуков нет: em dash (`grep -c $'\xe2\x80\x94'`), Anti-Slop §7 и валидацию JSON делай сам перед deliver.
 - Approval-файлы Protocol 6 недоступны: любая мутация внешних систем = `HITL: Иван`, только подготовка.
 Первая строка эпизода: `MODE: cowork (custom agents недоступны)`.
@@ -80,8 +80,8 @@ Workflow({ name: "council", args: { task: "<задача>", ts: "<UTC выше>"
 Ты сам проходишь роли по role-картам последовательно, каждую позицию подписываешь `Аноним X (роль)`. Peer review
 не проводится (одним голосом он бессмыслен), вместо него честный conflict scan. ФЕНИКС-шляпа надевается последней и
 отдельно от синтеза. Первая строка эпизода: `MODE: hats (причина)`. Оценка ФЕНИКСА в HATS помечается
-`[HATS: не независимый аудит]` и не считается Step 12.5 для критических артефактов (CLAUDE.md §4) - такие идут
-на повторный /feniks в native-среде.
+`[HATS: не независимый аудит]` и не считается Step 12.5 для критических артефактов (knowledge/os/gates.md §4) - такие идут
+на повторный прогон агента feniks в native-среде.
 
 ## Default Council Configs
 

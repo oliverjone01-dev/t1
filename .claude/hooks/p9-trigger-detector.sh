@@ -44,7 +44,7 @@ if [ "${#HITS[@]}" -eq 0 ]; then
 fi
 
 REMINDER="Protocol 9 trigger(s) detected in your prompt: ${HITS[*]}.
-Before proceeding with planning or commitments, run /reality-audit on the relevant claim - tag every figure as [ДАННЫЕ] or [ГИПОТЕЗА], answer the 5 questions, and apply hard rules. See CLAUDE.md §5."
+Before proceeding with planning or commitments, run a Reality Audit on the relevant claim: agent data tags every figure as [ДАННЫЕ] (with source) or [ГИПОТЕЗА], answer the 5 questions, and apply hard rules. See knowledge/os/gates.md §5."
 
 python3 - "$REMINDER" <<'PY'
 import json, sys

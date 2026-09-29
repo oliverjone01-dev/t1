@@ -54,7 +54,7 @@ Rules:
    "8 мм от пролёта 90 см", not "качественное стекло".
 2. **GENGROUP facts** when relevant: 16 000 m² production (Домодедово) is verified.
    Trust-band company figures - около 27 000 orders since 2018, 350+ projects
-   (the repo-wide canon used by brand/SKILL.md, content-factory, geo-aeo) - are
+   (the repo-wide canon used by gengroup-brand, gengroup-content-factory, geo-aeo) - are
    NOT yet verified by a 1С export: the cited source file is missing (see the
    escalation block in smm/public/index.html). Treat them as estimates to confirm
    before publishing, not as hard [ДАННЫЕ]. Zero invented stats - if you do not

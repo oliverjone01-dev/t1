@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-28T13:15:46.110Z",
+  "generated_at": "2026-09-29T09:15:08.642Z",
   "basis": "период по дате оформления заказа; только статус DELIVERED; штуки - доставленные минус возвращённые",
   "ledger_to": "2026-09-27",
   "split_check": {
@@ -11,6 +11,260 @@
     "act_money": 557250.2,
     "act_points": 2350590.89
   },
+  "deliv_issues": [
+    {
+      "order": "61297794049",
+      "shipped": "9 сентября",
+      "status": "Доставлен",
+      "ship": 7640.09,
+      "reason": "FALSE в «Стоимости отправки», расход взят из соседнего столбца"
+    },
+    {
+      "order": "61391251329",
+      "shipped": "10 сентября",
+      "status": "Доставлен",
+      "ship": 5183.7,
+      "reason": "расход стоит в столбце «С/С», строка сдвинута на два столбца"
+    },
+    {
+      "order": "61413630400",
+      "shipped": "10 сентября",
+      "status": "Доставлен",
+      "ship": 6025.77,
+      "reason": "расход стоит в столбце «С/С», строка сдвинута на два столбца"
+    },
+    {
+      "order": "61512388163",
+      "shipped": "11 сентября",
+      "status": "Доставлен",
+      "ship": 3313.44,
+      "reason": "расход стоит в столбце «С/С», строка сдвинута на два столбца"
+    },
+    {
+      "order": "56563946370",
+      "shipped": "7 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56233996545",
+      "shipped": "13 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56836066755",
+      "shipped": "14 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57003903552",
+      "shipped": "14 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56758515842",
+      "shipped": "15 мая",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57062249408",
+      "shipped": "18 мая",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56256574210",
+      "shipped": "20 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57062209153",
+      "shipped": "20 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56392764865",
+      "shipped": "21 мая",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57249746817",
+      "shipped": "25 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "56589515585",
+      "shipped": "28 мая",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57154805249",
+      "shipped": "9 июня",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "57213302784",
+      "shipped": "10 июня",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "54812696769",
+      "shipped": "2 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58993760577",
+      "shipped": "13 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59008517760",
+      "shipped": "13 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59046427331",
+      "shipped": "14 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59019476419",
+      "shipped": "16 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59037707329",
+      "shipped": "16 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58779988547",
+      "shipped": "16 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59150410752",
+      "shipped": "17 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58994962499",
+      "shipped": "17 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "58976380355",
+      "shipped": "17 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59146346179",
+      "shipped": "22 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59223823427",
+      "shipped": "23 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59197214657",
+      "shipped": "23 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59080639424",
+      "shipped": "24 июля",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59572627331",
+      "shipped": "28 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "59060109699",
+      "shipped": "22 июля",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "60104830146",
+      "shipped": "19 августа",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "60649839426",
+      "shipped": "31 августа",
+      "status": "Собственная доставка",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    },
+    {
+      "order": "61184760002",
+      "shipped": "3 сентября",
+      "status": "Доставлен",
+      "ship": null,
+      "reason": "нет суммы в «Стоимости отправки»: наш расход по заказу считается нулём"
+    }
+  ],
   "months": [
     {
       "business": "1023124",
@@ -79,8 +333,8 @@
           "result_points": 67339.79,
           "cogs": 8864,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2970.38,
+          "ship_known": true,
           "region": "Кривцово"
         },
         {
@@ -145,8 +399,8 @@
           "result_points": 62037.61,
           "cogs": 11827,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 504.07,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -277,8 +531,8 @@
           "result_points": 58246.44,
           "cogs": 8774,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 495.93,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -541,8 +795,8 @@
           "result_points": 47675.39,
           "cogs": 8295,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3202.17,
+          "ship_known": true,
           "region": "Оренбург"
         },
         {
@@ -607,8 +861,8 @@
           "result_points": 48052.98,
           "cogs": 8295,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3313.44,
+          "ship_known": true,
           "region": "Уфа"
         },
         {
@@ -1201,8 +1455,8 @@
           "result_points": 57274.16,
           "cogs": 8864,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3303.95,
+          "ship_known": true,
           "region": "Нижний Новгород"
         },
         {
@@ -1347,7 +1601,7 @@
       "overhead_points_report": 0,
       "points_src": "report",
       "points_report": 1201308,
-      "points_spent_report": 1180809.14,
+      "points_spent_report": 1187592.62,
       "overhead_daily": {},
       "points_acc": 1220904,
       "points_ded": 19596,
@@ -1356,9 +1610,9 @@
       ],
       "orders_without_ledger": 0,
       "svc_settled": false,
-      "ledger_outside": -2869.2,
+      "ledger_outside": 3914.28,
       "ledger_outside_orders": 35,
-      "ledger_status": -2869.2,
+      "ledger_status": 3914.28,
       "ledger_missing": 0,
       "ledger_missing_orders": 0,
       "missing_accrued": 0,
@@ -1501,8 +1755,8 @@
       ],
       "points_on_delivery": 6407.02,
       "cogs_cov": 100,
-      "ship_orders": 0,
-      "ship_cov": 0,
+      "ship_orders": 5,
+      "ship_cov": 26.3,
       "fly_rows": [
         {
           "business": "1023124",
@@ -1566,8 +1820,8 @@
           "result_points": 0,
           "cogs": 7162,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 22062.87,
+          "ship_known": true,
           "region": "Норильск",
           "fly": true,
           "est_fee": 26415.12,
@@ -1635,8 +1889,8 @@
           "result_points": 0,
           "cogs": 15141,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6376.62,
+          "ship_known": true,
           "region": "Давлеканово",
           "fly": true,
           "est_fee": 41982.8,
@@ -2739,8 +2993,8 @@
           "result_points": 0,
           "cogs": 8789,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Городской округ Домодедово",
           "fly": true,
           "est_fee": 24519.68,
@@ -2808,8 +3062,8 @@
           "result_points": 0,
           "cogs": 9073,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4732,
+          "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
           "est_fee": 27299.54,
@@ -2946,8 +3200,8 @@
           "result_points": 0,
           "cogs": 19374,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6541,
+          "ship_known": true,
           "region": "Перевалово",
           "fly": true,
           "est_fee": 62906.19,
@@ -3049,7 +3303,7 @@
           "buyer_pay": 66316,
           "refunds": 0,
           "revenue_money": 66316,
-          "points_accrued": 103329.45,
+          "points_accrued": 106283.41,
           "svc": {
             "Размещение (комиссия)": 647.52,
             "Программа лояльности и отзывы": 0,
@@ -3088,11 +3342,11 @@
           "svc_points": 64104.48,
           "svc_total": 77691.7,
           "result_money": 52728.78,
-          "result_points": 91953.75,
+          "result_points": 94907.71,
           "cogs": 37395,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -3115,7 +3369,7 @@
           "buyer_pay": 65146,
           "refunds": 0,
           "revenue_money": 65146,
-          "points_accrued": 90324.96,
+          "points_accrued": 92907.15,
           "svc": {
             "Размещение (комиссия)": 596.98,
             "Программа лояльности и отзывы": 0,
@@ -3154,7 +3408,7 @@
           "svc_points": 68125.77,
           "svc_total": 72394.52,
           "result_money": 60877.25,
-          "result_points": 83076.44,
+          "result_points": 85658.63,
           "cogs": 27107,
           "cogs_known": true,
           "ship_our": 3098.79,
@@ -3181,7 +3435,7 @@
           "buyer_pay": 60513,
           "refunds": 0,
           "revenue_money": 60513,
-          "points_accrued": 59472.08,
+          "points_accrued": 61172.25,
           "svc": {
             "Размещение (комиссия)": 474.72,
             "Программа лояльности и отзывы": 0,
@@ -3220,7 +3474,7 @@
           "svc_points": 46997.28,
           "svc_total": 50325.44,
           "result_money": 57184.84,
-          "result_points": 69659.64,
+          "result_points": 71359.81,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 1000,
@@ -3247,7 +3501,7 @@
           "buyer_pay": 58971,
           "refunds": 0,
           "revenue_money": 58971,
-          "points_accrued": 50850.8,
+          "points_accrued": 52304.51,
           "svc": {
             "Размещение (комиссия)": 433.06,
             "Программа лояльности и отзывы": 0,
@@ -3286,11 +3540,11 @@
           "svc_points": 44852.54,
           "svc_total": 47972,
           "result_money": 55851.54,
-          "result_points": 61849.8,
+          "result_points": 63303.51,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3471.85,
+          "ship_known": true,
           "region": "Санкт-Петербург"
         },
         {
@@ -3313,7 +3567,7 @@
           "buyer_pay": 52711,
           "refunds": 0,
           "revenue_money": 52711,
-          "points_accrued": 90014.53,
+          "points_accrued": 92587.85,
           "svc": {
             "Размещение (комиссия)": 535.03,
             "Программа лояльности и отзывы": 0,
@@ -3352,7 +3606,7 @@
           "svc_points": 60768.83,
           "svc_total": 64629.87,
           "result_money": 48849.96,
-          "result_points": 78095.66,
+          "result_points": 80668.98,
           "cogs": 22598,
           "cogs_known": true,
           "ship_our": 5025.32,
@@ -3379,7 +3633,7 @@
           "buyer_pay": 50927,
           "refunds": 0,
           "revenue_money": 50927,
-          "points_accrued": 74447.76,
+          "points_accrued": 76576.05,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -3418,11 +3672,11 @@
           "svc_points": 0,
           "svc_total": 0.24,
           "result_money": 50926.76,
-          "result_points": 125374.52,
+          "result_points": 127502.81,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 9080.86,
+          "ship_known": true,
           "region": "Володарск"
         },
         {
@@ -3445,7 +3699,7 @@
           "buyer_pay": 49466,
           "refunds": 0,
           "revenue_money": 49466,
-          "points_accrued": 75693.41,
+          "points_accrued": 77857.32,
           "svc": {
             "Размещение (комиссия)": 474.72,
             "Программа лояльности и отзывы": 0,
@@ -3484,11 +3738,11 @@
           "svc_points": 46997.28,
           "svc_total": 64165.66,
           "result_money": 32297.62,
-          "result_points": 60993.75,
+          "result_points": 63157.66,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Мисайлово"
         },
         {
@@ -3511,7 +3765,7 @@
           "buyer_pay": 49195,
           "refunds": 0,
           "revenue_money": 49195,
-          "points_accrued": 72190.95,
+          "points_accrued": 74254.72,
           "svc": {
             "Размещение (комиссия)": 459.12,
             "Программа лояльности и отзывы": 0,
@@ -3550,7 +3804,7 @@
           "svc_points": 53766.96,
           "svc_total": 57120.11,
           "result_money": 45841.85,
-          "result_points": 64265.84,
+          "result_points": 66329.61,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 10215.7,
@@ -3577,7 +3831,7 @@
           "buyer_pay": 49182,
           "refunds": 0,
           "revenue_money": 49182,
-          "points_accrued": 72070.7,
+          "points_accrued": 74131.03,
           "svc": {
             "Размещение (комиссия)": 19987.08,
             "Программа лояльности и отзывы": 0,
@@ -3616,7 +3870,7 @@
           "svc_points": 33351.89,
           "svc_total": 59486.63,
           "result_money": 23047.26,
-          "result_points": 61766.07,
+          "result_points": 63826.4,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 5955.44,
@@ -3643,7 +3897,7 @@
           "buyer_pay": 48988,
           "refunds": 0,
           "revenue_money": 48988,
-          "points_accrued": 73387.35,
+          "points_accrued": 75485.33,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -3682,11 +3936,11 @@
           "svc_points": 0,
           "svc_total": 0.24,
           "result_money": 48987.76,
-          "result_points": 122375.11,
+          "result_points": 124473.09,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 9104.1,
+          "ship_known": true,
           "region": "Омск"
         },
         {
@@ -3709,7 +3963,7 @@
           "buyer_pay": 48329,
           "refunds": 0,
           "revenue_money": 48329,
-          "points_accrued": 76980.19,
+          "points_accrued": 79180.88,
           "svc": {
             "Размещение (комиссия)": 474.72,
             "Программа лояльности и отзывы": 0,
@@ -3748,11 +4002,11 @@
           "svc_points": 57573.86,
           "svc_total": 61008.86,
           "result_money": 44894,
-          "result_points": 64300.33,
+          "result_points": 66501.02,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Подольск"
         },
         {
@@ -3775,7 +4029,7 @@
           "buyer_pay": 48301,
           "refunds": 0,
           "revenue_money": 48301,
-          "points_accrued": 78356.46,
+          "points_accrued": 80596.49,
           "svc": {
             "Размещение (комиссия)": 474.72,
             "Программа лояльности и отзывы": 0,
@@ -3814,11 +4068,11 @@
           "svc_points": 55593.86,
           "svc_total": 59064.86,
           "result_money": 44830,
-          "result_points": 67592.6,
+          "result_points": 69832.63,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 7590.92,
+          "ship_known": true,
           "region": "Санкт-Петербург"
         },
         {
@@ -3841,7 +4095,7 @@
           "buyer_pay": 48134,
           "refunds": 0,
           "revenue_money": 48134,
-          "points_accrued": 65822.41,
+          "points_accrued": 67704.12,
           "svc": {
             "Размещение (комиссия)": 433.48,
             "Программа лояльности и отзывы": 0,
@@ -3880,11 +4134,11 @@
           "svc_points": 51192.68,
           "svc_total": 54364.63,
           "result_money": 44962.05,
-          "result_points": 59591.78,
+          "result_points": 61473.49,
           "cogs": 17660,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 11969.65,
+          "ship_known": true,
           "region": "Усть-Курдюм"
         },
         {
@@ -3907,7 +4161,7 @@
           "buyer_pay": 48092,
           "refunds": 0,
           "revenue_money": 48092,
-          "points_accrued": 77658.18,
+          "points_accrued": 79878.25,
           "svc": {
             "Размещение (комиссия)": 474.72,
             "Программа лояльности и отзывы": 0,
@@ -3946,11 +4200,11 @@
           "svc_points": 55789.68,
           "svc_total": 59220.66,
           "result_money": 44661.02,
-          "result_points": 66529.52,
+          "result_points": 68749.59,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5111.18,
+          "ship_known": true,
           "region": "Заволжье"
         },
         {
@@ -3973,7 +4227,7 @@
           "buyer_pay": 48004,
           "refunds": 0,
           "revenue_money": 48004,
-          "points_accrued": 62856.07,
+          "points_accrued": 64652.98,
           "svc": {
             "Размещение (комиссия)": 423.01,
             "Программа лояльности и отзывы": 0,
@@ -4012,11 +4266,11 @@
           "svc_points": 50785.15,
           "svc_total": 53891.91,
           "result_money": 44897.24,
-          "result_points": 56968.16,
+          "result_points": 58765.07,
           "cogs": 17189,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5183.7,
+          "ship_known": true,
           "region": "Краснодар"
         },
         {
@@ -4039,7 +4293,7 @@
           "buyer_pay": 47086,
           "refunds": 0,
           "revenue_money": 47086,
-          "points_accrued": 68880.94,
+          "points_accrued": 70850.09,
           "svc": {
             "Размещение (комиссия)": 438.72,
             "Программа лояльности и отзывы": 0,
@@ -4078,10 +4332,10 @@
           "svc_points": 47957.58,
           "svc_total": 51127.44,
           "result_money": 43916.14,
-          "result_points": 64839.5,
+          "result_points": 66808.65,
           "cogs": 17189,
           "cogs_known": true,
-          "ship_our": 8783.83,
+          "ship_our": 9748.67,
           "ship_known": true,
           "region": "Тимашевск"
         },
@@ -4105,7 +4359,7 @@
           "buyer_pay": 46867,
           "refunds": 0,
           "revenue_money": 46867,
-          "points_accrued": 75037.8,
+          "points_accrued": 77182.97,
           "svc": {
             "Размещение (комиссия)": 459.21,
             "Программа лояльности и отзывы": 0,
@@ -4144,11 +4398,11 @@
           "svc_points": 54061.21,
           "svc_total": 57398.23,
           "result_money": 43529.98,
-          "result_points": 64506.57,
+          "result_points": 66651.74,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5342.21,
+          "ship_known": true,
           "region": "Курск"
         },
         {
@@ -4171,7 +4425,7 @@
           "buyer_pay": 46547,
           "refunds": 0,
           "revenue_money": 46547,
-          "points_accrued": 62889.93,
+          "points_accrued": 64687.81,
           "svc": {
             "Размещение (комиссия)": 10147.22,
             "Программа лояльности и отзывы": 0,
@@ -4210,7 +4464,7 @@
           "svc_points": 36007.08,
           "svc_total": 48754.63,
           "result_money": 33799.45,
-          "result_points": 60682.3,
+          "result_points": 62480.18,
           "cogs": 17189,
           "cogs_known": true,
           "ship_our": 4578,
@@ -4237,7 +4491,7 @@
           "buyer_pay": 46248,
           "refunds": 0,
           "revenue_money": 46248,
-          "points_accrued": 76866,
+          "points_accrued": 79063.43,
           "svc": {
             "Размещение (комиссия)": 459.12,
             "Программа лояльности и отзывы": 0,
@@ -4276,11 +4530,11 @@
           "svc_points": 53956.35,
           "svc_total": 57333.81,
           "result_money": 42870.54,
-          "result_points": 65780.19,
+          "result_points": 67977.62,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 7786.07,
+          "ship_known": true,
           "region": "Барнаул"
         },
         {
@@ -4303,7 +4557,7 @@
           "buyer_pay": 45563,
           "refunds": 0,
           "revenue_money": 45563,
-          "points_accrued": 76275.6,
+          "points_accrued": 78456.15,
           "svc": {
             "Размещение (комиссия)": 459.35,
             "Программа лояльности и отзывы": 0,
@@ -4342,11 +4596,11 @@
           "svc_points": 48988.71,
           "svc_total": 57387.01,
           "result_money": 37164.7,
-          "result_points": 64451.59,
+          "result_points": 66632.14,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Лайково"
         },
         {
@@ -4369,7 +4623,7 @@
           "buyer_pay": 45450,
           "refunds": 0,
           "revenue_money": 45450,
-          "points_accrued": 72880.79,
+          "points_accrued": 74964.28,
           "svc": {
             "Размещение (комиссия)": 444.33,
             "Программа лояльности и отзывы": 0,
@@ -4408,11 +4662,11 @@
           "svc_points": 52309.42,
           "svc_total": 55555.95,
           "result_money": 42203.47,
-          "result_points": 62774.84,
+          "result_points": 64858.33,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6025.77,
+          "ship_known": true,
           "region": "Екатеринбург"
         },
         {
@@ -4435,7 +4689,7 @@
           "buyer_pay": 45099,
           "refunds": 0,
           "revenue_money": 45099,
-          "points_accrued": 76874.55,
+          "points_accrued": 79072.22,
           "svc": {
             "Размещение (комиссия)": 459.12,
             "Программа лояльности и отзывы": 0,
@@ -4474,7 +4728,7 @@
           "svc_points": 53766.96,
           "svc_total": 57072.51,
           "result_money": 41793.45,
-          "result_points": 64901.04,
+          "result_points": 67098.71,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 1000,
@@ -4501,7 +4755,7 @@
           "buyer_pay": 44182,
           "refunds": 0,
           "revenue_money": 44182,
-          "points_accrued": 78510.78,
+          "points_accrued": 80755.22,
           "svc": {
             "Размещение (комиссия)": 459.12,
             "Программа лояльности и отзывы": 0,
@@ -4540,7 +4794,7 @@
           "svc_points": 56247.93,
           "svc_total": 59592.54,
           "result_money": 40837.39,
-          "result_points": 63100.24,
+          "result_points": 65344.68,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 1000,
@@ -4567,7 +4821,7 @@
           "buyer_pay": 43614,
           "refunds": 0,
           "revenue_money": 43614,
-          "points_accrued": 62745.45,
+          "points_accrued": 64539.21,
           "svc": {
             "Размещение (комиссия)": 3288.85,
             "Программа лояльности и отзывы": 0,
@@ -4606,11 +4860,11 @@
           "svc_points": 41067.36,
           "svc_total": 46869.9,
           "result_money": 37811.46,
-          "result_points": 59489.55,
+          "result_points": 61283.31,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6583.19,
+          "ship_known": true,
           "region": "Падерина"
         },
         {
@@ -4633,7 +4887,7 @@
           "buyer_pay": 43557,
           "refunds": 0,
           "revenue_money": 43557,
-          "points_accrued": 65988.39,
+          "points_accrued": 67874.85,
           "svc": {
             "Размещение (комиссия)": 412.61,
             "Программа лояльности и отзывы": 0,
@@ -4672,11 +4926,11 @@
           "svc_points": 47486.02,
           "svc_total": 50498.8,
           "result_money": 40544.22,
-          "result_points": 59046.59,
+          "result_points": 60933.05,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 7875.66,
+          "ship_known": true,
           "region": "Миасс"
         },
         {
@@ -4699,7 +4953,7 @@
           "buyer_pay": 43479,
           "refunds": 0,
           "revenue_money": 43479,
-          "points_accrued": 61879.04,
+          "points_accrued": 63648.03,
           "svc": {
             "Размещение (комиссия)": 402.1,
             "Программа лояльности и отзывы": 0,
@@ -4738,11 +4992,11 @@
           "svc_points": 39807.5,
           "svc_total": 51175.56,
           "result_money": 32110.94,
-          "result_points": 54182.48,
+          "result_points": 55951.47,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Жостово"
         },
         {
@@ -4765,7 +5019,7 @@
           "buyer_pay": 43136,
           "refunds": 0,
           "revenue_money": 43136,
-          "points_accrued": 62045.37,
+          "points_accrued": 63819.11,
           "svc": {
             "Размещение (комиссия)": 394.11,
             "Программа лояльности и отзывы": 0,
@@ -4804,11 +5058,11 @@
           "svc_points": 45356.43,
           "svc_total": 48281.77,
           "result_money": 40210.66,
-          "result_points": 56899.6,
+          "result_points": 58673.34,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 8240.6,
+          "ship_known": true,
           "region": "Барнаул"
         },
         {
@@ -4831,7 +5085,7 @@
           "buyer_pay": 42675,
           "refunds": 0,
           "revenue_money": 42675,
-          "points_accrued": 57946.89,
+          "points_accrued": 59603.46,
           "svc": {
             "Размещение (комиссия)": 381.74,
             "Программа лояльности и отзывы": 0,
@@ -4870,7 +5124,7 @@
           "svc_points": 41940.91,
           "svc_total": 44717.59,
           "result_money": 39898.32,
-          "result_points": 55904.3,
+          "result_points": 57560.87,
           "cogs": 14537,
           "cogs_known": true,
           "ship_our": 0,
@@ -4897,7 +5151,7 @@
           "buyer_pay": 42002,
           "refunds": 0,
           "revenue_money": 42002,
-          "points_accrued": 62959.07,
+          "points_accrued": 64758.93,
           "svc": {
             "Размещение (комиссия)": 394.16,
             "Программа лояльности и отзывы": 0,
@@ -4936,11 +5190,11 @@
           "svc_points": 39021.04,
           "svc_total": 41854.66,
           "result_money": 39168.38,
-          "result_points": 63106.41,
+          "result_points": 64906.27,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3407.34,
+          "ship_known": true,
           "region": "Мурино"
         },
         {
@@ -4963,7 +5217,7 @@
           "buyer_pay": 41893,
           "refunds": 0,
           "revenue_money": 41893,
-          "points_accrued": 59168.06,
+          "points_accrued": 60859.54,
           "svc": {
             "Размещение (комиссия)": 382.16,
             "Программа лояльности и отзывы": 0,
@@ -5002,11 +5256,11 @@
           "svc_points": 47882.44,
           "svc_total": 50721.57,
           "result_money": 39053.87,
-          "result_points": 50339.49,
+          "result_points": 52030.97,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6273.68,
+          "ship_known": true,
           "region": "Березники"
         },
         {
@@ -5029,7 +5283,7 @@
           "buyer_pay": 41481,
           "refunds": 0,
           "revenue_money": 41481,
-          "points_accrued": 63238.38,
+          "points_accrued": 65046.22,
           "svc": {
             "Размещение (комиссия)": 397.17,
             "Программа лояльности и отзывы": 0,
@@ -5068,10 +5322,10 @@
           "svc_points": 45394.71,
           "svc_total": 48254.28,
           "result_money": 38621.43,
-          "result_points": 56465.1,
+          "result_points": 58272.94,
           "cogs": 17660,
           "cogs_known": true,
-          "ship_our": 1000,
+          "ship_our": 4098.8,
           "ship_known": true,
           "region": "Москва"
         },
@@ -5095,7 +5349,7 @@
           "buyer_pay": 41446,
           "refunds": 0,
           "revenue_money": 41446,
-          "points_accrued": 77049.82,
+          "points_accrued": 79252.5,
           "svc": {
             "Размещение (комиссия)": 439.42,
             "Программа лояльности и отзывы": 0,
@@ -5134,11 +5388,11 @@
           "svc_points": 43502.18,
           "svc_total": 55227.18,
           "result_money": 29721,
-          "result_points": 63268.64,
+          "result_points": 65471.32,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6419.4,
+          "ship_known": true,
           "region": "Челябинск"
         },
         {
@@ -5161,7 +5415,7 @@
           "buyer_pay": 41244,
           "refunds": 0,
           "revenue_money": 41244,
-          "points_accrued": 62696.43,
+          "points_accrued": 64488.78,
           "svc": {
             "Размещение (комиссия)": 393.12,
             "Программа лояльности и отзывы": 0,
@@ -5200,11 +5454,11 @@
           "svc_points": 45843.19,
           "svc_total": 48697.7,
           "result_money": 38389.49,
-          "result_points": 55242.73,
+          "result_points": 57035.08,
           "cogs": 13304,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 4258.62,
+          "ship_known": true,
           "region": "Курчатов"
         },
         {
@@ -5227,7 +5481,7 @@
           "buyer_pay": 40871,
           "refunds": 0,
           "revenue_money": 40871,
-          "points_accrued": 66858.67,
+          "points_accrued": 68770.01,
           "svc": {
             "Размещение (комиссия)": 8304.87,
             "Программа лояльности и отзывы": 0,
@@ -5266,11 +5520,11 @@
           "svc_points": 32205.67,
           "svc_total": 49008.86,
           "result_money": 24067.81,
-          "result_points": 58720.81,
+          "result_points": 60632.15,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6552.77,
+          "ship_known": true,
           "region": "Геленджик"
         },
         {
@@ -5293,7 +5547,7 @@
           "buyer_pay": 40735,
           "refunds": 0,
           "revenue_money": 40735,
-          "points_accrued": 84015.07,
+          "points_accrued": 86416.87,
           "svc": {
             "Размещение (комиссия)": 12905.49,
             "Программа лояльности и отзывы": 0,
@@ -5332,7 +5586,7 @@
           "svc_points": 48224.66,
           "svc_total": 64088.31,
           "result_money": 24871.35,
-          "result_points": 60661.76,
+          "result_points": 63063.56,
           "cogs": 16933,
           "cogs_known": true,
           "ship_our": 0,
@@ -5359,7 +5613,7 @@
           "buyer_pay": 39789,
           "refunds": 0,
           "revenue_money": 39789,
-          "points_accrued": 55326.03,
+          "points_accrued": 56907.67,
           "svc": {
             "Размещение (комиссия)": 361.89,
             "Программа лояльности и отзывы": 0,
@@ -5398,7 +5652,7 @@
           "svc_points": 39759.69,
           "svc_total": 42370.54,
           "result_money": 37178.15,
-          "result_points": 52744.49,
+          "result_points": 54326.13,
           "cogs": 17189,
           "cogs_known": true,
           "ship_our": 4105.3,
@@ -5425,7 +5679,7 @@
           "buyer_pay": 39584,
           "refunds": 0,
           "revenue_money": 39584,
-          "points_accrued": 71181.93,
+          "points_accrued": 73216.86,
           "svc": {
             "Размещение (комиссия)": 410.28,
             "Программа лояльности и отзывы": 0,
@@ -5464,11 +5718,11 @@
           "svc_points": 52785.39,
           "svc_total": 55852.1,
           "result_money": 36517.29,
-          "result_points": 54913.83,
+          "result_points": 56948.76,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5981,
+          "ship_known": true,
           "region": "Тюмень"
         },
         {
@@ -5491,7 +5745,7 @@
           "buyer_pay": 39405,
           "refunds": 0,
           "revenue_money": 39405,
-          "points_accrued": 58556.32,
+          "points_accrued": 60230.31,
           "svc": {
             "Размещение (комиссия)": 370.79,
             "Программа лояльности и отзывы": 0,
@@ -5530,11 +5784,11 @@
           "svc_points": 36707.77,
           "svc_total": 45372.71,
           "result_money": 30740.06,
-          "result_points": 52588.61,
+          "result_points": 54262.6,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -5557,7 +5811,7 @@
           "buyer_pay": 39105,
           "refunds": 0,
           "revenue_money": 39105,
-          "points_accrued": 74687.03,
+          "points_accrued": 76822.16,
           "svc": {
             "Размещение (комиссия)": 438.8,
             "Программа лояльности и отзывы": 0,
@@ -5596,7 +5850,7 @@
           "svc_points": 46184.98,
           "svc_total": 52159.02,
           "result_money": 33130.96,
-          "result_points": 61633.01,
+          "result_points": 63768.14,
           "cogs": 13233,
           "cogs_known": true,
           "ship_our": 0,
@@ -5623,7 +5877,7 @@
           "buyer_pay": 39032,
           "refunds": 0,
           "revenue_money": 39032,
-          "points_accrued": 57280.56,
+          "points_accrued": 58918.08,
           "svc": {
             "Размещение (комиссия)": 364.81,
             "Программа лояльности и отзывы": 0,
@@ -5662,10 +5916,10 @@
           "svc_points": 42248.36,
           "svc_total": 44901.42,
           "result_money": 36378.94,
-          "result_points": 51411.14,
+          "result_points": 53048.66,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 1000,
+          "ship_our": 1185,
           "ship_known": true,
           "region": "Ромашково"
         },
@@ -5689,7 +5943,7 @@
           "buyer_pay": 37473,
           "refunds": 0,
           "revenue_money": 37473,
-          "points_accrued": 57234.15,
+          "points_accrued": 58870.34,
           "svc": {
             "Размещение (комиссия)": 365.43,
             "Программа лояльности и отзывы": 0,
@@ -5728,7 +5982,7 @@
           "svc_points": 45696.14,
           "svc_total": 49289.49,
           "result_money": 33879.65,
-          "result_points": 45417.66,
+          "result_points": 47053.85,
           "cogs": 12464,
           "cogs_known": true,
           "ship_our": 0,
@@ -5755,7 +6009,7 @@
           "buyer_pay": 35187,
           "refunds": 0,
           "revenue_money": 35187,
-          "points_accrued": 60618.71,
+          "points_accrued": 62351.67,
           "svc": {
             "Размещение (комиссия)": 365.43,
             "Программа лояльности и отзывы": 0,
@@ -5794,7 +6048,7 @@
           "svc_points": 37503.57,
           "svc_total": 41014.16,
           "result_money": 31676.41,
-          "result_points": 54791.55,
+          "result_points": 56524.51,
           "cogs": 12346,
           "cogs_known": true,
           "ship_our": 0,
@@ -5821,7 +6075,7 @@
           "buyer_pay": 34924,
           "refunds": 0,
           "revenue_money": 34924,
-          "points_accrued": 53228.9,
+          "points_accrued": 54750.59,
           "svc": {
             "Размещение (комиссия)": 328.8,
             "Программа лояльности и отзывы": 0,
@@ -5860,11 +6114,11 @@
           "svc_points": 38423.78,
           "svc_total": 40870.14,
           "result_money": 32477.64,
-          "result_points": 47282.76,
+          "result_points": 48804.45,
           "cogs": 13410,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5276.5,
+          "ship_known": true,
           "region": "Оренбург"
         },
         {
@@ -5887,7 +6141,7 @@
           "buyer_pay": 34735,
           "refunds": 0,
           "revenue_money": 34735,
-          "points_accrued": 54008.38,
+          "points_accrued": 55552.36,
           "svc": {
             "Размещение (комиссия)": 333.84,
             "Программа лояльности и отзывы": 0,
@@ -5926,11 +6180,11 @@
           "svc_points": 33049.68,
           "svc_total": 39052.63,
           "result_money": 28732.05,
-          "result_points": 49690.75,
+          "result_points": 51234.73,
           "cogs": 16167,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Видное"
         },
         {
@@ -5953,7 +6207,7 @@
           "buyer_pay": 34735,
           "refunds": 0,
           "revenue_money": 34735,
-          "points_accrued": 54008.38,
+          "points_accrued": 55552.36,
           "svc": {
             "Размещение (комиссия)": 333.84,
             "Программа лояльности и отзывы": 0,
@@ -5992,11 +6246,11 @@
           "svc_points": 33049.68,
           "svc_total": 42557.9,
           "result_money": 25226.78,
-          "result_points": 46185.48,
+          "result_points": 47729.46,
           "cogs": 16167,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -6019,7 +6273,7 @@
           "buyer_pay": 33945,
           "refunds": 0,
           "revenue_money": 33945,
-          "points_accrued": 55207.4,
+          "points_accrued": 56785.66,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -6058,11 +6312,11 @@
           "svc_points": 38648.03,
           "svc_total": 38648.27,
           "result_money": 33944.76,
-          "result_points": 50504.13,
+          "result_points": 52082.39,
           "cogs": 16167,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Лопатино"
         },
         {
@@ -6085,7 +6339,7 @@
           "buyer_pay": 33405,
           "refunds": 0,
           "revenue_money": 33405,
-          "points_accrued": 57761.23,
+          "points_accrued": 59412.49,
           "svc": {
             "Размещение (комиссия)": 347.61,
             "Программа лояльности и отзывы": 0,
@@ -6124,7 +6378,7 @@
           "svc_points": 38882.74,
           "svc_total": 43459.06,
           "result_money": 28828.68,
-          "result_points": 47707.17,
+          "result_points": 49358.43,
           "cogs": 12464,
           "cogs_known": true,
           "ship_our": 0,
@@ -6151,7 +6405,7 @@
           "buyer_pay": 32096,
           "refunds": 0,
           "revenue_money": 32096,
-          "points_accrued": 48272.29,
+          "points_accrued": 49652.29,
           "svc": {
             "Размещение (комиссия)": 310.56,
             "Программа лояльности и отзывы": 0,
@@ -6190,7 +6444,7 @@
           "svc_points": 31406.76,
           "svc_total": 37926,
           "result_money": 25576.76,
-          "result_points": 42442.29,
+          "result_points": 43822.29,
           "cogs": 10587,
           "cogs_known": true,
           "ship_our": 0,
@@ -6217,7 +6471,7 @@
           "buyer_pay": 31417,
           "refunds": 0,
           "revenue_money": 31417,
-          "points_accrued": 54903.74,
+          "points_accrued": 56473.31,
           "svc": {
             "Размещение (комиссия)": 328.8,
             "Программа лояльности и отзывы": 0,
@@ -6256,7 +6510,7 @@
           "svc_points": 36713.16,
           "svc_total": 40002.12,
           "result_money": 28128.04,
-          "result_points": 46318.62,
+          "result_points": 47888.19,
           "cogs": 14260,
           "cogs_known": true,
           "ship_our": 0,
@@ -6283,7 +6537,7 @@
           "buyer_pay": 30344,
           "refunds": 0,
           "revenue_money": 30344,
-          "points_accrued": 58144.69,
+          "points_accrued": 59806.92,
           "svc": {
             "Размещение (комиссия)": 334.16,
             "Программа лояльности и отзывы": 0,
@@ -6322,7 +6576,7 @@
           "svc_points": 41177.11,
           "svc_total": 44542.42,
           "result_money": 26978.69,
-          "result_points": 43946.27,
+          "result_points": 45608.5,
           "cogs": 11225,
           "cogs_known": true,
           "ship_our": 0,
@@ -6349,7 +6603,7 @@
           "buyer_pay": 30246,
           "refunds": 0,
           "revenue_money": 30246,
-          "points_accrued": 60215.75,
+          "points_accrued": 61937.18,
           "svc": {
             "Размещение (комиссия)": 333.44,
             "Программа лояльности и отзывы": 0,
@@ -6388,7 +6642,7 @@
           "svc_points": 38333.14,
           "svc_total": 40763.64,
           "result_money": 27815.5,
-          "result_points": 49698.11,
+          "result_points": 51419.54,
           "cogs": 13664,
           "cogs_known": true,
           "ship_our": 2247,
@@ -6415,7 +6669,7 @@
           "buyer_pay": 29264,
           "refunds": 0,
           "revenue_money": 29264,
-          "points_accrued": 48665.64,
+          "points_accrued": 50056.88,
           "svc": {
             "Размещение (комиссия)": 288.46,
             "Программа лояльности и отзывы": 0,
@@ -6454,7 +6708,7 @@
           "svc_points": 32132.73,
           "svc_total": 34266.21,
           "result_money": 27130.52,
-          "result_points": 43663.43,
+          "result_points": 45054.67,
           "cogs": 13868,
           "cogs_known": true,
           "ship_our": 4385.9,
@@ -6481,7 +6735,7 @@
           "buyer_pay": 28430,
           "refunds": 0,
           "revenue_money": 28430,
-          "points_accrued": 33821.89,
+          "points_accrued": 34788.78,
           "svc": {
             "Размещение (комиссия)": 239.61,
             "Программа лояльности и отзывы": 1,
@@ -6520,7 +6774,7 @@
           "svc_points": 25386.44,
           "svc_total": 27111.82,
           "result_money": 26704.62,
-          "result_points": 35140.07,
+          "result_points": 36106.96,
           "cogs": 20103,
           "cogs_known": true,
           "ship_our": 1000,
@@ -6547,7 +6801,7 @@
           "buyer_pay": 26255,
           "refunds": 0,
           "revenue_money": 26255,
-          "points_accrued": 31972.77,
+          "points_accrued": 32886.8,
           "svc": {
             "Размещение (комиссия)": 232.08,
             "Программа лояльности и отзывы": 0,
@@ -6586,7 +6840,7 @@
           "svc_points": 24254.25,
           "svc_total": 26839.17,
           "result_money": 23670.08,
-          "result_points": 31388.6,
+          "result_points": 32302.63,
           "cogs": 9552,
           "cogs_known": true,
           "ship_our": 0,
@@ -6613,7 +6867,7 @@
           "buyer_pay": 25762,
           "refunds": 0,
           "revenue_money": 25762,
-          "points_accrued": 52959.76,
+          "points_accrued": 54473.76,
           "svc": {
             "Размещение (комиссия)": 295.36,
             "Программа лояльности и отзывы": 0,
@@ -6652,7 +6906,7 @@
           "svc_points": 34001.05,
           "svc_total": 37067.53,
           "result_money": 22695.52,
-          "result_points": 41654.23,
+          "result_points": 43168.23,
           "cogs": 11912,
           "cogs_known": true,
           "ship_our": 0,
@@ -6679,7 +6933,7 @@
           "buyer_pay": 23204,
           "refunds": 0,
           "revenue_money": 23204,
-          "points_accrued": 42663.92,
+          "points_accrued": 43883.59,
           "svc": {
             "Размещение (комиссия)": 249.7,
             "Программа лояльности и отзывы": 0,
@@ -6718,7 +6972,7 @@
           "svc_points": 29714.76,
           "svc_total": 32471.6,
           "result_money": 20447.16,
-          "result_points": 33396.32,
+          "result_points": 34615.99,
           "cogs": 11909,
           "cogs_known": true,
           "ship_our": 0,
@@ -6745,7 +6999,7 @@
           "buyer_pay": 19939,
           "refunds": 0,
           "revenue_money": 19939,
-          "points_accrued": 44359.16,
+          "points_accrued": 45627.29,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -6784,7 +7038,7 @@
           "svc_points": 27625.53,
           "svc_total": 27625.65,
           "result_money": 19938.88,
-          "result_points": 36672.51,
+          "result_points": 37940.64,
           "cogs": 9760,
           "cogs_known": true,
           "ship_our": 0,
@@ -6811,7 +7065,7 @@
           "buyer_pay": 19852,
           "refunds": 0,
           "revenue_money": 19852,
-          "points_accrued": 39898.23,
+          "points_accrued": 41038.83,
           "svc": {
             "Размещение (комиссия)": 224.64,
             "Программа лояльности и отзывы": 0,
@@ -6850,7 +7104,7 @@
           "svc_points": 29310.96,
           "svc_total": 31917.56,
           "result_money": 17245.4,
-          "result_points": 27832.67,
+          "result_points": 28973.27,
           "cogs": 9760,
           "cogs_known": true,
           "ship_our": 0,
@@ -6877,7 +7131,7 @@
           "buyer_pay": 19318,
           "refunds": 0,
           "revenue_money": 19318,
-          "points_accrued": 40688.85,
+          "points_accrued": 41852.05,
           "svc": {
             "Размещение (комиссия)": 224.64,
             "Программа лояльности и отзывы": 0,
@@ -6916,7 +7170,7 @@
           "svc_points": 29551.89,
           "svc_total": 32160.92,
           "result_money": 16708.97,
-          "result_points": 27845.93,
+          "result_points": 29009.13,
           "cogs": 9760,
           "cogs_known": true,
           "ship_our": 0,
@@ -6943,7 +7197,7 @@
           "buyer_pay": 18112,
           "refunds": 0,
           "revenue_money": 18112,
-          "points_accrued": 48698.7,
+          "points_accrued": 50090.88,
           "svc": {
             "Размещение (комиссия)": 244.82,
             "Программа лояльности и отзывы": 0,
@@ -6982,7 +7236,7 @@
           "svc_points": 29996.89,
           "svc_total": 32728.12,
           "result_money": 15380.77,
-          "result_points": 34082.58,
+          "result_points": 35474.76,
           "cogs": 12651,
           "cogs_known": true,
           "ship_our": 0,
@@ -7009,7 +7263,7 @@
           "buyer_pay": 18086,
           "refunds": 0,
           "revenue_money": 18086,
-          "points_accrued": 46051.45,
+          "points_accrued": 47367.96,
           "svc": {
             "Размещение (комиссия)": 236.12,
             "Программа лояльности и отзывы": 0,
@@ -7048,7 +7302,7 @@
           "svc_points": 30425.19,
           "svc_total": 33109.97,
           "result_money": 15401.22,
-          "result_points": 31027.48,
+          "result_points": 32343.99,
           "cogs": 10373,
           "cogs_known": true,
           "ship_our": 0,
@@ -7075,7 +7329,7 @@
           "buyer_pay": 17998,
           "refunds": 0,
           "revenue_money": 17998,
-          "points_accrued": 40631.11,
+          "points_accrued": 41792.66,
           "svc": {
             "Размещение (комиссия)": 218.12,
             "Программа лояльности и отзывы": 1,
@@ -7114,7 +7368,7 @@
           "svc_points": 29928.13,
           "svc_total": 32503.91,
           "result_money": 15422.22,
-          "result_points": 26125.2,
+          "result_points": 27286.75,
           "cogs": 9760,
           "cogs_known": true,
           "ship_our": 0,
@@ -7141,7 +7395,7 @@
           "buyer_pay": 17548,
           "refunds": 0,
           "revenue_money": 17548,
-          "points_accrued": 43309.45,
+          "points_accrued": 44547.57,
           "svc": {
             "Размещение (комиссия)": 224.64,
             "Программа лояльности и отзывы": 0,
@@ -7180,7 +7434,7 @@
           "svc_points": 25605.96,
           "svc_total": 31009.64,
           "result_money": 12144.32,
-          "result_points": 29847.81,
+          "result_points": 31085.93,
           "cogs": 9760,
           "cogs_known": true,
           "ship_our": 0,
@@ -7207,7 +7461,7 @@
           "buyer_pay": 16979,
           "refunds": 0,
           "revenue_money": 16979,
-          "points_accrued": 26473.96,
+          "points_accrued": 27230.79,
           "svc": {
             "Размещение (комиссия)": 169.08,
             "Программа лояльности и отзывы": 0,
@@ -7246,7 +7500,7 @@
           "svc_points": 19084.95,
           "svc_total": 21253.94,
           "result_money": 14810.01,
-          "result_points": 22199.02,
+          "result_points": 22955.85,
           "cogs": 6061,
           "cogs_known": true,
           "ship_our": 0,
@@ -7273,7 +7527,7 @@
           "buyer_pay": 16355,
           "refunds": 0,
           "revenue_money": 16355,
-          "points_accrued": 28594.12,
+          "points_accrued": 29411.57,
           "svc": {
             "Размещение (комиссия)": 172.99,
             "Программа лояльности и отзывы": 0,
@@ -7312,7 +7566,7 @@
           "svc_points": 19867.79,
           "svc_total": 22153.13,
           "result_money": 14069.66,
-          "result_points": 22795.99,
+          "result_points": 23613.44,
           "cogs": 7962,
           "cogs_known": true,
           "ship_our": 0,
@@ -7339,7 +7593,7 @@
           "buyer_pay": 15221,
           "refunds": 0,
           "revenue_money": 15221,
-          "points_accrued": 28919.85,
+          "points_accrued": 29746.6,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -7378,7 +7632,7 @@
           "svc_points": 0,
           "svc_total": 0.12,
           "result_money": 15220.88,
-          "result_points": 44140.73,
+          "result_points": 44967.48,
           "cogs": 8557,
           "cogs_known": true,
           "ship_our": 0,
@@ -7405,7 +7659,7 @@
           "buyer_pay": 14527,
           "refunds": 0,
           "revenue_money": 14527,
-          "points_accrued": 25339.85,
+          "points_accrued": 26064.25,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -7444,7 +7698,7 @@
           "svc_points": 17996.64,
           "svc_total": 17996.76,
           "result_money": 14526.88,
-          "result_points": 21870.09,
+          "result_points": 22594.49,
           "cogs": 0,
           "cogs_known": false,
           "ship_our": 0,
@@ -7471,7 +7725,7 @@
           "buyer_pay": 14388,
           "refunds": 0,
           "revenue_money": 14388,
-          "points_accrued": 39417.04,
+          "points_accrued": 40543.89,
           "svc": {
             "Размещение (комиссия)": 0,
             "Программа лояльности и отзывы": 0,
@@ -7510,7 +7764,7 @@
           "svc_points": 25378.8,
           "svc_total": 25378.92,
           "result_money": 14387.88,
-          "result_points": 28426.12,
+          "result_points": 29552.97,
           "cogs": 9760,
           "cogs_known": true,
           "ship_our": 0,
@@ -7537,7 +7791,7 @@
           "buyer_pay": 26240,
           "refunds": -13120,
           "revenue_money": 13120,
-          "points_accrued": 27052.86,
+          "points_accrued": 27826.24,
           "svc": {
             "Размещение (комиссия)": 301.37,
             "Программа лояльности и отзывы": -150.69,
@@ -7576,7 +7830,7 @@
           "svc_points": 22598.26,
           "svc_total": 26584.6,
           "result_money": 9133.66,
-          "result_points": 13588.26,
+          "result_points": 14361.64,
           "cogs": 8557,
           "cogs_known": true,
           "ship_our": 0,
@@ -7603,7 +7857,7 @@
           "buyer_pay": 11349,
           "refunds": 0,
           "revenue_money": 11349,
-          "points_accrued": 21705.06,
+          "points_accrued": 22325.56,
           "svc": {
             "Размещение (комиссия)": 127.45,
             "Программа лояльности и отзывы": 0,
@@ -7642,7 +7896,7 @@
           "svc_points": 15076.65,
           "svc_total": 16957.32,
           "result_money": 9468.33,
-          "result_points": 16096.74,
+          "result_points": 16717.24,
           "cogs": 4411,
           "cogs_known": true,
           "ship_our": 0,
@@ -7669,7 +7923,7 @@
           "buyer_pay": 11209,
           "refunds": 0,
           "revenue_money": 11209,
-          "points_accrued": 27969.33,
+          "points_accrued": 28768.91,
           "svc": {
             "Размещение (комиссия)": 145.99,
             "Программа лояльности и отзывы": 0,
@@ -7708,7 +7962,7 @@
           "svc_points": 19514.61,
           "svc_total": 21554.66,
           "result_money": 9168.95,
-          "result_points": 17623.67,
+          "result_points": 18423.25,
           "cogs": 9446,
           "cogs_known": true,
           "ship_our": 0,
@@ -7735,7 +7989,7 @@
           "buyer_pay": 11204,
           "refunds": 0,
           "revenue_money": 11204,
-          "points_accrued": 27976.73,
+          "points_accrued": 28776.52,
           "svc": {
             "Размещение (комиссия)": 145.99,
             "Программа лояльности и отзывы": 0,
@@ -7774,7 +8028,7 @@
           "svc_points": 19514.61,
           "svc_total": 21554.66,
           "result_money": 9163.95,
-          "result_points": 17626.07,
+          "result_points": 18425.86,
           "cogs": 9446,
           "cogs_known": true,
           "ship_our": 0,
@@ -7801,7 +8055,7 @@
           "buyer_pay": 10603,
           "refunds": 0,
           "revenue_money": 10603,
-          "points_accrued": 21838.31,
+          "points_accrued": 22462.62,
           "svc": {
             "Размещение (комиссия)": 7934.69,
             "Программа лояльности и отзывы": 0,
@@ -7840,7 +8094,7 @@
           "svc_points": 6956.69,
           "svc_total": 16626.32,
           "result_money": 933.37,
-          "result_points": 15814.99,
+          "result_points": 16439.3,
           "cogs": 4411,
           "cogs_known": true,
           "ship_our": 0,
@@ -7867,7 +8121,7 @@
           "buyer_pay": 10572,
           "refunds": 0,
           "revenue_money": 10572,
-          "points_accrued": 24026.59,
+          "points_accrued": 24713.45,
           "svc": {
             "Размещение (комиссия)": 129.98,
             "Программа лояльности и отзывы": 0,
@@ -7906,7 +8160,7 @@
           "svc_points": 17784.28,
           "svc_total": 19714.44,
           "result_money": 8641.84,
-          "result_points": 14884.15,
+          "result_points": 15571.01,
           "cogs": 9097,
           "cogs_known": true,
           "ship_our": 0,
@@ -7933,7 +8187,7 @@
           "buyer_pay": 9639,
           "refunds": 0,
           "revenue_money": 9639,
-          "points_accrued": 24334.54,
+          "points_accrued": 25030.21,
           "svc": {
             "Размещение (комиссия)": 126.47,
             "Программа лояльности и отзывы": 0,
@@ -7972,7 +8226,7 @@
           "svc_points": 16978.17,
           "svc_total": 18879.9,
           "result_money": 7737.27,
-          "result_points": 15093.64,
+          "result_points": 15789.31,
           "cogs": 9097,
           "cogs_known": true,
           "ship_our": 0,
@@ -7999,7 +8253,7 @@
           "buyer_pay": 9417,
           "refunds": 0,
           "revenue_money": 9417,
-          "points_accrued": 21956.76,
+          "points_accrued": 22584.45,
           "svc": {
             "Размещение (комиссия)": 118.82,
             "Программа лояльности и отзывы": 0,
@@ -8038,7 +8292,7 @@
           "svc_points": 14817.52,
           "svc_total": 16646.25,
           "result_money": 7588.27,
-          "result_points": 14727.51,
+          "result_points": 15355.2,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -8065,7 +8319,7 @@
           "buyer_pay": 9002,
           "refunds": 0,
           "revenue_money": 9002,
-          "points_accrued": 24119.86,
+          "points_accrued": 24809.39,
           "svc": {
             "Размещение (комиссия)": 123.94,
             "Программа лояльности и отзывы": 0,
@@ -8104,7 +8358,7 @@
           "svc_points": 15173.2,
           "svc_total": 17034.79,
           "result_money": 7140.41,
-          "result_points": 16087.07,
+          "result_points": 16776.6,
           "cogs": 3744,
           "cogs_known": true,
           "ship_our": 0,
@@ -8131,7 +8385,7 @@
           "buyer_pay": 8863,
           "refunds": 0,
           "revenue_money": 8863,
-          "points_accrued": 18065.84,
+          "points_accrued": 18582.3,
           "svc": {
             "Размещение (комиссия)": 102.17,
             "Программа лояльности и отзывы": 0,
@@ -8170,7 +8424,7 @@
           "svc_points": 12633.26,
           "svc_total": 14350.82,
           "result_money": 7145.44,
-          "result_points": 12578.02,
+          "result_points": 13094.48,
           "cogs": 4287,
           "cogs_known": true,
           "ship_our": 0,
@@ -8197,7 +8451,7 @@
           "buyer_pay": 8335,
           "refunds": 0,
           "revenue_money": 8335,
-          "points_accrued": 22970.94,
+          "points_accrued": 23627.63,
           "svc": {
             "Размещение (комиссия)": 116.87,
             "Программа лояльности и отзывы": 0,
@@ -8236,7 +8490,7 @@
           "svc_points": 16032.57,
           "svc_total": 17862.45,
           "result_money": 6505.12,
-          "result_points": 13443.49,
+          "result_points": 14100.18,
           "cogs": 3230,
           "cogs_known": true,
           "ship_our": 0,
@@ -8263,7 +8517,7 @@
           "buyer_pay": 7582,
           "refunds": 0,
           "revenue_money": 7582,
-          "points_accrued": 14993.67,
+          "points_accrued": 15422.3,
           "svc": {
             "Размещение (комиссия)": 8588.87,
             "Программа лояльности и отзывы": 0,
@@ -8302,7 +8556,7 @@
           "svc_points": 891,
           "svc_total": 10870.29,
           "result_money": -2397.29,
-          "result_points": 11705.38,
+          "result_points": 12134.01,
           "cogs": 4665,
           "cogs_known": true,
           "ship_our": 0,
@@ -8387,7 +8641,7 @@
       "overhead_ledger": 0,
       "overhead_points_report": 62267.22,
       "points_src": "report",
-      "points_report": 4368374,
+      "points_report": 4493256,
       "points_spent_report": 4304310.78,
       "overhead_daily": {
         "2026-09-27": {
@@ -8757,7 +9011,7 @@
           }
         }
       },
-      "points_acc": 4524891,
+      "points_acc": 4649773,
       "points_ded": 156517,
       "svc_months": [
         "2026-09"
@@ -9023,10 +9277,12 @@
       ],
       "points_on_delivery": 97653.49,
       "cogs_cov": 99.5,
-      "ship_lost": 3168,
-      "ship_lost_orders": 1,
+      "ship_lost": 10476.2,
+      "ship_lost_orders": 3,
       "ship_lost_daily": {
-        "2026-09-01": 3168
+        "2026-09-01": 3168,
+        "2026-09-02": 3372.2,
+        "2026-09-04": 3936
       },
       "ship_lost_rows": [
         {
@@ -9038,10 +9294,30 @@
           "name": "GEN GROUP Стол обеденный TRUBIS CLEVER, 90х90х75см, с черным металлическим подстольем и столешницей под черный мрамор",
           "line": "TRUBIS",
           "city": "Ромашково"
+        },
+        {
+          "order": "61195967426",
+          "d": "2026-09-02",
+          "v": 3372.2,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-5-L-120",
+          "name": "GEN GROUP Стол обеденный кухонный TRUBIS Wood L D120 см белый мрамор с черным подстольем",
+          "line": "TRUBIS",
+          "city": "Пермь"
+        },
+        {
+          "order": "61259504578",
+          "d": "2026-09-04",
+          "v": 3936,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-3-3-L-80",
+          "name": "GEN GROUP Кухонный обеденный стол TRUBIS Wood L D 80см, с металлическим подстольем, белый",
+          "line": "TRUBIS",
+          "city": "Иркутск"
         }
       ],
-      "ship_orders": 16,
-      "ship_cov": 19.8,
+      "ship_orders": 45,
+      "ship_cov": 55.6,
       "fly_rows": [
         {
           "business": "74986385",
@@ -9105,8 +9381,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 14687.68,
+          "ship_known": true,
           "region": "Биробиджан",
           "fly": true,
           "est_fee": 53882.06,
@@ -9134,17 +9410,17 @@
           "revenue_money": 45434,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 2471.05,
+            "Размещение (комиссия)": 2393.7,
             "Программа лояльности и отзывы": 2.51,
-            "Буст продаж": 1170.89,
-            "Доставка покупателю": 481.01,
-            "Доставка (средняя миля)": 375.13,
+            "Буст продаж": 1174.56,
+            "Доставка покупателю": 482.66,
+            "Доставка (средняя миля)": 376.41,
             "Доставка невыкупов и возвратов": 0.04,
             "Приём платежа покупателя": 0.28,
-            "Перевод платежа покупателя": 2344.54,
+            "Перевод платежа покупателя": 2344.38,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 78.7,
+            "Штрафы (не вовремя)": 78.97,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -9167,19 +9443,19 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 6924.15,
-          "svc_points": 37798.9,
-          "svc_total": 44723.05,
+          "svc_money": 6853.51,
+          "svc_points": 37863.13,
+          "svc_total": 44716.64,
           "result_money": 0,
           "result_points": 0,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5054.62,
+          "ship_known": true,
           "region": "Ульяновск",
           "fly": true,
-          "est_fee": 44723.05,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 44716.64,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -9410,17 +9686,17 @@
           "revenue_money": 18225,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 1464.84,
+            "Размещение (комиссия)": 1418.99,
             "Программа лояльности и отзывы": 1.49,
-            "Буст продаж": 694.11,
-            "Доставка покупателю": 285.14,
-            "Доставка (средняя миля)": 222.38,
+            "Буст продаж": 696.28,
+            "Доставка покупателю": 286.12,
+            "Доставка (средняя миля)": 223.14,
             "Доставка невыкупов и возвратов": 0.03,
             "Приём платежа покупателя": 0.17,
-            "Перевод платежа покупателя": 1389.85,
+            "Перевод платежа покупателя": 1389.75,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 46.66,
+            "Штрафы (не вовремя)": 46.82,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -9443,9 +9719,9 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 4104.67,
-          "svc_points": 22407.27,
-          "svc_total": 26511.94,
+          "svc_money": 4062.79,
+          "svc_points": 22445.34,
+          "svc_total": 26508.13,
           "result_money": 0,
           "result_points": 0,
           "cogs": 10373,
@@ -9454,8 +9730,8 @@
           "ship_known": false,
           "region": "Колпино",
           "fly": true,
-          "est_fee": 26511.94,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 26508.13,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -9479,17 +9755,17 @@
           "revenue_money": 38623,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 2411.98,
+            "Размещение (комиссия)": 2336.48,
             "Программа лояльности и отзывы": 2.45,
-            "Буст продаж": 1142.9,
-            "Доставка покупателю": 469.51,
-            "Доставка (средняя миля)": 366.16,
+            "Буст продаж": 1146.48,
+            "Доставка покупателю": 471.12,
+            "Доставка (средняя миля)": 367.41,
             "Доставка невыкупов и возвратов": 0.04,
             "Приём платежа покупателя": 0.28,
-            "Перевод платежа покупателя": 2288.49,
+            "Перевод платежа покупателя": 2288.33,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 76.82,
+            "Штрафы (не вовремя)": 77.09,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -9512,9 +9788,9 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 6758.63,
-          "svc_points": 36895.22,
-          "svc_total": 43653.85,
+          "svc_money": 6689.68,
+          "svc_points": 36957.91,
+          "svc_total": 43647.59,
           "result_money": 0,
           "result_points": 0,
           "cogs": 12464,
@@ -9523,8 +9799,8 @@
           "ship_known": false,
           "region": "Батайск",
           "fly": true,
-          "est_fee": 43653.85,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 43647.59,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -9617,17 +9893,17 @@
           "revenue_money": 37010,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 2110.1,
-            "Программа лояльности и отзывы": 2.14,
-            "Буст продаж": 999.86,
-            "Доставка покупателю": 410.75,
-            "Доставка (средняя миля)": 320.33,
+            "Размещение (комиссия)": 2044.05,
+            "Программа лояльности и отзывы": 2.15,
+            "Буст продаж": 1002.99,
+            "Доставка покупателю": 412.15,
+            "Доставка (средняя миля)": 321.43,
             "Доставка невыкупов и возвратов": 0.04,
             "Приём платежа покупателя": 0.24,
-            "Перевод платежа покупателя": 2002.07,
+            "Перевод платежа покупателя": 2001.93,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 67.21,
+            "Штрафы (не вовремя)": 67.44,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -9650,9 +9926,9 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 5912.74,
-          "svc_points": 32277.55,
-          "svc_total": 38190.29,
+          "svc_money": 5852.42,
+          "svc_points": 32332.39,
+          "svc_total": 38184.81,
           "result_money": 0,
           "result_points": 0,
           "cogs": 13577,
@@ -9661,8 +9937,8 @@
           "ship_known": false,
           "region": "Батайск",
           "fly": true,
-          "est_fee": 38190.29,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 38184.81,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -9824,17 +10100,17 @@
           "revenue_money": 51479,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 2834.6,
-            "Программа лояльности и отзывы": 2.87,
-            "Буст продаж": 1343.15,
-            "Доставка покупателю": 551.78,
-            "Доставка (средняя миля)": 430.32,
+            "Размещение (комиссия)": 2745.87,
+            "Программа лояльности и отзывы": 2.88,
+            "Буст продаж": 1347.36,
+            "Доставка покупателю": 553.66,
+            "Доставка (средняя миля)": 431.79,
             "Доставка невыкупов и возвратов": 0.05,
             "Приём платежа покупателя": 0.33,
-            "Перевод платежа покупателя": 2689.47,
+            "Перевод платежа покупателя": 2689.29,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 90.28,
+            "Штрафы (не вовремя)": 90.59,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -9857,19 +10133,19 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 7942.85,
-          "svc_points": 43359.97,
-          "svc_total": 51302.82,
+          "svc_money": 7861.82,
+          "svc_points": 43433.64,
+          "svc_total": 51295.46,
           "result_money": 0,
           "result_points": 0,
           "cogs": 19111,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
-          "est_fee": 51302.82,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 51295.46,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -10169,17 +10445,17 @@
           "revenue_money": 19377,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 1462.34,
-            "Программа лояльности и отзывы": 1.48,
-            "Буст продаж": 692.92,
-            "Доставка покупателю": 284.66,
-            "Доставка (средняя миля)": 222,
+            "Размещение (комиссия)": 1416.56,
+            "Программа лояльности и отзывы": 1.49,
+            "Буст продаж": 695.09,
+            "Доставка покупателю": 285.63,
+            "Доставка (средняя миля)": 222.76,
             "Доставка невыкупов и возвратов": 0.03,
             "Приём платежа покупателя": 0.17,
-            "Перевод платежа покупателя": 1387.47,
+            "Перевод платежа покупателя": 1387.38,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 46.58,
+            "Штрафы (не вовремя)": 46.74,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -10202,9 +10478,9 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 4097.65,
-          "svc_points": 22368.94,
-          "svc_total": 26466.59,
+          "svc_money": 4055.85,
+          "svc_points": 22406.95,
+          "svc_total": 26462.8,
           "result_money": 0,
           "result_points": 0,
           "cogs": 9760,
@@ -10213,8 +10489,8 @@
           "ship_known": false,
           "region": "Екатеринбург",
           "fly": true,
-          "est_fee": 26466.59,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 26462.8,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -10307,17 +10583,17 @@
           "revenue_money": 9321,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 671.97,
+            "Размещение (комиссия)": 650.94,
             "Программа лояльности и отзывы": 0.68,
-            "Буст продаж": 318.41,
-            "Доставка покупателю": 130.8,
-            "Доставка (средняя миля)": 102.01,
+            "Буст продаж": 319.41,
+            "Доставка покупателю": 131.25,
+            "Доставка (средняя миля)": 102.36,
             "Доставка невыкупов и возвратов": 0.01,
             "Приём платежа покупателя": 0.08,
-            "Перевод платежа покупателя": 637.57,
+            "Перевод платежа покупателя": 637.53,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 21.4,
+            "Штрафы (не вовремя)": 21.48,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -10340,9 +10616,9 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 1882.93,
-          "svc_points": 10278.94,
-          "svc_total": 12161.87,
+          "svc_money": 1863.74,
+          "svc_points": 10296.41,
+          "svc_total": 12160.15,
           "result_money": 0,
           "result_points": 0,
           "cogs": 4287,
@@ -10351,8 +10627,8 @@
           "ship_known": false,
           "region": "Киров",
           "fly": true,
-          "est_fee": 12161.87,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 12160.15,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -10485,8 +10761,8 @@
           "result_points": 0,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
           "est_fee": 47553.53,
@@ -10623,8 +10899,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
           "est_fee": 55588.03,
@@ -10692,8 +10968,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5495.76,
+          "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
           "est_fee": 55712.85,
@@ -10721,17 +10997,17 @@
           "revenue_money": 41080,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 2298.17,
-            "Программа лояльности и отзывы": 2.33,
-            "Буст продаж": 1088.97,
-            "Доставка покупателю": 447.36,
-            "Доставка (средняя миля)": 348.88,
+            "Размещение (комиссия)": 2226.23,
+            "Программа лояльности и отзывы": 2.34,
+            "Буст продаж": 1092.38,
+            "Доставка покупателю": 448.89,
+            "Доставка (средняя миля)": 350.08,
             "Доставка невыкупов и возвратов": 0.04,
             "Приём платежа покупателя": 0.26,
-            "Перевод платежа покупателя": 2180.51,
+            "Перевод платежа покупателя": 2180.36,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 73.2,
+            "Штрафы (не вовремя)": 73.45,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -10754,19 +11030,19 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 6439.72,
-          "svc_points": 35154.36,
-          "svc_total": 41594.08,
+          "svc_money": 6374.03,
+          "svc_points": 35214.09,
+          "svc_total": 41588.12,
           "result_money": 0,
           "result_points": 0,
           "cogs": 11759,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5800.16,
+          "ship_known": true,
           "region": "Тюмень",
           "fly": true,
-          "est_fee": 41594.08,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 41588.12,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -10928,17 +11204,17 @@
           "revenue_money": 12021,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 996.03,
+            "Размещение (комиссия)": 964.86,
             "Программа лояльности и отзывы": 1.01,
-            "Буст продаж": 471.96,
-            "Доставка покупателю": 193.89,
-            "Доставка (средняя миля)": 151.21,
+            "Буст продаж": 473.44,
+            "Доставка покупателю": 194.55,
+            "Доставка (средняя миля)": 151.73,
             "Доставка невыкупов и возвратов": 0.02,
             "Приём платежа покупателя": 0.11,
-            "Перевод платежа покупателя": 945.04,
+            "Перевод платежа покупателя": 944.98,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 31.72,
+            "Штрафы (не вовремя)": 31.83,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -10961,9 +11237,9 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 2790.99,
-          "svc_points": 15236.02,
-          "svc_total": 18027.01,
+          "svc_money": 2762.53,
+          "svc_points": 15261.91,
+          "svc_total": 18024.44,
           "result_money": 0,
           "result_points": 0,
           "cogs": 9446,
@@ -10972,8 +11248,8 @@
           "ship_known": false,
           "region": "Барнаул",
           "fly": true,
-          "est_fee": 18027.01,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 18024.44,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -11106,8 +11382,8 @@
           "result_points": 0,
           "cogs": 13482,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2638.97,
+          "ship_known": true,
           "region": "Санкт-Петербург",
           "fly": true,
           "est_fee": 41634.89,
@@ -11204,17 +11480,17 @@
           "revenue_money": 34929,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 1928.98,
+            "Размещение (комиссия)": 1868.6,
             "Программа лояльности и отзывы": 1.96,
-            "Буст продаж": 914.03,
-            "Доставка покупателю": 375.49,
-            "Доставка (средняя миля)": 292.84,
+            "Буст продаж": 916.9,
+            "Доставка покупателю": 376.78,
+            "Доставка (средняя миля)": 293.84,
             "Доставка невыкупов и возвратов": 0.03,
             "Приём платежа покупателя": 0.22,
-            "Перевод платежа покупателя": 1830.22,
+            "Перевод платежа покупателя": 1830.09,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 61.44,
+            "Штрафы (не вовремя)": 61.65,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -11237,19 +11513,19 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 5405.21,
-          "svc_points": 29506.94,
-          "svc_total": 34912.15,
+          "svc_money": 5350.07,
+          "svc_points": 29557.08,
+          "svc_total": 34907.15,
           "result_money": 0,
           "result_points": 0,
           "cogs": 11642,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6885.59,
+          "ship_known": true,
           "region": "Санкт-Петербург",
           "fly": true,
-          "est_fee": 34912.15,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 34907.15,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -11273,17 +11549,17 @@
           "revenue_money": 20506,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 1610.68,
-            "Программа лояльности и отзывы": 1.63,
-            "Буст продаж": 763.21,
-            "Доставка покупателю": 313.53,
-            "Доставка (средняя миля)": 244.52,
+            "Размещение (комиссия)": 1560.26,
+            "Программа лояльности и отзывы": 1.64,
+            "Буст продаж": 765.6,
+            "Доставка покупателю": 314.6,
+            "Доставка (средняя миля)": 245.35,
             "Доставка невыкупов и возвратов": 0.03,
             "Приём платежа покупателя": 0.19,
-            "Перевод платежа покупателя": 1528.22,
+            "Перевод платежа покупателя": 1528.11,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 51.3,
+            "Штрафы (не вовремя)": 51.48,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -11306,9 +11582,9 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 4513.31,
-          "svc_points": 24638.07,
-          "svc_total": 29151.38,
+          "svc_money": 4467.26,
+          "svc_points": 24679.93,
+          "svc_total": 29147.19,
           "result_money": 0,
           "result_points": 0,
           "cogs": 10373,
@@ -11317,8 +11593,8 @@
           "ship_known": false,
           "region": "Выборг",
           "fly": true,
-          "est_fee": 29151.38,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 29147.19,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -11382,8 +11658,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2527.22,
+          "ship_known": true,
           "region": "Нижний Новгород",
           "fly": true,
           "est_fee": 57516.96,
@@ -11520,8 +11796,8 @@
           "result_points": 0,
           "cogs": 4411,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
           "est_fee": 20854.7,
@@ -11589,8 +11865,8 @@
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Москва",
           "fly": true,
           "est_fee": 57516.96,
@@ -11658,8 +11934,8 @@
           "result_points": 0,
           "cogs": 34378,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 12940,
+          "ship_known": true,
           "region": "Екатеринбург",
           "fly": true,
           "est_fee": 84759.48,
@@ -11687,17 +11963,17 @@
           "revenue_money": 27668,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 2006.56,
-            "Программа лояльности и отзывы": 2.03,
-            "Буст продаж": 950.79,
-            "Доставка покупателю": 390.59,
-            "Доставка (средняя миля)": 304.61,
+            "Размещение (комиссия)": 1943.75,
+            "Программа лояльности и отзывы": 2.04,
+            "Буст продаж": 953.77,
+            "Доставка покупателю": 391.93,
+            "Доставка (средняя миля)": 305.66,
             "Доставка невыкупов и возвратов": 0.04,
             "Приём платежа покупателя": 0.23,
-            "Перевод платежа покупателя": 1903.83,
+            "Перевод платежа покупателя": 1903.7,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 63.91,
+            "Штрафы (не вовремя)": 64.13,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -11720,9 +11996,9 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 5622.59,
-          "svc_points": 30693.68,
-          "svc_total": 36316.27,
+          "svc_money": 5565.25,
+          "svc_points": 30745.84,
+          "svc_total": 36311.09,
           "result_money": 0,
           "result_points": 0,
           "cogs": 10373,
@@ -11731,8 +12007,8 @@
           "ship_known": false,
           "region": "Нижний Новгород",
           "fly": true,
-          "est_fee": 36316.27,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 36311.09,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",
@@ -11865,8 +12141,8 @@
           "result_points": 0,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1000,
+          "ship_known": true,
           "region": "Котельники",
           "fly": true,
           "est_fee": 45663.99,
@@ -11894,14 +12170,14 @@
           "revenue_money": 39556,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 2568.13,
+            "Размещение (комиссия)": 1595.65,
             "Программа лояльности и отзывы": 0,
-            "Буст продаж": 1646.81,
+            "Буст продаж": 1709.57,
             "Доставка покупателю": 0,
             "Доставка (средняя миля)": 0,
             "Доставка невыкупов и возвратов": 0,
-            "Приём платежа покупателя": 0.24,
-            "Перевод платежа покупателя": 2261.84,
+            "Приём платежа покупателя": 0.23,
+            "Перевод платежа покупателя": 2251.17,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
             "Штрафы (не вовремя)": 0,
@@ -11927,19 +12203,19 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 6477.02,
-          "svc_points": 38483.23,
-          "svc_total": 44960.25,
+          "svc_money": 5556.62,
+          "svc_points": 39231.26,
+          "svc_total": 44787.88,
           "result_money": 0,
           "result_points": 0,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3091,
+          "ship_known": true,
           "region": "Колпино",
           "fly": true,
-          "est_fee": 44960.25,
-          "est_basis": "артикул, 21 доставленных строк за 120 дней"
+          "est_fee": 44787.88,
+          "est_basis": "артикул, 20 доставленных строк за 120 дней"
         },
         {
           "business": "74986385",
@@ -12003,8 +12279,8 @@
           "result_points": 0,
           "cogs": 13664,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5238,
+          "ship_known": true,
           "region": "Стерлитамак",
           "fly": true,
           "est_fee": 41615.24,
@@ -17568,21 +17844,32 @@
       ],
       "points_on_delivery": 55287.61,
       "cogs_cov": 100,
-      "ship_lost": 3235,
-      "ship_lost_orders": 1,
+      "ship_lost": 4275.09,
+      "ship_lost_orders": 2,
       "ship_lost_daily": {
-        "2026-08-18": 3235
+        "2026-08-16": 1000,
+        "2026-08-20": 3275.09
       },
       "ship_lost_rows": [
         {
-          "order": "60505396993",
-          "d": "2026-08-18",
-          "v": 3235,
+          "order": "60422255747",
+          "d": "2026-08-16",
+          "v": 1000,
           "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGL-09-2",
-          "name": "Зеркало прямоугольное OSOLIS NF LED под консоль, с подсветкой 3 в 1, с сенсорным выключателем",
-          "line": "OSOLIS",
-          "city": "Иваново"
+          "sku": "GGM-26-2-1",
+          "name": "GENGLASS Зеркало настенное в черной раме WINDIX ARKA, 180х80см",
+          "line": "зеркала",
+          "city": "Красногорск"
+        },
+        {
+          "order": "60603450945",
+          "d": "2026-08-20",
+          "v": 3275.09,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGM-20-3",
+          "name": "GENGLASS Зеркало напольное в белой металлической раме 165x45 см OZEVIS White",
+          "line": "зеркала",
+          "city": "Москва"
         }
       ],
       "ship_orders": 39,
@@ -19310,8 +19597,8 @@
           "result_points": 33468.88,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3794.2,
+          "ship_known": true,
           "region": "Курск"
         },
         {
@@ -19442,7 +19729,7 @@
           "result_points": 29931.9,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 4135.8,
+          "ship_our": 17435.8,
           "ship_known": true,
           "region": "Волосовский район"
         },
@@ -19508,7 +19795,7 @@
           "result_points": 32613.89,
           "cogs": 17189,
           "cogs_known": true,
-          "ship_our": 5178.9,
+          "ship_our": 15094.42,
           "ship_known": true,
           "region": "Перевалово"
         },
@@ -19904,7 +20191,7 @@
           "result_points": 32097.07,
           "cogs": 17189,
           "cogs_known": true,
-          "ship_our": 3794.2,
+          "ship_our": 7151.38,
           "ship_known": true,
           "region": "Курск"
         },
@@ -21554,7 +21841,7 @@
           "result_points": 18557.79,
           "cogs": 13426,
           "cogs_known": true,
-          "ship_our": 4575,
+          "ship_our": 13275,
           "ship_known": true,
           "region": "Самара"
         },
@@ -23221,7 +23508,7 @@
           "units_returned": 1,
           "units_net": 0,
           "price": 90220,
-          "ship_buyer": 4500,
+          "ship_buyer": 0,
           "ship_mp": 0,
           "disc_mp": 48627,
           "disc_plus": 0,
@@ -23861,25 +24148,102 @@
       ],
       "points_on_delivery": 117670.07,
       "cogs_cov": 100,
-      "ship_lost": 5840.5,
-      "ship_lost_orders": 1,
+      "ship_lost": 31517.94,
+      "ship_lost_orders": 8,
       "ship_lost_daily": {
-        "2026-08-06": 5840.5
+        "2026-08-03": 3050.61,
+        "2026-08-14": 4135.8,
+        "2026-08-18": 2944.93,
+        "2026-08-23": 4215.1,
+        "2026-08-22": 4215.1,
+        "2026-08-25": 5349.7,
+        "2026-08-26": 4507.9,
+        "2026-08-28": 3098.8
       },
       "ship_lost_rows": [
         {
-          "order": "59983063232",
-          "d": "2026-08-06",
-          "v": 5840.5,
-          "status": "PROCESSING",
-          "sku": "GGP-01-2-I-200-100",
-          "name": "GEN GROUP Дизайнерская перегородка 200*100см ZONIQUE Black из металла с рифлёной плёнкой на бесцветном стекле",
-          "line": "прочее",
-          "city": "Самара"
+          "order": "59856520322",
+          "d": "2026-08-03",
+          "v": 3050.61,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-2-M-80",
+          "name": "GEN GROUP Журнальный стол TRUBIS Wood M D80 металлический черный",
+          "line": "TRUBIS",
+          "city": "Москва"
+        },
+        {
+          "order": "60325230787",
+          "d": "2026-08-14",
+          "v": 4135.8,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-5-L-100-K",
+          "name": "GEN GROUP Стол кухонный круглый TRUBIS Stone L, D100 см, керамогранит, черный/белый мрамор",
+          "line": "TRUBIS",
+          "city": "Санкт-Петербург"
+        },
+        {
+          "order": "60514081217",
+          "d": "2026-08-18",
+          "v": 2944.93,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGK-02-2-2-80",
+          "name": "GEN GROUP Столик консольный ARFEO черный с черной столешницей 80х35х80",
+          "line": "столы",
+          "city": "Мариинский"
+        },
+        {
+          "order": "60689057920",
+          "d": "2026-08-22",
+          "v": 4215.1,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-3-5-E-16080",
+          "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood белый мрамор с белым металлическим подстольем",
+          "line": "TRUBIS",
+          "city": "Зименки"
+        },
+        {
+          "order": "60725376386",
+          "d": "2026-08-23",
+          "v": 4215.1,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-20-3-5-20090",
+          "name": "GEN GROUP Стол кухонный большой 200х90 см VIOLUR, светлый мрамор с белым металлическим подстольем",
+          "line": "VIOLUR (столы)",
+          "city": "Городецкий район"
+        },
+        {
+          "order": "60814476803",
+          "d": "2026-08-25",
+          "v": 5349.7,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-3-5-E-16080",
+          "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood белый мрамор с белым металлическим подстольем",
+          "line": "TRUBIS",
+          "city": "Иноземцево"
+        },
+        {
+          "order": "60856407296",
+          "d": "2026-08-26",
+          "v": 4507.9,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-1-E-16080",
+          "name": "GEN GROUP Кухонный обеденный стол 160х80 см TRUBIS Wood орех с черным подстольем",
+          "line": "TRUBIS",
+          "city": "Тамбов"
+        },
+        {
+          "order": "60982529729",
+          "d": "2026-08-28",
+          "v": 3098.8,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-35-5-1-100-180",
+          "name": "Стол раздвижной обеденный KONUX D100/180 х 100см, бронзовый/экошпон",
+          "line": "столы",
+          "city": "Подольск"
         }
       ],
-      "ship_orders": 59,
-      "ship_cov": 70.2,
+      "ship_orders": 60,
+      "ship_cov": 71.4,
       "fly_rows": [
         {
           "business": "74986385",
@@ -23903,17 +24267,17 @@
           "revenue_money": 32300,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 1578.14,
-            "Программа лояльности и отзывы": 1.6,
-            "Буст продаж": 747.79,
-            "Доставка покупателю": 307.2,
-            "Доставка (средняя миля)": 239.58,
+            "Размещение (комиссия)": 1528.74,
+            "Программа лояльности и отзывы": 1.61,
+            "Буст продаж": 750.13,
+            "Доставка покупателю": 308.25,
+            "Доставка (средняя миля)": 240.4,
             "Доставка невыкупов и возвратов": 0.03,
             "Приём платежа покупателя": 0.18,
-            "Перевод платежа покупателя": 1497.34,
+            "Перевод платежа покупателя": 1497.24,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 50.26,
+            "Штрафы (не вовремя)": 50.44,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -23936,19 +24300,19 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 4422.12,
-          "svc_points": 24140.28,
-          "svc_total": 28562.4,
+          "svc_money": 4377.02,
+          "svc_points": 24181.3,
+          "svc_total": 28558.32,
           "result_money": 0,
           "result_points": 0,
           "cogs": 17274,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 5840.5,
+          "ship_known": true,
           "region": "Самара",
           "fly": true,
-          "est_fee": 28562.4,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 28558.32,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         }
       ]
     },
@@ -27517,8 +27881,8 @@
           "result_points": 9956.63,
           "cogs": 6034,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 8318.42,
+          "ship_known": true,
           "region": "Ростов-на-Дону"
         },
         {
@@ -30571,25 +30935,25 @@
       "inflight_rows": [],
       "points_on_delivery": 43723.09,
       "cogs_cov": 100,
-      "ship_lost": 5355.19,
+      "ship_lost": 5184.78,
       "ship_lost_orders": 1,
       "ship_lost_daily": {
-        "2026-07-02": 5355.19
+        "2026-07-23": 5184.78
       },
       "ship_lost_rows": [
         {
-          "order": "58746494592",
-          "d": "2026-07-02",
-          "v": 5355.19,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGM-20-3",
-          "name": "GENGLASS Зеркало напольное в белой металлической раме 165x45 см OZEVIS White",
+          "order": "59453575811",
+          "d": "2026-07-23",
+          "v": 5184.78,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGL-08-2",
+          "name": "GENGLASS Зеркало прямоугольное KVANEL NF LED под консоль, с подсветкой 3 в 1, с сенсором",
           "line": "зеркала",
-          "city": "Дударева"
+          "city": "Москва"
         }
       ],
-      "ship_orders": 28,
-      "ship_cov": 30.8
+      "ship_orders": 29,
+      "ship_cov": 31.9
     },
     {
       "business": "74986385",
@@ -31318,7 +31682,7 @@
           "result_points": 34936.36,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 3190.3,
+          "ship_our": 8600.3,
           "ship_known": true,
           "region": "Боровский район"
         },
@@ -32440,8 +32804,8 @@
           "result_points": 31537.93,
           "cogs": 13868,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 2947.52,
+          "ship_known": true,
           "region": "Александровский район"
         },
         {
@@ -35872,8 +36236,8 @@
           "result_points": 15944.46,
           "cogs": 10263,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 1629.31,
+          "ship_known": true,
           "region": "Немчиново"
         },
         {
@@ -37737,7 +38101,7 @@
           "units_returned": 1,
           "units_net": 0,
           "price": 71820,
-          "ship_buyer": 4500,
+          "ship_buyer": 0,
           "ship_mp": 0,
           "disc_mp": 26290,
           "disc_plus": 0,
@@ -37803,7 +38167,7 @@
           "units_returned": 1,
           "units_net": 0,
           "price": 87387,
-          "ship_buyer": 4500,
+          "ship_buyer": 0,
           "ship_mp": 0,
           "disc_mp": 42997,
           "disc_plus": 177,
@@ -38220,25 +38584,15 @@
       "inflight_rows": [],
       "points_on_delivery": 100154.48,
       "cogs_cov": 100,
-      "ship_lost": 22310.66,
+      "ship_lost": 24080.88,
       "ship_lost_orders": 5,
       "ship_lost_daily": {
-        "2026-07-03": 4575,
         "2026-07-06": 8765,
         "2026-07-08": 3098.8,
-        "2026-07-14": 5871.86
+        "2026-07-14": 7867.78,
+        "2026-07-20": 4349.3
       },
       "ship_lost_rows": [
-        {
-          "order": "58791538497",
-          "d": "2026-07-03",
-          "v": 4575,
-          "status": "CANCELLED_IN_DELIVERY",
-          "sku": "GGT-03-2-4-E-16080",
-          "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood черный мрамор с черным металлическим подстольем",
-          "line": "TRUBIS",
-          "city": "Самара"
-        },
         {
           "order": "58884154242",
           "d": "2026-07-06",
@@ -38260,16 +38614,6 @@
           "city": "Сапроново"
         },
         {
-          "order": "59143638531",
-          "d": "2026-07-14",
-          "v": 2947.52,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGT-03-3-1-L-120",
-          "name": "GEN GROUP Стол обеденный кухонный TRUBIS Wood L D120 см орех с белым металлическим подстольем",
-          "line": "TRUBIS",
-          "city": "Рождествено"
-        },
-        {
           "order": "59143849729",
           "d": "2026-07-14",
           "v": 2924.34,
@@ -38278,10 +38622,30 @@
           "name": "GEN GROUP Кухонный стол ЛДСП TRUBIS Wood L D 80см, с металлическим подстольем, черный",
           "line": "TRUBIS",
           "city": "Конаково"
+        },
+        {
+          "order": "59149837442",
+          "d": "2026-07-14",
+          "v": 4943.44,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-1-5-E-16080-K",
+          "name": "GEN GROUP Стол обеденный овальный TRUBIS Stone, керамогранит, 160*80см, золото/белый мрамор",
+          "line": "TRUBIS",
+          "city": "Батайск"
+        },
+        {
+          "order": "59352587969",
+          "d": "2026-07-20",
+          "v": 4349.3,
+          "status": "CANCELLED_IN_DELIVERY",
+          "sku": "GGT-03-2-4-E-16080",
+          "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood черный мрамор с черным металлическим подстольем",
+          "line": "TRUBIS",
+          "city": "Самара"
         }
       ],
-      "ship_orders": 61,
-      "ship_cov": 56
+      "ship_orders": 63,
+      "ship_cov": 57.8
     },
     {
       "business": "1023124",
@@ -40955,8 +41319,8 @@
           "result_points": 45263.73,
           "cogs": 16933,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 6539.2,
+          "ship_known": true,
           "region": "Екатеринбург"
         },
         {
@@ -46218,14 +46582,13 @@
       "inflight_rows": [],
       "points_on_delivery": 81037.37,
       "cogs_cov": 100,
-      "ship_lost": 33595.31,
-      "ship_lost_orders": 7,
+      "ship_lost": 19205.24,
+      "ship_lost_orders": 4,
       "ship_lost_daily": {
-        "2026-06-10": 13278.48,
-        "2026-06-11": 6373.45,
+        "2026-06-10": 6739.28,
+        "2026-06-11": 3323.28,
         "2026-06-18": 4575,
-        "2026-06-26": 4567.68,
-        "2026-06-30": 4800.7
+        "2026-06-26": 4567.68
       },
       "ship_lost_rows": [
         {
@@ -46239,16 +46602,6 @@
           "city": "Белоярский городской округ"
         },
         {
-          "order": "58032679810",
-          "d": "2026-06-10",
-          "v": 6539.2,
-          "status": "DELIVERED",
-          "sku": "GGT-35-1-2-100-180",
-          "name": "Стол раздвижной обеденный KONUX D100/180 х 100см, с металлическими ножками",
-          "line": "столы",
-          "city": "Екатеринбург"
-        },
-        {
           "order": "58048399298",
           "d": "2026-06-11",
           "v": 3323.28,
@@ -46257,16 +46610,6 @@
           "name": "GEN GROUP Стол обеденный овальный 140х80 см TRUBIS Wood белый с золотым подстольем",
           "line": "TRUBIS",
           "city": "Щёлковский район"
-        },
-        {
-          "order": "58051191682",
-          "d": "2026-06-11",
-          "v": 3050.17,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGT-03-1-5-E-14080",
-          "name": "GEN GROUP Стол обеденный овальный 140х80 см TRUBIS Wood белый мрамор с золотым подстольем",
-          "line": "TRUBIS",
-          "city": "Апатиты"
         },
         {
           "order": "58297914177",
@@ -46287,20 +46630,10 @@
           "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood белый мрамор с белым металлическим подстольем",
           "line": "TRUBIS",
           "city": "Череповец"
-        },
-        {
-          "order": "58672223489",
-          "d": "2026-06-30",
-          "v": 4800.7,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGT-03-2-2-E-16080",
-          "name": "GEN GROUP Стол кухонный овальный 160х80 см TRUBIS Wood, черный",
-          "line": "TRUBIS",
-          "city": "Шаумян"
         }
       ],
-      "ship_orders": 65,
-      "ship_cov": 71.4
+      "ship_orders": 66,
+      "ship_cov": 72.5
     },
     {
       "business": "1023124",
@@ -51879,8 +52212,8 @@
           "result_points": 29212.73,
           "cogs": 14537,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 8702.26,
+          "ship_known": true,
           "region": "Чебоксары"
         },
         {
@@ -52077,8 +52410,8 @@
           "result_points": 28031.18,
           "cogs": 13482,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 13515.16,
+          "ship_known": true,
           "region": "Первоуральск"
         },
         {
@@ -53001,8 +53334,8 @@
           "result_points": 30935.32,
           "cogs": 13482,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 3450.77,
+          "ship_known": true,
           "region": "Москва"
         },
         {
@@ -56319,15 +56652,12 @@
       "inflight_rows": [],
       "points_on_delivery": 117604.28,
       "cogs_cov": 100,
-      "ship_lost": 46613.73,
-      "ship_lost_orders": 8,
+      "ship_lost": 17288.92,
+      "ship_lost_orders": 4,
       "ship_lost_daily": {
-        "2026-05-02": 4073.58,
-        "2026-05-03": 13515.16,
-        "2026-05-10": 3970.49,
-        "2026-05-14": 13123.84,
         "2026-05-17": 5403.38,
-        "2026-05-21": 3136.9,
+        "2026-05-02": 4073.58,
+        "2026-05-14": 4421.58,
         "2026-05-31": 3390.38
       },
       "ship_lost_rows": [
@@ -56342,26 +56672,6 @@
           "city": "Северный"
         },
         {
-          "order": "56702424896",
-          "d": "2026-05-03",
-          "v": 13515.16,
-          "status": "DELIVERED",
-          "sku": "GGT-03-2-5-E-12080",
-          "name": "GEN GROUP Стол овальный обеденный 120*80см TRUBIS Wood, столешница белый мрамор с черным металлическим подстольем",
-          "line": "TRUBIS",
-          "city": "Первоуральск"
-        },
-        {
-          "order": "56945201795",
-          "d": "2026-05-10",
-          "v": 3970.49,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGK-02-1-4-120",
-          "name": "GEN GROUP Столик консольный ARFEO 120х40 см, черный мрамор с золотым подстольем",
-          "line": "столы",
-          "city": "Кострома"
-        },
-        {
           "order": "57087204739",
           "d": "2026-05-14",
           "v": 4421.58,
@@ -56370,16 +56680,6 @@
           "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood черный мрамор с черным металлическим подстольем",
           "line": "TRUBIS",
           "city": "Ульяновск"
-        },
-        {
-          "order": "57089513347",
-          "d": "2026-05-14",
-          "v": 8702.26,
-          "status": "DELIVERED",
-          "sku": "GGT-03-3-1-E-16080",
-          "name": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood орех с белым металлическим подстольем",
-          "line": "TRUBIS",
-          "city": "Чебоксары"
         },
         {
           "order": "57176423680",
@@ -56392,16 +56692,6 @@
           "city": "Ембаево"
         },
         {
-          "order": "57338486337",
-          "d": "2026-05-21",
-          "v": 3136.9,
-          "status": "CANCELLED_IN_PROCESSING",
-          "sku": "GGT-03-1-5-E-16080-K",
-          "name": "GEN GROUP Стол обеденный овальный TRUBIS Stone, керамогранит, 160*80см, золото/белый мрамор",
-          "line": "TRUBIS",
-          "city": "Городской округ Балашиха"
-        },
-        {
           "order": "57661008643",
           "d": "2026-05-31",
           "v": 3390.38,
@@ -56412,8 +56702,8 @@
           "city": "Городской округ Химки"
         }
       ],
-      "ship_orders": 89,
-      "ship_cov": 66.9
+      "ship_orders": 92,
+      "ship_cov": 69.2
     },
     {
       "business": "1023124",
@@ -68450,7 +68740,7 @@
           "units_returned": 1,
           "units_net": 0,
           "price": 24894,
-          "ship_buyer": 599,
+          "ship_buyer": 0,
           "ship_mp": 0,
           "disc_mp": 12771,
           "disc_plus": 0,
@@ -83818,7 +84108,7 @@
           "units_returned": 1,
           "units_net": 0,
           "price": 54097,
-          "ship_buyer": 599,
+          "ship_buyer": 0,
           "ship_mp": 0,
           "disc_mp": 21329,
           "disc_plus": 0,
@@ -83867,8 +84157,8 @@
           "result_points": -21531.93,
           "cogs": 0,
           "cogs_known": true,
-          "ship_our": 0,
-          "ship_known": false,
+          "ship_our": 8243,
+          "ship_known": true,
           "region": "Майкопское"
         }
       ],
@@ -84172,25 +84462,8 @@
       ],
       "points_on_delivery": 20877.48,
       "cogs_cov": 100,
-      "ship_lost": 8243,
-      "ship_lost_orders": 1,
-      "ship_lost_daily": {
-        "2026-02-15": 8243
-      },
-      "ship_lost_rows": [
-        {
-          "order": "54234425283",
-          "d": "2026-02-15",
-          "v": 8243,
-          "status": "DELIVERED",
-          "sku": "GGT-03-3-3-O-20090",
-          "name": "GEN GROUP Стол кухонный овальный 200х90 см TRUBIS Wood, белый",
-          "line": "TRUBIS",
-          "city": "Майкопское"
-        }
-      ],
-      "ship_orders": 2,
-      "ship_cov": 2.2,
+      "ship_orders": 3,
+      "ship_cov": 3.4,
       "fly_rows": [
         {
           "business": "74986385",
@@ -84214,17 +84487,17 @@
           "revenue_money": 23571,
           "points_accrued": 0,
           "svc": {
-            "Размещение (комиссия)": 1052.33,
+            "Размещение (комиссия)": 1019.39,
             "Программа лояльности и отзывы": 1.07,
-            "Буст продаж": 498.64,
-            "Доставка покупателю": 204.84,
-            "Доставка (средняя миля)": 159.75,
+            "Буст продаж": 500.2,
+            "Доставка покупателю": 205.55,
+            "Доставка (средняя миля)": 160.3,
             "Доставка невыкупов и возвратов": 0.02,
             "Приём платежа покупателя": 0.12,
-            "Перевод платежа покупателя": 998.46,
+            "Перевод платежа покупателя": 998.39,
             "Обработка в СЦ/ПВЗ": 0,
             "Хранение": 0,
-            "Штрафы (не вовремя)": 33.52,
+            "Штрафы (не вовремя)": 33.63,
             "Полка": 0,
             "Товарные баннеры": 0,
             "Подписка": 0,
@@ -84247,9 +84520,9 @@
             "Подписка": 0,
             "Прочие услуги": 0
           },
-          "svc_money": 2948.75,
-          "svc_points": 16097.21,
-          "svc_total": 19045.96,
+          "svc_money": 2918.67,
+          "svc_points": 16124.57,
+          "svc_total": 19043.24,
           "result_money": 0,
           "result_points": 0,
           "cogs": 12252,
@@ -84258,8 +84531,8 @@
           "ship_known": false,
           "region": "Волгоград",
           "fly": true,
-          "est_fee": 19045.96,
-          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 367 строк"
+          "est_fee": 19043.24,
+          "est_basis": "кабинет целиком (по артикулу доставок за 120 дней нет), 366 строк"
         },
         {
           "business": "74986385",

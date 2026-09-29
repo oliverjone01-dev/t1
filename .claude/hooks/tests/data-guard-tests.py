@@ -202,6 +202,16 @@ def main():
               "git commit -am x && git push"):
         case(f"составная команда на main с цифрами: ask (R1): {c}", "pre-bash", bash(c), is_ask)
     sh(fx, "git", "checkout", "-q", "--", "analytics-mvp/src/metric.ts")
+    # итерация 5: локальный коммит с цифрами на main, push внутри конструкций оболочки (R1), перенаправление (R2), fetch (R3), @:main (R4)
+    open(os.path.join(fx, "analytics-mvp/src/metric.ts"), "a").write("export const k = 3;\n")
+    sh(fx, "git", *G, "commit", "-q", "-am", "local numbers")
+    for c in ("for i in 1 2 3 4; do git push && break || sleep $((2**i)); done", "until git push origin main; do sleep 2; done",
+              "while ! git push origin main; do sleep 1; done", "if git merge work; then git push origin main; fi",
+              "if true; then git push origin main; fi", "git push origin @:main", "git push origin HEAD~0:main",
+              "git show work:tools/x.json > tools/x.json && git add -A && git commit -m x && git push origin main",
+              "echo x >| tools/a.json && git push", "git fetch . work:main && git push origin main"):
+        case(f"push в main через конструкции оболочки и запись файлов: ask (R1-R4): {c}", "pre-bash", bash(c), is_ask)
+    sh(fx, "git", "reset", "-q", "--hard", "origin/main")
     for c in ("git merge work && git push origin main", f"git cherry-pick {after_go} && git push origin main", "git merge work"):
         case(f"слияние ветки с цифрами в main: ask (R1): {c}", "pre-bash", bash(c), is_ask)
     case("git pull на main и push без своих изменений: молчит", "pre-bash", bash("git pull --ff-only && git push origin main"), silent)
@@ -220,9 +230,16 @@ def main():
     for c in ("git checkout work && git push origin HEAD:main", "git switch work && git push origin main",
               "git checkout main && git merge --no-ff work -m 'Merge: x' && git push origin main"):
         case(f"смена ветки внутри команды: ask (G1): {c}", "pre-bash", bash(c), is_ask)
+    case("switch main, pull, merge, push одной командой: ask", "pre-bash",
+         bash("git switch main && git pull && git merge --no-ff work && git push origin main"), is_ask)
+    sh(fx, "git", "checkout", "-q", "work")
+    open(os.path.join(fx, "analytics-mvp/src/scripts/build-katya.ts"), "a").write("export const z = 9;\n")
+    case("коммит и push текущей ветки как ветка:main без checkout: оценивается рабочее дерево (G5)", "pre-bash",
+         bash("git add -A && git commit -m x && git push origin work:main"), is_ask)
+    case("git pull без аргументов на рабочей ветке не считается pull из main", "pre-bash",
+         bash("git pull && git push origin HEAD:main"), is_ask)
+    sh(fx, "git", "checkout", "-q", "--", "analytics-mvp/src/scripts/build-katya.ts")
     sh(fx, "git", "checkout", "-q", "docs")
-    case("коммит и push текущей ветки как ветка:main: оценивается рабочее дерево (G5)", "pre-bash",
-         bash("git checkout work && git add -A && git commit -m x && git push origin work:main"), is_ask)
     for c in ("git push origin work:main", "gh pr merge work", "gh pr merge https://github.com/o/r/pull/45", "gh -R o/r pr merge 45"):
         case(f"слияние чужого содержимого с другой ветки: ask (R3): {c}", "pre-bash", bash(c), is_ask)
     h45 = sh(fx, sys.executable, os.path.join(fx, ".claude/skills/data-guard/scripts/audit_hash.py"), "--rev", after_go)

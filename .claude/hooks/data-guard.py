@@ -207,6 +207,8 @@ WRAPPERS = {"env", "command", "nice", "nohup", "sudo", "time", "exec", "builtin"
 
 
 OPERATORS = {"&&", "||", ";", "|", "&", ";;", "|&"}
+SHELL_KEYWORDS = {"do", "then", "else", "elif", "if", "while", "until", "!", "time", "{", "}", "done", "fi", "for", "in"}
+REDIRECTS = {">", ">>", ">|", "&>", "&>>", "1>", "2>", ">&"}
 
 
 def _split_ops(cmd):
@@ -251,6 +253,17 @@ def segments(cmd, depth=0):
                     toks = toks[1:]
                 if toks and re.match(r"^\d+[smhd]?$", toks[0]):
                     toks = toks[1:]
+        if toks and toks[0] in ("for", "case", "select"):
+            continue  # заголовок цикла, команд не содержит
+        changed = False
+        while toks and toks[0] in SHELL_KEYWORDS:  # do/then/if/while/until/! перед командой
+            toks = toks[1:]
+            changed = True
+        if changed and toks:
+            # после ключевого слова снова могут идти обёртки
+            again = segments(" ".join(shlex.quote(t) for t in toks), depth + 1) if depth < 3 else [toks]
+            res.extend(again)
+            continue
         if len(toks) >= 3 and os.path.basename(toks[0]) in ("bash", "sh", "zsh") and toks[1] in ("-c", "-lc") and depth < 3:
             res.extend(segments(toks[2], depth + 1))
             continue
@@ -270,7 +283,7 @@ def git_sub(toks):
 
 
 def is_main_ref(ref):
-    return re.fullmatch(r"(\+)?((HEAD|[\w./-]+):)?(refs/heads/)?main", ref) is not None
+    return re.fullmatch(r"(\+)?([^:\s]+:)?(refs/heads/)?main", ref) is not None
 
 
 VALUE_OPTS = {  # опции, после которых идёт значение (не ref)
@@ -305,13 +318,15 @@ def positional(args, value_opts):
     return out
 
 
-def safe_before_push(sub, pos):
+def safe_before_push(sub, pos, br="main"):
     """Сегмент, после которого итог в main предсказуем: add/commit (весь результат = рабочее дерево),
     fetch/status/log/diff/show, pull или merge только из origin main."""
-    if sub in ("add", "commit", "fetch", "status", "log", "diff", "show", "rev-parse"):
+    if sub == "fetch":
+        return not any(":" in p for p in pos)  # fetch с refspec в локальную ветку двигает её
+    if sub in ("add", "commit", "status", "log", "diff", "show", "rev-parse"):
         return True
     if sub == "pull":
-        return not pos or pos == ["origin"] or pos == ["origin", "main"]
+        return pos == ["origin", "main"] or (br == "main" and (not pos or pos == ["origin"]))
     if sub == "merge":
         return bool(pos) and all(re.fullmatch(r"(origin/)?main", p) for p in pos)
     return False
@@ -346,11 +361,15 @@ def merge_targets(cmd, cur_branch):
                 continue
             continue
         sub, args = git_sub(t)
+        writes = any(x in REDIRECTS or x.startswith(("--output", "-o/")) for x in t) or any(re.match(r"^\d?>", x) for x in t)
         if not sub:
-            if base not in ("cd", "pwd", "echo", "true", "ls", "cat", "grep", "rg", "head", "tail", "wc", "printf", "test", "["):
+            if base not in ("cd", "pwd", "echo", "true", "ls", "cat", "grep", "rg", "head", "tail", "wc", "printf", "test", "[", "sleep", "break", "continue"):
                 unknown_ops.append(base)  # скрипт или команда, которая может писать файлы
-            elif any(x in t for x in (">", ">>")):
+            elif writes:
                 unknown_ops.append(base + " >")
+            continue
+        if writes and sub != "push":
+            unknown_ops.append(f"git {sub} >")  # git show X:путь > путь и т.п.
             continue
         pos = positional(args, VALUE_OPTS.get(sub, set()))
         if sub == "push":
@@ -361,7 +380,8 @@ def merge_targets(cmd, cur_branch):
                     if src in ("HEAD", "@", "") or src == br:
                         targets.append({"what": "git push в main", "rev": "HEAD", "prospective": prospective, "unknown": list(unknown_ops)})
                     else:
-                        targets.append({"what": "git push в main", "rev": src, "unknown": list(unknown_ops)})
+                        extra = [f"push {src}:main после коммита"] if prospective and re.match(r"^(HEAD|@)", src) else []
+                        targets.append({"what": "git push в main", "rev": src, "unknown": list(unknown_ops) + extra})
                     break
             else:
                 if br == "main" and (not rs or any(r in ("HEAD", "@") for r in rs)):
@@ -380,7 +400,7 @@ def merge_targets(cmd, cur_branch):
                 targets.append({"what": "git merge в main", "rev": w})
         if sub in ("add", "commit"):
             prospective = True
-        elif not safe_before_push(sub, pos):
+        elif not safe_before_push(sub, pos, br):
             unknown_ops.append(f"git {sub}")
     return targets
 
@@ -459,7 +479,7 @@ def merge_gate(c, tgt, reason, sid):
             "data-guard К11: fetch головы PR или ветки не удался, проверить go на сливаемые изменения нельзя. Спроси Ивана или проверь вручную.")
         return True
     if tgt.get("unknown"):
-        missing.append("итог команды не определить до выполнения (" + ", ".join(dict.fromkeys(tgt["unknown"]))[:120] + ")")
+        missing.append("итог команды не определить до выполнения (" + ", ".join(dict.fromkeys(tgt["unknown"]))[:120] + "); раздели команду, и go проверится на фактическое содержимое")
     elif tgt.get("prospective"):
         ch = worktree_changes()
         if ch is None:
@@ -477,7 +497,7 @@ def merge_gate(c, tgt, reason, sid):
         + (f" Причина агента: {reason[:200]}." if reason else "") + " Слить без go?",
         "data-guard К11: нужен go ФЕНИКСА на сливаемые изменения. Посчитай хеш `python3 -B .claude/skills/data-guard/scripts/audit_hash.py` "
         "(до коммита `--worktree`, для PR или ветки `--rev <голова>`), передай ФЕНИКСУ; он пишет audited_hash в строку event: audit и строки `AUDITED: <хеш>`, `VERDICT: go`. "
-        "Составную команду (commit/merge и push в main) хук оценивает по итоговому содержимому. После return нужен повторный аудит. "
+        "Если в команде перед push в main есть операции кроме add/commit/pull из origin main, итог до выполнения не определить: раздели команду (сначала merge/commit, потом отдельный push), тогда хук проверит go на фактическое содержимое. После return нужен повторный аудит. "
         "Слияние без go решает только человек в окне подтверждения; DG_OVERRIDE лишь записывает причину.")
     return True
 

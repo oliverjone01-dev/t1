@@ -9,6 +9,10 @@
 // Запуск: npx tsx src/scripts/b24/build-rop.ts (после fetch-rop.ts).
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs";
+// Контакты клиентов (телефоны, почты, карты) на страницу не попадают (ЯДИ 29.09). «source» -
+// наши линии и ящики, по ним считаются каналы; фото менеджеров - ссылки.
+const MASK_SKIP = new Set(["source", "managerPhotos"]);
 
 const TPL = "rop/manager-command.template.html";
 const SRC = "rop/data/rop.json";
@@ -20,7 +24,7 @@ const MGR = process.env.MANAGER_NAME || "Татьяна Лакомова";
 const OUT = process.env.MANAGER_OUT || "public/manager-lakomova.html";
 const TODAY = process.env.ROP_TODAY || new Date().toISOString().slice(0, 10);
 
-const rop = JSON.parse(readFileSync(SRC, "utf-8"));
+const rop = maskDeep(JSON.parse(readFileSync(SRC, "utf-8")), MASK_SKIP);
 const tpl = readFileSync(TPL, "utf-8");
 // План - необязателен: если файла нет, дашборд откатывается к ручному полю «План выручки/мес».
 let plan: any = null;
@@ -177,7 +181,7 @@ console.log(`Свои: сделок ${MINE_D.length}, лидов ${MINE_L.length
 // тогда слой диалогов пустой, блок приоритета работает на стадиях/сроках без «мяча». ------------
 let dialogMap: Record<string, any> = {};
 try {
-  const dlg = JSON.parse(readFileSync("rop/data/dialog.json", "utf-8"));
+  const dlg = maskDeep(JSON.parse(readFileSync("rop/data/dialog.json", "utf-8")));
   const MSG = new Set(["Сообщение Telegram", "Сообщение MAX", "Сообщение WhatsApp", "Мессенджер ОЛ", "Письмо", "Звонок"]);
   const NOWMS = new Date(rop.generated_at || new Date().toISOString()).getTime();
   const clip = (s: string, n: number): string | null => {

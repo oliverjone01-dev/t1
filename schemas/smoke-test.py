@@ -103,15 +103,15 @@ SAMPLES: dict[str, dict] = {
 
 
 def _extra_fixtures() -> dict[str, tuple[Path, object]]:
-    """Реальные артефакты как фикстуры: канонический пример из phoenix-eval и живой отчёт ФЕНИКСА."""
+    """Реальные артефакты как фикстуры: канонический пример из чек-листа ФЕНИКСА и живой отчёт ФЕНИКСА."""
     import re
     fx: dict[str, tuple[Path, object]] = {}
     root = SCHEMA_DIR.parent
-    skill = root / ".claude" / "skills" / "phoenix-eval" / "SKILL.md"
+    skill = root / "knowledge" / "feniks" / "eval-checklist.md"  # чек-лист агента feniks (бывший skill phoenix-eval)
     if skill.exists():
         m = re.search(r"## Output JSON.*?```json\n(.*?)\n```", skill.read_text(encoding="utf-8"), re.S)
         if m:
-            fx["phoenix-eval example"] = (SCHEMA_DIR / "audit-report.json", json.loads(m.group(1)))
+            fx["feniks eval-checklist example"] = (SCHEMA_DIR / "audit-report.json", json.loads(m.group(1)))
     live = root / "traces" / "2026-07-01" / "feniks-newsletter-lazer-steel-20260701.json"
     if live.exists():
         fx["traces/2026-07-01 feniks newsletter"] = (SCHEMA_DIR / "audit-report.json", json.loads(live.read_text(encoding="utf-8")))

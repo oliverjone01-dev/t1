@@ -1,6 +1,6 @@
 # Методика оценки менеджера отдела продаж GENGROUP
 
-**Owner:** sales-director skill
+**Owner:** trener + boris. До 2026-09-28 файл лежал в references skill sales-director (skill удалён, упоминания sales-director ниже - история)
 **Last calibration:** 2026-06-30
 **Next review:** 2026-09-30 (Q3 close)
 **Source:** Костины анализы (10 менеджеров) + sales-director опыт + Bitrix24 C49 поля

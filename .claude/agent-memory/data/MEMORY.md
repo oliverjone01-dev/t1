@@ -5,7 +5,7 @@
 ## Где что лежит
 - OZON живые данные: `analytics-mvp/data/` (n8n → fetch:live). `fixtures/` - только референс, в отчёты не подавать.
 - Директ: `traces/YYYY-MM-DD/direct-writes.jsonl`, отчёты ТИМУРА в `knowledge/episodes/`.
-- Bitrix24 категория 49: снимки `analytics-mvp/rop/data/rop.json` (см. skill sales-director).
+- Bitrix24 категория 49: снимки `analytics-mvp/rop/data/rop.json` (см. `knowledge/sales/bitrix24-field-map.md`).
 - `knowledge/semantic/` - на 2026-09-06 содержит только `dialog-dashboard-metrics.md`; прайс и история продаж отсутствуют → 27000 / 350+ / 16000 м² = [ГИПОТЕЗА] до выгрузки.
 
 ## Повторяющиеся расхождения

@@ -2,7 +2,7 @@
 # Выгрузка плагина gengroup-roster из текущей ветки (обычно main) в лёгкую ветку `plugin`.
 # Зачем: Claude Desktop → Customize → Plugins → Add marketplace клонирует репозиторий целиком,
 # а main с историей аналитики весит сотни мегабайт и sync падает. Ветка plugin содержит только
-# манифесты, agents/, skills из plugin.json, .claude/hooks, workflow council и schemas (< 1 МБ).
+# манифесты, agents/, skills из plugin.json, .claude/hooks, workflow council, schemas и knowledge/feniks (< 1 МБ).
 # Использование: bash .claude-plugin/export-plugin.sh          # собрать и закоммитить локально
 #               bash .claude-plugin/export-plugin.sh --push   # и запушить origin/plugin
 # Ветку plugin руками не править: следующий запуск перезапишет её содержимое.
@@ -30,6 +30,9 @@ for w in pj.get("workflows", []):
     os.makedirs(os.path.dirname(os.path.join(dst, w)), exist_ok=True)
     shutil.copy(os.path.join(root, w), os.path.join(dst, w))
 shutil.copytree(os.path.join(root, "schemas"), os.path.join(dst, "schemas"), ignore=IGN)
+# чек-лист, якоря и пробы агента feniks (бывший skill phoenix-eval) - агент читает их по пути knowledge/feniks/
+if os.path.isdir(os.path.join(root, "knowledge/feniks")):
+    shutil.copytree(os.path.join(root, "knowledge/feniks"), os.path.join(dst, "knowledge/feniks"), ignore=IGN)
 print("payload:", sum(len(f) for _, _, f in os.walk(dst)), "файлов, версия", pj.get("version"))
 PY
 

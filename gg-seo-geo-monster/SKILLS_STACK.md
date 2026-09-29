@@ -1,8 +1,8 @@
 # Скилл-стек SEO/GEO Монстра: ранжирование и синергия
 
 Что взять в конвейер, в каком порядке, на какой модели. Баланс человекопонятности
-(humanizer-ru + phoenix-eval Comprehension Gate) и SEO/GEO-плотности (geo-aeo).
-Приёмка - phoenix-eval (feniks), без его `go` ничего не публикуется.
+(humanizer-ru + Comprehension Gate агента feniks) и SEO/GEO-плотности (geo-aeo).
+Приёмка - агент feniks, без его `go` ничего не публикуется.
 
 ## TL;DR
 
@@ -17,7 +17,7 @@ PLAN (haiku/sonnet) -> FORGE (sonnet+cache) -> HUMANIZE (sonnet) -> GATE (opus, 
 ```
 
 Человекопонятность и SEO/GEO не конфликтуют: это не выбор, а порядок слоёв. geo-aeo
-даёт структуру и факты, humanizer-ru убирает AI-след, phoenix-eval судит оба конца.
+даёт структуру и факты, humanizer-ru убирает AI-след, агент feniks судит оба конца.
 
 ## Ранжирование по внедренческому весу
 
@@ -29,15 +29,15 @@ PLAN (haiku/sonnet) -> FORGE (sonnet+cache) -> HUMANIZE (sonnet) -> GATE (opus, 
 | Скилл | Вес | Роль в конвейере | Ось | Решение |
 |---|---|---|---|---|
 | **geo-aeo** | 10 | Двигатель AI-видимости: 7-point checklist, schema.org, AI Citation Rate | машина (SEO) | взять как есть, сделать каноном 7-point |
-| **phoenix-eval** | 10 | Терминальный гейт приёмки. Comprehension Gate = человекопонятность, 25 чекпоинтов = качество | держит оба конца | владелец приёмки (feniks), не трогать |
+| **агент feniks** (`knowledge/feniks/eval-checklist.md`) | 10 | Терминальный гейт приёмки. Comprehension Gate = человекопонятность, 25 чекпоинтов = качество | держит оба конца | владелец приёмки (feniks), не трогать |
 | **humanizer-ru** | 9 | Обязательный слой человекочитаемости, двойной проход, бан em dash, 30 паттернов | человек | стадия HUMANIZE, часть - в Level-1 автопроверки |
-| **content-factory** | 9 | Каркас: шаблоны и лимиты каналов (блог, Дзен, VK, TG, email, внешние площадки) | структура | взять, но убрать дубль article-шаблона (см. консолидацию) |
+| **gengroup-content-factory** (версия claude.ai) | 9 | Каркас: шаблоны и лимиты каналов (блог, Дзен, VK, TG, email, внешние площадки) | структура | взять, но убрать дубль article-шаблона (см. консолидацию) |
 
 ### Tier A - сильные множители точности и скорости
 
 | Скилл | Вес | Роль | Ось | Решение |
 |---|---|---|---|---|
-| **protocol-9-runner** | 8 | Фактогейт цифр: `[ДАННЫЕ]` vs `[ГИПОТЕЗА]`, кормит Accuracy phoenix-eval | точность | вшить в стадию FORGE как разметку чисел |
+| **разметка цифр агентом data** | 8 | Фактогейт цифр: `[ДАННЫЕ]` vs `[ГИПОТЕЗА]`, кормит Accuracy агента feniks | точность | вшить в стадию FORGE как разметку чисел |
 | **brand** | 7 | Voice-DNA по 5 брендам. Критично для мульти-бренд + приоритета GENGLASS | человек (tone) | стадия PLAN, выбор голоса |
 | **competitor-intel** | 7 | Comparative statements (geo-aeo п.3) + позиционирование против рынка | машина (SEO) | стадия PLAN, кормит FORGE сравнениями |
 
@@ -45,8 +45,8 @@ PLAN (haiku/sonnet) -> FORGE (sonnet+cache) -> HUMANIZE (sonnet) -> GATE (opus, 
 
 | Скилл | Вес | Роль | Ось | Решение |
 |---|---|---|---|---|
-| **encyclopedia** | 6 | Автопроверка терминов (палитра/линия/коллекция, Metal-GM, GLASS-MEMORY) | точность | Level-1 grep-проверка ДО гейта, почти бесплатно |
-| Content Forge prompt (`../SEO_PIPELINE_content_forge_prompt.md`) | - | Не скилл, а фактический движок генерации в n8n. Уже сплавляет geo-aeo 7-point + anti-slop + 6-block | движок | = канон генерации, с ним синхронизируем geo-aeo и content-factory |
+| **gengroup-encyclopedia** (версия claude.ai) | 6 | Автопроверка терминов (палитра/линия/коллекция, Metal-GM, GLASS-MEMORY) | точность | Level-1 grep-проверка ДО гейта, почти бесплатно |
+| Content Forge prompt (`../SEO_PIPELINE_content_forge_prompt.md`) | - | Не скилл, а фактический движок генерации в n8n. Уже сплавляет geo-aeo 7-point + anti-slop + 6-block | движок | = канон генерации, с ним синхронизируем geo-aeo и gengroup-content-factory |
 
 ### Tier C - вне блог-копирайтинга или низкий приоритет
 
@@ -64,14 +64,14 @@ PLAN (haiku/sonnet) -> FORGE (sonnet+cache) -> HUMANIZE (sonnet) -> GATE (opus, 
 
 ### Стадия 0 - PLAN (дёшево, haiku/sonnet)
 
-Собирает бриф: `content-factory` (шаблон + лимиты канала) + `brand` (голос бренда,
-GENGLASS по умолчанию) + `encyclopedia` (термины) + `competitor-intel` (против кого
+Собирает бриф: `gengroup-content-factory` (шаблон + лимиты канала) + `gengroup-brand` (голос бренда,
+GENGLASS по умолчанию) + `gengroup-encyclopedia` (термины) + `competitor-intel` (против кого
 и чем сравниваемся). Выход - бриф на 1 экран, не генерация.
 
 ### Стадия 1 - FORGE (sonnet + prompt caching для батча >10 статей)
 
 Генерация статьи движком Content Forge (`SEO_PIPELINE_content_forge_prompt.md`),
-внутри которого уже живёт `geo-aeo` 7-point и разметка чисел `protocol-9-runner`.
+внутри которого уже живёт `geo-aeo` 7-point и разметка чисел агентом data ([ДАННЫЕ] или [ГИПОТЕЗА] с источником).
 Это самая токеноёмкая стадия - поэтому sonnet, не opus, и кэш промпта (экономия
 входа ~90% на массовом батче, правило Protocol 11).
 
@@ -83,7 +83,7 @@ GENGLASS по умолчанию) + `encyclopedia` (термины) + `competito
 
 ### Стадия 3 - GATE (opus, feniks) - приёмка
 
-`phoenix-eval`: сначала Comprehension Gate (обыватель понимает блок за 1 секунду,
+агент feniks: сначала Comprehension Gate (обыватель понимает блок за 1 секунду,
 жаргон переведён), затем 25 чекпоинтов. Вердикт `go / return / veto`. Только эта
 стадия на opus - здесь нужна глубина рассуждения. Ничего не публикуется без `go`.
 Приёмку статей и проекта держит feniks головой.
@@ -93,8 +93,8 @@ GENGLASS по умолчанию) + `encyclopedia` (термины) + `competito
 Детерминированные проверки без модели, отсекают слоп до дорогого opus-гейта:
 
 1. em dash grep (бан, humanizer-ru Block 4 / phoenix brand_18)
-2. Anti-Slop блоклист grep (CLAUDE.md §7)
-3. Термины: Metal-GM/GLASS-MEMORY/палитра-линия (encyclopedia)
+2. Anti-Slop блоклист grep (knowledge/os/style.md §7)
+3. Термины: Metal-GM/GLASS-MEMORY/палитра-линия (gengroup-encyclopedia)
 4. geo-aeo score: 7/7 пунктов присутствуют (Entity, FAQ≥5, comparative, таблица, факт, автор, свежесть)
 5. Числа: каждая цифра имеет `[ДАННЫЕ]`/`[ГИПОТЕЗА]` (protocol-9)
 6. Schema.org: валидно через validator.schema.org
@@ -116,7 +116,7 @@ GENGLASS по умолчанию) + `encyclopedia` (термины) + `competito
 ## Консолидация: убрать тройной дубль
 
 Правила статьи (6 блоков + 7-point + anti-slop) сейчас описаны в трёх местах:
-`geo-aeo` checklist, `content-factory` article-шаблон, `SEO_PIPELINE_content_forge_prompt.md`.
+`geo-aeo` checklist, `gengroup-content-factory` article-шаблон, `SEO_PIPELINE_content_forge_prompt.md`.
 Три копии = дрейф и лишние токены на поддержку. Свести к одному источнику правды
 (канон - Content Forge prompt), остальные два ссылаются на него, а не повторяют.
 
@@ -137,8 +137,8 @@ GENGLASS по умолчанию) + `encyclopedia` (термины) + `competito
 
 - **Строить:** тонкий оркестратор `geo-forge` (шаги + единый контракт). Не движок,
   а склейка существующих скиллов. Минимум кода, максимум переиспользования.
-- **Оставить как есть:** phoenix-eval, humanizer-ru, brand, encyclopedia,
-  competitor-intel, protocol-9-runner, geo-aeo. Их не переписываем, а вызываем.
+- **Оставить как есть:** агент feniks, humanizer-ru, gengroup-brand, gengroup-encyclopedia,
+  competitor-intel, разметка цифр агентом data, geo-aeo. Их не переписываем, а вызываем.
 - **Не тащить в блог-конвейер:** marketplace-rocket, cross-sell (кроме product-cards),
   design-kit (это UI хаба).
 

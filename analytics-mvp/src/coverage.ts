@@ -1,4 +1,4 @@
-// Отчёт о покрытии и пробелы по SKU (CLAUDE.md §15 п.3) - общий для build-katya и build-site.
+// Отчёт о покрытии и пробелы по SKU (knowledge/os/analytics-dod.md §15 п.3) - общий для build-katya и build-site.
 // Источник: <DATA_DIR>/reconcile.json (кладёт продьюсер платформы, у Маркета - ym:reconcile).
 // Нет файла - ничего не добавляем: OZON-сборка без reconcile.json остаётся байт-в-байт (гейт Этапа 2).
 import { readFileSync } from "node:fs";

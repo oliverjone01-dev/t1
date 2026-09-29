@@ -12,6 +12,7 @@
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/fetch-economics.ts
 
 import { writeFileSync, mkdirSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs"; // контакты клиентов в данные дашборда не попадают (ЯДИ 29.09)
 
 const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL в окружении"); process.exit(1); }
@@ -232,7 +233,7 @@ async function main() {
     deals,
   };
   mkdirSync("economics/data", { recursive: true });
-  writeFileSync(OUT, JSON.stringify(out));
+  writeFileSync(OUT, JSON.stringify(maskDeep(out)));
   const B = deals.reduce((a, d) => a + d.budget, 0), F = deals.reduce((a, d) => a + d.ssActual, 0);
   console.log(`Готово: ${deals.length} сделок, КП ${B.toLocaleString("ru")} ₽, факт ${F.toLocaleString("ru")} ₽, маржа ${(B - F).toLocaleString("ru")} ₽`);
 }

@@ -7,6 +7,7 @@
 // только направления {genglass, metal_gm, gen-group, gentero, valonti} - без glass-memory и пустого.
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/designers.ts
 import { writeFileSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs"; // контакты клиентов в данные дашборда не попадают (ЯДИ 29.09)
 
 const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
@@ -124,7 +125,7 @@ async function main() {
     designers_total: desList.length, deals_scanned: deals.length, deals_matched: matched,
     designers, rows,
   };
-  writeFileSync(OUT, JSON.stringify(out, null, 2));
+  writeFileSync(OUT, JSON.stringify(maskDeep(out), null, 2));
   console.log(`designers: реестр ${desList.length}, сделок в направлениях ${deals.length}, привязано ${matched}`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });

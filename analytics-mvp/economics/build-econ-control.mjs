@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-const J = JSON.parse(readFileSync("economics/data/econ-recon.json", "utf8"));
+import { maskDeep } from "../src/lib/mask-contacts.mjs"; // контакты клиентов на экран не попадают (ЯДИ 29.09)
+const J = maskDeep(JSON.parse(readFileSync("economics/data/econ-recon.json", "utf8")));
 const PORTAL = J.b24Portal || "https://glassmemory.bitrix24.ru";
 
 const ORDER = ["Калькулятор GG", "Расчёт", "Закупка", "Производство  GG", "Сборка", "Логистика", "Монтаж"];

@@ -7,6 +7,7 @@
 // факт-с/с производства). Только чтение, в CRM ничего не пишет.
 // Запуск: B24_WEBHOOK_URL=... [ECON_WINDOW_DAYS=60] npx tsx src/scripts/b24/econ-recon.ts
 import { writeFileSync, mkdirSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs"; // контакты клиентов в данные дашборда не попадают (ЯДИ 29.09)
 
 const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
@@ -198,7 +199,7 @@ async function listSharded(method: string, params: any, opts: { idField?: string
   // 5) JSON для экрана
   const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, prepayAmt: r.prepayAmt || 0, created: r.created, modified: r.modified || null, shippedAt: r.shippedAt || null, readyAt: r.readyAt || null, prepayAt: r.prepayAt || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
   mkdirSync("economics/data", { recursive: true });
-  writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, spStages, inventory: inv, deals }));
+  writeFileSync(OUT, JSON.stringify(maskDeep({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, spStages, inventory: inv, deals })));
 
   // 6) Сводка ответов
   const N = inWin.size;

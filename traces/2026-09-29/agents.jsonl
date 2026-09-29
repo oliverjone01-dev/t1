@@ -1,0 +1,4 @@
+{"ts": "2026-09-29T06:35:51+00:00", "event": "subagent_stop", "agent": "unknown", "tier": "unknown", "session_id": "4996dd87-1fcd-5148-bbbf-7d1757708521", "agent_id": "af903d79619ca4c78", "payload_keys": ["agent_id", "agent_transcript_path", "agent_type", "background_tasks", "cwd", "effort", "hook_event_name", "permission_mode", "prompt_id", "scratchpad_dir", "session_crons", "session_id"], "msg_chars": 4, "outcome": "unknown"}
+{"ts": "2026-09-29T06:39:09+00:00", "event": "subagent_start", "agent": "feniks", "tier": "0", "session_id": "4996dd87-1fcd-5148-bbbf-7d1757708521", "agent_id": "a66f99269e7d2e2ef"}
+{"ts": "2026-09-29T06:40:51+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/S/out"}
+{"ts": "2026-09-29T06:41:28+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/8:"}

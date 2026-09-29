@@ -69,6 +69,12 @@ def main():
         shutil.copy(PKG / p, OUT / p)
     (OUT / "detalizaciya-odnim-failom.html").write_text(inline((PKG / "index.html").read_text(), files))
 
+    # та же DS в скилле kontur-dna: новые дашборды берут файлы оттуда
+    skill_ds = ROOT.parent / ".claude/skills/kontur-dna/assets/ds"
+    if skill_ds.parent.exists():
+        for p in [k for k in files if k.startswith("ds/")]:
+            (skill_ds / p[3:]).write_text(files[p])
+
     z = ROOT / "dist" / (NAME + ".zip")
     with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
         for f in sorted(OUT.rglob("*")):

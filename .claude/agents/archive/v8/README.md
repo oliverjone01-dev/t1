@@ -13,7 +13,7 @@
 
 Чтобы перенести агента из inactive в active:
 
-1. **Reality Audit обязателен:** `/reality-audit "Активировать агент <name>: что он делает, чего не делают активные 12, какой incremental value"`
+1. **Reality Audit обязателен** (разметка цифр агентом data: [ДАННЫЕ] или [ГИПОТЕЗА] с источником): «Активировать агент <name>: что он делает, чего не делают активные 12, какой incremental value»
 2. **FENIX review:** scores ≥7.5 для actionability и insight required
 3. **Иван approval** (HITL gate)
 4. Skopiровать профиль из `GENGROUP_AI_MASTER_SYSTEM_v7_0.docx` в `.claude/agents/<name>.md`, обновить под формат v9 (YAML frontmatter, Tools, model)

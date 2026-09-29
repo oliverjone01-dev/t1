@@ -538,7 +538,7 @@ export function adsStub(dateFrom: string, dateTo: string, promoSpend = 0) {
 }
 
 // ---------- сборы из ledger'а кабинета (united-netting) ----------
-// По CLAUDE.md §15 источник денег - кабинет, а не заказ. Блок commissions в stats/orders несёт только
+// По knowledge/os/analytics-dod.md §15 источник денег - кабинет, а не заказ. Блок commissions в stats/orders несёт только
 // комиссию по заказу: на живых данных 2026-09-04 мы книжили 3 242 362 ₽ удержаний, а кабинет удержал
 // 18 231 203 ₽, то есть видели 18%. Недостающее - размещение товарных предложений (14.9 млн), буст,
 // логистика и эквайринг: это отдельные проводки ledger'а, и в заказ они не попадают.
@@ -1438,9 +1438,30 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
     m.missing_accrued = r2(a.sum); m.missing_accrued_orders = a.orders.size;
   }
 
+  // Возврат покупателю денег за ДОСТАВКУ. В «Оплатил клиент» он уже есть (refunds), а колонка
+  // «Доставка покупателя» и поступление держали доставку целиком. Катя 29.09.2026 поймала это на
+  // заказе 60552398978: возвращён целиком, 4 500 ₽ за доставку покупателю вернули 05.09, а в своде
+  // они стояли доходом. Источник - реестр: «Возврат платежа покупателя» без артикула = доставка.
+  // По снимку таких заказов 5 на 19 198 ₽. Делится между позициями заказа так же, как сама доставка.
+  const shipRefund = new Map<string, number>();
+  for (const n of netting) {
+    const ord = String(n.order || "").trim();
+    if (!ord || String(n.sku || "").trim()) continue;
+    if (!/^возврат плат[её]жа покупател/i.test(String(n.src || ""))) continue;
+    shipRefund.set(ord, (shipRefund.get(ord) || 0) + (Number(n.amount) || 0));
+  }
+  const shipOfOrder = new Map<string, number>();
+  for (const s of acc.values()) shipOfOrder.set(s.order, (shipOfOrder.get(s.order) || 0) + s.ship_buyer);
   for (const s of acc.values()) {
     s.units_net = s.units_delivered - s.units_returned;
     s.revenue_money = r2(s.buyer_pay + s.ship_buyer + s.refunds);
+    const sr = shipRefund.get(s.order), so = shipOfOrder.get(s.order) || 0;
+    if (sr && so > 0 && s.ship_buyer > 0) {
+      const cut = Math.min(s.ship_buyer, -sr * s.ship_buyer / so);
+      s.buyer_pay += s.ship_buyer;            // в buyer_pay ниже доставка добавляется из ship_buyer: сохраняем валовую
+      s.ship_buyer = s.ship_buyer - cut;
+      s.buyer_pay -= s.ship_buyer;
+    }
     s.svc_total = r2(s.svc_money + s.svc_points);
     s.result_money = r2(s.revenue_money - s.svc_money);
     s.result_points = r2(s.revenue_money + s.points_accrued - s.svc_total);

@@ -6,7 +6,7 @@
 // Без сети. Запуск: npm run ym:derive [days=30]
 import { existsSync, readFileSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
-import { parseDeliveryCsv, withoutCancelled, resolveOrders, type DelivRow } from "./delivery-lib.js";
+import { parseDeliveryCsv, withoutCancelled, resolveOrders, deliveryIssues, type DelivRow, type DelivIssue } from "./delivery-lib.js";
 import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, isNettingFee, isPointsPaid, type OrderRow } from "./derive-lib.js";
 
 function main() {
@@ -73,13 +73,16 @@ function main() {
   // Ведомость доставки - ручной лист (наш расход на перевозку). Живёт в fixtures, потому что
   // источник ручной: API Маркета счёт перевозчика не отдаёт и отдать не может.
   let delivRows: DelivRow[] = [];
-  try {
+  let delivIssues: DelivIssue[] = [];
+  // Нет файла - предупреждение ниже. Файл есть, но в нём не число - сборка падает с номером
+  // строки: молча обнулённая сумма и есть та ошибка, которую ловим.
+  if (existsSync("fixtures/delivery_ym.csv")) {
     const ordAll = readNdjson<OrderRow>(yp("orders.ndjson"));
     const knownOrders = new Set(ordAll.map((r) => String(r.order)));
     const deliveredOrders = new Set(ordAll.filter((r) => r.status === "DELIVERED").map((r) => String(r.order)));
     delivRows = resolveOrders(withoutCancelled(parseDeliveryCsv(readFileSync("fixtures/delivery_ym.csv", "utf-8"))), knownOrders, deliveredOrders);
+    delivIssues = deliveryIssues(delivRows, deliveredOrders);
   }
-  catch { delivRows = []; }
   const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to, actRows, bonusRows, delivRows);
   if (delivRows.length) console.log(`ym-derive: ведомость доставки - ${delivRows.length} отправок Маркета, наш расход на перевозку разнесён по заказам`);
   else console.warn("::warning::ведомость доставки не подключена (fixtures/delivery_ym.csv): наш расход на перевозку в свод не попадёт, прибыль завышена");
@@ -111,6 +114,7 @@ function main() {
     ledger_to: ledgerTo,
     split_check: { business: SPLIT_B, ym: SPLIT_M, money: Math.round(splitMoney), points: Math.round(splitPoints),
       act_money: 557250.2, act_points: 2350590.89 },
+    deliv_issues: delivIssues,
     months: svod });
   console.log(`ym-derive: свод по дате заказа - ${svod.length} пар (кабинет, месяц)`);
   // Тождество внутри самого API: платёж покупателя по своду (он уже включает доставку) должен

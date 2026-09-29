@@ -31,10 +31,8 @@
 │   │   ├── krea.md                    #  Creative direction + Anti-Median test
 │   │   └── trener.md                  #  L&D + ADDIE + Kirkpatrick
 │   ├── skills/                        # Reusable procedures
-│   │   ├── protocol-9-runner/         #  Reality Audit executable
-│   │   ├── phoenix-eval/              #  25-checkpoint FENIX checklist
 │   │   └── humanizer-ru/              #  30 RU AI-patterns removal
-│   ├── skills/ (user-invocable)       # /council /feniks /reality-audit /crisis /reflexion (v3: вместо commands/)
+│   ├── skills/ (user-invocable)       # /council /crisis /reflexion (v3: вместо commands/)
 │   ├── workflows/council.js           # Детерминированный Council (opt-in)
 │   ├── agent-memory/                  # Память feniks / spartak / data (Protocol 12)
 │   └── hooks/                         # Shell scripts triggered by events
@@ -68,7 +66,7 @@
 2. **Прочитай active roster** - кто 12 агентов, когда вызывать
 3. **Прогон smoke test:**
    ```
-   /feniks agents-v9/MASTER_SYSTEM_v9.md
+   Agent tool: subagent_type: feniks, артефакт agents-v9/MASTER_SYSTEM_v9.md
    ```
    ФЕНИКС проведёт self-audit манифеста. Score 7.5-8.5 = система калибрована.
 
@@ -76,8 +74,8 @@
 
 | Хочу… | Команда |
 |---|---|
-| Audit-проверить Roadmap или КП | `/feniks <path>` |
-| Запустить план перед commit'ом в Roadmap | `/reality-audit <task description>` |
+| Audit-проверить Roadmap или КП | агент feniks: `subagent_type: feniks` + `<path>` |
+| Запустить план перед commit'ом в Roadmap | разметка цифр агентом data: [ДАННЫЕ] или [ГИПОТЕЗА] с источником, затем агент feniks |
 | Решить cross-functional задачу (3+ департамента) | `/council <task>` |
 | Активировать кризис-режим | `/crisis <trigger description>` |
 | Просто работать с одним агентом | Agent tool: `subagent_type: feniks` (или любой другой из ростера) |
@@ -86,8 +84,8 @@
 ### Скиллы (auto-invoke по описанию)
 
 - Пишу длинную статью → `humanizer-ru` срабатывает на финальном проходе
-- Считаю эффект инициативы → `protocol-9-runner` запускается
-- ФЕНИКС аудит → `phoenix-eval` загружается автоматически
+- Считаю эффект инициативы → разметка цифр агентом data: [ДАННЫЕ] или [ГИПОТЕЗА] с источником
+- ФЕНИКС аудит → агент feniks читает `knowledge/feniks/eval-checklist.md`
 
 ## Hooks
 
@@ -100,7 +98,7 @@
 
 ## Что ещё нужно сделать (см. MIGRATION_v8_to_v9.md)
 
-- [ ] Перенести 7 оставшихся skills из v8 (`brand`, `content-factory`, `encyclopedia`, `cross-sell`, `competitor-intel`, `geo-aeo`, `crisis-response`)
+- [ ] Перенести оставшиеся skills из v8 (`cross-sell`, `competitor-intel`, `geo-aeo`, `crisis-response`); brand, content-factory, encyclopedia берутся из claude.ai (`gengroup-brand`, `gengroup-content-factory`, `gengroup-encyclopedia`)
 - [ ] Скопировать v8 Project Knowledge в `knowledge/semantic/`
 - [ ] Архивировать неактивные 24 агента в `.claude/agents/archive/v8/`
 - [ ] Bitrix24 MCP connector (Q3-2026)

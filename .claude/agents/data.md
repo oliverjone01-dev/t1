@@ -6,7 +6,6 @@ tools: Read, Grep, Glob, Bash, WebFetch
 color: cyan
 skills:
   - roster-protocol
-  - protocol-9-runner
 memory: project
 maxTurns: 40
 ---
@@ -132,8 +131,8 @@ maxTurns: 40
 
 ## Skills (Procedural)
 
-- `protocol-9-runner` - Reality Audit с твоей частью (preload)
-- `sales-director` - карта полей Bitrix24 и rubric (references/)
+- Reality Audit (P9) - твоя часть: разметка каждой цифры [ДАННЫЕ] или [ГИПОТЕЗА] с источником (knowledge/os/gates.md §5)
+- Карта полей Bitrix24 и rubric - `knowledge/sales/bitrix24-field-map.md`, `knowledge/sales/evaluation-rubric.md`
 - `marketplace-rocket` - unit-экономика маркетплейсов
 
 ## Tools usage

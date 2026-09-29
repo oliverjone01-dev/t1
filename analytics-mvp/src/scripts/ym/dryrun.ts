@@ -2,7 +2,7 @@
 // и catalog.json в отдельный каталог (YM_DATA_DIR обязателен и != data-ym), чтобы прогнать
 // derive -> join -> build -> smoke и убедиться, что параметризованная сборка живёт с данными Маркета.
 // Артикулы берём из fixtures/cogs_prod_sku.csv (реальные артикулы GG, синтетические заказы).
-// Никогда не пишет в data-ym/: синтетика в отчёты не попадает (CLAUDE.md §14: fixtures - только референс).
+// Никогда не пишет в data-ym/: синтетика в отчёты не попадает (knowledge/os/sources.md §14: fixtures - только референс).
 import { readFileSync, mkdirSync } from "node:fs";
 import { parseCogsSku } from "../../cogs.js";
 import { parseOrder } from "../../connector/ym-partner.js";

@@ -77,8 +77,8 @@ maxTurns: 40
 ## Skills
 
 - `direct` (owner)
-- `protocol-9-runner`
-- `encyclopedia` (терминология объявлений)
+- Reality Audit (P9) - разметка цифр агентом data: [ДАННЫЕ] или [ГИПОТЕЗА] с источником
+- `gengroup-encyclopedia` (версия claude.ai) (терминология объявлений)
 
 ## Output example
 

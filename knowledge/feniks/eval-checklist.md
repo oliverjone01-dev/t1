@@ -1,23 +1,21 @@
----
-name: phoenix-eval
-description: Adversarial audit checklist for FENIX (#35). Use when reviewing any GENGROUP deliverable (Roadmap entry, KP, content piece, strategy doc, landing copy). Runs a mandatory Comprehension Gate (человекочитаемость - текст понятен неспециалисту за 1 секунду, жаргон переведён) plus a 25-point check across 5 weighted criteria (Accuracy 25% / Actionability 25% / Insight 20% / Brand Fit 15% / Risk Awareness 15%), anchors the score to real 2026 calibration cases (references/calibration-anchors.md), runs red-team probes by artifact class (references/red-team-probes.md), requires an evidence ledger per gap and validates the JSON report with schemas/validate.py. Produces score 0.0-10.0 and JSON audit report.
----
-
 # Phoenix-Eval - Adversarial Audit Checklist (25 points)
+
+> Рабочий чек-лист агента feniks (`.claude/agents/feniks.md`). До 2026-09-28 жил как skill `phoenix-eval`;
+> skill удалён, содержание перенесено сюда без изменений, чтобы гейт ФЕНИКСА продолжал работать.
 
 ## Invocation
 
-Используется агентом ФЕНИКС (`.claude/agents/feniks.md`, preload) или через skill `/feniks <path>`; в Workflow -
+Используется агентом ФЕНИКС (`.claude/agents/feniks.md`, читает этот файл) или вызовом агента feniks на `<path>`; в Workflow -
 `agentType: feniks` со схемой. В Cowork - инлайн вместе с role-картой feniks из
 `.claude/skills/council/references/roster-cards.md`.
 
 ## Pipeline v3 (порядок обязателен)
 
 1. **CLASSIFY** - класс артефакта: стратегия/КП · контент наружу · гейт/хук/инструмент · дашборд/цифры · агент/skill/workflow.
-   От класса зависят обязательные пробы (гейт / дашборд / агент без проб: risk_awareness ≤ 5.0, verdict не выше return). См. `references/red-team-probes.md`.
+   От класса зависят обязательные пробы (гейт / дашборд / агент без проб: risk_awareness ≤ 5.0, verdict не выше return). См. `knowledge/feniks/red-team-probes.md`.
 2. **SELF-CHECK автора** - приложен (25 чекпоинтов, да/нет/частично)? Нет → вернуть без скоринга.
 3. **Comprehension Gate** (для контента наружу) → **25 чекпоинтов** → **red-team пробы класса** → **weighted total**.
-4. **ANCHOR** - ближайший якорь из `references/calibration-anchors.md`, строка `anchor: <score> <slug> - выше|ниже потому что …`.
+4. **ANCHOR** - ближайший якорь из `knowledge/feniks/calibration-anchors.md`, строка `anchor: <score> <slug> - выше|ниже потому что …`.
    Расхождение >1.5 балла - перепроверить чекпоинты.
 5. **EVIDENCE LEDGER** - каждый gap с командой / файлом:строкой / расчётом. Gap без evidence в `gaps` не попадает.
 6. **VALIDATE** - `python3 schemas/validate.py audit-report <report.json>` печатает `VALID`; иначе чинить отчёт.
@@ -84,7 +82,7 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 ### Brand Fit (5 чекпоинтов, по 2 балла)
 
 16. **Voice бренда** - соответствует Marco's brand DNA (GENGLASS/VALONTI/GENTERO/Metal-GM/GLASS-MEMORY)
-17. **Anti-Slop clean** - ни одного запрещённого выражения из CLAUDE.md §7
+17. **Anti-Slop clean** - ни одного запрещённого выражения из knowledge/os/style.md §7
 18. **Em dash отсутствует** - `-` нигде
 19. **Структура соответствует output routing** - формат deliverable по Protocol 10
 20. **Tone соответствует ЦА + прошёл Comprehension Gate** - premium-but-warm для дизайнеров; B2B-precision для GENTERO; и текст читается неспециалистом за 1 секунду, жаргон переведён (см. Comprehension Gate выше). Провал гейта = 0 по этому пункту
@@ -92,7 +90,7 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 ### Risk Awareness (5 чекпоинтов, по 2 балла)
 
 21. **Downside озвучен** - что при −50%, что теряем
-22. **P9 hard rules не нарушены** - H1-H10 из protocol-9-runner
+22. **P9 hard rules не нарушены** - H1-H10 (таблица в конце файла, перенесена из удалённого skill P9-раннера)
 23. **Crisis scenarios учтены** - что если триггер Protocol 8?
 24. **Зависимости от других задач/команд** - явно перечислены
 25. **Reversibility** - можно ли откатить решение? как? за сколько?
@@ -255,7 +253,24 @@ GEO напрямую не закладывать - это репутация/в�
 ## Reference
 
 - `agents-v9/MASTER_SYSTEM_v9.md` §3.1 - Tier 0 ФЕНИКС
-- `references/calibration-anchors.md` - реальные якоря 2026 (3.7 … 8.9) и шкала по диапазонам
-- `references/red-team-probes.md` - пробы A (гейты), B (цифры), C (контент), D (агенты / skills / workflow)
+- `knowledge/feniks/calibration-anchors.md` - реальные якоря 2026 (3.7 … 8.9) и шкала по диапазонам
+- `knowledge/feniks/red-team-probes.md` - пробы A (гейты), B (цифры), C (контент), D (агенты / skills / workflow)
 - `schemas/audit-report.json`, `schemas/validate.py` - контракт и валидатор отчёта
 - `.claude/agents/feniks.md` v3.0 - полная роль
+
+## P9 Hard Rules H1-H10 (для чекпоинта 22)
+
+Любое нарушение → блок задачи:
+
+| # | Правило | Действие |
+|---|---|---|
+| H1 | Нет источника цифры | блок, метка [ГИПОТЕЗА] обязательна |
+| H2 | Все допущения непроверены | не Pareto, максимум «эксперимент-пилот» |
+| H3 | Бюджет >200K на чистой гипотезе | блок, сначала пилот ≤50K |
+| H4 | ROMI >100x без unit-эк | блок, показать воронку поэтапно |
+| H5 | Цифра из внешней презентации | метка [ГИПОТЕЗА], нижняя граница × 0.3 |
+| H6 | «Уникальный актив» без механики | блок |
+| H7 | Диапазон шире 2x | метка [ШИРОКИЙ ДИАПАЗОН - НЕПРОВЕРЕНО] |
+| H8 | Срок <1 мес на задачу с разработкой | пересмотр срока с инженером |
+| H9 | Pareto без всех 5 вопросов | блок |
+| H10 | В цепочке «клиент → продукт» пропущено звено | блок до восстановления |

@@ -80,7 +80,7 @@ maxTurns: 40
 
 ## Protocol 9 Integration
 
-При финансовом триггере (см. CLAUDE.md §5):
+При финансовом триггере (см. knowledge/os/gates.md §5):
 1. Запросить у ДАТЫ source для каждой цифры
 2. Если ДАТА флажит `[ГИПОТЕЗА]` → snapshot funnel decomposition
 3. Применить hard rules
@@ -105,7 +105,7 @@ maxTurns: 40
 ## Skills
 
 - `crisis-response` (Protocol 8 executable)
-- `phoenix-eval` (для self-audit при крупных решениях)
+- Self-audit при крупных решениях - 25 чекпоинтов агента feniks (`knowledge/feniks/eval-checklist.md`)
 
 ## Output example
 
@@ -145,7 +145,7 @@ stop conditions, handoff, трейсы). Ниже - только специфи�
 | Lens | «Покажи воронку по этапам с конверсиями. Не можешь - это гипотеза, не план.» |
 | Вход (A2A intent) | `financial_review_request` · `crisis_input_request` (P8, cash position) · `council_position_request` (CC-12 / CC-13 / CC-15) · `budget_review_request` (от ТИМУРА / МАРКО) |
 | Выход | `intent: financial_review_response`; payload: verdict `go | pilot | block`, funnel_decomposition[], romi_estimate {low, expected, high}, downside_scenario (−50%: потери, репутация, альтернативы ресурсам), blocking_rules_violated[], recommended_budget, checkpoint {date, criterion, owner} |
-| Evidence по умолчанию | Cash и cohort - через ДАТУ из 1С / Bitrix24 с snapshot; benchmark ROMI по каналу (phoenix-eval §Industry Benchmarks); все внешние цифры [ГИПОТЕЗА] |
+| Evidence по умолчанию | Cash и cohort - через ДАТУ из 1С / Bitrix24 с snapshot; benchmark ROMI по каналу (`knowledge/feniks/eval-checklist.md` §Industry Benchmarks); все внешние цифры [ГИПОТЕЗА] |
 | Stop conditions роли | ROMI >50x без cohort → block · бюджет >200K на гипотезе → block (пилот ≤50K) · revenue без funnel → block · cash negative >2 недели → активировать P8 через СПАРТАКА · финансы >500K → `HITL: Иван` |
 | Handoff | data (источники) · feniks (логика и downside) · spartak (P8, Council) · timur / marco (владельцы бюджета канала) |
 | Council | CC-12 / CC-13 / CC-15 обязательный голос; peer-review lens `unit_economics`; финансовое вето |

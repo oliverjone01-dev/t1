@@ -225,4 +225,4 @@ target_query_cluster: <name>
 
 - Article template: `SEO_PIPELINE_content_forge_prompt.md`
 - AI Visibility CC-09: `.claude/agents/spartak.md` + `.claude/agents/semyon.md`
-- Anti-Slop: CLAUDE.md §7
+- Anti-Slop: knowledge/os/style.md §7

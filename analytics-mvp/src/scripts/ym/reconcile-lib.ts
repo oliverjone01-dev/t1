@@ -1,4 +1,4 @@
-// Чистая логика сверки Маркета по CLAUDE.md §15 (без файлов, тестируется). ФЕНИКС G1/G2/G7/G13:
+// Чистая логика сверки Маркета по knowledge/os/analytics-dod.md §15 (без файлов, тестируется). ФЕНИКС G1/G2/G7/G13:
 //  - штуки: delivered в строках УЖЕ нетто (count − returned), поэтому сравниваем нетто с нетто реализации;
 //  - деньги: по КЛЮЧУ ЗАКАЗА (netting.order ↔ orders.order), а не по датам выплат; плюс кумулятив с начала данных;
 //  - выручка: начислено vs realization.amount закрытого месяца + подбор состава типов цен;
@@ -319,7 +319,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
     sku_total: sk, cogs: { sku: skC, pct_sku: pct(skC, sk), pct_rev: pct(rC, rt) }, taxonomy: { sku: skT, pct_sku: pct(skT, sk), pct_rev: pct(rT, rt) },
     // Покрытие ЗА ВЕСЬ ПЕРИОД, а не только за живое окно 30 дней. Бейдж считался по окну, а страницы
     // показывают февраль-сентябрь: живой факт 2026-09-07 - бейдж «таксономия 95.6% оборота» при
-    // 43.1% оборота всего периода без таксономии и 11.4% без СС. CLAUDE.md §15 прямо требует СС для
+    // 43.1% оборота всего периода без таксономии и 11.4% без СС. knowledge/os/analytics-dod.md §15 прямо требует СС для
     // ВСЕХ артикулов листа, а не только для живого снимка: неактивные, но реализованные теряют СС.
     all_period: (() => {
       const rev = new Map<string, number>();
@@ -414,5 +414,5 @@ export function buildReconcile(inp: ReconInput, today: string) {
   if (sk && pct(rC, rt) < 90) blockers.push(`СС покрывает ${pct(rC, rt)}% оборота (<90%)`);
   if ((inp.badCells || 0) > 0) blockers.push(`битых ячеек в отчётах: ${inp.badCells}`);
   for (const sc of inp.skippedCampaigns || []) blockers.push(`кампания ${sc.campaign} (кабинет ${sc.business}) не отдаёт данные: ${sc.reason}`);
-  return { platform: "ym", generated_at: new Date().toISOString(), today, periods, cumulative, coverage, verdict: blockers.length ? "return" : "go", blockers, rule: "CLAUDE.md §15: цифра готова только после сверки с эталоном, трёх типов периода и отчёта о покрытии" };
+  return { platform: "ym", generated_at: new Date().toISOString(), today, periods, cumulative, coverage, verdict: blockers.length ? "return" : "go", blockers, rule: "knowledge/os/analytics-dod.md §15: цифра готова только после сверки с эталоном, трёх типов периода и отчёта о покрытии" };
 }

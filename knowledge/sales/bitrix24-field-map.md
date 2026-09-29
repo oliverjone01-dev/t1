@@ -1,6 +1,6 @@
 # Карта полей Bitrix24 категории 49 (Заказы GG RF)
 
-**Owner:** sales-director + boris (CRM owner)
+**Owner:** boris (CRM owner). До 2026-09-28 файл лежал в references skill sales-director (skill удалён, упоминания sales-director ниже - история)
 **Last update:** 2026-06-30 (после миграции из amoCRM)
 **Source:** `analytics-mvp/src/scripts/b24/fetch-rop.ts:24-31` + ТЗ Кости
 

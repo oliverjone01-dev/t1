@@ -19,7 +19,7 @@
 
 - [ ] Раздел «Гейты»: подтягивать вердикты ФЕНИКСА из `traces/` / episodes по committed
 - [ ] Связка план ↔ факт: фактические KPI из `analytics-mvp/` и `yandex-direct/` для сверки
-- [ ] Флаг расхождения план/факт >30% (Kill Criteria CLAUDE.md §9)
+- [ ] Флаг расхождения план/факт >30% (Kill Criteria knowledge/os/gates.md §9)
 
 ## P3 - удобство
 

@@ -94,7 +94,7 @@ maxTurns: 40
 
 - `geo-aeo` (главный)
 - `competitor-intel`
-- `brand` (для voice в meta)
+- `gengroup-brand` (версия claude.ai) (для voice в meta)
 
 ## Output example
 

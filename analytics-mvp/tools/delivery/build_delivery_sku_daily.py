@@ -188,7 +188,8 @@ def main():
                 # Сумма при любом написании (ledger_money); непонятный текст - ошибка сборки с номером
                 # строки, а не 0. Сдвиг столбцов (FALSE в «отправке», расход в «доставке») - расход берём.
                 try:
-                    ship, dv0, _flag = ship_and_deliv(r[ci["Стоимость отправки"]], r[ci["Стоимость доставки"]])
+                    ic = ci["Стоимость доставки"]
+                    ship, dv0, _flag = ship_and_deliv(r[ci["Стоимость отправки"]], r[ic], r[ic + 1] if ic + 1 < len(r) else None)
                 except MoneyError as ex:
                     bad_cells.append(f"{os.path.basename(f)}:{rix} «{ex}»")
                     continue

@@ -39,10 +39,11 @@ for f in files:
             raw = r[ci["Стоимость отправки"]]
             if B.CANCELLED(r[ci["Статус"]]):
                 continue
-            ship, _, flag = ship_and_deliv(raw, r[ci["Стоимость доставки"]])
+            ic = ci["Стоимость доставки"]
+            ship, _, flag = ship_and_deliv(raw, r[ic], r[ic + 1] if ic + 1 < len(r) else None)
             if ship is None:
                 continue
-            if ship == 0 and str(raw).strip() not in ("0", "0.0", "0,00"):
+            if ship == 0 and not flag and str(raw).strip() not in ("0", "0.0", "0,00"):
                 zero_text.append(f"{os.path.basename(f)}:{rix} «{raw}»")
             no = str(r[ci["Номер заказа"]] or "").strip()
             key = (no, B.norm(r[ci["Дата отгрузки"]]), round(ship, 2))

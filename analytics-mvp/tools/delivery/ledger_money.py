@@ -52,18 +52,33 @@ def parse_money(x):
     return sum(vals), note
 
 
-def ship_and_deliv(ship_cell, deliv_cell):
+def ship_and_deliv(ship_cell, deliv_cell, right_cell=None):
     """Стоимость отправки (наш расход) и доставки (платит покупатель) из одной строки.
     Сдвиг столбцов (сентябрь 2026): в «отправке» FALSE, а расход уехал в «доставку». Тогда берём
-    его как расход, а доход покупателя по строке неизвестен. -> (ship|None, deliv|None, флаг)."""
+    его как расход, а доход покупателя по строке неизвестен. -> (ship|None, deliv|None, флаг).
+    Хвост ведомости 29.09, где столбцы переставлены (Иван 29.09: расход исправить), right_cell -
+    столбец справа от «доставки» («С/С»):
+    - FALSE/TRUE в «С/С» (строки 1795-1876): счёт перевозчика в «доставке», оплата клиента в
+      «отправке» (38472524-0611-1: счёт 5 276,50, клиент 5 599 = OZON) - расход из «доставки»;
+    - «доставка» пуста, в «С/С» число (строки 1785-1794): счёт перевозчика в «С/С», оплата клиента
+      в «отправке» (0224866187-0030-1: счёт 9 582,80, клиент 5 050) - расход из «С/С»."""
+    if _flag(right_cell) and not _flag(ship_cell):
+        bill, _ = parse_money(deliv_cell)
+        try:
+            paid, _ = parse_money(ship_cell)
+        except MoneyError:
+            paid = None
+        return bill, paid, "вторая таблица"
     ship, _ = parse_money(ship_cell)
     try:
         deliv, _ = parse_money(deliv_cell)
     except MoneyError:
         deliv = None                                            # доход - справочный, сборку не роняет
     # TRUE вместо FALSE: та же строка, сдвинутая на столбец (выгрузка 29.09, 55712580-0145-1).
-    if ship is None and str(ship_cell or "").strip().lower() in ("false", "true") and deliv:
+    if ship is None and _flag(ship_cell) and deliv:
         return deliv, None, "сдвиг"
+    if deliv is None and ship is not None and isinstance(right_cell, (int, float)) and not isinstance(right_cell, bool):
+        return float(right_cell), ship, "счёт в С/С"
     return ship, deliv, ""
 
 
@@ -86,7 +101,10 @@ def client_paid(ship_cell, deliv_cell, right_cell):
         return v(right_cell)
     if _flag(right_cell):
         return v(ship_cell)
-    return v(deliv_cell)
+    d = v(deliv_cell)
+    if d is None and isinstance(right_cell, (int, float)) and not isinstance(right_cell, bool):
+        return v(ship_cell)                                     # строки 1785-1794: счёт в «С/С»
+    return d
 
 
 def second_header(row, col):
@@ -121,4 +139,12 @@ if __name__ == "__main__":
     assert client_paid(5599, 5276.5, "FALSE") == 5599.0
     assert client_paid(4176, "3400\n-", 2900) == 3400.0
     assert client_paid("TRUE", 6227.47, "FALSE") is None
+    assert client_paid("5050\n+", None, 9582.8) == 5050.0
+    # хвост ведомости 29.09: расход - счёт перевозчика, не оплата клиента (Иван 29.09)
+    assert ship_and_deliv(5599, 5276.5, "FALSE") == (5276.5, 5599.0, "вторая таблица")
+    assert ship_and_deliv("8\u00a0849,00 ₽", "8\u00a0936,68 ₽", "FALSE") == (8936.68, 8849.0, "вторая таблица")
+    assert ship_and_deliv("5050\n+", None, 9582.8) == (9582.8, 5050.0, "счёт в С/С")
+    assert ship_and_deliv("FALSE", 4943.44, "FALSE") == (4943.44, None, "сдвиг")
+    assert ship_and_deliv(None, None, "FALSE") == (None, None, "вторая таблица")
+    assert ship_and_deliv(4176, "3400\n-", 2900) == (4176.0, 3400.0, "")
     print("ledger_money: все проверки прошли")

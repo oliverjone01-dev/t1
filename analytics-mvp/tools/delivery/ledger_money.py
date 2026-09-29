@@ -107,6 +107,21 @@ def client_paid(ship_cell, deliv_cell, right_cell):
     return d
 
 
+def paid_in_contacts(cell):
+    """Оплата клиента, уехавшая в столбец «Контакты» (Иван 29.09: 55712580-0145-1, 11872525-0147-1 -
+    в «доставке» пусто, сумма в «Контактах»). Берём только чистую сумму: телефон (больше 8 цифр)
+    или текст - None. -> сумма | None."""
+    if cell is None or isinstance(cell, bool):
+        return None
+    if sum(ch.isdigit() for ch in str(cell).split(",")[0].split(".")[0]) > 8:
+        return None
+    try:
+        v = parse_money(cell)[0]
+    except MoneyError:
+        return None
+    return v if v and 0 < v < 100000 else None
+
+
 def second_header(row, col):
     """Строка-шапка посреди листа («Площадка» в столбце площадки): ниже идёт другая таблица со своими
     названиями столбцов (выгрузка 29.09: «Оплата от клиента» на месте «Стоимости отправки»). Читать её
@@ -147,4 +162,8 @@ if __name__ == "__main__":
     assert ship_and_deliv("FALSE", 4943.44, "FALSE") == (4943.44, None, "сдвиг")
     assert ship_and_deliv(None, None, "FALSE") == (None, None, "вторая таблица")
     assert ship_and_deliv(4176, "3400\n-", 2900) == (4176.0, 3400.0, "")
+    assert paid_in_contacts(9399) == 9399.0
+    assert paid_in_contacts("2 599,00") == 2599.0
+    for c in ["+7 916 123-45-67", "89161234567", 79161234567, "Иван 8-916-123-45-67", None, "", "TRUE"]:
+        assert paid_in_contacts(c) is None, c
     print("ledger_money: все проверки прошли")

@@ -20,7 +20,7 @@
 # Запуск из analytics-mvp:  python3 tools/delivery/build_delivery_sku_daily.py
 import openpyxl, glob, os, json, re, collections, datetime, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ledger_money import ship_and_deliv, client_paid, MoneyError, second_header  # noqa: E402
+from ledger_money import ship_and_deliv, client_paid, paid_in_contacts, MoneyError, second_header  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW = os.path.join(ROOT, "tools", "delivery", "raw")
@@ -173,6 +173,7 @@ def main():
                 continue
             hdr = [norm(c) for c in rows[0]]
             ci = {h: j for j, h in enumerate(hdr)}
+            ic_cont = next((j for h, j in ci.items() if "онтакт" in str(h)), None)
             need = ["Площадка", "Номер заказа", "Артикул", "Дата отгрузки", "Стоимость отправки", "Стоимость доставки", "Адрес", "Статус"]
             if not all(k in ci for k in need):
                 continue
@@ -196,6 +197,9 @@ def main():
                 # Оплата клиента для сверки с OZON - с учётом поехавших столбцов (ближайший, Иван 29.09).
                 ic = ci["Стоимость доставки"]
                 dv0 = client_paid(r[ci["Стоимость отправки"]], r[ic], r[ic + 1] if ic + 1 < len(r) else None)
+                # Пусто в «доставке» - оплата клиента бывает уехавшей в «Контакты» (Иван 29.09).
+                if not dv0 and ic_cont is not None and ic_cont < len(r):
+                    dv0 = paid_in_contacts(r[ic_cont]) or dv0
                 if not ship or ship <= 0:  # реальный расход: строки без отправки пропускаем
                     continue
                 # Иван 28.09.2026: статус «ОТМЕНЕН» - доставку не учитываем вовсе. «Вернули на склад»,

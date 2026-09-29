@@ -14,6 +14,9 @@ function host(id){ return document.getElementById('p-' + id); }
 function lhead(o, note){ return KS.head(Object.assign({ src:SHOTS, badges:[KS.kind('ДАННЫЕ')] }, o)) + (note || ''); }
 function shot(v){ return KS.F(v, 'ДАННЫЕ', 'Скриншоты Авито, июль 2026 · архив'); }
 function tile(label, v, icon){ return KS.tile({ label, f:shot(v), icon, delta:NOROW }); }
+/* Д4: время ответа архива восстановлено по скриншотам приблизительно, поэтому гипотеза, а не данные */
+const LAG_SRC = 'Скриншоты Авито, июль 2026 · время ответа восстановлено по скриншотам, приблизительно';
+function tileHyp(label, v, icon){ return KS.tile({ label, f:KS.F(v, 'ГИПОТЕЗА', LAG_SRC), icon, delta:NOROW }); }
 /* широкая таблица прокручивается внутри своей обёртки: липкая шапка не наезжает на строки (как scrollWrap в opgm.js) */
 function scrollWrap(html){ return html.replace('class="ks-table-wrap"', 'class="ks-table-wrap ks-table-wrap--scroll"'); }
 /* дробные через запятую, как в остальном сайте */
@@ -38,15 +41,15 @@ function renderOverview(note){
   const M = D.metrics, m = D.meta, T = D.talks, sb = M.speed_buckets, slow = Math.round((sb.slow || 0) + (sb.overnight || 0));
   host('overview').innerHTML = lhead({ title:'Как мы теряем клиентов в переписке', sub:T.hero.line,
       lead:'<b>Почему это деньги.</b> На Авито из обращения в заказ доходит обычно 3-5 человек из 100 ' + KS.kind('ГИПОТЕЗА')
-        + ' <span class="ks-muted">бенчмарк рынка</span>. Мы роняем людей раньше этой точки: на скорости ответа и молчании после цены.' }, note)
+        + ' <span class="ks-muted">бенчмарк рынка, источник не указан</span>. Мы роняем людей раньше этой точки: на скорости ответа и молчании после цены.' }, note)
     + '<div class="ks-grid-kpi">'
-      + tile('Обращаются по имени', dec(M.name) + '%', 'users') + tile('Отвечают дольше часа', slow + '%', 'clock')
+      + tile('Обращаются по имени', dec(M.name) + '%', 'users') + tileHyp('Отвечают дольше часа', slow + '%', 'clock')
       + tile('Напоминают о себе', dec(M.follow) + '%', 'target') + tile('Прочитал и ушёл молча', dec(M.left) + '%', 'warn') + '</div>'
     + KS.note('Как читать', 'Верхний ряд: доля переписок, где менеджер сделал нужное или клиент ушёл. Нижний: объём выборки и скорость. Всё по скриншотам июля, поэтому это архив для сравнения с API.', 'info')
     + sec('Коротко о цифрах')
     + '<div class="ks-grid-kpi">'
       + tile('Всего переписок', m.total, 'quote') + tile('Разобрано подробно', m.processed, 'list')
-      + tile('Первый ответ, медиана', M.lag_median + ' мин', 'clock') + tile('Зависшие переписки', dec(M.outcomes.stalled || 0) + '%', 'loss') + '</div>'
+      + tileHyp('Первый ответ, медиана', M.lag_median + ' мин', 'clock') + tile('Зависшие переписки', dec(M.outcomes.stalled || 0) + '%', 'loss') + '</div>'
     + KS.card({ title:'Что внутри выборки', body:'<p class="op-hint">В разборе ' + m.processed + ' ' + plural(m.processed, 'переписка', 'переписки', 'переписок') + ': ' + m.old + ' в старом кабинете и ' + m.new + ' в новом, '
       + m.valid + ' с читаемым текстом. Имя менеджера в чате Авито не видно, поэтому разбор по кабинету и по диалогу. '
       + 'Время ответа восстановлено по скриншотам и местами приблизительно; поведение (имя, дожим, приветствие) видно точно.</p>' });
@@ -62,8 +65,8 @@ function renderProblems(note){
 function renderSpeed(note){
   const S = D.talks.speed, sb = D.metrics.speed_buckets;
   const map = [['fast', 'За 10 минут', 'так и надо'], ['ok', 'За 10-60 минут', 'поздновато'], ['slow', 'Дольше часа, в тот же день', 'клиент уже пишет другим'], ['overnight', 'На следующий день или позже', 'заказ чаще всего ушёл']];
-  host('speed').innerHTML = lhead({ title:S.title, sub:S.sub, lead:MONEY.speed }, note)
-    + KS.card({ title:'Когда пришёл первый ответ', sub:'доля переписок, %', body:KS.bars(map.map(([k, n, t]) => [n, sb[k] || 0, t])) })
+  host('speed').innerHTML = lhead({ title:S.title, sub:S.sub, lead:MONEY.speed, src:LAG_SRC, badges:[KS.kind('ГИПОТЕЗА')] }, note)
+    + KS.card({ title:'Когда пришёл первый ответ', sub:'доля переписок, % · время по скриншотам, приблизительно', body:KS.bars(map.map(([k, n, t]) => [n, sb[k] || 0, t])) })
     + KS.note('Главное', 'За 10 минут ответили в ' + dec(sb.fast || 0) + '% переписок. Дольше часа в тот же день в ' + dec(sb.slow || 0) + '%, на следующий день или позже в ' + dec(sb.overnight || 0) + '%: это почти каждая вторая переписка.', 'info');
 }
 
@@ -73,7 +76,7 @@ function renderQuality(note){
   host('quality').innerHTML = lhead({ title:Q.title, sub:Q.sub, lead:MONEY.quality }, note)
     + KS.card({ title:'Что делают в переписке', sub:'доля переписок, %', body:KS.bars(bars) })
     + KS.card({ title:'Старый кабинет против нового', body:scrollWrap(KS.table([['Показатель'], ['Старый (' + a.old.n + ')', true], ['Новый (' + a.new.n + ')', true]], [
-        ['Первый ответ, медиана', a.old.lag_median + ' мин', a.new.lag_median + ' мин'],
+        ['Первый ответ, медиана (гипотеза: время по скриншотам)', a.old.lag_median + ' мин', a.new.lag_median + ' мин'],
         ['Прочитал и ушёл молча', dec(a.old.left) + '%', dec(a.new.left) + '%'],
         ['Напомнили о себе', dec(a.old.follow) + '%', dec(a.new.follow) + '%'],
         ['Переписок зависло', dec(a.old.stalled) + '%', dec(a.new.stalled) + '%']])) })

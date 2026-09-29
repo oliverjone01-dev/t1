@@ -18,11 +18,12 @@
 // отменённые отбрасываются, когда есть неотменённые. Числа не придумываются: делится только сумма
 // одной строки ведомости между отправлениями, которые эта строка сама назвала.
 
-export interface LedgerRow { order: string; ship: number; deliv: number }
-export interface Posting { order: string; d: string; status?: string; units?: number }
+export interface LedgerRow { order: string; ship: number; deliv: number; d_ship?: string; d_fact?: string }
+export interface Posting { order: string; d: string; status?: string; units?: number; sd?: string | null; sku?: string }
+export interface PostingShip { ship: number; deliv: number; dShip?: string; dFact?: string }
 export interface Unmatched { raw: string; ship: number; deliv: number; why: string }
 export interface MatchResult {
-  byPosting: Map<string, { ship: number; deliv: number }>;
+  byPosting: Map<string, PostingShip>;
   unmatched: Unmatched[];
   /** Как нашлась каждая строка: exact / base / multi / renamed. Для сверки и тестов. */
   how: Map<string, string>;
@@ -45,7 +46,7 @@ export function matchLedger(rows: LedgerRow[], postings: Posting[]): MatchResult
     if (tok.split("-").length === 2) return byBase.get(tok) ?? [];
     return [];
   };
-  const byPosting = new Map<string, { ship: number; deliv: number }>();
+  const byPosting = new Map<string, PostingShip>();
   const unmatched: Unmatched[] = [];
   const how = new Map<string, string>();
   for (const r of rows) {
@@ -81,8 +82,38 @@ export function matchLedger(rows: LedgerRow[], postings: Posting[]): MatchResult
       const d = last ? Math.round((deliv - accD) * 100) / 100 : Math.round(deliv * k * 100) / 100;
       accS += s; accD += d;
       const cur = byPosting.get(p.order) ?? { ship: 0, deliv: 0 };
-      byPosting.set(p.order, { ship: cur.ship + s, deliv: cur.deliv + d });
+      const later = (a?: string, b?: string) => (a && b ? (a > b ? a : b) : a || b);
+      byPosting.set(p.order, { ship: cur.ship + s, deliv: cur.deliv + d,
+        dShip: later(cur.dShip, r.d_ship), dFact: later(cur.dFact, r.d_fact) });
     });
   }
   return { byPosting, unmatched, how };
+}
+
+/** «Наша доставка» по ДАТЕ НАЧИСЛЕНИЯ заказа - для таблицы по артикулам (базис начислений), водопада
+ *  и план-факта (Иван 28.09). Заказ, который OZON ещё не начислил (в пути, отменённый с расходом),
+ *  встаёт на фактическую доставку из ведомости, без неё - на отгрузку, без неё - на дату заказа;
+ *  такие суммы считаются отдельно (fallback), чтобы страница их назвала.
+ *  Каждое отправление даёт ровно одну запись: сумма ряда = сумма byPosting (не теряется, не двоится). */
+export function accrualShipSeries(postings: Posting[], byPosting: Map<string, PostingShip>) {
+  const bySku = new Map<string, Map<string, number>>();
+  const fallback = { fact: 0, ship: 0, order: 0 };
+  let total = 0;
+  const seen = new Set<string>();
+  for (const p of postings) {
+    const v = byPosting.get(p.order);
+    if (!v || !v.ship || seen.has(p.order)) continue;
+    seen.add(p.order);
+    let d = p.sd || "";
+    if (!d) {
+      if (v.dFact) { d = v.dFact; fallback.fact += v.ship; }
+      else if (v.dShip) { d = v.dShip; fallback.ship += v.ship; }
+      else { d = p.d; fallback.order += v.ship; }
+    }
+    const sk = String(p.sku || "");
+    const m = bySku.get(sk) ?? bySku.set(sk, new Map()).get(sk)!;
+    m.set(d, (m.get(d) || 0) + v.ship);
+    total += v.ship;
+  }
+  return { bySku, total, fallback };
 }

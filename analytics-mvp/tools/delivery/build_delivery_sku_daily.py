@@ -20,7 +20,7 @@
 # Запуск из analytics-mvp:  python3 tools/delivery/build_delivery_sku_daily.py
 import openpyxl, glob, os, json, re, collections, datetime, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ledger_money import ship_and_deliv, MoneyError, second_header  # noqa: E402
+from ledger_money import ship_and_deliv, client_paid, MoneyError, second_header  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW = os.path.join(ROOT, "tools", "delivery", "raw")
@@ -192,6 +192,9 @@ def main():
                 except MoneyError as ex:
                     bad_cells.append(f"{os.path.basename(f)}:{rix} «{ex}»")
                     continue
+                # Оплата клиента для сверки с OZON - с учётом поехавших столбцов (ближайший, Иван 29.09).
+                ic = ci["Стоимость доставки"]
+                dv0 = client_paid(r[ci["Стоимость отправки"]], r[ic], r[ic + 1] if ic + 1 < len(r) else None)
                 if not ship or ship <= 0:  # реальный расход: строки без отправки пропускаем
                     continue
                 # Иван 28.09.2026: статус «ОТМЕНЕН» - доставку не учитываем вовсе. «Вернули на склад»,

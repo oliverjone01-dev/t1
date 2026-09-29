@@ -2256,7 +2256,8 @@ function render(cur,cmp){
   // Доставка покупателя ПО ЗАКАЗУ (NON_ITEM несёт ключ заказа, ~85% сходится с базами заказов) - для
   // per-order разнесения; несматченный остаток раскидывается пропорционально в render.
   const bdByOrderApi: Record<string, number> = {};
-  try { for (const l of readFileSync(dp("buyer_delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); } } catch { /* нет файла */ }
+  const bdKnown: Record<string, boolean> = {}; // все заказы, по которым OZON уже отдал оплату доставки (в т.ч. 0)
+  try { for (const l of readFileSync(dp("buyer_delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); bdKnown[String(r.order)] = true; if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); } } catch { /* нет файла */ }
   // «Логистика по городам»: доход с покупателя - из OZON (оплата доставки покупателем по заказу), а не из
   // ведомости (Иван 29.09, вариант А). В ведомости «Стоимость доставки» бывает пустой при оплате в OZON
   // (40230562-0725-1: пусто, OZON 8 100 ₽) - такой 0 читался как «бесплатно». Ведомость остаётся
@@ -2266,6 +2267,8 @@ function render(cur,cmp){
     const bdUsed: Record<string, boolean> = {};
     for (const row of delivCityPl) {
       const ords: string[] | null = row[5];
+      // row[6] = 1: ни одного заказа отправки ещё нет в данных OZON (не начислен) - в сверку не идёт.
+      row[6] = ords && ords.length && !ords.some((o) => bdKnown[o] || bdKnown[orderBase(o)]) ? 1 : 0;
       if (!ords) { row[5] = null; continue; }
       let inc = 0;
       for (const o of ords) {
@@ -3143,14 +3146,15 @@ function renderCityLogistics(cur){
   }
   // --- Города: доход с покупателя vs наш расход перевозчика (ведомость, закрытые месяцы) ---
   var el=document.getElementById('logi');if(!el)return;
-  var by={};
+  var by={};var wN=0,wLed=0;
   for(var j=0;j<AN_DELIV_CITYPL.length;j++){var r=AN_DELIV_CITYPL[j];if(r[0]<from||r[0]>to)continue;
-    var c=r[1];var b=by[c]||(by[c]={ship:0,deliv:0,led:0,n:0,unk:0});b.ship+=r[2];b.led+=r[3];b.n+=r[4];if(r[5]==null)b.unk+=r[4];else b.deliv+=r[5];}
+    var c=r[1];var b=by[c]||(by[c]={ship:0,deliv:0,led:0,n:0,unk:0,cLed:0,cOz:0});b.ship+=r[2];b.n+=r[4];if(r[5]==null)b.unk+=r[4];else b.deliv+=r[5];
+    if(r[6]){wN+=r[4];wLed+=r[3];}else{b.led+=r[3];b.cOz+=(r[5]||0);}}
   // deliv - доход с покупателя по OZON (Иван 29.09, вариант А), led - «Стоимость доставки» ведомости (сравнение).
   // unk - отправки без номеров заказа в файле (старая сборка): дохода OZON по ним нет, нетто не считаем.
-  var rows=[];var tShip=0,tDeliv=0,tLed=0,tN=0,tUnk=0,nLoss=0,lossNet=0;
-  for(var c in by){var b=by[c];var net=b.unk?null:b.deliv-b.ship;rows.push({c:c,ship:b.ship,deliv:b.deliv,led:b.led,n:b.n,unk:b.unk,net:net});
-    tShip+=b.ship;tDeliv+=b.deliv;tLed+=b.led;tN+=b.n;tUnk+=b.unk;if(net!=null&&net<0){nLoss++;lossNet+=net;}}
+  var rows=[];var tShip=0,tDeliv=0,tLed=0,tCOz=0,tN=0,tUnk=0,nLoss=0,lossNet=0;
+  for(var c in by){var b=by[c];var net=b.unk?null:b.deliv-b.ship;rows.push({c:c,ship:b.ship,deliv:b.deliv,led:b.led,cOz:b.cOz,n:b.n,unk:b.unk,net:net});
+    tShip+=b.ship;tDeliv+=b.deliv;tLed+=b.led;tCOz+=b.cOz;tN+=b.n;tUnk+=b.unk;if(net!=null&&net<0){nLoss++;lossNet+=net;}}
   // убыточные (нетто<0) сверху, худшие первыми; затем прибыльные по убыванию нетто
   rows.sort(function(a,b){var x=a.net==null?0:a.net,y=b.net==null?0:b.net;if((x<0)!==(y<0))return x<0?-1:1;return x-y;});
   var sum=document.getElementById('logi-sum');
@@ -3166,9 +3170,10 @@ function renderCityLogistics(cur){
   var chk=document.getElementById('logi-chk');
   if(chk){
     if(!tN||tUnk){chk.innerHTML='';}
-    else{var bad=0,badSum=0;rows.forEach(function(x){var d=Math.round(x.led)-Math.round(x.deliv);if(Math.abs(d)>1){bad++;badSum+=d;}});
-      chk.innerHTML=bad?'<span style="color:#E5B567">Проверка с ведомостью: расходится в '+fmtRu(bad)+' гор. из '+fmtRu(rows.length)+', ведомость '+fmtRu(Math.round(tLed))+' ₽ против OZON '+fmtRu(Math.round(tDeliv))+' ₽ (разница '+fmtRu(Math.round(badSum))+' ₽). В расчёте - OZON.</span>'
-        :'<span style="color:#34D399">Проверка с ведомостью: сходится с OZON по всем '+fmtRu(rows.length)+' гор. ('+fmtRu(Math.round(tDeliv))+' ₽).</span>';}
+    else{var bad=0,badSum=0;rows.forEach(function(x){var d=Math.round(x.led)-Math.round(x.cOz);if(Math.abs(d)>1){bad++;badSum+=d;}});
+      var wait=wN?' Ещё нет в OZON (не начислено, в сверку не входит): '+fmtRu(wN)+' отпр., по ведомости '+fmtRu(Math.round(wLed))+' ₽ - доход OZON по ним пока 0.':'';
+      chk.innerHTML=(bad?'<span style="color:#E5B567">Проверка «Оплата доставки» ведомости с OZON: расходится в '+fmtRu(bad)+' гор. из '+fmtRu(rows.length)+', ведомость '+fmtRu(Math.round(tLed))+' ₽ против OZON '+fmtRu(Math.round(tCOz))+' ₽ (разница '+fmtRu(Math.round(badSum))+' ₽). В расчёте - OZON.</span>'
+        :'<span style="color:#34D399">Проверка «Оплата доставки» ведомости с OZON: сходится ('+fmtRu(Math.round(tCOz))+' ₽).</span>')+(wait?'<span style="color:var(--ink-3)">'+wait+'</span>':'');}
   }
   if(!rows.length){el.innerHTML='<tr><td colspan="6" class="kt-note">нет данных за период</td></tr>';return;}
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};

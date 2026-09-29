@@ -67,6 +67,28 @@ def ship_and_deliv(ship_cell, deliv_cell):
     return ship, deliv, ""
 
 
+def _flag(x):
+    return isinstance(x, bool) or str(x or "").strip().lower() in ("false", "true")
+
+
+def client_paid(ship_cell, deliv_cell, right_cell):
+    """Оплата доставки клиентом - для сверки с OZON (в расход не идёт). Столбцы местами поехали,
+    берём ближайший (Иван 29.09): FALSE/TRUE в «отправке» - строка сдвинута вправо, оплата клиента
+    в соседнем правом столбце (80885520-0398-1: 6 900 = OZON); FALSE/TRUE справа от «доставки» -
+    вторая таблица, где оплата клиента стоит слева, в «отправке» (38472524-0611-1: 5 599 = OZON).
+    -> сумма | None."""
+    def v(x):
+        try:
+            return parse_money(x)[0]
+        except MoneyError:
+            return None
+    if _flag(ship_cell):
+        return v(right_cell)
+    if _flag(right_cell):
+        return v(ship_cell)
+    return v(deliv_cell)
+
+
 def second_header(row, col):
     """Строка-шапка посреди листа («Площадка» в столбце площадки): ниже идёт другая таблица со своими
     названиями столбцов (выгрузка 29.09: «Оплата от клиента» на месте «Стоимости отправки»). Читать её
@@ -95,4 +117,8 @@ if __name__ == "__main__":
     assert ship_and_deliv("FALSE", None) == (None, None, "")
     assert ship_and_deliv("TRUE", 6227.47) == (6227.47, None, "сдвиг")
     assert ship_and_deliv(2947.52, 2399) == (2947.52, 2399.0, "")
+    assert client_paid("FALSE", 7201.88, "6900\n-") == 6900.0
+    assert client_paid(5599, 5276.5, "FALSE") == 5599.0
+    assert client_paid(4176, "3400\n-", 2900) == 3400.0
+    assert client_paid("TRUE", 6227.47, "FALSE") is None
     print("ledger_money: все проверки прошли")

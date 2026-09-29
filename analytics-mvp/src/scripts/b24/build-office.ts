@@ -2,12 +2,16 @@
 // Данные общие с РОПом (один снимок Bitrix), но дашборд отдельный и лёгкий: только лиды.
 // Запуск: npx tsx src/scripts/b24/build-office.ts (после fetch-rop.ts).
 import { readFileSync, writeFileSync } from "node:fs";
+import { maskDeep } from "../../lib/mask-contacts.mjs";
+// Контакты клиентов (телефоны, почты, карты) на страницу не попадают (ЯДИ 29.09). «source» -
+// наши линии и ящики, по ним считаются каналы; фото менеджеров - ссылки.
+const MASK_SKIP = new Set(["source", "managerPhotos"]);
 
 const SRC = "rop/data/rop.json";
 const TPL = "office/office-command.template.html";
 const OUT = "public/office-command.html";
 
-const rop = JSON.parse(readFileSync(SRC, "utf-8"));
+const rop = maskDeep(JSON.parse(readFileSync(SRC, "utf-8")), MASK_SKIP);
 const tpl = readFileSync(TPL, "utf-8");
 
 // Только нужные поля лида - страница остаётся лёгкой

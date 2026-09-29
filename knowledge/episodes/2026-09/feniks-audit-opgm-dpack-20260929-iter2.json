@@ -1,0 +1,72 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-audit-opgm-dpack-20260929-iter2",
+  "timestamp": "2026-09-29T13:25:00+00:00",
+  "deliverable_ref": "ветка op-gm-dpack-v1, коммит f3f2df01 поверх d10d36e5 (tools/accept_dpack.py, README); public/ не менялся (git diff d10d36e5 f3f2df01 -- op-gm-automation/public пуст, sha256 public/index.html прежний); узкая повторная проверка после return iter1 (feniks-audit-opgm-dpack-20260929.json)",
+  "iteration": 2,
+  "artifact_class": "mixed",
+  "audience": "Иван (CMO), основная сессия",
+  "anchor": "8.1 feniks-return-reestr после доработки - наш на уровне якоря (8.10): числа воспроизведены независимо и не менялись с iter1, гейт приёмки теперь ловит все классы §4 п.1 на моём новом наборе мутантов; ниже 8.5 timur iter3, потому что у гейта остались слепые зоны на вторичных полях (флаг both, индекс объявления, счётчики экрана «Покрытие») и риск ложной тревоги на чатах-поставщиках",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 1,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 1,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 1,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9.0,
+    "actionability": 10.0,
+    "insight": 4.0,
+    "brand_fit": 9.0,
+    "risk_awareness": 8.0
+  },
+  "weighted_total": 8.1,
+  "verdict": "go",
+  "probes": [
+    {"id": "A5", "result": "PARTIAL", "evidence": "fx/p7_mutants.py и fx/p8_mutants2.py против tools/accept_dpack.py f3f2df01, у каждого мутанта сначала проверен эффект (дифф против контроля не пуст): контроль rc=0; классы §4 п.1 пойманы 7 из 7 (M1 флаг noresp у обрезанных, M3 abandoned у пересчитанного, N1 t нового чата окна, N2 lag пересчитанного, N3 phoneleft чата окна, N4 текст сообщения пересчитанного, N5 флаг чата только в A) rc=1; вторичные поля проходят rc=0: N6 и N7 флаг both (accept_dpack.py:39 и 118 исключают both), N8 индекс объявления (accept_dpack.py:117 берёт ad из проверяемой записи), N9-N11 счётчики recon на экранах «Покрытие» и «Источники». До автоматизации каждую пересборку проверяет ФЕНИКС (README), поэтому PARTIAL, а не FAIL"},
+    {"id": "B1", "result": "PASS", "evidence": "перенос из iter1: public/ не менялся (дифф пуст, sha256 public/index.html прежний); независимый пересчёт fx/p2_recount.py по сырым окнам и A: 0 расхождений"},
+    {"id": "B2", "result": "PASS", "evidence": "манифест автора scratchpad/feniks-dpack-manifest-d1.txt по всем месяцам и кабинетам совпал с fx/p3_months.py построчно, включая апрель OLD-G; каждая изменённая строка объяснена"},
+    {"id": "B3", "result": "PASS", "evidence": "перенос из iter1: уникальные channelId A ∪ окно = json_chats = чатов в av"},
+    {"id": "B4", "result": "PARTIAL", "evidence": "перенос из iter1: 402 сравнения, новых расхождений 0; унаследованные Д7 (план v2, 08.10) и граница 900 с у f15"},
+    {"id": "B5", "result": "PASS", "evidence": "перенос из iter1: месяцы, «до DD» и год из данных; «до 22» в отрендеренных текстах 0"},
+    {"id": "B6", "result": "PASS", "evidence": "fx/p9_rb2.cjs: стенд отката rb2 (8770) открывается новым паролем стенда, старым нет, данные = D_old (24eb500d) байт в байт, версия f55d9e3c47, сервер отдаёт тот же файл"},
+    {"id": "B7", "result": "PASS", "evidence": "дифф f3f2df01 (README, tools/) без данных: шаблоны fx/b7 в добавленных строках 0; отчёт и строка трейса ФЕНИКСА проверены grep объёмов и шаблонов: 0"}
+  ],
+  "evidence_ledger": [
+    {"gap": "Гейт приёмки не видит вторичные поля: флаг «писал в оба кабинета», индекс объявления, счётчики склейки на экранах «Покрытие» и «Источники»", "evidence": "python3 fx/p8_mutants2.py: N6-N11 rc=0 при эффекте 1; accept_dpack.py:39, 117-118", "checkpoint": "risk_22", "weight": -1},
+    {"gap": "Возможна ложная тревога блока 4 на исправной пересборке: noresp сравнивается без исключения чатов-поставщиков, а сборка очищает их проблемы; в A есть такие чаты с сообщением клиента без ответа, при их обновлении в окне приёмка упадёт", "evidence": "[рассуждение по коду] accept_dpack.py:99 против build_av.py:150 (kind vendor: P пуст); fx/p8_mutants2.py печатает число кандидатов в A (больше 0)", "checkpoint": "risk_22", "weight": 0},
+    {"gap": "Экран «Откуда цифры», блок «Как обновляются данные», описывает процесс до склейки (отложено в план волн, public/ в этой итерации не трогали по ТЗ)", "evidence": "src/opgm.js:499-500", "checkpoint": "accuracy_3", "weight": -1},
+    {"gap": "Экран «Откуда цифры» плотный, жаргон для РОПа", "evidence": "отрендеренный текст all.data.30; self-check автора п.20", "checkpoint": "brand_20", "weight": -1}
+  ],
+  "gaps": [
+    "Не блокирует: у гейта приёмки слепые зоны на вторичных полях (both, индекс объявления, счётчики экрана «Покрытие»), закрыть до автоматизации еженедельной пересборки по §4 п.5 [ПРОВЕРЕНО: fx/p8_mutants2.py]",
+    "Не блокирует: ложная тревога блока 4 на чатах-поставщиках без ответа (accept_dpack.py:99 против build_av.py:150); до 05.10 исключить kind vendor из сравнения noresp [рассуждение по коду, кандидаты в A посчитаны]",
+    "Не блокирует, в план волн: src/opgm.js:499-500 под склейку; Д7 08.10; граница 900 с; подпись «Сколько отправили» у cold_reply",
+    "Исправление ФЕНИКСА к iter1: мутант M2 (lag у обрезанных) был пустым, у обоих обрезанных чатов нет сообщений клиента и lag; FAIL A5 iter1 держался на M1 и M3, их эффект подтверждён (2 и 1 поле)"
+  ],
+  "sources_of_truth": ["scratchpad/raw/cab1.json и cab2.json (sha256 = F8)", "A.json = D.av сборки 24eb500d", "knowledge/episodes/2026-09/feniks-decisions-opgm-restyle-20260929.md §3-§5", "knowledge/episodes/2026-09/feniks-audit-opgm-dpack-20260929.json (iter1)"],
+  "primary_gap": "Слепые зоны гейта приёмки на вторичных полях и риск ложной тревоги на чатах-поставщиках: закрыть до автоматизации пересборки",
+  "confidence": 0.88
+}

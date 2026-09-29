@@ -6,6 +6,7 @@
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/fetch-dialog.ts
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { maskDeep } from "../../lib/mask-contacts.mjs";
+import { readDialog, writeDialog } from "./dialog-store.js";
 
 const WH = process.env.B24_WEBHOOK_URL;
 if (!WH) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
@@ -316,7 +317,7 @@ async function main() {
   const FULL = process.env.DIALOG_FULL === "1";
   let prevEvents: any[] = []; let prevGen = "";
   if (!FULL && existsSync(OUT)) {
-    try { const p = JSON.parse(readFileSync(OUT, "utf8")); prevEvents = p.events || []; prevGen = p.generatedAt || ""; }
+    try { const p = readDialog(OUT); prevEvents = p.events || []; prevGen = p.generatedAt || ""; }
     catch { prevEvents = []; }
   }
   const INCR = prevEvents.length > 0;
@@ -531,7 +532,7 @@ async function main() {
   const out = { generatedAt: new Date().toISOString(), from: HFROM, to: TO, days: HDAYS, windowDays: DAYS, histFrom: HFROM, histDays: HDAYS, transcripts: trCount, scope: `Заказы RF (воронка ${CATEGORY_ID})${WITH_LEADS ? " + Лиды" : ""} · полная история ${HDAYS} дн`, portal: PORTAL, dealsScanned: ents.length, dealCount: dealKeys.size, leadCount: leadKeys.size, managers, counts, events };
   mkdirSync("dialog/data", { recursive: true });
   // Контакты (телефоны, почты, номера карт) в снимок не попадают: маска до записи (ЯДИ 29.09).
-  writeFileSync(OUT, JSON.stringify(maskDeep(out)));
+  writeDialog(maskDeep(out), OUT);
   const summary = Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0)).map((k) => `${k}: ${counts[k] ?? 0}`).join(" · ");
   console.log(`Готово: событий ${events.length}, сделок ${dealKeys.size} + лидов ${leadKeys.size}, менеджеров ${managers.length} -> ${OUT}`);
   console.log(`  ${summary}`);

@@ -2,6 +2,7 @@
 // Запуск: npx tsx src/scripts/b24/build-dialog.ts
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { maskDeep } from "../../lib/mask-contacts.mjs";
+import { readDialog } from "./dialog-store.js";
 
 const TPL = "dialog/dialog.template.html";
 const DATA = "dialog/data/dialog.json";
@@ -13,7 +14,8 @@ const AI_OVERLAY = "dialog/data/ai-tags-manual.json";
 
 const tpl = readFileSync(TPL, "utf-8");
 let data = '{"generatedAt":null,"from":"","to":"","days":7,"portal":"","dealsScanned":0,"managers":[],"counts":{},"events":[]}';
-try { data = readFileSync(DATA, "utf-8").trim() || data; }
+// Поля, вынесенные в dialog-extra.json (лимит GitHub 100 МБ), подмешиваются обратно.
+try { data = JSON.stringify(readDialog(DATA)); }
 catch { console.warn(`нет ${DATA} - страница соберётся пустой`); }
 
 // Подмешиваем ручные ИИ-теги коммуникаций в scoring.deals[].evTags (ai:true).

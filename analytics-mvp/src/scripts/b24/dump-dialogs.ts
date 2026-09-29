@@ -15,6 +15,7 @@
 // MAP=/tmp/part.map.json - карта номеров строк в src, нужна применяющему скрипту
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { isHidden, loadFired, OFFICE_MGR } from "./mgr-roster.js";
+import { readDialog } from "./dialog-store.js";
 import { isMsg, isTalk, isEligible, makeKey } from "./ai-eligible.js";
 
 type Ev = { ts: number; dt: string; dealId: string; leadId: string; mgr: string; type: string; dir: string; who: string; body: string; dealT: string; leadT: string; src?: string };
@@ -32,7 +33,7 @@ const FIRED = loadFired(process.env.ROP_JSON || "/tmp/rop.json");
 const OUT = process.env.OUT || "";
 const MAP = process.env.MAP || "";
 
-const dlg = JSON.parse(readFileSync("dialog/data/dialog.json", "utf8"));
+const dlg = readDialog("dialog/data/dialog.json");
 const events: Ev[] = dlg.events || [];
 const done = existsSync(DONE) ? (JSON.parse(readFileSync(DONE, "utf8")).reviews || {}) : {};
 

@@ -10,6 +10,9 @@ on:
       script:
         description: "probe (методы) | analytics (трафик, заявки, числа)"
         default: "probe"
+      metric_grep:
+        description: "regexp поиска по справочнику метрик (имя или заголовок)"
+        default: ""
       print_items:
         description: "сколько позиций справочника печатать (0 - только размеры)"
         default: "200"
@@ -43,6 +46,7 @@ jobs:
         env:
           # Сколько позиций справочника печатать. 0 - только размеры: справочники уже сняты,
           # в логе нужна таблица ответов, а не повтор 1079 каналов.
+          METRIC_GREP: ${{ github.event.inputs.metric_grep }}
           ROISTAT_PRINT_ITEMS: ${{ github.event.inputs.print_items || '200' }}
           ROISTAT_API: ${{ secrets.ROISTAT_API }}
           ROISTAT_PROJECTID: ${{ secrets.ROISTAT_PROJECTID || github.event.inputs.project_id }}

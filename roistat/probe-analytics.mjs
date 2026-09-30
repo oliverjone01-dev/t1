@@ -43,8 +43,10 @@ if (bad(m)) console.log('справочник метрик: ' + why(m));
 else {
   const list = m.metrics || [];
   names = list.map(x => x.name);
-  const want = /visit|lead|order|cost|income|revenue|profit|conversion|cpl|cpo|drr|roi/i;
-  const hit = list.filter(x => want.test(x.name) && x.is_available !== false);
+  /* Шаблон поиска задаётся снаружи: справочник на 217 позиций, в лог нужны
+     только те метрики, про которые спросили. */
+  const want = new RegExp(process.env.METRIC_GREP || 'visit|lead|order|cost|income|revenue|profit|conversion|cpl|cpo|drr|roi', 'i');
+  const hit = list.filter(x => (want.test(x.name) || want.test(String(x.title))) && x.is_available !== false);
   console.log('--- метрики трафика, заявок и денег (' + hit.length + ' из ' + list.length + ') ---');
   for (const x of hit) console.log('  ' + x.name.padEnd(42) + ' ' + String(x.title).slice(0, 44).padEnd(46) + (x.type || ''));
 }

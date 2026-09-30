@@ -5,6 +5,7 @@
 # Сборку делает site/build.sh из релиза ветки контура: шаги site/steps/*.sh (порт deploy-pages.yml).
 set -euo pipefail
 . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
+gg_as_gg "$@"
 cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
 gg_mkdirs
 rel="$GG_ROOT/www/releases"

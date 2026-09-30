@@ -26,6 +26,16 @@ gg_log()  { printf '%s %s\n' "$(date -u +%FT%TZ)" "$*" >&2; }
 gg_warn() { gg_log "ВНИМАНИЕ: $*"; }
 gg_die()  { gg_log "ОШИБКА: $*"; exit 1; }
 
+# Команды контура пишут в /srv/gg (владелец gg), таймеры тоже работают от gg. Запуск от root
+# оставил бы файлы root, и следующий плановый запуск упал бы на правах. Поэтому от root -
+# перезапуск той же команды от gg (окружение, например ECON_FULL=1, сохраняется).
+# Где пользователя gg нет (облачный тест), ничего не делает. GG_ALLOW_ROOT=1 - отключить.
+gg_as_gg() {
+  [ "$(id -u)" = 0 ] && [ -z "${GG_ALLOW_ROOT:-}" ] && id gg >/dev/null 2>&1 || return 0
+  gg_log "запущено от root - выполняю от пользователя gg"
+  cd / && exec runuser -u gg -- env HOME="$(getent passwd gg | cut -d: -f6)" USER=gg LOGNAME=gg "$(readlink -f "$0")" "$@"
+}
+
 # Имя ветки -> имя папки (claude/x -> claude__x)
 gg_safe() { printf '%s' "$1" | sed 's#/#__#g'; }
 

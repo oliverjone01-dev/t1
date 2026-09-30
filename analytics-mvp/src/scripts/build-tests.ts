@@ -880,7 +880,12 @@ function perArticle(t: TestDef): string {
     + `<th class="r" title="Заказано штук после старта у тестового товара">Заказано после старта, шт</th></tr></thead>`
     + `<tbody>${rows}</tbody>`
     + `<tfoot><tr class="mrow2"><td title="Плотные метрики: медиана индексов по артикулам, варианты одной объединённой карточки OZON идут одним наблюдением. Корзина и заказы: прирост суммы по группе">Итог группы</td>${med}<td class="sep"></td><td></td></tr></tfoot>`
-    + `</table></div><div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов; у позиции цвет перевёрнут, потому что меньше - лучше. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
+    + `</table></div>`
+    + daysNote([...cols.map(([k, n]) => [n, winOf(t.тест!, base, days, k)] as [string, string]),
+      ["Реклама ₽ в день", winOf(t.тест!, base, days, "spend")],
+      ["Заказано после старта (сумма штук)", `после ${spanOf(t.тест!, days, "units")}`]],
+      "Средний день за две недели до старта и за дни после старта, по тестовой группе:")
+    + `<div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов; у позиции цвет перевёрнут, потому что меньше - лучше. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
 }
 
 // Аббревиатуры внутри названия остаются как есть: «ставка cpo» читается как опечатка.
@@ -919,7 +924,31 @@ const HOW: Record<string, string> = {
 
 /** Что показал график по каждому показателю: из тех же чисел, что линия и подпись под ней. */
 type DynRec = { title: string; mode: "index" | "raw"; testOnly: boolean; unit: string;
-  bT: number; pT: number; bC: number; pC: number; gT: number | null; gC: number | null };
+  bT: number; pT: number; bC: number; pC: number; gT: number | null; gC: number | null;
+  /** Какие дни реально вошли в «до» и «после»: подпись под итогом (Иван 30.09, вариант б). */
+  win?: string };
+
+/** Дни окна, за которые у тестовой группы есть данные по показателю: «04.09-17.09, 14 дн».
+ *  У CPC и ДРР данные дня определяет знаменатель отношения из сумм, а не дневная доля. */
+const DM = (d: string) => `${d.slice(8, 10)}.${d.slice(5, 7)}`;
+function spanOf(grp: string[], win: string[], key: string): string {
+  const k = key === "cpc" ? "adspend" : key === "drr" ? "revenue" : key;
+  const v = groupDaily(grp, win, k);
+  const have = win.filter((_, i) => v[i] != null).sort();
+  if (!have.length) return "нет данных";
+  const a = have[0]!, z = have[have.length - 1]!;
+  return `${a === z ? DM(a) : `${DM(a)}-${DM(z)}`}, ${have.length} дн`;
+}
+const winOf = (grp: string[], base: string[], post: string[], key: string): string =>
+  `до ${spanOf(grp, base, key)}; после ${spanOf(grp, post, key)}`;
+
+/** Подпись «какие дни в расчёте»: показатели с одинаковыми окнами идут одной строкой. */
+function daysNote(items: Array<[string, string]>, lead: string): string {
+  const by = new Map<string, string[]>();
+  for (const [name, w] of items) (by.get(w) ?? by.set(w, []).get(w)!).push(name);
+  const parts = [...by.entries()].map(([w, ns]) => `${esc(ns.join(", "))} - ${esc(w)}`);
+  return `<div class="cov"><b>Какие дни в расчёте.</b> ${lead} ${parts.join(". ")}.</div>`;
+}
 const DYNSUM = new Map<string, Record<string, DynRec>>();
 /** Ряд соинвеста теста и контроля по дням: по нему итог теста считает правило «3 дня подряд». */
 const COINV_ROWS = new Map<string, { days: string[]; post: string[]; a: Array<number | null>; b: Array<number | null>; nb: number }>();
@@ -1072,7 +1101,8 @@ function chart(t: TestDef, cid: string): string {
         ? ` <span class="warnv">Ненулевое значение есть лишь у ${(sideC!.share * 100).toFixed(0)} % наблюдений контроля`
           + ` при пороге ${(DENSITY_MIN * 100).toFixed(0)} %: линия и число стоят на редких событиях.</span>`
         : "";
-      const recI: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: dT, gC: dC };
+      const recI: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: dT, gC: dC,
+        win: winOf(t.тест!, base, post, key) };
       (DYNSUM.get(t.id || "") ?? DYNSUM.set(t.id || "", {}).get(t.id || "")!)[key] = recI;
       reads[key] = `<div class="dyn-read">${EST_NAME[estOf(key)]}, ${lowerTitle(title)}: тест <b>${pc(dT)}</b>, `
         + `групповой контроль <b>${pc(dC)}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b>. `
@@ -1107,7 +1137,8 @@ function chart(t: TestDef, cid: string): string {
             + ` сдвиг <b>${sgn(gp - gb)}${rub ? "" : " пункта"}</b>.${lastTxt}`;
         }
       }
-      const recR: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: null, gC: null };
+      const recR: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: null, gC: null,
+        win: winOf(t.тест!, base, post, key) };
       (DYNSUM.get(t.id || "") ?? DYNSUM.set(t.id || "", {}).get(t.id || "")!)[key] = recR;
       if (key === "coinv") COINV_ROWS.set(t.id || "", { days, post, a: rawT, b: rawC,
         nb: base.filter((d) => groupDaily(t.тест!, [d], key)[0] != null).length });
@@ -1644,7 +1675,10 @@ function verdictBlock(t: TestDef): string {
   const tail = lastObs && lastObs.s < 5
     ? ` На последний день ряда (${esc(lastObs.d)}) сдвиг ${f1(lastObs.s)} п., уже ниже 5: если так пойдёт дальше, к замеру эффект может не удержаться.`
     : lastObs ? ` На последний день ряда (${esc(lastObs.d)}) сдвиг ${f1(lastObs.s)} п.` : "";
-  const rows = METRICS.filter(([k]) => sum[k] && (sum[k]!.mode === "index" || Number.isFinite(sum[k]!.pT))).map(([k]) => {
+  const shown = METRICS.filter(([k]) => sum[k] && (sum[k]!.mode === "index" || Number.isFinite(sum[k]!.pT)));
+  const winNote = daysNote(shown.map(([k]) => [sum[k]!.title, sum[k]!.win || ""] as [string, string]),
+    "По каждому показателю берутся только дни, за которые данные есть, по тестовой группе:");
+  const rows = shown.map(([k]) => {
     const r = sum[k]!;
     if (r.mode === "index") {
       const pc = (x: number | null) => x == null ? "-" : (x >= 0 ? "+" : "") + x.toFixed(0) + " %";
@@ -1665,6 +1699,7 @@ function verdictBlock(t: TestDef): string {
     + ` Для показов, заходов, корзины и заказов - рост к своим двум неделям до старта в процентах. Последняя колонка - насколько тест изменился сильнее`
     + ` (плюс) или слабее (минус) контроля; у позиции минус значит, что тест поднялся выше. Выручку и ДРР как вывод не читаем:`
     + ` продаж в день мало, один заказ стола меняет картину.</div>`
+    + winNote
     + `<div class="cov"><b>На что опирается итог.</b> Правило теста: ${esc(t.правило || "")}`
     + ` Сдвиг разрыва по дням после старта: ${obs.map((o) => `${esc(o.d.slice(8, 10))}.${esc(o.d.slice(5, 7))} ${f1(o.s)}`).join(", ") || "нет наблюдений"} п.`
     + ` База до старта: ${cr.nb} ${plural(cr.nb, "наблюдаемый день", "наблюдаемых дня", "наблюдаемых дней")} из 14, поэтому итог предварительный. Окончательный замер ${esc(t.замер || "-")}.</div></div>`;

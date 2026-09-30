@@ -86,6 +86,11 @@ for (const [name, method, path, body] of CAND) {
       try {
         const j = JSON.parse(txt);
         row.info = shape(j);
+        /* Текст отказа - сообщение API, а не клиентские данные: без него не понять,
+           это неверные параметры запроса или метод закрыт правами ключа. */
+        if (j.status === 'error' || j.error) {
+          row.info += ' || ОТКАЗ: ' + JSON.stringify({ status: j.status, error: j.error, description: j.description });
+        }
         row.json = j;
       } catch { row.info = 'не JSON: ' + txt.slice(0, 160).replace(/\s+/g, ' '); }
     } catch (e) { row.info = 'сеть: ' + e.message; }

@@ -28,7 +28,7 @@ for step in "$GG_OPS"/site/steps/*.sh; do
     # «# sections-from: <файл>» - разделы по списку из прошлой сборки (ростер, меняется сам)
     lst=$(sed -n '/^# sections-from:/{s/^# sections-from:[[:space:]]*//p;q}' "$step")
     if [ -n "$lst" ] && [ -n "$PREV" ] && [ -f "$PREV/$lst" ]; then
-      while read -r s; do
+      while read -r s _; do   # строка списка: «раздел[<TAB>что угодно]»
         case "$s" in ''|*/*|.*) continue ;; esac
         [ -d "$PREV/$s" ] || continue
         rm -rf "${SITE:?}/$s"; cp -al "$PREV/$s" "$SITE/$s"

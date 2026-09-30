@@ -14,8 +14,16 @@ while IFS='|' read -r kind sec title; do
   [ "$kind" = ready ] || continue
   if [ -s "$site/$sec/index.html" ]; then ready+="${nl}• $title: https://$dom/$sec/"; fi
 done < <(gg_conf_lines "$conf")
+# Дашборды менеджеров: как блок «Дашборды менеджеров» в РОП - по каждому продавцу ссылка и готовность
+mgrs=""
 if [ -s "$site/.gg/managers.txt" ]; then
-  ready+="${nl}• Личные дашборды менеджеров: $(wc -l <"$site/.gg/managers.txt"), вида https://$dom/$(head -n1 "$site/.gg/managers.txt")/"
+  while IFS=$'\t' read -r s n; do
+    [ -n "$s" ] || continue
+    mgrs+="${nl}✅ ${n:-$s}: https://$dom/$s/"
+  done <"$site/.gg/managers.txt"
+fi
+if [ -s "$site/.gg/managers-missing.txt" ]; then
+  while read -r n; do [ -n "$n" ] && mgrs+="${nl}⚠️ $n: страница не собрана"; done <"$site/.gg/managers-missing.txt"
 fi
 
 jobs=""
@@ -32,6 +40,7 @@ done
 plan=$(gg_conf_lines "$conf" | awk -F'|' '{k=$1; gsub(/[[:space:]]/, "", k)} k=="plan" {sub(/^[^|]*\|[[:space:]]*/, ""); print "• " $0}')
 
 msg="📋 Переезд на сервер: сводка $(date -u '+%d.%m %H:%M') UTC${nl}${nl}Работает на сервере:${ready:-${nl}• пока ничего}"
+[ -n "$mgrs" ] && msg+="${nl}${nl}Дашборды менеджеров (как в РОП):${mgrs}"
 msg+="${nl}${nl}Задачи:${jobs:-${nl}• ещё не запускались}${nl}${nl}По плану:${nl}${plan}"
 msg+="${nl}${nl}Вход по личному логину."
 printf '%s\n' "$msg"

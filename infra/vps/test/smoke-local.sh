@@ -46,6 +46,7 @@ BIN="$REPO/infra/vps/bin"
 # страницы менеджеров собирает задача rop-snapshot (node) - в тесте кладём готовую
 mkdir -p "$GG_ROOT/cache/site-managers/rop-smoke"
 echo '<html>smoke-mgr</html>' >"$GG_ROOT/cache/site-managers/rop-smoke/index.html"
+printf 'rop-smoke\tСмоук Тестов\n-\tНовичок Безсделок\n' >"$GG_ROOT/cache/site-managers/roster.tsv"
 
 echo "1. Первый выкат (gg-poll)"
 "$BIN/gg-poll" 2>"$T/poll.log" || { cat "$T/poll.log"; fail "gg-poll"; }
@@ -55,7 +56,7 @@ W="$GG_ROOT/www/current"
 [ -s "$W/rop/v.txt" ] && pass "штамп /rop/v.txt: $(cat "$W/rop/v.txt")" || fail "v.txt пуст"
 [ -s "$W/office/index.html" ] && pass "/office/ собран" || fail "/office/ нет"
 [ -s "$W/status/index.html" ] && pass "/status/ собран" || fail "/status/ нет"
-[ -s "$W/rop-smoke/index.html" ] && grep -qx rop-smoke "$W/.gg/managers.txt" && pass "/rop-<фамилия>/ собран, список записан" || fail "менеджеры"
+[ -s "$W/rop-smoke/index.html" ] && grep -q "^rop-smoke	Смоук Тестов$" "$W/.gg/managers.txt" && pass "/rop-<фамилия>/ собран, список записан" || fail "менеджеры"
 ROPSRC="$GG_ROOT/src/rop-dashboard-v1/current"
 [ -L "$ROPSRC/analytics-mvp/rop/data" ] && pass "данные РОПа в релизе - ссылка на /srv/gg/data" || fail "нет ссылки на данные"
 DATAHTML="$GG_ROOT/data/rop-dashboard-v1/analytics-mvp/public/rop-command.html"
@@ -149,7 +150,8 @@ data_before=$(git -C "$GG_ROOT/data" rev-parse HEAD)
 grep -q "РОП: https://dash.genglas.ru/rop/" "$T/report.log" && pass "в сводке раздел РОП со ссылкой" || { cat "$T/report.log"; fail "сводка без РОП"; }
 grep -q "smoke-ok: ✅ ok" "$T/report.log" && pass "в сводке итоги задач" || { cat "$T/report.log"; fail "сводка без задач"; }
 grep -q "Волна 2" "$T/report.log" && pass "в сводке план" || fail "сводка без плана"
-grep -q "Личные дашборды менеджеров: 1, вида https://dash.genglas.ru/rop-smoke/" "$T/report.log" && pass "в сводке менеджеры" || { cat "$T/report.log"; fail "сводка без менеджеров"; }
+grep -q "✅ Смоук Тестов: https://dash.genglas.ru/rop-smoke/" "$T/report.log" && pass "в сводке менеджер со ссылкой" || { cat "$T/report.log"; fail "сводка без менеджеров"; }
+grep -q "⚠️ Новичок Безсделок: страница не собрана" "$T/report.log" && pass "в сводке несобранный менеджер" || { cat "$T/report.log"; fail "сводка: несобранный"; }
 [ "$(git -C "$GG_ROOT/data" rev-parse HEAD)" = "$data_before" ] && grep -q smoke-dirty "$DATAHTML" \
   && pass "данные не закоммичены и не откачены" || fail "служебная задача тронула данные"
 grep -q '"ok":true' "$GG_ROOT/state/jobs/daily-report.json" && pass "статус сводки записан" || fail "статус сводки"
@@ -158,7 +160,7 @@ echo "10. Менеджеры: шаг упал -> разделы по списк�
 mv "$GG_ROOT/cache/site-managers" "$T/mgr.bak"
 "$BIN/gg-site" 2>/dev/null
 [ -s "$W/rop-smoke/index.html" ] && pass "/rop-smoke/ перенесён из прошлой сборки" || fail "менеджер пропал с сайта"
-grep -qx rop-smoke "$W/.gg/managers.txt" && pass "список менеджеров перенесён" || fail "список менеджеров"
+grep -q "^rop-smoke	" "$W/.gg/managers.txt" && pass "список менеджеров перенесён" || fail "список менеджеров"
 grep -q 22-managers "$W/.gg/build.json" && pass "падение шага менеджеров видно в build.json" || fail "build.json менеджеров"
 mv "$T/mgr.bak" "$GG_ROOT/cache/site-managers"
 

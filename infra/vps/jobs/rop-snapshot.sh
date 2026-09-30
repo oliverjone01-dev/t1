@@ -40,13 +40,21 @@ elif ! only=$(grep -o 'const PLAN_MGRS=\[[^]]*\]' rop/rop-command.template.html 
   || [ -z "$only" ]; then
   gg_warn "не нашёл список продавцов (PLAN_MGRS) в шаблоне РОПа - дашборды менеджеров пропущены"
 elif cp rop/data/rop.json "$mgr/rop/data/rop.json" \
-  && (cd "$mgr" && OUT_DIR="$out.new" MIN_DEALS=5 ONLY="$only" node src/scripts/b24/build-managers-all.mjs); then
+  && (cd "$mgr" && OUT_DIR="$out.new" MIN_DEALS=5 ONLY="$only" node src/scripts/b24/build-managers-all.mjs) | tee "$out.new/.build.log"; then
   gg_log "Продавцы из дашборда РОП: $only"
   built=$(find "$out.new" -mindepth 1 -maxdepth 1 -type d | wc -l); want=$(tr ',' '\n' <<<"$only" | wc -l)
   gg_log "Дашборды менеджеров пересобраны: $built из $want"
   [ "$built" -eq "$want" ] || gg_warn "собрано $built из $want: у кого-то из списка РОПа меньше 5 сделок или сбой сборки"
 else
   gg_warn "дашборды менеджеров собраны не все (снимок РОПа при этом сохранён)"
+fi
+# Ростер для сайта и сводки: «слаг<TAB>имя» по собранным, «-<TAB>имя» по тем, кого нет (порядок как в РОП)
+if [ -f "$out.new/.build.log" ]; then
+  tr ',' '\n' <<<"${only:-}" | while read -r n; do
+    [ -n "$n" ] || continue
+    s=$(sed -n "s/^  ok  \(rop-[a-z0-9-]*\) <- $n (.*/\1/p" "$out.new/.build.log" | head -n1)
+    if [ -n "$s" ] && [ -s "$out.new/$s/index.html" ]; then printf '%s\t%s\n' "$s" "$n"; else printf -- '-\t%s\n' "$n"; fi
+  done >"$out.new/roster.tsv"
 fi
 # Публикуем, если собран хоть один; иначе остаются прошлые страницы
 if [ -n "$(find "$out.new" -mindepth 1 -maxdepth 1 -type d -print -quit)" ]; then

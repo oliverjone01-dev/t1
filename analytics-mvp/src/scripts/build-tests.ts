@@ -1737,10 +1737,14 @@ function verdictBlock(t: TestDef): string {
     return `<tr><td>${esc(r.title)}</td><td class="r">${fmtV(k, r.bT)} → ${fmtV(k, r.pT)}</td>`
       + `<td class="r">${fmtV(k, r.bC)} → ${fmtV(k, r.pC)}</td><td class="r"><b>${fmtD(k, (r.pT - r.bT) - (r.pC - r.bC))}</b></td></tr>`;
   }).join("");
+  // Периоды над колонками сравнения (Иван 30.09, по образцу «Большая 45 ₽, 28.09-30.09 (3 дн)»).
+  const b0 = addDays(t.старт!, -14), b1 = addDays(t.старт!, -1);
+  const nd = (a: string, z: string) => daysBetween(a, z) + 1;
+  const perHead = (who: string, n: number) => `${who}, ${n} арт.: до ${DM(b0)}-${DM(b1)} (${nd(b0, b1)} дн) → после ${DM(t.старт!)}-${DM(LAST)} (${nd(t.старт!, LAST)} дн)`;
   return `<div class="verdict"><div class="verdict-h">Итог по показателям на ${esc(LAST)}</div>`
     + `<div class="verdict-main">${head}${tail}</div>`
-    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th><th class="r">Тест: до → после</th>`
-    + `<th class="r">Контроль: до → после</th><th class="r">Тест относительно контроля</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th><th class="r">${perHead("Тест", t.тест!.length)}</th>`
+    + `<th class="r">${perHead("Контроль", ctlGroupOf(t).length)}</th><th class="r">Тест относительно контроля</th></tr></thead><tbody>${rows}</tbody></table></div>`
     + `<div class="cov"><b>Как читать таблицу.</b> «До» - средний день двух недель перед стартом ${esc(t.старт || "")}, «после» - средний день после старта.`
     + ` Для показов, заходов, корзины и заказов - рост к своим двум неделям до старта в процентах. Последняя колонка - насколько тест изменился сильнее`
     + ` (плюс) или слабее (минус) контроля; у позиции минус значит, что тест поднялся выше. Выручку и ДРР как вывод не читаем:`
@@ -1835,6 +1839,7 @@ function exitVerdictBlock(t: TestDef): string {
   const ad = t.роли?.test_ad || [], sib = t.роли?.test_sibling || [];
   if (!t.выход || !ad.length || !sib.length || t.выход > LAST) return "";
   const { pre, post } = exitWindows(t);
+  const exitPer = `до ${DM(pre[0]!)}-${DM(pre[pre.length - 1]!)} (${pre.length} дн) → после ${post.length > 1 ? `${DM(post[0]!)}-${DM(post[post.length - 1]!)}` : DM(post[0]!)} (${post.length} дн)`;
   const avg = (g: string[], win: string[], key: string): number => {
     const v = nums(groupDaily(g, win, key));
     return v.length ? v.reduce((x, y) => x + y, 0) / v.length : NaN;
@@ -1876,7 +1881,7 @@ function exitVerdictBlock(t: TestDef): string {
   return `<div class="verdict"><div class="verdict-h">Итог по выходу из акции на ${esc(LAST)}</div>`
     + `<div class="verdict-main">${head}${chk}</div>`
     + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th>`
-    + `<th class="r">Вышли (${ad.length}): до → после</th><th class="r">Соседи в акции (${sib.length}): до → после</th>`
+    + `<th class="r">Вышли, ${ad.length} арт.: ${exitPer}</th><th class="r">Соседи в акции, ${sib.length} арт.: ${exitPer}</th>`
     + `<th class="r">Вышли относительно соседей</th></tr></thead><tbody>${rows}</tbody></table></div>`
     + `<div class="cov"><b>Как читать таблицу.</b> Точка отсчёта - выход из акции ${esc(DM(t.выход))}, а не старт рекламы, как на графиках выше.`
     + ` «До» - средний день недели перед выходом, «после» - средний день после выхода. Последняя колонка - насколько вышедшие изменились`
@@ -2140,7 +2145,7 @@ function bidVerdictPair(p: PairDef): string {
   return name + `<div class="verdict-main">${bigTxt[0]!.toUpperCase() + bigTxt.slice(1)}; ${smallTxt}.${both}${few}${same}`
     + ` Окно большой ${DM(wB.from)}-${DM(wB.to)} (${stB.days} дн), малой ${DM(wS.from)}-${DM(wS.to)} (${stS.days} дн).</div>`
     + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th>`
-    + `<th class="r">Большая ${esc(B.ставка ?? "-")} ₽</th><th class="r">Малая ${esc(S.ставка ?? "-")} ₽</th><th>Условие правила</th><th class="r">Выполнено</th></tr></thead>`
+    + `<th class="r">Большая ${esc(B.ставка ?? "-")} ₽, ${DM(wB.from)}-${DM(wB.to)} (${stB.days} дн)</th><th class="r">Малая ${esc(S.ставка ?? "-")} ₽, ${DM(wS.from)}-${DM(wS.to)} (${stS.days} дн)</th><th>Условие правила</th><th class="r">Выполнено</th></tr></thead>`
     + `<tbody>${rows}</tbody></table></div>`;
 }
 /** Предварительно по дням разгона (Иван 30.09, вариант а): окно новой стороны ещё не началось,

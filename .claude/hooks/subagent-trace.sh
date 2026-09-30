@@ -2,6 +2,9 @@
 # subagent-trace.sh - Protocol 14 (Observability) executable.
 # Fires on SubagentStart и SubagentStop. Пишет одну строку в traces/YYYY-MM-DD/agents.jsonl
 # по схеме schemas/agent-trace.json. Никогда не блокирует (exit 0).
+# Строка идёт в буфер traces/.pending/YYYY-MM-DD/agents.jsonl (в .gitignore): иначе после каждого ответа
+# появлялось незакоммиченное изменение и хук среды требовал коммит «traces: строка P14». Буфер
+# переносится в traces/ одним коммитом скриптом .claude/hooks/traces-flush.sh (конец задачи, переезд).
 # Содержимое сообщений агента в трейс НЕ пишется (репозиторий публичный): только производные
 # поля - outcome, verdict, feniks_score, длина сообщения.
 
@@ -30,17 +33,20 @@ TIER = {"feniks": "0", "spartak": "chairman", "marco": "1", "data": "1",
         "roman": "4", "trener": "4"}
 
 now = datetime.datetime.now(datetime.timezone.utc)
-out = pathlib.Path("traces") / now.strftime("%Y-%m-%d")
+day = now.strftime("%Y-%m-%d")
+out = pathlib.Path("traces") / ".pending" / day
 out.mkdir(parents=True, exist_ok=True)
 log = out / "agents.jsonl"
+committed = pathlib.Path("traces") / day / "agents.jsonl"
 
 agent_raw = str(d.get("agent_type") or d.get("agent_name") or "").strip().lower()
 agent = agent_raw if re.match(r"^[a-z][a-z0-9-]*$", agent_raw) else ""
 agent_id = str(d.get("agent_id") or "")
 stitched = False
-if not agent and agent_id and log.exists():
+if not agent and agent_id:
     # SubagentStop в этой среде может не нести agent_type (аудит 2026-09-06): сшиваем со строкой start по agent_id
-    for line in reversed(log.read_text(encoding="utf-8").splitlines()):
+    prev_lines = [l for f in (committed, log) if f.exists() for l in f.read_text(encoding="utf-8").splitlines()]
+    for line in reversed(prev_lines):
         try:
             prev = json.loads(line)
         except Exception:
@@ -71,8 +77,8 @@ if event == "subagent_stop":
     rec["msg_chars"] = len(msg)
     if d.get("stop_reason"):
         rec["stop_reason"] = str(d["stop_reason"])[:80]
-    m = re.search(r"VERDICT:\s*(go|return|veto|blocked|n/a)", msg, re.I)
-    v = m.group(1).lower() if m else None
+    ms = re.findall(r"VERDICT:\s*(go|return|veto|blocked|n/a)", msg, re.I)  # последний вердикт в отчёте (цитаты прошлых вердиктов идут раньше)
+    v = ms[-1].lower() if ms else None
     if v in ("go", "return", "veto"):
         rec["verdict"] = v
     # outcome только по явным маркерам; «success по умолчанию» завышало метрики P15 (аудит 2026-09-06)
@@ -97,6 +103,9 @@ if event == "subagent_stop":
                     rec["feniks_score"] = val
             except ValueError:
                 pass
+        a = re.findall(r"AUDITED:\s*([0-9a-f]{12,40})", msg)  # привязка go к изменениям ветки (data-guard audit_hash.py)
+        if a:
+            rec["audited_hash"] = a[-1]
     c = re.search(r"CONFIDENCE:\s*([01](?:\.[0-9]+)?)", msg, re.I)
     if c:
         rec["confidence"] = float(c.group(1))

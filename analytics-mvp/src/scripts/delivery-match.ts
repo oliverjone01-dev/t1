@@ -18,9 +18,9 @@
 // отменённые отбрасываются, когда есть неотменённые. Числа не придумываются: делится только сумма
 // одной строки ведомости между отправлениями, которые эта строка сама назвала.
 
-export interface LedgerRow { order: string; ship: number; deliv: number; d_ship?: string; d_fact?: string }
+export interface LedgerRow { order: string; ship: number; deliv: number; d_ship?: string; d_fact?: string; city?: string }
 export interface Posting { order: string; d: string; status?: string; units?: number; sd?: string | null; sku?: string }
-export interface PostingShip { ship: number; deliv: number; dShip?: string; dFact?: string }
+export interface PostingShip { ship: number; deliv: number; dShip?: string; dFact?: string; cities?: string[] }
 export interface Unmatched { raw: string; ship: number; deliv: number; why: string }
 export interface MatchResult {
   byPosting: Map<string, PostingShip>;
@@ -83,8 +83,12 @@ export function matchLedger(rows: LedgerRow[], postings: Posting[]): MatchResult
       accS += s; accD += d;
       const cur = byPosting.get(p.order) ?? { ship: 0, deliv: 0 };
       const later = (a?: string, b?: string) => (a && b ? (a > b ? a : b) : a || b);
+      // Город - из той же строки ведомости, что и расход (Иван 30.09): у заказа города его отправок,
+      // а не все города артикула. Повторный выезд в другой город даёт два города.
+      const cities = [...(cur.cities ?? [])];
+      if (r.city && !cities.includes(r.city)) cities.push(r.city);
       byPosting.set(p.order, { ship: cur.ship + s, deliv: cur.deliv + d,
-        dShip: later(cur.dShip, r.d_ship), dFact: later(cur.dFact, r.d_fact) });
+        dShip: later(cur.dShip, r.d_ship), dFact: later(cur.dFact, r.d_fact), ...(cities.length ? { cities } : {}) });
     });
   }
   return { byPosting, unmatched, how };

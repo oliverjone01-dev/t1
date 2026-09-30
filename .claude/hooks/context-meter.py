@@ -6,8 +6,8 @@
 подмешивает в контекст указание выполнить переезд в новую сессию.
 
 Пороги (токены контекста), переопределяются переменными окружения:
-  PEREEZD_SOFT  - 150000: предложить переезд на ближайшей точке сохранения
-  PEREEZD_HARD  - 200000: переезд обязателен до начала работы над запросом
+  PEREEZD_SOFT  - 400000: предложить переезд на ближайшей точке сохранения
+  PEREEZD_HARD  - 500000: переезд обязателен до начала работы над запросом
   PEREEZD_IDLE_MIN - 60: пауза в минутах, после которой кэш уже остыл
   PEREEZD_IDLE_CTX - 100000: при остывшем кэше и таком контексте переезд почти бесплатен
 
@@ -19,8 +19,8 @@ import os
 import sys
 from datetime import datetime, timezone
 
-SOFT = int(os.environ.get("PEREEZD_SOFT", 150_000))
-HARD = int(os.environ.get("PEREEZD_HARD", 200_000))
+SOFT = int(os.environ.get("PEREEZD_SOFT", 400_000))
+HARD = int(os.environ.get("PEREEZD_HARD", 500_000))
 IDLE_MIN = int(os.environ.get("PEREEZD_IDLE_MIN", 60))
 IDLE_CTX = int(os.environ.get("PEREEZD_IDLE_CTX", 100_000))
 

@@ -23,9 +23,11 @@ MONTH="$(date +%Y-%m)"
 
 # Есть ли свежий аудит ФЕНИКСА
 HAS_AUDIT=0
-if [ -f "traces/${TODAY}/agents.jsonl" ] && grep -q '"event": *"audit"' "traces/${TODAY}/agents.jsonl" 2>/dev/null; then
-  HAS_AUDIT=1
-fi
+for TF in "traces/${TODAY}/agents.jsonl" "traces/.pending/${TODAY}/agents.jsonl"; do
+  if [ -f "$TF" ] && grep -q '"event": *"audit"' "$TF" 2>/dev/null; then
+    HAS_AUDIT=1
+  fi
+done
 if compgen -G "knowledge/episodes/${MONTH}/feniks-*${TODAY//-/}*" > /dev/null 2>&1; then
   HAS_AUDIT=1
 fi
@@ -61,7 +63,7 @@ $(git diff --name-only --cached 2>/dev/null)"
 if [ -z "$(printf '%s' "$CHANGED" | tr -d '[:space:]')" ]; then
   CHANGED="<диапазон изменений определить не удалось: проверь вручную>"
 fi
-CRIT="$(printf '%s\n' "$CHANGED" | grep -E '^(<диапазон|CLAUDE\.md|\.claude/(agents|skills|hooks|workflows|settings\.json)|\.claude-plugin/|schemas/|knowledge/semantic/|agents-v9/|smm/public/|analytics-mvp/public/|.*\.html$)' | sort -u | head -15 || true)"
+CRIT="$(printf '%s\n' "$CHANGED" | grep -E '^(<диапазон|CLAUDE\.md|\.claude/(agents|skills|hooks|workflows|settings\.json)|\.claude-plugin/|schemas/|knowledge/semantic/|agents-v9/|smm/public/|analytics-mvp/public/|analytics-mvp/src/|tools/|.*\.html$)' | sort -u | head -15 || true)"
 [ -z "$CRIT" ] && exit 0
 
 # Дрейф копий агентов плагина (agents/ против .claude/agents/) - отдельное напоминание, не зависит от аудита

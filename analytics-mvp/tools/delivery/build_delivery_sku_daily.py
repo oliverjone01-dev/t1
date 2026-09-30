@@ -20,7 +20,7 @@
 # Запуск из analytics-mvp:  python3 tools/delivery/build_delivery_sku_daily.py
 import openpyxl, glob, os, json, re, collections, datetime, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ledger_money import ship_and_deliv, MoneyError, second_header  # noqa: E402
+from ledger_money import ship_and_deliv, client_paid, paid_in_contacts, MoneyError, second_header, fix_order_no  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW = os.path.join(ROOT, "tools", "delivery", "raw")
@@ -138,6 +138,11 @@ def _city2(v):
 
 def city_of(addr, left=None, right=None):
     if not addr:
+        # Иван 30.09: «Адрес» пустой, а расход есть - город стоит в соседней ячейке.
+        for v in (left, right):
+            c = _city2(v)
+            if c:
+                return c
         return "—"
     parts = [p.strip() for p in str(addr).split(",") if p.strip()]
     if not any(PHONE.search(p) for p in parts[:2]):
@@ -173,6 +178,7 @@ def main():
                 continue
             hdr = [norm(c) for c in rows[0]]
             ci = {h: j for j, h in enumerate(hdr)}
+            ic_cont = next((j for h, j in ci.items() if "онтакт" in str(h)), None)
             need = ["Площадка", "Номер заказа", "Артикул", "Дата отгрузки", "Стоимость отправки", "Стоимость доставки", "Адрес", "Статус"]
             if not all(k in ci for k in need):
                 continue
@@ -188,10 +194,17 @@ def main():
                 # Сумма при любом написании (ledger_money); непонятный текст - ошибка сборки с номером
                 # строки, а не 0. Сдвиг столбцов (FALSE в «отправке», расход в «доставке») - расход берём.
                 try:
-                    ship, dv0, _flag = ship_and_deliv(r[ci["Стоимость отправки"]], r[ci["Стоимость доставки"]])
+                    ic = ci["Стоимость доставки"]
+                    ship, dv0, _flag = ship_and_deliv(r[ci["Стоимость отправки"]], r[ic], r[ic + 1] if ic + 1 < len(r) else None)
                 except MoneyError as ex:
                     bad_cells.append(f"{os.path.basename(f)}:{rix} «{ex}»")
                     continue
+                # Оплата клиента для сверки с OZON - с учётом поехавших столбцов (ближайший, Иван 29.09).
+                ic = ci["Стоимость доставки"]
+                dv0 = client_paid(r[ci["Стоимость отправки"]], r[ic], r[ic + 1] if ic + 1 < len(r) else None)
+                # Пусто в «доставке» - оплата клиента бывает уехавшей в «Контакты» (Иван 29.09).
+                if not dv0 and ic_cont is not None and ic_cont < len(r):
+                    dv0 = paid_in_contacts(r[ic_cont]) or dv0
                 if not ship or ship <= 0:  # реальный расход: строки без отправки пропускаем
                     continue
                 # Иван 28.09.2026: статус «ОТМЕНЕН» - доставку не учитываем вовсе. «Вернули на склад»,
@@ -200,14 +213,14 @@ def main():
                     cancelled_skip[0] += 1
                     cancelled_skip[1] += ship
                     continue
-                no = str(r[ci["Номер заказа"]] or "").strip()
+                no = fix_order_no(str(r[ci["Номер заказа"]] or "").strip())
                 d = parse_date(r[ci["Дата отгрузки"]])
                 if not no or not d:
                     continue
                 key = (no, d, round(ship, 2))
                 e = events.get(key)
                 if e is None:
-                    e = events[key] = {"ship": ship, "deliv": dv0 or 0.0,
+                    e = events[key] = {"ship": ship, "deliv": dv0 or 0.0, "order": no,
                                        "date": d, "arts": [], "com": [], "city": city_of(r[ci["Адрес"]], r[ci["Адрес"] - 1], r[ci["Адрес"] + 1]),
                                        "st": norm(r[ci["Статус"]])}
                 for art in clean_arts(r[ci["Артикул"]]):
@@ -224,7 +237,7 @@ def main():
 
     daily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (offer,d)->[ship,deliv,отправок]
     cities = collections.defaultdict(collections.Counter)     # offer-> Counter(city)
-    citydaily = collections.defaultdict(lambda: [0.0, 0.0, 0])  # (city,d)->[ship,deliv,отправок] (на уровне отправки)
+    citydaily = collections.defaultdict(lambda: [0.0, 0.0, 0, []])  # (city,d)->[ship,deliv,отправок,номера заказов]
     permon = collections.defaultdict(float)
     permon_deliv = collections.defaultdict(float)
     bystatus = collections.defaultdict(lambda: [0, 0.0])       # статус -> [отправок, сумма] (инфо)
@@ -255,6 +268,7 @@ def main():
         # город и перевозка - свойства отправки). Σ по городам сходится с permon (сверка ниже).
         cd = citydaily[(e["city"], d)]
         cd[0] += e["ship"]; cd[1] += e["deliv"]; cd[2] += 1
+        cd[3].append(e["order"])  # доход с покупателя страница берёт из OZON по номеру (Иван 29.09)
         permon[d[:7]] += e["ship"]
         permon_deliv[d[:7]] += e["deliv"]
         bystatus[e["st"] or "(пусто)"][0] += 1
@@ -274,8 +288,9 @@ def main():
     with open(OUT_CITY, "w", encoding="utf-8") as w:
         json.dump(city_out, w, ensure_ascii=False)
     # P&L перевозки по городу и дню (закрытые месяцы) - для блока «Логистика по городам».
-    cd_rows = [{"d": d, "city": city, "ship": round(sh, 2), "deliv": round(dl, 2), "n": n}
-               for (city, d), (sh, dl, n) in sorted(citydaily.items())]
+    # deliv - «Стоимость доставки» из ведомости, на странице только для сравнения с OZON.
+    cd_rows = [{"d": d, "city": city, "ship": round(sh, 2), "deliv": round(dl, 2), "n": n, "orders": sorted(od)}
+               for (city, d), (sh, dl, n, od) in sorted(citydaily.items())]
     with open(OUT_CITYDAILY, "w", encoding="utf-8") as w:
         for r in cd_rows:
             w.write(json.dumps(r, ensure_ascii=False) + "\n")

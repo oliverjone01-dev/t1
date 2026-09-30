@@ -2125,3 +2125,19 @@ describe("Маркет: расчётные числа фиолетовым", () 
     expect(errs).toEqual([]);
   });
 });
+
+describe("Маркет: категория у заказов в пути", () => {
+  // Катя 29.09: сентябрьские артикулы (GGT-48-5-1-100-180 и ещё 10) стояли в «Без категории»:
+  // словарь категорий собирался только из доставленных и отменённых строк, а заказы в пути
+  // (fly_rows) идут в свод отдельным списком. Правило префикса до них не доходило.
+  it("у каждого артикула с префиксом GGT/GGL/GGM/GGK есть категория, включая заказы в пути", () => {
+    const cat = (dom.window as any).SV_CAT as Record<string, string>;
+    const svod = JSON.parse(readFileSync("data-ym/svod_orders.json", "utf8"));
+    const skus = new Set<string>();
+    for (const m of svod.months) for (const r of [...(m.rows || []), ...(m.fly_rows || []), ...(m.inflight_rows || [])])
+      if (/^(GGT|GGL|GGM|GGK)-/i.test(String(r.sku || ""))) skus.add(String(r.sku));
+    const lost = [...skus].filter((s) => !cat[s] || cat[s] === "Без категории");
+    expect(skus.size).toBeGreaterThan(0);
+    expect(lost, "артикулы без категории").toEqual([]);
+  });
+});

@@ -54,6 +54,16 @@
             "command": "bash .claude/hooks/approvals-state-monitor.sh"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" stop",
+            "timeout": 30
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -72,6 +82,16 @@
           {
             "type": "command",
             "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/context-meter.py\""
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" prompt",
+            "timeout": 30
           }
         ]
       }
@@ -114,6 +134,36 @@
             "command": "bash .claude/hooks/feniks-bash-scope.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-bash",
+            "timeout": 90
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-edit",
+            "timeout": 90
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__github__merge_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" pre-mcp-merge",
+            "timeout": 90
+          }
+        ]
       }
     ],
     "SubagentStart": [
@@ -137,6 +187,34 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/data-guard.py\" session-start",
+            "timeout": 30
+          }
+        ]
+      }
     ]
+  },
+  "skillOverrides": {
+    "adapt": "name-only",
+    "animate": "name-only",
+    "arrange": "name-only",
+    "bolder": "name-only",
+    "colorize": "name-only",
+    "delight": "name-only",
+    "distill": "name-only",
+    "onboard": "name-only",
+    "overdrive": "name-only",
+    "polish": "name-only",
+    "quieter": "name-only",
+    "typeset": "name-only",
+    "teach-impeccable": "name-only",
+    "remotion-best-practices": "name-only"
   }
 }

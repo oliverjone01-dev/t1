@@ -152,7 +152,12 @@ data_before=$(git -C "$GG_ROOT/data" rev-parse HEAD)
 "$BIN/gg-job" daily-report >"$T/report.log" 2>&1 || { cat "$T/report.log"; fail "daily-report"; }
 grep -q "РОП: https://dash.genglas.ru/rop/" "$T/report.log" && pass "в сводке раздел РОП со ссылкой" || { cat "$T/report.log"; fail "сводка без РОП"; }
 grep -q "smoke-ok: ✅ ok" "$T/report.log" && pass "в сводке итоги задач" || { cat "$T/report.log"; fail "сводка без задач"; }
-grep -q "Волна 2" "$T/report.log" && pass "в сводке план" || fail "сводка без плана"
+grep -q "^Волна 2 · Bitrix24:$" "$T/report.log" && pass "в сводке план по волнам" || { cat "$T/report.log"; fail "сводка без плана"; }
+grep -q "^✅ РОП /rop/$" "$T/report.log" && grep -q "^❌ Производство /prod/$" "$T/report.log" \
+  && pass "план галочками: собранный раздел ✅, несобранный ❌" || { cat "$T/report.log"; fail "галочки плана"; }
+grep -q "^✅ Личные дашборды менеджеров" "$T/report.log" && grep -q "^❌ Бэкап данных в S3$" "$T/report.log" \
+  && grep -q "^✅ Бот алертов" "$T/report.log" && pass "план: менеджеры, done/todo" || { cat "$T/report.log"; fail "done/todo плана"; }
+grep -q "^План: сделано [0-9]* из [0-9]*" "$T/report.log" && pass "итог плана: $(grep -o 'сделано [0-9]* из [0-9]*' "$T/report.log")" || fail "итог плана"
 grep -q "✅ Смоук Тестов: https://dash.genglas.ru/rop-smoke/" "$T/report.log" && pass "в сводке менеджер со ссылкой" || { cat "$T/report.log"; fail "сводка без менеджеров"; }
 grep -q "⚠️ Новичок Безсделок: страница не собрана" "$T/report.log" && pass "в сводке несобранный менеджер" || { cat "$T/report.log"; fail "сводка: несобранный"; }
 [ "$(git -C "$GG_ROOT/data" rev-parse HEAD)" = "$data_before" ] && grep -q smoke-dirty "$DATAHTML" \

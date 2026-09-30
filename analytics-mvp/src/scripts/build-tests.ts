@@ -24,7 +24,7 @@ import { KPAGES, navButton } from "./katya-nav.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
 import { readGapDaily, GAP_DAILY_FILE } from "./gap-daily.js";
-import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type PairDef } from "./bid-compare.js";
+import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type PairDef, type SideStat } from "./bid-compare.js";
 import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
 import {
@@ -589,7 +589,7 @@ function endLabels(ya: number | null, yb: number | null, labels: [string, string
 // значение вперёд значит рисовать данные, которых нет (ряды соинвеста и позиции из
 // среза кабинета обрываются на несколько дней раньше воронки).
 function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw",
-              labels: [string, string] = ["тест", "контроль"], si2 = -1, lbl2 = "") {
+              labels: [string, string] = ["тест", "контроль"], si2 = -1, lbl2 = "", lbl1 = "старт") {
   const all = [...a, ...b].filter((v): v is number => v != null);
   if (!all.length) return "";
   const lo0 = Math.min(...all), hi0 = Math.max(...all);
@@ -623,7 +623,7 @@ function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw
     `<text class="ax" x="${x(i).toFixed(1)}" y="${H - 7}" text-anchor="middle">${d.slice(8, 10)}.${d.slice(5, 7)}</text>`).join("");
   return grid + xt
     + `<line class="st" x1="${x(si).toFixed(1)}" x2="${x(si).toFixed(1)}" y1="${TP}" y2="${H - B}"/>`
-    + `<text class="ax st-t" x="${(x(si) + 4).toFixed(1)}" y="${TP + 9}">старт</text>`
+    + `<text class="ax st-t" x="${(x(si) + 4).toFixed(1)}" y="${TP + 9}">${lbl1}</text>`
     + (si2 >= 0 ? `<line class="st2" x1="${x(si2).toFixed(1)}" x2="${x(si2).toFixed(1)}" y1="${TP}" y2="${H - B}"/>`
         + `<text class="ax st-t" x="${(x(si2) + 4).toFixed(1)}" y="${TP + 20}">${lbl2}</text>` : "")
     + `<path d="${path(b)}" fill="none" stroke="${C_CTRL}" stroke-width="2" stroke-linejoin="round"/>`
@@ -1845,7 +1845,10 @@ function exitVerdictBlock(t: TestDef): string {
  *  «Контроль 46» в шапке и «групповой контроль, 34 арт.» на графике читаются как разные группы. */
 function ctlInCalc(t: TestDef): string {
   const all = t.контроль || [];
-  if (!t.контроль_группа || !all.length) return "";
+  if (!all.length) return "";
+  // Тест 1: «контроль» в реестре - пары к тестовым товарам, а считается всё к групповому
+  // контролю из панели (Иван 30.09: «для теста 1 делай также»).
+  if (!t.контроль_группа) return ` пар, групповой в расчёте <b>${nbsp(ctlGroupOf(t).length)}</b>`;
   const g = ctlGroupOf(t);
   if (g.length === all.length) return "";
   const ads = new Set(adsInCtl(t).map((x) => x.art));
@@ -1955,16 +1958,94 @@ function bidSideRow(p: PairDef, s: SideDef, side: string): string {
     + `<td class="r">${st.cartPer1k == null ? "-" : st.cartPer1k.toFixed(1).replace(".", ",")}</td>`
     + `<td class="r">${st.gapMed == null ? "-" : st.gapMed.toFixed(1).replace(".", ",") + ` <span class="muted">(${st.gapDays} дн)</span>`}</td></tr>`;
 }
-const bidCards = BID_TESTS.map((t) => {
-  const pairs = t.пары.map((p) => fold("", `Пара: ${esc(p.название)}`, (p.заметка ? `<div class="cov" style="border-top:none;padding:0 0 4px">${esc(p.заметка)}</div>` : "")
-    + `<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Сторона</th><th>Артикул</th>`
-    + `<th class="r">Ставка, ₽</th><th class="r">Бюджет, ₽/нед</th><th>Окно</th><th class="r">Дней</th>`
-    + `<th class="r" title="Показы в поиске в неделю: сумма окна, приведённая к 7 дням наблюдения">Поиск/нед</th>`
-    + `<th class="r">Карточка/нед</th><th class="r">Корзины/нед</th><th class="r">Заказы, всего</th>`
-    + `<th class="r">Расход/нед, ₽</th><th class="r" title="Корзин на 1 000 ₽ рекламного расхода, за дни, по которым расход уже выгружен: что покупает рубль">Корзин на 1 000 ₽</th>`
-    + `<th class="r" title="Медиана соинвеста (разрыв предельной цены и витрины) по дням окна, gap_daily">Соинвест, %</th></tr></thead><tbody>`
-    + bidSideRow(p, p.большая, "большая") + bidSideRow(p, p.малая, "малая")
-    + `</tbody></table></div>`)).join("");
+// ГРАФИКИ ВМЕСТО ТАБЛИЦЫ ПАРЫ (Иван 30.09). Линии по дням, большая сторона против малой, по
+// каждому показателю своя вкладка. Под графиком итог окна теми же числами, что стояли в
+// таблице (sideStat), чтобы переход на графики ничего не потерял. Таблица осталась функцией
+// bidSideRow, но на страницу не выводится.
+const BID_M: Array<[string, string, string]> = [["vsearch", "Показы в поиске", ""], ["pdp", "Карточка", ""],
+  ["cart", "Корзина", ""], ["units", "Заказы", " шт"], ["spend", "Расход", " ₽"], ["cp1k", "Корзин на 1 000 ₽", ""],
+  ["coinv", "Соинвест", " %"]];
+const BID_HOW: Record<string, string> = {
+  vsearch: "Сколько раз товар показали в поиске за день, из ночного синка OZON.",
+  pdp: "Сколько раз за день открыли карточку товара.",
+  cart: "Сколько раз за день товар положили в корзину.",
+  units: "Сколько штук заказано за день.",
+  spend: "Сколько за день списано за клики по рекламе товара, из отчёта кабинета рекламы.",
+  cp1k: "Корзины дня, делённые на расход дня, × 1 000: сколько корзин покупает 1 000 ₽ рекламы. День без расхода - пропуск.",
+  coinv: "Какую долю цены для Ozon доплачивает сам Ozon: (1 - цена на витрине / наша цена для Ozon) × 100, из ежедневного среза цен.",
+};
+function bidDaily(art: string, days: string[], key: string): Array<number | null> {
+  const m = series.get(art);
+  return days.map((d) => {
+    if (key === "coinv") return gapByArt.get(art)?.get(d) ?? null;
+    const c = m?.get(d);
+    const spendOk = d <= LAST_SPEND;
+    if (key === "spend") return spendOk ? (c?.["spend"] || 0) : null;
+    if (key === "cp1k") { const sp = spendOk ? (c?.["spend"] || 0) : 0; return sp > 0 && c ? (c["cart"] || 0) / sp * 1000 : null; }
+    if (!c || (c["vsearch"] == null && c["pdp"] == null && c["cart"] == null && c["units"] == null)) return null;
+    return c[key] || 0;
+  });
+}
+function bidChart(p: PairDef, cid: string): string {
+  const B = p.большая, S = p.малая, same = B.артикул === S.артикул;
+  const wB = sideWindow(p, B, LAST), wS = sideWindow(p, S, LAST);
+  const from0 = wB.from < wS.from ? wB.from : wS.from;
+  const days: string[] = [];
+  for (let d = addDays(from0, -7); d <= LAST; d = addDays(d, 1)) days.push(d);
+  const si = days.indexOf(from0);
+  const other = wB.from === wS.from ? "" : wB.from < wS.from ? wS.from : wB.from;
+  // До и после на одном товаре: вторая засечка - конец окна большой стороны.
+  const endB = same && wB.to < LAST ? addDays(wB.to, 1) : "";
+  const si2 = endB ? days.indexOf(endB) : other ? days.indexOf(other) : -1;
+  const lbl2 = endB ? "конец окна большой" : si2 >= 0 ? "окно " + (other === wS.from ? "малой" : "большой") : "";
+  const lblB = `большая ${B.ставка ?? "-"} ₽`, lblS = `малая ${S.ставка ?? "-"} ₽`;
+  const stB = sideStat(series.get(B.артикул), gapByArt.get(B.артикул), wB.from, wB.to, LAST_SPEND || wB.to);
+  const stS = sideStat(series.get(S.артикул), gapByArt.get(S.артикул), wS.from, wS.to, LAST_SPEND || wS.to);
+  const open = (w: { from: string; to: string }) => w.to >= w.from;
+  const wk = (v: number, n: number) => { const x = perWeek(v, n); return x == null ? "-" : nbsp(Math.round(x)); };
+  const sideVal = (k: string, st: SideStat, w: { from: string; to: string }): string => {
+    if (!open(w)) return `окно начнётся ${DM(w.from)}`;
+    return k === "units" ? `${nbsp(st.units)} шт за окно`
+      : k === "spend" ? (st.spendDays ? `${nbsp(Math.round(st.spend / st.spendDays * 7))} ₽ в неделю` : "расхода нет")
+      : k === "cp1k" ? (st.cartPer1k == null ? "расхода нет" : `${st.cartPer1k.toFixed(1).replace(".", ",")} за окно`)
+      : k === "coinv" ? (st.gapMed == null ? "нет данных" : `${st.gapMed.toFixed(1).replace(".", ",")} %, медиана по ${st.gapDays} дн со снимком цен`)
+      : `${wk((st as any)[k], st.days)} в неделю`;
+  };
+  const winTxt = (w: { from: string; to: string }, st: SideStat) => open(w) ? ` (${DM(w.from)}-${DM(w.to)}, ${st.days} дн)` : "";
+  const panes: Record<string, string> = {}, reads: Record<string, string> = {}, subs: Record<string, string> = {}, tip: Record<string, any> = {};
+  for (const [k, n, unit] of BID_M) {
+    const a = bidDaily(B.артикул, days, k);
+    const b = same ? a.map(() => null) : bidDaily(S.артикул, days, k);
+    if (!nums(a).length && !nums(b).length) continue;
+    // На концах линий короткие подписи: полные с артикулом стоят в легенде.
+    panes[k] = pane(days, si, a, b, "raw", same ? ["товар", ""] : ["большая", "малая"], si2, lbl2, "окно");
+    subs[k] = `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
+    tip[k] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: a, rc: b, mode: "raw", unit };
+    const seen = same
+      ? `Окно большой: <b>${sideVal(k, stB, wB)}</b>${winTxt(wB, stB)}. Окно малой: <b>${sideVal(k, stS, wS)}</b>${winTxt(wS, stS)}.`
+      : `Большая: <b>${sideVal(k, stB, wB)}</b>${winTxt(wB, stB)}. Малая: <b>${sideVal(k, stS, wS)}</b>${winTxt(wS, stS)}.`;
+    reads[k] = `<div class="dyn-read"><b>Как считается.</b> ${BID_HOW[k] || ""} Линия - день как есть; в неделю - сумма окна, приведённая к 7 дням.</div>`
+      + `<div class="dyn-read"><b>Что видим.</b> ${seen}</div>`;
+  }
+  const keys = BID_M.map(([k]) => k).filter((k) => panes[k]);
+  if (!keys.length) return `<div class="cov">Данных по паре пока нет.</div>`;
+  const k0 = keys[0]!;
+  const btns = BID_M.filter(([k]) => panes[k]).map(([k, n]) => `<button class="mb${k === k0 ? " on" : ""}" data-m="${k}">${n}</button>`).join("");
+  const side = (lbl: string, s: SideDef, w: { from: string; to: string }) =>
+    `${esc(lbl)}: ${esc(s.артикул)}, бюджет ${s.бюджет ? nbsp(s.бюджет) + " ₽/нед" : "-"}, окно ${open(w) ? `${DM(w.from)}-${DM(w.to)}` : `с ${DM(w.from)}`}`;
+  return `<div class="cov" style="border-top:none;padding:0 0 4px">${side("Большая " + (B.ставка ?? "-") + " ₽", B, wB)}. ${side("Малая " + (S.ставка ?? "-") + " ₽", S, wS)}.</div>`
+    + `<div class="dyn"><div class="dyn-h">Динамика по дням. <span class="dyn-sub" id="${cid}-sub">${subs[k0]}</span></div>`
+    + `<div class="mrow-b">${btns}</div>`
+    + `<div class="lg" id="${cid}-lg"><span class="lgi"><i style="background:${C_TEST}"></i>${same ? esc(B.артикул) : `${esc(lblB)}, ${esc(B.артикул)}`}</span>`
+    + (same ? "" : `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>${esc(lblS)}, ${esc(S.артикул)}</span>`) + `</div>`
+    + `<svg class="cv" id="${cid}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Динамика пары по дням">${panes[k0]}</svg>`
+    + `<div class="tip" id="${cid}-tip"></div><div id="${cid}-read">${reads[k0]}</div></div>`
+    + `<script>window.DYN=window.DYN||{};window.DYN[${JSON.stringify(cid)}]=${JSON.stringify({ d: days, m: tip, panes, reads, subs })};`
+    + `window.SOLO=window.SOLO||{};window.SOLO[${JSON.stringify(cid)}]=${same ? JSON.stringify(keys) : "[]"};</script>`;
+}
+const bidCards = BID_TESTS.map((t, bi) => {
+  const pairs = t.пары.map((p, pi) => fold("", `Пара: ${esc(p.название)}`, (p.заметка ? `<div class="cov" style="border-top:none;padding:0 0 4px">${esc(p.заметка)}</div>` : "")
+    + bidChart(p, `bid-${bi}-${pi}`))).join("");
   const dm = t.замер ? daysBetween(TODAY, t.замер) : null;
   const chip = t.статус === TEST_STATUS.done ? `<span class="chip chip-done">завершён</span>`
     : `<span class="chip chip-run">${esc(t.статус || "идёт")}${dm != null && dm > 0 ? ` · замер через ${dm} дн` : ""}</span>`;
@@ -1975,10 +2056,12 @@ const bidCards = BID_TESTS.map((t) => {
     + (t.гипотеза ? fold("hyp", "Что проверяем", esc(t.гипотеза)) : "")
     + (t.условие_завершения ? fold("rule", "Когда тест завершится", esc(t.условие_завершения)) : "")
     + (t.правило ? fold("rule", "Правило", esc(t.правило)) : "")
-    + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
     + pairs
-    + fold("cov", "Откуда данные", `Воронка из ночного синка OZON (sku_views, по тестовым товарам срез funnel_tests) по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
-      + ` Заказы с рекламы в выгрузке неполные, поэтому ДРР на замере берётся из кабинета.`) + `</section>`;
+    // Заметка и «Откуда данные» - в техническую информацию (Иван 30.09).
+    + fold("tech", `Техническая информация тест ${T.тесты.length + bi + 1}`,
+      (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
+      + fold("cov", "Откуда данные", `Воронка из ночного синка OZON (sku_views, по тестовым товарам срез funnel_tests) по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
+        + ` Заказы с рекламы в выгрузке неполные, поэтому ДРР на замере берётся из кабинета.`)) + `</section>`;
 }).join("");
 
 /** Подписи метрик воронки для таблицы эталона: те же слова, что в колонках выше на странице. */

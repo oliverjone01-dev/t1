@@ -500,7 +500,8 @@ if (HAS_COINV) METRICS.push(["coinv", "Соинвест", "raw", " %"]);        
 METRICS.push(["adspend", "Расход на клики", "raw", " ₽", true]);          // цена эффекта
 METRICS.push(["cpc", "CPC", "raw", " ₽", true]);
 METRICS.push(["clicks", "Клики", "raw", "", true]);
-if (HAS_CPO) METRICS.push(["cpo", "Ставка CPO", "raw", " %"]);
+// «Ставка CPO» с графика убрана (Иван 30.09): позиций в кампании оплаты за заказ нет с 17.09,
+// после старта обоих тестов ряд пустой. Стоп-сигнал по ставке CPO остаётся отдельным блоком.
 if (HAS_POS) METRICS.push(["pos", "Позиция в поиске", "raw", ""]);
 METRICS.push(["vsearch", "Показы в поиске", "index", ""]);
 METRICS.push(["views", "Показы всего", "index", ""]);

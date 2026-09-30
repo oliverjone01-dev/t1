@@ -27,10 +27,13 @@ fi
 # /rop-<фамилия>/. Как в GitHub: падение не валит снимок РОПа. Страницы (~12 МБ на менеджера)
 # кладём в cache, а не в git данных: их всегда можно пересобрать из rop.json, а git за неделю
 # вырос бы на гигабайты. Шаг сайта 22-managers забирает их оттуда.
-mgr=$(gg_src manager-lakomova)/analytics-mvp
 out="$GG_ROOT/cache/site-managers"
 rm -rf "$out.new"; mkdir -p "$out.new"
-if cp rop/data/rop.json "$mgr/rop/data/rop.json" \
+# gg_src при отсутствии релиза завершает скрипт - проверяем папку сами, чтобы не уронить снимок
+mgr="$GG_ROOT/src/manager-lakomova/current/analytics-mvp"
+if [ ! -d "$mgr" ]; then
+  gg_warn "нет релиза manager-lakomova - дашборды менеджеров пропущены"
+elif cp rop/data/rop.json "$mgr/rop/data/rop.json" \
   && (cd "$mgr" && OUT_DIR="$out.new" MIN_DEALS=5 node src/scripts/b24/build-managers-all.mjs); then
   gg_log "Дашборды менеджеров пересобраны: $(find "$out.new" -mindepth 1 -maxdepth 1 -type d | wc -l)"
 else

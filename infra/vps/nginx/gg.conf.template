@@ -19,9 +19,9 @@ server {
 }
 
 server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    http2 on;
+    # «http2 on;» только с nginx 1.25.1, на Ubuntu 24.04 стоит 1.24 - там http2 задаётся в listen
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
     server_name __DOMAIN__;
 
     ssl_certificate     /etc/letsencrypt/live/__DOMAIN__/fullchain.pem;
@@ -47,7 +47,7 @@ server {
     # В страницах ссылки абсолютные на github.io (хаб, бот) - переписываем на свой адрес.
     # Действует и для файлов с сервера, и для прокси. Убрать, когда ссылки в коде станут относительными.
     sub_filter_once off;
-    sub_filter_types text/html application/javascript;
+    sub_filter_types application/javascript;   # text/html nginx обрабатывает всегда
     sub_filter 'https://oliverjone01-dev.github.io/t1/' '/';
 
     auth_basic "GENGROUP";

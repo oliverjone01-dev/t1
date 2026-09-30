@@ -110,6 +110,8 @@ fi
 # иначе первая же задача упадёт без ключей. Дальше их обновляет gg-poll при правке jobs.conf.
 
 say "6. nginx + HTTPS"
+# «nginx -t && reload» при set -e не останавливает скрипт: ошибка настройки проходила молча до «Готово»
+nginx_reload() { nginx -t || { echo "ОШИБКА: nginx не принял настройку, см. строку выше"; exit 1; }; systemctl reload nginx; }
 [ -f /etc/nginx/gg.htpasswd ] || { touch /etc/nginx/gg.htpasswd; chown root:www-data /etc/nginx/gg.htpasswd; chmod 0640 /etc/nginx/gg.htpasswd; }
 rm -f /etc/nginx/sites-enabled/default
 if [ -z "$DOMAIN" ]; then
@@ -119,7 +121,7 @@ else
     printf 'server { listen 80; server_name %s; location /.well-known/acme-challenge/ { root /var/www/html; } location / { return 404; } }\n' "$DOMAIN" \
       >/etc/nginx/sites-available/gg-acme.conf
     ln -sfn /etc/nginx/sites-available/gg-acme.conf /etc/nginx/sites-enabled/gg.conf
-    nginx -t && systemctl reload nginx
+    nginx_reload
     certbot certonly -n --agree-tos --webroot -w /var/www/html -d "$DOMAIN" ${LE_EMAIL:+-m "$LE_EMAIL"} \
       || { echo "сертификат не получен: проверь, что A-запись $DOMAIN указывает на этот сервер"; exit 1; }
   fi
@@ -128,7 +130,7 @@ else
   ln -sfn /etc/nginx/sites-available/gg.conf /etc/nginx/sites-enabled/gg.conf
   rm -f /etc/nginx/sites-available/gg-acme.conf
   # nginx должен видеть www/current (gg:gg 0755 по умолчанию - читается)
-  nginx -t && systemctl reload nginx
+  nginx_reload
   # продление сертификата: certbot.timer из пакета; после продления перечитать nginx
   install -d /etc/letsencrypt/renewal-hooks/deploy
   printf '#!/bin/sh\nsystemctl reload nginx\n' >/etc/letsencrypt/renewal-hooks/deploy/reload-nginx

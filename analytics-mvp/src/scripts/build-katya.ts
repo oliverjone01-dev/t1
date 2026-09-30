@@ -2196,7 +2196,7 @@ function render(cur,cmp){
   // «Наша доставка» по номеру заказа. Ключ ведомости - как его записали руками («бывш.», без хвоста
   // отправления, два номера в строке); matchLedger сводит его к отправлениям OZON. Правило Ивана
   // 28.09: что не нашлось по номеру, не раскладывается, а выводится списком над таблицей (dlUnmatched).
-  const delivByOrder: Record<string, { ship: number; deliv: number }> = {};
+  const delivByOrder: Record<string, { ship: number; deliv: number; dFact?: string }> = {};
   // Город доставки ЗАКАЗА (Иван 30.09, вариант 1): из той же строки ведомости, что и «Наша доставка».
   // Раньше строка заказа показывала все города артикула за всё время (delivery_cities.json).
   // Номер в delivery_city_daily записан с переносами строк, в delivery_orders - с пробелами: ключ
@@ -2365,7 +2365,9 @@ function render(cur,cmp){
         const cShip = Math.round(delivByOrder[r.order]?.ship || 0);
         if (!(cDel || cOth || cCom || cPrt || cAmt || cShip)) continue;
         anOrders.push({ order: r.order, d: r.d, st, sk, scheme: String(r.scheme || ""), cat: catOf(sk) || "Прочее", off: String(r.offer || offerOf(sk)), nm: (skuName[sk] || sk).slice(0, 48),
-          units: 0, dlv: 0, acc: 0, com: cCom, del: cDel, acq: 0, sto: 0, oth: cOth, prt: cPrt, adv: 0, ship: cShip, dinc: 0, amt: cAmt, amtS: 0, ret: 0, cc: 0, noCs: false });
+          units: 0, dlv: 0, acc: 0, com: cCom, del: cDel, acq: 0, sto: 0, oth: cOth, prt: cPrt, adv: 0, ship: cShip, dinc: 0, amt: cAmt, amtS: 0, ret: 0, cc: 0, noCs: false,
+          // OZON отменил, а в ведомости есть факт доставки (Иван 30.09: 0124897454-1219-1/-1220-1 - «так и пиши»)
+          ledDlv: delivByOrder[r.order]?.dFact ? 1 : 0 });
         continue;
       }
       const units = Number(r.units || 0);
@@ -2774,9 +2776,10 @@ function anCells(x){
   var RD=function(v,tip){var t=tip?' title="'+String(tip).replace(/"/g,'&quot;')+'"':'';return '<td class="r"'+t+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var P2=function(v){return '<td class="r"'+(v>0?' style="color:var(--up)"':'')+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';}; // приход (зелёный)
   // Строка заказа rFBS (Иван 30.09): заказ есть в ведомости, а суммы отправки нет - «0»; заказа в ведомости
-  // нет - «нет в ведомости» (расход не найден, прибыль строки без него). FBS/FBO везёт OZON - как было.
+  // нет - «нет в ведомости» (расход не найден, прибыль строки без него). Везли партнёры OZON (расход в
+  // «Услугах партнёров») - без пометки. FBS/FBO везёт OZON - как было.
   var shipCell=${IS_OZON}?((x.led===1&&!Math.round(x.ship||0))?'<td class="r" title="Заказ есть в ведомости, сумма отправки пустая">0</td>'
-    :(x.led===0&&x.scheme==='rFBS'&&!Math.round(x.ship||0))?'<td class="r" style="color:#E5B567" title="Заказа нет в ведомости перевозчика: расход на доставку не найден">нет в ведомости</td>'
+    :(x.led===0&&x.scheme==='rFBS'&&!Math.round(x.ship||0)&&!Math.round(x.prt||0))?'<td class="r" style="color:#E5B567" title="Заказа нет в ведомости перевозчика: расход на доставку не найден">нет в ведомости</td>'
     :RD(x.ship,x.shipTip)):'';
   var incCell=${IS_OZON}?P2(x.dinc):'';
   var cityCell=${IS_OZON}?('<td title="'+String(x.citiesTip||'').replace(/"/g,'&quot;')+'" style="color:var(--ink-2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(x.citiesTxt||'')+'</td>'):'';
@@ -2953,7 +2956,7 @@ function renderOrdersAnalytics(cur){
     // В пути = заказано, но ещё не доставлено (отменённые в AN_ORDERS не попадают). Выручка - та же
     // «Начислено» строки: сколько денег ещё дойдёт, если заказ не отменят и не вернут.
     var fl=(s.st!=='delivered');
-    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,led:s.led,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,estNoCom:s.estNoCom||0,paid:s.paid,citiesTxt:(s.ship>0&&!AN_ORD_CITY[s.order])?'<span style="color:#E5B567">нет города в ведомости</span>':(AN_ORD_CITY[s.order]||''),citiesTip:AN_ORD_CITY[s.order]||(s.ship>0?'Есть расход «Наша доставка», а города в ведомости нет':'Заказа нет в ведомости перевозчика: везли не мы (логистика OZON, партнёры) или месяц ещё не закрыт'),cityCnt:AN_ORD_CITY[s.order]?AN_ORD_CITY[s.order].split(', '):[]};
+    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,led:s.led,ledDlv:s.ledDlv,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,estNoCom:s.estNoCom||0,paid:s.paid,citiesTxt:(s.ship>0&&!AN_ORD_CITY[s.order])?'<span style="color:#E5B567">нет города в ведомости</span>':(AN_ORD_CITY[s.order]||''),citiesTip:AN_ORD_CITY[s.order]||(s.ship>0?'Есть расход «Наша доставка», а города в ведомости нет':'Заказа нет в ведомости перевозчика: везли не мы (логистика OZON, партнёры) или месяц ещё не закрыт'),cityCnt:AN_ORD_CITY[s.order]?AN_ORD_CITY[s.order].split(', '):[]};
     rows.push(o);(bySku[o.sk]||(bySku[o.sk]=[])).push(o);
   }
   // ДОБОР ПО АРТИКУЛАМ (сопоставление артикул↔заказ). Чего в разрезе заказа нет вовсе или неполно,
@@ -3013,7 +3016,7 @@ function renderOrdersAnalytics(cur){
     // падает при доставке. У летящих схема пуста (не показываем предварительный FBS - он может смениться).
     var schCat=(function(){var s={};g.arr.forEach(function(x){if(x.scheme&&x.st==='delivered')s[x.scheme]=(s[x.scheme]||0)+1;});return Object.keys(s).sort(function(a,b){return s[b]-s[a];}).join('/');})();
     html+='<tr class="ord-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+' зак.)</span></td><td style="color:var(--ink-3)">'+schCat+'</td>'+anCells(g.t)+'</tr>';
-    g.arr.forEach(function(x){var stb=(x.st==='cancelled')?' <span style="color:#FF5A5F" title="Заказ отменён: выручки нет, а сборы OZON (логистика, прочее) списаны - строка несёт только их">отменён, только расходы</span>':((x.st&&x.st!=='delivered')?' <span style="color:#E5B567">'+x.st+'</span>'+(x.estFee?' <span style="color:#E5B567" title="Заказ ещё не доставлен: OZON начислит сборы при доставке. Комиссия, логистика, партнёры и прочее в этой строке - оценка долей сборов по доставленным заказам этого артикула за 120 дней: '+fmtRu(x.estFee)+' ₽">сборы оценкой</span>':''):'');if(x.ret)stb+=' <span style="color:#FF5A5F;font-weight:600">возврат</span>';if(x.nNoFee)stb+=(x.estNoCom?' <span class="an-est" title="'+NOFEE_TIP+' Комиссия досчитана оценкой: '+fmtRu(x.estNoCom)+' ₽ - доля комиссии артикула по заказам, где она начислена, за 120 дней.">доставлен, комиссия не начислена - оценкой</span>':' <span class="an-nofee" title="'+NOFEE_TIP+'">доставлен, комиссия не начислена</span>');var lbl=x.order+(x.off&&x.off!==x.order?' <span style="color:var(--ink-3);font-weight:400">'+x.off+'</span>':'')+stb;html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm||'').replace(/"/g,'&quot;')+'">'+lbl+'</td><td>'+((x.st==='delivered')?(x.scheme||'—'):'—')+'</td>'+anCells(x)+'</tr>';});
+    g.arr.forEach(function(x){var stb=(x.st==='cancelled')?(x.ledDlv?' <span style="color:#FF5A5F" title="OZON заказ отменил, а в ведомости перевозчика есть дата фактической доставки: выручки OZON нет, наша доставка и оплата клиента за доставку - по ведомости">отменён, по ведомости доставлен</span>':' <span style="color:#FF5A5F" title="Заказ отменён: выручки нет, а сборы OZON (логистика, прочее) списаны - строка несёт только их">отменён, только расходы</span>'):((x.st&&x.st!=='delivered')?' <span style="color:#E5B567">'+x.st+'</span>'+(x.estFee?' <span style="color:#E5B567" title="Заказ ещё не доставлен: OZON начислит сборы при доставке. Комиссия, логистика, партнёры и прочее в этой строке - оценка долей сборов по доставленным заказам этого артикула за 120 дней: '+fmtRu(x.estFee)+' ₽">сборы оценкой</span>':''):'');if(x.ret)stb+=' <span style="color:#FF5A5F;font-weight:600">возврат</span>';if(x.nNoFee)stb+=(x.estNoCom?' <span class="an-est" title="'+NOFEE_TIP+' Комиссия досчитана оценкой: '+fmtRu(x.estNoCom)+' ₽ - доля комиссии артикула по заказам, где она начислена, за 120 дней.">доставлен, комиссия не начислена - оценкой</span>':' <span class="an-nofee" title="'+NOFEE_TIP+'">доставлен, комиссия не начислена</span>');var lbl=x.order+(x.off&&x.off!==x.order?' <span style="color:var(--ink-3);font-weight:400">'+x.off+'</span>':'')+stb;html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm||'').replace(/"/g,'&quot;')+'">'+lbl+'</td><td>'+((x.st==='delivered')?(x.scheme||'—'):'—')+'</td>'+anCells(x)+'</tr>';});
   });
   // «Общие расходы» - как в таблице по артикулам: сборы уровня кабинета (остаток рекламы, штрафы,
   // realFBS, бейдж, эквайринг/компенсации) + доставка по заказам, чей артикул не сошёлся с каталогом.

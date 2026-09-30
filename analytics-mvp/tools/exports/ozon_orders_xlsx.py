@@ -8,13 +8,14 @@ MON = {"2026-07": "Июль 2026", "2026-08": "Август 2026"}
 HF = PatternFill("solid", fgColor="1F4E5A"); HFont = Font(bold=True, color="FFFFFF")
 EST = Font(italic=True, color="7B61FF"); BOLD = Font(bold=True)
 def num(t):
+    t0 = t.strip()
     t = t.replace("\xa0", "").replace(" ", "").replace("−", "-").replace(",", ".")
     if t in ("", "—", "-"): return None
     if t.endswith("%"):
         try: return float(t[:-1]) / 100
-        except: return t
+        except: return t0
     try: return float(t)
-    except: return t
+    except: return t0  # текст («нет в ведомости») - как на странице, с пробелами
 def head(ws, cols):
     ws.append(cols)
     for c in ws[1]: c.fill = HF; c.font = HFont; c.alignment = Alignment(wrap_text=True, vertical="center")
@@ -36,9 +37,9 @@ def orders_of(r):
     return out
 def method(typ, g):
     ship, prt, dl = g("Наша доставка") or 0, g("Услуги партнёров") or 0, g("Логистика") or 0
-    if isinstance(ship, str): ship = 0  # «нет в ведомости»
+    if isinstance(ship, str): return "наша перевозка, нет в ведомости"  # Иван 30.09: не «услуги партнёров»
     if typ in ("FBO", "FBS"): return "логистика OZON"
-    if typ == "rFBS": return "наша перевозка" if ship else "услуги партнёров"
+    if typ == "rFBS": return "услуги партнёров" if (prt and not ship) else "наша перевозка"  # «0» в ведомости - тоже наша
     if dl: return "логистика OZON"
     if ship: return "наша перевозка"
     if prt: return "услуги партнёров"

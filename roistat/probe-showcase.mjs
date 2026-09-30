@@ -30,6 +30,8 @@
  * Входы: CLOSED_MONTH (YYYY-MM, по умолчанию предыдущий полный месяц),
  *        TODAY (YYYY-MM-DD, подменяется в тестах), PAUSE_MS.
  */
+import { metricValue, isNoDimension } from './lib-analytics.mjs';
+
 const KEY = process.env.ROISTAT_API || '';
 const PRJ = process.env.ROISTAT_PROJECTID || '';
 if (!KEY) { console.error('Нет ROISTAT_API'); process.exit(1); }
@@ -156,31 +158,15 @@ async function data(from, to, dims) {
   return call('/project/analytics/data', body);
 }
 
-/* Достаёт число метрики из строки ответа при любой из трёх известных форм:
-   плоское поле, {value}, вложенный объект metrics. */
-function metricValue(row, name) {
-  const list = row && row.metrics;
-  if (!Array.isArray(list)) return null;
-  /* Модель атрибуции: у каждой метрики их может быть несколько. Берём default,
-     иначе одна сделка посчиталась бы столько раз, сколько моделей (К4). */
-  const hit = list.find(x => x && x.metric_name === name &&
-    (x.attribution_model_id == null || x.attribution_model_id === 'default'));
-  if (!hit) return null;
-  const v = hit.value;
-  if (typeof v === 'number') return v;
-  if (typeof v === 'string' && v !== '' && !isNaN(Number(v))) return Number(v);
-  return null;                      /* null это «нет данных», а не ноль (К7) */
-}
+/* Разбор метрики и опознание строки «вне канала» переехали в roistat/lib-analytics.mjs:
+   ту же логику использует probe-orders.mjs, и две копии одного разбора расходятся
+   молча (К9). Поведение модуля совпадает с прежним здешним до граничного случая
+   «поля разреза нет вовсе»: он не считается строкой вне канала ни там, ни тут.
+   Проверки модуля: roistat/tests/lib-analytics.test.mjs. */
+const isNoChannel = row => isNoDimension(row, 'marker_level_1');
+
 /* Название канала. Ключ разреза в ответе Ройстата приходит не под одним именем,
    поэтому берём первое строковое поле из известных, а не гадаем одно. */
-/* Строка «вне рекламного канала» опознаётся по ПУСТОМУ значению разреза, а не по
-   тексту заголовка: заголовок Ройстат может назвать как угодно («Прямые визиты»),
-   и поиск по словам «не определён» её молча пропускает. */
-function isNoChannel(row) {
-  const d = row && row.dimensions;
-  const f = d && (d.marker_level_1 || Object.values(d)[0]);
-  return !!f && (f.value === '' || f.value == null);
-}
 function dimLabel(row) {
   for (const k of ['title', 'name', 'label', 'dimension_title', 'marker_level_1']) {
     const v = row && row[k];

@@ -24,7 +24,7 @@ import { KPAGES, navButton } from "./katya-nav.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
 import { readGapDaily, GAP_DAILY_FILE } from "./gap-daily.js";
-import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type PairDef } from "./bid-compare.js";
+import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type PairDef, type SideStat } from "./bid-compare.js";
 import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
 import {
@@ -160,6 +160,21 @@ const putFunnel = (c: Row, r: FunnelRow): void => {
   }
 };
 for (const [art, byDay] of FT.byArt) for (const [d, r] of byDay) putFunnel(cell(art, d), r);
+// ДОБОР ПОЗИЦИИ ИЗ СТАРОЙ ВЫГРУЗКИ (Иван 30.09: «вытащи все необходимые данные из старых
+// выгрузок»). funnel_sku_daily.ndjson - разовая выгрузка той же аналитики OZON по всем товарам
+// за 12.06-21.09. Сверка 30.09: на 3 872 общих днях «товар × день» позиция в ней и в
+// funnel_tests совпадает до единицы, расхождений 0. Берём ТОЛЬКО позицию и ТОЛЬКО там, где
+// строки funnel_tests за этот день нет: null в funnel_tests это «не в выдаче», его не трогаем.
+// Остальные метрики воронки уже есть из sku_views. Старые версии funnel_tests из истории git
+// не берём: новых дней в них нет, а последние дни каждой версии потом пересчитаны.
+let POS_BACKFILL = 0;
+for (const r of readNd(dp("funnel_sku_daily.ndjson"))) {
+  const art = String(r.art || "").trim(), d = String(r.date || "").slice(0, 10);
+  if (!art || !d || r.search_position == null) continue;
+  if (FT.byArt.get(art)?.has(d)) continue;
+  const c = cell(art, d);
+  if (c["pos"] == null) { c["pos"] = Number(r.search_position); POS_BACKFILL++; }
+}
 const HAS_POS = FT.rows.some((r) => r.search_position != null);
 
 // Участие в акциях по дням. Признак участия это запись в acts с нужным окном, а не eb_pct:
@@ -500,7 +515,8 @@ if (HAS_COINV) METRICS.push(["coinv", "Соинвест", "raw", " %"]);        
 METRICS.push(["adspend", "Расход на клики", "raw", " ₽", true]);          // цена эффекта
 METRICS.push(["cpc", "CPC", "raw", " ₽", true]);
 METRICS.push(["clicks", "Клики", "raw", "", true]);
-if (HAS_CPO) METRICS.push(["cpo", "Ставка CPO", "raw", " %"]);
+// «Ставка CPO» с графика убрана (Иван 30.09): позиций в кампании оплаты за заказ нет с 17.09,
+// после старта обоих тестов ряд пустой. Стоп-сигнал по ставке CPO остаётся отдельным блоком.
 if (HAS_POS) METRICS.push(["pos", "Позиция в поиске", "raw", ""]);
 METRICS.push(["vsearch", "Показы в поиске", "index", ""]);
 METRICS.push(["views", "Показы всего", "index", ""]);
@@ -588,7 +604,7 @@ function endLabels(ya: number | null, yb: number | null, labels: [string, string
 // значение вперёд значит рисовать данные, которых нет (ряды соинвеста и позиции из
 // среза кабинета обрываются на несколько дней раньше воронки).
 function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw",
-              labels: [string, string] = ["тест", "контроль"], si2 = -1, lbl2 = "") {
+              labels: [string, string] = ["тест", "контроль"], si2 = -1, lbl2 = "", lbl1 = "старт") {
   const all = [...a, ...b].filter((v): v is number => v != null);
   if (!all.length) return "";
   const lo0 = Math.min(...all), hi0 = Math.max(...all);
@@ -622,7 +638,7 @@ function pane(days: string[], si: number, a: Pt[], b: Pt[], mode: "index" | "raw
     `<text class="ax" x="${x(i).toFixed(1)}" y="${H - 7}" text-anchor="middle">${d.slice(8, 10)}.${d.slice(5, 7)}</text>`).join("");
   return grid + xt
     + `<line class="st" x1="${x(si).toFixed(1)}" x2="${x(si).toFixed(1)}" y1="${TP}" y2="${H - B}"/>`
-    + `<text class="ax st-t" x="${(x(si) + 4).toFixed(1)}" y="${TP + 9}">старт</text>`
+    + `<text class="ax st-t" x="${(x(si) + 4).toFixed(1)}" y="${TP + 9}">${lbl1}</text>`
     + (si2 >= 0 ? `<line class="st2" x1="${x(si2).toFixed(1)}" x2="${x(si2).toFixed(1)}" y1="${TP}" y2="${H - B}"/>`
         + `<text class="ax st-t" x="${(x(si2) + 4).toFixed(1)}" y="${TP + 20}">${lbl2}</text>` : "")
     + `<path d="${path(b)}" fill="none" stroke="${C_CTRL}" stroke-width="2" stroke-linejoin="round"/>`
@@ -833,10 +849,10 @@ function perArticle(t: TestDef): string {
   const rows = first.map((p) => {
     const sb = meanOf(p.test, base, "spend"), sp = meanOf(p.test, days, "spend");
     const role = roleOf(p.test);
-    return `<tr><td>${esc(p.test)}${role ? ` <span class="muted">${esc(role)}</span>` : ""}</td><td class="muted">${ctlCell(p.test, p.ctl, t)}</td>`
+    return `<tr><td>${esc(p.test)}${role ? ` <span class="muted">${esc(role)}</span>` : ""}</td>`
       + cols.map(([k]) => cell(byKey.get(k)!.find((x) => x.test === p.test), k)).join("")
       + `<td class="r sep">${(sb || sp) ? nbsp(sb) + " → " + nbsp(sp) : "-"}</td>`
-      + `<td class="r">${ordT(p.test)} / ${ordT(p.ctl)}</td></tr>`;
+      + `<td class="r">${ordT(p.test)}</td></tr>`;
   }).join("");
   // Итог группы считается ТЕМ ЖЕ оценщиком, что линия и число под графиком. У количеств это
   // прирост суммы по группе, а не медиана поартикульных приростов: иначе низ таблицы спорил
@@ -864,9 +880,10 @@ function perArticle(t: TestDef): string {
     + ` Пример: <b>${esc(ex.test)}</b>, колонка «Поиск» <b>${ex.dd >= 0 ? "+" : ""}${ex.dd.toFixed(0)}</b> -`
     + ` показы в поиске у товара ${pc(ex.dT)}, у группового контроля ${pc(ex.dC)}, разница ${ex.dd >= 0 ? "+" : ""}${ex.dd.toFixed(0)} пунктов.`
     + ` Плюс - товар вырос сильнее контроля. У позиции наоборот: минус - товар поднялся в поиске выше.`
-    + ` Колонка «Пара из лога» справочная: разница с ней не считается.</div>`;
-  return `<div class="sub2">Показатели по артикулам</div>${howTo}<div class="tbl-wrap"><table class="gtbl single">`
-    + `<thead><tr><th>Артикул</th><th title="Пара, которую записали в лог кампаний при запуске. Разница в ячейках считается к групповому контролю, а не к ней">Пара из лога</th>`
+    + `</div>`
+
+  return `${howTo}<div class="tbl-wrap"><table class="gtbl single">`
+    + `<thead><tr><th>Артикул</th>`
     + cols.map(([k, n]) => {
       const hint = k === "coinv"
         ? "Разрыв уровней в пунктах: соинвест теста минус соинвест его контроля на последний общий день. Прироста к базе здесь нет: ряд цен начался 19.09, а тесты стартовали 18 и 20.09"
@@ -876,10 +893,15 @@ function perArticle(t: TestDef): string {
       return `<th class="r" title="${hint}">${n}, п.${k === "pos" ? " ↓" : ""}</th>`;
     }).join("")
     + `<th class="r sep" title="Расход на рекламу по тестовому артикулу, ₽ в день: две недели до старта → после старта">Реклама, ₽ в день: до → после</th>`
-    + `<th class="r" title="Заказано штук после старта: тестовый товар / его пара из лога">Заказано после старта, шт: товар / пара</th></tr></thead>`
+    + `<th class="r" title="Заказано штук после старта у тестового товара">Заказано после старта, шт</th></tr></thead>`
     + `<tbody>${rows}</tbody>`
-    + `<tfoot><tr class="mrow2"><td colspan="2" title="Плотные метрики: медиана индексов по артикулам, варианты одной объединённой карточки OZON идут одним наблюдением. Корзина и заказы: прирост суммы по группе">Итог группы</td>${med}<td class="sep"></td><td></td></tr></tfoot>`
-    + `</table></div><div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов; у позиции цвет перевёрнут, потому что меньше - лучше. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
+    + `<tfoot><tr class="mrow2"><td title="Плотные метрики: медиана индексов по артикулам, варианты одной объединённой карточки OZON идут одним наблюдением. Корзина и заказы: прирост суммы по группе">Итог группы</td>${med}<td class="sep"></td><td></td></tr></tfoot>`
+    + `</table></div>`
+    + daysNote([...cols.map(([k, n]) => [n, winOf(t.тест!, base, days, k)] as [string, string]),
+      ["Реклама ₽ в день", winOf(t.тест!, base, days, "spend")],
+      ["Заказано после старта (сумма штук)", `после ${spanOf(t.тест!, days, "units")}`]],
+      "Средний день за две недели до старта и за дни после старта, по тестовой группе:")
+    + `<div class="cov">Числа в колонках метрик - разница в пунктах: на сколько процентов вырос тест минус на сколько вырос его контроль. Жёлтым и зелёным отмечены расхождения от 20 пунктов; у позиции цвет перевёрнут, потому что меньше - лучше. Медиана внизу - это и есть итог группы, тот же, что в сводке под графиком.</div>`;
 }
 
 // Аббревиатуры внутри названия остаются как есть: «ставка cpo» читается как опечатка.
@@ -918,7 +940,31 @@ const HOW: Record<string, string> = {
 
 /** Что показал график по каждому показателю: из тех же чисел, что линия и подпись под ней. */
 type DynRec = { title: string; mode: "index" | "raw"; testOnly: boolean; unit: string;
-  bT: number; pT: number; bC: number; pC: number; gT: number | null; gC: number | null };
+  bT: number; pT: number; bC: number; pC: number; gT: number | null; gC: number | null;
+  /** Какие дни реально вошли в «до» и «после»: подпись под итогом (Иван 30.09, вариант б). */
+  win?: string };
+
+/** Дни окна, за которые у тестовой группы есть данные по показателю: «04.09-17.09, 14 дн».
+ *  У CPC и ДРР данные дня определяет знаменатель отношения из сумм, а не дневная доля. */
+const DM = (d: string) => `${d.slice(8, 10)}.${d.slice(5, 7)}`;
+function spanOf(grp: string[], win: string[], key: string): string {
+  const k = key === "cpc" ? "adspend" : key === "drr" ? "revenue" : key;
+  const v = groupDaily(grp, win, k);
+  const have = win.filter((_, i) => v[i] != null).sort();
+  if (!have.length) return "нет данных";
+  const a = have[0]!, z = have[have.length - 1]!;
+  return `${a === z ? DM(a) : `${DM(a)}-${DM(z)}`}, ${have.length} дн`;
+}
+const winOf = (grp: string[], base: string[], post: string[], key: string): string =>
+  `до ${spanOf(grp, base, key)}; после ${spanOf(grp, post, key)}`;
+
+/** Подпись «какие дни в расчёте»: показатели с одинаковыми окнами идут одной строкой. */
+function daysNote(items: Array<[string, string]>, lead: string): string {
+  const by = new Map<string, string[]>();
+  for (const [name, w] of items) (by.get(w) ?? by.set(w, []).get(w)!).push(name);
+  const parts = [...by.entries()].map(([w, ns]) => `${esc(ns.join(", "))} - ${esc(w)}`);
+  return `<div class="cov"><b>Какие дни в расчёте.</b> ${lead} ${parts.join(". ")}.</div>`;
+}
 const DYNSUM = new Map<string, Record<string, DynRec>>();
 /** Ряд соинвеста теста и контроля по дням: по нему итог теста считает правило «3 дня подряд». */
 const COINV_ROWS = new Map<string, { days: string[]; post: string[]; a: Array<number | null>; b: Array<number | null>; nb: number }>();
@@ -971,6 +1017,21 @@ const explain = (key: string, r: DynRec, details: string): string =>
   + `<div class="dyn-read"><b>Что видим.</b> ${seenText(key, r)}</div>`
   + fold("", "Детали расчёта", details);
 
+/** Позиция группы по дням по постоянному набору товаров: только те, у кого она есть не меньше
+ *  чем в половине дней окна до старта И в половине дней после. «Хотя бы один день» не годится:
+ *  у теста 1 добор даёт позицию 317 товарам контроля за 18-21.09, а после 24.09 срез несёт
+ *  только 24 из них, и «после» свелось бы к четырём дням. День, где позиция есть меньше чем
+ *  у 80 % набора, - пропуск. */
+function posMatched(g: string[], days: string[], base: string[], post: string[]): { arts: string[]; line: Pt[] } {
+  const has = (a: string, win: string[]) => win.filter((d) => series.get(a)?.get(d)?.["pos"] != null).length >= win.length / 2;
+  const arts = g.filter((a) => has(a, base) && has(a, post));
+  const line = days.map((d) => {
+    const v = arts.map((a) => series.get(a)?.get(d)?.["pos"]).filter((x): x is number => x != null);
+    return arts.length && v.length >= arts.length * 0.8 ? v.reduce((p, q) => p + q, 0) / v.length : null;
+  });
+  return { arts, line };
+}
+
 function chart(t: TestDef, cid: string): string {
   const st = t.старт!;
   const days: string[] = [];
@@ -1014,11 +1075,26 @@ function chart(t: TestDef, cid: string): string {
       : key === "drr"
       ? ratio(groupDaily(CTL, days, "spend"), groupDaily(CTL, days, "revenue"))
       : groupDaily(CTL, days, key);
-    const bT = avg(t.тест!, base, key);
-    const bC = avg(CTL, base, key);
-    const pT = avg(t.тест!, post, key);
-    const pC = avg(CTL, post, key);
+    let bT = avg(t.тест!, base, key);
+    let bC = avg(CTL, base, key);
+    let pT = avg(t.тест!, post, key);
+    let pC = avg(CTL, post, key);
     let a: Pt[] = rawT, b: Pt[] = rawC;
+    // ПОЗИЦИЯ - ПО ОДНОМУ И ТОМУ ЖЕ НАБОРУ ТОВАРОВ ДО И ПОСЛЕ. Позиция это уровень, среднее по
+    // товарам с данными за день; состав среза менялся (24.09 контроль теста 2 пересобран, в тесте
+    // 1 до старта позиция была у 8 товаров контроля, после - у 24), и «было 113, стало 154»
+    // сравнивало разные товары. Поэтому берутся только товары с позицией и до, и после старта,
+    // а день, где позиция есть меньше чем у 80 % из них, - пропуск (22-23.09 нет ни в одном файле).
+    let posNote = "";
+    if (key === "pos") {
+      const m = (g: string[]) => posMatched(g, days, base, post);
+      const mt = m(t.тест!), mc = m(CTL);
+      a = mt.line; b = mc.line;
+      const mean = (v: Pt[], win: string[]) => { const x = nums(v.filter((_, i) => win.includes(days[i]!))); return x.length ? x.reduce((p, q) => p + q, 0) / x.length : NaN; };
+      bT = mean(a, base); pT = mean(a, post); bC = mean(b, base); pC = mean(b, post);
+      posNote = ` Считается по товарам, у которых позиция есть хотя бы в половине дней и до, и после старта: тест ${mt.arts.length} из ${t.тест!.length}, контроль ${mc.arts.length} из ${CTL.length};`
+        + ` день, где позиция есть меньше чем у 80 % из них, пропущен. До 22.09 позиция добрана из старой выгрузки воронки (funnel_sku_daily), 22-23.09 её нет ни в одном файле.`;
+    }
     let sideT: SideCalc | null = null, sideC: SideCalc | null = null;
     if (mode === "index") {
       const bi = idxOf(days, new Set(base)), pi = idxOf(days, new Set(post));
@@ -1050,7 +1126,7 @@ function chart(t: TestDef, cid: string): string {
     subs[key] = mode === "index"
       ? `100 = средний день двух недель перед стартом · ${EST_NAME[estOf(key)]}`
       : `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
-    tip[key] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: rawT, rc: rawC, mode, unit };
+    tip[key] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: key === "pos" ? a : rawT, rc: key === "pos" ? b : rawC, mode, unit };
     if (mode === "index") {
       // Число под графиком считается ТЕМ ЖЕ оценщиком, что и линия. До 24.09 линию рисовала
       // медиана дневных индексов, а число считала медиана приростов средних за окно, и на
@@ -1071,7 +1147,8 @@ function chart(t: TestDef, cid: string): string {
         ? ` <span class="warnv">Ненулевое значение есть лишь у ${(sideC!.share * 100).toFixed(0)} % наблюдений контроля`
           + ` при пороге ${(DENSITY_MIN * 100).toFixed(0)} %: линия и число стоят на редких событиях.</span>`
         : "";
-      const recI: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: dT, gC: dC };
+      const recI: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: dT, gC: dC,
+        win: winOf(t.тест!, base, post, key) };
       (DYNSUM.get(t.id || "") ?? DYNSUM.set(t.id || "", {}).get(t.id || "")!)[key] = recI;
       reads[key] = `<div class="dyn-read">${EST_NAME[estOf(key)]}, ${lowerTitle(title)}: тест <b>${pc(dT)}</b>, `
         + `групповой контроль <b>${pc(dC)}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b>. `
@@ -1106,7 +1183,8 @@ function chart(t: TestDef, cid: string): string {
             + ` сдвиг <b>${sgn(gp - gb)}${rub ? "" : " пункта"}</b>.${lastTxt}`;
         }
       }
-      const recR: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: null, gC: null };
+      const recR: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: null, gC: null,
+        win: winOf(t.тест!, base, post, key) };
       (DYNSUM.get(t.id || "") ?? DYNSUM.set(t.id || "", {}).get(t.id || "")!)[key] = recR;
       if (key === "coinv") COINV_ROWS.set(t.id || "", { days, post, a: rawT, b: rawC,
         nb: base.filter((d) => groupDaily(t.тест!, [d], key)[0] != null).length });
@@ -1115,7 +1193,7 @@ function chart(t: TestDef, cid: string): string {
           ? `<b>${v(bT)} → ${v(pT)}</b> за день. У контроля рекламы нет по построению, поэтому вторая линия не рисуется.`
           : `тест <b>${v(bT)} → ${v(pT)}</b>, контроль <b>${v(bC)} → ${v(pC)}</b>.`)
         + (key === "pos" ? " Меньше - лучше." : "")
-        + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.${extra}`
+        + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.${extra}${posNote}`
         + ((key === "coinv" || key === "price")
           ? (() => {
             const nb = base.filter((d) => groupDaily(t.тест!, [d], key)[0] != null).length;
@@ -1643,7 +1721,10 @@ function verdictBlock(t: TestDef): string {
   const tail = lastObs && lastObs.s < 5
     ? ` На последний день ряда (${esc(lastObs.d)}) сдвиг ${f1(lastObs.s)} п., уже ниже 5: если так пойдёт дальше, к замеру эффект может не удержаться.`
     : lastObs ? ` На последний день ряда (${esc(lastObs.d)}) сдвиг ${f1(lastObs.s)} п.` : "";
-  const rows = METRICS.filter(([k]) => sum[k] && (sum[k]!.mode === "index" || Number.isFinite(sum[k]!.pT))).map(([k]) => {
+  const shown = METRICS.filter(([k]) => sum[k] && (sum[k]!.mode === "index" || Number.isFinite(sum[k]!.pT)));
+  const winNote = daysNote(shown.map(([k]) => [sum[k]!.title, sum[k]!.win || ""] as [string, string]),
+    "По каждому показателю берутся только дни, за которые данные есть, по тестовой группе:");
+  const rows = shown.map(([k]) => {
     const r = sum[k]!;
     if (r.mode === "index") {
       const pc = (x: number | null) => x == null ? "-" : (x >= 0 ? "+" : "") + x.toFixed(0) + " %";
@@ -1656,17 +1737,183 @@ function verdictBlock(t: TestDef): string {
     return `<tr><td>${esc(r.title)}</td><td class="r">${fmtV(k, r.bT)} → ${fmtV(k, r.pT)}</td>`
       + `<td class="r">${fmtV(k, r.bC)} → ${fmtV(k, r.pC)}</td><td class="r"><b>${fmtD(k, (r.pT - r.bT) - (r.pC - r.bC))}</b></td></tr>`;
   }).join("");
+  // Периоды над колонками сравнения (Иван 30.09, по образцу «Большая 45 ₽, 28.09-30.09 (3 дн)»).
+  const b0 = addDays(t.старт!, -14), b1 = addDays(t.старт!, -1);
+  const nd = (a: string, z: string) => daysBetween(a, z) + 1;
+  const perHead = (who: string, n: number) => `${who}, ${n} арт.: до ${DM(b0)}-${DM(b1)} (${nd(b0, b1)} дн) → после ${DM(t.старт!)}-${DM(LAST)} (${nd(t.старт!, LAST)} дн)`;
   return `<div class="verdict"><div class="verdict-h">Итог по показателям на ${esc(LAST)}</div>`
     + `<div class="verdict-main">${head}${tail}</div>`
-    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th><th class="r">Тест: до → после</th>`
-    + `<th class="r">Контроль: до → после</th><th class="r">Тест относительно контроля</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th><th class="r">${perHead("Тест", t.тест!.length)}</th>`
+    + `<th class="r">${perHead("Контроль", ctlGroupOf(t).length)}</th><th class="r">Тест относительно контроля</th></tr></thead><tbody>${rows}</tbody></table></div>`
     + `<div class="cov"><b>Как читать таблицу.</b> «До» - средний день двух недель перед стартом ${esc(t.старт || "")}, «после» - средний день после старта.`
     + ` Для показов, заходов, корзины и заказов - рост к своим двум неделям до старта в процентах. Последняя колонка - насколько тест изменился сильнее`
     + ` (плюс) или слабее (минус) контроля; у позиции минус значит, что тест поднялся выше. Выручку и ДРР как вывод не читаем:`
     + ` продаж в день мало, один заказ стола меняет картину.</div>`
+    + winNote
     + `<div class="cov"><b>На что опирается итог.</b> Правило теста: ${esc(t.правило || "")}`
     + ` Сдвиг разрыва по дням после старта: ${obs.map((o) => `${esc(o.d.slice(8, 10))}.${esc(o.d.slice(5, 7))} ${f1(o.s)}`).join(", ") || "нет наблюдений"} п.`
     + ` База до старта: ${cr.nb} ${plural(cr.nb, "наблюдаемый день", "наблюдаемых дня", "наблюдаемых дней")} из 14, поэтому итог предварительный. Окончательный замер ${esc(t.замер || "-")}.</div></div>`;
+}
+
+// ---------- тест с выходом из акции: кто вышел и итог от даты выхода (Иван 30.09) ----------
+// Точка отсчёта здесь ВЫХОД, а не старт рекламы: графики и «Показатели по артикулам» теста 2
+// считаются от 20.09, а правило теста говорит про цену у вышедших против соседей после выхода.
+// Тест - рекламные товары, вышедшие из акции (роли.test_ad), контроль - соседи по тем же
+// карточкам, которые остаются в акции (роли.test_sibling), решение Ивана 29.09.
+
+/** Цена для Ozon в заказах по артикулу: выручка заказа / штуки, без отменённых. Нужна для
+ *  проверки варианта «а» (Иван 30.09): цена на витрине в рублях = доля × цена для Ozon,
+ *  последняя известная из coinv_daily, и она верна, только если при выходе цена не менялась.
+ *  Рубли на страницу не выводятся: предельная цена в публичный репозиторий не едет. */
+const ORDER_PRICE = new Map<string, Array<{ d: string; p: number }>>();
+for (const r of readNd(dp("orders_daily.ndjson"))) {
+  if (r.status === "cancelled" || !(Number(r.units) > 0) || !(Number(r.revenue) > 0)) continue;
+  const a = String(r.offer || "").trim(); if (!a) continue;
+  (ORDER_PRICE.get(a) ?? ORDER_PRICE.set(a, []).get(a)!).push({ d: String(r.d).slice(0, 10), p: Number(r.revenue) / Number(r.units) });
+}
+/** Цена для Ozon, которой пользуется расчёт цены на витрине: последняя известная cap. */
+const capUsed = (a: string): { cap: number; d: string } | null => {
+  let d = "", cap = 0;
+  for (const [day, c] of series.get(a) ?? []) if (c["cap"] && day >= d) { d = day; cap = c["cap"]!; }
+  return cap ? { cap, d } : null;
+};
+type PriceCheck = { ok: boolean | null; text: string };
+const PRICE_TOL = 5;
+function priceCheck(a: string, exit: string): PriceCheck {
+  const cu = capUsed(a);
+  if (!cu) return { ok: null, text: "цены для Ozon в расчёте нет" };
+  const after = (ORDER_PRICE.get(a) || []).filter((o) => o.d >= exit).sort((x, y) => x.d.localeCompare(y.d));
+  if (!after.length) return { ok: null, text: "заказов после выхода нет, проверить нечем" };
+  // Порог 5 %: и в акции цена в заказе отходит от расчётной (GGM-02-1-1 27.09: -5,0 %, товар
+  // ещё в акции), так что меньшее отклонение это разброс заказов, а не смена цены при выходе.
+  const dev = (o: { p: number }) => (o.p / cu.cap - 1) * 100;
+  const f1 = (x: number) => (x >= 0 ? "+" : "") + x.toFixed(1).replace(".", ",") + " %";
+  const bad = after.filter((o) => Math.abs(dev(o)) > PRICE_TOL);
+  if (!bad.length) {
+    const w = after.reduce((m, o) => Math.abs(dev(o)) > Math.abs(dev(m)) ? o : m, after[0]!);
+    return { ok: true, text: `не менялась: в ${after.length} ${plural(after.length, "заказе", "заказах", "заказах")} после выхода отклонение до ${f1(dev(w))}, в пределах ${PRICE_TOL} %` };
+  }
+  const o = bad[bad.length - 1]!;
+  return { ok: false, text: `изменилась: в заказе ${DM(o.d)} на ${f1(dev(o))} к цене в расчёте, цена на витрине в рублях у товара ${dev(o) > 0 ? "занижена" : "завышена"}` };
+}
+
+/** Окна «до» и «после» выхода: неделя перед выходом, но не раньше старта рекламы. */
+function exitWindows(t: TestDef): { pre: string[]; post: string[] } {
+  const ex = t.выход!;
+  const from = t.старт && t.старт > addDays(ex, -7) ? t.старт : addDays(ex, -7);
+  const pre: string[] = [], post: string[] = [];
+  for (let d = from; d < ex; d = addDays(d, 1)) pre.push(d);
+  for (let d = ex; d <= LAST; d = addDays(d, 1)) post.push(d);
+  return { pre, post };
+}
+
+function exitWhoBlock(t: TestDef): string {
+  const ad = t.роли?.test_ad || [], sib = t.роли?.test_sibling || [];
+  const key = promoKeyOf(t);
+  if (!t.выход || !ad.length || !key || !PROMO.exists) return "";
+  const days = PROMO.days.filter((d) => d >= addDays(t.выход!, -7));
+  const row = (a: string, role: string, check: boolean) => {
+    const e = exitOf(PROMO, a, key);
+    const cells = days.map((d) => {
+      const v = inPromoOn(PROMO, a, key, d);
+      const nw = ' style="white-space:nowrap"';
+      return v == null ? `<td class="r muted"${nw}>нет снимка</td>` : v ? `<td class="r"${nw}>в акции</td>` : `<td class="r"${nw}><b>вне</b></td>`;
+    }).join("");
+    const pc = check && e.exit ? priceCheck(a, e.exit) : null;
+    return `<tr><td>${esc(a)} <span class="muted">${esc(role)}</span></td>${cells}`
+      + `<td class="r">${e.exit ? `<b>${esc(DM(e.exit))}</b>` : '<span class="muted">не выходил</span>'}</td>`
+      + `<td class="${pc && pc.ok === false ? "warnv" : pc && pc.ok == null ? "muted" : ""}">${pc ? esc(pc.text) : check ? "-" : '<span class="muted">остаётся в акции, контроль</span>'}</td></tr>`;
+  };
+  const out = ad.filter((a) => exitOf(PROMO, a, key).exit).length;
+  return `<div class="cov" style="margin:4px 0 6px">Участие в акции «${esc(t.акция?.имя || "")}» по дням из ${esc(PROMO_SRC)}.`
+    + ` Вышли ${out} из ${ad.length} рекламных товаров; ${sib.length} ${plural(sib.length, "сосед", "соседа", "соседей")} по тем же карточкам остаются в акции до ${esc(t.акция?.до ? DM(t.акция.до) : "её конца")} и служат контролем.`
+    + ` Последняя колонка - проверка цены для Ozon при выходе по заказам: цена на витрине в рублях считается как доля из среза × цена для Ozon до выхода и верна, только если цена не менялась.</div>`
+    + `<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Артикул</th>`
+    + days.map((d) => `<th class="r">${esc(DM(d))}</th>`).join("")
+    + `<th class="r">Вышел</th><th>Цена для Ozon при выходе</th></tr></thead><tbody>`
+    + ad.map((a) => row(a, "в рекламе", true)).join("") + sib.map((a) => row(a, "сосед по карточке", false)).join("")
+    + `</tbody></table></div>`;
+}
+
+function exitVerdictBlock(t: TestDef): string {
+  const ad = t.роли?.test_ad || [], sib = t.роли?.test_sibling || [];
+  if (!t.выход || !ad.length || !sib.length || t.выход > LAST) return "";
+  const { pre, post } = exitWindows(t);
+  const exitPer = `до ${DM(pre[0]!)}-${DM(pre[pre.length - 1]!)} (${pre.length} дн) → после ${post.length > 1 ? `${DM(post[0]!)}-${DM(post[post.length - 1]!)}` : DM(post[0]!)} (${post.length} дн)`;
+  const avg = (g: string[], win: string[], key: string): number => {
+    const v = nums(groupDaily(g, win, key));
+    return v.length ? v.reduce((x, y) => x + y, 0) / v.length : NaN;
+  };
+  const M: Array<[string, string]> = [["price", "Цена на витрине"], ["vsearch", "Показы в поиске"], ["pdp", "Карточка"],
+    ["cart", "Корзина"], ["units", "Заказы, шт в день"], ["revenue", "Выручка"]];
+  const fmt = (k: string, x: number) => !Number.isFinite(x) ? "нет данных"
+    : k === "price" || k === "revenue" ? nbsp(Math.round(x)) + " ₽" : k === "units" ? x.toFixed(1).replace(".", ",") : nbsp(Math.round(x));
+  const gr = (b: number, p: number) => Number.isFinite(b) && Number.isFinite(p) && b > 0 ? (p / b - 1) * 100 : null;
+  const pc = (x: number | null) => x == null ? "" : ` (${x >= 0 ? "+" : ""}${x.toFixed(0)} %)`;
+  const R = M.map(([k, n]) => {
+    const bT = avg(ad, pre, k), pT = avg(ad, post, k), bC = avg(sib, pre, k), pC = avg(sib, post, k);
+    const gT = gr(bT, pT), gC = gr(bC, pC);
+    return { k, n, bT, pT, bC, pC, gT, gC, dd: gT != null && gC != null ? gT - gC : null };
+  });
+  const rows = R.map((r) => `<tr><td>${esc(r.n)}</td><td class="r">${fmt(r.k, r.bT)} → ${fmt(r.k, r.pT)}${pc(r.gT)}</td>`
+    + `<td class="r">${fmt(r.k, r.bC)} → ${fmt(r.k, r.pC)}${pc(r.gC)}</td>`
+    + `<td class="r"><b>${r.dd == null ? "-" : (r.dd >= 0 ? "+" : "") + r.dd.toFixed(0) + " п."}</b></td></tr>`).join("");
+  const pr = R[0]!;
+  const priceDays = post.filter((d) => groupDaily(ad, [d], "price")[0] != null && groupDaily(sib, [d], "price")[0] != null);
+  const fast = `${DM(addDays(t.выход, 3))}-${DM(addDays(t.выход, 4))}`;
+  const exitDates = ad.map((a) => ({ a, e: exitOf(PROMO, a, promoKeyOf(t)).exit })).filter((x) => x.e);
+  const checks = exitDates.map((x) => priceCheck(x.a, x.e!));
+  const nBad = checks.filter((c) => c.ok === false).length, nUnk = checks.filter((c) => c.ok == null).length;
+  const priceNow = pr.dd == null ? "" : ` Цена на витрине у вышедших ${fmt("price", pr.bT)} → ${fmt("price", pr.pT)}${pc(pr.gT)},`
+    + ` у соседей ${fmt("price", pr.bC)} → ${fmt("price", pr.pC)}${pc(pr.gC)}, разница <b>${pr.dd >= 0 ? "+" : ""}${pr.dd.toFixed(0)} п.</b>:`
+    + ` покупатель у вышедших стал платить ${pr.dd >= 0 ? "больше" : "меньше"}, чем у соседей.`;
+  const head = priceDays.length < 3
+    ? `<b>Пока рано.</b> После выхода ${priceDays.length} ${plural(priceDays.length, "день", "дня", "дней")} с ценой${priceDays.length ? ` (${priceDays.map(DM).join(", ")})` : ""},`
+      + ` быстрый признак по правилу ${esc(fast)}: цена с картой Ozon у вышедших против соседей.${priceNow ? " Промежуточно:" + priceNow.replace(" Цена на витрине", " цена на витрине") : ""}`
+    : `<b>Быстрый признак.</b>${priceNow || " Цены после выхода нет."} Порога в правиле нет, решение по признаку принимает Иван.`;
+  const chk = !checks.length ? ""
+    : nBad ? ` <span class="warnv">У ${nBad} из ${checks.length} вышедших цена для Ozon при выходе изменилась больше чем на ${PRICE_TOL} %: в цене группы такой товар стоит по старой цене для Ozon, поэтому строка «Цена на витрине» у вышедших неточна, см. «Кто вышел из акции».</span>`
+      + (nUnk ? ` У ${nUnk} заказов после выхода нет, проверить нечем.` : "")
+    : nUnk ? ` Цена для Ozon при выходе проверена у ${checks.length - nUnk} из ${checks.length} вышедших и не менялась; у ${nUnk} заказов после выхода нет, проверить нечем.`
+    : ` Цена для Ozon при выходе проверена по заказам у всех ${checks.length} вышедших и не менялась.`;
+  const win = daysNote(R.map((r) => [r.n, `до ${spanOf(ad, pre, r.k)}; после ${spanOf(ad, post, r.k)}`] as [string, string]),
+    "Средний день недели перед выходом (не раньше старта рекламы) и средний день после выхода, по вышедшим:");
+  return `<div class="verdict"><div class="verdict-h">Итог по выходу из акции на ${esc(LAST)}</div>`
+    + `<div class="verdict-main">${head}${chk}</div>`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th>`
+    + `<th class="r">Вышли, ${ad.length} арт.: ${exitPer}</th><th class="r">Соседи в акции, ${sib.length} арт.: ${exitPer}</th>`
+    + `<th class="r">Вышли относительно соседей</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<div class="cov"><b>Как читать таблицу.</b> Точка отсчёта - выход из акции ${esc(DM(t.выход))}, а не старт рекламы, как на графиках выше.`
+    + ` «До» - средний день недели перед выходом, «после» - средний день после выхода. Последняя колонка - насколько вышедшие изменились`
+    + ` сильнее (плюс) или слабее (минус) соседей, в пунктах. Заказы и выручку как вывод не читаем: заказов у этих товаров единицы.`
+    + ` Сравнивать с соседями можно до ${esc(t.акция?.до ? DM(t.акция.до) : "конца акции")}: дальше соседи выходят из акции вместе с её концом.`
+    + ` Итоговый замер ${esc(t.замер || "-")}: цена для Ozon × заказы в день, как наблюдение, см. «Итоговый критерий».</div>`
+    + win + `</div>`;
+}
+
+/** Шапка: сколько из явного контроля реально в расчёте (Иван 30.09, вариант а). Без этого
+ *  «Контроль 46» в шапке и «групповой контроль, 34 арт.» на графике читаются как разные группы. */
+function ctlInCalc(t: TestDef): string {
+  const all = t.контроль || [];
+  if (!all.length) return "";
+  // Тест 1: «контроль» в реестре - пары к тестовым товарам, а считается всё к групповому
+  // контролю из панели (Иван 30.09: «для теста 1 делай также»).
+  if (!t.контроль_группа) return ` пар, групповой в расчёте <b>${nbsp(ctlGroupOf(t).length)}</b>`;
+  const g = ctlGroupOf(t);
+  if (g.length === all.length) return "";
+  const ads = new Set(adsInCtl(t).map((x) => x.art));
+  const nAds = all.filter((a) => ads.has(a)).length;
+  const nOther = all.length - g.length - nAds;
+  return `, в расчёте <b>${g.length}</b> <span class="muted">(${nAds ? `${nAds} с рекламой убраны` : ""}`
+    + `${nAds && nOther ? ", " : ""}${nOther ? `${nOther} ${plural(nOther, "родственник", "родственника", "родственников")} теста убраны` : ""})</span>`;
+}
+/** Шапка: с кем сравнивается итог по выходу - это не групповой контроль графиков. */
+function exitVsSib(t: TestDef): string {
+  const ad = t.роли?.test_ad || [], sib = t.роли?.test_sibling || [];
+  const key = promoKeyOf(t);
+  if (!t.выход || !ad.length || !sib.length || !key || !PROMO.exists) return "";
+  const out = ad.filter((a) => exitOf(PROMO, a, key).exit).length;
+  return `<span>Итог по выходу: <b>${out}</b> ${plural(out, "вышел", "вышли", "вышли")} против <b>${sib.length}</b> ${plural(sib.length, "соседа", "соседей", "соседей")}</span>`;
 }
 
 const cards = T.тесты.map((t, ti) => {
@@ -1703,13 +1950,15 @@ const cards = T.тесты.map((t, ti) => {
     + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
     + (pairsHtml ? fold("", "Пары тест - контроль", pairsHtml) : "")
     + (notesHtml ? fold("", "Контроль: заражение, чистка, реклама", notesHtml) : "")
-    + (perArt ? fold("", "Показатели по артикулам", perArt) : "");
+    + (t.id === "boost_plus_exit" ? "<!--BOOST_TECH-->" : "")
+    ;
   return `<section class="card"><div class="chead"><div class="ctitle">${esc(t.название)} ${statusChip(t)}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span>`
     + `<span>Горизонт: <b>${esc(t.горизонт_дней ?? "")} дн</b></span>`
     + (t.акция ? exitMeta(t) : "")
-    + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b></span>`
+    + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b>${ctlInCalc(t)}</span>`
+    + exitVsSib(t)
     + (t.ответственный ? `<span>Ответственный: <b>${esc(t.ответственный)}</b></span>` : "")
     + `</div>`
     + fold("hyp", "Что проверяем", esc(t.гипотеза))
@@ -1718,11 +1967,16 @@ const cards = T.тесты.map((t, ti) => {
         ? fold("rule", "Когда тест завершится", `${esc(t.условие_завершения)}`
           + ` До тех пор он живой, замер ${esc(t.замер || "-")} в плане, ростер и обе группы как были.`)
         : "")
-    + (t.акция ? mdeBlock(t) : "")
+    // Свёрнут по просьбе Ивана 30.09: вывод блока вынесен в заголовок, расчёт по клику.
+    + (t.акция ? fold("", "Итоговый критерий сейчас ничего не различает", mdeBlock(t)) : "")
     + (t.стоп ? fold("", "Стоп-сигнал", stopBlock(t.стоп)) : "")
     + (chartHtml ? `<details class="fold" open><summary><b>Динамика по показателям</b></summary><div class="fold-b">${chartHtml}</div></details>`
       : (tst.length || ctl.length ? "" : '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>'))
     + verdictBlock(t)
+    + exitVerdictBlock(t)
+    + (exitWhoBlock(t) ? `<details class="fold" open><summary><b>Кто вышел из акции</b></summary><div class="fold-b">${exitWhoBlock(t)}</div></details>` : "")
+    + (t.id === "boost_plus_exit" ? "<!--BOOST_EXITED-->" : "")
+    + (perArt ? `<details class="fold" open><summary><b>Показатели по артикулам</b></summary><div class="fold-b">${perArt}</div></details>` : "")
     + (tech ? fold("tech", `Техническая информация тест ${ti + 1}`, tech) : "")
     + `</section>`;
 }).join("");
@@ -1754,16 +2008,188 @@ function bidSideRow(p: PairDef, s: SideDef, side: string): string {
     + `<td class="r">${st.cartPer1k == null ? "-" : st.cartPer1k.toFixed(1).replace(".", ",")}</td>`
     + `<td class="r">${st.gapMed == null ? "-" : st.gapMed.toFixed(1).replace(".", ",") + ` <span class="muted">(${st.gapDays} дн)</span>`}</td></tr>`;
 }
-const bidCards = BID_TESTS.map((t) => {
-  const pairs = t.пары.map((p) => fold("", `Пара: ${esc(p.название)}`, (p.заметка ? `<div class="cov" style="border-top:none;padding:0 0 4px">${esc(p.заметка)}</div>` : "")
-    + `<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Сторона</th><th>Артикул</th>`
-    + `<th class="r">Ставка, ₽</th><th class="r">Бюджет, ₽/нед</th><th>Окно</th><th class="r">Дней</th>`
-    + `<th class="r" title="Показы в поиске в неделю: сумма окна, приведённая к 7 дням наблюдения">Поиск/нед</th>`
-    + `<th class="r">Карточка/нед</th><th class="r">Корзины/нед</th><th class="r">Заказы, всего</th>`
-    + `<th class="r">Расход/нед, ₽</th><th class="r" title="Корзин на 1 000 ₽ рекламного расхода, за дни, по которым расход уже выгружен: что покупает рубль">Корзин на 1 000 ₽</th>`
-    + `<th class="r" title="Медиана соинвеста (разрыв предельной цены и витрины) по дням окна, gap_daily">Соинвест, %</th></tr></thead><tbody>`
-    + bidSideRow(p, p.большая, "большая") + bidSideRow(p, p.малая, "малая")
-    + `</tbody></table></div>`)).join("");
+// ГРАФИКИ ВМЕСТО ТАБЛИЦЫ ПАРЫ (Иван 30.09). Линии по дням, большая сторона против малой, по
+// каждому показателю своя вкладка. Под графиком итог окна теми же числами, что стояли в
+// таблице (sideStat), чтобы переход на графики ничего не потерял. Таблица осталась функцией
+// bidSideRow, но на страницу не выводится.
+const BID_M: Array<[string, string, string]> = [["vsearch", "Показы в поиске", ""], ["pdp", "Карточка", ""],
+  ["cart", "Корзина", ""], ["units", "Заказы", " шт"], ["spend", "Расход", " ₽"], ["cp1k", "Корзин на 1 000 ₽", ""],
+  ["coinv", "Соинвест", " %"]];
+const BID_HOW: Record<string, string> = {
+  vsearch: "Сколько раз товар показали в поиске за день, из ночного синка OZON.",
+  pdp: "Сколько раз за день открыли карточку товара.",
+  cart: "Сколько раз за день товар положили в корзину.",
+  units: "Сколько штук заказано за день.",
+  spend: "Сколько за день списано за клики по рекламе товара, из отчёта кабинета рекламы.",
+  cp1k: "Корзины дня, делённые на расход дня, × 1 000: сколько корзин покупает 1 000 ₽ рекламы. День без расхода - пропуск.",
+  coinv: "Какую долю цены для Ozon доплачивает сам Ozon: (1 - цена на витрине / наша цена для Ozon) × 100, из ежедневного среза цен.",
+};
+function bidDaily(art: string, days: string[], key: string): Array<number | null> {
+  const m = series.get(art);
+  return days.map((d) => {
+    if (key === "coinv") return gapByArt.get(art)?.get(d) ?? null;
+    const c = m?.get(d);
+    const spendOk = d <= LAST_SPEND;
+    if (key === "spend") return spendOk ? (c?.["spend"] || 0) : null;
+    if (key === "cp1k") { const sp = spendOk ? (c?.["spend"] || 0) : 0; return sp > 0 && c ? (c["cart"] || 0) / sp * 1000 : null; }
+    if (!c || (c["vsearch"] == null && c["pdp"] == null && c["cart"] == null && c["units"] == null)) return null;
+    return c[key] || 0;
+  });
+}
+function bidChart(p: PairDef, cid: string): string {
+  const B = p.большая, S = p.малая, same = B.артикул === S.артикул;
+  const wB = sideWindow(p, B, LAST), wS = sideWindow(p, S, LAST);
+  const from0 = wB.from < wS.from ? wB.from : wS.from;
+  const days: string[] = [];
+  for (let d = addDays(from0, -7); d <= LAST; d = addDays(d, 1)) days.push(d);
+  const si = days.indexOf(from0);
+  const other = wB.from === wS.from ? "" : wB.from < wS.from ? wS.from : wB.from;
+  // До и после на одном товаре: вторая засечка - конец окна большой стороны.
+  const endB = same && wB.to < LAST ? addDays(wB.to, 1) : "";
+  const si2 = endB ? days.indexOf(endB) : other ? days.indexOf(other) : -1;
+  const lbl2 = endB ? `период 2 с ${DM(endB)}` : si2 >= 0 ? "окно " + (other === wS.from ? "малой" : "большой") : "";
+  const lblB = `большая ${B.ставка ?? "-"} ₽`, lblS = `малая ${S.ставка ?? "-"} ₽`;
+  const stB = sideStat(series.get(B.артикул), gapByArt.get(B.артикул), wB.from, wB.to, LAST_SPEND || wB.to);
+  const stS = sideStat(series.get(S.артикул), gapByArt.get(S.артикул), wS.from, wS.to, LAST_SPEND || wS.to);
+  const open = (w: { from: string; to: string }) => w.to >= w.from;
+  const wk = (v: number, n: number) => { const x = perWeek(v, n); return x == null ? "-" : nbsp(Math.round(x)); };
+  const sideVal = (k: string, st: SideStat, w: { from: string; to: string }): string => {
+    if (!open(w)) return `окно начнётся ${DM(w.from)}`;
+    return k === "units" ? `${nbsp(st.units)} шт за окно`
+      : k === "spend" ? (st.spendDays ? `${nbsp(Math.round(st.spend / st.spendDays * 7))} ₽ в неделю` : "расхода нет")
+      : k === "cp1k" ? (st.cartPer1k == null ? "расхода нет" : `${st.cartPer1k.toFixed(1).replace(".", ",")} за окно`)
+      : k === "coinv" ? (st.gapMed == null ? "нет данных" : `${st.gapMed.toFixed(1).replace(".", ",")} %, медиана по ${st.gapDays} дн со снимком цен`)
+      : `${wk((st as any)[k], st.days)} в неделю`;
+  };
+  const winTxt = (w: { from: string; to: string }, st: SideStat) => open(w) ? ` (${DM(w.from)}-${DM(w.to)}, ${st.days} дн)` : "";
+  const panes: Record<string, string> = {}, reads: Record<string, string> = {}, subs: Record<string, string> = {}, tip: Record<string, any> = {};
+  for (const [k, n, unit] of BID_M) {
+    // До и после на одном товаре: первый период (до конца окна большой) голубой, второй
+    // оранжевый (Иван 30.09). Точка стыка есть в обеих линиях, чтобы линия не рвалась.
+    const full = bidDaily(B.артикул, days, k);
+    const a = same && endB ? full.map((v, i) => days[i]! <= wB.to ? v : null) : full;
+    const b = same ? (endB ? full.map((v, i) => days[i]! >= wB.to ? v : null) : full.map(() => null)) : bidDaily(S.артикул, days, k);
+    if (!nums(a).length && !nums(b).length) continue;
+    // На концах линий короткие подписи: полные с артикулом стоят в легенде.
+    panes[k] = pane(days, si, a, b, "raw", same ? (endB ? ["", ""] : ["товар", ""]) : ["большая", "малая"], si2, lbl2, "окно");
+    subs[k] = `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
+    tip[k] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: a, rc: b, mode: "raw", unit };
+    const seen = same
+      ? `Окно большой: <b>${sideVal(k, stB, wB)}</b>${winTxt(wB, stB)}. Окно малой: <b>${sideVal(k, stS, wS)}</b>${winTxt(wS, stS)}.`
+      : `Большая: <b>${sideVal(k, stB, wB)}</b>${winTxt(wB, stB)}. Малая: <b>${sideVal(k, stS, wS)}</b>${winTxt(wS, stS)}.`;
+    reads[k] = `<div class="dyn-read"><b>Как считается.</b> ${BID_HOW[k] || ""} Линия - день как есть; в неделю - сумма окна, приведённая к 7 дням.</div>`
+      + `<div class="dyn-read"><b>Что видим.</b> ${seen}</div>`;
+  }
+  const keys = BID_M.map(([k]) => k).filter((k) => panes[k]);
+  if (!keys.length) return `<div class="cov">Данных по паре пока нет.</div>`;
+  const k0 = keys[0]!;
+  const btns = BID_M.filter(([k]) => panes[k]).map(([k, n]) => `<button class="mb${k === k0 ? " on" : ""}" data-m="${k}">${n}</button>`).join("");
+  const side = (lbl: string, s: SideDef, w: { from: string; to: string }) =>
+    `${esc(lbl)}: ${esc(s.артикул)}, бюджет ${s.бюджет ? nbsp(s.бюджет) + " ₽/нед" : "-"}, окно ${open(w) ? `${DM(w.from)}-${DM(w.to)}` : `с ${DM(w.from)}`}`;
+  return `<div class="cov" style="border-top:none;padding:0 0 4px">${side("Большая " + (B.ставка ?? "-") + " ₽", B, wB)}. ${side("Малая " + (S.ставка ?? "-") + " ₽", S, wS)}.</div>`
+    + `<div class="dyn"><div class="dyn-h">Динамика по дням. <span class="dyn-sub" id="${cid}-sub">${subs[k0]}</span></div>`
+    + `<div class="mrow-b">${btns}</div>`
+    + `<div class="lg" id="${cid}-lg">` + (same && endB
+      ? `<span class="lgi"><i style="background:${C_TEST}"></i>${esc(B.артикул)}, период 1: своя кампания ${B.бюджет ? nbsp(B.бюджет) + " ₽/нед" : ""} (по ${DM(wB.to)})</span>`
+        + `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>период 2: ${S.бюджет ? nbsp(S.бюджет) + " ₽/нед" : ""} в общей кампании (с ${DM(endB)})</span>`
+      : `<span class="lgi"><i style="background:${C_TEST}"></i>${same ? esc(B.артикул) : `${esc(lblB)}, ${esc(B.артикул)}`}</span>`
+        + (same ? "" : `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>${esc(lblS)}, ${esc(S.артикул)}</span>`)) + `</div>`
+    + `<svg class="cv" id="${cid}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Динамика пары по дням">${panes[k0]}</svg>`
+    + `<div class="tip" id="${cid}-tip"></div><div id="${cid}-read">${reads[k0]}</div></div>`
+    + `<script>window.DYN=window.DYN||{};window.DYN[${JSON.stringify(cid)}]=${JSON.stringify({ d: days, m: tip, panes, reads, subs })};`
+    + `window.SOLO=window.SOLO||{};window.SOLO[${JSON.stringify(cid)}]=${same && !endB ? JSON.stringify(keys) : "[]"};</script>`;
+}
+// ИТОГ ТЕСТА 3 ПО ЕГО ПРАВИЛУ (Иван 30.09: «в тест 3 добавь также итоги»). Пороги из правила
+// в tests.json, приняты Иваном 30.09 как рабочие [ГИПОТЕЗА]. Числа те же, что под графиками
+// пары (sideStat), второго расчёта нет. ДРР по кабинету страница не считает: заказы с рекламы
+// в выгрузке неполные, поэтому эта часть правила печатается как «не проверено», а не как «да».
+const BID_ORD_GAP = 3;     // заказов в неделю: большая больше малой не меньше чем на столько
+const BID_DRR_MAX = 15;    // %, ДРР по кабинету
+const BID_COINV_TOL = 2;   // п., соинвест малой не ниже большой больше чем на столько
+function bidVerdictPair(p: PairDef): string {
+  const B = p.большая, S = p.малая;
+  const wB = sideWindow(p, B, LAST), wS = sideWindow(p, S, LAST);
+  const name = `<div class="sub2">${esc(p.название)}</div>`;
+  if (wB.to < wB.from || wS.to < wS.from) {
+    const w = wB.to < wB.from && wS.to < wS.from ? `окна обеих сторон начнутся ${DM(wB.from < wS.from ? wB.from : wS.from)}`
+      : wB.to < wB.from ? `окно большой стороны начнётся ${DM(wB.from)}` : `окно малой стороны начнётся ${DM(wS.from)}`;
+    return name + `<div class="cov" style="border-top:none">Итога по правилу пока нет: ${w}.</div>` + bidRamp(p);
+  }
+  const stB = sideStat(series.get(B.артикул), gapByArt.get(B.артикул), wB.from, wB.to, LAST_SPEND || wB.to);
+  const stS = sideStat(series.get(S.артикул), gapByArt.get(S.артикул), wS.from, wS.to, LAST_SPEND || wS.to);
+  const f1 = (x: number | null) => x == null ? "-" : x.toFixed(1).replace(".", ",");
+  const oB = perWeek(stB.units, stB.days), oS = perWeek(stS.units, stS.days);
+  const ordOk = oB != null && oS != null ? oB - oS >= BID_ORD_GAP : null;
+  const cpOk = stB.cartPer1k != null && stS.cartPer1k != null ? stS.cartPer1k >= stB.cartPer1k : null;
+  const coOk = stB.gapMed != null && stS.gapMed != null ? stS.gapMed >= stB.gapMed - BID_COINV_TOL : null;
+  const yn = (v: boolean | null) => v == null ? '<span class="muted">нет данных</span>' : v ? "<b>да</b>" : "нет";
+  const wk = (v: number, n: number) => { const x = perWeek(v, n); return x == null ? "-" : nbsp(Math.round(x)); };
+  const row = (n: string, b: string, sm: string, rule = "", ok = "") =>
+    `<tr><td>${n}</td><td class="r">${b}</td><td class="r">${sm}</td><td>${rule}</td><td class="r">${ok}</td></tr>`;
+  const rows = row("Заказы в неделю", f1(oB), f1(oS), `большая больше малой на ${BID_ORD_GAP} и больше`, yn(ordOk))
+    + row("ДРР по кабинету", '<span class="muted">не посчитан</span>', '<span class="muted">не посчитан</span>', `у большой не выше ${BID_DRR_MAX} %`, '<span class="muted">не проверено</span>')
+    + row("Корзин на 1 000 ₽", f1(stB.cartPer1k), f1(stS.cartPer1k), "у малой не меньше, чем у большой", yn(cpOk))
+    + row("Соинвест, %", f1(stB.gapMed), f1(stS.gapMed), `у малой не ниже большой больше чем на ${BID_COINV_TOL} п.`, yn(coOk))
+    + row("Показы в поиске в неделю", wk(stB.vsearch, stB.days), wk(stS.vsearch, stS.days))
+    + row("Карточка в неделю", wk(stB.pdp, stB.days), wk(stS.pdp, stS.days))
+    + row("Корзины в неделю", wk(stB.cart, stB.days), wk(stS.cart, stS.days))
+    + row("Расход в неделю, ₽", stB.spendDays ? nbsp(Math.round(stB.spend / stB.spendDays * 7)) : "-", stS.spendDays ? nbsp(Math.round(stS.spend / stS.spendDays * 7)) : "-");
+  const bigTxt = ordOk === false ? "большая ставка по заказам <b>не оправдана</b>"
+    : ordOk ? "по заказам большая ставка оправдана, ДРР из кабинета не проверен" : "по заказам сравнить нечем";
+  const smallTxt = cpOk && coOk ? "малой ставки <b>достаточно</b>"
+    : cpOk === false || coOk === false ? "малой ставки <b>не достаточно</b>" : "по малой ставке данных не хватает";
+  const both = ordOk && cpOk && coOk
+    ? ` Обе части правила выполняются одновременно: большая даёт больше заказов, малая дешевле покупает корзину. Правило здесь не выбирает, решение за Иваном.` : "";
+  const same = B.артикул === S.артикул ? " Обе стороны - один товар в разные окна." : "";
+  const few = ordOk != null ? ` Заказов за окно ${nbsp(stB.units)} и ${nbsp(stS.units)} шт: по заказам это направление, а не доказательство, твёрже корзины.` : "";
+  return name + `<div class="verdict-main">${bigTxt[0]!.toUpperCase() + bigTxt.slice(1)}; ${smallTxt}.${both}${few}${same}`
+    + ` Окно большой ${DM(wB.from)}-${DM(wB.to)} (${stB.days} дн), малой ${DM(wS.from)}-${DM(wS.to)} (${stS.days} дн).</div>`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th>`
+    + `<th class="r">Большая ${esc(B.ставка ?? "-")} ₽, ${DM(wB.from)}-${DM(wB.to)} (${stB.days} дн)</th><th class="r">Малая ${esc(S.ставка ?? "-")} ₽, ${DM(wS.from)}-${DM(wS.to)} (${stS.days} дн)</th><th>Условие правила</th><th class="r">Выполнено</th></tr></thead>`
+    + `<tbody>${rows}</tbody></table></div>`;
+}
+/** Предварительно по дням разгона (Иван 30.09, вариант а): окно новой стороны ещё не началось,
+ *  но режим уже сменился. Средний день; до «окна» не для решения, это прямо написано. */
+function bidRamp(p: PairDef): string {
+  const B = p.большая, S = p.малая, same = B.артикул === S.артикул;
+  const r0 = S.разгон_с;
+  if (!r0 || r0 > LAST) return "";
+  const wB = sideWindow(p, B, LAST);
+  const fromB = same ? wB.from : r0, toB = same ? wB.to : LAST;
+  const stB = sideStat(series.get(B.артикул), gapByArt.get(B.артикул), fromB, toB, LAST_SPEND || toB);
+  const stS = sideStat(series.get(S.артикул), gapByArt.get(S.артикул), r0, LAST, LAST_SPEND || LAST);
+  if (!stB.days || !stS.days) return "";
+  const pd = (v: number, n: number) => n ? v / n : null;
+  const f = (x: number | null, d = 0) => x == null ? "-" : d ? x.toFixed(d).replace(".", ",") : nbsp(Math.round(x));
+  const ch = (b: number | null, sm: number | null) => b && sm != null ? `${(sm / b - 1) * 100 >= 0 ? "+" : ""}${((sm / b - 1) * 100).toFixed(0)} %` : "-";
+  const spB = stB.spendDays ? stB.spend / stB.spendDays : null, spS = stS.spendDays ? stS.spend / stS.spendDays : null;
+  const R: Array<[string, number | null, number | null, number]> = [
+    ["Показы в поиске в день", pd(stB.vsearch, stB.days), pd(stS.vsearch, stS.days), 0],
+    ["Карточка в день", pd(stB.pdp, stB.days), pd(stS.pdp, stS.days), 0],
+    ["Корзина в день", pd(stB.cart, stB.days), pd(stS.cart, stS.days), 1],
+    ["Заказы в день", pd(stB.units, stB.days), pd(stS.units, stS.days), 1],
+    ["Расход в день, ₽", spB, spS, 0],
+  ];
+  const hB = same ? `Период 1: своя кампания, ${DM(fromB)}-${DM(toB)} (${stB.days} дн)` : `Большая ${esc(B.ставка ?? "-")} ₽, ${DM(r0)}-${DM(LAST)} (${stB.days} дн)`;
+  const hS = same ? `Период 2: разгон, ${DM(r0)}-${DM(LAST)} (${stS.days} дн)` : `Малая ${esc(S.ставка ?? "-")} ₽, разгон ${DM(r0)}-${DM(LAST)} (${stS.days} дн)`;
+  return `<div class="cov" style="border-top:none"><b>Предварительно, идёт разгон, не для решения.</b>`
+    + (same ? ` Средний день после выключения своей кампании против среднего дня окна большой. Контроля нет: общее движение магазина не вычтено.`
+      : ` Средний день обеих сторон с включения малой. У малой это первые дни после включения, реклама ещё набирает показы.`)
+    + ` Последний день ряда может быть загружен не полностью.</div>`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th><th class="r">${hB}</th><th class="r">${hS}</th><th class="r">${same ? "Период 2 к периоду 1" : "Малая к большой"}</th></tr></thead><tbody>`
+    + R.map(([n, b, sm, d]) => `<tr><td>${n}</td><td class="r">${f(b, d)}</td><td class="r">${f(sm, d)}</td><td class="r">${ch(b, sm)}</td></tr>`).join("")
+    + `</tbody></table></div>`;
+}
+function bidVerdict(t: BidTestDef): string {
+  return `<div class="verdict"><div class="verdict-h">Итог по показателям на ${esc(LAST)}</div>`
+    + `<div class="cov" style="border-top:none">Предварительно: быстрый признак ${esc(t.быстрый_признак || "-")}, замер ${esc(t.замер || "-")}.`
+    + ` Пороги правила рабочие [ГИПОТЕЗА], приняты Иваном 30.09. В неделю - сумма окна, приведённая к 7 дням; соинвест - медиана по дням со снимком цен.</div>`
+    + t.пары.map(bidVerdictPair).join("")
+    + `</div>`;
+}
+const bidCards = BID_TESTS.map((t, bi) => {
+  const pairs = t.пары.map((p, pi) => fold("", `Пара: ${esc(p.название)}`, (p.заметка ? `<div class="cov" style="border-top:none;padding:0 0 4px">${esc(p.заметка)}</div>` : "")
+    + bidChart(p, `bid-${bi}-${pi}`))).join("");
   const dm = t.замер ? daysBetween(TODAY, t.замер) : null;
   const chip = t.статус === TEST_STATUS.done ? `<span class="chip chip-done">завершён</span>`
     : `<span class="chip chip-run">${esc(t.статус || "идёт")}${dm != null && dm > 0 ? ` · замер через ${dm} дн` : ""}</span>`;
@@ -1774,10 +2200,13 @@ const bidCards = BID_TESTS.map((t) => {
     + (t.гипотеза ? fold("hyp", "Что проверяем", esc(t.гипотеза)) : "")
     + (t.условие_завершения ? fold("rule", "Когда тест завершится", esc(t.условие_завершения)) : "")
     + (t.правило ? fold("rule", "Правило", esc(t.правило)) : "")
-    + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
+    + bidVerdict(t)
     + pairs
-    + fold("cov", "Откуда данные", `Воронка из ночного синка OZON (sku_views, по тестовым товарам срез funnel_tests) по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
-      + ` Заказы с рекламы в выгрузке неполные, поэтому ДРР на замере берётся из кабинета.`) + `</section>`;
+    // Заметка и «Откуда данные» - в техническую информацию (Иван 30.09).
+    + fold("tech", `Техническая информация тест ${T.тесты.length + bi + 1}`,
+      (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
+      + fold("cov", "Откуда данные", `Воронка из ночного синка OZON (sku_views, по тестовым товарам срез funnel_tests) по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
+        + ` Заказы с рекламы в выгрузке неполные, поэтому ДРР на замере берётся из кабинета.`)) + `</section>`;
 }).join("");
 
 /** Подписи метрик воронки для таблицы эталона: те же слова, что в колонках выше на странице. */
@@ -1866,9 +2295,13 @@ function boostRowHtml(r: BoostRow, label = ""): string {
     + `<td><span class="chip ${chip}">${esc(r.status)}</span><span class="muted">${esc(plateau)}</span></td></tr>`;
 }
 
-function boostCard(): string {
+/** Бывшая отдельная карточка «Готовность к выходу из акции». С 30.09 (Иван) она разнесена по
+ *  карточке теста 2: таблица «Разрыв после выхода из акции» видна в карточке, всё про плато и
+ *  калибровку правила уходит в «Техническую информацию тест 2»: выход сделан 29.09 решением
+ *  Ивана, плато вывод больше не определяет. */
+function boostParts(): { exited: string; tech: string } {
   const wave = T.тесты.find((t) => t.id === "boost_plus_exit");
-  if (!wave || !coinvRows.length) return "";
+  if (!wave || !coinvRows.length) return { exited: "", tech: "" };
   const key = promoKeyOf(wave);
   const AD = wave.роли?.test_ad || [];
   const SIB = wave.роли?.test_sibling || [];
@@ -2228,12 +2661,16 @@ function boostCard(): string {
     + `Это довод против группового решения: вывести всех разом значило бы вывести остальных вслепую.</div>`;
 
   const exitedTbl = sum.out.length
-    ? `<div class="sub2">Вышли из акции</div><div class="tbl-wrap"><table class="gtbl single"><thead>`
+    ? `<div class="sub2">Разрыв после выхода из акции</div>`
+      + `<div class="cov" style="margin:4px 0 6px">Сдвиг разрыва к контролю от базы до старта рекламы, как в «Готовности к выходу» (техническая информация).`
+      + ` Описательно: в критерий теста не входит, см. «Соинвест в критерии».</div><div class="tbl-wrap"><table class="gtbl single"><thead>`
       + `<tr><th>Артикул</th><th class="r">Дней после выхода</th><th class="r">Сдвиг</th><th>Динамика</th><th>Возврат к базе</th></tr></thead><tbody>`
       + [...adRows, ...sibRows].filter((r) => r.off).map((r) => `<tr><td>${esc(r.art)}</td><td class="r">${r.daysSinceOff ?? "-"}</td>`
         + `<td class="r">${r.shift == null ? "-" : (r.shift >= 0 ? "+" : "") + r.shift.toFixed(1)}</td>`
         + `<td class="spkc">${spark(r)}</td>`
-        + `<td>${r.backToBaseOn ? `${esc(r.backToBaseOn)} <span class="muted">держался ${r.heldDays} дн</span>` : '<span class="muted">ещё держится</span>'}</td></tr>`).join("")
+        + `<td>${r.backToBaseOn ? (r.heldDays != null && r.heldDays < 0
+          ? `<span class="muted">у базы уже в день выхода ${esc(r.backToBaseOn)}</span>`
+          : `${esc(r.backToBaseOn)} <span class="muted">держался ${r.heldDays} дн</span>`) : '<span class="muted">ещё держится</span>'}</td></tr>`).join("")
       + `</tbody></table></div>`
     : `<div class="sub2">Вышли из акции</div><div class="cov">Из акции «${esc(wave.акция?.имя || "")}» пока не вышел никто.`
       + ` Дата выхода нигде не фиксируется руками: запись акции исчезает из колонки acts в тот же день, и это и есть дата.`
@@ -2277,8 +2714,8 @@ function boostCard(): string {
       + ` каждая смена двигает витрину по всему каталогу в тот же день и въезжает в середину замера.</div>`
     : "";
 
-  return `<section class="card"><div class="chead"><div class="ctitle">Готовность к выходу из акции «${esc(wave.акция?.имя || "")}»</div></div>`
-    + fold("warn", "Контроль заражён", kinBanner)
+  const exitedFold = exitedTbl ? `<details class="fold" open>${foldSub(exitedTbl, "Разрыв после выхода из акции").replace(/^<details class="fold [^"]*">/, "")}` : "";
+  const tech = `<div class="cov">Выход сделан ${esc(wave.выход || "-")} решением Ивана, до плато; ниже - как считалось плато и на чём откалибровано правило.</div>`
     + fold("hyp", "Что показывает карточка", `Сдвиг разрыва к контролю по дням с включения кампании. Контроль - сосед по объединённой карточке, `
     + `а где его нет, медиана панели без тестовых артикулов и их родни. Разрыв считается по сырым ценам: доля предельной цены, `
     + `которую не платит покупатель. База - медиана разрыва за ${BASE_DAYS} наблюдаемых дней до включения, а если их меньше, `
@@ -2286,7 +2723,7 @@ function boostCard(): string {
     + fold("", "Когда выводим и как считается", exitPlan + windowNote)
     + fold("rule", "Статусы", `плато - ${FLAT_DAYS} подряд наблюдаемых дня, размах не больше ${FLAT_RANGE} пунктов, сдвиг не ниже +${ARRIVED}. `
     + `Едет - растёт, плато ещё нет. Не пришло - прошло ${LATE_AFTER}+ дней, сдвиг ниже +${ARRIVED}. Ждём - меньше ${FLAT_DAYS} дней.`)
-    + `<div class="cov"><b>Готовы к выводу сейчас:</b> ${ready.length ? ready.map((r) => esc(r.art)).join(", ") : "никто"}.</div>`
+    + `<div class="cov"><b>Плато к выходу сложилось:</b> ${ready.length ? ready.map((r) => esc(r.art)).join(", ") : "ни у кого"}.</div>`
     + fold("", `В рекламе, ждут плато (${AD.length})`, tbl(adRows)
       + (adRows.length ? "" : `<div class="cov">Рекламных товаров в волне нет.</div>`)
       + gapNote)
@@ -2295,7 +2732,6 @@ function boostCard(): string {
     + `Они нужны, чтобы карточка выходила целиком: иначе половина карточки осталась бы в акции и тянула вторую половину за собой.`
     + (SIB.length ? "" : " В этой волне соседей нет.") + `</div>`)
     + (placeboNote + ggt35Note + agreeNote ? fold("", "Проверка контроля: плацебо и второй способ", placeboNote + ggt35Note + agreeNote) : "")
-    + foldSub(exitedTbl, "Вышли из акции")
     + (fbBlock ? fold("warn", "Если плато не сложится", fbBlock) : "")
     + fold("", "Эталон, на котором откалибровано правило", `<div class="tbl-wrap"><table class="gtbl single"><thead>${head}</thead><tbody>${boostRowHtml(ref, "кампания 06.07-05.08")}</tbody></table></div>`
     + refFunnelBlock
@@ -2320,7 +2756,8 @@ function boostCard(): string {
     + ` эффекта, а не дата и не правило.</div>`)
     + foldSub(backtestBlock(), "Проверка правила на истории")
     + fold("", "Движения витрины по каталогу", `<div class="cov" style="border-top:none">${esc(movesNote)}</div>`)
-    + (cpoNote ? fold("warn", "Ставка CPO на время тестов", cpoNote) : "") + `</section>`;
+    + (cpoNote ? fold("warn", "Ставка CPO на время тестов", cpoNote) : "");
+  return { exited: exitedFold, tech: fold("", `Готовность к выходу из акции «${esc(wave.акция?.имя || "")}»: плато и калибровка правила`, tech) };
 }
 
 
@@ -2547,7 +2984,7 @@ const CSS = `:root{--bg:#0b0f17;--card:#12161f;--soft:#232B36;--ink:#e8eef2;--in
 h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .sec{font-size:15px;color:var(--cy);margin:22px 2px 10px;border-bottom:1px solid var(--soft);padding-bottom:6px}
 .card{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:14px 16px;margin-bottom:14px}
-.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.ctitle{font-weight:700;font-size:15px}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.tcard>summary{cursor:pointer;list-style:none}.tcard>summary::-webkit-details-marker{display:none}.tcard>summary .ctitle::before{content:"▸ ";color:var(--ink3)}.tcard[open]>summary .ctitle::before{content:"▾ "}.ctitle{font-weight:700;font-size:15px}
 .chip{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
 .chip-run{background:rgba(34,211,238,.15);color:var(--cy)}.chip-off{background:rgba(93,116,132,.2);color:var(--ink3)}.chip-done{background:rgba(52,211,153,.16);color:var(--up)}
 .hyp{color:var(--ink2);margin:8px 0}.fold{margin:6px 0}.fold>summary{cursor:pointer;list-style:none;font-size:13px;padding:4px 0}.fold>summary::-webkit-details-marker{display:none}.fold>summary::before{content:"▸ ";color:var(--ink3)}.fold[open]>summary::before{content:"▾ "}.fold-b{padding-top:4px}details.fold.cov{border-top:1px dashed var(--soft);padding-top:4px}.fold.warn>summary b{color:#FF7A7E}.fold.tech{margin-top:14px;border-top:1px solid var(--soft);padding-top:6px}.fold.tech>summary b{color:var(--ink3)}.verdict{margin:12px 0;padding:10px 12px;border:1px solid var(--soft);border-radius:10px;background:rgba(34,211,238,.05)}.verdict-h{font-weight:700;font-size:14px;margin-bottom:6px}.verdict-main{font-size:13.5px;color:var(--ink);margin-bottom:8px}.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin:6px 0}.meta b{color:var(--ink)}
@@ -2649,6 +3086,12 @@ const JS = `
   });
 })();`;
 
+const WAVE = boostParts();
+/** Карточка теста -> <details>: заголовок в summary, всё остальное по клику. */
+const foldCards = (html: string): string => html
+  .replace(/<section class="card"( id="[^"]*")?><div class="chead">([\s\S]*?)<\/div><\/div>/g,
+    (_m, id: string | undefined, head: string) => `<section class="card"${id || ""}><details class="tcard"><summary class="chead">${head}</div></summary>`)
+  .replace(/<\/section>/g, "</details></section>");
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<meta name="viewport" content="width=device-width,initial-scale=1">`
   + `<title>GENGLASS · Тесты</title><style>${CSS}</style></head><body>`
@@ -2659,8 +3102,11 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>`
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта. Сама разница считается не к паре, а к групповому контролю: панель снимка без тестовых товаров и их родни по карточке. Пара осталась подписью и ловушкой для мёртвого и грязного контроля; родство в ней доказано корреляцией остатков, а не карточкой.</p>`
-  + cards + bidCards + boostCard() + mblock
-  + `<h2 class="sec">Заметки и предупреждения</h2>${warnBlock}<div class="notes"><ul>${notes}</ul></div></div>`
+  // «Измеренные тесты» со страницы убраны, «Заметки и предупреждения» свёрнуты (Иван 30.09).
+  // mblock собирается по-прежнему: reakciya.json не трогаем, блок просто не выводится.
+  // Карточки тестов свёрнуты до заголовка с чипом статуса (Иван 30.09: «сами тесты свернуть»).
+  + foldCards(cards.replace("<!--BOOST_EXITED-->", () => WAVE.exited).replace("<!--BOOST_TECH-->", () => WAVE.tech) + bidCards)
+  + `<details class="fold"><summary><b style="font-size:15px">Заметки и предупреждения</b></summary><div class="fold-b">${warnBlock}<div class="notes"><ul>${notes}</ul></div></div></details></div>`
   + `<script>${JS}</script></body></html>`;
 
 writeFileSync(op("katya-tests.html"), html);

@@ -68,8 +68,13 @@
 | / (хаб), /market/, KATYA | main | 3 | ⏳ |
 | /kontur/ /direct/ /seo/ | main | 3 | ⏳ |
 | /direct-preview/ /preview/ | ветки превью | 3 | ⏳ превью |
-| /academy/ /plan/ /ozon-research/ /phoenix/ /markplan/ /smm/ /stand-protocol/ | main | 4 | ⏳ |
-| /op-gm/ /messages/ /integra/ /kp-gm/ | свои ветки | 4 | ⏳ |
+| /smm/ /markplan/ /stand-protocol/ | main | 4 | ✅ `site/steps/28-main-static.sh` |
+| /phoenix/ | main (phoenix/dist) | 4 | ✅ `site/steps/29-phoenix.sh` (/t1/phoenix/ -> /phoenix/, пароль HUB_PASS обязателен) |
+| /plan/ /plan/v2/ | main | 4 | ✅ `site/steps/30-plan.sh` (гейт ростера) |
+| /academy/ | main (node, ACADEMY_PASS обязателен) | 4 | ✅ `site/steps/31-academy.sh` (обе страховки ПД) |
+| /ozon-research/ | main (Next.js) | 4 | ✅ `site/steps/32-ozon-research.sh` (подпапка /ozon-research, кэш по хэшу папки) |
+| /op-gm/ /messages/ /integra/ | свои ветки | 4 | ✅ `site/steps/33-op-gm.sh`, `34-messages.sh`, `35-integra.sh` |
+| /kp-gm/ | kp-glass-memory | 4 | ✅ `site/steps/36-kp-gm.sh` (штамп = короткий коммит) |
 | /status/ | сервер | - | ✅ `site/steps/90-status.sh` (новое) |
 
 ## Что захардкожено на github.io (исправить в фазе 4)
@@ -77,3 +82,7 @@
 Адрес `oliverjone01-dev.github.io/t1` встречается в 6 файлах кода, в том числе в хабе
 (`analytics-mvp/public/dashboards/index.html`) и в `rop-tg-bot.yml`. До исправления nginx
 переписывает эти ссылки на лету (`sub_filter` в `nginx/gg.conf.template`).
+
+Исключение, которое sub_filter не спасает: письмо-рассылка `smm/public/gm-newsletter/email.html`
+грузит картинки с github.io. Почтовый клиент не пройдёт basic auth сервера, поэтому картинки
+письма после выключения Pages нужно разместить на публичном адресе (решение до закрытия Pages).

@@ -51,6 +51,7 @@ const AUTHS = [
   ['заголовок Api-key', u => u + (PRJ ? '?project=' + encodeURIComponent(PRJ) : ''), { 'Api-key': KEY }]
 ];
 
+const PRINT_ITEMS = Number(process.env.ROISTAT_PRINT_ITEMS || 200);
 const scrub = s => String(s).split(KEY).join('***');
 
 /* Форма ответа без значений: имена ключей, длины массивов, образец имён полей
@@ -92,12 +93,6 @@ for (const [name, method, path, body] of CAND) {
   }
 }
 
-console.log('\n=== Разведка Roistat, ' + new Date().toISOString() + ' ===');
-console.log('проект: ' + (PRJ || 'НЕ ЗАДАН') + ', длина ключа: ' + KEY.length + '\n');
-for (const r of results) {
-  console.log('[' + String(r.code).padStart(3) + '] ' + r.name.padEnd(20) + ' ' + r.auth.padEnd(20) + ' ' + r.path);
-  console.log('      ' + scrub(r.info).slice(0, 900));
-}
 
 /* Разбор: что реально доступно и чем можно оперировать в дашборде */
 const live = results.filter(r => r.code === 200 && r.json && r.json.status !== 'error');
@@ -115,7 +110,7 @@ for (const key of ['справочник метрик', 'справочник р
   console.log('\n--- ' + key + ' ---');
   const arr = r.json.data || r.json.result || r.json;
   const list = Array.isArray(arr) ? arr : (arr && typeof arr === 'object' ? Object.values(arr).find(Array.isArray) || [] : []);
-  for (const it of list.slice(0, 200)) {
+  for (const it of list.slice(0, PRINT_ITEMS)) {
     if (it && typeof it === 'object') {
       console.log('  ' + [it.key || it.name || it.id, it.title || it.label || '', it.type || ''].filter(Boolean).join(' · '));
     } else console.log('  ' + it);
@@ -125,4 +120,13 @@ for (const key of ['справочник метрик', 'справочник р
 if (!live.length) {
   console.log('\nНи один метод не ответил. Проверить по порядку: тот ли ключ (это ключ проекта, а не токен интеграции),');
   console.log('тот ли номер проекта, открыт ли API на тарифе, не ограничен ли ключ по IP.');
+}
+
+/* Таблица ответов идёт последней: лог читается с хвоста. */
+console.log('\n=== Разведка Roistat, ' + new Date().toISOString() + ' ===');
+console.log('проект: ' + (PRJ || 'НЕ ЗАДАН') + ', длина ключа: ' + KEY.length);
+console.log('\n--- что ответил каждый метод ---');
+for (const r of results) {
+  console.log('[' + String(r.code).padStart(3) + '] ' + r.name.padEnd(20) + ' ' + r.auth.padEnd(20) + ' ' + r.path);
+  console.log('      ' + scrub(r.info).slice(0, 500));
 }

@@ -7,6 +7,9 @@ name: Roistat probe (разведка API)
 on:
   workflow_dispatch:
     inputs:
+      print_items:
+        description: "сколько позиций справочника печатать (0 - только размеры)"
+        default: "200"
       project_id:
         description: "ID проекта Roistat (если секрет ROISTAT_PROJECTID не задан)"
         required: false
@@ -35,6 +38,9 @@ jobs:
 
       - name: Разведка
         env:
+          # Сколько позиций справочника печатать. 0 - только размеры: справочники уже сняты,
+          # в логе нужна таблица ответов, а не повтор 1079 каналов.
+          ROISTAT_PRINT_ITEMS: ${{ github.event.inputs.print_items || '200' }}
           ROISTAT_API: ${{ secrets.ROISTAT_API }}
           ROISTAT_PROJECTID: ${{ secrets.ROISTAT_PROJECTID || github.event.inputs.project_id }}
         run: node roistat/probe.mjs

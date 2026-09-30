@@ -824,6 +824,16 @@ export interface SvodMonth {
   // Числа НЕ складываем (это был бы двойной счёт) - держим рядом и говорим о расхождении вслух.
   overhead_points_report: number;
   points_src: "orders" | "report"; // откуда взяты баллы: subsidies[] заказа или отчёт по баллам Маркета
+  // Списания баллов по доставленным заказам месяца, которые отчёт о баллах уже знает, а реестр
+  // платежей СВОЕГО кабинета ещё нет (дата списания позже последнего дня реестра). Строки свода
+  // берут списания только из реестра, поэтому эти рубли в них пока 0 - здесь они видны, а не
+  // теряются: поле есть в данных свода (svod_orders.json), на странице его не выводим (решение
+  // заказчика 30.09). Когда реестр догонит, списание уйдёт в строку заказа и отсюда исчезнет само -
+  // если оба источника ставят списанию одну дату (на 30.09 так у 2 939 строк из 2 942). 30.09.2026:
+  // зеркала, реестр по 27.09 (сборщик застрял после смены формата 29.09), отчёт по 28.09, заказ
+  // 61517954626 - 27 589,89. null - отчёта о баллах за эту пару нет, «ничего не висит» не доказано.
+  points_after_ledger?: number | null;
+  points_after_ledger_orders?: Array<{ order: string; sku: string; d_order: string; d_spend: string; v: number }>;
   svc_points_src?: "ledger" | "report";  // откуда взято СПИСАНИЕ баллов за услуги по заказам
   svc_points_report?: number;            // сколько списано по отчёту (для сверки)
   points_report: number;           // начислено баллов по отчёту за этот месяц (для сверки с разнесённым)
@@ -909,6 +919,31 @@ export function bonusKind(r: BonusRow): BonusKind {
   return "other";
 }
 export const isBonusAccrual = (r: BonusRow) => bonusKind(r) === "accrual";
+
+// Граница реестра платежей: последний день, по который реестр собран, отдельно по кабинету.
+// Одна функция на сборку свода, derive.ts и тесты: копия этой логики уже однажды разошлась бы.
+export function ledgerToBy(netting: Array<{ business?: unknown; d?: unknown }>): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const n of netting) {
+    const b = String(n.business || ""), d = String(n.d || "").slice(0, 10);
+    if (d > (out.get(b) || "")) out.set(b, d);
+  }
+  return out;
+}
+// Дата списания по отчёту о баллах. Пусто - дата неизвестна: ячейки не было, или сборщик
+// поставил заглушку «конец месяца» (d_est). Такую строку нельзя сравнивать с границей реестра:
+// заглушка 30.09 при реестре по 27.09 выглядела бы как «ещё не пришло», хотя реестр её знает.
+// Правило одно: строка с неизвестной датой считается известной реестру и сверяется как обычно.
+export function spendDate(r: { d?: unknown; d_est?: unknown }): string {
+  if (r.d_est) return "";
+  return String(r.d || "").slice(0, 10);
+}
+export const daysAfter = (d: string, from: string): number =>
+  Math.round((Date.parse(`${d}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000);
+// Предел отставания реестра от отчёта о баллах, в днях. За 8 снимков 22-29.09 отставание было не
+// больше 1 дня; с 2 дней это уже не свежесть источника, а застрявший сборщик (29.09 так застрял
+// реестр по кабинету зеркал после смены формата). [ГИПОТЕЗА по 8 снимкам] - поправить по факту.
+export const LEDGER_LAG_LIMIT_DAYS = 2;
 export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string, act: ActRow[] = [], bonus: BonusRow[] = [], deliv: DelivRow[] = []): SvodMonth[] {
   const cogsAt = cogsLookup(cogs);
   return buildSvodWith(rows, netting, cogsAt, today, act, bonus, deliv);
@@ -1249,6 +1284,56 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
         if (sv.points) { s.svc_pts[sv.col] = (s.svc_pts[sv.col] || 0) + part; s.svc_points += part; }
         else { s.svc[sv.col] = (s.svc[sv.col] || 0) + part; s.svc_money += part; }
       }
+    }
+  }
+
+  // 4б. списания баллов по заказам, до которых реестр СВОЕГО кабинета ещё не дошёл. Строки свода
+  // берут списания только из реестра; если реестр отстаёт от отчёта о баллах, списание по отчёту
+  // уже есть, а в строке заказа ещё 0. 30.09.2026 так было по кабинету зеркал: реестр по 27.09,
+  // отчёт по 28.09. Причина не в Маркете, а в нашем сборщике: 29.09 сменился формат снимка
+  // реестра, и по зеркалам заново собрались только февраль-март (шаг сборки fail-open, тревоги не
+  // было). Здесь такие списания лежат отдельно, а не пропадают; сколько дней реестр отстаёт,
+  // проверяют derive.ts (предупреждение) и тест (падает с LEDGER_LAG_LIMIT_DAYS).
+  // В строки свода эти рубли не идут: там источник - реестр, второй источник дал бы двойной счёт.
+  // Списание уходит отсюда само, когда реестр догонит, - при условии, что оба источника ставят
+  // списанию ОДНУ дату (на 30.09: 2 939 строк из 2 942 совпали с реестром день в день, остальные
+  // 3 - это и есть отставание).
+  {
+    const ledgerTo = ledgerToBy(netting);
+    const covered = new Set<string>(bonus.map((r) => `${r.business}|${r.ym}`));
+    const createdOf = new Map<string, string>();
+    for (const r of rows) if (r.created) createdOf.set(r.order, String(r.created).slice(0, 10));
+    const after = new Map<string, Map<string, { order: string; sku: string; d_order: string; d_spend: string; v: number }>>();
+    for (const r of bonus) {
+      if (bonusKind(r) !== "spend") continue;
+      const ord = String(r.order || "").trim();
+      if (!ord) continue;
+      const k = delivered.get(ord);
+      if (!k || !k.startsWith(`${r.business}|`)) continue;   // в свод идут только доставленные заказы своего кабинета
+      const dSpend = spendDate(r as any);
+      if (!dSpend) continue;                                   // дата неизвестна - считаем известной реестру, см. spendDate
+      if (dSpend <= (ledgerTo.get(String(r.business)) || "")) continue;   // реестр это уже знает
+      const sku = String(r.sku || "").trim();
+      const byKey = after.get(k) || new Map(); after.set(k, byKey);
+      const key = `${ord}|${sku}|${dSpend}`;
+      const e = byKey.get(key) || { order: ord, sku, d_order: createdOf.get(ord) || "", d_spend: dSpend, v: 0 };
+      e.v = r2(e.v - Number(r.amount));      // списание отрицательное, сторно положительное: -amount
+      byKey.set(key, e);
+    }
+    for (const [k, byKey] of after) {
+      const m = months.get(k);
+      if (!m) throw new Error(`свод: списание баллов после реестра по ${k}, а месяца в своде нет - деньги пропали бы молча`);
+      const list = [...byKey.values()].filter((e) => e.v !== 0)
+        .sort((a, b) => (a.d_spend < b.d_spend ? -1 : a.d_spend > b.d_spend ? 1 : a.order < b.order ? -1 : 1));
+      m.points_after_ledger = r2(list.reduce((a, e) => a + e.v, 0));
+      m.points_after_ledger_orders = list;
+    }
+    // Пропуск - не ноль: если отчёта о баллах за эту пару кабинет/месяц нет, «ничего не висит»
+    // сказать нельзя. Такой месяц получает null, а не 0.
+    for (const [k, m] of months) {
+      if (m.points_after_ledger !== undefined) continue;
+      m.points_after_ledger = covered.has(k) ? 0 : null;
+      m.points_after_ledger_orders = [];
     }
   }
 
@@ -1631,6 +1716,12 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
       }
     }
     for (const m of months.values()) if (m.fly_rows) m.fly_rows.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.order < b.order ? -1 : 1));
+  }
+  // Месяцы, заведённые после шага 4б (только кабинетные расходы, заказы в пути): то же правило.
+  const bonusCovered = new Set<string>(bonus.map((r) => `${r.business}|${r.ym}`));
+  for (const [k, m] of months) {
+    if (m.points_after_ledger === undefined) m.points_after_ledger = bonusCovered.has(k) ? 0 : null;
+    m.points_after_ledger_orders ??= [];
   }
   return [...months.values()].sort((a, b) => (a.ym === b.ym ? a.business.localeCompare(b.business) : b.ym.localeCompare(a.ym)));
 }

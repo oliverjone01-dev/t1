@@ -14,6 +14,9 @@ while IFS='|' read -r kind sec title; do
   [ "$kind" = ready ] || continue
   if [ -s "$site/$sec/index.html" ]; then ready+="${nl}• $title: https://$dom/$sec/"; fi
 done < <(gg_conf_lines "$conf")
+if [ -s "$site/.gg/managers.txt" ]; then
+  ready+="${nl}• Личные дашборды менеджеров: $(wc -l <"$site/.gg/managers.txt"), вида https://$dom/$(head -n1 "$site/.gg/managers.txt")/"
+fi
 
 jobs=""
 for f in "$GG_ROOT"/state/jobs/*.json; do

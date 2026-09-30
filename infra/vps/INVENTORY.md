@@ -29,7 +29,7 @@
 | sales-audit | пт 09:00, 1-е число 09:00 | 1 | 🟦 | то же + читает rop.json и dialog.json из git |
 | mgr-photos | пн 04:23 | 1 | ⏳ | фото менеджеров для личных дашбордов |
 | export-contacts, export-leads | вручную | 1 | ➖ | выгрузки контактов в git **прекратить**: xlsx клиентов не должен попадать в репозиторий; на сервере - в папку без веб-доступа |
-| b24-gm-snapshots | 17 5, 47 9 | 2 | ⏳ | /rop-gm/ |
+| b24-gm-snapshots | 17 5, 47 9 | 2 | ✅ `rop-gm-snapshot` + `rop-gm-snapshot-late` | /rop-gm/; дашборд печётся в задаче, не на деплое |
 | prod-cron | 37 5, 7 10 | 2 | ⏳ | /prod/ /prod2/ |
 | pto-cron | 47 5 | 2 | ⏳ | /pto/ |
 | economics-cron | 47 5, 17 10 | 2 | ✅ `economics-snapshot` + `economics-snapshot-late` | /economics/layers.html; два слота - две строки jobs.conf |
@@ -60,7 +60,7 @@
 | /rop-<фамилия>/ | manager-lakomova + rop-dashboard-v1 | 1 | ⏳ |
 | /dialog-experiments/ | dialog-experiments + rop + dialog | 1-2 | ⏳ |
 | /rop-preview/ /rop-experiments/ | ветки-песочницы | 1 | ⏳ превью (README §8) |
-| /rop-gm/ | rop-gm-dashboard-v1 | 2 | ⏳ |
+| /rop-gm/ | rop-gm-dashboard-v1 | 2 | ✅ `site/steps/24-rop-gm.sh` |
 | /prod/ /prod2/ | prod-dashboard-v1 | 2 | ⏳ |
 | /pto/ | pto-dashboard-v1 | 2 | ⏳ |
 | /economics/ /econ-control/ | economics-dashboard-v1 | 2 | ✅ `site/steps/23-economics.sh` |

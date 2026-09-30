@@ -4,7 +4,7 @@
 #   выкат веток (gg-poll) -> сайт -> задача с данными -> падение задачи с откатом -> откат сайта
 #   -> новый коммит в «GitHub» (данные сервера переживают выкат кода) -> генерация таймеров.
 # Запуск из корня репозитория: bash infra/vps/test/smoke-local.sh
-# Нужны локально ветки-источники: git fetch origin rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1
+# Нужны локально ветки-источники: git fetch origin rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1
 # ВАЖНО: без «cmd | grep -q» - при pipefail grep -q выходит на первом совпадении,
 # cmd получает SIGPIPE (код 141) и проверка падает случайно. Только grep -q <<<"$(cmd)".
 set -euo pipefail
@@ -27,7 +27,7 @@ tree=$(git -C "$REPO" write-tree)
 unset GIT_INDEX_FILE
 ops=$(git -C "$REPO" commit-tree "$tree" -p HEAD -m "gg smoke: контур из рабочей копии")
 git --git-dir="$GH" update-ref refs/heads/gg-smoke-ops "$ops"
-for b in rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1; do
+for b in rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1; do
   sha=$(git -C "$REPO" rev-parse -q --verify "origin/$b" || git -C "$REPO" rev-parse -q --verify "$b") \
     || fail "нет ветки $b локально: git fetch origin $b"
   git --git-dir="$GH" update-ref "refs/heads/$b" "$sha"
@@ -58,6 +58,7 @@ W="$GG_ROOT/www/current"
 [ -s "$W/status/index.html" ] && pass "/status/ собран" || fail "/status/ нет"
 [ -s "$W/economics/index.html" ] && cmp -s "$W/economics/index.html" "$W/econ-control/index.html" \
   && pass "/economics/ = /econ-control/ (контроль заполнения)" || fail "/economics/ или /econ-control/ нет"
+[ -s "$W/rop-gm/index.html" ] && [ -s "$W/rop-gm/v.txt" ] && pass "/rop-gm/ собран, штамп $(cat "$W/rop-gm/v.txt")" || fail "/rop-gm/ нет"
 [ -s "$W/economics/layers.html" ] && [ -s "$W/economics/v.txt" ] && pass "слоевой /economics/layers.html, штамп $(cat "$W/economics/v.txt")" || fail "layers.html или v.txt экономики"
 [ -s "$W/rop-smoke/index.html" ] && grep -q "^rop-smoke	Смоук Тестов$" "$W/.gg/managers.txt" && pass "/rop-<фамилия>/ собран, список записан" || fail "менеджеры"
 ROPSRC="$GG_ROOT/src/rop-dashboard-v1/current"
@@ -157,7 +158,7 @@ grep -q "^✅ РОП /rop/$" "$T/report.log" && grep -q "^❌ Производс
   && pass "план галочками: собранный раздел ✅, несобранный ❌" || { cat "$T/report.log"; fail "галочки плана"; }
 grep -q "^✅ Личные дашборды менеджеров" "$T/report.log" && grep -q "^❌ Бэкап данных в S3$" "$T/report.log" \
   && grep -q "^✅ Бот алертов" "$T/report.log" && pass "план: менеджеры, done/todo" || { cat "$T/report.log"; fail "done/todo плана"; }
-grep -q "^План: сделано [0-9]* из [0-9]*" "$T/report.log" && pass "итог плана: $(grep -o 'сделано [0-9]* из [0-9]*' "$T/report.log")" || fail "итог плана"
+grep -q "^План: готово [0-9]* из [0-9]* ([0-9]*%), осталось [0-9]*$" "$T/report.log" && pass "итог плана: $(grep -o 'готово [0-9]* из .*' "$T/report.log")" || { cat "$T/report.log"; fail "итог плана"; }
 grep -q "✅ Смоук Тестов: https://dash.genglas.ru/rop-smoke/" "$T/report.log" && pass "в сводке менеджер со ссылкой" || { cat "$T/report.log"; fail "сводка без менеджеров"; }
 grep -q "⚠️ Новичок Безсделок: страница не собрана" "$T/report.log" && pass "в сводке несобранный менеджер" || { cat "$T/report.log"; fail "сводка: несобранный"; }
 [ "$(git -C "$GG_ROOT/data" rev-parse HEAD)" = "$data_before" ] && grep -q smoke-dirty "$DATAHTML" \
@@ -225,5 +226,28 @@ rm -f "$GG_ROOT/data/.git/index.lock"
 grep -q '"rc":91' "$GG_ROOT/state/jobs/smoke-ok.json" && pass "сбой коммита данных: код 91, статус упал" || { cat "$GG_ROOT/state/jobs/smoke-ok.json"; fail "статус при сбое git"; }
 grep -q "не сохранены в git данных" "$T/job.log" && pass "причина в логе (уйдёт в алерт)" || fail "нет причины в логе"
 "$BIN/gg-job" smoke-ok >"$T/job.log" 2>&1 && pass "после снятия блокировки задача снова ok" || { cat "$T/job.log"; fail "повторный запуск"; }
+
+echo "13. РОП Glass Memory: снимок C21 в свой файл, дашборд печётся в задаче"
+GMSRC="$GG_ROOT/src/rop-gm-dashboard-v1/current/analytics-mvp"
+[ -L "$GMSRC/rop/data/rop-gm.json" ] && [ ! -L "$GMSRC/rop/data/rop.json" ] \
+  && pass "в релизе ссылкой на данные только rop-gm.json, rop.json ветки не тронут" || fail "ссылки данных GM"
+cat >"$T/fakebin/npx" <<'EOF'
+#!/usr/bin/env bash
+echo "$* cat=${ROP_DEAL_CATEGORY:-} out=${ROP_OUT:-} sp=${ROP_SP_ETID:-} dirs=${ROP_ONLY_LEAD_DIRS:-}" >>"$SMOKE_CALLS"
+case "$2" in
+  */fetch-rop.ts) echo '{"smoke":"gm"}' >"$ROP_OUT" ;;
+  */build-rop-gm.ts) echo '<html>"bakedAt":"smoke-gm"</html>' >public/rop-gm-command.html ;;
+esac
+EOF
+cp "$REPO/infra/vps/jobs/rop-gm-snapshot.sh" "$T/jobs/"
+printf 'rop-gm-snapshot | rop-gm-dashboard-v1 | *-*-* 05:17:00 UTC | rop-gm-snapshot.sh | b24-rop-gm | yes\n' >>"$T/jobs.conf"
+: >"$SMOKE_CALLS"
+PATH="$T/fakebin:$PATH" "$BIN/gg-job" rop-gm-snapshot >"$T/gm.log" 2>&1 || { cat "$T/gm.log"; fail "rop-gm-snapshot"; }
+grep -q "fetch-rop.ts cat=21 out=rop/data/rop-gm.json sp=1120 dirs=glass-memory" "$SMOKE_CALLS" \
+  && pass "сборщик вызван с воронкой 21, СП 1120, лидами Glass Memory" || { cat "$SMOKE_CALLS"; fail "параметры GM"; }
+grep -q '"smoke":"gm"' "$GG_ROOT/data/rop-gm-dashboard-v1/analytics-mvp/rop/data/rop-gm.json" \
+  && pass "снимок лёг в данные сервера" || fail "снимок GM не в данных"
+grep -q "smoke-gm" "$W/rop-gm/index.html" && [ "$(cat "$W/rop-gm/v.txt")" = smoke-gm ] \
+  && pass "/rop-gm/ пересобран, штамп обновлён" || fail "/rop-gm/ не обновился"
 
 echo "ВСЁ ЗЕЛЁНОЕ"

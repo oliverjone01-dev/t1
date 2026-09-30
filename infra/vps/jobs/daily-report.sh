@@ -61,7 +61,7 @@ done < <(gg_conf_lines "$conf")
 
 msg="📋 Переезд на сервер: сводка $(date -u '+%d.%m %H:%M') UTC${nl}${nl}Работает на сервере:${ready:-${nl}• пока ничего}"
 [ -n "$mgrs" ] && msg+="${nl}${nl}Дашборды менеджеров (как в РОП):${mgrs}"
-msg+="${nl}${nl}Задачи:${jobs:-${nl}• ещё не запускались}${nl}${nl}План: сделано $pdone из $ptotal (✅ готово на сервере, ❌ осталось)${plan}"
+msg+="${nl}${nl}Задачи:${jobs:-${nl}• ещё не запускались}${nl}${nl}План: готово $pdone из $ptotal ($(( ptotal ? pdone * 100 / ptotal : 0 ))%), осталось $((ptotal - pdone))${nl}✅ готово на сервере, ❌ осталось${plan}"
 msg+="${nl}${nl}Вход по личному логину."
 printf '%s\n' "$msg"
 gg_alert "$msg"

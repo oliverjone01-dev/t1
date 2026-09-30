@@ -1,0 +1,125 @@
+From 147b6856a0eddc4c49888f403ee1f6a7ed4036d7 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 30 Sep 2026 08:53:13 +0000
+Subject: [PATCH 2/3] =?UTF-8?q?infra/vps:=20=D0=BA=D0=BE=D0=BC=D0=B0=D0=BD?=
+ =?UTF-8?q?=D0=B4=D1=8B=20=D0=BA=D0=BE=D0=BD=D1=82=D1=83=D1=80=D0=B0=20?=
+ =?UTF-8?q?=D0=BD=D0=B5=20=D0=B7=D0=B0=D0=B2=D0=B8=D1=81=D1=8F=D1=82=20?=
+ =?UTF-8?q?=D0=BE=D1=82=20=D0=BF=D0=B0=D0=BF=D0=BA=D0=B8=20=D0=B2=D1=8B?=
+ =?UTF-8?q?=D0=B7=D0=BE=D0=B2=D0=B0=20(cd=20/)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+bootstrap запускал gg-release от gg из /root: find не может вернуться в
+исходную папку, выходит с кодом 1, при pipefail релиз и установка падают
+после шага 4. То же у gg-job при ручном запуске через sudo -u gg.
+Тест: шаг 8 smoke-local, запуск gg-release из папки без прав.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01H91198tXr5pT5C2Jtu7VmB
+---
+ infra/vps/bin/gg-job          |  1 +
+ infra/vps/bin/gg-poll         |  1 +
+ infra/vps/bin/gg-release      |  1 +
+ infra/vps/bin/gg-site         |  1 +
+ infra/vps/bin/gg-status       |  1 +
+ infra/vps/bootstrap.sh        |  1 +
+ infra/vps/test/smoke-local.sh | 12 ++++++++++++
+ 7 files changed, 18 insertions(+)
+
+diff --git a/infra/vps/bin/gg-job b/infra/vps/bin/gg-job
+index a033a6f7..7b18f34f 100755
+--- a/infra/vps/bin/gg-job
++++ b/infra/vps/bin/gg-job
+@@ -7,6 +7,7 @@
+ # пересборка сайта. Падение -> откат незакоммиченных данных ветки + алерт в Telegram.
+ set -euo pipefail
+ . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
++cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
+ gg_mkdirs
+ 
+ if [ "${1:-}" = --list ]; then gg_conf_lines "$GG_JOBS_CONF"; exit 0; fi
+diff --git a/infra/vps/bin/gg-poll b/infra/vps/bin/gg-poll
+index 9ad97da1..7dc3ab63 100755
+--- a/infra/vps/bin/gg-poll
++++ b/infra/vps/bin/gg-poll
+@@ -6,6 +6,7 @@
+ #  4. если что-то выкатилось - пересобрать сайт (gg-site).
+ set -euo pipefail
+ . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
++cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
+ gg_mkdirs
+ 
+ exec 9>"$GG_ROOT/state/locks/poll.lock"
+diff --git a/infra/vps/bin/gg-release b/infra/vps/bin/gg-release
+index 9a2ef3d0..f914d681 100755
+--- a/infra/vps/bin/gg-release
++++ b/infra/vps/bin/gg-release
+@@ -8,6 +8,7 @@
+ # Хранит 3 последних релиза ветки: откат = gg-release <ветка> <старый sha>.
+ set -euo pipefail
+ . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
++cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
+ 
+ br=${1:?"использование: gg-release <ветка> [sha]"}
+ gg_mkdirs
+diff --git a/infra/vps/bin/gg-site b/infra/vps/bin/gg-site
+index 8fb2a2c3..4e6831aa 100755
+--- a/infra/vps/bin/gg-site
++++ b/infra/vps/bin/gg-site
+@@ -5,6 +5,7 @@
+ # Сборку делает site/build.sh из релиза ветки контура: шаги site/steps/*.sh (порт deploy-pages.yml).
+ set -euo pipefail
+ . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
++cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
+ gg_mkdirs
+ rel="$GG_ROOT/www/releases"
+ cur=$(readlink -f "$GG_ROOT/www/current" 2>/dev/null || true)
+diff --git a/infra/vps/bin/gg-status b/infra/vps/bin/gg-status
+index fc616420..e2b454ea 100755
+--- a/infra/vps/bin/gg-status
++++ b/infra/vps/bin/gg-status
+@@ -2,6 +2,7 @@
+ # gg-status: сводка по серверу в терминале (то же, что страница /status/, плюс таймеры и диск).
+ set -euo pipefail
+ . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
++cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
+ 
+ echo "== Релизы веток"
+ for d in "$GG_ROOT"/src/*/current; do
+diff --git a/infra/vps/bootstrap.sh b/infra/vps/bootstrap.sh
+index 533028e4..050c1aa2 100755
+--- a/infra/vps/bootstrap.sh
++++ b/infra/vps/bootstrap.sh
+@@ -22,6 +22,7 @@ LE_EMAIL=${LE_EMAIL:-}
+ GG_ROOT=/srv/gg
+ say() { printf '\n\033[1m== %s\033[0m\n' "$*"; }
+ [ "$(id -u)" = 0 ] || { echo "запускать от root"; exit 1; }
++cd /   # команды от gg (sudo -u gg ...) не должны наследовать /root: у gg туда нет прав
+ . /etc/os-release
+ [ "${ID:-}" = ubuntu ] || echo "ВНИМАНИЕ: скрипт проверен под Ubuntu 24.04, у тебя $PRETTY_NAME"
+ 
+diff --git a/infra/vps/test/smoke-local.sh b/infra/vps/test/smoke-local.sh
+index 64c3273e..2ac5e047 100755
+--- a/infra/vps/test/smoke-local.sh
++++ b/infra/vps/test/smoke-local.sh
+@@ -124,4 +124,16 @@ mv "$OFFHTML" "$T/office.bak"
+ grep -q '"failed":1' "$W/.gg/build.json" && pass "падение шага видно в build.json" || fail "build.json"
+ mv "$T/office.bak" "$OFFHTML"
+ 
++echo "8. Запуск из папки без прав (как sudo -u gg из /root)"
++# root читает любую папку: забираем у него это право, иначе проверка ничего не проверяет
++nopriv=()
++[ "$(id -u)" = 0 ] && nopriv=(setpriv "--inh-caps=-dac_override,-dac_read_search" "--bounding-set=-dac_override,-dac_read_search")
++mkdir "$T/noperm"
++if (cd "$T/noperm" && chmod 000 . && "${nopriv[@]}" "$BIN/gg-release" rop-dashboard-v1 2>"$T/noperm.log"); then
++  pass "gg-release не зависит от папки вызова"
++else
++  chmod 755 "$T/noperm"; cat "$T/noperm.log"; fail "gg-release упал из папки без прав"
++fi
++chmod 755 "$T/noperm"
++
+ echo "ВСЁ ЗЕЛЁНОЕ"
+-- 
+2.43.0
+

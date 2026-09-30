@@ -886,6 +886,91 @@ function perArticle(t: TestDef): string {
 const lowerTitle = (t: string) => t.split(' ')
   .map((w) => w === w.toUpperCase() && w.length > 1 ? w : w.toLowerCase()).join(' ');
 
+// ---------- простыми словами: как считается и что видно (Иван 30.09) ----------
+/** Как считается каждый показатель графика. Текст для человека, без формул в коде. */
+const HOW: Record<string, string> = {
+  coinv: "Какую долю нашей цены для Ozon оплачивает сам Ozon, а не покупатель. На каждый товар и день:"
+    + " (1 - цена, которую платит покупатель с картой Ozon / наша цена для Ozon) × 100. По группе - среднее"
+    + " по товарам, у которых в этот день был снимок цены. Чем выше, тем дешевле товар на полке за счёт Ozon.",
+  adspend: "Сколько за день списано за клики по рекламе тестовых товаров, из отчёта кабинета рекламы. По группе - сумма."
+    + " У контроля рекламы нет, поэтому линия одна.",
+  cpc: "Средняя цена клика: расход на клики за день, делённый на число кликов того же дня. По группе считается из сумм,"
+    + " а не как среднее цен по товарам.",
+  clicks: "Сколько раз за день кликнули по рекламным объявлениям тестовых товаров. Сумма по группе, из отчёта кабинета рекламы.",
+  cpo: "Ставка оплаты за заказ: процент от цены заказа, который Ozon берёт за продвижение. Среднее по товарам группы."
+    + " Это сторож: при резком росте ставки заказы становятся убыточными.",
+  pos: "Средняя позиция товара в поиске Ozon за день, среднее по товарам группы. Меньше число - выше в выдаче, то есть лучше.",
+  vsearch: "Сколько раз товары показали в результатах поиска. Для каждой карточки считаем, во сколько раз день больше её"
+    + " обычного дня за две недели до старта (100 = как обычно). Потом берём середину (медиану) по карточкам:"
+    + " одна карточка-выброс линию не утащит.",
+  views: "Все показы товара: поиск, каталог, рекомендации. Считается как показы в поиске: индекс к своим двум неделям"
+    + " до старта, медиана по карточкам.",
+  pdp: "Сколько раз покупатели открыли карточку товара. Индекс к своим двум неделям до старта, медиана по карточкам.",
+  cart: "Сколько раз товары положили в корзину. Корзин мало, 0-2 в день на товар, поэтому складываем корзины всей группы"
+    + " за день и сравниваем со средним днём группы до старта (100 = как обычно).",
+  units: "Сколько штук заказали. Как корзина: заказы всей группы за день против среднего дня группы до старта (100 = как обычно).",
+  price: "Цена, которую платит покупатель с картой Ozon, среднее по товарам группы за день.",
+  revenue: "Выручка по заказам за день из ночной выгрузки «Дневная история», сумма по товарам группы. Магазин продаёт"
+    + " 4-16 SKU в день на весь ассортимент, поэтому линия прыгает от нуля до сотен тысяч: один стол за день меняет картину.",
+  drr: "Доля рекламы в выручке: расход на рекламу тестовых товаров, делённый на их выручку, × 100. За период считается"
+    + " из сумм, а не как среднее дневных процентов. Только у теста.",
+};
+
+/** Что показал график по каждому показателю: из тех же чисел, что линия и подпись под ней. */
+type DynRec = { title: string; mode: "index" | "raw"; testOnly: boolean; unit: string;
+  bT: number; pT: number; bC: number; pC: number; gT: number | null; gC: number | null };
+const DYNSUM = new Map<string, Record<string, DynRec>>();
+/** Ряд соинвеста теста и контроля по дням: по нему итог теста считает правило «3 дня подряд». */
+const COINV_ROWS = new Map<string, { days: string[]; post: string[]; a: Array<number | null>; b: Array<number | null>; nb: number }>();
+
+const fmtV = (key: string, x: number): string => !Number.isFinite(x) ? "нет данных"
+  : key === "coinv" || key === "cpo" || key === "drr" ? x.toFixed(1).replace(".", ",") + " %"
+  : key === "pos" ? x.toFixed(0)
+  : key === "cpc" ? x.toFixed(1).replace(".", ",") + " ₽"
+  : key === "price" || key === "revenue" || key === "adspend" ? nbsp(x) + " ₽" : nbsp(x);
+const fmtD = (key: string, x: number): string => {
+  if (!Number.isFinite(x)) return "нет данных";
+  const s = x >= 0 ? "+" : "-", ax = Math.abs(x);
+  return s + (key === "coinv" || key === "cpo" || key === "drr" ? ax.toFixed(1).replace(".", ",") + " п."
+    : key === "pos" ? ax.toFixed(0)
+    : key === "cpc" ? ax.toFixed(1).replace(".", ",") + " ₽"
+    : key === "price" || key === "revenue" || key === "adspend" ? nbsp(ax) + " ₽" : nbsp(ax));
+};
+
+function seenText(key: string, r: DynRec): string {
+  if (r.mode === "index") {
+    const pc = (x: number | null) => x == null ? "нет данных" : (x >= 0 ? "+" : "") + x.toFixed(0) + " %";
+    const dd = (r.gT ?? 0) - (r.gC ?? 0);
+    const who = Math.abs(dd) < 10 ? "Разница небольшая: реклама этот показатель заметно не сдвинула."
+      : dd > 0 ? "У товаров с рекламой показатель вырос заметно сильнее, чем у товаров без неё."
+      : "У товаров с рекламой показатель вырос слабее, чем у товаров без неё.";
+    return `Тест: <b>${pc(r.gT)}</b> к своим двум неделям до старта. Контроль: <b>${pc(r.gC)}</b>.`
+      + ` Тест относительно контроля: <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b>. ${who}`;
+  }
+  if (r.testOnly) {
+    return `До старта в среднем <b>${fmtV(key, r.bT)}</b> в день, после старта <b>${fmtV(key, r.pT)}</b>.`
+      + (key === "drr" ? " ДРР стоит на выручке, а она рваная, поэтому число читать как порядок, а не точно." : "");
+  }
+  const dT = r.pT - r.bT, dC = r.pC - r.bC, dd = dT - dC;
+  const small = key === "coinv" ? Math.abs(dd) < 2 : key === "pos" ? Math.abs(dd) < 3 : Math.abs(dd) < Math.abs(r.bC || 1) * 0.1;
+  const better = key === "pos" ? dd < 0 : dd > 0;
+  const who = !Number.isFinite(dd) ? "Сравнить не с чем: у одной из групп нет данных."
+    : small ? "Тест и контроль изменились почти одинаково."
+    : key === "coinv" ? (better ? "Ozon стал доплачивать товарам с рекламой больше, чем товарам без неё."
+      : "Ozon стал доплачивать товарам с рекламой меньше, чем товарам без неё.")
+    : key === "pos" ? (better ? "Товары с рекламой поднялись в поиске сильнее контроля." : "Товары с рекламой в поиске просели относительно контроля.")
+    : key === "revenue" ? "По выручке вывод не делаем: продаж в день слишком мало, один заказ меняет картину."
+    : better ? "Тест вырос сильнее контроля." : "Тест вырос слабее контроля.";
+  return `Тест: было <b>${fmtV(key, r.bT)}</b>, стало <b>${fmtV(key, r.pT)}</b> (${fmtD(key, dT)}).`
+    + ` Контроль: было <b>${fmtV(key, r.bC)}</b>, стало <b>${fmtV(key, r.pC)}</b> (${fmtD(key, dC)}).`
+    + ` Тест относительно контроля: <b>${fmtD(key, dd)}</b>. ${who}`;
+}
+
+const explain = (key: string, r: DynRec, details: string): string =>
+  `<div class="dyn-read"><b>Как считается.</b> ${HOW[key] || ""}</div>`
+  + `<div class="dyn-read"><b>Что видим.</b> ${seenText(key, r)}</div>`
+  + fold("", "Детали расчёта", details);
+
 function chart(t: TestDef, cid: string): string {
   const st = t.старт!;
   const days: string[] = [];
@@ -986,12 +1071,15 @@ function chart(t: TestDef, cid: string): string {
         ? ` <span class="warnv">Ненулевое значение есть лишь у ${(sideC!.share * 100).toFixed(0)} % наблюдений контроля`
           + ` при пороге ${(DENSITY_MIN * 100).toFixed(0)} %: линия и число стоят на редких событиях.</span>`
         : "";
+      const recI: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: dT, gC: dC };
+      (DYNSUM.get(t.id || "") ?? DYNSUM.set(t.id || "", {}).get(t.id || "")!)[key] = recI;
       reads[key] = `<div class="dyn-read">${EST_NAME[estOf(key)]}, ${lowerTitle(title)}: тест <b>${pc(dT)}</b>, `
         + `групповой контроль <b>${pc(dC)}</b>, разница <b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} пунктов</b>. `
         + `Контроль: ${CTL_SRC_NAME[ctlInfo!.src]}, ${nbsp(ctlInfo!.n)} ${plural(ctlInfo!.n, "артикул", "артикула", "артикулов")}. `
         + `База - две недели перед стартом, после старта ${post.length} дн, данные по ${LAST}. `
         + `Наблюдений за числом: тест ${nbsp(sideT!.n)}, контроль ${nbsp(sideC!.n)}.`
-        + `${thinNote}</div>${alarm}`;
+        + `${thinNote}</div>`;
+      reads[key] = explain(key, recI, reads[key]) + alarm;
     } else {
       const v = (x: number) => Number.isFinite(x) ? nbsp(x) + unit : "нет данных";
       let extra = "";
@@ -1018,6 +1106,10 @@ function chart(t: TestDef, cid: string): string {
             + ` сдвиг <b>${sgn(gp - gb)}${rub ? "" : " пункта"}</b>.${lastTxt}`;
         }
       }
+      const recR: DynRec = { title, mode, testOnly: !!testOnly, unit, bT, pT, bC, pC, gT: null, gC: null };
+      (DYNSUM.get(t.id || "") ?? DYNSUM.set(t.id || "", {}).get(t.id || "")!)[key] = recR;
+      if (key === "coinv") COINV_ROWS.set(t.id || "", { days, post, a: rawT, b: rawC,
+        nb: base.filter((d) => groupDaily(t.тест!, [d], key)[0] != null).length });
       reads[key] = `<div class="dyn-read">${testOnly ? "Тестовая группа" : "Средний день"}, ${lowerTitle(title)}: `
         + (testOnly
           ? `<b>${v(bT)} → ${v(pT)}</b> за день. У контроля рекламы нет по построению, поэтому вторая линия не рисуется.`
@@ -1033,6 +1125,11 @@ function chart(t: TestDef, cid: string): string {
           })()
           : "")
         + `</div>`;
+      reads[key] = explain(key, recR, reads[key])
+        + ((key === "coinv" || key === "price") && COINV_ROWS.get(t.id || "") && COINV_ROWS.get(t.id || "")!.nb < 3 && key === "coinv"
+          ? `<div class="dyn-alarm">База до старта короткая: снимки цен идут только с 09.09, в двух неделях до старта`
+            + ` ${COINV_ROWS.get(t.id || "")!.nb} ${plural(COINV_ROWS.get(t.id || "")!.nb, "наблюдаемый день", "наблюдаемых дня", "наблюдаемых дней")}. «Было» стоит на них, поэтому сравнение «было - стало» читать осторожно.</div>`
+          : "");
     }
   }
   if (!panes["vsearch"]) return "";
@@ -1509,9 +1606,72 @@ const COINV_MECH = `<div class="stop"><b>Соинвест из критерия 
   + ` арифметически, что бы ни сделал OZON. Правило «соинвест не просел больше чем на 2 пункта» прошло бы само`
   + ` собой. Ряд и график соинвеста остаются описательными.</div>`;
 
-const cards = T.тесты.map((t) => {
+/** ИТОГ ТЕСТА 1 ПО ЕГО ПРАВИЛУ (Иван 30.09: «в конце теста вывод по показателям, подтверждается
+ *  или нет и какие данные»). Числа те же, что на графике: ряд соинвеста теста и контроля по дням
+ *  и средние из DYNSUM, второго расчёта нет. Правило из tests.json: успех - сдвиг разрыва к базе
+ *  не меньше 5 п. три наблюдаемых дня подряд И доплата Ozon в ₽ больше расхода на клики;
+ *  провал - сдвиг меньше 2 п. или расход больше доплаты; между ними серая зона. Доплату в рублях
+ *  страница пока не считает (способ не согласован), поэтому «подтверждается» полностью не пишется. */
+function verdictBlock(t: TestDef): string {
+  if (t.id !== "cpc_bid_down") return "";
+  const sum = DYNSUM.get(t.id), cr = COINV_ROWS.get(t.id);
+  if (!sum || !sum["coinv"] || !cr) return "";
+  const co = sum["coinv"];
+  const gb = co.bT - co.bC;
+  const obs: Array<{ d: string; s: number }> = [];
+  cr.days.forEach((d, i) => {
+    const x = cr.a[i], y = cr.b[i];
+    if (d >= t.старт! && x != null && y != null) obs.push({ d, s: (x - y) - gb });
+  });
+  let run = 0, best = 0, bestEnd = "";
+  for (const o of obs) { run = o.s >= 5 ? run + 1 : 0; if (run > best) { best = run; bestEnd = o.d; } }
+  const mean = (co.pT - co.pC) - gb;
+  const spend = nums(groupDaily(t.тест!, cr.post, "adspend")).reduce((x, y) => x + y, 0);
+  const f1 = (x: number) => (x >= 0 ? "+" : "") + x.toFixed(1).replace(".", ",");
+  const part1 = !Number.isFinite(gb) ? "нет" : best >= 3 ? "да" : mean < 2 ? "провал" : "серая";
+  const head = part1 === "провал"
+    ? `<b>Гипотеза не подтверждается.</b> Разрыв у тестовой группы относительно контроля сдвинулся в среднем на ${f1(mean)} п., меньше порога провала 2 п.`
+    : part1 === "да"
+    ? `<b>По разрыву гипотеза подтверждается, по деньгам пока не проверена.</b> ${best} ${plural(best, "наблюдаемый день", "наблюдаемых дня", "наблюдаемых дней")} подряд`
+      + ` (по ${esc(bestEnd)}) сдвиг разрыва к базе был не меньше 5 п., в среднем после старта ${f1(mean)} п. Вторая часть правила, доплата Ozon в рублях больше расхода на клики,`
+      + ` не посчитана: способа расчёта доплаты в рублях страница пока не имеет. Расход на клики после старта: ${nbsp(spend)} ₽.`
+    : part1 === "серая"
+    ? `<b>Пока серая зона.</b> Средний сдвиг разрыва ${f1(mean)} п.: выше порога провала 2 п., но 5 п. три дня подряд не набралось`
+      + ` (лучшая серия ${best} дн). По правилу тест продлевается до 16.10.`
+    : `<b>Итог посчитать не на чем:</b> нет разрыва в базе.`;
+  const lastObs = obs[obs.length - 1];
+  const tail = lastObs && lastObs.s < 5
+    ? ` На последний день ряда (${esc(lastObs.d)}) сдвиг ${f1(lastObs.s)} п., уже ниже 5: если так пойдёт дальше, к замеру эффект может не удержаться.`
+    : lastObs ? ` На последний день ряда (${esc(lastObs.d)}) сдвиг ${f1(lastObs.s)} п.` : "";
+  const rows = METRICS.filter(([k]) => sum[k] && (sum[k]!.mode === "index" || Number.isFinite(sum[k]!.pT))).map(([k]) => {
+    const r = sum[k]!;
+    if (r.mode === "index") {
+      const pc = (x: number | null) => x == null ? "-" : (x >= 0 ? "+" : "") + x.toFixed(0) + " %";
+      const dd = (r.gT ?? 0) - (r.gC ?? 0);
+      return `<tr><td>${esc(r.title)}</td><td class="r">${pc(r.gT)}</td><td class="r">${pc(r.gC)}</td>`
+        + `<td class="r"><b>${dd >= 0 ? "+" : ""}${dd.toFixed(0)} п.</b></td></tr>`;
+    }
+    if (r.testOnly) return `<tr><td>${esc(r.title)}</td><td class="r">${fmtV(k, r.bT)} → ${fmtV(k, r.pT)}</td>`
+      + `<td class="r muted">рекламы нет</td><td class="r muted">-</td></tr>`;
+    return `<tr><td>${esc(r.title)}</td><td class="r">${fmtV(k, r.bT)} → ${fmtV(k, r.pT)}</td>`
+      + `<td class="r">${fmtV(k, r.bC)} → ${fmtV(k, r.pC)}</td><td class="r"><b>${fmtD(k, (r.pT - r.bT) - (r.pC - r.bC))}</b></td></tr>`;
+  }).join("");
+  return `<div class="verdict"><div class="verdict-h">Итог по показателям на ${esc(LAST)}</div>`
+    + `<div class="verdict-main">${head}${tail}</div>`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th><th class="r">Тест: до → после</th>`
+    + `<th class="r">Контроль: до → после</th><th class="r">Тест относительно контроля</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<div class="cov"><b>Как читать таблицу.</b> «До» - средний день двух недель перед стартом ${esc(t.старт || "")}, «после» - средний день после старта.`
+    + ` Для показов, заходов, корзины и заказов - рост к своим двум неделям до старта в процентах. Последняя колонка - насколько тест изменился сильнее`
+    + ` (плюс) или слабее (минус) контроля; у позиции минус значит, что тест поднялся выше. Выручку и ДРР как вывод не читаем:`
+    + ` продаж в день мало, один заказ стола меняет картину.</div>`
+    + `<div class="cov"><b>На что опирается итог.</b> Правило теста: ${esc(t.правило || "")}`
+    + ` Сдвиг разрыва по дням после старта: ${obs.map((o) => `${esc(o.d.slice(8, 10))}.${esc(o.d.slice(5, 7))} ${f1(o.s)}`).join(", ") || "нет наблюдений"} п.`
+    + ` База до старта: ${cr.nb} ${plural(cr.nb, "наблюдаемый день", "наблюдаемых дня", "наблюдаемых дней")} из 14, поэтому итог предварительный. Окончательный замер ${esc(t.замер || "-")}.</div></div>`;
+}
+
+const cards = T.тесты.map((t, ti) => {
   const tst = t.тест || [], ctl = t.контроль || [];
-  let body: string;
+  let pairsHtml = "", notesHtml = "", chartHtml = "", perArt = "";
   if (tst.length || ctl.length) {
     const rows = tst.map((s) => pairRow(s, t)).join("");
     const paired = tst.filter((s) => log.has(s)).length;
@@ -1520,17 +1680,30 @@ const cards = T.тесты.map((t) => {
     const cov = `Пар: <b>${paired}</b> из ${tst.length}. `
       + (orphan.length ? `Контроль без пары: ${esc(orphan.join(", "))}.` : "Весь контроль разобран по парам.")
       + (HAS_COINV ? "" : " Соинвест контроля появится, когда накопится посуточный ряд цен.");
-    body = `<div class="tbl-wrap"><table class="gtbl"><thead>`
+    pairsHtml = `<div class="tbl-wrap"><table class="gtbl"><thead>`
       + `<tr class="grp"><th colspan="5">Тест</th><th class="sep" colspan="2">Контроль</th><th></th></tr>`
       + `<tr><th>Артикул</th><th class="r" title="Показы в поиске за 14 дней до старта пары, из посуточного снимка OZON. Окно то же, что у базы замера">Поиск/2нед</th>`
       + `<th class="r" title="Соинвест на момент запуска, из лога кабинета">Соинвест %</th>`
       + `<th class="r" title="Ставка, с которой товар включили в кампанию. Когда товар добавляют в кампанию, Ozon сам подставляет свою ставку (в логе 47-157 ₽), и в ту же минуту её меняют на 8 или 12 ₽. Это не смена ставки: по подставленной реклама не шла ни дня (поправка Ивана 28.09)">Ставка, ₽</th><th>Старт</th>`
       + `<th class="sep">Артикул</th><th class="r">Поиск/2нед</th>`
       + `<th class="r" title="Насколько трафик теста расходится с контролем до старта. Больше 20 % - пара плохо сопоставима">Δ поиска</th></tr>`
-      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>${kinBanner}${adsContinuity(t)}${ctlPromoNote(t)}${dirtyControl(t)}${deadControl(t)}${chart(t, "dyn-" + t.id)}${perArticle(t)}`;
-  } else {
-    body = '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>';
+      + `</thead><tbody>${rows}</tbody></table></div><div class="cov">${cov}</div>`;
+    notesHtml = `${kinBanner}${adsContinuity(t)}${ctlPromoNote(t)}${dirtyControl(t)}${deadControl(t)}`;
+    chartHtml = chart(t, "dyn-" + t.id);
+    perArt = perArticle(t);
   }
+  const tech = interimBlock(t)
+    + (t.промежуточный_вывод && !t.условие_завершения
+        ? `<div class="dyn-alarm"><b>У теста есть предварительный ответ, но нет условия завершения.</b>`
+          + ` Это та самая дыра, из-за которой 24.09 тест 1 закрыли по письму про кабинет: без условия`
+          + ` «ответ получен» через неделю читается как «конец». Условие надо записать в tests.json.</div>`
+        : "")
+    + (t.промежуточный_вывод && bidWatch(t) ? fold("", "Разрыв по всем товарам теста", bidWatch(t)) : "")
+    + (t.акция ? fold("", "Соинвест в критерии", COINV_MECH) : "")
+    + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
+    + (pairsHtml ? fold("", "Пары тест - контроль", pairsHtml) : "")
+    + (notesHtml ? fold("", "Контроль: заражение, чистка, реклама", notesHtml) : "")
+    + (perArt ? fold("", "Показатели по артикулам", perArt) : "");
   return `<section class="card"><div class="chead"><div class="ctitle">${esc(t.название)} ${statusChip(t)}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span>`
@@ -1540,22 +1713,18 @@ const cards = T.тесты.map((t) => {
     + (t.ответственный ? `<span>Ответственный: <b>${esc(t.ответственный)}</b></span>` : "")
     + `</div>`
     + fold("hyp", "Что проверяем", esc(t.гипотеза))
-    + interimBlock(t)
+    + fold("rule", "Правило", esc(t.правило || ""))
     + (t.условие_завершения
         ? fold("rule", "Когда тест завершится", `${esc(t.условие_завершения)}`
           + ` До тех пор он живой, замер ${esc(t.замер || "-")} в плане, ростер и обе группы как были.`)
         : "")
-    + (t.промежуточный_вывод && !t.условие_завершения
-        ? `<div class="dyn-alarm"><b>У теста есть предварительный ответ, но нет условия завершения.</b>`
-          + ` Это та самая дыра, из-за которой 24.09 тест 1 закрыли по письму про кабинет: без условия`
-          + ` «ответ получен» через неделю читается как «конец». Условие надо записать в tests.json.</div>`
-        : "")
-    + (t.промежуточный_вывод && bidWatch(t) ? fold("", "Разрыв по всем товарам теста", bidWatch(t)) : "")
-    + fold("rule", "Правило", esc(t.правило || ""))
-    + (t.акция ? fold("", "Соинвест в критерии", COINV_MECH) + mdeBlock(t) : "")
+    + (t.акция ? mdeBlock(t) : "")
     + (t.стоп ? fold("", "Стоп-сигнал", stopBlock(t.стоп)) : "")
-    + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
-    + fold("", "Пары, динамика, по артикулам", body) + `</section>`;
+    + (chartHtml ? `<details class="fold" open><summary><b>Динамика по показателям</b></summary><div class="fold-b">${chartHtml}</div></details>`
+      : (tst.length || ctl.length ? "" : '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>'))
+    + verdictBlock(t)
+    + (tech ? fold("tech", `Техническая информация тест ${ti + 1}`, tech) : "")
+    + `</section>`;
 }).join("");
 
 // ---------- тест «большая ставка против маленькой» (tests.json, тесты_ставок) ----------
@@ -2381,7 +2550,7 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.ctitle{font-weight:700;font-size:15px}
 .chip{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
 .chip-run{background:rgba(34,211,238,.15);color:var(--cy)}.chip-off{background:rgba(93,116,132,.2);color:var(--ink3)}.chip-done{background:rgba(52,211,153,.16);color:var(--up)}
-.hyp{color:var(--ink2);margin:8px 0}.fold{margin:6px 0}.fold>summary{cursor:pointer;list-style:none;font-size:13px;padding:4px 0}.fold>summary::-webkit-details-marker{display:none}.fold>summary::before{content:"▸ ";color:var(--ink3)}.fold[open]>summary::before{content:"▾ "}.fold-b{padding-top:4px}details.fold.cov{border-top:1px dashed var(--soft);padding-top:4px}.fold.warn>summary b{color:#FF7A7E}.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin:6px 0}.meta b{color:var(--ink)}
+.hyp{color:var(--ink2);margin:8px 0}.fold{margin:6px 0}.fold>summary{cursor:pointer;list-style:none;font-size:13px;padding:4px 0}.fold>summary::-webkit-details-marker{display:none}.fold>summary::before{content:"▸ ";color:var(--ink3)}.fold[open]>summary::before{content:"▾ "}.fold-b{padding-top:4px}details.fold.cov{border-top:1px dashed var(--soft);padding-top:4px}.fold.warn>summary b{color:#FF7A7E}.fold.tech{margin-top:14px;border-top:1px solid var(--soft);padding-top:6px}.fold.tech>summary b{color:var(--ink3)}.verdict{margin:12px 0;padding:10px 12px;border:1px solid var(--soft);border-radius:10px;background:rgba(34,211,238,.05)}.verdict-h{font-weight:700;font-size:14px;margin-bottom:6px}.verdict-main{font-size:13.5px;color:var(--ink);margin-bottom:8px}.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin:6px 0}.meta b{color:var(--ink)}
 .rule{font-size:12.5px;color:var(--ink2);background:rgba(229,181,103,.08);border-left:3px solid var(--warn);padding:7px 10px;border-radius:6px;margin:8px 0}
 .tbl-wrap{overflow-x:auto;margin-top:8px;max-height:340px;overflow-y:auto}
 .gtbl{width:100%;border-collapse:collapse;font-size:12px}

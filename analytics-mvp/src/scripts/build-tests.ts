@@ -864,7 +864,8 @@ function perArticle(t: TestDef): string {
     + ` Пример: <b>${esc(ex.test)}</b>, колонка «Поиск» <b>${ex.dd >= 0 ? "+" : ""}${ex.dd.toFixed(0)}</b> -`
     + ` показы в поиске у товара ${pc(ex.dT)}, у группового контроля ${pc(ex.dC)}, разница ${ex.dd >= 0 ? "+" : ""}${ex.dd.toFixed(0)} пунктов.`
     + ` Плюс - товар вырос сильнее контроля. У позиции наоборот: минус - товар поднялся в поиске выше.`
-    + ` Колонка «Пара из лога» справочная: разница с ней не считается.</div>`;
+    + ` Колонка «Пара из лога» справочная: разница с ней не считается.</div>`
+
   return `<div class="sub2">Показатели по артикулам</div>${howTo}<div class="tbl-wrap"><table class="gtbl single">`
     + `<thead><tr><th>Артикул</th><th title="Пара, которую записали в лог кампаний при запуске. Разница в ячейках считается к групповому контролю, а не к ней">Пара из лога</th>`
     + cols.map(([k, n]) => {
@@ -1703,7 +1704,7 @@ const cards = T.тесты.map((t, ti) => {
     + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
     + (pairsHtml ? fold("", "Пары тест - контроль", pairsHtml) : "")
     + (notesHtml ? fold("", "Контроль: заражение, чистка, реклама", notesHtml) : "")
-    + (perArt ? fold("", "Показатели по артикулам", perArt) : "");
+    ;
   return `<section class="card"><div class="chead"><div class="ctitle">${esc(t.название)} ${statusChip(t)}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span>`
@@ -1723,6 +1724,7 @@ const cards = T.тесты.map((t, ti) => {
     + (chartHtml ? `<details class="fold" open><summary><b>Динамика по показателям</b></summary><div class="fold-b">${chartHtml}</div></details>`
       : (tst.length || ctl.length ? "" : '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>'))
     + verdictBlock(t)
+    + (perArt ? `<details class="fold" open><summary><b>Показатели по артикулам</b></summary><div class="fold-b">${perArt}</div></details>` : "")
     + (tech ? fold("tech", `Техническая информация тест ${ti + 1}`, tech) : "")
     + `</section>`;
 }).join("");

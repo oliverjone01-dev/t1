@@ -22,3 +22,24 @@ if cp rop/data/rop.json "$office/rop/data/rop.json" \
 else
   gg_warn "офис-дашборд не пересобран (снимок РОПа при этом сохранён)"
 fi
+
+# Личные дашборды менеджеров (ветка manager-lakomova): тот же снимок РОПа, ростер из данных,
+# /rop-<фамилия>/. Как в GitHub: падение не валит снимок РОПа. Страницы (~12 МБ на менеджера)
+# кладём в cache, а не в git данных: их всегда можно пересобрать из rop.json, а git за неделю
+# вырос бы на гигабайты. Шаг сайта 22-managers забирает их оттуда.
+mgr=$(gg_src manager-lakomova)/analytics-mvp
+out="$GG_ROOT/cache/site-managers"
+rm -rf "$out.new"; mkdir -p "$out.new"
+if cp rop/data/rop.json "$mgr/rop/data/rop.json" \
+  && (cd "$mgr" && OUT_DIR="$out.new" MIN_DEALS=5 node src/scripts/b24/build-managers-all.mjs); then
+  gg_log "Дашборды менеджеров пересобраны: $(find "$out.new" -mindepth 1 -maxdepth 1 -type d | wc -l)"
+else
+  gg_warn "дашборды менеджеров собраны не все (снимок РОПа при этом сохранён)"
+fi
+# Публикуем, если собран хоть один; иначе остаются прошлые страницы
+if [ -n "$(find "$out.new" -mindepth 1 -maxdepth 1 -type d -print -quit)" ]; then
+  rm -rf "$out.old"; [ -d "$out" ] && mv "$out" "$out.old"
+  mv "$out.new" "$out"; rm -rf "$out.old"
+else
+  rm -rf "$out.new"
+fi

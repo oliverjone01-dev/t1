@@ -27,7 +27,7 @@ tree=$(git -C "$REPO" write-tree)
 unset GIT_INDEX_FILE
 ops=$(git -C "$REPO" commit-tree "$tree" -p HEAD -m "gg smoke: контур из рабочей копии")
 git --git-dir="$GH" update-ref refs/heads/gg-smoke-ops "$ops"
-for b in rop-dashboard-v1 office-dashboard-v1; do
+for b in rop-dashboard-v1 office-dashboard-v1 manager-lakomova; do
   sha=$(git -C "$REPO" rev-parse -q --verify "origin/$b" || git -C "$REPO" rev-parse -q --verify "$b") \
     || fail "нет ветки $b локально: git fetch origin $b"
   git --git-dir="$GH" update-ref "refs/heads/$b" "$sha"
@@ -43,6 +43,9 @@ git --git-dir="$GG_ROOT/git/t1.git" config remote.origin.fetch '+refs/heads/*:re
 git init -q -b main "$GG_ROOT/data"
 git -C "$GG_ROOT/data" -c user.name=t -c user.email=t@t commit -q --allow-empty -m init
 BIN="$REPO/infra/vps/bin"
+# страницы менеджеров собирает задача rop-snapshot (node) - в тесте кладём готовую
+mkdir -p "$GG_ROOT/cache/site-managers/rop-smoke"
+echo '<html>smoke-mgr</html>' >"$GG_ROOT/cache/site-managers/rop-smoke/index.html"
 
 echo "1. Первый выкат (gg-poll)"
 "$BIN/gg-poll" 2>"$T/poll.log" || { cat "$T/poll.log"; fail "gg-poll"; }
@@ -52,6 +55,7 @@ W="$GG_ROOT/www/current"
 [ -s "$W/rop/v.txt" ] && pass "штамп /rop/v.txt: $(cat "$W/rop/v.txt")" || fail "v.txt пуст"
 [ -s "$W/office/index.html" ] && pass "/office/ собран" || fail "/office/ нет"
 [ -s "$W/status/index.html" ] && pass "/status/ собран" || fail "/status/ нет"
+[ -s "$W/rop-smoke/index.html" ] && grep -qx rop-smoke "$W/.gg/managers.txt" && pass "/rop-<фамилия>/ собран, список записан" || fail "менеджеры"
 ROPSRC="$GG_ROOT/src/rop-dashboard-v1/current"
 [ -L "$ROPSRC/analytics-mvp/rop/data" ] && pass "данные РОПа в релизе - ссылка на /srv/gg/data" || fail "нет ссылки на данные"
 DATAHTML="$GG_ROOT/data/rop-dashboard-v1/analytics-mvp/public/rop-command.html"
@@ -148,5 +152,13 @@ grep -q "Волна 2" "$T/report.log" && pass "в сводке план" || fai
 [ "$(git -C "$GG_ROOT/data" rev-parse HEAD)" = "$data_before" ] && grep -q smoke-dirty "$DATAHTML" \
   && pass "данные не закоммичены и не откачены" || fail "служебная задача тронула данные"
 grep -q '"ok":true' "$GG_ROOT/state/jobs/daily-report.json" && pass "статус сводки записан" || fail "статус сводки"
+
+echo "10. Менеджеры: шаг упал -> разделы по списку из прошлой сборки"
+mv "$GG_ROOT/cache/site-managers" "$T/mgr.bak"
+"$BIN/gg-site" 2>/dev/null
+[ -s "$W/rop-smoke/index.html" ] && pass "/rop-smoke/ перенесён из прошлой сборки" || fail "менеджер пропал с сайта"
+grep -qx rop-smoke "$W/.gg/managers.txt" && pass "список менеджеров перенесён" || fail "список менеджеров"
+grep -q 22-managers "$W/.gg/build.json" && pass "падение шага менеджеров видно в build.json" || fail "build.json менеджеров"
+mv "$T/mgr.bak" "$GG_ROOT/cache/site-managers"
 
 echo "ВСЁ ЗЕЛЁНОЕ"

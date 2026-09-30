@@ -2,6 +2,7 @@
 # Сборка сайта: выполняет site/steps/*.sh по порядку, каждый шаг изолирован (как continue-on-error
 # в deploy-pages.yml). Отличие от GitHub: если шаг упал, его разделы (строка «# sections: ...» в
 # шапке шага) переносятся из прошлой сборки - дашборд не пропадает с сайта, а остаётся вчерашним.
+# Для разделов, которых заранее не знаем (менеджеры): «# sections-from: <файл со списком в сайте>».
 # Шаг получает: SITE (куда класть файлы), функцию gg_src <ветка> (путь к релизу ветки с данными).
 set -uo pipefail
 . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
@@ -24,6 +25,17 @@ for step in "$GG_OPS"/site/steps/*.sh; do
         gg_warn "раздел /$s/ взят из прошлой сборки"
       fi
     done
+    # «# sections-from: <файл>» - разделы по списку из прошлой сборки (ростер, меняется сам)
+    lst=$(sed -n '/^# sections-from:/{s/^# sections-from:[[:space:]]*//p;q}' "$step")
+    if [ -n "$lst" ] && [ -n "$PREV" ] && [ -f "$PREV/$lst" ]; then
+      while read -r s; do
+        case "$s" in ''|*/*|.*) continue ;; esac
+        [ -d "$PREV/$s" ] || continue
+        rm -rf "${SITE:?}/$s"; cp -al "$PREV/$s" "$SITE/$s"
+      done <"$PREV/$lst"
+      mkdir -p "$(dirname "$SITE/$lst")"; cp "$PREV/$lst" "$SITE/$lst"
+      gg_warn "разделы по списку $lst взяты из прошлой сборки"
+    fi
   fi
 done
 

@@ -2043,6 +2043,62 @@ function bidChart(p: PairDef, cid: string): string {
     + `<script>window.DYN=window.DYN||{};window.DYN[${JSON.stringify(cid)}]=${JSON.stringify({ d: days, m: tip, panes, reads, subs })};`
     + `window.SOLO=window.SOLO||{};window.SOLO[${JSON.stringify(cid)}]=${same ? JSON.stringify(keys) : "[]"};</script>`;
 }
+// ИТОГ ТЕСТА 3 ПО ЕГО ПРАВИЛУ (Иван 30.09: «в тест 3 добавь также итоги»). Пороги из правила
+// в tests.json, приняты Иваном 30.09 как рабочие [ГИПОТЕЗА]. Числа те же, что под графиками
+// пары (sideStat), второго расчёта нет. ДРР по кабинету страница не считает: заказы с рекламы
+// в выгрузке неполные, поэтому эта часть правила печатается как «не проверено», а не как «да».
+const BID_ORD_GAP = 3;     // заказов в неделю: большая больше малой не меньше чем на столько
+const BID_DRR_MAX = 15;    // %, ДРР по кабинету
+const BID_COINV_TOL = 2;   // п., соинвест малой не ниже большой больше чем на столько
+function bidVerdictPair(p: PairDef): string {
+  const B = p.большая, S = p.малая;
+  const wB = sideWindow(p, B, LAST), wS = sideWindow(p, S, LAST);
+  const name = `<div class="sub2">${esc(p.название)}</div>`;
+  if (wB.to < wB.from || wS.to < wS.from) {
+    const w = wB.to < wB.from && wS.to < wS.from ? `окна обеих сторон начнутся ${DM(wB.from < wS.from ? wB.from : wS.from)}`
+      : wB.to < wB.from ? `окно большой стороны начнётся ${DM(wB.from)}` : `окно малой стороны начнётся ${DM(wS.from)}`;
+    return name + `<div class="cov" style="border-top:none">Итога пока нет: ${w}, сравнивать не с чем.</div>`;
+  }
+  const stB = sideStat(series.get(B.артикул), gapByArt.get(B.артикул), wB.from, wB.to, LAST_SPEND || wB.to);
+  const stS = sideStat(series.get(S.артикул), gapByArt.get(S.артикул), wS.from, wS.to, LAST_SPEND || wS.to);
+  const f1 = (x: number | null) => x == null ? "-" : x.toFixed(1).replace(".", ",");
+  const oB = perWeek(stB.units, stB.days), oS = perWeek(stS.units, stS.days);
+  const ordOk = oB != null && oS != null ? oB - oS >= BID_ORD_GAP : null;
+  const cpOk = stB.cartPer1k != null && stS.cartPer1k != null ? stS.cartPer1k >= stB.cartPer1k : null;
+  const coOk = stB.gapMed != null && stS.gapMed != null ? stS.gapMed >= stB.gapMed - BID_COINV_TOL : null;
+  const yn = (v: boolean | null) => v == null ? '<span class="muted">нет данных</span>' : v ? "<b>да</b>" : "нет";
+  const wk = (v: number, n: number) => { const x = perWeek(v, n); return x == null ? "-" : nbsp(Math.round(x)); };
+  const row = (n: string, b: string, sm: string, rule = "", ok = "") =>
+    `<tr><td>${n}</td><td class="r">${b}</td><td class="r">${sm}</td><td>${rule}</td><td class="r">${ok}</td></tr>`;
+  const rows = row("Заказы в неделю", f1(oB), f1(oS), `большая больше малой на ${BID_ORD_GAP} и больше`, yn(ordOk))
+    + row("ДРР по кабинету", '<span class="muted">не посчитан</span>', '<span class="muted">не посчитан</span>', `у большой не выше ${BID_DRR_MAX} %`, '<span class="muted">не проверено</span>')
+    + row("Корзин на 1 000 ₽", f1(stB.cartPer1k), f1(stS.cartPer1k), "у малой не меньше, чем у большой", yn(cpOk))
+    + row("Соинвест, %", f1(stB.gapMed), f1(stS.gapMed), `у малой не ниже большой больше чем на ${BID_COINV_TOL} п.`, yn(coOk))
+    + row("Показы в поиске в неделю", wk(stB.vsearch, stB.days), wk(stS.vsearch, stS.days))
+    + row("Карточка в неделю", wk(stB.pdp, stB.days), wk(stS.pdp, stS.days))
+    + row("Корзины в неделю", wk(stB.cart, stB.days), wk(stS.cart, stS.days))
+    + row("Расход в неделю, ₽", stB.spendDays ? nbsp(Math.round(stB.spend / stB.spendDays * 7)) : "-", stS.spendDays ? nbsp(Math.round(stS.spend / stS.spendDays * 7)) : "-");
+  const bigTxt = ordOk === false ? "большая ставка по заказам <b>не оправдана</b>"
+    : ordOk ? "по заказам большая ставка оправдана, ДРР из кабинета не проверен" : "по заказам сравнить нечем";
+  const smallTxt = cpOk && coOk ? "малой ставки <b>достаточно</b>"
+    : cpOk === false || coOk === false ? "малой ставки <b>не достаточно</b>" : "по малой ставке данных не хватает";
+  const both = ordOk && cpOk && coOk
+    ? ` Обе части правила выполняются одновременно: большая даёт больше заказов, малая дешевле покупает корзину. Правило здесь не выбирает, решение за Иваном.` : "";
+  const same = B.артикул === S.артикул ? " Обе стороны - один товар в разные окна." : "";
+  const few = ordOk != null ? ` Заказов за окно ${nbsp(stB.units)} и ${nbsp(stS.units)} шт: по заказам это направление, а не доказательство, твёрже корзины.` : "";
+  return name + `<div class="verdict-main">${bigTxt[0]!.toUpperCase() + bigTxt.slice(1)}; ${smallTxt}.${both}${few}${same}`
+    + ` Окно большой ${DM(wB.from)}-${DM(wB.to)} (${stB.days} дн), малой ${DM(wS.from)}-${DM(wS.to)} (${stS.days} дн).</div>`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th>`
+    + `<th class="r">Большая ${esc(B.ставка ?? "-")} ₽</th><th class="r">Малая ${esc(S.ставка ?? "-")} ₽</th><th>Условие правила</th><th class="r">Выполнено</th></tr></thead>`
+    + `<tbody>${rows}</tbody></table></div>`;
+}
+function bidVerdict(t: BidTestDef): string {
+  return `<div class="verdict"><div class="verdict-h">Итог по показателям на ${esc(LAST)}</div>`
+    + `<div class="cov" style="border-top:none">Предварительно: быстрый признак ${esc(t.быстрый_признак || "-")}, замер ${esc(t.замер || "-")}.`
+    + ` Пороги правила рабочие [ГИПОТЕЗА], приняты Иваном 30.09. В неделю - сумма окна, приведённая к 7 дням; соинвест - медиана по дням со снимком цен.</div>`
+    + t.пары.map(bidVerdictPair).join("")
+    + `</div>`;
+}
 const bidCards = BID_TESTS.map((t, bi) => {
   const pairs = t.пары.map((p, pi) => fold("", `Пара: ${esc(p.название)}`, (p.заметка ? `<div class="cov" style="border-top:none;padding:0 0 4px">${esc(p.заметка)}</div>` : "")
     + bidChart(p, `bid-${bi}-${pi}`))).join("");
@@ -2056,6 +2112,7 @@ const bidCards = BID_TESTS.map((t, bi) => {
     + (t.гипотеза ? fold("hyp", "Что проверяем", esc(t.гипотеза)) : "")
     + (t.условие_завершения ? fold("rule", "Когда тест завершится", esc(t.условие_завершения)) : "")
     + (t.правило ? fold("rule", "Правило", esc(t.правило)) : "")
+    + bidVerdict(t)
     + pairs
     // Заметка и «Откуда данные» - в техническую информацию (Иван 30.09).
     + fold("tech", `Техническая информация тест ${T.тесты.length + bi + 1}`,

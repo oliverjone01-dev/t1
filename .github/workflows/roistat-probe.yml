@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       script:
-        description: "probe (методы) | analytics (трафик, заявки, числа) | paging (страницы, лимит)"
+        description: "probe (методы) | analytics (трафик, заявки, числа) | paging (страницы, лимит) | showcase (срез витрины)"
         default: "probe"
       metric_grep:
         description: "regexp поиска по справочнику метрик (имя или заголовок)"
@@ -28,6 +28,9 @@ on:
       cliff:
         description: "paging: искать делением пополам, где обрывается привязка к визиту (1 - да)"
         default: "0"
+      closed_month:
+        description: "showcase: закрытый месяц YYYY-MM (пусто - предыдущий полный)"
+        default: ""
 
 permissions:
   contents: read
@@ -64,9 +67,12 @@ jobs:
           RATE_PROBE: ${{ github.event.inputs.rate_probe || '0' }}
           COVERAGE_PAGES: ${{ github.event.inputs.coverage_pages || '0' }}
           CLIFF: ${{ github.event.inputs.cliff || '0' }}
+          # showcase: пусто - предыдущий полный месяц, считается от даты прогона.
+          CLOSED_MONTH: ${{ github.event.inputs.closed_month }}
         run: |
           case "${{ github.event.inputs.script || 'probe' }}" in
             analytics) node roistat/probe-analytics.mjs ;;
+            showcase)  node roistat/probe-showcase.mjs ;;
             paging)    node roistat/probe-paging.mjs ;;
             *)         node roistat/probe.mjs ;;
           esac

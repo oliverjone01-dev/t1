@@ -121,3 +121,27 @@ const v = await call('/project/site/visit/list', {
   period: { from: FROM + ' 00:00:00', to: TO + ' 23:59:59' }, limit: 1 });
 if (bad(v)) console.log(why(v));
 else console.log('total визитов за период: ' + v.total);
+
+/* ---------- 5. работает ли фильтр периода ----------
+   За 30 дней order/list вернул 52954 записи, а снимок Битрикса за три месяца по
+   воронке C49 даёт 1160 сделок. Расхождение такого порядка бывает по двум разным
+   причинам: либо метод покрывает все воронки холдинга, либо фильтр периода не
+   применился и пришла вся база. Это класс ошибки К3 из реестра: молчаливая
+   подмена периода. Инвариант простой - сутки не могут дать столько же, сколько
+   месяц. */
+await pause(2000);
+console.log('\n--- проверка фильтра периода (инвариант: сутки < месяца) ---');
+const oneDay = TO;
+const probes = [
+  ['месяц ' + FROM + '..' + TO, { from: FROM + ' 00:00:00', to: TO + ' 23:59:59' }],
+  ['сутки ' + oneDay,           { from: oneDay + ' 00:00:00', to: oneDay + ' 23:59:59' }],
+  ['сутки, поля date_from/date_to', null]
+];
+for (const [label, period] of probes) {
+  const body = period ? { period, limit: 1 } : { date_from: oneDay + ' 00:00:00', date_to: oneDay + ' 23:59:59', limit: 1 };
+  const r = await call('/project/integration/order/list', body);
+  console.log('  ' + label.padEnd(36) + (bad(r) ? why(r) : 'total = ' + r.total));
+  await pause(1500);
+}
+const vd = await call('/project/site/visit/list', { period: { from: oneDay + ' 00:00:00', to: oneDay + ' 23:59:59' }, limit: 1 });
+console.log('  визиты за сутки ' + oneDay + ': ' + (bad(vd) ? why(vd) : 'total = ' + vd.total));

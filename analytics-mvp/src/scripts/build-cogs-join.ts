@@ -48,6 +48,24 @@ function main() {
     skuCost.set(to, v);
     console.log(`СС произв.: ${to} взята у ${from} (${v} ₽) - ручная связка, один товар`);
   }
+  // Связки на Лист1 (лист OZON, fixtures/cogs_prod_sku.csv): артикул Маркета пишется иначе, чем в
+  // Лист1 (кириллица в коде, без дефиса в размере). Катя 30.09.2026: «бери с листа 1». Цена берётся
+  // именно из Лист1, а не из общей карты, где поверх лежит лист ЯМ (там 01/03 у столешек перепутаны).
+  // GGT-03-2-4-L-80 и GGTW-05-d120 в Лист1 нет - остаются без СС, пока Катя не скажет иначе.
+  const prodCost = new Map(prodRows.filter((r) => r.offer).map((r) => [r.offer, Math.round(r.cost)]));
+  const LIST1: Array<[string, string]> = [
+    ["GGTP-20-3х2", "GGTP-20-3x2"],       // х кириллица -> x латиница
+    ["GGTW-01-200-90", "GGTW-01-20090"],
+    ["GGTW-03-180-90", "GGTW-03-18090"],
+    ["GGМ-16-4-3", "GGM-16-4-3"],         // М кириллица -> M латиница
+  ];
+  if (!IS_OZON) for (const [to, from] of LIST1) {
+    const v = prodCost.get(from);
+    if (v == null) { console.warn(`::warning::связка СС ${to} <- ${from}: артикула нет в Лист1, связка не сработала`); continue; }
+    if (skuCost.has(to)) continue;
+    skuCost.set(to, v);
+    console.log(`СС произв.: ${to} взята из Лист1 у ${from} (${v} ₽) - по слову Кати`);
+  }
   // Запасной индекс по нормализованному артикулу - только для тех, кто не нашёлся точным ключом.
   const normCost = new Map<string, number>();
   for (const [k, v] of skuCost) { const n = normOffer(k); if (!normCost.has(n)) normCost.set(n, v); }

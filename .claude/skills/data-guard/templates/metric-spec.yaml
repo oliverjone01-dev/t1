@@ -1,0 +1,56 @@
+# Спека метрики. Копируй в knowledge/semantic/metrics/<id>.yaml
+# Поля с пометкой BLOCKING подтверждает заказчик до кода. Значения не заполнены заранее намеренно: выбор за заказчиком.
+# Мелкая правка (подпись, одна колонка без новой формулы): мини-спека из трёх полей date_field, empty_value, golden_rows (эталон предлагает агент, заказчик подтверждает «да»).
+id: ""                     # латиница, напр. ozon-net-payout
+title: ""
+version: 1
+status: draft              # draft | approved
+owner: ""                  # кто подписывает
+approved_at: ""            # YYYY-MM-DD, заполняется после подтверждения
+decision: ""               # какое решение принимают по метрике
+good_direction: ""         # up | down
+entity: ""                 # одна единица: заказ / отправление / сделка / клиент
+key: []                    # поля уникального ключа
+type: simple               # simple | ratio | conversion | cumulative | derived
+formula_text: ""
+code_module: ""            # единственный модуль с формулой
+ratio:                     # BLOCKING для type=ratio
+  numerator: ""
+  denominator: ""
+  same_entity: true
+  same_date_field: true
+  invariant: "0 <= value <= 1"
+filters:
+  include_statuses: []
+  exclude: []              # удалённые стадии, мигрированные, тестовые, уволенные, подразделения
+cancellations_returns:     # BLOCKING
+  mode: ""                 # BLOCKING: gross | net
+  return_date_basis: ""    # order_date | return_date
+date_field: ""             # BLOCKING: created | paid | shipped | delivered | accrued
+mode: ""                   # BLOCKING: period | cohort
+conversion_window_days: null
+cohort_maturity_rule: ""
+timezone: Europe/Moscow    # BLOCKING
+interval: "[from, to)"
+partial_period: ""         # mark | hide
+additive_over_time: null   # true | false: можно ли суммировать по дням
+accounting_basis: ""       # accrual | cash | shipment
+empty_value: "null"        # null | 0 (0 только с обоснованием)
+source:
+  endpoint: ""
+  fields: []
+  limits: ""
+  latency: ""
+  lookback_days: null      # горизонт перезабора задним числом
+reconciliation:
+  against_family: ""       # bank | documents | api | cabinet (не то же семейство, что source)
+  document: ""
+  tolerance: "0.01"
+inference_rules:
+  min_n: null
+  mde: null
+  causal_claims: forbidden_without_control
+golden_rows:               # BLOCKING: 3-5 строк, посчитанных вручную
+  - input: ""
+    expected: ""
+    confirmed_by: ""

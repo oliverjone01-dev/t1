@@ -71,8 +71,8 @@ if event == "subagent_stop":
     rec["msg_chars"] = len(msg)
     if d.get("stop_reason"):
         rec["stop_reason"] = str(d["stop_reason"])[:80]
-    m = re.search(r"VERDICT:\s*(go|return|veto|blocked|n/a)", msg, re.I)
-    v = m.group(1).lower() if m else None
+    ms = re.findall(r"VERDICT:\s*(go|return|veto|blocked|n/a)", msg, re.I)  # последний вердикт в отчёте (цитаты прошлых вердиктов идут раньше)
+    v = ms[-1].lower() if ms else None
     if v in ("go", "return", "veto"):
         rec["verdict"] = v
     # outcome только по явным маркерам; «success по умолчанию» завышало метрики P15 (аудит 2026-09-06)
@@ -97,6 +97,9 @@ if event == "subagent_stop":
                     rec["feniks_score"] = val
             except ValueError:
                 pass
+        a = re.findall(r"AUDITED:\s*([0-9a-f]{12,40})", msg)  # привязка go к изменениям ветки (data-guard audit_hash.py)
+        if a:
+            rec["audited_hash"] = a[-1]
     c = re.search(r"CONFIDENCE:\s*([01](?:\.[0-9]+)?)", msg, re.I)
     if c:
         rec["confidence"] = float(c.group(1))

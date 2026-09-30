@@ -65,3 +65,6 @@ msgs.jsonl
 # Лендинг /phoenix: зависимости не коммитим, собранный dist коммитим намеренно,
 # чтобы деплой Pages не зависел от доступности npm в CI.
 phoenix/node_modules/
+
+# архив скилла data-guard для claude.ai (собирается build_account_zip.sh)
+data-guard.zip

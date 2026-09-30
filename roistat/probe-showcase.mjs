@@ -75,18 +75,30 @@ const prevMonth = (y, m) => (m === 1 ? [y - 1, 12] : [y, m - 1]);
 const [CY, CM] = process.env.CLOSED_MONTH
   ? process.env.CLOSED_MONTH.split('-').map(Number)
   : prevMonth(Y, M);
-const closedFrom = `${CY}-${pad(CM)}-01`, closedTo = `${CY}-${pad(CM)}-${pad(lastDay(CY, CM))}`;
+
+/* Граница периода доказана прогоном 36696610547: окно [15..15] дало 0 визитов,
+   окно [15..16] дало 568 - ровно ту величину, на которую до этого не сходилась
+   аддитивность. Значит интервал полуоткрытый [from, to): день, названный в `to`,
+   не входит. Поэтому дальше ВЕЗДЕ `to` это первый день следующего периода, а в
+   подписи стоит человеческий диапазон. Это же правило обязана соблюдать витрина,
+   иначе «месяц» молча теряет последние сутки (К3). */
+const nextDay = iso => new Date(Date.parse(iso + 'T00:00:00Z') + 864e5).toISOString().slice(0, 10);
+
+const closedFrom = `${CY}-${pad(CM)}-01`;
+const closedLast = `${CY}-${pad(CM)}-${pad(lastDay(CY, CM))}`;
+const closedTo   = nextDay(closedLast);            /* граница, не последний день */
 const curFrom = `${Y}-${pad(M)}-01`;
-const partTo  = `${Y}-${pad(M)}-15`;
-const curTo   = TODAY;
-/* Половинки текущего месяца для проверки аддитивности. Если сегодня 15-е или
-   раньше, второй половины ещё нет и проверка честно пропускается. */
-const halfBFrom = `${Y}-${pad(M)}-16`;
+const partLast = `${Y}-${pad(M)}-15`, partTo = `${Y}-${pad(M)}-16`;
+const curTo   = nextDay(TODAY);                    /* сегодня включительно */
+const halfBFrom = partTo;
 
 const PERIODS = [
-  { key:'closed',  label:'закрытый месяц   ' + closedFrom + ' .. ' + closedTo, from:closedFrom, to:closedTo, partial:false },
-  { key:'part',    label:'часть месяца     ' + curFrom    + ' .. ' + partTo,   from:curFrom,    to:partTo,   partial:D <= 15 },
-  { key:'current', label:'текущий месяц    ' + curFrom    + ' .. ' + curTo,    from:curFrom,    to:curTo,    partial:true },
+  { key:'closed',  label:'закрытый месяц   ' + closedFrom + ' .. ' + closedLast + '  (to=' + closedTo + ')',
+    from:closedFrom, to:closedTo, partial:false },
+  { key:'part',    label:'часть месяца     ' + curFrom + ' .. ' + partLast + '  (to=' + partTo + ')',
+    from:curFrom, to:partTo, partial:D <= 15 },
+  { key:'current', label:'текущий месяц    ' + curFrom + ' .. ' + TODAY + '  (to=' + curTo + ')',
+    from:curFrom, to:curTo, partial:true },
 ];
 
 console.log('=== Roistat: первый живой срез витрины ===');
@@ -113,14 +125,22 @@ for (const x of all) {
   say('  ' + x.name.padEnd(12) + String(x.title).slice(0, 62).padEnd(64) + (x.type || ''));
 }
 
-/* Выручка выбирается по заголовку. custom_16..26 - «выручка по стадиям», но
-   какая из них равна выигранным сделкам, из номера не видно. */
-const revenueCustoms = all
-  .filter(x => /^custom_(1[6-9]|2[0-6])$/.test(x.name) && x.is_available !== false)
-  .map(x => x.name);
-const pick = c => c.filter(n => byName.has(n) && byName.get(n).is_available !== false);
-const BASE = pick(['visits', 'leads', 'marketing_cost']);
-const METRICS = BASE.concat(revenueCustoms);
+/* Плановая конструкция была: выручка = custom_16..26 в разрезе marker_level_1.
+   Прогон 36696610547 её отменил - все одиннадцать метрик приходят null во всех
+   строках и во всех трёх периодах, то есть воронка Битрикса в Ройстате как
+   пользовательские метрики не наполнена. При этом 76 штатных денежных метрик
+   числа отдают. Поэтому деньги берём из штатных, а custom_19 оставлен в запросе
+   одним сторожем: если он однажды наполнится, срез это покажет, а не промолчит.
+
+   Двух метрик «Выручка» в Ройстате две: `revenue` и `payment_revenue`. Какой
+   датой каждая привязывает деньги к периоду - НЕ ПРОВЕРЕНО, поэтому обе идут в
+   срез рядом, и ни одна пока не названа «той самой». */
+const REVENUE = pick(['revenue', 'payment_revenue', 'net_profit', 'potential_revenue',
+                      'revenue_canceled', 'payment_sales']);
+const SENTINEL = pick(['custom_19']);
+const pickAll = c => c.filter(n => byName.has(n) && byName.get(n).is_available !== false);
+const BASE = pickAll(['visits', 'leads', 'marketing_cost']);
+const METRICS = BASE.concat(REVENUE, SENTINEL);
 say('\nв запрос идут ' + METRICS.length + ' метрик: ' + METRICS.join(', '));
 if (!BASE.length) { console.error('ни одной базовой метрики нет в справочнике - дальше идти нельзя'); process.exit(1); }
 
@@ -224,8 +244,9 @@ for (const p of PERIODS) {
   snap[p.key] = { rows, cut, totRow, partial: p.partial };
 
   /* ---- инвариант 3: покрытие. Сколько денег вне канала ---- */
-  const money = revenueCustoms.filter(m => cut[m] > 0);
-  const moneyMetric = money.sort((a, b) => cut[b] - cut[a])[0] || null;
+  /* Метрика покрытия задана явно, а не «самая большая из ненулевых»: иначе от
+     периода к периоду витрина считала бы покрытие по разным метрикам (К1). */
+  const moneyMetric = REVENUE.find(m => cut[m] > 0) || null;
   if (moneyMetric) {
     const undef = rows.filter(isNoChannel);
     const uSum = undef.reduce((a, r) => a + (metricValue(r, moneyMetric) || 0), 0);
@@ -274,8 +295,8 @@ if (snap.part && snap.current) {
 } else say('  нет двух периодов для сравнения');
 
 /* ---------- 5. аддитивность: 1-15 + 16-конец = весь месяц ---------- */
-say('\n=== аддитивность: 1-15 + 16-' + curTo.slice(8) + ' = 1-' + curTo.slice(8) + ' ===');
-if (Number(curTo.slice(8)) <= 16) {
+say('\n=== аддитивность: [1..15] + [16..сегодня] = [1..сегодня] ===');
+if (Number(TODAY.slice(8)) <= 16) {
   say('  сегодня ' + TODAY + ', второй половины месяца ещё нет - проверка пропущена, не провалена');
 } else {
   const half = await data(halfBFrom, curTo, ['marker_level_1']);
@@ -356,18 +377,53 @@ for (const [m, nn, tot, sm] of alive.sort((a, b) => b[3] - a[3]))
 say('\n  пустые во всех строках (' + empty.length + '): ' + empty.join(', '));
 out.push(['деньги', 'метрик с числами в разрезе', alive.length + ' из ' + moneyAll.length]);
 
+/* ---------- 8. воронка: без неё сверка с Битриксом невозможна ----------
+   Снимок Битрикса покрывает одну воронку («GG RF Заказы», категория 49), а
+   Ройстат считает весь проект. Сравнивать их итоги напрямую - это К2, числитель
+   и знаменатель из разных популяций. Поэтому ищем разрез «воронка» в справочнике
+   разрезов и снимаем выручку в нём: строка нужной воронки и есть вторая цифра
+   сверки. Имя разреза не угадывается - берётся из справочника по заголовку. */
+say('\n=== воронка: ищем разрез, в котором видно воронку Битрикса ===');
+await pause(PAUSE);
+const dims = await call('/project/analytics/dimensions', {});
+let funnelDims = [];
+if (bad(dims)) say('справочник разрезов: ' + why(dims));
+else {
+  const list = dims.dimensions || dims.data || [];
+  funnelDims = list.filter(x => /воронк|направлен/i.test(String(x.title))).map(x => x.name);
+  say('разрезов в справочнике: ' + list.length + ', похожих на воронку: ' + funnelDims.length);
+  for (const x of list.filter(x => /воронк|направлен/i.test(String(x.title))).slice(0, 10))
+    say('  ' + String(x.name).padEnd(20) + String(x.title).slice(0, 60));
+}
+
+const MONEY_FOR_FUNNEL = REVENUE.length ? REVENUE : BASE;
+for (const dim of funnelDims.slice(0, 3)) {
+  await pause(PAUSE);
+  const r = await call('/project/analytics/data', {
+    metrics: BASE.concat(MONEY_FOR_FUNNEL), dimensions: [dim],
+    period: { from: closedFrom, to: closedTo } });
+  if (bad(r)) { say('\n  разрез ' + dim + ': ' + why(r)); continue; }
+  const rr = rowsOf(r);
+  say('\n  разрез ' + dim + ' за ' + closedFrom + ' .. ' + closedLast + ', строк ' + rr.length + ':');
+  say('    воронка                                     лиды' + MONEY_FOR_FUNNEL.map(m => m.slice(0, 14).padStart(16)).join(''));
+  for (const row of rr.slice().sort((a, b) => (metricValue(b, MONEY_FOR_FUNNEL[0]) || 0) - (metricValue(a, MONEY_FOR_FUNNEL[0]) || 0)).slice(0, 15))
+    say('    ' + dimLabel(row).slice(0, 40).padEnd(42) + rub(metricValue(row, 'leads')).padStart(6) +
+        MONEY_FOR_FUNNEL.map(m => rub(metricValue(row, m)).padStart(16)).join(''));
+  out.push(['воронка', dim, rr.length + ' строк']);
+}
+if (!funnelDims.length) out.push(['воронка', 'разрез не найден', 'сверка по воронке невозможна']);
+
 /* ---------- 6. итог. Печатается последним: логи Actions читаются с хвоста ---------- */
 say('\n=== ИТОГ СРЕЗА ===');
 if (!out.length) say('  все проверки прошли');
 else for (const [a, b, c] of out) say('  ' + String(a).padEnd(14) + String(b).padEnd(34) + c);
 
-say('\n=== ДЛЯ СВЕРКИ С БИТРИКСОМ (закрытый месяц ' + closedFrom + ' .. ' + closedTo + ') ===');
+say('\n=== ДЛЯ СВЕРКИ С БИТРИКСОМ (закрытый месяц ' + closedFrom + ' .. ' + closedLast + ') ===');
 if (snap.closed) {
-  for (const m of revenueCustoms) {
+  for (const m of METRICS) {
     const v = snap.closed.cut[m];
-    if (v) say('  ' + m.padEnd(12) + rub(v).padStart(16) + '   «' + titleOf(m) + '»');
+    say('  ' + m.padEnd(20) + rub(v).padStart(16) + '   «' + titleOf(m) + '»');
   }
-  say('  ' + 'leads'.padEnd(12) + rub(snap.closed.cut['leads']).padStart(16));
-  say('  ' + 'visits'.padEnd(12) + rub(snap.closed.cut['visits']).padStart(16));
-  say('  ' + 'marketing_cost'.padEnd(12) + rub(snap.closed.cut['marketing_cost']).padStart(16));
+  say('  Ройстат считает ВСЕ воронки проекта, снимок Битрикса - только воронку 49.');
+  say('  Сводить эти итоги напрямую нельзя (К2). Разбивка по воронкам - ниже.');
 } else say('  среза за закрытый месяц нет');

@@ -16,7 +16,8 @@ for f in "$GG_ROOT"/state/jobs/*.json; do [ -f "$f" ] && cat "$f"; done
 echo "== Таймеры"
 systemctl list-timers 'gg-*' --no-pager 2>/dev/null || echo "  (systemd недоступен)"
 echo "== Данные: последние коммиты"
-git -C "$GG_DATA" log --oneline -5 2>/dev/null || echo "  (git данных пуст)"
+# safe.directory: от root git иначе отказывается читать папку gg («dubious ownership») и пишет «пуст»
+git -c safe.directory="$GG_DATA" -C "$GG_DATA" log --oneline -5 2>/dev/null || echo "  (git данных пуст или недоступен)"
 echo "== Диск"
 df -h "$GG_ROOT" | tail -1
 du -sh "$GG_DATA" "$GG_GIT" "$GG_ROOT/src" "$GG_ROOT/www" "$GG_ROOT/cache" 2>/dev/null || true

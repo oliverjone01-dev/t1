@@ -68,3 +68,6 @@ phoenix/node_modules/
 
 # архив скилла data-guard для claude.ai (собирается build_account_zip.sh)
 data-guard.zip
+
+# буфер трейсов P14, сбрасывается .claude/hooks/traces-flush.sh
+traces/.pending/

@@ -23,9 +23,11 @@ MONTH="$(date +%Y-%m)"
 
 # Есть ли свежий аудит ФЕНИКСА
 HAS_AUDIT=0
-if [ -f "traces/${TODAY}/agents.jsonl" ] && grep -q '"event": *"audit"' "traces/${TODAY}/agents.jsonl" 2>/dev/null; then
-  HAS_AUDIT=1
-fi
+for TF in "traces/${TODAY}/agents.jsonl" "traces/.pending/${TODAY}/agents.jsonl"; do
+  if [ -f "$TF" ] && grep -q '"event": *"audit"' "$TF" 2>/dev/null; then
+    HAS_AUDIT=1
+  fi
+done
 if compgen -G "knowledge/episodes/${MONTH}/feniks-*${TODAY//-/}*" > /dev/null 2>&1; then
   HAS_AUDIT=1
 fi

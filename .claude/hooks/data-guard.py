@@ -114,8 +114,14 @@ def feniks_go_for(rev, max_age_h, worktree=False):
     last = None
     now = dt.datetime.now(dt.timezone.utc)
     today = now.strftime("%Y-%m-%d")
-    dirs = [f for f in sorted(glob.glob(os.path.join(ROOT, "traces", "*", "agents.jsonl")))
-            if os.path.basename(os.path.dirname(f)) <= today][-5:]  # каталоги с будущей датой не вытесняют настоящие
+    # traces/<дата> и буфер traces/.pending/<дата> (subagent-trace.sh пишет в буфер до traces-flush.sh)
+    day_of = lambda f: os.path.basename(os.path.dirname(f))
+    days = sorted({day_of(f) for f in glob.glob(os.path.join(ROOT, "traces", "*", "agents.jsonl"))
+                   + glob.glob(os.path.join(ROOT, "traces", ".pending", "*", "agents.jsonl"))
+                   if day_of(f) <= today})[-5:]  # каталоги с будущей датой не вытесняют настоящие
+    dirs = [f for d in days for f in (os.path.join(ROOT, "traces", d, "agents.jsonl"),
+                                      os.path.join(ROOT, "traces", ".pending", d, "agents.jsonl"))
+            if os.path.exists(f)]
     for f in dirs:
         try:
             lines = open(f, encoding="utf-8").read().splitlines()

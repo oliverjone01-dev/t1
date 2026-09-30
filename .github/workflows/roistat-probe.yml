@@ -7,6 +7,9 @@ name: Roistat probe (разведка API)
 on:
   workflow_dispatch:
     inputs:
+      script:
+        description: "probe (методы) | analytics (трафик, заявки, числа)"
+        default: "probe"
       print_items:
         description: "сколько позиций справочника печатать (0 - только размеры)"
         default: "200"
@@ -43,4 +46,8 @@ jobs:
           ROISTAT_PRINT_ITEMS: ${{ github.event.inputs.print_items || '200' }}
           ROISTAT_API: ${{ secrets.ROISTAT_API }}
           ROISTAT_PROJECTID: ${{ secrets.ROISTAT_PROJECTID || github.event.inputs.project_id }}
-        run: node roistat/probe.mjs
+        run: |
+          case "${{ github.event.inputs.script || 'probe' }}" in
+            analytics) node roistat/probe-analytics.mjs ;;
+            *)         node roistat/probe.mjs ;;
+          esac

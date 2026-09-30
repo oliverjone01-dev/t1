@@ -17,7 +17,7 @@ import openpyxl, glob, os, json, re, collections
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "delivery"))
 from build_delivery_sku_daily import parse_date  # «4 августа» -> 2026-08-04, один разбор на оба сборщика
-from ledger_money import ship_and_deliv, MoneyError, second_header  # noqa: E402
+from ledger_money import ship_and_deliv, MoneyError, second_header, fix_order_no  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CPO_RAW = os.path.join(ROOT, "tools", "cpo", "raw")
@@ -97,7 +97,7 @@ def main():
                     break
                 if "OZON" not in norm(r[ci["Площадка"]]).upper():
                     continue
-                no = norm(r[ci["Номер заказа"]])
+                no = fix_order_no(norm(r[ci["Номер заказа"]]))
                 if not no:
                     continue
                 # Иван 28.09.2026: статус «ОТМЕНЕН» - доставку не учитываем.

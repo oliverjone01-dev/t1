@@ -1706,6 +1706,141 @@ function verdictBlock(t: TestDef): string {
     + ` База до старта: ${cr.nb} ${plural(cr.nb, "наблюдаемый день", "наблюдаемых дня", "наблюдаемых дней")} из 14, поэтому итог предварительный. Окончательный замер ${esc(t.замер || "-")}.</div></div>`;
 }
 
+// ---------- тест с выходом из акции: кто вышел и итог от даты выхода (Иван 30.09) ----------
+// Точка отсчёта здесь ВЫХОД, а не старт рекламы: графики и «Показатели по артикулам» теста 2
+// считаются от 20.09, а правило теста говорит про цену у вышедших против соседей после выхода.
+// Тест - рекламные товары, вышедшие из акции (роли.test_ad), контроль - соседи по тем же
+// карточкам, которые остаются в акции (роли.test_sibling), решение Ивана 29.09.
+
+/** Цена для Ozon в заказах по артикулу: выручка заказа / штуки, без отменённых. Нужна для
+ *  проверки варианта «а» (Иван 30.09): цена на витрине в рублях = доля × цена для Ozon,
+ *  последняя известная из coinv_daily, и она верна, только если при выходе цена не менялась.
+ *  Рубли на страницу не выводятся: предельная цена в публичный репозиторий не едет. */
+const ORDER_PRICE = new Map<string, Array<{ d: string; p: number }>>();
+for (const r of readNd(dp("orders_daily.ndjson"))) {
+  if (r.status === "cancelled" || !(Number(r.units) > 0) || !(Number(r.revenue) > 0)) continue;
+  const a = String(r.offer || "").trim(); if (!a) continue;
+  (ORDER_PRICE.get(a) ?? ORDER_PRICE.set(a, []).get(a)!).push({ d: String(r.d).slice(0, 10), p: Number(r.revenue) / Number(r.units) });
+}
+/** Цена для Ozon, которой пользуется расчёт цены на витрине: последняя известная cap. */
+const capUsed = (a: string): { cap: number; d: string } | null => {
+  let d = "", cap = 0;
+  for (const [day, c] of series.get(a) ?? []) if (c["cap"] && day >= d) { d = day; cap = c["cap"]!; }
+  return cap ? { cap, d } : null;
+};
+type PriceCheck = { ok: boolean | null; text: string };
+const PRICE_TOL = 5;
+function priceCheck(a: string, exit: string): PriceCheck {
+  const cu = capUsed(a);
+  if (!cu) return { ok: null, text: "цены для Ozon в расчёте нет" };
+  const after = (ORDER_PRICE.get(a) || []).filter((o) => o.d >= exit).sort((x, y) => x.d.localeCompare(y.d));
+  if (!after.length) return { ok: null, text: "заказов после выхода нет, проверить нечем" };
+  // Порог 5 %: и в акции цена в заказе отходит от расчётной (GGM-02-1-1 27.09: -5,0 %, товар
+  // ещё в акции), так что меньшее отклонение это разброс заказов, а не смена цены при выходе.
+  const dev = (o: { p: number }) => (o.p / cu.cap - 1) * 100;
+  const f1 = (x: number) => (x >= 0 ? "+" : "") + x.toFixed(1).replace(".", ",") + " %";
+  const bad = after.filter((o) => Math.abs(dev(o)) > PRICE_TOL);
+  if (!bad.length) {
+    const w = after.reduce((m, o) => Math.abs(dev(o)) > Math.abs(dev(m)) ? o : m, after[0]!);
+    return { ok: true, text: `не менялась: в ${after.length} ${plural(after.length, "заказе", "заказах", "заказах")} после выхода отклонение до ${f1(dev(w))}, в пределах ${PRICE_TOL} %` };
+  }
+  const o = bad[bad.length - 1]!;
+  return { ok: false, text: `изменилась: в заказе ${DM(o.d)} на ${f1(dev(o))} к цене в расчёте, цена на витрине в рублях у товара ${dev(o) > 0 ? "занижена" : "завышена"}` };
+}
+
+/** Окна «до» и «после» выхода: неделя перед выходом, но не раньше старта рекламы. */
+function exitWindows(t: TestDef): { pre: string[]; post: string[] } {
+  const ex = t.выход!;
+  const from = t.старт && t.старт > addDays(ex, -7) ? t.старт : addDays(ex, -7);
+  const pre: string[] = [], post: string[] = [];
+  for (let d = from; d < ex; d = addDays(d, 1)) pre.push(d);
+  for (let d = ex; d <= LAST; d = addDays(d, 1)) post.push(d);
+  return { pre, post };
+}
+
+function exitWhoBlock(t: TestDef): string {
+  const ad = t.роли?.test_ad || [], sib = t.роли?.test_sibling || [];
+  const key = promoKeyOf(t);
+  if (!t.выход || !ad.length || !key || !PROMO.exists) return "";
+  const days = PROMO.days.filter((d) => d >= addDays(t.выход!, -7));
+  const row = (a: string, role: string, check: boolean) => {
+    const e = exitOf(PROMO, a, key);
+    const cells = days.map((d) => {
+      const v = inPromoOn(PROMO, a, key, d);
+      const nw = ' style="white-space:nowrap"';
+      return v == null ? `<td class="r muted"${nw}>нет снимка</td>` : v ? `<td class="r"${nw}>в акции</td>` : `<td class="r"${nw}><b>вне</b></td>`;
+    }).join("");
+    const pc = check && e.exit ? priceCheck(a, e.exit) : null;
+    return `<tr><td>${esc(a)} <span class="muted">${esc(role)}</span></td>${cells}`
+      + `<td class="r">${e.exit ? `<b>${esc(DM(e.exit))}</b>` : '<span class="muted">не выходил</span>'}</td>`
+      + `<td class="${pc && pc.ok === false ? "warnv" : pc && pc.ok == null ? "muted" : ""}">${pc ? esc(pc.text) : check ? "-" : '<span class="muted">остаётся в акции, контроль</span>'}</td></tr>`;
+  };
+  const out = ad.filter((a) => exitOf(PROMO, a, key).exit).length;
+  return `<div class="cov" style="margin:4px 0 6px">Участие в акции «${esc(t.акция?.имя || "")}» по дням из ${esc(PROMO_SRC)}.`
+    + ` Вышли ${out} из ${ad.length} рекламных товаров; ${sib.length} ${plural(sib.length, "сосед", "соседа", "соседей")} по тем же карточкам остаются в акции до ${esc(t.акция?.до ? DM(t.акция.до) : "её конца")} и служат контролем.`
+    + ` Последняя колонка - проверка цены для Ozon при выходе по заказам: цена на витрине в рублях считается как доля из среза × цена для Ozon до выхода и верна, только если цена не менялась.</div>`
+    + `<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Артикул</th>`
+    + days.map((d) => `<th class="r">${esc(DM(d))}</th>`).join("")
+    + `<th class="r">Вышел</th><th>Цена для Ozon при выходе</th></tr></thead><tbody>`
+    + ad.map((a) => row(a, "в рекламе", true)).join("") + sib.map((a) => row(a, "сосед по карточке", false)).join("")
+    + `</tbody></table></div>`;
+}
+
+function exitVerdictBlock(t: TestDef): string {
+  const ad = t.роли?.test_ad || [], sib = t.роли?.test_sibling || [];
+  if (!t.выход || !ad.length || !sib.length || t.выход > LAST) return "";
+  const { pre, post } = exitWindows(t);
+  const avg = (g: string[], win: string[], key: string): number => {
+    const v = nums(groupDaily(g, win, key));
+    return v.length ? v.reduce((x, y) => x + y, 0) / v.length : NaN;
+  };
+  const M: Array<[string, string]> = [["price", "Цена на витрине"], ["vsearch", "Показы в поиске"], ["pdp", "Карточка"],
+    ["cart", "Корзина"], ["units", "Заказы, шт в день"], ["revenue", "Выручка"]];
+  const fmt = (k: string, x: number) => !Number.isFinite(x) ? "нет данных"
+    : k === "price" || k === "revenue" ? nbsp(Math.round(x)) + " ₽" : k === "units" ? x.toFixed(1).replace(".", ",") : nbsp(Math.round(x));
+  const gr = (b: number, p: number) => Number.isFinite(b) && Number.isFinite(p) && b > 0 ? (p / b - 1) * 100 : null;
+  const pc = (x: number | null) => x == null ? "" : ` (${x >= 0 ? "+" : ""}${x.toFixed(0)} %)`;
+  const R = M.map(([k, n]) => {
+    const bT = avg(ad, pre, k), pT = avg(ad, post, k), bC = avg(sib, pre, k), pC = avg(sib, post, k);
+    const gT = gr(bT, pT), gC = gr(bC, pC);
+    return { k, n, bT, pT, bC, pC, gT, gC, dd: gT != null && gC != null ? gT - gC : null };
+  });
+  const rows = R.map((r) => `<tr><td>${esc(r.n)}</td><td class="r">${fmt(r.k, r.bT)} → ${fmt(r.k, r.pT)}${pc(r.gT)}</td>`
+    + `<td class="r">${fmt(r.k, r.bC)} → ${fmt(r.k, r.pC)}${pc(r.gC)}</td>`
+    + `<td class="r"><b>${r.dd == null ? "-" : (r.dd >= 0 ? "+" : "") + r.dd.toFixed(0) + " п."}</b></td></tr>`).join("");
+  const pr = R[0]!;
+  const priceDays = post.filter((d) => groupDaily(ad, [d], "price")[0] != null && groupDaily(sib, [d], "price")[0] != null);
+  const fast = `${DM(addDays(t.выход, 3))}-${DM(addDays(t.выход, 4))}`;
+  const exitDates = ad.map((a) => ({ a, e: exitOf(PROMO, a, promoKeyOf(t)).exit })).filter((x) => x.e);
+  const checks = exitDates.map((x) => priceCheck(x.a, x.e!));
+  const nBad = checks.filter((c) => c.ok === false).length, nUnk = checks.filter((c) => c.ok == null).length;
+  const priceNow = pr.dd == null ? "" : ` Цена на витрине у вышедших ${fmt("price", pr.bT)} → ${fmt("price", pr.pT)}${pc(pr.gT)},`
+    + ` у соседей ${fmt("price", pr.bC)} → ${fmt("price", pr.pC)}${pc(pr.gC)}, разница <b>${pr.dd >= 0 ? "+" : ""}${pr.dd.toFixed(0)} п.</b>:`
+    + ` покупатель у вышедших стал платить ${pr.dd >= 0 ? "больше" : "меньше"}, чем у соседей.`;
+  const head = priceDays.length < 3
+    ? `<b>Пока рано.</b> После выхода ${priceDays.length} ${plural(priceDays.length, "день", "дня", "дней")} с ценой${priceDays.length ? ` (${priceDays.map(DM).join(", ")})` : ""},`
+      + ` быстрый признак по правилу ${esc(fast)}: цена с картой Ozon у вышедших против соседей.${priceNow ? " Промежуточно:" + priceNow.replace(" Цена на витрине", " цена на витрине") : ""}`
+    : `<b>Быстрый признак.</b>${priceNow || " Цены после выхода нет."} Порога в правиле нет, решение по признаку принимает Иван.`;
+  const chk = !checks.length ? ""
+    : nBad ? ` <span class="warnv">У ${nBad} из ${checks.length} вышедших цена для Ozon при выходе изменилась больше чем на ${PRICE_TOL} %: в цене группы такой товар стоит по старой цене для Ozon, поэтому строка «Цена на витрине» у вышедших неточна, см. «Кто вышел из акции».</span>`
+      + (nUnk ? ` У ${nUnk} заказов после выхода нет, проверить нечем.` : "")
+    : nUnk ? ` Цена для Ozon при выходе проверена у ${checks.length - nUnk} из ${checks.length} вышедших и не менялась; у ${nUnk} заказов после выхода нет, проверить нечем.`
+    : ` Цена для Ozon при выходе проверена по заказам у всех ${checks.length} вышедших и не менялась.`;
+  const win = daysNote(R.map((r) => [r.n, `до ${spanOf(ad, pre, r.k)}; после ${spanOf(ad, post, r.k)}`] as [string, string]),
+    "Средний день недели перед выходом (не раньше старта рекламы) и средний день после выхода, по вышедшим:");
+  return `<div class="verdict"><div class="verdict-h">Итог по выходу из акции на ${esc(LAST)}</div>`
+    + `<div class="verdict-main">${head}${chk}</div>`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th>`
+    + `<th class="r">Вышли (${ad.length}): до → после</th><th class="r">Соседи в акции (${sib.length}): до → после</th>`
+    + `<th class="r">Вышли относительно соседей</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<div class="cov"><b>Как читать таблицу.</b> Точка отсчёта - выход из акции ${esc(DM(t.выход))}, а не старт рекламы, как на графиках выше.`
+    + ` «До» - средний день недели перед выходом, «после» - средний день после выхода. Последняя колонка - насколько вышедшие изменились`
+    + ` сильнее (плюс) или слабее (минус) соседей, в пунктах. Заказы и выручку как вывод не читаем: заказов у этих товаров единицы.`
+    + ` Сравнивать с соседями можно до ${esc(t.акция?.до ? DM(t.акция.до) : "конца акции")}: дальше соседи выходят из акции вместе с её концом.`
+    + ` Итоговый замер ${esc(t.замер || "-")}: цена для Ozon × заказы в день, как наблюдение, см. «Итоговый критерий».</div>`
+    + win + `</div>`;
+}
+
 const cards = T.тесты.map((t, ti) => {
   const tst = t.тест || [], ctl = t.контроль || [];
   let pairsHtml = "", notesHtml = "", chartHtml = "", perArt = "";
@@ -1760,6 +1895,8 @@ const cards = T.тесты.map((t, ti) => {
     + (chartHtml ? `<details class="fold" open><summary><b>Динамика по показателям</b></summary><div class="fold-b">${chartHtml}</div></details>`
       : (tst.length || ctl.length ? "" : '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>'))
     + verdictBlock(t)
+    + exitVerdictBlock(t)
+    + (exitWhoBlock(t) ? `<details class="fold" open><summary><b>Кто вышел из акции</b></summary><div class="fold-b">${exitWhoBlock(t)}</div></details>` : "")
     + (perArt ? `<details class="fold" open><summary><b>Показатели по артикулам</b></summary><div class="fold-b">${perArt}</div></details>` : "")
     + (tech ? fold("tech", `Техническая информация тест ${ti + 1}`, tech) : "")
     + `</section>`;

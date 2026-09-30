@@ -137,32 +137,35 @@ async function data(from, to, dims) {
 /* Достаёт число метрики из строки ответа при любой из трёх известных форм:
    плоское поле, {value}, вложенный объект metrics. */
 function metricValue(row, name) {
-  const src = (row && row.metrics) || row || {};
-  const v = src[name];
-  if (v == null) return null;
+  const list = row && row.metrics;
+  if (!Array.isArray(list)) return null;
+  /* Модель атрибуции: у каждой метрики их может быть несколько. Берём default,
+     иначе одна сделка посчиталась бы столько раз, сколько моделей (К4). */
+  const hit = list.find(x => x && x.metric_name === name &&
+    (x.attribution_model_id == null || x.attribution_model_id === 'default'));
+  if (!hit) return null;
+  const v = hit.value;
   if (typeof v === 'number') return v;
-  if (typeof v === 'object') {
-    if (typeof v.value === 'number') return v.value;
-    if (typeof v.value === 'string' && v.value !== '' && !isNaN(Number(v.value))) return Number(v.value);
-  }
   if (typeof v === 'string' && v !== '' && !isNaN(Number(v))) return Number(v);
-  return null;
+  return null;                      /* null это «нет данных», а не ноль (К7) */
 }
-/* Название канала: в разных ответах Ройстата ключ разреза называется по-разному. */
+/* Название канала. Ключ разреза в ответе Ройстата приходит не под одним именем,
+   поэтому берём первое строковое поле из известных, а не гадаем одно. */
 function dimLabel(row) {
-  for (const k of ['title', 'name', 'label', 'marker_level_1', 'dimension']) {
+  for (const k of ['title', 'name', 'label', 'dimension_title', 'marker_level_1']) {
     const v = row && row[k];
     if (typeof v === 'string' && v) return v;
     if (v && typeof v === 'object' && typeof v.title === 'string') return v.title;
   }
-  const d = row && row.dimensions;
+  const d = row && (row.dimensions || row.dimension);
   if (Array.isArray(d) && d.length) return String(d[0].title || d[0].value || d[0]);
   if (d && typeof d === 'object') { const f = Object.values(d)[0]; return String((f && f.title) || f); }
   return '(разрез без имени)';
 }
-const rowsOf = j => (Array.isArray(j && j.items) ? j.items
-                   : Array.isArray(j && j.data)  ? j.data
-                   : Array.isArray(j && j.result) ? j.result : []);
+/* Ответ: {status, data:[ {items, mean, dateFrom, dateTo, unprocessed, total_count} ]}.
+   Строки разреза лежат в data[0].items, а не в data. */
+const blockOf = j => (Array.isArray(j && j.data) && j.data[0]) ? j.data[0] : (j || {});
+const rowsOf = j => { const b = blockOf(j); return Array.isArray(b.items) ? b.items : []; };
 
 const sumOver = (rows, name) => rows.reduce((a, r) => {
   const v = metricValue(r, name); return v == null ? a : a + v; }, 0);
@@ -175,14 +178,22 @@ for (const p of PERIODS) {
   const byChan = await data(p.from, p.to, ['marker_level_1']);
   if (bad(byChan)) { say('разрез: ' + why(byChan)); out.push([p.key, 'разрез', 'ОТКАЗ']); continue; }
   const rows = rowsOf(byChan);
-  say('ключи ответа: ' + Object.keys(byChan).join(', '));
-  say('строк: ' + rows.length + ', total_count: ' + byChan.total_count +
-      ', dateFrom/dateTo в ответе: ' + byChan.dateFrom + ' .. ' + byChan.dateTo);
+  const blk = blockOf(byChan);
+  say('ключи блока: ' + Object.keys(blk).join(', '));
+  say('строк: ' + rows.length + ', total_count: ' + blk.total_count +
+      ', dateFrom/dateTo в ответе: ' + blk.dateFrom + ' .. ' + blk.dateTo);
   if (p.key === 'closed' && rows.length) {
-    say('форма первой строки: ' + scrub(JSON.stringify(rows[0])).slice(0, 700));
-    say('поле unprocessed: ' + scrub(JSON.stringify(byChan.unprocessed)).slice(0, 400));
-    say('поле mean: '        + scrub(JSON.stringify(byChan.mean)).slice(0, 400));
+    const r0 = rows[0];
+    say('поля строки разреза: ' + Object.keys(r0).join(', '));
+    const noMetrics = {}; for (const k of Object.keys(r0)) if (k !== 'metrics') noMetrics[k] = r0[k];
+    say('строка без метрик: ' + scrub(JSON.stringify(noMetrics)).slice(0, 500));
+    say('метрики первой строки: ' + scrub(JSON.stringify((r0.metrics||[]).map(x => [x.metric_name, x.value, x.attribution_model_id]))).slice(0, 900));
+    say('unprocessed: ' + scrub(JSON.stringify(blk.unprocessed)).slice(0, 300));
+    say('mean: '        + scrub(JSON.stringify(blk.mean)).slice(0, 300));
   }
+  /* Пусто и ноль - разные вещи (К7). Считаем, у скольких строк метрика null. */
+  const nulls = {};
+  for (const m of METRICS) nulls[m] = rows.filter(r => metricValue(r, m) === null).length;
 
   const tot = await data(p.from, p.to, null);
   const totRows = rowsOf(tot);
@@ -198,7 +209,8 @@ for (const p of PERIODS) {
     cut[m] = s;
     const diff = (t == null) ? null : s - t;
     const flag = diff == null ? '' : (Math.abs(diff) <= 0.01 ? '  OK' : '  РАСХОЖДЕНИЕ');
-    say('  ' + m.padEnd(16) + rub(s).padStart(20) + rub(t).padStart(22) + rub(diff).padStart(16) + flag);
+    const nn = nulls[m] === rows.length && rows.length ? '  ПУСТО во всех строках' : (nulls[m] ? '  null в ' + nulls[m] + ' из ' + rows.length : '');
+    say('  ' + m.padEnd(16) + rub(s).padStart(20) + rub(t).padStart(22) + rub(diff).padStart(16) + flag + nn);
     if (diff != null && Math.abs(diff) > 0.01) out.push([p.key, 'сумма≠итог ' + m, rub(diff)]);
   }
   snap[p.key] = { rows, cut, totRow, partial: p.partial };

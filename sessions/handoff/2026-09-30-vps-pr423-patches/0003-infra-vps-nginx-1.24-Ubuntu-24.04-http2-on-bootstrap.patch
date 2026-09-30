@@ -1,0 +1,86 @@
+From dc5e8bd65f0e64f8d55c3a9bf1a70763c9745090 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 30 Sep 2026 09:50:04 +0000
+Subject: [PATCH 3/3] =?UTF-8?q?infra/vps:=20nginx=201.24=20=D0=BD=D0=B0=20?=
+ =?UTF-8?q?Ubuntu=2024.04=20=D0=BD=D0=B5=20=D0=B7=D0=BD=D0=B0=D0=B5=D1=82?=
+ =?UTF-8?q?=20=C2=ABhttp2=20on;=C2=BB,=20bootstrap=20=D0=BC=D0=BE=D0=BB?=
+ =?UTF-8?q?=D1=87=D0=B0=D0=BB=20=D0=BE=D0=B1=20=D0=BE=D1=88=D0=B8=D0=B1?=
+ =?UTF-8?q?=D0=BA=D0=B5?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- http2 задаётся в listen (директива http2 on появилась в 1.25.1);
+- sub_filter_types без text/html (nginx обрабатывает его всегда, было предупреждение);
+- bootstrap: nginx -t && reload при set -e не останавливал скрипт, ошибка
+  настройки проходила до «Готово». Теперь nginx_reload выходит с ошибкой.
+Проверено на nginx 1.24.0 (Ubuntu): nginx -t, 401 без пароля, 200 с паролем,
+/healthz 200, .gg 403, подмена ссылок github.io, HTTP/2.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01H91198tXr5pT5C2Jtu7VmB
+---
+ infra/vps/bootstrap.sh           | 6 ++++--
+ infra/vps/nginx/gg.conf.template | 8 ++++----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/infra/vps/bootstrap.sh b/infra/vps/bootstrap.sh
+index 050c1aa2..6489e5bf 100755
+--- a/infra/vps/bootstrap.sh
++++ b/infra/vps/bootstrap.sh
+@@ -110,6 +110,8 @@ fi
+ # иначе первая же задача упадёт без ключей. Дальше их обновляет gg-poll при правке jobs.conf.
+ 
+ say "6. nginx + HTTPS"
++# «nginx -t && reload» при set -e не останавливает скрипт: ошибка настройки проходила молча до «Готово»
++nginx_reload() { nginx -t || { echo "ОШИБКА: nginx не принял настройку, см. строку выше"; exit 1; }; systemctl reload nginx; }
+ [ -f /etc/nginx/gg.htpasswd ] || { touch /etc/nginx/gg.htpasswd; chown root:www-data /etc/nginx/gg.htpasswd; chmod 0640 /etc/nginx/gg.htpasswd; }
+ rm -f /etc/nginx/sites-enabled/default
+ if [ -z "$DOMAIN" ]; then
+@@ -119,7 +121,7 @@ else
+     printf 'server { listen 80; server_name %s; location /.well-known/acme-challenge/ { root /var/www/html; } location / { return 404; } }\n' "$DOMAIN" \
+       >/etc/nginx/sites-available/gg-acme.conf
+     ln -sfn /etc/nginx/sites-available/gg-acme.conf /etc/nginx/sites-enabled/gg.conf
+-    nginx -t && systemctl reload nginx
++    nginx_reload
+     certbot certonly -n --agree-tos --webroot -w /var/www/html -d "$DOMAIN" ${LE_EMAIL:+-m "$LE_EMAIL"} \
+       || { echo "сертификат не получен: проверь, что A-запись $DOMAIN указывает на этот сервер"; exit 1; }
+   fi
+@@ -128,7 +130,7 @@ else
+   ln -sfn /etc/nginx/sites-available/gg.conf /etc/nginx/sites-enabled/gg.conf
+   rm -f /etc/nginx/sites-available/gg-acme.conf
+   # nginx должен видеть www/current (gg:gg 0755 по умолчанию - читается)
+-  nginx -t && systemctl reload nginx
++  nginx_reload
+   # продление сертификата: certbot.timer из пакета; после продления перечитать nginx
+   install -d /etc/letsencrypt/renewal-hooks/deploy
+   printf '#!/bin/sh\nsystemctl reload nginx\n' >/etc/letsencrypt/renewal-hooks/deploy/reload-nginx
+diff --git a/infra/vps/nginx/gg.conf.template b/infra/vps/nginx/gg.conf.template
+index d997dea0..ef2c0ac9 100644
+--- a/infra/vps/nginx/gg.conf.template
++++ b/infra/vps/nginx/gg.conf.template
+@@ -19,9 +19,9 @@ server {
+ }
+ 
+ server {
+-    listen 443 ssl;
+-    listen [::]:443 ssl;
+-    http2 on;
++    # «http2 on;» только с nginx 1.25.1, на Ubuntu 24.04 стоит 1.24 - там http2 задаётся в listen
++    listen 443 ssl http2;
++    listen [::]:443 ssl http2;
+     server_name __DOMAIN__;
+ 
+     ssl_certificate     /etc/letsencrypt/live/__DOMAIN__/fullchain.pem;
+@@ -47,7 +47,7 @@ server {
+     # В страницах ссылки абсолютные на github.io (хаб, бот) - переписываем на свой адрес.
+     # Действует и для файлов с сервера, и для прокси. Убрать, когда ссылки в коде станут относительными.
+     sub_filter_once off;
+-    sub_filter_types text/html application/javascript;
++    sub_filter_types application/javascript;   # text/html nginx обрабатывает всегда
+     sub_filter 'https://oliverjone01-dev.github.io/t1/' '/';
+ 
+     auth_basic "GENGROUP";
+-- 
+2.43.0
+

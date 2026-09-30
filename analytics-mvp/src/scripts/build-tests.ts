@@ -1174,8 +1174,8 @@ function bidWatch(t: TestDef): string {
     + ` Это УРОВНИ, а не эффект: у товаров разная ценовая позиция, и сравнивать строки между собой нельзя.`
     + ` До старта ${esc(t.старт || "")} в сыром ряду ${before.length === 1 ? `есть один день, ${esc(before[0]!)}` : `${before.length} дней`},`
     + ` то есть базы для поартикульного сдвига здесь нет, и таблица служит записью, а не измерением.`
-    + ` Ставка - из лога кампаний (tools/tests/tests_campaigns.psv) и лога изменений кабинета; у GGT-35-3-3`
-    + ` её нет ни там, ни там, и в таблице её нет намеренно, чтобы не выдавать догадку за выгрузку.</div>`;
+    + ` Ставка - из лога кампаний (tools/tests/tests_campaigns.psv) и лога изменений кабинета; ставки GGT-35-1-3 (12 ₽)`
+    + ` и GGT-35-3-3 (8 ₽) подтвердил Иван 30.09 по кабинету.</div>`;
 }
 
 /** Правило на истории, а не на одном эталоне (Иван 28.09). Считается при каждой сборке из тех же
@@ -1209,6 +1209,17 @@ function backtestBlock(): string {
     + ` а не шкала гейта. В расчёт взяты включения, у которых есть база и хотя бы 3 наблюдения за время рекламы (${n} из ${b.events.length}).`
     + ` Плацебо - по 20 случайных товаров без рекламы на каждую дату старта. Расход в рублях - за всё время серии.</div>`;
 }
+
+// Блок карточки свёрнут в заголовок, текст по клику (Иван 30.09: «много текста не читаемо»).
+// Тревоги (dyn-alarm) не сворачиваются: их должно быть видно сразу.
+const fold = (cls: string, title: string, inner: string): string =>
+  `<details class="fold ${cls}"><summary><b>${title}</b></summary><div class="fold-b">${inner}</div></details>`;
+/** Сворачивает готовый кусок: его подзаголовок sub2, если он стоит первым, становится заголовком. */
+const foldSub = (html: string, fallback: string, cls = ""): string => {
+  if (!html) return "";
+  const m = /^<div class="sub2">([\s\S]*?)<\/div>/.exec(html);
+  return m ? fold(cls, m[1]!, html.slice(m[0].length)) : fold(cls, fallback, html);
+};
 
 function interimBlock(t: TestDef): string {
   const z = t.промежуточный_вывод;
@@ -1274,18 +1285,16 @@ function interimBlock(t: TestDef): string {
       + ` именно по ним и видно, разойдутся ли режимы ставки после 25.09.</div>`
       + spreadNote(ep);
   }
-  return `<div class="hyp"><b>Промежуточный вывод от ${esc(z.дата)} [ДАННЫЕ]:</b> ${esc(z.вывод)}`
-    + ` <span class="muted">${esc(z.откуда)}</span></div>`
-    + `<div class="cov"><b>На чём он стоит:</b> ${esc(z.на_чём_стоит)}</div>`
-    + `<div class="stop"><b>Что его отменит:</b> ${esc(z.что_отменит_вывод)}</div>`
-    + `<div class="cov"><b>Оговорка, без которой вывод читать нельзя:</b> ${esc(z.оговорка)}</div>`
-    + (z.лаг ? `<div class="cov"><b>Лаг ступени:</b> ${esc(z.лаг)}</div>` : "")
-    + `<div class="rule"><b>Что отменено, а что нет:</b> ${esc(z.что_отменено)}</div>`
+  return fold("hyp", `Промежуточный вывод от ${esc(z.дата)} [ДАННЫЕ]`, `${esc(z.вывод)} <span class="muted">${esc(z.откуда)}</span>`)
+    + fold("cov", "На чём он стоит", esc(z.на_чём_стоит))
+    + fold("stop", "Что его отменит", esc(z.что_отменит_вывод))
+    + fold("cov", "Оговорка, без которой вывод читать нельзя", esc(z.оговорка))
+    + (z.лаг ? fold("cov", "Лаг ступени", esc(z.лаг)) : "")
+    + fold("rule", "Что отменено, а что нет", esc(z.что_отменено))
     + (t.наблюдение
-        ? `<div class="cov"><b>Пока тест идёт:</b> ${esc(t.наблюдение.что)} ${esc(t.наблюдение.зачем)}`
-          + ` До ${esc(t.наблюдение.до)}.</div>`
+        ? fold("cov", "Пока тест идёт", `${esc(t.наблюдение.что)} ${esc(t.наблюдение.зачем)} До ${esc(t.наблюдение.до)}.`)
         : "")
-    + tbl;
+    + (tbl ? fold("", "Эталонная карточка: таблица по дням", tbl) : "");
 }
 
 function pairRow(sku: string, t: TestDef): string {
@@ -1523,7 +1532,6 @@ const cards = T.тесты.map((t) => {
     body = '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>';
   }
   return `<section class="card"><div class="chead"><div class="ctitle">${esc(t.название)} ${statusChip(t)}</div></div>`
-    + `<div class="hyp">${esc(t.гипотеза)}</div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span>`
     + `<span>Горизонт: <b>${esc(t.горизонт_дней ?? "")} дн</b></span>`
@@ -1531,22 +1539,23 @@ const cards = T.тесты.map((t) => {
     + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b></span>`
     + (t.ответственный ? `<span>Ответственный: <b>${esc(t.ответственный)}</b></span>` : "")
     + `</div>`
+    + fold("hyp", "Что проверяем", esc(t.гипотеза))
     + interimBlock(t)
     + (t.условие_завершения
-        ? `<div class="rule"><b>Тест перейдёт в «завершён», когда:</b> ${esc(t.условие_завершения)}`
-          + ` До тех пор он живой, замер ${esc(t.замер || "-")} в плане, ростер и обе группы как были.</div>`
+        ? fold("rule", "Когда тест завершится", `${esc(t.условие_завершения)}`
+          + ` До тех пор он живой, замер ${esc(t.замер || "-")} в плане, ростер и обе группы как были.`)
         : "")
     + (t.промежуточный_вывод && !t.условие_завершения
         ? `<div class="dyn-alarm"><b>У теста есть предварительный ответ, но нет условия завершения.</b>`
           + ` Это та самая дыра, из-за которой 24.09 тест 1 закрыли по письму про кабинет: без условия`
           + ` «ответ получен» через неделю читается как «конец». Условие надо записать в tests.json.</div>`
         : "")
-    + (t.промежуточный_вывод ? bidWatch(t) : "")
-    + `<div class="rule"><b>Правило:</b> ${esc(t.правило || "")}</div>`
-    + (t.акция ? COINV_MECH + mdeBlock(t) : "")
-    + (t.стоп ? stopBlock(t.стоп) : "")
-    + (t.заметка ? `<div class="cov" style="border-top:none;padding-top:0">${esc(t.заметка)}</div>` : "")
-    + `${body}</section>`;
+    + (t.промежуточный_вывод && bidWatch(t) ? fold("", "Разрыв по всем товарам теста", bidWatch(t)) : "")
+    + fold("rule", "Правило", esc(t.правило || ""))
+    + (t.акция ? fold("", "Соинвест в критерии", COINV_MECH) + mdeBlock(t) : "")
+    + (t.стоп ? fold("", "Стоп-сигнал", stopBlock(t.стоп)) : "")
+    + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
+    + fold("", "Пары, динамика, по артикулам", body) + `</section>`;
 }).join("");
 
 // ---------- тест «большая ставка против маленькой» (tests.json, тесты_ставок) ----------
@@ -1577,7 +1586,7 @@ function bidSideRow(p: PairDef, s: SideDef, side: string): string {
     + `<td class="r">${st.gapMed == null ? "-" : st.gapMed.toFixed(1).replace(".", ",") + ` <span class="muted">(${st.gapDays} дн)</span>`}</td></tr>`;
 }
 const bidCards = BID_TESTS.map((t) => {
-  const pairs = t.пары.map((p) => `<div class="cov" style="border-top:none;padding:10px 0 4px"><b>${esc(p.название)}</b>${p.заметка ? ` <span class="muted">· ${esc(p.заметка)}</span>` : ""}</div>`
+  const pairs = t.пары.map((p) => fold("", `Пара: ${esc(p.название)}`, (p.заметка ? `<div class="cov" style="border-top:none;padding:0 0 4px">${esc(p.заметка)}</div>` : "")
     + `<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Сторона</th><th>Артикул</th>`
     + `<th class="r">Ставка, ₽</th><th class="r">Бюджет, ₽/нед</th><th>Окно</th><th class="r">Дней</th>`
     + `<th class="r" title="Показы в поиске в неделю: сумма окна, приведённая к 7 дням наблюдения">Поиск/нед</th>`
@@ -1585,21 +1594,21 @@ const bidCards = BID_TESTS.map((t) => {
     + `<th class="r">Расход/нед, ₽</th><th class="r" title="Корзин на 1 000 ₽ рекламного расхода, за дни, по которым расход уже выгружен: что покупает рубль">Корзин на 1 000 ₽</th>`
     + `<th class="r" title="Медиана соинвеста (разрыв предельной цены и витрины) по дням окна, gap_daily">Соинвест, %</th></tr></thead><tbody>`
     + bidSideRow(p, p.большая, "большая") + bidSideRow(p, p.малая, "малая")
-    + `</tbody></table></div>`).join("");
+    + `</tbody></table></div>`)).join("");
   const dm = t.замер ? daysBetween(TODAY, t.замер) : null;
   const chip = t.статус === TEST_STATUS.done ? `<span class="chip chip-done">завершён</span>`
     : `<span class="chip chip-run">${esc(t.статус || "идёт")}${dm != null && dm > 0 ? ` · замер через ${dm} дн` : ""}</span>`;
   return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(t.название)} ${chip}</div></div>`
-    + (t.гипотеза ? `<div class="hyp">${esc(t.гипотеза)}</div>` : "")
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + (t.быстрый_признак ? `<span>Быстрый признак: <b>${esc(t.быстрый_признак)}</b></span>` : "")
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span><span>Пар: <b>${t.пары.length}</b></span></div>`
-    + (t.условие_завершения ? `<div class="rule"><b>Тест перейдёт в «завершён», когда:</b> ${esc(t.условие_завершения)}</div>` : "")
-    + (t.правило ? `<div class="rule"><b>Правило:</b> ${esc(t.правило)}</div>` : "")
-    + (t.заметка ? `<div class="cov" style="border-top:none;padding-top:0">${esc(t.заметка)}</div>` : "")
+    + (t.гипотеза ? fold("hyp", "Что проверяем", esc(t.гипотеза)) : "")
+    + (t.условие_завершения ? fold("rule", "Когда тест завершится", esc(t.условие_завершения)) : "")
+    + (t.правило ? fold("rule", "Правило", esc(t.правило)) : "")
+    + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
     + pairs
-    + `<div class="cov">Воронка из ночного синка OZON (sku_views, по тестовым товарам срез funnel_tests) по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
-    + ` Заказы с рекламы в выгрузке неполные, поэтому ДРР на замере берётся из кабинета.</div></section>`;
+    + fold("cov", "Откуда данные", `Воронка из ночного синка OZON (sku_views, по тестовым товарам срез funnel_tests) по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
+      + ` Заказы с рекламы в выгрузке неполные, поэтому ДРР на замере берётся из кабинета.`) + `</section>`;
 }).join("");
 
 /** Подписи метрик воронки для таблицы эталона: те же слова, что в колонках выше на странице. */
@@ -2100,32 +2109,26 @@ function boostCard(): string {
     : "";
 
   return `<section class="card"><div class="chead"><div class="ctitle">Готовность к выходу из акции «${esc(wave.акция?.имя || "")}»</div></div>`
-    + kinBanner
-    + `<div class="hyp">Сдвиг разрыва к контролю по дням с включения кампании. Контроль - сосед по объединённой карточке, `
+    + fold("warn", "Контроль заражён", kinBanner)
+    + fold("hyp", "Что показывает карточка", `Сдвиг разрыва к контролю по дням с включения кампании. Контроль - сосед по объединённой карточке, `
     + `а где его нет, медиана панели без тестовых артикулов и их родни. Разрыв считается по сырым ценам: доля предельной цены, `
     + `которую не платит покупатель. База - медиана разрыва за ${BASE_DAYS} наблюдаемых дней до включения, а если их меньше, `
-    + `за все, что есть, но не меньше ${MIN_BASE}; на сыром ряду до старта их ${exactBefore}.</div>`
-    + exitPlan
-    + windowNote
-    + `<div class="rule"><b>Статусы:</b> плато - ${FLAT_DAYS} подряд наблюдаемых дня, размах не больше ${FLAT_RANGE} пунктов, сдвиг не ниже +${ARRIVED}. `
-    + `Едет - растёт, плато ещё нет. Не пришло - прошло ${LATE_AFTER}+ дней, сдвиг ниже +${ARRIVED}. Ждём - меньше ${FLAT_DAYS} дней.</div>`
-    + `<div class="sub2">В рекламе, ждут плато (${AD.length})</div>`
-    + tbl(adRows)
-    + (adRows.length ? "" : `<div class="cov">Рекламных товаров в волне нет.</div>`)
-    + gapNote
-    + `<div class="sub2">Соседи по карточке, рекламы нет (${SIB.length})</div>`
-    + tbl(sibRows)
+    + `за все, что есть, но не меньше ${MIN_BASE}; на сыром ряду до старта их ${exactBefore}.`)
+    + fold("", "Когда выводим и как считается", exitPlan + windowNote)
+    + fold("rule", "Статусы", `плато - ${FLAT_DAYS} подряд наблюдаемых дня, размах не больше ${FLAT_RANGE} пунктов, сдвиг не ниже +${ARRIVED}. `
+    + `Едет - растёт, плато ещё нет. Не пришло - прошло ${LATE_AFTER}+ дней, сдвиг ниже +${ARRIVED}. Ждём - меньше ${FLAT_DAYS} дней.`)
+    + `<div class="cov"><b>Готовы к выводу сейчас:</b> ${ready.length ? ready.map((r) => esc(r.art)).join(", ") : "никто"}.</div>`
+    + fold("", `В рекламе, ждут плато (${AD.length})`, tbl(adRows)
+      + (adRows.length ? "" : `<div class="cov">Рекламных товаров в волне нет.</div>`)
+      + gapNote)
+    + fold("", `Соседи по карточке, рекламы нет (${SIB.length})`, tbl(sibRows)
     + `<div class="cov">Соседи едут из акции вместе со своей карточкой, но плато по ним не ждём: рекламы на них нет, и надбавке взяться неоткуда. `
     + `Они нужны, чтобы карточка выходила целиком: иначе половина карточки осталась бы в акции и тянула вторую половину за собой.`
-    + (SIB.length ? "" : " В этой волне соседей нет.") + `</div>`
-    + placeboNote
-    + ggt35Note
-    + agreeNote
-    + `<div class="cov"><b>Готовы к выводу сейчас:</b> ${ready.length ? ready.map((r) => esc(r.art)).join(", ") : "никто"}.</div>`
-    + exitedTbl
-    + fbBlock
-    + `<div class="sub2">Эталон, на котором откалибровано правило</div>`
-    + `<div class="tbl-wrap"><table class="gtbl single"><thead>${head}</thead><tbody>${boostRowHtml(ref, "кампания 06.07-05.08")}</tbody></table></div>`
+    + (SIB.length ? "" : " В этой волне соседей нет.") + `</div>`)
+    + (placeboNote + ggt35Note + agreeNote ? fold("", "Проверка контроля: плацебо и второй способ", placeboNote + ggt35Note + agreeNote) : "")
+    + foldSub(exitedTbl, "Вышли из акции")
+    + (fbBlock ? fold("warn", "Если плато не сложится", fbBlock) : "")
+    + fold("", "Эталон, на котором откалибровано правило", `<div class="tbl-wrap"><table class="gtbl single"><thead>${head}</thead><tbody>${boostRowHtml(ref, "кампания 06.07-05.08")}</tbody></table></div>`
     + refFunnelBlock
     + `<div class="cov"><b>Правило откалибровано на одном наблюдении.</b> ${esc(REF.art)}: сдвиг вышел за +${ARRIVED} на `
     + `${refArrived == null ? "-" : refArrived} день кампании, плато началось на ${ref.plateauDay ?? "-"} и держалось до её конца; `
@@ -2133,7 +2136,6 @@ function boostCard(): string {
     + `Дни здесь считаются от нуля: день включения нулевой. `
     + `Пороги ${FLAT_DAYS} дня, ${FLAT_RANGE} пункта, +${ARRIVED} и возврат ниже +${BACK_TO_BASE} подобраны под этот случай и на других не проверены. `
     + `Что именно двигает разрыв, карточка не утверждает: вето от 23.09 в силе.</div>`
-    + backtestBlock()
     + (ON_RAW
         ? `<div class="stop"><b>Эталон стоит на другой шкале, чем гейт.</b> Сырых цен за июль нет: ряд начинается с 09.09,`
           + ` поэтому эталон считается по соинвесту, как и был. Соинвест мельче разрыва к предельной цене примерно на`
@@ -2146,8 +2148,10 @@ function boostCard(): string {
     + ` заражённый контроль прятал 5.1 пункта, то есть около четверти эффекта.`
     + ` Порог +${ARRIVED} пересчитывать не пришлось, и это не удача, а свойство ряда: сдвиг прыгает с +2.6 сразу на`
     + ` +14.8 за сутки, поэтому любой порог от 3 до 14 даёт одну и ту же дату выхода 2026-07-09. Переехала величина`
-    + ` эффекта, а не дата и не правило.</div>`
-    + `<div class="cov">${esc(movesNote)}</div>${cpoNote}</section>`;
+    + ` эффекта, а не дата и не правило.</div>`)
+    + foldSub(backtestBlock(), "Проверка правила на истории")
+    + fold("", "Движения витрины по каталогу", `<div class="cov" style="border-top:none">${esc(movesNote)}</div>`)
+    + (cpoNote ? fold("warn", "Ставка CPO на время тестов", cpoNote) : "") + `</section>`;
 }
 
 
@@ -2377,7 +2381,7 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.ctitle{font-weight:700;font-size:15px}
 .chip{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
 .chip-run{background:rgba(34,211,238,.15);color:var(--cy)}.chip-off{background:rgba(93,116,132,.2);color:var(--ink3)}.chip-done{background:rgba(52,211,153,.16);color:var(--up)}
-.hyp{color:var(--ink2);margin:8px 0}.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin:6px 0}.meta b{color:var(--ink)}
+.hyp{color:var(--ink2);margin:8px 0}.fold{margin:6px 0}.fold>summary{cursor:pointer;list-style:none;font-size:13px;padding:4px 0}.fold>summary::-webkit-details-marker{display:none}.fold>summary::before{content:"▸ ";color:var(--ink3)}.fold[open]>summary::before{content:"▾ "}.fold-b{padding-top:4px}details.fold.cov{border-top:1px dashed var(--soft);padding-top:4px}.fold.warn>summary b{color:#FF7A7E}.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin:6px 0}.meta b{color:var(--ink)}
 .rule{font-size:12.5px;color:var(--ink2);background:rgba(229,181,103,.08);border-left:3px solid var(--warn);padding:7px 10px;border-radius:6px;margin:8px 0}
 .tbl-wrap{overflow-x:auto;margin-top:8px;max-height:340px;overflow-y:auto}
 .gtbl{width:100%;border-collapse:collapse;font-size:12px}

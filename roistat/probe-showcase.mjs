@@ -135,11 +135,13 @@ for (const x of all) {
    Двух метрик «Выручка» в Ройстате две: `revenue` и `payment_revenue`. Какой
    датой каждая привязывает деньги к периоду - НЕ ПРОВЕРЕНО, поэтому обе идут в
    срез рядом, и ни одна пока не названа «той самой». */
+/* В запрос идут только те имена, которые есть в справочнике: выдуманное имя
+   роняет весь вызов (на этом упал самый первый прогон разведки). */
+const pick = c => c.filter(n => byName.has(n) && byName.get(n).is_available !== false);
 const REVENUE = pick(['revenue', 'payment_revenue', 'net_profit', 'potential_revenue',
                       'revenue_canceled', 'payment_sales']);
 const SENTINEL = pick(['custom_19']);
-const pickAll = c => c.filter(n => byName.has(n) && byName.get(n).is_available !== false);
-const BASE = pickAll(['visits', 'leads', 'marketing_cost']);
+const BASE = pick(['visits', 'leads', 'marketing_cost']);
 const METRICS = BASE.concat(REVENUE, SENTINEL);
 say('\nв запрос идут ' + METRICS.length + ' метрик: ' + METRICS.join(', '));
 if (!BASE.length) { console.error('ни одной базовой метрики нет в справочнике - дальше идти нельзя'); process.exit(1); }

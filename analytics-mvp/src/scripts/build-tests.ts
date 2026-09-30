@@ -1841,6 +1841,28 @@ function exitVerdictBlock(t: TestDef): string {
     + win + `</div>`;
 }
 
+/** Шапка: сколько из явного контроля реально в расчёте (Иван 30.09, вариант а). Без этого
+ *  «Контроль 46» в шапке и «групповой контроль, 34 арт.» на графике читаются как разные группы. */
+function ctlInCalc(t: TestDef): string {
+  const all = t.контроль || [];
+  if (!t.контроль_группа || !all.length) return "";
+  const g = ctlGroupOf(t);
+  if (g.length === all.length) return "";
+  const ads = new Set(adsInCtl(t).map((x) => x.art));
+  const nAds = all.filter((a) => ads.has(a)).length;
+  const nOther = all.length - g.length - nAds;
+  return `, в расчёте <b>${g.length}</b> <span class="muted">(${nAds ? `${nAds} с рекламой убраны` : ""}`
+    + `${nAds && nOther ? ", " : ""}${nOther ? `${nOther} ${plural(nOther, "родственник", "родственника", "родственников")} теста убраны` : ""})</span>`;
+}
+/** Шапка: с кем сравнивается итог по выходу - это не групповой контроль графиков. */
+function exitVsSib(t: TestDef): string {
+  const ad = t.роли?.test_ad || [], sib = t.роли?.test_sibling || [];
+  const key = promoKeyOf(t);
+  if (!t.выход || !ad.length || !sib.length || !key || !PROMO.exists) return "";
+  const out = ad.filter((a) => exitOf(PROMO, a, key).exit).length;
+  return `<span>Итог по выходу: <b>${out}</b> ${plural(out, "вышел", "вышли", "вышли")} против <b>${sib.length}</b> ${plural(sib.length, "соседа", "соседей", "соседей")}</span>`;
+}
+
 const cards = T.тесты.map((t, ti) => {
   const tst = t.тест || [], ctl = t.контроль || [];
   let pairsHtml = "", notesHtml = "", chartHtml = "", perArt = "";
@@ -1882,7 +1904,8 @@ const cards = T.тесты.map((t, ti) => {
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span>`
     + `<span>Горизонт: <b>${esc(t.горизонт_дней ?? "")} дн</b></span>`
     + (t.акция ? exitMeta(t) : "")
-    + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b></span>`
+    + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b>${ctlInCalc(t)}</span>`
+    + exitVsSib(t)
     + (t.ответственный ? `<span>Ответственный: <b>${esc(t.ответственный)}</b></span>` : "")
     + `</div>`
     + fold("hyp", "Что проверяем", esc(t.гипотеза))
@@ -1891,7 +1914,8 @@ const cards = T.тесты.map((t, ti) => {
         ? fold("rule", "Когда тест завершится", `${esc(t.условие_завершения)}`
           + ` До тех пор он живой, замер ${esc(t.замер || "-")} в плане, ростер и обе группы как были.`)
         : "")
-    + (t.акция ? mdeBlock(t) : "")
+    // Свёрнут по просьбе Ивана 30.09: вывод блока вынесен в заголовок, расчёт по клику.
+    + (t.акция ? fold("", "Итоговый критерий сейчас ничего не различает", mdeBlock(t)) : "")
     + (t.стоп ? fold("", "Стоп-сигнал", stopBlock(t.стоп)) : "")
     + (chartHtml ? `<details class="fold" open><summary><b>Динамика по показателям</b></summary><div class="fold-b">${chartHtml}</div></details>`
       : (tst.length || ctl.length ? "" : '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>'))

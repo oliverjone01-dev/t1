@@ -2196,13 +2196,30 @@ function render(cur,cmp){
   // отправления, два номера в строке); matchLedger сводит его к отправлениям OZON. Правило Ивана
   // 28.09: что не нашлось по номеру, не раскладывается, а выводится списком над таблицей (dlUnmatched).
   const delivByOrder: Record<string, { ship: number; deliv: number }> = {};
+  // Город доставки ЗАКАЗА (Иван 30.09, вариант 1): из той же строки ведомости, что и «Наша доставка».
+  // Раньше строка заказа показывала все города артикула за всё время (delivery_cities.json).
+  // Номер в delivery_city_daily записан с переносами строк, в delivery_orders - с пробелами: ключ
+  // сводится к одиночным пробелам. Город «—» / «адрес не распознан» - не город: заказ с расходом без
+  // города идёт в список ordCityMiss и видим на странице (правило: есть расход - есть город).
+  const ordCity: Record<string, string> = {};
+  const ordCityMiss: { order: string; ship: number; city: string }[] = [];
+  const wsKey = (o: string) => String(o || "").replace(/\s+/g, " ").trim();
+  const NO_CITY = new Set(["", "—", "адрес не распознан"]);
   let dlUnmatched: Unmatched[] = [];
   let shipAcc: ReturnType<typeof accrualShipSeries> = { bySku: new Map(), total: 0, fallback: { fact: 0, ship: 0, order: 0 } };
   try {
     const nd = (f: string) => readFileSync(dp(f), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
     const post = nd("orders_daily.ndjson").map((r: any) => ({ order: String(r.order), d: String(r.d), status: String(r.status || ""), units: Number(r.units || 0), sd: r.sd ? String(r.sd) : null, sku: String(r.sku || "") }));
-    const m = matchLedger(nd("delivery_orders.ndjson"), post);
-    for (const [k, v] of m.byPosting) delivByOrder[k] = v;
+    const ledCity: Record<string, string> = {};
+    try { for (const r of nd("delivery_city_daily.ndjson")) for (const o of r.orders || []) ledCity[wsKey(o)] = String(r.city || ""); } catch { /* нет файла - городов нет */ }
+    const led = nd("delivery_orders.ndjson").map((r: any) => ({ ...r, city: NO_CITY.has(ledCity[wsKey(r.order)] ?? "") ? "" : ledCity[wsKey(r.order)] }));
+    const m = matchLedger(led, post);
+    for (const [k, v] of m.byPosting) {
+      delivByOrder[k] = v;
+      if (v.cities?.length) ordCity[k] = v.cities.join(", ");
+      else if (v.ship > 0) ordCityMiss.push({ order: k, ship: Math.round(v.ship), city: "" });
+    }
+    if (ordCityMiss.length) console.warn("⚠ заказы с «Нашей доставкой» без города в ведомости:", ordCityMiss.map((x) => x.order + " " + x.ship + " ₽").join(", "));
     dlUnmatched = m.unmatched;
     shipAcc = accrualShipSeries(post, m.byPosting);
   } catch { /* нет файлов - доставка по заказам пуста */ }
@@ -2505,7 +2522,7 @@ function render(cur,cmp){
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_TBYM=${J(anTbYm)};const AN_RDAY=${J(anRday)};const AN_RD_FROM=${J(rdFrom)};const AN_RD_TO=${J(rdTo)};const AN_RD_MISS=${J(rdMiss)};const AN_GF=${J(anGf)};const AN_GF_ALL=${J(anGfAll)};const AN_TBRATE=${J(anTbRate)};const AN_TBRATE_ALL=${J(anTbRateAll)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_SHIPVED=${J(anShipVedSku)};const AN_VED_MAXD=${J(vedMaxD)};const AN_SHIPFB=${J(shipAcc.fallback)};const AN_DLISSUE_N=${J([dlIssues.empty.length ? "нет суммы отправки по " + dlIssues.empty.length + " зак." : "", dlIssues.shift.length ? "сдвиг столбцов в " + dlIssues.shift.length + " строк (сумма взята из соседнего столбца)" : "", dlT2.length ? "вторая таблица ведомости (" + dlT2.reduce((a, t) => a + t.ozon_rows, 0) + " строк OZON) не прочитана" : ""].filter(Boolean).join(", "))};const AN_DINCSKU=${J(anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORDERS=${J(anOrders)};const AN_DELIV_CITYPL=${J(delivCityPl)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_TBYM=${J(anTbYm)};const AN_RDAY=${J(anRday)};const AN_RD_FROM=${J(rdFrom)};const AN_RD_TO=${J(rdTo)};const AN_RD_MISS=${J(rdMiss)};const AN_GF=${J(anGf)};const AN_GF_ALL=${J(anGfAll)};const AN_TBRATE=${J(anTbRate)};const AN_TBRATE_ALL=${J(anTbRateAll)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_SHIPVED=${J(anShipVedSku)};const AN_VED_MAXD=${J(vedMaxD)};const AN_SHIPFB=${J(shipAcc.fallback)};const AN_DLISSUE_N=${J([dlIssues.empty.length ? "нет суммы отправки по " + dlIssues.empty.length + " зак." : "", dlIssues.shift.length ? "сдвиг столбцов в " + dlIssues.shift.length + " строк (сумма взята из соседнего столбца)" : "", dlT2.length ? "вторая таблица ведомости (" + dlT2.reduce((a, t) => a + t.ozon_rows, 0) + " строк OZON) не прочитана" : ""].filter(Boolean).join(", "))};const AN_DINCSKU=${J(anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORD_CITY=${J(ordCity)};const AN_ORDERS=${J(anOrders)};const AN_DELIV_CITYPL=${J(delivCityPl)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -2916,7 +2933,7 @@ function renderOrdersAnalytics(cur){
     // В пути = заказано, но ещё не доставлено (отменённые в AN_ORDERS не попадают). Выручка - та же
     // «Начислено» строки: сколько денег ещё дойдёт, если заказ не отменят и не вернут.
     var fl=(s.st!=='delivered');
-    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,estNoCom:s.estNoCom||0,paid:s.paid,citiesTxt:(AN_DELIV_CITY[s.off]||[]).slice(0,3).map(function(c){return c[0]+' ('+c[1]+')';}).join(', ')+((AN_DELIV_CITY[s.off]||[]).length>3?' …':''),citiesTip:(AN_DELIV_CITY[s.off]||[]).map(function(c){return c[0]+' ('+c[1]+')';}).join('\\n')};
+    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,estNoCom:s.estNoCom||0,paid:s.paid,citiesTxt:(s.ship>0&&!AN_ORD_CITY[s.order])?'<span style="color:#E5B567">нет города в ведомости</span>':(AN_ORD_CITY[s.order]||''),citiesTip:AN_ORD_CITY[s.order]||(s.ship>0?'Есть расход «Наша доставка», а города в ведомости нет':'Заказа нет в ведомости перевозчика: везли не мы (логистика OZON, партнёры) или месяц ещё не закрыт'),cityCnt:AN_ORD_CITY[s.order]?AN_ORD_CITY[s.order].split(', '):[]};
     rows.push(o);(bySku[o.sk]||(bySku[o.sk]=[])).push(o);
   }
   // ДОБОР ПО АРТИКУЛАМ (сопоставление артикул↔заказ). Чего в разрезе заказа нет вовсе или неполно,
@@ -3025,9 +3042,12 @@ function renderOrdSku(rows,SUMK,acctRow,grand){
   if(src&&src.tHead&&!tb.tHead.innerHTML){tb.tHead.innerHTML=src.tHead.innerHTML;var th0=tb.tHead.querySelector('th');if(th0)th0.textContent='Категория / Артикул';}
   var bySku={};
   rows.forEach(function(x){var k=x.sk||x.off||x.order;var a=bySku[k];
-    if(!a){a=bySku[k]={sk:x.sk,off:x.off,nm:x.nm,cat:x.cat,n:0,sch:{},citiesTxt:x.citiesTxt,citiesTip:x.citiesTip};SUMK.forEach(function(f){a[f]=0;});}
+    if(!a){a=bySku[k]={sk:x.sk,off:x.off,nm:x.nm,cat:x.cat,n:0,sch:{},cc:{}};SUMK.forEach(function(f){a[f]=0;});}
+    (x.cityCnt||[]).forEach(function(c){a.cc[c]=(a.cc[c]||0)+1;}); // города ЗАКАЗОВ артикула за период (Иван 30.09)
     a.n++;SUMK.forEach(function(f){a[f]+=x[f]||0;});if(x.st==='delivered'&&x.scheme)a.sch[x.scheme]=(a.sch[x.scheme]||0)+1;});
   var schOf=function(o){return Object.keys(o).sort(function(a,b){return o[b]-o[a];}).join('/');};
+  Object.keys(bySku).forEach(function(k){var a=bySku[k],cs=Object.keys(a.cc).sort(function(p,q){return a.cc[q]-a.cc[p];});
+    a.citiesTxt=cs.slice(0,3).map(function(c){return c+' ('+a.cc[c]+')';}).join(', ')+(cs.length>3?' …':'');a.citiesTip=cs.map(function(c){return c+' ('+a.cc[c]+')';}).join('\\n');});
   var groups={};Object.keys(bySku).forEach(function(k){var a=bySku[k];(groups[a.cat]||(groups[a.cat]=[])).push(a);});
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={n:0,sch:{}};SUMK.forEach(function(f){t[f]=0;});
     arr.forEach(function(a){t.n+=a.n;SUMK.forEach(function(f){t[f]+=a[f]||0;});Object.keys(a.sch).forEach(function(s){t.sch[s]=(t.sch[s]||0)+a.sch[s];});});

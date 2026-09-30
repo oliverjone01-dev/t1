@@ -138,6 +138,11 @@ def _city2(v):
 
 def city_of(addr, left=None, right=None):
     if not addr:
+        # Иван 30.09: «Адрес» пустой, а расход есть - город стоит в соседней ячейке.
+        for v in (left, right):
+            c = _city2(v)
+            if c:
+                return c
         return "—"
     parts = [p.strip() for p in str(addr).split(",") if p.strip()]
     if not any(PHONE.search(p) for p in parts[:2]):

@@ -2924,6 +2924,23 @@ function renderSkuAnalytics(cur){
 }
 // === блок «Аналитика по заказам» (в разрезе заказа) - та же anCells, строка = заказ ===
 var anOpenOrd={};
+function ordBaseNo(o){o=String(o||'');return (o.split('-').length>=3)?o.replace(/-\\d+$/,''):o;}
+function ordCollapse(rows,SUMK){
+  var by={},out=[];
+  rows.forEach(function(x){var k=ordBaseNo(x.order),a=by[k];
+    if(!a){a=by[k]={n:0,parts:[],x:x};out.push(a);}a.n++;a.parts.push(x);if((x.acc||0)>(a.x.acc||0))a.x=x;});
+  return out.map(function(a){
+    if(a.n===1)return a.parts[0];
+    var m={};for(var k in a.x)m[k]=a.x[k];            // категория, артикул, схема - от крупнейшего отправления
+    SUMK.concat(['ret']).forEach(function(k){m[k]=0;a.parts.forEach(function(p){m[k]+=p[k]||0;});});
+    var sts={};a.parts.forEach(function(p){sts[p.st]=1;});var sk=Object.keys(sts);m.st=sk.length===1?sk[0]:sk.join('/');
+    var cs=[];a.parts.forEach(function(p){(p.cityCnt||[]).forEach(function(c){if(cs.indexOf(c)<0)cs.push(c);});});
+    m.cityCnt=cs;m.citiesTxt=cs.join(', ')||a.x.citiesTxt;m.citiesTip=cs.join('\\n')||a.x.citiesTip;
+    var offs=[];a.parts.forEach(function(p){if(p.off&&offs.indexOf(p.off)<0)offs.push(p.off);});m.off=offs.join(', ');
+    m.shipTip=a.parts.map(function(p){return p.shipTip;}).filter(Boolean).join('\\n');
+    m.order=ordBaseNo(a.x.order);m.parts=a.parts.map(function(p){return p.order;});
+    return m;});
+}
 function renderOrdersAnalytics(cur){
   var el=document.getElementById('ordan');if(!el)return;var from=cur.from,to=cur.to;
   // Строки-заказы периода делаем КОПИЯМИ: добор по артикулам меняет adv/ship/dinc/amt, а AN_ORDERS
@@ -2983,8 +3000,13 @@ function renderOrdersAnalytics(cur){
   // База АДМ строки заказа (п. 2.4, вариант Б) - её «К выплате» после всех доборов, отрицательная -
   // ноль: заказ, где сборы съели выручку, и отменённый заказ АДМ не уменьшают.
   for(var r0=0;r0<rows.length;r0++){rows[r0].amtS=Math.max(0,rows[r0].amt||0);}
-  var groups={};for(var r=0;r<rows.length;r++){(groups[rows[r].cat]||(groups[rows[r].cat]=[])).push(rows[r]);}
   var SUMK=['units','dlv','fly','flyAcc','tb','tbFly','estFee','eCom','eDel','eOth','ePrt','nNoFee','estNoCom','acc','com','del','acq','sto','oth','prt','adv','amt','amtS','cc','ship','dinc'];
+  // Строка = ЗАКАЗ без последних цифр (Иван 30.09): отправления одного заказа (83234293-0147-3 и -33)
+  // сводятся в одну строку, доходы и расходы складываются. OZON берёт логистику за каждое отправление
+  // отдельно (сверено с order_accruals: заказ = сумма отправлений), поэтому сумма, а не одна копия.
+  // Итоги не меняются - меняется только число строк. Таблица по артикулам ниже считает по отправлениям.
+  var ordRows=ordCollapse(rows,SUMK);
+  var groups={};for(var r=0;r<ordRows.length;r++){(groups[ordRows[r].cat]||(groups[ordRows[r].cat]=[])).push(ordRows[r]);}
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.acc-a.acc;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.acc-a.t.acc;});
   if(!cats.length){el.innerHTML='<tr><td colspan="26" class="kt-note">нет заказов за период</td></tr>';return;}
   var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
@@ -2993,7 +3015,7 @@ function renderOrdersAnalytics(cur){
     // падает при доставке. У летящих схема пуста (не показываем предварительный FBS - он может смениться).
     var schCat=(function(){var s={};g.arr.forEach(function(x){if(x.scheme&&x.st==='delivered')s[x.scheme]=(s[x.scheme]||0)+1;});return Object.keys(s).sort(function(a,b){return s[b]-s[a];}).join('/');})();
     html+='<tr class="ord-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+' зак.)</span></td><td style="color:var(--ink-3)">'+schCat+'</td>'+anCells(g.t)+'</tr>';
-    g.arr.forEach(function(x){var stb=(x.st==='cancelled')?' <span style="color:#FF5A5F" title="Заказ отменён: выручки нет, а сборы OZON (логистика, прочее) списаны - строка несёт только их">отменён, только расходы</span>':((x.st&&x.st!=='delivered')?' <span style="color:#E5B567">'+x.st+'</span>'+(x.estFee?' <span style="color:#E5B567" title="Заказ ещё не доставлен: OZON начислит сборы при доставке. Комиссия, логистика, партнёры и прочее в этой строке - оценка долей сборов по доставленным заказам этого артикула за 120 дней: '+fmtRu(x.estFee)+' ₽">сборы оценкой</span>':''):'');if(x.ret)stb+=' <span style="color:#FF5A5F;font-weight:600">возврат</span>';if(x.nNoFee)stb+=(x.estNoCom?' <span class="an-est" title="'+NOFEE_TIP+' Комиссия досчитана оценкой: '+fmtRu(x.estNoCom)+' ₽ - доля комиссии артикула по заказам, где она начислена, за 120 дней.">доставлен, комиссия не начислена - оценкой</span>':' <span class="an-nofee" title="'+NOFEE_TIP+'">доставлен, комиссия не начислена</span>');var lbl=x.order+(x.off&&x.off!==x.order?' <span style="color:var(--ink-3);font-weight:400">'+x.off+'</span>':'')+stb;html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm||'').replace(/"/g,'&quot;')+'">'+lbl+'</td><td>'+((x.st==='delivered')?(x.scheme||'—'):'—')+'</td>'+anCells(x)+'</tr>';});
+    g.arr.forEach(function(x){var stb=(x.st==='cancelled')?' <span style="color:#FF5A5F" title="Заказ отменён: выручки нет, а сборы OZON (логистика, прочее) списаны - строка несёт только их">отменён, только расходы</span>':((x.st&&x.st!=='delivered')?' <span style="color:#E5B567">'+x.st+'</span>'+(x.estFee?' <span style="color:#E5B567" title="Заказ ещё не доставлен: OZON начислит сборы при доставке. Комиссия, логистика, партнёры и прочее в этой строке - оценка долей сборов по доставленным заказам этого артикула за 120 дней: '+fmtRu(x.estFee)+' ₽">сборы оценкой</span>':''):'');if(x.ret)stb+=' <span style="color:#FF5A5F;font-weight:600">возврат</span>';if(x.nNoFee)stb+=(x.estNoCom?' <span class="an-est" title="'+NOFEE_TIP+' Комиссия досчитана оценкой: '+fmtRu(x.estNoCom)+' ₽ - доля комиссии артикула по заказам, где она начислена, за 120 дней.">доставлен, комиссия не начислена - оценкой</span>':' <span class="an-nofee" title="'+NOFEE_TIP+'">доставлен, комиссия не начислена</span>');var lbl=x.order+(x.parts?' <span style="color:var(--ink-2);font-weight:400" title="Отправления: '+x.parts.join(', ')+'">('+x.parts.length+' отпр.)</span>':'')+(x.off&&x.off!==x.order?' <span style="color:var(--ink-3);font-weight:400">'+x.off+'</span>':'')+stb;html+='<tr class="ord-row" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm||'').replace(/"/g,'&quot;')+'">'+lbl+'</td><td>'+((x.st==='delivered')?(x.scheme||'—'):'—')+'</td>'+anCells(x)+'</tr>';});
   });
   // «Общие расходы» - как в таблице по артикулам: сборы уровня кабинета (остаток рекламы, штрафы,
   // realFBS, бейдж, эквайринг/компенсации) + доставка по заказам, чей артикул не сошёлся с каталогом.

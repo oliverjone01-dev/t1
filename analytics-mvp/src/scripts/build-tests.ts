@@ -1875,6 +1875,7 @@ const cards = T.тесты.map((t, ti) => {
     + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
     + (pairsHtml ? fold("", "Пары тест - контроль", pairsHtml) : "")
     + (notesHtml ? fold("", "Контроль: заражение, чистка, реклама", notesHtml) : "")
+    + (t.id === "boost_plus_exit" ? "<!--BOOST_TECH-->" : "")
     ;
   return `<section class="card"><div class="chead"><div class="ctitle">${esc(t.название)} ${statusChip(t)}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
@@ -1897,6 +1898,7 @@ const cards = T.тесты.map((t, ti) => {
     + verdictBlock(t)
     + exitVerdictBlock(t)
     + (exitWhoBlock(t) ? `<details class="fold" open><summary><b>Кто вышел из акции</b></summary><div class="fold-b">${exitWhoBlock(t)}</div></details>` : "")
+    + (t.id === "boost_plus_exit" ? "<!--BOOST_EXITED-->" : "")
     + (perArt ? `<details class="fold" open><summary><b>Показатели по артикулам</b></summary><div class="fold-b">${perArt}</div></details>` : "")
     + (tech ? fold("tech", `Техническая информация тест ${ti + 1}`, tech) : "")
     + `</section>`;
@@ -2041,9 +2043,13 @@ function boostRowHtml(r: BoostRow, label = ""): string {
     + `<td><span class="chip ${chip}">${esc(r.status)}</span><span class="muted">${esc(plateau)}</span></td></tr>`;
 }
 
-function boostCard(): string {
+/** Бывшая отдельная карточка «Готовность к выходу из акции». С 30.09 (Иван) она разнесена по
+ *  карточке теста 2: таблица «Разрыв после выхода из акции» видна в карточке, всё про плато и
+ *  калибровку правила уходит в «Техническую информацию тест 2»: выход сделан 29.09 решением
+ *  Ивана, плато вывод больше не определяет. */
+function boostParts(): { exited: string; tech: string } {
   const wave = T.тесты.find((t) => t.id === "boost_plus_exit");
-  if (!wave || !coinvRows.length) return "";
+  if (!wave || !coinvRows.length) return { exited: "", tech: "" };
   const key = promoKeyOf(wave);
   const AD = wave.роли?.test_ad || [];
   const SIB = wave.роли?.test_sibling || [];
@@ -2403,12 +2409,16 @@ function boostCard(): string {
     + `Это довод против группового решения: вывести всех разом значило бы вывести остальных вслепую.</div>`;
 
   const exitedTbl = sum.out.length
-    ? `<div class="sub2">Вышли из акции</div><div class="tbl-wrap"><table class="gtbl single"><thead>`
+    ? `<div class="sub2">Разрыв после выхода из акции</div>`
+      + `<div class="cov" style="margin:4px 0 6px">Сдвиг разрыва к контролю от базы до старта рекламы, как в «Готовности к выходу» (техническая информация).`
+      + ` Описательно: в критерий теста не входит, см. «Соинвест в критерии».</div><div class="tbl-wrap"><table class="gtbl single"><thead>`
       + `<tr><th>Артикул</th><th class="r">Дней после выхода</th><th class="r">Сдвиг</th><th>Динамика</th><th>Возврат к базе</th></tr></thead><tbody>`
       + [...adRows, ...sibRows].filter((r) => r.off).map((r) => `<tr><td>${esc(r.art)}</td><td class="r">${r.daysSinceOff ?? "-"}</td>`
         + `<td class="r">${r.shift == null ? "-" : (r.shift >= 0 ? "+" : "") + r.shift.toFixed(1)}</td>`
         + `<td class="spkc">${spark(r)}</td>`
-        + `<td>${r.backToBaseOn ? `${esc(r.backToBaseOn)} <span class="muted">держался ${r.heldDays} дн</span>` : '<span class="muted">ещё держится</span>'}</td></tr>`).join("")
+        + `<td>${r.backToBaseOn ? (r.heldDays != null && r.heldDays < 0
+          ? `<span class="muted">у базы уже в день выхода ${esc(r.backToBaseOn)}</span>`
+          : `${esc(r.backToBaseOn)} <span class="muted">держался ${r.heldDays} дн</span>`) : '<span class="muted">ещё держится</span>'}</td></tr>`).join("")
       + `</tbody></table></div>`
     : `<div class="sub2">Вышли из акции</div><div class="cov">Из акции «${esc(wave.акция?.имя || "")}» пока не вышел никто.`
       + ` Дата выхода нигде не фиксируется руками: запись акции исчезает из колонки acts в тот же день, и это и есть дата.`
@@ -2452,8 +2462,8 @@ function boostCard(): string {
       + ` каждая смена двигает витрину по всему каталогу в тот же день и въезжает в середину замера.</div>`
     : "";
 
-  return `<section class="card"><div class="chead"><div class="ctitle">Готовность к выходу из акции «${esc(wave.акция?.имя || "")}»</div></div>`
-    + fold("warn", "Контроль заражён", kinBanner)
+  const exitedFold = exitedTbl ? `<details class="fold" open>${foldSub(exitedTbl, "Разрыв после выхода из акции").replace(/^<details class="fold [^"]*">/, "")}` : "";
+  const tech = `<div class="cov">Выход сделан ${esc(wave.выход || "-")} решением Ивана, до плато; ниже - как считалось плато и на чём откалибровано правило.</div>`
     + fold("hyp", "Что показывает карточка", `Сдвиг разрыва к контролю по дням с включения кампании. Контроль - сосед по объединённой карточке, `
     + `а где его нет, медиана панели без тестовых артикулов и их родни. Разрыв считается по сырым ценам: доля предельной цены, `
     + `которую не платит покупатель. База - медиана разрыва за ${BASE_DAYS} наблюдаемых дней до включения, а если их меньше, `
@@ -2461,7 +2471,7 @@ function boostCard(): string {
     + fold("", "Когда выводим и как считается", exitPlan + windowNote)
     + fold("rule", "Статусы", `плато - ${FLAT_DAYS} подряд наблюдаемых дня, размах не больше ${FLAT_RANGE} пунктов, сдвиг не ниже +${ARRIVED}. `
     + `Едет - растёт, плато ещё нет. Не пришло - прошло ${LATE_AFTER}+ дней, сдвиг ниже +${ARRIVED}. Ждём - меньше ${FLAT_DAYS} дней.`)
-    + `<div class="cov"><b>Готовы к выводу сейчас:</b> ${ready.length ? ready.map((r) => esc(r.art)).join(", ") : "никто"}.</div>`
+    + `<div class="cov"><b>Плато к выходу сложилось:</b> ${ready.length ? ready.map((r) => esc(r.art)).join(", ") : "ни у кого"}.</div>`
     + fold("", `В рекламе, ждут плато (${AD.length})`, tbl(adRows)
       + (adRows.length ? "" : `<div class="cov">Рекламных товаров в волне нет.</div>`)
       + gapNote)
@@ -2470,7 +2480,6 @@ function boostCard(): string {
     + `Они нужны, чтобы карточка выходила целиком: иначе половина карточки осталась бы в акции и тянула вторую половину за собой.`
     + (SIB.length ? "" : " В этой волне соседей нет.") + `</div>`)
     + (placeboNote + ggt35Note + agreeNote ? fold("", "Проверка контроля: плацебо и второй способ", placeboNote + ggt35Note + agreeNote) : "")
-    + foldSub(exitedTbl, "Вышли из акции")
     + (fbBlock ? fold("warn", "Если плато не сложится", fbBlock) : "")
     + fold("", "Эталон, на котором откалибровано правило", `<div class="tbl-wrap"><table class="gtbl single"><thead>${head}</thead><tbody>${boostRowHtml(ref, "кампания 06.07-05.08")}</tbody></table></div>`
     + refFunnelBlock
@@ -2495,7 +2504,8 @@ function boostCard(): string {
     + ` эффекта, а не дата и не правило.</div>`)
     + foldSub(backtestBlock(), "Проверка правила на истории")
     + fold("", "Движения витрины по каталогу", `<div class="cov" style="border-top:none">${esc(movesNote)}</div>`)
-    + (cpoNote ? fold("warn", "Ставка CPO на время тестов", cpoNote) : "") + `</section>`;
+    + (cpoNote ? fold("warn", "Ставка CPO на время тестов", cpoNote) : "");
+  return { exited: exitedFold, tech: fold("", `Готовность к выходу из акции «${esc(wave.акция?.имя || "")}»: плато и калибровка правила`, tech) };
 }
 
 
@@ -2824,6 +2834,7 @@ const JS = `
   });
 })();`;
 
+const WAVE = boostParts();
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<meta name="viewport" content="width=device-width,initial-scale=1">`
   + `<title>GENGLASS · Тесты</title><style>${CSS}</style></head><body>`
@@ -2834,7 +2845,7 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>`
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта. Сама разница считается не к паре, а к групповому контролю: панель снимка без тестовых товаров и их родни по карточке. Пара осталась подписью и ловушкой для мёртвого и грязного контроля; родство в ней доказано корреляцией остатков, а не карточкой.</p>`
-  + cards + bidCards + boostCard() + mblock
+  + cards.replace("<!--BOOST_EXITED-->", () => WAVE.exited).replace("<!--BOOST_TECH-->", () => WAVE.tech) + bidCards + mblock
   + `<h2 class="sec">Заметки и предупреждения</h2>${warnBlock}<div class="notes"><ul>${notes}</ul></div></div>`
   + `<script>${JS}</script></body></html>`;
 

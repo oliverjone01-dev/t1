@@ -1,0 +1,40 @@
+name: Roistat probe (разведка API)
+
+# Разовая разведка перед синком: какие методы Roistat отдаёт нашему ключу.
+# Ничего не коммитит и не публикует - только печатает таблицу в лог запуска.
+# Ключ маскируется, в вывод не попадает ни при каком исходе.
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: "ID проекта Roistat (если секрет ROISTAT_PROJECTID не задан)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Проверка ключа и маскировка
+        env:
+          KEY: ${{ secrets.ROISTAT_API }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::Нет секрета ROISTAT_API. Добавить в Settings -> Secrets and variables -> Actions"; exit 1
+          fi
+          echo "::add-mask::$KEY"
+
+      - name: Разведка
+        env:
+          ROISTAT_API: ${{ secrets.ROISTAT_API }}
+          ROISTAT_PROJECTID: ${{ secrets.ROISTAT_PROJECTID || github.event.inputs.project_id }}
+        run: node roistat/probe.mjs

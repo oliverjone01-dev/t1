@@ -4,7 +4,7 @@
 #   выкат веток (gg-poll) -> сайт -> задача с данными -> падение задачи с откатом -> откат сайта
 #   -> новый коммит в «GitHub» (данные сервера переживают выкат кода) -> генерация таймеров.
 # Запуск из корня репозитория: bash infra/vps/test/smoke-local.sh
-# Нужны локально ветки-источники: git fetch origin rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1 prod-dashboard-v1 pto-dashboard-v1
+# Нужны локально ветки-источники: git fetch origin rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1 prod-dashboard-v1 pto-dashboard-v1 dialog-export-v1
 # ВАЖНО: без «cmd | grep -q» - при pipefail grep -q выходит на первом совпадении,
 # cmd получает SIGPIPE (код 141) и проверка падает случайно. Только grep -q <<<"$(cmd)".
 set -euo pipefail
@@ -27,7 +27,7 @@ tree=$(git -C "$REPO" write-tree)
 unset GIT_INDEX_FILE
 ops=$(git -C "$REPO" commit-tree "$tree" -p HEAD -m "gg smoke: контур из рабочей копии")
 git --git-dir="$GH" update-ref refs/heads/gg-smoke-ops "$ops"
-for b in rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1 prod-dashboard-v1 pto-dashboard-v1; do
+for b in rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1 prod-dashboard-v1 pto-dashboard-v1 dialog-export-v1; do
   sha=$(git -C "$REPO" rev-parse -q --verify "origin/$b" || git -C "$REPO" rev-parse -q --verify "$b") \
     || fail "нет ветки $b локально: git fetch origin $b"
   git --git-dir="$GH" update-ref "refs/heads/$b" "$sha"
@@ -60,6 +60,7 @@ W="$GG_ROOT/www/current"
   && pass "/economics/ = /econ-control/ (контроль заполнения)" || fail "/economics/ или /econ-control/ нет"
 [ -s "$W/rop-gm/index.html" ] && [ -s "$W/rop-gm/v.txt" ] && pass "/rop-gm/ собран, штамп $(cat "$W/rop-gm/v.txt")" || fail "/rop-gm/ нет"
 [ -s "$W/prod/index.html" ] && [ -s "$W/prod2/index.html" ] && [ -s "$W/pto/index.html" ] && pass "/prod/, /prod2/, /pto/ собраны (ПТО $(cat "$W/pto/v.txt"))" || fail "/prod/ или /pto/ нет"
+[ -s "$W/dialog/index.html" ] && [ -s "$W/dialog/v.txt" ] && pass "/dialog/ собран, штамп $(cat "$W/dialog/v.txt")" || fail "/dialog/ нет"
 [ -s "$W/economics/layers.html" ] && [ -s "$W/economics/v.txt" ] && pass "слоевой /economics/layers.html, штамп $(cat "$W/economics/v.txt")" || fail "layers.html или v.txt экономики"
 [ -s "$W/rop-smoke/index.html" ] && grep -q "^rop-smoke	Смоук Тестов$" "$W/.gg/managers.txt" && pass "/rop-<фамилия>/ собран, список записан" || fail "менеджеры"
 ROPSRC="$GG_ROOT/src/rop-dashboard-v1/current"
@@ -155,7 +156,7 @@ data_before=$(git -C "$GG_ROOT/data" rev-parse HEAD)
 grep -q "РОП: https://dash.genglas.ru/rop/" "$T/report.log" && pass "в сводке раздел РОП со ссылкой" || { cat "$T/report.log"; fail "сводка без РОП"; }
 grep -q "smoke-ok: ✅ ok" "$T/report.log" && pass "в сводке итоги задач" || { cat "$T/report.log"; fail "сводка без задач"; }
 grep -q "^Волна 2 · Bitrix24:$" "$T/report.log" && pass "в сводке план по волнам" || { cat "$T/report.log"; fail "сводка без плана"; }
-grep -q "^✅ РОП /rop/$" "$T/report.log" && grep -q "^❌ Хронология коммуникаций /dialog/$" "$T/report.log" \
+grep -q "^✅ РОП /rop/$" "$T/report.log" && grep -q "^❌ Маркетплейсы /market/$" "$T/report.log" \
   && pass "план галочками: собранный раздел ✅, несобранный ❌" || { cat "$T/report.log"; fail "галочки плана"; }
 grep -q "^✅ Личные дашборды менеджеров" "$T/report.log" && grep -q "^❌ Бэкап данных в S3$" "$T/report.log" \
   && grep -q "^✅ Бот алертов" "$T/report.log" && pass "план: менеджеры, done/todo" || { cat "$T/report.log"; fail "done/todo плана"; }
@@ -283,5 +284,36 @@ cp "$PTOHTML" "$T/pto.bak"; echo '{"budget":1}' >>"$PTOHTML"
 "$BIN/gg-site" 2>/dev/null
 [ "$(md5sum <"$W/pto/index.html")" = "$good" ] && pass "гейт ПТО: клиентские поля -> публикация отменена, /pto/ прошлый" || fail "гейт ПТО пропустил"
 cp "$T/pto.bak" "$PTOHTML"
+
+echo "15. Диалоги: страница без истории в git данных, скоринг по rop.json сервера, ссылка вместо копии"
+DLGDATA="$GG_ROOT/data/dialog-export-v1/analytics-mvp"
+[ -L "$GG_ROOT/src/dialog-export-v1/current/analytics-mvp/public/dialog.html" ] && [ -s "$DLGDATA/public/dialog.html" ] \
+  && pass "dialog.html в релизе - ссылка на данные, засеяна из git" || fail "dialog.html не в данных"
+grep -qxF "/dialog-export-v1/analytics-mvp/public/dialog.html" "$GG_ROOT/data/.git/info/exclude" \
+  && [ -z "$(git -C "$GG_ROOT/data" ls-files -- dialog-export-v1/analytics-mvp/public/dialog.html)" ] \
+  && [ -n "$(git -C "$GG_ROOT/data" ls-files -- dialog-export-v1/analytics-mvp/dialog/data)" ] \
+  && pass "страница не в git данных (exclude), снимок dialog/data - в git" || fail "история данных диалогов"
+cat >"$T/fakebin/npx" <<'EOF'
+#!/usr/bin/env bash
+echo "$* rop=${ROP_JSON:-} days=${DIALOG_DAYS:-}" >>"$SMOKE_CALLS"
+case "$2" in
+  */fetch-dialog.ts) echo '{"smoke":"dialog"}' >dialog/data/dialog.json ;;
+  */build-dialog.ts) echo '<html>const BAKED_AT = "smoke-dlg";</html>' >public/dialog.html ;;
+esac
+EOF
+cp "$REPO/infra/vps/jobs/dialog-snapshot.sh" "$T/jobs/"
+printf 'dialog-snapshot | dialog-export-v1 | *-*-* 05:37:00 UTC | dialog-snapshot.sh | b24-dialog | yes\n' >>"$T/jobs.conf"
+: >"$SMOKE_CALLS"
+PATH="$T/fakebin:$PATH" "$BIN/gg-job" dialog-snapshot >"$T/dlg.log" 2>&1 || { cat "$T/dlg.log"; fail "dialog-snapshot"; }
+grep -q "score-dialog.ts rop=$GG_ROOT/data/rop-dashboard-v1/analytics-mvp/rop/data/rop.json days=7" "$SMOKE_CALLS" \
+  && pass "скоринг по rop.json сервера, окно 7 дней" || { cat "$SMOKE_CALLS"; fail "параметры скоринга"; }
+grep -q "smoke-dlg" "$W/dialog/index.html" && [ "$(cat "$W/dialog/v.txt")" = smoke-dlg ] \
+  && pass "/dialog/ пересобран, штамп обновлён" || fail "/dialog/ не обновился"
+[ -z "$(git -C "$GG_ROOT/data" status --porcelain -- dialog-export-v1/analytics-mvp/public)" ] \
+  && pass "после задачи страница не висит в git данных" || fail "dialog.html попал в git данных"
+ino=$(stat -c%i "$W/dialog/index.html")
+"$BIN/gg-site" 2>/dev/null
+[ "$(stat -c%i "$W/dialog/index.html")" = "$ino" ] && pass "пересборка сайта: неизменная страница - жёсткая ссылка, не копия" \
+  || fail "страница скопирована заново"
 
 echo "ВСЁ ЗЕЛЁНОЕ"

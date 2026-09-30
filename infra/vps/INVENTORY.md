@@ -35,7 +35,7 @@
 | economics-cron | 47 5, 17 10 | 2 | ✅ `economics-snapshot` + `economics-snapshot-late` | /economics/layers.html; два слота - две строки jobs.conf |
 | econ-recon | 37 */3 | 2 | ✅ `econ-recon` | /economics/, /econ-control/; дизайнеры и карта полей (в GitHub по ручному запуску) - `ECON_FULL=1 gg-job econ-recon` |
 | field-map | пн 06:00 | 2 | ⏳ | схема полей Bitrix |
-| b24-dialog-cron | 37 5 | 2 | ⏳ | dialog.json ~93 МБ; ИИ-шаг приостановлен и в GitHub |
+| b24-dialog-cron | 37 5 | 2 | ✅ `dialog-snapshot` | снимок + скоринг + страница; ИИ-шаг не переносится (приостановлен и в GitHub); dialog.html без истории в git данных |
 | ozon-snapshots | 0 6 | 3 | ⏳ | после неё в GitHub шёл deploy-pages (workflow_run) - на сервере site=yes |
 | orders-backfill | 0 5 | 3 | ⏳ | |
 | sync | 0 5 (если включён) | 3 | ⏳ | проверить при переносе, не дублирует ли ozon-snapshots |
@@ -64,7 +64,7 @@
 | /prod/ /prod2/ | prod-dashboard-v1 | 2 | ✅ `site/steps/25-prod.sh` |
 | /pto/ | pto-dashboard-v1 | 2 | ✅ `site/steps/26-pto.sh` (гейт клиентских полей) |
 | /economics/ /econ-control/ | economics-dashboard-v1 | 2 | ✅ `site/steps/23-economics.sh` |
-| /dialog/ | dialog-export-v1 | 2 | ⏳ |
+| /dialog/ | dialog-export-v1 | 2 | ✅ `site/steps/27-dialog.sh` |
 | / (хаб), /market/, KATYA | main | 3 | ⏳ |
 | /kontur/ /direct/ /seo/ | main | 3 | ⏳ |
 | /direct-preview/ /preview/ | ветки превью | 3 | ⏳ превью |

@@ -22,10 +22,17 @@ mkdir -p "$base"
 
 seeded=0
 link_data() {
-  local p tgt
+  local p tgt nogit ex="$GG_DATA/.git/info/exclude"
   while read -r p; do
-    case "$p" in /*|*..*) gg_die "недопустимый путь данных: $br:$p" ;; esac
+    # «~путь» - данные без истории: пересобираемый тяжёлый файл (страница на 100 МБ) живёт в данных,
+    # но в git данных не коммитится (info/exclude), иначе история росла бы на гигабайты в месяц
+    nogit=0; case "$p" in "~"*) p=${p#"~"}; nogit=1 ;; esac
+    case "$p" in /*|*..*|"") gg_die "недопустимый путь данных: $br:$p" ;; esac
     tgt="$GG_DATA/$safe/$p"
+    if [ "$nogit" = 1 ] && ! grep -qxF "/$safe/$p" "$ex" 2>/dev/null; then
+      mkdir -p "$(dirname "$ex")"; printf '/%s\n' "$safe/$p" >>"$ex"
+      gg_log "без истории в git данных: $br:$p"
+    fi
     if [ ! -e "$tgt" ] && [ ! -L "$tgt" ]; then
       mkdir -p "$(dirname "$tgt")"
       if [ -e "$dir/$p" ]; then

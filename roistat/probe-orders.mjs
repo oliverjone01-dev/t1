@@ -308,7 +308,15 @@ out.push(['полей-дат найдено', String(DATE_FIELDS.length)]);
 /* ---------- 2. полный обход ---------- */
 const statusId = r => String(r && r.status && r.status.id != null ? r.status.id : (r ? r.status : ''));
 const keep = new Map();
-let pages = 0, shortPage = 0;
+let pages = 0, shortPage = 0, rowsSeen = 0;
+/* Дубли по id считаются отдельно от потерь. Прогон 36736887635 показал, что
+   `total` Ройстата считает СТРОКИ, а не различные id: строк пришло ровно 52 987,
+   как и обещал total, а различных id 52 984. Значит три записи приходят дважды,
+   и это не съехавшее окно - второй проход дал тот же результат до записи.
+   Дубль важен вдвойне: если у двух строк с одним id деньги разные, склейка по id
+   молча теряет часть суммы (К4). Поэтому расхождение внутри дубля ловится. */
+const dupIds = new Map();      /* id -> сколько раз встретился */
+const dupConflict = [];        /* id, у которых строки различаются по проекции */
 
 console.log('\n--- полный обход базы ---');
 /* Граница обхода следит за ЖИВЫМ total из каждого ответа, а не за снятым до
@@ -322,42 +330,75 @@ console.log('\n--- полный обход базы ---');
    настоящую дыру, поэтому обход просто повторяется и склеивается по id: две
    независимые попытки почти наверняка накрывают то, что первая пропустила. Если
    и после повторов недобор остался - прогон падает, как и раньше. */
-const PASSES = Number(process.env.PASSES || 3);
+const PASSES = Number(process.env.PASSES || 4);
 let totalLive = TOTAL_BEFORE;
+let passRows = 0;          /* строк в ПОСЛЕДНЕМ проходе: полнота мерится по проходу */
+let converged = false;
+let lastAdded = null;
+
+/* Две проверки, и они про разное.
+
+   1. ПОЛНОТА ПРОХОДА: один проход обязан отдать столько строк, сколько обещает
+      `total`. Меньше - страницы терялись, это дыра.
+   2. СХОДИМОСТЬ: если различных id меньше, чем пришло строк, причин ровно две, и
+      по одному проходу они неразличимы. Либо в базе есть записи с одинаковым id
+      (тогда `total` просто считает строки), либо окно съехало и часть записей
+      подменилась повторами. Различает их ПОВТОР ОБХОДА: свойство базы
+      воспроизводится и второй проход не добавляет ничего, а съехавшее окно даёт
+      другой набор, и объединение растёт. Поэтому при дублях обход повторяется,
+      пока проход не перестанет приносить новые id.
+
+   Прогоны 36735896587 и 36736887635 - как раз первый случай: строк ровно 52 987,
+   различных id 52 984, второй проход добавил ноль. Мерить полноту различными id
+   значило ронять прогон на здоровой базе, что и происходило дважды. */
 for (let pass = 1; pass <= PASSES; pass++) {
   const before = keep.size;
-  if (pass > 1) console.log('  --- проход ' + pass + ': добираем недостающее ---');
-for (let off = 0; off < totalLive + PAGE && pages < MAX_PAGES; off += PAGE) {
-  await pause(PAUSE);
-  const j = await call('/project/integration/order/list', { limit: PAGE, offset: off });
-  pages++;
-  if (bad(j)) { console.log('  offset ' + off + ': ' + why(j)); process.exit(1); }
-  if (Number(j.total)) totalLive = Math.max(totalLive, Number(j.total));
-  const rows = j.data || [];
-  if (!rows.length) { console.log('  offset ' + off + ': пусто, обход закончен'); break; }
-  if (rows.length < PAGE) shortPage++;
-  for (const r of rows) {
-    const f = flat(r);
-    const id = String(r.id);
-    const proj = { id, status: statusId(r) };
-    for (const k of DATE_FIELDS) if (f[k] != null) proj[k] = String(f[k]);
-    for (const k of NUM_FIELDS) if (f[k] != null && looksNum(f[k])) proj[k] = Number(f[k]);
-    proj.has_visit = !!(r.visit_id || r.visit);
-    /* Ссылка лида на сделку: Ройстат кладёт сюда `deal_N`, и N это id сделки
-       Битрикса (проверено - deal_101293 есть в снимке). Для стыка она нужна. */
-    if (r.order_id_alias) proj.alias = String(r.order_id_alias);
-    keep.set(id, proj);                     /* склейка по id: дубль перезапишет сам себя */
+  passRows = 0;
+  if (pass > 1) console.log('  --- проход ' + pass + ': проверяем, добавится ли что-то ---');
+  for (let off = 0; off < totalLive + PAGE && pages < MAX_PAGES; off += PAGE) {
+    await pause(PAUSE);
+    const j = await call('/project/integration/order/list', { limit: PAGE, offset: off });
+    pages++;
+    if (bad(j)) { console.log('  offset ' + off + ': ' + why(j)); process.exit(1); }
+    if (Number(j.total)) totalLive = Math.max(totalLive, Number(j.total));
+    const rows = j.data || [];
+    if (!rows.length) { console.log('  offset ' + off + ': пусто, обход закончен'); break; }
+    if (rows.length < PAGE) shortPage++;
+    for (const r of rows) {
+      const f = flat(r);
+      const id = String(r.id);
+      const proj = { id, status: statusId(r) };
+      for (const k of DATE_FIELDS) if (f[k] != null) proj[k] = String(f[k]);
+      for (const k of NUM_FIELDS) if (f[k] != null && looksNum(f[k])) proj[k] = Number(f[k]);
+      proj.has_visit = !!(r.visit_id || r.visit);
+      /* Ссылка лида на сделку: Ройстат кладёт сюда `deal_N`, и N это id сделки
+         Битрикса (проверено - deal_101293 есть в снимке). Для стыка она нужна. */
+      if (r.order_id_alias) proj.alias = String(r.order_id_alias);
+      passRows++;
+      rowsSeen++;
+      const was = keep.get(id);
+      if (was) {
+        if (pass === 1) {
+          dupIds.set(id, (dupIds.get(id) || 1) + 1);
+          if (JSON.stringify(was) !== JSON.stringify(proj)) dupConflict.push(id);
+        }
+      }
+      keep.set(id, proj);                   /* склейка по id: дубль перезапишет сам себя */
+    }
+    if (pages % 3 === 1 || rows.length < PAGE)
+      console.log('  offset ' + String(off).padStart(6) + ': пришло ' + String(rows.length).padStart(5)
+        + ', различных id всего ' + keep.size);
   }
-  if (pages % 3 === 1 || rows.length < PAGE)
-    console.log('  offset ' + String(off).padStart(6) + ': пришло ' + String(rows.length).padStart(5)
-      + ', уникальных всего ' + keep.size);
-}
-  const got = keep.size - before;
-  console.log('  проход ' + pass + ': уникальных стало ' + keep.size + ' из ' + totalLive
-    + (pass > 1 ? ' (добрано ' + got + ')' : ''));
-  if (keep.size >= totalLive) break;
-  if (pass === PASSES) break;
-  if (pass > 1 && got === 0) { console.log('  повтор ничего не добрал, дальше смысла нет'); break; }
+  const added = keep.size - before;
+  lastAdded = added;
+  const full = passRows >= totalLive;
+  console.log('  проход ' + pass + ': строк ' + passRows + ' из ' + totalLive
+    + (full ? ' (полный)' : ' (НЕПОЛНЫЙ)') + ', различных id ' + keep.size
+    + (pass > 1 ? ', добавилось ' + added : ''));
+  /* Сошлись, когда проход полный и новых id он не принёс. На первом проходе это
+     ещё и случай «дублей нет вовсе»: различных id ровно столько, сколько строк. */
+  if (full && pass === 1 && keep.size === passRows) { converged = true; break; }
+  if (full && pass > 1 && added === 0) { converged = true; break; }
 }
 
 await pause(PAUSE);
@@ -375,20 +416,50 @@ if (TOTAL_AFTER !== null && TOTAL_AFTER !== TOTAL_BEFORE)
    выросшей базе уходила в минус, то есть молча пропускала недобор - это поймал
    стенд, а не живой прогон. */
 const MOVED = TOTAL_AFTER === null ? 0 : TOTAL_AFTER - TOTAL_BEFORE;
-const shortfall = TOTAL_BEFORE - keep.size;
-console.log('проходов сделано: ' + pages + ' страниц, порог проходов ' + PASSES);
-out.push(['уникальных id / total на старте', keep.size + ' / ' + TOTAL_BEFORE]);
+/* Полнота мерится ПОСЛЕДНИМ проходом, а не суммой строк за все проходы: сумма
+   за три прохода больше `total` втрое и «полноту» показывает всегда. */
+const shortfall = totalLive - passRows;
+console.log('страниц запрошено: ' + pages + ', проходов не больше ' + PASSES);
+out.push(['строк в последнем проходе / total', passRows + ' / ' + totalLive]);
+out.push(['различных id', String(keep.size)]);
+if (dupIds.size) {
+  const extra = [...dupIds.values()].reduce((a, n) => a + n - 1, 0);
+  console.log('\nДУБЛИ ПО id: ' + dupIds.size + ' идентификаторов, лишних строк ' + extra);
+  console.log('  Это свойство самой базы, а не обхода: второй проход дал то же.');
+  for (const [id, n] of [...dupIds.entries()].slice(0, 20))
+    console.log('    ' + id + ' встретился ' + n + ' раз');
+  if (dupConflict.length) {
+    console.log('  РАЗНЫЕ ДАННЫЕ ПОД ОДНИМ id: ' + dupConflict.length
+      + ' - склейка по id теряет часть суммы, это К4:');
+    for (const id of dupConflict.slice(0, 20)) console.log('    ' + id);
+  } else {
+    console.log('  Строки дублей совпадают по всем взятым полям: склейка по id ничего не теряет.');
+  }
+  out.push(['дублей по id', dupIds.size + ' (лишних строк ' + extra + ')']);
+  out.push(['дублей с разными данными', String(dupConflict.length)]);
+}
 if (shortfall > 0) {
-  console.log('НЕДОБОР ' + shortfall + ' записей из тех, что были на старте:');
-  console.log('снимок неполный, раскладка по строкам недостоверна.');
-  out.push(['ВЕРДИКТ', 'НЕДОБОР ' + shortfall + ', раскладку не делать']);
+  console.log('НЕДОБОР ' + shortfall + ' строк: последний проход отдал ' + passRows
+    + ' из обещанных ' + totalLive + '.');
+  console.log('Страницы терялись, снимок неполный, раскладка по строкам недостоверна.');
+  out.push(['ВЕРДИКТ', 'НЕДОБОР ' + shortfall + ' строк, раскладку не делать']);
+  for (const [k, v] of out) console.log('  ' + k.padEnd(40) + v);
+  process.exit(1);
+}
+if (!converged) {
+  console.log('НЕ СОШЛОСЬ за ' + PASSES + ' проходов: последний проход всё ещё принёс '
+    + lastAdded + ' новых id.');
+  console.log('Значит окно едет во время обхода, и набор записей от прохода к проходу');
+  console.log('разный. Это не дубли в базе, и раскладка по строкам недостоверна.');
+  out.push(['ВЕРДИКТ', 'обход не сошёлся, раскладку не делать']);
   for (const [k, v] of out) console.log('  ' + k.padEnd(40) + v);
   process.exit(1);
 }
 if (MOVED > 0) {
-  console.log('База выросла на ' + MOVED + ' записей, и собрано ' + keep.size + ' против '
+  console.log('База выросла на ' + MOVED + ' записей: ' + TOTAL_BEFORE + ' на старте, '
     + TOTAL_AFTER + ' на конец обхода.');
-  console.log('Все записи, что были на старте, собраны (' + keep.size + ' >= ' + TOTAL_BEFORE + ').');
+  console.log('Последний проход отдал ' + passRows + ' строк и новых id не принёс,');
+  console.log('то есть обход сошёлся уже на выросшей базе.');
   console.log('Недобранное могло появиться только ВО ВРЕМЯ обхода, то есть сегодня,');
   console.log('а раскладка идёт по закрытому месяцу ' + MONTH + '. Пометка уходит в файл.');
   out.push(['база двигалась за обход', '+' + MOVED + ' записей']);
@@ -451,6 +522,7 @@ writeFileSync(OUT, JSON.stringify({
   source: 'roistat:integration/order/list',
   month: MONTH, funnel: FUNNEL,
   total_before: TOTAL_BEFORE, total_after: TOTAL_AFTER, unique: keep.size, moved: MOVED,
+  rows_seen: rowsSeen, dup_ids: [...dupIds.keys()], dup_conflict: dupConflict,
   date_fields: DATE_FIELDS, num_fields: NUM_FIELDS,
   paid_stages: [...paidStages],
   ref: REF, ref_period: PERIOD, funnel_dim: FUNNEL_DIM, dim_map: DIM_MAP,

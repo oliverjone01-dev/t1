@@ -824,6 +824,14 @@ export interface SvodMonth {
   // Числа НЕ складываем (это был бы двойной счёт) - держим рядом и говорим о расхождении вслух.
   overhead_points_report: number;
   points_src: "orders" | "report"; // откуда взяты баллы: subsidies[] заказа или отчёт по баллам Маркета
+  // Списания баллов по доставленным заказам месяца, которые отчёт о баллах уже знает, а реестр
+  // платежей СВОЕГО кабинета ещё нет (дата списания позже последнего дня реестра). Строки свода
+  // берут списания только из реестра, поэтому эти рубли в них пока 0 - здесь они видны, а не
+  // пропадают. Когда реестр догонит, списание уйдёт в строку заказа и отсюда исчезнет само:
+  // каждое списание лежит ровно в одном месте. 30.09.2026: зеркала, реестр по 27.09, отчёт по
+  // 28.09, заказ 61517954626 - 27 589,89.
+  points_after_ledger?: number;
+  points_after_ledger_orders?: Array<{ order: string; sku: string; d_order: string; d_spend: string; v: number }>;
   svc_points_src?: "ledger" | "report";  // откуда взято СПИСАНИЕ баллов за услуги по заказам
   svc_points_report?: number;            // сколько списано по отчёту (для сверки)
   points_report: number;           // начислено баллов по отчёту за этот месяц (для сверки с разнесённым)
@@ -1252,6 +1260,45 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
     }
   }
 
+  // 4б. списания баллов по заказам, до которых реестр СВОЕГО кабинета ещё не дошёл. Отчёт о
+  // баллах и реестр приходят с разной свежестью (30.09.2026: зеркала - отчёт по 28.09, реестр по
+  // 27.09). Граница - последний день реестра кабинета; у кабинета без реестра границы нет, и всё
+  // его списание видно здесь. В строки свода эти рубли не идут: там источник - реестр, и второй
+  // источник того же списания дал бы двойной счёт.
+  {
+    const ledgerTo = new Map<string, string>();
+    for (const n of netting) {
+      const b = String(n.business || ""), d = String(n.d || "").slice(0, 10);
+      if (d > (ledgerTo.get(b) || "")) ledgerTo.set(b, d);
+    }
+    const createdOf = new Map<string, string>();
+    for (const r of rows) if (r.created) createdOf.set(r.order, String(r.created).slice(0, 10));
+    const after = new Map<string, Map<string, { order: string; sku: string; d_order: string; d_spend: string; v: number }>>();
+    for (const r of bonus) {
+      if (bonusKind(r) !== "spend") continue;
+      const ord = String((r as any).order || "").trim();
+      if (!ord) continue;
+      const k = delivered.get(ord);
+      if (!k || !k.startsWith(`${r.business}|`)) continue;   // в свод идут только доставленные заказы своего кабинета
+      const dSpend = String((r as any).d || "").slice(0, 10);
+      if (dSpend && dSpend <= (ledgerTo.get(String(r.business)) || "")) continue;   // реестр это уже знает
+      const sku = String((r as any).sku || "").trim();
+      const byKey = after.get(k) || new Map(); after.set(k, byKey);
+      const key = `${ord}|${sku}|${dSpend}`;
+      const e = byKey.get(key) || { order: ord, sku, d_order: createdOf.get(ord) || "", d_spend: dSpend, v: 0 };
+      e.v = r2(e.v - (Number(r.amount) || 0));
+      byKey.set(key, e);
+    }
+    for (const [k, byKey] of after) {
+      const m = months.get(k);
+      if (!m) throw new Error(`свод: списание баллов после реестра по ${k}, а месяца в своде нет - деньги пропали бы молча`);
+      const list = [...byKey.values()].filter((e) => e.v !== 0)
+        .sort((a, b) => (a.d_spend < b.d_spend ? -1 : a.d_spend > b.d_spend ? 1 : a.order < b.order ? -1 : 1));
+      m.points_after_ledger = r2(list.reduce((a, e) => a + e.v, 0));
+      m.points_after_ledger_orders = list;
+    }
+  }
+
   // 5. общие расходы кабинета (подписки, полки, баннеры) - к заказу не привязаны.
   // Месяц, где расходы есть, а доставленных заказов нет, заводим отдельно: раньше такие расходы
   // (11 392 ₽ по кабинету зеркал за февраль и март) исчезали, потому что пары (кабинет, месяц)
@@ -1632,5 +1679,6 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
     }
     for (const m of months.values()) if (m.fly_rows) m.fly_rows.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.order < b.order ? -1 : 1));
   }
+  for (const m of months.values()) { m.points_after_ledger ??= 0; m.points_after_ledger_orders ??= []; }
   return [...months.values()].sort((a, b) => (a.ym === b.ym ? a.business.localeCompare(b.business) : b.ym.localeCompare(a.ym)));
 }

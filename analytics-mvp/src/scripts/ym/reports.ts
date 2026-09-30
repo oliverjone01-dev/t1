@@ -553,7 +553,10 @@ async function bonuses(months: string[]) {
         for (const r of t.rows) {
           const amount = num("ym-bonuses", r[ix.amount!]);
           if (!amount) continue;
-          fresh.push({ ym, business: b, d: ix.date! >= 0 ? cellDate(r[ix.date!]) || monthBounds(ym).dateTo : monthBounds(ym).dateTo,
+          // Нет даты в ячейке - ставим конец месяца, но помечаем d_est: для свода это «дата
+          // неизвестна», сравнивать её с последним днём реестра нельзя (spendDate в derive-lib).
+          const dCell = ix.date! >= 0 ? cellDate(r[ix.date!]) : "";
+          fresh.push({ ym, business: b, d: dCell || monthBounds(ym).dateTo, ...(dCell ? {} : { d_est: true }),
             type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", src: ix.source! >= 0 ? (r[ix.source!] || "").trim() : "",
             service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "",
             order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "",

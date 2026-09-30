@@ -65,6 +65,24 @@ export function dedupeNetting<T extends NettingLike>(rows: T[]): T[] {
 // done     - ключи вида "<кабинет>/<YYYY-MM>" из состояния;
 // cur/prev - текущий и прошлый месяц: их перезабираем всегда, акт за них ещё дополняется;
 // full     - признак «пересобрать всё» (пустой файл или смена схемы разбора).
+// Сколько первых дней месяца перезабираем прошлый месяц, даже если он уже «собран».
+// Отчёт, сформированный в день X, кончается днём X-1: последний прогон месяца (30.09) не видит
+// списаний 30.09, а 1.10 сентябрь уже в done и пропускался бы навсегда (G1 ФЕНИКСА, 2026-09-30).
+// Пять дней - запас на прогоны, упавшие в лимит генерации [ГИПОТЕЗА, проверка 1-2.10].
+export const PREV_MONTH_REFETCH_DAYS = 5;
+
+// С какого месяца список перезабирается, даже если пара кабинет/месяц уже в done.
+// Обычно - последний месяц списка; в первые PREV_MONTH_REFETCH_DAYS дней (UTC) - прошлый
+// календарный месяц, если он в списке раньше последнего.
+export function reportFreshFrom(months: string[], now: Date, graceDays = PREV_MONTH_REFETCH_DAYS): string {
+  if (!months.length) return "";
+  const last = months[months.length - 1]!;
+  if (now.getUTCDate() > graceDays) return last;
+  const p = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+  const prev = `${p.getUTCFullYear()}-${String(p.getUTCMonth() + 1).padStart(2, "0")}`;
+  return prev < last ? prev : last;
+}
+
 export function reportMonthsToDo(all: string[], done: Iterable<string>, cur: string, prev: string, full = false): string[] {
   if (full) return all;
   const keys = [...done];

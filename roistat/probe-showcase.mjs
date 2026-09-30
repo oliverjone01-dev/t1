@@ -151,6 +151,14 @@ function metricValue(row, name) {
 }
 /* Название канала. Ключ разреза в ответе Ройстата приходит не под одним именем,
    поэтому берём первое строковое поле из известных, а не гадаем одно. */
+/* Строка «вне рекламного канала» опознаётся по ПУСТОМУ значению разреза, а не по
+   тексту заголовка: заголовок Ройстат может назвать как угодно («Прямые визиты»),
+   и поиск по словам «не определён» её молча пропускает. */
+function isNoChannel(row) {
+  const d = row && row.dimensions;
+  const f = d && (d.marker_level_1 || Object.values(d)[0]);
+  return !!f && (f.value === '' || f.value == null);
+}
 function dimLabel(row) {
   for (const k of ['title', 'name', 'label', 'dimension_title', 'marker_level_1']) {
     const v = row && row[k];
@@ -219,7 +227,7 @@ for (const p of PERIODS) {
   const money = revenueCustoms.filter(m => cut[m] > 0);
   const moneyMetric = money.sort((a, b) => cut[b] - cut[a])[0] || null;
   if (moneyMetric) {
-    const undef = rows.filter(r => /не опред|undefined|не указан|^-$|^\(/i.test(dimLabel(r)));
+    const undef = rows.filter(isNoChannel);
     const uSum = undef.reduce((a, r) => a + (metricValue(r, moneyMetric) || 0), 0);
     const total = cut[moneyMetric] || 0;
     say('\n  покрытие по деньгам (метрика ' + moneyMetric + ' - «' + titleOf(moneyMetric) + '»):');
@@ -236,15 +244,18 @@ for (const p of PERIODS) {
   }
 
   /* ---- топ каналов: это то, что пойдёт на сверку с Битриксом ---- */
-  if (moneyMetric) {
-    const top = rows.slice().sort((a, b) => (metricValue(b, moneyMetric) || 0) - (metricValue(a, moneyMetric) || 0)).slice(0, 15);
-    say('\n  топ каналов по ' + moneyMetric + ':');
-    say('    канал                                       визиты    лиды   ' + moneyMetric.padEnd(12) + ' расходы');
-    for (const r of top) {
-      say('    ' + dimLabel(r).slice(0, 40).padEnd(42) +
-          rub(metricValue(r, 'visits')).padStart(8) + rub(metricValue(r, 'leads')).padStart(8) +
-          rub(metricValue(r, moneyMetric)).padStart(14) + rub(metricValue(r, 'marketing_cost')).padStart(12));
-    }
+  /* Таблица каналов печатается всегда: это и есть первый срез витрины, деньги в
+     ней могут отсутствовать, а визиты, заявки и расходы - нет. */
+  const sortKey = moneyMetric || 'leads';
+  const top = rows.slice().sort((a, b) => (metricValue(b, sortKey) || 0) - (metricValue(a, sortKey) || 0)).slice(0, 20);
+  say('\n  каналы по ' + sortKey + ' (топ 20 из ' + rows.length + '):');
+  say('    канал                                       визиты    лиды       расходы' + (moneyMetric ? '   ' + moneyMetric : ''));
+  for (const r of top) {
+    say('    ' + dimLabel(r).slice(0, 40).padEnd(42) +
+        rub(metricValue(r, 'visits')).padStart(8) + rub(metricValue(r, 'leads')).padStart(8) +
+        rub(metricValue(r, 'marketing_cost')).padStart(14) +
+        (moneyMetric ? rub(metricValue(r, moneyMetric)).padStart(14) : '') +
+        (isNoChannel(r) ? '   <- вне рекламного канала' : ''));
   }
 }
 
@@ -282,6 +293,68 @@ if (Number(curTo.slice(8)) <= 16) {
     }
   }
 }
+
+/* ---------- 6. граница периода: включается ли день, названный в `to` ----------
+   Проверка появилась не из любопытства. Аддитивность (раздел 5) провалилась
+   ровно на величину одних суток, а ответ Ройстата возвращает dateTo как
+   `...T00:00:00+00:00`. Обе улики указывают на полуоткрытый интервал, но улика
+   это не доказательство: спрашиваем API прямо. Заодно видно часовой пояс, в
+   котором Ройстат режет сутки - он приходит в самом ответе. */
+say('\n=== граница периода: включается ли день из `to` ===');
+const D15 = `${Y}-${pad(M)}-15`, D16 = `${Y}-${pad(M)}-16`;
+const oneDay  = await data(D15, D15, ['marker_level_1']);
+const twoDays = await data(D15, D16, ['marker_level_1']);
+const vOne = bad(oneDay)  ? null : sumOver(rowsOf(oneDay),  'visits');
+const vTwo = bad(twoDays) ? null : sumOver(rowsOf(twoDays), 'visits');
+say('  визиты за [' + D15 + ' .. ' + D15 + ']: ' + rub(vOne));
+say('  визиты за [' + D15 + ' .. ' + D16 + ']: ' + rub(vTwo));
+say('  часовой пояс в ответе: ' + String(blockOf(twoDays).dateFrom) + ' .. ' + String(blockOf(twoDays).dateTo));
+if (vOne === 0 && vTwo > 0) {
+  say('  ВЕРДИКТ: день из `to` НЕ включается. Интервал полуоткрытый [from, to).');
+  say('  Значит «месяц по 30-е» это 1..29, а не весь месяц. Витрина обязана');
+  say('  запрашивать `to` = первый день следующего периода, иначе теряются сутки.');
+  out.push(['период', 'граница `to`', 'НЕ включается, интервал [from, to)']);
+} else if (vOne > 0) {
+  say('  ВЕРДИКТ: день из `to` включается, интервал закрытый [from, to].');
+  say('  Тогда провал аддитивности объясняется чем-то другим - разбирать отдельно.');
+  out.push(['период', 'граница `to`', 'включается, но аддитивность всё равно провалена']);
+} else {
+  say('  ВЕРДИКТ НЕ ВЫНЕСЕН: оба окна пустые или пришёл отказ. Не вывод, а нехватка данных.');
+  out.push(['период', 'граница `to`', 'не выяснено']);
+}
+
+/* ---------- 7. где в Ройстате вообще лежат деньги по каналам ----------
+   Плановая конструкция была: выручка = custom_16..26 в разрезе marker_level_1.
+   Срез показал, что все эти метрики приходят null во всех строках и во всех трёх
+   периодах. Пустая метрика и нулевая выручка - разные вещи (К7), поэтому вместо
+   вывода «денег нет» перебираем все денежные метрики справочника и смотрим,
+   какая из них вообще что-то отдаёт в этом разрезе. */
+say('\n=== перебор: какие денежные метрики отдают числа в разрезе marker_level_1 ===');
+const moneyAll = all
+  .filter(x => x.is_available !== false)
+  .filter(x => x.type === 'money' || /revenue|profit|payment|products_|income|cost/i.test(x.name))
+  .map(x => x.name)
+  .filter(n => !METRICS.includes(n));
+say('кандидатов в справочнике: ' + moneyAll.length + ' (перебор только за закрытый месяц, чтобы не жечь лимит)');
+const alive = [], empty = [];
+for (let i = 0; i < moneyAll.length; i += 10) {
+  const batch = moneyAll.slice(i, i + 10);
+  await pause(PAUSE);
+  const r = await call('/project/analytics/data', {
+    metrics: batch, dimensions: ['marker_level_1'], period: { from: closedFrom, to: closedTo } });
+  if (bad(r)) { say('  пачка ' + batch.join(',') + ': ' + why(r)); continue; }
+  const rr = rowsOf(r);
+  for (const m of batch) {
+    const nn = rr.filter(x => metricValue(x, m) !== null).length;
+    const sm = sumOver(rr, m);
+    if (nn === 0) empty.push(m); else alive.push([m, nn, rr.length, sm]);
+  }
+}
+say('\n  отдают числа (' + alive.length + '):');
+for (const [m, nn, tot, sm] of alive.sort((a, b) => b[3] - a[3]))
+  say('    ' + m.padEnd(30) + rub(sm).padStart(18) + '   строк с данными ' + nn + ' из ' + tot + '   «' + titleOf(m).slice(0, 40) + '»');
+say('\n  пустые во всех строках (' + empty.length + '): ' + empty.join(', '));
+out.push(['деньги', 'метрик с числами в разрезе', alive.length + ' из ' + moneyAll.length]);
 
 /* ---------- 6. итог. Печатается последним: логи Actions читаются с хвоста ---------- */
 say('\n=== ИТОГ СРЕЗА ===');

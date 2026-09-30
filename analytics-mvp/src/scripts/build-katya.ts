@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import { matchLedger, accrualShipSeries, type Unmatched } from "./delivery-match.js";
+import { splitCpo } from "./cpo-split.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
 const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(html));
@@ -2329,6 +2330,20 @@ function render(cur,cmp){
     }
   } catch { /* нет orders_daily */ }
   const shareOf = (sk: string) => { const f = feeShare[sk] && feeShare[sk]!.rev >= 100_000 ? feeShare[sk]! : feeShare["*"]; return f && f.rev > 0 ? f : null; };
+  // Реклама «за заказ» по отправлениям: одна сумма на заказ, на отправление артикула с CPO в этот день
+  // (Иван 30.09, вариант 1; src/scripts/cpo-split.ts). Раньше сумма стояла на каждом отправлении.
+  const cpoSkuDay: Record<string, number> = {};
+  for (const sk in anCpoSku) for (const [d, v] of anCpoSku[sk]!) cpoSkuDay[d + "|" + sk] = (cpoSkuDay[d + "|" + sk] || 0) + Number(v || 0);
+  let advByPosting: Record<string, number> = {};
+  try {
+    const ps = readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l))
+      .map((r: any) => ({ order: String(r.order || ""), d: String(r.d || ""), sku: String(r.sku || ""), status: String(r.status || "") }));
+    advByPosting = splitCpo(cpoByOrder, ps, cpoSkuDay);
+    // Инвариант: по каждому заказу разнесено ровно столько, сколько в отчёте CPO (не больше - иначе задвоение).
+    const got: Record<string, number> = {};
+    for (const [o, v] of Object.entries(advByPosting)) { const b = cpoByOrder[orderBase(o)] != null ? orderBase(o) : o; got[b] = (got[b] || 0) + v; }
+    for (const [b, v] of Object.entries(got)) if (v !== Math.round(cpoByOrder[b] || 0)) throw new Error(`CPO ${b}: разнесено ${v}, в отчёте ${Math.round(cpoByOrder[b] || 0)}`);
+  } catch (e) { if (String(e).includes("CPO ")) throw e; }
   try {
     for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); const sk = String(r.sku || ""); const ord = String(r.order || "");
@@ -2355,7 +2370,7 @@ function render(cur,cmp){
       }
       const units = Number(r.units || 0);
       const dlv = (st === "delivered") ? units : 0; // штук доставлено (для колонки «Доставлено»)
-      const adv = Math.round(cpoByOrder[orderBase(ord)] || cpoByOrder[ord] || 0); // реклама «за заказ»
+      const adv = advByPosting[ord] || 0; // реклама «за заказ», одна сумма на заказ (cpo-split.ts)
       const dl = delivByOrder[ord] || { ship: 0, deliv: 0 };
       // Эквайринг orders_daily = 0 (accrual/postings его не отдаёт); он добирается по SKU в render.
       const acqSigned = Math.round(r.acquiring || 0);
@@ -2392,7 +2407,8 @@ function render(cur,cmp){
         // нулевой комиссией. Белым такой заказ выглядел бы как полный факт, а «К выплате» в нём может быть завышен.
         nNoFee: noCom ? 1 : 0, // возврат OZON обнуляет комиссию сам - это не пропуск
         paid: (r.paid == null ? null : Math.round(Number(r.paid) - (r.revenue > 0 ? Number(r.paid) * Math.min(1, retAmt / r.revenue) : 0))), // оплата покупателя за вычетом возврата
-        adv, ship: Math.round(dl.ship), dinc: 0, // дост.покуп добирается глобально в render (кабинетный ряд)
+        adv, ship: Math.round(dl.ship), led: delivByOrder[ord] ? 1 : 0, dinc: 0, // led: заказ есть в ведомости (Иван 30.09: есть, но пусто - 0; нет - «нет в ведомости»)
+         // дост.покуп добирается глобально в render (кабинетный ряд)
         amt: amtNet, amtS: (units > 0 ? amtNet : 0), ret: retAmt,
         // Вернувшаяся штука приходит обратно на склад - её СС не расход (аудит: июль 72 649 ₽,
         // август 34 817 ₽ снимались зря). Доля возврата = возвращённая выручка / выручка заказа.
@@ -2757,7 +2773,11 @@ function anCells(x){
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var RD=function(v,tip){var t=tip?' title="'+String(tip).replace(/"/g,'&quot;')+'"':'';return '<td class="r"'+t+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var P2=function(v){return '<td class="r"'+(v>0?' style="color:var(--up)"':'')+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';}; // приход (зелёный)
-  var shipCell=${IS_OZON}?RD(x.ship,x.shipTip):'';
+  // Строка заказа rFBS (Иван 30.09): заказ есть в ведомости, а суммы отправки нет - «0»; заказа в ведомости
+  // нет - «нет в ведомости» (расход не найден, прибыль строки без него). FBS/FBO везёт OZON - как было.
+  var shipCell=${IS_OZON}?((x.led===1&&!Math.round(x.ship||0))?'<td class="r" title="Заказ есть в ведомости, сумма отправки пустая">0</td>'
+    :(x.led===0&&x.scheme==='rFBS'&&!Math.round(x.ship||0))?'<td class="r" style="color:#E5B567" title="Заказа нет в ведомости перевозчика: расход на доставку не найден">нет в ведомости</td>'
+    :RD(x.ship,x.shipTip)):'';
   var incCell=${IS_OZON}?P2(x.dinc):'';
   var cityCell=${IS_OZON}?('<td title="'+String(x.citiesTip||'').replace(/"/g,'&quot;')+'" style="color:var(--ink-2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(x.citiesTxt||'')+'</td>'):'';
   var I=function(v){return '<td class="r">'+(v?fmtRu(v):'—')+'</td>';};
@@ -2933,7 +2953,7 @@ function renderOrdersAnalytics(cur){
     // В пути = заказано, но ещё не доставлено (отменённые в AN_ORDERS не попадают). Выручка - та же
     // «Начислено» строки: сколько денег ещё дойдёт, если заказ не отменят и не вернут.
     var fl=(s.st!=='delivered');
-    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,estNoCom:s.estNoCom||0,paid:s.paid,citiesTxt:(s.ship>0&&!AN_ORD_CITY[s.order])?'<span style="color:#E5B567">нет города в ведомости</span>':(AN_ORD_CITY[s.order]||''),citiesTip:AN_ORD_CITY[s.order]||(s.ship>0?'Есть расход «Наша доставка», а города в ведомости нет':'Заказа нет в ведомости перевозчика: везли не мы (логистика OZON, партнёры) или месяц ещё не закрыт'),cityCnt:AN_ORD_CITY[s.order]?AN_ORD_CITY[s.order].split(', '):[]};
+    var o={order:s.order,d:s.d,st:s.st,scheme:s.scheme,cat:s.cat,off:s.off,nm:s.nm,sk:s.sk,units:s.units,dlv:s.dlv,fly:fl?s.units:0,flyAcc:fl?s.acc:0,tb:ordBase(s),tbFly:fl?ordBase(s):0,acc:s.acc,com:s.com,del:s.del,acq:s.acq,sto:s.sto,oth:s.oth,prt:s.prt,adv:s.adv,ship:s.ship,led:s.led,dinc:s.dinc,amt:s.amt,amtS:s.amtS,cc:s.cc,noCs:s.noCs,ret:s.ret,estFee:s.estFee||0,eCom:s.eCom||0,eDel:s.eDel||0,eOth:s.eOth||0,ePrt:s.ePrt||0,nNoFee:s.nNoFee||0,estNoCom:s.estNoCom||0,paid:s.paid,citiesTxt:(s.ship>0&&!AN_ORD_CITY[s.order])?'<span style="color:#E5B567">нет города в ведомости</span>':(AN_ORD_CITY[s.order]||''),citiesTip:AN_ORD_CITY[s.order]||(s.ship>0?'Есть расход «Наша доставка», а города в ведомости нет':'Заказа нет в ведомости перевозчика: везли не мы (логистика OZON, партнёры) или месяц ещё не закрыт'),cityCnt:AN_ORD_CITY[s.order]?AN_ORD_CITY[s.order].split(', '):[]};
     rows.push(o);(bySku[o.sk]||(bySku[o.sk]=[])).push(o);
   }
   // ДОБОР ПО АРТИКУЛАМ (сопоставление артикул↔заказ). Чего в разрезе заказа нет вовсе или неполно,

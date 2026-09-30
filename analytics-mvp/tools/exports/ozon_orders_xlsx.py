@@ -36,6 +36,7 @@ def orders_of(r):
     return out
 def method(typ, g):
     ship, prt, dl = g("Наша доставка") or 0, g("Услуги партнёров") or 0, g("Логистика") or 0
+    if isinstance(ship, str): ship = 0  # «нет в ведомости»
     if typ in ("FBO", "FBS"): return "логистика OZON"
     if typ == "rFBS": return "наша перевозка" if ship else "услуги партнёров"
     if dl: return "логистика OZON"
@@ -77,9 +78,11 @@ for ym, r in d.items():
     head(ws, cols); S = [0] * 5
     for o, m, x in orders_of(r):
         c = x["cells"]; g = lambda name: num(c[H.index(name)]["t"])
-        vals = [g("Логистика") or 0, g("Услуги партнёров") or 0, g("Наша доставка") or 0, g("Доставка покупателя") or 0]
+        # «Наша доставка» может быть текстом «нет в ведомости» (Иван 30.09): в ячейку - текст, в сумму - 0.
+        raw = [g("Логистика") or 0, g("Услуги партнёров") or 0, g("Наша доставка") or 0, g("Доставка покупателя") or 0]
+        vals = [v if isinstance(v, (int, float)) else 0 for v in raw]
         net = vals[3] - vals[2]
-        ws.append([o, m.get("d"), m.get("off"), x["cat"], m["city"], method(c[1]["t"], g)] + vals + [net])
+        ws.append([o, m.get("d"), m.get("off"), x["cat"], m["city"], method(c[1]["t"], g)] + raw + [net])
         for i, v in enumerate(vals + [net]): S[i] += v
     ws.append(["ИТОГО", "", "", "", "", ""] + S)
     for cell in ws[ws.max_row]: cell.font = BOLD

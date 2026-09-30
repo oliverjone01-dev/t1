@@ -20,7 +20,7 @@
 # Запуск из analytics-mvp:  python3 tools/delivery/build_delivery_sku_daily.py
 import openpyxl, glob, os, json, re, collections, datetime, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ledger_money import ship_and_deliv, client_paid, paid_in_contacts, MoneyError, second_header  # noqa: E402
+from ledger_money import ship_and_deliv, client_paid, paid_in_contacts, MoneyError, second_header, fix_order_no  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW = os.path.join(ROOT, "tools", "delivery", "raw")
@@ -213,7 +213,7 @@ def main():
                     cancelled_skip[0] += 1
                     cancelled_skip[1] += ship
                     continue
-                no = str(r[ci["Номер заказа"]] or "").strip()
+                no = fix_order_no(str(r[ci["Номер заказа"]] or "").strip())
                 d = parse_date(r[ci["Дата отгрузки"]])
                 if not no or not d:
                     continue

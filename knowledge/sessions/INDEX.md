@@ -40,6 +40,7 @@
 | Экономика | `economics-dashboard-v1` | [/t1/economics/](https://oliverjone01-dev.github.io/t1/economics/) | [economics.md](economics.md) |
 | Аналитика Директ и Метрика | `main` | [/t1/direct/](https://oliverjone01-dev.github.io/t1/direct/), [/t1/kontur/](https://oliverjone01-dev.github.io/t1/kontur/) | [direct-metrika.md](direct-metrika.md) |
 | Боты | `main` | Telegram: РОП-дайджесты и Точка банк | [bots.md](bots.md) |
+| Переезд VPS | `claude/friendly-brahmagupta-me4gk0` (PR #423) | сервера ещё нет, план `dash.<домен>` | [vps.md](vps.md) |
 
 Карта путей задана в шапке `.github/workflows/deploy-pages.yml`. Она и есть источник правды по URL:
 добавили область - сначала правится там, потом здесь.

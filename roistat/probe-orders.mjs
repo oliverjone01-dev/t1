@@ -286,19 +286,27 @@ if (!bad(mid)) shapeOf(mid.data || [], 'середина базы, offset ' + Ma
 const cand = new Map();
 for (const r of [...(head.data || []), ...(bad(mid) ? [] : (mid.data || []))])
   for (const [k, v] of Object.entries(flat(r))) {
-    const e = cand.get(k) || { date: 0, num: 0 };
+    const e = cand.get(k) || { date: 0, num: 0, max: 0 };
     if (looksDate(v)) e.date++;
-    if (looksNum(v)) e.num++;
+    if (looksNum(v)) { e.num++; e.max = Math.max(e.max, Math.abs(Number(v))); }
     cand.set(k, e);
   }
 const DATE_FIELDS = [...cand.entries()].filter(([k, e]) => e.date > 0 && allowed(k)).map(([k]) => k).sort();
 /* Идентификатор и флаг - не деньги. Прогон 36735896587 положил в кандидаты на
-   сумму `roistat`, `visit_id` и `is_multichannel`: сложить их можно, смысла нет,
-   а `roistat` это ещё и идентификатор посетителя. */
-const NOT_MONEY = /(^id$)|(_id$)|^is_|^roistat$|^page$|^visit$|^order_id_alias$/i;
+   сумму `roistat`, `visit_id` и `is_multichannel`, а прогон 36737751819 пошёл
+   дальше и ВЫБРАЛ полем денег `cf_ym_uid` - идентификатор посетителя Метрики,
+   девятнадцать цифр. Сумма по нему вышла 3.5 квинтиллиона, и это не смешная
+   деталь: выбор поля определяет весь вывод.
+   Поэтому запрет по имени, а поверх него - запрет по величине: идентификатор
+   отличается от рублей порядком, и никакая сделка воронки не стоит 1e11. */
+const NOT_MONEY = /(^id$)|(_id$)|uid|^is_|^roistat$|^page$|^visit$|^order_id_alias$|_wz$|идентификатор|согласие|кол-во|номер|статус|коммент/i;
+const MONEY_MAX = Number(process.env.MONEY_MAX || 1e11);
 const NUM_FIELDS = [...cand.entries()]
-  .filter(([k, e]) => e.num > 0 && e.date === 0 && allowed(k) && !NOT_MONEY.test(k))
+  .filter(([k, e]) => e.num > 0 && e.date === 0 && allowed(k) && !NOT_MONEY.test(k) && e.max < MONEY_MAX)
   .map(([k]) => k).sort();
+const tooBig = [...cand.entries()].filter(([k, e]) => e.num > 0 && e.date === 0 && allowed(k)
+  && !NOT_MONEY.test(k) && e.max >= MONEY_MAX).map(([k, e]) => k + ' (до ' + e.max + ')');
+if (tooBig.length) console.log('\nотсечены по величине, на рубли не похожи: ' + tooBig.join(', '));
 const denied = [...cand.keys()].filter(k => !allowed(k));
 if (denied.length) console.log('\nполя, отсечённые запретным списком: ' + denied.join(', '));
 console.log('\nполя-кандидаты на дату:   ' + (DATE_FIELDS.join(', ') || 'НЕТ'));

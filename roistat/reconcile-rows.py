@@ -156,13 +156,23 @@ def main():
             _, df, mf, _, _ = best
             print("  выбраны: дата %s, деньги %s (промах %.2f%%)" % (df, mf, 100 * best[0]))
         else:
-            d_, n_, _, _ = max(table, key=lambda x: x[3])
-            df, mf = a.date_field or d_, a.money_field or n_
+            # Раньше здесь стояло «берём комбинацию с наибольшей суммой», и на
+            # живом прогоне 36737751819 это выбрало полем денег `cf_ym_uid` -
+            # идентификатор посетителя Метрики. Наибольшая сумма не значит ничего:
+            # так побеждает поле с самыми длинными числами, а не с рублями.
+            # Поэтому: эталон не воспроизведён - поле не выбирается «по-своему».
+            # Берётся штатное `revenue`, и это прямо сказано, либо задаётся руками.
             if a.ref_sum:
                 print("  НИ ОДНА комбинация не воспроизвела эталон %s ближе 1%%." % rub(a.ref_sum))
-                print("  Значит месяц Ройстат считает НЕ полем из order/list, и раскладка ниже")
-                print("  показывает популяции, а не тождество. Это надо читать как гипотезу.")
-            print("  для раскладки взяты: дата %s, деньги %s" % (df, mf))
+                print("  Значит месяц Ройстат считает НЕ полем из order/list.")
+            df = a.date_field or (date_fields[0] if date_fields else None)
+            mf = a.money_field or ("revenue" if "revenue" in num_fields else None)
+            print("  Поле по наибольшей сумме НЕ выбирается: так побеждает поле с самыми")
+            print("  длинными числами, а не с рублями (на этом выбрался `cf_ym_uid`).")
+            print("  Взято: дата %s, деньги %s. Обе величины ниже - ГИПОТЕЗА, не тождество."
+                  % (df, mf))
+            if mf is None:
+                print("  Штатного поля `revenue` в выгрузке нет - сравнение сумм пропускается.")
 
     # --- популяции обеих сторон по одному определению ---
     def first_paid(d):
@@ -287,19 +297,32 @@ def main():
             print("    %-10s %14s  %s" % (bid, rub(bx_month[bid][0]), where(bid)))
 
     # Сумма на стороне Ройстата по этим же сделкам, если поле денег выбрано.
-    if mf and present:
-        r_amt = sum(float(r_by_bx[b].get(mf) or 0) for b in present)
-        b_amt = sum(bx_month[b][0] for b in present)
-        print("\n  по сделкам, которые есть у обоих (%d штук), поле `%s`:" % (len(present), mf))
+    if mf and (present or via_alias):
+        # Деньги по сделке, до которой Ройстат достаёт только через лида, лежат
+        # НА СТРОКЕ ЛИДА, а не на строке сделки: её у Ройстата просто нет. Искать
+        # их на сделке значило бы записать 62 сделки из 113 в нули и объявить
+        # пропажу 5.2 млн, которой нет (К7 - пропуск, выданный за ноль).
+        def r_money(bid):
+            r = r_by_bx.get(bid) or alias_by_bx.get(bid)
+            return float((r or {}).get(mf) or 0)
+
+        both_side = present + via_alias
+        r_amt = sum(r_money(b) for b in both_side)
+        b_amt = sum(bx_month[b][0] for b in both_side)
+        print("\n  по всем %d сделкам, найденным у Ройстата (поле `%s`, у лидов - со строки лида):"
+              % (len(both_side), mf))
         print("    Битрикс budget   %16s" % rub(b_amt))
         print("    Ройстат %-8s %16s" % (mf, rub(r_amt)))
         print("    разница          %16s" % rub(b_amt - r_amt))
-        neq = [b for b in present if abs(float(r_by_bx[b].get(mf) or 0) - bx_month[b][0]) > 0.5]
-        print("    сделок с разной суммой: %d" % len(neq))
-        for b in sorted(neq, key=lambda k: -abs(float(r_by_bx[k].get(mf) or 0) - bx_month[k][0]))[:25]:
+        zero = [b for b in both_side if r_money(b) == 0]
+        print("    из них у Ройстата сумма РОВНО НОЛЬ: %d, на %s по Битриксу"
+              % (len(zero), rub(sum(bx_month[b][0] for b in zero))))
+        print("    Ноль в этом поле - это «поле не про деньги сделки», а не «денег нет».")
+        neq = [b for b in both_side if abs(r_money(b) - bx_month[b][0]) > 0.5 and r_money(b) != 0]
+        print("    сделок с суммой, отличной от нуля и не равной Битриксу: %d" % len(neq))
+        for b in sorted(neq, key=lambda k: -abs(r_money(k) - bx_month[k][0]))[:25]:
             print("      %-10s Битрикс %14s  Ройстат %14s  разница %14s"
-                  % (b, rub(bx_month[b][0]), rub(float(r_by_bx[b].get(mf) or 0)),
-                     rub(bx_month[b][0] - float(r_by_bx[b].get(mf) or 0))))
+                  % (b, rub(bx_month[b][0]), rub(r_money(b)), rub(bx_month[b][0] - r_money(b))))
 
     # --- сдвиг месяца: таблица, а не вердикт ---
     # Гипотеза из API.md: сутки Ройстата режутся по UTC, поэтому московские

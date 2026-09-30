@@ -124,4 +124,16 @@ mv "$OFFHTML" "$T/office.bak"
 grep -q '"failed":1' "$W/.gg/build.json" && pass "падение шага видно в build.json" || fail "build.json"
 mv "$T/office.bak" "$OFFHTML"
 
+echo "8. Запуск из папки без прав (как sudo -u gg из /root)"
+# root читает любую папку: забираем у него это право, иначе проверка ничего не проверяет
+nopriv=()
+[ "$(id -u)" = 0 ] && nopriv=(setpriv "--inh-caps=-dac_override,-dac_read_search" "--bounding-set=-dac_override,-dac_read_search")
+mkdir "$T/noperm"
+if (cd "$T/noperm" && chmod 000 . && "${nopriv[@]}" "$BIN/gg-release" rop-dashboard-v1 2>"$T/noperm.log"); then
+  pass "gg-release не зависит от папки вызова"
+else
+  chmod 755 "$T/noperm"; cat "$T/noperm.log"; fail "gg-release упал из папки без прав"
+fi
+chmod 755 "$T/noperm"
+
 echo "ВСЁ ЗЕЛЁНОЕ"

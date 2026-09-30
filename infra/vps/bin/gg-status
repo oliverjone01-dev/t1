@@ -2,6 +2,7 @@
 # gg-status: сводка по серверу в терминале (то же, что страница /status/, плюс таймеры и диск).
 set -euo pipefail
 . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
+cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
 
 echo "== Релизы веток"
 for d in "$GG_ROOT"/src/*/current; do

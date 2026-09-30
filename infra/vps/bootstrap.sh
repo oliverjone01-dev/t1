@@ -22,6 +22,7 @@ LE_EMAIL=${LE_EMAIL:-}
 GG_ROOT=/srv/gg
 say() { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 [ "$(id -u)" = 0 ] || { echo "запускать от root"; exit 1; }
+cd /   # команды от gg (sudo -u gg ...) не должны наследовать /root: у gg туда нет прав
 . /etc/os-release
 [ "${ID:-}" = ubuntu ] || echo "ВНИМАНИЕ: скрипт проверен под Ubuntu 24.04, у тебя $PRETTY_NAME"
 

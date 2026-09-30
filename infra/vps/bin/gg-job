@@ -7,6 +7,7 @@
 # пересборка сайта. Падение -> откат незакоммиченных данных ветки + алерт в Telegram.
 set -euo pipefail
 . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
+cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
 gg_mkdirs
 
 if [ "${1:-}" = --list ]; then gg_conf_lines "$GG_JOBS_CONF"; exit 0; fi

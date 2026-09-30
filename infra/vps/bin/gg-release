@@ -8,6 +8,7 @@
 # Хранит 3 последних релиза ветки: откат = gg-release <ветка> <старый sha>.
 set -euo pipefail
 . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
+cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
 
 br=${1:?"использование: gg-release <ветка> [sha]"}
 gg_mkdirs

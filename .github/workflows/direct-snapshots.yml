@@ -45,6 +45,11 @@ jobs:
             echo "::error::Нет YANDEX_DIRECT_TOKEN / YANDEX_METRIKA_TOKEN (secrets или inputs)"; exit 1
           fi
 
+      # Стенды до живых вызовов: `node --check` не ловит удалённое имя, а разбор
+      # остатка обязан не превращать пропуск в ноль.
+      - name: Проверки перед живыми вызовами
+        run: node yandex-direct/tests/account-stand.mjs
+
       - name: Снимки Директ + Метрика
         env:
           YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || secrets.YD_TOKEN || github.event.inputs.direct_token }}
@@ -60,6 +65,23 @@ jobs:
           # Пустой снимок при ранее непустом - не публикуем (аналог FENIX G3/G4 в ozon-snapshots)
           PREV=$(git show HEAD:yandex-direct/data/direct_campaigns.json 2>/dev/null | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{console.log(JSON.parse(d).totals.spend||0)}catch{console.log(0)}})" || echo 0)
           node -e "const cur=$SPEND,prev=$PREV; if(prev>1000&&cur<prev*0.3){console.error('::error::Дельта-гейт: расход упал >70% ('+prev+'→'+cur+') - снимок подозрителен, публикация остановлена');process.exit(1)}"
+
+      # Остаток снимается fail-soft: отказ не валит синк. Чтобы отказ не жил тихо
+      # месяцами, его видно в сводке прогона.
+      - name: Остаток на счёте - в сводку
+        # Без пайпа намеренно: с `| tee` падение node осталось бы незамеченным.
+        run: |
+          node -e '
+            const fs = require("fs");
+            const a = JSON.parse(fs.readFileSync("yandex-direct/data/direct_account.json"));
+            const s = a.account.ok
+              ? `остаток ${a.account.balance} ${a.account.currency}, дневной бюджет ${a.account.day_budget}`
+              : `ОСТАТОК НЕ СНЯТ: ${a.account.error}`;
+            const f = a.funding.all_shared ? "" : `, режимы финансирования ${JSON.stringify(a.funding.modes)}`;
+            const line = s + f;
+            console.log(line);
+            if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, line + "\n");
+          '
 
       - name: Пересборка дашборда
         run: node yandex-direct/dashboard/build.mjs

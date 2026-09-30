@@ -7,6 +7,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readAccount, makeLive, fundingModes } from './lib-account.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'data');
@@ -101,7 +102,8 @@ const put = (name, obj) => {
 // ---------- 1. Кампании (сущности) ----------
 const camps = await directApi('campaigns', {
   SelectionCriteria: {},
-  FieldNames: ['Id', 'Name', 'Type', 'Status', 'State', 'StatusPayment', 'DailyBudget', 'StartDate'],
+  // `Funds` - чтобы видеть, все ли кампании сидят на общем счёте (см. fundingModes).
+  FieldNames: ['Id', 'Name', 'Type', 'Status', 'State', 'StatusPayment', 'DailyBudget', 'StartDate', 'Funds'],
   TextCampaignFieldNames: ['BiddingStrategy'],
   UnifiedCampaignFieldNames: ['BiddingStrategy'],
 });
@@ -112,6 +114,17 @@ const campaigns = (camps.Campaigns || []).map(c => ({
   strategy: c.TextCampaign?.BiddingStrategy?.Search?.BiddingStrategyType
     || c.UnifiedCampaign?.BiddingStrategy?.Search?.BiddingStrategyType || null,
 }));
+
+// ---------- 1b. Остаток на общем счёте (Live v4, только чтение) ----------
+const account = await readAccount(makeLive(DTOKEN));
+const funding = fundingModes(camps.Campaigns || []);
+if (!funding.all_shared) {
+  console.log('ВНИМАНИЕ: не все кампании на общем счёте -', JSON.stringify(funding.modes)
+    + '. Остаток общего счёта больше НЕ описывает всю рекламу.');
+}
+console.log(account.ok
+  ? `OK остаток: ${account.balance} ${account.currency}, дневной бюджет ${account.day_budget}`
+  : `ВНИМАНИЕ остаток не снят: ${account.error}`);
 
 // ---------- 2. Отчёты Директа ----------
 const F = ['CampaignId', 'CampaignName', 'Impressions', 'Clicks', 'Cost', 'Conversions'];
@@ -219,5 +232,9 @@ put('direct_metrika.json', { ...hdr, counter: Number(COUNTER),
   by_source: (mSources.data || []).map(r => ({ source: r.dimensions[0].name,
     visits: r.metrics[0], users: r.metrics[1], bounce: r.metrics[2], leads: r.metrics[3], contacts: r.metrics[4] })),
 });
+
+// direct_account.json - остаток на счёте. Это МОМЕНТ, а не период: dateFrom/dateTo
+// сюда не кладём, чтобы число не читалось как «за 30 дней». Момент - generated_at.
+put('direct_account.json', { generated_at: GEN, account, funding });
 
 console.log('Снимки готовы:', D_FROM_30, '..', D_TO);

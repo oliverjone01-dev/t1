@@ -184,19 +184,24 @@ if (!winner) {
 
 /* ---------- 4. максимальный размер страницы ---------- */
 /* E018: размер страницы не угадывать. Просим больше и смотрим, сколько дали:
-   молчаливое усечение до потолка - обычное поведение, ошибки не будет. */
+   молчаливое усечение до потолка - обычное поведение, ошибки не будет.
+   Если усечения не случилось ни разу, потолок НЕ найден, и в итоге это должно
+   быть написано именно так, а не «максимум = последнее проверенное» (К10). */
 say('\n--- максимальный размер страницы ---');
-let maxPage = null;
-for (const want of [100, 500, 1000, 2000, 5000]) {
+const SIZES = [100, 500, 1000, 2000, 5000, 10000, 20000];
+let maxOk = null, ceiling = null;
+for (const want of SIZES) {
   await pause(PAUSE);
   const j = await call('/project/integration/order/list', { period: PERIOD, limit: want });
   const got = bad(j) ? -1 : ids(j).length;
   say('  limit=' + String(want).padEnd(6) + (got < 0 ? why(j) : 'вернулось ' + got + (got < want ? ' (усечено)' : '')));
-  if (got > 0) maxPage = Math.max(maxPage || 0, got);
-  if (got >= 0 && got < want) break;      /* потолок найден, дальше не дёргаем */
-  if (got < 0) break;
+  if (got < 0) { say('  дальше не идём: отказ'); break; }
+  if (got > 0) maxOk = Math.max(maxOk || 0, got);
+  if (got < want) { ceiling = got; break; }   /* потолок найден */
 }
-out.push(['максимум записей на страницу', maxPage == null ? 'не определён' : String(maxPage)]);
+out.push(['записей на страницу', ceiling != null ? 'потолок ' + ceiling
+  : (maxOk == null ? 'не определено' : 'не менее ' + maxOk + ' (потолок не найден, выше не просили)')]);
+const maxPage = maxOk;
 
 /* ---------- 5. те же вопросы к visit/list ---------- */
 say('\n--- visit/list: тот же параметр? ---');

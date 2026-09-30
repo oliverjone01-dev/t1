@@ -4,7 +4,7 @@
 #   выкат веток (gg-poll) -> сайт -> задача с данными -> падение задачи с откатом -> откат сайта
 #   -> новый коммит в «GitHub» (данные сервера переживают выкат кода) -> генерация таймеров.
 # Запуск из корня репозитория: bash infra/vps/test/smoke-local.sh
-# Нужны локально ветки-источники пилота: git fetch origin rop-dashboard-v1 office-dashboard-v1
+# Нужны локально ветки-источники: git fetch origin rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1
 # ВАЖНО: без «cmd | grep -q» - при pipefail grep -q выходит на первом совпадении,
 # cmd получает SIGPIPE (код 141) и проверка падает случайно. Только grep -q <<<"$(cmd)".
 set -euo pipefail
@@ -27,7 +27,7 @@ tree=$(git -C "$REPO" write-tree)
 unset GIT_INDEX_FILE
 ops=$(git -C "$REPO" commit-tree "$tree" -p HEAD -m "gg smoke: контур из рабочей копии")
 git --git-dir="$GH" update-ref refs/heads/gg-smoke-ops "$ops"
-for b in rop-dashboard-v1 office-dashboard-v1 manager-lakomova; do
+for b in rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1; do
   sha=$(git -C "$REPO" rev-parse -q --verify "origin/$b" || git -C "$REPO" rev-parse -q --verify "$b") \
     || fail "нет ветки $b локально: git fetch origin $b"
   git --git-dir="$GH" update-ref "refs/heads/$b" "$sha"
@@ -56,6 +56,9 @@ W="$GG_ROOT/www/current"
 [ -s "$W/rop/v.txt" ] && pass "штамп /rop/v.txt: $(cat "$W/rop/v.txt")" || fail "v.txt пуст"
 [ -s "$W/office/index.html" ] && pass "/office/ собран" || fail "/office/ нет"
 [ -s "$W/status/index.html" ] && pass "/status/ собран" || fail "/status/ нет"
+[ -s "$W/economics/index.html" ] && cmp -s "$W/economics/index.html" "$W/econ-control/index.html" \
+  && pass "/economics/ = /econ-control/ (контроль заполнения)" || fail "/economics/ или /econ-control/ нет"
+[ -s "$W/economics/layers.html" ] && [ -s "$W/economics/v.txt" ] && pass "слоевой /economics/layers.html, штамп $(cat "$W/economics/v.txt")" || fail "layers.html или v.txt экономики"
 [ -s "$W/rop-smoke/index.html" ] && grep -q "^rop-smoke	Смоук Тестов$" "$W/.gg/managers.txt" && pass "/rop-<фамилия>/ собран, список записан" || fail "менеджеры"
 ROPSRC="$GG_ROOT/src/rop-dashboard-v1/current"
 [ -L "$ROPSRC/analytics-mvp/rop/data" ] && pass "данные РОПа в релизе - ссылка на /srv/gg/data" || fail "нет ссылки на данные"
@@ -163,5 +166,49 @@ mv "$GG_ROOT/cache/site-managers" "$T/mgr.bak"
 grep -q "^rop-smoke	" "$W/.gg/managers.txt" && pass "список менеджеров перенесён" || fail "список менеджеров"
 grep -q 22-managers "$W/.gg/build.json" && pass "падение шага менеджеров видно в build.json" || fail "build.json менеджеров"
 mv "$T/mgr.bak" "$GG_ROOT/cache/site-managers"
+
+echo "11. Экономика: задачи с заглушками npx/node, ECON_FULL, падение шага сайта"
+mkdir -p "$T/fakebin"
+# заглушки: записывают, что вызвано, и кладут выходной файл, как настоящие скрипты
+cat >"$T/fakebin/npx" <<'EOF'
+#!/usr/bin/env bash
+echo "$*" >>"$SMOKE_CALLS"
+case "$2" in
+  */fetch-economics.ts) echo '{"smoke":"econ"}' >economics/data/economics.json ;;
+  */build-economics.ts) echo '<html>"bakedAt":"smoke-layers"</html>' >public/economics-command.html ;;
+  */econ-recon.ts) echo '{"smoke":"recon"}' >economics/data/econ-recon.json ;;
+  */designers.ts) exit 7 ;;   # падение выгрузки дизайнеров не должно валить разведку
+  */field-map.ts) echo '{}' >economics/data/field-map.json ;;
+esac
+EOF
+cat >"$T/fakebin/node" <<'EOF'
+#!/usr/bin/env bash
+echo "node $*" >>"$SMOKE_CALLS"
+echo '<html>"bakedAt":"smoke-control"</html>' >public/econ-control.html
+EOF
+chmod +x "$T/fakebin/npx" "$T/fakebin/node"
+cp "$REPO/infra/vps/jobs/economics-snapshot.sh" "$REPO/infra/vps/jobs/econ-recon.sh" "$T/jobs/"
+printf 'economics-snapshot | economics-dashboard-v1 | *-*-* 05:47:00 UTC | economics-snapshot.sh | economics | yes\n' >>"$T/jobs.conf"
+printf 'econ-recon | economics-dashboard-v1 | *-*-* 00/3:37:00 UTC | econ-recon.sh | economics | yes\n' >>"$T/jobs.conf"
+echo 'B24_WEBHOOK_URL=https://smoke.invalid/rest/1/x' >"$GG_SECRETS"
+export SMOKE_CALLS="$T/calls.log"
+: >"$SMOKE_CALLS"
+PATH="$T/fakebin:$PATH" "$BIN/gg-job" economics-snapshot >"$T/econ.log" 2>&1 || { cat "$T/econ.log"; fail "economics-snapshot"; }
+grep -q "smoke-layers" "$W/economics/layers.html" && pass "снимок экономики -> /economics/layers.html" || fail "слоевой не обновился"
+: >"$SMOKE_CALLS"
+PATH="$T/fakebin:$PATH" "$BIN/gg-job" econ-recon >"$T/econ.log" 2>&1 || { cat "$T/econ.log"; fail "econ-recon"; }
+grep -q "smoke-control" "$W/economics/index.html" && grep -q "smoke-control" "$W/econ-control/index.html" \
+  && [ "$(cat "$W/econ-control/v.txt")" = smoke-control ] && pass "разведка -> /economics/ и /econ-control/, штамп обновлён" || fail "экран не обновился"
+grep -q "designers\|field-map" "$SMOKE_CALLS" && fail "без ECON_FULL выгружались дизайнеры/карта полей" || pass "по расписанию без дизайнеров и карты полей"
+: >"$SMOKE_CALLS"
+ECON_FULL=1 PATH="$T/fakebin:$PATH" "$BIN/gg-job" econ-recon >"$T/econ.log" 2>&1 || { cat "$T/econ.log"; fail "econ-recon ECON_FULL"; }
+[ "$(grep -o 'designers\|econ-recon\|field-map\|build-econ-control' "$SMOKE_CALLS" | paste -sd' ')" = "designers econ-recon field-map build-econ-control" ] \
+  && pass "ECON_FULL=1: дизайнеры (упали, не валят) -> разведка -> карта полей -> экран" || { cat "$SMOKE_CALLS"; fail "порядок ECON_FULL"; }
+ECONHTML="$GG_ROOT/data/economics-dashboard-v1/analytics-mvp/public/econ-control.html"
+mv "$ECONHTML" "$T/econ.bak"
+"$BIN/gg-site" 2>/dev/null
+grep -q "smoke-control" "$W/economics/index.html" && [ -s "$W/econ-control/index.html" ] \
+  && pass "шаг экономики упал -> /economics/ и /econ-control/ из прошлой сборки" || fail "экономика пропала с сайта"
+mv "$T/econ.bak" "$ECONHTML"
 
 echo "ВСЁ ЗЕЛЁНОЕ"

@@ -160,6 +160,21 @@ const putFunnel = (c: Row, r: FunnelRow): void => {
   }
 };
 for (const [art, byDay] of FT.byArt) for (const [d, r] of byDay) putFunnel(cell(art, d), r);
+// ДОБОР ПОЗИЦИИ ИЗ СТАРОЙ ВЫГРУЗКИ (Иван 30.09: «вытащи все необходимые данные из старых
+// выгрузок»). funnel_sku_daily.ndjson - разовая выгрузка той же аналитики OZON по всем товарам
+// за 12.06-21.09. Сверка 30.09: на 3 872 общих днях «товар × день» позиция в ней и в
+// funnel_tests совпадает до единицы, расхождений 0. Берём ТОЛЬКО позицию и ТОЛЬКО там, где
+// строки funnel_tests за этот день нет: null в funnel_tests это «не в выдаче», его не трогаем.
+// Остальные метрики воронки уже есть из sku_views. Старые версии funnel_tests из истории git
+// не берём: новых дней в них нет, а последние дни каждой версии потом пересчитаны.
+let POS_BACKFILL = 0;
+for (const r of readNd(dp("funnel_sku_daily.ndjson"))) {
+  const art = String(r.art || "").trim(), d = String(r.date || "").slice(0, 10);
+  if (!art || !d || r.search_position == null) continue;
+  if (FT.byArt.get(art)?.has(d)) continue;
+  const c = cell(art, d);
+  if (c["pos"] == null) { c["pos"] = Number(r.search_position); POS_BACKFILL++; }
+}
 const HAS_POS = FT.rows.some((r) => r.search_position != null);
 
 // Участие в акциях по дням. Признак участия это запись в acts с нужным окном, а не eb_pct:
@@ -1002,6 +1017,21 @@ const explain = (key: string, r: DynRec, details: string): string =>
   + `<div class="dyn-read"><b>Что видим.</b> ${seenText(key, r)}</div>`
   + fold("", "Детали расчёта", details);
 
+/** Позиция группы по дням по постоянному набору товаров: только те, у кого она есть не меньше
+ *  чем в половине дней окна до старта И в половине дней после. «Хотя бы один день» не годится:
+ *  у теста 1 добор даёт позицию 317 товарам контроля за 18-21.09, а после 24.09 срез несёт
+ *  только 24 из них, и «после» свелось бы к четырём дням. День, где позиция есть меньше чем
+ *  у 80 % набора, - пропуск. */
+function posMatched(g: string[], days: string[], base: string[], post: string[]): { arts: string[]; line: Pt[] } {
+  const has = (a: string, win: string[]) => win.filter((d) => series.get(a)?.get(d)?.["pos"] != null).length >= win.length / 2;
+  const arts = g.filter((a) => has(a, base) && has(a, post));
+  const line = days.map((d) => {
+    const v = arts.map((a) => series.get(a)?.get(d)?.["pos"]).filter((x): x is number => x != null);
+    return arts.length && v.length >= arts.length * 0.8 ? v.reduce((p, q) => p + q, 0) / v.length : null;
+  });
+  return { arts, line };
+}
+
 function chart(t: TestDef, cid: string): string {
   const st = t.старт!;
   const days: string[] = [];
@@ -1045,11 +1075,26 @@ function chart(t: TestDef, cid: string): string {
       : key === "drr"
       ? ratio(groupDaily(CTL, days, "spend"), groupDaily(CTL, days, "revenue"))
       : groupDaily(CTL, days, key);
-    const bT = avg(t.тест!, base, key);
-    const bC = avg(CTL, base, key);
-    const pT = avg(t.тест!, post, key);
-    const pC = avg(CTL, post, key);
+    let bT = avg(t.тест!, base, key);
+    let bC = avg(CTL, base, key);
+    let pT = avg(t.тест!, post, key);
+    let pC = avg(CTL, post, key);
     let a: Pt[] = rawT, b: Pt[] = rawC;
+    // ПОЗИЦИЯ - ПО ОДНОМУ И ТОМУ ЖЕ НАБОРУ ТОВАРОВ ДО И ПОСЛЕ. Позиция это уровень, среднее по
+    // товарам с данными за день; состав среза менялся (24.09 контроль теста 2 пересобран, в тесте
+    // 1 до старта позиция была у 8 товаров контроля, после - у 24), и «было 113, стало 154»
+    // сравнивало разные товары. Поэтому берутся только товары с позицией и до, и после старта,
+    // а день, где позиция есть меньше чем у 80 % из них, - пропуск (22-23.09 нет ни в одном файле).
+    let posNote = "";
+    if (key === "pos") {
+      const m = (g: string[]) => posMatched(g, days, base, post);
+      const mt = m(t.тест!), mc = m(CTL);
+      a = mt.line; b = mc.line;
+      const mean = (v: Pt[], win: string[]) => { const x = nums(v.filter((_, i) => win.includes(days[i]!))); return x.length ? x.reduce((p, q) => p + q, 0) / x.length : NaN; };
+      bT = mean(a, base); pT = mean(a, post); bC = mean(b, base); pC = mean(b, post);
+      posNote = ` Считается по товарам, у которых позиция есть хотя бы в половине дней и до, и после старта: тест ${mt.arts.length} из ${t.тест!.length}, контроль ${mc.arts.length} из ${CTL.length};`
+        + ` день, где позиция есть меньше чем у 80 % из них, пропущен. До 22.09 позиция добрана из старой выгрузки воронки (funnel_sku_daily), 22-23.09 её нет ни в одном файле.`;
+    }
     let sideT: SideCalc | null = null, sideC: SideCalc | null = null;
     if (mode === "index") {
       const bi = idxOf(days, new Set(base)), pi = idxOf(days, new Set(post));
@@ -1081,7 +1126,7 @@ function chart(t: TestDef, cid: string): string {
     subs[key] = mode === "index"
       ? `100 = средний день двух недель перед стартом · ${EST_NAME[estOf(key)]}`
       : `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
-    tip[key] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: rawT, rc: rawC, mode, unit };
+    tip[key] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: key === "pos" ? a : rawT, rc: key === "pos" ? b : rawC, mode, unit };
     if (mode === "index") {
       // Число под графиком считается ТЕМ ЖЕ оценщиком, что и линия. До 24.09 линию рисовала
       // медиана дневных индексов, а число считала медиана приростов средних за окно, и на
@@ -1148,7 +1193,7 @@ function chart(t: TestDef, cid: string): string {
           ? `<b>${v(bT)} → ${v(pT)}</b> за день. У контроля рекламы нет по построению, поэтому вторая линия не рисуется.`
           : `тест <b>${v(bT)} → ${v(pT)}</b>, контроль <b>${v(bC)} → ${v(pC)}</b>.`)
         + (key === "pos" ? " Меньше - лучше." : "")
-        + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.${extra}`
+        + ` Слева две недели перед стартом, справа ${post.length} дн после старта. Данные по ${LAST}.${extra}${posNote}`
         + ((key === "coinv" || key === "price")
           ? (() => {
             const nb = base.filter((d) => groupDaily(t.тест!, [d], key)[0] != null).length;

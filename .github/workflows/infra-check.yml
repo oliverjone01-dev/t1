@@ -10,6 +10,10 @@ on:
     paths: [infra/vps/**, .github/workflows/infra-check.yml]
   workflow_dispatch:
 
+concurrency:
+  group: infra-check-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -17,6 +21,9 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,7 +31,7 @@ jobs:
       - name: shellcheck
         working-directory: infra/vps
         run: |
-          shellcheck --version | head -2
+          shellcheck --version
           shellcheck -S warning -x bin/* sbin/* lib/gg.sh site/build.sh bootstrap.sh test/smoke-local.sh site/steps/*.sh jobs/*.sh
       - name: smoke-local
         run: bash infra/vps/test/smoke-local.sh

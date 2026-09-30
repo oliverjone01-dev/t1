@@ -136,4 +136,17 @@ else
 fi
 chmod 755 "$T/noperm"
 
+echo "9. Служебная задача без данных (ветка «-»): сводка в Telegram"
+cp "$REPO/infra/vps/jobs/daily-report.sh" "$T/jobs/"
+printf 'daily-report | - | *-*-* 05:47:00 UTC | daily-report.sh | report | no\n' >>"$T/jobs.conf"
+echo '<!-- smoke-dirty -->' >>"$DATAHTML"
+data_before=$(git -C "$GG_ROOT/data" rev-parse HEAD)
+"$BIN/gg-job" daily-report >"$T/report.log" 2>&1 || { cat "$T/report.log"; fail "daily-report"; }
+grep -q "РОП: https://dash.genglas.ru/rop/" "$T/report.log" && pass "в сводке раздел РОП со ссылкой" || { cat "$T/report.log"; fail "сводка без РОП"; }
+grep -q "smoke-ok: ✅ ok" "$T/report.log" && pass "в сводке итоги задач" || { cat "$T/report.log"; fail "сводка без задач"; }
+grep -q "Волна 2" "$T/report.log" && pass "в сводке план" || fail "сводка без плана"
+[ "$(git -C "$GG_ROOT/data" rev-parse HEAD)" = "$data_before" ] && grep -q smoke-dirty "$DATAHTML" \
+  && pass "данные не закоммичены и не откачены" || fail "служебная задача тронула данные"
+grep -q '"ok":true' "$GG_ROOT/state/jobs/daily-report.json" && pass "статус сводки записан" || fail "статус сводки"
+
 echo "ВСЁ ЗЕЛЁНОЕ"

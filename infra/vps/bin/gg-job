@@ -14,6 +14,7 @@ if [ "${1:-}" = --list ]; then gg_conf_lines "$GG_JOBS_CONF"; exit 0; fi
 name=${1:?"использование: gg-job <имя> | --list"}
 fields=$(gg_job_fields "$name") || gg_die "задачи $name нет в $GG_JOBS_CONF"
 IFS=$'\t' read -r _ br _cal script lockg site <<<"$fields"
+nodata=no; [ "$br" = - ] && { br=$GG_OPS_BRANCH; nodata=yes; }   # «-»: служебная задача без данных
 [ -f "$GG_JOBS_DIR/$script" ] || gg_die "нет скрипта $GG_JOBS_DIR/$script"
 
 logdir="$GG_ROOT/logs/jobs/$name"; mkdir -p "$logdir"
@@ -45,7 +46,9 @@ write_status() {
 }
 
 changed=false
-if [ "$rc" = 0 ]; then
+if [ "$nodata" = yes ]; then
+  write_status
+elif [ "$rc" = 0 ]; then
   if gg_data_commit "job $name: $started"; then changed=true; fi
   write_status   # до сборки сайта: /status/ в этой же сборке покажет свежий итог
   if [ "$changed" = true ] && [ "$site" = yes ]; then

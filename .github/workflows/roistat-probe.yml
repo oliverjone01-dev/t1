@@ -25,6 +25,9 @@ on:
       coverage_pages:
         description: "paging: сколько окон по базе взять для доли заявок с визитом (0 - не мерить)"
         default: "0"
+      cliff:
+        description: "paging: искать делением пополам, где обрывается привязка к визиту (1 - да)"
+        default: "0"
 
 permissions:
   contents: read
@@ -60,6 +63,7 @@ jobs:
           # в отказ, а обход базы стоит сотни вызовов. Включать отдельным прогоном.
           RATE_PROBE: ${{ github.event.inputs.rate_probe || '0' }}
           COVERAGE_PAGES: ${{ github.event.inputs.coverage_pages || '0' }}
+          CLIFF: ${{ github.event.inputs.cliff || '0' }}
         run: |
           case "${{ github.event.inputs.script || 'probe' }}" in
             analytics) node roistat/probe-analytics.mjs ;;

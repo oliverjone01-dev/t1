@@ -1210,6 +1210,11 @@ function backtestBlock(): string {
     + ` Плацебо - по 20 случайных товаров без рекламы на каждую дату старта. Расход в рублях - за всё время серии.</div>`;
 }
 
+// Блок карточки свёрнут в заголовок, текст по клику (Иван 30.09: «много текста не читаемо»).
+// Тревоги (dyn-alarm) не сворачиваются: их должно быть видно сразу.
+const fold = (cls: string, title: string, inner: string): string =>
+  `<details class="fold ${cls}"><summary><b>${title}</b></summary><div class="fold-b">${inner}</div></details>`;
+
 function interimBlock(t: TestDef): string {
   const z = t.промежуточный_вывод;
   if (!z) return "";
@@ -1274,18 +1279,16 @@ function interimBlock(t: TestDef): string {
       + ` именно по ним и видно, разойдутся ли режимы ставки после 25.09.</div>`
       + spreadNote(ep);
   }
-  return `<div class="hyp"><b>Промежуточный вывод от ${esc(z.дата)} [ДАННЫЕ]:</b> ${esc(z.вывод)}`
-    + ` <span class="muted">${esc(z.откуда)}</span></div>`
-    + `<div class="cov"><b>На чём он стоит:</b> ${esc(z.на_чём_стоит)}</div>`
-    + `<div class="stop"><b>Что его отменит:</b> ${esc(z.что_отменит_вывод)}</div>`
-    + `<div class="cov"><b>Оговорка, без которой вывод читать нельзя:</b> ${esc(z.оговорка)}</div>`
-    + (z.лаг ? `<div class="cov"><b>Лаг ступени:</b> ${esc(z.лаг)}</div>` : "")
-    + `<div class="rule"><b>Что отменено, а что нет:</b> ${esc(z.что_отменено)}</div>`
+  return fold("hyp", `Промежуточный вывод от ${esc(z.дата)} [ДАННЫЕ]`, `${esc(z.вывод)} <span class="muted">${esc(z.откуда)}</span>`)
+    + fold("cov", "На чём он стоит", esc(z.на_чём_стоит))
+    + fold("stop", "Что его отменит", esc(z.что_отменит_вывод))
+    + fold("cov", "Оговорка, без которой вывод читать нельзя", esc(z.оговорка))
+    + (z.лаг ? fold("cov", "Лаг ступени", esc(z.лаг)) : "")
+    + fold("rule", "Что отменено, а что нет", esc(z.что_отменено))
     + (t.наблюдение
-        ? `<div class="cov"><b>Пока тест идёт:</b> ${esc(t.наблюдение.что)} ${esc(t.наблюдение.зачем)}`
-          + ` До ${esc(t.наблюдение.до)}.</div>`
+        ? fold("cov", "Пока тест идёт", `${esc(t.наблюдение.что)} ${esc(t.наблюдение.зачем)} До ${esc(t.наблюдение.до)}.`)
         : "")
-    + tbl;
+    + (tbl ? fold("", "Эталонная карточка: таблица по дням", tbl) : "");
 }
 
 function pairRow(sku: string, t: TestDef): string {
@@ -1523,7 +1526,6 @@ const cards = T.тесты.map((t) => {
     body = '<div class="muted" style="padding:8px 2px">Группы не заданы, тест не запущен.</div>';
   }
   return `<section class="card"><div class="chead"><div class="ctitle">${esc(t.название)} ${statusChip(t)}</div></div>`
-    + `<div class="hyp">${esc(t.гипотеза)}</div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span>`
     + `<span>Горизонт: <b>${esc(t.горизонт_дней ?? "")} дн</b></span>`
@@ -1531,22 +1533,23 @@ const cards = T.тесты.map((t) => {
     + `<span>Тест <b>${tst.length}</b> · Контроль <b>${ctl.length}</b></span>`
     + (t.ответственный ? `<span>Ответственный: <b>${esc(t.ответственный)}</b></span>` : "")
     + `</div>`
+    + fold("hyp", "Что проверяем", esc(t.гипотеза))
     + interimBlock(t)
     + (t.условие_завершения
-        ? `<div class="rule"><b>Тест перейдёт в «завершён», когда:</b> ${esc(t.условие_завершения)}`
-          + ` До тех пор он живой, замер ${esc(t.замер || "-")} в плане, ростер и обе группы как были.</div>`
+        ? fold("rule", "Когда тест завершится", `${esc(t.условие_завершения)}`
+          + ` До тех пор он живой, замер ${esc(t.замер || "-")} в плане, ростер и обе группы как были.`)
         : "")
     + (t.промежуточный_вывод && !t.условие_завершения
         ? `<div class="dyn-alarm"><b>У теста есть предварительный ответ, но нет условия завершения.</b>`
           + ` Это та самая дыра, из-за которой 24.09 тест 1 закрыли по письму про кабинет: без условия`
           + ` «ответ получен» через неделю читается как «конец». Условие надо записать в tests.json.</div>`
         : "")
-    + (t.промежуточный_вывод ? bidWatch(t) : "")
-    + `<div class="rule"><b>Правило:</b> ${esc(t.правило || "")}</div>`
-    + (t.акция ? COINV_MECH + mdeBlock(t) : "")
-    + (t.стоп ? stopBlock(t.стоп) : "")
-    + (t.заметка ? `<div class="cov" style="border-top:none;padding-top:0">${esc(t.заметка)}</div>` : "")
-    + `${body}</section>`;
+    + (t.промежуточный_вывод && bidWatch(t) ? fold("", "Разрыв по всем товарам теста", bidWatch(t)) : "")
+    + fold("rule", "Правило", esc(t.правило || ""))
+    + (t.акция ? fold("", "Соинвест в критерии", COINV_MECH) + mdeBlock(t) : "")
+    + (t.стоп ? fold("", "Стоп-сигнал", stopBlock(t.стоп)) : "")
+    + (t.заметка ? fold("cov", "Заметка", esc(t.заметка)) : "")
+    + fold("", "Пары, динамика, по артикулам", body) + `</section>`;
 }).join("");
 
 // ---------- тест «большая ставка против маленькой» (tests.json, тесты_ставок) ----------
@@ -2377,7 +2380,7 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.ctitle{font-weight:700;font-size:15px}
 .chip{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
 .chip-run{background:rgba(34,211,238,.15);color:var(--cy)}.chip-off{background:rgba(93,116,132,.2);color:var(--ink3)}.chip-done{background:rgba(52,211,153,.16);color:var(--up)}
-.hyp{color:var(--ink2);margin:8px 0}.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin:6px 0}.meta b{color:var(--ink)}
+.hyp{color:var(--ink2);margin:8px 0}.fold{margin:6px 0}.fold>summary{cursor:pointer;list-style:none;font-size:13px;padding:4px 0}.fold>summary::-webkit-details-marker{display:none}.fold>summary::before{content:"▸ ";color:var(--ink3)}.fold[open]>summary::before{content:"▾ "}.fold-b{padding-top:4px}details.fold.cov{border-top:1px dashed var(--soft);padding-top:4px}.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin:6px 0}.meta b{color:var(--ink)}
 .rule{font-size:12.5px;color:var(--ink2);background:rgba(229,181,103,.08);border-left:3px solid var(--warn);padding:7px 10px;border-radius:6px;margin:8px 0}
 .tbl-wrap{overflow-x:auto;margin-top:8px;max-height:340px;overflow-y:auto}
 .gtbl{width:100%;border-collapse:collapse;font-size:12px}

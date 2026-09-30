@@ -238,6 +238,69 @@ def main():
             b, r = bx_month[bid][0], rs_month[bid][0]
             print("    %-10s %14s %14s %14s  %s" % (bid, rub(b), rub(r), rub(b - r), where(bid)))
 
+    # --- направление, не зависящее от даты Ройстата ---
+    #
+    # Прогон 36735896587 показал: на верхнем уровне записи order/list из дат есть
+    # только creation_date и update_date, и ни одна из них не «дата продажи».
+    # Значит августовскую популяцию Ройстата по дате можно и не собрать вовсе.
+    #
+    # Но раскладка расхождения этого и не требует. Битрикс говорит: столько-то
+    # сделок вошли в оплаченную стадию в августе. По каждой из них можно спросить
+    # Ройстат БЕЗ всякой даты: есть ли у тебя такой заказ и какая на нём выручка.
+    # Это раскладывает разрыв в ту сторону, где он и возник, и не зависит от того,
+    # нашлось поле даты или нет.
+    r_by_bx = {}
+    for r in r_deals:
+        r_by_bx[bitrix_id(r["id"])] = r
+    # Лид может ссылаться на сделку через order_id_alias - такая ссылка тоже стык.
+    alias_by_bx = {}
+    for r in rows:
+        al = r.get("alias")
+        if al and str(al).startswith("deal_"):
+            alias_by_bx.setdefault(str(al)[5:], r)
+
+    print("\n--- НЕЗАВИСИМО ОТ ДАТЫ РОЙСТАТА: где августовские продажи Битрикса ---")
+    print("  Битрикс: %d сделок вошли в оплаченную стадию в %s, сумма %s"
+          % (len(bx_month), m, rub(bx_sum)))
+    missing, present, via_alias = [], [], []
+    for bid in sorted(bx_month, key=lambda k: -bx_month[k][0]):
+        if bid in r_by_bx:
+            present.append(bid)
+        elif bid in alias_by_bx:
+            via_alias.append(bid)
+        else:
+            missing.append(bid)
+    print("  у Ройстата есть такой заказ (id сделки):        %4d  сумма %16s"
+          % (len(present), rub(sum(bx_month[k][0] for k in present))))
+    print("  найден только через ссылку лида order_id_alias: %4d  сумма %16s"
+          % (len(via_alias), rub(sum(bx_month[k][0] for k in via_alias))))
+    print("  у Ройстата НЕТ вовсе:                           %4d  сумма %16s"
+          % (len(missing), rub(sum(bx_month[k][0] for k in missing))))
+    if missing:
+        print("\n  СДЕЛКИ, КОТОРЫХ У РОЙСТАТА НЕТ (id, сумма Битрикса, стадия, дата продажи):")
+        for bid in missing:
+            amt, dt = bx_month[bid]
+            print("    %-10s %14s  %s" % (bid, rub(amt), where(bid)))
+    if via_alias:
+        print("\n  НАЙДЕНЫ ТОЛЬКО ЧЕРЕЗ ССЫЛКУ ЛИДА (id сделки, сумма Битрикса):")
+        for bid in via_alias:
+            print("    %-10s %14s  %s" % (bid, rub(bx_month[bid][0]), where(bid)))
+
+    # Сумма на стороне Ройстата по этим же сделкам, если поле денег выбрано.
+    if mf and present:
+        r_amt = sum(float(r_by_bx[b].get(mf) or 0) for b in present)
+        b_amt = sum(bx_month[b][0] for b in present)
+        print("\n  по сделкам, которые есть у обоих (%d штук), поле `%s`:" % (len(present), mf))
+        print("    Битрикс budget   %16s" % rub(b_amt))
+        print("    Ройстат %-8s %16s" % (mf, rub(r_amt)))
+        print("    разница          %16s" % rub(b_amt - r_amt))
+        neq = [b for b in present if abs(float(r_by_bx[b].get(mf) or 0) - bx_month[b][0]) > 0.5]
+        print("    сделок с разной суммой: %d" % len(neq))
+        for b in sorted(neq, key=lambda k: -abs(float(r_by_bx[k].get(mf) or 0) - bx_month[k][0]))[:25]:
+            print("      %-10s Битрикс %14s  Ройстат %14s  разница %14s"
+                  % (b, rub(bx_month[b][0]), rub(float(r_by_bx[b].get(mf) or 0)),
+                     rub(bx_month[b][0] - float(r_by_bx[b].get(mf) or 0))))
+
     # --- сдвиг месяца: таблица, а не вердикт ---
     # Гипотеза из API.md: сутки Ройстата режутся по UTC, поэтому московские
     # 00:00-03:00 первого числа падают в предыдущий месяц. Проверяется тем, что

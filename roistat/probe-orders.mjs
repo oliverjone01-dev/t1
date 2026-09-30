@@ -49,7 +49,7 @@ const pause = ms => new Promise(r => setTimeout(r, ms));
 
 const PAUSE = Number(process.env.PAUSE_MS || 2000);
 const PAGE = Number(process.env.PAGE || 5000);
-const MAX_PAGES = Number(process.env.MAX_PAGES || 40);
+const MAX_PAGES = Number(process.env.MAX_PAGES || 60);   /* 12 страниц x 3 прохода + запас */
 const FUNNEL = String(process.env.FUNNEL || '49');
 const OUT = process.env.ORDERS_OUT || '/tmp/roistat-orders.json';
 
@@ -149,6 +149,7 @@ console.log('  период [' + PERIOD.from + ', ' + PERIOD.to + ') - гран�
 console.log('  метрики: ' + WANT.join(', '));
 
 const REF = {};
+let DIM_MAP = [];
 await pause(PAUSE);
 const agg = await call('/project/analytics/data',
   { metrics: WANT, period: PERIOD, dimensions: [FUNNEL_DIM] });
@@ -160,11 +161,29 @@ if (bad(agg)) {
     console.log('  ФОРМА ОТВЕТА НЕ ТА: строк разреза нет. Эталона не будет.');
   } else {
     console.log('  строк разреза: ' + items.length);
-    const row = items.find(r => dimValue(r, FUNNEL_DIM) === FUNNEL);
+    /* Прогон 36735896587: разрез отдаёт значения `339:1`, `339:3`, `339:7` и
+       пустое, а НЕ id категорий Битрикса 49/21/33, как записано в API.md - там в
+       таблицу попали заголовки, а не значения. Поэтому воронка ищется и по
+       значению, и по заголовку, а вся карта печатается: без неё непонятно, какой
+       код чему соответствует, и подбор пошёл бы по пустой строке. */
+    const labelOf = r => {
+      const d = r && r.dimensions;
+      const f = d && (d[FUNNEL_DIM] || Object.values(d)[0]);
+      return String((f && f.title) || '');
+    };
+    console.log('  карта разреза ' + FUNNEL_DIM + ' (значение -> заголовок):');
+    for (const r of items) console.log('    «' + dimValue(r, FUNNEL_DIM) + '» -> «' + labelOf(r) + '»');
+    DIM_MAP = items.map(r => ({ value: dimValue(r, FUNNEL_DIM), title: labelOf(r) }));
+    const hits = items.filter(r => dimValue(r, FUNNEL_DIM) === FUNNEL
+      || new RegExp('(^|[^0-9])' + FUNNEL + '([^0-9]|$)').test(labelOf(r)));
+    if (hits.length > 1)
+      console.log('  ВНИМАНИЕ: воронке ' + FUNNEL + ' отвечает больше одной строки, эталон неоднозначен');
+    const row = hits.length === 1 ? hits[0] : null;
     if (!row) {
-      console.log('  строки воронки ' + FUNNEL + ' в разрезе НЕТ - эталона не будет');
-      for (const r of items) console.log('    есть разрез: «' + dimValue(r, FUNNEL_DIM) + '»');
+      console.log('  однозначной строки воронки ' + FUNNEL + ' в разрезе НЕТ - эталона не будет');
     } else {
+      console.log('  воронка ' + FUNNEL + ' опознана как «' + dimValue(row, FUNNEL_DIM)
+        + '» / «' + labelOf(row) + '»');
       for (const n of WANT) REF[n] = metricValue(row, n);
       for (const n of WANT) console.log('    ' + n.padEnd(20)
         + (REF[n] == null ? 'нет данных' : rub(REF[n]).padStart(16)));
@@ -192,6 +211,27 @@ for (const k of Object.keys(REF).concat(['revenue', 'payment_revenue', 'payment_
 const DENY = /phone|tel|mobile|mail|email|fio|name|contact|client|person|address|adres|city|comment|text|descr|title|passport|inn|account|card|ip|login|utm_term|query|referer|url|link/i;
 const SAFE = /(^id$)|(_id$)|(^status)|date|time|created|updated|changed|closed|revenue|cost|price|profit|sum|amount|budget|marker|visit|order|deal|lead|currency|channel/i;
 const allowed = k => !DENY.test(k);
+/* Запись раскладывается в плоский вид: `custom_fields` приходит объектом, и
+   пользовательские поля Битрикса лежат именно там. Прогон 36735896587 показал,
+   что на верхнем уровне из денег есть только `revenue` и `cost` (а `profit`
+   пустой), а из дат - `creation_date` и `update_date`, и ни одна из них не «дата
+   продажи». Значит смотреть надо внутрь, иначе поле просто не будет найдено.
+   Запрет по имени применяется и к развёрнутым ключам. */
+const flat = r => {
+  const o = {};
+  for (const [k, v] of Object.entries(r || {})) {
+    if (k === 'custom_fields' && v && typeof v === 'object' && !Array.isArray(v)) {
+      for (const [ck, cv] of Object.entries(v)) {
+        if (cv === null || typeof cv === 'object') continue;
+        o['cf_' + ck] = cv;
+      }
+      continue;
+    }
+    if (v !== null && typeof v === 'object') continue;   /* products, status - не скаляры */
+    o[k] = v;
+  }
+  return o;
+};
 const looksDate = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}([ T]|$)/.test(v);
 /* Телефон - это не деньги. Целое из 10-15 цифр, начинающееся с 7, 8 или +,
    в кандидаты на сумму не берём: в лог и в файл оно попасть не должно. */
@@ -207,7 +247,7 @@ const maskSample = v => {
 
 function shapeOf(rows, label) {
   const keys = new Map();
-  for (const r of rows) for (const [k, v] of Object.entries(r || {})) {
+  for (const r of rows) for (const [k, v] of Object.entries(flat(r))) {
     const e = keys.get(k) || { n: 0, types: new Set(), date: 0, num: 0, sample: null };
     e.n++;
     e.types.add(v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v);
@@ -245,14 +285,20 @@ if (!bad(mid)) shapeOf(mid.data || [], 'середина базы, offset ' + Ma
    но смысл у неё один. */
 const cand = new Map();
 for (const r of [...(head.data || []), ...(bad(mid) ? [] : (mid.data || []))])
-  for (const [k, v] of Object.entries(r || {})) {
+  for (const [k, v] of Object.entries(flat(r))) {
     const e = cand.get(k) || { date: 0, num: 0 };
     if (looksDate(v)) e.date++;
     if (looksNum(v)) e.num++;
     cand.set(k, e);
   }
 const DATE_FIELDS = [...cand.entries()].filter(([k, e]) => e.date > 0 && allowed(k)).map(([k]) => k).sort();
-const NUM_FIELDS = [...cand.entries()].filter(([k, e]) => e.num > 0 && e.date === 0 && allowed(k)).map(([k]) => k).sort();
+/* Идентификатор и флаг - не деньги. Прогон 36735896587 положил в кандидаты на
+   сумму `roistat`, `visit_id` и `is_multichannel`: сложить их можно, смысла нет,
+   а `roistat` это ещё и идентификатор посетителя. */
+const NOT_MONEY = /(^id$)|(_id$)|^is_|^roistat$|^page$|^visit$|^order_id_alias$/i;
+const NUM_FIELDS = [...cand.entries()]
+  .filter(([k, e]) => e.num > 0 && e.date === 0 && allowed(k) && !NOT_MONEY.test(k))
+  .map(([k]) => k).sort();
 const denied = [...cand.keys()].filter(k => !allowed(k));
 if (denied.length) console.log('\nполя, отсечённые запретным списком: ' + denied.join(', '));
 console.log('\nполя-кандидаты на дату:   ' + (DATE_FIELDS.join(', ') || 'НЕТ'));
@@ -268,8 +314,19 @@ console.log('\n--- полный обход базы ---');
 /* Граница обхода следит за ЖИВЫМ total из каждого ответа, а не за снятым до
    начала: если база выросла, проход по старой границе обрежется молча. Одна
    страница сверх границы берётся нарочно - она добирает хвост, съехавший вниз
-   от новых записей в начале. */
+   от новых записей в начале.
+
+   Проходов несколько. Прогон 36735896587 собрал 52 984 из 52 987: на странице
+   offset 30000 три записи пришли повторно, а три с конца не пришли вовсе - окно
+   съехало, пока шёл обход. Ослаблять инвариант нельзя, иначе он перестаёт ловить
+   настоящую дыру, поэтому обход просто повторяется и склеивается по id: две
+   независимые попытки почти наверняка накрывают то, что первая пропустила. Если
+   и после повторов недобор остался - прогон падает, как и раньше. */
+const PASSES = Number(process.env.PASSES || 3);
 let totalLive = TOTAL_BEFORE;
+for (let pass = 1; pass <= PASSES; pass++) {
+  const before = keep.size;
+  if (pass > 1) console.log('  --- проход ' + pass + ': добираем недостающее ---');
 for (let off = 0; off < totalLive + PAGE && pages < MAX_PAGES; off += PAGE) {
   await pause(PAUSE);
   const j = await call('/project/integration/order/list', { limit: PAGE, offset: off });
@@ -280,16 +337,27 @@ for (let off = 0; off < totalLive + PAGE && pages < MAX_PAGES; off += PAGE) {
   if (!rows.length) { console.log('  offset ' + off + ': пусто, обход закончен'); break; }
   if (rows.length < PAGE) shortPage++;
   for (const r of rows) {
+    const f = flat(r);
     const id = String(r.id);
     const proj = { id, status: statusId(r) };
-    for (const k of DATE_FIELDS) if (r[k] != null) proj[k] = String(r[k]);
-    for (const k of NUM_FIELDS) if (r[k] != null && looksNum(r[k])) proj[k] = Number(r[k]);
+    for (const k of DATE_FIELDS) if (f[k] != null) proj[k] = String(f[k]);
+    for (const k of NUM_FIELDS) if (f[k] != null && looksNum(f[k])) proj[k] = Number(f[k]);
     proj.has_visit = !!(r.visit_id || r.visit);
+    /* Ссылка лида на сделку: Ройстат кладёт сюда `deal_N`, и N это id сделки
+       Битрикса (проверено - deal_101293 есть в снимке). Для стыка она нужна. */
+    if (r.order_id_alias) proj.alias = String(r.order_id_alias);
     keep.set(id, proj);                     /* склейка по id: дубль перезапишет сам себя */
   }
   if (pages % 3 === 1 || rows.length < PAGE)
     console.log('  offset ' + String(off).padStart(6) + ': пришло ' + String(rows.length).padStart(5)
       + ', уникальных всего ' + keep.size);
+}
+  const got = keep.size - before;
+  console.log('  проход ' + pass + ': уникальных стало ' + keep.size + ' из ' + totalLive
+    + (pass > 1 ? ' (добрано ' + got + ')' : ''));
+  if (keep.size >= totalLive) break;
+  if (pass === PASSES) break;
+  if (pass > 1 && got === 0) { console.log('  повтор ничего не добрал, дальше смысла нет'); break; }
 }
 
 await pause(PAUSE);
@@ -308,6 +376,7 @@ if (TOTAL_AFTER !== null && TOTAL_AFTER !== TOTAL_BEFORE)
    стенд, а не живой прогон. */
 const MOVED = TOTAL_AFTER === null ? 0 : TOTAL_AFTER - TOTAL_BEFORE;
 const shortfall = TOTAL_BEFORE - keep.size;
+console.log('проходов сделано: ' + pages + ' страниц, порог проходов ' + PASSES);
 out.push(['уникальных id / total на старте', keep.size + ' / ' + TOTAL_BEFORE]);
 if (shortfall > 0) {
   console.log('НЕДОБОР ' + shortfall + ' записей из тех, что были на старте:');
@@ -384,7 +453,7 @@ writeFileSync(OUT, JSON.stringify({
   total_before: TOTAL_BEFORE, total_after: TOTAL_AFTER, unique: keep.size, moved: MOVED,
   date_fields: DATE_FIELDS, num_fields: NUM_FIELDS,
   paid_stages: [...paidStages],
-  ref: REF, ref_period: PERIOD, funnel_dim: FUNNEL_DIM,
+  ref: REF, ref_period: PERIOD, funnel_dim: FUNNEL_DIM, dim_map: DIM_MAP,
   stages: Object.fromEntries(stagesOfFunnel.map(k => [k, ST.get(k)])),
   rows: mine,
 }, null, 0), 'utf8');

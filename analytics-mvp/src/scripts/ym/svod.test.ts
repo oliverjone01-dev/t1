@@ -2,7 +2,7 @@
 // каждый дефект ниже уже случался на живых данных июля 2026 и молча искажал результат.
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { buildSvod, svcColumn, isPointsPaid, bonusKind, SVC_OTHER, type OrderRow } from "./derive-lib.js";
+import { buildSvod, svcColumn, isPointsPaid, isNettingFee, bonusKind, ledgerToBy, spendDate, daysAfter, LEDGER_LAG_LIMIT_DAYS, SVC_OTHER, type OrderRow } from "./derive-lib.js";
 
 const item = (over: Partial<OrderRow>): OrderRow => ({
   platform: "ym", business: "1", campaign: "1", order: "A", shop_order: "A", pos: 0, service: false,
@@ -375,6 +375,90 @@ describe("раскрытие баллов сходится с показанны
 //
 // Настоящая проверка ниже: те же рубли из ДРУГОГО файла (отчёт о баллах) и с ДРУГОЙ
 // группировкой (по номеру заказа, а не по проводке реестра) обязаны дать то же число.
+// Граница реестра на живом случае 30.09: заказ 61517954626 (GGL-09-2) оформлен 09.09, доставлен
+// 28.09, в тот же день Маркет списал баллами 27 589,89. Отчёт о баллах уже знал это списание,
+// реестр кабинета был собран по 27.09.
+describe("списание баллов после последнего дня реестра", () => {
+  const ord = item({ business: "B", order: "O1", shop_order: "O1", created: "2026-09-09", statusDate: "2026-09-28", fin: "2026-09-28", sku: "GGL-09-2" });
+  const spend = (service: string, amount: number) => ({ ym: "2026-09", business: "B", d: "2026-09-28", type: "Списание",
+    src: "Скидка за участие в совместных акциях", service, order: "O1", sku: "GGL-09-2", amount, platform: "ym" });
+  const bon = [spend("Буст продаж, оплата за продажи", -4838.39), spend("Размещение товарных предложений", -20455.69), spend("Доставка (средняя миля)", -2295.81)];
+  const ledger27 = [net({ d: "2026-09-09", business: "B", order: "O1", sku: "GGL-09-2", type: "Удержание", src: "Оплата услуг Маркета", service: "Приём платежа", amount: -0.12 }),
+    net({ d: "2026-09-27", business: "B", order: "", sku: "", type: "Удержание", src: "Оплата услуг Маркета", service: "Подписка", amount: -1 })];
+  const month = (netting: any[], bonus: any[] = bon, orders = [ord]) =>
+    buildSvod(orders, netting, {}, "2026-09-30", [], bonus as any).find((m) => m.business === "B" && m.ym === "2026-09")!;
+
+  it("реестр по 27.09: списание 28.09 не в строке заказа, а в «в реестр ещё не пришло» с номером заказа", () => {
+    const m = month(ledger27);
+    expect(m.rows[0]!.svc_points).toBe(0);
+    expect(m.points_after_ledger).toBe(27589.89);
+    expect(m.points_after_ledger_orders).toEqual([
+      { order: "O1", sku: "GGL-09-2", d_order: "2026-09-09", d_spend: "2026-09-28", v: 27589.89 },
+    ]);
+  });
+
+  it("реестр догнал: то же списание в строке заказа, отдельный список пуст - двойного счёта нет", () => {
+    const ledger28 = [...ledger27, ...bon.map((b) => net({ ...b, sku: "GGL-09-2" }))];
+    const m = month(ledger28);
+    expect(m.rows[0]!.svc_points).toBe(27589.89);
+    expect(m.points_after_ledger).toBe(0);
+    expect(m.points_after_ledger_orders).toEqual([]);
+  });
+
+  it("по кабинету без реестра вообще все списания видны в отдельном поле, а не теряются", () => {
+    const m = month([]);
+    expect(m.points_after_ledger).toBe(27589.89);
+  });
+
+  it("сторно после границы уменьшает отложенное: поле может стать отрицательным", () => {
+    const m = month(ledger27, [{ ...spend("Размещение товарных предложений", 400), type: "Возврат списания" }]);
+    expect(m.points_after_ledger).toBe(-400);
+    expect(m.points_after_ledger_orders![0]!.v).toBe(-400);
+  });
+
+  it("строка отчёта чужого кабинета с тем же номером заказа не попадает в поле", () => {
+    // Своя строка B до границы - чтобы отчёт покрывал пару B/сентябрь (иначе поле честно null).
+    const own = { ...spend("Приём платежа", -0.12), d: "2026-09-09" };
+    const m = month(ledger27, [own, { ...spend("Размещение товарных предложений", -500), business: "C" }]);
+    expect(m.points_after_ledger).toBe(0);
+    expect(m.points_after_ledger_orders).toEqual([]);
+  });
+
+  it("у каждого кабинета своя граница реестра, а не общая по всем", () => {
+    // Кабинет C собран по 28.09, B - по 27.09. Общая граница (максимум, 28.09) спрятала бы
+    // списание B от 28.09 как «уже в реестре».
+    const ordC = item({ business: "C", order: "O2", shop_order: "O2", created: "2026-09-10", statusDate: "2026-09-28", fin: "2026-09-28", sku: "S2" });
+    const bonC = { ...spend("Размещение товарных предложений", -300), business: "C", order: "O2", sku: "S2" };
+    const ledgerC = net({ d: "2026-09-28", business: "C", order: "O2", sku: "S2", type: "Списание", src: "Скидка за участие в совместных акциях", service: "Размещение товарных предложений", amount: -300 });
+    const svod = buildSvod([ord, ordC], [...ledger27, ledgerC], {}, "2026-09-30", [], [...bon, bonC] as any);
+    const b = svod.find((m) => m.business === "B")!, c = svod.find((m) => m.business === "C")!;
+    expect(b.points_after_ledger).toBe(27589.89);
+    expect(c.points_after_ledger).toBe(0);
+    expect(c.rows[0]!.svc_points).toBe(300);
+  });
+
+  it("строка без даты или с датой-заглушкой (d_est) считается известной реестру: в поле не идёт", () => {
+    const noDate = { ...spend("Размещение товарных предложений", -700), d: "" };
+    const stub = { ...spend("Размещение товарных предложений", -800), d: "2026-09-30", d_est: true };
+    const m = month(ledger27, [noDate, stub]);
+    expect(m.points_after_ledger).toBe(0);
+    expect(spendDate(stub)).toBe("");
+    expect(spendDate(noDate)).toBe("");
+  });
+
+  it("отчёта о баллах за пару нет - поле null, а не 0: «ничего не висит» не доказано", () => {
+    const m = month(ledger27, []);
+    expect(m.points_after_ledger).toBeNull();
+    expect(m.points_after_ledger_orders).toEqual([]);
+  });
+
+  it("отставание реестра считается в днях по дате списания", () => {
+    expect(daysAfter("2026-09-28", "2026-09-27")).toBe(1);
+    expect(daysAfter("2026-10-01", "2026-09-27")).toBe(4);
+    expect(LEDGER_LAG_LIMIT_DAYS).toBe(2);
+  });
+});
+
 describe("списание баллов сверено с отчётом по номеру заказа", () => {
   // Отчёт несёт номер заказа и артикул у каждой строки списания по заказам (2 483 строки из
   // 3 096; остальные 613 - Полки и Буст за показы, они уровня кабинета и уже в общих расходах).
@@ -382,8 +466,17 @@ describe("списание баллов сверено с отчётом по н
   // Это внешняя сверка, а не круговая: ни одно число здесь не пишет тот же цикл, что читает.
   const SPEND = /скидк[аи].{0,30}совместн|совместн.{0,20}акци|оплата бонусами/i;
   const readNd = (f: string) => readFileSync(f, "utf-8").trim().split("\n").map((l) => JSON.parse(l));
+  // Реестр платежей может отставать от отчёта о баллах: 30.09 по кабинету зеркал отчёт был по
+  // 28.09, реестр по 27.09 - наш сборщик реестра застрял после смены формата 29.09. Свод берёт
+  // списания по заказу из реестра, поэтому списание 28.09 (заказ 61517954626, GGL-09-2, 27 590 руб)
+  // в нём ещё 0. Сверяем до последнего дня реестра СВОЕГО кабинета; что позже, свод держит
+  // отдельно (points_after_ledger). Ниже три теста держат края: отставание не больше
+  // LEDGER_LAG_LIMIT_DAYS, отчёт не отстаёт от реестра, и ничего не потерялось.
+  // Строка с неизвестной датой (spendDate = "") сверяется как обычно - то же правило, что в сборке.
+  const ledgerTo = () => ledgerToBy(readNd("data-ym/netting.ndjson"));
 
   const reportByDaySku = () => {
+    const lt = ledgerTo();
     const ord = new Map<string, { d: string; status: string }>();
     for (const o of readNd("data-ym/orders.ndjson")) {
       const id = String(o.order || o.id || "");
@@ -395,6 +488,8 @@ describe("списание баллов сверено с отчётом по н
       if (!String(r.order || "").trim()) continue;
       const o = ord.get(`${r.business}|${r.order}`);
       if (!o || o.status !== "DELIVERED") continue;   // в свод идут только доставленные
+      const ds = spendDate(r);
+      if (ds && ds > (lt.get(String(r.business)) || "")) continue;   // в реестр ещё не пришло
       const k = `${r.business}|${o.d}|${r.sku}`;
       out.set(k, (out.get(k) || 0) - (Number(r.amount) || 0));
     }
@@ -440,6 +535,90 @@ describe("списание баллов сверено с отчётом по н
       if (Math.abs(mine - theirs) > 1) bad.push(`${m.business}/${m.ym}: свод ${Math.round(mine)}, отчёт ${Math.round(theirs)}`);
     }
     expect(checked).toBeGreaterThan(10);
+    expect(bad).toEqual([]);
+  });
+
+  // Свод собирается здесь же в памяти из живых входов текущим кодом, а не читается из
+  // svod_orders.json: снимок пересобирает бот на main, и до его прогона файл может быть старым.
+  let liveSvod: ReturnType<typeof buildSvod> | null = null;
+  const live = () => liveSvod ??= buildSvod(readNd("data-ym/orders.ndjson"), readNd("data-ym/netting.ndjson"), {}, undefined,
+    readNd("data-ym/services_monthly.ndjson"), readNd("data-ym/bonuses_monthly.ndjson"), []);
+
+  // Граница реестра не должна прятать деньги: всё, что отчёт списал по доставленным заказам
+  // месяца, лежит либо в строках свода (через реестр), либо в points_after_ledger. Честно: эта
+  // проверка отчасти верна по построению - поле собрано из того же отчёта. Она ловит потерю строки
+  // между двумя корзинами; независимая сверка отчёта с реестром - тесты выше, до границы.
+  it("ничего не потерялось: отчёт = свод + «в реестр ещё не пришло», по каждой паре кабинет/месяц", () => {
+    const orders = readNd("data-ym/orders.ndjson");
+    const ord = new Map<string, any>();
+    for (const o of orders) ord.set(`${o.business}|${o.order || o.id}`, o);
+    const rep = new Map<string, number>();
+    for (const r of readNd("data-ym/bonuses_monthly.ndjson")) {
+      if (!SPEND.test(String(r.src || "")) || !String(r.order || "").trim()) continue;
+      const o = ord.get(`${r.business}|${r.order}`);
+      if (!o || o.status !== "DELIVERED") continue;
+      const k = `${r.business}|${String(o.created).slice(0, 7)}`;
+      rep.set(k, (rep.get(k) || 0) - Number(r.amount));
+    }
+    const bad: string[] = [];
+    let checked = 0;
+    for (const m of live()) {
+      if (!(m.rows || []).length) continue;
+      checked++;
+      const inRows = m.rows.reduce((a, r) => a + (r.svc_points || 0), 0);
+      // null - отчёта о баллах за эту пару нет: тогда и отложенного нет, сверять только строки.
+      if (m.points_after_ledger === null) { expect(m.points_after_ledger_orders).toEqual([]); }
+      const after = m.points_after_ledger === null ? 0 : m.points_after_ledger!;
+      expect(typeof after, `${m.business}/${m.ym}: поле не заполнено`).toBe("number");
+      const theirs = rep.get(`${m.business}|${m.ym}`) || 0;
+      if (Math.abs(inRows + after - theirs) > 1) bad.push(`${m.business}/${m.ym}: свод ${Math.round(inRows)} + не пришло ${Math.round(after)}, отчёт ${Math.round(theirs)}`);
+      const listed = (m.points_after_ledger_orders || []).reduce((a, x) => a + x.v, 0);
+      if (Math.abs(listed - after) > 0.01) bad.push(`${m.business}/${m.ym}: список заказов ${listed} не равен сумме ${after}`);
+    }
+    expect(checked).toBeGreaterThan(10);
+    expect(bad).toEqual([]);
+  });
+
+  // Без предела отставания правка выше глушила бы тревогу: застрявший на неделю сборщик реестра
+  // дал бы неделю списаний в points_after_ledger при зелёном CI. Меряем по датам самих списаний,
+  // а не по последнему дню отчёта: у кабинета зеркал бывают дни без движения баллов.
+  it(`реестр отстаёт от отчёта о баллах меньше чем на ${LEDGER_LAG_LIMIT_DAYS} дня по каждому кабинету`, () => {
+    const lt = ledgerTo();
+    const worst = new Map<string, { days: number; sum: number; n: number }>();
+    for (const m of live()) for (const e of m.points_after_ledger_orders || []) {
+      const days = daysAfter(e.d_spend, lt.get(m.business) || "1970-01-01");
+      const w = worst.get(m.business) || { days: 0, sum: 0, n: 0 };
+      w.days = Math.max(w.days, days); w.sum += e.v; w.n++;
+      worst.set(m.business, w);
+    }
+    const bad = [...worst].filter(([, w]) => w.days >= LEDGER_LAG_LIMIT_DAYS)
+      .map(([b, w]) => `реестр по кабинету ${b} (по ${lt.get(b) || "нет"}) отстаёт от отчёта о баллах на ${w.days} дн: ${Math.round(w.sum)} руб в ${w.n} строках - проверь сборщик ym:netting`);
+    expect(bad).toEqual([]);
+  });
+
+  // Обратный случай: отстаёт уже отчёт о баллах, а реестр ушёл вперёд. Тогда в своде есть
+  // списания, которых отчёт не знает, и тесты выше упали бы невнятной разницей. Здесь - понятным
+  // текстом. Считаем списания баллами по доставленным заказам в реестре позже последнего
+  // известного дня списаний в отчёте того же кабинета.
+  it("отчёт о баллах не отстаёт от реестра: в реестре нет списаний по заказам позже отчёта", () => {
+    const repTo = new Map<string, string>();
+    for (const r of readNd("data-ym/bonuses_monthly.ndjson")) {
+      if (!SPEND.test(String(r.src || ""))) continue;
+      const d = spendDate(r);
+      if (d > (repTo.get(String(r.business)) || "")) repTo.set(String(r.business), d);
+    }
+    const delivered = new Set(readNd("data-ym/orders.ndjson").filter((o: any) => o.status === "DELIVERED").map((o: any) => `${o.business}|${o.order || o.id}`));
+    const ahead = new Map<string, { days: number; sum: number; n: number }>();
+    for (const n of readNd("data-ym/netting.ndjson")) {
+      if (!isNettingFee(String(n.type || ""), n.src) || !isPointsPaid(String(n.type || ""), n.src)) continue;
+      if (!String(n.order || "").trim() || !delivered.has(`${n.business}|${n.order}`)) continue;
+      const b = String(n.business), d = String(n.d || "").slice(0, 10), to = repTo.get(b) || "";
+      if (!to || d <= to) continue;
+      const a = ahead.get(b) || { days: 0, sum: 0, n: 0 };
+      a.days = Math.max(a.days, daysAfter(d, to)); a.sum -= Number(n.amount); a.n++;
+      ahead.set(b, a);
+    }
+    const bad = [...ahead].map(([b, a]) => `отчёт о баллах отстаёт от реестра по кабинету ${b} на ${a.days} дн (отчёт по ${repTo.get(b)}): в реестре ${a.n} списаний на ${Math.round(a.sum)} руб - проверь сборщик ym:bonuses`);
     expect(bad).toEqual([]);
   });
 
@@ -549,8 +728,21 @@ describe("деньги кабинета: три источника не долж
       expect(m.overhead_points_report, `${m.business}/${m.ym}: поле не заполнено`).toBeDefined();
       expect(m.overhead_points_report, `${m.business}/${m.ym}: величина отрицательна`).toBeGreaterThanOrEqual(0);
     }
-    const noAct = svod.months.filter((m: any) => m.overhead_src !== "act" && (m.overhead_points_report || 0) > 0);
-    expect(noAct.length, "нет месяца без акта, но с тратами по отчёту - сторож не на чем показать").toBeGreaterThan(0);
+  });
+
+  // Месяц без акта на живых данных бывает только до прихода акта: 30.09 акт за сентябрь пришёл по
+  // обоим кабинетам, и тесты ниже потеряли пример (реестр ошибок E049 - тест на живой дате).
+  // Пример заморожен в фикстуре: настоящие строки сентября по кабинету мебели из снимка 572b338,
+  // когда акта ещё не было. Ожидаемая сумма записана числом, а не пересчитана из той же фикстуры.
+  const noAct = () => {
+    const fx = JSON.parse(readFileSync("fixtures/ym/svod-no-act-2026-09.json", "utf-8"));
+    return buildSvod(fx.orders, fx.netting, {}, "2026-09-29", fx.act, fx.bonus).find((m) => m.business === "74986385" && m.ym === "2026-09")!;
+  };
+
+  it("месяц без акта: кабинетные списания баллов из отчёта видны отдельным числом", () => {
+    const m = noAct();
+    expect(m.overhead_src).toBe("ledger");
+    expect(m.overhead_points_report).toBe(908.18);   // 116,13 + 179,13 Буст за показы, 260,98 + 351,94 Полки
   });
 
   // Решение Ивана 2026-09-17: «баллы за полку и за буст относи в общие расходы на кабинет».
@@ -575,14 +767,15 @@ describe("деньги кабинета: три источника не долж
     expect(bad).toEqual([]);
   });
 
-  // Живой случай, ради которого правка и делалась: за сентябрь акта ещё нет, и до неё страница
-  // показывала «расходов кабинета нет» при 40 094 ₽ потраченных баллов.
+  // Случай, ради которого правка делалась: пока акта за месяц нет, страница показывала «расходов
+  // кабинета нет» при 40 094 руб потраченных баллов (сентябрь, до прихода акта). Проверяется на
+  // фикстуре - живой месяц без акта исчезает с приходом акта (E049).
   it("месяц без акта всё равно показывает кабинетные траты баллами", () => {
-    const sep = svod.months.find((m: any) => m.ym === "2026-09" && (m.overhead_points_report || 0) > 0);
-    expect(sep, "сентябрь с тратами по отчёту не найден").toBeTruthy();
-    expect(sep.overhead_src, "у сентября появился акт - тест потерял смысл, обнови его").toBe("ledger");
-    expect(Math.round(sep.overhead_points)).toBe(Math.round(sep.overhead_points_report));
-    expect(sep.overhead_points).toBeGreaterThan(0);
+    const m = noAct();
+    expect(m.overhead_src).toBe("ledger");
+    expect(m.overhead_points).toBe(908.18);
+    expect(m.overhead_pts["Полка"]).toBe(612.92);
+    expect(m.overhead_pts["Буст продаж"]).toBe(295.26);
   });
 
   // gap 8: Полка, Подписка и Товарные баннеры не имели правил и падали в «Прочие услуги» -

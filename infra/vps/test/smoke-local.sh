@@ -211,4 +211,14 @@ grep -q "smoke-control" "$W/economics/index.html" && [ -s "$W/econ-control/index
   && pass "шаг экономики упал -> /economics/ и /econ-control/ из прошлой сборки" || fail "экономика пропала с сайта"
 mv "$T/econ.bak" "$ECONHTML"
 
+echo "12. Сбой коммита данных (git занят/нет прав) -> задача падает, а не «без изменений»"
+touch "$GG_ROOT/data/.git/index.lock"
+if "$BIN/gg-job" smoke-ok >"$T/job.log" 2>&1; then
+  rm -f "$GG_ROOT/data/.git/index.lock"; cat "$T/job.log"; fail "сбой git данных прошёл как успех (fail-open)"
+fi
+rm -f "$GG_ROOT/data/.git/index.lock"
+grep -q '"rc":91' "$GG_ROOT/state/jobs/smoke-ok.json" && pass "сбой коммита данных: код 91, статус упал" || { cat "$GG_ROOT/state/jobs/smoke-ok.json"; fail "статус при сбое git"; }
+grep -q "не сохранены в git данных" "$T/job.log" && pass "причина в логе (уйдёт в алерт)" || fail "нет причины в логе"
+"$BIN/gg-job" smoke-ok >"$T/job.log" 2>&1 && pass "после снятия блокировки задача снова ok" || { cat "$T/job.log"; fail "повторный запуск"; }
+
 echo "ВСЁ ЗЕЛЁНОЕ"

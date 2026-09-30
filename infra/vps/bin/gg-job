@@ -50,7 +50,9 @@ changed=false
 if [ "$nodata" = yes ]; then
   write_status
 elif [ "$rc" = 0 ]; then
-  if gg_data_commit "job $name: $started"; then changed=true; fi
+  dc=0; gg_data_commit "job $name: $started" || dc=$?
+  if [ "$dc" = 0 ]; then changed=true
+  elif [ "$dc" != 1 ]; then rc=91; gg_warn "данные сняты, но не сохранены в git данных" 2>&1 | tee -a "$log" >&2; fi
   write_status   # до сборки сайта: /status/ в этой же сборке покажет свежий итог
   if [ "$changed" = true ] && [ "$site" = yes ]; then
     if ! "$GG_OPS/bin/gg-site" 2>&1 | tee -a "$log"; then

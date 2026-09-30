@@ -90,14 +90,20 @@ gg_alert() {
 
 # Коммит данных в локальный git данных. Код 0 = были изменения, 1 = нечего коммитить.
 # Второй аргумент (необязательный) - ограничить коммит папкой (например, данными одной ветки).
+# Код возврата: 0 - закоммичено, 1 - изменений нет, 2 - сбой git (права, lock, «dubious ownership»).
+# Сбой нельзя путать с «без изменений»: иначе снимок тихо не сохраняется (E027, fail-open).
 gg_data_commit() {
-  local msg=$1 scope=${2:-.}
+  local msg=$1 scope=${2:-.} rc=0
   (
-    flock -w 600 7 || gg_die "data.lock занят"
-    git -C "$GG_DATA" add -A -- "$scope"
-    if git -C "$GG_DATA" diff --cached --quiet; then exit 1; fi
-    git -C "$GG_DATA" -c user.name=gg-server -c user.email=gg-server@localhost commit -q -m "$msg"
-  ) 7>"$GG_ROOT/state/locks/data.lock"
+    flock -w 600 7 || exit 2
+    git -C "$GG_DATA" add -A -- "$scope" || exit 2
+    git -C "$GG_DATA" diff --cached --quiet; d=$?
+    [ "$d" = 0 ] && exit 1
+    [ "$d" = 1 ] || exit 2
+    git -C "$GG_DATA" -c user.name=gg-server -c user.email=gg-server@localhost commit -q -m "$msg" || exit 2
+  ) 7>"$GG_ROOT/state/locks/data.lock" || rc=$?
+  [ "$rc" = 2 ] && gg_warn "коммит данных не удался (git: права, lock или владелец папки $GG_DATA)"
+  return "$rc"
 }
 
 # Откат незакоммиченных изменений данных ветки (после упавшей задачи)

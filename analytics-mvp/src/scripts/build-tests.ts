@@ -1997,7 +1997,7 @@ function bidChart(p: PairDef, cid: string): string {
   // До и после на одном товаре: вторая засечка - конец окна большой стороны.
   const endB = same && wB.to < LAST ? addDays(wB.to, 1) : "";
   const si2 = endB ? days.indexOf(endB) : other ? days.indexOf(other) : -1;
-  const lbl2 = endB ? "конец окна большой" : si2 >= 0 ? "окно " + (other === wS.from ? "малой" : "большой") : "";
+  const lbl2 = endB ? `период 2 с ${DM(endB)}` : si2 >= 0 ? "окно " + (other === wS.from ? "малой" : "большой") : "";
   const lblB = `большая ${B.ставка ?? "-"} ₽`, lblS = `малая ${S.ставка ?? "-"} ₽`;
   const stB = sideStat(series.get(B.артикул), gapByArt.get(B.артикул), wB.from, wB.to, LAST_SPEND || wB.to);
   const stS = sideStat(series.get(S.артикул), gapByArt.get(S.артикул), wS.from, wS.to, LAST_SPEND || wS.to);
@@ -2014,11 +2014,14 @@ function bidChart(p: PairDef, cid: string): string {
   const winTxt = (w: { from: string; to: string }, st: SideStat) => open(w) ? ` (${DM(w.from)}-${DM(w.to)}, ${st.days} дн)` : "";
   const panes: Record<string, string> = {}, reads: Record<string, string> = {}, subs: Record<string, string> = {}, tip: Record<string, any> = {};
   for (const [k, n, unit] of BID_M) {
-    const a = bidDaily(B.артикул, days, k);
-    const b = same ? a.map(() => null) : bidDaily(S.артикул, days, k);
+    // До и после на одном товаре: первый период (до конца окна большой) голубой, второй
+    // оранжевый (Иван 30.09). Точка стыка есть в обеих линиях, чтобы линия не рвалась.
+    const full = bidDaily(B.артикул, days, k);
+    const a = same && endB ? full.map((v, i) => days[i]! <= wB.to ? v : null) : full;
+    const b = same ? (endB ? full.map((v, i) => days[i]! >= wB.to ? v : null) : full.map(() => null)) : bidDaily(S.артикул, days, k);
     if (!nums(a).length && !nums(b).length) continue;
     // На концах линий короткие подписи: полные с артикулом стоят в легенде.
-    panes[k] = pane(days, si, a, b, "raw", same ? ["товар", ""] : ["большая", "малая"], si2, lbl2, "окно");
+    panes[k] = pane(days, si, a, b, "raw", same ? (endB ? ["", ""] : ["товар", ""]) : ["большая", "малая"], si2, lbl2, "окно");
     subs[k] = `по дням, как есть${unit ? ", " + unit.trim() : ""}`;
     tip[k] = { t: a.map((v) => v == null ? null : Math.round(v * 10) / 10), c: b.map((v) => v == null ? null : Math.round(v * 10) / 10), rt: a, rc: b, mode: "raw", unit };
     const seen = same
@@ -2036,12 +2039,15 @@ function bidChart(p: PairDef, cid: string): string {
   return `<div class="cov" style="border-top:none;padding:0 0 4px">${side("Большая " + (B.ставка ?? "-") + " ₽", B, wB)}. ${side("Малая " + (S.ставка ?? "-") + " ₽", S, wS)}.</div>`
     + `<div class="dyn"><div class="dyn-h">Динамика по дням. <span class="dyn-sub" id="${cid}-sub">${subs[k0]}</span></div>`
     + `<div class="mrow-b">${btns}</div>`
-    + `<div class="lg" id="${cid}-lg"><span class="lgi"><i style="background:${C_TEST}"></i>${same ? esc(B.артикул) : `${esc(lblB)}, ${esc(B.артикул)}`}</span>`
-    + (same ? "" : `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>${esc(lblS)}, ${esc(S.артикул)}</span>`) + `</div>`
+    + `<div class="lg" id="${cid}-lg">` + (same && endB
+      ? `<span class="lgi"><i style="background:${C_TEST}"></i>${esc(B.артикул)}, период 1: своя кампания ${B.бюджет ? nbsp(B.бюджет) + " ₽/нед" : ""} (по ${DM(wB.to)})</span>`
+        + `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>период 2: ${S.бюджет ? nbsp(S.бюджет) + " ₽/нед" : ""} в общей кампании (с ${DM(endB)})</span>`
+      : `<span class="lgi"><i style="background:${C_TEST}"></i>${same ? esc(B.артикул) : `${esc(lblB)}, ${esc(B.артикул)}`}</span>`
+        + (same ? "" : `<span class="lgi ctl"><i style="background:${C_CTRL}"></i>${esc(lblS)}, ${esc(S.артикул)}</span>`)) + `</div>`
     + `<svg class="cv" id="${cid}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Динамика пары по дням">${panes[k0]}</svg>`
     + `<div class="tip" id="${cid}-tip"></div><div id="${cid}-read">${reads[k0]}</div></div>`
     + `<script>window.DYN=window.DYN||{};window.DYN[${JSON.stringify(cid)}]=${JSON.stringify({ d: days, m: tip, panes, reads, subs })};`
-    + `window.SOLO=window.SOLO||{};window.SOLO[${JSON.stringify(cid)}]=${same ? JSON.stringify(keys) : "[]"};</script>`;
+    + `window.SOLO=window.SOLO||{};window.SOLO[${JSON.stringify(cid)}]=${same && !endB ? JSON.stringify(keys) : "[]"};</script>`;
 }
 // ИТОГ ТЕСТА 3 ПО ЕГО ПРАВИЛУ (Иван 30.09: «в тест 3 добавь также итоги»). Пороги из правила
 // в tests.json, приняты Иваном 30.09 как рабочие [ГИПОТЕЗА]. Числа те же, что под графиками
@@ -2057,7 +2063,7 @@ function bidVerdictPair(p: PairDef): string {
   if (wB.to < wB.from || wS.to < wS.from) {
     const w = wB.to < wB.from && wS.to < wS.from ? `окна обеих сторон начнутся ${DM(wB.from < wS.from ? wB.from : wS.from)}`
       : wB.to < wB.from ? `окно большой стороны начнётся ${DM(wB.from)}` : `окно малой стороны начнётся ${DM(wS.from)}`;
-    return name + `<div class="cov" style="border-top:none">Итога пока нет: ${w}, сравнивать не с чем.</div>`;
+    return name + `<div class="cov" style="border-top:none">Итога по правилу пока нет: ${w}.</div>` + bidRamp(p);
   }
   const stB = sideStat(series.get(B.артикул), gapByArt.get(B.артикул), wB.from, wB.to, LAST_SPEND || wB.to);
   const stS = sideStat(series.get(S.артикул), gapByArt.get(S.артикул), wS.from, wS.to, LAST_SPEND || wS.to);
@@ -2091,6 +2097,38 @@ function bidVerdictPair(p: PairDef): string {
     + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th>`
     + `<th class="r">Большая ${esc(B.ставка ?? "-")} ₽</th><th class="r">Малая ${esc(S.ставка ?? "-")} ₽</th><th>Условие правила</th><th class="r">Выполнено</th></tr></thead>`
     + `<tbody>${rows}</tbody></table></div>`;
+}
+/** Предварительно по дням разгона (Иван 30.09, вариант а): окно новой стороны ещё не началось,
+ *  но режим уже сменился. Средний день; до «окна» не для решения, это прямо написано. */
+function bidRamp(p: PairDef): string {
+  const B = p.большая, S = p.малая, same = B.артикул === S.артикул;
+  const r0 = S.разгон_с;
+  if (!r0 || r0 > LAST) return "";
+  const wB = sideWindow(p, B, LAST);
+  const fromB = same ? wB.from : r0, toB = same ? wB.to : LAST;
+  const stB = sideStat(series.get(B.артикул), gapByArt.get(B.артикул), fromB, toB, LAST_SPEND || toB);
+  const stS = sideStat(series.get(S.артикул), gapByArt.get(S.артикул), r0, LAST, LAST_SPEND || LAST);
+  if (!stB.days || !stS.days) return "";
+  const pd = (v: number, n: number) => n ? v / n : null;
+  const f = (x: number | null, d = 0) => x == null ? "-" : d ? x.toFixed(d).replace(".", ",") : nbsp(Math.round(x));
+  const ch = (b: number | null, sm: number | null) => b && sm != null ? `${(sm / b - 1) * 100 >= 0 ? "+" : ""}${((sm / b - 1) * 100).toFixed(0)} %` : "-";
+  const spB = stB.spendDays ? stB.spend / stB.spendDays : null, spS = stS.spendDays ? stS.spend / stS.spendDays : null;
+  const R: Array<[string, number | null, number | null, number]> = [
+    ["Показы в поиске в день", pd(stB.vsearch, stB.days), pd(stS.vsearch, stS.days), 0],
+    ["Карточка в день", pd(stB.pdp, stB.days), pd(stS.pdp, stS.days), 0],
+    ["Корзина в день", pd(stB.cart, stB.days), pd(stS.cart, stS.days), 1],
+    ["Заказы в день", pd(stB.units, stB.days), pd(stS.units, stS.days), 1],
+    ["Расход в день, ₽", spB, spS, 0],
+  ];
+  const hB = same ? `Период 1: своя кампания, ${DM(fromB)}-${DM(toB)} (${stB.days} дн)` : `Большая ${esc(B.ставка ?? "-")} ₽, ${DM(r0)}-${DM(LAST)} (${stB.days} дн)`;
+  const hS = same ? `Период 2: разгон, ${DM(r0)}-${DM(LAST)} (${stS.days} дн)` : `Малая ${esc(S.ставка ?? "-")} ₽, разгон ${DM(r0)}-${DM(LAST)} (${stS.days} дн)`;
+  return `<div class="cov" style="border-top:none"><b>Предварительно, идёт разгон, не для решения.</b>`
+    + (same ? ` Средний день после выключения своей кампании против среднего дня окна большой. Контроля нет: общее движение магазина не вычтено.`
+      : ` Средний день обеих сторон с включения малой. У малой это первые дни после включения, реклама ещё набирает показы.`)
+    + ` Последний день ряда может быть загружен не полностью.</div>`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Показатель</th><th class="r">${hB}</th><th class="r">${hS}</th><th class="r">${same ? "Период 2 к периоду 1" : "Малая к большой"}</th></tr></thead><tbody>`
+    + R.map(([n, b, sm, d]) => `<tr><td>${n}</td><td class="r">${f(b, d)}</td><td class="r">${f(sm, d)}</td><td class="r">${ch(b, sm)}</td></tr>`).join("")
+    + `</tbody></table></div>`;
 }
 function bidVerdict(t: BidTestDef): string {
   return `<div class="verdict"><div class="verdict-h">Итог по показателям на ${esc(LAST)}</div>`

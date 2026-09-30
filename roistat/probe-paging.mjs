@@ -254,6 +254,82 @@ if (COV > 0 && winner && byRow) {
   out.push(['привязка к визиту (выборка ' + seen + ')', share + '%']);
 }
 
+/* ---------- 8. где обрывается привязка к визиту ---------- */
+/* Прогон 36680662106 дал не плавное снижение, а обрыв: 37%, 33%, 29%, 21%, а
+   дальше восемь окон подряд по нулю. Средняя по всей базе (9.9%) в таком виде
+   бессмысленна - это К2, числитель и знаменатель из разных популяций. Пока
+   граница не найдена, доля привязки не цифра, а два разных числа.
+   Ищем границу делением пополам и печатаем даты по краям.
+   Заодно раскладываем по типу записи: order/list несёт и lead_, и deal_,
+   и привязка к визиту у них разная по природе. Считать их вместе - та же К2.
+   Даты и тип записи - метаданные, клиентских полей в лог не идёт.
+   Включение: CLIFF=1. */
+if (process.env.CLIFF === '1' && winner && byRow) {
+  const W = Number(process.env.CLIFF_WINDOW || 100);
+  const total = Number(base1.total) || 0;
+  say('\n--- где обрывается привязка к визиту (окно ' + W + ') ---');
+
+  /* Разбор одного окна: сколько lead_ и deal_, у скольких есть визит, даты. */
+  const look = async off => {
+    const j = await call('/project/integration/order/list', { period: PERIOD, limit: W, [winner]: off });
+    if (bad(j)) return { off, err: why(j) };
+    const rows = j.data || [];
+    const g = { lead: { n:0, v:0 }, deal: { n:0, v:0 }, other: { n:0, v:0 } };
+    let dMin = null, dMax = null;
+    for (const r of rows) {
+      const id = String(r.id);
+      const k = id.startsWith('lead_') ? 'lead' : (id.startsWith('deal_') ? 'deal' : 'other');
+      g[k].n++;
+      if (r.visit_id || r.visit) g[k].v++;
+      const d = String(r.creation_date || '').slice(0, 10);
+      if (d) { if (!dMin || d < dMin) dMin = d; if (!dMax || d > dMax) dMax = d; }
+    }
+    const v = g.lead.v + g.deal.v + g.other.v;
+    return { off, n: rows.length, v, g, dMin, dMax };
+  };
+  const show = w => w.err ? '  смещение ' + w.off + ': ' + w.err
+    : '  смещение ' + String(w.off).padEnd(7) + 'даты ' + (w.dMin || '?') + '..' + (w.dMax || '?') +
+      '  всего ' + String(w.n).padEnd(4) + 'с визитом ' + String(w.v).padEnd(4) +
+      ' | lead ' + w.g.lead.v + '/' + w.g.lead.n + '  deal ' + w.g.deal.v + '/' + w.g.deal.n +
+      (w.g.other.n ? '  прочие ' + w.g.other.v + '/' + w.g.other.n : '');
+
+  await pause(PAUSE);
+  const head = await look(0);
+  say(show(head));
+  await pause(PAUSE);
+  const tail = await look(Math.max(0, total - W));
+  say(show(tail));
+
+  if (head.err || tail.err) say('  деление пополам пропущено: край не прочитался');
+  else if (head.v === 0) say('  привязки нет даже в начале базы - границу искать не в смещении');
+  else if (tail.v > 0) say('  привязка есть и в хвосте - обрыва нет, предыдущий прогон надо перепроверить');
+  else {
+    /* Инвариант деления: слева всегда есть привязка, справа всегда нет. */
+    let lo = 0, hi = Math.max(0, total - W), steps = 0;
+    while (hi - lo > W && steps < 20) {
+      const mid = Math.floor((lo + hi) / 2);
+      await pause(PAUSE);
+      const w = await look(mid);
+      steps++;
+      if (w.err) { say(show(w)); break; }
+      say(show(w));
+      if (w.v > 0) lo = mid; else hi = mid;
+    }
+    say('  граница между смещениями ' + lo + ' и ' + hi + ', шагов ' + steps);
+    await pause(PAUSE);
+    const L2 = await look(lo);
+    await pause(PAUSE);
+    const R2 = await look(hi);
+    say('  последнее окно с привязкой:  ' + (L2.err || (L2.dMin + '..' + L2.dMax + ', с визитом ' + L2.v + ' из ' + L2.n)));
+    say('  первое окно без привязки:    ' + (R2.err || (R2.dMin + '..' + R2.dMax + ', с визитом ' + R2.v + ' из ' + R2.n)));
+    /* Список идёт от новых к старым, поэтому граница - самая РАННЯЯ дата,
+       у которой привязка ещё встречается. */
+    out.push(['привязка к визиту кончается', (L2.dMin ? 'около ' + L2.dMin + ', ' : '') +
+      'смещение между ' + lo + ' и ' + hi]);
+    out.push(['записей с привязкой (от начала)', 'примерно ' + lo + ' из ' + total]);
+  }
+}
+
 /* ---------- 7. лимит запросов ---------- */
 /* Открытый вопрос 5. Выключено по умолчанию нарочно: проба упирается в лимит,
    и если гонять её вместе с остальным, лимит съест полезные вызовы.

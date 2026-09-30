@@ -30,8 +30,8 @@
 | mgr-photos | пн 04:23 | 1 | ⏳ | фото менеджеров для личных дашбордов |
 | export-contacts, export-leads | вручную | 1 | ➖ | выгрузки контактов в git **прекратить**: xlsx клиентов не должен попадать в репозиторий; на сервере - в папку без веб-доступа |
 | b24-gm-snapshots | 17 5, 47 9 | 2 | ✅ `rop-gm-snapshot` + `rop-gm-snapshot-late` | /rop-gm/; дашборд печётся в задаче, не на деплое |
-| prod-cron | 37 5, 7 10 | 2 | ⏳ | /prod/ /prod2/ |
-| pto-cron | 47 5 | 2 | ⏳ | /pto/ |
+| prod-cron | 37 5, 7 10 | 2 | ✅ `prod-snapshot` + `prod-snapshot-late` | /prod/ /prod2/ |
+| pto-cron | 47 5 | 2 | ✅ `pto-snapshot` | /pto/; как в GitHub, страница не пересобирается (с 24.09) |
 | economics-cron | 47 5, 17 10 | 2 | ✅ `economics-snapshot` + `economics-snapshot-late` | /economics/layers.html; два слота - две строки jobs.conf |
 | econ-recon | 37 */3 | 2 | ✅ `econ-recon` | /economics/, /econ-control/; дизайнеры и карта полей (в GitHub по ручному запуску) - `ECON_FULL=1 gg-job econ-recon` |
 | field-map | пн 06:00 | 2 | ⏳ | схема полей Bitrix |
@@ -61,8 +61,8 @@
 | /dialog-experiments/ | dialog-experiments + rop + dialog | 1-2 | ⏳ |
 | /rop-preview/ /rop-experiments/ | ветки-песочницы | 1 | ⏳ превью (README §8) |
 | /rop-gm/ | rop-gm-dashboard-v1 | 2 | ✅ `site/steps/24-rop-gm.sh` |
-| /prod/ /prod2/ | prod-dashboard-v1 | 2 | ⏳ |
-| /pto/ | pto-dashboard-v1 | 2 | ⏳ |
+| /prod/ /prod2/ | prod-dashboard-v1 | 2 | ✅ `site/steps/25-prod.sh` |
+| /pto/ | pto-dashboard-v1 | 2 | ✅ `site/steps/26-pto.sh` (гейт клиентских полей) |
 | /economics/ /econ-control/ | economics-dashboard-v1 | 2 | ✅ `site/steps/23-economics.sh` |
 | /dialog/ | dialog-export-v1 | 2 | ⏳ |
 | / (хаб), /market/, KATYA | main | 3 | ⏳ |

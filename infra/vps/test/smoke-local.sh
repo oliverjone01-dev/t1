@@ -4,7 +4,7 @@
 #   выкат веток (gg-poll) -> сайт -> задача с данными -> падение задачи с откатом -> откат сайта
 #   -> новый коммит в «GitHub» (данные сервера переживают выкат кода) -> генерация таймеров.
 # Запуск из корня репозитория: bash infra/vps/test/smoke-local.sh
-# Нужны локально ветки-источники: git fetch origin rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1
+# Нужны локально ветки-источники: git fetch origin rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1 prod-dashboard-v1 pto-dashboard-v1
 # ВАЖНО: без «cmd | grep -q» - при pipefail grep -q выходит на первом совпадении,
 # cmd получает SIGPIPE (код 141) и проверка падает случайно. Только grep -q <<<"$(cmd)".
 set -euo pipefail
@@ -27,7 +27,7 @@ tree=$(git -C "$REPO" write-tree)
 unset GIT_INDEX_FILE
 ops=$(git -C "$REPO" commit-tree "$tree" -p HEAD -m "gg smoke: контур из рабочей копии")
 git --git-dir="$GH" update-ref refs/heads/gg-smoke-ops "$ops"
-for b in rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1; do
+for b in rop-dashboard-v1 office-dashboard-v1 manager-lakomova economics-dashboard-v1 rop-gm-dashboard-v1 prod-dashboard-v1 pto-dashboard-v1; do
   sha=$(git -C "$REPO" rev-parse -q --verify "origin/$b" || git -C "$REPO" rev-parse -q --verify "$b") \
     || fail "нет ветки $b локально: git fetch origin $b"
   git --git-dir="$GH" update-ref "refs/heads/$b" "$sha"
@@ -59,6 +59,7 @@ W="$GG_ROOT/www/current"
 [ -s "$W/economics/index.html" ] && cmp -s "$W/economics/index.html" "$W/econ-control/index.html" \
   && pass "/economics/ = /econ-control/ (контроль заполнения)" || fail "/economics/ или /econ-control/ нет"
 [ -s "$W/rop-gm/index.html" ] && [ -s "$W/rop-gm/v.txt" ] && pass "/rop-gm/ собран, штамп $(cat "$W/rop-gm/v.txt")" || fail "/rop-gm/ нет"
+[ -s "$W/prod/index.html" ] && [ -s "$W/prod2/index.html" ] && [ -s "$W/pto/index.html" ] && pass "/prod/, /prod2/, /pto/ собраны (ПТО $(cat "$W/pto/v.txt"))" || fail "/prod/ или /pto/ нет"
 [ -s "$W/economics/layers.html" ] && [ -s "$W/economics/v.txt" ] && pass "слоевой /economics/layers.html, штамп $(cat "$W/economics/v.txt")" || fail "layers.html или v.txt экономики"
 [ -s "$W/rop-smoke/index.html" ] && grep -q "^rop-smoke	Смоук Тестов$" "$W/.gg/managers.txt" && pass "/rop-<фамилия>/ собран, список записан" || fail "менеджеры"
 ROPSRC="$GG_ROOT/src/rop-dashboard-v1/current"
@@ -154,7 +155,7 @@ data_before=$(git -C "$GG_ROOT/data" rev-parse HEAD)
 grep -q "РОП: https://dash.genglas.ru/rop/" "$T/report.log" && pass "в сводке раздел РОП со ссылкой" || { cat "$T/report.log"; fail "сводка без РОП"; }
 grep -q "smoke-ok: ✅ ok" "$T/report.log" && pass "в сводке итоги задач" || { cat "$T/report.log"; fail "сводка без задач"; }
 grep -q "^Волна 2 · Bitrix24:$" "$T/report.log" && pass "в сводке план по волнам" || { cat "$T/report.log"; fail "сводка без плана"; }
-grep -q "^✅ РОП /rop/$" "$T/report.log" && grep -q "^❌ Производство /prod/$" "$T/report.log" \
+grep -q "^✅ РОП /rop/$" "$T/report.log" && grep -q "^❌ Хронология коммуникаций /dialog/$" "$T/report.log" \
   && pass "план галочками: собранный раздел ✅, несобранный ❌" || { cat "$T/report.log"; fail "галочки плана"; }
 grep -q "^✅ Личные дашборды менеджеров" "$T/report.log" && grep -q "^❌ Бэкап данных в S3$" "$T/report.log" \
   && grep -q "^✅ Бот алертов" "$T/report.log" && pass "план: менеджеры, done/todo" || { cat "$T/report.log"; fail "done/todo плана"; }
@@ -249,5 +250,38 @@ grep -q '"smoke":"gm"' "$GG_ROOT/data/rop-gm-dashboard-v1/analytics-mvp/rop/data
   && pass "снимок лёг в данные сервера" || fail "снимок GM не в данных"
 grep -q "smoke-gm" "$W/rop-gm/index.html" && [ "$(cat "$W/rop-gm/v.txt")" = smoke-gm ] \
   && pass "/rop-gm/ пересобран, штамп обновлён" || fail "/rop-gm/ не обновился"
+
+echo "14. Производство и ПТО: снимки, проверка снимка ПТО, гейт клиентских полей"
+cat >"$T/fakebin/npx" <<'EOF'
+#!/usr/bin/env bash
+echo "$*" >>"$SMOKE_CALLS"
+case "$2" in
+  */fetch-prod.ts) echo '{"smoke":"prod"}' >prod/data/prod.json ;;
+  */build-prod.ts) echo '<html>"bakedAt":"smoke-prod"</html>' >public/prod-command.html ;;
+  */fetch-pto.ts) echo "${SMOKE_PTO:-}" >pto/data/pto.json ;;
+esac
+EOF
+rm -f "$T/fakebin/node"   # проверке снимка ПТО нужен настоящий node
+cp "$REPO/infra/vps/jobs/prod-snapshot.sh" "$REPO/infra/vps/jobs/pto-snapshot.sh" "$T/jobs/"
+printf 'prod-snapshot | prod-dashboard-v1 | *-*-* 05:37:00 UTC | prod-snapshot.sh | b24-prod | yes\n' >>"$T/jobs.conf"
+printf 'pto-snapshot | pto-dashboard-v1 | *-*-* 05:47:00 UTC | pto-snapshot.sh | b24-pto | yes\n' >>"$T/jobs.conf"
+PATH="$T/fakebin:$PATH" "$BIN/gg-job" prod-snapshot >"$T/prod.log" 2>&1 || { cat "$T/prod.log"; fail "prod-snapshot"; }
+grep -q "smoke-prod" "$W/prod/index.html" && grep -q "smoke-prod" "$W/prod2/index.html" && [ "$(cat "$W/prod/v.txt")" = smoke-prod ] \
+  && pass "производство -> /prod/ и /prod2/, штамп обновлён" || fail "/prod/ не обновился"
+PTODATA="$GG_ROOT/data/pto-dashboard-v1/analytics-mvp/pto/data/pto.json"
+before=$(md5sum <"$PTODATA")
+if SMOKE_PTO='{"counts":{"items":0},"refs":{"stageOrder":[]}}' PATH="$T/fakebin:$PATH" "$BIN/gg-job" pto-snapshot >"$T/pto.log" 2>&1; then
+  fail "снимок ПТО с нулём карточек прошёл"
+fi
+[ "$(md5sum <"$PTODATA")" = "$before" ] && pass "ПТО: ноль карточек -> задача упала, данные откатились" || fail "плохой снимок ПТО остался в данных"
+SMOKE_PTO='{"counts":{"items":5,"qtySum":9},"refs":{"stageOrder":["a","b"]}}' PATH="$T/fakebin:$PATH" "$BIN/gg-job" pto-snapshot >"$T/pto.log" 2>&1 \
+  || { cat "$T/pto.log"; fail "pto-snapshot"; }
+grep -q '"items":5' "$PTODATA" && grep -q "карточек 5" "$T/pto.log" && pass "ПТО: снимок в данных, проверка напечатала итоги" || { cat "$T/pto.log"; fail "снимок ПТО"; }
+PTOHTML="$GG_ROOT/src/pto-dashboard-v1/current/analytics-mvp/public/pto-command.html"
+good=$(md5sum <"$W/pto/index.html")
+cp "$PTOHTML" "$T/pto.bak"; echo '{"budget":1}' >>"$PTOHTML"
+"$BIN/gg-site" 2>/dev/null
+[ "$(md5sum <"$W/pto/index.html")" = "$good" ] && pass "гейт ПТО: клиентские поля -> публикация отменена, /pto/ прошлый" || fail "гейт ПТО пропустил"
+cp "$T/pto.bak" "$PTOHTML"
 
 echo "ВСЁ ЗЕЛЁНОЕ"

@@ -2979,7 +2979,7 @@ const CSS = `:root{--bg:#0b0f17;--card:#12161f;--soft:#232B36;--ink:#e8eef2;--in
 h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .sec{font-size:15px;color:var(--cy);margin:22px 2px 10px;border-bottom:1px solid var(--soft);padding-bottom:6px}
 .card{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:14px 16px;margin-bottom:14px}
-.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.ctitle{font-weight:700;font-size:15px}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.tcard>summary{cursor:pointer;list-style:none}.tcard>summary::-webkit-details-marker{display:none}.tcard>summary .ctitle::before{content:"▸ ";color:var(--ink3)}.tcard[open]>summary .ctitle::before{content:"▾ "}.ctitle{font-weight:700;font-size:15px}
 .chip{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap}
 .chip-run{background:rgba(34,211,238,.15);color:var(--cy)}.chip-off{background:rgba(93,116,132,.2);color:var(--ink3)}.chip-done{background:rgba(52,211,153,.16);color:var(--up)}
 .hyp{color:var(--ink2);margin:8px 0}.fold{margin:6px 0}.fold>summary{cursor:pointer;list-style:none;font-size:13px;padding:4px 0}.fold>summary::-webkit-details-marker{display:none}.fold>summary::before{content:"▸ ";color:var(--ink3)}.fold[open]>summary::before{content:"▾ "}.fold-b{padding-top:4px}details.fold.cov{border-top:1px dashed var(--soft);padding-top:4px}.fold.warn>summary b{color:#FF7A7E}.fold.tech{margin-top:14px;border-top:1px solid var(--soft);padding-top:6px}.fold.tech>summary b{color:var(--ink3)}.verdict{margin:12px 0;padding:10px 12px;border:1px solid var(--soft);border-radius:10px;background:rgba(34,211,238,.05)}.verdict-h{font-weight:700;font-size:14px;margin-bottom:6px}.verdict-main{font-size:13.5px;color:var(--ink);margin-bottom:8px}.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin:6px 0}.meta b{color:var(--ink)}
@@ -3082,6 +3082,11 @@ const JS = `
 })();`;
 
 const WAVE = boostParts();
+/** Карточка теста -> <details>: заголовок в summary, всё остальное по клику. */
+const foldCards = (html: string): string => html
+  .replace(/<section class="card"( id="[^"]*")?><div class="chead">([\s\S]*?)<\/div><\/div>/g,
+    (_m, id: string | undefined, head: string) => `<section class="card"${id || ""}><details class="tcard"><summary class="chead">${head}</div></summary>`)
+  .replace(/<\/section>/g, "</details></section>");
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<meta name="viewport" content="width=device-width,initial-scale=1">`
   + `<title>GENGLASS · Тесты</title><style>${CSS}</style></head><body>`
@@ -3092,8 +3097,11 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>`
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта. Сама разница считается не к паре, а к групповому контролю: панель снимка без тестовых товаров и их родни по карточке. Пара осталась подписью и ловушкой для мёртвого и грязного контроля; родство в ней доказано корреляцией остатков, а не карточкой.</p>`
-  + cards.replace("<!--BOOST_EXITED-->", () => WAVE.exited).replace("<!--BOOST_TECH-->", () => WAVE.tech) + bidCards + mblock
-  + `<h2 class="sec">Заметки и предупреждения</h2>${warnBlock}<div class="notes"><ul>${notes}</ul></div></div>`
+  // «Измеренные тесты» со страницы убраны, «Заметки и предупреждения» свёрнуты (Иван 30.09).
+  // mblock собирается по-прежнему: reakciya.json не трогаем, блок просто не выводится.
+  // Карточки тестов свёрнуты до заголовка с чипом статуса (Иван 30.09: «сами тесты свернуть»).
+  + foldCards(cards.replace("<!--BOOST_EXITED-->", () => WAVE.exited).replace("<!--BOOST_TECH-->", () => WAVE.tech) + bidCards)
+  + `<details class="fold"><summary><b style="font-size:15px">Заметки и предупреждения</b></summary><div class="fold-b">${warnBlock}<div class="notes"><ul>${notes}</ul></div></div></details></div>`
   + `<script>${JS}</script></body></html>`;
 
 writeFileSync(op("katya-tests.html"), html);

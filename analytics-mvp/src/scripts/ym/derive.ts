@@ -7,7 +7,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
 import { parseDeliveryCsv, withoutCancelled, resolveOrders, deliveryIssues, type DelivRow, type DelivIssue } from "./delivery-lib.js";
-import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, isNettingFee, isPointsPaid, type OrderRow } from "./derive-lib.js";
+import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, isNettingFee, isPointsPaid, ledgerToBy, daysAfter, LEDGER_LAG_LIMIT_DAYS, type OrderRow } from "./derive-lib.js";
 
 function main() {
   ensureDir();
@@ -117,6 +117,24 @@ function main() {
     deliv_issues: delivIssues,
     months: svod });
   console.log(`ym-derive: свод по дате заказа - ${svod.length} пар (кабинет, месяц)`);
+  // Реестр отстаёт от отчёта о баллах: списания, которых в реестре ещё нет, лежат в
+  // points_after_ledger. Отставание в день - свежесть источника; с LEDGER_LAG_LIMIT_DAYS - это
+  // застрявший сборщик реестра (29.09 так было по зеркалам), и молчать о нём нельзя.
+  {
+    const lt = ledgerToBy(netAll);
+    const lag = new Map<string, { days: number; sum: number; orders: number }>();
+    for (const m of svod) for (const e of m.points_after_ledger_orders || []) {
+      const days = daysAfter(e.d_spend, lt.get(m.business) || "1970-01-01");
+      const cur = lag.get(m.business) || { days: 0, sum: 0, orders: 0 };
+      cur.days = Math.max(cur.days, days); cur.sum += e.v; cur.orders++;
+      lag.set(m.business, cur);
+    }
+    for (const [b, x] of lag) {
+      const msg = `кабинет ${b}: реестр по ${lt.get(b) || "нет"}, списания баллами позже него ${Math.round(x.sum)} руб (${x.orders} строк), отставание ${x.days} дн`;
+      if (x.days >= LEDGER_LAG_LIMIT_DAYS) console.warn(`::warning::реестр платежей отстаёт от отчёта о баллах - ${msg}. Проверь шаг «Отчёт по взаиморасчётам» (ym:netting)`);
+      else console.log(`ym-derive: ${msg} - в points_after_ledger, догонит следующий прогон`);
+    }
+  }
   // Тождество внутри самого API: платёж покупателя по своду (он уже включает доставку) должен
   // сойтись с суммой фактических платежей заказа. Оно ловит ровно тот класс дефекта, из-за
   // которого свод недосчитывал 576 279 ₽: цену за штуку складывали без умножения на count.

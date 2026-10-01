@@ -1036,10 +1036,11 @@ function posMatched(g: string[], days: string[], base: string[], post: string[])
   return { arts, line };
 }
 
-function chart(t: TestDef, cid: string): string {
+function chart(t: TestDef, cid: string, endAt?: string): string {
   const st = t.старт!;
   const days: string[] = [];
-  for (let k = -14; k <= 40; k++) { const d = addDays(st, k); if (d <= LAST) days.push(d); }
+  // endAt - только для предпросмотра теста 4 до старта: обрезает неполный последний день синка.
+  for (let k = -14; k <= 40; k++) { const d = addDays(st, k); if (d <= LAST && (!endAt || d <= endAt)) days.push(d); }
   const si = days.indexOf(st);
   if (si < 0 || !days.length) return "";
   const base = Array.from({ length: 14 }, (_, k) => addDays(st, -(k + 1)));
@@ -1393,6 +1394,8 @@ function backtestBlock(): string {
 // Тревоги (dyn-alarm) не сворачиваются: их должно быть видно сразу.
 const fold = (cls: string, title: string, inner: string): string =>
   `<details class="fold ${cls}"><summary><b>${title}</b></summary><div class="fold-b">${inner}</div></details>`;
+/** Номер теста в заголовке карточки (Иван 01.10): порядок на странице - тесты, тесты_ставок, тесты_цены. */
+const numTitle = (n: number, title: string): string => (/^Тест \d/.test(title) ? title : `Тест ${n}. ${title}`);
 /** Сворачивает готовый кусок: его подзаголовок sub2, если он стоит первым, становится заголовком. */
 const foldSub = (html: string, fallback: string, cls = ""): string => {
   if (!html) return "";
@@ -1956,7 +1959,7 @@ const cards = T.тесты.map((t, ti) => {
     + (notesHtml ? fold("", "Контроль: заражение, чистка, реклама", notesHtml) : "")
     + (t.id === "boost_plus_exit" ? "<!--BOOST_TECH-->" : "")
     ;
-  return `<section class="card"><div class="chead"><div class="ctitle">${esc(t.название)} ${statusChip(t)}</div></div>`
+  return `<section class="card"><div class="chead"><div class="ctitle">${esc(numTitle(ti + 1, t.название))} ${statusChip(t)}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span>`
     + `<span>Горизонт: <b>${esc(t.горизонт_дней ?? "")} дн</b></span>`
@@ -2197,7 +2200,7 @@ const bidCards = BID_TESTS.map((t, bi) => {
   const dm = t.замер ? daysBetween(TODAY, t.замер) : null;
   const chip = t.статус === TEST_STATUS.done ? `<span class="chip chip-done">завершён</span>`
     : `<span class="chip chip-run">${esc(t.статус || "идёт")}${dm != null && dm > 0 ? ` · замер через ${dm} дн` : ""}</span>`;
-  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(t.название)} ${chip}</div></div>`
+  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(T.тесты.length + bi + 1, t.название))} ${chip}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + (t.быстрый_признак ? `<span>Быстрый признак: <b>${esc(t.быстрый_признак)}</b></span>` : "")
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span><span>Пар: <b>${t.пары.length}</b></span></div>`
@@ -2218,6 +2221,7 @@ const bidCards = BID_TESTS.map((t, bi) => {
 // Здесь только чтение файлов и вёрстка. Рублёвых цен на странице нет: предельная в рублях
 // служит только проверке «цена снижена», наружу идут доли и проценты (правило gap-daily.ts).
 const PRICE_TESTS = (((T as unknown) as { тесты_цены?: PriceTestDef[] }).тесты_цены || []);
+const pNo = (ti: number): number => T.тесты.length + BID_TESTS.length + ti + 1;
 /** Время сборки = последнее обновление страницы, МСК. Страница пересобирается после синка. */
 const BUILD_TS = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Moscow", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(",", "") + " МСК";
 const REFRESH_URL = "https://github.com/oliverjone01-dev/t1/actions/workflows/ozon-snapshots.yml";
@@ -2286,7 +2290,7 @@ interface PriceCalc {
   gBase: number | null; E: number | null; noise: number | null;
   vc: ReturnType<typeof verdictOf>;
   vBase: ReturnType<typeof viewShare>; v1: ReturnType<typeof viewShare>; v2: ReturnType<typeof viewShare>;
-  vStop: string | null; collapsed: string[];
+  vStop: string | null; collapsed: string[]; baseCap: Map<string, number | null>;
   price: Array<{ a: string; st: "ждём" | "снижена" | "не снижена" | "нет цены"; d: string; dPct: number | null }>;
 }
 
@@ -2321,7 +2325,7 @@ function priceCalc(t: PriceTestDef): PriceCalc {
     const d = after[after.length - 1]!, now = P_CAP.get(a)!.get(d)!;
     return { a, st: applied(a, d) ? "снижена" as const : "не снижена" as const, d, dPct: (now / b - 1) * 100 };
   });
-  return { t, ctrl, s, base, baseDays, gBase, E, noise, vc, vBase, v1, v2, vStop, collapsed, price };
+  return { t, ctrl, s, base, baseDays, gBase, E, noise, vc, vBase, v1, v2, vStop, collapsed, price, baseCap };
 }
 
 /** График сдвига разрыва к базе по дням: до старта - чтобы видеть, насколько ровная база. */
@@ -2355,23 +2359,46 @@ function priceShiftChart(c: PriceCalc): string {
 
 const PRICE_CALC = PRICE_TESTS.map(priceCalc);
 
+/** Графики показателей как у тестов 1-3 (Иван 01.10): общий по группе и по каждому артикулу,
+ *  тот же chart() и тот же контроль, что в расчёте разрыва. До старта отметка «старт» временно
+ *  стоит на последнем дне данных: chart() без дней после старта не рисует ничего. */
+function priceCharts(c: PriceCalc): string {
+  const t = c.t;
+  const preview = LAST < t.старт;
+  // До старта: последний полный день показов (sku_views), иначе неполный день синка рисует обвал.
+  const st = preview ? (P_LAST_VIEWS && P_LAST_VIEWS < LAST ? P_LAST_VIEWS : LAST) : t.старт;
+  const endAt = preview ? st : undefined;
+  // В предпросмотре чтения «что видим» считаются по одному дню «после старта» и врут: убираем.
+  const clean = (h: string): string => (preview ? h.replace(/<div class="dyn-read">[\s\S]*?<\/div>/g, "") : h);
+  const def: TestDef = { id: t.id, название: t.название, гипотеза: "", старт: st, замер: t.замер, тест: t.тест,
+    контроль: [...c.ctrl], контроль_группа: true };
+  const pre = preview
+    ? `<div class="dyn-alarm"><b>До старта ${DM(t.старт)} графики показывают последние две недели данных.</b> Отметка «старт» временно стоит на ${DM(st)}, последнем полном дне показов; выводов «что видим» до старта нет. `
+      + `С первого дня данных после ${DM(t.старт)} отметка встанет на дату старта, и база будет две недели перед ней.</div>` : "";
+  const group = clean(chart(def, "dyn-p4", endAt));
+  const arts = t.тест.map((a, i) => fold("", `${esc(a)} · ${esc(t.модели?.[a] || "")}`,
+    clean(chart({ ...def, id: `${t.id}-${a}`, тест: [a] }, `dyn-p4-${i}`, endAt)) || `<div class="cov">Нет данных для графика.</div>`)).join("");
+  return `<details class="fold" open><summary><b>Динамика по показателям: группа</b></summary><div class="fold-b">${pre}${group || `<div class="cov">Нет данных для графика.</div>`}</div></details>`
+    + `<details class="fold"><summary><b>Динамика по показателям: по каждому артикулу</b></summary><div class="fold-b">${pre}${arts}</div></details>`;
+}
+
 /** Напоминание над карточками: карточки свёрнуты, а забыть снизить цену нельзя. */
 function priceReminder(c: PriceCalc): string {
   const t = c.t, list = t.тест.map(esc).join(", ");
   const keep = `До ${DM(t.замер)}: ставку за заказ «все товары» держать на 5%, на этих товарах не включать рекламу за клик и не менять цену ещё раз.`;
   if (TODAY < t.старт) {
     const dd = daysBetween(TODAY, t.старт);
-    return `<div class="remind"><b>⚠ ${esc(t.название.split(".")[0] || "Тест")}: ${DM(t.старт)} до 10:00 МСК снизить предельную цену на ${Math.round(t.снижение * 100)}%</b>`
+    return `<div class="remind"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: ${DM(t.старт)} до 10:00 МСК снизить предельную цену на ${Math.round(t.снижение * 100)}%</b>`
       + ` (через ${dd} ${plural(dd, "день", "дня", "дней")}, меняет команда в кабинете) у ${t.тест.length} товаров: ${list}.<br>${esc(keep)}</div>`;
   }
   if (TODAY >= t.замер) return "";
   const bad = c.price.filter((p) => p.st === "не снижена").map((p) => p.a);
   const wait = c.price.filter((p) => p.st === "ждём").length;
   const ok = c.price.filter((p) => p.st === "снижена").length;
-  if (bad.length) return `<div class="remind bad"><b>⚠ Тест 4: цена не снижена у ${bad.length} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}: ${bad.map(esc).join(", ")}. `
+  if (bad.length) return `<div class="remind bad"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: цена не снижена у ${bad.length} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}: ${bad.map(esc).join(", ")}. `
     + `Без снижения эти товары в расчёт не входят. ${esc(keep)}</div>`;
-  if (wait) return `<div class="remind"><b>⚠ Тест 4 стартовал ${DM(t.старт)}: ждём снимок цен</b>, чтобы проверить снижение на ${Math.round(t.снижение * 100)}% у ${t.тест.length} товаров (${list}). ${esc(keep)}</div>`;
-  return `<div class="remind good"><b>Тест 4: цена снижена у ${ok} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}. ${esc(keep)}</div>`;
+  if (wait) return `<div class="remind"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))} стартовал ${DM(t.старт)}: ждём снимок цен</b>, чтобы проверить снижение на ${Math.round(t.снижение * 100)}% у ${t.тест.length} товаров (${list}). ${esc(keep)}</div>`;
+  return `<div class="remind good"><b>Тест ${pNo(PRICE_TESTS.indexOf(t))}: цена снижена у ${ok} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}. ${esc(keep)}</div>`;
 }
 
 const P_VERDICT_TXT: Record<string, string> = {
@@ -2418,18 +2445,22 @@ function priceCard(c: PriceCalc, ti: number): string {
     const gb = pMedian(c.baseDays.map((d) => P_GAP.get(d)?.get(a)).filter((v): v is number => v != null));
     const lastGap = (() => { const ds = [...P_GAP.keys()].sort().reverse(); for (const d of ds) { const v = P_GAP.get(d)!.get(a); if (v != null) return { d, v }; } return null; })();
     const v7 = viewShare(P_VIEWS, new Set([a]), addDays(vEnd, -7), vEnd).t;
+    const bc = c.baseCap.get(a) ?? null;
+    const capNow = (() => { const m = P_CAP.get(a); if (!m || !m.size) return null; const d = [...m.keys()].sort().pop()!; return { d, v: m.get(d)! }; })();
     const st = p.st === "снижена" ? `<span class="up">снижена ${sgn(p.dPct, 1)}%</span>`
       : p.st === "не снижена" ? `<span class="dn">нет (${sgn(p.dPct, 1)}%)</span>` : `<span class="muted">${esc(p.st)}</span>`;
     return `<tr><td class="nw">${esc(a)}</td><td>${esc(t.модели?.[a] || "")}</td><td class="r">${pct(gb)}</td>`
-      + `<td class="r">${lastGap ? `${pct(lastGap.v)} <span class="muted">${DM(lastGap.d)}</span>` : "-"}</td><td class="nw">${st}</td>`
+      + `<td class="r">${lastGap ? `${pct(lastGap.v)} <span class="muted">${DM(lastGap.d)}</span>` : "-"}</td>`
+      + `<td class="r nw">${bc != null ? nbsp(bc) : "-"}</td><td class="r nw"><b>${bc != null ? nbsp(Math.round(bc * (1 - t.снижение))) : "-"}</b></td>`
+      + `<td class="r nw">${capNow ? `${nbsp(capNow.v)} <span class="muted">${DM(capNow.d)}</span>` : "-"}</td><td class="nw">${st}</td>`
       + `<td class="r">${nbsp(v7)}</td><td class="r">${sumUnits(a, addDays(t.старт, -14), t.старт)}</td><td class="r">${TODAY >= t.старт ? sumUnits(a, t.старт, addDays(t.старт, 14)) : "-"}</td></tr>`;
   }).join("");
   const table = `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Артикул</th><th>Модель</th><th class="r">Разрыв в базе, %</th>`
-    + `<th class="r">Разрыв сейчас, %</th><th>Предельная снижена</th><th class="r">Показы в поиске, ${vEnd < t.старт ? `${DM(addDays(vEnd, -7))}-${DM(addDays(vEnd, -1))}` : "7 дн до старта"}</th>`
+    + `<th class="r">Разрыв сейчас, %</th><th class="r" title="Медиана предельной по снимку цен с 23.09 до старта">Предельная в базе, ₽</th><th class="r" title="Предельная, которую ставим 07.10: база минус снижение, округлено до рубля">Ставим, −${cut}%, ₽</th><th class="r">Предельная сейчас, ₽</th><th>Предельная снижена</th><th class="r">Показы в поиске, ${vEnd < t.старт ? `${DM(addDays(vEnd, -7))}-${DM(addDays(vEnd, -1))}` : "7 дн до старта"}</th>`
     + `<th class="r">Шт, 14 дн до</th><th class="r">Шт, 14 дн после</th></tr></thead><tbody>${rows}</tbody></table></div>`
     + `<div class="cov">Штуки - заказы без отмен. На 10 товарах за 14 дней ждём 2-4 штуки: это направление, не вывод.</div>`;
   const hist = ((t as unknown) as { история?: string[] }).история || [];
-  const tech = fold("tech", `Техническая информация тест ${T.тесты.length + BID_TESTS.length + ti + 1}`,
+  const tech = fold("tech", `Техническая информация тест ${pNo(ti)}`,
     fold("cov", "Контроль", `Медиана разрыва по ${c.ctrl.size} товарам магазина. Исключены: участники тестов 1-3 (тест, контроль, роли, пары ставок, лог кампаний), `
       + `соседи тестовых товаров по объединённой карточке, товары с расходом на рекламу за клик с ${DM(P_CPC_FROM)}, участники «Максимального бустинга» и «Усиления» с ${DM(P_CAP_FROM)}. `
       + `Разрыв почти одинаков по всему магазину (Ozon двигает процент сразу на весь магазин), поэтому контроль - весь «чистый» магазин, а не пары.`)
@@ -2442,7 +2473,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     + (t.заметка ? fold("cov", "Как выбраны товары", esc(t.заметка)) : "")
     + fold("cov", "Откуда данные", `Разрыв - срез кабинета (gap_daily), по ${esc(P_LAST_GAP || "-")}, снимается по будням. Предельная для проверки снижения - снимок цен (prices_daily, поле price), по ${esc(P_LAST_CAP || "-")}. `
       + `Показы - ночной синк OZON (sku_views), по ${esc(P_LAST_VIEWS || "-")}. Заказы - orders_daily. Страница собрана ${esc(BUILD_TS)}.`));
-  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(t.название)} ${chip}</div></div>`
+  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(pNo(ti), t.название))} ${chip}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт)}</b></span><span>Замер: <b>${esc(t.замер)}</b></span>`
     + (t.продление_до ? `<span>Продление: <b>до ${esc(t.продление_до)}</b></span>` : "")
     + `<span>Снижение: <b>${cut}%</b></span><span>Товаров: <b>${t.тест.length}</b></span><span>Контроль: <b>${c.ctrl.size}</b></span></div>`
@@ -2453,6 +2484,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     + (t.условие_перехода ? fold("rule", "Условие перехода (что делаем по итогу)", esc(t.условие_перехода)) : "")
     + verdict
     + `<details class="fold" open><summary><b>Динамика: сдвиг разрыва к базе</b></summary><div class="fold-b">${priceShiftChart(c)}</div></details>`
+    + priceCharts(c)
     + `<details class="fold" open><summary><b>Товары теста</b></summary><div class="fold-b">${table}</div></details>`
     + tech + `</section>`;
 }

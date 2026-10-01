@@ -3436,7 +3436,7 @@ if(typeof window!=='undefined')window.addEventListener('resize',function(){try{s
   // Маркета целиком (pageJs + svodJs), чтобы считать функцией accAgg блока «Аналитика по артикулам
   // (за выбранный период)». OZON-ветка выше не трогается.
   if (!IS_OZON) {
-    const repY = reportDataYm({ dp, maxD, catOf, skuName, gmvOf: (d: string) => (DAY_T.rev ?? [])[dayIdx(d)] || 0 });
+    const repY = reportDataYm({ dp, maxD, catOf, skuName, promoJs: promoYm().js });
     const moneyCoreY = pageJs.replace("function render(cur,cmp){", "function moneyRender(cur,cmp){");
     if (moneyCoreY === pageJs) throw new Error("report-ym: не нашёл render «Денег» - код отчёта собрался бы с чужим render");
     const sv = svodJs(svodJson);

@@ -20,9 +20,10 @@ const accRow = (sku: string, cat: string, v: Record<string, number>) => {
 function page(repy: any, byPer: (per: { from: string; to: string }) => any[], accDays: string[], doc: any[] = []) {
   // Общие функции страница кладёт в window (глобальная область браузера); здесь это globalThis.
   const win: any = globalThis;
-  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,RPY_LINES};`;
-  return new Function("W", "REPY", "accAgg", "ACC", "ACC_DOC", "fmtRu", "document", body)(
-    win, repy, byPer, accDays.map((d) => [d, "X"]), doc, (n: number) => String(Math.round(n)), {});
+  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines};`;
+  const R = { svc: [], gen: [], pts: [], drr: [], ...repy };
+  return new Function("W", "REPY", "accAgg", "ACC", "ACC_DOC", "ACC_RATE", "fmtRu", "document", body)(
+    win, R, byPer, accDays.map((d) => [d, "X"]), doc, { adm: 0.3, tax: 0.15 }, (n: number) => String(Math.round(n)), {});
 }
 
 describe("отчёт Маркета: общие функции берутся из OZON-отчёта, а не копируются", () => {
@@ -47,9 +48,18 @@ describe("отчёт Маркета: итоги месяца", () => {
     accRow("GGM-01", "Зеркала", { units: 2, pay: 90_000, dlv: 10_000, accruals: 100_000, commission: -5_000, promo: -3_000, amount: 92_000, cogs: 40_000 }),
     accRow("GGT-01", "Столы", { units: 1, pay: 50_000, accruals: 50_000, acquiring: -1_000, amount: 49_000, cogs: 20_000 }),
   ];
-  const repy = { to: "2026-09-29", pts: [["2026-09-03", 7_000, -6_000]], gmv: [["2026-09-02", 400_000]] };
-  const doc = [["2026-09-28", "1023124", 0, 0, 0, 0, 0, -1_500, 500], ["2026-08-31", "1023124", 0, 0, 0, 0, 0, -9_000, 0]];
-  const f = page(repy, (per) => (per.from === "2026-09-01" ? sep : []), ["2026-09-03", "2026-09-04"], doc);
+  // Услуги Маркета по дням: [день, поле блока, услуга, сумма со знаком реестра]; cofin:<поле> - баллами.
+  const svc = [
+    ["2026-09-03", "commission", "Размещение товарных предложений", -5_000],
+    ["2026-09-03", "promo", "Буст продаж, оплата за продажи", -3_200],
+    ["2026-09-04", "promo", "Скидка за лояльность", 200],
+    ["2026-09-04", "acquiring", "Перевод платежа", -1_000],
+    ["2026-09-04", "cofin:commission", "Размещение товарных предложений", -6_000],
+  ];
+  // Без заказа: [день, удержания, премия, внесено продавцом].
+  const gen = [["2026-09-28", -1_500, 500, 0], ["2026-09-29", -43_086, 0, 43_086], ["2026-08-31", -9_000, 0, 0]];
+  const repy = { to: "2026-09-29", pts: [["2026-09-03", 7_000, -6_000]], svc, gen };
+  const f = page(repy, (per) => (per.from === "2026-09-01" ? sep : []), ["2026-09-03", "2026-09-04"]);
   const c = f.rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
   it("ИТОГО = сумма строк accAgg; зеркала + мебель = ИТОГО; мебель - всё, кроме зеркал", () => {
     expect(c.grand.acc).toBe(150_000);
@@ -63,15 +73,39 @@ describe("отчёт Маркета: итоги месяца", () => {
     expect(c.grand.acc - c.grand.fee).toBe(c.grand.amount);
     expect(c.badId).toBe(false);
   });
-  it("общие расходы кабинета (2а): только дни окна, вычитаются из чистой прибыли отдельной строкой", () => {
-    expect(c.grand.gen).toBe(-1_000); // 31.08 в сентябрь не попадает
-    expect(c.grand.netAll).toBeCloseTo(c.grand.np - 1_000, 6);
+  it("общие расходы кабинета (2а): удержания и премия за дни окна; взнос продавца не гасит удержание (G2 ФЕНИКСА)", () => {
+    expect(c.grand.gen).toBe(-1_000 - 43_086); // 31.08 в сентябрь не попадает; +43 086 взноса - не доход
+    expect(c.grand.seller).toBe(43_086);
+    expect(c.grand.netAll).toBeCloseTo(c.grand.np - 44_086, 6);
+  });
+  it("услуги Маркета (1а) складываются в колонку блока; баллы по услуге - справкой", () => {
+    expect(c.grand.svc["commission|Размещение товарных предложений"]).toBe(5_000);
+    expect(c.grand.svcSum.promo).toBe(3_000);
+    expect(c.grand.mpromo).toBe(3_000);
+    expect(c.grand.pts["cofin:commission|Размещение товарных предложений"]).toBe(6_000);
+    expect(c.svBad).toEqual([]);
+    const ls = f.rpyLines([c]).map((l: any) => l.l);
+    expect(ls).toContain("Размещение товарных предложений");
+    expect(ls).toContain("Перевод платежа");
+    expect(ls).not.toContain("Комиссия");
+    expect(ls).not.toContain("Эквайринг");
+    expect(ls).not.toContain("Хранение"); // группы без услуг и без суммы не показываются
+    expect(ls).toContain("АДМ 30% от К выплате");
+  });
+  it("услуга, не сложившаяся с колонкой блока, поднимает флаг", () => {
+    const g = page({ to: "2026-09-29", svc: [["2026-09-03", "commission", "Размещение товарных предложений", -9_999]] },
+      (per) => (per.from === "2026-09-01" ? sep : []), ["2026-09-03"]);
+    // Размещение 9 999 против 5 000 в блоке; продвижение и эквайринг без услуг тоже не сходятся - флаг на каждую группу.
+    const bad = g.rpyCalc({ from: "2026-09-01", to: "2026-09-29" }).svBad;
+    expect(bad.length).toBe(3);
+    expect(bad[0]).toMatch(/^Размещение товарных предложений 4999 ₽$/);
   });
   it("реклама = статья «Продвижение» по категориям; баллы - справкой, в оборот не входят", () => {
     expect(c.grand.mpromo).toBe(3_000);
-    expect(c.mir.promo).toBe(3_000);
-    expect(c.fur.promo).toBe(0);
+    expect(c.g.mir.promo).toBe(3_000);
+    expect(c.g.fur.promo).toBe(0);
     expect(c.grand.ptsIn).toBe(7_000);
+    expect(c.grand.saldo).toBe(1_000);
     expect(c.grand.acc).toBe(150_000);
   });
   it("месяц без проводок - null («нет данных»), а не нули", () => {
@@ -95,7 +129,18 @@ describe("отчёт Маркета: данные сборщика", () => {
     { sku: "A", created: "2026-09-10", status: "CANCELLED_IN_DELIVERY" },
     { sku: "A", created: "2026-09-11", status: "DELIVERY", service: true },
   ]));
-  const r = reportDataYm({ dp: (f) => join(dir, f), maxD: "2026-09-30", catOf: () => "Зеркала", skuName: {}, gmvOf: () => 1 });
+  writeFileSync(join(dir, "netting.ndjson"), nd([
+    { d: "2026-09-27", business: "1", order: "o1", sku: "A", type: "Начисление", service: "Зеркало", src: "Платёж покупателя", amount: 1000 },
+    { d: "2026-09-27", business: "1", order: "o1", sku: "", type: "Удержание", service: "Перевод платежа", src: "Оплата услуг Маркета", amount: -20 },
+    { d: "2026-09-27", business: "1", order: "o1", sku: "", type: "Списание", service: "Размещение товарных предложений", src: "Скидка за участие в совместных акциях", amount: -300 },
+    { d: "2026-09-27", business: "1", order: "", type: "Удержание", service: "", src: "Оплата услуг Маркета", amount: -50 },
+    { d: "2026-09-27", business: "1", order: "", type: "Начисление", service: "", src: "Внесено продавцом", amount: 50 },
+    { d: "2026-09-29", business: "1", order: "o2", sku: "A", type: "Удержание", service: "Перевод платежа", src: "Оплата услуг Маркета", amount: -7 },
+  ]));
+  writeFileSync(join(dir, "svod_orders.json"), JSON.stringify({ months: [{ ym: "2026-09", business: "1", rows: [{ s: 10, b: 200 }] }] }));
+  // Заглушка кода «Маркетинга» в том же виде, что promoYm().js: объявления с начала строки.
+  const promoJs = "var PM=null;\nvar PM_ART=[\"Буст продаж\"];\nfunction pmRow(m){\n  var sp=0,b=0;m.rows.forEach(function(r){sp+=r.s;b+=r.b;});\n  return {ym:m.ym,business:m.business,sm:sp,sp:0,oh:0,spend:sp,base:b,settled:true,partial:false};\n}\nfunction pmDraw(){}";
+  const r = reportDataYm({ dp: (f) => join(dir, f), maxD: "2026-09-30", catOf: () => "Зеркала", skuName: {}, promoJs });
   it("последний день реестра - по отстающему кабинету", () => {
     expect(r.to).toBe("2026-09-28");
   });
@@ -105,6 +150,21 @@ describe("отчёт Маркета: данные сборщика", () => {
   });
   it("отменённые заказы и строки доставки - не продажа", () => {
     expect(r.ord.A).toEqual(["2026-07-01"]);
+  });
+  it("услуги - по классификации блока ACC; платёж покупателя не услуга; баллы по услуге отдельно; дни после реестра не берутся", () => {
+    expect(r.svc).toEqual([
+      ["2026-09-27", "acquiring", "Перевод платежа", -20],
+      ["2026-09-27", "cofin:commission", "Размещение товарных предложений", -300],
+    ]);
+  });
+  it("проводки без заказа: удержание и взнос продавца раздельно", () => {
+    expect(r.gen).toEqual([["2026-09-27", -50, 0, 50]]);
+  });
+  it("ДРР - функцией pmRow вкладки «Маркетинг» по своду заказов", () => {
+    expect(r.drr).toEqual([{ ym: "2026-09", b: "1", sm: 10, sp: 0, oh: 0, spend: 10, base: 200, settled: true, partial: false }]);
+  });
+  it("отменённые заказы по артикулу собираются отдельно (3а)", () => {
+    expect(r.ordC.A).toEqual(["2026-09-10"]);
   });
   it("баллы за дни после последнего дня реестра не берутся", () => {
     expect(r.pts).toEqual([["2026-09-28", 0, 0]]);

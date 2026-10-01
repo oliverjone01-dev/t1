@@ -11,7 +11,7 @@
 // Выход по дням, чтобы фильтр периодов работал как на «Деньгах». Инвариант: по каждому SKU и дню
 // own + сумма долей соседей = round(суммы sp), то есть ровно ряд AN_ADSSKU «Денег».
 
-export interface AdsSkuRow { d: string; cid: string; sku: string; sp: number }
+export interface AdsSkuRow { d: string; cid: string; sku: string; sp: number; om?: number }
 export interface AttrRow { d: string; id: string; sku: string; sold?: number; soldM?: number; omM?: number }
 export interface OrderRow { order: string; d: string; sku: string; units: number; revenue: number; status?: string }
 export interface CardGroup { main: string; skus: { sku: string }[] }
@@ -28,9 +28,10 @@ export interface CardSpread {
   pairs: Record<string, PairShare>;                   // ym|sku|cid -> доли (для теста и подсказок)
   // Для таблицы кампаний на вкладке (основная / объединённая карточка), по дню x кампании x рекламируемому SKU:
   // camp - расход (копейки до 0.01): [день, кампания, SKU, свой, сосед не найден, без продаж в день с атрибуцией,
-  //        дни без атрибуции у пары без продаж, пары нет в сборе, {SKU соседа: расход}]
+  //        дни без атрибуции у пары без продаж, пары нет в сборе, {SKU соседа: расход},
+  //        выручка статистики по SKU (ads_sku_daily.om) в день без строки атрибуции у пары из сбора, то же у пары вне сбора]
   // ev   - события атрибуции: [день, кампания, SKU, свои шт, своя выручка, [[SKU соседа, шт, выручка]], шт ненайденных, их выручка]
-  camp: [string, string, string, number, number, number, number, number, Record<string, number>][];
+  camp: [string, string, string, number, number, number, number, number, Record<string, number>, number, number][];
   ev: [string, string, string, number, number, [string, number, number][], number, number][];
 }
 export interface PairShare { sold: number; soldM: number; unk: number; nb: Record<string, number>; attr: boolean }
@@ -106,14 +107,15 @@ export function cardSpread(ads: AdsSkuRow[], attr: AttrRow[], orders: OrderRow[]
     const s = (st[r.d] ||= [0, 0, 0, 0, 0, 0, 0, 0]);
     const pk = ymOf(r.d) + "|" + sku + "|" + String(r.cid);
     const p = pairs[pk];
-    if (!p) { s[4]! += sp; camp.push([r.d, String(r.cid), sku, 0, 0, 0, 0, c2(sp), {}]); continue; }
+    const om = Math.round(Number(r.om) || 0);
+    if (!p) { s[4]! += sp; camp.push([r.d, String(r.cid), sku, 0, 0, 0, 0, c2(sp), {}, 0, om]); continue; }
     const has = attrDay.has(r.d + "|" + String(r.cid) + "|" + sku);
     if (has) s[6]! += sp;
     const U = p.sold + p.soldM;
-    if (!U) { s[3]! += sp; if (!has) s[5]! += sp; camp.push([r.d, String(r.cid), sku, 0, 0, has ? c2(sp) : 0, has ? 0 : c2(sp), 0, {}]); continue; }
+    if (!U) { s[3]! += sp; if (!has) s[5]! += sp; camp.push([r.d, String(r.cid), sku, 0, 0, has ? c2(sp) : 0, has ? 0 : c2(sp), 0, {}, has ? 0 : om, 0]); continue; }
     const nbs: Record<string, number> = {};
     for (const [ns, u] of Object.entries(pairNbSku[pk] || {})) nbs[ns] = c2(sp * u / U);
-    camp.push([r.d, String(r.cid), sku, c2(sp * p.sold / U), c2(sp * p.unk / U), 0, 0, 0, nbs]);
+    camp.push([r.d, String(r.cid), sku, c2(sp * p.sold / U), c2(sp * p.unk / U), 0, 0, 0, nbs, has ? 0 : om, 0]);
     s[2]! += sp * p.unk / U;
     if (!has) s[7]! += sp * (p.soldM - p.unk) / U;
     for (const [o, u] of Object.entries(p.nb)) {

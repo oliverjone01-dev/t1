@@ -1952,14 +1952,14 @@ window.renderTop=function(){renderTop();cardSub();}; // onchange фильтро�
 // не меняется): строки-разворот «Маркетинга» заменяются строками из AN_CPC.camp (расход по долям атрибуции)
 // и AN_CPC.ev (штуки и выручка из атрибуции, соседи - найденные заказы). Остаток до итога кампании - отдельной строкой.
 function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
-  var at=function(cid,sk){var c=A[cid]||(A[cid]={});return c[sk]||(c[sk]={own:0,unk:0,z:0,g:0,n:0,nb:{},sold:0,om:0,nbu:{},nbr:{},uu:0,ur:0});};
-  AN_CPC.camp.forEach(function(r){if(r[0]<from||r[0]>to)return;var a=at(r[1],r[2]);a.own+=r[3];a.unk+=r[4];a.z+=r[5];a.g+=r[6];a.n+=r[7];for(var k in r[8])a.nb[k]=(a.nb[k]||0)+r[8][k];});
+  var at=function(cid,sk){var c=A[cid]||(A[cid]={});return c[sk]||(c[sk]={own:0,unk:0,z:0,g:0,n:0,gom:0,nom:0,nb:{},sold:0,om:0,nbu:{},nbr:{},uu:0,ur:0});};
+  AN_CPC.camp.forEach(function(r){if(r[0]<from||r[0]>to)return;var a=at(r[1],r[2]);a.own+=r[3];a.unk+=r[4];a.z+=r[5];a.g+=r[6];a.n+=r[7];a.gom+=r[9]||0;a.nom+=r[10]||0;for(var k in r[8])a.nb[k]=(a.nb[k]||0)+r[8][k];});
   AN_CPC.ev.forEach(function(e){if(e[0]<from||e[0]>to)return;var a=at(e[1],e[2]);a.sold+=e[3];a.om+=e[4];e[5].forEach(function(x){a.nbu[x[0]]=(a.nbu[x[0]]||0)+x[1];a.nbr[x[0]]=(a.nbr[x[0]]||0)+x[2];});a.uu+=e[6];a.ur+=e[7];});
   var camps={};((lastA&&(lastA.all||lastA.top_spend))||[]).forEach(function(c){camps[String(c.id)]=c;});
   document.querySelectorAll('#top .ad-exp').forEach(function(tr){var i=tr.getAttribute('data-i'),id=tr.getAttribute('data-id'),cs=A[id],c=camps[id];if(!cs||!c||isCPO(c))return;
     var disp=expanded[i]?'':'display:none',S=0,O=0,U=0,html='';
-    var row=function(lbl,tip,sp,om,u,col){sp=Math.round(sp);om=Math.round(om);if(!sp&&!om&&!u)return '';var dr=om?Math.round(sp/om*1000)/10:0;
-      return '<tr class="ad-sub" data-i="'+i+'" style="'+disp+'"><td style="padding-left:26px'+(col?';color:'+col:'')+'" title="'+tip+'">'+lbl+'</td><td></td><td></td><td class="r">'+fmtRu(sp)+'</td><td class="r">'+fmtRu(om)+'</td><td class="r">'+(u==null?'—':u)+'</td><td class="r" style="color:'+(om?drrCol(dr):'var(--ink-3)')+'">'+(om?dr+'%':'—')+'</td><td></td><td></td><td></td><td></td><td></td></tr>';};
+    var row=function(lbl,tip,sp,om,u,col,noDrr){sp=Math.round(sp);om=Math.round(om);if(!sp&&!om&&!u)return '';var dr=(om&&!noDrr)?Math.round(sp/om*1000)/10:0;
+      return '<tr class="ad-sub" data-i="'+i+'" style="'+disp+'"><td style="padding-left:26px'+(col?';color:'+col:'')+'" title="'+tip+'">'+lbl+'</td><td></td><td></td><td class="r">'+fmtRu(sp)+'</td><td class="r">'+fmtRu(om)+'</td><td class="r">'+(u==null?'-':u)+'</td><td class="r" style="color:'+(dr?drrCol(dr):'var(--ink-3)')+'">'+(dr?dr+'%':'-')+'</td><td></td><td></td><td></td><td></td><td></td></tr>';};
     var art=function(s){return ' <span style="color:var(--ink-3)">'+(SKU_MAP[s]||s)+'</span>';};
     Object.keys(cs).forEach(function(sk){var a=cs[sk];
       html+=row('Основная карточка'+art(sk),'Свои продажи рекламируемого товара по атрибуции OZON; расход - его доля по штукам',a.own,a.om,a.sold);S+=a.own;O+=a.om;U+=a.sold;
@@ -1968,10 +1968,10 @@ function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
         html+=row('Объединённая карточка'+art(nsk),'Сосед по объединённой карточке: заказ этого товара в день атрибуции с той же суммой; расход - доля по штукам (в днях без атрибуции - доля месяца, оценка)',a.nb[nsk]||0,a.nbr[nsk]||0,a.nbu[nsk]||0,'#A78BFA');S+=a.nb[nsk]||0;O+=a.nbr[nsk]||0;U+=a.nbu[nsk]||0;});
       html+=row('Объединённая карточка: сосед не найден'+art(sk),'OZON засчитал продажу соседа, а заказа той же карточки в этот день с этой суммой нет; расход остаётся на рекламируемом товаре',a.unk,a.ur,a.uu,'#A78BFA');S+=a.unk;O+=a.ur;U+=a.uu;
       html+=row('Без продаж'+art(sk),'Дни с атрибуцией, продаж ни своих, ни соседей',a.z,0,0);S+=a.z;
-      html+=row('Нет данных: дни без атрибуции в нашем сборе'+art(sk),'Сбор отчёта атрибуции пропустил эти дни; продажи могли быть',a.g,0,null,'#E5B567');S+=a.g;
-      html+=row('Нет данных: кампании нет в нашем сборе атрибуции'+art(sk),'Сборщик атрибуции берёт не все кампании',a.n,0,null,'#E5B567');S+=a.n;});
+      html+=row('Нет данных: дни без атрибуции в нашем сборе'+art(sk),'Сбор отчёта атрибуции пропустил эти дни. Выручка - из статистики продвижения по SKU за эти дни, без разделения на свою и соседей, поэтому ДРР не считаем. Расход: здесь - у пар без продаж; у пар с продажами расход этих дней разнесён выше по долям месяца (оценка)',a.g,a.gom,null,'#E5B567',true);S+=a.g;O+=a.gom;
+      html+=row('Нет данных: кампании нет в нашем сборе атрибуции'+art(sk),'Сборщик атрибуции берёт не все кампании. Выручка - из статистики продвижения по SKU, без разделения на свою и соседей, ДРР не считаем',a.n,a.nom,null,'#E5B567',true);S+=a.n;O+=a.nom;});
     var rsp=(c.sp||0)-S,rom=(c.om||0)-O,ro=(c.o||0)-U;
-    if(Math.abs(rsp)>1||Math.abs(rom)>1||ro)html+=row('Не распределено по SKU','Разница статистики кампании (итог строки) и отчётов по SKU: другой отчёт OZON, другие дни сбора',rsp,rom,ro,'var(--ink-3)');
+    if(Math.abs(rsp)>1||Math.abs(rom)>1||ro)html+=row('Не распределено по SKU','Разница статистики кампании (итог строки) и отчётов по SKU: другой отчёт OZON, другие дни сбора. ДРР у остатка не считаем',rsp,rom,ro,'var(--ink-3)',true);
     document.querySelectorAll('#top .ad-sub[data-i="'+i+'"]').forEach(function(s){s.remove();});
     tr.insertAdjacentHTML('afterend',html);});
 }

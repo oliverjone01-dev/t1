@@ -29,7 +29,8 @@ function acctCat(name: string): "adv" | "fines" | "realfbs" | "badge" | "deliver
   const n = String(name || "").toLowerCase();
   if (/payperclick|promotion|stencil|оплата за клик|за заказ|продвижени|реклам/.test(n)) return "adv";
   if (/бейдж|badge|реклама в сети|ускоренный сбор|premium|отзыв|review|stars|звёздн/.test(n)) return "badge";
-  if (/гибкий график|нерекомендованный слот|превышение индекса|штраф|fine|defect|утилизац/.test(n)) return "fines";
+  // FlexiblePayments = «Гибкий график выплат»: accrual отдаёт имя латиницей, без него сбор уходил в other (Иван 01.10).
+  if (/гибкий график|flexiblepayment|нерекомендованный слот|превышение индекса|штраф|fine|defect|утилизац/.test(n)) return "fines";
   // «Услуги партнёров» = ТОЛЬКО партнёрская доставка rFBS (3 типа: RfbsDomesticDelivery/RfbsServiceFee/
   // RfbsDomesticAgentFee). Раньше правило ловило голый /rfbs/ и до проверки доставки затягивало сюда
   // RfbsClientDeliveryCharge (ДОХОД за доставку от покупателя, +840К), раздувая столбец в плюс. Точный

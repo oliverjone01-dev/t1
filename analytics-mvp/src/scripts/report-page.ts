@@ -126,7 +126,7 @@ export const REPORT_BODY = `${REPORT_CSS}
 <section class="card"><div class="card-h"><div><div class="card-title">2. Причины роста или падения</div><div class="card-sub">Оборот раскладывается на «штуки» (сколько реализовано) и «цену» (начислено на 1 шт). Каждая статья расхода - на «объём» (изменился оборот при прежней доле статьи) и «ставку» (изменилась доля статьи от оборота). Сумма двух частей = отклонение. Ниже - артикулы с наибольшим вкладом в отклонение (топ-3 - часть суммы «по всем артикулам»). Это разложение цифр, а не доказанная причина. Серые колонки - прошлые полные месяцы для истории; отклонение и «за счёт чего» - последний месяц к предыдущему.</div></div></div>
 <div id="rp-why"></div>
 <div class="kt-scroll" style="margin-top:10px"><table class="kt-table" id="rp-why2"></table></div></section>
-<section class="card"><div class="card-h"><div><div class="card-title">3. Затраты площадки и полная аналитика</div><div class="card-sub">Строки = столбцы ИТОГО таблицы «Аналитика по артикулам (за выбранный период)» на «Деньгах». «Затраты площадки» = «Всего сборов» (Начислено − К выплате). Доля = статья / Начислено. Серые колонки - прошлые полные месяцы для истории; отклонение и доли - последний месяц к предыдущему.</div></div></div>
+<section class="card"><div class="card-h"><div><div class="card-title">3. Затраты площадки и полная аналитика</div><div class="card-sub">Строки = столбцы ИТОГО таблицы «Аналитика по артикулам (за выбранный период)» на «Деньгах», с одним отличием: реклама, не разнесённая по артикулам, перенесена из «Прочих» в «Рекламу», чтобы реклама была в одной строке («Всего сборов» и «К выплате» от этого не меняются). Поступления от OZON на счёт (компенсации и пр.) - отдельной строкой: день, в котором прочие операции кабинета дали плюс. «Затраты площадки» = «Всего сборов» (Начислено − К выплате). Доля = статья / Начислено. Серые колонки - прошлые полные месяцы для истории; отклонение и доли - последний месяц к предыдущему.</div></div></div>
 <div class="kt-scroll"><table class="kt-table" id="rp-cost"></table></div>
 <div id="rp-types" class="kt-note" style="margin-top:8px"></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">4. Реклама: расход, доход, окупаемость</div><div class="card-sub">Расход и выручка рекламных заказов - статистика рекламного кабинета OZON (Performance API) по дате. Окупаемость = выручка рекламных заказов / расход (сколько рублей выручки на 1 ₽ рекламы). ДРР = расход / весь заказанный оборот магазина, как на «Маркетинге». Для сверки - расход по начислениям OZON (дата начисления). Серые колонки - прошлые полные месяцы для истории; отклонение - последний месяц к предыдущему.</div></div></div>
@@ -166,6 +166,12 @@ function rpCalc(per){
     if(k==='fur')fcat[c.cat]={acc:c.t.acc||0,units:c.t.units||0};
     c.arr.forEach(function(x){rows[x.sk]=x;});});
   var gr=D.grand||null;
+  // Реклама в одном месте (Иван 01.10): не разнесённая по артикулам реклама кабинета переносится из «Прочих»
+  // в «Рекламу» (и в ИТОГО, и в строке «Общие расходы»). «Реклама» = весь расход по начислениям OZON;
+  // «Всего сборов» и «К выплате» не меняются (считаются от Начислено и К выплате).
+  if(gr){var aB=rpAcctSplit(per),u=-(aB.adv+(gr.adv||0));
+    gr=Object.assign({},gr,{oth:(gr.oth||0)-u,adv:(gr.adv||0)+u,advSku:gr.adv||0,advUn:u});
+    if(D.acct)D=Object.assign({},D,{acct:Object.assign({},D.acct,{oth:(D.acct.oth||0)-u,adv:(D.acct.adv||0)+u})});}
   // Инвариант: зеркала + мебель = ИТОГО «Начислено» (строка «Общие расходы» начислено не несёт).
   var bad=gr&&Math.abs(g.mir.acc+g.fur.acc-gr.acc)>1;
   return {D:D,rows:rows,g:g,fcat:fcat,grand:gr,bad:bad};
@@ -203,7 +209,7 @@ function rpWhyTurn(title,a0,u0,a1,u1,cur,prev,catFn,extra){
 // Статьи полной аналитики (столбцы ИТОГО таблицы «Аналитика по артикулам»). sign: +1 доход, -1 расход.
 var RP_LINES=[
   ['acc','Начислено (оборот)',1,1],['com','Комиссия',-1,1],['del','Логистика',-1,1],['acq','Эквайринг',-1,1],['sto','Хранение',-1,1],
-  ['oth','Прочие',-1,1],['adv','Реклама (разнесена по артикулам)',-1,1],['fees','Всего сборов = затраты площадки',-1,0],['amt','К выплате',1,0],
+  ['oth','Прочие (без рекламы)',-1,1],['adv','Реклама (весь расход по начислениям OZON)',-1,1],['fees','Всего сборов = затраты площадки',-1,0],['amt','К выплате',1,0],
   ['ship','Наша доставка (перевозчик)',-1,1],['dinc','Доставка покупателя (доход)',1,1],['cc','СС произв.',-1,1],['gp','Валовая прибыль',1,0],
   ['adm','АДМ 30%',-1,0],['tb','Реализовано (база налога)',1,1],['tax','Налоги 15%',-1,0],['net','Чистая прибыль',1,0]];
 function rpVal(t,k){if(!t)return null;if(k==='fees'||k==='gp'||k==='adm'||k==='tax'||k==='net')return anDerive(t)[k];return t[k]||0;}
@@ -255,7 +261,6 @@ function rpRender(){
       var ca=(acC[k]||0)-(acP[k]||0);
       if(Math.round(ca))txt.push('по всем артикулам '+rpDTxt(d-ca,null)+' ₽ + не по артикулам (строка «Общие расходы») '+rpDTxt(ca,null)+' ₽ = '+rpDTxt(d,null)+' ₽');
       else if(Math.round(d))txt.push('по всем артикулам '+rpDTxt(d,null)+' ₽ (топ-3 выше - часть этой суммы)');}
-    if((k==='adv'||k==='oth')&&rpAdsSum(P.prev).cpoCov!==rpAdsSum(P.cur).cpoCov)txt.push('<span class="rp-warn">реклама «за заказ» разнесена по артикулам только за даты ручной выгрузки ('+rpDm(REP.cpoFrom)+'-'+rpDm(REP.cpoTo)+'), вне их она в «Прочих» не по артикулам. Сравнивать рекламу - по строке «Реклама всего» в блоке 3.</span>');
     h2+='<tr><td>'+L[1]+'</td>'+rpRtd(R.map(function(r){return rpVal(r.calc.grand,k);}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td></tr>';});
   document.getElementById('rp-why2').innerHTML=h2+'</tbody>';
   // === 3. Затраты площадки и полная аналитика ===
@@ -265,9 +270,11 @@ function rpRender(){
   var row3=function(lbl,fn,inc,sub,strong){var v0=fn(gp,aBp),v1=fn(gc,aBc);var st=strong?' style="font-weight:800"':'';return '<tr'+(sub?' class="rp-sub"':'')+st+'><td>'+lbl+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?fn(r.calc.grand,r.aB):null;}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="r">'+rpSh(v0,gp.acc)+'</td><td class="r">'+rpSh(v1,gc.acc)+'</td></tr>';};
   RP_LINES.forEach(function(L){var k=L[0];h3+=row3(L[1],function(t){return rpVal(t,k);},L[2]>0,false,k==='fees'||k==='acc'||k==='net');
     if(k==='del'){h3+=row3('в т.ч. rFBS, сервис, страховка (кабинет)',function(t,a){return -a.realfbs;},false,true);}
-    if(k==='oth'){h3+=row3('в т.ч. реклама, не разнесённая по артикулам',function(t,a){return -(a.adv+t.adv);},false,true);
-      h3+=row3('в т.ч. штрафы и гибкий график',function(t,a){return -a.fines;},false,true);h3+=row3('в т.ч. бейдж, отзывы, Premium',function(t,a){return -a.badge;},false,true);h3+=row3('в т.ч. прочее кабинета',function(t,a){return -a.other;},false,true);}
-    if(k==='adv'){h3+=row3('Реклама всего (по артикулам + не разнесённая)',function(t,a){return -a.adv;},false,true);}
+    if(k==='oth'){h3+=row3('в т.ч. сборы OZON по артикулам',function(t,a){return t.oth+a.fines+a.badge+a.other;},false,true);
+      h3+=row3('в т.ч. штрафы и гибкий график',function(t,a){return -a.fines;},false,true);h3+=row3('в т.ч. бейдж, отзывы, Premium',function(t,a){return -a.badge;},false,true);
+      h3+=row3('в т.ч. прочие списания кабинета',function(t,a){return a.otherOut?-a.otherOut:0;},false,true);
+      h3+=row3('в т.ч. поступления от OZON на счёт (компенсации и пр.), уменьшают «Прочие»',function(t,a){return a.otherIn?-a.otherIn:0;},true,true);}
+    if(k==='adv'){h3+=row3('в т.ч. разнесена по артикулам',function(t){return t.advSku;},false,true);h3+=row3('в т.ч. не разнесена по артикулам',function(t){return t.advUn;},false,true);}
   });
   var rp=anDerive(gp).rent,rc=anDerive(gc).rent;
   var rf1=function(v){return String(Math.round(v*10)/10).replace('.',',');};
@@ -293,7 +300,8 @@ function rpRetro(P){var out=[],m=P.pym;var guard=0,df=rpDataFrom();
   return out;}
 function rpRth(R){return R.map(function(r){return '<th class="r rp-retro">'+rpName(r.ym)+'</th>';}).join('');}
 function rpRtd(vals,f){return vals.map(function(v){return '<td class="r rp-retro">'+(v==null?'—':(f||rpN)(v))+'</td>';}).join('');}
-function rpAcctSplit(per){var a={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<per.from||r[0]>per.to)continue;a.adv+=r[1];a.fines+=r[2];a.realfbs+=r[3];a.badge+=r[4];a.delivery+=r[5];a.other+=r[6];}return a;}
+// otherIn/otherOut: «прочее кабинета» по дням - день с плюсом = поступление от OZON на счёт (компенсации и т.п.).
+function rpAcctSplit(per){var a={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0,otherIn:0,otherOut:0};for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<per.from||r[0]>per.to)continue;a.adv+=r[1];a.fines+=r[2];a.realfbs+=r[3];a.badge+=r[4];a.delivery+=r[5];a.other+=r[6];if(r[6]>0)a.otherIn+=r[6];else a.otherOut+=r[6];}return a;}
 function rpAdsSum(per){
   var s={cpcSp:0,cpcOm:0,cpcO:0,cpoSp:0,cpoApiSp:0,cpoRev:0,gmv:0,mirSp:0,mirOm:0,furSp:0,furOm:0,cpoCov:false,catN:0};
   REP.ads.forEach(function(r){if(r[0]<per.from||r[0]>per.to)return;s.cpcSp+=r[1];s.cpcOm+=r[2];s.cpcO+=r[3];s.cpoApiSp+=r[4];});

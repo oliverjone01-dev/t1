@@ -76,6 +76,73 @@ function fieldRow(code: string, def: any) {
   };
 }
 
+// Значение поля для сравнения лид и сделки: списки по тексту значения (ID у лида и сделки разные),
+// деньги без валюты, даты по дню, строки без регистра. Пустое -> "".
+function cmpVal(v: any, items: any[]): string {
+  if (isEmpty(v)) return "";
+  const byId: Record<string, string> = {};
+  for (const it of items || []) byId[String(it.ID ?? it.id)] = String(it.VALUE ?? it.value ?? "");
+  const one = (x: any): string => {
+    let s = String(x ?? "").trim();
+    if (byId[s] !== undefined) s = byId[s];
+    if (/^-?\d+(\.\d+)?\|[A-Z]{3}$/.test(s)) s = String(parseFloat(s));
+    if (/^\d{4}-\d{2}-\d{2}T/.test(s)) s = s.slice(0, 10);
+    return s.toLowerCase();
+  };
+  return Array.isArray(v) ? v.map(one).filter(Boolean).sort().join("|") : one(v);
+}
+
+async function leadMap(dfs: Record<string, any>, dealCard: string[], dealFields: any[]) {
+  const stages: any[] = ((await call("crm.status.list", { filter: { ENTITY_ID: "STATUS" }, order: { SORT: "ASC" } })).result || [])
+    .map((s: any) => ({ id: s.STATUS_ID, name: s.NAME, sort: Number(s.SORT), semantics: s.SEMANTICS || (s.EXTRA && s.EXTRA.SEMANTICS) || "" }));
+  console.error("LEAD-STAGES\t" + stages.map((s) => `${s.id}:${s.name}`).join(" | "));
+  const lfs: Record<string, any> = (await call("crm.lead.fields", {})).result || {};
+  const labels: Record<string, string> = {};
+  try {
+    for (const u of await pageAll("crm.lead.userfield.list", {})) { const lab = pickLabel(u.EDIT_FORM_LABEL) || pickLabel(u.LIST_COLUMN_LABEL); if (u.FIELD_NAME && lab) labels[u.FIELD_NAME] = lab; }
+  } catch (e) { console.error("LEAD-UF-FAIL", String(e)); }
+  const onCard = new Set<string>(); const section: Record<string, string> = {}; const secOrder: string[] = [];
+  try {
+    const cfgRaw: any = (await call("crm.lead.details.configuration.get", { scope: "C" })).result;
+    const cfg: any[] = Array.isArray(cfgRaw) ? cfgRaw : (cfgRaw && cfgRaw.data) || [];
+    for (const sec of cfg) { const st = String(sec.title || sec.name || "").trim(); if (st && !secOrder.includes(st)) secOrder.push(st); for (const el of (sec.elements || [])) if (el && el.name) { onCard.add(el.name); if (!section[el.name]) section[el.name] = st; } }
+  } catch (e) { console.error("LEAD-CARD-FAIL", String(e)); }
+  // Контактные поля лида (телефон, почта, мессенджеры, сайт, ФИО, адрес) не выгружаем: только их схема.
+  const CONTACT = new Set(["PHONE", "EMAIL", "IM", "WEB", "NAME", "SECOND_NAME", "LAST_NAME", "ADDRESS", "BIRTHDATE"]);
+  const codes = Object.keys(lfs).filter((c) => !CONTACT.has(c) && !/^ADDRESS_/.test(c));
+  const leads = await pageAll("crm.lead.list", { filter: { ">=DATE_CREATE": DEAL_SINCE }, select: codes, order: { ID: "DESC" } });
+  const stats = fillStats(leads, codes);
+  const fields = Object.keys(lfs).map((c) => {
+    const f = fieldRow(c, lfs[c]); if (labels[c]) f.title = labels[c]; const s = stats[c];
+    return { ...f, onCard: onCard.size ? onCard.has(c) : null, section: section[c] || "", filled: s ? s.filled : null, total: s ? leads.length : 0, fillPct: s && leads.length ? Math.round(1000 * s.filled / leads.length) / 10 : null, distinct: s ? s.distinct : null };
+  });
+  // Пары «лид -> сделка 49» за то же окно: для каждого поля лида ищем поле сделки,
+  // в котором после конверсии то же значение (не меньше 80% пар, минимум 5 пар).
+  const STD = ["OPPORTUNITY", "CURRENCY_ID", "SOURCE_ID", "SOURCE_DESCRIPTION", "COMMENTS", "ASSIGNED_BY_ID", "UTM_SOURCE", "UTM_MEDIUM", "UTM_CAMPAIGN", "UTM_CONTENT", "UTM_TERM"];
+  const dCodes = [...new Set([...dealCard.filter((c) => c !== "ID"), ...STD])].filter((c) => dfs[c]);
+  const deals = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": DEAL_SINCE, ">LEAD_ID": 0 }, select: ["ID", "LEAD_ID", ...dCodes], order: { ID: "DESC" } });
+  const leadById: Record<string, any> = {}; for (const l of leads) leadById[String(l.ID)] = l;
+  const pairs = deals.filter((d) => leadById[String(d.LEAD_ID)]).map((d) => [leadById[String(d.LEAD_ID)], d]);
+  const dealTitle: Record<string, string> = {}; for (const f of dealFields) dealTitle[f.code] = f.title;
+  const SKIP = new Set(["ID", "STATUS_ID", "STATUS_SEMANTIC_ID", "DATE_CREATE", "DATE_MODIFY", "DATE_CLOSED", "CREATED_BY_ID", "MODIFY_BY_ID", "MOVED_BY_ID", "MOVED_TIME", "LAST_ACTIVITY_TIME", "LAST_ACTIVITY_BY", "IS_RETURN_CUSTOMER", "IS_MANUAL_OPPORTUNITY", "OPENED", "CONTACT_ID", "CONTACT_IDS", "COMPANY_ID"]);
+  const toDeal: any[] = [];
+  for (const lc of codes) {
+    if (SKIP.has(lc)) continue;
+    const lv = pairs.map(([l]) => cmpVal(l[lc], lfs[lc].items));
+    const idx = lv.map((v, i) => (v ? i : -1)).filter((i) => i >= 0);
+    if (idx.length < 5 || new Set(idx.map((i) => lv[i])).size < 2) continue;
+    let best: any = null;
+    for (const dc of dCodes) {
+      let eq = 0; for (const i of idx) if (cmpVal(pairs[i][1][dc], dfs[dc].items) === lv[i]) eq++;
+      const r = eq / idx.length;
+      if (!best || r > best.r) best = { dc, r };
+    }
+    if (best && best.r >= 0.8) toDeal.push({ lead: lc, leadTitle: labels[lc] || fieldRow(lc, lfs[lc]).title, deal: best.dc, dealTitle: dealTitle[best.dc] || best.dc, pairs: idx.length, matchPct: Math.round(1000 * best.r) / 10 });
+  }
+  console.error(`LEAD\tполей ${fields.length}\tлидов ${leads.length}\tпар лид-сделка ${pairs.length}\tполей в сделку ${toDeal.length}`);
+  return { entity: "crm.lead", stages, fieldCount: fields.length, leadCount: leads.length, cardFieldCount: onCard.size, cardSectionOrder: secOrder, fields, pairs: pairs.length, toDeal };
+}
+
 async function main() {
   // 1) типы смартов
   const types: any[] = (await call("crm.type.list", {})).result?.types || [];
@@ -163,6 +230,11 @@ async function main() {
     console.error(`SP\t${sp.etid}\t${sp.title}\tполей ${codes.length}\tкарточка ${spOnCard.size}\tразделов ${spSecOrder.length}\tкарточек ${rows.length}`);
   }
 
+  // 4) ЛИД: стадии воронки лидов, поля, заполненность и какие поля сделки 49 приходят из лида
+  // при конверсии (ТЗ туннеля ДомГласс, 01.10). Сбой здесь не трогает сделку и смарты.
+  let lead: any = null;
+  try { lead = await leadMap(dfs, selCodes, dealFields); } catch (e) { console.error("LEAD-FAIL", String(e)); }
+
   writeFileSync(OUT, JSON.stringify({
     generated_at: new Date().toISOString(),
     category: CAT,
@@ -170,6 +242,7 @@ async function main() {
     portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""),
     deal: { entity: "crm.deal (воронка 49)", fieldCount: dealFields.length, dealCount: dealRows.length, cardFieldCount: onCard.size, cardSectionOrder, fields: dealFields },
     smarts,
+    ...(lead ? { lead } : {}),
   }, null, 1));
   console.error("WROTE\t" + OUT);
 }

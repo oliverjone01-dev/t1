@@ -1,0 +1,112 @@
+// Вкладка «Отчет» Маркета (спека knowledge/semantic/metrics/ym-monthly-report.yaml). Клиентский код
+// исполняется здесь как есть: общие функции OZON-отчёта, вырезанные по имени, и код отчёта Маркета.
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { REPORT_JS } from "../report-page.js";
+import { pickJs, reportDataYm, reportJsYm, RP_SHARED } from "./report-page-ym.js";
+
+const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs"];
+// Строка блока «Аналитика по артикулам» так, как её отдаёт accAgg «Денег» (поля + производные).
+const accRow = (sku: string, cat: string, v: Record<string, number>) => {
+  const o: any = { sku, cat }; for (const f of F) o[f] = v[f] || 0;
+  o.fee = -(o.commission + o.delivery + o.acquiring + o.storage + o.promo + o.otherSvc);
+  o.gp = o.amount - o.cogs; o.adm = o.amount * 0.3; o.tax = (o.pay + o.dlv) * 0.15; o.np = o.gp - o.adm - o.tax;
+  return o;
+};
+
+// Страница: REPY + заглушки кода «Денег» (accAgg по окну, ACC для подсчёта строк, ACC_DOC).
+function page(repy: any, byPer: (per: { from: string; to: string }) => any[], accDays: string[], doc: any[] = []) {
+  // Общие функции страница кладёт в window (глобальная область браузера); здесь это globalThis.
+  const win: any = globalThis;
+  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,RPY_LINES};`;
+  return new Function("W", "REPY", "accAgg", "ACC", "ACC_DOC", "fmtRu", "document", body)(
+    win, repy, byPer, accDays.map((d) => [d, "X"]), doc, (n: number) => String(Math.round(n)), {});
+}
+
+describe("отчёт Маркета: общие функции берутся из OZON-отчёта, а не копируются", () => {
+  it("все имена находятся в REPORT_JS, скобки сбалансированы", () => {
+    const js = pickJs(REPORT_JS, RP_SHARED);
+    for (const n of RP_SHARED) expect(js).toMatch(new RegExp(`(function ${n}\\(|\\b${n}=)`));
+    expect(() => new Function(js)).not.toThrow();
+  });
+  it("переименованная в OZON-отчёте функция роняет сборку, а не тихо пропадает", () => {
+    expect(() => pickJs(REPORT_JS, ["rpNetTakogoNet"])).toThrow(/нет «rpNetTakogoNet»/);
+  });
+  it("периоды считаются от последнего дня реестра, а не от даты заказов (сентябрь по 29.09 - к 1-29.08)", () => {
+    const f = page({ to: "2026-09-29", pts: [], gmv: [] }, () => [], []);
+    const P = f.rpPeriods("2026-09");
+    expect(P.partial).toBe(true);
+    expect(P.prev).toEqual({ from: "2026-08-01", to: "2026-08-29" });
+  });
+});
+
+describe("отчёт Маркета: итоги месяца", () => {
+  const sep = [
+    accRow("GGM-01", "Зеркала", { units: 2, pay: 90_000, dlv: 10_000, accruals: 100_000, commission: -5_000, promo: -3_000, amount: 92_000, cogs: 40_000 }),
+    accRow("GGT-01", "Столы", { units: 1, pay: 50_000, accruals: 50_000, acquiring: -1_000, amount: 49_000, cogs: 20_000 }),
+  ];
+  const repy = { to: "2026-09-29", pts: [["2026-09-03", 7_000, -6_000]], gmv: [["2026-09-02", 400_000]] };
+  const doc = [["2026-09-28", "1023124", 0, 0, 0, 0, 0, -1_500, 500], ["2026-08-31", "1023124", 0, 0, 0, 0, 0, -9_000, 0]];
+  const f = page(repy, (per) => (per.from === "2026-09-01" ? sep : []), ["2026-09-03", "2026-09-04"], doc);
+  const c = f.rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
+  it("ИТОГО = сумма строк accAgg; зеркала + мебель = ИТОГО; мебель - всё, кроме зеркал", () => {
+    expect(c.grand.acc).toBe(150_000);
+    expect(c.grand.units).toBe(3);
+    expect(c.g.mir.acc + c.g.fur.acc).toBe(c.grand.acc);
+    expect(c.g.fur.acc).toBe(50_000);
+    expect(c.bad).toBe(false);
+  });
+  it("тождество Начислено − Всего сборов = К выплате держится, сборы положительными", () => {
+    expect(c.grand.fee).toBe(9_000);
+    expect(c.grand.acc - c.grand.fee).toBe(c.grand.amount);
+    expect(c.badId).toBe(false);
+  });
+  it("общие расходы кабинета (2а): только дни окна, вычитаются из чистой прибыли отдельной строкой", () => {
+    expect(c.grand.gen).toBe(-1_000); // 31.08 в сентябрь не попадает
+    expect(c.grand.netAll).toBeCloseTo(c.grand.np - 1_000, 6);
+  });
+  it("реклама = статья «Продвижение» по категориям; баллы - справкой, в оборот не входят", () => {
+    expect(c.grand.mpromo).toBe(3_000);
+    expect(c.mir.promo).toBe(3_000);
+    expect(c.fur.promo).toBe(0);
+    expect(c.grand.ptsIn).toBe(7_000);
+    expect(c.grand.acc).toBe(150_000);
+  });
+  it("месяц без проводок - null («нет данных»), а не нули", () => {
+    expect(f.rpyCalc({ from: "2026-07-01", to: "2026-07-31" }).grand).toBeNull();
+  });
+});
+
+describe("отчёт Маркета: данные сборщика", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ymrep-"));
+  const nd = (rows: any[]) => rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
+  writeFileSync(join(dir, "pnl_sku_netting_daily.ndjson"), nd([
+    { d: "2026-09-29", business: "1", sku: "A", points: 100, cofin: -50 },
+    { d: "2026-09-28", business: "2", sku: "B", points: 0, cofin: 0 },
+  ]));
+  writeFileSync(join(dir, "sku_views.ndjson"), nd([
+    { date: "2026-09-06", period_from: "2026-08-31", aggregate: true, sku: "A", views: 300, pdp: 6, cart: 1 },
+    { date: "2026-09-07", sku: "A", views: 10, pdp: 1, cart: 0 },
+  ]));
+  writeFileSync(join(dir, "orders.ndjson"), nd([
+    { sku: "A", created: "2026-07-01", status: "DELIVERED" },
+    { sku: "A", created: "2026-09-10", status: "CANCELLED_IN_DELIVERY" },
+    { sku: "A", created: "2026-09-11", status: "DELIVERY", service: true },
+  ]));
+  const r = reportDataYm({ dp: (f) => join(dir, f), maxD: "2026-09-30", catOf: () => "Зеркала", skuName: {}, gmvOf: () => 1 });
+  it("последний день реестра - по отстающему кабинету", () => {
+    expect(r.to).toBe("2026-09-28");
+  });
+  it("свёрнутая неделя показов суммируется с дневными (4а), а не отбрасывается", () => {
+    expect(r.views.A!.m["2026-09"]).toEqual([310, 7, 1]);
+    expect(r.viewsFrom).toBe("2026-08-31");
+  });
+  it("отменённые заказы и строки доставки - не продажа", () => {
+    expect(r.ord.A).toEqual(["2026-07-01"]);
+  });
+  it("баллы за дни после последнего дня реестра не берутся", () => {
+    expect(r.pts).toEqual([["2026-09-28", 0, 0]]);
+  });
+});

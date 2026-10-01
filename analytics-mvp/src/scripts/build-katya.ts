@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
+import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
 import { matchLedger, accrualShipSeries, type Unmatched } from "./delivery-match.js";
 import { splitCpo } from "./cpo-split.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
@@ -885,8 +886,8 @@ function patchMarginHonesty(html: string): string {
 // Полоса навигации при этом раньше на ВСЕХ страницах писала «живой OZON», включая Маркет.
 function marketplaceSwitch(active: string): string {
   const here = KPAGES.find(([, , key]) => key === active);
-  // «Отчет» есть только у OZON: ссылка на market/katya-report.html вела бы в 404.
-  if (!here || active === "report") return "";
+  // «Отчет» с 01.10.2026 есть у обеих площадок (Маркет - ym/report-page-ym.ts), переключатель работает и на нём.
+  if (!here) return "";
   const file = here[0];
   const chip = (label: string, href: string, on: boolean) =>
     `<a href="${href}" title="Показать данные площадки «${label}»" style="color:${on ? "#0B0F15" : "#cfe8ef"};background:${on ? "#8AA0FF" : "transparent"};border:1px solid #8AA0FF;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap;font-weight:600">${label}</a>`;
@@ -909,7 +910,7 @@ function banner(active: string): string {
     `<a href="${href}" style="color:${on ? "#0B0F15" : "#22D3EE"};background:${on ? "#22D3EE" : "transparent"};border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">${label}</a>`;
   return `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">
   <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
-    ${KPAGES.filter(([, , key]) => (key !== "reakciya" && key !== "tests" && key !== "report") || IS_OZON).map(([h, l, key]) => k(h, l, key === active)).join(" ")}
+    ${KPAGES.filter(([, , key]) => (key !== "reakciya" && key !== "tests") || IS_OZON).map(([h, l, key]) => k(h, l, key === active)).join(" ")}
     ${marketplaceSwitch(active)}
     <span style="color:#5d7484;margin-left:8px">живой ${IS_OZON ? "OZON" : "Яндекс Маркет"} (${snap}) · прочие каналы/клиенты/план - нет данных</span>
   </div></div>${coverageStrip()}`;
@@ -3430,6 +3431,17 @@ if(typeof window!=='undefined')window.addEventListener('resize',function(){try{s
     const moneyCore = pageJs.replace("function render(cur,cmp){", "function moneyRender(cur,cmp){");
     if (moneyCore === pageJs) throw new Error("report: не нашёл render «Денег» - код отчёта собрался бы с чужим render");
     writeFileSync(op("katya-report.html"), kshell("Отчет", "report", REPORT_BODY, `const REP=${J(rep)};` + moneyCore + REPORT_JS));
+  }
+  // Вкладка «Отчет» Маркета (01.10.2026, спека ym-monthly-report.yaml): так же несёт код и данные «Денег»
+  // Маркета целиком (pageJs + svodJs), чтобы считать функцией accAgg блока «Аналитика по артикулам
+  // (за выбранный период)». OZON-ветка выше не трогается.
+  if (!IS_OZON) {
+    const repY = reportDataYm({ dp, maxD, catOf, skuName, gmvOf: (d: string) => (DAY_T.rev ?? [])[dayIdx(d)] || 0 });
+    const moneyCoreY = pageJs.replace("function render(cur,cmp){", "function moneyRender(cur,cmp){");
+    if (moneyCoreY === pageJs) throw new Error("report-ym: не нашёл render «Денег» - код отчёта собрался бы с чужим render");
+    const sv = svodJs(svodJson);
+    if (!sv.includes("function accAgg(")) throw new Error("report-ym: в коде «Денег» Маркета нет accAgg - отчёту нечем считать");
+    writeFileSync(op("katya-report.html"), kshell("Отчет", "report", REPORT_YM_BODY, `const REPY=${J(repY)};` + moneyCoreY + sv + reportJsYm()));
   }
 }
 

@@ -95,29 +95,31 @@ export function matchLedger(rows: LedgerRow[], postings: Posting[]): MatchResult
 }
 
 /** «Наша доставка» по ДАТЕ НАЧИСЛЕНИЯ заказа - для таблицы по артикулам (базис начислений), водопада
- *  и план-факта (Иван 28.09). Заказ, который OZON ещё не начислил (в пути, отменённый с расходом),
- *  встаёт на фактическую доставку из ведомости, без неё - на отгрузку, без неё - на дату заказа;
- *  такие суммы считаются отдельно (fallback), чтобы страница их назвала.
- *  Каждое отправление даёт ровно одну запись: сумма ряда = сумма byPosting (не теряется, не двоится). */
+ *  и план-факта (Иван 28.09). Заказ в пути, который OZON ещё не начислил, в ряд НЕ входит (Иван 01.10,
+ *  вариант «а»): его расход ждёт начисления в `pending` (на дате фактической доставки, без неё - отгрузки,
+ *  без неё - заказа) и встанет в ряд на дату начисления, когда OZON его начислит - расход, выручка и доход
+ *  за доставку всегда в одном месяце. Отменённый заказ OZON не начислит никогда, а счёт перевозчика по
+ *  нему реальный - он остаётся в ряду на дате доставки/отгрузки (fallback), как раньше.
+ *  Каждое отправление даёт ровно одну запись: ряд + pending = сумма byPosting (не теряется, не двоится). */
 export function accrualShipSeries(postings: Posting[], byPosting: Map<string, PostingShip>) {
   const bySku = new Map<string, Map<string, number>>();
+  const pending: [string, number][] = [];
   const fallback = { fact: 0, ship: 0, order: 0 };
-  let total = 0;
+  let total = 0, pendTotal = 0;
   const seen = new Set<string>();
   for (const p of postings) {
     const v = byPosting.get(p.order);
     if (!v || !v.ship || seen.has(p.order)) continue;
     seen.add(p.order);
     let d = p.sd || "";
-    if (!d) {
-      if (v.dFact) { d = v.dFact; fallback.fact += v.ship; }
-      else if (v.dShip) { d = v.dShip; fallback.ship += v.ship; }
-      else { d = p.d; fallback.order += v.ship; }
-    }
+    const fb = !d;
+    if (fb) d = v.dFact || v.dShip || p.d;
+    if (fb && String(p.status || "") !== "cancelled") { pending.push([d, v.ship]); pendTotal += v.ship; continue; }
+    if (fb) { if (v.dFact) fallback.fact += v.ship; else if (v.dShip) fallback.ship += v.ship; else fallback.order += v.ship; }
     const sk = String(p.sku || "");
     const m = bySku.get(sk) ?? bySku.set(sk, new Map()).get(sk)!;
     m.set(d, (m.get(d) || 0) + v.ship);
     total += v.ship;
   }
-  return { bySku, total, fallback };
+  return { bySku, total, fallback, pending, pendTotal };
 }

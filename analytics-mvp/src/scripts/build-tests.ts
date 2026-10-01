@@ -34,7 +34,7 @@ import {
 import { loadEbSeries, ebOn } from "./eb-level.js";
 import {
   diffSeries, baseOf, shiftSeries, verdictOf, expectedDrop, priceApplied, priceState, viewShare, viewsStop, median as pMedian, nextDay,
-  HOLD_MIN, FAIL_MAX, RUN_DAYS, BASE_DAYS as P_BASE_DAYS, VIEWS_DROP, STOP_SHARE, type PriceTestDef, type DayDiff, type DayShift,
+  HOLD_MIN, FAIL_MAX, RUN_DAYS, PRICE_TOL as P_PRICE_TOL, BASE_DAYS as P_BASE_DAYS, VIEWS_DROP, STOP_SHARE, type PriceTestDef, type DayDiff, type DayShift,
 } from "./price-test.js";
 import {
   readPromoDaily, readActsDaily, exitOf, inPromoOn, membersOn, winKey, actKey,
@@ -2291,7 +2291,7 @@ interface PriceCalc {
   vc: ReturnType<typeof verdictOf>;
   vBase: ReturnType<typeof viewShare>; v1: ReturnType<typeof viewShare>; v2: ReturnType<typeof viewShare>;
   vStop: string | null; collapsed: string[]; baseCap: Map<string, number | null>;
-  price: Array<{ a: string; st: "ждём" | "снижена" | "не снижена" | "аномалия" | "нет цены"; d: string; dPct: number | null }>;
+  price: Array<{ a: string; st: "ждём" | "нет снимка" | "снижена" | "не снижена" | "аномалия" | "нет цены"; d: string; dPct: number | null }>;
 }
 
 function priceCalc(t: PriceTestDef): PriceCalc {
@@ -2323,11 +2323,13 @@ function priceCalc(t: PriceTestDef): PriceCalc {
     const b = baseCap.get(a) ?? null;
     const after = [...(P_CAP.get(a) ?? new Map()).keys()].filter((d) => d >= t.старт).sort();
     if (b == null) return { a, st: "нет цены" as const, d: "", dPct: null };
-    if (!after.length) return { a, st: "ждём" as const, d: "", dPct: null };
+    // «Ждём» только до утра после старта; дальше отсутствие свежего снимка - тревога, а не ожидание.
+    const waitOk = TODAY <= nextDay(t.старт);
+    if (!after.length) return { a, st: waitOk ? "ждём" as const : "нет снимка" as const, d: "", dPct: null };
     const d = after[after.length - 1]!, now = P_CAP.get(a)!.get(d)!;
     const ps = priceState(b, now, cut);
     // День старта: снимок цен (~08:53 МСК) раньше срока снижения (10:00) - старая цена ещё не ошибка.
-    const st = ps === "не снижена" && d === t.старт ? "ждём" as const : ps;
+    const st = ps === "не снижена" && d === t.старт ? (waitOk ? "ждём" as const : "нет снимка" as const) : ps;
     return { a, st, d, dPct: (now / b - 1) * 100 };
   });
   return { t, ctrl, s, ss, base, baseDays, gBase, E, noise, vc, vBase, v1, v2, vStop, collapsed, price, baseCap };
@@ -2397,10 +2399,13 @@ function priceReminder(c: PriceCalc): string {
       + ` (через ${dd} ${plural(dd, "день", "дня", "дней")}, меняет команда в кабинете) у ${t.тест.length} товаров: ${list}.<br>${esc(keep)}</div>`;
   }
   if (TODAY >= c.vc.end) return "";
+  const stale = c.price.filter((p) => p.st === "нет снимка").length;
+  if (stale) return `<div class="remind bad"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: снимок цен после старта не пришёл у ${stale} из ${t.тест.length}</b>`
+    + ` (последний снимок ${P_LAST_CAP ? DM(P_LAST_CAP) : "-"}). Без него снижение не проверить и товары в расчёт не входят. Проверить синк ozon-snapshots.yml. ${esc(keep)}</div>`;
   const odd = c.price.filter((p) => p.st === "аномалия");
   if (odd.length) return `<div class="remind bad"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: аномалия цены у ${odd.length} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}: `
     + `${odd.map((p) => `${esc(p.a)} (${sgn(p.dPct, 1)}% к базе)`).join(", ")}. Ждём −${Math.round(t.снижение * 100)}%; такие товары в расчёт не входят. `
-    + `Проверить цену в кабинете и поле price в снимке цен. ${esc(keep)}</div>`;
+    + `Проверить цену в кабинете и поле price в снимке цен; если в кабинете ошибка - поставить −${Math.round(t.снижение * 100)}% к базе (колонка «Ставим» в таблице товаров).</div>`;
   const bad = c.price.filter((p) => p.st === "не снижена").map((p) => p.a);
   const wait = c.price.filter((p) => p.st === "ждём").length;
   const ok = c.price.filter((p) => p.st === "снижена").length;
@@ -2440,7 +2445,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     c.vStop ? `доля показов ниже половины базы 3 дня подряд с ${DM(c.vStop)} - вернуть цену` : "",
     c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map(esc).join(", ")} - товар, похоже, выпал из «Эластичного бустинга», вернуть цену` : "",
   ].filter(Boolean);
-  const verdict = `<div class="verdict"><div class="verdict-h">Итог по показателям на ${DM(P_LAST_GAP || TODAY)}</div>`
+  const verdict = `<div class="verdict"><div class="verdict-h">${c.vc.prelim ? "Промежуточно" : "Итог"} по показателям на ${DM(P_LAST_GAP || TODAY)}</div>`
     + `<div class="verdict-main"><b>${esc(vName)}.</b> ${esc(P_VERDICT_TXT[c.vc.v] || "")}`
     + (c.vc.prelim && c.vc.window.length >= RUN_DAYS ? ` Это не итог: медиана последних ${c.vc.window.length} наблюдаемых дней, итог на ${DM(c.vc.end)}.` : "")
     + (c.vc.extended ? ` На замере ${DM(t.замер)} вышло «держит частично», окно продлено до ${DM(c.vc.end)}.` : "") + `</div>`
@@ -2481,7 +2486,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     + fold("cov", "Как считается", `Разрыв товара = (1 - витрина / предельная) × 100, из среза кабинета (gap_daily). Разница товара в дне = его разрыв минус медиана контроля. `
       + `База товара = медиана его разницы за ${P_BASE_DAYS} последних наблюдаемых дней до старта. Сдвиг товара = разница дня минус его база; сдвиг дня = медиана по засчитанным товарам (не меньше половины группы). `
       + `Так до и после старта сравнивается один и тот же товар, даже если засчитана только часть группы. `
-      + `После старта товар засчитывается, только если снимок цен в этот день показывает предельную ${100 - cut}% базовой (коридор ±1,5%): `
+      + `После старта товар засчитывается, только если снимок цен в этот день показывает предельную от −${pct((1 - (1 - t.снижение) * (1 + P_PRICE_TOL)) * 100, 2)}% до −${pct((1 - (1 - t.снижение) * (1 - P_PRICE_TOL)) * 100, 2)}% к базе: `
       + `иначе забытое снижение читалось бы как «держит». Цена вне коридора (не −${cut}% и не старая) - «аномалия», товар не засчитывается. Снимок цен снимается утром (около 09:00 МСК), поэтому день старта обычно ещё со старой ценой и не считается. `
       + `Вердикт - медиана сдвига за ${P_BASE_DAYS} последних наблюдаемых дней окна (нужно не меньше ${RUN_DAYS}): не ниже ${HOLD_MIN} п. - держит, ${FAIL_MAX} п. и ниже - не держит, между - держит частично. До конца окна это «предварительно». `
       + `«Держит частично» на замере продлевает окно${t.продление_до ? ` до ${DM(t.продление_до)}` : ""}. `

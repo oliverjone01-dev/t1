@@ -102,6 +102,33 @@ describe("правило (Иван 01.10, п. 1а: итог окна - меди�
   });
 });
 
+describe("решение 1а держится тестами (мутанты ФЕНИКСА, итерация 2)", () => {
+  it("решают последние 7 дней, не первые: [-5]x7 + [0]x7 - держит", () => {
+    expect(verdictOf(xsOf([...Array(7).fill(-5), ...Array(7).fill(0)]), START, "2026-10-30", "2026-10-30", -5.7).v).toBe("держит");
+    expect(verdictOf(xsOf([...Array(7).fill(0), ...Array(7).fill(-5)]), START, "2026-10-30", "2026-10-30", -5.7).v).toBe("не держит");
+  });
+  it("день замера в окно не входит", () => {
+    // xsOf начинается с 08.10; 20.10 - индекс 12, 21.10 - индекс 13
+    const vals = [...Array(13).fill(0), -9];
+    const r = verdictOf(xsOf(vals), START, END, END, -5.7);
+    expect(r.window).not.toContain(END);
+    expect(r.v).toBe("держит");
+  });
+  it("продление только при «держит частично» и только до продление_до", () => {
+    expect(verdictOf(xsOf([0, 0, 0, 0]), START, END, END, -5.7, "2026-10-28").extended).toBe(false);
+    expect(verdictOf(xsOf([-5, -5, -5]), START, END, END, -5.7, "2026-10-28").extended).toBe(false);
+    const r = verdictOf(xsOf([-2, -2, -2]), START, END, END, -5.7, "2026-10-28");
+    expect(r.extended).toBe(true);
+    expect(r.end).toBe("2026-10-28");
+    expect(r.end).not.toBe(END);
+  });
+  it("пороги включительно: ровно -1 - держит, ровно -4 - не держит", () => {
+    expect(verdictOf(xsOf([-1, -1, -1]), START, END, END, -5.7).v).toBe("держит");
+    expect(verdictOf(xsOf([-4, -4, -4]), START, END, END, -5.7).v).toBe("не держит");
+    expect(verdictOf(xsOf([-1.01, -1.01, -1.01]), START, END, END, -5.7).v).toBe("держит частично");
+  });
+});
+
 describe("одна популяция до и после старта (ФЕНИКС G1)", () => {
   it("ФЕНИКС L4: Ozon держит, засчитана часть товаров с низкой базой - всё равно «держит»", () => {
     // 10 товаров: у 5 разрыв на 2 п. ниже контроля, у 5 на 1.5 п. выше; засчитаны 6 (5 низких и 1 высокий).

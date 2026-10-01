@@ -14,7 +14,7 @@ import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom } from "./reports-lib.js";
 import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
 import { DELIVERED_STATUSES } from "./derive-lib.js";
 
@@ -424,7 +424,7 @@ const SERVICE_BY_FILE: Record<string, string> = {
 };
 const serviceOfFile = (file: string) => SERVICE_BY_FILE[file.replace(/\.[a-z]+$/i, "")] || file.replace(/\.[a-z]+$/i, "");
 
-async function services(months: string[]) {
+async function services(months: string[], now: Date) {
   const OUT = yp("services_monthly.ndjson");
   const STATE = yp("services_state.json");
   const prev = readJson<{ schema?: number; done?: string[]; body?: string }>(STATE, {});
@@ -434,7 +434,8 @@ async function services(months: string[]) {
   const purged = new Set<string>();
   let ok = 0;
   // Свежее окно перезабираем: акт за текущий и прошлый месяц ещё дополняется.
-  const freshFrom = months.length ? months[months.length - 1]! : "";
+  // В первые дни месяца туда входит и прошлый месяц (reportFreshFrom).
+  const freshFrom = reportFreshFrom(months, now);
   for (const { businessId: b, account } of await resolveBusinesses()) {
     for (const ym of months) {
       const pair = `${b}/${ym}`;
@@ -512,7 +513,7 @@ const BONUS_TYPES = ["united-netting"];
 const BONUS_BODIES: Body[] = [
   { name: "monthOfYear", body: (b, ym) => ({ businessId: Number(b), monthOfYear: { year: Number(ym.slice(0, 4)), month: Number(ym.slice(5, 7)) } }) },
 ];
-async function bonuses(months: string[]) {
+async function bonuses(months: string[], now: Date) {
   const OUT = yp("bonuses_monthly.ndjson");
   const STATE = yp("bonuses_state.json");
   const prev = readJson<{ schema?: number; done?: string[]; type?: string; body?: string; tried?: string[] }>(STATE, {});
@@ -523,7 +524,8 @@ async function bonuses(months: string[]) {
   const fresh: any[] = [];
   const purged = new Set<string>();
   let ok = 0;
-  const freshFrom = months.length ? months[months.length - 1]! : "";
+  // Прошлый месяц в первые дни нового перезабираем: отчёт дня X кончается X-1 (reportFreshFrom).
+  const freshFrom = reportFreshFrom(months, now);
   for (const { businessId: b, account } of await resolveBusinesses()) {
     for (const ym of months) {
       const pair = `${b}/${ym}`;
@@ -690,7 +692,7 @@ async function main() {
       const lateB = months.filter((m) => m !== curB && m !== prevB);
       if (lateB.length && !rebuildB) console.log(`bonuses: не добраны месяцы ${lateB.join(", ")} - беру их в этот прогон`);
     }
-    await bonuses(months);
+    await bonuses(months, now);
   } else if (cmd === "services") {
     const args = process.argv.slice(3).filter((a) => /^\d{4}-\d{2}$/.test(a));
     let months = args;
@@ -720,7 +722,7 @@ async function main() {
       const late = months.filter((m) => m !== cur && m !== prevYm);
       if (late.length && !rebuildAll) console.log(`services: не добраны месяцы ${late.join(", ")} - беру их в этот прогон`);
     }
-    await services(months);
+    await services(months, now);
   } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days] | services [YYYY-MM...] | bonuses [YYYY-MM...]"); process.exit(2); }
   flushBad();
 }

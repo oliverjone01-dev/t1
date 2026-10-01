@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { findCol } from "../../util/table.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, PREV_MONTH_REFETCH_DAYS } from "./reports-lib.js";
 
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
@@ -397,5 +397,45 @@ describe("дедуп реестра: двойники внутри выгруз�
   it("та же пара из соседней выгрузки не задваивается", () => {
     const a = numberDuplicates([row, row]), b = numberDuplicates([row, row]);
     expect(dedupeNetting(a.concat(b))).toHaveLength(2);
+  });
+});
+
+// G1 ФЕНИКСА (2026-09-30): отчёт дня X кончается X-1, поэтому последний прогон сентября не видит
+// списаний 30.09. Раньше свежим считался только последний месяц списка, и 1.10 собранный сентябрь
+// пропускался навсегда. Правило пропуска в bonuses()/services(): done && ym < freshFrom.
+describe("баллы и акт: прошлый месяц перезабирается в первые дни нового", () => {
+  const ALL = ["2026-08", "2026-09", "2026-10"];
+  const done = ALL.flatMap((m) => [`1023124/${m}`, `74986385/${m}`]);
+  // Какие месяцы реально уйдут в запрос по кабинету 1023124 - повтор логики цикла сборщика.
+  const fetched = (now: Date) => {
+    const cur = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+    const p = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+    const prev = `${p.getUTCFullYear()}-${String(p.getUTCMonth() + 1).padStart(2, "0")}`;
+    const all = ALL.filter((m) => m <= cur);
+    const months = reportMonthsToDo(all, done.filter((k) => k.slice(k.indexOf("/") + 1) <= cur), cur, prev);
+    const freshFrom = reportFreshFrom(months, now);
+    return months.filter((ym) => !(new Set(done).has(`1023124/${ym}`) && ym < freshFrom));
+  };
+
+  it("1.10 09:40 МСК (прогон бота): сентябрь забирается заново вместе с октябрём", () => {
+    expect(fetched(new Date("2026-10-01T06:40:00Z"))).toEqual(["2026-09", "2026-10"]);
+  });
+
+  it(`последний день окна (${PREV_MONTH_REFETCH_DAYS}.10) - сентябрь ещё берём, 6.10 - уже нет`, () => {
+    expect(fetched(new Date(`2026-10-0${PREV_MONTH_REFETCH_DAYS}T23:59:59Z`))).toEqual(["2026-09", "2026-10"]);
+    expect(fetched(new Date(`2026-10-0${PREV_MONTH_REFETCH_DAYS + 1}T00:00:00Z`))).toEqual(["2026-10"]);
+  });
+
+  it("середина месяца: как раньше, только текущий", () => {
+    expect(fetched(new Date("2026-09-30T06:40:00Z"))).toEqual(["2026-09"]);
+  });
+
+  it("январь: прошлый месяц - декабрь прошлого года", () => {
+    expect(reportFreshFrom(["2026-12", "2027-01"], new Date("2027-01-02T06:40:00Z"))).toBe("2026-12");
+  });
+
+  it("ручной прогон одного старого месяца не расширяется и пустой список даёт пусто", () => {
+    expect(reportFreshFrom(["2026-05"], new Date("2026-10-01T06:40:00Z"))).toBe("2026-05");
+    expect(reportFreshFrom([], new Date("2026-10-01T06:40:00Z"))).toBe("");
   });
 });

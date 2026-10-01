@@ -944,22 +944,32 @@ export const daysAfter = (d: string, from: string): number =>
 // больше 1 дня; с 2 дней это уже не свежесть источника, а застрявший сборщик (29.09 так застрял
 // реестр по кабинету зеркал после смены формата). [ГИПОТЕЗА по 8 снимкам] - поправить по факту.
 export const LEDGER_LAG_LIMIT_DAYS = 2;
-// Свежесть реестра по календарю: прогон дня X видит реестр по X-1 (отставание 0), иногда по X-2
-// (отставание 1: так было 28.09 по обоим кабинетам). С 2 дней реестр застрял: 29.09 сборщик после
-// смены формата за один прогон не успел перезабрать историю, и шаг ym:netting молчал, потому что он
-// fail-open (E027). Это тревога для конца прогона, а не для свода. [ГИПОТЕЗА по 10 снимкам 05-30.09]
+// Свежесть реестра по календарю (тревога конца прогона ym-snapshots). Прогон дня X видит реестр по
+// X-1: с 07.09 по 30.09 отставание от вчера было 0 в 34 прогонах из 35 [ДАННЫЕ, аудит ФЕНИКСА PR #443].
+// Исключение - 29.09: после смены схемы 3->4 сборщик перезабирал историю, упёрся в бюджет отчётов,
+// и кабинет 1023124 остался по 27.09 (отставание 1, сентябрь не собран). Шаг при этом был зелёный -
+// это не падение, а штатная остановка, и ни fail-closed, ни порог 2 дня её не ловят.
+// Правило (гибрид, пользователь 01.10, вариант «а»): застрял, если
+//   - строк реестра по кабинету нет, или дата битая / из будущего (иначе одна строка гасит тревогу);
+//   - отставание от вчера 2+ дня;
+//   - отставание 1 день И пара «кабинет/месяц вчера» не в months_done (сбор месяца не закончен).
+// Тихий день без проводок даёт ложный красный (бэктест 242 дня: 2 случая у 1023124). [ГИПОТЕЗА]
 export const LEDGER_STALE_DAYS = 2;
-// Кабинеты, которые обязаны быть в реестре: все, у кого есть строки реестра или заказы за последние
-// 30 дней. Кабинет без единой строки реестра - отставание null, это тоже тревога.
-export function ledgerFreshness(netting: Array<{ business?: unknown; d?: unknown }>, orders: Array<{ business?: unknown; created?: unknown }>, yesterday: string): Array<{ business: string; ledger_to: string | null; lag: number | null; stale: boolean }> {
+export type LedgerFresh = { business: string; ledger_to: string | null; lag: number | null; month_done: boolean; stale: boolean; reason: string };
+export function ledgerFreshness(netting: Array<{ business?: unknown; d?: unknown }>, businesses: string[], yesterday: string, monthsDone: Iterable<string>): LedgerFresh[] {
   const lt = ledgerToBy(netting);
-  const since = addDays(yesterday, -29);
-  const all = new Set<string>([...lt.keys()].filter(Boolean));
-  for (const o of orders) { const b = String(o.business || ""), c = String(o.created || "").slice(0, 10); if (b && c >= since) all.add(b); }
-  return [...all].sort().map((business) => {
+  const done = new Set(monthsDone);
+  const ym = yesterday.slice(0, 7);
+  return [...new Set(businesses.map(String).filter(Boolean))].sort().map((business) => {
     const to = lt.get(business) || null;
-    const lag = to ? daysAfter(yesterday, to) : null;
-    return { business, ledger_to: to, lag, stale: lag === null || lag >= LEDGER_STALE_DAYS };
+    const month_done = done.has(`${business}/${ym}`);
+    if (!to) return { business, ledger_to: null, lag: null, month_done, stale: true, reason: "в реестре нет ни одной строки по кабинету" };
+    const lag = daysAfter(yesterday, to);
+    if (!Number.isFinite(lag)) return { business, ledger_to: to, lag: null, month_done, stale: true, reason: `битая дата в реестре (${to})` };
+    if (lag < 0) return { business, ledger_to: to, lag, month_done, stale: true, reason: `дата в реестре позже вчера (${to})` };
+    if (lag >= LEDGER_STALE_DAYS) return { business, ledger_to: to, lag, month_done, stale: true, reason: `отставание ${lag} дн` };
+    if (lag >= 1 && !month_done) return { business, ledger_to: to, lag, month_done, stale: true, reason: `отставание ${lag} дн и месяц ${ym} не собран (netting_state.json)` };
+    return { business, ledger_to: to, lag, month_done, stale: false, reason: lag ? `отставание ${lag} дн, месяц ${ym} собран` : "свежий" };
   });
 }
 export function buildSvod(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs: Record<string, number>, today?: string, act: ActRow[] = [], bonus: BonusRow[] = [], deliv: DelivRow[] = []): SvodMonth[] {

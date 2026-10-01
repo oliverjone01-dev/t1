@@ -3,11 +3,15 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { cardSpread } from "./cpc-card-spread.js";
 
-const nd = (f: string) => readFileSync("data/" + f, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
+// Срез данных по 29.09 включительно (ФЕНИКС 01.10, G4): эталон спеки снят на нём, а сентябрь дособирается
+// (30.09 добавляет и расход, и продажи). Каталог данных - CPC_DATA_DIR (для проверки на чужом снимке), иначе data/.
+const DIR = (process.env.CPC_DATA_DIR || "data") + "/";
+const CUT = "2026-09-29";
+const nd = (f: string) => readFileSync(DIR + f, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((r: any) => !r.d || r.d <= CUT);
 const ads = nd("ads_sku_daily.ndjson");
 const attr = nd("ads_attr_daily.ndjson");
 const orders = nd("orders_daily.ndjson").map((r: any) => ({ order: String(r.order), d: r.d, sku: String(r.sku), units: Number(r.units) || 0, revenue: Number(r.revenue) || 0, status: r.status }));
-const groups = JSON.parse(readFileSync("data/card_groups.json", "utf-8")).groups;
+const groups = JSON.parse(readFileSync(DIR + "card_groups.json", "utf-8")).groups;
 const R = cardSpread(ads, attr, orders, groups);
 const SEP = (d: string) => d >= "2026-09-01" && d <= "2026-09-30";
 const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);

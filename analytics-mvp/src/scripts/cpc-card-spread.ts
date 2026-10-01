@@ -21,7 +21,10 @@ export interface CardSpread {
   own: Record<string, [string, number][]>;            // SKU -> [день, расход на сам рекламируемый товар]
   nb: [string, string, string, number][];             // [день расхода, рекламируемый SKU, заказ соседа, сумма]
   nbOrders: Record<string, NbOrder>;                  // заказы соседей
-  stat: [string, number, number, number, number, number][]; // [день, CPC, на соседей, сосед не найден, без продаж, без атрибуции]
+  // [день, CPC, на соседей, сосед не найден, без продаж, без атрибуции (пары нет в сборе),
+  //  из «без продаж» - дни без строки атрибуции (продажи могли быть), CPC дней со строкой атрибуции (покрытие),
+  //  из «на соседей» - дни без строки атрибуции (доля месяца перенесена на день: оценка)]
+  stat: [string, number, number, number, number, number, number, number, number][];
   pairs: Record<string, PairShare>;                   // ym|sku|cid -> доли (для теста и подсказок)
 }
 export interface PairShare { sold: number; soldM: number; unk: number; nb: Record<string, number>; attr: boolean }
@@ -58,9 +61,11 @@ export function cardSpread(ads: AdsSkuRow[], attr: AttrRow[], orders: OrderRow[]
   for (const o of orders) if (o.units > 0) (byDay[o.d] ||= []).push(o);
 
   const pairs: Record<string, PairShare> = {};
+  const attrDay = new Set<string>();                          // d|cid|sku - день, за который атрибуция собрана
   const nbOrders: Record<string, NbOrder> = {};
   for (const r of attr) {
     const sku = String(r.sku), k = ymOf(r.d) + "|" + sku + "|" + String(r.id);
+    attrDay.add(r.d + "|" + String(r.id) + "|" + sku);
     const p = (pairs[k] ||= { sold: 0, soldM: 0, unk: 0, nb: {}, attr: true });
     p.sold += Number(r.sold) || 0;
     const q = Number(r.soldM) || 0;
@@ -79,17 +84,20 @@ export function cardSpread(ads: AdsSkuRow[], attr: AttrRow[], orders: OrderRow[]
   // Дневной расход по SKU и доли соседей (float), округление - на уровне SKU x день.
   const skuDay: Record<string, number> = {};                  // sku|d -> sp
   const nbF: Record<string, number> = {};                     // d|sku|order -> float
-  const st: Record<string, number[]> = {};                    // d -> [tot, nb, unk, nosale, noattr] float
+  const st: Record<string, number[]> = {};                    // d -> [tot, nb, unk, nosale, noattr, nosaleGap, cov, nbEst] float
   for (const r of ads) {
     const sku = String(r.sku || ""); if (!sku) continue;
     const sp = Number(r.sp) || 0;
     skuDay[sku + "|" + r.d] = (skuDay[sku + "|" + r.d] || 0) + sp;
-    const s = (st[r.d] ||= [0, 0, 0, 0, 0]);
+    const s = (st[r.d] ||= [0, 0, 0, 0, 0, 0, 0, 0]);
     const p = pairs[ymOf(r.d) + "|" + sku + "|" + String(r.cid)];
     if (!p) { s[4]! += sp; continue; }
+    const has = attrDay.has(r.d + "|" + String(r.cid) + "|" + sku);
+    if (has) s[6]! += sp;
     const U = p.sold + p.soldM;
-    if (!U) { s[3]! += sp; continue; }
+    if (!U) { s[3]! += sp; if (!has) s[5]! += sp; continue; }
     s[2]! += sp * p.unk / U;
+    if (!has) s[7]! += sp * (p.soldM - p.unk) / U;
     for (const [o, u] of Object.entries(p.nb)) {
       const k = r.d + "|" + sku + "|" + o;
       nbF[k] = (nbF[k] || 0) + sp * u / U;
@@ -117,7 +125,7 @@ export function cardSpread(ads: AdsSkuRow[], attr: AttrRow[], orders: OrderRow[]
   for (const sku in own) own[sku]!.sort((a, b) => (a[0] < b[0] ? -1 : 1));
   const stat: CardSpread["stat"] = Object.keys(st).sort().map((d) => {
     const s = st[d]!;
-    return [d, totDay[d] || 0, nbDay[d] || 0, Math.round(s[2]!), Math.round(s[3]!), Math.round(s[4]!)];
+    return [d, totDay[d] || 0, nbDay[d] || 0, Math.round(s[2]!), Math.round(s[3]!), Math.round(s[4]!), Math.round(s[5]!), Math.round(s[6]!), Math.round(s[7]!)];
   });
   return { own, nb, nbOrders, stat, pairs };
 }

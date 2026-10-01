@@ -885,7 +885,7 @@ function patchMarginHonesty(html: string): string {
 // Полоса навигации при этом раньше на ВСЕХ страницах писала «живой OZON», включая Маркет.
 function marketplaceSwitch(active: string): string {
   const here = KPAGES.find(([, , key]) => key === active);
-  if (!here) return "";
+  if (!here || active === "kartochki") return ""; // «Реклама по карточкам» - только OZON, в public/market/ её нет
   const file = here[0];
   const chip = (label: string, href: string, on: boolean) =>
     `<a href="${href}" title="Показать данные площадки «${label}»" style="color:${on ? "#0B0F15" : "#cfe8ef"};background:${on ? "#8AA0FF" : "transparent"};border:1px solid #8AA0FF;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap;font-weight:600">${label}</a>`;
@@ -1903,25 +1903,42 @@ function render(cur,cmp){
 const CPC_CARD_JS = `  // Реклама по карточкам: CPC пары разнесён по атрибуции OZON (cpc-card-spread.ts). Своя доля
   // рекламируемого товара - cpcOwn (дальше по штукам, как на «Деньгах»), доля соседа - прямо на его заказ.
   var cpcOwn={},cpcByOrd={},cpcNbAll=0,cpcNbOn=0,cpcNbBack=0,cpcAll=0,cpcOwnAll=0;
-  for(var ci=0;ci<rows.length;ci++)cpcByOrd[rows[ci].order]=rows[ci];
+  for(var ci=0;ci<rows.length;ci++){cpcByOrd[rows[ci].order]=rows[ci];rows[ci].adv0=rows[ci].adv||0;}
   for(var cs in AN_CPC.own){cpcOwn[cs]=anSum(AN_CPC.own[cs],from,to,1)[0]||0;cpcOwnAll+=cpcOwn[cs];}
   for(var cs2 in AN_ADSSKU)cpcAll+=anSum(AN_ADSSKU[cs2],from,to,1)[0]||0;
   for(var cn=0;cn<AN_CPC.nb.length;cn++){var nr=AN_CPC.nb[cn];if(nr[0]<from||nr[0]>to)continue;cpcNbAll+=nr[3];
     var tg=cpcByOrd[nr[2]],no=AN_CPC.ord[nr[2]];
     // Отменённый сосед без сборов строки на «Деньгах» не имеет: заводим строку под его долю (Иван 01.10, п.1).
-    if(!tg&&no&&no.st==='cancelled'&&no.d>=from&&no.d<=to){tg=cpcByOrd[nr[2]]={order:nr[2],d:no.d,st:'cancelled',scheme:'',cat:no.cat,off:no.off,nm:no.nm,sk:no.sk,units:0,dlv:0,fly:0,flyAcc:0,tb:0,tbFly:0,acc:0,com:0,del:0,acq:0,sto:0,oth:0,prt:0,adv:0,ship:0,led:0,ledDlv:0,dinc:0,amt:0,amtS:0,cc:0,noCs:false,ret:0,estFee:0,eCom:0,eDel:0,eOth:0,ePrt:0,nNoFee:0,estNoCom:0,paid:null,citiesTxt:'',citiesTip:'',cityCnt:[]};rows.push(tg);}
+    if(!tg&&no&&no.st==='cancelled'&&no.d>=from&&no.d<=to){tg=cpcByOrd[nr[2]]={adv0:0,order:nr[2],d:no.d,st:'cancelled',scheme:'',cat:no.cat,off:no.off,nm:no.nm,sk:no.sk,units:0,dlv:0,fly:0,flyAcc:0,tb:0,tbFly:0,acc:0,com:0,del:0,acq:0,sto:0,oth:0,prt:0,adv:0,ship:0,led:0,ledDlv:0,dinc:0,amt:0,amtS:0,cc:0,noCs:false,ret:0,estFee:0,eCom:0,eDel:0,eOth:0,ePrt:0,nNoFee:0,estNoCom:0,paid:null,citiesTxt:'',citiesTip:'',cityCnt:[]};rows.push(tg);}
     // Заказ соседа вне периода - доля остаётся на рекламируемом товаре (решение 2).
     if(tg){tg.adv=(tg.adv||0)+nr[3];tg.amt=(tg.amt||0)-nr[3];if(tg.amtS)tg.amtS=(tg.amtS||0)-nr[3];tg.cpcNb=(tg.cpcNb||0)+nr[3];var sOff=AN_CPC.offOf[nr[1]]||nr[1];if((tg.cpcSrc||'').indexOf(sOff)<0)tg.cpcSrc=(tg.cpcSrc?tg.cpcSrc+', ':'')+sOff;cpcNbOn+=nr[3];}
     else{cpcOwn[nr[1]]=(cpcOwn[nr[1]]||0)+nr[3];cpcNbBack+=nr[3];}
   }
-  (function(){var st=[0,0,0,0,0];for(var i=0;i<AN_CPC.stat.length;i++){var r=AN_CPC.stat[i];if(r[0]<from||r[0]>to)continue;for(var j=0;j<5;j++)st[j]+=r[j+1];}
-    var ok=(Math.round(cpcOwnAll+cpcNbAll)===Math.round(cpcAll)),ne=document.getElementById('cpc-note');if(!ne)return;
-    var R=function(v){return '<b>'+fmtRu(Math.round(v))+' ₽</b>';};
+`;
+const CPC_CARD_CHECK = `  // Проверка РЕЗУЛЬТАТА разнесения (ФЕНИКС 01.10, G3): CPC, реально севший на строки (реклама строки после
+  // минус до), плюс CPC товаров без заказов (уйдёт в «Общие») = CPC периода по ряду «Денег» (AN_ADSSKU).
+  // «Общие расходы» поглощают любую ошибку в итоге «К выплате», поэтому сверяем не итог, а разнесённое.
+  (function(){var onRows=0,inObs=0,admC=0,admM=0;
+    for(var i=0;i<rows.length;i++){var x=rows[i];var cpc=(x.adv||0)-(x.adv0||0);onRows+=cpc;admC+=Math.max(0,x.amt||0);}
+    for(var s in cpcOwn)if(!bySku[s]||!bySku[s].length)inObs+=cpcOwn[s];
+    // Разница АДМ с «Деньгами» за период: та же строка с рекламой по SKU, как на «Деньгах» (тот же spread).
+    var mAdv={};for(var s2 in bySku){var a2=bySku[s2],w2=0;for(var k2=0;k2<a2.length;k2++)w2+=(a2[k2].units>0?a2[k2].units:0);
+      var tmp=a2.map(function(o){return {units:o.units,m:0};});spread(tmp,w2,anSum(AN_ADSSKU[s2],from,to,1)[0]||0,'m',false);
+      for(var k3=0;k3<a2.length;k3++)mAdv[a2[k3].order]=tmp[k3].m;}
+    for(var i2=0;i2<rows.length;i2++){var y=rows[i2];admM+=Math.max(0,(y.amt||0)+((y.adv||0)-(y.adv0||0))-(mAdv[y.order]||0));}
+    var dAdm=Math.round(0.3*(admC-admM));
+    var st=[0,0,0,0,0,0,0,0];for(var i3=0;i3<AN_CPC.stat.length;i3++){var r=AN_CPC.stat[i3];if(r[0]<from||r[0]>to)continue;for(var j=0;j<8;j++)st[j]+=r[j+1];}
+    var ok=Math.abs(Math.round(onRows+inObs)-Math.round(cpcAll))<=1,ne=document.getElementById('cpc-note');if(!ne)return;
+    var R=function(v){return '<b>'+fmtRu(Math.round(v))+' ₽</b>';},P=function(a,b){return b?'<b>'+(Math.round(a/b*1000)/10).toString().replace('.',',')+'%</b>':'-';};
     ne.innerHTML='Реклама за клик за период '+from+'..'+to+': '+R(cpcAll)+' (как на «Деньгах»). '
-      +'На заказы соседей по карточке: '+R(cpcNbOn)+'. '
-      +'На рекламируемом товаре осталось '+R(cpcAll-cpcNbOn)+': свои продажи '+R(st[0]-st[1]-st[2]-st[3]-st[4])+', сосед не найден '+R(st[2])+', кампания без продаж '+R(st[3])+', нет атрибуции в нашем сборе '+R(st[4])+(cpcNbBack?', заказ соседа вне периода '+R(cpcNbBack):'')+'. '
-      +'Товар без заказов в периоде - строкой «Общие расходы», как на «Деньгах».'
-      +(ok?'':' <span style="color:#FF5A5F;font-weight:600">Разнесённое не сходится с расходом «Денег»: '+fmtRu(Math.round(cpcOwnAll+cpcNbAll))+' против '+fmtRu(Math.round(cpcAll))+' ₽.</span>');})();
+      +'<b>Покрытие атрибуцией по дням: '+P(st[6],st[0])+'</b> расхода (дни, за которые наш сбор отчёта атрибуции OZON дал строку по кампании и товару). '
+      +'На заказы соседей по карточке: '+R(cpcNbOn)+(st[7]?' (из них '+R(st[7])+' - оценка: в эти дни атрибуции нет, взята доля пары за месяц)':'')+'. '
+      +'На рекламируемом товаре осталось '+R(cpcAll-cpcNbOn)+': свои продажи '+R(st[0]-st[1]-st[2]-st[3]-st[4])+', сосед не найден '+R(st[2])
+      +', без продаж в дни с атрибуцией '+R(st[3]-st[5])+', <span style="color:#E5B567">дни без атрибуции в нашем сборе '+R(st[5])+'</span> (продажи могли быть, данных нет)'
+      +', <span style="color:#E5B567">кампании без атрибуции в нашем сборе '+R(st[4])+'</span>'+(cpcNbBack?', заказ соседа вне периода '+R(cpcNbBack):'')+'. '
+      +'На строках заказов '+R(onRows)+', у товаров без заказов в периоде (строка «Общие расходы») '+R(inObs)+'. '
+      +(dAdm?'АДМ 30% в ИТОГО отличается от «Денег» на '+R(dAdm)+', чистая прибыль - на '+R(-dAdm)+': АДМ берётся с положительной «К выплате» каждой строки, а реклама переехала между строками.':'')
+      +(ok?'':' <span style="color:#FF5A5F;font-weight:600">Разнесение не сходится: на строках и в «Общих» '+fmtRu(Math.round(onRows+inObs))+' ₽ против CPC периода '+fmtRu(Math.round(cpcAll))+' ₽.</span>');})();
 `;
 const CPC_CARD_BADGE = `if(x.cpcNb)stb+=' <span style="color:#A78BFA" title="Доля рекламы за клик соседнего товара по объединённой карточке (атрибуция OZON): реклама товара '+String(x.cpcSrc||'').replace(/"/g,'&quot;')+'">реклама соседа '+fmtRu(x.cpcNb)+' ₽</span>';`;
 const CPC_CARD_RENDER = `
@@ -1931,9 +1948,9 @@ function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any
   const mk = `var __mkRender=(function(){
 ${MKT_SHARE.js}
 window.renderTop=renderTop; // onchange фильтров статуса в секции кампаний
-return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(cur.from,cur.to):bakedFor();lastA=a;var s1=document.getElementById('src1');if(s1)s1.innerHTML='источник: OZON Performance API, за период '+(a.dateFrom||'')+'..'+(a.dateTo||'');renderTop();};
+return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(cur.from,cur.to):bakedFor();lastA=a;var s1=document.getElementById('src1');if(s1)s1.innerHTML='источник: OZON Performance API (прямой'+(a.daily?', дневной ряд':'')+') <span class="kt-src">'+(a.daily?'за период ':'снимок за ')+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>'+staleMark(a.dateTo);renderTop();};
 })();`;
-  const intro = `<section class="card"><div class="card-h"><div><div class="card-title">Реклама за клик по объединённым карточкам</div><div class="card-sub">Таблица ниже - та же, что «Аналитика по заказам» на «Деньгах», отличается только колонка <b>«Реклама»</b> (и вслед за ней «К выплате» и прибыль). Реклама за клик (CPC) делится <b>по атрибуции OZON</b>: если клик по рекламе товара закончился покупкой соседа по объединённой карточке, доля расхода (по штукам) стоит на заказе этого соседа, строка помечена «реклама соседа». Соседа находим по заказу товара той же карточки в день атрибуции: штуки и сумма совпадают с отчётом (допуск 1%); на отчётах кабинета март-июль совпало 21 из 22. Состав карточек - снимок кабинета от <b>${cpc?.snap || "-"}</b>. Отменённый потом заказ соседа получает свою долю. Остальное остаётся на рекламируемом товаре и делится по его заказам по штукам: свои продажи, сосед не найден, кампания без продаж, кампании без атрибуции в нашем сборе. Итог «К выплате» тот же, что на «Деньгах»: меняется только, на каком заказе стоит реклама. АДМ 30% и чистая прибыль в ИТОГО могут отличаться на несколько тысяч: АДМ берётся с положительной «К выплате» каждой строки, а реклама переехала между строками.</div></div></div>
+  const intro = `<section class="card"><div class="card-h"><div><div class="card-title">Реклама за клик по объединённым карточкам</div><div class="card-sub">Таблица ниже - та же, что «Аналитика по заказам» на «Деньгах», отличается только колонка <b>«Реклама»</b> (и вслед за ней «К выплате» и прибыль). Реклама за клик (CPC) делится <b>по атрибуции OZON</b>: если клик по рекламе товара закончился покупкой соседа по объединённой карточке, доля расхода (по штукам) стоит на заказе этого соседа, строка помечена «реклама соседа». Соседа находим по заказу товара той же карточки в день атрибуции: штуки и сумма совпадают с отчётом (допуск 1%); на отчётах кабинета март-июль совпало 21 из 22. Состав карточек - снимок кабинета от <b>${cpc?.snap || "-"}</b>. Отменённый потом заказ соседа получает свою долю. Остальное остаётся на рекламируемом товаре и делится по его заказам по штукам: свои продажи, сосед не найден, кампания без продаж, кампании без атрибуции в нашем сборе. Итог «К выплате» тот же, что на «Деньгах»: меняется только, на каком заказе стоит реклама. Разница АДМ и чистой прибыли с «Деньгами» за выбранный период - в плашке ниже. Покрытие атрибуцией неполное: наш сбор отчёта атрибуции берёт не все кампании и не все дни (сверка с отчётами кабинета 01.10: доля на соседей за август у нас 227 531 ₽ против 352 034 ₽ по отчёту, за сентябрь 281 606 ₽ против 316 746 ₽) - строки «нет атрибуции» выделены цветом.</div></div></div>
   <div class="kt-note" id="cpc-note"></div></section>`;
   const body = `
   ${intro}
@@ -3072,7 +3089,7 @@ ${card ? CPC_CARD_JS : ""}  for(var sk in bySku){var arr=bySku[sk];var wsum=0;fo
     // остаток через AN_ACCT.adv (кабинетный), а promo - ITEM-сборы, которых в AN_ACCT нет. Добавить их в
     // adv без встречной правки кабинетной части = сломать баланс «Общих» и завысить «К выплате». Отложено.
   }
-  // «Доставка покупателя» (доход) - кабинетный ряд accrual/by-day (NON_ITEM «перечисление за доставку
+${card ? CPC_CARD_CHECK : ""}  // «Доставка покупателя» (доход) - кабинетный ряд accrual/by-day (NON_ITEM «перечисление за доставку
   // от покупателя», без SKU). Это доход схемы rFBS (покупатель платит продавцу за доставку), поэтому
   // разносим период только по rFBS-заказам пропорционально штукам (если схема неизвестна - по всем).
   // ИТОГО сходится с отчётом (август by-day 610к ≈ отчёт 605к).

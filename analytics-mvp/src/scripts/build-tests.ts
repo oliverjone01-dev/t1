@@ -33,6 +33,10 @@ import {
 } from "./funnel-tests.js";
 import { loadEbSeries, ebOn } from "./eb-level.js";
 import {
+  diffSeries, baseOf, shiftSeries, verdictOf, expectedDrop, priceApplied, priceState, viewShare, viewsStop, median as pMedian, nextDay,
+  HOLD_MIN, FAIL_MAX, RUN_DAYS, PRICE_TOL as P_PRICE_TOL, BASE_DAYS as P_BASE_DAYS, VIEWS_DROP, STOP_SHARE, type PriceTestDef, type DayDiff, type DayShift,
+} from "./price-test.js";
+import {
   readPromoDaily, readActsDaily, exitOf, inPromoOn, membersOn, winKey, actKey,
   PROMO_DAILY_FILE, ACTS_DAILY_FILE,
   type PromoRead, type PromoExit,
@@ -1032,10 +1036,11 @@ function posMatched(g: string[], days: string[], base: string[], post: string[])
   return { arts, line };
 }
 
-function chart(t: TestDef, cid: string): string {
+function chart(t: TestDef, cid: string, endAt?: string): string {
   const st = t.старт!;
   const days: string[] = [];
-  for (let k = -14; k <= 40; k++) { const d = addDays(st, k); if (d <= LAST) days.push(d); }
+  // endAt - только для предпросмотра теста 4 до старта: обрезает неполный последний день синка.
+  for (let k = -14; k <= 40; k++) { const d = addDays(st, k); if (d <= LAST && (!endAt || d <= endAt)) days.push(d); }
   const si = days.indexOf(st);
   if (si < 0 || !days.length) return "";
   const base = Array.from({ length: 14 }, (_, k) => addDays(st, -(k + 1)));
@@ -1389,6 +1394,8 @@ function backtestBlock(): string {
 // Тревоги (dyn-alarm) не сворачиваются: их должно быть видно сразу.
 const fold = (cls: string, title: string, inner: string): string =>
   `<details class="fold ${cls}"><summary><b>${title}</b></summary><div class="fold-b">${inner}</div></details>`;
+/** Номер теста в заголовке карточки (Иван 01.10): порядок на странице - тесты, тесты_ставок, тесты_цены. */
+const numTitle = (n: number, title: string): string => (/^Тест \d/.test(title) ? title : `Тест ${n}. ${title}`);
 /** Сворачивает готовый кусок: его подзаголовок sub2, если он стоит первым, становится заголовком. */
 const foldSub = (html: string, fallback: string, cls = ""): string => {
   if (!html) return "";
@@ -1952,7 +1959,7 @@ const cards = T.тесты.map((t, ti) => {
     + (notesHtml ? fold("", "Контроль: заражение, чистка, реклама", notesHtml) : "")
     + (t.id === "boost_plus_exit" ? "<!--BOOST_TECH-->" : "")
     ;
-  return `<section class="card"><div class="chead"><div class="ctitle">${esc(t.название)} ${statusChip(t)}</div></div>`
+  return `<section class="card"><div class="chead"><div class="ctitle">${esc(numTitle(ti + 1, t.название))} ${statusChip(t)}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span>`
     + `<span>Горизонт: <b>${esc(t.горизонт_дней ?? "")} дн</b></span>`
@@ -2193,7 +2200,7 @@ const bidCards = BID_TESTS.map((t, bi) => {
   const dm = t.замер ? daysBetween(TODAY, t.замер) : null;
   const chip = t.статус === TEST_STATUS.done ? `<span class="chip chip-done">завершён</span>`
     : `<span class="chip chip-run">${esc(t.статус || "идёт")}${dm != null && dm > 0 ? ` · замер через ${dm} дн` : ""}</span>`;
-  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(t.название)} ${chip}</div></div>`
+  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(T.тесты.length + bi + 1, t.название))} ${chip}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + (t.быстрый_признак ? `<span>Быстрый признак: <b>${esc(t.быстрый_признак)}</b></span>` : "")
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span><span>Пар: <b>${t.пары.length}</b></span></div>`
@@ -2208,6 +2215,303 @@ const bidCards = BID_TESTS.map((t, bi) => {
       + fold("cov", "Откуда данные", `Воронка из ночного синка OZON (sku_views, по тестовым товарам срез funnel_tests) по ${esc(LAST)}, расход (ads_sku_daily) по ${esc(LAST_SPEND)}.`
         + ` Заказы с рекламы в выгрузке неполные, поэтому ДРР на замере берётся из кабинета.`)) + `</section>`;
 }).join("");
+
+// ---------- тест 4: снижение предельной цены (tests.json, тесты_цены; Иван 01.10) ----------
+// Формулы и пороги - price-test.ts, спека knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml.
+// Здесь только чтение файлов и вёрстка. Предельная в рублях на странице есть (таблица товаров:
+// база, ставим, сейчас) - по решению Ивана 01.10 (п. 2а), исключение из правила gap-daily.ts для 10 товаров теста.
+const PRICE_TESTS = (((T as unknown) as { тесты_цены?: PriceTestDef[] }).тесты_цены || []);
+const pNo = (ti: number): number => T.тесты.length + BID_TESTS.length + ti + 1;
+/** Время сборки = последнее обновление страницы, МСК. Страница пересобирается после синка. */
+const BUILD_TS = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Moscow", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(",", "") + " МСК";
+const REFRESH_URL = "https://github.com/oliverjone01-dev/t1/actions/workflows/ozon-snapshots.yml";
+/** С какой даты расход на рекламу за клик исключает товар из контроля теста 4. */
+const P_CPC_FROM = "2026-09-01";
+/** С 23.09 поле price в prices_daily - предельная цена (до этого там была витрина). */
+const P_CAP_FROM = "2026-09-23";
+
+const P_CAP = new Map<string, Map<string, number>>();
+let P_LAST_CAP = "";
+for (const r of readNd(dp("prices_daily.ndjson"))) {
+  const d = String(r.d || ""), a = String(r.offer || "").trim(), v = Number(r.price);
+  if (!d || d < P_CAP_FROM || !a || !(v > 0)) continue;
+  let m = P_CAP.get(a); if (!m) { m = new Map(); P_CAP.set(a, m); }
+  m.set(d, v); if (d > P_LAST_CAP) P_LAST_CAP = d;
+}
+const P_VIEWS = new Map<string, Map<string, number>>();
+let P_LAST_VIEWS = "";
+for (const r of readNd(dp("sku_views.ndjson"))) {
+  const a = sku2art[String(r.sku)], d = String(r.date || ""), v = Number(r.vsearch);
+  if (!a || !d || !Number.isFinite(v)) continue;
+  let m = P_VIEWS.get(d); if (!m) { m = new Map(); P_VIEWS.set(d, m); }
+  m.set(a, (m.get(a) ?? 0) + v); if (d > P_LAST_VIEWS) P_LAST_VIEWS = d;
+}
+const P_GAP = new Map<string, Map<string, number>>();
+for (const r of GAP.rows) {
+  const g = Number(r.gap_pct); if (!Number.isFinite(g)) continue;
+  let m = P_GAP.get(r.date); if (!m) { m = new Map(); P_GAP.set(r.date, m); }
+  m.set(r.art, g);
+}
+const P_LAST_GAP = GAP.days[GAP.days.length - 1] || "";
+const P_UNITS = new Map<string, Map<string, number>>();
+for (const r of readNd(dp("orders_daily.ndjson"))) {
+  if (r.status === "cancelled") continue;
+  const a = String(r.offer || ""), d = String(r.d || "");
+  if (!a || !d) continue;
+  let m = P_UNITS.get(a); if (!m) { m = new Map(); P_UNITS.set(a, m); }
+  m.set(d, (m.get(d) ?? 0) + (Number(r.units) || 0));
+}
+// Кто не годится в контроль: участники тестов 1-3, реклама за клик, «Максимальный бустинг»/«Усиление».
+const P_BUSY = new Set<string>();
+for (const t of T.тесты) {
+  for (const a of [...(t.тест || []), ...(t.контроль || [])]) P_BUSY.add(a);
+  for (const v of Object.values(((t as unknown) as { роли?: Record<string, string[]> }).роли || {})) for (const a of v) P_BUSY.add(a);
+}
+for (const t of BID_TESTS) for (const p of t.пары) { P_BUSY.add(p.большая.артикул); P_BUSY.add(p.малая.артикул); }
+for (const [a, r] of log) { P_BUSY.add(a); if (r["контроль"]) P_BUSY.add(r["контроль"]); }
+const P_CPC = new Set<string>();
+for (const r of readNd(dp("ads_sku_daily.ndjson"))) {
+  if (String(r.d || "") < P_CPC_FROM || !(Number(r.sp) > 0)) continue;
+  const a = sku2art[String(r.sku)]; if (a) P_CPC.add(a);
+}
+const P_BOOSTED = new Set<string>();
+for (const r of readNd(dp("acts_daily.ndjson"))) {
+  if (String(r.date || "") >= P_CAP_FROM && /Максимальный бустинг/.test(String(r.title || ""))) P_BOOSTED.add(String(r.art || ""));
+}
+
+const pct = (x: number | null, k = 1): string => (x == null ? "-" : x.toFixed(k).replace(".", ","));
+const sgn = (x: number | null, k = 1): string => (x == null ? "-" : (x > 0 ? "+" : "") + pct(x, k));
+const sumUnits = (a: string, from: string, to: string): number => {
+  let s = 0; for (const [d, v] of P_UNITS.get(a) ?? []) if (d >= from && d < to) s += v; return s;
+};
+
+interface PriceCalc {
+  t: PriceTestDef; ctrl: Set<string>; s: DayDiff[]; ss: DayShift[]; base: number | null; baseDays: string[];
+  gBase: number | null; E: number | null; noise: number | null;
+  vc: ReturnType<typeof verdictOf>;
+  vBase: ReturnType<typeof viewShare>; v1: ReturnType<typeof viewShare>; v2: ReturnType<typeof viewShare>;
+  vStop: string | null; collapsed: string[]; baseCap: Map<string, number | null>;
+  price: Array<{ a: string; st: "ждём" | "нет снимка" | "снижена" | "не снижена" | "аномалия" | "нет цены"; d: string; dPct: number | null }>;
+}
+
+function priceCalc(t: PriceTestDef): PriceCalc {
+  const test = t.тест, testSet = new Set(test), cut = t.снижение;
+  const tcards = new Set(test.map((a) => CARDS.card.get(a)).filter((x): x is string => !!x));
+  const allArts = new Set<string>(); for (const m of P_GAP.values()) for (const a of m.keys()) allArts.add(a);
+  const ctrl = new Set([...allArts].filter((a) => !testSet.has(a) && !tcards.has(CARDS.card.get(a) ?? "\0")
+    && !P_BUSY.has(a) && !P_CPC.has(a) && !P_BOOSTED.has(a)));
+  const baseCap = new Map<string, number | null>();
+  for (const a of test) baseCap.set(a, pMedian([...(P_CAP.get(a) ?? new Map()).entries()].filter(([d]) => d < t.старт).map(([, v]) => v)));
+  const applied = (a: string, d: string): boolean => priceApplied(baseCap.get(a) ?? null, P_CAP.get(a)?.get(d) ?? null, cut);
+  const s = diffSeries(P_GAP, test, ctrl, t.старт, applied);
+  const { base, days: baseDays } = baseOf(s, t.старт);
+  const gBase = pMedian(s.filter((x) => baseDays.includes(x.d) && x.t != null).map((x) => x.t!));
+  const E = gBase != null ? expectedDrop(gBase, cut) : null;
+  const bd = s.filter((x) => baseDays.includes(x.d)).map((x) => x.diff!);
+  const mu = bd.length ? bd.reduce((p, q) => p + q, 0) / bd.length : null;
+  const noise = mu != null && bd.length > 1 ? Math.sqrt(bd.reduce((p, q) => p + (q - mu) ** 2, 0) / bd.length) : null;
+  // Вердикт - по сдвигу каждого товара к его собственной базе (одна популяция до и после старта).
+  const ss = shiftSeries(P_GAP, test, ctrl, t.старт, baseDays, applied);
+  const vc = verdictOf(ss, t.старт, t.замер, TODAY, E, t.продление_до);
+  const vBase = viewShare(P_VIEWS, testSet, addDays(t.старт, -7), t.старт);
+  const v1 = viewShare(P_VIEWS, testSet, t.старт, addDays(t.старт, 7));
+  const v2 = viewShare(P_VIEWS, testSet, addDays(t.старт, 7), addDays(t.старт, 14));
+  const vStop = viewsStop(P_VIEWS, testSet, t.старт, vBase.share);
+  // Обвал разрыва к нулю после старта - товар выпал из «Эластичного бустинга» (стоп-сигнал).
+  const collapsed = test.filter((a) => [...P_GAP.entries()].some(([d, m]) => d >= t.старт && (m.get(a) ?? 99) < 10));
+  const price = test.map((a) => {
+    const b = baseCap.get(a) ?? null;
+    const after = [...(P_CAP.get(a) ?? new Map()).keys()].filter((d) => d >= t.старт).sort();
+    if (b == null) return { a, st: "нет цены" as const, d: "", dPct: null };
+    // «Ждём» только до утра после старта; дальше отсутствие свежего снимка - тревога, а не ожидание.
+    const waitOk = TODAY <= nextDay(t.старт);
+    if (!after.length) return { a, st: waitOk ? "ждём" as const : "нет снимка" as const, d: "", dPct: null };
+    const d = after[after.length - 1]!, now = P_CAP.get(a)!.get(d)!;
+    const ps = priceState(b, now, cut);
+    // День старта: снимок цен (~08:53 МСК) раньше срока снижения (10:00) - старая цена ещё не ошибка.
+    const st = ps === "не снижена" && d === t.старт ? (waitOk ? "ждём" as const : "нет снимка" as const) : ps;
+    return { a, st, d, dPct: (now / b - 1) * 100 };
+  });
+  return { t, ctrl, s, ss, base, baseDays, gBase, E, noise, vc, vBase, v1, v2, vStop, collapsed, price, baseCap };
+}
+
+/** График сдвига разрыва к базе по дням: до старта - чтобы видеть, насколько ровная база. */
+function priceShiftChart(c: PriceCalc): string {
+  if (c.base == null) return `<div class="cov">База ещё не набрана: нет ни одного наблюдаемого дня с разницей до старта.</div>`;
+  const pts = c.ss.filter((x) => x.s != null).map((x) => ({ d: x.d, y: x.s! }));
+  if (pts.length < 2) return `<div class="cov">Точек пока мало для графика.</div>`;
+  const ys = pts.map((p) => p.y);
+  const lo = Math.min(-6.5, (c.E ?? -6) - 0.5, ...ys), hi = Math.max(2, ...ys);
+  const x = (i: number) => L + (W - L - R) * (pts.length === 1 ? 0.5 : i / (pts.length - 1));
+  const y = (v: number) => TP + (H - TP - B) * (hi - v) / (hi - lo);
+  const hline = (v: number, cls: string, label: string) =>
+    `<line class="${cls}" x1="${L}" x2="${W - R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`
+    + `<text class="ax" x="${W - R + 4}" y="${(y(v) + 3).toFixed(1)}">${label}</text>`;
+  const si = pts.findIndex((p) => p.d >= c.t.старт);
+  const vline = si >= 0
+    ? `<line class="ch" x1="${x(si).toFixed(1)}" x2="${x(si).toFixed(1)}" y1="${TP}" y2="${H - B}"/>`
+      + `<text class="ax" x="${(x(si) + 3).toFixed(1)}" y="${TP + 9}">старт</text>` : "";
+  const path = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.y).toFixed(1)}`).join("");
+  const dots = pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.y).toFixed(1)}" r="2.6" fill="${C_TEST}"><title>${DM(p.d)}: сдвиг ${sgn(p.y, 2)} п.</title></circle>`).join("");
+  const lab = (i: number) => `<text class="ax" x="${x(i).toFixed(1)}" y="${H - 6}" text-anchor="middle">${DM(pts[i]!.d)}</text>`;
+  return `<svg class="cv" viewBox="0 0 ${W} ${H}" role="img" aria-label="Сдвиг разрыва теста 4 к базе по дням">`
+    + hline(0, "gl", "0") + hline(HOLD_MIN, "st", `${HOLD_MIN}`) + hline(FAIL_MAX, "st2", `${FAIL_MAX}`)
+    + (c.E != null ? hline(c.E, "st2", `${pct(c.E)}`) : "")
+    + vline + `<path d="${path}" fill="none" stroke="${C_TEST}" stroke-width="2"/>` + dots
+    + lab(0) + (si > 0 ? lab(si) : "") + lab(pts.length - 1) + `</svg>`
+    + `<div class="dyn-note">Синяя линия - сдвиг разрыва к контролю от базы, медиана по товарам (у каждого товара своя база), п. Пунктир: 0 - как в базе, `
+    + `${HOLD_MIN} - порог «держит», ${FAIL_MAX} - порог «не держит»${c.E != null ? `, ${pct(c.E)} - куда упадёт, если Ozon процент не держит` : ""}. `
+    + `После старта точка дня есть, только если у половины группы снимок цен уже показывает сниженную предельную; в точке только такие товары.</div>`;
+}
+
+const PRICE_CALC = PRICE_TESTS.map(priceCalc);
+
+/** Графики показателей как у тестов 1-3 (Иван 01.10): общий по группе и по каждому артикулу,
+ *  тот же chart() и тот же контроль, что в расчёте разрыва. До старта отметка «старт» временно
+ *  стоит на последнем дне данных: chart() без дней после старта не рисует ничего. */
+function priceCharts(c: PriceCalc): string {
+  const t = c.t;
+  const preview = LAST < t.старт;
+  // До старта: последний полный день показов (sku_views), иначе неполный день синка рисует обвал.
+  const st = preview ? (P_LAST_VIEWS && P_LAST_VIEWS < LAST ? P_LAST_VIEWS : LAST) : t.старт;
+  const endAt = preview ? st : undefined;
+  // В предпросмотре чтения «что видим» считаются по одному дню «после старта» и врут: убираем.
+  const clean = (h: string): string => (preview ? h.replace(/<div class="dyn-read">[\s\S]*?<\/div>/g, "") : h);
+  const def: TestDef = { id: t.id, название: t.название, гипотеза: "", старт: st, замер: t.замер, тест: t.тест,
+    контроль: [...c.ctrl], контроль_группа: true };
+  const pre = preview
+    ? `<div class="dyn-alarm"><b>До старта ${DM(t.старт)} графики показывают последние две недели данных.</b> Отметка «старт» временно стоит на ${DM(st)}, последнем полном дне показов; выводов «что видим» до старта нет. `
+      + `С первого дня данных после ${DM(t.старт)} отметка встанет на дату старта, и база будет две недели перед ней.</div>` : "";
+  const group = clean(chart(def, "dyn-p4", endAt));
+  const arts = t.тест.map((a, i) => fold("", `${esc(a)} · ${esc(t.модели?.[a] || "")}`,
+    clean(chart({ ...def, id: `${t.id}-${a}`, тест: [a] }, `dyn-p4-${i}`, endAt)) || `<div class="cov">Нет данных для графика.</div>`)).join("");
+  return `<details class="fold" open><summary><b>Динамика по показателям: группа</b></summary><div class="fold-b">${pre}${group || `<div class="cov">Нет данных для графика.</div>`}</div></details>`
+    + `<details class="fold"><summary><b>Динамика по показателям: по каждому артикулу</b></summary><div class="fold-b">${pre}${arts}</div></details>`;
+}
+
+/** Напоминание над карточками: карточки свёрнуты, а забыть снизить цену нельзя. */
+function priceReminder(c: PriceCalc): string {
+  const t = c.t, list = t.тест.map(esc).join(", ");
+  const keep = `До ${DM(c.vc.end)}: ставку за заказ «все товары» держать на 5%, на этих товарах не включать рекламу за клик и не менять цену ещё раз.`;
+  if (TODAY < t.старт) {
+    const dd = daysBetween(TODAY, t.старт);
+    return `<div class="remind"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: ${DM(t.старт)} до 10:00 МСК снизить предельную цену на ${Math.round(t.снижение * 100)}%</b>`
+      + ` (через ${dd} ${plural(dd, "день", "дня", "дней")}, меняет команда в кабинете) у ${t.тест.length} товаров: ${list}.<br>${esc(keep)}</div>`;
+  }
+  if (TODAY >= c.vc.end) return "";
+  const stale = c.price.filter((p) => p.st === "нет снимка").length;
+  if (stale) return `<div class="remind bad"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: снимок цен после старта не пришёл у ${stale} из ${t.тест.length}</b>`
+    + ` (последний снимок ${P_LAST_CAP ? DM(P_LAST_CAP) : "-"}). Без него снижение не проверить и товары в расчёт не входят. Проверить синк ozon-snapshots.yml. ${esc(keep)}</div>`;
+  const odd = c.price.filter((p) => p.st === "аномалия");
+  if (odd.length) return `<div class="remind bad"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: аномалия цены у ${odd.length} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}: `
+    + `${odd.map((p) => `${esc(p.a)} (${sgn(p.dPct, 1)}% к базе)`).join(", ")}. Ждём −${Math.round(t.снижение * 100)}%; такие товары в расчёт не входят. `
+    + `Проверить цену в кабинете и поле price в снимке цен; если в кабинете ошибка - поставить −${Math.round(t.снижение * 100)}% к базе (колонка «Ставим» в таблице товаров).</div>`;
+  const bad = c.price.filter((p) => p.st === "не снижена").map((p) => p.a);
+  const wait = c.price.filter((p) => p.st === "ждём").length;
+  const ok = c.price.filter((p) => p.st === "снижена").length;
+  if (bad.length) return `<div class="remind bad"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: цена не снижена у ${bad.length} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}: ${bad.map(esc).join(", ")}. `
+    + `Без снижения эти товары в расчёт не входят. ${esc(keep)}</div>`;
+  if (wait) return `<div class="remind"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))} стартовал ${DM(t.старт)}: ждём снимок цен ${DM(nextDay(t.старт))}</b> (утренний снимок дня старта раньше срока снижения), чтобы проверить снижение на ${Math.round(t.снижение * 100)}% у ${t.тест.length} товаров (${list}). ${esc(keep)}</div>`;
+  return `<div class="remind good"><b>Тест ${pNo(PRICE_TESTS.indexOf(t))}: цена снижена у ${ok} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}. ${esc(keep)}</div>`;
+}
+
+const P_VERDICT_TXT: Record<string, string> = {
+  "не запущен": "Тест ещё не начат. Ниже набирается база: разница теста и контроля до снижения цены.",
+  "идёт": "Тест идёт, точек сдвига после старта пока меньше трёх.",
+  "держит": "Ozon держит процент: разрыв у теста остался на уровне контроля, витрина опустилась вместе с предельной.",
+  "не держит": "Ozon процент не держит: разрыв у теста упал, витрина осталась на месте, снижение цены ушло из нашего кармана.",
+  "держит частично": "Ozon держит процент частично: доля ниже показывает, какая часть снижения дошла до покупателя.",
+  "мало данных": "Данных для вердикта мало: база не набрана или в окне меньше трёх наблюдаемых дней.",
+};
+
+function priceCard(c: PriceCalc, ti: number): string {
+  const t = c.t, cut = Math.round(t.снижение * 100);
+  const dm = daysBetween(TODAY, c.vc.end);
+  const vName = (c.vc.prelim && c.vc.window.length >= RUN_DAYS ? "предварительно: " : "") + c.vc.v;
+  const chipCls = c.vc.prelim ? "chip-run" : c.vc.v === "держит" ? "chip-done" : c.vc.v === "не держит" ? "chip-off" : "chip-run";
+  const chip = `<span class="chip ${chipCls}">${esc(vName)}${dm > 0 ? ` · ${c.vc.extended ? "продлён, итог" : "замер"} через ${dm} дн` : ""}</span>`;
+  // До старта окно базы показов ещё в будущем: показываем последние 7 дней синка.
+  const vEnd = TODAY < t.старт && P_LAST_VIEWS ? (nextDay(P_LAST_VIEWS) < t.старт ? nextDay(P_LAST_VIEWS) : t.старт) : t.старт;
+  const vNow = viewShare(P_VIEWS, new Set(t.тест), addDays(vEnd, -7), vEnd);
+  const last = c.vc.shifts[c.vc.shifts.length - 1];
+  const lastN = last ? c.ss.find((x) => x.d === last.d)?.nt ?? 0 : 0;
+  const vRatio = (w: ReturnType<typeof viewShare>) => (w.share != null && c.vBase.share ? w.share / c.vBase.share - 1 : null);
+  const r1 = vRatio(c.v1), r2 = vRatio(c.v2);
+  const viewsVerdict = r1 == null ? "окно ещё не началось"
+    : r2 == null ? `первая неделя ${sgn(r1 * 100, 0)}%${c.v1.days < 7 ? ` (неполная, ${c.v1.days} дн)` : ""}, вторая ещё не началась`
+    : r1 <= VIEWS_DROP && r2 <= VIEWS_DROP ? `просели: ${sgn(r1 * 100, 0)}% и ${sgn(r2 * 100, 0)}%`
+    : `не просели: ${sgn(r1 * 100, 0)}% и ${sgn(r2 * 100, 0)}%${c.v2.days < 7 ? ` (вторая неполная, ${c.v2.days} дн)` : ""}`;
+  const stops = [
+    c.vStop ? `доля показов ниже половины базы 3 дня подряд с ${DM(c.vStop)} - вернуть цену` : "",
+    c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map(esc).join(", ")} - товар, похоже, выпал из «Эластичного бустинга», вернуть цену` : "",
+  ].filter(Boolean);
+  const verdict = `<div class="verdict"><div class="verdict-h">${c.vc.prelim ? "Промежуточно" : "Итог"} по показателям на ${DM(P_LAST_GAP || TODAY)}</div>`
+    + `<div class="verdict-main"><b>${esc(vName)}.</b> ${esc(P_VERDICT_TXT[c.vc.v] || "")}`
+    + (c.vc.prelim && c.vc.window.length >= RUN_DAYS ? ` Это не итог: медиана последних ${c.vc.window.length} наблюдаемых дней, итог на ${DM(c.vc.end)}.` : "")
+    + (c.vc.extended ? ` На замере ${DM(t.замер)} вышло «держит частично», окно продлено до ${DM(c.vc.end)}.` : "") + `</div>`
+    + `<div class="tbl-wrap"><table class="gtbl single"><tbody>`
+    + `<tr><td>База: разница теста и контроля, медиана</td><td class="r nw"><b>${sgn(c.base, 2)} п.</b></td><td class="muted">${c.baseDays.length} из ${P_BASE_DAYS} дней${c.baseDays.length ? `, ${DM(c.baseDays[0]!)}-${DM(c.baseDays[c.baseDays.length - 1]!)}` : ""}${c.baseDays.length < P_BASE_DAYS ? ", набирается" : ""}</td></tr>`
+    + `<tr><td>Шум базы (ст. откл. разницы)</td><td class="r nw">${pct(c.noise, 2)} п.</td><td class="muted">порог «держит» ${HOLD_MIN} п. это ${c.noise ? pct(Math.abs(HOLD_MIN) / c.noise, 0) : "-"} шума</td></tr>`
+    + `<tr><td>Разрыв теста в базе</td><td class="r nw">${pct(c.gBase)}%</td><td class="muted">если Ozon не держит, сдвиг уйдёт к ${pct(c.E)} п.</td></tr>`
+    + `<tr><td>Сдвиг, последний день</td><td class="r nw"><b>${last ? `${sgn(last.s, 2)} п.` : "-"}</b></td><td class="muted">${last ? `${DM(last.d)}, засчитано ${lastN} из ${t.тест.length}` : "после старта точек нет"}${c.vc.medShift != null && c.vc.window.length ? `; медиана ${c.vc.window.length} посл. дней ${sgn(c.vc.medShift, 2)} п.` : ""}${c.vc.share != null && c.vc.shifts.length ? `; держит ${pct(Math.max(0, Math.min(1, c.vc.share)) * 100, 0)}% скидки` : ""}</td></tr>`
+    + `<tr><td>Показы: доля группы в показах магазина</td><td class="r nw">${c.vBase.share != null ? pct(c.vBase.share * 1000, 2) + " ‰" : vNow.share != null ? pct(vNow.share * 1000, 2) + " ‰" : "-"}</td><td class="muted">${c.vBase.share != null ? `база ${DM(addDays(t.старт, -7))}-${DM(addDays(t.старт, -1))}` : vNow.share != null ? `пока за ${DM(addDays(vEnd, -7))}-${DM(addDays(vEnd, -1))}, база будет ${DM(addDays(t.старт, -7))}-${DM(addDays(t.старт, -1))}` : "нет данных"}; ${esc(viewsVerdict)}</td></tr>`
+    + `</tbody></table></div>`
+    + (stops.length ? `<div class="stop"><b>Стоп:</b> ${stops.join("; ")}.</div>` : "")
+    + `</div>`;
+  const rows = t.тест.map((a) => {
+    const p = c.price.find((x) => x.a === a)!;
+    const gb = pMedian(c.baseDays.map((d) => P_GAP.get(d)?.get(a)).filter((v): v is number => v != null));
+    const lastGap = (() => { const ds = [...P_GAP.keys()].sort().reverse(); for (const d of ds) { const v = P_GAP.get(d)!.get(a); if (v != null) return { d, v }; } return null; })();
+    const v7 = viewShare(P_VIEWS, new Set([a]), addDays(vEnd, -7), vEnd).t;
+    const bc = c.baseCap.get(a) ?? null;
+    const capNow = (() => { const m = P_CAP.get(a); if (!m || !m.size) return null; const d = [...m.keys()].sort().pop()!; return { d, v: m.get(d)! }; })();
+    const st = p.st === "снижена" ? `<span class="up">снижена ${sgn(p.dPct, 1)}%</span>`
+      : p.st === "не снижена" ? `<span class="dn">нет (${sgn(p.dPct, 1)}%)</span>`
+      : p.st === "аномалия" ? `<span class="dn">аномалия (${sgn(p.dPct, 1)}%)</span>` : `<span class="muted">${esc(p.st)}</span>`;
+    return `<tr><td class="nw">${esc(a)}</td><td>${esc(t.модели?.[a] || "")}</td><td class="r">${pct(gb)}</td>`
+      + `<td class="r">${lastGap ? `${pct(lastGap.v)} <span class="muted">${DM(lastGap.d)}</span>` : "-"}</td>`
+      + `<td class="r nw">${bc != null ? nbsp(bc) : "-"}</td><td class="r nw"><b>${bc != null ? nbsp(Math.round(bc * (1 - t.снижение))) : "-"}</b></td>`
+      + `<td class="r nw">${capNow ? `${nbsp(capNow.v)} <span class="muted">${DM(capNow.d)}</span>` : "-"}</td><td class="nw">${st}</td>`
+      + `<td class="r">${nbsp(v7)}</td><td class="r">${sumUnits(a, addDays(t.старт, -14), t.старт)}</td><td class="r">${TODAY >= t.старт ? sumUnits(a, t.старт, addDays(t.старт, 14)) : "-"}</td></tr>`;
+  }).join("");
+  const table = `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Артикул</th><th>Модель</th><th class="r">Разрыв в базе, %</th>`
+    + `<th class="r">Разрыв сейчас, %</th><th class="r" title="Медиана предельной по снимку цен с 23.09 до старта">Предельная в базе, ₽</th><th class="r" title="Предельная, которую ставим 07.10: база минус снижение, округлено до рубля">Ставим, −${cut}%, ₽</th><th class="r">Предельная сейчас, ₽</th><th>Предельная снижена</th><th class="r">Показы в поиске, ${vEnd < t.старт ? `${DM(addDays(vEnd, -7))}-${DM(addDays(vEnd, -1))}` : "7 дн до старта"}</th>`
+    + `<th class="r">Шт, 14 дн до</th><th class="r">Шт, 14 дн после</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<div class="cov">Штуки - заказы без отмен. На 10 товарах за 14 дней ждём 2-4 штуки: это направление, не вывод.</div>`;
+  const hist = ((t as unknown) as { история?: string[] }).история || [];
+  const tech = fold("tech", `Техническая информация тест ${pNo(ti)}`,
+    fold("cov", "Контроль", `Медиана разрыва по ${c.ctrl.size} товарам магазина. Исключены: участники тестов 1-3 (тест, контроль, роли, пары ставок, лог кампаний), `
+      + `соседи тестовых товаров по объединённой карточке, товары с расходом на рекламу за клик с ${DM(P_CPC_FROM)}, участники «Максимального бустинга» и «Усиления» с ${DM(P_CAP_FROM)}. `
+      + `Разрыв почти одинаков по всему магазину (Ozon двигает процент сразу на весь магазин), поэтому контроль - весь «чистый» магазин, а не пары.`)
+    + fold("cov", "Как считается", `Разрыв товара = (1 - витрина / предельная) × 100, из среза кабинета (gap_daily). Разница товара в дне = его разрыв минус медиана контроля. `
+      + `База товара = медиана его разницы за ${P_BASE_DAYS} последних наблюдаемых дней до старта. Сдвиг товара = разница дня минус его база; сдвиг дня = медиана по засчитанным товарам (не меньше половины группы). `
+      + `Так до и после старта сравнивается один и тот же товар, даже если засчитана только часть группы. `
+      + `После старта товар засчитывается, только если снимок цен в этот день показывает предельную от −${pct((1 - (1 - t.снижение) * (1 + P_PRICE_TOL)) * 100, 2)}% до −${pct((1 - (1 - t.снижение) * (1 - P_PRICE_TOL)) * 100, 2)}% к базе: `
+      + `иначе забытое снижение читалось бы как «держит». Цена вне коридора (не −${cut}% и не старая) - «аномалия», товар не засчитывается. Снимок цен снимается утром (около 09:00 МСК), поэтому день старта обычно ещё со старой ценой и не считается. `
+      + `Вердикт - медиана сдвига за ${P_BASE_DAYS} последних наблюдаемых дней окна (нужно не меньше ${RUN_DAYS}): не ниже ${HOLD_MIN} п. - держит, ${FAIL_MAX} п. и ниже - не держит, между - держит частично. До конца окна это «предварительно». `
+      + `«Держит частично» на замере продлевает окно${t.продление_до ? ` до ${DM(t.продление_до)}` : ""}. `
+      + `Ожидаемое падение, если Ozon не держит: -(100 - разрыв в базе) × ${cut}% / ${100 - cut}%. Показы: доля группы в показах магазина в поиске за 7 дней (sku_views).`)
+    + hist.map((h, i) => fold("cov", i === 0 ? "Что уже известно" : `Что уже известно (${i + 1})`, esc(h))).join("")
+    + (t.заметка ? fold("cov", "Как выбраны товары", esc(t.заметка)) : "")
+    + fold("cov", "Откуда данные", `Разрыв - срез кабинета (gap_daily), по ${esc(P_LAST_GAP || "-")}, снимается по будням. Предельная для проверки снижения - снимок цен (prices_daily, поле price), по ${esc(P_LAST_CAP || "-")}. `
+      + `Показы - ночной синк OZON (sku_views), по ${esc(P_LAST_VIEWS || "-")}. Заказы - orders_daily. Страница собрана ${esc(BUILD_TS)}.`));
+  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(pNo(ti), t.название))} ${chip}</div></div>`
+    + `<div class="meta"><span>Старт: <b>${esc(t.старт)}</b></span><span>Замер: <b>${esc(t.замер)}</b></span>`
+    + (t.продление_до ? `<span>Продление: <b>до ${esc(t.продление_до)}</b></span>` : "")
+    + `<span>Снижение: <b>${cut}%</b></span><span>Товаров: <b>${t.тест.length}</b></span><span>Контроль: <b>${c.ctrl.size}</b></span></div>`
+    + priceReminder(c)
+    + (t.гипотеза ? fold("hyp", "Что проверяем", esc(t.гипотеза)) : "")
+    + (t.правило ? fold("rule", "Правило", esc(t.правило)) : "")
+    + (t.условие_завершения ? fold("rule", "Когда тест завершится", esc(t.условие_завершения)) : "")
+    + (t.условие_перехода ? fold("rule", "Условие перехода (что делаем по итогу)", esc(t.условие_перехода)) : "")
+    + verdict
+    + `<details class="fold" open><summary><b>Динамика: сдвиг разрыва к базе</b></summary><div class="fold-b">${priceShiftChart(c)}</div></details>`
+    + priceCharts(c)
+    + `<details class="fold" open><summary><b>Товары теста</b></summary><div class="fold-b">${table}</div></details>`
+    + tech + `</section>`;
+}
+const priceCards = PRICE_CALC.map(priceCard).join("");
+const priceBanner = PRICE_CALC.map(priceReminder).join("");
 
 /** Подписи метрик воронки для таблицы эталона: те же слова, что в колонках выше на странице. */
 const FUNNEL_TITLE: Record<FunnelKey, string> = {
@@ -3030,7 +3334,11 @@ h1{font-size:20px;margin:8px 2px 4px}.sub{color:var(--ink3);margin:0 2px 16px}
 .stop{font-size:12.5px;color:var(--ink2);background:rgba(255,90,95,.09);border-left:3px solid #FF5A5F;padding:7px 10px;border-radius:6px;margin:8px 0}.stop b{color:#FF7A7E}.dl2{margin:6px 0 6px 18px;padding:0}.dl2 li{margin:2px 0}
 .warnv{color:var(--warn)}.muted{color:var(--ink3)}.mrow{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:12px 16px;margin-bottom:10px}
 .res{font-weight:700;color:var(--up);margin:6px 0}.notes{background:var(--card);border:1px solid var(--soft);border-radius:12px;padding:10px 16px}
-.notes li{color:var(--ink2);margin:4px 0}.legend{font-size:12px;color:var(--ink3);margin:2px 2px 14px}.legend b{color:var(--ink2)}`;
+.notes li{color:var(--ink2);margin:4px 0}.legend{font-size:12px;color:var(--ink3);margin:2px 2px 14px}.legend b{color:var(--ink2)}
+.h1row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.upd{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink3);flex-wrap:wrap}.upd b{color:var(--ink2)}
+.kt-refresh{padding:6px 12px;border:1px solid var(--soft);border-radius:8px;color:var(--cy);font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap}.kt-refresh:hover{border-color:var(--cy)}
+.remind{font-size:13px;color:var(--ink);background:rgba(229,181,103,.14);border:1px solid var(--warn);border-left:5px solid var(--warn);padding:10px 12px;border-radius:8px;margin:10px 0}.remind b{color:var(--warn)}
+.remind.bad{background:rgba(255,90,95,.12);border-color:#FF5A5F}.remind.bad b{color:#FF7A7E}.remind.good{background:rgba(52,211,153,.10);border-color:var(--up)}.remind.good b{color:var(--up)}`;
 
 // Страничный JS. Регулярок здесь нет намеренно: внутри backtick-шаблона \d и \s теряют
 // бэкслеш (грабля build-katya.ts), поэтому разряды считаются руками.
@@ -3097,15 +3405,20 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<title>GENGLASS · Тесты</title><style>${CSS}</style></head><body>`
   + `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">`
   + `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">${nav}`
-  + `<span style="color:#5d7484;margin-left:8px">тесты по ${esc(T.обновлено || "")} · воронка по ${esc(LAST)}</span></div></div>`
-  + `<div class="wrap"><h1>Тесты · A/B по рекламе</h1>`
+  + `<span style="color:#5d7484;margin-left:8px">тесты по ${esc(T.обновлено || "")} · воронка по ${esc(LAST)} · разрыв по ${esc(P_LAST_GAP || "-")}</span></div></div>`
+  + `<div class="wrap"><div class="h1row"><h1>Тесты · A/B по рекламе</h1>`
+  // Кнопка и дата обновления (Иван 01.10). Тот же синк, что у «Денег»: ozon-snapshots.yml собирает
+  // свежий день и пересобирает вкладки. Срез кабинета (разрыв) идёт отдельно, с мака, по будням.
+  + `<div class="upd"><span>Обновлено <b>${esc(BUILD_TS)}</b></span>`
+  + `<a class="kt-refresh" href="${REFRESH_URL}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow»: синк соберёт свежий день (показы, цены, заказы, реклама), вкладка обновится сама после автосборки, обычно 10-15 мин. Разрыв приходит отдельно со среза кабинета по будням. Нужен вход в GitHub как владелец.">🔄 Обновить данные</a></div></div>`
+  + priceBanner
   + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>`
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта. Сама разница считается не к паре, а к групповому контролю: панель снимка без тестовых товаров и их родни по карточке. Пара осталась подписью и ловушкой для мёртвого и грязного контроля; родство в ней доказано корреляцией остатков, а не карточкой.</p>`
   // «Измеренные тесты» со страницы убраны, «Заметки и предупреждения» свёрнуты (Иван 30.09).
   // mblock собирается по-прежнему: reakciya.json не трогаем, блок просто не выводится.
   // Карточки тестов свёрнуты до заголовка с чипом статуса (Иван 30.09: «сами тесты свернуть»).
-  + foldCards(cards.replace("<!--BOOST_EXITED-->", () => WAVE.exited).replace("<!--BOOST_TECH-->", () => WAVE.tech) + bidCards)
+  + foldCards(cards.replace("<!--BOOST_EXITED-->", () => WAVE.exited).replace("<!--BOOST_TECH-->", () => WAVE.tech) + bidCards + priceCards)
   + `<details class="fold"><summary><b style="font-size:15px">Заметки и предупреждения</b></summary><div class="fold-b">${warnBlock}<div class="notes"><ul>${notes}</ul></div></div></details></div>`
   + `<script>${JS}</script></body></html>`;
 

@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
+import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
 import { matchLedger, accrualShipSeries, type Unmatched } from "./delivery-match.js";
 import { splitCpo } from "./cpo-split.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
@@ -884,7 +885,8 @@ function patchMarginHonesty(html: string): string {
 // Полоса навигации при этом раньше на ВСЕХ страницах писала «живой OZON», включая Маркет.
 function marketplaceSwitch(active: string): string {
   const here = KPAGES.find(([, , key]) => key === active);
-  if (!here) return "";
+  // «Отчет» есть только у OZON: ссылка на market/katya-report.html вела бы в 404.
+  if (!here || active === "report") return "";
   const file = here[0];
   const chip = (label: string, href: string, on: boolean) =>
     `<a href="${href}" title="Показать данные площадки «${label}»" style="color:${on ? "#0B0F15" : "#cfe8ef"};background:${on ? "#8AA0FF" : "transparent"};border:1px solid #8AA0FF;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap;font-weight:600">${label}</a>`;
@@ -907,7 +909,7 @@ function banner(active: string): string {
     `<a href="${href}" style="color:${on ? "#0B0F15" : "#22D3EE"};background:${on ? "#22D3EE" : "transparent"};border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">${label}</a>`;
   return `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">
   <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
-    ${KPAGES.filter(([, , key]) => (key !== "reakciya" && key !== "tests") || IS_OZON).map(([h, l, key]) => k(h, l, key === active)).join(" ")}
+    ${KPAGES.filter(([, , key]) => (key !== "reakciya" && key !== "tests" && key !== "report") || IS_OZON).map(([h, l, key]) => k(h, l, key === active)).join(" ")}
     ${marketplaceSwitch(active)}
     <span style="color:#5d7484;margin-left:8px">живой ${IS_OZON ? "OZON" : "Яндекс Маркет"} (${snap}) · прочие каналы/клиенты/план - нет данных</span>
   </div></div>${coverageStrip()}`;
@@ -2759,7 +2761,9 @@ function realBase(sk,covM,from,to){
 // База налога заказа: оплата покупателя (F по заказу) + доля G артикула; нет оплаты - оценка долей.
 function ordBase(s){if(s.paid!=null&&s.paid>0){var g=(AN_GF[s.sk]!=null)?AN_GF[s.sk]:AN_GF_ALL;return Math.round(s.paid*(1+g));}return Math.round((s.acc||0)*tbRate(s.sk));}
 var NOFEE_TIP='OZON отметил заказ доставленным, но комиссию за продажу по нему не начислил. Для свежего заказа это обычно значит, что начисление ещё не пришло (появится при следующем обновлении данных); для старого - что OZON не взял комиссию или начислил её на другой номер. «К выплате» и прибыль в строке могут быть завышены на размер комиссии.';
-function anCells(x){
+// Производные строки (сборы, валовая, АДМ, налоги, чистая, рентабельность). Одна функция для таблиц
+// «Денег» и вкладки «Отчет» (Иван 01.10): отчёт берёт ИТОГО этой же таблицы, копий формулы нет.
+function anDerive(x){
   var fees=x.acc-x.amt;
   // Валовая прибыль = К выплате − СС произв.; АДМ = 30% К выплате; Налоги = 15% К выплате;
   // Чистая = Валовая − АДМ − Налоги; Рентабельность = Чистая / Выручка.
@@ -2772,6 +2776,10 @@ function anCells(x){
   // строки без x.tb считают налог от прежней базы.
   var gp=(x.amt||0)-(x.cc||0)-(x.ship||0)+(x.dinc||0), adm=0.30*(x.amtS||0), tax=0.15*((x.tb!=null)?x.tb:(x.amtS||0)), net=gp-adm-tax;
   var rent=(x.amt>0)?net/x.amt*100:null; // база «К выплате»<=0 -> рентаб не определена (не считаем ложный плюс)
+  return {fees:fees,gp:gp,adm:adm,tax:tax,net:net,rent:rent};
+}
+function anCells(x){
+  var _dv=anDerive(x),fees=_dv.fees,gp=_dv.gp,adm=_dv.adm,tax=_dv.tax,net=_dv.net,rent=_dv.rent;
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var RD=function(v,tip){var t=tip?' title="'+String(tip).replace(/"/g,'&quot;')+'"':'';return '<td class="r"'+t+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var P2=function(v){return '<td class="r"'+(v>0?' style="color:var(--up)"':'')+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';}; // приход (зелёный)
@@ -2822,9 +2830,11 @@ function anCells(x){
   return I(x.units)+dlvCell+R(x.acc)+comCell+mid+ES(fees,eAll,'В том числе оценка сборов')+ES(x.amt,-eAll,'В том числе за вычетом оценки сборов')+shipCell+incCell+R(x.cc)+EF(P(gp))+EF(R(adm))+tbCell+taxCell+EF(P(net))+EF(PC(rent))+cityCell;
 }
 var skuGrandLast=null;
-function renderSkuAnalytics(cur){
-  skuGrandLast=null;
-  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);var miss=[];
+// Расчёт таблицы «Аналитика по артикулам (за выбранный период)» без отрисовки: строки артикулов по
+// категориям, строка «Общие расходы» и ИТОГО. Таблица на «Деньгах» и вкладка «Отчет» зовут одну эту
+// функцию, поэтому ИТОГО отчёта за месяц равно ИТОГО таблицы за тот же месяц (Иван 01.10, «1в»).
+function skuAnalyticsData(cur){
+  var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);var miss=[];
   for(var sk in AN_META){
     var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,9);
     // cpo = разнесённая реклама «за заказ» по SKU (ручной per-order отчёт, закрытые месяцы).
@@ -2873,12 +2883,9 @@ function renderSkuAnalytics(cur){
   // списке категория и ИТОГО показывали по ним прочерк, хотя у артикулов суммы были.
   var SUMK=['rev','units','deliv','ret','canc','sp','soldO','omO','comb','acc','com','del','acq','sto','cof','promo','oth','adv','amt','amtS','tb','tbEst','cc','ship','dinc'];
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.rev-a.rev;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.rev-a.t.rev;});
-  if(!cats.length){el.innerHTML='<tr><td colspan="20" class="kt-note">нет данных за период</td></tr>';return;}
-  var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
-  cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});var op=!!anOpen[g.cat];var ck=g.cat.replace(/"/g,'');
-    html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';
-    g.arr.forEach(function(x){var badge=x.noCs?' <span style="color:#E5B567" title="Нет производственной СС в листе - СС/прибыль/рентабельность по этому артикулу неполные">⚠ нет СС</span>':'';html+='<tr class="an-sku'+(x.noCs?' an-nocs':'')+'" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+badge+'</td>'+anCells(x)+'</tr>';});
-  });
+  if(!cats.length)return {cats:cats,grand:null,acct:null,miss:miss};
+  var grand={};SUMK.forEach(function(k){grand[k]=0;});
+  cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});});
   // Сборы уровня заказа/кабинета (не по SKU) за период - отдельной строкой и в ИТОГО, разнесены
   // по колонкам по смыслу: realFBS+сервис+страхование -> «Логистика»; реклама/штрафы/бейдж/
   // эквайринг/компенсации -> «Прочие». ИСКЛЮЧЕНИЕ: «Доставка от покупателя» в расчёт НЕ входит
@@ -2904,10 +2911,23 @@ function renderSkuAnalytics(cur){
   // Раньше итогом было только разнесённое, и за июль таблица недобирала 305 291 ₽ дохода (599 576
   // против 904 867 по «Начислениям»; аудит «Денег», Иван 25.09.2026).
   var unmInc=Math.round(aB.delivery-(grand.dinc||0));
-  if(at||unmDeliv||unmInc){var acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:-aDel,acq:0,sto:0,cof:0,promo:0,oth:-aOth,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:Math.max(0,at),tb:0}; // расходы кабинета АДМ не уменьшают (вариант Б)
+  var acct=null;
+  if(at||unmDeliv||unmInc){acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:-aDel,acq:0,sto:0,cof:0,promo:0,oth:-aOth,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:Math.max(0,at),tb:0}; // расходы кабинета АДМ не уменьшают (вариант Б)
     grand.del+=acct.del;grand.oth+=acct.oth;grand.amt+=acct.amt;grand.amtS+=acct.amtS;grand.ship+=unmDeliv;grand.dinc+=unmInc; // сборы кабинета - в базе АДМ/налогов; доставка вне артикулов - в ИТОГО
-    html+='<tr style="cursor:default;font-weight:600" title="realFBS/сервис/страхование -> Логистика; реклама/штрафы/бейдж/эквайринг/компенсации -> Прочие. «Наша доставка» и «Доставка покупателя» здесь - по заказам, чей артикул не сошёлся с каталогом."><td>Общие расходы</td>'+anCells(acct)+'</tr>';
   }
+  return {cats:cats,grand:grand,acct:acct,miss:miss};
+}
+function renderSkuAnalytics(cur){
+  skuGrandLast=null;
+  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;
+  var D=skuAnalyticsData(cur),cats=D.cats,grand=D.grand,acct=D.acct,miss=D.miss;
+  if(!cats.length){el.innerHTML='<tr><td colspan="20" class="kt-note">нет данных за период</td></tr>';return;}
+  var html='';
+  cats.forEach(function(g){var op=!!anOpen[g.cat];var ck=g.cat.replace(/"/g,'');
+    html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';
+    g.arr.forEach(function(x){var badge=x.noCs?' <span style="color:#E5B567" title="Нет производственной СС в листе - СС/прибыль/рентабельность по этому артикулу неполные">⚠ нет СС</span>':'';html+='<tr class="an-sku'+(x.noCs?' an-nocs':'')+'" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+badge+'</td>'+anCells(x)+'</tr>';});
+  });
+  if(acct)html+='<tr style="cursor:default;font-weight:600" title="realFBS/сервис/страхование -> Логистика; реклама/штрафы/бейдж/эквайринг/компенсации -> Прочие. «Наша доставка» и «Доставка покупателя» здесь - по заказам, чей артикул не сошёлся с каталогом."><td>Общие расходы</td>'+anCells(acct)+'</tr>';
   var totalRow='<tr style="font-weight:800;background:rgba(34,211,238,.16);border-top:2px solid #22D3EE;border-bottom:2px solid #22D3EE"><td style="color:#22D3EE">ИТОГО</td>'+anCells(grand)+'</tr>';
   el.innerHTML=totalRow+html; // ИТОГО - вверху, под шапкой (по просьбе Ивана)
   skuGrandLast=grand; // ИТОГО таблицы по артикулам - для водопада
@@ -3402,6 +3422,15 @@ function syncTopScroll(){
 }
 if(typeof window!=='undefined')window.addEventListener('resize',function(){try{syncTopScroll();}catch(e){}});`;
   writeFileSync(op("katya-money.html"), kshell("Деньги", "money", body, pageJs + svodJs(svodJson)));
+  // Вкладка «Отчет» (только OZON, Иван 01.10.2026): несёт код и данные «Денег» целиком, чтобы считать
+  // той же функцией skuAnalyticsData, что таблица по артикулам. render «Денег» переименован только в
+  // копии для отчёта - у отчёта свой render (report-page.ts). Сама страница «Деньги» не меняется.
+  if (IS_OZON) {
+    const rep = reportData({ dp, maxD, finCut: FIN_CUT, viewRows, catOf, offerOf, skuName, gmvOf: (d: string) => (DAY_T.rev ?? [])[dayIdx(d)] || 0 });
+    const moneyCore = pageJs.replace("function render(cur,cmp){", "function moneyRender(cur,cmp){");
+    if (moneyCore === pageJs) throw new Error("report: не нашёл render «Денег» - код отчёта собрался бы с чужим render");
+    writeFileSync(op("katya-report.html"), kshell("Отчет", "report", REPORT_BODY, `const REP=${J(rep)};` + moneyCore + REPORT_JS));
+  }
 }
 
 // Лист продвижения Яндекс Маркета. Считается из того же свода, что и вкладка Деньги, поэтому

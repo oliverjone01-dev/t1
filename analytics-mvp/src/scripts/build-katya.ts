@@ -2276,8 +2276,9 @@ function render(cur,cmp){
   // Доставка покупателя ПО ЗАКАЗУ (NON_ITEM несёт ключ заказа, ~85% сходится с базами заказов) - для
   // per-order разнесения; несматченный остаток раскидывается пропорционально в render.
   const bdByOrderApi: Record<string, number> = {};
+  const bdDaysByOrder: Record<string, [string, number][]> = {}; // даты операций «доставка от покупателя» по заказу (accrual/by-day)
   const bdKnown: Record<string, boolean> = {}; // все заказы, по которым OZON уже отдал оплату доставки (в т.ч. 0)
-  try { for (const l of readFileSync(dp("buyer_delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); bdKnown[String(r.order)] = true; if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); } } catch { /* нет файла */ }
+  try { for (const l of readFileSync(dp("buyer_delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); bdKnown[String(r.order)] = true; if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); if (Array.isArray(r.ds) && r.ds.length) bdDaysByOrder[String(r.order)] = r.ds; } } catch { /* нет файла */ }
   // «Логистика по городам»: доход с покупателя - из OZON (оплата доставки покупателем по заказу), а не из
   // ведомости (Иван 29.09, вариант А). В ведомости «Стоимость доставки» бывает пустой при оплате в OZON
   // (40230562-0725-1: пусто, OZON 8 100 ₽) - такой 0 читался как «бесплатно». Ведомость остаётся
@@ -2438,7 +2439,8 @@ function render(cur,cmp){
   // OZON, только таблица «Аналитика по артикулам (за выбранный период)»: доставка покупателя по артикулу -
   // на ДАТУ НАЧИСЛЕНИЯ заказа (sd), как «Наша доставка» (Иван 01.10, остальную аналитику не трогать:
   // «сумма должна сойтись с начислениями OZON»). По дате заказа разница дат уходила в «Общие расходы»
-  // (сентябрь: 402 739 из 825 432). Заказ без начисления - на дату заказа.
+  // (сентябрь: 402 739 из 825 432). Дата - самой операции OZON «доставка от покупателя» (ds в
+  // buyer_delivery_orders, Codex PR #447); в старом файле без ds - дата начисления продажи (sd), без неё - заказа.
   const sdByBase: Record<string, string> = {};
   const dincAccMap: Record<string, Record<string, number>> = {}; // только для таблицы «Аналитика по артикулам (за выбранный период)»
   if (IS_OZON) { try { for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); const b = orderBase(String(r.order)); if (r.sd && !sdByBase[b]) sdByBase[b] = String(r.sd); } } catch { /* нет файла - по дате заказа */ } }
@@ -2447,7 +2449,7 @@ function render(cur,cmp){
     if (!sk || !d) continue;
     const dl = delivByOrder[String(o.order)];
     if (dl && dl.ship) { (shipSkuMap[sk] ||= {})[d] = (shipSkuMap[sk][d] || 0) + Math.round(dl.ship); }
-    if (bdByOrderApi[b] != null && !bdBaseUsed[b]) { bdBaseUsed[b] = true; (dincSkuMap[sk] ||= {})[d] = (dincSkuMap[sk][d] || 0) + Math.round(bdByOrderApi[b]); const dd = sdByBase[b] || d; (dincAccMap[sk] ||= {})[dd] = (dincAccMap[sk][dd] || 0) + Math.round(bdByOrderApi[b]); }
+    if (bdByOrderApi[b] != null && !bdBaseUsed[b]) { bdBaseUsed[b] = true; (dincSkuMap[sk] ||= {})[d] = (dincSkuMap[sk][d] || 0) + Math.round(bdByOrderApi[b]); const acc = (dincAccMap[sk] ||= {}); const ds = bdDaysByOrder[b]; if (ds) { for (const [dd, v] of ds) acc[dd] = (acc[dd] || 0) + v; } else { const dd = sdByBase[b] || d; acc[dd] = (acc[dd] || 0) + Math.round(bdByOrderApi[b]); } }
   }
   const anShipSku: Record<string, any[]> = {}; for (const sk in shipSkuMap) { anShipSku[sk] = []; for (const d in shipSkuMap[sk]) anShipSku[sk]!.push([d, shipSkuMap[sk]![d]]); }
   // «Наша доставка» в таблице по артикулам (базис начислений), водопаде и план-факте OZON - ПО ДАТЕ

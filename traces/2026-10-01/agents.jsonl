@@ -1,0 +1,1 @@
+{"ts": "2026-10-01T10:11:42+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/mx.get(b,"}

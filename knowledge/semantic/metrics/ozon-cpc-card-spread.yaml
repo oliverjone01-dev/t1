@@ -2,7 +2,7 @@
 id: ozon-cpc-card-spread
 title: "Реклама за клик (CPC) по заказам с разнесением на всю объединённую карточку"
 version: 1
-status: draft
+status: superseded   # 01.10: Иван прислал отчёты продвижения с листом Union, база разнесения - атрибуция OZON, см. knowledge/semantic/probes/ozon-promo-union-report.md
 owner: "Иван Раюшкин"
 approved_at: ""
 decision: >

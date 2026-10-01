@@ -79,23 +79,28 @@ describe("«Наша доставка» по дате начисления за�
   it("начисленный заказ - на дату начисления, не заказа и не отгрузки", () => {
     expect(s.bySku.get("1")!.get("2026-08-13")).toBe(3666.1);
   });
-  it("не начисленный - на фактическую доставку, без неё - на отгрузку", () => {
-    expect(s.bySku.get("2")!.get("2026-08-26")).toBe(1000);
+  it("в пути и не начислен - не в ряду, ждёт начисления (Иван 01.10, «а»)", () => {
+    expect(s.bySku.get("2")?.get("2026-08-26")).toBeUndefined();
+    expect(s.pending).toEqual([["2026-08-26", 1000]]);
+    expect(s.pendTotal).toBe(1000);
+  });
+  it("отменённый с расходом перевозчика - в ряду на отгрузке (OZON его не начислит)", () => {
     expect(s.bySku.get("2")!.get("2026-08-27")).toBe(500);
-    expect(s.fallback).toEqual({ fact: 1000, ship: 500, order: 0 });
+    expect(s.fallback).toEqual({ fact: 0, ship: 500, order: 0 });
   });
-  it("ничего не теряется и не двоится: ряд = всё, что нашлось по номерам", () => {
-    expect(s.total).toBeCloseTo(3666.1 + 1000 + 500, 2);
+  it("ничего не теряется и не двоится: ряд + ждущие = всё, что нашлось по номерам", () => {
+    expect(s.total + s.pendTotal).toBeCloseTo(3666.1 + 1000 + 500, 2);
   });
-  it("живые данные: ряд по начислению = всё найденное по номерам, до копейки", () => {
+  it("живые данные: ряд по начислению + ждущие = всё найденное по номерам, до копейки", () => {
     if (!existsSync("data/delivery_orders.ndjson") || !existsSync("data/orders_daily.ndjson")) return;
     const nd = (f: string) => readFileSync(f, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
     const od = nd("data/orders_daily.ndjson");
     const m = matchLedger(nd("data/delivery_orders.ndjson"), od);
     const a = accrualShipSeries(od, m.byPosting);
     const matched = [...m.byPosting.values()].reduce((x, v) => x + v.ship, 0);
-    expect(a.total).toBeCloseTo(matched, 1);
+    expect(a.total + a.pendTotal).toBeCloseTo(matched, 1);
     let inSeries = 0; for (const mm of a.bySku.values()) for (const v of mm.values()) inSeries += v;
+    for (const [, v] of a.pending) inSeries += v;
     expect(inSeries).toBeCloseTo(matched, 1);
   });
 });

@@ -1,0 +1,91 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ym-ledger-fresh-pr443-iter3-20261001",
+  "timestamp": "2026-10-01T11:59:32+00:00",
+  "deliverable_ref": "https://github.com/oliverjone01-dev/t1/pull/443 @ c2f99b5ba (итерация 3, слит main aac9ed515), audit hash 3a86d12636e74077",
+  "artifact_class": "gate",
+  "audience": "Иван; автор PR #443 (сессия Маркета)",
+  "anchor": "8.5 timur-activation итерация 3 (класс гейт, go) - наш артефакт выше на 0.2: каждое заявление воспроизведено пробами, включая повтор реального инцидента 29.09 на исторических снимках и сужение YM_BUSINESS_IDS (X2, A3, A6), все пробы прошлых итераций перепрогнаны, слияние с main чистое; ниже 8.9 annotate на 0.2: строка decisions.md описывает охват уже реализованного и без меток, ответственный за красный не назначен, кабинет вне настроек с умершим ключом через 30 дней замолкает (назван только как «закрытый»)",
+  "probes": [
+    {"id": "A1", "result": "N/A", "evidence": "approval-файлов нет"},
+    {"id": "A2", "result": "N/A", "evidence": "хука для обхода посредником нет"},
+    {"id": "A3", "result": "PASS", "evidence": "YM_DATA_DIR в workflow не задаётся; YM_BUSINESS_IDS=74986385 на снимке 60ec3c239: при вчера 28.09 кабинет 1023124 «отставание 1 дн и месяц 2026-09 не собран», exit 1; при вчера 29.09 «отставание 2 дн», exit 1"},
+    {"id": "A4", "result": "N/A", "evidence": "string-matching нет"},
+    {"id": "A5", "result": "PASS", "evidence": "плохое -> exit 1: реплей 29.09, отставание 2, будущая дата, NaN, пустой каталог, битый реестр, нет netting_state.json при отставании 1, кабинеты 555 и 666; хорошее -> exit 0: 28.09, 30.09, живые данные, тихий день с отставанием 1 при собранном месяце"},
+    {"id": "A6", "result": "PASS", "evidence": "охват (регресс итерации 2 закрыт): кабинет 555 вне настроек со строкой 10.09 -> «отставание 20 дн», exit 1; кабинет 666 вне настроек, реестр по 15.08, заказ 28.09 -> «отставание 46 дн», exit 1; тест 777 только с заказами -> stale"},
+    {"id": "A7", "result": "PASS", "evidence": "начало месяца: вчера 01.10, пара октября в months_done -> exit 0, нет -> exit 1"},
+    {"id": "B1", "result": "PASS", "evidence": "норма «0 в 34 из 35» в коде и PR с [ДАННЫЕ] и ссылкой на аудит с командами"},
+    {"id": "X1", "result": "PASS", "evidence": "строка 2026-12-01 -> «дата в реестре позже вчера», exit 1; 2026-28-09 -> «битая дата», exit 1"},
+    {"id": "X2", "result": "PASS", "evidence": "0f4245e9b при 2026-09-28T14:43Z exit 0; 60ec3c239 при 2026-09-29T13:39Z exit 1 (день 1); 40203c16b при 2026-09-30T13:20Z exit 0"},
+    {"id": "X3", "result": "PARTIAL", "evidence": "принятый и названный риск: тихие дни 05.06 -> exit 1 (ложный), 04.06 при собранном июне -> exit 0"},
+    {"id": "X4", "result": "PASS", "evidence": "кабинет 999 вне настроек, реестр по 31.05, заказов за 30 дней нет -> не проверяется, exit 0"},
+    {"id": "X6", "result": "PARTIAL", "evidence": "пустое 1-е число -> красный 2-го (fx/mstart_nodone exit 1); риск назван в описании PR"},
+    {"id": "X7", "result": "PASS", "evidence": "нет netting_state.json при отставании 1 -> exit 1"},
+    {"id": "X8", "result": "PARTIAL", "evidence": "кабинет 888 вне настроек с умершим ключом (реестр по 20.08, заказ 25.08) при вчера 30.09 не проверяется, exit 0: 30 дней красного, потом тишина; неотличим от закрытого, в PR назван только «закрытый кабинет»"},
+    {"id": "M1", "result": "PASS", "evidence": "git merge-tree --write-tree origin/main HEAD без конфликтов (дерево = HEAD^{tree} b59ba5d2f82e); gh api pulls/443: mergeable true, clean; registry_match.py --validate: записей 59, ошибок 0, дублей нет, записи main не изменены кроме E027; трейсы 24 строки, JSON-валидны, по ts, 16 строк main на месте"},
+    {"id": "R1", "result": "PASS", "evidence": "слияние aac9ed515 в хешируемых путях меняет только decisions.md (+6 строк main): git diff --stat ce62c24a2 aac9ed515 -- <пути ветки>"}
+  ],
+  "comprehension_gate": {"applies": false, "passed": true, "defects": []},
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 1,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 2,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 9.0,
+    "insight": 8.0,
+    "brand_fit": 10.0,
+    "risk_awareness": 9.0
+  },
+  "weighted_total": 8.7,
+  "verdict": "go",
+  "primary_gap": "decisions.md:48 описывает правило уже, чем оно реализовано («настроенного кабинета (YM_BUSINESS_IDS)», а проверяются настройки плюс активные за 30 дней), и числа «34 из 35» и «2 случая» стоят без меток. Не блокирует: правило в коде строже записи, а правка здесь сменит хеш.",
+  "gaps": [
+    "decisions.md:48: охват «настроенного кабинета (YM_BUSINESS_IDS)» уже реализованного (настройки плюс кабинеты со строками реестра или заказами за 30 дней); «34 из 35» и «2 случая» без [ДАННЫЕ]/[ГИПОТЕЗА]. Править следующим PR: правка в этой ветке сменит хеш",
+    "Ответственный за красный прогон Маркета не назначен (вопрос Ивану)",
+    "Кабинет вне настроек с умершим ключом: 30 дней красного, затем тревога его не проверяет (888: exit 0 при вчера 30.09). В PR назван только «закрытый кабинет»; лечится добавлением кабинета в YM_BUSINESS_IDS"
+  ],
+  "evidence_ledger": [
+    {"gap": "decisions.md описывает охват уже кода, числа без меток", "evidence": "sed -n 48p knowledge/decisions.md: «настроенного кабинета (YM_BUSINESS_IDS)», «34 из 35», «2 случая», меток 0; derive-lib.ts:959-974 (LEDGER_ACTIVE_DAYS, active по реестру и заказам)", "checkpoint": "accuracy_1, accuracy_3", "weight": -2},
+    {"gap": "Ответственный за красный не назначен", "evidence": "описание PR #443, «Риски (приняты)»: «кто разбирает - решает Иван»", "checkpoint": "actionability_6", "weight": -1},
+    {"gap": "Умерший ключ кабинета вне настроек замолкает через 30 дней", "evidence": "fx/dead888 (реестр 888 по 20.08, заказ 25.08), env -u YM_BUSINESS_IDS, FAKE_NOW=2026-10-01T13:00:00Z -> 888 не печатается, exit 0; описание PR: «Закрытый кабинет без активности 30 дней не проверяется»", "checkpoint": "risk_23", "weight": -1}
+  ],
+  "rework_tz": "",
+  "iteration": 3,
+  "confidence": 0.88,
+  "escalate_to": "Иван: кто разбирает красный прогон Маркета и в какой срок (открытый риск, не блокирует)",
+  "p9_triggers_fired": [
+    "H2: тихие дни - [ГИПОТЕЗА] по бэктесту 242 дней, помечено в коде и PR"
+  ],
+  "sources_of_truth": [
+    "git: c2f99b5ba (итерация 3), aac9ed515 (слияние main), ce62c24a2 (итерация 2), origin/main 532d5b850; снимки 0f4245e9b, 60ec3c239, 40203c16b",
+    "gh api pulls/443: mergeable true, clean",
+    "npx vitest run src/scripts/ym/ledger-fresh.test.ts (15/15), src/scripts/ym/ (413/413); npx tsc --noEmit (38)",
+    "registry_match.py --validate (59, 0 ошибок); traces/2026-10-01/agents.jsonl (24 строки, по ts)",
+    "scratchpad: probes3.sh, mkfixtures3.py, check_reg3.py, fx/"
+  ]
+}

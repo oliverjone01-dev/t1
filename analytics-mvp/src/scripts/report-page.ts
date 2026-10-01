@@ -116,7 +116,8 @@ export const REPORT_CSS = `<style>
 
 export const REPORT_BODY = `${REPORT_CSS}
 <section class="card"><div class="card-h"><div><div class="card-title">Ежемесячный отчёт OZON</div><div class="card-sub" id="rp-sub"></div></div>
-<select id="rp-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd,#232a36);border-radius:7px;padding:4px 8px"></select></div>
+<div style="display:flex;gap:8px;align-items:center"><select id="rp-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd,#232a36);border-radius:7px;padding:4px 8px"></select>
+<button id="rp-xlsx" title="Скачать отчёт за выбранный месяц файлом Excel: по листу на каждый блок" style="background:transparent;color:#22D3EE;border:1px solid #22D3EE;border-radius:7px;padding:4px 10px;cursor:pointer;font-weight:600;white-space:nowrap">⬇ Выгрузить в Excel</button></div></div>
 <div id="rp-flags" class="kt-note"></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">1. Оборот за месяц</div><div class="card-sub">Оборот = «Начислено» по дате начисления OZON (дата реализации), за вычетом возвратов - ИТОГО таблицы «Аналитика по артикулам (за выбранный период)» на «Деньгах» за те же даты. В «Начислено» входят баллы за скидки, которыми OZON доплачивает за покупателя. Мебель - всё, кроме зеркал.</div></div></div>
 <div class="rp-cards" id="rp-turn"></div></section>
@@ -342,11 +343,77 @@ function rpDead(P){
   html+='<div class="kt-note" style="margin-top:8px">Правило [ГИПОТЕЗА], пороги можно поменять: 1) нет заказов '+RP_DROP_DAYS+'+ дн и OZON берёт за хранение - снятие с площадки; 2) меньше '+RP_LOW_VIEWS+' показов за месяц - перезалив карточки; 3) доля заходов в карточку меньше половины медианы группы - перезалив (фото, заголовок); 4) заходят, но корзин нет - выкуп или проверка цены; 5) корзины есть, заказов нет - выкуп или проверка цены и срока доставки. Хранение - по начислениям OZON по артикулу (FBO); у товаров на своём складе (rFBS) его нет. Остатков по этим товарам в данных нет.</div>';
   document.getElementById('rp-dead').innerHTML=html;
 }
+
+// === Выгрузка отчёта в Excel (Иван 01.10): по листу на блок, ровно то, что на странице за выбранный
+// месяц. Таблицы снимаются с отрисованной страницы (одна логика расчёта, копий нет), числа пишутся
+// числами, проценты - процентами. Файл .xlsx собирается здесь же, без внешних библиотек: zip без сжатия.
+var RPX_CRC=(function(){var t=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t.push(c>>>0);}return t;})();
+function rpxCrc(b){var c=0xFFFFFFFF;for(var i=0;i<b.length;i++)c=RPX_CRC[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function rpxZip(files){
+  var enc=new TextEncoder(),parts=[],cd=[],off=0;
+  var u16=function(v){return [v&255,(v>>>8)&255];},u32=function(v){return [v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];};
+  files.forEach(function(f){var nm=enc.encode(f[0]),dt=enc.encode(f[1]),crc=rpxCrc(dt);
+    var lh=[].concat([0x50,0x4b,3,4],u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(crc),u32(dt.length),u32(dt.length),u16(nm.length),u16(0));
+    parts.push(new Uint8Array(lh),nm,dt);
+    cd.push(new Uint8Array([].concat([0x50,0x4b,1,2],u16(20),u16(20),u16(0x0800),u16(0),u16(0),u16(0x21),u32(crc),u32(dt.length),u32(dt.length),u16(nm.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(off))),nm);
+    off+=lh.length+nm.length+dt.length;});
+  var cdl=0;cd.forEach(function(x){cdl+=x.length;});
+  var end=new Uint8Array([].concat([0x50,0x4b,5,6],u16(0),u16(0),u16(files.length),u16(files.length),u32(cdl),u32(off),u16(0)));
+  return new Blob(parts.concat(cd,[end]),{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function rpxEsc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]/g,'');}
+// Текст ячейки страницы -> число Excel: «1 234 567» -> 1234567, «+4,7%» -> 0,047 (формат %), иначе текст.
+function rpxCell(t){
+  var s=String(t==null?'':t).replace(/[  ]/g,' ').trim();var c=s.replace(/ /g,'').replace(/₽$/,'');
+  if(/^[+-−]?[0-9]+([.,][0-9]+)?%$/.test(c))return {v:Math.round(parseFloat(c.replace('−','-').replace(',','.'))*1e4)/1e6,p:1};
+  if(/^[+-−]?[0-9]+([.,][0-9]+)?$/.test(c)&&c.length<16)return {v:parseFloat(c.replace('−','-').replace(',','.')),n:1};
+  return {s:s};
+}
+function rpxCol(i){var r='';i++;while(i>0){var m=(i-1)%26;r=String.fromCharCode(65+m)+r;i=Math.floor((i-1)/26);}return r;}
+// rows: массив строк, строка - массив значений (строка/число/{s,b} - b жирный).
+function rpxSheet(rows,widths){
+  var x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
+  if(widths&&widths.length)x+='<cols>'+widths.map(function(w,i){return '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>';}).join('')+'</cols>';
+  x+='<sheetData>';
+  rows.forEach(function(r,ri){x+='<row r="'+(ri+1)+'">';(r||[]).forEach(function(v,ci){if(v==null||v==='')return;var ref=rpxCol(ci)+(ri+1);var bold=(v&&typeof v==='object'&&v.b);var raw=(v&&typeof v==='object')?v.s:v;
+    var c=(typeof raw==='number')?{v:raw,n:1}:rpxCell(raw);
+    if(c.s!=null)x+='<c r="'+ref+'" t="inlineStr"'+(bold?' s="1"':'')+'><is><t xml:space="preserve">'+rpxEsc(c.s)+'</t></is></c>';
+    else x+='<c r="'+ref+'" s="'+(c.p?(bold?4:3):(bold?5:2))+'"><v>'+c.v+'</v></c>';});x+='</row>';});
+  return x+'</sheetData></worksheet>';
+}
+function rpxTable(el){var out=[];if(!el)return out;el.querySelectorAll('tr').forEach(function(tr){var hd=!!tr.querySelector('th');out.push([].map.call(tr.children,function(td){var t=td.innerText.replace(/\\n+/g,' · ');return hd?{s:t,b:1}:t;}));});return out;}
+function rpxLines(el){return (el?el.innerText:'').split('\\n').map(function(l){return l.trim();}).filter(Boolean).map(function(l){return [l];});}
+function rpExport(){
+  var ym=document.getElementById('rp-month').value;var P=rpPeriods(ym);
+  var head=[[{s:'Ежемесячный отчёт OZON: '+rpName(ym),b:1}],[document.getElementById('rp-sub').innerText],[]];
+  var flags=rpxLines(document.getElementById('rp-flags'));
+  var s1=head.concat([[{s:'1. Оборот за месяц',b:1}],[{s:'Группа',b:1},{s:rpName(P.pym)+' ('+rpDm(P.prev.from)+'-'+rpDm(P.prev.to)+'), ₽',b:1},{s:rpName(ym)+' ('+rpDm(P.cur.from)+'-'+rpDm(P.cur.to)+'), ₽',b:1},{s:'Отклонение, ₽',b:1},{s:'Отклонение, %',b:1},{s:'Шт, было',b:1},{s:'Шт, стало',b:1}]]);
+  var cur=rpCalc(P.cur),prev=rpCalc(P.prev);
+  if(cur.grand&&prev.grand){[['Всего',prev.grand.acc,cur.grand.acc,prev.grand.units,cur.grand.units],['Зеркала',prev.g.mir.acc,cur.g.mir.acc,prev.g.mir.units,cur.g.mir.units],['Мебель',prev.g.fur.acc,cur.g.fur.acc,prev.g.fur.units,cur.g.fur.units]].forEach(function(r){
+    var pc=rpPct(r[2],r[1]);s1.push([r[0],Math.round(r[1]),Math.round(r[2]),Math.round(r[2]-r[1]),pc==null?'':(Math.round(pc*10)/10).toString().replace('.',',')+'%',r[3],r[4]]);});}
+  s1=s1.concat([[]],[[{s:'Пометки по данным',b:1}]],flags);
+  var s2=head.concat([[{s:'2. Причины роста или падения: оборот',b:1}]],rpxLines(document.getElementById('rp-why')),[[]],[[{s:'По каждой статье',b:1}]],rpxTable(document.getElementById('rp-why2')));
+  var s3=head.concat([[{s:'3. Затраты площадки и полная аналитика',b:1}]],rpxTable(document.getElementById('rp-cost')),[[]],rpxLines(document.getElementById('rp-types')));
+  var s4=head.concat([[{s:'4. Реклама: расход, доход, окупаемость',b:1}]],rpxTable(document.getElementById('rp-ads')),[[]],rpxLines(document.getElementById('rp-ads-note')));
+  var s5=head.concat([[{s:'5. Топ-5 непродаваемых',b:1}]]);
+  var dead=document.getElementById('rp-dead');
+  [].forEach.call(dead.children,function(ch){if(ch.tagName==='H4')s5.push([{s:ch.innerText,b:1}]);else if(ch.querySelector&&ch.querySelector('table'))s5=s5.concat(rpxTable(ch.querySelector('table')),[[]]);else s5=s5.concat(rpxLines(ch));});
+  var sheets=[['1 Оборот',s1,[34,26,26,16,14,10,10]],['2 Причины',s2,[36,16,16,16,10,110]],['3 Затраты',s3,[50,16,16,16,14,16,14]],['4 Реклама',s4,[52,16,16,14,12]],['5 Непродаваемые',s5,[20,60,10,22,10,26,18,60,50]]];
+  var ns='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  var files=[['[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';}).join('')+'</Types>'],
+    ['_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ['xl/workbook.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook '+ns+'><sheets>'+sheets.map(function(s,i){return '<sheet name="'+rpxEsc(s[0])+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>';}).join('')+'</sheets></workbook>'],
+    ['xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map(function(s,i){return '<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>';}).join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+    ['xl/styles.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="0.0%"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/><xf numFmtId="3" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>']];
+  sheets.forEach(function(s,i){files.push(['xl/worksheets/sheet'+(i+1)+'.xml',rpxSheet(s[1],s[2])]);});
+  var blob=rpxZip(files),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='OZON_otchet_'+ym+(P.partial?'_po_'+P.cur.to:'')+'.xlsx'; // латиницей: кириллицу в имени часть браузеров заменяет на «download»
+  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);
+}
 var rpInited=false;
 function rpInit(){if(rpInited)return;rpInited=true;var sel=document.getElementById('rp-month');var ms=rpMonths();
   sel.innerHTML=ms.map(function(m){return '<option value="'+m+'">'+rpName(m)+'</option>';}).join('');
   // По умолчанию - прошлый календарный месяц от даты просмотра (Иван 01.10, «2а»).
   var t=new Date(),pm=rpPrevYm(t.toISOString().slice(0,7));sel.value=(ms.indexOf(pm)>=0)?pm:ms[0];
-  sel.onchange=rpRender;}
+  sel.onchange=rpRender;var xb=document.getElementById('rp-xlsx');if(xb)xb.onclick=rpExport;}
 function render(){rpInit();rpRender();}
 `;

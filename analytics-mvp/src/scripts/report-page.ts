@@ -282,7 +282,7 @@ function rpRoas(om,sp){return sp?(Math.round(om/sp*100)/100).toString().replace(
 function rpAds(P,aBp,aBc){
   var a=rpAdsSum(P.prev),b=rpAdsSum(P.cur);
   var h='<thead><tr><th>Показатель</th><th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(P.ym)+'</th><th class="r">Отклонение</th><th class="r">%</th></tr></thead><tbody>';
-  var row=function(l,v0,v1,inc,sub,fmt){var f=fmt||rpN;var d=(v0==null||v1==null)?null:v1-v0;return '<tr'+(sub?' class="rp-sub"':'')+'><td>'+l+'</td><td class="r">'+(v0==null?'<span class="rp-mute">нет данных</span>':f(v0))+'</td><td class="r">'+(v1==null?'<span class="rp-mute">нет данных</span>':f(v1))+'</td><td class="r">'+(d==null?'—':(fmt?((d>0?'+':'')+String(Math.round(d*100)/100).replace('.',',')):rpDTxt(d,inc)))+'</td><td class="r">'+(d==null?'—':rpPctTxt(rpPct(v1,v0),inc))+'</td></tr>';};
+  var row=function(l,v0,v1,inc,sub,fmt){var f=fmt||rpN;var d=(v0==null||v1==null)?null:v1-v0;return '<tr'+(sub?' class="rp-sub"':'')+'><td>'+l+'</td><td class="r">'+(v0==null?'<span class="rp-mute">нет данных</span>':f(v0))+'</td><td class="r">'+(v1==null?'<span class="rp-mute">нет данных</span>':f(v1))+'</td><td class="r">'+(d==null?'—':(fmt?((d>0?'+':'')+String(Math.round(d*100)/100).replace('.',',')):rpDTxt(d,inc)))+'</td><td class="r">'+(d==null?'—':rpPctTxt(fmt?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0),inc))+'</td></tr>';}; // коэффициенты: порог 1000 ₽ не для них
   var rf=function(v){return String(Math.round(v*100)/100).replace('.',',');};
   var spA=a.cpcSp+a.cpoApiSp,spB=b.cpcSp+b.cpoApiSp;
   h+=row('Расход всего (рекламный кабинет)',spA,spB,false,false);

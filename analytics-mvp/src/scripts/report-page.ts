@@ -113,6 +113,7 @@ export const REPORT_CSS = `<style>
 .rp-sub td:first-child{padding-left:22px;color:var(--ink-2)}
 .rp-warn{color:#E5B567}
 .rp-retro,th.rp-retro{color:#8A8F98}
+.rp-art,.rp-art b{color:#8A8F98}
 @media (max-width:900px){.rp-cards{grid-template-columns:1fr}}
 </style>`;
 
@@ -181,6 +182,8 @@ function rpTopFilt(cur,prev,key,sign,n,catFn){
   for(var sk in ks){var xc=cur.rows[sk],xp=prev.rows[sk];var x=xc||xp;if(!catFn(x.cat))continue;var dv=((xc&&xc[key])||0)-((xp&&xp[key])||0);if(!Math.round(dv))continue;out.push({off:x.off||sk,nm:x.nm,d:dv});}
   out.sort(function(a,b){return sign*(b.d-a.d);});return out.filter(function(o){return sign>0?o.d>0:o.d<0;}).slice(0,n);
 }
+// Приписка «больше всего прибавили / выросло сильнее всего ...» - серым целиком (Иван 01.10).
+function rpTop(lbl,arr){return '<span class="rp-art">'+lbl+': '+rpList(arr)+'</span>';}
 function rpList(arr){return arr.map(function(o){return '<b>'+o.off+'</b> '+(o.d>0?'+':'')+fmtRu(Math.round(o.d));}).join(', ');}
 // «Штуки и цена»: Δ = (u1-u0)·p0 + (p1-p0)·u1, сумма частей = Δ (без остатка).
 function rpUnitsPrice(a0,u0,a1,u1){
@@ -202,8 +205,8 @@ function rpWhyTurn(title,a0,u0,a1,u1,cur,prev,catFn,extra){
   else li.push('<span class="rp-mute">штук в одном из месяцев нет - разложить на штуки и цену нельзя</span>');
   if(extra)li.push(extra);
   var plus=rpTopFilt(cur,prev,'acc',1,5,catFn),minus=rpTopFilt(cur,prev,'acc',-1,5,catFn);
-  if(plus.length)li.push('больше всего прибавили: '+rpList(plus));
-  if(minus.length)li.push('больше всего потеряли: '+rpList(minus));
+  if(plus.length)li.push(rpTop('больше всего прибавили',plus));
+  if(minus.length)li.push(rpTop('больше всего потеряли',minus));
   return '<div style="margin:8px 0"><ul class="rp-why">'+li.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>';
 }
 // Статьи полной аналитики (столбцы ИТОГО таблицы «Аналитика по артикулам»). sign: +1 доход, -1 расход.
@@ -246,18 +249,18 @@ function rpRender(){
   if(upA){tA.push('штуки: '+rpN(gp.units)+' → '+rpN(gc.units)+' шт × прежняя цена '+rpN(upA.p0)+' ₽ = '+rpDTxt(upA.vol,true)+' ₽; цена (начислено на 1 шт): '+rpN(upA.p0)+' → '+rpN(upA.p1)+' ₽ × '+rpN(gc.units)+' шт = '+rpDTxt(upA.price,true)+' ₽; вместе '+rpDTxt(upA.vol+upA.price,true)+' ₽');}
   tA.push('зеркала '+rpDTxt(cur.g.mir.acc-prev.g.mir.acc,true)+' ₽, мебель '+rpDTxt(cur.g.fur.acc-prev.g.fur.acc,true)+' ₽');
   var aPl=rpTopFilt(cur,prev,'acc',1,3,all),aMi=rpTopFilt(cur,prev,'acc',-1,3,all);
-  if(aPl.length)tA.push('выросло сильнее всего: '+rpList(aPl));if(aMi.length)tA.push('снизилось сильнее всего: '+rpList(aMi));
+  if(aPl.length)tA.push(rpTop('выросло сильнее всего',aPl));if(aMi.length)tA.push(rpTop('снизилось сильнее всего',aMi));
   var tU=['зеркала '+rpN(prev.g.mir.units)+' → '+rpN(cur.g.mir.units)+' шт ('+rpDTxt(cur.g.mir.units-prev.g.mir.units,true)+'), мебель '+rpN(prev.g.fur.units)+' → '+rpN(cur.g.fur.units)+' шт ('+rpDTxt(cur.g.fur.units-prev.g.fur.units,true)+')'];
   var uPl=rpTopFilt(cur,prev,'units',1,3,all),uMi=rpTopFilt(cur,prev,'units',-1,3,all);
-  if(uPl.length)tU.push('выросло сильнее всего, шт: '+rpList(uPl));if(uMi.length)tU.push('снизилось сильнее всего, шт: '+rpList(uMi));
+  if(uPl.length)tU.push(rpTop('выросло сильнее всего, шт',uPl));if(uMi.length)tU.push(rpTop('снизилось сильнее всего, шт',uMi));
   h2+=tr2('Начислено (оборот), ₽','acc',tA)+tr2('Реализовано, шт','units',tU,function(c,p){return p?(c-p)/Math.abs(p)*100:null;});
   RP_LINES.forEach(function(L){var k=L[0],inc=L[2]>0;if(k==='acc')return;
     var v0=rpVal(gp,k),v1=rpVal(gc,k),d=v1-v0;var txt=[];
     var vr=rpVolRate(v0,gp.acc,v1,gc.acc);
     if(vr&&Math.round(d)){txt.push('объём: Начислено '+(gc.acc>=gp.acc?'выросло':'упало')+' на '+fmtRu(Math.round(Math.abs(gc.acc-gp.acc)))+' ₽ × прежняя доля статьи '+rpSh(vr.r0,1)+' = '+rpDTxt(vr.vol,null)+' ₽; ставка: доля '+rpSh(vr.r0,1)+' → '+rpSh(vr.r1,1)+' × Начислено '+rpN(gc.acc)+' ₽ = '+rpDTxt(vr.rate,null)+' ₽; вместе '+rpDTxt(vr.vol+vr.rate,null)+' ₽');}
     if(L[3]){var pl=rpTopFilt(cur,prev,k,1,3,all),mi=rpTopFilt(cur,prev,k,-1,3,all);
-      if(pl.length)txt.push('выросло сильнее всего: '+rpList(pl));
-      if(mi.length)txt.push('снизилось сильнее всего: '+rpList(mi));
+      if(pl.length)txt.push(rpTop('выросло сильнее всего',pl));
+      if(mi.length)txt.push(rpTop('снизилось сильнее всего',mi));
       var ca=(acC[k]||0)-(acP[k]||0);
       if(Math.round(ca))txt.push('по всем артикулам '+rpDTxt(d-ca,null)+' ₽ + не по артикулам (строка «Общие расходы») '+rpDTxt(ca,null)+' ₽ = '+rpDTxt(d,null)+' ₽');
       else if(Math.round(d))txt.push('по всем артикулам '+rpDTxt(d,null)+' ₽ (топ-3 выше - часть этой суммы)');}

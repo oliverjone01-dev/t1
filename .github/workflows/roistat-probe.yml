@@ -7,9 +7,33 @@ name: Roistat probe (разведка API)
 on:
   workflow_dispatch:
     inputs:
+      script:
+        description: "probe (методы) | analytics (трафик, заявки, числа) | paging (страницы, лимит) | showcase (срез витрины) | orders (раскладка сверки по строкам)"
+        default: "probe"
+      metric_grep:
+        description: "regexp поиска по справочнику метрик (имя или заголовок)"
+        default: ""
+      print_items:
+        description: "сколько позиций справочника печатать (0 - только размеры)"
+        default: "200"
       project_id:
         description: "ID проекта Roistat (если секрет ROISTAT_PROJECTID не задан)"
         required: false
+      rate_probe:
+        description: "paging: мерить лимит запросов серией без пауз (1 - да). Отдельным прогоном"
+        default: "0"
+      coverage_pages:
+        description: "paging: сколько окон по базе взять для доли заявок с визитом (0 - не мерить)"
+        default: "0"
+      cliff:
+        description: "paging: искать делением пополам, где обрывается привязка к визиту (1 - да)"
+        default: "0"
+      closed_month:
+        description: "showcase, orders: закрытый месяц YYYY-MM (пусто - предыдущий полный)"
+        default: ""
+      funnel:
+        description: "orders: номер категории Битрикса для раскладки"
+        default: "49"
 
 permissions:
   contents: read
@@ -33,8 +57,59 @@ jobs:
           fi
           echo "::add-mask::$KEY"
 
+      # Снимок Битрикса живёт в ветке rop-dashboard-v1, а checkout берёт только
+      # текущую. Без этого шага раскладка по строкам осталась бы односторонней,
+      # то есть сверкой Ройстата с самим собой (К5).
+      - name: Снимок Битрикса (только для orders)
+        if: ${{ github.event.inputs.script == 'orders' }}
+        run: |
+          git fetch --depth=1 origin rop-dashboard-v1:refs/remotes/origin/rop-dashboard-v1
+          git show origin/rop-dashboard-v1:analytics-mvp/rop/data/rop.json > /tmp/rop.json
+          python3 - <<'PY'
+          import json
+          d = json.load(open('/tmp/rop.json'))
+          print('снимок Битрикса: %s, %s, сделок %d, лидов %d'
+                % (d.get('generated_at'), d.get('source'), len(d.get('deals', [])), len(d.get('leads', []))))
+          PY
+
+      - name: Проверки скриптов перед живыми вызовами
+        run: |
+          node roistat/tests/lib-analytics.test.mjs
+          node roistat/tests/orders-stand.mjs > /tmp/stand.log 2>&1 && echo "стенд orders: прошёл" || (tail -20 /tmp/stand.log; exit 1)
+
       - name: Разведка
         env:
+          # Сколько позиций справочника печатать. 0 - только размеры: справочники уже сняты,
+          # в логе нужна таблица ответов, а не повтор 1079 каналов.
+          METRIC_GREP: ${{ github.event.inputs.metric_grep }}
+          ROISTAT_PRINT_ITEMS: ${{ github.event.inputs.print_items || '200' }}
           ROISTAT_API: ${{ secrets.ROISTAT_API }}
           ROISTAT_PROJECTID: ${{ secrets.ROISTAT_PROJECTID || github.event.inputs.project_id }}
-        run: node roistat/probe.mjs
+          # Лимит и покрытие по умолчанию выключены: проба лимита нарочно упирается
+          # в отказ, а обход базы стоит сотни вызовов. Включать отдельным прогоном.
+          RATE_PROBE: ${{ github.event.inputs.rate_probe || '0' }}
+          COVERAGE_PAGES: ${{ github.event.inputs.coverage_pages || '0' }}
+          CLIFF: ${{ github.event.inputs.cliff || '0' }}
+          # showcase: пусто - предыдущий полный месяц, считается от даты прогона.
+          CLOSED_MONTH: ${{ github.event.inputs.closed_month }}
+          # orders: номер воронки и куда положить строки для стыка с Битриксом.
+          FUNNEL: ${{ github.event.inputs.funnel || '49' }}
+          ORDERS_OUT: /tmp/roistat-orders.json
+        run: |
+          case "${{ github.event.inputs.script || 'probe' }}" in
+            analytics) node roistat/probe-analytics.mjs ;;
+            showcase)  node roistat/probe-showcase.mjs ;;
+            paging)    node roistat/probe-paging.mjs ;;
+            orders)
+              # Два шага одним прогоном: строки Ройстата, затем стык со снимком
+              # Битрикса. Эталон агрегата probe-orders снимает сам, поэтому руками
+              # цифра не передаётся и устареть не может.
+              node roistat/probe-orders.mjs
+              echo ""
+              echo "=============== стык со снимком Битрикса ==============="
+              python3 roistat/reconcile-rows.py \
+                --orders /tmp/roistat-orders.json --rop /tmp/rop.json \
+                --ref-sum "$(python3 -c "import json;d=json.load(open('/tmp/roistat-orders.json'));print((d.get('ref') or {}).get('payment_revenue') or 0)")"
+              ;;
+            *)         node roistat/probe.mjs ;;
+          esac

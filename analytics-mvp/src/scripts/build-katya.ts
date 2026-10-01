@@ -2076,11 +2076,34 @@ function render(cur,cmp){
   // «Реализовано» (F + G) их нет - июль 10 269 302 против 22 301 584. Доля по артикулу - если за
   // месяцы с отчётом у него начислено не меньше 100 000 ₽ и доля в разумных пределах (0..1,2),
   // иначе - доля канала.
+  // Добор денег по артикулам до месячного отчёта о реализации (Иван 01.10, вариант «а»). Транзакции по
+  // SKU (pnl-sku-daily) теряют операции с несколькими разными артикулами: по кабинету транзакции сходятся
+  // с отчётом до рубля во всех месяцах, а по SKU за апрель/май/июнь «Начислено» ниже на 215 771 / 143 700 /
+  // 542 650 ₽ при полных штуках из отчёта. Для закрытых отчётом месяцев до FIN_CUT по каждому SKU храним
+  // разницу «отчёт − транзакции» по «Начислено» (tb + баллы) и комиссии; в render она добавляется к
+  // начислено/комиссии/К выплате, только когда месяц выбран целиком (как штуки в realUnits) - не
+  // разносится по дням. Логистика и эквайринг потерянных операций в отчёте нет - они не добираются.
+  const anFinFix: Record<string, any[]> = {};
+  if (IS_OZON) {
+    const cutYm = FIN_CUT.slice(0, 7), rep: Record<string, [number, number]> = {}, txm: Record<string, [number, number]> = {};
+    try { for (const l of readFileSync(dp("realization_monthly.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); const sk = String(r.sku), ym = String(r.ym); if (!sk || sk === "0" || ym >= cutYm) continue; const q = (rep[sk + "|" + ym] ||= [0, 0]); q[0] += (Number(r.tb) || 0) + (Number(r.bonus) || 0); q[1] += Number(r.commission) || 0; } } catch { /* нет отчёта - добора нет */ }
+    const repYm = new Set(Object.keys(rep).map((k) => k.split("|")[1]!));
+    for (const sk in anFin) for (const q of anFin[sk]!) { const ym = String(q[0]).slice(0, 7); if (!repYm.has(ym)) continue; const t = (txm[sk + "|" + ym] ||= [0, 0]); t[0] += Number(q[1]) || 0; t[1] += Number(q[2]) || 0; }
+    let fA = 0, fC = 0;
+    for (const k of new Set([...Object.keys(rep), ...Object.keys(txm)])) {
+      const [sk, ym] = k.split("|") as [string, string]; const r = rep[k] || [0, 0], t = txm[k] || [0, 0];
+      const dA = Math.round(r[0] - t[0]), dC = Math.round(-r[1] - t[1]); // комиссия в строке финансов со знаком сбора (< 0)
+      if (Math.abs(dA) <= 1 && Math.abs(dC) <= 1) continue;
+      (anFinFix[sk] ||= []).push([ym, dA, dC]); fA += dA; fC += dC;
+    }
+    console.log(`katya: добор «Начислено» по SKU до отчёта о реализации - ${Math.round(fA)} ₽, комиссия ${Math.round(fC)} ₽ (${Object.keys(anFinFix).length} SKU)`);
+  }
   const anTbYm = Array.from(anTbYmSet).sort();
   const tbYmSet = new Set(anTbYm);
   const tbSum: Record<string, number> = {}, accSum: Record<string, number> = {};
   for (const sk in anRealSku) for (const q of anRealSku[sk]!) if (q[3] != null) tbSum[sk] = (tbSum[sk] || 0) + q[3];
   for (const sk in anFin) for (const q of anFin[sk]!) if (tbYmSet.has(String(q[0]).slice(0, 7))) accSum[sk] = (accSum[sk] || 0) + (Number(q[1]) || 0);
+  for (const sk in anFinFix) for (const q of anFinFix[sk]!) if (tbYmSet.has(String(q[0]))) accSum[sk] = (accSum[sk] || 0) + q[1]; // доля - от полного «Начислено»
   let tbAll = 0, accAll = 0; for (const k in tbSum) tbAll += tbSum[k]!; for (const k in accSum) if (tbSum[k] != null) accAll += accSum[k]!;
   const anTbRateAll = accAll > 0 ? Math.round(tbAll / accAll * 1e4) / 1e4 : 0;
   // G/F по SKU (выплаты по механикам лояльности к «Реализовано на сумму», около 1%) - для базы налога
@@ -2552,7 +2575,7 @@ function render(cur,cmp){
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}#ordan-t th,#ordan-t td,#ordsku-t th,#ordsku-t td{white-space:nowrap}.ord-cat{cursor:pointer;font-weight:700}.ord-cat:hover{background:rgba(255,255,255,.03)}.ord-row td:first-child{padding-left:24px;color:var(--ink-2)}#logi-t th,#logi-t td{white-space:nowrap}.logi-loss td{background:rgba(255,90,95,.07)}.logi-vscroll{max-height:min(70vh,560px);overflow:auto}#logi-t thead th{position:sticky;top:0;z-index:2;background:var(--bg-card);box-shadow:inset 0 -1px 0 var(--bg-soft)}.an-vscroll{max-height:min(74vh,640px);overflow:auto}.an-htop{overflow-x:auto;overflow-y:hidden}.an-htop>div{height:1px}#skuan-t,#ordan-t,#ordsku-t{font-size:11px}#skuan-t th,#skuan-t td,#ordan-t th,#ordan-t td,#ordsku-t th,#ordsku-t td{padding:5px 6px}#skuan-t thead th,#ordan-t thead th,#ordsku-t thead th{position:sticky;top:0;z-index:2;background:var(--bg-card);box-shadow:inset 0 -1px 0 var(--bg-soft)}</style>`;
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
-const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
+const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_FINFIX=${J(anFinFix)};const AN_META=${J(anMeta)};
 const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_TBYM=${J(anTbYm)};const AN_RDAY=${J(anRday)};const AN_RD_FROM=${J(rdFrom)};const AN_RD_TO=${J(rdTo)};const AN_RD_MISS=${J(rdMiss)};const AN_GF=${J(anGf)};const AN_GF_ALL=${J(anGfAll)};const AN_TBRATE=${J(anTbRate)};const AN_TBRATE_ALL=${J(anTbRateAll)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_SHIPVED=${J(anShipVedSku)};const AN_VED_MAXD=${J(vedMaxD)};const AN_SHIPFB=${J(shipAcc.fallback)};const AN_SHIPPEND=${J(shipAcc.pending.map(([d, v]) => [d, Math.round(v)]))};const AN_DLISSUE_N=${J([dlIssues.empty.length ? "нет суммы отправки по " + dlIssues.empty.length + " зак." : "", dlIssues.shift.length ? "сдвиг столбцов в " + dlIssues.shift.length + " строк (сумма взята из соседнего столбца)" : "", dlT2.length ? "вторая таблица ведомости (" + dlT2.reduce((a, t) => a + t.ozon_rows, 0) + " строк OZON) не прочитана" : ""].filter(Boolean).join(", "))};const AN_DINCSKU=${J(anDincSku)};const AN_DINCACC=${J(IS_OZON ? anDincAcc : anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORD_CITY=${J(ordCity)};const AN_ORDERS=${J(anOrders)};const AN_DELIV_CITYPL=${J(delivCityPl)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
@@ -2722,8 +2745,12 @@ function admBase(sk,from,to){
   add(AN_FIN[sk],7,1);add(AN_FIN[sk],4,-1);add(AN_FIN[sk],5,-1);
   add(AN_ACQSKU[sk],1,1);add(AN_STOSKU[sk],1,1); // эквайринг и хранение by-day - со знаком OZON (сбор < 0)
   add(AN_ADSSKU[sk],1,-1);add(AN_CPOSKU[sk],1,-1);
+  var fx=finFix(sk,coveredMonths(from,to));if(fx[0]||fx[1])d['fix']=(d['fix']||0)+fx[0]+fx[1]; // добор до отчёта: К выплате потерянных операций
   var b=0;for(var k in d)if(d[k]>0)b+=d[k];return b;
 }
+// Добор «Начислено»/комиссии по SKU до месячного отчёта о реализации: только целые закрытые отчётом месяцы
+// окна (covM), как штуки в realUnits. Возвращает [начислено, комиссия (со знаком сбора)].
+function finFix(sk,covM){var a=0,c=0,r=AN_FINFIX[sk]||[];for(var i=0;i<r.length;i++){if(covM[r[i][0]]){a+=r[i][1];c+=r[i][2];}}return [a,c];}
 function anSum(rows,from,to,n){var s=[];for(var k=0;k<n;k++)s.push(0);if(!rows)return s;for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]<from||r[0]>to)continue;for(var k2=0;k2<n;k2++)s[k2]+=r[k2+1]||0;}return s;}
 // «Реализовано с учётом возвратов» по SKU за период: за ЦЕЛЫЕ закрытые месяцы (есть отчёт о
 // реализации) - продано − возвраты по отчёту (=УПД); дни вне таких месяцев (текущий/частичный
@@ -2849,7 +2876,7 @@ var skuGrandLast=null;
 function skuAnalyticsData(cur){
   var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);var miss=[];
   for(var sk in AN_META){
-    var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,9);
+    var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,9);var fx=finFix(sk,covM);fi[0]+=fx[0];fi[1]+=fx[1];fi[6]+=fx[0]+fx[1];
     // cpo = разнесённая реклама «за заказ» по SKU (ручной per-order отчёт, закрытые месяцы).
     var cpo=anSum(AN_CPOSKU[sk],from,to,1)[0]||0;
     // ship = наш расход на отправку; dinc = доход от покупателя за доставку (ведомость, закрытые мес).
@@ -3296,7 +3323,7 @@ function periodTotals(from,to){
   var covM=coveredMonths(from,to);var rev=0,accr=0,amt=0,amtReal=0,amtS=0,cc=0,realized=0,gadv=0,tb=0;
   // разбивка сборов на уровне ИТОГО (те же AN_FIN/by-day, что и в таблице) - для водопада, один базис.
   var fComm=0,fLog=0,fAcq=0,fSto=0,fOth=0;
-  for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var ru=realUnits(sk,covM,from,to);
+  for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var fx=finFix(sk,covM);fi[0]+=fx[0];fi[1]+=fx[1];fi[6]+=fx[0]+fx[1];var ru=realUnits(sk,covM,from,to);
     // Эквайринг/хранение по SKU из accrual/by-day - тот же источник и та же формула К выплате, что в
     // ИТОГО таблицы (renderSkuAnalytics): снимаем зашитый в fi[6] transaction-эквайринг (fi[3]/fi[4]) и
     // вычитаем accrual (acq/sto). Иначе водопад/план/«Чистая прибыль» расходятся с таблицей (до 80К на

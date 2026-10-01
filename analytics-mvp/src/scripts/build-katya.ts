@@ -1947,8 +1947,35 @@ function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any
   // JS «Маркетинга» как есть, в замыкании; наружу - только перерисовка таблицы кампаний.
   const mk = `var __mkRender=(function(){
 ${MKT_SHARE.js}
-window.renderTop=renderTop; // onchange фильтров статуса в секции кампаний
-return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(cur.from,cur.to):bakedFor();lastA=a;var s1=document.getElementById('src1');if(s1)s1.innerHTML='источник: OZON Performance API (прямой'+(a.daily?', дневной ряд':'')+') <span class="kt-src">'+(a.daily?'за период ':'снимок за ')+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>'+staleMark(a.dateTo);renderTop();};
+window.renderTop=function(){renderTop();cardSub();}; // onchange фильтров статуса в секции кампаний
+// Разбивка кампании на основную и объединённую карточку (Иван 01.10, «вариант а» - только эта вкладка, «Маркетинг»
+// не меняется): строки-разворот «Маркетинга» заменяются строками из AN_CPC.camp (расход по долям атрибуции)
+// и AN_CPC.ev (штуки и выручка из атрибуции, соседи - найденные заказы). Остаток до итога кампании - отдельной строкой.
+function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
+  var at=function(cid,sk){var c=A[cid]||(A[cid]={});return c[sk]||(c[sk]={own:0,unk:0,z:0,g:0,n:0,nb:{},sold:0,om:0,nbu:{},nbr:{},uu:0,ur:0});};
+  AN_CPC.camp.forEach(function(r){if(r[0]<from||r[0]>to)return;var a=at(r[1],r[2]);a.own+=r[3];a.unk+=r[4];a.z+=r[5];a.g+=r[6];a.n+=r[7];for(var k in r[8])a.nb[k]=(a.nb[k]||0)+r[8][k];});
+  AN_CPC.ev.forEach(function(e){if(e[0]<from||e[0]>to)return;var a=at(e[1],e[2]);a.sold+=e[3];a.om+=e[4];e[5].forEach(function(x){a.nbu[x[0]]=(a.nbu[x[0]]||0)+x[1];a.nbr[x[0]]=(a.nbr[x[0]]||0)+x[2];});a.uu+=e[6];a.ur+=e[7];});
+  var camps={};((lastA&&(lastA.all||lastA.top_spend))||[]).forEach(function(c){camps[String(c.id)]=c;});
+  document.querySelectorAll('#top .ad-exp').forEach(function(tr){var i=tr.getAttribute('data-i'),id=tr.getAttribute('data-id'),cs=A[id],c=camps[id];if(!cs||!c||isCPO(c))return;
+    var disp=expanded[i]?'':'display:none',S=0,O=0,U=0,html='';
+    var row=function(lbl,tip,sp,om,u,col){sp=Math.round(sp);om=Math.round(om);if(!sp&&!om&&!u)return '';var dr=om?Math.round(sp/om*1000)/10:0;
+      return '<tr class="ad-sub" data-i="'+i+'" style="'+disp+'"><td style="padding-left:26px'+(col?';color:'+col:'')+'" title="'+tip+'">'+lbl+'</td><td></td><td></td><td class="r">'+fmtRu(sp)+'</td><td class="r">'+fmtRu(om)+'</td><td class="r">'+(u==null?'—':u)+'</td><td class="r" style="color:'+(om?drrCol(dr):'var(--ink-3)')+'">'+(om?dr+'%':'—')+'</td><td></td><td></td><td></td><td></td><td></td></tr>';};
+    var art=function(s){return ' <span style="color:var(--ink-3)">'+(SKU_MAP[s]||s)+'</span>';};
+    Object.keys(cs).forEach(function(sk){var a=cs[sk];
+      html+=row('Основная карточка'+art(sk),'Свои продажи рекламируемого товара по атрибуции OZON; расход - его доля по штукам',a.own,a.om,a.sold);S+=a.own;O+=a.om;U+=a.sold;
+      var ns={};Object.keys(a.nb).concat(Object.keys(a.nbu)).forEach(function(k){ns[k]=1;});
+      Object.keys(ns).sort(function(p,q){return (a.nb[q]||0)-(a.nb[p]||0);}).forEach(function(nsk){
+        html+=row('Объединённая карточка'+art(nsk),'Сосед по объединённой карточке: заказ этого товара в день атрибуции с той же суммой; расход - доля по штукам (в днях без атрибуции - доля месяца, оценка)',a.nb[nsk]||0,a.nbr[nsk]||0,a.nbu[nsk]||0,'#A78BFA');S+=a.nb[nsk]||0;O+=a.nbr[nsk]||0;U+=a.nbu[nsk]||0;});
+      html+=row('Объединённая карточка: сосед не найден'+art(sk),'OZON засчитал продажу соседа, а заказа той же карточки в этот день с этой суммой нет; расход остаётся на рекламируемом товаре',a.unk,a.ur,a.uu,'#A78BFA');S+=a.unk;O+=a.ur;U+=a.uu;
+      html+=row('Без продаж'+art(sk),'Дни с атрибуцией, продаж ни своих, ни соседей',a.z,0,0);S+=a.z;
+      html+=row('Нет данных: дни без атрибуции в нашем сборе'+art(sk),'Сбор отчёта атрибуции пропустил эти дни; продажи могли быть',a.g,0,null,'#E5B567');S+=a.g;
+      html+=row('Нет данных: кампании нет в нашем сборе атрибуции'+art(sk),'Сборщик атрибуции берёт не все кампании',a.n,0,null,'#E5B567');S+=a.n;});
+    var rsp=(c.sp||0)-S,rom=(c.om||0)-O,ro=(c.o||0)-U;
+    if(Math.abs(rsp)>1||Math.abs(rom)>1||ro)html+=row('Не распределено по SKU','Разница статистики кампании (итог строки) и отчётов по SKU: другой отчёт OZON, другие дни сбора',rsp,rom,ro,'var(--ink-3)');
+    document.querySelectorAll('#top .ad-sub[data-i="'+i+'"]').forEach(function(s){s.remove();});
+    tr.insertAdjacentHTML('afterend',html);});
+}
+return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(cur.from,cur.to):bakedFor();lastA=a;var s1=document.getElementById('src1');if(s1)s1.innerHTML='источник: OZON Performance API (прямой'+(a.daily?', дневной ряд':'')+') <span class="kt-src">'+(a.daily?'за период ':'снимок за ')+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>'+staleMark(a.dateTo);renderTop();cardSub();};
 })();`;
   const intro = `<section class="card"><div class="card-h"><div><div class="card-title">Реклама за клик по объединённым карточкам</div><div class="card-sub">Таблица ниже - та же, что «Аналитика по заказам» на «Деньгах», отличается только колонка <b>«Реклама»</b> (и вслед за ней «К выплате» и прибыль). Реклама за клик (CPC) делится <b>по атрибуции OZON</b>: если клик по рекламе товара закончился покупкой соседа по объединённой карточке, доля расхода (по штукам) стоит на заказе этого соседа, строка помечена «реклама соседа». Соседа находим по заказу товара той же карточки в день атрибуции: штуки и сумма совпадают с отчётом (допуск 1%); на отчётах кабинета март-июль совпало 21 из 22. Состав карточек - снимок кабинета от <b>${cpc?.snap || "-"}</b>. Отменённый потом заказ соседа получает свою долю. Остальное остаётся на рекламируемом товаре и делится по его заказам по штукам: свои продажи, сосед не найден, без продаж, дни и кампании без атрибуции в нашем сборе. Итог «К выплате» тот же, что на «Деньгах»: меняется только, на каком заказе стоит реклама. Разница АДМ и чистой прибыли с «Деньгами» за выбранный период - в плашке ниже. Покрытие атрибуцией неполное: наш сбор отчёта атрибуции берёт не все кампании и не все дни (по отчётам кабинета продвижения, выгрузка 01.10, доля расхода на соседей: август 352 034 ₽, сентябрь 316 746 ₽ - сравни с плашкой ниже) - строки «нет атрибуции» выделены цветом.</div></div></div>
   <div class="kt-note" id="cpc-note"></div></section>`;
@@ -2202,7 +2229,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
     for (const [o, x] of Object.entries(cs.nbOrders)) ord[o] = { d: x.d, sk: x.sk, st: x.st, cat: catOf(x.sk) || "Прочее", off: offerOf(x.sk), nm: (skuName[x.sk] || x.sk).slice(0, 48) };
     const offOf: Record<string, string> = {};
     for (const sk of Object.keys(cs.own)) offOf[sk] = offerOf(sk);
-    cpcCard = { own: cs.own, nb: cs.nb, ord, stat: cs.stat, offOf, snap: (() => { try { return JSON.parse(readFileSync(dp("card_groups.json"), "utf-8")).imported_at || ""; } catch { return ""; } })() };
+    cpcCard = { own: cs.own, nb: cs.nb, ord, stat: cs.stat, offOf, camp: cs.camp, ev: cs.ev, snap: (() => { try { return JSON.parse(readFileSync(dp("card_groups.json"), "utf-8")).imported_at || ""; } catch { return ""; } })() };
     const nbT = cs.nb.reduce((a, r) => a + r[3], 0);
     console.log(`katya: реклама по карточкам - на соседей ${nbT} ₽ (${cs.nb.length} строк день x заказ), заказов-соседей ${Object.keys(ord).length}`);
   }

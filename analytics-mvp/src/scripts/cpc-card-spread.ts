@@ -26,6 +26,12 @@ export interface CardSpread {
   //  из «на соседей» - дни без строки атрибуции (доля месяца перенесена на день: оценка)]
   stat: [string, number, number, number, number, number, number, number, number][];
   pairs: Record<string, PairShare>;                   // ym|sku|cid -> доли (для теста и подсказок)
+  // Для таблицы кампаний на вкладке (основная / объединённая карточка), по дню x кампании x рекламируемому SKU:
+  // camp - расход (копейки до 0.01): [день, кампания, SKU, свой, сосед не найден, без продаж в день с атрибуцией,
+  //        дни без атрибуции у пары без продаж, пары нет в сборе, {SKU соседа: расход}]
+  // ev   - события атрибуции: [день, кампания, SKU, свои шт, своя выручка, [[SKU соседа, шт, выручка]], шт ненайденных, их выручка]
+  camp: [string, string, string, number, number, number, number, number, Record<string, number>][];
+  ev: [string, string, string, number, number, [string, number, number][], number, number][];
 }
 export interface PairShare { sold: number; soldM: number; unk: number; nb: Record<string, number>; attr: boolean }
 
@@ -63,20 +69,26 @@ export function cardSpread(ads: AdsSkuRow[], attr: AttrRow[], orders: OrderRow[]
   const pairs: Record<string, PairShare> = {};
   const attrDay = new Set<string>();                          // d|cid|sku - день, за который атрибуция собрана
   const nbOrders: Record<string, NbOrder> = {};
+  const ev: CardSpread["ev"] = [];
+  const pairNbSku: Record<string, Record<string, number>> = {};  // ym|sku|cid -> {SKU соседа: шт}
   for (const r of attr) {
     const sku = String(r.sku), k = ymOf(r.d) + "|" + sku + "|" + String(r.id);
     attrDay.add(r.d + "|" + String(r.id) + "|" + sku);
     const p = (pairs[k] ||= { sold: 0, soldM: 0, unk: 0, nb: {}, attr: true });
     p.sold += Number(r.sold) || 0;
     const q = Number(r.soldM) || 0;
+    const e: CardSpread["ev"][number] = [r.d, String(r.id), sku, Number(r.sold) || 0, Math.round(Number((r as any).om) || 0), [], 0, 0];
+    if (e[3] || e[4] || q) ev.push(e);
     if (!q) continue;
     p.soldM += q;
     const sib = members[card[sku] ?? ""] || new Set<string>();
     const pool = (byDay[r.d] || []).filter((o) => o.sku !== sku && sib.has(o.sku));
     const hit = findNeighbors(pool, q, Number(r.omM) || 0);
-    if (!hit) { p.unk += q; continue; }
+    if (!hit) { p.unk += q; e[6] = q; e[7] = Math.round(Number(r.omM) || 0); continue; }
     for (const o of hit) {
       p.nb[o.order] = (p.nb[o.order] || 0) + o.units;
+      e[5].push([o.sku, o.units, Math.round(o.revenue)]);
+      const ps = (pairNbSku[k] ||= {}); ps[o.sku] = (ps[o.sku] || 0) + o.units;
       nbOrders[o.order] = { order: o.order, d: o.d, sk: o.sku, st: String(o.status || ""), units: o.units };
     }
   }
@@ -85,17 +97,23 @@ export function cardSpread(ads: AdsSkuRow[], attr: AttrRow[], orders: OrderRow[]
   const skuDay: Record<string, number> = {};                  // sku|d -> sp
   const nbF: Record<string, number> = {};                     // d|sku|order -> float
   const st: Record<string, number[]> = {};                    // d -> [tot, nb, unk, nosale, noattr, nosaleGap, cov, nbEst] float
+  const camp: CardSpread["camp"] = [];
+  const c2 = (v: number) => Math.round(v * 100) / 100;
   for (const r of ads) {
     const sku = String(r.sku || ""); if (!sku) continue;
     const sp = Number(r.sp) || 0;
     skuDay[sku + "|" + r.d] = (skuDay[sku + "|" + r.d] || 0) + sp;
     const s = (st[r.d] ||= [0, 0, 0, 0, 0, 0, 0, 0]);
-    const p = pairs[ymOf(r.d) + "|" + sku + "|" + String(r.cid)];
-    if (!p) { s[4]! += sp; continue; }
+    const pk = ymOf(r.d) + "|" + sku + "|" + String(r.cid);
+    const p = pairs[pk];
+    if (!p) { s[4]! += sp; camp.push([r.d, String(r.cid), sku, 0, 0, 0, 0, c2(sp), {}]); continue; }
     const has = attrDay.has(r.d + "|" + String(r.cid) + "|" + sku);
     if (has) s[6]! += sp;
     const U = p.sold + p.soldM;
-    if (!U) { s[3]! += sp; if (!has) s[5]! += sp; continue; }
+    if (!U) { s[3]! += sp; if (!has) s[5]! += sp; camp.push([r.d, String(r.cid), sku, 0, 0, has ? c2(sp) : 0, has ? 0 : c2(sp), 0, {}]); continue; }
+    const nbs: Record<string, number> = {};
+    for (const [ns, u] of Object.entries(pairNbSku[pk] || {})) nbs[ns] = c2(sp * u / U);
+    camp.push([r.d, String(r.cid), sku, c2(sp * p.sold / U), c2(sp * p.unk / U), 0, 0, 0, nbs]);
     s[2]! += sp * p.unk / U;
     if (!has) s[7]! += sp * (p.soldM - p.unk) / U;
     for (const [o, u] of Object.entries(p.nb)) {
@@ -127,5 +145,5 @@ export function cardSpread(ads: AdsSkuRow[], attr: AttrRow[], orders: OrderRow[]
     const s = st[d]!;
     return [d, totDay[d] || 0, nbDay[d] || 0, Math.round(s[2]!), Math.round(s[3]!), Math.round(s[4]!), Math.round(s[5]!), Math.round(s[6]!), Math.round(s[7]!)];
   });
-  return { own, nb, nbOrders, stat, pairs };
+  return { own, nb, nbOrders, stat, pairs, camp, ev };
 }

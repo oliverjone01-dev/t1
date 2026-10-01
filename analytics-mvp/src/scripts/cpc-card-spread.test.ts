@@ -54,4 +54,16 @@ describe("cpc-card-spread: эталон сентября", () => {
     for (const r of R.nb) n[r[1] + "|" + r[0]] = (n[r[1] + "|" + r[0]] || 0) + r[3];
     for (const [sku, rows] of Object.entries(R.own)) for (const [d, v] of rows) expect(v + (n[sku + "|" + d] || 0)).toBe(Math.round(m[sku + "|" + d]!));
   });
+  it("кампании: части расхода дня = расход пары; GGT-47-3-3-80 в 37007560 - соседи по карточке", () => {
+    const sp: Record<string, number> = {};
+    for (const r of ads) sp[r.d + "|" + r.cid + "|" + r.sku] = (sp[r.d + "|" + r.cid + "|" + r.sku] || 0) + r.sp;
+    for (const c of R.camp) {
+      const s = c[3] + c[4] + c[5] + c[6] + c[7] + Object.values(c[8]).reduce((a, b) => a + b, 0);
+      expect(Math.abs(s - sp[c[0] + "|" + c[1] + "|" + c[2]]!)).toBeLessThanOrEqual(0.06);
+    }
+    const ev = R.ev.filter((e) => SEP(e[0]) && e[1] === "37007560" && e[2] === "4865596071");
+    expect(sum(ev.map((e) => e[3]))).toBe(3);
+    expect(sum(ev.map((e) => e[5].reduce((a, x) => a + x[1], 0)))).toBe(4);
+    expect(sum(ev.map((e) => e[6]))).toBe(1);
+  });
 });

@@ -9,6 +9,8 @@ export const KPAGES: [string, string, string][] = [
   ["katya-voronka.html", "Воронка", "voronka"],
   ["katya-marketing.html", "Маркетинг", "marketing"],
   ["katya-money.html", "Деньги", "money"],
+  // CPC по атрибуции OZON на соседей по объединённой карточке (Иван 01.10). Только OZON.
+  ["katya-reklama-kartochki.html", "Реклама по карточкам", "kartochki"],
   ["katya-competitors.html", "Конкуренты", "competitors"],
   ["katya-reakciya.html", "Реакция", "reakciya"],
   ["katya-tests.html", "Тесты", "tests"],

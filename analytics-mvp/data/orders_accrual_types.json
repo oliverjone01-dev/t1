@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -67185324,
-  "n": 2988
+  "sum": -68080896,
+  "n": 3006
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2627198,
-  "n": 1462
+  "sum": -2630314,
+  "n": 1464
  },
  {
   "type_id": 3,
@@ -21,18 +21,18 @@
   "n": 2504
  },
  {
+  "type_id": 51,
+  "name": "PremiumMembership",
+  "bucket": "other",
+  "sum": -858667,
+  "n": 1418
+ },
+ {
   "type_id": 64,
   "name": "RfbsDomesticDelivery",
   "bucket": "partner",
   "sum": -857804,
   "n": 168
- },
- {
-  "type_id": 51,
-  "name": "PremiumMembership",
-  "bucket": "other",
-  "sum": -840918,
-  "n": 1400
  },
  {
   "type_id": 74,
@@ -45,22 +45,22 @@
   "type_id": 59,
   "name": "ReturnFlowLogistic",
   "bucket": "delivery",
-  "sum": -301728,
-  "n": 184
- },
- {
-  "type_id": 95,
-  "name": "CustomerReviews",
-  "bucket": "other",
-  "sum": -242162,
-  "n": 1338
+  "sum": -304259,
+  "n": 185
  },
  {
   "type_id": 22,
   "name": "Installment",
   "bucket": "other",
-  "sum": -242142,
-  "n": 78
+  "sum": -247333,
+  "n": 79
+ },
+ {
+  "type_id": 95,
+  "name": "CustomerReviews",
+  "bucket": "other",
+  "sum": -247124,
+  "n": 1355
  },
  {
   "type_id": 94,
@@ -80,15 +80,15 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -43120,
-  "n": 156
+  "sum": -43400,
+  "n": 157
  },
  {
   "type_id": 68,
   "name": "RfbsServiceFee",
   "bucket": "other",
-  "sum": -28680,
-  "n": 1434
+  "sum": -29020,
+  "n": 1451
  },
  {
   "type_id": 16,
@@ -108,8 +108,8 @@
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -6529,
-  "n": 734
+  "sum": -6538,
+  "n": 735
  },
  {
   "type_id": 92,
@@ -157,7 +157,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 880311,
-  "n": 171
+  "sum": 895159,
+  "n": 175
  }
 ]

@@ -102,7 +102,7 @@ def main():
         pass
     for (sku, d), (sp, n) in sorted(daily.items()):
         out.append({"d": d, "sku": sku, "offer": sku_off.get(sku, sku), "sp": round(sp, 2), "n": n})
-    out.sort(key=lambda o: (o["d"], o["sku"]))
+    out.sort(key=lambda o: (o["sku"], o["d"]))  # порядок прежнего файла (sku, день): дифф = только новые строки
     print("окна выгрузок:", windows, "| оставлено строк вне окон:", kept)
     with open(OUT, "w", encoding="utf-8") as w:
         for o in out:

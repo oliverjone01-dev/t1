@@ -956,11 +956,22 @@ export const LEDGER_LAG_LIMIT_DAYS = 2;
 // Тихий день без проводок даёт ложный красный (бэктест 242 дня: 2 случая у 1023124). [ГИПОТЕЗА]
 export const LEDGER_STALE_DAYS = 2;
 export type LedgerFresh = { business: string; ledger_to: string | null; lag: number | null; month_done: boolean; stale: boolean; reason: string };
-export function ledgerFreshness(netting: Array<{ business?: unknown; d?: unknown }>, businesses: string[], yesterday: string, monthsDone: Iterable<string>): LedgerFresh[] {
+// Какие кабинеты проверяем: из настроек (YM_BUSINESS_IDS / список по умолчанию) ПЛЮС любой, у кого
+// есть строки реестра или заказы за 30 дней до вчера. Продьюсеры берут кабинеты из ключей, а не из
+// YM_BUSINESS_IDS (третий кабинет подключается ключом YM_DASHBOARD_3 без правки настроек), поэтому
+// один список настроек кабинет пропустил бы. Кабинет вне настроек и без активности 30 дней (закрыт)
+// не проверяется, иначе он красил бы прогон вечно.
+export const LEDGER_ACTIVE_DAYS = 30;
+export function ledgerFreshness(netting: Array<{ business?: unknown; d?: unknown }>, businesses: string[], yesterday: string, monthsDone: Iterable<string>, orders: Array<{ business?: unknown; created?: unknown }> = []): LedgerFresh[] {
   const lt = ledgerToBy(netting);
   const done = new Set(monthsDone);
   const ym = yesterday.slice(0, 7);
-  return [...new Set(businesses.map(String).filter(Boolean))].sort().map((business) => {
+  const since = addDays(yesterday, -(LEDGER_ACTIVE_DAYS - 1));
+  const all = new Set(businesses.map(String).filter(Boolean));
+  const active = (b: unknown, d: unknown) => { const k = String(b || ""), x = String(d || "").slice(0, 10); if (k && x >= since && x <= yesterday) all.add(k); };
+  for (const n of netting) active(n.business, n.d);
+  for (const o of orders) active(o.business, o.created);
+  return [...all].sort().map((business) => {
     const to = lt.get(business) || null;
     const month_done = done.has(`${business}/${ym}`);
     if (!to) return { business, ledger_to: null, lag: null, month_done, stale: true, reason: "в реестре нет ни одной строки по кабинету" };

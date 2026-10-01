@@ -33,8 +33,8 @@ import {
 } from "./funnel-tests.js";
 import { loadEbSeries, ebOn } from "./eb-level.js";
 import {
-  diffSeries, baseOf, verdictOf, expectedDrop, priceApplied, viewShare, viewsStop, median as pMedian, nextDay,
-  HOLD_MIN, FAIL_MAX, RUN_DAYS, BASE_DAYS as P_BASE_DAYS, VIEWS_DROP, STOP_SHARE, type PriceTestDef, type DayDiff,
+  diffSeries, baseOf, shiftSeries, verdictOf, expectedDrop, priceApplied, priceState, viewShare, viewsStop, median as pMedian, nextDay,
+  HOLD_MIN, FAIL_MAX, RUN_DAYS, BASE_DAYS as P_BASE_DAYS, VIEWS_DROP, STOP_SHARE, type PriceTestDef, type DayDiff, type DayShift,
 } from "./price-test.js";
 import {
   readPromoDaily, readActsDaily, exitOf, inPromoOn, membersOn, winKey, actKey,
@@ -2218,8 +2218,8 @@ const bidCards = BID_TESTS.map((t, bi) => {
 
 // ---------- тест 4: снижение предельной цены (tests.json, тесты_цены; Иван 01.10) ----------
 // Формулы и пороги - price-test.ts, спека knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml.
-// Здесь только чтение файлов и вёрстка. Рублёвых цен на странице нет: предельная в рублях
-// служит только проверке «цена снижена», наружу идут доли и проценты (правило gap-daily.ts).
+// Здесь только чтение файлов и вёрстка. Предельная в рублях на странице есть (таблица товаров:
+// база, ставим, сейчас) - по решению Ивана 01.10 (п. 2а), исключение из правила gap-daily.ts для 10 товаров теста.
 const PRICE_TESTS = (((T as unknown) as { тесты_цены?: PriceTestDef[] }).тесты_цены || []);
 const pNo = (ti: number): number => T.тесты.length + BID_TESTS.length + ti + 1;
 /** Время сборки = последнее обновление страницы, МСК. Страница пересобирается после синка. */
@@ -2286,12 +2286,12 @@ const sumUnits = (a: string, from: string, to: string): number => {
 };
 
 interface PriceCalc {
-  t: PriceTestDef; ctrl: Set<string>; s: DayDiff[]; base: number | null; baseDays: string[];
+  t: PriceTestDef; ctrl: Set<string>; s: DayDiff[]; ss: DayShift[]; base: number | null; baseDays: string[];
   gBase: number | null; E: number | null; noise: number | null;
   vc: ReturnType<typeof verdictOf>;
   vBase: ReturnType<typeof viewShare>; v1: ReturnType<typeof viewShare>; v2: ReturnType<typeof viewShare>;
   vStop: string | null; collapsed: string[]; baseCap: Map<string, number | null>;
-  price: Array<{ a: string; st: "ждём" | "снижена" | "не снижена" | "нет цены"; d: string; dPct: number | null }>;
+  price: Array<{ a: string; st: "ждём" | "снижена" | "не снижена" | "аномалия" | "нет цены"; d: string; dPct: number | null }>;
 }
 
 function priceCalc(t: PriceTestDef): PriceCalc {
@@ -2310,7 +2310,9 @@ function priceCalc(t: PriceTestDef): PriceCalc {
   const bd = s.filter((x) => baseDays.includes(x.d)).map((x) => x.diff!);
   const mu = bd.length ? bd.reduce((p, q) => p + q, 0) / bd.length : null;
   const noise = mu != null && bd.length > 1 ? Math.sqrt(bd.reduce((p, q) => p + (q - mu) ** 2, 0) / bd.length) : null;
-  const vc = verdictOf(s, t.старт, t.замер, TODAY, E);
+  // Вердикт - по сдвигу каждого товара к его собственной базе (одна популяция до и после старта).
+  const ss = shiftSeries(P_GAP, test, ctrl, t.старт, baseDays, applied);
+  const vc = verdictOf(ss, t.старт, t.замер, TODAY, E, t.продление_до);
   const vBase = viewShare(P_VIEWS, testSet, addDays(t.старт, -7), t.старт);
   const v1 = viewShare(P_VIEWS, testSet, t.старт, addDays(t.старт, 7));
   const v2 = viewShare(P_VIEWS, testSet, addDays(t.старт, 7), addDays(t.старт, 14));
@@ -2323,15 +2325,18 @@ function priceCalc(t: PriceTestDef): PriceCalc {
     if (b == null) return { a, st: "нет цены" as const, d: "", dPct: null };
     if (!after.length) return { a, st: "ждём" as const, d: "", dPct: null };
     const d = after[after.length - 1]!, now = P_CAP.get(a)!.get(d)!;
-    return { a, st: applied(a, d) ? "снижена" as const : "не снижена" as const, d, dPct: (now / b - 1) * 100 };
+    const ps = priceState(b, now, cut);
+    // День старта: снимок цен (~08:53 МСК) раньше срока снижения (10:00) - старая цена ещё не ошибка.
+    const st = ps === "не снижена" && d === t.старт ? "ждём" as const : ps;
+    return { a, st, d, dPct: (now / b - 1) * 100 };
   });
-  return { t, ctrl, s, base, baseDays, gBase, E, noise, vc, vBase, v1, v2, vStop, collapsed, price, baseCap };
+  return { t, ctrl, s, ss, base, baseDays, gBase, E, noise, vc, vBase, v1, v2, vStop, collapsed, price, baseCap };
 }
 
 /** График сдвига разрыва к базе по дням: до старта - чтобы видеть, насколько ровная база. */
 function priceShiftChart(c: PriceCalc): string {
   if (c.base == null) return `<div class="cov">База ещё не набрана: нет ни одного наблюдаемого дня с разницей до старта.</div>`;
-  const pts = c.s.filter((x) => x.diff != null).map((x) => ({ d: x.d, y: x.diff! - c.base! }));
+  const pts = c.ss.filter((x) => x.s != null).map((x) => ({ d: x.d, y: x.s! }));
   if (pts.length < 2) return `<div class="cov">Точек пока мало для графика.</div>`;
   const ys = pts.map((p) => p.y);
   const lo = Math.min(-6.5, (c.E ?? -6) - 0.5, ...ys), hi = Math.max(2, ...ys);
@@ -2352,9 +2357,9 @@ function priceShiftChart(c: PriceCalc): string {
     + (c.E != null ? hline(c.E, "st2", `${pct(c.E)}`) : "")
     + vline + `<path d="${path}" fill="none" stroke="${C_TEST}" stroke-width="2"/>` + dots
     + lab(0) + (si > 0 ? lab(si) : "") + lab(pts.length - 1) + `</svg>`
-    + `<div class="dyn-note">Синяя линия - сдвиг разрыва теста к контролю от базы, п. Пунктир: 0 - как в базе, `
+    + `<div class="dyn-note">Синяя линия - сдвиг разрыва к контролю от базы, медиана по товарам (у каждого товара своя база), п. Пунктир: 0 - как в базе, `
     + `${HOLD_MIN} - порог «держит», ${FAIL_MAX} - порог «не держит»${c.E != null ? `, ${pct(c.E)} - куда упадёт, если Ozon процент не держит` : ""}. `
-    + `После старта точка дня есть, только если у половины группы снимок цен уже показывает сниженную предельную.</div>`;
+    + `После старта точка дня есть, только если у половины группы снимок цен уже показывает сниженную предельную; в точке только такие товары.</div>`;
 }
 
 const PRICE_CALC = PRICE_TESTS.map(priceCalc);
@@ -2385,40 +2390,46 @@ function priceCharts(c: PriceCalc): string {
 /** Напоминание над карточками: карточки свёрнуты, а забыть снизить цену нельзя. */
 function priceReminder(c: PriceCalc): string {
   const t = c.t, list = t.тест.map(esc).join(", ");
-  const keep = `До ${DM(t.замер)}: ставку за заказ «все товары» держать на 5%, на этих товарах не включать рекламу за клик и не менять цену ещё раз.`;
+  const keep = `До ${DM(c.vc.end)}: ставку за заказ «все товары» держать на 5%, на этих товарах не включать рекламу за клик и не менять цену ещё раз.`;
   if (TODAY < t.старт) {
     const dd = daysBetween(TODAY, t.старт);
     return `<div class="remind"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: ${DM(t.старт)} до 10:00 МСК снизить предельную цену на ${Math.round(t.снижение * 100)}%</b>`
       + ` (через ${dd} ${plural(dd, "день", "дня", "дней")}, меняет команда в кабинете) у ${t.тест.length} товаров: ${list}.<br>${esc(keep)}</div>`;
   }
-  if (TODAY >= t.замер) return "";
+  if (TODAY >= c.vc.end) return "";
+  const odd = c.price.filter((p) => p.st === "аномалия");
+  if (odd.length) return `<div class="remind bad"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: аномалия цены у ${odd.length} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}: `
+    + `${odd.map((p) => `${esc(p.a)} (${sgn(p.dPct, 1)}% к базе)`).join(", ")}. Ждём −${Math.round(t.снижение * 100)}%; такие товары в расчёт не входят. `
+    + `Проверить цену в кабинете и поле price в снимке цен. ${esc(keep)}</div>`;
   const bad = c.price.filter((p) => p.st === "не снижена").map((p) => p.a);
   const wait = c.price.filter((p) => p.st === "ждём").length;
   const ok = c.price.filter((p) => p.st === "снижена").length;
   if (bad.length) return `<div class="remind bad"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))}: цена не снижена у ${bad.length} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}: ${bad.map(esc).join(", ")}. `
     + `Без снижения эти товары в расчёт не входят. ${esc(keep)}</div>`;
-  if (wait) return `<div class="remind"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))} стартовал ${DM(t.старт)}: ждём снимок цен</b>, чтобы проверить снижение на ${Math.round(t.снижение * 100)}% у ${t.тест.length} товаров (${list}). ${esc(keep)}</div>`;
+  if (wait) return `<div class="remind"><b>⚠ Тест ${pNo(PRICE_TESTS.indexOf(t))} стартовал ${DM(t.старт)}: ждём снимок цен ${DM(nextDay(t.старт))}</b> (утренний снимок дня старта раньше срока снижения), чтобы проверить снижение на ${Math.round(t.снижение * 100)}% у ${t.тест.length} товаров (${list}). ${esc(keep)}</div>`;
   return `<div class="remind good"><b>Тест ${pNo(PRICE_TESTS.indexOf(t))}: цена снижена у ${ok} из ${t.тест.length}</b> по снимку цен на ${DM(P_LAST_CAP)}. ${esc(keep)}</div>`;
 }
 
 const P_VERDICT_TXT: Record<string, string> = {
   "не запущен": "Тест ещё не начат. Ниже набирается база: разница теста и контроля до снижения цены.",
-  "идёт": "Тест идёт, серии из 3 дней ни по одному порогу пока нет.",
+  "идёт": "Тест идёт, точек сдвига после старта пока меньше трёх.",
   "держит": "Ozon держит процент: разрыв у теста остался на уровне контроля, витрина опустилась вместе с предельной.",
   "не держит": "Ozon процент не держит: разрыв у теста упал, витрина осталась на месте, снижение цены ушло из нашего кармана.",
   "держит частично": "Ozon держит процент частично: доля ниже показывает, какая часть снижения дошла до покупателя.",
-  "мало данных": "Данных для вердикта мало: база или окно без наблюдаемых дней.",
+  "мало данных": "Данных для вердикта мало: база не набрана или в окне меньше трёх наблюдаемых дней.",
 };
 
 function priceCard(c: PriceCalc, ti: number): string {
   const t = c.t, cut = Math.round(t.снижение * 100);
-  const dm = daysBetween(TODAY, t.замер);
-  const chipCls = c.vc.v === "держит" ? "chip-done" : c.vc.v === "не держит" ? "chip-off" : "chip-run";
-  const chip = `<span class="chip ${chipCls}">${esc(c.vc.v)}${dm > 0 ? ` · замер через ${dm} дн` : ""}</span>`;
+  const dm = daysBetween(TODAY, c.vc.end);
+  const vName = (c.vc.prelim && c.vc.window.length >= RUN_DAYS ? "предварительно: " : "") + c.vc.v;
+  const chipCls = c.vc.prelim ? "chip-run" : c.vc.v === "держит" ? "chip-done" : c.vc.v === "не держит" ? "chip-off" : "chip-run";
+  const chip = `<span class="chip ${chipCls}">${esc(vName)}${dm > 0 ? ` · ${c.vc.extended ? "продлён, итог" : "замер"} через ${dm} дн` : ""}</span>`;
   // До старта окно базы показов ещё в будущем: показываем последние 7 дней синка.
   const vEnd = TODAY < t.старт && P_LAST_VIEWS ? (nextDay(P_LAST_VIEWS) < t.старт ? nextDay(P_LAST_VIEWS) : t.старт) : t.старт;
   const vNow = viewShare(P_VIEWS, new Set(t.тест), addDays(vEnd, -7), vEnd);
   const last = c.vc.shifts[c.vc.shifts.length - 1];
+  const lastN = last ? c.ss.find((x) => x.d === last.d)?.nt ?? 0 : 0;
   const vRatio = (w: ReturnType<typeof viewShare>) => (w.share != null && c.vBase.share ? w.share / c.vBase.share - 1 : null);
   const r1 = vRatio(c.v1), r2 = vRatio(c.v2);
   const viewsVerdict = r1 == null ? "окно ещё не началось"
@@ -2430,12 +2441,14 @@ function priceCard(c: PriceCalc, ti: number): string {
     c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map(esc).join(", ")} - товар, похоже, выпал из «Эластичного бустинга», вернуть цену` : "",
   ].filter(Boolean);
   const verdict = `<div class="verdict"><div class="verdict-h">Итог по показателям на ${DM(P_LAST_GAP || TODAY)}</div>`
-    + `<div class="verdict-main"><b>${esc(c.vc.v)}.</b> ${esc(P_VERDICT_TXT[c.vc.v] || "")}</div>`
+    + `<div class="verdict-main"><b>${esc(vName)}.</b> ${esc(P_VERDICT_TXT[c.vc.v] || "")}`
+    + (c.vc.prelim && c.vc.window.length >= RUN_DAYS ? ` Это не итог: медиана последних ${c.vc.window.length} наблюдаемых дней, итог на ${DM(c.vc.end)}.` : "")
+    + (c.vc.extended ? ` На замере ${DM(t.замер)} вышло «держит частично», окно продлено до ${DM(c.vc.end)}.` : "") + `</div>`
     + `<div class="tbl-wrap"><table class="gtbl single"><tbody>`
     + `<tr><td>База: разница теста и контроля, медиана</td><td class="r nw"><b>${sgn(c.base, 2)} п.</b></td><td class="muted">${c.baseDays.length} из ${P_BASE_DAYS} дней${c.baseDays.length ? `, ${DM(c.baseDays[0]!)}-${DM(c.baseDays[c.baseDays.length - 1]!)}` : ""}${c.baseDays.length < P_BASE_DAYS ? ", набирается" : ""}</td></tr>`
     + `<tr><td>Шум базы (ст. откл. разницы)</td><td class="r nw">${pct(c.noise, 2)} п.</td><td class="muted">порог «держит» ${HOLD_MIN} п. это ${c.noise ? pct(Math.abs(HOLD_MIN) / c.noise, 0) : "-"} шума</td></tr>`
     + `<tr><td>Разрыв теста в базе</td><td class="r nw">${pct(c.gBase)}%</td><td class="muted">если Ozon не держит, сдвиг уйдёт к ${pct(c.E)} п.</td></tr>`
-    + `<tr><td>Сдвиг, последний день</td><td class="r nw"><b>${last ? `${sgn(last.s, 2)} п.` : "-"}</b></td><td class="muted">${last ? DM(last.d) : "после старта точек нет"}${c.vc.medShift != null ? `; медиана окна ${sgn(c.vc.medShift, 2)} п.` : ""}${c.vc.share != null && c.vc.shifts.length ? `; держит ${pct(Math.max(0, Math.min(1, c.vc.share)) * 100, 0)}% скидки` : ""}</td></tr>`
+    + `<tr><td>Сдвиг, последний день</td><td class="r nw"><b>${last ? `${sgn(last.s, 2)} п.` : "-"}</b></td><td class="muted">${last ? `${DM(last.d)}, засчитано ${lastN} из ${t.тест.length}` : "после старта точек нет"}${c.vc.medShift != null && c.vc.window.length ? `; медиана ${c.vc.window.length} посл. дней ${sgn(c.vc.medShift, 2)} п.` : ""}${c.vc.share != null && c.vc.shifts.length ? `; держит ${pct(Math.max(0, Math.min(1, c.vc.share)) * 100, 0)}% скидки` : ""}</td></tr>`
     + `<tr><td>Показы: доля группы в показах магазина</td><td class="r nw">${c.vBase.share != null ? pct(c.vBase.share * 1000, 2) + " ‰" : vNow.share != null ? pct(vNow.share * 1000, 2) + " ‰" : "-"}</td><td class="muted">${c.vBase.share != null ? `база ${DM(addDays(t.старт, -7))}-${DM(addDays(t.старт, -1))}` : vNow.share != null ? `пока за ${DM(addDays(vEnd, -7))}-${DM(addDays(vEnd, -1))}, база будет ${DM(addDays(t.старт, -7))}-${DM(addDays(t.старт, -1))}` : "нет данных"}; ${esc(viewsVerdict)}</td></tr>`
     + `</tbody></table></div>`
     + (stops.length ? `<div class="stop"><b>Стоп:</b> ${stops.join("; ")}.</div>` : "")
@@ -2448,7 +2461,8 @@ function priceCard(c: PriceCalc, ti: number): string {
     const bc = c.baseCap.get(a) ?? null;
     const capNow = (() => { const m = P_CAP.get(a); if (!m || !m.size) return null; const d = [...m.keys()].sort().pop()!; return { d, v: m.get(d)! }; })();
     const st = p.st === "снижена" ? `<span class="up">снижена ${sgn(p.dPct, 1)}%</span>`
-      : p.st === "не снижена" ? `<span class="dn">нет (${sgn(p.dPct, 1)}%)</span>` : `<span class="muted">${esc(p.st)}</span>`;
+      : p.st === "не снижена" ? `<span class="dn">нет (${sgn(p.dPct, 1)}%)</span>`
+      : p.st === "аномалия" ? `<span class="dn">аномалия (${sgn(p.dPct, 1)}%)</span>` : `<span class="muted">${esc(p.st)}</span>`;
     return `<tr><td class="nw">${esc(a)}</td><td>${esc(t.модели?.[a] || "")}</td><td class="r">${pct(gb)}</td>`
       + `<td class="r">${lastGap ? `${pct(lastGap.v)} <span class="muted">${DM(lastGap.d)}</span>` : "-"}</td>`
       + `<td class="r nw">${bc != null ? nbsp(bc) : "-"}</td><td class="r nw"><b>${bc != null ? nbsp(Math.round(bc * (1 - t.снижение))) : "-"}</b></td>`
@@ -2464,10 +2478,13 @@ function priceCard(c: PriceCalc, ti: number): string {
     fold("cov", "Контроль", `Медиана разрыва по ${c.ctrl.size} товарам магазина. Исключены: участники тестов 1-3 (тест, контроль, роли, пары ставок, лог кампаний), `
       + `соседи тестовых товаров по объединённой карточке, товары с расходом на рекламу за клик с ${DM(P_CPC_FROM)}, участники «Максимального бустинга» и «Усиления» с ${DM(P_CAP_FROM)}. `
       + `Разрыв почти одинаков по всему магазину (Ozon двигает процент сразу на весь магазин), поэтому контроль - весь «чистый» магазин, а не пары.`)
-    + fold("cov", "Как считается", `Разрыв товара = (1 - витрина / предельная) × 100, из среза кабинета (gap_daily). Разница дня = медиана разрыва теста минус медиана контроля. `
-      + `База = медиана разницы за ${P_BASE_DAYS} последних наблюдаемых дней до старта. Сдвиг = разница дня минус база. `
-      + `После старта товар входит в медиану дня, только если снимок цен в этот день показывает предельную не выше ${100 - cut}% базовой (допуск 1,5%): `
-      + `иначе забытое снижение читалось бы как «держит». Снимок цен снимается утром (около 09:00 МСК), поэтому день старта обычно ещё со старой ценой и не считается. `
+    + fold("cov", "Как считается", `Разрыв товара = (1 - витрина / предельная) × 100, из среза кабинета (gap_daily). Разница товара в дне = его разрыв минус медиана контроля. `
+      + `База товара = медиана его разницы за ${P_BASE_DAYS} последних наблюдаемых дней до старта. Сдвиг товара = разница дня минус его база; сдвиг дня = медиана по засчитанным товарам (не меньше половины группы). `
+      + `Так до и после старта сравнивается один и тот же товар, даже если засчитана только часть группы. `
+      + `После старта товар засчитывается, только если снимок цен в этот день показывает предельную ${100 - cut}% базовой (коридор ±1,5%): `
+      + `иначе забытое снижение читалось бы как «держит». Цена вне коридора (не −${cut}% и не старая) - «аномалия», товар не засчитывается. Снимок цен снимается утром (около 09:00 МСК), поэтому день старта обычно ещё со старой ценой и не считается. `
+      + `Вердикт - медиана сдвига за ${P_BASE_DAYS} последних наблюдаемых дней окна (нужно не меньше ${RUN_DAYS}): не ниже ${HOLD_MIN} п. - держит, ${FAIL_MAX} п. и ниже - не держит, между - держит частично. До конца окна это «предварительно». `
+      + `«Держит частично» на замере продлевает окно${t.продление_до ? ` до ${DM(t.продление_до)}` : ""}. `
       + `Ожидаемое падение, если Ozon не держит: -(100 - разрыв в базе) × ${cut}% / ${100 - cut}%. Показы: доля группы в показах магазина в поиске за 7 дней (sku_views).`)
     + hist.map((h, i) => fold("cov", i === 0 ? "Что уже известно" : `Что уже известно (${i + 1})`, esc(h))).join("")
     + (t.заметка ? fold("cov", "Как выбраны товары", esc(t.заметка)) : "")

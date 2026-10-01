@@ -7,7 +7,7 @@
 // ГЛАВНАЯ ЛОВУШКА, РАДИ КОТОРОЙ ЕСТЬ priceApplied. Если цену в кабинете забыли снизить, разрыв
 // не меняется, сдвиг стоит около нуля, и тест без этой проверки читался бы как «Ozon держит».
 // Поэтому день товара засчитывается только тогда, когда снимок цен в этот день уже показывает
-// сниженную предельную. Нет снимка или цена старая - товара в этом дне нет, а не «держит».
+// сниженную предельную. Нет снимка, цена старая или вне коридора - товара в этом дне нет, а не «держит».
 
 export interface PriceTestDef {
   id: string; название: string; гипотеза?: string; правило?: string;
@@ -25,7 +25,7 @@ export const HOLD_MIN = -1;
 export const FAIL_MAX = -4;
 export const RUN_DAYS = 3;
 export const BASE_DAYS = 7;
-/** Допуск к проверке «цена снижена»: предельная не выше база * (1 - снижение) * (1 + PRICE_TOL). */
+/** Допуск к проверке цены: «снижена» - в пределах ±PRICE_TOL от база * (1 - снижение), «не снижена» - ±PRICE_TOL от базы. */
 export const PRICE_TOL = 0.015;
 export const VIEWS_DROP = -0.20;
 export const STOP_SHARE = 0.5;
@@ -41,9 +41,22 @@ export const median = (xs: number[]): number | null => {
  *  g - разрыв в базе, %, cut - снижение предельной (0.10). Отрицательное число, п. */
 export const expectedDrop = (g: number, cut: number): number => -(100 - g) * cut / (1 - cut);
 
-/** Снижена ли предельная в этот день. base - предельная в базе, now - в этот день. */
+/** Состояние предельной в этот день. Коридор, а не «не выше»: если поле снимка поменяет смысл
+ *  (например, снова станет витриной) или в кабинете ошибутся (-19%, -90%), это «аномалия»,
+ *  товар не засчитывается и плашка краснеет. Сбой не пропускается как «снижена» (fail-closed).
+ *  base - предельная в базе, now - в этот день, cut - снижение (0.10). */
+export type PriceState = "снижена" | "не снижена" | "аномалия" | "нет цены";
+export function priceState(base: number | null, now: number | null, cut: number): PriceState {
+  if (base == null || now == null || !(base > 0) || !(now > 0)) return "нет цены";
+  const target = base * (1 - cut);
+  if (Math.abs(now / target - 1) <= PRICE_TOL) return "снижена";
+  if (Math.abs(now / base - 1) <= PRICE_TOL) return "не снижена";
+  return "аномалия";
+}
+
+/** Засчитывается ли товар в дне: только при цене в коридоре «снижена». */
 export const priceApplied = (base: number | null, now: number | null, cut: number): boolean =>
-  base != null && now != null && base > 0 && now <= base * (1 - cut) * (1 + PRICE_TOL);
+  priceState(base, now, cut) === "снижена";
 
 export interface DayDiff {
   d: string;
@@ -52,10 +65,9 @@ export interface DayDiff {
   nt: number; nc: number;
 }
 
-/** Разница «медиана теста минус медиана контроля» по дням.
- *  gap: день -> артикул -> разрыв. applied(art, d) решает, засчитан ли тестовый товар в дне
- *  после старта; до старта засчитываются все. minShare - доля тестовых товаров, без которой
- *  день не считается (половина группы). */
+/** Разница «медиана теста минус медиана контроля» по дням. Для графиков и базы группы.
+ *  Вердикт по ней НЕ считается: после старта в медиану дня входят не все товары, а база - по всем
+ *  (это разные популяции, E056). Вердикт - по shiftSeries. */
 export function diffSeries(
   gap: Map<string, Map<string, number>>, test: string[], ctrl: Set<string>, start: string,
   applied: (art: string, d: string) => boolean, minShare = 0.5,
@@ -85,15 +97,85 @@ export function baseOf(s: DayDiff[], start: string, n = BASE_DAYS): { base: numb
   return { base: median(pre.map((x) => x.diff!)), days: pre.map((x) => x.d) };
 }
 
+export interface DayShift { d: string; s: number | null; nt: number }
+
+/** Сдвиг по дням на одной популяции (ФЕНИКС G1, 01.10). Для каждого товара своя база:
+ *  медиана (разрыв товара - медиана контроля) за дни базы. Сдвиг товара в дне = (разрыв - контроль) - его база.
+ *  Сдвиг дня = медиана сдвигов засчитанных товаров; день пустой, если засчитано меньше minShare группы. */
+export function shiftSeries(
+  gap: Map<string, Map<string, number>>, test: string[], ctrl: Set<string>, start: string,
+  baseDays: string[], applied: (art: string, d: string) => boolean, minShare = 0.5,
+): DayShift[] {
+  const ctrlMed = (d: string): number | null => {
+    const m = gap.get(d); if (!m) return null;
+    const cv: number[] = []; for (const [a, v] of m) if (ctrl.has(a)) cv.push(v);
+    return median(cv);
+  };
+  const own = new Map<string, number>();
+  for (const a of test) {
+    const xs: number[] = [];
+    for (const d of baseDays) { const v = gap.get(d)?.get(a), c = ctrlMed(d); if (v != null && c != null) xs.push(v - c); }
+    const b = median(xs); if (b != null) own.set(a, b);
+  }
+  const out: DayShift[] = [];
+  for (const d of [...gap.keys()].sort()) {
+    const c = ctrlMed(d), day = gap.get(d)!;
+    const xs: number[] = [];
+    for (const a of test) {
+      const v = day.get(a), b = own.get(a);
+      if (v == null || b == null || c == null) continue;
+      if (d >= start && !applied(a, d)) continue;
+      xs.push(v - c - b);
+    }
+    const enough = xs.length >= Math.ceil(test.length * minShare);
+    out.push({ d, s: enough ? median(xs) : null, nt: xs.length });
+  }
+  return out;
+}
+
 export type Verdict = "не запущен" | "идёт" | "держит" | "не держит" | "держит частично" | "мало данных";
 
 export interface VerdictCalc {
   v: Verdict;
+  /** true - до конца окна: класс по последним дням, не итог */
+  prelim: boolean;
+  /** конец окна вердикта: замер или, после «держит частично» на замере, продление */
+  end: string;
+  extended: boolean;
   shifts: Array<{ d: string; s: number }>;
-  /** первый день серии, на которой вынесен вердикт */
-  from: string | null;
+  /** дни, по которым посчитана медиана (последние BASE_DAYS наблюдаемых в окне) */
+  window: string[];
   medShift: number | null;
   share: number | null;   // доля скидки, которую держит Ozon: 1 - медиана сдвига / E
+}
+
+/** Класс по медиане сдвига. */
+export const classOf = (med: number): Verdict => (med >= HOLD_MIN ? "держит" : med <= FAIL_MAX ? "не держит" : "держит частично");
+
+/** Вердикт (Иван 01.10, п. 1а): итог окна - медиана сдвига за последние BASE_DAYS наблюдаемых дней
+ *  окна [старт, конец). До конца окна тот же расчёт, но «предварительно». «Держит частично» на замере
+ *  продлевает окно до ext (продление_до), итог - на ext. Меньше RUN_DAYS точек - «мало данных».
+ *  today - дата сборки (инъекция ради тестов). */
+export function verdictOf(
+  xs: DayShift[], start: string, end: string, today: string, E: number | null, ext?: string,
+): VerdictCalc {
+  const empty = { shifts: [], window: [], medShift: null, share: null };
+  if (today < start) return { v: "не запущен", prelim: true, end, extended: false, ...empty };
+  const calc = (to: string) => {
+    const shifts = xs.filter((x) => x.d >= start && x.d < to && x.s != null).map((x) => ({ d: x.d, s: x.s! }));
+    const win = shifts.slice(-BASE_DAYS);
+    const med = median(win.map((x) => x.s));
+    return { shifts, window: win.map((x) => x.d), medShift: med,
+      share: med != null && E != null && E < 0 ? 1 - med / E : null };
+  };
+  let r = calc(end), to = end, extended = false;
+  if (today >= end && ext && ext > end && r.window.length >= RUN_DAYS && classOf(r.medShift!) === "держит частично") {
+    to = ext; extended = true; r = calc(ext);
+  }
+  const prelim = today < to;
+  if (!r.shifts.length) return { v: prelim ? "идёт" : "мало данных", prelim, end: to, extended, ...r };
+  if (r.window.length < RUN_DAYS) return { v: prelim ? "идёт" : "мало данных", prelim, end: to, extended, ...r };
+  return { v: classOf(r.medShift!), prelim, end: to, extended, ...r };
 }
 
 /** Первая серия из k подряд наблюдаемых дней, где pred истинен. */
@@ -104,23 +186,6 @@ export function firstRun(xs: Array<{ d: string; s: number }>, pred: (s: number) 
     if (run >= k) return xs[i - k + 1]!.d;
   }
   return null;
-}
-
-/** Вердикт по правилу теста. today - дата сборки (инъекция ради тестов). */
-export function verdictOf(s: DayDiff[], start: string, end: string, today: string, E: number | null): VerdictCalc {
-  const { base } = baseOf(s, start);
-  if (today < start) return { v: "не запущен", shifts: [], from: null, medShift: null, share: null };
-  if (base == null) return { v: "мало данных", shifts: [], from: null, medShift: null, share: null };
-  const shifts = s.filter((x) => x.d >= start && x.d < end && x.diff != null).map((x) => ({ d: x.d, s: x.diff! - base }));
-  const med = median(shifts.map((x) => x.s));
-  const share = med != null && E != null && E < 0 ? 1 - med / E : null;
-  const fail = firstRun(shifts, (v) => v <= FAIL_MAX);
-  const hold = firstRun(shifts, (v) => v >= HOLD_MIN);
-  // Обе серии бывают только на очень шумном ряду; верим той, что пришла позже: она ближе к замеру.
-  if (fail && (!hold || fail >= hold)) return { v: "не держит", shifts, from: fail, medShift: med, share };
-  if (hold) return { v: "держит", shifts, from: hold, medShift: med, share };
-  if (today >= end) return { v: shifts.length >= RUN_DAYS ? "держит частично" : "мало данных", shifts, from: null, medShift: med, share };
-  return { v: "идёт", shifts, from: null, medShift: med, share };
 }
 
 /** Доля группы в показах магазина за окно [from, to). null, если показов магазина в окне нет. */

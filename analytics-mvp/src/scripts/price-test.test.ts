@@ -2,7 +2,7 @@
 // knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml. Даты условные, «сегодня» передаётся.
 import { describe, it, expect } from "vitest";
 import {
-  median, expectedDrop, priceApplied, diffSeries, baseOf, verdictOf, viewShare, viewsStop, firstRun, nextDay,
+  median, expectedDrop, priceApplied, priceState, diffSeries, baseOf, shiftSeries, verdictOf, viewShare, viewsStop, firstRun, nextDay,
 } from "./price-test.js";
 
 const START = "2026-10-07", END = "2026-10-21";
@@ -45,45 +45,108 @@ describe("эталон спеки", () => {
   });
 });
 
-describe("правило", () => {
+/** Сдвиги по дням после старта (база по всем товарам за PRE). */
+function shifts(pre: number[], post: number[], applied: (a: string, d: string) => boolean = all, test = TEST) {
+  const g = gapOf(pre, post);
+  const { days } = baseOf(diffSeries(g, test, CTRL, START, all), START);
+  return shiftSeries(g, test, CTRL, START, days, applied);
+}
+/** Ряд сдвигов на произвольных датах после старта. */
+const xsOf = (vals: number[]) => vals.map((s, i) => ({ d: nextDay(START, i + 1), s, nt: 10 }));
+
+describe("правило (Иван 01.10, п. 1а: итог окна - медиана последних 7 наблюдаемых дней)", () => {
   const pre = [1, 1, 1, 1, 1, 1, 1];
   it("до старта - не запущен", () => {
-    const s = diffSeries(gapOf(pre, []), TEST, CTRL, START, all);
-    expect(verdictOf(s, START, END, "2026-10-05", -5.7).v).toBe("не запущен");
+    expect(verdictOf(shifts(pre, []), START, END, "2026-10-05", -5.7).v).toBe("не запущен");
   });
-  it("3 дня подряд около нуля - держит", () => {
-    const s = diffSeries(gapOf(pre, [1.2, 0.6, 0.9]), TEST, CTRL, START, all);
-    const r = verdictOf(s, START, END, "2026-10-10", -5.7);
+  it("около нуля - держит, до замера предварительно", () => {
+    const r = verdictOf(shifts(pre, [1.2, 0.6, 0.9]), START, END, "2026-10-10", -5.7);
     expect(r.v).toBe("держит");
-    expect(r.from).toBe("2026-10-07");
+    expect(r.prelim).toBe(true);
   });
-  it("3 дня подряд -4 п. и ниже - не держит", () => {
-    const s = diffSeries(gapOf(pre, [-4.5, -4.8, -5.1]), TEST, CTRL, START, all);
-    expect(verdictOf(s, START, END, "2026-10-10", -5.7).v).toBe("не держит");
+  it("-4 п. и ниже - не держит", () => {
+    expect(verdictOf(shifts(pre, [-4.5, -4.8, -5.1]), START, END, "2026-10-10", -5.7).v).toBe("не держит");
   });
-  it("два дня - ещё идёт", () => {
-    const s = diffSeries(gapOf(pre, [-4.5, -4.8]), TEST, CTRL, START, all);
-    expect(verdictOf(s, START, END, "2026-10-09", -5.7).v).toBe("идёт");
+  it("меньше трёх точек - ещё идёт; на замере - мало данных", () => {
+    expect(verdictOf(shifts(pre, [-4.5, -4.8]), START, END, "2026-10-09", -5.7).v).toBe("идёт");
+    expect(verdictOf(shifts(pre, [-4.5, -4.8]), START, END, END, -5.7).v).toBe("мало данных");
   });
-  it("к концу окна между порогами - держит частично, доля по медиане", () => {
-    const s = diffSeries(gapOf(pre, [-1.85, -1.85, -1.85, -1.85]), TEST, CTRL, START, all);
-    const r = verdictOf(s, START, END, END, -5.7);
+  it("на замере между порогами - держит частично, доля по медиане, окно продлено", () => {
+    const r = verdictOf(shifts(pre, [-1.85, -1.85, -1.85, -1.85]), START, END, END, -5.7, "2026-10-28");
     expect(r.v).toBe("держит частично");
+    expect(r.medShift).toBeCloseTo(-2.85, 6);
     expect(r.share).toBeCloseTo(1 - 2.85 / 5.7, 6);
+    expect(r.extended).toBe(true);
+    expect(r.end).toBe("2026-10-28");
+    expect(r.prelim).toBe(true);
+  });
+  it("после продления итог на 28.10, не предварительно", () => {
+    const r = verdictOf(xsOf([-2.5, -2.5, -2.5, -2.5]), START, END, "2026-10-28", -5.7, "2026-10-28");
+    expect(r.v).toBe("держит частично");
+    expect(r.prelim).toBe(false);
+  });
+  it("без продления_до итог на замере", () => {
+    const r = verdictOf(xsOf([-2.5, -2.5, -2.5]), START, END, END, -5.7);
+    expect(r.extended).toBe(false);
+    expect(r.prelim).toBe(false);
+  });
+  it("ФЕНИКС L1: держит, не держит, держит - решают последние дни, а не первая серия", () => {
+    const r = verdictOf(xsOf([0, 0, 0, -5, -5, -5, 0, 0, 0, 0, 0]), START, END, END, -5.7);
+    expect(r.window).toHaveLength(7);
+    expect(r.v).toBe("держит");
+  });
+  it("ФЕНИКС L2: 3 дня -0.5, затем 7 дней -2.5 - не «держит»", () => {
+    const r = verdictOf(xsOf([-0.5, -0.5, -0.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5, -2.5]), START, END, END, -5.7);
+    expect(r.v).toBe("держит частично");
+    expect(r.medShift).toBeCloseTo(-2.5, 6);
+  });
+});
+
+describe("одна популяция до и после старта (ФЕНИКС G1)", () => {
+  it("ФЕНИКС L4: Ozon держит, засчитана часть товаров с низкой базой - всё равно «держит»", () => {
+    // 10 товаров: у 5 разрыв на 2 п. ниже контроля, у 5 на 1.5 п. выше; засчитаны 6 (5 низких и 1 высокий).
+    // Ozon держит - разрыв каждого не меняется.
+    const test = Array.from({ length: 10 }, (_, i) => `T${i}`);
+    const g = new Map<string, Map<string, number>>();
+    for (const d of [...PRE, ...POST]) {
+      const m = new Map<string, number>([["X", 47.5], ["Y", 48], ["Z", 48.5]]);
+      test.forEach((a, i) => m.set(a, i < 5 ? 46 : 49.5));
+      g.set(d, m);
+    }
+    const appliedSix = (a: string) => Number(a.slice(1)) < 6;
+    const { days } = baseOf(diffSeries(g, test, CTRL, START, all), START);
+    const xs = shiftSeries(g, test, CTRL, START, days, appliedSix);
+    const post = xs.filter((x) => x.d >= START);
+    expect(post.every((x) => x.nt === 6 && Math.abs(x.s!) < 1e-9)).toBe(true);
+    expect(verdictOf(xs, START, END, END, -5.7).v).toBe("держит");
+    // старый расчёт по медиане группы дал бы ложный сдвиг: база по 10, день по 6
+    const old = diffSeries(g, test, CTRL, START, appliedSix);
+    const base = baseOf(old, START).base!;
+    expect(old.find((x) => x.d === START)!.diff! - base).toBeLessThan(-1);
   });
 });
 
 describe("ловушка: цену не снизили", () => {
   it("товар без подтверждённого снижения в дне не считается, и «держит» не выходит", () => {
-    const pre = [1, 1, 1, 1, 1, 1, 1];
-    const s = diffSeries(gapOf(pre, [1, 1, 1]), TEST, CTRL, START, () => false);
-    expect(s.filter((x) => x.d >= START).every((x) => x.diff === null)).toBe(true);
-    expect(verdictOf(s, START, END, "2026-10-10", -5.7).v).toBe("идёт");
+    const xs = shifts([1, 1, 1, 1, 1, 1, 1], [1, 1, 1], () => false);
+    expect(xs.filter((x) => x.d >= START).every((x) => x.s === null)).toBe(true);
+    expect(verdictOf(xs, START, END, "2026-10-10", -5.7).v).toBe("идёт");
   });
   it("меньше половины группы со сниженной ценой - день пустой", () => {
-    const g = gapOf([1, 1, 1, 1, 1, 1, 1], [1]);
-    const s = diffSeries(g, ["A", "B", "C"], CTRL, START, (a) => a === "A");
-    expect(s.find((x) => x.d === START)!.diff).toBeNull();
+    const xs = shifts([1, 1, 1, 1, 1, 1, 1], [1], (a) => a === "A", ["A", "B", "C"]);
+    expect(xs.find((x) => x.d === START)!.s).toBeNull();
+  });
+  it("ФЕНИКС L3: коридор цены - витрина в поле price, -19%, -90%, рост - аномалия, не «снижена»", () => {
+    expect(priceState(68300, 61470, 0.10)).toBe("снижена");
+    expect(priceState(68300, 61900, 0.10)).toBe("снижена");     // округление командой, -9.4%
+    expect(priceState(68300, 68300, 0.10)).toBe("не снижена");
+    expect(priceState(68300, 34800, 0.10)).toBe("аномалия");    // витрина вместо предельной
+    expect(priceState(68300, 55300, 0.10)).toBe("аномалия");    // -19%
+    expect(priceState(68300, 6830, 0.10)).toBe("аномалия");     // -90%
+    expect(priceState(68300, 64885, 0.10)).toBe("аномалия");    // -5%
+    expect(priceState(68300, 75000, 0.10)).toBe("аномалия");
+    expect(priceState(null, 61470, 0.10)).toBe("нет цены");
+    expect(priceApplied(68300, 55300, 0.10)).toBe(false);
   });
 });
 

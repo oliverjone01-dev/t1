@@ -111,6 +111,11 @@ export const REPORT_CSS = `<style>
 #rp-cost th,#rp-cost td,#rp-ads th,#rp-ads td,.rp-dead th,.rp-dead td,#rp-why2 th,#rp-why2 td{white-space:nowrap}
 #rp-why2 td.rp-txt{white-space:normal;min-width:260px}.rp-dead td.rp-txt{white-space:normal;min-width:180px;max-width:260px}
 .rp-sub td:first-child{padding-left:22px;color:var(--ink-2)}
+#rp-cost tr,#rp-cost td{background:transparent!important}
+#rp-cost tr.rp-c-strong td{color:#B794F6;font-weight:800}#rp-cost tr.rp-c-main td{color:#FFFFFF}#rp-cost tr.rp-sub td{color:#8A8F98}
+#rp-cost tr td.rp-retro{color:#8A8F98}
+#rp-cost tr.rp-par{cursor:pointer}#rp-cost tr.rp-par td:first-child::before{content:'▸ ';color:#8A8F98}#rp-cost tr.rp-par.rp-open td:first-child::before{content:'▾ '}
+#rp-cost tr.rp-hid{display:none}
 .rp-warn{color:#E5B567}
 .rp-retro,th.rp-retro{color:#8A8F98}
 .rp-art,.rp-art b{color:#8A8F98}
@@ -270,19 +275,26 @@ function rpRender(){
   var aBp=rpAcctSplit(P.prev),aBc=rpAcctSplit(P.cur);
   var h3='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r">Доля от начисл., было</th><th class="r">Доля, стало</th></tr></thead><tbody>';
   // fn(t, aB) - значение строки по ИТОГО месяца t и кабинетным сборам aB; одна формула для ретро, прошлого и текущего.
-  var row3=function(lbl,fn,inc,sub,strong){var v0=fn(gp,aBp),v1=fn(gc,aBc);var st=strong?' style="font-weight:800"':'';return '<tr'+(sub?' class="rp-sub"':'')+st+'><td>'+lbl+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?fn(r.calc.grand,r.aB):null;}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="r">'+rpSh(v0,gp.acc)+'</td><td class="r">'+rpSh(v1,gc.acc)+'</td></tr>';};
-  RP_LINES.forEach(function(L){var k=L[0];h3+=row3(L[1],function(t){return rpVal(t,k);},L[2]>0,false,k==='fees'||k==='acc'||k==='net');
-    if(k==='del'){h3+=row3('в т.ч. rFBS, сервис, страховка (кабинет)',function(t,a){return -a.realfbs;},false,true);}
-    if(k==='oth'){h3+=row3('в т.ч. сборы OZON по артикулам',function(t,a){return t.oth+a.fines+a.badge+a.other;},false,true);
-      h3+=row3('в т.ч. штрафы и гибкий график',function(t,a){return -a.fines;},false,true);h3+=row3('в т.ч. бейдж, отзывы, Premium',function(t,a){return -a.badge;},false,true);
-      h3+=row3('в т.ч. прочие списания кабинета',function(t,a){return a.otherOut?-a.otherOut:0;},false,true);
-      h3+=row3('в т.ч. поступления от OZON на счёт (компенсации и пр.), уменьшают «Прочие»',function(t,a){return a.otherIn?-a.otherIn:0;},true,true);}
-    if(k==='adv'){h3+=row3('в т.ч. разнесена по артикулам',function(t){return t.advSku;},false,true);h3+=row3('в т.ч. не разнесена по артикулам',function(t){return t.advUn;},false,true);}
+  // Оформление (Иван 02.10): итоговые строки фиолетовым, статьи белым, «в т.ч.» серым и свёрнуты под статьёй
+  // (клик по статье раскрывает), фон прозрачный. grp - группа «в т.ч.», par - статья, у которой она есть.
+  var row3=function(lbl,fn,inc,sub,strong,grp,par){var v0=fn(gp,aBp),v1=fn(gc,aBc);var op=grp&&RP_OPEN[grp];
+    var cls=sub?'rp-sub'+(op?'':' rp-hid'):(strong?'rp-c-strong':'rp-c-main');if(par)cls+=' rp-par'+(op?' rp-open':'');
+    return '<tr class="'+cls+'"'+(grp?(sub?' data-g="':' data-tg="')+grp+'"':'')+'><td>'+lbl+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?fn(r.calc.grand,r.aB):null;}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="r">'+rpSh(v0,gp.acc)+'</td><td class="r">'+rpSh(v1,gc.acc)+'</td></tr>';};
+  var hasSub={del:1,oth:1,adv:1};
+  RP_LINES.forEach(function(L){var k=L[0];h3+=row3(L[1],function(t){return rpVal(t,k);},L[2]>0,false,k==='fees'||k==='acc'||k==='net',hasSub[k]?k:null,!!hasSub[k]);
+    if(k==='del'){h3+=row3('в т.ч. rFBS, сервис, страховка (кабинет)',function(t,a){return -a.realfbs;},false,true,false,'del');}
+    if(k==='oth'){h3+=row3('в т.ч. сборы OZON по артикулам',function(t,a){return t.oth+a.fines+a.badge+a.other;},false,true,false,'oth');
+      h3+=row3('в т.ч. штрафы и гибкий график',function(t,a){return -a.fines;},false,true,false,'oth');h3+=row3('в т.ч. бейдж, отзывы, Premium',function(t,a){return -a.badge;},false,true,false,'oth');
+      h3+=row3('в т.ч. прочие списания кабинета',function(t,a){return a.otherOut?-a.otherOut:0;},false,true,false,'oth');
+      h3+=row3('в т.ч. поступления от OZON на счёт (компенсации и пр.), уменьшают «Прочие»',function(t,a){return a.otherIn?-a.otherIn:0;},true,true,false,'oth');}
+    if(k==='adv'){h3+=row3('в т.ч. разнесена по артикулам',function(t){return t.advSku;},false,true,false,'adv');h3+=row3('в т.ч. не разнесена по артикулам',function(t){return t.advUn;},false,true,false,'adv');}
   });
   var rp=anDerive(gp).rent,rc=anDerive(gc).rent;
   var rf1=function(v){return String(Math.round(v*10)/10).replace('.',',');};
-  h3+='<tr><td>Рентабельность (чистая / К выплате)</td>'+rpRtd(R.map(function(r){return r.calc.grand?anDerive(r.calc.grand).rent:null;}),function(v){return rf1(v)+'%';})+'<td class="r">'+(rp==null?'—':rf1(rp)+'%')+'</td><td class="r">'+(rc==null?'—':rf1(rc)+'%')+'</td><td class="r">'+((rp==null||rc==null)?'—':((rc-rp>0?'+':'')+rf1(rc-rp)+' п.'))+'</td><td></td><td></td><td></td></tr>';
+  h3+='<tr class="rp-c-main"><td>Рентабельность (чистая / К выплате)</td>'+rpRtd(R.map(function(r){return r.calc.grand?anDerive(r.calc.grand).rent:null;}),function(v){return rf1(v)+'%';})+'<td class="r">'+(rp==null?'—':rf1(rp)+'%')+'</td><td class="r">'+(rc==null?'—':rf1(rc)+'%')+'</td><td class="r">'+((rp==null||rc==null)?'—':((rc-rp>0?'+':'')+rf1(rc-rp)+' п.'))+'</td><td></td><td></td><td></td></tr>';
   document.getElementById('rp-cost').innerHTML=h3+'</tbody>';
+  var ct=document.getElementById('rp-cost');if(!ct.__tg){ct.__tg=1;ct.addEventListener('click',function(e){var tr=e.target.closest('tr[data-tg]');if(!tr)return;var g=tr.getAttribute('data-tg');RP_OPEN[g]=!RP_OPEN[g];
+    tr.classList.toggle('rp-open',!!RP_OPEN[g]);ct.querySelectorAll('tr[data-g="'+g+'"]').forEach(function(r){r.classList.toggle('rp-hid',!RP_OPEN[g]);});});}
   // Типы начислений кабинета (только целые месяцы: файл месячный).
   var ty=document.getElementById('rp-types');
   if(!P.partial){var tl=[];for(var tn in REP.types){var t=REP.types[tn];var m1=(t.months||{})[ym]||0,m0=(t.months||{})[P.pym]||0;if(Math.round(m1-m0))tl.push({n:tn,c:t.cat,d:m1-m0,m0:m0,m1:m1});}
@@ -297,6 +309,7 @@ function rpRender(){
 // Прошлые ПОЛНЫЕ месяцы до месяца сравнения (Иван 01.10): с первого месяца, целиком покрытого данными
 // OZON (1-е число не раньше первого дня сборов кабинета и рекламы; февраль 2026 начинается 04-06.02 -
 // неполный), по месяц перед прошлым. Только для истории - отклонения не трогают.
+var RP_OPEN={}; // раскрытые группы «в т.ч.» блока 3 (держится при смене месяца)
 function rpDataFrom(){var a=AN_ACCT.length?String(AN_ACCT[0][0]):MAXD,b=REP.ads.length?String(REP.ads[0][0]):MAXD;for(var i=0;i<AN_ACCT.length;i++)if(AN_ACCT[i][0]<a)a=String(AN_ACCT[i][0]);return a>b?a:b;}
 function rpRetro(P){var out=[],m=P.pym;var guard=0,df=rpDataFrom();
   while(guard++<36){m=rpPrevYm(m);if(m+'-01'<df)break;var per={from:m+'-01',to:rpEnd(m)};out.unshift({ym:m,per:per,calc:rpCalc(per),aB:rpAcctSplit(per),ads:rpAdsSum(per)});}

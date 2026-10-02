@@ -97,7 +97,18 @@ export function reportData(ctx: Ctx) {
   let types: any = {};
   try { types = JSON.parse(readFileSync(dp("pnl_account_accrual_types.json"), "utf-8")); } catch { types = {}; }
   console.log(`report: показы ${Object.keys(views).length} SKU, реклама ${ads.length} дн, «за заказ» по выгрузке ${cpoFrom || "-"}..${cpoTo || "-"} (${cpo.length} дн, без заказа в orders_daily ${cpoMiss}), типов начислений ${Object.keys(types).length}`);
-  return { views, ads, cpo, cpoFrom, cpoTo, cpoMiss, adsCat, gmv, types, finCut: ctx.finCut };
+  // Неполная ведомость перевозчика (Иван 02.10): месяц, в любой декаде которого (1-10, 11-20, 21-конец)
+  // в ведомости меньше 5 отправок, - «Наша доставка» за него неполная. Ведомость реально идёт с ~21.04:
+  // март 3 отправки, апрель 44 (38 из них после 20-го), с мая 70+ в каждой декаде. Текущий месяц не
+  // помечается (декады после последнего дня данных не считаются).
+  const vedDec: Record<string, number[]> = {};
+  try { for (const l of readFileSync(dp("delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const d = String(JSON.parse(l).d_ship || ""); if (!d) continue; const day = +d.slice(8, 10); ((vedDec[d.slice(0, 7)] ||= [0, 0, 0]))[day <= 10 ? 0 : day <= 20 ? 1 : 2]! += 1; } } catch { /* нет ведомости */ }
+  const vedPartial: string[] = [];
+  for (let m = from.slice(0, 7); m <= maxD.slice(0, 7); m = addDays(m + "-28", 7).slice(0, 7)) {
+    const dec = vedDec[m] || [0, 0, 0]; const md = maxD.slice(0, 7) === m ? +maxD.slice(8, 10) : 31;
+    if ([0, 1, 2].some((i) => (i === 0 || md > i * 10) && dec[i]! < 5)) vedPartial.push(m);
+  }
+  return { views, ads, cpo, cpoFrom, cpoTo, cpoMiss, adsCat, gmv, types, finCut: ctx.finCut, vedPartial };
 }
 
 export const REPORT_CSS = `<style>
@@ -117,6 +128,7 @@ export const REPORT_CSS = `<style>
 #rp-cost tr.rp-par{cursor:pointer}#rp-cost tr.rp-par td:first-child::before{content:'▸ ';color:#8A8F98}#rp-cost tr.rp-par.rp-open td:first-child::before{content:'▾ '}
 #rp-cost tr.rp-hid{display:none}
 .rp-warn{color:#E5B567}
+.rp-note{font-size:10px;color:#E5B567;font-weight:400;line-height:1.1}
 .rp-retro,th.rp-retro{color:#8A8F98}
 .rp-art,.rp-art b{color:#8A8F98}
 @media (max-width:900px){.rp-cards{grid-template-columns:1fr}}
@@ -277,9 +289,10 @@ function rpRender(){
   // fn(t, aB) - значение строки по ИТОГО месяца t и кабинетным сборам aB; одна формула для ретро, прошлого и текущего.
   // Оформление (Иван 02.10): итоговые строки фиолетовым, статьи белым, «в т.ч.» серым и свёрнуты под статьёй
   // (клик по статье раскрывает), фон прозрачный. grp - группа «в т.ч.», par - статья, у которой она есть.
-  var row3=function(lbl,fn,inc,sub,strong,grp,par){var v0=fn(gp,aBp),v1=fn(gc,aBc);var op=grp&&RP_OPEN[grp];
+  var row3=function(lbl,fn,inc,sub,strong,grp,par,note){var v0=fn(gp,aBp),v1=fn(gc,aBc);var op=grp&&RP_OPEN[grp];
+    var nt=function(m){var t=note&&note(m);return t?'<div class="rp-note">'+t+'</div>':'';};
     var cls=sub?'rp-sub'+(op?'':' rp-hid'):(strong?'rp-c-strong':'rp-c-main');if(par)cls+=' rp-par'+(op?' rp-open':'');
-    return '<tr class="'+cls+'"'+(grp?(sub?' data-g="':' data-tg="')+grp+'"':'')+'><td>'+lbl+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?fn(r.calc.grand,r.aB):null;}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="r">'+rpSh(v0,gp.acc)+'</td><td class="r">'+rpSh(v1,gc.acc)+'</td></tr>';};
+    return '<tr class="'+cls+'"'+(grp?(sub?' data-g="':' data-tg="')+grp+'"':'')+'><td>'+lbl+'</td>'+R.map(function(r){var v=r.calc.grand?fn(r.calc.grand,r.aB):null;return '<td class="r rp-retro">'+(v==null?'—':rpN(v))+nt(r.ym)+'</td>';}).join('')+'<td class="r">'+rpN(v0)+nt(P.pym)+'</td><td class="r">'+rpN(v1)+nt(ym)+'</td><td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="r">'+rpSh(v0,gp.acc)+'</td><td class="r">'+rpSh(v1,gc.acc)+'</td></tr>';};
   var hasSub={del:1,oth:1,adv:1};
   RP_LINES.forEach(function(L){var k=L[0];if(k==='ship'||k==='dinc')return; // перенесены под «Логистику» (Иван 02.10), расчёты не меняются
     // «Логистика» только в «Отчете» (Иван 02.10) - нетто: логистика OZON + кабинет + наша доставка − доставка покупателя (доход).
@@ -289,7 +302,7 @@ function rpRender(){
     if(k==='amt')h3+=row3('К выплате (с учетом Доставки покупателя)',function(t){return rpVal(t,'amt')+rpVal(t,'dinc');},true,false,true);
     if(k==='del'){h3+=row3('в т.ч. логистика OZON',function(t,a){return t.del+a.realfbs;},false,true,false,'del'); // логистика по артикулам/заказам = Логистика − кабинетная часть
       h3+=row3('в т.ч. rFBS, сервис, страховка (кабинет)',function(t,a){return -a.realfbs;},false,true,false,'del');
-      h3+=row3('в т.ч. наша доставка (перевозчик)',function(t){return rpVal(t,'ship');},false,true,false,'del');
+      h3+=row3('в т.ч. наша доставка (перевозчик)',function(t){return rpVal(t,'ship');},false,true,false,'del',false,function(m){return (REP.vedPartial||[]).indexOf(m)>=0?'неполная ведомость':'';});
       h3+=row3('в т.ч. доставка покупателя (доход, со знаком минус)',function(t){return -rpVal(t,'dinc');},false,true,false,'del');}
     if(k==='oth'){h3+=row3('в т.ч. сборы OZON по артикулам',function(t,a){return t.oth+a.fines+a.badge+a.other;},false,true,false,'oth');
       h3+=row3('в т.ч. штрафы и гибкий график',function(t,a){return -a.fines;},false,true,false,'oth');h3+=row3('в т.ч. бейдж, отзывы, Premium',function(t,a){return -a.badge;},false,true,false,'oth');

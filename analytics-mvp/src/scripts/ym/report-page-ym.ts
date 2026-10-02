@@ -36,6 +36,8 @@ export const RP_SHARED = [
   "rpTopFilt", "rpTop", "rpList", "rpUnitsPrice", "rpVolRate", "rpTurnCard", "rpWhyTurn", "rpRth", "rpRtd",
   "RP_LOW_VIEWS", "RP_DEAD_DAYS", "RP_DROP_DAYS", "rpDays",
   "RPX_CRC", "rpxCrc", "rpxZip", "rpxEsc", "rpxCell", "rpxCol", "rpxSheet", "rpxTable", "rpxLines",
+  // Оформление файла (как у OZON-отчёта): шрифты, заливки, форматы чисел и реестр стилей.
+  "RPX_SPAN", "RPX_FONT", "RPX_FILL", "RPX_NUM", "rpxStyles",
 ];
 
 // Достаёт из клиентского кода объявление верхнего уровня по имени: «function имя(...){...}» (по
@@ -217,6 +219,7 @@ export const REPORT_YM_CSS = `<style>
 .rp-sub td{color:var(--ink-3,#7d8a99)!important;font-weight:400}
 .rp-main td{font-weight:800;color:#A78BFA}
 .rp-main td.rp-txt,.rp-main td.rp-arts{font-weight:400;color:var(--ink-1)}
+#rp-pts .rp-main td,#rp-ads .rp-main td{color:#fff}
 #rp-why2 .rp-txt,#rp-why2 .rp-arts{white-space:normal;width:340px;min-width:340px;max-width:340px}
 .rp-par{cursor:pointer}.rp-par td:first-child::before{content:'▸ ';color:var(--ink-3,#7d8a99)}.rp-par.rp-open td:first-child::before{content:'▾ '}
 .rp-warn{color:#E5B567}
@@ -538,29 +541,44 @@ function rpyDead(P,cur){
     +(agg?' Первая неделя показов ('+rpDm(REPY.aggFrom)+'-'+rpDm(REPY.aggTo)+') пришла одной строкой и отнесена к '+RP_MON_R[+ym.slice(5,7)]+' целиком, включая '+rpDm(REPY.aggFrom)+'.':'')+'</div>';
   el.innerHTML=html;
 }
-// Выгрузка в Excel: тот же лист, что у OZON (общие rpx*), таблицы снимаются с отрисованной страницы.
+// Выгрузка в Excel: тот же лист и то же оформление, что у OZON-отчёта (общие rpx*: цвета, заголовки
+// блоков, шапки, итоги фиолетовым, «в т.ч.» серым, зебра, отклонения зелёным/красным - просьба пользователя 02.10).
+// Таблицы снимаются с отрисованной страницы. Роль строки rpxTable берёт из классов OZON (rp-c-strong), поэтому
+// таблица копируется и основным строкам Маркета (rp-main) ставится rp-c-strong; звёздочка у числа (rp-warn *)
+// становится пометкой rp-note - уходит в название строки с месяцами, число остаётся числом.
+function rpyXTable(el,sp,plain){if(!el)return [];var cl=el.cloneNode(true);
+  // plain - блоки 4 и 5: основные строки без фиолетового (просьба пользователя 02.10), обычной строкой таблицы.
+  if(!plain)[].forEach.call(cl.querySelectorAll('tr.rp-main'),function(tr){tr.classList.add('rp-c-strong');});
+  [].forEach.call(cl.querySelectorAll('span.rp-warn'),function(x){if(x.textContent.trim()==='*')x.className='rp-note';});
+  return rpxTable(cl,sp);}
 function rpyExport(){
   var ym=document.getElementById('rp-month').value;var P=rpPeriods(ym);
-  var head=[[{s:'Ежемесячный отчёт Яндекс Маркета: '+rpName(ym),b:1}],[document.getElementById('rp-sub').innerText],[]];
-  var s1=head.concat([[{s:'1. Оборот за месяц',b:1}],[{s:'Группа',b:1},{s:rpName(P.pym)+' ('+rpDm(P.prev.from)+'-'+rpDm(P.prev.to)+'), ₽',b:1},{s:rpName(ym)+' ('+rpDm(P.cur.from)+'-'+rpDm(P.cur.to)+'), ₽',b:1},{s:'Отклонение, ₽',b:1},{s:'Отклонение, %',b:1},{s:'Шт, было',b:1},{s:'Шт, стало',b:1}]]);
+  var gap={k:'gap',c:[]};
+  var head=[{k:'title',c:['Ежемесячный отчёт Яндекс Маркета: '+rpName(ym)]},{k:'sub',c:[document.getElementById('rp-sub').innerText.replace(/\\n+/g,' · ')]},gap];
+  var flags=rpxLines(document.getElementById('rp-flags'),'note');
+  var s1=head.concat([{k:'sec',c:['1. Оборот за месяц']},{k:'th',c:['Группа',rpName(P.pym)+' ('+rpDm(P.prev.from)+'-'+rpDm(P.prev.to)+'), ₽',rpName(ym)+' ('+rpDm(P.cur.from)+'-'+rpDm(P.cur.to)+'), ₽','Отклонение, ₽','Отклонение, %','Шт, было','Шт, стало']}]);
   var cur=rpyCalc(P.cur),prev=rpyCalc(P.prev);
-  if(cur.grand&&prev.grand){[['Всего',prev.grand.acc,cur.grand.acc,prev.grand.units,cur.grand.units],['Зеркала',prev.g.mir.acc,cur.g.mir.acc,prev.g.mir.units,cur.g.mir.units],['Мебель',prev.g.fur.acc,cur.g.fur.acc,prev.g.fur.units,cur.g.fur.units]].forEach(function(r){
-    var pc=rpPct(r[2],r[1]);s1.push([r[0],Math.round(r[1]),Math.round(r[2]),Math.round(r[2]-r[1]),pc==null?'':(Math.round(pc*10)/10).toString().replace('.',',')+'%',r[3],r[4]]);});}
-  s1=s1.concat([[]],[[{s:'Пометки по данным',b:1}]],rpxLines(document.getElementById('rp-flags')));
-  var s2=[[{s:'2. Причины роста или падения: оборот',b:1}]].concat(rpxLines(document.getElementById('rp-why')),[[]],[[{s:'По каждой статье',b:1}]],rpxTable(document.getElementById('rp-why2')));
-  var s3=[[{s:'3. Затраты площадки и полная аналитика',b:1}]].concat(rpxTable(document.getElementById('rp-cost')));
-  var s4b=[[{s:'4. Баллы Маркета (справочно)',b:1}]].concat(rpxTable(document.getElementById('rp-pts')));
-  var s4=[[{s:'5. Реклама',b:1}]].concat(rpxTable(document.getElementById('rp-ads')));
-  var s5=[[{s:'6. Топ-5 непродаваемых',b:1}]];
-  [].forEach.call(document.getElementById('rp-dead').children,function(ch){if(ch.tagName==='H4')s5.push([{s:ch.innerText,b:1}]);else if(ch.querySelector&&ch.querySelector('table'))s5=s5.concat(rpxTable(ch.querySelector('table')),[[]]);else s5=s5.concat(rpxLines(ch));});
-  var one=s1.concat([[],[]],s2,[[],[]],s3,[[],[]],s4b,[[],[]],s4,[[],[]],s5);
+  if(cur.grand&&prev.grand){[['Всего',prev.grand.acc,cur.grand.acc,prev.grand.units,cur.grand.units],['Зеркала',prev.g.mir.acc,cur.g.mir.acc,prev.g.mir.units,cur.g.mir.units],['Мебель',prev.g.fur.acc,cur.g.fur.acc,prev.g.fur.units,cur.g.fur.units]].forEach(function(r,i){
+    var pc=rpPct(r[2],r[1]),d=Math.round(r[2]-r[1]),tn=d>0?'up':d<0?'dn':null;s1.push({k:i===0?'strong':'main',c:[r[0],Math.round(r[1]),Math.round(r[2]),tn?{s:d,t:tn}:d,pc==null?'':{s:(Math.round(pc*10)/10).toString().replace('.',',')+'%',t:tn},r[3],r[4]]});});}
+  if(flags.length)s1=s1.concat([gap,{k:'h',c:['Пометки по данным']}],flags);
+  // Один лист: блоки подряд сверху вниз, между блоками две пустые строки (как у OZON).
+  var s2=[{k:'sec',c:['2. Причины роста или падения оборота']},{k:'h',c:['Коротко']}].concat(rpxLines(document.getElementById('rp-why'),'line'),[gap,{k:'h',c:['По каждой статье']}],rpyXTable(document.getElementById('rp-why2'),[1,1,1,1,1,3,4]));
+  var s3=[{k:'sec',c:['3. Затраты площадки и полная аналитика']}].concat(rpyXTable(document.getElementById('rp-cost')));
+  var s4=[{k:'sec',c:['4. Баллы Маркета (справочно)']}].concat(rpyXTable(document.getElementById('rp-pts'),null,1));
+  var s5=[{k:'sec',c:['5. Реклама']}].concat(rpyXTable(document.getElementById('rp-ads'),null,1));
+  var s6=[{k:'sec',c:['6. Топ-5 непродаваемых']}];
+  [].forEach.call(document.getElementById('rp-dead').children,function(ch){if(ch.tagName==='H4')s6.push({k:'h',c:[ch.innerText]});else if(ch.querySelector&&ch.querySelector('table'))s6=s6.concat(rpxTable(ch.querySelector('table'),[1,2,1,1,1,1,1,1,2,2]),[gap]);else s6=s6.concat(rpxLines(ch,'note'));});
+  var one=s1.concat([gap,gap],s2,[gap,gap],s3,[gap,gap],s4,[gap,gap],s5,[gap,gap],s6);
+  var ST=rpxStyles();
+  var sheets=[['Отчет',one,[46,15,15,15,15,15,15,15,15,15,15,15,15,15,15]]];
   var ns='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
-  var files=[['[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'],
+  var sx=sheets.map(function(s){return rpxSheet(s[1],s[2],ST);});
+  var files=[['[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';}).join('')+'</Types>'],
     ['_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
-    ['xl/workbook.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook '+ns+'><sheets><sheet name="Отчет" sheetId="1" r:id="rId1"/></sheets></workbook>'],
-    ['xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
-    ['xl/styles.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="0.0%"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/><xf numFmtId="3" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'],
-    ['xl/worksheets/sheet1.xml',rpxSheet(one,[48,18,18,18,18,18,18,18,18,18,18,60])]];
+    ['xl/workbook.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook '+ns+'><sheets>'+sheets.map(function(s,i){return '<sheet name="'+rpxEsc(s[0])+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>';}).join('')+'</sheets></workbook>'],
+    ['xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map(function(s,i){return '<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>';}).join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+    ['xl/styles.xml',ST.xml()]];
+  sx.forEach(function(x,i){files.push(['xl/worksheets/sheet'+(i+1)+'.xml',x]);});
   var blob=rpxZip(files),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='YM_otchet_'+ym+(P.partial?'_po_'+P.cur.to:'')+'.xlsx';
   document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);
 }

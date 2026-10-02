@@ -4774,7 +4774,7 @@ function accDraw(){
       +'<td class="r"'+(x.fb?' style="color:#E5B567" title="часть дней посчитана по выгрузке заказов, а не по реестру: за этот месяц реестр собран без колонки источника - штуки с отчётом о платежах могут не совпасть"':'')+'><b>'+x.units+'</b></td>'
       // Сверка Кати с отчётом о платежах идёт по дню платежа - штуки первого столбца видны в ячейке,
       // деньги за товар - в подсказке (G2 ФЕНИКСА iter3).
-      +'<td class="r acc-c1" style="color:var(--ink-3)" title="по начислению Маркета: продано '+(x.sold1||0)+' − возвраты '+(x.ret1||0)+' = '+(x.units1||0)+' шт; оплатил клиент '+svRub(x.pay1||0)+' ₽; доставка покупателя '+svRub(x.dlv1||0)+' ₽">'+svRub(x.acc1||0)+'<div style="font-size:11px">'+(x.sold1||0)+' − '+(x.ret1||0)+' = '+(x.units1||0)+' шт</div></td>'
+      +'<td class="r acc-c1" style="color:var(--ink-3)" title="по начислению Маркета: продано '+(x.sold1||0)+' − возвраты '+(x.ret1||0)+' = '+(x.units1||0)+' шт; оплатил клиент '+svRub(x.pay1||0)+' ₽; доставка покупателя '+svRub(x.dlv1||0)+' ₽">'+svRub(x.acc1||0)+'</td>'
       +'<td class="r"><b>'+svRub(x.accruals)+'</b></td>'
       +'<td class="r" style="color:var(--ink-3)"'+(Math.round(x.back||0)?' title="получено '+svRub(x.got||0)+' ₽ − возвращено '+svRub(-(x.back||0))+' ₽"':'')+'>'+(Math.round(x.pay)?svRub(x.pay):'—')+'</td>'
       +money(x.dlv||0)

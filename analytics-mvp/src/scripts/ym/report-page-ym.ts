@@ -424,8 +424,11 @@ function rpyRender(){
     var cls=(L.sub?'rp-sub':'')+(L.main?' rp-main':'')+(G&&G.par?' rp-par'+(RPY_OPEN[G.par]?' rp-open':''):'')+(G&&G.kid?' rp-kid':'');
     var at=(G&&G.par?' data-p="'+G.par+'"':'')+(G&&G.kid?' data-g="'+G.kid+'"'+(RPY_OPEN[G.kid]?'':' style="display:none"'):'');
     return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+(L.bold&&!L.main?' style="font-weight:800"':'')+'><td'+(L.t?' title="'+L.t+'"':'')+'>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpNd(v0)+'</td><td class="r">'+rpNd(v1)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
-  h3+=rpyRows(LINES,row3);
+  // Штуки - сразу под «Начислено» (просьба пользователя 02.10), а не в конце таблицы.
+  var iAcc=LINES.map(function(L){return L.k;}).indexOf('acc'),iU=iAcc+1;while(iU<LINES.length&&LINES[iU].sub)iU++;
+  h3+=rpyRows(LINES.slice(0,iU),row3);
   h3+=row3({l:'Продано за вычетом возвратов, шт',fn:function(t){return t.units;},inc:1},true);
+  h3+=rpyRows(LINES.slice(iU),row3);
   var rf1=function(v){return String(Math.round(v*10)/10).replace('.',',');};
   var rent=function(t){return t&&t.amount?t.netAll/t.amount*100:null;};var rp=rent(gp),rc=rent(gc);
   h3+='<tr><td title="чистая прибыль с общими расходами / К выплате">Рентабельность</td>'+rpRtd(R.map(function(r){return rent(r.calc.grand);}),function(v){return rf1(v)+'%';})+'<td class="r">'+(rp==null?'—':rf1(rp)+'%')+'</td><td class="r">'+(rc==null?'—':rf1(rc)+'%')+'</td><td class="r">'+((rp==null||rc==null)?'—':((rc-rp>0?'+':'')+rf1(rc-rp)+' п.'))+'</td><td></td><td></td><td></td></tr>';

@@ -305,7 +305,6 @@ function rpyLines(calcs){
   // Два столбца (решение 02.10): «Начислил Маркет» - как в отчёте о платежах, по дню платежа, справочно;
   // «Начислено» - по заказам, по которым Маркет провёл сбор за продажу, от него считается всё ниже.
   var L=[{k:'acc1',l:'Начислил Маркет за оформление (справочно, как отчёт о платежах)',fn:key('acc1'),inc:1,top:1},
-    {k:'amount1',l:'К выплате по начислению Маркета (справочно)',fn:key('amount1'),inc:1,sub:1},
     {k:'acc',l:'Начислено по заказам со сборами Маркета (основа расчёта)',fn:key('acc'),inc:1,top:1,bold:1},
     {k:'pay',l:'в т.ч. оплатил клиент за товар',fn:key('pay'),inc:1,top:1,sub:1},{k:'dlv',l:'в т.ч. доставка покупателя',fn:key('dlv'),inc:1,top:1,sub:1}];
   RPY_G.forEach(function(G){
@@ -315,6 +314,7 @@ function rpyLines(calcs){
     L.push({k:G[1],l:G[2],fn:key(G[1]),inc:0,top:1});
     Object.keys(names).sort().forEach(function(k){L.push({k:k,l:k.split('|')[1],fn:function(t){return t?(t.svc[k]||0):null;},inc:0,sub:1,svc:1});});});
   L.push({k:'fee',l:'Всего сборов = затраты площадки',fn:key('fee'),inc:0,top:1,bold:1},{k:'amount',l:'К выплате',fn:key('amount'),inc:1,top:1,bold:1},
+    {k:'amount1',l:'К выплате (Маркет) справочно: «Начислил Маркет» − те же сборы',fn:key('amount1'),inc:1,sub:1},
     {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка (ведомость, по этим же заказам)',fn:key('ship'),inc:0,top:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
     {k:'adm',l:'АДМ '+pct(ACC_RATE.adm)+' от К выплате',fn:key('adm'),inc:0},{k:'tax',l:'Налоги '+pct(ACC_RATE.tax)+' от «Начислено»',fn:key('tax'),inc:0},
     {k:'np',l:'Чистая прибыль по артикулам (= блок на «Деньгах»)',fn:key('np'),inc:1,top:1,bold:1},

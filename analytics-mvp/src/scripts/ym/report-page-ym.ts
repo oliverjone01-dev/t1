@@ -285,9 +285,7 @@ function rpyCalc(per){
   var pt=0,pc=0;REPY.pts.forEach(function(r){if(!rpyIn(r[0],per))return;pt+=r[1];pc+=r[2];});
   var nRows=0;for(var i=0;i<ACC.length;i++)if(rpyIn(ACC[i][0],per))nRows++;
   var grand=null;
-  // Пары (кабинет/месяц) окна без статуса платежа (G1 ФЕНИКСА iter2): «оплачено и отменено» там не 0, а «нет данных».
-  var nost=(typeof ACC_NOST!=='undefined'?ACC_NOST:[]).concat(typeof ACC_NOST_OLD!=='undefined'?ACC_NOST_OLD:[]).filter(function(p){var m=p.split('/')[1];return m>=per.from.slice(0,7)&&m<=per.to.slice(0,7);});
-  if(list.length){grand=Object.assign(T,{nost:nost,acc:T.accruals,svc:svc,svcSum:svcSum,pts:pts,acct:acct,prem:prem,seller:seller,gen:acct+prem,netAll:T.np+acct+prem,
+  if(list.length){grand=Object.assign(T,{acc:T.accruals,svc:svc,svcSum:svcSum,pts:pts,acct:acct,prem:prem,seller:seller,gen:acct+prem,netAll:T.np+acct+prem,
     ptsIn:pt,ptsOut:-pc,saldo:pt+pc,n:list.length});RPY_G.forEach(function(G){grand[G[1]]=-T[G[0]];});}
   // Инварианты. Строки ACC округлены до рубля по (день, артикул): тождество и разбивка по услугам
   // расходятся на рубли - до 1,5 ₽ и 0,5 ₽ на строку соответственно; флаг услуг - от 0,5 ₽ × строк окна, но
@@ -298,8 +296,6 @@ function rpyCalc(per){
     bad:!!grand&&Math.abs(g.mir.acc+g.fur.acc-grand.acc)>1,badId:!!grand&&Math.abs(idn)>nRows*1.5};
 }
 function rpyVal(t,k){if(!t)return null;return t[k]||0;}
-// «Оплачено и отменено» видно только по статусу платежа: месяц, собранный без статуса, - «нет данных», не 0.
-function rpyCanc(t,k){if(!t||(t.nost&&t.nost.length))return null;return t[k]||0;}
 function rpyRetro(P){var out=[],m=P.pym,guard=0,df=REPY.full;
   while(guard++<36){m=rpPrevYm(m);if(!df||m+'-01'<df)break;var per={from:m+'-01',to:rpEnd(m)};out.unshift({ym:m,per:per,calc:rpyCalc(per)});}
   return out;}
@@ -339,15 +335,6 @@ function rpyPtsLines(calcs){
   L.push({k:'saldo',l:'Сальдо баллов (начислено − списано)',fn:function(t){return rpyVal(t,'saldo');},inc:1,bold:1,main:1});
   return L;
 }
-// Справочные строки блока 3 (в оборот, сборы и прибыль не входят).
-function rpyRefLines(){
-  return [{k:'seller',l:'Внесено продавцом (ваши деньги на счёт Маркета, не расход)',fn:function(t){return rpyVal(t,'seller');},inc:1,sub:1},
-    // Ответ «1а» 02.10: заказ оплатили и отменили - статус Маркета «не будет переведён / удержан из-за
-    // отмены заказа». Денег не было, в оборот и штуки не входит; платёж и отмена бывают в разных месяцах.
-    {k:'cgot',l:'Оплачено и отменено: платежи покупателей (денег не было, в оборот не входят)',fn:function(t){return rpyCanc(t,'cgot');},inc:1,sub:1},
-    {k:'csold',l:'Оплачено и отменено: штук',fn:function(t){return rpyCanc(t,'csold');},inc:1,sub:1},
-    {k:'cback',l:'Отмена ранее оплаченных: возвраты, которые не удержат',fn:function(t){return rpyCanc(t,'cback');},inc:1,sub:1}];
-}
 // Строки «в т.ч.» сворачиваются под свою строку (просьба пользователя 02.10). Состояние - на странице.
 var RPY_OPEN={};
 function rpyRows(lines,row3){var h='',par=null;
@@ -375,8 +362,8 @@ function rpyRender(){
   // Статус платежа не собран (G1 ФЕНИКСА iter2): отменённые заказы там посчитаны продажей и возвратом.
   var nsN=(typeof ACC_NOST!=='undefined'?ACC_NOST:[]).filter(function(p){var m=p.split('/')[1];return m===P.ym||m===P.pym;});
   var nsO=(typeof ACC_NOST_OLD!=='undefined'?ACC_NOST_OLD:[]).filter(function(p){var m=p.split('/')[1];return m===P.ym||m===P.pym;});
-  if(nsN.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собран:</b> '+nsN.join(', ')+' - заказы, которые оплатили и отменили, там посчитаны продажей и возвратом; строки «Оплачено и отменено» - нет данных. Бот перезаберёт эти месяцы (схема реестра 5).');
-  if(nsO.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собирается:</b> '+nsO.join(', ')+' - месяцы до '+REPY.floor+' бот не перезабирает; отменённые заказы там посчитаны продажей и возвратом, «Оплачено и отменено» - нет данных.');
+  if(nsN.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собран:</b> '+nsN.join(', ')+' - заказы, которые оплатили и отменили, там посчитаны продажей и возвратом в «Начислил Маркет» (справочно); второй столбец их не содержит - у отменённого заказа нет сбора за продажу. Бот перезаберёт эти месяцы (схема реестра 5).');
+  if(nsO.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собирается:</b> '+nsO.join(', ')+' - месяцы до '+REPY.floor+' бот не перезабирает; отменённые заказы там посчитаны продажей и возвратом в «Начислил Маркет» (справочно).');
   var svB=cur.svBad.concat(prev.svBad);
   if(svB.length)fl.push('<b class="rp-dn">⚠ Услуги Маркета не сложились в колонку блока:</b> '+svB.join(', ')+'. Строки услуг в блоках 2-3 не использовать.');
   document.getElementById('rp-flags').innerHTML=fl.join('<br>')||'<span class="rp-mute">Пометок по данным нет.</span>';
@@ -394,8 +381,12 @@ function rpyRender(){
     rpWhyTurn('Оборот всего',gp.acc,gp.units,gc.acc,gc.units,cur,prev,all,'зеркала '+rpDTxt(cur.g.mir.acc-prev.g.mir.acc,true)+' ₽, мебель '+rpDTxt(cur.g.fur.acc-prev.g.fur.acc,true)+' ₽')
     +rpWhyTurn('Зеркала',prev.g.mir.acc,prev.g.mir.units,cur.g.mir.acc,cur.g.mir.units,cur,prev,mir,'')
     +rpWhyTurn('Мебель',prev.g.fur.acc,prev.g.fur.units,cur.g.fur.acc,cur.g.fur.units,cur,prev,fur,furExtra);
-  var h2='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">%</th><th>За счёт чего</th></tr></thead><tbody>';
-  var tr2=function(L,v0,v1,txt,pct){var d=v1-v0;return '<tr'+(L.sub?' class="rp-sub"':'')+'><td>'+L.l+'</td>'+rpRtd(R.map(function(r){return L.fn(r.calc.grand);}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,L.inc?true:false)+'</td><td class="r">'+rpPctTxt(pct?pct(v1,v0):rpPct(v1,v0),L.inc?true:false)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td></tr>';};
+  // Блок 2 - только прошлый и отчётный месяц (просьба пользователя 02.10: ретро-месяцы - в блоке 3).
+  var h2='<thead><tr><th>Статья</th><th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">%</th><th>За счёт чего</th></tr></thead><tbody>';
+  // Оформление как в блоке 3: основные строки фиолетовым жирным, «в т.ч.» серым и свёрнуто под своей строкой.
+  var tr2=function(L,v0,v1,txt,pct,G){var d=v1-v0;var cls=(L.sub?'rp-sub':'')+(L.main?' rp-main':'')+(G&&G.par?' rp-par'+(RPY_OPEN[G.par]?' rp-open':''):'')+(G&&G.kid?' rp-kid':'');
+    var at=(G&&G.par?' data-p="'+G.par+'"':'')+(G&&G.kid?' data-g="'+G.kid+'"'+(RPY_OPEN[G.kid]?'':' style="display:none"'):'');
+    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+'><td>'+L.l+'</td><td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,L.inc?true:false)+'</td><td class="r">'+rpPctTxt(pct?pct(v1,v0):rpPct(v1,v0),L.inc?true:false)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td></tr>';};
   var upA=rpUnitsPrice(gp.acc,gp.units,gc.acc,gc.units),tA=[];
   if(upA)tA.push('штуки: '+rpN(gp.units)+' → '+rpN(gc.units)+' шт × прежняя цена '+rpN(upA.p0)+' ₽ = '+rpDTxt(upA.vol,true)+' ₽; цена (начислено на 1 шт): '+rpN(upA.p0)+' → '+rpN(upA.p1)+' ₽ × '+rpN(gc.units)+' шт = '+rpDTxt(upA.price,true)+' ₽; вместе '+rpDTxt(upA.vol+upA.price,true)+' ₽');
   tA.push('зеркала '+rpDTxt(cur.g.mir.acc-prev.g.mir.acc,true)+' ₽, мебель '+rpDTxt(cur.g.fur.acc-prev.g.fur.acc,true)+' ₽');
@@ -404,15 +395,18 @@ function rpyRender(){
   var tU=['зеркала '+rpN(prev.g.mir.units)+' → '+rpN(cur.g.mir.units)+' шт ('+rpDTxt(cur.g.mir.units-prev.g.mir.units,true)+'), мебель '+rpN(prev.g.fur.units)+' → '+rpN(cur.g.fur.units)+' шт ('+rpDTxt(cur.g.fur.units-prev.g.fur.units,true)+')'];
   var uPl=rpTopFilt(cur,prev,'units',1,3,all),uMi=rpTopFilt(cur,prev,'units',-1,3,all);
   if(uPl.length)tU.push(rpTop('выросло сильнее всего, шт',uPl));if(uMi.length)tU.push(rpTop('снизилось сильнее всего, шт',uMi));
-  h2+=tr2(LINES.filter(function(L){return L.k==='acc';})[0],gp.acc,gc.acc,tA)+tr2({l:'Продано за вычетом возвратов, шт',fn:function(t){return rpyVal(t,'units');},inc:1},gp.units,gc.units,tU,function(c,p){return p?(c-p)/Math.abs(p)*100:null;});
+  var E2=[[LINES.filter(function(L){return L.k==='acc';})[0],gp.acc,gc.acc,tA],[{k:'units',l:'Продано за вычетом возвратов, шт',fn:function(t){return rpyVal(t,'units');},inc:1},gp.units,gc.units,tU,function(c,p){return p?(c-p)/Math.abs(p)*100:null;}]];
   LINES.forEach(function(L){if(L.k==='acc'||L.k==='pay'||L.k==='dlv'||L.k==='acc1'||L.k==='amount1')return; // справочный первый столбец - только в полной аналитике
     var v0=L.fn(gp),v1=L.fn(gc),d=v1-v0,txt=[];
     var vr=rpVolRate(v0,gp.acc,v1,gc.acc);
     if(vr&&Math.round(d)&&L.k!=='gen'&&L.k!=='netAll'&&L.k!=='acct'&&L.k!=='prem')txt.push('объём: Начислено '+(gc.acc>=gp.acc?'выросло':'упало')+' на '+fmtRu(Math.round(Math.abs(gc.acc-gp.acc)))+' ₽ × прежняя доля статьи '+rpSh(vr.r0,1)+' = '+rpDTxt(vr.vol,null)+' ₽; ставка: доля '+rpSh(vr.r0,1)+' → '+rpSh(vr.r1,1)+' × Начислено '+rpN(gc.acc)+' ₽ = '+rpDTxt(vr.rate,null)+' ₽; вместе '+rpDTxt(vr.vol+vr.rate,null)+' ₽');
     if(L.top){var pl=rpTopFilt(cur,prev,L.k,1,3,all),mi=rpTopFilt(cur,prev,L.k,-1,3,all);
       if(pl.length)txt.push(rpTop('выросло сильнее всего',pl));if(mi.length)txt.push(rpTop('снизилось сильнее всего',mi));}
-    h2+=tr2(L,v0,v1,txt);});
-  document.getElementById('rp-why2').innerHTML=h2+'</tbody>';
+    E2.push([L,v0,v1,txt]);});
+  var par2=null;E2.forEach(function(e,i){var L=e[0],G=null;
+    if(!L.sub){par2=L.k;if(i+1<E2.length&&E2[i+1][0].sub)G={par:L.k};}else if(par2)G={kid:par2};
+    h2+=tr2(L,e[1],e[2],e[3],e[4],G);});
+  document.getElementById('rp-why2').innerHTML=h2+'</tbody>';rpyFold(document.getElementById('rp-why2'));
   // === 3. Затраты площадки и полная аналитика ===
   var h3='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r">Доля от начисл., было</th><th class="r">Доля, стало</th></tr></thead><tbody>';
   var row3=function(L,noSh,G){var v0=L.fn(gp),v1=L.fn(gc),nd=v0==null||v1==null,rpNd=function(v){return v==null?'<span class="rp-mute">нет данных</span>':rpN(v);},inc=L.inc?true:false,pc=noSh?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0);
@@ -424,8 +418,6 @@ function rpyRender(){
   var rf1=function(v){return String(Math.round(v*10)/10).replace('.',',');};
   var rent=function(t){return t&&t.amount?t.netAll/t.amount*100:null;};var rp=rent(gp),rc=rent(gc);
   h3+='<tr><td>Рентабельность (чистая с общими расходами / К выплате)</td>'+rpRtd(R.map(function(r){return rent(r.calc.grand);}),function(v){return rf1(v)+'%';})+'<td class="r">'+(rp==null?'—':rf1(rp)+'%')+'</td><td class="r">'+(rc==null?'—':rf1(rc)+'%')+'</td><td class="r">'+((rp==null||rc==null)?'—':((rc-rp>0?'+':'')+rf1(rc-rp)+' п.'))+'</td><td></td><td></td><td></td></tr>';
-  h3+='<tr><td colspan="'+(R.length+7)+'" class="rp-mute" style="padding-top:12px"><b>Справочно, в оборот, сборы и прибыль не входят</b> (аналитика - по деньгам отчётов «Денег»; баллы - пока справкой)</td></tr>';
-  rpyRefLines().forEach(function(L){h3+=row3(L);});
   document.getElementById('rp-cost').innerHTML=h3+'</tbody>';rpyFold(document.getElementById('rp-cost'));
   // === 4. Баллы Маркета (справочно) ===
   var h4='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r">Доля от начисл., было</th><th class="r">Доля, стало</th></tr></thead><tbody>';

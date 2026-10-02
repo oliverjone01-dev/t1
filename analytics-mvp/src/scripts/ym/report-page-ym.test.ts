@@ -21,7 +21,7 @@ const accRow = (sku: string, cat: string, v: Record<string, number>) => {
 function page(repy: any, byPer: (per: { from: string; to: string }) => any[], accDays: string[], doc: any[] = []) {
   // Общие функции страница кладёт в window (глобальная область браузера); здесь это globalThis.
   const win: any = globalThis;
-  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines,rpyPtsLines,rpyRefLines};`;
+  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines,rpyPtsLines};`;
   const R = { svc: [], gen: [], pts: [], drr: [], ...repy };
   return new Function("W", "REPY", "accAgg", "ACC", "ACC_DOC", "ACC_RATE", "fmtRu", "document", body)(
     win, R, byPer, accDays.map((d) => [d, "X"]), doc, { adm: 0.3, tax: 0.15 }, (n: number) => String(Math.round(n)), {});
@@ -128,21 +128,6 @@ describe("отчёт Маркета: итоги месяца", () => {
   });
   it("месяц без проводок - null («нет данных»), а не нули", () => {
     expect(f.rpyCalc({ from: "2026-07-01", to: "2026-07-31" }).grand).toBeNull();
-  });
-  // G1 ФЕНИКСА iter2: месяц, собранный без статуса платежа, - «Оплачено и отменено» нет данных, не 0.
-  it("«Оплачено и отменено» в месяце без статуса - null, со статусом - число", () => {
-    const g: any = globalThis;
-    const L = (t: any) => f.rpyRefLines().filter((x: any) => x.k === "cgot" || x.k === "csold" || x.k === "cback").map((x: any) => x.fn(t));
-    try {
-      g.ACC_NOST = ["74986385/2026-09"];
-      const cn = f.rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
-      expect(cn.grand.nost).toEqual(["74986385/2026-09"]);
-      expect(L(cn.grand)).toEqual([null, null, null]);
-      g.ACC_NOST = ["74986385/2026-08"]; g.ACC_NOST_OLD = ["74986385/2026-01"];
-      const cs = f.rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
-      expect(cs.grand.nost).toEqual([]);
-      expect(L(cs.grand)).toEqual([0, 0, 0]);
-    } finally { delete g.ACC_NOST; delete g.ACC_NOST_OLD; }
   });
   // Решение 02.10 «два столбца»: первый столбец (acc1, amount1) и наша доставка доходят до итога отчёта.
   it("два столбца: справочный первый и наша доставка суммируются в итог", () => {

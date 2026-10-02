@@ -282,12 +282,15 @@ function rpRender(){
     return '<tr class="'+cls+'"'+(grp?(sub?' data-g="':' data-tg="')+grp+'"':'')+'><td>'+lbl+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?fn(r.calc.grand,r.aB):null;}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="r">'+rpSh(v0,gp.acc)+'</td><td class="r">'+rpSh(v1,gc.acc)+'</td></tr>';};
   var hasSub={del:1,oth:1,adv:1};
   RP_LINES.forEach(function(L){var k=L[0];if(k==='ship'||k==='dinc')return; // перенесены под «Логистику» (Иван 02.10), расчёты не меняются
-    h3+=row3(L[1],function(t){return rpVal(t,k);},L[2]>0,false,k==='fees'||k==='acc'||k==='net',hasSub[k]?k:null,!!hasSub[k]);
+    // «Логистика» только в «Отчете» (Иван 02.10) - нетто: логистика OZON + кабинет + наша доставка − доставка покупателя (доход).
+    // Отображение: К выплате, Всего сборов, валовая, АДМ и прочие формулы считаются как раньше.
+    var fnL=(k==='del')?function(t){return rpVal(t,'del')+rpVal(t,'ship')-rpVal(t,'dinc');}:function(t){return rpVal(t,k);};
+    h3+=row3(k==='del'?'Логистика (с нашей доставкой и доставкой покупателя)':L[1],fnL,L[2]>0,false,k==='fees'||k==='acc'||k==='net',hasSub[k]?k:null,!!hasSub[k]);
+    if(k==='amt')h3+=row3('К выплате (с учетом Доставки покупателя)',function(t){return rpVal(t,'amt')+rpVal(t,'dinc');},true,false,true);
     if(k==='del'){h3+=row3('в т.ч. логистика OZON',function(t,a){return t.del+a.realfbs;},false,true,false,'del'); // логистика по артикулам/заказам = Логистика − кабинетная часть
       h3+=row3('в т.ч. rFBS, сервис, страховка (кабинет)',function(t,a){return -a.realfbs;},false,true,false,'del');
-      // Справочно, НЕ слагаемые «Логистики»: строки перенесены сюда для чтения, в К выплате/валовой/АДМ - как раньше.
-      h3+=row3('справочно: наша доставка (перевозчик)',function(t){return rpVal(t,'ship');},false,true,false,'del');
-      h3+=row3('справочно: доставка покупателя (доход)',function(t){return rpVal(t,'dinc');},true,true,false,'del');}
+      h3+=row3('в т.ч. наша доставка (перевозчик)',function(t){return rpVal(t,'ship');},false,true,false,'del');
+      h3+=row3('в т.ч. доставка покупателя (доход, со знаком минус)',function(t){return -rpVal(t,'dinc');},false,true,false,'del');}
     if(k==='oth'){h3+=row3('в т.ч. сборы OZON по артикулам',function(t,a){return t.oth+a.fines+a.badge+a.other;},false,true,false,'oth');
       h3+=row3('в т.ч. штрафы и гибкий график',function(t,a){return -a.fines;},false,true,false,'oth');h3+=row3('в т.ч. бейдж, отзывы, Premium',function(t,a){return -a.badge;},false,true,false,'oth');
       h3+=row3('в т.ч. прочие списания кабинета',function(t,a){return a.otherOut?-a.otherOut:0;},false,true,false,'oth');

@@ -2852,7 +2852,8 @@ function anCells(x){
   var _dv=anDerive(x),fees=_dv.fees,gp=_dv.gp,adm=_dv.adm,tax=_dv.tax,net=_dv.net,rent=_dv.rent;
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var RD=function(v,tip){var t=tip?' title="'+String(tip).replace(/"/g,'&quot;')+'"':'';return '<td class="r"'+t+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
-  var P2=function(v){return '<td class="r"'+(v>0?' style="color:var(--up)"':'')+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';}; // приход (зелёный)
+  // «Доставка покупателя» - обычным цветом, как остальные статьи (Иван 02.10: зелёный выглядел как сбой).
+  var P2=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   // Строка заказа rFBS (Иван 30.09): заказ есть в ведомости, а суммы отправки нет - «0»; заказа в ведомости
   // нет - «нет в ведомости» (расход не найден, прибыль строки без него). Везли партнёры OZON (расход в
   // «Услугах партнёров») - без пометки. FBS/FBO везёт OZON - как было.

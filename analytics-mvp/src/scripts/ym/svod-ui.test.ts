@@ -2171,6 +2171,8 @@ describe("Маркет: два столбца «Начислено» в блок
   const sumF = (f: string, from: string, to: string) => readFileSync(join(ACC_DATA, "pnl_sku_netting_daily.ndjson"), "utf8").split("\n").filter(Boolean)
     .map((l) => JSON.parse(l)).filter((r) => r.d >= from && r.d <= to).reduce((a, r) => a + (Number(r[f]) || 0), 0);
   it("колонки: «Начислил Маркет» перед «Начислено», «К выплате (Маркет)» после «К выплате», «Наша доставка» после С\\С", () => {
+    // Свой период: прошлый тест оставляет месяц заказов в пути, где строк реестра может ещё не быть.
+    setRange("2026-08-01", "2026-08-31");
     const h = headA();
     expect(h.indexOf("Начислил Маркет (справочно)")).toBe(h.indexOf("Начислено") - 1);
     expect(h.indexOf("К выплате (Маркет) справочно")).toBe(h.indexOf("К выплате") + 1);

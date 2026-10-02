@@ -57,3 +57,5 @@
 {"ts": "2026-10-02T13:13:49+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/data-ym-pristine"}
 {"ts": "2026-10-02T13:16:34+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/=''}"}
 {"ts": "2026-10-02T13:21:49+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/pw_money.mjs"}
+{"ts": "2026-10-02T13:27:23+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /data-ym, /data-ym/promo_monthly.ndjson, /w/analytics-mvp/data-ym-promo"}
+{"ts": "2026-10-02T13:32:24+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block git-операции записи ФЕНИКСУ запрещены (коммит делает автор)"}

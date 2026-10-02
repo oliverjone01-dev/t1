@@ -457,44 +457,119 @@ function rpxCell(t){
   return {s:s};
 }
 function rpxCol(i){var r='';i++;while(i>0){var m=(i-1)%26;r=String.fromCharCode(65+m)+r;i=Math.floor((i-1)/26);}return r;}
-// rows: массив строк, строка - массив значений (строка/число/{s,b} - b жирный).
-function rpxSheet(rows,widths){
-  var x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
-  if(widths&&widths.length)x+='<cols>'+widths.map(function(w,i){return '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>';}).join('')+'</cols>';
-  x+='<sheetData>';
-  rows.forEach(function(r,ri){x+='<row r="'+(ri+1)+'">';(r||[]).forEach(function(v,ci){if(v==null||v==='')return;var ref=rpxCol(ci)+(ri+1);var bold=(v&&typeof v==='object'&&v.b);var raw=(v&&typeof v==='object')?v.s:v;
-    var c=(typeof raw==='number')?{v:raw,n:1}:rpxCell(raw);
-    if(c.s!=null)x+='<c r="'+ref+'" t="inlineStr"'+(bold?' s="1"':'')+'><is><t xml:space="preserve">'+rpxEsc(c.s)+'</t></is></c>';
-    else x+='<c r="'+ref+'" s="'+(c.p?(bold?4:3):(bold?5:2))+'"><v>'+c.v+'</v></c>';});x+='</row>';});
-  return x+'</sheetData></worksheet>';
+// Оформление файла (Иван 02.10: «красивое и понятное оформление с цветами, подзаголовками»). Роль строки
+// берётся с отрисованной страницы (классы rp-c-strong / rp-c-main / rp-sub), правило цвета одно со страницей:
+// итоги - фиолетовым жирным, статьи - обычным, «в т.ч.» - серым с отступом. Отрицательные числа - красным.
+// Строка листа: массив ячеек или {k:роль, c:[ячейки]}; ячейка - строка/число или {s:текст}.
+// Роли: title, sub (подзаголовок отчёта), sec (заголовок блока), h (подзаголовок), th (шапка таблицы),
+// strong, main, subrow, line (текст), line2 (текст с отступом), warn (пометка ⚠), note (мелкий серый текст).
+var RPX_SPAN=12; // ширина полос заголовков и текста, колонки A-L
+var RPX_FONT={base:'<sz val="10"/><color rgb="FF1F2937"/><name val="Calibri"/>',
+  title:'<b/><sz val="16"/><color rgb="FFFFFFFF"/><name val="Calibri"/>',sub:'<i/><sz val="10"/><color rgb="FFE5E7EB"/><name val="Calibri"/>',
+  sec:'<b/><sz val="13"/><color rgb="FFFFFFFF"/><name val="Calibri"/>',h:'<b/><sz val="11"/><color rgb="FF4C1D95"/><name val="Calibri"/>',
+  th:'<b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/>',strong:'<b/><sz val="10"/><color rgb="FF6D28D9"/><name val="Calibri"/>',
+  subrow:'<i/><sz val="10"/><color rgb="FF6B7280"/><name val="Calibri"/>',line:'<sz val="10"/><color rgb="FF1F2937"/><name val="Calibri"/>',
+  lineb:'<b/><sz val="10"/><color rgb="FF111827"/><name val="Calibri"/>',warn:'<b/><sz val="10"/><color rgb="FFB45309"/><name val="Calibri"/>',
+  note:'<i/><sz val="9"/><color rgb="FF6B7280"/><name val="Calibri"/>',
+  up:'<sz val="10"/><color rgb="FF15803D"/><name val="Calibri"/>',dn:'<sz val="10"/><color rgb="FFDC2626"/><name val="Calibri"/>',
+  upb:'<b/><sz val="10"/><color rgb="FF15803D"/><name val="Calibri"/>',dnb:'<b/><sz val="10"/><color rgb="FFDC2626"/><name val="Calibri"/>'};
+var RPX_FILL={none:'',title:'FF1F2937',sub:'FF1F2937',sec:'FF6D28D9',h:'FFEDE9FE',th:'FF374151',strong:'FFF5F3FF',warn:'FFFEF3C7',zebra:'FFF9FAFB'};
+// Цвет отклонения - как на странице (rp-up зелёный / rp-dn красный: для затрат рост плохо), не по знаку числа.
+var RPX_NUM={int:'#,##0;-#,##0;0',dec:'0.00;-0.00;0',pct:'0.0%;-0.0%;0.0%'};
+// Реестр стилей: одинаковый набор (шрифт, заливка, рамка, формат, выравнивание) = один xf.
+function rpxStyles(){
+  var fonts=[RPX_FONT.base],fills=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>'],fmts=[],xfs=['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'],seen={};
+  var fontId=function(k){var x=RPX_FONT[k]||RPX_FONT.base;var i=fonts.indexOf(x);if(i<0){fonts.push(x);i=fonts.length-1;}return i;};
+  var fillId=function(k){var c=RPX_FILL[k];if(!c)return 0;var x='<fill><patternFill patternType="solid"><fgColor rgb="'+c+'"/><bgColor indexed="64"/></patternFill></fill>';var i=fills.indexOf(x);if(i<0){fills.push(x);i=fills.length-1;}return i;};
+  var fmtId=function(k){if(!k)return 0;var c=RPX_NUM[k];var i=fmts.indexOf(c);if(i<0){fmts.push(c);i=fmts.length-1;}return 164+i;};
+  return {get:function(font,fill,border,fmt,align){var key=[font,fill,border,fmt,align].join('|');if(seen[key]!=null)return seen[key];
+      var a=align==='wrap'?'<alignment vertical="top" wrapText="1"/>':align==='ctr'?'<alignment horizontal="center" vertical="center" wrapText="1"/>':align==='ind'?'<alignment indent="2" vertical="top" wrapText="1"/>':align==='vc'?'<alignment vertical="center"/>':'<alignment vertical="top"/>';
+      xfs.push('<xf numFmtId="'+fmtId(fmt)+'" fontId="'+fontId(font)+'" fillId="'+fillId(fill)+'" borderId="'+(border?1:0)+'" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">'+a+'</xf>');
+      seen[key]=xfs.length-1;return seen[key];},
+    xml:function(){return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      +(fmts.length?'<numFmts count="'+fmts.length+'">'+fmts.map(function(c,i){return '<numFmt numFmtId="'+(164+i)+'" formatCode="'+rpxEsc(c)+'"/>';}).join('')+'</numFmts>':'')
+      +'<fonts count="'+fonts.length+'">'+fonts.map(function(f){return '<font>'+f+'</font>';}).join('')+'</fonts>'
+      +'<fills count="'+fills.length+'">'+fills.join('')+'</fills>'
+      +'<borders count="2"><border/><border><left style="thin"><color rgb="FFE5E7EB"/></left><right style="thin"><color rgb="FFE5E7EB"/></right><top style="thin"><color rgb="FFE5E7EB"/></top><bottom style="thin"><color rgb="FFE5E7EB"/></bottom><diagonal/></border></borders>'
+      +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="'+xfs.length+'">'+xfs.join('')+'</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';}};
 }
-function rpxTable(el){var out=[];if(!el)return out;el.querySelectorAll('tr').forEach(function(tr){var hd=!!tr.querySelector('th');out.push([].map.call(tr.children,function(td){var t=td.innerText.replace(/\\n+/g,' · ');return hd?{s:t,b:1}:t;}));});return out;}
-function rpxLines(el){return (el?el.innerText:'').split('\\n').map(function(l){return l.trim();}).filter(Boolean).map(function(l){return [l];});}
+function rpxSheet(rows,widths,ST){
+  var merges=[],x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0" showGridLines="0" zoomScale="90"/></sheetViews>';
+  var tw=0;for(var i=0;i<RPX_SPAN;i++)tw+=(widths[i]||10);
+  if(widths&&widths.length)x+='<cols>'+widths.map(function(w,i){return '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>';}).join('')+'</cols>';
+  x+='<sheetData>';var zebra=0;
+  rows.forEach(function(r,ri){
+    var k=(r&&!Array.isArray(r))?r.k:'main',cells=(r&&!Array.isArray(r))?r.c:(r||[]);var rn=ri+1;
+    var band=(k==='title'||k==='sub'||k==='sec'||k==='h'||k==='line'||k==='line2'||k==='warn'||k==='note');
+    var tbl=(k==='th'||k==='strong'||k==='main'||k==='subrow');zebra=tbl&&k!=='th'?zebra+1:0;
+    var ht='';
+    if(k==='title')ht=' ht="30" customHeight="1"';else if(k==='sec')ht=' ht="24" customHeight="1"';else if(k==='h')ht=' ht="19" customHeight="1"';
+    else if(band&&cells[0]){var ln=Math.ceil(String(cells[0].s!=null?cells[0].s:cells[0]).length/tw);if(ln>1)ht=' ht="'+(ln*13+3)+'" customHeight="1"';}
+    var sp=(r&&r.sp)||[],pos=[],p0=0;cells.forEach(function(v,ci){pos.push(p0);p0+=(sp[ci]||1);});
+    var wOf=function(ci){var w=0;for(var j=0;j<(sp[ci]||1);j++)w+=(widths[pos[ci]+j]||10);return w;};
+    if(tbl){var mx=1;cells.forEach(function(v,ci){var t=String(v&&typeof v==='object'?(v.s!=null?v.s:''):(v==null?'':v));var w=wOf(ci);var l=Math.ceil(t.length/w);if(t.length>w&&l>mx)mx=l;});if(mx>1)ht=' ht="'+Math.min(mx*13+3,300)+'" customHeight="1"';}
+    x+='<row r="'+rn+'"'+ht+'>';
+    var ncol=band?RPX_SPAN:cells.length;
+    for(var ci=0;ci<ncol;ci++){var v=cells[ci];var at=band?ci:pos[ci],ref=rpxCol(at)+rn,tone=(v&&typeof v==='object')?v.t:null;
+      var raw=(v&&typeof v==='object')?v.s:v;var c=(raw==null||raw==='')?null:(typeof raw==='number')?{v:raw,n:1}:(band||ci===0||k==='th')?{s:String(raw)}:rpxCell(raw);
+      var font=band?(k==='line'?'line':k==='line2'?'line':k):k==='th'?'th':k==='strong'?'strong':k==='subrow'?'subrow':'base';
+      if(tone&&!band&&k!=='th')font=tone+(k==='strong'?'b':'');
+      if(k==='line'&&!/^[а-яёa-z]/.test(String(raw||'')))font='lineb';
+      var fill=band?(k==='title'||k==='sub'||k==='sec'||k==='h'||k==='warn'?k:''):k==='th'?'th':k==='strong'?'strong':(zebra%2===0&&tbl?'zebra':'');
+      var al=band?(k==='line2'?'ind':(k==='title'||k==='sec'||k==='h')?'vc':'wrap'):k==='th'?'ctr':(ci===0&&k==='subrow')?'ind':'wrap';
+      var fmt=null;if(c&&c.s==null)fmt=c.p?'pct':(Math.round(c.v)!==c.v?'dec':'int');
+      var s=ST.get(font,fill,tbl?1:0,fmt,al);
+      var n=sp[ci]||1;
+      if(!c)x+=(band||tbl)?'<c r="'+ref+'" s="'+s+'"/>':'';
+      else if(c.s!=null)x+='<c r="'+ref+'" t="inlineStr" s="'+s+'"><is><t xml:space="preserve">'+rpxEsc(c.s)+'</t></is></c>';
+      else x+='<c r="'+ref+'" s="'+s+'"><v>'+c.v+'</v></c>';
+      if(!band&&n>1){merges.push(ref+':'+rpxCol(at+n-1)+rn);for(var j=1;j<n;j++)x+='<c r="'+rpxCol(at+j)+rn+'" s="'+s+'"/>';}}
+    x+='</row>';
+    if(band)merges.push('A'+rn+':'+rpxCol(RPX_SPAN-1)+rn);});
+  x+='</sheetData>';
+  if(merges.length)x+='<mergeCells count="'+merges.length+'">'+merges.map(function(m){return '<mergeCell ref="'+m+'"/>';}).join('')+'</mergeCells>';
+  return x+'<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>';
+}
+// Таблица страницы -> строки листа. Роль строки - по классу tr; подпись под числом (rp-note, «неполная
+// ведомость») не клеится к числу, а уходит в название строки с месяцами: число остаётся числом.
+function rpxTable(el,sp){var out=[];if(!el)return out;var hdr=[];sp=sp||[];
+  el.querySelectorAll('tr').forEach(function(tr){var hd=!!tr.querySelector('th');var notes={};
+    var cells=[].map.call(tr.children,function(td,ci){var cl=td.cloneNode(true);[].forEach.call(cl.querySelectorAll('.rp-note'),function(n){var t=n.textContent.trim();if(t){(notes[t]||(notes[t]=[])).push(hdr[ci]||'');}n.remove();});
+      [].forEach.call(cl.querySelectorAll('br'),function(b){b.replaceWith('\\n');});var t=cl.textContent.replace(/\\s*\\n+\\s*/g,' · ').trim();
+      var tone=td.querySelector('.rp-up')||td.classList.contains('rp-up')?'up':td.querySelector('.rp-dn')||td.classList.contains('rp-dn')?'dn':null;return tone&&!hd&&rpxCell(t).s==null?{s:t,t:tone}:t;});
+    if(hd){hdr=cells.slice();out.push({k:'th',c:cells,sp:sp});return;}
+    var nk=Object.keys(notes);if(nk.length)cells[0]=cells[0]+' ('+nk.map(function(t){return t+': '+notes[t].filter(Boolean).join(', ');}).join('; ')+')';
+    var c=tr.className||'';out.push({k:/rp-c-strong/.test(c)?'strong':/rp-sub/.test(c)?'subrow':'main',c:cells,sp:sp});});
+  return out;}
+function rpxLines(el,k){return (el?el.innerText:'').split('\\n').map(function(l){return l.trim();}).filter(Boolean).map(function(l){return {k:/^⚠/.test(l)?'warn':(k==='line'&&/^[а-яё]/.test(l)?'line2':(k||'line')),c:[l]};});}
 function rpExport(){
   var ym=document.getElementById('rp-month').value;var P=rpPeriods(ym);
-  var head=[[{s:'Ежемесячный отчёт OZON: '+rpName(ym),b:1}],[document.getElementById('rp-sub').innerText],[]];
-  var flags=rpxLines(document.getElementById('rp-flags'));
-  var s1=head.concat([[{s:'1. Оборот за месяц',b:1}],[{s:'Группа',b:1},{s:rpName(P.pym)+' ('+rpDm(P.prev.from)+'-'+rpDm(P.prev.to)+'), ₽',b:1},{s:rpName(ym)+' ('+rpDm(P.cur.from)+'-'+rpDm(P.cur.to)+'), ₽',b:1},{s:'Отклонение, ₽',b:1},{s:'Отклонение, %',b:1},{s:'Шт, было',b:1},{s:'Шт, стало',b:1}]]);
+  var gap={k:'gap',c:[]};
+  var head=[{k:'title',c:['Ежемесячный отчёт OZON: '+rpName(ym)]},{k:'sub',c:[document.getElementById('rp-sub').innerText.replace(/\\n+/g,' · ')]},gap];
+  var flags=rpxLines(document.getElementById('rp-flags'),'note');
+  var s1=head.concat([{k:'sec',c:['1. Оборот за месяц']},{k:'th',c:['Группа',rpName(P.pym)+' ('+rpDm(P.prev.from)+'-'+rpDm(P.prev.to)+'), ₽',rpName(ym)+' ('+rpDm(P.cur.from)+'-'+rpDm(P.cur.to)+'), ₽','Отклонение, ₽','Отклонение, %','Шт, было','Шт, стало']}]);
   var cur=rpCalc(P.cur),prev=rpCalc(P.prev);
-  if(cur.grand&&prev.grand){[['Всего',prev.grand.acc,cur.grand.acc,prev.grand.units,cur.grand.units],['Зеркала',prev.g.mir.acc,cur.g.mir.acc,prev.g.mir.units,cur.g.mir.units],['Мебель',prev.g.fur.acc,cur.g.fur.acc,prev.g.fur.units,cur.g.fur.units]].forEach(function(r){
-    var pc=rpPct(r[2],r[1]);s1.push([r[0],Math.round(r[1]),Math.round(r[2]),Math.round(r[2]-r[1]),pc==null?'':(Math.round(pc*10)/10).toString().replace('.',',')+'%',r[3],r[4]]);});}
-  s1=s1.concat([[]],[[{s:'Пометки по данным',b:1}]],flags);
-  // Один лист (Иван 01.10): блоки подряд сверху вниз, между блоками пустая строка.
-  var s2=[[{s:'2. Причины роста или падения: оборот',b:1}]].concat(rpxLines(document.getElementById('rp-why')),[[]],[[{s:'По каждой статье',b:1}]],rpxTable(document.getElementById('rp-why2')));
-  var s3=[[{s:'3. Затраты площадки и полная аналитика',b:1}]].concat(rpxTable(document.getElementById('rp-cost')),[[]],rpxLines(document.getElementById('rp-types')));
-  var s4=[[{s:'4. Реклама: расход, доход, окупаемость',b:1}]].concat(rpxTable(document.getElementById('rp-ads')),[[]],rpxLines(document.getElementById('rp-ads-note')));
-  var s5=[[{s:'5. Топ-5 непродаваемых',b:1}]];
+  if(cur.grand&&prev.grand){[['Всего',prev.grand.acc,cur.grand.acc,prev.grand.units,cur.grand.units],['Зеркала',prev.g.mir.acc,cur.g.mir.acc,prev.g.mir.units,cur.g.mir.units],['Мебель',prev.g.fur.acc,cur.g.fur.acc,prev.g.fur.units,cur.g.fur.units]].forEach(function(r,i){
+    var pc=rpPct(r[2],r[1]),d=Math.round(r[2]-r[1]),tn=d>0?'up':d<0?'dn':null;s1.push({k:i===0?'strong':'main',c:[r[0],Math.round(r[1]),Math.round(r[2]),tn?{s:d,t:tn}:d,pc==null?'':{s:(Math.round(pc*10)/10).toString().replace('.',',')+'%',t:tn},r[3],r[4]]});});}
+  if(flags.length)s1=s1.concat([gap,{k:'h',c:['Пометки по данным']}],flags);
+  // Один лист (Иван 01.10): блоки подряд сверху вниз, между блоками две пустые строки.
+  var s2=[{k:'sec',c:['2. Причины роста или падения оборота']},{k:'h',c:['Коротко']}].concat(rpxLines(document.getElementById('rp-why'),'line'),[gap,{k:'h',c:['По каждой статье']}],rpxTable(document.getElementById('rp-why2'),[1,1,1,1,1,3,4]));
+  var s3=[{k:'sec',c:['3. Затраты площадки и полная аналитика']}].concat(rpxTable(document.getElementById('rp-cost')),[gap],rpxLines(document.getElementById('rp-types'),'note'));
+  var s4=[{k:'sec',c:['4. Реклама: расход, доход, окупаемость']}].concat(rpxTable(document.getElementById('rp-ads')),[gap],rpxLines(document.getElementById('rp-ads-note'),'note'));
+  var s5=[{k:'sec',c:['5. Топ-5 непродаваемых']}];
   var dead=document.getElementById('rp-dead');
-  [].forEach.call(dead.children,function(ch){if(ch.tagName==='H4')s5.push([{s:ch.innerText,b:1}]);else if(ch.querySelector&&ch.querySelector('table'))s5=s5.concat(rpxTable(ch.querySelector('table')),[[]]);else s5=s5.concat(rpxLines(ch));});
-  var one=s1.concat([[],[]],s2,[[],[]],s3,[[],[]],s4,[[],[]],s5);
-  var sheets=[['Отчет',one,[48,18,18,18,18,18,18,18,18,18,18,60]]];
+  [].forEach.call(dead.children,function(ch){if(ch.tagName==='H4')s5.push({k:'h',c:[ch.innerText]});else if(ch.querySelector&&ch.querySelector('table'))s5=s5.concat(rpxTable(ch.querySelector('table'),[1,2,1,1,1,1,1,2,2]),[gap]);else s5=s5.concat(rpxLines(ch,'note'));});
+  var one=s1.concat([gap,gap],s2,[gap,gap],s3,[gap,gap],s4,[gap,gap],s5);
+  var ST=rpxStyles();
+  var sheets=[['Отчет',one,[46,15,15,15,15,15,15,15,15,15,15,15]]];
   var ns='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  var sx=sheets.map(function(s){return rpxSheet(s[1],s[2],ST);});
   var files=[['[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';}).join('')+'</Types>'],
     ['_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
     ['xl/workbook.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook '+ns+'><sheets>'+sheets.map(function(s,i){return '<sheet name="'+rpxEsc(s[0])+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>';}).join('')+'</sheets></workbook>'],
     ['xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map(function(s,i){return '<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>';}).join('')+'<Relationship Id="rId'+(sheets.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
-    ['xl/styles.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="0.0%"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/><xf numFmtId="3" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>']];
-  sheets.forEach(function(s,i){files.push(['xl/worksheets/sheet'+(i+1)+'.xml',rpxSheet(s[1],s[2])]);});
+    ['xl/styles.xml',ST.xml()]];
+  sx.forEach(function(x,i){files.push(['xl/worksheets/sheet'+(i+1)+'.xml',x]);});
   var blob=rpxZip(files),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='OZON_otchet_'+ym+(P.partial?'_po_'+P.cur.to:'')+'.xlsx'; // латиницей: кириллицу в имени часть браузеров заменяет на «download»
   document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);
 }

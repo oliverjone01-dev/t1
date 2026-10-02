@@ -2228,9 +2228,13 @@ describe("Маркет «Отчет»: оформление и пометки", 
   });
   it("блок 5: основные строки и свёрнутые «в т.ч.»", () => {
     const main = [...R().querySelectorAll("#rp-ads tr.rp-main")].map((x: any) => (x.children[0].textContent || "").trim());
-    expect(main).toEqual(["Продвижение деньгами", "Расход на рекламу по заказам месяца", "ДРР всего, %"]);
+    // Просьба 02.10: раздел «как на вкладке «Маркетинг»» (ДРР) и пояснения убраны.
+    expect(main).toEqual(["Продвижение деньгами"]);
+    const txt = R().getElementById("rp-ads")!.closest("section")!.textContent || "";
+    expect(txt).not.toMatch(/ДРР|Маркетинг/);
+    expect(R().getElementById("rp-ads-note")).toBeNull();
     const kids = [...R().querySelectorAll("#rp-ads tr.rp-kid")] as any[];
-    expect(kids.length).toBe(7);
+    expect(kids.length).toBe(2);
     expect(kids.every((k) => k.style.display === "none")).toBe(true);
     (R().querySelector("#rp-ads tr.rp-par") as any).click();
     expect(kids.filter((k) => k.getAttribute("data-g") === "ad1").every((k) => k.style.display === "")).toBe(true);

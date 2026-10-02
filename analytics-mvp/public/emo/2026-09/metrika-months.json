@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-10-02T09:22:50.907Z",
+  "generatedAt": "2026-10-02T10:15:04.916Z",
   "counter": 104369223,
   "source": "Yandex Metrika Reporting API",
   "attribution": "ym:s:lastsignTrafficSource",
   "goals": {
     "leads": 487033158,
-    "contacts": 477925360
+    "qualified": 487033859
   },
   "months": {
     "2026-08": {
@@ -19,7 +19,7 @@
           "users": 3531,
           "bounce": 21.92982456,
           "leads": 100,
-          "contacts": 72
+          "qualified": 94
         },
         {
           "code": "organic",
@@ -28,7 +28,7 @@
           "users": 2088,
           "bounce": 17.40360807,
           "leads": 143,
-          "contacts": 92
+          "qualified": 140
         },
         {
           "code": "direct",
@@ -37,7 +37,7 @@
           "users": 841,
           "bounce": 26.66666667,
           "leads": 34,
-          "contacts": 22
+          "qualified": 28
         },
         {
           "code": "referral",
@@ -46,7 +46,7 @@
           "users": 408,
           "bounce": 7.1197411,
           "leads": 6,
-          "contacts": 9
+          "qualified": 7
         },
         {
           "code": "internal",
@@ -55,7 +55,7 @@
           "users": 175,
           "bounce": 25.6227758,
           "leads": 8,
-          "contacts": 8
+          "qualified": 8
         },
         {
           "code": "email",
@@ -64,7 +64,7 @@
           "users": 4,
           "bounce": 12.5,
           "leads": 1,
-          "contacts": 1
+          "qualified": 0
         },
         {
           "code": "social",
@@ -73,7 +73,7 @@
           "users": 12,
           "bounce": 12.5,
           "leads": 0,
-          "contacts": 0
+          "qualified": 0
         },
         {
           "code": "messenger",
@@ -82,7 +82,7 @@
           "users": 7,
           "bounce": 10,
           "leads": 1,
-          "contacts": 1
+          "qualified": 1
         },
         {
           "code": "recommend",
@@ -91,7 +91,7 @@
           "users": 4,
           "bounce": 25,
           "leads": 0,
-          "contacts": 0
+          "qualified": 0
         },
         {
           "code": "qrcode",
@@ -100,7 +100,7 @@
           "users": 3,
           "bounce": 100,
           "leads": 0,
-          "contacts": 0
+          "qualified": 0
         }
       ],
       "total": {
@@ -108,7 +108,7 @@
         "users": 6924,
         "bounce": 20.14619559,
         "leads": 293,
-        "contacts": 205
+        "qualified": 278
       },
       "sampled": false
     },
@@ -123,7 +123,7 @@
           "users": 3950,
           "bounce": 21.71848014,
           "leads": 102,
-          "contacts": 97
+          "qualified": 92
         },
         {
           "code": "organic",
@@ -132,7 +132,7 @@
           "users": 2441,
           "bounce": 17.39807034,
           "leads": 149,
-          "contacts": 108
+          "qualified": 129
         },
         {
           "code": "referral",
@@ -141,7 +141,7 @@
           "users": 2417,
           "bounce": 2.54946728,
           "leads": 9,
-          "contacts": 10
+          "qualified": 7
         },
         {
           "code": "direct",
@@ -150,7 +150,7 @@
           "users": 1576,
           "bounce": 16.06334842,
           "leads": 42,
-          "contacts": 25
+          "qualified": 29
         },
         {
           "code": "internal",
@@ -159,7 +159,7 @@
           "users": 224,
           "bounce": 23.98648649,
           "leads": 10,
-          "contacts": 6
+          "qualified": 9
         },
         {
           "code": "messenger",
@@ -168,7 +168,7 @@
           "users": 8,
           "bounce": 12.5,
           "leads": 1,
-          "contacts": 1
+          "qualified": 0
         },
         {
           "code": "social",
@@ -177,7 +177,7 @@
           "users": 18,
           "bounce": 17.14285714,
           "leads": 1,
-          "contacts": 0
+          "qualified": 1
         },
         {
           "code": "email",
@@ -186,7 +186,7 @@
           "users": 6,
           "bounce": 25,
           "leads": 0,
-          "contacts": 0
+          "qualified": 0
         },
         {
           "code": "recommend",
@@ -195,7 +195,7 @@
           "users": 3,
           "bounce": 0,
           "leads": 0,
-          "contacts": 0
+          "qualified": 0
         }
       ],
       "total": {
@@ -203,7 +203,7 @@
         "users": 10437,
         "bounce": 15.83946806,
         "leads": 314,
-        "contacts": 247
+        "qualified": 267
       },
       "sampled": false
     }

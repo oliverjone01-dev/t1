@@ -14,6 +14,8 @@ import { resolveBusinesses, yp } from "./common.js";
 import { toTable, maskCell } from "../../util/table.js";
 import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
 import { accFeeKey } from "./derive-lib.js";
+import { promoRowOf, PROMO_REPORTS, type PromoKind } from "./reports-lib.js";
+import { monthBounds } from "./common.js";
 
 loadEnv();
 const from = process.argv[2] || "2026-09-01";
@@ -70,4 +72,26 @@ async function main() {
     }
   }
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+// Режим месяцев (просьба пользователя 02.10: «собери такие же данные за другие месяцы»): тот же разбор,
+// что у сборщика ym:promo; в лог - строки promo_monthly.ndjson с меткой PROMO_ROW.
+async function months(list: string[]) {
+  const startedAt = Date.now();
+  const timeLeft = () => 55 * 60 * 1000 - (Date.now() - startedAt);
+  for (const { businessId: b, account } of await resolveBusinesses()) {
+    for (const ym of list) {
+      const { dateFrom, dateTo } = monthBounds(ym);
+      for (const kind of Object.keys(PROMO_REPORTS) as PromoKind[]) {
+        const body = { businessId: Number(b), dateFrom, dateTo, ...(kind === "boost" ? {} : { attributionType: "SHOWS" }) };
+        try {
+          const r = await retryOnRateLimit(() => account.api.report(PROMO_REPORTS[kind].type, body, { timeoutMs: 15 * 60 * 1000 }), kind, { waitMs: 125_000, timeLeft });
+          if (r === RATE_LIMITED) { console.log(`PROMO_SKIP ${b} ${ym} ${kind}: лимит`); continue; }
+          if (r.status !== "DONE" || !r.files.length) { console.log(`PROMO_EMPTY ${b} ${ym} ${kind}: ${r.status}`); continue; }
+          const tables = r.files.map((f) => { const t = toTable(f.text); return { name: f.name, headers: t.headers, rows: t.rows }; });
+          console.log(`PROMO_ROW ${JSON.stringify(promoRowOf(kind, tables, b, ym))}`);
+        } catch (e) { console.log(`PROMO_ERR ${b} ${ym} ${kind}: ${String((e as Error).message).slice(0, 300)}`); }
+      }
+    }
+  }
+}
+const ML = process.env.PROBE_MONTHS ? process.env.PROBE_MONTHS.split(/[\s,]+/).filter(Boolean) : [];
+(ML.length ? months(ML) : main()).catch((e) => { console.error(e); process.exit(1); });

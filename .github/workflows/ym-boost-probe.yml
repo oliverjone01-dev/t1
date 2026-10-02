@@ -16,6 +16,10 @@ on:
         description: "Конец периода, YYYY-MM-DD"
         required: false
         default: "2026-09-30"
+      months:
+        description: "Месяцы через пробел (режим строк для блока 5), напр. 2026-07 2026-08"
+        required: false
+        default: ""
   push:
     paths:
       - .github/workflows/ym-boost-probe.yml
@@ -56,4 +60,7 @@ jobs:
           node-version: "22"
       - run: npm ci
       - name: Проба отчётов по продвижению
+        env:
+          # Пуш без inputs - режим месяцев февраль-август (просьба 02.10 собрать прошлые месяцы).
+          PROBE_MONTHS: ${{ github.event.inputs.months || (github.event_name == 'push' && '2026-08 2026-07 2026-06 2026-05 2026-04 2026-03 2026-02') || '' }}
         run: npx tsx src/scripts/ym/boost-probe.ts "${{ github.event.inputs.date_from || '2026-09-01' }}" "${{ github.event.inputs.date_to || '2026-09-30' }}"

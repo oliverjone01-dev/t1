@@ -9,7 +9,7 @@ import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
 import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
-import { accLedgerFullTo, nettingCancelled, nettingNoStatus, splitNoStatus, accCutDays } from "./ym/derive-lib.js";
+import { accLedgerFullTo, nettingNoStatus, splitNoStatus, accCutDays, accDocRows } from "./ym/derive-lib.js";
 import { FLOOR as YM_FLOOR } from "./ym/common.js";
 import { matchLedger, accrualShipSeries, extraTripSeries, type ExtraTrip, type Unmatched } from "./delivery-match.js";
 import { splitCpo } from "./cpo-split.js";
@@ -3714,19 +3714,20 @@ function accJs(): string {
   rows = rows.filter((r) => String(r.d || "") <= accTo);
   // Пары кабинет/месяц, собранные без статуса платежа (схема реестра до 5): там отменённый заказ
   // ещё посчитан продажей. Помечаются в блоке, пока бот не перезаберёт месяц.
-  let accNoSt: string[] = [];
-  try { accNoSt = nettingNoStatus(readFileSync(dp("netting.ndjson"), "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l))); } catch { accNoSt = []; }
+  let netAcct: any[] = [];
+  try { netAcct = readFileSync(dp("netting.ndjson"), "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l)); } catch { netAcct = []; }
+  const accNoSt: string[] = nettingNoStatus(netAcct);
   // Строка блока - (день, артикул): на ней копится база АДМ, как и раньше. Кабинеты складываются
   // здесь; разрез по кабинету нужен только сверке с отчётом о платежах, он идёт в ACC_DOC.
   // Последние четыре поля - «оплачено и отменено» (справочно, ответ «1а» 02.10): в деньги и штуки не входят.
   // Дальше - второй столбец (решение 02.10 «два столбца»): деньги заказов со сбором Маркета за продажу,
   // по дню этого сбора, С\С его штук и наша перевозка. Порядок полей = ACC_F на странице.
   const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs", "cgot", "csold", "cback", "cret",
-    "rsold", "rret", "runits", "rpay", "rdlv", "raccruals", "ramount", "rgot", "rback", "rcogs", "ship", "shipc"];
+    "rsold", "rret", "runits", "rpay", "rdlv", "raccruals", "ramount", "rgot", "rback", "rcogs", "ship", "shipc", "shipn", "shipk"];
   // Снимок, собранный до второго столбца (derive без полей r*): страница считает от первого столбца и
   // говорит об этом, а не показывает нули (К7).
   const accR = rows.some((r) => r.raccruals !== undefined);
-  const by = new Map<string, any>(), doc = new Map<string, any>(), fb = new Set<string>();
+  const by = new Map<string, any>(), fb = new Set<string>();
   // Артикулы, которых нет в листе С\С (тем же поиском, что в своде). Остальные несут С\С в строке.
   const noCogs = new Set<string>();
   for (const r of rows) {
@@ -3737,43 +3738,10 @@ function accJs(): string {
     if (r.basis === "orders") { t.fb = 1; fb.add(`${b}/${d.slice(0, 7)}`); }
     if (r.cogs_known === false && sk) noCogs.add(sk);
     by.set(k, t);
-    if (r.basis !== "orders") {
-      // Отчёт о платежах Маркет выпускает по ДОГОВОРУ, а в кабинете их бывает несколько (у 1023124
-      // в июле 2026 - два). Поэтому сверка идёт по договору; без договора - по кабинету.
-      const bk = r.contract ? `${b} · договор ${r.contract}` : b;
-      const dk = `${d}|${bk}`;
-      const x = doc.get(dk) || { d, b: bk, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
-      // Отчёт о платежах считает и оплаченные-отменённые («Поступило платежей покупателей» и «Удержано на
-      // возвраты» без фильтра статуса, G2 ФЕНИКСА iter2): сверка с документом добавляет их (cgot/cback),
-      // иначе после перезабора со статусами она разошлась бы с документом на 0,8-1,4 млн ₽ на кабинет.
-      x.got += (Number(r.got) || 0) + (Number(r.dgot) || 0) + (Number(r.cgot) || 0); x.back += (Number(r.back) || 0) + (Number(r.dback) || 0) + (Number(r.cback) || 0);
-      x.sold += (Number(r.sold) || 0) + (Number(r.csold) || 0); x.ret += (Number(r.ret) || 0) + (Number(r.cret) || 0); x.amount += Number(r.amount) || 0;
-      doc.set(dk, x);
-    }
   }
   const compact = [...by.values()].map((t) => [t.d, t.sku, ...F.map((f) => Math.round(t[f])), t.fb]);
-  // Проводки БЕЗ номера заказа (удержания уровня кабинета, премия, внесено продавцом) в таблицу по
-  // артикулам не идут - им нет артикула. Но в «Подлежит перечислению» отчёта о платежах они входят,
-  // и без них сверка расходилась: июль, договор 54641824/26 - на 735 ₽ удержания без заказа,
-  // 54542918/26 - на 19 589,24 удержаний и 9 619,79 премии. С ними оба договора сходятся до копейки.
-  try {
-    for (const l of readFileSync(dp("netting.ndjson"), "utf-8").split("\n")) {
-      if (!l.trim()) continue;
-      const r = JSON.parse(l);
-      if (r.order && String(r.order).trim()) continue;
-      if (r.src === undefined) continue; // старая схема: источник неизвестен, не угадываем
-      if (nettingCancelled(r)) continue; // проводки, которой не будет (отмена заказа), - не деньги
-      const b = String(r.business || ""), d = String(r.d || "");
-      if (d > accTo) continue; // день реестра ещё дособирается - как и строки по заказам
-      const bk = r.contract ? `${b} · договор ${r.contract}` : b;
-      const dk = `${d}|${bk}`;
-      const x = doc.get(dk) || { d, b: bk, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
-      const a = Number(r.amount) || 0;
-      if (/^прем/i.test(String(r.src || ""))) x.prem = (x.prem || 0) + a; else x.acct = (x.acct || 0) + a;
-      doc.set(dk, x);
-    }
-  } catch { /* реестра нет - сверка только по заказам */ }
-  const docRows = [...doc.values()].map((x) => [x.d, x.b, Math.round(x.got * 100) / 100, Math.round(x.back * 100) / 100, x.sold, x.ret, Math.round(x.amount * 100) / 100, Math.round((x.acct || 0) * 100) / 100, Math.round((x.prem || 0) * 100) / 100]);
+  // Сверка с отчётом о платежах (ACC_DOC) - в derive-lib accDocRows (G3 ФЕНИКСА iter3: логика под тестом, К9).
+  const docRows = accDocRows(rows, netAcct, accTo);
   const skus = [...new Set(rows.map((r) => String(r.sku || "")))].filter(Boolean);
   const cat: Record<string, string> = {}, nm: Record<string, string> = {}, cc: Record<string, number> = {};
   for (const sk of skus) { cat[sk] = catOf(sk); nm[sk] = skuName[sk] || sk; if (cogs[sk]) cc[sk] = cogs[sk]; }
@@ -4693,7 +4661,7 @@ function soDraw(){
 // 28.09.2026: GGL-09-2 за июль 15 − 3 = 12 шт на 164 576 ₽). Полный P&L: с АДМ, налогом и чистой
 // прибылью, на тех же базах, что блок по дате заказа.
 var ACC_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs','cgot','csold','cback','cret',
-  'rsold','rret','runits','rpay','rdlv','raccruals','ramount','rgot','rback','rcogs','ship','shipc'];
+  'rsold','rret','runits','rpay','rdlv','raccruals','ramount','rgot','rback','rcogs','ship','shipc','shipn','shipk'];
 // Первый столбец (как начислил Маркет, справочно) после accAgg: начислено, оплатил клиент, доставка
 // покупателя, К выплате, штуки. Основные поля строки после accAgg - второй столбец.
 var ACC_X=['acc1','pay1','dlv1','amount1','units1','sold1','ret1','cogs1'];
@@ -4781,6 +4749,16 @@ function accDraw(){
     +(x==='Наша доставка'?' title="Перевозка по ведомости (без строк «ОТМЕНЕН», возвраты и рекламации учтены) по заказам второго столбца, в день сбора Маркета за продажу. Плюс перевозка заказов, которые Маркет отменил без продажи, - в день отмены (сколько - в подсказке ячейки)."':'')
     +'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
+  // Наша доставка: в т.ч. отменённые - в подсказке; заказы, которые везли мы, без суммы в ведомости
+  // (G5 ФЕНИКСА iter3) - звёздочкой и подсказкой; ни одного с суммой - «нет данных», а не ноль.
+  function accShipTd(x){
+    var n=x.shipn||0,k=x.shipk||0,tip=[];
+    if(Math.round(x.shipc||0))tip.push('в т.ч. по заказам, отменённым без продажи: '+svRub(x.shipc)+' ₽');
+    if(n>k)tip.push((n-k)+' из '+n+' заказов, которые везли мы, без суммы в ведомости - наша доставка занижена, валовая и чистая завышены');
+    var td=(n>0&&k===0&&!Math.round(x.ship||0))?'<td class="r"><span style="color:var(--ink-3)">нет данных</span></td>':money(x.ship||0);
+    if(tip.length)td=td.replace('<td class="r"','<td class="r" title="'+tip.join('. ')+'"');
+    return n>k?td.slice(0,-5)+' <span style="color:#E5B567">*</span></td>':td;
+  }
   function cells(x){
     return '<td class="r">'+(x.sold||'—')+'</td><td class="r">'+(x.ret||'—')+'</td>'
       +'<td class="r"'+(x.fb?' style="color:#E5B567" title="часть дней посчитана по выгрузке заказов, а не по реестру: за этот месяц реестр собран без колонки источника - штуки с отчётом о платежах могут не совпасть"':'')+'><b>'+x.units+'</b></td>'
@@ -4798,7 +4776,7 @@ function accDraw(){
       // прочерки»): один артикул без С\С раньше гасил сумму целой категории. Сколько артикулов без
       // С\С - в подсказке и приглушённым цветом.
       +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="'+(x.rows&&x.noCk?('без С\\С в листе: '+svArt(x.noCk)+' - '):'себестоимости по этому артикулу нет в листе - ')+'валовая завышена на их неизвестную С\\С"')+'>'+(Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
-      +(Math.round(x.shipc||0)?'<td class="r" title="в т.ч. по заказам, отменённым без продажи: '+svRub(x.shipc)+' ₽">'+svRub(x.ship||0)+'</td>':money(x.ship||0))
+      +accShipTd(x)
       +'<td class="r" style="color:'+(x.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(x.gp)+'</td>'
       +'<td class="r">'+(x.amount>0?(Math.round(x.gp/x.amount*1000)/10)+'%':'—')+'</td>'
       +money(x.adm)+money(x.tax)

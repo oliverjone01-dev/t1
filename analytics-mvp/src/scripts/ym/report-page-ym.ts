@@ -258,7 +258,7 @@ export function reportJsYm(): string {
 export const REPORT_YM_JS = `
 // Поля строки accAgg: второй столбец в основных полях, первый (как начислил Маркет) - acc1…cogs1, ship - наша перевозка.
 var RPY_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs','cgot','csold','cback','cret',
-  'ship','shipc','acc1','pay1','dlv1','amount1','units1','sold1','ret1','cogs1'];
+  'ship','shipc','shipn','shipk','acc1','pay1','dlv1','amount1','units1','sold1','ret1','cogs1'];
 // Группы статей - поля блока «Аналитика по артикулам» под названиями Маркета (ответ 1а 01.10). Внутри
 // группы - услуги из отчёта по взаиморасчётам. [поле блока, ключ отчёта, подпись группы].
 var RPY_G=[['commission','mcom','Размещение товарных предложений'],['delivery','mdel','Доставка'],['acquiring','macq','Перевод и приём платежа'],
@@ -320,7 +320,9 @@ function rpyLines(calcs){
     Object.keys(names).sort().forEach(function(k){L.push({k:k,l:k.split('|')[1],fn:function(t){return t?(t.svc[k]||0):null;},inc:0,sub:1,svc:1});});});
   L.push({k:'fee',l:'Всего сборов = затраты площадки',fn:key('fee'),inc:0,top:1,bold:1,main:1},{k:'amount',l:'К выплате',fn:key('amount'),inc:1,top:1,bold:1,main:1},
     {k:'amount1',l:'К выплате Маркета (справочно)',t:'«Начислил Маркет» − те же сборы',fn:key('amount1'),inc:1,sub:1,noSh:1},
-    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка',t:'ведомость перевозчика: по этим же заказам и по заказам, отменённым без продажи',fn:function(t){if(!t||(typeof ACC_R!=='undefined'&&!ACC_R))return null;return Math.round(t.ship||0)?t.ship:null;},inc:0,top:1},
+    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка',t:'ведомость перевозчика: по этим же заказам и по заказам, отменённым без продажи',fn:function(t){if(!t||(typeof ACC_R!=='undefined'&&!ACC_R))return null;return Math.round(t.ship||0)?t.ship:null;},inc:0,top:1,
+      // G5 ФЕНИКСА iter3: заказы, которые везли мы, без суммы в ведомости - звёздочка у месяца и пометка вверху.
+      flag:function(t){return !!t&&(t.shipn||0)>(t.shipk||0);}},
     {k:'shipc',l:'в т.ч. по отменённым заказам',t:'перевозка заказов, которые Маркет отменил без продажи, - в день отмены',fn:function(t){if(!t||(typeof ACC_R!=='undefined'&&!ACC_R))return null;return t.shipc||0;},inc:0,sub:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
     {k:'adm',l:'АДМ '+pct(ACC_RATE.adm)+' от К выплате',fn:key('adm'),inc:0},{k:'tax',l:'Налоги '+pct(ACC_RATE.tax)+' от «Начислено»',fn:key('tax'),inc:0},
     {k:'np',l:'Чистая прибыль по артикулам',t:'= ИТОГО блока «Аналитика по артикулам» на «Деньгах»',fn:key('np'),inc:1,top:1,bold:1,main:1},
@@ -369,6 +371,11 @@ function rpyRender(){
   if(nsN.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собран:</b> '+nsN.join(', ')+' - заказы, которые оплатили и отменили, в справочном столбце «Начислил Маркет» посчитаны продажей и возвратом; основа расчёта от статуса не зависит - у отменённого заказа нет сбора за продажу. Бот перезаберёт эти месяцы (схема реестра 5).');
   if(nsO.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собирается:</b> '+nsO.join(', ')+' - месяцы до '+REPY.floor+' бот не перезабирает; отменённые заказы там посчитаны продажей и возвратом в «Начислил Маркет» (справочно).');
   if(typeof ACC_R!=='undefined'&&!ACC_R)fl.push('<b class="rp-warn">⚠ Снимок собран до второго столбца:</b> «Начислено» и всё ниже - как начислил Маркет, наша доставка не вычтена (нет данных). Обновится после ближайшего снимка Маркета.');
+  // Ведомость доставки неполная (G5 ФЕНИКСА iter3): по месяцам на экране - сколько заказов второго
+  // столбца везли мы и у скольких нет суммы в ведомости. Ни одного с суммой - «нет данных», не ноль.
+  var shN=R.map(function(r){return [r.ym,r.calc.grand];}).concat([[P.pym,gp],[P.ym,gc]]).filter(function(x){return x[1]&&(x[1].shipn||0)>(x[1].shipk||0);})
+    .map(function(x){var n=x[1].shipn||0,k=x[1].shipk||0;return rpName(x[0])+' - '+(k?(n-k)+' из '+n:'все '+n);});
+  if(shN.length)fl.push('<b class="rp-warn">⚠ Наша доставка неполная:</b> заказы, которые везли мы, без суммы в ведомости перевозчика: '+shN.join('; ')+'. По ним наша доставка не вычтена - валовая и чистая прибыль завышены; где сумм нет совсем, в строке «нет данных».');
   var svB=cur.svBad.concat(prev.svBad);
   if(svB.length)fl.push('<b class="rp-dn">⚠ Услуги Маркета не сложились в колонку блока:</b> '+svB.join(', ')+'. Строки услуг в блоках 2-3 не использовать.');
   document.getElementById('rp-flags').innerHTML=fl.join('<br>')||'<span class="rp-mute">Пометок по данным нет.</span>';
@@ -423,9 +430,11 @@ function rpyRender(){
   // === 3. Затраты площадки и полная аналитика ===
   var h3='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r">Доля от начисл., было</th><th class="r">Доля, стало</th></tr></thead><tbody>';
   var row3=function(L,noSh,G){var v0=L.fn(gp),v1=L.fn(gc),nd=v0==null||v1==null,rpNd=function(v){return v==null?'<span class="rp-mute">нет данных</span>':rpN(v);},inc=L.inc?true:false,pc=noSh?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0);
+    // Звёздочка месяца, где ведомость неполная (L.flag, G5 ФЕНИКСА iter3); расшифровка - в пометках вверху.
+    var st=function(t){return L.flag&&L.flag(t)?' <span class="rp-warn">*</span>':'';};
     var cls=(L.sub?'rp-sub':'')+(L.main?' rp-main':'')+(G&&G.par?' rp-par'+(RPY_OPEN[G.par]?' rp-open':''):'')+(G&&G.kid?' rp-kid':'');
     var at=(G&&G.par?' data-p="'+G.par+'"':'')+(G&&G.kid?' data-g="'+G.kid+'"'+(RPY_OPEN[G.kid]?'':' style="display:none"'):'');
-    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+(L.bold&&!L.main?' style="font-weight:800"':'')+'><td'+(L.t?' title="'+L.t+'"':'')+'>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpNd(v0)+'</td><td class="r">'+rpNd(v1)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
+    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+(L.bold&&!L.main?' style="font-weight:800"':'')+'><td'+(L.t?' title="'+L.t+'"':'')+'>'+L.l+'</td>'+(L.flag?R.map(function(r){var t=r.calc.grand;return '<td class="r rp-retro">'+rpNd(t?L.fn(t):null)+(t?st(t):'')+'</td>';}).join(''):rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;})))+'<td class="r">'+rpNd(v0)+st(gp)+'</td><td class="r">'+rpNd(v1)+st(gc)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
   // Штуки - сразу под «Начислено» (просьба пользователя 02.10), а не в конце таблицы.
   var iAcc=LINES.map(function(L){return L.k;}).indexOf('acc'),iU=iAcc+1;while(iU<LINES.length&&LINES[iU].sub)iU++;
   h3+=rpyRows(LINES.slice(0,iU),row3);

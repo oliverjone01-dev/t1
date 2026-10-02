@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, accSaleDay, splitNoStatus, accCutDays, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, accSaleDay, splitNoStatus, accCutDays, accDocRows, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -667,6 +667,34 @@ describe("перевозка заказов, отменённых без про�
   });
 });
 
+// G5 ФЕНИКСА iter3: покрытие ведомостью. Заказ второго столбца без сбора Маркета за доставку везли мы
+// (shipn), с суммой в ведомости - shipk; заказ, который вёз Маркет, в покрытие не входит.
+describe("покрытие ведомостью: shipn и shipk", () => {
+  const P = (d: string, order: string, sku: string, amount: number) =>
+    ({ d, business: "1", order, sku, type: "Начисление", src: "Платёж покупателя", service: `Товар ${sku}`, amount, count: 1 });
+  const F = (d: string, order: string, service: string, amount: number) =>
+    ({ d, business: "1", order, sku: "", type: "Удержание", src: "Оплата услуг Маркета", service, amount });
+  const sum = (rows: any[], m: string, f: string) => rows.filter((r) => r.d.startsWith(m)).reduce((a, r) => a + (r[f] || 0), 0);
+  const net = [
+    P("2026-08-01", "a", "A", 1_000), P("2026-08-01", "a", "B", 500), F("2026-08-03", "a", "Перевод платежа", -10), // везли мы, сумма есть
+    P("2026-08-02", "b", "A", 2_000), F("2026-08-04", "b", "Перевод платежа", -10),                               // везли мы, суммы нет
+    P("2026-08-02", "c", "A", 3_000), F("2026-08-04", "c", "Перевод платежа", -10), F("2026-08-04", "c", "Доставка покупателю", -300), // вёз Маркет
+    P("2026-08-05", "d", "A", 4_000),                                                                               // сбора за продажу нет - не второй столбец
+  ];
+  it("считает заказы, которые везли мы, и из них с суммой в ведомости - один раз на заказ, в день сбора", () => {
+    const { rows } = buildAccNetting(net as any, [], undefined, new Map([["a", 800], ["c", 100]]));
+    expect(sum(rows, "2026-08", "shipn")).toBe(2);
+    expect(sum(rows, "2026-08", "shipk")).toBe(1);
+    expect(rows.filter((r) => r.shipn).map((r) => r.d).sort()).toEqual(["2026-08-03", "2026-08-04"]);
+    expect(rows.filter((r) => r.shipn).every((r) => r.sku === "A"), "штука заказа - на первом артикуле").toBe(true);
+  });
+  it("заказ в ведомости без суммы не считается покрытым (в shipOf его нет)", () => {
+    const { rows } = buildAccNetting(net as any, [], undefined, new Map());
+    expect(sum(rows, "2026-08", "shipn")).toBe(2);
+    expect(sum(rows, "2026-08", "shipk")).toBe(0);
+  });
+});
+
 // G4 и G5 ФЕНИКСА iter2 (мутанты M10, M11): пометки пар без статуса и отрезанных дней.
 describe("пары без статуса и отрезанные дни реестра", () => {
   it("месяцы до FLOOR бот не перезабирает - отдельная группа, без обещания перезабора", () => {
@@ -677,5 +705,31 @@ describe("пары без статуса и отрезанные дни реес
   it("отрезаются ВСЕ дни после границы, по разу и по порядку (G1 ФЕНИКСА 02.10)", () => {
     expect(accCutDays(["2026-09-30", "2026-09-27", "2026-09-26", "2026-09-30", "2026-09-28"], "2026-09-26")).toEqual(["2026-09-27", "2026-09-28", "2026-09-30"]);
     expect(accCutDays(["2026-09-26"], "2026-09-26")).toEqual([]);
+  });
+});
+
+// G3 ФЕНИКСА iter3 (мутант N5): сверка с отчётом о платежах берёт и оплаченные-отменённые (cgot/cback,
+// csold/cret), а проводки кабинета без заказа - отдельно (удержания и премия), без отменённых и позже границы.
+describe("сверка с отчётом о платежах (ACC_DOC)", () => {
+  const row = (o: any) => ({ d: "2026-09-10", business: "1", sku: "A", basis: "netting", got: 0, back: 0, dgot: 0, dback: 0, sold: 0, ret: 0, amount: 0, ...o });
+  it("оплаченные и отменённые входят в «Получено» и штуки документа", () => {
+    const r = accDocRows([row({ got: 1_000, dgot: 200, cgot: 5_000, back: -300, dback: -50, cback: -5_000, sold: 2, csold: 1, ret: 1, cret: 1, amount: 700 })], [], "2026-09-30");
+    expect(r).toEqual([["2026-09-10", "1", 6_200, -5_350, 3, 2, 700, 0, 0]]);
+  });
+  it("по договору - отдельной строкой; строки по выгрузке заказов в сверку не идут", () => {
+    const r = accDocRows([row({ got: 100, contract: "K1" }), row({ got: 50 }), row({ got: 999, basis: "orders" })], [], "2026-09-30");
+    expect(r.map((x) => [x[1], x[2]])).toEqual([["1 · договор K1", 100], ["1", 50]]);
+  });
+  it("проводки кабинета без заказа: удержания и премия; отменённые, старая схема и дни после границы - мимо", () => {
+    const net = [
+      { d: "2026-09-10", business: "1", order: "", src: "Удержание", amount: -735 },
+      { d: "2026-09-10", business: "1", order: "", src: "Премия", amount: 9_619.79 },
+      { d: "2026-09-10", business: "1", order: "", src: "Удержание", amount: -1, status: "Не будет удержан из-за отмены заказа" },
+      { d: "2026-09-10", business: "1", order: "", amount: -2 },
+      { d: "2026-10-01", business: "1", order: "", src: "Удержание", amount: -3 },
+      { d: "2026-09-10", business: "1", order: "o1", src: "Удержание", amount: -4 },
+    ];
+    const r = accDocRows([row({ got: 10 })], net, "2026-09-30");
+    expect(r).toEqual([["2026-09-10", "1", 10, 0, 0, 0, 0, -735, 9_619.79]]);
   });
 });

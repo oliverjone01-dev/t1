@@ -381,6 +381,10 @@ export interface AccNetRow {
   rpay: number; rdlv: number; raccruals: number; ramount: number; rcogs: number; ship: number;
   // shipc - часть ship: перевозка заказов, отменённых Маркетом без продажи (решение 02.10: в день отмены).
   shipc: number;
+  // Покрытие ведомостью (G5 ФЕНИКСА iter3): shipn - заказов второго столбца, которые везли мы (Маркет
+  // не брал сбор за доставку), shipk - из них с суммой в ведомости. Штука заказа - на его первом
+  // артикуле в день сбора за продажу. shipk < shipn - наша доставка за период занижена.
+  shipn: number; shipk: number;
 }
 export interface AccNettingRow { d: string; business?: string; order?: string; sku?: string; type?: string; service?: string; src?: string; amount: number; count?: number; contract?: string; status?: string }
 // Проводка, которой не будет: заказ оплатили и отменили («Не будет переведён из-за отмены заказа»,
@@ -483,7 +487,7 @@ export function accFeeKey(service: string, src: string): AccFeeField {
   if (g === "Продвижение (буст/лояльность)") return "promo";
   return "otherSvc";
 }
-// shipOf - наша перевозка по заказу (ведомость без «ОТМЕНЕН», delivByOrder), ₽; нет ведомости - пусто.
+// shipOf - наша перевозка по заказу (ведомость без «ОТМЕНЕН», delivByOrder), ₽; нет ведомости или нет суммы - пусто.
 export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], cogsAt: (sku: string) => number | undefined = () => undefined, shipOf: Map<string, number> = new Map()): { rows: AccNetRow[]; fallback: string[]; unknown: Record<string, number> } {
   // Пара готова к расчёту по реестру, только если у ВСЕХ её строк есть источник проводки.
   const pairOf = (b: string, d: string) => `${b}/${d.slice(0, 7)}`;
@@ -516,11 +520,13 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
   };
   const m = new Map<string, AccNetRow>();
   const blank = (d: string, business: string, sku: string, basis: "netting" | "orders"): AccNetRow => ({ d, business, sku, basis, sold: 0, ret: 0, units: 0, got: 0, back: 0, dgot: 0, dback: 0, pay: 0, dlv: 0, points: 0, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, promo: 0, otherSvc: 0, amount: 0,
-    rgot: 0, rback: 0, rdgot: 0, rdback: 0, rsold: 0, rret: 0, runits: 0, rpay: 0, rdlv: 0, raccruals: 0, ramount: 0, rcogs: 0, ship: 0, shipc: 0, platform: PLATFORM });
+    rgot: 0, rback: 0, rdgot: 0, rdback: 0, rsold: 0, rret: 0, runits: 0, rpay: 0, rdlv: 0, raccruals: 0, ramount: 0, rcogs: 0, ship: 0, shipc: 0, shipn: 0, shipk: 0, platform: PLATFORM });
   const saleDay = accSaleDay(netting);
   // Заказ второго столбца: кабинет, договор и платёж по артикулам - на них ложится наша перевозка.
   const saleOrd = new Map<string, { d: string; b: string; contract: string; skuPay: Map<string, number> }>();
   const unknown: Record<string, number> = {};
+  // Заказы, за доставку которых Маркет взял сбор: везёт он, нашей перевозки там нет и быть не может.
+  const mpShip = new Set<string>();
   for (const r of netting) {
     const b = String(r.business || "");
     if (!r.order || !String(r.order).trim()) continue; // уровень кабинета - в pnl_account_daily
@@ -556,6 +562,7 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
     else if (kind === "fee") {
       const f = accFeeKey(r.service || "", src);
       t[f] += a;
+      if (f === "delivery" && a) mpShip.add(String(r.order));
       // Списание баллами («Скидка за участие в совместных акциях») - не деньги: в отчёте о платежах
       // его нет, как нет и самих баллов. Поле остаётся справкой, в «К выплате» не входит.
       if (f === "cofin") { m.set(k, t); continue; }
@@ -568,6 +575,13 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
   // платежу покупателя (как доставка покупателя в своде). Заказа нет во втором столбце - перевозка
   // сюда не идёт (выручки по нему нет).
   for (const [o, so] of saleOrd) {
+    if (!mpShip.has(o)) {
+      const sk = [...so.skuPay.keys()][0] ?? (netSku.get(o)?.sku || skuOfOrder.get(o) || "");
+      const k2 = `${so.d}|${so.b}|${so.contract}|${sk}`;
+      const t2 = m.get(k2) || { ...blank(so.d, so.b, sk, "netting"), ...(so.contract ? { contract: so.contract } : {}) };
+      t2.shipn += 1; if (shipOf.has(o)) t2.shipk += 1;
+      m.set(k2, t2);
+    }
     const v = shipOf.get(o) || 0;
     if (!v) continue;
     const tot = [...so.skuPay.values()].reduce((x, y) => x + y, 0);
@@ -1937,4 +1951,46 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
     m.points_after_ledger_orders ??= [];
   }
   return [...months.values()].sort((a, b) => (a.ym === b.ym ? a.business.localeCompare(b.business) : b.ym.localeCompare(a.ym)));
+}
+
+// Сверка блока по артикулам с отчётом о платежах Маркета (ACC_DOC на «Деньгах»): строка - (день, кабинет
+// или договор) → [d, ключ, got, back, sold, ret, amount, acct, prem]. Вынесено из билдера (G3 ФЕНИКСА iter3, К9).
+// Отчёт о платежах Маркет выпускает по ДОГОВОРУ, а в кабинете их бывает несколько (у 1023124 в июле
+// 2026 - два). Поэтому сверка идёт по договору; без договора - по кабинету.
+// Отчёт о платежах считает и оплаченные-отменённые («Поступило платежей покупателей» и «Удержано на
+// возвраты» без фильтра статуса, G2 ФЕНИКСА iter2): сверка с документом добавляет их (cgot/cback),
+// иначе после перезабора со статусами она разошлась бы с документом на 0,8-1,4 млн ₽ на кабинет.
+// Проводки БЕЗ номера заказа (удержания уровня кабинета, премия, внесено продавцом) в таблицу по
+// артикулам не идут - им нет артикула. Но в «Подлежит перечислению» отчёта о платежах они входят,
+// и без них сверка расходилась: июль, договор 54641824/26 - на 735 ₽ удержания без заказа,
+// 54542918/26 - на 19 589,24 удержаний и 9 619,79 премии. С ними оба договора сходятся до копейки.
+// rows - строки pnl_sku_netting_daily, уже отрезанные по accTo; netting - сырой реестр.
+export type AccDocRow = [string, string, number, number, number, number, number, number, number];
+export function accDocRows(rows: any[], netting: any[], accTo: string): AccDocRow[] {
+  const doc = new Map<string, { d: string; b: string; got: number; back: number; sold: number; ret: number; amount: number; acct: number; prem: number }>();
+  const at = (d: string, b: string, contract: unknown) => {
+    const bk = contract ? `${b} · договор ${contract}` : b;
+    const dk = `${d}|${bk}`;
+    const x = doc.get(dk) || { d, b: bk, got: 0, back: 0, sold: 0, ret: 0, amount: 0, acct: 0, prem: 0 };
+    doc.set(dk, x);
+    return x;
+  };
+  const n = (v: unknown) => Number(v) || 0;
+  for (const r of rows) {
+    if (r.basis === "orders") continue;
+    const x = at(String(r.d || ""), String(r.business || ""), r.contract);
+    x.got += n(r.got) + n(r.dgot) + n(r.cgot); x.back += n(r.back) + n(r.dback) + n(r.cback);
+    x.sold += n(r.sold) + n(r.csold); x.ret += n(r.ret) + n(r.cret); x.amount += n(r.amount);
+  }
+  for (const r of netting) {
+    if (r.order && String(r.order).trim()) continue;
+    if (r.src === undefined) continue; // старая схема: источник неизвестен, не угадываем
+    if (nettingCancelled(r)) continue; // проводки, которой не будет (отмена заказа), - не деньги
+    const d = String(r.d || "");
+    if (d > accTo) continue; // день реестра ещё дособирается - как и строки по заказам
+    const x = at(d, String(r.business || ""), r.contract);
+    if (/^прем/i.test(String(r.src || ""))) x.prem += n(r.amount); else x.acct += n(r.amount);
+  }
+  const c = (v: number) => Math.round(v * 100) / 100;
+  return [...doc.values()].map((x) => [x.d, x.b, c(x.got), c(x.back), x.sold, x.ret, c(x.amount), c(x.acct), c(x.prem)]);
 }

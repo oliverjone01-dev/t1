@@ -2193,6 +2193,14 @@ describe("Маркет: два столбца «Начислено» в блок
     expect(D().getElementById("acc-cov")!.textContent || "", "второй столбец собран - пометки «до второго столбца» нет").not.toMatch(/Снимок собран до второго столбца/);
     expect(errs).toEqual([]);
   });
+  it("«Наша доставка» ИТОГО: звёздочка и подсказка, если заказы, которые везли мы, без суммы в ведомости (G5 ФЕНИКСА iter3)", () => {
+    setRange("2026-08-01", "2026-08-31");
+    const n = sumF("shipn", "2026-08-01", "2026-08-31"), k = sumF("shipk", "2026-08-01", "2026-08-31");
+    expect(n, "покрытие ведомостью не собрано").toBeGreaterThan(0);
+    const td = TA().querySelector("tr.sv-total")!.children[headA().indexOf("Наша доставка")] as any;
+    expect((td.textContent || "").includes("*")).toBe(n > k);
+    if (n > k) expect(td.getAttribute("title")).toContain(`${n - k} из ${n} заказов, которые везли мы, без суммы в ведомости`);
+  });
 });
 
 describe("Маркет «Отчет»: оформление и пометки", () => {
@@ -2263,6 +2271,42 @@ describe("Маркет «Отчет»: оформление и пометки", 
     (R().querySelector("#rp-ads tr.rp-par") as any).click();
     expect(kids.filter((k) => k.getAttribute("data-g") === "ad1").every((k) => k.style.display === "")).toBe(true);
     (R().querySelector("#rp-ads tr.rp-par") as any).click();
+  });
+  // G3 ФЕНИКСА iter3 (мутант N10): пары без статуса делятся по FLOOR - старые бот не перезабирает.
+  it("пары без статуса: ACC_NOST с FLOOR и позже, ACC_NOST_OLD - раньше, вместе - все пары реестра без статуса", () => {
+    const html = R().documentElement.innerHTML;
+    const v = (n: string) => JSON.parse(new RegExp(`var ${n}=([^;]*);`).exec(html)![1]!);
+    const nost: string[] = v("ACC_NOST"), old: string[] = v("ACC_NOST_OLD"), floor: string = v("ACC_FLOOR");
+    const net = readFileSync(join(ACC_DATA, "netting.ndjson"), "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
+    const all = new Set<string>();
+    for (const r of net) if (r.src !== undefined && !String(r.status || "").trim()) all.add(`${r.business || ""}/${String(r.d).slice(0, 7)}`);
+    expect([...nost, ...old].sort()).toEqual([...all].sort());
+    expect(nost.every((p) => p.split("/")[1]! >= floor), nost.join(",")).toBe(true);
+    expect(old.every((p) => p.split("/")[1]! < floor), old.join(",")).toBe(true);
+  });
+  // G5 ФЕНИКСА iter3: заказы, которые везли мы, без суммы в ведомости - пометка и звёздочка у месяца;
+  // ни одной суммы за месяц - «нет данных», а не ноль. Сверка с полями shipn/shipk файла блока.
+  it("«Наша доставка»: неполная ведомость помечена по месяцам, без сумм - «нет данных»", () => {
+    const rows = readFileSync(join(ACC_DATA, "pnl_sku_netting_daily.ndjson"), "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
+    const by: Record<string, { n: number; k: number }> = {};
+    for (const r of rows) { const m = String(r.d).slice(0, 7); const x = (by[m] ||= { n: 0, k: 0 }); x.n += r.shipn || 0; x.k += r.shipk || 0; }
+    const MN = ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"];
+    const ymOf = (t: string) => { const m = /^(\S+) (\d{4})$/.exec(t.trim()); return m ? `${m[2]}-${String(MN.indexOf(m[1]!) + 1).padStart(2, "0")}` : ""; };
+    const th = [...R().querySelectorAll("#rp-cost thead th")].map((x) => (x.textContent || "").trim());
+    const tr = [...R().querySelectorAll("#rp-cost tbody tr")].find((r: any) => (r.children[0].textContent || "").trim() === "Наша доставка") as any;
+    const retro = R().querySelectorAll("#rp-cost thead th.rp-retro").length || th.filter((t) => ymOf(t)).length - 2;
+    let checked = 0, gaps = 0;
+    for (let i = 1; i <= retro; i++) {
+      const m = ymOf(th[i]!), x = by[m]; if (!m || !x) continue;
+      const txt = (tr.children[i].textContent || "").trim();
+      if (x.n > x.k) gaps++;
+      expect(txt.includes("*"), `${m}: ${txt} при ${x.k} из ${x.n}`).toBe(x.n > x.k);
+      if (x.n > 0 && x.k === 0) expect(txt, m).toMatch(/нет данных/);
+      checked++;
+    }
+    expect(checked, "ретро-месяцы не нашлись в шапке").toBeGreaterThan(0);
+    const fl = R().getElementById("rp-flags")!.textContent || "";
+    if (gaps) expect(fl).toMatch(/Наша доставка неполная: .*без суммы в ведомости/);
   });
   it("пометка статуса платежа есть, если пары без статуса; о втором столбце - нет, раз он собран", () => {
     const fl = R().getElementById("rp-flags")!.textContent || "";

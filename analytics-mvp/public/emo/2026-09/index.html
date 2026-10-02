@@ -468,6 +468,31 @@ const sourceDesc=widget.querySelector('p.source-note');if(sourceDesc)sourceDesc.
 const groupHeadCss=document.createElement('style');groupHeadCss.textContent='#crm-utm-channels,#metrika-month-comparison,#direct-campaign-report{margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}#metrika-month-comparison h3,#direct-campaign-report h3{font-size:15px;margin:0 0 10px}#metrika-month-comparison>.source-note,#direct-campaign-report>.source-note{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.6}.campaign-total td{background:var(--soft);font-weight:500}';document.head.append(groupHeadCss);
 prepareReportSort();
 
+// Keep source headings outside the Metrika table.
+const metrikaSection=document.createElement('div');metrikaSection.id='metrika-source-block';metrikaSection.className='report-subblock';
+metrikaBlock.parentElement.insertBefore(metrikaSection,metrikaBlock);
+metrikaSection.append(metrikaHeading,metrikaDescription,metrikaBlock);
+metrikaBlock.classList.remove('report-subblock');
+const leadPair=document.createElement('div');leadPair.id='lead-quality-pair';
+const leftLeadWidget=$('leads-dynamics');leftLeadWidget.parentElement.insertBefore(leadPair,leftLeadWidget);leadPair.append(leftLeadWidget);
+leftLeadWidget.querySelector('h3').textContent='02.1 Динамика квалов и неквалов';
+const leftLeadDescription=document.createElement('p');leftLeadDescription.className='source-note';leftLeadDescription.textContent='Август и сентябрь · по дате поступления лида. Квалификация — на дату снимка.';
+leftLeadWidget.insertBefore(leftLeadDescription,$('lead-chart'));
+const rightLeadWidget=document.createElement('div');rightLeadWidget.id='lead-direction-quality';rightLeadWidget.className='chart-widget';
+rightLeadWidget.innerHTML='<h3>Качество лидов по направлениям</h3><p class="source-note">Доля квалов среди всех лидов направления · август → сентябрь. Ниже — количество лидов сентября.</p><div class="direction-quality-list"></div>';
+leadPair.append(rightLeadWidget);
+function drawDirectionQuality(){
+ const selected=$('channel-choice').value;
+ const leads=utmData.rows.filter(r=>r.type==='lead'&&(selected==='all'||assigned(r)===selected));
+ const key=r=>(r.dir||'').trim()||'Не указано';
+ const dirs=[...new Set(leads.filter(r=>/^2026-(08|09)/.test(r.created)).map(key))].sort((a,b)=>leads.filter(r=>r.created.startsWith('2026-09')&&key(r)===b).length-leads.filter(r=>r.created.startsWith('2026-09')&&key(r)===a).length);
+ const month=(dir,m)=>{const rows=leads.filter(r=>r.created.startsWith(m)&&key(r)===dir);return {all:rows.length,q:rows.filter(r=>r.qual==='qualified').length,n:rows.filter(r=>r.qual==='unqualified').length,o:rows.filter(r=>r.qual==='open').length};};
+ rightLeadWidget.querySelector('.direction-quality-list').innerHTML=dirs.map(dir=>{const a=month(dir,'2026-08'),s=month(dir,'2026-09'),ap=a.all?100*a.q/a.all:null,sp=s.all?100*s.q/s.all:null;return '<div class="direction-quality-item"><div class="direction-quality-heading"><strong>'+esc(dir)+'</strong><span>'+(ap===null?'—':num(ap)+'%')+' → <b>'+(sp===null?'—':num(sp)+'%')+'</b></span></div><div class="direction-share-bar" aria-label="'+esc(dir)+': '+s.q+' квалов, '+s.n+' неквалов, '+s.o+' в работе"><i style="width:'+(s.all?100*s.q/s.all:0)+'%;background:var(--ok)"></i><i style="width:'+(s.all?100*s.n/s.all:0)+'%;background:var(--bad)"></i><i style="width:'+(s.all?100*s.o/s.all:0)+'%;background:var(--muted)"></i></div><div class="direction-quality-detail"><span>'+s.all+' лидов · '+s.q+' квал · '+s.n+' неквал · '+s.o+' в работе</span>'+(ap===null||sp===null?'<span>—</span>':movement(ap,sp,true))+'</div></div>';}).join('')||'<p class="source-note">Нет лидов по выбранному каналу.</p>';
+}
+const pairRenderChannel=renderChannel;renderChannel=function(){pairRenderChannel();drawDirectionQuality();};
+const pairStyle=document.createElement('style');pairStyle.textContent='#lead-quality-pair{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:24px;margin:20px 0}#lead-quality-pair>.chart-widget{min-width:0;margin:0;padding:18px;border:1px solid var(--line);border-radius:12px}#lead-quality-pair h3{margin:0 0 10px;font-size:14px}#lead-quality-pair .source-note{font-size:11px;line-height:1.6;margin:0 0 14px;color:var(--muted)}#lead-quality-pair #lead-chart{min-width:0}#lead-quality-pair #lead-legend{gap:10px;flex-wrap:wrap}#lead-direction-quality .direction-quality-list{max-height:310px;overflow:auto}.direction-quality-item{padding:12px 0;border-bottom:1px solid var(--line)}.direction-quality-heading,.direction-quality-detail{display:flex;justify-content:space-between;gap:12px;font-size:12px}.direction-quality-heading strong,.direction-quality-heading b{font-weight:500}.direction-quality-heading span{color:var(--muted);white-space:nowrap}.direction-share-bar{display:flex;height:6px;border-radius:4px;overflow:hidden;background:var(--bg);margin:10px 0}.direction-share-bar i{display:block;opacity:.62}.direction-quality-detail{font-size:10px;color:var(--muted)}.direction-quality-detail .delta{font-weight:400}#metrika-source-block{margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}#metrika-source-block h3{margin:0 0 10px;font-size:15px}#metrika-source-block>.source-note{margin:0 0 14px;font-size:12px;color:var(--muted)}#metrika-month-comparison{margin:0;padding:0;border-top:0}@media(max-width:1100px){#lead-quality-pair{grid-template-columns:1fr}}';document.head.append(pairStyle);
+drawLeads();drawDirectionQuality();
 })();
-</script></body></html>
+</script>
+</body></html>
 

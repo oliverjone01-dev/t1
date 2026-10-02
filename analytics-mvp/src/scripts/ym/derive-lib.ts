@@ -397,7 +397,7 @@ export function accNetReady(netting: AccNettingRow[]): (business: string, d: str
 // следующим снимком. Probe 02.10 по 11 снимкам 21.09-01.10: в 20 из 20 пар (кабинет, снимок) день
 // с денежными сборами потом не менялся, а последний день любой проводки дорастал в 15 из 20 (29.09:
 // −91 087 → −94 990 ₽). Списания баллами (cofin) признаком не служат: они приходят вместе с платежами.
-// Вход - строки pnl_sku_netting_daily (поля сборов блока ACC). Граница реестра - самая ранняя из
+// Вход - строки pnl_sku_netting_daily (поля сборов блока ACC), строки basis orders не в счёт. Граница реестра - самая ранняя из
 // кабинетов с проводками за 30 дней: кабинет, который ещё не догнал, тянет границу назад.
 const ACC_MONEY_FEES = ["commission", "delivery", "acquiring", "storage", "promo", "otherSvc"] as const;
 export function accLedgerFullTo(rows: Array<{ d?: unknown; business?: unknown; [field: string]: unknown }>): { to: string; lastBy: Record<string, string>; feeBy: Record<string, string> } {
@@ -405,7 +405,9 @@ export function accLedgerFullTo(rows: Array<{ d?: unknown; business?: unknown; [
   let gMax = "";
   for (const r of rows) {
     const d = String(r.d || "").slice(0, 10), b = String(r.business || "");
-    if (!d) continue;
+    // Строки «по выгрузке заказов» (basis orders: пара без источника проводки) несут оценочные сборы
+    // из заказов и дату закрытия заказа - это не признак того, что реестр за день пришёл.
+    if (!d || r.basis === "orders") continue;
     if (d > (lastBy[b] || "")) lastBy[b] = d;
     if (d > gMax) gMax = d;
     if (ACC_MONEY_FEES.some((f) => Number(r[f]) || 0) && d > (feeBy[b] || "")) feeBy[b] = d;

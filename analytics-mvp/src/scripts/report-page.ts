@@ -124,7 +124,7 @@ export const REPORT_CSS = `<style>
 .rp-sub td:first-child{padding-left:22px;color:var(--ink-2)}
 #rp-cost tr,#rp-cost td,#rp-why2 tr,#rp-why2 td,#rp-ads tr,#rp-ads td{background:transparent!important}
 .rp-fmt tr.rp-c-strong td{color:#B794F6;font-weight:800}.rp-fmt tr.rp-c-main td{color:#FFFFFF}.rp-fmt tr.rp-sub td{color:#8A8F98}
-.rp-fmt tr td.rp-retro{color:#8A8F98}.rp-fmt tr td.rp-txt{font-weight:400}
+.rp-fmt tr td.rp-retro{color:#8A8F98}.rp-fmt tr td.rp-txt{font-weight:400;color:#FFFFFF}
 #rp-why2 td.rp-art{white-space:normal;min-width:220px;color:#8A8F98;font-weight:400}
 #rp-cost tr.rp-par{cursor:pointer}#rp-cost tr.rp-par td:first-child::before{content:'▸ ';color:#8A8F98}#rp-cost tr.rp-par.rp-open td:first-child::before{content:'▾ '}
 #rp-cost tr.rp-hid{display:none}
@@ -267,7 +267,8 @@ function rpRender(){
   var artTd=function(a){return '<td class="rp-art">'+((a&&a.length)?a.join('<br>'):'<span class="rp-mute">—</span>')+'</td>';};
   var tr2=function(lbl,k,txt,pct,art){var v0=gp[k]||0,v1=gc[k]||0,d=v1-v0;return '<tr class="'+(k==='acc'?'rp-c-strong':'rp-c-main')+'"><td>'+lbl+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?(r.calc.grand[k]||0):null;}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,true)+'</td><td class="r">'+rpPctTxt(pct?pct(v1,v0):rpPct(v1,v0),true)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td>'+artTd(art)+'</tr>';};
   var upA=rpUnitsPrice(gp.acc,gp.units,gc.acc,gc.units),tA=[];
-  if(upA){tA.push('штуки: '+rpN(gp.units)+' → '+rpN(gc.units)+' шт × прежняя цена '+rpN(upA.p0)+' ₽ = '+rpDTxt(upA.vol,true)+' ₽; цена (начислено на 1 шт): '+rpN(upA.p0)+' → '+rpN(upA.p1)+' ₽ × '+rpN(gc.units)+' шт = '+rpDTxt(upA.price,true)+' ₽; вместе '+rpDTxt(upA.vol+upA.price,true)+' ₽');}
+  // Коротко, без формул (Иван 02.10): за счёт штук и за счёт цены.
+  if(upA){tA.push('штуки '+rpN(gp.units)+' → '+rpN(gc.units)+': '+rpDTxt(upA.vol,true)+' ₽');tA.push('цена за шт '+rpN(upA.p0)+' → '+rpN(upA.p1)+' ₽: '+rpDTxt(upA.price,true)+' ₽');}
   tA.push('зеркала '+rpDTxt(cur.g.mir.acc-prev.g.mir.acc,true)+' ₽, мебель '+rpDTxt(cur.g.fur.acc-prev.g.fur.acc,true)+' ₽');
   var aPl=rpTopFilt(cur,prev,'acc',1,3,all),aMi=rpTopFilt(cur,prev,'acc',-1,3,all),artA=[];
   if(aPl.length)artA.push(rpTop('выросло сильнее всего',aPl));if(aMi.length)artA.push(rpTop('снизилось сильнее всего',aMi));
@@ -281,13 +282,13 @@ function rpRender(){
   L2.forEach(function(L){var k=L[0],inc=L[2]>0;if(k==='acc')return;
     var v0=val2(gp,k),v1=val2(gc,k),d=v1-v0;var txt=[],art=[];
     var vr=rpVolRate(v0,gp.acc,v1,gc.acc);
-    if(vr&&Math.round(d)){txt.push('объём: Начислено '+(gc.acc>=gp.acc?'выросло':'упало')+' на '+fmtRu(Math.round(Math.abs(gc.acc-gp.acc)))+' ₽ × прежняя доля статьи '+rpSh(vr.r0,1)+' = '+rpDTxt(vr.vol,null)+' ₽; ставка: доля '+rpSh(vr.r0,1)+' → '+rpSh(vr.r1,1)+' × Начислено '+rpN(gc.acc)+' ₽ = '+rpDTxt(vr.rate,null)+' ₽; вместе '+rpDTxt(vr.vol+vr.rate,null)+' ₽');}
+    // Коротко, без формул (Иван 02.10): объём (изменился оборот) и ставка (изменилась доля от оборота).
+    if(vr&&Math.round(d)){txt.push('оборот '+(gc.acc>=gp.acc?'вырос':'упал')+': '+rpDTxt(vr.vol,null)+' ₽');txt.push('доля '+rpSh(vr.r0,1)+' → '+rpSh(vr.r1,1)+': '+rpDTxt(vr.rate,null)+' ₽');}
     if(L[3]){var pl=rpTopFilt(cur,prev,k,1,3,all),mi=rpTopFilt(cur,prev,k,-1,3,all);
       if(pl.length)art.push(rpTop('выросло сильнее всего',pl));
       if(mi.length)art.push(rpTop('снизилось сильнее всего',mi));
       var ca=(acC[k]||0)-(acP[k]||0);
-      if(Math.round(ca))txt.push('по всем артикулам '+rpDTxt(d-ca,null)+' ₽ + не по артикулам (строка «Общие расходы») '+rpDTxt(ca,null)+' ₽ = '+rpDTxt(d,null)+' ₽');
-      else if(Math.round(d))txt.push('по всем артикулам '+rpDTxt(d,null)+' ₽ (топ-3 в соседнем столбце - часть этой суммы)');}
+      if(Math.round(ca))txt.push('по артикулам '+rpDTxt(d-ca,null)+' ₽, вне артикулов '+rpDTxt(ca,null)+' ₽');}
     var st2=(k==='fees'||k==='net'||k==='amtd')?'rp-c-strong':'rp-c-main';
     h2+='<tr class="'+st2+'"><td>'+L[1]+'</td>'+rpRtd(R.map(function(r){return val2(r.calc.grand,k);}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td>'+artTd(art)+'</tr>';});
   document.getElementById('rp-why2').innerHTML=h2+'</tbody>';

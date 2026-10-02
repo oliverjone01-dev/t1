@@ -150,7 +150,8 @@ export function reportDataYm(ctx: Ctx) {
     // Проводка вида «прочее» (компенсация за потерянный заказ и т.п.) - не услуга: в поле service
     // Маркет кладёт название товара. Подпись - тип операции (src), товар в скобках (H2 ФЕНИКСА).
     const svcName = String(r.service || "").trim();
-    const svc = kind === "other" ? `${src.trim() || "прочая проводка"}${svcName ? ` (${svcName.slice(0, 60)})` : ""}` : svcName || "без названия услуги";
+    // Товар в подписи не нужен (просьба пользователя 02.10): строка - вид операции.
+    const svc = kind === "other" ? (src.trim() || "прочая проводка") : svcName || "без названия услуги";
     const f = kind === "fee" ? accFeeKey(r.service || "", src) : "otherSvc";
     // Списание баллами: поле - по самой услуге (без источника), чтобы баллы встали под свою группу.
     const k = f === "cofin" ? `${d}|cofin:${accFeeKey(r.service || "", "")}|${svc}` : `${d}|${f}|${svc}`;
@@ -211,6 +212,9 @@ export const REPORT_YM_CSS = `<style>
 #rp-cost th,#rp-cost td,#rp-ads th,#rp-ads td,.rp-dead th,.rp-dead td,#rp-why2 th,#rp-why2 td{white-space:nowrap}
 #rp-why2 td.rp-txt{white-space:normal;min-width:260px}.rp-dead td.rp-txt{white-space:normal;min-width:180px;max-width:260px}
 .rp-sub td:first-child{padding-left:22px;color:var(--ink-2)}
+.rp-sub td{color:var(--ink-3,#7d8a99)!important;font-weight:400}
+.rp-main td{font-weight:800;color:#A78BFA}
+.rp-par{cursor:pointer}.rp-par td:first-child::before{content:'▸ ';color:var(--ink-3,#7d8a99)}.rp-par.rp-open td:first-child::before{content:'▾ '}
 .rp-warn{color:#E5B567}
 .rp-retro,th.rp-retro{color:#8A8F98}
 .rp-art,.rp-art b{color:#8A8F98}
@@ -229,10 +233,12 @@ export const REPORT_YM_BODY = `${REPORT_YM_CSS}
 <div class="kt-scroll" style="margin-top:10px"><table class="kt-table" id="rp-why2"></table></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">3. Затраты площадки и полная аналитика</div><div class="card-sub">Статьи - услуги Маркета из отчёта по взаиморасчётам, сгруппированные так же, как колонки блока «Аналитика по артикулам (за выбранный период)» на «Деньгах»: итог группы = колонка блока, строки до «Чистой прибыли по артикулам» = его ИТОГО. «Затраты площадки» = «Всего сборов» (Начислено − К выплате). Ниже - проводки кабинета без артикула (удержания и премия): в таблице «Денег» их нет, в «Подлежит перечислению» отчёта о платежах они есть, поэтому вычитаются из чистой прибыли отдельной строкой. Внизу справочно - баллы Маркета и взнос продавца: в оборот, сборы и прибыль не входят. Доля = статья / Начислено. Серые колонки - прошлые полные месяцы.</div></div></div>
 <div class="kt-scroll"><table class="kt-table" id="rp-cost"></table></div></section>
-<section class="card"><div class="card-h"><div><div class="card-title">4. Реклама: расход и ДРР</div><div class="card-sub">Сверху - продвижение деньгами из отчёта по взаиморасчётам за те же даты, что блоки 1-3. Ниже - ДРР так же, как на вкладке «Маркетинг»: та же функция, по месяцу заказа. Выручки рекламных заказов и окупаемости нет: статистика рекламы Маркета не подключена. Серые колонки - прошлые месяцы.</div></div></div>
+<section class="card"><div class="card-h"><div><div class="card-title">4. Баллы Маркета (справочно)</div><div class="card-sub">Баллы в оборот, сборы и прибыль не входят: аналитика - по деньгам, как отчёт о платежах. Начислено - баллы Маркета за скидки покупателям; списано - оплата услуг Маркета баллами, по услугам (раскрывается по клику).</div></div></div>
+<div class="kt-scroll"><table class="kt-table" id="rp-pts"></table></div></section>
+<section class="card"><div class="card-h"><div><div class="card-title">5. Реклама: расход и ДРР</div><div class="card-sub">Сверху - продвижение деньгами из отчёта по взаиморасчётам за те же даты, что блоки 1-3. Ниже - ДРР так же, как на вкладке «Маркетинг»: та же функция, по месяцу заказа. Выручки рекламных заказов и окупаемости нет: статистика рекламы Маркета не подключена. Серые колонки - прошлые месяцы.</div></div></div>
 <div class="kt-scroll"><table class="kt-table" id="rp-ads"></table></div>
 <div id="rp-ads-note" class="kt-note" style="margin-top:8px"></div></section>
-<section class="card"><div class="card-h"><div><div class="card-title">5. Топ-5 непродаваемых: зеркала и мебель</div><div class="card-sub">Товар показывался в отчётном месяце, но не получил ни одного заказа (кроме отменённых) за 60 дней до конца периода. Порядок - по показам за месяц. Причина и действие - по правилу ниже таблиц, пороги как у ${KEEP_OZON} [ГИПОТЕЗА].</div></div></div>
+<section class="card"><div class="card-h"><div><div class="card-title">6. Топ-5 непродаваемых: зеркала и мебель</div><div class="card-sub">Товар показывался в отчётном месяце, но не получил ни одного заказа (кроме отменённых) за 60 дней до конца периода. Порядок - по показам за месяц. Причина и действие - по правилу ниже таблиц, пороги как у ${KEEP_OZON} [ГИПОТЕЗА].</div></div></div>
 <div id="rp-dead"></div></section>`;
 
 // Клиентский код. Работает поверх кода «Денег» Маркета (accAgg, ACC, ACC_DOC, ACC_FB, ACC_NAME, fmtRu,
@@ -305,7 +311,7 @@ function rpyLines(calcs){
   // Два столбца (решение 02.10): «Начислил Маркет» - как в отчёте о платежах, по дню платежа, справочно;
   // «Начислено» - по заказам, по которым Маркет провёл сбор за продажу, от него считается всё ниже.
   var L=[{k:'acc1',l:'Начислил Маркет за оформление (справочно, как отчёт о платежах)',fn:key('acc1'),inc:1,top:1},
-    {k:'acc',l:'Начислено по заказам со сборами Маркета (основа расчёта)',fn:key('acc'),inc:1,top:1,bold:1},
+    {k:'acc',l:'Начислено по заказам со сборами Маркета (основа расчёта)',fn:key('acc'),inc:1,top:1,bold:1,main:1},
     {k:'pay',l:'в т.ч. оплатил клиент за товар',fn:key('pay'),inc:1,top:1,sub:1},{k:'dlv',l:'в т.ч. доставка покупателя',fn:key('dlv'),inc:1,top:1,sub:1}];
   RPY_G.forEach(function(G){
     var names={};calcs.forEach(function(c){var t=c&&c.grand;if(!t)return;for(var k in t.svc)if(k.indexOf(G[0]+'|')===0)names[k]=1;});
@@ -313,30 +319,45 @@ function rpyLines(calcs){
     if(!any)return;
     L.push({k:G[1],l:G[2],fn:key(G[1]),inc:0,top:1});
     Object.keys(names).sort().forEach(function(k){L.push({k:k,l:k.split('|')[1],fn:function(t){return t?(t.svc[k]||0):null;},inc:0,sub:1,svc:1});});});
-  L.push({k:'fee',l:'Всего сборов = затраты площадки',fn:key('fee'),inc:0,top:1,bold:1},{k:'amount',l:'К выплате',fn:key('amount'),inc:1,top:1,bold:1},
+  L.push({k:'fee',l:'Всего сборов = затраты площадки',fn:key('fee'),inc:0,top:1,bold:1,main:1},{k:'amount',l:'К выплате',fn:key('amount'),inc:1,top:1,bold:1,main:1},
     {k:'amount1',l:'К выплате (Маркет) справочно: «Начислил Маркет» − те же сборы',fn:key('amount1'),inc:1,sub:1},
     {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка (ведомость, по этим же заказам)',fn:key('ship'),inc:0,top:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
     {k:'adm',l:'АДМ '+pct(ACC_RATE.adm)+' от К выплате',fn:key('adm'),inc:0},{k:'tax',l:'Налоги '+pct(ACC_RATE.tax)+' от «Начислено»',fn:key('tax'),inc:0},
-    {k:'np',l:'Чистая прибыль по артикулам (= блок на «Деньгах»)',fn:key('np'),inc:1,top:1,bold:1},
+    {k:'np',l:'Чистая прибыль по артикулам (= блок на «Деньгах»)',fn:key('np'),inc:1,top:1,bold:1,main:1},
     {k:'gen',l:'Общие расходы кабинета (без артикула)',fn:key('gen'),inc:1},{k:'acct',l:'в т.ч. удержания без заказа',fn:key('acct'),inc:1,sub:1},{k:'prem',l:'в т.ч. премия Маркета',fn:key('prem'),inc:1,sub:1},
-    {k:'netAll',l:'Чистая прибыль с общими расходами',fn:key('netAll'),inc:1,bold:1});
+    {k:'netAll',l:'Чистая прибыль с общими расходами',fn:key('netAll'),inc:1,bold:1,main:1});
   return L;
 }
 // Справка по баллам (ответ «да» 01.10, решение 4: аналитика - по деньгам, баллы пока справочно).
+// Блок 4 «Баллы Маркета» (просьба пользователя 02.10: баллы - отдельным блоком, основные строки -
+// начислено, списано, сальдо; списания по услугам свёрнуты под «списано»).
 function rpyPtsLines(calcs){
-  var L=[{k:'ptsIn',l:'Баллы Маркета: начислено баллами за скидки покупателям',fn:function(t){return rpyVal(t,'ptsIn');},inc:1,sub:1},
-    {k:'ptsOut',l:'Баллы Маркета: списано за услуги («Скидка за участие в совместных акциях»)',fn:function(t){return rpyVal(t,'ptsOut');},inc:0,sub:1}];
+  var L=[{k:'ptsIn',l:'Начислено баллами за скидки покупателям',fn:function(t){return rpyVal(t,'ptsIn');},inc:1,bold:1,main:1},
+    {k:'ptsOut',l:'Списано за услуги («Скидка за участие в совместных акциях»)',fn:function(t){return rpyVal(t,'ptsOut');},inc:0,bold:1,main:1}];
   var names={};calcs.forEach(function(c){var t=c&&c.grand;if(!t)return;for(var k in t.pts)names[k]=1;});
-  Object.keys(names).sort().forEach(function(k){L.push({k:k,l:'списано баллами: '+k.split('|')[1],fn:function(t){return t?(t.pts[k]||0):null;},inc:0,sub:1});});
-  L.push({k:'saldo',l:'Сальдо баллов (начислено − списано)',fn:function(t){return rpyVal(t,'saldo');},inc:1,sub:1},
-    {k:'seller',l:'Внесено продавцом (ваши деньги на счёт Маркета, не расход)',fn:function(t){return rpyVal(t,'seller');},inc:1,sub:1},
+  Object.keys(names).sort().forEach(function(k){L.push({k:k,l:'в т.ч. '+k.split('|')[1],fn:function(t){return t?(t.pts[k]||0):null;},inc:0,sub:1});});
+  L.push({k:'saldo',l:'Сальдо баллов (начислено − списано)',fn:function(t){return rpyVal(t,'saldo');},inc:1,bold:1,main:1});
+  return L;
+}
+// Справочные строки блока 3 (в оборот, сборы и прибыль не входят).
+function rpyRefLines(){
+  return [{k:'seller',l:'Внесено продавцом (ваши деньги на счёт Маркета, не расход)',fn:function(t){return rpyVal(t,'seller');},inc:1,sub:1},
     // Ответ «1а» 02.10: заказ оплатили и отменили - статус Маркета «не будет переведён / удержан из-за
     // отмены заказа». Денег не было, в оборот и штуки не входит; платёж и отмена бывают в разных месяцах.
     {k:'cgot',l:'Оплачено и отменено: платежи покупателей (денег не было, в оборот не входят)',fn:function(t){return rpyCanc(t,'cgot');},inc:1,sub:1},
     {k:'csold',l:'Оплачено и отменено: штук',fn:function(t){return rpyCanc(t,'csold');},inc:1,sub:1},
-    {k:'cback',l:'Отмена ранее оплаченных: возвраты, которые не удержат',fn:function(t){return rpyCanc(t,'cback');},inc:1,sub:1});
-  return L;
+    {k:'cback',l:'Отмена ранее оплаченных: возвраты, которые не удержат',fn:function(t){return rpyCanc(t,'cback');},inc:1,sub:1}];
 }
+// Строки «в т.ч.» сворачиваются под свою строку (просьба пользователя 02.10). Состояние - на странице.
+var RPY_OPEN={};
+function rpyRows(lines,row3){var h='',par=null;
+  lines.forEach(function(L,i){
+    if(!L.sub){par=L.k;var kids=i+1<lines.length&&!!lines[i+1].sub;h+=row3(L,false,kids?{par:L.k}:null);}
+    else h+=row3(L,false,par?{kid:par}:null);});
+  return h;}
+function rpyFold(el){[].forEach.call(el.querySelectorAll('tr.rp-par'),function(tr){tr.onclick=function(){
+  var k=tr.getAttribute('data-p');RPY_OPEN[k]=!RPY_OPEN[k];tr.classList.toggle('rp-open',!!RPY_OPEN[k]);
+  [].forEach.call(el.querySelectorAll('tr.rp-kid'),function(r){if(r.getAttribute('data-g')===k)r.style.display=RPY_OPEN[k]?'':'none';});};});}
 function rpyTurnCard(){return rpTurnCard.apply(null,arguments).replace('реализовано ','продано за вычетом возвратов ');}
 function rpyRender(){
   var sel=document.getElementById('rp-month');var ym=sel.value;var P=rpPeriods(ym);
@@ -359,7 +380,7 @@ function rpyRender(){
   var svB=cur.svBad.concat(prev.svBad);
   if(svB.length)fl.push('<b class="rp-dn">⚠ Услуги Маркета не сложились в колонку блока:</b> '+svB.join(', ')+'. Строки услуг в блоках 2-3 не использовать.');
   document.getElementById('rp-flags').innerHTML=fl.join('<br>')||'<span class="rp-mute">Пометок по данным нет.</span>';
-  if(!gc||!gp){['rp-turn','rp-why','rp-why2','rp-cost','rp-ads','rp-dead'].forEach(function(id){document.getElementById(id).innerHTML='<div class="kt-note">нет данных за период</div>';});return;}
+  if(!gc||!gp){['rp-turn','rp-why','rp-why2','rp-cost','rp-pts','rp-ads','rp-dead'].forEach(function(id){document.getElementById(id).innerHTML='<div class="kt-note">нет данных за период</div>';});return;}
   var calcs=R.map(function(r){return r.calc;}).concat([prev,cur]);
   var LINES=rpyLines(calcs);
   // === 1. Оборот ===
@@ -394,19 +415,25 @@ function rpyRender(){
   document.getElementById('rp-why2').innerHTML=h2+'</tbody>';
   // === 3. Затраты площадки и полная аналитика ===
   var h3='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r">Доля от начисл., было</th><th class="r">Доля, стало</th></tr></thead><tbody>';
-  var row3=function(L,noSh){var v0=L.fn(gp),v1=L.fn(gc),nd=v0==null||v1==null,rpNd=function(v){return v==null?'<span class="rp-mute">нет данных</span>':rpN(v);},inc=L.inc?true:false,pc=noSh?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0);
-    return '<tr'+(L.sub?' class="rp-sub"':'')+(L.bold?' style="font-weight:800"':'')+'><td>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpNd(v0)+'</td><td class="r">'+rpNd(v1)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
-  LINES.forEach(function(L){h3+=row3(L);});
+  var row3=function(L,noSh,G){var v0=L.fn(gp),v1=L.fn(gc),nd=v0==null||v1==null,rpNd=function(v){return v==null?'<span class="rp-mute">нет данных</span>':rpN(v);},inc=L.inc?true:false,pc=noSh?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0);
+    var cls=(L.sub?'rp-sub':'')+(L.main?' rp-main':'')+(G&&G.par?' rp-par'+(RPY_OPEN[G.par]?' rp-open':''):'')+(G&&G.kid?' rp-kid':'');
+    var at=(G&&G.par?' data-p="'+G.par+'"':'')+(G&&G.kid?' data-g="'+G.kid+'"'+(RPY_OPEN[G.kid]?'':' style="display:none"'):'');
+    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+(L.bold&&!L.main?' style="font-weight:800"':'')+'><td>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpNd(v0)+'</td><td class="r">'+rpNd(v1)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
+  h3+=rpyRows(LINES,row3);
   h3+=row3({l:'Продано за вычетом возвратов, шт',fn:function(t){return t.units;},inc:1},true);
   var rf1=function(v){return String(Math.round(v*10)/10).replace('.',',');};
   var rent=function(t){return t&&t.amount?t.netAll/t.amount*100:null;};var rp=rent(gp),rc=rent(gc);
   h3+='<tr><td>Рентабельность (чистая с общими расходами / К выплате)</td>'+rpRtd(R.map(function(r){return rent(r.calc.grand);}),function(v){return rf1(v)+'%';})+'<td class="r">'+(rp==null?'—':rf1(rp)+'%')+'</td><td class="r">'+(rc==null?'—':rf1(rc)+'%')+'</td><td class="r">'+((rp==null||rc==null)?'—':((rc-rp>0?'+':'')+rf1(rc-rp)+' п.'))+'</td><td></td><td></td><td></td></tr>';
   h3+='<tr><td colspan="'+(R.length+7)+'" class="rp-mute" style="padding-top:12px"><b>Справочно, в оборот, сборы и прибыль не входят</b> (аналитика - по деньгам отчётов «Денег»; баллы - пока справкой)</td></tr>';
-  rpyPtsLines(calcs).forEach(function(L){h3+=row3(L);});
-  document.getElementById('rp-cost').innerHTML=h3+'</tbody>';
-  // === 4. Реклама ===
+  rpyRefLines().forEach(function(L){h3+=row3(L);});
+  document.getElementById('rp-cost').innerHTML=h3+'</tbody>';rpyFold(document.getElementById('rp-cost'));
+  // === 4. Баллы Маркета (справочно) ===
+  var h4='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r">Доля от начисл., было</th><th class="r">Доля, стало</th></tr></thead><tbody>';
+  h4+=rpyRows(rpyPtsLines(calcs),row3);
+  document.getElementById('rp-pts').innerHTML=h4+'</tbody>';rpyFold(document.getElementById('rp-pts'));
+  // === 5. Реклама ===
   rpyAds(P,cur,prev,R);
-  // === 5. Непродаваемые ===
+  // === 6. Непродаваемые ===
   rpyDead(P,cur);
 }
 // === 4. Реклама (ответ 2а: ДРР как на «Маркетинге») ===
@@ -495,10 +522,11 @@ function rpyExport(){
   s1=s1.concat([[]],[[{s:'Пометки по данным',b:1}]],rpxLines(document.getElementById('rp-flags')));
   var s2=[[{s:'2. Причины роста или падения: оборот',b:1}]].concat(rpxLines(document.getElementById('rp-why')),[[]],[[{s:'По каждой статье',b:1}]],rpxTable(document.getElementById('rp-why2')));
   var s3=[[{s:'3. Затраты площадки и полная аналитика',b:1}]].concat(rpxTable(document.getElementById('rp-cost')));
-  var s4=[[{s:'4. Реклама: расход и ДРР',b:1}]].concat(rpxTable(document.getElementById('rp-ads')),[[]],rpxLines(document.getElementById('rp-ads-note')));
-  var s5=[[{s:'5. Топ-5 непродаваемых',b:1}]];
+  var s4b=[[{s:'4. Баллы Маркета (справочно)',b:1}]].concat(rpxTable(document.getElementById('rp-pts')));
+  var s4=[[{s:'5. Реклама: расход и ДРР',b:1}]].concat(rpxTable(document.getElementById('rp-ads')),[[]],rpxLines(document.getElementById('rp-ads-note')));
+  var s5=[[{s:'6. Топ-5 непродаваемых',b:1}]];
   [].forEach.call(document.getElementById('rp-dead').children,function(ch){if(ch.tagName==='H4')s5.push([{s:ch.innerText,b:1}]);else if(ch.querySelector&&ch.querySelector('table'))s5=s5.concat(rpxTable(ch.querySelector('table')),[[]]);else s5=s5.concat(rpxLines(ch));});
-  var one=s1.concat([[],[]],s2,[[],[]],s3,[[],[]],s4,[[],[]],s5);
+  var one=s1.concat([[],[]],s2,[[],[]],s3,[[],[]],s4b,[[],[]],s4,[[],[]],s5);
   var ns='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
   var files=[['[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'],
     ['_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],

@@ -21,7 +21,7 @@ const accRow = (sku: string, cat: string, v: Record<string, number>) => {
 function page(repy: any, byPer: (per: { from: string; to: string }) => any[], accDays: string[], doc: any[] = []) {
   // Общие функции страница кладёт в window (глобальная область браузера); здесь это globalThis.
   const win: any = globalThis;
-  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines,rpyPtsLines};`;
+  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines,rpyPtsLines,rpyRefLines};`;
   const R = { svc: [], gen: [], pts: [], drr: [], ...repy };
   return new Function("W", "REPY", "accAgg", "ACC", "ACC_DOC", "ACC_RATE", "fmtRu", "document", body)(
     win, R, byPer, accDays.map((d) => [d, "X"]), doc, { adm: 0.3, tax: 0.15 }, (n: number) => String(Math.round(n)), {});
@@ -132,7 +132,7 @@ describe("отчёт Маркета: итоги месяца", () => {
   // G1 ФЕНИКСА iter2: месяц, собранный без статуса платежа, - «Оплачено и отменено» нет данных, не 0.
   it("«Оплачено и отменено» в месяце без статуса - null, со статусом - число", () => {
     const g: any = globalThis;
-    const L = (t: any) => f.rpyPtsLines([]).filter((x: any) => x.k === "cgot" || x.k === "csold" || x.k === "cback").map((x: any) => x.fn(t));
+    const L = (t: any) => f.rpyRefLines().filter((x: any) => x.k === "cgot" || x.k === "csold" || x.k === "cback").map((x: any) => x.fn(t));
     try {
       g.ACC_NOST = ["74986385/2026-09"];
       const cn = f.rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
@@ -154,6 +154,9 @@ describe("отчёт Маркета: итоги месяца", () => {
     const ks = f2.rpyLines([]).map((x: any) => x.k);
     expect(ks.indexOf("acc1")).toBeLessThan(ks.indexOf("acc"));
     expect(ks).toContain("ship");
+    // Основные строки - фиолетовым жирным (просьба пользователя 02.10).
+    expect(f2.rpyLines([]).filter((x: any) => x.main).map((x: any) => x.k)).toEqual(["acc", "fee", "amount", "np", "netAll"]);
+    expect(f2.rpyPtsLines([]).filter((x: any) => x.main).map((x: any) => x.k)).toEqual(["ptsIn", "ptsOut", "saldo"]);
   });
 });
 
@@ -218,7 +221,8 @@ describe("отчёт Маркета: данные сборщика", () => {
       ["2026-09-27", "acquiring", "Перевод платежа", -20],
       ["2026-09-27", "cofin:commission", "Размещение товарных предложений", -300],
       // H2: компенсация подписана типом операции, товар в скобках; 28.09 - уже после границы
-      ["2026-09-27", "otherSvc", "Компенсация за потерянный заказ (GEN GROUP Столик консольный ARFEO черный)", 36457],
+      // Товар в подписи компенсации не нужен (просьба пользователя 02.10) - только вид операции.
+      ["2026-09-27", "otherSvc", "Компенсация за потерянный заказ", 36457],
     ]);
   });
   it("проводки без заказа: удержание и взнос продавца раздельно", () => {

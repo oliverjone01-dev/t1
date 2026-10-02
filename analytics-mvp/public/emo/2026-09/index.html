@@ -512,6 +512,8 @@ function renderPaidChannels(){
  campaignBlock.querySelector('tfoot tr').className='campaign-total';prepareReportSort();
 }
 const paidChannelsUtmRender=utmRender;utmRender=function(){paidChannelsUtmRender();renderPaidChannels();};renderPaidChannels();
+function removeGroupingDownloads(){document.querySelectorAll('button,a').forEach(el=>{if(/скачать\s+правки\s+группировки/i.test(el.textContent.trim()))el.remove();});}
+const noDownloadUtmRender=utmRender;utmRender=function(){noDownloadUtmRender();removeGroupingDownloads();};removeGroupingDownloads();
 })();
 </script>
 </body></html>

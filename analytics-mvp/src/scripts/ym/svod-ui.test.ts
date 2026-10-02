@@ -2334,6 +2334,19 @@ describe("Маркет «Отчет»: оформление и пометки", 
     expect(css).toContain("#rp-pts .rp-main td,#rp-ads .rp-main td{color:#fff}");
     expect(R().querySelectorAll("#rp-pts tr.rp-main, #rp-ads tr.rp-main").length).toBeGreaterThan(0);
   });
+  // G3 ФЕНИКСА iter4: сноска блока 5 называет причину из данных. «Старше 90 дней» - только тем кабинетам и
+  // месяцам, которые Маркет так и не отдал (promo_state.old90); остальные недостающие - «ещё собираются».
+  it("блок 5: сноска о неполных месяцах - с причиной из данных, не «старше 90 дней» для всех", () => {
+    const rows = [...R().querySelectorAll("#rp-ads tbody tr")] as any[];
+    const note = rows.map((r) => r.textContent || "").find((t) => /не по обоим кабинетам/.test(t)) || "";
+    const star = R().querySelector("#rp-ads tbody .rp-warn");
+    if (!star) return; // все месяцы по обоим кабинетам - сноски нет
+    expect(note, "звёздочка без сноски").not.toBe("");
+    let old90: string[] = [];
+    try { old90 = JSON.parse(readFileSync(join(ACC_DATA, "promo_state.json"), "utf8")).old90 || []; } catch { old90 = []; }
+    if (!old90.length) expect(note).not.toMatch(/90 дней/);
+    expect(note).toMatch(/90 дней|ещё собираются/);
+  });
   it("пометка статуса платежа есть, если пары без статуса; о втором столбце - нет, раз он собран", () => {
     const fl = R().getElementById("rp-flags")!.textContent || "";
     const nost = /var ACC_NOST=(\[[^\]]*\])/.exec(R().documentElement.innerHTML);

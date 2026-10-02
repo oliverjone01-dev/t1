@@ -27,6 +27,9 @@ type Ctx = {
 const readNd = (p: string): any[] => {
   try { return readFileSync(p, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { return []; }
 };
+const readJsonSafe = (p: string): any => {
+  try { return JSON.parse(readFileSync(p, "utf-8")); } catch { return {}; }
+};
 const addDays = (d: string, n: number) => new Date(Date.parse(d + "T00:00Z") + n * 86400000).toISOString().slice(0, 10);
 
 // Функции и переменные OZON-отчёта, которые не зависят от данных OZON. rpPeriods читает MAXD - на
@@ -83,7 +86,14 @@ export function reportDataYm(ctx: Ctx) {
   const { dp, maxD } = ctx;
   const acc = readNd(dp("pnl_sku_netting_daily.ndjson"));
   // Отчёты Маркета по продвижению (только блок 5, решение 02.10): [ym, кабинет, инструмент, расход, выручка, вся выручка, баллами].
-  const promo = readNd(dp("promo_monthly.ndjson")).map((r) => [String(r.ym), String(r.business), String(r.kind), Math.round(Number(r.spend) || 0), Math.round(Number(r.rev) || 0), Math.round(Number(r.revAll) || 0), Math.round(Number(r.bonus) || 0)]);
+  // Расход - одно определение для всех инструментов: деньги + баллы (G2 ФЕНИКСА iter4). У буста продаж
+  // BILLED_AMOUNT уже включает баллы; у буста показов и полок REAL_COST - только деньги, баллы - DEDUCTED_BONUSES
+  // (июль, буст показов: 27,08 + 7 572,92 = 7 600,00 списания кабинета).
+  const promo = readNd(dp("promo_monthly.ndjson")).map((r) => [String(r.ym), String(r.business), String(r.kind),
+    Math.round((Number(r.spend) || 0) + (r.kind === "boost" ? 0 : Number(r.bonus) || 0)), Math.round(Number(r.rev) || 0), Math.round(Number(r.revAll) || 0), Math.round(Number(r.bonus) || 0)]);
+  // Тройки кабинет/месяц/инструмент, которые Маркет не отдал по правилу 90 дней (кабинет без подписки):
+  // сноска блока 5 называет эту причину только им, остальным недостающим - «ещё собираются».
+  const promoOld90 = (readJsonSafe(dp("promo_state.json")).old90 || []) as string[];
   // Последний ПОЛНЫЙ день реестра (вариант «а» 02.10): общая функция с блоком ACC на «Деньгах» -
   // отчёт за месяц равен блоку за те же даты, и оба не берут день, сборы которого ещё дорастают.
   const { to, lastBy, feeBy } = accLedgerFullTo(acc);
@@ -202,7 +212,7 @@ export function reportDataYm(ctx: Ctx) {
   console.log(`report-ym: кампаний баллами из отчёта по баллам ${campN} строк; реестр полный по ${to} (последний день ${JSON.stringify(lastBy)}, со сборами ${JSON.stringify(feeBy)}), показы ${Object.keys(views).length} SKU с ${viewsFrom || "-"}, заказы по ${Object.keys(ordD).length} SKU с ${ordFrom || "-"}`);
   // Первый полный месяц реестра - с него идут серые ретро-колонки (месяц, начатый не с 1-го, неполный).
   const full = !accFrom ? "" : accFrom.slice(8) === "01" ? accFrom.slice(0, 7) + "-01" : addDays(accFrom.slice(0, 7) + "-01", 32).slice(0, 7) + "-01";
-  return { to, maxD, accFrom, full, floor: FLOOR.slice(0, 7), lastBy, pts, views, viewsFrom, aggFrom, aggTo, ord: ordD, ordC, ordFrom, svc, gen, drr, cab, promo };
+  return { to, maxD, accFrom, full, floor: FLOOR.slice(0, 7), lastBy, pts, views, viewsFrom, aggFrom, aggTo, ord: ordD, ordC, ordFrom, svc, gen, drr, cab, promo, promoOld90 };
 }
 
 export const REPORT_YM_CSS = `<style>
@@ -500,7 +510,16 @@ function rpyAds(P,cur,prev,R){
   h+=row('буст продаж',ratio(col('boost',3),col('boost',4)),{sub:1,kid:'ad4',t:'расход на буст / выручка с бустом',flags:part},pc);
   h+=row('буст показов',ratio(col('shows',3),col('shows',4)),{sub:1,kid:'ad4',flags:part},pc);
   h+=row('полки',ratio(col('shelf',3),col('shelf',4)),{sub:1,kid:'ad4',flags:part},pc);
-  if(anyPart)h+='<tr><td colspan="'+(R.length+5)+'" class="rp-mute"><span class="rp-warn">*</span> только мебель: по зеркалам Маркет не отдаёт отчёты старше 90 дней</td></tr>';
+  // Сноска - с причиной из данных (G3 ФЕНИКСА iter4): правило 90 дней или «ещё собираются».
+  if(anyPart){var nm={},o90={},old={},wait={};nm[REPY.cab.mir]='зеркалам';nm[REPY.cab.fur]='мебели';
+    (REPY.promoOld90||[]).forEach(function(k){var p=k.split('/');o90[p[0]+'/'+p[1]]=1;});
+    yms.forEach(function(m,i){if(!part[i])return;var bs={};(REPY.promo||[]).forEach(function(r){if(r[0]===m)bs[r[1]]=1;});
+      [REPY.cab.mir,REPY.cab.fur].forEach(function(b){if(bs[b])return;(o90[b+'/'+m]?old:wait)[nm[b]+'|'+m]=1;});});
+    var lst=function(o){var by={};Object.keys(o).forEach(function(k){var p=k.split('|');(by[p[0]]=by[p[0]]||[]).push(rpName(p[1]));});return Object.keys(by).map(function(c){return 'по '+c+' за '+by[c].join(', ');});};
+    var oldL=lst(old),waitL=lst(wait),txt=[];
+    if(oldL.length)txt.push(oldL.join('; ')+' - Маркет не отдаёт отчёты старше 90 дней без подписки');
+    if(waitL.length)txt.push(waitL.join('; ')+' - отчёты ещё собираются, доберутся ближайшими снимками');
+    h+='<tr><td colspan="'+(R.length+5)+'" class="rp-mute"><span class="rp-warn">*</span> не по обоим кабинетам: '+txt.join('; ')+'</td></tr>';}
   document.getElementById('rp-ads').innerHTML=h+'</tbody>';rpyFold(document.getElementById('rp-ads'));
 }
 // === 5. Непродаваемые (ответ 4а: правила и пороги OZON [ГИПОТЕЗА]; 3а 01.10: отменённые заказы) ===

@@ -1118,6 +1118,22 @@ export function ledgerToBy(netting: Array<{ business?: unknown; d?: unknown }>):
   }
   return out;
 }
+// Знает ли реестр списание баллов (кабинет, заказ, день). Дни до последнего дня кабинета - знает. Последний
+// день Маркет присылает в два захода (02.10: заказ 61865181824, списание 18 912 ₽ за 01.10 есть в отчёте по
+// баллам, а в реестре 01.10 ещё нет) - за него реестр знает только те заказы, у которых списание уже пришло.
+// Раньше последний день считался пришедшим целиком, и такое списание пропадало из свода молча (К7).
+export function ledgerKnowsPoints(netting: Array<{ business?: unknown; d?: unknown; order?: unknown; src?: unknown }>): (business: string, order: string, d: string) => boolean {
+  const to = ledgerToBy(netting);
+  const lastDay = new Set<string>();
+  for (const n of netting) {
+    const b = String(n.business || ""), d = String(n.d || "").slice(0, 10);
+    if (d === to.get(b) && /совместных акциях/i.test(String(n.src || ""))) lastDay.add(`${b}|${String(n.order || "").trim()}|${d}`);
+  }
+  return (business, order, d) => {
+    const t = to.get(business) || "";
+    return d < t || (d === t && lastDay.has(`${business}|${order}|${d}`));
+  };
+}
 // Дата списания по отчёту о баллах. Пусто - дата неизвестна: ячейки не было, или сборщик
 // поставил заглушку «конец месяца» (d_est). Такую строку нельзя сравнивать с границей реестра:
 // заглушка 30.09 при реестре по 27.09 выглядела бы как «ещё не пришло», хотя реестр её знает.
@@ -1526,7 +1542,7 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
   // списанию ОДНУ дату (на 30.09: 2 939 строк из 2 942 совпали с реестром день в день, остальные
   // 3 - это и есть отставание).
   {
-    const ledgerTo = ledgerToBy(netting);
+    const knows = ledgerKnowsPoints(netting);
     const covered = new Set<string>(bonus.map((r) => `${r.business}|${r.ym}`));
     const createdOf = new Map<string, string>();
     for (const r of rows) if (r.created) createdOf.set(r.order, String(r.created).slice(0, 10));
@@ -1539,7 +1555,7 @@ function buildSvodWith(rows: OrderRow[], netting: NetFeeRow[] & Array<any>, cogs
       if (!k || !k.startsWith(`${r.business}|`)) continue;   // в свод идут только доставленные заказы своего кабинета
       const dSpend = spendDate(r as any);
       if (!dSpend) continue;                                   // дата неизвестна - считаем известной реестру, см. spendDate
-      if (dSpend <= (ledgerTo.get(String(r.business)) || "")) continue;   // реестр это уже знает
+      if (knows(String(r.business), ord, dSpend)) continue;   // реестр это уже знает
       const sku = String(r.sku || "").trim();
       const byKey = after.get(k) || new Map(); after.set(k, byKey);
       const key = `${ord}|${sku}|${dSpend}`;

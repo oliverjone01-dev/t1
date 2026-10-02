@@ -181,7 +181,9 @@ describe("отчёт Маркета: данные сборщика", () => {
     { ym: "2026-09", business: "1", d: "2026-09-27", type: "Списание", src: "Скидка за участие в совместных акциях", service: "Размещение товарных предложений", order: "o1", amount: -300 },
     { ym: "2026-09", business: "2", d: "2026-09-29", type: "Списание", src: "Скидка за участие в совместных акциях", service: "Полки", order: "", amount: -700 }, // после границы
   ]));
-  writeFileSync(join(dir, "promo_monthly.ndjson"), nd([{ ym: "2026-09", business: "1", kind: "boost", spend: 100.4, rev: 1000, revAll: 1200, bonus: 0, orders: 2 }]));
+  writeFileSync(join(dir, "promo_monthly.ndjson"), nd([{ ym: "2026-09", business: "1", kind: "boost", spend: 100.4, rev: 1000, revAll: 1200, bonus: 30, orders: 2 },
+    { ym: "2026-07", business: "1", kind: "shows", spend: 27.08, rev: 500, revAll: 0, bonus: 7572.92, orders: 1 }]));
+  writeFileSync(join(dir, "promo_state.json"), JSON.stringify({ schema: 1, done: [], old90: ["2/2026-05/boost"] }));
   writeFileSync(join(dir, "svod_orders.json"), JSON.stringify({ months: [{ ym: "2026-09", business: "1", rows: [{ s: 10, b: 200 }] }] }));
   // Заглушка кода «Маркетинга» в том же виде, что promoYm().js: объявления с начала строки.
   const promoJs = "var PM=null;\nvar PM_ART=[\"Буст продаж\"];\nvar PM_NAMES={\"2\":\"GEN GROUP (мебель)\",\"1\":\"GENGLASS (зеркала)\"};\nfunction pmRow(m){\n  var sp=0,b=0;m.rows.forEach(function(r){sp+=r.s;b+=r.b;});\n  return {ym:m.ym,business:m.business,sm:sp,sp:0,oh:0,spend:sp,base:b,settled:true,partial:false};\n}\nfunction pmDraw(){}";
@@ -191,7 +193,10 @@ describe("отчёт Маркета: данные сборщика", () => {
     expect(r.lastBy).toEqual({ "1": "2026-09-29", "2": "2026-09-28" });
   });
   it("отчёты по продвижению - в данные блока 5, до рубля", () => {
-    expect(r.promo).toEqual([["2026-09", "1", "boost", 100, 1000, 1200, 0]]);
+    // G2 ФЕНИКСА iter4: расход - деньги + баллы у всех инструментов. Буст продаж: BILLED_AMOUNT уже с баллами;
+    // буст показов: REAL_COST 27,08 + DEDUCTED_BONUSES 7 572,92 = 7 600 (июль, списание кабинета).
+    expect(r.promo).toEqual([["2026-09", "1", "boost", 100, 1000, 1200, 30], ["2026-07", "1", "shows", 7600, 500, 0, 7573]]);
+    expect(r.promoOld90).toEqual(["2/2026-05/boost"]);
   });
   it("кабинеты зеркал и мебели - из PM_NAMES «Маркетинга», не литералами (H3)", () => {
     expect(r.cab).toEqual({ mir: "1", fur: "2" });

@@ -506,8 +506,14 @@ async function promo(months: string[], now: Date) {
   const freshFrom = reportFreshFrom(months.slice().sort(), now);
   const yday = yesterday();
   const fresh: PromoRow[] = [], purged = new Set<string>();
-  for (const { businessId: b, account } of await resolveBusinesses()) {
-    for (const ym of months) {
+  // Тройки, закрытые правилом 90 дней (кабинет без подписки): страница пишет эту причину только им,
+  // остальным недостающим - «ещё собираются» (G3 ФЕНИКСА iter4).
+  const old90 = new Set(prev.schema === PROMO_SCHEMA ? (prev as { old90?: string[] }).old90 || [] : []);
+  // Месяцы снаружи, кабинеты внутри (G3 ФЕНИКСА iter4): при бюджете на прогон свежий месяц собирается
+  // по обоим кабинетам, а не один кабинет за всю историю, пока второй ждёт 5-6 прогонов.
+  const bizs = await resolveBusinesses();
+  for (const ym of months) {
+    for (const { businessId: b, account } of bizs) {
       const { dateFrom } = monthBounds(ym);
       const dateTo = monthBounds(ym).dateTo < yday ? monthBounds(ym).dateTo : yday;
       if (dateTo < dateFrom) continue;
@@ -521,7 +527,7 @@ async function promo(months: string[], now: Date) {
           // Живой факт 02.10 (проба 37006024141): кабинету без подписки Маркет не отдаёт данные старше
           // 90 дней (HTTP 400 «Without subscription ... older than 90 days»). Это не сбой и не изменится
           // повтором: месяц закрываем без строки - на странице «нет данных», а не 0, и не долбим каждый прогон.
-          if (/older than 90 days/i.test(String((err as Error).message))) { done.add(key); console.log(`promo: ${b} ${ym} ${kind} - Маркет не отдаёт данные старше 90 дней без подписки`); continue; }
+          if (/older than 90 days/i.test(String((err as Error).message))) { done.add(key); old90.add(key); console.log(`promo: ${b} ${ym} ${kind} - Маркет не отдаёт данные старше 90 дней без подписки`); continue; }
           console.warn(`::warning::продвижение ${kind} ${b} ${ym}: ${String((err as Error).message).slice(0, 200)}`); continue;
         }
         // null без исчерпанного бюджета - отчёт пустой или не собрался: месяц закрыт без строки, на странице
@@ -534,11 +540,12 @@ async function promo(months: string[], now: Date) {
     }
     if (rateLimited || budgetSpent) break;
   }
-  if (!fresh.length) { console.log(`promo: новых строк нет (собрано пар ${done.size})`); return; }
+  // Без новых строк состояние всё равно пишется: закрытые правилом 90 дней тройки не должны теряться.
+  if (!fresh.length) { const rows = readNdjson<PromoRow>(OUT).length; writeJson(STATE, { ...prev, at: new Date().toISOString(), schema: PROMO_SCHEMA, rows, done: [...done].sort(), old90: [...old90].sort() }); console.log(`promo: новых строк нет (собрано пар ${done.size})`); return; }
   const keep = readNdjson<PromoRow>(OUT).filter((r) => !purged.has(`${r.business}/${r.ym}/${r.kind}`));
   const merged = fresh.concat(keep).sort((a, b) => (a.ym === b.ym ? (a.business === b.business ? a.kind.localeCompare(b.kind) : a.business.localeCompare(b.business)) : a.ym < b.ym ? -1 : 1));
   writeNdjson(OUT, merged);
-  writeJson(STATE, { at: new Date().toISOString(), schema: PROMO_SCHEMA, rows: merged.length, done: [...done].sort(),
+  writeJson(STATE, { at: new Date().toISOString(), schema: PROMO_SCHEMA, rows: merged.length, done: [...done].sort(), old90: [...old90].sort(),
     note: "отчёты Маркета по продвижению: spend - расход (буст продаж: деньги + баллы), rev - выручка с инструментом по Маркету, revAll - вся выручка доставленных (только буст продаж)" });
   console.log(`promo: строк ${merged.length} (получено ${fresh.length})${rateLimited || budgetSpent ? " - упёрлись в лимит/бюджет, остальное доберёт следующий прогон" : ""}`);
 }

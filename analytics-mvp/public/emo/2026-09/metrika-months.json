@@ -1,0 +1,211 @@
+{
+  "generatedAt": "2026-10-02T09:22:50.907Z",
+  "counter": 104369223,
+  "source": "Yandex Metrika Reporting API",
+  "attribution": "ym:s:lastsignTrafficSource",
+  "goals": {
+    "leads": 487033158,
+    "contacts": 477925360
+  },
+  "months": {
+    "2026-08": {
+      "from": "2026-08-01",
+      "to": "2026-08-31",
+      "rows": [
+        {
+          "code": "ad",
+          "source": "Переходы по рекламе",
+          "visits": 4218,
+          "users": 3531,
+          "bounce": 21.92982456,
+          "leads": 100,
+          "contacts": 72
+        },
+        {
+          "code": "organic",
+          "source": "Переходы из поисковых систем",
+          "visits": 2827,
+          "users": 2088,
+          "bounce": 17.40360807,
+          "leads": 143,
+          "contacts": 92
+        },
+        {
+          "code": "direct",
+          "source": "Прямые заходы",
+          "visits": 1035,
+          "users": 841,
+          "bounce": 26.66666667,
+          "leads": 34,
+          "contacts": 22
+        },
+        {
+          "code": "referral",
+          "source": "Переходы по ссылкам на сайтах",
+          "visits": 618,
+          "users": 408,
+          "bounce": 7.1197411,
+          "leads": 6,
+          "contacts": 9
+        },
+        {
+          "code": "internal",
+          "source": "Внутренние переходы",
+          "visits": 281,
+          "users": 175,
+          "bounce": 25.6227758,
+          "leads": 8,
+          "contacts": 8
+        },
+        {
+          "code": "email",
+          "source": "Переходы с почтовых рассылок",
+          "visits": 16,
+          "users": 4,
+          "bounce": 12.5,
+          "leads": 1,
+          "contacts": 1
+        },
+        {
+          "code": "social",
+          "source": "Переходы из социальных сетей",
+          "visits": 16,
+          "users": 12,
+          "bounce": 12.5,
+          "leads": 0,
+          "contacts": 0
+        },
+        {
+          "code": "messenger",
+          "source": "Переходы из мессенджеров",
+          "visits": 10,
+          "users": 7,
+          "bounce": 10,
+          "leads": 1,
+          "contacts": 1
+        },
+        {
+          "code": "recommend",
+          "source": "Переходы из рекомендательных систем",
+          "visits": 4,
+          "users": 4,
+          "bounce": 25,
+          "leads": 0,
+          "contacts": 0
+        },
+        {
+          "code": "qrcode",
+          "source": "Переходы по QR-коду",
+          "visits": 4,
+          "users": 3,
+          "bounce": 100,
+          "leads": 0,
+          "contacts": 0
+        }
+      ],
+      "total": {
+        "visits": 9029,
+        "users": 6924,
+        "bounce": 20.14619559,
+        "leads": 293,
+        "contacts": 205
+      },
+      "sampled": false
+    },
+    "2026-09": {
+      "from": "2026-09-01",
+      "to": "2026-09-30",
+      "rows": [
+        {
+          "code": "ad",
+          "source": "Переходы по рекламе",
+          "visits": 4632,
+          "users": 3950,
+          "bounce": 21.71848014,
+          "leads": 102,
+          "contacts": 97
+        },
+        {
+          "code": "organic",
+          "source": "Переходы из поисковых систем",
+          "visits": 3213,
+          "users": 2441,
+          "bounce": 17.39807034,
+          "leads": 149,
+          "contacts": 108
+        },
+        {
+          "code": "referral",
+          "source": "Переходы по ссылкам на сайтах",
+          "visits": 2628,
+          "users": 2417,
+          "bounce": 2.54946728,
+          "leads": 9,
+          "contacts": 10
+        },
+        {
+          "code": "direct",
+          "source": "Прямые заходы",
+          "visits": 1768,
+          "users": 1576,
+          "bounce": 16.06334842,
+          "leads": 42,
+          "contacts": 25
+        },
+        {
+          "code": "internal",
+          "source": "Внутренние переходы",
+          "visits": 296,
+          "users": 224,
+          "bounce": 23.98648649,
+          "leads": 10,
+          "contacts": 6
+        },
+        {
+          "code": "messenger",
+          "source": "Переходы из мессенджеров",
+          "visits": 48,
+          "users": 8,
+          "bounce": 12.5,
+          "leads": 1,
+          "contacts": 1
+        },
+        {
+          "code": "social",
+          "source": "Переходы из социальных сетей",
+          "visits": 35,
+          "users": 18,
+          "bounce": 17.14285714,
+          "leads": 1,
+          "contacts": 0
+        },
+        {
+          "code": "email",
+          "source": "Переходы с почтовых рассылок",
+          "visits": 8,
+          "users": 6,
+          "bounce": 25,
+          "leads": 0,
+          "contacts": 0
+        },
+        {
+          "code": "recommend",
+          "source": "Переходы из рекомендательных систем",
+          "visits": 5,
+          "users": 3,
+          "bounce": 0,
+          "leads": 0,
+          "contacts": 0
+        }
+      ],
+      "total": {
+        "visits": 12633,
+        "users": 10437,
+        "bounce": 15.83946806,
+        "leads": 314,
+        "contacts": 247
+      },
+      "sampled": false
+    }
+  }
+}

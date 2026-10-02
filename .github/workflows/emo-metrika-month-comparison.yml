@@ -1,0 +1,64 @@
+name: EMO report Metrika month comparison
+on:
+  push:
+    paths:
+      - '.github/workflows/emo-metrika-month-comparison.yml'
+permissions:
+  contents: write
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read August and September from Metrika API
+        env:
+          YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || secrets.YM_TOKEN }}
+          YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const token=process.env.YANDEX_METRIKA_TOKEN;
+          if(!token)throw Error('Metrika token is unavailable');
+          const counter=process.env.YANDEX_METRIKA_COUNTER;
+          const metrics='ym:s:visits,ym:s:users,ym:s:bounceRate,ym:s:goal487033158reaches,ym:s:goal477925360reaches';
+          async function request(from,to,dimensions){
+            const q=new URLSearchParams({ids:counter,date1:from,date2:to,metrics,accuracy:'full',limit:'1000',lang:'ru'});
+            if(dimensions){q.set('dimensions',dimensions);q.set('sort','-ym:s:visits');}
+            for(let attempt=0;attempt<4;attempt++){
+              const response=await fetch('https://api-metrika.yandex.net/stat/v1/data?'+q,{headers:{Authorization:'OAuth '+token},signal:AbortSignal.timeout(60000)});
+              if(response.status===429||response.status>=500){await new Promise(r=>setTimeout(r,2000*(attempt+1)));continue;}
+              if(!response.ok)throw Error('Metrika API status '+response.status);
+              const data=await response.json();
+              if(data.sampled&&data.sample_share<1)throw Error('Sampled data is not accepted');
+              return data;
+            }
+            throw Error('Metrika API retry limit');
+          }
+          const result={generatedAt:new Date().toISOString(),counter:Number(counter),source:'Yandex Metrika Reporting API',attribution:'ym:s:lastsignTrafficSource',goals:{leads:487033158,contacts:477925360},months:{}};
+          const values=m=>({visits:m[0],users:m[1],bounce:m[2],leads:m[3],contacts:m[4]});
+          for(const [month,from,to] of [['2026-08','2026-08-01','2026-08-31'],['2026-09','2026-09-01','2026-09-30']]){
+            const grouped=await request(from,to,'ym:s:lastsignTrafficSource'),total=await request(from,to);
+            const rows=grouped.data.map(r=>({code:r.dimensions[0].id,source:r.dimensions[0].name,...values(r.metrics)}));
+            for(const key of ['visits','leads','contacts'])if(Math.abs(rows.reduce((s,r)=>s+r[key],0)-values(total.totals)[key])>.01)throw Error('Totals mismatch: '+key);
+            result.months[month]={from,to,rows,total:values(total.totals),sampled:grouped.sampled||false};
+          }
+          fs.mkdirSync('analytics-mvp/public/emo/2026-09',{recursive:true});
+          fs.writeFileSync('analytics-mvp/public/emo/2026-09/metrika-months.json',JSON.stringify(result,null,2));
+          console.log(JSON.stringify({months:Object.fromEntries(Object.entries(result.months).map(([k,v])=>[k,{rows:v.rows.length,total:v.total}]))}));
+          JS
+      - name: Save report source snapshot
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add analytics-mvp/public/emo/2026-09/metrika-months.json
+          git diff --staged --quiet && exit 0
+          git commit -m 'EMO report: full August and September Metrika API comparison'
+          for attempt in 1 2 3; do
+            git pull --rebase && git push && exit 0
+            sleep 2
+          done
+          exit 1
+

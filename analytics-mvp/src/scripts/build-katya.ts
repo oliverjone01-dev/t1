@@ -2051,6 +2051,18 @@ function render(cur,cmp){
   } catch { /* нет файла - блок сборов уровня заказа пустой */ }
   {
     const oldMaxA = anAcct.length ? anAcct.map((r) => r[0]).sort().slice(-1)[0] : "0000-00-00";
+    // Эквайринг заказов с несколькими артикулами: транзакции кладут его в «прочее кабинета», а эквайринг по
+    // артикулам (acq_sku_daily) уже несёт его - снимаем с «прочего» в днях из транзакций (Иван 02.10, «а»;
+    // tools/accruals/build_multi_acq.py по выгрузкам «Начисления»). День без строки кабинета - в лог, не добавляем.
+    try {
+      const byD: Record<string, any[]> = {}; for (const r of anAcct) byD[r[0]] = r;
+      let fixA = 0; const miss: string[] = [];
+      for (const l of readFileSync(dp("acct_multi_acq_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+        const r = JSON.parse(l); const d = String(r.d), v = Number(r.acq) || 0; if (d > oldMaxA || !v) continue;
+        const row = byD[d]; if (!row) { miss.push(d); continue; } row[6] = Math.round(row[6] - v); fixA += v;
+      }
+      console.log(`katya: эквайринг заказов с несколькими артикулами снят с «прочего кабинета» - ${Math.round(-fixA)} ₽` + (miss.length ? `; нет строки кабинета за ${miss.join(", ")}` : ""));
+    } catch { /* нет файла - без поправки */ }
     try { for (const l of readFileSync(dp("pnl_account_accrual_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.d > oldMaxA) anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]); } } catch { /* нет accrual-ряда */ }
     anAcct.sort((a, b) => (a[0] < b[0] ? -1 : 1));
   }
@@ -2753,6 +2765,10 @@ function admBase(sk,from,to){
 // Добор «Начислено»/комиссии по SKU до месячного отчёта о реализации: только целые закрытые отчётом месяцы
 // окна (covM), как штуки в realUnits. Возвращает [начислено, комиссия (со знаком сбора)].
 function finFix(sk,covM){var a=0,c=0,r=AN_FINFIX[sk]||[];for(var i=0;i<r.length;i++){if(covM[r[i][0]]){a+=r[i][1];c+=r[i][2];}}return [a,c];}
+// Те же операции с несколькими артикулами транзакции кладут в «прочее кабинета» (pnl-account-daily: не один SKU).
+// Когда finFix добирает их в строки артикулов, из «прочего кабинета» их надо вычесть, иначе двойной счёт
+// (апрель/май/июнь: +127 970 / +80 171 / +302 138 к «К выплате» против выгрузки начислений OZON, 02.10).
+function acctFix(from,to){var cv=coveredMonths(from,to),s=0;for(var sk in AN_FINFIX){var r=AN_FINFIX[sk];for(var i=0;i<r.length;i++)if(cv[r[i][0]])s+=r[i][1]+r[i][2];}return s;}
 function anSum(rows,from,to,n){var s=[];for(var k=0;k<n;k++)s.push(0);if(!rows)return s;for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]<from||r[0]>to)continue;for(var k2=0;k2<n;k2++)s[k2]+=r[k2+1]||0;}return s;}
 // «Реализовано с учётом возвратов» по SKU за период: за ЦЕЛЫЕ закрытые месяцы (есть отчёт о
 // реализации) - продано − возвраты по отчёту (=УПД); дни вне таких месяцев (текущий/частичный
@@ -2935,6 +2951,7 @@ function skuAnalyticsData(cur){
   // signed (сборы < 0), колонки показывают сбор положительным -> берём со знаком минус.
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var ai=0;ai<AN_ACCT.length;ai++){var ar=AN_ACCT[ai];if(ar[0]<from||ar[0]>to)continue;aB.adv+=ar[1];aB.fines+=ar[2];aB.realfbs+=ar[3];aB.badge+=ar[4];aB.delivery+=ar[5];aB.other+=ar[6];}
+  aB.other-=acctFix(from,to); // добор finFix уже в строках артикулов
   // Реклама: собранная per-SKU часть (grand.adv) уже разнесена в колонку «Реклама» и вычтена из
   // К выплате артикулов -> в «Прочие» кабинета оставляем ТОЛЬКО остаток (aB.adv отрицателен + собранное).
   var aDel=aB.realfbs,aOth=(aB.adv+grand.adv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // delivery исключена
@@ -3208,6 +3225,7 @@ function renderAccountFees(cur){
   var el=document.getElementById('acct');if(!el)return;var from=cur.from,to=cur.to;
   var f={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0},any=false;
   for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;any=true;f.adv+=r[1]||0;f.fines+=r[2]||0;f.realfbs+=r[3]||0;f.badge+=r[4]||0;f.delivery+=r[5]||0;f.other+=r[6]||0;}
+  f.other-=acctFix(from,to); // добор finFix уже в строках артикулов
   // «Доставка от покупателя» уже разнесена по артикулам (столбец «Доставка покупателя» в таблице,
   // источник AN_DINCSKU/ведомость). В «Общих» показываем только НЕразнесённый остаток (кабинетное
   // перечисление − разнесённое по SKU), чтобы не дублировать вид. Сверка сохраняется: разнесённая часть
@@ -3337,6 +3355,7 @@ function periodTotals(from,to){
     fAcq+=acq;fSto+=sto;} // эквайринг/хранение по SKU из by-day (accrual) - те же acq/sto, что в К выплате
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;aB.adv+=r[1];aB.fines+=r[2];aB.realfbs+=r[3];aB.badge+=r[4];aB.delivery+=r[5];aB.other+=r[6];}
+  aB.other-=acctFix(from,to); // добор finFix уже в строках артикулов
   var aDel=aB.realfbs,aOth=(aB.adv+gadv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // доставка от покупателя исключена
   // OZON (Иван 25.09.2026, п. 4): план-факт считает ровно как ИТОГО таблицы по артикулам - «К выплате»
   // целиком (без отдельного правила для висящих заказов) и база АДМ по дням с отсечкой минуса; расходы

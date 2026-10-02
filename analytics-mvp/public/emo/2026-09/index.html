@@ -45,8 +45,8 @@ main{max-width:1660px;padding:20px 24px 40px}
 :root{--delta-ok:#52796c;--delta-crit:#9c6668;--plan-tint:#f0f3f9;--plan-head:#e5ebf5}
 [data-theme=dark]{--delta-ok:#91afa4;--delta-crit:#bd9698;--plan-tint:#202838;--plan-head:#293349}
 #summary tbody td:nth-child(n+5),.delta-chip,.stage .conversion,.direction-dynamics td,#lead-chart .source-note,.metric-cell-change,#utm-summary tbody td{--ok:var(--delta-ok);--crit:var(--delta-crit)}
-#summary table td:nth-child(2){background:var(--plan-tint)}
-#summary table th:nth-child(2){background:var(--plan-head)}
+#summary > .table-wrap > table td:nth-child(3){background:var(--plan-tint)}
+#summary > .table-wrap > table th:nth-child(3){background:var(--plan-head)}
 #utm-summary .utm-channel-row>td{color:var(--muted)}
 #utm-summary .utm-inline-toggle{color:var(--accent)}
 main a[href*="/crm/"],.table-wrap a[href]{color:var(--accent);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 35%,transparent);text-underline-offset:3px;border-radius:3px;transition:background-color .16s,text-decoration-color .16s}
@@ -356,6 +356,7 @@ document.querySelector('.aside-foot')?.remove();
 document.querySelectorAll('.footer div').forEach(el=>{if(el.textContent.includes('Заметки сохраняются'))el.remove();});
 const briefFlow=renderFlow;renderFlow=function(rr){briefFlow(rr);const desc=$('stage-outflow').querySelector('.source-note');if(desc)desc.textContent='Над этапами — все входы сентября; в голубых связях — переходы между этапами. «Другие входы» раскрываются в таблицу.';};renderChannel();
 
+document.querySelectorAll('#summary > .table-wrap > table > thead > tr,#summary > .table-wrap > table > tbody > tr').forEach(tr=>{const plan=tr.children[1],august=tr.children[2];if(plan&&august)tr.insertBefore(august,plan);});
 })();
 </script></body></html>
 

@@ -368,8 +368,25 @@ export interface AccNetRow {
   pay: number; dlv: number; points: number; accruals: number;
   commission: number; delivery: number; acquiring: number; storage: number; cofin: number; promo: number; otherSvc: number;
   amount: number; platform: "ym";
+  // Оплачено и отменено (справочно, ответ «1а» 02.10): платежи и возвраты со статусом «не будет
+  // переведён / удержан из-за отмены заказа». В деньги и штуки строки не входят.
+  cgot?: number; csold?: number; cback?: number; cret?: number;
 }
-export interface AccNettingRow { d: string; business?: string; order?: string; sku?: string; type?: string; service?: string; src?: string; amount: number; count?: number; contract?: string }
+export interface AccNettingRow { d: string; business?: string; order?: string; sku?: string; type?: string; service?: string; src?: string; amount: number; count?: number; contract?: string; status?: string }
+// Проводка, которой не будет: заказ оплатили и отменили («Не будет переведён из-за отмены заказа»,
+// «Не будет удержан из-за отмены заказа»), баллы, которые не начислят («Справочно: не будет пополнен
+// баланс»). Денег по ней не было и не будет - ни в оборот, ни в сборы, ни в штуки (ответ «1а» 02.10,
+// сверка с выгрузкой кабинета). Одно правило на все потребители реестра (К9).
+export function nettingCancelled(r: { status?: unknown }): boolean {
+  return /не будет/i.test(String(r.status || ""));
+}
+// Пары (кабинет/месяц), собранные без статуса платежа (схема реестра до 5): отменённый заказ там
+// не отличить от продажи - на странице это помечается, пока бот не перезаберёт месяц.
+export function nettingNoStatus(netting: Array<{ d: string; business?: unknown; src?: unknown; status?: unknown }>): string[] {
+  const out = new Set<string>();
+  for (const r of netting) if (r.src !== undefined && !String(r.status || "").trim()) out.add(`${String(r.business || "")}/${r.d.slice(0, 7)}`);
+  return [...out].sort();
+}
 const SRC_PAY = /^плат[её]ж покупател/i, SRC_PAY_BACK = /^возврат плат[её]жа покупател/i;
 const SRC_POINTS = /баллы за скидку|возврат баллов/i;
 export type AccFeeField = "commission" | "delivery" | "acquiring" | "storage" | "cofin" | "promo" | "otherSvc";
@@ -395,8 +412,9 @@ export function accNetReady(netting: AccNettingRow[]): (business: string, d: str
 // отчёт отстаёт на день, но всегда полный). Маркет присылает последний день реестра в два захода:
 // сначала платежи покупателей и списания баллами, денежные сборы по заказам («Оплата услуг Маркета») -
 // следующим снимком. Probe 02.10 по 11 снимкам 21.09-01.10: в 20 из 20 пар (кабинет, снимок) день
-// с денежными сборами потом не менялся, а последний день любой проводки дорастал в 15 из 20 (29.09:
-// −91 087 → −94 990 ₽). Списания баллами (cofin) признаком не служат: они приходят вместе с платежами.
+// с денежными сборами потом не менялся, а последний день любой проводки дорастал в 15 из 20 (денежные
+// сборы за 29.09: 0 на снимке 30.09 и −25 498 ₽ на снимке 01.10, оба кабинета; G3 ФЕНИКСА). Списания
+// баллами (cofin) признаком не служат: они приходят вместе с платежами.
 // Вход - строки pnl_sku_netting_daily (поля сборов блока ACC), строки basis orders не в счёт. Граница реестра - самая ранняя из
 // кабинетов с проводками за 30 дней: кабинет, который ещё не догнал, тянет границу назад.
 const ACC_MONEY_FEES = ["commission", "delivery", "acquiring", "storage", "promo", "otherSvc"] as const;
@@ -470,6 +488,11 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
     const t = m.get(k) || { ...blank(r.d, b, sku, "netting"), ...(contract ? { contract } : {}) };
     const src = String(r.src || ""), a = Number(r.amount) || 0;
     const kind = accNetKind(r.type || "", src);
+    if (nettingCancelled(r)) {
+      if (kind === "pay") { t.cgot = (t.cgot || 0) + a; if (r.sku) t.csold = (t.csold || 0) + qtyOf(r, false); m.set(k, t); }
+      else if (kind === "back") { t.cback = (t.cback || 0) + a; if (r.sku) t.cret = (t.cret || 0) + qtyOf(r, true); m.set(k, t); }
+      continue;
+    }
     if (kind === "pay") { if (r.sku) { t.got += a; t.sold += qtyOf(r, false); } else t.dgot += a; }
     else if (kind === "back") { if (r.sku) { t.back += a; t.ret += qtyOf(r, true); } else t.dback += a; }
     else if (kind === "points") { t.points += a; m.set(k, t); continue; }

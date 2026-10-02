@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -487,6 +487,46 @@ describe("блок по начислениям из проводок реест�
   it("COUNT из реестра главнее заказа", () => {
     const { rows } = buildAccNetting([pay("2026-07-03", "o9", 300, { count: 2 })], []);
     expect(rows[0]).toMatchObject({ sold: 2, units: 2, pay: 300, basis: "netting" });
+  });
+
+  // Ответ «1а» 02.10 (сверка с выгрузкой кабинета): заказ оплатили в августе и отменили в сентябре.
+  // Маркет помечает платёж «Не будет переведён из-за отмены заказа», возврат - «Не будет удержан».
+  // Денег не было: ни август, ни сентябрь не должны их видеть, а справка - видеть.
+  it("оплаченный и отменённый заказ - не продажа и не возврат, ни в каком месяце; справкой - да", () => {
+    const st = (status: string) => ({ status });
+    const net = [
+      pay("2026-08-14", "c1", 60_578, { count: 1, ...st("Не будет переведён из-за отмены заказа") }),
+      { d: "2026-08-14", business: "1", order: "c1", sku: "", type: "Начисление", src: "Платёж покупателя", service: "Доставка", amount: 4_500, status: "Не будет переведён из-за отмены заказа" },
+      { d: "2026-08-14", business: "1", order: "c1", sku: "A", type: "Начисление", src: "Баллы за скидку Маркета", service: "Товар A", amount: 9_000, status: "Справочно: не будет пополнен баланс" },
+      { d: "2026-09-01", business: "1", order: "c1", sku: "A", type: "Возврат", src: "Возврат платежа покупателя", service: "Товар A", amount: -60_578, count: 1, status: "Не будет удержан из-за отмены заказа" },
+      { d: "2026-09-01", business: "1", order: "c1", sku: "", type: "Возврат", src: "Возврат платежа покупателя", service: "Доставка", amount: -4_500, status: "Не будет удержан из-за отмены заказа" },
+      // Обычная продажа рядом - считается как раньше.
+      pay("2026-08-15", "o7", 1_000, { count: 1, ...st("Переведён по графику выплат") }),
+    ];
+    const { rows } = buildAccNetting(net as any, []);
+    const sum = (m: string, f: string) => rows.filter((r) => r.d.startsWith(m)).reduce((a, r: any) => a + (r[f] || 0), 0);
+    expect(sum("2026-08", "accruals"), "август: только живая продажа").toBe(1_000);
+    expect(sum("2026-08", "units")).toBe(1);
+    expect(sum("2026-08", "points"), "баллы «не будет пополнен» - не баллы").toBe(0);
+    expect(sum("2026-09", "accruals"), "сентябрь: отмена августовского заказа не вычитается").toBe(0);
+    expect(sum("2026-09", "ret")).toBe(0);
+    expect(sum("2026-08", "cgot"), "справка: оплачено и отменено, с доставкой").toBe(65_078);
+    expect(sum("2026-08", "csold")).toBe(1);
+    expect(sum("2026-09", "cback")).toBe(-65_078);
+    expect(sum("2026-09", "cret")).toBe(1);
+  });
+
+  it("статус платежа: «не будет» - отменено; пусто и прочие - нет; пары без статуса помечаются", () => {
+    expect(nettingCancelled({ status: "Не будет переведён из-за отмены заказа" })).toBe(true);
+    expect(nettingCancelled({ status: "Справочно: не будет пополнен баланс" })).toBe(true);
+    expect(nettingCancelled({ status: "Будет переведён по графику выплат" })).toBe(false);
+    expect(nettingCancelled({ status: "" })).toBe(false);
+    expect(nettingCancelled({})).toBe(false);
+    expect(nettingNoStatus([
+      { d: "2026-07-03", business: "1", src: "Платёж покупателя" },
+      { d: "2026-08-03", business: "1", src: "Платёж покупателя", status: "Переведён по графику выплат" },
+      { d: "2026-05-03", business: "1" }, // схема без источника - помечается другим флагом (fallback)
+    ])).toEqual(["1/2026-07"]);
   });
 
   it("месяц, собранный без колонки источника, берётся из заказов и помечен", () => {

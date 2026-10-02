@@ -11,7 +11,7 @@
 import { readFileSync } from "node:fs";
 import { REPORT_JS } from "../report-page.js";
 import { KEEP_OZON } from "../../paths.js";
-import { accFeeKey, accLedgerFullTo, accNetKind, accNetReady, type AccNettingRow } from "./derive-lib.js";
+import { accFeeKey, accLedgerFullTo, accNetKind, accNetReady, nettingCancelled, type AccNettingRow } from "./derive-lib.js";
 
 type Ctx = {
   dp: (f: string) => string;
@@ -75,7 +75,6 @@ export function reportDataYm(ctx: Ctx) {
     if (!accFrom || d < accFrom) accFrom = d;
     const a = (ptsDay[d] ||= [0, 0]); a[0]! += Number(r.points) || 0; a[1]! += Number(r.cofin) || 0;
   }
-  const pts = Object.keys(ptsDay).sort().map((d) => [d, Math.round(ptsDay[d]![0]!), Math.round(ptsDay[d]![1]!)]);
   // Показы, заходы в карточку и корзины по артикулу по месяцам. Отчёт показов Маркета собирается с
   // 31.08.2026; первая неделя пришла одной свёрнутой строкой (aggregate, дата 06.09, period_from
   // 31.08). Её суммируем (ответ 4а): месяц строки - по дате строки, поэтому день 31.08 попадает в
@@ -121,6 +120,7 @@ export function reportDataYm(ctx: Ctx) {
   for (const r of net) {
     const d = String(r.d || ""), b = String(r.business || ""), src = String(r.src || ""), a = Number(r.amount) || 0;
     if (!d || d > to) continue;
+    if (nettingCancelled(r)) continue; // заказ отменён, проводки не будет (ответ «1а» 02.10)
     if (!r.order || !String(r.order).trim()) {
       if (r.src === undefined) continue; // старая схема: тип неизвестен, не угадываем (как сверка на «Деньгах»)
       const g = (genK[d] ||= [0, 0, 0]);
@@ -139,6 +139,25 @@ export function reportDataYm(ctx: Ctx) {
     const k = f === "cofin" ? `${d}|cofin:${accFeeKey(r.service || "", "")}|${svc}` : `${d}|${f}|${svc}`;
     svcK[k] = (svcK[k] || 0) + a;
   }
+  // Списания баллами за кампании кабинета (буст с оплатой за показы, полки) без номера заказа (ответ
+  // «2а» 02.10). В отчёт о платежах они не входят, поэтому их нет в реестре; есть в отчёте по баллам
+  // Маркета (bonuses_monthly.ndjson, сверено с выгрузкой кабинета до копейки). Справкой, группа
+  // «Продвижение» (и буст, и полки - продвижение). Пара кабинет/месяц, где такие строки уже есть в
+  // реестре, отсюда не берётся - чтобы не задвоить, если Маркет начнёт отдавать их в платежах.
+  const netCamp = new Set<string>();
+  for (const r of net) if ((!r.order || !String(r.order).trim()) && accNetKind(r.type || "", String(r.src || "")) === "fee" && accFeeKey(r.service || "", String(r.src || "")) === "cofin") netCamp.add(`${r.business}/${String(r.d).slice(0, 7)}`);
+  let campN = 0;
+  for (const r of readNd(dp("bonuses_monthly.ndjson"))) {
+    const d = String(r.d || ""), b = String(r.business || ""), src = String(r.src || "");
+    if (!d || d > to || (r.order && String(r.order).trim()) || nettingCancelled(r)) continue;
+    if (!/скидка за участие в совместных акциях/i.test(src) || netCamp.has(`${b}/${d.slice(0, 7)}`)) continue;
+    const a = Number(r.amount) || 0, svcN = String(r.service || "").trim() || "кампания без названия";
+    const k = `${d}|cofin:promo|${svcN} (кампания)`;
+    svcK[k] = (svcK[k] || 0) + a;
+    (ptsDay[d] ||= [0, 0])[1]! += a; campN++;
+  }
+  // Баллы по дням - после кампаний: «списано за услуги» включает и их, как сумма услуг справки.
+  const pts = Object.keys(ptsDay).sort().map((d) => [d, Math.round(ptsDay[d]![0]!), Math.round(ptsDay[d]![1]!)]);
   const svc = Object.keys(svcK).sort().map((k) => { const [d, f, n] = k.split("|"); return [d, f, n, Math.round(svcK[k]! * 100) / 100]; });
   const gen = Object.keys(genK).sort().map((d) => [d, ...genK[d]!.map((x) => Math.round(x * 100) / 100)]);
   // ДРР как на «Маркетинге» (ответ 2а): pmRow вкладки «Маркетинг» по своду заказов, по месяцу ЗАКАЗА и
@@ -163,7 +182,7 @@ export function reportDataYm(ctx: Ctx) {
     for (const [b, n] of Object.entries(names)) { if (/зеркал/i.test(n)) cab.mir = b; else if (/мебел/i.test(n)) cab.fur = b; }
     if (!cab.mir || !cab.fur) throw new Error(`report-ym: в PM_NAMES «Маркетинга» не нашлись кабинеты зеркал и мебели: ${JSON.stringify(names)}`);
   }
-  console.log(`report-ym: реестр полный по ${to} (последний день ${JSON.stringify(lastBy)}, со сборами ${JSON.stringify(feeBy)}), показы ${Object.keys(views).length} SKU с ${viewsFrom || "-"}, заказы по ${Object.keys(ordD).length} SKU с ${ordFrom || "-"}`);
+  console.log(`report-ym: кампаний баллами из отчёта по баллам ${campN} строк; реестр полный по ${to} (последний день ${JSON.stringify(lastBy)}, со сборами ${JSON.stringify(feeBy)}), показы ${Object.keys(views).length} SKU с ${viewsFrom || "-"}, заказы по ${Object.keys(ordD).length} SKU с ${ordFrom || "-"}`);
   // Первый полный месяц реестра - с него идут серые ретро-колонки (месяц, начатый не с 1-го, неполный).
   const full = !accFrom ? "" : accFrom.slice(8) === "01" ? accFrom.slice(0, 7) + "-01" : addDays(accFrom.slice(0, 7) + "-01", 32).slice(0, 7) + "-01";
   return { to, maxD, accFrom, full, lastBy, pts, views, viewsFrom, aggFrom, aggTo, ord: ordD, ordC, ordFrom, svc, gen, drr, cab };
@@ -216,7 +235,7 @@ export function reportJsYm(): string {
 }
 
 export const REPORT_YM_JS = `
-var RPY_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs'];
+var RPY_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs','cgot','csold','cback','cret'];
 // Группы статей - поля блока «Аналитика по артикулам» под названиями Маркета (ответ 1а 01.10). Внутри
 // группы - услуги из отчёта по взаиморасчётам. [поле блока, ключ отчёта, подпись группы].
 var RPY_G=[['commission','mcom','Размещение товарных предложений'],['delivery','mdel','Доставка'],['acquiring','macq','Перевод и приём платежа'],
@@ -288,7 +307,12 @@ function rpyPtsLines(calcs){
   var names={};calcs.forEach(function(c){var t=c&&c.grand;if(!t)return;for(var k in t.pts)names[k]=1;});
   Object.keys(names).sort().forEach(function(k){L.push({k:k,l:'списано баллами: '+k.split('|')[1],fn:function(t){return t?(t.pts[k]||0):null;},inc:0,sub:1});});
   L.push({k:'saldo',l:'Сальдо баллов (начислено − списано)',fn:function(t){return rpyVal(t,'saldo');},inc:1,sub:1},
-    {k:'seller',l:'Внесено продавцом (ваши деньги на счёт Маркета, не расход)',fn:function(t){return rpyVal(t,'seller');},inc:1,sub:1});
+    {k:'seller',l:'Внесено продавцом (ваши деньги на счёт Маркета, не расход)',fn:function(t){return rpyVal(t,'seller');},inc:1,sub:1},
+    // Ответ «1а» 02.10: заказ оплатили и отменили - статус Маркета «не будет переведён / удержан из-за
+    // отмены заказа». Денег не было, в оборот и штуки не входит; платёж и отмена бывают в разных месяцах.
+    {k:'cgot',l:'Оплачено и отменено: платежи покупателей (денег не было, в оборот не входят)',fn:function(t){return rpyVal(t,'cgot');},inc:1,sub:1},
+    {k:'csold',l:'Оплачено и отменено: штук',fn:function(t){return rpyVal(t,'csold');},inc:1,sub:1},
+    {k:'cback',l:'Отмена ранее оплаченных: возвраты, которые не удержат',fn:function(t){return rpyVal(t,'cback');},inc:1,sub:1});
   return L;
 }
 function rpyTurnCard(){return rpTurnCard.apply(null,arguments).replace('реализовано ','продано за вычетом возвратов ');}

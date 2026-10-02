@@ -9,7 +9,7 @@ import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
 import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
-import { accLedgerFullTo } from "./ym/derive-lib.js";
+import { accLedgerFullTo, nettingCancelled, nettingNoStatus } from "./ym/derive-lib.js";
 import { matchLedger, accrualShipSeries, type Unmatched } from "./delivery-match.js";
 import { splitCpo } from "./cpo-split.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
@@ -3675,12 +3675,19 @@ function accJs(): string {
   // вкладки «Отчет»): последний день Маркет присылает в два захода, денежные сборы по его заказам
   // приходят следующим снимком. Раньше блок брал его по фильтру страницы и показывал «К выплате»
   // без сборов. Строки позже границы отрезаются здесь, до таблицы и до сверки ACC_DOC.
-  const { to: accTo, lastBy: accLast } = accLedgerFullTo(rows);
-  const accCut = [...new Set(Object.values(accLast).filter((d) => d > accTo))].sort();
+  const { to: accTo } = accLedgerFullTo(rows);
+  // Все отрезанные дни, а не только последние дни кабинетов (G1 ФЕНИКСА 02.10: при отстающем кабинете
+  // из блока выпадают и полные дни другого кабинета - подпись обязана их назвать).
+  const accCut = [...new Set(rows.map((r) => String(r.d || "")).filter((d) => d > accTo))].sort();
   rows = rows.filter((r) => String(r.d || "") <= accTo);
+  // Пары кабинет/месяц, собранные без статуса платежа (схема реестра до 5): там отменённый заказ
+  // ещё посчитан продажей. Помечаются в блоке, пока бот не перезаберёт месяц.
+  let accNoSt: string[] = [];
+  try { accNoSt = nettingNoStatus(readFileSync(dp("netting.ndjson"), "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l))); } catch { accNoSt = []; }
   // Строка блока - (день, артикул): на ней копится база АДМ, как и раньше. Кабинеты складываются
   // здесь; разрез по кабинету нужен только сверке с отчётом о платежах, он идёт в ACC_DOC.
-  const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs"];
+  // Последние четыре поля - «оплачено и отменено» (справочно, ответ «1а» 02.10): в деньги и штуки не входят.
+  const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs", "cgot", "csold", "cback", "cret"];
   const by = new Map<string, any>(), doc = new Map<string, any>(), fb = new Set<string>();
   // Артикулы, которых нет в листе С\С (тем же поиском, что в своде). Остальные несут С\С в строке.
   const noCogs = new Set<string>();
@@ -3714,6 +3721,7 @@ function accJs(): string {
       const r = JSON.parse(l);
       if (r.order && String(r.order).trim()) continue;
       if (r.src === undefined) continue; // старая схема: источник неизвестен, не угадываем
+      if (nettingCancelled(r)) continue; // проводки, которой не будет (отмена заказа), - не деньги
       const b = String(r.business || ""), d = String(r.d || "");
       if (d > accTo) continue; // день реестра ещё дособирается - как и строки по заказам
       const bk = r.contract ? `${b} · договор ${r.contract}` : b;
@@ -3760,6 +3768,7 @@ var ACC_NOCOGS=${JSON.stringify([...noCogs].sort())};
 var ACC_UPD=${JSON.stringify(upd)};
 var ACC_PEND=${JSON.stringify(pend)};
 var ACC_OPEN={};
+var ACC_NOST=${JSON.stringify(accNoSt)};
 var ACC_TO=${JSON.stringify(accTo)};
 var ACC_CUT=${JSON.stringify(accCut)};
 `;
@@ -4639,7 +4648,7 @@ function soDraw(){
 // отчёта о платежах Маркета, поэтому по артикулу блок сверяется с документом напрямую (Катя
 // 28.09.2026: GGL-09-2 за июль 15 − 3 = 12 шт на 164 576 ₽). Полный P&L: с АДМ, налогом и чистой
 // прибылью, на тех же базах, что блок по дате заказа.
-var ACC_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs'];
+var ACC_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs','cgot','csold','cback','cret'];
 // Ставки читаются из тех же полей, что и свод: одно место правки на всю страницу.
 var ACC_RATE={adm:0.30,tax:0.15};
 function accRates(){
@@ -4779,7 +4788,13 @@ function accDraw(){
   var fbIn=(typeof ACC_FB!=='undefined'?ACC_FB:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
   // Граница полного реестра (вариант «а» 02.10): день, сборы которого ещё дорастают, в блок не входит.
   var accTo=(typeof ACC_TO!=='undefined')?ACC_TO:'', accCutTxt=(accTo&&w.to>accTo)?'<br><span style="color:#E5B567" title="Маркет присылает последний день реестра в несколько заходов: сначала платежи покупателей, сборы по заказам дорастают следующим снимком. Чтобы «К выплате» не было завышено, блок берёт реестр только по последний полный день. Отчёт отстаёт на день, зато всегда полный (решение 02.10.2026).">реестр полный по <b>'+accTo+'</b>'+((typeof ACC_CUT!=='undefined'&&ACC_CUT.length)?', проводки за '+ACC_CUT.join(', ')+' ещё дособираются и в блок не входят':'')+'</span>':'';
-  cov.innerHTML='период: <b>'+w.from+' .. '+(accTo&&w.to>accTo?accTo:w.to)+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'+accCutTxt
+  // Оплачено и отменено (ответ «1а» 02.10): статус Маркета «не будет переведён / удержан из-за отмены
+  // заказа». В деньги и штуки блока не входит - показывается справкой.
+  var cg=0,cs=0,cb=0,cr=0;list.forEach(function(o){cg+=o.cgot||0;cs+=o.csold||0;cb+=o.cback||0;cr+=o.cret||0;});
+  var accCancTxt=(Math.round(cg)||Math.round(cb))?'<br><span title="Заказ оплатили и отменили: Маркет помечает платёж «Не будет переведён из-за отмены заказа», возврат - «Не будет удержан из-за отмены заказа». Денег продавцу не было и не будет, поэтому в «Начислено», «К выплате» и штуки такие строки не входят. Платёж и его отмена могут прийтись на разные месяцы.">оплачено и отменено (в блок не входит): платежи <b>'+svRub(cg)+' ₽</b> / '+cs+' шт, их возвраты '+svRub(-cb)+' ₽ / '+cr+' шт</span>':'';
+  var noSt=(typeof ACC_NOST!=='undefined'?ACC_NOST:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
+  var accNoStTxt=noSt.length?'<br><span style="color:#E5B567">статус платежа не собран: '+noSt.join(', ')+' - отменённый заказ там пока посчитан продажей и возвратом; бот перезаберёт эти месяцы (схема реестра 5)</span>':'';
+  cov.innerHTML='период: <b>'+w.from+' .. '+(accTo&&w.to>accTo?accTo:w.to)+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'+accCutTxt+accCancTxt+accNoStTxt
     +(docTxt?'<br><span title="Наш расчёт из реестра для сверки со строками отчёта о платежах Маркета за те же даты: «Получено от Потребителей», «Возвращено Потребителям», «Подлежит перечислению», по договору. «Удержано без заказа» и «премия» - проводки кабинета без артикула: в таблицу они не входят, а в «Подлежит перечислению» документа входят. Июль 2026 сверен с отчётами Кати до копейки по обоим договорам. По артикулу - колонки «Продано, шт», «Возвраты, шт» и подсказка ячейки «Оплатил клиент».">сверка с отчётом о платежах</span>:<br>'+docTxt:'')
     +(fbIn.length?'<br><span style="color:#E5B567">по выгрузке заказов, а не по реестру: '+fbIn.join(', ')+' - реестр за эти месяцы собран без колонки источника, платёж покупателя там не отличить от баллов. Перезабор идёт сам (схема реестра 3); до него штуки и платёж этих месяцев с отчётом о платежах могут не совпасть</span>':'')
     +'<br><span title="Отчёт о реализации (УПД) - другой документ: он идёт по дате реализации, а не по дате платежа, поэтому штуки с блоком совпадать не обязаны.">сверка с УПД</span>: '

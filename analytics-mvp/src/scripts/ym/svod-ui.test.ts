@@ -2310,6 +2310,30 @@ describe("Маркет «Отчет»: оформление и пометки", 
     const fl = R().getElementById("rp-flags")!.textContent || "";
     if (gaps) expect(fl).toMatch(/Наша доставка неполная: .*без суммы в ведомости/);
   });
+  // Выгрузка в Excel берёт общие rpx* OZON-отчёта: после смены их оформления (RPX_SPAN, rpxStyles) кнопка
+  // Маркета падала с «RPX_SPAN is not defined» (02.10). Файл - с оформлением OZON (просьба пользователя 02.10).
+  it("Excel: выгрузка собирается без ошибок, с оформлением OZON-отчёта", () => {
+    const w = rdom.window as any;
+    let files: any[] | null = null;
+    const zip = w.rpxZip;
+    w.rpxZip = (f: any[]) => { files = f; return new w.Blob(["x"]); };
+    w.URL.createObjectURL = () => "blob:x"; w.URL.revokeObjectURL = () => {};
+    // В JSDOM нет innerText - подменяем на textContent только для выгрузки.
+    if (!("innerText" in w.HTMLElement.prototype)) Object.defineProperty(w.HTMLElement.prototype, "innerText", { get() { return this.textContent; }, configurable: true });
+    try { w.rpyExport(); } finally { w.rpxZip = zip; }
+    expect(files, "файл не собран").not.toBeNull();
+    const get = (n: string) => String(files!.find((f) => f[0] === n)?.[1] || "");
+    const st = get("xl/styles.xml"), sh = get("xl/worksheets/sheet1.xml");
+    for (const c of ["FF1F2937", "FF6D28D9", "FF374151", "FFF5F3FF"]) expect(st, c).toContain(c);
+    expect(sh).toContain("Ежемесячный отчёт Яндекс Маркета");
+    expect(sh).toContain("6. Топ-5 непродаваемых");
+    expect(sh).toMatch(/<mergeCell /);
+  });
+  it("блоки 4 и 5: основные строки белым жирным, не фиолетовым (просьба пользователя 02.10)", () => {
+    const css = R().documentElement.innerHTML;
+    expect(css).toContain("#rp-pts .rp-main td,#rp-ads .rp-main td{color:#fff}");
+    expect(R().querySelectorAll("#rp-pts tr.rp-main, #rp-ads tr.rp-main").length).toBeGreaterThan(0);
+  });
   it("пометка статуса платежа есть, если пары без статуса; о втором столбце - нет, раз он собран", () => {
     const fl = R().getElementById("rp-flags")!.textContent || "";
     const nost = /var ACC_NOST=(\[[^\]]*\])/.exec(R().documentElement.innerHTML);

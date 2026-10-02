@@ -256,7 +256,7 @@ export function reportJsYm(): string {
 export const REPORT_YM_JS = `
 // Поля строки accAgg: второй столбец в основных полях, первый (как начислил Маркет) - acc1…cogs1, ship - наша перевозка.
 var RPY_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs','cgot','csold','cback','cret',
-  'ship','acc1','pay1','dlv1','amount1','units1','sold1','ret1','cogs1'];
+  'ship','shipc','acc1','pay1','dlv1','amount1','units1','sold1','ret1','cogs1'];
 // Группы статей - поля блока «Аналитика по артикулам» под названиями Маркета (ответ 1а 01.10). Внутри
 // группы - услуги из отчёта по взаиморасчётам. [поле блока, ключ отчёта, подпись группы].
 var RPY_G=[['commission','mcom','Размещение товарных предложений'],['delivery','mdel','Доставка'],['acquiring','macq','Перевод и приём платежа'],
@@ -318,7 +318,8 @@ function rpyLines(calcs){
     Object.keys(names).sort().forEach(function(k){L.push({k:k,l:k.split('|')[1],fn:function(t){return t?(t.svc[k]||0):null;},inc:0,sub:1,svc:1});});});
   L.push({k:'fee',l:'Всего сборов = затраты площадки',fn:key('fee'),inc:0,top:1,bold:1,main:1},{k:'amount',l:'К выплате',fn:key('amount'),inc:1,top:1,bold:1,main:1},
     {k:'amount1',l:'К выплате Маркета (справочно)',t:'«Начислил Маркет» − те же сборы',fn:key('amount1'),inc:1,sub:1,noSh:1},
-    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка',t:'ведомость перевозчика, по этим же заказам',fn:function(t){if(!t||(typeof ACC_R!=='undefined'&&!ACC_R))return null;return Math.round(t.ship||0)?t.ship:null;},inc:0,top:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
+    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка',t:'ведомость перевозчика: по этим же заказам и по заказам, отменённым без продажи',fn:function(t){if(!t||(typeof ACC_R!=='undefined'&&!ACC_R))return null;return Math.round(t.ship||0)?t.ship:null;},inc:0,top:1},
+    {k:'shipc',l:'в т.ч. по отменённым заказам',t:'перевозка заказов, которые Маркет отменил без продажи, - в день отмены',fn:function(t){if(!t||(typeof ACC_R!=='undefined'&&!ACC_R))return null;return t.shipc||0;},inc:0,sub:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
     {k:'adm',l:'АДМ '+pct(ACC_RATE.adm)+' от К выплате',fn:key('adm'),inc:0},{k:'tax',l:'Налоги '+pct(ACC_RATE.tax)+' от «Начислено»',fn:key('tax'),inc:0},
     {k:'np',l:'Чистая прибыль по артикулам',t:'= ИТОГО блока «Аналитика по артикулам» на «Деньгах»',fn:key('np'),inc:1,top:1,bold:1,main:1},
     {k:'gen',l:'Общие расходы кабинета',t:'проводки без артикула: удержания и премия',fn:key('gen'),inc:1},{k:'acct',l:'в т.ч. удержания без заказа',fn:key('acct'),inc:1,sub:1},{k:'prem',l:'в т.ч. премия Маркета',fn:key('prem'),inc:1,sub:1},
@@ -404,7 +405,7 @@ function rpyRender(){
     var v0=L.fn(gp),v1=L.fn(gc),d=v1-v0,txt=[];
     var vr=rpVolRate(v0,gp.acc,v1,gc.acc);
     var inc=L.inc?true:false;
-    if(vr&&Math.round(d)&&L.k!=='gen'&&L.k!=='netAll'&&L.k!=='acct'&&L.k!=='prem'){
+    if(vr&&Math.round(d)&&L.k!=='gen'&&L.k!=='netAll'&&L.k!=='acct'&&L.k!=='prem'&&L.k!=='shipc'){
       txt.push('из-за '+(gc.acc>=gp.acc?'роста':'падения')+' оборота: '+rpDTxt(vr.vol,inc)+' ₽');
       txt.push('из-за изменения доли в обороте ('+rpSh(vr.r0,1)+' → '+rpSh(vr.r1,1)+'): '+rpDTxt(vr.rate,inc)+' ₽');}
     var dk=function(k){var X=LINES.filter(function(x){return x.k===k;})[0];return X?X.fn(gc)-X.fn(gp):0;};

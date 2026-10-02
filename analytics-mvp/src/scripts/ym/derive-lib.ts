@@ -379,6 +379,8 @@ export interface AccNetRow {
   // с отчётом о платежах.
   rgot: number; rback: number; rdgot: number; rdback: number; rsold: number; rret: number; runits: number;
   rpay: number; rdlv: number; raccruals: number; ramount: number; rcogs: number; ship: number;
+  // shipc - часть ship: перевозка заказов, отменённых Маркетом без продажи (решение 02.10: в день отмены).
+  shipc: number;
 }
 export interface AccNettingRow { d: string; business?: string; order?: string; sku?: string; type?: string; service?: string; src?: string; amount: number; count?: number; contract?: string; status?: string }
 // Проводка, которой не будет: заказ оплатили и отменили («Не будет переведён из-за отмены заказа»,
@@ -514,7 +516,7 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
   };
   const m = new Map<string, AccNetRow>();
   const blank = (d: string, business: string, sku: string, basis: "netting" | "orders"): AccNetRow => ({ d, business, sku, basis, sold: 0, ret: 0, units: 0, got: 0, back: 0, dgot: 0, dback: 0, pay: 0, dlv: 0, points: 0, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, promo: 0, otherSvc: 0, amount: 0,
-    rgot: 0, rback: 0, rdgot: 0, rdback: 0, rsold: 0, rret: 0, runits: 0, rpay: 0, rdlv: 0, raccruals: 0, ramount: 0, rcogs: 0, ship: 0, platform: PLATFORM });
+    rgot: 0, rback: 0, rdgot: 0, rdback: 0, rsold: 0, rret: 0, runits: 0, rpay: 0, rdlv: 0, raccruals: 0, ramount: 0, rcogs: 0, ship: 0, shipc: 0, platform: PLATFORM });
   const saleDay = accSaleDay(netting);
   // Заказ второго столбца: кабинет, договор и платёж по артикулам - на них ложится наша перевозка.
   const saleOrd = new Map<string, { d: string; b: string; contract: string; skuPay: Map<string, number> }>();
@@ -578,6 +580,31 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
       m.set(k2, t2);
     }
   }
+  // Перевозка заказа, который Маркет отменил (или вернул) без сбора за продажу: мы его отгрузили и
+  // заплатили перевозчику, продажи нет (решение 02.10, пользователь: «добавляй в блоки, где не учтено»).
+  // День - дата отмены (statusDate заказа), как возврат во втором столбце - в свой день; по артикулам -
+  // пропорционально цене позиций. Заказ в пути сюда не идёт: станет продажей - ляжет в день сбора.
+  // Заказ второго столбца не берётся повторно (два таких на 11 933 ₽ уже стоят в день сбора).
+  const itemsOf = new Map<string, { b: string; d: string; st: string; sku: Map<string, number> }>();
+  for (const o of orders) {
+    if (o.service || saleOrd.has(String(o.order)) || !shipOf.get(String(o.order))) continue;
+    const it = itemsOf.get(String(o.order)) || { b: String(o.business || ""), d: String(o.statusDate || o.created || "").slice(0, 10), st: String(o.status || ""), sku: new Map<string, number>() };
+    it.sku.set(o.sku, Math.max(it.sku.get(o.sku) || 0, (Number(o.price) || 0) * (Number(o.count) || 1)));
+    itemsOf.set(String(o.order), it);
+  }
+  for (const [o, it] of itemsOf) {
+    if (!/^(CANCELLED|RETURNED)/.test(it.st) || !it.d || !readyBD(it.b, it.d)) continue;
+    const v = shipOf.get(o) || 0;
+    const tot = [...it.sku.values()].reduce((x, y) => x + y, 0);
+    const parts = tot > 0 ? [...it.sku.entries()] : [...it.sku.keys()].map((k) => [k, 1] as [string, number]);
+    const base = tot > 0 ? tot : parts.length || 1;
+    for (const [sk, p] of parts) {
+      const k2 = `${it.d}|${it.b}||${sk}`;
+      const t2 = m.get(k2) || blank(it.d, it.b, sk, "netting");
+      t2.ship += v * p / base; t2.shipc += v * p / base;
+      m.set(k2, t2);
+    }
+  }
   // Пары без источника проводки - из заказов, как считалось до 28.09.2026.
   const fallback = new Set<string>();
   const byPair = new Map<string, OrderRow[]>();
@@ -619,7 +646,7 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
     t.cogs = cu != null ? r2(cu * t.units) : 0;
     t.rcogs = cu != null ? r2(cu * t.runits) : 0;
     for (const f of ["got", "back", "dgot", "dback", "pay", "dlv", "points", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount",
-      "rgot", "rback", "rdgot", "rdback", "rpay", "rdlv", "raccruals", "ramount", "ship"] as const) t[f] = r2(t[f]);
+      "rgot", "rback", "rdgot", "rdback", "rpay", "rdlv", "raccruals", "ramount", "ship", "shipc"] as const) t[f] = r2(t[f]);
     return t;
   }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.business < b.business ? -1 : a.business > b.business ? 1 : a.sku < b.sku ? -1 : 1));
   return { rows: out, fallback: [...fallback].sort(), unknown };

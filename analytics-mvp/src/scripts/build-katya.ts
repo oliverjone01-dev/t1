@@ -3710,7 +3710,7 @@ function accJs(): string {
   // Дальше - второй столбец (решение 02.10 «два столбца»): деньги заказов со сбором Маркета за продажу,
   // по дню этого сбора, С\С его штук и наша перевозка. Порядок полей = ACC_F на странице.
   const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs", "cgot", "csold", "cback", "cret",
-    "rsold", "rret", "runits", "rpay", "rdlv", "raccruals", "ramount", "rgot", "rback", "rcogs", "ship"];
+    "rsold", "rret", "runits", "rpay", "rdlv", "raccruals", "ramount", "rgot", "rback", "rcogs", "ship", "shipc"];
   // Снимок, собранный до второго столбца (derive без полей r*): страница считает от первого столбца и
   // говорит об этом, а не показывает нули (К7).
   const accR = rows.some((r) => r.raccruals !== undefined);
@@ -4681,7 +4681,7 @@ function soDraw(){
 // 28.09.2026: GGL-09-2 за июль 15 − 3 = 12 шт на 164 576 ₽). Полный P&L: с АДМ, налогом и чистой
 // прибылью, на тех же базах, что блок по дате заказа.
 var ACC_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs','cgot','csold','cback','cret',
-  'rsold','rret','runits','rpay','rdlv','raccruals','ramount','rgot','rback','rcogs','ship'];
+  'rsold','rret','runits','rpay','rdlv','raccruals','ramount','rgot','rback','rcogs','ship','shipc'];
 // Первый столбец (как начислил Маркет, справочно) после accAgg: начислено, оплатил клиент, доставка
 // покупателя, К выплате, штуки. Основные поля строки после accAgg - второй столбец.
 var ACC_X=['acc1','pay1','dlv1','amount1','units1','sold1','ret1','cogs1'];
@@ -4766,7 +4766,7 @@ function accDraw(){
     +(x==='Начислил Маркет (справочно)'?' style="color:var(--ink-3)" title="'+ACC_C1_TIP+'"':'')
     +(x==='Начислено'?' title="'+ACC_C2_TIP+'"':'')
     +(x==='К выплате (Маркет) справочно'?' style="color:var(--ink-3)" title="К выплате по начислению Маркета: «Начислил Маркет» минус те же сборы. Справочно, для сверки с отчётом о платежах."':'')
-    +(x==='Наша доставка'?' title="Перевозка по ведомости (без строк «ОТМЕНЕН», возвраты и рекламации учтены) по заказам второго столбца, в день сбора Маркета за продажу."':'')
+    +(x==='Наша доставка'?' title="Перевозка по ведомости (без строк «ОТМЕНЕН», возвраты и рекламации учтены) по заказам второго столбца, в день сбора Маркета за продажу. Плюс перевозка заказов, которые Маркет отменил без продажи, - в день отмены (сколько - в подсказке ячейки)."':'')
     +'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
   function cells(x){
@@ -4786,7 +4786,7 @@ function accDraw(){
       // прочерки»): один артикул без С\С раньше гасил сумму целой категории. Сколько артикулов без
       // С\С - в подсказке и приглушённым цветом.
       +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="'+(x.rows&&x.noCk?('без С\\С в листе: '+svArt(x.noCk)+' - '):'себестоимости по этому артикулу нет в листе - ')+'валовая завышена на их неизвестную С\\С"')+'>'+(Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
-      +money(x.ship||0)
+      +(Math.round(x.shipc||0)?'<td class="r" title="в т.ч. по заказам, отменённым без продажи: '+svRub(x.shipc)+' ₽">'+svRub(x.ship||0)+'</td>':money(x.ship||0))
       +'<td class="r" style="color:'+(x.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(x.gp)+'</td>'
       +'<td class="r">'+(x.amount>0?(Math.round(x.gp/x.amount*1000)/10)+'%':'—')+'</td>'
       +money(x.adm)+money(x.tax)

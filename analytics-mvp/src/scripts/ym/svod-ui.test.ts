@@ -2226,6 +2226,17 @@ describe("Маркет «Отчет»: оформление и пометки", 
     const css = R().documentElement.innerHTML;
     expect(css).toContain("#rp-why2 .rp-txt,#rp-why2 .rp-arts{white-space:normal;width:340px;min-width:340px;max-width:340px}");
   });
+  it("«Наша доставка» включает перевозку отменённых без продажи: строка «в т.ч.» свёрнута под ней (решение 02.10)", () => {
+    const rows = [...R().querySelectorAll("#rp-cost tbody tr")] as any[];
+    const i = rows.findIndex((r) => (r.children[0].textContent || "").trim() === "Наша доставка");
+    expect(i).toBeGreaterThan(-1);
+    const kid = rows[i + 1];
+    expect((kid.children[0].textContent || "").trim()).toBe("в т.ч. по отменённым заказам");
+    expect(kid.getAttribute("data-g")).toBe("ship");
+    const n = (td: any) => Number((td.textContent || "").replace(/[^0-9-]/g, "")) || 0;
+    const last = (r: any) => n(r.children[r.children.length - 5]);
+    expect(last(kid), "часть не больше целого").toBeLessThanOrEqual(last(rows[i]));
+  });
   it("подписи статей: в скобках только «справочно»", () => {
     // Строки статей, кроме названий услуг Маркета (их пишет Маркет, они в «в т.ч.» под группой).
     const lab = ["#rp-why2", "#rp-cost", "#rp-pts", "#rp-ads"].flatMap((id) =>

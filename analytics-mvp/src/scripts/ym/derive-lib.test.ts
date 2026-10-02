@@ -634,6 +634,39 @@ describe("второй столбец блока ACC: заказы со сбор
   });
 });
 
+// Решение пользователя 02.10: перевозку заказов, отменённых Маркетом без продажи, - в день отмены,
+// внутри «Нашей доставки» (поле shipc - эта часть). Раньше её не было ни в блоке ACC, ни в «Отчете».
+describe("перевозка заказов, отменённых без продажи (shipc)", () => {
+  const P = (d: string, order: string, sku: string, amount: number) =>
+    ({ d, business: "1", order, sku, type: "Начисление", src: "Платёж покупателя", service: `Товар ${sku}`, amount, count: 1 });
+  const F = (d: string, order: string, service: string, amount: number) =>
+    ({ d, business: "1", order, sku: "", type: "Удержание", src: "Оплата услуг Маркета", service, amount });
+  const O = (order: string, sku: string, price: number, status: string, statusDate: string) =>
+    ({ order, sku, price, count: 1, status, statusDate, created: "2026-08-20", business: "1" });
+  const sum = (rows: any[], m: string, f: string) => rows.filter((r) => r.d.startsWith(m)).reduce((a, r) => a + (r[f] || 0), 0);
+  // Реестр за август и сентябрь собран (есть источник проводки) - пары готовы к расчёту.
+  const base = [P("2026-08-02", "x1", "Z", 100), F("2026-08-03", "x1", "Перевод платежа", -1), P("2026-09-02", "x2", "Z", 100), F("2026-09-03", "x2", "Перевод платежа", -1)];
+  it("отменённый заказ: перевозка в день отмены, по артикулам пропорционально цене, внутри ship", () => {
+    const orders = [O("c1", "A", 3_000, "CANCELLED_IN_DELIVERY", "2026-09-14"), O("c1", "B", 1_000, "CANCELLED_IN_DELIVERY", "2026-09-14")];
+    const { rows } = buildAccNetting(base as any, orders as any, undefined, new Map([["c1", 4_000]]));
+    expect(sum(rows, "2026-09", "shipc")).toBe(4_000);
+    expect(sum(rows, "2026-09", "ship"), "shipc - часть ship").toBe(4_000);
+    expect(sum(rows, "2026-08", "ship"), "не в месяц заказа").toBe(0);
+    const by = (sk: string) => rows.filter((r) => r.sku === sk).reduce((a, r) => a + r.shipc, 0);
+    expect(by("A")).toBe(3_000);
+    expect(by("B")).toBe(1_000);
+    expect(sum(rows, "2026-09", "raccruals"), "выручки у отменённого нет").toBe(200 - 100);
+  });
+  it("отменённый, но со сбором за продажу - только в день сбора, не дважды; заказ в пути - не берётся", () => {
+    const net = [...base, P("2026-08-10", "c2", "A", 5_000), F("2026-08-12", "c2", "Перевод платежа", -50)];
+    const orders = [O("c2", "A", 5_000, "CANCELLED_IN_DELIVERY", "2026-09-05"), O("f1", "A", 2_000, "DELIVERY", "2026-09-20")];
+    const { rows } = buildAccNetting(net as any, orders as any, undefined, new Map([["c2", 700], ["f1", 900]]));
+    expect(sum(rows, "2026-08", "ship")).toBe(700);
+    expect(sum(rows, "2026-09", "ship")).toBe(0);
+    expect(rows.reduce((a, r) => a + r.shipc, 0)).toBe(0);
+  });
+});
+
 // G4 и G5 ФЕНИКСА iter2 (мутанты M10, M11): пометки пар без статуса и отрезанных дней.
 describe("пары без статуса и отрезанные дни реестра", () => {
   it("месяцы до FLOOR бот не перезабирает - отдельная группа, без обещания перезабора", () => {

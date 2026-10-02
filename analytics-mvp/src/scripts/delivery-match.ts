@@ -123,3 +123,39 @@ export function accrualShipSeries(postings: Posting[], byPosting: Map<string, Po
   }
   return { bySku, total, fallback, pending, pendTotal };
 }
+
+/** Повторный рейс перевозчика к уже отправленному заказу (возврат, повторная доставка): отдельная строка
+ *  data/delivery_trips_extra.ndjson, к ship заказа в ведомости НЕ плюсуется (Иван 02.10, ответы 1а/2а/3).
+ *  - «Аналитика по заказам»: perOrder - к заказу, в месяц заказа;
+ *  - начисления («Отчет», таблица по артикулам, логистика): bySku - на ДАТУ РЕЙСА (d_trip), потому что
+ *    своего начисления OZON у рейса нет; закрытый месяц заказа задним числом не меняется.
+ *  Номер ищется тем же matchLedger, что и ведомость (одна логика). Старые данные не трогаются: файл
+ *  только дописывается, сборщик ведомости его не перезаписывает.
+ *  Инвариант: сумма bySku + unmatched = сумма ship всех рейсов (не теряется, не двоится). */
+export interface ExtraTrip { order: string; ship: number; deliv: number; d_trip: string }
+export function extraTripSeries(trips: ExtraTrip[], postings: Posting[]) {
+  const perOrder = new Map<string, { ship: number; deliv: number }>();
+  const bySku = new Map<string, Map<string, number>>();
+  const unmatched: Unmatched[] = [];
+  const skuOf = new Map<string, string>();
+  for (const p of postings) if (!skuOf.has(p.order)) skuOf.set(p.order, String(p.sku || ""));
+  let total = 0;
+  for (const t of trips) {
+    const d = String(t.d_trip || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new Error(`delivery_trips_extra: у рейса ${t.order} нет даты рейса d_trip`);
+    const m = matchLedger([{ order: t.order, ship: t.ship, deliv: t.deliv }], postings);
+    unmatched.push(...m.unmatched);
+    for (const [k, v] of m.byPosting) {
+      const cur = perOrder.get(k) ?? { ship: 0, deliv: 0 };
+      perOrder.set(k, { ship: cur.ship + v.ship, deliv: cur.deliv + v.deliv });
+      const sk = skuOf.get(k) || "";
+      const s = bySku.get(sk) ?? bySku.set(sk, new Map()).get(sk)!;
+      s.set(d, (s.get(d) || 0) + v.ship);
+      total += v.ship;
+    }
+  }
+  const all = trips.reduce((a, t) => a + (Number(t.ship) || 0), 0);
+  const un = unmatched.reduce((a, u) => a + u.ship, 0);
+  if (Math.abs(total + un - all) > 0.01) throw new Error(`delivery_trips_extra: рейсы ${all} ≠ разложено ${total} + не найдено ${un}`);
+  return { perOrder, bySku, total, unmatched };
+}

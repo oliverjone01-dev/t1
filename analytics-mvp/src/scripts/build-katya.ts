@@ -11,7 +11,7 @@ import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
 import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
 import { accLedgerFullTo, nettingCancelled, nettingNoStatus, splitNoStatus, accCutDays } from "./ym/derive-lib.js";
 import { FLOOR as YM_FLOOR } from "./ym/common.js";
-import { matchLedger, accrualShipSeries, type Unmatched } from "./delivery-match.js";
+import { matchLedger, accrualShipSeries, extraTripSeries, type ExtraTrip, type Unmatched } from "./delivery-match.js";
 import { splitCpo } from "./cpo-split.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
@@ -2263,7 +2263,19 @@ function render(cur,cmp){
     if (ordCityMiss.length) console.warn("⚠ заказы с «Нашей доставкой» без города в ведомости:", ordCityMiss.map((x) => x.order + " " + x.ship + " ₽").join(", "));
     dlUnmatched = m.unmatched;
     shipAcc = accrualShipSeries(post, m.byPosting);
-  } catch { /* нет файлов - доставка по заказам пуста */ }
+    // Повторные рейсы (Иван 02.10): к заказу - в блоке по заказам, в начислениях - на дату рейса.
+    // Новый объект, а не правка m.byPosting: ряд по дате начисления заказа уже посчитан без рейса.
+    let trips: ExtraTrip[] = [];
+    try { trips = nd("delivery_trips_extra.ndjson"); } catch { /* нет файла - повторных рейсов нет */ }
+    if (trips.length) {
+      const x = extraTripSeries(trips, post);
+      for (const [k, v] of x.perOrder) { const cur = delivByOrder[k] ?? { ship: 0, deliv: 0 }; delivByOrder[k] = { ...cur, ship: cur.ship + v.ship, deliv: cur.deliv + v.deliv }; }
+      for (const [sk, s] of x.bySku) { const t = shipAcc.bySku.get(sk) ?? shipAcc.bySku.set(sk, new Map()).get(sk)!; for (const [d, v] of s) t.set(d, (t.get(d) || 0) + v); }
+      shipAcc.total += x.total;
+      dlUnmatched.push(...x.unmatched);
+      console.log(`katya: повторные рейсы ${trips.length}, ${Math.round(x.total)} ₽ на дату рейса, не нашли заказ ${x.unmatched.length}`);
+    }
+  } catch (e) { if (String((e as Error)?.message || "").startsWith("delivery_trips_extra")) throw e; /* нет файлов - доставка по заказам пуста */ }
   // Плашка по образцу «Нет производственной СС»: строки ведомости, чей заказ не нашёлся по номеру.
   // Их расход НЕ стоит ни в одном заказе, поэтому «Наша доставка» занижена ровно на эту сумму.
   const fmtR = (v: number) => Math.round(v).toLocaleString("ru-RU").replace(/\u00a0/g, " ");

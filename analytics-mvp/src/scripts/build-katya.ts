@@ -9,6 +9,7 @@ import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
 import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
+import { accLedgerFullTo } from "./ym/derive-lib.js";
 import { matchLedger, accrualShipSeries, type Unmatched } from "./delivery-match.js";
 import { splitCpo } from "./cpo-split.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
@@ -3670,6 +3671,13 @@ function accJs(): string {
     rows = readFileSync(dp("pnl_sku_netting_daily.ndjson"), "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
   } catch { rows = []; }
   if (!rows.length) return "var ACC=[];var ACC_DOC=[];var ACC_FB=[];var ACC_META={rows:0};";
+  // Блок берёт реестр только по последний ПОЛНЫЙ день (вариант «а» 02.10.2026, та же функция, что у
+  // вкладки «Отчет»): последний день Маркет присылает в два захода, денежные сборы по его заказам
+  // приходят следующим снимком. Раньше блок брал его по фильтру страницы и показывал «К выплате»
+  // без сборов. Строки позже границы отрезаются здесь, до таблицы и до сверки ACC_DOC.
+  const { to: accTo, lastBy: accLast } = accLedgerFullTo(rows);
+  const accCut = [...new Set(Object.values(accLast).filter((d) => d > accTo))].sort();
+  rows = rows.filter((r) => String(r.d || "") <= accTo);
   // Строка блока - (день, артикул): на ней копится база АДМ, как и раньше. Кабинеты складываются
   // здесь; разрез по кабинету нужен только сверке с отчётом о платежах, он идёт в ACC_DOC.
   const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs"];
@@ -3707,6 +3715,7 @@ function accJs(): string {
       if (r.order && String(r.order).trim()) continue;
       if (r.src === undefined) continue; // старая схема: источник неизвестен, не угадываем
       const b = String(r.business || ""), d = String(r.d || "");
+      if (d > accTo) continue; // день реестра ещё дособирается - как и строки по заказам
       const bk = r.contract ? `${b} · договор ${r.contract}` : b;
       const dk = `${d}|${bk}`;
       const x = doc.get(dk) || { d, b: bk, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
@@ -3751,6 +3760,8 @@ var ACC_NOCOGS=${JSON.stringify([...noCogs].sort())};
 var ACC_UPD=${JSON.stringify(upd)};
 var ACC_PEND=${JSON.stringify(pend)};
 var ACC_OPEN={};
+var ACC_TO=${JSON.stringify(accTo)};
+var ACC_CUT=${JSON.stringify(accCut)};
 `;
 }
 
@@ -4676,7 +4687,8 @@ function accDraw(){
   var w=svWin(), list=accAgg(w);
   if(!list.length){
     el.innerHTML=''; note.textContent='';
-    cov.innerHTML='За выбранный период проводок по взаиморасчётам нет. Период задаётся фильтром наверху страницы.';
+    var at=(typeof ACC_TO!=='undefined')?ACC_TO:'';
+    cov.innerHTML='За выбранный период проводок по взаиморасчётам нет.'+(at&&w.from>at?' Реестр полный по '+at+': следующий день Маркет ещё дособирает.':'')+' Период задаётся фильтром наверху страницы.';
     return;
   }
   var CF=[['Комиссия','commission'],['Доставка','delivery'],['Эквайринг','acquiring'],['Хранение','storage'],
@@ -4765,7 +4777,9 @@ function accDraw(){
       +(Math.round(o.prem*100)?', премия '+kop(o.prem)+' ₽':'')
       +' = подлежит перечислению <b>'+kop(total)+' ₽</b>';}).join('<br>');
   var fbIn=(typeof ACC_FB!=='undefined'?ACC_FB:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
-  cov.innerHTML='период: <b>'+w.from+' .. '+w.to+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'
+  // Граница полного реестра (вариант «а» 02.10): день, сборы которого ещё дорастают, в блок не входит.
+  var accTo=(typeof ACC_TO!=='undefined')?ACC_TO:'', accCutTxt=(accTo&&w.to>accTo)?'<br><span style="color:#E5B567" title="Маркет присылает последний день реестра в несколько заходов: сначала платежи покупателей, сборы по заказам дорастают следующим снимком. Чтобы «К выплате» не было завышено, блок берёт реестр только по последний полный день. Отчёт отстаёт на день, зато всегда полный (решение 02.10.2026).">реестр полный по <b>'+accTo+'</b>'+((typeof ACC_CUT!=='undefined'&&ACC_CUT.length)?', проводки за '+ACC_CUT.join(', ')+' ещё дособираются и в блок не входят':'')+'</span>':'';
+  cov.innerHTML='период: <b>'+w.from+' .. '+(accTo&&w.to>accTo?accTo:w.to)+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'+accCutTxt
     +(docTxt?'<br><span title="Наш расчёт из реестра для сверки со строками отчёта о платежах Маркета за те же даты: «Получено от Потребителей», «Возвращено Потребителям», «Подлежит перечислению», по договору. «Удержано без заказа» и «премия» - проводки кабинета без артикула: в таблицу они не входят, а в «Подлежит перечислению» документа входят. Июль 2026 сверен с отчётами Кати до копейки по обоим договорам. По артикулу - колонки «Продано, шт», «Возвраты, шт» и подсказка ячейки «Оплатил клиент».">сверка с отчётом о платежах</span>:<br>'+docTxt:'')
     +(fbIn.length?'<br><span style="color:#E5B567">по выгрузке заказов, а не по реестру: '+fbIn.join(', ')+' - реестр за эти месяцы собран без колонки источника, платёж покупателя там не отличить от баллов. Перезабор идёт сам (схема реестра 3); до него штуки и платёж этих месяцев с отчётом о платежах могут не совпасть</span>':'')
     +'<br><span title="Отчёт о реализации (УПД) - другой документ: он идёт по дате реализации, а не по дате платежа, поэтому штуки с блоком совпадать не обязаны.">сверка с УПД</span>: '

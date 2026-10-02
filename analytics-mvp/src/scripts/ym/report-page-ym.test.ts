@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { REPORT_JS } from "../report-page.js";
 import { pickJs, reportDataYm, reportJsYm, RP_SHARED } from "./report-page-ym.js";
+import { accLedgerFullTo } from "./derive-lib.js";
 
 const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs"];
 // Строка блока «Аналитика по артикулам» так, как её отдаёт accAgg «Денег» (поля + производные).
@@ -40,6 +41,15 @@ describe("отчёт Маркета: общие функции берутся и
     const P = f.rpPeriods("2026-09");
     expect(P.partial).toBe(true);
     expect(P.prev).toEqual({ from: "2026-08-01", to: "2026-08-29" });
+  });
+});
+
+describe("отчёт Маркета: карточка оборота", () => {
+  it("«реализовано» OZON-карточки заменено на «продано за вычетом возвратов» (H1)", () => {
+    const win: any = globalThis;
+    const card = new Function("W", "REPY", "fmtRu", `var window=W;${reportJsYm()};return rpyTurnCard('Всего',100000,120000,10,12);`)(win, { to: "2026-09-29", svc: [], gen: [], pts: [], drr: [], cab: {} }, (n: number) => String(Math.round(n)));
+    expect(card).toContain("продано за вычетом возвратов");
+    expect(card).not.toContain("реализовано");
   });
 });
 
@@ -117,8 +127,9 @@ describe("отчёт Маркета: данные сборщика", () => {
   const dir = mkdtempSync(join(tmpdir(), "ymrep-"));
   const nd = (rows: any[]) => rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
   writeFileSync(join(dir, "pnl_sku_netting_daily.ndjson"), nd([
-    { d: "2026-09-29", business: "1", sku: "A", points: 100, cofin: -50 },
-    { d: "2026-09-28", business: "2", sku: "B", points: 0, cofin: 0 },
+    { d: "2026-09-29", business: "1", sku: "A", points: 100, cofin: -50 }, // только баллы: день ещё не полный
+    { d: "2026-09-28", business: "2", sku: "B", points: 0, cofin: 0, commission: -10 },
+    { d: "2026-09-27", business: "1", sku: "A", points: 5, cofin: -1, acquiring: -20 },
   ]));
   writeFileSync(join(dir, "sku_views.ndjson"), nd([
     { date: "2026-09-06", period_from: "2026-08-31", aggregate: true, sku: "A", views: 300, pdp: 6, cart: 1 },
@@ -136,13 +147,19 @@ describe("отчёт Маркета: данные сборщика", () => {
     { d: "2026-09-27", business: "1", order: "", type: "Удержание", service: "", src: "Оплата услуг Маркета", amount: -50 },
     { d: "2026-09-27", business: "1", order: "", type: "Начисление", service: "", src: "Внесено продавцом", amount: 50 },
     { d: "2026-09-29", business: "1", order: "o2", sku: "A", type: "Удержание", service: "Перевод платежа", src: "Оплата услуг Маркета", amount: -7 },
+    { d: "2026-09-27", business: "1", order: "o3", sku: "A", type: "Начисление", service: "GEN GROUP Столик консольный ARFEO черный", src: "Компенсация за потерянный заказ", amount: 36457 },
+    { d: "2026-09-28", business: "1", order: "o4", sku: "", type: "Удержание", service: "Перевод платежа", src: "Оплата услуг Маркета", amount: -9 },
   ]));
   writeFileSync(join(dir, "svod_orders.json"), JSON.stringify({ months: [{ ym: "2026-09", business: "1", rows: [{ s: 10, b: 200 }] }] }));
   // Заглушка кода «Маркетинга» в том же виде, что promoYm().js: объявления с начала строки.
-  const promoJs = "var PM=null;\nvar PM_ART=[\"Буст продаж\"];\nfunction pmRow(m){\n  var sp=0,b=0;m.rows.forEach(function(r){sp+=r.s;b+=r.b;});\n  return {ym:m.ym,business:m.business,sm:sp,sp:0,oh:0,spend:sp,base:b,settled:true,partial:false};\n}\nfunction pmDraw(){}";
+  const promoJs = "var PM=null;\nvar PM_ART=[\"Буст продаж\"];\nvar PM_NAMES={\"2\":\"GEN GROUP (мебель)\",\"1\":\"GENGLASS (зеркала)\"};\nfunction pmRow(m){\n  var sp=0,b=0;m.rows.forEach(function(r){sp+=r.s;b+=r.b;});\n  return {ym:m.ym,business:m.business,sm:sp,sp:0,oh:0,spend:sp,base:b,settled:true,partial:false};\n}\nfunction pmDraw(){}";
   const r = reportDataYm({ dp: (f) => join(dir, f), maxD: "2026-09-30", catOf: () => "Зеркала", skuName: {}, promoJs });
-  it("последний день реестра - по отстающему кабинету", () => {
-    expect(r.to).toBe("2026-09-28");
+  it("последний ПОЛНЫЙ день реестра (вариант «а»): по отстающему кабинету, последний день с денежными сборами", () => {
+    expect(r.to).toBe("2026-09-27");
+    expect(r.lastBy).toEqual({ "1": "2026-09-29", "2": "2026-09-28" });
+  });
+  it("кабинеты зеркал и мебели - из PM_NAMES «Маркетинга», не литералами (H3)", () => {
+    expect(r.cab).toEqual({ mir: "1", fur: "2" });
   });
   it("свёрнутая неделя показов суммируется с дневными (4а), а не отбрасывается", () => {
     expect(r.views.A!.m["2026-09"]).toEqual([310, 7, 1]);
@@ -155,6 +172,8 @@ describe("отчёт Маркета: данные сборщика", () => {
     expect(r.svc).toEqual([
       ["2026-09-27", "acquiring", "Перевод платежа", -20],
       ["2026-09-27", "cofin:commission", "Размещение товарных предложений", -300],
+      // H2: компенсация подписана типом операции, товар в скобках; 28.09 - уже после границы
+      ["2026-09-27", "otherSvc", "Компенсация за потерянный заказ (GEN GROUP Столик консольный ARFEO черный)", 36457],
     ]);
   });
   it("проводки без заказа: удержание и взнос продавца раздельно", () => {
@@ -166,7 +185,35 @@ describe("отчёт Маркета: данные сборщика", () => {
   it("отменённые заказы по артикулу собираются отдельно (3а)", () => {
     expect(r.ordC.A).toEqual(["2026-09-10"]);
   });
-  it("баллы за дни после последнего дня реестра не берутся", () => {
-    expect(r.pts).toEqual([["2026-09-28", 0, 0]]);
+  it("баллы за дни после последнего полного дня реестра не берутся", () => {
+    expect(r.pts).toEqual([["2026-09-27", 5, -1]]);
+  });
+  it("сбой выреза pmRow роняет сборку, а не даёт молча «нет данных» (H1)", () => {
+    expect(() => reportDataYm({ dp: (f) => join(dir, f), maxD: "2026-09-30", catOf: () => "Зеркала", skuName: {}, promoJs: promoJs.replace("function pmRow(", "function pmRowNew(") }))
+      .toThrow(/promoYm\(\)\.js «Маркетинга» нет «pmRow»/);
+    expect(() => reportDataYm({ dp: (f) => join(dir, f), maxD: "2026-09-30", catOf: () => "Зеркала", skuName: {}, promoJs: promoJs.replace("spend:sp", "spend:undefined") }))
+      .toThrow(/pmRow «Маркетинга» вернул не то/);
+  });
+});
+
+describe("граница полного реестра (вариант «а», общая для отчёта и блока на «Деньгах»)", () => {
+  const fee = (d: string, business: string, f: Record<string, number> = { commission: -100 }) => ({ d, business, ...f });
+  it("последний день без денежных сборов (только платежи и списания баллами) не берётся - снимок 01.10", () => {
+    const rows = [fee("2026-09-29", "1023124"), { d: "2026-09-30", business: "1023124", accruals: 19_903, cofin: -31_451 },
+      fee("2026-09-29", "74986385"), { d: "2026-09-30", business: "74986385", cofin: -56_966 }];
+    expect(accLedgerFullTo(rows).to).toBe("2026-09-29");
+  });
+  it("кабинет, который не догнал, тянет границу назад; закрытый (без проводок 30 дней) - нет", () => {
+    const rows = [fee("2026-09-30", "a"), fee("2026-09-27", "b"), fee("2026-07-01", "closed")];
+    expect(accLedgerFullTo(rows)).toMatchObject({ to: "2026-09-27", lastBy: { a: "2026-09-30", b: "2026-09-27", closed: "2026-07-01" } });
+  });
+  it("сборы любой группы считаются (компенсация в «прочих»), баллы - нет", () => {
+    expect(accLedgerFullTo([fee("2026-09-28", "a"), fee("2026-09-29", "a", { otherSvc: 36_457 }), fee("2026-09-30", "a", { cofin: -5 })]).to).toBe("2026-09-29");
+  });
+  it("кабинет без денежных сборов вообще - последний день минус один, а не пропуск", () => {
+    expect(accLedgerFullTo([{ d: "2026-10-01", business: "a", accruals: 1 }]).to).toBe("2026-09-30");
+  });
+  it("пустой реестр - пустая граница, а не выдуманная дата", () => {
+    expect(accLedgerFullTo([]).to).toBe("");
   });
 });

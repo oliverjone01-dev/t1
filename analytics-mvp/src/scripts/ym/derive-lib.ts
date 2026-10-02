@@ -390,6 +390,31 @@ export function accNetReady(netting: AccNettingRow[]): (business: string, d: str
   for (const r of netting) { const p = pairOf(String(r.business || ""), r.d); seen.add(p); if (r.src === undefined) bad.add(p); }
   return (b, d) => seen.has(pairOf(b, d)) && !bad.has(pairOf(b, d));
 }
+// Последний ПОЛНЫЙ день реестра для блока ACC на «Деньгах» и вкладки «Отчет» (решение 02.10.2026
+// «вариант а»: конец периода = последний день, за который у кабинета уже пришли сборы по заказам;
+// отчёт отстаёт на день, но всегда полный). Маркет присылает последний день реестра в два захода:
+// сначала платежи покупателей и списания баллами, денежные сборы по заказам («Оплата услуг Маркета») -
+// следующим снимком. Probe 02.10 по 11 снимкам 21.09-01.10: в 20 из 20 пар (кабинет, снимок) день
+// с денежными сборами потом не менялся, а последний день любой проводки дорастал в 15 из 20 (29.09:
+// −91 087 → −94 990 ₽). Списания баллами (cofin) признаком не служат: они приходят вместе с платежами.
+// Вход - строки pnl_sku_netting_daily (поля сборов блока ACC). Граница реестра - самая ранняя из
+// кабинетов с проводками за 30 дней: кабинет, который ещё не догнал, тянет границу назад.
+const ACC_MONEY_FEES = ["commission", "delivery", "acquiring", "storage", "promo", "otherSvc"] as const;
+export function accLedgerFullTo(rows: Array<{ d?: unknown; business?: unknown; [field: string]: unknown }>): { to: string; lastBy: Record<string, string>; feeBy: Record<string, string> } {
+  const lastBy: Record<string, string> = {}, feeBy: Record<string, string> = {};
+  let gMax = "";
+  for (const r of rows) {
+    const d = String(r.d || "").slice(0, 10), b = String(r.business || "");
+    if (!d) continue;
+    if (d > (lastBy[b] || "")) lastBy[b] = d;
+    if (d > gMax) gMax = d;
+    if (ACC_MONEY_FEES.some((f) => Number(r[f]) || 0) && d > (feeBy[b] || "")) feeBy[b] = d;
+  }
+  if (!gMax) return { to: "", lastBy, feeBy };
+  // Кабинет без единого денежного сбора за всю историю - граница по его последнему дню минус один.
+  const live = Object.keys(lastBy).filter((b) => lastBy[b]! >= addDays(gMax, -30)).map((b) => feeBy[b] || addDays(lastBy[b]!, -1)).sort();
+  return { to: live[0]!, lastBy, feeBy };
+}
 export function accFeeKey(service: string, src: string): AccFeeField {
   const g = nettingFeeGroup(service, src);
   if (g === COFIN_GROUP) return "cofin";

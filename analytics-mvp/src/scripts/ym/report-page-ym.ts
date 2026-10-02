@@ -11,7 +11,7 @@
 import { readFileSync } from "node:fs";
 import { REPORT_JS } from "../report-page.js";
 import { KEEP_OZON } from "../../paths.js";
-import { accFeeKey, accNetKind, accNetReady, type AccNettingRow } from "./derive-lib.js";
+import { accFeeKey, accLedgerFullTo, accNetKind, accNetReady, type AccNettingRow } from "./derive-lib.js";
 
 type Ctx = {
   dp: (f: string) => string;
@@ -40,14 +40,14 @@ export const RP_SHARED = [
 // Достаёт из клиентского кода объявление верхнего уровня по имени: «function имя(...){...}» (по
 // скобкам) или строку «var имя=...». Не нашлось - сборка падает: значит, OZON-отчёт переименовал
 // функцию, и молча собрать отчёт Маркета без неё нельзя.
-export function pickJs(src: string, names: string[]): string {
+export function pickJs(src: string, names: string[], from = "REPORT_JS OZON-отчёта"): string {
   // Код OZON-отчёта написан так: объявление верхнего уровня начинается с начала строки, тело идёт
   // строками с отступом, закрывающая скобка - с начала строки. По этому и режем, без разбора строк
   // и регулярных выражений внутри тела. Скобки куска сверяются - если не сошлись, сборка падает.
   const lines = src.split("\n"), out: string[] = [];
   for (const n of names) {
     const i = lines.findIndex((l) => l.startsWith(`function ${n}(`) || new RegExp(`^var (.*[ ,])?${n}=`).test(l));
-    if (i < 0) throw new Error(`report-ym: в REPORT_JS нет «${n}» - OZON-отчёт поменялся, отчёт Маркета без неё не собрать`);
+    if (i < 0) throw new Error(`report-ym: в ${from} нет «${n}» - источник поменялся, отчёт Маркета без неё не собрать`);
     let j = i + 1;
     while (j < lines.length && (lines[j] === "" || /^[\s}]/.test(lines[j]!))) j++;
     const chunk = lines.slice(i, j).join("\n").replace(/\n+$/, "");
@@ -63,13 +63,9 @@ const isCancelled = (st: string) => /^CANCELLED/i.test(String(st || ""));
 export function reportDataYm(ctx: Ctx) {
   const { dp, maxD } = ctx;
   const acc = readNd(dp("pnl_sku_netting_daily.ndjson"));
-  // Последний день реестра: самый ранний из «последних дней» кабинетов, у которых были проводки за
-  // 30 дней. Отчёт не может идти дальше кабинета, который ещё не догнал (реестр отстаёт на день).
-  const lastBy: Record<string, string> = {};
-  let gMax = "";
-  for (const r of acc) { const d = String(r.d || ""), b = String(r.business || ""); if (d > (lastBy[b] || "")) lastBy[b] = d; if (d > gMax) gMax = d; }
-  const live = Object.values(lastBy).filter((d) => d >= addDays(gMax, -30));
-  const to = live.length ? live.sort()[0]! : gMax;
+  // Последний ПОЛНЫЙ день реестра (вариант «а» 02.10): общая функция с блоком ACC на «Деньгах» -
+  // отчёт за месяц равен блоку за те же даты, и оба не берут день, сборы которого ещё дорастают.
+  const { to, lastBy, feeBy } = accLedgerFullTo(acc);
   // Баллы Маркета по дням: начислено баллами (points) и списано баллами (cofin). В «Начислено» и
   // «К выплате» не входят (решение Кати 28.09.2026) - строка справочно.
   const ptsDay: Record<string, number[]> = {};
@@ -134,7 +130,10 @@ export function reportDataYm(ctx: Ctx) {
     if (!ready(b, d)) continue;
     const kind = accNetKind(r.type || "", src);
     if (kind === "pay" || kind === "back" || kind === "points") continue;
-    const svc = String(r.service || "").trim() || "без названия услуги";
+    // Проводка вида «прочее» (компенсация за потерянный заказ и т.п.) - не услуга: в поле service
+    // Маркет кладёт название товара. Подпись - тип операции (src), товар в скобках (H2 ФЕНИКСА).
+    const svcName = String(r.service || "").trim();
+    const svc = kind === "other" ? `${src.trim() || "прочая проводка"}${svcName ? ` (${svcName.slice(0, 60)})` : ""}` : svcName || "без названия услуги";
     const f = kind === "fee" ? accFeeKey(r.service || "", src) : "otherSvc";
     // Списание баллами: поле - по самой услуге (без источника), чтобы баллы встали под свою группу.
     const k = f === "cofin" ? `${d}|cofin:${accFeeKey(r.service || "", "")}|${svc}` : `${d}|${f}|${svc}`;
@@ -144,19 +143,30 @@ export function reportDataYm(ctx: Ctx) {
   const gen = Object.keys(genK).sort().map((d) => [d, ...genK[d]!.map((x) => Math.round(x * 100) / 100)]);
   // ДРР как на «Маркетинге» (ответ 2а): pmRow вкладки «Маркетинг» по своду заказов, по месяцу ЗАКАЗА и
   // кабинету. Считается здесь, при сборке, той же функцией - на страницу едут только итоги месяцев.
+  // Сбой выреза pmRow роняет сборку (H1 ФЕНИКСА): раньше try/catch молча давал «нет данных». Без
+  // свода заказов вкладка «Маркетинг» сама пустая (promoJs = "") - тогда и ДРР нет, это не сбой.
   let drr: any[] = [];
-  try {
-    const svod = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8"));
-    const pmRow = new Function(`${pickJs(ctx.promoJs, ["PM_ART", "pmRow"])};return pmRow;`)();
+  let svod: any = null;
+  try { svod = JSON.parse(readFileSync(dp("svod_orders.json"), "utf-8")); } catch { svod = null; }
+  if (svod && (svod.months || []).length && ctx.promoJs) {
+    const pmRow = new Function(`${pickJs(ctx.promoJs, ["PM_ART", "pmRow"], "promoYm().js «Маркетинга»")};return pmRow;`)();
     drr = (svod.months || []).filter((m: any) => m.rows && m.rows.length).map((m: any) => {
       const x = pmRow(m);
+      if (!x || !x.ym || !Number.isFinite(Number(x.spend)) || !Number.isFinite(Number(x.base))) throw new Error(`report-ym: pmRow «Маркетинга» вернул не то на ${m.ym}/${m.business}: ${JSON.stringify(x)}`);
       return { ym: x.ym, b: String(x.business), sm: Math.round(x.sm), sp: Math.round(x.sp), oh: Math.round(x.oh), spend: Math.round(x.spend), base: Math.round(x.base), settled: x.settled, partial: x.partial };
     });
-  } catch (e) { console.log(`report-ym: ДРР «Маркетинга» не посчитан: ${String(e)}`); drr = []; }
-  console.log(`report-ym: реестр по ${to} (кабинеты ${JSON.stringify(lastBy)}), показы ${Object.keys(views).length} SKU с ${viewsFrom || "-"}, заказы по ${Object.keys(ordD).length} SKU с ${ordFrom || "-"}`);
+  }
+  // Кабинеты и их линии - из PM_NAMES вкладки «Маркетинг», а не литералами (H3 ФЕНИКСА).
+  const cab: { mir: string; fur: string } = { mir: "", fur: "" };
+  if (ctx.promoJs) {
+    const names = new Function(`${pickJs(ctx.promoJs, ["PM_NAMES"], "promoYm().js «Маркетинга»")};return PM_NAMES;`)() as Record<string, string>;
+    for (const [b, n] of Object.entries(names)) { if (/зеркал/i.test(n)) cab.mir = b; else if (/мебел/i.test(n)) cab.fur = b; }
+    if (!cab.mir || !cab.fur) throw new Error(`report-ym: в PM_NAMES «Маркетинга» не нашлись кабинеты зеркал и мебели: ${JSON.stringify(names)}`);
+  }
+  console.log(`report-ym: реестр полный по ${to} (последний день ${JSON.stringify(lastBy)}, со сборами ${JSON.stringify(feeBy)}), показы ${Object.keys(views).length} SKU с ${viewsFrom || "-"}, заказы по ${Object.keys(ordD).length} SKU с ${ordFrom || "-"}`);
   // Первый полный месяц реестра - с него идут серые ретро-колонки (месяц, начатый не с 1-го, неполный).
   const full = !accFrom ? "" : accFrom.slice(8) === "01" ? accFrom.slice(0, 7) + "-01" : addDays(accFrom.slice(0, 7) + "-01", 32).slice(0, 7) + "-01";
-  return { to, maxD, accFrom, full, lastBy, pts, views, viewsFrom, aggFrom, aggTo, ord: ordD, ordC, ordFrom, svc, gen, drr };
+  return { to, maxD, accFrom, full, lastBy, pts, views, viewsFrom, aggFrom, aggTo, ord: ordD, ordC, ordFrom, svc, gen, drr, cab };
 }
 
 export const REPORT_YM_CSS = `<style>
@@ -239,9 +249,10 @@ function rpyCalc(per){
   if(list.length){grand=Object.assign(T,{acc:T.accruals,svc:svc,svcSum:svcSum,pts:pts,acct:acct,prem:prem,seller:seller,gen:acct+prem,netAll:T.np+acct+prem,
     ptsIn:pt,ptsOut:-pc,saldo:pt+pc,n:list.length});RPY_G.forEach(function(G){grand[G[1]]=-T[G[0]];});}
   // Инварианты. Строки ACC округлены до рубля по (день, артикул): тождество и разбивка по услугам
-  // расходятся на рубли - до 1,5 ₽ и 1 ₽ на строку соответственно. Больше - ошибка сборки.
+  // расходятся на рубли - до 1,5 ₽ и 0,5 ₽ на строку соответственно; флаг услуг - от 0,5 ₽ × строк окна, но
+  // не выше 100 ₽ (H4 ФЕНИКСА: шум в сентябре до 45 ₽, а порог «строк окна» пропускал -100 ₽ группы).
   var idn=grand?grand.accruals-grand.fee-grand.amount:0,svBad=[];
-  if(grand)RPY_G.forEach(function(G){var d=(svcSum[G[0]]||0)-grand[G[1]];if(Math.abs(d)>Math.max(2,nRows))svBad.push(G[2]+' '+rpN(d)+' ₽');});
+  if(grand)RPY_G.forEach(function(G){var d=(svcSum[G[0]]||0)-grand[G[1]];if(Math.abs(d)>Math.max(2,Math.min(0.5*nRows,100)))svBad.push(G[2]+' '+rpN(d)+' ₽');});
   return {rows:rows,g:g,fcat:fcat,grand:grand,idn:idn,svBad:svBad,
     bad:!!grand&&Math.abs(g.mir.acc+g.fur.acc-grand.acc)>1,badId:!!grand&&Math.abs(idn)>nRows*1.5};
 }
@@ -368,7 +379,7 @@ function rpyAds(P,cur,prev,R){
   h+=sec('Как на вкладке «Маркетинг» - по месяцу ЗАКАЗА целиком, буст деньгами и баллами');
   var D=function(b){return yms.map(function(m){return rpyDrr(m,b);});};
   var fl=function(arr){return arr.map(function(s){return !!(s&&s.open);});};
-  var all=D(''),mi=D('1023124'),fu=D('74986385');
+  var all=D(''),mi=D(REPY.cab.mir),fu=D(REPY.cab.fur);
   var v=function(arr,fn){return arr.map(function(s){return s?fn(s):null;});};
   h+=row('Буст деньгами',v(all,function(s){return s.sm;}),false,true,null,fl(all));
   h+=row('Буст баллами',v(all,function(s){return s.sp;}),false,true,null,fl(all));

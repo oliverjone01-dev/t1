@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, accSaleDay, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -552,5 +552,84 @@ describe("блок по начислениям: себестоимость и д
     ];
     const { rows } = buildAccNetting(net, []);
     expect(rows.map((r) => [r.contract, r.pay]).sort()).toEqual([["X", 100], ["Y", 50]]);
+  });
+});
+
+// Решение 02.10 «два столбца» (спека ym-monthly-report v4, ответ «по 5 вопросам да»). Эталон - реальные
+// заказы из прототипа knowledge/episodes/2026-10/proto-ym-dva-stolbca-20261002.html, суммы из реестра.
+describe("второй столбец блока ACC: заказы со сбором Маркета за продажу", () => {
+  const P = (d: string, order: string, sku: string, amount: number, extra: any = {}) =>
+    ({ d, business: "1", order, sku, type: "Начисление", src: "Платёж покупателя", service: sku ? `Товар ${sku}` : "Доставка", amount, count: sku ? 1 : undefined, ...extra });
+  const F = (d: string, order: string, service: string, amount: number, src = "Оплата услуг Маркета") =>
+    ({ d, business: "1", order, sku: "", type: "Удержание", src, service, amount });
+  const B = (d: string, order: string, sku: string, amount: number) =>
+    ({ d, business: "1", order, sku, type: "Возврат", src: "Возврат платежа покупателя", service: sku ? `Товар ${sku}` : "Доставка", amount, count: sku ? 1 : undefined });
+  const sum = (rows: any[], m: string, f: string) => rows.filter((r) => r.d.startsWith(m)).reduce((a, r) => a + (r[f] || 0), 0);
+
+  // 59831744643: оплачен 02.08 (25 741 + доставка 2 500), «Приём платежа» 02.08, сборы за продажу 08.09.
+  const o1 = [P("2026-08-02", "59831744643", "GGM-20-2", 25_741), P("2026-08-02", "59831744643", "", 2_500),
+    F("2026-08-02", "59831744643", "Приём платежа", -0.12), F("2026-09-08", "59831744643", "Размещение товарных предложений", -309.45),
+    F("2026-09-08", "59831744643", "Перевод платежа", -1_666.25), F("2026-09-08", "59831744643", "Размещение товарных предложений", -30_635.23, "Скидка за участие в совместных акциях")];
+
+  it("день продажи - первый сбор за размещение или перевод платежа; «Приём платежа» не признак", () => {
+    expect(accSaleDay(o1 as any).get("59831744643")).toBe("2026-09-08");
+  });
+
+  it("оплачен в августе, доставлен в сентябре: столбец 1 - август, столбец 2 - сентябрь целиком", () => {
+    const { rows } = buildAccNetting(o1 as any, [], () => 10_000, new Map([["59831744643", 4_414.07]]));
+    expect(sum(rows, "2026-08", "accruals")).toBe(28_241);
+    expect(sum(rows, "2026-08", "raccruals"), "август второго столбца пуст").toBe(0);
+    expect(sum(rows, "2026-09", "raccruals")).toBe(28_241);
+    expect(sum(rows, "2026-09", "runits")).toBe(1);
+    expect(sum(rows, "2026-09", "rcogs"), "С\\С по штукам второго столбца").toBe(10_000);
+    expect(sum(rows, "2026-09", "ship"), "наша перевозка - в день продажи").toBeCloseTo(4_414.07, 2);
+    // Сборы одни: К выплате2 = К выплате1 − Начислено1 + Начислено2 по месяцам.
+    expect(sum(rows, "2026-09", "ramount")).toBeCloseTo(28_241 - 309.45 - 1_666.25, 2);
+    expect(sum(rows, "2026-08", "ramount")).toBeCloseTo(-0.12, 2);
+    // Платёж заказа без сбора за продажу (август) - не услуга: прочие услуги и сборы первого столбца не трогаются.
+    for (const m of ["2026-08", "2026-09"]) expect(sum(rows, m, "otherSvc"), m).toBe(0);
+    expect(sum(rows, "2026-08", "amount")).toBeCloseTo(28_241 - 0.12, 2);
+  });
+
+  it("сбор за продажу, оплаченный только баллами, - тоже признак продажи", () => {
+    const net = [P("2026-07-03", "o2", "A", 1_000), F("2026-08-01", "o2", "Размещение товарных предложений", -500, "Скидка за участие в совместных акциях")];
+    expect(accSaleDay(net as any).get("o2")).toBe("2026-08-01");
+  });
+
+  // 60558005824: продан 30.08 (8 606), возвращён 05.09.
+  it("возврат проданного заказа - в своём месяце", () => {
+    const net = [P("2026-08-19", "60558005824", "GGR-10-1", 8_606), F("2026-08-30", "60558005824", "Перевод платежа", -641.03),
+      B("2026-09-05", "60558005824", "GGR-10-1", -8_606)];
+    const { rows } = buildAccNetting(net as any, []);
+    expect(sum(rows, "2026-08", "raccruals")).toBe(8_606);
+    expect(sum(rows, "2026-09", "raccruals")).toBe(-8_606);
+    expect(sum(rows, "2026-09", "rret")).toBe(1);
+  });
+
+  it("возврат раньше сбора за продажу ложится на день продажи (не раньше продажи)", () => {
+    const net = [P("2026-08-20", "o3", "A", 5_000), B("2026-08-28", "o3", "A", -1_000), F("2026-09-02", "o3", "Перевод платежа", -100)];
+    const { rows } = buildAccNetting(net as any, []);
+    expect(sum(rows, "2026-08", "raccruals")).toBe(0);
+    expect(sum(rows, "2026-09", "raccruals")).toBe(4_000);
+    expect(sum(rows, "2026-08", "accruals"), "первый столбец не меняется").toBe(4_000);
+  });
+
+  it("оплатили и отменили до доставки (сборов за продажу нет) - во втором столбце ни оплаты, ни возврата, ни перевозки", () => {
+    const net = [P("2026-08-10", "o4", "A", 7_000), F("2026-08-10", "o4", "Приём платежа", -0.12), F("2026-08-12", "o4", "Отмена заказа по вине продавца", -500),
+      B("2026-09-03", "o4", "A", -7_000)];
+    const { rows } = buildAccNetting(net as any, [], () => 3_000, new Map([["o4", 2_000]]));
+    for (const m of ["2026-08", "2026-09"]) for (const f of ["raccruals", "runits", "rcogs", "ship"]) expect(sum(rows, m, f), `${m} ${f}`).toBe(0);
+    expect(sum(rows, "2026-08", "ramount"), "штраф остаётся в сборах").toBeCloseTo(-500.12, 2);
+    // Платёж и возврат такого заказа - не услуга: в «Штрафы и прочие услуги» не попадают (поймано на живой сборке 02.10).
+    expect(sum(rows, "2026-08", "otherSvc"), "в августе только штраф").toBe(-500);
+    expect(sum(rows, "2026-09", "otherSvc"), "возврат - не услуга").toBe(0);
+  });
+
+  it("перевозка мультиартикульного заказа - по артикулам пропорционально платежу", () => {
+    const net = [P("2026-08-01", "o5", "A", 3_000), P("2026-08-01", "o5", "B", 1_000), F("2026-08-05", "o5", "Перевод платежа", -100)];
+    const { rows } = buildAccNetting(net as any, [], undefined, new Map([["o5", 4_000]]));
+    const by = (sk: string) => rows.filter((r) => r.sku === sk).reduce((a, r) => a + r.ship, 0);
+    expect(by("A")).toBe(3_000);
+    expect(by("B")).toBe(1_000);
   });
 });

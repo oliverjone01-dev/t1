@@ -235,7 +235,9 @@ export function reportJsYm(): string {
 }
 
 export const REPORT_YM_JS = `
-var RPY_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs','cgot','csold','cback','cret'];
+// Поля строки accAgg: второй столбец в основных полях, первый (как начислил Маркет) - acc1…cogs1, ship - наша перевозка.
+var RPY_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs','cgot','csold','cback','cret',
+  'ship','acc1','pay1','dlv1','amount1','units1','sold1','ret1','cogs1'];
 // Группы статей - поля блока «Аналитика по артикулам» под названиями Маркета (ответ 1а 01.10). Внутри
 // группы - услуги из отчёта по взаиморасчётам. [поле блока, ключ отчёта, подпись группы].
 var RPY_G=[['commission','mcom','Размещение товарных предложений'],['delivery','mdel','Доставка'],['acquiring','macq','Перевод и приём платежа'],
@@ -284,7 +286,11 @@ function rpyRetro(P){var out=[],m=P.pym,guard=0,df=REPY.full;
 function rpyLines(calcs){
   var key=function(k){return function(t){return rpyVal(t,k);};};
   var pct=function(v){return String(Math.round(v*1000)/10).replace('.',',')+'%';};
-  var L=[{k:'acc',l:'Начислено (оборот)',fn:key('acc'),inc:1,top:1,bold:1},
+  // Два столбца (решение 02.10): «Начислил Маркет» - как в отчёте о платежах, по дню платежа, справочно;
+  // «Начислено» - по заказам, по которым Маркет провёл сбор за продажу, от него считается всё ниже.
+  var L=[{k:'acc1',l:'Начислил Маркет за оформление (справочно, как отчёт о платежах)',fn:key('acc1'),inc:1,top:1},
+    {k:'amount1',l:'К выплате по начислению Маркета (справочно)',fn:key('amount1'),inc:1,sub:1},
+    {k:'acc',l:'Начислено по заказам со сборами Маркета (основа расчёта)',fn:key('acc'),inc:1,top:1,bold:1},
     {k:'pay',l:'в т.ч. оплатил клиент за товар',fn:key('pay'),inc:1,top:1,sub:1},{k:'dlv',l:'в т.ч. доставка покупателя',fn:key('dlv'),inc:1,top:1,sub:1}];
   RPY_G.forEach(function(G){
     var names={};calcs.forEach(function(c){var t=c&&c.grand;if(!t)return;for(var k in t.svc)if(k.indexOf(G[0]+'|')===0)names[k]=1;});
@@ -293,7 +299,7 @@ function rpyLines(calcs){
     L.push({k:G[1],l:G[2],fn:key(G[1]),inc:0,top:1});
     Object.keys(names).sort().forEach(function(k){L.push({k:k,l:k.split('|')[1],fn:function(t){return t?(t.svc[k]||0):null;},inc:0,sub:1,svc:1});});});
   L.push({k:'fee',l:'Всего сборов = затраты площадки',fn:key('fee'),inc:0,top:1,bold:1},{k:'amount',l:'К выплате',fn:key('amount'),inc:1,top:1,bold:1},
-    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
+    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка (ведомость, по этим же заказам)',fn:key('ship'),inc:0,top:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
     {k:'adm',l:'АДМ '+pct(ACC_RATE.adm)+' от К выплате',fn:key('adm'),inc:0},{k:'tax',l:'Налоги '+pct(ACC_RATE.tax)+' от «Начислено»',fn:key('tax'),inc:0},
     {k:'np',l:'Чистая прибыль по артикулам (= блок на «Деньгах»)',fn:key('np'),inc:1,top:1,bold:1},
     {k:'gen',l:'Общие расходы кабинета (без артикула)',fn:key('gen'),inc:1},{k:'acct',l:'в т.ч. удержания без заказа',fn:key('acct'),inc:1,sub:1},{k:'prem',l:'в т.ч. премия Маркета',fn:key('prem'),inc:1,sub:1},
@@ -356,8 +362,8 @@ function rpyRender(){
   var tU=['зеркала '+rpN(prev.g.mir.units)+' → '+rpN(cur.g.mir.units)+' шт ('+rpDTxt(cur.g.mir.units-prev.g.mir.units,true)+'), мебель '+rpN(prev.g.fur.units)+' → '+rpN(cur.g.fur.units)+' шт ('+rpDTxt(cur.g.fur.units-prev.g.fur.units,true)+')'];
   var uPl=rpTopFilt(cur,prev,'units',1,3,all),uMi=rpTopFilt(cur,prev,'units',-1,3,all);
   if(uPl.length)tU.push(rpTop('выросло сильнее всего, шт',uPl));if(uMi.length)tU.push(rpTop('снизилось сильнее всего, шт',uMi));
-  h2+=tr2(LINES[0],gp.acc,gc.acc,tA)+tr2({l:'Продано за вычетом возвратов, шт',fn:function(t){return rpyVal(t,'units');},inc:1},gp.units,gc.units,tU,function(c,p){return p?(c-p)/Math.abs(p)*100:null;});
-  LINES.forEach(function(L){if(L.k==='acc'||L.k==='pay'||L.k==='dlv')return;
+  h2+=tr2(LINES.filter(function(L){return L.k==='acc';})[0],gp.acc,gc.acc,tA)+tr2({l:'Продано за вычетом возвратов, шт',fn:function(t){return rpyVal(t,'units');},inc:1},gp.units,gc.units,tU,function(c,p){return p?(c-p)/Math.abs(p)*100:null;});
+  LINES.forEach(function(L){if(L.k==='acc'||L.k==='pay'||L.k==='dlv'||L.k==='acc1'||L.k==='amount1')return; // справочный первый столбец - только в полной аналитике
     var v0=L.fn(gp),v1=L.fn(gc),d=v1-v0,txt=[];
     var vr=rpVolRate(v0,gp.acc,v1,gc.acc);
     if(vr&&Math.round(d)&&L.k!=='gen'&&L.k!=='netAll'&&L.k!=='acct'&&L.k!=='prem')txt.push('объём: Начислено '+(gc.acc>=gp.acc?'выросло':'упало')+' на '+fmtRu(Math.round(Math.abs(gc.acc-gp.acc)))+' ₽ × прежняя доля статьи '+rpSh(vr.r0,1)+' = '+rpDTxt(vr.vol,null)+' ₽; ставка: доля '+rpSh(vr.r0,1)+' → '+rpSh(vr.r1,1)+' × Начислено '+rpN(gc.acc)+' ₽ = '+rpDTxt(vr.rate,null)+' ₽; вместе '+rpDTxt(vr.vol+vr.rate,null)+' ₽');

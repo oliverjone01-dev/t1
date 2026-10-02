@@ -371,6 +371,14 @@ export interface AccNetRow {
   // Оплачено и отменено (справочно, ответ «1а» 02.10): платежи и возвраты со статусом «не будет
   // переведён / удержан из-за отмены заказа». В деньги и штуки строки не входят.
   cgot?: number; csold?: number; cback?: number; cret?: number;
+  // Второй столбец (решение 02.10 «два столбца», спека v4): деньги заказов, по которым Маркет провёл
+  // сбор за продажу. Платёж покупателя ложится на день ПЕРВОГО сбора за продажу (accSaleDay), возврат -
+  // на свой день, но не раньше этого сбора; заказ без сбора за продажу во второй столбец не идёт.
+  // Сборы те же, что в первом, поэтому ramount = amount − accruals + raccruals. ship - наша перевозка
+  // по ведомости, в день сбора за продажу. Первый столбец (got…amount) остаётся справкой и сверкой
+  // с отчётом о платежах.
+  rgot: number; rback: number; rdgot: number; rdback: number; rsold: number; rret: number; runits: number;
+  rpay: number; rdlv: number; raccruals: number; ramount: number; rcogs: number; ship: number;
 }
 export interface AccNettingRow { d: string; business?: string; order?: string; sku?: string; type?: string; service?: string; src?: string; amount: number; count?: number; contract?: string; status?: string }
 // Проводка, которой не будет: заказ оплатили и отменили («Не будет переведён из-за отмены заказа»,
@@ -435,6 +443,24 @@ export function accLedgerFullTo(rows: Array<{ d?: unknown; business?: unknown; [
   const live = Object.keys(lastBy).filter((b) => lastBy[b]! >= addDays(gMax, -30)).map((b) => feeBy[b] || addDays(lastBy[b]!, -1)).sort();
   return { to: live[0]!, lastBy, feeBy };
 }
+// День продажи заказа для второго столбца: первый день, когда Маркет провёл по нему сбор за продажу -
+// «Размещение товарных предложений» или «Перевод платежа» (деньгами или баллами). Оба приходят в день
+// доставки. «Приём платежа» приходит в день оплаты, штрафы бывают и у отменённых - не признак
+// (ответ «да» 02.10, правило 1). Одна функция на блок, отчёт и прототип (К9).
+export const SALE_FEE_RE = /размещение товарных предложений|перевод платежа/i;
+export function accSaleDay(netting: AccNettingRow[]): Map<string, string> {
+  const readyBD = accNetReady(netting);
+  const out = new Map<string, string>();
+  for (const r of netting) {
+    const o = String(r.order || "").trim();
+    if (!o || nettingCancelled(r) || !Number(r.amount)) continue;
+    if (!readyBD(String(r.business || ""), r.d)) continue;
+    if (accNetKind(r.type || "", String(r.src || "")) !== "fee" || !SALE_FEE_RE.test(String(r.service || ""))) continue;
+    const cur = out.get(o);
+    if (!cur || r.d < cur) out.set(o, r.d);
+  }
+  return out;
+}
 export function accFeeKey(service: string, src: string): AccFeeField {
   const g = nettingFeeGroup(service, src);
   if (g === COFIN_GROUP) return "cofin";
@@ -445,7 +471,8 @@ export function accFeeKey(service: string, src: string): AccFeeField {
   if (g === "Продвижение (буст/лояльность)") return "promo";
   return "otherSvc";
 }
-export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], cogsAt: (sku: string) => number | undefined = () => undefined): { rows: AccNetRow[]; fallback: string[]; unknown: Record<string, number> } {
+// shipOf - наша перевозка по заказу (ведомость без «ОТМЕНЕН», delivByOrder), ₽; нет ведомости - пусто.
+export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], cogsAt: (sku: string) => number | undefined = () => undefined, shipOf: Map<string, number> = new Map()): { rows: AccNetRow[]; fallback: string[]; unknown: Record<string, number> } {
   // Пара готова к расчёту по реестру, только если у ВСЕХ её строк есть источник проводки.
   const pairOf = (b: string, d: string) => `${b}/${d.slice(0, 7)}`;
   const readyBD = accNetReady(netting);
@@ -476,7 +503,11 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
     return unit > 0 ? Math.min(cnt, Math.max(1, Math.round(Math.abs(r.amount) / unit))) : cnt;
   };
   const m = new Map<string, AccNetRow>();
-  const blank = (d: string, business: string, sku: string, basis: "netting" | "orders"): AccNetRow => ({ d, business, sku, basis, sold: 0, ret: 0, units: 0, got: 0, back: 0, dgot: 0, dback: 0, pay: 0, dlv: 0, points: 0, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, promo: 0, otherSvc: 0, amount: 0, platform: PLATFORM });
+  const blank = (d: string, business: string, sku: string, basis: "netting" | "orders"): AccNetRow => ({ d, business, sku, basis, sold: 0, ret: 0, units: 0, got: 0, back: 0, dgot: 0, dback: 0, pay: 0, dlv: 0, points: 0, accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, cofin: 0, promo: 0, otherSvc: 0, amount: 0,
+    rgot: 0, rback: 0, rdgot: 0, rdback: 0, rsold: 0, rret: 0, runits: 0, rpay: 0, rdlv: 0, raccruals: 0, ramount: 0, rcogs: 0, ship: 0, platform: PLATFORM });
+  const saleDay = accSaleDay(netting);
+  // Заказ второго столбца: кабинет, договор и платёж по артикулам - на них ложится наша перевозка.
+  const saleOrd = new Map<string, { d: string; b: string; contract: string; skuPay: Map<string, number> }>();
   const unknown: Record<string, number> = {};
   for (const r of netting) {
     const b = String(r.business || "");
@@ -493,6 +524,20 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
       else if (kind === "back") { t.cback = (t.cback || 0) + a; if (r.sku) t.cret = (t.cret || 0) + qtyOf(r, true); m.set(k, t); }
       continue;
     }
+    // Второй столбец: платёж - в день сбора за продажу, возврат - в свой день, но не раньше него.
+    const sd = kind === "pay" || kind === "back" ? saleDay.get(String(r.order)) : undefined;
+    if (sd) {
+      const d2 = kind === "pay" ? sd : (r.d > sd ? r.d : sd);
+      const k2 = `${d2}|${b}|${contract}|${sku}`;
+      const t2 = k2 === k ? t : (m.get(k2) || { ...blank(d2, b, sku, "netting"), ...(contract ? { contract } : {}) });
+      if (kind === "pay") {
+        if (r.sku) { t2.rgot += a; t2.rsold += qtyOf(r, false); } else t2.rdgot += a;
+        const so = saleOrd.get(String(r.order)) || { d: sd, b, contract, skuPay: new Map<string, number>() };
+        if (sku) so.skuPay.set(sku, (so.skuPay.get(sku) || 0) + Math.max(0, a));
+        saleOrd.set(String(r.order), so);
+      } else if (r.sku) { t2.rback += a; t2.rret += qtyOf(r, true); } else t2.rdback += a;
+      m.set(k2, t2);
+    }
     if (kind === "pay") { if (r.sku) { t.got += a; t.sold += qtyOf(r, false); } else t.dgot += a; }
     else if (kind === "back") { if (r.sku) { t.back += a; t.ret += qtyOf(r, true); } else t.dback += a; }
     else if (kind === "points") { t.points += a; m.set(k, t); continue; }
@@ -506,6 +551,22 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
     else { t.otherSvc += a; unknown[src || "(пусто)"] = r2((unknown[src || "(пусто)"] || 0) + a); }
     t.amount += a;
     m.set(k, t);
+  }
+  // Наша перевозка заказа второго столбца - в день сбора за продажу, по артикулам пропорционально
+  // платежу покупателя (как доставка покупателя в своде). Заказа нет во втором столбце - перевозка
+  // сюда не идёт (выручки по нему нет).
+  for (const [o, so] of saleOrd) {
+    const v = shipOf.get(o) || 0;
+    if (!v) continue;
+    const tot = [...so.skuPay.values()].reduce((x, y) => x + y, 0);
+    const parts = tot > 0 ? [...so.skuPay.entries()] : [[netSku.get(o)?.sku || skuOfOrder.get(o) || "", 1] as [string, number]];
+    const base = tot > 0 ? tot : 1;
+    for (const [sk, p] of parts) {
+      const k2 = `${so.d}|${so.b}|${so.contract}|${sk}`;
+      const t2 = m.get(k2) || { ...blank(so.d, so.b, sk, "netting"), ...(so.contract ? { contract: so.contract } : {}) };
+      t2.ship += v * p / base;
+      m.set(k2, t2);
+    }
   }
   // Пары без источника проводки - из заказов, как считалось до 28.09.2026.
   const fallback = new Set<string>();
@@ -527,6 +588,8 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
       t.accruals = x.pay; t.points = x.accruals - x.pay;
       for (const f of ["commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc"] as const) t[f] = x[f];
       t.amount = x.amount - t.points - x.cofin;
+      // Второго столбца по выгрузке заказов нет: дата там уже дата закрытия заказа, деньги = первый.
+      t.rsold = t.sold; t.rret = t.ret; t.rgot = t.got; t.rback = t.back;
       m.set(`${x.d}|${b}|${x.sku}|orders`, t);
     }
   }
@@ -535,12 +598,18 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
       t.units = t.sold - t.ret; t.pay = t.got + t.back; t.dlv = t.dgot + t.dback;
       // «Начислено» - деньги покупателя: «Получено от потребителей» − «Возвращено потребителям».
       t.accruals = t.pay + t.dlv;
+      t.rdlv = t.rdgot + t.rdback;
     }
+    t.runits = t.rsold - t.rret; t.rpay = t.rgot + t.rback;
+    t.raccruals = t.rpay + t.rdlv;
+    t.ramount = t.amount - t.accruals + t.raccruals;
     // Себестоимость нетто-штук, без отсечки: возврат в периоде возвращает и С\С штуки.
     const cu = t.sku ? cogsAt(t.sku) : undefined;
     t.cogs_known = cu != null;
     t.cogs = cu != null ? r2(cu * t.units) : 0;
-    for (const f of ["got", "back", "dgot", "dback", "pay", "dlv", "points", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount"] as const) t[f] = r2(t[f]);
+    t.rcogs = cu != null ? r2(cu * t.runits) : 0;
+    for (const f of ["got", "back", "dgot", "dback", "pay", "dlv", "points", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount",
+      "rgot", "rback", "rdgot", "rdback", "rpay", "rdlv", "raccruals", "ramount", "ship"] as const) t[f] = r2(t[f]);
     return t;
   }).sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : a.business < b.business ? -1 : a.business > b.business ? 1 : a.sku < b.sku ? -1 : 1));
   return { rows: out, fallback: [...fallback].sort(), unknown };

@@ -120,12 +120,12 @@ export const REPORT_CSS = `<style>
 .rp-up{color:var(--up,#3ddc97)}.rp-dn{color:var(--dn,#ff5a5f)}.rp-mute{color:var(--ink-3,#7d8a99)}
 .rp-why{margin:0;padding-left:18px}.rp-why li{margin:3px 0}
 #rp-cost th,#rp-cost td,#rp-ads th,#rp-ads td,.rp-dead th,.rp-dead td,#rp-why2 th,#rp-why2 td{white-space:nowrap}
-#rp-why2 td.rp-txt{white-space:normal;min-width:260px}.rp-dead td.rp-txt{white-space:normal;min-width:180px;max-width:260px}
+#rp-why2{width:100%}#rp-why2 td.rp-txt{white-space:normal;min-width:340px}.rp-dead td.rp-txt{white-space:normal;min-width:180px;max-width:260px}
 .rp-sub td:first-child{padding-left:22px;color:var(--ink-2)}
 #rp-cost tr,#rp-cost td,#rp-why2 tr,#rp-why2 td,#rp-ads tr,#rp-ads td{background:transparent!important}
 .rp-fmt tr.rp-c-strong td{color:#B794F6;font-weight:800}.rp-fmt tr.rp-c-main td{color:#FFFFFF}.rp-fmt tr.rp-sub td{color:#8A8F98}
 .rp-fmt tr td.rp-retro{color:#8A8F98}.rp-fmt tr td.rp-txt{font-weight:400;color:#FFFFFF}
-#rp-why2 td.rp-art{white-space:normal;min-width:220px;color:#8A8F98;font-weight:400}
+#rp-why2 td.rp-art{white-space:normal;min-width:320px;color:#8A8F98;font-weight:400}
 #rp-cost tr.rp-par{cursor:pointer}#rp-cost tr.rp-par td:first-child::before{content:'▸ ';color:#8A8F98}#rp-cost tr.rp-par.rp-open td:first-child::before{content:'▾ '}
 #rp-cost tr.rp-hid{display:none}
 .rp-warn{color:#E5B567}
@@ -142,7 +142,7 @@ export const REPORT_BODY = `${REPORT_CSS}
 <div id="rp-flags" class="kt-note"></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">1. Оборот за месяц</div><div class="card-sub">Оборот = «Начислено» по дате начисления OZON (дата реализации), за вычетом возвратов - ИТОГО таблицы «Аналитика по артикулам (за выбранный период)» на «Деньгах» за те же даты. В «Начислено» входят баллы за скидки, которыми OZON доплачивает за покупателя. Мебель - всё, кроме зеркал.</div></div></div>
 <div class="rp-cards" id="rp-turn"></div></section>
-<section class="card"><div class="card-h"><div><div class="card-title">2. Причины роста или падения</div><div class="card-sub">Оборот раскладывается на «штуки» (сколько реализовано) и «цену» (начислено на 1 шт). Каждая статья расхода - на «объём» (изменился оборот при прежней доле статьи) и «ставку» (изменилась доля статьи от оборота). Сумма двух частей = отклонение. Ниже - артикулы с наибольшим вкладом в отклонение (топ-3 - часть суммы «по всем артикулам»). Это разложение цифр, а не доказанная причина. Серые колонки - прошлые полные месяцы для истории; отклонение и «за счёт чего» - последний месяц к предыдущему.</div></div></div>
+<section class="card"><div class="card-h"><div><div class="card-title">2. Причины роста или падения</div><div class="card-sub">Оборот раскладывается на «штуки» (сколько реализовано) и «цену» (начислено на 1 шт). Каждая статья расхода - на «объём» (изменился оборот при прежней доле статьи) и «ставку» (изменилась доля статьи от оборота). Сумма двух частей = отклонение. Ниже - артикулы с наибольшим вкладом в отклонение (топ-3 - часть суммы «по всем артикулам»). Это разложение цифр, а не доказанная причина. Отклонение и «за счёт чего» - последний месяц к предыдущему.</div></div></div>
 <div id="rp-why"></div>
 <div class="kt-scroll" style="margin-top:10px"><table class="kt-table rp-fmt" id="rp-why2"></table></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">3. Затраты площадки и полная аналитика</div><div class="card-sub">Строки = столбцы ИТОГО таблицы «Аналитика по артикулам (за выбранный период)» на «Деньгах», с одним отличием: реклама, не разнесённая по артикулам, перенесена из «Прочих» в «Рекламу», чтобы реклама была в одной строке («Всего сборов» и «К выплате» от этого не меняются). Поступления от OZON на счёт (компенсации и пр.) - отдельной строкой: день, в котором прочие операции кабинета дали плюс. «Затраты площадки» = «Всего сборов» (Начислено − К выплате). Доля = статья / Начислено. Серые колонки - прошлые полные месяцы для истории; отклонение и доли - последний месяц к предыдущему.</div></div></div>
@@ -260,12 +260,13 @@ function rpRender(){
     +rpWhyTurn('Мебель',prev.g.fur.acc,prev.g.fur.units,cur.g.fur.acc,cur.g.fur.units,cur,prev,fur,furExtra);
   // Каждая статья: отклонение, объём/ставка, главные артикулы и кабинетная часть.
   var acP=prev.D.acct||{},acC=cur.D.acct||{};
-  var h2='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">%</th><th>За счёт чего</th><th>Артикулы: выросло / снизилось сильнее всего</th></tr></thead><tbody>';
+  var h2='<thead><tr><th>Статья</th><th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">%</th><th>За счёт чего</th><th>Артикулы: выросло / снизилось сильнее всего</th></tr></thead><tbody>';
   // Начислено и Реализовано (шт) - как первые столбцы таблицы «Аналитика по артикулам» (Иван 01.10).
   // Оформление как в блоке 3 (Иван 02.10): итоговые строки фиолетовым, статьи белым, фон прозрачный;
   // «выросло / снизилось сильнее всего» - отдельным столбцом справа от «За счёт чего».
+  // Без прошлых полных месяцев (Иван 02.10): колонки шире; в блоке 3 история остаётся.
   var artTd=function(a){return '<td class="rp-art">'+((a&&a.length)?a.join('<br>'):'<span class="rp-mute">—</span>')+'</td>';};
-  var tr2=function(lbl,k,txt,pct,art){var v0=gp[k]||0,v1=gc[k]||0,d=v1-v0;return '<tr class="'+(k==='acc'?'rp-c-strong':'rp-c-main')+'"><td>'+lbl+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?(r.calc.grand[k]||0):null;}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,true)+'</td><td class="r">'+rpPctTxt(pct?pct(v1,v0):rpPct(v1,v0),true)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td>'+artTd(art)+'</tr>';};
+  var tr2=function(lbl,k,txt,pct,art){var v0=gp[k]||0,v1=gc[k]||0,d=v1-v0;return '<tr class="'+(k==='acc'?'rp-c-strong':'rp-c-main')+'"><td>'+lbl+'</td><td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,true)+'</td><td class="r">'+rpPctTxt(pct?pct(v1,v0):rpPct(v1,v0),true)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td>'+artTd(art)+'</tr>';};
   var upA=rpUnitsPrice(gp.acc,gp.units,gc.acc,gc.units),tA=[];
   // Коротко, без формул (Иван 02.10): за счёт штук и за счёт цены.
   if(upA){tA.push('штуки '+rpN(gp.units)+' → '+rpN(gc.units)+': '+rpDTxt(upA.vol,true)+' ₽');tA.push('цена за шт '+rpN(upA.p0)+' → '+rpN(upA.p1)+' ₽: '+rpDTxt(upA.price,true)+' ₽');}
@@ -290,7 +291,7 @@ function rpRender(){
       var ca=(acC[k]||0)-(acP[k]||0);
       if(Math.round(ca))txt.push('по артикулам '+rpDTxt(d-ca,null)+' ₽, вне артикулов '+rpDTxt(ca,null)+' ₽');}
     var st2=(k==='fees'||k==='net'||k==='amtd')?'rp-c-strong':'rp-c-main';
-    h2+='<tr class="'+st2+'"><td>'+L[1]+'</td>'+rpRtd(R.map(function(r){return val2(r.calc.grand,k);}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td>'+artTd(art)+'</tr>';});
+    h2+='<tr class="'+st2+'"><td>'+L[1]+'</td><td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,inc)+'</td><td class="r">'+rpPctTxt(rpPct(v1,v0),inc)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td>'+artTd(art)+'</tr>';});
   document.getElementById('rp-why2').innerHTML=h2+'</tbody>';
   // === 3. Затраты площадки и полная аналитика ===
   var aBp=rpAcctSplit(P.prev),aBc=rpAcctSplit(P.cur);

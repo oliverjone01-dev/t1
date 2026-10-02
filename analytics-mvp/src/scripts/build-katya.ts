@@ -2049,6 +2049,18 @@ function render(cur,cmp){
   } catch { /* нет файла - блок сборов уровня заказа пустой */ }
   {
     const oldMaxA = anAcct.length ? anAcct.map((r) => r[0]).sort().slice(-1)[0] : "0000-00-00";
+    // Эквайринг заказов с несколькими артикулами: транзакции кладут его в «прочее кабинета», а эквайринг по
+    // артикулам (acq_sku_daily) уже несёт его - снимаем с «прочего» в днях из транзакций (Иван 02.10, «а»;
+    // tools/accruals/build_multi_acq.py по выгрузкам «Начисления»). День без строки кабинета - в лог, не добавляем.
+    try {
+      const byD: Record<string, any[]> = {}; for (const r of anAcct) byD[r[0]] = r;
+      let fixA = 0; const miss: string[] = [];
+      for (const l of readFileSync(dp("acct_multi_acq_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+        const r = JSON.parse(l); const d = String(r.d), v = Number(r.acq) || 0; if (d > oldMaxA || !v) continue;
+        const row = byD[d]; if (!row) { miss.push(d); continue; } row[6] = Math.round(row[6] - v); fixA += v;
+      }
+      console.log(`katya: эквайринг заказов с несколькими артикулами снят с «прочего кабинета» - ${Math.round(-fixA)} ₽` + (miss.length ? `; нет строки кабинета за ${miss.join(", ")}` : ""));
+    } catch { /* нет файла - без поправки */ }
     try { for (const l of readFileSync(dp("pnl_account_accrual_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.d > oldMaxA) anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]); } } catch { /* нет accrual-ряда */ }
     anAcct.sort((a, b) => (a[0] < b[0] ? -1 : 1));
   }

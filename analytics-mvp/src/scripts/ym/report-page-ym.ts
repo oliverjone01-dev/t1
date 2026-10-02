@@ -306,7 +306,7 @@ function rpyLines(calcs){
   var pct=function(v){return String(Math.round(v*1000)/10).replace('.',',')+'%';};
   // Два столбца (решение 02.10): «Начислил Маркет» - как в отчёте о платежах, по дню платежа, справочно;
   // «Начислено» - по заказам, по которым Маркет провёл сбор за продажу, от него считается всё ниже.
-  var L=[{k:'acc1',l:'Начислил Маркет за оформление (справочно, как отчёт о платежах)',fn:key('acc1'),inc:1,top:1},
+  var L=[{k:'acc1',l:'Начислил Маркет за оформление (справочно, как отчёт о платежах)',fn:key('acc1'),inc:1,top:1,noSh:1},
     {k:'acc',l:'Начислено по заказам со сборами Маркета (основа расчёта)',fn:key('acc'),inc:1,top:1,bold:1,main:1},
     {k:'pay',l:'в т.ч. оплатил клиент за товар',fn:key('pay'),inc:1,top:1,sub:1},{k:'dlv',l:'в т.ч. доставка покупателя',fn:key('dlv'),inc:1,top:1,sub:1}];
   RPY_G.forEach(function(G){
@@ -316,8 +316,8 @@ function rpyLines(calcs){
     L.push({k:G[1],l:G[2],fn:key(G[1]),inc:0,top:1});
     Object.keys(names).sort().forEach(function(k){L.push({k:k,l:k.split('|')[1],fn:function(t){return t?(t.svc[k]||0):null;},inc:0,sub:1,svc:1});});});
   L.push({k:'fee',l:'Всего сборов = затраты площадки',fn:key('fee'),inc:0,top:1,bold:1,main:1},{k:'amount',l:'К выплате',fn:key('amount'),inc:1,top:1,bold:1,main:1},
-    {k:'amount1',l:'К выплате (Маркет) справочно: «Начислил Маркет» − те же сборы',fn:key('amount1'),inc:1,sub:1},
-    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка (ведомость, по этим же заказам)',fn:key('ship'),inc:0,top:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
+    {k:'amount1',l:'К выплате (Маркет) справочно: «Начислил Маркет» − те же сборы',fn:key('amount1'),inc:1,sub:1,noSh:1},
+    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка (ведомость, по этим же заказам)',fn:function(t){if(!t||(typeof ACC_R!=='undefined'&&!ACC_R))return null;return Math.round(t.ship||0)?t.ship:null;},inc:0,top:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
     {k:'adm',l:'АДМ '+pct(ACC_RATE.adm)+' от К выплате',fn:key('adm'),inc:0},{k:'tax',l:'Налоги '+pct(ACC_RATE.tax)+' от «Начислено»',fn:key('tax'),inc:0},
     {k:'np',l:'Чистая прибыль по артикулам (= блок на «Деньгах»)',fn:key('np'),inc:1,top:1,bold:1,main:1},
     {k:'gen',l:'Общие расходы кабинета (без артикула)',fn:key('gen'),inc:1},{k:'acct',l:'в т.ч. удержания без заказа',fn:key('acct'),inc:1,sub:1},{k:'prem',l:'в т.ч. премия Маркета',fn:key('prem'),inc:1,sub:1},
@@ -362,8 +362,9 @@ function rpyRender(){
   // Статус платежа не собран (G1 ФЕНИКСА iter2): отменённые заказы там посчитаны продажей и возвратом.
   var nsN=(typeof ACC_NOST!=='undefined'?ACC_NOST:[]).filter(function(p){var m=p.split('/')[1];return m===P.ym||m===P.pym;});
   var nsO=(typeof ACC_NOST_OLD!=='undefined'?ACC_NOST_OLD:[]).filter(function(p){var m=p.split('/')[1];return m===P.ym||m===P.pym;});
-  if(nsN.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собран:</b> '+nsN.join(', ')+' - заказы, которые оплатили и отменили, там посчитаны продажей и возвратом в «Начислил Маркет» (справочно); второй столбец их не содержит - у отменённого заказа нет сбора за продажу. Бот перезаберёт эти месяцы (схема реестра 5).');
+  if(nsN.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собран:</b> '+nsN.join(', ')+' - заказы, которые оплатили и отменили, в справочном столбце «Начислил Маркет» посчитаны продажей и возвратом; основа расчёта от статуса не зависит - у отменённого заказа нет сбора за продажу. Бот перезаберёт эти месяцы (схема реестра 5).');
   if(nsO.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собирается:</b> '+nsO.join(', ')+' - месяцы до '+REPY.floor+' бот не перезабирает; отменённые заказы там посчитаны продажей и возвратом в «Начислил Маркет» (справочно).');
+  if(typeof ACC_R!=='undefined'&&!ACC_R)fl.push('<b class="rp-warn">⚠ Снимок собран до второго столбца:</b> «Начислено» и всё ниже - как начислил Маркет, наша доставка не вычтена (нет данных). Обновится после ближайшего снимка Маркета.');
   var svB=cur.svBad.concat(prev.svBad);
   if(svB.length)fl.push('<b class="rp-dn">⚠ Услуги Маркета не сложились в колонку блока:</b> '+svB.join(', ')+'. Строки услуг в блоках 2-3 не использовать.');
   document.getElementById('rp-flags').innerHTML=fl.join('<br>')||'<span class="rp-mute">Пометок по данным нет.</span>';
@@ -412,7 +413,7 @@ function rpyRender(){
   var row3=function(L,noSh,G){var v0=L.fn(gp),v1=L.fn(gc),nd=v0==null||v1==null,rpNd=function(v){return v==null?'<span class="rp-mute">нет данных</span>':rpN(v);},inc=L.inc?true:false,pc=noSh?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0);
     var cls=(L.sub?'rp-sub':'')+(L.main?' rp-main':'')+(G&&G.par?' rp-par'+(RPY_OPEN[G.par]?' rp-open':''):'')+(G&&G.kid?' rp-kid':'');
     var at=(G&&G.par?' data-p="'+G.par+'"':'')+(G&&G.kid?' data-g="'+G.kid+'"'+(RPY_OPEN[G.kid]?'':' style="display:none"'):'');
-    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+(L.bold&&!L.main?' style="font-weight:800"':'')+'><td>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpNd(v0)+'</td><td class="r">'+rpNd(v1)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
+    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+(L.bold&&!L.main?' style="font-weight:800"':'')+'><td>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpNd(v0)+'</td><td class="r">'+rpNd(v1)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
   h3+=rpyRows(LINES,row3);
   h3+=row3({l:'Продано за вычетом возвратов, шт',fn:function(t){return t.units;},inc:1},true);
   var rf1=function(v){return String(Math.round(v*10)/10).replace('.',',');};

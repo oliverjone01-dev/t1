@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { execFileSync } from "node:child_process";
-import { readFileSync, mkdtempSync } from "node:fs";
+import { readFileSync, mkdtempSync, cpSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM } from "jsdom";
@@ -22,12 +22,24 @@ const num = (s: string | null | undefined): number | null => {
   return isNaN(v) ? null : v;
 };
 
+// Данные для страницы: снимки data-ym как есть, а блок «Аналитика по артикулам» (pnl_sku_netting_daily)
+// - пересчитан derive головы во временной копии (G2 ФЕНИКСА iter3): иначе CI видел бы страницу без полей
+// второго столбца, пока бот не пересоберёт data-ym, и тесты второго столбца не проверяли бы ничего.
+// Остальные производные файлы не трогаются - числа свода остаются числами закоммиченного снимка.
+export const ACC_DATA = mkdtempSync(join(tmpdir(), "svod-data-"));
+let rdom: JSDOM;
 beforeAll(async () => {
   const out = mkdtempSync(join(tmpdir(), "svod-ui-"));
+  const der = mkdtempSync(join(tmpdir(), "svod-der-"));
+  cpSync("data-ym", ACC_DATA, { recursive: true });
+  cpSync("data-ym", der, { recursive: true });
+  execFileSync("npx", ["tsx", "src/scripts/ym/derive.ts"], { env: { ...process.env, YM_DATA_DIR: der }, stdio: "pipe" });
+  writeFileSync(join(ACC_DATA, "pnl_sku_netting_daily.ndjson"), readFileSync(join(der, "pnl_sku_netting_daily.ndjson")));
   execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], {
-    env: { ...process.env, DATA_DIR: "data-ym", OUT_DIR: out, PLATFORM: "ym" },
+    env: { ...process.env, DATA_DIR: ACC_DATA, OUT_DIR: out, PLATFORM: "ym" },
     stdio: "pipe",
   });
+  rdom = new JSDOM(readFileSync(join(out, "katya-report.html"), "utf8"), { runScripts: "dangerously", pretendToBeVisual: true });
   dom = new JSDOM(readFileSync(join(out, "katya-money.html"), "utf8"), {
     runScripts: "dangerously",
     pretendToBeVisual: true,
@@ -37,7 +49,7 @@ beforeAll(async () => {
     },
   });
   await new Promise((r) => setTimeout(r, 1400));
-}, 60_000);
+}, 120_000);
 
 const D = () => dom.window.document;
 const T = () => D().getElementById("sv-t")!;
@@ -1542,11 +1554,16 @@ describe("Маркет: аналитика по артикулам за выбр
     const h = headA();
     const row = [...TA().querySelectorAll("tbody tr")].find((tr) => (tr.children[0]?.textContent || "").trim() === "GGL-09-2");
     expect(row, "GGL-09-2 за июль в блоке нет").toBeTruthy();
-    const c = (name: string) => num(row!.children[h.indexOf(name)]!.textContent);
-    expect(c("Продано, шт"), "не совпало с «Получено от потребителей»").toBe(15);
-    expect(c("Возвраты, шт"), "не совпало с «Возвращено потребителям»").toBe(3);
-    expect(c("Итого, шт")).toBe(12);
-    expect(c("Оплатил клиент"), "деньги не совпали с документом").toBe(164576);
+    // Документ идёт по дню платежа - это первый столбец «Начислил Маркет» (решение 02.10 «два столбца»):
+    // штуки - в самой ячейке, деньги за товар - в её подсказке. Основные колонки - второй столбец.
+    const c1 = row!.children[h.indexOf("Начислил Маркет (справочно)")]!;
+    const u = (c1.querySelector("div")?.textContent || "").match(/(\d+) − (\d+) = (-?\d+) шт/);
+    expect(u, "штук первого столбца в ячейке нет").toBeTruthy();
+    expect(Number(u![1]), "не совпало с «Получено от потребителей»").toBe(15);
+    expect(Number(u![2]), "не совпало с «Возвращено потребителям»").toBe(3);
+    expect(Number(u![3])).toBe(12);
+    const pay = (c1.getAttribute("title") || "").match(/оплатил клиент ([\d\s  ]+) ₽/);
+    expect(num(pay?.[1]), "деньги не совпали с документом").toBe(164576);
     const cov = D().getElementById("acc-cov")!.textContent || "";
     expect(cov, "сверки с отчётом о платежах нет").toMatch(/сверка с отчётом о платежах/);
     // Документ Кати - отчёт о платежах по договору 54641824/26 (кабинет 1023124) за июль:
@@ -2139,5 +2156,59 @@ describe("Маркет: категория у заказов в пути", () =>
     const lost = [...skus].filter((s) => !cat[s] || cat[s] === "Без категории");
     expect(skus.size).toBeGreaterThan(0);
     expect(lost, "артикулы без категории").toEqual([]);
+  });
+});
+
+// Решение 02.10 «два столбца» (спека v4) и G3 ФЕНИКСА iter3: основные колонки блока - второй столбец,
+// справочный первый - отдельно; числа сверяются с файлом блока, а не с литералами (снимок меняется).
+describe("Маркет: два столбца «Начислено» в блоке по артикулам", () => {
+  const TA = () => D().getElementById("acc-t")!;
+  const headA = () => [...TA().querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+  const totA = () => [...TA().querySelector("tr.sv-total")!.children].map((x) => x.textContent || "");
+  const cellA = (c: string) => num(totA()[headA().indexOf(c)]);
+  const sumF = (f: string, from: string, to: string) => readFileSync(join(ACC_DATA, "pnl_sku_netting_daily.ndjson"), "utf8").split("\n").filter(Boolean)
+    .map((l) => JSON.parse(l)).filter((r) => r.d >= from && r.d <= to).reduce((a, r) => a + (Number(r[f]) || 0), 0);
+  it("колонки: «Начислил Маркет» перед «Начислено», «К выплате (Маркет)» после «К выплате», «Наша доставка» после С\\С", () => {
+    const h = headA();
+    expect(h.indexOf("Начислил Маркет (справочно)")).toBe(h.indexOf("Начислено") - 1);
+    expect(h.indexOf("К выплате (Маркет) справочно")).toBe(h.indexOf("К выплате") + 1);
+    expect(h.indexOf("Наша доставка")).toBe(h.indexOf("СС произв.") + 1);
+  });
+  it("ИТОГО: «Начислено» - второй столбец, «Начислил Маркет» - первый; К выплате и прибыль - от второго", () => {
+    setRange("2026-08-01", "2026-08-31");
+    const tol = 60; // строки блока округлены до рубля по (день, артикул)
+    expect(Math.abs(cellA("Начислено")! - sumF("raccruals", "2026-08-01", "2026-08-31"))).toBeLessThanOrEqual(tol);
+    const c1Tot = () => num(TA().querySelector("tr.sv-total")!.children[headA().indexOf("Начислил Маркет (справочно)")]!.childNodes[0]!.textContent);
+    expect(Math.abs(c1Tot()! - sumF("accruals", "2026-08-01", "2026-08-31"))).toBeLessThanOrEqual(tol);
+    expect(Math.abs(cellA("Наша доставка")! - sumF("ship", "2026-08-01", "2026-08-31"))).toBeLessThanOrEqual(tol);
+    expect(Math.abs(cellA("СС произв.")! - sumF("rcogs", "2026-08-01", "2026-08-31"))).toBeLessThanOrEqual(tol);
+    expect(cellA("Начислено"), "второй столбец не может совпасть с первым на стыке месяцев").not.toBe(c1Tot());
+    // Сборы одни: разница «К выплате» столбцов = разнице «Начислено».
+    expect(Math.abs((cellA("К выплате")! - cellA("К выплате (Маркет) справочно")!) - (cellA("Начислено")! - sumF("accruals", "2026-08-01", "2026-08-31")))).toBeLessThanOrEqual(2 * tol);
+    expect(Math.abs(cellA("Валовая прибыль")! - (cellA("К выплате")! - cellA("СС произв.")! - cellA("Наша доставка")!))).toBeLessThanOrEqual(3);
+    expect(Math.abs(cellA("Налоги 15%")! - cellA("Начислено")! * 0.15)).toBeLessThanOrEqual(3);
+    expect(Math.abs(cellA("АДМ 30%")! - cellA("К выплате")! * 0.3)).toBeLessThanOrEqual(3);
+    expect(D().getElementById("acc-cov")!.textContent || "", "второй столбец собран - пометки «до второго столбца» нет").not.toMatch(/Снимок собран до второго столбца/);
+    expect(errs).toEqual([]);
+  });
+});
+
+describe("Маркет «Отчет»: оформление и пометки", () => {
+  const R = () => rdom.window.document;
+  it("блок 2 - без ретро-месяцев; основные строки фиолетовые; «в т.ч.» свёрнуты", () => {
+    const th = [...R().querySelectorAll("#rp-why2 thead th")].map((x) => (x.textContent || "").trim());
+    expect(th.length, th.join(" | ")).toBe(6);
+    const main = [...R().querySelectorAll("#rp-cost tr.rp-main")].map((x) => (x.children[0]!.textContent || "").trim());
+    expect(main.map((t) => t.split(" ")[0])).toEqual(["Начислено", "Всего", "К", "Чистая", "Чистая"]);
+    const kids = [...R().querySelectorAll("#rp-cost tr.rp-kid")] as any[];
+    expect(kids.length).toBeGreaterThan(0);
+    expect(kids.every((k) => k.style.display === "none"), "«в т.ч.» не свёрнуты").toBe(true);
+    expect([...R().querySelectorAll("#rp-pts tr.rp-main")].length).toBe(3);
+  });
+  it("пометка статуса платежа есть, если пары без статуса; о втором столбце - нет, раз он собран", () => {
+    const fl = R().getElementById("rp-flags")!.textContent || "";
+    const nost = /var ACC_NOST=(\[[^\]]*\])/.exec(R().documentElement.innerHTML);
+    if (nost && JSON.parse(nost[1]!).length) expect(fl).toMatch(/Статус платежа не собран|не собирается/);
+    expect(fl).not.toMatch(/Снимок собран до второго столбца/);
   });
 });

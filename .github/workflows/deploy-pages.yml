@@ -282,6 +282,10 @@ jobs:
             exit 0
           fi
           rm -rf /tmp/market-site && mkdir -p /tmp/market-site
+          # Производные файлы - из снимков тем же кодом, что собирает страницу (G1 ФЕНИКСА 02.10): иначе
+          # после мержа нового поля derive сайт до ближайшего снимка бота строился бы на старых производных.
+          # derive без сети, 2-3 секунды; в git результат не уходит.
+          npm run ym:derive
           DATA_DIR=data-ym OUT_DIR=/tmp/market-site PLATFORM=ym npx tsx src/scripts/build-site.ts
           DATA_DIR=data-ym OUT_DIR=/tmp/market-site PLATFORM=ym npx tsx src/scripts/build-katya.ts
           DATA_DIR=data-ym OUT_DIR=/tmp/market-site PLATFORM=ym npx tsx src/scripts/smoke.ts

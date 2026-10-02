@@ -304,7 +304,9 @@ function rpRetro(P){var out=[],m=P.pym;var guard=0,df=rpDataFrom();
 function rpRth(R){return R.map(function(r){return '<th class="r rp-retro">'+rpName(r.ym)+'</th>';}).join('');}
 function rpRtd(vals,f){return vals.map(function(v){return '<td class="r rp-retro">'+(v==null?'—':(f||rpN)(v))+'</td>';}).join('');}
 // otherIn/otherOut: «прочее кабинета» по дням - день с плюсом = поступление от OZON на счёт (компенсации и т.п.).
-function rpAcctSplit(per){var a={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0,otherIn:0,otherOut:0};for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<per.from||r[0]>per.to)continue;a.adv+=r[1];a.fines+=r[2];a.realfbs+=r[3];a.badge+=r[4];a.delivery+=r[5];a.other+=r[6];if(r[6]>0)a.otherIn+=r[6];else a.otherOut+=r[6];}return a;}
+function rpAcctSplit(per){var a={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0,otherIn:0,otherOut:0};for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<per.from||r[0]>per.to)continue;a.adv+=r[1];a.fines+=r[2];a.realfbs+=r[3];a.badge+=r[4];a.delivery+=r[5];a.other+=r[6];if(r[6]>0)a.otherIn+=r[6];else a.otherOut+=r[6];}
+  // Добор finFix (операции с несколькими артикулами) уже в строках артикулов - снимаем его с «поступлений» кабинета.
+  var fx=acctFix(per.from,per.to);a.other-=fx;var rest=a.otherIn-fx;if(rest>=0)a.otherIn=rest;else{a.otherIn=0;a.otherOut+=rest;}return a;}
 function rpAdsSum(per){
   var s={cpcSp:0,cpcOm:0,cpcO:0,cpoSp:0,cpoApiSp:0,cpoRev:0,gmv:0,mirSp:0,mirOm:0,furSp:0,furOm:0,cpoCov:false,catN:0};
   REP.ads.forEach(function(r){if(r[0]<per.from||r[0]>per.to)return;s.cpcSp+=r[1];s.cpcOm+=r[2];s.cpcO+=r[3];s.cpoApiSp+=r[4];});

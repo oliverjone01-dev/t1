@@ -2197,13 +2197,44 @@ describe("Маркет «Отчет»: оформление и пометки", 
   const R = () => rdom.window.document;
   it("блок 2 - без ретро-месяцев; основные строки фиолетовые; «в т.ч.» свёрнуты", () => {
     const th = [...R().querySelectorAll("#rp-why2 thead th")].map((x) => (x.textContent || "").trim());
-    expect(th.length, th.join(" | ")).toBe(6);
+    expect(th.length, th.join(" | ")).toBe(7);
+    expect(th.slice(-2)).toEqual(["За счёт чего", "Артикулы с наибольшим вкладом"]);
     const main = [...R().querySelectorAll("#rp-cost tr.rp-main")].map((x) => (x.children[0]!.textContent || "").trim());
     expect(main.map((t) => t.split(" ")[0])).toEqual(["Начислено", "Всего", "К", "Чистая", "Чистая"]);
     const kids = [...R().querySelectorAll("#rp-cost tr.rp-kid")] as any[];
     expect(kids.length).toBeGreaterThan(0);
     expect(kids.every((k) => k.style.display === "none"), "«в т.ч.» не свёрнуты").toBe(true);
     expect([...R().querySelectorAll("#rp-pts tr.rp-main")].length).toBe(3);
+  });
+  // Просьба пользователя 02.10: в «За счёт чего» не фиолетовый; серые артикулы - в своей колонке;
+  // в подписях статей скобки только «(справочно)», пояснения - в подсказке; реклама свёрнута.
+  it("блок 2: артикулы отдельной колонкой, пояснение - не цветом основной строки", () => {
+    const rows = [...R().querySelectorAll("#rp-why2 tbody tr")] as any[];
+    const ix = 6;
+    expect(rows.some((r) => r.children[ix]?.querySelector(".rp-art")), "артикулы не переехали в колонку").toBe(true);
+    expect(rows.every((r) => !r.children[5]?.querySelector(".rp-art")), "артикулы остались в «За счёт чего»").toBe(true);
+    const css = R().documentElement.innerHTML;
+    expect(css).toContain(".rp-main td.rp-txt,.rp-main td.rp-arts{font-weight:400;color:var(--ink-1)}");
+  });
+  it("подписи статей: в скобках только «справочно»", () => {
+    // Строки статей, кроме названий услуг Маркета (их пишет Маркет, они в «в т.ч.» под группой).
+    const lab = ["#rp-why2", "#rp-cost", "#rp-pts", "#rp-ads"].flatMap((id) =>
+      [...R().querySelectorAll(id + " tbody tr")].filter((r: any) => !r.classList.contains("rp-sub") || id === "#rp-ads")
+        .map((r: any) => (r.children[0]?.textContent || "").trim()).filter(Boolean));
+    const bad = lab.filter((t) => /\((?!справочно\))[^)]*\)/.test(t));
+    expect(bad, bad.join(" | ")).toEqual([]);
+    expect(lab).toContain("Начислил Маркет (справочно)");
+    expect(R().querySelector("#rp-cost td[title]"), "пояснение из скобок пропало, а не ушло в подсказку").not.toBeNull();
+  });
+  it("блок 5: основные строки и свёрнутые «в т.ч.»", () => {
+    const main = [...R().querySelectorAll("#rp-ads tr.rp-main")].map((x: any) => (x.children[0].textContent || "").trim());
+    expect(main).toEqual(["Продвижение деньгами", "Расход на рекламу по заказам месяца", "ДРР всего, %"]);
+    const kids = [...R().querySelectorAll("#rp-ads tr.rp-kid")] as any[];
+    expect(kids.length).toBe(7);
+    expect(kids.every((k) => k.style.display === "none")).toBe(true);
+    (R().querySelector("#rp-ads tr.rp-par") as any).click();
+    expect(kids.filter((k) => k.getAttribute("data-g") === "ad1").every((k) => k.style.display === "")).toBe(true);
+    (R().querySelector("#rp-ads tr.rp-par") as any).click();
   });
   it("пометка статуса платежа есть, если пары без статуса; о втором столбце - нет, раз он собран", () => {
     const fl = R().getElementById("rp-flags")!.textContent || "";

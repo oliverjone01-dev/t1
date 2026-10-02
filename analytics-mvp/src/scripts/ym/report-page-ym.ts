@@ -214,6 +214,8 @@ export const REPORT_YM_CSS = `<style>
 .rp-sub td:first-child{padding-left:22px;color:var(--ink-2)}
 .rp-sub td{color:var(--ink-3,#7d8a99)!important;font-weight:400}
 .rp-main td{font-weight:800;color:#A78BFA}
+.rp-main td.rp-txt,.rp-main td.rp-arts{font-weight:400;color:var(--ink-1)}
+#rp-why2 td.rp-arts{white-space:normal;min-width:220px;max-width:340px}
 .rp-par{cursor:pointer}.rp-par td:first-child::before{content:'▸ ';color:var(--ink-3,#7d8a99)}.rp-par.rp-open td:first-child::before{content:'▾ '}
 .rp-warn{color:#E5B567}
 .rp-retro,th.rp-retro{color:#8A8F98}
@@ -235,7 +237,7 @@ export const REPORT_YM_BODY = `${REPORT_YM_CSS}
 <div class="kt-scroll"><table class="kt-table" id="rp-cost"></table></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">4. Баллы Маркета (справочно)</div><div class="card-sub">Баллы в оборот, сборы и прибыль не входят: аналитика - по деньгам, как отчёт о платежах. Начислено - баллы Маркета за скидки покупателям; списано - оплата услуг Маркета баллами, по услугам (раскрывается по клику).</div></div></div>
 <div class="kt-scroll"><table class="kt-table" id="rp-pts"></table></div></section>
-<section class="card"><div class="card-h"><div><div class="card-title">5. Реклама: расход и ДРР</div><div class="card-sub">Сверху - продвижение деньгами из отчёта по взаиморасчётам за те же даты, что блоки 1-3. Ниже - ДРР так же, как на вкладке «Маркетинг»: та же функция, по месяцу заказа. Выручки рекламных заказов и окупаемости нет: статистика рекламы Маркета не подключена. Серые колонки - прошлые месяцы.</div></div></div>
+<section class="card"><div class="card-h"><div><div class="card-title">5. Реклама: расход и ДРР</div><div class="card-sub">Реклама посчитана двумя способами, поэтому суммы сверху и снизу не совпадают. <b>Сверху</b> - сколько денег Маркет списал за продвижение в этом месяце (отчёт по взаиморасчётам, по дате списания); это та же сумма, что группа «Продвижение» в блоке 3, она уже вычтена из прибыли. <b>Снизу</b> - ДРР, как на вкладке «Маркетинг»: расход на рекламу по заказам, оформленным в этом месяце (деньгами и баллами), делённый на выручку этих же заказов. Заказ, оформленный в конце месяца, могут списать уже в следующем - отсюда разница. Серые колонки - прошлые месяцы.</div></div></div>
 <div class="kt-scroll"><table class="kt-table" id="rp-ads"></table></div>
 <div id="rp-ads-note" class="kt-note" style="margin-top:8px"></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">6. Топ-5 непродаваемых: зеркала и мебель</div><div class="card-sub">Товар показывался в отчётном месяце, но не получил ни одного заказа (кроме отменённых) за 60 дней до конца периода. Порядок - по показам за месяц. Причина и действие - по правилу ниже таблиц, пороги как у ${KEEP_OZON} [ГИПОТЕЗА].</div></div></div>
@@ -306,8 +308,8 @@ function rpyLines(calcs){
   var pct=function(v){return String(Math.round(v*1000)/10).replace('.',',')+'%';};
   // Два столбца (решение 02.10): «Начислил Маркет» - как в отчёте о платежах, по дню платежа, справочно;
   // «Начислено» - по заказам, по которым Маркет провёл сбор за продажу, от него считается всё ниже.
-  var L=[{k:'acc1',l:'Начислил Маркет за оформление (справочно, как отчёт о платежах)',fn:key('acc1'),inc:1,top:1,noSh:1},
-    {k:'acc',l:'Начислено по заказам со сборами Маркета (основа расчёта)',fn:key('acc'),inc:1,top:1,bold:1,main:1},
+  var L=[{k:'acc1',l:'Начислил Маркет (справочно)',t:'за оформление, как в отчёте о платежах, по дню платежа',fn:key('acc1'),inc:1,top:1,noSh:1},
+    {k:'acc',l:'Начислено',t:'по заказам, по которым Маркет провёл сбор за продажу; от этой строки считается всё ниже',fn:key('acc'),inc:1,top:1,bold:1,main:1},
     {k:'pay',l:'в т.ч. оплатил клиент за товар',fn:key('pay'),inc:1,top:1,sub:1},{k:'dlv',l:'в т.ч. доставка покупателя',fn:key('dlv'),inc:1,top:1,sub:1}];
   RPY_G.forEach(function(G){
     var names={};calcs.forEach(function(c){var t=c&&c.grand;if(!t)return;for(var k in t.svc)if(k.indexOf(G[0]+'|')===0)names[k]=1;});
@@ -316,11 +318,11 @@ function rpyLines(calcs){
     L.push({k:G[1],l:G[2],fn:key(G[1]),inc:0,top:1});
     Object.keys(names).sort().forEach(function(k){L.push({k:k,l:k.split('|')[1],fn:function(t){return t?(t.svc[k]||0):null;},inc:0,sub:1,svc:1});});});
   L.push({k:'fee',l:'Всего сборов = затраты площадки',fn:key('fee'),inc:0,top:1,bold:1,main:1},{k:'amount',l:'К выплате',fn:key('amount'),inc:1,top:1,bold:1,main:1},
-    {k:'amount1',l:'К выплате (Маркет) справочно: «Начислил Маркет» − те же сборы',fn:key('amount1'),inc:1,sub:1,noSh:1},
-    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка (ведомость, по этим же заказам)',fn:function(t){if(!t||(typeof ACC_R!=='undefined'&&!ACC_R))return null;return Math.round(t.ship||0)?t.ship:null;},inc:0,top:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
+    {k:'amount1',l:'К выплате Маркета (справочно)',t:'«Начислил Маркет» − те же сборы',fn:key('amount1'),inc:1,sub:1,noSh:1},
+    {k:'cogs',l:'С\\\\С произв.',fn:key('cogs'),inc:0,top:1},{k:'ship',l:'Наша доставка',t:'ведомость перевозчика, по этим же заказам',fn:function(t){if(!t||(typeof ACC_R!=='undefined'&&!ACC_R))return null;return Math.round(t.ship||0)?t.ship:null;},inc:0,top:1},{k:'gp',l:'Валовая прибыль',fn:key('gp'),inc:1,top:1},
     {k:'adm',l:'АДМ '+pct(ACC_RATE.adm)+' от К выплате',fn:key('adm'),inc:0},{k:'tax',l:'Налоги '+pct(ACC_RATE.tax)+' от «Начислено»',fn:key('tax'),inc:0},
-    {k:'np',l:'Чистая прибыль по артикулам (= блок на «Деньгах»)',fn:key('np'),inc:1,top:1,bold:1,main:1},
-    {k:'gen',l:'Общие расходы кабинета (без артикула)',fn:key('gen'),inc:1},{k:'acct',l:'в т.ч. удержания без заказа',fn:key('acct'),inc:1,sub:1},{k:'prem',l:'в т.ч. премия Маркета',fn:key('prem'),inc:1,sub:1},
+    {k:'np',l:'Чистая прибыль по артикулам',t:'= ИТОГО блока «Аналитика по артикулам» на «Деньгах»',fn:key('np'),inc:1,top:1,bold:1,main:1},
+    {k:'gen',l:'Общие расходы кабинета',t:'проводки без артикула: удержания и премия',fn:key('gen'),inc:1},{k:'acct',l:'в т.ч. удержания без заказа',fn:key('acct'),inc:1,sub:1},{k:'prem',l:'в т.ч. премия Маркета',fn:key('prem'),inc:1,sub:1},
     {k:'netAll',l:'Чистая прибыль с общими расходами',fn:key('netAll'),inc:1,bold:1,main:1});
   return L;
 }
@@ -329,10 +331,10 @@ function rpyLines(calcs){
 // начислено, списано, сальдо; списания по услугам свёрнуты под «списано»).
 function rpyPtsLines(calcs){
   var L=[{k:'ptsIn',l:'Начислено баллами за скидки покупателям',fn:function(t){return rpyVal(t,'ptsIn');},inc:1,bold:1,main:1},
-    {k:'ptsOut',l:'Списано за услуги («Скидка за участие в совместных акциях»)',fn:function(t){return rpyVal(t,'ptsOut');},inc:0,bold:1,main:1}];
+    {k:'ptsOut',l:'Списано за услуги',t:'«Скидка за участие в совместных акциях»',fn:function(t){return rpyVal(t,'ptsOut');},inc:0,bold:1,main:1}];
   var names={};calcs.forEach(function(c){var t=c&&c.grand;if(!t)return;for(var k in t.pts)names[k]=1;});
   Object.keys(names).sort().forEach(function(k){L.push({k:k,l:'в т.ч. '+k.split('|')[1],fn:function(t){return t?(t.pts[k]||0):null;},inc:0,sub:1});});
-  L.push({k:'saldo',l:'Сальдо баллов (начислено − списано)',fn:function(t){return rpyVal(t,'saldo');},inc:1,bold:1,main:1});
+  L.push({k:'saldo',l:'Сальдо баллов',t:'начислено − списано',fn:function(t){return rpyVal(t,'saldo');},inc:1,bold:1,main:1});
   return L;
 }
 // Строки «в т.ч.» сворачиваются под свою строку (просьба пользователя 02.10). Состояние - на странице.
@@ -383,11 +385,11 @@ function rpyRender(){
     +rpWhyTurn('Зеркала',prev.g.mir.acc,prev.g.mir.units,cur.g.mir.acc,cur.g.mir.units,cur,prev,mir,'')
     +rpWhyTurn('Мебель',prev.g.fur.acc,prev.g.fur.units,cur.g.fur.acc,cur.g.fur.units,cur,prev,fur,furExtra);
   // Блок 2 - только прошлый и отчётный месяц (просьба пользователя 02.10: ретро-месяцы - в блоке 3).
-  var h2='<thead><tr><th>Статья</th><th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">%</th><th>За счёт чего</th></tr></thead><tbody>';
+  var h2='<thead><tr><th>Статья</th><th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">%</th><th>За счёт чего</th><th>Артикулы с наибольшим вкладом</th></tr></thead><tbody>';
   // Оформление как в блоке 3: основные строки фиолетовым жирным, «в т.ч.» серым и свёрнуто под своей строкой.
-  var tr2=function(L,v0,v1,txt,pct,G){var d=v1-v0;var cls=(L.sub?'rp-sub':'')+(L.main?' rp-main':'')+(G&&G.par?' rp-par'+(RPY_OPEN[G.par]?' rp-open':''):'')+(G&&G.kid?' rp-kid':'');
+  var tr2=function(L,v0,v1,txt,pct,G){var d=v1-v0,isArt=function(x){return x.indexOf('class="rp-art"')>=0;},why=txt.filter(function(x){return !isArt(x);}),arts=txt.filter(isArt);var cls=(L.sub?'rp-sub':'')+(L.main?' rp-main':'')+(G&&G.par?' rp-par'+(RPY_OPEN[G.par]?' rp-open':''):'')+(G&&G.kid?' rp-kid':'');
     var at=(G&&G.par?' data-p="'+G.par+'"':'')+(G&&G.kid?' data-g="'+G.kid+'"'+(RPY_OPEN[G.kid]?'':' style="display:none"'):'');
-    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+'><td>'+L.l+'</td><td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,L.inc?true:false)+'</td><td class="r">'+rpPctTxt(pct?pct(v1,v0):rpPct(v1,v0),L.inc?true:false)+'</td><td class="rp-txt">'+(txt.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td></tr>';};
+    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+'><td'+(L.t?' title="'+L.t+'"':'')+'>'+L.l+'</td><td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,L.inc?true:false)+'</td><td class="r">'+rpPctTxt(pct?pct(v1,v0):rpPct(v1,v0),L.inc?true:false)+'</td><td class="rp-txt">'+(why.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td><td class="rp-arts">'+arts.join('<br>')+'</td></tr>';};
   var upA=rpUnitsPrice(gp.acc,gp.units,gc.acc,gc.units),tA=[];
   if(upA)tA.push('штуки: '+rpN(gp.units)+' → '+rpN(gc.units)+' шт × прежняя цена '+rpN(upA.p0)+' ₽ = '+rpDTxt(upA.vol,true)+' ₽; цена (начислено на 1 шт): '+rpN(upA.p0)+' → '+rpN(upA.p1)+' ₽ × '+rpN(gc.units)+' шт = '+rpDTxt(upA.price,true)+' ₽; вместе '+rpDTxt(upA.vol+upA.price,true)+' ₽');
   tA.push('зеркала '+rpDTxt(cur.g.mir.acc-prev.g.mir.acc,true)+' ₽, мебель '+rpDTxt(cur.g.fur.acc-prev.g.fur.acc,true)+' ₽');
@@ -413,12 +415,12 @@ function rpyRender(){
   var row3=function(L,noSh,G){var v0=L.fn(gp),v1=L.fn(gc),nd=v0==null||v1==null,rpNd=function(v){return v==null?'<span class="rp-mute">нет данных</span>':rpN(v);},inc=L.inc?true:false,pc=noSh?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0);
     var cls=(L.sub?'rp-sub':'')+(L.main?' rp-main':'')+(G&&G.par?' rp-par'+(RPY_OPEN[G.par]?' rp-open':''):'')+(G&&G.kid?' rp-kid':'');
     var at=(G&&G.par?' data-p="'+G.par+'"':'')+(G&&G.kid?' data-g="'+G.kid+'"'+(RPY_OPEN[G.kid]?'':' style="display:none"'):'');
-    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+(L.bold&&!L.main?' style="font-weight:800"':'')+'><td>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpNd(v0)+'</td><td class="r">'+rpNd(v1)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
+    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+(L.bold&&!L.main?' style="font-weight:800"':'')+'><td'+(L.t?' title="'+L.t+'"':'')+'>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpNd(v0)+'</td><td class="r">'+rpNd(v1)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh||L.noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
   h3+=rpyRows(LINES,row3);
   h3+=row3({l:'Продано за вычетом возвратов, шт',fn:function(t){return t.units;},inc:1},true);
   var rf1=function(v){return String(Math.round(v*10)/10).replace('.',',');};
   var rent=function(t){return t&&t.amount?t.netAll/t.amount*100:null;};var rp=rent(gp),rc=rent(gc);
-  h3+='<tr><td>Рентабельность (чистая с общими расходами / К выплате)</td>'+rpRtd(R.map(function(r){return rent(r.calc.grand);}),function(v){return rf1(v)+'%';})+'<td class="r">'+(rp==null?'—':rf1(rp)+'%')+'</td><td class="r">'+(rc==null?'—':rf1(rc)+'%')+'</td><td class="r">'+((rp==null||rc==null)?'—':((rc-rp>0?'+':'')+rf1(rc-rp)+' п.'))+'</td><td></td><td></td><td></td></tr>';
+  h3+='<tr><td title="чистая прибыль с общими расходами / К выплате">Рентабельность</td>'+rpRtd(R.map(function(r){return rent(r.calc.grand);}),function(v){return rf1(v)+'%';})+'<td class="r">'+(rp==null?'—':rf1(rp)+'%')+'</td><td class="r">'+(rc==null?'—':rf1(rc)+'%')+'</td><td class="r">'+((rp==null||rc==null)?'—':((rc-rp>0?'+':'')+rf1(rc-rp)+' п.'))+'</td><td></td><td></td><td></td></tr>';
   document.getElementById('rp-cost').innerHTML=h3+'</tbody>';rpyFold(document.getElementById('rp-cost'));
   // === 4. Баллы Маркета (справочно) ===
   var h4='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r">Доля от начисл., было</th><th class="r">Доля, стало</th></tr></thead><tbody>';
@@ -438,33 +440,36 @@ function rpyAds(P,cur,prev,R){
   var h='<thead><tr><th>Показатель</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(P.ym)+'</th><th class="r">Отклонение</th><th class="r">%</th></tr></thead><tbody>';
   var rf=function(v){return String(Math.round(v*100)/100).replace('.',',');};
   // vals - значения по колонкам (ретро..., прошлый, отчётный); null - «нет данных», не 0.
-  var row=function(l,vals,inc,sub,fmt,flags){var n=vals.length,v0=vals[n-2],v1=vals[n-1],f=fmt||rpN,d=(v0==null||v1==null)?null:v1-v0;
+  // o: {sub, main, t - подсказка к подписи, par/kid - свёртка «в т.ч.» как в блоках 2-4 (просьба 02.10)}.
+  var row=function(l,vals,inc,o,fmt,flags){o=o||{};var n=vals.length,v0=vals[n-2],v1=vals[n-1],f=fmt||rpN,d=(v0==null||v1==null)?null:v1-v0;
     var cell=function(v,i){return (v==null?'<span class="rp-mute">нет данных</span>':f(v))+(flags&&flags[i]?' <span class="rp-warn" title="месяц не закрыт на «Маркетинге»: период доставки не завершён или нет акта">*</span>':'');};
-    return '<tr'+(sub?' class="rp-sub"':'')+'><td>'+l+'</td>'+vals.slice(0,n-2).map(function(v,i){return '<td class="r rp-retro">'+cell(v,i)+'</td>';}).join('')+'<td class="r">'+cell(v0,n-2)+'</td><td class="r">'+cell(v1,n-1)+'</td><td class="r">'+(d==null?'—':(fmt?((d>0?'+':'')+rf(d)):rpDTxt(d,inc)))+'</td><td class="r">'+(d==null?'—':rpPctTxt(fmt?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0),inc))+'</td></tr>';};
-  var sec=function(t){return '<tr><td colspan="'+(R.length+5)+'" style="padding-top:10px"><b>'+t+'</b></td></tr>';};
-  h+=sec('По отчёту по взаиморасчётам - деньги, дата транзакции, те же даты, что блоки 1-3');
-  h+=row('Продвижение деньгами (= группа «Продвижение» блока 3)',calcs.map(function(c){return c.grand?c.grand.mpromo:null;}),false,false);
-  h+=row('зеркала',calcs.map(function(c){return c.grand?c.g.mir.promo:null;}),false,true);
-  h+=row('мебель',calcs.map(function(c){return c.grand?c.g.fur.promo:null;}),false,true);
-  h+=row('Продвижение баллами (справочно)',calcs.map(function(c){var t=c.grand;if(!t)return null;var s=0;for(var k in t.pts)if(k.indexOf('cofin:promo|')===0)s+=t.pts[k];return s;}),false,true);
-  h+=sec('Как на вкладке «Маркетинг» - по месяцу ЗАКАЗА целиком, буст деньгами и баллами');
+    var cls=(o.sub?'rp-sub':'')+(o.main?' rp-main':'')+(o.par?' rp-par'+(RPY_OPEN[o.par]?' rp-open':''):'')+(o.kid?' rp-kid':'');
+    var at=(o.par?' data-p="'+o.par+'"':'')+(o.kid?' data-g="'+o.kid+'"'+(RPY_OPEN[o.kid]?'':' style="display:none"'):'');
+    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+'><td'+(o.t?' title="'+o.t+'"':'')+'>'+l+'</td>'+vals.slice(0,n-2).map(function(v,i){return '<td class="r rp-retro">'+cell(v,i)+'</td>';}).join('')+'<td class="r">'+cell(v0,n-2)+'</td><td class="r">'+cell(v1,n-1)+'</td><td class="r">'+(d==null?'—':(fmt?((d>0?'+':'')+rf(d)):rpDTxt(d,inc)))+'</td><td class="r">'+(d==null?'—':rpPctTxt(fmt?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0),inc))+'</td></tr>';};
+  var sec=function(t,sub){return '<tr><td colspan="'+(R.length+5)+'" style="padding-top:10px"><b>'+t+'</b>'+(sub?' <span class="rp-mute">'+sub+'</span>':'')+'</td></tr>';};
+  h+=sec('Сколько Маркет списал за рекламу','деньги по дате списания, как в блоке 3');
+  h+=row('Продвижение деньгами',calcs.map(function(c){return c.grand?c.grand.mpromo:null;}),false,{main:1,par:'ad1',t:'= группа «Продвижение» блока 3, отчёт по взаиморасчётам'});
+  h+=row('в т.ч. зеркала',calcs.map(function(c){return c.grand?c.g.mir.promo:null;}),false,{sub:1,kid:'ad1'});
+  h+=row('в т.ч. мебель',calcs.map(function(c){return c.grand?c.g.fur.promo:null;}),false,{sub:1,kid:'ad1'});
+  h+=row('Продвижение баллами (справочно)',calcs.map(function(c){var t=c.grand;if(!t)return null;var s=0;for(var k in t.pts)if(k.indexOf('cofin:promo|')===0)s+=t.pts[k];return s;}),false,{t:'баллами Маркета, в расходы и прибыль не входит'});
+  h+=sec('ДРР - доля рекламы в выручке','по заказам, оформленным в месяце, как на вкладке «Маркетинг»');
   var D=function(b){return yms.map(function(m){return rpyDrr(m,b);});};
   var fl=function(arr){return arr.map(function(s){return !!(s&&s.open);});};
   var all=D(''),mi=D(REPY.cab.mir),fu=D(REPY.cab.fur);
   var v=function(arr,fn){return arr.map(function(s){return s?fn(s):null;});};
-  h+=row('Буст деньгами',v(all,function(s){return s.sm;}),false,true,null,fl(all));
-  h+=row('Буст баллами',v(all,function(s){return s.sp;}),false,true,null,fl(all));
-  h+=row('Общие (подписка, полки, баннеры)',v(all,function(s){return s.oh;}),false,true,null,fl(all));
-  h+=row('Расход на продвижение всего',v(all,function(s){return s.spend;}),false,false,null,fl(all));
-  h+=row('Выручка заказов (деньги + баллы)',v(all,function(s){return s.base;}),true,false,null,fl(all));
+  h+=row('Расход на рекламу по заказам месяца',v(all,function(s){return s.spend;}),false,{main:1,par:'ad2',t:'буст деньгами и баллами плюс общие расходы на продвижение'},null,fl(all));
+  h+=row('в т.ч. буст деньгами',v(all,function(s){return s.sm;}),false,{sub:1,kid:'ad2'},null,fl(all));
+  h+=row('в т.ч. буст баллами',v(all,function(s){return s.sp;}),false,{sub:1,kid:'ad2'},null,fl(all));
+  h+=row('в т.ч. общие расходы на продвижение',v(all,function(s){return s.oh;}),false,{sub:1,kid:'ad2',t:'подписка, полки, баннеры'},null,fl(all));
+  h+=row('Выручка этих заказов',v(all,function(s){return s.base;}),true,{t:'деньги + баллы'},null,fl(all));
   var drr=function(s){return s.base?s.spend/s.base*100:null;};
-  h+=row('ДРР всего, %',v(all,drr),false,false,rf,fl(all));
-  h+=row('ДРР GENGLASS (зеркала), %',v(mi,drr),false,true,rf,fl(mi));
-  h+=row('ДРР GEN GROUP (мебель), %',v(fu,drr),false,true,rf,fl(fu));
-  h+=row('Выручка рекламных заказов',yms.map(function(){return null;}),true,false);
-  h+=row('Окупаемость, ₽ на 1 ₽',yms.map(function(){return null;}),true,false,rf);
-  document.getElementById('rp-ads').innerHTML=h+'</tbody>';
-  document.getElementById('rp-ads-note').innerHTML='ДРР считается той же функцией, что на вкладке «Маркетинг»: расход на продвижение (буст деньгами и баллами плюс общие расходы на продвижение) к выручке тех же заказов (деньги плюс баллы), по месяцу оформления заказа и целому месяцу - поэтому неполный месяц здесь не обрезается по последнему дню реестра. * - месяц на «Маркетинге» не закрыт (доставка не завершена или нет акта), цифры ещё изменятся. Зеркала и мебель в ДРР - по кабинетам, как на «Маркетинге». Выручку рекламных заказов и окупаемость не считаем: статистика рекламы Маркета не подключена (нет данных, а не 0).';
+  h+=row('ДРР всего, %',v(all,drr),false,{main:1,par:'ad3',t:'расход на рекламу / выручка этих заказов'},rf,fl(all));
+  h+=row('в т.ч. зеркала, %',v(mi,drr),false,{sub:1,kid:'ad3',t:'кабинет GENGLASS'},rf,fl(mi));
+  h+=row('в т.ч. мебель, %',v(fu,drr),false,{sub:1,kid:'ad3',t:'кабинет GEN GROUP'},rf,fl(fu));
+  h+=row('Выручка рекламных заказов',yms.map(function(){return null;}),true,{t:'статистика рекламы Маркета не подключена'});
+  h+=row('Окупаемость, ₽ на 1 ₽',yms.map(function(){return null;}),true,{t:'статистика рекламы Маркета не подключена'},rf);
+  document.getElementById('rp-ads').innerHTML=h+'</tbody>';rpyFold(document.getElementById('rp-ads'));
+  document.getElementById('rp-ads-note').innerHTML='<span class="rp-warn">*</span> - месяц на вкладке «Маркетинг» ещё не закрыт (доставка не завершена или нет акта), цифра изменится. «нет данных» - не 0: статистика рекламы Маркета не подключена.';
 }
 // === 5. Непродаваемые (ответ 4а: правила и пороги OZON [ГИПОТЕЗА]; 3а 01.10: отменённые заказы) ===
 function rpyAddD(d,n){return new Date(Date.parse(d+'T00:00Z')+n*86400000).toISOString().slice(0,10);}

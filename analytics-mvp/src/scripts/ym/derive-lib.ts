@@ -372,7 +372,25 @@ export interface AccNetRow {
 export interface AccNettingRow { d: string; business?: string; order?: string; sku?: string; type?: string; service?: string; src?: string; amount: number; count?: number; contract?: string }
 const SRC_PAY = /^плат[её]ж покупател/i, SRC_PAY_BACK = /^возврат плат[её]жа покупател/i;
 const SRC_POINTS = /баллы за скидку|возврат баллов/i;
-function accFeeKey(service: string, src: string): "commission" | "delivery" | "acquiring" | "storage" | "cofin" | "promo" | "otherSvc" {
+export type AccFeeField = "commission" | "delivery" | "acquiring" | "storage" | "cofin" | "promo" | "otherSvc";
+// Вид проводки реестра для блока ACC: платёж покупателя, его возврат, баллы, сбор (поле accFeeKey) или
+// прочее (идёт в otherSvc). Одна классификация на блок «Аналитика по артикулам» и отчёт Маркета
+// (ym/report-page-ym.ts раскладывает поля блока по услугам Маркета).
+export function accNetKind(type: string, src: string): "pay" | "back" | "points" | "fee" | "other" {
+  if (SRC_PAY.test(src)) return "pay";
+  if (SRC_PAY_BACK.test(src)) return "back";
+  if (SRC_POINTS.test(src)) return "points";
+  if (isNettingFee(type, src)) return "fee";
+  return "other";
+}
+// Пара (кабинет, месяц) считается по реестру, только если у ВСЕХ её строк есть источник проводки.
+export function accNetReady(netting: AccNettingRow[]): (business: string, d: string) => boolean {
+  const pairOf = (b: string, d: string) => `${b}/${d.slice(0, 7)}`;
+  const bad = new Set<string>(), seen = new Set<string>();
+  for (const r of netting) { const p = pairOf(String(r.business || ""), r.d); seen.add(p); if (r.src === undefined) bad.add(p); }
+  return (b, d) => seen.has(pairOf(b, d)) && !bad.has(pairOf(b, d));
+}
+export function accFeeKey(service: string, src: string): AccFeeField {
   const g = nettingFeeGroup(service, src);
   if (g === COFIN_GROUP) return "cofin";
   if (g === "Комиссия за продажу") return "commission";
@@ -385,9 +403,8 @@ function accFeeKey(service: string, src: string): "commission" | "delivery" | "a
 export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], cogsAt: (sku: string) => number | undefined = () => undefined): { rows: AccNetRow[]; fallback: string[]; unknown: Record<string, number> } {
   // Пара готова к расчёту по реестру, только если у ВСЕХ её строк есть источник проводки.
   const pairOf = (b: string, d: string) => `${b}/${d.slice(0, 7)}`;
-  const bad = new Set<string>(), seen = new Set<string>();
-  for (const r of netting) { const p = pairOf(String(r.business || ""), r.d); seen.add(p); if (r.src === undefined) bad.add(p); }
-  const ready = (p: string) => seen.has(p) && !bad.has(p);
+  const readyBD = accNetReady(netting);
+  const ready = (p: string) => readyBD(p.split("/")[0]!, p.split("/")[1]! + "-01");
   // Штуки. COUNT есть в самом отчёте с 28.09.2026; для строк, собранных раньше, - из заказа.
   const ord = new Map<string, OrderRow>(), skuOfOrder = new Map<string, string>();
   for (const o of orders) {
@@ -419,16 +436,17 @@ export function buildAccNetting(netting: AccNettingRow[], orders: OrderRow[], co
   for (const r of netting) {
     const b = String(r.business || "");
     if (!r.order || !String(r.order).trim()) continue; // уровень кабинета - в pnl_account_daily
-    if (!ready(pairOf(b, r.d))) continue;
+    if (!readyBD(b, r.d)) continue;
     const sku = r.sku || netSku.get(r.order)?.sku || skuOfOrder.get(r.order) || "";
     const contract = String(r.contract || "");
     const k = `${r.d}|${b}|${contract}|${sku}`;
     const t = m.get(k) || { ...blank(r.d, b, sku, "netting"), ...(contract ? { contract } : {}) };
     const src = String(r.src || ""), a = Number(r.amount) || 0;
-    if (SRC_PAY.test(src)) { if (r.sku) { t.got += a; t.sold += qtyOf(r, false); } else t.dgot += a; }
-    else if (SRC_PAY_BACK.test(src)) { if (r.sku) { t.back += a; t.ret += qtyOf(r, true); } else t.dback += a; }
-    else if (SRC_POINTS.test(src)) { t.points += a; m.set(k, t); continue; }
-    else if (isNettingFee(r.type || "", src)) {
+    const kind = accNetKind(r.type || "", src);
+    if (kind === "pay") { if (r.sku) { t.got += a; t.sold += qtyOf(r, false); } else t.dgot += a; }
+    else if (kind === "back") { if (r.sku) { t.back += a; t.ret += qtyOf(r, true); } else t.dback += a; }
+    else if (kind === "points") { t.points += a; m.set(k, t); continue; }
+    else if (kind === "fee") {
       const f = accFeeKey(r.service || "", src);
       t[f] += a;
       // Списание баллами («Скидка за участие в совместных акциях») - не деньги: в отчёте о платежах

@@ -453,9 +453,11 @@ function rpyAds(P,cur,prev,R){
   // o: {sub, main, par/kid - свёртка «в т.ч.» как в блоках 2-4}.
   var rf=function(v){return String(Math.round(v*100)/100).replace('.',',');};
   var row=function(l,vals,o,fmt){var n=vals.length,v0=vals[n-2],v1=vals[n-1],d=(v0==null||v1==null)?null:v1-v0;
-    var cell=function(v){return v==null?'<span class="rp-mute">нет данных</span>':(fmt?fmt(v):rpN(v));};
+    var fl=o.flags||[],ci=0;
+    var cell=function(v){var i=ci++;return (v==null?'<span class="rp-mute">нет данных</span>':(fmt?fmt(v):rpN(v)))+(v!=null&&fl[i]?' <span class="rp-warn">*</span>':'');};
     var cls=(o.sub?'rp-sub':'')+(o.main?' rp-main':'')+(o.par?' rp-par'+(RPY_OPEN[o.par]?' rp-open':''):'')+(o.kid?' rp-kid':'');
     var at=(o.par?' data-p="'+o.par+'"':'')+(o.kid?' data-g="'+o.kid+'"'+(RPY_OPEN[o.kid]?'':' style="display:none"'):'');
+    var dOk=d!=null&&!fl[n-2]&&!fl[n-1];if(!dOk)d=null;
     return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+'><td'+(o.t?' title="'+o.t+'"':'')+'>'+l+'</td>'+vals.slice(0,n-2).map(function(v){return '<td class="r rp-retro">'+cell(v)+'</td>';}).join('')+'<td class="r">'+cell(v0)+'</td><td class="r">'+cell(v1)+'</td><td class="r">'+(d==null?'—':(fmt?((d>0?'+':'')+rf(d)):rpDTxt(d,!!o.inc)))+'</td><td class="r">'+(d==null?'—':rpPctTxt(fmt?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0),!!o.inc))+'</td></tr>';};
   h+=row('Продвижение деньгами',calcs.map(function(c){return c.grand?c.grand.mpromo:null;}),{main:1,par:'ad1'});
   h+=row('в т.ч. зеркала',calcs.map(function(c){return c.grand?c.g.mir.promo:null;}),{sub:1,kid:'ad1'});
@@ -469,19 +471,24 @@ function rpyAds(P,cur,prev,R){
   var col=function(kind,i){return yms.map(function(m){return pm(m,kind,i);});};
   var ratio=function(a,b){return a.map(function(v,i){return v==null||!b[i]?null:v/b[i]*100;});};
   var pc=function(v){return rf(v)+'%';};
+  // Месяц, где отчёты есть не по обоим кабинетам (зеркалам без подписки Маркет не отдаёт данные старше
+  // 90 дней), - со звёздочкой и без отклонения: это не итог, а один кабинет.
+  var part=yms.map(function(m){var bs={};(REPY.promo||[]).forEach(function(r){if(r[0]===m)bs[r[1]]=1;});var n=Object.keys(bs).length;return n>0&&!(bs[REPY.cab.mir]&&bs[REPY.cab.fur]);});
+  var anyPart=part.some(function(x){return x;});
   var spAll=col('',3),rvAll=col('boost',5);
-  h+=row('Расход по отчётам Маркета',spAll,{main:1,par:'ad2',t:'буст продаж (деньги и баллы), буст показов, полки'});
-  h+=row('в т.ч. буст продаж',col('boost',3),{sub:1,kid:'ad2'});
-  h+=row('в т.ч. буст показов',col('shows',3),{sub:1,kid:'ad2'});
-  h+=row('в т.ч. полки',col('shelf',3),{sub:1,kid:'ad2'});
-  h+=row('Выручка доставленных заказов',rvAll,{main:1,par:'ad3',inc:1,t:'по данным Маркета, по дате доставки'});
-  h+=row('с бустом продаж',col('boost',4),{sub:1,kid:'ad3',inc:1});
-  h+=row('с буста показов',col('shows',4),{sub:1,kid:'ad3',inc:1,t:'по оформленным заказам'});
-  h+=row('с полок',col('shelf',4),{sub:1,kid:'ad3',inc:1,t:'по оформленным заказам'});
-  h+=row('ДРР от всей выручки',ratio(spAll,rvAll),{main:1,par:'ad4'},pc);
-  h+=row('буст продаж',ratio(col('boost',3),col('boost',4)),{sub:1,kid:'ad4',t:'расход на буст / выручка с бустом'},pc);
-  h+=row('буст показов',ratio(col('shows',3),col('shows',4)),{sub:1,kid:'ad4'},pc);
-  h+=row('полки',ratio(col('shelf',3),col('shelf',4)),{sub:1,kid:'ad4'},pc);
+  h+=row('Расход по отчётам Маркета',spAll,{main:1,par:'ad2',t:'буст продаж (деньги и баллы), буст показов, полки',flags:part});
+  h+=row('в т.ч. буст продаж',col('boost',3),{sub:1,kid:'ad2',flags:part});
+  h+=row('в т.ч. буст показов',col('shows',3),{sub:1,kid:'ad2',flags:part});
+  h+=row('в т.ч. полки',col('shelf',3),{sub:1,kid:'ad2',flags:part});
+  h+=row('Выручка доставленных заказов',rvAll,{main:1,par:'ad3',inc:1,t:'по данным Маркета, по дате доставки',flags:part});
+  h+=row('с бустом продаж',col('boost',4),{sub:1,kid:'ad3',inc:1,flags:part});
+  h+=row('с буста показов',col('shows',4),{sub:1,kid:'ad3',inc:1,t:'по оформленным заказам',flags:part});
+  h+=row('с полок',col('shelf',4),{sub:1,kid:'ad3',inc:1,t:'по оформленным заказам',flags:part});
+  h+=row('ДРР от всей выручки',ratio(spAll,rvAll),{main:1,par:'ad4',flags:part},pc);
+  h+=row('буст продаж',ratio(col('boost',3),col('boost',4)),{sub:1,kid:'ad4',t:'расход на буст / выручка с бустом',flags:part},pc);
+  h+=row('буст показов',ratio(col('shows',3),col('shows',4)),{sub:1,kid:'ad4',flags:part},pc);
+  h+=row('полки',ratio(col('shelf',3),col('shelf',4)),{sub:1,kid:'ad4',flags:part},pc);
+  if(anyPart)h+='<tr><td colspan="'+(R.length+5)+'" class="rp-mute"><span class="rp-warn">*</span> только мебель: по зеркалам Маркет не отдаёт отчёты старше 90 дней</td></tr>';
   document.getElementById('rp-ads').innerHTML=h+'</tbody>';rpyFold(document.getElementById('rp-ads'));
 }
 // === 5. Непродаваемые (ответ 4а: правила и пороги OZON [ГИПОТЕЗА]; 3а 01.10: отменённые заказы) ===

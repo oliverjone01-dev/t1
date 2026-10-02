@@ -516,7 +516,14 @@ async function promo(months: string[], now: Date) {
         if (done.has(key) && ym < freshFrom) continue;
         let tables: Tbl[] | null = null;
         try { tables = await fetchReportAll(account.api, PROMO_REPORTS[kind].type, { businessId: Number(b), dateFrom, dateTo, ...(kind === "boost" ? {} : { attributionType: "SHOWS" }) }); }
-        catch (err) { if (stopOnRateLimit(err, `продвижение ${kind} ${b} ${ym}`)) break; console.warn(`::warning::продвижение ${kind} ${b} ${ym}: ${String((err as Error).message).slice(0, 200)}`); continue; }
+        catch (err) {
+          if (stopOnRateLimit(err, `продвижение ${kind} ${b} ${ym}`)) break;
+          // Живой факт 02.10 (проба 37006024141): кабинету без подписки Маркет не отдаёт данные старше
+          // 90 дней (HTTP 400 «Without subscription ... older than 90 days»). Это не сбой и не изменится
+          // повтором: месяц закрываем без строки - на странице «нет данных», а не 0, и не долбим каждый прогон.
+          if (/older than 90 days/i.test(String((err as Error).message))) { done.add(key); console.log(`promo: ${b} ${ym} ${kind} - Маркет не отдаёт данные старше 90 дней без подписки`); continue; }
+          console.warn(`::warning::продвижение ${kind} ${b} ${ym}: ${String((err as Error).message).slice(0, 200)}`); continue;
+        }
         // null без исчерпанного бюджета - отчёт пустой или не собрался: месяц закрыт без строки, на странице
         // «нет данных», а не 0 (К7). Свежее окно всё равно перезаберётся следующим прогоном.
         if (!tables) { if (budgetSpent) break; done.add(key); continue; }

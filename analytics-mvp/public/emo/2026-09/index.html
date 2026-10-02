@@ -492,6 +492,18 @@ function drawDirectionQuality(){
 const pairRenderChannel=renderChannel;renderChannel=function(){pairRenderChannel();drawDirectionQuality();};
 const pairStyle=document.createElement('style');pairStyle.textContent='#lead-quality-pair{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:24px;margin:20px 0}#lead-quality-pair>.chart-widget{min-width:0;margin:0;padding:18px;border:1px solid var(--line);border-radius:12px}#lead-quality-pair h3{margin:0 0 10px;font-size:14px}#lead-quality-pair .source-note{font-size:11px;line-height:1.6;margin:0 0 14px;color:var(--muted)}#lead-quality-pair #lead-chart{min-width:0}#lead-quality-pair #lead-legend{gap:10px;flex-wrap:wrap}#lead-direction-quality .direction-quality-list{max-height:310px;overflow:auto}.direction-quality-item{padding:12px 0;border-bottom:1px solid var(--line)}.direction-quality-heading,.direction-quality-detail{display:flex;justify-content:space-between;gap:12px;font-size:12px}.direction-quality-heading strong,.direction-quality-heading b{font-weight:500}.direction-quality-heading span{color:var(--muted);white-space:nowrap}.direction-share-bar{display:flex;height:6px;border-radius:4px;overflow:hidden;background:var(--bg);margin:10px 0}.direction-share-bar i{display:block;opacity:.62}.direction-quality-detail{font-size:10px;color:var(--muted)}.direction-quality-detail .delta{font-weight:400}#metrika-source-block{margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}#metrika-source-block h3{margin:0 0 10px;font-size:15px}#metrika-source-block>.source-note{margin:0 0 14px;font-size:12px;color:var(--muted)}#metrika-month-comparison{margin:0;padding:0;border-top:0}@media(max-width:1100px){#lead-quality-pair{grid-template-columns:1fr}}';document.head.append(pairStyle);
 drawLeads();drawDirectionQuality();
+const conversionTable=$('nonqual-business').querySelector('table');
+const conversionHeader=document.createElement('th');conversionHeader.textContent='Конвертация, %';conversionHeader.title='Лиды со статусом CONVERTED / все лиды направления. По дате создания лида; статус на дату снимка.';
+conversionTable.tHead.rows[0].cells[2].textContent='Квал · конвертированы';conversionTable.tHead.rows[0].cells[2].after(conversionHeader);
+for(const row of conversionTable.tBodies[0].rows){
+ const dir=row.cells[0].textContent.trim(),group=m=>D.leads.filter(r=>r.created.startsWith(m)&&r.dir===dir),a=group('2026-08'),s=group('2026-09');
+ const av=a.length?100*a.filter(r=>r.qual==='qualified').length/a.length:null,sv=s.length?100*s.filter(r=>r.qual==='qualified').length/s.length:null;
+ const cell=document.createElement('td');cell.dataset.sortValue=sv===null?'':String(sv);cell.innerHTML=(sv===null?'—':num(sv)+'%')+'<br><span class="conversion-month">Авг.: '+(av===null?'—':num(av)+'%')+' · '+(av===null||sv===null?'—':movement(av,sv,true))+'</span>';row.cells[2].after(cell);
+}
+const conversionDescription=document.createElement('p');conversionDescription.className='source-note';conversionDescription.textContent='Успех — лид конвертирован в сделку (CONVERTED). Конвертация = конвертированные / все лиды направления. Лиды — по дате создания, статус — на дату снимка.';
+$('nonqual-business').querySelector('h3').after(conversionDescription);
+const conversionStyle=document.createElement('style');conversionStyle.textContent='#nonqual-business>.source-note{margin:0 0 14px;color:var(--muted)}#nonqual-business .conversion-month{font-size:10px;white-space:nowrap;color:var(--muted)}#nonqual-business .conversion-month .delta{font-weight:400}';document.head.append(conversionStyle);
+prepareReportSort();
 })();
 </script>
 </body></html>

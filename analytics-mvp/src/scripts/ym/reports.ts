@@ -14,7 +14,7 @@ import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, nettingRowOf } from "./reports-lib.js";
 import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
 import { DELIVERED_STATUSES } from "./derive-lib.js";
 
@@ -348,7 +348,7 @@ async function netting(from: string, to: string) {
           const one: any[] = [];
           for (const r of t.rows) {
             const d = cellDate(r[ix.date!]); if (!d) continue;
-            one.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", src: ix.source! >= 0 ? (r[ix.source!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", count: ix.count! >= 0 && (r[ix.count!] || "").trim() ? num("united-netting", r[ix.count!]) : 0, contract: ix.contract! >= 0 ? (r[ix.contract!] || "").trim() : "", status: ix.status! >= 0 ? (r[ix.status!] || "").trim() : "", platform: "ym" });
+            one.push(nettingRowOf(r, ix, b, d, (c) => num("united-netting", c)));
           }
           for (const x of numberDuplicates(one)) fresh.push(x);
         }

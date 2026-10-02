@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { findCol } from "../../util/table.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, PREV_MONTH_REFETCH_DAYS } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, PREV_MONTH_REFETCH_DAYS, nettingRowOf } from "./reports-lib.js";
 
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
@@ -42,6 +42,20 @@ describe("колонки отчётов Маркета (живые заголо�
     expect(col("united-netting", "sku", n)).toBe(n.indexOf("SHOP_SKU"));
     expect(col("united-netting", "payment_order", n)).toBe(n.indexOf("BANK_ORDER_ID"));
     expect(col("united-netting", "type", n)).toBe(n.indexOf("TRANSACTION_TYPE"));
+    // Схема 5 (02.10): статус платежа - по нему отменённый заказ отличается от продажи.
+    expect(col("united-netting", "status", n)).toBe(n.indexOf("PAYMENT_STATUS"));
+  });
+  it("строка реестра несёт статус платежа; нет колонки - пусто, а не чужая ячейка (G5 ФЕНИКСА iter2)", () => {
+    const n = H["united-netting/transaction_date.csv"]!;
+    const ix: Record<string, number> = {};
+    for (const k of ["date", "amount", "order", "sku", "type", "source", "status", "count", "service"]) ix[k] = col("united-netting", k, n);
+    expect(ix.status).toBeGreaterThanOrEqual(0);
+    const r = n.map(() => "");
+    r[ix.amount!] = "1000"; r[ix.order!] = "59831744643"; r[ix.status!] = "  Не будет переведён из-за отмены заказа "; r[ix.count!] = "1";
+    const num = (c: string | undefined) => Number(c);
+    const row = nettingRowOf(r, ix, "1", "2026-08-02", num);
+    expect(row).toMatchObject({ d: "2026-08-02", business: "1", order: "59831744643", amount: 1000, count: 1, status: "Не будет переведён из-за отмены заказа" });
+    expect(nettingRowOf(r, { ...ix, status: -1 }, "1", "2026-08-02", num).status).toBe("");
   });
   it("воронка: показы/клики/корзина/заказы и дата из DAY+MONTH+YEAR (отдельной колонки даты нет)", () => {
     const v = H["shows-sales/sales_funnel_report.csv"]!;

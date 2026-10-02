@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, accSaleDay, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, accSaleDay, splitNoStatus, accCutDays, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -631,5 +631,18 @@ describe("второй столбец блока ACC: заказы со сбор
     const by = (sk: string) => rows.filter((r) => r.sku === sk).reduce((a, r) => a + r.ship, 0);
     expect(by("A")).toBe(3_000);
     expect(by("B")).toBe(1_000);
+  });
+});
+
+// G4 и G5 ФЕНИКСА iter2 (мутанты M10, M11): пометки пар без статуса и отрезанных дней.
+describe("пары без статуса и отрезанные дни реестра", () => {
+  it("месяцы до FLOOR бот не перезабирает - отдельная группа, без обещания перезабора", () => {
+    const r = splitNoStatus(["1/2025-12", "1/2026-01", "1/2026-02", "2/2026-09"], "2026-02-01");
+    expect(r.never).toEqual(["1/2025-12", "1/2026-01"]);
+    expect(r.refetch).toEqual(["1/2026-02", "2/2026-09"]);
+  });
+  it("отрезаются ВСЕ дни после границы, по разу и по порядку (G1 ФЕНИКСА 02.10)", () => {
+    expect(accCutDays(["2026-09-30", "2026-09-27", "2026-09-26", "2026-09-30", "2026-09-28"], "2026-09-26")).toEqual(["2026-09-27", "2026-09-28", "2026-09-30"]);
+    expect(accCutDays(["2026-09-26"], "2026-09-26")).toEqual([]);
   });
 });

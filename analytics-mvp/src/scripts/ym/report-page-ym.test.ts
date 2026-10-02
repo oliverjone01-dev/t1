@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { REPORT_JS } from "../report-page.js";
-import { pickJs, reportDataYm, reportJsYm, RP_SHARED } from "./report-page-ym.js";
+import { pickJs, reportDataYm, reportJsYm, RP_SHARED, campaignPoints } from "./report-page-ym.js";
 import { accLedgerFullTo } from "./derive-lib.js";
 
 const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs"];
@@ -21,7 +21,7 @@ const accRow = (sku: string, cat: string, v: Record<string, number>) => {
 function page(repy: any, byPer: (per: { from: string; to: string }) => any[], accDays: string[], doc: any[] = []) {
   // Общие функции страница кладёт в window (глобальная область браузера); здесь это globalThis.
   const win: any = globalThis;
-  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines};`;
+  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines,rpyPtsLines};`;
   const R = { svc: [], gen: [], pts: [], drr: [], ...repy };
   return new Function("W", "REPY", "accAgg", "ACC", "ACC_DOC", "ACC_RATE", "fmtRu", "document", body)(
     win, R, byPer, accDays.map((d) => [d, "X"]), doc, { adm: 0.3, tax: 0.15 }, (n: number) => String(Math.round(n)), {});
@@ -128,6 +128,32 @@ describe("отчёт Маркета: итоги месяца", () => {
   });
   it("месяц без проводок - null («нет данных»), а не нули", () => {
     expect(f.rpyCalc({ from: "2026-07-01", to: "2026-07-31" }).grand).toBeNull();
+  });
+  // G1 ФЕНИКСА iter2: месяц, собранный без статуса платежа, - «Оплачено и отменено» нет данных, не 0.
+  it("«Оплачено и отменено» в месяце без статуса - null, со статусом - число", () => {
+    const g: any = globalThis;
+    const L = (t: any) => f.rpyPtsLines([]).filter((x: any) => x.k === "cgot" || x.k === "csold" || x.k === "cback").map((x: any) => x.fn(t));
+    try {
+      g.ACC_NOST = ["74986385/2026-09"];
+      const cn = f.rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
+      expect(cn.grand.nost).toEqual(["74986385/2026-09"]);
+      expect(L(cn.grand)).toEqual([null, null, null]);
+      g.ACC_NOST = ["74986385/2026-08"]; g.ACC_NOST_OLD = ["74986385/2026-01"];
+      const cs = f.rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
+      expect(cs.grand.nost).toEqual([]);
+      expect(L(cs.grand)).toEqual([0, 0, 0]);
+    } finally { delete g.ACC_NOST; delete g.ACC_NOST_OLD; }
+  });
+  // Решение 02.10 «два столбца»: первый столбец (acc1, amount1) и наша доставка доходят до итога отчёта.
+  it("два столбца: справочный первый и наша доставка суммируются в итог", () => {
+    const rows = [Object.assign(accRow("A", "Зеркала", { accruals: 100, pay: 100, amount: 90 }), { acc1: 70, amount1: 60, ship: 15 }),
+      Object.assign(accRow("B", "Столы", { accruals: 50, pay: 50, amount: 45 }), { acc1: 80, amount1: 75, ship: 5 })];
+    const f2 = page({ to: "2026-09-29" }, () => rows, ["2026-09-03"]);
+    const g2 = f2.rpyCalc({ from: "2026-09-01", to: "2026-09-29" }).grand;
+    expect([g2.acc, g2.acc1, g2.amount1, g2.ship]).toEqual([150, 150, 135, 20]);
+    const ks = f2.rpyLines([]).map((x: any) => x.k);
+    expect(ks.indexOf("acc1")).toBeLessThan(ks.indexOf("acc"));
+    expect(ks).toContain("ship");
   });
 });
 
@@ -237,5 +263,20 @@ describe("граница полного реестра (вариант «а», �
   });
   it("пустой реестр - пустая граница, а не выдуманная дата", () => {
     expect(accLedgerFullTo([]).to).toBe("");
+  });
+});
+
+// G5 ФЕНИКСА iter2 (мутанты M13, M21): кампании баллами из отчёта по баллам.
+describe("отчёт Маркета: кампании баллами без заказа (2а)", () => {
+  const bon = (d: string, b: string, extra: any = {}) => ({ d, business: b, order: "", src: "Скидка за участие в совместных акциях", service: "Полки", amount: -1_000, ...extra });
+  it("берутся только списания «Скидка за участие…» без заказа, не отменённые, по границу реестра", () => {
+    const out = campaignPoints([], [bon("2026-09-03", "1"), bon("2026-09-04", "1", { src: "Баллы за скидку Маркета" }), bon("2026-09-05", "1", { order: "123" }),
+      bon("2026-09-06", "1", { status: "Справочно: не будет пополнен баланс" }), bon("2026-09-30", "1")], "2026-09-29");
+    expect(out).toEqual([{ d: "2026-09-03", b: "1", svc: "Полки", a: -1_000 }]);
+  });
+  it("пара, где реестр платежей уже несёт такие списания, не берётся (не задвоить)", () => {
+    const net = [{ d: "2026-09-10", business: "1", order: "", type: "Списание", src: "Скидка за участие в совместных акциях", service: "Полки", amount: -500 }];
+    const out = campaignPoints(net as any, [bon("2026-09-03", "1"), bon("2026-09-03", "2"), bon("2026-08-03", "1")], "2026-09-29");
+    expect(out.map((x) => `${x.b}/${x.d}`)).toEqual(["2/2026-09-03", "1/2026-08-03"]);
   });
 });

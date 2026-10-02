@@ -395,6 +395,16 @@ export function nettingNoStatus(netting: Array<{ d: string; business?: unknown; 
   for (const r of netting) if (r.src !== undefined && !String(r.status || "").trim()) out.add(`${String(r.business || "")}/${r.d.slice(0, 7)}`);
   return [...out].sort();
 }
+// Пары без статуса - на две группы (G4 ФЕНИКСА iter2): с FLOOR и позже бот перезаберёт схемой 5,
+// раньше FLOOR не перезабирает никогда - обещать перезабор там нельзя.
+export function splitNoStatus(pairs: string[], floor: string): { refetch: string[]; never: string[] } {
+  const fm = floor.slice(0, 7);
+  return { refetch: pairs.filter((p) => (p.split("/")[1] || "") >= fm), never: pairs.filter((p) => (p.split("/")[1] || "") < fm) };
+}
+// Дни реестра после границы полного дня - ВСЕ, а не только последние дни кабинетов (G1 ФЕНИКСА 02.10).
+export function accCutDays(days: string[], to: string): string[] {
+  return [...new Set(days.filter((d) => d > to))].sort();
+}
 const SRC_PAY = /^плат[её]ж покупател/i, SRC_PAY_BACK = /^возврат плат[её]жа покупател/i;
 const SRC_POINTS = /баллы за скидку|возврат баллов/i;
 export type AccFeeField = "commission" | "delivery" | "acquiring" | "storage" | "cofin" | "promo" | "otherSvc";

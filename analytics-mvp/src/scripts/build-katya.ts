@@ -9,7 +9,8 @@ import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
 import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
-import { accLedgerFullTo, nettingCancelled, nettingNoStatus } from "./ym/derive-lib.js";
+import { accLedgerFullTo, nettingCancelled, nettingNoStatus, splitNoStatus, accCutDays } from "./ym/derive-lib.js";
+import { FLOOR as YM_FLOOR } from "./ym/common.js";
 import { matchLedger, accrualShipSeries, type Unmatched } from "./delivery-match.js";
 import { splitCpo } from "./cpo-split.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
@@ -3678,7 +3679,7 @@ function accJs(): string {
   const { to: accTo } = accLedgerFullTo(rows);
   // Все отрезанные дни, а не только последние дни кабинетов (G1 ФЕНИКСА 02.10: при отстающем кабинете
   // из блока выпадают и полные дни другого кабинета - подпись обязана их назвать).
-  const accCut = [...new Set(rows.map((r) => String(r.d || "")).filter((d) => d > accTo))].sort();
+  const accCut = accCutDays(rows.map((r) => String(r.d || "")), accTo);
   rows = rows.filter((r) => String(r.d || "") <= accTo);
   // Пары кабинет/месяц, собранные без статуса платежа (схема реестра до 5): там отменённый заказ
   // ещё посчитан продажей. Помечаются в блоке, пока бот не перезаберёт месяц.
@@ -3711,8 +3712,11 @@ function accJs(): string {
       const bk = r.contract ? `${b} · договор ${r.contract}` : b;
       const dk = `${d}|${bk}`;
       const x = doc.get(dk) || { d, b: bk, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
-      x.got += (Number(r.got) || 0) + (Number(r.dgot) || 0); x.back += (Number(r.back) || 0) + (Number(r.dback) || 0);
-      x.sold += Number(r.sold) || 0; x.ret += Number(r.ret) || 0; x.amount += Number(r.amount) || 0;
+      // Отчёт о платежах считает и оплаченные-отменённые («Поступило платежей покупателей» и «Удержано на
+      // возвраты» без фильтра статуса, G2 ФЕНИКСА iter2): сверка с документом добавляет их (cgot/cback),
+      // иначе после перезабора со статусами она разошлась бы с документом на 0,8-1,4 млн ₽ на кабинет.
+      x.got += (Number(r.got) || 0) + (Number(r.dgot) || 0) + (Number(r.cgot) || 0); x.back += (Number(r.back) || 0) + (Number(r.dback) || 0) + (Number(r.cback) || 0);
+      x.sold += (Number(r.sold) || 0) + (Number(r.csold) || 0); x.ret += (Number(r.ret) || 0) + (Number(r.cret) || 0); x.amount += Number(r.amount) || 0;
       doc.set(dk, x);
     }
   }
@@ -3774,7 +3778,9 @@ var ACC_NOCOGS=${JSON.stringify([...noCogs].sort())};
 var ACC_UPD=${JSON.stringify(upd)};
 var ACC_PEND=${JSON.stringify(pend)};
 var ACC_OPEN={};
-var ACC_NOST=${JSON.stringify(accNoSt)};
+var ACC_NOST=${JSON.stringify(splitNoStatus(accNoSt, YM_FLOOR).refetch)};
+var ACC_NOST_OLD=${JSON.stringify(splitNoStatus(accNoSt, YM_FLOOR).never)};
+var ACC_FLOOR=${JSON.stringify(YM_FLOOR.slice(0, 7))};
 var ACC_TO=${JSON.stringify(accTo)};
 var ACC_CUT=${JSON.stringify(accCut)};
 var ACC_R=${accR ? "true" : "false"};
@@ -4822,7 +4828,10 @@ function accDraw(){
   var cg=0,cs=0,cb=0,cr=0;list.forEach(function(o){cg+=o.cgot||0;cs+=o.csold||0;cb+=o.cback||0;cr+=o.cret||0;});
   var accCancTxt=(Math.round(cg)||Math.round(cb))?'<br><span title="Заказ оплатили и отменили: Маркет помечает платёж «Не будет переведён из-за отмены заказа», возврат - «Не будет удержан из-за отмены заказа». Денег продавцу не было и не будет, поэтому в «Начислено», «К выплате» и штуки такие строки не входят. Платёж и его отмена могут прийтись на разные месяцы.">оплачено и отменено (в блок не входит): платежи <b>'+svRub(cg)+' ₽</b> / '+cs+' шт, их возвраты '+svRub(-cb)+' ₽ / '+cr+' шт</span>':'';
   var noSt=(typeof ACC_NOST!=='undefined'?ACC_NOST:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
-  var accNoStTxt=noSt.length?'<br><span style="color:#E5B567">статус платежа не собран: '+noSt.join(', ')+' - отменённый заказ там пока посчитан продажей и возвратом; бот перезаберёт эти месяцы (схема реестра 5)</span>':'';
+  var noStO=(typeof ACC_NOST_OLD!=='undefined'?ACC_NOST_OLD:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
+  var accNoStTxt=(noSt.length?'<br><span style="color:#E5B567">статус платежа не собран: '+noSt.join(', ')+' - отменённый заказ там пока посчитан продажей и возвратом; бот перезаберёт эти месяцы (схема реестра 5)</span>':'')
+    // Месяцы до начала сбора (FLOOR) бот не перезабирает (G4 ФЕНИКСА iter2): обещать перезабор нельзя.
+    +(noStO.length?'<br><span style="color:#E5B567">статус платежа не собирается: '+noStO.join(', ')+' - месяцы до '+(typeof ACC_FLOOR!=='undefined'?ACC_FLOOR:'')+' бот не перезабирает, отменённый заказ там посчитан продажей и возвратом</span>':'');
   cov.innerHTML='период: <b>'+w.from+' .. '+(accTo&&w.to>accTo?accTo:w.to)+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'+accCutTxt+accCancTxt+accNoStTxt
     +(docTxt?'<br><span title="Наш расчёт из реестра для сверки со строками отчёта о платежах Маркета за те же даты: «Получено от Потребителей», «Возвращено Потребителям», «Подлежит перечислению», по договору. «Удержано без заказа» и «премия» - проводки кабинета без артикула: в таблицу они не входят, а в «Подлежит перечислению» документа входят. Июль 2026 сверен с отчётами Кати до копейки по обоим договорам. По артикулу - колонки «Продано, шт», «Возвраты, шт» и подсказка ячейки «Оплатил клиент».">сверка с отчётом о платежах</span>:<br>'+docTxt:'')
     +(fbIn.length?'<br><span style="color:#E5B567">по выгрузке заказов, а не по реестру: '+fbIn.join(', ')+' - реестр за эти месяцы собран без колонки источника, платёж покупателя там не отличить от баллов. Перезабор идёт сам (схема реестра 3); до него штуки и платёж этих месяцев с отчётом о платежах могут не совпасть</span>':'')

@@ -1,7 +1,18 @@
+# Простановка статуса платежа (PAYMENT_STATUS) из выгрузки кабинета в КОПИЮ data-ym - чтобы до перезабора
+# ботом увидеть цифры «после статусов» (эталон v3 спеки ym-monthly-report).
+# Повтор (из корня репо):
+#   1) выгрузить в кабинете Маркета «Отчёт по взаиморасчётам» (united_netting_*.xlsx) за нужные месяцы по
+#      обоим кабинетам; файлы НЕ класть в git - в них ИНН ИП (E053);
+#   2) cp -r analytics-mvp/data-ym /tmp/data-ym-copy
+#   3) python3 tools/ym-sverka/set_status.py <папка с xlsx> /tmp/data-ym-copy
+#   4) cd analytics-mvp && YM_DATA_DIR=/tmp/data-ym-copy npm run ym:derive, затем сборку страниц с DATA_DIR=/tmp/data-ym-copy (см. скрипт ym:build в package.json; или derive+build
+#      кодом головы на копии) и сравнить «Деньги»/«Отчет» с эталоном v3.
+# Ключ сопоставления строки: кабинет, дата, заказ, источник, услуга, сумма (дубли - по порядку).
 import glob,collections,json,sys
 sys.path.insert(0,'tools/ym-sverka')
 from xl import sheet_rows
-UP='UPLOADS_DIR/'; D='COPY_OF_DATA_YM/'
+if len(sys.argv)<3: sys.exit('usage: set_status.py <папка с united_netting*.xlsx> <копия data-ym>')
+UP=sys.argv[1].rstrip('/')+'/'; D=sys.argv[2].rstrip('/')+'/'
 def dt(s): d,m,y=str(s).split(' ')[0].split('.'); return f'{y}-{m}-{d}'
 def oid(r):
     if r[10] not in (None,''): return str(r[10])

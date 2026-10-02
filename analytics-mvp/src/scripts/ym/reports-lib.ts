@@ -94,3 +94,16 @@ export function reportMonthsToDo(all: string[], done: Iterable<string>, cur: str
   const most = Math.max(...byYm.values());
   return all.filter((m) => m === cur || m === prev || (byYm.get(m) || 0) < most);
 }
+
+// Строка реестра взаиморасчётов из строки CSV (ix - индексы колонок по report-columns.json, -1 = колонки
+// нет). Вынесено из сборщика, чтобы проверять тестом (G5 ФЕНИКСА iter2): статус платежа (PAYMENT_STATUS,
+// схема 5) обязан доехать до строки, иначе отменённый заказ снова станет продажей.
+export function nettingRowOf(r: string[], ix: Record<string, number | undefined>, business: string, d: string, num: (cell: string | undefined) => number) {
+  const s = (k: string) => (ix[k] ?? -1) >= 0 ? (r[ix[k]!] || "").trim() : "";
+  return {
+    d, business, tx: s("transaction"), shop_order: s("shop_order"), type: s("type"), service: s("service"), src: s("source"),
+    amount: num(r[ix.amount!]), order: s("order"), sku: s("sku"), po: s("payment_order"),
+    count: (ix.count ?? -1) >= 0 && (r[ix.count!] || "").trim() ? num(r[ix.count!]) : 0,
+    contract: s("contract"), status: s("status"), platform: "ym" as const,
+  };
+}

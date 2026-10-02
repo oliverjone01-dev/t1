@@ -11,6 +11,7 @@
 import { readFileSync } from "node:fs";
 import { REPORT_JS } from "../report-page.js";
 import { KEEP_OZON } from "../../paths.js";
+import { FLOOR } from "./common.js";
 import { accFeeKey, accLedgerFullTo, accNetKind, accNetReady, nettingCancelled, type AccNettingRow } from "./derive-lib.js";
 
 type Ctx = {
@@ -60,6 +61,22 @@ export function pickJs(src: string, names: string[], from = "REPORT_JS OZON-от
 
 const isCancelled = (st: string) => /^CANCELLED/i.test(String(st || ""));
 
+// Списания баллами за кампании кабинета без заказа из отчёта по баллам (ответ «2а» 02.10): только
+// «Скидка за участие в совместных акциях», без номера заказа, не отменённые, по границу реестра; пара
+// кабинет/месяц, где такие строки уже есть в реестре платежей, не берётся (защита от задвоения).
+// Вынесено для теста (G5 ФЕНИКСА iter2, мутанты M13 и M21).
+export function campaignPoints(net: AccNettingRow[], bonuses: any[], to: string): Array<{ d: string; b: string; svc: string; a: number }> {
+  const netCamp = new Set<string>();
+  for (const r of net) if ((!r.order || !String(r.order).trim()) && accNetKind(r.type || "", String(r.src || "")) === "fee" && accFeeKey(r.service || "", String(r.src || "")) === "cofin") netCamp.add(`${r.business}/${String(r.d).slice(0, 7)}`);
+  const out: Array<{ d: string; b: string; svc: string; a: number }> = [];
+  for (const r of bonuses) {
+    const d = String(r.d || ""), b = String(r.business || ""), src = String(r.src || "");
+    if (!d || d > to || (r.order && String(r.order).trim()) || nettingCancelled(r)) continue;
+    if (!/скидка за участие в совместных акциях/i.test(src) || netCamp.has(`${b}/${d.slice(0, 7)}`)) continue;
+    out.push({ d, b, svc: String(r.service || "").trim() || "кампания без названия", a: Number(r.amount) || 0 });
+  }
+  return out;
+}
 export function reportDataYm(ctx: Ctx) {
   const { dp, maxD } = ctx;
   const acc = readNd(dp("pnl_sku_netting_daily.ndjson"));
@@ -144,17 +161,12 @@ export function reportDataYm(ctx: Ctx) {
   // Маркета (bonuses_monthly.ndjson, сверено с выгрузкой кабинета до копейки). Справкой, группа
   // «Продвижение» (и буст, и полки - продвижение). Пара кабинет/месяц, где такие строки уже есть в
   // реестре, отсюда не берётся - чтобы не задвоить, если Маркет начнёт отдавать их в платежах.
-  const netCamp = new Set<string>();
-  for (const r of net) if ((!r.order || !String(r.order).trim()) && accNetKind(r.type || "", String(r.src || "")) === "fee" && accFeeKey(r.service || "", String(r.src || "")) === "cofin") netCamp.add(`${r.business}/${String(r.d).slice(0, 7)}`);
-  let campN = 0;
-  for (const r of readNd(dp("bonuses_monthly.ndjson"))) {
-    const d = String(r.d || ""), b = String(r.business || ""), src = String(r.src || "");
-    if (!d || d > to || (r.order && String(r.order).trim()) || nettingCancelled(r)) continue;
-    if (!/скидка за участие в совместных акциях/i.test(src) || netCamp.has(`${b}/${d.slice(0, 7)}`)) continue;
-    const a = Number(r.amount) || 0, svcN = String(r.service || "").trim() || "кампания без названия";
-    const k = `${d}|cofin:promo|${svcN} (кампания)`;
-    svcK[k] = (svcK[k] || 0) + a;
-    (ptsDay[d] ||= [0, 0])[1]! += a; campN++;
+  const camp = campaignPoints(net, readNd(dp("bonuses_monthly.ndjson")), to);
+  const campN = camp.length;
+  for (const c of camp) {
+    const k = `${c.d}|cofin:promo|${c.svc} (кампания)`;
+    svcK[k] = (svcK[k] || 0) + c.a;
+    (ptsDay[c.d] ||= [0, 0])[1]! += c.a;
   }
   // Баллы по дням - после кампаний: «списано за услуги» включает и их, как сумма услуг справки.
   const pts = Object.keys(ptsDay).sort().map((d) => [d, Math.round(ptsDay[d]![0]!), Math.round(ptsDay[d]![1]!)]);
@@ -185,7 +197,7 @@ export function reportDataYm(ctx: Ctx) {
   console.log(`report-ym: кампаний баллами из отчёта по баллам ${campN} строк; реестр полный по ${to} (последний день ${JSON.stringify(lastBy)}, со сборами ${JSON.stringify(feeBy)}), показы ${Object.keys(views).length} SKU с ${viewsFrom || "-"}, заказы по ${Object.keys(ordD).length} SKU с ${ordFrom || "-"}`);
   // Первый полный месяц реестра - с него идут серые ретро-колонки (месяц, начатый не с 1-го, неполный).
   const full = !accFrom ? "" : accFrom.slice(8) === "01" ? accFrom.slice(0, 7) + "-01" : addDays(accFrom.slice(0, 7) + "-01", 32).slice(0, 7) + "-01";
-  return { to, maxD, accFrom, full, lastBy, pts, views, viewsFrom, aggFrom, aggTo, ord: ordD, ordC, ordFrom, svc, gen, drr, cab };
+  return { to, maxD, accFrom, full, floor: FLOOR.slice(0, 7), lastBy, pts, views, viewsFrom, aggFrom, aggTo, ord: ordD, ordC, ordFrom, svc, gen, drr, cab };
 }
 
 export const REPORT_YM_CSS = `<style>
@@ -267,7 +279,9 @@ function rpyCalc(per){
   var pt=0,pc=0;REPY.pts.forEach(function(r){if(!rpyIn(r[0],per))return;pt+=r[1];pc+=r[2];});
   var nRows=0;for(var i=0;i<ACC.length;i++)if(rpyIn(ACC[i][0],per))nRows++;
   var grand=null;
-  if(list.length){grand=Object.assign(T,{acc:T.accruals,svc:svc,svcSum:svcSum,pts:pts,acct:acct,prem:prem,seller:seller,gen:acct+prem,netAll:T.np+acct+prem,
+  // Пары (кабинет/месяц) окна без статуса платежа (G1 ФЕНИКСА iter2): «оплачено и отменено» там не 0, а «нет данных».
+  var nost=(typeof ACC_NOST!=='undefined'?ACC_NOST:[]).concat(typeof ACC_NOST_OLD!=='undefined'?ACC_NOST_OLD:[]).filter(function(p){var m=p.split('/')[1];return m>=per.from.slice(0,7)&&m<=per.to.slice(0,7);});
+  if(list.length){grand=Object.assign(T,{nost:nost,acc:T.accruals,svc:svc,svcSum:svcSum,pts:pts,acct:acct,prem:prem,seller:seller,gen:acct+prem,netAll:T.np+acct+prem,
     ptsIn:pt,ptsOut:-pc,saldo:pt+pc,n:list.length});RPY_G.forEach(function(G){grand[G[1]]=-T[G[0]];});}
   // Инварианты. Строки ACC округлены до рубля по (день, артикул): тождество и разбивка по услугам
   // расходятся на рубли - до 1,5 ₽ и 0,5 ₽ на строку соответственно; флаг услуг - от 0,5 ₽ × строк окна, но
@@ -278,6 +292,8 @@ function rpyCalc(per){
     bad:!!grand&&Math.abs(g.mir.acc+g.fur.acc-grand.acc)>1,badId:!!grand&&Math.abs(idn)>nRows*1.5};
 }
 function rpyVal(t,k){if(!t)return null;return t[k]||0;}
+// «Оплачено и отменено» видно только по статусу платежа: месяц, собранный без статуса, - «нет данных», не 0.
+function rpyCanc(t,k){if(!t||(t.nost&&t.nost.length))return null;return t[k]||0;}
 function rpyRetro(P){var out=[],m=P.pym,guard=0,df=REPY.full;
   while(guard++<36){m=rpPrevYm(m);if(!df||m+'-01'<df)break;var per={from:m+'-01',to:rpEnd(m)};out.unshift({ym:m,per:per,calc:rpyCalc(per)});}
   return out;}
@@ -316,9 +332,9 @@ function rpyPtsLines(calcs){
     {k:'seller',l:'Внесено продавцом (ваши деньги на счёт Маркета, не расход)',fn:function(t){return rpyVal(t,'seller');},inc:1,sub:1},
     // Ответ «1а» 02.10: заказ оплатили и отменили - статус Маркета «не будет переведён / удержан из-за
     // отмены заказа». Денег не было, в оборот и штуки не входит; платёж и отмена бывают в разных месяцах.
-    {k:'cgot',l:'Оплачено и отменено: платежи покупателей (денег не было, в оборот не входят)',fn:function(t){return rpyVal(t,'cgot');},inc:1,sub:1},
-    {k:'csold',l:'Оплачено и отменено: штук',fn:function(t){return rpyVal(t,'csold');},inc:1,sub:1},
-    {k:'cback',l:'Отмена ранее оплаченных: возвраты, которые не удержат',fn:function(t){return rpyVal(t,'cback');},inc:1,sub:1});
+    {k:'cgot',l:'Оплачено и отменено: платежи покупателей (денег не было, в оборот не входят)',fn:function(t){return rpyCanc(t,'cgot');},inc:1,sub:1},
+    {k:'csold',l:'Оплачено и отменено: штук',fn:function(t){return rpyCanc(t,'csold');},inc:1,sub:1},
+    {k:'cback',l:'Отмена ранее оплаченных: возвраты, которые не удержат',fn:function(t){return rpyCanc(t,'cback');},inc:1,sub:1});
   return L;
 }
 function rpyTurnCard(){return rpTurnCard.apply(null,arguments).replace('реализовано ','продано за вычетом возвратов ');}
@@ -335,6 +351,11 @@ function rpyRender(){
   if(cur.bad||prev.bad)fl.push('<b class="rp-dn">⚠ Ошибка сборки: зеркала + мебель не равны ИТОГО «Начислено».</b> Цифры блока 1 не использовать.');
   if(cur.badId||prev.badId)fl.push('<b class="rp-dn">⚠ Ошибка сборки: Начислено − Всего сборов не равно К выплате</b> (расхождение '+rpN(cur.badId?cur.idn:prev.idn)+' ₽ больше построчного округления).');
   else if(Math.round(cur.idn)||Math.round(prev.idn))fl.push('<span class="rp-mute">Начислено − Всего сборов расходится с «К выплате» на '+rpN(prev.idn)+' ₽ и '+rpN(cur.idn)+' ₽ - построчное округление до рубля, как в подсказке блока на «Деньгах».</span>');
+  // Статус платежа не собран (G1 ФЕНИКСА iter2): отменённые заказы там посчитаны продажей и возвратом.
+  var nsN=(typeof ACC_NOST!=='undefined'?ACC_NOST:[]).filter(function(p){var m=p.split('/')[1];return m===P.ym||m===P.pym;});
+  var nsO=(typeof ACC_NOST_OLD!=='undefined'?ACC_NOST_OLD:[]).filter(function(p){var m=p.split('/')[1];return m===P.ym||m===P.pym;});
+  if(nsN.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собран:</b> '+nsN.join(', ')+' - заказы, которые оплатили и отменили, там посчитаны продажей и возвратом; строки «Оплачено и отменено» - нет данных. Бот перезаберёт эти месяцы (схема реестра 5).');
+  if(nsO.length)fl.push('<b class="rp-warn">⚠ Статус платежа не собирается:</b> '+nsO.join(', ')+' - месяцы до '+REPY.floor+' бот не перезабирает; отменённые заказы там посчитаны продажей и возвратом, «Оплачено и отменено» - нет данных.');
   var svB=cur.svBad.concat(prev.svBad);
   if(svB.length)fl.push('<b class="rp-dn">⚠ Услуги Маркета не сложились в колонку блока:</b> '+svB.join(', ')+'. Строки услуг в блоках 2-3 не использовать.');
   document.getElementById('rp-flags').innerHTML=fl.join('<br>')||'<span class="rp-mute">Пометок по данным нет.</span>';
@@ -373,8 +394,8 @@ function rpyRender(){
   document.getElementById('rp-why2').innerHTML=h2+'</tbody>';
   // === 3. Затраты площадки и полная аналитика ===
   var h3='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r">Доля от начисл., было</th><th class="r">Доля, стало</th></tr></thead><tbody>';
-  var row3=function(L,noSh){var v0=L.fn(gp),v1=L.fn(gc),inc=L.inc?true:false,pc=noSh?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0);
-    return '<tr'+(L.sub?' class="rp-sub"':'')+(L.bold?' style="font-weight:800"':'')+'><td>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh?'':rpSh(v1,gc.acc))+'</td></tr>';};
+  var row3=function(L,noSh){var v0=L.fn(gp),v1=L.fn(gc),nd=v0==null||v1==null,rpNd=function(v){return v==null?'<span class="rp-mute">нет данных</span>':rpN(v);},inc=L.inc?true:false,pc=noSh?(v0?(v1-v0)/Math.abs(v0)*100:null):rpPct(v1,v0);
+    return '<tr'+(L.sub?' class="rp-sub"':'')+(L.bold?' style="font-weight:800"':'')+'><td>'+L.l+'</td>'+rpRtd(R.map(function(r){return r.calc.grand?L.fn(r.calc.grand):null;}))+'<td class="r">'+rpNd(v0)+'</td><td class="r">'+rpNd(v1)+'</td>'+(nd?'<td class="r"></td><td class="r"></td><td class="r"></td><td class="r"></td>':'<td class="r">'+rpDTxt(v1-v0,inc)+'</td><td class="r">'+rpPctTxt(pc,inc)+'</td><td class="r">'+(noSh?'':rpSh(v0,gp.acc))+'</td><td class="r">'+(noSh?'':rpSh(v1,gc.acc))+'</td>')+'</tr>';};
   LINES.forEach(function(L){h3+=row3(L);});
   h3+=row3({l:'Продано за вычетом возвратов, шт',fn:function(t){return t.units;},inc:1},true);
   var rf1=function(v){return String(Math.round(v*10)/10).replace('.',',');};

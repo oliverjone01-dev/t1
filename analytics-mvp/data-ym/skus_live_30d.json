@@ -2,7 +2,7 @@
   "platform": "ym",
   "dateFrom": "2026-09-02",
   "dateTo": "2026-10-01",
-  "generated_at": "2026-10-02T13:23:08.947Z",
+  "generated_at": "2026-10-02T14:54:20.818Z",
   "totals": {
     "rev": 16075416,
     "units": 256,
@@ -2013,7 +2013,7 @@
       "units": 1,
       "views": 1062,
       "cart": 8,
-      "deliv": 0,
+      "deliv": 1,
       "ret": 0,
       "canc": 0,
       "convCart": 0.8,

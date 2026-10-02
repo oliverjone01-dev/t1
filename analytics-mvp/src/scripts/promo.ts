@@ -172,8 +172,15 @@ export function loadPromoFromSnapshots(dir = "tools/reakciya/data-cabinet"): Pro
 
 export interface ActsRow { date: string; art: string; title: string; date_from: string; date_to: string }
 
+/** Переименования акций OZON: новое название -> прежнее. Акция та же (дата начала и состав не
+ *  менялись, сдвинулся только конец), а без этой таблицы ключ по названию меняется, и все её
+ *  участники выглядят вышедшими в день переименования. Пополняется руками по снимку acts_daily. */
+export const ACT_RENAMES: Record<string, string> = {
+  // 02.10: «усиление» стало «усиление. Осень», начало 13.09 то же, конец 06.10 -> 11.10 -> 19.10 (Иван 02.10).
+  "Максимальный бустинг: усиление. Осень": "Максимальный бустинг: усиление",
+};
 /** Ключ акции по названию. Пробелы по краям режутся: в исходнике у одной из акций был хвостовой. */
-export const actKey = (title: string): string => title.trim();
+export const actKey = (title: string): string => { const t = title.trim(); return ACT_RENAMES[t] ?? t; };
 
 export function parseActsRow(raw: unknown): ActsRow | string {
   if (!raw || typeof raw !== "object") return "не объект";

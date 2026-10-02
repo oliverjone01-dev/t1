@@ -504,6 +504,16 @@ const conversionDescription=document.createElement('p');conversionDescription.cl
 $('nonqual-business').querySelector('h3').after(conversionDescription);
 const conversionStyle=document.createElement('style');conversionStyle.textContent='#nonqual-business>.source-note{margin:0 0 14px;color:var(--muted)}#nonqual-business .conversion-month{font-size:10px;white-space:nowrap;color:var(--muted)}#nonqual-business .conversion-month .delta{font-weight:400}';document.head.append(conversionStyle);
 prepareReportSort();
+function renderPaidChannels(){
+ const channels=['ABDM','Яндекс.Директ'];
+ const stat=c=>{const leads=countLeads('2026-09',false,c),quals=countLeads('2026-09',true,c);return {a:c.reduce((n,k)=>n+channelSpends['2026-08'][k],0),s:c.reduce((n,k)=>n+channelSpends['2026-09'][k],0),leads,quals};};
+ const row=(label,v)=>'<tr><td>'+esc(label)+'</td><td data-sort-value="'+v.a+'">'+money(v.a)+'</td><td data-sort-value="'+v.s+'">'+money(v.s)+'</td><td data-sort-value="'+(v.s-v.a)+'">'+movement(v.a,v.s,false,true)+'</td><td data-sort-value="'+v.leads+'">'+num(v.leads)+'</td><td data-sort-value="'+v.quals+'">'+num(v.quals)+'</td><td data-sort-value="'+(v.leads?v.s/v.leads:'')+'">'+(v.leads?money(v.s/v.leads):'—')+'</td><td data-sort-value="'+(v.quals?v.s/v.quals:'')+'">'+(v.quals?money(v.s/v.quals):'—')+'</td><td data-sort-value="'+(v.leads?100*v.quals/v.leads:'')+'">'+percent(v.quals,v.leads)+'</td></tr>';
+ campaignBlock.innerHTML='<h3>04.1 Платные каналы · ABDM и Директ</h3><p class="source-note">Расходы: август → сентябрь. Лиды и квалы сентября — по UTM CRM; стоимость = расходы сентября / лиды или квалы соответствующего канала. Расходы сентября с НДС.</p><div class="table-wrap"><table><thead><tr><th>Канал</th><th>Расходы · август</th><th>Расходы · сентябрь</th><th>Δ расходов</th><th>Лиды · сентябрь</th><th>Квалы · сентябрь</th><th>Стоимость лида</th><th>Стоимость квала</th><th>Доля квалов</th></tr></thead><tbody>'+channels.map(c=>row(c,stat([c]))).join('')+'</tbody><tfoot>'+row('Итого платные',stat(channels))+'</tfoot></table></div>';
+ campaignBlock.querySelector('tfoot tr').className='campaign-total';prepareReportSort();
+}
+const paidChannelsUtmRender=utmRender;utmRender=function(){paidChannelsUtmRender();renderPaidChannels();};renderPaidChannels();
+function removeGroupingDownloads(){document.querySelectorAll('button,a').forEach(el=>{if(/скачать\s+правки\s+группировки/i.test(el.textContent.trim()))el.remove();});}
+const noDownloadUtmRender=utmRender;utmRender=function(){noDownloadUtmRender();removeGroupingDownloads();};removeGroupingDownloads();
 })();
 </script>
 </body></html>

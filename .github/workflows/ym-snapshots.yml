@@ -106,7 +106,7 @@ jobs:
           # источника: прогон 35081265100 наконец разобрал акт услуг и упал на том, что для
           # services_monthly.ndjson нет базы сравнения, хотя её и не могло быть.
           rm -rf /tmp/ym-base && mkdir -p /tmp/ym-base && : > /tmp/ym-base/.absent
-          for f in netting.ndjson orders.ndjson realization_monthly.ndjson sku_views.ndjson services_monthly.ndjson bonuses_monthly.ndjson; do
+          for f in netting.ndjson orders.ndjson realization_monthly.ndjson sku_views.ndjson services_monthly.ndjson bonuses_monthly.ndjson promo_monthly.ndjson; do
             if [ -f "data-ym/$f" ]; then cp "data-ym/$f" "/tmp/ym-base/$f"; echo "слепок $f: $(wc -l < "/tmp/ym-base/$f") строк"
             else echo "$f" >> /tmp/ym-base/.absent; echo "слепок $f: файла ещё нет (первый прогон)"; fi
           done
@@ -175,6 +175,12 @@ jobs:
       - name: Отчёт по баллам Маркета
         run: npm run ym:bonuses || echo "::warning::баллы не обновлены"
 
+      # Отчёты по продвижению (буст продаж, буст показов, полки) - только для блока 5 «Отчета»
+      # (решение пользователя 02.10). Мягкий, как соседние продьюсеры: не собрался месяц - в блоке
+      # «нет данных», а не 0; накопленное защищает гейт validate-facts ниже.
+      - name: Отчёты по продвижению (блок 5 «Отчета»)
+        run: npm run ym:promo || echo "::warning::отчёты по продвижению не обновлены" # dg-ok: мягкий продьюсер, пропуск виден на странице как «нет данных»
+
       - name: Показы/корзина per-SKU по дням (shows-sales)
         env:
           YM_SHOWS_DAYS: ${{ github.event.inputs.shows_days || '7' }}
@@ -231,6 +237,7 @@ jobs:
           # начисленных 2 396 925, ни одна строка не потеряна, прогон встал и не закоммитил сбор.
           # Для реестра --abs уже стоял, здесь его забыли - один и тот же дефект в двух местах.
           check bonuses_monthly.ndjson    --month-key=ym      --sum=amount   --by=business --abs
+          check promo_monthly.ndjson      --month-key=ym      --sum=spend    --by=business
 
       - name: Джойны таксономии и СС (ключ - артикул)
         run: npm run ym:join

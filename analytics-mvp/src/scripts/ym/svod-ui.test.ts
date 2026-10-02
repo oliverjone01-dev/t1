@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { execFileSync } from "node:child_process";
-import { readFileSync, mkdtempSync } from "node:fs";
+import { readFileSync, mkdtempSync, cpSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM } from "jsdom";
@@ -22,12 +22,24 @@ const num = (s: string | null | undefined): number | null => {
   return isNaN(v) ? null : v;
 };
 
+// Данные для страницы: снимки data-ym как есть, а блок «Аналитика по артикулам» (pnl_sku_netting_daily)
+// - пересчитан derive головы во временной копии (G2 ФЕНИКСА iter3): иначе CI видел бы страницу без полей
+// второго столбца, пока бот не пересоберёт data-ym, и тесты второго столбца не проверяли бы ничего.
+// Остальные производные файлы не трогаются - числа свода остаются числами закоммиченного снимка.
+export const ACC_DATA = mkdtempSync(join(tmpdir(), "svod-data-"));
+let rdom: JSDOM;
 beforeAll(async () => {
   const out = mkdtempSync(join(tmpdir(), "svod-ui-"));
+  const der = mkdtempSync(join(tmpdir(), "svod-der-"));
+  cpSync("data-ym", ACC_DATA, { recursive: true });
+  cpSync("data-ym", der, { recursive: true });
+  execFileSync("npx", ["tsx", "src/scripts/ym/derive.ts"], { env: { ...process.env, YM_DATA_DIR: der }, stdio: "pipe" });
+  writeFileSync(join(ACC_DATA, "pnl_sku_netting_daily.ndjson"), readFileSync(join(der, "pnl_sku_netting_daily.ndjson")));
   execFileSync("npx", ["tsx", "src/scripts/build-katya.ts"], {
-    env: { ...process.env, DATA_DIR: "data-ym", OUT_DIR: out, PLATFORM: "ym" },
+    env: { ...process.env, DATA_DIR: ACC_DATA, OUT_DIR: out, PLATFORM: "ym" },
     stdio: "pipe",
   });
+  rdom = new JSDOM(readFileSync(join(out, "katya-report.html"), "utf8"), { runScripts: "dangerously", pretendToBeVisual: true });
   dom = new JSDOM(readFileSync(join(out, "katya-money.html"), "utf8"), {
     runScripts: "dangerously",
     pretendToBeVisual: true,
@@ -37,7 +49,7 @@ beforeAll(async () => {
     },
   });
   await new Promise((r) => setTimeout(r, 1400));
-}, 60_000);
+}, 120_000);
 
 const D = () => dom.window.document;
 const T = () => D().getElementById("sv-t")!;
@@ -1542,11 +1554,18 @@ describe("Маркет: аналитика по артикулам за выбр
     const h = headA();
     const row = [...TA().querySelectorAll("tbody tr")].find((tr) => (tr.children[0]?.textContent || "").trim() === "GGL-09-2");
     expect(row, "GGL-09-2 за июль в блоке нет").toBeTruthy();
-    const c = (name: string) => num(row!.children[h.indexOf(name)]!.textContent);
-    expect(c("Продано, шт"), "не совпало с «Получено от потребителей»").toBe(15);
-    expect(c("Возвраты, шт"), "не совпало с «Возвращено потребителям»").toBe(3);
-    expect(c("Итого, шт")).toBe(12);
-    expect(c("Оплатил клиент"), "деньги не совпали с документом").toBe(164576);
+    // Документ идёт по дню платежа - это первый столбец «Начислил Маркет» (решение 02.10 «два столбца»):
+    // штуки и деньги за товар - в подсказке ячейки (приписку со штуками в самой ячейке пользователь
+    // убрал 02.10). Основные колонки - второй столбец.
+    const c1 = row!.children[h.indexOf("Начислил Маркет (справочно)")]!;
+    expect(c1.querySelector("div"), "приписка со штуками в ячейке вернулась").toBeNull();
+    const u = (c1.getAttribute("title") || "").match(/продано (\d+) − возвраты (\d+) = (-?\d+) шт/);
+    expect(u, "штук первого столбца в подсказке нет").toBeTruthy();
+    expect(Number(u![1]), "не совпало с «Получено от потребителей»").toBe(15);
+    expect(Number(u![2]), "не совпало с «Возвращено потребителям»").toBe(3);
+    expect(Number(u![3])).toBe(12);
+    const pay = (c1.getAttribute("title") || "").match(/оплатил клиент ([\d\s  ]+) ₽/);
+    expect(num(pay?.[1]), "деньги не совпали с документом").toBe(164576);
     const cov = D().getElementById("acc-cov")!.textContent || "";
     expect(cov, "сверки с отчётом о платежах нет").toMatch(/сверка с отчётом о платежах/);
     // Документ Кати - отчёт о платежах по договору 54641824/26 (кабинет 1023124) за июль:
@@ -2139,5 +2158,162 @@ describe("Маркет: категория у заказов в пути", () =>
     const lost = [...skus].filter((s) => !cat[s] || cat[s] === "Без категории");
     expect(skus.size).toBeGreaterThan(0);
     expect(lost, "артикулы без категории").toEqual([]);
+  });
+});
+
+// Решение 02.10 «два столбца» (спека v4) и G3 ФЕНИКСА iter3: основные колонки блока - второй столбец,
+// справочный первый - отдельно; числа сверяются с файлом блока, а не с литералами (снимок меняется).
+describe("Маркет: два столбца «Начислено» в блоке по артикулам", () => {
+  const TA = () => D().getElementById("acc-t")!;
+  const headA = () => [...TA().querySelectorAll("thead th")].map((x) => (x.textContent || "").trim());
+  const totA = () => [...TA().querySelector("tr.sv-total")!.children].map((x) => x.textContent || "");
+  const cellA = (c: string) => num(totA()[headA().indexOf(c)]);
+  const sumF = (f: string, from: string, to: string) => readFileSync(join(ACC_DATA, "pnl_sku_netting_daily.ndjson"), "utf8").split("\n").filter(Boolean)
+    .map((l) => JSON.parse(l)).filter((r) => r.d >= from && r.d <= to).reduce((a, r) => a + (Number(r[f]) || 0), 0);
+  it("колонки: «Начислил Маркет» перед «Начислено», «К выплате (Маркет)» после «К выплате», «Наша доставка» после С\\С", () => {
+    // Свой период: прошлый тест оставляет месяц заказов в пути, где строк реестра может ещё не быть.
+    setRange("2026-08-01", "2026-08-31");
+    const h = headA();
+    expect(h.indexOf("Начислил Маркет (справочно)")).toBe(h.indexOf("Начислено") - 1);
+    expect(h.indexOf("К выплате (Маркет) справочно")).toBe(h.indexOf("К выплате") + 1);
+    expect(h.indexOf("Наша доставка")).toBe(h.indexOf("СС произв.") + 1);
+  });
+  it("ИТОГО: «Начислено» - второй столбец, «Начислил Маркет» - первый; К выплате и прибыль - от второго", () => {
+    setRange("2026-08-01", "2026-08-31");
+    const tol = 60; // строки блока округлены до рубля по (день, артикул)
+    expect(Math.abs(cellA("Начислено")! - sumF("raccruals", "2026-08-01", "2026-08-31"))).toBeLessThanOrEqual(tol);
+    const c1Tot = () => num(TA().querySelector("tr.sv-total")!.children[headA().indexOf("Начислил Маркет (справочно)")]!.childNodes[0]!.textContent);
+    expect(Math.abs(c1Tot()! - sumF("accruals", "2026-08-01", "2026-08-31"))).toBeLessThanOrEqual(tol);
+    expect(Math.abs(cellA("Наша доставка")! - sumF("ship", "2026-08-01", "2026-08-31"))).toBeLessThanOrEqual(tol);
+    expect(Math.abs(cellA("СС произв.")! - sumF("rcogs", "2026-08-01", "2026-08-31"))).toBeLessThanOrEqual(tol);
+    expect(cellA("Начислено"), "второй столбец не может совпасть с первым на стыке месяцев").not.toBe(c1Tot());
+    // Сборы одни: разница «К выплате» столбцов = разнице «Начислено».
+    expect(Math.abs((cellA("К выплате")! - cellA("К выплате (Маркет) справочно")!) - (cellA("Начислено")! - sumF("accruals", "2026-08-01", "2026-08-31")))).toBeLessThanOrEqual(2 * tol);
+    expect(Math.abs(cellA("Валовая прибыль")! - (cellA("К выплате")! - cellA("СС произв.")! - cellA("Наша доставка")!))).toBeLessThanOrEqual(3);
+    expect(Math.abs(cellA("Налоги 15%")! - cellA("Начислено")! * 0.15)).toBeLessThanOrEqual(3);
+    expect(Math.abs(cellA("АДМ 30%")! - cellA("К выплате")! * 0.3)).toBeLessThanOrEqual(3);
+    expect(D().getElementById("acc-cov")!.textContent || "", "второй столбец собран - пометки «до второго столбца» нет").not.toMatch(/Снимок собран до второго столбца/);
+    expect(errs).toEqual([]);
+  });
+  it("«Наша доставка» ИТОГО: звёздочка и подсказка, если заказы, которые везли мы, без суммы в ведомости (G5 ФЕНИКСА iter3)", () => {
+    setRange("2026-08-01", "2026-08-31");
+    const n = sumF("shipn", "2026-08-01", "2026-08-31"), k = sumF("shipk", "2026-08-01", "2026-08-31");
+    expect(n, "покрытие ведомостью не собрано").toBeGreaterThan(0);
+    const td = TA().querySelector("tr.sv-total")!.children[headA().indexOf("Наша доставка")] as any;
+    expect((td.textContent || "").includes("*")).toBe(n > k);
+    if (n > k) expect(td.getAttribute("title")).toContain(`${n - k} из ${n} заказов, которые везли мы, без суммы в ведомости`);
+  });
+});
+
+describe("Маркет «Отчет»: оформление и пометки", () => {
+  const R = () => rdom.window.document;
+  it("блок 2 - без ретро-месяцев; основные строки фиолетовые; «в т.ч.» свёрнуты", () => {
+    const th = [...R().querySelectorAll("#rp-why2 thead th")].map((x) => (x.textContent || "").trim());
+    expect(th.length, th.join(" | ")).toBe(7);
+    expect(th.slice(-2)).toEqual(["За счёт чего", "Артикулы с наибольшим вкладом"]);
+    const main = [...R().querySelectorAll("#rp-cost tr.rp-main")].map((x) => (x.children[0]!.textContent || "").trim());
+    expect(main.map((t) => t.split(" ")[0])).toEqual(["Начислено", "Всего", "К", "Чистая", "Чистая"]);
+    const kids = [...R().querySelectorAll("#rp-cost tr.rp-kid")] as any[];
+    expect(kids.length).toBeGreaterThan(0);
+    expect(kids.every((k) => k.style.display === "none"), "«в т.ч.» не свёрнуты").toBe(true);
+    expect([...R().querySelectorAll("#rp-pts tr.rp-main")].length).toBe(3);
+  });
+  // Просьба пользователя 02.10: в «За счёт чего» не фиолетовый; серые артикулы - в своей колонке;
+  // в подписях статей скобки только «(справочно)», пояснения - в подсказке; реклама свёрнута.
+  it("блок 2: артикулы отдельной колонкой, пояснение - не цветом основной строки", () => {
+    const rows = [...R().querySelectorAll("#rp-why2 tbody tr")] as any[];
+    const ix = 6;
+    expect(rows.some((r) => r.children[ix]?.querySelector(".rp-art")), "артикулы не переехали в колонку").toBe(true);
+    expect(rows.every((r) => !r.children[5]?.querySelector(".rp-art")), "артикулы остались в «За счёт чего»").toBe(true);
+    const css = R().documentElement.innerHTML;
+    expect(css).toContain(".rp-main td.rp-txt,.rp-main td.rp-arts{font-weight:400;color:var(--ink-1)}");
+  });
+  it("блок 2: объяснения без формул, без «без изменений» у изменившихся строк", () => {
+    const rows = [...R().querySelectorAll("#rp-why2 tbody tr")] as any[];
+    const why = rows.map((r) => r.children[5]?.textContent || "");
+    expect(why.filter((t) => /×|=/.test(t)), "в «За счёт чего» осталась формула").toEqual([]);
+    expect(why.filter((t) => /без изменений/.test(t))).toEqual([]);
+    const net = rows.find((r) => (r.children[0].textContent || "").startsWith("Чистая прибыль с общими"));
+    expect(net.children[5].textContent).toMatch(/чистая по артикулам: .* общие расходы кабинета: /);
+    const css = R().documentElement.innerHTML;
+    expect(css).toContain("#rp-why2 .rp-txt,#rp-why2 .rp-arts{white-space:normal;width:340px;min-width:340px;max-width:340px}");
+  });
+  it("«Наша доставка» включает перевозку отменённых без продажи: строка «в т.ч.» свёрнута под ней (решение 02.10)", () => {
+    const rows = [...R().querySelectorAll("#rp-cost tbody tr")] as any[];
+    const i = rows.findIndex((r) => (r.children[0].textContent || "").trim() === "Наша доставка");
+    expect(i).toBeGreaterThan(-1);
+    const kid = rows[i + 1];
+    expect((kid.children[0].textContent || "").trim()).toBe("в т.ч. по отменённым заказам");
+    expect(kid.getAttribute("data-g")).toBe("ship");
+    const n = (td: any) => Number((td.textContent || "").replace(/[^0-9-]/g, "")) || 0;
+    const last = (r: any) => n(r.children[r.children.length - 5]);
+    expect(last(kid), "часть не больше целого").toBeLessThanOrEqual(last(rows[i]));
+  });
+  it("подписи статей: в скобках только «справочно»", () => {
+    // Строки статей, кроме названий услуг Маркета (их пишет Маркет, они в «в т.ч.» под группой).
+    const lab = ["#rp-why2", "#rp-cost", "#rp-pts", "#rp-ads"].flatMap((id) =>
+      [...R().querySelectorAll(id + " tbody tr")].filter((r: any) => !r.classList.contains("rp-sub") || id === "#rp-ads")
+        .map((r: any) => (r.children[0]?.textContent || "").trim()).filter(Boolean));
+    const bad = lab.filter((t) => /\((?!справочно\))[^)]*\)/.test(t));
+    expect(bad, bad.join(" | ")).toEqual([]);
+    expect(lab).toContain("Начислил Маркет (справочно)");
+    expect(R().querySelector("#rp-cost td[title]"), "пояснение из скобок пропало, а не ушло в подсказку").not.toBeNull();
+  });
+  it("блок 5: основные строки и свёрнутые «в т.ч.»", () => {
+    const main = [...R().querySelectorAll("#rp-ads tr.rp-main")].map((x: any) => (x.children[0].textContent || "").trim());
+    // Просьба 02.10: раздел «как на вкладке «Маркетинг»» (ДРР) и пояснения убраны.
+    // 02.10: строки по отчётам Маркета о продвижении (буст продаж, буст показов, полки) - только здесь.
+    expect(main).toEqual(["Продвижение деньгами", "Расход по отчётам Маркета", "Выручка доставленных заказов", "ДРР от всей выручки"]);
+    const txt = R().getElementById("rp-ads")!.closest("section")!.textContent || "";
+    expect(txt).not.toMatch(/Маркетинг/);
+    expect(R().getElementById("rp-ads-note")).toBeNull();
+    const kids = [...R().querySelectorAll("#rp-ads tr.rp-kid")] as any[];
+    expect(kids.length).toBe(11);
+    expect(kids.every((k) => k.style.display === "none")).toBe(true);
+    (R().querySelector("#rp-ads tr.rp-par") as any).click();
+    expect(kids.filter((k) => k.getAttribute("data-g") === "ad1").every((k) => k.style.display === "")).toBe(true);
+    (R().querySelector("#rp-ads tr.rp-par") as any).click();
+  });
+  // G3 ФЕНИКСА iter3 (мутант N10): пары без статуса делятся по FLOOR - старые бот не перезабирает.
+  it("пары без статуса: ACC_NOST с FLOOR и позже, ACC_NOST_OLD - раньше, вместе - все пары реестра без статуса", () => {
+    const html = R().documentElement.innerHTML;
+    const v = (n: string) => JSON.parse(new RegExp(`var ${n}=([^;]*);`).exec(html)![1]!);
+    const nost: string[] = v("ACC_NOST"), old: string[] = v("ACC_NOST_OLD"), floor: string = v("ACC_FLOOR");
+    const net = readFileSync(join(ACC_DATA, "netting.ndjson"), "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
+    const all = new Set<string>();
+    for (const r of net) if (r.src !== undefined && !String(r.status || "").trim()) all.add(`${r.business || ""}/${String(r.d).slice(0, 7)}`);
+    expect([...nost, ...old].sort()).toEqual([...all].sort());
+    expect(nost.every((p) => p.split("/")[1]! >= floor), nost.join(",")).toBe(true);
+    expect(old.every((p) => p.split("/")[1]! < floor), old.join(",")).toBe(true);
+  });
+  // G5 ФЕНИКСА iter3: заказы, которые везли мы, без суммы в ведомости - пометка и звёздочка у месяца;
+  // ни одной суммы за месяц - «нет данных», а не ноль. Сверка с полями shipn/shipk файла блока.
+  it("«Наша доставка»: неполная ведомость помечена по месяцам, без сумм - «нет данных»", () => {
+    const rows = readFileSync(join(ACC_DATA, "pnl_sku_netting_daily.ndjson"), "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
+    const by: Record<string, { n: number; k: number }> = {};
+    for (const r of rows) { const m = String(r.d).slice(0, 7); const x = (by[m] ||= { n: 0, k: 0 }); x.n += r.shipn || 0; x.k += r.shipk || 0; }
+    const MN = ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"];
+    const ymOf = (t: string) => { const m = /^(\S+) (\d{4})$/.exec(t.trim()); return m ? `${m[2]}-${String(MN.indexOf(m[1]!) + 1).padStart(2, "0")}` : ""; };
+    const th = [...R().querySelectorAll("#rp-cost thead th")].map((x) => (x.textContent || "").trim());
+    const tr = [...R().querySelectorAll("#rp-cost tbody tr")].find((r: any) => (r.children[0].textContent || "").trim() === "Наша доставка") as any;
+    const retro = R().querySelectorAll("#rp-cost thead th.rp-retro").length || th.filter((t) => ymOf(t)).length - 2;
+    let checked = 0, gaps = 0;
+    for (let i = 1; i <= retro; i++) {
+      const m = ymOf(th[i]!), x = by[m]; if (!m || !x) continue;
+      const txt = (tr.children[i].textContent || "").trim();
+      if (x.n > x.k) gaps++;
+      expect(txt.includes("*"), `${m}: ${txt} при ${x.k} из ${x.n}`).toBe(x.n > x.k);
+      if (x.n > 0 && x.k === 0) expect(txt, m).toMatch(/нет данных/);
+      checked++;
+    }
+    expect(checked, "ретро-месяцы не нашлись в шапке").toBeGreaterThan(0);
+    const fl = R().getElementById("rp-flags")!.textContent || "";
+    if (gaps) expect(fl).toMatch(/Наша доставка неполная: .*без суммы в ведомости/);
+  });
+  it("пометка статуса платежа есть, если пары без статуса; о втором столбце - нет, раз он собран", () => {
+    const fl = R().getElementById("rp-flags")!.textContent || "";
+    const nost = /var ACC_NOST=(\[[^\]]*\])/.exec(R().documentElement.innerHTML);
+    if (nost && JSON.parse(nost[1]!).length) expect(fl).toMatch(/Статус платежа не собран|не собирается/);
+    expect(fl).not.toMatch(/Снимок собран до второго столбца/);
   });
 });

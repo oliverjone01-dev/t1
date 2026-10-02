@@ -14,7 +14,7 @@ import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, nettingRowOf, promoRowOf, PROMO_REPORTS, type PromoKind, type PromoRow } from "./reports-lib.js";
 import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
 import { DELIVERED_STATUSES } from "./derive-lib.js";
 
@@ -50,7 +50,12 @@ function flushBad() {
 // 4 (28.09.2026) - одинаковые проводки внутри одной выгрузки нумеруются полем n и больше не
 // схлопываются дедупом (две «Отзывы за баллы» по −1 ₽ теряли 1 ₽ против отчёта об исполнении
 // поручения). Схлопнутые раньше строки возвращает только перезабор, поэтому схема поднята.
-export const NETTING_SCHEMA = 4;
+// 5 (02.10.2026) - строка несёт статус платежа (PAYMENT_STATUS). Заказ, который оплатили и отменили,
+// Маркет помечает «Не будет переведён / не будет удержан из-за отмены заказа»: денег не было, а без
+// статуса блок ACC и «Отчет» считали его продажей в месяц оплаты и возвратом в месяц отмены (сверка
+// с выгрузкой кабинета 02.10: август +513 350 ₽ и 12 шт лишних, сентябрь 01-29 −628 199 ₽; ответ «1а»).
+// Статус в ключ дедупа не входит: он меняется со временем («будет переведён» → «переведён»).
+export const NETTING_SCHEMA = 5;
 
 // Бюджет отчётов на прогон (ФЕНИКС G9): каждый generate+poll до 15 мин; без потолка первый бэкфилл
 // упирается в timeout job и теряет всё. По умолчанию 10 отчётов, переопределяется YM_REPORT_BUDGET.
@@ -343,7 +348,7 @@ async function netting(from: string, to: string) {
           const one: any[] = [];
           for (const r of t.rows) {
             const d = cellDate(r[ix.date!]); if (!d) continue;
-            one.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", src: ix.source! >= 0 ? (r[ix.source!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", count: ix.count! >= 0 && (r[ix.count!] || "").trim() ? num("united-netting", r[ix.count!]) : 0, contract: ix.contract! >= 0 ? (r[ix.contract!] || "").trim() : "", platform: "ym" });
+            one.push(nettingRowOf(r, ix, b, d, (c) => num("united-netting", c)));
           }
           for (const x of numberDuplicates(one)) fresh.push(x);
         }
@@ -487,6 +492,55 @@ async function services(months: string[], now: Date) {
   writeJson(STATE, { at: new Date().toISOString(), schema: SERVICES_SCHEMA, rows: merged.length, body: bodyName, done: [...done].sort(),
     note: "акт по стоимости услуг: строка = услуга за месяц, money - оплачено деньгами, points - закрыто баллами" });
   console.log(`services: строк ${merged.length} (получено ${fresh.length}, пар кабинет/месяц ${done.size}, тело «${bodyName || "не определено"}»)${rateLimited ? " - упёрлись в лимит, продолжу в следующий прогон" : ""} -> ${OUT}`);
+}
+
+// ---- отчёты по продвижению -> data-ym/promo_monthly.ndjson (только блок 5 «Отчета», решение 02.10) ----
+// Строка = кабинет × месяц × инструмент (буст продаж, буст показов, полки): расход, выручка по данным
+// Маркета, списано баллами, заказы. Месяц собран, если собраны все три инструмента; свежее окно
+// (текущий и в первые дни - прошлый месяц) перезабирается каждый прогон.
+const PROMO_SCHEMA = 1;
+async function promo(months: string[], now: Date) {
+  const OUT = yp("promo_monthly.ndjson"), STATE = yp("promo_state.json");
+  const prev = readJson<{ schema?: number; done?: string[] }>(STATE, {});
+  const done = new Set(prev.schema === PROMO_SCHEMA ? prev.done || [] : []);
+  const freshFrom = reportFreshFrom(months.slice().sort(), now);
+  const yday = yesterday();
+  const fresh: PromoRow[] = [], purged = new Set<string>();
+  for (const { businessId: b, account } of await resolveBusinesses()) {
+    for (const ym of months) {
+      const { dateFrom } = monthBounds(ym);
+      const dateTo = monthBounds(ym).dateTo < yday ? monthBounds(ym).dateTo : yday;
+      if (dateTo < dateFrom) continue;
+      for (const kind of Object.keys(PROMO_REPORTS) as PromoKind[]) {
+        const key = `${b}/${ym}/${kind}`;
+        if (done.has(key) && ym < freshFrom) continue;
+        let tables: Tbl[] | null = null;
+        try { tables = await fetchReportAll(account.api, PROMO_REPORTS[kind].type, { businessId: Number(b), dateFrom, dateTo, ...(kind === "boost" ? {} : { attributionType: "SHOWS" }) }); }
+        catch (err) {
+          if (stopOnRateLimit(err, `продвижение ${kind} ${b} ${ym}`)) break;
+          // Живой факт 02.10 (проба 37006024141): кабинету без подписки Маркет не отдаёт данные старше
+          // 90 дней (HTTP 400 «Without subscription ... older than 90 days»). Это не сбой и не изменится
+          // повтором: месяц закрываем без строки - на странице «нет данных», а не 0, и не долбим каждый прогон.
+          if (/older than 90 days/i.test(String((err as Error).message))) { done.add(key); console.log(`promo: ${b} ${ym} ${kind} - Маркет не отдаёт данные старше 90 дней без подписки`); continue; }
+          console.warn(`::warning::продвижение ${kind} ${b} ${ym}: ${String((err as Error).message).slice(0, 200)}`); continue;
+        }
+        // null без исчерпанного бюджета - отчёт пустой или не собрался: месяц закрыт без строки, на странице
+        // «нет данных», а не 0 (К7). Свежее окно всё равно перезаберётся следующим прогоном.
+        if (!tables) { if (budgetSpent) break; done.add(key); continue; }
+        try { fresh.push(promoRowOf(kind, tables, b, ym)); done.add(key); purged.add(key); }
+        catch (err) { console.warn(`::warning::продвижение ${kind} ${b} ${ym}: ${(err as Error).message}`); }
+      }
+      if (rateLimited || budgetSpent) break;
+    }
+    if (rateLimited || budgetSpent) break;
+  }
+  if (!fresh.length) { console.log(`promo: новых строк нет (собрано пар ${done.size})`); return; }
+  const keep = readNdjson<PromoRow>(OUT).filter((r) => !purged.has(`${r.business}/${r.ym}/${r.kind}`));
+  const merged = fresh.concat(keep).sort((a, b) => (a.ym === b.ym ? (a.business === b.business ? a.kind.localeCompare(b.kind) : a.business.localeCompare(b.business)) : a.ym < b.ym ? -1 : 1));
+  writeNdjson(OUT, merged);
+  writeJson(STATE, { at: new Date().toISOString(), schema: PROMO_SCHEMA, rows: merged.length, done: [...done].sort(),
+    note: "отчёты Маркета по продвижению: spend - расход (буст продаж: деньги + баллы), rev - выручка с инструментом по Маркету, revAll - вся выручка доставленных (только буст продаж)" });
+  console.log(`promo: строк ${merged.length} (получено ${fresh.length})${rateLimited || budgetSpent ? " - упёрлись в лимит/бюджет, остальное доберёт следующий прогон" : ""}`);
 }
 
 // ---- отчёт по баллам Маркета -> data-ym/bonuses_monthly.ndjson ----
@@ -723,7 +777,25 @@ async function main() {
       if (late.length && !rebuildAll) console.log(`services: не добраны месяцы ${late.join(", ")} - беру их в этот прогон`);
     }
     await services(months, now);
-  } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days] | services [YYYY-MM...] | bonuses [YYYY-MM...]"); process.exit(2); }
+  } else if (cmd === "promo") {
+    const args = process.argv.slice(3).filter((a) => /^\d{4}-\d{2}$/.test(a));
+    let months = args;
+    if (!months.length) {
+      const st = readJson<{ schema?: number; done?: string[] }>(yp("promo_state.json"), {});
+      const all: string[] = []; { let d = new Date(Date.UTC(Number(FLOOR.slice(0, 4)), Number(FLOOR.slice(5, 7)) - 1, 1));
+        while (d.getTime() <= now.getTime()) { all.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); } }
+      const cur = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
+      const prevD = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+      const prevYm = `${prevD.getUTCFullYear()}-${pad(prevD.getUTCMonth() + 1)}`;
+      // done - по тройкам кабинет/месяц/инструмент; месяц не собран, пока не собраны все три.
+      const pairs = (st.schema === PROMO_SCHEMA ? st.done || [] : []).filter((k) => k.split("/").length === 3);
+      const byPair = new Map<string, number>(); for (const k of pairs) { const p = k.split("/").slice(0, 2).join("/"); byPair.set(p, (byPair.get(p) || 0) + 1); }
+      months = reportMonthsToDo(all, [...byPair].filter(([, n]) => n >= 3).map(([p]) => p), cur, prevYm, !pairs.length);
+      // Новое - сначала: свежий месяц нужен отчёту сегодня, история доберётся следующими прогонами.
+      months = months.slice().reverse();
+    }
+    await promo(months, now);
+  } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days] | services [YYYY-MM...] | bonuses [YYYY-MM...] | promo [YYYY-MM...]"); process.exit(2); }
   flushBad();
 }
 

@@ -107,3 +107,37 @@ export function nettingRowOf(r: string[], ix: Record<string, number | undefined>
     contract: s("contract"), status: s("status"), platform: "ym" as const,
   };
 }
+
+// ---- Отчёты Маркета по продвижению -> строка месяца для блока 5 «Отчета» (решение пользователя 02.10:
+// «данные обновляй только в отчете блок 5, больше нигде»). Проба 02.10 (ym-boost-probe, сентябрь):
+// boost-consolidated - по артикулам за период, BILLED_AMOUNT = буст деньгами + баллами отчёта по
+// взаиморасчётам (мебель 641 325 против 158 795 + 482 444, зеркала 159 903 против 14 027 + 145 839),
+// выручка ORDERS_GVM_* - доставленные заказы по дате доставки, по полной цене (зеркала 2 309 403 / 49 шт
+// против 2 347 035 / 50 шт по нашим заказам). shows-boost и shelf-statistics - по дням, выручка
+// ORDERED_AMOUNT по оформленным заказам. Выручки разных инструментов не складываются: один заказ
+// Маркет может отнести и к бусту, и к полке.
+export type PromoKind = "boost" | "shows" | "shelf";
+export type PromoRow = { ym: string; business: string; kind: PromoKind; spend: number; rev: number; revAll: number; bonus: number; orders: number; platform: "ym" };
+export const PROMO_REPORTS: Record<PromoKind, { type: string; sheet: RegExp; cols: { spend: string; rev: string; revAll?: string; bonus?: string; orders: string } }> = {
+  boost: { type: "boost-consolidated", sheet: /boost_consolidated/i,
+    cols: { spend: "BILLED_AMOUNT", rev: "ORDERS_GVM_DELIVERED_WITH_FEE", revAll: "ORDERS_GVM_DELIVERED", bonus: "DEDUCTED_BONUSES", orders: "ORDER_ITEMS_DELIVERED_WITH_FEE" } },
+  shows: { type: "shows-boost", sheet: /campaigns/i, cols: { spend: "REAL_COST", rev: "ORDERED_AMOUNT", bonus: "DEDUCTED_BONUSES", orders: "ORDERED_COUNT" } },
+  shelf: { type: "shelf-statistics", sheet: /summary/i, cols: { spend: "REAL_COST", rev: "ORDERED_AMOUNT", bonus: "DEDUCTED_BONUSES", orders: "ORDERED" } },
+};
+// Колонки нет - ошибка, а не ноль (К6/К7): Маркет переименовал поле, и месяц не должен молча стать 0.
+export function promoRowOf(kind: PromoKind, tables: Array<{ name: string; headers: string[]; rows: string[][] }>, business: string, ym: string): PromoRow {
+  const spec = PROMO_REPORTS[kind];
+  const t = tables.find((x) => spec.sheet.test(x.name)) || (tables.length === 1 ? tables[0] : undefined);
+  if (!t) throw new Error(`${spec.type}: нет листа ${spec.sheet} среди ${tables.map((x) => x.name).join(", ")}`);
+  const h = t.headers.map((x) => x.trim().toUpperCase());
+  const sum = (col: string | undefined, need: boolean): number => {
+    if (!col) return 0;
+    const i = h.indexOf(col);
+    if (i < 0) { if (need) throw new Error(`${spec.type}: нет колонки ${col} (есть: ${h.join(", ")})`); return 0; }
+    let s = 0;
+    for (const r of t.rows) { const v = Number(String(r[i] ?? "").replace(/\s| /g, "").replace(",", ".")); if (Number.isFinite(v)) s += v; }
+    return Math.round(s * 100) / 100;
+  };
+  return { ym, business, kind, spend: sum(spec.cols.spend, true), rev: sum(spec.cols.rev, true), revAll: sum(spec.cols.revAll, !!spec.cols.revAll),
+    bonus: sum(spec.cols.bonus, false), orders: sum(spec.cols.orders, true), platform: "ym" };
+}

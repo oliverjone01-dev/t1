@@ -2252,12 +2252,13 @@ describe("Маркет «Отчет»: оформление и пометки", 
   it("блок 5: основные строки и свёрнутые «в т.ч.»", () => {
     const main = [...R().querySelectorAll("#rp-ads tr.rp-main")].map((x: any) => (x.children[0].textContent || "").trim());
     // Просьба 02.10: раздел «как на вкладке «Маркетинг»» (ДРР) и пояснения убраны.
-    expect(main).toEqual(["Продвижение деньгами"]);
+    // 02.10: строки по отчётам Маркета о продвижении (буст продаж, буст показов, полки) - только здесь.
+    expect(main).toEqual(["Продвижение деньгами", "Расход по отчётам Маркета", "Выручка доставленных заказов", "ДРР от всей выручки"]);
     const txt = R().getElementById("rp-ads")!.closest("section")!.textContent || "";
-    expect(txt).not.toMatch(/ДРР|Маркетинг/);
+    expect(txt).not.toMatch(/Маркетинг/);
     expect(R().getElementById("rp-ads-note")).toBeNull();
     const kids = [...R().querySelectorAll("#rp-ads tr.rp-kid")] as any[];
-    expect(kids.length).toBe(2);
+    expect(kids.length).toBe(11);
     expect(kids.every((k) => k.style.display === "none")).toBe(true);
     (R().querySelector("#rp-ads tr.rp-par") as any).click();
     expect(kids.filter((k) => k.getAttribute("data-g") === "ad1").every((k) => k.style.display === "")).toBe(true);

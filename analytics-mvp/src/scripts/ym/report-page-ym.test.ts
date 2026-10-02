@@ -181,6 +181,7 @@ describe("отчёт Маркета: данные сборщика", () => {
     { ym: "2026-09", business: "1", d: "2026-09-27", type: "Списание", src: "Скидка за участие в совместных акциях", service: "Размещение товарных предложений", order: "o1", amount: -300 },
     { ym: "2026-09", business: "2", d: "2026-09-29", type: "Списание", src: "Скидка за участие в совместных акциях", service: "Полки", order: "", amount: -700 }, // после границы
   ]));
+  writeFileSync(join(dir, "promo_monthly.ndjson"), nd([{ ym: "2026-09", business: "1", kind: "boost", spend: 100.4, rev: 1000, revAll: 1200, bonus: 0, orders: 2 }]));
   writeFileSync(join(dir, "svod_orders.json"), JSON.stringify({ months: [{ ym: "2026-09", business: "1", rows: [{ s: 10, b: 200 }] }] }));
   // Заглушка кода «Маркетинга» в том же виде, что promoYm().js: объявления с начала строки.
   const promoJs = "var PM=null;\nvar PM_ART=[\"Буст продаж\"];\nvar PM_NAMES={\"2\":\"GEN GROUP (мебель)\",\"1\":\"GENGLASS (зеркала)\"};\nfunction pmRow(m){\n  var sp=0,b=0;m.rows.forEach(function(r){sp+=r.s;b+=r.b;});\n  return {ym:m.ym,business:m.business,sm:sp,sp:0,oh:0,spend:sp,base:b,settled:true,partial:false};\n}\nfunction pmDraw(){}";
@@ -188,6 +189,9 @@ describe("отчёт Маркета: данные сборщика", () => {
   it("последний ПОЛНЫЙ день реестра (вариант «а»): по отстающему кабинету, последний день с денежными сборами", () => {
     expect(r.to).toBe("2026-09-27");
     expect(r.lastBy).toEqual({ "1": "2026-09-29", "2": "2026-09-28" });
+  });
+  it("отчёты по продвижению - в данные блока 5, до рубля", () => {
+    expect(r.promo).toEqual([["2026-09", "1", "boost", 100, 1000, 1200, 0]]);
   });
   it("кабинеты зеркал и мебели - из PM_NAMES «Маркетинга», не литералами (H3)", () => {
     expect(r.cab).toEqual({ mir: "1", fur: "2" });

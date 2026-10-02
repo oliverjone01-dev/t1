@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { findCol } from "../../util/table.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, PREV_MONTH_REFETCH_DAYS, nettingRowOf } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, PREV_MONTH_REFETCH_DAYS, nettingRowOf, promoRowOf } from "./reports-lib.js";
 
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
@@ -159,6 +159,29 @@ describe("отчёт по баллам: колонки по живым заго�
   });
   it("сумма - TRANSACTION_SUM, а не COUNT", () => {
     expect(h()[col_("ym-bonuses", "amount", h())]).toBe("TRANSACTION_SUM");
+  });
+});
+
+// Заголовки - живые, из пробы ym-boost-probe 02.10 (сентябрь, оба кабинета).
+describe("отчёты по продвижению: колонки по живым заголовкам API", () => {
+  const boostH = ["SHOP_SKU", "OFFER_NAME", "SHOWS_WITH_FEE", "SHOWS", "CLICKS_VENDOR_WITH_FEE", "CLICKS_VENDOR", "CLICKS_CPA_WITH_FEE", "CLICKS_CPA", "ORDER_ITEMS_WITH_FEE", "ORDER_ITEMS",
+    "ORDER_ITEMS_DELIVERED_WITH_FEE", "ORDER_ITEMS_DELIVERED", "BILLED_AMOUNT", "DEDUCTED_BONUSES", "AVERAGE_BOOST_COST", "COST_REVENUE_RATIO", "ORDERS_GVM_DELIVERED_WITH_FEE",
+    "ORDERS_GVM_DELIVERED", "REVENUE_SHARE", "SALES_CAMPAIGN_IDS", "SALES_CAMPAIGN_NAMES"];
+  const bRow = (billed: string, gvmF: string, gvm: string, items: string) => { const r = boostH.map(() => "0"); r[12] = billed; r[16] = gvmF; r[17] = gvm; r[10] = items; r[15] = "11.32"; return r; };
+  it("буст продаж: расход BILLED_AMOUNT, выручка с бустом и вся выручка доставленных - суммой по артикулам", () => {
+    const r = promoRowOf("boost", [{ name: "business_boost_consolidated.csv", headers: boostH, rows: [bRow("3741.37", "33051", "33051", "1"), bRow("3678.22", "55900", "60000", "1")] }], "1023124", "2026-09");
+    expect(r).toMatchObject({ spend: 7419.59, rev: 88951, revAll: 93051, orders: 2, kind: "boost" });
+  });
+  it("буст показов и полки: лист кампаний / сводный, REAL_COST и ORDERED_AMOUNT; лишние листы не мешают", () => {
+    const shH = ["DATE", "SALE_CAMPAIGN_ID", "SALE_CAMPAIGN_NAME", "SHOWS", "COVERAGE", "CLICKS", "CTR", "SHOWS_FREQUENCY", "CART_ADDITION", "ORDERED_COUNT", "CONVERSION", "ORDERED_AMOUNT", "CPO", "COST_SHARE", "CPM", "REAL_COST", "DEDUCTED_BONUSES"];
+    const offers = { name: "business_shows_boost_consolidated_offers.csv", headers: ["OFFER_ID", "COST", "ORDERED_AMOUNT"], rows: [["x", "999", "999"]] };
+    const camp = { name: "business_shows_boost_consolidated_campaigns.csv", headers: shH, rows: [["2026-09-01", "1", "a", "1", "1", "1", "1", "1", "1", "1", "0.04", "46240", "0", "0", "0", "700", "100"]] };
+    expect(promoRowOf("shows", [offers, camp], "1", "2026-09")).toMatchObject({ spend: 700, rev: 46240, bonus: 100, orders: 1, revAll: 0 });
+    const shelf = { name: "shelfs_statistics_summary.csv", headers: ["DATE", "INCUT_ID", "ORDERED", "ORDERED_AMOUNT", "COST", "REAL_COST", "DEDUCTED_BONUSES"], rows: [["2026-09-01", "1", "1", "38902", "41.92", "41.92", "0"]] };
+    expect(promoRowOf("shelf", [shelf], "1", "2026-09")).toMatchObject({ spend: 41.92, rev: 38902, orders: 1 });
+  });
+  it("колонки нет - ошибка, а не ноль (Маркет переименовал поле)", () => {
+    expect(() => promoRowOf("boost", [{ name: "business_boost_consolidated.csv", headers: boostH.filter((h) => h !== "BILLED_AMOUNT"), rows: [] }], "1", "2026-09")).toThrow(/BILLED_AMOUNT/);
   });
 });
 

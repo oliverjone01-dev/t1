@@ -1,0 +1,705 @@
+/* ==========================================================================
+   Контур DS · компоненты
+   Всё на токенах из tokens.css. Tailwind не нужен: префикс ks- не конфликтует
+   ни с Tailwind, ни с чужими стилями, если кит подключают в существующий проект.
+   1.3: меньше рамок и цвета, больше типографики. Цвет это редкий сигнал, а не декор.
+   ========================================================================== */
+
+/* ---------- основа ---------- */
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ margin:0; background:var(--bg); }
+/* Закрытая панель деталей стоит за правым краем. Без clip она раздвигает страницу
+   и на телефоне появляется прокрутка вбок. clip, в отличие от hidden, не ломает sticky. */
+html{ overflow-x:clip; -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+/* открыта панель, меню или палитра команд: страница под ними не прокручивается */
+html.ks-lock, html.ks-lock body{ overflow:hidden; }
+body{
+  font-family:var(--font-sans); font-size:var(--fs-base); line-height:var(--lh-snug); letter-spacing:var(--tracking-body, 0);
+  color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+}
+/* касание: без серой вспышки и без задержки двойного тапа */
+button, a, select, [role="button"], [data-drill]{ -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; border-radius:var(--r-sm); }
+::-webkit-scrollbar{ width:7px; height:7px; }
+::-webkit-scrollbar-thumb{ background:var(--scroll-thumb); border-radius:4px; }
+::selection{ background:var(--primary-soft); }
+[hidden]{ display:none !important; }
+/* Вложенный блок со своей темой обязан заново взять цвет текста и фона:
+   унаследованный color уже вычислен по теме родителя. */
+[data-theme]{ color:var(--text); }
+.ks-theme-pane{ background:var(--bg); color:var(--text); }
+
+/* ---------- типографика ---------- */
+.ks-h1{ font-size:var(--fs-h1); font-weight:var(--fw-semi); color:var(--text-strong); line-height:var(--lh-tight); letter-spacing:var(--tracking-h); margin:0; text-wrap:balance; }
+.ks-h2{ font-size:var(--fs-h2); font-weight:var(--fw-semi); color:var(--text-strong); line-height:var(--lh-tight); letter-spacing:var(--tracking-h); margin:0; }
+.ks-strong{ color:var(--text-strong); }
+.ks-muted{ color:var(--text-muted); }
+.ks-faint{ color:var(--text-muted); } /* историческое имя: тихий, но читаемый текст */
+.ks-link{ color:var(--text-link); text-decoration:none; }
+.ks-link:hover{ text-decoration:underline; text-underline-offset:2px; }
+/* Цифры, которые выравниваются в столбик: таблицы, оси, дельты */
+.ks-num{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; letter-spacing:var(--tracking-num); }
+/* Крупное одиночное число: табличные цифры, чтобы при обновлении значение не дёргалось */
+.ks-hero{ font-family:var(--font-sans); font-variant-numeric:tabular-nums; letter-spacing:var(--tracking-hero); }
+.ks-mono{ font-family:var(--font-mono); }
+.ks-caps{ text-transform:uppercase; letter-spacing:var(--tracking-caps); }
+.ks-sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+/* ---------- каркас приложения ---------- */
+.ks-app{ min-height:100vh; min-height:100dvh; display:flex; }
+.ks-sidebar{
+  width:var(--sidebar-w); flex-shrink:0; height:100vh; height:100dvh; position:sticky; top:env(safe-area-inset-top, 0px);
+  display:flex; flex-direction:column; background:var(--surface); border-right:1px solid var(--border);
+  transition:transform var(--dur-slow) var(--ease-std); /* ширину не анимируем: сворачивание мгновенное, без перерасчёта раскладки */
+  z-index:var(--z-sidebar);
+}
+.ks-sidebar.is-collapsed{ width:var(--sidebar-w-collapsed); }
+.ks-sidebar.is-collapsed .ks-lbl{ display:none; }
+.ks-brand{ min-height:var(--topbar-h); display:flex; align-items:center; gap:var(--sp-2-5); padding:var(--sp-2) var(--sp-4); border-bottom:1px solid var(--border); flex-shrink:0; }
+/* Знак без градиента: градиентный квадрат с иконкой это подпись шаблона */
+.ks-brand-mark{ width:28px; height:28px; border-radius:var(--r-md); display:grid; place-items:center; color:var(--surface); background:var(--text-strong); flex-shrink:0; }
+.ks-brand-name{ font-weight:var(--fw-semi); color:var(--text-strong); font-size:var(--fs-base); line-height:1.1; letter-spacing:var(--tracking-h); }
+.ks-brand-sub{ font-size:var(--fs-micro); color:var(--text-muted); }
+.ks-sidebar-foot{ padding:var(--sp-3); border-top:1px solid var(--border); font-size:var(--fs-micro); color:var(--text-muted); line-height:var(--lh-snug); flex-shrink:0; }
+
+.ks-main{ flex:1; min-width:0; }
+.ks-topbar{
+  height:var(--topbar-h); position:sticky; top:env(safe-area-inset-top, 0px); z-index:var(--z-topbar);
+  display:flex; align-items:center; gap:var(--sp-2);
+  padding:0 max(var(--sp-4), env(safe-area-inset-right, 0px)) 0 max(var(--sp-4), env(safe-area-inset-left, 0px));
+  background:var(--overlay); backdrop-filter:var(--topbar-blur, blur(12px) saturate(180%)); -webkit-backdrop-filter:var(--topbar-blur, blur(12px) saturate(180%));
+  border-bottom:1px solid var(--border); min-width:0; overflow:hidden;
+}
+.ks-topbar-spacer{ flex:1; }
+/* фильтры шапки: на узком экране едут вбок пальцем, а не обрезаются */
+.ks-topbar-tools{ display:flex; align-items:center; gap:var(--sp-2); min-width:0; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.ks-topbar-tools::-webkit-scrollbar{ display:none; }
+/* не влезает: край тает, чтобы было видно, что лента едет дальше (класс ставит KS.shell) */
+.ks-topbar-tools.is-overflow{ -webkit-mask-image:linear-gradient(to right, black calc(100% - 28px), transparent); mask-image:linear-gradient(to right, black calc(100% - 28px), transparent); }
+.ks-topbar-tools.is-overflow.is-end{ -webkit-mask-image:linear-gradient(to right, transparent, black 28px); mask-image:linear-gradient(to right, transparent, black 28px); }
+.ks-menu-btn{ flex-shrink:0; }
+.ks-stamp{ font-size:var(--fs-micro); color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ks-view{ padding:var(--content-pad); padding-bottom:calc(var(--content-pad) + env(safe-area-inset-bottom, 0px)); max-width:var(--content-max); min-width:0; }
+/* сетки подстраиваются под ширину своего контейнера, а не окна: тот же блок верно
+   ложится и в полный экран, и в панель деталей, и в половину витрины */
+.ks-view, .ks-theme-pane, .ks-drawer-body, .ks-cq{ container-type:inline-size; }
+.ks-backdrop{ position:fixed; inset:0; background:var(--backdrop); z-index:var(--z-backdrop); }
+
+@media (max-width:1023px){
+  /* меню уезжает за край и выезжает поверх по кнопке в шапке */
+  .ks-sidebar{ position:fixed; left:0; top:0; width:min(300px, 86vw); transform:translateX(-100%);
+    padding-top:env(safe-area-inset-top, 0px); padding-bottom:env(safe-area-inset-bottom, 0px); overscroll-behavior:contain; }
+  .ks-sidebar.is-open{ transform:none; box-shadow:var(--sh-pop); }
+  .ks-sidebar.is-collapsed{ width:min(300px, 86vw); }
+  .ks-sidebar.is-collapsed .ks-lbl{ display:revert; }
+  .ks-view{ padding:var(--content-pad-sm); padding-bottom:calc(var(--content-pad-sm) + env(safe-area-inset-bottom, 0px));
+    padding-left:max(var(--content-pad-sm), env(safe-area-inset-left, 0px)); padding-right:max(var(--content-pad-sm), env(safe-area-inset-right, 0px)); }
+  .ks-hide-md{ display:none !important; }
+}
+@media (min-width:1024px){ .ks-show-md{ display:none !important; } }
+@media (max-width:639px){ .ks-hide-sm{ display:none !important; } .ks-h1{ font-size:var(--fs-h1-sm); } }
+
+/* ---------- сетки ---------- */
+.ks-stack{ display:flex; flex-direction:column; gap:var(--gap-stack); }
+.ks-row{ display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap; }
+.ks-grid-2  { display:grid; gap:var(--gap-stack); grid-template-columns:minmax(0,1fr); }
+.ks-grid-3  { display:grid; gap:var(--gap-stack); grid-template-columns:minmax(0,1fr); }
+/* Плитки показателей: одна панель с волосяными разделителями вместо четырёх отдельных
+   карточек (приём Stripe и daisyUI stats). Разделитель это зазор 1px, сквозь который
+   виден цвет границы: он верен при любом числе колонок. */
+.ks-grid-kpi{ display:grid; gap:1px; grid-template-columns:repeat(2,minmax(0,1fr));
+  background:var(--border); border:1px solid var(--card-border, var(--border)); border-radius:var(--r-box); overflow:hidden; box-shadow:var(--sh-card); }
+.ks-grid-kpi > *{ border:0 !important; border-radius:0 !important; box-shadow:none !important; }
+.ks-grid-kpi > :focus-visible{ outline-offset:-2px; }
+/* ширина контейнера: до 300 одна плитка в ряд, от 680 все в одну строку; графики парами от 720, тройкой от 1080 */
+@container (max-width:300px){ .ks-grid-kpi{ grid-template-columns:minmax(0,1fr); } }
+@container (min-width:301px) and (max-width:679px){ .ks-grid-kpi > :last-child:nth-child(odd){ grid-column:span 2; } }
+@container (min-width:680px){
+  .ks-grid-kpi{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .ks-grid-kpi:has(> :nth-child(3):last-child){ grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .ks-grid-kpi:has(> :nth-child(2):last-child){ grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@container (min-width:720px){ .ks-grid-2{ grid-template-columns:repeat(2,minmax(0,1fr)); } .ks-grid-3{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@container (min-width:1080px){ .ks-grid-3{ grid-template-columns:repeat(3,minmax(0,1fr)); } .ks-span-2{ grid-column:span 2; } }
+/* широкий экран: больше воздуха между блоками */
+@container (min-width:900px){ .ks-stack{ gap:var(--gap-stack-lg); } .ks-grid-2, .ks-grid-3{ gap:var(--gap-stack-lg); } }
+/* браузер без контейнерных запросов (Safari до 16): те же правила по ширине окна */
+@supports not (container-type:inline-size){
+  @media (min-width:1024px){ .ks-grid-kpi{ grid-template-columns:repeat(4,minmax(0,1fr)); } .ks-grid-2{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (min-width:1280px){ .ks-grid-3{ grid-template-columns:repeat(3,minmax(0,1fr)); } .ks-span-2{ grid-column:span 2; } }
+}
+
+/* ---------- навигация ---------- */
+.ks-nav{ position:relative; flex:1; overflow-y:auto; padding:var(--sp-2-5); display:flex; flex-direction:column; gap:2px; }
+/* 1.4: подложка выбранного пункта переезжает к новому (KS.navhl), как у Linear. Движется transform,
+   размер ставится сразу. Без скрипта остаётся обычная подложка у .is-active. */
+.ks-nav-hl{ position:absolute; left:0; top:0; width:var(--hl-w, 0px); height:var(--hl-h, 0px); border-radius:var(--r-md);
+  background:var(--nav-active, var(--surface-2)); pointer-events:none; transform:translate(var(--hl-x, 0px), var(--hl-y, 0px));
+  transition:transform var(--dur-base) var(--ease-out), opacity var(--dur-fast); }
+.ks-nav-hl.is-hidden{ opacity:0; }
+.ks-nav.has-hl .ks-nav-item{ position:relative; }
+.ks-nav.has-hl .ks-nav-item.is-active{ background:transparent; }
+.ks-nav-item{
+  width:100%; display:flex; align-items:center; gap:var(--sp-2-5); padding:var(--nav-y) var(--sp-2-5);
+  border:0; background:none; border-radius:var(--r-md); cursor:pointer; text-align:left;
+  font:inherit; font-size:var(--fs-body); color:var(--text);
+  transition:background var(--dur-fast), color var(--dur-fast);
+}
+.ks-nav-item:hover{ background:var(--surface-2); color:var(--text-strong); }
+/* Выбранный пункт нейтральный: подложка и сильный текст. Цвет только у значка. */
+.ks-nav-item.is-active{ background:var(--nav-active, var(--surface-2)); color:var(--text-strong); font-weight:var(--fw-medium); }
+.ks-nav-item .ks-ic{ color:var(--text-muted); flex-shrink:0; }
+.ks-nav-item.is-active .ks-ic{ color:var(--primary-ink); }
+.ks-nav-item .ks-lbl{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ks-nav-sub{ display:grid; grid-template-rows:0fr; transition:grid-template-rows var(--dur-slow) var(--ease-std); }
+.ks-nav-sub.is-open{ grid-template-rows:1fr; }
+.ks-nav-sub-in{ min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:2px; visibility:hidden; transition:visibility 0s linear var(--dur-slow); }
+.ks-nav-sub.is-open .ks-nav-sub-in{ visibility:visible; transition:visibility 0s; } /* свёрнутые пункты не ловят Tab */
+.ks-nav-sub .ks-nav-item{ padding-left:36px; font-size:var(--fs-small); padding-top:6px; padding-bottom:6px; }
+.ks-chev{ transition:transform var(--dur-base); color:var(--text-faint); flex-shrink:0; }
+.ks-chev.is-open{ transform:rotate(90deg); }
+
+/* ---------- шапка экрана ---------- */
+.ks-page-head{ margin-bottom:var(--gap-stack-lg); }
+.ks-page-head .ks-row{ margin-bottom:var(--sp-1-5); }
+.ks-page-sub{ font-size:var(--fs-base); max-width:52rem; line-height:var(--lh-snug); margin:0; color:var(--text); }
+.ks-page-src{ font-size:var(--fs-micro); color:var(--text-muted); margin-top:var(--sp-1-5); }
+/* Строка про деньги: на каждом экране. В 1.3 без пунктирной рамки: мягкая подложка */
+.ks-lead{
+  margin-top:var(--sp-3); display:flex; gap:var(--sp-2); align-items:flex-start;
+  padding:var(--sp-2-5) var(--sp-3); border-radius:var(--r-field); background:var(--surface-2);
+  font-size:var(--fs-small); color:var(--text); max-width:62rem;
+}
+.ks-lead .ks-ic{ color:var(--text-muted); margin-top:2px; flex-shrink:0; }
+/* Значок «?» с подсказкой: пояснение к экрану не занимает место, пока его не попросили */
+.ks-help{ display:inline-grid; place-items:center; width:18px; height:18px; border-radius:var(--r-full); border:1px solid var(--border-strong);
+  font-size:var(--fs-micro); font-weight:var(--fw-semi); color:var(--text-muted); cursor:help; line-height:1; }
+
+/* ---------- карточка ---------- */
+.ks-card{
+  position:relative; background:var(--surface); border:1px solid var(--card-border, var(--border)); border-radius:var(--r-box);
+  padding:var(--pad-box); min-width:0; box-shadow:var(--sh-card);
+  transition:box-shadow var(--dur-base), border-color var(--dur-base), background-color var(--dur-fast);
+}
+@container (min-width:720px){ .ks-card{ padding:var(--pad-box-lg); } }
+.ks-card.is-interactive{ cursor:pointer; }
+/* Кликабельное отвечает рамкой и тенью, без подъёма: подъём по наведению это приём лендингов */
+@media (hover:hover){ .ks-card.is-interactive:hover, .ks-card.is-lift:hover{ box-shadow:var(--sh-hover); border-color:var(--border-strong); } }
+.ks-card.is-interactive:active{ border-color:var(--border-strong); }
+.ks-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-3); margin-bottom:var(--gap-stack); }
+.ks-card-title{ font-size:var(--fs-base); font-weight:var(--fw-semi); color:var(--text-strong); line-height:var(--lh-tight); }
+.ks-card-sub{ font-size:var(--fs-caption); color:var(--text-muted); margin-top:3px; line-height:var(--lh-snug); }
+.ks-card-actions{ display:flex; align-items:center; gap:var(--sp-1-5); flex-shrink:0; }
+
+/* ---------- плитка показателя ----------
+   Подпись сверху, крупное число, дельта чипом и спарклайн, источник внизу.
+   Без тонированного квадрата с иконкой: это самый узнаваемый признак сгенерированного дашборда. */
+.ks-tile{ position:relative; background:var(--surface); border:1px solid var(--card-border, var(--border)); border-radius:var(--r-box); padding:var(--pad-box); min-width:0;
+  display:flex; flex-direction:column; gap:var(--sp-1-5); transition:background-color var(--dur-fast); }
+.ks-tile.is-interactive{ cursor:pointer; }
+@media (hover:hover){ .ks-tile.is-interactive:hover{ background-color:var(--surface-2); } }
+.ks-tile.is-interactive:active{ background-color:var(--surface-2); }
+.ks-tile-head{ display:flex; align-items:center; justify-content:space-between; gap:var(--sp-2); min-height:18px; }
+/* узкая плитка (телефон, две в ряд): класс цифры уходит под подпись, спарклайн под дельту */
+.ks-tile{ container-type:inline-size; }
+@container (max-width:240px){
+  .ks-tile-head{ flex-direction:column; align-items:flex-start; gap:var(--sp-1); }
+  .ks-tile-foot{ flex-wrap:wrap; row-gap:var(--sp-1-5); }
+}
+.ks-tile-label{ display:flex; align-items:center; gap:var(--sp-1-5); min-width:0; font-size:var(--fs-caption); font-weight:var(--fw-medium); line-height:var(--lh-tight); color:var(--text); }
+.ks-tile-label .ks-ic{ color:var(--text-muted); flex-shrink:0; }
+/* стрелка у подписи: плитка открывает детали */
+.ks-tile-label .ks-ic.ks-tile-go{ color:var(--text-faint); margin-left:-2px; transition:transform var(--dur-fast) var(--ease-out); }
+@media (hover:hover){ .ks-tile.is-interactive:hover .ks-tile-go{ transform:translateX(2px); color:var(--text-muted); } }
+.ks-tile-value{ margin-top:var(--sp-1); font-size:var(--fs-hero); font-weight:var(--fw-semi); color:var(--text-strong); line-height:1.05; }
+.ks-tile-foot{ display:flex; align-items:center; justify-content:space-between; gap:var(--sp-2); min-height:24px; }
+.ks-tile-src{ margin-top:auto; padding-top:var(--sp-1); font-size:var(--fs-micro); color:var(--text-muted); line-height:var(--lh-snug); }
+.ks-tile-empty{ color:var(--text-muted); }
+
+/* спарклайн в плитке: тренд рядом с числом. Линия прорисовывается один раз при появлении */
+.ks-spark{ width:76px; height:24px; flex-shrink:0; overflow:visible; color:var(--slot, var(--cat-3)); }
+.ks-spark path{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round;
+  stroke-dasharray:1; animation:ks-draw var(--dur-chart) var(--ease-out) both; }
+.ks-spark circle{ fill:currentColor; }
+/* пропуск в ряду: пунктир без прорисовки, чтобы разрыв был виден, а не заштопан */
+.ks-spark path.is-gap{ stroke-dasharray:2 3; animation:none; opacity:.5; }
+.ks-spark .is-last{ stroke:var(--surface); stroke-width:1.5; }
+@keyframes ks-draw{ from{ stroke-dashoffset:1; } to{ stroke-dashoffset:0; } }
+
+/* ---------- класс цифры и статус: точка и слово ----------
+   Обычное состояние тихое, исключение громкое: «данные» приглушены, «гипотеза» и «демо» цветные */
+.ks-dot{ width:6px; height:6px; border-radius:var(--r-full); flex-shrink:0; background:var(--tone, var(--neutral));
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--tone, var(--neutral)) 16%, transparent); }
+.ks-kind{ display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-micro); font-weight:var(--fw-medium); line-height:1.2; white-space:nowrap; color:var(--text-muted); }
+.ks-kind--ok{ --tone:var(--ok); }
+.ks-kind--warn{ --tone:var(--warn); color:var(--warn); }
+.ks-kind--crit{ --tone:var(--crit); color:var(--crit); }
+.ks-status{ display:inline-flex; align-items:center; gap:7px; white-space:nowrap; color:var(--text-strong); }
+.ks-status--ok{ --tone:var(--ok); } .ks-status--warn{ --tone:var(--warn); } .ks-status--serious{ --tone:var(--serious); }
+.ks-status--crit{ --tone:var(--crit); } .ks-status--neutral{ --tone:var(--neutral); } .ks-status--info{ --tone:var(--info); }
+
+/* ---------- дельта: чип ---------- */
+.ks-delta{ display:inline-flex; align-items:center; gap:3px; font-size:var(--fs-caption); font-weight:var(--fw-semi); line-height:1.3;
+  white-space:nowrap; padding:2px 6px; border-radius:var(--r-sm); }
+.ks-delta.is-good{ color:var(--ok); background:var(--ok-soft); }
+.ks-delta.is-bad { color:var(--crit); background:var(--crit-soft); }
+.ks-delta.is-flat{ color:var(--text-muted); background:var(--neutral-soft); }
+.ks-delta.is-na  { color:var(--text-muted); font-weight:var(--fw-regular); padding-inline:0; }
+
+/* ---------- бейдж: строчными, средней жирности ---------- */
+.ks-badge{ display:inline-flex; align-items:center; font-size:var(--fs-badge); font-weight:var(--fw-medium);
+  padding:2px 7px; border-radius:var(--r-sm); line-height:1.35; vertical-align:middle; white-space:nowrap; }
+.ks-badge--ok     { color:var(--ok);      background:var(--ok-soft); }
+.ks-badge--warn   { color:var(--warn);    background:var(--warn-soft); }
+.ks-badge--serious{ color:var(--serious); background:var(--serious-soft); }
+.ks-badge--crit   { color:var(--crit);    background:var(--crit-soft); }
+.ks-badge--neutral{ color:var(--neutral); background:var(--neutral-soft); }
+.ks-badge--info   { color:var(--info);    background:var(--info-soft); }
+
+/* ---------- клавиша ---------- */
+.ks-kbd{ display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 5px; flex-shrink:0;
+  font-family:var(--font-sans); font-size:var(--fs-micro); font-weight:var(--fw-medium); line-height:1; color:var(--text-muted);
+  background:var(--surface); border:1px solid var(--border); border-bottom-width:2px; border-radius:var(--r-xs); }
+
+/* ---------- таблица ---------- */
+.ks-table-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; container-type:inline-size; }
+/* Обёртка с прокруткой вбок сама становится контейнером прокрутки, и липкая шапка перестаёт
+   держаться за страницу. Таблица влезла по ширине: KS.tables снимает прокрутку классом is-fit. */
+.ks-table-wrap.is-fit:not(.ks-table-wrap--scroll){ overflow:visible; }
+/* Длинная таблица в своей области прокрутки: шапка держится внутри неё */
+.ks-table-wrap--scroll{ max-height:var(--table-max-h, 440px); overflow:auto; overscroll-behavior:contain; --sticky-top:0px; }
+.ks-view{ --sticky-top:calc(var(--topbar-h) + env(safe-area-inset-top, 0px)); }
+.ks-drawer-body{ --sticky-top:calc(-1 * var(--sp-4)); }
+.ks-table{ width:100%; border-collapse:collapse; font-size:var(--fs-small); }
+/* Заголовок тихий: подпись столбца, а не ещё одна строка данных */
+/* Шапка липкая (1.4): держится под шапкой страницы, в панели деталей и в прокручиваемой обёртке.
+   Линия под ней нарисована тенью: при border-collapse рамка липкой ячейки уезжает вместе со строками.
+   Лишний пиксель снизу занимает место прежней рамки, высота шапки как в 1.3. */
+.ks-table th{ text-align:left; font-size:var(--fs-caption); font-weight:var(--fw-medium); padding:var(--cell-head-y) var(--cell-x) calc(var(--cell-head-y) + 1px); color:var(--text-muted); white-space:nowrap;
+  position:sticky; top:var(--sticky-top, 0px); z-index:2; background:var(--table-head-bg, var(--surface)); box-shadow:inset 0 -1px 0 var(--border); }
+.ks-table thead.is-stuck th{ box-shadow:inset 0 -1px 0 var(--border), 0 6px 12px -8px rgba(16,24,40,.18); }
+.ks-table td{ padding:var(--cell-y) var(--cell-x); border-bottom:1px solid var(--divider); color:var(--text); }
+.ks-table .is-num{ text-align:right; font-variant-numeric:tabular-nums; letter-spacing:var(--tracking-num); }
+.ks-table tbody tr:last-child td{ border-bottom:0; }
+.ks-table tfoot td{ font-weight:var(--fw-semi); color:var(--text-strong); border-top:1px solid var(--border); border-bottom:0; }
+.ks-table tr.is-interactive{ cursor:pointer; }
+@media (hover:hover){ .ks-table tbody tr:hover td{ background:var(--surface-2); } }
+.ks-table tr.is-interactive:active td{ background:var(--surface-2); }
+.ks-empty{ color:var(--text-muted); }
+/* таблица с классом ks-table--stack на ширине до 520 превращается в карточки:
+   первая колонка это заголовок строки, остальные идут парами «подпись: значение» */
+@container (max-width:520px){
+  .ks-table--stack thead{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+  .ks-table--stack, .ks-table--stack tbody, .ks-table--stack tfoot{ display:block; }
+  .ks-table--stack tr{ display:block; padding:var(--sp-2-5) 0; border-bottom:1px solid var(--divider); }
+  .ks-table--stack td{ display:flex; justify-content:space-between; align-items:baseline; gap:var(--sp-3); border:0; padding:3px 0; text-align:right; }
+  .ks-table--stack td::before{ content:attr(data-label); color:var(--text-muted); text-align:left; font-weight:var(--fw-regular); }
+  .ks-table--stack td:first-child{ font-weight:var(--fw-semi); color:var(--text-strong); text-align:left; }
+  .ks-table--stack td:first-child::before{ content:none; }
+  .ks-table--stack tfoot tr{ border-bottom:0; }
+}
+
+/* ---------- полосы ---------- */
+.ks-bars{ display:flex; flex-direction:column; gap:var(--sp-3); }
+.ks-bar-head{ display:flex; justify-content:space-between; gap:var(--sp-2); font-size:var(--fs-small); margin-bottom:6px; }
+.ks-bar-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ks-bar-value{ font-variant-numeric:tabular-nums; font-weight:var(--fw-semi); color:var(--text-strong); }
+.ks-bar-track{ height:6px; border-radius:var(--r-full); background:var(--track); overflow:hidden; }
+.ks-bar-fill{ height:100%; border-radius:var(--r-full); background:var(--slot, var(--cat-3)); transform-origin:left center; animation:ks-grow var(--dur-slow) var(--ease-out) both; }
+@keyframes ks-grow{ from{ transform:scaleX(0); } }
+
+/* ---------- врезка ----------
+   Нейтральная карточка, тон только у значка. Цветной фон оставлен одной врезке: crit.
+   Толстая цветная полоса сбоку не используется: это известный признак шаблона. */
+.ks-note{ display:flex; gap:var(--sp-2-5); padding:calc(var(--pad-box) - 2px) var(--pad-box); border:1px solid var(--card-border, var(--border)); border-radius:var(--r-box);
+  background:var(--surface); box-shadow:var(--sh-card); }
+.ks-note-ic{ flex-shrink:0; margin-top:1px; color:var(--tone); }
+.ks-note-title{ font-weight:var(--fw-semi); font-size:var(--fs-body); color:var(--text-strong); margin-bottom:2px; }
+.ks-note-body{ font-size:var(--fs-small); line-height:var(--lh-snug); color:var(--text); }
+.ks-note--ok  { --tone:var(--ok); }
+.ks-note--warn{ --tone:var(--warn); }
+.ks-note--info{ --tone:var(--info); }
+.ks-note--crit{ --tone:var(--crit); border-color:color-mix(in oklab, var(--crit) 28%, var(--border)); background:color-mix(in oklab, var(--crit) 5%, var(--surface)); }
+
+/* ---------- вердикт: главная строка экрана ---------- */
+.ks-verdict{ padding:var(--pad-box); border:1px solid var(--card-border, var(--border)); border-radius:var(--r-box); background:var(--surface); box-shadow:var(--sh-card); }
+@container (min-width:720px){ .ks-verdict{ padding:var(--pad-box) var(--pad-box-lg); } }
+.ks-verdict-head{ display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap; }
+.ks-verdict-head .ks-ic{ color:var(--tone); flex-shrink:0; }
+.ks-verdict-title{ font-size:var(--fs-h2); font-weight:var(--fw-semi); letter-spacing:var(--tracking-h); color:var(--tone); }
+.ks-verdict-per{ font-size:var(--fs-caption); color:var(--text-muted); }
+.ks-verdict--ok{ --tone:var(--ok); } .ks-verdict--warn{ --tone:var(--warn); } .ks-verdict--crit{ --tone:var(--crit); }
+.ks-verdict-rows{ margin-top:var(--sp-3); display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto minmax(0,.9fr); column-gap:var(--sp-4); }
+.ks-verdict-row{ display:contents; }
+.ks-verdict-row > *{ padding:7px 0; border-top:1px solid var(--divider); display:flex; align-items:center; min-width:0; }
+.ks-verdict-name{ color:var(--text-strong); font-size:var(--fs-small); font-weight:var(--fw-medium); }
+.ks-verdict-path{ gap:6px; font-size:var(--fs-small); color:var(--text-strong); font-variant-numeric:tabular-nums; flex-wrap:wrap; }
+.ks-verdict-path .ks-muted{ font-size:var(--fs-caption); }
+.ks-verdict-prev{ font-size:var(--fs-caption); color:var(--text-muted); justify-content:flex-end; text-align:right; }
+.ks-verdict-note{ margin-top:var(--sp-2); font-size:var(--fs-caption); color:var(--text-muted); }
+@container (max-width:560px){
+  .ks-verdict-rows{ grid-template-columns:minmax(0,1fr) auto; }
+  .ks-verdict-name{ grid-column:1 / -1; padding-bottom:0 !important; }
+  .ks-verdict-path, .ks-verdict-row > .ks-delta-cell{ border-top:0 !important; padding-top:2px !important; }
+  .ks-verdict-prev{ display:none !important; }
+}
+
+/* ---------- следующий шаг ---------- */
+.ks-action-title{ display:flex; align-items:center; gap:var(--sp-2); font-weight:var(--fw-semi); font-size:var(--fs-body); color:var(--text-strong); margin-bottom:var(--sp-2); }
+.ks-action-title .ks-ic{ color:var(--primary-ink); }
+.ks-action-what{ font-size:var(--fs-base); line-height:var(--lh-snug); margin-bottom:var(--sp-2-5); color:var(--text-strong); }
+.ks-action-meta{ display:flex; flex-wrap:wrap; gap:var(--sp-1) var(--sp-5); font-size:var(--fs-small); margin:0; }
+.ks-action-meta dt{ color:var(--text-muted); }
+.ks-action-meta dd{ margin:0; font-weight:var(--fw-semi); color:var(--text-strong); }
+.ks-action-crit{ font-size:var(--fs-small); margin-top:var(--sp-2-5); padding-top:var(--sp-2-5); border-top:1px solid var(--divider); }
+
+/* ---------- нумерованные шаги и чек-лист ---------- */
+.ks-steps{ display:flex; flex-direction:column; gap:var(--sp-3); margin:0; padding:0; list-style:none; }
+.ks-step{ display:flex; gap:var(--sp-3); align-items:flex-start; font-size:var(--fs-small); }
+.ks-step-n{ width:22px; height:22px; border-radius:var(--r-full); flex-shrink:0; display:grid; place-items:center;
+  font-size:var(--fs-micro); font-variant-numeric:tabular-nums; font-weight:var(--fw-semi); color:var(--text-strong);
+  background:var(--surface-2); border:1px solid var(--border); }
+.ks-step-title{ font-weight:var(--fw-medium); color:var(--text-strong); }
+.ks-step-sub{ color:var(--text-muted); line-height:var(--lh-snug); margin-top:1px; }
+.ks-check{ display:flex; gap:var(--sp-2); font-size:var(--fs-small); line-height:var(--lh-snug); }
+.ks-check .ks-ic{ flex-shrink:0; margin-top:2px; }
+.ks-check--ok   .ks-ic{ color:var(--ok); }
+.ks-check--warn .ks-ic{ color:var(--warn); }
+.ks-check--crit .ks-ic{ color:var(--crit); }
+
+/* ---------- кнопки и поля ---------- */
+.ks-btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2);
+  height:var(--ctl-h); padding:0 var(--sp-3); border-radius:var(--r-field); border:1px solid transparent;
+  font:inherit; font-size:var(--fs-body); font-weight:var(--fw-medium); cursor:pointer; white-space:nowrap;
+  transition:background var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast), box-shadow var(--dur-fast);
+}
+/* Основное действие почти чёрное (в тёмной теме почти белое), а не синее по умолчанию */
+.ks-btn--primary  { background:var(--action); color:var(--action-foreground); box-shadow:var(--sh-card); }
+.ks-btn--primary:hover{ background:var(--action-hover); }
+.ks-btn--secondary{ background:var(--surface); color:var(--text-strong); border-color:var(--border); box-shadow:var(--sh-card); }
+.ks-btn--secondary:hover{ background:var(--surface-2); border-color:var(--border-strong); }
+.ks-btn--ghost    { background:transparent; color:var(--text); }
+.ks-btn--ghost:hover{ background:var(--surface-2); color:var(--text-strong); }
+.ks-btn--sm{ height:var(--ctl-h-sm); padding:0 var(--sp-2); font-size:var(--fs-caption); border-radius:var(--r-sm); }
+.ks-btn--icon{ width:var(--ctl-h); height:var(--ctl-h); padding:0; }
+.ks-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+/* Сегментный переключатель с плашкой, которая переезжает к выбранному (KS.seg).
+   Плашка движется через clip-path, а не через ширину: раскладка не пересчитывается. */
+.ks-seg{ position:relative; isolation:isolate; display:inline-flex; gap:2px; padding:3px; border-radius:var(--r-field); background:var(--surface-2); flex-shrink:0; }
+.ks-seg button{ position:relative; border:0; background:none; font:inherit; font-size:var(--fs-small); font-weight:var(--fw-medium);
+  padding:calc(var(--ctl-h) / 8) 10px; border-radius:calc(var(--r-field) - 2px); cursor:pointer; color:var(--text-muted); white-space:nowrap;
+  transition:color var(--dur-fast); }
+.ks-seg button:hover{ color:var(--text-strong); }
+.ks-seg button[aria-pressed="true"]{ color:var(--pill-foreground, var(--text-strong)); }
+.ks-seg:not(.has-pill) button[aria-pressed="true"]{ background:var(--pill); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+.ks-seg-pill{ position:absolute; inset:3px; z-index:-1; pointer-events:none; filter:drop-shadow(0 1px 1px rgba(0,0,0,.10)); }
+.ks-seg-pill > i{ position:absolute; inset:0; background:var(--pill); border-radius:calc(var(--r-field) - 2px);
+  clip-path:inset(0 var(--pill-r, 100%) 0 var(--pill-l, 0px) round calc(var(--r-field) - 2px));
+  transition:clip-path var(--dur-base) var(--ease-std); }
+
+.ks-select{ font:inherit; font-size:var(--fs-small); height:var(--select-h); padding:0 28px 0 10px; border-radius:var(--r-field);
+  border:1px solid var(--border); background-color:var(--surface); color:var(--text-strong); cursor:pointer; appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--text-muted) 50%),linear-gradient(135deg,var(--text-muted) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 50%, calc(100% - 9px) 50%; background-size:5px 5px; background-repeat:no-repeat; }
+
+.ks-field{ display:flex; flex-direction:column; gap:var(--sp-1-5); }
+.ks-field-label{ font-size:var(--fs-small); font-weight:var(--fw-medium); color:var(--text-strong); display:flex; gap:var(--sp-2); align-items:center; }
+.ks-field-hint{ font-size:var(--fs-micro); color:var(--text-muted); }
+.ks-input{ width:100%; font:inherit; font-variant-numeric:tabular-nums; font-size:var(--fs-body); height:var(--field-h); padding:0 10px; border-radius:var(--r-field);
+  border:1px solid var(--border); background:var(--surface-3); color:var(--text-strong); transition:border-color var(--dur-fast), box-shadow var(--dur-fast); }
+.ks-input::placeholder{ color:var(--text-muted); }
+.ks-input:hover{ border-color:var(--border-strong); }
+.ks-input:focus{ outline:none; border-color:var(--focus); box-shadow:0 0 0 3px var(--primary-soft); }
+
+/* кнопка палитры команд в шапке: выглядит как поле поиска, открывается и по Cmd+K */
+.ks-cmdk-btn{ display:inline-flex; align-items:center; gap:var(--sp-2); height:var(--select-h); padding:0 6px 0 10px; flex-shrink:0;
+  border:1px solid var(--border); border-radius:var(--r-field); background:var(--surface); color:var(--text-muted);
+  font:inherit; font-size:var(--fs-small); cursor:pointer; transition:border-color var(--dur-fast), color var(--dur-fast); }
+.ks-cmdk-btn:hover{ border-color:var(--border-strong); color:var(--text-strong); }
+.ks-cmdk-btn .ks-cmdk-lbl{ min-width:90px; text-align:left; }
+@media (max-width:639px){ .ks-cmdk-btn{ width:var(--tap-sm); padding:0; justify-content:center; } .ks-cmdk-btn .ks-cmdk-lbl, .ks-cmdk-btn .ks-kbd{ display:none; } }
+
+/* ---------- шапка на телефоне (1.5.1) ----------
+   Кнопки шапки не сжимаются ниже цели пальца. Тема и плотность на ширине до 639 уходят в меню (.ks-sidebar-tools,
+   кнопки data-ks-act), у сегмента в шапке поля уже, лента плотнее, выбор из списка стоит в ленте первым. */
+.ks-topbar > .ks-btn, .ks-topbar > .ks-cmdk-btn{ flex-shrink:0; }
+.ks-sidebar-tools{ display:none; flex-direction:column; align-items:flex-start; flex-shrink:0;
+  padding:0 var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); }
+.ks-sidebar-tools .ks-btn{ padding-left:0; gap:var(--sp-2); }
+@media (max-width:639px){ .ks-sidebar-tools{ display:flex; } }
+/* до 1279 (телефон, планшет, ноутбук с открытым меню) лента фильтров может не влезть: выбор из списка (период,
+   статус) встаёт в ней первым и виден всегда, длинный сегмент прокручивается за ним. С 1280 порядок исходный */
+@media (max-width:1279px){ .ks-topbar-tools > .ks-select{ order:-1; flex-shrink:0; } }
+/* до 767 ещё и поиск сжимается до значка, у сегмента поля уже */
+@media (max-width:767px){
+  .ks-topbar .ks-seg button{ padding-inline:var(--sp-2); }
+  .ks-topbar-tools{ gap:var(--sp-1-5); }
+  .ks-cmdk-btn{ width:var(--tap-sm); padding:0; justify-content:center; }
+  .ks-cmdk-btn .ks-cmdk-lbl, .ks-cmdk-btn .ks-kbd{ display:none; }
+}
+
+/* ---------- касание ---------- */
+@media (pointer:coarse){
+  .ks-btn{ height:var(--tap); }
+  .ks-btn--sm{ height:var(--tap-sm); }
+  .ks-btn--icon{ width:var(--tap); height:var(--tap); }
+  .ks-nav-item{ min-height:var(--tap); }
+  .ks-seg button{ min-height:var(--tap-sm); min-width:var(--tap-sm); padding-inline:var(--sp-3); }
+  .ks-cmdk-btn{ height:var(--tap-sm); }
+  .ks-cmdk-item{ min-height:var(--tap); }
+  /* 1.5.1: ссылка вне строки текста (в ряду, во флексе) тоже цель пальца: зона 36 px */
+  .ks-link{ padding-block:9px; }
+  /* 1.5.1: значок подсказки и бейдж с фокусом тоже цели: зона касания 36 px псевдоэлементом, вид не меняется */
+  .ks-help, .ks-badge[tabindex], .ks-status[tabindex], .ks-kind[tabindex]{ position:relative; }
+  .ks-help::before{ content:""; position:absolute; inset:-10px; }
+  .ks-badge[tabindex]::after, .ks-status[tabindex]::after, .ks-kind[tabindex]::after{ content:""; position:absolute; inset:-8px -4px; }
+  /* поле мельче 16 пикселей Safari на iPhone увеличивает вместе со страницей при фокусе */
+  .ks-select, .ks-input{ font-size:16px; min-height:var(--tap); }
+  .ks-table tr.is-interactive td{ padding-top:12px; padding-bottom:12px; }
+}
+
+/* ---------- выдвижная панель деталей ---------- */
+.ks-drawer{
+  position:fixed; top:0; right:0; bottom:0; width:min(var(--drawer-w),100vw); z-index:var(--z-drawer);
+  padding-top:env(safe-area-inset-top, 0px); padding-bottom:env(safe-area-inset-bottom, 0px);
+  background:var(--bg); border-left:1px solid var(--border); box-shadow:var(--sh-drawer);
+  display:flex; flex-direction:column; transform:translateX(100%);
+  /* закрытая панель невидима и недоступна с клавиатуры, видимость гасится после выезда */
+  visibility:hidden; pointer-events:none;
+  transition:transform var(--dur-slow) var(--ease-std), visibility 0s linear var(--dur-slow);
+}
+.ks-drawer.is-open{ transform:none; visibility:visible; pointer-events:auto;
+  transition:transform var(--dur-slow) var(--ease-std), visibility 0s; }
+.ks-drawer-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-3); padding:var(--sp-4); border-bottom:1px solid var(--border); background:var(--surface); }
+.ks-drawer-body{ flex:1; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding:var(--sp-4);
+  padding-bottom:calc(var(--sp-4) + env(safe-area-inset-bottom, 0px)); display:flex; flex-direction:column; gap:var(--sp-3); }
+@media (max-width:639px){ .ks-drawer{ width:100vw; border-left:0; } .ks-drawer-head{ padding:var(--sp-3) var(--sp-4); } }
+
+/* ---------- стекло: слои поверх контента ----------
+   Приём Liquid Glass (Kokonut UI) без SVG-искажения: размытие, насыщенность, верхний блик.
+   Нет поддержки или человек просил меньше прозрачности: сплошной слой. */
+.ks-glass{ background:var(--glass-bg); border:1px solid var(--glass-border); box-shadow:var(--glass-shadow);
+  -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur); }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){ .ks-glass{ background:var(--surface); } }
+
+/* ---------- палитра команд (Cmd+K) ---------- */
+.ks-cmdk-bd{ position:fixed; inset:0; z-index:var(--z-cmdk); background:var(--backdrop); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); display:flex; justify-content:center; align-items:flex-start;
+  padding:max(12vh, calc(env(safe-area-inset-top, 0px) + 16px)) 16px 16px; }
+.ks-cmdk{ width:min(620px, 100%); max-height:min(72vh, 560px); display:flex; flex-direction:column; border-radius:var(--r-box); overflow:hidden;
+  animation:ks-pop var(--dur-base) var(--ease-out) both; }
+.ks-cmdk-top{ display:flex; align-items:center; gap:var(--sp-2-5); padding:0 var(--sp-4); border-bottom:1px solid var(--border); }
+.ks-cmdk-top .ks-ic{ color:var(--text-muted); flex-shrink:0; }
+.ks-cmdk-input{ flex:1; min-width:0; height:50px; border:0; outline:none; background:transparent; font:inherit; font-size:16px; color:var(--text-strong); }
+.ks-cmdk-input::placeholder{ color:var(--text-muted); }
+.ks-cmdk-list{ overflow-y:auto; overscroll-behavior:contain; padding:6px; }
+.ks-cmdk-group{ padding:10px 10px 4px; font-size:var(--fs-micro); font-weight:var(--fw-medium); color:var(--text-muted); }
+.ks-cmdk-item{ display:flex; align-items:center; gap:var(--sp-2-5); padding:8px 10px; border-radius:var(--r-md); cursor:pointer;
+  font-size:var(--fs-body); color:var(--text); }
+.ks-cmdk-item .ks-ic{ color:var(--text-muted); flex-shrink:0; }
+.ks-cmdk-item[aria-selected="true"]{ background:var(--surface-2); color:var(--text-strong); }
+.ks-cmdk-item[aria-selected="true"] .ks-ic{ color:var(--text-strong); }
+.ks-cmdk-label{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ks-cmdk-hint{ font-size:var(--fs-caption); color:var(--text-muted); white-space:nowrap; }
+.ks-cmdk-empty{ padding:28px 16px; text-align:center; font-size:var(--fs-small); color:var(--text-muted); }
+.ks-cmdk-foot{ display:flex; flex-wrap:wrap; gap:var(--sp-2) var(--sp-4); padding:8px var(--sp-4); border-top:1px solid var(--border); font-size:var(--fs-micro); color:var(--text-muted); }
+.ks-cmdk-foot span{ display:inline-flex; align-items:center; gap:6px; }
+@keyframes ks-pop{ from{ opacity:0; transform:translateY(-6px) scale(.985); } }
+
+/* ---------- подсказка (KS.tip) ---------- */
+.ks-tip{ position:fixed; z-index:var(--z-toast); left:0; top:0; max-width:min(300px, calc(100vw - 16px)); padding:8px 10px; border-radius:var(--r-md);
+  font-size:var(--fs-caption); line-height:var(--lh-snug); color:var(--text-strong); white-space:pre-line; pointer-events:none;
+  opacity:0; transition:opacity var(--dur-fast) var(--ease-out); }
+.ks-tip.is-on{ opacity:1; }
+
+/* ---------- уведомление (KS.toast) ---------- */
+.ks-toasts{ position:fixed; z-index:var(--z-toast); right:max(16px, env(safe-area-inset-right, 0px)); bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+  display:flex; flex-direction:column; align-items:flex-end; gap:var(--sp-2); pointer-events:none; }
+.ks-toast{ pointer-events:auto; display:flex; align-items:center; gap:var(--sp-2); padding:10px 14px; border-radius:var(--r-md);
+  font-size:var(--fs-body); color:var(--text-strong); max-width:min(420px, calc(100vw - 32px)); animation:ks-toast-in var(--dur-base) var(--ease-out) both; }
+.ks-toast .ks-ic{ color:var(--tone, var(--ok)); flex-shrink:0; }
+.ks-toast.is-out{ animation:ks-toast-out var(--dur-fast) var(--ease-in) forwards; }
+@keyframes ks-toast-in{ from{ opacity:0; transform:translateY(8px); } }
+@keyframes ks-toast-out{ to{ opacity:0; transform:translateY(4px); } }
+@media (max-width:639px){ .ks-toasts{ left:16px; right:16px; align-items:center; } }
+
+/* ---------- загрузка: скелетон, не путать с ДЕМО (там выгрузки нет вовсе) ---------- */
+.ks-skeleton{ display:block; min-height:12px; border-radius:var(--r-sm); background-color:var(--surface-2);
+  background-image:linear-gradient(100deg, transparent 30%, color-mix(in oklab, var(--surface) 70%, transparent) 50%, transparent 70%);
+  background-size:220% 100%; background-repeat:no-repeat; animation:ks-shimmer 1.4s linear infinite; }
+@keyframes ks-shimmer{ from{ background-position:120% 0; } to{ background-position:-120% 0; } }
+
+/* ---------- пустое состояние ---------- */
+.ks-empty-state{ height:100%; min-height:inherit; display:grid; place-content:center; justify-items:center; gap:6px; text-align:center;
+  padding:var(--sp-4); border:1px dashed var(--border-strong); border-radius:var(--r-md); font-size:var(--fs-small); color:var(--text-muted); }
+.ks-empty-state .ks-ic{ color:var(--text-faint); }
+.ks-empty-state b{ color:var(--text-strong); font-weight:var(--fw-medium); }
+
+/* ---------- подсветка под курсором на кликабельном (KS.spot) ----------
+   Только мышь. Радиальный отлив акцента 6-7%: подсказывает, что блок нажимается. */
+@media (hover:hover){
+  .ks-tile.is-interactive, .ks-card.is-interactive{
+    background-image:radial-gradient(240px circle at var(--mx, -400px) var(--my, -400px), var(--spot), transparent 70%); }
+}
+
+/* ---------- графики ---------- */
+.ks-chart{ min-height:var(--h, 260px); }
+/* подсказка графика тем же стеклом, что и KS.tip */
+.apexcharts-tooltip.apexcharts-theme-light, .apexcharts-tooltip.apexcharts-theme-dark{
+  background:var(--glass-bg) !important; color:var(--text-strong) !important; border:1px solid var(--glass-border) !important;
+  box-shadow:var(--glass-shadow) !important; border-radius:var(--r-md) !important;
+  -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur); }
+.apexcharts-tooltip .apexcharts-tooltip-title{ background:transparent !important; border-bottom:1px solid var(--border) !important;
+  color:var(--text-muted) !important; font-family:var(--font-sans) !important; font-size:11px !important; font-weight:var(--fw-medium); }
+.apexcharts-tooltip .apexcharts-tooltip-text-y-value{ font-variant-numeric:tabular-nums; font-weight:var(--fw-semi) !important; }
+.apexcharts-legend-text{ color:inherit !important; }
+
+/* ---------- появление экрана: блоки по очереди, 35 мс шаг, не дольше 0,2 с ---------- */
+.ks-fade > *, .ks-fade > .ks-stack > *{ animation:ks-rise var(--dur-enter) var(--ease-out) backwards; }
+.ks-fade > .ks-stack{ animation:none; }
+.ks-fade > .ks-stack > :nth-child(2){ animation-delay:35ms; }
+.ks-fade > .ks-stack > :nth-child(3){ animation-delay:70ms; }
+.ks-fade > .ks-stack > :nth-child(4){ animation-delay:105ms; }
+.ks-fade > .ks-stack > :nth-child(5){ animation-delay:140ms; }
+.ks-fade > .ks-stack > :nth-child(n+6){ animation-delay:175ms; }
+@keyframes ks-rise{ from{ opacity:0; transform:translateY(6px); } }
+
+/* ==========================================================================
+   1.4: переходы и микроанимации. Только transform, opacity, stroke-dashoffset и clip-path.
+   ========================================================================== */
+
+/* ---------- переходы между экранами (KS.vt на View Transitions) ----------
+   Шапка и меню в переходе не участвуют, плавно меняется только область экрана:
+   старое гаснет за 120 мс, новое проявляется за 200 мс, блоки внутри поднимаются по очереди (ks-fade).
+   Браузер без View Transitions или «меньше движения»: экран меняется сразу, как в 1.3. */
+@supports (view-transition-name: none){
+  :root{ view-transition-name:none; }
+  .ks-view{ view-transition-name:ks-view; }
+  .ks-topbar{ view-transition-name:ks-topbar; }
+}
+::view-transition{ pointer-events:none; }
+::view-transition-group(ks-view){ animation:none; }
+::view-transition-image-pair(ks-view){ isolation:auto; }
+::view-transition-old(ks-view){ animation:ks-vt-out 120ms var(--ease-in) both; mix-blend-mode:normal; }
+::view-transition-new(ks-view){ animation:ks-vt-in 200ms var(--ease-out) 60ms both; mix-blend-mode:normal; }
+::view-transition-old(ks-topbar){ display:none; }
+::view-transition-new(ks-topbar){ animation:none; }
+@keyframes ks-vt-out{ to{ opacity:0; } }
+@keyframes ks-vt-in{ from{ opacity:0; } }
+/* страницу прокрутили: старый снимок стоит не на своём месте, его не показываем */
+:root:active-view-transition-type(ks-jump)::view-transition-old(ks-view){ display:none; }
+/* смена темы и плотности: мягкий кросс-фейд всей страницы за 220 мс */
+:root:active-view-transition-type(ks-theme, ks-density){ view-transition-name:root; }
+:root:active-view-transition-type(ks-theme, ks-density) .ks-view,
+:root:active-view-transition-type(ks-theme, ks-density) .ks-topbar{ view-transition-name:none; }
+:root:active-view-transition-type(ks-theme, ks-density)::view-transition-group(root),
+:root:active-view-transition-type(ks-theme, ks-density)::view-transition-old(root),
+:root:active-view-transition-type(ks-theme, ks-density)::view-transition-new(root){ animation-duration:220ms; }
+
+/* ---------- значок темы поворачивается при смене ---------- */
+.ks-theme-switching .ks-theme-ic{ animation:ks-ic-turn 380ms var(--ease-out) both; }
+@keyframes ks-ic-turn{ from{ opacity:0; transform:rotate(-70deg) scale(.6); } }
+
+/* ---------- индикатор синхронизации (KS.motion.sync) ----------
+   idle, loading, done, error. Единственный допустимый цикл: вращение дуги, пока идёт загрузка.
+   Показывать только при настоящей загрузке: изображать работу без работы нельзя. */
+.ks-sync{ position:relative; display:inline-grid; place-items:center; width:var(--sync-s, 16px); height:var(--sync-s, 16px); flex-shrink:0; color:var(--text-muted); }
+.ks-sync svg{ width:100%; height:100%; overflow:visible; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.ks-sync-track{ stroke:currentColor; opacity:.35; transition:opacity var(--dur-base), stroke var(--dur-base); }
+.ks-sync-arc{ stroke:var(--primary); stroke-dasharray:30 100; opacity:0; transform-origin:10px 10px; transition:opacity var(--dur-fast); }
+.ks-sync-ok, .ks-sync-err{ stroke-dasharray:1; stroke-dashoffset:1; transition:stroke-dashoffset var(--dur-slow) var(--ease-out) 120ms; }
+.ks-sync-ok{ stroke:var(--ok); } .ks-sync-err{ stroke:var(--crit); }
+.ks-sync-dot{ fill:var(--crit); stroke:none; opacity:0; transition:opacity var(--dur-fast) 300ms; }
+.ks-sync[data-state="idle"] .ks-sync-track{ opacity:1; }
+.ks-sync[data-state="loading"] .ks-sync-arc{ opacity:1; animation:ks-spin 900ms linear infinite; }
+.ks-sync[data-state="done"] .ks-sync-track{ stroke:var(--ok); opacity:1; }
+.ks-sync[data-state="done"] .ks-sync-ok{ stroke-dashoffset:0; }
+.ks-sync[data-state="error"] .ks-sync-track{ stroke:var(--crit); opacity:1; }
+.ks-sync[data-state="error"] .ks-sync-err{ stroke-dashoffset:0; }
+.ks-sync[data-state="error"] .ks-sync-dot{ opacity:1; }
+@keyframes ks-spin{ to{ transform:rotate(360deg); } }
+
+/* ---------- галочка подтверждения (KS.motion.check): круг, затем галочка ---------- */
+.ks-check-draw{ position:relative; display:inline-grid; place-items:center; flex-shrink:0; color:var(--tone, var(--ok)); }
+.ks-check-draw svg{ fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; overflow:visible; }
+.ks-check-draw circle, .ks-check-draw path{ stroke-dasharray:1; animation:ks-draw 320ms var(--ease-out) both; }
+.ks-check-draw path{ animation-duration:240ms; animation-delay:200ms; }
+
+/* ---------- иллюстрация пустого графика (KS.motion.emptyArt) ----------
+   Линия рисуется слева направо один раз, разрыв показан пунктиром: пропуск виден, а не заштопан. */
+.ks-empty-art{ position:relative; display:inline-grid; place-items:center; width:120px; height:72px; }
+.ks-empty-art svg{ width:100%; height:100%; overflow:visible; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.ks-empty-art .g{ stroke:var(--grid); stroke-width:1.5; }
+.ks-empty-art .a{ stroke:var(--border-strong); stroke-width:1.5; }
+.ks-empty-art .l{ stroke:var(--cat-3); stroke-width:2.4; stroke-dasharray:1; animation:ks-draw 260ms var(--ease-out) both; }
+.ks-empty-art .l2{ animation-delay:300ms; }
+.ks-empty-art .gap{ stroke:var(--text-muted); stroke-width:2; stroke-dasharray:3 4; animation:ks-fade-in 160ms var(--ease-out) 240ms both; }
+.ks-empty-art .d{ fill:var(--cat-3); transform-box:fill-box; transform-origin:center; animation:ks-pop-dot 200ms var(--ease-out) 540ms both; }
+@keyframes ks-fade-in{ from{ opacity:0; } }
+@keyframes ks-pop-dot{ from{ opacity:0; transform:scale(.3); } }
+
+/* ---------- анимация Rive поверх родной (KS.rive): родная картинка остаётся запасной ---------- */
+.ks-rive-canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.is-rive > svg{ visibility:hidden; }
+
+/* ==========================================================================
+   1.5: настройки вида (KS.prefs, страница templates/nastroyki.html)
+   Значения приходят переменными из сохранённых настроек; без настроек всё как в 1.4.
+   ========================================================================== */
+/* логотип: знак в квадрате или логотип целиком, подпись под ним остаётся */
+.ks-has-logo .ks-brand-mark > svg, .ks-brand-mark.has-img > svg{ display:none; }
+.ks-brand-mark.has-img{ background:transparent; color:inherit; overflow:hidden; }
+.ks-brand-img{ display:block; width:100%; height:100%; object-fit:contain; }
+.ks-brand--wide{ flex-direction:column; align-items:flex-start; justify-content:center; gap:3px; }
+.ks-brand--wide .ks-brand-mark.has-img{ display:block; width:auto; max-width:176px; height:28px; border-radius:0; }
+.ks-brand--wide .ks-brand-img{ width:auto; height:28px; max-width:176px; object-fit:contain; object-position:left center; }
+.ks-brand--wide .ks-brand-name{ display:none; }
+.ks-sidebar.is-collapsed .ks-brand--wide .ks-brand-mark.has-img{ max-width:40px; }
+/* тёмная тема: свой файл или инверсия (для одноцветного логотипа); тема может стоять и на контейнере */
+.ks-brand-img--dark{ display:none; }
+:root.dark .ks-brand-img--light.has-dark, :root [data-theme="dark"] .ks-brand-img--light.has-dark{ display:none; }
+:root.dark .ks-brand-img--dark, :root [data-theme="dark"] .ks-brand-img--dark{ display:block; }
+:root.dark .ks-brand-img--invert, :root [data-theme="dark"] .ks-brand-img--invert{ filter:invert(1) hue-rotate(180deg); }
+:root.dark [data-theme="light"] .ks-brand-img--light.has-dark{ display:block; }
+:root.dark [data-theme="light"] .ks-brand-img--dark{ display:none; }
+:root.dark [data-theme="light"] .ks-brand-img--invert{ filter:none; }
+
+/* движение из настроек: сдержанное убирает переходы экранов и прорисовку, выключенное убирает всё */
+[data-motion="calm"] .ks-fade > *, [data-motion="calm"] .ks-fade > .ks-stack > *, [data-motion="calm"] .ks-spark path, [data-motion="calm"] .ks-bar-fill{ animation:none; }
+[data-motion="off"] .ks-fade > *, [data-motion="off"] .ks-fade > .ks-stack > *, [data-motion="off"] .ks-spark path, [data-motion="off"] .ks-bar-fill,
+[data-motion="off"] .ks-cmdk, [data-motion="off"] .ks-toast, [data-motion="off"] .ks-skeleton, [data-motion="off"] .ks-check-draw circle,
+[data-motion="off"] .ks-check-draw path, [data-motion="off"] .ks-empty-art *, [data-motion="off"] .ks-theme-ic{ animation:none; }
+[data-motion="off"] .ks-sync[data-state="loading"] .ks-sync-arc{ animation:none; stroke-dasharray:100 100; opacity:.9; }
+
+/* ---------- меньше движения: всё сразу на месте ---------- */
+@media (prefers-reduced-motion: reduce){
+  .ks-fade > *, .ks-fade > .ks-stack > *, .ks-spark path, .ks-bar-fill, .ks-cmdk, .ks-toast{ animation:none; }
+  .ks-skeleton{ animation:none; }
+  .ks-theme-switching .ks-theme-ic, .ks-check-draw circle, .ks-check-draw path, .ks-empty-art *{ animation:none; }
+  .ks-sync[data-state="loading"] .ks-sync-arc{ animation:none; stroke-dasharray:100 100; opacity:.9; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*){ animation:none !important; }
+}
+
+/* ---------- высокая контрастность Windows ---------- */
+@media (forced-colors: active){
+  .ks-badge, .ks-card, .ks-tile, .ks-note, .ks-btn, .ks-verdict, .ks-glass{ border:1px solid CanvasText; }
+  .ks-bar-fill, .ks-dot{ background:Highlight; }
+}
+
+/* ---------- печать ---------- */
+@media print{
+  .ks-sidebar,.ks-topbar,.ks-noprint,.ks-toasts,.ks-tip{ display:none !important; }
+  html,body{ background:#fff !important; color:#000 !important; }
+  .ks-card,.ks-tile,.ks-note,.ks-verdict{ break-inside:avoid; box-shadow:none !important; border-color:#ccc !important; }
+  .ks-view{ padding:0 !important; }
+  .ks-table th{ position:static; box-shadow:none; border-bottom:1px solid #ccc; }
+  .ks-table-wrap--scroll{ max-height:none; overflow:visible; }
+}
+
+/* ---------- совместимость с 1.2 ----------
+   Своя разметка плитки из 1.2 (квадрат иконки сверху) продолжает работать.
+   В новых экранах не использовать: KS.tile в 1.3 рисует плитку без квадрата. */
+.ks-tile-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-2); }
+.ks-tile-icon{ width:32px; height:32px; border-radius:var(--r-md); display:grid; place-items:center; flex-shrink:0;
+  color:var(--slot, var(--cat-3)); background:color-mix(in oklab, var(--slot, var(--cat-3)) 12%, transparent); }

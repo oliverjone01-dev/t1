@@ -1944,9 +1944,9 @@ const CPC_CARD_BADGE = `if(x.cpcNb)stb+=' <span style="color:#A78BFA" title="Д�
 const CPC_CARD_RENDER = `
   renderOrdersAnalytics(cur);if(typeof __mkRender==='function')__mkRender(cur);try{syncTopScroll();}catch(e){}return; // «Реклама по карточкам»: только таблица по заказам и кампании`;
 function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any): void {
-  const cpoRevD: Record<string, number> = {};
-  try { for (const l of readFileSync(dp("cpo_card_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); cpoRevD[r.d] = (cpoRevD[r.d] || 0) + Number(r.rev || 0); } } catch { /* нет отчёта - выручка CPO как в API */ }
-  const cpoRev = Object.keys(cpoRevD).sort().map((d) => [d, Math.round(cpoRevD[d]!)]);
+  const cpoRevD: Record<string, [number, number]> = {};
+  try { for (const l of readFileSync(dp("cpo_card_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); const v = (cpoRevD[r.d] ||= [0, 0]); v[0] += Number(r.rev || 0); v[1] += Number(r.n || 0); } } catch { /* нет отчёта - выручка CPO как в API */ }
+  const cpoRev = Object.keys(cpoRevD).sort().map((d) => [d, Math.round(cpoRevD[d]![0]), cpoRevD[d]![1]]);
   // JS «Маркетинга» как есть, в замыкании; наружу - только перерисовка таблицы кампаний.
   const mk = `var __mkRender=(function(){
 ${MKT_SHARE.js}
@@ -1960,9 +1960,11 @@ function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
   AN_CPC.ev.forEach(function(e){if(e[0]<from||e[0]>to)return;var a=at(e[1],e[2]);a.sold+=e[3];a.om+=e[4];e[5].forEach(function(x){a.nbu[x[0]]=(a.nbu[x[0]]||0)+x[1];a.nbr[x[0]]=(a.nbr[x[0]]||0)+x[2];});a.uu+=e[6];a.ur+=e[7];});
   var camps={};((lastA&&(lastA.all||lastA.top_spend))||[]).forEach(function(c){camps[String(c.id)]=c;});
   document.querySelectorAll('#top .ad-exp').forEach(function(tr){var i=tr.getAttribute('data-i'),id=tr.getAttribute('data-id'),cs=A[id],c=camps[id];
-    if(c&&isCPO(c)&&c.cpoRev){var td=tr.children;if(td[4])td[4].innerHTML='<span title="Стоимость продажи заказов из отчёта кабинета «Оплата за заказ» по заказам">'+fmtRu(c.cpoRev)+'</span>';if(td[6]){td[6].style.color=drrCol(c.drr);td[6].textContent=c.drr+'%';}}
+    if(c&&isCPO(c)&&c.cpoRev){var td=tr.children;if(td[4])td[4].innerHTML='<span title="Стоимость продажи заказов из отчёта кабинета «Оплата за заказ» по заказам">'+fmtRu(c.cpoRev)+'</span>';if(td[5])td[5].innerHTML='<span title="Количество, шт - из того же отчёта по заказам">'+fmtRu(c.cpoU)+'</span>';if(td[6]){td[6].style.color=drrCol(c.drr);td[6].textContent=c.drr+'%';}}
+    // «Оплата за заказ» без раскрытия (Иван 02.10): разбивки по SKU у неё здесь нет.
+    if(c&&isCPO(c)){var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent='';tr.style.cursor='default';document.querySelectorAll('#top .ad-sub[data-i="'+i+'"]').forEach(function(s){s.remove();});}
     if(!cs||!c||isCPO(c))return;
-    var disp=expanded[i]?'':'display:none',S=0,O=0,U=0,html='';
+    var disp=expanded[i]?'':'display:none',S=0,O=0,U=0,NS=0,NG=0,NN=0,html='';
     var row=function(lbl,tip,sp,om,u,col,noDrr){sp=Math.round(sp);om=Math.round(om);if(!sp&&!om&&!u)return '';var dr=(om&&!noDrr)?Math.round(sp/om*1000)/10:0;
       return '<tr class="ad-sub" data-i="'+i+'" style="'+disp+'"><td style="padding-left:26px'+(col?';color:'+col:'')+'" title="'+tip+'">'+lbl+'</td><td></td><td></td><td class="r">'+fmtRu(sp)+'</td><td class="r">'+fmtRu(om)+'</td><td class="r">'+(u==null?'-':u)+'</td><td class="r" style="color:'+(dr?drrCol(dr):'var(--ink-3)')+'">'+(dr?dr+'%':'-')+'</td><td></td><td></td><td></td><td></td><td></td></tr>';};
     var art=function(s){return ' <span style="color:var(--ink-3)">'+(SKU_MAP[s]||s)+'</span>';};
@@ -1977,18 +1979,20 @@ function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
       Object.keys(ns).sort(function(p,q){return (a.nb[q]||0)-(a.nb[p]||0);}).forEach(function(nsk){
         html+=row('Объединённая карточка'+art(nsk),'Сосед по объединённой карточке: заказ этого товара в день атрибуции с той же суммой; расход - доля по штукам (в днях без атрибуции - доля месяца, оценка)',a.nb[nsk]||0,a.nbr[nsk]||0,a.nbu[nsk]||0,'#A78BFA');S+=a.nb[nsk]||0;O+=a.nbr[nsk]||0;U+=a.nbu[nsk]||0;});
       html+=row('Объединённая карточка: сосед не найден'+art(sk),'OZON засчитал продажу соседа, а заказа той же карточки в этот день с этой суммой нет; расход остаётся на рекламируемом товаре',a.unk,a.ur,a.uu,'#A78BFA');S+=a.unk;O+=a.ur;U+=a.uu;
-      html+=row('Нет данных: дни без атрибуции в нашем сборе'+art(sk),'Сбор отчёта атрибуции пропустил эти дни. Выручка - из статистики продвижения по SKU за эти дни, без разделения на свою и соседей, поэтому ДРР не считаем. Расход: здесь - у пар без продаж; у пар с продажами расход этих дней разнесён выше по долям месяца (оценка)',a.g,a.gom,null,'#E5B567',true);S+=a.g;O+=a.gom;
-      html+=row('Нет данных: кампании нет в нашем сборе атрибуции'+art(sk),'Сборщик атрибуции берёт не все кампании. Выручка - из статистики продвижения по SKU, без разделения на свою и соседей, ДРР не считаем',a.n,a.nom,null,'#E5B567',true);S+=a.n;O+=a.nom;});
+      NS+=a.g+a.n;NG+=a.g;NN+=a.n;});
+    // Одна жёлтая строка на кампанию (Иван 02.10, «что это значит»): всё, что OZON засчитал кампании, но не разложил
+    // на свою продажу и соседа - дни без атрибуции в нашем сборе, кампании вне сбора, разница статистики кампании
+    // и отчётов по SKU. Выручка и штуки = итог кампании минус разложенное выше, расход - тех же дней без продаж.
     var rom=(c.om||0)-O,ro=(c.o||0)-U;
-    if(Math.abs(rom)>1||ro)html+=row('Нет данных: продажи кампании без разбивки по SKU','Выручка и штуки из статистики кампании (итог строки), которых нет в отчётах по SKU: другой отчёт OZON, другие дни сбора. Чья это продажа, своя или соседа, не видно. Расход по ней - в основной карточке',0,rom,ro,'#E5B567',true);
+    html+=row('Нет данных: продажи без разбивки на свою и соседа','Продажи, которые OZON засчитал кампании (итог строки), но не разложил на рекламируемый товар и соседей: '+(NG?'дни без атрибуции в нашем сборе (расход '+fmtRu(Math.round(NG))+' ₽), ':'')+(NN?'кампании нет в нашем сборе атрибуции (расход '+fmtRu(Math.round(NN))+' ₽), ':'')+'разница статистики кампании и отчётов по SKU. Чья продажа, не видно, поэтому ДРР не считаем. Расход дней без атрибуции у товаров с продажами разнесён выше по долям месяца (оценка)',NS,Math.abs(rom)>1?rom:0,ro,'#E5B567',true);S+=NS;
     document.querySelectorAll('#top .ad-sub[data-i="'+i+'"]').forEach(function(s){s.remove();});
     tr.insertAdjacentHTML('afterend',html);});
 }
 // Выручка кампании «Оплата за заказ» (Иван 02.10): API отдаёт по ней 0, берём «Стоимость продажи» из отчёта
 // кабинета по заказам (data/cpo_card_orders.ndjson, по дате заказа). Только выручка; расход - из API как был.
 var CPO_REV=${J(cpoRev)};
-function cpoRevFix(a){if(!a||!a.all)return '';var r=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];if(!d0)d0=x[0];d1=x[0];}
-  r=Math.round(r);var hit=0;a.all.forEach(function(c){if(!isCPO(c)||!r||hit)return;hit=1;c.om=r;c.cpoRev=r;c.drr=Math.round(c.sp/r*1000)/10;
+function cpoRevFix(a){if(!a||!a.all)return '';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
+  r=Math.round(r);var hit=0;a.all.forEach(function(c){if(!isCPO(c)||!r||hit)return;hit=1;c.om=r;c.cpoRev=r;c.cpoU=u;c.drr=Math.round(c.sp/r*1000)/10;
     if(a.totals){a.totals.adRevenue+=r;a.totals.drr=a.totals.adRevenue?Math.round(a.totals.spend/a.totals.adRevenue*1000)/10:0;}});
   return hit?' · выручка «Оплата за заказ» - из отчёта кабинета по заказам за '+d0+'..'+d1:'';}
 return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(cur.from,cur.to):bakedFor();lastA=a;var cr=cpoRevFix(a);var s1=document.getElementById('src1');if(s1)s1.innerHTML='источник: OZON Performance API (прямой'+(a.daily?', дневной ряд':'')+') <span class="kt-src">'+(a.daily?'за период ':'снимок за ')+(a.dateFrom||'')+'..'+(a.dateTo||'')+cr+'</span>'+staleMark(a.dateTo);renderTop();cardSub();};

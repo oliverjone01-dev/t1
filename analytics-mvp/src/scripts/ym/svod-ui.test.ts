@@ -2216,6 +2216,16 @@ describe("Маркет «Отчет»: оформление и пометки", 
     const css = R().documentElement.innerHTML;
     expect(css).toContain(".rp-main td.rp-txt,.rp-main td.rp-arts{font-weight:400;color:var(--ink-1)}");
   });
+  it("блок 2: объяснения без формул, без «без изменений» у изменившихся строк", () => {
+    const rows = [...R().querySelectorAll("#rp-why2 tbody tr")] as any[];
+    const why = rows.map((r) => r.children[5]?.textContent || "");
+    expect(why.filter((t) => /×|=/.test(t)), "в «За счёт чего» осталась формула").toEqual([]);
+    expect(why.filter((t) => /без изменений/.test(t))).toEqual([]);
+    const net = rows.find((r) => (r.children[0].textContent || "").startsWith("Чистая прибыль с общими"));
+    expect(net.children[5].textContent).toMatch(/чистая по артикулам: .* общие расходы кабинета: /);
+    const css = R().documentElement.innerHTML;
+    expect(css).toContain("#rp-why2 .rp-txt,#rp-why2 .rp-arts{white-space:normal;width:340px;min-width:340px;max-width:340px}");
+  });
   it("подписи статей: в скобках только «справочно»", () => {
     // Строки статей, кроме названий услуг Маркета (их пишет Маркет, они в «в т.ч.» под группой).
     const lab = ["#rp-why2", "#rp-cost", "#rp-pts", "#rp-ads"].flatMap((id) =>

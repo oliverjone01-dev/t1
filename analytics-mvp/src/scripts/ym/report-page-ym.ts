@@ -215,7 +215,7 @@ export const REPORT_YM_CSS = `<style>
 .rp-sub td{color:var(--ink-3,#7d8a99)!important;font-weight:400}
 .rp-main td{font-weight:800;color:#A78BFA}
 .rp-main td.rp-txt,.rp-main td.rp-arts{font-weight:400;color:var(--ink-1)}
-#rp-why2 td.rp-arts{white-space:normal;min-width:220px;max-width:340px}
+#rp-why2 .rp-txt,#rp-why2 .rp-arts{white-space:normal;width:340px;min-width:340px;max-width:340px}
 .rp-par{cursor:pointer}.rp-par td:first-child::before{content:'▸ ';color:var(--ink-3,#7d8a99)}.rp-par.rp-open td:first-child::before{content:'▾ '}
 .rp-warn{color:#E5B567}
 .rp-retro,th.rp-retro{color:#8A8F98}
@@ -384,13 +384,15 @@ function rpyRender(){
     +rpWhyTurn('Зеркала',prev.g.mir.acc,prev.g.mir.units,cur.g.mir.acc,cur.g.mir.units,cur,prev,mir,'')
     +rpWhyTurn('Мебель',prev.g.fur.acc,prev.g.fur.units,cur.g.fur.acc,cur.g.fur.units,cur,prev,fur,furExtra);
   // Блок 2 - только прошлый и отчётный месяц (просьба пользователя 02.10: ретро-месяцы - в блоке 3).
-  var h2='<thead><tr><th>Статья</th><th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">%</th><th>За счёт чего</th><th>Артикулы с наибольшим вкладом</th></tr></thead><tbody>';
+  var h2='<thead><tr><th>Статья</th><th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">%</th><th class="rp-txt">За счёт чего</th><th class="rp-arts">Артикулы с наибольшим вкладом</th></tr></thead><tbody>';
   // Оформление как в блоке 3: основные строки фиолетовым жирным, «в т.ч.» серым и свёрнуто под своей строкой.
   var tr2=function(L,v0,v1,txt,pct,G){var d=v1-v0,isArt=function(x){return x.indexOf('class="rp-art"')>=0;},why=txt.filter(function(x){return !isArt(x);}),arts=txt.filter(isArt);var cls=(L.sub?'rp-sub':'')+(L.main?' rp-main':'')+(G&&G.par?' rp-par'+(RPY_OPEN[G.par]?' rp-open':''):'')+(G&&G.kid?' rp-kid':'');
     var at=(G&&G.par?' data-p="'+G.par+'"':'')+(G&&G.kid?' data-g="'+G.kid+'"'+(RPY_OPEN[G.kid]?'':' style="display:none"'):'');
-    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+'><td'+(L.t?' title="'+L.t+'"':'')+'>'+L.l+'</td><td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,L.inc?true:false)+'</td><td class="r">'+rpPctTxt(pct?pct(v1,v0):rpPct(v1,v0),L.inc?true:false)+'</td><td class="rp-txt">'+(why.join('<br>')||'<span class="rp-mute">без изменений</span>')+'</td><td class="rp-arts">'+arts.join('<br>')+'</td></tr>';};
+    return '<tr'+(cls?' class="'+cls.trim()+'"':'')+at+'><td'+(L.t?' title="'+L.t+'"':'')+'>'+L.l+'</td><td class="r">'+rpN(v0)+'</td><td class="r">'+rpN(v1)+'</td><td class="r">'+rpDTxt(d,L.inc?true:false)+'</td><td class="r">'+rpPctTxt(pct?pct(v1,v0):rpPct(v1,v0),L.inc?true:false)+'</td><td class="rp-txt">'+(why.join('<br>')||'<span class="rp-mute">'+(Math.round(d)?'—':'не изменилось')+'</span>')+'</td><td class="rp-arts">'+arts.join('<br>')+'</td></tr>';};
   var upA=rpUnitsPrice(gp.acc,gp.units,gc.acc,gc.units),tA=[];
-  if(upA)tA.push('штуки: '+rpN(gp.units)+' → '+rpN(gc.units)+' шт × прежняя цена '+rpN(upA.p0)+' ₽ = '+rpDTxt(upA.vol,true)+' ₽; цена (начислено на 1 шт): '+rpN(upA.p0)+' → '+rpN(upA.p1)+' ₽ × '+rpN(gc.units)+' шт = '+rpDTxt(upA.price,true)+' ₽; вместе '+rpDTxt(upA.vol+upA.price,true)+' ₽');
+  // Простыми словами, без формул (просьба пользователя 02.10). Сумма двух частей = отклонение.
+  if(upA){tA.push((gc.units>=gp.units?'больше':'меньше')+' штук ('+rpN(gp.units)+' → '+rpN(gc.units)+'): '+rpDTxt(upA.vol,true)+' ₽');
+    tA.push((upA.p1>=upA.p0?'выше':'ниже')+' цена за 1 шт ('+rpN(upA.p0)+' → '+rpN(upA.p1)+' ₽): '+rpDTxt(upA.price,true)+' ₽');}
   tA.push('зеркала '+rpDTxt(cur.g.mir.acc-prev.g.mir.acc,true)+' ₽, мебель '+rpDTxt(cur.g.fur.acc-prev.g.fur.acc,true)+' ₽');
   var aPl=rpTopFilt(cur,prev,'acc',1,3,all),aMi=rpTopFilt(cur,prev,'acc',-1,3,all);
   if(aPl.length)tA.push(rpTop('выросло сильнее всего',aPl));if(aMi.length)tA.push(rpTop('снизилось сильнее всего',aMi));
@@ -401,7 +403,13 @@ function rpyRender(){
   LINES.forEach(function(L){if(L.k==='acc'||L.k==='pay'||L.k==='dlv'||L.k==='acc1'||L.k==='amount1')return; // справочный первый столбец - только в полной аналитике
     var v0=L.fn(gp),v1=L.fn(gc),d=v1-v0,txt=[];
     var vr=rpVolRate(v0,gp.acc,v1,gc.acc);
-    if(vr&&Math.round(d)&&L.k!=='gen'&&L.k!=='netAll'&&L.k!=='acct'&&L.k!=='prem')txt.push('объём: Начислено '+(gc.acc>=gp.acc?'выросло':'упало')+' на '+fmtRu(Math.round(Math.abs(gc.acc-gp.acc)))+' ₽ × прежняя доля статьи '+rpSh(vr.r0,1)+' = '+rpDTxt(vr.vol,null)+' ₽; ставка: доля '+rpSh(vr.r0,1)+' → '+rpSh(vr.r1,1)+' × Начислено '+rpN(gc.acc)+' ₽ = '+rpDTxt(vr.rate,null)+' ₽; вместе '+rpDTxt(vr.vol+vr.rate,null)+' ₽');
+    var inc=L.inc?true:false;
+    if(vr&&Math.round(d)&&L.k!=='gen'&&L.k!=='netAll'&&L.k!=='acct'&&L.k!=='prem'){
+      txt.push('из-за '+(gc.acc>=gp.acc?'роста':'падения')+' оборота: '+rpDTxt(vr.vol,inc)+' ₽');
+      txt.push('из-за изменения доли в обороте ('+rpSh(vr.r0,1)+' → '+rpSh(vr.r1,1)+'): '+rpDTxt(vr.rate,inc)+' ₽');}
+    var dk=function(k){var X=LINES.filter(function(x){return x.k===k;})[0];return X?X.fn(gc)-X.fn(gp):0;};
+    if(Math.round(d)&&L.k==='gen')txt.push('удержания без заказа: '+rpDTxt(dk('acct'),true)+' ₽; премия Маркета: '+rpDTxt(dk('prem'),true)+' ₽');
+    if(Math.round(d)&&L.k==='netAll')txt.push('чистая по артикулам: '+rpDTxt(dk('np'),true)+' ₽; общие расходы кабинета: '+rpDTxt(dk('gen'),true)+' ₽');
     if(L.top){var pl=rpTopFilt(cur,prev,L.k,1,3,all),mi=rpTopFilt(cur,prev,L.k,-1,3,all);
       if(pl.length)txt.push(rpTop('выросло сильнее всего',pl));if(mi.length)txt.push(rpTop('снизилось сильнее всего',mi));}
     E2.push([L,v0,v1,txt]);});

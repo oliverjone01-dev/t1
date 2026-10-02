@@ -350,7 +350,7 @@ renderChannel();
 
 
 document.querySelectorAll('.note-label,.notes,.saving,.confirm-row').forEach(el=>el.remove());
-document.querySelectorAll('main .notice').forEach(el=>{if(el.id!=='channel-result')el.remove();});
+document.querySelectorAll('main .notice').forEach(el=>{if(!['channel-result','flow-detail'].includes(el.id))el.remove();});
 document.querySelector('.aside-foot')?.remove();
 document.querySelectorAll('.footer div').forEach(el=>{if(el.textContent.includes('Заметки сохраняются'))el.remove();});
 const briefFlow=renderFlow;renderFlow=function(rr){briefFlow(rr);const desc=$('stage-outflow').querySelector('.source-note');if(desc)desc.textContent='Над этапами — все входы сентября; в голубых связях — переходы между этапами. «Другие входы» раскрываются в таблицу.';};renderChannel();

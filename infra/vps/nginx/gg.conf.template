@@ -1,0 +1,83 @@
+# nginx для дашбордов GENGROUP. bootstrap.sh подставляет __DOMAIN__ и __GG_ROOT__ и кладёт в
+# /etc/nginx/sites-available/gg.conf. Сертификат ставит certbot (после того как DNS указывает на сервер).
+#
+# Доступ: basic auth по HTTPS, у каждого человека свой логин (/etc/nginx/gg.htpasswd):
+#   sudo htpasswd -B /etc/nginx/gg.htpasswd ivan        # добавить / сменить пароль
+#   sudo htpasswd -D /etc/nginx/gg.htpasswd <логин>     # отозвать доступ
+# Данные больше не лежат в открытом виде: без логина сервер не отдаёт ни байта.
+#
+# Переходный режим (strangler): чего ещё нет на сервере, отдаётся с GitHub Pages через прокси,
+# поэтому один адрес работает с первого дня, а дашборды переезжают по одному.
+# После переезда последнего раздела блок @legacy удаляется (фаза 4 в README).
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __DOMAIN__;
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    # «http2 on;» только с nginx 1.25.1, на Ubuntu 24.04 стоит 1.24 - там http2 задаётся в listen
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name __DOMAIN__;
+
+    ssl_certificate     /etc/letsencrypt/live/__DOMAIN__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__DOMAIN__/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root __GG_ROOT__/www/current;
+    index index.html;
+    charset utf-8;
+    client_max_body_size 1m;
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy same-origin always;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    # Запечённые HTML весят до 20 МБ (РОП) и ~90 МБ (диалоги): сжатие даёт в разы меньше трафика
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript text/javascript image/svg+xml;
+
+    # В страницах ссылки абсолютные на github.io (хаб, бот) - переписываем на свой адрес.
+    # Действует и для файлов с сервера, и для прокси. Убрать, когда ссылки в коде станут относительными.
+    sub_filter_once off;
+    sub_filter_types application/javascript;   # text/html nginx обрабатывает всегда
+    sub_filter 'https://oliverjone01-dev.github.io/t1/' '/';
+
+    auth_basic "GENGROUP";
+    auth_basic_user_file /etc/nginx/gg.htpasswd;
+
+    # Проверка живости для внешнего мониторинга - без пароля и без данных
+    location = /healthz { auth_basic off; default_type text/plain; return 200 "ok\n"; }
+
+    # Служебные файлы сборки (.gg/, логи шагов) наружу не отдаём
+    location ~ /\. { deny all; }
+
+    # HTML и штампы v.txt не кэшируются: дашборды должны показывать свежие данные сразу
+    location ~* (\.html|/v\.txt)$ {
+        add_header Cache-Control "no-cache" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        try_files $uri @legacy;
+    }
+
+    location / {
+        try_files $uri $uri/ @legacy;
+    }
+
+    # --- переходный режим: разделы, ещё не перенесённые на сервер ---
+    location @legacy {
+        resolver 1.1.1.1 77.88.8.8 valid=300s ipv6=off;
+        set $pages oliverjone01-dev.github.io;
+        proxy_pass https://$pages/t1$request_uri;
+        proxy_set_header Host $pages;
+        proxy_ssl_server_name on;
+        proxy_set_header Accept-Encoding "";   # иначе sub_filter не увидит текст
+        proxy_hide_header Set-Cookie;
+    }
+}

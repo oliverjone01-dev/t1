@@ -1,0 +1,18 @@
+# Одна задача из jobs.conf. Запускается таймером gg-job-<имя>.timer (их пишет gg-apply-timers)
+# или руками: sudo systemctl start gg-job@rop-snapshot   /   от пользователя gg: gg-job rop-snapshot
+[Unit]
+Description=GENGROUP задача %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=gg
+Group=gg
+ExecStart=/usr/local/bin/gg-job %i
+TimeoutStartSec=3h
+Nice=5
+# задачам не нужен доступ к системе за пределами /srv/gg и /tmp
+ProtectSystem=full
+PrivateTmp=true
+NoNewPrivileges=true

@@ -10,6 +10,7 @@ name: Deploy to GitHub Pages
 #   /phoenix/          - Перегородки: разбор направления (из main, собранный React из phoenix/dist)
 #   /markplan/         - GG-MarkPlan 2026 (маркетинговый план по 5 брендам), БОЙ (из main, статика public/)
 #   /stand-protocol/   - Протокол стенда MEBELIT x VALONTI, БОЙ (из main, статика public/, правка ?edit=1)
+#   /attestaciya/      - Аттестация менеджеров GENGLASS (из main, статика attestaciya/)
 #   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
 #   /rop-preview/      - РОП-дашборд, ПРЕВЬЮ (из ветки ozon-dashboard-dima-fork, изолированная копия Ивана)
 #   /kontur/           - Контур: SEO, GEO и Директ по проектам (из main, статика public/)
@@ -47,7 +48,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, kontur-dashboard/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, ozon-research/**, kp-glass-memory/**, kontur-dashboard/**, attestaciya/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -129,6 +130,11 @@ jobs:
           if [ -d stand-protocol/public ]; then
             mkdir -p _site/stand-protocol
             cp -r stand-protocol/public/. _site/stand-protocol/
+          fi
+          # Аттестация менеджеров GENGLASS: статическая страница теста, результат сохраняется на диск у сотрудника
+          if [ -d attestaciya ]; then
+            mkdir -p _site/attestaciya
+            cp -r attestaciya/index.html attestaciya/questions.js attestaciya/ds _site/attestaciya/
           fi
           # GG Sales Academy. Контур 1A (библиотека) собирается здесь, контуры 2 и 3
           # (кабинеты и сводка штаба) кладутся готовыми из gg-sales-academy/sealed/:

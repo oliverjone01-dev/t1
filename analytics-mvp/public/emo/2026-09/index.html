@@ -408,7 +408,7 @@ for(const pair of [['Лиды сент.','Лиды авг.'],['Предопла�
 };utmRender();
 quality.querySelectorAll('tbody > tr').forEach((tr,index)=>{const item=qualityRows[index],cell=tr.cells[0],button=document.createElement('button');button.className='quality-expand';button.type='button';button.textContent='▸ '+item.name;button.setAttribute('aria-expanded','false');cell.textContent='';cell.append(button);let detail;
 button.onclick=()=>{if(detail){detail.hidden=!detail.hidden;button.setAttribute('aria-expanded',String(!detail.hidden));button.textContent=(detail.hidden?'▸ ':'▾ ')+item.name;return;}
-detail=document.createElement('tr');detail.className='quality-detail';const rows=item.rows.filter(r=>!r.isLead&&r.dealId);detail.innerHTML='<td colspan="'+tr.cells.length+'"><div class="quality-deal-heading">'+esc(item.name)+' · '+rows.length+' сделок с событиями сентября</div><div class="quality-deal-scroll"><table><thead><tr><th>Сделка</th><th>Текущий этап</th><th>Бюджет</th><th>Горит</th><th>Риск, %</th><th>Ответ, мин</th><th>Тишина, дней</th><th>Статус диалога</th></tr></thead><tbody>'+rows.map(r=>{const d=D.deals.find(d=>String(d.id)===String(r.dealId));return '<tr><td><a href="https://glassmemory.bitrix24.ru/crm/deal/details/'+encodeURIComponent(r.dealId)+'/" target="_blank" rel="noopener">№'+esc(r.dealId)+'</a></td><td>'+esc(d?.stage||'—')+'</td><td>'+money(r.budget)+'</td><td>'+(r.urgency?'Да':'Нет')+'</td><td>'+num(r.prob)+'</td><td>'+(r.respMed===null?'—':num(r.respMed))+'</td><td>'+(r.silenceD===null?'—':num(r.silenceD))+'</td><td>'+esc(({open:'Открыт',won:'Продажа',win:'Продажа',lost:'Отказ',lose:'Отказ'})[r.outcome]||r.outcome||'—')+'</td></tr>';}).join('')+'</tbody></table></div></td>';tr.after(detail);button.setAttribute('aria-expanded','true');button.textContent='▾ '+item.name;};});
+detail=document.createElement('tr');detail.className='quality-detail';const rows=item.rows.filter(r=>!r.isLead&&r.dealId);detail.innerHTML='<td colspan="'+tr.cells.length+'"><div class="quality-deal-heading">'+esc(item.name)+' · '+rows.length+' сделок с событиями сентября</div><div class="quality-deal-scroll"><table><thead><tr><th>Сделка</th><th>Текущий этап</th><th>Бюджет</th><th>Горит</th><th>Риск, %</th><th>Ответ, мин</th><th>Тишина, дней</th><th>Статус диалога</th></tr></thead><tbody>'+rows.map(r=>{const d=D.deals.find(d=>String(d.id)===String(r.dealId));return '<tr><td><a href="https://glassmemory.bitrix24.ru/crm/deal/details/'+encodeURIComponent(r.dealId)+'/" target="_blank" rel="noopener">№'+esc(r.dealId)+'</a></td><td>'+esc(D.stages.find(s=>s[0]===d?.stage)?.[1]||d?.stage||'—')+'</td><td>'+money(r.budget)+'</td><td>'+(r.urgency?'Да':'Нет')+'</td><td>'+num(r.prob)+'</td><td>'+(r.respMed===null?'—':num(r.respMed))+'</td><td>'+(r.silenceD===null?'—':num(r.silenceD))+'</td><td>'+esc(({open:'Открыт',won:'Продажа',win:'Продажа',lost:'Отказ',lose:'Отказ'})[r.outcome]||r.outcome||'—')+'</td></tr>';}).join('')+'</tbody></table></div></td>';tr.after(detail);button.setAttribute('aria-expanded','true');button.textContent='▾ '+item.name;};});
 const tableSortValue=cell=>{if(!cell)return null;if(cell.hasAttribute('data-sort-value'))return cell.dataset.sortValue===''?null:Number(cell.dataset.sortValue);
 const text=cell.textContent.trim().split('Авг.:')[0].trim();if(!text||/^—$/.test(text))return null;
 if(/^\d{4}-\d{2}-\d{2}/.test(text))return Date.parse(text.slice(0,10));
@@ -416,7 +416,7 @@ if(/^№\d/.test(text))return Number(text.match(/\d+/)[0]);
 const match=text.match(/^[▲▼•+\-\s]*(\d[\d\s\u00a0\u202f]*(?:[,.]\d+)?)/);return match?Number(match[1].replace(/[\s\u00a0\u202f]/g,'').replace(',','.')):text.toLocaleLowerCase('ru');};
 function sortReportTable(th){const table=th.closest('table'),body=table.tBodies[0];if(!body)return;const col=[...th.parentElement.cells].indexOf(th),desc=th.getAttribute('aria-sort')==='ascending';
 table.querySelectorAll(':scope > thead th').forEach(h=>h.setAttribute('aria-sort','none'));th.setAttribute('aria-sort',desc?'descending':'ascending');
-const groups=[];[...body.rows].forEach(row=>{const child=row.classList.contains('utm-inline-group')||row.classList.contains('quality-detail')||row.classList.contains('utm-record-detail')||Number(row.dataset.costLevel)>0;if(child&&groups.length)groups[groups.length-1].children.push(row);else groups.push({row,children:[],index:groups.length});});
+const groups=[];[...body.rows].forEach(row=>{const child=row.classList.contains('utm-inline-group')||row.classList.contains('utm-record-detail')||row.classList.contains('quality-detail')||row.classList.contains('utm-record-detail')||Number(row.dataset.costLevel)>0;if(child&&groups.length)groups[groups.length-1].children.push(row);else groups.push({row,children:[],index:groups.length});});
 const totals=groups.filter(g=>/^Итого/.test(g.row.cells[0]?.textContent.trim())),data=groups.filter(g=>!totals.includes(g));
 data.sort((a,b)=>{const av=tableSortValue(a.row.cells[col]),bv=tableSortValue(b.row.cells[col]);if(av===null||bv===null)return av===bv?a.index-b.index:av===null?1:-1;const order=typeof av==='number'&&typeof bv==='number'?av-bv:String(av).localeCompare(String(bv),'ru',{numeric:true});return (desc?-order:order)||a.index-b.index;});
 [...data,...totals].forEach(g=>{body.append(g.row);g.children.forEach(r=>body.append(r));});}
@@ -574,5 +574,23 @@ const dialogHeightStyle=document.createElement('style');dialogHeightStyle.textCo
 function sizeDialogueDeals(){document.querySelectorAll('.quality-deal-scroll').forEach(box=>{const table=box.querySelector('table');if(!table)return;const rows=[...table.querySelectorAll('tbody > tr')].slice(0,15);const height=(table.tHead?.getBoundingClientRect().height||38)+rows.reduce((sum,row)=>sum+row.getBoundingClientRect().height,0)+20;box.style.maxHeight=Math.ceil(height)+'px';});}
 const dialogHeightObserver=new MutationObserver(sizeDialogueDeals);dialogHeightObserver.observe(quality,{childList:true,subtree:true});window.addEventListener('resize',sizeDialogueDeals);sizeDialogueDeals();
 
-})();</script></body></html>
+})();
+// Keep a selected event population explicit without a floating window.
+function clarifyFlowPopulation(){
+ const box=$('flow-detail'),table=box?.querySelector('table');if(!table)return;
+ const heads=[...table.tHead.rows[0].cells].map(c=>c.textContent.trim()),rows=[...table.tBodies[0].rows],created=heads.indexOf('Создана'),title=box.querySelector('.refusal-head strong');
+ if(heads.includes('Причина отказа')&&title){
+  const current=title.textContent.split(' → ')[0];
+  if(!title.textContent.endsWith(' · Отказы'))title.textContent=current+' · Отказы';
+ }
+ if(created<0)return;
+ const recent=rows.filter(r=>r.cells[created]?.textContent.startsWith('2026-09')).length;
+ const text='По дате события: '+rows.length+' сделок · из них созданы в сентябре: '+recent+' · созданы раньше: '+(rows.length-recent);
+ let note=box.querySelector('.flow-population-count');
+ if(!note){note=document.createElement('div');note.className='flow-population-count source-note';box.querySelector('.refusal-head')?.after(note);}
+ if(note.textContent!==text)note.textContent=text;
+}
+const flowPopulationObserver=new MutationObserver(clarifyFlowPopulation);
+flowPopulationObserver.observe($('flow-detail'),{childList:true,subtree:true});clarifyFlowPopulation();
+</script></body></html>
 

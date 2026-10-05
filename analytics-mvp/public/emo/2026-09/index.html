@@ -533,5 +533,8 @@ renderFlow=function(rr){finalFlowRender(rr);const root=$('event-sankey'),svg=roo
  });
 };renderChannel();
 
+const romiRow=[...$('summary').querySelectorAll('tr')].find(tr=>tr.cells[0]?.textContent.trim()==='ROMI');
+if(romiRow){const note=document.createElement('div');note.className='source-note';note.style.cssText='font-size:11px;margin-top:5px;white-space:normal;max-width:400px';note.textContent='Расчёт после внедрения и стабильной работы калькулятора себестоимости.';romiRow.cells[0].append(note);}
+
 })();</script></body></html>
 

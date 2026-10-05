@@ -410,10 +410,10 @@ quality.querySelectorAll('tbody > tr').forEach((tr,index)=>{const item=qualityRo
 button.onclick=()=>{if(detail){detail.hidden=!detail.hidden;button.setAttribute('aria-expanded',String(!detail.hidden));button.textContent=(detail.hidden?'▸ ':'▾ ')+item.name;return;}
 detail=document.createElement('tr');detail.className='quality-detail';const rows=item.rows.filter(r=>!r.isLead&&r.dealId);detail.innerHTML='<td colspan="'+tr.cells.length+'"><div class="quality-deal-heading">'+esc(item.name)+' · '+rows.length+' сделок с событиями сентября</div><div class="quality-deal-scroll"><table><thead><tr><th>Сделка</th><th>Текущий этап</th><th>Бюджет</th><th>Горит</th><th>Риск, %</th><th>Ответ, мин</th><th>Тишина, дней</th><th>Статус диалога</th></tr></thead><tbody>'+rows.map(r=>{const d=D.deals.find(d=>String(d.id)===String(r.dealId));return '<tr><td><a href="https://glassmemory.bitrix24.ru/crm/deal/details/'+encodeURIComponent(r.dealId)+'/" target="_blank" rel="noopener">№'+esc(r.dealId)+'</a></td><td>'+esc(D.stages.find(s=>s[0]===d?.stage)?.[1]||d?.stage||'—')+'</td><td>'+money(r.budget)+'</td><td>'+(r.urgency?'Да':'Нет')+'</td><td>'+num(r.prob)+'</td><td>'+(r.respMed===null?'—':num(r.respMed))+'</td><td>'+(r.silenceD===null?'—':num(r.silenceD))+'</td><td>'+esc(({open:'Открыт',won:'Продажа',win:'Продажа',lost:'Отказ',lose:'Отказ'})[r.outcome]||r.outcome||'—')+'</td></tr>';}).join('')+'</tbody></table></div></td>';tr.after(detail);button.setAttribute('aria-expanded','true');button.textContent='▾ '+item.name;};});
 const tableSortValue=cell=>{if(!cell)return null;if(cell.hasAttribute('data-sort-value'))return cell.dataset.sortValue===''?null:Number(cell.dataset.sortValue);
-const text=cell.textContent.trim().split('Авг.:')[0].trim();if(!text||/^—$/.test(text))return null;
+const text=cell.textContent.trim().split('Авг.:')[0].trim();if(!text||/^—$/.test(text)||/^[▲▼•+\-−\s]*новое/.test(text))return null;
 if(/^\d{4}-\d{2}-\d{2}/.test(text))return Date.parse(text.slice(0,10));
 if(/^№\d/.test(text))return Number(text.match(/\d+/)[0]);
-const match=text.match(/^[▲▼•+\-\s]*(\d[\d\s\u00a0\u202f]*(?:[,.]\d+)?)/);return match?Number(match[1].replace(/[\s\u00a0\u202f]/g,'').replace(',','.')):text.toLocaleLowerCase('ru');};
+const match=text.match(/^[▲▼•+\-−\s]*(\d[\d\s\u00a0\u202f]*(?:[,.]\d+)?)/);if(match){const value=Number(match[1].replace(/[\s\u00a0\u202f]/g,'').replace(',','.')),negative=text.trim().startsWith('▼')||/^[▲▼•+\-−\s]*[−-]/.test(text);return negative?-Math.abs(value):value;}return text.toLocaleLowerCase('ru');};
 function sortReportTable(th){const table=th.closest('table'),body=table.tBodies[0];if(!body)return;const col=[...th.parentElement.cells].indexOf(th),desc=th.getAttribute('aria-sort')==='ascending';
 table.querySelectorAll(':scope > thead th').forEach(h=>h.setAttribute('aria-sort','none'));th.setAttribute('aria-sort',desc?'descending':'ascending');
 const groups=[];[...body.rows].forEach(row=>{const child=row.classList.contains('utm-inline-group')||row.classList.contains('utm-record-detail')||row.classList.contains('quality-detail')||row.classList.contains('utm-record-detail')||Number(row.dataset.costLevel)>0;if(child&&groups.length)groups[groups.length-1].children.push(row);else groups.push({row,children:[],index:groups.length});});
@@ -574,6 +574,17 @@ const dialogHeightStyle=document.createElement('style');dialogHeightStyle.textCo
 function sizeDialogueDeals(){document.querySelectorAll('.quality-deal-scroll').forEach(box=>{const table=box.querySelector('table');if(!table)return;const rows=[...table.querySelectorAll('tbody > tr')].slice(0,15);const height=(table.tHead?.getBoundingClientRect().height||38)+rows.reduce((sum,row)=>sum+row.getBoundingClientRect().height,0)+20;box.style.maxHeight=Math.ceil(height)+'px';});}
 const dialogHeightObserver=new MutationObserver(sizeDialogueDeals);dialogHeightObserver.observe(quality,{childList:true,subtree:true});window.addEventListener('resize',sizeDialogueDeals);sizeDialogueDeals();
 
+
+const curvedOutcomeFlow=renderFlow;
+renderFlow=function(rr){curvedOutcomeFlow(rr);const root=$('event-sankey'),labels=['Нет перехода','Отказ','Долгострой'],names=['Новая сделка','Формирование ТЗ','КП отправлено','Принимают решение'];
+ root.querySelectorAll('.band.pending,.band.lost,.band.long-term').forEach(el=>{
+  const i=Number(el.dataset.flow),type=el.classList.contains('pending')?0:el.classList.contains('lost')?1:2;
+  const target=root.querySelector('text[data-stage="'+i+'"][data-outcome="'+type+'"]');if(!target?.onclick)return;
+  el.setAttribute('role','button');el.setAttribute('tabindex','0');el.setAttribute('aria-label',names[i]+' · '+labels[type]);
+  el.onclick=()=>{target.onclick();root.querySelectorAll('[data-selected]').forEach(x=>x.removeAttribute('data-selected'));el.setAttribute('data-selected','true');};
+  el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.onclick();}};
+ });
+};renderChannel();
 })();
 // Keep a selected event population explicit without a floating window.
 function clarifyFlowPopulation(){

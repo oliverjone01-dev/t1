@@ -51,10 +51,11 @@ report="$store/reports/$mode-$period.md"
   if [ "$mode" = monthly ]; then
     printf 'Это свод доступных недельных срезов; не ежедневный отчёт за весь месяц и не снимок последнего дня.\n\n'
   fi
-  cat "$work/facts.md"
+  sed -e 's/на конец месяца/по последнему доступному недельному срезу/g' \
+      -e 's/Просрочка дел (конец месяца)/Просрочка дел (последний недельный срез)/g' "$work/facts.md"
 } >"$report"
 # Facts survive Telegram failures; AI is not involved.
-rc=0; gg_data_commit "sales-audit $mode $period: facts saved before delivery" || rc=$?
+rc=0; gg_data_commit "sales-audit $mode $period: facts saved before delivery" sales-audit || rc=$?
 [ "$rc" -le 1 ] || gg_die "не удалось сохранить факты в локальной истории"
 if [ "$preview" = 1 ]; then
   cat "$report"; gg_log "Предпросмотр: сообщения не отправлены, Anthropic не вызван"; exit 0
@@ -64,11 +65,11 @@ if [ -f "$marker" ]; then
   gg_log "Доставка $mode $period уже имеет статус $(cat "$marker"); автоматического повтора нет"; exit 0
 fi
 printf 'pending\n' >"$marker"
-rc=0; gg_data_commit "sales-audit $mode $period: delivery pending" || rc=$?
+rc=0; gg_data_commit "sales-audit $mode $period: delivery pending" sales-audit || rc=$?
 [ "$rc" -le 1 ] || gg_die "не удалось сохранить статус до отправки"
 BOT_TOKEN=$ROPCACHE_BOT_TOKEN BOT_TOKEN_ALT="" CHAT_ID=$GG_AUDIT_CHAT_ID \
   node --dns-result-order=ipv4first "$sender" "$report"
 printf 'sent\n' >"$marker"
-rc=0; gg_data_commit "sales-audit $mode $period: delivered to private chat" || rc=$?
+rc=0; gg_data_commit "sales-audit $mode $period: delivered to private chat" sales-audit || rc=$?
 [ "$rc" -le 1 ] || gg_die "отправлено, но статус не сохранён"
 gg_log "Аудит-факты $mode $period отправлен только в закрытый чат"

@@ -1,10 +1,9 @@
 # Дайджест отдела продаж в Telegram - порт .github/workflows/rop-tg-bot.yml (план 06:15, итог 14:45 UTC).
 # Код дайджеста НЕ копируем: берём скрипт из рабочего воркфлоу ветки main в зеркале (одно место правды),
-# меняем только пути к данным, ссылки github.io -> домен сервера и помечаем заголовок «[сервер]».
+# меняем только пути к данным и ссылки github.io -> домен сервера.
 # Режим по имени задачи: rop-digest-plan | rop-digest-itogi.
-# ПАРАЛЛЕЛЬНЫЙ ПРОГОН (ЯДИ 30.09): в рабочий чат по-прежнему шлёт GitHub, сервер шлёт тот же дайджест
-# в группу алертов ботом алертов - для сверки. Переключение: GG_DIGEST_CHAT_ID и ROPCACHE_BOT_TOKEN
-# в /etc/gg/secrets.env (и выключить cron в rop-tg-bot.yml в том же PR - два бота в один чат нельзя).
+# GitHub cron отключён 05.10.2026. Рабочий чат задаётся GG_DIGEST_CHAT_ID.
+# Ручные тесты GG_DIGEST_TEST=1 направляются только в группу алертов.
 mode=${GG_JOB#rop-digest-}
 case "$mode" in plan) slot="06:15" ;; itogi) slot="14:45" ;; *) gg_die "неизвестный режим дайджеста: $GG_JOB" ;; esac
 dom=${GG_DOMAIN:-dash.genglas.ru}
@@ -38,8 +37,7 @@ else gg_warn "снимок диалогов VPS отсутствует"; echo '{
 git --git-dir="$GG_GIT" show refs/heads/main:.github/workflows/rop-tg-bot.yml \
   | awk '/cat > \/tmp\/digest.mjs <<.MJS./{f=1;next} /^[[:space:]]*MJS$/{f=0} f' | sed 's/^          //' \
   | sed -e "s#/tmp/rop.json#$t/rop.json#g" -e "s#/tmp/dialog.json#$t/dialog.json#g" \
-        -e "s#https://oliverjone01-dev.github.io/t1/#https://$dom/#g" \
-        -e "s#const before='<b>'+head#const before='<b>[сервер] '+head#" >"$t/digest.mjs"
+        -e "s#https://oliverjone01-dev.github.io/t1/#https://$dom/#g" >"$t/digest.mjs"
 grep -q "sendMessage" "$t/digest.mjs" || gg_die "не нашёл скрипт дайджеста в rop-tg-bot.yml (ветка main) - формат воркфлоу изменился"
 
 MODE=$mode CHAT_ID=$chat BOT_TOKEN=$token \

@@ -577,7 +577,7 @@ const dialogHeightObserver=new MutationObserver(sizeDialogueDeals);dialogHeightO
 })();
 // Keep a selected event population explicit without a floating window.
 function clarifyFlowPopulation(){
- const box=$('flow-detail'),table=box?.querySelector('table');if(!table)return;
+ const box=document.getElementById('flow-detail'),table=box?.querySelector('table');if(!table)return;
  const heads=[...table.tHead.rows[0].cells].map(c=>c.textContent.trim()),rows=[...table.tBodies[0].rows],created=heads.indexOf('Создана'),title=box.querySelector('.refusal-head strong');
  if(heads.includes('Причина отказа')&&title){
   const current=title.textContent.split(' → ')[0];
@@ -591,6 +591,6 @@ function clarifyFlowPopulation(){
  if(note.textContent!==text)note.textContent=text;
 }
 const flowPopulationObserver=new MutationObserver(clarifyFlowPopulation);
-flowPopulationObserver.observe($('flow-detail'),{childList:true,subtree:true});clarifyFlowPopulation();
+flowPopulationObserver.observe(document.getElementById('flow-detail'),{childList:true,subtree:true});clarifyFlowPopulation();
 </script></body></html>
 

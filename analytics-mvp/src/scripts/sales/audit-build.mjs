@@ -16,7 +16,7 @@ const STORE = arg('store', './srez');
 const OUT_FACTS = arg('out-facts', '/tmp/facts.md');
 const OUT_SREZ = arg('out-srez', '/tmp/srez-new.json');
 
-const PLAN = ["Юлия Лысанова", "Ольга Маслова", "Татьяна Лакомова", "Юлия Шура-Бура", "Алина Платонова", "Екатерина Зазноба", "Надежда Лобова"];
+const PLAN = ["Юлия Лысанова", "Ольга Маслова", "Татьяна Лакомова", "Юлия Шура-Бура", "Алина Платонова", "Екатерина Зазноба", "Надежда Лобова", "Татьяна Фомичева", "Алёна Филатова"];
 const nkey = s => String(s || '').trim().toLowerCase().split(/\s+/).sort().join(' ');
 const M = v => (v / 1e6).toFixed(1);
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
@@ -94,6 +94,8 @@ function renderWeekly(cur, prior) {
     L.push(`  🧩 тип ${c.client}% · ассорт ${c.assort}% · бюджет ${c.budget}% · приветствие ${c.greet}%`);
   }
   if (low.length) L.push('\nМало данных: ' + low.map(m => `${m} (${cur.mgrs[m].n})`).join(', '));
+  const empty = PLAN.filter(m => cur.mgrs[m] && cur.mgrs[m].n === 0);
+  if (empty.length) L.push('\nНет открытых сделок до предоплаты: ' + empty.join(', ') + '.');
   return L.join('\n');
 }
 
@@ -110,9 +112,12 @@ function renderMonthly(store, month) {
   L.push('');
   L.push('Динамика КП без дожима по менеджерам за месяц:');
   for (const m of PLAN) {
-    if (!last.mgrs[m] || !last.mgrs[m].n) continue;
-    const a = first.mgrs[m] ? first.mgrs[m].kp : '-'; const b = last.mgrs[m].kp;
-    L.push(`  ${m}: ${a} → ${b}`);
+    const snapshots = wks.filter(s => s.mgrs[m]);
+    if (!snapshots.length) { L.push(`  ${m}: нет сохранённых данных за месяц`); continue; }
+    const firstRecorded = snapshots[0].mgrs[m], lastRecorded = snapshots[snapshots.length - 1].mgrs[m];
+    const a = first.mgrs[m] ? first.mgrs[m].kp : 'нет данных в первом срезе';
+    const b = last.mgrs[m] ? last.mgrs[m].kp : 'нет данных в последнем срезе';
+    L.push(`  ${m}: ${a} → ${b}${!lastRecorded.n ? ' · нет открытых сделок до предоплаты в последнем доступном срезе' : ''}`);
   }
   return L.join('\n');
 }

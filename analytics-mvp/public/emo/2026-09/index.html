@@ -567,5 +567,12 @@ function showRefusalTransition(){const table=$('flow-detail').querySelector('tab
 const refusalTransitionObserver=new MutationObserver(showRefusalTransition);refusalTransitionObserver.observe($('flow-detail'),{childList:true,subtree:true});showRefusalTransition();
 
 
+// Keep stage names concise and show up to fifteen deals in each expanded dialogue table.
+const managerStageLabels={'Входы в воронку':'Новые сделки','Вошли на «КП отправлено»':'КП отправлено','Впервые вошли в предоплату':'Предоплата получена'};
+$('team').querySelectorAll(':scope > .table-wrap > table > thead th').forEach(th=>{const label=managerStageLabels[th.textContent.trim()];if(label){th.textContent=label;th.setAttribute('aria-label',label+': сортировка');}});
+const dialogHeightStyle=document.createElement('style');dialogHeightStyle.textContent='.quality-scroll:has(.quality-detail){max-height:none;overflow-y:visible}.quality-deal-scroll{max-height:680px}';document.head.append(dialogHeightStyle);
+function sizeDialogueDeals(){document.querySelectorAll('.quality-deal-scroll').forEach(box=>{const table=box.querySelector('table');if(!table)return;const rows=[...table.querySelectorAll('tbody > tr')].slice(0,15);const height=(table.tHead?.getBoundingClientRect().height||38)+rows.reduce((sum,row)=>sum+row.getBoundingClientRect().height,0)+20;box.style.maxHeight=Math.ceil(height)+'px';});}
+const dialogHeightObserver=new MutationObserver(sizeDialogueDeals);dialogHeightObserver.observe(quality,{childList:true,subtree:true});window.addEventListener('resize',sizeDialogueDeals);sizeDialogueDeals();
+
 })();</script></body></html>
 

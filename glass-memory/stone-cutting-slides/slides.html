@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>GLASS MEMORY - Резка и пропил камня (черновик слайдов)</title>
+<style>
+  @page { size: 210mm 297mm; margin: 0; }
+
+  :root{
+    --green:#00804D;
+    --cream:#F6F7ED;
+    --ink:#000000;
+    --dark:#121314;
+    --rule:#D7D8CF;
+    --muted:#6E6E68;
+    --font:'SB Sans Display','Helvetica Neue','Nimbus Sans',Helvetica,Arial,sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{ background:#8b8b86; }
+
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .page{
+    position:relative;
+    width:595pt;
+    height:842pt;
+    background:#fff;
+    overflow:hidden;
+    margin:0 auto 18pt;
+    page-break-after:always;
+    break-after:page;
+  }
+  .page:last-child{ page-break-after:auto; break-after:auto; margin-bottom:0; }
+
+  /* ---------- running header ---------- */
+  .hdr{
+    position:absolute; top:32pt; right:41pt;
+    font-size:12pt; line-height:1;
+    white-space:nowrap;
+  }
+  .hdr::before{
+    content:''; position:absolute; top:5.5pt; right:100%;
+    width:520pt; height:1pt; background:var(--ink); margin-right:12pt;
+  }
+  .hdr.onphoto{ color:#fff; left:40pt; right:auto; top:34pt; font-size:10.5pt; }
+  .hdr.onphoto::before{ left:100%; right:auto; margin-left:12pt; margin-right:0; background:#fff; width:520pt; }
+
+  /* ---------- type ---------- */
+  h1{ font-size:28.5pt; line-height:33pt; font-weight:400; letter-spacing:-0.01em; }
+  h2{ font-size:20pt; line-height:25pt; font-weight:400; }
+  p{ font-size:14pt; line-height:18pt; font-weight:400; }
+  .lead{ max-width:470pt; }
+
+  /* ---------- slide 1: section cover ---------- */
+  .cover .photo{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(160deg,#2b2f2c 0%,#1a1d1b 55%,#101211 100%);
+  }
+  .cover .photo::after{
+    content:'ФОТО: гидрорез в работе - раскрой гранитной плиты';
+    position:absolute; left:40pt; top:430pt;
+    font-size:10pt; letter-spacing:.06em; text-transform:uppercase;
+    color:rgba(255,255,255,.35);
+  }
+  .cover .photo::before{
+    content:''; position:absolute; left:40pt; top:74pt; right:40pt; bottom:250pt;
+    border:1pt dashed rgba(255,255,255,.22);
+  }
+  .cover .scrim{
+    position:absolute; left:0; right:0; bottom:0; height:330pt;
+    background:linear-gradient(to top,rgba(0,0,0,.88) 0%,rgba(0,0,0,.72) 45%,rgba(0,0,0,0) 100%);
+  }
+
+  .stats{
+    position:absolute; top:74pt; left:305pt; width:249pt;
+    background:var(--green); color:#fff;
+    padding:0 32pt 0 28pt;
+  }
+  .stat{ padding:22pt 0 20pt; border-top:1pt solid rgba(255,255,255,.28); }
+  .stat:first-child{ border-top:0; padding-top:24pt; }
+  .stat .num{ font-size:28.5pt; line-height:32pt; letter-spacing:-0.01em; }
+  .stat .num.sm{ font-size:25pt; }
+  .stat .cap{ font-size:12.3pt; line-height:14pt; margin-top:6pt; }
+
+  .cover .title{ position:absolute; left:40pt; right:150pt; bottom:150pt; color:#fff; }
+  .cover .title h1{ font-size:41pt; line-height:43pt; }
+  .cover .body{ position:absolute; left:40pt; right:55pt; bottom:52pt; color:#fff; }
+  .cover .body p{ font-size:12.5pt; line-height:18pt; }
+
+  /* ---------- content pages ---------- */
+  .body-area{ position:absolute; left:65pt; right:41pt; top:65pt; }
+  .lead{ margin-top:10pt; }
+
+  /* spec table */
+  .spec{ background:var(--cream); margin-top:16pt; }
+  .row{ display:flex; padding:6pt 20pt 6pt 16pt; border-top:1pt solid var(--rule); }
+  .row:first-child{ border-top:0; }
+  .row .k{ width:195pt; flex:0 0 195pt; font-size:12.5pt; line-height:16pt; font-weight:600; padding-right:12pt; }
+  .row .v{ flex:1; font-size:12.5pt; line-height:16pt; }
+  .row .v .q{ color:var(--muted); border-bottom:1pt dashed var(--muted); }
+
+  /* diagrams */
+  .diagrams{ display:flex; gap:14pt; margin-top:16pt; }
+  .dia{ background:var(--cream); padding:13pt; flex:1; }
+  .dia .t{ font-size:12.3pt; line-height:15pt; font-weight:600; margin-bottom:8pt; }
+  .dia svg{ display:block; width:100%; height:auto; }
+
+  /* numbered work list */
+  .works{ margin-top:18pt; }
+  .work{ display:flex; gap:16pt; padding:9.5pt 0; border-top:1pt solid var(--rule); }
+  .work:first-child{ border-top:0; padding-top:4pt; }
+  .work .n{ flex:0 0 34pt; color:var(--green); font-size:20pt; line-height:22pt; }
+  .work .c{ flex:1; }
+  .work .c b{ font-size:14pt; line-height:18pt; font-weight:600; display:block; }
+  .work .c span{ font-size:12.5pt; line-height:16pt; color:#000; display:block; margin-top:2pt; }
+
+  /* callout */
+  .call{ background:var(--cream); padding:16pt 18pt; margin-top:18pt; }
+  .call .t{ color:var(--green); font-size:12.3pt; line-height:15pt; font-weight:600; margin-bottom:7pt; }
+  .call p{ font-size:12.5pt; line-height:16.5pt; }
+
+  .legend{
+    position:absolute; left:65pt; right:41pt; bottom:34pt;
+    font-size:10pt; line-height:14pt; color:var(--muted);
+    border-top:1pt solid var(--rule); padding-top:9pt;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== СЛАЙД 1 - обложка раздела ===================== -->
+<section class="page cover">
+  <div class="photo"></div>
+  <div class="scrim"></div>
+  <div class="hdr onphoto">Резка и пропил камня</div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="num sm">3150×1580</div>
+      <div class="cap">максимальный размер детали, мм</div>
+    </div>
+    <div class="stat">
+      <div class="num">150 мм</div>
+      <div class="cap">глубина пропила и выреза</div>
+    </div>
+    <div class="stat">
+      <div class="num">100×100</div>
+      <div class="cap">минимальный размер детали, мм</div>
+    </div>
+  </div>
+
+  <div class="title">
+    <h1>Резка и пропил<br>камня</h1>
+  </div>
+  <div class="body">
+    <p>Гидроабразивная резка камня с ЧПУ на собственном производстве. Раскрой плиты
+    по любому контуру, пазы под стеклянные стелы, сквозные вырезы под портрет
+    и отверстия под крепёж. Камень и стекло считаем в одном чертеже - зазор под клей
+    закладываем до резки.</p>
+  </div>
+</section>
+
+<!-- ===================== СЛАЙД 2 - габариты, глубина, техпараметры ===================== -->
+<section class="page">
+  <div class="hdr">Резка и пропил камня</div>
+  <div class="body-area">
+    <h1>Габариты стола<br>и глубина реза</h1>
+    <p class="lead">Три числа задают геометрию заказа: рабочее поле стола, минимальная деталь
+    и высота головы гидрореза. 150 мм - это и толщина сквозного реза, и глубина паза в массиве.</p>
+
+    <div class="diagrams">
+      <div class="dia">
+        <div class="t">Рабочее поле стола, мм</div>
+        <svg viewBox="0 0 250 132" role="img" aria-label="Рабочее поле 3150 на 1580 мм с минимальной деталью 100 на 100 мм">
+          <!-- рабочее поле 3150x1580 -> 200x100 (масштаб 1:15.75) -->
+          <rect x="22" y="26" width="200" height="100" fill="#fff" stroke="#000" stroke-width="1"/>
+          <!-- минимальная деталь 100x100 -> 6.35x6.35 -->
+          <rect x="28" y="113.6" width="6.35" height="6.35" fill="#00804D"/>
+          <line x1="34.35" y1="116.8" x2="72" y2="116.8" stroke="#00804D" stroke-width=".7"/>
+          <text x="75" y="119.3" font-size="7" fill="#00804D" font-family="Helvetica,Arial">100×100 - минимум</text>
+          <!-- горизонтальный размер -->
+          <line x1="22" y1="16" x2="222" y2="16" stroke="#000" stroke-width=".7"/>
+          <line x1="22" y1="12" x2="22" y2="20" stroke="#000" stroke-width=".7"/>
+          <line x1="222" y1="12" x2="222" y2="20" stroke="#000" stroke-width=".7"/>
+          <text x="122" y="11" font-size="8.5" text-anchor="middle" font-family="Helvetica,Arial">3150</text>
+          <!-- вертикальный размер -->
+          <line x1="234" y1="26" x2="234" y2="126" stroke="#000" stroke-width=".7"/>
+          <line x1="230" y1="26" x2="238" y2="26" stroke="#000" stroke-width=".7"/>
+          <line x1="230" y1="126" x2="238" y2="126" stroke="#000" stroke-width=".7"/>
+          <text x="243" y="79" font-size="8.5" text-anchor="middle" font-family="Helvetica,Arial" transform="rotate(-90 243 79)">1580</text>
+          <text x="22" y="131" font-size="7" fill="#6E6E68" font-family="Helvetica,Arial">масштаб 1:15,75</text>
+        </svg>
+      </div>
+
+      <div class="dia">
+        <div class="t">Глубина пропила, разрез</div>
+        <svg viewBox="0 0 250 132" role="img" aria-label="Разрез плиты с пропилом на глубину 150 мм">
+          <!-- массив камня -->
+          <rect x="22" y="26" width="200" height="86" fill="#DEDFD4" stroke="#000" stroke-width="1"/>
+          <!-- пропил сверху -->
+          <rect x="104" y="26" width="14" height="60" fill="#fff" stroke="#000" stroke-width="1"/>
+          <!-- размер глубины -->
+          <line x1="140" y1="26" x2="140" y2="86" stroke="#00804D" stroke-width=".9"/>
+          <line x1="136" y1="26" x2="144" y2="26" stroke="#00804D" stroke-width=".9"/>
+          <line x1="136" y1="86" x2="144" y2="86" stroke="#00804D" stroke-width=".9"/>
+          <text x="148" y="52" font-size="8.5" fill="#00804D" font-family="Helvetica,Arial">до 150</text>
+          <text x="148" y="63" font-size="8.5" fill="#00804D" font-family="Helvetica,Arial">мм</text>
+          <!-- голова -->
+          <path d="M104 22 L118 22 L118 8 L111 2 L104 8 Z" fill="#00804D"/>
+          <text x="124" y="14" font-size="7" fill="#6E6E68" font-family="Helvetica,Arial">голова гидрореза</text>
+          <text x="22" y="122" font-size="7" fill="#6E6E68" font-family="Helvetica,Arial">Плита до 150 мм - режем насквозь.</text>
+          <text x="22" y="131" font-size="7" fill="#6E6E68" font-family="Helvetica,Arial">Массив толще - паз или карман до 150 мм.</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="row"><div class="k">Технология</div><div class="v">Гидроабразивная резка с ЧПУ (гидрорез)</div></div>
+      <div class="row"><div class="k">Максимальный размер детали</div><div class="v">3150 × 1580 мм</div></div>
+      <div class="row"><div class="k">Минимальный размер детали</div><div class="v">100 × 100 мм</div></div>
+      <div class="row"><div class="k">Глубина пропила и выреза</div><div class="v">до 150 мм (высота головы гидрореза)</div></div>
+      <div class="row"><div class="k">Сквозной рез</div><div class="v">плита толщиной до 150 мм</div></div>
+      <div class="row"><div class="k">Контур</div><div class="v">любой замкнутый контур из вектора, включая внутренние вырезы</div></div>
+      <div class="row"><div class="k">Стартовое отверстие</div><div class="v">прошивается струёй, сверление не требуется</div></div>
+      <div class="row"><div class="k">Кромка после резки</div><div class="v">матовая, без нагрева и термических напряжений в камне</div></div>
+      <div class="row"><div class="k">Материалы</div><div class="v"><span class="q">гранит, мрамор - перечень уточнить</span></div></div>
+      <div class="row"><div class="k">Точность и ширина реза</div><div class="v"><span class="q">по паспорту станка - уточнить</span></div></div>
+    </div>
+  </div>
+
+  <div class="legend">Черновик. Пунктиром отмечены поля, которые заполняем по паспорту станка и данным производства - до вёрстки в каталог.</div>
+</section>
+
+<!-- ===================== СЛАЙД 3 - виды работ ===================== -->
+<section class="page">
+  <div class="hdr">Резка и пропил камня</div>
+  <div class="body-area">
+    <h1>Шесть видов работ<br>по камню</h1>
+    <p class="lead">Один станок закрывает раскрой, пазы, сквозные вырезы и отверстия.
+    Заказ приходит вектором - режем по контуру без оснастки и без переналадки под форму.</p>
+
+    <div class="works">
+      <div class="work">
+        <div class="n">01</div>
+        <div class="c"><b>Раскрой плиты по контуру</b>
+        <span>Фигурная стела, арка, волна, крест, любой криволинейный контур. Форма ограничена
+        только чертежом и полем 3150 × 1580 мм.</span></div>
+      </div>
+      <div class="work">
+        <div class="n">02</div>
+        <div class="c"><b>Паз под стеклянную стелу</b>
+        <span>Пропил в каменной подставке под триплекс 8-34 мм на глубину до 150 мм.
+        Ширину паза считаем как толщина стекла плюс зазор под клей.</span></div>
+      </div>
+      <div class="work">
+        <div class="n">03</div>
+        <div class="c"><b>Сквозной вырез</b>
+        <span>Окно под портрет, проём под крест, внутренний контур в стеле. Струя прошивает
+        стартовое отверстие сама - предварительное сверление не нужно.</span></div>
+      </div>
+      <div class="work">
+        <div class="n">04</div>
+        <div class="c"><b>Отверстия под крепёж</b>
+        <span>Под дистанционный крепёж портрета и под шпильки сборки. Диаметр и шаг -
+        по чертежу узла крепления, вместе со стеклом.</span></div>
+      </div>
+      <div class="work">
+        <div class="n">05</div>
+        <div class="c"><b>Детали цоколя и цветника</b>
+        <span>Бортики, накладки, вставки и мелкая геометрия от 100 × 100 мм. Один файл -
+        вся раскладка деталей комплекта на лист.</span></div>
+      </div>
+      <div class="work">
+        <div class="n">06</div>
+        <div class="c"><b>Выборка под стеклянную вставку</b>
+        <span>Карман в камне под вклейку стеклянного элемента заподлицо. Глубина выборки
+        и допуск - под толщину триплекса из того же заказа.</span></div>
+      </div>
+    </div>
+
+    <div class="call">
+      <div class="t">Ограничение по габариту</div>
+      <p>Деталь крупнее 3150 × 1580 мм режем составной композицией. Линии стыков закладываем
+      в чертёж на этапе макета - по рисунку камня и узлам крепления, а не по остатку плиты.</p>
+    </div>
+  </div>
+
+  <div class="legend">Черновик раздела для каталога GLASS MEMORY. Формулировки и техполя - на согласование.</div>
+</section>
+
+</body>
+</html>

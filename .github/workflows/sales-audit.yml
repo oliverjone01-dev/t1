@@ -15,10 +15,8 @@ on:
         default: ""
       ai:
         description: "ИИ-коучинг: 1 включить, 0 только факты"
-        default: "1"
-  schedule:
-    - cron: "47 8 * * 5"  # пятница 08:47 UTC = 11:47 МСК - недельный
-    - cron: "47 8 1 * *"  # 1-е число 08:47 UTC = 11:47 МСК - месячный
+        default: "0"
+  # Schedule moved to VPS. Anthropic calls require an explicit manual command.
 
 concurrency:
   group: sales-audit
@@ -36,7 +34,7 @@ jobs:
       # Поэтому основной чат (-1004401671894) здесь принудительно перенаправляется в тест-чат,
       # даже если его передали вручную. Другой тест/отладочный chat_id допускается.
       CHAT_ID: ${{ (github.event.inputs.chat != '' && github.event.inputs.chat != '-1004401671894') && github.event.inputs.chat || '-1003652568523' }}
-      AI: ${{ github.event.inputs.ai || '1' }}
+      AI: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ai == '1' && '1' || '0' }}
       BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
       BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -85,7 +83,7 @@ jobs:
           set -e
           if [ "$MODE" = "monthly" ]; then
             node analytics-mvp/src/scripts/sales/audit-build.mjs --mode monthly \
-              --store store/srez --month "$(date -u +%Y-%m)" --out-facts /tmp/facts.md
+              --store store/srez --month "$(date -u -d "$(date -u +%Y-%m-01) -1 day" +%Y-%m)" --out-facts /tmp/facts.md
           else
             node analytics-mvp/src/scripts/sales/audit-build.mjs --mode weekly \
               --rop /tmp/rop.json --dialog /tmp/dialog.json --store store/srez \

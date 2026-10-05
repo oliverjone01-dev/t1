@@ -1,5 +1,5 @@
 {
- "built": "2026-10-02T11:25:16Z",
+ "built": "2026-10-05T12:44:26Z",
  "bot": true,
  "projects": {
   "gm": {
@@ -533,12 +533,12 @@
    "ym": null,
    "direct_copy": {
     "of": "GENGLASS",
-    "at": "2026-10-02",
+    "at": "2026-10-05",
     "camps": [
      "[На заказ] Перегородки | Поиск ВЧ | НБ=5т.р. | CPC=145 |",
      "[На заказ] Перегородки | Поиск НЧ | НБ=11т.р. | CPC=110 |",
      "[На заказ] Перегородки | Поиск СЧ | НБ=9т.р. | CPC=108 |",
-     "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=400 |",
+     "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=200 |",
      "[На заказ] Перегородки | РСЯ - ПК | НБ=8т.р. | CPC=80 |",
      "[На заказ] Перегородки | РТ | НБ=5т.р. | CPC = 100 |"
     ]
@@ -2138,25 +2138,10 @@
      "v": "104369223",
      "k": "ДАННЫЕ",
      "s": "gg-seo-geo-monster/data/genglass/metrika.json",
-     "at": "2026-10-02",
+     "at": "2026-10-05",
      "n": ""
     },
     "days": [
-     {
-      "date": "2026-09-02",
-      "visits": 404,
-      "search_visits": 83
-     },
-     {
-      "date": "2026-09-03",
-      "visits": 375,
-      "search_visits": 88
-     },
-     {
-      "date": "2026-09-04",
-      "visits": 420,
-      "search_visits": 58
-     },
      {
       "date": "2026-09-05",
       "visits": 373,
@@ -2291,20 +2276,35 @@
       "date": "2026-10-01",
       "visits": 512,
       "search_visits": 91
+     },
+     {
+      "date": "2026-10-02",
+      "visits": 579,
+      "search_visits": 104
+     },
+     {
+      "date": "2026-10-03",
+      "visits": 480,
+      "search_visits": 73
+     },
+     {
+      "date": "2026-10-04",
+      "visits": 500,
+      "search_visits": 89
      }
     ],
     "bounce": {
-     "v": 15.7,
+     "v": 15.3,
      "k": "ДАННЫЕ",
      "s": "metrika.json",
-     "at": "2026-10-02",
+     "at": "2026-10-05",
      "n": ""
     },
     "depth": {
      "v": 2.6,
      "k": "ДАННЫЕ",
      "s": "metrika.json",
-     "at": "2026-10-02",
+     "at": "2026-10-05",
      "n": ""
     },
     "goals": [],
@@ -2706,175 +2706,175 @@
      ]
     },
     "search_30d": {
-     "v": 2576,
+     "v": 2613,
      "k": "ДАННЫЕ",
      "s": "gg-seo-geo-monster/data/genglass/metrika.json",
-     "at": "2026-10-02",
+     "at": "2026-10-05",
      "n": "визиты из поиска за 30 дней, модель «последний источник»"
     },
     "conv": {
      "goal_id": 487033158,
-     "at": "2026-10-01",
+     "at": "2026-10-04",
      "organic": {
-      "v": 4.64,
+      "v": 4.4,
       "k": "ДАННЫЕ",
       "s": "yandex-direct/data/direct_metrika.json",
-      "at": "2026-10-01",
-      "n": "149 заявок на 3 212 визитов из поиска за 30 дней",
-      "visits": 3212,
-      "leads": 149
+      "at": "2026-10-04",
+      "n": "143 заявки на 3 249 визитов из поиска за 30 дней",
+      "visits": 3249,
+      "leads": 143
      },
      "ad": {
-      "v": 2.2,
+      "v": 2.02,
       "k": "ДАННЫЕ",
       "s": "yandex-direct/data/direct_metrika.json",
-      "at": "2026-10-01",
-      "n": "102 заявки на 4 633 визита из рекламы за 30 дней",
-      "visits": 4633,
-      "leads": 102
+      "at": "2026-10-04",
+      "n": "96 заявок на 4 748 визитов из рекламы за 30 дней",
+      "visits": 4748,
+      "leads": 96
      }
     },
     "top_pages": [
      {
       "url": "/",
-      "visits": 442
+      "visits": 443
      },
      {
       "url": "/stoly-na-zakaz/",
-      "visits": 105
-     },
-     {
-      "url": "/stellazhi-i-polki-na-zakaz/",
-      "visits": 71
-     },
-     {
-      "url": "/product-category/tables/",
-      "visits": 64
-     },
-     {
-      "url": "/zerkala-na-zakaz/",
-      "visits": 58
+      "visits": 99
      },
      {
       "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+      "visits": 72
+     },
+     {
+      "url": "/product-category/tables/",
+      "visits": 72
+     },
+     {
+      "url": "/stellazhi-i-polki-na-zakaz/",
+      "visits": 72
+     },
+     {
+      "url": "/zerkala-na-zakaz/",
       "visits": 55
      },
      {
-      "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-      "visits": 52
-     },
-     {
       "url": "/product-category/mirrors/",
-      "visits": 52
+      "visits": 51
      },
      {
-      "url": "/product-category/mirrors/dizajnerskie/",
-      "visits": 42
+      "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
+      "visits": 44
      },
      {
       "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-      "visits": 41
+      "visits": 42
      },
      {
-      "url": "/product-category/steklyannye-doski/",
-      "visits": 41
+      "url": "/product-category/mirrors/dizajnerskie/",
+      "visits": 39
      },
      {
       "url": "/product-category/tables/kitchen-tables/",
-      "visits": 38
+      "visits": 39
+     },
+     {
+      "url": "/product-category/steklyannye-doski/",
+      "visits": 35
      },
      {
       "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-      "visits": 30
-     },
-     {
-      "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
-      "visits": 25
+      "visits": 26
      },
      {
       "url": "/product-category/mirrors/rotatable/",
-      "visits": 24
-     },
-     {
-      "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-      "visits": 24
+      "visits": 26
      },
      {
       "url": "/product-category/mirrors/zerkalo-na-shtange/",
+      "visits": 25
+     },
+     {
+      "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
       "visits": 23
      },
      {
-      "url": "/magnitno-markernie-doski-na-zakaz/",
-      "visits": 22
+      "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
+      "visits": 23
      },
      {
       "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
       "visits": 22
      },
      {
+      "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
+      "visits": 20
+     },
+     {
       "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
       "visits": 20
      },
      {
-      "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
+      "url": "/magnitno-markernie-doski-na-zakaz/",
       "visits": 20
      },
      {
       "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
-      "visits": 18
+      "visits": 19
      },
      {
-      "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
-      "visits": 17
+      "url": "/product-category/mirrors/zerkalo-v-rame/",
+      "visits": 19
+     },
+     {
+      "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
+      "visits": 18
      },
      {
       "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-dlya-zonirovaniya-komnaty/",
       "visits": 17
      },
      {
-      "url": "/product-category/mirrors/zerkalo-v-rame/",
-      "visits": 17
+      "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj/",
+      "visits": 15
      },
      {
-      "url": "/product-category/tables/glass-tables/",
+      "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-s-dveryu/",
       "visits": 14
      },
      {
-      "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj/",
+      "url": "/mezhkomnatnye-peregorodki-na-zakaz/stalnye-peregorodki/",
       "visits": 13
      },
      {
-      "url": "/mezhkomnatnye-peregorodki-na-zakaz/stalnye-peregorodki/",
-      "visits": 12
-     },
-     {
       "url": "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/",
-      "visits": 12
+      "visits": 13
      },
      {
-      "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
-      "visits": 12
+      "url": "/product-category/mirrors/floor/",
+      "visits": 13
      }
     ],
     "top_phrases": [
      {
       "phrase": "genglass официальный сайт",
-      "visits": 31
+      "visits": 36
+     },
+     {
+      "phrase": "genglass",
+      "visits": 23
      },
      {
       "phrase": "генгласс",
       "visits": 22
      },
      {
-      "phrase": "genglass",
-      "visits": 19
+      "phrase": "интернет магазин зеркало в раме",
+      "visits": 11
      },
      {
       "phrase": "genglass.ru",
-      "visits": 10
-     },
-     {
-      "phrase": "интернет магазин зеркало в раме",
       "visits": 10
      },
      {
@@ -2883,6 +2883,10 @@
      },
      {
       "phrase": "genglass стол",
+      "visits": 7
+     },
+     {
+      "phrase": "дженгласс ру",
       "visits": 6
      },
      {
@@ -2894,20 +2898,24 @@
       "visits": 5
      },
      {
-      "phrase": "дженгласс ру",
-      "visits": 5
-     },
-     {
-      "phrase": "генглас",
-      "visits": 4
-     },
-     {
       "phrase": "джен гласс",
       "visits": 4
      },
      {
       "phrase": "столы на заказ",
       "visits": 4
+     },
+     {
+      "phrase": "GENGLASS",
+      "visits": 3
+     },
+     {
+      "phrase": "genglass столы",
+      "visits": 3
+     },
+     {
+      "phrase": "генглас",
+      "visits": 3
      },
      {
       "phrase": "генгласс столы",
@@ -2930,20 +2938,8 @@
       "visits": 3
      },
      {
-      "phrase": "перегородка гармошка для зонирования",
+      "phrase": "межкомнатные перегородки",
       "visits": 3
-     },
-     {
-      "phrase": "стол на заказ",
-      "visits": 3
-     },
-     {
-      "phrase": "стол под заказ",
-      "visits": 3
-     },
-     {
-      "phrase": "GENGLASS",
-      "visits": 2
      },
      {
       "phrase": "GENGLASS Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладной",
@@ -2958,19 +2954,7 @@
       "visits": 2
      },
      {
-      "phrase": "genglass зеркало",
-      "visits": 2
-     },
-     {
       "phrase": "genglass зеркало настенное evelix l 180x50 см, овальное, в полный рост",
-      "visits": 2
-     },
-     {
-      "phrase": "genglass столы",
-      "visits": 2
-     },
-     {
-      "phrase": "info8@genglass.ru",
       "visits": 2
      },
      {
@@ -2979,10 +2963,6 @@
      },
      {
       "phrase": "Консоль Violur",
-      "visits": 2
-     },
-     {
-      "phrase": "Стол на заказ москва",
       "visits": 2
      },
      {
@@ -2998,10 +2978,6 @@
       "visits": 2
      },
      {
-      "phrase": "зеркала дизайнерские",
-      "visits": 2
-     },
-     {
       "phrase": "зеркало на штанге",
       "visits": 2
      },
@@ -3010,11 +2986,19 @@
       "visits": 2
      },
      {
-      "phrase": "консольные столы фото",
+      "phrase": "зеркало напольное genglass",
       "visits": 2
      },
      {
       "phrase": "металлические перегородки",
+      "visits": 2
+     },
+     {
+      "phrase": "перегородка гармошка",
+      "visits": 2
+     },
+     {
+      "phrase": "перегородка гармошка для зонирования",
       "visits": 2
      },
      {
@@ -3023,6 +3007,10 @@
      },
      {
       "phrase": "перегородки межкомнатные",
+      "visits": 2
+     },
+     {
+      "phrase": "перегородки с рифленым стеклом",
       "visits": 2
      },
      {
@@ -3042,6 +3030,10 @@
       "visits": 2
      },
      {
+      "phrase": "стеклянная перегородка с дверью",
+      "visits": 2
+     },
+     {
       "phrase": "стеклянный стол на заказ",
       "visits": 2
      },
@@ -3050,7 +3042,15 @@
       "visits": 2
      },
      {
+      "phrase": "стол на заказ",
+      "visits": 2
+     },
+     {
       "phrase": "стол обеденный белый 170х90 полуовал",
+      "visits": 2
+     },
+     {
+      "phrase": "стол под заказ",
       "visits": 2
      },
      {
@@ -3058,94 +3058,94 @@
       "visits": 2
      }
     ],
-    "at": "2026-10-02"
+    "at": "2026-10-05"
    },
    "direct_copy": null,
    "direct": {
     "spend": {
-     "v": 182875,
+     "v": 179895,
      "k": "ДАННЫЕ",
      "s": "gg-seo-geo-monster/data/genglass/direct.json",
-     "at": "2026-10-02",
+     "at": "2026-10-05",
      "n": ""
     },
     "clicks": {
-     "v": 1705,
+     "v": 1695,
      "k": "ДАННЫЕ",
      "s": "direct.json",
-     "at": "2026-10-02",
+     "at": "2026-10-05",
      "n": ""
     },
     "impr": {
-     "v": 155455,
+     "v": 138821,
      "k": "ДАННЫЕ",
      "s": "direct.json",
-     "at": "2026-10-02",
+     "at": "2026-10-05",
      "n": ""
     },
     "ctr": {
-     "v": 1.1,
+     "v": 1.22,
      "k": "ДАННЫЕ",
      "s": "direct.json",
-     "at": "2026-10-02",
+     "at": "2026-10-05",
      "n": ""
     },
     "cpc": {
-     "v": 107.3,
+     "v": 106.1,
      "k": "ДАННЫЕ",
      "s": "direct.json",
-     "at": "2026-10-02",
+     "at": "2026-10-05",
      "n": ""
     },
     "campaigns": [
      {
       "name": "[На заказ] Перегородки | Поиск ВЧ | НБ=5т.р. | CPC=145 |",
-      "spend": 26655,
-      "clicks": 170,
-      "ctr": 9,
-      "cpc": 156.8
+      "spend": 24474,
+      "clicks": 154,
+      "ctr": 8.56,
+      "cpc": 158.9
      },
      {
       "name": "[На заказ] Перегородки | Поиск СЧ | НБ=9т.р. | CPC=108 |",
-      "spend": 43072,
-      "clicks": 338,
-      "ctr": 8.47,
-      "cpc": 127.4
+      "spend": 42265,
+      "clicks": 326,
+      "ctr": 8.07,
+      "cpc": 129.6
      },
      {
       "name": "[На заказ] Перегородки | Поиск НЧ | НБ=11т.р. | CPC=110 |",
-      "spend": 50423,
-      "clicks": 402,
-      "ctr": 12.6,
-      "cpc": 125.4
+      "spend": 49153,
+      "clicks": 396,
+      "ctr": 12.39,
+      "cpc": 124.1
      },
      {
       "name": "[На заказ] Перегородки | РТ | НБ=5т.р. | CPC = 100 |",
-      "spend": 22691,
-      "clicks": 240,
-      "ctr": 0.46,
-      "cpc": 94.5
+      "spend": 24195,
+      "clicks": 258,
+      "ctr": 0.48,
+      "cpc": 93.8
      },
      {
       "name": "[На заказ] Перегородки | РСЯ - ПК | НБ=8т.р. | CPC=80 |",
-      "spend": 40034,
-      "clicks": 515,
-      "ctr": 0.56,
-      "cpc": 77.7
+      "spend": 38930,
+      "clicks": 516,
+      "ctr": 0.7,
+      "cpc": 75.4
      },
      {
-      "name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=400 |",
-      "spend": 0,
-      "clicks": 40,
-      "ctr": 1.52,
-      "cpc": 0
+      "name": "[На заказ] Перегородки | РСЯ - МОБ | НБ=8т.р. | CPA=200 |",
+      "spend": 878,
+      "clicks": 45,
+      "ctr": 1.55,
+      "cpc": 19.5
      }
     ],
     "queries": [
      {
       "query": "genglass",
-      "clicks": 10,
-      "cost": 1619
+      "clicks": 13,
+      "cost": 2220
      },
      {
       "query": "стеллаж для зонирования комнаты от производителя заказать",
@@ -3153,14 +3153,14 @@
       "cost": 222
      },
      {
+      "query": "межкомнатные перегородки москва",
+      "clicks": 8,
+      "cost": 1739
+     },
+     {
       "query": "межкомнатные перегородки",
       "clicks": 7,
       "cost": 893
-     },
-     {
-      "query": "стеклянная перегородка в комнату",
-      "clicks": 6,
-      "cost": 1189
      },
      {
       "query": "стеллаж для зонирования комнаты от производителя заказать",
@@ -3168,14 +3168,9 @@
       "cost": 81
      },
      {
-      "query": "межкомнатные перегородки москва",
+      "query": "стеклянная перегородка в комнату",
       "clicks": 5,
-      "cost": 1024
-     },
-     {
-      "query": "зонирование комнаты перегородкой",
-      "clicks": 5,
-      "cost": 335
+      "cost": 1106
      },
      {
       "query": "стеклянные перегородки",
@@ -3183,24 +3178,19 @@
       "cost": 1547
      },
      {
-      "query": "раздвижные двери межкомнатные москва",
-      "clicks": 4,
-      "cost": 1146
-     },
-     {
       "query": "раздвижные двери для гардеробной на заказ",
       "clicks": 4,
       "cost": 1242
      },
      {
-      "query": "перегородка гармошка",
-      "clicks": 4,
-      "cost": 711
-     },
-     {
       "query": "стеллаж для зонирования комнаты от производителя заказать",
       "clicks": 4,
       "cost": 149
+     },
+     {
+      "query": "стеклянные перегородки",
+      "clicks": 4,
+      "cost": 2346
      },
      {
       "query": "межкомнатные перегородки",
@@ -3210,7 +3200,7 @@
      {
       "query": "перегородка гармошка",
       "clicks": 3,
-      "cost": 126
+      "cost": 474
      },
      {
       "query": "стеллаж перегородка для зонирования комнаты от производителя заказать",
@@ -3233,14 +3223,14 @@
       "cost": 122
      },
      {
+      "query": "зонирование комнаты перегородкой",
+      "clicks": 3,
+      "cost": 276
+     },
+     {
       "query": "каскадная перегородка между кухней с газовой плитой и комнатой",
       "clicks": 3,
       "cost": 254
-     },
-     {
-      "query": "перегородка гармошка",
-      "clicks": 3,
-      "cost": 384
      },
      {
       "query": "складная перегородка гармошка",
@@ -3263,11 +3253,6 @@
       "cost": 422
      },
      {
-      "query": "двери перегородки",
-      "clicks": 2,
-      "cost": 437
-     },
-     {
       "query": "перегородки двери",
       "clicks": 2,
       "cost": 237
@@ -3283,6 +3268,16 @@
       "cost": 293
      },
      {
+      "query": "перегородки межкомнатные раздвижные москва",
+      "clicks": 2,
+      "cost": 670
+     },
+     {
+      "query": "раздвижные двери межкомнатные москва",
+      "clicks": 2,
+      "cost": 614
+     },
+     {
       "query": "раздвижные двери для гардеробной",
       "clicks": 2,
       "cost": 90
@@ -3291,21 +3286,26 @@
       "query": "стеклянные раздвижные двери",
       "clicks": 2,
       "cost": 327
+     },
+     {
+      "query": "перегородка в комнате с дверью",
+      "clicks": 2,
+      "cost": 266
      }
     ],
-    "at": "2026-10-02",
+    "at": "2026-10-05",
     "twin": null,
     "cpl": {
-     "v": 1784,
+     "v": 1914,
      "k": "ГИПОТЕЗА",
      "s": "yandex-direct/data/direct_daily.json (расход) и yandex-direct/data/direct_metrika.json (заявки), один прогон",
-     "at": "2026-10-01",
-     "n": "от 1 784 до 1 838 ₽: 181 929 ₽ расхода за 01.09-30.09 на 102 заявки со всей рекламы или 99 из Директа; гипотезой цифру делает атрибуция: заявки считает Метрика, и из 102 рекламных к Директу она относит 99",
-     "hi": 1838,
-     "spend": 181929,
-     "win": "01.09-30.09",
-     "leads": 102,
-     "leads_direct": 99
+     "at": "2026-10-04",
+     "n": "от 1 914 до 1 976 ₽: 183 751 ₽ расхода за 04.09-03.10 на 96 заявок со всей рекламы или 93 из Директа; гипотезой цифру делает атрибуция: заявки считает Метрика, и из 96 рекламных к Директу она относит 93",
+     "hi": 1976,
+     "spend": 183751,
+     "win": "04.09-03.10",
+     "leads": 96,
+     "leads_direct": 93
     }
    },
    "facts": {
@@ -3409,113 +3409,113 @@
     }
    },
    "comp": {
-    "at": "2026-09-28",
+    "at": "2026-10-05",
     "s": "keys.so /report/simple/organic/concurents через gg-seo-geo-monster/data/keyso/genglass.ru/competitors.json",
     "rows": [
      {
-      "domain": "mirror-light.ru",
-      "common": 13,
-      "it10": 303,
-      "it50": 1680,
-      "vis": 22
+      "domain": "hardproject.ru",
+      "common": 17,
+      "it10": 166,
+      "it50": 1274,
+      "vis": 4
      },
      {
-      "domain": "doors4u.ru",
-      "common": 25,
-      "it10": 4227,
-      "it50": 9504,
-      "vis": 675
-     },
-     {
-      "domain": "sima-land.ru",
-      "common": 22,
-      "it10": 530379,
-      "it50": 2543095,
-      "vis": 73151
-     },
-     {
-      "domain": "fesna.ru",
+      "domain": "zavod-peregorodok.ru",
       "common": 15,
-      "it10": 148,
-      "it50": 843,
-      "vis": 9
+      "it10": 219,
+      "it50": 1002,
+      "vis": 6
      },
      {
-      "domain": "oki-doki.ru",
+      "domain": "yandex.ru",
+      "common": 19,
+      "it10": 24312392,
+      "it50": 47433228,
+      "vis": 10619690
+     },
+     {
+      "domain": "wildberries.ru",
+      "common": 98,
+      "it10": 6964000,
+      "it50": 14613586,
+      "vis": 1413223
+     },
+     {
+      "domain": "zoon.ru",
       "common": 13,
-      "it10": 553,
-      "it50": 1986,
-      "vis": 32
+      "it10": 7247338,
+      "it50": 13437409,
+      "vis": 453306
      },
      {
-      "domain": "imodern.ru",
-      "common": 13,
-      "it10": 10295,
-      "it50": 27090,
-      "vis": 3220
-     },
-     {
-      "domain": "privetmaket.ru",
-      "common": 26,
-      "it10": 2846,
-      "it50": 8279,
-      "vis": 262
-     },
-     {
-      "domain": "uslugi.yandex.ru",
-      "common": 64,
-      "it10": 1447805,
-      "it50": 3088753,
-      "vis": 202275
-     },
-     {
-      "domain": "kovkastali.ru",
-      "common": 17,
-      "it10": 398,
-      "it50": 1574,
-      "vis": 27
-     },
-     {
-      "domain": "зеркаласподсветкой.рф",
-      "common": 55,
-      "it10": 2133,
-      "it50": 5427,
-      "vis": 187
-     },
-     {
-      "domain": "zorini.ru",
-      "common": 47,
-      "it10": 6847,
-      "it50": 16325,
-      "vis": 980
-     },
-     {
-      "domain": "loftcase.ru",
-      "common": 34,
-      "it10": 300,
-      "it50": 1196,
-      "vis": 14
-     },
-     {
-      "domain": "aliexpress.ru",
+      "domain": "moscow.petrovich.ru",
       "common": 16,
-      "it10": 2209750,
-      "it50": 6361333,
-      "vis": 217372
+      "it10": 450347,
+      "it50": 968370,
+      "vis": 132140
      },
      {
-      "domain": "napili-li.ru",
-      "common": 17,
-      "it10": 938,
-      "it50": 3688,
-      "vis": 66
+      "domain": "profi.ru",
+      "common": 24,
+      "it10": 1026295,
+      "it50": 2107915,
+      "vis": 143185
      },
      {
-      "domain": "lemanapro.ru",
-      "common": 151,
-      "it10": 1610058,
-      "it50": 3124797,
-      "vis": 540794
+      "domain": "inrium.ru",
+      "common": 18,
+      "it10": 947,
+      "it50": 5042,
+      "vis": 52
+     },
+     {
+      "domain": "arline.ru",
+      "common": 12,
+      "it10": 593,
+      "it50": 5111,
+      "vis": 48
+     },
+     {
+      "domain": "dvertsov.ru",
+      "common": 18,
+      "it10": 7238,
+      "it50": 23869,
+      "vis": 603
+     },
+     {
+      "domain": "premium-glass.ru",
+      "common": 14,
+      "it10": 660,
+      "it50": 2688,
+      "vis": 42
+     },
+     {
+      "domain": "doors777.ru",
+      "common": 22,
+      "it10": 947,
+      "it50": 3987,
+      "vis": 88
+     },
+     {
+      "domain": "shpondveri.ru",
+      "common": 18,
+      "it10": 703,
+      "it50": 2526,
+      "vis": 158
+     },
+     {
+      "domain": "fantasia-stekla.ru",
+      "common": 18,
+      "it10": 984,
+      "it50": 3686,
+      "vis": 69
+     },
+     {
+      "domain": "rosestar.ru",
+      "common": 63,
+      "it10": 2837,
+      "it50": 11078,
+      "vis": 201
      }
     ]
    },

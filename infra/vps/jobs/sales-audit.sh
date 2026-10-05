@@ -4,7 +4,8 @@ mode=${GG_JOB#sales-audit-}
 case "$mode" in weekly|monthly) ;; *) gg_die "неизвестный аудит $GG_JOB" ;; esac
 [ "${GG_AUDIT_CHAT_ID:-}" = -1003652568523 ] || gg_die "аудит разрешён только в закрытый чат -1003652568523"
 preview=${GG_AUDIT_PREVIEW:-0}
-if [ "$preview" != 1 ] && [ "${GG_AUDIT_ENABLED:-0}" != 1 ]; then
+test_delivery=${GG_AUDIT_TEST:-0}
+if [ "$preview" != 1 ] && [ "$test_delivery" != 1 ] && [ "${GG_AUDIT_ENABLED:-0}" != 1 ]; then
   gg_log "Аудит не включён: GG_AUDIT_ENABLED не равен 1"; exit 0
 fi
 : "${ROPCACHE_BOT_TOKEN:?нет токена бота РОП}"
@@ -45,8 +46,11 @@ PY
 )
   node "$builder" --mode monthly --month "$period" --store "$store/srez" --out-facts "$work/facts.md"
 fi
-report="$store/reports/$mode-$period.md"
+kind=$mode
+[ "$test_delivery" != 1 ] || kind="test-$mode"
+report="$store/reports/$kind-$period.md"
 {
+  if [ "$test_delivery" = 1 ]; then printf '🧪 ТЕСТ ДОСТАВКИ · не плановый отчёт\n\n'; fi
   printf '🔒 Для Ивана и РОПа · факты без нового ИИ-разбора\n\n'
   if [ "$mode" = monthly ]; then
     printf 'Это свод доступных недельных срезов; не ежедневный отчёт за весь месяц и не снимок последнего дня.\n\n'
@@ -60,7 +64,7 @@ rc=0; gg_data_commit "sales-audit $mode $period: facts saved before delivery" sa
 if [ "$preview" = 1 ]; then
   cat "$report"; gg_log "Предпросмотр: сообщения не отправлены, Anthropic не вызван"; exit 0
 fi
-marker="$store/delivery/$mode-$period.txt"
+marker="$store/delivery/$kind-$period.txt"
 if [ -f "$marker" ]; then
   gg_log "Доставка $mode $period уже имеет статус $(cat "$marker"); автоматического повтора нет"; exit 0
 fi

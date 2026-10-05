@@ -24,6 +24,7 @@ else
 fi
 
 # Личные дашборды менеджеров (ветка manager-lakomova): тот же снимок РОПа, /rop-<фамилия>/.
+# Новички с одной сделкой тоже получают экран. ONLY ограничивает публикацию списком РОП.
 # Кого собираем: ровно список продавцов дашборда РОП (PLAN_MGRS в шаблоне rop-dashboard-v1),
 # ЯДИ 30.09: «сколько в РОП, столько и делаем», минус исключения из conf/managers.conf (РОП). В GitHub собирались все со сделками (21 на 30.09,
 # с уволенными); их страницы остаются на github.io и доступны через прокси до конца переезда.
@@ -44,11 +45,11 @@ elif ! only=$(tr ',' '\n' <<<"$only" | grep -vxF -f <(gg_conf_lines "$GG_OPS/con
       | paste -sd,) || [ -z "$only" ]; then
   gg_warn "после исключений (conf/managers.conf) список продавцов пуст - дашборды менеджеров пропущены"
 elif cp rop/data/rop.json "$mgr/rop/data/rop.json" \
-  && (cd "$mgr" && OUT_DIR="$out.new" MIN_DEALS=5 ONLY="$only" node src/scripts/b24/build-managers-all.mjs) | tee "$out.new/.build.log"; then
+  && (cd "$mgr" && OUT_DIR="$out.new" MIN_DEALS=1 ONLY="$only" node src/scripts/b24/build-managers-all.mjs) | tee "$out.new/.build.log"; then
   gg_log "Продавцы из дашборда РОП: $only"
   built=$(find "$out.new" -mindepth 1 -maxdepth 1 -type d | wc -l); want=$(tr ',' '\n' <<<"$only" | wc -l)
   gg_log "Дашборды менеджеров пересобраны: $built из $want"
-  [ "$built" -eq "$want" ] || gg_warn "собрано $built из $want: у кого-то из списка РОПа меньше 5 сделок или сбой сборки"
+  [ "$built" -eq "$want" ] || gg_warn "собрано $built из $want: у кого-то из списка РОПа нет сделок или сбой сборки"
 else
   gg_warn "дашборды менеджеров собраны не все (снимок РОПа при этом сохранён)"
 fi

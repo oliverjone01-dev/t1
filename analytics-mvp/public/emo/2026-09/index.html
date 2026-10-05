@@ -540,13 +540,13 @@ function renderAvailableRomi(){
  const row=[...$('summary').querySelectorAll('tr')].find(tr=>/^ROMI/.test(tr.cells[0]?.textContent.trim()||''));if(!row)return;
  const paid=['ABDM','Яндекс.Директ'];
  const dealChannels=new Map(utmData.rows.filter(r=>r.type==='deal').map(r=>[String(r.id),assigned(r)]));
- const calc=m=>{const rows=econData.rows.filter(r=>r.sold.startsWith(m)&&paid.includes(dealChannels.get(String(r.id)))),ready=rows.filter(r=>r.marginReady&&r.budget>0),margin=ready.reduce((s,r)=>s+r.budget-r.cost,0),spend=paid.reduce((s,c)=>s+channelSpends[m][c],0);return {rows,ready,margin,spend,value:ready.length?(margin-spend)/spend*100:null};};
+ const calc=m=>{const rows=econData.rows.filter(r=>r.sold.startsWith(m)&&paid.includes(dealChannels.get(String(r.id)))),revenue=rows.reduce((s,r)=>s+r.prepay,0),spend=paid.reduce((s,c)=>s+channelSpends[m][c],0);return {rows,revenue,spend,value:spend?(revenue-spend)/spend*100:null};};
  const a=calc('2026-08'),s=calc('2026-09');
- row.cells[0].innerHTML='ROMI · предварительно<div class="source-note" style="font-size:11px;margin-top:5px;white-space:normal;max-width:400px">Платные каналы ABDM и Директ. Маржа доступна по '+s.ready.length+' из '+s.rows.length+' продаж. Пересчитать после стабильной работы калькулятора и заполнения себестоимости.</div>';
+ row.cells[0].innerHTML='ROMI · без себестоимости<div class="source-note" style="font-size:11px;margin-top:5px;white-space:normal;max-width:400px">ABDM и Директ: (предоплаты − расходы на рекламу) / расходы × 100%. Результат завышен из-за отсутствия себестоимости и не отражает фактическую прибыльность.</div>';
  const format=v=>v===null?'—':num(v)+'%';row.cells[1].textContent=format(a.value);row.cells[2].textContent='—';row.cells[3].textContent=format(s.value);row.cells[4].textContent='—';row.cells[5].innerHTML=a.value===null||s.value===null?'—':movement(a.value,s.value,true);
- row.cells[3].title='('+money(s.margin)+' доступной маржи − '+money(s.spend)+' расходов на платные каналы) / '+money(s.spend)+' × 100%. Неполная себестоимость и UTM-атрибуция; итог не подтверждает ROMI всех продаж.';
+ row.cells[3].title='('+money(s.revenue)+' суммы поля «Предоплата» − '+money(s.spend)+' расходов на платные каналы) / '+money(s.spend)+' × 100%. Себестоимость не учтена: оценка завышена. Продажи только ABDM и Директа по доступной UTM-атрибуции.';
 }
-const romiUtmRender=utmRender;utmRender=function(){romiUtmRender();renderAvailableRomi();};renderAvailableRomi();
+const romiUtmRender=utmRender;utmRender=function(){romiUtmRender();renderAvailableRomi();};renderAvailableRomi();;
 
 
 const summaryGroupsStyle=document.createElement('style');summaryGroupsStyle.textContent='#summary tr.summary-leads td:not(:nth-child(3)){background:#f3f5fa}#summary tr.summary-quality td:not(:nth-child(3)){background:#f1f7f4}#summary tr.summary-sales td:not(:nth-child(3)){background:#f8f5ee}#summary tr.summary-money td:not(:nth-child(3)){background:#f5f3f7}#summary tr.summary-group-start td{border-top:9px solid var(--surface)}#summary tr.summary-leads td:first-child{border-left:3px solid #c8d1e0}#summary tr.summary-quality td:first-child{border-left:3px solid #b7cec1}#summary tr.summary-sales td:first-child{border-left:3px solid #d8cbb0}#summary tr.summary-money td:first-child{border-left:3px solid #cec2d7}';document.head.append(summaryGroupsStyle);

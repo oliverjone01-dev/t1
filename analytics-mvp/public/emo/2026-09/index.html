@@ -550,8 +550,8 @@ const romiUtmRender=utmRender;utmRender=function(){romiUtmRender();renderAvailab
 
 
 const summaryGroupsStyle=document.createElement('style');summaryGroupsStyle.textContent='#summary tr.summary-leads td:not(:nth-child(3)){background:#f3f5fa}#summary tr.summary-quality td:not(:nth-child(3)){background:#f1f7f4}#summary tr.summary-sales td:not(:nth-child(3)){background:#f8f5ee}#summary tr.summary-money td:not(:nth-child(3)){background:#f5f3f7}#summary tr.summary-group-start td{border-top:9px solid var(--surface)}#summary tr.summary-leads td:first-child{border-left:3px solid #c8d1e0}#summary tr.summary-quality td:first-child{border-left:3px solid #b7cec1}#summary tr.summary-sales td:first-child{border-left:3px solid #d8cbb0}#summary tr.summary-money td:first-child{border-left:3px solid #cec2d7}';document.head.append(summaryGroupsStyle);
-const summaryRows=[...$('summary').querySelector(':scope>.table-wrap>table').tBodies[0].rows];
-summaryRows.forEach(tr=>{const label=tr.cells[0].textContent.trim();let group='';
+const visualSummaryRows=[...$('summary').querySelector(':scope>.table-wrap>table').tBodies[0].rows];
+visualSummaryRows.forEach(tr=>{const label=tr.cells[0].textContent.trim();let group='';
  if(/^(Лиды|Квалифицированные лиды|Неквалифицированные лиды)/.test(label))group='leads';
  else if(/^(Стоимость лида|▸ Стоимость|Конверсия лид)/.test(label))group='quality';
  else if(/^(Поступления в воронку|Продажи|Конверсия в предоплату)/.test(label))group='sales';
@@ -561,6 +561,10 @@ summaryRows.forEach(tr=>{const label=tr.cells[0].textContent.trim();let group=''
  if(label.startsWith('Выручка · поле'))tr.cells[0].textContent='Выручка по предоплате · поле CRM';
  if(label.startsWith('Бюджет сделок')){tr.cells[0].textContent='Выручка по сделке · сумма бюджетов CRM';tr.cells[0].title='Полная стоимость сделок с первым входом в предоплату в отчётном месяце. Не сумма поступивших денег.';}
 });
+
+
+function showRefusalTransition(){const table=$('flow-detail').querySelector('table');if(!table)return;const heads=[...table.querySelectorAll('thead th')],i=heads.findIndex(th=>['Этап перед отказом','Переход в отказ'].includes(th.textContent.trim()));if(i<0)return;if(heads[i].textContent!=='Переход в отказ'){heads[i].textContent='Переход в отказ';heads[i].setAttribute('aria-label','Переход в отказ: сортировка');}table.querySelectorAll('tbody tr').forEach(tr=>{const cell=tr.cells[i];if(cell&&!cell.textContent.endsWith(' → Отказ'))cell.textContent=cell.textContent+' → Отказ';});}
+const refusalTransitionObserver=new MutationObserver(showRefusalTransition);refusalTransitionObserver.observe($('flow-detail'),{childList:true,subtree:true});showRefusalTransition();
 
 
 })();</script></body></html>

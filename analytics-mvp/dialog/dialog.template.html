@@ -1,0 +1,1658 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GENGLASS · Диалоги по сделкам</title>
+<style>
+:root{--bg:#0E141A;--card:#141C24;--card2:#0F171E;--border:#243039;--border-soft:#1B242C;--ink:#E7EEF4;--ink-2:#B7C4CE;--ink-3:#8A99A6;--ink-4:#5D6B77;--acc:#22D3EE}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1320px;margin:0 auto;padding:18px 22px 60px}
+.h1{font-size:20px;font-weight:800;letter-spacing:.2px}
+.sub{color:var(--ink-3);font-size:12px;margin-top:3px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.bar label{color:var(--ink-3);font-size:11px;margin-right:4px}
+select,input{background:var(--card2);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12.5px;outline:none}
+input#q{min-width:220px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--border);color:var(--ink-2);font-size:11.5px;cursor:pointer;user-select:none}
+.chip.on{background:#12303a;border-color:#1f6b7d;color:#bfeff8}
+.cnt{color:var(--ink-4);font-size:11px}
+.deal{border:1px solid var(--border);border-radius:11px;margin-bottom:8px;overflow:hidden;background:var(--card)}
+.dhead{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer}
+.dhead:hover{background:rgba(34,211,238,.04)}
+.arw{color:var(--ink-4);width:12px;flex:0 0 12px;font-size:11px}
+.did{font-weight:800;flex:0 0 auto}
+.link2{color:var(--ink-4);font-weight:600;font-size:11px}
+.dttl{color:var(--ink);flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dmgr{color:var(--ink-2);flex:0 0 auto;white-space:nowrap;font-size:12px}
+.dchips{display:flex;gap:4px;flex:0 0 auto}
+.dchips i{display:inline-flex;align-items:center;gap:3px;font-size:10px;color:var(--ink-3)}
+.dchips b{width:8px;height:8px;border-radius:2px;display:inline-block}
+.dmeta{color:var(--ink-4);font-size:11px;flex:0 0 auto;white-space:nowrap}
+.thread{border-top:1px solid var(--border-soft);padding:4px 0;background:var(--card2)}
+.ev{display:grid;grid-template-columns:110px 60px 128px 22px 140px 1fr 190px;gap:9px;padding:7px 14px;border-bottom:1px solid var(--border-soft);align-items:start}
+.ev:last-child{border-bottom:none}
+.ev .t{color:var(--ink-3);font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.stg{font-size:9.5px;padding:1px 5px;border-radius:4px;white-space:nowrap}
+.stg-lead{background:#3a2a12;color:#d6a45f}.stg-deal{background:#12303a;color:#7fd7e6}
+.badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;white-space:nowrap}
+.dir-in{color:#69C7DA}.dir-out{color:#7FD1A6}.dir-n{color:var(--ink-4)}
+.who-cli{color:#E8A33D;font-weight:600}
+.who-mgr{color:#22d3ee}
+.whosub{display:block;color:var(--ink-4);font-size:10px;font-weight:400}
+.who{color:var(--ink-2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.body{white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+.body .st{color:var(--ink-4);font-size:10.5px;margin-left:6px}
+.body a.rec{margin-left:8px;font-size:11px}
+.ev-bad{background:#C2525209;border-left:2px solid #C2525288}
+.ev-good{background:#2E9E7407;border-left:2px solid #2E9E7455}
+.evtags{display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start}
+.evtag{font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap;line-height:1.5}
+.hlq{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px}
+.parts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px 14px;color:var(--ink-3);font-size:11px;border-bottom:1px solid var(--line)}
+.part{padding:1px 7px;border:1px solid var(--line);border-radius:5px;color:var(--ink-2)}
+.part b{color:var(--ink);font-weight:600}
+.body .ref{display:block;margin-top:2px;color:#C2569B;font-size:10.5px}
+.empty{padding:40px;text-align:center;color:var(--ink-4)}
+.foot{color:var(--ink-4);font-size:11px;margin-top:10px}
+
+/* рейтинг менеджеров и скоринг сделок */
+
+.tbl{width:100%;border-collapse:collapse;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tbl th{background:#0000000d;color:var(--ink-3);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;padding:8px 8px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th.l,.tbl td.l{text-align:left}
+.tbl td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--line)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#ffffff06}
+.tbl .who2{font-weight:600;font-size:12.5px}
+.cellv{display:inline-flex;flex-direction:column;gap:3px;align-items:center;cursor:pointer;min-width:52px;padding:2px 4px;border-radius:5px}
+.cellv:hover{background:#ffffff10;outline:1px solid var(--line)}
+.cellv b{font-weight:600;font-size:12px}
+.pbar{display:block;width:46px;height:3px;border-radius:2px;background:#ffffff18;overflow:hidden}
+.pbar i{display:block;height:100%}
+.rt{font-weight:700;font-size:15px}
+.rtst{color:#E8A33D;font-size:10px;letter-spacing:.5px;display:block}
+.na2{color:var(--ink-4);font-size:11px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:8px;margin-bottom:10px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer}
+.tile:hover{border-color:var(--acc)}
+.tile.on{border-color:var(--acc);background:#22d3ee0f}
+.tile .tl{color:var(--ink-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em}
+.tile .tn{font-size:20px;font-weight:700;line-height:1.2}
+.tile .tm{color:var(--ink-4);font-size:10.5px}
+.qrow{cursor:pointer}
+.qrow:hover td{background:#ffffff08}
+.qrow td{vertical-align:middle}
+.pri{font-weight:700;font-size:12px;white-space:nowrap}
+.kind{font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap}
+.k-deal{color:#22d3ee;border-color:#22d3ee55;background:#22d3ee12}
+.k-lead{color:#C2873C;border-color:#C2873C55;background:#C2873C12}
+.urg{font-size:10.5px;padding:1px 6px;border-radius:4px;white-space:nowrap;display:inline-block;max-width:190px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
+.qexp>td{padding:0 10px 10px 10px;background:#ffffff05}
+.qnext{color:var(--ink-2);font-size:11.5px;margin:6px 0 8px 0;line-height:1.5}
+.qnext b{color:var(--ink-3)}
+.qm{display:inline-block;margin-left:3px;font-size:9px;color:var(--ink-4);border:1px solid var(--line);border-radius:50%;width:11px;height:11px;line-height:11px;text-align:center;cursor:help;vertical-align:top}
+.legend{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;font-size:11.5px}
+.lgh{padding:8px 12px;cursor:pointer;color:var(--ink-2)}
+.lgh i{font-style:normal;color:var(--ink-4);margin-right:5px}
+.lgb{padding:0 12px 10px 12px}
+.lgi{color:var(--ink-2);margin-bottom:5px;line-height:1.5}
+.lgcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-bottom:8px}
+.lgc{background:#ffffff05;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:11px;color:var(--ink-3)}
+.lgc b{color:var(--ink);display:inline}
+.lgnote{color:var(--ink-3);font-size:11px}
+.lgcols{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.lgcol{background:#ffffff05;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:10.5px;color:var(--ink-2);cursor:help;white-space:nowrap}
+.lgcol b{color:var(--ink)}.lgcol i{color:var(--ink-4);font-style:normal;font-size:10px}
+.lqm{display:inline-block;font-size:9px;color:var(--ink-4);border:1px solid var(--line);border-radius:50%;width:12px;height:12px;line-height:12px;text-align:center;cursor:help;vertical-align:1px;margin:0 3px}
+.lgi b{color:var(--ink)}
+.sortable{cursor:pointer;user-select:none}
+.sortable:hover{color:var(--acc)}
+.sarr{font-size:9px;color:var(--acc)}
+.fbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:8px;font-size:11.5px;color:var(--ink-3)}
+.fbar select{background:#0f1720;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px}
+.vbadge{font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:5px;border:1px solid}
+.sw{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 10px 34px}
+.swcol{}
+.swh{font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.swh-g{color:#2E9E74}.swh-b{color:#C25252}
+.swi{color:var(--ink-2);font-size:11.5px;line-height:1.6}
+.swd{color:var(--ink-4);font-size:10px;margin-left:6px}
+.swnone{color:var(--ink-4);font-style:italic}
+/* Плавающая подсказка - дизайн РОП-дашборда (rop-command.template.html, #tip) */
+#tip{position:fixed;z-index:200;pointer-events:none;background:rgba(7,9,13,.96);border:1px solid #2A3742;border-radius:9px;padding:10px 12px;font-size:11.5px;color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;transition:opacity .12s;max-width:420px}
+#tip .tl{color:var(--ink-3);font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+#tip .tip-tot{display:flex;justify-content:space-between;gap:20px;align-items:baseline;margin:3px 0 8px;padding-bottom:7px;border-bottom:1px solid #2A3742}
+#tip .tip-tot span:first-child{font-size:12.5px;font-weight:700}
+#tip .tip-tot span:last-child{font-size:11.5px;font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums;white-space:nowrap}
+#tip .qh{font-weight:800;font-size:10.5px;margin:8px 0 2px;color:#E8A33D}
+#tip .qh:first-child{margin-top:0}
+#tip .qh i{font-style:normal;color:var(--ink-3);font-weight:600;margin-left:6px}
+#tip .qb{white-space:normal;line-height:1.45;color:var(--ink-2)}
+#tip .qn{color:var(--ink-4);font-size:10.5px;margin-top:8px;padding-top:6px;border-top:1px solid #2A3742}
+.malert{display:inline-block;margin-left:7px;font-size:10px;font-weight:800;line-height:15px;height:15px;min-width:15px;padding:0 5px;border-radius:8px;text-align:center;cursor:help;vertical-align:1px;border:1px solid}
+.aigr{display:inline-block;font-size:11px;font-weight:800;line-height:17px;min-width:30px;padding:0 6px;border-radius:6px;text-align:center;cursor:help;border:1px solid}
+.aidot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.aidv{cursor:help;border-bottom:1px dotted var(--ink-4)}
+.aibanner{background:#8B7BF014;border:1px solid #8B7BF04d;border-radius:9px;padding:8px 12px;margin-bottom:8px;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.aimgr{background:#8B7BF00d;border:1px solid;border-radius:10px;padding:11px 13px;margin-bottom:10px}
+.aimgr-h{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.aimgr-h b{font-size:12.5px}
+.aimgr-sub{color:var(--ink-3);font-size:11px}
+.aimgr-v{font-size:13px;color:var(--ink);line-height:1.5;margin-bottom:8px}
+.aimgr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.aimgr-t{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.aimgr-i{font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.aihead-sub{color:var(--ink-4);font-size:10.5px;margin-left:8px;text-transform:none;letter-spacing:0}
+.aibox{background:#8B7BF00d;border:1px solid;border-radius:9px;padding:9px 11px;margin-bottom:9px}
+.aihead{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.airow{font-size:12px;color:var(--ink-2);line-height:1.5;margin:3px 0}
+.t3 .evtag[data-ai]{border-style:dashed}
+.fixids{display:flex;flex-wrap:wrap;gap:5px}
+.fixid{font-size:10.5px;padding:2px 7px;border:1px solid var(--line);border-radius:5px;cursor:pointer;color:var(--ink-2)}
+.fixid:hover{border-color:var(--acc);color:var(--acc)}
+.t1{margin-bottom:10px}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.t1{min-width:1260px}
+.t1 th,.t2 th,.t3 th{font-size:9px;padding:5px 5px;white-space:nowrap}
+/* Только СВОИ строки: таблицы сделок и переписки лежат внутри ячеек таблицы менеджеров,
+   и потомковый селектор .t1 td навязывал им nowrap - из-за этого текст сообщения шёл
+   одной строкой и наезжал на разметку. */
+.t1>tbody>tr>td{white-space:nowrap;padding:7px 5px;font-size:11.5px}
+.t1>tbody>tr>td.l{white-space:nowrap;min-width:230px;padding-left:12px;padding-right:18px}
+.t1>tbody>tr>th.l{padding-left:12px}
+.t1>tbody>tr>td:nth-child(2),.t1>tbody>tr>th:nth-child(2){min-width:118px;padding-right:16px}
+.t1>tbody>tr>td .vbadge{white-space:nowrap;font-size:9px;padding:2px 8px}
+.mrow2{cursor:pointer}
+.mrow2:hover td{background:#ffffff08}
+.mrow2.on td{background:#22d3ee0d}
+/* Приглушённые границы между уровнями: менеджеры, сделки, коммуникации/диалоги */
+.t1>tbody>tr.mrow2>td{border-bottom:1px solid var(--line)}
+.t2>tbody>tr.drow>td{border-bottom:1px solid #ffffff0a}
+.t3>tbody>tr.erow2>td{border-bottom:1px solid #ffffff08}
+.t1>tbody>tr.subrow>td{padding:0 10px 16px 64px;white-space:normal;background:#ffffff05;border-left:6px solid #22d3ee55;position:relative}
+.subrow>td::before{content:'СДЕЛКИ ▸';position:absolute;left:22px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#22d3eeaa}
+.subrow .t2{border-left:2px solid #22d3ee33;padding-left:12px}
+.whob{color:var(--ink-3);font-size:11px;margin:2px 0 0 0}
+.afterdlg{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.t2{margin-top:6px;font-size:11px}
+.t2>tbody>tr>td{padding:6px 6px;white-space:nowrap}
+/* Отступы у краёв вложенных таблиц - видно границу */
+.t2>tbody>tr>td:first-child,.t2 th:first-child,.t3>tbody>tr>td:first-child,.t3 th:first-child{padding-left:12px}
+.t2>tbody>tr>td:last-child,.t2 th:last-child,.t3>tbody>tr>td:last-child,.t3 th:last-child{padding-right:14px}
+.t2>tbody>tr>td.l{white-space:normal}
+.dtt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;display:block}
+.dsig{font-size:9.5px;color:var(--ink-4);margin-top:2px;line-height:1.4}
+.dsig .sdiv{color:var(--ink-4);opacity:.45;margin:0 4px}
+.leadnote{font-size:11px;padding:6px 12px;margin:0 0 6px;border-radius:7px;line-height:1.4}
+.leadnote.lead-from{background:#C2873C14;border:1px solid #C2873C44;color:#d6a866}
+.leadnote.lead-from a{color:#e4b877;font-weight:600}
+.leadnote.lead-none{background:#8794A514;border:1px solid var(--border);color:var(--ink-3)}
+.lstage{display:inline-block;margin-left:6px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#C2873C;border:1px solid #C2873C66;border-radius:4px;padding:0 4px;line-height:13px;vertical-align:middle;text-transform:uppercase}
+/* Мини-воронка и коммуникации в таблице менеджеров */
+.funnel{display:flex;gap:1px;height:9px;border-radius:3px;overflow:hidden;min-width:140px;max-width:240px}
+.funnel .fseg{min-width:4px;cursor:help;transition:filter .1s}
+.funnel .fseg:hover{filter:brightness(1.35)}
+.fnrow{display:flex;gap:1px;min-width:140px;max-width:240px;margin-top:3px}
+.fn{font-size:9.5px;color:var(--ink-3);text-align:center;min-width:4px;font-variant-numeric:tabular-nums;border-left:1px solid var(--border);line-height:1.2}
+.fn:first-child{border-left:none}
+.tdot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:6px}
+.funnel .fseg.fon{outline:2px solid var(--acc);outline-offset:-2px;filter:brightness(1.15)}
+.fnchip{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;background:#22d3ee14;border:1px solid #22d3ee44;border-radius:8px;padding:4px 10px;margin:2px 0 8px 64px;font-size:11.5px;color:#bfeff8}
+.fnchip .fpk{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:12px;background:#ffffff12;border:1px solid #ffffff22}
+.fnchip .fpk b{color:#fff}
+.fnchip b{color:#e7f8fc;margin:0 3px}
+.fnchip .x{margin-left:8px;cursor:pointer;color:#8fd3e2;border:1px solid #2a7a8e;border-radius:6px;padding:2px 8px;font-size:10.5px}
+.fnchip .x:hover{background:#164050;color:#e7f8fc}
+.hotcell{cursor:pointer}
+.hotcell:hover{outline:1px solid #C2525288;outline-offset:-1px}
+.hoton{outline:2px solid var(--acc);outline-offset:-2px}
+.comm{display:flex;flex-wrap:wrap;gap:8px;white-space:normal}
+.cwrap{display:inline-grid;grid-template-columns:repeat(3,56px);gap:4px}
+.cwrap .cchip{padding:1px 4px;text-align:left;justify-self:stretch}
+.cgrid{display:inline-grid;grid-template-columns:repeat(3,auto);column-gap:14px;row-gap:3px}
+.cgrid .cgc,.cgrid .cch0{display:inline-flex;align-items:baseline;gap:4px;padding:0;border:0;background:none;border-radius:0}
+.cgrid b{font-variant-numeric:tabular-nums;font-weight:700;text-align:right;min-width:34px}
+.cgrid i{font-style:normal;color:var(--ink-4);font-size:9px;font-weight:400}
+.cgrid .cch0{opacity:.4}
+.cgrid .cch0 b{color:var(--ink-4)}
+.cgrid .cgc{cursor:pointer}
+.cgrid .cgc:hover{filter:brightness(1.3)}
+.cgrid .cgc.con b{text-decoration:underline}
+.cchip{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;padding:1px 5px;border-radius:6px;border:1px solid transparent;transition:.1s}
+.cchip:hover{background:#ffffff0d;border-color:var(--border)}
+.cchip.con{background:#ffffff14;border-color:currentColor}
+.cchip i{font-style:normal;color:var(--ink-4);font-size:9px;font-weight:400;margin-left:2px}
+.rolech{display:inline-block;margin-left:7px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#3DAEC2;border:1px solid #3DAEC266;background:#3DAEC214;border-radius:4px;padding:1px 5px;vertical-align:middle;text-transform:uppercase;cursor:help}
+.deptrow>td{background:#22d3ee0d;border-top:2px solid #22d3ee44;border-bottom:1px solid #22d3ee33}
+.deptrow:hover>td{background:#22d3ee16}
+.deptrow>td:first-child b{color:#bfeff8}
+.dmgrtag{display:inline-block;margin-right:7px;font-size:9.5px;color:#8fd3e2;background:#22d3ee12;border:1px solid #22d3ee33;border-radius:4px;padding:0 5px;vertical-align:middle}
+.t3 tr.lead-stage td.etime{color:#C2873C}
+.drow{cursor:pointer}
+.drow:hover td{background:#ffffff08}
+.drow.on td{background:#22d3ee12}
+.t2>tbody>tr.subrow2>td{padding:0 8px 18px 80px;white-space:normal;background:#00000055;border-left:6px solid #C2873C99;position:relative}
+.subrow2>td::before{content:'КОММУНИКАЦИЯ ▸';position:absolute;left:34px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#C2873Ccc}
+.subrow2>td>div{border-left:2px solid #C2873C55;padding-left:14px}
+.t3{margin-top:6px;font-size:11px;table-layout:fixed}
+.t3 td{padding:5px 6px;vertical-align:top}
+/* Колонки переписки фиксированы: текст сообщения не наезжает на разметку, длинные
+   ссылки и склеенные слова переносятся внутри своей колонки. */
+.t3 th:nth-child(1),.t3 td:nth-child(1){width:78px}
+.t3 th:nth-child(2),.t3 td:nth-child(2){width:124px}
+.t3 th:nth-child(3),.t3 td:nth-child(3){width:136px}
+.t3 th:nth-child(5),.t3 td:nth-child(5){width:224px;border-left:1px solid var(--line);padding-left:10px}
+.t3 td.ebody{padding-right:16px;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.t3 td{white-space:normal}
+.t3 td:nth-child(1){white-space:nowrap}
+.t3 td:nth-child(5) .evtag{margin:0 3px 3px 0}
+.erow2.e-bad td:first-child{box-shadow:inset 2px 0 0 #C25252}
+.erow2.e-good td:first-child{box-shadow:inset 2px 0 0 #2E9E74}
+.ebody{white-space:pre-wrap;word-break:break-word;max-width:520px}
+.mnode{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.mnode.on{border-color:var(--acc)}
+.mhead{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;flex-wrap:wrap}
+.mhead:hover{background:#ffffff08}
+.mname{font-weight:600;font-size:13px;min-width:150px}
+.mmeta{color:var(--ink-3);font-size:11.5px}
+.mwhy{color:var(--ink-4);font-size:11px;margin-left:auto}
+.mbody{border-top:1px solid var(--line);padding:4px 8px 8px 20px}
+.dnode{border-bottom:1px solid #ffffff08}
+.dnode:last-child{border-bottom:none}
+.dnode.on{background:#22d3ee08;border-radius:8px}
+.dhead2{display:grid;grid-template-columns:16px 78px 52px 54px 1fr 150px 44px auto;gap:8px;align-items:center;padding:7px 6px;cursor:pointer;font-size:11.5px}
+.dhead2:hover{background:#ffffff08}
+.dsum{font-weight:700}
+.did2{color:var(--ink-4);font-size:10.5px}
+.dttl2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dstage{color:var(--ink-3);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dprob{font-weight:600;text-align:right}
+.dbody{padding:2px 4px 10px 16px;border-left:2px solid var(--line);margin:0 0 8px 8px}
+.whyb{color:var(--ink-3);font-size:11px;margin:4px 0 8px 0;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.wchip{border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+.node{margin:8px 0 12px 0}
+.nhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:5px 0 5px 2px;border-bottom:1px solid var(--line)}
+.nhead b{font-size:11.5px;letter-spacing:.02em}
+.nhead a{color:inherit}
+.ndot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.n-lead{background:#C2873C}.n-deal{background:#22d3ee}
+.nsub{color:var(--ink-4);font-size:10.5px}
+.nbody{border-left:1px solid var(--line);margin-left:3px}
+.erow{display:grid;grid-template-columns:74px 132px 1fr 190px;gap:8px;padding:5px 8px;border-bottom:1px solid #ffffff08;align-items:start;font-size:11.5px}
+.erow:last-child{border-bottom:none}
+.lv-in{}
+.lv-out{background:#ffffff04}
+.lv-task{opacity:.8}
+.e-bad{box-shadow:inset 2px 0 0 #C25252}
+.e-good{box-shadow:inset 2px 0 0 #2E9E74}
+.etime{color:var(--ink-3);font-size:10.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ewho{font-size:11px;overflow:hidden;text-overflow:ellipsis}
+.ebody{white-space:pre-wrap;word-break:break-word;line-height:1.5}
+.sysw{color:var(--ink-4);font-size:10.5px}
+.mixchip{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap;margin:0 2px 2px 0}
+.mixchip[data-mixcat]{cursor:pointer}
+.mixchip[data-mixcat]:hover{filter:brightness(1.35);text-decoration:underline}
+.urg{cursor:pointer}
+.t3 tr.erow2.evhi td{background:rgba(34,211,238,.16);box-shadow:inset 3px 0 0 var(--acc)}
+.t2>tbody>tr>td.l .mixchip{font-size:9.5px}
+.t2 td.urgcell{max-width:200px}
+.t2 td.mixcell{max-width:200px;white-space:normal}
+.fbar input[type=date]{background:#0f1720;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px}
+.chip2.on2{border-color:var(--acc);color:var(--acc);background:#22d3ee12}
+.pset{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:1px 8px;cursor:pointer;color:var(--ink-3);font-size:10.5px;margin-right:2px}
+.pset:hover{border-color:var(--acc);color:var(--acc)}
+.pset.on2{border-color:var(--acc);color:var(--acc);background:#22d3ee12}
+.chip2{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:1px 8px;cursor:pointer;color:var(--ink-3);font-size:10.5px}
+.chip2:hover{border-color:var(--acc);color:var(--acc)}
+.t3 tr.sysrow td{color:var(--ink-3);background:#ffffff04}
+.t3 tr.inrng td{background:rgba(34,211,238,.10)}
+.t3 tr.inrng.sysrow td{background:rgba(34,211,238,.06)}
+.t3 tr.inrng td:first-child{box-shadow:inset 2px 0 0 var(--acc)}
+.t3 .ref{display:block;margin-top:3px;color:#C2569B;font-size:10.5px;line-height:1.45}
+.due{display:inline-block;margin-left:6px;font-size:10px;color:var(--ink-3);border:1px solid var(--line);border-radius:4px;padding:0 5px;white-space:nowrap}
+.arw3{color:var(--ink-4);margin-right:6px;font-size:10px}
+.arw4{color:var(--acc);margin-right:7px;font-size:11px;display:inline-block;width:9px}
+.xcell{width:16px;text-align:center}
+.qbar{display:flex;justify-content:space-between;align-items:center;padding:7px 2px 4px 2px;color:var(--ink-3);font-size:11px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.qclose{cursor:pointer;border:1px solid var(--line);border-radius:5px;padding:2px 9px;color:var(--ink-3);font-size:11px;margin-left:10px;white-space:nowrap}
+.qclose:hover{border-color:var(--acc);color:var(--acc)}
+.qrow.open td{background:#22d3ee0c}
+.mrow{cursor:pointer}
+.mrow.open td{background:#ffffff0a}
+.arw2{color:var(--ink-4);margin-right:6px;font-size:10px}
+.mexp>td{padding:0 8px 10px 8px;background:#ffffff05}
+.expcap{color:var(--ink-3);font-size:11px;margin:6px 0}
+.tagbox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+.tagsec{margin-bottom:7px}
+.tagsec .sl{color:var(--ink-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.tgc{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid;margin:0 5px 5px 0;cursor:pointer}
+.tgc:hover{filter:brightness(1.25)}
+.tgc.on{outline:2px solid var(--acc)}
+.tgc .n{opacity:.7;font-size:10px}
+.crumb{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:12px;color:var(--ink-2);flex-wrap:wrap}
+.crumb .x{cursor:pointer;border:1px solid var(--line);border-radius:5px;padding:1px 8px;color:var(--ink-3)}
+.crumb .x:hover{border-color:var(--acc);color:var(--acc)}
+.sc{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:6px 10px 8px 28px;border-top:1px dashed var(--line)}
+.pb{font-weight:700;font-size:12.5px;padding:1px 7px;border-radius:5px}
+.tg{font-size:10.5px;padding:1px 6px;border-radius:4px;border:1px solid}
+.tg-good{color:#2E9E74;border-color:#2E9E7455;background:#2E9E7415}
+.tg-bad{color:#C25252;border-color:#C2525255;background:#C2525215}
+.tg-warn{color:#C2873C;border-color:#C2873C55;background:#C2873C15}
+.nxt{flex-basis:100%;color:var(--ink-2);font-size:11.5px;margin-top:3px}
+.nxt b{color:var(--ink-3);font-weight:600}
+.why{flex-basis:100%;color:var(--ink-4);font-size:10.5px}
+/* ===== Боковая панель настройки ИИ-анализа ===== */
+.burger{position:fixed;top:14px;right:16px;z-index:50;width:40px;height:40px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:var(--ink-2);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+.burger:hover{border-color:var(--acc);color:var(--acc)}
+.scrim{position:fixed;inset:0;background:#0007;opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.scrim.on{opacity:1;pointer-events:auto}
+/* Корзина фильтра по кликам - фиксированная строка внизу экрана */
+.ptray{position:fixed;left:12px;right:12px;bottom:12px;z-index:55;display:none;gap:10px 14px;align-items:center;flex-wrap:wrap;
+  padding:9px 12px;background:var(--card);border:1px solid var(--acc);border-radius:12px;box-shadow:0 8px 30px #0006}
+.ptray.on{display:flex}
+.ptray .ptl{font-size:11.5px;font-weight:700;color:var(--ink-2);display:flex;flex-direction:column;line-height:1.35}
+.ptray .ptn{font-size:10px;font-weight:400;color:var(--ink-4)}
+.ptray .pchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.pchip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-2);cursor:pointer;
+  padding:2px 8px;border-radius:14px;border:1px solid var(--border);background:#ffffff08;transition:.1s}
+.pchip:hover{border-color:var(--acc);background:var(--acc)14}
+.pchip b{color:var(--ink-3);font-variant-numeric:tabular-nums}
+.pchip .px{color:var(--ink-4);font-size:10px}
+.pchip:hover .px{color:var(--acc)}
+.ppicks{display:flex;flex-wrap:wrap;gap:6px}
+.picksect{border-color:var(--acc)}
+.pacts{display:flex;gap:8px}
+.pbtn{font-size:11.5px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--acc);background:var(--acc);color:#04202a}
+.pbtn.ghost{background:transparent;color:var(--ink-3);border-color:var(--border)}
+.pbtn.ghost:hover{border-color:var(--ink-4);color:var(--ink-2)}
+.dealcnt{cursor:pointer}
+.dealcnt:hover{color:var(--acc)}
+.dealcnt.allon{outline:2px solid var(--acc);outline-offset:-3px;border-radius:6px;color:var(--acc);font-weight:700}
+.apanel{position:fixed;top:0;right:0;height:100%;width:min(470px,95vw);background:var(--card2);border-left:1px solid var(--border);z-index:70;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;box-shadow:-16px 0 40px #0008}
+.apanel.on{transform:none}
+/* Единый стиль скроллов под тему дашборда (тонкий, тёмный, без светлой полосы браузера) */
+.apanel,.mgrbox,.ansbox,.dllist,.scrollx,#list{scrollbar-width:thin;scrollbar-color:var(--border-soft) transparent}
+.apanel::-webkit-scrollbar,.mgrbox::-webkit-scrollbar,.ansbox::-webkit-scrollbar,.dllist::-webkit-scrollbar,.scrollx::-webkit-scrollbar,#list::-webkit-scrollbar{width:9px;height:9px}
+.apanel::-webkit-scrollbar-track,.mgrbox::-webkit-scrollbar-track,.ansbox::-webkit-scrollbar-track,.dllist::-webkit-scrollbar-track,.scrollx::-webkit-scrollbar-track,#list::-webkit-scrollbar-track{background:transparent}
+.apanel::-webkit-scrollbar-thumb,.mgrbox::-webkit-scrollbar-thumb,.ansbox::-webkit-scrollbar-thumb,.dllist::-webkit-scrollbar-thumb,.scrollx::-webkit-scrollbar-thumb,#list::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px;border:2px solid transparent;background-clip:content-box}
+.apanel::-webkit-scrollbar-thumb:hover,.mgrbox::-webkit-scrollbar-thumb:hover,.ansbox::-webkit-scrollbar-thumb:hover,.dllist::-webkit-scrollbar-thumb:hover,.scrollx::-webkit-scrollbar-thumb:hover,#list::-webkit-scrollbar-thumb:hover{background:var(--ink-4);background-clip:content-box}
+.apanel::-webkit-scrollbar-corner,.scrollx::-webkit-scrollbar-corner{background:transparent}
+.apanel .ah{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card2);z-index:2}
+.apanel .ah b{font-size:13.5px}
+.apanel .ah .sub2{color:var(--ink-4);font-size:10.5px;margin-top:2px}
+.apanel .ax{cursor:pointer;color:var(--ink-3);font-size:20px;line-height:1;padding:0 4px}
+.apanel .ax:hover{color:var(--ink)}
+.sect{padding:11px 13px;margin:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+.sect:first-of-type{margin-top:12px}
+.sect h5{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);font-weight:700;padding-left:9px;border-left:3px solid var(--acc);line-height:1.15}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{background:var(--card2);color:var(--ink-3);border:none;padding:6px 11px;font-size:11.5px;cursor:pointer}
+.seg button.on{background:#12303a;color:#bfeff8}
+.togs{display:flex;flex-wrap:wrap;gap:4px}
+.tog{padding:3px 8px;border-radius:999px;border:1px solid var(--border);color:var(--ink-3);font-size:10.5px;line-height:1.5;cursor:pointer;user-select:none}
+.tog:hover{border-color:var(--ink-4);color:var(--ink-2)}
+.tog.on{background:#12303a;border-color:#1f6b7d;color:#bfeff8}
+.tog i{font-style:normal;opacity:.6;font-size:9px}
+.mgrbox{max-height:132px;overflow:auto;display:flex;flex-wrap:wrap;gap:4px}
+.arow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.arow input[type=date]{flex:1}
+.hint{color:var(--ink-4);font-size:10.5px;margin-top:6px;line-height:1.5}
+.abtn{display:block;width:100%;padding:11px;border-radius:9px;background:#12303a;border:1px solid #1f6b7d;color:#bfeff8;font-size:12.5px;font-weight:600;cursor:pointer;text-align:center}
+.abtn:hover{background:#164050}
+.abtn.sec{background:var(--card);border-color:var(--border);color:var(--ink-2);font-weight:500}
+.rep{display:flex;gap:8px}
+.rep .rc{flex:1;text-align:center;border:1px solid var(--border);border-radius:9px;padding:8px 4px}
+.rep .rc b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.rep .rc span{font-size:9.5px;color:var(--ink-4);display:block;margin-top:2px}
+.dllist{max-height:250px;overflow:auto;font-size:11.5px;margin-top:6px}
+.dli{display:flex;gap:7px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--border-soft)}
+.dli .di{color:var(--ink-4);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.dli .dt{flex:1;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dli .dw{color:var(--ink-4);font-size:10px;flex:0 0 auto}
+.mgrsum{font-size:11.5px;color:var(--ink-3);margin-bottom:6px;line-height:1.6}
+.ansbox{width:100%;box-sizing:border-box;min-height:96px;font-size:12px;resize:vertical;font-family:inherit}
+.ansout{margin-top:10px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:12px;font-size:12px;white-space:pre-wrap;line-height:1.55;color:var(--ink)}
+.ansout .rv{margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-soft)}
+.ansout .rv .rvh{font-weight:600;color:var(--ink);margin-bottom:3px}
+.ansout .rv .rvp{color:#C2873C}.ansout .rv .rvr{color:#7FD1A6}
+.mgcard{border:1px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:14px;background:#ffffff06}
+.mgcard .mgh{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-4);font-weight:700}
+.mgcard .mgv{font-size:13px;font-weight:600;margin:4px 0 6px;line-height:1.4}
+.mgcard .mgnote{font-size:11px;color:var(--ink-3);margin-bottom:8px;font-style:italic}
+.mgcard .mgaudit{font-size:12px;color:var(--ink-2);line-height:1.6;margin:2px 0 10px;white-space:pre-line}
+.ansout .lsumh{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-4);font-weight:700;margin:14px 0 8px}
+.ansout .lsum{font-size:12px;color:var(--ink-2);line-height:1.55;margin:12px 0 8px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:#ffffff05}
+.ansout .lsum .lsumh{margin:0 0 5px}
+.mgcard .mglab{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-4);margin:8px 0 3px;font-weight:600}
+.mgcard .mgul{margin:0;padding-left:18px}
+.mgcard .mgul li{margin-bottom:3px;line-height:1.45;color:var(--ink-2)}
+.dchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.dchip{font-size:10.5px;padding:1px 7px;border-radius:12px;border:1px solid;line-height:1.5}
+.dchip.good{color:#7FD1A6;border-color:#7FD1A655;background:#7FD1A612}
+.dchip.bad{color:#E08585;border-color:#E0858555;background:#E0858512}
+.copied{color:#7FD1A6;font-size:11px;text-align:center;margin-top:6px;height:14px}
+.steps{margin:0 0 12px 0;padding-left:20px;color:var(--ink-3);font-size:11.5px;line-height:1.6}
+.steps li{margin:2px 0}
+.aimsg{color:var(--ink-3);font-size:11.5px;line-height:1.5;margin-top:8px;min-height:14px}
+.aimsg b{color:var(--ink-1)}
+.scopebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#12303a;border:1px solid #1f6b7d;border-radius:10px;padding:9px 13px;margin-bottom:10px;color:#bfeff8;font-size:12px}
+.scopebar b{color:#e7f8fc}
+.scopebar .sdot{color:#22D3EE;font-size:9px}
+.scopebar .snote{color:#9fd0dc}
+.scopebar .x{margin-left:auto;cursor:pointer;color:#8fd3e2;border:1px solid #2a7a8e;border-radius:7px;padding:3px 9px;font-size:11px}
+.scopebar .x:hover{background:#164050;color:#e7f8fc}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<button class="burger" id="burger" title="Настройка ИИ-анализа" onclick="aiToggle(true)">☰</button>
+<div class="scrim" id="scrim" onclick="aiToggle(false)"></div>
+<div class="ptray" id="picktray"></div>
+<aside class="apanel" id="apanel"></aside>
+<div class="wrap">
+  <div class="h1">GENGLASS · Диалоги</div>
+  <div class="sub" id="sub">загрузка…</div>
+
+  <div class="cnt" id="stat" style="margin-bottom:10px"></div>
+
+  <div id="list"></div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const DATA = __DIALOG_DATA__;
+const BAKED_AT = "__BAKED_AT__";
+const PORTAL = DATA.portal || "https://glassmemory.bitrix24.ru";
+const DEAL_LIMIT = 400;
+
+const TCOL = {'Стадия':'#6E7B8A','Ответственный':'#8B7BF0','Звонок':'#3DAEC2','Резюме BitrixGPT':'#C2569B','Письмо':'#C2873C','Дело':'#8B7BF0','Задача':'#8B7BF0','Мессенджер ОЛ':'#2E9E74','Комментарий-заметка':'#8794A5','Активность':'#5D6B77'};
+const typeColor = t => t && t.indexOf('Сообщение')===0 ? '#2E9E74' : (TCOL[t]||'#5D6B77');
+// Плавающая подсказка: тот же механизм, что в РОП-дашборде (наведение на элемент с data-tip).
+const TIP = () => document.getElementById('tip');
+document.addEventListener('mousemove', e => { const t = e.target.closest && e.target.closest('[data-tip]'); const tip = TIP(); if(!tip) return;
+  if(t){ tip.innerHTML = t.getAttribute('data-tip'); tip.style.opacity = 1;
+    let nx = e.clientX + 14, ny = e.clientY + 14;
+    if(nx + tip.offsetWidth > innerWidth) nx = e.clientX - tip.offsetWidth - 14;
+    if(ny + tip.offsetHeight > innerHeight) ny = Math.max(8, e.clientY - tip.offsetHeight - 14);
+    tip.style.left = nx + 'px'; tip.style.top = ny + 'px';
+  } else tip.style.opacity = 0; });
+const fmt2 = n => Math.round(n).toLocaleString('ru-RU');
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const p2 = n => String(n).padStart(2,'0');
+const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
+const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
+
+const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, clMgr:'', clKind:'', deptOpen:true, evHi:null, picks:[],
+  aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), question:'', obj:'auto', inc:new Set(['msg','mail','call','task','note']) } };
+let VIEW = [];
+
+function initControls(){
+  // Панель старого плоского вида убрана: фильтры дерева живут в шапке таблицы менеджеров.
+  // Статус снимка - как в РОП-дашборде: цветная метка свежести (зелёная/жёлтая/красная)
+  // со временем по Москве, вместо сырого ISO. Описательная часть остаётся текстом.
+  document.getElementById('sub').innerHTML =
+    `${DATA.from?DATA.from.slice(0,10):''} → ${DATA.to?DATA.to.slice(0,10):''} · ${DATA.days} дн · ${esc(DATA.scope||'')} · сделок ${DATA.dealCount||0} + лидов ${DATA.leadCount||0} · <span id="freshTag" style="font-weight:700">.</span>`;
+  freshStamp();
+}
+
+// Метка свежести снимка - тот же механизм, что в РОП-дашборде: время данных по Москве,
+// цвет по возрасту (зелёный до 30 ч, жёлтый 30-48 ч, красный дальше). «сборка» склеена
+// со временем данных, чтобы не было «свежая сборка на старых данных».
+function freshStamp(){
+  const el=document.getElementById('freshTag'); if(!el) return;
+  const src=DATA.generatedAt||BAKED_AT; if(!src){el.textContent='';return;}
+  const g=new Date(src), ageH=(new Date()-g)/36e5;
+  const m=new Date(g.getTime()+3*36e5); // показываем по Москве (UTC+3)
+  const t=p2(m.getUTCDate())+'.'+p2(m.getUTCMonth()+1)+' '+p2(m.getUTCHours())+':'+p2(m.getUTCMinutes());
+  let col='#2E9E74', pre='данные на';
+  if(ageH>48){col='#F43F5E';pre='данные устарели, на';}else if(ageH>30){col='#F59E0B';}
+  const bb=new Date(g.getTime()+3*36e5);
+  const bk=' · сборка '+p2(bb.getUTCDate())+'.'+p2(bb.getUTCMonth()+1)+' '+p2(bb.getUTCHours())+':'+p2(bb.getUTCMinutes());
+  el.textContent=pre+' '+t+' МСК'+bk; el.style.color=col;
+}
+
+function matchEvent(e){
+  if(S.dir && e.dir!==S.dir) return false;
+  if(S.types.size && !S.types.has(e.type)) return false;
+  if(S.q){ const q=S.q; if(!((e.body&&e.body.toLowerCase().indexOf(q)>=0)||(e.who&&e.who.toLowerCase().indexOf(q)>=0)||(e.title&&e.title.toLowerCase().indexOf(q)>=0)||(e.leadT&&e.leadT.toLowerCase().indexOf(q)>=0)||(e.dealT&&e.dealT.toLowerCase().indexOf(q)>=0))) return false; }
+  return true;
+}
+// якорь группировки по режиму: по сделкам -> сделка (лид сливается), по лидам -> лид (сделка сливается)
+function anchor(e){
+  if(S.mode==='deal') return e.dealId ? {ent:'deal',aid:e.dealId,title:e.dealT,other:e.leadId} : {ent:'lead',aid:e.leadId,title:e.leadT,other:''};
+  return e.leadId ? {ent:'lead',aid:e.leadId,title:e.leadT,other:e.dealId} : {ent:'deal',aid:e.dealId,title:e.dealT,other:''};
+}
+function dealScore(ent,aid,other){ return (SC? (SCD[(ent==='deal'?'D':'L')+aid] || SCD['D'+(other||'')]) : null) || null; }
+function passScoreFilter(ent,aid,other){
+  if(!S.sec && !S.tag) return true;
+  const d = dealScore(ent,aid,other); if(!d) return false;
+  if(S.sec) return d.tags.some(t=>t.sec===S.sec && t.tone==='bad');
+  const norm = t => t.split(' · ')[0].replace(/[0-9]+/g,'N');
+  return d.tags.some(t=>norm(t.t)===S.tag);
+}
+function group(){
+  const map = new Map();
+  for(const e of DATA.events){
+    if(S.mgr && e.mgr!==S.mgr) continue;
+    if(!matchEvent(e)) continue;
+    const a = anchor(e);
+    if(!a.aid) continue;
+    if(S.id && String(a.aid).indexOf(S.id)<0 && String(a.other||'').indexOf(S.id)<0) continue;
+    if(!passScoreFilter(a.ent,a.aid,a.other)) continue;
+    const key=a.ent+':'+a.aid;
+    let g = map.get(key);
+    if(!g){ g={ent:a.ent,aid:a.aid,title:a.title,other:a.other,events:[],chans:{},stages:{},last:0,mgr:e.mgr}; map.set(key,g); }
+    g.events.push(e); if(e.ts>g.last){g.last=e.ts;g.mgr=e.mgr;} g.chans[e.type]=(g.chans[e.type]||0)+1; g.stages[e.stage]=1;
+  }
+  const arr=[...map.values()];
+  arr.forEach(g=>g.events.sort((a,b)=>a.ts-b.ts));
+  arr.sort((a,b)=> S.ord==='desc' ? b.last-a.last : a.last-b.last);
+  return arr;
+}
+function chanIcons(chans){
+  return Object.keys(chans).sort((a,b)=>chans[b]-chans[a]).slice(0,5).map(t=>`<i><b style="background:${typeColor(t)}"></b>${chans[t]}</i>`).join('');
+}
+function dealHTML(g, idx){
+  const isLead = g.ent==='lead';
+  const url = isLead ? `${PORTAL}/crm/lead/details/${esc(g.aid)}/` : `${PORTAL}/crm/deal/details/${esc(g.aid)}/`;
+  const label = isLead ? 'Лид '+esc(g.aid) : 'Сделка '+esc(g.aid);
+  const col = isLead ? '#C2873C' : 'var(--acc)';
+  let other = '';
+  if(g.other){ const ou = isLead?`${PORTAL}/crm/deal/details/${esc(g.other)}/`:`${PORTAL}/crm/lead/details/${esc(g.other)}/`;
+    other = ` <a class="link2" href="${ou}" target="_blank" onclick="event.stopPropagation()">${isLead?'→ сделка '+esc(g.other):'← лид '+esc(g.other)}</a>`; }
+  const link = `<a href="${url}" target="_blank" onclick="event.stopPropagation()" style="color:${col}">${label}</a>${other}`;
+  return `<div class="deal" data-idx="${idx}">
+    <div class="dhead">
+      <span class="arw">▸</span>
+      <span class="did">${link}</span>
+      <span class="dttl" title="${esc(g.title)}">${esc(g.title)}</span>
+      <span class="dmgr">${esc(g.mgr)}</span>
+      <span class="dchips">${chanIcons(g.chans)}</span>
+      <span class="dmeta">${g.events.length} соб · ${fmtDay(g.last)}</span>
+    </div>
+    ${scoreHTML(g)}
+    <div class="thread" style="display:none"></div>
+  </div>`;
+}
+let CUR_TAGS={};
+const tagCol = t => t==='good'?'#2E9E74':t==='bad'?'#C25252':t==='info'?'#7C8794':'#C2873C';
+// Подсветка места, по которому сработал тег: цитата подчёркивается прямо в тексте.
+function hl(body, tags){
+  let out = esc(body);
+  for(const t of tags){ if(!t.quote) continue;
+    const q = esc(t.quote); const i = out.toLowerCase().indexOf(q.toLowerCase());
+    if(i<0) continue;
+    out = out.slice(0,i) + `<u class="hlq" style="text-decoration-color:${tagCol(t.tone)}">` + out.slice(i,i+q.length) + '</u>' + out.slice(i+q.length);
+  }
+  return out;
+}
+// Кто написал: клиент или наш сотрудник. У входящих в подписи часто стоит название чата,
+// совпадающее с названием сделки, поэтому показываем слово «Клиент», а имя - только если оно
+// действительно отличается и что-то добавляет.
+// Дерево разбора: этап (лид -> сделка) -> кто вёл -> события с отступами по ролям.
+// Плоский список не давал понять, где заканчивается работа с лидом и начинается сделка.
+function treeHTML(events, sc){
+  CUR_TAGS = (sc && sc.evTags) || {};
+  const byStage = {lead:[], deal:[]};
+  for(const e of events) (byStage[e.stage] || byStage.deal).push(e);
+  const parts = (sc && sc.participants) || [];
+  let out = '';
+  for(const st of ['lead','deal']){
+    const list = byStage[st]; if(!list.length) continue;
+    const who = parts.filter(p=>p.stage===st).map(p=>`${esc(p.who)} · ${p.n}`).join(', ') || 'без исходящих';
+    const id = st==='lead' ? (list[0].leadId||'') : (list[0].dealId||'');
+    const url = st==='lead' ? `${PORTAL}/crm/lead/details/${id}/` : `${PORTAL}/crm/deal/details/${id}/`;
+    const msgs = list.filter(e=>e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок').length;
+    out += `<div class="node">
+      <div class="nhead"><span class="ndot ${st==='lead'?'n-lead':'n-deal'}"></span>
+        <b>${st==='lead'?'ЛИД':'СДЕЛКА'} <a href="${url}" target="_blank" onclick="event.stopPropagation()">${esc(id)}</a></b>
+        <span class="nsub">вёл: ${who}</span><span class="nsub">· ${list.length} событий, из них общения с клиентом ${msgs}</span></div>
+      <div class="nbody">${list.map(e=>evRowHTML(e)).join('')}</div></div>`;
+  }
+  CUR_TAGS = {};
+  return out;
+}
+// Строка события внутри дерева: клиент слева, наш ответ с отступом, внутренняя работа глубже.
+function evRowHTML(e){
+  const tags=(CUR_TAGS[e.src]||[]);
+  const isMsg = e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок';
+  const lvl = !isMsg ? 'lv-task' : (e.dir==='входящее' ? 'lv-in' : 'lv-out');
+  const bad = tags.some(t=>t.tone==='bad'), good = tags.length && !bad;
+  const c = typeColor(e.type);
+  const tagsHTML = tags.length ? `<span class="evtags">`+tags.map(t=>`<span class="evtag" style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join('')+`</span>` : '';
+  const st = e.status?`<span class="st">${esc(e.status)}</span>`:'';
+  const rec = e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:'';
+  const ttl = e.title && !isMsg ? `<b>${esc(e.title)}: </b>` : '';
+  const ref = e.ref?`<span class="ref">↳ ${esc(e.ref)}</span>`:'';
+  return `<div class="erow ${lvl}${bad?' e-bad':good?' e-good':''}">
+    <span class="etime">${fmtTime(e.dt)}</span>
+    <span class="ewho">${isMsg? whoLabel(e) : '<span class="sysw">CRM · '+esc(e.who||e.mgr||'')+'</span>'}</span>
+    <span class="ebody"><span class="badge" style="background:${c}18;color:${c};border:1px solid ${c}44">${esc(e.type)}</span> ${ttl}${tags.length?hl(e.body,tags):esc(e.body)}${st}${rec}${ref}</span>
+    ${tagsHTML}</div>`;
+}
+function whoLabel(e){
+  // Подпись «Телефон» стороны не даёт: направление восстановлено по тексту, помечаем это
+  // явно, чтобы вывод РОПа опирался на понятную степень уверенности.
+  if(e.dir!=='входящее') return esc(e.who||'')+(e.guess?'<span class="whosub" title="сторона определена по тексту сообщения, подпись канала была служебной">по тексту</span>':'');
+  const nm=String(e.who||'').trim();
+  const ttl=String(e.dealT||e.leadT||'').trim();
+  const same = !nm || nm==='—' || (ttl && (ttl.indexOf(nm.slice(0,12))>=0 || nm.indexOf(ttl.slice(0,12))>=0));
+  return same ? 'Клиент' : `Клиент<span class="whosub">${esc(nm.slice(0,22))}</span>`;
+}
+function evHTML(e, showStage){
+  const c=typeColor(e.type);
+  const dir = e.dir==='входящее'?'<span class="dir-in">←</span>':e.dir==='исходящее'?'<span class="dir-out">→</span>':'<span class="dir-n">·</span>';
+  const st = e.status?`<span class="st">${esc(e.status)}${e.dur?' · '+esc(e.dur):''}</span>`:'';
+  const rec = e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:'';
+  const ttl = e.title?`<b>${esc(e.title)}: </b>`:'';
+  const ref = e.ref?`<span class="ref">↳ ${esc(e.ref)}</span>`:'';
+  const stg = showStage ? `<span class="stg ${e.stage==='lead'?'stg-lead':'stg-deal'}">${e.stage==='lead'?'лид':'сделка'}</span>` : '<span></span>';
+  const mtags = (CUR_TAGS[e.src]||[]);
+  const tagsHTML = mtags.length ? `<span class="evtags">`+mtags.map(t=>`<span class="evtag" style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join('')+`</span>` : '';
+  const bad = mtags.some(t=>t.tone==='bad'), good = mtags.length && !bad;
+  return `<div class="ev${bad?' ev-bad':good?' ev-good':''}">
+    <span class="t">${fmtTime(e.dt)}</span>
+    ${stg}
+    <span><span class="badge" style="background:${c}22;color:${c};border:1px solid ${c}55">${esc(e.type)}</span></span>
+    <span>${dir}</span>
+    <span class="who ${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${whoLabel(e)}</span>
+    <span class="body">${ttl}${mtags.length?hl(e.body,mtags):esc(e.body)}${st}${rec}${ref}</span>
+    ${tagsHTML}
+  </div>`;
+}
+function toggle(el, forceOpen){
+  const th=el.querySelector('.thread'), arw=el.querySelector('.arw');
+  const open = th.style.display!=='none';
+  if(open && forceOpen) return;
+  if(!open){
+    if(!th.dataset.filled){ const g=VIEW[+el.dataset.idx]; const mixed=Object.keys(g.stages).length>1;
+      const sc=dealScore(g.ent,g.aid,g.other); CUR_TAGS=(sc&&sc.evTags)||{};
+      const parts=(sc&&sc.participants)||[];
+      const ph=parts.length? `<div class="parts">Переписку вели: `+parts.map(p=>`<span class="part"><b>${esc(p.who)}</b> · ${p.stage==='lead'?'на лиде':'на сделке'} · ${p.n}</span>`).join('<span style="color:var(--ink-4)">→</span>')+`</div>` : '';
+      th.innerHTML = ph + g.events.map(e=>evHTML(e,mixed)).join(''); CUR_TAGS={}; th.dataset.filled='1'; }
+    th.style.display=''; arw.textContent='▾';
+  } else { th.style.display='none'; arw.textContent='▸'; }
+}
+
+const SC = DATA.scoring || null;
+const SCD = {}; if(SC) for(const d of SC.deals) SCD[d.key]=d;
+const probColor = p => p>=60?'#2E9E74':p>=30?'#C2873C':'#C25252';
+function stars(r){ const f=Math.round(r); return '★★★★★'.slice(0,f)+'☆☆☆☆☆'.slice(0,5-f); }
+const SECHELP={
+  speed:['Отклик','Как быстро отвечаем клиенту. Норматив: первый ответ за 15 рабочих минут, клиент не ждёт дольше 4 часов. Отписки «ок, спасибо» за ответ не считаются.'],
+  qual:['Квалификация','Выяснены ли до расчёта задача, размеры или ТЗ, срок и бюджет. Считается только на ранних стадиях - на производстве спрашивать бюджет поздно.'],
+  deadline:['Сроки','Обещание всегда с конкретной датой («завтра до обеда», не «в ближайшее время»), дела в CRM не просрочены, нет пауз от 4 дней.'],
+  polite:['Вежливость','Приветствие с обращением, извинение без жаргона («закрутился», «забыл») и без оправданий («вы не уточнили»).'],
+  process:['Ведение','Следующий шаг назначен всегда, после КП идёт дожим, сделка не стоит на одной стадии месяцами.'],
+  result:['Результат','Возражение отработано аргументом, сигнал оплаты доведён до счёта, отказ разобран, а не принят молча.'],
+};
+const COLHELP={
+  deals:['Диалогов','Сколько сделок и лидов этого менеджера были в переписке за окно снимка (7 дней).'],
+  prob:['Вероятность','Средний шанс закрыть сделку по его портфелю. Считается от фактической доли выигранных на этой стадии, поправленной на поведение в переписке.'],
+  alerts:['Тревог','Сколько его сделок имеют хотя бы один красный тег: клиент ждёт ответа, тишина, нет следующего шага, риск отказа.'],
+  rating:['Рейтинг','Взвешенная оценка по шести разделам, шкала 0-5. Меряет дисциплину ведения сделки, а не выручку. Не считается, если у менеджера меньше 10 диалогов.'],
+};
+function tone2col(t){ return t==='good'?'#2E9E74':t==='bad'?'#C25252':'#C2873C'; }
+function pctCol(p){ return p>=70?'#2E9E74':p>=40?'#C2873C':'#C25252'; }
+// Карточки диалогов внутри раскрытой строки: тот же рендер, что и в режиме «по сделкам».
+// ===== ОЧЕРЕДЬ ДЕЛ: главный экран. Строка = сделка или лид, сортировка по деньгам под риском =====
+const money = v => !v ? '-' : v>=1e6 ? (v/1e6).toFixed(1)+' млн' : Math.round(v/1000)+'к';
+const urgCol = k => ({ready:'#2E9E74',waiting:'#C25252',refuse:'#C25252',objection:'#C2873C',silent:'#C2873C',nopush:'#C2873C',overdue:'#8B7BF0',nostep:'#8794A5',lowprob:'#C2873C'}[k]||'#5D6B77');
+// Группы стадий для мини-воронки в таблице менеджеров: где сейчас портфель менеджера.
+const STAGE_GRP = [
+  {k:'lead', t:'Лиды', s:'Лид', col:'#E7EEF4', stages:[]},
+  {k:'early', t:'Раннее', s:'Ран', col:'#5D6B77', stages:['Новая сделка','Квалификация','Формирование ТЗ','Расчёт']},
+  {k:'kp', t:'КП', s:'КП', col:'#22D3EE', stages:['КП отправлено']},
+  {k:'decide', t:'Решают', s:'Реш', col:'#8B7BF0', stages:['Принимают решение']},
+  {k:'stuck', t:'Долгострой', s:'Долг', col:'#C2873C', stages:['Долгострой']},
+  {k:'paid', t:'В производстве', s:'Пр-во', col:'#3DAEC2', stages:['Предоплата получена','Заказ в производстве','Заказ произведен','Заказ отправлен']},
+  {k:'won', t:'Успех', s:'✓', col:'#2E9E74', stages:['Сделка успешна']},
+  {k:'lost', t:'Отказ', s:'✗', col:'#C25252', stages:['Сделка провалена']},
+];
+const STAGE2GRP = (()=>{ const m={}; for(const g of STAGE_GRP) for(const s of g.stages) m[s]=g.k; return m; })();
+const DEPT_KEY='__ОТДЕЛ__';
+// Категория события для подсветки при клике по чипу «Ленты».
+const evCat=(t)=> (t&&t.indexOf('Сообщение')===0)?'msg' : t==='Мессенджер ОЛ'?'msg' : t==='Звонок'?'call' : t==='Письмо'?'mail' : (t==='Дело'||t==='Задача')?'task' : t==='Комментарий-заметка'?'note' : '';
+// Типы коммуникаций для чипов в таблице менеджеров: тултип + клик-фильтр.
+const COMM_TYPES = [
+  {k:'msg', t:'Сообщения', s:'сообщ', col:'#2E9E74'},
+  {k:'call', t:'Звонки', s:'звон', col:'#3DAEC2'},
+  {k:'mail', t:'Письма', s:'письм', col:'#C2873C'},
+  {k:'task', t:'Дела', s:'дел', col:'#8B7BF0'},
+  {k:'note', t:'Заметки', s:'зам', col:'#8794A5'},
+];
+function renderTree(){
+  const list=document.getElementById('list');
+  if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
+  // Индекс времени событий по сделкам - для фильтра «по коммуникациям».
+  if(!window.EVTS){ window.EVTS={}; window.EVIX={};
+    // Лид->сделка: события, оставшиеся на лиде (без dealId), индексируем под ключом
+    // конвертированной сделки - той же логикой, что и раскрытая лента. Иначе полнота и фильтр
+    // «по коммуникациям» для сделки-из-лида ложно видят 0 (переписка висит на лиде).
+    const L2D={}; for(const e of DATA.events) if(e.dealId&&e.leadId) L2D[String(e.leadId)]=String(e.dealId);
+    const gk=e=> e.dealId?'D'+e.dealId : (e.leadId&&L2D[String(e.leadId)])?'D'+L2D[String(e.leadId)] : 'L'+e.leadId;
+    for(const e of DATA.events){ const k=gk(e);
+      (EVTS[k] ||= []).push(e.ts); (EVIX[k] ||= []).push(e); } }
+  const dFrom=S.dFrom?Date.parse(S.dFrom+'T00:00:00+03:00'):0;
+  const dTo=S.dTo?Date.parse(S.dTo+'T23:59:59+03:00'):0;
+  const inPeriod=d=>{
+    if(!dFrom&&!dTo) return true;
+    if(S.dMode==='created'){
+      // Дата создания приходит из снимка воронки. Её нет у лидов и у сделок вне C49,
+      // поэтому запасной вариант - первое событие в ленте: сделка не должна исчезать
+      // из таблицы только потому, что поля нет.
+      const ts=EVTS[d.key]||[];
+      const c=d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||(ts.length?Math.min.apply(null,ts):0));
+      if(!c) return true;
+      return (!dFrom||c>=dFrom)&&(!dTo||c<=dTo);
+    }
+    const ts=EVTS[d.key]||[];
+    return ts.some(t=>(!dFrom||t>=dFrom)&&(!dTo||t<=dTo));
+  };
+  const DEALS=SC.deals.filter(inPeriod);
+  const filtered=DEALS.length!==SC.deals.length;
+  const byM={}; for(const d of DEALS) (byM[d.mgr] ||= []).push(d);
+  const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
+  const MD=SC.metricDefs||[];
+  // Полные названия метрик не помещаются в 16 колонок: в шапке короткие, полное - в подсказке.
+  const SHORT={act:'Активность',take:'Взял',resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты'};
+  const mval=(m,k)=>{ const dsm=byM[m.mgr]||[];
+    // Агрегаты по сделкам считаем всегда (нужны и отделу, и менеджерам с малой выборкой).
+    if(k==='funnel'||k==='deals') return dsm.length;
+    if(k==='compl') return dsm.filter(d=>complOf(d)==='empty').length; // сортировка: больше пустых - выше
+    if(k==='hot') return dsm.filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0);
+    if(k==='alerts') return dsm.filter(d=>d.urgency).length;
+    if(k==='sum') return dsm.reduce((s2,d)=>s2+(d.budget||0),0);
+    if(k==='act') return dsm.reduce((s2,d)=>s2+((mixOf(d,dFrom,dTo)||{}).total||0),0);
+    const p=m.profile; if(!p) return null;
+    if(k==='rating') return m.rating;
+    return p.metrics? p.metrics[k] : null; };
+  // Что менеджер делал за выбранный период: суммарная лента по его сделкам.
+  const actOf=(mgr)=>{ const t={msg:0,call:0,mail:0,task:0,note:0,ai:0,total:0};
+    for(const d of (byM[mgr]||[])){ const m=mixOf(d,dFrom,dTo)||{};
+      for(const k of ['msg','call','mail','task','note','ai','total']) t[k]+=(m[k]||0); }
+    return t; };
+  // Воронка менеджера: раскладка его сделок по группам стадий - видно, где портфель.
+  const grpOf=(d)=> d.isLead ? 'lead' : (STAGE2GRP[d.stage]||'early');
+  // Касательное попадание в группу стадий: сделка сейчас в группе ИЛИ проходила её в истории.
+  // Для аудита берём максимум данных - подцепляем и тех, кто уже ушёл со стадии дальше/в отказ.
+  const touchedGrp=(d,grp)=>{ if(grpOf(d)===grp) return true; const g=STAGE_GRP.find(x=>x.k===grp);
+    if(!g||!g.stages.length) return false; return (d.stageRows||[]).some(s=>g.stages.includes(s.name)); };
+  const funnelOf=(mgr)=>{ const g={}; for(const d of (byM[mgr]||[])){ const gk=grpOf(d); g[gk]=(g[gk]||0)+1; } return g; };
+  const funnelCell=(mgr)=>{ const g=funnelOf(mgr); const tot=Object.values(g).reduce((a,b)=>a+b,0);
+    if(!tot) return '<span class="na2">-</span>';
+    const parts=STAGE_GRP.filter(s=>g[s.k]);
+    // Клик по сегменту -> фильтр сделок этого этапа у менеджера (подсветка активного сегмента).
+    const segs=parts.map(s=>{ const on=aiPickActive('fn',mgr,s.k);
+      return `<span class="fseg${on?' fon':''}" data-grp="${s.k}" style="flex:${g[s.k]};background:${s.col}" data-tip="<span class='tdot' style='background:${s.col}'></span>${esc(s.t)}: <b>${g[s.k]}</b> · клик - показать эти сделки"></span>`; }).join('');
+    const nums=parts.map(s=>`<span class="fn" style="flex:${g[s.k]}" title="${esc(s.t)}">${g[s.k]}</span>`).join('');
+    return `<div class="funnel">${segs}</div><div class="fnrow">${nums}</div>`; };
+  const commCell=(mgr)=>{ const t=actOf(mgr); if(!t.total) return '<span class="na2">0</span>';
+    // Все 5 каналов в фиксированной сетке 3 колонки (сообщ/звон/письм · дел/зам), нули приглушены,
+    // числа выровнены - идентификаторы стоят в столбик по всем строкам. Ненулевые - кликабельны.
+    const cells=COMM_TYPES.map(c=>{ const v=t[c.k]||0; const on=aiPickActive('cm',mgr,c.k);
+      if(!v) return `<span class="cch0"><b>0</b><i>${c.s}</i></span>`;
+      return `<span class="cchip cgc${on?' con':''}" data-comm="${c.k}" style="color:${c.col}" data-tip="<span class='tdot' style='background:${c.col}'></span>${esc(c.t)}: <b>${v}</b> · клик - сделки с этим каналом"><b>${v}</b><i>${c.s}</i></span>`; }).join('');
+    return `<div class="cgrid">${cells}</div>`; };
+  // Полнота коммуникаций сделки: доля коммуникационных событий (сообщения, звонки, письма)
+  // от всех событий сделки (плюс системные - дела, задачи, комментарии). Показывает, ведёт ли
+  // менеджер общение в CRM или пайплайн держится на системных инструментах.
+  const complPct=(d)=>{ const m=mixOf(d,dFrom,dTo)||{}; const comm=(m.msg||0)+(m.call||0)+(m.mail||0); const sys=(m.task||0)+(m.note||0); const tot=comm+sys; return tot>0?comm/tot:0; };
+  const complOf=(d)=>{ const r=complPct(d); if(r>=0.6) return 'full'; if(r>=0.3) return 'partial'; return 'empty'; };
+  const COMPL=[{k:'full',ic:'🟢',t:'полные',col:'#7FD1A6',why:'коммуникации - от 60% событий сделки, общение с клиентом преобладает'},
+    {k:'partial',ic:'🟡',t:'частичные',col:'#E4B563',why:'коммуникации - от 30 до 60% событий сделки, часть картины в системных делах'},
+    {k:'empty',ic:'🔴',t:'скудные',col:'#E08585',why:'коммуникации - меньше 30% или совсем пусто, пайплайн держится на системных делах/задачах/комментариях'}];
+  const complCell=(mgr)=>{ const ds=byM[mgr]||[]; if(!ds.length) return '<span class="na2">-</span>';
+    const c={full:0,partial:0,empty:0}; for(const d of ds) c[complOf(d)]++;
+    return `<div class="cwrap">`+COMPL.map(x=>{ const on=aiPickActive('cl',mgr,x.k); const pct=Math.round(c[x.k]/ds.length*100);
+      return `<span class="cchip${on?' con':''}" data-compl="${x.k}" style="color:${x.col}" data-tip="<span class='tdot' style='background:${x.col}'></span>${esc(x.t)}: <b>${c[x.k]}</b> из ${ds.length} (${pct}%) - ${esc(x.why)}. Клик - показать и отфильтровать эти сделки.">${x.ic}${pct}%</span>`; }).join('')+`</div>`; };
+  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
+    {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
+    .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
+    .concat([{k:'compl',t:'Полнота комм.',l:1}]);
+  const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
+  let mgrs=SC.managers.filter(m=>byM[m.mgr]);
+  if(S.fMgrs.size) mgrs=mgrs.filter(m=>S.fMgrs.has(m.mgr));
+  const ordV={'в разборе':0,'норма':1,'сильный':2};
+  mgrs.sort((a,b)=>{ const k=S.sM.k;
+    if(k==='mgr') return a.mgr.localeCompare(b.mgr)*S.sM.d;
+    if(k==='verdict') return ((ordV[a.profile?.verdict]??9)-(ordV[b.profile?.verdict]??9))*S.sM.d;
+    const x=mval(a,k), y=mval(b,k);
+    if(x===null&&y===null) return 0; if(x===null) return 1; if(y===null) return -1;
+    return (x-y)*S.sM.d; });
+  const fmtM=(k,v)=>{ if(v===null||v===undefined) return '<span class="na2">-</span>';
+    if(k==='sum'||k==='hot') return money(v)+' ₽';
+    if(k==='resp') return fmtMinShort(v);
+    const def=MD.find(x=>x.key===k); if(def&&def.unit==='%') return v+'%';
+    return v; };
+  const cellCol=(k,v)=>{ const def=MD.find(x=>x.key===k); if(!def||v===null) return '';
+    const dv=(SC.deptMedians||{})[k]; if(dv===null||dv===undefined) return '';
+    const better = def.better==='less' ? v<dv : v>dv;
+    return `color:${better?'#2E9E74':(v===dv?'var(--ink-2)':'#C25252')}`; };
+
+  // «?» рядом с менеджером: весь список рекомендаций уезжает в плавающую подсказку,
+  // чтобы между уровнями дерева не было текстовой прослойки. Дизайн подсказки - как в РОП-дашборде.
+  const alertChip = (m,p) => {
+    if(!p||!p.actions||!p.actions.length) return '';
+    const nD=p.actions.reduce((s2,a)=>s2+a.n,0), nM=p.actions.reduce((s2,a)=>s2+a.money,0);
+    const col = nD>=10?'#C25252':nD>=4?'#E8A33D':'#2E9E74';
+    const body = `<div class="tl">Что сделать, чтобы усилить</div>`
+      +`<div class="tip-tot"><span>${esc(m.mgr)}</span><span>${nD} сделок · ${money(nM)} ₽</span></div>`
+      + p.actions.map((a,i)=>`<div class="qh">${i+1}. ${esc(a.title)}<i>${a.n} сделок · ${money(a.money)} ₽</i></div><div class="qb">${esc(a.how)}</div>`).join('')
+      + `<div class="qn">Очереди пересчитываются на каждом ночном снимке. Сделки этих очередей - в таблице ниже, столбец «Что горит».</div>`;
+    return `<span class="malert" style="color:${col};border-color:${col}66;background:${col}14" data-tip="${body.replace(/"/g,'&quot;')}">?</span>`;
+  };
+  // Инструкция: что означает каждый столбец и по какому правилу считается. Свёрнута по
+  // умолчанию, состояние живёт в S.help.
+  const MFULL={resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты',take:'Взял'};
+  const dm=SC.deptMedians||{};
+  // Подсветка активного пресета: сверяем текущие даты с тем, что дал бы каждый пресет.
+  const psetOn=(k)=>{ const iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
+    if(k==='all') return !S.dFrom&&!S.dTo;
+    if(!S.dFrom||!S.dTo) return false;
+    if(k==='today') return S.dFrom===iso(now)&&S.dTo===iso(now);
+    if(k==='yst') return S.dFrom===iso(now-864e5)&&S.dTo===iso(now-864e5);
+    return S.dTo===iso(now)&&S.dFrom===iso(now-(Number(k)-1)*864e5); };
+  const fbar = `<div class="fbar">
+    <span>Период</span>
+    <input type="date" id="dFrom" value="${esc(S.dFrom||'')}">
+    <span style="color:var(--ink-4)">—</span>
+    <input type="date" id="dTo" value="${esc(S.dTo||'')}">
+    ${[['today','сегодня'],['yst','вчера'],['3','3 дня'],['7','7 дней'],['30','30 дней'],['all','всё']]
+      .map(([k,t])=>`<span class="pset${psetOn(k)?' on2':''}" data-pset="${k}">${t}</span>`).join('')}
+    <span style="color:var(--ink-4);margin:0 2px">·</span>
+    <span class="chip2${S.dMode==='comm'?' on2':''}" data-dmode="comm">по коммуникациям</span>
+    <span class="chip2${S.dMode==='created'?' on2':''}" data-dmode="created">по дате создания сделки</span>
+    ${(S.dFrom||S.dTo)?`<span class="chip2" data-dreset="1">сбросить</span>`:''}
+    <span style="color:var(--ink-4);margin:0 2px">·</span>
+    <span class="chip2${S.showMetrics?' on2':''}" data-metrics="1">${S.showMetrics?'скрыть метрики регламента':'показать метрики регламента'}</span>
+    <span class="cnt">${filtered?`сделок в периоде ${DEALS.length} из ${SC.deals.length} · метрики менеджера считаются по всему окну снимка, фильтр меняет только список сделок`:`окно снимка ${esc((DATA.from||'').slice(0,10))} - ${esc((DATA.to||'').slice(0,10))}, коммуникации есть только внутри него`}</span>
+  </div>`;
+  // Компактная справка: 4 коротких карточки + сетка столбцов. Полные формулы - в подсказке
+  // (наведи на «?»), чтобы блок не растягивался на весь экран.
+  const helpQ=(t)=>`<span class="lqm" data-tip="${String(t).replace(/"/g,'&quot;')}">?</span>`;
+  const help = `<div class="legend"><div class="lgh" data-help="1"><i>${S.help?'▾':'▸'}</i>Как читать таблицу</div>`
+   + (S.help?`<div class="lgb">
+      <div class="lgcards">
+        <div class="lgc"><b>Откуда данные</b> ${helpQ('Ночной снимок Bitrix24: переписка WhatsApp/Telegram/MAX через Wazzup, письма, звонки, дела, комментарии, резюме BitrixGPT за 7 дней + снимок воронки «GG Заказы РФ» (стадии, бюджеты, дела). Оценивают правила, не нейросеть: каждый тег по конкретной фразе или факту, проверяется глазами.')} правила по фактам CRM, за 7 дней</div>
+        <div class="lgc"><b>Вердикт</b> ${helpQ('От сильных и слабых сторон против медианы отдела. Слабых нет - «сильный»; сильных больше - «норма»; слабых 3+ - «в разборе». Меньше 10 диалогов - «мало данных».')} сильный / норма / в разборе</div>
+        <div class="lgc"><b>Рейтинг</b> ${helpQ('Шесть разделов с весами: Отклик 22%, Сроки 20%, Ведение 20%, Квалификация 18%, Вежливость 10%, Результат 10%. Внутри - доля сделок без красных меток, приведено к 5 баллам. Раздел меньше чем в 5 сделках не идёт.')} 6 разделов, шкала 0-5</div>
+        <div class="lgc"><b>Горит / Под риском</b> ${helpQ('Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага). Под риском - сумма их бюджетов.')} срочные сделки и их сумма</div>
+      </div>
+      <div class="lgi lgnote"><b>Цвет цифры:</b> зелёная - лучше медианы отдела, красная - хуже, серая - мало данных. Медиана - в подсказке заголовка. <b>Разметка:</b> красная метка - нарушение с цитатой, зелёная - правило выполнено, серая - факт без оценки.</div>
+      <div class="lgcols">${MD.map(m=>`<span class="lgcol" data-tip="${esc(m.how||'').replace(/"/g,'&quot;')}"><b>${esc(MFULL[m.key]||m.label)}</b> <i>${m.better==='less'?'↓ меньше лучше':'↑ больше лучше'}${dm[m.key]!==undefined&&dm[m.key]!==null?' · мед. '+dm[m.key]:''}</i></span>`).join('')}</div>
+      <div class="lgi lgnote"><b>Чего нет в данных:</b> расшифровок звонков API не отдаёт (виден факт, длительность, резюме BitrixGPT); звонок с личного телефона в CRM не попадает - «нет следов общения» = «нет следов в CRM», а не «не работал».</div>
+    </div>`:'')+`</div>`;
+  const scope = (S.fMgrs.size||S.fDealIds.size) ? `<div class="scopebar">
+      <span class="sdot">●</span> Фильтр ИИ применён к дашборду: <b>${S.fMgrs.size?S.fMgrs.size+' '+plu(S.fMgrs.size,'менеджер','менеджера','менеджеров'):'весь отдел'}</b>${S.fDealIds.size?` · <b>${S.fDealIds.size} ${plu(S.fDealIds.size,'сделка','сделки','сделок')}</b>`:''}${S.dashNote?` · <span class="snote">${esc(S.dashNote)}</span>`:''}
+      <span class="x" data-scopeclear="1">сбросить и показать весь отдел</span></div>` : '';
+  // Тепловой градиент «Горит»: больше горящих сделок - насыщеннее красный (нормируем по максимуму).
+  const maxAlerts=Math.max(1,...mgrs.map(mm=>(byM[mm.mgr]||[]).filter(d=>d.urgency).length));
+  // Тональность по величине: только цвет цифры, без заливки. Больше горящих - ярче/насыщеннее
+  // красный; мало - приглушённый розовато-красный.
+  const heatGorit=(v)=>{ if(!v) return 'var(--ink-4)'; const t=Math.min(1,v/maxAlerts);
+    return `rgb(${Math.round(198+t*57)},${Math.round(126-t*61)},${Math.round(126-t*61)})`; };
+  // Подсказки для «Вердикт» и «Рейтинг»: что это и как посчитано у конкретного менеджера.
+  const verdTip=(m)=>{ const p=m.profile;
+    if(m.role==='office') return 'Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается, поэтому вердикт и рейтинг продавца не выставляются.';
+    if(!p) return `Мало данных: у менеджера меньше 10 диалогов в окне (${(byM[m.mgr]||[]).length}). Меньше выборки - не судим, это был бы шум.`;
+    const st=(p.strengths||[]).map(x=>typeof x==='string'?x:(x.text||x.label||'')).filter(Boolean);
+    const wk=(p.weaknesses||[]).map(x=>typeof x==='string'?x:(x.text||x.label||'')).filter(Boolean);
+    return `Вердикт - от сильных и слабых сторон против медианы отдела (не от рейтинга). Правило: слабых нет - сильный; сильных больше - норма; слабых 3+ - в разборе.<br><b>Сильные (${st.length}):</b> ${st.length?esc(st.join('; ')):'-'}<br><b>Слабые (${wk.length}):</b> ${wk.length?esc(wk.join('; ')):'-'}`; };
+  const rateTip=(m)=>{ if(m.role==='dept') return 'Сводка по отделу - рейтинг не считается, это агрегат по всем менеджерам.';
+    if(m.role==='office') return 'Рейтинг продавца для офис-менеджера не считается: у лид-интейка другая задача, не доведение до оплаты.';
+    if(m.rating===null) return `Рейтинг не выставлен: ${esc(m.noRating||'мало данных')}. Нужно минимум 10 диалогов.`;
+    const secs=(m.sections||[]).map(s=>`${esc(s.label)} ${s.pos==null?'-':s.pos+'%'}`).join(' · ');
+    return `Рейтинг - взвешенная оценка по 6 разделам регламента (Отклик 22%, Сроки 20%, Ведение 20%, Квалификация 18%, Вежливость 10%, Результат 10%), шкала 0-5. Меряет дисциплину ведения, не выручку. Разделы: ${secs||'-'}. Раздел, затронутый меньше чем в 5 сделках, в рейтинг не идёт.`; };
+  // Верхняя строка «ВЕСЬ ОТДЕЛ»: агрегат по всем показанным менеджерам. Клик по её воронке/
+  // каналу/«Горит» показывает сделки всего отдела на этом этапе - без настройки фильтра.
+  byM[DEPT_KEY]=mgrs.flatMap(mm=>byM[mm.mgr]||[]);
+  const deptMgr={ mgr:DEPT_KEY, role:'dept', profile:null, rating:null, sections:[] };
+  let html=scope+fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
+  // «Весь отдел» - уровень 0: его стрелка сворачивает всех менеджеров. Дрил-фильтр отдела
+  // (клик по воронке/каналу/«Горит») показывает сделки всего отдела вместо списка менеджеров.
+  const deptDrill = (S.fnMgr===DEPT_KEY&&S.fnGrp)||(S.cmMgr===DEPT_KEY&&S.cmType)||(S.hotMgr===DEPT_KEY);
+  for(const m of [deptMgr, ...mgrs]){
+    const dept=m.role==='dept';
+    if(!dept && (!S.deptOpen || deptDrill)) continue; // менеджеры скрыты, если отдел свёрнут или идёт дрил по отделу
+    let ds=(byM[m.mgr]||[]).slice(); if(S.fDealIds.size) ds=ds.filter(d=>S.fDealIds.has(String(d.dealId||d.leadId)));
+    const p=m.profile; const office=m.role==='office';
+    const arwOpen = dept ? S.deptOpen : S.tm.has(m.mgr);
+    const showSub = dept ? (S.deptOpen && deptDrill) : S.tm.has(m.mgr);
+    const openM = showSub;
+    const [vc,vl]= dept? ['#22D3EE','ВЕСЬ ОТДЕЛ'] : office? ['#3DAEC2','ОФИС · ЛИДЫ'] : (p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ']);
+    const nameHtml = dept? 'Весь отдел' : esc(m.mgr);
+    html+=`<tr class="mrow2${arwOpen?' on':''}${dept?' deptrow':' mgrrow'}" data-m="${esc(m.mgr)}">`
+      +`<td class="l" ${dept?'':'style="padding-left:34px"'}><span class="arw4">${arwOpen?'▾':'▸'}</span><b>${nameHtml}</b>${dept?`<span class="rolech" style="color:#22D3EE;border-color:#22D3EE66;background:#22D3EE14" title="Уровень отдела. Стрелка - свернуть/развернуть всех менеджеров. Клик по воронке, каналу или «Горит» - сделки всего отдела на этом этапе.">${S.deptOpen?'свернуть отдел':'развернуть отдел'}</span>`:''}${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}</td>`
+      +`<td ${dept?'':`data-tip="${verdTip(m).replace(/"/g,'&quot;')}"`} style="cursor:${dept?'default':'help'}"><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
+      +MCOLS.slice(2).map(c=>{
+        if(c.k==='deals'){ const v=mval(m,'deals')||0; const on=aiPickActive('all',m.mgr,'all');
+          return `<td class="dealcnt${on?' allon':''}" data-allrow="1" data-tip="Все сделки ${m.mgr===DEPT_KEY?'отдела':'менеджера'} в разбор ИИ - со всей коммуникацией до конца. Клик - добавить/убрать из корзины фильтра.">${v}</td>`; }
+        if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
+        if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
+        if(c.k==='compl') return `<td class="l">${complCell(m.mgr)}</td>`;
+        if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const on=aiPickActive('hot',m.mgr,'hot');
+          return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет цифры тем ярче, чем больше горящих.${v?' Клик - показать эти горящие сделки.':''}" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
+        if(c.k==='hot'){ const v=mval(m,'hot')||0; const on=aiPickActive('hot',m.mgr,'hot');
+          return `<td class="${v?'hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Под риском - сумма бюджетов горящих сделок менеджера.${v?' Клик - показать эти сделки.':''}">${money(v)} ₽</td>`; }
+        if(c.k==='rating') return `<td data-tip="${rateTip(m).replace(/"/g,'&quot;')}" style="cursor:help">${office||m.rating===null?'<span class="na2">-</span>':`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`}</td>`;
+        return `<td style="${cellCol(c.k,mval(m,c.k))}">${fmtM(c.k,mval(m,c.k))}</td>`; }).join('')
+      +`</tr>`;
+    if(openM){
+      html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
+      // Фильтр раскрытых сделок по КОРЗИНЕ этого менеджера: объединение всех его пиков.
+      // Кликнул несколько значений (стадия + канал + полнота...) - показываем все их сделки.
+      const mgPicks = S.picks.filter(p=>p.mgr===m.mgr);
+      const hotPick = mgPicks.some(p=>p.kind==='hot');
+      if(mgPicks.length){ const ids=new Set(); mgPicks.forEach(p=>(p.deals||[]).forEach(id=>ids.add(String(id))));
+        const before=ds.length; ds=ds.filter(d=>ids.has(String(d.dealId||d.leadId)));
+        const chips = mgPicks.map(p=>`<span class="fpk">${esc(p.label.replace(mLabel(m.mgr)+' · ',''))} <b>${(p.deals||[]).length}</b></span>`).join('');
+        html+=`<div class="fnchip"><b>Фильтр:</b> ${chips} · показано <b>${ds.length}</b> из ${before} <span class="x" data-mgrclear="${esc(m.mgr).replace(/"/g,'&quot;')}">✕ сбросить</span></div>`; }
+      // --- уровень 2: таблица сделок ---
+      const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
+        {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
+      const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
+      // Если в фильтре есть «Горит» - показываем крупные сверху (денежный ракурс).
+      if(hotPick) ds.sort((a,b)=>(b.budget||0)-(a.budget||0));
+      else ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
+        if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
+        return String(x??'').localeCompare(String(y??''))*S.sD.d; });
+      html+=`<table class="tbl t2"><tr>`+DCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="d" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sD,c.k)}</span></th>`).join('')+`</tr>`;
+      for(const d of ds){
+        const openD=S.td.has(d.key), c2=urgCol(d.uKey), pc=probColor(d.prob);
+        const url=d.dealId?`${PORTAL}/crm/deal/details/${d.dealId}/`:`${PORTAL}/crm/lead/details/${d.leadId}/`;
+        html+=`<tr class="drow${openD?' on':''}" data-d="${esc(d.key)}">
+          <td class="xcell"><span class="arw4">${openD?'▾':'▸'}</span></td>
+          <td><b>${money(d.budget)} ₽</b></td>
+          <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
+          <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
+          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
+          <td class="l dstage">${esc(d.stage||'-')}</td>
+          <td style="color:${pc};font-weight:600">${d.prob}%</td>
+          <td>${d.silenceD}</td>
+          <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
+          <td class="l urgcell">${d.outcome==='won'?`<span class="urg" style="color:#2E9E74;background:#2E9E7418;border:1px solid #2E9E7444">Успех</span>`:d.outcome==='lost'?`<span class="urg" title="${d.lossReason?esc('Отказ: '+d.lossReason):'Отказ'}" style="color:#C25252;background:#C2525218;border:1px solid #C2525244">Отказ${d.lossReason&&!/не указан/i.test(d.lossReason)?': '+esc(d.lossReason):''}</span>`:d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td>
+          <td class="l mixcell">${mixCell(d,dFrom,dTo)}</td></tr>`;
+        if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
+      }
+      html+=`</table></td></tr>`;
+    }
+  }
+  html+=`</table></div>`;
+  list.innerHTML=html;
+  const fF=list.querySelector('#dFrom'), fT=list.querySelector('#dTo');
+  if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td.clear(); renderTree(); };
+  if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td.clear(); renderTree(); };
+  const sc=list.querySelector('[data-scopeclear]'); if(sc) sc.onclick=e=>{ e.stopPropagation(); aiClearDash(); };
+  // Сброс дрила дашборда - только фокус таблицы, корзину фильтра ИИ не трогаем (она отдельно).
+  list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; renderTree(); });
+  list.querySelectorAll('[data-cmclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.cmMgr=''; S.cmType=''; renderTree(); });
+  list.querySelectorAll('[data-hotclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.hotMgr=''; renderTree(); });
+  list.querySelectorAll('[data-clclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.clMgr=''; S.clKind=''; renderTree(); });
+  list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
+    const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
+    if(k==='all'){ S.dFrom=''; S.dTo=''; }
+    else if(k==='today'){ S.dFrom=iso(now); S.dTo=iso(now); }
+    else if(k==='yst'){ S.dFrom=iso(now-864e5); S.dTo=iso(now-864e5); }
+    else { S.dFrom=iso(now-(Number(k)-1)*864e5); S.dTo=iso(now); }
+    S.td.clear(); renderTree(); });
+  list.querySelectorAll('[data-dmode]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.dMode=b.dataset.dmode; renderTree(); });
+  const mt=list.querySelector('[data-metrics]'); if(mt) mt.onclick=e=>{ e.stopPropagation(); S.showMetrics=!S.showMetrics; renderTree(); };
+  const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); S.dFrom=''; S.dTo=''; renderTree(); };
+  const hb=list.querySelector('[data-help]'); if(hb) hb.onclick=e=>{ e.stopPropagation(); S.help=!S.help; renderTree(); };
+  list.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
+    const st = th.dataset.lvl==='m'?S.sM : th.dataset.lvl==='d'?S.sD : S.sE;
+    if(st.k===th.dataset.k) st.d=-st.d; else { st.k=th.dataset.k; st.d=(th.dataset.k==='mgr'||th.dataset.k==='title'||th.dataset.k==='stage')?1:-1; }
+    renderTree(); });
+  // Раскрытие многоуровневое: несколько менеджеров и сделок открыты одновременно, чтобы
+  // сразу нырнуть во всю выборку фильтра. Закрытие менеджера прячет и его открытые сделки.
+  const openRow=(mm)=>{ if(mm===DEPT_KEY) S.deptOpen=true; else S.tm.add(mm); };
+  // Клик по элементу дашборда НЕ сужает таблицу - он набирает фильтр ИИ (корзину внизу).
+  // Любой уровень тянет вниз до самого конца: пик всегда разворачивается в список сделок,
+  // а конфиг ИИ по каждой сделке уносит всю её коммуникацию (глубина до упора).
+  const dealIdsOf=(arr)=>arr.map(d=>d.dealId||d.leadId);
+  list.querySelectorAll('.mrow2').forEach(r=>r.onclick=(e)=>{ const m=r.dataset.m;
+    // Клик по значению = добавить срез в корзину ИИ + раскрыть менеджера и показать его
+    // сделки по корзине. Несколько кликов накапливаются - дашборд фильтрует по всем сразу.
+    const seg=e.target.closest&&e.target.closest('.fseg');
+    if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp; const g=STAGE_GRP.find(x=>x.k===grp);
+      if(!aiPickActive('fn',m,grp)&&m!==DEPT_KEY) openRow(m);
+      aiPickToggle({kind:'fn',mgr:m,sub:grp,label:`${mLabel(m)} · ${g?g.t:grp}`,deals:dealIdsOf((byM[m]||[]).filter(d=>touchedGrp(d,grp)))}); return; }
+    const clc=e.target.closest&&e.target.closest('[data-compl]');
+    if(clc){ e.stopPropagation(); const kind=clc.dataset.compl; const cx=COMPL.find(x=>x.k===kind);
+      if(!aiPickActive('cl',m,kind)&&m!==DEPT_KEY) openRow(m);
+      aiPickToggle({kind:'cl',mgr:m,sub:kind,label:`${mLabel(m)} · ${cx?cx.t:kind}`,deals:dealIdsOf((byM[m]||[]).filter(d=>complOf(d)===kind))}); return; }
+    const cc=e.target.closest&&e.target.closest('.cchip[data-comm]');
+    if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm; const cm=COMM_TYPES.find(x=>x.k===ct);
+      if(!aiPickActive('cm',m,ct)&&m!==DEPT_KEY) openRow(m);
+      aiPickToggle({kind:'cm',mgr:m,sub:ct,label:`${mLabel(m)} · ${cm?cm.t:ct}`,deals:dealIdsOf((byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0))}); return; }
+    const hc=e.target.closest&&e.target.closest('[data-hot]');
+    if(hc){ e.stopPropagation();
+      if(!aiPickActive('hot',m,'hot')&&m!==DEPT_KEY) openRow(m);
+      aiPickToggle({kind:'hot',mgr:m,sub:'hot',label:`${mLabel(m)} · горящие`,deals:dealIdsOf((byM[m]||[]).filter(d=>d.urgency))}); return; }
+    // Счётчик «Сделок» - весь уровень целиком (менеджер или отдел) со всеми его сделками.
+    const ac=e.target.closest&&e.target.closest('[data-allrow]');
+    if(ac){ e.stopPropagation();
+      if(!aiPickActive('all',m,'all')&&m!==DEPT_KEY) openRow(m);
+      aiPickToggle({kind:'all',mgr:m,sub:'all',label:`${mLabel(m)} · все сделки`,deals:dealIdsOf(byM[m]||[])}); return; }
+    // Клик по строке отдела - свернуть/развернуть всех менеджеров (навигация, не фильтр).
+    if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; renderTree(); return; }
+    // Клик по строке менеджера - раскрыть/свернуть его сделки (навигация, не фильтр).
+    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); } else S.tm.add(m); renderTree(); });
+  list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d;
+    // Клик по чипу «Ленты» или тегу «Что горит»: раскрыть переписку, прокрутить к событиям
+    // и добавить эту сделку в корзину фильтра ИИ.
+    const chip=e.target.closest&&e.target.closest('.mixchip[data-mixcat]');
+    const urg=e.target.closest&&e.target.closest('.urg');
+    if(chip||urg){ S.td.add(k); const cat=chip?chip.dataset.mixcat:''; S.evHi={key:k,cat};
+      const d=SCD[k]; if(d){ const id=d.dealId||d.leadId; aiPickToggle({kind:'deal',mgr:d.isLead?'(лид)':d.mgr,sub:String(id),label:`Сделка ${id}`,deals:[id]}); } else renderTree();
+      scrollToDeal(k,cat); return; }
+    S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
+  // Сброс фильтра раскрытых сделок менеджера - убираем его пики из корзины.
+  list.querySelectorAll('[data-mgrclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); aiPicksClearMgr(b.dataset.mgrclear); });
+  for(const dk of S.td){
+    const host=document.getElementById('tree-'+dk);
+    if(host){ const d=SCD[dk];
+      // Движение по стадиям и передачи ответственного идут в ту же ленту: видно, двигалась
+      // ли сделка вместе с разговором или молча. Это служебные строки, они не участвуют в
+      // метриках переписки и выключаются переключателем.
+      // Лента сделки = её события + события исходного лида. В Bitrix при конверсии таймлайн
+      // лида обычно переносится на сделку (событие несёт и leadId, и dealId), но если часть
+      // осталась на лиде без dealId - подтягиваем сюда же, чтобы вся переписка была в одном месте.
+      const dLead = d && d.dealId && d.leadId ? String(d.leadId) : '';
+      const evs=DATA.events.filter(e=>{
+        if((e.dealId?'D'+e.dealId:'L'+e.leadId)===dk) return true;
+        if(dLead && !e.dealId && String(e.leadId)===dLead) return true;
+        return false;
+      }).slice();
+      if(S.sys!==false && d){
+        for(const st of (d.stageRows||[])) evs.push({ts:st.ts, dt:new Date(st.ts).toISOString(), type:'Стадия',
+          dir:'-', who:'CRM', title:'', body:st.name, days:st.days, sys:1, src:'stage#'+st.code+st.date});
+        for(const o of (d.owners||[])) evs.push({ts:Date.parse(o.at+'T12:00:00+03:00'), dt:o.at+'T12:00:00+03:00',
+          type:'Ответственный', dir:'-', who:'CRM', title:'', body:o.from+' → '+o.to, sys:1, src:'own#'+o.at});
+      }
+      const ekey=e=>S.sE.k==='ts'?e.ts:S.sE.k==='type'?e.type:S.sE.k==='who'?(e.dir==='входящее'?'клиент':e.who):e[S.sE.k];
+      evs.sort((a,b)=>{ const x=ekey(a),y=ekey(b);
+        if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sE.d;
+        return String(x??'').localeCompare(String(y??''))*S.sE.d; });
+      const ECOLS=[{k:'ts',t:'Время'},{k:'who',t:'Кто'},{k:'type',t:'Канал'},{k:'body',t:'Сообщение',l:1},{k:'tags',t:'Разметка',l:1}];
+      CUR_TAGS=(d&&d.evTags)||{};
+      // Резюме BitrixGPT ссылается на звонок-источник (refId - ID активности звонка).
+      // Пара «звонок -> резюме» должна читаться в обе стороны: у звонка метка, что
+      // разбор есть, у резюме - к какому звонку и какого времени оно относится.
+      const SUMBY={};
+      for(const e of evs) if(e.type==='Резюме BitrixGPT'&&e.refId) SUMBY['act#'+e.refId]=e;
+      const rows=evs.map(e=>{
+        const tags=(CUR_TAGS[e.src]||[]);
+        const bad=tags.some(t=>t.tone==='bad'), good=tags.some(t=>t.tone==='good')&&!bad;
+        const isM=e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок';
+        const c3=typeColor(e.type);
+        // Выбран период - подсвечиваем прозрачным фоном то, что в него попало: остальная
+        // переписка остаётся для контекста, но видно, что именно происходило в эти даты.
+        const inR=(dFrom||dTo)&&(!dFrom||e.ts>=dFrom)&&(!dTo||e.ts<=dTo);
+        const onLead = e.stage==='lead' && !e.sys;
+        return `<tr class="erow2${e.sys?' sysrow':''}${inR?' inrng':''}${onLead?' lead-stage':''}${bad?' e-bad':good?' e-good':''}" data-src="${esc(e.src||'')}" data-evcat="${evCat(e.type)}">
+          <td class="etime">${fmtTime(e.dt)}${onLead?'<span class="lstage">лид</span>':''}</td>
+          <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
+          <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
+          <td class="l ebody">${e.title&&!isM?`<b>${esc(String(e.title).replace(/[\s.:;-]+$/,''))}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${e.type==='Стадия'&&e.days!=null?` <span class="due">${e.days} дн на стадии</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}${sumLink(e,SUMBY)}</td>
+          <td class="l">${tags.map(t=>`<span class="evtag"${t.ai?' data-ai="1"':''} style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join(' ')}</td></tr>`;
+      }).join('');
+      const parts=(d&&d.participants)||[];
+      const who=parts.length? parts.map(x=>`${esc(x.who)} (${x.stage==='lead'?'лид':'сделка'}, ${x.n})`).join(' → ') : 'исходящих не было';
+      // Происхождение: сделка из лида или создана напрямую. Если из лида - его переписка
+      // идёт в этой же ленте (события несут и leadId, и dealId). Если лида не было - помечаем,
+      // чтобы пустая история до сделки не читалась как «менеджер ничего не делал».
+      let originNote='';
+      if(d && d.dealId){
+        if(d.leadId){ const ln=(evs.find(e=>e.leadT)||{}).leadT||''; const hasLeadEv=evs.some(e=>e.leadId&&(e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок'));
+          const lu=`${PORTAL}/crm/lead/details/${esc(d.leadId)}/`;
+          originNote=`<div class="leadnote lead-from">↳ Сделка из лида <a href="${lu}" target="_blank" onclick="event.stopPropagation()">${esc(d.leadId)}</a>${ln?' · '+esc(ln):''} - ${hasLeadEv?'переписка лида идёт в этой же ленте':'своей переписки у лида в окне снимка нет'}</div>`;
+        } else {
+          originNote=`<div class="leadnote lead-none">Сделка создана напрямую - лида в CRM не было, истории общения до сделки нет</div>`;
+        }
+      }
+      host.innerHTML=originNote+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
+      CUR_TAGS={};
+      host.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
+        if(S.sE.k===th.dataset.k) S.sE.d=-S.sE.d; else { S.sE.k=th.dataset.k; S.sE.d=1; } renderTree(); });
+      host.querySelectorAll('[data-sys]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.sys=(S.sys===false); renderTree(); });
+    }
+  }
+  const hot=SC.deals.filter(d=>d.urgency);
+  document.getElementById('stat').textContent=`менеджеров ${mgrs.length} · сделок и лидов ${SC.deals.length} · требуют действия ${hot.length} на ${money(hot.reduce((s2,d)=>s2+(d.budget||0),0))} ₽`;
+  document.getElementById('foot').textContent=`Три уровня, у каждого свои столбцы и сортировка кликом по заголовку. Менеджер: метрики против медианы отдела, зелёное лучше отдела, красное хуже. Сделка: сумма, шанс, тишина, скорость. Диалог: кто, канал, текст и разметка дефектов.`;
+  renderPickTray();
+}
+// У дел заголовок часто дублируется в начале описания: «Формирование ТЗ: Формирование ТЗ...».
+// Показываем тело без повтора, иначе строка читается как каша.
+// Русские окончания: «3 дела», а не «3 дел».
+function plu(n,one,few,many){ const a=Math.abs(n)%100, b=a%10;
+  if(a>10&&a<20) return many; if(b>1&&b<5) return few; if(b===1) return one; return many; }
+// Состав ленты сделки одним взглядом: сколько сообщений, звонков, писем и дел.
+// Ноли не печатаем - строка должна читаться, а не считаться.
+// Состав ленты за выбранный период. Без фильтра берём предпосчитанный mix за всё окно
+// снимка, с фильтром пересчитываем на лету: РОП смотрит «что менеджер делал в этот день».
+function mixOf(d,a,b){
+  if(!a&&!b) return d.mix||null;
+  const evs=(window.EVIX&&EVIX[d.key])||[];
+  const m={msg:0,chan:0,call:0,mail:0,task:0,note:0,ai:0,total:0}, ch=new Set();
+  for(const e of evs){ if(a&&e.ts<a)continue; if(b&&e.ts>b)continue;
+    // Резюме BitrixGPT - это разбор звонка, а не отдельная коммуникация: сам звонок уже
+    // посчитан, поэтому резюме в счёт ленты не идёт (помечаем звонок как «с разбором»).
+    if(e.type==='Резюме BitrixGPT'){ m.ai++; continue; }
+    m.total++;
+    if(e.type&&e.type.indexOf('Сообщение')===0){ m.msg++; ch.add(e.type); }
+    else if(e.type==='Мессенджер ОЛ') m.msg++;
+    else if(e.type==='Звонок') m.call++;
+    else if(e.type==='Письмо') m.mail++;
+    else if(e.type==='Дело'||e.type==='Задача') m.task++;
+    else if(e.type==='Комментарий-заметка') m.note++; }
+  m.chan=ch.size; return m;
+}
+// Компактная строка сигналов сделки под названием (уровень 2, не в верхней таблице -
+// чтобы не нагружать): тип клиента, ассортимент, источник. Чек и стадия - свои столбцы.
+function clientShort(c){ if(!c) return null; const s=String(c).toLowerCase();
+  if(/b2b|дилер|опт|юрлиц|компан/.test(s)) return {t:'B2B',col:'#8B7BF0'};
+  if(/b2c|конечн|физ|розниц/.test(s)) return {t:'B2C',col:'#3DAEC2'};
+  return {t:String(c).slice(0,16),col:'#8794A5'}; }
+const srcShort=s=>String(s||'').replace(/^[A-Za-zА-Яа-я]{2,4}:\s*/,'').slice(0,22);
+const unset=v=>!v||/не указан/i.test(String(v));
+function dsig(d){ const p=[]; const cl=clientShort(d.client); if(cl) p.push([cl.t,cl.col]);
+  if(!unset(d.assort)) p.push([String(d.assort).slice(0,26),'#9AA7B2']);
+  if(!unset(d.source)) p.push([srcShort(d.source),'#5D6B77']);
+  if(d.cycle!=null&&d.cycle>0) p.push(['цикл '+Math.round(d.cycle)+' дн','#5D6B77']);
+  if(!p.length) return '';
+  return `<div class="dsig">`+p.map((x,i)=>`${i?'<span class="sdiv">·</span>':''}<span style="color:${x[1]}">${esc(x[0])}</span>`).join('')+`</div>`;
+}
+function mixCell(d,a,b){
+  const m=mixOf(d,a,b); if(!m) return '<span class="na2">-</span>';
+  const p=[];
+  if(m.msg) p.push([m.msg+' '+plu(m.msg,'сообщение','сообщения','сообщений')+(m.chan>1?` в ${m.chan} `+plu(m.chan,'канале','каналах','каналах'):''),'#2E9E74','msg']);
+  if(m.call) p.push([m.call+' '+plu(m.call,'звонок','звонка','звонков')+(m.ai?' с разбором':''),'#3DAEC2','call']);
+  if(m.mail) p.push([m.mail+' '+plu(m.mail,'письмо','письма','писем'),'#C2873C','mail']);
+  if(m.task) p.push([m.task+' '+plu(m.task,'дело','дела','дел'),'#8B7BF0','task']);
+  if(m.note) p.push([m.note+' '+plu(m.note,'заметка','заметки','заметок'),'#8794A5','note']);
+  if(!p.length) return '<span class="na2">пусто</span>';
+  return p.map(x=>`<span class="mixchip" data-mixcat="${x[2]}" style="color:${x[1]};border-color:${x[1]}44;background:${x[1]}12">${esc(x[0])}</span>`).join(' ');
+}
+// Связка звонка и его разбора BitrixGPT: у звонка - подпись с началом резюме,
+// у самого резюме - к какому звонку и на какое время оно относится.
+function sumLink(e,SUMBY){
+  // У самого резюме BitrixGPT показываем, к какому звонку оно относится. Дубль-подпись
+  // «↳ разбор BitrixGPT» на самом звонке убрана: резюме идёт отдельной строкой ниже.
+  if(e.type==='Резюме BitrixGPT') return e.ref?`<div class="ref">↳ ${esc(e.ref)}</div>`:'';
+  return '';
+}
+// У дел в Bitrix есть выставленный срок (DEADLINE/END_TIME). Показываем его рядом со
+// статусом: просроченный - красным, будущий - серым. Без срока чипа нет.
+function dueChip(e){
+  if(!e.due) return '';
+  const t=fmtTime(e.due); if(!t) return '';
+  const over = e.status==='просрочено' || (e.status!=='выполнено' && new Date(e.due) < new Date());
+  return ` <span class="due" style="${over?'color:#C25252;border-color:#C2525255':''}">срок ${t}</span>`;
+}
+function bodyNoTitle(e){
+  const b=String(e.body||'').trim(), t=String(e.title||'').trim();
+  if(!t) return b;
+  if(b.toLowerCase().startsWith(t.toLowerCase())) return b.slice(t.length).replace(/^[\s:,;.\-–»]+/,'');
+  return b;
+}
+const fmtMinShort = v => v===null||v===undefined?'-':(v<60?v+' м':(v/60).toFixed(1)+' ч');
+
+function render(){
+  VIEW=[]; renderTree(); return;
+  VIEW = group();
+  const show = VIEW.slice(0, DEAL_LIMIT);
+  const list=document.getElementById('list');
+  const secL = S.sec && SC ? (SC.sections.find(x=>x.key===S.sec)||{}).label : '';
+  const crumb = (S.mgr||S.sec||S.tag) ? `<div class="crumb">
+      <span class="x" onclick="backToTable()">← к таблице</span>
+      ${S.mgr?`<span>Менеджер: <b>${esc(S.mgr)}</b></span>`:''}
+      ${secL?`<span>· дефекты раздела: <b>${esc(secL)}</b></span>`:''}
+      ${S.tag?`<span>· тег: <b>${esc(S.tag)}</b></span>`:''}
+      <span class="x" onclick="clearScoreFilter()">сбросить фильтр</span></div>` : '';
+  list.innerHTML = crumb + (show.length ? show.map((g,i)=>dealHTML(g,i)).join('') : `<div class="empty">по этому фильтру диалогов нет</div>`);
+  list.querySelectorAll('.deal').forEach(d=>d.querySelector('.dhead').onclick=()=>toggle(d));
+  const totEv = VIEW.reduce((s,g)=>s+g.events.length,0);
+  const unit = S.mode==='deal' ? 'сделок/лидов' : 'лидов/сделок';
+  document.getElementById('stat').textContent = `${unit}: ${VIEW.length}${VIEW.length>DEAL_LIMIT?` (показаны первые ${DEAL_LIMIT}, сузьте фильтр)`:''} · событий: ${totEv}`;
+  document.getElementById('foot').textContent = `Снимок: ${DATA.events.length} событий. «Смотрим по сделкам» - лид сливается в свою сделку; «по лидам» - сделка сливается в лид. Метка «лид»/«сделка» у события - где в пути оно произошло. Клик по ID - карточка в Bitrix24.`;
+}
+// ================= Боковая панель: настройка ИИ-анализа (MVP) =================
+// Пока без живого вызова модели: панель собирает точную настройку фильтра + отчёт
+// полноты данных, кнопка копирует конфиг в буфер. Иван присылает конфиг в чат,
+// разбор возвращается текстом и вставляется в поле «Ответ ИИ» - так гоняем MVP.
+function ensureEvtIdx(){ if(window.EVTS) return; window.EVTS={}; window.EVIX={};
+  for(const e of DATA.events){ const k=e.dealId?'D'+e.dealId:'L'+e.leadId; (EVTS[k] ||= []).push(e.ts); (EVIX[k] ||= []).push(e); } }
+const AI_MGRS = SC ? [...new Set(SC.deals.map(d=>d.mgr))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'ru')) : [];
+// Стадии для фильтра: по порядку воронки, сколько сделок в каждой. Успех/отказ - в конце.
+const STAGE_ORD = ['Формирование ТЗ','Расчёт','Квалификация','КП отправлено','Принимают решение','Долгострой','Предоплата получена','Заказ в производстве','Заказ произведен','Заказ отправлен','Сделка успешна','Сделка провалена'];
+const AI_STAGES = SC ? (()=>{ const c={}; for(const d of SC.deals){ const s=d.stage||'(без стадии)'; c[s]=(c[s]||0)+1; }
+  return Object.keys(c).sort((a,b)=>{ const ia=STAGE_ORD.indexOf(a),ib=STAGE_ORD.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); }).map(s=>[s,c[s]]); })() : [];
+const INCLBL = { msg:'мессенджеры', mail:'письма', call:'звонки', task:'дела/задачи', note:'комментарии' };
+
+function aiToggle(on){ S.aiOpen=on; document.getElementById('apanel').classList.toggle('on',on);
+  document.getElementById('scrim').classList.toggle('on',on); if(on) renderAIPanel(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&S.aiOpen) aiToggle(false); });
+
+function aiBounds(){ const F=S.aiF; return { a:F.from?Date.parse(F.from+'T00:00:00+03:00'):0, b:F.to?Date.parse(F.to+'T23:59:59+03:00'):0 }; }
+// Лента сделки с учётом глубины: «вся коммуникация» - весь снимок, «в диапазоне» - окно дат.
+function aiMix(d){ const F=S.aiF, {a,b}=aiBounds(); const useR=F.depth==='range'&&(a||b);
+  return mixOf(d, useR?a:0, useR?b:0) || {msg:0,mail:0,call:0,task:0,note:0,ai:0,total:0}; }
+// Классификация полноты данных под настройку включённых каналов.
+// Полнота = доля коммуникационных событий (сообщения, звонки, письма) от всех событий
+// сделки (плюс системные - дела, задачи, комментарии). Одна модель с дашбордом.
+function completeness(d){ const F=S.aiF, m=aiMix(d), inc=F.inc;
+  const msg=inc.has('msg')?m.msg:0, mail=inc.has('mail')?m.mail:0, call=inc.has('call')?m.call:0;
+  const task=inc.has('task')?m.task:0, note=inc.has('note')?m.note:0;
+  const comm=msg+call+mail, sys=task+note, tot=comm+sys; const r=tot>0?comm/tot:0, pct=Math.round(r*100);
+  if(r>=0.6) return {k:'full',ic:'🟢',why:`коммуникации ${pct}% событий сделки`};
+  if(r>=0.3) return {k:'partial',ic:'🟡',why:`коммуникации ${pct}% событий - данные частичные, часть картины в системных делах`};
+  return {k:'empty',ic:'🔴',why:tot?`коммуникации ${pct}% событий - пайплайн держится на системных делах/задачах/комментариях`:'событий нет'};
+}
+function aiMatchDeals(){ ensureEvtIdx(); const F=S.aiF, {a,b}=aiBounds();
+  const ids=F.dealIds.split(/[\s,;]+/).map(x=>x.trim().replace(/^[DL]/i,'')).filter(Boolean);
+  const idset=ids.length?new Set(ids):null;
+  // Корзина кликов: список ID - истина; чипы «Менеджеры»/«Стадии» подсвечены для показа
+  // того, что накликано (объединение срезов), но фильтруют выборку не они, а idset.
+  const pickMode=S.picks.length>0;
+  return SC.deals.filter(d=>{
+    if(!pickMode && F.mgrs.size && !F.mgrs.has(d.mgr)) return false;
+    // Стадия попадает и по касательной: текущая стадия ИЛИ пройденная в истории (максимум данных).
+    if(!pickMode && F.stages.size){ const touched=F.stages.has(d.stage||'(без стадии)')||(d.stageRows||[]).some(s=>F.stages.has(s.name)); if(!touched) return false; }
+    if(idset){ const id=String(d.dealId||d.leadId||''); if(!idset.has(id)) return false; }
+    if(!a&&!b) return true;
+    if(F.dMode==='created'){ const ts=EVTS[d.key]||[]; const c=d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||(ts.length?Math.min.apply(null,ts):0)); if(!c) return true; return (!a||c>=a)&&(!b||c<=b); }
+    const ts=EVTS[d.key]||[]; return ts.some(t=>(!a||t>=a)&&(!b||t<=b));
+  });
+}
+// Объект анализа: отдел / менеджер / сделка. Определяет ГЛУБИНУ ВЫВОДА (данные всегда
+// собираются на всю глубину, до коммуникаций). Вывод - на уровне объекта и на один уровень
+// ниже («минус 1»): отдел -> по менеджерам, менеджер -> по сделкам, сделка -> по коммуникациям.
+function aiObject(){ const F=S.aiF;
+  if(F.obj && F.obj!=='auto') return F.obj;
+  const picks=S.picks;
+  if(picks.length){
+    if(picks.every(p=>p.kind==='deal')) return 'сделка';
+    if(picks.some(p=>p.mgr===DEPT_KEY)) return 'отдел';
+    const mgrs=new Set(picks.filter(p=>p.mgr&&p.mgr!==DEPT_KEY&&p.mgr!=='(лид)').map(p=>p.mgr));
+    return mgrs.size?'менеджер':'отдел';
+  }
+  const ids=(F.dealIds||'').split(/[\s,;]+/).filter(Boolean);
+  if(ids.length && ids.length<=5 && !F.mgrs.size) return 'сделка';
+  if(F.mgrs.size) return 'менеджер';
+  return 'отдел';
+}
+// Инструкция формата вывода под объект - собери на всю глубину, выводи по объекту + «минус 1».
+const AI_OBJ_FMT={
+  'отдел':'Объект анализа - ОТДЕЛ. Данные собраны на всю глубину (вся коммуникация по каждой сделке). ПОРЯДОК РАБОТЫ (внутри) - снизу вверх: сначала разбери коммуникации, каналы и системные отбивки (дела/задачи/комментарии) по каждой сделке, пойми контекст данных, затем поднимись до менеджеров и до отдела. ПОРЯДОК ВЫВОДА (пользователю) - сверху вниз. НЕ опускайся в тексте до отдельных реплик. Тон - профессиональный консультант по продажам: критично, по фактам, БЕЗ похвалы. Дай: (1) вердикт по отделу - фраза-заголовок; (2) поле "разбор" - РАЗВЁРНУТЫЙ, максимально раскрытый аудит-вывод (несколько абзацев, это ГЛАВНЫЙ результат): общая картина отдела, механика сквозных проблем и сильных мест, причины, чем подтверждается - синтез всего, что ты понял снизу; цифры вплетай в текст; (3) поле "сводка_менеджеров" - дополнительная сводка на 2-4 предложения, что творится на уровне менеджеров (кто тянет, кто проседает, где деньги под риском); (4) по каждому менеджеру - короткий вердикт (tone) и 1-3 сделки где молодец и 1-3 где плохо (id + фраза) - детализация, доказывающая вывод. Верни JSON: {"отдел":{"вердикт":"","tone":"","разбор":"","сводка_менеджеров":"","сильные":[],"слабые":[],"действия":[]},"менеджеры":[{"менеджер":"","вердикт":"","tone":"","сильные_сделки":[{"id":"","почему":""}],"слабые_сделки":[{"id":"","почему":""}]}]}',
+  'менеджер':'Объект анализа - МЕНЕДЖЕР(Ы). Данные собраны на всю глубину. ПОРЯДОК РАБОТЫ (внутри) - снизу вверх: сначала разбери коммуникации, каналы и системные отбивки (дела/задачи/комментарии) по каждой сделке, пойми контекст, затем поднимись на уровень менеджера. ПОРЯДОК ВЫВОДА (пользователю) - сверху вниз. НЕ опускайся в тексте до отдельных реплик. Тон - профессиональный консультант по продажам: критично, по фактам, БЕЗ похвалы. По каждому менеджеру: (1) вердикт - фраза-заголовок; (2) поле "разбор" - РАЗВЁРНУТЫЙ, максимально раскрытый аудит-вывод (несколько абзацев, это ГЛАВНЫЙ результат): общая картина работы, механика ключевых проблем и сильных мест, причины, чем подтверждается - синтез всего, что понял снизу; цифры вплетай в текст; (3) поле "сводка_сделок" - дополнительная сводка на 2-4 предложения, что творится на уровне его сделок (группы/паттерны, где деньги под риском); (4) по его сделкам - verdict/problem/recommendation/tone, БЕЗ пословного разбора реплик - детализация, доказывающая вывод. Верни JSON: {"менеджер":{"менеджер":"","вердикт":"","tone":"","разбор":"","сводка_сделок":"","сильные":[],"слабые":[],"действия":[]},"сделки":[{"id":"","менеджер":"","вердикт":"","проблема":"","рекомендация":"","tone":""}]}',
+  'сделка':'Объект анализа - СДЕЛКА(И). Вывод по каждой сделке и на один уровень ниже - по коммуникациям: что именно в переписке (отклик, квалификация, сроки, ведение) сыграло. Верни JSON: {"сделки":[{"id":"","вердикт":"","проблема":"","рекомендация":"","tone":""}]}'
+};
+function aiScope(){ const F=S.aiF, deals=aiMatchDeals(); const byM={}; for(const d of deals)(byM[d.mgr]||=[]).push(d);
+  const rep={full:0,partial:0,empty:0}; const obj=aiObject();
+  const list=deals.map(d=>{ const c=completeness(d), m=aiMix(d); rep[c.k]++;
+    return { id:d.dealId||d.leadId, kind:d.isLead?'лид':'сделка', менеджер:d.mgr, название:d.title,
+      чек:d.budget||0, тип_клиента:d.client||'', ассортимент:d.assort||'', источник:d.source||'', бренд:d.dir||'',
+      стадия:d.stage, история_стадий:(d.stageRows||[]).map(s=>({стадия:s.name,дней:s.days})), цикл_дней:d.cycle,
+      исход:d.outcome||'open', происхождение:(d.dealId? (d.leadId?{из_лида:String(d.leadId)}:{создана_напрямую:true, лида_не_было:true}) : {это_лид:true}),
+      вероятность:d.prob, причина_отказа:d.lossReason||'', полнота:c.k, комментарий:c.why,
+      лента:{сообщения:m.msg,письма:m.mail,звонки:m.call,разбор_звонков:m.ai,дела:m.task,заметки:m.note} }; });
+  return {
+    объект_анализа: obj,
+    формат_вывода: AI_OBJ_FMT[obj],
+    уточняющий_вопрос: (F.question||'').trim() || null,
+    запрос:'Ты аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). Опирайся на все сигналы сделки: чек, тип клиента (B2B/B2C/дилер), ассортимент, источник лида, стадию и историю стадий, цикл - рекомендация должна учитывать контекст (крупный чек и B2B требуют иного дожима, чем розница). Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет. Порядок работы: сначала прими и разбери все данные выборки на всю глубину, пойми общую картину; затем прочитай уточняющий_вопрос (если задан) и через его призму сфокусируй ответ - вопрос это линза, не отдельный ответ вперёд разбора. ГЛУБИНА И ФОРМАТ ВЫВОДА - строго по полю формат_вывода (объект анализа: '+obj+'): данные собраны до коммуникаций, но вывод делай на уровне объекта и на один уровень ниже, не глубже.',
+    фильтр:{ период_по:F.dMode==='created'?'дате создания сделки':'дате коммуникации', с:F.from||'начало окна снимка', по:F.to||'конец окна снимка', глубина:F.depth==='range'?'только события в диапазоне дат':'вся коммуникация сделки', менеджеры:F.mgrs.size?[...F.mgrs]:'весь отдел', стадии:F.stages.size?[...F.stages]:'все стадии', включено:[...F.inc].map(k=>INCLBL[k]) },
+    полнота:{полные:rep.full,неполные:rep.partial,пустые:rep.empty,всего:deals.length},
+    менеджеры:Object.entries(byM).map(([m,ds])=>({менеджер:m,сделок:ds.length})),
+    сделки:list, снимок:BAKED_AT };
+}
+function aiCopy(){ const txt=JSON.stringify(aiScope(),null,2);
+  const done=()=>{ const el=document.getElementById('aiCopied'); if(el){ el.textContent='Скопировано - пришлите этот текст в чат'; setTimeout(()=>el.textContent='',4000);} };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done)); }
+  else fallbackCopy(txt,done);
+}
+function fallbackCopy(txt,cb){ const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity=0; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); cb&&cb(); }
+
+function aiSetMode(m){ S.aiF.dMode=m; renderAIPanel(); }
+function aiSetDepth(m){ S.aiF.depth=m; renderAIPanel(); }
+function aiTogInc(k){ const s=S.aiF.inc; s.has(k)?s.delete(k):s.add(k); renderAIPanel(); }
+function aiTogMgr(m){ const s=S.aiF.mgrs; s.has(m)?s.delete(m):s.add(m); renderAIPanel(); }
+function aiAllMgr(){ S.aiF.mgrs.clear(); renderAIPanel(); }
+function aiTogStage(s0){ const s=S.aiF.stages; s.has(s0)?s.delete(s0):s.add(s0); renderAIPanel(); }
+function aiAllStage(){ S.aiF.stages.clear(); renderAIPanel(); }
+function aiDate(which,v){ S.aiF[which]=v; renderAIPanel(); }
+function aiDealIds(v){ S.aiF.dealIds=v; scheduleRep(); }
+let _repT; function scheduleRep(){ clearTimeout(_repT); _repT=setTimeout(renderRepOnly,250); }
+function aiPreset(k){ const F=S.aiF, now=new Date(), iso=d=>d.toISOString().slice(0,10);
+  if(k==='all'){F.from='';F.to='';}
+  else if(k==='today'){F.from=iso(now);F.to=iso(now);}
+  else if(k==='yst'){const y=new Date(now-864e5);F.from=iso(y);F.to=iso(y);}
+  else if(k==='3'){F.from=iso(new Date(now-2*864e5));F.to=iso(now);}
+  else if(k==='7'){F.from=iso(new Date(now-6*864e5));F.to=iso(now);}
+  renderAIPanel();
+}
+
+function repHTML(){ const F=S.aiF, deals=aiMatchDeals(); const rep={full:0,partial:0,empty:0};
+  const rows=deals.map(d=>{ const c=completeness(d); rep[c.k]++; return {d,c}; });
+  const byM={}; for(const {d} of rows)(byM[d.mgr]||=[]).push(d);
+  const order={full:0,partial:1,empty:2};
+  rows.sort((x,y)=>order[x.c.k]-order[y.c.k]||(y.d.budget||0)-(x.d.budget||0));
+  const mgrLine=Object.entries(byM).sort((a,b)=>b[1].length-a[1].length)
+    .map(([m,ds])=>`${esc(m)} <b style="color:var(--ink-2)">${ds.length}</b>`).join(' · ') || '<span class="na2">нет сделок под фильтр</span>';
+  return `<div class="rep">
+      <div class="rc"><b style="color:#7FD1A6">${rep.full}</b><span>🟢 полные</span></div>
+      <div class="rc"><b style="color:#E4B563">${rep.partial}</b><span>🟡 неполные</span></div>
+      <div class="rc"><b style="color:#E08585">${rep.empty}</b><span>🔴 пустые</span></div>
+      <div class="rc"><b>${deals.length}</b><span>всего</span></div>
+    </div>
+    <div class="mgrsum" style="margin-top:9px">Менеджеры: ${mgrLine}</div>
+    <div class="hint" style="margin-top:6px">${deals.length} ${plu(deals.length,'сделка','сделки','сделок')} в выборке. Полный список сделок и полнота по каждой уходят в конфиг для ИИ - здесь читать не нужно.</div>`;
+}
+function renderRepOnly(){ const el=document.getElementById('aiRep'); if(el) el.innerHTML=repHTML(); }
+
+function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
+  const seg=(cur,val,fn,lbl)=>`<button class="${cur===val?'on':''}" onclick="${fn}('${val}')">${lbl}</button>`;
+  const preset=(k,l)=>`<span class="tog" onclick="aiPreset('${k}')">${l}</span>`;
+  const pTot=(()=>{ const s=new Set(); S.picks.forEach(p=>(p.deals||[]).forEach(d=>s.add(String(d)))); return s.size; })();
+  const picksSect = S.picks.length ? `
+    <div class="sect picksect"><h5>Набрано кликами · ${pTot} ${plu(pTot,'сделка','сделки','сделок')}</h5>
+      <div class="ppicks">${S.picks.map(p=>`<span class="pchip" data-psig="${esc(pickSig(p))}" title="Убрать">${esc(p.label)} <b>${(p.deals||[]).length}</b> <span class="px">✕</span></span>`).join('')}</div>
+      <div class="hint">Это срезы, накликанные на дашборде (объединение сделок). Стадии и менеджеры ниже не «зажигаются» - пики уходят готовым списком ID в поле «Сделки». ✕ - убрать срез.</div>
+      <button class="abtn sec" style="margin-top:8px" onclick="aiPicksClear()">Сбросить все клики</button>
+    </div>` : '';
+  const objNow=aiObject();
+  const objSect=`<div class="sect"><h5>Объект анализа · <span style="color:var(--acc)">${objNow}</span></h5>
+      <div class="seg">${['auto','отдел','менеджер','сделка'].map(o=>`<button class="${F.obj===o?'on':''}" onclick="aiSetObj('${o}')">${o==='auto'?'авто':o}</button>`).join('')}</div>
+      <div class="hint">Данные всегда собираются на всю глубину (до коммуникаций), но вывод - на уровне объекта и на один ниже: <b>отдел</b> → по менеджерам (+ подсветка сильных/слабых сделок), <b>менеджер</b> → по сделкам, <b>сделка</b> → по коммуникациям. «Авто» берёт объект из того, что выделено.</div>
+    </div>`;
+  p.innerHTML=`
+    <div class="ah"><div><b>Настройка ИИ-анализа</b><div class="sub2">MVP: собери фильтр → скопируй → пришли в чат → вставь ответ</div></div>
+      <span class="ax" onclick="aiToggle(false)">✕</span></div>
+    ${picksSect}
+    ${objSect}
+
+    <div class="sect"><h5>Период - считать по</h5>
+      <div class="seg">${seg(F.dMode,'comm','aiSetMode','дате коммуникации')}${seg(F.dMode,'created','aiSetMode','дате создания')}</div>
+      <div class="togs" style="margin-top:9px">${preset('today','сегодня')}${preset('yst','вчера')}${preset('3','3 дня')}${preset('7','7 дней')}${preset('all','всё окно')}</div>
+      <div class="arow" style="margin-top:9px">
+        <input type="date" value="${F.from}" onchange="aiDate('from',this.value)">
+        <span style="color:var(--ink-4)">→</span>
+        <input type="date" value="${F.to}" onchange="aiDate('to',this.value)">
+      </div>
+      <div class="hint">Один день - поставь одинаковые даты. Пусто - всё окно снимка (7 дней).</div>
+    </div>
+
+    <div class="sect"><h5>Глубина коммуникации</h5>
+      <div class="seg">${seg(F.depth,'all','aiSetDepth','вся сделка')}${seg(F.depth,'range','aiSetDepth','только в диапазоне')}</div>
+      <div class="hint">«Вся сделка» - весь диалог целиком. «Только в диапазоне» - события за выбранные даты (по дате создания - с момента создания).</div>
+    </div>
+
+    <div class="sect"><h5>Менеджеры${F.mgrs.size?` · выбрано ${F.mgrs.size}`:' · весь отдел'}</h5>
+      <div class="mgrbox">
+        <span class="tog ${F.mgrs.size?'':'on'}" onclick="aiAllMgr()">весь отдел</span>
+        ${AI_MGRS.map(m=>`<span class="tog ${F.mgrs.has(m)?'on':''}" onclick="aiTogMgr('${esc(m).replace(/'/g,"\\'")}')">${esc(m)}</span>`).join('')}
+      </div>
+    </div>
+
+    <div class="sect"><h5>Стадии${F.stages.size?` · выбрано ${F.stages.size}`:' · все'}</h5>
+      <div class="mgrbox">
+        <span class="tog ${F.stages.size?'':'on'}" onclick="aiAllStage()">все стадии</span>
+        ${AI_STAGES.map(([s,n])=>`<span class="tog ${F.stages.has(s)?'on':''}" onclick="aiTogStage('${esc(s).replace(/'/g,"\\'")}')">${esc(s)} <i style="color:var(--ink-4);font-style:normal">${n}</i></span>`).join('')}
+      </div>
+      <div class="hint">Успех/отказ появятся, когда в снимок попадут закрытые сделки (следующий ночной прогон) - тогда сможешь смотреть, что довело до успеха, а что до отказа.</div>
+    </div>
+
+    <div class="sect"><h5>Сделки</h5>
+      <input style="width:100%;box-sizing:border-box" placeholder="ID через запятую (пусто - все по фильтру), напр. 99605, 99537"
+        value="${esc(F.dealIds)}" oninput="aiDealIds(this.value)">
+    </div>
+
+    <div class="sect"><h5>Что включать в разбор</h5>
+      <div class="togs">${Object.keys(INCLBL).map(k=>`<span class="tog ${F.inc.has(k)?'on':''}" onclick="aiTogInc('${k}')">${INCLBL[k]}</span>`).join('')}</div>
+    </div>
+
+    <div class="sect"><h5>Уточняющий вопрос к ИИ · необязательно</h5>
+      <textarea class="ansbox" id="aiQuestion" style="min-height:60px" placeholder="Напр.: почему долгострои не двигаются? где теряем крупные сделки? что общего у отказов?" oninput="aiQInput(this.value)">${esc(F.question||'')}</textarea>
+      <div class="hint">Фильтр задаёт, ЧТО анализировать (выборка сделок), а вопрос - НА ЧТО ответить. Полетит вместе с настройкой, анализ будет управляемым.</div>
+    </div>
+
+    <div class="sect"><h5>Полнота данных под выборку</h5>
+      <div id="aiRep">${repHTML()}</div>
+    </div>
+
+    <div class="sect"><h5>Рабочее окно ИИ - одно на всё</h5>
+      <ol class="steps">
+        <li>Соберите выборку - кликами по дашборду или полями выше.</li>
+        <li>Нажмите «Скопировать» и пришлите настройку в чат Claude.</li>
+        <li>Что вернётся - вставьте в окно ниже. Я сам пойму, настройка это или разбор, и подскажу следующий шаг.</li>
+      </ol>
+      <button class="abtn" onclick="aiCopy()">Скопировать настройку и отправить в чат</button>
+      <div class="copied" id="aiCopied"></div>
+      <button class="abtn sec" style="margin-top:8px" onclick="aiApplyToDash()">Показать эту выборку в дашборде</button>
+      <div class="hint">Свернёт таблицу до выбранных менеджеров и сделок, выставит период и раскроет переписку - проверить ход коммуникаций, не дожидаясь ИИ.</div>
+      <textarea class="ansbox" id="aiIn" style="min-height:96px;margin-top:12px" placeholder="Вставьте сюда одно из двух:
+ • настройку (JSON) - разверну ровно эти сделки в дашборде;
+ • ответ ИИ из чата (JSON или обычный текст) - покажу разбор.
+Распознаю сам."></textarea>
+      <button class="abtn" style="margin-top:8px" onclick="aiProcess()">Распознать и применить</button>
+      <div class="aimsg" id="aiInMsg"></div>
+      <div id="aiAnsOut"></div>
+    </div>`;
+  p.querySelectorAll('.picksect .pchip').forEach(c=>c.onclick=()=>aiPickRemove(c.dataset.psig));
+  const at=document.getElementById('aiIn'); if(at && S.ansText){ at.value=S.ansText; renderAns(S.ansText); }
+  aiSave();
+}
+// Одно окно на весь цикл: распознаём вставленное и сами решаем, что с ним делать.
+// Настройка (есть ключ «фильтр» или список сделок без вердиктов) - разворачиваем дашборд.
+// Разбор ИИ (вердикты по сделкам / карточка менеджера / просто текст) - показываем ниже.
+function aiProcess(){ const raw=(document.getElementById('aiIn').value||'').trim();
+  const msg=document.getElementById('aiInMsg'), out=document.getElementById('aiAnsOut');
+  if(!raw){ msg.innerHTML='Окно пустое. Соберите выборку кликами по дашборду или полями выше, нажмите «Скопировать», пришлите в чат - и вставьте сюда, что вернулось.'; out.innerHTML=''; S.ansText=''; aiSave(); return; }
+  let obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){}
+  if(aiIsConfig(obj)){ // это настройка - применяем к дашборду (панель закроется, будут видны сделки)
+    S.ansText=''; aiApplyToDash(obj); return; }
+  // иначе - разбор ИИ (JSON с вердиктами или обычный текст)
+  S.ansText=raw; renderAns(raw,obj); aiSave();
+  msg.innerHTML='Распознал <b>разбор ИИ</b> - показал ниже. Для новой выборки: соберите её, «Скопировать» → в чат → ответ снова сюда.';
+}
+function aiIsConfig(obj){ if(!obj) return false; // не-JSON (обычный текст) считаем разбором
+  if(obj.фильтр||obj.filter) return true; // наш конфиг всегда несёт блок «фильтр»
+  if(obj.отдел||obj.department) return false; // разбор уровня отдела
+  const arr=obj.сделки||obj.deals||obj.reviews, mg=obj.менеджер||obj.manager, mgs=obj.менеджеры||obj.managers;
+  const answerish=(mg&&(mg.вердикт||mg.verdict||mg.сильные||mg.strengths||mg.слабые||mg.weaknesses))
+    ||(Array.isArray(arr)&&arr.some(x=>x&&(x.вердикт||x.verdict||x.проблема||x.problem||x.рекомендация||x.recommendation||x.tone)))
+    ||(Array.isArray(mgs)&&mgs.some(x=>x&&(x.вердикт||x.verdict||x.tone||x.сильные_сделки||x.слабые_сделки||x.strong||x.weak)));
+  if(answerish) return false;
+  if(obj.менеджеры||obj.выборка||Array.isArray(arr)) return true; // список сделок/менеджеров без вердиктов = настройка
+  return false;
+}
+function renderAns(raw,obj){ const out=document.getElementById('aiAnsOut'); if(!out) return;
+  raw=(raw||'').trim(); if(!raw){ out.innerHTML=''; return; }
+  if(obj===undefined){ obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){} }
+  const tcol=t=>t==='bad'?'#E08585':t==='good'?'#7FD1A6':'#E4B563';
+  const lst=(a)=>Array.isArray(a)&&a.length?'<ul class="mgul">'+a.map(x=>`<li>${esc(typeof x==='string'?x:(x.действие||x.text||''))}</li>`).join('')+'</ul>':'';
+  // Вывод уровня ОТДЕЛ: карточка отдела + карточки менеджеров с подсветкой сильных/слабых сделок.
+  const dept = obj && (obj.отдел||obj.department);
+  const mgrsArr = obj && (obj.менеджеры||obj.managers);
+  if(dept || Array.isArray(mgrsArr)){
+    const dchips=(a,cls)=>Array.isArray(a)&&a.length?'<div class="dchips">'+a.map(x=>{ const id=esc(String(x.id||x.сделка||x)); const why=esc(x.почему||x.why||''); return `<span class="dchip ${cls}" title="${why}">${id}${why?' · '+why:''}</span>`; }).join('')+'</div>':'';
+    let h='<div class="ansout">';
+    if(dept){ const tc=tcol(dept.tone);
+      h+=`<div class="mgcard" style="border-color:${tc}66"><div class="mgh">Отдел</div>
+        <div class="mgv" style="color:${tc}">${esc(dept.вердикт||dept.verdict||'')}</div>
+        ${dept.разбор||dept.данные||dept.caveat?`<div class="mgaudit">${esc(dept.разбор||dept.данные||dept.caveat)}</div>`:''}
+        ${(dept.сильные||dept.strengths)?`<div class="mglab">Сильные места</div>${lst(dept.сильные||dept.strengths)}`:''}
+        ${(dept.слабые||dept.weaknesses)?`<div class="mglab">Слабые места</div>${lst(dept.слабые||dept.weaknesses)}`:''}
+        ${(dept.действия||dept.actions)?`<div class="mglab">Что делать</div>${lst(dept.действия||dept.actions)}`:''}</div>`; }
+    if(dept && (dept.сводка_менеджеров||dept.сводка_ниже)) h+=`<div class="lsum"><div class="lsumh">Что по менеджерам · сводка</div>${esc(dept.сводка_менеджеров||dept.сводка_ниже)}</div>`;
+    else if(Array.isArray(mgrsArr)&&mgrsArr.length) h+='<div class="lsumh">Детализация по менеджерам</div>';
+    if(Array.isArray(mgrsArr)) h+=mgrsArr.map(mm=>{ const tc=tcol(mm.tone);
+      return `<div class="mgcard" style="border-color:${tc}44"><div class="mgh">${esc(mm.менеджер||mm.name||'')}</div>
+        <div class="mgv" style="color:${tc}">${esc(mm.вердикт||mm.verdict||'')}</div>
+        ${(mm.сильные_сделки||mm.strong)?`<div class="mglab" style="color:#7FD1A6">Молодец</div>${dchips(mm.сильные_сделки||mm.strong,'good')}`:''}
+        ${(mm.слабые_сделки||mm.weak)?`<div class="mglab" style="color:#E08585">Слабо</div>${dchips(mm.слабые_сделки||mm.weak,'bad')}`:''}</div>`; }).join('');
+    out.innerHTML=h+'</div>'; return;
+  }
+  const arr = obj && (obj.сделки||obj.deals||obj.reviews);
+  const mg = obj && (obj.менеджер||obj.manager);
+  if(arr||mg){ const items = arr? (Array.isArray(arr)?arr:Object.entries(arr).map(([id,v])=>({id,...v}))) : [];
+    // Уровень менеджера: сводка по всем разобранным сделкам плюс действия руководителю.
+    const mgBlock = mg ? (()=>{ const t=mg.tone==='bad'?'#E08585':mg.tone==='good'?'#7FD1A6':'#E4B563';
+      const lst=(a)=>Array.isArray(a)&&a.length?'<ul class="mgul">'+a.map(x=>`<li>${esc(typeof x==='string'?x:(x.действие||x.text||''))}</li>`).join('')+'</ul>':'';
+      return `<div class="mgcard" style="border-color:${t}66">
+        <div class="mgh">Менеджер · ${esc(mg.менеджер||mg.name||'')}</div>
+        <div class="mgv" style="color:${t}">${esc(mg.вердикт||mg.verdict||'')}</div>
+        ${mg.разбор||mg.данные||mg.caveat?`<div class="mgaudit">${esc(mg.разбор||mg.данные||mg.caveat)}</div>`:''}
+        ${(mg.сильные||mg.strengths)?`<div class="mglab">Сильные стороны</div>${lst(mg.сильные||mg.strengths)}`:''}
+        ${(mg.слабые||mg.weaknesses)?`<div class="mglab">Слабые места</div>${lst(mg.слабые||mg.weaknesses)}`:''}
+        ${(mg.действия||mg.actions)?`<div class="mglab">Что сделать руководителю</div>${lst(mg.действия||mg.actions)}`:''}
+      </div>`; })() : '';
+    const subM = mg && (mg.сводка_сделок||mg.сводка_ниже) ? `<div class="lsum"><div class="lsumh">Что в сделках · сводка</div>${esc(mg.сводка_сделок||mg.сводка_ниже)}</div>` : (items.length?'<div class="lsumh">Детализация по сделкам</div>':'');
+    out.innerHTML='<div class="ansout">'+mgBlock+subM+items.map(r=>{
+      const t=r.tone==='bad'?'#E08585':r.tone==='good'?'#7FD1A6':'#E4B563';
+      return `<div class="rv"><div class="rvh" style="color:${t}">${esc(r.id||r.сделка||'')} · ${esc(r.verdict||r.вердикт||'')}</div>
+        ${r.problem||r.проблема?`<div class="rvp">Проблема: ${esc(r.problem||r.проблема)}</div>`:''}
+        ${r.recommendation||r.рекомендация?`<div class="rvr">→ ${esc(r.recommendation||r.рекомендация)}</div>`:''}</div>`;
+    }).join('')+'</div>';
+  } else { out.innerHTML='<div class="ansout">'+esc(raw)+'</div>'; }
+}
+
+// Применить выборку к самому дашборду: сузить таблицу до нужных менеджеров и сделок,
+// выставить период и раскрыть сделки, чтобы сразу видеть ход коммуникаций по пайплайну.
+// Источник настройки - либо текущие контролы панели, либо переданный конфиг-JSON (cfg).
+const OPEN_CAP = 20; // сколько сделок раскрываем автоматически, чтобы не рендерить сотни лент
+function aiApplyToDash(cfg){ const F=S.aiF;
+  let dMode, from, to, mgrs, dealIds, stages;
+  if(cfg){ S.picks=[]; const f=cfg.фильтр||{}; // вставленная настройка замещает корзину кликов
+    dMode=/созда/.test(String(f.период_по||''))?'created':'comm';
+    from=(f.с&&!/окн/.test(String(f.с)))?f.с:''; to=(f.по&&!/окн/.test(String(f.по)))?f.по:'';
+    const ml=Array.isArray(f.менеджеры)?f.менеджеры:(Array.isArray(cfg.менеджеры)?cfg.менеджеры.map(x=>x.менеджер):[]);
+    mgrs=new Set(ml);
+    stages=new Set(Array.isArray(f.стадии)?f.стадии:[]);
+    const dl=Array.isArray(cfg.сделки)?cfg.сделки.map(x=>String(x.id)):[];
+    dealIds=new Set(dl);
+    // Синхронизируем контролы панели с активированным JSON, чтобы при повторном открытии
+    // фильтр показывал то же, что применено к дашборду.
+    S.aiF.dMode=dMode; S.aiF.from=from; S.aiF.to=to; S.aiF.mgrs=new Set(mgrs); S.aiF.stages=new Set(stages); S.aiF.dealIds=dl.join(', ');
+  } else {
+    dMode=F.dMode; from=F.from; to=F.to; mgrs=new Set(F.mgrs); stages=new Set(F.stages);
+    if(F.dealIds.trim()) dealIds=new Set(F.dealIds.split(/[\s,;]+/).map(x=>x.trim().replace(/^[DL]/i,'')).filter(Boolean));
+    else dealIds=new Set(aiMatchDeals().map(d=>String(d.dealId||d.leadId)));
+  }
+  S.dMode=dMode; S.dFrom=from; S.dTo=to;
+  const matched=SC.deals.filter(d=> (!mgrs.size||mgrs.has(d.mgr)) && (!stages.size||stages.has(d.stage||'(без стадии)')) && (!dealIds.size||dealIds.has(String(d.dealId||d.leadId))) );
+  S.fMgrs = mgrs.size ? mgrs : (dealIds.size ? new Set(matched.map(d=>d.mgr)) : new Set());
+  S.fDealIds = dealIds;
+  S.tm=new Set(matched.map(d=>d.mgr)); S.td=new Set();
+  if(matched.length<=OPEN_CAP){ for(const d of matched) S.td.add(d.key); S.dashNote=''; }
+  else S.dashNote=`сделок ${matched.length} - раскрыты менеджеры, переписку открывай кликом по строке`;
+  aiSave(); aiToggle(false); render(); window.scrollTo(0,0);
+}
+function aiClearDash(){ S.fMgrs=new Set(); S.fDealIds=new Set(); S.dashNote=''; S.tm=new Set(); S.td=new Set(); S.picks=[]; aiApplyPicks(); aiSave(); render(); }
+// Сохранение состояния панели и применённого фильтра в localStorage: обновление страницы
+// (в т.ч. авто-деплой) больше не сбрасывает выборку и вставленный разбор.
+function aiSave(){ try{ const F=S.aiF;
+  localStorage.setItem('dlg_ai_v1', JSON.stringify({
+    aiF:{dMode:F.dMode,from:F.from,to:F.to,dealIds:F.dealIds,depth:F.depth,mgrs:[...F.mgrs],stages:[...F.stages],question:F.question||'',obj:F.obj||'auto',inc:[...F.inc]},
+    fMgrs:[...S.fMgrs], fDealIds:[...S.fDealIds], tm:[...S.tm], td:[...S.td], picks:S.picks||[],
+    vdMode:S.dMode, vdFrom:S.dFrom, vdTo:S.dTo, dashNote:S.dashNote||'', ans:S.ansText||'' })); }catch(e){} }
+function aiLoad(){ try{ const j=JSON.parse(localStorage.getItem('dlg_ai_v1')||'null'); if(!j) return;
+  if(j.aiF){ S.aiF={dMode:j.aiF.dMode||'comm',from:j.aiF.from||'',to:j.aiF.to||'',dealIds:j.aiF.dealIds||'',depth:j.aiF.depth||'all',
+    mgrs:new Set(j.aiF.mgrs||[]),stages:new Set(j.aiF.stages||[]),question:j.aiF.question||'',obj:j.aiF.obj||'auto',inc:new Set(j.aiF.inc&&j.aiF.inc.length?j.aiF.inc:['msg','mail','call','task','note'])}; }
+  S.fMgrs=new Set(j.fMgrs||[]); S.fDealIds=new Set(j.fDealIds||[]); S.picks=Array.isArray(j.picks)?j.picks:[];
+  // Раскрытие строк (tm/td) НЕ восстанавливаем: это навигация, а не анализ. Иначе при
+  // перезагрузке дашборд сам разворачивает менеджера, которого раскрывали в прошлый раз.
+  // Восстанавливаем только применённый ИИ-фильтр и ответ.
+  if(j.vdMode)S.dMode=j.vdMode; S.dFrom=j.vdFrom||''; S.dTo=j.vdTo||''; S.dashNote=j.dashNote||''; S.ansText=j.ans||'';
+}catch(e){} }
+function aiQInput(v){ S.aiF.question=v; aiSave(); }
+function aiSetObj(v){ S.aiF.obj=v; renderAIPanel(); }
+
+// ===== Фильтр по кликам (корзина внизу) =====
+// 4 уровня: отдел -> менеджер -> сделка -> коммуникация. Клик по любому элементу кладёт
+// «пик» в корзину; каждый пик разворачивается в список сделок, а конфиг ИИ по каждой
+// сделке несёт всю её коммуникацию - глубина всегда до конца. Клики накапливаются
+// (множественный выбор), повторный клик снимает пик, «×» в корзине - тоже.
+const mLabel=(mm)=> mm===DEPT_KEY ? 'Весь отдел' : mm;
+function pickSig(p){ return p.kind+'|'+p.mgr+'|'+p.sub; }
+function aiPickActive(kind,mgr,sub){ return S.picks.some(p=>p.kind===kind&&p.mgr===mgr&&p.sub===sub); }
+function aiPickToggle(p){ const s=pickSig(p); const i=S.picks.findIndex(x=>pickSig(x)===s);
+  if(i>=0) S.picks.splice(i,1); else S.picks.push(p);
+  aiApplyPicks(); renderTree(); }
+function aiPickRemove(sig){ const i=S.picks.findIndex(x=>pickSig(x)===sig); if(i>=0){ S.picks.splice(i,1); aiApplyPicks(); renderTree(); } }
+function aiPicksClear(){ S.picks=[]; aiApplyPicks(); renderTree(); }
+function aiPicksClearMgr(mgr){ S.picks=S.picks.filter(p=>p.mgr!==mgr); aiApplyPicks(); renderTree(); }
+// Корзина -> фильтр ИИ: объединяем сделки всех пиков в один список ID, глубина всегда
+// «вся сделка». Пусто - корзина не трогает ручной фильтр панели.
+function aiApplyPicks(){ const F=S.aiF;
+  if(S.picks.length){ const ids=new Set(), mgrs=new Set(), stages=new Set();
+    // Выборка ИИ = объединение сделок всех пиков (истина - список ID). Плюс отражаем клики
+    // в измерения панели: менеджер пика зажигает чип менеджера, пик воронки - чипы стадий.
+    S.picks.forEach(p=>{ (p.deals||[]).forEach(d=>ids.add(String(d)));
+      if(p.mgr && p.mgr!==DEPT_KEY && p.mgr!=='(лид)') mgrs.add(p.mgr);
+      if(p.kind==='fn'){ const g=STAGE_GRP.find(x=>x.k===p.sub); if(g&&g.stages.length) g.stages.forEach(s=>stages.add(s)); } });
+    F.mgrs=mgrs; F.stages=stages; F.depth='all'; F.dealIds=[...ids].join(', ');
+    F.dMode=S.dMode; F.from=S.dFrom; F.to=S.dTo; }
+  else { F.mgrs=new Set(); F.stages=new Set(); F.dealIds=''; }
+  aiSave(); if(S.aiOpen) renderAIPanel(); }
+function renderPickTray(){ const el=document.getElementById('picktray'); if(!el) return;
+  if(!S.picks.length){ el.classList.remove('on'); el.innerHTML=''; document.body.style.paddingBottom=''; return; }
+  document.body.style.paddingBottom='84px';
+  const total=new Set(); S.picks.forEach(p=>(p.deals||[]).forEach(d=>total.add(String(d))));
+  const chips=S.picks.map(p=>`<span class="pchip" data-psig="${esc(pickSig(p))}" title="Убрать из корзины">${esc(p.label)} <b>${(p.deals||[]).length}</b> <span class="px">✕</span></span>`).join('');
+  el.innerHTML=`<div class="ptl">Фильтр по кликам<span class="ptn">${total.size} ${plu(total.size,'сделка','сделки','сделок')} · всё вниз до коммуникаций</span></div>
+    <div class="pchips">${chips}</div>
+    <div class="pacts"><button class="pbtn" id="ptOpen">Открыть фильтр</button><button class="pbtn ghost" id="ptClear">Сбросить всё</button></div>`;
+  el.classList.add('on');
+  el.querySelectorAll('.pchip').forEach(c=>c.onclick=()=>aiPickRemove(c.dataset.psig));
+  const o=el.querySelector('#ptOpen'); if(o) o.onclick=()=>aiToggle(true);
+  const cl=el.querySelector('#ptClear'); if(cl) cl.onclick=aiPicksClear;
+}
+// Любой клик-дрил на дашборде готовит фильтр ИИ (не открывая панель): выборка = ровно
+// те сделки, что сейчас показаны, чтобы «Анализ ИИ» бил по тому, на что смотришь.
+// Семантический перенос дрила в фильтр панели: менеджер, стадии и период выставляются
+// чипами (видно, что перенеслось); точный список ID - только когда стадией не выразить.
+function aiSyncScope(o){ const F=S.aiF;
+  F.dMode=S.dMode; F.from=S.dFrom; F.to=S.dTo;
+  F.mgrs = (o.mgr && o.mgr!==DEPT_KEY) ? new Set([o.mgr]) : new Set();
+  if(o.stages && o.stages.length){ F.stages=new Set(o.stages); F.dealIds=''; }
+  else if(o.deals){ F.stages=new Set(); F.dealIds=o.deals.map(d=>String(d.dealId||d.leadId)).join(', '); }
+  else { F.stages=new Set(); F.dealIds=''; }
+  aiSave(); }
+function aiSyncReset(){ const F=S.aiF; F.mgrs=new Set(); F.stages=new Set(); F.dealIds=''; aiSave(); }
+// Прокрутка к переписке сделки и подсветка событий нужной категории (клик по чипу «Ленты»).
+function scrollToDeal(key, cat){ setTimeout(()=>{ const host=document.getElementById('tree-'+key); if(!host) return;
+  let target=host;
+  if(cat){ const rows=host.querySelectorAll('.erow2[data-evcat="'+cat+'"]'); rows.forEach(r=>r.classList.add('evhi')); if(rows.length) target=rows[0]; }
+  target.scrollIntoView({behavior:'smooth', block:'center'});
+}, 60); }
+
+aiLoad(); initControls(); render();
+
+// Анти-кэш для боевого адреса /dialog/: деплой кладёт рядом v.txt со штампом сборки.
+// Проверяем при загрузке, при возврате на вкладку и раз в 15 минут - давно открытая
+// вкладка тоже подтянет свежую версию. Перезагрузка одна на версию (sessionStorage),
+// иначе упрямый кэш зациклил бы страницу.
+(function(){try{
+  if(location.protocol==='file:'||!BAKED_AT)return;
+  const chk=()=>{fetch('v.txt?_='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(v=>{
+    v=(v||'').trim();
+    if(!v||v===BAKED_AT||v<BAKED_AT)return;
+    if(sessionStorage.getItem('_dlgv')===v)return;
+    sessionStorage.setItem('_dlgv',v);
+    location.replace(location.pathname+'?v='+encodeURIComponent(v));
+  }).catch(()=>{})};
+  chk();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});
+  setInterval(chk,9e5);
+}catch(e){}})();
+</script>
+</body>
+</html>

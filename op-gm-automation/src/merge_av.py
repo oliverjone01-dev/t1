@@ -67,9 +67,12 @@ def main(argv):
             if ch in recA:
                 # С6: объединение по ключу, при совпадении строка B; ранние сообщения из A
                 MA = A['msgs'].get(ch, []); kA = keys(MA); kB = set(keys(MB)); b0 = MB[0][0]
-                lost = sum(1 for x, kk in zip(MA, kA) if x[0] >= b0 and kk not in kB)
+                # исключение: системные сообщения Авито ('s'), пропавшие из истории внутри окна, потерей не считаются
+                gone = [(x, kk) for x, kk in zip(MA, kA) if x[0] >= b0 and kk not in kB]
+                lost = sum(1 for x, _ in gone if x[1] != 's')
                 if lost: mg['overlap_missing'] += lost; continue
-                early = [x for x, kk in zip(MA, kA) if kk not in kB]
+                if gone: mg['system_dropped'] += len(gone)
+                early = [x for x, kk in zip(MA, kA) if x[0] < b0 and kk not in kB]
                 if len(items) >= 100: mg['truncated_100'] += 1
                 if early: mg['restored_from_old'] += len(early); mg['restored_chats'] += 1
                 M = early + MB

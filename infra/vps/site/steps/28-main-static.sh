@@ -1,4 +1,4 @@
-# sections: smm markplan stand-protocol
+# sections: dashboards smm markplan stand-protocol
 # Порт части шага «Assemble site (prod)» из deploy-pages.yml: статика из main копируется как есть.
 # Ссылки на github.io внутри переписывает nginx (sub_filter), файлы не правим.
 src=$(gg_src main)
@@ -12,3 +12,6 @@ if [ -d "$src/stand-protocol/public" ]; then
   cp -r "$src/stand-protocol/public/." "$SITE/stand-protocol/"
 fi
 gg_log "Статика main: /smm/, /markplan/$( [ -d "$SITE/stand-protocol" ] && echo ', /stand-protocol/'), main ${src##*/}"
+
+# Главная и каталог без живых iframe: ссылки только на разделы этого домена.
+python3 "$GG_OPS/site/build-hub.py" "$GG_OPS/site/hub.html" "$SITE"

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import html
+import hashlib
 import re
 import sys
 from pathlib import Path
@@ -17,10 +18,23 @@ for row in roster.read_text(encoding='utf-8').splitlines():
     if not (site / slug / 'index.html').is_file():
         raise SystemExit('Missing manager page: ' + slug)
     label = html.escape(name or slug)
-    cards.append(f'<a class="card mcard" href="/{slug}/" target="_blank" rel="noopener"><span class="avatar" style="background:#22d3ee">{html.escape((name or slug)[0])}</span><div><div class="t">{label}</div><div class="d">Личная панель: сделки, воронка, активность, дисциплина.</div><div class="u">/{slug}/</div></div></a>')
+    photo = site / 'dashboards/previews/mgr' / (slug.removeprefix('rop-') + '.webp')
+    avatar = html.escape((name or slug)[0])
+    if photo.is_file():
+        version = hashlib.sha256(photo.read_bytes()).hexdigest()[:12]
+        avatar = f'<img src="/dashboards/previews/mgr/{photo.name}?v={version}" width="52" height="52" loading="lazy" decoding="async" alt="{label}">'
+    cards.append(f'<a class="card mcard" href="/{slug}/" target="_blank" rel="noopener"><span class="avatar" style="background:#22d3ee">{avatar}</span><div><div class="t">{label}</div><div class="d">Личная панель: сделки, воронка, активность, дисциплина.</div><div class="u">/{slug}/</div></div></a>')
 if not cards:
     raise SystemExit('Empty manager roster')
 page, count = re.subn(r'(<div class="grid" id="mgrGrid">).*?(\n    </div>)', lambda m: m[1] + '\n' + '\n'.join(cards) + m[2], page, count=1, flags=re.S)
+def preview(match):
+    slug = match[2]
+    image = site / 'dashboards/previews' / (slug + '.webp')
+    if not image.is_file():
+        return match[0]
+    version = hashlib.sha256(image.read_bytes()).hexdigest()[:12]
+    return match[1] + f'<img src="/dashboards/previews/{slug}.webp?v={version}" width="640" height="400" loading="lazy" decoding="async" alt="Превью дашборда">' + match[4]
+page = re.sub(r'(<a class="card" href="/([a-z0-9-]+)/"[^>]*><div class="prev">)(.*?)(</div>)', preview, page, flags=re.S)
 if count != 1 or re.search(r'<iframe|<script|github\.io', page, re.I):
     raise SystemExit('Hub validation failed')
 for href in re.findall(r'href="([^"]+)"', page):

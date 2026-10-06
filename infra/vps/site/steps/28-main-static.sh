@@ -14,4 +14,8 @@ fi
 gg_log "Статика main: /smm/, /markplan/$( [ -d "$SITE/stand-protocol" ] && echo ', /stand-protocol/'), main ${src##*/}"
 
 # Главная и каталог без живых iframe: ссылки только на разделы этого домена.
+if [ -d "$GG_ROOT/cache/site-previews" ]; then
+  mkdir -p "$SITE/dashboards/previews"
+  cp -r "$GG_ROOT/cache/site-previews/." "$SITE/dashboards/previews/"
+fi
 python3 "$GG_OPS/site/build-hub.py" "$GG_OPS/site/hub.html" "$SITE"

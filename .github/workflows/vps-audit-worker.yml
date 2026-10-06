@@ -24,4 +24,12 @@ jobs:
           AUDIT_JOB_ID: ${{ inputs.job_id }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python3 infra/vps/audit/vps-audit-worker.py
+      - name: Preserve result for VPS transport recovery
+        if: ${{ always() && hashFiles('audit-result.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-result-${{ inputs.job_id }}
+          path: audit-result.json
+          retention-days: 3
+          if-no-files-found: error
 

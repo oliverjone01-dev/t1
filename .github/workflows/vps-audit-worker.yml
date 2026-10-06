@@ -1,0 +1,27 @@
+name: VPS private audit worker
+run-name: audit-job-${{ inputs.job_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: Durable private VPS audit job ID (or health-check)
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  analyse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: infra/vps/audit/vps-audit-worker.py
+          sparse-checkout-cone-mode: false
+      - name: Claim VPS job and return one OpenAI report
+        env:
+          AUDIT_JOB_ID: ${{ inputs.job_id }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python3 infra/vps/audit/vps-audit-worker.py
+

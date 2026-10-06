@@ -18,7 +18,7 @@ const OWNER_NOTE = 'Выгрузку обновляет Иван раз в не�
 const MILESTONE = '06.10.2026';
 
 let EXPORT_TS = 0, EXP = {}, AT = '';
-const OP = { cab:'all', view:'detal-sit', days:30, today:14,
+const OP = { cab:'all', view:'week', days:30, today:14,
   dlg:{ prob:'all', flag:'all', ad:'all', q:'', sort:'recent', kind:'in', limit:40 } };
 
 /* ---------------- правила проблем ---------------- */
@@ -239,6 +239,84 @@ SCREENS.pulse = function(){
         ['Сначала вердикт', 'он сравнивает выбранный период с таким же периодом раньше, по каждому кабинету отдельно'],
         ['Кабинеты не складываются', 'OLD-G и NEW-B считаются раздельно: у них разные объявления и разная динамика'],
         ['Любая плитка открывает детали', 'из чего сложилась цифра, как менялась по неделям, откуда взята и что делать'] ]) })
+    + '</div>';
+};
+
+/* ---------- Разбор недели (главная после входа) ---------- */
+/* Неделя пн-вс по МСК. Текущая неделя неполная: сравниваем с тем же срезом прошлой (от понедельника на столько же часов),
+   полную прошлую неделю показываем рядом. Лид = диалог Авито, где клиент написал сам (isClient), неделя по первому сообщению клиента */
+function wkDelta(now, was, goodUp, fmt){
+  if(now == null || was == null) return '<div class="ks-delta is-na">нет данных за прошлую неделю</div>';
+  const abs = Math.round((now - was) * 10) / 10; fmt = fmt || NF;
+  if(abs === 0) return '<div class="ks-delta is-flat">без изменений</div>';
+  const t = (abs > 0) === (goodUp !== false) ? 'good' : 'bad', rel = was >= MIN_N ? ' (' + (abs > 0 ? '+' : '') + Math.round(abs / was * 100) + '%)' : '';
+  return '<div class="ks-delta is-' + t + '" data-tip="' + E('было ' + fmt(was) + ', стало ' + fmt(now)) + '">' + ic(abs > 0 ? 'arrow-up' : 'arrow-down', 12)
+    + '<span class="ks-num">' + (abs > 0 ? '+' : '-') + fmt(Math.abs(abs)) + rel + '</span></div>';
+}
+function weekFrame(){
+  const cur = weekStart(EXPORT_TS), el = EXPORT_TS + 1 - cur, prv = cur - 7 * DAY;
+  return { cur, prv, el, curTo:EXPORT_TS + 1, prvSliceTo:prv + el, prvTo:cur, full:el >= 7 * DAY };
+}
+SCREENS.week = function(){
+  const W = weekFrame(), cabs = cabsIn();
+  const sliceLbl = fDay(W.prv) + '-' + fDay(W.prvSliceTo - 1), curLbl = fDay(W.cur) + '-' + fDay(EXPORT_TS);
+  const part = !W.full, S = (cab, a, b) => sel({ cab, from:a, to:b });
+  const weeks = []; for(let i = 7; i >= 0; i--) weeks.push(W.cur - i * 7 * DAY);
+  const cats = weeks.map((w, i) => fDay(w) + (i === 7 && part ? ' (до ' + fDay(EXPORT_TS) + ')' : ''));
+  const leadsS = cabs.map(cab => ({ name:cab, slot:CABSLOT[cab], data:weeks.map(w => S(cab, w, w + 7 * DAY).length) }));
+  job(() => floor0(KS.charts.multi('ch-wk', { cats, series:leadsS, h:260 })));
+  /* лиды по дням недели: эта и прошлая неделя, оба кабинета вместе или выбранный */
+  const dayOf = (L, w) => WD.map((_, d) => L.filter(c => c.t >= w + d * DAY && c.t < w + (d + 1) * DAY).length);
+  const Lc = S(OP.cab, W.cur, W.curTo), Lp = S(OP.cab, W.prv, W.prvTo);
+  const dCur = dayOf(Lc, W.cur).map((v, d) => W.cur + d * DAY > EXPORT_TS ? null : v), dPrv = dayOf(Lp, W.prv);
+  const daysS = [{ name:'прошлая неделя ' + fDay(W.prv) + '-' + fDay(W.prvTo - 1), slot:3, data:dPrv }, { name:'эта неделя ' + curLbl, slot:1, data:dCur }];
+  job(() => floor0(KS.charts.multi('ch-wkd', { cats:WD, series:daysS, h:260 })));
+  const twin = (C, S2) => KS.table([['Период']].concat(S2.map(s => [s.name, true])), C.map((c, i) => [c].concat(S2.map(s => s.data[i] == null ? null : NF(s.data[i])))));
+  const m = (L) => { const s = stats(L); return Object.assign(s, { pph:L.filter(c => c.p.includes('phoneleft')).length }); };
+  const rows = cabs.map(cab => ({ cab, c:m(S(cab, W.cur, W.curTo)), p:m(S(cab, W.prv, W.prvSliceTo)), f:m(S(cab, W.prv, W.prvTo)), sp:weeks.slice(0, 7).map(w => S(cab, w, w + 7 * DAY).length) }));
+  const all = { c:m(S(OP.cab, W.cur, W.curTo)), p:m(S(OP.cab, W.prv, W.prvSliceTo)), f:m(S(OP.cab, W.prv, W.prvTo)) };
+  /* вердикт по лидам: главное, что просили показать */
+  const lc = all.c.n, lp = all.p.n, d = lc - lp, rel = lp ? Math.round(d / lp * 100) : null;
+  const tone = d > 0 ? 'ok' : d < 0 ? 'crit' : 'warn', word = d > 0 ? 'Лидов больше' : d < 0 ? 'Лидов меньше' : 'Лидов столько же';
+  const verdictW = '<section class="ks-verdict ks-verdict--' + tone + '" aria-label="Вердикт недели"><div class="ks-verdict-head">' + ic(d > 0 ? 'up' : d < 0 ? 'loss' : 'cmp', 18)
+    + '<span class="ks-verdict-title">' + word + '</span><span class="ks-verdict-per">' + (part ? 'за ' + curLbl + ' к ' + sliceLbl + ' (те же дни и часы прошлой недели)' : 'неделя ' + curLbl + ' к ' + fDay(W.prv) + '-' + fDay(W.prvTo - 1)) + '</span></div>'
+    + '<div class="ks-verdict-rows"><div class="ks-verdict-row"><span class="ks-verdict-name">Лиды Авито' + (OP.cab === 'all' ? ', оба кабинета' : ', ' + E(OP.cab)) + '</span><span class="ks-verdict-path"><span>' + lp + '</span><span class="ks-muted" aria-hidden="true">→</span><b style="font-weight:var(--fw-semi)">' + lc + '</b></span>'
+    + '<span class="ks-delta-cell">' + wkDelta(lc, lp, true) + '</span><span class="ks-verdict-prev">' + (OP.cab === 'all' ? E(rows.map(r => r.cab + ' ' + r.p.n + ' → ' + r.c.n).join(' · ')) : '') + '</span></div></div></section>';
+  const tiles = rows.map(r => '<div class="ks-grid-kpi">'
+    + KS.tile({ label:'Лиды Авито · ' + r.cab, f:env(NF(r.c.n), r.cab, r.c.n), slot:CABSLOT[r.cab], icon:'users', spark:r.sp, delta:wkDelta(r.c.n, r.p.n, true) })
+    + KS.tile({ label:'Спросили цену · ' + r.cab, f:env(NF(r.c.pq), r.cab, r.c.n), slot:CABSLOT[r.cab], icon:'tag', delta:wkDelta(r.c.pq, r.p.pq, true) })
+    + KS.tile({ label:'Телефон без перезвона · ' + r.cab, f:env(NF(r.c.pph), r.cab, r.c.n), slot:CABSLOT[r.cab], icon:'bolt', delta:wkDelta(r.c.pph, r.p.pph, false) })
+    + KS.tile({ label:'Не ответили вообще · ' + r.cab, f:env(NF(r.c.noresp), r.cab, r.c.n), slot:CABSLOT[r.cab], icon:'warn', delta:wkDelta(r.c.noresp, r.p.noresp, false) })
+    + '</div>').join('');
+  /* таблица метрик: эта неделя, срез прошлой, полная прошлая */
+  const fs = (s, k) => k === 'med' ? fL(s.med) : k === 'f15' ? P(s.f15) : NF(s[k]);
+  const metr = [['n','Лидов',true],['pq','Спросили цену',true],['pph','Телефон без перезвона',false],['noresp','Не ответили вообще',false],['quest','Вопрос или телефон без ответа',false],['f15','Ответ за 15 минут',true],['med','Медиана первого ответа',false]];
+  const dyn = (r, k, up) => { if((k === 'f15' || k === 'med') && (r.c.n < MIN_N || r.p.n < MIN_N)) return '<span class="ks-muted">мало лидов</span>';
+    if(k === 'med') return wkDelta(r.c.med == null ? null : Math.round(r.c.med / 60), r.p.med == null ? null : Math.round(r.p.med / 60), up, x => x + ' мин');
+    return wkDelta(r.c[k], r.p[k], up, k === 'f15' ? pp : NF); };
+  const tbl = (KS.table([['Кабинет'],['Показатель'],['Эта неделя ' + curLbl, true],['Прошлая, тот же срез ' + sliceLbl, true],['Прошлая целиком', true],['Динамика', true]],
+    rows.flatMap(r => metr.map(([k, l, up]) => [cabTag(r.cab), l, fs(r.c, k), fs(r.p, k), fs(r.f, k), dyn(r, k, up)]))));
+  /* объявления: откуда лиды */
+  const Lc2 = S(OP.cab, W.cur, W.curTo), Lp2 = S(OP.cab, W.prv, W.prvSliceTo);
+  const adsTop = D.av.ads.map((a, i) => ({ a, i, c:Lc2.filter(c => c.ad === i).length, p:Lp2.filter(c => c.ad === i).length }))
+    .filter(x => x.c + x.p > 0).sort((x, y) => (y.c + y.p) - (x.c + x.p)).slice(0, 8);
+  const adsTbl = scrollWrap(KS.table([['Объявление'],['Эта неделя', true],['Прошлая, тот же срез', true],['Динамика', true]],
+    adsTop.map(x => [E(x.a), NF(x.c), NF(x.p), wkDelta(x.c, x.p, true)])));
+  return head({ title:'Разбор недели', sub:'Лиды из Авито: эта неделя против прошлой. Неделя с понедельника по воскресенье, МСК. ' + OWNER_NOTE, src:srcLine(),
+      lead:'Лид здесь это диалог, где клиент написал сам: холодная рассылка и поставщики не считаются. Деньги из Авито не видны, сумма заказов будет после связки с Bitrix24.' })
+    + '<div class="ks-stack">' + fresh() + verdictW
+    + (part ? KS.note('Неделя ещё идёт', 'Выгрузка ' + fD(EXPORT_TS) + ' МСК. Лиды и «спросили цену» сравниваются со срезом прошлой недели за те же дни и часы. Скорость ответа и «не ответили» за текущую неделю предварительные: последние клиенты могут ждать ответа меньше часа, а не потому что менеджер не отвечает.', 'info') : '')
+    + tiles
+    + '<div class="ks-grid-2">'
+    + KS.card({ title:'Лиды по неделям', sub:'Восемь недель, пн-вс' + (part ? ', последняя неполная' : '') + ' · по кабинетам', body:KS.chart('ch-wk', 260), table:twin(cats, leadsS) })
+    + KS.card({ title:'Лиды по дням недели', sub:'Эта неделя к прошлой · ' + (OP.cab === 'all' ? 'оба кабинета' : OP.cab), body:KS.chart('ch-wkd', 260), table:twin(WD, daysS) })
+    + '</div>'
+    + KS.card({ title:'Что изменилось за неделю', sub:'Срез прошлой недели берётся на тот же срок от понедельника', body:tbl })
+    + KS.card({ title:'Откуда лиды: объявления', sub:'Объявления с наибольшим числом лидов за две недели · ' + (OP.cab === 'all' ? 'оба кабинета' : OP.cab), body:adsTop.length ? adsTbl : '<div class="ks-muted">Лидов за две недели нет.</div>' })
+    + KS.card({ title:'Как читать экран', body:KS.steps([
+        ['Сначала вердикт', 'сколько лидов пришло и как это соотносится с прошлой неделей за то же время'],
+        ['Дальше по кабинетам', 'OLD-G и NEW-B считаются раздельно, у них разные объявления'],
+        ['Динамика качества', 'цена, телефон без перезвона и «не ответили» показывают, не теряем ли лиды после обращения'] ]) })
     + '</div>';
 };
 
@@ -590,6 +668,7 @@ function detalScreen(v){
 }
 function navTree(){
   return [
+    { id:'week', t:'Разбор недели', i:'calendar' },
     GM_DETAL_NAV(),
     { id:'today', t:'Сегодня', i:'check' },
     { id:'pulse', t:'Пульс ОП', i:'grid' },
@@ -651,7 +730,7 @@ function setCab(c){ OP.cab = c; OP.dlg.limit = 40; render(); }
 function setDays(d){ OP.days = d; document.getElementById('per').value = String(d); render(); }
 function densUi(){ const b = document.getElementById('dens'); b.innerHTML = KS.density.icon(); b.setAttribute('data-tip', 'Плотность: ' + KS.density.label().toLowerCase()); }
 function cmdkItems(){
-  const V = [['today','Сегодня','check'],['pulse','Пульс ОП','grid'],['speed2','Скорость ответа','clock'],['probs','Типовые проблемы','warn'],['ads','Объявления','tag'],
+  const V = [['week','Разбор недели','calendar'],['today','Сегодня','check'],['pulse','Пульс ОП','grid'],['speed2','Скорость ответа','clock'],['probs','Типовые проблемы','warn'],['ads','Объявления','tag'],
     ['calls','Звонки','bolt'],['cold','Холодная рассылка','mega'],['dlg','Все диалоги','list'],['data','Откуда цифры','info'],['teardowns','Детальные разборы','doc'],
     ['scripts','Скрипты и магниты','pen'],['actions','Что делать дальше','target']].concat(D.ORDER.map(k => [k, D.MGRS[k].name, 'users']))
     .concat([['overview','Архив: обзор'],['problems','Архив: проблемы'],['speed','Архив: скорость'],['quality','Архив: как общаемся'],['funnel','Архив: куда уходят деньги'],['dialogues','Архив: диалоги']]

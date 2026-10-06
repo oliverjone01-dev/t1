@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-10-05",
+ "measured": "2026-10-06",
  "visits_30d": [
-  {
-   "date": "2026-09-05",
-   "visits": 373,
-   "search_visits": 52
-  },
   {
    "date": "2026-09-06",
    "visits": 423,
@@ -151,27 +146,32 @@
    "date": "2026-10-04",
    "visits": 500,
    "search_visits": 89
+  },
+  {
+   "date": "2026-10-05",
+   "visits": 670,
+   "search_visits": 111
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 36
+   "visits": 37
   },
   {
    "phrase": "genglass",
-   "visits": 23
+   "visits": 24
   },
   {
    "phrase": "генгласс",
-   "visits": 22
-  },
-  {
-   "phrase": "интернет магазин зеркало в раме",
-   "visits": 11
+   "visits": 23
   },
   {
    "phrase": "genglass.ru",
+   "visits": 10
+  },
+  {
+   "phrase": "интернет магазин зеркало в раме",
    "visits": 10
   },
   {
@@ -183,15 +183,15 @@
    "visits": 7
   },
   {
+   "phrase": "дженгласс",
+   "visits": 6
+  },
+  {
    "phrase": "дженгласс ру",
    "visits": 6
   },
   {
    "phrase": "генгласс зеркала",
-   "visits": 5
-  },
-  {
-   "phrase": "дженгласс",
    "visits": 5
   },
   {
@@ -201,10 +201,6 @@
   {
    "phrase": "столы на заказ",
    "visits": 4
-  },
-  {
-   "phrase": "GENGLASS",
-   "visits": 3
   },
   {
    "phrase": "genglass столы",
@@ -227,16 +223,16 @@
    "visits": 3
   },
   {
-   "phrase": "зеркало на заказ",
-   "visits": 3
-  },
-  {
    "phrase": "изготовление столов на заказ",
    "visits": 3
   },
   {
    "phrase": "межкомнатные перегородки",
    "visits": 3
+  },
+  {
+   "phrase": "GENGLASS",
+   "visits": 2
   },
   {
    "phrase": "GENGLASS Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладной",
@@ -259,6 +255,10 @@
    "visits": 2
   },
   {
+   "phrase": "tubaris d100, белый",
+   "visits": 2
+  },
+  {
    "phrase": "Консоль Violur",
    "visits": 2
   },
@@ -271,7 +271,15 @@
    "visits": 2
   },
   {
+   "phrase": "ген гласс",
+   "visits": 2
+  },
+  {
    "phrase": "зеркала genglass",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркало на заказ",
    "visits": 2
   },
   {
@@ -288,6 +296,10 @@
   },
   {
    "phrase": "металлические перегородки",
+   "visits": 2
+  },
+  {
+   "phrase": "обеденный стол на заказ по индивидуальным размерам москва",
    "visits": 2
   },
   {
@@ -323,6 +335,10 @@
    "visits": 2
   },
   {
+   "phrase": "стеклянная магнитно-маркерная доска genglass base белая, 90x120 см",
+   "visits": 2
+  },
+  {
    "phrase": "стеклянная перегородка в комнату",
    "visits": 2
   },
@@ -337,36 +353,20 @@
   {
    "phrase": "стол genglass trubis wood с трубчатым подстольем 80х75х80 см",
    "visits": 2
-  },
-  {
-   "phrase": "стол на заказ",
-   "visits": 2
-  },
-  {
-   "phrase": "стол обеденный белый 170х90 полуовал",
-   "visits": 2
-  },
-  {
-   "phrase": "стол под заказ",
-   "visits": 2
-  },
-  {
-   "phrase": "стол раздвижной конукс",
-   "visits": 2
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 443
+   "visits": 453
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 99
+   "visits": 98
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 72
+   "visits": 74
   },
   {
    "url": "/product-category/tables/",
@@ -378,19 +378,19 @@
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 55
+   "visits": 58
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 51
-  },
-  {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 44
+   "visits": 49
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 42
+   "visits": 45
+  },
+  {
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
+   "visits": 45
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
@@ -402,59 +402,59 @@
   },
   {
    "url": "/product-category/steklyannye-doski/",
-   "visits": 35
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-   "visits": 26
-  },
-  {
-   "url": "/product-category/mirrors/rotatable/",
-   "visits": 26
+   "visits": 34
   },
   {
    "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 25
+   "visits": 29
+  },
+  {
+   "url": "/product-category/mirrors/rotatable/",
+   "visits": 28
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
+   "visits": 27
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
+   "visits": 24
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
    "visits": 23
   },
   {
-   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-   "visits": 23
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
+   "visits": 21
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 22
+   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "visits": 21
   },
   {
    "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
    "visits": 20
   },
   {
+   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
+   "visits": 20
+  },
+  {
    "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
-   "visits": 20
+   "visits": 19
   },
   {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 20
-  },
-  {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
+   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
    "visits": 19
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
-   "visits": 19
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
    "visits": 18
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-dlya-zonirovaniya-komnaty/",
-   "visits": 17
+   "visits": 16
   },
   {
    "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj/",
@@ -473,11 +473,11 @@
    "visits": 13
   },
   {
-   "url": "/product-category/mirrors/floor/",
+   "url": "/product-category/mezhkomnatnye-peregorodki/",
    "visits": 13
   }
  ],
  "goals": [],
- "bounce_rate": 15.3,
+ "bounce_rate": 15.1,
  "depth": 2.6
 }

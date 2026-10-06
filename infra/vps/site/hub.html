@@ -23,7 +23,8 @@
   a.card:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
   a.card:active{transform:translateY(1px)}
   /* Лёгкие карточки: панели открываются только по клику. */
-  .prev{position:relative;width:100%;height:82px;overflow:hidden;background:#0d1420;border-bottom:1px solid var(--line)}
+  .prev{position:relative;width:100%;height:150px;overflow:hidden;background:#0d1420;border-bottom:1px solid var(--line)}
+  .prev img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
   .prev .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;opacity:.5;transition:opacity .3s}
   .prev .lock{position:absolute;right:8px;bottom:8px;font-size:11px;color:var(--ink3);background:#0a0e14cc;border:1px solid var(--line);border-radius:6px;padding:2px 7px}
   .body{padding:12px 14px}
@@ -51,7 +52,7 @@
     <div class="logo"><b>GENGROUP</b> · Дашборды</div>
     <div class="sub">Единая точка входа во все панели холдинга</div>
   </header>
-  <div class="note">Выберите панель. Дашборд откроется в новой вкладке.</div>
+  <div class="note">Превью обновляются ежедневно. Нажмите на карточку, чтобы открыть дашборд.</div>
 
   <div class="sec">
     <h2>Отдел продаж · РОП</h2>

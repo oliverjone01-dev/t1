@@ -1,5 +1,6 @@
 """GitHub-only OpenAI worker. Facts/results travel directly to private VPS endpoint."""
 import json, os, time, urllib.request, urllib.error, hmac, hashlib
+from pathlib import Path
 
 BASE='https://dash.genglas.ru/_audit-bridge'
 JOB=os.getenv('AUDIT_JOB_ID','')
@@ -40,7 +41,7 @@ def run():
         result.update(usage=response.get('usage') or {}, response_id=response.get('id'))
         if status!=200 or response.get('error'):
             error=response.get('error') or {}
-            result.update(status='api_error',http_status=status,error_type=error.get('type'),error_code=error.get('code'),error_param=error.get('param'),error_message=str(error.get('message',''))[:1200])
+            result.update(status='api_error',http_status=status,error_type=error.get('type'),error_code=error.get('code'),error_param=error.get('param'),error_message=str(error.get('message','')).replace(KEY,'[REDACTED]')[:1200])
         else:
             text='\n'.join(part.get('text','') for item in response.get('output',[]) if item.get('type')=='message' for part in item.get('content',[]) if part.get('type')=='output_text')
             try:
@@ -51,6 +52,9 @@ def run():
             result.update(status='completed' if valid else 'invalid_output',analysis=analysis,provider_status=response.get('status'))
     except Exception:
         result.update(status='network_uncertain')
+    backup={k:v for k,v in result.items() if k!='claim_id'}
+    Path('audit-result.json').write_text(json.dumps(backup,ensure_ascii=False),encoding='utf-8')
+    os.chmod('audit-result.json',0o600)
     # Retrying this callback cannot repeat an OpenAI call; the VPS accepts identical results once.
     for attempt in range(3):
         try:

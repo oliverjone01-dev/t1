@@ -40,7 +40,7 @@ def run():
         result.update(usage=response.get('usage') or {}, response_id=response.get('id'))
         if status!=200 or response.get('error'):
             error=response.get('error') or {}
-            result.update(status='api_error',http_status=status,error_type=error.get('type'),error_code=error.get('code'))
+            result.update(status='api_error',http_status=status,error_type=error.get('type'),error_code=error.get('code'),error_param=error.get('param'),error_message=str(error.get('message',''))[:1200])
         else:
             text='\n'.join(part.get('text','') for item in response.get('output',[]) if item.get('type')=='message' for part in item.get('content',[]) if part.get('type')=='output_text')
             try:

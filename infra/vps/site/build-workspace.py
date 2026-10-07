@@ -40,9 +40,7 @@ for home in (site / 'index.html', site / 'dashboards/index.html'):
 structure = site / 'index.html'
 if structure.is_file():
     atomic(site / 'structure/index.html', structure.read_text(encoding='utf-8'))
-atomic(site / 'index.html', page)
-if (site / 'rop/v.txt').is_file():
-    atomic(site / 'v.txt', (site / 'rop/v.txt').read_text(encoding='utf-8'))
+# The landing page is the company structure; ROP remains a section of the workspace.
 atomic(site / '.gg/workspace.json', json.dumps({
     'version': 1, 'section': 'rop', 'managers': len(roster),
     'source_sha256': hashlib.sha256(original.encode()).hexdigest(),

@@ -18,6 +18,7 @@ for row in (site/'.gg/managers.txt').read_text().splitlines():
 base=base.replace('<!-- MANAGERS -->','\n'.join(roster))
 sections={'rop-gm':('РОП GLASS MEMORY','Продажи','gm'),'office':('Офис','Продажи','gg'),'dialog':('Хронология диалогов','Коммуникации','gg'),'prod':('Производство','Исполнение заказов','gg'),'pto':('ПТО','Исполнение заказов','gg'),'economics':('Экономика','Операционный отдел','gg'),'integra':('Замеры / Монтажи','Исполнение заказов','gg')}
 sections.update({slug:(name,'Продажи','gg') for slug,name in names.items()})
+sections.update({'op-gm':('Разбор переговоров','Коммуникации','gm'),'kp-gm':('Коммерческие предложения','Продажи','gm'),'messages':('Сообщения','Коммуникации','gg'),'plan':('Планы и материалы','Планы и материалы','gg'),'smm':('Социальные сети','Маркетинг','gg'),'markplan':('План маркетинга','Маркетинг','gg'),'stand-protocol':('Протокол стенда','Планы и материалы','gg'),'ozon-research':('Исследование OZON','Маркетинг','gg'),'econ-control':('Контроль экономики','Операционный отдел','gg')})
 css=style.read_text()+'\n'+(style.parent/'workspace-pages.css').read_text()
 js=behavior.read_text()
 report=[]
@@ -31,7 +32,7 @@ for slug,(title,department,company) in sections.items():
     split=re.search(r'<body\b[^>]*>',source,re.I)
     if not split:raise SystemExit('Missing body: '+slug)
     head=source[:split.start()]
-    body=source[split.end():].rsplit('</body>',1)[0]
+    body=re.split(r'</body>',source[split.end():],flags=re.I)[0]
     scripts=re.findall(r'<script\b[^>]*>.*?</script>',source,re.S)
     shell=base.replace('<h1>РОП GENGLASS</h1>','<h1>'+html.escape(title)+'</h1>')
     shell=shell.replace('Результаты отдела, воронка, менеджеры и дисциплина.','Рабочий дашборд · '+html.escape(department))

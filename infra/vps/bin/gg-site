@@ -6,6 +6,10 @@
 set -euo pipefail
 . "$(dirname "$(readlink -f "$0")")/../lib/gg.sh"
 gg_as_gg "$@"
+# A long-running parent job may export paths from an earlier release.
+# Always compose the site with the currently deployed operations release.
+GG_OPS="$(gg_src "$GG_OPS_BRANCH")/infra/vps"
+export GG_OPS
 cd /   # не зависеть от папки вызова: из /root у gg нет прав, find при pipefail падает с кодом 1
 gg_mkdirs
 rel="$GG_ROOT/www/releases"

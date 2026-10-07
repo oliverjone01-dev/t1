@@ -44,3 +44,6 @@ html[data-theme=dark] #gg-workspace{--tb-surface:#171A1F;--tb-surface-2:#1F2227;
 #gg-dashboard :is(.card[id],.sec-div[id]){scroll-margin-top:var(--gg-sticky-offset,160px)}#tip{border:1px solid var(--tb-border);border-radius:6px;font-family:'Golos Text',sans-serif;background:var(--tb-surface);color:var(--tb-text);font-size:12px;box-shadow:0 8px 24px #16191e18}
 @media(max-width:1100px){#gg-gran-slot{order:0}#gg-period-slot{order:1;flex-basis:calc(100% - 220px)}#gg-date-slot{order:2;margin-left:0}#gg-filters-open{order:3;margin-left:auto}}
 @media(max-width:600px){#gg-period-slot{flex-basis:100%}.gg-filter-toolbar .gg-toolbar-top{gap:8px}#gg-date-slot .dbtn{font-size:10px}}
+/* Legacy floating plan dock must stay hidden before the adapter moves its actions. */
+#planDock{display:none!important}
+

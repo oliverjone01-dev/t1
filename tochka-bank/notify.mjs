@@ -40,7 +40,7 @@ function acctBlock(list) {
   const total = `${rub(sumBal(list))} ₽`;
   const lw = Math.max(...items.map(r => r.label.length), 5);
   const aw = Math.max(...items.map(r => r.amt.length), total.length);
-  const rows = items.map(r => `${r.label.padEnd(lw)}  •••${r.tail}  ${r.amt.padStart(aw)}`);
+  const rows = items.map(r => `•••${r.tail}  ${r.label.padEnd(lw)}  ${r.amt.padStart(aw)}`);
   rows.push(`${"Итого".padEnd(lw + 9)}  ${total.padStart(aw)}`);
   return rows.join("\n");
 }

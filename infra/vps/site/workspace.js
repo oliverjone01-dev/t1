@@ -6,22 +6,30 @@
  move('freshTag','gg-freshness');move('nextUpd','gg-freshness');move('planRefresh','gg-plan-actions');move('planOpen','gg-plan-actions');
  const dock=byId('planDock');if(dock)dock.remove();
  move('dateBtn','gg-date-slot');move('period','gg-period-slot');
- const fw=byId('filtToggle')?.closest('.filt-wrap');if(fw)byId('gg-settings-slot').appendChild(fw);
- if(byId('filtToggle'))byId('filtToggle').firstChild.textContent='Настройки расчёта ';
+ const advanced=byId('advFilters');if(advanced)[...advanced.children].filter(el=>!el.classList.contains('advf-hd')).forEach(el=>byId('gg-settings-slot').appendChild(el));
+ const granularity=byId('gran')?.parentElement;if(granularity)byId('gg-gran-slot').appendChild(granularity);
  selectOptions('gg-manager','mgr','Все менеджеры');selectOptions('gg-source','source','Все источники');selectOptions('gg-client','client','Все типы клиентов');
  const escape=value=>String(value).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
  const originalRender=render;
  function uiSync(){
+  document.querySelectorAll('#root .kpi-strip').forEach(strip=>{const cards=[...strip.children];if(cards.length<2)return;const top=Math.ceil(cards.length/2),bottom=cards.length-top;strip.style.setProperty('--gg-kpi-grid',top*bottom);cards.forEach((card,index)=>card.style.gridColumn='span '+(index<top?bottom:top));});
   byId('gg-manager').value=S.fMgr;byId('gg-source').value=S.fSrc;byId('gg-client').value=S.fCli;
   if(byId('dateBtnTxt'))byId('dateBtnTxt').textContent=S.start.split('-').reverse().join('.')+' — '+S.end.split('-').reverse().join('.');
   const chips=[['fMgr','Менеджер'],['fSrc','Источник'],['fCli','Клиент'],['fDir','Направление']].filter(([key])=>S[key]).map(([key,label])=>'<button class="gg-chip" data-clear="'+key+'">'+label+': '+escape(S[key])+' <span>×</span></button>').join('');
   const count=flt(AD,true).length;
+  const activeCount=['fMgr','fSrc','fCli','fDir'].filter(key=>S[key]).length+(S.dateBasis!=='outcome'?1:0)+(S.revMode!=='prepay'?1:0)+(S.amtMode!=='budget'?1:0)+(S.gran!=='week'?1:0);
+  byId('gg-filter-count').textContent=activeCount;byId('gg-filter-count').hidden=!activeCount;
   byId('gg-active').innerHTML=chips+'<span>В снимке с учётом фильтров: '+count.toLocaleString('ru')+' сделок · период '+escape(S.start)+' — '+escape(S.end)+'</span>';
   byId('gg-active').querySelectorAll('[data-clear]').forEach(button=>button.onclick=()=>{S[button.dataset.clear]='';if(button.dataset.clear==='fDir')byId('dirSel').value='';render();});
  }
  render=function(){originalRender();uiSync();};
  byId('gg-reset').onclick=()=>{S.fMgr=S.fSrc=S.fCli=S.fDir='';S.dateBasis='outcome';S.revMode='prepay';S.amtMode='budget';S.gran='week';byId('dirSel').value='';for(const [id,attr,value] of [['dateSeg','b','outcome'],['revSeg','r','prepay'],['amtSeg','am','budget'],['gran','g','week']])byId(id)?.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset[attr]===value));byId('cf').value=byId('ct').value='';setPeriod('30');byId('period').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.p==='30'));render();};
  uiSync();
+ const drawer=byId('gg-filter-drawer'),filterTrigger=byId('gg-filters-open'),filterBackdrop=byId('gg-filter-backdrop');let previousOverflow='';
+ function closeFilters(){if(drawer.hidden)return;drawer.hidden=true;filterBackdrop.hidden=true;filterTrigger.setAttribute('aria-expanded','false');document.querySelector('.gg-main').inert=false;byId('gg-sidebar').inert=false;document.body.style.overflow=previousOverflow;filterTrigger.focus();}
+ filterTrigger.onclick=()=>{previousOverflow=document.body.style.overflow;drawer.hidden=false;filterBackdrop.hidden=false;filterTrigger.setAttribute('aria-expanded','true');document.querySelector('.gg-main').inert=true;byId('gg-sidebar').inert=true;document.body.style.overflow='hidden';byId('gg-filters-close').focus();};
+ byId('gg-filters-close').onclick=closeFilters;byId('gg-filters-done').onclick=closeFilters;filterBackdrop.onclick=closeFilters;
+ document.addEventListener('keydown',e=>{if(drawer.hidden)return;if(e.key==='Escape'){closeFilters();return;}if(e.key!=='Tab')return;const focusable=[...drawer.querySelectorAll('button,select,input,a[href]'),...document.querySelectorAll('#calPop button,#calPop input')].filter(el=>el.getClientRects().length&&!el.disabled);const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
  const theme=()=>{let value='light';try{value=localStorage.getItem('gg-hub-theme')||'light';}catch{}document.documentElement.dataset.theme=value;};theme();
  byId('gg-theme').onclick=()=>{const value=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=value;try{localStorage.setItem('gg-hub-theme',value);}catch{}};
  const closeMenu=()=>{byId('gg-sidebar').classList.remove('gg-open');byId('gg-backdrop').hidden=true;byId('gg-menu').setAttribute('aria-expanded','false');};

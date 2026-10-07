@@ -17,13 +17,14 @@ try{
  await equal(old,fresh,'default');
  for(const period of ['today','tm','lm','7']){for(const p of [old,fresh])await p.evaluate(v=>{setPeriod(v);render();},period);await equal(old,fresh,'period '+period);}
  const mgr=await fresh.locator('#gg-manager option').nth(1).getAttribute('value');
- await old.evaluate(v=>{S.fMgr=v;render();},mgr);await fresh.selectOption('#gg-manager',mgr);await equal(old,fresh,'manager');
+ await fresh.locator('#gg-filters-open').click();await old.evaluate(v=>{S.fMgr=v;render();},mgr);await fresh.selectOption('#gg-manager',mgr);await equal(old,fresh,'manager');
  for(const [id,state] of [['gg-source','fSrc'],['gg-client','fCli']]){const value=await fresh.locator('#'+id+' option').nth(1).getAttribute('value');await old.evaluate(({state,value})=>{S[state]=value;render();},{state,value});await fresh.selectOption('#'+id,value);await equal(old,fresh,state);}
  await fresh.locator('#gg-reset').click();await old.evaluate(()=>{S.fMgr=S.fSrc=S.fCli=S.fDir='';S.dateBasis='outcome';S.revMode='prepay';S.amtMode='budget';S.gran='week';setPeriod('30');render();});await equal(old,fresh,'reset');
- await fresh.locator('#filtToggle').click();await fresh.locator('#revSeg [data-r=won]').click();await old.evaluate(()=>{S.revMode='won';render();});await equal(old,fresh,'revenue basis');await fresh.keyboard.press('Escape');
- await fresh.locator('#gg-reset').click();
+ await fresh.locator('#revSeg [data-r=won]').click();await old.evaluate(()=>{S.revMode='won';render();});await equal(old,fresh,'revenue basis');
+ await fresh.locator('#gg-reset').click();await fresh.locator('#gg-filters-done').click();
+ const rows=await fresh.evaluate(()=>[...document.querySelectorAll('#root .kpi-strip')].map(strip=>{const r=[...strip.children].map(c=>c.getBoundingClientRect());return {rows:new Set(r.map(v=>Math.round(v.top))).size,right:strip.getBoundingClientRect().right,ends:r.filter((v,i)=>!r[i+1]||Math.round(r[i+1].top)!==Math.round(v.top)).map(v=>v.right)};}));if(rows.some(r=>r.rows!==2||r.ends.some(v=>Math.abs(v-r.right)>2)))throw Error('Uneven metric rows '+JSON.stringify(rows));
  await fresh.screenshot({path:'/tmp/rop-workspace-desktop.png'});
- for(const id of ['sec3','sec5']){await fresh.locator('#'+id).scrollIntoViewIfNeeded();await fresh.screenshot({path:'/tmp/rop-workspace-'+id+'.png'});}await fresh.evaluate(()=>scrollTo(0,0));
+ for(const id of ['sec3','sec5']){await fresh.locator('#'+id).scrollIntoViewIfNeeded();await fresh.screenshot({path:'/tmp/rop-workspace-'+id+'.png'});}if(Math.abs(await fresh.locator('.gg-filter-toolbar').evaluate(el=>el.getBoundingClientRect().top)-58)>1)throw Error('Sticky filters');await fresh.evaluate(()=>scrollTo(0,0));
  await fresh.locator('#gg-theme').click();if(await fresh.locator('html').getAttribute('data-theme')!=='dark')throw Error('Theme');await fresh.screenshot({path:'/tmp/rop-workspace-dark.png'});
  await fresh.locator('#gg-theme').click();await fresh.locator('#gg-company-button').click();await fresh.keyboard.press('Escape');if(await fresh.locator('#gg-company-button').getAttribute('aria-expanded')!=='false')throw Error('Brand close');
  await fresh.locator('#dateBtn').click();if(!(await fresh.locator('#calPop').isVisible()))throw Error('Calendar');await fresh.keyboard.press('Escape');

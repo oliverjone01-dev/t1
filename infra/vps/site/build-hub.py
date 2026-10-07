@@ -28,6 +28,16 @@ for row in roster.read_text(encoding='utf-8').splitlines():
     slug, _, name = row.partition('\t')
     links.append(f'<a data-brand="gg" href="/{slug}/">{html.escape(name or slug)}</a>')
 page = page.replace('<!-- MANAGER_NAV -->', '\n'.join(links))
+def status(slug):
+    exists = (site / slug / 'index.html').is_file()
+    kind, label = ('live', 'Дашборд есть') if exists else ('pending', 'Пусто')
+    return f'<small class="org-status" data-status="{slug}"><i class="org-dot {kind}"></i>{label}</small>'
+page = re.sub(r'<!-- STATUS:([a-z0-9-]+) -->', lambda match: status(match[1]), page)
+manager_nodes = []
+for row in roster.read_text(encoding='utf-8').splitlines():
+    slug, _, name = row.partition('\t')
+    manager_nodes.append(f'<a class="org-dashboard" href="/{slug}/"><span>{html.escape(name or slug)}</span>{status(slug)}</a>')
+page = page.replace('<!-- STRUCTURE_MANAGERS -->', '\n'.join(manager_nodes))
 def preview(match):
     slug = match[1]
     image = site / 'dashboards/previews' / (slug + '.webp')

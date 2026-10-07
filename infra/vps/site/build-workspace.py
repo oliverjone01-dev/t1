@@ -32,6 +32,17 @@ def atomic(path, text):
     temporary.write_text(text, encoding='utf-8')
     temporary.replace(path)  # Never overwrite a hard-linked source/previous release inode.
 atomic(target, page)
+for home in (site / 'index.html', site / 'dashboards/index.html'):
+    if home.is_file():
+        text = home.read_text(encoding='utf-8')
+        text = re.sub(r'<small class="org-status" data-status="rop">.*?</small>', '<small class="org-status" data-status="rop"><i class="org-dot live"></i>Дашборд есть</small>', text)
+        atomic(home, text)
+structure = site / 'index.html'
+if structure.is_file():
+    atomic(site / 'structure/index.html', structure.read_text(encoding='utf-8'))
+atomic(site / 'index.html', page)
+if (site / 'rop/v.txt').is_file():
+    atomic(site / 'v.txt', (site / 'rop/v.txt').read_text(encoding='utf-8'))
 atomic(site / '.gg/workspace.json', json.dumps({
     'version': 1, 'section': 'rop', 'managers': len(roster),
     'source_sha256': hashlib.sha256(original.encode()).hexdigest(),

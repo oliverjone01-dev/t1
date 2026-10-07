@@ -4,10 +4,9 @@
  <div class="gg-company"><span class="gg-label">Компания</span><button class="gg-input" id="gg-company-button" aria-haspopup="listbox" aria-expanded="false">GENGLASS <span>⌄</span></button><div class="gg-company-options" id="gg-company-options" role="listbox" aria-label="Компания" hidden><a role="option" data-company="all" aria-selected="false" href="/">Все компании</a><a role="option" data-company="gg" aria-selected="true" href="/rop/">GENGLASS <span>✓</span></a><a role="option" data-company="gm" aria-selected="false" href="/rop-gm/">GLASS MEMORY</a><a role="option" data-company="gentero" aria-selected="false" href="/">GENTERO</a></div></div>
  <span class="gg-label gg-menu-label">Рабочее пространство</span>
  <nav class="gg-nav">
-  <a href="/">⌂ <span>Главная</span></a>
-  <a href="/#pulse">◷ <span>Пульс компании</span></a>
-  <a href="/#marketing">◈ <span>Маркетинг</span></a>
-  <details open><summary>▥ <span>Продажи</span></summary><div class="gg-subnav"><details open><summary class="gg-selected">РОП GENGLASS</summary><div class="gg-sections"><a href="#sec1">Компания</a><a href="#sec2">Отдел продаж</a><a href="#sec3">Менеджеры</a><a href="#sec4">В производство</a><a href="#sec5">Дисциплина</a><a href="#sec6">Оффер у клиента</a></div></details><a href="/rop-gm/">РОП GLASS MEMORY</a><a href="/office/">Офис</a><details><summary>Менеджеры ОП</summary><div class="gg-sections"><!-- MANAGERS --></div></details></div></details>
+  <a href="/structure/">◇ <span>Структура компании</span></a>
+  <a href="/marketing/">◈ <span>Маркетинг</span></a>
+  <details open><summary>▥ <span>Продажи</span></summary><div class="gg-subnav"><details open><summary class="gg-selected">РОП GENGLASS</summary><div class="gg-sections"><a href="#sec1">Компания</a><a href="#sec2">Отдел продаж</a><a href="#sec3">Менеджеры</a><a href="#sec4">В производство</a><a href="#sec5">Дисциплина</a><a href="#sec6">Оффер у клиента</a></div></details><a href="/office/">Офис</a><details><summary>Менеджеры ОП</summary><div class="gg-sections"><!-- MANAGERS --></div></details></div></details>
   <details><summary>♧ <span>Исполнение заказов</span></summary><div class="gg-subnav"><a href="/prod/">Производство</a><a href="/pto/">ПТО</a><a href="/integra/">Замеры / Монтажи</a><a href="/#fulfillment">Логистика</a></div></details>
   <details><summary>☷ <span>Коммуникации</span></summary><div class="gg-subnav"><a href="/dialog/">Хронология диалогов</a><a href="/dialog/">Скорость ответа</a><a href="/dialog/">Дожим и возражения</a><a href="/dialog/">ИИ-разборы</a></div></details>
   <details><summary>▤ <span>Операционный отдел</span></summary><div class="gg-subnav"><a href="/economics/">Экономика</a></div></details>
@@ -20,16 +19,17 @@
  <div class="gg-content">
   <div class="gg-heading"><div><p class="gg-eyebrow">ПРОДАЖИ · GENGLASS</p><h1>РОП GENGLASS</h1><p>Результаты отдела, воронка, менеджеры и дисциплина.</p></div><div id="gg-plan-actions" class="gg-plan-actions"></div></div>
   <div id="gg-freshness" class="gg-freshness"></div>
-  <section class="gg-filter-panel" aria-label="Фильтры дашборда">
-   <div class="gg-filter-heading"><b>Фильтры</b><button id="gg-reset" class="gg-text-button">Сбросить</button></div>
-   <div class="gg-filter-grid"><label><span>Период</span><div id="gg-date-slot"></div></label><label><span>Менеджер</span><select id="gg-manager"></select></label><label><span>Источник</span><select id="gg-source"></select></label><label><span>Тип клиента</span><select id="gg-client"></select></label></div>
-   <div class="gg-quick-row"><span class="gg-label">Быстрый период</span><div id="gg-period-slot"></div></div>
-   <div id="gg-settings-slot"></div>
-   <div class="gg-active" id="gg-active" aria-live="polite"></div>
-   <p class="gg-filter-note">Период действует по выбранной дате. Портфель и текущие риски показывают состояние на дату снимка.</p>
-  </section>
+  <div class="gg-filter-toolbar"><div class="gg-toolbar-top"><div id="gg-period-slot"></div><button id="gg-filters-open" class="gg-input" aria-haspopup="dialog" aria-controls="gg-filter-drawer" aria-expanded="false"><span aria-hidden="true">☰</span> Фильтры <span id="gg-filter-count" hidden></span></button></div><div class="gg-toolbar-bottom"><div id="gg-date-slot"></div><div id="gg-gran-slot"></div></div></div>
   <!-- DASHBOARD -->
  </div>
 </main>
+<button id="gg-filter-backdrop" aria-label="Закрыть фильтры" hidden></button>
+<section id="gg-filter-drawer" class="gg-filter-panel" role="dialog" aria-modal="true" aria-labelledby="gg-filter-title" hidden>
+ <div class="gg-drawer-heading"><h2 id="gg-filter-title">Фильтры</h2><button id="gg-filters-close" class="gg-icon-button" aria-label="Закрыть фильтры">×</button></div>
+ <div class="gg-drawer-body"><div class="gg-filter-grid"><label><span>Менеджер</span><select id="gg-manager"></select></label><label><span>Источник</span><select id="gg-source"></select></label><label><span>Тип клиента</span><select id="gg-client"></select></label></div>
+ <h3 class="gg-settings-title">Настройки расчёта</h3><div id="gg-settings-slot"></div>
+ <div class="gg-active" id="gg-active" aria-live="polite"></div><p class="gg-filter-note">Период действует по выбранной дате. Портфель и текущие риски показывают состояние на дату снимка.</p></div>
+ <div class="gg-drawer-footer"><button id="gg-reset" class="gg-text-button">Сбросить</button><button id="gg-filters-done" class="gg-input">Готово</button></div>
+</section>
 <button id="gg-backdrop" aria-label="Закрыть меню" hidden></button>
 </div>

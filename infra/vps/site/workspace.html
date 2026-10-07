@@ -1,0 +1,35 @@
+<div id="gg-workspace">
+<aside class="gg-sidebar" id="gg-sidebar" aria-label="Рабочее пространство">
+ <a class="gg-brand" href="/"><span class="gg-monogram">GG</span><span><b>GENGROUP</b><small>Рабочее пространство</small></span></a>
+ <div class="gg-company"><span class="gg-label">Компания</span><button class="gg-input" id="gg-company-button" aria-haspopup="listbox" aria-expanded="false">GENGLASS <span>⌄</span></button><div class="gg-company-options" id="gg-company-options" role="listbox" aria-label="Компания" hidden><a role="option" data-company="all" aria-selected="false" href="/">Все компании</a><a role="option" data-company="gg" aria-selected="true" href="/rop/">GENGLASS <span>✓</span></a><a role="option" data-company="gm" aria-selected="false" href="/rop-gm/">GLASS MEMORY</a><a role="option" data-company="gentero" aria-selected="false" href="/">GENTERO</a></div></div>
+ <span class="gg-label gg-menu-label">Рабочее пространство</span>
+ <nav class="gg-nav">
+  <a href="/">⌂ <span>Главная</span></a>
+  <a href="/#pulse">◷ <span>Пульс компании</span></a>
+  <a href="/#marketing">◈ <span>Маркетинг</span></a>
+  <details open><summary>▥ <span>Продажи</span></summary><div class="gg-subnav"><details open><summary class="gg-selected">РОП GENGLASS</summary><div class="gg-sections"><a href="#sec1">Компания</a><a href="#sec2">Отдел продаж</a><a href="#sec3">Менеджеры</a><a href="#sec4">В производство</a><a href="#sec5">Дисциплина</a><a href="#sec6">Оффер у клиента</a></div></details><a href="/rop-gm/">РОП GLASS MEMORY</a><a href="/office/">Офис</a><details><summary>Менеджеры ОП</summary><div class="gg-sections"><!-- MANAGERS --></div></details></div></details>
+  <details><summary>♧ <span>Исполнение заказов</span></summary><div class="gg-subnav"><a href="/prod/">Производство</a><a href="/pto/">ПТО</a><a href="/integra/">Замеры / Монтажи</a><a href="/#fulfillment">Логистика</a></div></details>
+  <details><summary>☷ <span>Коммуникации</span></summary><div class="gg-subnav"><a href="/dialog/">Хронология диалогов</a><a href="/dialog/">Скорость ответа</a><a href="/dialog/">Дожим и возражения</a><a href="/dialog/">ИИ-разборы</a></div></details>
+  <details><summary>▤ <span>Операционный отдел</span></summary><div class="gg-subnav"><a href="/economics/">Экономика</a></div></details>
+  <a href="/plan/">▱ <span>Планы и материалы</span></a>
+ </nav>
+ <div class="gg-sidebar-foot">Единое пространство группы</div>
+</aside>
+<main class="gg-main">
+ <header class="gg-topbar"><button class="gg-icon-button" id="gg-menu" aria-label="Открыть меню" aria-expanded="false">☰</button><div class="gg-breadcrumb">GENGROUP <span>/ Продажи / РОП GENGLASS</span></div><button class="gg-icon-button" id="gg-theme" aria-label="Переключить тему">◐</button></header>
+ <div class="gg-content">
+  <div class="gg-heading"><div><p class="gg-eyebrow">ПРОДАЖИ · GENGLASS</p><h1>РОП GENGLASS</h1><p>Результаты отдела, воронка, менеджеры и дисциплина.</p></div><div id="gg-plan-actions" class="gg-plan-actions"></div></div>
+  <div id="gg-freshness" class="gg-freshness"></div>
+  <section class="gg-filter-panel" aria-label="Фильтры дашборда">
+   <div class="gg-filter-heading"><b>Фильтры</b><button id="gg-reset" class="gg-text-button">Сбросить</button></div>
+   <div class="gg-filter-grid"><label><span>Период</span><div id="gg-date-slot"></div></label><label><span>Менеджер</span><select id="gg-manager"></select></label><label><span>Источник</span><select id="gg-source"></select></label><label><span>Тип клиента</span><select id="gg-client"></select></label></div>
+   <div class="gg-quick-row"><span class="gg-label">Быстрый период</span><div id="gg-period-slot"></div></div>
+   <div id="gg-settings-slot"></div>
+   <div class="gg-active" id="gg-active" aria-live="polite"></div>
+   <p class="gg-filter-note">Период действует по выбранной дате. Портфель и текущие риски показывают состояние на дату снимка.</p>
+  </section>
+  <!-- DASHBOARD -->
+ </div>
+</main>
+<button id="gg-backdrop" aria-label="Закрыть меню" hidden></button>
+</div>

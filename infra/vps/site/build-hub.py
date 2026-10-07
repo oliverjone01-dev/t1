@@ -23,6 +23,11 @@ for row in roster.read_text(encoding='utf-8').splitlines():
 if not cards or page.count('<!-- MANAGERS -->') != 1:
     raise SystemExit('Missing roster or placeholder')
 page = page.replace('<!-- MANAGERS -->', '\n'.join(cards))
+links = []
+for row in roster.read_text(encoding='utf-8').splitlines():
+    slug, _, name = row.partition('\t')
+    links.append(f'<a data-brand="gg" href="/{slug}/">{html.escape(name or slug)}</a>')
+page = page.replace('<!-- MANAGER_NAV -->', '\n'.join(links))
 def preview(match):
     slug = match[1]
     image = site / 'dashboards/previews' / (slug + '.webp')
@@ -43,4 +48,3 @@ for target in (out / 'index.html', site / 'index.html'):
     temporary.write_text(page, encoding='utf-8')
     temporary.replace(target)
 print(f'Главная: новый каркас, менеджеров {len(cards)}, HTML {len(page.encode())} байт')
-

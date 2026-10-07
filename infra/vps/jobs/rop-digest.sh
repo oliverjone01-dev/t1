@@ -21,8 +21,9 @@ fi
 # Daily delivery receipt: sent/pending/unknown all block automatic duplicate delivery.
 if [ "${GG_DIGEST_TEST:-0}" != 1 ]; then
   delivery_day=$(TZ=Europe/Moscow date +%F)
-  delivery_file="$GG_ROOT/state/digest-delivery/${delivery_day}-${mode}-${chat}.json"
-  if [ -s "$delivery_file" ]; then gg_log "дайджест $mode за $delivery_day уже отправлен или требует проверки доставки; повтор заблокирован"; exit 0; fi
+  delivery_file="$GG_ROOT/state/digest-delivery-v2/${delivery_day}-${mode}-${chat}.json"
+  legacy_receipt="$GG_ROOT/state/digest-delivery/${delivery_day}-${mode}-${chat}.json"
+  if [ -s "$delivery_file" ] || [ -s "$legacy_receipt" ]; then gg_log "дайджест $mode за $delivery_day уже отправлен или требует проверки доставки; повтор заблокирован"; exit 0; fi
 fi
 
 # Опоздание: таймер Persistent=true догоняет пропуски после простоя - утренний план в обед не нужен
@@ -48,4 +49,4 @@ git --git-dir="$GG_GIT" show refs/heads/main:.github/workflows/rop-tg-bot.yml \
 grep -q "sendMessage" "$t/digest.mjs" || gg_die "не нашёл скрипт дайджеста в rop-tg-bot.yml (ветка main) - формат воркфлоу изменился"
 
 MODE=$mode CHAT_ID=$chat BOT_TOKEN=$token \
-  MGR_NAME="" REPORT_FILE="" GG_DIGEST_DELIVERY_DIR="$GG_ROOT/state/digest-delivery" node --import "$GG_OPS/tools/digest-delivery-guard.mjs" --dns-result-order=ipv4first "$t/digest.mjs"
+  MGR_NAME="" REPORT_FILE="" GG_DIGEST_DELIVERY_DIR="$GG_ROOT/state/digest-delivery-v2" node --import "$GG_OPS/tools/digest-delivery-guard.mjs" --dns-result-order=ipv4first "$t/digest.mjs"

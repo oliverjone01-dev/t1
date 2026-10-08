@@ -43,7 +43,8 @@ if composed_scripts[:len(scripts)] != scripts:
 
 # Resolve the shared theme before styles and the large CRM snapshot are parsed.
 theme_bootstrap = "<script data-gg-theme-bootstrap>document.documentElement.dataset.theme='dark';try{if(localStorage.getItem('gg-hub-theme')==='light')document.documentElement.dataset.theme='light';}catch(e){}</script><style>html{background:#0f1216;color-scheme:dark}html[data-theme=light]{background:#e9edef;color-scheme:light}</style>"
-page = page.replace('<head>', '<head>' + theme_bootstrap, 1)
+ui_bootstrap = '<script data-gg-ui-bootstrap>document.documentElement.dataset.ggUi="pending";</script><style>html[data-gg-ui=pending] #root{visibility:hidden}html[data-gg-ui=pending] .gg-toolbar-top{visibility:hidden}</style>'
+page = page.replace('<head>', '<head>' + theme_bootstrap + ui_bootstrap, 1)
 def atomic(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + '.workspace-new')

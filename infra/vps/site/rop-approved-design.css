@@ -115,4 +115,73 @@ html[data-theme=dark] #gg-dashboard{--gg-comp-6:#90c9bb;--gg-comp-7:#d49aa6;--gg
 .gg-revenue-composition{grid-template-columns:minmax(170px,52%) minmax(0,1fr);gap:12px;min-height:250px}.gg-revenue-ring svg{width:100%!important;max-width:250px!important;margin:auto}.gg-revenue-categories{gap:9px}.gg-revenue-category{grid-template-columns:8px minmax(0,1fr) auto;font-size:10px;gap:3px 6px}.gg-revenue-category>span{grid-column:2/4;white-space:normal;overflow-wrap:anywhere;line-height:13px}.gg-revenue-category>b{grid-column:2;grid-row:2;font-size:10px}.gg-revenue-category>small{grid-column:3;grid-row:2;font-size:9px}.gg-revenue-category>i{grid-row:1/3}@media(max-width:700px){.gg-revenue-composition{grid-template-columns:minmax(140px,48%) minmax(0,1fr);min-height:210px}.gg-revenue-ring svg{width:100%!important}.gg-revenue-category>small{grid-column:2;grid-row:3}.gg-revenue-category>i{grid-row:1/4}}
 #gg-dashboard #calcard .chrow>div:last-child{flex:0 0 130px!important;min-width:130px!important;box-sizing:border-box}.gg-bullet-zone,.gg-bullet-norm,.gg-bullet-mark{cursor:help}
 .gg-funnel-speed{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start;margin-bottom:16px}.gg-funnel-speed .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage{grid-template-columns:minmax(0,1fr) 160px minmax(0,1fr);gap:8px 12px}.gg-funnel-speed .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage>svg{width:160px}.gg-funnel-speed .gg-funnel-card .card-h{flex-wrap:wrap;gap:12px}.gg-funnel-speed .gg-stage-speed .fbar{min-height:40px}.gg-funnel-speed>.card{min-width:0}@media(max-width:1100px){.gg-funnel-speed{grid-template-columns:minmax(0,1fr)}}@media(max-width:900px){.gg-funnel-speed .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage{grid-template-columns:minmax(0,1fr)}.gg-funnel-speed .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage>svg{width:min(280px,100%)}}
+.gg-sidebar-controls{display:none!important}
+
+/* Keep icon positions constant while the shell expands. */
+@media(min-width:801px){.gg-sidebar,html[data-sidebar-mode=compact] .gg-sidebar,html[data-sidebar-mode=compact] .gg-sidebar:is(:hover,:focus-within){padding-left:12px!important;padding-right:12px!important}.gg-sidebar .gg-brand{margin-left:4px!important}.gg-sidebar :is(.gg-company,.gg-menu-label){height:82px;max-height:82px!important;flex-shrink:0}.gg-sidebar .gg-menu-label{height:26px;max-height:26px!important;margin-top:0;margin-bottom:8px}html[data-sidebar-mode=compact] .gg-sidebar:not(:hover):not(:focus-within) :is(.gg-company,.gg-menu-label){display:block!important;visibility:hidden;opacity:0}.gg-sidebar .gg-nav>a,.gg-sidebar .gg-nav>details>summary{padding-left:10px!important;justify-content:flex-start}.gg-sidebar .gg-nav-icon{margin:0!important;flex-shrink:0}.gg-sidebar .gg-nav>details[open]>.gg-subnav{position:relative}html[data-sidebar-mode=compact] .gg-sidebar:not(:hover):not(:focus-within) .gg-subnav{max-height:0!important}}
+.gg-cross-layout{display:grid;grid-template-columns:minmax(0,1fr) 120px;align-items:center;gap:20px}.gg-cross-layout .gg-cross-vertical{width:100%;margin:12px auto;max-width:420px}.gg-cross-layout .gg-cross-total{border-top:0;border-left:1px solid var(--border);padding:16px 0 16px 18px;margin:0;text-align:left}.gg-cross-total b{display:block;font-size:27px;margin:8px 0 0}.gg-team-pairs .gg-pair-row{padding:8px 0;gap:16px;grid-template-columns:115px minmax(0,1fr) 130px}.gg-team-pairs .gg-bullet{height:16px}.gg-team-pairs .gg-bullet-labels{margin-top:4px}.gg-team-pairs .gg-pair-result strong{font-size:14px}.gg-team-pairs .gg-pair-result small{margin-top:3px}.gg-revenue-category{transition:background .15s ease,transform .15s ease}.gg-revenue-category.gg-category-active{background:var(--bg-elevated);transform:scale(1.035);outline:1px solid var(--border-hot)}.gg-revenue-category.gg-category-active>span,.gg-revenue-category.gg-category-active>b{font-size:11px;color:var(--ink)}.gg-composition-arc.gg-category-active{filter:brightness(1.12)}.gg-nav .gg-current{background:var(--accent-soft);color:var(--accent)}
+@media(max-width:700px){.gg-team-pairs .gg-pair-row{grid-template-columns:minmax(0,1fr) 100px}.gg-cross-layout{grid-template-columns:minmax(0,1fr) 100px;gap:10px}.gg-cross-total b{font-size:23px}}
+
+.gg-funnel-speed{border:1px solid var(--border);border-radius:12px;background:var(--bg-card);gap:0;overflow:hidden}.gg-funnel-speed>.card{border:0;border-radius:0;background:transparent;margin:0;min-width:0}.gg-funnel-speed>.card+ .card{border-left:1px solid var(--border)}.gg-funnel-speed .gg-funnel-stage{min-height:105px!important}.gg-ai-radar{margin-top:20px;scroll-margin-top:80px}.gg-ai-radar-layout{display:grid;grid-template-columns:minmax(260px,420px) minmax(0,1fr);gap:28px;align-items:center}.gg-ai-radar-layout svg{width:100%}.gg-ai-radar-layout p{margin:12px 0;font-size:12px}.gg-ai-radar-layout i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}.gg-ai-radar-layout table{width:100%;font-size:12px}.gg-ai-radar-layout td,.gg-ai-radar-layout th{padding:8px;text-align:left;border-bottom:1px solid var(--border)}#gg-workspace .workspace{width:auto;max-width:none}.gg-sidebar .gg-subnav{max-height:none!important}html[data-sidebar-mode=compact] .gg-sidebar:not(:hover):not(:focus-within) .gg-subnav{max-height:none!important;visibility:hidden}.gg-generic,.gg-generic button,.gg-generic input,.gg-generic select{font-family:'Golos Text',sans-serif!important}.gg-generic .card,.gg-generic table{border-color:var(--border)!important}.gg-generic table{background:var(--bg-card)!important;color:var(--ink)}.gg-generic th{background:var(--bg-elevated);color:var(--ink-3)}.gg-generic :is(td,th){border-color:var(--border)!important}.gg-generic .seg button.on,.gg-generic .btn.on{background:var(--accent-soft)!important;color:var(--accent)!important}@media(max-width:900px){.gg-ai-radar-layout{grid-template-columns:1fr}.gg-funnel-speed>.card+.card{border-left:0;border-top:1px solid var(--border)}}
+
+#gg-dashboard #calcard .gg-cal-progress-values{gap:4px;align-items:center;flex-direction:row!important;flex-wrap:wrap}.gg-calendar-fact{color:var(--ink-3)}.gg-calendar-goal{font-weight:600;color:var(--ink)}.gg-calendar-goal.gg-goal-good{color:var(--gg-positive)}.gg-calendar-goal.gg-goal-short{color:var(--gg-negative)}
+
+.gg-ds-spark,.gg-cal-row-chart svg{cursor:default!important}
+
+#gg-workspace,.gg-sidebar,.gg-topbar,.gg-sidebar button,.gg-sidebar a,.gg-sidebar summary{font-family:'Golos Text',sans-serif!important}
+
+.gg-topbar #gg-menu{display:block!important}
+
+.gg-menu-space{display:block;width:36px;height:36px;flex:0 0 36px}#gg-menu.gg-menu-floating{display:block!important;position:fixed;top:11px;left:calc(var(--gg-sidebar) + 28px);z-index:220;transition:left .26s cubic-bezier(.2,.8,.2,1)}@media(max-width:800px){#gg-menu.gg-menu-floating{left:16px}}
+
+@media(min-width:1101px){.gg-manager-plan-layout{grid-template-columns:minmax(0,1fr) 270px;gap:16px}.gg-manager-plan-table .hm-row:not(.hm-head){height:54px!important;min-height:54px!important}.gg-manager-plan-row{height:54px}.gg-manager-plan-row>.gg-pair-row{grid-template-columns:minmax(0,1fr) 85px;gap:8px}.gg-manager-plan-row .gg-bullet{height:16px}.gg-manager-plan-row .gg-pair-result strong{font-size:13px}.gg-manager-plan-row .gg-pair-result small{font-size:9px}}
+
+.gg-sidebar{padding-top:12px!important}.gg-sidebar .gg-brand{margin-top:0!important;margin-bottom:16px!important}.gg-sidebar-controls{display:none!important}
+
+/* Continuous vertical funnel: shared boundaries, compact side metrics. */
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage{min-height:96px!important;height:96px;grid-template-rows:48px 48px;row-gap:0;padding:0;border-bottom:0}
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage>svg{height:96px;align-self:stretch}
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values>h4{margin:0 0 5px;font-size:11px}
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values>dl{gap:5px}
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values dd{margin-top:2px;font-size:11px}
+@media(max-width:900px){#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage{grid-template-columns:minmax(0,1fr) 100px minmax(0,1fr);column-gap:8px}#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage>svg{grid-column:2;grid-row:1/3;width:100px;margin:0}#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values>h4{grid-column:1;grid-row:1}#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values>div{grid-column:1;grid-row:2}#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values>dl{grid-column:3;grid-row:1/3}}
+
+
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values dl>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;min-width:0}
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values dd{margin:0;font-size:10px;text-align:right}
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values dt{font-size:9px}
+
+
+.gg-source-stage-scroll{overflow-x:auto}.gg-source-stage-scroll svg{display:block;width:100%;min-width:700px}.gg-source-stage-flow path{transition:fill-opacity .18s}.gg-source-stage-flow path:hover{fill-opacity:.65}
+
+
+@media(min-width:1101px){.gg-manager-plan-table .hm-row:not(.hm-head){height:40px!important;min-height:40px!important;padding-top:3px!important;padding-bottom:3px!important}.gg-manager-plan-row{height:40px}.gg-manager-plan-row>.gg-pair-row{padding:3px 0}.gg-manager-plan-row .gg-bullet{height:12px}.gg-manager-plan-row .gg-bullet-labels{margin-top:3px;font-size:9px}.gg-manager-plan-row .gg-pair-result small{margin-top:1px}}
+
+
+/* TURBIUM composition and execution samples. */
+.gg-composition>circle:first-child{stroke:var(--bg-card)}.gg-composition-arc{stroke-width:22px;cursor:default;transition:translate .2s ease,filter .2s ease;outline:none}.gg-composition-arc:is(:hover,:focus,.gg-category-active){translate:var(--lift-x,0) var(--lift-y,0);filter:brightness(1.08)}
+.gg-bullet{background:var(--bg-elevated)!important;border-radius:3px}.gg-bullet-plan,.gg-bullet-zone,.gg-bullet-norm{display:none!important}.gg-bullet .gg-bullet-fact{top:3px;bottom:3px;height:auto;border-radius:2px}.gg-bullet-mark{width:2px!important}.gg-team-pairs .gg-bullet{height:22px}.gg-manager-plan-row .gg-bullet{height:16px}
+@media(prefers-reduced-motion:reduce){.gg-composition-arc{transition:none}}
+
+
+/* Widget density: overview fits the viewport; long records scroll internally. */
+#gg-dashboard .card{max-height:calc(100dvh - 140px);overflow:auto;scrollbar-gutter:stable}
+#gg-dashboard .card>.scroll{max-height:38dvh;overflow:auto}
+.gg-manager-plan-unified>.card{max-height:min(440px,calc(100dvh - 140px))!important}
+.gg-funnel-speed{max-height:min(440px,calc(100dvh - 140px));overflow:auto}.gg-funnel-speed>.card{max-height:none!important;overflow:visible!important;scrollbar-gutter:auto}
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage{min-height:64px!important;height:64px;grid-template-rows:32px 32px}
+#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage>svg{height:64px}
+.gg-funnel-speed .gg-stage-speed .fbar{min-height:28px;margin-bottom:0}.gg-source-stage-scroll svg{height:clamp(240px,34dvh,350px);max-height:350px}
+@media(max-width:600px){#gg-dashboard .card{max-height:calc(100dvh - 110px)}.gg-funnel-speed{max-height:calc(100dvh - 110px)}.gg-source-stage-scroll svg{min-width:700px;height:300px}}
+
+
+#gg-dashboard #calcard .gg-cal-group{padding:3px 0;gap:0}
+#gg-dashboard #calcard .gg-cal-chart-row,#gg-dashboard #calcard .gg-cal-chart-row:has(>div:first-child>span[style*="padding-left"]){min-height:32px;padding-top:2px!important;padding-bottom:2px!important}
+#gg-dashboard #calcard .gg-cal-chart-row:has(.gg-cal-progress){min-height:46px}
+.gg-cal-row-chart{min-height:32px;padding:1px 0;justify-content:center}.gg-cal-row-chart>span{display:none!important}.gg-cal-row-chart svg{flex:0 1 28px;height:28px;margin-top:0}
+@media(max-width:600px){#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values dl>div{display:block}#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values dt{display:none}#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values dd{font-size:9px;text-align:left}#gg-dashboard .gg-funnel-card[data-funnel-view=vertical] .gg-funnel-stage-values h4{font-size:10px}}
+
+
+.gg-kit-pie-arc,.gg-kit-ring-arc{transition:scale .2s ease,filter .2s ease;transform-origin:center;transform-box:fill-box;outline:none;cursor:default}.gg-kit-pie-arc:is(:hover,:focus),.gg-kit-ring-arc:is(:hover,:focus){scale:1.025;filter:brightness(1.08)}
+
 

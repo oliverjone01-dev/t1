@@ -20,7 +20,11 @@ sections={'rop-gm':('РОП GLASS MEMORY','Продажи','gm'),'office':('Оф
 sections.update({slug:(name,'Продажи','gg') for slug,name in names.items()})
 sections.update({'op-gm':('Разбор переговоров','Коммуникации','gm'),'kp-gm':('Коммерческие предложения','Продажи','gm'),'messages':('Сообщения','Коммуникации','gg'),'plan':('Планы и материалы','Планы и материалы','gg'),'smm':('Социальные сети','Маркетинг','gg'),'markplan':('План маркетинга','Маркетинг','gg'),'stand-protocol':('Протокол стенда','Планы и материалы','gg'),'ozon-research':('Исследование OZON','Маркетинг','gg'),'econ-control':('Контроль экономики','Операционный отдел','gg')})
 css=style.read_text()+'\n'+(style.parent/'workspace-pages.css').read_text()
+css+='\n'+(style.parent/'rop-approved-design.css').read_text()
+css+="\n#gg-workspace,.gg-sidebar{font-family:'Golos Text','Segoe UI',sans-serif}#gg-dashboard .kpi-strip{gap:12px!important;background:transparent;border:0}#gg-dashboard .kpi-strip>.kpi-cell{border:1px solid var(--border);border-radius:12px;background:var(--bg-card)}"
 js=behavior.read_text()
+js+='\n'+(behavior.parent/'workspace-palette.js').read_text()+'\n'+(behavior.parent/'shared-shell.js').read_text()
+theme_bootstrap="<script data-gg-theme-bootstrap>document.documentElement.dataset.sidebarMode='compact';try{document.documentElement.dataset.sidebarMode=localStorage.getItem('gg-sidebar-mode')||'compact';}catch(e){}document.documentElement.dataset.theme='dark';try{if(localStorage.getItem('gg-hub-theme')==='light')document.documentElement.dataset.theme='light';}catch(e){}</script><style>html{background:#0f1216;color-scheme:dark}html[data-theme=light]{background:#e9edef;color-scheme:light}</style>"
 report=[]
 def atomic(path,text):
     temporary=path.with_name(path.name+'.workspace-new');temporary.write_text(text);temporary.replace(path)
@@ -40,21 +44,27 @@ for slug,(title,department,company) in sections.items():
     shell=shell.replace('ПРОДАЖИ · GENGLASS',html.escape(department.upper())+' · '+brand)
     shell=shell.replace('/ Продажи / РОП GENGLASS','/ '+html.escape(department)+' / '+html.escape(title))
     # ROP anchors belong to the ROP page, not the embedded native dashboard.
-    shell=re.sub(r'<details open><summary class="gg-selected">РОП GENGLASS</summary><div class="gg-sections">.*?</div></details>',f'<a href="/{"rop-gm" if company=="gm" else "rop"}/">РОП {brand}</a>',shell,flags=re.S)
+    shell=shell.replace('href="#sec','href="/rop/#sec')
     if company=='gm':
         shell=shell.replace('>GENGLASS <span>⌄</span>','>GLASS MEMORY <span>⌄</span>')
-        shell=re.sub(r'<details><summary>Менеджеры ОП</summary><div class="gg-sections">.*?</div></details>','',shell,flags=re.S)
         shell=shell.replace('data-company="gg" aria-selected="true"','data-company="gg" aria-selected="false"').replace('data-company="gm" aria-selected="false"','data-company="gm" aria-selected="true"')
-        shell=re.sub(r'<nav class="gg-nav">.*?</nav>','<nav class="gg-nav"><a href="/structure/">◇ <span>Структура компании</span></a><details open><summary>▥ <span>Продажи</span></summary><div class="gg-subnav"><a href="/rop-gm/">РОП GLASS MEMORY</a></div></details><details><summary>☷ <span>Коммуникации</span></summary><div class="gg-subnav"><a href="/op-gm/">Разбор переговоров</a></div></details><a href="/kp-gm/">КП GLASS MEMORY</a></nav>',shell,flags=re.S)
+    if slug=='ozon-research':
+        # Next hydrates the complete document. Preserve its root in a same-origin
+        # frame, then apply the common visual tokens after hydration.
+        atomic(target.with_name('native.html'),source)
+        atomic(target.with_name('shared-design.css'),css+'\nhtml,body{background:var(--bg-base)!important;font-family:"Golos Text",sans-serif!important}body{margin:0}')
+        body='<iframe class="gg-native-frame" title="Исследование OZON" src="native.html" style="width:100%;min-height:800px;border:0;display:block"></iframe>'
     shell=shell.replace('<!-- DASHBOARD -->','<div id="gg-dashboard" class="gg-generic">'+body+'</div>')
-    result=head+'<body>'+shell+'<style>'+css+'</style><script>'+js+'</script></body></html>'
-    if re.findall(r'<script\b[^>]*>.*?</script>',result,re.S)[:len(scripts)]!=scripts:raise SystemExit('Script integrity failure: '+slug)
+    result=head.replace('</head>','<style>'+css+'</style></head>')+'<body>'+shell+'<script>'+js+'</script></body></html>'
+    if slug!='ozon-research' and re.findall(r'<script\b[^>]*>.*?</script>',result,re.S)[:len(scripts)]!=scripts:raise SystemExit('Script integrity failure: '+slug)
+    result=result.replace('<head>','<head>'+theme_bootstrap,1)
     atomic(target,result)
     report.append({'section':slug,'business_scripts_unchanged':True,'script_sha256':hashlib.sha256(''.join(scripts).encode()).hexdigest()})
 atomic(site/'.gg/workspace-pages.json',json.dumps(report,ensure_ascii=False,indent=2))
 marketing=base.replace('<h1>РОП GENGLASS</h1>','<h1>Маркетинг</h1>').replace('ПРОДАЖИ · GENGLASS','МАРКЕТИНГ · GENGLASS').replace('/ Продажи / РОП GENGLASS','/ Маркетинг').replace('Результаты отдела, воронка, менеджеры и дисциплина.','Раздел готов к наполнению.')
 marketing=marketing.replace('<!-- DASHBOARD -->','<div id="gg-dashboard" class="gg-generic"><div class="card"><h2 style="font-size:16px">Маркетинг</h2><p style="color:var(--ink-3);margin-top:10px">Дашборд пока пустой.</p></div></div>')
-marketing=re.sub(r'<details open><summary class="gg-selected">РОП GENGLASS</summary><div class="gg-sections">.*?</div></details>','<a href="/rop/">РОП GENGLASS</a>',marketing,flags=re.S)
+marketing=marketing.replace('href="#sec','href="/rop/#sec')
 (site/'marketing').mkdir(exist_ok=True)
-atomic(site/'marketing/index.html','<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GENGROUP · Маркетинг</title><style>'+css+'</style></head><body>'+marketing+'<script>'+js+'</script></body></html>')
+atomic(site/'marketing/index.html','<!doctype html><html lang="ru"><head>'+theme_bootstrap+'<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GENGROUP · Маркетинг</title><style>'+css+'</style></head><body>'+marketing+'<script>'+js+'</script></body></html>')
 print('Native workspace:',len(report),'additional dashboards; all original scripts unchanged')
+

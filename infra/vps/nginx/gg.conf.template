@@ -53,6 +53,14 @@ server {
     auth_basic "GENGROUP";
     auth_basic_user_file /etc/nginx/gg.htpasswd;
 
+    # Public static TURBIUM examples; no dashboard data.
+    location ^~ /turbium-kit/ {
+        auth_basic off;
+        alias __GG_ROOT__/public/turbium-kit/;
+        index index.html;
+        autoindex off;
+    }
+
     # Проверка живости для внешнего мониторинга - без пароля и без данных
     location = /healthz { auth_basic off; default_type text/plain; return 200 "ok\n"; }
 
@@ -81,3 +89,5 @@ server {
         proxy_hide_header Set-Cookie;
     }
 }
+
+

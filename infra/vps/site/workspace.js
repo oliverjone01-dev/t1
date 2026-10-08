@@ -71,3 +71,4 @@
  const previous=render;render=function(){previous();menus.forEach(m=>m.sync());};
  const toolbar=document.querySelector('.gg-filter-toolbar');if(toolbar&&'ResizeObserver'in window)new ResizeObserver(()=>{document.documentElement.style.setProperty('--gg-sticky-offset',(58+toolbar.getBoundingClientRect().height+16)+'px');}).observe(toolbar);
 })();
+

@@ -26,7 +26,7 @@ Status: the radar sample is implemented in Communications at /dialog/#ai-analysi
 ## Compact widgets and composition
 
 - A widget must fit within the viewport height after the shared header and filters. Aim for two overview widgets on a normal desktop screen. Long tables scroll inside the widget; do not hide data or shrink text until it becomes unreadable.
-- Manager plan/fact rows use a compact 40 px height; calendar rows use 32 px. Repeated labels above row sparklines are omitted because the table already names each row.
+- Manager plan/fact rows use a compact 28 px height without an inner vertical scrollbar; calendar rows use 26 px. Repeated labels above row sparklines are omitted because the table already names each row.
 - Vertical funnel stages meet at shared boundaries with only a small separator; stage metrics stay beside the silhouette.
 - Composition rings use separated sectors, a centered total, restrained hover movement and a matching legend highlight. Use the same treatment for native SVG and supported chart-engine rings.
 - Source-to-stage flow widths count selected-period deals and must conserve the total on both sides. State that the right side uses current stages; do not imply historical transitions.

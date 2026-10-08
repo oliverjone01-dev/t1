@@ -6,6 +6,8 @@
  move('freshTag','gg-freshness');move('nextUpd','gg-freshness');move('planRefresh','gg-plan-actions');move('planOpen','gg-plan-actions');
  const dock=byId('planDock');if(dock)dock.remove();
  move('dateBtn','gg-date-slot');move('period','gg-period-slot');
+ const dateButton=byId('dateBtn');if(dateButton){[...dateButton.childNodes,...[...dateButton.querySelectorAll('span')].flatMap(n=>[...n.childNodes])].filter(n=>n.nodeType===Node.TEXT_NODE).forEach(n=>{n.textContent=n.textContent.replace(/[📅🗓]/gu,'');});const glyph=dateButton.querySelector('svg,.gg-calendar-icon');if(!glyph)dateButton.insertAdjacentHTML('afterbegin','<svg class="gg-calendar-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h2M15 14h2M7 17h2"/></svg>');}
+
  const advanced=byId('advFilters');if(advanced)[...advanced.children].filter(el=>!el.classList.contains('advf-hd')).forEach(el=>byId('gg-settings-slot').appendChild(el));
  const granularity=byId('gran')?.parentElement;if(granularity)byId('gg-gran-slot').appendChild(granularity);
  selectOptions('gg-manager','mgr','Все менеджеры');selectOptions('gg-source','source','Все источники');selectOptions('gg-client','client','Все типы клиентов');
@@ -19,7 +21,7 @@
   const count=flt(AD,true).length;
   const activeCount=['fMgr','fSrc','fCli','fDir'].filter(key=>S[key]).length+(S.dateBasis!=='outcome'?1:0)+(S.revMode!=='prepay'?1:0)+(S.amtMode!=='budget'?1:0)+(S.gran!=='week'?1:0);
   byId('gg-filter-count').textContent=activeCount;byId('gg-filter-count').hidden=!activeCount;
-  byId('gg-active').innerHTML=chips+'<span>В снимке с учётом фильтров: '+count.toLocaleString('ru')+' сделок · период '+escape(S.start)+' — '+escape(S.end)+'</span>';
+  byId('gg-active').innerHTML=chips;
   byId('gg-active').querySelectorAll('[data-clear]').forEach(button=>button.onclick=()=>{S[button.dataset.clear]='';if(button.dataset.clear==='fDir')byId('dirSel').value='';render();});
  }
  render=function(){originalRender();uiSync();};

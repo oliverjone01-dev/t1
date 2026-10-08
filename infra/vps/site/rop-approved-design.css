@@ -185,3 +185,29 @@ html[data-theme=dark] #gg-dashboard{--gg-comp-6:#90c9bb;--gg-comp-7:#d49aa6;--gg
 .gg-kit-pie-arc,.gg-kit-ring-arc{transition:scale .2s ease,filter .2s ease;transform-origin:center;transform-box:fill-box;outline:none;cursor:default}.gg-kit-pie-arc:is(:hover,:focus),.gg-kit-ring-arc:is(:hover,:focus){scale:1.025;filter:brightness(1.08)}
 
 
+/* Dense tiled calendar, including rows carrying plan/fact values. */
+#gg-dashboard #calcard .gg-cal-chart-row,#gg-dashboard #calcard .gg-cal-chart-row:has(>div:first-child>span[style*="padding-left"]),#gg-dashboard #calcard .gg-cal-chart-row:has(.gg-cal-progress){min-height:26px;padding:0!important;margin:0!important}
+#gg-dashboard #calcard .gg-cal-group{padding:1px 0;gap:0}.gg-cal-row-chart{min-height:26px;padding:0}.gg-cal-row-chart svg{height:22px;min-height:18px;max-height:22px;flex:0 1 22px}
+#gg-dashboard #calcard .gg-cal-progress,#gg-dashboard #calcard .gg-cal-total-plan{display:grid!important;grid-template-columns:14px minmax(0,1fr) auto!important;gap:2px!important;padding:1px 4px!important}
+#gg-dashboard #calcard .gg-cal-progress .gg-cal-cup{width:14px;height:22px;grid-column:1!important;grid-row:1!important}
+#gg-dashboard #calcard .gg-cal-progress .gg-cal-progress-values{grid-column:2!important;grid-row:1!important;font-size:8px;white-space:nowrap}
+#gg-dashboard #calcard .gg-cal-progress>strong{grid-column:3!important;grid-row:1!important;font-size:9px;white-space:nowrap}
+.gg-cal-chart-row,.gg-cal-row-chart{transition:background .16s ease,box-shadow .16s ease}
+#gg-dashboard #calcard .gg-cal-row-hover{background:var(--accent-soft)!important;box-shadow:inset 2px 0 var(--accent)}
+#gg-dashboard #calcard .gg-cal-row-hover>div:first-child,#gg-dashboard #calcard .gg-cal-row-hover>div:last-child{background:var(--accent-soft)!important}
+#gg-dashboard #calcard .gg-cal-row-hover>div:first-child{color:var(--ink)!important;font-weight:600}
+@keyframes gg-calendar-reveal{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.gg-cal-revealing{animation:gg-calendar-reveal .22s ease both}
+@media(prefers-reduced-motion:reduce){.gg-cal-revealing{animation:none}}
+/* The manager overview fits through compact rows, without an inner vertical scroll. */
+#gg-dashboard .gg-manager-plan-unified>.card{max-height:none!important;overflow:visible!important;scrollbar-gutter:auto}
+@media(min-width:1101px){.gg-manager-plan-table .hm-row:not(.hm-head){height:28px!important;min-height:28px!important;padding-top:1px!important;padding-bottom:1px!important}.gg-manager-plan-row{height:28px}.gg-manager-plan-row>.gg-pair-row{padding:1px 0}.gg-manager-plan-row .gg-bullet{height:10px}.gg-manager-plan-row .gg-bullet .gg-bullet-fact{top:2px;bottom:2px}.gg-manager-plan-row .gg-bullet-labels{margin-top:2px;font-size:8px}.gg-manager-plan-row .gg-pair-result strong{font-size:12px}.gg-manager-plan-row .gg-pair-result small{font-size:8px;margin-top:0}.gg-manager-plan-unified .card-h{margin-bottom:10px}.gg-manager-plan-unified .gg-pair-note{margin-top:8px}}
+
+
+.gg-composition-linked{display:grid!important;grid-template-columns:160px minmax(0,1fr);gap:14px!important}.gg-composition-linked>div:first-child{width:160px!important}.gg-composition-linked .ro-lg{display:grid;grid-template-columns:8px minmax(0,1fr) auto;gap:8px;max-width:340px;transition:background .16s ease}.gg-composition-linked .ro-lg .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gg-composition-linked .ro-lg.gg-category-active{background:var(--accent-soft)!important;outline:1px solid var(--border-hot)}.gg-composition-linked .ro-lg.gg-category-active .nm{font-weight:600;color:var(--ink)}
+@media(max-width:600px){.gg-composition-linked{grid-template-columns:110px minmax(0,1fr)}.gg-composition-linked>div:first-child{width:110px!important}.gg-composition-linked .ro-lg{gap:5px}}
+
+
+/* Keep both funnel panels fully visible without nested vertical scrolling. */
+#gg-dashboard .gg-funnel-speed>.card{max-height:none!important;overflow:visible!important}#gg-dashboard .gg-funnel-speed .gg-stage-speed .fbar{min-height:28px!important;padding-top:3px!important;padding-bottom:3px!important}#gg-date-slot .dbtn{display:inline-flex;align-items:center;gap:6px}.gg-calendar-icon{flex-shrink:0}
+

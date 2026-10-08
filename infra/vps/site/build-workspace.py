@@ -39,6 +39,10 @@ page += '<script>' + behavior.read_text(encoding='utf-8') + '</script><script>' 
 composed_scripts = re.findall(r'<script\b[^>]*>.*?</script>', page, re.S)
 if composed_scripts[:len(scripts)] != scripts:
     raise SystemExit('Business script integrity failure')
+
+# Resolve the shared theme before styles and the large CRM snapshot are parsed.
+theme_bootstrap = "<script data-gg-theme-bootstrap>document.documentElement.dataset.theme='dark';try{if(localStorage.getItem('gg-hub-theme')==='light')document.documentElement.dataset.theme='light';}catch(e){}</script><style>html{background:#0f1216;color-scheme:dark}html[data-theme=light]{background:#e9edef;color-scheme:light}</style>"
+page = page.replace('<head>', '<head>' + theme_bootstrap, 1)
 def atomic(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + '.workspace-new')

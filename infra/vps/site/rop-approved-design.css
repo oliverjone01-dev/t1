@@ -17,9 +17,11 @@ body,#gg-dashboard,#gg-dashboard svg text{font-family:'Golos Text','Segoe UI',sa
 #gg-dashboard .gg-ds-metrics .kpi-trend *{color:inherit!important}
 #gg-dashboard .gg-ds-metrics .gg-ds-previous{font-size:12px;min-height:22px}
 #gg-dashboard .gg-ds-metrics .gg-ds-spark{height:66px;margin-top:17px}
-.gg-ds-gauge{background:var(--bg-card);text-align:center;padding:24px;box-shadow:none}
+.gg-ds-gauge{background:var(--bg-card);text-align:center;padding:18px;box-shadow:none}
 .gg-ds-gauge-label{color:var(--ink-3);font-size:12px;font-weight:500}
-.gg-ds-gauge svg{display:block;width:100%;max-width:300px;margin:12px auto 0}
+.gg-ds-snapshot-note{font-size:10px;line-height:1.5;color:var(--ink-3);margin-top:8px}
+.gg-ds-current-key{color:var(--gg-viz-primary);font-size:16px}.gg-ds-previous-key{color:var(--gg-viz-comparison);font-size:16px;margin-left:12px}
+.gg-ds-gauge svg{display:block;width:100%;max-width:200px;margin:8px auto 0}
 .gg-ds-gauge-track,.gg-ds-gauge-progress{fill:none;stroke-width:9;stroke-linecap:round}
 .gg-ds-gauge-track{stroke:var(--border)}
 .gg-ds-gauge-progress{stroke:var(--cat-1)}

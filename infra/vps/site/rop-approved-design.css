@@ -58,5 +58,30 @@ html[data-theme=dark]{--gg-positive:#8bd8b9;--gg-negative:#ed99a2}
 #gg-dashboard .gg-ds-metrics .kpi-trend.dn{color:var(--gg-negative)!important;background:color-mix(in srgb,var(--gg-negative) 10%,var(--bg-card))!important}
 #gg-dashboard .gg-ds-metrics .kpi-trend.flat{color:var(--ink-3)!important}
 html[data-theme=dark] #gg-dashboard{--cat-1:#83c9ae;--cat-2:#929ccd;--cat-3:#cda67e;--cat-4:#ba97b1;--cat-5:#a6b78d;--gg-viz-primary:var(--cat-1);--gg-viz-comparison:var(--cat-2)}
+#gg-dashboard{--up:var(--gg-positive);--dn:var(--gg-negative)}
+/* Every visible calendar row has its own aligned, compact trend. */
+#gg-dashboard .gg-cal-group{display:flex;flex-direction:column;justify-content:center;min-height:0;padding:8px 0;gap:2px}
+#gg-dashboard #calcard .gg-cal-chart-row{min-height:48px;margin:0!important;align-items:center!important}
+#gg-dashboard #calcard .gg-cal-chart-row:has(>div:first-child>span[style*="padding-left"]){min-height:42px}
+.gg-cal-row-chart{left:0;right:0;display:flex;flex-direction:column;justify-content:center;box-sizing:border-box;padding:2px 0;min-width:0}
+.gg-cal-row-chart>span{font-size:9px;line-height:1.25;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gg-cal-row-chart svg{display:block;width:100%;height:28px}
+#gg-dashboard #calcard [hidden]{display:none!important}
+.gg-cal-cup{display:block;width:32px;height:42px;flex:none}
+#gg-dashboard #calcard .gg-cal-chart-row:has(.gg-cal-progress){min-height:92px}
+#gg-dashboard #calcard [data-cal-group-toggle]{cursor:pointer}
+#gg-dashboard #calcard .chrow>div:first-child{position:sticky;left:0;z-index:3;background:var(--bg-card);flex:0 0 180px!important;align-self:stretch;display:flex;align-items:center;padding-right:8px;box-shadow:6px 0 0 var(--bg-card)}
+#gg-dashboard #calcard .gg-cal-group>div[style*="border-left"]{position:sticky;left:0;z-index:4;width:180px;background:var(--bg-card)}
+#gg-dashboard #calcard .gg-cal-empty-label{position:sticky;left:0;z-index:3;background:var(--bg-card)}
+#gg-dashboard #calcard .gg-cal-chart-row:has(.gg-cal-progress){min-height:56px}
+#gg-dashboard #calcard .gg-cal-progress{display:grid!important;grid-template-columns:24px minmax(0,1fr);gap:2px!important;padding:3px!important;align-items:center!important}
+#gg-dashboard #calcard .gg-cal-progress .gg-cal-cup{grid-column:1;grid-row:1/3;width:24px;height:36px}
+#gg-dashboard #calcard .gg-cal-progress-values{font-size:8px;gap:1px;grid-column:2}
+#gg-dashboard #calcard .gg-cal-progress>strong{font-size:9px;grid-column:2}
+#gg-dashboard #calcard .chrow>div:last-child{position:sticky;right:0;z-index:3;background:var(--bg-card);flex-shrink:0;box-shadow:-6px 0 0 var(--bg-card)}
+#gg-dashboard .hm-pf .gg-hm-fixed-name{position:sticky;left:0;z-index:3;background:var(--bg-card);box-shadow:4px 0 0 var(--bg-card);align-self:stretch;display:flex;align-items:center;justify-content:flex-end}
+#gg-dashboard .hm-pf .gg-hm-fixed-total{position:sticky;right:0;z-index:3;background:var(--bg-card);box-shadow:-4px 0 0 var(--bg-card);align-self:stretch;display:flex;align-items:center;justify-content:flex-end}
+@media(max-width:1100px){.gg-cal-row-chart{min-height:48px}.gg-ds-stage-dynamics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
 /* Flat bullet pattern: values above, fact fill, target marker, and previous-period portfolio. */
 .gg-ds-team-graphic{flex:1;min-width:150px}.gg-ds-team-values{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:7px;font-size:11px;line-height:1.35}#gg-dashboard .gg-ds-team-values>span{position:static!important;line-height:inherit!important;text-shadow:none!important;color:var(--ink)!important;font-size:11px!important}#gg-dashboard .gg-ds-team-values>span:last-child{color:var(--ink-3)!important;text-align:right;font-weight:400!important}#gg-dashboard .gg-ds-team-track{height:10px!important;min-width:0!important;border-radius:3px!important;background:var(--bg-elevated)!important;box-shadow:none!important;overflow:visible!important}#gg-dashboard .gg-ds-team-track>.gg-ds-team-fill{background:var(--gg-viz-primary)!important;background-image:none!important;box-shadow:none!important;border-radius:3px!important}#gg-dashboard .gg-ds-team-goal{position:absolute!important;top:-4px!important;bottom:-4px!important;width:2px!important;background:var(--ink)!important;box-shadow:none!important;border-radius:0!important;z-index:5}#gg-dashboard .gg-ds-plan-fact .gg-ds-team-backlog{background:repeating-linear-gradient(115deg,color-mix(in srgb,var(--gg-viz-primary) 35%,transparent),color-mix(in srgb,var(--gg-viz-primary) 35%,transparent) 7px,color-mix(in srgb,var(--gg-viz-primary) 12%,transparent) 7px,color-mix(in srgb,var(--gg-viz-primary) 12%,transparent) 14px)!important;box-shadow:none!important}
+

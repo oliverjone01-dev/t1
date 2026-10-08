@@ -83,8 +83,8 @@
   const configs=[{id:'smart',table:'#smTbl',rows:'tr[data-smmgr]',attr:'data-smsort',defaults:[1,6]}, {id:'rating',table:'#mt',rows:'tr',attr:'data-k',defaults:[5,6]}, {id:'tasks',table:'#taskdisc table',rows:'tr[data-tdmgr]',attr:'data-tdsort',defaults:[5,9]}];
   configs.forEach(config=>{
    const table=document.querySelector(config.table),card=table?.closest('.card');if(!table||!card||card.querySelector('.gg-manager-overview'))return;
-   const headers=[...table.querySelectorAll('thead tr:first-child>th')],rows=[...table.querySelectorAll('tbody>tr')].filter(r=>r.matches(config.rows)&&r.children.length===headers.length&&r.firstElementChild.textContent.replace(/[▸▾]/g,'').trim()&&!/^(Итого|Весь отдел|Отдел продаж|Нераспределённые)/i.test(r.firstElementChild.textContent.replace(/[▸▾]/g,'').trim()));
-   if(!rows.length)return;
+   const headers=[...table.tHead.rows[0].cells];let rows=[...table.tBodies[0].rows].filter(r=>r.matches(config.rows)&&r.children.length===headers.length&&r.firstElementChild.textContent.replace(/[▸▾]/g,'').trim()&&!/^(Итого|Весь отдел|Отдел продаж|Нераспределённые)/i.test(r.firstElementChild.textContent.replace(/[▸▾]/g,'').trim()));
+   if(!rows.length&&config.id==='tasks'){const prior=S.tdDept;try{S.tdDept=true;const host=document.createElement('div');host.innerHTML=taskDisciplineBlock();rows=[...host.querySelectorAll('tr[data-tdmgr]')];}finally{S.tdDept=prior;}}if(!rows.length)return;
    const metrics=headers.map((h,i)=>({i,key:h.getAttribute(config.attr),label:h.textContent.replace(/[▲▼↑↓]/g,'').replace(/\?/g,'').trim()})).filter(m=>m.i>0&&(!/Рентабельность/.test(m.label)));
    const state=managerWidgetState.get(config.id)||{open:false,selected:config.defaults.slice()};managerWidgetState.set(config.id,state);
    const details=document.createElement('details');details.className='gg-manager-detail';details.dataset.managerDetail=config.id;details.open=state.open;
@@ -125,6 +125,10 @@
   const dyn=document.getElementById('rdyn')?.closest('.card')?.querySelector('.card-sub');if(dyn)dyn.textContent=dyn.textContent.split(' · период')[0]+' · сравнение с предыдущим периодом';
   simplifyWidgets();productionVariants();managerWidgets();calendarSync();stageSpeed();numberContrast();sectionScroll();requestAnimationFrame(rightScroll);document.documentElement.dataset.ggUi='ready';
  }
+ // Native manager drill-down can redraw a single card without calling render().
+ let managerRefresh=0;
+ const managerObserver=new MutationObserver(()=>{if(managerRefresh)return;managerRefresh=requestAnimationFrame(()=>{managerRefresh=0;managerWidgets();});});
+ managerObserver.observe(document.getElementById('root'),{childList:true,subtree:true});
  const previous=render;render=function(){S.dhCum='per';S.cvView='funnel';if(S.revMetric==='prod')S.revMetric='deals';previous();sync();};render();
 })();
 

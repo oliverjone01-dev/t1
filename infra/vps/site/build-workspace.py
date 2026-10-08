@@ -30,6 +30,7 @@ body = original.split('<body>', 1)[1].rsplit('</body>', 1)[0]
 design_style = (style.parent / 'rop-approved-design.css').read_text(encoding='utf-8')
 design_behavior = (behavior.parent / 'rop-approved-design.js').read_text(encoding='utf-8')
 design_behavior += '\n' + (behavior.parent / 'rop-palette.js').read_text(encoding='utf-8')
+design_behavior += '\n' + (behavior.parent / 'rop-refinements.js').read_text(encoding='utf-8')
 font_source = style.parent / 'turbium-fonts'
 if font_source.is_dir():
     shutil.copytree(font_source, site / 'turbium-fonts', dirs_exist_ok=True)
@@ -63,6 +64,6 @@ atomic(site / '.gg/workspace.json', json.dumps({
     'source_sha256': hashlib.sha256(original.encode()).hexdigest(),
     'business_scripts_sha256': hashlib.sha256(''.join(scripts).encode()).hexdigest(),
     'business_scripts_unchanged': scripts == source_scripts, 'iframe': False,
-    'requested_business_change': 'Health CR2 target: last explicitly entered monthly norm; no snapshot data modified',
+    'requested_business_change': 'Health CR2 last entered norm; lead and deal plan quantities without cycle coefficient; snapshot data unchanged',
 }, ensure_ascii=False, indent=2))
 print('ROP native workspace composed; requested plan-target correction; managers:', len(roster))

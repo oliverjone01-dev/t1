@@ -45,6 +45,11 @@
  const sections=[...document.querySelectorAll('.gg-sections a[href^="#sec"]')];sections.forEach(a=>a.onclick=e=>{const target=document.querySelector(a.getAttribute('href'));if(!target)return;e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'start'});history.replaceState(null,'',a.getAttribute('href'));closeMenu();});
  if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{const entry=entries.filter(e=>e.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(entry)sections.forEach(a=>a.classList.toggle('gg-current',a.hash==='#'+entry.target.id));},{rootMargin:'-60px 0px -70% 0px'});document.querySelectorAll('#root .sec-div[id]').forEach(el=>observer.observe(el));}
 })();
+// User removed this widget from the ROP workspace; source data and calculations remain available.
+(function(){
+ function hideRemovedWidget(){document.querySelectorAll('#root .card').forEach(card=>{const title=card.querySelector('.card-title,.card-t');if(title?.textContent.trim().startsWith('Передано без карточки СП'))card.hidden=true;});}
+ const before=render;render=function(){before();hideRemovedWidget();};hideRemovedWidget();
+})();
 
 // TURBIUM controls: styled listboxes proxy the existing selects and their original events.
 (function(){
@@ -56,7 +61,7 @@
   const input=document.createElement('input');input.placeholder='Найти…';input.setAttribute('aria-label','Поиск вариантов');const list=document.createElement('div');list.setAttribute('role','listbox');
   panel.append(input,list);host.append(button,panel);select.after(host);
   function close(){panel.hidden=true;button.setAttribute('aria-expanded','false');}
-  function sync(){button.textContent=(select.selectedOptions[0]?.textContent||'Все')+' ⌄';list.replaceChildren();[...select.options].forEach(option=>{const item=document.createElement('button');item.type='button';item.textContent=option.textContent;item.dataset.value=option.value;item.setAttribute('role','option');item.setAttribute('aria-selected',String(option.value===select.value));item.onclick=()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));close();button.focus();sync();};list.append(item);});}
+  function sync(){button.textContent=(select.selectedOptions[0]?.textContent||'Все');list.replaceChildren();[...select.options].forEach(option=>{const item=document.createElement('button');item.type='button';item.textContent=option.textContent;item.dataset.value=option.value;item.setAttribute('role','option');item.setAttribute('aria-selected',String(option.value===select.value));item.onclick=()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));close();button.focus();sync();};list.append(item);});}
   button.onclick=()=>{const open=panel.hidden;menus.forEach(m=>m.close());if(open){sync();panel.hidden=false;button.setAttribute('aria-expanded','true');input.value='';input.focus();}};
   input.oninput=()=>list.querySelectorAll('button').forEach(item=>item.hidden=!item.textContent.toLowerCase().includes(input.value.toLowerCase()));
   host.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){e.stopPropagation();close();button.focus();}if(['ArrowDown','ArrowUp'].includes(e.key)&&!panel.hidden){e.preventDefault();const items=[...list.children].filter(x=>!x.hidden),index=items.indexOf(document.activeElement);items[(index+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();}});

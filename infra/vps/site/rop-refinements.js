@@ -258,4 +258,11 @@
  function planSource(){const card=document.getElementById('mgrMetricSeg')?.closest('.card'),m=(DATA.plan?.months||[]).filter(m=>m.month<=S.end.slice(0,7)&&m.cr2>0).sort((a,b)=>a.month.localeCompare(b.month)).at(-1);if(!card||!m)return;let note=card.querySelector('.gg-manager-plan-source');if(!note){note=document.createElement('p');note.className='gg-pair-note gg-manager-plan-source';card.append(note);}note.textContent='Цель конверсии '+pct(m.cr2)+' · план '+m.month+(m.month!==S.end.slice(0,7)?' — последний заполненный норматив; в выбранном месяце цель не задана.':'.');}
  const before=render;render=function(){before();rebuild();planSource();};rebuild();planSource();
 })();
+// Refusal detail lists were explicitly removed; keep both summary charts.
+(function(){
+ function removeRefusalDetails(){document.querySelectorAll('#root details').forEach(d=>{if(d.querySelector(':scope > summary')?.textContent.trim()==='Отказные сделки · детализация')d.remove();});}
+ const previous=render;render=function(){previous();removeRefusalDetails();};
+ document.addEventListener('click',e=>{if(e.target.closest('[data-loss-stage]'))queueMicrotask(removeRefusalDetails);},true);
+ removeRefusalDetails();
+})();
 

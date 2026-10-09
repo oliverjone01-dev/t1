@@ -199,7 +199,7 @@
 })();
 
 (function(){
- function refineDetails(){document.querySelectorAll('#root .card').forEach(card=>{
+ function refineDetails(){const QUOTE_SET=new Set(['C49:UC_OGZUU0','C49:PREPARATION','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2']);document.querySelectorAll('#root .card').forEach(card=>{
   const title=card.querySelector('.card-title')?.textContent||'';
   if(title.startsWith('Дашборды менеджеров')){card.classList.add('gg-manager-dashboard-links');card.querySelectorAll('[data-gg-scroll-key]').forEach(n=>{n.scrollLeft=0;n.removeAttribute('data-gg-scroll-key');});}
   if(!title.startsWith('Отдел продаж: передачи и потенциал'))return;

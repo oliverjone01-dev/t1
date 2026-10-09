@@ -2,20 +2,26 @@
 (function(){
  const byId=id=>document.getElementById(id);
  const move=(id,to)=>{const node=byId(id);if(node)byId(to).appendChild(node);};
- const selectOptions=(id,key,label)=>{const el=byId(id);el.replaceChildren(new Option(label,''));[...new Set([...AD,...AL].map(x=>x[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru')).forEach(v=>el.add(new Option(v,v)));el.onchange=()=>{S[{mgr:'fMgr',source:'fSrc',client:'fCli'}[key]]=el.value;render();};};
+ const selectOptions=(id,key,label)=>{const el=byId(id);el.replaceChildren(new Option(label,''));[...new Set([...AD,...AL].filter(x=>key!=='mgr'||!S.fDir||x.dir===S.fDir).map(x=>key==='mgr'?managerGroup(x.mgr):x[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru')).forEach(v=>el.add(new Option(v,v)));el.onchange=()=>{S[{mgr:'fMgr',source:'fSrc',client:'fCli'}[key]]=el.value;render();};};
  move('freshTag','gg-freshness');move('nextUpd','gg-freshness');move('planRefresh','gg-plan-actions');move('planOpen','gg-plan-actions');
  const dock=byId('planDock');if(dock)dock.remove();
+ // The VPS rop-snapshot timer runs daily at 00/3:17 UTC, including weekends.
+ const refresh=byId('nextUpd');if(refresh)refresh.id='gg-next-refresh';
+ const moscow=d=>new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d).replace(',','');
+ function refreshStatus(){const stamp=byId('freshTag'),now=new Date(),generated=new Date(DATA.generatedAt);if(stamp){stamp.textContent=Number.isFinite(+generated)?'Данные на '+moscow(generated)+' МСК':'Дата снимка не указана';stamp.dataset.tip='Время получения данных из CRM. Плановый сбор запускается каждые 3 часа; публикация происходит после завершения.';}if(!refresh)return;let next=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),Math.floor(now.getUTCHours()/3)*3,17));if(next<=now)next=new Date(+next+3*36e5);const minutes=Math.max(1,Math.ceil((next-now)/6e4)),hours=Math.floor(minutes/60);refresh.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></svg><span>Следующий сбор: '+moscow(next)+' МСК · через '+(hours?hours+' ч ':'')+(minutes%60)+' мин</span>';refresh.dataset.tip='Плановый запуск по расписанию сервера: каждые 3 часа на 17-й минуте. Это время запуска, получение и публикация данных занимают дополнительное время.';}
+ refreshStatus();setInterval(refreshStatus,30000);
  move('dateBtn','gg-date-slot');move('period','gg-period-slot');
  const dateButton=byId('dateBtn');if(dateButton){[...dateButton.childNodes,...[...dateButton.querySelectorAll('span')].flatMap(n=>[...n.childNodes])].filter(n=>n.nodeType===Node.TEXT_NODE).forEach(n=>{n.textContent=n.textContent.replace(/[📅🗓]/gu,'');});const glyph=dateButton.querySelector('svg,.gg-calendar-icon');if(!glyph)dateButton.insertAdjacentHTML('afterbegin','<svg class="gg-calendar-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h2M15 14h2M7 17h2"/></svg>');}
 
  const advanced=byId('advFilters');if(advanced)[...advanced.children].filter(el=>!el.classList.contains('advf-hd')).forEach(el=>byId('gg-settings-slot').appendChild(el));
+ const direction=byId('dirSel');if(direction){const block=direction.closest('.ctl')||direction.parentElement;byId('gg-direction-slot').append(block);}
  const granularity=byId('gran')?.parentElement;if(granularity)byId('gg-gran-slot').appendChild(granularity);
  selectOptions('gg-manager','mgr','Все менеджеры');selectOptions('gg-source','source','Все источники');selectOptions('gg-client','client','Все типы клиентов');
  const escape=value=>String(value).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
  const originalRender=render;
  function uiSync(){
   document.querySelectorAll('#root .kpi-strip').forEach(strip=>{const cards=[...strip.children];if(cards.length<2)return;const top=Math.ceil(cards.length/2),bottom=cards.length-top;strip.style.setProperty('--gg-kpi-grid',top*bottom);cards.forEach((card,index)=>card.style.gridColumn='span '+(index<top?bottom:top));});
-  byId('gg-manager').value=S.fMgr;byId('gg-source').value=S.fSrc;byId('gg-client').value=S.fCli;
+  selectOptions('gg-manager','mgr','Все менеджеры');byId('gg-manager').value=S.fMgr;byId('gg-source').value=S.fSrc;byId('gg-client').value=S.fCli;
   if(byId('dateBtnTxt'))byId('dateBtnTxt').textContent=S.start.split('-').reverse().join('.')+' — '+S.end.split('-').reverse().join('.');
   const chips=[['fMgr','Менеджер'],['fSrc','Источник'],['fCli','Клиент'],['fDir','Направление']].filter(([key])=>S[key]).map(([key,label])=>'<button class="gg-chip" data-clear="'+key+'">'+label+': '+escape(S[key])+' <span>×</span></button>').join('');
   const count=flt(AD,true).length;
@@ -24,7 +30,7 @@
   byId('gg-active').innerHTML=chips;
   byId('gg-active').querySelectorAll('[data-clear]').forEach(button=>button.onclick=()=>{S[button.dataset.clear]='';if(button.dataset.clear==='fDir')byId('dirSel').value='';render();});
  }
- render=function(){originalRender();uiSync();};
+ render=function(){if(S.fMgr&&!([...AD,...AL].some(x=>(!S.fDir||x.dir===S.fDir)&&managerGroup(x.mgr)===S.fMgr)))S.fMgr='';originalRender();uiSync();};
  byId('gg-reset').onclick=()=>{S.fMgr=S.fSrc=S.fCli=S.fDir='';S.dateBasis='outcome';S.revMode='prepay';S.amtMode='budget';S.gran='week';byId('dirSel').value='';for(const [id,attr,value] of [['dateSeg','b','outcome'],['revSeg','r','prepay'],['amtSeg','am','budget'],['gran','g','week']])byId(id)?.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset[attr]===value));byId('cf').value=byId('ct').value='';setPeriod('30');byId('period').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.p==='30'));render();};
  uiSync();
  const drawer=byId('gg-filter-drawer'),filterTrigger=byId('gg-filters-open'),filterBackdrop=byId('gg-filter-backdrop');let previousOverflow='';
@@ -73,4 +79,3 @@
  const previous=render;render=function(){previous();menus.forEach(m=>m.sync());};
  const toolbar=document.querySelector('.gg-filter-toolbar');if(toolbar&&'ResizeObserver'in window)new ResizeObserver(()=>{document.documentElement.style.setProperty('--gg-sticky-offset',(58+toolbar.getBoundingClientRect().height+16)+'px');}).observe(toolbar);
 })();
-

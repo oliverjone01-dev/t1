@@ -27,11 +27,10 @@
 <button id="gg-filter-backdrop" aria-label="Закрыть фильтры" hidden></button>
 <section id="gg-filter-drawer" class="gg-filter-panel" role="dialog" aria-modal="true" aria-labelledby="gg-filter-title" hidden>
  <div class="gg-drawer-heading"><h2 id="gg-filter-title">Фильтры</h2><button id="gg-filters-close" class="gg-icon-button" aria-label="Закрыть фильтры">×</button></div>
- <div class="gg-drawer-body"><div class="gg-filter-grid"><label><span>Менеджер</span><select id="gg-manager"></select></label><label><span>Источник</span><select id="gg-source"></select></label><label><span>Тип клиента</span><select id="gg-client"></select></label></div>
- <h3 class="gg-settings-title">Настройки расчёта</h3><div id="gg-settings-slot"></div>
+ <div class="gg-drawer-body"><h3 class="gg-filter-section-title">Область данных</h3><div id="gg-direction-slot"></div><div class="gg-filter-grid"><label><span>Менеджер</span><select id="gg-manager"></select></label><details class="gg-filter-group"><summary>Клиенты и источники</summary><label><span>Источник</span><select id="gg-source"></select></label><label><span>Тип клиента</span><select id="gg-client"></select></label></details></div>
+ <details class="gg-filter-group"><summary>Настройки расчёта</summary><div id="gg-settings-slot"></div></details>
  <div class="gg-active" id="gg-active" aria-live="polite"></div></div>
  <div class="gg-drawer-footer"><button id="gg-reset" class="gg-text-button">Сбросить</button><button id="gg-filters-done" class="gg-input">Готово</button></div>
 </section>
 <button id="gg-backdrop" aria-label="Закрыть меню" hidden></button>
 </div>
-

@@ -30,6 +30,55 @@
  Object.entries(views).forEach(([key,v])=>{const a=el('a','',v.title);a.href='/dialog/#'+key;a.dataset.commView=key;tabs.append(a);});
  const overview=el('section','gg-comm-overview');overview.setAttribute('aria-label','Итоги выбранного периода');
  host.prepend(tabs,toolbar,overview);
+ const aiProfiles=el('section','gg-comm-ai-profiles');aiProfiles.hidden=true;overview.after(aiProfiles);
+ const axes=[['polite','Вежливость'],['qual','Квалификация'],['deadline','Сроки'],['process','Ведение'],['result','Результат']];
+ const managerData=new Map((SC.managers||[]).map(m=>[m.mgr,m])),dealsByManager=new Map();
+ for(const d of SC.deals||[]){if(!dealsByManager.has(d.mgr))dealsByManager.set(d.mgr,[]);dealsByManager.get(d.mgr).push(d);}
+ function profile(ds){
+  const fresh=ds.filter(d=>d.aiState==='fresh'),eligible=ds.filter(d=>['fresh','stale','none'].includes(d.aiState));
+  return{total:ds.length,deals:ds.filter(d=>!d.isLead).length,leads:ds.filter(d=>d.isLead).length,eligible:eligible.length,fresh:fresh.length,stale:ds.filter(d=>d.aiState==='stale').length,pending:ds.filter(d=>d.aiState==='none').length,
+   scores:axes.map(([key])=>{const values=fresh.map(d=>d.ai?.scores?.[key]).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0&&v<=5);return{key,n:values.length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null};})};
+ }
+ const profiles=new Map([...managerData.keys()].map(mgr=>[mgr,profile(dealsByManager.get(mgr)||[])]));
+ const departmentProfile=profile((SC.deals||[]).filter(d=>managerData.has(d.mgr))),decimal=v=>v==null?'—':v.toLocaleString('ru-RU',{minimumFractionDigits:1,maximumFractionDigits:1});
+ function radar(p,mgr){
+  const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 360 305');svg.classList.add('gg-comm-ai-radar');svg.setAttribute('role','img');svg.setAttribute('aria-label','Средние актуальные ИИ-оценки: '+mgr+'. Шкала от 0 до 5. '+p.scores.map((s,i)=>axes[i][1]+': '+decimal(s.mean)+', '+number(s.n)+' диалогов').join('. '));
+  const add=(tag,attrs,text)=>{const n=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));if(text!=null)n.textContent=text;svg.append(n);return n;};
+  const point=(i,value)=>[180+Math.sin(i*2*Math.PI/5)*value*20,145-Math.cos(i*2*Math.PI/5)*value*20],polygon=values=>values.map((v,i)=>point(i,v).join(',')).join(' ');
+  [1,2,3,4,5].forEach(v=>add('polygon',{points:polygon(axes.map(()=>v)),class:'gg-ai-gridline'}));
+  axes.forEach(([key,label],i)=>{const end=point(i,5),l=point(i,6.4);add('path',{d:'M180 145L'+end.join(' '),class:'gg-ai-gridline'});const text=add('text',{x:l[0],y:l[1]-4,'text-anchor':'middle',class:'gg-ai-axis-label'},label);const value=document.createElementNS(ns,'tspan');value.setAttribute('x',l[0]);value.setAttribute('dy','15');value.classList.add('gg-ai-axis-value');value.textContent=decimal(p.scores[i].mean);text.append(value);});
+  if(departmentProfile.scores.every(s=>s.mean!=null))add('polygon',{points:polygon(departmentProfile.scores.map(s=>s.mean)),class:'gg-ai-department-shape'});
+  if(p.scores.every(s=>s.mean!=null))add('polygon',{points:polygon(p.scores.map(s=>s.mean)),class:'gg-ai-manager-shape'});
+  p.scores.forEach((s,i)=>{if(s.mean==null)return;const q=point(i,s.mean),dot=add('circle',{cx:q[0],cy:q[1],r:'3.5',class:'gg-ai-dot',tabindex:'0'}),tip=document.createElementNS(ns,'title');tip.textContent=axes[i][1]+': '+decimal(s.mean)+' из 5, '+number(s.n)+' актуальных диалогов';dot.append(tip);});
+  return svg;
+ }
+ function aiProfileCard(mgr,inline=false){
+  const p=profiles.get(mgr)||profile([]),a=SC.aiDemo===true?null:managerData.get(mgr)?.ai,card=el('article','gg-comm-ai-profile'+(inline?' gg-comm-ai-inline':''));card.dataset.aiManager=mgr;card.dataset.aiScope='snapshot';card.dataset.aiFresh=String(p.fresh);card.dataset.aiEligible=String(p.eligible);
+  const head=el('header','gg-ai-profile-header');head.append(el('h3','',inline?'ИИ-профиль · '+mgr:mgr),el('span','',number(p.deals)+' сделок · '+number(p.leads)+' лидов в снимке'));
+  const content=el('div','gg-ai-profile-content'),visual=el('div','gg-ai-profile-visual'),info=el('div','gg-ai-profile-info');
+  if(p.fresh&&p.scores.some(s=>s.mean!=null)){
+   visual.append(radar(p,mgr));const legend=el('div','gg-ai-profile-legend');legend.append(el('span','gg-ai-own','Менеджер'),el('span','gg-ai-average','Отдел: среднее по диалогам'));visual.append(legend);
+  }else visual.append(el('div','gg-ai-no-scores','Актуальных ИИ-оценок пока нет'),el('p','gg-ai-empty-note','Профиль появится после сохранения актуальных разборов.'));
+  const coverage=el('div','gg-ai-profile-coverage');coverage.append(el('b','',number(p.fresh)+' / '+number(p.eligible)),el('span','',p.eligible?'актуальных разборов из подлежащих анализу · '+decimal(p.fresh/p.eligible*100)+'%':'диалогов, подлежащих анализу'));
+  const strip=el('div','gg-ai-coverage-strip');[['fresh',p.fresh],['stale',p.stale],['pending',p.pending]].forEach(([key,n])=>{if(n){const part=el('i','gg-ai-'+key);part.style.flex=String(n);strip.append(part);}});
+  info.append(coverage,strip,el('p','gg-ai-coverage-note',number(p.stale)+' требуют обновления · '+number(p.pending)+' ждут разбора'));
+  const values=el('div','gg-ai-score-values');p.scores.forEach((s,i)=>{const item=el('div');item.dataset.aiAxis=s.key;item.dataset.aiMean=s.mean==null?'':String(s.mean);item.dataset.aiN=String(s.n);item.append(el('span','',axes[i][1]),el('b','',decimal(s.mean)+' / 5'));values.append(item);});info.append(values);
+  if(a?.verdict){const verdict=el('p','gg-ai-profile-verdict',a.verdict);info.append(el('p','gg-ai-source-note','Сохранённая сводка · '+number(a.reviewed||0)+' разборов'),verdict);}
+  const details=el('details','gg-ai-profile-details');details.append(el('summary','','Выводы и действия'));
+  if(a){details.append(el('p','gg-ai-source-note','Сохранённая сводка всего снимка · '+number(a.reviewed||0)+' разборов. Включает сделки и лиды; её охват может отличаться от актуальных оценок выше.'));if(a.verdict)details.append(el('p','',a.verdict));
+   [['Сильные стороны',a.strengths],['Проблемы',a.weaknesses]].forEach(([label,items])=>{details.append(el('h4','',label));if(Array.isArray(items)&&items.length){const ul=el('ul');items.forEach(item=>ul.append(el('li','',typeof item==='string'?item:item.text||item.label||'')));details.append(ul);}else details.append(el('p','gg-ai-source-note','В сохранённой сводке не отмечены.'));});if(a.action){details.append(el('h4','','Что сделать'),el('p','',a.action));}
+  }else details.append(el('p','gg-ai-source-note','Текстовая сводка по менеджеру ещё не сохранена.'));
+  info.append(details);content.append(visual,info);card.append(head,content,el('footer','gg-ai-profile-source','Средние актуальные оценки полных диалогов, 0–5. По всем сделкам и лидам менеджера в снимке; выбранный период не меняет профиль. Неоценённые диалоги исключены из среднего.'));
+  return card;
+ }
+ function presentAIProfiles(table){
+  root.dataset.commView=mode;aiProfiles.hidden=mode!=='ai-analysis';
+  if(mode==='ai-analysis'&&!aiProfiles.childElementCount){
+   const h=el('div','gg-ai-profiles-heading');h.append(el('h2','','ИИ-профили менеджеров'),el('p','','Все сделки и лиды каждого менеджера в текущем снимке. Радар — по актуальным сохранённым разборам.'));
+   const grid=el('div','gg-ai-profile-grid');[...managerData.keys()].sort((a,b)=>(profiles.get(b).fresh-profiles.get(a).fresh)||a.localeCompare(b,'ru')).forEach(mgr=>grid.append(aiProfileCard(mgr)));aiProfiles.append(h,grid);
+  }
+  table.querySelectorAll(':scope > tbody > .mgrrow').forEach(row=>{const sub=row.nextElementSibling;if(sub?.classList.contains('subrow'))sub.cells[0].prepend(aiProfileCard(row.dataset.m,true));});
+ }
  const title=document.querySelector('.gg-heading h1'),subtitle=document.querySelector('.gg-heading h1+p'),fresh=document.getElementById('gg-freshness'),stamp=document.getElementById('sub');
  if(fresh&&stamp)fresh.append(stamp);
  const burger=document.getElementById('burger');if(burger){burger.className='gg-comm-ai-button';burger.textContent='Настроить ИИ-разбор';document.getElementById('gg-plan-actions')?.append(burger);burger.addEventListener('click',()=>closeDrawer(false));}
@@ -84,6 +133,7 @@
    const button=el('button','gg-comm-open','Каналы ↗');button.type='button';button.setAttribute('aria-label','Коммуникации: '+label);button.onclick=e=>{e.stopPropagation();openDrawer(key,button);};td.replaceChildren(button);entry.button=button;
   });
   if(selected){const entry=entries.get(selected);if(entry){returnFocus=entry.button;fillDrawer(entry);}else closeDrawer(false);}
+  presentAIProfiles(table);
   const mt=toolbar.querySelector('[data-metrics]');if(mt){mt.hidden=mode!=='chronology';mt.textContent=S.showMetrics?'Скрыть метрики':'Метрики регламента';}
  }
  const native=renderTree;renderTree=function(){const result=native.apply(this,arguments);present();return result;};

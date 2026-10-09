@@ -1,4 +1,9 @@
 /* GENGROUP / Kontur workspace tokens. Original charts keep their semantic colours. */
+/* Shared frame for every section; native widget internals keep their own data controls. */
+.gg-main{font-family:'Golos Text','Segoe UI',sans-serif;font-size:13px}
+.gg-heading p{margin:0;line-height:1.5}
+.gg-nav a,.gg-nav summary,.gg-icon-button,.gg-input{transition:background-color .16s ease,color .16s ease,border-color .16s ease}
+@media(prefers-reduced-motion:reduce){.gg-nav a,.gg-nav summary,.gg-icon-button,.gg-input{transition:none}}
 :root{--bg-base:#F6F7F9;--bg-card:#fff;--bg-elevated:#F1F3F6;--bg-soft:#EBEEF3;--border:#E3E6EA;--border-soft:#E9ECF0;--border-hot:#CDD3DD;--ink:#16191E;--ink-1:#16191E;--ink-2:#3A404A;--ink-3:#5A616C;--ink-4:#68717E;--accent:#3561C9;--accent-2:#274CAA;--accent-deep:#244898;--accent-soft:#EDF2FD;--up:#16815D;--dn:#C73650;--warn:#986600;--radius:12px;--radius-lg:12px;--gg-sidebar:248px}
 html[data-theme=dark]{--bg-base:#0F1216;--bg-card:#171C23;--bg-elevated:#212731;--bg-soft:#2A323E;--border:#303846;--border-soft:#28303B;--border-hot:#475163;--ink:#F0F2F6;--ink-1:#F0F2F6;--ink-2:#CED5DF;--ink-3:#A4ADBA;--ink-4:#8E98A8;--accent:#96B4FF;--accent-2:#96B4FF;--accent-soft:#233454;--up:#54C79C;--dn:#FF8294;--warn:#EBC46B}
 body{background:var(--bg-base);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;line-height:1.5}

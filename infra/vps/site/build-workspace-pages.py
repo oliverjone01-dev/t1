@@ -7,6 +7,9 @@ base=template.read_text()
 start=base.index('  <div class="gg-filter-toolbar">')
 end=base.index('  <!-- DASHBOARD -->',start)
 base=base[:start]+base[end:]
+base=base.replace('<details open>','<details>').replace('<summary class="gg-selected">','<summary>')
+for label,view in [('Хронология диалогов','chronology'),('Скорость ответа','response-speed'),('Дожим и возражения','follow-up'),('ИИ-разборы','ai-analysis')]:
+    base=base.replace('href="/dialog/">'+label,'href="/dialog/#'+view+'">'+label)
 start=base.index('<button id="gg-filter-backdrop"')
 end=base.index('<button id="gg-backdrop"',start)
 base=base[:start]+base[end:]
@@ -25,6 +28,7 @@ css+="\n#gg-workspace,.gg-sidebar{font-family:'Golos Text','Segoe UI',sans-serif
 js=behavior.read_text()
 js+='\n'+(behavior.parent/'workspace-palette.js').read_text()+'\n'+(behavior.parent/'shared-shell.js').read_text()
 theme_bootstrap="<script data-gg-theme-bootstrap>document.documentElement.dataset.sidebarMode='compact';try{document.documentElement.dataset.sidebarMode=localStorage.getItem('gg-sidebar-mode')||'compact';}catch(e){}document.documentElement.dataset.theme='dark';try{if(localStorage.getItem('gg-hub-theme')==='light')document.documentElement.dataset.theme='light';}catch(e){}</script><style>html{background:#0f1216;color-scheme:dark}html[data-theme=light]{background:#e9edef;color-scheme:light}</style>"
+route_bootstrap="""<script data-gg-route-bootstrap>(function(){const nav=document.querySelector('.gg-nav'),root=document.getElementById('gg-workspace');if(!nav)return;const path=location.pathname,hash=location.hash||(path==='/dialog/'?'#chronology':''),links=[...nav.querySelectorAll('a[href]')];const chosen=links.find(a=>new URL(a.href).pathname+new URL(a.href).hash===path+hash)||links.find(a=>new URL(a.href).pathname===path&&!new URL(a.href).hash);nav.querySelectorAll('details').forEach(n=>n.open=false);nav.querySelectorAll('[aria-current],.gg-current,.gg-selected').forEach(n=>{n.removeAttribute('aria-current');n.classList.remove('gg-current','gg-selected');});if(chosen){chosen.classList.add('gg-current');chosen.setAttribute('aria-current','page');for(let n=chosen.parentElement;n&&n!==nav;n=n.parentElement)if(n.tagName==='DETAILS')n.open=true;}if(/^\\/dialog\\/?$/.test(path)){const titles={chronology:'Хронология диалогов','response-speed':'Скорость ответа','follow-up':'Дожим и возражения','ai-analysis':'ИИ-разборы'},view=titles[hash.slice(1)]?hash.slice(1):'chronology';root.dataset.commView=view;document.querySelector('.gg-heading h1').textContent=titles[view];document.querySelector('.gg-breadcrumb').textContent='GENGROUP / Коммуникации / '+titles[view];}})();</script>"""
 report=[]
 def atomic(path,text):
     temporary=path.with_name(path.name+'.workspace-new');temporary.write_text(text);temporary.replace(path)
@@ -39,8 +43,13 @@ for slug,(title,department,company) in sections.items():
     body=re.split(r'</body>',source[split.end():],flags=re.I)[0]
     scripts=re.findall(r'<script\b[^>]*>.*?</script>',source,re.S)
     shell=base.replace('<h1>РОП GENGLASS</h1>','<h1>'+html.escape(title)+'</h1>')
+    shell=shell.replace('id="gg-workspace"','id="gg-workspace" data-gg-department="'+html.escape(department)+'"',1)
     if slug=='dialog':
         shell=shell.replace('id="gg-workspace"','id="gg-workspace" class="gg-communications"',1)
+        shell=shell.replace('<details><summary>☷ <span>Коммуникации</span>','<details open><summary>☷ <span>Коммуникации</span>',1)
+        shell=shell.replace('href="/dialog/#chronology"','class="gg-current" aria-current="page" href="/dialog/#chronology"',1)
+        dates='<section class="gg-filter-toolbar gg-comm-date-toolbar" aria-label="Период коммуникаций"><div class="gg-toolbar-top"><div id="gg-period-slot"></div><div id="gg-date-slot"></div><button id="gg-filters-open" class="gg-input" aria-haspopup="dialog" aria-controls="gg-filter-drawer" aria-expanded="false"><span aria-hidden="true">☰</span> Фильтры <span id="gg-filter-count" hidden></span></button></div></section>'
+        shell=shell.replace('<div class="gg-content">','<div class="gg-content">'+dates,1)
     shell=shell.replace('Результаты отдела, воронка, менеджеры и дисциплина.','Рабочий дашборд · '+html.escape(department))
     brand='GLASS MEMORY' if company=='gm' else 'GENGLASS'
     shell=shell.replace('ПРОДАЖИ · GENGLASS',html.escape(department.upper())+' · '+brand)
@@ -48,6 +57,8 @@ for slug,(title,department,company) in sections.items():
     # ROP anchors belong to the ROP page, not the embedded native dashboard.
     shell=shell.replace('href="#sec','href="/rop/#sec')
     if company=='gm':
+        shell=shell.replace('/rop/#sec','/rop-gm/#sec').replace('РОП GENGLASS','РОП GLASS MEMORY')
+        shell=re.sub(r'(<summary>РОП GLASS MEMORY</summary><div class="gg-sections">).*?(</div>)',lambda m:m[1]+'<a href="/rop-gm/">Компания</a>'+m[2],shell,count=1,flags=re.S)
         shell=shell.replace('>GENGLASS <span>⌄</span>','>GLASS MEMORY <span>⌄</span>')
         shell=shell.replace('data-company="gg" aria-selected="true"','data-company="gg" aria-selected="false"').replace('data-company="gm" aria-selected="false"','data-company="gm" aria-selected="true"')
     if slug=='ozon-research':
@@ -56,9 +67,11 @@ for slug,(title,department,company) in sections.items():
         atomic(target.with_name('native.html'),source)
         atomic(target.with_name('shared-design.css'),css+'\nhtml,body{background:var(--bg-base)!important;font-family:"Golos Text",sans-serif!important}body{margin:0}')
         body='<iframe class="gg-native-frame" title="Исследование OZON" src="native.html" style="width:100%;min-height:800px;border:0;display:block"></iframe>'
-    shell=shell.replace('<!-- DASHBOARD -->','<div id="gg-dashboard" class="gg-generic">'+body+'</div>')
+    shell=shell.replace('<!-- DASHBOARD -->','<!-- GG_ROUTE_BOOTSTRAP --><div id="gg-dashboard" class="gg-generic">'+body+'</div>')
     result=head.replace('</head>','<style>'+css+'</style></head>')+'<body>'+shell+'<script>'+js+'</script></body></html>'
     if slug!='ozon-research' and re.findall(r'<script\b[^>]*>.*?</script>',result,re.S)[:len(scripts)]!=scripts:raise SystemExit('Script integrity failure: '+slug)
+    roster_bootstrap = '<script data-gg-comm-roster>window.GG_ROP_MANAGER_ROSTER='+json.dumps(list(names.values()),ensure_ascii=False).replace('<','\\u003c')+';</script>' if slug=='dialog' else ''
+    result=result.replace('<!-- GG_ROUTE_BOOTSTRAP -->',route_bootstrap+roster_bootstrap,1)
     result=result.replace('<head>','<head>'+theme_bootstrap,1)
     atomic(target,result)
     report.append({'section':slug,'business_scripts_unchanged':True,'script_sha256':hashlib.sha256(''.join(scripts).encode()).hexdigest()})
@@ -69,4 +82,3 @@ marketing=marketing.replace('href="#sec','href="/rop/#sec')
 (site/'marketing').mkdir(exist_ok=True)
 atomic(site/'marketing/index.html','<!doctype html><html lang="ru"><head>'+theme_bootstrap+'<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GENGROUP · Маркетинг</title><style>'+css+'</style></head><body>'+marketing+'<script>'+js+'</script></body></html>')
 print('Native workspace:',len(report),'additional dashboards; all original scripts unchanged')
-

@@ -39,6 +39,8 @@ for slug,(title,department,company) in sections.items():
     body=re.split(r'</body>',source[split.end():],flags=re.I)[0]
     scripts=re.findall(r'<script\b[^>]*>.*?</script>',source,re.S)
     shell=base.replace('<h1>РОП GENGLASS</h1>','<h1>'+html.escape(title)+'</h1>')
+    if slug=='dialog':
+        shell=shell.replace('id="gg-workspace"','id="gg-workspace" class="gg-communications"',1)
     shell=shell.replace('Результаты отдела, воронка, менеджеры и дисциплина.','Рабочий дашборд · '+html.escape(department))
     brand='GLASS MEMORY' if company=='gm' else 'GENGLASS'
     shell=shell.replace('ПРОДАЖИ · GENGLASS',html.escape(department.upper())+' · '+brand)

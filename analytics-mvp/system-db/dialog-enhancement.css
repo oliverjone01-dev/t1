@@ -31,3 +31,19 @@ body.gg-communications #tip{z-index:10050!important;background:#202730!important
 @media(max-width:760px){.gg-deal-review .gg-deal-score-layout{grid-template-columns:1fr!important;padding:16px!important}.gg-deal-review .gg-deal-radar-figure{justify-self:center}.gg-deal-review .da-cols{grid-template-columns:1fr!important}.gg-deal-history{padding-left:58px!important}}
 
 .gg-deal-quick-filters{display:none!important}
+.gg-comm-metric-panel:has(.gg-comm-trend){display:none!important}
+.gg-comm-metric-panel:has(>.gg-comm-metric-bars){display:flex;flex-direction:column}.gg-comm-metric-panel>.gg-comm-metric-bars{margin-block:auto!important;padding-block:14px}
+.gg-comm-kpi{transition:background .15s,border-color .15s,box-shadow .15s}.gg-comm-kpi:hover{background:var(--bg-elevated,#20262c)!important;border-color:#45565d!important;box-shadow:0 5px 16px #0002}.gg-kpi-sparkline{width:100%;height:64px;display:block;margin-top:26px;overflow:visible}.gg-spark-value{font-size:11px!important;min-height:18px;color:#91a2b5!important}.gg-spark-tip{position:fixed;z-index:10050;padding:8px 11px;border-radius:7px;background:#202730;color:#e8edf2;font:12px/1.5 'Segoe UI',sans-serif;pointer-events:none;box-shadow:0 5px 16px #0005}.gg-spark-tip[hidden]{display:none}.gg-history-unavailable{font-size:11px;color:#8391a1;margin-top:25px}
+.gg-deal-event .gg-event-context .gg-deal-event-marks>*{display:inline-flex;align-items:center;gap:6px;background:rgba(152,175,196,.12)!important;color:#b1c1d0!important;border-radius:5px!important;padding:3px 7px!important;font-size:10px!important}.gg-deal-event-marks b{font-weight:600!important}
+/* Manager comparison: one horizontal profile per row, radar first. */
+.gg-ai-profile-grid{grid-template-columns:minmax(0,1fr)!important}
+.gg-ai-profile-grid .gg-ai-profile-content{display:grid!important;grid-template-columns:270px minmax(0,1fr)!important;gap:28px!important;align-items:start}
+.gg-ai-profile-grid .gg-ai-profile-info{display:grid!important;grid-template-columns:minmax(180px,.75fr) minmax(0,2fr);gap:10px 28px;align-content:start}
+.gg-ai-profile-grid .gg-ai-profile-info>.gg-ai-profile-details{grid-column:2;grid-row:1/8;margin-top:0!important}
+.gg-ai-profile-grid .gg-ai-profile-info>.gg-ai-profile-verdict,.gg-ai-profile-grid .gg-ai-profile-info>.gg-ai-source-note{grid-column:1}
+.gg-ai-profile-grid .gg-comm-ai-radar{max-height:260px!important;width:100%}
+.gg-ai-profile-grid .gg-ai-profile-details p,.gg-ai-profile-grid .gg-ai-profile-details li{font-size:13px;line-height:1.65;font-weight:400}
+.gg-review-complete{grid-column:1/-1;width:100%;min-width:0;font-size:13px;font-weight:400}
+.gg-review-complete .mk-q{display:block}.gg-review-complete .gg-deal-evidence{display:block;margin-top:7px}
+@media(max-width:1000px){.gg-ai-profile-grid .gg-ai-profile-info{display:block!important}}
+@media(max-width:650px){.gg-ai-profile-grid .gg-ai-profile-content{grid-template-columns:1fr!important}}

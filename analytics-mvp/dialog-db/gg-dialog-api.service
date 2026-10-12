@@ -1,0 +1,16 @@
+[Unit]
+Description=PostgreSQL dialogue read API
+After=postgresql.service
+Requires=postgresql.service
+[Service]
+User=gg
+Group=gg
+ExecStart=/usr/bin/python3 /srv/gg/dialog-db/current/server.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+[Install]
+WantedBy=multi-user.target

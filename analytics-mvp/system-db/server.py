@@ -85,10 +85,11 @@ def atomic(path,text):
  temp=path.with_name(path.name+'.db-tmp');temp.write_text(text);os.replace(temp,path)
 
 def ingest():
- c=CONNECT();setup(c);report=[]
+ c=CONNECT();report=[]
  try:
   with c.cursor() as q:
    q.execute('SELECT pg_advisory_lock(872612)')
+  setup(c)
   for p in sorted(SITE.glob('*/index.html')):
    slug=p.parent.name
    if slug in EXEMPT:continue
@@ -180,7 +181,7 @@ def disk_report():
 
 def refresh_inventory():
  with _inventory_lock:
-  c=CONNECT();setup(c)
+  c=CONNECT()
   try:
    with c.cursor() as q:
     q.execute('SELECT slug,metadata,updated FROM gg_system.registry');reg={r[0]:dict(r[1],updated=r[2].isoformat()) for r in q.fetchall()}

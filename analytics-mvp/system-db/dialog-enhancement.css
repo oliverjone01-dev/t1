@@ -52,3 +52,10 @@ body.gg-communications #tip{z-index:10050!important;background:#202730!important
 /* The legacy AI launcher and empty toolbar must not flash while data loads. */
 #gg-dashboard #burger{display:none!important}
 .gg-comm-date-toolbar:not(:has(#period button)){display:none!important}
+.gg-deal-ai-text{grid-column:1/-1;min-width:0;width:100%;font-size:13px;line-height:1.7;font-weight:400}
+.gg-deal-ai-text h3{font-size:16px;font-weight:600;margin:12px 0 5px}.gg-deal-ai-text h4{font-size:13px;font-weight:600;color:var(--ink,#e2e8ef);margin:22px 0 6px}
+.gg-deal-ai-text p{font-size:13px;font-weight:400;line-height:1.7;margin:6px 0}
+.gg-deal-ai-text .gg-ai-text-source,.gg-deal-ai-text .gg-ai-text-facts{font-size:11px;color:var(--muted,#93a4b6)}
+.gg-ai-text-quote{margin:7px 0 14px;padding:0 0 0 12px;border-left:2px solid #52616d;color:#a8bbc8;font-size:12px;line-height:1.7}
+.gg-ai-text-quote .gg-deal-evidence{display:block;margin-top:5px}.gg-deal-radar-figure .gg-score-consistency{font-size:10px;text-align:left;margin:12px 0}.gg-deal-radar-figure .gg-score-consistency p{font-size:10px;line-height:1.6}
+.gg-deal-ai-text[data-ai-status="stale"]>.gg-ai-text-source{color:#c4a783}.gg-deal-ai-text[data-ai-status="absent"]>.gg-ai-text-source{color:#a2afbe}

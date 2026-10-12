@@ -311,7 +311,7 @@
  function create(list,options){
   const shade=make('button','gg-deal-backdrop');shade.type='button';shade.hidden=true;shade.setAttribute('aria-label','Закрыть разбор сделки');
   const panel=make('aside','gg-deal-drawer');panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-labelledby','gg-deal-drawer-title');
-  const header=make('header','gg-deal-drawer-heading'),intro=make('div'),title=make('h2','','Разбор и коммуникации');title.id='gg-deal-drawer-title';const name=make('p','gg-deal-drawer-name');intro.append(title,name);const close=make('button','gg-deal-close','×');close.type='button';close.setAttribute('aria-label','Закрыть разбор сделки');header.append(intro,close);const body=make('div','gg-deal-drawer-body');panel.append(header,body);document.body.append(shade,panel);
+  const header=make('header','gg-deal-drawer-heading'),intro=make('div'),title=make('h2','','Разбор и коммуникации');title.id='gg-deal-drawer-title';const name=make('p','gg-deal-drawer-name');intro.append(title,name);const close=make('button','gg-deal-close','×');close.type='button';close.setAttribute('aria-label','Закрыть разбор сделки');header.append(close,intro);const body=make('div','gg-deal-drawer-body');panel.append(header,body);document.body.append(shade,panel);
   state={list,options,panel,shade,body,name,key:null,trigger:null,observer:null,closingTimer:null};
   close.onclick=shade.onclick=()=>closePanel(true,true);
   panel.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closePanel(true,true);}else if(e.key==='Tab'){const ns=[...panel.querySelectorAll('button,a[href],input,select,summary,[tabindex="0"]')].filter(n=>!n.disabled&&n.getClientRects().length),first=ns[0],last=ns.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}});
@@ -330,6 +330,10 @@
   if(changed)options.beforeOpen?.();clearTimeout(st.closingTimer);st.key=key;st.trigger=[...list.querySelectorAll('.drow')].find(r=>r.dataset.d===key);st.panel.classList.remove('closing');st.shade.classList.remove('closing');
   const nativeFeed=nativeHost.querySelector('.feedscroll'),history=nativeFeed?buildFeed(nativeFeed,d):null,review=make('section','gg-deal-review'),reviewHeader=make('div','gg-deal-section-heading');reviewHeader.append(make('h3','','ИИ-разбор сделки'));review.append(reviewHeader);
   const children=[...nativeHost.children];children.forEach(n=>{if(n!==nativeFeed)review.append(n);});nativeFeed?.remove();fixChronology(review,d);
+  const verdictNode=review.querySelector('.dsum-v'),nextStep=review.querySelector('.dsum-r'),riskNode=review.querySelector('.dsum-p');
+  if(verdictNode){verdictNode.classList.add('gg-review-summary');if(nextStep)verdictNode.after(nextStep);if(riskNode)(nextStep||verdictNode).after(riskNode);}
+  review.querySelectorAll('.da-cols>.da-col').forEach(col=>{const heading=col.querySelector('.da-t');if(!heading)return;const details=make('section','gg-review-details'),summary=make('h4','',heading.textContent);details.append(summary);heading.remove();while(col.firstChild)details.append(col.firstChild);col.append(details);});
+
   const scores=review.querySelector('.sc-grid'),chart=options.radar===true?radar(d):null;review.classList.toggle('gg-deal-no-radar',!chart);if(chart){const layout=make('div','gg-deal-score-layout'),figure=make('figure','gg-deal-radar-figure');figure.append(chart,make('figcaption','','Оценки этой сделки · 0–5'));layout.append(figure);if(scores)layout.append(scores);const verdict=review.querySelector('.dsum-v');if(verdict)verdict.after(layout);else reviewHeader.after(layout);}
   if(history){review.querySelectorAll('.mk-q').forEach(q=>{const source=history.sourceForQuote(q.textContent);if(!source)return;const b=make('button','gg-deal-evidence','Показать в диалоге →');b.type='button';b.onclick=()=>{st.switchTab?.('communications');history.feed.querySelector('[data-channel="all"]')?.click();source.article.hidden=false;source.article.querySelectorAll('.gg-deal-transcript').forEach(n=>n.open=true);source.article.classList.add('gg-deal-evidence-on');source.article.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});source.article.tabIndex=-1;source.article.focus({preventScroll:true});setTimeout(()=>source.article.classList.remove('gg-deal-evidence-on'),2200);};q.append(b);});}
   const placeholder=nativeHost.closest('.subrow2');if(placeholder)placeholder.hidden=true;nativeHost.classList.add('gg-deal-native-panel');nativeHost.replaceChildren(review);if(history)nativeHost.append(history.feed);st.body.replaceChildren(nativeHost);
@@ -338,14 +342,14 @@
   for(const b of [aiTab,commTab]){b.type='button';b.setAttribute('role','tab');tabs.append(b);}
   aiTab.id='gg-deal-tab-ai';commTab.id='gg-deal-tab-communications';review.id='gg-deal-pane-ai';review.setAttribute('role','tabpanel');review.setAttribute('aria-labelledby',aiTab.id);aiTab.setAttribute('aria-controls',review.id);
   if(history){history.feed.id='gg-deal-pane-communications';history.feed.setAttribute('role','tabpanel');history.feed.setAttribute('aria-labelledby',commTab.id);commTab.setAttribute('aria-controls',history.feed.id);}else commTab.disabled=true;
-  st.switchTab=which=>{st.tab=which;review.hidden=which!=='ai';if(history)history.feed.hidden=which!=='communications';aiTab.setAttribute('aria-selected',String(which==='ai'));commTab.setAttribute('aria-selected',String(which==='communications'));aiTab.tabIndex=which==='ai'?0:-1;commTab.tabIndex=which==='communications'?0:-1;};
+  st.switchTab=which=>{st.tab=which;const branchRail=st.panel.querySelector('.gg-deal-branches');if(branchRail)branchRail.hidden=which!=='communications';review.hidden=which!=='ai';if(history)history.feed.hidden=which!=='communications';aiTab.setAttribute('aria-selected',String(which==='ai'));commTab.setAttribute('aria-selected',String(which==='communications'));aiTab.tabIndex=which==='ai'?0:-1;commTab.tabIndex=which==='communications'?0:-1;};
   aiTab.onclick=()=>st.switchTab('ai');commTab.onclick=()=>st.switchTab('communications');tabs.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const which=e.key==='Home'?'ai':e.key==='End'?'communications':st.tab==='ai'?'communications':'ai';if(which==='communications'&&!history)return;st.switchTab(which);(which==='ai'?aiTab:commTab).focus();}};
   st.switchTab(changed?'ai':(st.tab||'ai'));
   if(history){
-   const rail=make('nav','gg-deal-branches');rail.setAttribute('aria-label','Основные ветки диалога');history.feed.prepend(rail);
+   const rail=make('nav','gg-deal-branches');rail.setAttribute('aria-label','Основные ветки диалога');st.panel.querySelector('.gg-deal-branches')?.remove();st.panel.append(rail);rail.hidden=st.tab!=='communications';
    const buildRail=()=>{rail.replaceChildren();const visible=history.displayed.filter(r=>!r.article.hidden);let previousDay='',previousType='';
     for(const r of visible){const day=new Date(r.ts).toLocaleDateString('ru-RU',{timeZone:'Europe/Moscow'}),type=r.e?.type||'';if(day===previousDay&&type!=='Стадия')continue;if(day===previousDay&&type===previousType)continue;previousDay=day;previousType=type;
-     const b=make('button','');b.type='button';const description=day+' · '+type+' · '+String(r.e?.body||r.e?.title||'').slice(0,110);b.title=description;b.setAttribute('aria-label',description);b.onclick=()=>{r.article.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});r.article.tabIndex=-1;r.article.focus({preventScroll:true});};b.dataset.branchDay=day;rail.append(b);
+     const b=make('button','');b.type='button';const description=day+' · '+type+' · '+String(r.e?.body||r.e?.title||'').slice(0,110);b.dataset.tooltip=description;b.setAttribute('aria-label',description);b.onclick=()=>{r.article.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});r.article.tabIndex=-1;r.article.focus({preventScroll:true});};b.dataset.branchDay=day;rail.append(b);
     }
    };buildRail();history.feed.querySelector('.gg-deal-channel-filters')?.addEventListener('click',()=>queueMicrotask(buildRail));history.feed.addEventListener('click',e=>{if(e.target.closest('[data-channel]'))queueMicrotask(buildRail);});
   }
@@ -433,12 +437,16 @@
   info.append(coverage,strip,coverageLegend);
   const values=el('div','gg-ai-score-values');p.scores.forEach((s,i)=>{const item=el('div');item.dataset.aiAxis=s.key;item.dataset.aiMean=s.mean==null?'':String(s.mean);item.dataset.aiN=String(s.n);item.append(el('span','',axes[i][1]),el('b','',decimal(s.mean)+' / 5'));values.append(item);});info.append(values);
   if(a?.verdict){const verdict=el('p','gg-ai-profile-verdict',a.verdict);info.append(el('p','gg-ai-source-note','Сохранённая сводка · '+number(a.reviewed||0)+' разборов'),verdict);}
-  const details=el('details','gg-ai-profile-details');details.append(el('summary','','Выводы и действия'));
+  const details=el('section','gg-ai-profile-details');details.append(el('h3','','Выводы'));
   if(a){details.append(el('p','gg-ai-source-note','Сводка по всем сделкам и лидам снимка; её охват может отличаться от актуальных оценок выше.'));
-   [['Сильные стороны',a.strengths],['Проблемы',a.weaknesses]].forEach(([label,items])=>{details.append(el('h4','',label));if(Array.isArray(items)&&items.length){const ul=el('ul');items.forEach(item=>ul.append(el('li','',typeof item==='string'?item:item.text||item.label||'')));details.append(ul);}else details.append(el('p','gg-ai-source-note','В сохранённой сводке не отмечены.'));});if(a.action){details.append(el('h4','','Что сделать'),el('p','',a.action));}
+   [['Сильные стороны',a.strengths],['На что обратить внимание руководителю',a.weaknesses]].forEach(([label,items])=>{details.append(el('h4','',label));if(Array.isArray(items)&&items.length){const ul=el('ul');items.forEach(item=>ul.append(el('li','',typeof item==='string'?item:item.text||item.label||'')));details.append(ul);}else details.append(el('p','gg-ai-source-note','В сохранённой сводке не отмечены.'));});if(a.action){details.append(el('h4','','Рекомендации'),el('p','',a.action));}
   }else details.append(el('p','gg-ai-source-note','Текстовая сводка по менеджеру ещё не сохранена.'));
+  const decisions=el('section','gg-ai-manager-decisions');decisions.append(el('h4','','Решения по сотруднику'));
+  const weak=p.scores.map((score,i)=>({...score,label:axes[i][1]})).filter(score=>score.mean!=null&&score.mean<3&&score.n>=5);
+  const decisionText=!p.fresh?'Недостаточно актуальных разборов для решения. Сначала проверить доступность коммуникаций и полноту данных.':weak.length?'Назначить план улучшения по направлениям: '+weak.map(x=>x.label.toLowerCase()).join(', ')+'. Разобрать с сотрудником конкретные примеры, согласовать действия и срок повторной проверки. Не делать кадровый вывод только по среднему баллу.':'По доступным средним оценкам нет направлений ниже 3 из 5 с достаточным числом измерений. Проверить рисковые сделки и закрепить удачные приёмы в работе.';
+  decisions.append(el('p','',decisionText),el('p','gg-ai-source-note','Рекомендация руководителю по текущим показателям; решение требует проверки отдельных случаев.'));details.append(decisions);
   const sourceLink=el('button','gg-ai-profile-dialogs','Сделки и диалоги менеджера →');sourceLink.type='button';sourceLink.onclick=()=>{S.fMgrs.clear();S.fMgrs.add(mgr);S.fDealIds.clear();S.oc='all';S.picks=[];S.dashNote='';S.tm.add(mgr);S.deptOpen=true;Object.keys(S.grpOpen).forEach(k=>S.grpOpen[k]=true);aiApplyPicks();setPeriod('','','comm');aiSyncScope({mgr});location.hash='chronology';requestAnimationFrame(()=>requestAnimationFrame(()=>{const row=[...list.querySelectorAll('.mgrrow')].find(n=>n.dataset.m===mgr);if(row){row.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});row.tabIndex=-1;row.focus({preventScroll:true});}}));};
-  info.append(details,sourceLink);content.append(visual,info);card.append(head,content,el('footer','gg-ai-profile-source','Средние оценки актуальных сохранённых разборов, 0–5. По всем сделкам и лидам менеджера в снимке; выбранный период не меняет профиль. Неоценённые диалоги исключены из среднего.'));
+  info.append(details);content.append(visual,info);card.append(head,content,el('footer','gg-ai-profile-source','Средние оценки актуальных сохранённых разборов, 0–5. По всем сделкам и лидам менеджера в снимке; выбранный период не меняет профиль. Неоценённые диалоги исключены из среднего.'));
   return card;
  }
  function presentAIProfiles(table){
@@ -486,6 +494,11 @@
  function present(){
   if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
   if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
+  if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
+  if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
+  if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
+  if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
+  list.querySelectorAll('[data-tip]').forEach(n=>{const tip=n.dataset.tip||'';const index=tip.indexOf('🤖');if(index>=0)n.dataset.tip=tip.slice(0,index).replace(/<br>\s*<br>\s*<b[^>]*>$/,'')+'<br><small>Полный разбор — во вкладке ИИ-разборы.</small>';});
   list.querySelector('[data-vhelp]')?.closest('.legend')?.remove();
   const controls=list.querySelector(':scope > .controls');if(controls){
    toolbar.replaceChildren(controls);periodSlot.replaceChildren();dateSlot.replaceChildren();const filters=el('div','gg-comm-filters');

@@ -499,7 +499,7 @@
   const mt=toolbar.querySelector('[data-metrics]');if(mt){mt.hidden=mode!=='chronology';mt.textContent=S.showMetrics?'Скрыть метрики':'Метрики регламента';}
  }
  const native=renderTree;renderTree=function(){const context=this,args=arguments;return roster.withScope(()=>{const result=native.apply(context,args);present();return result;});};
- function route(){if(mode==='chronology')chronologyMetrics=S.showMetrics;const requested=location.hash.slice(1);mode=views[requested]?requested:'summary';S.showMetrics=mode==='chronology'?chronologyMetrics:views[mode].metrics.length>0;renderTree();}
+ function route(){if(mode==='chronology')chronologyMetrics=S.showMetrics;const requested=location.hash.slice(1);mode=views[requested]?requested:'summary';S.showMetrics=(mode==='chronology'||mode==='summary')?chronologyMetrics:views[mode].metrics.length>0;renderTree();}
  window.addEventListener('hashchange',route);route();
 })();
 

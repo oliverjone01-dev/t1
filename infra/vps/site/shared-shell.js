@@ -1,3 +1,15 @@
+window.ggAuditedScores=function(d){
+ const original={...(d.ai?.scores||{})},scores={...original},issues={polite:[],qual:[],deadline:[],process:[],result:[]};
+ const add=(axis,key,text)=>{if(issues[axis]&&!issues[axis].some(x=>x.key===key))issues[axis].push({key,text});};
+ for(const [ref,tags] of Object.entries(d.evTags||{}))for(const tag of tags){if(tag.tone!=='bad')continue;const axis=tag.sec==='speed'?'process':tag.sec;if(axis in issues)add(axis,ref,tag.t);}
+ for(const [i,m] of (d.ai?.marks||[]).entries()){if(!['bad','warn'].includes(m.tone))continue;const t=m.t||'',axis=/имени|обращени|орфограф|опечат|защит|груб/i.test(t)?'polite':/срок|дат|обещ|уточни|вернул/i.test(t)?'deadline':/возраж|аргумент|дожим|отписк/i.test(t)?'result':/квалифик|потребност|ТЗ/i.test(t)?'qual':'process';const ref=Object.entries(d.evTags||{}).find(([ref,tags])=>m.quote&&tags.some(tag=>tag.quote&&m.quote.includes(tag.quote)&&tag.sec===axis))?.[0];add(axis,ref||'ai'+i,t);}
+ if((d.vagueProm||0)>0)add('deadline','vague','Обещаний без срока: '+d.vagueProm);
+ if((d.promiseBroken||0)>0)add('deadline','broken','Невыполненных обещаний: '+d.promiseBroken);
+ if((d.clientChase||0)>0)add('process','chase','Клиент напоминал: '+d.clientChase);
+ if((d.objTotal||0)>(d.objWorked||0))add('result','objection','Возражений без ответа: '+(d.objTotal-d.objWorked));
+ for(const key of Object.keys(issues)){if(!Number.isFinite(scores[key]))continue;const n=issues[key].filter(x=>!['vague','broken','chase','objection'].includes(x.key)).length;const hasIssues=issues[key].length>0;if(hasIssues)scores[key]=Math.min(scores[key],n>=3?2:3);if(key==='deadline'&&(d.promiseBroken||0)>=2)scores[key]=Math.min(scores[key],1);}
+ return {scores,original,issues};
+};
 window.ggCommunicationCompleteness=function(d){const m=d.mix||{},c=(m.msg||0)+(m.call||0)+(m.mail||0),n=c+(m.task||0)+(m.note||0);return n?5*c/n:null;};
 (function(){
  if(!document.querySelector('#gg-sidebar'))return;
@@ -265,7 +277,7 @@ const trend=panel('Динамика коммуникаций','Клиентск�
  function events(){if(!eventMap){eventMap=new Map();if(typeof DATA!=='undefined')for(const e of DATA.events||[])if(e.src)eventMap.set(String(e.src),e);}return eventMap;}
  function deal(key){return typeof SCD!=='undefined'?SCD[key]:null;}
  function radar(d){
-  const scores={...(d.ai?.scores||{}),completeness:window.ggCommunicationCompleteness(d)};if(!AXES.some(([k])=>valid(scores[k])))return null;
+  const scores={...window.ggAuditedScores(d).scores,completeness:window.ggCommunicationCompleteness(d)};if(!AXES.some(([k])=>valid(scores[k])))return null;
   const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 320 270');svg.classList.add('gg-deal-radar');svg.setAttribute('role','img');
   svg.setAttribute('aria-label','ИИ-оценки этой сделки. Шкала от 0 до 5. '+AXES.map(([k,t])=>t+': '+(valid(scores[k])?fmt(scores[k]):'нет оценки')).join('. '));
   const add=(tag,attrs,text)=>{const n=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));if(text!=null)n.textContent=text;svg.append(n);return n;};
@@ -274,7 +286,7 @@ const trend=panel('Динамика коммуникаций','Клиентск�
   AXES.forEach(([k,label],i)=>{const p=point(i,5),q=point(i,6.5);add('path',{d:'M160 128L'+p.join(' '),class:'gg-deal-radar-grid'});const t=add('text',{x:q[0],y:q[1]-3,'text-anchor':'middle',class:'gg-deal-radar-label'},label),v=document.createElementNS(ns,'tspan');v.setAttribute('x',q[0]);v.setAttribute('dy','15');v.classList.add('gg-deal-radar-value');v.textContent=valid(scores[k])?(k==='completeness'?Math.round(scores[k]*20)+'%':fmt(scores[k])):'—';t.append(v);});
   // Missing scores stay missing: a complete polygon is only drawn for five real scores.
   if(AXES.every(([k])=>valid(scores[k])))add('polygon',{points:poly(AXES.map(([k])=>scores[k])),class:'gg-deal-radar-shape'});
-  AXES.forEach(([k,label],i)=>{if(!valid(scores[k]))return;const p=point(i,scores[k]),dot=add('circle',{cx:p[0],cy:p[1],r:3.3,class:'gg-deal-radar-dot',tabindex:0,'data-deal-ai-axis':k,'data-deal-ai-score':scores[k]}),title=document.createElementNS(ns,'title');title.textContent=label+': '+fmt(scores[k])+' из 5';dot.append(title);});return svg;
+  AXES.forEach(([k,label],i)=>{if(!valid(scores[k]))return;const p=point(i,scores[k]),dot=add('circle',{cx:p[0],cy:p[1],r:3.3,class:'gg-deal-radar-dot',tabindex:0,'data-deal-ai-axis':k,'data-deal-ai-score':scores[k]}),title=document.createElementNS(ns,'title');title.textContent=label+': '+fmt(scores[k])+' из 5';dot.append(title);});const values=Object.entries(scores).filter(([k,v])=>k!=='completeness'&&Number.isFinite(v)).map(([k,v])=>v),avg=values.reduce((a,b)=>a+b,0)/Math.max(1,values.length),color=avg<2.5?'#df8c9d':avg<3.5?'#cda67e':'#83c9ae';svg.querySelectorAll('.gg-deal-radar-shape').forEach(n=>{n.style.stroke=color;n.style.fill=color+'22';});svg.querySelectorAll('.gg-deal-radar-dot').forEach(n=>n.style.fill=color);return svg;
  }
  function timestamp(e,fallback){const ts=Number(e?.ts);return Number.isFinite(ts)?ts:fallback;}
  function minutes(value){if(typeof value!=='number'||!Number.isFinite(value)||value<0)return null;if(value===0)return '0 мин';if(value<1)return '<1 мин';if(value<60)return fmt(value)+' мин';if(value<2880)return fmt(value/60)+' ч';return fmt(value/1440)+' дн';}
@@ -351,7 +363,7 @@ const trend=panel('Динамика коммуникаций','Клиентск�
   if(verdictNode){verdictNode.classList.add('gg-review-summary');if(nextStep)verdictNode.after(nextStep);if(riskNode)(nextStep||verdictNode).after(riskNode);}
   review.querySelectorAll('.da-cols>.da-col').forEach(col=>{const heading=col.querySelector('.da-t');if(!heading)return;const details=make('section','gg-review-details'),summary=make('h4','',heading.textContent);details.append(summary);heading.remove();while(col.firstChild)details.append(col.firstChild);col.append(details);});
 
-  const scores=review.querySelector('.sc-grid'),chart=radar(d);review.classList.toggle('gg-deal-no-radar',!chart);if(chart){const layout=make('div','gg-deal-score-layout'),figure=make('figure','gg-deal-radar-figure');figure.append(chart,make('figcaption','','ИИ-оценки · 0–5; полнота · % событий CRM'));layout.append(figure);if(scores)layout.append(scores);const verdict=review.querySelector('.dsum-v');if(verdict)verdict.after(layout);else reviewHeader.after(layout);}
+  const scores=review.querySelector('.sc-grid'),chart=radar(d);review.classList.toggle('gg-deal-no-radar',!chart);if(chart){const layout=make('div','gg-deal-score-layout'),figure=make('figure','gg-deal-radar-figure');figure.append(chart,make('figcaption','','Оценки с учётом сигналов · 0–5; полнота · % CRM'));layout.append(figure);if(scores)layout.append(scores);const verdict=review.querySelector('.dsum-v');if(verdict)verdict.after(layout);else reviewHeader.after(layout);}
   
   // Lead with visual scores and a single management priority.
   const priority=make('div','gg-review-priority');
@@ -362,6 +374,7 @@ const trend=panel('Динамика коммуникаций','Клиентск�
   if(riskNode){priority.append(make('h4','','На что обратить внимание'),riskNode);}
   if(priority.childElementCount){if(scoreLayout){scoreLayout.append(priority);}else reviewHeader.after(priority);}
   if(scoreLayout){const events=(DATA.events||[]).filter(e=>e.dealId?'D'+e.dealId===d.key:'L'+e.leadId===d.key),client=events.filter(e=>/Сообщение|Мессенджер|Звонок|Письмо/.test(e.type||'')),coverage=make('p','gg-review-data-coverage','Полнота коммуникаций: '+(events.length?Math.round(client.length/events.length*100)+'% клиентских событий':'нет событий')+' · '+client.length+' из '+events.length+' событий CRM. Это состав доступной истории, а не гарантия, что всё общение сохранено.');scoreLayout.append(coverage);}
+  if(scoreLayout){const checked=window.ggAuditedScores(d),note=make('details','gg-score-consistency'),title=make('summary','','Почему такие оценки');note.append(title,make('p','','Проверка сохранённых ИИ-баллов по сигналам переписки: при ошибках максимум 3/5, при трёх разных эпизодах — 2/5; два невыполненных обещания ограничивают сроки до 1/5. Сигналы требуют проверки контекста. Это расчёт по правилам, а не новый ИИ-разбор.'));for(const [key,items] of Object.entries(checked.issues)){if(!items.length)continue;const label=AXES.find(a=>a[0]===key)?.[1]||key;note.append(make('p','',label+': '+checked.original[key]+' → '+checked.scores[key]+' · '+items.map(i=>i.text).slice(0,4).join('; ')));}if(d.aiState==='stale')note.append(make('p','','Сохранённый ИИ-разбор устарел: появились новые коммуникации. Нужен повторный анализ.'));scoreLayout.append(note);}
   const audit=review.querySelector('.da-cols');
   if(audit){const auditHeading=make('h3','gg-review-audit-title','Аудит ИИ · подтверждения в диалоге');audit.before(auditHeading);const cols=[...audit.children];cols.sort((a,b)=>Number(/ошиб|риск/i.test(b.textContent))-Number(/ошиб|риск/i.test(a.textContent))).forEach(c=>audit.append(c));}
 if(history){review.querySelectorAll('.mk-q').forEach(q=>{const source=history.sourceForQuote(q.textContent);if(!source)return;const b=make('button','gg-deal-evidence','Показать в диалоге →');b.type='button';b.onclick=()=>{st.switchTab?.('communications');history.feed.querySelector('[data-channel="all"]')?.click();source.article.hidden=false;source.article.querySelectorAll('.gg-deal-transcript').forEach(n=>n.open=true);source.article.classList.add('gg-deal-evidence-on');source.article.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});source.article.tabIndex=-1;source.article.focus({preventScroll:true});setTimeout(()=>source.article.classList.remove('gg-deal-evidence-on'),2200);};q.append(b);});}
@@ -463,7 +476,7 @@ if(history){review.querySelectorAll('.mk-q').forEach(q=>{const source=history.so
  function profile(ds){
   const fresh=ds.filter(d=>d.aiState==='fresh'),eligible=ds.filter(d=>['fresh','stale','none'].includes(d.aiState));
   return{total:ds.length,deals:ds.filter(d=>!d.isLead).length,leads:ds.filter(d=>d.isLead).length,eligible:eligible.length,fresh:fresh.length,stale:ds.filter(d=>d.aiState==='stale').length,pending:ds.filter(d=>d.aiState==='none').length,
-   scores:axes.map(([key])=>{const values=(key==='completeness'?ds:fresh).map(d=>key==='completeness'?window.ggCommunicationCompleteness(d):d.ai?.scores?.[key]).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0&&v<=5);return{key,n:values.length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null};})};
+   scores:axes.map(([key])=>{const values=(key==='completeness'?ds:fresh).map(d=>key==='completeness'?window.ggCommunicationCompleteness(d):window.ggAuditedScores(d).scores[key]).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0&&v<=5);return{key,n:values.length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null};})};
  }
  const profiles=new Map([...managerData.keys()].map(mgr=>[mgr,profile(dealsByManager.get(mgr)||[])]));
  const departmentProfile=profile((SC.deals||[]).filter(d=>managerData.has(d.mgr))),decimal=v=>v==null?'—':v.toLocaleString('ru-RU',{minimumFractionDigits:1,maximumFractionDigits:1});
@@ -495,7 +508,7 @@ if(history){review.querySelectorAll('.mk-q').forEach(q=>{const source=history.so
   if(a?.verdict){const verdict=el('p','gg-ai-profile-verdict',a.verdict);info.append(el('p','gg-ai-source-note','Сохранённая сводка · '+number(a.reviewed||0)+' разборов'),verdict);}
   const details=el('section','gg-ai-profile-details');details.append(el('h3','','Выводы ИИ по сделкам'));
   const reviewed=(dealsByManager.get(mgr)||[]).filter(d=>d.aiState==='fresh'&&d.ai),ranked=reviewed.slice().sort((x,y)=>Number(y.outcome==='open')-Number(x.outcome==='open')||Number(y.ai.tone==='bad')-Number(x.ai.tone==='bad')||(y.budget||0)-(x.budget||0));
-  const evidence=(box,d,text)=>{const item=el('li'),body=el('p','',text),link=el('button','gg-deal-evidence',(d.isLead?'Лид ':'Сделка ')+(d.dealId||d.leadId||d.key)+' · '+(d.title||d.client||'Показать разбор')+' →');link.type='button';link.onclick=()=>{S.fMgrs.clear();S.fMgrs.add(mgr);S.fDealIds.clear();S.oc='all';S.ggSearch='';S.ggHeat='all';S.tm.add(mgr);S.td.clear();S.td.add(d.key);S.deptOpen=true;Object.keys(S.grpOpen).forEach(k=>S.grpOpen[k]=true);aiApplyPicks();setPeriod('','','comm');location.hash='chronology';renderTree();};item.append(body,link);box.append(item);};
+  const evidence=(box,d,text)=>{const item=el('li'),body=el('p','',text),link=el('button','gg-deal-evidence',(d.isLead?'Лид ':'Сделка ')+(d.dealId||d.leadId||d.key)+' · '+(d.title||d.client||'Показать разбор')+' →');link.type='button';link.onclick=()=>{S.fMgrs.clear();S.fMgrs.add(mgr);S.fDealIds.clear();S.oc='all';S.ggSearch='';S.ggHeat='all';S.tm.add(mgr);S.td.clear();S.deptOpen=true;Object.keys(S.grpOpen).forEach(k=>S.grpOpen[k]=true);aiApplyPicks();setPeriod('','','comm');S.td.add(d.key);location.hash='chronology';renderTree();};item.append(body,link);box.append(item);};
   details.append(el('p','gg-ai-source-note','Основа: '+number(reviewed.length)+' актуальных сохранённых ИИ-разборов сделок и лидов этого менеджера.'));
   for(const [label,tone] of [['Сильные стороны','good'],['На что обратить внимание руководителю','bad']]){
    details.append(el('h4','',label));const grouped=new Map();
@@ -509,7 +522,7 @@ if(history){review.querySelectorAll('.mk-q').forEach(q=>{const source=history.so
   if(actions.length)decisions.append(actionList);else decisions.append(el('p','gg-ai-source-note','В актуальных разборах нет конкретных корректирующих рекомендаций.'));
   decisions.append(el('p','gg-ai-source-note','Рекомендации из сохранённых ИИ-разборов выбранных случаев. Даты относятся к моменту разбора; перед действием проверьте текущий статус сделки.'));details.append(decisions);
   const sourceLink=el('button','gg-ai-profile-dialogs','Сделки и диалоги менеджера →');sourceLink.type='button';sourceLink.onclick=()=>{S.fMgrs.clear();S.fMgrs.add(mgr);S.fDealIds.clear();S.oc='all';S.picks=[];S.dashNote='';S.tm.add(mgr);S.deptOpen=true;Object.keys(S.grpOpen).forEach(k=>S.grpOpen[k]=true);aiApplyPicks();setPeriod('','','comm');aiSyncScope({mgr});location.hash='chronology';requestAnimationFrame(()=>requestAnimationFrame(()=>{const row=[...list.querySelectorAll('.mgrrow')].find(n=>n.dataset.m===mgr);if(row){row.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});row.tabIndex=-1;row.focus({preventScroll:true});}}));};
-  info.append(details);content.append(visual,info);card.append(head,content,el('footer','gg-ai-profile-source','Средние оценки актуальных сохранённых разборов, 0–5. По всем сделкам и лидам менеджера в снимке; выбранный период не меняет профиль. Неоценённые диалоги исключены из среднего.'));
+  info.append(details);content.append(visual,info);card.append(head,content,el('footer','gg-ai-profile-source','Средние ИИ-оценки с проверкой сигналов переписки, 0–5. При ошибках балл ограничивается до 3, при трёх эпизодах — до 2. По всем сделкам и лидам менеджера в снимке; выбранный период не меняет профиль. Неоценённые диалоги исключены из среднего.'));
   return card;
  }
  function presentAIProfiles(table){
@@ -572,7 +585,6 @@ if(history){review.querySelectorAll('.mk-q').forEach(q=>{const source=history.so
   if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
   if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
   if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
-  list.querySelectorAll('[data-tip]').forEach(n=>{const tip=n.dataset.tip||'';const index=tip.indexOf('🤖');if(index>=0)n.dataset.tip=tip.slice(0,index).replace(/<br>\s*<br>\s*<b[^>]*>$/,'')+'<br><small>Полный разбор — во вкладке ИИ-разборы.</small>';});
   list.querySelector('[data-vhelp]')?.closest('.legend')?.remove();
   const controls=list.querySelector(':scope > .controls');if(controls){
    toolbar.replaceChildren(controls);periodSlot.replaceChildren();dateSlot.replaceChildren();const filters=el('div','gg-comm-filters');

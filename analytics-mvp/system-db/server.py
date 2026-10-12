@@ -151,6 +151,7 @@ def ingest():
   behavior=assets/'dialog-enhancement.js'
   if behavior.exists():page=page.replace('</body>','<script data-gg-dialog-enhancement>'+behavior.read_text()+'</script></body>',1)
   page=page.replace("r.article.scrollIntoView({block:'start'","r.article.scrollIntoView({block:'center'")
+  page=page.replace("esc(h.durTxt)","esc(h?.durTxt||'длительность не определена')").replace("h.dir===","h?.dir===")
   old="b.classList.add(zoneBad?'gg-zone-bad':zoneGood?'gg-zone-good':'gg-zone-neutral');"
   new="""/* gg-zone-target */
      const target=zoneEvents.find(x=>x.article.matches('.e-bad,.ev-bad'))||zoneEvents.find(x=>x.article.matches('.e-good:not(.gg-event-warning)'))||r;

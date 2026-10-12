@@ -2,59 +2,95 @@
   "project": "TURBIUM hero animation storyboards",
   "model": "gpt-image-2",
   "purpose": "Storyboard frame {n} of 6 for a scroll-driven 3D hero animation on a B2B analytics website that connects customer requests, deals and payments and shows where orders get lost.",
-  "palette": "Palette, strictly: near-black background with a green-teal tint #060B0B; deep teal mid-tones #112922, #243731, #38554F; mint #96EAC0 as the main light; off-white #F1F6F5 only for the very brightest highlights; one warm orange #EE8139 accent reserved for the single important signal, never more than one small orange element in the frame.",
-  "avoid": "Avoid: ribbons, bands, tubes, worm-like or snake-like shapes, tori, rings, orbits, discs, saucers, portals, any icon or object spinning in the center, planets, galaxies, vortex spirals, brains, DNA, circuit boards, binary code, holographic HUD overlays, charts, people, robots. No text, no letters, no numbers, no logos, no watermark.",
+  "palette": "Palette, strictly: near-black background with a green-teal tint #060B0B; deep teal mid-tones #112922, #243731, #38554F; mint #96EAC0 as the main light; off-white #F1F6F5 only for the very brightest highlights; one warm orange #EE8139 accent reserved for the single important signal, rendered as a clean saturated orange core with a tight warm halo, never muddy brown, never more than one small orange element in the frame. Overall image stays dark: the average brightness is low, the scene glows, the background does not.",
+  "avoid": "Avoid: outer space, starfield, nebula, galaxy, cosmic dust, comets, meteors, motion trails behind points, lens flares, diffraction spikes, warp or hyperspace speed lines, converging perspective streaks, constellation lines, network graph of nodes and edges, strings of beads, ribbons, bands, tubes, worm-like or snake-like shapes, tori, rings, orbits, discs, saucers, portals, glowing or smoky frames and borders, any icon or object spinning in the center, planets, vortex spirals, brains, DNA, circuit boards, binary code, holographic HUD overlays, charts, people, robots. No text, no letters, no numbers, no logos, no watermark.",
   "compositions": {
-    "hero": "Composition: 16:9-safe framing; the upper 45 percent of the frame is calm, empty dark background reserved for a centered headline and buttons; the scene sits in the lower half, centered, slightly overflowing the bottom edge; nothing important within 6 percent of the left and right edges.",
-    "side": "Composition: the scene occupies the right 60 percent of the frame; the left 40 percent stays calm, dark and nearly empty for section copy; horizon slightly below center; 16:9-safe framing.",
-    "ui": "Composition: the scene resolves into the right 60 percent of the frame; the left 40 percent stays calm and empty; 16:9-safe framing.",
+    "hero": "Composition: 16:9-safe framing; the upper 45 percent of the frame is empty, flat background #060B0B with no haze, no points and no light at all, reserved for a centered headline and buttons; the scene sits in the lower half, centered, slightly overflowing the bottom edge; nothing important within 6 percent of the left and right edges.",
+    "side": "Composition: the scene occupies only the right 60 percent of the frame; the left 40 percent is empty, flat background #060B0B with no haze, no points and no light, reserved for section copy; the scene fades softly into that dark zone; horizon slightly below center; key elements at least 6 percent away from every edge; 16:9-safe framing.",
+    "ui": "Composition: the plane sits in the right 60 percent of the frame; the left 40 percent is empty, flat background #060B0B reserved for section copy; 16:9-safe framing.",
     "mobile": "Composition: vertical mobile hero; the upper 45 percent is calm, empty dark background reserved for a headline and a button; the scene fills the lower half and slightly overflows the bottom edge; nothing important within 8 percent of the left and right edges."
   },
   "frames": [
-    {"n": 1, "id": "01-overview", "title_ru": "Общая картина", "comp": "hero", "size": "1536x1024"},
-    {"n": 2, "id": "02-approach", "title_ru": "Приближение", "comp": "side", "size": "1536x1024"},
-    {"n": 3, "id": "03-signal", "title_ru": "Найден сигнал", "comp": "side", "size": "1536x1024"},
-    {"n": 4, "id": "04-route", "title_ru": "Маршрут сделки", "comp": "side", "size": "1536x1024"},
-    {"n": 5, "id": "05-connected", "title_ru": "Связь видна", "comp": "side", "size": "1536x1024"},
-    {"n": 6, "id": "06-interface", "title_ru": "Переход к интерфейсу", "comp": "ui", "size": "1536x1024"}
+    {
+      "n": 1,
+      "id": "01-overview",
+      "title_ru": "Общая картина",
+      "comp": "hero",
+      "size": "1536x1024"
+    },
+    {
+      "n": 2,
+      "id": "02-approach",
+      "title_ru": "Приближение",
+      "comp": "side",
+      "size": "1536x1024"
+    },
+    {
+      "n": 3,
+      "id": "03-signal",
+      "title_ru": "Найден сигнал",
+      "comp": "side",
+      "size": "1536x1024"
+    },
+    {
+      "n": 4,
+      "id": "04-route",
+      "title_ru": "Маршрут сделки",
+      "comp": "side",
+      "size": "1536x1024"
+    },
+    {
+      "n": 5,
+      "id": "05-connected",
+      "title_ru": "Связь видна",
+      "comp": "side",
+      "size": "1536x1024"
+    },
+    {
+      "n": 6,
+      "id": "06-interface",
+      "title_ru": "Переход к интерфейсу",
+      "comp": "ui",
+      "size": "1536x1024"
+    }
   ],
   "directions": [
     {
       "id": "a-light-field",
       "name": "Volumetric light field",
       "name_ru": "A. Объёмное световое поле",
-      "concept_ru": "Бизнес как тёмное пространство, в котором есть свет. Обращения - редкие точки света в тумане. TURBIUM не добавляет объектов, он проявляет: свет собирается в маршрут, место потери загорается оранжевым. Глубина и воздух, твёрдой геометрии нет. Риск: самое атмосферное и самое абстрактное из трёх, смысл продукта считывается слабее.",
-      "style_lock": "Look: a vast dark volume of slow, softly lit atmospheric haze with gentle uneven density, glowing from within like light inside fog; tiny rare bright points of light suspended at different depths. Rendered as premium real-time 3D with true volumetric lighting, soft bloom, very subtle film grain, deep contrast, no hard edges and no solid objects. Virtual camera 35mm, slight depth of field. All frames look like one continuous shot of the same scene.",
+      "concept_ru": "Бизнес как тёмный зал, заполненный лёгкой дымкой. Обращения - спокойные точки света, три зоны (обращение, сделка, оплата) - слои плотности дымки в глубине. TURBIUM не добавляет объектов, он проявляет: свет собирается в маршрут, место потери загорается оранжевым, в финале маршруты ложатся строками отчёта. Это зал с полом и масштабом, а не космос: никаких звёзд, комет и туманностей.",
+      "style_lock": "Look: the interior of a vast dark hall filled with thin, slow stage haze, like light in theatre smoke; a barely visible matte floor plane at the bottom of the volume catches a faint reflection and gives the space real scale. Light lives inside the haze as soft volumetric glow and as small calm points of light: equal-size soft dots, sharp but gentle, with no tails, no twinkle and no flare. Rendered as premium real-time 3D with true volumetric lighting, restrained bloom, very subtle film grain, deep contrast, no hard edges and no solid objects. Virtual camera 35mm at a calm human eye level, slight depth of field. All frames look like one continuous shot of the same hall.",
       "frames": [
         {
-          "state": "Overview. Dozens of faint mint light points scattered at different depths in the haze, each one a separate customer request arriving from its own direction; the haze between them is uneven, with darker voids. Quiet, wide, unresolved.",
+          "state": "Overview. Low in the hall, a loose field of a few dozen small calm mint points hangs in the haze at different depths, unevenly spread, each one a separate customer request; the haze around them is uneven, with darker voids; behind them, deeper in the hall, two faint denser layers of haze are barely suggested. Quiet, wide, unresolved, and clearly an interior space, not the sky.",
           "camera": "Wide establishing view from slightly above, static.",
           "motion_ru": "0-10% прокрутки. Туман дышит: плотность меняется с периодом 8-12 с, точки дрейфуют на 2-4 px/с. Курсор: туман светлеет в радиусе ~150 px, точки не убегают."
         },
         {
-          "state": "Approach. Closer, inside the haze; the light points drift forward in loose streams, and three faint depth layers appear one behind another, defined only by the density of light in the fog, not by any surfaces: first contact, deal, payment.",
+          "state": "Approach. Closer, inside the haze; the points drift forward in loose groups, and three depth layers become readable one behind another as three soft walls of denser, slightly brighter haze: first contact, deal, payment. The layers have no surfaces or edges, only density of light.",
           "camera": "Slow dolly forward into the volume.",
           "motion_ru": "10-30%. Камера въезжает на 20-25% глубины, ease-in-out. Слои проявляются плотностью, без резких границ."
         },
         {
-          "state": "Signal found. Between the second and third depth layers one stream of light thins out and fades into darkness; exactly at that break a single small orange #EE8139 point glows steadily with a soft halo in the haze, the only warm light in the frame. Everything else dims slightly so the orange point is the clear focal point.",
+          "state": "Signal found. A soft beam of mint light runs from the front toward the second haze layer and simply stops there: beyond that point the haze is dark and empty, the beam does not reach the third layer. Exactly at the end of the beam a single small orange #EE8139 point glows steadily with a tight warm halo, the only warm light in the frame. Everything else is dimmer so the break is the clear focal point.",
           "camera": "Camera stops and racks focus onto the orange point, shallow depth of field.",
           "motion_ru": "30-45%. Пауза камеры на 0.6-0.8 с прокрутки, перевод фокуса на оранжевую точку за 0.4 с, остальной свет -20%. Точка светится ровно, не мигает: это находка, а не тревога."
         },
         {
-          "state": "Deal route. One continuous path of mint light threads through all three depth layers, from a single request point in the foreground to a bright resolved point in the far layer; the path is light scattering in haze, like a beam through fog, not a solid object; the haze along it becomes clearer.",
-          "camera": "Lateral tracking shot along the path, gentle parallax between layers.",
+          "state": "Deal route. One continuous soft beam of mint light, a single smooth gently curving path, passes through all three haze layers from a request point in the foreground to the far layer, where it ends as a calm bright point; the beam is light scattering in haze, continuous, never dotted; the haze along it clears slightly. No other paths, no speed lines.",
+          "camera": "Lateral tracking shot alongside the path at eye level, gentle parallax between layers, no forward rush.",
           "motion_ru": "45-65%. Свет проходит маршрут за 1.2-1.6 с, привязан к прокрутке. Боковой проезд, параллакс слоёв на трёх скоростях."
         },
         {
-          "state": "Whole picture connected. Many light paths now pass through the three layers; most reach the far layer and glow mint, a few stop at the same break, which is still marked by the single orange point; the haze has settled and the volume feels calm, legible and ordered.",
+          "state": "Whole picture connected. About ten soft continuous beams of mint light run calmly and almost parallel through the three haze layers; they do not converge to nodes, each one ends inside the far layer, which glows as one soft even band of light; two beams stop at the second layer, and one of these breaks is marked by the single orange point. The hall is calm, legible and ordered, still mostly dark.",
           "camera": "Pull back to a wide view, slightly higher than the first frame.",
           "motion_ru": "65-85%. Отъезд, маршруты зажигаются волной спереди назад с шагом 80-120 мс. Оранжевая точка остаётся единственной."
         },
         {
-          "state": "Transition to interface. The haze compresses and flattens toward the viewer into one soft-edged dark rectangular plane of light, as if the fog condenses into a screen; faint mint light along its edges, the surface itself is empty, ready for an interface screenshot.",
+          "state": "Transition to interface. The beams from the previous frame straighten into a few parallel horizontal lines of soft mint light and settle onto one flat, dark, matte plane facing the viewer, like rows of a report; the single orange point stays on one of the rows; the haze has thinned and lies low on the floor. The plane has no frame, no border, no glowing or smoky edge; it simply ends in darkness.",
           "camera": "Camera turns to face the plane frontally, perspective flattens.",
-          "motion_ru": "85-100%. Туман схлопывается в плоскость за 0.8 с, на её место встаёт реальный скриншот интерфейса (вёрстка, не генерация)."
+          "motion_ru": "85-100%. Лучи выпрямляются в строки за 0.6 с, плоскость разворачивается к зрителю за 0.8 с, оранжевая точка остаётся на своей строке и становится маркером в реальном интерфейсе (та же позиция, та же строка). Затем поверх встаёт реальный скриншот отчёта."
         }
       ]
     },
@@ -91,7 +127,7 @@
           "motion_ru": "65-85%. Отъезд, сетка встаёт строго ортогонально: момент «стало понятно»."
         },
         {
-          "state": "Transition to interface. The rows of glass slide together and merge into one flat pane facing the viewer: a clean dark glass rectangle with a fine mint edge highlight; its surface is empty, ready for an interface screenshot.",
+          "state": "Transition to interface. The rows of glass slide together and merge into one flat dark glass pane facing the viewer; the beams that passed through it remain on its surface as a few parallel horizontal lines of soft mint light, like rows of a report, and the single orange glint stays on one of the rows. The pane edges catch only a hairline reflection, no glow, no frame, no border.",
           "camera": "Camera faces the merged pane frontally, perspective flattens.",
           "motion_ru": "85-100%. Ряды съезжаются в одну пластину за 0.6-0.8 с, поверх встаёт реальный интерфейс."
         }
@@ -130,7 +166,7 @@
           "motion_ru": "65-85%. Отъезд, потоки установились. В точке разрыва продолжается тонкий отток: потеря идёт постоянно, а не один раз."
         },
         {
-          "state": "Transition to interface. The particles settle and lock into a precise flat lattice of points facing the viewer, forming the outline of an empty rectangular panel with neat rows and columns of tiny mint points; no charts, no text.",
+          "state": "Transition to interface. The particles settle and lock into a few precise horizontal rows of tiny mint points on one flat plane facing the viewer, like rows of a report; the single orange particle keeps its place in one of the rows. No outline, no frame, no border around the rows, no charts, no text.",
           "camera": "Camera faces the lattice frontally, perspective flattens.",
           "motion_ru": "85-100%. Частицы укладываются в решётку за 0.8-1 с (задержка 2-4 мс на частицу), затем решётка уступает место реальному интерфейсу."
         }

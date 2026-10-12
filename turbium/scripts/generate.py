@@ -62,6 +62,9 @@ def sheet_prompt(cfg, d):
         "scroll-driven 3D hero animation for a B2B analytics website that connects customer "
         f"requests, deals and payments and shows where orders get lost. Direction: {d['name']}.",
         panels,
+        "Layout inside the panels, mandatory: panel 1 keeps its upper 45 percent as empty flat background "
+        "for a headline, with the scene in its lower half; panels 2 to 6 keep their left 40 percent as empty "
+        "flat background for copy, with the scene on the right. No haze, points or light in these empty zones.",
         d["style_lock"],
         cfg["palette"].replace("in the frame", "per panel"),
         cfg["avoid"],

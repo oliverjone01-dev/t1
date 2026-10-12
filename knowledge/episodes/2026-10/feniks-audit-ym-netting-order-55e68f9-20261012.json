@@ -3,38 +3,138 @@
   "skill": "phoenix-eval",
   "task_id": "feniks-ym-netting-order-55e68f9-20261012",
   "timestamp": "2026-10-12T14:20:00+00:00",
-  "deliverable_ref": "commit 55e68f99b3d3b5373026e2b863c9b7a333e4c9c9, ветка claude/brave-ritchie-1w4f1i, merge-base 4e07aafd = origin/main (удалённый main впереди на 3 data-коммита, код не задет): analytics-mvp/src/scripts/ym/reports.ts (netting), analytics-mvp/src/scripts/ym/reports-softstop.test.ts; audit hash 9792ecb25347697e",
+  "deliverable_ref": "commit 55e68f99b3d3b5373026e2b863c9b7a333e4c9c9, ветка claude/brave-ritchie-1w4f1i, база 4e07aafd: analytics-mvp/src/scripts/ym/reports.ts (netting), analytics-mvp/src/scripts/ym/reports-softstop.test.ts; audit hash 9792ecb25347697e (--base 4e07aafd). Во время аудита смержено в main как PR #467 (0a4e1266, 14:10 UTC) по слову Ивана до вердикта, override записан в мерж-коммите; код по двум путям в main = 55e68f9 (git diff пуст)",
   "artifact_class": "dashboard",
   "audience": "внутренний: автор ветки, Иван (решение о мерже)",
   "iteration": 1,
   "anchor": "8.1 feniks-return-reestr после доработки - наш артефакт на уровне якоря: как там, заявления автора воспроизведены независимым прогоном (тест порядка на дереве main 2 failed, на 55e68f9 4/4; ym 491/3 против 490/3 на main, те же 3 живых; tsc 0 в изменённых), а названный автором риск К4 закрыт живыми данными прогона 12.10 (536 строк схемы 5 легли на двойников схемы 4, январь не изменился ни на строку). Не выше: обратный приоритет без оговорки морит историю при бюджете <= 6 (класс E027), и 2 из 4 названных поведений не защищены тестом (мутанты M1, M4 живы)",
   "probes": [
-    {"id": "T2", "result": "PASS", "evidence": "Тест ветки на дереве main 4e07aafd: 2 failed (порядок: получено 111/2026-02.., ждали 111/2026-10, 222/2026-10; обрыв: 111/02..07 вместо 08..10), 2 passed; на 55e68f9 4/4 passed. Заявление автора воспроизведено."},
-    {"id": "U1", "result": "PASS", "evidence": "vitest src/scripts/ym: main 490 passed / 3 failed, 55e68f9 491 passed / 3 failed (svod, tovary-ui, warroom-kpi - живые данные, одинаковые); softstop + reports-lib 51/51; tsc --noEmit: 38 ошибок в обоих деревьях, 0 в reports.ts и reports-softstop.test.ts."},
-    {"id": "B1", "result": "PASS", "evidence": "Посылка «реестр стоит по 2026-09-30 из-за порядка» проверена вне артефакта: ручной прогон 38255474955 на main (старый порядок, 13:24-13:46 UTC 12.10) - netting_state@main schema 5, done 10 (74986385/02..10 + 1023124/02), ACC_TO=\"2026-09-30\" в katya-money.html@2608b84a, шаг «Тревога: реестр платежей не застрял» failure."},
-    {"id": "B2", "result": "PARTIAL", "evidence": "Закрытые месяцы: 74986385/02..08 перезабраны схемой 5 через 10 дней - строки и суммы равны схеме 4 (permonth.py 1763507 vs 2608b84a). Текущий месяц первым, dateTo=to. Частичный первый месяц (from=2026-02-15): окно запроса 02-15..02-28 верное в ветке и в main; но чистка и done по паре месяца теряют 02-01..02-14 (проба: 111/2026-02 строк 4 -> 1, сумма 2998 -> 2000) и в ветке, и в main - дефект старый, дифф его не вносит."},
-    {"id": "B3", "result": "PASS", "evidence": "Стаб с перетоком строк прошлого месяца в выгрузку (stub2.mjs leak), 3 прогона от схемы 4: 0 дублей, строки и суммы по всем парам как в эталоне, стык со смешанными статусами 05 -> 03 -> нет. Живые данные: на стыке января прогона 12.10 536 просочившихся строк схемы 5 (201 + 335) легли на двойников схемы 4 с тем же payload (src, count, contract, shop_order), январь 1023124 и 74986385 не изменился по строкам и сумме; групп «тот же ключ, п/п пустой и заполненный» 0."},
-    {"id": "B4", "result": "PASS", "evidence": "После 1-го прогона от схемы 4 (оригинальный стаб): ветка - ledgerFreshness оба кабинета lag 0, month_done true; main - 222 stale, month_done false. Дырка «окно схема 5, история схема 4» на ledgerFreshness не влияет (max d + done текущего месяца, derive-lib.ts:1169-1189). ACC_TO - минимум по кабинетам последнего дня с денежным сбором (derive-lib.ts:445-461) [РАССУЖДЕНИЕ по коду, derive не гонялся]."},
-    {"id": "B5", "result": "N/A", "evidence": "Шаблонов и фразебука в диффе нет."},
-    {"id": "B6", "result": "PASS", "evidence": "Доказательства автора сняты на 55e68f9 (13:31 UTC); живой прогон 13:24-13:46 свежее посылки и её подтверждает."},
-    {"id": "B7", "result": "PASS", "evidence": "Путь публикации дифф не трогает; плашки «статус платежа не собран» и «реестр полный по» на месте (build-katya.ts:4839, 4846)."},
-    {"id": "S1", "result": "PASS", "evidence": "Кабинет 111 всегда ECONNRESET: 111/10 x6 попыток, снят; 222 получил 10..02 (9 отчётов), schema 5, done 9, итог «сбой связи (fetch failed), продолжу»."},
-    {"id": "S2", "result": "PASS", "evidence": "Вечный 503: по одной паре на кабинет (x6 повторов), «ни один отчёт не разобран - сбой связи ... файлы не трогаю», schema 4 не тронута."},
-    {"id": "S3", "result": "PASS", "evidence": "420 с 7-го при исчерпанном дедлайне (YM_REPORT_DEADLINE_MS=1000): 111/07 упёрся в лимит - стоп всего, 222/07 не запрошен, 6 пар сохранены, итог «упёрлись в лимит Маркета»."},
-    {"id": "S4", "result": "FAIL", "evidence": "Бюджет 6 (= 2 кабинета x 3 месяца свежего окна), 4 прогона to=10-10..10-13: ветка done 6/6/6/6, история 02..07 не запрашивается никогда; main 6/12/15/18. Шаг зелёный, ledger-fresh зелёный."},
-    {"id": "S5", "result": "PASS", "evidence": "Переход с живого состояния (после старого порядка: 111/02..10 + 222/02): 1-й прогон ветки - 222/10 первым среди 222, done 17; 2-й - 18. Текущий месяц отстающего кабинета на 1-м прогоне вместо 2-го."},
-    {"id": "K1", "result": "PARTIAL", "evidence": "Что если ключевое поле дрейфует (п/п пустой -> заполнен): ветка даёт дубль на стыке внутри диапазона на один прогон (05 после 1-го, 03 после 2-го: +2000 на кабинет), main - только в 01 до FLOOR (постоянно, в обоих). Живой дрейф 0 (B3), поэтому не gap."},
-    {"id": "M1", "result": "FAIL", "evidence": "Мутант «const s = mb.dateFrom» (левая граница снята): 51/51 passed. Комментарий теста «первый - левой», проверяется только dateTo."},
-    {"id": "M2", "result": "PASS", "evidence": "Мутант «const e = mb.dateTo» (правая граница снята): убит, 1 failed."},
-    {"id": "M3", "result": "PASS", "evidence": "Мутант без months.reverse(): убит, 2 failed."},
-    {"id": "M4", "result": "FAIL", "evidence": "Мутант без внутреннего if (rateLimited) break: 51/51 passed; в пробе S3 после лимита запрошен 222/07 (18 запросов против 12). Сценария 420 в стабе нет."},
-    {"id": "M5", "result": "PASS", "evidence": "Мутант без if (stopped.has(b)) continue: убит, 1 failed."},
-    {"id": "M6", "result": "PASS", "evidence": "Мутант «мягкая остановка снимает все кабинеты»: убит, 1 failed."},
-    {"id": "M7", "result": "N/A", "evidence": "Мутант без внешнего if (rateLimited) break - эквивалентный (внутренний break на первой итерации), 51/51 ожидаемо."},
-    {"id": "H1", "result": "PASS", "evidence": "audit_hash.py --rev 55e68f9 = 9792ecb25347697e; хеша в запросе не было, сверять не с чем; аудит покрыл оба пути кода ветки (остальное - sessions/handoff и traces, исключены)."},
-    {"id": "A1", "result": "N/A", "evidence": "Апрувов, хуков и string-matching гейтов в диффе нет."}
+    {
+      "id": "T2",
+      "result": "PASS",
+      "evidence": "Тест ветки на дереве main 4e07aafd: 2 failed (порядок: получено 111/2026-02.., ждали 111/2026-10, 222/2026-10; обрыв: 111/02..07 вместо 08..10), 2 passed; на 55e68f9 4/4 passed. Заявление автора воспроизведено."
+    },
+    {
+      "id": "U1",
+      "result": "PASS",
+      "evidence": "vitest src/scripts/ym: main 490 passed / 3 failed, 55e68f9 491 passed / 3 failed (svod, tovary-ui, warroom-kpi - живые данные, одинаковые); softstop + reports-lib 51/51; tsc --noEmit: 38 ошибок в обоих деревьях, 0 в reports.ts и reports-softstop.test.ts."
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "Посылка «реестр стоит по 2026-09-30 из-за порядка» проверена вне артефакта: ручной прогон 38255474955 на main (старый порядок, 13:24-13:46 UTC 12.10) - netting_state@main schema 5, done 10 (74986385/02..10 + 1023124/02), ACC_TO=\"2026-09-30\" в katya-money.html@2608b84a, шаг «Тревога: реестр платежей не застрял» failure."
+    },
+    {
+      "id": "B2",
+      "result": "PARTIAL",
+      "evidence": "Закрытые месяцы: 74986385/02..08 перезабраны схемой 5 через 10 дней - строки и суммы равны схеме 4 (permonth.py 1763507 vs 2608b84a). Текущий месяц первым, dateTo=to. Частичный первый месяц (from=2026-02-15): окно запроса 02-15..02-28 верное в ветке и в main; но чистка и done по паре месяца теряют 02-01..02-14 (проба: 111/2026-02 строк 4 -> 1, сумма 2998 -> 2000) и в ветке, и в main - дефект старый, дифф его не вносит."
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "Стаб с перетоком строк прошлого месяца в выгрузку (stub2.mjs leak), 3 прогона от схемы 4: 0 дублей, строки и суммы по всем парам как в эталоне, стык со смешанными статусами 05 -> 03 -> нет. Живые данные: на стыке января прогона 12.10 536 просочившихся строк схемы 5 (201 + 335) легли на двойников схемы 4 с тем же payload (src, count, contract, shop_order), январь 1023124 и 74986385 не изменился по строкам и сумме; групп «тот же ключ, п/п пустой и заполненный» 0."
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "После 1-го прогона от схемы 4 (оригинальный стаб): ветка - ledgerFreshness оба кабинета lag 0, month_done true; main - 222 stale, month_done false. Дырка «окно схема 5, история схема 4» на ledgerFreshness не влияет (max d + done текущего месяца, derive-lib.ts:1169-1189). ACC_TO - минимум по кабинетам последнего дня с денежным сбором (derive-lib.ts:445-461) [РАССУЖДЕНИЕ по коду, derive не гонялся]."
+    },
+    {
+      "id": "B5",
+      "result": "N/A",
+      "evidence": "Шаблонов и фразебука в диффе нет."
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "Доказательства автора сняты на 55e68f9 (13:31 UTC); живой прогон 13:24-13:46 свежее посылки и её подтверждает."
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "Путь публикации дифф не трогает; плашки «статус платежа не собран» и «реестр полный по» на месте (build-katya.ts:4839, 4846)."
+    },
+    {
+      "id": "S1",
+      "result": "PASS",
+      "evidence": "Кабинет 111 всегда ECONNRESET: 111/10 x6 попыток, снят; 222 получил 10..02 (9 отчётов), schema 5, done 9, итог «сбой связи (fetch failed), продолжу»."
+    },
+    {
+      "id": "S2",
+      "result": "PASS",
+      "evidence": "Вечный 503: по одной паре на кабинет (x6 повторов), «ни один отчёт не разобран - сбой связи ... файлы не трогаю», schema 4 не тронута."
+    },
+    {
+      "id": "S3",
+      "result": "PASS",
+      "evidence": "420 с 7-го при исчерпанном дедлайне (YM_REPORT_DEADLINE_MS=1000): 111/07 упёрся в лимит - стоп всего, 222/07 не запрошен, 6 пар сохранены, итог «упёрлись в лимит Маркета»."
+    },
+    {
+      "id": "S4",
+      "result": "FAIL",
+      "evidence": "Бюджет 6 (= 2 кабинета x 3 месяца свежего окна), 4 прогона to=10-10..10-13: ветка done 6/6/6/6, история 02..07 не запрашивается никогда; main 6/12/15/18. Шаг зелёный, ledger-fresh зелёный."
+    },
+    {
+      "id": "S5",
+      "result": "PASS",
+      "evidence": "Переход с живого состояния (после старого порядка: 111/02..10 + 222/02): 1-й прогон ветки - 222/10 первым среди 222, done 17; 2-й - 18. Текущий месяц отстающего кабинета на 1-м прогоне вместо 2-го."
+    },
+    {
+      "id": "K1",
+      "result": "PARTIAL",
+      "evidence": "Что если ключевое поле дрейфует (п/п пустой -> заполнен): ветка даёт дубль на стыке внутри диапазона на один прогон (05 после 1-го, 03 после 2-го: +2000 на кабинет), main - только в 01 до FLOOR (постоянно, в обоих). Живой дрейф 0 (B3), поэтому не gap."
+    },
+    {
+      "id": "M1",
+      "result": "FAIL",
+      "evidence": "Мутант «const s = mb.dateFrom» (левая граница снята): 51/51 passed. Комментарий теста «первый - левой», проверяется только dateTo."
+    },
+    {
+      "id": "M2",
+      "result": "PASS",
+      "evidence": "Мутант «const e = mb.dateTo» (правая граница снята): убит, 1 failed."
+    },
+    {
+      "id": "M3",
+      "result": "PASS",
+      "evidence": "Мутант без months.reverse(): убит, 2 failed."
+    },
+    {
+      "id": "M4",
+      "result": "FAIL",
+      "evidence": "Мутант без внутреннего if (rateLimited) break: 51/51 passed; в пробе S3 после лимита запрошен 222/07 (18 запросов против 12). Сценария 420 в стабе нет."
+    },
+    {
+      "id": "M5",
+      "result": "PASS",
+      "evidence": "Мутант без if (stopped.has(b)) continue: убит, 1 failed."
+    },
+    {
+      "id": "M6",
+      "result": "PASS",
+      "evidence": "Мутант «мягкая остановка снимает все кабинеты»: убит, 1 failed."
+    },
+    {
+      "id": "M7",
+      "result": "N/A",
+      "evidence": "Мутант без внешнего if (rateLimited) break - эквивалентный (внутренний break на первой итерации), 51/51 ожидаемо."
+    },
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev 55e68f9 = 9792ecb25347697e; хеша в запросе не было, сверять не с чем; аудит покрыл оба пути кода ветки (остальное - sessions/handoff и traces, исключены)."
+    },
+    {
+      "id": "A1",
+      "result": "N/A",
+      "evidence": "Апрувов, хуков и string-matching гейтов в диффе нет."
+    }
   ],
-  "comprehension_gate": {"applies": false, "passed": true, "defects": []},
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
   "checkpoints": {
     "accuracy_1_figures_tagged": 1,
     "accuracy_2_sources_verifiable": 2,
@@ -78,15 +178,60 @@
     "[НИЗКИЙ] Метки и сроки: числа коммита и комментария (18 пар, бюджет 10, 2-3 прогона) без [ДАННЫЕ]/[ГИПОТЕЗА], есть только маркер «живой факт 12.10»; self-check краткий (4 проверки + 4 риска), не таблица 25 пунктов; срок эффекта после мержа не назван (с живого состояния: текущий месяц 1023124 на 1-м прогоне, вся история на 2-м), альтернативы порядку не разобраны."
   ],
   "evidence_ledger": [
-    {"gap": "Новый приоритет морит историю при бюджете <= кабинеты x окно", "evidence": "probe.py pr '{}' 6 (4 прогона to=10-10..10-13): done 6,6,6,6; probe.py main: 6,12,15,18; reports.ts:344 (freshWindow = to-59 дн), :364 (пропуск только при ym < freshWindow), :356-357 (месяцы снаружи от свежего); build-katya.ts:4846 (обещание перезабора); knowledge/errors/registry.jsonl E027", "checkpoint": "risk_21_downside", "weight": -1},
-    {"gap": "Условие «бюджет > кабинеты x окно» не названо как зависимость", "evidence": "commit 55e68f9 и комментарий reports.ts:345-349 - про бюджет только «18 пар при бюджете 10»; расчёт: 2 x 3 = 6 из 10, 3 кабинета - 9 из 10, 4 - 12 > 10", "checkpoint": "actionability_8_resources_listed", "weight": -1},
-    {"gap": "Второй порядок нового приоритета не разобран", "evidence": "4 риска в запросе (К4, левая граница, ledger, stopSoft+бюджет) - обратного эффекта (голодание истории) среди них нет; проба S4", "checkpoint": "insight_12_second_order", "weight": -1},
-    {"gap": "Левая граница и стоп на лимите без теста", "evidence": "mutate.py: M1 (s = mb.dateFrom) Tests 51 passed (51); M4 (без внутреннего rateLimited break) Tests 51 passed (51); probe S3 с M4: 18 запросов против 12, 222/07 запрошен после лимита; reports-softstop.test.ts:57-58 (проверка только dateTo)", "checkpoint": "risk_24_dependencies", "weight": -1},
-    {"gap": "Комментарий теста заявляет проверку левой границы, которой нет", "evidence": "reports-softstop.test.ts:57 «последний месяц обрезан правой границей, первый - левой», :58 только req[0].body.dateTo; мутант M1 жив", "checkpoint": "accuracy_3_no_conflict_with_rag", "weight": -1},
-    {"gap": "Числа без меток", "evidence": "git show -s 55e68f9: «18 пар», «бюджет 10», «2-3 прогона» без [ДАННЫЕ]/[ГИПОТЕЗА]; reports.ts:346-348 то же", "checkpoint": "accuracy_1_figures_tagged", "weight": -1},
-    {"gap": "Срок эффекта после мержа не назван", "evidence": "netting_state@main (gh api contents, ref main): schema 5, done 10 = 74986385/02..10 + 1023124/02; проба S5: ветка - 1023124/10 на 1-м прогоне, done 17, затем 18", "checkpoint": "actionability_7_deadline_buffer", "weight": -1},
-    {"gap": "Альтернативы порядку не разобраны", "evidence": "commit 55e68f9: только отсылка к promo; варианты «текущий месяц всех кабинетов, затем история, затем остаток окна» или резерв доли бюджета истории не рассмотрены", "checkpoint": "insight_13_alternatives_analyzed", "weight": -1},
-    {"gap": "Кросс-доменной отсылки нет", "evidence": "единственная отсылка - соседний продьюсер promo (G3 iter4) с той же механикой бюджета [РАССУЖДЕНИЕ]", "checkpoint": "insight_15_cross_domain", "weight": -1}
+    {
+      "gap": "Новый приоритет морит историю при бюджете <= кабинеты x окно",
+      "evidence": "probe.py pr '{}' 6 (4 прогона to=10-10..10-13): done 6,6,6,6; probe.py main: 6,12,15,18; reports.ts:344 (freshWindow = to-59 дн), :364 (пропуск только при ym < freshWindow), :356-357 (месяцы снаружи от свежего); build-katya.ts:4846 (обещание перезабора); knowledge/errors/registry.jsonl E027",
+      "checkpoint": "risk_21_downside",
+      "weight": -1
+    },
+    {
+      "gap": "Условие «бюджет > кабинеты x окно» не названо как зависимость",
+      "evidence": "commit 55e68f9 и комментарий reports.ts:345-349 - про бюджет только «18 пар при бюджете 10»; расчёт: 2 x 3 = 6 из 10, 3 кабинета - 9 из 10, 4 - 12 > 10",
+      "checkpoint": "actionability_8_resources_listed",
+      "weight": -1
+    },
+    {
+      "gap": "Второй порядок нового приоритета не разобран",
+      "evidence": "4 риска в запросе (К4, левая граница, ledger, stopSoft+бюджет) - обратного эффекта (голодание истории) среди них нет; проба S4",
+      "checkpoint": "insight_12_second_order",
+      "weight": -1
+    },
+    {
+      "gap": "Левая граница и стоп на лимите без теста",
+      "evidence": "mutate.py: M1 (s = mb.dateFrom) Tests 51 passed (51); M4 (без внутреннего rateLimited break) Tests 51 passed (51); probe S3 с M4: 18 запросов против 12, 222/07 запрошен после лимита; reports-softstop.test.ts:57-58 (проверка только dateTo)",
+      "checkpoint": "risk_24_dependencies",
+      "weight": -1
+    },
+    {
+      "gap": "Комментарий теста заявляет проверку левой границы, которой нет",
+      "evidence": "reports-softstop.test.ts:57 «последний месяц обрезан правой границей, первый - левой», :58 только req[0].body.dateTo; мутант M1 жив",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -1
+    },
+    {
+      "gap": "Числа без меток",
+      "evidence": "git show -s 55e68f9: «18 пар», «бюджет 10», «2-3 прогона» без [ДАННЫЕ]/[ГИПОТЕЗА]; reports.ts:346-348 то же",
+      "checkpoint": "accuracy_1_figures_tagged",
+      "weight": -1
+    },
+    {
+      "gap": "Срок эффекта после мержа не назван",
+      "evidence": "netting_state@main (gh api contents, ref main): schema 5, done 10 = 74986385/02..10 + 1023124/02; проба S5: ветка - 1023124/10 на 1-м прогоне, done 17, затем 18",
+      "checkpoint": "actionability_7_deadline_buffer",
+      "weight": -1
+    },
+    {
+      "gap": "Альтернативы порядку не разобраны",
+      "evidence": "commit 55e68f9: только отсылка к promo; варианты «текущий месяц всех кабинетов, затем история, затем остаток окна» или резерв доли бюджета истории не рассмотрены",
+      "checkpoint": "insight_13_alternatives_analyzed",
+      "weight": -1
+    },
+    {
+      "gap": "Кросс-доменной отсылки нет",
+      "evidence": "единственная отсылка - соседний продьюсер promo (G3 iter4) с той же механикой бюджета [РАССУЖДЕНИЕ]",
+      "checkpoint": "insight_15_cross_domain",
+      "weight": -1
+    }
   ],
   "rework_tz": "Не блокирует мерж; в следующую итерацию: 1) голодание истории: зарезервировать истории минимум 1-2 отчёта за прогон (или порядок «текущий месяц всех кабинетов -> история -> остаток окна») либо печатать ::warning:: и красить ledger-fresh, если недобранные пары есть, а история за прогон не продвинулась; условие «бюджет > кабинеты x месяцы окна» написать в комментарии у цикла; 2) в reports-softstop.test.ts: сценарий с from не с 1-го числа (assert dateFrom первого месяца) и сценарий 420 после дедлайна (assert: второй кабинет не запрошен) - приёмка: мутанты M1 и M4 падают; в тесте обрыва проверять число строк по месяцам, а не rows.some; 3) метки на числах коммита и срок эффекта после мержа. Вне диффа, отдельной задачей: частичный первый месяц (from не с 1-го) чистится и помечается done целиком - дни до from теряются в ветке и в main (B2).",
   "confidence": 0.85,
@@ -97,6 +242,7 @@
     "gh api: actions/runs/38255474955 (шаги, ledger-fresh failure), contents netting_state.json@main, katya-money.html@2608b84a (ACC_TO, ACC_NOST), netting.ndjson@2608b84a, compare 4e07aafd...main",
     "analytics-mvp/data-ym/netting.ndjson в коммитах 3277601 (10-01) и 1763507 (10-02)",
     "scratchpad сессии feniks-order (не в репо): деревья main/pr/cross/mut, stub2.mjs (leak, drift, rl420Nth, failBiz), probe.py, mutate.py, apply_mutant.py, permonth.py, payload.py, neardup.py, podrift.py, _feniks_lf.ts",
-    "knowledge/errors/registry.jsonl E027, E064; knowledge/feniks/{eval-checklist.md,calibration-anchors.md,red-team-probes.md}; knowledge/episodes/2026-10/feniks-audit-ym-reports-transient-pr466-iter2-20261012.*"
+    "knowledge/errors/registry.jsonl E027, E064; knowledge/feniks/{eval-checklist.md,calibration-anchors.md,red-team-probes.md}; knowledge/episodes/2026-10/feniks-audit-ym-reports-transient-pr466-iter2-20261012.*",
+    "git show 0a4e1266 (мерж PR #467: «Мерж по слову Ивана 12.10 ДО вердикта ФЕНИКСА (override, как #465)»), git diff 55e68f9 0a4e1266 по двум путям: пусто"
   ]
 }

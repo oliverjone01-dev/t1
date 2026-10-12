@@ -1,4 +1,4 @@
-# Self-check автора: стратегия OZON по всему магазину (sessions/2026-10-12-ozon-strategiya-magazin.md, v2)
+# Self-check автора: стратегия OZON по всему магазину (sessions/2026-10-12-ozon-strategiya-magazin.md, v3)
 
 - Класс: стратегия, внутренний документ для CMO. Оценок не ставлю, только да / нет / частично.
 - v2 - правки по предпроверке ФЕНИКСА (return без скоринга, 12 пунктов), числа из `knowledge/episodes/2026-10/feniks-probes-ozon-strategiya/precheck.py` и модели `knowledge/episodes/2026-10/ozon-price-floor/floor.py`.

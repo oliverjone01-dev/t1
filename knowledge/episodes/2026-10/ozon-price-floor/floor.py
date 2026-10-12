@@ -42,7 +42,7 @@ for sku,u in units.items():
     s_ads=s if sku in ads else max(s-ADS_PP,0.2)          # дешёвая реклама: доплата OZON +6,5 п.
     keep=fee[sku][0]/fee[sku][1] if fee[sku][1]>0 else store_keep
     shipn=S.median(sn[sku]) if sn[sku] else store_sn
-    wk=u/60*7; cpc_o=CPC_WK/wk if sku not in ads else 0  # у кого реклама уже есть - расход в текущих
+    wk=u/60*7; cpc_o=CPC_WK/wk  # сценарий: у всех товаров только дешёвая реклама 1 500 ₽/нед (дорогие переводятся на неё)
     def profit(p,cpc=cpc_o,sh=s_ads):
         base=p*keep-CPO*p-cpc
         return base-cogs[sku]-shipn-ADM*base-TAX*p*sh, base
@@ -52,12 +52,12 @@ for sku,u in units.items():
     # рентабельность = прибыль / (К выплате - реклама); прибыль >= RENT*base
     k10=k-RENT*(keep-CPO); fixed10=fixed-RENT*cpc_o
     p_10=fixed10/k10 if k10>0 else None
-    pr0,b0=profit(p0,0,s)  # сейчас, без новой рекламы
+    pr0,b0=profit(p0)  # при текущей цене и дешёвой рекламе
     rows.append(dict(sku=sku,art=art,p0=p0,u60=u,wk=wk,keep=keep,cogs=cogs[sku],shipn=shipn,s=s,ads=sku in ads,
         pr_now=pr0,rent_now=pr0/b0 if b0 else 0,cpc_o=cpc_o,p_zero=p_zero,p_10=p_10))
 json.dump(rows,open('/home/user/t1/knowledge/episodes/2026-10/ozon-price-floor/floor_rows.json','w'),ensure_ascii=False)
 print('товаров',len(rows),'доля к выплате магазин %.3f, чистая доставка медиана %.0f ₽'%(store_keep,store_sn))
-print('рентабельность сейчас (без новой рекламы): медиана %.0f%%, отрицательная у %d'%(S.median(r['rent_now'] for r in rows)*100,sum(r['pr_now']<0 for r in rows)))
+print('рентабельность при текущей цене и дешёвой рекламе 1 500 ₽/нед: медиана %.0f%%, отрицательная у %d'%(S.median(r['rent_now'] for r in rows)*100,sum(r['pr_now']<0 for r in rows)))
 def cut(r,p): return (1-p/r['p0'])*100 if p else None
 z=[cut(r,r['p_zero']) for r in rows]; t=[cut(r,r['p_10']) for r in rows]
 for name,arr in (('до нуля прибыли',z),('до 10% рентабельности',t)):

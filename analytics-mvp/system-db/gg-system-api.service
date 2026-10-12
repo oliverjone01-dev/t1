@@ -1,0 +1,15 @@
+[Unit]
+Description=GENGROUP PostgreSQL dashboard data and system inventory API
+After=postgresql.service network.target
+[Service]
+User=gg
+Group=gg
+WorkingDirectory=/srv/gg/system-db/current
+ExecStart=/usr/bin/python3 /srv/gg/system-db/current/server.py
+Restart=on-failure
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/srv/gg/system-db /srv/gg/www /srv/gg/cache
+[Install]
+WantedBy=multi-user.target

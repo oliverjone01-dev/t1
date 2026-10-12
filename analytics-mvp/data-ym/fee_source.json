@@ -1,13 +1,13 @@
 {
-  "at": "2026-10-12T10:01:30.381Z",
-  "orders_from_netting": 1491,
-  "orders_from_commissions": 366,
-  "accruals_from_netting": 60259653,
-  "accruals_from_commissions": 1412080,
-  "fees_from_netting": 30215974.19,
-  "fees_from_commissions": 140338.36,
-  "rate_netting": 50.1,
-  "rate_order": 9.9,
+  "at": "2026-10-12T13:46:01.043Z",
+  "orders_from_netting": 1530,
+  "orders_from_commissions": 327,
+  "accruals_from_netting": 61362584,
+  "accruals_from_commissions": 380949,
+  "fees_from_netting": 31669422.66,
+  "fees_from_commissions": 24033.94,
+  "rate_netting": 51.6,
+  "rate_order": 6.3,
   "by_month": {
     "2026-01": {
       "orders_netting": 59,
@@ -90,24 +90,24 @@
       "rate_order": null
     },
     "2026-09": {
-      "orders_netting": 199,
-      "orders_order": 44,
-      "accruals_netting": 10018036,
-      "accruals_order": 140799,
-      "fees_netting": 4330728.61,
-      "fees_order": 5762.95,
-      "rate_netting": 43.2,
-      "rate_order": 4.1
+      "orders_netting": 200,
+      "orders_order": 43,
+      "accruals_netting": 10180769,
+      "accruals_order": 49866,
+      "fees_netting": 5492666.66,
+      "fees_order": 2710.17,
+      "rate_netting": 54,
+      "rate_order": 5.4
     },
     "2026-10": {
-      "orders_netting": 0,
-      "orders_order": 67,
-      "accruals_netting": 0,
-      "accruals_order": 1271281,
-      "fees_netting": 0,
-      "fees_order": 134575.41,
-      "rate_netting": null,
-      "rate_order": 10.6
+      "orders_netting": 38,
+      "orders_order": 29,
+      "accruals_netting": 940198,
+      "accruals_order": 331083,
+      "fees_netting": 291510.42,
+      "fees_order": 21323.77,
+      "rate_netting": 31,
+      "rate_order": 6.4
     }
   },
   "gaps": [
@@ -122,18 +122,6 @@
       "ym": "2026-10",
       "accruals": 331083,
       "orders": 5
-    },
-    {
-      "business": "74986385",
-      "ym": "2026-09",
-      "accruals": 90933,
-      "orders": 1
-    },
-    {
-      "business": "74986385",
-      "ym": "2026-10",
-      "accruals": 940198,
-      "orders": 11
     }
   ],
   "unmapped": {}

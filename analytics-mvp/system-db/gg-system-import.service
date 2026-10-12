@@ -6,5 +6,8 @@ Type=oneshot
 User=gg
 Group=gg
 WorkingDirectory=/srv/gg/system-db/current
+ExecStartPre=+/usr/bin/python3 /srv/gg/system-db/current/server.py disk
 ExecStart=/usr/bin/python3 /srv/gg/system-db/current/server.py import
 TimeoutStartSec=600
+
+

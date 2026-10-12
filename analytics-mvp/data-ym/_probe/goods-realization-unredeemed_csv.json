@@ -1,6 +1,6 @@
 {
   "type": "goods-realization-unredeemed_csv",
-  "at": "2026-09-30T13:04:21.088Z",
+  "at": "2026-10-12T08:19:35.713Z",
   "headers": [
     "PLACEMENT_PROGRAM",
     "PARTNER_ID",
@@ -47,7 +47,7 @@
     "REDEEMED_PRICE"
   ],
   "sample_masked": [],
-  "campaign": "149035080",
-  "ym": "2026-08",
+  "campaign": "149032438",
+  "ym": "2026-09",
   "file": "unredeemed.csv"
 }

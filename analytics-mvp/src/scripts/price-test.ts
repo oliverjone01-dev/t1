@@ -20,6 +20,8 @@ export interface PriceTestDef {
   напоминание?: string;
   /** Исключены решением Ивана: артикул -> причина. В расчёт не входят, знаменатель группы прежний. */
   исключены?: Record<string, string>;
+  /** Оговорка к итогу, печатается под вердиктом (Иван 12.10, вариант «а»). */
+  оговорка?: string;
 }
 
 /** Пороги правила, п. разрыва. [ГИПОТЕЗА], приняты Иваном 01.10. */
@@ -30,6 +32,8 @@ export const BASE_DAYS = 7;
 /** Допуск к проверке цены: «снижена» - в пределах ±PRICE_TOL от база * (1 - снижение), «не снижена» - ±PRICE_TOL от базы. */
 export const PRICE_TOL = 0.015;
 export const VIEWS_DROP = -0.20;
+/** Доля группы, которая должна быть засчитана в дне (правило 5 из 10, Иван 01.10). */
+export const MIN_SHARE = 0.5;
 export const STOP_SHARE = 0.5;
 
 export const median = (xs: number[]): number | null => {
@@ -77,6 +81,31 @@ export function isDirty(
   if (excluded.has(a)) return true;
   if ((cpcDays.get(a) ?? []).some((x) => x >= dirtyFrom && x <= d)) return true;
   return boostDays.get(a)?.has(d) ?? false;
+}
+
+/** Данные о рекламе и акциях за день d есть (E065, fail-closed): реклама снята не раньше d,
+ *  снимок акций за d есть. Нет данных - товар в этот день не засчитывается: без них грязь не проверить. */
+export const covered = (d: string, adsTo: string, actsDays: Set<string>): boolean => !!adsTo && d <= adsTo && actsDays.has(d);
+
+/** Ключи «исключены» обязаны быть артикулами теста: опечатка иначе молча оставит товар в расчёте. */
+export function badExcluded(test: string[], excl: Record<string, string> | undefined): string[] {
+  const t = new Set(test); return Object.keys(excl || {}).filter((a) => !t.has(a));
+}
+
+/** Почему товар не засчитывается на день asOf (последний день окна с данными): исключён, реклама за клик
+ *  с dirtyFrom по asOf, вторая акция в asOf. Окно ограничено сверху: события после замера итог не трогают. */
+export function dirtyReasons(
+  test: string[], asOf: string, dirtyFrom: string, excl: Record<string, string> | undefined,
+  cpcDays: Map<string, string[]>, boostDays: Map<string, Set<string>>,
+): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const a of test) {
+    if (excl && a in excl) { out.set(a, `исключён: ${excl[a]}`); continue; }
+    const cpc = (cpcDays.get(a) ?? []).filter((x) => x >= dirtyFrom && x <= asOf).sort();
+    if (cpc.length) { out.set(a, `реклама за клик с ${cpc[0]!.slice(8, 10)}.${cpc[0]!.slice(5, 7)}`); continue; }
+    if (boostDays.get(a)?.has(asOf)) out.set(a, "вторая акция («Максимальный бустинг»)");
+  }
+  return out;
 }
 
 /** Разница «медиана теста минус медиана контроля» по дням. Для графиков и базы группы.

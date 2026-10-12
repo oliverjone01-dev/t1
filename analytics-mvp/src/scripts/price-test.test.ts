@@ -2,7 +2,7 @@
 // knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml. Даты условные, «сегодня» передаётся.
 import { describe, it, expect } from "vitest";
 import {
-  median, expectedDrop, priceApplied, priceState, diffSeries, baseOf, shiftSeries, verdictOf, viewShare, viewsStop, firstRun, nextDay, isDirty,
+  median, expectedDrop, priceApplied, priceState, diffSeries, baseOf, shiftSeries, verdictOf, viewShare, viewsStop, firstRun, nextDay, isDirty, covered, badExcluded, dirtyReasons,
 } from "./price-test.js";
 
 const START = "2026-10-07", END = "2026-10-21";
@@ -236,8 +236,36 @@ describe("грязные тестовые товары (E065)", () => {
     const all = () => true, skipB = (a: string) => a === "B";
     const dirty = shiftSeries(g, ["A", "B"], CTRL, START, PRE, all, 0.5, skipB).filter((x) => x.d >= START);
     expect(dirty.every((x) => x.s === 0 && x.nt === 1)).toBe(true);
-    // Порог 3 из 4: при одном грязном из четырёх и одном чистом дня нет.
-    const four = shiftSeries(g, ["A", "B", "C", "D"], CTRL, START, PRE, all, 0.75, skipB).filter((x) => x.d >= START);
-    expect(four.every((x) => x.s === null)).toBe(true);
+    // Знаменатель - вся группа: при пороге 0,5 один чистый из двух даёт день, а без skip день был бы с B.
+    const noSkip = shiftSeries(g, ["A", "B"], CTRL, START, PRE, all, 0.5).filter((x) => x.d >= START);
+    expect(noSkip.every((x) => x.nt === 2 && x.s === 4)).toBe(true);
+    // Порог 0,75: без skip засчитаны оба из двух (день есть), со skip - один из двух (дня нет).
+    const strictNo = shiftSeries(g, ["A", "B"], CTRL, START, PRE, all, 0.75).filter((x) => x.d >= START);
+    const strictSkip = shiftSeries(g, ["A", "B"], CTRL, START, PRE, all, 0.75, skipB).filter((x) => x.d >= START);
+    expect(strictNo.every((x) => x.s !== null)).toBe(true);
+    expect(strictSkip.every((x) => x.s === null)).toBe(true);
+  });
+});
+
+describe("свежесть данных, окно и ключи исключений (E065, ФЕНИКС 12.10)", () => {
+  const acts = new Set(["2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11"]);
+  it("день без выгрузки рекламы или без снимка акций не засчитывается (fail-closed)", () => {
+    expect(covered("2026-10-10", "2026-10-10", acts)).toBe(true);
+    expect(covered("2026-10-11", "2026-10-10", acts)).toBe(false);
+    expect(covered("2026-10-12", "2026-10-12", acts)).toBe(false);
+    expect(covered("2026-10-10", "", acts)).toBe(false);
+  });
+  it("реклама после конца окна не меняет метки на последний день окна", () => {
+    const cpc = new Map([["A", ["2026-10-24"]]]);
+    expect(dirtyReasons(["A"], "2026-10-20", "2026-09-23", undefined, cpc, new Map()).size).toBe(0);
+    expect(dirtyReasons(["A"], "2026-10-25", "2026-09-23", undefined, cpc, new Map()).get("A")).toBe("реклама за клик с 24.10");
+    expect(isDirty("A", "2026-10-20", "2026-09-23", new Set(), cpc, new Map())).toBe(false);
+  });
+  it("исключённый и вторая акция в метках, опечатка в ключе ловится", () => {
+    const r = dirtyReasons(["A", "B"], "2026-10-08", "2026-09-23", { A: "причина" }, new Map(), new Map([["B", new Set(["2026-10-08"])]]));
+    expect(r.get("A")).toBe("исключён: причина");
+    expect(r.get("B")).toContain("вторая акция");
+    expect(badExcluded(["A", "B"], { A: "x", Z: "y" })).toEqual(["Z"]);
+    expect(badExcluded(["A"], undefined)).toEqual([]);
   });
 });

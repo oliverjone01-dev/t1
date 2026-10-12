@@ -150,6 +150,11 @@
     window.ggPresentCommunicationMetrics({mode:part,overview:section,internal:true});
     section.querySelectorAll('.gg-comm-metric-source').forEach(n=>n.remove());
     for(const panel of section.querySelectorAll('.gg-comm-metric-panel')){
+     const panelName=panel.querySelector('h3')?.textContent;
+     if(['Где требуется действие','Обещания клиентам'].includes(panelName)){
+      panel.classList.add('gg-action-panel');const grid=make('div','gg-action-tiles');for(const row of panel.querySelectorAll('.gg-comm-metric-row')){const tile=make('div','gg-action-tile');tile.style.setProperty('--tile-color',row.querySelector('.gg-comm-metric-track i')?.style.background||'#83c9ae');tile.append(make('span','',row.querySelector('.gg-comm-metric-label')?.textContent||''),make('b','',row.querySelector('.gg-comm-metric-value')?.textContent||row.lastElementChild?.textContent||''));grid.append(tile);}panel.querySelector('.gg-comm-metric-bars')?.replaceWith(grid);if(panelName==='Где требуется действие')panel.append(make('p','gg-comm-panel-hint','Одна сделка может требовать нескольких действий; категории не суммируются.'));continue;
+     }
+
      const name=panel.querySelector('h3')?.textContent,rows=[...panel.querySelectorAll('.gg-comm-metric-row')],total=rows.reduce((sum,r)=>sum+Number(r.dataset.count||0),0);
      if(!total||!['Каналы общения','Полнота коммуникаций','Первый ответ клиенту'].includes(name))continue;
      const values=rows.map(r=>({n:Number(r.dataset.count||0),color:r.querySelector('.gg-comm-metric-track i')?.style.background||'#8894a5',label:r.querySelector('.gg-comm-metric-label')?.textContent||''}));
@@ -157,12 +162,12 @@
      if(name==='Каналы общения'){
       const figure=make('div','gg-comm-donut');const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 220 220');svg.setAttribute('role','img');svg.setAttribute('aria-label','Доли каналов общения');let offset=0;const length=2*Math.PI*78;
       values.forEach(v=>{const c=document.createElementNS(ns,'circle');for(const [k,val] of Object.entries({cx:110,cy:110,r:78,fill:'none',stroke:v.color,'stroke-width':22,'stroke-dasharray':(length*v.n/total)+' '+length,'stroke-dashoffset':-offset,transform:'rotate(-90 110 110)'}))c.setAttribute(k,val);const title=document.createElementNS(ns,'title');title.textContent=v.label+': '+integer(v.n)+' · '+(100*v.n/total).toFixed(1)+'%';c.append(title);svg.append(c);offset+=length*v.n/total;});
-      figure.append(svg);const center=make('div','gg-comm-donut-center');center.append(make('b','',integer(total)),make('span','','коммуникаций'));figure.append(center);panel.querySelector('.gg-comm-metric-bars').before(figure);panel.classList.add('gg-comm-donut-panel');
+      let percent=0;const stops=values.map(v=>{const from=percent;percent+=100*v.n/total;return v.color+' '+from+'% '+percent+'%';});const ring=make('div','gg-comm-donut-ring');ring.style.background='conic-gradient('+stops.join(',')+')';ring.setAttribute('role','img');ring.setAttribute('aria-label','Доли каналов общения');figure.append(ring);const center=make('div','gg-comm-donut-center');center.append(make('b','',integer(total)),make('span','','коммуникаций'));figure.append(center);panel.querySelector('.gg-comm-metric-bars').before(figure);panel.classList.add('gg-comm-donut-panel');
      }else if(name==='Полнота коммуникаций'){
       const stack=make('div','gg-comm-completeness-stack');stack.setAttribute('role','img');stack.setAttribute('aria-label','Доли полноты коммуникаций');values.forEach(v=>{const part=make('span','');part.style.flex=String(v.n);part.style.background=v.color;part.title=v.label+': '+integer(v.n);if(v.n/total>.12)part.textContent=Math.round(100*v.n/total)+'%';stack.append(part);});panel.querySelector('.gg-comm-metric-bars').before(stack);
      }else{
-      const matrix=make('div','gg-comm-response-matrix');matrix.setAttribute('role','img');matrix.setAttribute('aria-label','Распределение времени ответа: 100 ячеек, примерно один процент на ячейку');
-      for(let i=0;i<100;i++){let sum=0,v=values.at(-1);for(const item of values){sum+=100*item.n/total;if(i+.5<sum){v=item;break;}}const cell=make('i','');cell.style.background=v.color;cell.title=v.label;matrix.append(cell);}panel.querySelector('.gg-comm-metric-bars').before(matrix);panel.append(make('p','gg-comm-panel-hint','Одна ячейка ≈ 1%. Точные количества указаны в легенде.'));
+      const measured=values.filter(v=>v.label!=='Нет измерения'),known=measured.reduce((n,v)=>n+v.n,0);const tiles=make('div','gg-response-tiles');measured.forEach(v=>{const tile=make('div','gg-response-tile');tile.style.setProperty('--tile-color',v.color);tile.append(make('span','',v.label),make('b','',known?(100*v.n/known).toFixed(1).replace('.',',')+'%':'—'),make('span','',integer(v.n)+' диалогов'));tiles.append(tile);});panel.querySelector('.gg-comm-metric-bars').replaceWith(tiles);panel.append(make('p','gg-comm-panel-hint','Доли рассчитаны среди '+integer(known)+' диалогов с измеренным ответом. Без измерения: '+integer(total-known)+' — в распределение не включены.'));
+
      }
     }
 
@@ -479,6 +484,7 @@
  }
  function openDrawer(key,button){window.ggCloseDealDrawer?.(false,true);const entry=entries.get(key);if(!entry)return;selected=key;returnFocus=button;aiToggle(false);fillDrawer(entry);shade.hidden=false;drawer.hidden=false;document.body.classList.add('gg-comm-drawer-open');x.focus();}
  function present(){
+  if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
   if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
   list.querySelector('[data-vhelp]')?.closest('.legend')?.remove();
   const controls=list.querySelector(':scope > .controls');if(controls){

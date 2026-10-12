@@ -8,7 +8,7 @@ start=base.index('  <div class="gg-filter-toolbar">')
 end=base.index('  <!-- DASHBOARD -->',start)
 base=base[:start]+base[end:]
 base=base.replace('<details open>','<details>').replace('<summary class="gg-selected">','<summary>')
-for label,view in [('Хронология диалогов','chronology'),('Скорость ответа','response-speed'),('Дожим и возражения','follow-up'),('ИИ-разборы','ai-analysis')]:
+for label,view in [('Сводка','summary'),('Хронология диалогов','chronology'),('ИИ-разборы','ai-analysis')]:
     base=base.replace('href="/dialog/">'+label,'href="/dialog/#'+view+'">'+label)
 start=base.index('<button id="gg-filter-backdrop"')
 end=base.index('<button id="gg-backdrop"',start)
@@ -19,7 +19,7 @@ for row in (site/'.gg/managers.txt').read_text().splitlines():
     slug,_,name=row.partition('\t');names[slug]=name
     roster.append(f'<a href="/{slug}/">{html.escape(name)}</a>')
 base=base.replace('<!-- MANAGERS -->','\n'.join(roster))
-sections={'rop-gm':('РОП GLASS MEMORY','Продажи','gm'),'office':('Офис','Продажи','gg'),'dialog':('Хронология диалогов','Коммуникации','gg'),'prod':('Производство','Исполнение заказов','gg'),'pto':('ПТО','Исполнение заказов','gg'),'economics':('Экономика','Операционный отдел','gg'),'integra':('Замеры / Монтажи','Исполнение заказов','gg')}
+sections={'rop-gm':('РОП GLASS MEMORY','Продажи','gm'),'office':('Офис','Продажи','gg'),'dialog':('Сводка','Коммуникации','gg'),'prod':('Производство','Исполнение заказов','gg'),'pto':('ПТО','Исполнение заказов','gg'),'economics':('Экономика','Операционный отдел','gg'),'integra':('Замеры / Монтажи','Исполнение заказов','gg')}
 sections.update({slug:(name,'Продажи','gg') for slug,name in names.items()})
 sections.update({'op-gm':('Разбор переговоров','Коммуникации','gm'),'kp-gm':('Коммерческие предложения','Продажи','gm'),'messages':('Сообщения','Коммуникации','gg'),'plan':('Планы и материалы','Планы и материалы','gg'),'smm':('Социальные сети','Маркетинг','gg'),'markplan':('План маркетинга','Маркетинг','gg'),'stand-protocol':('Протокол стенда','Планы и материалы','gg'),'ozon-research':('Исследование OZON','Маркетинг','gg'),'econ-control':('Контроль экономики','Операционный отдел','gg')})
 css=style.read_text()+'\n'+(style.parent/'workspace-pages.css').read_text()
@@ -28,7 +28,7 @@ css+="\n#gg-workspace,.gg-sidebar{font-family:'Golos Text','Segoe UI',sans-serif
 js=behavior.read_text()
 js+='\n'+(behavior.parent/'workspace-palette.js').read_text()+'\n'+(behavior.parent/'shared-shell.js').read_text()
 theme_bootstrap="<script data-gg-theme-bootstrap>document.documentElement.dataset.sidebarMode='compact';try{document.documentElement.dataset.sidebarMode=localStorage.getItem('gg-sidebar-mode')||'compact';}catch(e){}document.documentElement.dataset.theme='dark';try{if(localStorage.getItem('gg-hub-theme')==='light')document.documentElement.dataset.theme='light';}catch(e){}</script><style>html{background:#0f1216;color-scheme:dark}html[data-theme=light]{background:#e9edef;color-scheme:light}</style>"
-route_bootstrap="""<script data-gg-route-bootstrap>(function(){const nav=document.querySelector('.gg-nav'),root=document.getElementById('gg-workspace');if(!nav)return;const path=location.pathname,hash=location.hash||(path==='/dialog/'?'#chronology':''),links=[...nav.querySelectorAll('a[href]')];const chosen=links.find(a=>new URL(a.href).pathname+new URL(a.href).hash===path+hash)||links.find(a=>new URL(a.href).pathname===path&&!new URL(a.href).hash);nav.querySelectorAll('details').forEach(n=>n.open=false);nav.querySelectorAll('[aria-current],.gg-current,.gg-selected').forEach(n=>{n.removeAttribute('aria-current');n.classList.remove('gg-current','gg-selected');});if(chosen){chosen.classList.add('gg-current');chosen.setAttribute('aria-current','page');for(let n=chosen.parentElement;n&&n!==nav;n=n.parentElement)if(n.tagName==='DETAILS')n.open=true;}if(/^\\/dialog\\/?$/.test(path)){const titles={chronology:'Хронология диалогов','response-speed':'Скорость ответа','follow-up':'Дожим и возражения','ai-analysis':'ИИ-разборы'},view=titles[hash.slice(1)]?hash.slice(1):'chronology';root.dataset.commView=view;document.querySelector('.gg-heading h1').textContent=titles[view];document.querySelector('.gg-breadcrumb').textContent='GENGROUP / Коммуникации / '+titles[view];}})();</script>"""
+route_bootstrap="""<script data-gg-route-bootstrap>(function(){const nav=document.querySelector('.gg-nav'),root=document.getElementById('gg-workspace');if(!nav)return;const path=location.pathname,hash=location.hash||(path==='/dialog/'?'#summary':''),links=[...nav.querySelectorAll('a[href]')];const chosen=links.find(a=>new URL(a.href).pathname+new URL(a.href).hash===path+hash)||links.find(a=>new URL(a.href).pathname===path&&!new URL(a.href).hash);nav.querySelectorAll('details').forEach(n=>n.open=false);nav.querySelectorAll('[aria-current],.gg-current,.gg-selected').forEach(n=>{n.removeAttribute('aria-current');n.classList.remove('gg-current','gg-selected');});if(chosen){chosen.classList.add('gg-current');chosen.setAttribute('aria-current','page');for(let n=chosen.parentElement;n&&n!==nav;n=n.parentElement)if(n.tagName==='DETAILS')n.open=true;}if(/^\\/dialog\\/?$/.test(path)){const titles={summary:'Сводка',chronology:'Хронология диалогов','ai-analysis':'ИИ-разборы'},view=titles[hash.slice(1)]?hash.slice(1):'summary';root.dataset.commView=view;document.querySelector('.gg-heading h1').textContent=titles[view];document.querySelector('.gg-breadcrumb').textContent='GENGROUP / Коммуникации / '+titles[view];}})();</script>"""
 report=[]
 def atomic(path,text):
     temporary=path.with_name(path.name+'.workspace-new');temporary.write_text(text);temporary.replace(path)
@@ -47,7 +47,7 @@ for slug,(title,department,company) in sections.items():
     if slug=='dialog':
         shell=shell.replace('id="gg-workspace"','id="gg-workspace" class="gg-communications"',1)
         shell=shell.replace('<details><summary>☷ <span>Коммуникации</span>','<details open><summary>☷ <span>Коммуникации</span>',1)
-        shell=shell.replace('href="/dialog/#chronology"','class="gg-current" aria-current="page" href="/dialog/#chronology"',1)
+        shell=shell.replace('href="/dialog/#summary"','class="gg-current" aria-current="page" href="/dialog/#summary"',1)
         dates='<section class="gg-filter-toolbar gg-comm-date-toolbar" aria-label="Период коммуникаций"><div class="gg-toolbar-top"><div id="gg-period-slot"></div><div id="gg-date-slot"></div><button id="gg-filters-open" class="gg-input" aria-haspopup="dialog" aria-controls="gg-filter-drawer" aria-expanded="false"><span aria-hidden="true">☰</span> Фильтры <span id="gg-filter-count" hidden></span></button></div></section>'
         shell=shell.replace('<div class="gg-content">','<div class="gg-content">'+dates,1)
     shell=shell.replace('Результаты отдела, воронка, менеджеры и дисциплина.','Рабочий дашборд · '+html.escape(department))

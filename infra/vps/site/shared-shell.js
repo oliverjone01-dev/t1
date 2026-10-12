@@ -1,12 +1,13 @@
 (function(){
  if(!document.querySelector('#gg-sidebar'))return;
- document.querySelectorAll('.gg-nav a[href="/dialog/"]').forEach(a=>{if(/ИИ/.test(a.textContent))a.href='/dialog/#ai-analysis';else if(/Скорость/.test(a.textContent))a.href='/dialog/#response-speed';else if(/Дожим/.test(a.textContent))a.href='/dialog/#follow-up';else if(/Хронология/.test(a.textContent))a.href='/dialog/#chronology';});
+ document.querySelectorAll('.gg-nav a').forEach(a=>{if(/Скорость ответа|Дожим и возражения/.test(a.textContent)&&a.getAttribute('href')?.startsWith('/dialog/'))a.remove();});
+ document.querySelectorAll('.gg-nav a[href="/dialog/"]').forEach(a=>{if(/Сводка/.test(a.textContent))a.href='/dialog/#summary';else if(/ИИ/.test(a.textContent))a.href='/dialog/#ai-analysis';else if(/Скорость/.test(a.textContent))a.href='/dialog/#response-speed';else if(/Дожим/.test(a.textContent))a.href='/dialog/#follow-up';else if(/Хронология/.test(a.textContent))a.href='/dialog/#chronology';});
  const nav=document.querySelector('.gg-nav');
  function active(){
   nav.querySelectorAll('details').forEach(n=>n.open=false);
   nav.querySelectorAll('[aria-current],.gg-selected,.gg-current').forEach(n=>{n.removeAttribute('aria-current');n.classList.remove('gg-selected','gg-current');});
   const candidates=[...nav.querySelectorAll('a[href]')],pathname=location.pathname==='/'||location.pathname==='/dashboards/'?'/structure/':location.pathname;
-  const hash=location.hash||(pathname==='/dialog/'?'#chronology':''),url=pathname+hash;
+  const hash=location.hash||(pathname==='/dialog/'?'#summary':''),url=pathname+hash;
   let chosen=candidates.find(a=>new URL(a.href).pathname+new URL(a.href).hash===url)||candidates.find(a=>new URL(a.href).pathname===pathname&&!new URL(a.href).hash)||(pathname==='/rop/'&&!hash?candidates.find(a=>new URL(a.href).pathname==='/rop/'&&new URL(a.href).hash==='#sec1'):null);
   if(!chosen){const department=document.getElementById('gg-workspace')?.dataset.ggDepartment;chosen=[...nav.querySelectorAll(':scope > details > summary,:scope > a')].find(n=>(n.querySelector('.gg-nav-label')||n.querySelector('span'))?.textContent.trim()===department);}
   if(chosen){chosen.classList.add('gg-current');chosen.setAttribute('aria-current','page');for(let n=chosen.parentElement;n&&n!==nav;n=n.parentElement)if(n.tagName==='DETAILS')n.open=true;}
@@ -142,6 +143,17 @@
  function scopeNote(text){return make('p','gg-comm-metric-source',text);}
 
  window.ggPresentCommunicationMetrics=function({mode,overview}){
+  if(mode==='summary'){
+   overview.replaceChildren();overview.dataset.metricView='summary';
+   for(const [part,label] of [['chronology','Объём и каналы общения'],['response-speed','Скорость ответа'],['follow-up','Дожим и возражения']]){
+    const section=make('section','gg-comm-overview');section.style.gridColumn='1 / -1';
+    window.ggPresentCommunicationMetrics({mode:part,overview:section,internal:true});
+    section.querySelectorAll('.gg-comm-metric-source').forEach(n=>n.remove());
+    const heading=make('h2','',label);heading.style.gridColumn='1 / -1';heading.style.fontSize='18px';
+    overview.append(heading,section);
+   }return;
+  }
+  if(mode==='chronology'&&!arguments[0].internal){overview.replaceChildren();return;}
   if(!overview||typeof SC==='undefined'||!SC||typeof S==='undefined'||!['chronology','response-speed','follow-up'].includes(mode)){if(overview)overview.replaceChildren();return;}
   const {ds,from,to}=filteredScope(),n=ds.length,opened=ds.filter(d=>(d.outcome||'open')==='open');
   overview.replaceChildren();overview.dataset.metricView=mode;overview.dataset.cohortCount=String(n);
@@ -324,8 +336,8 @@
  if(typeof AI_MGRS!=='undefined')AI_MGRS.splice(0,AI_MGRS.length,...AI_MGRS.filter(m=>roster.allowed.has(m)));
  const approvedIds=new Set((SC.deals||[]).filter(d=>roster.allowed.has(d.mgr)).map(d=>String(d.dealId||d.leadId)));
  if(S.picks?.length){S.picks=S.picks.map(p=>({...p,deals:(p.deals||[]).filter(id=>approvedIds.has(String(id)))})).filter(p=>p.deals.length);aiApplyPicks();}
- const views={chronology:{title:'Хронология диалогов',hint:'Менеджеры → сделки → история общения',metrics:null},'response-speed':{title:'Скорость ответа',hint:'Ответ клиенту, ожидание и принятие сделки в работу',metrics:['resp','ball','take']},'follow-up':{title:'Дожим и возражения',hint:'Тишина, следующий шаг и работа с возражениями',metrics:['silent','step','ghost','promise','obj','date']},'ai-analysis':{title:'ИИ-разборы',hint:'Покрытие разбором и состояние диалогов; детали — в сделке',metrics:[]}};
- let mode='chronology',chronologyMetrics=S.showMetrics,entries=new Map(),selected=null,returnFocus=null;
+ const views={summary:{title:'Сводка',hint:'',metrics:null},chronology:{title:'Хронология диалогов',hint:'',metrics:null},'ai-analysis':{title:'ИИ-разборы',hint:'',metrics:[]}};
+ let mode='summary',chronologyMetrics=S.showMetrics,entries=new Map(),selected=null,returnFocus=null;
  const toolbar=el('section','gg-comm-toolbar');toolbar.setAttribute('aria-label','Фильтры коммуникаций');
  let dateToolbar=document.querySelector('.gg-comm-date-toolbar');
  if(!dateToolbar){dateToolbar=el('section','gg-filter-toolbar gg-comm-date-toolbar');dateToolbar.setAttribute('aria-label','Период коммуникаций');dateToolbar.innerHTML='<div class="gg-toolbar-top"><div id="gg-period-slot"></div><div id="gg-date-slot"></div></div>';document.querySelector('.gg-content').prepend(dateToolbar);}
@@ -455,7 +467,7 @@
   const base=mode==='ai-analysis'?['mgr','deals','aicov','sum','temp','act','compl']:['mgr','deals','sum','alerts','hot','act'];
   const visible=keys.map(k=>v.metrics===null||base.includes(k)||v.metrics.includes(k));
   [...table.rows].filter(r=>r.parentElement===table.tBodies[0]).forEach(r=>{if(r.classList.contains('subrow')||r.classList.contains('aggrow')){r.cells[0].colSpan=visible.filter(Boolean).length;return;}[...r.cells].forEach((td,i)=>td.hidden=!visible[i]);});
-  ggPresentCommunicationMetrics({mode,overview});
+  ggPresentCommunicationMetrics({mode,overview});list.hidden=mode==='summary';overview.hidden=mode!=='summary';
   let heading=list.querySelector('.gg-comm-table-heading');if(!heading){heading=el('div','gg-comm-table-heading');table.parentElement.before(heading);}heading.replaceChildren(el('h2','','Отдел и менеджеры'),el('p','','Раскройте строку для сделок. Каналы — в панели справа.'));
   entries=new Map();
   [...table.querySelectorAll(':scope > tbody > .mrow2,:scope > tbody > .grprow')].forEach(row=>{
@@ -470,7 +482,7 @@
   const mt=toolbar.querySelector('[data-metrics]');if(mt){mt.hidden=mode!=='chronology';mt.textContent=S.showMetrics?'Скрыть метрики':'Метрики регламента';}
  }
  const native=renderTree;renderTree=function(){const context=this,args=arguments;return roster.withScope(()=>{const result=native.apply(context,args);present();return result;});};
- function route(){if(mode==='chronology')chronologyMetrics=S.showMetrics;mode=views[location.hash.slice(1)]?location.hash.slice(1):'chronology';S.showMetrics=mode==='chronology'?chronologyMetrics:views[mode].metrics.length>0;renderTree();}
+ function route(){if(mode==='chronology')chronologyMetrics=S.showMetrics;const requested=location.hash.slice(1);mode=views[requested]?requested:'summary';S.showMetrics=mode==='chronology'?chronologyMetrics:views[mode].metrics.length>0;renderTree();}
  window.addEventListener('hashchange',route);route();
 })();
 

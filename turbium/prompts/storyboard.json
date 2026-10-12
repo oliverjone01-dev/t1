@@ -63,8 +63,8 @@
       "style_lock": "Look: the interior of a vast dark hall filled with thin, slow stage haze, like light in theatre smoke; a barely visible matte floor plane at the bottom of the volume catches a faint reflection and gives the space real scale. Light lives inside the haze as soft volumetric glow and as small calm points of light: equal-size soft dots, sharp but gentle, with no tails, no twinkle and no flare. Rendered as premium real-time 3D with true volumetric lighting, restrained bloom, very subtle film grain, deep contrast, no hard edges and no solid objects. Virtual camera 35mm at a calm human eye level, slight depth of field. All frames look like one continuous shot of the same hall.",
       "frames": [
         {
-          "state": "Overview. Low in the hall, a loose field of a few dozen small calm mint points hangs in the haze at different depths, unevenly spread, each one a separate customer request; the haze around them is uneven, with darker voids; behind them, deeper in the hall, two faint denser layers of haze are barely suggested. Quiet, wide, unresolved, and clearly an interior space, not the sky.",
-          "camera": "Wide establishing view from slightly above, static.",
+          "state": "Overview. Low camera close to the floor. The three haze layers stand one behind another across the lower half of the hall as faint, calm clouds of stage smoke resting on the floor, with real volume and depth; a few dozen small calm mint points hang at different heights and depths in front of and between them, denser in the foreground, unevenly spread, none connected; the wet matte floor reflects them softly. The scene rises from the floor to about the middle of the frame and feels deep and spacious, not a flat strip of lights.",
+          "camera": "Low wide view, camera close to the floor, slow push-in barely perceptible, static framing.",
           "motion_ru": "0-10% прокрутки. Туман дышит: плотность меняется с периодом 8-12 с, точки дрейфуют на 2-4 px/с. Курсор: туман светлеет в радиусе ~150 px, точки не убегают."
         },
         {
@@ -83,12 +83,12 @@
           "motion_ru": "45-65%. Свет проходит маршрут за 1.2-1.6 с, привязан к прокрутке. Боковой проезд, параллакс слоёв на трёх скоростях."
         },
         {
-          "state": "Whole picture connected. About ten soft continuous beams of mint light run calmly and almost parallel through the three haze layers; they do not converge to nodes, each one ends inside the far layer, which glows as one soft even band of light; two beams stop at the second layer, and one of these breaks is marked by the single orange point. The hall is calm, legible and ordered, still mostly dark.",
+          "state": "Whole picture connected. About eight soft continuous beams of mint light run calmly through the three haze layers, evenly spaced like lanes, almost parallel and never crossing each other. Seven beams reach the far layer and end softly inside its haze, without node dots. Exactly one beam stops at the second layer, and its end is the single orange point; no other beam ends early, no stray bright points on the beams. The hall is calm, legible and ordered, still mostly dark.",
           "camera": "Pull back to a wide view, slightly higher than the first frame.",
           "motion_ru": "65-85%. Отъезд, маршруты зажигаются волной спереди назад с шагом 80-120 мс. Оранжевая точка остаётся единственной."
         },
         {
-          "state": "Transition to interface. The beams from the previous frame straighten into a few parallel horizontal lines of soft mint light and settle onto one flat, dark, matte plane facing the viewer, like rows of a report; the single orange point stays on one of the rows; the haze has thinned and lies low on the floor. The plane has no frame, no border, no glowing or smoky edge; it simply ends in darkness.",
+          "state": "Transition to interface. The eight beams from the previous frame straighten into eight evenly spaced parallel horizontal lines of soft mint light on one flat, dark, matte plane facing the viewer, like rows of a report. Seven rows run full length. The row that carried the lost order stops at the single orange point; after the orange point that row continues only as a very faint, dim grey-teal #243731 line, showing the missing part of the deal. Line ends are soft fades, with no dots, caps or handles. A little low haze remains on the floor. The plane has no frame and no border; it simply ends in darkness.",
           "camera": "Camera turns to face the plane frontally, perspective flattens.",
           "motion_ru": "85-100%. Лучи выпрямляются в строки за 0.6 с, плоскость разворачивается к зрителю за 0.8 с, оранжевая точка остаётся на своей строке и становится маркером в реальном интерфейсе (та же позиция, та же строка). Затем поверх встаёт реальный скриншот отчёта."
         }

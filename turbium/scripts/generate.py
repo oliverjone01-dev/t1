@@ -39,6 +39,11 @@ KINDS = ("sheet", "frames", "mobile")
 CHAIN_NOTE = ("The attached image is the previous frame of the same continuous shot: keep exactly "
               "the same look, palette, lighting, materials and scene elements, change only what "
               "is described below. ")
+SHEET_NOTE = ("The attached image is the approved storyboard sheet of this animation. Render ONE single "
+              "full frame, not a grid: panel {n} of the sheet ({where}), redrawn at full quality with exactly "
+              "the same look, palette, lighting, haze, floor and scene layout, plus the corrections described "
+              "below. ")
+PANEL_POS = {1: "top left", 2: "top center", 3: "top right", 4: "bottom left", 5: "bottom center", 6: "bottom right"}
 
 
 def frame_prompt(cfg, d, f, state, comp):
@@ -83,7 +88,7 @@ def build_jobs(cfg, directions, kinds, only_frames):
             for f, s in zip(cfg["frames"], d["frames"]):
                 if only_frames and f["id"] not in only_frames:
                     continue
-                jobs.append(dict(direction=d, id=f["id"], title=f["title_ru"], size=f["size"],
+                jobs.append(dict(direction=d, id=f["id"], n=f["n"], title=f["title_ru"], size=f["size"],
                                  quality="high", motion=s.get("motion_ru", ""),
                                  prompt=frame_prompt(cfg, d, f, s, f["comp"])))
         if "mobile" in kinds:
@@ -98,7 +103,11 @@ def write_md(cfg, jobs, path):
     out = ["# TURBIUM - промты раскадровки анимации первого экрана", "",
            "Файл собран скриптом `turbium/scripts/generate.py --md` из `prompts/storyboard.json`.",
            "Правки вносить в JSON, этот файл пересобирать. Модель: OpenAI GPT Image "
-           f"(`{cfg['model']}`). Порядок работы и правила - `prompts/method.md`.", ""]
+           f"(`{cfg['model']}`). Порядок работы и правила - `prompts/method.md`.", "",
+           "**Ручная генерация кадров в ChatGPT.** Приложите картинку-образец и поставьте перед промтом кадра:",
+           "", "- образец - утверждённый лист (N - номер панели, 1-6):", "", "```text",
+           SHEET_NOTE.format(n="N", where="see panel N"), "```", "",
+           "- образец - предыдущий готовый кадр:", "", "```text", CHAIN_NOTE, "```", ""]
     current = None
     for j in jobs:
         d = j["direction"]
@@ -137,11 +146,13 @@ def post_edit(fields, image: Path, key):
         return json.load(r)
 
 
-def generate(job, model, key, ref=None) -> bytes:
+def generate(job, model, key, ref=None, sheet_ref=False) -> bytes:
     fields = {"model": model, "prompt": job["prompt"], "size": job["size"],
               "quality": job["quality"], "n": 1}
     if ref:
-        fields["prompt"] = CHAIN_NOTE + job["prompt"]
+        n = job.get("n", 1)
+        note = SHEET_NOTE.format(n=n, where=PANEL_POS[n]) if sheet_ref else CHAIN_NOTE
+        fields["prompt"] = note + job["prompt"]
         data = post_edit(fields, ref, key)
     else:
         data = post_json("generations", fields, key)
@@ -161,6 +172,7 @@ def main():
     ap.add_argument("--out", default=str(ROOT / "out"))
     ap.add_argument("--md", metavar="PATH", help="write all prompts to a Markdown file and exit")
     ap.add_argument("--chain", action="store_true", help="use the previous frame as reference image")
+    ap.add_argument("--ref", metavar="PNG", help="approved sheet or frame used as reference when no chained frame exists")
     ap.add_argument("--dry-run", action="store_true", help="print prompts, do not call the API")
     ap.add_argument("--force", action="store_true", help="regenerate even if the file exists")
     args = ap.parse_args()
@@ -191,10 +203,12 @@ def main():
         out_dir = Path(args.out) / did
         dest = out_dir / f"{job['id']}.png"
         # chain: each frame follows the previous one, the mobile hero follows frame 01
-        ref = None
+        ref, sheet_ref = None, False
         if args.chain and job["id"] != "00-sheet":
             ref = out_dir / "01-overview.png" if job["id"] == "07-mobile-hero" else prev.get(did)
             ref = ref if ref and ref.exists() else None
+        if args.ref and ref is None and job["id"] != "00-sheet":
+            ref, sheet_ref = Path(args.ref), True
         if job["id"] not in ("00-sheet", "07-mobile-hero"):
             prev[did] = dest
         if not dry and not args.force and dest.exists():
@@ -205,7 +219,7 @@ def main():
         if dry:
             continue
         try:
-            raw = generate(job, model, key, ref)
+            raw = generate(job, model, key, ref, sheet_ref)
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(raw)
             print(f"[ok]   wrote {dest}")

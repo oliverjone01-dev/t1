@@ -121,9 +121,18 @@ function main() {
   // идёт), поэтому потолок роста к нему не применяем - иначе гейт кричал бы каждый день. К закрытым
   // месяцам применяем: там рост означает, что разбор сложился поверх уже накопленного.
   const monthOf = (k: string) => k.slice(-7);
-  // Только настоящие месяцы: хвост ведра агрегатов «ат окна» сортируется после «2026-10» и
-  // объявлял текущий месяц закрытым (сбор Маркета падал 03.10-11.10).
-  const newest = Object.keys(a).map(monthOf).filter((m) => /^\d{4}-\d{2}$/.test(m)).sort().pop() || "";
+  // Ведро агрегатов исключаем ПО ИМЕНИ: его хвост «ат окна» сортируется после «2026-10» и объявлял
+  // текущий месяц закрытым (сбор Маркета падал 03.10-11.10, E076). Фильтр по формату вместо имени
+  // открывал другую дыру: месяц в чужом формате (2026/08, 202608) давал пустой newest, и потолок
+  // роста молча снимался со всех месяцев (ФЕНИКС G8). Поэтому чужой формат - отказ, а не пропуск.
+  const isAgg = (k: string) => k === AGG_BUCKET || k.endsWith(`/${AGG_BUCKET}`);
+  const months = Object.keys(a).filter((k) => !isAgg(k)).map(monthOf);
+  const odd = months.filter((m) => !/^\d{4}-\d{2}$/.test(m));
+  if (growOn && odd.length) {
+    console.error(`FACTS INVALID: ${file} - месяц не в формате YYYY-MM (${[...new Set(odd)].slice(0, 3).join(", ")}): без него нельзя отличить текущий месяц от закрытого, и потолок роста снялся бы молча. Проверь --month-key и формат даты в продьюсере.`);
+    process.exit(1);
+  }
+  const newest = months.sort().pop() || "";
   const bad: string[] = [];
   for (const [mth, p] of Object.entries(a)) {
     const c = b[mth] || { n: 0, s: 0 };
@@ -137,7 +146,7 @@ function main() {
     else if (!growOn && sumK && c.n === p.n && Math.abs(p.s) > 1 && Math.abs(c.s) >= Math.abs(p.s) * (1 + GROW)) {
       bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} при неизменном числе строк ${c.n} - это задвоение, а не добор (добор растит число строк)`);
     }
-    else if (!growOn || monthOf(mth) >= newest) continue; // текущий месяц ещё набирается - потолок роста не про него
+    else if (!growOn || isAgg(mth) || monthOf(mth) >= newest) continue; // текущий месяц ещё набирается - потолок роста не про него
     else if (BACKFILL_BELOW && monthOf(mth) < BACKFILL_BELOW) continue;  // месяц собирается впервые: см. backfillBelow
     else if (c.n >= p.n * (1 + GROW)) bad.push(`${mth}: строк было ${p.n}, стало ${c.n} (закрытый месяц вырос на ${Math.round((c.n / p.n - 1) * 100)}% - похоже на задвоение)`);
     else if (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) >= Math.abs(p.s) * (1 + GROW)) bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} (закрытый месяц вырос на ${Math.round((Math.abs(c.s) / Math.abs(p.s) - 1) * 100)}% - похоже на задвоение)`);

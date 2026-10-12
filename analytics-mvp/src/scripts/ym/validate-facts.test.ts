@@ -91,6 +91,21 @@ describe("гейт не кричит зря - иначе его снимут", (
     const dup = put("agmix_dup.ndjson", [...day("2026-09-15", 600), ...day("2026-10-01", 30), ...aggr]);
     expect(gate(dup, base, ["--month-key=date", "--sum=views", "--by=business"])).toBe(1);
   });
+  it("текущий месяц берётся из БАЗЫ: дозалив прошлого месяца в первый день нового - не задвоение", () => {
+    // Убивает мутант «newest из текущего снимка»: тогда сентябрь стал бы закрытым на +30%.
+    const day = (d: string, n: number) => Array.from({ length: n }, () => ({ date: d, business: "74986385", views: 5 }));
+    const base = put("mchg_base.ndjson", [...day("2026-08-15", 200), ...day("2026-09-15", 100)]);
+    const cur = put("mchg_cur.ndjson", [...day("2026-08-15", 200), ...day("2026-09-15", 130), ...day("2026-10-01", 10)]);
+    expect(gate(cur, base, ["--month-key=date", "--sum=views", "--by=business"])).toBe(0);
+  });
+  it("месяц в чужом формате не снимает потолок роста молча - отказ (ФЕНИКС G8)", () => {
+    for (const [tag, mk] of [["slash", (m: string) => `2026/${m}/15`], ["num", (m: string) => Number(`2026${m}15`)]] as const) {
+      const day = (m: string, n: number) => Array.from({ length: n }, () => ({ d: mk(m), business: "74986385", amount: 100 }));
+      const base = put(`fmt_${tag}_base.ndjson`, [...day("08", 200), ...day("09", 100)]);
+      const dup = put(`fmt_${tag}_dup.ndjson`, [...day("08", 400), ...day("09", 100)]);
+      expect(gate(dup, base, KEY)).toBe(1);
+    }
+  });
 });
 
 describe("дыры, найденные четвёртым аудитом, закрыты", () => {

@@ -97,6 +97,13 @@ def ingest():
   behavior=assets/'dialog-enhancement.js'
   if behavior.exists():page=page.replace('</body>','<script data-gg-dialog-enhancement>'+behavior.read_text()+'</script></body>',1)
   page=page.replace("r.article.scrollIntoView({block:'start'","r.article.scrollIntoView({block:'center'")
+  old="b.classList.add(zoneBad?'gg-zone-bad':zoneGood?'gg-zone-good':'gg-zone-neutral');"
+  new="""/* gg-zone-target */
+     const target=zoneEvents.find(x=>x.article.matches('.e-bad,.ev-bad'))||zoneEvents.find(x=>x.article.matches('.e-good:not(.gg-event-warning)'))||r;
+     b.classList.add(zoneBad?'gg-zone-bad':zoneGood?'gg-zone-good':'gg-zone-neutral');
+     b.dataset.tooltip=(zoneBad?'Ошибка · ':zoneGood?'Хорошо · ':'')+target.article.innerText.slice(0,300);b.setAttribute('aria-label',b.dataset.tooltip);
+     b.onclick=()=>{rail.querySelectorAll('button').forEach(n=>n.classList.toggle('gg-branch-selected',n===b));target.article.scrollIntoView({block:'center',behavior:'smooth'});target.article.tabIndex=-1;target.article.focus({preventScroll:true});};"""
+  if '/* gg-zone-target */' not in page:page=page.replace(old,new)
   atomic(dialog,page)
  structure=SITE/'structure/index.html'
  if structure.exists():
@@ -173,3 +180,4 @@ if __name__=='__main__':
  if len(sys.argv)>1 and sys.argv[1]=='import':ingest()
  elif len(sys.argv)>1 and sys.argv[1]=='inventory':refresh_inventory()
  else:ThreadingHTTPServer(('127.0.0.1',18765),API).serve_forever()
+

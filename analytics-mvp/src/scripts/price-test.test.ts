@@ -2,7 +2,7 @@
 // knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml. Даты условные, «сегодня» передаётся.
 import { describe, it, expect } from "vitest";
 import {
-  median, expectedDrop, priceApplied, priceState, diffSeries, baseOf, shiftSeries, verdictOf, viewShare, viewsStop, firstRun, nextDay,
+  median, expectedDrop, priceApplied, priceState, diffSeries, baseOf, shiftSeries, verdictOf, viewShare, viewsStop, firstRun, nextDay, isDirty,
 } from "./price-test.js";
 
 const START = "2026-10-07", END = "2026-10-21";
@@ -212,5 +212,32 @@ describe("служебное", () => {
     expect(ds[0]).toBe("2026-09-28");
     expect(ds[6]).toBe("2026-10-04");
     expect(new Set(ds).size).toBe(7);
+  });
+});
+
+describe("грязные тестовые товары (E065)", () => {
+  const cpc = new Map([["A", ["2026-09-30", "2026-10-08"]]]);
+  const boost = new Map([["B", new Set(["2026-10-08"])]]);
+  it("реклама за клик в окне делает товар грязным со дня первого расхода и дальше", () => {
+    expect(isDirty("A", "2026-09-29", "2026-09-23", new Set(), cpc, boost)).toBe(false);
+    expect(isDirty("A", "2026-09-30", "2026-09-23", new Set(), cpc, boost)).toBe(true);
+    expect(isDirty("A", "2026-10-12", "2026-09-23", new Set(), cpc, boost)).toBe(true);
+  });
+  it("вторая акция грязнит только свои дни, исключённый - всегда", () => {
+    expect(isDirty("B", "2026-10-08", "2026-09-23", new Set(), cpc, boost)).toBe(true);
+    expect(isDirty("B", "2026-10-09", "2026-09-23", new Set(), cpc, boost)).toBe(false);
+    expect(isDirty("C", "2026-09-01", "2026-09-23", new Set(["C"]), cpc, boost)).toBe(true);
+  });
+  it("грязный товар не входит ни в базу, ни в день; знаменатель группы прежний", () => {
+    // B растёт на +8 п. после старта (как от рекламы), но B грязный - сдвиг дня берётся только по A.
+    const g = new Map<string, Map<string, number>>();
+    for (const d of PRE) g.set(d, new Map([["A", 48], ["B", 48], ["X", 47.5], ["Y", 48], ["Z", 48.5]]));
+    for (const d of POST) g.set(d, new Map([["A", 48], ["B", 56], ["X", 47.5], ["Y", 48], ["Z", 48.5]]));
+    const all = () => true, skipB = (a: string) => a === "B";
+    const dirty = shiftSeries(g, ["A", "B"], CTRL, START, PRE, all, 0.5, skipB).filter((x) => x.d >= START);
+    expect(dirty.every((x) => x.s === 0 && x.nt === 1)).toBe(true);
+    // Порог 3 из 4: при одном грязном из четырёх и одном чистом дня нет.
+    const four = shiftSeries(g, ["A", "B", "C", "D"], CTRL, START, PRE, all, 0.75, skipB).filter((x) => x.d >= START);
+    expect(four.every((x) => x.s === null)).toBe(true);
   });
 });

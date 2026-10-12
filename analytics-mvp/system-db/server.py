@@ -117,9 +117,8 @@ def ingest():
     q.execute('SELECT count(*) FROM gg_system.records WHERE slug=%s',(slug,));assert q.fetchone()[0]==len(rows)
     q.execute('INSERT INTO gg_system.registry(slug,version,variable,metadata) VALUES(%s,%s,%s,%s) ON CONFLICT(slug) DO UPDATE SET version=excluded.version,variable=excluded.variable,metadata=excluded.metadata,updated=now()',(slug,version,variable,Json(metadata)))
    c.commit()
-   # Keep a restore copy outside the public site; publish only after DB commit.
-   backup=ROOT/'system-db/rollback'/slug/version/'index.html';backup.parent.mkdir(parents=True,exist_ok=True)
-   if not backup.exists():backup.write_text(s)
+   # Git sources and verified PostgreSQL backups provide restoration.
+   # Do not accumulate duplicate HTML snapshots after migration.
    converted=convert(s,slug,variable,a,b,version)
    assert extract(converted) is None
    atomic(p,converted);report.append({'slug':slug,'records':len(rows),'html_bytes':len(converted.encode()),'payload_bytes':len(packed.encode())})

@@ -47,3 +47,5 @@ body.gg-communications #tip{z-index:10050!important;background:#202730!important
 .gg-review-complete .mk-q{display:block}.gg-review-complete .gg-deal-evidence{display:block;margin-top:7px}
 @media(max-width:1000px){.gg-ai-profile-grid .gg-ai-profile-info{display:block!important}}
 @media(max-width:650px){.gg-ai-profile-grid .gg-ai-profile-content{grid-template-columns:1fr!important}}
+.gg-review-data-coverage{grid-column:1/-1;color:var(--muted,#93a4b6);font-size:11px;line-height:1.6;margin:12px 0}
+.gg-ai-communication-coverage{grid-column:1;font-size:11px;line-height:1.6;color:var(--muted,#93a4b6)}

@@ -9,5 +9,7 @@ runuser -u gg -- python3 /srv/gg/dialog-db/current/server.py import /srv/gg/www/
 install -m 644 /srv/gg/dialog-db/current/gg-dialog-api.service /etc/systemd/system/
 install -m 644 /srv/gg/dialog-db/current/gg-dialog-import.service /etc/systemd/system/
 install -m 644 /srv/gg/dialog-db/current/gg-dialog-import.timer /etc/systemd/system/
+install -m 644 /srv/gg/dialog-db/current/gg-dialog-backup.service /etc/systemd/system/
+install -m 644 /srv/gg/dialog-db/current/gg-dialog-backup.timer /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable --now gg-dialog-api.service gg-dialog-import.timer
+systemctl enable --now gg-dialog-api.service gg-dialog-import.timer gg-dialog-backup.timer

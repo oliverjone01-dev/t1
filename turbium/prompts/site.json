@@ -1,0 +1,64 @@
+{
+  "project": "TURBIUM website visuals",
+  "model": "gpt-image-2",
+  "subject": {
+    "product": "{{product}}",
+    "materials": "{{materials}}",
+    "details": "{{details}}",
+    "environment": "{{environment}}",
+    "palette": "{{palette}}"
+  },
+  "style_lock": "Commercial product photography. Soft key light from upper left, 5000K daylight, subtle cool rim light from behind. 85mm lens, f/5.6. Neutral color grade with {{palette}} accents, deep but not crushed shadows, true-to-life material textures. Consistent look across the whole series, as if shot in one studio session.",
+  "constraints": "No text, no letters, no numbers, no logos, no watermark, no UI elements, no people unless stated. Do not invent product features that are not described.",
+  "shots": [
+    {
+      "id": "hero-desktop",
+      "section": "Hero",
+      "size": "1536x1024",
+      "quality": "high",
+      "prompt": "Website hero image for a product landing page. Subject: {{product}}, made of {{materials}}, with {{details}} clearly visible. Scene: placed on a dark matte surface in a minimal studio, background a smooth gradient in {{palette}}. Composition: product in the right third at three-quarter angle, slightly below eye level, large clean negative space on the left for a headline."
+    },
+    {
+      "id": "hero-mobile",
+      "section": "Hero (mobile)",
+      "size": "1024x1536",
+      "quality": "high",
+      "prompt": "Vertical website hero image for mobile. Subject: {{product}}, made of {{materials}}, with {{details}} clearly visible. Scene: same studio and surface as the desktop hero, background a smooth gradient in {{palette}}. Composition: product in the lower half, centered, three-quarter angle, clean empty space in the upper third for a headline."
+    },
+    {
+      "id": "product-packshot",
+      "section": "Product",
+      "size": "1024x1024",
+      "quality": "high",
+      "prompt": "Product packshot for a website catalog block. Subject: {{product}}, made of {{materials}}. Scene: seamless light-grey background, soft contact shadow under the product. Composition: product centered, three-quarter front view, fills about 60 percent of the frame, entire product in sharp focus."
+    },
+    {
+      "id": "material-macro",
+      "section": "Material",
+      "size": "1024x1024",
+      "quality": "high",
+      "prompt": "Macro detail shot for a website section about materials. Subject: close-up of {{details}} on {{product}}, showing the surface texture of {{materials}}. Composition: tight crop, diagonal edge leading through the frame, focus on the texture, background falls off into soft blur. Raking side light that reveals the surface relief."
+    },
+    {
+      "id": "in-use",
+      "section": "Application",
+      "size": "1536x1024",
+      "quality": "high",
+      "prompt": "Website image showing the product in its real working environment. Subject: {{product}} in use in {{environment}}. Scene: realistic, tidy, believable location with natural wear, no staged clutter. Composition: product is the clear focal point in the left two thirds, environment readable but secondary, eye-level documentary angle."
+    },
+    {
+      "id": "process",
+      "section": "Process",
+      "size": "1536x1024",
+      "quality": "medium",
+      "prompt": "Website image for a section about how the product is made or installed. Subject: {{product}} during assembly or installation, only hands in work gloves visible, no faces. Scene: clean workshop bench, tools neatly placed. Composition: top-down three-quarter view, product in the center, hands entering from the lower edge."
+    },
+    {
+      "id": "section-bg",
+      "section": "Section background",
+      "size": "1536x1024",
+      "quality": "medium",
+      "prompt": "Abstract background texture for a website section behind text. Subject: soft-focus close-up of {{materials}} surface. Composition: even, low-contrast, no focal point, no hard edges, darker toward the edges so white text stays readable. Colors limited to {{palette}}."
+    }
+  ]
+}

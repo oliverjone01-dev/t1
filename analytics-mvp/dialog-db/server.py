@@ -95,10 +95,12 @@ class API(BaseHTTPRequestHandler):
                         q.execute('SELECT data,imported FROM snapshot WHERE id=true'); r=q.fetchone()
                         obj={'generatedAt':r[0].get('generatedAt'),'imported':r[1].isoformat(),'expected':r[0]['expected'],'aiCoverage':r[0]['scoring'].get('aiCoverage'),'portal':r[0].get('portal')}
                     elif u.path=='/api/summary':
-                        where,args=query_filter(p);q.execute('SELECT d.data FROM deals d'+where,args);ds=[r[0] for r in q.fetchall()]
+                        whole=dict(p);whole.pop('manager',None)
+                        where,args=query_filter(whole);q.execute('SELECT d.data FROM deals d'+where,args);ds=[r[0] for r in q.fetchall()]
                         grouped={}
                         for d in ds: grouped.setdefault(d.get('mgr',''),[]).append(d)
-                        obj={'department':aggregate(ds),'managers':[dict(manager=m,**aggregate(items)) for m,items in grouped.items()]}
+                        scope=grouped.get(p['manager'],[]) if p.get('manager') else ds
+                        obj={'department':aggregate(scope),'managers':[dict(manager=m,**aggregate(items)) for m,items in grouped.items()]}
                         # Manager list does not ship individual AI comments.
                         for m in obj['managers']:m.pop('comments')
                     elif u.path=='/api/deals':

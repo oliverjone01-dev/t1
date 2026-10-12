@@ -21,13 +21,21 @@ export function isRateLimit(e: unknown): boolean {
   return /HTTP 420/.test(m) || /rate limit/i.test(m) || /METHOD_FAILURE/.test(m);
 }
 
-// Обрыв связи с Маркетом: сеть, DNS, таймаут сокета, 5xx. Живой факт 12.10 (прогон 38222088709):
-// бэкфилл взаиморасчётов скачал 6 отчётов, на седьмом `fetch failed` - и продьюсер упал целиком,
-// выбросив скачанное и не записав состояние. Повтор такого сбоя в следующем прогоне обычно проходит,
-// поэтому это мягкая остановка с сохранением, а не отказ. HTTP 4xx сюда НЕ входят: это ошибка запроса.
+// Обрыв связи с Маркетом и таймаут генерации отчёта. Живой факт 12.10 (прогон 38222088709): бэкфилл
+// взаиморасчётов скачал 6 отчётов, на седьмом `fetch failed` (после 5 повторов коннектора) - продьюсер
+// упал целиком. Классифицируем по статусу и коду причины, а НЕ по подстроке в тексте: в сообщение
+// HttpError попадает тело ответа, и 400 со словом «HTTP 502» внутри считался бы обрывом; а голый
+// `fetch failed` undici отдаёт и на битый сертификат, и на неверный адрес - это поломка, не сеть
+// (ФЕНИКС PR #465 T1).
+const NET_CODES = new Set(["ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN", "EPIPE", "ENETUNREACH", "EHOSTUNREACH",
+  "UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT", "UND_ERR_CLOSED"]);
 export function isTransient(e: unknown): boolean {
-  const m = e instanceof Error ? `${e.message} ${String((e as any).cause?.code || "")}` : String(e);
-  return /fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up|UND_ERR|other side closed|HTTP 5\d\d/i.test(m);
+  const st = (e as { status?: unknown })?.status;
+  if (typeof st === "number") return st >= 500 && st < 600;
+  const code = String((e as { cause?: { code?: unknown } })?.cause?.code ?? (e as { code?: unknown })?.code ?? "");
+  if (NET_CODES.has(code)) return true;
+  const m = e instanceof Error ? e.message : String(e);
+  return /^Market report \S+ \S+: не готов за \d+ с/.test(m);
 }
 
 // Дедуп проводок взаиморасчётов. Ключ - TRANSACTION_ID: он уникален у Маркета и переживает

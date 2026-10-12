@@ -291,9 +291,10 @@
   const items=make('div','gg-deal-feed-items');feed.append(items);
   const systemEvents=new Map();for(const stage of d.stageRows||[])systemEvents.set('stage#'+stage.code+stage.date,{type:'Стадия',ts:stage.ts,dt:new Date(stage.ts).toISOString(),sys:1});for(const owner of d.owners||[])systemEvents.set('own#'+owner.at,{type:'Ответственный',ts:Date.parse(owner.at+'T12:00:00+03:00'),dt:owner.at+'T12:00:00+03:00',sys:1});
   const records=[...nativeFeed.querySelectorAll('tr.erow2')].map((row,i)=>{const cells=[...row.cells],e=events().get(row.dataset.src)||systemEvents.get(row.dataset.src),timeCell=cells[0]?.cloneNode(true);timeCell?.querySelector('.lstage')?.remove();const time=timeCell?.textContent.trim()||'',article=make('article','gg-deal-event '+row.className);article.dataset.src=row.dataset.src||'';article.dataset.evcat=row.dataset.evcat||'sys';article.dataset.dealEvent=String(i);article.id='gg-deal-event-'+i;if(row.onclick)article.onclick=row.onclick;if(row.hasAttribute('onclick'))article.setAttribute('onclick',row.getAttribute('onclick'));
+   const eventTags=typeof CUR_TAGS!=='undefined'?(CUR_TAGS[row.dataset.src]||[]):[];if(!article.classList.contains('e-bad')&&eventTags.some(t=>['warn','warning','neutral'].includes(t.tone)))article.classList.add('gg-event-warning');
    if(e?.dir==='исходящее')article.classList.add('gg-deal-outgoing');else if(e?.dir==='входящее')article.classList.add('gg-deal-incoming');else article.classList.add('gg-deal-service');
    const meta=make('div','gg-deal-event-meta'),who=make('span','gg-deal-event-who'),channel=make('span','gg-deal-event-channel'),when=make('time','gg-deal-event-time',time);if(e?.dt){when.dateTime=e.dt;when.title=e.dt;}
-   if(cells[1])while(cells[1].firstChild)who.append(cells[1].firstChild);if(cells[2])while(cells[2].firstChild)channel.append(cells[2].firstChild);meta.append(who,channel,when);article.append(meta);
+   if(cells[1])while(cells[1].firstChild)who.append(cells[1].firstChild);if(cells[2])while(cells[2].firstChild)channel.append(cells[2].firstChild);meta.append(who,channel,when);article.append(meta);const category=row.dataset.evcat||'sys';if(['msg','mail','call'].includes(category)){const speaker=who.textContent.trim();article.classList.remove('gg-deal-service');if(/клиент/i.test(speaker)||e?.dir==='входящее'){article.classList.remove('gg-deal-outgoing');article.classList.add('gg-deal-incoming');}else if(speaker&&!/^CRM$/i.test(speaker)||e?.dir==='исходящее'){article.classList.remove('gg-deal-incoming');article.classList.add('gg-deal-outgoing');}else article.classList.add('gg-deal-service');}
    const bubble=make('div','gg-deal-event-bubble'),body=make('div','gg-deal-event-body ebody');if(cells[3])while(cells[3].firstChild)body.append(cells[3].firstChild);bubble.append(body);
    if(cells[4]?.textContent.trim()){const marks=make('div','gg-deal-event-marks');while(cells[4].firstChild)marks.append(cells[4].firstChild);bubble.append(marks);}article.append(bubble);
    const stage=cells[0]?.querySelector('.lstage');if(stage)meta.append(stage);return{e,time,sourceEvents:e?[e]:[],article,ts:timestamp(e,i),source:String(row.dataset.src||''),body,bubble};});
@@ -359,8 +360,9 @@
    const rail=make('nav','gg-deal-branches');rail.setAttribute('aria-label','Основные ветки диалога');st.panel.querySelector('.gg-deal-branches')?.remove();st.panel.append(rail);rail.hidden=st.tab!=='communications';
    const buildRail=()=>{rail.replaceChildren();const visible=history.displayed.filter(r=>!r.article.hidden);let previousDay='',previousType='';
     for(const r of visible){const day=new Date(r.ts).toLocaleDateString('ru-RU',{timeZone:'Europe/Moscow'}),type=r.e?.type||'';if(day===previousDay&&type!=='Стадия')continue;if(day===previousDay&&type===previousType)continue;previousDay=day;previousType=type;
-     const b=make('button','');b.type='button';const description=day+' · '+type+' · '+String(r.e?.body||r.e?.title||'').slice(0,110);b.dataset.tooltip=description;b.setAttribute('aria-label',description);b.onclick=()=>{r.article.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});r.article.tabIndex=-1;r.article.focus({preventScroll:true});};b.dataset.branchDay=day;rail.append(b);
+     const b=make('button','');b.type='button';const description=day+' · '+type+' · '+String(r.e?.body||r.e?.title||'').slice(0,110);b.dataset.tooltip=description;b.setAttribute('aria-label',description);b.onclick=()=>{rail.querySelectorAll('button').forEach(n=>n.classList.toggle('gg-branch-selected',n===b));r.article.classList.remove('gg-history-jump');requestAnimationFrame(()=>r.article.classList.add('gg-history-jump'));setTimeout(()=>r.article.classList.remove('gg-history-jump'),1800);r.article.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});r.article.tabIndex=-1;r.article.focus({preventScroll:true});};b.dataset.branchDay=day;rail.append(b);
     }
+    const marks=[...rail.querySelectorAll('button')];marks.forEach((mark,i)=>mark.style.opacity=String(.15+.65*i/Math.max(1,marks.length-1)));
    };buildRail();history.feed.querySelector('.gg-deal-channel-filters')?.addEventListener('click',()=>queueMicrotask(buildRail));history.feed.addEventListener('click',e=>{if(e.target.closest('[data-channel]'))queueMicrotask(buildRail);});
   }
 
@@ -502,6 +504,10 @@
  }
  function openDrawer(key,button){window.ggCloseDealDrawer?.(false,true);const entry=entries.get(key);if(!entry)return;selected=key;returnFocus=button;aiToggle(false);fillDrawer(entry);shade.hidden=false;drawer.hidden=false;document.body.classList.add('gg-comm-drawer-open');x.focus();}
  function present(){
+  if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
+  if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
+  if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
+  if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
   if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
   if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();
   if(!roster.requested().size&&!S.fDealIds.size)list.querySelector('.scopebar')?.remove();

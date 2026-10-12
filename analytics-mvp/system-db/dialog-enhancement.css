@@ -49,3 +49,6 @@ body.gg-communications #tip{z-index:10050!important;background:#202730!important
 @media(max-width:650px){.gg-ai-profile-grid .gg-ai-profile-content{grid-template-columns:1fr!important}}
 .gg-review-data-coverage{grid-column:1/-1;color:var(--muted,#93a4b6);font-size:11px;line-height:1.6;margin:12px 0}
 .gg-ai-communication-coverage{grid-column:1;font-size:11px;line-height:1.6;color:var(--muted,#93a4b6)}
+/* The legacy AI launcher and empty toolbar must not flash while data loads. */
+#gg-dashboard #burger{display:none!important}
+.gg-comm-date-toolbar:not(:has(#period button)){display:none!important}

@@ -342,17 +342,29 @@ async function netting(from: string, to: string) {
   const doneMonths = new Set(prevState.schema === NETTING_SCHEMA ? prevState.months_done || [] : []);
   // Свежее окно всегда перезабираем: проводки по недавним месяцам ещё меняются.
   const freshWindow = addDays(to, -59).slice(0, 7);
-  for (const { businessId: b, account } of await resolveBusinesses()) {
-    // помесячно (лимит диапазона отчёта)
-    let s = from;
-    while (s <= to) {
-      const mb = monthBounds(s.slice(0, 7));
+  // Месяцы снаружи и от свежего к старому, кабинеты внутри - как в promo (G3 ФЕНИКСА iter4).
+  // Раньше шли кабинет за кабинетом от FLOOR: при бэкфилле (смена схемы, 18 пар при бюджете 10)
+  // текущий месяц второго кабинета стоял последним в очереди и ждал 2-3 прогона, а реестр на
+  // странице стоял по концу прошлого месяца (живой факт 12.10: «Реестр полный по 2026-09-30»).
+  // Теперь первые отчёты прогона - свежее окно обоих кабинетов, история добирается после.
+  const months: string[] = [];
+  for (let s = from; s <= to; s = addDays(monthBounds(s.slice(0, 7)).dateTo, 1)) months.push(s.slice(0, 7));
+  months.reverse();
+  const bizs = await resolveBusinesses();
+  // Сбой связи по кабинету снимает с очереди только этот кабинет: второй получает свою долю бюджета.
+  const stopped = new Set<string>();
+  for (const ym of months) {
+    for (const { businessId: b, account } of bizs) {
+      if (rateLimited) break;
+      if (stopped.has(b)) continue;
+      const mb = monthBounds(ym);
+      const s = mb.dateFrom > from ? mb.dateFrom : from;
       const e = mb.dateTo < to ? mb.dateTo : to;
-      const pair = `${b}/${s.slice(0, 7)}`;
-      if (doneMonths.has(pair) && s.slice(0, 7) < freshWindow) { s = addDays(e, 1); continue; }
+      const pair = `${b}/${ym}`;
+      if (doneMonths.has(pair) && ym < freshWindow) continue;
       let t: { headers: string[]; rows: string[][] } | null = null;
       try { t = await fetchReport(account.api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e }); }
-      catch (err) { if (stopSoft(err, `взаиморасчёты ${b} ${s}..${e}`)) break; throw err; }
+      catch (err) { if (stopSoft(err, `взаиморасчёты ${b} ${s}..${e}`)) { stopped.add(b); continue; } throw err; }
       if (t) {
         probe("united-netting", t.headers, t.rows, { business: b, from: s, to: e });
         const ix = cols("united-netting", t.headers, ["date", "amount"]);
@@ -367,7 +379,6 @@ async function netting(from: string, to: string) {
           for (const x of numberDuplicates(one)) fresh.push(x);
         }
       }
-      s = addDays(e, 1);
     }
     if (rateLimited) break;
   }

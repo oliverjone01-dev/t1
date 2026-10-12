@@ -39,11 +39,24 @@ describe("бэкфилл реестра переживает обрыв связ
     expect(out).not.toMatch(/ym-reports FAILED/);
     const st = state(d);
     expect(st.schema).toBe(5);
-    expect(st.months_done.filter((p: string) => p.startsWith("111/")).length).toBe(6);
+    // Порядок: месяцы от свежего, кабинеты внутри. Отчёты 1-6: 10, 09, 08 обоих кабинетов;
+    // 7-й (111/07) оборвался - кабинет 111 снят с очереди, 222 добирает 07, 06, 05 (8-10).
+    expect(st.months_done.filter((p: string) => p.startsWith("111/")).sort()).toEqual(["111/2026-08", "111/2026-09", "111/2026-10"]);
     // обрыв по одному кабинету не лишает второй его доли бюджета
-    expect(st.months_done.some((p: string) => p.startsWith("222/"))).toBe(true);
+    expect(st.months_done.filter((p: string) => p.startsWith("222/")).length).toBe(6);
     const rows = readFileSync(join(d, "netting.ndjson"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
     for (const b of BIZ) for (const ym of MONTHS) expect(rows.some((r) => r.business === b && r.d.startsWith(ym)), `${b}/${ym}`).toBe(true);
+  }, 150_000);
+  it("бэкфилл начинается со свежего окна обоих кабинетов, а не с февраля первого", () => {
+    const d = seedNetting();
+    const out = run(d, {}, ["netting", "2026-02-01", "2026-10-10"]);
+    expect(out).not.toMatch(/ym-reports FAILED/);
+    const req = readFileSync(join(d, "_req.ndjson"), "utf8").trim().split("\n").map((l) => JSON.parse(l)).filter((r) => r.type === "united-netting");
+    const order = req.map((r) => `${r.body.businessId}/${String(r.body.dateFrom).slice(0, 7)}`);
+    expect(order.slice(0, 4)).toEqual(["111/2026-10", "222/2026-10", "111/2026-09", "222/2026-09"]);
+    // последний месяц обрезан правой границей, первый - левой
+    expect(req[0].body.dateTo).toBe("2026-10-10");
+    expect(state(d).months_done).toEqual(expect.arrayContaining(["111/2026-10", "222/2026-10"]));
   }, 150_000);
   it("таймаут генерации на 7-м отчёте - тоже мягкая остановка", () => {
     const d = seedNetting();

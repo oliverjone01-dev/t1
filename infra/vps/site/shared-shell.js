@@ -1,3 +1,4 @@
+window.ggCommunicationCompleteness=function(d){const m=d.mix||{},c=(m.msg||0)+(m.call||0)+(m.mail||0),n=c+(m.task||0)+(m.note||0);return n?5*c/n:null;};
 (function(){
  if(!document.querySelector('#gg-sidebar'))return;
  document.querySelectorAll('.gg-nav a').forEach(a=>{if(/Скорость ответа|Дожим и возражения/.test(a.textContent)&&a.getAttribute('href')?.startsWith('/dialog/'))a.remove();});
@@ -257,20 +258,20 @@ const trend=panel('Динамика коммуникаций','Клиентск�
 // Native review text, event markup, recording links and selection handlers remain the source.
 (function(){
  'use strict';
- const AXES=[['polite','Вежливость'],['qual','Квалификация'],['deadline','Сроки'],['process','Ведение'],['result','Результат']];
+ const AXES=[['polite','Вежливость'],['qual','Квалификация'],['deadline','Сроки'],['process','Ведение'],['result','Результат'],['completeness','Полнота']];
  const make=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n;};
  const fmt=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1}),valid=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=5;
  let state=null,eventMap=null;
  function events(){if(!eventMap){eventMap=new Map();if(typeof DATA!=='undefined')for(const e of DATA.events||[])if(e.src)eventMap.set(String(e.src),e);}return eventMap;}
  function deal(key){return typeof SCD!=='undefined'?SCD[key]:null;}
  function radar(d){
-  const scores=d.ai?.scores||{};if(!AXES.some(([k])=>valid(scores[k])))return null;
+  const scores={...(d.ai?.scores||{}),completeness:window.ggCommunicationCompleteness(d)};if(!AXES.some(([k])=>valid(scores[k])))return null;
   const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 320 270');svg.classList.add('gg-deal-radar');svg.setAttribute('role','img');
   svg.setAttribute('aria-label','ИИ-оценки этой сделки. Шкала от 0 до 5. '+AXES.map(([k,t])=>t+': '+(valid(scores[k])?fmt(scores[k]):'нет оценки')).join('. '));
   const add=(tag,attrs,text)=>{const n=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));if(text!=null)n.textContent=text;svg.append(n);return n;};
-  const point=(i,v)=>[160+Math.sin(i*2*Math.PI/5)*v*17,128-Math.cos(i*2*Math.PI/5)*v*17],poly=vs=>vs.map((v,i)=>point(i,v).join(',')).join(' ');
+  const point=(i,v)=>[160+Math.sin(i*2*Math.PI/AXES.length)*v*17,128-Math.cos(i*2*Math.PI/AXES.length)*v*17],poly=vs=>vs.map((v,i)=>point(i,v).join(',')).join(' ');
   [1,2,3,4,5].forEach(v=>add('polygon',{points:poly(AXES.map(()=>v)),class:'gg-deal-radar-grid'}));
-  AXES.forEach(([k,label],i)=>{const p=point(i,5),q=point(i,6.5);add('path',{d:'M160 128L'+p.join(' '),class:'gg-deal-radar-grid'});const t=add('text',{x:q[0],y:q[1]-3,'text-anchor':'middle',class:'gg-deal-radar-label'},label),v=document.createElementNS(ns,'tspan');v.setAttribute('x',q[0]);v.setAttribute('dy','15');v.classList.add('gg-deal-radar-value');v.textContent=valid(scores[k])?fmt(scores[k]):'—';t.append(v);});
+  AXES.forEach(([k,label],i)=>{const p=point(i,5),q=point(i,6.5);add('path',{d:'M160 128L'+p.join(' '),class:'gg-deal-radar-grid'});const t=add('text',{x:q[0],y:q[1]-3,'text-anchor':'middle',class:'gg-deal-radar-label'},label),v=document.createElementNS(ns,'tspan');v.setAttribute('x',q[0]);v.setAttribute('dy','15');v.classList.add('gg-deal-radar-value');v.textContent=valid(scores[k])?(k==='completeness'?Math.round(scores[k]*20)+'%':fmt(scores[k])):'—';t.append(v);});
   // Missing scores stay missing: a complete polygon is only drawn for five real scores.
   if(AXES.every(([k])=>valid(scores[k])))add('polygon',{points:poly(AXES.map(([k])=>scores[k])),class:'gg-deal-radar-shape'});
   AXES.forEach(([k,label],i)=>{if(!valid(scores[k]))return;const p=point(i,scores[k]),dot=add('circle',{cx:p[0],cy:p[1],r:3.3,class:'gg-deal-radar-dot',tabindex:0,'data-deal-ai-axis':k,'data-deal-ai-score':scores[k]}),title=document.createElementNS(ns,'title');title.textContent=label+': '+fmt(scores[k])+' из 5';dot.append(title);});return svg;
@@ -350,7 +351,7 @@ const trend=panel('Динамика коммуникаций','Клиентск�
   if(verdictNode){verdictNode.classList.add('gg-review-summary');if(nextStep)verdictNode.after(nextStep);if(riskNode)(nextStep||verdictNode).after(riskNode);}
   review.querySelectorAll('.da-cols>.da-col').forEach(col=>{const heading=col.querySelector('.da-t');if(!heading)return;const details=make('section','gg-review-details'),summary=make('h4','',heading.textContent);details.append(summary);heading.remove();while(col.firstChild)details.append(col.firstChild);col.append(details);});
 
-  const scores=review.querySelector('.sc-grid'),chart=radar(d);review.classList.toggle('gg-deal-no-radar',!chart);if(chart){const layout=make('div','gg-deal-score-layout'),figure=make('figure','gg-deal-radar-figure');figure.append(chart,make('figcaption','','Оценки этой сделки · 0–5'));layout.append(figure);if(scores)layout.append(scores);const verdict=review.querySelector('.dsum-v');if(verdict)verdict.after(layout);else reviewHeader.after(layout);}
+  const scores=review.querySelector('.sc-grid'),chart=radar(d);review.classList.toggle('gg-deal-no-radar',!chart);if(chart){const layout=make('div','gg-deal-score-layout'),figure=make('figure','gg-deal-radar-figure');figure.append(chart,make('figcaption','','ИИ-оценки · 0–5; полнота · % событий CRM'));layout.append(figure);if(scores)layout.append(scores);const verdict=review.querySelector('.dsum-v');if(verdict)verdict.after(layout);else reviewHeader.after(layout);}
   
   // Lead with visual scores and a single management priority.
   const priority=make('div','gg-review-priority');
@@ -456,22 +457,22 @@ if(history){review.querySelectorAll('.mk-q').forEach(q=>{const source=history.so
  const overview=el('section','gg-comm-overview');overview.setAttribute('aria-label','Итоги выбранного периода');
  host.prepend(tabs,overview);
  const aiProfiles=el('section','gg-comm-ai-profiles');aiProfiles.hidden=true;overview.after(aiProfiles);
- const axes=[['polite','Вежливость'],['qual','Квалификация'],['deadline','Сроки'],['process','Ведение'],['result','Результат']];
+ const axes=[['polite','Вежливость'],['qual','Квалификация'],['deadline','Сроки'],['process','Ведение'],['result','Результат'],['completeness','Полнота']];
  const managerData=new Map((SC.managers||[]).filter(m=>roster.allowed.has(m.mgr)).map(m=>[m.mgr,m])),dealsByManager=new Map();
  for(const d of SC.deals||[]){if(!dealsByManager.has(d.mgr))dealsByManager.set(d.mgr,[]);dealsByManager.get(d.mgr).push(d);}
  function profile(ds){
   const fresh=ds.filter(d=>d.aiState==='fresh'),eligible=ds.filter(d=>['fresh','stale','none'].includes(d.aiState));
   return{total:ds.length,deals:ds.filter(d=>!d.isLead).length,leads:ds.filter(d=>d.isLead).length,eligible:eligible.length,fresh:fresh.length,stale:ds.filter(d=>d.aiState==='stale').length,pending:ds.filter(d=>d.aiState==='none').length,
-   scores:axes.map(([key])=>{const values=fresh.map(d=>d.ai?.scores?.[key]).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0&&v<=5);return{key,n:values.length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null};})};
+   scores:axes.map(([key])=>{const values=(key==='completeness'?ds:fresh).map(d=>key==='completeness'?window.ggCommunicationCompleteness(d):d.ai?.scores?.[key]).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0&&v<=5);return{key,n:values.length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null};})};
  }
  const profiles=new Map([...managerData.keys()].map(mgr=>[mgr,profile(dealsByManager.get(mgr)||[])]));
  const departmentProfile=profile((SC.deals||[]).filter(d=>managerData.has(d.mgr))),decimal=v=>v==null?'—':v.toLocaleString('ru-RU',{minimumFractionDigits:1,maximumFractionDigits:1});
  function radar(p,mgr){
   const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 360 305');svg.classList.add('gg-comm-ai-radar');svg.setAttribute('role','img');svg.setAttribute('aria-label','Средние актуальные ИИ-оценки: '+mgr+'. Шкала от 0 до 5. '+p.scores.map((s,i)=>axes[i][1]+': '+decimal(s.mean)+', '+number(s.n)+' диалогов').join('. '));
   const add=(tag,attrs,text)=>{const n=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));if(text!=null)n.textContent=text;svg.append(n);return n;};
-  const point=(i,value)=>[180+Math.sin(i*2*Math.PI/5)*value*20,145-Math.cos(i*2*Math.PI/5)*value*20],polygon=values=>values.map((v,i)=>point(i,v).join(',')).join(' ');
+  const point=(i,value)=>[180+Math.sin(i*2*Math.PI/axes.length)*value*20,145-Math.cos(i*2*Math.PI/AXES.length)*value*20],polygon=values=>values.map((v,i)=>point(i,v).join(',')).join(' ');
   [1,2,3,4,5].forEach(v=>add('polygon',{points:polygon(axes.map(()=>v)),class:'gg-ai-gridline'}));
-  axes.forEach(([key,label],i)=>{const end=point(i,5),l=point(i,6.4);add('path',{d:'M180 145L'+end.join(' '),class:'gg-ai-gridline'});const text=add('text',{x:l[0],y:l[1]-4,'text-anchor':'middle',class:'gg-ai-axis-label'},label);const value=document.createElementNS(ns,'tspan');value.setAttribute('x',l[0]);value.setAttribute('dy','15');value.classList.add('gg-ai-axis-value');value.textContent=decimal(p.scores[i].mean);text.append(value);});
+  axes.forEach(([key,label],i)=>{const end=point(i,5),l=point(i,6.4);add('path',{d:'M180 145L'+end.join(' '),class:'gg-ai-gridline'});const text=add('text',{x:l[0],y:l[1]-4,'text-anchor':'middle',class:'gg-ai-axis-label'},label);const value=document.createElementNS(ns,'tspan');value.setAttribute('x',l[0]);value.setAttribute('dy','15');value.classList.add('gg-ai-axis-value');value.textContent=p.scores[i].mean==null?'—':key==='completeness'?Math.round(p.scores[i].mean*20)+'%':decimal(p.scores[i].mean);text.append(value);});
   if(departmentProfile.scores.every(s=>s.mean!=null))add('polygon',{points:polygon(departmentProfile.scores.map(s=>s.mean)),class:'gg-ai-department-shape'});
   if(p.scores.every(s=>s.mean!=null))add('polygon',{points:polygon(p.scores.map(s=>s.mean)),class:'gg-ai-manager-shape'});
   p.scores.forEach((s,i)=>{if(s.mean==null)return;const q=point(i,s.mean),dot=add('circle',{cx:q[0],cy:q[1],r:'3.5',class:'gg-ai-dot',tabindex:'0'}),tip=document.createElementNS(ns,'title');tip.textContent=axes[i][1]+': '+decimal(s.mean)+' из 5, '+number(s.n)+' актуальных диалогов';dot.append(tip);});
@@ -492,14 +493,21 @@ if(history){review.querySelectorAll('.mk-q').forEach(q=>{const source=history.so
   info.append(el('p','gg-ai-communication-coverage','Полнота коммуникаций · '+(events.length?Math.round(client.length/events.length*100)+'%':'—')+' клиентских событий ('+number(client.length)+' / '+number(events.length)+'). Состав истории CRM; не подтверждает отсутствие пропущенного общения.'));
   const values=el('div','gg-ai-score-values');p.scores.forEach((s,i)=>{const item=el('div');item.dataset.aiAxis=s.key;item.dataset.aiMean=s.mean==null?'':String(s.mean);item.dataset.aiN=String(s.n);item.append(el('span','',axes[i][1]),el('b','',decimal(s.mean)+' / 5'));values.append(item);});info.append(values);
   if(a?.verdict){const verdict=el('p','gg-ai-profile-verdict',a.verdict);info.append(el('p','gg-ai-source-note','Сохранённая сводка · '+number(a.reviewed||0)+' разборов'),verdict);}
-  const details=el('section','gg-ai-profile-details');details.append(el('h3','','Выводы'));
-  if(a){details.append(el('p','gg-ai-source-note','Сводка по всем сделкам и лидам снимка; её охват может отличаться от актуальных оценок выше.'));
-   [['Сильные стороны',a.strengths],['На что обратить внимание руководителю',a.weaknesses]].forEach(([label,items])=>{details.append(el('h4','',label));if(Array.isArray(items)&&items.length){const ul=el('ul');items.forEach(item=>ul.append(el('li','',typeof item==='string'?item:item.text||item.label||'')));details.append(ul);}else details.append(el('p','gg-ai-source-note','В сохранённой сводке не отмечены.'));});if(a.action){details.append(el('h4','','Рекомендации'),el('p','',a.action));}
-  }else details.append(el('p','gg-ai-source-note','Текстовая сводка по менеджеру ещё не сохранена.'));
-  const decisions=el('section','gg-ai-manager-decisions');decisions.append(el('h4','','Решения по сотруднику'));
-  const weak=p.scores.map((score,i)=>({...score,label:axes[i][1]})).filter(score=>score.mean!=null&&score.mean<3&&score.n>=5);
-  const decisionText=!p.fresh?'Недостаточно актуальных разборов для решения. Сначала проверить доступность коммуникаций и полноту данных.':weak.length?'Назначить план улучшения по направлениям: '+weak.map(x=>x.label.toLowerCase()).join(', ')+'. Разобрать с сотрудником конкретные примеры, согласовать действия и срок повторной проверки. Не делать кадровый вывод только по среднему баллу.':'По доступным средним оценкам нет направлений ниже 3 из 5 с достаточным числом измерений. Проверить рисковые сделки и закрепить удачные приёмы в работе.';
-  decisions.append(el('p','',decisionText),el('p','gg-ai-source-note','Рекомендация руководителю по текущим показателям; решение требует проверки отдельных случаев.'));details.append(decisions);
+  const details=el('section','gg-ai-profile-details');details.append(el('h3','','Выводы ИИ по сделкам'));
+  const reviewed=(dealsByManager.get(mgr)||[]).filter(d=>d.aiState==='fresh'&&d.ai),ranked=reviewed.slice().sort((x,y)=>Number(y.outcome==='open')-Number(x.outcome==='open')||Number(y.ai.tone==='bad')-Number(x.ai.tone==='bad')||(y.budget||0)-(x.budget||0));
+  const evidence=(box,d,text)=>{const item=el('li'),body=el('p','',text),link=el('button','gg-deal-evidence',(d.isLead?'Лид ':'Сделка ')+(d.dealId||d.leadId||d.key)+' · '+(d.client||d.title||'Показать разбор')+' →');link.type='button';link.onclick=()=>{S.fMgrs.clear();S.fMgrs.add(mgr);S.fDealIds.clear();S.oc='all';S.ggSearch='';S.ggHeat='all';S.tm.add(mgr);S.td.clear();S.td.add(d.key);S.deptOpen=true;Object.keys(S.grpOpen).forEach(k=>S.grpOpen[k]=true);aiApplyPicks();setPeriod('','','comm');location.hash='chronology';renderTree();};item.append(body,link);box.append(item);};
+  details.append(el('p','gg-ai-source-note','Основа: '+number(reviewed.length)+' актуальных сохранённых ИИ-разборов сделок и лидов этого менеджера.'));
+  for(const [label,tone] of [['Сильные стороны','good'],['На что обратить внимание руководителю','bad']]){
+   details.append(el('h4','',label));const grouped=new Map();
+   reviewed.forEach(d=>(d.ai.marks||[]).filter(m=>tone==='good'?m.tone==='good':['bad','warn'].includes(m.tone)).forEach(m=>{const key=m.k||m.t,entry=grouped.get(key)||{text:String(m.t||'').replace(/^ИИ\s*[·:]?\s*/,''),ds:new Map()};entry.ds.set(d.key,d);grouped.set(key,entry);}));
+   const signals=[...grouped.values()].filter(x=>x.text).sort((x,y)=>y.ds.size-x.ds.size).slice(0,3),ul=el('ul','gg-ai-evidence-list');
+   if(signals.length){signals.forEach(x=>{const d=[...x.ds.values()].sort((x,y)=>(y.budget||0)-(x.budget||0))[0];evidence(ul,d,x.text+' · '+number(x.ds.size)+' диалогов');});details.append(ul);}
+   else {const samples=ranked.filter(d=>tone==='good'?d.ai.tone==='good'&&d.ai.verdict:d.ai.problem).slice(0,2);samples.forEach(d=>evidence(ul,d,tone==='good'?d.ai.verdict:d.ai.problem));if(samples.length)details.append(ul);else details.append(el('p','gg-ai-source-note','В актуальных разборах нет подтверждённых '+(tone==='good'?'сильных сторон':'проблем')+'.'));}
+  }
+  const decisions=el('section','gg-ai-manager-decisions');decisions.append(el('h4','','Приоритеты руководителю · ИИ-разбор'));
+  const actions=ranked.filter(d=>d.ai.recommendation&&(d.ai.problem||d.ai.tone!=='good')).slice(0,3),actionList=el('ol','gg-ai-evidence-list');actions.forEach(d=>evidence(actionList,d,d.ai.recommendation));
+  if(actions.length)decisions.append(actionList);else decisions.append(el('p','gg-ai-source-note','В актуальных разборах нет конкретных корректирующих рекомендаций.'));
+  decisions.append(el('p','gg-ai-source-note','Рекомендации из сохранённых ИИ-разборов выбранных случаев. Даты относятся к моменту разбора; перед действием проверьте текущий статус сделки.'));details.append(decisions);
   const sourceLink=el('button','gg-ai-profile-dialogs','Сделки и диалоги менеджера →');sourceLink.type='button';sourceLink.onclick=()=>{S.fMgrs.clear();S.fMgrs.add(mgr);S.fDealIds.clear();S.oc='all';S.picks=[];S.dashNote='';S.tm.add(mgr);S.deptOpen=true;Object.keys(S.grpOpen).forEach(k=>S.grpOpen[k]=true);aiApplyPicks();setPeriod('','','comm');aiSyncScope({mgr});location.hash='chronology';requestAnimationFrame(()=>requestAnimationFrame(()=>{const row=[...list.querySelectorAll('.mgrrow')].find(n=>n.dataset.m===mgr);if(row){row.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});row.tabIndex=-1;row.focus({preventScroll:true});}}));};
   info.append(details);content.append(visual,info);card.append(head,content,el('footer','gg-ai-profile-source','Средние оценки актуальных сохранённых разборов, 0–5. По всем сделкам и лидам менеджера в снимке; выбранный период не меняет профиль. Неоценённые диалоги исключены из среднего.'));
   return card;

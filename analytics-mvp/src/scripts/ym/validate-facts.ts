@@ -121,7 +121,9 @@ function main() {
   // идёт), поэтому потолок роста к нему не применяем - иначе гейт кричал бы каждый день. К закрытым
   // месяцам применяем: там рост означает, что разбор сложился поверх уже накопленного.
   const monthOf = (k: string) => k.slice(-7);
-  const newest = Object.keys(a).map(monthOf).sort().pop() || "";
+  // Только настоящие месяцы: хвост ведра агрегатов «ат окна» сортируется после «2026-10» и
+  // объявлял текущий месяц закрытым (сбор Маркета падал 03.10-11.10).
+  const newest = Object.keys(a).map(monthOf).filter((m) => /^\d{4}-\d{2}$/.test(m)).sort().pop() || "";
   const bad: string[] = [];
   for (const [mth, p] of Object.entries(a)) {
     const c = b[mth] || { n: 0, s: 0 };

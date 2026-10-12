@@ -78,6 +78,19 @@ describe("гейт не кричит зря - иначе его снимут", (
     const grow = rows.concat(rows.filter((r) => r.d.startsWith("2026-02")));
     expect(gate(put("grow.ndjson", grow), BASE, KEY)).toBe(0);
   });
+  it("строки-агрегаты рядом с помесячными не делают текущий месяц «закрытым»", () => {
+    // Сбор Маркета падал 03.10-11.10: ключ ведра агрегатов «.../агрегат окна» резался на «месяц»
+    // «ат окна», кириллица сортируется после «2026-10», и гейт принимал октябрь за закрытый.
+    // В базе был один день октября, второй день дал +100% - и блок каждый следующий прогон.
+    const day = (d: string, n: number) => Array.from({ length: n }, () => ({ date: d, business: "74986385", views: 5 }));
+    const aggr = Array.from({ length: 50 }, () => ({ date: "2026-09-06", business: "74986385", views: 5, aggregate: true }));
+    const base = put("agmix_base.ndjson", [...day("2026-09-15", 300), ...day("2026-10-01", 30), ...aggr]);
+    const cur = put("agmix_cur.ndjson", [...day("2026-09-15", 300), ...day("2026-10-01", 30), ...day("2026-10-02", 30), ...aggr]);
+    expect(gate(cur, base, ["--month-key=date", "--sum=views", "--by=business"])).toBe(0);
+    // и при этом сентябрь остаётся закрытым: его задвоение по-прежнему блок
+    const dup = put("agmix_dup.ndjson", [...day("2026-09-15", 600), ...day("2026-10-01", 30), ...aggr]);
+    expect(gate(dup, base, ["--month-key=date", "--sum=views", "--by=business"])).toBe(1);
+  });
 });
 
 describe("дыры, найденные четвёртым аудитом, закрыты", () => {

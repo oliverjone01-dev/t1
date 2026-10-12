@@ -29,3 +29,5 @@ body.gg-communications #tip{z-index:10050!important;background:#202730!important
 .gg-deal-review .gg-review-details h4{font-size:13px!important;font-weight:600!important;margin:0 0 12px!important}
 .gg-deal-review :is(.mk-q,.mk-t,.da-col p,.da-col li){font-size:13px!important;font-weight:400!important;line-height:1.65!important}
 @media(max-width:760px){.gg-deal-review .gg-deal-score-layout{grid-template-columns:1fr!important;padding:16px!important}.gg-deal-review .gg-deal-radar-figure{justify-self:center}.gg-deal-review .da-cols{grid-template-columns:1fr!important}.gg-deal-history{padding-left:58px!important}}
+
+.gg-deal-quick-filters{display:none!important}

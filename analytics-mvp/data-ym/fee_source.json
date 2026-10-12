@@ -1,13 +1,13 @@
 {
-  "at": "2026-10-12T13:46:01.043Z",
-  "orders_from_netting": 1530,
-  "orders_from_commissions": 327,
-  "accruals_from_netting": 61362584,
-  "accruals_from_commissions": 380949,
-  "fees_from_netting": 31669422.66,
-  "fees_from_commissions": 24033.94,
-  "rate_netting": 51.6,
-  "rate_order": 6.3,
+  "at": "2026-10-12T14:35:19.499Z",
+  "orders_from_netting": 1546,
+  "orders_from_commissions": 311,
+  "accruals_from_netting": 61743533,
+  "accruals_from_commissions": 0,
+  "fees_from_netting": 32215434,
+  "fees_from_commissions": 0,
+  "rate_netting": 52.2,
+  "rate_order": null,
   "by_month": {
     "2026-01": {
       "orders_netting": 59,
@@ -84,45 +84,32 @@
       "orders_order": 53,
       "accruals_netting": 8717046,
       "accruals_order": 0,
-      "fees_netting": 4916314.82,
+      "fees_netting": 4920646.82,
       "fees_order": 0,
       "rate_netting": 56.4,
       "rate_order": null
     },
     "2026-09": {
-      "orders_netting": 200,
-      "orders_order": 43,
-      "accruals_netting": 10180769,
-      "accruals_order": 49866,
-      "fees_netting": 5492666.66,
-      "fees_order": 2710.17,
-      "rate_netting": 54,
-      "rate_order": 5.4
+      "orders_netting": 202,
+      "orders_order": 41,
+      "accruals_netting": 10230635,
+      "accruals_order": 0,
+      "fees_netting": 5925035.2,
+      "fees_order": 0,
+      "rate_netting": 57.9,
+      "rate_order": null
     },
     "2026-10": {
-      "orders_netting": 38,
-      "orders_order": 29,
-      "accruals_netting": 940198,
-      "accruals_order": 331083,
-      "fees_netting": 291510.42,
-      "fees_order": 21323.77,
-      "rate_netting": 31,
-      "rate_order": 6.4
+      "orders_netting": 52,
+      "orders_order": 15,
+      "accruals_netting": 1271281,
+      "accruals_order": 0,
+      "fees_netting": 400821.22,
+      "fees_order": 0,
+      "rate_netting": 31.5,
+      "rate_order": null
     }
   },
-  "gaps": [
-    {
-      "business": "1023124",
-      "ym": "2026-09",
-      "accruals": 49866,
-      "orders": 1
-    },
-    {
-      "business": "1023124",
-      "ym": "2026-10",
-      "accruals": 331083,
-      "orders": 5
-    }
-  ],
+  "gaps": [],
   "unmapped": {}
 }

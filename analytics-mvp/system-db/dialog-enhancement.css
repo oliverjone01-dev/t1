@@ -59,3 +59,11 @@ body.gg-communications #tip{z-index:10050!important;background:#202730!important
 .gg-ai-text-quote{margin:7px 0 14px;padding:0 0 0 12px;border-left:2px solid #52616d;color:#a8bbc8;font-size:12px;line-height:1.7}
 .gg-ai-text-quote .gg-deal-evidence{display:block;margin-top:5px}.gg-deal-radar-figure .gg-score-consistency{font-size:10px;text-align:left;margin:12px 0}.gg-deal-radar-figure .gg-score-consistency p{font-size:10px;line-height:1.6}
 .gg-deal-ai-text[data-ai-status="stale"]>.gg-ai-text-source{color:#c4a783}.gg-deal-ai-text[data-ai-status="absent"]>.gg-ai-text-source{color:#a2afbe}
+/* Keep the navigation ticks on their baseline; hover only changes width and light. */
+.gg-deal-branches button,.gg-deal-branches button:hover,.gg-deal-branches button:focus-visible{transform:none!important}
+.gg-deal-branches button:before{top:4px!important;height:2px!important;transition:width .13s,opacity .13s,filter .13s!important}
+.gg-deal-branches button:is(:hover,:focus-visible,.gg-rail-hover,.gg-branch-selected):before{height:2px!important;transform:none!important}
+.gg-deal-branches button:is(.gg-near-one,.gg-near-two):before{transform:none!important}
+#gg-rail-tooltip .gg-rail-tooltip-title{display:block;margin:0 0 7px;font-weight:600;font-size:13px}
+#gg-rail-tooltip.gg-tooltip-error .gg-rail-tooltip-title{color:#ed8797}
+#gg-rail-tooltip.gg-tooltip-good .gg-rail-tooltip-title{color:#83c9ae}

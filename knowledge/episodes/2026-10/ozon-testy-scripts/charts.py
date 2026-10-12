@@ -1,8 +1,8 @@
-import matplotlib; matplotlib.use('Agg')
+import os,matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.family':'DejaVu Sans','font.size':10,'axes.spines.top':False,'axes.spines.right':False})
 B='#2a6fdb';G='#9aa3ad';R='#d9534f'
-O='/tmp/claude-0/doc/'
+O=os.path.dirname(os.path.abspath(__file__))+'/'
 # 1 test1 gap shift
 d=['19.09','20.09','21.09','23.09','24.09','25.09','28.09','29.09','30.09','01.10','02.10','03.10','05.10','06.10','07.10','08.10','09.10','10.10','11.10']
 v=[1.1,1.2,9.2,9.5,8.7,8.3,5.2,4.7,4.7,4.3,4.3,7.4,6.4,6.7,6.8,7.1,8.1,6.3,7.3]

@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-01T13:51:36.687Z",
+  "at": "2026-10-11T13:29:05.233Z",
   "dateFormatAccepted": "iso",
   "shape": {
     "id": "number",
@@ -29,8 +29,7 @@
         "warehouse": {
           "id": "number",
           "name": "string"
-        },
-        "bidFee": "number"
+        }
       }
     ],
     "payments": [
@@ -42,12 +41,17 @@
         "total": "number"
       }
     ],
-    "commissions": [],
     "subsidies": [
       {
         "operationType": "string",
         "type": "string",
         "amount": "number"
+      }
+    ],
+    "commissions": [
+      {
+        "type": "string",
+        "actual": "number"
       }
     ],
     "buyerType": "string",

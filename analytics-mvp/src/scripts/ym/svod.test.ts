@@ -2,7 +2,7 @@
 // каждый дефект ниже уже случался на живых данных июля 2026 и молча искажал результат.
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { buildSvod, svcColumn, isPointsPaid, isNettingFee, bonusKind, ledgerToBy, spendDate, daysAfter, LEDGER_LAG_LIMIT_DAYS, SVC_OTHER, type OrderRow } from "./derive-lib.js";
+import { buildSvod, svcColumn, isPointsPaid, isNettingFee, bonusKind, ledgerToBy, ledgerKnowsPoints, spendDate, daysAfter, LEDGER_LAG_LIMIT_DAYS, SVC_OTHER, type OrderRow } from "./derive-lib.js";
 
 const item = (over: Partial<OrderRow>): OrderRow => ({
   platform: "ym", business: "1", campaign: "1", order: "A", shop_order: "A", pos: 0, service: false,
@@ -476,7 +476,9 @@ describe("списание баллов сверено с отчётом по н
   const ledgerTo = () => ledgerToBy(readNd("data-ym/netting.ndjson"));
 
   const reportByDaySku = () => {
-    const lt = ledgerTo();
+    // То же правило, что в сборке: последний день реестра приходит в два захода - по заказу, чьё списание
+    // ещё не пришло, день не считается известным реестру (ledgerKnowsPoints).
+    const knows = ledgerKnowsPoints(readNd("data-ym/netting.ndjson"));
     const ord = new Map<string, { d: string; status: string }>();
     for (const o of readNd("data-ym/orders.ndjson")) {
       const id = String(o.order || o.id || "");
@@ -489,7 +491,7 @@ describe("списание баллов сверено с отчётом по н
       const o = ord.get(`${r.business}|${r.order}`);
       if (!o || o.status !== "DELIVERED") continue;   // в свод идут только доставленные
       const ds = spendDate(r);
-      if (ds && ds > (lt.get(String(r.business)) || "")) continue;   // в реестр ещё не пришло
+      if (ds && !knows(String(r.business), String(r.order).trim(), ds)) continue;   // в реестр ещё не пришло
       const k = `${r.business}|${o.d}|${r.sku}`;
       out.set(k, (out.get(k) || 0) - (Number(r.amount) || 0));
     }
@@ -847,5 +849,22 @@ describe("ручные связки себестоимости", () => {
     // она обязана выиграть у связки. В коде это `if (skuCost.has(to)) continue`.
     const src = readFileSync("src/scripts/build-cogs-join.ts", "utf-8");
     expect(src, "проверка «своя С\\С важнее связки» пропала").toContain("if (skuCost.has(to)) continue");
+  });
+});
+
+// Последний день реестра приходит в два захода (02.10: списание 18 912 ₽ по заказу 61865181824 за 01.10 есть в
+// отчёте по баллам, в реестре 01.10 ещё нет). Такое списание - «ещё не пришло», а не пропажа из свода.
+describe("последний день реестра: списание баллов по заказу, которого в реестре ещё нет", () => {
+  const N = (d: string, order: string, src = "Скидка за участие в совместных акциях") => ({ d, business: "1", order, src });
+  const knows = ledgerKnowsPoints([N("2026-09-30", "a"), N("2026-10-01", "b"), { d: "2026-10-01", business: "1", order: "c", src: "Оплата услуг Маркета" }]);
+  it("дни до последнего - известны реестру", () => expect(knows("1", "x", "2026-09-30")).toBe(true));
+  it("последний день - только заказы, чьё списание уже пришло", () => {
+    expect(knows("1", "b", "2026-10-01")).toBe(true);
+    expect(knows("1", "c", "2026-10-01"), "пришёл сбор деньгами, списания баллов ещё нет").toBe(false);
+    expect(knows("1", "z", "2026-10-01")).toBe(false);
+  });
+  it("после последнего дня и чужой кабинет - не известны", () => {
+    expect(knows("1", "b", "2026-10-02")).toBe(false);
+    expect(knows("2", "b", "2026-09-01")).toBe(false);
   });
 });

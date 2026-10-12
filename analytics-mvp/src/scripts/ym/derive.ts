@@ -6,8 +6,8 @@
 // Без сети. Запуск: npm run ym:derive [days=30]
 import { existsSync, readFileSync } from "node:fs";
 import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
-import { parseDeliveryCsv, withoutCancelled, resolveOrders, deliveryIssues, type DelivRow, type DelivIssue } from "./delivery-lib.js";
-import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, isNettingFee, isPointsPaid, ledgerToBy, daysAfter, LEDGER_LAG_LIMIT_DAYS, type OrderRow } from "./derive-lib.js";
+import { parseDeliveryCsv, withoutCancelled, resolveOrders, deliveryIssues, delivByOrder, type DelivRow, type DelivIssue } from "./delivery-lib.js";
+import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, cogsLookup, buildAccountDaily, buildSkuOffer, adsStub, promoFromNetting, applyNettingFees, buildSvod, nettingCancelled, nettingNoStatus, isNettingFee, isPointsPaid, ledgerToBy, daysAfter, LEDGER_LAG_LIMIT_DAYS, type OrderRow } from "./derive-lib.js";
 
 function main() {
   ensureDir();
@@ -45,7 +45,10 @@ function main() {
   // Сборы берём из ledger'а кабинета (§15: источник денег - кабинет). Комиссии заказа остаются
   // запасным источником для заказов, которых в ledger'е ещё нет.
   const netAll = readNdjson<any>(yp("netting.ndjson"));
-  const fee = applyNettingFees(rows, netAll);
+  // Проводки «не будет переведён / удержан из-за отмены заказа» - не деньги (ответ «1а» 02.10):
+  // в сборы заказов и уровень кабинета не идут. Блок ACC разбирает их сам (справочная строка).
+  const netLive = netAll.filter((r) => !nettingCancelled(r));
+  const fee = applyNettingFees(rows, netLive);
   rows = fee.rows;
   console.log(`ym-derive: сборы из взаиморасчётов у ${fee.orders_from_netting} заказов, из комиссий заказа у ${fee.orders_from_commissions}`);
   if (Object.keys(fee.unmapped).length) console.warn(`::warning::услуги без группы сборов: ${JSON.stringify(fee.unmapped)}`);
@@ -54,22 +57,6 @@ function main() {
   writeJson(yp("pnl_sku_30d.json"), buildPnlSku(rows, w.dateFrom, w.dateTo));
   writeNdjson(yp("pnl_daily.ndjson"), buildPnlDaily(rows));
   writeNdjson(yp("pnl_sku_daily.ndjson"), buildPnlSkuDaily(rows));
-  // Блок «за выбранный период» - по проводкам реестра и дате транзакции, как отчёт о платежах
-  // Маркета (Катя 28.09.2026). Пары без колонки источника - из заказов, с пометкой.
-  const acc = buildAccNetting(netAll, readNdjson<OrderRow>(yp("orders.ndjson")), cogsLookup(readJson<Record<string, number>>(yp("sku_cogs.json"), {})));
-  writeNdjson(yp("pnl_sku_netting_daily.ndjson"), acc.rows);
-  if (acc.fallback.length) console.warn(`::warning::блок по начислениям: ${acc.fallback.length} пар кабинет/месяц посчитаны из заказов - реестр собран без колонки источника (${acc.fallback.join(", ")}), до перезабора схемой 3`);
-  if (Object.keys(acc.unknown).length) console.warn(`::warning::блок по начислениям: проводки с неизвестным источником ушли в «Прочие услуги»: ${JSON.stringify(acc.unknown)}`);
-  const nettingRows = netAll;
-  writeNdjson(yp("pnl_account_daily.ndjson"), buildAccountDaily(floor, to, nettingRows));
-  writeJson(yp("sku_offer.json"), buildSkuOffer(rows, catalog), 0);
-
-  // Свод по дате заказа (методика v4): отдельный базис, отдельная витрина. Считается по СЫРЫМ
-  // строкам заказов (до подмены сборов реестром): свод берёт услуги из реестра сам, по своим
-  // правилам разнесения, и второй источник тех же услуг дал бы двойной счёт.
-  const cogsMap = readJson<Record<string, number>>(yp("sku_cogs.json"), {});
-  const actRows = readNdjson<any>(yp("services_monthly.ndjson"));
-  const bonusRows = readNdjson<any>(yp("bonuses_monthly.ndjson"));
   // Ведомость доставки - ручной лист (наш расход на перевозку). Живёт в fixtures, потому что
   // источник ручной: API Маркета счёт перевозчика не отдаёт и отдать не может.
   let delivRows: DelivRow[] = [];
@@ -83,7 +70,27 @@ function main() {
     delivRows = resolveOrders(withoutCancelled(parseDeliveryCsv(readFileSync("fixtures/delivery_ym.csv", "utf-8"))), knownOrders, deliveredOrders);
     delivIssues = deliveryIssues(delivRows, deliveredOrders);
   }
-  const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netAll, cogsMap, to, actRows, bonusRows, delivRows);
+  // Блок «за выбранный период» - по проводкам реестра и дате транзакции, как отчёт о платежах
+  // Маркета (Катя 28.09.2026). Пары без колонки источника - из заказов, с пометкой.
+  const acc = buildAccNetting(netAll, readNdjson<OrderRow>(yp("orders.ndjson")), cogsLookup(readJson<Record<string, number>>(yp("sku_cogs.json"), {})),
+    // Наша перевозка по заказу - во второй столбец блока (решение 02.10 «два столбца»).
+    new Map([...delivByOrder(delivRows)].filter(([, v]) => v.known).map(([o, v]) => [o, v.ship])));
+  writeNdjson(yp("pnl_sku_netting_daily.ndjson"), acc.rows);
+  if (acc.fallback.length) console.warn(`::warning::блок по начислениям: ${acc.fallback.length} пар кабинет/месяц посчитаны из заказов - реестр собран без колонки источника (${acc.fallback.join(", ")}), до перезабора схемой 3`);
+  if (Object.keys(acc.unknown).length) console.warn(`::warning::блок по начислениям: проводки с неизвестным источником ушли в «Прочие услуги»: ${JSON.stringify(acc.unknown)}`);
+  const noStatus = nettingNoStatus(netAll);
+  if (noStatus.length) console.warn(`::warning::реестр без статуса платежа (схема до 5): ${noStatus.length} пар кабинет/месяц - отменённые заказы там считаются продажей, до перезабора`);
+  const nettingRows = netLive;
+  writeNdjson(yp("pnl_account_daily.ndjson"), buildAccountDaily(floor, to, nettingRows));
+  writeJson(yp("sku_offer.json"), buildSkuOffer(rows, catalog), 0);
+
+  // Свод по дате заказа (методика v4): отдельный базис, отдельная витрина. Считается по СЫРЫМ
+  // строкам заказов (до подмены сборов реестром): свод берёт услуги из реестра сам, по своим
+  // правилам разнесения, и второй источник тех же услуг дал бы двойной счёт.
+  const cogsMap = readJson<Record<string, number>>(yp("sku_cogs.json"), {});
+  const actRows = readNdjson<any>(yp("services_monthly.ndjson"));
+  const bonusRows = readNdjson<any>(yp("bonuses_monthly.ndjson"));
+  const svod = buildSvod(readNdjson<OrderRow>(yp("orders.ndjson")), netLive, cogsMap, to, actRows, bonusRows, delivRows);
   if (delivRows.length) console.log(`ym-derive: ведомость доставки - ${delivRows.length} отправок Маркета, наш расход на перевозку разнесён по заказам`);
   else console.warn("::warning::ведомость доставки не подключена (fixtures/delivery_ym.csv): наш расход на перевозку в свод не попадёт, прибыль завышена");
   if (bonusRows.length) console.log(`ym-derive: отчёт по баллам - ${bonusRows.length} строк, начисленные баллы берутся из него`);
@@ -162,8 +169,8 @@ function main() {
   // реклама - заглушки (нет источника); не перезаписываем, если кто-то положил реальный снимок с расходом
   const ads = readJson<any>(yp("ads_30d.json"), null);
   if (!ads || !(ads.totals && ads.totals.spend > 0) || ads.promo_from_netting !== undefined) {
-    writeJson(yp("ads_30d.json"), adsStub(w.dateFrom, w.dateTo, promoFromNetting(netAll, w.dateFrom, w.dateTo)));
-    const ap: any = {}; for (const d of [7, 30, 90]) { const ww = windowDays(d, to); ap[`p${d}`] = adsStub(ww.dateFrom, ww.dateTo, promoFromNetting(netAll, ww.dateFrom, ww.dateTo)); }
+    writeJson(yp("ads_30d.json"), adsStub(w.dateFrom, w.dateTo, promoFromNetting(netLive, w.dateFrom, w.dateTo)));
+    const ap: any = {}; for (const d of [7, 30, 90]) { const ww = windowDays(d, to); ap[`p${d}`] = adsStub(ww.dateFrom, ww.dateTo, promoFromNetting(netLive, ww.dateFrom, ww.dateTo)); }
     writeJson(yp("ads_periods.json"), ap, 0);
     writeJson(yp("ads_reports.json"), { platform: "ym", generated_at: new Date().toISOString(), source: "нет источника (реклама Маркета не подключена)", p7: { reports: {} }, p30: { reports: {} }, p90: { reports: {} } }, 0);
   }

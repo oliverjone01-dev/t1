@@ -1,0 +1,49 @@
+name: OpenAI API access check
+on:
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: openai-api-access-check
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Check authentication without text generation
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: python
+        run: |
+          import json, os, urllib.request, urllib.error
+          from pathlib import Path
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          def report(text):
+              print(text)
+              with summary.open("a") as f: f.write(text + "\n\n")
+          key = os.environ.get("OPENAI_API_KEY", "").strip()
+          if not key:
+              report("OPENAI_API_KEY missing in repository Actions secrets.")
+              raise SystemExit(1)
+          request = urllib.request.Request(
+              "https://api.openai.com/v1/models",
+              headers={"Authorization": "Bearer " + key, "Accept": "application/json"},
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=25) as response:
+                  data = json.load(response)
+                  ids = {m.get("id") for m in data.get("data", [])}
+                  report("OpenAI API: HTTP " + str(response.status) + "; authentication accepted.")
+                  report("gpt-6-luna available: " + str("gpt-6-luna" in ids))
+          except urllib.error.HTTPError as error:
+              report("OpenAI API: HTTP " + str(error.code))
+              try:
+                  detail = json.load(error).get("error", {})
+                  report("Error type: " + str(detail.get("type")) + "; code: " + str(detail.get("code")))
+              except Exception:
+                  report("No structured error response.")
+              raise SystemExit(1)
+          except (urllib.error.URLError, TimeoutError):
+              report("Network connection failed or timed out.")
+              raise SystemExit(1)
+          report("No report generation. No Telegram messages. No schedules. Credit balance not checked.")

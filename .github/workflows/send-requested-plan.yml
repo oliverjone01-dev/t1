@@ -1,0 +1,23 @@
+name: Send requested updated daily plan
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/send-requested-plan.yml]
+permissions:
+  contents: read
+  actions: write
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'rop-tg-bot.yml',
+              ref: 'main',
+              inputs: { mode: 'plan', chat: '-1004401671894', mgr: '', report: '' }
+            });
+            core.info('Requested updated daily plan dispatched to the main bot chat.');

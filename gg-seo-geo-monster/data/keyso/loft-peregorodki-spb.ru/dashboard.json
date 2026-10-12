@@ -2,7 +2,7 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-09-28T08:57:37.494Z",
+  "measured": "2026-10-05T09:33:58.884Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
     "id": 118065628,
@@ -13,81 +13,81 @@
         "did": 30654137,
         "name": "m.avito.ru",
         "cnt": 11,
-        "it50": 20416708,
-        "vis": 2144516,
-        "perc": 0.00005387744194607672
+        "it50": 20429102,
+        "vis": 2460454,
+        "perc": 0.00005384475538866075
       },
       {
         "did": 233719002,
         "name": "peregorodki.spb.ru",
         "cnt": 9,
-        "it50": 311,
-        "vis": 6,
-        "perc": 2.8938906752411575
+        "it50": 314,
+        "vis": 5,
+        "perc": 2.8662420382165603
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
         "cnt": 8,
-        "it50": 47464004,
-        "vis": 11126392,
-        "perc": 0.00001685487806717697
+        "it50": 47433228,
+        "vis": 10619690,
+        "perc": 0.000016865813981709193
       },
       {
         "did": 244319620,
         "name": "peregorodka78.ru",
         "cnt": 7,
-        "it50": 104,
+        "it50": 103,
         "vis": 0,
-        "perc": 6.730769230769231
-      },
-      {
-        "did": 30880413,
-        "name": "ginterio.ru",
-        "cnt": 7,
-        "it50": 622,
-        "vis": 2,
-        "perc": 1.1254019292604502
-      },
-      {
-        "did": 31466309,
-        "name": "steklodel-spb.ru",
-        "cnt": 7,
-        "it50": 359,
-        "vis": 1,
-        "perc": 1.9498607242339834
-      },
-      {
-        "did": 30777277,
-        "name": "glcon.ru",
-        "cnt": 7,
-        "it50": 261,
-        "vis": 4,
-        "perc": 2.681992337164751
+        "perc": 6.796116504854369
       },
       {
         "did": 29918498,
         "name": "livemaster.ru",
         "cnt": 7,
-        "it50": 2773473,
-        "vis": 106464,
-        "perc": 0.0002523911355906475
+        "it50": 2778281,
+        "vis": 113528,
+        "perc": 0.0002519543559488763
       },
       {
-        "did": 246444711,
-        "name": "infinity-glass.ru",
+        "did": 30777277,
+        "name": "glcon.ru",
         "cnt": 7,
-        "it50": 2324,
-        "vis": 12,
-        "perc": 0.30120481927710846
+        "it50": 260,
+        "vis": 4,
+        "perc": 2.692307692307692
+      },
+      {
+        "did": 30880413,
+        "name": "ginterio.ru",
+        "cnt": 7,
+        "it50": 595,
+        "vis": 2,
+        "perc": 1.1764705882352942
+      },
+      {
+        "did": 31466309,
+        "name": "steklodel-spb.ru",
+        "cnt": 7,
+        "it50": 354,
+        "vis": 1,
+        "perc": 1.9774011299435028
       },
       {
         "did": 30965690,
         "name": "peregorodkalab.ru",
         "cnt": 7,
-        "it50": 210,
+        "it50": 195,
         "vis": 0,
-        "perc": 3.333333333333333
+        "perc": 3.58974358974359
+      },
+      {
+        "did": 32073658,
+        "name": "peregorodki-spb.ru",
+        "cnt": 7,
+        "it50": 198,
+        "vis": 1,
+        "perc": 3.5353535353535355
       }
     ],
     "it1": 0,
@@ -190,18 +190,6 @@
     },
     "restop5": 7,
     "history": {
-      "2025.04": {
-        "it1": 0,
-        "it3": 0,
-        "it5": 2,
-        "it10": 6,
-        "it50": 26,
-        "pagesInIndex": 3,
-        "adsCount": 0,
-        "adKeysCount": 0,
-        "visAvg": 0,
-        "aiCnt": 0
-      },
       "2025.05": {
         "it1": 0,
         "it3": 1,
@@ -405,6 +393,18 @@
         "adKeysCount": 0,
         "visAvg": 0,
         "aiCnt": 0
+      },
+      "2026.10": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 2,
+        "it50": 15,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
       }
     },
     "linksHistory": {
@@ -513,7 +513,7 @@
         24,
         12
       ],
-      "2026.09": [
+      "2026.10": [
         18,
         117,
         8,

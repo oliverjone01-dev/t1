@@ -1,7 +1,10 @@
 {
   "type": "goods-realization-lost_items_csv",
-  "at": "2026-09-17T12:40:13.440Z",
+  "at": "2026-10-12T08:18:27.500Z",
   "headers": [
+    "PLACEMENT_PROGRAM",
+    "PARTNER_ID",
+    "SHOP_NAME",
     "ORDER_ID",
     "YOUR_ORDER_ID",
     "ORDER_TYPE",
@@ -21,6 +24,7 @@
     "TRANSFERRED_TO_DELIVERY_PRICE_SUM_WITH_VAT_AND_NO_DISCOUNTS",
     "TRANSFERRED_TO_DELIVERY_DISCOUNT_SUM",
     "TRANSFERRED_TO_DELIVERY_PRICE_SUM_WITH_VAT_AND_DISCOUNTS",
+    "VAT_AMOUNT",
     "RNPT",
     "COMPENSATION_DATE",
     "COMPENSATION_AMOUNT",
@@ -45,7 +49,7 @@
     "ADJUSTMENT_INVOICE_NUMBER"
   ],
   "sample_masked": [],
-  "campaign": "149154933",
-  "ym": "2026-08",
+  "campaign": "149001087",
+  "ym": "2026-09",
   "file": "lost_items.csv"
 }

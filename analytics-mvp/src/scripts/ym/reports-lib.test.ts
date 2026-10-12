@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { findCol } from "../../util/table.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, PREV_MONTH_REFETCH_DAYS, nettingRowOf, promoRowOf } from "./reports-lib.js";
+import { realizationRole, isRateLimit, isTransient, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, PREV_MONTH_REFETCH_DAYS, nettingRowOf, promoRowOf } from "./reports-lib.js";
 
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
@@ -190,6 +190,19 @@ describe("лимит генерации отчётов Маркета - мягк
     expect(isRateLimit(new Error('Market POST /reports/united-netting/generate -> HTTP 420: {"errors":[{"code":"METHOD_FAILURE","message":"Hit rate limit of 1 points per 2 minutes"}]}'))).toBe(true);
     expect(isRateLimit(new Error("HTTP 403: API_DISABLED"))).toBe(false);
     expect(isRateLimit(new Error("ECONNRESET"))).toBe(false);
+  });
+  it("обрыв связи - тоже мягкая остановка: живой `fetch failed` 12.10 выбросил 6 скачанных отчётов реестра", () => {
+    expect(isTransient(new TypeError("fetch failed"))).toBe(true);
+    const withCause = Object.assign(new TypeError("request failed"), { cause: { code: "ECONNRESET" } });
+    expect(isTransient(withCause)).toBe(true);
+    expect(isTransient(new Error("Market POST /reports/united-netting/generate -> HTTP 503: unavailable"))).toBe(true);
+    expect(isTransient(new Error("connect ETIMEDOUT 1.2.3.4:443"))).toBe(true);
+  });
+  it("ошибки запроса и разбора НЕ маскируются под сбой связи - они обязаны падать громко", () => {
+    expect(isTransient(new Error("Market POST /reports/united-netting/generate -> HTTP 400: BAD_REQUEST"))).toBe(false);
+    expect(isTransient(new Error("HTTP 403: API_DISABLED"))).toBe(false);
+    expect(isTransient(new Error("Invalid regular expression: /(/i: Unterminated group"))).toBe(false);
+    expect(isTransient(new Error('HTTP 420: {"code":"METHOD_FAILURE"}'))).toBe(false);
   });
 });
 

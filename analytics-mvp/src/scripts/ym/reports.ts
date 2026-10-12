@@ -14,7 +14,7 @@ import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, nettingRowOf, promoRowOf, PROMO_REPORTS, type PromoKind, type PromoRow } from "./reports-lib.js";
+import { realizationRole, isRateLimit, isTransient, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, nettingRowOf, promoRowOf, PROMO_REPORTS, type PromoKind, type PromoRow } from "./reports-lib.js";
 import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
 import { DELIVERED_STATUSES } from "./derive-lib.js";
 
@@ -71,11 +71,21 @@ function budgetLeft(): boolean { if (used >= BUDGET) { budgetSpent = true; conso
 let rateLimited = false;
 // Ждём окно лимита и повторяем. Сдаёмся только когда до дедлайна прогона уже не хватает на ожидание -
 // тогда мягкая остановка отрабатывает как раньше и собранное сохраняется.
+// Обрыв связи останавливает так же мягко, как лимит: флаг rateLimited значит «мягкая остановка,
+// собранное сохраняется, остальное доберёт следующий прогон». Раньше сбой сети пробрасывался, и
+// взаиморасчёты с реализацией теряли всё скачанное за прогон (см. isTransient).
 function stopOnRateLimit(e: unknown, what: string): boolean {
-  if (!isRateLimit(e)) return false;
-  rateLimited = true;
-  console.warn(`::warning::${what}: лимит генерации отчётов Маркета - сохраняю собранное, остальное доберёт следующий прогон`);
-  return true;
+  if (isRateLimit(e)) {
+    rateLimited = true;
+    console.warn(`::warning::${what}: лимит генерации отчётов Маркета - сохраняю собранное, остальное доберёт следующий прогон`);
+    return true;
+  }
+  if (isTransient(e)) {
+    rateLimited = true;
+    console.warn(`::warning::${what}: сбой связи с Маркетом (${String((e as Error).message).slice(0, 120)}) - сохраняю собранное, остальное доберёт следующий прогон`);
+    return true;
+  }
+  return false;
 }
 
 // Ключи на «_» - это документация карты колонок (_live: откуда сняты заголовки и на чём сверено

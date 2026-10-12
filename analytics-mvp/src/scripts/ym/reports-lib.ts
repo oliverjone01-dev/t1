@@ -21,6 +21,15 @@ export function isRateLimit(e: unknown): boolean {
   return /HTTP 420/.test(m) || /rate limit/i.test(m) || /METHOD_FAILURE/.test(m);
 }
 
+// Обрыв связи с Маркетом: сеть, DNS, таймаут сокета, 5xx. Живой факт 12.10 (прогон 38222088709):
+// бэкфилл взаиморасчётов скачал 6 отчётов, на седьмом `fetch failed` - и продьюсер упал целиком,
+// выбросив скачанное и не записав состояние. Повтор такого сбоя в следующем прогоне обычно проходит,
+// поэтому это мягкая остановка с сохранением, а не отказ. HTTP 4xx сюда НЕ входят: это ошибка запроса.
+export function isTransient(e: unknown): boolean {
+  const m = e instanceof Error ? `${e.message} ${String((e as any).cause?.code || "")}` : String(e);
+  return /fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket hang up|UND_ERR|other side closed|HTTP 5\d\d/i.test(m);
+}
+
 // Дедуп проводок взаиморасчётов. Ключ - TRANSACTION_ID: он уникален у Маркета и переживает
 // пересечение месячных окон. Строки без id (старые выгрузки до появления колонки) схлопываются по
 // составному ключу - это может съесть две буквально одинаковые проводки, поэтому такой путь только

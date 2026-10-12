@@ -10,4 +10,22 @@
 .gg-deal-branches button:before{width:12px!important;opacity:.28!important}.gg-deal-branches:hover button:before{width:22px!important;opacity:.68!important}.gg-deal-branches button.gg-near-two:before{width:24px!important;opacity:.82!important}.gg-deal-branches button.gg-near-one:before{width:30px!important;opacity:.92!important}.gg-deal-branches button.gg-rail-hover:before,.gg-deal-branches button:focus-visible:before{width:40px!important;opacity:1!important}
 .gg-deal-event .gg-event-context{margin-top:9px;font-size:10px;line-height:1.5;color:#89939e}.gg-event-context-line{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.gg-event-context .gg-deal-event-time{margin-left:0!important;font-size:10px!important}.gg-event-context .gg-deal-event-time:before{display:none!important}.gg-event-context :is(.badge,.evtag,.callchip,.trchip,.lstage,.due,.st,.gg-deal-event-channel),.gg-event-context .gg-deal-event-channel *{color:#89939e!important;background:transparent!important;border:0!important;box-shadow:none!important;font-weight:400!important;padding:0!important}.gg-event-context .gg-deal-event-marks{margin-top:3px!important;gap:8px!important}.gg-deal-event-meta{gap:5px!important}.gg-deal-event-meta .gg-deal-event-who{font-weight:500!important}.gg-event-context :is(.badge,.evtag,.lstage){text-transform:none!important}.gg-deal-event-meta .gg-event-status{color:#83c9ae!important}.gg-deal-event-meta .gg-status-error{color:#ed8797!important}
 .gg-deal-event-bubble{position:relative;overflow:visible!important}.gg-deal-event-bubble>.gg-event-status{position:absolute;left:-30px;top:50%;transform:translateY(-50%);margin:0!important;width:22px;height:22px}.gg-deal-event-bubble>.gg-event-status:hover{transform:translateY(-50%) scale(1.15)}.gg-deal-event-bubble>.gg-status-good{color:#83c9ae!important}.gg-deal-event-bubble>.gg-status-error{color:#ed8797!important}
-
+.gg-deal-history{padding-left:84px!important}
+body.gg-communications #tip{z-index:10050!important;background:#202730!important;color:#edf2f7!important;border:1px solid #536172!important;border-radius:10px!important;box-shadow:0 10px 30px #0009!important;padding:14px 16px!important;font:13px/1.6 "Segoe UI",sans-serif!important;max-width:340px!important}
+/* Scores first; compact reading hierarchy below. */
+.gg-deal-review .gg-deal-score-layout{display:grid!important;grid-template-columns:280px minmax(0,1fr)!important;gap:18px 28px!important;padding:18px 22px!important;margin:0 0 20px!important;align-items:center!important}
+.gg-deal-review .gg-deal-radar-figure{display:block!important;margin:0!important;width:100%!important;max-width:280px!important}
+.gg-deal-review .gg-deal-radar-figure svg{display:block;width:100%;height:auto;max-height:250px}
+.gg-deal-review .gg-deal-radar-figure figcaption{font-size:11px!important;color:#91a2b5!important;text-align:center;margin-top:5px}
+.gg-deal-review .sc-grid{display:grid!important;grid-template-columns:1fr!important;gap:14px!important;margin:0!important;width:100%!important}
+.gg-deal-review .gg-review-priority{grid-column:1/-1!important;width:100%!important;max-width:none!important;padding:0!important;margin-top:10px!important}
+.gg-deal-review .gg-review-priority h4{font-size:11px!important;font-weight:600!important;letter-spacing:.04em!important;margin:16px 0 7px!important;color:#a5b5c6!important}
+.gg-deal-review .gg-review-priority h4:first-child{margin-top:0!important}
+.gg-deal-review :is(.dsum-v,.dsum-r,.dsum-p){font-size:13px!important;font-weight:400!important;line-height:1.65!important;margin:0!important}
+.gg-deal-review :is(.dsum-r,.dsum-p){padding:11px 14px!important;border-radius:9px!important}
+.gg-deal-review :is(.gg-deal-section-heading h3,.gg-review-audit-title){font-size:15px!important;font-weight:600!important;margin:0 0 16px!important}
+.gg-deal-review .da-cols{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:18px!important}
+.gg-deal-review .gg-review-details{font-size:13px!important;font-weight:400!important;line-height:1.65!important;padding:18px!important}
+.gg-deal-review .gg-review-details h4{font-size:13px!important;font-weight:600!important;margin:0 0 12px!important}
+.gg-deal-review :is(.mk-q,.mk-t,.da-col p,.da-col li){font-size:13px!important;font-weight:400!important;line-height:1.65!important}
+@media(max-width:760px){.gg-deal-review .gg-deal-score-layout{grid-template-columns:1fr!important;padding:16px!important}.gg-deal-review .gg-deal-radar-figure{justify-self:center}.gg-deal-review .da-cols{grid-template-columns:1fr!important}.gg-deal-history{padding-left:58px!important}}

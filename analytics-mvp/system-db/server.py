@@ -225,6 +225,10 @@ class API(BaseHTTPRequestHandler):
     slug=params.get('slug','');version=params.get('version','')
     if not re.fullmatch(r'[a-z0-9-]+',slug) or not re.fullmatch(r'[a-f0-9]{64}',version):raise ValueError('Invalid selection')
     c=CONNECT()
+    if self.headers.get('If-None-Match')=='"'+version+'"':
+     with c.cursor() as q:q.execute('SELECT 1 FROM gg_system.payloads WHERE slug=%s AND version=%s',(slug,version));exists=q.fetchone()
+     if exists:
+      self.send_response(304);self.send_header('Cache-Control','private, max-age=31536000, immutable');self.send_header('ETag','"'+version+'"');self.send_header('Vary','Accept-Encoding');self.end_headers();return
     with c.cursor() as q:
      q.execute("SET LOCAL statement_timeout='12s'");q.execute('SELECT wire FROM gg_system.payloads WHERE slug=%s AND version=%s',(slug,version));row=q.fetchone()
     if not row:self.send_error(404);return
@@ -248,4 +252,3 @@ if __name__=='__main__':
  elif len(sys.argv)>1 and sys.argv[1]=='disk':disk_report()
  elif len(sys.argv)>1 and sys.argv[1]=='dialog-sync':sync_dialog(SITE/'dialog/index.html')
  else:ThreadingHTTPServer(('127.0.0.1',18765),API).serve_forever()
-

@@ -24,3 +24,6 @@ for k,v in A.items():
         for t,val in v.items(): r[(key,t)].append(val/floor)
 for (key,t),x in sorted(r.items()):
     x=sorted(x); print('товар в акциях %-4s цена акции %s / предельная: n=%d медиана %.3f p10 %.3f p90 %.3f; =предельной (±1%%) %.0f%%'%(key,t,len(x),S.median(x),x[len(x)//10],x[9*len(x)//10],100*sum(abs(v-1)<=0.01 for v in x)/len(x)))
+B={(p['d'],p['offer']):p['before'] for p in L('prices_daily.ndjson') if p['d']>='2026-09-23' and p.get('before')}
+x=sorted(float(a['value'])/B[(a['date'],a['art'])] for a in L('acts_daily.ndjson') if 'Эластичный' in a['title'] and (a['date'],a['art']) in B)
+print('цена «Эластичного» / зачёркнутая: n=%d медиана %.3f (ниже зачёркнутой на %.0f%%)'%(len(x),S.median(x),(1-S.median(x))*100))

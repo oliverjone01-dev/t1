@@ -41,3 +41,19 @@ for s,x in R.items():
 for s,v in REV.items():
     if s[:7] in mo: mo[s[:7]][1]+=v
 print('расход за заказ / выручка заказов без отмен по месяцам:',' '.join('%s %.1f%%'%(m,100*a/b) for m,(a,b) in sorted(mo.items()) if b))
+# Поправка ФЕНИКСА 13.10: ставки менялись вместе с сезоном (июнь 7-9%, сентябрь 5%), поэтому добавляем месяц
+# (с 2 половинами августа) и ошибки Newey-West (лаг 7), отдельно показы и заказы.
+def nw(X,y,lag=7):
+    b=np.linalg.lstsq(X,y,rcond=None)[0]; e=y-X@b; n=len(y); XtXi=np.linalg.inv(X.T@X)
+    S0=(X*e[:,None]).T@(X*e[:,None])
+    for l in range(1,lag+1):
+        w=1-l/(lag+1); G=(X[l:]*e[l:,None]).T@(X[:-l]*e[:-l,None]); S0+=w*(G+G.T)
+    V=XtXi@S0@XtXi; return b,np.sqrt(np.diag(V))
+mk=lambda s:s[:7]+('a' if s[:7]=='2026-08' and s[8:]<='16' else 'b' if s[:7]=='2026-08' else '')
+ms=sorted({mk(x[0]) for x in rows})
+X2=np.array([[1,x[1]]+[1 if x[2]==k else 0 for k in range(1,7)]+[1 if mk(x[0])==m else 0 for m in ms[1:]] for x in rows],float)
+for nm,yy in (('показы рекламы за заказ',np.log([x[3] for x in rows])),('заказы магазина',np.log([x[5]+1 for x in rows]))):
+    b,se=nw(X2,yy); print('с поправкой на месяц и день недели, %s: +1 п. ставки -> %+.1f%% (95%% ДИ Newey-West %+.1f..%+.1f), n=%d'%(nm,(math.exp(b[1])-1)*100,(math.exp(b[1]-1.96*se[1])-1)*100,(math.exp(b[1]+1.96*se[1])-1)*100,len(yy)))
+by=C.defaultdict(list)
+for x in rows: by[(mk(x[0]),x[1])].append(x[3])
+print('медиана показов по месяцу и ставке:',' '.join('%s %d%%: %d тыс. (%d дн.)'%(m,r,S.median(v)/1e3,len(v)) for (m,r),v in sorted(by.items())))

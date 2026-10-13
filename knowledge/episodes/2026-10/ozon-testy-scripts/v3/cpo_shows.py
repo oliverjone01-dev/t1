@@ -29,3 +29,7 @@ for d in sorted({k[0] for k in V}):
     a=V[(d,'na')]; b=V[(d,'ad')]; c=CPO.get(d,{}); p=pos.get(d,[])
     wp=sum(x*w for x,w in p)/sum(w for x,w in p) if p else 0
     print('%s %4d | %6d %6d %5d | %6d | %6d | %3d | %5.0f %5.0f | %s'%(d[5:],n[d],a['views'],a['vsearch'],a['pdp'],c.get('vw',0),b['views'],O[d],S.median([x for x,w in p]) if p else 0,wp,rate.get(d,'')))
+def avg(a,b,f):
+    dd=[d for d in sorted({k[0] for k in V}) if a<=d[5:]<=b]; return sum(f(d) for d in dd)/len(dd)
+for nm,f in (('показы нерекл. в поиске',lambda d:V[(d,'na')]['vsearch']),('заходы нерекл.',lambda d:V[(d,'na')]['pdp']),('заказы магазина',lambda d:O[d])):
+    a=avg('08-20','08-27',f); b=avg('08-29','09-03',f); print('%s в день: 20-27.08 %.1f -> 29.08-03.09 %.1f (%+.0f%%)'%(nm,a,b,(b/a-1)*100))

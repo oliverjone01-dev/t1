@@ -55,3 +55,21 @@ for _ in range(2000):
 print('плацебо (товары без рекламы, случайный день), d+3: n=%d медиана %s, доля упавших >5%%: %.0f%%'%(len(pl),pct(S.median(pl)),100*sum(x<math.log(0.95) for x in pl)/len(pl)))
 if '-v' in sys.argv:
     for s,d,b,r in sorted(ev,key=lambda e:e[1]): print(s2a.get(s,s),d,'%6.0f'%b,' '.join(pct(x) for x in r))
+# Поправка ФЕНИКСА 13.10: одна кампания = одно событие; бюджет - расход всей кампании в день (только дни с данными).
+CSP=C.defaultdict(C.Counter); SC=C.defaultdict(set)
+for r in L('ads_sku_daily.ndjson'):
+    CSP[r['cid']][r['d']]+=r['sp']
+    if r['sp']>0: SC[(r['sku'],r['d'])].add(r['cid'])
+cl=C.defaultdict(list)
+for s,d,b,r in ev:
+    for c in SC[(s,d)]: cl[(d,c)].append(r[3])
+print('по кампаниям (кампания + дата старта = одно событие): %d событий'%len(cl))
+rows=[]
+for (d,c),v in sorted(cl.items()):
+    dd=[x for x in (sh(d,k) for k in range(5)) if x in CSP[c]]; b=S.mean(CSP[c][x] for x in dd) if dd else 0
+    rows.append((d,c,len(v),b,S.median(v)))
+for lo,hi in ((0,300),(300,1500),(1500,1e9)):
+    x=[r[4] for r in rows if lo<=r[3]<hi]
+    if x: print('  кампания %d-%s ₽/день: событий %d, медиана изменения цены к 3 дню %s, подешевели >5%%: %d из %d'%(lo,int(hi) if hi<1e9 else '+',len(x),pct(S.median(x)),sum(v<math.log(0.95) for v in x),len(x)))
+if '-c' in sys.argv:
+    for d,c,n,b,m in rows: print('   ',d,c,'товаров',n,'%.0f ₽/день'%b,pct(m))

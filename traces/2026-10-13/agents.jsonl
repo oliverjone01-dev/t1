@@ -1,1 +1,3 @@
 {"ts": "2026-10-13T06:23:44+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/0:, /home/user/t1/50:, /home/user/t1/:"}
+{"ts": "2026-10-13T06:30:57+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1-v3/analytics-mvp, /home/user/t1-v3/knowledge/episodes/2026-10/ozon-testy-scripts/shows_model.py, /home/user/t1/analytics-mvp, /home/user/t1/sm_v3.py"}
+{"ts": "2026-10-13T06:32:22+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/=''}"}

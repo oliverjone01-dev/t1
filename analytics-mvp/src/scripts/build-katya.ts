@@ -1959,7 +1959,18 @@ function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any
   // выгрузки (cpo_sku_daily), как у «Отчета».
   const co = cpoOrdersByDay(dp);
   const cpoRev = Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.rev), co.day[d]!.units]);
-  const cpoWin: string[][] = co.from ? [[co.from, co.to]] : [];
+  // Окно с 1-го числа месяца начала выгрузки - как покрытие на «Отчете» (cpoCov; ФЕНИКС N6).
+  const cpoWin: string[][] = co.from ? [[co.from.slice(0, 7) + "-01", co.to]] : [];
+  // Чья это выгрузка (ФЕНИКС N5): кампания, чей расход API за дни выгрузки ближе всего к списаниям выгрузки (сен: 28753239,
+  // сборка 13.10: 28753239, 4 323 199 = 4 323 199 за 05.06-30.09).
+  let cpoCid = "", cpoCidSp = 0;
+  const cpoSpAll = Object.values(co.day).reduce((x, v) => x + v.sp, 0);
+  if (co.from) {
+    const byId: Record<string, number> = {};
+    try { for (const l of readFileSync(dp("ads_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.d >= co.from && r.d <= co.to) byId[String(r.id)] = (byId[String(r.id)] || 0) + (Number(r.sp) || 0); } } catch { /* нет ряда */ }
+    for (const [id, v] of Object.entries(byId)) if (!cpoCid || Math.abs(v - cpoSpAll) < Math.abs(cpoCidSp - cpoSpAll)) { cpoCid = id; cpoCidSp = v; }
+  }
+  console.log(`kartochki: кампания выгрузки ${cpoCid || "-"}: расход API ${Math.round(cpoCidSp)} против списаний выгрузки ${Math.round(cpoSpAll)}`);
   console.log(`kartochki: «Оплата за заказ» по заказам ${cpoRev.length} дн, окно ${co.from || "-"}..${co.to || "-"}, без заказа в orders_daily ${co.miss}`);
   // JS «Маркетинга» как есть, в замыкании; наружу - только перерисовка таблицы кампаний.
   const mk = `var __mkRender=(function(){
@@ -2011,14 +2022,16 @@ function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
 // Выручка кампании «Оплата за заказ» (Иван 02.10, 13.10): API отдаёт по ней 0, берём выручку заказов из выгрузки кабинета
 // без отменённых, по дате заказа - тем же расчётом, что «Отчет» (cpo-orders-rev.ts). Расход - из API как был.
 var CPO_REV=${J(cpoRev)};
-var CPO_WIN=${J(cpoWin)};
+var CPO_WIN=${J(cpoWin)},CPO_CID=${J(cpoCid)};
 // ДРР «Оплаты за заказ» (ФЕНИКС G4 13.10): выручка известна только в днях выгрузки (CPO_WIN), поэтому и расход берётся
 // только за эти дни периода; период шире выгрузки - пометка в ячейке. Нет дневного ряда - расход периода и пометка.
 function cpoRevFix(a){if(!a||!a.all)return '';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
   var cov=[],nCov=0,nAll=Math.round((Date.parse(a.dateTo)-Date.parse(a.dateFrom))/864e5)+1;CPO_WIN.forEach(function(w){var f=w[0]>a.dateFrom?w[0]:a.dateFrom,t=w[1]<a.dateTo?w[1]:a.dateTo;if(f<=t){cov.push([f,t]);nCov+=Math.round((Date.parse(t)-Date.parse(f))/864e5)+1;}});
   if(!CPO_WIN.length){cov=[[a.dateFrom,a.dateTo]];nCov=nAll;}
   var inCov=function(d){for(var k=0;k<cov.length;k++)if(d>=cov[k][0]&&d<=cov[k][1])return true;return false;};
-  r=Math.round(r);var hit=0;a.all.forEach(function(c){if(!isCPO(c)||!r||hit)return;hit=1;c.om=r;c.cpoRev=r;c.cpoU=u;
+  r=Math.round(r);var hit=0,isRep=function(c){return String(c.id)===String(CPO_CID);},anyRep=a.all.some(isRep);
+  // Выручка выгрузки - на её кампанию (CPO_CID, сборка; ФЕНИКС N5); кампании нет в периоде - на первую CPO.
+  a.all.forEach(function(c){if(!(anyRep?isRep(c):isCPO(c))||!r||hit)return;hit=1;c.om=r;c.cpoRev=r;c.cpoU=u;
     var sc=c.sp,exact=false;if(a.daily&&typeof ADS_DAILY!=='undefined'&&ADS_DAILY&&ADS_DAILY.length){sc=0;for(var k=0;k<ADS_DAILY.length;k++){var y=ADS_DAILY[k];if(String(y.id)===String(c.id)&&y.d>=a.dateFrom&&y.d<=a.dateTo&&inCov(y.d))sc+=y.sp;}exact=true;}
     c.drr=Math.round(sc/r*1000)/10;c.cpoPart=nCov<nAll?{days:nCov,all:nAll,win:cov.map(function(w){return w[0]+'..'+w[1];}).join(', '),sp:Math.round(sc),exact:exact}:null;
     if(a.totals){a.totals.adRevenue+=r;a.totals.drr=a.totals.adRevenue?Math.round(a.totals.spend/a.totals.adRevenue*1000)/10:0;}});

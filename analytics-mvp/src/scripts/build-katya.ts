@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
+import { cpoOrdersByDay } from "./cpo-orders-rev.js";
 import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
 import { accLedgerFullTo, nettingNoStatus, splitNoStatus, accCutDays, accDocRows } from "./ym/derive-lib.js";
 import { FLOOR as YM_FLOOR } from "./ym/common.js";
@@ -1953,31 +1954,13 @@ const CPC_CARD_BADGE = `if(x.cpcNb)stb+=' <span style="color:#A78BFA" title="Д�
 const CPC_CARD_RENDER = `
   renderOrdersAnalytics(cur);if(typeof __mkRender==='function')__mkRender(cur);try{syncTopScroll();}catch(e){}return; // «Реклама по карточкам»: только таблица по заказам и кампании`;
 function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any): void {
-  // Выручка и штуки «Оплаты за заказ» (Иван 13.10): «Стоимость, ₽» строки отчёта без отменённых заказов, по дате
-  // заказа - как «Отчет» (report-page.ts): статус и дата - из отправлений заказа в orders_daily. Отчёт ставит
-  // дату списания (у 20 из 191 строк сен на день позже). Заказ, у которого отменены все отправления, выпадает;
-  // при смешанных статусах решает отправление с тем же SKU. Заказа нет в orders_daily - дата отчёта, не отменён.
-  const cpoRevD: Record<string, [number, number]> = {};
-  try {
-    const cpoRows = readFileSync(dp("cpo_card_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
-    const need = new Set(cpoRows.map((r: any) => String(r.order)));
-    const post: Record<string, { d: string; sku: string; canc: boolean }[]> = {};
-    try { for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); const o = String(r.order || ""); const k = o.slice(0, o.lastIndexOf("-")); if (need.has(k)) (post[k] ||= []).push({ d: String(r.d), sku: String(r.sku || ""), canc: r.status === "cancelled" }); } } catch { /* нет orders_daily */ }
-    let nCanc = 0, nMiss = 0;
-    for (const r of cpoRows) {
-      const ps = post[String(r.order)] || [];
-      const same = ps.filter((p) => p.sku === String(r.sku));
-      const canc = ps.length > 0 && (ps.every((p) => p.canc) || (!ps.every((p) => !p.canc) && same.length > 0 && same.every((p) => p.canc)));
-      if (!ps.length) nMiss++;
-      if (canc) { nCanc++; continue; }
-      const d = ps.length ? ps.map((p) => p.d).sort()[0]! : String(r.d);
-      const v = (cpoRevD[d] ||= [0, 0]); v[0] += Number(r.rev || 0); v[1] += Number(r.n || 0);
-    }
-    console.log(`kartochki: «Оплата за заказ» из отчёта ${cpoRows.length} строк, отменённых ${nCanc}, без заказа в orders_daily ${nMiss}`);
-  } catch { /* нет отчёта - выручка CPO как в API */ }
-  let cpoWin: string[][] = [];
-  try { cpoWin = JSON.parse(readFileSync(dp("cpo_card_windows.json"), "utf-8")); } catch { /* нет окон - ДРР по расходу периода */ }
-  const cpoRev = Object.keys(cpoRevD).sort().map((d) => [d, Math.round(cpoRevD[d]![0]), cpoRevD[d]![1]]);
+  // Выручка и штуки «Оплаты за заказ» (Иван 13.10, «все да»): та же функция, что у «Отчета» (cpo-orders-rev.ts) -
+  // выгрузка кабинета cpo_orders + отправления orders_daily без отменённых, по дате заказа. Окно для ДРР - покрытие
+  // выгрузки (cpo_sku_daily), как у «Отчета».
+  const co = cpoOrdersByDay(dp);
+  const cpoRev = Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.rev), co.day[d]!.units]);
+  const cpoWin: string[][] = co.from ? [[co.from, co.to]] : [];
+  console.log(`kartochki: «Оплата за заказ» по заказам ${cpoRev.length} дн, окно ${co.from || "-"}..${co.to || "-"}, без заказа в orders_daily ${co.miss}`);
   // JS «Маркетинга» как есть, в замыкании; наружу - только перерисовка таблицы кампаний.
   const mk = `var __mkRender=(function(){
 ${MKT_SHARE.js}
@@ -1991,7 +1974,7 @@ function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
   AN_CPC.ev.forEach(function(e){if(e[0]<from||e[0]>to)return;var a=at(e[1],e[2]);a.sold+=e[3];a.om+=e[4];e[5].forEach(function(x){a.nbu[x[0]]=(a.nbu[x[0]]||0)+x[1];a.nbr[x[0]]=(a.nbr[x[0]]||0)+x[2];});a.uu+=e[6];a.ur+=e[7];});
   var camps={};((lastA&&(lastA.all||lastA.top_spend))||[]).forEach(function(c){camps[String(c.id)]=c;});
   document.querySelectorAll('#top .ad-exp').forEach(function(tr){var i=tr.getAttribute('data-i'),id=tr.getAttribute('data-id'),cs=A[id],c=camps[id];
-    if(c&&isCPO(c)&&c.cpoRev){var td=tr.children;if(td[4])td[4].innerHTML='<span title="Стоимость заказов без отменённых из отчёта кабинета «Оплата за заказ» по заказам (как на «Отчете»)">'+fmtRu(c.cpoRev)+'</span>';if(td[5])td[5].innerHTML='<span title="Количество, шт - из того же отчёта по заказам">'+fmtRu(c.cpoU)+'</span>';if(td[6]){td[6].style.color=drrCol(c.drr);var pp=c.cpoPart;td[6].innerHTML=pp?'<span title="ДРР по дням выгрузки кабинета '+pp.win+' ('+pp.days+' из '+pp.all+' дн. периода): расход '+(pp.exact?'за эти дни ':'всего периода ')+fmtRu(pp.sp)+' ₽ / выручка '+fmtRu(c.cpoRev)+' ₽. Вне этих дней выручки «Оплаты за заказ» нет.">'+c.drr+'%<span style="color:#E5B567">*</span><div style="font-size:11px;color:#E5B567">'+pp.days+' из '+pp.all+' дн.</div></span>':c.drr+'%';}}
+    if(c&&isCPO(c)&&c.cpoRev){var td=tr.children;if(td[4])td[4].innerHTML='<span title="Выручка заказов «Оплаты за заказ» без отменённых: заказы из выгрузки кабинета, суммы из отправлений Seller API - тот же расчёт, что на «Отчете»">'+fmtRu(c.cpoRev)+'</span>';if(td[5])td[5].innerHTML='<span title="Штуки тех же отправлений без отменённых">'+fmtRu(c.cpoU)+'</span>';if(td[6]){td[6].style.color=drrCol(c.drr);var pp=c.cpoPart;td[6].innerHTML=pp?'<span title="ДРР по дням выгрузки кабинета '+pp.win+' ('+pp.days+' из '+pp.all+' дн. периода): расход '+(pp.exact?'за эти дни ':'всего периода ')+fmtRu(pp.sp)+' ₽ / выручка '+fmtRu(c.cpoRev)+' ₽. За остальные дни периода выгрузки кабинета нет, выручка неизвестна.">'+c.drr+'%<span style="color:#E5B567">*</span><div style="font-size:11px;color:#E5B567">'+pp.days+' из '+pp.all+' дн.</div></span>':c.drr+'%';}}
     // «Оплата за заказ» без раскрытия (Иван 02.10): разбивки по SKU у неё здесь нет.
     if(c&&isCPO(c)){var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent='';tr.style.cursor='default';document.querySelectorAll('#top .ad-sub[data-i="'+i+'"]').forEach(function(s){s.remove();});}
     if(!cs||!c||isCPO(c))return;
@@ -2025,11 +2008,11 @@ function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
     document.querySelectorAll('#top .ad-sub[data-i="'+i+'"]').forEach(function(s){s.remove();});
     tr.insertAdjacentHTML('afterend',html);});
 }
-// Выручка кампании «Оплата за заказ» (Иван 02.10, 13.10): API отдаёт по ней 0, берём «Стоимость, ₽» без отменённых
-// из отчёта кабинета по заказам (data/cpo_card_orders.ndjson, по дате заказа, как «Отчет»). Расход - из API как был.
+// Выручка кампании «Оплата за заказ» (Иван 02.10, 13.10): API отдаёт по ней 0, берём выручку заказов из выгрузки кабинета
+// без отменённых, по дате заказа - тем же расчётом, что «Отчет» (cpo-orders-rev.ts). Расход - из API как был.
 var CPO_REV=${J(cpoRev)};
 var CPO_WIN=${J(cpoWin)};
-// ДРР «Оплаты за заказ» (ФЕНИКС G4 13.10): выручка есть только в днях выгрузки (CPO_WIN), поэтому и расход берётся
+// ДРР «Оплаты за заказ» (ФЕНИКС G4 13.10): выручка известна только в днях выгрузки (CPO_WIN), поэтому и расход берётся
 // только за эти дни периода; период шире выгрузки - пометка в ячейке. Нет дневного ряда - расход периода и пометка.
 function cpoRevFix(a){if(!a||!a.all)return '';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
   var cov=[],nCov=0,nAll=Math.round((Date.parse(a.dateTo)-Date.parse(a.dateFrom))/864e5)+1;CPO_WIN.forEach(function(w){var f=w[0]>a.dateFrom?w[0]:a.dateFrom,t=w[1]<a.dateTo?w[1]:a.dateTo;if(f<=t){cov.push([f,t]);nCov+=Math.round((Date.parse(t)-Date.parse(f))/864e5)+1;}});
@@ -2039,7 +2022,7 @@ function cpoRevFix(a){if(!a||!a.all)return '';var r=0,u=0,d0='',d1='';for(var i=
     var sc=c.sp,exact=false;if(a.daily&&typeof ADS_DAILY!=='undefined'&&ADS_DAILY&&ADS_DAILY.length){sc=0;for(var k=0;k<ADS_DAILY.length;k++){var y=ADS_DAILY[k];if(String(y.id)===String(c.id)&&y.d>=a.dateFrom&&y.d<=a.dateTo&&inCov(y.d))sc+=y.sp;}exact=true;}
     c.drr=Math.round(sc/r*1000)/10;c.cpoPart=nCov<nAll?{days:nCov,all:nAll,win:cov.map(function(w){return w[0]+'..'+w[1];}).join(', '),sp:Math.round(sc),exact:exact}:null;
     if(a.totals){a.totals.adRevenue+=r;a.totals.drr=a.totals.adRevenue?Math.round(a.totals.spend/a.totals.adRevenue*1000)/10:0;}});
-  return hit?' · выручка «Оплата за заказ» - из отчёта кабинета по заказам за '+(cov.length?cov.map(function(w){return w[0]+'..'+w[1];}).join(', '):d0+'..'+d1):'';}
+  return hit?' · выручка «Оплата за заказ» - из выгрузки кабинета по заказам за '+(cov.length?cov.map(function(w){return w[0]+'..'+w[1];}).join(', '):d0+'..'+d1):'';}
 return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(cur.from,cur.to):bakedFor();lastA=a;var cr=cpoRevFix(a);var s1=document.getElementById('src1');if(s1)s1.innerHTML='источник: OZON Performance API (прямой'+(a.daily?', дневной ряд':'')+') <span class="kt-src">'+(a.daily?'за период ':'снимок за ')+(a.dateFrom||'')+'..'+(a.dateTo||'')+cr+'</span>'+staleMark(a.dateTo);renderTop();cardSub();};
 })();`;
   const intro = `<section class="card"><div class="card-h"><div><div class="card-title">Реклама за клик по объединённым карточкам</div><div class="card-sub">Таблица ниже - та же, что «Аналитика по заказам» на «Деньгах», отличается колонка <b>«Реклама»</b> строк (и вслед за ней «К выплате» и прибыль строк), а если реклама товара без заказов в периоде переехала на заказ соседа - ещё «Прочие» в строке «Общие расходы» (сумма переезда - в плашке ниже). Реклама за клик (CPC) делится <b>по атрибуции OZON</b>: если клик по рекламе товара закончился покупкой соседа по объединённой карточке, доля расхода (по штукам) стоит на заказе этого соседа, строка помечена «реклама соседа». Соседа находим по заказу товара той же карточки в день атрибуции: штуки и сумма совпадают с отчётом (допуск 1%); на отчётах кабинета март-июль совпало 21 из 22. Состав карточек - снимок кабинета от <b>${cpc?.snap || "-"}</b>. Отменённый потом заказ соседа получает свою долю. Остальное остаётся на рекламируемом товаре и делится по его заказам по штукам: свои продажи, сосед не найден, без продаж, дни и кампании без атрибуции в нашем сборе. Итог «К выплате» тот же, что на «Деньгах»: меняется только, на каком заказе стоит реклама. Разница АДМ и чистой прибыли с «Деньгами» за выбранный период - в плашке ниже. Покрытие атрибуцией неполное: наш сбор отчёта атрибуции берёт не все кампании и не все дни (по отчётам кабинета продвижения, выгрузка 01.10, доля расхода на соседей: август 352 034 ₽, сентябрь 316 746 ₽ - сравни с плашкой ниже) - суммы без атрибуции выделены жёлтым в плашке, в кампаниях это строка «Нет данных: продажи без разбивки на свою и соседа».</div></div></div>

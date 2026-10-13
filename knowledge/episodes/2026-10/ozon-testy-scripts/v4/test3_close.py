@@ -41,3 +41,29 @@ for p in T['пары']:
     dO=B['wk'](B['units'])-M['wk'](M['units']); dS=B['wk'](B['sp'])-M['wk'](M['sp'])
     unit=KEEP*B['price']-(B['cogs'] or 0)
     print('  доп. заказов в неделю %+.1f, доп. расход %+.0f ₽/нед; с заказа до логистики ~%.0f ₽ (44%% предельной - себестоимость %s) -> итог %+.0f ₽/нед'%(dO,dS,unit,B['cogs'],dO*unit-dS))
+
+# --- Поправка 13.10: заказы без отмен (orders_daily, как в Word 12.10), заказы всей объединённой карточки и ДРР по кабинету
+# (ads_daily: расход / выручка заказов с рекламы по кампании). Правило теста: +3 заказа в неделю и ДРР <= 15%.
+import datetime as dt
+OD=[json.loads(l) for l in open(D+'orders_daily.ndjson')]
+AD=[json.loads(l) for l in open(D+'ads_daily.ndjson')]
+CG=json.load(open(D+'card_groups.json'))['groups']
+card={x['offer']:g['main'] for g in CG for x in g['skus']}
+members=C.defaultdict(set)
+for g in CG:
+    for x in g['skus']: members[g['main']].add(x['offer'])
+LO=max(x['d'] for x in OD)
+def units(arts,f,t): return sum(x['units'] for x in OD if x['offer'] in arts and f<=x['d']<=t and x['status']!='cancelled')
+def nd(f,t): return (dt.date.fromisoformat(t)-dt.date.fromisoformat(f)).days+1
+sh=lambda d,k:(dt.date.fromisoformat(d)+dt.timedelta(k)).isoformat()
+print('\n--- без отмен (orders_daily по %s), карточка целиком, ДРР по кабинету'%LO)
+for p in T['пары']:
+    B,M=p['большая'],p['малая']
+    fB=B.get('с') or p['старт']; tB=min(B.get('по') or LO,LO); fM=M.get('с') or p['старт']; tM=min(M.get('по') or LO,LO)
+    oB=units({B['артикул']},fB,tB)/nd(fB,tB)*7; oM=units({M['артикул']},fM,tM)/nd(fM,tM)*7
+    cid=B['кампания'].split(',')[0].strip()
+    sp=sum(x['sp'] for x in AD if x['id']==cid and fB<=x['d']<=tB); om=sum(x['om'] for x in AD if x['id']==cid and fB<=x['d']<=tB)
+    cm=card.get(B['артикул']); arts=members.get(cm,{B['артикул']})
+    pre_f=sh(fB,-14); cpre=units(arts,pre_f,sh(fB,-1))/14*7; cpost=units(arts,fB,tB)/nd(fB,tB)*7
+    print('%-32s заказы/нед большая %.1f, малая %.1f (разница %+.1f, правило +3: %s); ДРР кабинета большой %s; заказы всей карточки %s/нед: 14 дн. до %.1f -> окно %.1f'%(
+        p['название'],oB,oM,oB-oM,'да' if oB-oM>=3 else 'нет','%.1f%%'%(sp/om*100) if om else '-',cm,cpre,cpost))

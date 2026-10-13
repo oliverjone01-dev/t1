@@ -69,6 +69,25 @@ d['pilot'] = dict(wait=', '.join(pj['wait']), nwait=len(pj['wait']), nnow=pj['n_
                   mde={str(k): f'+{v:.0%}' for k, v in pj['mde'].items()})
 d['base'] = dict(units=sum(F.U_all.values()), rev=pc(F.rev / 1e6, '.1f'), SH=pc(F.SH, '.2f'), shp=pc(0.04 * F.SH, '.1%'),
                  clk_act=rub(round(R[('В0', 'средний')]['clk'] / 2 / 1000)), cpo_wk=rub(round(F.cpo_sp / F.WEEKS / 1000)))
+# I2 ФЕНИКСА: первые 2 недели так, как в «Предлагаю» (цена у артикулов вне карточек теста 4, на минимум только KONUX)
+wait_skus = [o['sku'] for o in lst if o['art'] in pj['wait']]
+d['first2w'] = [t(F.first2w(sc, wait_skus)) for sc in SC]
+act = {k_ for k_, c in F.camp.items() if F.active(c)}
+now = set(F.lst) - set(wait_skus)
+p17 = F.run('В1б', 'средний', eps=0, cut=now, keep=act)['prof'] - F.run('В0', 'средний')['prof']
+p26 = F.run('В1б', 'средний', eps=0, keep=act)['prof'] - F.run('В0', 'средний')['prof']
+d['loss4w'] = t(p17 + p26)       # цена без прироста заказов: 2 недели 17 артикулов + 2 недели все 26
+# I3: порог отката по шуму - падение заказов карточек опыта к магазину за 2 недели, ложный откат при нулевом эффекте
+import math
+T2, C2 = pj['T'] / F.WEEKS * 2, pj['C'] / F.WEEKS * 2
+se2 = math.sqrt(2 / T2 + 2 / C2)
+Nrm = lambda z: 0.5 * (1 + math.erf(z / math.sqrt(2)))
+d['rollback'] = dict(thr='-50%', false=f'{Nrm(math.log(0.5) / se2):.0%}', at23=f'{Nrm((math.log(0.5) - math.log(1.23)) / se2):.0%}')
+# I1: клик «сейчас» по темпу кампаний с даты запуска
+F.RATE = True
+d['rate'] = dict(clk=rub(round(F.run('В0', 'средний')['clk'] / 1000)), dec=[t(F.run('Вк', sc)['prof'] - F.run('В0', sc)['prof']) for sc in SC],
+                 v1v2=[t(F.run('В1б', sc)['prof'] - F.run('В2', sc)['prof']) for sc in SC])
+F.RATE = False
 d['drr0'] = d['ops'][0][4]; d['drr1'] = d['ops'][1][4]; d['drr2'] = d['ops'][3][4]
 json.dump(d, open('/tmp/ozon-v5/doc.json', 'w'), ensure_ascii=False, indent=1)
-print(json.dumps({k: d[k] for k in ('main', 'dec', 'ops', 'eps', 'm9eq', 'sh9_100', 'pilot', 'own_kuvino', 'pay', 'base')}, ensure_ascii=False))
+print(json.dumps({k: d[k] for k in ('first2w', 'loss4w', 'rollback', 'rate', 'main', 'dec', 'ops', 'eps', 'm9eq', 'sh9_100', 'pilot', 'own_kuvino', 'pay', 'base')}, ensure_ascii=False))

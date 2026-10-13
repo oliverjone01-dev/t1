@@ -9,7 +9,7 @@
 # Параметры товара (доля К выплате с 01.09, себестоимость, доставка, доля витрины) - из исправленной модели пола цены
 # (ozon-price-floor/floor.py, его запускает list26.py). Запуск: python3 -I list26.py <xlsx>; python3 -I forecast.py
 # Выход с прибылью по артикулам - /tmp/ozon-v5/forecast.json, в репозиторий не кладётся (репо публичный).
-import json, collections as C, statistics as S, math, os
+import json, collections as C, statistics as S, math, os, datetime as dt
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = HERE.split('knowledge/')[0]; D = ROOT + 'analytics-mvp/data/'
 L = lambda f: [json.loads(l) for l in open(D + f)]
 A, B = '2026-09-14', '2026-10-11'; WEEKS = 4; H = 2            # окно базы и горизонт прогноза, недели
@@ -43,11 +43,11 @@ cpo_sp = sum(a['sp'] for a in ads if a['id'] == CPO_ID and A <= a['d'] <= B)
 SH = cpo_sp / (0.05 * rev)
 SH9 = None                                                      # доля списания при 9%; None = как при 5% (данных нет)
 # --- кампании за клик
-camp = C.defaultdict(lambda: dict(sp=0, o=0, off='', last=''))
+camp = C.defaultdict(lambda: dict(sp=0, o=0, off='', last='', first='9999'))
 for a in ads:
     if A <= a['d'] <= B and a['id'] != CPO_ID:
         c = camp[a['id']]; c['sp'] += a['sp']; c['o'] += a.get('o', 0); c['off'] = a['off']
-        if a['sp'] > 0: c['last'] = max(c['last'], a['d'])
+        if a['sp'] > 0: c['last'] = max(c['last'], a['d']); c['first'] = min(c['first'], a['d'])
 LAST7 = '2026-10-10'
 active = lambda c: c['last'] >= LAST7                            # расход в последние 2 дня окна = кампания идёт
 clk0 = sum(c['sp'] for c in camp.values()) / WEEKS
@@ -64,19 +64,24 @@ def camp_pi(c):
 SEL = {k for k, c in camp.items() if c['o'] >= 4 and active(c)}
 CAND = sorted((k for k, c in camp.items() if c['o'] >= 4), key=lambda x: -camp[x]['o'])
 
+RATE = False   # True: кампании, запущенные внутри окна, по темпу с даты запуска (I1 ФЕНИКСА), а не по среднему 4 недель
+def wk_rate(c):
+    if RATE and A < c['first'] < '9999':
+        n = (dt.date.fromisoformat(B) - dt.date.fromisoformat(c['first'])).days + 1; return 7 / n
+    return 1 / WEEKS
 def clicks(keep_ids, k):
     """расход за клик в неделю и потерянные заказы x прибыль, если кампании вне keep_ids урезать до минимума"""
     sp = 0; lost = 0; lost_pi = 0
     for cid, c in camp.items():
-        w = c['sp'] / WEEKS
+        w = c['sp'] * wk_rate(c)
         if cid in keep_ids: sp += w; continue
         new = min(w, MIN_WK) if active(c) else 0                # остановленные не включаем ни в одном варианте
         sp += new
-        dl = c['o'] / WEEKS * (1 - (new / w) ** E_SP) * k if w > 0 else 0
+        dl = c['o'] * wk_rate(c) * (1 - (new / w) ** E_SP) * k if w > 0 else 0
         lost += dl; lost_pi += dl * camp_pi(c)[0]
     return sp, lost, lost_pi
 
-def run(var, sc, eps=None, m9=None):
+def run(var, sc, eps=None, m9=None, cut=None, keep=None):
     eps = EPS[sc] if eps is None else eps; k, d9, xf = K_CLK[sc], D9[sc], XFER[sc]; m9 = M9[sc] if m9 is None else m9
     prof = 0; prof_adm = 0; units = 0; turn = 0; cpo = 0
     for sku, r in rows.items():
@@ -84,7 +89,7 @@ def run(var, sc, eps=None, m9=None):
         if not u: continue
         p, s, nom = r['p0'], r['s'], 0.05
         steal = 0
-        if var in ('В1', 'В1б') and sku in lst:
+        if var in ('В1', 'В1б') and sku in lst and (cut is None or sku in cut):
             p = r['p0'] * (1 - lst[sku]['step'] / 100); u1 = u * (p / r['p0']) ** eps
             steal = (u1 - u) * xf; u = u1                       # перетянутые у соседей: их прибыль теряем
         if var == 'В2': nom = 0.09; s = r['s'] * (1 + d9); u *= (1 + d9) ** eps * (1 + m9)
@@ -93,7 +98,8 @@ def run(var, sc, eps=None, m9=None):
         units -= steal
         units += u; turn += u * p; cpo += u * nom * sh(nom) * p
     # В0 - как сейчас: идущие кампании на своём бюджете (G3 ФЕНИКСА); остановленные до 10.10 выключены во всех вариантах
-    keep = {k_ for k_, c in camp.items() if active(c)} if var == 'В0' else (SEL if var == 'В1' else set())  # В1б, Вк, В2 - весь клик минимум
+    if keep is None:
+        keep = {k_ for k_, c in camp.items() if active(c)} if var == 'В0' else (SEL if var == 'В1' else set())  # В1б, Вк, В2 - весь клик минимум
     sp, lost, lost_pi = clicks(keep, k)
     prof -= sp + lost_pi; prof_adm -= sp + lost_pi              # потерянные заказы клика - по прибыли без АДМ в обеих строках
     return dict(prof=prof * H, prof_adm=prof_adm * H, units=(units - lost) * H, turn=turn * H, clk=sp * H, cpo=cpo * H,
@@ -122,6 +128,13 @@ def cpo_articles(sc='средний'):
         out.append(dict(art=r['art'], u_wk=u, p0=r['p0'], extra=u * (0.09 * sh(0.09) - 0.05 * SH) * r['p0'] * H,
                         d=(u9 * pi(r, r['p0'], 0.09, s9) - u * pi(r, r['p0'], 0.05, r['s'])) * H))
     return sorted(out, key=lambda x: x['d'])
+
+KONUX_IDS = {'37675958'}                                        # большая кампания KONUX GGT-35-5-1 (шаг 1 плана 13.10)
+def first2w(sc, wait_skus):
+    """первые 2 недели исполнения «Предлагаю»: цена у артикулов вне карточек теста 4, клик на минимум только у KONUX"""
+    now = set(lst) - set(wait_skus)
+    keep = {k_ for k_, c in camp.items() if active(c)} - KONUX_IDS
+    return run('В1б', sc, cut=now, keep=keep)['prof'] - run('В0', sc)['prof']
 
 def m9_equal(sc, a='В1б'):
     """на сколько ставка 9% должна поднять заказы магазина, чтобы В2 = вариант a (остальное - сценарий sc)"""

@@ -57,6 +57,8 @@ const TODAY = new Date().toISOString().slice(0, 10);
 type Row = Record<string, number>;
 type PromoDef = { тип?: string; от: string; до: string; имя: string; заметка?: string };
 type TestDef = {
+  /** Итог на закрытии (Иван 13.10): печатается первым блоком карточки. */
+  итог?: string;
   id: string; название: string; гипотеза: string; старт?: string; замер?: string;
   горизонт_дней?: number; тест?: string[]; контроль?: string[]; правило?: string;
   /** СОСТОЯНИЕ ТЕСТА, три значения, и только они закрывают тест. См. TEST_STATUS. */
@@ -1262,6 +1264,8 @@ const statusOf = (t: TestDef): string => (t.статус || "").trim();
 /** Статусы, которых в реестре быть не должно. Собираем для заметки страницы. */
 const badStatuses: Array<{ id: string; v: string }> = [];
 
+/** Итог закрытого теста (Иван 13.10, тесты 2 и 3) - первым блоком карточки. */
+const finalBlock = (x?: string): string => x ? `<div class="verdict"><div class="verdict-h">Итог, тест закрыт</div><div class="verdict-main">${esc(x)}</div></div>` : "";
 function statusChip(t: TestDef): string {
   const st = statusOf(t);
   if (st && !STATUS_VALUES.includes(st)) {
@@ -1959,7 +1963,7 @@ const cards = T.тесты.map((t, ti) => {
     + (notesHtml ? fold("", "Контроль: заражение, чистка, реклама", notesHtml) : "")
     + (t.id === "boost_plus_exit" ? "<!--BOOST_TECH-->" : "")
     ;
-  return `<section class="card"><div class="chead"><div class="ctitle">${esc(numTitle(ti + 1, t.название))} ${statusChip(t)}</div></div>`
+  return `<section class="card"><div class="chead"><div class="ctitle">${esc(numTitle(ti + 1, t.название))} ${statusChip(t)}</div></div>${finalBlock(t.итог)}`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span>`
     + `<span>Горизонт: <b>${esc(t.горизонт_дней ?? "")} дн</b></span>`
@@ -2200,7 +2204,7 @@ const bidCards = BID_TESTS.map((t, bi) => {
   const dm = t.замер ? daysBetween(TODAY, t.замер) : null;
   const chip = t.статус === TEST_STATUS.done ? `<span class="chip chip-done">завершён</span>`
     : `<span class="chip chip-run">${esc(t.статус || "идёт")}${dm != null && dm > 0 ? ` · замер через ${dm} дн` : ""}</span>`;
-  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(T.тесты.length + bi + 1, t.название))} ${chip}</div></div>`
+  return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(T.тесты.length + bi + 1, t.название))} ${chip}</div></div>${finalBlock(t.итог)}`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт || "-")}</b></span>`
     + (t.быстрый_признак ? `<span>Быстрый признак: <b>${esc(t.быстрый_признак)}</b></span>` : "")
     + `<span>Замер: <b>${esc(t.замер || "-")}</b></span><span>Пар: <b>${t.пары.length}</b></span></div>`
@@ -2471,6 +2475,66 @@ const P_VERDICT_TXT: Record<string, string> = {
   "мало данных": "Данных для вердикта мало: база не набрана или в окне меньше трёх наблюдаемых дней.",
 };
 
+/** Все 10 товаров теста 4, включая исключённые (Иван 13.10, вариант «а»): вердикт считается по чистым,
+ *  а эта таблица показывает каждый артикул - предельную, витрину, акции и клик. Скрипт сверки:
+ *  knowledge/episodes/2026-10/ozon-testy-scripts/v4/test4_table.py. Доля «нам остаётся» 44% предельной
+ *  (комиссия ~51% и ставка за заказ 5% от предельной; история теста 4, по данным Ozon, независимо не сверено). */
+const P_KEEP = 0.44;
+const P_ACTS_BY = new Map<string, Map<string, string[]>>();
+for (const r of readNd(dp("acts_daily.ndjson"))) {
+  const d = String(r.date || ""), a = String(r.art || ""), ttl = String(r.title || "");
+  if (!d || !a || /Рассрочка/.test(ttl)) continue;
+  let m = P_ACTS_BY.get(a); if (!m) { m = new Map(); P_ACTS_BY.set(a, m); }
+  const l = m.get(d) || []; l.push(ttl.split(".")[0]!); m.set(d, l);
+}
+const P_SPEND = new Map<string, Array<{ d: string; sp: number; cid: string }>>();
+for (const r of readNd(dp("ads_sku_daily.ndjson"))) {
+  const a = sku2art[String(r.sku)], sp = Number(r.sp);
+  if (!a || !(sp > 0)) continue;
+  const l = P_SPEND.get(a) || []; l.push({ d: String(r.d), sp, cid: String(r.cid || "") }); P_SPEND.set(a, l);
+}
+function priceAllTable(c: PriceCalc): string {
+  const t = c.t;
+  const site = (a: string, d: string): number | null => {
+    const g = P_GAP.get(d)?.get(a), p = P_CAP.get(a)?.get(d);
+    return g != null && p != null ? (1 - g / 100) * p : null;
+  };
+  const both = (a: string) => [...(P_CAP.get(a)?.keys() || [])].filter((d) => P_GAP.get(d)?.get(a) != null).sort();
+  const shopRatio = (d: string): number | null => { const m = P_GAP.get(d); return m && m.size ? 1 - pMedian([...m.values()])! / 100 : null; };
+  const dm0 = (d: string) => DM(d);
+  const rows = t.тест.map((a) => {
+    const ds = both(a), d0 = ds.filter((d) => d < t.старт).pop(), d1 = ds[ds.length - 1];
+    if (!d0 || !d1 || d1 < t.старт) return `<tr><td class="nw">${esc(a)}</td><td colspan="8" class="muted">нет снимка цены и разрыва до и после старта</td></tr>`;
+    const p0 = P_CAP.get(a)!.get(d0)!, p1 = P_CAP.get(a)!.get(d1)!, v0 = site(a, d0)!, v1 = site(a, d1)!;
+    const r0 = shopRatio(d0), r1 = shopRatio(d1);
+    const adj = r0 && r1 ? ((v1 / p1 / r1) / (v0 / p0 / r0) * (p1 / p0) - 1) * 100 : null;
+    const acts = (d: string) => { const l = P_ACTS_BY.get(a)?.get(d); return l && l.length ? [...new Set(l)].sort().join(" + ") : "нет"; };
+    const sp = P_SPEND.get(a) || [], from = addDays(t.старт, -7);
+    const spPre = sp.filter((x) => x.d >= from && x.d < t.старт).reduce((s, x) => s + x.sp, 0);
+    const spPost = sp.filter((x) => x.d >= t.старт).reduce((s, x) => s + x.sp, 0);
+    const cids = [...new Set(sp.filter((x) => x.d >= from).map((x) => x.cid).filter(Boolean))];
+    const click = spPre + spPost > 0 ? `<b>да</b>: ${nbsp(Math.round(spPre))} ₽ за 7 дн до, ${nbsp(Math.round(spPost))} ₽ с ${dm0(t.старт)}${cids.length ? ` (кампания ${esc(cids.join(", "))})` : ""}` : "нет";
+    const ex = t.исключены?.[a];
+    const a0 = acts(d0), a1 = acts(d1);
+    return `<tr><td class="nw">${esc(a)}</td><td>${esc(t.модели?.[a] || "")}</td>`
+      + `<td>${ex ? `<span class="dn">исключён:</span> ${esc(ex)}` : `<span class="up">в расчёте</span>`}</td>`
+      + `<td class="r nw">${nbsp(p0)} → ${nbsp(p1)}<br><span class="muted">${sgn((p1 / p0 - 1) * 100, 1)}%</span></td>`
+      + `<td class="r nw">${nbsp(Math.round(P_KEEP * p0))} → ${nbsp(Math.round(P_KEEP * p1))}</td>`
+      + `<td class="r nw">${nbsp(Math.round(v0))} → ${nbsp(Math.round(v1))}<br><span class="muted">${sgn((v1 / v0 - 1) * 100, 1)}%</span></td>`
+      + `<td class="r nw"><b>${sgn(adj, 1)}%</b></td>`
+      + `<td>${a0 === a1 ? esc(a1) : `${esc(a0)} → <b>${esc(a1)}</b>`}</td><td>${click}</td></tr>`;
+  }).join("");
+  const anyDay = t.тест.map((a) => both(a)).flat().sort();
+  const dA = anyDay.filter((d) => d < t.старт).pop(), dB = anyDay[anyDay.length - 1];
+  return `<details class="fold" open><summary><b>Все ${t.тест.length} товаров, включая исключённые: цена у нас и на витрине, акции, клик</b></summary><div class="fold-b">`
+    + `<div class="tbl-wrap" style="max-height:none"><table class="gtbl single"><thead><tr><th>Артикул</th><th>Модель</th><th>В расчёте вердикта</th>`
+    + `<th class="r">Наша предельная, ₽</th><th class="r" title="Комиссия и ставка за заказ считаются от предельной">Нам остаётся с заказа (~${Math.round(P_KEEP * 100)}%), ₽</th>`
+    + `<th class="r">Витрина (видит покупатель), ₽</th><th class="r" title="Изменение витрины за вычетом общего сдвига витрины магазина">Витрина к магазину</th><th>Акции</th><th>Реклама за клик</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    + `<div class="cov">До - последний день со снимком цены и разрыва перед стартом${dA ? ` (обычно ${DM(dA)})` : ""}, после - последний такой день${dB ? ` (${DM(dB)})` : ""}. `
+    + `Витрина = (1 - разрыв) × предельная (gap_daily, prices_daily). «Витрина к магазину» вычитает общий сдвиг доли витрины по магазину в те же дни. `
+    + `«Нам остаётся» - ${Math.round(P_KEEP * 100)}% предельной до логистики и себестоимости: комиссия около 51% и ставка за заказ 5% считаются от предельной (данные Ozon, независимо не сверено, комиссия по категориям разная). `
+    + `Исключённые в вердикт не входят (Иван 12.10, «3б»), здесь показаны для полноты (Иван 13.10, «а»).</div></div></details>`;
+}
 function priceCard(c: PriceCalc, ti: number): string {
   const t = c.t, cut = Math.round(t.снижение * 100);
   const dm = daysBetween(TODAY, c.vc.end);
@@ -2566,6 +2630,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     + `<details class="fold" open><summary><b>Динамика: сдвиг разрыва к базе</b></summary><div class="fold-b">${priceShiftChart(c)}</div></details>`
     + priceCharts(c)
     + `<details class="fold" open><summary><b>Товары теста</b></summary><div class="fold-b">${table}</div></details>`
+    + priceAllTable(c)
     + tech + `</section>`;
 }
 const priceCards = PRICE_CALC.map(priceCard).join("");

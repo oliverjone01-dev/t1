@@ -690,3 +690,4 @@ const trend=panel('Динамика коммуникаций','Клиентск�
 })();
 
 // END GG_WORKSPACE_SHARED_FRAME
+(function(){document.querySelectorAll('.gg-nav summary').forEach(summary=>{if(summary.textContent.trim()!=='РОП GG'||summary.querySelector('a'))return;const link=document.createElement('a');link.href='/rop/';link.textContent='РОП GG';link.style.cssText='display:inline;color:inherit;padding:0;background:none;border:0;text-decoration:none';link.setAttribute('aria-label','Открыть РОП GENGLASS');link.addEventListener('click',e=>e.stopPropagation());const text=[...summary.childNodes].find(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.includes('РОП GG'));if(text)text.replaceWith(link);});})();

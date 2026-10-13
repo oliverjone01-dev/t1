@@ -68,3 +68,4 @@ body.gg-communications #tip{z-index:10050!important;background:#202730!important
 #gg-rail-tooltip.gg-tooltip-error .gg-rail-tooltip-title{color:#ed8797}
 #gg-rail-tooltip.gg-tooltip-good .gg-rail-tooltip-title{color:#83c9ae}
 .gg-deal-branches button.gg-rail-current:before{width:26px!important;opacity:1!important;filter:brightness(1.5);box-shadow:0 0 5px #b8c6d54d!important;height:2px!important;transform:none!important}
+.gg-comm-overview>.gg-comm-kpi{min-height:210px!important;padding:24px!important;gap:8px!important}.gg-comm-overview>.gg-comm-kpi>b{font-size:28px!important;margin:10px 0 4px!important}.gg-comm-kpi .gg-kpi-sparkline{height:64px!important;margin-top:auto!important;padding-top:20px;box-sizing:content-box}.gg-comm-kpi .gg-spark-value{margin:0!important;min-height:16px}.gg-spark-tip strong{display:block;font-size:11px;color:#99a8b8;margin-bottom:5px}.gg-kpi-sparkline:focus-visible{outline:1px solid #83c9ae;outline-offset:4px}

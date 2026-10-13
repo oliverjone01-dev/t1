@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T10:59:06.601Z",
+  "generatedAt": "2026-10-13T06:58:09.678Z",
   "counter": 104369223,
   "source": "Yandex Metrika Reporting API",
   "attribution": "ym:s:lastsignTrafficSource",
@@ -120,7 +120,7 @@
           "code": "ad",
           "source": "Переходы по рекламе",
           "visits": 4632,
-          "users": 3950,
+          "users": 3949,
           "bounce": 21.71848014,
           "leads": 102,
           "qualified": 92
@@ -132,7 +132,7 @@
           "users": 2441,
           "bounce": 17.39807034,
           "leads": 149,
-          "qualified": 129
+          "qualified": 131
         },
         {
           "code": "referral",
@@ -141,7 +141,7 @@
           "users": 2417,
           "bounce": 2.54946728,
           "leads": 9,
-          "qualified": 7
+          "qualified": 8
         },
         {
           "code": "direct",
@@ -150,7 +150,7 @@
           "users": 1576,
           "bounce": 16.06334842,
           "leads": 42,
-          "qualified": 29
+          "qualified": 30
         },
         {
           "code": "internal",
@@ -203,7 +203,7 @@
         "users": 10437,
         "bounce": 15.83946806,
         "leads": 314,
-        "qualified": 267
+        "qualified": 271
       },
       "sampled": false
     }

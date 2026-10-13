@@ -1,0 +1,63 @@
+FENIKS iter6 @ b6cdc4b0 (audit_hash bbf15de667f912d5), 2026-10-13. Scripts in this folder; paths point to my scratchpad, replace on rerun.
+
+== X3 head and hash
+origin/claude/practical-ritchie-q09eet = b6cdc4b0e4bd4d6deef22623812f683ed6f65061; git log b6cdc4b0..origin/... empty
+audit_hash.py --rev b6cdc4b0 = bbf15de667f912d5; --worktree = bbf15de667f912d5
+
+== setup6.py: pre 3238e099 | post b6cdc4b0 | mn origin/main 42cfa67b | mpre/mpost = main + branch analytics-mvp paths (clash []) | oldpre/oldpost/oldmn = 9839714e
+build6.sh: all 8 builds rc 0; post log: kartochki: «Оплата за заказ» по заказам 117 дн, окно 2026-06-05..2026-09-30, без заказа в orders_daily 0
+
+== X5 «Отчет» before/after (bytecmp6.py)
+pre vs post          : katya-report.html raw-equal True; 41/42 pages equal, only the tab differs
+mpre vs mpost        : katya-report.html masked-equal True (raw differs only "обновлено 13.10.2026 16:01" vs "16:02"); 41/42
+oldpre vs oldpost    : katya-report.html raw-equal True; 41/42
+fzpre vs fzpost      : identical mutated inputs (fuzz6.py) -> katya-report.html raw-equal True; 41/42
+mn vs mpost (M1)     : 33 equal, 8 OZON pages differ only by the tab button (+1 space); tab only in mpost
+
+== B1 cpo6_probe.py post (own rule from spec v2.3, not the TS module)
+cpo_rows 1009 unique 1009 dup 0 | miss 0 | multi_date_orders 0 | first_ne_min 0 | orders_daily sorted by d: false
+status delivered 891 cancelled 145 delivering 9 awaiting_deliver 1 | coverage 2026-06-05..2026-09-30 | rev days outside coverage: none
+month   export_sp(cabinet)  api_sp(28753239)  rule_rev    units  sp_by_orderdate
+2026-06 1 222 699.41        1 222 698          16 068 798  301    1 247 754
+2026-07 1 185 189.36        1 185 190          13 146 239  221    1 173 144
+2026-08 1 097 160.80        1 097 160          14 072 386  214    1 084 153
+2026-09   818 149.08          818 151          14 073 867  178      818 149
+2026-10 -                     310 840          -           -
+api spend of 28753239 before coverage: 0 (first spend day 2026-06-05)
+main data (mpost): same rev/units on all 34 periods
+fanout6.py: September xlsx «Стоимость, ₽»/«Количество» per order = postings on 190/190 orders; multi-SKU orders share of rule revenue: Jun 0.7%, Jul 1.3%, Aug 2.0%, Sep 0%; one order with charge rate 1.8% (0172335655-0037, 77 800)
+up6.sh case a: committed xlsx in tools/cpo/raw -> cpo_orders.ndjson and cpo_sku_daily.ndjson identical to committed
+up6.sh case b: same xlsx twice -> cpo_orders sp Sep 818 149 -> 1 636 298, cpo_sku_daily differs; tab rule unchanged on 34/34 periods
+
+== cporev6.py: CPO_REV baked into the tab = my per-day rule: post 117/117, mpost 117/117, fzpost 117/117; CPO_WIN = coverage
+
+== B2/X7 fx6_tab.mjs + an6.py, 34 periods, pre vs post
+errs 0 | orders table changed 0 | non-CPO campaign rows changed 0 | CPO 28753239 (spend, revenue, units, DRR) = probe 34/34
+partial marker ok 30/31 (01.06-12.10: tab "118 из 132" because ads_daily ends 10.10; correct)
+examples (post): Jun 1 222 698 / 16 068 798 / 301 / 7.6%*26 из 30 дн. | Jul 1 185 190 / 13 146 239 / 221 / 9.0% | Aug 1 097 160 / 14 072 386 / 214 / 7.8%
+                 Sep 818 151 / 14 073 867 / 178 / 5.8% | 15.08-15.09 843 573 / 13 374 651 / 180 / 6.3% | 25.09-05.10 300 212 / 3 134 768 / 43 / 5.7%*6 из 11 дн. | Oct н/д
+
+== B4 fx6_report.mjs «Отчет» (#rp-month 2026-07, 2026-09, 2026-10), post and mpost, 0 JS errors
+Jun 1 222 698 / 16 068 798 / окупаемость 12,88 | Jul 1 185 190 / 13 146 239 / 11,21 | Aug 1 097 160 / 14 072 386 / 12,98 | Sep 818 151 / 14 073 867 / 17,2 | Oct revenue «нет данных»
+O1 (outside branch): 16 068 798 / 1 222 698 = 13,14 (shown 12,88 = / 1 247 754 by order date); Jul 11,09 vs 11,21; Aug 12,83 vs 12,98
+
+== X6 camp6.py / hit6.py / fx6_title.mjs: two campaigns labelled «Оплата за заказ» in the tab
+22421802 ads_daily name «Продвижение в поиске - все товары» (long dash in source), spend Feb..Jul 42 337 / 331 605 / 144 890 / 48 237 / 30 033 / 7 090, Sep 0
+28753239 «Оплата за заказ - все товары», spend from 2026-06-05
+post, 01.03-10.06: 28753239 [180 103, н/д, н/д, н/д]; 22421802 [529 139, 2 930 333, 54, 0%*6 из 102 дн.]  -> FAIL (expected 6.1% on 28753239)
+post, 01.05-05.06: 28753239 [6 593, н/д]; 22421802 [52 644, 174 600, 4, 0%*1 из 36 дн.]                   -> FAIL (expected 3.8%)
+post, 27.05-05.06: 22421802 [14 587, 174 600, 4, 0%*1 из 10 дн.]                                         -> FAIL
+post, 01.04-12.06 and 01.06-05.06: revenue on 28753239 (OK)
+June title: «ДРР по дням выгрузки кабинета 2026-06-05..2026-06-30 (26 из 30 дн. периода): ... За остальные дни периода выгрузки кабинета нет, выручка неизвестна.»
+October title: «OZON не отдаёт выручку и заказы по кампаниям «Оплата за заказ» через API - смотри их в кабинете OZON. Расход - реальный.»
+
+== X8 readers of deleted files
+origin/main: 0; .github (branch, main): 0; branch: only tools/tests/feniks-iter4/*.py (archived probes, run from b243b28), handoff v17/v18, decisions.md 02.10 entry; other remote branches: none
+
+== M4 vt6.sh
+tsc 38 in post, mn, mpost; normalized sets equal (md5 6370f450); 0 errors in cpo-orders-rev.ts, report-page.ts
+vitest mpost 5 failed / 946 passed (951); mn 5 / 940 (945); same YM tests (svod-ui x2, validate-facts x2, warroom-kpi x1)
+vitest post alone: no-pii on public/katya-tests.html (branch does not touch it; passes in mpost) + validate-facts x2 (sandbox lacks ../.github)
+
+== merge with origin/main 42cfa67b (mt_conflicts.py, read-only git merge-tree)
+conflicts: .claude/agent-memory/feniks/MEMORY.md, knowledge/decisions.md (both in audit_hash), traces/2026-10-02, -12, -13 agents.jsonl (outside hash)

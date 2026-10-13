@@ -12,6 +12,7 @@
 // расход и ДРР (5а); топ-5 непродаваемых - показы в месяце и 0 заказов за 60 дней, причина и действие
 // по правилу (6а). Спека: knowledge/semantic/metrics/ozon-monthly-report.yaml.
 import { readFileSync } from "node:fs";
+import { cpoOrdersByDay } from "./cpo-orders-rev.js";
 
 type Ctx = {
   dp: (f: string) => string;
@@ -66,19 +67,9 @@ export function reportData(ctx: Ctx) {
   // 3. «Оплата за заказ»: расход и выручка заказов по дате заказа из ручной выгрузки кабинета
   //    (cpo_orders: номер заказа и списание). Выручка = выручка отправлений заказа без отменённых
   //    (orders_daily). Покрытие = даты выгрузки (cpo_sku_daily); вне их выручки «за заказ» нет.
-  const postings: Record<string, any[]> = {};
-  for (const r of readNd(dp("orders_daily.ndjson"))) { const o = String(r.order || ""); const k = o.slice(0, o.lastIndexOf("-")); (postings[k] ||= []).push(r); }
-  const cpoDay: Record<string, number[]> = {};
-  let cpoMiss = 0;
-  for (const r of readNd(dp("cpo_orders.ndjson"))) {
-    const ps = postings[String(r.order)]; if (!ps || !ps.length) { cpoMiss++; continue; }
-    const d = String(ps[0].d);
-    const a = (cpoDay[d] ||= [0, 0]); a[0]! += Number(r.sp) || 0;
-    for (const p of ps) if (p.status !== "cancelled") a[1]! += Number(p.revenue) || 0;
-  }
-  const cpo = Object.keys(cpoDay).sort().map((d) => [d, Math.round(cpoDay[d]![0]!), Math.round(cpoDay[d]![1]!)]);
-  let cpoFrom = "", cpoTo = "";
-  for (const r of readNd(dp("cpo_sku_daily.ndjson"))) { const d = String(r.d); if (!cpoFrom || d < cpoFrom) cpoFrom = d; if (d > cpoTo) cpoTo = d; }
+  const co = cpoOrdersByDay(dp); // общая функция с вкладкой «Реклама по карточкам» (Иван 13.10)
+  const cpo = Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.sp), Math.round(co.day[d]!.rev)]);
+  const cpoMiss = co.miss, cpoFrom = co.from, cpoTo = co.to;
   // 4. Реклама за клик по категориям (ads_attr_daily: расход и выручка заказов по артикулу).
   //    [d, зеркала расход, зеркала выручка, мебель расход, мебель выручка].
   const catDay: Record<string, number[]> = {};

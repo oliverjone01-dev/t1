@@ -19,21 +19,8 @@ on:
       report:
         description: "mode=report: путь к md-файлу отчёта в репо (напр. knowledge/sales-analysis/examples/weekly-example.md)"
         default: ""
-  # Staged-доставка (пн-пт). Перед КАЖДЫМ слотом идёт «прогрев» (~60 мин раньше): тяжёлый
-  # снимок Bitrix + деплой считаются ЗАРАНЕЕ и БЕЗ отправки. Затем слот идёт СНАЧАЛА в тест-чат
-  # (окно на проверку данных Иваном), затем через +15 мин чистовик в основной чат.
-  # МСК: план 08:00 / 09:00 → 09:15; срез 14:00 / 15:00 → 15:15; итог 16:30 / 17:30 → 17:45.
-  # UTC: прогрев 05:00 / 11:00 / 13:30; отправка 06:00 → 06:15 / 12:00 → 12:15 / 14:30 → 14:45.
-  # Режим и чат определяются по времени крона. Прогрев (SEND=0) делает снимок+деплой и выходит;
-  # к моменту отправки данные уже свежие, дайджест уходит сразу, не дожидаясь тяжёлого снимка.
-  schedule:
-    - cron: "0 5 * * 1-5"   # план · прогрев данных (снимок+деплой заранее, без отправки)
-    - cron: "0 6 * * 1-5"    # план · тест
-    - cron: "15 6 * * 1-5"   # план · основной
-    # срез в чат отключён по решению Ивана (15.09.2026) - шлём только план и итог
-    - cron: "30 13 * * 1-5"  # итог · прогрев данных
-    - cron: "30 14 * * 1-5"  # итог · тест
-    - cron: "45 14 * * 1-5"  # итог · основной
+  # Автоматическая доставка перенесена на VPS: 09:15 и 17:45 МСК по будням.
+  # workflow_dispatch сохранён для ручной диагностики; schedule отключён.
 
 permissions:
   contents: read
@@ -41,6 +28,8 @@ permissions:
 
 jobs:
   send:
+    # Daily plan and results can only be sent by VPS, including manual/guard dispatches.
+    if: ${{ github.event_name == 'workflow_dispatch' && !contains(fromJSON('["plan","srez","itogi","test"]'), inputs.mode) }}
     runs-on: ubuntu-latest
     env:
       MODE: ${{ github.event.inputs.mode || ((github.event.schedule == '0 5 * * 1-5' || github.event.schedule == '0 6 * * 1-5' || github.event.schedule == '15 6 * * 1-5') && 'plan') || ((github.event.schedule == '0 11 * * 1-5' || github.event.schedule == '0 12 * * 1-5' || github.event.schedule == '15 12 * * 1-5') && 'srez') || ((github.event.schedule == '30 13 * * 1-5' || github.event.schedule == '30 14 * * 1-5' || github.event.schedule == '45 14 * * 1-5') && 'itogi') || 'plan' }}
@@ -223,7 +212,7 @@ jobs:
           const d=JSON.parse(fs.readFileSync('/tmp/rop.json','utf8'));
           const deals=(d.deals||[]).filter(x=>String(x.category)==='49');
           // Ольга Лысенко - РОП (@Olgal89), в списке плановых менеджеров не участвует (тег РОПа в сводке).
-          const PLAN=["Юлия Лысанова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];
+          const PLAN=["Юлия Лысанова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова","Татьяна Фомичева","Алёна Филатова"];
           const TODAY=(d.generated_at||'').slice(0,10);
           const KP={"C49:PREPAYMENT_INVOIC":0,"C49:3":1,"C49:UC_8JTBV2":2};
           const firstKP=x=>{for(const h of (x.hist||[]))if(KP[h[0]]!=null&&h[1])return h[1].slice(0,10);return null;};
@@ -255,7 +244,7 @@ jobs:
             const TL={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
             const slug=(MGR.trim().split(/\s+/).pop()||'').toLowerCase().split('').map(c=>c in TL?TL[c]:c).join('').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
             const url='https://oliverjone01-dev.github.io/t1/rop-'+slug+'/#prio';
-            const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba','Юлия Шура-Бура':'YuliyaShB','Ольга Маслова':'vuinochan','Алина Платонова':'alina_platt','Надежда Лобова':'Nadia_LNA90'};
+            const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba','Юлия Шура-Бура':'YuliyaShB','Ольга Маслова':'vuinochan','Алина Платонова':'alina_platt','Надежда Лобова':'Nadia_LNA90','Алёна Филатова':'FilAlena13','Татьяна Фомичева':'taneechkkaaa'};
             const first=MGR.trim().split(/\s+/)[0], handle=HANDLE[MGR];
             const head={plan:'🌅 ПЛАН',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
             const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
@@ -337,7 +326,7 @@ jobs:
           const tier=r=>{const t=r.todayN||0;if(t===0)return '🔴';if(maxT<=1)return '🟢';return t>=maxT?'🟢':'🟡';};
           // Ссылки внутри <pre> у части клиентов Telegram НЕ кликаются, поэтому строки менеджеров выносим ИЗ моноблока:
           // имя - настоящая кликабельная ссылка на его блок «Приоритет к предоплате», показатели через « · », цветовой флаг спереди.
-          const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba','Юлия Шура-Бура':'YuliyaShB','Ольга Маслова':'vuinochan','Алина Платонова':'alina_platt','Надежда Лобова':'Nadia_LNA90'};
+          const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba','Юлия Шура-Бура':'YuliyaShB','Ольга Маслова':'vuinochan','Алина Платонова':'alina_platt','Надежда Лобова':'Nadia_LNA90','Алёна Филатова':'FilAlena13','Татьяна Фомичева':'taneechkkaaa'};
           const sigLine=r=>{const g=SIG[nkey(r.m)]||{kp:0,kpSum:0,over:0,overSum:0,wait:0,waitSum:0,a30:0,a30Sum:0};const parts=[];if(g.kp)parts.push('💸 КП без дожима '+g.kp+' ('+K(g.kpSum)+')');if(g.over)parts.push('⏰ просрочено '+g.over+' ('+K(g.overSum)+')');if(g.wait)parts.push('💬 без ответа '+g.wait+' ('+K(g.waitSum)+')');if(g.a30)parts.push('⌛ 30+ дней '+g.a30+' ('+K(g.a30Sum)+')');return parts.length?('\n    '+parts.join(' · ')):'';};
           const mgrLine=r=>tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>'+(HANDLE[r.m]?(' @'+HANDLE[r.m]):'')+'\n    портф '+r.port+(r.neu?('(+'+r.neu+')'):'')+' · КП '+r.kp+'/'+r.dec+'/'+r.lo+(r.pN?(' · предопл '+r.pN+' ('+K(r.pR)+')'):' · <b>без предоплат</b>')+' · сегодня '+r.todayN+(r.todayN?(' ('+K(r.todayR)+')'):'')+' · '+(r.daysSince===null?'без предоплат':r.daysSince+' дн без предоплат')+sigLine(r);
           const table=rows.map(mgrLine).join('\n');

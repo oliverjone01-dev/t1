@@ -46,6 +46,7 @@ async function main() {
   const key = (sku: string, d: string) => sku + "|" + d;
   const bdCab: Record<string, number> = {}; // дата -> доставка покупателя (NON_ITEM, кабинет, >0)
   const bdOrd: Record<string, number> = {}; // база заказа -> доставка покупателя (NON_ITEM несёт ключ заказа)
+  const bdOrdDays: Record<string, Record<string, number>> = {}; // база заказа -> {дата начисления: сумма} (для таблицы по начислениям)
   const prtCab: Record<string, number> = {}; // дата -> партнёры NON_ITEM без SKU (realFBS-услуги и т.п.)
   const prtOrd: Record<string, number> = {}; // база заказа -> партнёры NON_ITEM, если несёт ключ
   const oBase = (o: string) => String(o || "").replace(/-\d+$/, "");
@@ -81,7 +82,7 @@ async function main() {
         const okey = oBase(String(a?.posting || a?.unit_number || ""));
         if (nbk === "buyerDelivery") {
           bdNonItem += amt; bdCab[d] = (bdCab[d] || 0) + amt;
-          if (okey) { bdWithKey += amt; bdOrd[okey] = (bdOrd[okey] || 0) + amt; }
+          if (okey) { bdWithKey += amt; bdOrd[okey] = (bdOrd[okey] || 0) + amt; const od = (bdOrdDays[okey] ||= {}); od[d] = (od[d] || 0) + amt; }
         } else if (nbk === "partner") {
           prtNonItem += amt; prtCab[d] = (prtCab[d] || 0) + amt;
           if (okey) { prtWithKey += amt; prtOrd[okey] = (prtOrd[okey] || 0) + amt; }
@@ -94,7 +95,8 @@ async function main() {
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   const bdRows = Object.entries(bdCab).map(([d, bd]) => ({ d, bd: Math.round(bd) })).filter((r) => r.bd).sort((a, b) => a.d.localeCompare(b.d));
   writeFileSync(OUT_BD, bdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
-  const bdOrdRows = Object.entries(bdOrd).map(([order, bd]) => ({ order, bd: Math.round(bd) })).filter((r) => r.bd).sort((a, b) => a.order.localeCompare(b.order));
+  // ds = [[дата начисления, сумма], ...]: доход за доставку встаёт на день самой операции OZON (Codex, PR #447).
+  const bdOrdRows = Object.entries(bdOrd).map(([order, bd]) => ({ order, bd: Math.round(bd), ds: Object.entries(bdOrdDays[order] || {}).sort().map(([d, v]) => [d, Math.round(v)]) })).filter((r) => r.bd).sort((a, b) => a.order.localeCompare(b.order));
   writeFileSync(OUT_BDO, bdOrdRows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   // Партнёры NON_ITEM (без SKU): кабинетный ряд по дням + per-order где есть ключ.
   const prtCabRows = Object.entries(prtCab).map(([d, v]) => ({ d, prt: Math.round(v) })).filter((r) => r.prt).sort((a, b) => a.d.localeCompare(b.d));

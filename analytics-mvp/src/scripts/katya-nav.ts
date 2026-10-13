@@ -9,6 +9,9 @@ export const KPAGES: [string, string, string][] = [
   ["katya-voronka.html", "Воронка", "voronka"],
   ["katya-marketing.html", "Маркетинг", "marketing"],
   ["katya-money.html", "Деньги", "money"],
+  // Ежемесячный отчёт руководителю, только OZON (Иван 01.10.2026). Собирается в build-katya.ts из
+  // расчёта «Денег» (report-page.ts); в шапке Маркета скрыт.
+  ["katya-report.html", "Отчет", "report"],
   // CPC по атрибуции OZON на соседей по объединённой карточке (Иван 01.10). Только OZON.
   ["katya-reklama-kartochki.html", "Реклама по карточкам", "kartochki"],
   ["katya-competitors.html", "Конкуренты", "competitors"],

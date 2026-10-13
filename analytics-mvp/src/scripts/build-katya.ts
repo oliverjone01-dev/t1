@@ -7,7 +7,11 @@
 import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
-import { matchLedger, accrualShipSeries, type Unmatched } from "./delivery-match.js";
+import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
+import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
+import { accLedgerFullTo, nettingNoStatus, splitNoStatus, accCutDays, accDocRows } from "./ym/derive-lib.js";
+import { FLOOR as YM_FLOOR } from "./ym/common.js";
+import { matchLedger, accrualShipSeries, extraTripSeries, type ExtraTrip, type Unmatched } from "./delivery-match.js";
 import { splitCpo } from "./cpo-split.js";
 import { cardSpread } from "./cpc-card-spread.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
@@ -885,6 +889,7 @@ function patchMarginHonesty(html: string): string {
 // Полоса навигации при этом раньше на ВСЕХ страницах писала «живой OZON», включая Маркет.
 function marketplaceSwitch(active: string): string {
   const here = KPAGES.find(([, , key]) => key === active);
+  // «Отчет» с 01.10.2026 есть у обеих площадок (Маркет - ym/report-page-ym.ts), переключатель работает и на нём.
   if (!here || active === "kartochki") return ""; // «Реклама по карточкам» - только OZON, в public/market/ её нет
   const file = here[0];
   const chip = (label: string, href: string, on: boolean) =>
@@ -2167,6 +2172,18 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   } catch { /* нет файла - блок сборов уровня заказа пустой */ }
   {
     const oldMaxA = anAcct.length ? anAcct.map((r) => r[0]).sort().slice(-1)[0] : "0000-00-00";
+    // Эквайринг заказов с несколькими артикулами: транзакции кладут его в «прочее кабинета», а эквайринг по
+    // артикулам (acq_sku_daily) уже несёт его - снимаем с «прочего» в днях из транзакций (Иван 02.10, «а»;
+    // tools/accruals/build_multi_acq.py по выгрузкам «Начисления»). День без строки кабинета - в лог, не добавляем.
+    try {
+      const byD: Record<string, any[]> = {}; for (const r of anAcct) byD[r[0]] = r;
+      let fixA = 0; const miss: string[] = [];
+      for (const l of readFileSync(dp("acct_multi_acq_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+        const r = JSON.parse(l); const d = String(r.d), v = Number(r.acq) || 0; if (d > oldMaxA || !v) continue;
+        const row = byD[d]; if (!row) { miss.push(d); continue; } row[6] = Math.round(row[6] - v); fixA += v;
+      }
+      console.log(`katya: эквайринг заказов с несколькими артикулами снят с «прочего кабинета» - ${Math.round(-fixA)} ₽` + (miss.length ? `; нет строки кабинета за ${miss.join(", ")}` : ""));
+    } catch { /* нет файла - без поправки */ }
     try { for (const l of readFileSync(dp("pnl_account_accrual_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.d > oldMaxA) anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]); } } catch { /* нет accrual-ряда */ }
     anAcct.sort((a, b) => (a[0] < b[0] ? -1 : 1));
   }
@@ -2194,11 +2211,34 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // «Реализовано» (F + G) их нет - июль 10 269 302 против 22 301 584. Доля по артикулу - если за
   // месяцы с отчётом у него начислено не меньше 100 000 ₽ и доля в разумных пределах (0..1,2),
   // иначе - доля канала.
+  // Добор денег по артикулам до месячного отчёта о реализации (Иван 01.10, вариант «а»). Транзакции по
+  // SKU (pnl-sku-daily) теряют операции с несколькими разными артикулами: по кабинету транзакции сходятся
+  // с отчётом до рубля во всех месяцах, а по SKU за апрель/май/июнь «Начислено» ниже на 215 771 / 143 700 /
+  // 542 650 ₽ при полных штуках из отчёта. Для закрытых отчётом месяцев до FIN_CUT по каждому SKU храним
+  // разницу «отчёт − транзакции» по «Начислено» (tb + баллы) и комиссии; в render она добавляется к
+  // начислено/комиссии/К выплате, только когда месяц выбран целиком (как штуки в realUnits) - не
+  // разносится по дням. Логистика и эквайринг потерянных операций в отчёте нет - они не добираются.
+  const anFinFix: Record<string, any[]> = {};
+  if (IS_OZON) {
+    const cutYm = FIN_CUT.slice(0, 7), rep: Record<string, [number, number]> = {}, txm: Record<string, [number, number]> = {};
+    try { for (const l of readFileSync(dp("realization_monthly.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); const sk = String(r.sku), ym = String(r.ym); if (!sk || sk === "0" || ym >= cutYm) continue; const q = (rep[sk + "|" + ym] ||= [0, 0]); q[0] += (Number(r.tb) || 0) + (Number(r.bonus) || 0); q[1] += Number(r.commission) || 0; } } catch { /* нет отчёта - добора нет */ }
+    const repYm = new Set(Object.keys(rep).map((k) => k.split("|")[1]!));
+    for (const sk in anFin) for (const q of anFin[sk]!) { const ym = String(q[0]).slice(0, 7); if (!repYm.has(ym)) continue; const t = (txm[sk + "|" + ym] ||= [0, 0]); t[0] += Number(q[1]) || 0; t[1] += Number(q[2]) || 0; }
+    let fA = 0, fC = 0;
+    for (const k of new Set([...Object.keys(rep), ...Object.keys(txm)])) {
+      const [sk, ym] = k.split("|") as [string, string]; const r = rep[k] || [0, 0], t = txm[k] || [0, 0];
+      const dA = Math.round(r[0] - t[0]), dC = Math.round(-r[1] - t[1]); // комиссия в строке финансов со знаком сбора (< 0)
+      if (Math.abs(dA) <= 1 && Math.abs(dC) <= 1) continue;
+      (anFinFix[sk] ||= []).push([ym, dA, dC]); fA += dA; fC += dC;
+    }
+    console.log(`katya: добор «Начислено» по SKU до отчёта о реализации - ${Math.round(fA)} ₽, комиссия ${Math.round(fC)} ₽ (${Object.keys(anFinFix).length} SKU)`);
+  }
   const anTbYm = Array.from(anTbYmSet).sort();
   const tbYmSet = new Set(anTbYm);
   const tbSum: Record<string, number> = {}, accSum: Record<string, number> = {};
   for (const sk in anRealSku) for (const q of anRealSku[sk]!) if (q[3] != null) tbSum[sk] = (tbSum[sk] || 0) + q[3];
   for (const sk in anFin) for (const q of anFin[sk]!) if (tbYmSet.has(String(q[0]).slice(0, 7))) accSum[sk] = (accSum[sk] || 0) + (Number(q[1]) || 0);
+  for (const sk in anFinFix) for (const q of anFinFix[sk]!) if (tbYmSet.has(String(q[0]))) accSum[sk] = (accSum[sk] || 0) + q[1]; // доля - от полного «Начислено»
   let tbAll = 0, accAll = 0; for (const k in tbSum) tbAll += tbSum[k]!; for (const k in accSum) if (tbSum[k] != null) accAll += accSum[k]!;
   const anTbRateAll = accAll > 0 ? Math.round(tbAll / accAll * 1e4) / 1e4 : 0;
   // G/F по SKU (выплаты по механикам лояльности к «Реализовано на сумму», около 1%) - для базы налога
@@ -2351,7 +2391,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   const wsKey = (o: string) => String(o || "").replace(/\s+/g, " ").trim();
   const NO_CITY = new Set(["", "—", "адрес не распознан"]);
   let dlUnmatched: Unmatched[] = [];
-  let shipAcc: ReturnType<typeof accrualShipSeries> = { bySku: new Map(), total: 0, fallback: { fact: 0, ship: 0, order: 0 } };
+  let shipAcc: ReturnType<typeof accrualShipSeries> = { bySku: new Map(), total: 0, fallback: { fact: 0, ship: 0, order: 0 }, pending: [], pendTotal: 0 };
   try {
     const nd = (f: string) => readFileSync(dp(f), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
     const post = nd("orders_daily.ndjson").map((r: any) => ({ order: String(r.order), d: String(r.d), status: String(r.status || ""), units: Number(r.units || 0), sd: r.sd ? String(r.sd) : null, sku: String(r.sku || "") }));
@@ -2367,7 +2407,19 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
     if (ordCityMiss.length) console.warn("⚠ заказы с «Нашей доставкой» без города в ведомости:", ordCityMiss.map((x) => x.order + " " + x.ship + " ₽").join(", "));
     dlUnmatched = m.unmatched;
     shipAcc = accrualShipSeries(post, m.byPosting);
-  } catch { /* нет файлов - доставка по заказам пуста */ }
+    // Повторные рейсы (Иван 02.10): к заказу - в блоке по заказам, в начислениях - на дату рейса.
+    // Новый объект, а не правка m.byPosting: ряд по дате начисления заказа уже посчитан без рейса.
+    let trips: ExtraTrip[] = [];
+    try { trips = nd("delivery_trips_extra.ndjson"); } catch { /* нет файла - повторных рейсов нет */ }
+    if (trips.length) {
+      const x = extraTripSeries(trips, post);
+      for (const [k, v] of x.perOrder) { const cur = delivByOrder[k] ?? { ship: 0, deliv: 0 }; delivByOrder[k] = { ...cur, ship: cur.ship + v.ship, deliv: cur.deliv + v.deliv }; }
+      for (const [sk, s] of x.bySku) { const t = shipAcc.bySku.get(sk) ?? shipAcc.bySku.set(sk, new Map()).get(sk)!; for (const [d, v] of s) t.set(d, (t.get(d) || 0) + v); }
+      shipAcc.total += x.total;
+      dlUnmatched.push(...x.unmatched);
+      console.log(`katya: повторные рейсы ${trips.length}, ${Math.round(x.total)} ₽ на дату рейса, не нашли заказ ${x.unmatched.length}`);
+    }
+  } catch (e) { if (String((e as Error)?.message || "").startsWith("delivery_trips_extra")) throw e; /* нет файлов - доставка по заказам пуста */ }
   // Плашка по образцу «Нет производственной СС»: строки ведомости, чей заказ не нашёлся по номеру.
   // Их расход НЕ стоит ни в одном заказе, поэтому «Наша доставка» занижена ровно на эту сумму.
   const fmtR = (v: number) => Math.round(v).toLocaleString("ru-RU").replace(/\u00a0/g, " ");
@@ -2418,8 +2470,9 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // Доставка покупателя ПО ЗАКАЗУ (NON_ITEM несёт ключ заказа, ~85% сходится с базами заказов) - для
   // per-order разнесения; несматченный остаток раскидывается пропорционально в render.
   const bdByOrderApi: Record<string, number> = {};
+  const bdDaysByOrder: Record<string, [string, number][]> = {}; // даты операций «доставка от покупателя» по заказу (accrual/by-day)
   const bdKnown: Record<string, boolean> = {}; // все заказы, по которым OZON уже отдал оплату доставки (в т.ч. 0)
-  try { for (const l of readFileSync(dp("buyer_delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); bdKnown[String(r.order)] = true; if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); } } catch { /* нет файла */ }
+  try { for (const l of readFileSync(dp("buyer_delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); bdKnown[String(r.order)] = true; if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); if (Array.isArray(r.ds) && r.ds.length) bdDaysByOrder[String(r.order)] = r.ds; } } catch { /* нет файла */ }
   // «Логистика по городам»: доход с покупателя - из OZON (оплата доставки покупателем по заказу), а не из
   // ведомости (Иван 29.09, вариант А). В ведомости «Стоимость доставки» бывает пустой при оплате в OZON
   // (40230562-0725-1: пусто, OZON 8 100 ₽) - такой 0 читался как «бесплатно». Ведомость остаётся
@@ -2577,12 +2630,20 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   const shipSkuMap: Record<string, Record<string, number>> = {};
   const dincSkuMap: Record<string, Record<string, number>> = {};
   const bdBaseUsed: Record<string, boolean> = {};
+  // OZON, только таблица «Аналитика по артикулам (за выбранный период)»: доставка покупателя по артикулу -
+  // на ДАТУ НАЧИСЛЕНИЯ заказа (sd), как «Наша доставка» (Иван 01.10, остальную аналитику не трогать:
+  // «сумма должна сойтись с начислениями OZON»). По дате заказа разница дат уходила в «Общие расходы»
+  // (сентябрь: 402 739 из 825 432). Дата - самой операции OZON «доставка от покупателя» (ds в
+  // buyer_delivery_orders, Codex PR #447); в старом файле без ds - дата начисления продажи (sd), без неё - заказа.
+  const sdByBase: Record<string, string> = {};
+  const dincAccMap: Record<string, Record<string, number>> = {}; // только для таблицы «Аналитика по артикулам (за выбранный период)»
+  if (IS_OZON) { try { for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); const b = orderBase(String(r.order)); if (r.sd && !sdByBase[b]) sdByBase[b] = String(r.sd); } } catch { /* нет файла - по дате заказа */ } }
   for (const o of anOrders) {
     const sk = String(o.sk || ""); const d = String(o.d || ""); const b = orderBase(String(o.order));
     if (!sk || !d) continue;
     const dl = delivByOrder[String(o.order)];
     if (dl && dl.ship) { (shipSkuMap[sk] ||= {})[d] = (shipSkuMap[sk][d] || 0) + Math.round(dl.ship); }
-    if (bdByOrderApi[b] != null && !bdBaseUsed[b]) { bdBaseUsed[b] = true; (dincSkuMap[sk] ||= {})[d] = (dincSkuMap[sk][d] || 0) + Math.round(bdByOrderApi[b]); }
+    if (bdByOrderApi[b] != null && !bdBaseUsed[b]) { bdBaseUsed[b] = true; (dincSkuMap[sk] ||= {})[d] = (dincSkuMap[sk][d] || 0) + Math.round(bdByOrderApi[b]); const acc = (dincAccMap[sk] ||= {}); const ds = bdDaysByOrder[b]; if (ds) { for (const [dd, v] of ds) acc[dd] = (acc[dd] || 0) + v; } else { const dd = sdByBase[b] || d; acc[dd] = (acc[dd] || 0) + Math.round(bdByOrderApi[b]); } }
   }
   const anShipSku: Record<string, any[]> = {}; for (const sk in shipSkuMap) { anShipSku[sk] = []; for (const d in shipSkuMap[sk]) anShipSku[sk]!.push([d, shipSkuMap[sk]![d]]); }
   // «Наша доставка» в таблице по артикулам (базис начислений), водопаде и план-факте OZON - ПО ДАТЕ
@@ -2593,9 +2654,10 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // Инвариант: сумма ряда = всё, что нашлось по номерам (delivery-match.test.ts).
   const anShipVedSku: Record<string, any[]> = {};
   for (const [sk, m] of shipAcc.bySku) { if (!sk) continue; anShipVedSku[sk] = [...m.entries()].map(([d, v]) => [d, Math.round(v)]); }
-  console.log(`katya: наша доставка по дате начисления ${Math.round(shipAcc.total)} ₽, из них без начисления OZON: по доставке ${Math.round(shipAcc.fallback.fact)}, по отгрузке ${Math.round(shipAcc.fallback.ship)}, по заказу ${Math.round(shipAcc.fallback.order)}`);
+  console.log(`katya: наша доставка по дате начисления ${Math.round(shipAcc.total)} ₽, ждут начисления ${Math.round(shipAcc.pendTotal)} ₽ (${shipAcc.pending.length} отпр.), отменённые без начисления: по доставке ${Math.round(shipAcc.fallback.fact)}, по отгрузке ${Math.round(shipAcc.fallback.ship)}, по заказу ${Math.round(shipAcc.fallback.order)}`);
   const vedMaxD = Object.values(anDeliv).flat().reduce((m: string, r: any) => (r[0] > m ? r[0] : m), "");
   const anDincSku: Record<string, any[]> = {}; for (const sk in dincSkuMap) { anDincSku[sk] = []; for (const d in dincSkuMap[sk]) anDincSku[sk]!.push([d, dincSkuMap[sk]![d]]); }
+  const anDincAcc: Record<string, any[]> = {}; for (const sk in dincAccMap) { anDincAcc[sk] = []; for (const d in dincAccMap[sk]) anDincAcc[sk]!.push([d, dincAccMap[sk]![d]]); }
 
   // Катя 25.09.2026: «Свод по заказам» переименован в «Аналитика по заказам», «Свод по дате
   // заказа» - в «Аналитика по артикулам». Содержимое и расчёт не менялись, только подписи. В коде
@@ -2682,14 +2744,14 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   ${IS_OZON ? `` : `<section class="card" id="sv-pts-card" style="display:none"><div class="card-h"><div><div class="card-title">Баллы Маркета за период</div><div class="card-sub">начислено, потрачено и сальдо &middot; период из фильтра наверху страницы</div></div></div>
     <div id="sv-pts" class="kt-note" style="padding:2px 0 0"></div>
   </section>`}
-  ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Логистика по городам (наша перевозка)</div><div class="card-sub">Куда наша доставка везёт в убыток: <b>расход перевозчика (ПЭК/СДЭК, счёт из ведомости) больше дохода с покупателя за доставку</b>. Строка = город назначения, считается <b>по отправке</b> (город и перевозка - свойства заказа, между позициями не делятся). Убыточные города (расход > доход) - сверху и подсвечены. Период - из фильтра наверху страницы. <b>Только наша перевозка и только закрытые месяцы</b> (в ведомости текущего месяца ещё нет): заказы на логистике OZON и на услугах партнёров сюда не входят - у них города в данных нет. Расход тут - по дате ОТГРУЗКИ из ведомости. В таблицах выше та же ведомость стоит по номеру заказа: в таблицах «по дате заказа» - на дате заказа, в таблице «Аналитика по артикулам (за выбранный период)» - на дате начисления заказа. Поэтому за месяц суммы с ними различаются (стекло отгружают через 2-4 недели после заказа, а OZON начисляет через 3-6 дней после доставки); за всё время разница - только строки ведомости, чей заказ не нашёлся по номеру (они в плашке над «Аналитикой по заказам»). Возвраты и отмены, по которым был расход перевозчика, входят. Сверху - сверка: каждый доставленный заказ должен ехать одним из трёх способов (логистика OZON / услуги партнёров / наша перевозка).</div></div></div><div id="logi-chk" class="kt-note" style="margin:2px 0 8px"></div><div id="logi-recon" class="kt-note" style="margin:2px 0 8px;padding:8px 12px;border-left:3px solid #34D399;background:rgba(52,211,153,.08)"></div><div id="logi-sum" class="kt-note" style="margin:2px 0 8px"></div><div class="kt-scroll logi-vscroll"><table class="kt-table" id="logi-t"><thead><tr><th>Город назначения</th><th class="r">Отправок</th><th class="r" title="Сколько за доставку заплатил покупатель - по данным OZON, по номеру заказа">Доход с покупателя (OZON)</th><th class="r" title="Наш счёт перевозчика за отправку (ведомость)">Расход перевозчика</th><th class="r" title="Доход с покупателя по OZON − расход перевозчика. Минус = возим в убыток">Нетто</th><th class="r" title="Средний расход на отправку по городу">Ср. расход/отпр.</th></tr></thead><tbody id="logi"></tbody></table></div></section>` : ``}
+  ${IS_OZON ? `<section class="card"><div class="card-h"><div><div class="card-title">Логистика по городам (наша перевозка, по дате отгрузки)</div><div class="card-sub">Куда наша доставка везёт в убыток: <b>расход перевозчика (ПЭК/СДЭК, счёт из ведомости) больше дохода с покупателя за доставку</b>. Строка = город назначения, считается <b>по отправке</b> (город и перевозка - свойства заказа, между позициями не делятся). Убыточные города (расход > доход) - сверху и подсвечены. Период - из фильтра наверху страницы. <b>Только наша перевозка и только закрытые месяцы</b> (в ведомости текущего месяца ещё нет): заказы на логистике OZON и на услугах партнёров сюда не входят - у них города в данных нет. Расход тут - по дате ОТГРУЗКИ из ведомости. В таблицах выше та же ведомость стоит по номеру заказа: в таблицах «по дате заказа» - на дате заказа, в таблице «Аналитика по артикулам (за выбранный период)» - на дате начисления заказа. Поэтому за месяц суммы с ними различаются (стекло отгружают через 2-4 недели после заказа, а OZON начисляет через 3-6 дней после доставки); за всё время разница - только строки ведомости, чей заказ не нашёлся по номеру (они в плашке над «Аналитикой по заказам»). Возвраты и отмены, по которым был расход перевозчика, входят. Сверху - сверка: каждый доставленный заказ должен ехать одним из трёх способов (логистика OZON / услуги партнёров / наша перевозка).</div></div></div><div id="logi-chk" class="kt-note" style="margin:2px 0 8px"></div><div id="logi-recon" class="kt-note" style="margin:2px 0 8px;padding:8px 12px;border-left:3px solid #34D399;background:rgba(52,211,153,.08)"></div><div id="logi-sum" class="kt-note" style="margin:2px 0 8px"></div><div class="kt-scroll logi-vscroll"><table class="kt-table" id="logi-t"><thead><tr><th>Город назначения</th><th class="r">Отправок</th><th class="r" title="Сколько за доставку заплатил покупатель - по данным OZON, по номеру заказа">Доход с покупателя (OZON)</th><th class="r" title="Наш счёт перевозчика за отправку (ведомость)">Расход перевозчика</th><th class="r" title="Доход с покупателя по OZON − расход перевозчика. Минус = возим в убыток">Нетто</th><th class="r" title="Средний расход на отправку по городу">Ср. расход/отпр.</th></tr></thead><tbody id="logi"></tbody></table></div></section>` : ``}
   ${ordCss}`;
   // card=true - вкладка «Реклама по карточкам»: та же таблица по заказам, CPC по атрибуции OZON
   // (cpc-card-spread.ts). card=false - «Деньги», вывод побайтно прежний.
   const mkPageJs = (card: boolean) => `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
-const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_TBYM=${J(anTbYm)};const AN_RDAY=${J(anRday)};const AN_RD_FROM=${J(rdFrom)};const AN_RD_TO=${J(rdTo)};const AN_RD_MISS=${J(rdMiss)};const AN_GF=${J(anGf)};const AN_GF_ALL=${J(anGfAll)};const AN_TBRATE=${J(anTbRate)};const AN_TBRATE_ALL=${J(anTbRateAll)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_SHIPVED=${J(anShipVedSku)};const AN_VED_MAXD=${J(vedMaxD)};const AN_SHIPFB=${J(shipAcc.fallback)};const AN_DLISSUE_N=${J([dlIssues.empty.length ? "нет суммы отправки по " + dlIssues.empty.length + " зак." : "", dlIssues.shift.length ? "сдвиг столбцов в " + dlIssues.shift.length + " строк (сумма взята из соседнего столбца)" : "", dlT2.length ? "вторая таблица ведомости (" + dlT2.reduce((a, t) => a + t.ozon_rows, 0) + " строк OZON) не прочитана" : ""].filter(Boolean).join(", "))};const AN_DINCSKU=${J(anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORD_CITY=${J(ordCity)};const AN_ORDERS=${J(anOrders)};const AN_DELIV_CITYPL=${J(delivCityPl)};${card ? "const AN_CPC=" + J(cpcCard) + ";" : ""}
+const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_FINFIX=${J(anFinFix)};const AN_META=${J(anMeta)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_TBYM=${J(anTbYm)};const AN_RDAY=${J(anRday)};const AN_RD_FROM=${J(rdFrom)};const AN_RD_TO=${J(rdTo)};const AN_RD_MISS=${J(rdMiss)};const AN_GF=${J(anGf)};const AN_GF_ALL=${J(anGfAll)};const AN_TBRATE=${J(anTbRate)};const AN_TBRATE_ALL=${J(anTbRateAll)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};const AN_CPOSKU=${J(anCpoSku)};const AN_ACQSKU=${J(anAcqSku)};const AN_STOSKU=${J(anStoSku)};const AN_PRTSKU=${J(anPrtSku)};const AN_PROMOSKU=${J(anPromoSku)};const AN_PRTDAILY=${J(prtDaily)};const AN_PRTORD=${J(prtByOrderApi)};const AN_PRTRESID=${J(prtResid)};const AN_BUYERDELIV=${J(buyerDelivDaily)};const AN_BDORD=${J(bdByOrderApi)};const AN_DELIV=${J(anDeliv)};const AN_DELIV_INC=${J(anDelivInc)};const AN_SHIPSKU=${J(anShipSku)};const AN_SHIPVED=${J(anShipVedSku)};const AN_VED_MAXD=${J(vedMaxD)};const AN_SHIPFB=${J(shipAcc.fallback)};const AN_SHIPPEND=${J(shipAcc.pending.map(([d, v]) => [d, Math.round(v)]))};const AN_DLISSUE_N=${J([dlIssues.empty.length ? "нет суммы отправки по " + dlIssues.empty.length + " зак." : "", dlIssues.shift.length ? "сдвиг столбцов в " + dlIssues.shift.length + " строк (сумма взята из соседнего столбца)" : "", dlT2.length ? "вторая таблица ведомости (" + dlT2.reduce((a, t) => a + t.ozon_rows, 0) + " строк OZON) не прочитана" : ""].filter(Boolean).join(", "))};const AN_DINCSKU=${J(anDincSku)};const AN_DINCACC=${J(IS_OZON ? anDincAcc : anDincSku)};const AN_DELIV_CITY=${J(delivCities)};const AN_ORD_CITY=${J(ordCity)};const AN_ORDERS=${J(anOrders)};const AN_DELIV_CITYPL=${J(delivCityPl)};${card ? "const AN_CPC=" + J(cpcCard) + ";" : ""}
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -2858,8 +2920,16 @@ function admBase(sk,from,to){
   add(AN_FIN[sk],7,1);add(AN_FIN[sk],4,-1);add(AN_FIN[sk],5,-1);
   add(AN_ACQSKU[sk],1,1);add(AN_STOSKU[sk],1,1); // эквайринг и хранение by-day - со знаком OZON (сбор < 0)
   add(AN_ADSSKU[sk],1,-1);add(AN_CPOSKU[sk],1,-1);
+  var fx=finFix(sk,coveredMonths(from,to));if(fx[0]||fx[1])d['fix']=(d['fix']||0)+fx[0]+fx[1]; // добор до отчёта: К выплате потерянных операций
   var b=0;for(var k in d)if(d[k]>0)b+=d[k];return b;
 }
+// Добор «Начислено»/комиссии по SKU до месячного отчёта о реализации: только целые закрытые отчётом месяцы
+// окна (covM), как штуки в realUnits. Возвращает [начислено, комиссия (со знаком сбора)].
+function finFix(sk,covM){var a=0,c=0,r=AN_FINFIX[sk]||[];for(var i=0;i<r.length;i++){if(covM[r[i][0]]){a+=r[i][1];c+=r[i][2];}}return [a,c];}
+// Те же операции с несколькими артикулами транзакции кладут в «прочее кабинета» (pnl-account-daily: не один SKU).
+// Когда finFix добирает их в строки артикулов, из «прочего кабинета» их надо вычесть, иначе двойной счёт
+// (апрель/май/июнь: +127 970 / +80 171 / +302 138 к «К выплате» против выгрузки начислений OZON, 02.10).
+function acctFix(from,to){var cv=coveredMonths(from,to),s=0;for(var sk in AN_FINFIX){var r=AN_FINFIX[sk];for(var i=0;i<r.length;i++)if(cv[r[i][0]])s+=r[i][1]+r[i][2];}return s;}
 function anSum(rows,from,to,n){var s=[];for(var k=0;k<n;k++)s.push(0);if(!rows)return s;for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]<from||r[0]>to)continue;for(var k2=0;k2<n;k2++)s[k2]+=r[k2+1]||0;}return s;}
 // «Реализовано с учётом возвратов» по SKU за период: за ЦЕЛЫЕ закрытые месяцы (есть отчёт о
 // реализации) - продано − возвраты по отчёту (=УПД); дни вне таких месяцев (текущий/частичный
@@ -2908,7 +2978,11 @@ function realBase(sk,covM,from,to){
 // База налога заказа: оплата покупателя (F по заказу) + доля G артикула; нет оплаты - оценка долей.
 function ordBase(s){if(s.paid!=null&&s.paid>0){var g=(AN_GF[s.sk]!=null)?AN_GF[s.sk]:AN_GF_ALL;return Math.round(s.paid*(1+g));}return Math.round((s.acc||0)*tbRate(s.sk));}
 var NOFEE_TIP='OZON отметил заказ доставленным, но комиссию за продажу по нему не начислил. Для свежего заказа это обычно значит, что начисление ещё не пришло (появится при следующем обновлении данных); для старого - что OZON не взял комиссию или начислил её на другой номер. «К выплате» и прибыль в строке могут быть завышены на размер комиссии.';
-function anCells(x){
+// Производные строки (сборы, валовая, АДМ, налоги, чистая, рентабельность). Одна функция для таблиц
+// «Денег» и вкладки «Отчет» (Иван 01.10): отчёт берёт ИТОГО этой же таблицы, копий формулы нет.
+// «Перечисление за доставку от покупателя» по начислениям OZON (accrual/by-day) за период - итог дохода от доставки.
+function anBdAcc(from,to){var s=0;for(var i=0;i<AN_BUYERDELIV.length;i++){var r=AN_BUYERDELIV[i];if(r[0]>=from&&r[0]<=to)s+=r[1];}return s;}
+function anDerive(x){
   var fees=x.acc-x.amt;
   // Валовая прибыль = К выплате − СС произв.; АДМ = 30% К выплате; Налоги = 15% К выплате;
   // Чистая = Валовая − АДМ − Налоги; Рентабельность = Чистая / Выручка.
@@ -2921,9 +2995,14 @@ function anCells(x){
   // строки без x.tb считают налог от прежней базы.
   var gp=(x.amt||0)-(x.cc||0)-(x.ship||0)+(x.dinc||0), adm=0.30*(x.amtS||0), tax=0.15*((x.tb!=null)?x.tb:(x.amtS||0)), net=gp-adm-tax;
   var rent=(x.amt>0)?net/x.amt*100:null; // база «К выплате»<=0 -> рентаб не определена (не считаем ложный плюс)
+  return {fees:fees,gp:gp,adm:adm,tax:tax,net:net,rent:rent};
+}
+function anCells(x){
+  var _dv=anDerive(x),fees=_dv.fees,gp=_dv.gp,adm=_dv.adm,tax=_dv.tax,net=_dv.net,rent=_dv.rent;
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var RD=function(v,tip){var t=tip?' title="'+String(tip).replace(/"/g,'&quot;')+'"':'';return '<td class="r"'+t+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
-  var P2=function(v){return '<td class="r"'+(v>0?' style="color:var(--up)"':'')+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';}; // приход (зелёный)
+  // «Доставка покупателя» - обычным цветом, как остальные статьи (Иван 02.10: зелёный выглядел как сбой).
+  var P2=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   // Строка заказа rFBS (Иван 30.09): заказ есть в ведомости, а суммы отправки нет - «0»; заказа в ведомости
   // нет - «нет в ведомости» (расход не найден, прибыль строки без него). Везли партнёры OZON (расход в
   // «Услугах партнёров») - без пометки. FBS/FBO везёт OZON - как было.
@@ -2971,11 +3050,13 @@ function anCells(x){
   return I(x.units)+dlvCell+R(x.acc)+comCell+mid+ES(fees,eAll,'В том числе оценка сборов')+ES(x.amt,-eAll,'В том числе за вычетом оценки сборов')+shipCell+incCell+R(x.cc)+EF(P(gp))+EF(R(adm))+tbCell+taxCell+EF(P(net))+EF(PC(rent))+cityCell;
 }
 var skuGrandLast=null;
-function renderSkuAnalytics(cur){
-  skuGrandLast=null;
-  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);var miss=[];
+// Расчёт таблицы «Аналитика по артикулам (за выбранный период)» без отрисовки: строки артикулов по
+// категориям, строка «Общие расходы» и ИТОГО. Таблица на «Деньгах» и вкладка «Отчет» зовут одну эту
+// функцию, поэтому ИТОГО отчёта за месяц равно ИТОГО таблицы за тот же месяц (Иван 01.10, «1в»).
+function skuAnalyticsData(cur){
+  var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);var miss=[];
   for(var sk in AN_META){
-    var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,9);
+    var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,9);var fx=finFix(sk,covM);fi[0]+=fx[0];fi[1]+=fx[1];fi[6]+=fx[0]+fx[1];
     // cpo = разнесённая реклама «за заказ» по SKU (ручной per-order отчёт, закрытые месяцы).
     var cpo=anSum(AN_CPOSKU[sk],from,to,1)[0]||0;
     // ship = наш расход на отправку; dinc = доход от покупателя за доставку (ведомость, закрытые мес).
@@ -2984,7 +3065,7 @@ function renderSkuAnalytics(cur){
     // покупателя - AN_BDORD (API). Раньше брали из ведомости по offer (только закрытые месяцы) - текущий
     // месяц был пуст. Теперь и таблица по артикулам, и блок по заказам берут доставку из одного источника.
     var ship=anSum((${IS_OZON}?AN_SHIPVED:AN_SHIPSKU)[sk],from,to,1)[0]||0; // OZON: по дате начисления заказа (Иван 28.09)
-    var dinc=anSum(AN_DINCSKU[sk],from,to,1)[0]||0;
+    var dinc=anSum(AN_DINCACC[sk],from,to,1)[0]||0; // OZON: по дате начисления заказа (Иван 01.10), Маркет - как было
     // Эквайринг/хранение ПО SKU из accrual/by-day (AN_ACQSKU/AN_STOSKU) - тот же источник, что в блоке
     // по заказам и в водопаде. Раньше брали из AN_FIN (fi[3]/fi[4], transaction/list), а он для OZON мёртв
     // с 08.09 -> в открытом месяце столбцы стояли прочерком. Теперь и таблица, и ИТОГО, и водопад - один
@@ -3022,12 +3103,9 @@ function renderSkuAnalytics(cur){
   // списке категория и ИТОГО показывали по ним прочерк, хотя у артикулов суммы были.
   var SUMK=['rev','units','deliv','ret','canc','sp','soldO','omO','comb','acc','com','del','acq','sto','cof','promo','oth','adv','amt','amtS','tb','tbEst','cc','ship','dinc'];
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.rev-a.rev;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.rev-a.t.rev;});
-  if(!cats.length){el.innerHTML='<tr><td colspan="20" class="kt-note">нет данных за период</td></tr>';return;}
-  var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
-  cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});var op=!!anOpen[g.cat];var ck=g.cat.replace(/"/g,'');
-    html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';
-    g.arr.forEach(function(x){var badge=x.noCs?' <span style="color:#E5B567" title="Нет производственной СС в листе - СС/прибыль/рентабельность по этому артикулу неполные">⚠ нет СС</span>':'';html+='<tr class="an-sku'+(x.noCs?' an-nocs':'')+'" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+badge+'</td>'+anCells(x)+'</tr>';});
-  });
+  if(!cats.length)return {cats:cats,grand:null,acct:null,miss:miss};
+  var grand={};SUMK.forEach(function(k){grand[k]=0;});
+  cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});});
   // Сборы уровня заказа/кабинета (не по SKU) за период - отдельной строкой и в ИТОГО, разнесены
   // по колонкам по смыслу: realFBS+сервис+страхование -> «Логистика»; реклама/штрафы/бейдж/
   // эквайринг/компенсации -> «Прочие». ИСКЛЮЧЕНИЕ: «Доставка от покупателя» в расчёт НЕ входит
@@ -3035,6 +3113,7 @@ function renderSkuAnalytics(cur){
   // signed (сборы < 0), колонки показывают сбор положительным -> берём со знаком минус.
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var ai=0;ai<AN_ACCT.length;ai++){var ar=AN_ACCT[ai];if(ar[0]<from||ar[0]>to)continue;aB.adv+=ar[1];aB.fines+=ar[2];aB.realfbs+=ar[3];aB.badge+=ar[4];aB.delivery+=ar[5];aB.other+=ar[6];}
+  aB.other-=acctFix(from,to); // добор finFix уже в строках артикулов
   // Реклама: собранная per-SKU часть (grand.adv) уже разнесена в колонку «Реклама» и вычтена из
   // К выплате артикулов -> в «Прочие» кабинета оставляем ТОЛЬКО остаток (aB.adv отрицателен + собранное).
   var aDel=aB.realfbs,aOth=(aB.adv+grand.adv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // delivery исключена
@@ -3049,14 +3128,27 @@ function renderSkuAnalytics(cur){
   var unmDeliv=Math.max(0,Math.round(totalDeliv-(grand.ship||0)));
   // «Доставка покупателя» - доход, и таблица по артикулам считает его ПО ДАТЕ НАЧИСЛЕНИЯ, как весь свой
   // базис: итог = кабинетный ряд (aB.delivery, «Перечисление за доставку от покупателя»). По артикулам он
-  // разнесён по заказам (AN_DINCSKU, дата заказа); разница дат - строкой «Общие расходы», со знаком.
+  // разнесён по заказам (AN_DINCSKU, дата начисления заказа с 01.10); остаток - строкой «Общие расходы», со знаком.
   // Раньше итогом было только разнесённое, и за июль таблица недобирала 305 291 ₽ дохода (599 576
   // против 904 867 по «Начислениям»; аудит «Денег», Иван 25.09.2026).
-  var unmInc=Math.round(aB.delivery-(grand.dinc||0));
-  if(at||unmDeliv||unmInc){var acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:-aDel,acq:0,sto:0,cof:0,promo:0,oth:-aOth,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:Math.max(0,at),tb:0}; // расходы кабинета АДМ не уменьшают (вариант Б)
+  var unmInc=Math.round((${IS_OZON}?anBdAcc(from,to):aB.delivery)-(grand.dinc||0)); // OZON: итог = начисления «Перечисление за доставку от покупателя» (accrual/by-day)
+  var acct=null;
+  if(at||unmDeliv||unmInc){acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:-aDel,acq:0,sto:0,cof:0,promo:0,oth:-aOth,adv:0,ship:unmDeliv,dinc:unmInc,amt:at,amtS:Math.max(0,at),tb:0}; // расходы кабинета АДМ не уменьшают (вариант Б)
     grand.del+=acct.del;grand.oth+=acct.oth;grand.amt+=acct.amt;grand.amtS+=acct.amtS;grand.ship+=unmDeliv;grand.dinc+=unmInc; // сборы кабинета - в базе АДМ/налогов; доставка вне артикулов - в ИТОГО
-    html+='<tr style="cursor:default;font-weight:600" title="realFBS/сервис/страхование -> Логистика; реклама/штрафы/бейдж/эквайринг/компенсации -> Прочие. «Наша доставка» и «Доставка покупателя» здесь - по заказам, чей артикул не сошёлся с каталогом."><td>Общие расходы</td>'+anCells(acct)+'</tr>';
   }
+  return {cats:cats,grand:grand,acct:acct,miss:miss};
+}
+function renderSkuAnalytics(cur){
+  skuGrandLast=null;
+  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;
+  var D=skuAnalyticsData(cur),cats=D.cats,grand=D.grand,acct=D.acct,miss=D.miss;
+  if(!cats.length){el.innerHTML='<tr><td colspan="20" class="kt-note">нет данных за период</td></tr>';return;}
+  var html='';
+  cats.forEach(function(g){var op=!!anOpen[g.cat];var ck=g.cat.replace(/"/g,'');
+    html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';
+    g.arr.forEach(function(x){var badge=x.noCs?' <span style="color:#E5B567" title="Нет производственной СС в листе - СС/прибыль/рентабельность по этому артикулу неполные">⚠ нет СС</span>':'';html+='<tr class="an-sku'+(x.noCs?' an-nocs':'')+'" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+badge+'</td>'+anCells(x)+'</tr>';});
+  });
+  if(acct)html+='<tr style="cursor:default;font-weight:600" title="realFBS/сервис/страхование -> Логистика; реклама/штрафы/бейдж/эквайринг/компенсации -> Прочие. «Наша доставка» и «Доставка покупателя» здесь - по заказам, чей артикул не сошёлся с каталогом."><td>Общие расходы</td>'+anCells(acct)+'</tr>';
   var totalRow='<tr style="font-weight:800;background:rgba(34,211,238,.16);border-top:2px solid #22D3EE;border-bottom:2px solid #22D3EE"><td style="color:#22D3EE">ИТОГО</td>'+anCells(grand)+'</tr>';
   el.innerHTML=totalRow+html; // ИТОГО - вверху, под шапкой (по просьбе Ивана)
   skuGrandLast=grand; // ИТОГО таблицы по артикулам - для водопада
@@ -3078,7 +3170,11 @@ function renderSkuAnalytics(cur){
     var msg=[],md=AN_RD_MISS.filter(function(d){return d>=from&&d<=to;});
     if(AN_DLISSUE_N)msg.push('<b style="color:#E5B567">⚠ Ведомость перевозчика неполная:</b> '+AN_DLISSUE_N+' - список заказов над таблицей «Аналитика по заказам».');
     if(AN_VED_MAXD&&to>AN_VED_MAXD)msg.push('<b style="color:#E5B567">⚠ Ведомость перевозчика загружена по отгрузки '+AN_VED_MAXD.slice(8,10)+'.'+AN_VED_MAXD.slice(5,7)+'</b>: у заказов, отгруженных позже, «Наша доставка» ещё не стоит, а их выручка OZON начисляет в эти дни - прибыль за период завышена на их доставку.');
-    if(AN_SHIPFB.fact+AN_SHIPFB.ship+AN_SHIPFB.order>0)msg.push('«Наша доставка» стоит по дате начисления заказа OZON. Заказы, которые OZON ещё не начислил (в пути, отменённые с расходом перевозчика), стоят на дате фактической доставки из ведомости ('+fmtRu(Math.round(AN_SHIPFB.fact))+' ₽ за всё время), без неё - на дате отгрузки ('+fmtRu(Math.round(AN_SHIPFB.ship))+' ₽)'+(Math.round(AN_SHIPFB.order)?', без неё - на дате заказа ('+fmtRu(Math.round(AN_SHIPFB.order))+' ₽)':'')+'.');
+    // Иван 01.10, вариант «а»: расход перевозчика по заказам в пути, которые OZON ещё не начислил, в таблицу,
+    // план и водопад не входит - встанет в месяц начисления заказа. Здесь - сколько его ждёт (по дате доставки/отгрузки).
+    var pN=0,pS=0;for(var pi=0;pi<AN_SHIPPEND.length;pi++){var pr=AN_SHIPPEND[pi];if(pr[0]>=from&&pr[0]<=to){pN++;pS+=pr[1];}}
+    if(pN)msg.push('<b>Ждут начисления OZON:</b> '+pN+' отправ. в пути, наш расход перевозчика '+fmtRu(Math.round(pS))+' ₽ (доставлены или отгружены в этом периоде). В «Нашу доставку» не включены: встанут в месяц, когда OZON начислит заказ, вместе с выручкой и доходом за доставку.');
+    if(AN_SHIPFB.fact+AN_SHIPFB.ship+AN_SHIPFB.order>0)msg.push('«Наша доставка» стоит по дате начисления заказа OZON. Отменённые заказы с расходом перевозчика OZON не начисляет - они стоят на дате фактической доставки из ведомости ('+fmtRu(Math.round(AN_SHIPFB.fact))+' ₽ за всё время), без неё - на дате отгрузки ('+fmtRu(Math.round(AN_SHIPFB.ship))+' ₽)'+(Math.round(AN_SHIPFB.order)?', без неё - на дате заказа ('+fmtRu(Math.round(AN_SHIPFB.order))+' ₽)':'')+'.');
     if(md.length)msg.push('<b style="color:#E5B567">⚠ Нет отчёта о реализации за день</b> за '+md.length+' дн. ('+md.map(function(d){return d.slice(8,10)+'.'+d.slice(5,7);}).join(', ')+'): «Начислено», комиссия и база налога за эти дни не посчитаны, а сборы по ним стоят - «К выплате» и чистая прибыль занижены. OZON хранит этот отчёт 32 дня: сбор нужно перезапустить до истечения срока.');
     if(Math.round(grand.tbEst||0))msg.push('<b style="color:#E5B567">Оценка:</b> '+fmtRu(grand.tbEst)+' ₽ из '+fmtRu(grand.tb)+' ₽ базы налога посчитаны долей («Начислено» × доля «Реализовано» артикула): за эти дни нет ни месячного отчёта о реализации, ни отчёта за день.');
     var sc={},seen={};for(var i=0;i<AN_ORDERS.length;i++){var o=AN_ORDERS[i];
@@ -3291,6 +3387,7 @@ function renderAccountFees(cur){
   var el=document.getElementById('acct');if(!el)return;var from=cur.from,to=cur.to;
   var f={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0},any=false;
   for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;any=true;f.adv+=r[1]||0;f.fines+=r[2]||0;f.realfbs+=r[3]||0;f.badge+=r[4]||0;f.delivery+=r[5]||0;f.other+=r[6]||0;}
+  f.other-=acctFix(from,to); // добор finFix уже в строках артикулов
   // «Доставка от покупателя» уже разнесена по артикулам (столбец «Доставка покупателя» в таблице,
   // источник AN_DINCSKU/ведомость). В «Общих» показываем только НЕразнесённый остаток (кабинетное
   // перечисление − разнесённое по SKU), чтобы не дублировать вид. Сверка сохраняется: разнесённая часть
@@ -3408,7 +3505,7 @@ function periodTotals(from,to){
   var covM=coveredMonths(from,to);var rev=0,accr=0,amt=0,amtReal=0,amtS=0,cc=0,realized=0,gadv=0,tb=0;
   // разбивка сборов на уровне ИТОГО (те же AN_FIN/by-day, что и в таблице) - для водопада, один базис.
   var fComm=0,fLog=0,fAcq=0,fSto=0,fOth=0;
-  for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var ru=realUnits(sk,covM,from,to);
+  for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var fx=finFix(sk,covM);fi[0]+=fx[0];fi[1]+=fx[1];fi[6]+=fx[0]+fx[1];var ru=realUnits(sk,covM,from,to);
     // Эквайринг/хранение по SKU из accrual/by-day - тот же источник и та же формула К выплате, что в
     // ИТОГО таблицы (renderSkuAnalytics): снимаем зашитый в fi[6] transaction-эквайринг (fi[3]/fi[4]) и
     // вычитаем accrual (acq/sto). Иначе водопад/план/«Чистая прибыль» расходятся с таблицей (до 80К на
@@ -3420,6 +3517,7 @@ function periodTotals(from,to){
     fAcq+=acq;fSto+=sto;} // эквайринг/хранение по SKU из by-day (accrual) - те же acq/sto, что в К выплате
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;aB.adv+=r[1];aB.fines+=r[2];aB.realfbs+=r[3];aB.badge+=r[4];aB.delivery+=r[5];aB.other+=r[6];}
+  aB.other-=acctFix(from,to); // добор finFix уже в строках артикулов
   var aDel=aB.realfbs,aOth=(aB.adv+gadv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // доставка от покупателя исключена
   // OZON (Иван 25.09.2026, п. 4): план-факт считает ровно как ИТОГО таблицы по артикулам - «К выплате»
   // целиком (без отдельного правила для висящих заказов) и база АДМ по дням с отсечкой минуса; расходы
@@ -3434,7 +3532,7 @@ function periodTotals(from,to){
   // OZON: «Наша доставка» по дате начисления заказа, как ИТОГО таблицы по артикулам (Иван 28.09).
   var ship=0;if(${IS_OZON}){for(var _o in AN_SHIPVED){ship+=anSum(AN_SHIPVED[_o],from,to,1)[0]||0;}}else{for(var _o2 in AN_SHIPSKU){ship+=anSum(AN_SHIPSKU[_o2],from,to,1)[0]||0;}}
   var dinc=0;for(var _i in AN_DINCSKU){dinc+=anSum(AN_DINCSKU[_i],from,to,1)[0]||0;} // доход от покупателя за доставку - плюсуется
-  if(${IS_OZON})dinc=aB.delivery; // OZON: по дате начисления, как ИТОГО таблицы по артикулам (кабинетный ряд)
+  if(${IS_OZON})dinc=anBdAcc(from,to); // OZON: начисления «Перечисление за доставку от покупателя» (accrual/by-day), как ИТОГО таблицы по артикулам (Иван 01.10: план и водопад - тоже)
   // Налог OZON - 15% от «Реализовано» (база налога из отчёта о реализации), как в ИТОГО таблицы по
   // артикулам; АДМ по-прежнему 30% от «К выплате». У Маркета база налога прежняя.
   if(!${IS_OZON})tb=amtS;
@@ -3552,6 +3650,26 @@ function syncTopScroll(){
 if(typeof window!=='undefined')window.addEventListener('resize',function(){try{syncTopScroll();}catch(e){}});`;
   const pageJs = mkPageJs(false);
   writeFileSync(op("katya-money.html"), kshell("Деньги", "money", body, pageJs + svodJs(svodJson)));
+  // Вкладка «Отчет» (только OZON, Иван 01.10.2026): несёт код и данные «Денег» целиком, чтобы считать
+  // той же функцией skuAnalyticsData, что таблица по артикулам. render «Денег» переименован только в
+  // копии для отчёта - у отчёта свой render (report-page.ts). Сама страница «Деньги» не меняется.
+  if (IS_OZON) {
+    const rep = reportData({ dp, maxD, finCut: FIN_CUT, viewRows, catOf, offerOf, skuName, gmvOf: (d: string) => (DAY_T.rev ?? [])[dayIdx(d)] || 0 });
+    const moneyCore = pageJs.replace("function render(cur,cmp){", "function moneyRender(cur,cmp){");
+    if (moneyCore === pageJs) throw new Error("report: не нашёл render «Денег» - код отчёта собрался бы с чужим render");
+    writeFileSync(op("katya-report.html"), kshell("Отчет", "report", REPORT_BODY, `const REP=${J(rep)};` + moneyCore + REPORT_JS));
+  }
+  // Вкладка «Отчет» Маркета (01.10.2026, спека ym-monthly-report.yaml): так же несёт код и данные «Денег»
+  // Маркета целиком (pageJs + svodJs), чтобы считать функцией accAgg блока «Аналитика по артикулам
+  // (за выбранный период)». OZON-ветка выше не трогается.
+  if (!IS_OZON) {
+    const repY = reportDataYm({ dp, maxD, catOf, skuName, promoJs: promoYm().js });
+    const moneyCoreY = pageJs.replace("function render(cur,cmp){", "function moneyRender(cur,cmp){");
+    if (moneyCoreY === pageJs) throw new Error("report-ym: не нашёл render «Денег» - код отчёта собрался бы с чужим render");
+    const sv = svodJs(svodJson);
+    if (!sv.includes("function accAgg(")) throw new Error("report-ym: в коде «Денег» Маркета нет accAgg - отчёту нечем считать");
+    writeFileSync(op("katya-report.html"), kshell("Отчет", "report", REPORT_YM_BODY, `const REPY=${J(repY)};` + moneyCoreY + sv + reportJsYm()));
+  }
   if (IS_OZON) writeCardPage(ordSec, ordCss, mkPageJs(true), cpcCard);
 }
 
@@ -3737,10 +3855,31 @@ function accJs(): string {
     rows = readFileSync(dp("pnl_sku_netting_daily.ndjson"), "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
   } catch { rows = []; }
   if (!rows.length) return "var ACC=[];var ACC_DOC=[];var ACC_FB=[];var ACC_META={rows:0};";
+  // Блок берёт реестр только по последний ПОЛНЫЙ день (вариант «а» 02.10.2026, та же функция, что у
+  // вкладки «Отчет»): последний день Маркет присылает в два захода, денежные сборы по его заказам
+  // приходят следующим снимком. Раньше блок брал его по фильтру страницы и показывал «К выплате»
+  // без сборов. Строки позже границы отрезаются здесь, до таблицы и до сверки ACC_DOC.
+  const { to: accTo } = accLedgerFullTo(rows);
+  // Все отрезанные дни, а не только последние дни кабинетов (G1 ФЕНИКСА 02.10: при отстающем кабинете
+  // из блока выпадают и полные дни другого кабинета - подпись обязана их назвать).
+  const accCut = accCutDays(rows.map((r) => String(r.d || "")), accTo);
+  rows = rows.filter((r) => String(r.d || "") <= accTo);
+  // Пары кабинет/месяц, собранные без статуса платежа (схема реестра до 5): там отменённый заказ
+  // ещё посчитан продажей. Помечаются в блоке, пока бот не перезаберёт месяц.
+  let netAcct: any[] = [];
+  try { netAcct = readFileSync(dp("netting.ndjson"), "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l)); } catch { netAcct = []; }
+  const accNoSt: string[] = nettingNoStatus(netAcct);
   // Строка блока - (день, артикул): на ней копится база АДМ, как и раньше. Кабинеты складываются
   // здесь; разрез по кабинету нужен только сверке с отчётом о платежах, он идёт в ACC_DOC.
-  const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs"];
-  const by = new Map<string, any>(), doc = new Map<string, any>(), fb = new Set<string>();
+  // Последние четыре поля - «оплачено и отменено» (справочно, ответ «1а» 02.10): в деньги и штуки не входят.
+  // Дальше - второй столбец (решение 02.10 «два столбца»): деньги заказов со сбором Маркета за продажу,
+  // по дню этого сбора, С\С его штук и наша перевозка. Порядок полей = ACC_F на странице.
+  const F = ["sold", "ret", "units", "pay", "dlv", "accruals", "commission", "delivery", "acquiring", "storage", "cofin", "promo", "otherSvc", "amount", "got", "back", "cogs", "cgot", "csold", "cback", "cret",
+    "rsold", "rret", "runits", "rpay", "rdlv", "raccruals", "ramount", "rgot", "rback", "rcogs", "ship", "shipc", "shipn", "shipk"];
+  // Снимок, собранный до второго столбца (derive без полей r*): страница считает от первого столбца и
+  // говорит об этом, а не показывает нули (К7).
+  const accR = rows.some((r) => r.raccruals !== undefined);
+  const by = new Map<string, any>(), fb = new Set<string>();
   // Артикулы, которых нет в листе С\С (тем же поиском, что в своде). Остальные несут С\С в строке.
   const noCogs = new Set<string>();
   for (const r of rows) {
@@ -3751,38 +3890,10 @@ function accJs(): string {
     if (r.basis === "orders") { t.fb = 1; fb.add(`${b}/${d.slice(0, 7)}`); }
     if (r.cogs_known === false && sk) noCogs.add(sk);
     by.set(k, t);
-    if (r.basis !== "orders") {
-      // Отчёт о платежах Маркет выпускает по ДОГОВОРУ, а в кабинете их бывает несколько (у 1023124
-      // в июле 2026 - два). Поэтому сверка идёт по договору; без договора - по кабинету.
-      const bk = r.contract ? `${b} · договор ${r.contract}` : b;
-      const dk = `${d}|${bk}`;
-      const x = doc.get(dk) || { d, b: bk, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
-      x.got += (Number(r.got) || 0) + (Number(r.dgot) || 0); x.back += (Number(r.back) || 0) + (Number(r.dback) || 0);
-      x.sold += Number(r.sold) || 0; x.ret += Number(r.ret) || 0; x.amount += Number(r.amount) || 0;
-      doc.set(dk, x);
-    }
   }
   const compact = [...by.values()].map((t) => [t.d, t.sku, ...F.map((f) => Math.round(t[f])), t.fb]);
-  // Проводки БЕЗ номера заказа (удержания уровня кабинета, премия, внесено продавцом) в таблицу по
-  // артикулам не идут - им нет артикула. Но в «Подлежит перечислению» отчёта о платежах они входят,
-  // и без них сверка расходилась: июль, договор 54641824/26 - на 735 ₽ удержания без заказа,
-  // 54542918/26 - на 19 589,24 удержаний и 9 619,79 премии. С ними оба договора сходятся до копейки.
-  try {
-    for (const l of readFileSync(dp("netting.ndjson"), "utf-8").split("\n")) {
-      if (!l.trim()) continue;
-      const r = JSON.parse(l);
-      if (r.order && String(r.order).trim()) continue;
-      if (r.src === undefined) continue; // старая схема: источник неизвестен, не угадываем
-      const b = String(r.business || ""), d = String(r.d || "");
-      const bk = r.contract ? `${b} · договор ${r.contract}` : b;
-      const dk = `${d}|${bk}`;
-      const x = doc.get(dk) || { d, b: bk, got: 0, back: 0, sold: 0, ret: 0, amount: 0 };
-      const a = Number(r.amount) || 0;
-      if (/^прем/i.test(String(r.src || ""))) x.prem = (x.prem || 0) + a; else x.acct = (x.acct || 0) + a;
-      doc.set(dk, x);
-    }
-  } catch { /* реестра нет - сверка только по заказам */ }
-  const docRows = [...doc.values()].map((x) => [x.d, x.b, Math.round(x.got * 100) / 100, Math.round(x.back * 100) / 100, x.sold, x.ret, Math.round(x.amount * 100) / 100, Math.round((x.acct || 0) * 100) / 100, Math.round((x.prem || 0) * 100) / 100]);
+  // Сверка с отчётом о платежах (ACC_DOC) - в derive-lib accDocRows (G3 ФЕНИКСА iter3: логика под тестом, К9).
+  const docRows = accDocRows(rows, netAcct, accTo);
   const skus = [...new Set(rows.map((r) => String(r.sku || "")))].filter(Boolean);
   const cat: Record<string, string> = {}, nm: Record<string, string> = {}, cc: Record<string, number> = {};
   for (const sk of skus) { cat[sk] = catOf(sk); nm[sk] = skuName[sk] || sk; if (cogs[sk]) cc[sk] = cogs[sk]; }
@@ -3818,6 +3929,12 @@ var ACC_NOCOGS=${JSON.stringify([...noCogs].sort())};
 var ACC_UPD=${JSON.stringify(upd)};
 var ACC_PEND=${JSON.stringify(pend)};
 var ACC_OPEN={};
+var ACC_NOST=${JSON.stringify(splitNoStatus(accNoSt, YM_FLOOR).refetch)};
+var ACC_NOST_OLD=${JSON.stringify(splitNoStatus(accNoSt, YM_FLOOR).never)};
+var ACC_FLOOR=${JSON.stringify(YM_FLOOR.slice(0, 7))};
+var ACC_TO=${JSON.stringify(accTo)};
+var ACC_CUT=${JSON.stringify(accCut)};
+var ACC_R=${accR ? "true" : "false"};
 `;
 }
 
@@ -4695,7 +4812,11 @@ function soDraw(){
 // отчёта о платежах Маркета, поэтому по артикулу блок сверяется с документом напрямую (Катя
 // 28.09.2026: GGL-09-2 за июль 15 − 3 = 12 шт на 164 576 ₽). Полный P&L: с АДМ, налогом и чистой
 // прибылью, на тех же базах, что блок по дате заказа.
-var ACC_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs'];
+var ACC_F=['sold','ret','units','pay','dlv','accruals','commission','delivery','acquiring','storage','cofin','promo','otherSvc','amount','got','back','cogs','cgot','csold','cback','cret',
+  'rsold','rret','runits','rpay','rdlv','raccruals','ramount','rgot','rback','rcogs','ship','shipc','shipn','shipk'];
+// Первый столбец (как начислил Маркет, справочно) после accAgg: начислено, оплатил клиент, доставка
+// покупателя, К выплате, штуки. Основные поля строки после accAgg - второй столбец.
+var ACC_X=['acc1','pay1','dlv1','amount1','units1','sold1','ret1','cogs1'];
 // Ставки читаются из тех же полей, что и свод: одно место правки на всю страницу.
 var ACC_RATE={adm:0.30,tax:0.15};
 function accRates(){
@@ -4718,12 +4839,23 @@ function accAgg(w){
     // своде: минус в колонке расхода читается как возврат, а не как трата.
     // Списание баллами (cofin) в сборы не входит: блок только про деньги, как отчёт о платежах.
     o.fee=-(o.commission+o.delivery+o.acquiring+o.storage+o.promo+o.otherSvc);
+    // Два столбца (решение 02.10): первый - как начислил Маркет (по дню платежа), справочно; второй -
+    // деньги заказов, по которым Маркет провёл сбор за продажу (по дню этого сбора). Сборы одни и те
+    // же, поэтому К выплате второго = К выплате первого − Начислено первого + Начислено второго.
+    // От второго столбца считаются С\С, наша доставка, АДМ, налог и чистая.
+    o.acc1=o.accruals;o.pay1=o.pay;o.dlv1=o.dlv;o.amount1=o.amount;o.units1=o.units;o.sold1=o.sold;o.ret1=o.ret;o.cogs1=o.cogs;
+    if(typeof ACC_R!=='undefined'&&ACC_R){
+      o.sold=o.rsold;o.ret=o.rret;o.units=o.runits;o.pay=o.rpay;o.dlv=o.rdlv;o.accruals=o.raccruals;o.amount=o.ramount;
+      o.got=o.rgot;o.back=o.rback;o.cogs=o.rcogs;
+    }
     // Без отсечки, как АДМ и налог: возврат, пришедший в периоде, возвращает и себестоимость штуки.
     // С\С приходит в строке данных: тот же поиск по листу, что в своде (кириллические двойники
     // кода, «180-90» против «18090»). Старый снимок без поля - по листу напрямую, как раньше.
     if(o.cogs===0&&ACC_COGS[k]!=null&&typeof ACC_NOCOGS==='undefined')o.cogs=ACC_COGS[k]*o.units;
+    o.ship=o.ship||0;
     o.ck=(typeof ACC_NOCOGS==='undefined')?ACC_COGS[k]!=null:ACC_NOCOGS.indexOf(k)<0;
-    o.gp=o.amount-o.cogs;
+    // Валовая - после нашей перевозки (ведомость по заказам второго столбца).
+    o.gp=o.amount-o.cogs-o.ship;
     // АДМ - от «К выплате», налог - от «Оплатил клиент». Те же базы и те же ставки, что в блоке
     // по дате заказа (решение Кати и подтверждение Ивана 23.09.2026,
     // knowledge/semantic/ym-rates-adm-tax.md); отличается только базис периода.
@@ -4743,16 +4875,19 @@ function accDraw(){
   var w=svWin(), list=accAgg(w);
   if(!list.length){
     el.innerHTML=''; note.textContent='';
-    cov.innerHTML='За выбранный период проводок по взаиморасчётам нет. Период задаётся фильтром наверху страницы.';
+    var at=(typeof ACC_TO!=='undefined')?ACC_TO:'';
+    cov.innerHTML='За выбранный период проводок по взаиморасчётам нет.'+(at&&w.from>at?' Реестр полный по '+at+': следующий день Маркет ещё дособирает.':'')+' Период задаётся фильтром наверху страницы.';
     return;
   }
   var CF=[['Комиссия','commission'],['Доставка','delivery'],['Эквайринг','acquiring'],['Хранение','storage'],
           ['Продвижение','promo'],['Прочие услуги','otherSvc']];
-  var H=['Категория / Артикул','Продано, шт','Возвраты, шт','Итого, шт','Начислено','Оплатил клиент','Доставка покупателя'].concat(CF.map(function(x){return x[0];}))
-    .concat(['Всего сборов','К выплате','С\\С произв.','Валовая прибыль','Маржа',
+  var H=['Категория / Артикул','Продано, шт','Возвраты, шт','Итого, шт','Начислил Маркет (справочно)','Начислено','Оплатил клиент','Доставка покупателя'].concat(CF.map(function(x){return x[0];}))
+    .concat(['Всего сборов','К выплате','К выплате (Маркет) справочно','С\\С произв.','Наша доставка','Валовая прибыль','Маржа',
              'АДМ '+svPct(ACC_RATE.adm),'Налоги '+svPct(ACC_RATE.tax),'Чистая прибыль','Рентаб.']);
-  var ACC_PAID_TIP='Платёж покупателя за товар минус возвраты платежа, по дате транзакции: строки «Получено от потребителей» и «Возвращено потребителям» отчёта о платежах Маркета по этому артикулу, в подсказке ячейки - обе суммы. Доставка, которую оплатил покупатель, - в соседней колонке; «Начислено» = эта колонка плюс доставка. Баллов Маркета здесь нет: в закрывающих документах их тоже нет.';
-  var ACC_U_TIP={'Продано, шт':'Штуки в платежах покупателя за период (строка «Получено от потребителей» отчёта о платежах).','Возвраты, шт':'Штуки, по которым Маркет вернул покупателю деньги за период (строка «Возвращено потребителям»). Возврат может относиться к продаже прошлого месяца.','Итого, шт':'Продано минус возвраты. От этого числа считается себестоимость.','Доставка покупателя':'Что покупатель заплатил за доставку, минус возвраты этих денег. Входит в «Получено от потребителей» отчёта о платежах и в базу налога.'};
+  var ACC_PAID_TIP='Платёж покупателя за товар минус возвраты платежа - по заказам второго столбца: платёж стоит в день сбора Маркета за продажу, возврат - в свой день (решение 02.10). В подсказке ячейки - обе суммы. Доставка, которую оплатил покупатель, - в соседней колонке; «Начислено» = эта колонка плюс доставка. Как в отчёте о платежах, по дню платежа, - колонка «Начислил Маркет (справочно)» и сверка под таблицей. Баллов Маркета здесь нет: в закрывающих документах их тоже нет.';
+  var ACC_U_TIP={'Продано, шт':'Штуки заказов, по которым Маркет провёл сбор за продажу в периоде (второй столбец). Штуки по дню платежа - в подсказке колонки «Начислил Маркет».','Возвраты, шт':'Штуки, по которым Маркет вернул покупателю деньги за период, по заказам, уже прошедшим во втором столбце. Возврат может относиться к продаже прошлого месяца.','Итого, шт':'Продано минус возвраты. От этого числа считается себестоимость.','Доставка покупателя':'Что покупатель заплатил за доставку, минус возвраты этих денег. Входит в «Получено от потребителей» отчёта о платежах и в базу налога.'};
+  var ACC_C1_TIP='Как начислил Маркет: платежи покупателей по дню платежа (≈ день оформления) минус возвраты по их дню - строки отчёта о платежах. Справочно: сборы за продажу Маркет проводит в день доставки, поэтому на стыке месяцев этот доход и сборы относятся к разным заказам.';
+  var ACC_C2_TIP='Начислено по заказам, по которым Маркет провёл сбор за продажу (размещение или перевод платежа): весь платёж заказа - в день этого сбора, возврат - в свой день. Доход и сборы относятся к одним заказам; от этого столбца считаются К выплате, С\\С, наша доставка, АДМ, налог и чистая (решение 02.10).'+((typeof ACC_R!=='undefined'&&!ACC_R)?' СНИМОК СОБРАН ДО ВТОРОГО СТОЛБЦА: здесь пока первый столбец.':'');
   var ACC_ADM_TIP='Ставка от «К выплате» - денег, которые остались после удержаний Маркета. Отрицательные цифры не отсекаются (решение Кати 28.09.2026): минус артикула уменьшает итог, поэтому ИТОГО равно ставке от столбца.';
   var ACC_TAX_TIP='Ставка от «Начислено» - всего платежа покупателя за товар и доставку минус возвраты («Получено от потребителей» − «Возвращено потребителям»). Отрицательные цифры не отсекаются (решение Кати 28.09.2026): артикул, у которого возвратов за период больше, чем платежей, уменьшает итог.';
   var h='<thead><tr>'+H.map(function(x,i){return '<th'+(i?' class="r"':'')
@@ -4760,21 +4895,40 @@ function accDraw(){
     +(x.indexOf('Налоги ')===0?' title="'+ACC_TAX_TIP+'"':'')
     +(x.indexOf('АДМ ')===0?' title="'+ACC_ADM_TIP+'"':'')
     +(ACC_U_TIP[x]?' title="'+ACC_U_TIP[x]+'"':'')
+    +(x==='Начислил Маркет (справочно)'?' style="color:var(--ink-3)" title="'+ACC_C1_TIP+'"':'')
+    +(x==='Начислено'?' title="'+ACC_C2_TIP+'"':'')
+    +(x==='К выплате (Маркет) справочно'?' style="color:var(--ink-3)" title="К выплате по начислению Маркета: «Начислил Маркет» минус те же сборы. Справочно, для сверки с отчётом о платежах."':'')
+    +(x==='Наша доставка'?' title="Перевозка по ведомости (без строк «ОТМЕНЕН», возвраты и рекламации учтены) по заказам второго столбца, в день сбора Маркета за продажу. Плюс перевозка заказов, которые Маркет отменил без продажи, - в день отмены (сколько - в подсказке ячейки)."':'')
     +'>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
   function money(v){return '<td class="r">'+(Math.round(v)?svRub(v):'—')+'</td>';}
+  // Наша доставка: в т.ч. отменённые - в подсказке; заказы, которые везли мы, без суммы в ведомости
+  // (G5 ФЕНИКСА iter3) - звёздочкой и подсказкой; ни одного с суммой - «нет данных», а не ноль.
+  function accShipTd(x){
+    var n=x.shipn||0,k=x.shipk||0,tip=[];
+    if(Math.round(x.shipc||0))tip.push('в т.ч. по заказам, отменённым без продажи: '+svRub(x.shipc)+' ₽');
+    if(n>k)tip.push((n-k)+' из '+n+' заказов, которые везли мы, без суммы в ведомости - наша доставка занижена, валовая и чистая завышены');
+    var td=(n>0&&k===0&&!Math.round(x.ship||0))?'<td class="r"><span style="color:var(--ink-3)">нет данных</span></td>':money(x.ship||0);
+    if(tip.length)td=td.replace('<td class="r"','<td class="r" title="'+tip.join('. ')+'"');
+    return n>k?td.slice(0,-5)+' <span style="color:#E5B567">*</span></td>':td;
+  }
   function cells(x){
     return '<td class="r">'+(x.sold||'—')+'</td><td class="r">'+(x.ret||'—')+'</td>'
       +'<td class="r"'+(x.fb?' style="color:#E5B567" title="часть дней посчитана по выгрузке заказов, а не по реестру: за этот месяц реестр собран без колонки источника - штуки с отчётом о платежах могут не совпасть"':'')+'><b>'+x.units+'</b></td>'
+      // Сверка Кати с отчётом о платежах идёт по дню платежа - штуки первого столбца видны в ячейке,
+      // деньги за товар - в подсказке (G2 ФЕНИКСА iter3).
+      +'<td class="r acc-c1" style="color:var(--ink-3)" title="по начислению Маркета: продано '+(x.sold1||0)+' − возвраты '+(x.ret1||0)+' = '+(x.units1||0)+' шт; оплатил клиент '+svRub(x.pay1||0)+' ₽; доставка покупателя '+svRub(x.dlv1||0)+' ₽">'+svRub(x.acc1||0)+'</td>'
       +'<td class="r"><b>'+svRub(x.accruals)+'</b></td>'
       +'<td class="r" style="color:var(--ink-3)"'+(Math.round(x.back||0)?' title="получено '+svRub(x.got||0)+' ₽ − возвращено '+svRub(-(x.back||0))+' ₽"':'')+'>'+(Math.round(x.pay)?svRub(x.pay):'—')+'</td>'
       +money(x.dlv||0)
       +CF.map(function(c){return money(-(x[c[1]]||0));}).join('')
       +'<td class="r">'+svRub(x.fee)+'</td>'
       +'<td class="r"><b>'+svRub(x.amount)+'</b></td>'
+      +'<td class="r" style="color:var(--ink-3)">'+svRub(x.amount1||0)+'</td>'
       // Итог категории и ИТОГО показываются ВСЕГДА (Катя 28.09.2026: «почему нет данных по СС - стоят
       // прочерки»): один артикул без С\С раньше гасил сумму целой категории. Сколько артикулов без
       // С\С - в подсказке и приглушённым цветом.
       +'<td class="r"'+(x.ck?'':' style="color:var(--ink-3)" title="'+(x.rows&&x.noCk?('без С\\С в листе: '+svArt(x.noCk)+' - '):'себестоимости по этому артикулу нет в листе - ')+'валовая завышена на их неизвестную С\\С"')+'>'+(Math.round(x.cogs)?svRub(x.cogs):'—')+'</td>'
+      +accShipTd(x)
       +'<td class="r" style="color:'+(x.gp>=0?'var(--up)':'var(--dn)')+'">'+svRub(x.gp)+'</td>'
       +'<td class="r">'+(x.amount>0?(Math.round(x.gp/x.amount*1000)/10)+'%':'—')+'</td>'
       +money(x.adm)+money(x.tax)
@@ -4785,13 +4939,13 @@ function accDraw(){
   var cats={};
   list.forEach(function(x){
     var g=cats[x.cat]||(cats[x.cat]={cat:x.cat,rows:[],fee:0,ck:true,gp:0,adm:0,tax:0,np:0});
-    ACC_F.forEach(function(f){g[f]=(g[f]||0)+(x[f]||0);});
+    ACC_F.concat(ACC_X).forEach(function(f){g[f]=(g[f]||0)+(x[f]||0);});
     g.rows.push(x);g.fee+=x.fee;g.gp+=x.gp;g.adm+=x.adm;g.tax+=x.tax;g.np+=x.np;if(!x.ck){g.ck=false;g.noCk=(g.noCk||0)+1;}});
   var groups=Object.keys(cats).map(function(k){return cats[k];}).sort(function(p,q){return q.amount-p.amount;});
   var T={fee:0,ck:true,gp:0,adm:0,tax:0,np:0,fb:0};
-  ACC_F.forEach(function(f){T[f]=0;});
+  ACC_F.concat(ACC_X).forEach(function(f){T[f]=0;});
   groups.forEach(function(g){
-    ACC_F.forEach(function(f){T[f]+=g[f]||0;});
+    ACC_F.concat(ACC_X).forEach(function(f){T[f]+=g[f]||0;});
     T.fee+=g.fee;T.gp+=g.gp;T.adm+=g.adm;T.tax+=g.tax;T.np+=g.np;
     if(!g.ck){T.ck=false;T.noCk=(T.noCk||0)+(g.noCk||0);}});
   groups.forEach(function(g){g.fb=g.rows.some(function(x){return x.fb;})?1:0;if(g.fb)T.fb=1;});
@@ -4832,7 +4986,20 @@ function accDraw(){
       +(Math.round(o.prem*100)?', премия '+kop(o.prem)+' ₽':'')
       +' = подлежит перечислению <b>'+kop(total)+' ₽</b>';}).join('<br>');
   var fbIn=(typeof ACC_FB!=='undefined'?ACC_FB:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
-  cov.innerHTML='период: <b>'+w.from+' .. '+w.to+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'
+  // Граница полного реестра (вариант «а» 02.10): день, сборы которого ещё дорастают, в блок не входит.
+  var accTo=(typeof ACC_TO!=='undefined')?ACC_TO:'', accCutTxt=(accTo&&w.to>accTo)?'<br><span style="color:#E5B567" title="Маркет присылает последний день реестра в несколько заходов: сначала платежи покупателей, сборы по заказам дорастают следующим снимком. Чтобы «К выплате» не было завышено, блок берёт реестр только по последний полный день. Отчёт отстаёт на день, зато всегда полный (решение 02.10.2026).">реестр полный по <b>'+accTo+'</b>'+((typeof ACC_CUT!=='undefined'&&ACC_CUT.length)?', проводки за '+ACC_CUT.join(', ')+' ещё дособираются и в блок не входят':'')+'</span>':'';
+  // Оплачено и отменено (ответ «1а» 02.10): статус Маркета «не будет переведён / удержан из-за отмены
+  // заказа». В деньги и штуки блока не входит - показывается справкой.
+  var cg=0,cs=0,cb=0,cr=0;list.forEach(function(o){cg+=o.cgot||0;cs+=o.csold||0;cb+=o.cback||0;cr+=o.cret||0;});
+  var accCancTxt=(Math.round(cg)||Math.round(cb))?'<br><span title="Заказ оплатили и отменили: Маркет помечает платёж «Не будет переведён из-за отмены заказа», возврат - «Не будет удержан из-за отмены заказа». Денег продавцу не было и не будет, поэтому в «Начислено», «К выплате» и штуки такие строки не входят. Платёж и его отмена могут прийтись на разные месяцы.">оплачено и отменено (в блок не входит): платежи <b>'+svRub(cg)+' ₽</b> / '+cs+' шт, их возвраты '+svRub(-cb)+' ₽ / '+cr+' шт</span>':'';
+  var noSt=(typeof ACC_NOST!=='undefined'?ACC_NOST:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
+  var noStO=(typeof ACC_NOST_OLD!=='undefined'?ACC_NOST_OLD:[]).filter(function(p){var m=p.split('/')[1];return m>=w.from.slice(0,7)&&m<=w.to.slice(0,7);});
+  var accNoStTxt=(noSt.length?'<br><span style="color:#E5B567">статус платежа не собран: '+noSt.join(', ')+' - отменённый заказ там пока посчитан продажей и возвратом; бот перезаберёт эти месяцы (схема реестра 5)</span>':'')
+    // Месяцы до начала сбора (FLOOR) бот не перезабирает (G4 ФЕНИКСА iter2): обещать перезабор нельзя.
+    +(noStO.length?'<br><span style="color:#E5B567">статус платежа не собирается: '+noStO.join(', ')+' - месяцы до '+(typeof ACC_FLOOR!=='undefined'?ACC_FLOOR:'')+' бот не перезабирает, отменённый заказ там посчитан продажей и возвратом</span>':'');
+  // Снимок, собранный до второго столбца (деплой без derive, G1 ФЕНИКСА iter3): сказать видимой строкой.
+  var accRTxt=(typeof ACC_R!=='undefined'&&!ACC_R)?'<br><b style="color:#E5B567">⚠ Снимок собран до второго столбца: «Начислено» и всё ниже - как начислил Маркет, наша доставка не вычтена. Обновится после ближайшего снимка Маркета.</b>':'';
+  cov.innerHTML='период: <b>'+w.from+' .. '+(accTo&&w.to>accTo?accTo:w.to)+'</b> · базис: дата транзакции по взаиморасчётам · артикулов: <b>'+list.length+'</b>'+accRTxt+accCutTxt+accCancTxt+accNoStTxt
     +(docTxt?'<br><span title="Наш расчёт из реестра для сверки со строками отчёта о платежах Маркета за те же даты: «Получено от Потребителей», «Возвращено Потребителям», «Подлежит перечислению», по договору. «Удержано без заказа» и «премия» - проводки кабинета без артикула: в таблицу они не входят, а в «Подлежит перечислению» документа входят. Июль 2026 сверен с отчётами Кати до копейки по обоим договорам. По артикулу - колонки «Продано, шт», «Возвраты, шт» и подсказка ячейки «Оплатил клиент».">сверка с отчётом о платежах</span>:<br>'+docTxt:'')
     +(fbIn.length?'<br><span style="color:#E5B567">по выгрузке заказов, а не по реестру: '+fbIn.join(', ')+' - реестр за эти месяцы собран без колонки источника, платёж покупателя там не отличить от баллов. Перезабор идёт сам (схема реестра 3); до него штуки и платёж этих месяцев с отчётом о платежах могут не совпасть</span>':'')
     +'<br><span title="Отчёт о реализации (УПД) - другой документ: он идёт по дате реализации, а не по дате платежа, поэтому штуки с блоком совпадать не обязаны.">сверка с УПД</span>: '

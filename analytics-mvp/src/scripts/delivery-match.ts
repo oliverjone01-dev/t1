@@ -95,29 +95,67 @@ export function matchLedger(rows: LedgerRow[], postings: Posting[]): MatchResult
 }
 
 /** «Наша доставка» по ДАТЕ НАЧИСЛЕНИЯ заказа - для таблицы по артикулам (базис начислений), водопада
- *  и план-факта (Иван 28.09). Заказ, который OZON ещё не начислил (в пути, отменённый с расходом),
- *  встаёт на фактическую доставку из ведомости, без неё - на отгрузку, без неё - на дату заказа;
- *  такие суммы считаются отдельно (fallback), чтобы страница их назвала.
- *  Каждое отправление даёт ровно одну запись: сумма ряда = сумма byPosting (не теряется, не двоится). */
+ *  и план-факта (Иван 28.09). Заказ в пути, который OZON ещё не начислил, в ряд НЕ входит (Иван 01.10,
+ *  вариант «а»): его расход ждёт начисления в `pending` (на дате фактической доставки, без неё - отгрузки,
+ *  без неё - заказа) и встанет в ряд на дату начисления, когда OZON его начислит - расход, выручка и доход
+ *  за доставку всегда в одном месяце. Отменённый заказ OZON не начислит никогда, а счёт перевозчика по
+ *  нему реальный - он остаётся в ряду на дате доставки/отгрузки (fallback), как раньше.
+ *  Каждое отправление даёт ровно одну запись: ряд + pending = сумма byPosting (не теряется, не двоится). */
 export function accrualShipSeries(postings: Posting[], byPosting: Map<string, PostingShip>) {
   const bySku = new Map<string, Map<string, number>>();
+  const pending: [string, number][] = [];
   const fallback = { fact: 0, ship: 0, order: 0 };
-  let total = 0;
+  let total = 0, pendTotal = 0;
   const seen = new Set<string>();
   for (const p of postings) {
     const v = byPosting.get(p.order);
     if (!v || !v.ship || seen.has(p.order)) continue;
     seen.add(p.order);
     let d = p.sd || "";
-    if (!d) {
-      if (v.dFact) { d = v.dFact; fallback.fact += v.ship; }
-      else if (v.dShip) { d = v.dShip; fallback.ship += v.ship; }
-      else { d = p.d; fallback.order += v.ship; }
-    }
+    const fb = !d;
+    if (fb) d = v.dFact || v.dShip || p.d;
+    if (fb && String(p.status || "") !== "cancelled") { pending.push([d, v.ship]); pendTotal += v.ship; continue; }
+    if (fb) { if (v.dFact) fallback.fact += v.ship; else if (v.dShip) fallback.ship += v.ship; else fallback.order += v.ship; }
     const sk = String(p.sku || "");
     const m = bySku.get(sk) ?? bySku.set(sk, new Map()).get(sk)!;
     m.set(d, (m.get(d) || 0) + v.ship);
     total += v.ship;
   }
-  return { bySku, total, fallback };
+  return { bySku, total, fallback, pending, pendTotal };
+}
+
+/** Повторный рейс перевозчика к уже отправленному заказу (возврат, повторная доставка): отдельная строка
+ *  data/delivery_trips_extra.ndjson, к ship заказа в ведомости НЕ плюсуется (Иван 02.10, ответы 1а/2а/3).
+ *  - «Аналитика по заказам»: perOrder - к заказу, в месяц заказа;
+ *  - начисления («Отчет», таблица по артикулам, логистика): bySku - на ДАТУ РЕЙСА (d_trip), потому что
+ *    своего начисления OZON у рейса нет; закрытый месяц заказа задним числом не меняется.
+ *  Номер ищется тем же matchLedger, что и ведомость (одна логика). Старые данные не трогаются: файл
+ *  только дописывается, сборщик ведомости его не перезаписывает.
+ *  Инвариант: сумма bySku + unmatched = сумма ship всех рейсов (не теряется, не двоится). */
+export interface ExtraTrip { order: string; ship: number; deliv: number; d_trip: string }
+export function extraTripSeries(trips: ExtraTrip[], postings: Posting[]) {
+  const perOrder = new Map<string, { ship: number; deliv: number }>();
+  const bySku = new Map<string, Map<string, number>>();
+  const unmatched: Unmatched[] = [];
+  const skuOf = new Map<string, string>();
+  for (const p of postings) if (!skuOf.has(p.order)) skuOf.set(p.order, String(p.sku || ""));
+  let total = 0;
+  for (const t of trips) {
+    const d = String(t.d_trip || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new Error(`delivery_trips_extra: у рейса ${t.order} нет даты рейса d_trip`);
+    const m = matchLedger([{ order: t.order, ship: t.ship, deliv: t.deliv }], postings);
+    unmatched.push(...m.unmatched);
+    for (const [k, v] of m.byPosting) {
+      const cur = perOrder.get(k) ?? { ship: 0, deliv: 0 };
+      perOrder.set(k, { ship: cur.ship + v.ship, deliv: cur.deliv + v.deliv });
+      const sk = skuOf.get(k) || "";
+      const s = bySku.get(sk) ?? bySku.set(sk, new Map()).get(sk)!;
+      s.set(d, (s.get(d) || 0) + v.ship);
+      total += v.ship;
+    }
+  }
+  const all = trips.reduce((a, t) => a + (Number(t.ship) || 0), 0);
+  const un = unmatched.reduce((a, u) => a + u.ship, 0);
+  if (Math.abs(total + un - all) > 0.01) throw new Error(`delivery_trips_extra: рейсы ${all} ≠ разложено ${total} + не найдено ${un}`);
+  return { perOrder, bySku, total, unmatched };
 }

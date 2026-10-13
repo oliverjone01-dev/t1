@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
-import { matchLedger, accrualShipSeries, type Posting } from "./delivery-match.js";
+import { matchLedger, accrualShipSeries, extraTripSeries, type Posting } from "./delivery-match.js";
 
 const P: Posting[] = [
   { order: "46952822-0108-1", d: "2026-08-01", status: "delivered", units: 1 },
@@ -79,23 +79,28 @@ describe("«Наша доставка» по дате начисления за�
   it("начисленный заказ - на дату начисления, не заказа и не отгрузки", () => {
     expect(s.bySku.get("1")!.get("2026-08-13")).toBe(3666.1);
   });
-  it("не начисленный - на фактическую доставку, без неё - на отгрузку", () => {
-    expect(s.bySku.get("2")!.get("2026-08-26")).toBe(1000);
+  it("в пути и не начислен - не в ряду, ждёт начисления (Иван 01.10, «а»)", () => {
+    expect(s.bySku.get("2")?.get("2026-08-26")).toBeUndefined();
+    expect(s.pending).toEqual([["2026-08-26", 1000]]);
+    expect(s.pendTotal).toBe(1000);
+  });
+  it("отменённый с расходом перевозчика - в ряду на отгрузке (OZON его не начислит)", () => {
     expect(s.bySku.get("2")!.get("2026-08-27")).toBe(500);
-    expect(s.fallback).toEqual({ fact: 1000, ship: 500, order: 0 });
+    expect(s.fallback).toEqual({ fact: 0, ship: 500, order: 0 });
   });
-  it("ничего не теряется и не двоится: ряд = всё, что нашлось по номерам", () => {
-    expect(s.total).toBeCloseTo(3666.1 + 1000 + 500, 2);
+  it("ничего не теряется и не двоится: ряд + ждущие = всё, что нашлось по номерам", () => {
+    expect(s.total + s.pendTotal).toBeCloseTo(3666.1 + 1000 + 500, 2);
   });
-  it("живые данные: ряд по начислению = всё найденное по номерам, до копейки", () => {
+  it("живые данные: ряд по начислению + ждущие = всё найденное по номерам, до копейки", () => {
     if (!existsSync("data/delivery_orders.ndjson") || !existsSync("data/orders_daily.ndjson")) return;
     const nd = (f: string) => readFileSync(f, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
     const od = nd("data/orders_daily.ndjson");
     const m = matchLedger(nd("data/delivery_orders.ndjson"), od);
     const a = accrualShipSeries(od, m.byPosting);
     const matched = [...m.byPosting.values()].reduce((x, v) => x + v.ship, 0);
-    expect(a.total).toBeCloseTo(matched, 1);
+    expect(a.total + a.pendTotal).toBeCloseTo(matched, 1);
     let inSeries = 0; for (const mm of a.bySku.values()) for (const v of mm.values()) inSeries += v;
+    for (const [, v] of a.pending) inSeries += v;
     expect(inSeries).toBeCloseTo(matched, 1);
   });
 });
@@ -135,5 +140,30 @@ describe("matchLedger: город заказа (Иван 30.09)", () => {
     ], post);
     expect(m.byPosting.get("333-0003-1")?.cities).toEqual(["Астраханская Область, Астрахань", "Алтайский Край, Барнаул"]);
     expect(m.byPosting.get("444-0004-1")?.cities).toBeUndefined();
+  });
+});
+
+describe("extraTripSeries: повторные рейсы (Иван 02.10, 1а/2а)", () => {
+  // Эталон: июльский заказ 15945754-0344-1 (начислен OZON 24.07), второй рейс 02.10 на 3 859,83 ₽.
+  const post: Posting[] = [{ order: "15945754-0344-1", d: "2026-07-06", status: "delivered", units: 1, sd: "2026-07-24", sku: "3555657576" }];
+  const trips = [{ order: "15945754-0344-1", ship: 3859.83, deliv: 0, d_trip: "2026-10-02" }];
+  it("в начислениях - на дату рейса, не на дату начисления заказа", () => {
+    const x = extraTripSeries(trips, post);
+    expect([...x.bySku.get("3555657576")!.entries()]).toEqual([["2026-10-02", 3859.83]]);
+    expect(x.total).toBeCloseTo(3859.83, 2);
+  });
+  it("в блоке по заказам - к заказу, первый рейс ведомости не меняется", () => {
+    const led = matchLedger([{ order: "15945754-0344-1", ship: 3686.73, deliv: 4499 }], post);
+    const x = extraTripSeries(trips, post);
+    expect(x.perOrder.get("15945754-0344-1")).toEqual({ ship: 3859.83, deliv: 0 });
+    expect(led.byPosting.get("15945754-0344-1")?.ship).toBe(3686.73);
+    const acc = accrualShipSeries(post, led.byPosting);
+    expect([...acc.bySku.get("3555657576")!.entries()]).toEqual([["2026-07-24", 3686.73]]);
+  });
+  it("номер не нашёлся - в список, не теряется; без даты рейса - ошибка", () => {
+    const x = extraTripSeries([{ order: "99999999-0001-1", ship: 500, deliv: 0, d_trip: "2026-10-02" }], post);
+    expect(x.total).toBe(0);
+    expect(x.unmatched.map((u) => u.ship)).toEqual([500]);
+    expect(() => extraTripSeries([{ order: "15945754-0344-1", ship: 1, deliv: 0, d_trip: "" }], post)).toThrow(/d_trip/);
   });
 });

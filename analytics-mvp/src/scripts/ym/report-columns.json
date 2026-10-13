@@ -108,6 +108,11 @@
     "contract": [
       "^PLACEMENT_CONTRACT$",
       "Договор размещения"
+    ],
+    "status": [
+      "^PAYMENT_STATUS$",
+      "Статус платежа",
+      "^Статус$"
     ]
   },
   "shows-sales": {

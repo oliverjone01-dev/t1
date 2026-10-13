@@ -2,7 +2,7 @@
   "domain": "lain-loft.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-09-28T08:57:48.954Z",
+  "measured": "2026-10-05T09:36:28.195Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=lain-loft.ru",
   "data": {
     "id": 322813373,
@@ -12,96 +12,114 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 5179,
-        "it50": 20416708,
-        "vis": 2144516,
-        "perc": 0.025366479258066482
+        "cnt": 5170,
+        "it50": 20429102,
+        "vis": 2460454,
+        "perc": 0.025307035032670552
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 3556,
-        "it50": 17479026,
-        "vis": 1224160,
-        "perc": 0.020344383033699932
+        "cnt": 3577,
+        "it50": 17480084,
+        "vis": 1103017,
+        "perc": 0.020463288391520316
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 2931,
-        "it50": 18404722,
-        "vis": 2083310,
-        "perc": 0.01592526091945317
+        "cnt": 2903,
+        "it50": 18421157,
+        "vis": 2212373,
+        "perc": 0.01575905357084791
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
-        "cnt": 2718,
-        "it50": 14586958,
-        "vis": 1261707,
-        "perc": 0.01863308305953853
+        "cnt": 2719,
+        "it50": 14613586,
+        "vis": 1413223,
+        "perc": 0.018605973920432672
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 2694,
-        "it50": 3124797,
-        "vis": 540794,
-        "perc": 0.08621360043548429
+        "cnt": 2701,
+        "it50": 3122594,
+        "vis": 607131,
+        "perc": 0.08649859699980209
       },
       {
         "did": 121577103,
         "name": "uslugi.yandex.ru",
-        "cnt": 2200,
-        "it50": 3088753,
-        "vis": 202275,
-        "perc": 0.07122615502113637
+        "cnt": 2139,
+        "it50": 3085180,
+        "vis": 196394,
+        "perc": 0.069331449056457
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 1925,
-        "it50": 50501731,
-        "vis": 3501268,
-        "perc": 0.0038117505318778083
-      },
-      {
-        "did": 30654137,
-        "name": "m.avito.ru",
-        "cnt": 1430,
-        "it50": 20416708,
-        "vis": 2144516,
-        "perc": 0.007004067452989973
+        "cnt": 1937,
+        "it50": 50120445,
+        "vis": 3553196,
+        "perc": 0.0038646903474220946
       },
       {
         "did": 29918498,
         "name": "livemaster.ru",
-        "cnt": 1427,
-        "it50": 2773473,
-        "vis": 106464,
-        "perc": 0.05145173578397915
+        "cnt": 1464,
+        "it50": 2778281,
+        "vis": 113528,
+        "perc": 0.05269445387273641
+      },
+      {
+        "did": 30654137,
+        "name": "m.avito.ru",
+        "cnt": 1442,
+        "it50": 20429102,
+        "vis": 2460454,
+        "perc": 0.007058557933677163
       },
       {
         "did": 137533779,
         "name": "aliexpress.ru",
-        "cnt": 1390,
-        "it50": 6361333,
-        "vis": 217372,
-        "perc": 0.021850766183754252
+        "cnt": 1374,
+        "it50": 6289427,
+        "vis": 235282,
+        "perc": 0.0218461872599841
       }
     ],
-    "it1": 181,
-    "it3": 592,
-    "it5": 1058,
-    "it10": 2146,
-    "it50": 6665,
+    "it1": 190,
+    "it3": 620,
+    "it5": 1095,
+    "it10": 2200,
+    "it50": 6679,
     "childsCount": 0,
     "keys": [
+      {
+        "pos": 1,
+        "word": "стекло",
+        "ws": 8138978,
+        "wsk": 9994
+      },
       {
         "pos": 1,
         "word": "складная перегородка",
         "ws": 4485,
         "wsk": 279
+      },
+      {
+        "pos": 1,
+        "word": "каленое стекло купить",
+        "ws": 2637,
+        "wsk": 275
+      },
+      {
+        "pos": 1,
+        "word": "умное стекло",
+        "ws": 3771,
+        "wsk": 120
       },
       {
         "pos": 1,
@@ -138,46 +156,28 @@
         "word": "временная перегородка для комнаты",
         "ws": 70,
         "wsk": 57
-      },
-      {
-        "pos": 1,
-        "word": "стеклянные складные двери",
-        "ws": 436,
-        "wsk": 54
-      },
-      {
-        "pos": 1,
-        "word": "дверь гармошка прозрачная",
-        "ws": 160,
-        "wsk": 54
-      },
-      {
-        "pos": 1,
-        "word": "витражные перегородки",
-        "ws": 659,
-        "wsk": 54
       }
     ],
-    "topkeys": 58327,
+    "topkeys": 58306,
     "pages": [
       {
-        "it50": 538,
+        "it50": 535,
         "url": "/kupit-steklo/kalenoe-steklo"
       },
       {
-        "it50": 247,
+        "it50": 246,
         "url": "/dver-garmoshka"
       },
       {
-        "it50": 245,
+        "it50": 239,
         "url": "/"
       },
       {
-        "it50": 204,
+        "it50": 194,
         "url": "/razdvizhnye-peregorodki"
       },
       {
-        "it50": 192,
+        "it50": 191,
         "url": "/shkafy-na-balkon"
       },
       {
@@ -185,25 +185,25 @@
         "url": "/kupit-steklo/riflenoe-steklo"
       },
       {
-        "it50": 183,
+        "it50": 182,
         "url": "/dekorativnye-peregorodki"
       },
       {
-        "it50": 172,
+        "it50": 179,
         "url": "/santehnicheskie-peregorodki"
       },
       {
-        "it50": 165,
+        "it50": 161,
         "url": "/kupit-steklo/smart-steklo"
       },
       {
-        "it50": 145,
-        "url": "/kupit-steklo/steklo-tripleks"
+        "it50": 146,
+        "url": "/kupit-steklo/skinali-dlya-kuhni"
       }
     ],
-    "pagesinindex": 186,
-    "vis": 325,
-    "topvis": 25898,
+    "pagesinindex": 188,
+    "vis": 309,
+    "topvis": 26509,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -226,18 +226,6 @@
     },
     "restop5": 16,
     "history": {
-      "2025.04": {
-        "it1": 79,
-        "it3": 310,
-        "it5": 694,
-        "it10": 1579,
-        "it50": 4899,
-        "pagesInIndex": 129,
-        "adsCount": 2,
-        "adKeysCount": 2,
-        "visAvg": 216,
-        "aiCnt": 0
-      },
       "2025.05": {
         "it1": 85,
         "it3": 336,
@@ -431,16 +419,28 @@
         "aiCnt": 489
       },
       "2026.09": {
-        "it1": 181,
-        "it3": 592,
-        "it5": 1058,
-        "it10": 2146,
-        "it50": 6665,
-        "pagesInIndex": 186,
+        "it1": 188,
+        "it3": 615,
+        "it5": 1085,
+        "it10": 2187,
+        "it50": 6671,
+        "pagesInIndex": 187,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 325,
-        "aiCnt": 643
+        "visAvg": 320,
+        "aiCnt": 611
+      },
+      "2026.10": {
+        "it1": 190,
+        "it3": 620,
+        "it5": 1095,
+        "it10": 2200,
+        "it50": 6679,
+        "pagesInIndex": 188,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 309,
+        "aiCnt": 551
       }
     },
     "linksHistory": {
@@ -569,11 +569,18 @@
         32,
         3,
         64
+      ],
+      "2026.10": [
+        101,
+        741,
+        32,
+        3,
+        64
       ]
     },
-    "aiAnswersCnt": 643,
+    "aiAnswersCnt": 551,
     "aiState": 10,
-    "dr": 25,
+    "dr": 18,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/916abd6bc0d80423a48405381227b1fd7cc9111e9d1679fca0cbf87dacad7673.png",
     "name": "lain-loft.ru"
   }

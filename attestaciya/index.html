@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Аттестация GENGLASS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="ds/tokens.css">
+<link rel="stylesheet" href="ds/kit.css">
+<link rel="stylesheet" href="ds/kx.css">
+<script src="ds/brand.js"></script>
+<script src="ds/icons.js"></script>
+<script src="ds/kit.js"></script>
+<script src="ds/kx.js"></script>
+<script src="questions.js"></script>
+<style>
+/* детали аттестации: только токены и шкала отступов 4 · 8 · 12 · 16 · 20 · 24 · 32 · 56 */
+.kx .q-case{ padding:12px 16px; border-radius:12px; background:var(--surface-2); font-size:14px; line-height:1.55; color:var(--text); margin-top:16px; }
+.kx .q-case b{ color:var(--text-strong); font-weight:600; }
+.kx .q-text{ margin:16px 0 0; font-size:20px; line-height:1.35; font-weight:600; letter-spacing:-.015em; color:var(--text-strong); text-wrap:pretty; }
+.kx .opts{ display:flex; flex-direction:column; gap:8px; margin-top:20px; }
+.kx .opt{ display:grid; grid-template-columns:24px minmax(0,1fr); gap:12px; align-items:start; width:100%; text-align:left; padding:12px 16px; border:0; border-radius:12px; background:var(--surface); box-shadow:inset 0 0 0 1px var(--border-strong); font:inherit; font-size:14.5px; line-height:1.5; color:var(--text-strong); cursor:pointer; transition:box-shadow 160ms var(--e-std), background-color 160ms var(--e-std); }
+.kx .opt:hover{ background:var(--surface-2); }
+.kx .opt:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.kx .opt[aria-checked="true"]{ box-shadow:inset 0 0 0 2px var(--action); background:var(--surface-2); }
+.kx .opt[aria-checked="true"] .kbd{ background:var(--action); color:var(--action-foreground); }
+.kx .q-nav{ display:flex; gap:8px; justify-content:space-between; align-items:center; margin-top:24px; flex-wrap:wrap; }
+.kx .q-nav .r{ display:flex; gap:8px; }
+.kx .timer{ font-size:44px; line-height:1; font-weight:600; letter-spacing:-.035em; color:var(--text-strong); font-variant-numeric:tabular-nums; }
+.kx .timer.warn{ color:var(--warn); }
+.kx .timer.crit{ color:var(--crit); }
+.kx .qmap{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; margin-top:12px; }
+.kx .qmap button{ height:32px; border:0; border-radius:8px; background:var(--surface-2); font:inherit; font-size:12.5px; color:var(--text-muted); cursor:pointer; font-variant-numeric:tabular-nums; transition:background-color 160ms var(--e-std); }
+.kx .qmap button.on{ background:var(--neutral-bar); color:var(--text-strong); }
+.kx .qmap button[aria-current="step"]{ box-shadow:inset 0 0 0 2px var(--action); color:var(--text-strong); }
+.kx .qmap button:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.kx .run-chip{ display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); white-space:nowrap; }
+.kx .run-chip b{ color:var(--text-strong); font-weight:600; font-variant-numeric:tabular-nums; }
+.kx .pick{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.kx .pick button{ text-align:left; padding:12px; border:0; border-radius:12px; background:var(--surface); box-shadow:inset 0 0 0 1px var(--border-strong); font:inherit; cursor:pointer; color:var(--text); transition:box-shadow 160ms var(--e-std); }
+.kx .pick button b{ display:block; font-size:14px; font-weight:600; color:var(--text-strong); }
+.kx .pick button span{ display:block; font-size:12px; color:var(--text-muted); margin-top:4px; line-height:1.4; }
+.kx .pick button[aria-pressed="true"]{ box-shadow:inset 0 0 0 2px var(--action); }
+.kx .pick button:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.kx .form{ display:flex; flex-direction:column; gap:12px; }
+.kx .form .field{ min-width:0; }
+.kx .td-q{ max-width:420px; }
+@media (max-width:640px){ .kx .q-text{ font-size:18px; } .kx .timer{ font-size:36px; } .kx .pick{ grid-template-columns:minmax(0,1fr); } }
+</style>
+</head>
+<body>
+<div class="ks-app kx">
+  <div id="bd" class="ks-backdrop" hidden></div>
+  <aside id="sb" class="ks-sidebar" aria-label="Разделы">
+    <div class="ks-brand">
+      <div class="ks-brand-mark"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg></div>
+      <div class="ks-lbl"><div class="ks-brand-name">Аттестация</div><div class="ks-brand-sub">GENGLASS · отдел продаж</div></div>
+    </div>
+    <nav id="nav" class="ks-nav"></nav>
+    <div class="ks-sidebar-foot ks-lbl" id="foot"></div>
+  </aside>
+  <div class="ks-main">
+    <header class="ks-topbar">
+      <button type="button" class="ks-btn ks-btn--ghost ks-btn--icon" id="menu" aria-label="Меню"></button>
+      <div class="ks-topbar-tools" id="chip"></div>
+      <div class="ks-topbar-spacer"></div>
+      <button type="button" class="b gh sm ic" id="theme" aria-label="Сменить тему"></button>
+    </header>
+    <main class="hx" id="view"></main>
+  </div>
+</div>
+
+<script>
+(function(){
+const { esc, nf, reduce, tick, N, seg, toast, drawer } = KS.kx, $ = id => document.getElementById(id), ATT = window.ATT;
+const LET = ['А', 'Б', 'В', 'Г'], KEY = 'gg-att-run', LAST = 'gg-att-last';
+const TAG = { d:'<span class="bdg"><i class="dot ok"></i>данные</span>' };
+const SH = (idx, title, say, tag) => '<header class="sh rise"><div><span class="idx">' + idx + '</span><h2>' + title + '</h2><p class="say">' + say + '</p></div>' + (tag ? TAG[tag] : '') + '</header>';
+const store = { get(k){ try{ return JSON.parse(sessionStorage.getItem(k)); }catch(e){ return null; } }, set(k, v){ try{ sessionStorage.setItem(k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ sessionStorage.removeItem(k); }catch(e){} } };
+
+/* ключ хранится хешем: в коде страницы верный вариант открытым текстом не лежит */
+const fnv = s => { let h = 0x811c9dc5; for(const ch of s){ h ^= ch.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; } return h; };
+const isRight = (lv, q, text) => text != null && fnv(ATT.salt + '|' + lv + ':' + q.n + '|' + text) === q.k;
+const shuffle = a => { a = a.slice(); for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const mmss = s => { s = Math.max(0, Math.round(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return n + ' ' + (m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 12 || h > 14) ? b : c); };
+const qNum = (lv, n) => n + (lv === 'star' ? '*' : '');
+const fmtDate = ts => { const d = new Date(ts); return d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' }); };
+
+let RUN = store.get(KEY), RES = store.get(LAST), VIEW = 'start', PICK = 'base', TIMER = null;
+
+/* ============ 01 · старт ============ */
+function vStart(){
+  const b = ATT.tests.base, s = ATT.tests.star, crit = b.qs.filter(q => q.crit).length;
+  const resume = RUN ? '<div class="alert warn rise" style="--i:0;margin-bottom:16px;align-items:center"><div style="flex:1"><b>Есть незавершённая попытка.</b> ' + esc(RUN.name) + ', ' + esc(ATT.tests[RUN.lv].name) + ', отвечено ' + Object.keys(RUN.ans).length + ' из ' + RUN.order.length + '. Время продолжает идти.</div><button class="b sec sm" id="resume">Продолжить</button></div>' : '';
+  $('view').innerHTML = '<section class="hs">' + SH('01', 'Аттестация по стандарту продаж и CRM', '<b>45 вопросов в двух тестах.</b> Сначала базовый уровень, после него вопросы со *.', 'd') + resume
+    + '<div class="grid12"><article class="card c8 hero rise" style="--i:1"><div class="meta"><span class="st warn"><i class="dot warn"></i>перед стартом</span><span>версия ' + esc(ATT.version) + ' от ' + ATT.date.split('-').reverse().join('.') + '</span><span>стандарт продаж и CRM GENGLASS</span></div>'
+    + '<h1>Проверка знания стандарта. <em>Ошибка в критичном вопросе - пересдача.</em></h1>'
+    + '<p class="lede">Базовый уровень: ' + b.qs.length + ' вопросов за ' + b.min + ' минут, проходной балл ' + b.pass + ' из ' + b.max + '. Вопросы со *: ' + s.qs.length + ' рабочих ситуаций за ' + s.min + ' минут, проходной балл ' + s.pass + ' из ' + s.max + '. Результат сохраняется файлом на диск.</p>'
+    + '<div class="hero-row"><div class="hero-n"><span class="big">' + N(b.qs.length + s.qs.length, 'st-all') + '</span><span class="of">вопросов</span></div><div class="hero-cap">' + b.qs.length + ' базовых и ' + s.qs.length + ' ситуаций. В каждом вопросе один верный ответ из четырёх.</div></div></article>'
+    + '<aside class="card c4 rise fill" style="--i:2"><div class="hd"><span class="cap">Участник</span><span class="m">время пойдёт сразу</span></div><div class="form">'
+    + '<div class="field"><label for="f-name">Фамилия и имя</label><input class="in" id="f-name" autocomplete="name" placeholder="Иванова Анна"><span class="err" id="e-name" hidden>Укажите фамилию и имя</span></div>'
+    + '<div class="field"><label for="f-mail">Рабочая почта</label><input class="in" id="f-mail" type="email" autocomplete="email" placeholder="по желанию"></div>'
+    + '<div class="field"><label>Тест</label><div class="pick" id="pick">'
+    + '<button type="button" data-v="base" aria-pressed="' + (PICK === 'base') + '"><b>Базовый</b><span>' + b.qs.length + ' вопросов, ' + b.min + ' мин</span></button>'
+    + '<button type="button" data-v="star" aria-pressed="' + (PICK === 'star') + '"><b>Вопросы со *</b><span>' + s.qs.length + ' ситуаций, ' + s.min + ' мин</span></button></div></div>'
+    + '<button class="b pri" id="go" style="justify-content:center;margin-top:4px">Начать тест</button></div></aside>'
+    + '<div style="grid-column:1/-1"><div class="stats">'
+    + stat('Базовый уровень', b.pass + ' из ' + b.max, 'проходной балл, 1 балл за вопрос', 3)
+    + stat('Вопросы со *', s.pass + ' из ' + s.max, 'проходной балл, 2 балла за ситуацию', 4)
+    + stat('Критичные', String(crit), 'в базовом уровне, ошибка в любом - пересдача', 5)
+    + stat('Время', b.min + ' и ' + s.min + ' мин', 'по истечении тест завершается сам', 6) + '</div></div></div></section>'
+    + '<section class="hs">' + SH('02', 'Как проходит тест', '<b>Один вопрос на экране, ответы можно менять до конца.</b> Порядок вопросов и вариантов у каждого свой.', '')
+    + '<div class="card rise" style="--i:1"><div class="steps3" style="margin-top:0">'
+    + '<div><span class="n">01</span><h5>Выберите тест</h5><p>Базовый уровень сдаётся первым. Вопросы со * открываются после него по решению РОПа.</p></div>'
+    + '<div><span class="n">02</span><h5>Отвечайте по стандарту</h5><p>Клавиши 1-4 выбирают вариант, стрелки листают вопросы. Карта справа показывает, где нет ответа.</p></div>'
+    + '<div><span class="n">03</span><h5>Сохраните результат</h5><p>После завершения скачайте отчёт и передайте РОПу. Пересдача не раньше чем через 5 рабочих дней.</p></div>'
+    + '</div></div></section>';
+  $('pick').addEventListener('click', e => { const bt = e.target.closest('button'); if(!bt) return; PICK = bt.dataset.v; $('pick').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === bt))); });
+  $('go').onclick = start;
+  $('f-name').addEventListener('keydown', e => { if(e.key === 'Enter') start(); });
+  if($('resume')) $('resume').onclick = () => go('quiz');
+  if(RES){ $('f-name').value = RES.name || ''; $('f-mail').value = RES.email || ''; }
+}
+const stat = (k, v, s, i) => '<div class="stat rise" style="--i:' + i + '"><div class="k"><span>' + k + '</span></div><div class="v">' + v + '</div><div class="s muted">' + s + '</div></div>';
+
+function start(){
+  const name = $('f-name').value.trim(), email = $('f-mail').value.trim();
+  if(name.length < 3){ $('f-name').classList.add('bad'); $('e-name').hidden = false; $('f-name').focus(); return; }
+  if(RUN && !confirm('Незавершённая попытка будет сброшена. Начать новую?')) return;
+  const T = ATT.tests[PICK], now = Date.now();
+  RUN = { lv:PICK, name, email, t0:now, deadline:now + T.min * 60000, cur:0,
+    order:shuffle(T.qs.map((_, i) => i)), opts:T.qs.map(q => shuffle(q.o.map((_, i) => i))), ans:{} };
+  store.set(KEY, RUN); go('quiz');
+}
+
+/* ============ тест ============ */
+function vQuiz(){
+  if(!RUN) return go('start');
+  if(Date.now() >= RUN.deadline) return finish(true);
+  const T = ATT.tests[RUN.lv], pos = RUN.cur, qi = RUN.order[pos], q = T.qs[qi], n = RUN.order.length, chosen = RUN.ans[qi], answered = Object.keys(RUN.ans).length;
+  const opts = RUN.opts[qi].map((oi, k) => '<button type="button" class="opt" role="radio" aria-checked="' + (chosen === oi) + '" data-o="' + oi + '"><span class="kbd">' + LET[k] + '</span><span>' + esc(q.o[oi]) + '</span></button>').join('');
+  $('view').innerHTML = '<section class="hs">' + SH('Вопрос ' + (pos + 1) + ' из ' + n, esc(T.name), '<b>Отвечено ' + answered + ' из ' + n + '.</b> Ответ можно поменять до завершения теста.', '')
+    + '<div class="grid12"><article class="card c8 rise" style="--i:1"><div class="hd"><span class="cap">' + (q.case ? 'Ситуация' : 'Вопрос') + '</span><span class="m">клавиши 1-4 · стрелки ← →</span></div>'
+    + (q.case ? '<div class="q-case">' + esc(q.case) + '</div>' : '')
+    + '<p class="q-text" id="q-text">' + esc(q.q) + '</p><div class="opts" role="radiogroup" aria-labelledby="q-text" id="opts">' + opts + '</div>'
+    + '<div class="q-nav"><button class="b sec" id="prev"' + (pos === 0 ? ' disabled' : '') + '>Назад</button><div class="r">'
+    + (pos < n - 1 ? '<button class="b pri" id="next">Далее</button>' : '<button class="b pri" id="fin">Завершить тест</button>') + '</div></div></article>'
+    + '<aside class="card c4 rise fill" style="--i:2"><div class="hd"><span class="cap">Осталось времени</span><span class="m">из ' + T.min + ' минут</span></div>'
+    + '<div class="timer" id="tm">' + mmss((RUN.deadline - Date.now()) / 1000) + '</div>'
+    + '<div class="mrow" style="margin-top:16px"><div class="k"><span>Отвечено</span><b>' + answered + ' из ' + n + '</b></div><div class="meter" style="--tone:var(--cat-3)"><i style="width:' + Math.round(answered / n * 100) + '%"></i></div></div>'
+    + '<div class="qmap" id="qmap" aria-label="Карта вопросов">' + RUN.order.map((qq, p) => '<button type="button" data-p="' + p + '" class="' + (RUN.ans[qq] != null ? 'on' : '') + '"' + (p === pos ? ' aria-current="step"' : '') + ' aria-label="Вопрос ' + (p + 1) + (RUN.ans[qq] != null ? ', есть ответ' : ', нет ответа') + '">' + (p + 1) + '</button>').join('') + '</div>'
+    + '<div class="grow"></div><button class="b sec" id="fin2" style="justify-content:center;margin-top:16px">Завершить тест</button></aside></div></section>';
+  $('opts').addEventListener('click', e => { const b = e.target.closest('.opt'); if(b) pick(+b.dataset.o); });
+  $('qmap').addEventListener('click', e => { const b = e.target.closest('button'); if(b) move(+b.dataset.p); });
+  $('prev').onclick = () => move(pos - 1);
+  if($('next')) $('next').onclick = () => move(pos + 1);
+  if($('fin')) $('fin').onclick = askFinish;
+  $('fin2').onclick = askFinish;
+  chip(); clock();
+}
+function pick(oi){ const qi = RUN.order[RUN.cur]; RUN.ans[qi] = oi; store.set(KEY, RUN);
+  document.querySelectorAll('#opts .opt').forEach(b => b.setAttribute('aria-checked', String(+b.dataset.o === oi)));
+  const p = $('qmap').querySelector('[data-p="' + RUN.cur + '"]'); if(p) p.classList.add('on');
+  const answered = Object.keys(RUN.ans).length, n = RUN.order.length, m = document.querySelector('.mrow b'), mi = document.querySelector('.mrow .meter i');
+  if(m) m.textContent = answered + ' из ' + n; if(mi) mi.style.width = Math.round(answered / n * 100) + '%';
+  const say = document.querySelector('.sh .say b'); if(say) say.textContent = 'Отвечено ' + answered + ' из ' + n + '.'; }
+function move(p){ if(!RUN || p < 0 || p >= RUN.order.length) return; RUN.cur = p; store.set(KEY, RUN); vQuiz(); const o = document.querySelector('#opts .opt[aria-checked="true"]') || document.querySelector('#opts .opt'); if(o) o.focus({ preventScroll:true }); }
+function askFinish(){
+  const left = RUN.order.length - Object.keys(RUN.ans).length;
+  if(!left) return finish(false);
+  drawer.open('<div class="cap">Завершение</div><h3>Без ответа ' + plural(left, 'вопрос', 'вопроса', 'вопросов') + '</h3><p class="sub">Вопросы без ответа засчитываются как неверные. Время ещё есть: ' + mmss((RUN.deadline - Date.now()) / 1000) + '.</p>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="b sec" id="d-back">Вернуться к вопросам</button><button class="b pri" id="d-fin">Завершить тест</button></div>', $('fin2'));
+  $('d-back').onclick = () => { drawer.close(); const p = RUN.order.findIndex(qi => RUN.ans[qi] == null); if(p >= 0) move(p); };
+  $('d-fin').onclick = () => { drawer.close(); finish(false); };
+}
+function clock(){ clearInterval(TIMER); TIMER = setInterval(() => {
+  if(!RUN){ clearInterval(TIMER); return; }
+  const s = (RUN.deadline - Date.now()) / 1000, el = $('tm'), cl = s <= 60 ? 'crit' : s <= 300 ? 'warn' : '';
+  if(el){ el.textContent = mmss(s); el.className = 'timer ' + cl; }
+  const c = $('chip-t'); if(c) c.textContent = mmss(s);
+  if(s <= 0){ clearInterval(TIMER); toast('Время вышло, тест завершён'); finish(true); }
+}, 1000); }
+function chip(){ $('chip').innerHTML = RUN ? '<span class="run-chip">' + esc(ATT.tests[RUN.lv].name) + ' · осталось <b id="chip-t">' + mmss((RUN.deadline - Date.now()) / 1000) + '</b></span>' : ''; }
+
+/* ============ подсчёт ============ */
+function finish(timeout){
+  const T = ATT.tests[RUN.lv], end = Math.min(Date.now(), RUN.deadline);
+  const items = T.qs.map((q, qi) => { const oi = RUN.ans[qi], text = oi == null ? null : q.o[oi], ok = isRight(RUN.lv, q, text);
+    return { n:q.n, crit:q.crit, sec:q.sec, th:q.th, q:q.q, case:q.case, answer:text, ok, pts:ok ? T.pts : 0 }; });
+  const score = items.reduce((a, x) => a + x.pts, 0), critBad = items.filter(x => x.crit && !x.ok).map(x => x.n);
+  const pass = score >= T.pass && (!T.critFail || !critBad.length);
+  RES = { v:ATT.version, lv:RUN.lv, test:T.name, name:RUN.name, email:RUN.email, started:RUN.t0, finished:end, sec:Math.round((end - RUN.t0) / 1000), limitMin:T.min, timeout:!!timeout,
+    score, max:T.max, passScore:T.pass, pass, critTotal:items.filter(x => x.crit).length, critBad, right:items.filter(x => x.ok).length, empty:items.filter(x => x.answer == null).length, items };
+  RUN = null; store.del(KEY); store.set(LAST, RES); clearInterval(TIMER); chip(); go('result');
+}
+
+/* ============ результат ============ */
+function vResult(){
+  if(!RES) return go('start');
+  const R = RES, n = R.items.length, wrong = n - R.right - R.empty, short = Math.max(0, R.passScore - R.score);
+  const h1 = R.pass ? 'Тест сдан: ' + R.score + ' из ' + R.max + '.' + (wrong + R.empty ? ' <em>' + plural(wrong + R.empty, 'ошибка', 'ошибки', 'ошибок') + ', разделы для повторения ниже.</em>' : '')
+    : 'Пересдача. <em>' + (R.critBad.length ? 'Ошибка в критичном вопросе ' + R.critBad.join(', ') + '.' : 'До проходного балла не хватило ' + short + '.') + '</em>';
+  const st = R.pass ? 'ok' : 'crit';
+  const parts = [[R.right, 'var(--ok)', 'верно'], [wrong, 'var(--crit)', 'неверно'], [R.empty, 'var(--neutral-bar)', 'без ответа']];
+  const themes = {}; R.items.forEach(x => { const t = themes[x.th] || (themes[x.th] = { ok:0, all:0, secs:new Set() }); t.all++; if(x.ok) t.ok++; else x.sec.split(',').forEach(s => t.secs.add(s.trim())); });
+  const trows = Object.entries(themes).map(([t, v]) => { const bad = v.all - v.ok, tone = !bad ? 'var(--ok)' : bad >= 2 ? 'var(--crit)' : 'var(--warn)';
+    return '<div class="mrow"><div class="k"><span>' + esc(t) + (bad ? ' <span class="muted">· разделы ' + esc([...v.secs].join(', ')) + '</span>' : '') + '</span><b>' + v.ok + ' из ' + v.all + '</b></div><div class="meter" style="--tone:' + tone + '"><i style="width:' + Math.max(4, Math.round(v.ok / v.all * 100)) + '%"></i></div></div>'; }).join('');
+  const bad = R.items.filter(x => !x.ok), weak = Object.entries(themes).filter(([, v]) => v.all - v.ok >= 2).map(([t]) => t);
+  $('view').innerHTML = '<section class="hs">' + SH('01', 'Результат', '<b>' + R.score + ' из ' + R.max + ' при пороге ' + R.passScore + '.</b> ' + (R.critTotal ? 'Критичные: ' + (R.critTotal - R.critBad.length) + ' из ' + R.critTotal + ' верно.' : 'Критичных вопросов в этом тесте нет.'), 'd')
+    + '<div class="grid12"><article class="card c8 hero rise" style="--i:1"><div class="meta"><span class="st ' + st + '"><i class="dot ' + st + '"></i>' + (R.pass ? 'сдано' : 'пересдача') + '</span><span>' + esc(R.name) + '</span><span>' + esc(R.test) + '</span><span>' + fmtDate(R.finished) + '</span></div>'
+    + '<h1>' + h1 + '</h1><p class="lede">Время ' + mmss(R.sec) + ' из ' + R.limitMin + ' минут' + (R.timeout ? ', тест завершён по времени' : '') + '. Верные варианты здесь не показываются: разбор ошибок проводит РОП по разделам стандарта.</p>'
+    + '<div class="hero-row"><div class="hero-n"><span class="big">' + N(R.score, 'r-s') + '</span><span class="of">из ' + R.max + '</span></div><div class="hero-cap">баллов, проходной ' + R.passScore + '. ' + plural(R.right, 'верный ответ', 'верных ответа', 'верных ответов') + ' из ' + n + '.</div></div>'
+    + '<div class="ratio" role="img" aria-label="Верно, неверно, без ответа">' + parts.map((p, i) => '<i style="--i:' + i + ';flex:' + Math.max(p[0], .001) + ';background:' + p[1] + '"></i>').join('') + '</div>'
+    + '<div class="ratio-leg">' + parts.map(p => '<span><i style="background:' + p[1] + '"></i>' + p[2] + ' ' + p[0] + '</span>').join('') + '</div></article>'
+    + '<aside class="card c4 rise fill" style="--i:2"><div class="hd"><span class="cap">Что дальше</span><span class="m">файл остаётся у вас</span></div><div class="acts grow">'
+    + '<div class="act"><span class="kbd">1</span><div><b>Сохранить отчёт на диск</b><span>Страница с ответами и итогом, открывается в любом браузере</span></div></div>'
+    + '<div class="act"><span class="kbd">2</span><div><b>Передать РОПу</b><span>' + (R.pass ? 'Отчёт и файл JSON для общей таблицы' : 'Разбор ошибок по разделам, пересдача не раньше чем через 5 рабочих дней') + '</span></div></div>'
+    + '<div class="act"><span class="kbd">3</span><div><b>' + (weak.length ? 'Перечитать темы' : 'Следующий тест') + '</b><span>' + (weak.length ? esc(weak.join(', ')) : R.lv === 'base' ? 'Вопросы со * по решению РОПа' : 'Аттестация пройдена целиком') + '</span></div></div></div>'
+    + '<button class="b pri" id="sv-html" style="justify-content:center;margin-top:16px">Сохранить результат на диск</button>'
+    + '<div style="display:flex;gap:8px;margin-top:8px"><button class="b sec sm" id="sv-json" style="flex:1;justify-content:center">JSON для РОПа</button><button class="b gh sm" id="again" style="flex:1;justify-content:center">Новая попытка</button></div></aside>'
+    + '<div style="grid-column:1/-1"><div class="stats">'
+    + stat('Верно', R.right + ' из ' + n, plural(R.score, 'балл', 'балла', 'баллов') + ' из ' + R.max, 3)
+    + stat('Критичные', R.critTotal ? (R.critTotal - R.critBad.length) + ' из ' + R.critTotal : '-', R.critTotal ? (R.critBad.length ? 'ошибка: ' + R.critBad.join(', ') : 'все верно') : 'нет в этом тесте', 4)
+    + stat('Время', mmss(R.sec), 'лимит ' + R.limitMin + ' минут', 5)
+    + stat('Без ответа', String(R.empty), R.empty ? 'засчитаны как неверные' : 'на все вопросы есть ответ', 6) + '</div></div></div></section>'
+    + '<section class="hs">' + SH('02', 'Разбор по темам', weak.length ? '<b>' + plural(weak.length, 'тема', 'темы', 'тем') + ' с двумя и больше ошибками.</b> Перечитать указанные разделы и разобрать с РОПом до пересдачи.' : '<b>Ни в одной теме нет двух ошибок.</b> Одиночные ошибки разбираются на планёрке.', 'd')
+    + '<div class="card rise" style="--i:1"><div class="hd"><span class="cap">Верных ответов по темам</span><span class="m">красный - 2 и больше ошибок</span></div><div class="stack" style="gap:12px">' + trows + '</div></div></section>'
+    + '<section class="hs">' + SH('03', 'Вопросы с ошибкой', bad.length ? '<b>' + plural(bad.length, 'вопрос', 'вопроса', 'вопросов') + ' без верного ответа.</b> Рядом раздел стандарта, где лежит правило.' : '<b>Ошибок нет.</b> Все ответы верные.', 'd')
+    + '<div class="card rise" style="--i:1;padding:0">' + (bad.length ? '<div style="overflow:auto;max-height:440px"><table class="tbl"><thead><tr><th>№</th><th>Вопрос</th><th>Ваш ответ</th><th>Раздел</th></tr></thead><tbody>'
+      + bad.map(x => '<tr><td class="num">' + qNum(R.lv, x.n) + (x.crit ? ' <span class="st crit"><i class="dot crit"></i>критичный</span>' : '') + '</td><td class="td-q">' + esc(x.q) + '</td><td class="s">' + (x.answer == null ? '<span class="muted">нет ответа</span>' : esc(x.answer)) + '</td><td class="num">' + esc(x.sec) + '</td></tr>').join('')
+      + '</tbody></table></div>' : '<div class="empty"><b>Список пуст</b><span>Все ответы верные.</span></div>') + '</div></section>';
+  $('sv-html').onclick = () => save('html');
+  $('sv-json').onclick = () => save('json');
+  $('again').onclick = () => go('start');
+}
+
+/* ============ сохранение на диск ============ */
+const slug = s => (s || 'bez-imeni').trim().replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_-]/gu, '');
+const stamp = ts => { const d = new Date(ts), p = x => String(x).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '_' + p(d.getHours()) + '-' + p(d.getMinutes()); };
+function reportHtml(R){
+  const rows = R.items.map(x => '<tr class="' + (x.ok ? 'ok' : 'bad') + '"><td>' + qNum(R.lv, x.n) + (x.crit ? '<br><small>критичный</small>' : '') + '</td><td>' + (x.case ? '<small>Ситуация: ' + esc(x.case) + '</small><br>' : '') + esc(x.q) + '</td><td>' + (x.answer == null ? '<i>нет ответа</i>' : esc(x.answer)) + '</td><td>' + (x.ok ? 'верно' : 'неверно') + '</td><td>' + esc(x.sec) + '</td></tr>').join('');
+  return '<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Аттестация: ' + esc(R.name) + '</title><style>'
+    + 'body{font-family:"Golos Text",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#1a1d21;background:#fff;margin:0;padding:32px 16px;font-size:14px;line-height:1.5}main{max-width:960px;margin:0 auto}'
+    + 'h1{font-size:28px;margin:0 0 8px;letter-spacing:-.02em}.v{display:inline-block;padding:4px 12px;border-radius:8px;font-weight:600;background:' + (R.pass ? '#e3f5e9;color:#17663a' : '#fde7e7;color:#a32020') + '}'
+    + 'dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;margin:16px 0 24px}dt{color:#6b7280}dd{margin:0;font-weight:500;font-variant-numeric:tabular-nums}'
+    + 'table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;vertical-align:top;padding:8px;border-bottom:1px solid #e5e7eb}th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280}'
+    + 'tr.bad td:nth-child(4){color:#a32020;font-weight:600}tr.ok td:nth-child(4){color:#17663a}small{color:#6b7280}footer{margin-top:24px;color:#6b7280;font-size:12px}@media print{body{padding:0}}</style></head><body><main>'
+    + '<h1>Аттестация GENGLASS: ' + esc(R.test) + '</h1><span class="v">' + (R.pass ? 'Сдано' : 'Пересдача') + '</span>'
+    + '<dl><dt>Сотрудник</dt><dd>' + esc(R.name) + '</dd>' + (R.email ? '<dt>Почта</dt><dd>' + esc(R.email) + '</dd>' : '')
+    + '<dt>Дата</dt><dd>' + fmtDate(R.finished) + '</dd><dt>Баллы</dt><dd>' + R.score + ' из ' + R.max + ', проходной ' + R.passScore + '</dd>'
+    + '<dt>Критичные</dt><dd>' + (R.critTotal ? (R.critTotal - R.critBad.length) + ' из ' + R.critTotal + (R.critBad.length ? ', ошибка в вопросе ' + R.critBad.join(', ') : '') : 'нет в этом тесте') + '</dd>'
+    + '<dt>Время</dt><dd>' + mmss(R.sec) + ' из ' + R.limitMin + ' минут' + (R.timeout ? ', завершён по времени' : '') + '</dd><dt>Без ответа</dt><dd>' + R.empty + '</dd></dl>'
+    + '<table><thead><tr><th>№</th><th>Вопрос</th><th>Ответ сотрудника</th><th>Итог</th><th>Раздел стандарта</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '<footer>Банк вопросов версии ' + esc(R.v) + '. Отчёт сформирован страницей аттестации. Верные варианты в отчёт не входят.</footer></main></body></html>';
+}
+async function save(kind){
+  const R = RES, base = 'attestaciya_' + slug(R.name) + '_' + R.lv + '_' + stamp(R.finished);
+  const name = base + '.' + kind, type = kind === 'html' ? 'text/html' : 'application/json';
+  const body = kind === 'html' ? reportHtml(R) : JSON.stringify(R, null, 2);
+  if(window.showSaveFilePicker){
+    try{
+      const h = await window.showSaveFilePicker({ suggestedName:name, types:[{ description:kind === 'html' ? 'Отчёт' : 'Данные', accept:{ [type]:['.' + kind] } }] });
+      const w = await h.createWritable(); await w.write(new Blob([body], { type })); await w.close(); toast('Сохранено: ' + h.name); return;
+    }catch(e){ if(e && e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([body], { type:type + ';charset=utf-8' })); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); toast('Файл ' + name + ' в папке загрузок');
+}
+
+/* ============ как устроено ============ */
+function vAbout(){
+  $('view').innerHTML = '<section class="hs">' + SH('01', 'Как устроена аттестация', '<b>Вопросы взяты из стандарта продаж и CRM GENGLASS.</b> Ключи сверены с текстом стандарта, у каждого вопроса указан раздел.', 'd')
+    + '<div class="grid12"><div class="card c6 rise" style="--i:1"><div class="hd"><span class="cap">Правила</span></div><ul class="tl">'
+    + '<li class="ok"><b>Базовый уровень</b><small>30 вопросов, 25 минут, 1 балл. Сдал: 24 из 30 и ни одной ошибки в 6 критичных.</small></li>'
+    + '<li class="ok"><b>Вопросы со *</b><small>15 ситуаций, 30 минут, 2 балла. Сдал: 22 из 30.</small></li>'
+    + '<li class="crit"><b>Пересдача</b><small>Не раньше чем через 5 рабочих дней, порядок вопросов другой. Вторая неудача: индивидуальный план на месяц.</small></li></ul></div>'
+    + '<div class="card c6 rise" style="--i:2"><div class="hd"><span class="cap">Что важно знать</span></div><div class="stack" style="gap:12px">'
+    + '<div class="alert"><div><b>Результат хранится только у вас.</b> Страница ничего не отправляет на сервер. Сохраните отчёт на диск и передайте РОПу.</div></div>'
+    + '<div class="alert"><div><b>Верные варианты не показываются.</b> В коде страницы они хранятся в виде хеша. Это защищает от просмотра кода, но не от подбора, поэтому время и порядок держит проводящий.</div></div>'
+    + '<div class="alert"><div><b>Незавершённая попытка</b> сохраняется до закрытия вкладки. Время при этом продолжает идти.</div></div></div></div></div></section>';
+}
+
+/* ============ навигация, тема, клавиши ============ */
+const VIEWS = { start:vStart, quiz:vQuiz, result:vResult, about:vAbout };
+function nav(){ $('nav').innerHTML = KS.nav([{ id:'start', t:'Старт', i:'grid' }, { id:'quiz', t:RUN ? 'Тест идёт' : 'Тест', i:'list' }, { id:'result', t:'Результат', i:'check' }, { id:'about', t:'Как устроено', i:'info' }], VIEW); }
+function go(v){
+  if(v === 'quiz' && !RUN){ toast('Сначала начните тест'); v = 'start'; }
+  if(v === 'result' && !RES){ toast('Результата пока нет'); v = 'start'; }
+  if(v !== 'quiz' && TIMER && RUN){ /* таймер в шапке продолжает идти */ }
+  VIEW = v; nav(); VIEWS[v](); tick($('view')); chip(); if(RUN) clock();
+  window.scrollTo({ top:0, behavior:reduce ? 'auto' : 'smooth' });
+}
+$('foot').textContent = 'Банк вопросов ' + ATT.version + ' от ' + ATT.date.split('-').reverse().join('.') + '. Стандарт продаж и CRM GENGLASS. Результаты не уходят на сервер.';
+KS.shell.init({ sidebar:'#sb', backdrop:'#bd', menu:'#menu' });
+KS.navWire($('nav'), go);
+KS.theme.init(); let stored = null; try{ stored = localStorage.getItem('ks-theme'); }catch(e){} if(!stored) KS.theme.set('dark', { persist:false });
+$('theme').innerHTML = KS.theme.icon(); $('theme').onclick = () => KS.kx.themeToggle($('theme'));
+window.addEventListener('keydown', e => {
+  if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+  if(VIEW === 'quiz' && RUN){
+    const k = e.key, opts = document.querySelectorAll('#opts .opt');
+    if(['1', '2', '3', '4'].includes(k) && opts[+k - 1]){ e.preventDefault(); pick(+opts[+k - 1].dataset.o); return; }
+    if(k === 'ArrowRight' || (k === 'Enter' && !document.activeElement.closest('button'))){ e.preventDefault(); RUN.cur < RUN.order.length - 1 ? move(RUN.cur + 1) : askFinish(); return; }
+    if(k === 'ArrowLeft'){ e.preventDefault(); move(RUN.cur - 1); return; }
+  }
+  if(e.key.toLowerCase() === 't' || e.key.toLowerCase() === 'е') KS.kx.themeToggle($('theme'));
+});
+go(RUN ? 'quiz' : 'start');
+})();
+</script>
+</body>
+</html>

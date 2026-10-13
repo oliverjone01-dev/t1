@@ -8,7 +8,8 @@
 #
 # Реклама (ads) в OZON accrual/postings по заказу = 0 (CPO API не отдаёт), поэтому берём из CPO-файлов.
 # Доставка (наша+клиентская) в OZON по заказу разрежена - берём из ведомости, как в таблице по артикулам.
-# Запуск из analytics-mvp: python3 tools/orders/build_order_joins.py
+# Запуск из analytics-mvp: python3 tools/orders/build_order_joins.py [--cpo-only]
+#   --cpo-only - только CPO (новая выгрузка «Оплата за заказ»), ведомость не читается.
 #
 # Номер заказа пишется в delivery_orders.ndjson как есть в ведомости («бывш.», без хвоста, два номера в
 # строке). К отправлениям OZON его сводит src/scripts/delivery-match.ts; ненайденное не раскладывается,
@@ -19,6 +20,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 from build_delivery_sku_daily import parse_date  # «4 августа» -> 2026-08-04, один разбор на оба сборщика
 from ledger_money import ship_and_deliv, MoneyError, second_header, fix_order_no  # noqa: E402
 
+CPO_ONLY = "--cpo-only" in sys.argv
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CPO_RAW = os.path.join(ROOT, "tools", "cpo", "raw")
 DL_RAW = os.path.join(ROOT, "tools", "delivery", "raw")
@@ -63,15 +65,34 @@ def main():
                 cpo[no] += num(r[ci["Расход, ₽"]])
         wb.close()
     # Сырья CPO нет (оно не в git) - прошлый файл не трогаем, иначе он перезапишется пустым.
+    # Сырьё есть - СЛИВАЕМ с прошлым файлом: заказы из сырья заменяют свои строки, остальные (месяцы,
+    # чьих выгрузок в raw/ нет) остаются. Раньше файл писался только из raw/, и выгрузка за один месяц
+    # стёрла бы все прошлые (01.10: в raw/ одна сентябрьская выгрузка, июнь-август только в файле).
     if not cpo:
         print("CPO: сырья нет в", CPO_RAW, "- cpo_orders.ndjson оставлен как есть")
     else:
+      old = {}
+      try:
+          for l in open(OUT_CPO, encoding="utf-8"):
+              if l.strip():
+                  r = json.loads(l)
+                  old[str(r["order"])] = float(r["sp"])
+      except FileNotFoundError:
+          pass
+      kept = {k: v for k, v in old.items() if k not in cpo}
+      merged = {**kept, **{k: round(v, 2) for k, v in cpo.items()}}
       with open(OUT_CPO, "w", encoding="utf-8") as w:
-        for no, sp in sorted(cpo.items()):
+        for no, sp in sorted(merged.items()):
             w.write(json.dumps({"order": no, "sp": round(sp, 2)}, ensure_ascii=False) + "\n")
-      print(f"CPO заказов: {len(cpo)} | сумма рекламы: {sum(cpo.values()):,.0f} -> {OUT_CPO}")
+      print(f"CPO заказов из сырья: {len(cpo)} ({sum(cpo.values()):,.0f} ₽), оставлено прошлых: {len(kept)} ({sum(kept.values()):,.0f} ₽), всего {len(merged)} -> {OUT_CPO}")
+    if CPO_ONLY:
+        return
 
     # --- Доставка по номеру постинга (ведомость), дедуп по уникальной отправке ---
+    # Ведомостей в raw/ нет (они не в git) - прошлые файлы не трогаем, иначе они перезапишутся пустыми.
+    if not glob.glob(os.path.join(DL_RAW, "*.xlsx")):
+        print("доставка: ведомостей нет в", DL_RAW, "- delivery_orders.ndjson и delivery_ledger_issues.json оставлены как есть")
+        return
     dl = collections.defaultdict(lambda: [0.0, 0.0, "", ""])  # posting -> [ship, deliv, отгрузка, доставка факт]
     bad_cells = []
     issues = {"shift": [], "empty": []}  # сдвиг столбцов / суммы нет - для плашки на странице

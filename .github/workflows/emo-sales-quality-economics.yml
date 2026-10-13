@@ -1,0 +1,65 @@
+name: EMO sales quality and economics snapshot
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/emo-sales-quality-economics.yml']
+permissions:
+  contents: write
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: economics-dashboard-v1
+          path: econ
+      - uses: actions/checkout@v4
+        with:
+          ref: dialog-export-v1
+          path: dialog
+      - name: Extract report metrics without communication content
+        run: |
+          node <<'JS'
+          const fs=require('fs');
+          const econ=JSON.parse(fs.readFileSync('econ/analytics-mvp/economics/data/econ-recon.json','utf8'));
+          const dialog=JSON.parse(fs.readFileSync('dialog/analytics-mvp/dialog/data/dialog.json','utf8'));
+          const extraPath='dialog/analytics-mvp/dialog/data/dialog-extra.json';
+          if(fs.existsSync(extraPath)){const x=JSON.parse(fs.readFileSync(extraPath,'utf8'));if(x.n===dialog.events.length&&(x.generatedAt||null)===(dialog.generatedAt||null)&&dialog.events.every((e,i)=>(e.src||'')===x.src[i]))for(const d of dialog.scoring.deals)Object.assign(d,x.deals[d.key]||{});}
+          const EXCL=/сумма|налог|наценк|прибыл|бюджет|коэфф|адрес|номер|исполнител|отч[её]т|тип доставки|данные из сп|^id |удалить|расход материал|макет|шаблон|обрешет|домгласс|полная себестоимость по заказу/i;
+          const ITOG=/производственная с\/с|с\/?с итог|расчет с\/с итого|себестоимость производ/i;
+          const realMoney=a=>(a||[]).filter(m=>!EXCL.test(m.label));
+          function spCost(s){if(!s)return null;const f=realMoney(s.money);if(!f.length)return {v:0,empty:true};const it=f.find(m=>ITOG.test(m.label));return {v:it?it.value:f.reduce((a,m)=>a+m.value,0),empty:false};}
+          const byKey=(d,k)=>(d.sps||[]).find(s=>s.key===k);
+          function cardSS(c){const f=realMoney(c.money);if(!f.length)return 0;const it=f.find(m=>ITOG.test(m.label));return it?it.value:f.reduce((a,m)=>a+m.value,0);}
+          function cardMult(c){const raw=c.money||[],q=Math.max(1,+c.qty||1),S=(raw.find(m=>/^сумма$/i.test(m.label))||{}).value||0,M=(raw.find(m=>/металл-сталь/i.test(m.label))||{}).value||0;return M>0&&S>0&&Math.abs(S-M*q)<Math.abs(S-M)?q:1;}
+          const cardBatch=c=>cardSS(c)*cardMult(c);
+          function spBatch(s){let v=0;for(const c of(s?.cards||[]))if(!c.bad&&cardBatch(c)>0)v+=cardBatch(c);return v;}
+          function calcCoversAll(d){const k=byKey(d,'Калькулятор GG'),p=(d.products||[]).length;return p>0&&(k?.cards||[]).filter(c=>!c.bad&&cardBatch(c)>0).length>=p;}
+          function cost(d){const K=spBatch(byKey(d,'Калькулятор GG'));if(K>0&&calcCoversAll(d))return {v:K,src:'Калькулятор'};const R=spBatch(byKey(d,'Расчёт')),Z=spBatch(byKey(d,'Закупка'));if(R||Z)return {v:R+Z,src:[R?'Расчёт':'',Z?'Закупка':''].filter(Boolean).join(' + ')};const P=spBatch(byKey(d,'Производство  GG'));return {v:P,src:P?'Производство':''};}
+          const PROD={'Предоплата получена':3,'Заказ в производстве':4,'Заказ произведен':5,'Заказ отправлен':5,'Сделка успешна':5};
+          const SVC=/доставк|монтаж|логист|сборк|подъ[её]м|пронос|разгруз|замер|установк|услуг|пэк/i;
+          const econRows=econ.deals.filter(d=>/^2026-(08|09)-/.test(d.prepayAt||'')).map(d=>{const c=cost(d),p=spCost(byKey(d,'Производство  GG')),ready=Boolean((p&&!p.empty)||(PROD[d.stage]||0)>=5),goods=(d.products||[]).filter(p=>!SVC.test(p.name||''));return {id:d.id,mgr:d.mgr,created:d.created,sold:d.prepayAt,stage:d.stage,budget:d.budget||0,prepay:d.prepayAmt||0,cost:c.v,costSource:c.src,marginReady:ready&&c.v>0,positions:goods.length,qty:goods.reduce((s,p)=>s+(+p.qty||0),0),services:(d.products||[]).filter(p=>SVC.test(p.name||'')).reduce((s,p)=>s+(+p.qty||0)*(+p.price||0),0)};});
+          const L2D={};for(const e of dialog.events)if(e.dealId&&e.leadId)L2D[String(e.leadId)]=String(e.dealId);
+          const key=e=>e.dealId?'D'+e.dealId:(e.leadId&&L2D[String(e.leadId)])?'D'+L2D[String(e.leadId)]:'L'+e.leadId;
+          const period={};for(const e of dialog.events){const month=new Date(e.ts+3*3600000).toISOString().slice(0,7);if(!['2026-08','2026-09'].includes(month))continue;const k=key(e);((period[k]||={})[month]||={msg:0,call:0,mail:0,task:0,note:0,total:0});const p=period[k][month],t=e.type||'';p.total++;if(t.startsWith('Сообщение')||t==='Мессенджер ОЛ')p.msg++;else if(t==='Звонок'||t==='Транскрипт звонка')p.call++;else if(t==='Письмо')p.mail++;else if(/Задач|Дело/.test(t))p.task++;else p.note++;}
+          const sc=dialog.scoring||{};
+          const dlgRows=(sc.deals||[]).filter(d=>period[d.key]).map(d=>({key:d.key,mgr:d.mgr,dealId:d.dealId,leadId:d.leadId,isLead:d.isLead,budget:d.budget||0,outcome:d.outcome||'open',respMed:d.respMed,silenceD:d.silenceD,urgency:Boolean(d.urgency),prob:d.prob,aiState:d.ai?.state||null,period:period[d.key]}));
+          const managers=(sc.managers||[]).map(m=>({mgr:m.mgr,role:m.role,profile:m.profile?{verdict:m.profile.verdict,metrics:m.profile.metrics}:null}));
+          const result={generatedAt:new Date().toISOString(),economics:{generatedAt:econ.generated_at,since:econ.since,portal:econ.b24Portal,rows:econRows},dialog:{generatedAt:dialog.generatedAt,scoringAt:sc.generatedAt||null,since:dialog.since||null,metricDefs:sc.metricDefs||[],deptMedians:sc.deptMedians||{},managers,rows:dlgRows}};
+          fs.mkdirSync('analytics-mvp/public/emo/2026-09',{recursive:true});fs.writeFileSync('analytics-mvp/public/emo/2026-09/sales-quality-economics.json',JSON.stringify(result));
+          console.log(JSON.stringify({economicsRows:econRows.length,dialogRows:dlgRows.length,managers:managers.length,metricDefs:sc.metricDefs?.length,economicsAt:econ.generated_at,dialogAt:dialog.generatedAt}));
+          JS
+      - name: Save compact source snapshot
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add analytics-mvp/public/emo/2026-09/sales-quality-economics.json
+          git diff --staged --quiet && exit 0
+          git commit -m 'EMO: sales quality and economics report snapshot'
+          for attempt in 1 2 3; do
+            git pull --rebase && git push && exit 0
+            sleep 2
+          done
+          exit 1

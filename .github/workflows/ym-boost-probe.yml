@@ -1,0 +1,66 @@
+name: Probe отчётов Маркета по продвижению (разведка формата)
+
+# Разовая разведка (просьба пользователя 02.10: «по ДРР проверь отчёты по продвижению»): запрашивает
+# boost-consolidated, shows-boost и shelf-statistics по каждому кабинету за период и выводит в лог
+# листы, колонки, первые строки (замаскированы) и суммы. Ничего не коммитит. Из web-контейнера ключа
+# Маркета нет, поэтому здесь. Запускается вручную или пушем этого файла/скрипта.
+
+on:
+  workflow_dispatch:
+    inputs:
+      date_from:
+        description: "Начало периода, YYYY-MM-DD"
+        required: false
+        default: "2026-09-01"
+      date_to:
+        description: "Конец периода, YYYY-MM-DD"
+        required: false
+        default: "2026-09-30"
+      months:
+        description: "Месяцы через пробел (режим строк для блока 5), напр. 2026-07 2026-08"
+        required: false
+        default: ""
+  push:
+    paths:
+      - .github/workflows/ym-boost-probe.yml
+      - analytics-mvp/src/scripts/ym/boost-probe.ts
+
+permissions:
+  contents: read
+
+# Тот же лимит генерации отчётов, что у снимков: не запускаться одновременно с ними.
+concurrency:
+  group: ym-data
+  cancel-in-progress: false
+
+env:
+  YM_API_KEY: ${{ secrets.YM_DASHBOARD_1 }}
+  YM_API_KEY_2: ${{ secrets.YM_DASHBOARD_ZERKALA_2 }}
+  YM_BUSINESS_IDS: ${{ secrets.YM_BUSINESS_IDS }}
+  YM_CAMPAIGN_IDS: ${{ secrets.YM_CAMPAIGN_IDS }}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - name: Маскировать ключи
+        working-directory: .
+        run: |
+          [ -n "${YM_API_KEY:-}" ] && echo "::add-mask::$YM_API_KEY"
+          [ -n "${YM_API_KEY_2:-}" ] && echo "::add-mask::$YM_API_KEY_2"
+          true
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Проба отчётов по продвижению
+        env:
+          # Пуш без inputs - режим месяцев февраль-август (просьба 02.10 собрать прошлые месяцы).
+          PROBE_MONTHS: ${{ github.event.inputs.months || (github.event_name == 'push' && '2026-08 2026-07 2026-06 2026-05 2026-04 2026-03 2026-02') || '' }}
+        run: npx tsx src/scripts/ym/boost-probe.ts "${{ github.event.inputs.date_from || '2026-09-01' }}" "${{ github.event.inputs.date_to || '2026-09-30' }}"

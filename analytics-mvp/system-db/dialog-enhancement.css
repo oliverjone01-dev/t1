@@ -67,3 +67,4 @@ body.gg-communications #tip{z-index:10050!important;background:#202730!important
 #gg-rail-tooltip .gg-rail-tooltip-title{display:block;margin:0 0 7px;font-weight:600;font-size:13px}
 #gg-rail-tooltip.gg-tooltip-error .gg-rail-tooltip-title{color:#ed8797}
 #gg-rail-tooltip.gg-tooltip-good .gg-rail-tooltip-title{color:#83c9ae}
+.gg-deal-branches button.gg-rail-current:before{width:26px!important;opacity:1!important;filter:brightness(1.5);box-shadow:0 0 5px #b8c6d54d!important;height:2px!important;transform:none!important}

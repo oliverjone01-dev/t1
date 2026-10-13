@@ -38,3 +38,9 @@ a=sum(O[d] for d in V and [] or []) if False else None
 pre=[d for d in sorted({k[0] for k in V}) if '08-20'<=d[5:]<='08-27']; post=[d for d in sorted({k[0] for k in V}) if '08-29'<=d[5:]<='09-03']
 n1=sum(O[d] for d in pre); n2=sum(O[d] for d in post); rr=(n2/len(post))/(n1/len(pre)); se=M.sqrt(1/n1+1/n2)
 print('заказы: %d за %d дн. -> %d за %d дн., изменение %+.0f%%, 95%% ДИ (Пуассон) %+.0f..%+.0f%%'%(n1,len(pre),n2,len(post),(rr-1)*100,(M.exp(M.log(rr)-1.96*se)-1)*100,(M.exp(M.log(rr)+1.96*se)-1)*100))
+# Поправка ФЕНИКСА iter3: по всем товарам (с рекламой и без) - показы в поиске.
+A=C.Counter()
+for r in L('sku_views.ndjson'):
+    if '2026-08-20'<=r['date']<='2026-09-03': A[r['date']]+=r.get('vsearch') or 0
+a=sum(A[d] for d in pre)/len(pre); b=sum(A[d] for d in post)/len(post)
+print('все товары, показы в поиске в день: %.0f -> %.0f (%+.0f%%)'%(a,b,(b/a-1)*100))

@@ -9,13 +9,15 @@ L=lambda f:[json.loads(l) for l in open(D+f)]
 E=C.defaultdict(set)
 for a in L('acts_daily.ndjson'):
     if 'Эластичный' in a['title']: E[a['date']].add(a['art'])
+P0={(p['d'],p['offer']) for p in L('prices_daily.ndjson')}
 ex=E['2026-09-28']-E['2026-09-29']; st=E['2026-09-28']&E['2026-10-07']
 back=ex&E['2026-10-11']
 off=json.load(open(D+'sku_offer.json')); a2s={v:k for k,v in off.items()}
 SP=C.Counter()
 for r in L('ads_sku_daily.ndjson'):
     if '2026-09-15'<=r['d']<='2026-10-10': SP[off.get(r['sku'],r['sku'])]+=r['sp']
-ex={a for a in ex if SP[a]==0}; st={a for a in st if SP[a]==0}
+ex={a for a in ex if SP[a]==0 and ('2026-09-30',a) in P0}; st={a for a in st if SP[a]==0}  # только вышедшие, у которых есть цена после выхода
+print('(вышли 29.09: из %d вышедших у %d нет цены после выхода - сняты с продажи?)'%(len(E['2026-09-28']-E['2026-09-29']),sum(1 for a in E['2026-09-28']-E['2026-09-29'] if ('2026-09-30',a) not in P0)))
 print('вышли 29.09: %d без рекламы (вернулись к 11.10: %d); остались: %d без рекламы'%(len(ex),len(back),len(st)))
 P={(p['d'],p['offer']):p['price'] for p in L('prices_daily.ndjson') if p['d']>='2026-09-23'}
 G={(g['date'],g['art']):g['site_to_seller'] for g in L('gap_daily.ndjson')}
@@ -75,3 +77,7 @@ for nm,M in (('показы в поиске',V),('заказы',O)):
         t[0]+=sum(M[(d,a)] for d in pre)/npre; t[1]+=sum(M[(d,a)] for d in post)/npost
         c[0]+=sum(M[(d,s)] for s in stay for d in pre)/len(stay)/npre; c[1]+=sum(M[(d,s)] for s in stay for d in post)/len(stay)/npost
     print('  %s в день: выпавшие %.1f -> %.1f (%+.0f%%), оставшиеся (на товар, те же даты) %+.0f%%'%(nm,t[0],t[1],(t[1]/t[0]-1)*100 if t[0] else float('nan'),(c[1]/c[0]-1)*100))
+# Поправка ФЕНИКСА iter3: состояние 15 выпавших 08.10 на последний день снимков.
+last=ds[-1]
+for a,y in sorted(ev):
+    p=PB.get((last,a)); print('  %-20s на %s: в «Эластичном» %s, предельная/база %s'%(a,last[5:],'да' if a in E[last] else 'нет','%.2f'%(p[0]/p[1]) if p else '-'))

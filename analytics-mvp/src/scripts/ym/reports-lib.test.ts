@@ -2,10 +2,11 @@
 // выгрузок 2026-09-04 (data-ym/_probe/*). Живой факт: Маркет отдаёт АНГЛИЙСКИЕ коды колонок
 // (TRANSACTION_SUM, SHOWS, DELIVERED_COUNT), а не русские подписи - первый прогон разобрал 0 строк
 // именно из-за этого. Если колонки снова разъедутся, тест упадёт до ночного синка, а не после.
+import { HttpError } from "../../util/retry.js";
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { findCol } from "../../util/table.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, PREV_MONTH_REFETCH_DAYS, nettingRowOf, promoRowOf } from "./reports-lib.js";
+import { realizationRole, isRateLimit, isTransient, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, PREV_MONTH_REFETCH_DAYS, nettingRowOf, promoRowOf } from "./reports-lib.js";
 
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
@@ -190,6 +191,21 @@ describe("лимит генерации отчётов Маркета - мягк
     expect(isRateLimit(new Error('Market POST /reports/united-netting/generate -> HTTP 420: {"errors":[{"code":"METHOD_FAILURE","message":"Hit rate limit of 1 points per 2 minutes"}]}'))).toBe(true);
     expect(isRateLimit(new Error("HTTP 403: API_DISABLED"))).toBe(false);
     expect(isRateLimit(new Error("ECONNRESET"))).toBe(false);
+  });
+  it("обрыв связи и таймаут генерации - мягкая остановка (живой `fetch failed` 12.10 выбросил 6 отчётов реестра)", () => {
+    const net = (code: string) => Object.assign(new TypeError("fetch failed"), { cause: Object.assign(new Error(code), { code }) });
+    for (const c of ["ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "ENOTFOUND", "EAI_AGAIN", "UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT"]) expect(isTransient(net(c)), c).toBe(true);
+    expect(isTransient(new HttpError(503, "Market POST /reports/united-netting/generate -> HTTP 503: unavailable"))).toBe(true);
+    expect(isTransient(new Error("Market report united-netting r1: не готов за 900 с (status PENDING)"))).toBe(true);
+  });
+  it("поломки НЕ маскируются под сбой связи: 4xx, битый сертификат, голый fetch failed, разбор", () => {
+    expect(isTransient(new HttpError(400, "Market POST ... -> HTTP 400: upstream said HTTP 502 for dateTo"))).toBe(false);
+    expect(isTransient(new HttpError(403, "HTTP 403: API_DISABLED"))).toBe(false);
+    expect(isTransient(new HttpError(420, 'HTTP 420: {"code":"METHOD_FAILURE"}'))).toBe(false);
+    const cert = Object.assign(new TypeError("fetch failed"), { cause: Object.assign(new Error("certificate has expired"), { code: "CERT_HAS_EXPIRED" }) });
+    expect(isTransient(cert)).toBe(false);
+    expect(isTransient(new TypeError("fetch failed"))).toBe(false);
+    expect(isTransient(new Error("Invalid regular expression: /(/i: Unterminated group"))).toBe(false);
   });
 });
 

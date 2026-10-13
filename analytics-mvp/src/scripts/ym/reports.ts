@@ -14,7 +14,7 @@ import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
-import { realizationRole, isRateLimit, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, nettingRowOf, promoRowOf, PROMO_REPORTS, type PromoKind, type PromoRow } from "./reports-lib.js";
+import { realizationRole, isRateLimit, isTransient, dedupeNetting, numberDuplicates, reportMonthsToDo, reportFreshFrom, nettingRowOf, promoRowOf, PROMO_REPORTS, type PromoKind, type PromoRow } from "./reports-lib.js";
 import { retryOnRateLimit, RATE_LIMITED } from "./reports-wait.js";
 import { DELIVERED_STATUSES } from "./derive-lib.js";
 
@@ -77,6 +77,20 @@ function stopOnRateLimit(e: unknown, what: string): boolean {
   console.warn(`::warning::${what}: лимит генерации отчётов Маркета - сохраняю собранное, остальное доберёт следующий прогон`);
   return true;
 }
+// Обрыв связи и таймаут генерации - мягкая остановка ТОЛЬКО для бэкфиллов с возобновляемостью по
+// парам (взаиморасчёты, реализация): их throw выбрасывал всё скачанное за прогон (живой факт 12.10,
+// прогон 38222088709: 6 отчётов реестра потеряны на `fetch failed`). Акт услуг, баллы и продвижение
+// на любой ошибке пропускают ОДИН отчёт и идут дальше - им остановка целиком была бы хуже (ФЕНИКС
+// PR #465 G1), поэтому они зовут только stopOnRateLimit.
+let softStop = "";
+function stopSoft(e: unknown, what: string): boolean {
+  if (stopOnRateLimit(e, what)) return true;
+  if (!isTransient(e)) return false;
+  softStop = String((e as Error).message).slice(0, 120);
+  console.warn(`::warning::${what}: сбой связи или таймаут Маркета (${softStop}) - сохраняю собранное, остальное доберёт следующий прогон`);
+  return true;
+}
+const stopWhy = () => (rateLimited ? " - упёрлись в лимит Маркета" : softStop ? ` - сбой связи (${softStop})` : "");
 
 // Ключи на «_» - это документация карты колонок (_live: откуда сняты заголовки и на чём сверено
 // правило разбора), а не список шаблонов. Раньше они шли в findCol наравне с колонками, и тот
@@ -207,7 +221,7 @@ async function realization(months: string[]) {
       let tables: Tbl[] | null = null;
       try { tables = await fetchReportAll(account.api, "goods-realization", { campaignId: Number(c.id), year: y, month: m }); }
       catch (e) {
-        if (stopOnRateLimit(e, `реализация ${ym}`)) break outer;
+        if (stopSoft(e, `реализация ${ym}`)) break outer;
         const why = campaignUnavailable(e); if (!why) throw e;
         console.warn(`::warning::реализация ${ym}: кампания ${c.id} пропущена (${why})`); donePairs.add(pair); continue;
       }
@@ -309,7 +323,7 @@ async function realization(months: string[]) {
   }
   writeJson(STATE, { at: new Date().toISOString(), pairs: [...donePairs].sort(), by_month: byMonthCov, note: "разобранные пары месяц/магазин отчёта о реализации и покрытие по месяцам; лимит генерации Маркета не даёт собрать бэкфилл за один прогон" });
   const total = targets.length * months.length;
-  console.log(`realization: всего ${merged.length} строк (${new Set(merged.map((r) => r.ym)).size} мес), пар месяц/кампания ${donePairs.size}/${total}${rateLimited ? " - упёрлись в лимит Маркета, продолжу в следующий прогон" : ""} -> ${OUT}`);
+  console.log(`realization: всего ${merged.length} строк (${new Set(merged.map((r) => r.ym)).size} мес), пар месяц/кампания ${donePairs.size}/${total}${stopWhy() ? stopWhy() + ", продолжу в следующий прогон" : ""} -> ${OUT}`);
 }
 
 // ---- united-netting: {businessId, dateFrom, dateTo} -> платежи по датам ----
@@ -328,17 +342,29 @@ async function netting(from: string, to: string) {
   const doneMonths = new Set(prevState.schema === NETTING_SCHEMA ? prevState.months_done || [] : []);
   // Свежее окно всегда перезабираем: проводки по недавним месяцам ещё меняются.
   const freshWindow = addDays(to, -59).slice(0, 7);
-  for (const { businessId: b, account } of await resolveBusinesses()) {
-    // помесячно (лимит диапазона отчёта)
-    let s = from;
-    while (s <= to) {
-      const mb = monthBounds(s.slice(0, 7));
+  // Месяцы снаружи и от свежего к старому, кабинеты внутри - как в promo (G3 ФЕНИКСА iter4).
+  // Раньше шли кабинет за кабинетом от FLOOR: при бэкфилле (смена схемы, 18 пар при бюджете 10)
+  // текущий месяц второго кабинета стоял последним в очереди и ждал 2-3 прогона, а реестр на
+  // странице стоял по концу прошлого месяца (живой факт 12.10: «Реестр полный по 2026-09-30»).
+  // Теперь первые отчёты прогона - свежее окно обоих кабинетов, история добирается после.
+  const months: string[] = [];
+  for (let s = from; s <= to; s = addDays(monthBounds(s.slice(0, 7)).dateTo, 1)) months.push(s.slice(0, 7));
+  months.reverse();
+  const bizs = await resolveBusinesses();
+  // Сбой связи по кабинету снимает с очереди только этот кабинет: второй получает свою долю бюджета.
+  const stopped = new Set<string>();
+  for (const ym of months) {
+    for (const { businessId: b, account } of bizs) {
+      if (rateLimited) break;
+      if (stopped.has(b)) continue;
+      const mb = monthBounds(ym);
+      const s = mb.dateFrom > from ? mb.dateFrom : from;
       const e = mb.dateTo < to ? mb.dateTo : to;
-      const pair = `${b}/${s.slice(0, 7)}`;
-      if (doneMonths.has(pair) && s.slice(0, 7) < freshWindow) { s = addDays(e, 1); continue; }
+      const pair = `${b}/${ym}`;
+      if (doneMonths.has(pair) && ym < freshWindow) continue;
       let t: { headers: string[]; rows: string[][] } | null = null;
       try { t = await fetchReport(account.api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e }); }
-      catch (err) { if (stopOnRateLimit(err, `взаиморасчёты ${s}..${e}`)) break; throw err; }
+      catch (err) { if (stopSoft(err, `взаиморасчёты ${b} ${s}..${e}`)) { stopped.add(b); continue; } throw err; }
       if (t) {
         probe("united-netting", t.headers, t.rows, { business: b, from: s, to: e });
         const ix = cols("united-netting", t.headers, ["date", "amount"]);
@@ -353,14 +379,13 @@ async function netting(from: string, to: string) {
           for (const x of numberDuplicates(one)) fresh.push(x);
         }
       }
-      s = addDays(e, 1);
     }
     if (rateLimited) break;
   }
   // Ничего не забрали, но прогресс есть - значит история уже собрана, а свежее окно не дало строк.
   // Это не ошибка: файлы не трогаем, состояние оставляем как есть.
-  if (!ok && !fresh.length && doneMonths.size) { console.log(`netting: все ${doneMonths.size} пар кабинет/месяц уже собраны, новых строк нет`); return; }
-  if (!ok) { console.warn("::warning::netting: ни один отчёт не разобран - файлы не трогаю"); return; }
+  if (!ok && !fresh.length && doneMonths.size && !rateLimited && !softStop) { console.log(`netting: все ${doneMonths.size} пар кабинет/месяц уже собраны, новых строк нет`); return; }
+  if (!ok) { console.warn(`::warning::netting: ни один отчёт не разобран${stopWhy()} - файлы не трогаю`); return; }
   // При мягком стопе по лимиту часть периода не добрана: старые строки этого периода не выкидываем,
   // иначе один упёршийся в лимит прогон обнулит уже собранные месяцы.
   // Из старого снимка выкидываем только те месяцы, которые в ЭТОТ прогон реально перезабрали.
@@ -391,7 +416,7 @@ async function netting(from: string, to: string) {
   // что успел, и следующий продолжает с места остановки, а не начинает заново.
   const txSeen = merged.filter((r: any) => r.tx && String(r.tx).trim()).length;
   writeJson(STATE, { at: new Date().toISOString(), schema: NETTING_SCHEMA, rows: merged.length, months_done: [...doneMonths].sort(), tx_present: txSeen, note: txSeen ? "дедуп по TRANSACTION_ID" : "Маркет отдаёт TRANSACTION_ID пустым - дедуп идёт по составному ключу (дата, заказ, SKU, тип, услуга, сумма, п/п)" });
-  console.log(`netting: строк ${merged.length} (${from}..${to} получено ${fresh.length}, дублей отброшено ${fresh.length + keep.length - merged.length}, пар кабинет/месяц собрано ${doneMonths.size}, строк с TRANSACTION_ID ${txSeen})${rateLimited ? " - упёрлись в лимит, продолжу в следующий прогон" : ""} -> ${OUT}`);
+  console.log(`netting: строк ${merged.length} (${from}..${to} получено ${fresh.length}, дублей отброшено ${fresh.length + keep.length - merged.length}, пар кабинет/месяц собрано ${doneMonths.size}, строк с TRANSACTION_ID ${txSeen})${stopWhy() ? stopWhy() + ", продолжу в следующий прогон" : ""} -> ${OUT}`);
 }
 
 // ---- united-marketplace-services: акт по стоимости услуг -> data-ym/services_monthly.ndjson ----

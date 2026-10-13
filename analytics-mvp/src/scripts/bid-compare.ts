@@ -36,6 +36,8 @@ export interface PairDef {
 }
 
 export interface BidTestDef {
+  /** Итог на закрытии (Иван 13.10). */
+  итог?: string;
   id: string;
   название: string;
   гипотеза?: string;

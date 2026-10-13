@@ -18,6 +18,10 @@ export interface PriceTestDef {
   модели?: Record<string, string>;
   статус?: string; заметка?: string;
   напоминание?: string;
+  /** Исключены решением Ивана: артикул -> причина. В расчёт не входят, знаменатель группы прежний. */
+  исключены?: Record<string, string>;
+  /** Оговорка к итогу, печатается под вердиктом (Иван 12.10, вариант «а»). */
+  оговорка?: string;
 }
 
 /** Пороги правила, п. разрыва. [ГИПОТЕЗА], приняты Иваном 01.10. */
@@ -28,6 +32,8 @@ export const BASE_DAYS = 7;
 /** Допуск к проверке цены: «снижена» - в пределах ±PRICE_TOL от база * (1 - снижение), «не снижена» - ±PRICE_TOL от базы. */
 export const PRICE_TOL = 0.015;
 export const VIEWS_DROP = -0.20;
+/** Доля группы, которая должна быть засчитана в дне (правило 5 из 10, Иван 01.10). */
+export const MIN_SHARE = 0.5;
 export const STOP_SHARE = 0.5;
 
 export const median = (xs: number[]): number | null => {
@@ -65,12 +71,50 @@ export interface DayDiff {
   nt: number; nc: number;
 }
 
+/** Грязный ли тестовый товар в день d (E065): исключён в реестре, или есть расход на клик в любой день
+ *  с dirtyFrom по d (ступень разрыва от рекламы держится днями после выключения), или в этот день он
+ *  в акции, которая сама двигает разрыв («Максимальный бустинг», «Усиление»). */
+export function isDirty(
+  a: string, d: string, dirtyFrom: string, excluded: Set<string>,
+  cpcDays: Map<string, string[]>, boostDays: Map<string, Set<string>>,
+): boolean {
+  if (excluded.has(a)) return true;
+  if ((cpcDays.get(a) ?? []).some((x) => x >= dirtyFrom && x <= d)) return true;
+  return boostDays.get(a)?.has(d) ?? false;
+}
+
+/** Данные о рекламе и акциях за день d есть (E065, fail-closed): реклама снята не раньше d,
+ *  снимок акций за d есть. Нет данных - товар в этот день не засчитывается: без них грязь не проверить. */
+export const covered = (d: string, adsTo: string, actsDays: Set<string>): boolean => !!adsTo && d <= adsTo && actsDays.has(d);
+
+/** Ключи «исключены» обязаны быть артикулами теста: опечатка иначе молча оставит товар в расчёте. */
+export function badExcluded(test: string[], excl: Record<string, string> | undefined): string[] {
+  const t = new Set(test); return Object.keys(excl || {}).filter((a) => !t.has(a));
+}
+
+/** Почему товар не засчитывается на день asOf (последний день окна с данными): исключён, реклама за клик
+ *  с dirtyFrom по asOf, вторая акция в asOf. Окно ограничено сверху: события после замера итог не трогают. */
+export function dirtyReasons(
+  test: string[], asOf: string, dirtyFrom: string, excl: Record<string, string> | undefined,
+  cpcDays: Map<string, string[]>, boostDays: Map<string, Set<string>>,
+): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const a of test) {
+    if (excl && a in excl) { out.set(a, `исключён: ${excl[a]}`); continue; }
+    const cpc = (cpcDays.get(a) ?? []).filter((x) => x >= dirtyFrom && x <= asOf).sort();
+    if (cpc.length) { out.set(a, `реклама за клик с ${cpc[0]!.slice(8, 10)}.${cpc[0]!.slice(5, 7)}`); continue; }
+    if (boostDays.get(a)?.has(asOf)) out.set(a, "вторая акция («Максимальный бустинг»)");
+  }
+  return out;
+}
+
 /** Разница «медиана теста минус медиана контроля» по дням. Для графиков и базы группы.
  *  Вердикт по ней НЕ считается: после старта в медиану дня входят не все товары, а база - по всем
  *  (это разные популяции, E056). Вердикт - по shiftSeries. */
 export function diffSeries(
   gap: Map<string, Map<string, number>>, test: string[], ctrl: Set<string>, start: string,
   applied: (art: string, d: string) => boolean, minShare = 0.5,
+  skip: (art: string, d: string) => boolean = () => false,
 ): DayDiff[] {
   const out: DayDiff[] = [];
   for (const d of [...gap.keys()].sort()) {
@@ -78,7 +122,7 @@ export function diffSeries(
     const tv: number[] = [];
     for (const a of test) {
       const v = day.get(a);
-      if (v == null) continue;
+      if (v == null || skip(a, d)) continue;
       if (d >= start && !applied(a, d)) continue;
       tv.push(v);
     }
@@ -99,12 +143,15 @@ export function baseOf(s: DayDiff[], start: string, n = BASE_DAYS): { base: numb
 
 export interface DayShift { d: string; s: number | null; nt: number }
 
-/** Сдвиг по дням на одной популяции (ФЕНИКС G1, 01.10). Для каждого товара своя база:
+/** skip(a, d) - товар грязный в этот день (реклама за клик, вторая акция, исключён Иваном): не входит
+ *  ни в базу, ни в день, но знаменатель minShare остаётся вся группа (правило 5 из 10, E065).
+ *  Сдвиг по дням на одной популяции (ФЕНИКС G1, 01.10). Для каждого товара своя база:
  *  медиана (разрыв товара - медиана контроля) за дни базы. Сдвиг товара в дне = (разрыв - контроль) - его база.
  *  Сдвиг дня = медиана сдвигов засчитанных товаров; день пустой, если засчитано меньше minShare группы. */
 export function shiftSeries(
   gap: Map<string, Map<string, number>>, test: string[], ctrl: Set<string>, start: string,
   baseDays: string[], applied: (art: string, d: string) => boolean, minShare = 0.5,
+  skip: (art: string, d: string) => boolean = () => false,
 ): DayShift[] {
   const ctrlMed = (d: string): number | null => {
     const m = gap.get(d); if (!m) return null;
@@ -114,7 +161,7 @@ export function shiftSeries(
   const own = new Map<string, number>();
   for (const a of test) {
     const xs: number[] = [];
-    for (const d of baseDays) { const v = gap.get(d)?.get(a), c = ctrlMed(d); if (v != null && c != null) xs.push(v - c); }
+    for (const d of baseDays) { const v = gap.get(d)?.get(a), c = ctrlMed(d); if (v != null && c != null && !skip(a, d)) xs.push(v - c); }
     const b = median(xs); if (b != null) own.set(a, b);
   }
   const out: DayShift[] = [];
@@ -123,7 +170,7 @@ export function shiftSeries(
     const xs: number[] = [];
     for (const a of test) {
       const v = day.get(a), b = own.get(a);
-      if (v == null || b == null || c == null) continue;
+      if (v == null || b == null || c == null || skip(a, d)) continue;
       if (d >= start && !applied(a, d)) continue;
       xs.push(v - c - b);
     }

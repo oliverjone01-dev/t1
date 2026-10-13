@@ -1,13 +1,12 @@
 # v5: список снижения цены для варианта 1 (ответ Ивана 13.10 «1а»): артикулы из его файла «на вывод»
 # (OZON-snizhenie-ceny-2026-10-12.xlsx, лежит вне репозитория), шаг = min(шаг файла, запас до 10% рентабельности)
-# по ИСПРАВЛЕННОЙ модели пола цены (правки R1-R9 ФЕНИКСА, проба P20 после вето 4,7); запас < 5% - цену не трогаем.
+# по ИСПРАВЛЕННОЙ модели пола цены (ozon-price-floor/floor.py с правками R1-R9 ФЕНИКСА после вето 4,7); запас < 5% - цену не трогаем.
 # Запуск: python3 -I list26.py <путь к xlsx>   -> /tmp/ozon-v5/list26.json (вне репозитория: репо публичный, в файле запас рентабельности)
 import json, sys, subprocess, os, math
 import openpyxl
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = HERE.split('knowledge/')[0]
-subprocess.run(['python3', '-I', ROOT + 'knowledge/episodes/2026-10/feniks-probes-ozon-price-floor/p20_patch_check.py'],
-               check=True, capture_output=True)
-rows = {r['art']: r for r in json.load(open('/tmp/feniks-floor/floor_rows_patched.json'))}
+subprocess.run(['python3', '-I', ROOT + 'knowledge/episodes/2026-10/ozon-price-floor/floor.py'], check=True, capture_output=True)
+rows = {r['art']: r for r in json.load(open('/tmp/ozon-floor/floor_rows.json'))}
 F = [r for r in openpyxl.load_workbook(sys.argv[1], data_only=True).worksheets[0].iter_rows(min_row=2, values_only=True) if r[0]]
 assert len(F) == 51 and len({r[0] for r in F}) == 51, 'в файле Ивана 51 уникальный артикул'
 out = []

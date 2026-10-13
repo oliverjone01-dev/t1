@@ -7,7 +7,7 @@
 #  от оплаты покупателя] - расход за клик. АДМ не вычитаем (одинаков в вариантах), строка «как в Отчете» с АДМ 30% - отдельно.
 # База: заказы без отмен 14.09-11.10 (4 недели, orders_daily по дате заказа), расход за клик за те же даты (ads_daily).
 # Параметры товара (доля К выплате с 01.09, себестоимость, доставка, доля витрины) - из исправленной модели пола цены
-# (проба ФЕНИКСА P20, её запускает list26.py). Запуск: python3 -I list26.py <xlsx>; python3 -I forecast.py
+# (ozon-price-floor/floor.py, его запускает list26.py). Запуск: python3 -I list26.py <xlsx>; python3 -I forecast.py
 # Выход с прибылью по артикулам - /tmp/ozon-v5/forecast.json, в репозиторий не кладётся (репо публичный).
 import json, collections as C, statistics as S, math, os
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = HERE.split('knowledge/')[0]; D = ROOT + 'analytics-mvp/data/'
@@ -21,9 +21,12 @@ EPS = {'низкий': -1.0, 'средний': -2.0, 'высокий': -3.6}    
 K_CLK = {'низкий': 0.0, 'средний': 0.5, 'высокий': 1.0}         # доля заказов из отчёта рекламы, которые свои (тест 3: ~0)
 D9 = {'низкий': 0.0, 'средний': -0.02, 'высокий': -0.04}        # витрина при 9% против 5% (cpo_discount.py: +0,5...-4%)
 XFER = {'низкий': 0.5, 'средний': 0.25, 'высокий': 0.0}         # доля прироста В1, перетянутая у соседей по карточке (KONUX, тест 3)
+M9 = {'низкий': -0.107, 'средний': 0.0, 'высокий': 0.095}     # заказы магазина от показов ставки 9% против 5%: справка п.16
+                                                                # (sessions/2026-10-13-ozon-proverka-razbora-ivana.md:27) -2,8% на п.,
+                                                                # ДИ -7,6...+2,3%: низкий - точка (x4 п.), высокий - верх ДИ, средний - 0
 SCN = ('низкий', 'средний', 'высокий')
 
-rows = {r['sku']: r for r in json.load(open('/tmp/feniks-floor/floor_rows_patched.json'))}
+rows = {r['sku']: r for r in json.load(open('/tmp/ozon-floor/floor_rows.json'))}
 art2sku = {r['art']: r['sku'] for r in rows.values()}
 lst = {o['sku']: o for o in json.load(open('/tmp/ozon-v5/list26.json')) if o['step'] > 0}
 assert len(lst) == 26
@@ -38,6 +41,7 @@ cov_u = sum(U.values()) / sum(U_all.values())
 ads = L('ads_daily.ndjson')
 cpo_sp = sum(a['sp'] for a in ads if a['id'] == CPO_ID and A <= a['d'] <= B)
 SH = cpo_sp / (0.05 * rev)
+SH9 = None                                                      # доля списания при 9%; None = как при 5% (данных нет)
 # --- кампании за клик
 camp = C.defaultdict(lambda: dict(sp=0, o=0, off='', last=''))
 for a in ads:
@@ -48,8 +52,9 @@ LAST7 = '2026-10-10'
 active = lambda c: c['last'] >= LAST7                            # расход в последние 2 дня окна = кампания идёт
 clk0 = sum(c['sp'] for c in camp.values()) / WEEKS
 
+def sh(nom): return SH9 if (nom > 0.05 and SH9 is not None) else SH
 def pi(r, p, nom, s):          # прибыль с заказа без клика, ₽
-    return r['keep'] * p - nom * SH * p - r['cogs'] - r['shipn'] - TAX * p * s * PAY
+    return r['keep'] * p - nom * sh(nom) * p - r['cogs'] - r['shipn'] - TAX * p * s * PAY
 def pi_adm(r, p, nom, s): return pi(r, p, nom, s) - ADM * r['keep'] * p
 med_pi = S.median(pi(r, r['p0'], 0.05, r['s']) for r in rows.values() if U[r['sku']])
 def camp_pi(c):
@@ -71,8 +76,8 @@ def clicks(keep_ids, k):
         lost += dl; lost_pi += dl * camp_pi(c)[0]
     return sp, lost, lost_pi
 
-def run(var, sc, eps=None):
-    eps = EPS[sc] if eps is None else eps; k, d9, xf = K_CLK[sc], D9[sc], XFER[sc]
+def run(var, sc, eps=None, m9=None):
+    eps = EPS[sc] if eps is None else eps; k, d9, xf = K_CLK[sc], D9[sc], XFER[sc]; m9 = M9[sc] if m9 is None else m9
     prof = 0; prof_adm = 0; units = 0; turn = 0; cpo = 0
     for sku, r in rows.items():
         u = U[sku] / WEEKS
@@ -82,12 +87,13 @@ def run(var, sc, eps=None):
         if var in ('В1', 'В1б') and sku in lst:
             p = r['p0'] * (1 - lst[sku]['step'] / 100); u1 = u * (p / r['p0']) ** eps
             steal = (u1 - u) * xf; u = u1                       # перетянутые у соседей: их прибыль теряем
-        if var == 'В2': nom = 0.09; s = r['s'] * (1 + d9); u *= (1 + d9) ** eps
+        if var == 'В2': nom = 0.09; s = r['s'] * (1 + d9); u *= (1 + d9) ** eps * (1 + m9)
         p0pi = pi(r, r['p0'], 0.05, r['s'])
         prof += u * pi(r, p, nom, s) - steal * p0pi; prof_adm += u * pi_adm(r, p, nom, s) - steal * pi_adm(r, r['p0'], 0.05, r['s'])
         units -= steal
-        units += u; turn += u * p; cpo += u * nom * SH * p
-    keep = set(camp) if var == 'В0' else (SEL if var == 'В1' else set())   # В1б - цена как в В1, клик как в В2
+        units += u; turn += u * p; cpo += u * nom * sh(nom) * p
+    # В0 - как сейчас: идущие кампании на своём бюджете (G3 ФЕНИКСА); остановленные до 10.10 выключены во всех вариантах
+    keep = {k_ for k_, c in camp.items() if active(c)} if var == 'В0' else (SEL if var == 'В1' else set())  # В1б, Вк, В2 - весь клик минимум
     sp, lost, lost_pi = clicks(keep, k)
     prof -= sp + lost_pi; prof_adm -= sp + lost_pi              # потерянные заказы клика - по прибыли без АДМ в обеих строках
     return dict(prof=prof * H, prof_adm=prof_adm * H, units=(units - lost) * H, turn=turn * H, clk=sp * H, cpo=cpo * H,
@@ -112,10 +118,19 @@ def cpo_articles(sc='средний'):
     for sku, r in rows.items():
         u = U[sku] / WEEKS
         if not u: continue
-        s9 = r['s'] * (1 + D9[sc]); u9 = u * (1 + D9[sc]) ** EPS[sc]
-        out.append(dict(art=r['art'], u_wk=u, p0=r['p0'], extra=u * 0.04 * SH * r['p0'] * H,
+        s9 = r['s'] * (1 + D9[sc]); u9 = u * (1 + D9[sc]) ** EPS[sc] * (1 + M9[sc])
+        out.append(dict(art=r['art'], u_wk=u, p0=r['p0'], extra=u * (0.09 * sh(0.09) - 0.05 * SH) * r['p0'] * H,
                         d=(u9 * pi(r, r['p0'], 0.09, s9) - u * pi(r, r['p0'], 0.05, r['s'])) * H))
     return sorted(out, key=lambda x: x['d'])
+
+def m9_equal(sc, a='В1б'):
+    """на сколько ставка 9% должна поднять заказы магазина, чтобы В2 = вариант a (остальное - сценарий sc)"""
+    lo, hi = -0.5, 1.0
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if run('В2', sc, m9=mid)['prof'] < run(a, sc)['prof']: lo = mid
+        else: hi = mid
+    return lo
 
 def breakeven(a, b, sc='средний'):
     """эластичность, при которой вариант a = вариант b (остальное - средний сценарий); поиск по сетке"""
@@ -150,6 +165,19 @@ if __name__ == '__main__':
         print(f'   В1-В2 {f("В1","В2")}  В1б-В2 {f("В1б","В2")}  В1-В1б (дорогой клик) {f("В1","В1б")}  В1-В0 {f("В1","В0")}  В2-В0 {f("В2","В0")}')
     print('\nпороги эластичности (остальное - средний сценарий): В1 = В2 при ε', breakeven('В1', 'В2'),
           '; В1б = В2 при ε', breakeven('В1б', 'В2'), '; В1б = В0 при ε', breakeven('В1б', 'В0'))
+    print('ставка 9% сравняется с В1б (весь клик минимум), если поднимет заказы магазина на:',
+          {sc: f'{m9_equal(sc):+.1%}' for sc in SCN}, '; с В1 (дорогой клик KONUX, KUVINO):', {sc: f'{m9_equal(sc, "В1"):+.1%}' for sc in SCN})
+    for v in ('Вк',):
+        for sc in SCN: R[(v, sc)] = run(v, sc)
+    print('разложение (тыс. ₽): клик до минимума', [round((R[('Вк', sc)]['prof'] - R[('В0', sc)]['prof']) / 1e3) for sc in SCN],
+          'цена 26', [round((R[('В1б', sc)]['prof'] - R[('Вк', sc)]['prof']) / 1e3) for sc in SCN],
+          'дорогой клик', [round((R[('В1', sc)]['prof'] - R[('В1б', sc)]['prof']) / 1e3) for sc in SCN],
+          'ставка 9%', [round((R[('В2', sc)]['prof'] - R[('Вк', sc)]['prof']) / 1e3) for sc in SCN])
+    sh9 = {}
+    for x in (1.0,):
+        globals()['SH9'] = x; sh9[x] = round((run('В2', 'средний')['prof'] - run('Вк', 'средний')['prof']) / 1e3)
+    globals()['SH9'] = None
+    print('ставка 9% при доле списания 100% только у 9% (средний):', sh9)
     print('\nартикулы В1 (заказов/нед за 4 недели, Δ прибыли за 2 нед по сценариям):')
     PA = per_article()
     for x in PA:
@@ -164,5 +192,6 @@ if __name__ == '__main__':
                    cov_u=cov_u, n_units=sum(U_all.values()),
                    cand=[dict(cid=c, off=camp[c]['off'], active=active(camp[c]), last=camp[c]['last'], w=camp[c]['sp'] / WEEKS,
                               o=camp[c]['o'] / WEEKS, pi=camp_pi(camp[c])[0], sel=c in SEL) for c in CAND],
-                   be=dict(v1_v2=breakeven('В1', 'В2'), v1b_v2=breakeven('В1б', 'В2'), v1b_v0=breakeven('В1б', 'В0'))),
+                   be=dict(v1_v2=breakeven('В1', 'В2'), v1b_v2=breakeven('В1б', 'В2'), v1b_v0=breakeven('В1б', 'В0')),
+                   m9eq={sc: m9_equal(sc) for sc in SCN}, m9eq_v1={sc: m9_equal(sc, 'В1') for sc in SCN}, sh9_100=sh9[1.0]),
               open('/tmp/ozon-v5/forecast.json', 'w'), ensure_ascii=False, indent=1)

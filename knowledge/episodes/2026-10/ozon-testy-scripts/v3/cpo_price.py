@@ -31,11 +31,12 @@ for d in days[1:]:
     if c or abs(mv[d])>0.02:
         print(d,'%7s %4.0f%%'%(pc(mv[d]),share[d]*100),' ; '.join(c) if c else '-')
 # сводка: каждое событие ставки -> сдвиг в день события и на следующий
-print('\nсобытие ставки -> сдвиг магазина за день события + следующий день')
+print('\nсобытие ставки -> сдвиг магазина за день события + следующий день (пропуск дня = событие не считаем)')
 res=C.defaultdict(list)
 for d,cs in ch.items():
     last=cs[-1].split(' ',1)[1]; first=cs[0].split(' ',1)[1]
-    x=sum(mv.get(sh(d,k),0) for k in (0,1))
+    if any(sh(d,k) not in mv for k in (0,1)): print(' ',d,'пропущен день в данных - событие не считаем'); continue
+    x=sum(mv[sh(d,k)] for k in (0,1))
     key=(first.split('>')[0] if '>' in first else first)+'>'+(last.split('>')[1] if '>' in last else last)
     res[key].append((d,x)); 
 for k,v in res.items(): print(' %-14s'%k,' '.join('%s %s'%(d[5:],pc(x)) for d,x in v))
@@ -48,3 +49,5 @@ mv2={d:v for d,v in mv.items() if d<='2026-09-07'}
 nm2=[d for d in mv2 if abs(mv2[d])>0.02]; free=[d for d in nm2 if not any(sh(d,k) in ch for k in (0,-1))]
 print('по 07.09 (журнал полный): дней со сдвигом >2%%: %d, без смены ставки в тот же или предыдущий день: %d (%s)'%(len(nm2),len(free),', '.join(d[5:] for d in sorted(free))))
 print('пара 04.09 (вкл. 5%%, через 5 ч 9%%) и 07.09 (9 -> 5%%): %s и %s, итог «включено на 5%%» %s'%(pc(mv['2026-09-04']),pc(mv['2026-09-07']),pc(mv['2026-09-04']+mv['2026-09-07'])))
+for k in ('7.00%>9.00%','9.00%>7.00%'):
+    v=[x for d,x in res[k]]; print('%s: событий %d, медиана %s, среднее %s'%(k,len(v),pc(S.median(v)),pc(sum(v)/len(v))))

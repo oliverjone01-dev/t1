@@ -73,3 +73,8 @@ for lo,hi in ((0,300),(300,1500),(1500,1e9)):
     if x: print('  кампания %d-%s ₽/день: событий %d, медиана изменения цены к 3 дню %s, подешевели >5%%: %d из %d'%(lo,int(hi) if hi<1e9 else '+',len(x),pct(S.median(x)),sum(v<math.log(0.95) for v in x),len(x)))
 if '-c' in sys.argv:
     for d,c,n,b,m in rows: print('   ',d,c,'товаров',n,'%.0f ₽/день'%b,pct(m))
+# Поправка ФЕНИКСА iter2: по месяцам (событие = кампания + дата) и счёт кампаний.
+bym=C.defaultdict(list)
+for d,c,n,b,m in rows: bym[d[:7]].append(m)
+print('по месяцам старта (кампании), изменение цены к 3 дню:',' '.join('%s: %s (n=%d)'%(k,pct(S.median(v)),len(v)) for k,v in sorted(bym.items())))
+print('событий %d в %d кампаниях'%(len(rows),len({c for d,c,n,b,m in rows})))

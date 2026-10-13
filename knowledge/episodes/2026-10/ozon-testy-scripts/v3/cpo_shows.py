@@ -33,3 +33,8 @@ def avg(a,b,f):
     dd=[d for d in sorted({k[0] for k in V}) if a<=d[5:]<=b]; return sum(f(d) for d in dd)/len(dd)
 for nm,f in (('показы нерекл. в поиске',lambda d:V[(d,'na')]['vsearch']),('заходы нерекл.',lambda d:V[(d,'na')]['pdp']),('заказы магазина',lambda d:O[d])):
     a=avg('08-20','08-27',f); b=avg('08-29','09-03',f); print('%s в день: 20-27.08 %.1f -> 29.08-03.09 %.1f (%+.0f%%)'%(nm,a,b,(b/a-1)*100))
+import math as M
+a=sum(O[d] for d in V and [] or []) if False else None
+pre=[d for d in sorted({k[0] for k in V}) if '08-20'<=d[5:]<='08-27']; post=[d for d in sorted({k[0] for k in V}) if '08-29'<=d[5:]<='09-03']
+n1=sum(O[d] for d in pre); n2=sum(O[d] for d in post); rr=(n2/len(post))/(n1/len(pre)); se=M.sqrt(1/n1+1/n2)
+print('заказы: %d за %d дн. -> %d за %d дн., изменение %+.0f%%, 95%% ДИ (Пуассон) %+.0f..%+.0f%%'%(n1,len(pre),n2,len(post),(rr-1)*100,(M.exp(M.log(rr)-1.96*se)-1)*100,(M.exp(M.log(rr)+1.96*se)-1)*100))

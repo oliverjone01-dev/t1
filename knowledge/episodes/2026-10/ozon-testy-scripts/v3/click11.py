@@ -49,3 +49,4 @@ for k,(n,p,o,v) in sorted(g.items()): print('  %-28s %3d %5d %3d %5.1f %5.1f'%(k
 tot=lambda f:[sum(x[i] for kk,x in g.items() if f(kk)) for i in range(4)]
 for nm,f in (('надбавка есть',lambda k:k.startswith('надбавка есть')),('надбавки нет',lambda k:k.startswith('надбавки нет'))):
     n,p,o,v=tot(f); print('  итого %-14s товаро-дней %d, заходов %d, заказов %d, на 1 000 заходов %.1f, заходов на 100 показов %.1f'%(nm,n,p,o,1000*o/p,100*p/v))
+print('показы в поиске на 1 ₽ расхода за клик (11 товаров):',' '.join('%s %.2f'%(d[5:],V[d]['vsearch']/sum(SP[s][d] for s in S11)) for d in sorted(V) if sum(SP[s][d] for s in S11)>5000))

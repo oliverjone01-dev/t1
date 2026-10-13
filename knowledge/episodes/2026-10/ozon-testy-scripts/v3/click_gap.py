@@ -44,3 +44,11 @@ for lo,hi in ((0,300),(300,1500),(1500,1e9)):
     x=[r[4] for r in rows if lo<=r[3]<hi]
     if x: print('  кампания %d-%s ₽/день: событий %d, рост разрыва медиана %+.1f п., от %+.1f до %+.1f'%(lo,int(hi) if hi<1e9 else '+',len(x),S.median(x),min(x),max(x)))
 for r in rows: print('   ',r[0],r[1],'товаров',r[2],'%.0f ₽/день'%r[3],'%+.1f п.'%r[4])
+# Поправка ФЕНИКСА iter2: событий/кампаний; дешёвые (<300 ₽/день) - сколько имеют надбавку к 3 дню (разрыв к магазину > +5 п.).
+print('событий %d в %d кампаниях'%(len(rows),len({r[1] for r in rows})))
+lvl={}
+for art,d,b,x,lv in ev:
+    for c in SC[(a2s.get(art),d)]: lvl.setdefault((d,c),[]).append(lv[4])
+cheap=[r for r in rows if r[3]<300]
+ok=sum(1 for r in cheap if S.median(v for v in lvl[(r[0],r[1])] if v==v)>5)
+print('дешёвые до 300 ₽/день: событий %d в %d кампаниях, надбавка к 3 дню (разрыв к магазину > +5 п.): %d из %d'%(len(cheap),len({r[1] for r in cheap}),ok,len(cheap)))

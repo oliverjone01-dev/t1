@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-12T16:04:23.051Z",
+  "at": "2026-10-13T14:34:45.783Z",
   "dateFormatAccepted": "iso",
   "shape": {
     "id": "number",
@@ -48,12 +48,7 @@
         "amount": "number"
       }
     ],
-    "commissions": [
-      {
-        "type": "string",
-        "actual": "number"
-      }
-    ],
+    "commissions": [],
     "buyerType": "string",
     "currency": "string"
   },

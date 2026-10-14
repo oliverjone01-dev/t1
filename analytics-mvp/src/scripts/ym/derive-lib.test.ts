@@ -737,7 +737,7 @@ describe("сверка с отчётом о платежах (ACC_DOC)", () => {
 describe("moneyFlowRows - движение денег для блока 3а «Отчета»", () => {
   const acc = (d: string, b: string, accruals: number, amount: number, extra: any = {}) => ({ d, business: b, accruals, amount, ...extra });
   it("Итого = К выплате + проводки без заказа = Перевёл + В пути; баллы и отмены - не деньги", () => {
-    const rows = [acc("2026-09-10", "1", 1_000, 800), acc("2026-09-10", "1", 50, 50, { basis: "orders" })];
+    const rows = [acc("2026-09-10", "1", 1_000.4, 800.4, { sku: "A" }), acc("2026-09-10", "1", 50, 50, { sku: "B", basis: "orders" }), acc("2026-10-01", "1", 9, 9, { sku: "A" })];
     const net = [
       { d: "2026-09-10", business: "1", order: "o1", src: "Платёж покупателя", amount: 1_000, status: "Переведён по графику выплат", po: "77" },
       { d: "2026-09-10", business: "1", order: "o1", src: "Оплата услуг Маркета", amount: -200, status: "Удержан из платежей покупателей", po: "77" },
@@ -749,8 +749,9 @@ describe("moneyFlowRows - движение денег для блока 3а «О
       { d: "2026-09-10", business: "1", order: "o4", src: "Платёж покупателя", amount: 900, status: "Не будет переведён из-за отмены заказа" },
       { d: "2026-10-01", business: "1", order: "o5", src: "Платёж покупателя", amount: 7, status: "Будет переведён" },
     ];
-    const r = moneyFlowRows(rows, net, "2026-09-30");
-    expect(r).toEqual([["2026-09-10", "1", 1_050, 850, -30, 10, 5, 780, 55, 0]]);
+    const r = moneyFlowRows(rows, net, "2026-09-30", new Set(["o2"]));
+    // acc1/amt1 округлены по (день, артикул), как ACC; день после границы (01.10) не берётся ни из каких строк.
+    expect(r).toEqual([["2026-09-10", "1", 1_050, 850, -30, 10, 5, 780, 55, 0, 50, 0, 2]]);
     const [, , , amt1, acct, prem, seller, po, nopo] = r[0]!;
     expect(amt1 + acct + prem + seller).toBe(po + nopo);
   });
@@ -759,6 +760,6 @@ describe("moneyFlowRows - движение денег для блока 3а «О
       { d: "2026-01-10", business: "1", order: "o1", src: "Платёж покупателя", amount: 100, po: "1" },
       { d: "2026-01-10", business: "1", order: "", amount: 5 },
     ];
-    expect(moneyFlowRows([], net, "2026-09-30")).toEqual([["2026-01-10", "1", 0, 0, 0, 0, 0, 0, 0, 2]]);
+    expect(moneyFlowRows([], net, "2026-09-30")).toEqual([["2026-01-10", "1", 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0]]);
   });
 });

@@ -188,7 +188,14 @@ export function reportDataYm(ctx: Ctx) {
   const svc = Object.keys(svcK).sort().map((k) => { const [d, f, n] = k.split("|"); return [d, f, n, Math.round(svcK[k]! * 100) / 100]; });
   const gen = Object.keys(genK).sort().map((d) => [d, ...genK[d]!.map((x) => Math.round(x * 100) / 100)]);
   // Блок 3а «Движение денег» (ответы 14.10): по дням и кабинетам из тех же строк, что ACC и «Начислил Маркет».
-  const flow = moneyFlowRows(acc, net, to);
+  // «В пути» делится на доставленные заказы и ещё не доставленные (G4 ФЕНИКСА 14.10): статус - по выгрузке заказов.
+  const delivered = new Set<string>();
+  for (const r of readNd(dp("orders.ndjson"))) if (String(r.status || "") === "DELIVERED" && r.order) delivered.add(String(r.order));
+  const flow = moneyFlowRows(acc, net, to, delivered);
+  // Подпись блока 3а (G2 ФЕНИКСА): снимок статусов платёжек и последний день проводок, уже попавших в платёжку.
+  let lastPo = "";
+  for (const r of net) { const d = String(r.d || ""); if (d && d <= to && String(r.po || "").trim() && !nettingCancelled(r) && d > lastPo) lastPo = d; }
+  const flowMeta = { at: String(readJsonSafe(dp("netting_state.json")).at || "").slice(0, 10), lastPo };
   // ДРР как на «Маркетинге» (ответ 2а): pmRow вкладки «Маркетинг» по своду заказов, по месяцу ЗАКАЗА и
   // кабинету. Считается здесь, при сборке, той же функцией - на страницу едут только итоги месяцев.
   // Сбой выреза pmRow роняет сборку (H1 ФЕНИКСА): раньше try/catch молча давал «нет данных». Без
@@ -214,7 +221,7 @@ export function reportDataYm(ctx: Ctx) {
   console.log(`report-ym: кампаний баллами из отчёта по баллам ${campN} строк; реестр полный по ${to} (последний день ${JSON.stringify(lastBy)}, со сборами ${JSON.stringify(feeBy)}), показы ${Object.keys(views).length} SKU с ${viewsFrom || "-"}, заказы по ${Object.keys(ordD).length} SKU с ${ordFrom || "-"}`);
   // Первый полный месяц реестра - с него идут серые ретро-колонки (месяц, начатый не с 1-го, неполный).
   const full = !accFrom ? "" : accFrom.slice(8) === "01" ? accFrom.slice(0, 7) + "-01" : addDays(accFrom.slice(0, 7) + "-01", 32).slice(0, 7) + "-01";
-  return { to, maxD, accFrom, full, floor: FLOOR.slice(0, 7), lastBy, pts, views, viewsFrom, aggFrom, aggTo, ord: ordD, ordC, ordFrom, svc, gen, flow, drr, cab, promo, promoOld90 };
+  return { to, maxD, accFrom, full, floor: FLOOR.slice(0, 7), lastBy, pts, views, viewsFrom, aggFrom, aggTo, ord: ordD, ordC, ordFrom, svc, gen, flow, flowMeta, drr, cab, promo, promoOld90 };
 }
 
 export const REPORT_YM_CSS = `<style>
@@ -253,7 +260,7 @@ export const REPORT_YM_BODY = `${REPORT_YM_CSS}
 <section class="card"><div class="card-h"><div><div class="card-title">3. Затраты площадки и полная аналитика</div><div class="card-sub">Статьи - услуги Маркета из отчёта по взаиморасчётам, сгруппированные так же, как колонки блока «Аналитика по артикулам (за выбранный период)» на «Деньгах»: итог группы = колонка блока, строки до «Чистой прибыли по артикулам» = его ИТОГО. «Затраты площадки» = «Всего сборов» (Начислено − К выплате). Ниже - проводки кабинета без артикула (удержания и премия): в таблице «Денег» их нет, в «Подлежит перечислению» отчёта о платежах они есть, поэтому вычитаются из чистой прибыли отдельной строкой. Внизу справочно - баллы Маркета и взнос продавца: в оборот, сборы и прибыль не входят. Доля = статья / Начислено. Серые колонки - прошлые полные месяцы.</div></div></div>
 <div class="kt-scroll"><table class="kt-table" id="rp-cost"></table></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">3а. Движение денег</div><div class="card-sub">Сколько Маркет начислил, сколько списал деньгами и сколько перевёл на счёт. Все строки - из того же отчёта по взаиморасчётам, что «Начислил Маркет (справочно)» в блоке 3, по дню проводки: Начислил − Списал за услуги по заказам = К выплате Маркета; плюс проводки без заказа = Итого к перечислению = Перевёл + В пути. «Перевёл на счёт» - проводки месяца, по которым у Маркета уже есть платёжное поручение (переведено или удержано из выплаты); «В пути» - проводки со статусом «Будет переведён / удержан». Баллы сюда не входят - они в блоке 4; отменённые заказы - тоже. Зеркала и мебель - по кабинетам, раскрываются по клику.</div></div></div>
-<div class="kt-scroll"><table class="kt-table" id="rp-flow"></table></div></section>
+<div class="kt-scroll"><table class="kt-table" id="rp-flow"></table></div><div class="kt-note" id="rp-flow-note" style="margin-top:8px"></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">4. Баллы Маркета (справочно)</div><div class="card-sub">Баллы в оборот, сборы и прибыль не входят: аналитика - по деньгам, как отчёт о платежах. Начислено - баллы Маркета за скидки покупателям; списано - оплата услуг Маркета баллами, по услугам (раскрывается по клику).</div></div></div>
 <div class="kt-scroll"><table class="kt-table" id="rp-pts"></table></div></section>
 <section class="card"><div class="card-h"><div><div class="card-title">5. Реклама</div></div></div>
@@ -316,35 +323,50 @@ function rpyCalc(per){
   if(grand)RPY_G.forEach(function(G){var d=(svcSum[G[0]]||0)-grand[G[1]];if(Math.abs(d)>Math.max(2,Math.min(0.5*nRows,100)))svBad.push(G[2]+' '+rpN(d)+' ₽');});
   // Инвариант 3а против блока 3: «Начислил» и «К выплате Маркета» по кабинетам в сумме = строкам блока 3
   // (ACC округлён до рубля по (день, артикул) - допуск как у тождества сборов).
-  var flBad=null;if(grand){var tl=Math.max(2,0.5*nRows),da=fl.all.acc1-grand.acc1,dm=fl.all.amt1-grand.amount1;
-    if(Math.abs(da)>tl||Math.abs(dm)>tl)flBad='«Начислил» '+rpN(da)+' ₽, «К выплате Маркета» '+rpN(dm)+' ₽';}
-  return {rows:rows,g:g,fcat:fcat,grand:grand,idn:idn,svBad:svBad,flBad:flBad,flChk:grand&&fl.all.ns===0&&Math.abs(fl.all.tot-fl.all.po-fl.all.nopo)>2?fl.all.tot-fl.all.po-fl.all.nopo:0,
+  // Округление то же, что у ACC (по дню и артикулу), поэтому допуск - 1 ₽ на дробную часть (G3 ФЕНИКСА).
+  // Кабинеты: зеркала + мебель = всего (G5 ФЕНИКСА) - иначе строка реестра ушла в неизвестный кабинет.
+  var flBad=null;if(grand){var da=fl.all.acc1-grand.acc1,dm=fl.all.amt1-grand.amount1,dc=['acc1','tot','po','nopo'].filter(function(k){return Math.abs(fl.mir[k]+fl.fur[k]-fl.all[k])>1;});
+    if(Math.abs(da)>1||Math.abs(dm)>1)flBad='«Начислил» '+rpN(da)+' ₽, «К выплате Маркета» '+rpN(dm)+' ₽';
+    else if(dc.length)flBad='зеркала + мебель не равны итогу в строках '+dc.join(', ');}
+  return {rows:rows,g:g,fcat:fcat,grand:grand,idn:idn,svBad:svBad,flBad:flBad,flChk:grand&&fl.all.ns===0&&Math.abs(fl.all.chk)>Math.max(2,0.5*fl.all.nr)?fl.all.chk:0,
     bad:!!grand&&Math.abs(g.mir.acc+g.fur.acc-grand.acc)>1,badId:!!grand&&Math.abs(idn)>nRows*1.5};
 }
 // Суммы блока 3а за период: всего и по кабинетам (REPY.cab). ns - проводки без статуса платежа: по ним
 // «Перевёл», «В пути» и строки без заказа не показываются (нет данных), а не считаются нулём (К7).
-function rpyFlowSum(per){var z=function(){return {acc1:0,amt1:0,acct:0,prem:0,seller:0,po:0,nopo:0,ns:0};},o={all:z(),mir:z(),fur:z()};
+function rpyFlowSum(per){var z=function(){return {acc1:0,amt1:0,acct:0,prem:0,seller:0,po:0,nopo:0,ns:0,nopoD:0,nopoU:0,nr:0};},o={all:z(),mir:z(),fur:z(),to:per.to};
   (REPY.flow||[]).forEach(function(r){if(!rpyIn(r[0],per))return;var ks=['all',r[1]===REPY.cab.mir?'mir':r[1]===REPY.cab.fur?'fur':null];
-    ks.forEach(function(k){if(!k)return;var x=o[k];x.acc1+=r[2];x.amt1+=r[3];x.acct+=r[4];x.prem+=r[5];x.seller+=r[6];x.po+=r[7];x.nopo+=r[8];x.ns+=r[9];});});
-  ['all','mir','fur'].forEach(function(k){var x=o[k];x.fee=x.amt1-x.acc1;x.tot=x.amt1+x.acct+x.prem+x.seller;x.spis=x.fee+x.acct;x.chk=Math.round(x.tot-x.po-x.nopo)||0;});
+    ks.forEach(function(k){if(!k)return;var x=o[k];x.acc1+=r[2];x.amt1+=r[3];x.acct+=r[4];x.prem+=r[5];x.seller+=r[6];x.po+=r[7];x.nopo+=r[8];x.ns+=r[9];x.nopoD+=r[10]||0;x.nopoU+=r[11]||0;x.nr+=r[12]||0;});});
+  ['all','mir','fur'].forEach(function(k){var x=o[k];x.fee=x.amt1-x.acc1;x.tot=x.amt1+x.acct+x.prem+x.seller;x.spis=x.fee+x.acct;x.nopoN=Math.round(x.nopo-x.nopoD-x.nopoU)||0;x.chk=Math.round(x.tot-x.po-x.nopo)||0;});
   return o;}
 // Строки блока 3а (как в одобренном предпросмотре 14.10). Списания - со знаком минус: это движение денег, а не статьи затрат.
 function rpyFlowLines(){
-  var NS={acct:1,prem:1,seller:1,tot:1,po:1,nopo:1,spis:1,chk:1};
+  var NS={acct:1,prem:1,seller:1,tot:1,po:1,nopo:1,nopoD:1,nopoU:1,nopoN:1,spis:1,chk:1};
   var f=function(k,c){return function(t){if(!t||!t.fl)return null;var x=t.fl[c||'all'];if(NS[k]&&x.ns)return null;return x[k];};};
   var cab=function(k,inc){return [{k:k+'_mir',l:'зеркала',fn:f(k,'mir'),inc:inc,sub:1,noSh:1},{k:k+'_fur',l:'мебель',fn:f(k,'fur'),inc:inc,sub:1,noSh:1}];};
+  // Звёздочка у «Перевёл»: период заходит за последний день проводок, уже попавших в платёжку (G2 ФЕНИКСА).
+  var poLate=function(t){return !!t&&!!t.fl&&!!REPY.flowMeta&&!!REPY.flowMeta.lastPo&&t.fl.to>REPY.flowMeta.lastPo;};
   return [{k:'f_acc1',l:'Начислил Маркет (справочно)',t:'та же строка, что в блоке 3',fn:f('acc1'),inc:1,noSh:1}].concat(cab('acc1',1),[
-    {k:'f_fee',l:'− Списал за услуги по заказам',t:'сборы Маркета деньгами: размещение, доставка, эквайринг, хранение, продвижение',fn:f('fee'),inc:1,noSh:1},
+    {k:'f_fee',l:'− Списал за услуги по заказам',t:'= Начислил − К выплате Маркета: сборы Маркета деньгами (размещение, доставка, эквайринг, хранение, продвижение). От «Всего сборов» блока 3 может отличаться на рубли построчного округления - см. пометку вверху',fn:f('fee'),inc:1,noSh:1},
     {k:'f_amt1',l:'= К выплате Маркета (справочно)',t:'та же строка, что в блоке 3',fn:f('amt1'),inc:1,noSh:1},
     {k:'f_acct',l:'− Удержал без заказа',t:'услуги Маркета, не привязанные к заказу',fn:f('acct'),inc:1,noSh:1},
     {k:'f_prem',l:'+ Премия Маркета',fn:f('prem'),inc:1,noSh:1},
     {k:'f_seller',l:'+ Внесено продавцом',t:'наши деньги, которые Маркет вернул в выплате',fn:f('seller'),inc:1,noSh:1},
     {k:'f_tot',l:'= Итого к перечислению на счёт',t:'все денежные проводки месяца',fn:f('tot'),inc:1,bold:1,main:1,noSh:1}],cab('tot',1),[
-    {k:'f_po',l:'Перевёл на счёт',t:'проводки месяца, по которым уже есть платёжное поручение Маркета',fn:f('po'),inc:1,bold:1,main:1,noSh:1}],cab('po',1),[
-    {k:'f_nopo',l:'В пути',t:'проводки месяца без платёжки: «Будет переведён / удержан»',fn:f('nopo'),inc:0,bold:1,main:1,noSh:1}],cab('nopo',0),[
+    {k:'f_po',l:'Перевёл на счёт',t:'проводки месяца, по которым уже есть платёжное поручение Маркета; с банковской выпиской не сверено',fn:f('po'),inc:1,bold:1,main:1,noSh:1,flag:poLate}],cab('po',1),[
+    {k:'f_nopo',l:'В пути',t:'проводки месяца без платёжки: «Будет переведён / удержан»',fn:f('nopo'),inc:0,bold:1,main:1,noSh:1},
+    {k:'nopoD',l:'по доставленным заказам - ждут выплаты',fn:f('nopoD'),inc:0,sub:1,noSh:1},
+    {k:'nopoU',l:'по заказам, ещё не доставленным, - могут отмениться',t:'статус заказа - по выгрузке заказов Маркета',fn:f('nopoU'),inc:0,sub:1,noSh:1},
+    {k:'nopoN',l:'без заказа - будущие удержания и премии',fn:f('nopoN'),inc:0,sub:1,noSh:1}].concat(cab('nopo',0)),[
     {k:'f_spis',l:'Всего списал Маркет деньгами',t:'услуги по заказам + удержания без заказа',fn:f('spis'),inc:1,bold:1,main:1,noSh:1}],cab('spis',1),[
-    {k:'f_chk',l:'Проверка: Итого − Перевёл − В пути',t:'должно быть 0',fn:f('chk'),inc:1,noSh:1}]);
+    {k:'f_chk',l:'Проверка: Итого − Перевёл − В пути',t:'остаток построчного округления до рубля, как в блоке 3 (до 0,5 ₽ на строку); больше - красная пометка вверху',fn:f('chk'),inc:1,noSh:1}]);
 }
+// Пометки блока 3а (G2 ФЕНИКСА): дата статусов платёжек, последняя платёжка, нет сверки с банком; месяцы без статуса.
+function rpyFlowNote(calcs){var M=REPY.flowMeta||{},t=[];
+  t.push('Статусы платёжек - по снимку реестра Маркета от '+(M.at?rpDm(M.at)+'.'+M.at.slice(0,4):'—')+'.');
+  if(M.lastPo)t.push('Последняя платёжка Маркета в реестре - по проводкам до '+rpDm(M.lastPo)+'.'+M.lastPo.slice(0,4)+': за дни после неё «Перевёл на счёт» ноль, деньги в «В пути» (у таких месяцев <span class="rp-warn">*</span>).');
+  t.push('<b class="rp-warn">«Перевёл на счёт» с банковской выпиской не сверен</b> - это данные Маркета, а не поступления на расчётный счёт.');
+  if(calcs.some(function(c){return c&&c.grand&&c.grand.fl&&c.grand.fl.all.ns;}))t.push('«—» и «нет данных» в «Перевёл», «В пути» и строках без заказа - месяц без статуса платежа в реестре: баллы там не отличить от денег.');
+  return t.join('<br>');}
 function rpyVal(t,k){if(!t)return null;return t[k]||0;}
 function rpyRetro(P){var out=[],m=P.pym,guard=0,df=REPY.full;
   while(guard++<36){m=rpPrevYm(m);if(!df||m+'-01'<df)break;var per={from:m+'-01',to:rpEnd(m)};out.unshift({ym:m,per:per,calc:rpyCalc(per)});}
@@ -425,9 +447,8 @@ function rpyRender(){
   if(shN.length)fl.push('<b class="rp-warn">⚠ Наша доставка неполная:</b> заказы, которые везли мы, без суммы в ведомости перевозчика: '+shN.join('; ')+'. По ним наша доставка не вычтена - валовая и чистая прибыль завышены; где сумм нет совсем, в строке «нет данных».');
   var svB=cur.svBad.concat(prev.svBad);
   if(svB.length)fl.push('<b class="rp-dn">⚠ Услуги Маркета не сложились в колонку блока:</b> '+svB.join(', ')+'. Строки услуг в блоках 2-3 не использовать.');
-  if(cur.flBad||prev.flBad)fl.push('<b class="rp-dn">⚠ Блок 3а не сходится с блоком 3:</b> '+(cur.flBad||prev.flBad)+'. Цифры блока 3а не использовать.');
+  if(cur.flBad||prev.flBad)fl.push('<b class="rp-dn">⚠ Блок 3а не сходится:</b> '+(cur.flBad||prev.flBad)+'. Цифры блока 3а не использовать.');
   if(cur.flChk||prev.flChk)fl.push('<b class="rp-dn">⚠ Движение денег не сходится:</b> Итого − Перевёл − В пути = '+rpN(cur.flChk||prev.flChk)+' ₽. Цифры блока 3а не использовать.');
-  if(nsN.length||nsO.length)fl.push('<span class="rp-mute">В блоке 3а за месяцы без статуса платежа «Перевёл», «В пути» и строки без заказа - «нет данных»: баллы там не отличить от денег.</span>');
   document.getElementById('rp-flags').innerHTML=fl.join('<br>')||'<span class="rp-mute">Пометок по данным нет.</span>';
   if(!gc||!gp){['rp-turn','rp-why','rp-why2','rp-cost','rp-flow','rp-pts','rp-ads','rp-dead'].forEach(function(id){document.getElementById(id).innerHTML='<div class="kt-note">нет данных за период</div>';});return;}
   var calcs=R.map(function(r){return r.calc;}).concat([prev,cur]);
@@ -498,6 +519,7 @@ function rpyRender(){
   var h3a='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r"></th><th class="r"></th></tr></thead><tbody>';
   h3a+=rpyRows(rpyFlowLines(),row3);
   document.getElementById('rp-flow').innerHTML=h3a+'</tbody>';rpyFold(document.getElementById('rp-flow'));
+  document.getElementById('rp-flow-note').innerHTML=rpyFlowNote(calcs);
   // === 4. Баллы Маркета (справочно) ===
   var h4='<thead><tr><th>Статья</th>'+rpRth(R)+'<th class="r">'+rpName(P.pym)+'</th><th class="r">'+rpName(ym)+'</th><th class="r">Отклонение, ₽</th><th class="r">Отклонение, %</th><th class="r">Доля от начисл., было</th><th class="r">Доля, стало</th></tr></thead><tbody>';
   h4+=rpyRows(rpyPtsLines(calcs),row3);
@@ -624,7 +646,7 @@ function rpyExport(){
   // Один лист: блоки подряд сверху вниз, между блоками две пустые строки (как у OZON).
   var s2=[{k:'sec',c:['2. Причины роста или падения оборота']},{k:'h',c:['Коротко']}].concat(rpxLines(document.getElementById('rp-why'),'line'),[gap,{k:'h',c:['По каждой статье']}],rpyXTable(document.getElementById('rp-why2'),[1,1,1,1,1,3,4]));
   var s3=[{k:'sec',c:['3. Затраты площадки и полная аналитика']}].concat(rpyXTable(document.getElementById('rp-cost')));
-  var s3a=[{k:'sec',c:['3а. Движение денег']}].concat(rpyXTable(document.getElementById('rp-flow')));
+  var s3a=[{k:'sec',c:['3а. Движение денег']}].concat(rpyXTable(document.getElementById('rp-flow')),rpxLines(document.getElementById('rp-flow-note'),'note'));
   var s4=[{k:'sec',c:['4. Баллы Маркета (справочно)']}].concat(rpyXTable(document.getElementById('rp-pts'),null,1));
   var s5=[{k:'sec',c:['5. Реклама']}].concat(rpyXTable(document.getElementById('rp-ads'),null,1));
   var s6=[{k:'sec',c:['6. Топ-5 непродаваемых']}];

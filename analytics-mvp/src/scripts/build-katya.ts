@@ -1958,22 +1958,24 @@ function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any
   // выгрузка кабинета cpo_orders + отправления orders_daily без отменённых, по дате заказа. Окно для ДРР - покрытие
   // выгрузки (cpo_sku_daily), как у «Отчета».
   const co = cpoOrdersByDay(dp);
-  const cpoRev = Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.rev), co.day[d]!.units]);
   // Чья это выгрузка (ФЕНИКС N5): кампания, чей расход API за дни выгрузки ближе всего к списаниям выгрузки (сен: 28753239,
   // сборка 13.10: 28753239, 4 323 199 = 4 323 199 за 05.06-30.09).
   // Только среди кампаний «за заказ», допуск 1%, иначе отказ сборки (ФЕНИКС N8, cpoExportCampaign - та же, что у «Отчета»).
-  const { id: cpoCid, sp: cpoCidSp, total: cpoSpAll } = cpoExportCampaign(dp, co);
+  // Ошибка выгрузки сборку не роняет (Иван 14.10, ФЕНИКС G3): выручки «за заказ» нет, красная плашка, ::error:: в лог CI.
+  const { id: cpoCid, sp: cpoCidSp, total: cpoSpAll, err: cpoErr } = cpoExportCampaign(dp, co);
+  if (cpoErr) console.log(`::error::kartochki: ${cpoErr}`);
+  const cpoRev = cpoErr ? [] : Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.rev), co.day[d]!.units]);
   // Окно выгрузки для ДРР (ФЕНИКС N6, N9): с 1-го числа месяца начала выгрузки, только если у кампании выгрузки нет
   // расхода API с 1-го числа до начала выгрузки (июнь: 28753239 - 0 ₽ за 01-04.06, окно 01.06); иначе с начала выгрузки.
   // То же правило, что покрытие на «Отчете» (cpoCov).
   let cpoW0 = co.from;
-  if (co.from) {
+  if (co.from && cpoCid) {
     const ms = co.from.slice(0, 7) + "-01";
     let pre = 0;
     try { for (const l of readFileSync(dp("ads_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (String(r.id) === cpoCid && r.d >= ms && r.d < co.from) pre += Number(r.sp) || 0; } } catch { /* нет ряда */ }
     if (!Math.round(pre)) cpoW0 = ms;
   }
-  const cpoWin: string[][] = co.from ? [[cpoW0, co.to]] : [];
+  const cpoWin: string[][] = co.from && !cpoErr ? [[cpoW0, co.to]] : [];
   console.log(`kartochki: кампания выгрузки ${cpoCid || "-"}: расход API ${Math.round(cpoCidSp)} против списаний выгрузки ${Math.round(cpoSpAll)}`);
   console.log(`kartochki: «Оплата за заказ» по заказам ${cpoRev.length} дн, окно ${co.from || "-"}..${co.to || "-"}, без заказа в orders_daily ${co.miss}`);
   // JS «Маркетинга» как есть, в замыкании; наружу - только перерисовка таблицы кампаний.
@@ -2026,10 +2028,10 @@ function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
 // Выручка кампании «Оплата за заказ» (Иван 02.10, 13.10): API отдаёт по ней 0, берём выручку заказов из выгрузки кабинета
 // без отменённых, по дате заказа - тем же расчётом, что «Отчет» (cpo-orders-rev.ts). Расход - из API как был.
 var CPO_REV=${J(cpoRev)};
-var CPO_WIN=${J(cpoWin)},CPO_CID=${J(cpoCid)};
+var CPO_WIN=${J(cpoWin)},CPO_CID=${J(cpoCid)},CPO_ERR=${J(cpoErr)};
 // ДРР «Оплаты за заказ» (ФЕНИКС G4 13.10): выручка известна только в днях выгрузки (CPO_WIN), поэтому и расход берётся
 // только за эти дни периода; период шире выгрузки - пометка в ячейке. Нет дневного ряда - расход периода и пометка.
-function cpoRevFix(a){if(!a||!a.all)return '';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
+function cpoRevFix(a){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style="color:#FF5A5F;font-weight:600">выручка «Оплата за заказ» не показана: '+CPO_ERR.replace(/</g,'&lt;')+'</span>';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
   var cov=[],nCov=0,nAll=Math.round((Date.parse(a.dateTo)-Date.parse(a.dateFrom))/864e5)+1;CPO_WIN.forEach(function(w){var f=w[0]>a.dateFrom?w[0]:a.dateFrom,t=w[1]<a.dateTo?w[1]:a.dateTo;if(f<=t){cov.push([f,t]);nCov+=Math.round((Date.parse(t)-Date.parse(f))/864e5)+1;}});
   if(!CPO_WIN.length){cov=[[a.dateFrom,a.dateTo]];nCov=nAll;}
   var inCov=function(d){for(var k=0;k<cov.length;k++)if(d>=cov[k][0]&&d<=cov[k][1])return true;return false;};

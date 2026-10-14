@@ -89,7 +89,7 @@ try:
     jo.main()
     co = [json.loads(l) for l in open(jo.OUT_CPO, encoding="utf-8")]
     check("cpo_orders при повторе", round(sum(r["sp"] for r in co), 2), 818149.0)
-    check("cpo_orders: заказ 0002 одной строкой", [r["sp"] for r in co if r["order"] == "0002-0002"], [318149.0])
+    check("cpo_orders: заказ 0002 одной строкой (день 10.09)", [(r["d"], r["sp"]) for r in co if r["order"] == "0002-0002"], [("2026-09-10", 318149.0)])
     sk = load(os.path.join(TOOLS, "cpo", "build_cpo_sku_daily.py"), "sku_t")
     sk.RAW, sk.OUT = raw, os.path.join(data, "cpo_sku_daily.ndjson")
     sk.main()
@@ -100,6 +100,45 @@ try:
     xlsx(os.path.join(raw, "cpo_2026-10.xlsx"), "15.09.2026 - 14.10.2026", [["01.10.2026", "4", "0004-0004", 111, "GGM-01", 5000.0]])
     rows, used, _ = read_raw(raw)
     check("пересечение 15.09-14.10", total(rows), 718149.0 + 5000.0)
+
+    # ФЕНИКС G4: второе скачивание браузера «x (1).xlsx» (исправленное) побеждает «x.xlsx».
+    r1 = os.path.join(tmp, "raw_dl")
+    os.makedirs(r1)
+    xlsx(os.path.join(r1, "2026-09_cpo_orders.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0], ["04.09.2026", "2", "B-1", 1, "a", 50.0]])
+    xlsx(os.path.join(r1, "2026-09_cpo_orders (1).xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0], ["05.09.2026", "3", "C-1", 1, "a", 70.0]])
+    rows, used, _ = read_raw(r1)
+    check("G4 «(1)» после оригинала", [u[0] for u in used], ["2026-09_cpo_orders.xlsx", "2026-09_cpo_orders (1).xlsx"])
+    check("G4 сумма исправленной выгрузки", total(rows), 170.0)
+
+    # ФЕНИКС G5: cpo_orders заменяет окно периода, как cpo_sku_daily.
+    def run_both(raw_dir, prev_orders, prev_sku):
+        dd = tempfile.mkdtemp(dir=tmp)
+        with open(os.path.join(dd, "cpo_orders.ndjson"), "w", encoding="utf-8") as w:
+            w.write("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in prev_orders))
+        with open(os.path.join(dd, "cpo_sku_daily.ndjson"), "w", encoding="utf-8") as w:
+            w.write("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in prev_sku))
+        jo.CPO_RAW, jo.OUT_CPO = raw_dir, os.path.join(dd, "cpo_orders.ndjson")
+        jo.main()
+        sk.RAW, sk.OUT = raw_dir, os.path.join(dd, "cpo_sku_daily.ndjson")
+        sk.main()
+        co = [json.loads(l) for l in open(jo.OUT_CPO, encoding="utf-8")]
+        sd = [json.loads(l) for l in open(sk.OUT, encoding="utf-8")]
+        return round(sum(r["sp"] for r in co), 2), round(sum(r["sp"] for r in sd), 2)
+    r5 = os.path.join(tmp, "raw_f2")
+    os.makedirs(r5)
+    xlsx(os.path.join(r5, "2026-09_cpo_orders.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0]])
+    check("G5 F2: заказ пропал из повтора - уходит (cpo_orders, sku_daily)",
+          run_both(r5, [{"order": "A-1", "d": "2026-09-03", "sp": 100.0}, {"order": "B-1", "d": "2026-09-04", "sp": 50.0}],
+                   [{"d": "2026-09-03", "sku": "1", "offer": "a", "sp": 100.0, "n": 1}, {"d": "2026-09-04", "sku": "1", "offer": "a", "sp": 50.0, "n": 1}]),
+          (100.0, 100.0))
+    r6 = os.path.join(tmp, "raw_f3")
+    os.makedirs(r6)
+    xlsx(os.path.join(r6, "2026-09_cpo_orders.xlsx"), "01.09.2026 - 30.09.2026", [["01.09.2026", "9", "X-1", 1, "a", 20.0]])
+    check("G5 F3: заказ на стыке месяцев - обе части",
+          run_both(r6, [{"order": "X-1", "d": "2026-08-31", "sp": 80.0}], [{"d": "2026-08-31", "sku": "1", "offer": "a", "sp": 80.0, "n": 1}]),
+          (100.0, 100.0))
+    check("G5: старая строка без дня заменяется по номеру заказа",
+          run_both(r6, [{"order": "X-1", "sp": 80.0}, {"order": "Y-1", "sp": 5.0}], [])[0], 25.0)
 
     # Отказы.
     r2 = os.path.join(tmp, "raw_noper")

@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node
 import { dp, fp, op, IS_OZON, KEEP_OZON, platformize } from "../paths.js";
 import { KPAGES } from "./katya-nav.js";
 import { reportData, REPORT_BODY, REPORT_JS } from "./report-page.js";
-import { cpoOrdersByDay } from "./cpo-orders-rev.js";
+import { cpoOrdersByDay, cpoExportCampaign } from "./cpo-orders-rev.js";
 import { reportDataYm, REPORT_YM_BODY, reportJsYm } from "./ym/report-page-ym.js";
 import { accLedgerFullTo, nettingNoStatus, splitNoStatus, accCutDays, accDocRows } from "./ym/derive-lib.js";
 import { FLOOR as YM_FLOOR } from "./ym/common.js";
@@ -1959,17 +1959,21 @@ function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any
   // выгрузки (cpo_sku_daily), как у «Отчета».
   const co = cpoOrdersByDay(dp);
   const cpoRev = Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.rev), co.day[d]!.units]);
-  // Окно с 1-го числа месяца начала выгрузки - как покрытие на «Отчете» (cpoCov; ФЕНИКС N6).
-  const cpoWin: string[][] = co.from ? [[co.from.slice(0, 7) + "-01", co.to]] : [];
   // Чья это выгрузка (ФЕНИКС N5): кампания, чей расход API за дни выгрузки ближе всего к списаниям выгрузки (сен: 28753239,
   // сборка 13.10: 28753239, 4 323 199 = 4 323 199 за 05.06-30.09).
-  let cpoCid = "", cpoCidSp = 0;
-  const cpoSpAll = Object.values(co.day).reduce((x, v) => x + v.sp, 0);
+  // Только среди кампаний «за заказ», допуск 1%, иначе отказ сборки (ФЕНИКС N8, cpoExportCampaign - та же, что у «Отчета»).
+  const { id: cpoCid, sp: cpoCidSp, total: cpoSpAll } = cpoExportCampaign(dp, co);
+  // Окно выгрузки для ДРР (ФЕНИКС N6, N9): с 1-го числа месяца начала выгрузки, только если у кампании выгрузки нет
+  // расхода API с 1-го числа до начала выгрузки (июнь: 28753239 - 0 ₽ за 01-04.06, окно 01.06); иначе с начала выгрузки.
+  // То же правило, что покрытие на «Отчете» (cpoCov).
+  let cpoW0 = co.from;
   if (co.from) {
-    const byId: Record<string, number> = {};
-    try { for (const l of readFileSync(dp("ads_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.d >= co.from && r.d <= co.to) byId[String(r.id)] = (byId[String(r.id)] || 0) + (Number(r.sp) || 0); } } catch { /* нет ряда */ }
-    for (const [id, v] of Object.entries(byId)) if (!cpoCid || Math.abs(v - cpoSpAll) < Math.abs(cpoCidSp - cpoSpAll)) { cpoCid = id; cpoCidSp = v; }
+    const ms = co.from.slice(0, 7) + "-01";
+    let pre = 0;
+    try { for (const l of readFileSync(dp("ads_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (String(r.id) === cpoCid && r.d >= ms && r.d < co.from) pre += Number(r.sp) || 0; } } catch { /* нет ряда */ }
+    if (!Math.round(pre)) cpoW0 = ms;
   }
+  const cpoWin: string[][] = co.from ? [[cpoW0, co.to]] : [];
   console.log(`kartochki: кампания выгрузки ${cpoCid || "-"}: расход API ${Math.round(cpoCidSp)} против списаний выгрузки ${Math.round(cpoSpAll)}`);
   console.log(`kartochki: «Оплата за заказ» по заказам ${cpoRev.length} дн, окно ${co.from || "-"}..${co.to || "-"}, без заказа в orders_daily ${co.miss}`);
   // JS «Маркетинга» как есть, в замыкании; наружу - только перерисовка таблицы кампаний.

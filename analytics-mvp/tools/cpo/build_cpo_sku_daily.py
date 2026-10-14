@@ -12,81 +12,45 @@
 #        CPO по заказу, только агрегат.
 # Выход: data/cpo_sku_daily.ndjson  - {d, sku, offer, sp, n} по (sku, дню).
 #        Пишется только окно выгрузок: даты из строки «Период: дд.мм.гггг - дд.мм.гггг» каждого файла
-#        (нет строки - от первой до последней даты строк). Строки прошлого файла вне этих окон остаются:
+#        (нет строки - отказ, код 1; разбор и замена периодов - tools/cpo/cpo_raw.py). Строки прошлого файла вне этих окон остаются:
 #        выгрузки прошлых месяцев в raw/ не хранятся, и сентябрьская стёрла бы июнь-август (01.10).
 #
 # Запуск из analytics-mvp:  python3 tools/cpo/build_cpo_sku_daily.py
 # Требуется: python3 + openpyxl.
-import openpyxl, glob, os, json, datetime, collections, sys, re
+import glob, os, json, collections, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from cpo_raw import read_raw, CpoRawError  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RAW = os.path.join(ROOT, "tools", "cpo", "raw")
 OUT = os.path.join(ROOT, "data", "cpo_sku_daily.ndjson")
 
 
-def num(x):
-    try:
-        return float(x)
-    except Exception:
-        return 0.0
-
-
 def main():
     files = sorted(glob.glob(os.path.join(RAW, "*.xlsx")))
     if not files:
         sys.exit("нет ни одного .xlsx в " + RAW + " (положи per-order выгрузки CPO)")
+    try:
+        rows, used, skipped = read_raw(RAW)  # каждый файл заменяет свой «Период:», поздний по имени побеждает (O2)
+    except CpoRawError as ex:
+        print("ОТКАЗ:", ex)
+        sys.exit(1)
+    for f in skipped:
+        print("  пропуск (не per-order отчёт):", f)
     daily = collections.defaultdict(lambda: [0.0, 0])  # (sku,d)->[spend,orders]
     sku_off = {}
     permon = collections.defaultdict(float)
-    used = []
-    windows = []
-    for f in files:
-        wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
-        ws = wb["Statistics"] if "Statistics" in wb.sheetnames else wb.worksheets[0]
-        rows = list(ws.iter_rows(values_only=True))
-        hi = None
-        for i, r in enumerate(rows[:4]):
-            rr = [str(c) if c is not None else "" for c in r]
-            if "ID заказа" in rr:
-                hi = i
-                break
-        if hi is None:
-            wb.close()
-            print("  пропуск (не per-order отчёт):", os.path.basename(f))
+    windows = [w for _, w, _, _ in used]
+    for r in rows:
+        sku, d = r["sku"], r["d"]
+        if not sku or sku == "0":
             continue
-        hdr = [str(c) if c is not None else "" for c in rows[hi]]
-        ci = {h: j for j, h in enumerate(hdr)}
-        cD, cS, cA, cSp = ci["Дата"], ci["SKU"], ci["Артикул"], ci["Расход, ₽"]
-        used.append(os.path.basename(f))
-        win = None
-        for r in rows[:hi]:
-            m = re.search(r"(\d{2}\.\d{2}\.\d{4})\s*-\s*(\d{2}\.\d{2}\.\d{4})", " ".join(str(c) for c in r if c is not None))
-            if m:
-                win = tuple(datetime.datetime.strptime(x, "%d.%m.%Y").strftime("%Y-%m-%d") for x in m.groups())
-                break
-        fdates = []
-        for r in rows[hi + 1:]:
-            if r is None or all(c is None for c in r):
-                continue
-            try:
-                d = datetime.datetime.strptime(str(r[cD])[:10], "%d.%m.%Y").strftime("%Y-%m-%d")
-            except Exception:
-                continue
-            sku = str(r[cS]).split(".")[0] if r[cS] is not None else ""
-            if not sku or sku == "0":
-                continue
-            sp = num(r[cSp])
-            fdates.append(d)
-            daily[(sku, d)][0] += sp
-            daily[(sku, d)][1] += 1
-            if r[cA] is not None:
-                sku_off.setdefault(sku, str(r[cA]))
-            permon[d[:7]] += sp
-        wb.close()
-        if win is None and fdates:
-            win = (min(fdates), max(fdates))
-        if win:
-            windows.append(win)
+        daily[(sku, d)][0] += r["sp"]
+        daily[(sku, d)][1] += 1
+        if r["offer"]:
+            sku_off.setdefault(sku, r["offer"])
+        permon[d[:7]] += r["sp"]
     out = []
     kept = 0
     try:
@@ -107,7 +71,7 @@ def main():
     with open(OUT, "w", encoding="utf-8") as w:
         for o in out:
             w.write(json.dumps(o, ensure_ascii=False) + "\n")
-    print("файлов:", len(used), used)
+    print("файлов:", len(used), [(f, f"{w[0]}..{w[1]}", f"строк {n}", f"заменено поздним файлом {x}") for f, w, n, x in used])
     print("CPO по месяцам:", {k: round(v) for k, v in sorted(permon.items())})
     print("строк:", len(out), "| уник SKU:", len(set(k[0] for k in daily)))
     print("записано:", OUT)

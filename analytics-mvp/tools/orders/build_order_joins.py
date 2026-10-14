@@ -19,6 +19,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "delivery"))
 from build_delivery_sku_daily import parse_date  # «4 августа» -> 2026-08-04, один разбор на оба сборщика
 from ledger_money import ship_and_deliv, MoneyError, second_header, fix_order_no  # noqa: E402
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "cpo"))
+from cpo_raw import read_raw, CpoRawError  # noqa: E402
 
 CPO_ONLY = "--cpo-only" in sys.argv
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -42,28 +44,19 @@ def norm(s):
 
 def main():
     # --- CPO по номеру заказа (base) ---
+    # Каждый файл заменяет свой «Период:», поздний по имени побеждает (ФЕНИКС O2 13.10): раньше строки всех
+    # файлов складывались, и повтор выгрузки месяца удваивал списания. Разбор - tools/cpo/cpo_raw.py, отказ - код 1.
     cpo = collections.defaultdict(float)
-    for f in sorted(glob.glob(os.path.join(CPO_RAW, "*.xlsx"))):
-        wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
-        ws = wb["Statistics"] if "Statistics" in wb.sheetnames else wb.worksheets[0]
-        rows = list(ws.iter_rows(values_only=True))
-        hi = None
-        for i, r in enumerate(rows[:5]):
-            if any((str(c) if c else "") == "ID заказа" for c in r):
-                hi = i
-                break
-        if hi is None:
-            wb.close()
-            continue
-        hdr = [str(c).strip() if c else "" for c in rows[hi]]
-        ci = {h: j for j, h in enumerate(hdr)}
-        for r in rows[hi + 1:]:
-            if r is None or all(c is None for c in r):
-                continue
-            no = str(r[ci["Номер заказа"]] or "").strip()
-            if no:
-                cpo[no] += num(r[ci["Расход, ₽"]])
-        wb.close()
+    try:
+        rows, used, _ = read_raw(CPO_RAW)
+    except CpoRawError as ex:
+        print("CPO ОТКАЗ:", ex)
+        sys.exit(1)
+    for r in rows:
+        if r["order"]:
+            cpo[r["order"]] += r["sp"]
+    for f, w, n, x in used:
+        print(f"CPO файл {f}: период {w[0]}..{w[1]}, строк {n}" + (f", заменено поздним файлом {x}" if x else ""))
     # Сырья CPO нет (оно не в git) - прошлый файл не трогаем, иначе он перезапишется пустым.
     # Сырьё есть - СЛИВАЕМ с прошлым файлом: заказы из сырья заменяют свои строки, остальные (месяцы,
     # чьих выгрузок в raw/ нет) остаются. Раньше файл писался только из raw/, и выгрузка за один месяц

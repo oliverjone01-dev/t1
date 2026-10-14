@@ -12,7 +12,7 @@
 // расход и ДРР (5а); топ-5 непродаваемых - показы в месяце и 0 заказов за 60 дней, причина и действие
 // по правилу (6а). Спека: knowledge/semantic/metrics/ozon-monthly-report.yaml.
 import { readFileSync } from "node:fs";
-import { cpoOrdersByDay } from "./cpo-orders-rev.js";
+import { cpoOrdersByDay, cpoExportCampaign } from "./cpo-orders-rev.js";
 
 type Ctx = {
   dp: (f: string) => string;
@@ -53,12 +53,17 @@ export function reportData(ctx: Ctx) {
     const e = (views[sk] ||= { off: ctx.offerOf(sk), nm: String(ctx.skuName[sk] || r.name || sk).slice(0, 70), cat: ctx.catOf(sk) || "Прочее", first: first[sk] || d, m: {} });
     const a = (e.m[d.slice(0, 7)] ||= [0, 0, 0]); a[0]! += v; a[1]! += pdp; a[2]! += cart;
   }
+  const co = cpoOrdersByDay(dp); // общая функция с вкладкой «Реклама по карточкам» (Иван 13.10)
+  const cpoEx = cpoExportCampaign(dp, co); // чья выгрузка: только кампании «за заказ», допуск 1% (ФЕНИКС N8); ошибка - плашка (G3)
+  if (cpoEx.err) console.log(`::error::report: ${cpoEx.err}`);
   // 2. Реклама из Performance API по дням: [d, расход за клик, выручка заказов за клик, заказы за клик,
-  //    расход за заказ]. Выручку «за заказ» API не отдаёт (om = 0 у таких кампаний) - она ниже из выгрузки.
+  //    расход за заказ, расход за заказ кампании выгрузки]. Выручку «за заказ» API не отдаёт (om = 0 у таких
+  //    кампаний) - она ниже из выгрузки. Расход кампании выгрузки - для покрытия (cpoCov, ФЕНИКС N9).
   const adsDay: Record<string, number[]> = {};
   for (const r of readNd(dp("ads_daily.ndjson"))) {
     const d = String(r.d); if (d > maxD) continue; // вся история: ретро-месяцы блока 4
-    const a = (adsDay[d] ||= [0, 0, 0, 0]);
+    const a = (adsDay[d] ||= [0, 0, 0, 0, 0]);
+    if (String(r.id) === cpoEx.id) a[4]! += Number(r.sp) || 0;
     if (isCpoCampaign(r.off)) a[3]! += Number(r.sp) || 0;
     else { a[0]! += Number(r.sp) || 0; a[1]! += Number(r.om) || 0; a[2]! += Number(r.o) || 0; }
   }
@@ -67,9 +72,9 @@ export function reportData(ctx: Ctx) {
   // 3. «Оплата за заказ»: расход и выручка заказов по дате заказа из ручной выгрузки кабинета
   //    (cpo_orders: номер заказа и списание). Выручка = выручка отправлений заказа без отменённых
   //    (orders_daily). Покрытие = даты выгрузки (cpo_sku_daily); вне их выручки «за заказ» нет.
-  const co = cpoOrdersByDay(dp); // общая функция с вкладкой «Реклама по карточкам» (Иван 13.10)
-  const cpo = Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.sp), Math.round(co.day[d]!.rev)]);
-  const cpoMiss = co.miss, cpoFrom = co.from, cpoTo = co.to;
+  // Списания с копейками (ФЕНИКС G7): строка «за заказ по выгрузке» = сумма выгрузки, без накопления округлений по дням.
+  const cpo = Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.sp * 100) / 100, Math.round(co.day[d]!.rev)]);
+  const cpoMiss = co.miss, cpoFrom = co.from, cpoTo = co.to, cpoCid = cpoEx.id, cpoErr = cpoEx.err;
   // 4. Реклама за клик по категориям (ads_attr_daily: расход и выручка заказов по артикулу).
   //    [d, зеркала расход, зеркала выручка, мебель расход, мебель выручка].
   const catDay: Record<string, number[]> = {};
@@ -99,7 +104,7 @@ export function reportData(ctx: Ctx) {
     const dec = vedDec[m] || [0, 0, 0]; const md = maxD.slice(0, 7) === m ? +maxD.slice(8, 10) : 31;
     if ([0, 1, 2].some((i) => (i === 0 || md > i * 10) && dec[i]! < 5)) vedPartial.push(m);
   }
-  return { views, ads, cpo, cpoFrom, cpoTo, cpoMiss, adsCat, gmv, types, finCut: ctx.finCut, vedPartial };
+  return { views, ads, cpo, cpoFrom, cpoTo, cpoMiss, cpoCid, cpoErr, adsCat, gmv, types, finCut: ctx.finCut, vedPartial };
 }
 
 export const REPORT_CSS = `<style>
@@ -343,14 +348,17 @@ function rpAcctSplit(per){var a={adv:0,fines:0,realfbs:0,badge:0,delivery:0,othe
   // Добор finFix (операции с несколькими артикулами) уже в строках артикулов - снимаем его с «поступлений» кабинета.
   var fx=acctFix(per.from,per.to);a.other-=fx;var rest=a.otherIn-fx;if(rest>=0)a.otherIn=rest;else{a.otherIn=0;a.otherOut+=rest;}return a;}
 function rpAdsSum(per){
-  var s={cpcSp:0,cpcOm:0,cpcO:0,cpoSp:0,cpoApiSp:0,cpoRev:0,gmv:0,mirSp:0,mirOm:0,furSp:0,furOm:0,cpoCov:false,catN:0};
-  REP.ads.forEach(function(r){if(r[0]<per.from||r[0]>per.to)return;s.cpcSp+=r[1];s.cpcOm+=r[2];s.cpcO+=r[3];s.cpoApiSp+=r[4];});
+  var s={cpcSp:0,cpcOm:0,cpcO:0,cpoSp:0,cpoApiSp:0,cpoExSp:0,cpoExOut:0,cpoRev:0,gmv:0,mirSp:0,mirOm:0,furSp:0,furOm:0,cpoCov:false,catN:0};
+  REP.ads.forEach(function(r){if(r[0]<per.from||r[0]>per.to)return;s.cpcSp+=r[1];s.cpcOm+=r[2];s.cpcO+=r[3];s.cpoApiSp+=r[4];s.cpoExSp+=r[5]||0;if(!REP.cpoFrom||r[0]<REP.cpoFrom||r[0]>REP.cpoTo)s.cpoExOut+=r[5]||0;});
   REP.cpo.forEach(function(r){if(r[0]<per.from||r[0]>per.to)return;s.cpoSp+=r[1];s.cpoRev+=r[2];});
   REP.gmv.forEach(function(r){if(r[0]<per.from||r[0]>per.to)return;s.gmv+=r[1];});
   REP.adsCat.forEach(function(r){if(r[0]<per.from||r[0]>per.to)return;s.catN++;s.mirSp+=r[1];s.mirOm+=r[2];s.furSp+=r[3];s.furOm+=r[4];});
-  // Выручка «за заказ» есть, только если период целиком внутри дат ручной выгрузки.
-  // Расхода «за заказ» в месяце нет (до июня 2026 таких кампаний не было) - выручка «за заказ» известна: 0.
-  s.cpoCov=!!(REP.cpoFrom&&per.from>=REP.cpoFrom.slice(0,7)+'-01'&&per.to<=REP.cpoTo)||!Math.round(s.cpoApiSp);
+  // Выручка «за заказ» известна, если период пересекает даты ручной выгрузки и у кампании выгрузки нет расхода API
+  // в днях периода вне выгрузки (ФЕНИКС N9: раньше окно бралось с 1-го числа месяца начала выгрузки, и выгрузка
+  // с середины месяца считалась полной). Июнь: 28753239 начала 05.06, за 01-04.06 расхода 0 - июнь покрыт.
+  // Расхода «за заказ» в периоде нет - выручка «за заказ» известна: 0.
+  // Ошибка выгрузки (REP.cpoErr, ФЕНИКС G3) - выручка «за заказ» неизвестна при любом расходе «за заказ».
+  s.cpoCov=!!(!REP.cpoErr&&REP.cpoFrom&&per.from<=REP.cpoTo&&per.to>=REP.cpoFrom&&!Math.round(s.cpoExOut))||!Math.round(s.cpoApiSp);
   return s;
 }
 function rpRoas(om,sp){return sp?(Math.round(om/sp*100)/100).toString().replace('.',','):'—';}
@@ -364,12 +372,16 @@ function rpAds(P,aBp,aBc,R){
   var sp=function(s){return s.cpcSp+s.cpoApiSp;};
   h+=row('Расход всего (рекламный кабинет)',function(s){return sp(s);},false,false);
   h+=row('за клик',function(s){return s.cpcSp;},false,true);h+=row('за заказ',function(s){return s.cpoApiSp;},false,true);
+  // Списания выгрузки по дате заказа (ФЕНИКС O1): знаменатель окупаемости «за заказ» и общей - та же популяция, что выручка.
+  h+=row('за заказ по выгрузке кабинета (списания по дате заказа)',function(s){return s.cpoCov?s.cpoSp:null;},false,true);
   h+=row('Расход по начислениям OZON (финансы, дата начисления)',function(s,ab){return -ab.adv;},false,true);
   h+=row('Выручка рекламных заказов за клик',function(s){return s.cpcOm;},true,false);
   h+=row('Выручка заказов «за заказ»',function(s){return s.cpoCov?s.cpoRev:null;},true,false);
   h+=row('Окупаемость за клик, ₽ на 1 ₽',function(s){return s.cpcSp?s.cpcOm/s.cpcSp:null;},true,false,rf);
-  h+=row('Окупаемость «за заказ», ₽ на 1 ₽',function(s){return (s.cpoCov&&s.cpoSp)?s.cpoRev/s.cpoSp:null;},true,false,rf);
-  h+=row('Окупаемость всего, ₽ на 1 ₽',function(s){return (s.cpoCov&&sp(s))?(s.cpcOm+s.cpoRev)/sp(s):null;},true,false,rf);
+  h+=row('Окупаемость «за заказ» (к списаниям выгрузки), ₽ на 1 ₽',function(s){return (s.cpoCov&&s.cpoSp)?s.cpoRev/s.cpoSp:null;},true,false,rf);
+  // Окупаемость всего (Иван 14.10, «тот же знаменатель»): к расходу за клик и списаниям выгрузки, не к расходу кабинета
+  // «за заказ» - выручка «за заказ» известна только по заказам выгрузки.
+  h+=row('Окупаемость всего (к расходу за клик и списаниям выгрузки), ₽ на 1 ₽',function(s){var d=s.cpcSp+s.cpoSp;return (s.cpoCov&&d)?(s.cpcOm+s.cpoRev)/d:null;},true,false,rf);
   h+=row('ДРР к заказанному обороту, %',function(s){return s.gmv?sp(s)/s.gmv*100:null;},false,false,rf);
   // Разбивка по артикулам (отчёт атрибуции) есть не за все месяцы: нет строк за период - «нет данных», а не 0.
   var ct=function(f){return function(s){return s.catN?f(s):null;};};
@@ -377,7 +389,10 @@ function rpAds(P,aBp,aBc,R){
   h+=row('Мебель, за клик: расход',ct(function(s){return s.furSp;}),false,true);h+=row('Мебель, за клик: выручка',ct(function(s){return s.furOm;}),true,true);h+=row('Мебель, за клик: окупаемость',ct(function(s){return s.furSp?s.furOm/s.furSp:null;}),true,true,rf);
   document.getElementById('rp-ads').innerHTML=h+'</tbody>';
   var n=[];
+  if(REP.cpoErr)n.push('<span style="color:#FF5A5F;font-weight:600">Выгрузка «за заказ» не принята: '+esc(REP.cpoErr)+'. Выручка, расход по выгрузке и окупаемость «за заказ» и общая - «нет данных», пока выгрузку не поправят.</span>');
   n.push('Выручку заказов «за заказ» рекламный кабинет OZON через API не отдаёт. Она берётся из ручной выгрузки заказов кабинета: есть за '+(REP.cpoFrom?rpDm(REP.cpoFrom)+'.'+REP.cpoFrom.slice(0,4)+'-'+rpDm(REP.cpoTo)+'.'+REP.cpoTo.slice(0,4):'—')+'. Для других месяцев нужна новая выгрузка, до неё окупаемость «за заказ» и общая не считаются.');
+  var oth=function(s){return Math.round(s.cpoApiSp-s.cpoExSp);};
+  n.push('Окупаемость «за заказ» и общая считаются к списаниям выгрузки по дате заказа (строка «за заказ по выгрузке кабинета»), а не к расходу рекламного кабинета: выручка «за заказ» известна только по заказам выгрузки'+(REP.cpoCid?' (кампания '+REP.cpoCid+')':'')+'. Расход кабинета «за заказ» по дате списания отличается от списаний выгрузки по дате заказа на сдвиг дат'+((a.cpoCov&&oth(a))||(b.cpoCov&&oth(b))?'; расход других кампаний «за заказ», которых нет в выгрузке, в окупаемость не входит: '+fmtRu(oth(a))+' ₽ в прошлом периоде, '+fmtRu(oth(b))+' ₽ в отчётном':'')+'.');
   var cov=function(s){return s.cpcSp?Math.round((s.mirSp+s.furSp)/s.cpcSp*100):0;};
   n.push('Зеркала и мебель - только реклама за клик, по артикулам из отчёта атрибуции: разнесено '+cov(a)+'% расхода за клик в прошлом периоде и '+cov(b)+'% в отчётном.');
   document.getElementById('rp-ads-note').innerHTML=n.join('<br>');

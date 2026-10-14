@@ -188,11 +188,16 @@ pos = collections.defaultdict(list)
 for r in nd('funnel_sku_daily.ndjson'):
     w = wk(r['date'])
     if W0 <= w < W1 and r.get('search_position'): pos[(r['sku'], w)].append(r['search_position'])
+clk_days = collections.defaultdict(set); first_clk = None
+for r in nd('ads_sku_daily.ndjson'):
+    first_clk = r['d'] if first_clk is None or r['d'] < first_clk else first_clk
+    if (r.get('sp') or 0) > 0: clk_days[(r['sku'], wk(r['d']))].add(r['d'])
+WC = wk(first_clk)  # первая неделя ряда клика (ряд с 03.07 -> неделя 29.06)
 rows = []
 for (sku, w), lp in pw.items():
     if len(lp) >= 3:
         v = vw.get((sku, w), [0, 0, 0])
-        rows.append(dict(sku=sku, w=w, lp=float(np.mean(lp)), v=v[0], pdp=v[1], vs=v[2], u=uw.get((sku, w), 0), cat=cat(sku),
+        rows.append(dict(sku=sku, w=w, lp=float(np.mean(lp)), v=v[0], pdp=v[1], vs=v[2], u=uw.get((sku, w), 0), cat=cat(sku), c=len(clk_days.get((sku, w), ())) / 7,
                          pos=float(np.median(pos[(sku, w)])) if pos.get((sku, w)) else None))
 weeks = sorted({r['w'] for r in rows}); skus = sorted({r['sku'] for r in rows})
 out(f'строк SKU-неделя {len(rows)}, SKU {len(skus)}, недель {len(weeks)} ({weeks[0]}..{weeks[-1]}); с показами >0: {sum(r["v"]>0 for r in rows)}; с заказами: {sum(r["u"]>0 for r in rows)}')
@@ -288,6 +293,51 @@ for half, ws_ in (('15.06-26.07', weeks[:6]), ('27.07-20.09', weeks[6:])):
         b, lo, hi, n_s, n = ppml(sel, yc, rng)
         out(f'  проверка: только {half}, {nm:10s} b={b:+.2f}  ДИ [{lo:+.2f}; {hi:+.2f}]  n SKU={n_s}')
 
+# Контроль рекламы за клик (как v5 elastic.py): доля дней с расходом за клик у SKU в неделе (ads_sku_daily); ряд клика
+# с первой даты ads_sku_daily, поэтому сравнение «без контроля / с контролем» - на одних и тех же неделях с WC.
+def ppml_x(rs, ycol, use_c, rng, nboot=100):
+    keep = collections.Counter()
+    for r in rs: keep[r['sku']] += r[ycol]
+    rs = [r for r in rs if keep[r['sku']] > 0]
+    sk = sorted({r['sku'] for r in rs}); wsx = sorted({r['w'] for r in rs})
+    by = collections.defaultdict(list)
+    for r in rs: by[r['sku']].append(r)
+    tix = {w: i for i, w in enumerate(wsx)}
+    def fit(groups):
+        i_, t_, X, y = [], [], [], []
+        for j, k in enumerate(groups):
+            for r in by[k]:
+                i_.append(j); t_.append(tix[r['w']]); X.append([r['lp'] - med_lp0[k]] + ([r['c']] if use_c else [])); y.append(r[ycol])
+        i_, t_, X, y = np.array(i_), np.array(t_), np.array(X, float), np.array(y, float)
+        ni, nt = i_.max() + 1, t_.max() + 1; th = np.zeros(X.shape[1]); a = np.zeros(ni); g = np.zeros(nt)
+        for _ in range(300):
+            for __ in range(3):
+                e = np.exp(g[t_] + X @ th); a = np.log(np.maximum(np.bincount(i_, y, ni), 1e-12) / np.bincount(i_, e, ni))
+                e = np.exp(a[i_] + X @ th); g = np.log(np.maximum(np.bincount(t_, y, nt), 1e-12) / np.maximum(np.bincount(t_, e, nt), 1e-12))
+            mu = np.exp(a[i_] + g[t_] + X @ th)
+            Xm = X - np.column_stack([(np.bincount(i_, mu * X[:, k], ni) / np.maximum(np.bincount(i_, mu, ni), 1e-12))[i_] for k in range(X.shape[1])])
+            H = (Xm * mu[:, None]).T @ Xm
+            if np.linalg.cond(H) > 1e12: break
+            step = np.linalg.solve(H, Xm.T @ (y - mu)); th += step
+            if np.abs(step).max() < 1e-7: break
+        return th
+    th = fit(sk)
+    bs = np.array([fit([sk[k] for k in rng.choice(len(sk), len(sk))])[0] for _ in range(nboot)])
+    return th, np.percentile(bs, 2.5), np.percentile(bs, 97.5), len(sk), len(rs)
+out(f'\nКОНТРОЛЬ КЛИКА: недели с {WC} (ряд ads_sku_daily с {first_clk}); Пуассон, ФЭ SKU и недели; 95% ДИ бутстрап по SKU, 100 повторов')
+rw = [r for r in rows if r['sku'] in mov and r['w'] >= WC]
+out(f'  SKU-недель {len(rw)}, из них с кликом (c>0): {sum(r["c"]>0 for r in rw)}')
+CTRLRES = {}
+for c in ['все'] + CATS:
+    sel = [r for r in rw if c == 'все' or r['cat'] == c]
+    for yc, nm in (('v', 'показы'), ('vs', 'показы в поиске'), ('pdp', 'заходы в карточку'), ('u', 'заказы шт')):
+        t0, lo0, hi0, n_s, n = ppml_x(sel, yc, False, rng)
+        t1, lo1, hi1, _, _ = ppml_x(sel, yc, True, rng)
+        CTRLRES[(c, yc)] = (t0[0], t1[0])
+        out(f'  {c:7s} {nm:18s} без контроля {t0[0]:+.2f} [{lo0:+.2f}; {hi0:+.2f}] | с контролем клика {t1[0]:+.2f} [{lo1:+.2f}; {hi1:+.2f}], клик (вся неделя) x{math.exp(t1[1]):.1f} | n SKU={n_s}, SKU-недель={n}')
+out('  Важно: это относительная недельная эластичность внутри наших SKU (эффект недели снимает общий подъём цен магазина);')
+out('  она включает перетекание спроса между нашими товарами и перенос покупки на дешёвую неделю. Влияние общего подъёма цен на +24% ею не оценивается.')
+
 # событийный разбор: недельный шаг цены -> изменение показов против SKU без изменения цены в ту же неделю
 out('\nШаг цены витрины неделя к неделе -> изменение показов (минус медиана SKU без изменения цены той же недели):')
 byS = collections.defaultdict(dict)
@@ -299,7 +349,7 @@ for s, d in byS.items():
         if (dt.date.fromisoformat(w1) - dt.date.fromisoformat(w0)).days != 7: continue
         a, b_ = d[w0], d[w1]
         if a['v'] < 20 and b_['v'] < 20: continue
-        steps.append(dict(sku=s, w=w1, cat=a['cat'], dp=b_['lp'] - a['lp'], dv=math.log((b_['v'] + 1) / (a['v'] + 1)), u0=a['u'], u1=b_['u'], v0=a['v'], v1=b_['v']))
+        steps.append(dict(sku=s, w=w1, nc=(w0 >= WC and a['c'] == 0 and b_['c'] == 0), cat=a['cat'], dp=b_['lp'] - a['lp'], dv=math.log((b_['v'] + 1) / (a['v'] + 1)), u0=a['u'], u1=b_['u'], v0=a['v'], v1=b_['v']))
 ctrl = collections.defaultdict(list)
 for x in steps:
     if abs(x['dp']) < 0.02: ctrl[(x['w'], x['cat'])].append(x['dv'])
@@ -312,6 +362,16 @@ for c in ['все'] + CATS:
         if not xs: continue
         a = np.array([x['adj'] for x in xs])
         out(f'     {nm:18s} n={len(xs):4d}  {100*(math.exp(np.median(a))-1):+5.0f}%  [{100*(math.exp(np.percentile(a,25))-1):+.0f}%..{100*(math.exp(np.percentile(a,75))-1):+.0f}%]  шт {sum(x["u0"] for x in xs)} -> {sum(x["u1"] for x in xs)}')
+out(f'  -- то же, только шаги с {WC}, где у SKU нет клика ни в одной из двух недель (контроль = такие же шаги):')
+ctrl2 = collections.defaultdict(list)
+for x in steps:
+    if x['nc'] and abs(x['dp']) < 0.02: ctrl2[(x['w'], x['cat'])].append(x['dv'])
+for c in ['все'] + CATS:
+    for lo, hi, nm in bins:
+        xs = [x for x in steps if x['nc'] and lo <= x['dp'] < hi and (c == 'все' or x['cat'] == c) and len(ctrl2[(x['w'], x['cat'])]) >= 5]
+        if len(xs) < 10: continue
+        a = np.array([x['dv'] - np.median(ctrl2[(x['w'], x['cat'])]) for x in xs])
+        out(f'     {c:7s} {nm:18s} n={len(xs):4d}  {100*(math.exp(np.median(a))-1):+5.0f}%  [{100*(math.exp(np.percentile(a,25))-1):+.0f}%..{100*(math.exp(np.percentile(a,75))-1):+.0f}%]  шт {sum(x["u0"] for x in xs)} -> {sum(x["u1"] for x in xs)}')
 
 # уровень цены относительно своей медианы окна -> показы и заказы (баланс)
 out('\nБаланс: цена витрины SKU относительно её же медианы за окно -> показы (индекс к медиане SKU, с поправкой на неделю) и заказы')
@@ -330,6 +390,12 @@ for c in ['все'] + CATS:
         ix = np.array([(r['v'] / med_v[r['sku']]) / (wk_idx[r['w']] / mw) for r in xs])
         u = sum(r['u'] for r in xs); v = sum(r['v'] for r in xs)
         out(f'     {nm:20s} n={len(xs):4d}  {np.median(ix):.2f} [{np.percentile(ix,25):.2f}..{np.percentile(ix,75):.2f}]  {100*u/len(xs):6.1f}  {1e4*u/v if v else 0:6.2f}')
+out(f'  -- то же, только SKU-недели с {WC} без клика (c=0), весь магазин:')
+for lo, hi, nm in lv:
+    xs = [r for r in rows if r['sku'] in mov and r['w'] >= WC and r['c'] == 0 and med_v[r['sku']] >= 20 and lo <= r['lp'] - med_lp[r['sku']] < hi]
+    if not xs: continue
+    ix = np.array([(r['v'] / med_v[r['sku']]) / (wk_idx[r['w']] / mw) for r in xs]); u = sum(r['u'] for r in xs); v = sum(r['v'] for r in xs)
+    out(f'     {nm:20s} n={len(xs):4d}  {np.median(ix):.2f} [{np.percentile(ix,25):.2f}..{np.percentile(ix,75):.2f}]  {100*u/len(xs):6.1f}  {1e4*u/v if v else 0:6.2f}')
 
 # ---------- 4. другие кандидаты ----------
 out('\n=== 4. Другие кандидаты ===')
@@ -365,6 +431,26 @@ for (cid, off, ins), y in sorted(CB.items(), key=lambda kv: -kv[1]['bo'])[:12]:
     out(f'  {cid} {off.replace(chr(8212), '-')[:38]:38s} {ins[:16]:16s} {y["bo"]/4:5.1f} -> {y["ao"]/3:5.1f} | {f0(y["bsp"]/4):>8} -> {f0(y["asp"]/3):>8}')
 nb = sum(y['bo'] for y in CB.values()) / 4; na = sum(y['ao'] for y in CB.values()) / 3
 out(f'  рекламные заказы всего, шт/мес: {nb:.0f} -> {na:.0f} (поле o в ads_daily; атрибуция OZON, пересекается с органикой)')
+c2 = collections.defaultdict(collections.Counter)
+for r in nd('ads_daily.ndjson'):
+    if r['id'] == '22421802' and inwin(r['d']): x = c2[mon(r['d'])]; x['sp'] += r['sp']; x['o'] += r['o']; x['vw'] += r['vw']
+out(f'Кампания 22421802 ({meta.get("22421802", {}).get("instr", "?")}; в ads_daily "Продвижение в поиске - все товары", в camp_meta "выбранные товары"): мес | расход | заказы o | показы')
+for m in MONTHS: out(f'  {m} {f0(c2[m]["sp"]):>9} {c2[m]["o"]:4d} {f0(c2[m]["vw"]):>9}')
+dv = collections.defaultdict(lambda: [0, 0])
+for r in nd('ads_daily.ndjson'):
+    dv[r['d']][0] += r['vw']
+    if meta.get(r['id'], {}).get('instr') == 'Оплата за заказ': dv[r['d']][1] += r['vw']
+def wmean(a, b, k):
+    ds = [d for d in totals if a <= d <= b]
+    return np.mean([totals[d]['views'] if k == 't' else dv[d][0] if k == 'a' else dv[d][1] for d in ds])
+out('Окно выключения оплаты за заказ 29.08-03.09 против 22-28.08 (проверка: входят ли рекламные показы в итоговые), в день:')
+for a, b in (('2026-08-22', '2026-08-28'), ('2026-08-29', '2026-09-03'), ('2026-09-04', '2026-09-06')):
+    out(f'  {a}..{b}: итоговые {f0(wmean(a,b,"t"))}, рекламные всего {f0(wmean(a,b,"a"))}, из них "за заказ" {f0(wmean(a,b,"c"))}, итоговые минус рекламные {f0(wmean(a,b,"t")-wmean(a,b,"a"))}')
+for a, b in (('2026-08-15', '2026-08-28'), ('2026-08-29', '2026-09-03'), ('2026-09-04', '2026-09-17')):
+    nd_ = (dt.date.fromisoformat(b) - dt.date.fromisoformat(a)).days + 1
+    uu = sum(o['units'] for o in ok if a <= o['d'] <= b)
+    out(f'  заказы {a}..{b}: {uu} шт, {uu/nd_:.1f} шт/день ({nd_} дн.)')
+out(f'  дней, где рекламных показов больше итоговых: {sum(1 for d in totals if dv[d][0] > totals[d]["views"])}')
 cpo = {}
 for r in nd('cpo_orders.ndjson'): cpo[r['order']] = r['sp']
 cm = collections.Counter(); cs = collections.Counter()

@@ -46,19 +46,20 @@ for g in G:
     skus = [s['sku'] for s in g['skus']]; off = {s['sku']: s['offer'] for s in g['skus']}
     v = sum(vs[s] for s in skus); u = sum(o4[s] for s in skus)
     if not v: continue
-    main = max(skus, key=lambda s: vs[s])
+    main = max(skus, key=lambda s: (o4[s], vs[s]))                # главный - больше всех заказов (ФЕНИКС Б3: по показам выбирались товары с купленными рекламой показами)
     others = [s for s in skus if s != main and o60[s] >= 1 and sku_sp[s] == 0]
     cards.append(dict(card=g['main'], main=main, main_art=off[main], main_name=name.get(main, ''), v_wk=v / WK, u_wk=u / WK,
                       conv=u / v if v else 0, main_sp_wk=sku_t[main], main_v_wk=vs[main] / WK,
                       others=[(s, off[s], name.get(s, ''), o60[s]) for s in others]))
 cards.sort(key=lambda c: -c['u_wk'])
 
+W0 = 2000                                                       # до минимального бюджета показы линейны (1,63 на ₽), выше - степень 0,81 от 2 000
+def shows(w): return SHOW_PER_RUB * w if w <= W0 else SHOW_PER_RUB * W0 * (w / W0) ** F.E_SP
 def main_effect(c, lvl, sc):
     """в неделю: доп. показы, заказы, расход, прибыль от повышения клика главного товара до lvl ₽/нед"""
     cur = c['main_sp_wk']
     if lvl <= cur: return 0, 0, 0, 0
-    base = max(cur, 1.0)
-    sh = SHOW_PER_RUB * (lvl ** F.E_SP - base ** F.E_SP) * (base ** (1 - F.E_SP))   # показы при росте бюджета, степень 0,81
+    sh = shows(lvl) - shows(cur)
     du = sh * c['conv'] * K_SH[sc]
     return sh, du, lvl - cur, du * pi(c['main']) - (lvl - cur)
 def min_effect(c, sc):
@@ -71,12 +72,35 @@ def total(lvl, sc, top=None, with_min=True):
         sh, du, sp, pr = main_effect(c, lvl, sc)
         T['shows'] += sh; T['units'] += du; T['spend'] += sp; T['prof'] += pr
         T['turn'] += du * price(c['main']); T['pay'] += du * price(c['main']) * keep(c['main'])
+        T['n_main'] += 1 if sp > 0 else 0
         if with_min:
             n, du2, sp2, pr2 = min_effect(c, sc)
             T['n_min'] += n; T['units'] += du2; T['spend'] += sp2; T['prof'] += pr2
             for s, *_ in c['others']:
                 T['turn'] += UP_MIN[sc] * price(s); T['pay'] += UP_MIN[sc] * price(s) * keep(s)
+    T['prof_adm'] = T['prof'] - F.ADM * T['pay']                  # строка «с АДМ 30% от К выплате», решение 13.10 «2а» - справочно
     return {k: v * MO for k, v in T.items()}
+
+# ---------- правило 29.10 (ФЕНИКС Б1): карточку оставляем, только если заказов карточки за 2 недели не меньше порога N;
+# N - наименьшее, при котором карточка без эффекта (заказы ~ Пуассон с базой 2 x заказов в неделю 14.09-11.10) проходит не чаще 15%
+import math
+def pois_sf(k, lam):                                            # P(X >= k)
+    return 1 - sum(math.exp(-lam) * lam ** i / math.factorial(i) for i in range(k))
+def threshold(c, alpha=0.15):
+    lam = 2 * c['u_wk']; k = 0
+    while pois_sf(k, lam) > alpha: k += 1
+    return k
+def pass_prob(c, lvl, sc):
+    """вероятность пройти порог при эффекте сценария sc"""
+    _, du, _, _ = main_effect(c, lvl, sc); _, du2, _, _ = min_effect(c, sc)
+    return pois_sf(threshold(c), 2 * (c['u_wk'] + du + du2))
+def bad_month(lvl, top=10):
+    """плохо честно: 2 недели расход всех, потом с вероятностью 15% карточка ошибочно остаётся на остаток месяца"""
+    loss = 0
+    for c in cards[:top]:
+        _, _, sp, _ = main_effect(c, lvl, 'низкий'); n, _, sp2, _ = min_effect(c, 'низкий')
+        w = sp + sp2; loss += w * 2 + pois_sf(threshold(c), 2 * c['u_wk']) * w * (MO - 2)
+    return -loss
 
 if __name__ == '__main__':
     out = dict(cards=cards, tot={})

@@ -109,7 +109,27 @@ def campaign_action(cid, lvl, top=10):
     mains = {c['main'] for c in cards[:top]}
     t = _P.tempo(cid); off = F.camp[cid]['off'] if cid in F.camp else ''
     if F.art2sku.get(off) in mains: return 'main', t
+    top = camp_top_main(cid)                                    # кампания на общий артикул (GGM-20): главный по доле расхода (OZEVIS 43629255)
+    if top and top not in own_mains(): return 'main', t
     return ('min', t) if t > 2500 else ('keep', t)
+def camp_spend(cid):
+    """расход кампании по товарам 08-11.10"""
+    s = C.Counter()
+    for a in F.L('ads_sku_daily.ndjson'):
+        if str(a['cid']) == str(cid) and '2026-10-08' <= a['d'] <= B: s[a['sku']] += a['sp']
+    return s
+def camp_top_main(cid, top=10, share=0.5):
+    """главный товар, на который ушло не меньше половины расхода кампании, если кампания заведена не на артикул товара"""
+    off = F.camp[cid]['off'] if cid in F.camp else ''
+    if F.art2sku.get(off): return None
+    s = camp_spend(cid); tot = sum(s.values())
+    if not tot: return None
+    sku, v = s.most_common(1)[0]
+    return sku if sku in {c['main'] for c in cards[:top]} and v / tot >= share else None
+def own_mains(top=10):
+    """главные товары, у которых есть своя кампания на их артикул"""
+    mains = {c['main'] for c in cards[:top]}
+    return {F.art2sku.get(F.camp[k]['off']) for k in _P.ACTIVE if k in F.camp} & mains
 def cut_saving(lvl, top=10):
     """экономия в месяц от перевода кампаний 'min' на 2 000 ₽/нед, по темпу 08-11.10"""
     cs = [c for c in _P.ACTIVE if campaign_action(c, lvl, top)[0] == 'min']

@@ -19,7 +19,9 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE + '/.
 import forecast as F
 WAIT = {F.art2sku[a] for a in ('GGT-03-3-3-E-16080', 'GGL-09-2', 'GGM-01-1', 'GGK-02-2-2-80', 'GGL-07-XL-2', 'GGM-24-1',
                                 'GGM-23-3-1', 'GGT-03-3-5-E-16080', 'GGM-16-1-3-LED')}
-NOW = set(F.lst) - WAIT - {F.art2sku['GGT-48-5-1-100-180']}     # QUATRIS: в 1в его кампания 44988572 уходит на минимум 15.10, цена - 22.10 с новой базой показов
+# Иван 14.10 «а»: у EVELIX, OSOLIS, ARFEO цена уже снижена 08.10 (-12% / -10% / -16% с 25.09) - второй шаг с 15.10 не делаем, решение 22.10
+PRICE_08 = {F.art2sku[a] for a in ('GGM-02-1-2', 'GGL-09-2', 'GGK-02-2-2-80')}
+NOW = set(F.lst) - WAIT - PRICE_08 - {F.art2sku['GGT-48-5-1-100-180']}     # QUATRIS: в 1в его кампания 44988572 уходит на минимум 15.10, цена - 22.10 с новой базой показов
 ACTIVE = {k for k, c in F.camp.items() if F.active(c)}
 # --- карточки (card_groups.json): кампания в карточке цены, если её товар в одной карточке с любым из 26
 G = json.load(open(F.D + 'card_groups.json'))['groups']

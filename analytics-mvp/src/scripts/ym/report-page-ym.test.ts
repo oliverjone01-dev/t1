@@ -21,7 +21,7 @@ const accRow = (sku: string, cat: string, v: Record<string, number>) => {
 function page(repy: any, byPer: (per: { from: string; to: string }) => any[], accDays: string[], doc: any[] = []) {
   // Общие функции страница кладёт в window (глобальная область браузера); здесь это globalThis.
   const win: any = globalThis;
-  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines,rpyPtsLines};`;
+  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines,rpyPtsLines,rpyFlowLines};`;
   const R = { svc: [], gen: [], pts: [], drr: [], ...repy };
   return new Function("W", "REPY", "accAgg", "ACC", "ACC_DOC", "ACC_RATE", "fmtRu", "document", body)(
     win, R, byPer, accDays.map((d) => [d, "X"]), doc, { adm: 0.3, tax: 0.15 }, (n: number) => String(Math.round(n)), {});
@@ -142,6 +142,78 @@ describe("отчёт Маркета: итоги месяца", () => {
     // Основные строки - фиолетовым жирным (просьба пользователя 02.10).
     expect(f2.rpyLines([]).filter((x: any) => x.main).map((x: any) => x.k)).toEqual(["acc", "fee", "amount", "np", "netAll"]);
     expect(f2.rpyPtsLines([]).filter((x: any) => x.main).map((x: any) => x.k)).toEqual(["ptsIn", "ptsOut", "saldo"]);
+  });
+});
+
+// Блок 3а «Движение денег» (ответы пользователя 14.10).
+describe("отчёт Маркета: движение денег (блок 3а)", () => {
+  const rows = [Object.assign(accRow("A", "Зеркала", { accruals: 100, pay: 100, amount: 90 }), { acc1: 1_000, amount1: 800 })];
+  const cab = { mir: "1", fur: "2" };
+  // [d, кабинет, acc1, amt1, acct, prem, seller, po, nopo, ns, nopoD, nopoU, nr]
+  const flow = [["2026-09-03", "1", 600, 500, -30, 10, 0, 400, 80, 0, 50, 20, 1], ["2026-09-04", "2", 400, 300, 0, 0, 5, 305, 0, 0, 0, 0, 1]];
+  const val = (f: any, k: string, per = { from: "2026-09-01", to: "2026-09-29" }) => {
+    const g = f.rpyCalc(per).grand; return f.rpyFlowLines().find((x: any) => x.k === k).fn(g);
+  };
+  it("строки сходятся с блоком 3 и между собой: Начислил − Списал = К выплате; Итого = Перевёл + В пути", () => {
+    const f = page({ to: "2026-09-29", flow, cab }, () => rows, ["2026-09-03"]);
+    const c = f.rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
+    expect(c.flBad).toBeNull();
+    expect(c.flChk).toBe(0);
+    expect(["f_acc1", "f_fee", "f_amt1", "f_tot", "f_po", "f_nopo", "f_spis", "f_chk"].map((k) => val(f, k))).toEqual([1_000, -200, 800, 785, 705, 80, -230, 0]);
+    expect([val(f, "acc1_mir"), val(f, "acc1_fur"), val(f, "po_mir"), val(f, "po_fur")]).toEqual([600, 400, 400, 305]);
+    expect([val(f, "nopoD"), val(f, "nopoU"), val(f, "nopoN")]).toEqual([50, 20, 10]);
+  });
+  it("расхождение с блоком 3 и разрыв «Итого − Перевёл − В пути» поднимают пометку", () => {
+    const bad = [["2026-09-03", "1", 900, 800, 0, 0, 0, 700, 0, 0, 0, 0, 1]];
+    const c = page({ to: "2026-09-29", flow: bad, cab }, () => rows, ["2026-09-03"]).rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
+    expect(c.flBad).toMatch(/Начислил/);
+    expect(c.flChk).toBe(100);
+  });
+  it("расходится только «К выплате Маркета» - тоже пометка (M6)", () => {
+    const c = page({ to: "2026-09-29", flow: [["2026-09-03", "1", 1_000, 790, 0, 0, 0, 790, 0, 0, 0, 0, 1]], cab }, () => rows, ["2026-09-03"]).rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
+    expect(c.flBad).toMatch(/К выплате Маркета» [−-]10 ₽/);
+  });
+  it("строка реестра неизвестного кабинета - пометка «зеркала + мебель не равны итогу»", () => {
+    const c = page({ to: "2026-09-29", flow: [["2026-09-03", "9", 1_000, 800, 0, 0, 0, 800, 0, 0, 0, 0, 1]], cab }, () => rows, ["2026-09-03"]).rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
+    expect(c.flBad).toMatch(/зеркала \+ мебель/);
+  });
+  it("остаток округления в пределах 0,5 ₽ на строку - без пометки; месяц без статуса - без пометки (M7)", () => {
+    const ok = [["2026-09-03", "1", 1_000, 800, 0, 0, 0, 799.4, 0, 0, 0, 0, 4]];
+    expect(page({ to: "2026-09-29", flow: ok, cab }, () => rows, ["2026-09-03"]).rpyCalc({ from: "2026-09-01", to: "2026-09-29" }).flChk).toBe(0);
+    const ns = [["2026-09-03", "1", 1_000, 800, 0, 0, 0, 100, 0, 2, 0, 0, 1]];
+    expect(page({ to: "2026-09-29", flow: ns, cab }, () => rows, ["2026-09-03"]).rpyCalc({ from: "2026-09-01", to: "2026-09-29" }).flChk).toBe(0);
+  });
+  it("месяц без статуса платежа - «нет данных» в Перевёл и В пути, а не ноль (К7)", () => {
+    const ns = [["2026-09-03", "1", 1_000, 800, 0, 0, 0, 0, 0, 3, 0, 0, 1]];
+    const f = page({ to: "2026-09-29", flow: ns, cab }, () => rows, ["2026-09-03"]);
+    expect([val(f, "f_acc1"), val(f, "f_po"), val(f, "f_nopo"), val(f, "f_tot")]).toEqual([1_000, null, null, null]);
+  });
+});
+
+// Сверка «Списал» блока 7 с актом услуг (просьба пользователя 14.10, разбор: кампании зеркал - взносом в следующем месяце).
+describe("отчёт Маркета: сверка «Списал» с актом услуг", () => {
+  const cab = { mir: "1", fur: "2" };
+  const rows = [Object.assign(accRow("A", "Зеркала", { accruals: 100, pay: 100, amount: 90 }), { acc1: 1_000, amount1: 800 })];
+  // Июль: зеркала списали по реестру 200 (по заказам) + 100 (удержание взноса за кампании июня), кампании июля 50 - в августе.
+  const flow = [["2026-07-03", "1", 1_000, 800, -100, 0, 100, 800, 0, 0, 0, 0, 1], ["2026-08-03", "1", 0, 0, -50, 0, 50, 0, 0, 0, 0, 0, 0]];
+  const act = [["2026-06", "1", 100, 100], ["2026-07", "1", 250, 50], ["2026-07", "2", 0, 0], ["2026-08", "1", 50, 0], ["2026-08", "2", 0, 0]];
+  const per = { from: "2026-07-01", to: "2026-07-31" };
+  it("акт − кампании месяца (удержит позже из взноса) + взнос за прошлый месяц = списано по реестру", () => {
+    const f = page({ to: "2026-08-31", flow, act, cab }, () => rows, ["2026-07-03"]);
+    const r = f.rpyCalc(per).grand.fl.act;
+    expect([r.mir.act, r.mir.later, r.mir.dep, r.mir.exp, r.mir.reg, r.mir.res]).toEqual([250, -50, 100, 300, 300, 0]);
+  });
+  it("акт не собран по кабинету или месяц неполный - «нет данных», а не ноль", () => {
+    const f = page({ to: "2026-08-31", flow, act: act.filter((x) => x[1] !== "2"), cab }, () => rows, ["2026-07-03"]);
+    expect(f.rpyCalc(per).grand.fl.act).toBeNull();
+    const g = page({ to: "2026-08-31", flow, act, cab }, () => rows, ["2026-07-03"]);
+    expect(g.rpyCalc({ from: "2026-07-01", to: "2026-07-20" }).grand.fl.act).toBeNull();
+  });
+  it("взнос, не похожий на оплату кампаний, не вычитается (мебель, июнь: 450 ₽ при кампаниях 306 ₽)", () => {
+    const fl2 = [["2026-07-03", "1", 1_000, 800, 0, 0, 0, 800, 0, 0, 0, 0, 1], ["2026-08-03", "1", 0, 0, 0, 0, 450, 0, 0, 0, 0, 0, 0]];
+    const act2 = [["2026-07", "1", 506, 306], ["2026-07", "2", 0, 0]];
+    const r = page({ to: "2026-08-31", flow: fl2, act: act2, cab }, () => rows, ["2026-07-03"]).rpyCalc(per).grand.fl.act;
+    expect(r.mir.later).toBe(0);
   });
 });
 

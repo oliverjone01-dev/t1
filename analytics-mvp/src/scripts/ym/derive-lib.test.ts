@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, accSaleDay, splitNoStatus, accCutDays, accDocRows, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
+import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, accSaleDay, splitNoStatus, accCutDays, accDocRows, moneyFlowRows, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -731,5 +731,35 @@ describe("сверка с отчётом о платежах (ACC_DOC)", () => {
     ];
     const r = accDocRows([row({ got: 10 })], net, "2026-09-30");
     expect(r).toEqual([["2026-09-10", "1", 10, 0, 0, 0, 0, -735, 9_619.79]]);
+  });
+});
+
+describe("moneyFlowRows - движение денег для блока 3а «Отчета»", () => {
+  const acc = (d: string, b: string, accruals: number, amount: number, extra: any = {}) => ({ d, business: b, accruals, amount, ...extra });
+  it("Итого = К выплате + проводки без заказа = Перевёл + В пути; баллы и отмены - не деньги", () => {
+    const rows = [acc("2026-09-10", "1", 1_000.4, 800.4, { sku: "A" }), acc("2026-09-10", "1", 50, 50, { sku: "B", basis: "orders" }), acc("2026-10-01", "1", 9, 9, { sku: "A" })];
+    const net = [
+      { d: "2026-09-10", business: "1", order: "o1", src: "Платёж покупателя", amount: 1_000, status: "Переведён по графику выплат", po: "77" },
+      { d: "2026-09-10", business: "1", order: "o1", src: "Оплата услуг Маркета", amount: -200, status: "Удержан из платежей покупателей", po: "77" },
+      { d: "2026-09-10", business: "1", order: "o2", src: "Платёж покупателя", amount: 50, status: "Будет переведён" },
+      { d: "2026-09-10", business: "1", order: "", src: "Оплата услуг Маркета", amount: -30, status: "Удержан из платежей покупателей", po: "77" },
+      { d: "2026-09-10", business: "1", order: "", src: "Премия", amount: 10, status: "Переведён по графику выплат", po: "77" },
+      { d: "2026-09-10", business: "1", order: "", src: "Внесено продавцом", amount: 5, status: "Будет переведён" },
+      { d: "2026-09-10", business: "1", order: "o3", src: "Баллы за скидку Маркета", amount: 400, status: "Справочно: пополнен баланс" },
+      { d: "2026-09-10", business: "1", order: "o4", src: "Платёж покупателя", amount: 900, status: "Не будет переведён из-за отмены заказа" },
+      { d: "2026-10-01", business: "1", order: "o5", src: "Платёж покупателя", amount: 7, status: "Будет переведён" },
+    ];
+    const r = moneyFlowRows(rows, net, "2026-09-30", new Set(["o2"]));
+    // acc1/amt1 округлены по (день, артикул), как ACC; день после границы (01.10) не берётся ни из каких строк.
+    expect(r).toEqual([["2026-09-10", "1", 1_050, 850, -30, 10, 5, 780, 55, 0, 50, 0, 2]]);
+    const [, , , amt1, acct, prem, seller, po, nopo] = r[0]!;
+    expect(amt1 + acct + prem + seller).toBe(po + nopo);
+  });
+  it("проводка без статуса или старой схемы - считается в ns, в деньги не идёт", () => {
+    const net = [
+      { d: "2026-01-10", business: "1", order: "o1", src: "Платёж покупателя", amount: 100, po: "1" },
+      { d: "2026-01-10", business: "1", order: "", amount: 5 },
+    ];
+    expect(moneyFlowRows([], net, "2026-09-30")).toEqual([["2026-01-10", "1", 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0]]);
   });
 });

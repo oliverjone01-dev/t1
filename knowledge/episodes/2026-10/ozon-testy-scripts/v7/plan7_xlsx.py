@@ -29,7 +29,7 @@ WAIT = P.WAIT; Q = F.art2sku['GGT-48-5-1-100-180']
 price_rows = []
 for o in sorted(F.lst.values(), key=lambda o: -F.U[o['sku']]):
     sku = o['sku']; r = F.rows[sku]; st = o['step']; p1 = round(r['p0'] * (1 - st / 100), -1)
-    when = '15.10' if sku in P.NOW else '22.10 - решение Ивана: цена уже снижена 08.10, второй шаг по заказам 08-21.10' if sku in P.PRICE_08 else ('22.10 (после теста 4; если тест продлят - 29.10)' if sku in WAIT else '22.10 (после новой базы показов)')
+    when = '15.10' if sku in P.NOW else ('22.10 - решение Ивана: цена уже снижена 08.10, второй шаг по заказам 08-14.10 (с 15.10 клик главного смешает)' + ('; если тест 4 продлят - 29.10' if sku in WAIT else '')) if sku in P.PRICE_08 else ('22.10 (после теста 4; если тест продлят - 29.10)' if sku in WAIT else '22.10 (после новой базы показов)')
     a0 = F.pi(r, r['p0'], 0.05, r['s']); a1 = F.pi(r, r['p0'] * (1 - st / 100), 0.05, r['s'])
     price_rows.append([when, o['art'], NAMES.get(o['art'], ''), round(F.U[sku] / F.WEEKS, 2), round(r['p0']), f'-{st}%', p1,
                        round(r['p0'] * r['s']), round(p1 * r['s']), round(a0), round(a1), f'+{a0 / a1 - 1:.0%}'])

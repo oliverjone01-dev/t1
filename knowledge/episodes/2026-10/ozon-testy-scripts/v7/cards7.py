@@ -40,6 +40,7 @@ def price(sku):
     r = F.rows.get(sku); return r['p0'] if r else F.AVG_P
 def keep(sku):
     r = F.rows.get(sku); return r['keep'] if r else F.AVG_KEEP
+LIVE_OFF = {c['off'] for c in F.camp.values() if F.active(c)}     # артикулы с идущей своей кампанией (ФЕНИКС iter3: GGM-24-2 43629680)
 G = json.load(open(F.D + 'card_groups.json'))['groups']
 cards = []
 for g in G:
@@ -47,7 +48,7 @@ for g in G:
     v = sum(vs[s] for s in skus); u = sum(o4[s] for s in skus)
     if not v: continue
     main = max(skus, key=lambda s: (o4[s], vs[s]))                # главный - больше всех заказов (ФЕНИКС Б3: по показам выбирались товары с купленными рекламой показами)
-    others = [s for s in skus if s != main and o60[s] >= 1 and sku_sp[s] == 0]
+    others = [s for s in skus if s != main and o60[s] >= 1 and sku_sp[s] == 0 and off[s] not in LIVE_OFF]
     cards.append(dict(card=g['main'], main=main, main_art=off[main], main_name=name.get(main, ''), v_wk=v / WK, u_wk=u / WK,
                       conv=u / v if v else 0, main_sp_wk=sku_t[main], main_v_wk=vs[main] / WK,
                       others=[(s, off[s], name.get(s, ''), o60[s]) for s in others]))
@@ -109,8 +110,6 @@ def campaign_action(cid, lvl, top=10):
     mains = {c['main'] for c in cards[:top]}
     t = _P.tempo(cid); off = F.camp[cid]['off'] if cid in F.camp else ''
     if F.art2sku.get(off) in mains: return 'main', t
-    top = camp_top_main(cid)                                    # кампания на общий артикул (GGM-20): главный по доле расхода (OZEVIS 43629255)
-    if top and top not in own_mains(): return 'main', t
     return ('min', t) if t > 2500 else ('keep', t)
 def camp_spend(cid):
     """расход кампании по товарам 08-11.10"""
@@ -127,7 +126,7 @@ def camp_top_main(cid, top=10, share=0.5):
     sku, v = s.most_common(1)[0]
     return sku if sku in {c['main'] for c in cards[:top]} and v / tot >= share else None
 def own_mains(top=10):
-    """главные товары, у которых есть своя кампания на их артикул"""
+    """главные товары, у которых есть своя кампания на их артикул; остальным - новая кампания (OZEVIS: 43629255 на общий GGM-20 уходит на минимум)"""
     mains = {c['main'] for c in cards[:top]}
     return {F.art2sku.get(F.camp[k]['off']) for k in _P.ACTIVE if k in F.camp} & mains
 def cut_saving(lvl, top=10):

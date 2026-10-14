@@ -39,7 +39,9 @@ for row in d0.iter_rows(min_row=2):
                             ('главный товар: клик до 20 000 с 15.10', '20 000', 'лист «Карточки»', 'C6EFCE')
     elif kind == 'min':
         n_min += 1
-        extra = ' Часть расхода шла на главный ' + MAINS[next(iter(camp_main[cid]))]['main_art'] + ' - он получает свои 20 000.' if cid in camp_main else ''
+        _m = MAINS[next(iter(camp_main[cid]))] if cid in camp_main else None
+        extra = (' Часть расхода шла на главный ' + _m['main_art'] + (' - его своя кампания поднимается до 20 000.' if _m['main'] in K.own_mains() else
+                 ' - ему заводим новую кампанию на 20 000 (лист «Карточки»), эту не поднимаем.')) if _m else ''
         act, nw, why, col = 'на минимум 15.10', '2 000 (8-12 ₽ за клик)', 'не главный товар, расход больше минимума, заказов мало.' + extra, 'FFC7CE'
     else:
         act, nw, why, col = 'оставляем', f'{t:,.0f}'.replace(',', ' ') if t else 'как есть', 'кампания идёт и тратит меньше 2 500 ₽ в неделю (темп 08-11.10) - дёшево, не трогаем', None

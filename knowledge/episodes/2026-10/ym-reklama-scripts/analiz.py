@@ -91,7 +91,7 @@ Mo = collections.defaultdict(lambda: collections.defaultdict(float))
 for r in p:
     k = (r['created'][:7], r['business']); Mo[k]['orders'] += 1
     if canc(r): Mo[k]['canc'] += 1; Mo[k]['canc_sum'] += r['price']
-    if r['status'] == 'DELIVERED': Mo[k]['deliv'] += 1; Mo[k]['rev'] += r['revenue']; Mo[k]['p_mp'] += r['p_mp']
+    if r['status'] == 'DELIVERED': Mo[k]['deliv'] += 1; Mo[k]['rev'] += r['revenue']; Mo[k]['p_mp'] += r['p_mp'] * r['count']  # доля Маркета с количеством
     Mo[k]['price'] += r['price']
     if r['status'] == 'DELIVERED': Mo[(r['statusDate'][:7], r['business'])]['rev_dd'] += r['revenue']  # по дате доставки
 for k, v in bo_all.items():
@@ -209,7 +209,9 @@ for k, f in low: print(f"  {CAB[k[0]]} {k[1]}: показы {f['views']:,}, за
 lowm = [(k, f) for k, f in low if k[0] == '74986385']
 lv = sum(f['views'] for _, f in lowm); lp = sum(f['pdp'] for _, f in lowm); lu = sum(f['units'] for _, f in lowm)
 cm = conv['74986385'][0] / conv['74986385'][1]
-print(f"Итого {len(lowm)} карточек мебели: показы {lv:,}, заходы {lp:,}, единицы {lu}. При CTR 3,8% (уровень GGT-35-1-3) заходов было бы {lv * 0.038:,.0f} (+{lv * 0.038 - lp:,.0f}); при конверсии мебели заход -> единица {cm:.2%} это +{(lv * 0.038 - lp) * cm:.0f} единиц за окно (5 недель), нижняя граница ×0,3: +{(lv * 0.038 - lp) * cm * 0.3:.0f}")
+NET_CANC_M = 116 / 473  # чистые отмены мебели за квартал (раздел 12), единицы отчёта показов - заказанные
+du = (lv * 0.038 - lp) * cm
+print(f"Итого {len(lowm)} карточек мебели: показы {lv:,}, заходы {lp:,}, единицы {lu}. При CTR 3,8% (уровень GGT-35-1-3) заходов было бы {lv * 0.038:,.0f} (+{lv * 0.038 - lp:,.0f}); при конверсии мебели заход -> единица {cm:.2%} это +{du:.0f} заказанных единиц за окно (5 недель), без чистых отмен мебели ({NET_CANC_M:.1%}) +{du * (1 - NET_CANC_M):.0f} доставленных; нижняя граница ×0,3: +{du * (1 - NET_CANC_M) * 0.3:.0f} доставленных")
 print("SKU с > 10 000 показов и 0 единиц: " + ', '.join(f"{k[1]} ({f['views']:,})" for k, f in sorted(F.items(), key=lambda x: -x[1]['views']) if f['views'] > 10000 and f['units'] == 0))
 
 print("\n## 12. Отмены, июль-сентябрь (товарные заказы)")
@@ -248,14 +250,15 @@ for c in CAB:
     print(f"Если бы регионы {CAB[c]} отменяли как Москва и МО ({pct(cmk, nm_)} вместо {pct(cr, nr)}): +{gain:.0f} заказов за квартал, по среднему доставленному {f0(avg)} это {f0(gain * avg)} ₽; нижняя граница ×0,3: +{gain * 0.3:.0f} заказов, {f0(gain * avg * 0.3)} ₽")
 cancel_orders = {r['order'] for r in Wn if canc(r)}
 PEN = ('Доставка (средняя миля)', 'Доставка невыкупов и возвратов', 'Отмена заказа по вине продавца', 'Отгрузка или доставка не вовремя')
+print("удержания (деньги «Удержание» / баллы «Списание»):")
 for s in PEN:
-    onc = sum(abs(r['amount']) for r in n if r['service'] == s and r['amount'] < 0 and r['order'] in cancel_orders)
-    allq = sum(abs(r['amount']) for r in n if r['service'] == s and r['amount'] < 0 and r['d'][:7] in M)
-    print(f"  «{s}»: по отменённым заказам квартала {f0(onc)}; все проводки квартала {f0(allq)}")
+    onc = [sum(abs(r['amount']) for r in n if r['service'] == s and r['type'] == t and r['order'] in cancel_orders) for t in ('Удержание', 'Списание')]
+    allq = [sum(abs(r['amount']) for r in n if r['service'] == s and r['type'] == t and r['d'][:7] in M) for t in ('Удержание', 'Списание')]
+    print(f"  «{s}»: по отменённым заказам квартала {f0(sum(onc))} (деньгами {f0(onc[0])}, баллами {f0(onc[1])}); все проводки квартала {f0(sum(allq))} (деньгами {f0(allq[0])}, баллами {f0(allq[1])})")
 bc = sum(abs(r['amount']) for r in n if r['service'] == BOOST and r['type'] in ('Списание', 'Удержание') and canc(po.get((r['order'], r['sku']), {'status': ''})))
 print(f"буст, списанный по отменённым заказам (все месяцы): {f0(bc)} ₽")
 late = [r for r in Wn if r['status'] == 'CANCELLED_IN_DELIVERY' and (dt(r['statusDate']) - dt(r['created'])).days >= 14]
-print(f"отмены «в доставке» на 14-й день и позже: {len(late)}, из них регионы {sum(1 for r in late if not msk(r))}, по кабинетам {dict(collections.Counter(CAB[r['business']] for r in late))}")
+print(f"отмены «в доставке» на 14-й день и позже: {len(late)}, из них регионы {sum(1 for r in late if not msk(r))}; по кабинетам и зонам: " + ', '.join(f"{CAB[c]} {sum(1 for r in late if r['business'] == c)} (регионы {sum(1 for r in late if r['business'] == c and not msk(r))}, Москва и МО {sum(1 for r in late if r['business'] == c and msk(r))})" for c in CAB))
 
 print("\n## 13. Кабинет зеркал: заказы, цена и платёж покупателя (все товарные заказы)")
 for m in ('2026-07', '2026-08', '2026-09', '2026-10'):
@@ -294,6 +297,14 @@ for r in sv:
     t, dd_ = (pre, dpre) if r['date'] < '2026-10-02' else (post, dpost); dd_.add(r['date'])
     for f in ('views', 'pdp', 'units'): t[f] += r[f]
 print(f"  показы до 02.10: {pre['views']:,} за {len(dpre)} дней ({pre['views'] / len(dpre):,.0f} в день), CTR {pct(pre['pdp'], pre['views'])}, единиц {pre['units']}; с 02.10: {post['views']:,} за {len(dpost)} дней ({post['views'] / len(dpost):,.0f} в день), CTR {pct(post['pdp'], post['views'])}, единиц {post['units']}")
+print("Показы в день 24.09-12.10, GGT-35-5-1 (ставка 13-19% с 02.10) и соседний вариант GGT-35-3-3 (ставка с 01.10 в данных не видна, заказов в октябре нет):")
+dvv = collections.defaultdict(dict)
+for r in sv:
+    if not r.get('aggregate') and r['sku'] in (s, 'GGT-35-3-3-100-180') and '2026-09-24' <= r['date'] <= '2026-10-12': dvv[r['sku']][r['date'][5:]] = r['views']
+for k in (s, 'GGT-35-3-3-100-180'): print(f"  {k}: " + ', '.join(f"{d} {v:,}" for d, v in sorted(dvv[k].items())))
+for lab, sel in (('13.09-01.10', lambda r: '2026-09-13' <= r['created'] <= '2026-10-01'), ('02.10-12.10', lambda r: '2026-10-02' <= r['created'] <= '2026-10-12')):
+    g = [r for r in p if r['sku'] == s and sel(r)]
+    print(f"  GGT-35-5-1, заказы {lab}: {len(g)}, цена {f0(min(r['price'] for r in g))}-{f0(max(r['price'] for r in g))}, платил покупатель {f0(min(r['p_buyer'] for r in g))}-{f0(max(r['p_buyer'] for r in g))}, доля Маркета {min(r['p_mp'] / r['price'] for r in g):.0%}-{max(r['p_mp'] / r['price'] for r in g):.0%}")
 
 print("\n## 15. Мебель: платёж покупателя и заказы, август против сентября (строки заказов)")
 for m in ('2026-08', '2026-09'):
@@ -310,6 +321,20 @@ print(' '.join(f"{d[8:]}:{v[0]:.0f}/{v[1]:.0f}" for d, v in sorted(byd.items()))
 both = [v for v in od.values() if v[0] > 0 and v[1] > 0]; mo = [v for v in od.values() if v[0] > 0 and v[1] == 0]; pon = [v for v in od.values() if v[0] == 0 and v[1] > 0]
 print(f"строк заказ-день {len(od)}: и деньгами, и баллами {len(both)} (деньгами в них {f0(sum(v[0] for v in both))}, доля денег медиана {statistics.median(v[0] / (v[0] + v[1]) for v in both):.1%}), только деньгами {len(mo)} (деньгами {f0(sum(v[0] for v in mo))}), только баллами {len(pon)}")
 print("дни с самыми большими списаниями деньгами: " + ', '.join(f"{d[8:]} {v[0]:,.0f} (баллами {v[1]:,.0f})" for d, v in sorted(byd.items(), key=lambda x: -x[1][0])[:5]))
+plc = collections.defaultdict(float)
+for r in b:
+    if r['business'] == '74986385' and r['type'] == 'Списание' and r['service'] == 'Размещение товарных предложений' and r['d'][:7] == '2026-09': plc[r['d']] += abs(r['amount'])
+print("в дни буста только деньгами размещение списывало баллы: " + ', '.join(f"{d[8:]} {f0(plc[d])}" for d, v in sorted(byd.items()) if v[1] == 0) + " - значит, баллы кабинета в эти дни были")
+bacc = collections.defaultdict(float); bsp = collections.defaultdict(float)
+for r in b:
+    if r['business'] == '74986385' and r['order']:
+        if r['type'] == 'Начисление': bacc[(r['order'], r['sku'])] += r['amount']
+        elif r['type'] == 'Списание': bsp[(r['order'], r['sku'])] += abs(r['amount'])
+def wallet(keys):
+    ks = [(o_, s_) for o_, s_, _ in keys if bacc.get((o_, s_))]
+    ratio = [bsp.get(k, 0) / bacc[k] for k in ks]
+    return f"{len(ks)} заказов с начислением, списано от начисленного по заказу: медиана {statistics.median(ratio):.2f}, остаток баллов заказа медиана {f0(statistics.median(bacc[k] - bsp.get(k, 0) for k in ks))}"
+print(f"кошелёк заказа (баллы начислены по заказу, списаны по заказу на размещение и буст): строки «и деньгами, и баллами» - {wallet([k for k, v in od.items() if v[0] > 0 and v[1] > 0])}; строки «только деньгами» - {wallet([k for k, v in od.items() if v[0] > 0 and v[1] == 0])}")
 
 print("\n## 17. Мощность тестов: заказы без отмен по неделям (29.06-27.09), разброс между неделями и минимальный различимый эффект")
 def weekly(sel):
@@ -323,6 +348,11 @@ for lab, sel in (('кабинет мебель', lambda r: r['business'] == '749
     xs = weekly(sel); mu = statistics.mean(xs); sd = statistics.stdev(xs)
     print(f"{lab} | {mu:.1f} ({min(xs)}-{max(xs)}) | {sd:.1f} | " + ' | '.join(f"{2.8 * sd * (2 / k) ** 0.5:.0f} ({2.8 * sd * (2 / k) ** 0.5 / mu:.0%})" for k in (2, 4, 8)))
 print("Для сравнения, если бы недели были пуассоновскими (SD = √среднего): мебель SD " + f"{statistics.mean(weekly(lambda r: r['business'] == '74986385')) ** 0.5:.1f}")
+xm = weekly(lambda r: r['business'] == '74986385'); base = xm[:3] + xm[7:]  # недели вне провала 20.07-10.08 (индексы 3-6)
+mb_, sb_ = statistics.mean(base), statistics.stdev(base)
+print(f"Мебель, недели вне провала 20.07-10.08: {base}, среднее {mb_:.1f}, SD {sb_:.1f}, минимум {min(base)}; провал: {xm[3:7]}")
+print(f"Дизайны пилота П5 (мебель): (а) до/после, база {len(base)} недель вне провала против 4 недель пилота, SD {sb_:.1f}: MDE {2.8 * sb_ * (1 / len(base) + 1 / 4) ** 0.5:.0f} заказов в неделю ({2.8 * sb_ * (1 / len(base) + 1 / 4) ** 0.5 / mb_:.0%}); (б) чередование недель 4 + 4 за 8 недель: MDE {2.8 * sb_ * (2 / 4) ** 0.5:.0f} ({2.8 * sb_ * (2 / 4) ** 0.5 / mb_:.0%}) при SD вне провала, {2.8 * 9.4 * (2 / 4) ** 0.5:.0f} ({2.8 * 9.4 * (2 / 4) ** 0.5 / 25.3:.0%}) при SD всего квартала")
+print(f"Порог стопа П5 = среднее базы минус 2 SD = {mb_ - 2 * sb_:.0f} заказов без отмен в неделю; последние недели: " + ', '.join(f"{k[5:]} {v}" for k, v in sorted(collections.Counter((dt(r['created']) - datetime.timedelta(days=dt(r['created']).weekday())).isoformat() for r in p if r['business'] == '74986385' and r['created'] >= '2026-09-14' and not canc(r)).items())) + " (неделя 12.10 неполная; 23% отмен мебели приходят позже 7 дней, поэтому последние недели ещё снизятся)")
 
 print("\n## 18. Маржа в деньгах после буста по главным SKU, проводки июль-сентябрь (разноска реестра со страницы «Деньги»: деньги к выплате минус себестоимость; буст баллами отдельно)")
 PS = collections.defaultdict(lambda: collections.defaultdict(float))
@@ -331,16 +361,23 @@ for r in pnl:
         k = (r['business'], r['sku'])
         for f in ('units', 'accruals', 'amount', 'cogs', 'promo', 'points'): PS[k][f] += r[f]
         PS[k]['cogs_unknown'] += (0 if r['cogs_known'] else r['units'])
-bpk = collections.defaultdict(float)
+bpk = collections.defaultdict(float); bmk = collections.defaultdict(float); loy = collections.defaultdict(float)
 for r in n:
-    if r['service'] == BOOST and r['type'] == 'Списание' and r['d'][:7] in M: bpk[(r['business'], r['sku'])] += abs(r['amount'])
-print("кабинет | SKU | линия | штук | деньги покупателя | буст деньгами | к выплате деньгами | себестоимость | маржа в деньгах | маржа % от денег покупателя | буст баллами | маржа, если бы буст баллами был деньгами")
+    if r['d'][:7] in M:
+        if r['service'] == BOOST and r['type'] == 'Списание': bpk[(r['business'], r['sku'])] += abs(r['amount'])
+        if r['service'] == BOOST and r['type'] == 'Удержание': bmk[(r['business'], r['sku'])] += abs(r['amount'])
+        if r['service'] == 'Скидка за лояльность' and r['type'] == 'Начисление': loy[(r['business'], r['sku'])] += r['amount']
+print("кабинет | SKU | линия | штук | деньги покупателя | буст деньгами (реестр) | возврат «Скидка за лояльность» | к выплате деньгами | себестоимость | маржа в деньгах | маржа % от денег покупателя | буст баллами | маржа, если бы буст баллами был деньгами")
 top = sorted(PS.items(), key=lambda x: -x[1]['accruals'])[:12]
 for k, v in top:
     m_ = v['amount'] - v['cogs']
-    print(f"{CAB[k[0]]} | {k[1]} | {line(k[1])} | {v['units']:.0f} | {f0(v['accruals'])} | {f0(-v['promo'])} | {f0(v['amount'])} | {f0(v['cogs'])}{' (нет себестоимости у ' + str(int(v['cogs_unknown'])) + ' шт)' if v['cogs_unknown'] else ''} | {f0(m_)} | {pct(m_, v['accruals'])} | {f0(bpk[k])} | {f0(m_ - bpk[k])} ({pct(m_ - bpk[k], v['accruals'])})")
+    print(f"{CAB[k[0]]} | {k[1]} | {line(k[1])} | {v['units']:.0f} | {f0(v['accruals'])} | {f0(bmk[k])} | {f0(loy[k])} | {f0(v['amount'])} | {f0(v['cogs'])}{' (нет себестоимости у ' + str(int(v['cogs_unknown'])) + ' шт)' if v['cogs_unknown'] else ''} | {f0(m_)} | {pct(m_, v['accruals'])} | {f0(bpk[k])} | {f0(m_ - bpk[k])} ({pct(m_ - bpk[k], v['accruals'])})")
 tot = collections.defaultdict(float)
 for k, v in PS.items():
     for f in ('units', 'accruals', 'amount', 'cogs', 'promo'): tot[f] += v[f]
-print(f"Все SKU за квартал: штук {tot['units']:.0f}, деньги покупателя {f0(tot['accruals'])}, буст деньгами {f0(-tot['promo'])}, к выплате {f0(tot['amount'])}, себестоимость {f0(tot['cogs'])}, маржа в деньгах {f0(tot['amount'] - tot['cogs'])} ({pct(tot['amount'] - tot['cogs'], tot['accruals'])}); буст баллами {f0(sum(bpk.values()))}")
+mg = [(v['amount'] - v['cogs']) / v['accruals'] for k, v in top]
+print(f"Все SKU за квартал: штук {tot['units']:.0f}, деньги покупателя {f0(tot['accruals'])}, буст деньгами по реестру {f0(sum(bmk.values()))} (в поле «продвижение» разноски {f0(-tot['promo'])}: оно за вычетом возвратов «Скидка за лояльность» {f0(sum(loy.values()))}), к выплате {f0(tot['amount'])}, себестоимость {f0(tot['cogs'])}, маржа в деньгах по SKU {f0(tot['amount'] - tot['cogs'])} ({pct(tot['amount'] - tot['cogs'], tot['accruals'])}); по 12 главным SKU маржа {min(mg):.1%}-{max(mg):.1%}; буст баллами {f0(sum(bpk.values()))}")
+sub = sum(r['money'] for r in svc if r['service'] == 'Подписка' and r['ym'] in M); nosku = sum(act_money[(m, c)] for m in M for c in CAB)
+reg_nosvc = sum(abs(r['amount']) for r in n if r['type'] == 'Удержание' and r['service'] == '' and r['d'][:7] in M)
+print(f"Деньги вне SKU за квартал (акт): показы, полки, баннеры {f0(nosku)} + подписка {f0(sub)} = {f0(nosku + sub)}; в реестре удержания «Оплата услуг Маркета» без услуги {f0(reg_nosvc)} (разница {f0(reg_nosvc - nosku - sub)}). Маржа в деньгах после них {f0(tot['amount'] - tot['cogs'] - nosku - sub)} ({pct(tot['amount'] - tot['cogs'] - nosku - sub, tot['accruals'])})")
 json.dump(rows, open(D.replace('analytics-mvp/data-ym/', '') + 'knowledge/episodes/2026-10/ym-reklama-scripts/sku_rows.json', 'w'), ensure_ascii=False, indent=0) if 'analytics-mvp/data-ym' in D else None

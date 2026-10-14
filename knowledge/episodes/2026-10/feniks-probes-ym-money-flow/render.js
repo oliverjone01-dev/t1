@@ -1,5 +1,5 @@
-// Рендер вкладки «Отчет» Маркета в jsdom: по каждому месяцу селектора снимаю блок 3а, строки блока 3
-// «Начислил Маркет» / «К выплате Маркета», плашки и выгрузку Excel (перехват rpxZip).
+// Рендер вкладки «Отчет» Маркета в jsdom: по каждому месяцу селектора снимаю блок «Движение денег», строки блока 3
+// «Начислил Маркет» / «К выплате Маркета», плашки, пометку под блоком и выгрузку Excel (перехват rpxZip).
 // node render.js <katya-report.html> <out.json> [месяцы через запятую]
 const J = require("/tmp/claude-0/-home-user-t1/bf8da627-8182-59b8-a23c-b2eb02fe1be2/scratchpad/feniks-flow/tools/node_modules/jsdom");
 const fs = require("fs");
@@ -17,7 +17,7 @@ function table(id) {
   const t = w.document.getElementById(id);
   if (!t) return null;
   const head = [...t.querySelectorAll("thead th")].map(txt);
-  const rows = [...t.querySelectorAll("tbody tr")].map((tr) => ({ cls: tr.className || "", style: tr.getAttribute("style") || "", title: tr.children[0] ? (tr.children[0].getAttribute("title") || "") : "", cells: [...tr.children].map(txt) }));
+  const rows = [...t.querySelectorAll("tbody tr")].map((tr) => ({ cls: tr.className || "", title: tr.children[0] ? (tr.children[0].getAttribute("title") || "") : "", cells: [...tr.children].map(txt) }));
   return { head, rows };
 }
 const out = { errors, months: {} };
@@ -36,13 +36,13 @@ for (const m of want) {
   try { w.rpyRender(); } catch (e) { rec.renderError = e.message; }
   rec.sub = txt(w.document.getElementById("rp-sub"));
   rec.flags = txt(w.document.getElementById("rp-flags"));
+  rec.flowNote = txt(w.document.getElementById("rp-flow-note"));
   rec.flow = table("rp-flow");
   const cost = table("rp-cost");
   rec.cost = cost ? { head: cost.head, rows: cost.rows.filter((r) => /Начислил Маркет|К выплате Маркета|Всего сборов|удержания без заказа|премия/i.test(r.cells[0] || "")) } : null;
   captured = null;
-  try { w.rpyExport(); } catch (e) { rec.exportError = e.message + " | " + String(e.stack || "").split("\n").slice(0, 3).join(" / "); }
+  try { w.rpyExport(); } catch (e) { rec.exportError = e.message; }
   if (captured) {
-    rec.xlsxFiles = captured.map((f) => f[0]);
     const sheet = captured.find((f) => /sheet1\.xml$/.test(f[0]));
     rec.xlsxSheet = sheet ? sheet[1] : null;
   }

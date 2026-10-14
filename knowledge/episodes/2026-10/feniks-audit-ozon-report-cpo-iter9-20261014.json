@@ -1,0 +1,281 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-report-cpo-iter9-9ef5e2d3e-20261014",
+  "timestamp": "2026-10-14T16:55:00+03:00",
+  "deliverable_ref": "ветка claude/practical-ritchie-q09eet @ 9ef5e2d3e (rework G1-G7 по iter8 go 7.85, хеш 910f56546a9e75df): analytics-mvp/src/scripts/cpo-orders-rev.ts, cpo-orders-rev.test.ts, build-katya.ts, report-page.ts; analytics-mvp/tools/cpo/cpo_raw.py, tools/orders/build_order_joins.py, tools/tests/cpo_raw_check.py; knowledge/semantic/metrics/ozon-cpc-card-spread.yaml (v2.4), ozon-monthly-report.yaml (v1.1); knowledge/decisions.md (14.10). Охват: все 11 путей ветки (build_cpo_sku_daily.py не менялся с iter8)",
+  "artifact_class": "dashboard",
+  "anchor": "8.1 feniks-return-reestr (после доработки) - наш артефакт ниже на 0.1: как у реестра, каждое заявленное число воспроизведено независимым прогоном (8 видов «Отчета», 8 периодов вкладки, реальная выгрузка независимой реализацией на Python, 11 фикстур сборки, 9 фикстур сборщиков); ниже потому, что правка G3 дала новый режим, который нашла моя старая фикстура fzB, а не автор (плашка «не принята» и 16 из 16 ячеек с числами на «Отчете»), и два утверждения запроса не держатся на моих фикстурах (F2/F3 дословно - 150 и 20; cpo_raw_check - 16 проверок, а не 17)",
+  "probes": [
+    {
+      "id": "X3",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev 9ef5e2d3e = --worktree = 910f56546a9e75df = хешу запроса; --rev d07567852 = --rev 42db22195 = 3bb00f94c5e5a234 (iter8); git fetch: origin ветки = 9ef5e2d3e, origin/main f5ce0e64c, merge-base 51acead0e"
+    },
+    {
+      "id": "X1",
+      "result": "PASS",
+      "evidence": "git diff --name-only 51acead0e 9ef5e2d3e минус traces/, episodes/, errors/, handoff/ = 11 путей; 10 из них в 9ef5e2d3e, все прочитаны по diff; build_cpo_sku_daily.py не менялся с аудированного iter8"
+    },
+    {
+      "id": "X2",
+      "result": "PASS",
+      "evidence": "новый main f5ce0e64c меняет только analytics-mvp/data-ym/*, пересечение с путями ветки 0; git merge-tree без «changed in both» (два «<<<<<<<» - содержимое фикстур тестов)"
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "listdiff9.py p8 p9 (одни данные): 50 из 52 файлов public побайтно равны; katya-reklama-kartochki.html - CPO_ERR=\"\" и ветка ошибки cpoRevFix; katya-report.html - 103 значения REP.cpo с копейками, cpoErr, cpoCov с !REP.cpoErr, строка плашки"
+    },
+    {
+      "id": "G7",
+      "result": "PASS",
+      "evidence": "fx9_report.mjs + anrep9.py, 8 видов, ошибок JS 0: изменилась одна строка «за заказ по выгрузке кабинета»: июнь 1 247 754 -> 1 247 755 (сырьё 1 247 755,10), июль 1 173 144 -> 1 173 142 (1 173 141,84), сен 01-13 340 208 -> 340 209; окупаемости равны iter8: 12,88 / 11,21 / 12,98 / 17,2, всего 9,06 / 8,13 / 8,04 / 11,71"
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "вкладка, 8 периодов: строки кампаний и строка источника p8 = p9; N9 fzA июнь «8.2%*16 из 30 дн.», fzD «7.6%*26 из 30 дн.» = iter8"
+    },
+    {
+      "id": "G1-fzE",
+      "result": "PASS",
+      "evidence": "orders_daily без отправлений 48 заказов CPO с 25.09: rc_ozon=0, «48 заказов выгрузки (178 425 ₽) ещё нет в отправлениях orders_daily - выручка неполная, ждём сбора заказов» на обеих страницах и в ::error::; «чья выгрузка» нет"
+    },
+    {
+      "id": "G2-fzC",
+      "result": "PASS",
+      "evidence": "маркер конфликта в cpo_sku_daily: rc 0, «cpo_sku_daily.ndjson: строка 461 не разбирается», «Отчет» 0 из 16 ячеек выгрузки с числом, вкладка «н/д» в 8 из 8 периодов; fzF (пустой файл): «покрытие (cpo_sku_daily) пустое», fzI, fzJ - строка и файл названы"
+    },
+    {
+      "id": "G3",
+      "result": "PASS",
+      "evidence": "11 фикстур fzA-fzK: все rc_ozon=0, сайт собирается; в 8 с ошибкой по две строки ::error:: (report, kartochki), красная плашка «Отчета» и красная строка источника вкладки в 8 из 8 периодов; deploy-pages.yml:101 npm run katya без continue-on-error больше не роняет публикацию"
+    },
+    {
+      "id": "G3-fzB",
+      "result": "FAIL",
+      "evidence": "без 28753239 в ads_daily: плашка «Выгрузка «за заказ» не принята ... - «нет данных»», а на «Отчете» (вид 2026-09) 16 из 16 ячеек выгрузки июнь-сентябрь с числами (1 247 755, 16 068 798, 12,88, 9,06 ... 17,2, 11,71); report-page.ts:361 cpoCov = ...||!Math.round(s.cpoApiSp) и report-page.ts:76 REP.cpo не очищается при ошибке; вкладка прячет (build-katya.ts:1967 cpoRev = cpoErr ? [] : ...)"
+    },
+    {
+      "id": "G2-fzK",
+      "result": "FAIL",
+      "evidence": "одна обрезанная строка в ads_daily: rc 0, ::error:: нет, лог «report: ... реклама 0 дн»; «Отчет» сентябрь: расход всего 0, за клик 0, ДРР 0, окупаемость всего 17,2 вместо 11,71 (август 12,98 вместо 8,04), плашки нет. report-page.ts:28-30 readNd: любая битая строка -> весь файл []; так же на main с 532d5b850 (01.10), класс G2 исправлен только в cpo-orders-rev.ts"
+    },
+    {
+      "id": "G2-fzH",
+      "result": "PARTIAL",
+      "evidence": "нет cpo_orders.ndjson при живом покрытии: отказ есть (0 из 16 ячеек с числом), но диагноз ложный: «расход API кампании 22421802 32716 ₽ расходится со списаниями выгрузки 0 ₽ ... чья выгрузка, не ясно»"
+    },
+    {
+      "id": "G1-fzG",
+      "result": "PASS",
+      "evidence": "один заказ без отправлений (1 395 ₽, 0,03% списаний): «1 заказов выгрузки ...», на обеих страницах июнь-сентябрь «нет данных» - по решению 14.10 (decisions.md:6), радиус в один заказ на четыре закрытых месяца не разобран"
+    },
+    {
+      "id": "G4-F1",
+      "result": "PASS",
+      "evidence": "o2fz9.py, моя фикстура iter8: «2026-09_cpo_orders (1).xlsx» после оригинала, 170"
+    },
+    {
+      "id": "G4-F1x",
+      "result": "FAIL",
+      "evidence": "o2fz9.py: «x(1).xlsx», «x-1.xlsx», «x 2.xlsx», «x copy.xlsx» - 4 из 4 сортируются раньше оригинала, взят первый файл, 150 вместо 170; cpo_raw.py:85 ловит только « (N)»"
+    },
+    {
+      "id": "G5-F2N",
+      "result": "PASS",
+      "evidence": "o2fz9.py, прошлые строки с d: F2 100/100, F3 100/100"
+    },
+    {
+      "id": "G5-F2L",
+      "result": "FAIL",
+      "evidence": "o2fz9.py, мои фикстуры iter8 дословно (прошлые строки без d): F2 cpo_orders 150 против cpo_sku_daily 100, F3 20 против 100; build_order_joins.py:77 заменяет строки без d по номеру заказа; в data/cpo_orders.ndjson 1009 из 1009 строк без d, после сборщика 819 остаются без d"
+    },
+    {
+      "id": "G5-real",
+      "result": "PASS",
+      "evidence": "real9.py: реальная выгрузка сентября один раз и с копией «(1)»: 190 строк получают d, по дням (списания, выручка, шт) независимый пересчёт = прежнему, второй прогон побайтно = первому, cpo_sku_daily побайтно = data/, заказов сентября с частью в другом месяце 0; Σcpo_orders = Σcpo_sku_daily = 4 323 198,65"
+    },
+    {
+      "id": "G6",
+      "result": "PASS",
+      "evidence": "ozon-cpc-card-spread.yaml:5-7 v2.4 approved 2026-10-14, ozon-monthly-report.yaml:5-7 v1.1 approved 2026-10-14; decisions.md:6"
+    },
+    {
+      "id": "M4",
+      "result": "PASS",
+      "evidence": "vt9.sh: tsc 39, нормализованный список = p8 (md5 85d6f256), в изменённых строках 0; vitest p9 973 из 976, p8 968 из 971, те же 3 падения Маркета; cpo-orders-rev.test.ts 10/10 (p8 5/5); cpo_raw_check.py 16 OK, ПРОВАЛОВ 0 (в запросе 17/17)"
+    },
+    {
+      "id": "M6-mut",
+      "result": "PASS",
+      "evidence": "mut9.py: мутанты без проверки miss, без проверки покрытия, без bad, «последняя строка заказа», throw вместо err - убиты тестами; «сумма найденных» эквивалентен (miss проверяется раньше). Тестов на отображение ошибки (cpoErr, CPO_ERR, cpoCov) 0, cpo_raw_check.py в workflows 0"
+    },
+    {
+      "id": "M5",
+      "result": "PASS",
+      "evidence": "свип автора card_sweep24 на сборке p9: FAILS 3 - 01.06-30.06, 15.06-15.07, 01.06-12.10 (G10, = эталон)"
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "в добавленных строках TS чисел-литералов данных 0 (цвет #FF5A5F, 600, *100/100); U+2014 в добавленных строках 0"
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "чисел [ГИПОТЕЗА] на поверхностях нет; G3-fzB и G2-fzK - фикстуры порчи входа (класс X), числа из данных, не гипотезы"
+    },
+    {
+      "id": "F5-fwd",
+      "result": "PASS",
+      "evidence": "fwd9.mts: строки нового формата (заказ на два дня) читатель iter8 считает выручку дважды (600 против 300); в данных таких заказов 0, наблюдение для отката"
+    },
+    {
+      "id": "N1-fix",
+      "result": "PASS",
+      "evidence": "fixcheck9.py: под ошибкой cpoCov = !Math.round(s.cpoApiSp)&&!Math.round(s.cpoSp) (report-page.ts:361 в песочнице): fzBx 0 из 16 ячеек с числом при плашке, fzCx 0 из 16, p9x = p9 во всех 8 видах"
+    }
+  ],
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 1,
+    "insight_14_anti_median": 2,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 9.0,
+    "insight": 6.0,
+    "brand_fit": 8.0,
+    "risk_awareness": 9.0
+  },
+  "weighted_total": 8.0,
+  "verdict": "go",
+  "primary_gap": "N1 (G3-fzB): ошибка выгрузки прячет числа выгрузки на вкладке всегда, а на «Отчете» только в периодах, где у кампаний «за заказ» есть расход API. Если ошибка вызвана тем, что кампании выгрузки нет в ads_daily (исходная фикстура N8), плашка говорит «не принята ... нет данных», а таблица показывает 16 из 16 чисел выгрузки за июнь-сентябрь. report-page.ts:361 (||!Math.round(s.cpoApiSp)) и :76 (REP.cpo не очищается), против build-katya.ts:1967 (cpoRev = cpoErr ? [] : ...). Спека ozon-monthly-report.yaml:29-31 обещает «нет данных» без условий.",
+  "gaps": [
+    "N1 (accuracy_3, risk_23): «Отчет» под ошибкой выгрузки показывает числа отвергнутой выгрузки, если расход «за заказ» в API за период 0. fzB: плашка «Выгрузка «за заказ» не принята ... «нет данных»» и 16 из 16 ячеек июнь-сентябрь с числами (1 247 755 ... 12,88 ... 9,06). report-page.ts:361 cpoCov=...||!Math.round(s.cpoApiSp), report-page.ts:76 REP.cpo строится при ошибке; вкладка прячет (build-katya.ts:1967). Тестов на отображение ошибки 0 (grep cpoErr|CPO_ERR|cpoCov в *.test.ts). Спека ozon-monthly-report.yaml:29-31 обещает «нет данных».",
+    "N2 (risk_23, класс G2 не закрыт): report-page.ts:28-30 readNd отдаёт [] на весь файл при одной битой строке. fzK (обрезанная строка ads_daily): rc 0, без ::error:: и плашки, «Отчет» сентябрь расход всего 0, окупаемость всего 17,2 вместо 11,71, август 12,98 вместо 8,04. Так же на main с 532d5b850 (01.10): слияние не ухудшает, но G2 исправлен в одном модуле из двух читателей одной таблицы.",
+    "N3 (accuracy_3, accuracy_1): G5 закрыт для строк с днём, не для строк без дня. Мои фикстуры iter8 дословно (прошлые строки без d): F2 cpo_orders 150 против cpo_sku_daily 100, F3 20 против 100 (o2fz9.py). В data/cpo_orders.ndjson 1009 из 1009 строк без d, после сборщика 819 (июнь-август) остаются без d и заменяются по номеру заказа (build_order_joins.py:77). Запрос пишет «F1-F3 по твоим ожиданиям: 170, 100, 100» - верно только на фикстурах автора с d; decisions.md:6 пишет «заменяет окно периода, как cpo_sku_daily» без оговорки (спека ozon-cpc-card-spread.yaml:65 оговорку содержит). Инварианта Σcpo_orders = Σcpo_sku_daily нет, хотя сейчас они равны до копейки (4 323 198,65).",
+    "N4 (risk_23, insight_13): правило «(1) после оригинала» закрывает одно соглашение имён из пяти. o2fz9.py: «x(1).xlsx», «x-1.xlsx», «x 2.xlsx», «x copy.xlsx» сортируются раньше оригинала, берётся первое скачивание, 150 вместо 170 (cpo_raw.py:85). Альтернатива iter8 «отказ, если два файла с одним «Период:» расходятся по содержимому» класс закрывала, сравнение не записано. Смягчение: правило имени в спеке (ozon-cpc-card-spread.yaml:55).",
+    "N5 (accuracy_1): в запросе «cpo_raw_check.py 17/17», в файле 16 проверок (13 check + 3 refuses), прогон 16 OK, ПРОВАЛОВ 0. Второй раз подряд счётчик в отчёте автора расходится с прогоном (iter8: tsc 38 против 39).",
+    "N6 (insight_12): второй порядок нового пути ошибки не разобран. fzG: один заказ без отправлений (1 395 ₽, 0,03% списаний) прячет выручку и окупаемость «за заказ» и общую за июнь-сентябрь на обеих страницах. Выгрузка по сегодня даёт плашку до утреннего сбора orders_daily (orders-backfill.yml:14, 07:52 МСК); в порядке обновления спеки (ozon-cpc-card-spread.yaml:53-58) шага «выгрузка по вчера» нет. Self-check iter8 п.12, п.21, п.25 не обновлены после G3 и G5 («роняет всю сборку - это и есть цель», «данные data/ не менялись»); fwd9.mts: читатель iter8 на строках нового формата удваивает выручку (600 против 300), в данных таких заказов сейчас 0.",
+    "N7 (brand_20): тексты плашек. «1 заказов выгрузки» (fzG); «файлы выгрузки не разбираются (orders_daily.ndjson ...)» - orders_daily не выгрузка (fzJ); fzH называет 22421802 и «чья выгрузка», хотя пропал cpo_orders.ndjson; суммы в тексте cpoCampaign без разрядов (32716 ₽, 4323199 ₽) рядом с «178 425 ₽»; при отвергнутой выгрузке в подсказке ДРР остаётся «смотри их в кабинете OZON» (build-katya.ts:1740, N6b).",
+    "Перенос из iter8 без изменений: insight_15 (cross-domain нет), brand_18 (прочерк U+2014 в пустых ячейках, report-page.ts:345, под ошибкой таких ячеек больше), actionability_7 (N6b и G10 открыты третью итерацию без срока)."
+  ],
+  "rework_tz": "Следующая итерация, мерж не блокирует. 1) N1: под ошибкой выгрузки cpoCov «Отчета» (report-page.ts:361) = нет расхода «за заказ» ни в API, ни в выгрузке (!Math.round(s.cpoApiSp)&&!Math.round(s.cpoSp)); очистка REP.cpo, как build-katya.ts:1967, не годится - в fzB числа станут нулями, а не «нет данных»; тест на rpAdsSum/REPORT_JS с cpoErr. Приёмка: fuzz9.py fzB - на «Отчете» вид 2026-09 0 из 16 ячеек выгрузки с числом, вкладка без изменений. 2) N2 (отдельным коммитом, есть и на main): readNd «Отчета» (report-page.ts:28-30) - битая строка в ошибку и красную плашку блока, а не пустой ряд. Приёмка: fzK - плашка называет ads_daily.ndjson и строку, «окупаемость всего 17,2» без пометки не показывается. 3) N3: инвариант Σcpo_orders = Σcpo_sku_daily (с учётом строк без SKU) в cpoExportCampaign -> err, либо разовая перевыгрузка июня-августа (тогда строк без d не останется). Приёмка: o2fz8.py/o2fz9.py F2L, F3L - ошибка или 100/100. 4) N4: отказ сборщика, если два файла с одним «Период:» расходятся по содержимому (или имя вне шаблона YYYY-MM_cpo_orders( \\(N\\))?.xlsx - отказ). Приёмка: F1x 4 соглашения - не тихие 150. 5) N7: свой текст для «покрытие есть, списаний нет»; склонение «заказ/заказа/заказов»; orders_daily не называть выгрузкой; разряды в тексте cpoCampaign. 6) N5, N6: self-check п.12, п.21, п.25 под G3/G5, счётчик 16; шаг «выгрузка по вчера включительно» в порядок обновления; cpo_raw_check.py в analytics-tests.yml. 7) HITL: Иван - прятать выручку «за заказ» только в месяцах с ненайденными заказами вместо всех (fzG: 1 заказ прячет 4 месяца). Вне скоупа по решению: N6b, G10.",
+  "evidence_ledger": [
+    {
+      "gap": "N1 плашка «нет данных» и числа выгрузки на «Отчете» (fzB)",
+      "evidence": "fuzz9.py fzB + build9.sh + fx9_report.mjs + anrep9.py: 16 из 16 ячеек июнь-сентябрь с числами при плашке; report-page.ts:361, :76; build-katya.ts:1967; ozon-monthly-report.yaml:29-31",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -0.15
+    },
+    {
+      "gap": "N1 режим кризиса (кампании выгрузки нет в API) не отрабатывает на «Отчете»",
+      "evidence": "та же фикстура; вкладка в 8 из 8 периодов «н/д» и красная строка, «Отчет» - числа; тестов на cpoErr 0",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -0.05
+    },
+    {
+      "gap": "N2 битая строка ads_daily даёт пустой ряд «Отчета» без плашки (класс G2)",
+      "evidence": "fzK: rc 0, «реклама 0 дн», окупаемость всего сентябрь 17,2 вместо 11,71, август 12,98 вместо 8,04; report-page.ts:28-30; на main с 532d5b850",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -0.05
+    },
+    {
+      "gap": "N4 + fzH: правило имени ловит одно соглашение из пяти, ложный диагноз при пропаже cpo_orders",
+      "evidence": "o2fz9.py F1x 4 из 4 FAIL (150); cpo_raw.py:85; fzH «22421802 ... списаниями выгрузки 0 ₽ ... чья выгрузка»",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -0.05
+    },
+    {
+      "gap": "N3 decisions.md про G5 без оговорки о строках без дня",
+      "evidence": "decisions.md:6 «заменяет окно периода, как cpo_sku_daily»; real9.py: 819 из 1009 строк остаются без d; build_order_joins.py:77",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -0.1
+    },
+    {
+      "gap": "N3 «F1-F3 по твоим ожиданиям» верно только на фикстурах автора",
+      "evidence": "o2fz9.py F2L 150 против 100, F3L 20 против 100 (мои фикстуры iter8 дословно); cpo_raw_check.py:130-141 строит прошлое с d",
+      "checkpoint": "accuracy_1_figures_tagged",
+      "weight": -0.15
+    },
+    {
+      "gap": "N5 счётчик проверок в запросе",
+      "evidence": "запрос «17/17»; grep -c 'check(' = 14 (13 вызовов + def) + 3 refuses = 16; прогон 16 OK, ПРОВАЛОВ 0",
+      "checkpoint": "accuracy_1_figures_tagged",
+      "weight": -0.1
+    },
+    {
+      "gap": "N6 второй порядок пути ошибки не разобран",
+      "evidence": "fzG: 1 заказ, 1 395 ₽ (0,03%) -> июнь-сентябрь «нет данных» на двух страницах; orders-backfill.yml:14; ozon-cpc-card-spread.yaml:53-58 без шага «по вчера»; self-check iter8 п.12, п.21, п.25; fwd9.mts 600 против 300",
+      "checkpoint": "insight_12_second_order",
+      "weight": -0.2
+    },
+    {
+      "gap": "N4 альтернативы G4 и радиуса miss не сравнены",
+      "evidence": "iter8 rework п.4 (отказ при одном «Период:» и разном содержимом) не выбран без записи; decisions.md:6 записывает только выбранное; по miss нет сравнения «все месяцы» против «месяцы с ненайденными»",
+      "checkpoint": "insight_13_alternatives_analyzed",
+      "weight": -0.2
+    },
+    {
+      "gap": "CD нет cross-domain",
+      "evidence": "спеки, decisions.md 14.10 и запрос без отсылки к смежной практике (как iter7, iter8)",
+      "checkpoint": "insight_15_cross_domain",
+      "weight": -0.4
+    },
+    {
+      "gap": "N6b и G10 без срока третью итерацию",
+      "evidence": "iter7 N6b, G10 -> iter8 «вне скоупа» -> iter9 «вне скоупа»; срока в decisions.md 14.10 нет; свип FAILS 3 (G10)",
+      "checkpoint": "actionability_7_deadline_buffer",
+      "weight": -0.25
+    },
+    {
+      "gap": "EM прочерк U+2014 в пустых ячейках",
+      "evidence": "report-page.ts:345 rpRtd v==null? прочерк U+2014; fzC вид 2026-09: июнь, июль прочерк U+2014 в строках выгрузки",
+      "checkpoint": "brand_18_no_em_dash",
+      "weight": -0.15
+    },
+    {
+      "gap": "N7 тексты плашек",
+      "evidence": "fzG «1 заказов»; fzJ «файлы выгрузки ... orders_daily.ndjson»; fzH ложный диагноз; cpo-orders-rev.ts:54-55 суммы без разрядов; build-katya.ts:1740 «смотри их в кабинете OZON» при отвергнутой выгрузке",
+      "checkpoint": "brand_20_tone_audience",
+      "weight": -0.15
+    }
+  ],
+  "sources_of_truth": [
+    "analytics-mvp/data/ads_daily.ndjson, ads_30d.json, ads_periods.json (Performance API), orders_daily.ndjson (Seller API), cpo_orders.ndjson, cpo_sku_daily.ndjson - данные ветки, в 9ef5e2d3e не менялись",
+    "analytics-mvp/data/raw/ozon-cpo/2026-09_cpo_orders.xlsx («Период: 01.09.2026 - 30.09.2026», 190 заказов, 818 149,08)",
+    "сборки в песочницах git archive: p9 = 9ef5e2d3e, p8 = d07567852 (содержимое iter8), фикстуры fzA-fzK на коде p9; Chromium 1194",
+    "knowledge/episodes/2026-10/feniks-audit-ozon-report-cpo-iter8-20261014.md (критерии приёмки G1-G7), knowledge/episodes/2026-10/feniks-iter8-probes/o2fz8.py (фикстуры F1-F3)",
+    "knowledge/episodes/2026-10/selfcheck-ozon-report-cpo-o1-o3-20261014.md (self-check iter8, принят с отличиями из запроса по прецеденту iter6, iter7)",
+    ".github/workflows/deploy-pages.yml:101, orders-backfill.yml:14, analytics-tests.yml:54-55"
+  ],
+  "confidence": 0.86,
+  "telemetry": {
+    "model": "claude-opus-5-5"
+  }
+}

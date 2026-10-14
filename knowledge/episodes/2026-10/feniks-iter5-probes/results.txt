@@ -1,0 +1,166 @@
+## branch 814a861d data, 34 periods (+ Маркетинг)
+FLAG 2026-06-01..2026-06-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 BAD [['▾ 23613234закрыта Оплата ', 3, 59908, 61963], ['▾ 23613234закрыта Оплата ', 4, 0, 92113]]
+OK   2026-07-01..2026-07-31 dRek 49506 dPr -49506 dObs -49506 dPay 0 plashka 49506 dAdm -10640/-10640 
+OK   2026-08-01..2026-08-31 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 11720/11720 
+OK   2026-09-01..2026-09-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 15819/15819 
+OK   2026-10-01..2026-10-12 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-01..2026-07-15 dRek 31328 dPr -31328 dObs -31328 dPay 0 plashka 31328 dAdm -11105/-11104 
+OK   2026-07-16..2026-07-31 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 1744/1744 
+OK   2026-08-01..2026-08-15 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 2652/2652 
+OK   2026-08-16..2026-08-31 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 4031/4031 
+OK   2026-09-01..2026-09-15 dRek 8352 dPr -8352 dObs -8352 dPay 0 plashka 8352 dAdm -2506/-2506 
+OK   2026-09-16..2026-09-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 3587/3587 
+OK   2026-09-01..2026-09-07 dRek 6162 dPr -6162 dObs -6162 dPay 0 plashka 6162 dAdm -1848/-1849 
+OK   2026-09-08..2026-09-14 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-15..2026-09-21 dRek 1685 dPr -1685 dObs -1685 dPay 0 plashka 1685 dAdm -505/-505 
+OK   2026-09-22..2026-09-28 dRek 1678 dPr -1678 dObs -1678 dPay 0 plashka 1678 dAdm 0/0 
+OK   2026-08-29..2026-08-31 dRek 5260 dPr -5260 dObs -5260 dPay 0 plashka 5260 dAdm -1578/-1578 
+OK   2026-09-29..2026-10-05 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-10-01..2026-10-10 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-01..2026-09-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 19398/19398 
+OK   2026-08-15..2026-09-15 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm -2839/-2839 
+OK   2026-09-20..2026-10-10 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 2316/2316 
+FLAG 2026-06-15..2026-07-15 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm -1706/-1706 BAD [['▾ 28814800закрыта Оплата ', 3, 27780, 70615], ['▾ 28814800закрыта Оплата ', 4, 54393, 111760]]
+OK   2026-09-04..2026-09-04 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+FLAG 2026-06-01..2026-10-12 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 20167/20167 BAD [['▾ 23613234закрыта Оплата ', 3, 59908, 61963], ['▾ 23613234закрыта Оплата ', 4, 0, 92113]]
+OK   2026-08-31..2026-08-31 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-30..2026-09-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-25..2026-09-05 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-03..2026-07-05 dRek 13926 dPr -13926 dObs -13926 dPay 0 plashka 13926 dAdm -4177/-4178 
+OK   2026-08-03..2026-08-09 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-17..2026-08-23 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-20..2026-07-20 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-10..2026-08-10 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-10-05..2026-10-05 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+FLAG 2026-10-12..2026-10-12 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 NO ITOGO money=False tab=False rows money=1 tab=1
+{"periods": 34, "no_itogo": 1, "errs": 0, "pay_ne": 0, "rek_ne_plashka": 0, "rek_ne_minus_pr": 0, "same_flag_wrong": 0, "neg": 3, "neg_nonG10": 0, "bad": 3, "mk_cell_mismatch": 0, "cpo_mismatch": 0, "adm_ne_plashka": 0}
+columns that differ tab vs money at ITOGO (periods): {'Прочие': 8, 'Реклама': 8, 'АДМ 30%': 18, 'Чистая прибыль': 18}
+
+## branch data, 39 single days
+OK   2026-09-01..2026-09-01 dRek 1558 dPr -1558 dObs -1558 dPay 0 plashka 1558 dAdm -467/-467 
+OK   2026-09-02..2026-09-02 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-03..2026-09-03 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-05..2026-09-05 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-06..2026-09-06 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-07..2026-09-07 dRek 778 dPr -778 dObs -778 dPay 0 plashka 778 dAdm -233/-233 
+OK   2026-09-08..2026-09-08 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-09..2026-09-09 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-10..2026-09-10 dRek 225 dPr -225 dObs -225 dPay 0 plashka 225 dAdm -68/-67 
+OK   2026-09-11..2026-09-11 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-12..2026-09-12 dRek 1325 dPr -1325 dObs -1325 dPay 0 plashka 1325 dAdm -397/-397 
+OK   2026-09-13..2026-09-13 dRek 1318 dPr -1318 dObs -1318 dPay 0 plashka 1318 dAdm -395/-395 
+OK   2026-09-14..2026-09-14 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-15..2026-09-15 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-16..2026-09-16 dRek 1090 dPr -1090 dObs -1090 dPay 0 plashka 1090 dAdm -156/-157 
+OK   2026-09-17..2026-09-17 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-18..2026-09-18 dRek 902 dPr -902 dObs -902 dPay 0 plashka 902 dAdm -270/-271 
+OK   2026-09-19..2026-09-19 dRek 397 dPr -397 dObs -397 dPay 0 plashka 397 dAdm -119/-119 
+OK   2026-09-20..2026-09-20 dRek 244 dPr -244 dObs -244 dPay 0 plashka 244 dAdm -73/-73 
+OK   2026-09-21..2026-09-21 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-22..2026-09-22 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-23..2026-09-23 dRek 389 dPr -389 dObs -389 dPay 0 plashka 389 dAdm -117/-117 
+OK   2026-09-24..2026-09-24 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-25..2026-09-25 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-26..2026-09-26 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-27..2026-09-27 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-28..2026-09-28 dRek 238 dPr -238 dObs -238 dPay 0 plashka 238 dAdm -117/-117 
+OK   2026-09-29..2026-09-29 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-03..2026-07-03 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-10..2026-07-10 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-15..2026-07-15 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-25..2026-07-25 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-01..2026-08-01 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-05..2026-08-05 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-15..2026-08-15 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-20..2026-08-20 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-25..2026-08-25 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-10-01..2026-10-01 dRek 1073 dPr -1073 dObs -1073 dPay 0 plashka 1073 dAdm -322/-322 
+OK   2026-10-08..2026-10-08 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+{"periods": 39, "no_itogo": 0, "errs": 0, "pay_ne": 0, "rek_ne_plashka": 0, "rek_ne_minus_pr": 0, "same_flag_wrong": 0, "neg": 0, "neg_nonG10": 0, "bad": 0, "mk_cell_mismatch": 0, "cpo_mismatch": 0, "adm_ne_plashka": 0}
+columns that differ tab vs money at ITOGO (periods): {'Прочие': 12, 'Реклама': 12, 'АДМ 30%': 12, 'Чистая прибыль': 12}
+
+## origin/main 9839714e + branch, 34 periods (+ Маркетинг)
+FLAG 2026-06-01..2026-06-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 BAD [['▾ 23613234закрыта Оплата ', 3, 59908, 61963], ['▾ 23613234закрыта Оплата ', 4, 0, 92113]]
+OK   2026-07-01..2026-07-31 dRek 49506 dPr -49506 dObs -49506 dPay 0 plashka 49506 dAdm -10640/-10640 
+OK   2026-08-01..2026-08-31 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 11635/11636 
+OK   2026-09-01..2026-09-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 15819/15819 
+OK   2026-10-01..2026-10-12 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-01..2026-07-15 dRek 31328 dPr -31328 dObs -31328 dPay 0 plashka 31328 dAdm -11105/-11104 
+OK   2026-07-16..2026-07-31 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 1744/1744 
+OK   2026-08-01..2026-08-15 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 2614/2614 
+OK   2026-08-16..2026-08-31 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 4031/4031 
+OK   2026-09-01..2026-09-15 dRek 8352 dPr -8352 dObs -8352 dPay 0 plashka 8352 dAdm -2505/-2506 
+OK   2026-09-16..2026-09-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 3587/3587 
+OK   2026-09-01..2026-09-07 dRek 6162 dPr -6162 dObs -6162 dPay 0 plashka 6162 dAdm -1849/-1849 
+OK   2026-09-08..2026-09-14 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-15..2026-09-21 dRek 1685 dPr -1685 dObs -1685 dPay 0 plashka 1685 dAdm -505/-505 
+OK   2026-09-22..2026-09-28 dRek 1678 dPr -1678 dObs -1678 dPay 0 plashka 1678 dAdm 0/0 
+OK   2026-08-29..2026-08-31 dRek 5260 dPr -5260 dObs -5260 dPay 0 plashka 5260 dAdm -1578/-1578 
+OK   2026-09-29..2026-10-05 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-10-01..2026-10-10 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-01..2026-09-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 19352/19352 
+OK   2026-08-15..2026-09-15 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm -2839/-2839 
+OK   2026-09-20..2026-10-10 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 2317/2316 
+FLAG 2026-06-15..2026-07-15 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm -1706/-1706 BAD [['▾ 28814800закрыта Оплата ', 3, 27780, 70615], ['▾ 28814800закрыта Оплата ', 4, 54393, 111760]]
+OK   2026-09-04..2026-09-04 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+FLAG 2026-06-01..2026-10-12 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 20310/20310 BAD [['▾ 23613234закрыта Оплата ', 3, 59908, 61963], ['▾ 23613234закрыта Оплата ', 4, 0, 92113]]
+OK   2026-08-31..2026-08-31 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-09-30..2026-09-30 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-25..2026-09-05 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-03..2026-07-05 dRek 13926 dPr -13926 dObs -13926 dPay 0 plashka 13926 dAdm -4177/-4178 
+OK   2026-08-03..2026-08-09 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-17..2026-08-23 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-07-20..2026-07-20 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-08-10..2026-08-10 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+OK   2026-10-05..2026-10-05 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 
+FLAG 2026-10-12..2026-10-12 dRek 0 dPr 0 dObs 0 dPay 0 plashka 0 dAdm 0/0 NO ITOGO money=False tab=False rows money=1 tab=1
+{"periods": 34, "no_itogo": 1, "errs": 0, "pay_ne": 0, "rek_ne_plashka": 0, "rek_ne_minus_pr": 0, "same_flag_wrong": 0, "neg": 3, "neg_nonG10": 0, "bad": 3, "mk_cell_mismatch": 0, "cpo_mismatch": 0, "adm_ne_plashka": 0}
+columns that differ tab vs money at ITOGO (periods): {'Прочие': 8, 'Реклама': 8, 'АДМ 30%': 18, 'Чистая прибыль': 18}
+
+## cpo_probe br
+xlsx ['Период: 01.09.2026 - 30.09.2026'] rows 191 orders 190 line 15680512 sp 818149.08 n 201
+converter output == raw xlsx multiset: True 191 191
+rows without postings 0 date shifted 20 order date outside window []
+rows: xlsx line != sum same-SKU postings revenue (all statuses): 2 [('0175181255-0027', '3564837082', 5, 389500.0, 511400.0, ['delivered']), ('0175181255-0027', '3734276153', 1, 121900.0, 0, [])]
+rows with partially cancelled same-SKU postings: []
+cpo_orders rows 1009 dup orders 0 cpo_sku_daily coverage 2026-06-05 2026-09-30
+Sep orders: xlsx 190 cpo_orders (by min posting date) 190 xlsx-only [] cpo_orders-only []
+CPO spend Sep: API 818151.0 xlsx 818149.08
+2026-06-01 2026-06-30 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 30", "sp_win": 0, "sp_all": 1222698, "drr_all": null, "report_rule": 16068798, "report_rule_nocov": 16068798}
+2026-07-01 2026-07-31 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 31", "sp_win": 0, "sp_all": 1185190, "drr_all": null, "report_rule": 13146239, "report_rule_nocov": 13146239}
+2026-08-01 2026-08-31 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 31", "sp_win": 0, "sp_all": 1097160, "drr_all": null, "report_rule": 14072386, "report_rule_nocov": 14072386}
+2026-09-01 2026-09-30 {"tab_rev": 14073867, "tab_u": 178, "pst_rev": 14073867, "pst_u": 178, "drr_win": 5.8, "days": "30 из 30", "sp_win": 818151, "sp_all": 818151, "drr_all": 5.8, "report_rule": 14073867, "report_rule_nocov": 14073867}
+2026-10-01 2026-10-12 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 12", "sp_win": 0, "sp_all": 310840, "drr_all": null, "report_rule": null, "report_rule_nocov": 0}
+2026-07-01 2026-07-15 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 15", "sp_win": 0, "sp_all": 481405, "drr_all": null, "report_rule": 5162861, "report_rule_nocov": 5162861}
+2026-07-16 2026-07-31 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 16", "sp_win": 0, "sp_all": 703785, "drr_all": null, "report_rule": 7983378, "report_rule_nocov": 7983378}
+2026-08-01 2026-08-15 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 15", "sp_win": 0, "sp_all": 657694, "drr_all": null, "report_rule": 7616054, "report_rule_nocov": 7616054}
+2026-08-16 2026-08-31 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 16", "sp_win": 0, "sp_all": 439466, "drr_all": null, "report_rule": 6456332, "report_rule_nocov": 6456332}
+2026-09-01 2026-09-15 {"tab_rev": 6341194, "tab_u": 77, "pst_rev": 6341194, "pst_u": 77, "drr_win": 6.0, "days": "15 из 15", "sp_win": 380878, "sp_all": 380878, "drr_all": 6.0, "report_rule": 6341194, "report_rule_nocov": 6341194}
+2026-09-16 2026-09-30 {"tab_rev": 7732673, "tab_u": 101, "pst_rev": 7732673, "pst_u": 101, "drr_win": 5.7, "days": "15 из 15", "sp_win": 437273, "sp_all": 437273, "drr_all": 5.7, "report_rule": 7732673, "report_rule_nocov": 7732673}
+2026-09-01 2026-09-07 {"tab_rev": 2162340, "tab_u": 25, "pst_rev": 2162340, "pst_u": 25, "drr_win": 6.9, "days": "7 из 7", "sp_win": 149734, "sp_all": 149734, "drr_all": 6.9, "report_rule": 2162340, "report_rule_nocov": 2162340}
+2026-09-08 2026-09-14 {"tab_rev": 3715005, "tab_u": 46, "pst_rev": 3715005, "pst_u": 46, "drr_win": 5.6, "days": "7 из 7", "sp_win": 208973, "sp_all": 208973, "drr_all": 5.6, "report_rule": 3715005, "report_rule_nocov": 3715005}
+2026-09-15 2026-09-21 {"tab_rev": 3104694, "tab_u": 39, "pst_rev": 3104694, "pst_u": 39, "drr_win": 5.2, "days": "7 из 7", "sp_win": 161877, "sp_all": 161877, "drr_all": 5.2, "report_rule": 3104694, "report_rule_nocov": 3104694}
+2026-09-22 2026-09-28 {"tab_rev": 3947869, "tab_u": 52, "pst_rev": 3947869, "pst_u": 52, "drr_win": 5.9, "days": "7 из 7", "sp_win": 233695, "sp_all": 233695, "drr_all": 5.9, "report_rule": 3947869, "report_rule_nocov": 3947869}
+2026-08-29 2026-08-31 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 3", "sp_win": 0, "sp_all": 59226, "drr_all": null, "report_rule": 776885, "report_rule_nocov": 776885}
+2026-09-29 2026-10-05 {"tab_rev": 1143959, "tab_u": 16, "pst_rev": 1143959, "pst_u": 16, "drr_win": 5.6, "days": "2 из 7", "sp_win": 63872, "sp_all": 185658, "drr_all": 16.2, "report_rule": null, "report_rule_nocov": 1143959}
+2026-10-01 2026-10-10 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 10", "sp_win": 0, "sp_all": 310840, "drr_all": null, "report_rule": null, "report_rule_nocov": 0}
+2026-07-01 2026-09-30 {"tab_rev": 14073867, "tab_u": 178, "pst_rev": 14073867, "pst_u": 178, "drr_win": 5.8, "days": "30 из 92", "sp_win": 818151, "sp_all": 3100501, "drr_all": 22.0, "report_rule": 41292492, "report_rule_nocov": 41292492}
+2026-08-15 2026-09-15 {"tab_rev": 6341194, "tab_u": 77, "pst_rev": 6341194, "pst_u": 77, "drr_win": 6.0, "days": "15 из 32", "sp_win": 380878, "sp_all": 843573, "drr_all": 13.3, "report_rule": 13374651, "report_rule_nocov": 13374651}
+2026-09-20 2026-10-10 {"tab_rev": 6356687, "tab_u": 82, "pst_rev": 6356687, "pst_u": 82, "drr_win": 5.7, "days": "11 из 21", "sp_win": 360310, "sp_all": 671150, "drr_all": 10.6, "report_rule": null, "report_rule_nocov": 6356687}
+2026-06-15 2026-07-15 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 31", "sp_win": 0, "sp_all": 1415587, "drr_all": null, "report_rule": 16603867, "report_rule_nocov": 16603867}
+2026-09-04 2026-09-04 {"tab_rev": 862053, "tab_u": 9, "pst_rev": 862053, "pst_u": 9, "drr_win": 6.0, "days": "1 из 1", "sp_win": 51636, "sp_all": 51636, "drr_all": 6.0, "report_rule": 862053, "report_rule_nocov": 862053}
+2026-06-01 2026-10-12 {"tab_rev": 14073867, "tab_u": 178, "pst_rev": 14073867, "pst_u": 178, "drr_win": 5.8, "days": "30 из 134", "sp_win": 818151, "sp_all": 4634039, "drr_all": 32.9, "report_rule": null, "report_rule_nocov": 57361290}
+2026-08-31 2026-08-31 {"tab_rev": 0, "tab_u": 0, "pst_rev": 0, "pst_u": 0, "drr_win": null, "days": "0 из 1", "sp_win": 0, "sp_all": 17046, "drr_all": null, "report_rule": 79203, "report_rule_nocov": 79203}
+2026-09-30 2026-09-30 {"tab_rev": 367841, "tab_u": 5, "pst_rev": 367841, "pst_u": 5, "drr_win": 8.6, "days": "1 из 1", "sp_win": 31816, "sp_all": 31816, "drr_all": 8.6, "report_rule": 367841, "report_rule_nocov": 367841}
+2026-08-25 2026-09-05 {"tab_rev": 1719567, "tab_u": 18, "pst_rev": 1719567, "pst_u": 18, "drr_win": 6.6, "days": "5 из 12", "sp_win": 113177, "sp_all": 240167, "drr_all": 14.0, "report_rule": 3717238, "report_rule_nocov": 3717238}
+
+## conv_probe
+c0 base {"rc": 0, "rows": 191, "rev": 15680512.0, "sp": 818149.08, "n": 201, "win": [["2026-09-01", "2026-09-30"]], "msg": "-> /tmp/claude-0/-home-user-t1/14242375-b0a2-5b30-b172-6a38ff5cb418/scratchpad/conv/c0/analytics-mvp/data/cpo_card_orders.ndjson 191 окна [['2026-09-01', '2026-", "cut_row7_sp": 8533}
+c1 reexport after {"rc": 0, "rows": 191, "rev": 15680512.0, "sp": 809616.08, "n": 201, "win": [["2026-09-01", "2026-09-30"]], "msg": "-> /tmp/claude-0/-home-user-t1/14242375-b0a2-5b30-b172-6a38ff5cb418/scratchpad/conv/c1/analytics-mvp/data/cpo_card_orders.ndjson 191 окна [['2026-09-01', '2026-"}
+c2 reexport sorts before {"rc": 0, "rows": 191, "rev": 15680512.0, "sp": 818149.08, "n": 201, "win": [["2026-09-01", "2026-09-30"]], "msg": "-> /tmp/claude-0/-home-user-t1/14242375-b0a2-5b30-b172-6a38ff5cb418/scratchpad/conv/c2/analytics-mvp/data/cpo_card_orders.ndjson 191 окна [['2026-09-01', '2026-"}
+c3 row outside window {"rc": 1, "rows": 0, "rev": 0, "sp": 0, "n": 0, "win": null, "msg": "2026-09_cpo_orders.xlsx: строка 2026-10-05 вне окна 2026-09-01..2026-09-30"}
+c4 line != price*qty {"rc": 1, "rows": 0, "rev": 0, "sp": 0, "n": 0, "win": null, "msg": "2026-09_cpo_orders.xlsx: заказ 26180071-0358: Стоимость 79400.0 != 78900.0 × 1"}
+c5 no period line {"rc": 1, "rows": 0, "rev": 0, "sp": 0, "n": 0, "win": null, "msg": "нет строки «Период: дд.мм.гггг - дд.мм.гггг»: 2026-09_cpo_orders.xlsx"}
+c6 consistent qty edit {"rc": 0, "rows": 191, "rev": 15802412.0, "sp": 818149.08, "n": 202, "win": [["2026-09-01", "2026-09-30"]], "msg": "-> /tmp/claude-0/-home-user-t1/14242375-b0a2-5b30-b172-6a38ff5cb418/scratchpad/conv/c6/analytics-mvp/data/cpo_card_orders.ndjson 191 окна [['2026-09-01', '2026-"}
+c7 duplicate row in one file {"rc": 0, "rows": 192, "rev": 15758412.0, "sp": 822044.08, "n": 202, "win": [["2026-09-01", "2026-09-30"]], "msg": "-> /tmp/claude-0/-home-user-t1/14242375-b0a2-5b30-b172-6a38ff5cb418/scratchpad/conv/c7/analytics-mvp/data/cpo_card_orders.ndjson 192 окна [['2026-09-01', '2026-"}
+c8 adjacent october window {"rc": 0, "rows": 192, "rev": 15758412.0, "sp": 822044.08, "n": 202, "win": [["2026-09-01", "2026-09-30"], ["2026-10-01", "2026-10-12"]], "msg": "-> /tmp/claude-0/-home-user-t1/14242375-b0a2-5b30-b172-6a38ff5cb418/scratchpad/conv/c8/analytics-mvp/data/cpo_card_orders.ndjson 192 окна [['2026-09-01', '2026-"}

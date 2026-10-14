@@ -143,16 +143,45 @@ def md_table(after):
         if not set(L[i]) <= set('|- '): rows.append([c.strip() for c in L[i].strip('|').split('|')])
         i += 1
     return rows
+import re as _re
+GRN, REDF, YLW = PatternFill('solid', fgColor='C6EFCE'), PatternFill('solid', fgColor='FFC7CE'), PatternFill('solid', fgColor='FFEB9C')
+def verdict(cell):
+    nums = [float(x.replace(',', '.')) for x in _re.findall(r'\d+,\d+|\d+', str(cell or ''))]
+    if not nums: return 'НЕТ', REDF
+    nums = nums[:3]
+    if len(nums) == 3:                                          # плохо / средне / хорошо
+        lo, mid, hi = nums
+        return ('ДА, при всех 5 условиях выше', GRN) if mid >= 20 else ('ТОЛЬКО В ЛУЧШЕМ СЛУЧАЕ, в среднем нет', YLW) if hi >= 20 else ('НЕТ', REDF)
+    if min(nums) >= 20: return 'ДА, при всех 5 условиях выше', GRN
+    return ('НА ГРАНИ, при всех 5 условиях', YLW) if max(nums) >= 20 else ('ПОЧТИ, не хватает', YLW) if max(nums) >= 17 else ('НЕТ', REDF)
 ws = wb.create_sheet('Пути к 20 млн')
-ws.append(['Пути к «К выплате» 20 млн в месяц (записка 14.10, проверена ФЕНИКСОМ). Сейчас 8,0 млн (сентябрь). 20 млн = оборот 52-54 млн, 680-700 заказов в месяц (сейчас 271, рекорд апреля 581).'])
+ws.append(['ИТОГ: 20 млн «К выплате» сейчас НЕ МОЖЕМ. Нужно в 2,5 раза больше заказов (680-700 в месяц против 271-294). Наш план на ноябрь: 11,5 млн (7,9 ... 16,2).'])
+for c in ws[ws.max_row][:1]: c.font = Font(bold=True, size=13, color='9C0006'); c.fill = REDF
+ws.append([])
+ws.append(['ЧТО НУЖНО ДЛЯ 20 МЛН (все условия вместе)', 'Сейчас', 'Можем?'])
+for c in ws[ws.max_row][:3]: c.font = Font(bold=True, color='FFFFFF'); c.fill = PatternFill('solid', fgColor='1F4E78')
+for cond, now, can, f_ in (
+        ('1. Заказов 680-720 в месяц (как весной)', '271-294', 'НЕТ - главное условие; разбор падения: заказы упали после роста цен и снятия рекламы летом', REDF),
+        ('2. Цена штуки около 77 тыс. (как осенью)', 'около 77 тыс.', 'ДА', GRN),
+        ('3. Реклама не больше нынешней доли оборота', '7-10%', 'ДА - управляем сами', GRN),
+        ('4. Дешёвый клик на 100+ товарах', '62 товара с 15.10', 'ЧАСТИЧНО - начинаем, расширяем после проверки 29.10', YLW),
+        ('5. Комиссия OZON как в июле-сентябре (47,8%)', '50,8% в октябре', 'НЕТ - от нас не зависит; каждый пункт = -0,53 млн', REDF)):
+    ws.append([cond, now, can])
+    ws.cell(ws.max_row, 3).fill = f_; ws.cell(ws.max_row, 3).font = Font(bold=True)
+ws.append([])
+ws.append(['Подробно: пути к «К выплате» 20 млн в месяц (записка 14.10, проверена ФЕНИКСОМ). Сейчас 8,0 млн (сентябрь). 20 млн = оборот 52-54 млн, 680-700 заказов в месяц (сейчас 271, рекорд апреля 581).'])
 ws.append(['Две колонки в каждой ячейке: «средн.» - расходы как в июле-сентябре / «сент.» - как в сентябре. Все пути - [ГИПОТЕЗА].'])
 ws.append([])
 start = ws.max_row + 1
-for r in md_table('## Пути'): ws.append(r)
+for i, r in enumerate(md_table('## Пути')):
+    ws.append(r + (['Даёт 20 млн?'] if i == 0 else [verdict(r[2])[0]]))
+    if i: ws.cell(ws.max_row, len(r) + 1).fill = verdict(r[2])[1]; ws.cell(ws.max_row, len(r) + 1).font = B
 for c in ws[start]: c.font = B; c.fill = H
 ws.append([]); ws.append(['Комбинации']); ws.cell(ws.max_row, 1).font = B
 start = ws.max_row + 1
-for r in md_table('## Комбинации'): ws.append(r)
+for i, r in enumerate(md_table('## Комбинации')):
+    ws.append(r + (['Даёт 20 млн?'] if i == 0 else [verdict(r[4])[0]]))
+    if i: ws.cell(ws.max_row, len(r) + 1).fill = verdict(r[4])[1]; ws.cell(ws.max_row, len(r) + 1).font = B
 for c in ws[start]: c.font = B; c.fill = H
 ws.append([])
 for t_ in ('Вывод записки: 20 млн выходят только в варианте А, и он держится на пяти условиях, которых вместе не было: весенние 580-720 заказов в месяц, осенняя цена штуки около 77 тыс., реклама не больше нынешней, дешёвый клик на 100 товаров, комиссия OZON как в июле-сентябре.',
@@ -162,7 +191,6 @@ for t_ in ('Вывод записки: 20 млн выходят только в 
     ws.append([t_])
 for row in ws.iter_rows():
     for c in row: c.alignment = Alignment(wrap_text=True, vertical='top')
-for col, w in zip('ABCDEFG', (40, 40, 16, 12, 18, 18, 16)): ws.column_dimensions[col].width = w
-ws.cell(1, 1).font = Font(bold=True, size=12)
+for col, w in zip('ABCDEFGH', (46, 40, 30, 14, 18, 18, 16, 22)): ws.column_dimensions[col].width = w
 wb.save(OUT)
 print('топ', TOP, 'мин.клик', n_min, {sc: (round(t[sc]['units']), round(t[sc]['prof'] / 1e3)) for sc in F.SCN})

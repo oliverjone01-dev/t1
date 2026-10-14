@@ -52,6 +52,8 @@ LAST7 = '2026-10-10'
 active = lambda c: c['last'] >= LAST7                            # расход в последние 2 дня окна = кампания идёт
 clk0 = sum(c['sp'] for c in camp.values()) / WEEKS
 
+AVG_P = rev / sum(U_all.values())                              # средняя цена заказа окна - для кампаний без товара в модели
+AVG_KEEP = S.median(r['keep'] for r in rows.values() if U[r['sku']])
 def sh(nom): return SH9 if (nom > 0.05 and SH9 is not None) else SH
 def pi(r, p, nom, s):          # прибыль с заказа без клика, ₽
     return r['keep'] * p - nom * sh(nom) * p - r['cogs'] - r['shipn'] - TAX * p * s * PAY
@@ -71,7 +73,7 @@ def wk_rate(c):
     return 1 / WEEKS
 def clicks(keep_ids, k):
     """расход за клик в неделю и потерянные заказы x прибыль, если кампании вне keep_ids урезать до минимума"""
-    sp = 0; lost = 0; lost_pi = 0
+    sp = 0; lost = 0; lost_pi = 0; lost_turn = 0; lost_pay = 0      # оборот и К выплате потерянных заказов (G3 v7)
     for cid, c in camp.items():
         w = c['sp'] * wk_rate(c)
         if cid in keep_ids: sp += w; continue
@@ -79,7 +81,9 @@ def clicks(keep_ids, k):
         sp += new
         dl = c['o'] * wk_rate(c) * (1 - (new / w) ** E_SP) * k if w > 0 else 0
         lost += dl; lost_pi += dl * camp_pi(c)[0]
-    return sp, lost, lost_pi
+        s_ = art2sku.get(c['off']); pr = rows[s_]['p0'] if s_ else AVG_P; kp = rows[s_]['keep'] if s_ else AVG_KEEP
+        lost_turn += dl * pr; lost_pay += dl * kp * pr
+    return sp, lost, lost_pi, lost_turn, lost_pay
 
 def run(var, sc, eps=None, m9=None, cut=None, keep=None):
     eps = EPS[sc] if eps is None else eps; k, d9, xf = K_CLK[sc], D9[sc], XFER[sc]; m9 = M9[sc] if m9 is None else m9
@@ -95,12 +99,13 @@ def run(var, sc, eps=None, m9=None, cut=None, keep=None):
         if var == 'В2': nom = 0.09; s = r['s'] * (1 + d9); u *= (1 + d9) ** eps * (1 + m9)
         p0pi = pi(r, r['p0'], 0.05, r['s'])
         prof += u * pi(r, p, nom, s) - steal * p0pi; prof_adm += u * pi_adm(r, p, nom, s) - steal * pi_adm(r, r['p0'], 0.05, r['s'])
-        units -= steal
+        units -= steal; turn -= steal * r['p0']; pay -= steal * r['keep'] * r['p0']   # переток: оборот соседей тоже теряем (G3 v7)
         units += u; turn += u * p; cpo += u * nom * sh(nom) * p; pay += u * r['keep'] * p
     # В0 - как сейчас: идущие кампании на своём бюджете (G3 ФЕНИКСА); остановленные до 10.10 выключены во всех вариантах
     if keep is None:
         keep = {k_ for k_, c in camp.items() if active(c)} if var == 'В0' else (SEL if var == 'В1' else set())  # В1б, Вк, В2 - весь клик минимум
-    sp, lost, lost_pi = clicks(keep, k)
+    sp, lost, lost_pi, lost_turn, lost_pay = clicks(keep, k)
+    turn -= lost_turn; pay -= lost_pay
     prof -= sp + lost_pi; prof_adm -= sp + lost_pi              # потерянные заказы клика - по прибыли без АДМ в обеих строках
     return dict(prof=prof * H, prof_adm=prof_adm * H, units=(units - lost) * H, turn=turn * H, clk=sp * H, cpo=cpo * H,
                 drr=(sp + cpo) / turn, lost=lost * H, pay=pay * H)

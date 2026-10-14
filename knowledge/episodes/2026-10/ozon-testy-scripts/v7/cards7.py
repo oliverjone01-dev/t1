@@ -102,6 +102,19 @@ def bad_month(lvl, top=10):
         w = sp + sp2; loss += w * 2 + pois_sf(threshold(c), 2 * c['u_wk']) * w * (MO - 2)
     return -loss
 
+# ---------- решение по каждой идущей кампании (одно правило для всех листов)
+import plan7 as _P
+def campaign_action(cid, lvl, top=10):
+    """'main' - главный товар, клик до lvl; 'min' - на минимум 15.10; 'keep' - оставляем"""
+    mains = {c['main'] for c in cards[:top]}
+    t = _P.tempo(cid); off = F.camp[cid]['off'] if cid in F.camp else ''
+    if F.art2sku.get(off) in mains: return 'main', t
+    return ('min', t) if t > 2500 else ('keep', t)
+def cut_saving(lvl, top=10):
+    """экономия в месяц от перевода кампаний 'min' на 2 000 ₽/нед, по темпу 08-11.10"""
+    cs = [c for c in _P.ACTIVE if campaign_action(c, lvl, top)[0] == 'min']
+    return len(cs), sum(_P.tempo(c) - F.MIN_WK for c in cs) * MO
+
 if __name__ == '__main__':
     out = dict(cards=cards, tot={})
     print(f'карточек с показами: {len(cards)}; заказов в неделю у них {sum(c["u_wk"] for c in cards):.1f}; '

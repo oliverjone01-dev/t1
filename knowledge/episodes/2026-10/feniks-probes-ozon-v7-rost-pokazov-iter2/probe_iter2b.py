@@ -46,7 +46,7 @@ for ws in wb.worksheets:
         for c in row:
             v = c.value
             if not isinstance(v, str): continue
-            for key in ('—', '{', 'около', 'олна 2', '10.11', 'итог', 'Эластичн', 'без отмен', '7 кампаний', 'отмен'):
+            for key in (chr(0x2014), '{', 'около', 'олна 2', '10.11', 'итог', 'Эластичн', 'без отмен', '7 кампаний', 'отмен'):
                 if key in v: cnt[(ws.title, key)] += 1
             if 'олна 2' in v or '10.11' in v or 'без отмен' in v or 'Эластичн' in v:
                 print(f'  [{ws.title}!{c.coordinate}] {v[:170]}')

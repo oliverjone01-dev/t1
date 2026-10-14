@@ -83,7 +83,7 @@ def clicks(keep_ids, k):
 
 def run(var, sc, eps=None, m9=None, cut=None, keep=None):
     eps = EPS[sc] if eps is None else eps; k, d9, xf = K_CLK[sc], D9[sc], XFER[sc]; m9 = M9[sc] if m9 is None else m9
-    prof = 0; prof_adm = 0; units = 0; turn = 0; cpo = 0
+    prof = 0; prof_adm = 0; units = 0; turn = 0; cpo = 0; pay = 0
     for sku, r in rows.items():
         u = U[sku] / WEEKS
         if not u: continue
@@ -96,14 +96,14 @@ def run(var, sc, eps=None, m9=None, cut=None, keep=None):
         p0pi = pi(r, r['p0'], 0.05, r['s'])
         prof += u * pi(r, p, nom, s) - steal * p0pi; prof_adm += u * pi_adm(r, p, nom, s) - steal * pi_adm(r, r['p0'], 0.05, r['s'])
         units -= steal
-        units += u; turn += u * p; cpo += u * nom * sh(nom) * p
+        units += u; turn += u * p; cpo += u * nom * sh(nom) * p; pay += u * r['keep'] * p
     # В0 - как сейчас: идущие кампании на своём бюджете (G3 ФЕНИКСА); остановленные до 10.10 выключены во всех вариантах
     if keep is None:
         keep = {k_ for k_, c in camp.items() if active(c)} if var == 'В0' else (SEL if var == 'В1' else set())  # В1б, Вк, В2 - весь клик минимум
     sp, lost, lost_pi = clicks(keep, k)
     prof -= sp + lost_pi; prof_adm -= sp + lost_pi              # потерянные заказы клика - по прибыли без АДМ в обеих строках
     return dict(prof=prof * H, prof_adm=prof_adm * H, units=(units - lost) * H, turn=turn * H, clk=sp * H, cpo=cpo * H,
-                drr=(sp + cpo) / turn, lost=lost * H)
+                drr=(sp + cpo) / turn, lost=lost * H, pay=pay * H)
 
 def per_article():
     out = []

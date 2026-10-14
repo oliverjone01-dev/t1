@@ -2,19 +2,19 @@
  "sources": {
   "keysso": {
    "status": "genglass: error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план. · glass-memory: error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.",
-   "date": "2026-10-13",
+   "date": "2026-10-14",
    "requests_used": 2,
    "limit": 3000,
    "pending_rid": {}
   },
   "metrika": {
    "status": "genglass: ok · glass-memory: no-counter (заполни metrika_counter в config/projects.json)",
-   "date": "2026-10-13"
+   "date": "2026-10-14"
   },
   "direct": {
    "status": "genglass: error: Директ HTTP 204  · glass-memory: error: Директ HTTP 204 ",
-   "date": "2026-10-13"
+   "date": "2026-10-14"
   }
  },
- "updated": "2026-10-13"
+ "updated": "2026-10-14"
 }

@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-10-13",
+ "measured": "2026-10-14",
  "visits_30d": [
-  {
-   "date": "2026-09-13",
-   "visits": 393,
-   "search_visits": 77
-  },
   {
    "date": "2026-09-14",
    "visits": 432,
@@ -144,27 +139,32 @@
   },
   {
    "date": "2026-10-11",
-   "visits": 47,
-   "search_visits": 8
+   "visits": 515,
+   "search_visits": 87
   },
   {
    "date": "2026-10-12",
-   "visits": 0,
-   "search_visits": 0
+   "visits": 406,
+   "search_visits": 60
+  },
+  {
+   "date": "2026-10-13",
+   "visits": 37,
+   "search_visits": 2
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 35
-  },
-  {
-   "phrase": "генгласс",
-   "visits": 24
+   "visits": 37
   },
   {
    "phrase": "genglass",
-   "visits": 23
+   "visits": 25
+  },
+  {
+   "phrase": "генгласс",
+   "visits": 25
   },
   {
    "phrase": "genglass.ru",
@@ -175,16 +175,20 @@
    "visits": 9
   },
   {
-   "phrase": "genglass официальный",
-   "visits": 6
+   "phrase": "генгласс зеркала",
+   "visits": 7
   },
   {
-   "phrase": "генгласс зеркала",
+   "phrase": "genglass официальный",
    "visits": 6
   },
   {
    "phrase": "джен гласс",
    "visits": 6
+  },
+  {
+   "phrase": "генгласс столы",
+   "visits": 5
   },
   {
    "phrase": "дженгласс ру",
@@ -195,19 +199,11 @@
    "visits": 4
   },
   {
-   "phrase": "генгласс столы",
-   "visits": 4
-  },
-  {
    "phrase": "интернет магазин зеркало в раме",
    "visits": 4
   },
   {
    "phrase": "межкомнатные перегородки",
-   "visits": 4
-  },
-  {
-   "phrase": "стол на заказ",
    "visits": 4
   },
   {
@@ -228,6 +224,10 @@
   },
   {
    "phrase": "изготовление столов на заказ",
+   "visits": 3
+  },
+  {
+   "phrase": "стол на заказ",
    "visits": 3
   },
   {
@@ -255,10 +255,6 @@
    "visits": 2
   },
   {
-   "phrase": "Консоль Violur",
-   "visits": 2
-  },
-  {
    "phrase": "виды перегородок",
    "visits": 2
   },
@@ -275,7 +271,15 @@
    "visits": 2
   },
   {
+   "phrase": "зеркало на заказ по индивидуальным размерам",
+   "visits": 2
+  },
+  {
    "phrase": "зеркало на штанге",
+   "visits": 2
+  },
+  {
+   "phrase": "купить опоры для туалетного стола золото изогнутое",
    "visits": 2
   },
   {
@@ -303,7 +307,7 @@
    "visits": 2
   },
   {
-   "phrase": "перегородки гармошка",
+   "phrase": "перегородка реечная",
    "visits": 2
   },
   {
@@ -312,6 +316,10 @@
   },
   {
    "phrase": "перегородки стеклянные",
+   "visits": 2
+  },
+  {
+   "phrase": "раздвижная перегородка",
    "visits": 2
   },
   {
@@ -345,64 +353,56 @@
   {
    "phrase": "стол раздвижной обеденный konux d100/180 х 100см, бронзовый/экошпон",
    "visits": 2
-  },
-  {
-   "phrase": "столы на заказ",
-   "visits": 2
-  },
-  {
-   "phrase": "столы под заказ",
-   "visits": 2
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 440
+   "visits": 453
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 88
+   "visits": 92
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 83
+   "visits": 80
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 71
+   "visits": 77
   },
   {
    "url": "/product-category/tables/",
-   "visits": 63
+   "visits": 66
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 63
+   "visits": 62
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 49
-  },
-  {
-   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 44
+   "visits": 51
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 44
+   "visits": 46
+  },
+  {
+   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
+   "visits": 43
+  },
+  {
+   "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
+   "visits": 39
+  },
+  {
+   "url": "/product-category/tables/kitchen-tables/",
+   "visits": 39
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
    "visits": 37
-  },
-  {
-   "url": "/product-category/tables/kitchen-tables/",
-   "visits": 37
-  },
-  {
-   "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami/",
-   "visits": 34
   },
   {
    "url": "/product-category/steklyannye-doski/",
@@ -414,35 +414,35 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 28
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 27
+   "visits": 29
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
-   "visits": 26
+   "visits": 27
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
    "visits": 26
   },
   {
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
+   "visits": 26
+  },
+  {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
-   "visits": 24
+   "visits": 22
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
    "visits": 22
   },
   {
-   "url": "/product-category/mezhkomnatnye-peregorodki/",
-   "visits": 20
+   "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
+   "visits": 21
   },
   {
-   "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera/",
-   "visits": 19
+   "url": "/product-category/mezhkomnatnye-peregorodki/",
+   "visits": 21
   },
   {
    "url": "/blog/peregorodka-i-natyazhnoj-potolok-chto-predusmotret-do-montazha/",
@@ -450,7 +450,7 @@
   },
   {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-   "visits": 18
+   "visits": 19
   },
   {
    "url": "/magnitno-markernie-doski-na-zakaz/",
@@ -458,6 +458,10 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-s-dveryu/",
+   "visits": 16
+  },
+  {
+   "url": "/product-category/mezhkomnatnye-peregorodki/peregorodki-garmoshka/",
    "visits": 16
   },
   {
@@ -471,13 +475,9 @@
   {
    "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
    "visits": 15
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-dlya-zonirovaniya-komnaty/",
-   "visits": 14
   }
  ],
  "goals": [],
- "bounce_rate": 14.5,
- "depth": 2.6
+ "bounce_rate": 14.3,
+ "depth": 2.7
 }

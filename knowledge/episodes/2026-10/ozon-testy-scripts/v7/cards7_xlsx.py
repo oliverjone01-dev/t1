@@ -5,7 +5,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE); sys
 import cards7 as K, forecast as F
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-OUT = sys.argv[1]; TOP = 10; LVL = 10000
+OUT = sys.argv[1]; TOP = 10; LVL = 20000                      # 20 000 - решение Ивана 14.10 («ограничений нет»)
 B = Font(bold=True); H = PatternFill('solid', fgColor='DDEBF7'); G = PatternFill('solid', fgColor='E2EFDA'); Y = PatternFill('solid', fgColor='FFF2CC')
 thin = Side(style='thin', color='BBBBBB')
 def fmt(ws, widths, head_row=1):
@@ -14,7 +14,7 @@ def fmt(ws, widths, head_row=1):
         for c in row: c.alignment = Alignment(wrap_text=True, vertical='top')
     for i, w in enumerate(widths): ws.column_dimensions[chr(65 + i)].width = w
 t = {sc: K.total(LVL, sc, TOP) for sc in F.SCN}
-t2 = {sc: K.total(20000, sc, TOP) for sc in F.SCN}
+t2 = {sc: K.total(10000, sc, TOP) for sc in F.SCN}
 ta = {sc: K.total(LVL, sc, None) for sc in F.SCN}
 U0 = 286; T0 = 20.4; P0 = 8.0                                  # сейчас в месяц: заказов без отмен, оборот по нашей цене (модель v5, база 4 недель), «К выплате» сентября «Отчета»
 mln = lambda x: f'{x / 1e6:+.1f} млн'; th = lambda x: f'{x / 1e3:+,.0f} тыс.'.replace(',', ' ')
@@ -48,9 +48,9 @@ rows = [
     ['Хорошо: показ рекламы продаёт как обычный; минимальный клик +0,55 заказа в неделю на товар (тест 1, 7 товаров за 23 дня).'],
     ['Главный риск: тест 1 - это 7 товаров и 23 дня, а здесь он перенесён на ' + str(n_min) + ' товаров. Поэтому проверка через 2 недели и откат обязательны.'],
     [],
-    ['Если поднять клик главных товаров до 20 000 ₽: заказов +' + f'{t2["средний"]["units"]:.0f} (средне), прибыль ' + th(t2['средний']['prof']) + ', в плохом ' + th(t2['низкий']['prof']) + '. Если сразу на все 35 карточек (10 000): заказов +' + f'{ta["средний"]["units"]:.0f}, прибыль ' + th(ta['средний']['prof']) + ', в плохом ' + th(ta['низкий']['prof']) + '.'],
+    ['Для сравнения, клик главных товаров 10 000 ₽: заказов +' + f'{t2["средний"]["units"]:.0f} (средне), прибыль ' + th(t2['средний']['prof']) + ', в плохом ' + th(t2['низкий']['prof']) + '. Если сразу на все 35 карточек: заказов +' + f'{ta["средний"]["units"]:.0f}, прибыль ' + th(ta['средний']['prof']) + ', в плохом ' + th(ta['низкий']['prof']) + '.'],
     [],
-    ['Что решаете: 1) запускаем 10 карточек с 15.10 - да / нет; 2) уровень клика главного товара 10 000 или 20 000 ₽ в неделю; 3) снижение цены у 26 артикулов (лист прошлого файла) - вместе с этим или после.'],
+    ['Решено 14.10: запускаем 10 карточек с 15.10, клик главного товара 20 000 ₽ в неделю, снижение цены у 26 артикулов - вместе (артикулы - в файле «вариант 1 по шагам», лист «Цена вниз»).'],
 ]
 for r in rows: ws.append(r)
 ws['A1'].font = Font(bold=True, size=12)
@@ -94,7 +94,7 @@ fmt(ws, (22, 24, 56, 12, 12, 12))
 
 ws = wb.create_sheet('Прогноз')
 ws.append(['В месяц, к «как сейчас»', 'Плохо', 'Средне', 'Хорошо'])
-for lbl, T in ((f'{TOP} карточек, главный {LVL // 1000} 000', t), (f'{TOP} карточек, главный 20 000', t2), (f'все 35 карточек, главный {LVL // 1000} 000', ta)):
+for lbl, T in ((f'{TOP} карточек, главный {LVL // 1000} 000', t), (f'{TOP} карточек, главный 10 000', t2), (f'все 35 карточек, главный {LVL // 1000} 000', ta)):
     ws.append([lbl, '', '', ''])
     ws.cell(ws.max_row, 1).font = B
     for k, nm, f in (('units', '  заказов, шт', lambda x: round(x)), ('turn', '  оборот, млн ₽', lambda x: round(x / 1e6, 1)),
@@ -102,5 +102,36 @@ for lbl, T in ((f'{TOP} карточек, главный {LVL // 1000} 000', t),
                      ('prof', '  прибыль без АДМ, тыс. ₽', lambda x: round(x / 1e3))):
         ws.append([nm] + [f(T[sc][k]) for sc in F.SCN])
 fmt(ws, (44, 12, 12, 12))
+# ---------- лист «Пути к 20 млн»: таблицы записки sessions/2026-10-14-ozon-k-vyplate-20mln.md (go ФЕНИКСА 8,6), без пересчёта
+NOTE = F.ROOT + 'sessions/2026-10-14-ozon-k-vyplate-20mln.md'
+def md_table(after):
+    L = open(NOTE).read().split('\n'); i = next(k for k, l in enumerate(L) if l.startswith(after)) + 1
+    while not L[i].startswith('|'): i += 1
+    rows = []
+    while i < len(L) and L[i].startswith('|'):
+        if not set(L[i]) <= set('|- '): rows.append([c.strip() for c in L[i].strip('|').split('|')])
+        i += 1
+    return rows
+ws = wb.create_sheet('Пути к 20 млн')
+ws.append(['Пути к «К выплате» 20 млн в месяц (записка 14.10, проверена ФЕНИКСОМ). Сейчас 8,0 млн (сентябрь). 20 млн = оборот 52-54 млн, 680-700 заказов в месяц (сейчас 271, рекорд апреля 581).'])
+ws.append(['Две колонки в каждой ячейке: «средн.» - расходы как в июле-сентябре / «сент.» - как в сентябре. Все пути - [ГИПОТЕЗА].'])
+ws.append([])
+start = ws.max_row + 1
+for r in md_table('## Пути'): ws.append(r)
+for c in ws[start]: c.font = B; c.fill = H
+ws.append([]); ws.append(['Комбинации']); ws.cell(ws.max_row, 1).font = B
+start = ws.max_row + 1
+for r in md_table('## Комбинации'): ws.append(r)
+for c in ws[start]: c.font = B; c.fill = H
+ws.append([])
+for t_ in ('Вывод записки: 20 млн выходят только в варианте А, и он держится на пяти условиях, которых вместе не было: весенние 580-720 заказов в месяц, осенняя цена штуки около 77 тыс., реклама не больше нынешней, дешёвый клик на 100 товаров, комиссия OZON как в июле-сентябре.',
+           'Без возврата весенних объёмов рычаги из тестов дают 10-13 млн «К выплате».',
+           'Где мы сейчас: план «10 карточек + цена» (лист «Цель») - шаг по пути 2 (дешёвый клик) и к объёму пути 1; в среднем сценарии «К выплате» около 11 млн.',
+           'Главный риск: комиссия OZON растёт (46,1% весной -> 50,8% в октябре); каждый пункт при 53 млн оборота - около -0,53 млн «К выплате».'):
+    ws.append([t_])
+for row in ws.iter_rows():
+    for c in row: c.alignment = Alignment(wrap_text=True, vertical='top')
+for col, w in zip('ABCDEFG', (40, 40, 16, 12, 18, 18, 16)): ws.column_dimensions[col].width = w
+ws.cell(1, 1).font = Font(bold=True, size=12)
 wb.save(OUT)
 print('топ', TOP, 'мин.клик', n_min, {sc: (round(t[sc]['units']), round(t[sc]['prof'] / 1e3)) for sc in F.SCN})

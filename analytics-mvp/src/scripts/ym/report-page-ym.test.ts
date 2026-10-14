@@ -21,7 +21,7 @@ const accRow = (sku: string, cat: string, v: Record<string, number>) => {
 function page(repy: any, byPer: (per: { from: string; to: string }) => any[], accDays: string[], doc: any[] = []) {
   // Общие функции страница кладёт в window (глобальная область браузера); здесь это globalThis.
   const win: any = globalThis;
-  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines,rpyPtsLines};`;
+  const body = `var window=W;${reportJsYm()};return {rpyCalc,rpyMonths,rpPeriods:W.rpPeriods,rpyLines,rpyPtsLines,rpyFlowLines};`;
   const R = { svc: [], gen: [], pts: [], drr: [], ...repy };
   return new Function("W", "REPY", "accAgg", "ACC", "ACC_DOC", "ACC_RATE", "fmtRu", "document", body)(
     win, R, byPer, accDays.map((d) => [d, "X"]), doc, { adm: 0.3, tax: 0.15 }, (n: number) => String(Math.round(n)), {});
@@ -142,6 +142,36 @@ describe("отчёт Маркета: итоги месяца", () => {
     // Основные строки - фиолетовым жирным (просьба пользователя 02.10).
     expect(f2.rpyLines([]).filter((x: any) => x.main).map((x: any) => x.k)).toEqual(["acc", "fee", "amount", "np", "netAll"]);
     expect(f2.rpyPtsLines([]).filter((x: any) => x.main).map((x: any) => x.k)).toEqual(["ptsIn", "ptsOut", "saldo"]);
+  });
+});
+
+// Блок 3а «Движение денег» (ответы пользователя 14.10).
+describe("отчёт Маркета: движение денег (блок 3а)", () => {
+  const rows = [Object.assign(accRow("A", "Зеркала", { accruals: 100, pay: 100, amount: 90 }), { acc1: 1_000, amount1: 800 })];
+  const cab = { mir: "1", fur: "2" };
+  // [d, кабинет, acc1, amt1, acct, prem, seller, po, nopo, ns]
+  const flow = [["2026-09-03", "1", 600, 500, -30, 10, 0, 400, 80, 0], ["2026-09-04", "2", 400, 300, 0, 0, 5, 305, 0, 0]];
+  const val = (f: any, k: string, per = { from: "2026-09-01", to: "2026-09-29" }) => {
+    const g = f.rpyCalc(per).grand; return f.rpyFlowLines().find((x: any) => x.k === k).fn(g);
+  };
+  it("строки сходятся с блоком 3 и между собой: Начислил − Списал = К выплате; Итого = Перевёл + В пути", () => {
+    const f = page({ to: "2026-09-29", flow, cab }, () => rows, ["2026-09-03"]);
+    const c = f.rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
+    expect(c.flBad).toBeNull();
+    expect(c.flChk).toBe(0);
+    expect(["f_acc1", "f_fee", "f_amt1", "f_tot", "f_po", "f_nopo", "f_spis", "f_chk"].map((k) => val(f, k))).toEqual([1_000, -200, 800, 785, 705, 80, -230, 0]);
+    expect([val(f, "acc1_mir"), val(f, "acc1_fur"), val(f, "po_mir"), val(f, "po_fur")]).toEqual([600, 400, 400, 305]);
+  });
+  it("расхождение с блоком 3 и разрыв «Итого − Перевёл − В пути» поднимают пометку", () => {
+    const bad = [["2026-09-03", "1", 900, 800, 0, 0, 0, 700, 0, 0]];
+    const c = page({ to: "2026-09-29", flow: bad, cab }, () => rows, ["2026-09-03"]).rpyCalc({ from: "2026-09-01", to: "2026-09-29" });
+    expect(c.flBad).toMatch(/Начислил/);
+    expect(c.flChk).toBe(100);
+  });
+  it("месяц без статуса платежа - «нет данных» в Перевёл и В пути, а не ноль (К7)", () => {
+    const ns = [["2026-09-03", "1", 1_000, 800, 0, 0, 0, 0, 0, 3]];
+    const f = page({ to: "2026-09-29", flow: ns, cab }, () => rows, ["2026-09-03"]);
+    expect([val(f, "f_acc1"), val(f, "f_po"), val(f, "f_nopo"), val(f, "f_tot")]).toEqual([1_000, null, null, null]);
   });
 });
 

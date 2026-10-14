@@ -2010,3 +2010,43 @@ export function accDocRows(rows: any[], netting: any[], accTo: string): AccDocRo
   const c = (v: number) => Math.round(v * 100) / 100;
   return [...doc.values()].map((x) => [x.d, x.b, c(x.got), c(x.back), x.sold, x.ret, c(x.amount), c(x.acct), c(x.prem)]);
 }
+
+// Движение денег Маркета по дням и кабинетам для блока 3а «Отчета» (ответы пользователя 14.10: 1 - «Перевёл»
+// по месяцу проводки, 2 - «Списал» только деньгами, баллы остаются в блоке 4). Все строки - из того же
+// реестра, что «Начислил Маркет (справочно)», поэтому сходятся с блоком 3 по построению:
+//   acc1 − сборы = amt1 (К выплате Маркета), amt1 + без заказа (acct, prem, seller) = Итого = po + nopo.
+// acc1/amt1 - из строк pnl_sku_netting_daily (те же, что ACC на странице, вместе со строками basis orders),
+// остальное - из сырого реестра: проводки «Справочно…» (баллы) и «Не будет…» (отмена) - не деньги.
+// po - проводки, у которых уже есть номер платёжного поручения (Маркет перевёл или удержал из выплаты),
+// nopo - «Будет переведён / удержан» (в пути). ns - проводки без статуса платежа (схема реестра до 5):
+// баллы там от денег не отличить, страница не показывает по такому дню «Перевёл» и «В пути» (К7).
+// [d, кабинет, acc1, amt1, acct, prem, seller, po, nopo, ns]
+export type MoneyFlowRow = [string, string, number, number, number, number, number, number, number, number];
+export function moneyFlowRows(rows: any[], netting: any[], accTo: string): MoneyFlowRow[] {
+  const by = new Map<string, number[]>();
+  const at = (d: string, b: string) => { const k = `${d}|${b}`; let x = by.get(k); if (!x) by.set(k, (x = [0, 0, 0, 0, 0, 0, 0, 0])); return x; };
+  const n = (v: unknown) => Number(v) || 0;
+  for (const r of rows) {
+    const d = String(r.d || ""); if (!d || d > accTo) continue;
+    const x = at(d, String(r.business || "")); x[0]! += n(r.accruals); x[1]! += n(r.amount);
+  }
+  for (const r of netting) {
+    const d = String(r.d || ""); if (!d || d > accTo) continue;
+    if (r.src === undefined) { at(d, String(r.business || ""))[7]! += 1; continue; } // старая схема: тип неизвестен
+    if (nettingCancelled(r)) continue;
+    const st = String(r.status || "").trim();
+    const x = at(d, String(r.business || ""));
+    if (!st) { x[7]! += 1; continue; }
+    if (/^справочно/i.test(st)) continue;
+    const a = n(r.amount);
+    if (String(r.po || "").trim()) x[5]! += a; else x[6]! += a;
+    if (r.order && String(r.order).trim()) continue;
+    const src = String(r.src || "");
+    if (/^прем/i.test(src)) x[3]! += a; else if (/внесено продавц/i.test(src)) x[4]! += a; else x[2]! += a;
+  }
+  const c = (v: number) => Math.round(v * 100) / 100;
+  return [...by.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([k, x]) => {
+    const [d, b] = k.split("|");
+    return [d!, b!, c(x[0]!), c(x[1]!), c(x[2]!), c(x[3]!), c(x[4]!), c(x[5]!), c(x[6]!), x[7]!] as MoneyFlowRow;
+  });
+}

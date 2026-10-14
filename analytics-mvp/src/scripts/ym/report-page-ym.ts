@@ -195,8 +195,9 @@ export function reportDataYm(ctx: Ctx) {
   for (const r of readNd(dp("orders.ndjson"))) if (String(r.status || "") === "DELIVERED" && r.order) delivered.add(String(r.order));
   const flow = moneyFlowRows(acc, net, to, delivered);
   // Подпись блока 7 (G2 ФЕНИКСА): снимок статусов платёжек и последний день проводок, уже попавших в платёжку.
-  let lastPo = "";
-  for (const r of net) { const d = String(r.d || ""); if (d && d <= to && String(r.po || "").trim() && !nettingCancelled(r) && d > lastPo) lastPo = d; }
+  // По кабинетам (G6 ФЕНИКСА iter2): выплаты кабинетов могут отставать по-разному.
+  const lastPo: Record<string, string> = {};
+  for (const r of net) { const d = String(r.d || ""), b = String(r.business || ""); if (d && d <= to && String(r.po || "").trim() && !nettingCancelled(r) && d > (lastPo[b] || "")) lastPo[b] = d; }
   // Сверка «Списал» блока 7 с актом услуг Маркета (просьба пользователя 14.10: «сверять нужно с актом»).
   // [ym, кабинет, деньги по акту, в т.ч. кампании]. Кампании (Полка, Буст за показы, Баннеры) в кабинете
   // зеркал Маркет удерживает в следующем месяце вместе со взносом продавца на ту же сумму (разбор 14.10:
@@ -208,7 +209,10 @@ export function reportDataYm(ctx: Ctx) {
     const a = (actK[k] ||= [0, 0]); const m = Number(r.money) || 0; a[0]! += m; if (ACT_CAMP.test(String(r.service || ""))) a[1]! += m;
   }
   const act = [...actDone].map((p) => { const [b, ym] = p.split("/"); const a = actK[`${ym}|${b}`] || [0, 0]; return [ym, b, Math.round(a[0]! * 100) / 100, Math.round(a[1]! * 100) / 100]; }).sort();
-  const flowMeta = { at: String(readJsonSafe(dp("netting_state.json")).at || "").slice(0, 10), lastPo };
+  const at = String(readJsonSafe(dp("netting_state.json")).at || "").slice(0, 10);
+  // Месяцы старше окна свежести сборщика (reports.ts: снимок − 59 дней) бот не перезабирает: статусы
+  // «Будет переведён / удержан» там заморожены (G5 ФЕНИКСА iter2).
+  const flowMeta = { at, lastPo, frozenBefore: at ? addDays(at, -59).slice(0, 7) : "" };
   // ДРР как на «Маркетинге» (ответ 2а): pmRow вкладки «Маркетинг» по своду заказов, по месяцу ЗАКАЗА и
   // кабинету. Считается здесь, при сборке, той же функцией - на страницу едут только итоги месяцев.
   // Сбой выреза pmRow роняет сборку (H1 ФЕНИКСА): раньше try/catch молча давал «нет данных». Без
@@ -346,10 +350,10 @@ function rpyCalc(per){
 }
 // Суммы блока 7 за период: всего и по кабинетам (REPY.cab). ns - проводки без статуса платежа: по ним
 // «Перевёл», «В пути» и строки без заказа не показываются (нет данных), а не считаются нулём (К7).
-function rpyFlowSum(per){var z=function(){return {acc1:0,amt1:0,acct:0,prem:0,seller:0,po:0,nopo:0,ns:0,nopoD:0,nopoU:0,nr:0};},o={all:z(),mir:z(),fur:z(),to:per.to};
+function rpyFlowSum(per){var z=function(){return {acc1:0,amt1:0,acct:0,prem:0,seller:0,po:0,nopo:0,ns:0,nopoD:0,nopoU:0,nr:0,oth:0,nopoF:0};},o={all:z(),mir:z(),fur:z(),to:per.to,ym:per.from.slice(0,7)};
   (REPY.flow||[]).forEach(function(r){if(!rpyIn(r[0],per))return;var cb=REPY.cab||{},ks=['all',r[1]===cb.mir?'mir':r[1]===cb.fur?'fur':null];
-    ks.forEach(function(k){if(!k)return;var x=o[k];x.acc1+=r[2];x.amt1+=r[3];x.acct+=r[4];x.prem+=r[5];x.seller+=r[6];x.po+=r[7];x.nopo+=r[8];x.ns+=r[9];x.nopoD+=r[10]||0;x.nopoU+=r[11]||0;x.nr+=r[12]||0;});});
-  ['all','mir','fur'].forEach(function(k){var x=o[k];x.fee=x.amt1-x.acc1;x.tot=x.amt1+x.acct+x.prem+x.seller;x.spis=x.fee+x.acct;x.nopoN=Math.round(x.nopo-x.nopoD-x.nopoU)||0;x.chk=Math.round(x.tot-x.po-x.nopo)||0;});
+    ks.forEach(function(k){if(!k)return;var x=o[k];x.acc1+=r[2];x.amt1+=r[3];x.acct+=r[4];x.prem+=r[5];x.seller+=r[6];x.po+=r[7];x.nopo+=r[8];x.ns+=r[9];x.nopoD+=r[10]||0;x.nopoU+=r[11]||0;x.nr+=r[12]||0;x.oth+=r[13]||0;x.nopoF+=r[14]||0;});});
+  ['all','mir','fur'].forEach(function(k){var x=o[k];x.fee=x.amt1-x.acc1-x.oth;x.tot=x.amt1+x.acct+x.prem+x.seller;x.spis=x.fee+x.acct;x.nopoN=Math.round(x.nopo-x.nopoD-x.nopoU-x.nopoF)||0;x.chk=Math.round(x.tot-x.po-x.nopo)||0;});
   return o;}
 // Сверка «Списал» с актом услуг Маркета - только за целый месяц, по которому акт собран по обоим кабинетам
 // (акт помесячный). По кабинету: должно быть списано по реестру = акт − кампании месяца, которые Маркет
@@ -376,24 +380,26 @@ function rpyActRec(per,fl){
 function rpyNextYm(ym){var y=+ym.slice(0,4),m=+ym.slice(5,7)+1;if(m>12){m=1;y++;}return y+'-'+(m<10?'0':'')+m;}
 // Строки блока 7 (как в одобренном предпросмотре 14.10). Списания - со знаком минус: это движение денег, а не статьи затрат.
 function rpyFlowLines(){
-  var NS={acct:1,prem:1,seller:1,tot:1,po:1,nopo:1,nopoD:1,nopoU:1,nopoN:1,spis:1,chk:1};
+  var NS={acct:1,prem:1,seller:1,tot:1,po:1,nopo:1,nopoD:1,nopoU:1,nopoF:1,nopoN:1,spis:1,chk:1,oth:1,fee:1};
   var f=function(k,c){return function(t){if(!t||!t.fl)return null;var x=t.fl[c||'all'];if(NS[k]&&x.ns)return null;return x[k];};};
   var a=function(k,c){return function(t){if(!t||!t.fl||!t.fl.act)return null;return t.fl.act[c||'all'][k];};};
   var cab=function(k,inc){return [{k:k+'_mir',l:'зеркала',fn:f(k,'mir'),inc:inc,sub:1,noSh:1},{k:k+'_fur',l:'мебель',fn:f(k,'fur'),inc:inc,sub:1,noSh:1}];};
   // Звёздочка у «Перевёл»: период заходит за последний день проводок, уже попавших в платёжку (G2 ФЕНИКСА).
-  var poLate=function(t){return !!t&&!!t.fl&&!!REPY.flowMeta&&!!REPY.flowMeta.lastPo&&t.fl.to>REPY.flowMeta.lastPo;};
+  var poLate=function(t){var L=(REPY.flowMeta||{}).lastPo||{};return !!t&&!!t.fl&&[REPY.cab.mir,REPY.cab.fur].some(function(b){return !!L[b]&&t.fl.to>L[b];});};
   return [{k:'f_acc1',l:'Начислил Маркет (справочно)',t:'та же строка, что в блоке 3',fn:f('acc1'),inc:1,noSh:1}].concat(cab('acc1',1),[
-    {k:'f_fee',l:'− Списал за услуги по заказам',t:'= Начислил − К выплате Маркета: сборы Маркета деньгами (размещение, доставка, эквайринг, хранение, продвижение). От «Всего сборов» блока 3 может отличаться на рубли построчного округления - см. пометку вверху',fn:f('fee'),inc:1,noSh:1},
+    {k:'f_fee',l:'− Списал за услуги по заказам',t:'сборы Маркета деньгами: размещение, доставка, эквайринг, хранение, продвижение',fn:f('fee'),inc:1,noSh:1},
+    {k:'f_oth',l:'+ Компенсации Маркета по заказам',t:'проводки по заказу, которые не платёж покупателя и не сбор: утеря или порча отправления и т.п.',fn:f('oth'),inc:1,noSh:1},
     {k:'f_amt1',l:'= К выплате Маркета (справочно)',t:'та же строка, что в блоке 3',fn:f('amt1'),inc:1,noSh:1},
     {k:'f_acct',l:'− Удержал без заказа',t:'услуги Маркета, не привязанные к заказу',fn:f('acct'),inc:1,noSh:1},
     {k:'f_prem',l:'+ Премия Маркета',fn:f('prem'),inc:1,noSh:1},
-    {k:'f_seller',l:'+ Внесено продавцом',t:'наши деньги, которые Маркет вернул в выплате',fn:f('seller'),inc:1,noSh:1},
+    {k:'f_seller',l:'+ Внесено продавцом',t:'наш взнос: Маркет зачисляет его в выплату и тут же удерживает ту же сумму за кампании прошлого месяца (Полка, Буст за показы, Баннеры), см. сверку с актом внизу блока',fn:f('seller'),inc:1,noSh:1},
     {k:'f_tot',l:'= Итого к перечислению на счёт',t:'все денежные проводки месяца',fn:f('tot'),inc:1,bold:1,main:1,noSh:1}],cab('tot',1),[
     {k:'f_po',l:'Перевёл на счёт',t:'проводки месяца, по которым уже есть платёжное поручение Маркета; с банковской выпиской не сверено',fn:f('po'),inc:1,bold:1,main:1,noSh:1,flag:poLate}],cab('po',1),[
     {k:'f_nopo',l:'В пути',t:'проводки месяца без платёжки: «Будет переведён / удержан»',fn:f('nopo'),inc:0,bold:1,main:1,noSh:1},
-    {k:'nopoD',l:'по доставленным заказам - ждут выплаты',fn:f('nopoD'),inc:0,sub:1,noSh:1},
-    {k:'nopoU',l:'по заказам, ещё не доставленным, - могут отмениться',t:'статус заказа - по выгрузке заказов Маркета',fn:f('nopoU'),inc:0,sub:1,noSh:1},
-    {k:'nopoN',l:'без заказа - будущие удержания и премии',fn:f('nopoN'),inc:0,sub:1,noSh:1}].concat(cab('nopo',0)),[
+    {k:'nopoD',l:'платежи покупателей по доставленным заказам - ждут выплаты',fn:f('nopoD'),inc:0,sub:1,noSh:1},
+    {k:'nopoU',l:'платежи покупателей по ещё не доставленным заказам - могут отмениться',t:'статус заказа - по выгрузке заказов Маркета',fn:f('nopoU'),inc:0,sub:1,noSh:1},
+    {k:'nopoF',l:'сборы по заказам - будут удержаны',fn:f('nopoF'),inc:0,sub:1,noSh:1},
+    {k:'nopoN',l:'без заказа: взносы, удержания, премии',fn:f('nopoN'),inc:0,sub:1,noSh:1}].concat(cab('nopo',0)),[
     {k:'f_spis',l:'Всего списал Маркет деньгами',t:'услуги по заказам + удержания без заказа',fn:f('spis'),inc:1,bold:1,main:1,noSh:1}],cab('spis',1),[
     {k:'f_chk',l:'Проверка: Итого − Перевёл − В пути',t:'остаток построчного округления до рубля, как в блоке 3 (до 0,5 ₽ на строку); больше - красная пометка вверху',fn:f('chk'),inc:1,noSh:1}],
     // Сверка с актом свёрнута под одной строкой (просьба пользователя 14.10).
@@ -406,12 +412,34 @@ function rpyFlowLines(){
     {k:'r_res_mir',l:'остаток: зеркала',fn:a('res','mir'),inc:1,sub:1,noSh:1},{k:'r_res_fur',l:'остаток: мебель',fn:a('res','fur'),inc:1,sub:1,noSh:1}]);
 }
 // Пометки блока 7 (G2 ФЕНИКСА): дата статусов платёжек, последняя платёжка, нет сверки с банком; месяцы без статуса.
-function rpyFlowNote(calcs){var M=REPY.flowMeta||{},t=[];
-  t.push('Статусы платёжек - по снимку реестра Маркета от '+(M.at?rpDm(M.at)+'.'+M.at.slice(0,4):'—')+'.');
-  if(M.lastPo)t.push('Последняя платёжка Маркета в реестре - по проводкам до '+rpDm(M.lastPo)+'.'+M.lastPo.slice(0,4)+': за дни после неё «Перевёл на счёт» ноль, деньги в «В пути» (у таких месяцев <span class="rp-warn">*</span>).');
+function rpyFlowNote(calcs){var M=REPY.flowMeta||{},t=[],L=M.lastPo||{},nm={};nm[REPY.cab.mir]='зеркала';nm[REPY.cab.fur]='мебель';
+  var dd=function(d){return rpDm(d)+'.'+d.slice(0,4);};
+  t.push('Статусы платёжек - по снимку реестра Маркета от '+(M.at?dd(M.at):'нет даты')+'.');
+  // Последняя платёжка - по каждому кабинету (G6 ФЕНИКСА iter2).
+  var lp=[REPY.cab.mir,REPY.cab.fur].filter(function(b){return L[b];}).map(function(b){return nm[b]+' - по проводкам до '+dd(L[b]);});
+  if(lp.length)t.push('Последняя платёжка Маркета в реестре: '+lp.join(', ')+'. За дни после неё «Перевёл на счёт» ноль, деньги в «В пути» (у таких месяцев <span class="rp-warn">*</span>).');
   t.push('<b class="rp-warn">«Перевёл на счёт» с банковской выпиской не сверен</b> - это данные Маркета, а не поступления на расчётный счёт.');
-  if(calcs.some(function(c){return c&&c.grand&&c.grand.fl&&c.grand.fl.all.ns;}))t.push('«—» и «нет данных» в «Перевёл», «В пути» и строках без заказа - месяц без статуса платежа в реестре: баллы там не отличить от денег.');
+  if(calcs.some(function(c){return c&&c.grand&&c.grand.fl&&c.grand.fl.all.ns;}))t.push('Прочерк и «нет данных» в «Перевёл», «В пути» и строках без заказа - месяц без статуса платежа в реестре: баллы там не отличить от денег.');
+  // Замороженные статусы: месяцы старше окна свежести сборщика с ненулевым «В пути» (G5 ФЕНИКСА iter2).
+  var fz=calcs.filter(function(c){var x=c&&c.grand&&c.grand.fl;return x&&M.frozenBefore&&x.ym<M.frozenBefore&&!x.all.ns&&['nopoD','nopoU','nopoF','nopoN'].some(function(k){return Math.round(x.all[k]);});}).map(function(c){var x=c.grand.fl.all;return rpName(c.grand.fl.ym)+' (сборы '+rpN(x.nopoF)+' ₽, без заказа '+rpN(x.nopoN)+' ₽, платежи '+rpN(x.nopoD+x.nopoU)+' ₽)';});
+  if(fz.length)t.push('<span class="rp-warn">«В пути» в старых месяцах:</span> '+fz.join(', ')+' - сборщик не перезабирает месяцы старше 59 дней, статус «Будет переведён / удержан» там остался с прошлого снимка; деньги, скорее всего, уже выплачены.');
+  // Сверка с актом по всем месяцам на экране (G1 ФЕНИКСА iter2): остаток больше 100 ₽ - с причиной.
+  var rs=rpyActRes(calcs);if(rs.length)t.push('<b class="rp-dn">Сверка «Списал» с актом: остаток больше 100 ₽</b> - '+rs.join('; ')+'.');
   return t.join('<br>');}
+// Остатки сверки с актом больше 100 ₽ по месяцам на экране. Пара соседних месяцев с остатками разного знака,
+// которые вместе гасятся (до 10% большего), - перенос на границе месяцев (разбор 14.10: февраль-март - услуги
+// 28.02 Маркет провёл в реестре 01.03). Если вместе остаётся сумма, равная удержанию без заказа 1-го числа
+// первого месяца, - это ещё и оплата услуг без заказа прошлого месяца (зеркала: 01.02 - 8 731,67 ₽ за январь).
+// Остальное - «причина не разобрана».
+function rpyActRes(calcs){var R=calcs.map(function(c){var x=c&&c.grand&&c.grand.fl;return x&&x.act?{ym:x.ym,r:x.act}:null;}).filter(Boolean),out=[];
+  var l1=function(ym,b){var s=0;(REPY.flow||[]).forEach(function(r){if(r[0]===ym+'-01'&&r[1]===b)s-=r[4];});return s;};
+  ['mir','fur'].forEach(function(k){var nm=k==='mir'?'зеркала':'мебель',used={},b0=REPY.cab[k];
+    R.forEach(function(x,i){if(used[i])return;var a=x.r[k].res;if(Math.abs(a)<=100)return;var y=R[i+1],b=y?y.r[k].res:0,L=l1(x.ym,b0),tol=0.1*Math.max(Math.abs(a),Math.abs(b));
+      if(y&&a*b<0&&(Math.abs(a+b)<=tol||(L>100&&Math.abs(a+b-L)<=tol))){used[i+1]=1;
+        var lt=Math.abs(a+b)<=tol?'':'; '+rpN(L)+' ₽ из них - удержание 1-го числа за услуги без заказа прошлого месяца';
+        out.push(nm+', '+rpName(x.ym)+' '+rpN(a)+' ₽ и '+rpName(y.ym)+' '+rpN(b)+' ₽: перенос услуг на границе месяцев, вместе '+rpN(a+b)+' ₽'+lt);}
+      else out.push(nm+', '+rpName(x.ym)+' '+rpN(a)+' ₽: причина не разобрана');});});
+  return out;}
 function rpyVal(t,k){if(!t)return null;return t[k]||0;}
 function rpyRetro(P){var out=[],m=P.pym,guard=0,df=REPY.full;
   while(guard++<36){m=rpPrevYm(m);if(!df||m+'-01'<df)break;var per={from:m+'-01',to:rpEnd(m)};out.unshift({ym:m,per:per,calc:rpyCalc(per)});}

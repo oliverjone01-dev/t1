@@ -21,6 +21,25 @@ mln = lambda x: f'{x / 1e6:+.1f} млн'; th = lambda x: f'{x / 1e3:+,.0f} ты�
 top = K.cards[:TOP]
 n_min = sum(len(c['others']) for c in top)
 
+# календарь: октябрь - эффект ~14 дней из 31 и расход 17 дней; ноябрь - полный месяц (30 дней из 30,3 месяца модели)
+DM = 30.3
+def cal(k, sc, part, sp_part):
+    T = t[sc]
+    if k == 'prof': return (T['prof'] + T['spend']) * part - T['spend'] * sp_part
+    return T[k] * part
+def cal_row(lbl, base_m, k, conv, fmt_):
+    row = [lbl]
+    for days, part, sp_part in ((31, 14 / DM, 17 / DM), (30, 30 / DM, 30 / DM)):
+        b = base_m * days / DM if base_m is not None else 0
+        mid = b + cal(k, 'средний', part, sp_part); lo = b + cal(k, 'низкий', part, sp_part); hi = b + cal(k, 'высокий', part, sp_part)
+        row.append(f'{fmt_(conv(mid))} ({fmt_(conv(lo))} ... {fmt_(conv(hi))})' if base_m is not None else f'{fmt_(conv(mid), True)} ({fmt_(conv(lo), True)} ... {fmt_(conv(hi), True)})')
+    return row
+n0 = lambda x, sg=False: (f'{x:+,.0f}' if sg else f'{x:,.0f}').replace(',', ' ')
+m1 = lambda x, sg=False: (f'{x:+.1f}' if sg else f'{x:.1f}').replace('.', ',')
+cal_rows = [cal_row('Заказов, шт (без доп. рекламы было бы около 294 в месяц)', U0, 'units', lambda x: x, n0),
+            cal_row('Оборот, млн ₽', T0 * 1e6, 'turn', lambda x: x / 1e6, m1),
+            cal_row('К выплате, млн ₽ (база - сентябрь «Отчета» 8,0)', P0 * 1e6, 'pay', lambda x: x / 1e6, m1),
+            cal_row('Прибыль от плана (без АДМ), тыс. ₽, к «без изменений»', None, 'prof', lambda x: x / 1e3, n0)]
 ws = Workbook().active; wb = ws.parent; ws.title = 'Цель'
 rows = [
     ['Рост показов OZON: главный товар карточки - больше клика, остальные - минимальный клик для скидки. GENGLASS, 14.10.2026'],
@@ -37,6 +56,10 @@ rows = [
     ['Плохо с учётом проверки 29.10: 2 недели расхода + карточки, оставленные по ошибке (не чаще 15%)', '', th(K.bad_month(LVL, TOP)), '', ''],
     ['Плюс урез 7 дорогих кампаний на неглавных товарах (шаг 3): экономия 0,57 млн в месяц по темпу 08-11.10 (6 из 7 запущены 08.10, данных 4 дня); в строки выше не включено', '', '', '', ''],
     ['«Сейчас»: заказы без отмен 14.09-11.10 в пересчёте на месяц, оборот по нашей цене (модель Word 13.10), К выплате - сентябрь «Отчета»', '', '', '', ''],
+    [],
+    ['Цель по месяцам (календарь)', 'Октябрь', 'Ноябрь', '', ''],
+    *cal_rows,
+    ['Октябрь: реклама работает 15-31.10, с учётом 2-3 дней разгона полный эффект около 14 дней из 31. Ноябрь: полный месяц 10 карточек (без распродажи 11.11 и следующих 10 карточек). В скобках - плохо ... хорошо.', '', '', '', ''],
     [],
     ['Что делаем'],
     [f'1. В {TOP} карточках с наибольшими заказами главному товару (больше всех заказов) поднимаем клик до {LVL:,} ₽ в неделю. Где уже больше - не трогаем.'.replace(',', ' ')],
@@ -55,9 +78,12 @@ rows = [
     ['Решено 14.10: запускаем 10 карточек с 15.10, снижение цены у 26 артикулов - вместе (артикулы - файл «вариант 1 по шагам», лист «Цена вниз»). Клик главного товара 20 000 ₽ в неделю (решение Ивана 14.10).'],
 ]
 for r in rows: ws.append(r)
+for row in ws.iter_rows():
+    if row[0].value == 'Цель по месяцам (календарь)':
+        for c in row[:3]: c.font = B; c.fill = H
+    if row[0].value in ('Что делаем', 'Откуда сценарии'): row[0].font = B
 ws['A1'].font = Font(bold=True, size=12)
 for c in ws[4]: c.font = B; c.fill = H
-for r_ in (14, 20): ws.cell(r_, 1).font = B
 for row in ws.iter_rows():
     for c in row: c.alignment = Alignment(wrap_text=True, vertical='top')
 for col, w in zip('ABCDE', (70, 14, 16, 18, 16)): ws.column_dimensions[col].width = w

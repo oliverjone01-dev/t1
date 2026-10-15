@@ -79,11 +79,26 @@ def read_file(path):
     return {"file": name, "win": win, "rows": out}
 
 
+# Суффиксы копий одного файла (ФЕНИКС N4 14.10): браузер «x (1)», «x(1)», ОС «x 2», «x-1», «x copy», «x copy 2», «x - копия».
+_COPY = re.compile(r"^(.*?)(?:\s?\((\d+)\)|-(\d+)| (\d+)| copy(?: (\d+))?| - копия(?: \((\d+)\))?)$", re.I)
+
+
 def name_key(path):
-    """Ключ порядка файлов: «x (2).xlsx» после «x (1).xlsx», а тот после «x.xlsx» (суффикс копии браузера)."""
+    """Ключ порядка файлов: (основа имени, номер копии). Копия идёт после оригинала и побеждает его."""
     b = os.path.basename(path)
-    m = re.match(r"^(.*?)(?: \((\d+)\))?(\.xlsx)$", b, re.I)
-    return (m.group(1) + m.group(3), int(m.group(2) or 0)) if m else (b, 0)
+    stem, ext = os.path.splitext(b)
+    m = _COPY.match(stem)
+    if not m or not m.group(1):
+        return (b.lower(), 0)
+    nums = [g for g in m.groups()[1:] if g]
+    n = int(nums[0]) if nums else 1  # «x copy», «x - копия» без номера - первая копия
+    if m.group(3) and not re.search(r"[^\d]", m.group(1)[-1:]):
+        return (b.lower(), 0)  # «2026-09»: дефис с числом после цифры - часть даты, не копия
+    return ((m.group(1) + ext).lower(), n)
+
+
+def _rk(r):
+    return (r["d"], r["order"], r["sku"], round(r["sp"], 2))
 
 
 def read_raw(raw_dir):
@@ -94,7 +109,14 @@ def read_raw(raw_dir):
         if x is None:
             skipped.append(os.path.basename(f))
         else:
+            x["base"] = name_key(f)[0]
             files.append(x)
+    # Два файла с одним «Период:», разным содержимым и не копии друг друга - чей файл верный, не ясно: отказ (ФЕНИКС N4).
+    # Копии одного файла (одна основа имени) - поздняя побеждает, это исправленное повторное скачивание.
+    for i, x in enumerate(files):
+        for y in files[i + 1:]:
+            if x["win"] == y["win"] and x["base"] != y["base"] and sorted(map(_rk, x["rows"])) != sorted(map(_rk, y["rows"])):
+                raise CpoRawError(f"{x['file']} и {y['file']}: один период {x['win'][0]}..{x['win'][1]}, разное содержимое, имена не копии одного файла - оставь один файл (имя YYYY-MM_cpo_orders.xlsx)")
     rows, used = [], []
     for i, x in enumerate(files):
         later = [y["win"] for y in files[i + 1:]]

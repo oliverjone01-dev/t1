@@ -1,0 +1,257 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-report-cpo-iter10-a06dcd948-20261015",
+  "timestamp": "2026-10-15T10:07:52+03:00",
+  "deliverable_ref": "ветка claude/practical-ritchie-q09eet @ a06dcd948 (rework iter9 N1-N7 + решения Ивана 15.10), self-check knowledge/episodes/2026-10/selfcheck-ozon-report-cpo-iter10-20261015.md",
+  "artifact_class": "dashboard",
+  "anchor": "8.5 timur-activation (итерация 3) - наш артефакт выше на 0.1: как у ТИМУРА после доработки, каждый пункт прошлого аудита закрыт и подтверждён моей атакой (13 фикстур iter9 дословно, 5 новых, 9 мутантов, реальная выгрузка), утверждения self-check воспроизведены все. Выше 8.5 не поднимаю, потому что остаток записан не весь: ложная ошибка на строке без SKU и класс N2 в трёх соседних читателях найдены мной, а не автором. Серия: 7.25 -> 8.35 -> 7.80 -> 6.80 -> 8.40 -> 8.40 -> 8.25 -> 7.85 -> 8.00 -> 8.60",
+  "probes": [
+    {
+      "id": "X3",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev a06dcd948 = --worktree (до записи MEMORY.md) = ac9e96f7348f753a = хешу запроса; git fetch: origin ветки = a06dcd948, merge-base 2fd407e17"
+    },
+    {
+      "id": "X1",
+      "result": "PASS",
+      "evidence": "13 путей ветки без traces/, episodes/, errors/, handoff/: код, тесты, data/cpo_orders.ndjson, спеки, decisions.md, analytics-tests.yml, MEMORY.md - все прочитаны по diff и проверены пробами"
+    },
+    {
+      "id": "X2",
+      "result": "PASS",
+      "evidence": "origin/main ушёл на d5bc74580: только gg-seo-geo-monster/data (3 файла), пересечение с путями ветки 0"
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "listdiff10.py p9m p10: 50 файлов public побайтно равны, 2 отличаются (katya-report.html, katya-reklama-kartochki.html); в REP новые ключи cpoMissM, cpoMissNote, readBad, значения общих ключей равны"
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "fx10_report.mjs, fx10_rows.mjs, an10.py: 8 видов «Отчета» и 8 периодов вкладки p10 = p9m (таблица, примечания, шапка), ошибок JS 0; окупаемость всего 9,06 / 8,13 / 8,04 / 11,71"
+    },
+    {
+      "id": "N1",
+      "result": "PASS",
+      "evidence": "fzB (кампании выгрузки нет в ads_daily): вид 2026-09, 0 из 16 ячеек выгрузки с числом при красной плашке (iter9: 16 из 16); fzC, fzF, fzH, fzI, fzJ: 0 из 16; вкладка: «н/д» с title «не принята: ...» у 28753239 во всех 8 периодах"
+    },
+    {
+      "id": "I1",
+      "result": "PASS",
+      "evidence": "решение 15.10 (1): fzE (48 заказов, 178 425 ₽) и fzG (1 заказ, 1 395 ₽): июнь-август 4 из 4 ячеек с числами, сентябрь 0, жёлтая пометка «2026-09: 48 заказов на 178 425 ₽» / «1 заказ на 1 395 ₽»; вкладка: июнь, июль с выручкой, сентябрь «н/д» и жёлтая строка источника"
+    },
+    {
+      "id": "I2",
+      "result": "PASS",
+      "evidence": "fzL (заказ июня из строки без дня, 895 ₽, без отправлений): все 4 месяца «нет данных», пометка «без даты: 1 заказ на 895 ₽» - как записано в ozon-cpc-card-spread.yaml:51"
+    },
+    {
+      "id": "N3",
+      "result": "PASS",
+      "evidence": "o2fz10b.py: мои F2L, F3L iter8 дословно -> сборщики -> cpoExportCampaign: «списания по заказам 150 ₽ не равны ... 100 ₽», «20 ₽ ... 100 ₽»; F2N, F3N 100 = 100 без ошибки суммы; fzM (реальные данные + устаревшая строка 500 ₽): ошибка 4 323 699 против 4 323 199"
+    },
+    {
+      "id": "N3c",
+      "result": "FAIL",
+      "evidence": "o2fz10b.py N3c: законная выгрузка со строкой SKU 0 -> cpo_orders 150, cpo_sku_daily 100 (build_cpo_sku_daily.py:47-48 пропускает SKU 0) -> ошибка «... строки без SKU, выгрузку пересобрать»; пересборка даёт то же, «за заказ» гаснет во всех месяцах до правки кода. Сейчас таких строк 0 (real10.py R2)"
+    },
+    {
+      "id": "N2",
+      "result": "PASS",
+      "evidence": "fzK на «Отчете»: шапка «Файлы данных повреждены: не разбираются ads_daily.ndjson, строка 4471», ::error::report; окупаемость всего сентябрь 11,71, август 8,04 (iter9: 17,2 и 12,98)"
+    },
+    {
+      "id": "N2s",
+      "result": "FAIL",
+      "evidence": "fzS (обрезанная строка в конце sku_views.ndjson): лог «показы 0 SKU», блок «Непродаваемые»: «всего товаров с показами и без заказов 60 дн: 0 ... нет таких товаров» в обеих группах (было 99 зеркал), пометки и ::error:: нет; build-katya.ts:1297, есть на main"
+    },
+    {
+      "id": "N2v",
+      "result": "FAIL",
+      "evidence": "fzV (битая строка в середине delivery_orders.ndjson): «Наша доставка» 0, «Валовая прибыль» сентябрь 4 735 507 -> 5 528 249, август 3 240 210 -> 3 920 072, «Логистика» сентябрь 143 688 -> -649 054, пометки нет; build-katya.ts:2323 (nd: catch -> []), :2446, есть на main"
+    },
+    {
+      "id": "N2k",
+      "result": "FAIL",
+      "evidence": "fzK на вкладке: источник «снимок за 2026-09-14..2026-10-13» во всех 8 периодах, расход 28753239 «867 044» и в 01-04.06 (настоящий 0), красного нет; build-katya.ts:1602 (catch -> adsDaily = []), есть на main"
+    },
+    {
+      "id": "N2t",
+      "result": "PASS",
+      "evidence": "fzT (обрезанный pnl_account_accrual_types.json): «типов начислений 0», виды 2026-09 и 2026-08 «Отчета» без видимых изменений"
+    },
+    {
+      "id": "N4",
+      "result": "PASS",
+      "evidence": "o2fz10b.py: «(1)», «(1)» без пробела, «-1», « 2», « copy», « - копия» - 170 в 6 из 6; « copy 2» после « copy» и «(10)» после «(2)» - 170; тот же файл под другим именем - 150 без удвоения; разное содержимое - отказ; cpo_raw_check.py 22 OK"
+    },
+    {
+      "id": "N7",
+      "result": "PASS",
+      "evidence": "fzH: «покрытие выгрузки есть (2026-06-05..2026-09-30), а списаний по заказам (cpo_orders) нет» вместо ложного «чья выгрузка»; разряды «32 716 ₽», «4 323 199 ₽»; склонение «1 заказ», «48 заказов»; «файлы данных»"
+    },
+    {
+      "id": "R1",
+      "result": "PASS",
+      "evidence": "real10.py: data/cpo_orders.ndjson ветки = повторному прогону сборщика (код ветки, файл main + data/raw/ozon-cpo) побайтно; 1009 строк, 190 с днём; сумма 4 323 198,65 = main, разница сумм по заказам 0; cpo_sku_daily побайтно = main"
+    },
+    {
+      "id": "R3",
+      "result": "PASS",
+      "evidence": "real10.py: списание позже заказа на 0 дней в 170 строках, на 1 день в 20; заказов со списанием в другом месяце 0 из 190"
+    },
+    {
+      "id": "M4",
+      "result": "PASS",
+      "evidence": "vt10.sh: tsc 39 = main (md5 85d6f256); vitest p10 980 из 984, main 972 из 976, те же 4 падения Маркета (derive-lib, svod-ui x2, warroom-kpi); cpo-orders-rev 14 из 14"
+    },
+    {
+      "id": "M6",
+      "result": "PARTIAL",
+      "evidence": "mut10.py, 9 мутантов: убиты MC (без инварианта), MD, ME, RA (cpoCov как в iter9), RB; живы MA (ненайденные прячут ВСЕ месяцы, радиус до 15.10), MB, RC (readNd снова роняет весь файл); тестов на CPO_MISS, cpoRevFix, readBad 0"
+    },
+    {
+      "id": "M7",
+      "result": "N/A",
+      "evidence": "шаг cpo_raw_check.py в analytics-tests.yml:57-63 ни разу не запускался (прогонов для a06dcd948 нет); единственный workflow репо с pip install без setup-python"
+    },
+    {
+      "id": "M5",
+      "result": "N/A",
+      "evidence": "свип card_sweep24 автора не повторял: B1 покрывает 8 периодов вкладки, p10 = p9m"
+    },
+    {
+      "id": "B5",
+      "result": "PASS",
+      "evidence": "U+2014 в добавленных строках кода, тестов, спек, decisions.md и self-check: 0"
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "чисел [ГИПОТЕЗА] на поверхностях нет"
+    }
+  ],
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 2,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 1,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9.0,
+    "actionability": 9.0,
+    "insight": 7.0,
+    "brand_fit": 9.0,
+    "risk_awareness": 9.0
+  },
+  "weighted_total": 8.6,
+  "verdict": "go",
+  "primary_gap": "N2-класс (есть на main): одна битая строка входного файла молча меняет соседние блоки «Отчета» и вкладку без пометки. sku_views.ndjson (build-katya.ts:1297): «Непродаваемые» - «нет таких товаров» (fzS). delivery_orders.ndjson (build-katya.ts:2323, :2446): «Валовая прибыль» сентябрь 4 735 507 -> 5 528 249 (fzV). ads_daily.ndjson на вкладке (build-katya.ts:1602): снимок 09-14..10-13, расход «867 044» во всех периодах (fzK). Новая пометка report-page.ts:30-37 закрывает только ads_daily и ads_attr_daily.",
+  "gaps": [
+    "N2-класс (есть на main): одна битая строка входного файла молча меняет соседние блоки «Отчета» и вкладку без пометки. sku_views.ndjson (build-katya.ts:1297): «Непродаваемые» - «нет таких товаров» (fzS). delivery_orders.ndjson (build-katya.ts:2323, :2446): «Валовая прибыль» сентябрь 4 735 507 -> 5 528 249 (fzV). ads_daily.ndjson на вкладке (build-katya.ts:1602): снимок 09-14..10-13, расход «867 044» во всех периодах (fzK). Новая пометка report-page.ts:30-37 закрывает только ads_daily и ads_attr_daily.",
+    "Инвариант N3 (cpo-orders-rev.ts:86) без учёта строк без SKU: законная выгрузка со строкой SKU 0 даёт «нет данных» во всех месяцах и совет «выгрузку пересобрать», который не помогает (build_cpo_sku_daily.py:47-48; o2fz10b.py N3c). Сейчас таких строк 0.",
+    "Спека ozon-monthly-report.yaml:30: «заказы выгрузки ещё не в orders_daily» всё ещё в перечне ошибок, вопреки decisions.md 15.10 и следующему предложению той же спеки; исключение «строка без дня - все месяцы» в v1.2 не записано (есть в ozon-cpc-card-spread.yaml:51).",
+    "Тесты: мутант MA (ненайденные заказы прячут все месяцы) переживает cpo-orders-rev.test.ts - решение 15.10 (1) в cpoExportCampaign не закреплено; мутант RC (readNd роняет весь файл) переживает report-page.test.ts; тестов на CPO_MISS вкладки 0.",
+    "U+2014 в пустых ячейках «Отчета» (report-page.ts:377 rpRoas): 16 из 153 ячеек блока 5 в чистом виде 2026-09, 32 под ошибкой.",
+    "N6b, G10 вне скоупа без срока четвёртую итерацию; cross-domain нет.",
+    "Шаг cpo_raw_check.py в CI ещё не запускался: pip install без setup-python, единственный такой в репо (analytics-tests.yml:57-63). Проверить на первом прогоне PR."
+  ],
+  "rework_tz": "Мерж не блокирует. 1) data: класс N2 по всем читателям страниц «Отчет» и «Реклама по карточкам» - build-katya.ts:1297 (sku_views), :2323 nd() (delivery_orders и др.), :1602 и :1975 (ads_daily), report-page.ts:102, :109: битая строка - пропуск строки и красная пометка, как readNd report-page.ts:30-37; приёмка: fuzz10b.py fzS, fzV и fuzz10.py fzK (вкладка) - пометка с файлом и строкой, числа соседних блоков = p10. 2) Инвариант N3: строки без SKU считать отдельно (сравнивать Σcpo_orders с Σcpo_sku_daily + Σ строк без SKU из сборщика) или писать их в cpo_sku_daily с sku \"0\"; приёмка: o2fz10b.py N3c без ошибки, F2L/F3L по-прежнему с ошибкой. 3) ozon-monthly-report.yaml:30 переписать перечень ошибок (сумма, покрытие без списаний; без «заказы ещё не в orders_daily») и добавить исключение для строк без дня. 4) Тесты: cpoExportCampaign с покрытием на 2+ месяца и ненайденным заказом в одном (убивает мутант MA); readNd «Отчета» с битой строкой (убивает RC). 5) rpRoas: прочерк U+2014 заменить на дефис. 6) Первый прогон analytics-tests.yml на PR: шаг сборщиков зелёный. 7) HITL: Иван - срок для N6b, G10 или запись «не делаем».",
+  "evidence_ledger": [
+    {
+      "gap": "Спека «Отчета» v1.2 противоречит решению 15.10 в одном абзаце",
+      "evidence": "ozon-monthly-report.yaml:30 перечисляет «заказы выгрузки ещё не в orders_daily» среди ошибок cpoExportCampaign.err, а строкой ниже v1.2 и decisions.md 15.10 говорят, что это не ошибка; новых ошибок (сумма, покрытие без списаний) в перечне нет",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -0.15
+    },
+    {
+      "gap": "Спека «Отчета» v1.2 не называет исключение для строк без дня",
+      "evidence": "ozon-monthly-report.yaml «прячут ... только в своём месяце» без оговорки; ozon-cpc-card-spread.yaml:51 «строка без дня - все месяцы»; fzL: заказ июня на 895 ₽ гасит все 4 месяца на «Отчете»; строк без дня 819 из 1009",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -0.1
+    },
+    {
+      "gap": "N6b, G10 без срока четвёртую итерацию",
+      "evidence": "iter7 -> iter10 «вне скоупа»; self-check п.24",
+      "checkpoint": "actionability_7_deadline_buffer",
+      "weight": -0.25
+    },
+    {
+      "gap": "Инвариант без учёта строк без SKU: ложная ошибка с тупиковым советом",
+      "evidence": "rework_tz iter9 п.3 «строки без SKU учесть отдельно»; build_cpo_sku_daily.py:47-48 пропускает SKU 0, cpo_orders их держит; o2fz10b.py N3c: 150 против 100, «выгрузку пересобрать» - пересборка даёт то же",
+      "checkpoint": "insight_12_second_order",
+      "weight": -0.1
+    },
+    {
+      "gap": "Красная пометка «Файлы данных повреждены» охватывает 2 входа страницы из 5+: её отсутствие читается как «файлы целы»",
+      "evidence": "report-page.ts:30-37 (readNd: ads_daily, ads_attr_daily); без пометки fzS (sku_views, build-katya.ts:1297), fzV (delivery_orders, build-katya.ts:2323), report-page.ts:102, :109 (catch на весь файл)",
+      "checkpoint": "insight_12_second_order",
+      "weight": -0.1
+    },
+    {
+      "gap": "Нет cross-domain",
+      "evidence": "self-check, спеки, decisions.md 15.10",
+      "checkpoint": "insight_15_cross_domain",
+      "weight": -0.4
+    },
+    {
+      "gap": "Прочерк U+2014 в ячейках «Отчета»",
+      "evidence": "report-page.ts:377 rpRoas возвращает символ U+2014; an10: вид 2026-09 - 16 из 153 ячеек блока 5, fzB - 32 из 153; с iter9 не правился",
+      "checkpoint": "brand_18_no_em_dash",
+      "weight": -0.15
+    },
+    {
+      "gap": "Класс N2 жив в трёх читателях соседних блоков (есть на main)",
+      "evidence": "fzS: «Непродаваемые» - «нет таких товаров»; fzV: «Валовая прибыль» сентябрь +792 742 ₽; fzK вкладка: снимок 09-14..10-13, «867 044» во всех периодах; пометок нет",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -0.05
+    },
+    {
+      "gap": "Ложная ошибка суммы на законной выгрузке со строкой без SKU",
+      "evidence": "o2fz10b.py N3c; сейчас 0 таких строк (real10.py R2), сборщик с fce8fb959 (18.09) ветку SKU 0 предусматривает",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -0.05
+    },
+    {
+      "gap": "Решение 15.10 (1) не закреплено тестом модуля, N2 не закреплён тестом",
+      "evidence": "mut10.py: MA (все месяцы) и RC (readNd роняет файл) живы; тестов на CPO_MISS, cpoRevFix, readBad 0",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -0.05
+    }
+  ],
+  "sources_of_truth": [
+    "analytics-mvp/data/*.ndjson, ads_30d.json, ads_periods.json ветки (cpo_orders.ndjson изменён миграцией, остальное = main)",
+    "analytics-mvp/data/raw/ozon-cpo/2026-09_cpo_orders.xlsx («Период: 01.09.2026 - 30.09.2026», 191 строка) - для повторного прогона сборщика",
+    "песочницы git archive: p10 = a06dcd948, p9m = 2fd407e17 (main = содержимое iter9), фикстуры fzA-fzM, fzS, fzT, fzV на коде p10; Chromium 1194",
+    "knowledge/episodes/2026-10/feniks-audit-ozon-report-cpo-iter9-20261014.md (критерии N1-N7), feniks-iter9-probes/ (фикстуры дословно)",
+    "knowledge/decisions.md 15.10, sessions/handoff/2026-10-15-ozon-dashbord-v21.md:20",
+    "knowledge/episodes/2026-10/feniks-iter10-probes/ (скрипты и results.txt)"
+  ],
+  "confidence": 0.85,
+  "telemetry": {
+    "model": "claude-opus-5-5"
+  }
+}

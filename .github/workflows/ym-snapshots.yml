@@ -136,6 +136,14 @@ jobs:
             git fetch origin "$GITHUB_REF_NAME" || { sleep $((2**i)); continue; }
             rm -rf /tmp/ym-keep && mkdir -p /tmp/ym-keep && cp -r analytics-mvp/data-ym /tmp/ym-keep/
             git reset --hard "origin/$GITHUB_REF_NAME"
+            # После reset --hard дерево OZON (public/*.html, data/*) взято из СВЕЖЕГО main, а слепок
+            # для гейта «OZON байт-в-байт» снят на коммите запуска. Чужой OZON-коммит, пришедший
+            # за время сбора, выглядел как наша правка: прогон 38731492785 (15.10.2026) прошёл все
+            # продьюсеры и упал на 9 файлах data/* из коммита a02b59d, снимок дня не сохранился
+            # (реестр E078). Слепок переснимаем из того дерева, с которым гейт будет сравнивать:
+            # сам прогон OZON не трогает, и гейт обязан ловить только его собственные правки.
+            ( cd analytics-mvp && md5sum public/*.html > /tmp/ozon-before/public.md5 \
+              && { md5sum data/* 2>/dev/null | grep -v "data/competitors" > /tmp/ozon-before/data.md5 || true; } )
             # НАКЛАДЫВАЕМ свои снимки поверх свежего remote, а не заменяем каталог целиком.
             # Прежнее `rm -rf data-ym && cp -r` стирало файлы, которых нет у нас, потому что
             # checkout берёт КОММИТ ЗАПУСКА, а не голову ветки: прогон, стоявший в очереди,

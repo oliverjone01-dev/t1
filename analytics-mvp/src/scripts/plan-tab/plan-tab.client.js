@@ -42,10 +42,10 @@ var MN=['январь','февраль','март','апрель','май','ию
 function mlab(w){return w?MN[+w.to.slice(5,7)-1]+', '+dm(w.from)+'-'+dm(w.to):'нет данных'}
 var AM=D.ads_month,CM=D.cards_month;
 var cmF=CM?CM.fact.reduce(function(a,x){return a+x},0):null,cmP=CM?CM.plan.reduce(function(a,x){return a+x},0):0,cmM=CM?CM.month.reduce(function(a,x){return a+x},0):0;
-var cmOn=CM?CM.fact.filter(function(x,i){return x>=CM.plan[i]}).length:null;
+var CW=D.cards_win,cwEarly=CW.n_in>0&&CW.n_in<3,cwOn=CW.n_in?CW.fact.filter(function(x,i){return x>=CW.need[i]}).length:null;
 $('pt-gauges').innerHTML=[
   gauge({title:'Заказы 10 карточек',val:cmF,plan:cmP,l1:CM?fmt(cmF)+' из '+fmt(cmP):'-',l2:mlab(CM)+', месяц '+fmt(cmM)}),
-  gauge({title:'Карточки на пути',val:cmOn,plan:5,l1:CM?cmOn+' из 10':'-',l2:mlab(CM)+', нужно 5'}),
+  gauge({title:'Карточки на пути',early:cwEarly,val:CW.n_in&&!cwEarly?cwOn:null,plan:5,l1:CW.n_in?cwOn+' из 10':'с 16.10',l2:'окно решения '+dm(D.start)+'-'+dm(D.w1)+', нужно 5'}),
   gauge({title:'Заказы магазина',val:oU,plan:gU,l1:fmt(oU)+' из '+fmt(gU),l2:(nov?'ноябрь ':'октябрь ')+fmt(MG.unitsMonth)}),
   gauge({title:'Оборот магазина',val:oT/1e6,plan:gT,l1:fmt(oT/1e6,1)+' из '+fmt(gT,1)+' млн',l2:(nov?'ноябрь ':'октябрь ')+fmt(MG.turnMonth,1)+' млн'}),
   gauge({title:'Реклама, все клики',val:AM?AM.fact:null,plan:AM?AM.plan:0,hiBad:true,pre:AM&&AM.pre,l1:AM?fmt(AM.fact/1e3)+' из '+fmt(AM.plan/1e3)+' тыс. ₽':'-',l2:mlab(AM)+(AM?', месяц '+fmt(AM.month/1e3)+' тыс.':'')})

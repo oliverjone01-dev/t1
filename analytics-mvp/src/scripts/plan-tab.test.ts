@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { JSDOM, VirtualConsole } from "jsdom";
 import { priceStatus, monthWindow, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
@@ -320,5 +321,35 @@ describe("planBlock", () => {
   });
   it("в данных страницы нет «</script>»", () => {
     expect(planBlock("2026-10-17", fixture())!.js.includes("</script")).toBe(false);
+  });
+});
+
+// Клиентский скрипт блока исполняется только в браузере: без этого теста 753bf11 (ReferenceError wkLast) прошёл 66/66 (ФЕНИКС T4, E087).
+describe("клиент блока в jsdom: скрипт отрабатывает, спидометры заполнены", () => {
+  function run(today: string, f = fixture()) {
+    const b = planBlock(today, f)!;
+    const errs: string[] = [];
+    const vc = new VirtualConsole(); vc.on("jsdomError", (e) => errs.push(String(e))); vc.on("error", (e) => errs.push(String(e)));
+    const dom = new JSDOM(`<!doctype html><html><head><style>${b.css}</style></head><body>${b.html}<script>${b.js}</script></body></html>`,
+      { runScripts: "dangerously", virtualConsole: vc, pretendToBeVisual: true });
+    const g = [...dom.window.document.querySelectorAll("#pt-gauges .gauge")].map((x) => x.textContent!.replace(/\s+/g, " "));
+    return { errs, g, doc: dom.window.document };
+  }
+  it("ошибок нет, 5 спидометров, у каждого подпись", () => {
+    const r = run("2026-10-17");
+    expect(r.errs).toEqual([]); expect(r.g).toHaveLength(5);
+    expect(r.g[0]).toContain("Заказы 10 карточек"); expect(r.g[4]).toContain("Реклама, все клики");
+  });
+  it("«на пути» - по окну решения; 2 дня данных - «рано» (Иван 15.10, ФЕНИКС W5)", () => {
+    const r = run("2026-10-17");
+    expect(r.g[1]).toContain("окно решения 15.10-28.10"); expect(r.g[1]).toContain("рано");
+  });
+  it("реклама: факт - все клики, до 15.10 план = факт (Иван 15.10, ФЕНИКС W6)", () => {
+    const r = run("2026-10-17");
+    expect(r.g[4]).toContain("9 из"); // 9,1 тыс. факта 15-16.10 в тыс. ₽ округлено
+  });
+  it("разделы ниже спидометров тоже отрисованы (скрипт не упал на полпути)", () => {
+    const r = run("2026-10-17");
+    for (const id of ["pt-gauges", "pt-pills", "pt-pricepills"]) expect(r.doc.getElementById(id)?.innerHTML.length ?? 0).toBeGreaterThan(20);
   });
 });

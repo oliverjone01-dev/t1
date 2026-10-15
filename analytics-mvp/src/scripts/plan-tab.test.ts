@@ -358,9 +358,31 @@ describe("клиент блока в jsdom: скрипт отрабатывае�
     const r = run("2026-10-17");
     expect(r.g[1]).toContain("окно решения 15.10-28.10"); expect(r.g[1]).toContain("рано");
   });
-  it("реклама: факт - все клики, до 15.10 план = факт (Иван 15.10, ФЕНИКС W6)", () => {
+  it("реклама: факт - все клики за период с 15.10", () => {
     const r = run("2026-10-17");
     expect(r.g[4]).toContain("9 из"); // 9,1 тыс. факта 15-16.10 в тыс. ₽ округлено
+  });
+  it("цвет зоны под стрелкой = цвет статуса к плану на дату, у всех спидометров (Иван 15.10, ФЕНИКС G1)", () => {
+    const days = ["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"];
+    for (const u of [0, 1, 2, 5]) {
+      const orders = days.flatMap((d) => [{ d, status: "delivered", sku: "1", units: u, revenue: 1000 * u }, { d, status: "delivered", sku: "9", units: 5, revenue: 5000 }]);
+      const b = planBlock("2026-10-19", fixture({ orders }))!;
+      const dom = new JSDOM(`<body>${b.html}<script>${b.js}</script></body>`, { runScripts: "dangerously" });
+      const gs = [...dom.window.document.querySelectorAll("#pt-gauges .gauge")] as HTMLElement[];
+      for (const g of gs) if (g.dataset.st) expect([g.textContent!.slice(0, 20), g.dataset.zone]).toEqual([g.textContent!.slice(0, 20), g.dataset.st]);
+      expect(gs.filter((g) => g.dataset.st).length).toBeGreaterThanOrEqual(3);
+    }
+  });
+  it("реклама: перерасход - красная зона, недорасход - зелёная (больше - краснее)", () => {
+    const ads = (sp: number) => ["2026-10-15", "2026-10-16", "2026-10-17"].map((d) => ({ d, id: "5", sp, cl: 1 }));
+    const zone = (sp: number) => {
+      const b = planBlock("2026-10-19", fixture({ adsDaily: ads(sp) }))!;
+      const dom = new JSDOM(`<body>${b.html}<script>${b.js}</script></body>`, { runScripts: "dangerously" });
+      const g = [...dom.window.document.querySelectorAll("#pt-gauges .gauge")].pop() as HTMLElement;
+      return [g.dataset.zone, g.dataset.st];
+    };
+    const [hi] = zone(100000), [lo] = zone(10);
+    expect(hi).toBe("#FF7A7E"); expect(lo).toBe("#34D399");
   });
   it("разделы ниже спидометров тоже отрисованы (скрипт не упал на полпути)", () => {
     const r = run("2026-10-17");

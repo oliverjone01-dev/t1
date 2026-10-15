@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { priceStatus, monthWindow, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
+import { JSDOM, VirtualConsole } from "jsdom";
+import { priceStatus, gaugePeriod, storeGoalDay, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -178,11 +179,17 @@ describe("priceStatus - статус цены по факту, а не «ждё�
   it("нет цены", () => expect(priceStatus(null, 1, 1, "2026-10-15", "2026-10-15").key).toBe("нет цены"));
 });
 
-describe("спидометры за месяц (Иван 15.10: «месяц нужен всем»)", () => {
-  it("окно - с 1-го числа месяца последнего дня", () => {
-    expect(monthWindow("2026-10-20", "2026-10-15")).toEqual({ from: "2026-10-01", to: "2026-10-20", pre: false });
-    expect(monthWindow("2026-11-03", "2026-10-15")).toEqual({ from: "2026-11-01", to: "2026-11-03", pre: false });
-    expect(monthWindow("2026-10-14", "2026-10-15")!.pre).toBe(true); expect(monthWindow("", "2026-10-15")).toBeNull();
+describe("спидометры: период с 15.10 по конец месяца (Иван 15.10)", () => {
+  it("период - с 15.10 по 31.10, с ноября - месяц целиком; last - последний день данных в периоде", () => {
+    expect(gaugePeriod("2026-10-14", "2026-10-15")).toEqual({ from: "2026-10-15", to: "2026-10-31", last: "" });
+    expect(gaugePeriod("2026-10-20", "2026-10-15")).toEqual({ from: "2026-10-15", to: "2026-10-31", last: "2026-10-20" });
+    expect(gaugePeriod("2026-11-03", "2026-10-15")).toEqual({ from: "2026-11-01", to: "2026-11-30", last: "2026-11-03" });
+    expect(gaugePeriod("", "2026-10-15")).toEqual({ from: "2026-10-15", to: "2026-10-31", last: "" });
+  });
+  it("план магазина на день: сумма за 15-31.10 = цель октября минус путь к 14.10", () => {
+    const g = { oct: { lo: 300, mid: 355, hi: 429 }, nov: { lo: 290, mid: 409, hi: 568 } };
+    const t = drange("2026-10-15", "2026-10-31").reduce((a, d) => a + storeGoalDay(g, d), 0);
+    expect(t).toBeCloseTo(355 - goalPath(g.oct, 14, "mid"), 6); expect(storeGoalDay(g, "2026-11-05")).toBeCloseTo(409 / 30, 6);
   });
   it("план карточки на день: до 15.10 база/7, с 15.10 порог/14", () => {
     const c = { u_wk_base: 7, threshold: 28 };
@@ -231,8 +238,8 @@ function fixture(extra: Record<string, unknown[]> = {}) {
     { d: "2026-10-15", cid: "28753239", sku: "1", sp: 99999 }, { d: "2026-10-15", cid: "77", sku: "1", sp: 400 },
     { d: "2026-10-16", cid: "77", sku: "8", sp: 2600 },
   ]);
-  nd("ads_daily.ndjson", [{ d: "2026-10-15", id: "5", sp: 3000, cl: 40 }, { d: "2026-10-15", id: "77", sp: 2500, cl: 10 },
-    { d: "2026-10-16", id: "5", sp: 1000, cl: 10 }, { d: "2026-10-16", id: "77", sp: 2600, cl: 10 }]);
+  nd("ads_daily.ndjson", (extra.adsDaily as unknown[] | undefined ?? []).concat([{ d: "2026-10-15", id: "5", sp: 3000, cl: 40 }, { d: "2026-10-15", id: "77", sp: 2500, cl: 10 },
+    { d: "2026-10-16", id: "5", sp: 1000, cl: 10 }, { d: "2026-10-16", id: "77", sp: 2600, cl: 10 }]));
   writeFileSync(join(dir, "ads_sku_state.json"), JSON.stringify({ "5": "2026-10-16", "77": "2026-10-17" }));
   nd("prices_daily.ndjson", [{ d: "2026-10-16", offer: "A-1", price: 1000 }]);
   nd("gap_daily.ndjson", extra.gap ?? [{ date: "2026-10-16", art: "A-1", gap_pct: 5 }]);
@@ -255,17 +262,25 @@ describe("planBlock", () => {
     expect(D.store.orders[k]).toBe(5);
     expect(D.ser[0].orders[k + 1]).toBeNull();    // после последнего дня источника - пропуск, не ноль
   });
-  it("спидометр рекламы - все клики без «Оплаты за заказ» за месяц; карточки - с 1-го числа", () => {
-    const D = pd(planBlock("2026-10-17", fixture())!.js);
-    expect(D.ads_month).toMatchObject({ from: "2026-10-01", to: "2026-10-16", fact: 3000 + 2500 + 1000 + 2600, days: 2 });
-    expect(D.ads_month.plan_wk).toBe(20000 + 1500 + 2000);
-    expect(D.cards_month).toMatchObject({ from: "2026-10-01", to: "2026-10-16", fact: [3] });
-    expect(D.cards_month.plan[0]).toBe(Math.round(((14 * 2 / 7) + 2 * 6 / 14) * 10) / 10);
+  it("спидометры: факт с 15.10 против плана 15-31.10, метка - план на последний день; реклама - все клики", () => {
+    const G = pd(planBlock("2026-10-17", fixture())!.js).gauges;
+    expect(G.cards).toMatchObject({ from: "2026-10-15", to: "2026-10-31", last: "2026-10-16", fact: 3, plan: Math.round(17 * 6 / 14 * 10) / 10, plan_td: Math.round(2 * 6 / 14 * 10) / 10, ref: null });
+    expect(G.ads).toMatchObject({ fact: 3000 + 2500 + 1000 + 2600, plan_wk: 20000 + 1500 + 2000 });
+    expect(G.ads.plan).toBe(Math.round((G.ads.plan_wk + G.ads.other_wk) / 7 * 17));
   });
   it("скидка OZON: было на 14.10, стало по последнему срезу, разница в п.п. (Иван 15.10)", () => {
     const html = planBlock("2026-10-17", fixture({ gap: [{ date: "2026-10-13", art: "A-1", gap_pct: 30 }, { date: "2026-10-14", art: "A-1", gap_pct: 20 }, { date: "2026-10-16", art: "A-1", gap_pct: 5 }] }))!.html;
     const row = html.slice(html.indexOf("Скидка OZON сейчас"));
     expect(row).toContain(">20,0%<"); expect(row).toContain(">5,0%<"); expect(row).toContain("-15,0 п.п."); expect(row).toContain("выпал из бустинга?");
+  });
+  it("данные до 15.10 - только справочно: в факт и план периода не входят (Иван 15.10)", () => {
+    const orders = [{ d: "2026-10-10", status: "delivered", sku: "1", units: 7, revenue: 7000 }, { d: "2026-10-15", status: "delivered", sku: "1", units: 2, revenue: 1000 },
+      { d: "2026-10-16", status: "delivered", sku: "9", units: 4, revenue: 100 }];
+    const G = pd(planBlock("2026-10-17", fixture({ orders, adsDaily: [{ d: "2026-10-10", id: "5", sp: 50000, cl: 1 }] }))!.js).gauges;
+    expect(G.cards).toMatchObject({ fact: 2, ref: { from: "2026-10-01", to: "2026-10-14", fact: 7 } });
+    expect(G.store).toMatchObject({ fact: 6, ref: { fact: 7 } });
+    expect(G.ads.fact).toBe(9100); expect(G.ads.ref.fact).toBe(50000);
+    expect(G.ads.plan).toBe(Math.round((G.ads.plan_wk + G.ads.other_wk) / 7 * 17));   // план периода - ставка × 17 дней, расход 01-14.10 в него не входит (кроме темпа прочих кампаний за 01-13.10)
   });
   it("выводимый товар не идёт в карточку, но идёт в магазин (Иван 15.10 «б»)", () => {
     const b = planBlock("2026-10-17", fixture({ withdrawn: ["A-2"] }))!;
@@ -320,5 +335,35 @@ describe("planBlock", () => {
   });
   it("в данных страницы нет «</script>»", () => {
     expect(planBlock("2026-10-17", fixture())!.js.includes("</script")).toBe(false);
+  });
+});
+
+// Клиентский скрипт блока исполняется только в браузере: без этого теста 753bf11 (ReferenceError wkLast) прошёл 66/66 (ФЕНИКС T4, E087).
+describe("клиент блока в jsdom: скрипт отрабатывает, спидометры заполнены", () => {
+  function run(today: string, f = fixture()) {
+    const b = planBlock(today, f)!;
+    const errs: string[] = [];
+    const vc = new VirtualConsole(); vc.on("jsdomError", (e) => errs.push(String(e))); vc.on("error", (e) => errs.push(String(e)));
+    const dom = new JSDOM(`<!doctype html><html><head><style>${b.css}</style></head><body>${b.html}<script>${b.js}</script></body></html>`,
+      { runScripts: "dangerously", virtualConsole: vc, pretendToBeVisual: true });
+    const g = [...dom.window.document.querySelectorAll("#pt-gauges .gauge")].map((x) => x.textContent!.replace(/\s+/g, " "));
+    return { errs, g, doc: dom.window.document };
+  }
+  it("ошибок нет, 5 спидометров, у каждого подпись", () => {
+    const r = run("2026-10-17");
+    expect(r.errs).toEqual([]); expect(r.g).toHaveLength(5);
+    expect(r.g[0]).toContain("Заказы 10 карточек"); expect(r.g[4]).toContain("Реклама, все клики");
+  });
+  it("«на пути» - по окну решения; 2 дня данных - «рано» (Иван 15.10, ФЕНИКС W5)", () => {
+    const r = run("2026-10-17");
+    expect(r.g[1]).toContain("окно решения 15.10-28.10"); expect(r.g[1]).toContain("рано");
+  });
+  it("реклама: факт - все клики, до 15.10 план = факт (Иван 15.10, ФЕНИКС W6)", () => {
+    const r = run("2026-10-17");
+    expect(r.g[4]).toContain("9 из"); // 9,1 тыс. факта 15-16.10 в тыс. ₽ округлено
+  });
+  it("разделы ниже спидометров тоже отрисованы (скрипт не упал на полпути)", () => {
+    const r = run("2026-10-17");
+    for (const id of ["pt-gauges", "pt-pills", "pt-pricepills"]) expect(r.doc.getElementById(id)?.innerHTML.length ?? 0).toBeGreaterThan(20);
   });
 });

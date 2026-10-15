@@ -167,11 +167,18 @@ export function adsFullDay(adsDaily: Array<{ d: string; id: string; sp: number }
   }
   return full;
 }
-/** Окно спидометров - месяц (Иван 15.10: «месяц нужен всем спидометрам»): с 1-го числа месяца последнего дня источника
- *  по этот день. pre - в данных ещё нет дней плана. */
-export function monthWindow(last: string, start: string): { from: string; to: string; pre: boolean } | null {
-  if (!last) return null;
-  return { from: last.slice(0, 8) + "01", to: last, pre: last < start };
+/** Период спидометров (Иван 15.10: «план до конца месяца начиная с 15.10 и факт за этот период; 01-14.10 справочно»):
+ *  с 15.10 (с ноября - с 1-го числа) по конец месяца. last - последний день источника внутри периода, "" - данных ещё нет. */
+export function gaugePeriod(last: string, start: string): { from: string; to: string; last: string } {
+  const m1 = last > start ? last.slice(0, 8) + "01" : start.slice(0, 8) + "01";
+  const from = m1 > start ? m1 : start;
+  return { from, to: monthEnd(from), last: last >= from ? last : "" };
+}
+/** План магазина на день по цели месяца «средне»: октябрь - приращение пути цели (база + прирост с 17.10), с ноября - ровно по дням. */
+export function storeGoalDay(g: { oct: Tri; nov: Tri }, d: string): number {
+  const n = Number(d.slice(8, 10));
+  if (d.slice(5, 7) === "10") return goalPath(g.oct, n, "mid") - goalPath(g.oct, n - 1, "mid");
+  return g.nov.mid / 30;
 }
 /** План заказов карточки на день (Иван 15.10, «01-14 база, с 15.10 порог»): до старта - темп базы 14.09-11.10,
  *  со старта - порог за 14 дней окна / 14. */
@@ -394,7 +401,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   ];
   // спидометр «Реклама» (Иван 15.10): все клики кабинета без «Оплаты за заказ» (ads_daily) за месяц.
   // План в неделю = план 15.10 (главные + минимальный клик + 11 кампаний) + прочие кампании («29 оставляем») по их темпу 01-13.10:
-  // все клики минус главные, минимальный клик и 11 кампаний за то же окно. План на день = в неделю / 7, и до 15.10 тоже (серым).
+  // все клики минус главные, минимальный клик и 11 кампаний за то же окно. План на день - в неделю / 7 (период с 15.10, до него только справочно).
   const OTHER_WIN: [string, string] = ["2026-10-01", "2026-10-13"];
   const sumMap = (m: Map<string, number>, a: string, b: string) => [...m].reduce((t, [d, v]) => d >= a && d <= b ? t + v : t, 0);
   if (ADS_FULL < OTHER_WIN[1]) warnings.push(`темп прочих кампаний 01-13.10: реклама по товарам собрана только по ${ADS_FULL || "-"}`);
@@ -402,16 +409,26 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     - P.to_min.reduce((t, k) => t + sumMap(campDaily.get(String(k.cid)) ?? new Map(), ...OTHER_WIN), 0);
   const OTHER_WK = Math.max(0, otherSp) / 13 * 7;
   const PLAN_WK = cards.reduce((t, c) => t + c.click_new + c.n_min * P.min_budget_sku, 0) + P.to_min.length * P.min_campaign_budget;
-  const AMW = monthWindow(AD_CAMP_LAST, START);
-  const amDays = AMW ? drange(AMW.from, AMW.to).filter((d) => stSp.has(d)).length : 0;
-  const adsMonth = AMW ? { ...AMW, fact: Math.round(sumMap(stSp, AMW.from, AMW.to)), plan: Math.round((PLAN_WK + OTHER_WK) * amDays / 7),
-    plan_wk: Math.round(PLAN_WK), other_wk: Math.round(OTHER_WK), days: amDays,
-    month: Math.round((PLAN_WK + OTHER_WK) * drange(AMW.from, monthEnd(AMW.from)).length / 7) } : null;
-  // спидометры карточек за месяц: факт с 1-го числа, план - база до 15.10 и порог/14 с 15.10 (Иван 15.10)
-  const CMW = monthWindow(OD_LAST, START);
-  const cardsMonth = CMW ? { ...CMW, fact: cards.map((_, i) => sumMap(od[i]!, CMW.from, CMW.to)),
-    plan: cards.map((c) => Math.round(drange(CMW.from, CMW.to).reduce((t, d) => t + cardPlanDay(c, d, START), 0) * 10) / 10),
-    month: cards.map((c) => Math.round(drange(CMW.from, monthEnd(CMW.from)).reduce((t, d) => t + cardPlanDay(c, d, START), 0) * 10) / 10) } : null;
+  // спидометры: период с 15.10 по конец месяца, факт за период против плана всего периода, метка - план на последний день данных;
+  // факт 01-14.10 - справочно (Иван 15.10). Реклама до конца месяца - по ставке (план 15.10 + прочие кампании).
+  const sum = (f: (d: string) => number, a: string, b: string) => a && b && a <= b ? drange(a, b).reduce((t, d) => t + f(d), 0) : 0;
+  const adsRate = (PLAN_WK + OTHER_WK) / 7;
+  // src - дни, которые есть в источнике: справочная строка 01-14.10 только при данных за эти дни (пропуск - не ноль)
+  const gp = (last: string, src: Map<string, number>, fact: (a: string, b: string) => number, planDay: (d: string) => number, round = 0) => {
+    const w = gaugePeriod(last, START), r = (x: number) => Math.round(x * 10 ** round) / 10 ** round;
+    const ref = w.from === START ? [START.slice(0, 8) + "01", addDays(START, -1)] as [string, string] : null;
+    return { ...w, fact: w.last ? r(fact(w.from, w.last)) : null, plan: r(sum(planDay, w.from, w.to)), plan_td: w.last ? r(sum(planDay, w.from, w.last)) : 0,
+      ref: ref && last >= ref[1] && drange(...ref).some((d) => src.has(d)) ? { from: ref[0], to: ref[1], fact: r(fact(ref[0], ref[1])) } : null };
+  };
+  const GAUGES = {
+    cards: gp(OD_LAST, stU, (a, b) => cards.reduce((t, _, i) => t + sumMap(od[i]!, a, b), 0), (d) => cards.reduce((t, c) => t + cardPlanDay(c, d, START), 0), 1),
+    store: gp(OD_LAST, stU, (a, b) => sumMap(stU, a, b), (d) => storeGoalDay(P.goal.units, d), 1),
+    turn: gp(OD_LAST, stU, (a, b) => sumMap(stRev, a, b) / 1e6, (d) => storeGoalDay(P.goal.turn_mln, d), 2),
+    ads: { ...gp(AD_CAMP_LAST, stSp, (a, b) => sumMap(stSp, a, b), () => adsRate), plan_wk: Math.round(PLAN_WK), other_wk: Math.round(OTHER_WK) },
+  };
+  // «Карточки на пути» - по окну решения 15-28.10 к порогу (Иван 15.10, ФЕНИКС W5): как правило 29.10; первые 2 дня - «рано»
+  const cardsWin = { n_in: nIn, fact: cards.map((_, i) => sumMap(od[i]!, START, W1 < OD_LAST ? W1 : OD_LAST)),
+    need: cards.map((c) => Math.round(c.threshold * nIn / 14 * 10) / 10) };
   const r5: string[] = [];
   for (const g of SPEND) {
     r5.push(`<tr class="grp"><td colspan="5">${esc(g.g)}</td></tr>`);
@@ -459,7 +476,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     ser: SER, store: STORE, store_rev: ser(stRev, OD_LAST), goal: P.goal, base_win: BASE,
     store_card: { short: "Весь магазин", thr: sNeed, thrp: null, base2: Math.round(sBase * 10) / 10,
       path: Array.from({ length: 14 }, (_, k) => Math.round(storeNeed(gU, k + 1) * 10) / 10) },
-    ads_month: adsMonth, cards_month: cardsMonth,
+    gauges: GAUGES, cards_win: cardsWin,
     spend: SPEND, weeks: WEEKS.map((w) => w[0]), week_start: WEEKS.map((w) => w[1]),
     price_st: pst, price_n: P.price.length, price_first: P.price.filter((p) => p.when === "15.10").length,
   };

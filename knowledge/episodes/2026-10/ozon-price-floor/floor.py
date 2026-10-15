@@ -1,29 +1,32 @@
+# 13.10: в модель перенесены правки R1-R9 ФЕНИКСА после вето 4,7 (12.10, проба P20: ставка - факт списания, АДМ от К выплате,
+# доля К выплате с 01.09, база налога). Выход - вне репозитория (/tmp/ozon-floor/floor_rows.json): репо публичный, в нём себестоимость.
 # Пол цены по товару: до какой нашей цены (предельной) можно опуститься без акции, с дешёвой рекламой за клик,
 # чтобы прибыль по «Отчету» (build-katya: К выплате - реклама - С/С - наша доставка + доставка покупателя
 # - АДМ 30% от (К выплате - реклама) - налог 15% от платежа покупателя) оставалась >= 0 / >= 10% рентабельности.
 # Запуск: python3 -I floor.py
-import json,collections as C,statistics as S
+import json,os,collections as C,statistics as S
+os.makedirs('/tmp/ozon-floor',exist_ok=True)
 D='/home/user/t1/analytics-mvp/data/'
 L=lambda f:[json.loads(l) for l in open(D+f)]
-CPO=0.05; ADM=0.30; TAX=0.15; ADS_PP=0.065; CPC_WK=1500; RENT=0.10
+CPO=0.039; ADM=0.30; TAX=0.15; PAY=0.914; ADS_PP=0.065; CPC_WK=1500; RENT=0.10; KEEP_FROM='2026-09-01'
+# CPO: факт списания ставки за заказ, сентябрь 818 149 / начислено 21 010 545 = 3,9% [ДАННЫЕ: cpo_sku_daily, «Отчет» 01-30.09]
+# PAY: оплата покупателя / (наша цена x site_to_seller) = 0,905 (медиана 198 заказов) x 1,01 (G) - база налога «Отчета»
+# KEEP_FROM: комиссия росла ступенями (заказы июня 43,7%, сентября 49,4%, октября 50,5%), доля К выплате - с 01.09
 cogs=json.load(open(D+'sku_cogs.json'))
 O=L('orders_daily.ndjson')
 ship={x['order']:x for x in L('delivery_orders.ndjson')}
 bd={x['order']:x['bd'] for x in L('buyer_delivery_orders.ndjson')}
 # доля сборов OZON и чистая доставка по товару (доставленные с 01.06)
-fee=C.defaultdict(lambda:[0,0]); sn=C.defaultdict(list)
+fee=C.defaultdict(lambda:[0,0]); fee6=C.defaultdict(lambda:[0,0]); sn=C.defaultdict(list)
 for o in O:
     if o['status']!='delivered' or o['revenue']<=0 or o['d']<'2026-06-01': continue
-    f=fee[o['sku']]; f[0]+=o['payout']; f[1]+=o['revenue']
-    k=o['order'] if o['order'] in ship else o['order'].rsplit('-',1)[0]
+    f=fee6[o['sku']]; f[0]+=o['payout']; f[1]+=o['revenue']
+    if o['d']>=KEEP_FROM: f=fee[o['sku']]; f[0]+=o['payout']; f[1]+=o['revenue']
     s=ship.get(o['order']) or ship.get(o['order']+'-1')
     if s: sn[o['sku']].append((s['ship']-(bd.get(o['order'].rsplit('-',1)[0]) or bd.get(o['order']) or s.get('deliv') or 0))/max(o['units'],1))
-allf=[sum(v[0] for v in fee.values()),sum(v[1] for v in fee.values())]
-store_keep=allf[0]/allf[1]; store_sn=S.median([x for v in sn.values() for x in v])
+allf=[sum(v[0] for v in fee.values()),sum(v[1] for v in fee.values())]; all6=[sum(v[0] for v in fee6.values()),sum(v[1] for v in fee6.values())]
+store_keep=allf[0]/allf[1]; drift=store_keep/(all6[0]/all6[1]); store_sn=S.median([x for v in sn.values() for x in v])
 # заказы без отмен за 60 дней
-od=C.Counter(o['sku'] for o in O if o['status']!='cancelled' and o['d']>='2026-08-12')
-for o in O:
-    if o['status']!='cancelled' and o['d']>='2026-08-12': pass
 units=C.Counter()
 for o in O:
     if o['status']!='cancelled' and o['d']>='2026-08-12': units[o['sku']]+=o['units']
@@ -40,14 +43,15 @@ for sku,u in units.items():
     if art not in P: continue
     p0=P[art][1]; s=G[sku][1]
     s_ads=s if sku in ads else max(s-ADS_PP,0.2)          # дешёвая реклама: доплата OZON +6,5 п.
-    keep=fee[sku][0]/fee[sku][1] if fee[sku][1]>0 else store_keep
+    keep=fee[sku][0]/fee[sku][1] if fee[sku][1]>0 else (fee6[sku][0]/fee6[sku][1]*drift if fee6[sku][1]>0 else store_keep)
     shipn=S.median(sn[sku]) if sn[sku] else store_sn
     wk=u/60*7; cpc_o=CPC_WK/wk  # сценарий: у всех товаров только дешёвая реклама 1 500 ₽/нед (дорогие переводятся на неё)
     def profit(p,cpc=cpc_o,sh=s_ads):
-        base=p*keep-CPO*p-cpc
-        return base-cogs[sku]-shipn-ADM*base-TAX*p*sh, base
-    k=0.70*(keep-CPO)-TAX*s_ads
-    fixed=cogs[sku]+shipn+0.70*cpc_o
+        base=p*keep-CPO*p-cpc   # К выплате - реклама: знаменатель рентабельности, как в «Отчете»
+        # АДМ «Отчета» считается по дням с отсечкой минуса: реклама дней без продаж базу не режет (сентябрь: 86% рекламы)
+        return base-cogs[sku]-shipn-ADM*p*keep-TAX*p*sh*PAY, base
+    k=0.70*keep-CPO-TAX*s_ads*PAY
+    fixed=cogs[sku]+shipn+cpc_o
     p_zero=fixed/k if k>0 else None
     # рентабельность = прибыль / (К выплате - реклама); прибыль >= RENT*base
     k10=k-RENT*(keep-CPO); fixed10=fixed-RENT*cpc_o
@@ -55,7 +59,7 @@ for sku,u in units.items():
     pr0,b0=profit(p0)  # при текущей цене и дешёвой рекламе
     rows.append(dict(sku=sku,art=art,p0=p0,u60=u,wk=wk,keep=keep,cogs=cogs[sku],shipn=shipn,s=s,ads=sku in ads,
         pr_now=pr0,rent_now=pr0/b0 if b0 else 0,cpc_o=cpc_o,p_zero=p_zero,p_10=p_10))
-json.dump(rows,open('/home/user/t1/knowledge/episodes/2026-10/ozon-price-floor/floor_rows.json','w'),ensure_ascii=False)
+json.dump(rows,open('/tmp/ozon-floor/floor_rows.json','w'),ensure_ascii=False)
 print('товаров',len(rows),'доля к выплате магазин %.3f, чистая доставка медиана %.0f ₽'%(store_keep,store_sn))
 print('рентабельность при текущей цене и дешёвой рекламе 1 500 ₽/нед: медиана %.0f%%, отрицательная у %d'%(S.median(r['rent_now'] for r in rows)*100,sum(r['pr_now']<0 for r in rows)))
 def cut(r,p): return (1-p/r['p0'])*100 if p else None
@@ -69,13 +73,13 @@ for lo,hi,lab in ((0,0.5,'<0,5 шт/нед'),(0.5,1.5,'0,5-1,5'),(1.5,99,'>1,5')
     if not rr: continue
     print(f'{lab:12} n={len(rr):3} заказов 60д {sum(r["u60"] for r in rr):4}  реклама на заказ медиана {S.median(r["cpc_o"] for r in rr):6.0f} ₽  запас до 0: медиана {S.median(cut(r,r["p_zero"]) for r in rr):5.0f}%  до 10%: {S.median(cut(r,r["p_10"]) for r in rr):5.0f}%')
 # --- сценарий: дешёвая реклама утраивает заказы товара (тест 1: 0,57 -> 1,83 в день) ---
-print('\nесли реклама утроит заказы (как в тесте 1):')
+print('\n[ГИПОТЕЗА] если реклама утроит заказы (x3 - верх теста 1: 11 товаров без рекламы, база 8 шт, с перетягиванием в KONUX; для товаров с рекламой и от 0,5 шт/нед не проверено):')
 for lo,hi,lab in ((0,0.5,'<0,5 шт/нед'),(0.5,1.5,'0,5-1,5'),(1.5,99,'>1,5')):
     rr=[r for r in rows if lo<=r['wk']<hi]
     zz=[]
     for r in rr:
         cpc=r['cpc_o']/3; s_ads=r['s'] if r['ads'] else max(r['s']-ADS_PP,0.2)
-        k=0.70*(r['keep']-CPO)-TAX*s_ads; fx=r['cogs']+r['shipn']+0.70*cpc
+        k=0.70*r['keep']-CPO-TAX*s_ads*PAY; fx=r['cogs']+r['shipn']+cpc
         zz.append((1-fx/k/r['p0'])*100 if k>0 else None)
     zz=[x for x in zz if x is not None]
     print(f'  {lab:12} запас до нуля прибыли медиана {S.median(zz):.0f}%')
@@ -84,7 +88,7 @@ print('\nнужный рост заказов, чтобы прибыль не у
 for cutp in (0.05,0.10,0.20):
     need=[]
     for r in rows:
-        s=r['s']; k=0.70*(r['keep']-CPO)-TAX*s; fx=r['cogs']+r['shipn']
+        s=r['s']; k=0.70*r['keep']-CPO-TAX*s*PAY; fx=r['cogs']+r['shipn']
         pr0=r['p0']*k-fx; pr1=r['p0']*(1-cutp)*k-fx
         if pr0>0: need.append(pr0/pr1 if pr1>0 else float('inf'))
     fin=sorted(x for x in need if x!=float('inf'))

@@ -21,6 +21,7 @@ import {
   type BoostRow, type CoinvRow, type WaveItem,
 } from "./boost-readiness.js";
 import { KPAGES, navButton } from "./katya-nav.js";
+import { planBlock } from "./plan-tab.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
 import { readGapDaily, GAP_DAILY_FILE } from "./gap-daily.js";
@@ -3523,9 +3524,11 @@ const foldCards = (html: string): string => html
   .replace(/<section class="card"( id="[^"]*")?><div class="chead">([\s\S]*?)<\/div><\/div>/g,
     (_m, id: string | undefined, head: string) => `<section class="card"${id || ""}><details class="tcard"><summary class="chead">${head}</div></summary>`)
   .replace(/<\/section>/g, "</details></section>");
+const PLAN = planBlock(TODAY);
+if (PLAN?.warnings.length) console.warn(`plan-tab: ${PLAN.warnings.length} предупреждений: ${PLAN.warnings.slice(0, 3).join("; ")}`);
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<meta name="viewport" content="width=device-width,initial-scale=1">`
-  + `<title>GENGLASS · Тесты</title><style>${CSS}</style></head><body>`
+  + `<title>GENGLASS · Тесты</title><style>${CSS}${PLAN?.css ?? ""}</style></head><body>`
   + `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">`
   + `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">${nav}`
   + `<span style="color:#5d7484;margin-left:8px">тесты по ${esc(T.обновлено || "")} · воронка по ${esc(LAST)} · разрыв по ${esc(P_LAST_GAP || "-")}</span></div></div>`
@@ -3541,9 +3544,11 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   // «Измеренные тесты» со страницы убраны, «Заметки и предупреждения» свёрнуты (Иван 30.09).
   // mblock собирается по-прежнему: reakciya.json не трогаем, блок просто не выводится.
   // Карточки тестов свёрнуты до заголовка с чипом статуса (Иван 30.09: «сами тесты свернуть»).
+  // Первый блок - «План с 15.10: как идём к цели» (Иван 15.10), plan-tab.ts.
+  + (PLAN?.html ?? "")
   + foldCards(cards.replace("<!--BOOST_EXITED-->", () => WAVE.exited).replace("<!--BOOST_TECH-->", () => WAVE.tech) + bidCards + priceCards)
   + `<details class="fold"><summary><b style="font-size:15px">Заметки и предупреждения</b></summary><div class="fold-b">${warnBlock}<div class="notes"><ul>${notes}</ul></div></div></details></div>`
-  + `<script>${JS}</script></body></html>`;
+  + `<script>${JS}</script>${PLAN ? `<script>${PLAN.js}</script>` : ""}</body></html>`;
 
 writeFileSync(op("katya-tests.html"), html);
 console.log(`katya-tests.html: ${Math.round(html.length / 1024)} KB, тестов ${T.тесты.length}, измеренных ${measured.length}, данные по ${LAST}`);

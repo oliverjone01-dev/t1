@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { adsMonthWindow, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
+import { priceStatus, adsMonthWindow, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -168,6 +168,16 @@ describe("план v3 - V3, Иван 15.10 «б»: выводимые вне к�
   });
 });
 
+describe("priceStatus - статус цены по факту, а не «ждём» (Иван 15.10)", () => {
+  it("в день смены уже снижена до целевой - «снижена»", () => expect(priceStatus(75905, 79900, 75900, "2026-10-15", "2026-10-15")).toEqual({ key: "снижена", text: "снижена -5,0%" }));
+  it("снижена наполовину - «частично» с фактом и целью", () => expect(priceStatus(115900, 121898, 109710, "2026-10-15", "2026-10-15")).toEqual({ key: "частично", text: "частично: -4,9% из -10,0%" }));
+  it("срок не наступил, цена та же - «по плану с ДД.ММ»", () => expect(priceStatus(48900, 48900, 44010, "2026-10-22", "2026-10-15").text).toBe("по плану с 22.10"));
+  it("в сам день смены цена та же - «сегодня, пока не снижена», не красное", () => expect(priceStatus(96898, 96898, 87210, "2026-10-15", "2026-10-15")).toEqual({ key: "по плану", text: "сегодня 15.10: пока не снижена" }));
+  it("срок прошёл, цена та же - «не снижена»", () => expect(priceStatus(96898, 96898, 87210, "2026-10-15", "2026-10-16").key).toBe("не снижена"));
+  it("раньше срока частично - видно сразу", () => expect(priceStatus(80091, 80900, 72810, "2026-10-22", "2026-10-15").key).toBe("частично"));
+  it("нет цены", () => expect(priceStatus(null, 1, 1, "2026-10-15", "2026-10-15").key).toBe("нет цены"));
+});
+
 describe("adsMonthWindow - спидометр «Реклама» за месяц (Иван 15.10)", () => {
   it("в октябре - с 15.10 (старт плана), не с 01.10", () => expect(adsMonthWindow("2026-10-20", "2026-10-15")).toEqual({ from: "2026-10-15", to: "2026-10-20", pre: false }));
   it("в ноябре - с 01.11", () => expect(adsMonthWindow("2026-11-03", "2026-10-15")).toEqual({ from: "2026-11-01", to: "2026-11-03", pre: false }));
@@ -196,7 +206,7 @@ function fixture(extra: Record<string, unknown[]> = {}) {
     cards: [{ main_art: "A-1", short: "АЛЬФА", name: "", u_wk_base: 2, click_new: 20000, n_min: 1, threshold: 6, threshold_price: null, min_arts: ["A-2"] }],
     withdrawn: extra.withdrawn,
     to_min: [{ cid: "77", art: "Z-1" }],
-    price: [{ art: "A-1", name: "", when: "15.10", price_new: 900, step: "-10%" }],
+    price: [{ art: "A-1", name: "", when: "15.10", price_now: 1000, price_new: 900, step: "-10%" }],
     goal: { units: { oct: OCT, nov: OCT }, turn_mln: { oct: tri, nov: tri }, pay_mln: { oct: tri, nov: tri }, nov_rollback: { units: 1, pay_mln: 1 } },
   }));
   writeFileSync(join(dir, "card_groups.json"), JSON.stringify({ groups: [{ main: "1", skus: [{ sku: "1", offer: "A-1" }, { sku: "2", offer: "A-2" }] }] }));
@@ -219,7 +229,7 @@ function fixture(extra: Record<string, unknown[]> = {}) {
     { d: "2026-10-16", id: "5", sp: 1000, cl: 10 }, { d: "2026-10-16", id: "77", sp: 2600, cl: 10 }]);
   writeFileSync(join(dir, "ads_sku_state.json"), JSON.stringify({ "5": "2026-10-16", "77": "2026-10-17" }));
   nd("prices_daily.ndjson", [{ d: "2026-10-16", offer: "A-1", price: 1000 }]);
-  nd("gap_daily.ndjson", [{ date: "2026-10-16", art: "A-1", gap_pct: 5 }]);
+  nd("gap_daily.ndjson", extra.gap ?? [{ date: "2026-10-16", art: "A-1", gap_pct: 5 }]);
   nd("funnel_tests.ndjson", []);
   if (extra.cab) nd(CAB_FILE, extra.cab);
   return (f: string) => join(dir, f);
@@ -244,6 +254,11 @@ describe("planBlock", () => {
     expect(D.ads_month).toMatchObject({ from: "2026-10-15", pre: false });
     const n = D.ads_month.to === "2026-10-15" ? 1 : 2;
     expect(D.ads_month.plan).toBe(Math.round((20000 + 1500) * n / 7));
+  });
+  it("скидка OZON: было на 14.10, стало по последнему срезу, разница в п.п. (Иван 15.10)", () => {
+    const html = planBlock("2026-10-17", fixture({ gap: [{ date: "2026-10-13", art: "A-1", gap_pct: 30 }, { date: "2026-10-14", art: "A-1", gap_pct: 20 }, { date: "2026-10-16", art: "A-1", gap_pct: 5 }] }))!.html;
+    const row = html.slice(html.indexOf("Скидка OZON сейчас"));
+    expect(row).toContain(">20,0%<"); expect(row).toContain(">5,0%<"); expect(row).toContain("-15,0 п.п."); expect(row).toContain("выпал из бустинга?");
   });
   it("выводимый товар не идёт в карточку, но идёт в магазин (Иван 15.10 «б»)", () => {
     const b = planBlock("2026-10-17", fixture({ withdrawn: ["A-2"] }))!;

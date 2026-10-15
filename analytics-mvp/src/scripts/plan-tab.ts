@@ -41,7 +41,7 @@ export interface PlanCard { main_art: string; short: string; name: string; u_wk_
   threshold: number; threshold_price: number | null; min_arts: string[] }
 export interface Plan { start: string; check: string; window: [string, string]; min_budget_sku: number; min_campaign_budget: number;
   cards: PlanCard[]; withdrawn?: string[]; to_min: Array<{ cid: string; art: string }>;
-  price: Array<{ art: string; name: string; when: string; price_new: number; step: string }>;
+  price: Array<{ art: string; name: string; when: string; price_now: number; price_new: number; step: string }>;
   goal: { units: { oct: Tri; nov: Tri }; turn_mln: { oct: Tri; nov: Tri }; pay_mln: { oct: Tri; nov: Tri }; nov_rollback: { units: number; pay_mln: number } } }
 
 // ---------- чистые функции (тесты в plan-tab.test.ts)
@@ -117,6 +117,20 @@ export function priceColumns(hist: Map<string, Map<string, number>>, base: strin
   return [...out].sort();
 }
 export const PRICE_BASE = "2026-10-14";
+/** Статус снижения цены к плану (Иван 15.10: «ждём - кого?», показывать факт, если уже поменяли).
+ *  Смотрим на последнюю цену, а не на дату: снижение раньше срока или частичное видно сразу.
+ *  снижена - не выше целевой (+0,5%); частично - ниже цены плана «сейчас», но выше целевой;
+ *  по плану - срок ещё не наступил (или сегодня) и цена та же; не снижена - срок прошёл, а цена та же. */
+export function priceStatus(now: number | null, priceNow: number, target: number, when: string, today: string):
+  { key: "снижена" | "частично" | "по плану" | "не снижена" | "нет цены"; text: string } {
+  if (now == null) return { key: "нет цены", text: "нет цены" };
+  const pct = (x: number) => `${((x / priceNow - 1) * 100).toFixed(1).replace(".", ",")}%`;
+  if (now <= target * 1.005) return { key: "снижена", text: `снижена ${pct(now)}` };
+  if (now < priceNow * 0.995) return { key: "частично", text: `частично: ${pct(now)} из ${pct(target)}` };
+  if (today < when) return { key: "по плану", text: `по плану с ${DM(when)}` };
+  if (today === when) return { key: "по плану", text: `сегодня ${DM(when)}: пока не снижена` };   // смена может пройти позже среза
+  return { key: "не снижена", text: "не снижена" };
+}
 
 /** Статус карточки к порогу: нет данных / рано (меньше 3 дней) / идём / отстаём. Путь - порог × дни / 14. */
 export function cardStatus(got: number | null, need: number, nIn: number): "нет данных" | "рано" | "идём" | "отстаём" {
@@ -395,22 +409,29 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     if (priceArts.has(r.offer) && Number.isFinite(Number(r.price))) (prHist.get(r.offer) ?? prHist.set(r.offer, new Map()).get(r.offer)!).set(r.d, Number(r.price));
   }
   const PCOLS = priceColumns(prHist, PRICE_BASE);
-  for (const r of readNd(dp("gap_daily.ndjson"))) if (r.date >= (gapLast.get(r.art)?.[0] ?? "")) gapLast.set(r.art, [r.date, Number(r.gap_pct)]);
+  const gapHist = new Map<string, Map<string, number>>();   // скидка OZON по дням: «было» на 14.10, «стало» - последний срез (Иван 15.10)
+  for (const r of readNd(dp("gap_daily.ndjson"))) {
+    if (!Number.isFinite(Number(r.gap_pct)) || r.gap_pct == null) continue;
+    if (r.date >= (gapLast.get(r.art)?.[0] ?? "")) gapLast.set(r.art, [r.date, Number(r.gap_pct)]);
+    if (priceArts.has(r.art)) (gapHist.get(r.art) ?? gapHist.set(r.art, new Map()).get(r.art)!).set(r.date, Number(r.gap_pct));
+  }
   const pst: Record<string, number> = {}; const r6: string[] = [];
   for (const p of [...P.price].sort((a, b) => (a.when + a.art).localeCompare(b.when + b.art))) {
     const [d0, now] = prLast.get(p.art) ?? ["", null as number | null]; const when = `2026-${p.when.slice(3, 5)}-${p.when.slice(0, 2)}`;
     const [gd, gp] = gapLast.get(p.art) ?? ["", null as number | null];
-    const st = now == null ? "нет цены" : d0 < when || (d0 === when && today <= when) ? `ждём ${p.when}` : now <= p.price_new * 1.005 ? "снижена" : "не снижена";
-    const key = st.startsWith("ждём") ? "ждём" : st === "снижена" ? "снижена" : "не снижена";
+    const g0 = priceAt(gapHist.get(p.art), PRICE_BASE), gdd = gp != null && g0 != null ? gp - g0 : null;
+    const gTxt = gdd == null || Math.abs(gdd) < 0.05 ? "" : `<div class="s" style="color:${gdd > 0 ? "#34D399" : "#FF7A7E"}">${gdd > 0 ? "+" : ""}${F(gdd, 1)} п.п.</div>`;
+    const ps = priceStatus(now, p.price_now, p.price_new, when, today), key = ps.key === "нет цены" ? "не снижена" : ps.key;
     pst[key] = (pst[key] ?? 0) + 1; if (gp != null && gp < 10) pst.eb = (pst.eb ?? 0) + 1;
     r6.push(`<tr><td>${esc(p.when)}</td><td>${esc(p.art)}<div class="muted s">${esc(String(p.name).slice(0, 46))}</div></td>`
       + PCOLS.map((d) => `<td class="r">${F(priceAt(prHist.get(p.art), d))}</td>`).join("")
       + `<td class="r">${F(now)}<div class="muted s">${d0 ? DM(d0) : ""}</div></td><td class="r">${F(p.price_new)} <span class="muted">${esc(p.step)}</span></td>`
-      + `<td><span class="chip ${st === "снижена" ? "chip-done" : st.startsWith("ждём") ? "chip-off" : "chip-bad"}">${esc(st)}</span></td>`
-      + `<td class="r">${F(gp)}%<div class="muted s">${gd ? DM(gd) : ""}</div></td><td>${gp != null && gp < 10 ? `<span class="chip chip-bad">выпал из бустинга?</span>` : ""}</td></tr>`);
+      + `<td><span class="chip ${ps.key === "снижена" ? "chip-done" : ps.key === "частично" ? "chip-mid" : ps.key === "по плану" ? "chip-off" : "chip-bad"}">${esc(ps.text)}</span></td>`
+      + `<td class="r">${g0 == null ? "-" : `${F(g0, 1)}%`}</td><td class="r">${gp == null ? "-" : `${F(gp, 1)}%`}<div class="muted s">${gd ? DM(gd) : ""}</div>${gTxt}</td><td>${gp != null && gp < 10 ? `<span class="chip chip-bad">выпал из бустинга?</span>` : ""}</td></tr>`);
   }
   const tbl6 = `<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>С</th><th>Артикул</th>${PCOLS.map((d, k) => `<th class="r"${k ? ` title="цена сменилась ${DM(d)}"` : ""}>${DM(d)}</th>`).join("")}<th class="r">Сейчас, ₽</th><th class="r">Целевая, ₽</th><th>Статус</th>`
-    + `<th class="r" title="На сколько цена на сайте ниже нашей (gap_daily). Ниже 10% - похоже, выпал из Эластичного бустинга">Скидка OZON</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
+    + `<th class="r" title="Скидка OZON на 14.10, до плана: на сколько цена на сайте ниже нашей (gap_daily)">Скидка OZON 14.10</th>`
+    + `<th class="r" title="Скидка OZON по последнему срезу и изменение к 14.10 в п.п. Ниже 10% - похоже, выпал из Эластичного бустинга">Скидка OZON сейчас</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
 
   const DATA = {
     days: DAYS, start: START, w1: W1, sv_last: SV_LAST, od_last: OD_LAST, ad_last: ADS_FULL, ad_camp_last: AD_CAMP_LAST, today, n_in: nIn, mgoal: monthGoal(P.goal, OD_LAST),

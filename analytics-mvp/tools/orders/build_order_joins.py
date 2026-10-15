@@ -3,7 +3,8 @@
 # ЗАКАЗА, чтобы сесть на orders_daily (backbone OZON) в build-katya.
 #
 # Выход:
-#   data/cpo_orders.ndjson       - {order, sp}     реклама «за заказ» по номеру заказа (base, без -N)
+#   data/cpo_orders.ndjson       - {order, d, sp}  реклама «за заказ» по номеру заказа (base, без -N) и дню выгрузки
+#                                  (строки до 14.10 - без d)
 #   data/delivery_orders.ndjson  - {order, ship, deliv}  наша/клиентская доставка по номеру постинга
 #
 # Реклама (ads) в OZON accrual/postings по заказу = 0 (CPO API не отдаёт), поэтому берём из CPO-файлов.
@@ -19,6 +20,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "delivery"))
 from build_delivery_sku_daily import parse_date  # «4 августа» -> 2026-08-04, один разбор на оба сборщика
 from ledger_money import ship_and_deliv, MoneyError, second_header, fix_order_no  # noqa: E402
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "cpo"))
+from cpo_raw import read_raw, CpoRawError  # noqa: E402
 
 CPO_ONLY = "--cpo-only" in sys.argv
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -42,49 +45,46 @@ def norm(s):
 
 def main():
     # --- CPO по номеру заказа (base) ---
-    cpo = collections.defaultdict(float)
-    for f in sorted(glob.glob(os.path.join(CPO_RAW, "*.xlsx"))):
-        wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
-        ws = wb["Statistics"] if "Statistics" in wb.sheetnames else wb.worksheets[0]
-        rows = list(ws.iter_rows(values_only=True))
-        hi = None
-        for i, r in enumerate(rows[:5]):
-            if any((str(c) if c else "") == "ID заказа" for c in r):
-                hi = i
-                break
-        if hi is None:
-            wb.close()
-            continue
-        hdr = [str(c).strip() if c else "" for c in rows[hi]]
-        ci = {h: j for j, h in enumerate(hdr)}
-        for r in rows[hi + 1:]:
-            if r is None or all(c is None for c in r):
-                continue
-            no = str(r[ci["Номер заказа"]] or "").strip()
-            if no:
-                cpo[no] += num(r[ci["Расход, ₽"]])
-        wb.close()
+    # Каждый файл заменяет свой «Период:», поздний по имени побеждает (ФЕНИКС O2 13.10): раньше строки всех
+    # файлов складывались, и повтор выгрузки месяца удваивал списания. Разбор - tools/cpo/cpo_raw.py, отказ - код 1.
+    # Строка выхода = заказ + день (ФЕНИКС G5 14.10): новое сырьё заменяет в прошлом файле ОКНА своих периодов, как
+    # cpo_sku_daily, - заказ, пропавший из повторной выгрузки, уходит; заказ на стыке месяцев (31.08 и 01.09) хранит обе
+    # части. Старые строки без дня (собраны до 14.10) заменяются по номеру заказа, если он есть в новом сырье.
+    cpo = collections.defaultdict(float)  # (заказ, день) -> списание
+    try:
+        rows, used, _ = read_raw(CPO_RAW)
+    except CpoRawError as ex:
+        print("CPO ОТКАЗ:", ex)
+        sys.exit(1)
+    for r in rows:
+        if r["order"]:
+            cpo[(r["order"], r["d"])] += r["sp"]
+    for f, w, n, x in used:
+        print(f"CPO файл {f}: период {w[0]}..{w[1]}, строк {n}" + (f", заменено поздним файлом {x}" if x else ""))
     # Сырья CPO нет (оно не в git) - прошлый файл не трогаем, иначе он перезапишется пустым.
-    # Сырьё есть - СЛИВАЕМ с прошлым файлом: заказы из сырья заменяют свои строки, остальные (месяцы,
-    # чьих выгрузок в raw/ нет) остаются. Раньше файл писался только из raw/, и выгрузка за один месяц
-    # стёрла бы все прошлые (01.10: в raw/ одна сентябрьская выгрузка, июнь-август только в файле).
-    if not cpo:
+    if not used:
         print("CPO: сырья нет в", CPO_RAW, "- cpo_orders.ndjson оставлен как есть")
     else:
-      old = {}
-      try:
-          for l in open(OUT_CPO, encoding="utf-8"):
-              if l.strip():
-                  r = json.loads(l)
-                  old[str(r["order"])] = float(r["sp"])
-      except FileNotFoundError:
-          pass
-      kept = {k: v for k, v in old.items() if k not in cpo}
-      merged = {**kept, **{k: round(v, 2) for k, v in cpo.items()}}
-      with open(OUT_CPO, "w", encoding="utf-8") as w:
-        for no, sp in sorted(merged.items()):
-            w.write(json.dumps({"order": no, "sp": round(sp, 2)}, ensure_ascii=False) + "\n")
-      print(f"CPO заказов из сырья: {len(cpo)} ({sum(cpo.values()):,.0f} ₽), оставлено прошлых: {len(kept)} ({sum(kept.values()):,.0f} ₽), всего {len(merged)} -> {OUT_CPO}")
+        wins = [w for _, w, _, _ in used]
+        new_orders = {o for o, _ in cpo}
+        kept = []
+        try:
+            for l in open(OUT_CPO, encoding="utf-8"):
+                if not l.strip():
+                    continue
+                r = json.loads(l)
+                d = r.get("d")
+                if (d and any(a <= d <= b for a, b in wins)) or (not d and str(r["order"]) in new_orders):
+                    continue  # окно новой выгрузки пишется заново целиком
+                kept.append(r)
+        except FileNotFoundError:
+            pass
+        out = kept + [{"order": o, "d": d, "sp": round(v, 2)} for (o, d), v in cpo.items()]
+        out.sort(key=lambda r: (str(r["order"]), r.get("d") or ""))
+        with open(OUT_CPO, "w", encoding="utf-8") as w:
+            for r in out:
+                w.write(json.dumps(r, ensure_ascii=False) + "\n")
+        print(f"CPO строк из сырья: {len(cpo)} ({sum(cpo.values()):,.0f} ₽), оставлено прошлых: {len(kept)} ({sum(r['sp'] for r in kept):,.0f} ₽), всего {len(out)} -> {OUT_CPO}")
     if CPO_ONLY:
         return
 

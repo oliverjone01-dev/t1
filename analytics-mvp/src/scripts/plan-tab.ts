@@ -41,7 +41,7 @@ export interface PlanCard { main_art: string; short: string; name: string; u_wk_
   threshold: number; threshold_price: number | null; min_arts: string[] }
 export interface Plan { start: string; check: string; window: [string, string]; min_budget_sku: number; min_campaign_budget: number;
   cards: PlanCard[]; withdrawn?: string[]; to_min: Array<{ cid: string; art: string }>;
-  price: Array<{ art: string; name: string; when: string; price_new: number; step: string }>;
+  price: Array<{ art: string; name: string; when: string; price_now: number; price_new: number; step: string }>;
   goal: { units: { oct: Tri; nov: Tri }; turn_mln: { oct: Tri; nov: Tri }; pay_mln: { oct: Tri; nov: Tri }; nov_rollback: { units: number; pay_mln: number } } }
 
 // ---------- чистые функции (тесты в plan-tab.test.ts)
@@ -117,6 +117,20 @@ export function priceColumns(hist: Map<string, Map<string, number>>, base: strin
   return [...out].sort();
 }
 export const PRICE_BASE = "2026-10-14";
+/** Статус снижения цены к плану (Иван 15.10: «ждём - кого?», показывать факт, если уже поменяли).
+ *  Смотрим на последнюю цену, а не на дату: снижение раньше срока или частичное видно сразу.
+ *  снижена - не выше целевой (+0,5%); частично - ниже цены плана «сейчас», но выше целевой;
+ *  по плану - срок ещё не наступил (или сегодня) и цена та же; не снижена - срок прошёл, а цена та же. */
+export function priceStatus(now: number | null, priceNow: number, target: number, when: string, today: string):
+  { key: "снижена" | "частично" | "по плану" | "не снижена" | "нет цены"; text: string } {
+  if (now == null) return { key: "нет цены", text: "нет цены" };
+  const pct = (x: number) => `${((x / priceNow - 1) * 100).toFixed(1).replace(".", ",")}%`;
+  if (now <= target * 1.005) return { key: "снижена", text: `снижена ${pct(now)}` };
+  if (now < priceNow * 0.995) return { key: "частично", text: `частично: ${pct(now)} из ${pct(target)}` };
+  if (today < when) return { key: "по плану", text: `по плану с ${DM(when)}` };
+  if (today === when) return { key: "по плану", text: `сегодня ${DM(when)}: пока не снижена` };   // смена может пройти позже среза
+  return { key: "не снижена", text: "не снижена" };
+}
 
 /** Статус карточки к порогу: нет данных / рано (меньше 3 дней) / идём / отстаём. Путь - порог × дни / 14. */
 export function cardStatus(got: number | null, need: number, nIn: number): "нет данных" | "рано" | "идём" | "отстаём" {
@@ -153,13 +167,21 @@ export function adsFullDay(adsDaily: Array<{ d: string; id: string; sp: number }
   }
   return full;
 }
-/** Окно спидометра «Реклама» - месяц, а не неделя (Иван 15.10): с 1-го числа месяца последнего полного дня рекламы,
- *  но не раньше старта плана. До первого дня плана в данных - тот же месяц до плана, серым, для сравнения. */
-export function adsMonthWindow(adLast: string, start: string): { from: string; to: string; pre: boolean } | null {
-  if (!adLast) return null;
-  const m1 = adLast.slice(0, 8) + "01";
-  if (adLast < start) return { from: m1, to: adLast, pre: true };
-  return { from: m1 > start ? m1 : start, to: adLast, pre: false };
+/** Окно спидометров - месяц (Иван 15.10: «месяц нужен всем спидометрам»): с 1-го числа месяца последнего дня источника
+ *  по этот день. pre - в данных ещё нет дней плана. */
+export function monthWindow(last: string, start: string): { from: string; to: string; pre: boolean } | null {
+  if (!last) return null;
+  return { from: last.slice(0, 8) + "01", to: last, pre: last < start };
+}
+/** План заказов карточки на день (Иван 15.10, «01-14 база, с 15.10 порог»): до старта - темп базы 14.09-11.10,
+ *  со старта - порог за 14 дней окна / 14. */
+export function cardPlanDay(c: { u_wk_base: number; threshold: number }, d: string, start: string): number {
+  return d < start ? c.u_wk_base / 7 : c.threshold / 14;
+}
+/** Конец месяца дня d. */
+export function monthEnd(d: string): string {
+  const y = Number(d.slice(0, 4)), m = Number(d.slice(5, 7));
+  return iso(Date.UTC(y, m, 0));
 }
 /** Сколько заказов магазину нужно к дню n плана (1..14): отрезок пути цели октября «средне», а не прямая (ФЕНИКС G3). */
 export function storeNeed(g: Tri, n: number): number {
@@ -370,14 +392,26 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     { g: "11 кампаний переводим на минимум", note: "Реклама на неглавных товарах карточек: тратила больше 2 500 ₽ в неделю, заказов почти не давала. С 15.10 ставим минимум - не больше 2 000 ₽ в неделю на кампанию. Здесь проверяем, что расход упал.",
       rows: P.to_min.map((k) => ({ n: k.cid, sub: String(k.art), plan: P.min_campaign_budget, w: WEEKS.map(([, a, b]) => weekSum(campDaily.get(String(k.cid)) ?? new Map(), a, b, AD_CAMP_LAST)) })) },
   ];
-  // спидометр «Реклама»: клик главного + минимальный клик за месяц, план - недельный план × дней / 7
-  const AMW = adsMonthWindow(ADS_FULL, START);
-  let amF = 0, amP = 0;
-  if (AMW) cards.forEach((c, i) => {
-    const a = weekSum(spm[i]!, AMW.from, AMW.to, ADS_FULL), b = weekSum(spmin[i]!, AMW.from, AMW.to, ADS_FULL);
-    if (a) { amF += a[0]; amP += c.click_new * a[1] / 7; }
-    if (b && c.n_min) { amF += b[0]; amP += c.n_min * P.min_budget_sku * b[1] / 7; }
-  });
+  // спидометр «Реклама» (Иван 15.10): все клики кабинета без «Оплаты за заказ» (ads_daily) за месяц.
+  // План в неделю = план 15.10 (главные + минимальный клик + 11 кампаний) + прочие кампании («29 оставляем») по их темпу 01-13.10:
+  // все клики минус главные, минимальный клик и 11 кампаний за то же окно. План на день = в неделю / 7, и до 15.10 тоже (серым).
+  const OTHER_WIN: [string, string] = ["2026-10-01", "2026-10-13"];
+  const sumMap = (m: Map<string, number>, a: string, b: string) => [...m].reduce((t, [d, v]) => d >= a && d <= b ? t + v : t, 0);
+  if (ADS_FULL < OTHER_WIN[1]) warnings.push(`темп прочих кампаний 01-13.10: реклама по товарам собрана только по ${ADS_FULL || "-"}`);
+  const otherSp = sumMap(stSp, ...OTHER_WIN) - cards.reduce((t, _, i) => t + sumMap(spm[i]!, ...OTHER_WIN) + sumMap(spmin[i]!, ...OTHER_WIN), 0)
+    - P.to_min.reduce((t, k) => t + sumMap(campDaily.get(String(k.cid)) ?? new Map(), ...OTHER_WIN), 0);
+  const OTHER_WK = Math.max(0, otherSp) / 13 * 7;
+  const PLAN_WK = cards.reduce((t, c) => t + c.click_new + c.n_min * P.min_budget_sku, 0) + P.to_min.length * P.min_campaign_budget;
+  const AMW = monthWindow(AD_CAMP_LAST, START);
+  const amDays = AMW ? drange(AMW.from, AMW.to).filter((d) => stSp.has(d)).length : 0;
+  const adsMonth = AMW ? { ...AMW, fact: Math.round(sumMap(stSp, AMW.from, AMW.to)), plan: Math.round((PLAN_WK + OTHER_WK) * amDays / 7),
+    plan_wk: Math.round(PLAN_WK), other_wk: Math.round(OTHER_WK), days: amDays,
+    month: Math.round((PLAN_WK + OTHER_WK) * drange(AMW.from, monthEnd(AMW.from)).length / 7) } : null;
+  // спидометры карточек за месяц: факт с 1-го числа, план - база до 15.10 и порог/14 с 15.10 (Иван 15.10)
+  const CMW = monthWindow(OD_LAST, START);
+  const cardsMonth = CMW ? { ...CMW, fact: cards.map((_, i) => sumMap(od[i]!, CMW.from, CMW.to)),
+    plan: cards.map((c) => Math.round(drange(CMW.from, CMW.to).reduce((t, d) => t + cardPlanDay(c, d, START), 0) * 10) / 10),
+    month: cards.map((c) => Math.round(drange(CMW.from, monthEnd(CMW.from)).reduce((t, d) => t + cardPlanDay(c, d, START), 0) * 10) / 10) } : null;
   const r5: string[] = [];
   for (const g of SPEND) {
     r5.push(`<tr class="grp"><td colspan="5">${esc(g.g)}</td></tr>`);
@@ -395,22 +429,29 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     if (priceArts.has(r.offer) && Number.isFinite(Number(r.price))) (prHist.get(r.offer) ?? prHist.set(r.offer, new Map()).get(r.offer)!).set(r.d, Number(r.price));
   }
   const PCOLS = priceColumns(prHist, PRICE_BASE);
-  for (const r of readNd(dp("gap_daily.ndjson"))) if (r.date >= (gapLast.get(r.art)?.[0] ?? "")) gapLast.set(r.art, [r.date, Number(r.gap_pct)]);
+  const gapHist = new Map<string, Map<string, number>>();   // скидка OZON по дням: «было» на 14.10, «стало» - последний срез (Иван 15.10)
+  for (const r of readNd(dp("gap_daily.ndjson"))) {
+    if (!Number.isFinite(Number(r.gap_pct)) || r.gap_pct == null) continue;
+    if (r.date >= (gapLast.get(r.art)?.[0] ?? "")) gapLast.set(r.art, [r.date, Number(r.gap_pct)]);
+    if (priceArts.has(r.art)) (gapHist.get(r.art) ?? gapHist.set(r.art, new Map()).get(r.art)!).set(r.date, Number(r.gap_pct));
+  }
   const pst: Record<string, number> = {}; const r6: string[] = [];
   for (const p of [...P.price].sort((a, b) => (a.when + a.art).localeCompare(b.when + b.art))) {
     const [d0, now] = prLast.get(p.art) ?? ["", null as number | null]; const when = `2026-${p.when.slice(3, 5)}-${p.when.slice(0, 2)}`;
     const [gd, gp] = gapLast.get(p.art) ?? ["", null as number | null];
-    const st = now == null ? "нет цены" : d0 < when || (d0 === when && today <= when) ? `ждём ${p.when}` : now <= p.price_new * 1.005 ? "снижена" : "не снижена";
-    const key = st.startsWith("ждём") ? "ждём" : st === "снижена" ? "снижена" : "не снижена";
+    const g0 = priceAt(gapHist.get(p.art), PRICE_BASE), gdd = gp != null && g0 != null ? gp - g0 : null;
+    const gTxt = gdd == null || Math.abs(gdd) < 0.05 ? "" : `<div class="s" style="color:${gdd > 0 ? "#34D399" : "#FF7A7E"}">${gdd > 0 ? "+" : ""}${F(gdd, 1)} п.п.</div>`;
+    const ps = priceStatus(now, p.price_now, p.price_new, when, today), key = ps.key === "нет цены" ? "не снижена" : ps.key;
     pst[key] = (pst[key] ?? 0) + 1; if (gp != null && gp < 10) pst.eb = (pst.eb ?? 0) + 1;
     r6.push(`<tr><td>${esc(p.when)}</td><td>${esc(p.art)}<div class="muted s">${esc(String(p.name).slice(0, 46))}</div></td>`
       + PCOLS.map((d) => `<td class="r">${F(priceAt(prHist.get(p.art), d))}</td>`).join("")
       + `<td class="r">${F(now)}<div class="muted s">${d0 ? DM(d0) : ""}</div></td><td class="r">${F(p.price_new)} <span class="muted">${esc(p.step)}</span></td>`
-      + `<td><span class="chip ${st === "снижена" ? "chip-done" : st.startsWith("ждём") ? "chip-off" : "chip-bad"}">${esc(st)}</span></td>`
-      + `<td class="r">${F(gp)}%<div class="muted s">${gd ? DM(gd) : ""}</div></td><td>${gp != null && gp < 10 ? `<span class="chip chip-bad">выпал из бустинга?</span>` : ""}</td></tr>`);
+      + `<td><span class="chip ${ps.key === "снижена" ? "chip-done" : ps.key === "частично" ? "chip-mid" : ps.key === "по плану" ? "chip-off" : "chip-bad"}">${esc(ps.text)}</span></td>`
+      + `<td class="r">${g0 == null ? "-" : `${F(g0, 1)}%`}</td><td class="r">${gp == null ? "-" : `${F(gp, 1)}%`}<div class="muted s">${gd ? DM(gd) : ""}</div>${gTxt}</td><td>${gp != null && gp < 10 ? `<span class="chip chip-bad">выпал из бустинга?</span>` : ""}</td></tr>`);
   }
   const tbl6 = `<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>С</th><th>Артикул</th>${PCOLS.map((d, k) => `<th class="r"${k ? ` title="цена сменилась ${DM(d)}"` : ""}>${DM(d)}</th>`).join("")}<th class="r">Сейчас, ₽</th><th class="r">Целевая, ₽</th><th>Статус</th>`
-    + `<th class="r" title="На сколько цена на сайте ниже нашей (gap_daily). Ниже 10% - похоже, выпал из Эластичного бустинга">Скидка OZON</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
+    + `<th class="r" title="Скидка OZON на 14.10, до плана: на сколько цена на сайте ниже нашей (gap_daily)">Скидка OZON 14.10</th>`
+    + `<th class="r" title="Скидка OZON по последнему срезу и изменение к 14.10 в п.п. Ниже 10% - похоже, выпал из Эластичного бустинга">Скидка OZON сейчас</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
 
   const DATA = {
     days: DAYS, start: START, w1: W1, sv_last: SV_LAST, od_last: OD_LAST, ad_last: ADS_FULL, ad_camp_last: AD_CAMP_LAST, today, n_in: nIn, mgoal: monthGoal(P.goal, OD_LAST),
@@ -418,7 +459,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     ser: SER, store: STORE, store_rev: ser(stRev, OD_LAST), goal: P.goal, base_win: BASE,
     store_card: { short: "Весь магазин", thr: sNeed, thrp: null, base2: Math.round(sBase * 10) / 10,
       path: Array.from({ length: 14 }, (_, k) => Math.round(storeNeed(gU, k + 1) * 10) / 10) },
-    ads_month: AMW ? { ...AMW, fact: Math.round(amF), plan: Math.round(amP) } : null,
+    ads_month: adsMonth, cards_month: cardsMonth,
     spend: SPEND, weeks: WEEKS.map((w) => w[0]), week_start: WEEKS.map((w) => w[1]),
     price_st: pst, price_n: P.price.length, price_first: P.price.filter((p) => p.when === "15.10").length,
   };
@@ -475,6 +516,7 @@ ${tbl3}
 <li>Заказы - шт без отмен, все товары карточки. Последние 3 дня бледные - досчитываются. ${nMsk === nAll && nAll ? "День заказа - по Москве." : nMsk === 0 ? "День заказа пока по UTC: время заказа появится после ночного сбора, дальше - по Москве." : `День заказа по Москве у ${nMsk} из ${nAll} заказов, у остальных пока UTC (до ночного сбора).`}</li>
 <li>Порог - заказов за 15-28.10; ниже - откат карточки. Магазин - цель октября «средне» на 15-28.10.</li>
 <li>Воронка - ночной синк OZON. База 14.09-11.10.</li>
+<li>Спидометры - за месяц, с 1-го числа (Иван 15.10). Карточки: план до 15.10 - темп базы 14.09-11.10, с 15.10 - порог / 14 в день. Реклама: все клики кабинета без «Оплаты за заказ» против плана 15.10 (главные, минимальный клик, 11 кампаний) плюс прочие кампании по их темпу 01-13.10.</li>
 <li>Реклама - неделя чт-ср. Меньше плана - зелёный, до 120% - жёлтый, больше - красный. По товарам - отчёт кабинета, он доливается несколько ночей: считаем по последний полный день (${ADS_FULL ? DM(ADS_FULL) : "-"}). 11 кампаний - по дням кампаний (${AD_CAMP_LAST ? DM(AD_CAMP_LAST) : "-"}).</li>
 <li>Оборот к цели: цель посчитана от базы 20,4 млн (модель 13.10), а заказы за ту же базу дают больше - факт выглядит примерно на 3,5% лучше цели.</li>
 <li>Отмены приходят с опозданием (за ${cancTxt}): заказы за свежие дни потом немного уменьшатся.</li>

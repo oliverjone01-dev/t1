@@ -68,8 +68,25 @@ function main() {
   const abs = process.argv.includes("--abs");
   const val = (r: any) => { const v = Number(r[sumK]) || 0; return abs ? Math.abs(v) : v; };
   const byBizEarly = process.argv.includes("--by=business");
+  // Добор НОВОГО ИНСТРУМЕНТА в закрытый месяц. Живой факт 14.10.2026 (прогон 38562814961): продьюсер
+  // отчётов продвижения впервые дошёл до февраля мебели по показам и полкам (в состоянии за февраль
+  // был только буст), строк за месяц стало 3 вместо 1, и потолок роста закрытого месяца остановил
+  // прогон как «задвоение». Состояние продьюсера не закоммитилось, и каждый следующий прогон вставал
+  // бы на том же месте: реестр, баллы и акт перестали обновляться. Задвоение и добор различаются
+  // ключом строки: задвоение кладёт вторую строку под УЖЕ СОБРАННЫЙ ключ, добор приносит ключ,
+  // которого раньше не было. Поэтому с --new-key=<поле> рост закрытого месяца проверяется по
+  // ключам кабинет/месяц/<поле>: по ключам, что были в прошлом снимке, те же пороги, что и раньше;
+  // ключ, которого не было, добавлять можно, но только со значением поля, которое файл уже знает
+  // (buost/shows/shelf): новое имя инструмента - это смена схемы продьюсера, а не добор.
+  // Детектор потери не трогается. Файлы без флага проверяются байт в байт как раньше.
+  const newKey = arg("new-key", "");
   const cur = rows(file);
   const prev = rows(prevFile);
+  if (newKey && cur.some((r) => r[newKey] == null || r[newKey] === "")) {
+    console.error(`FACTS INVALID: ${file} - --new-key=${newKey}, но у части строк поля ${newKey} нет: без него добор не отличить от задвоения, гейт не запускается`);
+    process.exit(1);
+  }
+  const knownKeyVals = new Set(prev.map((r) => String(r[newKey])));
   // Источника может не быть вовсе. Отчёта по баллам Маркета в Partner API не существует (все 22
   // метода генерации выписаны из OpenAPI-спецификации, вызовы united-bonuses / bonuses /
   // united-marketplace-bonuses отдают 404), поэтому bonuses_monthly.ndjson не появляется, и гейт
@@ -100,21 +117,37 @@ function main() {
   // собственный тест закреплял эту дыру зелёной). Агрегаты сравниваем ОТДЕЛЬНЫМ ведром «окно
   // целиком»: месяц там ни при чём, а объём и сумма сторожатся как у всех.
   const AGG_BUCKET = "агрегат окна";
+  type Bucket = { n: number; s: number; k: Record<string, { n: number; s: number }> };
   const agg = (rs: any[]) => {
-    const m: Record<string, { n: number; s: number }> = {};
+    const m: Record<string, Bucket> = {};
     for (const r of rs) {
       if (r.aggregate) {
         const k = byBizEarly && r.business ? `${r.business}/${AGG_BUCKET}` : AGG_BUCKET;
-        const b = (m[k] ||= { n: 0, s: 0 });
+        const b = (m[k] ||= { n: 0, s: 0, k: {} });
         b.n++; if (sumK) b.s += val(r);
         continue;
       }
       const mon = String(r[mk] || "").slice(0, 7); if (!mon) continue;
       const key = byBiz && r.business ? `${r.business}/${mon}` : mon;
-      const b = (m[key] ||= { n: 0, s: 0 });
+      const b = (m[key] ||= { n: 0, s: 0, k: {} });
       b.n++; if (sumK) b.s += val(r);
+      if (newKey) { const kb = (b.k[String(r[newKey])] ||= { n: 0, s: 0 }); kb.n++; if (sumK) kb.s += val(r); }
     }
     return m;
+  };
+  // Рост закрытого месяца при --new-key: по старым ключам те же пороги, новые ключи - только со
+  // знакомым значением поля. Возвращает причину отказа или "" (рост объяснён добором).
+  const growByKeys = (mth: string, p: Bucket, c: Bucket): string => {
+    for (const [kv, pk] of Object.entries(p.k)) {
+      const ck = c.k[kv] || { n: 0, s: 0 };
+      if (ck.n >= pk.n * (1 + GROW)) return `${mth}/${kv}: строк было ${pk.n}, стало ${ck.n} (закрытый ключ вырос - задвоение)`;
+      if (sumK && Math.abs(pk.s) > 1 && Math.abs(ck.s) >= Math.abs(pk.s) * (1 + GROW)) return `${mth}/${kv}: сумма ${sumK} была ${Math.round(pk.s)}, стала ${Math.round(ck.s)} (закрытый ключ вырос - задвоение)`;
+    }
+    const fresh = Object.keys(c.k).filter((kv) => !(kv in p.k));
+    const alien = fresh.filter((kv) => !knownKeyVals.has(kv));
+    if (alien.length) return `${mth}: новое значение ${newKey}=${alien.join(", ")}, которого прошлый снимок не знал ни в одном месяце - смена схемы, а не добор`;
+    console.log(`facts-gate ${file}: ${mth} - добор ${newKey}=${fresh.join(", ")} в закрытый месяц, по старым ключам роста нет`);
+    return "";
   };
   const a = agg(prev), b = agg(cur);
   // Самый свежий месяц базового снимка законно добирается прогон за прогоном (текущий месяц ещё
@@ -135,7 +168,7 @@ function main() {
   const newest = months.sort().pop() || "";
   const bad: string[] = [];
   for (const [mth, p] of Object.entries(a)) {
-    const c = b[mth] || { n: 0, s: 0 };
+    const c = b[mth] || { n: 0, s: 0, k: {} };
     if (c.n < p.n * (1 - DROP)) bad.push(`${mth}: строк было ${p.n}, стало ${c.n} (потеря)`);
     else if (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) < Math.abs(p.s) * (1 - DROP)) bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} (потеря)`);
     // Гейт был односторонним и пропускал ЗАДВОЕНИЕ - а именно оно и грозило реализации: разбор
@@ -148,6 +181,9 @@ function main() {
     }
     else if (!growOn || isAgg(mth) || monthOf(mth) >= newest) continue; // текущий месяц ещё набирается - потолок роста не про него
     else if (BACKFILL_BELOW && monthOf(mth) < BACKFILL_BELOW) continue;  // месяц собирается впервые: см. backfillBelow
+    else if (newKey && (c.n >= p.n * (1 + GROW) || (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) >= Math.abs(p.s) * (1 + GROW)))) {
+      const why = growByKeys(mth, p, c); if (why) bad.push(why);
+    }
     else if (c.n >= p.n * (1 + GROW)) bad.push(`${mth}: строк было ${p.n}, стало ${c.n} (закрытый месяц вырос на ${Math.round((c.n / p.n - 1) * 100)}% - похоже на задвоение)`);
     else if (sumK && Math.abs(p.s) > 1 && Math.abs(c.s) >= Math.abs(p.s) * (1 + GROW)) bad.push(`${mth}: сумма ${sumK} была ${Math.round(p.s)}, стала ${Math.round(c.s)} (закрытый месяц вырос на ${Math.round((Math.abs(c.s) / Math.abs(p.s) - 1) * 100)}% - похоже на задвоение)`);
   }

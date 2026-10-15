@@ -146,10 +146,11 @@ for i, c in enumerate(cards):
     elif got >= path: st = '<span class="chip chip-done">идём</span>'
     else: st = '<span class="chip chip-bad">отстаём</span>'
     thr_p = f' <span class="muted" title="Порог с поправкой на снижение цены">/ {c["threshold_price"]}</span>' if c['threshold_price'] else ''
-    rows2.append(f'<tr><td><b>{html.escape(c["short"])}</b><div class="muted s">{html.escape(c["main_art"])}</div></td>'
+    rows2.append(f'<tr class="crow" data-i="{i}"><td><b><span class="tw">▸</span> {html.escape(c["short"])}</b><div class="muted s">{html.escape(c["main_art"])}</div></td>'
                  f'<td class="r">{need}{thr_p}</td><td class="r">{F(got) if got is not None else "-"}</td>'
                  f'<td class="r">{F(max(0, need - (got or 0)))}</td><td class="r">{F(2 * c["u_wk_base"], 1)}</td>'
-                 f'<td class="r">{F(pre)}</td><td>{st}</td></tr>')
+                 f'<td class="r">{F(pre)}</td><td>{st}</td></tr>'
+                 f'<tr class="cdet" id="cdet{i}" hidden><td colspan="7"><div id="mc{i}"></div></td></tr>')
 tbl2 = ('<div class="tbl-wrap full"><table class="gtbl single"><thead><tr><th>Карточка</th><th class="r">Порог</th><th class="r">С 15.10</th>'
         '<th class="r">Осталось</th><th class="r" title="2 недели × заказов в неделю за 14.09-11.10">Без эффекта</th>'
         '<th class="r" title="Те же 14 дней до старта">01-14.10</th><th>Статус</th></tr></thead><tbody>'
@@ -253,8 +254,7 @@ page = f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name
 
 <div class="sec">1. Заказы 10 карточек к порогу 29.10</div>
 {tbl2}
-<div class="mult" id="mult"></div>
-<p class="legend"><span class="lg c1"></span>с 15.10 <span class="lg c3"></span>порог <span class="lg c3p"></span>порог с ценой <span class="lg cpath"></span>нужный темп <span class="lg cprev"></span>01-14.10</p>
+<p class="legend">Нажми на карточку - откроется график. <span class="lg c1"></span>с 15.10 <span class="lg c3"></span>порог <span class="lg c3p"></span>порог с ценой <span class="lg cpath"></span>нужный темп <span class="lg cprev"></span>01-14.10</p>
 
 <div class="sec">2. Воронка</div>
 {tbl3}

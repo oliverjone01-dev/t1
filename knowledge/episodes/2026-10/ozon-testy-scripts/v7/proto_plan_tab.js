@@ -89,7 +89,6 @@ function chart(el,o){ // series [{v,color,name,area,dash,w,pale,dots}], band, vl
 // ---------- мини-графики карточек: накопительно 15-28.10 к порогу (как было)
 var prev0=idx('2026-10-01'),i0=idx(D.start),K=idx(D.w1)-i0+1,mxs=[];for(var k=0;k<K;k++)mxs.push(dm(DAYS[i0+k]));
 var mpale=Math.max(0,idx(D.od_last)-2-i0);
-$('mult').innerHTML=D.cards.map(function(c,ci){return '<div class="mc" id="mc'+ci+'"></div>'}).join('');
 D.cards.forEach(function(c,ci){
   var o=D.ser[ci].orders,cum=[],pv=[],a=0,b=0,thr=[],thp=[],path=[];
   for(var k=0;k<K;k++){var v=o[i0+k];if(v==null)cum.push(null);else{a+=v;cum.push(a)}b+=o[prev0+k]||0;pv.push(b);thr.push(c.thr);thp.push(c.thrp);path.push(c.thr*(k+1)/K)}
@@ -97,8 +96,10 @@ D.cards.forEach(function(c,ci){
   var ser=[{v:pv,color:C.grey,w:1.4,name:'01-14.10'},{v:path,color:C.cy,dash:'2 4',w:1.4,name:'нужный темп'},{v:thr,color:C.cy,w:1.6,name:'порог'}];
   if(c.thrp)ser.push({v:thp,color:C.cy,dash:'5 4',w:1.2,name:'порог с ценой'});
   ser.push({v:cum,color:C.s1,w:2.6,area:true,name:'с 15.10',pale:mpale});
-  chart($('mc'+ci),{title:'<div class="mc-h">'+c.short+' <span>'+(cum[0]==null?'-':cum.filter(function(x){return x!=null}).pop())+' / '+c.thr+'</span></div>',xs:mxs,series:ser,w:260,h:150,nodata:nd<0?null:nd,step:4,small:true});
+  chart($('mc'+ci),{title:'<div class="mc-h">'+c.short+' <span>'+(cum[0]==null?'-':cum.filter(function(x){return x!=null}).pop())+' / '+c.thr+'</span></div>',xs:mxs,series:ser,w:900,h:200,nodata:nd<0?null:nd,step:2});
 });
+
+[].forEach.call(document.querySelectorAll('.crow'),function(tr){tr.onclick=function(){var d=$('cdet'+tr.dataset.i);d.hidden=!d.hidden;tr.classList.toggle('open',!d.hidden)}});
 
 // ---------- воронка: выбор карточки и показателя
 var SETS=D.cards.map(function(c,i){return {n:c.short,s:D.ser[i]}});

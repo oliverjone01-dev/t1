@@ -74,3 +74,5 @@ svg text{font:10.5px system-ui;fill:var(--ink3)}
 .mc{border:1px solid var(--soft);border-radius:10px;padding:6px 8px}.mc-h{font-size:12.5px;font-weight:700}.mc-h span{font-weight:400;color:var(--ink3)}
 .gl{font:600 14px system-ui;fill:var(--ink2)}.gv{font:700 26px system-ui}
 .tbl-wrap.full{max-height:none}
+.crow{cursor:pointer}.crow .tw{color:var(--ink3);display:inline-block;transition:transform .15s}.crow.open .tw{transform:rotate(90deg);color:var(--cy)}
+.crow.open td{background:rgba(34,211,238,.06)}.cdet td{background:#0f141c;padding:6px 10px 10px}.cdet .mc-h{font-size:13px}

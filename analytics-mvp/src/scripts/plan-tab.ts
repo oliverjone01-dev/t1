@@ -64,8 +64,11 @@ export function decisionWarn(today: string, check: string, odLast: string, w1: s
  *  ours: sku|день -> шт по отправлениям. Допуск - 2% и не меньше 2 шт (спека, reconciliation). */
 export function cabinetCheck(cab: Array<{ date: string; sku: string; units: number }>, ours: Map<string, number>, from: string, to: string):
   { days: string[]; cab: number; ours: number; ok: boolean } | null {
+  // повтор «дата + товар» в выгрузке чата заменяет прежнюю строку (правило файлов чата), иначе двойной счёт (К4)
+  const last = new Map<string, { date: string; sku: string; units: number }>();
+  for (const r of cab) { const k = `${r.sku}|${r.date}`; last.delete(k); last.set(k, r); }
   let c = 0, o = 0; const days = new Set<string>();
-  for (const r of cab) { if (r.date < from || r.date > to) continue; c += r.units; o += ours.get(`${r.sku}|${r.date}`) ?? 0; days.add(r.date); }
+  for (const [k, r] of last) { if (r.date < from || r.date > to) continue; c += r.units; o += ours.get(k) ?? 0; days.add(r.date); }
   if (!days.size) return null;
   return { days: [...days].sort(), cab: c, ours: o, ok: Math.abs(c - o) <= Math.max(2, 0.02 * c) };
 }

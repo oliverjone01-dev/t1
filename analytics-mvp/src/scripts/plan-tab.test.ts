@@ -85,6 +85,10 @@ describe("cabinetCheck - сверка «Заказано, шт» с кабине
   it("расхождение больше 2% и больше 2 шт - не в допуске", () => {
     expect(cabinetCheck([{ date: "2026-10-15", sku: "1", units: 14 }], ours, "2026-10-15", "2026-10-28")!.ok).toBe(false);
   });
+  it("повтор «дата + товар» - берётся последняя строка, не сумма (Codex P2)", () => {
+    expect(cabinetCheck([{ date: "2026-10-15", sku: "1", units: 3 }, { date: "2026-10-15", sku: "1", units: 10 }], ours, "2026-10-15", "2026-10-28"))
+      .toEqual({ days: ["2026-10-15"], cab: 10, ours: 10, ok: true });
+  });
   it("вне окна - сверки нет", () => expect(cabinetCheck([{ date: "2026-10-01", sku: "1", units: 9 }], ours, "2026-10-15", "2026-10-28")).toBeNull());
 });
 

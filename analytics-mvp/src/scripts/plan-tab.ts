@@ -6,12 +6,14 @@
 // Блок каждый день показывает, как идём: спидометры к плану, заказы карточек и магазина к порогу
 // и цели, воронку «как на тестах», рекламу по неделям чт-ср и цену артикулов плана.
 //
-// ОТКУДА ПЛАН. data/plan_2026-10-15.json - заморозка Excel скриптом
-// knowledge/episodes/2026-10/ozon-testy-scripts/v7/freeze_plan.py. Прибыли по артикулам в нём нет
-// (репозиторий публичный). Пороги и цели в коде не пересчитываются: план зафиксирован 15.10.
+// ОТКУДА ПЛАН. data/plan_2026-10-15_v3.json: заморозка Excel (ozon-testy-scripts/v7/freeze_plan.py),
+// корректировка Ивана 15.10 (v8/correct_plan_1510.py) и V3 (v8/withdraw_base_1510.py: 27 выводимых артикулов
+// вне счёта карточки, пороги пересчитаны правилом 15%). Прибыли по артикулам в нём нет (репозиторий публичный).
+// Пороги и цели в коде не пересчитываются: план зафиксирован 15.10.
 //
 // ОПРЕДЕЛЕНИЯ (Иван 15.10, ответы «да» на 6 вопросов + «меньше - зеленее» везде у рекламы):
-//  - Заказы: orders_daily, шт без отмен, все товары объединённой карточки (card_groups.json).
+//  - Заказы: orders_daily, шт без отмен, все товары объединённой карточки (card_groups.json), кроме выводимых
+//    (plan.withdrawn, Иван 15.10 «б»): их нет ни в базе порога, ни в окне, ни в воронке и рекламе карточки; в магазине есть.
 //    День - по Москве: t (полное время) + 3 ч, без t - UTC-дата d. Выгрузка идёт до 23:59 UTC последнего дня d,
 //    поэтому полный последний день по Москве = последний d; заказы позже него ждут следующего сбора. Последние 3 дня бледные.
 //  - Магазин: цель октября «средне» 355 заказов / 24,2 млн; путь цели - база ровно по дням
@@ -28,7 +30,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dp as dpDefault } from "../paths.js";
 
-export const PLAN_FILE = "plan_2026-10-15_v2.json";   // v2: корректировка Ивана 15.10 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2), скрипт v8/correct_plan_1510.py
+export const PLAN_FILE = "plan_2026-10-15_v3.json";   // v3: v2 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2) + выводимые вне карточек, пороги 5 карточек (Иван 15.10 «б»), v8/withdraw_base_1510.py
 export const CAB_FILE = "cabinet_orders_check.ndjson";   // сверка «Заказано, шт» с кабинетом, съём чата (Иван 15.10)
 const CPO_ID = "28753239";                                     // «Оплата за заказ - все товары»: не клик
 const BASE: [string, string] = ["2026-09-14", "2026-10-11"];   // база порогов и плана (4 недели)
@@ -38,7 +40,7 @@ export type Tri = { mid: number; lo: number; hi: number };
 export interface PlanCard { main_art: string; short: string; name: string; u_wk_base: number; click_new: number; n_min: number;
   threshold: number; threshold_price: number | null; min_arts: string[] }
 export interface Plan { start: string; check: string; window: [string, string]; min_budget_sku: number; min_campaign_budget: number;
-  cards: PlanCard[]; to_min: Array<{ cid: string; art: string }>;
+  cards: PlanCard[]; withdrawn?: string[]; to_min: Array<{ cid: string; art: string }>;
   price: Array<{ art: string; name: string; when: string; price_new: number; step: string }>;
   goal: { units: { oct: Tri; nov: Tri }; turn_mln: { oct: Tri; nov: Tri }; pay_mln: { oct: Tri; nov: Tri }; nov_rollback: { units: number; pay_mln: number } } }
 
@@ -68,15 +70,25 @@ export function netUnits(rows: Array<{ d: string; status: string; sku: string | 
 
 /** Сверка «Заказано, шт» (с отменами) с кабинетом ПО КАЖДОЙ карточке (решение 29.10 - по карточке, ФЕНИКС S1).
  *  ours: sku|день -> шт по отправлениям; cardSkus[i] - товары карточки i. Допуск на карточку - 2% и не меньше 1 шт.
- *  Охват: сколько пар «товар карточки + день» есть в выгрузке; неполная выгрузка - не «в допуске». */
+ *  Охват: все пары «товар карточки + день» за КАЖДЫЙ день from..конец выгрузки (ФЕНИКС B1c), а не только за дни,
+ *  которые в выгрузке есть: пропущенный день - не «в допуске». Конец выгрузки - вчера от времени съёма ts по МСК
+ *  (инструкция чату: «дни с 15.10 по вчера»), без ts - последний день строк; не позже to (последний день заказов). */
 export interface CabCard { cab: number; ours: number; ok: boolean; have: number; need: number }
-export function cabinetCheck(cab: Array<{ date: string; sku: string; units: number }>, ours: Map<string, number>, from: string, to: string,
+export function cabinetCheck(cab: Array<{ date: string; sku: string; units: number; ts?: string }>, ours: Map<string, number>, from: string, to: string,
   cardSkus: string[][]): { days: string[]; cards: CabCard[]; ok: boolean; full: boolean } | null {
   // повтор «дата + товар» в выгрузке чата заменяет прежнюю строку (правило файлов чата), иначе двойной счёт (К4)
   const last = new Map<string, { date: string; sku: string; units: number }>();
-  for (const r of cab) { if (r.date < from || r.date > to) continue; const k = `${r.sku}|${r.date}`; last.delete(k); last.set(k, r); }
-  const days = [...new Set([...last.values()].map((r) => r.date))].sort();
-  if (!days.length) return null;
+  let end = "";
+  for (const r of cab) {
+    if (r.date < from || r.date > to) continue;
+    const k = `${r.sku}|${r.date}`; last.delete(k); last.set(k, r);
+    const t = r.ts ? Date.parse(r.ts) : NaN;
+    const e = Number.isFinite(t) ? addDays(iso(t + 3 * 3600e3), -1) : r.date;
+    if (e > end) end = e;
+  }
+  if (!last.size) return null;
+  const days = drange(from, end < to ? end : to);
+  if (!days.length) return null;   // в окне только незакрытый день съёма - сверять нечего
   const cards = cardSkus.map((skus): CabCard => {
     let c = 0, o = 0, have = 0;
     for (const d of days) for (const s of skus) {
@@ -141,6 +153,14 @@ export function adsFullDay(adsDaily: Array<{ d: string; id: string; sp: number }
   }
   return full;
 }
+/** Окно спидометра «Реклама» - месяц, а не неделя (Иван 15.10): с 1-го числа месяца последнего полного дня рекламы,
+ *  но не раньше старта плана. До первого дня плана в данных - тот же месяц до плана, серым, для сравнения. */
+export function adsMonthWindow(adLast: string, start: string): { from: string; to: string; pre: boolean } | null {
+  if (!adLast) return null;
+  const m1 = adLast.slice(0, 8) + "01";
+  if (adLast < start) return { from: m1, to: adLast, pre: true };
+  return { from: m1 > start ? m1 : start, to: adLast, pre: false };
+}
 /** Сколько заказов магазину нужно к дню n плана (1..14): отрезок пути цели октября «средне», а не прямая (ФЕНИКС G3). */
 export function storeNeed(g: Tri, n: number): number {
   return goalPath(g, 14 + n, "mid") - goalPath(g, 14, "mid");
@@ -186,15 +206,18 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const DAYS = drange(BASE[0], END);
   const warnings: string[] = [];
 
-  // карточки: все товары объединённой карточки
+  // карточки: все товары объединённой карточки, кроме выводимых (Иван 15.10 «б»: порог посчитан без них)
   const G = (JSON.parse(readFileSync(dp("card_groups.json"), "utf-8")).groups ?? []) as Array<{ skus: Array<{ sku: string; offer: string }> }>;
   const off2sku = new Map<string, string>();
   for (const g of G) for (const s of g.skus) off2sku.set(s.offer, String(s.sku));
+  const OUT = new Set((P.withdrawn ?? []).map((a) => off2sku.get(a) ?? ""));
+  for (const a of P.withdrawn ?? []) if (!off2sku.has(a)) warnings.push(`выводимого ${a} нет в card_groups.json`);
   const cards = P.cards.map((c) => {
     const ms = off2sku.get(c.main_art);
     const g = G.find((g) => g.skus.some((s) => String(s.sku) === ms));
     if (!ms || !g) warnings.push(`карточка ${c.short}: главного ${c.main_art} нет в card_groups.json`);
-    return { ...c, main_sku: ms ?? "", skus: g ? g.skus.map((s) => String(s.sku)) : [], min_skus: c.min_arts.map((a) => off2sku.get(a) ?? "").filter(Boolean) };
+    if (ms && OUT.has(ms)) warnings.push(`карточка ${c.short}: главный ${c.main_art} в списке выводимых`);
+    return { ...c, main_sku: ms ?? "", skus: g ? g.skus.map((s) => String(s.sku)).filter((s) => !OUT.has(s)) : [], min_skus: c.min_arts.map((a) => off2sku.get(a) ?? "").filter(Boolean) };
   });
   const SKU_CARD = new Map<string, number>();
   cards.forEach((c, i) => c.skus.forEach((s) => {
@@ -347,6 +370,14 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     { g: "11 кампаний переводим на минимум", note: "Реклама на неглавных товарах карточек: тратила больше 2 500 ₽ в неделю, заказов почти не давала. С 15.10 ставим минимум - не больше 2 000 ₽ в неделю на кампанию. Здесь проверяем, что расход упал.",
       rows: P.to_min.map((k) => ({ n: k.cid, sub: String(k.art), plan: P.min_campaign_budget, w: WEEKS.map(([, a, b]) => weekSum(campDaily.get(String(k.cid)) ?? new Map(), a, b, AD_CAMP_LAST)) })) },
   ];
+  // спидометр «Реклама»: клик главного + минимальный клик за месяц, план - недельный план × дней / 7
+  const AMW = adsMonthWindow(ADS_FULL, START);
+  let amF = 0, amP = 0;
+  if (AMW) cards.forEach((c, i) => {
+    const a = weekSum(spm[i]!, AMW.from, AMW.to, ADS_FULL), b = weekSum(spmin[i]!, AMW.from, AMW.to, ADS_FULL);
+    if (a) { amF += a[0]; amP += c.click_new * a[1] / 7; }
+    if (b && c.n_min) { amF += b[0]; amP += c.n_min * P.min_budget_sku * b[1] / 7; }
+  });
   const r5: string[] = [];
   for (const g of SPEND) {
     r5.push(`<tr class="grp"><td colspan="5">${esc(g.g)}</td></tr>`);
@@ -387,6 +418,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     ser: SER, store: STORE, store_rev: ser(stRev, OD_LAST), goal: P.goal, base_win: BASE,
     store_card: { short: "Весь магазин", thr: sNeed, thrp: null, base2: Math.round(sBase * 10) / 10,
       path: Array.from({ length: 14 }, (_, k) => Math.round(storeNeed(gU, k + 1) * 10) / 10) },
+    ads_month: AMW ? { ...AMW, fact: Math.round(amF), plan: Math.round(amP) } : null,
     spend: SPEND, weeks: WEEKS.map((w) => w[0]), week_start: WEEKS.map((w) => w[1]),
     price_st: pst, price_n: P.price.length, price_first: P.price.filter((p) => p.when === "15.10").length,
   };
@@ -397,7 +429,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const cancTxt = OD_LAST ? `${DM(addDays(OD_LAST, -12))}-${DM(addDays(OD_LAST, -3))} отменено ${cancShare(addDays(OD_LAST, -12), addDays(OD_LAST, -3))}, за последние 3 дня пока ${cancShare(addDays(OD_LAST, -2), OD_LAST)}` : "-";
   const noPos = cards.filter((_, i) => !pos[i]!.size).map((c) => c.short);
   // сверка с кабинетом: съём чата по четвергам и 29.10 (Иван 15.10), другое семейство, чем отправления
-  const cabRows = existsSync(dp(CAB_FILE)) ? readNd(dp(CAB_FILE)).map((r) => ({ date: String(r.date).slice(0, 10), sku: String(r.sku), units: Number(r.ordered_units) }))
+  const cabRows = existsSync(dp(CAB_FILE)) ? readNd(dp(CAB_FILE)).map((r) => ({ date: String(r.date).slice(0, 10), sku: String(r.sku), units: Number(r.ordered_units), ts: r.ts ? String(r.ts) : undefined }))
     .filter((r) => r.date && r.sku && Number.isFinite(r.units)) : [];
   const cardSkus = cards.map((_, i) => [...SKU_CARD].filter(([, j]) => j === i).map(([sku]) => sku));
   const cab = cabinetCheck(cabRows, skuDayAll, START, OD_LAST || START, cardSkus);
@@ -448,7 +480,7 @@ ${tbl3}
 <li>Отмены приходят с опозданием (за ${cancTxt}): заказы за свежие дни потом немного уменьшатся.</li>
 ${noPos.length ? `<li>Позиции в поиске нет у ${noPos.map(esc).join(", ")}: их нет в съёме тестов.</li>` : ""}
 ${cabTxt}
-<li>Данные: воронка по ${SV_LAST ? DM(SV_LAST) : "-"}, заказы по ${OD_LAST ? DM(OD_LAST) : "-"}, реклама по товарам по ${ADS_FULL ? DM(ADS_FULL) : "-"}. План - Excel 15.10 с корректировкой Ивана 15.10 (27 артикулов выведены из минимального клика, TRUBIS 160 в снижении цены с 15.10 вместо GGT-12-2).</li>
+<li>Данные: воронка по ${SV_LAST ? DM(SV_LAST) : "-"}, заказы по ${OD_LAST ? DM(OD_LAST) : "-"}, реклама по товарам по ${ADS_FULL ? DM(ADS_FULL) : "-"}. План - Excel 15.10 с корректировкой Ивана 15.10: ${(P.withdrawn ?? []).length} выводимых артикулов не входят в карточки ни в базе порога, ни в факте (в магазине входят), TRUBIS 160 в снижении цены с 15.10 вместо GGT-12-2.</li>
 </ul></div></details>
 </details>`;
   const css = readFileSync(join(HERE, "plan-tab", "plan-tab.css"), "utf-8");

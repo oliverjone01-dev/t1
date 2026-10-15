@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
+import { adsMonthWindow, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -97,6 +97,26 @@ describe("cabinetCheck - сверка «Заказано, шт» с кабине
     expect(r.cards[1]!.cab).toBe(5); expect(r.ok).toBe(true);
   });
   it("вне окна - сверки нет", () => expect(cabinetCheck([{ date: "2026-10-01", sku: "1", units: 9 }], ours, "2026-10-15", "2026-10-28", cards)).toBeNull());
+  // ФЕНИКС B1c: охват - все дни от начала окна до конца выгрузки, а не дни, которые в выгрузке есть
+  const day = (date: string, ts?: string) => [{ date, sku: "1", units: 0, ts }, { date, sku: "2", units: 0, ts }, { date, sku: "3", units: 0, ts }];
+  const zero = new Map<string, number>();
+  it("пропущен день внутри выгрузки - не «в допуске»", () => {
+    const r = cabinetCheck([...day("2026-10-15"), ...day("2026-10-16"), ...day("2026-10-18")], zero, "2026-10-15", "2026-10-28", cards)!;
+    expect(r.days).toEqual(["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"]);
+    expect(r.full).toBe(false); expect(r.ok).toBe(false); expect([r.cards[0]!.have, r.cards[0]!.need]).toEqual([6, 8]);
+  });
+  it("выгрузка короче «по вчера» от времени съёма - не «в допуске»", () => {
+    const ts = "2026-10-22T05:10:00Z";   // 22.10 08:10 МСК: нужны дни 15-21.10
+    const r = cabinetCheck(["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"].flatMap((d) => day(d, ts)), zero, "2026-10-15", "2026-10-28", cards)!;
+    expect(r.days).toHaveLength(7); expect(r.full).toBe(false);
+  });
+  it("полная выгрузка по вчера - в допуске; конец не дальше последнего дня заказов", () => {
+    const ts = "2026-10-17T05:00:00Z";
+    expect(cabinetCheck([...day("2026-10-15", ts), ...day("2026-10-16", ts)], zero, "2026-10-15", "2026-10-28", cards)!.ok).toBe(true);
+    expect(cabinetCheck([...day("2026-10-15", ts), ...day("2026-10-16", ts)], zero, "2026-10-15", "2026-10-15", cards)!.days).toEqual(["2026-10-15"]);
+  });
+  it("в окне только незакрытый день съёма - сверки нет", () =>
+    expect(cabinetCheck(day("2026-10-15", "2026-10-15T17:00:00Z"), zero, "2026-10-15", "2026-10-28", cards)).toBeNull());
 });
 
 describe("эталоны спеки ozon-plan-15-10 v2 (Иван 15.10 «да»), на замороженной выборке 15.10 (ФЕНИКС G1)", () => {
@@ -135,6 +155,26 @@ describe("план v2 - корректировка Ивана 15.10", () => {
   });
 });
 
+describe("план v3 - V3, Иван 15.10 «б»: выводимые вне карточки, пороги правилом 15%", () => {
+  type C = { short: string; threshold: number; threshold_price: number | null; u_wk_base: number };
+  const v2 = JSON.parse(readFileSync("data/plan_2026-10-15_v2.json", "utf-8")) as { cards: C[] };
+  const v3 = JSON.parse(readFileSync("data/plan_2026-10-15_v3.json", "utf-8")) as { cards: C[]; withdrawn: string[] };
+  it("27 выводимых артикулов", () => { expect(v3.withdrawn).toHaveLength(27); expect(v3.withdrawn).toContain("GGM-24-3"); });
+  it("пороги: 5 карточек пересчитаны, у остальных как в Excel", () => {
+    const thr = Object.fromEntries(v3.cards.map((c) => [c.short, [c.threshold, c.threshold_price]]));
+    expect(thr).toMatchObject({ KUVINO: [18, 20], EVELIX: [12, 14], OSOLIS: [10, 11], ARFEO: [5, 6], ARKIS: [5, 6] });
+    const same = ["TRUBIS 160", "KONUX", "GENTRIS", "TRUBIS L120", "OZEVIS"];
+    for (const c of v3.cards.filter((c) => same.includes(c.short))) expect(c).toEqual(v2.cards.find((x) => x.short === c.short));
+  });
+});
+
+describe("adsMonthWindow - спидометр «Реклама» за месяц (Иван 15.10)", () => {
+  it("в октябре - с 15.10 (старт плана), не с 01.10", () => expect(adsMonthWindow("2026-10-20", "2026-10-15")).toEqual({ from: "2026-10-15", to: "2026-10-20", pre: false }));
+  it("в ноябре - с 01.11", () => expect(adsMonthWindow("2026-11-03", "2026-10-15")).toEqual({ from: "2026-11-01", to: "2026-11-03", pre: false }));
+  it("до плана - месяц до плана, серым", () => expect(adsMonthWindow("2026-10-14", "2026-10-15")).toEqual({ from: "2026-10-01", to: "2026-10-14", pre: true }));
+  it("нет рекламы по товарам - нет окна", () => expect(adsMonthWindow("", "2026-10-15")).toBeNull());
+});
+
 describe("weekSum / daysIn", () => {
   const m = new Map([["2026-10-15", 100], ["2026-10-16", 50]]);
   it("неделя после последнего дня источника - null, а не ноль", () => expect(weekSum(m, "2026-10-22", "2026-10-28", "2026-10-16")).toBeNull());
@@ -154,6 +194,7 @@ function fixture(extra: Record<string, unknown[]> = {}) {
   writeFileSync(join(dir, PLAN_FILE), JSON.stringify({
     start: "2026-10-15", check: "2026-10-29", window: ["2026-10-15", "2026-10-28"], min_budget_sku: 1500, min_campaign_budget: 2000,
     cards: [{ main_art: "A-1", short: "АЛЬФА", name: "", u_wk_base: 2, click_new: 20000, n_min: 1, threshold: 6, threshold_price: null, min_arts: ["A-2"] }],
+    withdrawn: extra.withdrawn,
     to_min: [{ cid: "77", art: "Z-1" }],
     price: [{ art: "A-1", name: "", when: "15.10", price_new: 900, step: "-10%" }],
     goal: { units: { oct: OCT, nov: OCT }, turn_mln: { oct: tri, nov: tri }, pay_mln: { oct: tri, nov: tri }, nov_rollback: { units: 1, pay_mln: 1 } },
@@ -197,6 +238,18 @@ describe("planBlock", () => {
     expect(D.ser[0].orders[k]).toBe(1);           // второй товар карточки идёт в карточку
     expect(D.store.orders[k]).toBe(5);
     expect(D.ser[0].orders[k + 1]).toBeNull();    // после последнего дня источника - пропуск, не ноль
+  });
+  it("спидометр рекламы - месяц: клик главного + минимальный клик с 15.10, план по дням", () => {
+    const D = pd(planBlock("2026-10-17", fixture())!.js);
+    expect(D.ads_month).toMatchObject({ from: "2026-10-15", pre: false });
+    const n = D.ads_month.to === "2026-10-15" ? 1 : 2;
+    expect(D.ads_month.plan).toBe(Math.round((20000 + 1500) * n / 7));
+  });
+  it("выводимый товар не идёт в карточку, но идёт в магазин (Иван 15.10 «б»)", () => {
+    const b = planBlock("2026-10-17", fixture({ withdrawn: ["A-2"] }))!;
+    const D = pd(b.js); const k = D.days.indexOf("2026-10-16");
+    expect(D.ser[0].orders[k]).toBe(0); expect(D.store.orders[k]).toBe(5);
+    expect(b.warnings.filter((w) => w.includes("выводим"))).toEqual([]);
   });
   it("клик главного: без «Оплаты за заказ» и без кампаний на минимум; день, где кампания 5 не собрана, отрезан", () => {
     const D = pd(planBlock("2026-10-17", fixture())!.js);

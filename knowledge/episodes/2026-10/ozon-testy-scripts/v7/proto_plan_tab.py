@@ -186,7 +186,7 @@ SPEND = [dict(g='Клик главного товара', only_high=False, rows=
               w=[wk_val(spm[i], a, b) for _, a, b in WEEKS]) for i, c in enumerate(cards)]),
          dict(g='Минимальный клик 8 ₽ (≈1 500 на товар)', only_high=False, rows=[dict(n=c['short'], sub=f"{c['n_min']} тов.", plan=c['n_min'] * P['min_budget_sku'],
               w=[wk_val(spmin[i], a, b) for _, a, b in WEEKS]) for i, c in enumerate(cards) if c['n_min']]),
-         dict(g='11 кампаний на минимум (план 2 000)', only_high=True, rows=[dict(n=k['cid'], sub=str(k['art']), plan=P['min_campaign_budget'],
+         dict(g='11 кампаний переводим на минимум', note='Реклама на неглавных товарах карточек: тратила больше 2 500 ₽ в неделю, заказов почти не давала. С 15.10 ставим минимум - не больше 2 000 ₽ в неделю на кампанию. Здесь проверяем, что расход упал.', only_high=True, rows=[dict(n=k['cid'], sub=str(k['art']), plan=P['min_campaign_budget'],
               w=[wk_val(camp_sp[k['cid']], a, b) for _, a, b in WEEKS]) for k in P['to_min']])]
 tbl5 = ('<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>Что</th><th class="r">План, ₽/нед</th>'
         + ''.join(f'<th class="r">{w}</th>' for w, _, _ in WEEKS) + '</tr></thead><tbody>' + ''.join(r5) + '</tbody></table></div>')
@@ -264,7 +264,7 @@ page = f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name
 <div class="two"><div id="stU"></div><div id="stT"></div></div>
 
 <div class="sec">4. Реклама по неделям</div>
-<div class="mrow-b" id="wksel"></div><div id="pills"></div>
+<div id="pills"></div>
 <details class="fold"><summary>Таблица</summary>{tbl5}</details>
 
 <div class="sec">5. Цена 26 артикулов</div>

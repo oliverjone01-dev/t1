@@ -143,7 +143,7 @@ function storeChart(id,ser,g,title,div){
     mid.push(goalPath(g,d,'mid'));lo.push(goalPath(g,d,'lo'));hi.push(goalPath(g,d,'hi'))}
   var last=cum.findIndex(function(x){return x==null}),nd=div>1?1:0,f=function(x){return fmt(x,nd)};
   chart($(id),{title:'<div class="ch-h">'+title+' <span class="muted">цель '+f(g.mid)+'</span></div>',
-    xs:xs,series:[{v:mid,color:C.cy,dash:'5 4',w:1.6,name:'цель «средне»'},{v:cum,color:C.s1,w:2.6,area:true,dots:true,name:'факт',pale:Math.max(0,(last<0?31:last)-3)}],
+    xs:xs,series:[{v:mid,color:C.cy,dash:'5 4',w:1.6,name:'цель «средне»'},{v:cum,color:C.s1,w:2.6,area:true,name:'факт',pale:Math.max(0,(last<0?31:last)-3)}],
     band:{lo:lo,hi:hi},w:460,h:220,vline:idx(D.start)-o0,nodata:last<0?null:last,fmtv:f});
 }
 storeChart('stU',D.store.orders,D.goal.units.oct,'Заказы, шт',1);
@@ -151,17 +151,20 @@ storeChart('stT',D.store_rev,D.goal.turn_mln.oct,'Оборот, млн ₽',1e6)
 
 // ---------- плашки расхода по неделям
 function drawPills(){
-  btns('wksel',D.weeks,'w',drawPills);var w=cur.w,h='',pre=D.week_start[w]<D.start;
+  var NW=D.weeks.length,h='<div class="wk-grid wk-head"><div></div>'+D.weeks.map(function(w,i){return '<div class="wk-col">'+w+'</div>'}).join('')+'</div>';
   D.spend.forEach(function(g){
-    h+='<div class="pg">'+g.g+'</div>';
-    g.rows.forEach(function(r){var v=r.w[w],pct=v?v[0]/(r.plan*v[1]/7)*100:null,st=stOf(pct,true);if(pre&&pct!=null)st={c:C.grey,t:'',i:''};if(g.only_high&&pct!=null&&pct<50)st={c:C.ok,t:'в плане',i:'✓'};
-      var wd=pct==null?0:Math.min(100,pct/150*100);
-      h+='<div class="pill-row" data-t="'+(r.n+' '+r.sub+'<br>план '+fmt(r.plan)+' ₽/нед'+(v?'<br>факт '+fmt(v[0])+' ₽ за '+v[1]+' дн, '+fmt(pct)+'% плана':'<br>ещё нет данных')).replace(/"/g,'&quot;')+'"><div class="pl-n">'+r.n+' <span class="muted">'+r.sub+'</span></div>'
-        +'<div class="pl-bar"><div class="pl-plan" style="left:'+(100/1.5)+'%"></div>'+(v?'<div class="pl-fill" style="width:'+Math.max(wd,2)+'%;background:'+st.c+'"><span>'+fmt(v[0])+'</span></div>':'<span class="pl-empty">ещё нет данных</span>')+'</div>'
-        +'<div class="pl-p" style="color:'+st.c+'">'+(pct==null?'':st.i+' '+fmt(pct)+'%')+'</div></div>'});
+    h+='<div class="pg">'+g.g+(g.note?'<div class="pg-n">'+g.note+'</div>':'')+'</div>';
+    g.rows.forEach(function(r){
+      h+='<div class="wk-grid"><div class="pl-n">'+r.n+' <span class="muted">'+r.sub+'</span><div class="muted s">план '+fmt(r.plan)+' ₽</div></div>';
+      for(var w=0;w<NW;w++){var v=r.w[w],pre=D.week_start[w]<D.start,pct=v?v[0]/(r.plan*v[1]/7)*100:null,st=stOf(pct,true);
+        if(g.only_high&&pct!=null&&pct<50)st={c:C.ok,t:'',i:'✓'};if(pre&&pct!=null)st={c:C.grey,t:'',i:''};
+        var wd=pct==null?0:Math.min(100,pct/150*100),t=(r.n+' · '+D.weeks[w]+'<br>план '+fmt(r.plan)+' ₽/нед'+(v?'<br>факт '+fmt(v[0])+' ₽ за '+v[1]+' дн · '+fmt(pct)+'%':'<br>ещё нет данных')).replace(/"/g,'&quot;');
+        h+='<div class="wk-col" data-t="'+t+'"><div class="pl-bar"><div class="pl-plan" style="left:66.6%"></div>'+(v?(v[0]>0?'<div class="pl-fill" style="width:'+Math.max(wd,3)+'%;background:'+st.c+'"></div>':''):'<span class="pl-empty">нет данных</span>')+'</div>'
+          +(v?'<div class="wk-v">'+fmt(v[0])+' <span style="color:'+(pre?'var(--ink3)':st.c)+'">'+fmt(pct)+'%</span></div>':'')+'</div>'}
+      h+='</div>'});
   });
-  $('pills').innerHTML='<div class="legend">Белая метка - план.'+(pre?' Неделя до плана - для сравнения.':'')+'</div>'+h;
-  [].forEach.call(document.querySelectorAll('.pill-row'),function(el){el.onmousemove=function(e){showTip(e,el.dataset.t)};el.onmouseleave=hideTip});
+  $('pills').innerHTML='<div class="legend">Белая метка - план. Первая неделя - до плана, для сравнения. Красным - больше 120% или меньше 50% плана.</div>'+h;
+  [].forEach.call(document.querySelectorAll('.wk-col[data-t]'),function(el){el.onmousemove=function(e){showTip(e,el.dataset.t)};el.onmouseleave=hideTip});
 }
 drawPills();
 

@@ -23,7 +23,7 @@ for i in 1; do
   git fetch -q origin main
   rm -rf /tmp/ym-keep-sim && mkdir -p /tmp/ym-keep-sim && cp -r analytics-mvp/data-ym /tmp/ym-keep-sim/
   git reset -q --hard origin/main
-  if [ "$MODE" = fixed ]; then
+  if [ "$MODE" != broken ]; then  # fixed и negative переснимают слепок; broken - как было до фикса
     ( cd analytics-mvp && md5sum public/*.html > $OB/public.md5 && { md5sum data/* 2>/dev/null | grep -v "data/competitors" > $OB/data.md5 || true; } )
   fi
   cp -r /tmp/ym-keep-sim/data-ym/. analytics-mvp/data-ym/
@@ -32,6 +32,7 @@ done
 [ "$MODE" = negative ] && echo h-hacked > analytics-mvp/public/index.html
 # --- гейт
 cd analytics-mvp
-if md5sum -c --quiet $OB/public.md5 && md5sum -c --quiet $OB/data.md5; then echo "ГЕЙТ: пройден ($MODE)"; else echo "ГЕЙТ: упал ($MODE)"; fi
+ok=1; md5sum -c --quiet $OB/public.md5 || ok=0; md5sum -c --quiet $OB/data.md5 || ok=0
+if [ $ok = 1 ]; then echo "ГЕЙТ: пройден ($MODE)"; else echo "ГЕЙТ: упал ($MODE)"; fi
 grep -c orders_daily $OB/data.md5 >/dev/null && grep -q competitors $OB/data.md5 && echo "ошибка: competitors в слепке"
 echo "data-ym на main: $(git show origin/main:analytics-mvp/data-ym/orders.ndjson), OZON на main: $(git show origin/main:analytics-mvp/data/orders_daily.ndjson)"

@@ -1962,7 +1962,7 @@ function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any
   // сборка 13.10: 28753239, 4 323 199 = 4 323 199 за 05.06-30.09).
   // Только среди кампаний «за заказ», допуск 1%, иначе отказ сборки (ФЕНИКС N8, cpoExportCampaign - та же, что у «Отчета»).
   // Ошибка выгрузки сборку не роняет (Иван 14.10, ФЕНИКС G3): выручки «за заказ» нет, красная плашка, ::error:: в лог CI.
-  const { id: cpoCid, sp: cpoCidSp, total: cpoSpAll, err: cpoErr } = cpoExportCampaign(dp, co);
+  const { id: cpoCid, sp: cpoCidSp, total: cpoSpAll, err: cpoErr, missMonths: cpoMissM, missNote: cpoMissNote } = cpoExportCampaign(dp, co);
   if (cpoErr) console.log(`::error::kartochki: ${cpoErr}`);
   const cpoRev = cpoErr ? [] : Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.rev), co.day[d]!.units]);
   // Окно выгрузки для ДРР (ФЕНИКС N6, N9): с 1-го числа месяца начала выгрузки, только если у кампании выгрузки нет
@@ -2028,10 +2028,14 @@ function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
 // Выручка кампании «Оплата за заказ» (Иван 02.10, 13.10): API отдаёт по ней 0, берём выручку заказов из выгрузки кабинета
 // без отменённых, по дате заказа - тем же расчётом, что «Отчет» (cpo-orders-rev.ts). Расход - из API как был.
 var CPO_REV=${J(cpoRev)};
-var CPO_WIN=${J(cpoWin)},CPO_CID=${J(cpoCid)},CPO_ERR=${J(cpoErr)};
+var CPO_WIN=${J(cpoWin)},CPO_CID=${J(cpoCid)},CPO_ERR=${J(cpoErr)},CPO_MISS=${J(cpoMissM)},CPO_MISS_NOTE=${J(cpoMissNote)};
+// Выгрузка не принята - «н/д» у кампаний «за заказ» с причиной, а не «смотри в кабинете» (ФЕНИКС N7).
+if(CPO_ERR)CPO_NA='<span style="color:var(--ink-3)" title="Выгрузка «Оплата за заказ» не принята: '+CPO_ERR.replace(/"/g,'&quot;').replace(/</g,'&lt;')+'">н/д</span>';
 // ДРР «Оплаты за заказ» (ФЕНИКС G4 13.10): выручка известна только в днях выгрузки (CPO_WIN), поэтому и расход берётся
 // только за эти дни периода; период шире выгрузки - пометка в ячейке. Нет дневного ряда - расход периода и пометка.
-function cpoRevFix(a){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style="color:#FF5A5F;font-weight:600">выручка «Оплата за заказ» не показана: '+CPO_ERR.replace(/</g,'&lt;')+'</span>';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
+function cpoRevFix(a){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style="color:#FF5A5F;font-weight:600">выручка «Оплата за заказ» не показана: '+CPO_ERR.replace(/</g,'&lt;')+'</span>';
+  // Месяц, где заказы выгрузки ещё не пришли в orders_daily (Иван 15.10): выручки «за заказ» за период нет, жёлтая пометка.
+  if(CPO_MISS.some(function(m){return m>=String(a.dateFrom).slice(0,7)&&m<=String(a.dateTo).slice(0,7);}))return ' · <span style="color:#E5B567">выручка «Оплата за заказ» за период не показана: не все заказы выгрузки пришли из OZON ('+CPO_MISS_NOTE.replace(/</g,'&lt;')+'), появится после сбора заказов</span>';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
   var cov=[],nCov=0,nAll=Math.round((Date.parse(a.dateTo)-Date.parse(a.dateFrom))/864e5)+1;CPO_WIN.forEach(function(w){var f=w[0]>a.dateFrom?w[0]:a.dateFrom,t=w[1]<a.dateTo?w[1]:a.dateTo;if(f<=t){cov.push([f,t]);nCov+=Math.round((Date.parse(t)-Date.parse(f))/864e5)+1;}});
   if(!CPO_WIN.length){cov=[[a.dateFrom,a.dateTo]];nCov=nAll;}
   var inCov=function(d){for(var k=0;k<cov.length;k++)if(d>=cov[k][0]&&d<=cov[k][1])return true;return false;};

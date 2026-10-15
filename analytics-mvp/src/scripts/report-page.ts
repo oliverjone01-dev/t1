@@ -25,8 +25,15 @@ type Ctx = {
   gmvOf: (d: string) => number; // заказанный оборот дня (как ДРР на «Маркетинге»)
 };
 
+// Нет файла - пусто; строка не разбирается - пропуск строки и запись в rdBad, на странице красная пометка (ФЕНИКС N2 14.10:
+// раньше одна битая строка обнуляла весь файл, и «окупаемость всего» за сентябрь выходила 17,2 вместо 11,71 без пометки).
+let rdBad: string[] = [];
 const readNd = (p: string): any[] => {
-  try { return readFileSync(p, "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { return []; }
+  let txt: string;
+  try { txt = readFileSync(p, "utf-8"); } catch { return []; }
+  const out: any[] = [];
+  txt.split("\n").forEach((l, i) => { if (!l.trim()) return; try { out.push(JSON.parse(l)); } catch { rdBad.push(`${p.split("/").pop()}, строка ${i + 1}`); } });
+  return out;
 };
 const addDays = (d: string, n: number) => new Date(Date.parse(d + "T00:00Z") + n * 86400000).toISOString().slice(0, 10);
 
@@ -36,6 +43,7 @@ const addDays = (d: string, n: number) => new Date(Date.parse(d + "T00:00Z") + n
 export const isCpoCampaign = (off: string) => /за заказ/i.test(String(off || ""));
 
 export function reportData(ctx: Ctx) {
+  rdBad = [];
   const { dp, maxD } = ctx;
   const from = addDays(maxD.slice(0, 7) + "-01", -200).slice(0, 7) + "-01"; // ~6 месяцев назад
   // 1. Показы, заходы в карточку и корзины по артикулу по месяцам (sku_views, все дни, включая дни
@@ -74,7 +82,7 @@ export function reportData(ctx: Ctx) {
   //    (orders_daily). Покрытие = даты выгрузки (cpo_sku_daily); вне их выручки «за заказ» нет.
   // Списания с копейками (ФЕНИКС G7): строка «за заказ по выгрузке» = сумма выгрузки, без накопления округлений по дням.
   const cpo = Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.sp * 100) / 100, Math.round(co.day[d]!.rev)]);
-  const cpoMiss = co.miss, cpoFrom = co.from, cpoTo = co.to, cpoCid = cpoEx.id, cpoErr = cpoEx.err;
+  const cpoMiss = co.miss, cpoFrom = co.from, cpoTo = co.to, cpoCid = cpoEx.id, cpoErr = cpoEx.err, cpoMissM = cpoEx.missMonths, cpoMissNote = cpoEx.missNote;
   // 4. Реклама за клик по категориям (ads_attr_daily: расход и выручка заказов по артикулу).
   //    [d, зеркала расход, зеркала выручка, мебель расход, мебель выручка].
   const catDay: Record<string, number[]> = {};
@@ -104,7 +112,8 @@ export function reportData(ctx: Ctx) {
     const dec = vedDec[m] || [0, 0, 0]; const md = maxD.slice(0, 7) === m ? +maxD.slice(8, 10) : 31;
     if ([0, 1, 2].some((i) => (i === 0 || md > i * 10) && dec[i]! < 5)) vedPartial.push(m);
   }
-  return { views, ads, cpo, cpoFrom, cpoTo, cpoMiss, cpoCid, cpoErr, adsCat, gmv, types, finCut: ctx.finCut, vedPartial };
+  if (rdBad.length) console.log(`::error::report: строки не разбираются: ${rdBad.slice(0, 5).join("; ")}`);
+  return { readBad: rdBad.slice(0, 20), views, ads, cpo, cpoFrom, cpoTo, cpoMiss, cpoCid, cpoErr, cpoMissM, cpoMissNote, adsCat, gmv, types, finCut: ctx.finCut, vedPartial };
 }
 
 export const REPORT_CSS = `<style>
@@ -240,6 +249,7 @@ function rpRender(){
   if(REP.finCut&&P.prev.from<REP.finCut&&P.cur.to>=REP.finCut)fl.push('<b class="rp-warn">⚠ Источник денег по артикулам сменился с '+rpDm(REP.finCut)+':</b> до этой даты - транзакции OZON (отключены 08.09), после - отчёт о реализации за день плюс сборы по дням. Часть отклонения может дать смена источника.');
   var md=AN_RD_MISS.filter(function(d){return (d>=P.cur.from&&d<=P.cur.to)||(d>=P.prev.from&&d<=P.prev.to);});
   if(md.length)fl.push('<b class="rp-warn">⚠ Нет отчёта о реализации за день</b> за '+md.map(rpDm).join(', ')+': «Начислено» за эти дни не посчитано, сборы стоят.');
+  if(REP.readBad&&REP.readBad.length)fl.push('<b class="rp-dn">⚠ Файлы данных повреждены:</b> не разбираются '+esc(REP.readBad.join('; '))+'. Эти строки в отчёт не вошли, цифры рекламы и затрат неполные - не использовать до пересборки.');
   if(cur.bad||prev.bad)fl.push('<b class="rp-dn">⚠ Ошибка сборки: зеркала + мебель не равны ИТОГО «Начислено».</b> Цифры блока 1 не использовать.');
   document.getElementById('rp-flags').innerHTML=fl.join('<br>')||'<span class="rp-mute">Пометок по данным нет.</span>';
   if(!gc||!gp){['rp-turn','rp-why','rp-why2','rp-cost','rp-ads','rp-dead'].forEach(function(id){document.getElementById(id).innerHTML='<div class="kt-note">нет данных за период</div>';});return;}
@@ -357,8 +367,11 @@ function rpAdsSum(per){
   // в днях периода вне выгрузки (ФЕНИКС N9: раньше окно бралось с 1-го числа месяца начала выгрузки, и выгрузка
   // с середины месяца считалась полной). Июнь: 28753239 начала 05.06, за 01-04.06 расхода 0 - июнь покрыт.
   // Расхода «за заказ» в периоде нет - выручка «за заказ» известна: 0.
-  // Ошибка выгрузки (REP.cpoErr, ФЕНИКС G3) - выручка «за заказ» неизвестна при любом расходе «за заказ».
-  s.cpoCov=!!(!REP.cpoErr&&REP.cpoFrom&&per.from<=REP.cpoTo&&per.to>=REP.cpoFrom&&!Math.round(s.cpoExOut))||!Math.round(s.cpoApiSp);
+  // Ошибка выгрузки (REP.cpoErr, ФЕНИКС G3) или месяц, где заказы выгрузки ещё не пришли в orders_daily (REP.cpoMissM,
+  // Иван 15.10) - выручка «за заказ» неизвестна, если в периоде есть расход «за заказ» в кабинете ИЛИ по выгрузке (ФЕНИКС N1:
+  // раньше под ошибкой показывались числа выгрузки, если расхода кабинета не было).
+  var missHit=(REP.cpoMissM||[]).some(function(m){return m>=per.from.slice(0,7)&&m<=per.to.slice(0,7);});
+  s.cpoCov=(REP.cpoErr||missHit)?(!Math.round(s.cpoApiSp)&&!Math.round(s.cpoSp)):(!!(REP.cpoFrom&&per.from<=REP.cpoTo&&per.to>=REP.cpoFrom&&!Math.round(s.cpoExOut))||!Math.round(s.cpoApiSp));
   return s;
 }
 function rpRoas(om,sp){return sp?(Math.round(om/sp*100)/100).toString().replace('.',','):'—';}
@@ -389,6 +402,7 @@ function rpAds(P,aBp,aBc,R){
   h+=row('Мебель, за клик: расход',ct(function(s){return s.furSp;}),false,true);h+=row('Мебель, за клик: выручка',ct(function(s){return s.furOm;}),true,true);h+=row('Мебель, за клик: окупаемость',ct(function(s){return s.furSp?s.furOm/s.furSp:null;}),true,true,rf);
   document.getElementById('rp-ads').innerHTML=h+'</tbody>';
   var n=[];
+  if(REP.cpoMissNote&&!REP.cpoErr)n.push('<span class="rp-warn">Не все заказы выгрузки «за заказ» уже пришли из OZON в данные заказов (orders_daily): '+esc(REP.cpoMissNote)+'. Выручка и окупаемость «за заказ» и общая за эти месяцы - «нет данных», появятся после сбора заказов.</span>');
   if(REP.cpoErr)n.push('<span style="color:#FF5A5F;font-weight:600">Выгрузка «за заказ» не принята: '+esc(REP.cpoErr)+'. Выручка, расход по выгрузке и окупаемость «за заказ» и общая - «нет данных», пока выгрузку не поправят.</span>');
   n.push('Выручку заказов «за заказ» рекламный кабинет OZON через API не отдаёт. Она берётся из ручной выгрузки заказов кабинета: есть за '+(REP.cpoFrom?rpDm(REP.cpoFrom)+'.'+REP.cpoFrom.slice(0,4)+'-'+rpDm(REP.cpoTo)+'.'+REP.cpoTo.slice(0,4):'—')+'. Для других месяцев нужна новая выгрузка, до неё окупаемость «за заказ» и общая не считаются.');
   var oth=function(s){return Math.round(s.cpoApiSp-s.cpoExSp);};

@@ -110,6 +110,20 @@ try:
     check("G4 «(1)» после оригинала", [u[0] for u in used], ["2026-09_cpo_orders.xlsx", "2026-09_cpo_orders (1).xlsx"])
     check("G4 сумма исправленной выгрузки", total(rows), 170.0)
 
+    # ФЕНИКС N4: любые имена копий одного файла - исправленная копия побеждает; разные файлы одного периода - отказ.
+    for i, cp in enumerate(["2026-09_cpo_orders(1).xlsx", "2026-09_cpo_orders-1.xlsx", "2026-09_cpo_orders 2.xlsx", "2026-09_cpo_orders copy.xlsx", "2026-09_cpo_orders - копия.xlsx"]):
+        rc = os.path.join(tmp, f"raw_cp{i}")
+        os.makedirs(rc)
+        xlsx(os.path.join(rc, "2026-09_cpo_orders.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0], ["04.09.2026", "2", "B-1", 1, "a", 50.0]])
+        xlsx(os.path.join(rc, cp), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0], ["05.09.2026", "3", "C-1", 1, "a", 70.0]])
+        rows, used, _ = read_raw(rc)
+        check(f"N4 копия «{cp}» побеждает", total(rows), 170.0)
+    rn = os.path.join(tmp, "raw_n4")
+    os.makedirs(rn)
+    xlsx(os.path.join(rn, "2026-09_cpo_orders.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0]])
+    xlsx(os.path.join(rn, "sentyabr.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 120.0]])
+    refuses("N4 два разных файла за один период - отказ", rn)
+
     # ФЕНИКС G5: cpo_orders заменяет окно периода, как cpo_sku_daily.
     def run_both(raw_dir, prev_orders, prev_sku):
         dd = tempfile.mkdtemp(dir=tmp)

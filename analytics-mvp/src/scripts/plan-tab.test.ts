@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits } from "./plan-tab.js";
+import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -111,6 +111,30 @@ describe("эталоны спеки ozon-plan-15-10 v2 (Иван 15.10 «да»)
   });
 });
 
+describe("цена по датам (Иван 15.10: колонка 14.10 и колонка на каждую смену)", () => {
+  const h = new Map([["A", new Map([["2026-10-13", 100], ["2026-10-14", 100], ["2026-10-15", 100], ["2026-10-16", 90], ["2026-10-17", 90]])],
+    ["B", new Map([["2026-10-12", 50], ["2026-10-18", 45]])]]);
+  it("priceAt - последняя цена не позже дня", () => {
+    expect(priceAt(h.get("B"), "2026-10-14")).toBe(50); expect(priceAt(h.get("A"), "2026-10-16")).toBe(90); expect(priceAt(h.get("B"), "2026-10-01")).toBeNull();
+  });
+  it("колонки: 14.10 и дни смены цены любого артикула", () => expect(priceColumns(h, "2026-10-14")).toEqual(["2026-10-14", "2026-10-16", "2026-10-18"]));
+  it("без смен - только 14.10", () => expect(priceColumns(new Map([["A", new Map([["2026-10-14", 1], ["2026-10-15", 1]])]]), "2026-10-14")).toEqual(["2026-10-14"]));
+});
+
+describe("план v2 - корректировка Ивана 15.10", () => {
+  const P = JSON.parse(readFileSync("data/plan_2026-10-15_v2.json", "utf-8")) as { cards: Array<{ short: string; n_min: number; min_arts: string[] }>; price: Array<{ art: string; when: string; price_new: number }> };
+  const OUT = ["GGT-03-3-1-E-12080", "GGM-08-3-M", "GGM-24-3", "GGK-02-3-5-80", "GGL-11"];
+  it("выведенных артикулов нет в минимальном клике, n_min = числу товаров", () => {
+    for (const c of P.cards) { expect(c.n_min).toBe(c.min_arts.length); for (const a of OUT) expect(c.min_arts).not.toContain(a); }
+    expect(P.cards.reduce((a, c) => a + c.n_min, 0)).toBe(61 - 27);
+  });
+  it("GGT-12-2 убран, TRUBIS 160 снижается с 15.10 до 87 210", () => {
+    expect(P.price.map((p) => p.art)).not.toContain("GGT-12-2");
+    expect(P.price.find((p) => p.art === "GGT-03-3-3-E-16080")).toMatchObject({ when: "15.10", price_new: 87210 });
+    expect(P.price).toHaveLength(25);
+  });
+});
+
 describe("weekSum / daysIn", () => {
   const m = new Map([["2026-10-15", 100], ["2026-10-16", 50]]);
   it("неделя после последнего дня источника - null, а не ноль", () => expect(weekSum(m, "2026-10-22", "2026-10-28", "2026-10-16")).toBeNull());
@@ -216,6 +240,8 @@ describe("planBlock", () => {
     expect(ok.warnings).toEqual([]);
     const bad = planBlock("2026-10-17", fixture({ cab: [{ date: "2026-10-15", sku: "1", ordered_units: 20 }] }))!;
     expect(bad.warnings.join(" ")).toContain("сверка с кабинетом");
+    expect(bad.html).toContain("выгрузка неполная - сверка не пройдена");
+    expect(bad.html).not.toContain("в допуске (2%");
   });
   it("в данных страницы нет «</script>»", () => {
     expect(planBlock("2026-10-17", fixture())!.js.includes("</script")).toBe(false);

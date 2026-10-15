@@ -141,18 +141,18 @@ for i, c in enumerate(cards):
     got = cum(SER[i]['orders'], START, W1)
     pre = cum(SER[i]['orders'], '2026-10-01', '2026-10-14')
     need = c['threshold']; path = need * n_days_in / 14
-    if got is None: st = '<span class="chip chip-off">ещё нет данных</span>'
+    if got is None: st = '<span class="chip chip-off">нет данных</span>'
     elif n_days_in < 3: st = '<span class="chip chip-off">рано</span>'
     elif got >= path: st = '<span class="chip chip-done">идём</span>'
     else: st = '<span class="chip chip-bad">отстаём</span>'
-    thr_p = f' <span class="muted" title="Порог, если считать вклад снижения цены отдельно">(с ценой {c["threshold_price"]})</span>' if c['threshold_price'] else ''
+    thr_p = f' <span class="muted" title="Порог с поправкой на снижение цены">/ {c["threshold_price"]}</span>' if c['threshold_price'] else ''
     rows2.append(f'<tr><td><b>{html.escape(c["short"])}</b><div class="muted s">{html.escape(c["main_art"])}</div></td>'
                  f'<td class="r">{need}{thr_p}</td><td class="r">{F(got) if got is not None else "-"}</td>'
                  f'<td class="r">{F(max(0, need - (got or 0)))}</td><td class="r">{F(2 * c["u_wk_base"], 1)}</td>'
                  f'<td class="r">{F(pre)}</td><td>{st}</td></tr>')
-tbl2 = ('<div class="tbl-wrap"><table class="gtbl single"><thead><tr><th>Карточка</th><th class="r">Порог 29.10</th><th class="r">Заказов с 15.10</th>'
-        '<th class="r">Осталось до порога</th><th class="r" title="2 недели × заказов карточки в неделю за 14.09-11.10">Было бы без эффекта</th>'
-        '<th class="r" title="Заказы карточки 01-14.10: те же 14 дней до старта">01-14.10, для сравнения</th><th>Статус</th></tr></thead><tbody>'
+tbl2 = ('<div class="tbl-wrap full"><table class="gtbl single"><thead><tr><th>Карточка</th><th class="r">Порог</th><th class="r">С 15.10</th>'
+        '<th class="r">Осталось</th><th class="r" title="2 недели × заказов в неделю за 14.09-11.10">Без эффекта</th>'
+        '<th class="r" title="Те же 14 дней до старта">01-14.10</th><th>Статус</th></tr></thead><tbody>'
         + ''.join(rows2) + '</tbody></table></div>')
 
 # ---------- блок 5: расход по неделям чт-ср
@@ -229,8 +229,8 @@ r3 = [fun_row(f'<b>{html.escape(c["short"])}</b>', SER[i]) for i, c in enumerate
 tot = {k: [None if all(x[k][j] is None for x in SER) else sum(x[k][j] or 0 for x in SER) for j in range(len(DAYS))] for k in ('views', 'vsearch', 'pdp', 'cart', 'units')}
 r3.append(fun_row('<b>Все 10</b>', tot))
 r3.append(fun_row('<span class="muted">Весь магазин</span>', STORE))
-tbl3 = ('<div class="tbl-wrap"><table class="gtbl"><thead><tr class="grp"><th></th><th colspan="3" class="sep">Показы в поиске, в нед</th><th colspan="3" class="sep">Карточка, в нед</th>'
-        '<th colspan="3" class="sep">Корзина, в нед</th><th colspan="3" class="sep">Заказано, шт в нед</th><th colspan="2" class="sep">Заказов на 1 000 показов</th></tr>'
+tbl3 = ('<div class="tbl-wrap"><table class="gtbl"><thead><tr class="grp"><th></th><th colspan="3" class="sep">Показы в поиске</th><th colspan="3" class="sep">Карточка</th>'
+        '<th colspan="3" class="sep">Корзина</th><th colspan="3" class="sep">Заказы</th><th colspan="2" class="sep">На 1 000 показов</th></tr>'
         '<tr><th>Карточка</th>' + '<th class="r sep">база</th><th class="r">с 15.10</th><th class="r">Δ</th>' * 4 + '<th class="r sep">база</th><th class="r">с 15.10</th></tr></thead><tbody>'
         + ''.join(r3) + '</tbody></table></div>')
 
@@ -244,48 +244,42 @@ CSS = open(HERE + '/proto_plan_tab.css').read()
 JS = open(HERE + '/proto_plan_tab.js').read()
 page = f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Тесты · План с 15.10 (прототип)</title><style>{CSS}</style></head><body><div class="wrap">
-<div class="proto">ПРОТОТИП для Ивана, {DM(TODAY)}: так будет выглядеть первый блок страницы «Тесты». Данные настоящие по {DM(SV_LAST)}; дни с 15.10 пустые - «ещё нет данных». Ниже блока - то, что уже есть на странице (тесты 1-4), без изменений.</div>
+<div class="proto">Прототип, данные по {DM(SV_LAST)}. Дни с 15.10 пока пустые.</div>
 <h1>Тесты · A/B по рекламе</h1>
 <details class="card tcard" open><summary><div class="chead"><span class="ctitle">План с 15.10: как идём к цели</span>
-<span class="chip chip-run">день {max(0, (day(TODAY) - day(START)).days + 1)} из 14 до проверки 29.10</span></div></summary>
-<p class="hyp">Цель: больше заказов и прибыли. С 15.10 в 10 карточках главный товар получает клик 20 000 ₽ в неделю, остальные товары карточки - минимальный клик 8 ₽, у 26 артикулов цена вниз (15 с 15.10, 11 с 22.10). 29.10 по каждой карточке: заказов за 15-28.10 не меньше порога - оставляем, меньше - откат.</p>
+<span class="chip chip-run">день {max(0, (day(TODAY) - day(START)).days + 1)} из 14 · проверка 29.10</span></div></summary>
 <div class="gauges" id="gauges"></div>
-<div class="plaques"><div class="plaque"><span class="pl-l">К выплате</span> раз в месяц, по закрытию «Отчета». Цель: октябрь <b>{F(P["goal"]["pay_mln"]["oct"]["mid"], 1)} млн</b>, ноябрь <b>{F(P["goal"]["pay_mln"]["nov"]["mid"], 1)} млн</b> (с откатами 29.10 - {F(P["goal"]["nov_rollback"]["pay_mln"], 1)})</div></div>
+<div class="plaques"><div class="plaque"><span class="pl-l">К выплате</span> октябрь {F(P["goal"]["pay_mln"]["oct"]["mid"], 1)} млн · ноябрь {F(P["goal"]["pay_mln"]["nov"]["mid"], 1)} млн · по «Отчету» раз в месяц</div></div>
 
-<div class="sec">1. Заказы 10 карточек против порога 29.10</div>
-<p class="legend">Заказы - все товары объединённой карточки, шт, без отмен. Последние 3 дня бледные: заказы ещё досчитываются. Порог - столько заказов за 15-28.10, чтобы карточку без эффекта оставить не чаще 15%.</p>
-<div class="flasks" id="flasks"></div>
-<p class="legend">Колба = порог 29.10. <span class="sw sw-fill"></span>заказы с 15.10 (зелёная - идём по графику, жёлтая - отстаём до 30%, красная - больше) <span class="sw sw-ghost"></span>те же 14 дней до старта (01-14.10) <span class="sw sw-need"></span>сколько нужно на сегодня <span class="sw sw-thp"></span>порог с поправкой на цену</p>
-<details class="fold"><summary>Таблица по карточкам</summary>{tbl2}</details>
+<div class="sec">1. Заказы 10 карточек к порогу 29.10</div>
+{tbl2}
+<div class="mult" id="mult"></div>
+<p class="legend"><span class="lg c1"></span>с 15.10 <span class="lg c3"></span>порог <span class="lg c3p"></span>порог с ценой <span class="lg cpath"></span>нужный темп <span class="lg cprev"></span>01-14.10</p>
 
-<div class="sec">2. Воронка 10 карточек, как на тестах</div>
-<p class="legend">Показы, карточка, корзина, заказано - ночной синк OZON по дню OZON (заказано с отменами, как в тестах). Позиция - съём тестов, есть у 7 главных из 10. База - 14.09-11.10, та же, что у порогов. «С 15.10» - среднее в неделю по дням с данными.</p>
+<div class="sec">2. Воронка</div>
 {tbl3}
 <div class="dyn"><div class="mrow-b" id="cardsel"></div><div class="mrow-b" id="metsel"></div><div id="dynchart"></div><div id="dyntbl"></div></div>
 
-<div class="sec">3. Магазин против цели месяца</div>
-<p class="legend">Заказы и оборот магазина по дням, накопительно с 01.10. Линия - цель «средне», серый коридор - от «плохо» до «хорошо»; прирост к базе считаем с 17.10 (2-3 дня реклама набирает показы).</p>
+<div class="sec">3. Магазин к цели октября</div>
 <div class="two"><div id="stU"></div><div id="stT"></div></div>
 
-<div class="sec">4. Реклама по неделям чт-ср</div>
-<p class="legend">Расход по товарам из отчёта кабинета (без ставки за заказ). Красным - больше 120% или меньше 50% плана. Последние дни недели дозаливаются несколько ночей.</p>
+<div class="sec">4. Реклама по неделям</div>
 <div class="mrow-b" id="wksel"></div><div id="pills"></div>
-<details class="fold"><summary>Таблица по неделям</summary>{tbl5}</details>
+<details class="fold"><summary>Таблица</summary>{tbl5}</details>
 
 <div class="sec">5. Цена 26 артикулов</div>
-<p class="legend">Наша цена - ежедневный срез цен (около 08:53 МСК, раньше срока снижения 10:00, поэтому в день старта статус «ждём»). Скидка OZON - на сколько цена на сайте ниже нашей; обвал ниже 10% - товар, похоже, выпал из Эластичного бустинга, цену вернуть.</p>
 <div id="pricepills"></div>
 <details class="fold"><summary>Все 26 артикулов</summary>{tbl6}</details>
 
-<details class="fold"><summary><b>Как считаем и что ещё не готово</b></summary><div class="fold-b"><ul class="notes">
-<li>День заказа: сейчас в данных дата из API OZON по UTC без времени. Заказы с 00:00 до 03:00 МСК попадают в прошлый день. В сборщике сохраним время заказа и переведём в МСК - до этого числа по дням могут сдвинуться на 1-2 заказа.</li>
-<li>Оборот магазина - сумма заказов без отмен по orders_daily. Цель 24,2 млн посчитана от базы 20,4 млн (модель 13.10), а orders_daily за ту же базу даёт 20,9 - факт будет выглядеть чуть лучше цели (около +2%).</li>
-<li>Клики по карточке - клики кампании, разнесённые по доле расхода товара в кампании.</li>
-<li>Позиции в поиске нет у GENTRIS, TRUBIS L120, ARFEO: их нет в съёме тестов. В сборщике добавим 10 главных в съём.</li>
-<li>Данные: воронка по {DM(SV_LAST)}, заказы по {DM(OD_LAST)}, реклама по {DM(AD_LAST)}. План - Excel 15.10 (freeze_plan.py).</li>
+<details class="fold"><summary>Как считаем</summary><div class="fold-b"><ul class="notes">
+<li>Заказы - шт без отмен, все товары карточки. Последние 3 дня бледные - досчитываются.</li>
+<li>Порог - заказов за 15-28.10; ниже - откат карточки.</li>
+<li>Воронка - ночной синк OZON. База 14.09-11.10.</li>
+<li>Реклама - расход по товарам, неделя чт-ср. Красным - больше 120% или меньше 50% плана.</li>
+<li>Не готово: день заказа пока по UTC (в сборщике - МСК); позиции нет у GENTRIS, TRUBIS L120, ARFEO; оборот к цели завышен примерно на 2%.</li>
 </ul></div></details>
 </details>
-<details class="card tcard"><summary><div class="chead"><span class="ctitle muted">Тест 1-4 и остальные блоки страницы - без изменений</span></div></summary></details>
+<details class="card tcard"><summary><div class="chead"><span class="ctitle muted">Тесты 1-4 - без изменений</span></div></summary></details>
 </div><script>window.PD={json.dumps(DATA, ensure_ascii=False)};
 {JS}</script></body></html>'''
 open(OUT, 'w').write(page)

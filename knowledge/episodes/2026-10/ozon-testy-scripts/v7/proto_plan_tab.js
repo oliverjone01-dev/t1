@@ -9,15 +9,17 @@ var tip=document.createElement('div');tip.className='tip';document.body.appendCh
 function showTip(e,h){tip.innerHTML=h;tip.style.display='block';var x=e.clientX+14,y=e.clientY+14;if(x+tip.offsetWidth>innerWidth-8)x=e.clientX-tip.offsetWidth-14;tip.style.left=x+'px';tip.style.top=y+'px'}
 function hideTip(){tip.style.display='none'}
 // статус к плану: идём / отстаём до 30% / отстаём сильнее
-function stOf(pct,hiBad){if(pct==null)return {c:C.none,t:'нет данных',i:'○'};if(hiBad&&pct>120)return {c:C.bad,t:'перерасход',i:'▲'};
-  if(pct>=100||(hiBad&&pct>=50))return {c:C.ok,t:hiBad?'в плане':'идём',i:'✓'};if(pct>=70)return {c:C.mid,t:'отстаём',i:'!'};return {c:C.bad,t:hiBad?'недобор':'сильно отстаём',i:'✕'}}
+// hiBad - расход: чем меньше, тем зеленее
+function stOf(pct,hiBad){if(pct==null)return {c:C.none,t:'нет данных',i:'○'};
+  if(hiBad)return pct>120?{c:C.bad,t:'перерасход',i:'▲'}:pct>100?{c:C.mid,t:'выше плана',i:'!'}:{c:C.ok,t:'в плане',i:'✓'};
+  if(pct>=100)return {c:C.ok,t:hiBad?'в плане':'идём',i:'✓'};if(pct>=70)return {c:C.mid,t:'отстаём',i:'!'};return {c:C.bad,t:hiBad?'недобор':'сильно отстаём',i:'✕'}}
 
 // ---------- спидометр
 function gauge(o){ // o: title, val, plan, l1, l2, hiBad, pre
   var W=240,H=150,cx=120,cy=112,r=82,pct=o.val==null||!o.plan?null:o.val/o.plan*100,MAX=150;
   function pt(p,rr){var a=Math.PI*(1-Math.min(MAX,Math.max(0,p))/MAX);return [cx+rr*Math.cos(a),cy-rr*Math.sin(a)]}
   function arc(p0,p1,col){var a=pt(p0,r),b=pt(p1,r);return '<path d="M'+a[0]+' '+a[1]+' A'+r+' '+r+' 0 0 1 '+b[0]+' '+b[1]+'" stroke="'+col+'" stroke-width="16" fill="none"/>'}
-  var zones=o.hiBad?[[0,50,C.bad],[50,120,C.ok],[120,150,C.bad]]:[[0,70,C.bad],[70,100,C.mid],[100,150,C.ok]];
+  var zones=o.hiBad?[[0,100,C.ok],[100,120,C.mid],[120,150,C.bad]]:[[0,70,C.bad],[70,100,C.mid],[100,150,C.ok]];
   var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%">';
   zones.forEach(function(z){s+=arc(z[0]+.7,z[1]-.7,z[2])});
   [[0,'0'],[100,'100%'],[150,'150%']].forEach(function(t){var a=pt(t[0],r+20);s+='<text x="'+a[0]+'" y="'+(a[1]+(t[0]===100?0:16))+'" text-anchor="middle" class="gl">'+t[1]+'</text>'});
@@ -99,6 +101,13 @@ D.cards.forEach(function(c,ci){
   chart($('mc'+ci),{title:'<div class="mc-h">'+c.short+' <span>'+(cum[0]==null?'-':cum.filter(function(x){return x!=null}).pop())+' / '+c.thr+'</span></div>',xs:mxs,series:ser,w:900,h:200,nodata:nd<0?null:nd,step:2});
 });
 
+(function(c){var o=D.store.orders,cum=[],pv=[],a=0,b=0,thr=[],path=[],base=[];
+  for(var k=0;k<K;k++){var v=o[i0+k];if(v==null)cum.push(null);else{a+=v;cum.push(a)}b+=o[prev0+k]||0;pv.push(b);thr.push(c.thr);path.push(c.thr*(k+1)/K);base.push(c.base2*(k+1)/K)}
+  var nd=cum.findIndex(function(x){return x==null});
+  chart($('mcS'),{title:'<div class="mc-h">Весь магазин <span>'+(cum[0]==null?'-':cum.filter(function(x){return x!=null}).pop())+' / '+c.thr+'</span></div>',xs:mxs,
+    series:[{v:pv,color:C.grey,w:1.4,name:'01-14.10'},{v:base,color:C.grey,dash:'5 4',w:1.2,name:'без эффекта'},{v:path,color:C.cy,dash:'2 4',w:1.4,name:'нужный темп'},{v:thr,color:C.cy,w:1.6,name:'цель 15-28.10'},{v:cum,color:C.s1,w:2.6,area:true,name:'с 15.10',pale:mpale}],
+    w:900,h:200,nodata:nd<0?null:nd,step:2});
+})(D.store_card);
 [].forEach.call(document.querySelectorAll('.crow'),function(tr){tr.onclick=function(){var d=$('cdet'+tr.dataset.i);d.hidden=!d.hidden;tr.classList.toggle('open',!d.hidden)}});
 
 // ---------- воронка: выбор карточки и показателя
@@ -157,13 +166,13 @@ function drawPills(){
     g.rows.forEach(function(r){
       h+='<div class="wk-grid"><div class="pl-n">'+r.n+' <span class="muted">'+r.sub+'</span><div class="muted s">план '+fmt(r.plan)+' ₽</div></div>';
       for(var w=0;w<NW;w++){var v=r.w[w],pre=D.week_start[w]<D.start,pct=v?v[0]/(r.plan*v[1]/7)*100:null,st=stOf(pct,true);
-        if(g.only_high&&pct!=null&&pct<50)st={c:C.ok,t:'',i:'✓'};if(pre&&pct!=null)st={c:C.grey,t:'',i:''};
+        if(pre&&pct!=null)st={c:C.grey,t:'',i:''};
         var wd=pct==null?0:Math.min(100,pct/150*100),t=(r.n+' · '+D.weeks[w]+'<br>план '+fmt(r.plan)+' ₽/нед'+(v?'<br>факт '+fmt(v[0])+' ₽ за '+v[1]+' дн · '+fmt(pct)+'%':'<br>ещё нет данных')).replace(/"/g,'&quot;');
         h+='<div class="wk-col" data-t="'+t+'"><div class="pl-bar"><div class="pl-plan" style="left:66.6%"></div>'+(v?(v[0]>0?'<div class="pl-fill" style="width:'+Math.max(wd,3)+'%;background:'+st.c+'"></div>':''):'<span class="pl-empty">нет данных</span>')+'</div>'
           +(v?'<div class="wk-v">'+fmt(v[0])+' <span style="color:'+(pre?'var(--ink3)':st.c)+'">'+fmt(pct)+'%</span></div>':'')+'</div>'}
       h+='</div>'});
   });
-  $('pills').innerHTML='<div class="legend">Белая метка - план. Первая неделя - до плана, для сравнения. Красным - больше 120% или меньше 50% плана.</div>'+h;
+  $('pills').innerHTML='<div class="legend">Белая метка - план. Первая неделя - до плана, для сравнения. Меньше плана - зелёный, до 120% - жёлтый, больше - красный.</div>'+h;
   [].forEach.call(document.querySelectorAll('.wk-col[data-t]'),function(el){el.onmousemove=function(e){showTip(e,el.dataset.t)};el.onmouseleave=hideTip});
 }
 drawPills();

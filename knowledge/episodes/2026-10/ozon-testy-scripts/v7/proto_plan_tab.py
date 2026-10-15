@@ -151,7 +151,17 @@ for i, c in enumerate(cards):
                  f'<td class="r">{F(max(0, need - (got or 0)))}</td><td class="r">{F(2 * c["u_wk_base"], 1)}</td>'
                  f'<td class="r">{F(pre)}</td><td>{st}</td></tr>'
                  f'<tr class="cdet" id="cdet{i}" hidden><td colspan="7"><div id="mc{i}"></div></td></tr>')
-tbl2 = ('<div class="tbl-wrap full"><table class="gtbl single"><thead><tr><th>Карточка</th><th class="r">Порог</th><th class="r">С 15.10</th>'
+# весь магазин: цель за 15-28.10 - отрезок пути цели октября «средне», без эффекта - отрезок «плохо» (база без прироста)
+s_need = round(goal_path(g_u, 28, 'mid') - goal_path(g_u, 14, 'mid')); s_base = goal_path(g_u, 28, 'lo') - goal_path(g_u, 14, 'lo')
+s_got = cum(STORE['orders'], START, W1); s_pre = cum(STORE['orders'], '2026-10-01', '2026-10-14'); s_path = s_need * n_days_in / 14
+s_st = ('<span class="chip chip-off">нет данных</span>' if s_got is None else '<span class="chip chip-off">рано</span>' if n_days_in < 3
+        else '<span class="chip chip-done">идём</span>' if s_got >= s_path else '<span class="chip chip-bad">отстаём</span>')
+rows2.append(f'<tr class="crow total" data-i="S"><td><b><span class="tw">▸</span> Весь магазин</b><div class="muted s">цель октября, 15-28.10</div></td>'
+             f'<td class="r">{s_need}</td><td class="r">{F(s_got) if s_got is not None else "-"}</td><td class="r">{F(max(0, s_need - (s_got or 0)))}</td>'
+             f'<td class="r">{F(s_base, 1)}</td><td class="r">{F(s_pre)}</td><td>{s_st}</td></tr>'
+             f'<tr class="cdet" id="cdetS" hidden><td colspan="7"><div id="mcS"></div></td></tr>')
+STORE_CARD = dict(short='Весь магазин', thr=s_need, thrp=None, base2=round(s_base, 1))
+tbl2 = ('<div class="tbl-wrap full"><table class="gtbl single"><table class="gtbl single"><thead><tr><th>Карточка</th><th class="r">Порог</th><th class="r">С 15.10</th>'
         '<th class="r">Осталось</th><th class="r" title="2 недели × заказов в неделю за 14.09-11.10">Без эффекта</th>'
         '<th class="r" title="Те же 14 дней до старта">01-14.10</th><th>Статус</th></tr></thead><tbody>'
         + ''.join(rows2) + '</tbody></table></div>')
@@ -238,7 +248,7 @@ tbl3 = ('<div class="tbl-wrap"><table class="gtbl"><thead><tr class="grp"><th></
 DATA = dict(days=DAYS, start=START, w1=W1, sv_last=SV_LAST, od_last=OD_LAST, ad_last=AD_LAST, today=TODAY,
             cards=[dict(short=c['short'], art=c['main_art'], thr=c['threshold'], thrp=c['threshold_price'], base2=round(2 * c['u_wk_base'], 2)) for c in cards],
             ser=SER, store=STORE, store_rev=ser(lambda d: store_rev[d], OD_LAST),
-            goal=P['goal'], base_win=list(BASE), spend=SPEND, weeks=[w for w, _, _ in WEEKS], week_start=[a for _, a, _ in WEEKS],
+            goal=P['goal'], base_win=list(BASE), store_card=STORE_CARD, spend=SPEND, weeks=[w for w, _, _ in WEEKS], week_start=[a for _, a, _ in WEEKS],
             price_st=dict(pst), price_n=len(P['price']), price_first=sum(p['when'] == '15.10' for p in P['price']))
 
 CSS = open(HERE + '/proto_plan_tab.css').read()
@@ -252,7 +262,7 @@ page = f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name
 <div class="gauges" id="gauges"></div>
 <div class="plaques"><div class="plaque"><span class="pl-l">К выплате</span> октябрь {F(P["goal"]["pay_mln"]["oct"]["mid"], 1)} млн · ноябрь {F(P["goal"]["pay_mln"]["nov"]["mid"], 1)} млн · по «Отчету» раз в месяц</div></div>
 
-<div class="sec">1. Заказы 10 карточек к порогу 29.10</div>
+<div class="sec">1. Заказы: 10 карточек и весь магазин</div>
 {tbl2}
 <p class="legend">Нажми на карточку - откроется график. <span class="lg c1"></span>с 15.10 <span class="lg c3"></span>порог <span class="lg c3p"></span>порог с ценой <span class="lg cpath"></span>нужный темп <span class="lg cprev"></span>01-14.10</p>
 

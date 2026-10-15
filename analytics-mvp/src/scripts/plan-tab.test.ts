@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { priceStatus, adsMonthWindow, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
+import { priceStatus, monthWindow, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -178,11 +178,17 @@ describe("priceStatus - статус цены по факту, а не «ждё�
   it("нет цены", () => expect(priceStatus(null, 1, 1, "2026-10-15", "2026-10-15").key).toBe("нет цены"));
 });
 
-describe("adsMonthWindow - спидометр «Реклама» за месяц (Иван 15.10)", () => {
-  it("в октябре - с 15.10 (старт плана), не с 01.10", () => expect(adsMonthWindow("2026-10-20", "2026-10-15")).toEqual({ from: "2026-10-15", to: "2026-10-20", pre: false }));
-  it("в ноябре - с 01.11", () => expect(adsMonthWindow("2026-11-03", "2026-10-15")).toEqual({ from: "2026-11-01", to: "2026-11-03", pre: false }));
-  it("до плана - месяц до плана, серым", () => expect(adsMonthWindow("2026-10-14", "2026-10-15")).toEqual({ from: "2026-10-01", to: "2026-10-14", pre: true }));
-  it("нет рекламы по товарам - нет окна", () => expect(adsMonthWindow("", "2026-10-15")).toBeNull());
+describe("спидометры за месяц (Иван 15.10: «месяц нужен всем»)", () => {
+  it("окно - с 1-го числа месяца последнего дня", () => {
+    expect(monthWindow("2026-10-20", "2026-10-15")).toEqual({ from: "2026-10-01", to: "2026-10-20", pre: false });
+    expect(monthWindow("2026-11-03", "2026-10-15")).toEqual({ from: "2026-11-01", to: "2026-11-03", pre: false });
+    expect(monthWindow("2026-10-14", "2026-10-15")!.pre).toBe(true); expect(monthWindow("", "2026-10-15")).toBeNull();
+  });
+  it("план карточки на день: до 15.10 база/7, с 15.10 порог/14", () => {
+    const c = { u_wk_base: 7, threshold: 28 };
+    expect(cardPlanDay(c, "2026-10-14", "2026-10-15")).toBe(1); expect(cardPlanDay(c, "2026-10-15", "2026-10-15")).toBe(2);
+  });
+  it("конец месяца", () => { expect(monthEnd("2026-10-01")).toBe("2026-10-31"); expect(monthEnd("2026-11-01")).toBe("2026-11-30"); });
 });
 
 describe("weekSum / daysIn", () => {
@@ -249,11 +255,12 @@ describe("planBlock", () => {
     expect(D.store.orders[k]).toBe(5);
     expect(D.ser[0].orders[k + 1]).toBeNull();    // после последнего дня источника - пропуск, не ноль
   });
-  it("спидометр рекламы - месяц: клик главного + минимальный клик с 15.10, план по дням", () => {
+  it("спидометр рекламы - все клики без «Оплаты за заказ» за месяц; карточки - с 1-го числа", () => {
     const D = pd(planBlock("2026-10-17", fixture())!.js);
-    expect(D.ads_month).toMatchObject({ from: "2026-10-15", pre: false });
-    const n = D.ads_month.to === "2026-10-15" ? 1 : 2;
-    expect(D.ads_month.plan).toBe(Math.round((20000 + 1500) * n / 7));
+    expect(D.ads_month).toMatchObject({ from: "2026-10-01", to: "2026-10-16", fact: 3000 + 2500 + 1000 + 2600, days: 2 });
+    expect(D.ads_month.plan_wk).toBe(20000 + 1500 + 2000);
+    expect(D.cards_month).toMatchObject({ from: "2026-10-01", to: "2026-10-16", fact: [3] });
+    expect(D.cards_month.plan[0]).toBe(Math.round(((14 * 2 / 7) + 2 * 6 / 14) * 10) / 10);
   });
   it("скидка OZON: было на 14.10, стало по последнему срезу, разница в п.п. (Иван 15.10)", () => {
     const html = planBlock("2026-10-17", fixture({ gap: [{ date: "2026-10-13", art: "A-1", gap_pct: 30 }, { date: "2026-10-14", art: "A-1", gap_pct: 20 }, { date: "2026-10-16", art: "A-1", gap_pct: 5 }] }))!.html;

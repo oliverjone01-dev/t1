@@ -33,22 +33,22 @@ function gauge(o){ // o: title, val, plan, l1, l2, hiBad, pre
 }
 function sumWin(ser,a,b){var t=0,n=0;for(var j=idx(a);j<=idx(b);j++)if(ser[j]!=null){t+=ser[j];n++}return n?t:null}
 function goalPath(g,d,sc){return g.lo/31*d+(g[sc]-g.lo)*Math.max(0,Math.min(15,d-16))/15}
-var nIn=D.n_in,early=nIn<3;   // первые 2 дня - «рано», как в таблице (ФЕНИКС G4)
-var sumThr=D.cards.reduce(function(a,c){return a+c.thr},0);
-var cardsGot=0,anyGot=false;D.ser.forEach(function(s){var v=sumWin(s.orders,D.start,D.w1);if(v!=null){anyGot=true;cardsGot+=v}});
-var onTrack=0;D.ser.forEach(function(s,i){var v=sumWin(s.orders,D.start,D.w1);if(v!=null&&v>=D.cards[i].thr*nIn/14)onTrack++});
 // месяц берём из последнего дня заказов: октябрь - путь цели октября, ноябрь - цель ноября ровно по дням (ФЕНИКС G2)
 var MG=D.mgoal||{month:'oct',from:'2026-10-01',units:null,turn:null,unitsMonth:D.goal.units.oct.mid,turnMonth:D.goal.turn_mln.oct.mid},nov=MG.month==='nov';
 var oU=sumWin(D.store.orders,MG.from,D.od_last),oT=sumWin(D.store_rev,MG.from,D.od_last),gU=MG.units,gT=MG.turn;
-// реклама: месяц с начала (не раньше 15.10), клик главного + минимальный клик (Иван 15.10: месяц, а не неделя)
-var AM=D.ads_month,MN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
-var amL2=AM?MN[+AM.to.slice(5,7)-1]+', '+dm(AM.from)+'-'+dm(AM.to):'нет данных';
+// все спидометры - за месяц (Иван 15.10). Карточки: факт с 1-го числа, план - база до 15.10 и порог/14 с 15.10.
+// Реклама: все клики без «Оплаты за заказ» против плана 15.10 + прочих кампаний по темпу 01-13.10.
+var MN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+function mlab(w){return w?MN[+w.to.slice(5,7)-1]+', '+dm(w.from)+'-'+dm(w.to):'нет данных'}
+var AM=D.ads_month,CM=D.cards_month;
+var cmF=CM?CM.fact.reduce(function(a,x){return a+x},0):null,cmP=CM?CM.plan.reduce(function(a,x){return a+x},0):0,cmM=CM?CM.month.reduce(function(a,x){return a+x},0):0;
+var cmOn=CM?CM.fact.filter(function(x,i){return x>=CM.plan[i]}).length:null;
 $('pt-gauges').innerHTML=[
-  gauge({title:'Заказы 10 карточек',early:anyGot&&early,val:anyGot&&!early?cardsGot:null,plan:sumThr*nIn/14,l1:anyGot?fmt(cardsGot)+' из '+fmt(sumThr*nIn/14):'с 16.10',l2:'порог '+sumThr}),
-  gauge({title:'Карточки на пути',early:anyGot&&early,val:anyGot&&!early?onTrack:null,plan:5,l1:anyGot?onTrack+' из 10':'с 17.10',l2:'нужно 5'}),
+  gauge({title:'Заказы 10 карточек',val:cmF,plan:cmP,l1:CM?fmt(cmF)+' из '+fmt(cmP):'-',l2:mlab(CM)+', месяц '+fmt(cmM)}),
+  gauge({title:'Карточки на пути',val:cmOn,plan:5,l1:CM?cmOn+' из 10':'-',l2:mlab(CM)+', нужно 5'}),
   gauge({title:'Заказы магазина',val:oU,plan:gU,l1:fmt(oU)+' из '+fmt(gU),l2:(nov?'ноябрь ':'октябрь ')+fmt(MG.unitsMonth)}),
   gauge({title:'Оборот магазина',val:oT/1e6,plan:gT,l1:fmt(oT/1e6,1)+' из '+fmt(gT,1)+' млн',l2:(nov?'ноябрь ':'октябрь ')+fmt(MG.turnMonth,1)+' млн'}),
-  gauge({title:'Реклама за месяц',val:AM?AM.fact:null,plan:AM?AM.plan:0,hiBad:true,pre:AM&&AM.pre,l1:AM?fmt(AM.fact/1e3)+' из '+fmt(AM.plan/1e3)+' тыс. ₽':'-',l2:amL2})
+  gauge({title:'Реклама, все клики',val:AM?AM.fact:null,plan:AM?AM.plan:0,hiBad:true,pre:AM&&AM.pre,l1:AM?fmt(AM.fact/1e3)+' из '+fmt(AM.plan/1e3)+' тыс. ₽':'-',l2:mlab(AM)+(AM?', месяц '+fmt(AM.month/1e3)+' тыс.':'')})
 ].join('');
 
 // ---------- гладкий график с заливкой, точками и подсказкой

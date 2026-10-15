@@ -16,7 +16,7 @@ function stOf(pct,hiBad){if(pct==null)return {c:C.none,t:'нет данных',i
   if(pct>=100)return {c:C.ok,t:hiBad?'в плане':'идём',i:'✓'};if(pct>=70)return {c:C.mid,t:'отстаём',i:'!'};return {c:C.bad,t:hiBad?'недобор':'сильно отстаём',i:'✕'}}
 
 // ---------- спидометр
-function gauge(o){ // o: title, val, plan, l1, l2, hiBad, pre
+function gauge(o){ // o: title, val, plan, l1, l2, l3, hiBad, pre, early; mark - метка «план на дату» в % от плана, stPct - % к плану на дату (цвет)
   var W=240,H=150,cx=120,cy=112,r=82,pct=o.val==null||!o.plan?null:o.val/o.plan*100,MAX=150;
   function pt(p,rr){var a=Math.PI*(1-Math.min(MAX,Math.max(0,p))/MAX);return [cx+rr*Math.cos(a),cy-rr*Math.sin(a)]}
   function arc(p0,p1,col){var a=pt(p0,r),b=pt(p1,r);return '<path d="M'+a[0]+' '+a[1]+' A'+r+' '+r+' 0 0 1 '+b[0]+' '+b[1]+'" stroke="'+col+'" stroke-width="16" fill="none"/>'}
@@ -24,31 +24,30 @@ function gauge(o){ // o: title, val, plan, l1, l2, hiBad, pre
   var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%">';
   zones.forEach(function(z){s+=arc(z[0]+.7,z[1]-.7,z[2])});
   [[0,'0'],[100,'100%'],[150,'150%']].forEach(function(t){var a=pt(t[0],r+20);s+='<text x="'+a[0]+'" y="'+(a[1]+(t[0]===100?0:16))+'" text-anchor="middle" class="gl">'+t[1]+'</text>'});
-  var m=pt(100,r-11),m2=pt(100,r+11);s+='<line x1="'+m[0]+'" y1="'+m[1]+'" x2="'+m2[0]+'" y2="'+m2[1]+'" stroke="#e8eef2" stroke-width="2.5"/>';
+  var mk=o.mark!=null?o.mark:100,m=pt(mk,r-11),m2=pt(mk,r+11);s+='<line x1="'+m[0]+'" y1="'+m[1]+'" x2="'+m2[0]+'" y2="'+m2[1]+'" stroke="#e8eef2" stroke-width="2.5"/>';
   if(pct!=null){var n=pt(pct,r-24);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+n[0]+'" y2="'+n[1]+'" stroke="#e8eef2" stroke-width="3.5" stroke-linecap="round"/>'}
   s+='<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="#e8eef2"/>';
   s+='<text x="'+cx+'" y="'+(cy+32)+'" text-anchor="middle" class="gv">'+(o.early?'рано':pct==null?'нет данных':fmt(pct)+'%')+'</text></svg>';
-  var st=o.pre?{c:C.grey,t:'до плана',i:'○'}:stOf(pct,o.hiBad);
-  return '<div class="gauge"><div class="g-t">'+o.title+'</div>'+s+'<div class="g-l1">'+o.l1+'</div><div class="g-l2">'+o.l2+(pct==null?'':' · <span style="color:'+st.c+'">'+st.i+' '+st.t+'</span>')+'</div></div>';
+  var sp=o.stPct!==undefined?o.stPct:pct,st=o.pre?{c:C.grey,t:'до плана',i:'○'}:stOf(sp,o.hiBad);
+  return '<div class="gauge"><div class="g-t">'+o.title+'</div>'+s+'<div class="g-l1">'+o.l1+'</div><div class="g-l2">'+o.l2+(sp==null||o.early?'':' · <span style="color:'+st.c+'">'+st.i+' '+st.t+'</span>')+'</div>'+(o.l3?'<div class="g-l2 muted">'+o.l3+'</div>':'')+'</div>';
 }
 function sumWin(ser,a,b){var t=0,n=0;for(var j=idx(a);j<=idx(b);j++)if(ser[j]!=null){t+=ser[j];n++}return n?t:null}
 function goalPath(g,d,sc){return g.lo/31*d+(g[sc]-g.lo)*Math.max(0,Math.min(15,d-16))/15}
-// месяц берём из последнего дня заказов: октябрь - путь цели октября, ноябрь - цель ноября ровно по дням (ФЕНИКС G2)
-var MG=D.mgoal||{month:'oct',from:'2026-10-01',units:null,turn:null,unitsMonth:D.goal.units.oct.mid,turnMonth:D.goal.turn_mln.oct.mid},nov=MG.month==='nov';
-var oU=sumWin(D.store.orders,MG.from,D.od_last),oT=sumWin(D.store_rev,MG.from,D.od_last),gU=MG.units,gT=MG.turn;
-// все спидометры - за месяц (Иван 15.10). Карточки: факт с 1-го числа, план - база до 15.10 и порог/14 с 15.10.
-// Реклама: все клики без «Оплаты за заказ» против плана 15.10 + прочих кампаний по темпу 01-13.10.
-var MN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
-function mlab(w){return w?MN[+w.to.slice(5,7)-1]+', '+dm(w.from)+'-'+dm(w.to):'нет данных'}
-var AM=D.ads_month,CM=D.cards_month;
-var cmF=CM?CM.fact.reduce(function(a,x){return a+x},0):null,cmP=CM?CM.plan.reduce(function(a,x){return a+x},0):0,cmM=CM?CM.month.reduce(function(a,x){return a+x},0):0;
-var CW=D.cards_win,cwEarly=CW.n_in>0&&CW.n_in<3,cwOn=CW.n_in?CW.fact.filter(function(x,i){return x>=CW.need[i]}).length:null;
+// спидометры (Иван 15.10): период с 15.10 по конец месяца. Стрелка - факт за период к плану всего периода,
+// белая метка - сколько плана должно быть набрано к последнему дню данных, цвет - факт к этой метке. 01-14.10 - справочно внизу.
+var G=D.gauges,CW=D.cards_win,cwEarly=CW.n_in>0&&CW.n_in<3,cwOn=CW.n_in?CW.fact.filter(function(x,i){return x>=CW.need[i]}).length:null;
+function pg(title,g,unit,nd,div,hiBad){div=div||1;
+  var has=g.fact!=null,td=has&&g.plan_td?g.fact/g.plan_td*100:null;
+  return gauge({title:title,val:has?g.fact:null,plan:g.plan,mark:g.plan?g.plan_td/g.plan*100:null,stPct:td,hiBad:hiBad,
+    l1:has?fmt(g.fact/div,nd)+' из '+fmt(g.plan/div,nd)+unit:'план '+fmt(g.plan/div,nd)+unit+', факта за '+dm(g.from)+' ещё нет',
+    l2:dm(g.from)+'-'+dm(g.to)+(has?' · план на '+dm(g.last)+' '+fmt(g.plan_td/div,nd):''),
+    l3:g.ref?'справочно '+dm(g.ref.from)+'-'+dm(g.ref.to)+': '+fmt(g.ref.fact/div,nd)+unit:''})}
 $('pt-gauges').innerHTML=[
-  gauge({title:'Заказы 10 карточек',val:cmF,plan:cmP,l1:CM?fmt(cmF)+' из '+fmt(cmP):'-',l2:mlab(CM)+', месяц '+fmt(cmM)}),
-  gauge({title:'Карточки на пути',early:cwEarly,val:CW.n_in&&!cwEarly?cwOn:null,plan:5,l1:CW.n_in?cwOn+' из 10':'с 16.10',l2:'окно решения '+dm(D.start)+'-'+dm(D.w1)+', нужно 5'}),
-  gauge({title:'Заказы магазина',val:oU,plan:gU,l1:fmt(oU)+' из '+fmt(gU),l2:(nov?'ноябрь ':'октябрь ')+fmt(MG.unitsMonth)}),
-  gauge({title:'Оборот магазина',val:oT/1e6,plan:gT,l1:fmt(oT/1e6,1)+' из '+fmt(gT,1)+' млн',l2:(nov?'ноябрь ':'октябрь ')+fmt(MG.turnMonth,1)+' млн'}),
-  gauge({title:'Реклама, все клики',val:AM?AM.fact:null,plan:AM?AM.plan:0,hiBad:true,pre:AM&&AM.pre,l1:AM?fmt(AM.fact/1e3)+' из '+fmt(AM.plan/1e3)+' тыс. ₽':'-',l2:mlab(AM)+(AM?', месяц '+fmt(AM.month/1e3)+' тыс.':'')})
+  pg('Заказы 10 карточек',G.cards,'',0),
+  gauge({title:'Карточки на пути',early:cwEarly,val:CW.n_in&&!cwEarly?cwOn:null,plan:5,l1:cwEarly?'рано: '+CW.n_in+' дн. окна':CW.n_in?cwOn+' из 10':'факта за '+dm(D.start)+' ещё нет',l2:'окно решения '+dm(D.start)+'-'+dm(D.w1)+', нужно 5'}),
+  pg('Заказы магазина',G.store,'',0),
+  pg('Оборот магазина',G.turn,' млн',1),
+  pg('Реклама, все клики',G.ads,' тыс. ₽',0,1e3,true)
 ].join('');
 
 // ---------- гладкий график с заливкой, точками и подсказкой

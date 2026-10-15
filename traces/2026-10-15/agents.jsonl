@@ -6,3 +6,4 @@
 {"ts": "2026-10-15T08:52:29+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/=3930"}
 {"ts": "2026-10-15T08:53:02+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/+x, /home/user/t1/P"}
 {"ts": "2026-10-15T08:53:14+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/S/pw"}
+{"ts": "2026-10-15T08:58:59+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/=, /home/user/t1/json.loads, /home/user/t1/json.loads(m.group(2)), /home/user/t1/m.group"}

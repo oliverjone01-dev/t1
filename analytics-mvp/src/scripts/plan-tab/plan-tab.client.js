@@ -121,7 +121,7 @@ var M=[['vsearch','Показы в поиске','sum'],['views','Показы �
   ['orders','Заказы без отмен','sum'],['pos','Позиция в поиске','med'],['ctr','В карточку, % показов','r','pdp','views',100],['tocart','В корзину, % карточки','r','cart','pdp',100],
   ['toord','В заказ, % корзины','r','units','cart',100],['per1k','Заказов на 1 000 показов','r','units','views',1000],['sp','Расход на клики, ₽','sum'],['clk','Клики','sum'],
   ['cpc','CPC, ₽','r','sp','clk',1],['acart','Корзины из рекламы','sum']];
-var cur={c:0,m:0,w:wkLast};
+var cur={c:0,m:0};
 function serOf(s,m){if(m[2]!=='r')return s[m[0]];return DAYS.map(function(_,j){var a=s[m[3]][j],b=s[m[4]][j];return a==null||b==null||!b?null:a/b*m[5]})}
 function win(s,m,a,b){var ia=idx(a),ib=idx(b),vals=[],na=0,nb=0,n=0;
   for(var j=ia;j<=ib;j++){if(m[2]==='r'){if(s[m[3]][j]!=null&&s[m[4]][j]!=null){na+=s[m[3]][j];nb+=s[m[4]][j];n++}}else if(s[m[0]][j]!=null){vals.push(s[m[0]][j])}}

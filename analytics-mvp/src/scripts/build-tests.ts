@@ -29,7 +29,7 @@ import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type Pair
 import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
 import {
-  readFunnelTests, missingDays, aggDay, FUNNEL_TESTS_FILE, FUNNEL_KEYS, AGG_ROLES as AGG_ROLES_SET,
+  readFunnelTests, missingDays, aggDay, FUNNEL_TESTS_FILE, FUNNEL_KEYS, TEST_ROLES as TEST_ROLES_SET,
   type FunnelRow, type FunnelKey, type FunnelRole,
 } from "./funnel-tests.js";
 import { loadEbSeries, ebOn } from "./eb-level.js";
@@ -53,7 +53,7 @@ if (!IS_OZON) {
 }
 
 const C_TEST = "#3987e5", C_CTRL = "#d95926";   // проверены validate_palette.js на подложке #12161f
-const TODAY = new Date().toISOString().slice(0, 10);
+const TODAY = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);   // сегодня по Москве (спека: Europe/Moscow, E008)
 
 type Row = Record<string, number>;
 type PromoDef = { тип?: string; от: string; до: string; имя: string; заметка?: string };
@@ -3405,7 +3405,10 @@ gaps.push("Соинвест считается по цене, которую п�
 // иначе неполный день рисует провал (E029). Показываем его отдельной строкой с временем среза.
 const partialLine = (() => {
   if (!FT.partialDay) return "";
-  const rows = FT.partial.filter((r) => r.date === FT.partialDay && !AGG_ROLES_SET.has(r.role));
+  // только тестовые товары (не контроль и не агрегаты), по одной строке на товар (ФЕНИКС B3)
+  const one = new Map<string, FunnelRow>();
+  for (const r of FT.partial) if (r.date === FT.partialDay && TEST_ROLES_SET.has(r.role)) one.set(r.art, r);
+  const rows = [...one.values()];
   if (!rows.length) return "";
   const sum = (k: "search_views" | "pdp_views" | "hits_to_cart" | "ordered_units"): number => rows.reduce((a, r) => a + r[k], 0);
   const hm = /T(\d{2}:\d{2})/.exec(FT.partialTs)?.[1];

@@ -4,7 +4,7 @@ import { describe, it, expect } from "vitest";
 import { writeFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseRow, readFunnelTests, missingDays, aggDay } from "./funnel-tests.js";
+import { parseRow, readFunnelTests, missingDays, aggDay, isOpenDay } from "./funnel-tests.js";
 
 const ok = {
   date: "2026-09-22", art: "GGT-03-1-3-S-40", role: "test_ad",
@@ -18,7 +18,7 @@ const agg = {
 
 describe("разбор товарной строки", () => {
   it("принимает строку контракта как есть", () => {
-    expect(parseRow(ok)).toEqual({ ...ok, test_id: "", n: null, n_nonzero: null, full: null, ts: null, snap: null });
+    expect(parseRow(ok)).toEqual({ ...ok, test_id: "", n: null, n_nonzero: null, full: null, ts: null, snap: null, group: "" });
   });
 
   it("позиция может быть null: товара нет в выдаче", () => {
@@ -205,6 +205,23 @@ describe("съём утром и вечером (Иван 15.10)", () => {
     expect(read.partial.map((r) => r.search_views)).toEqual([90]);
     expect([read.partialDay, read.partialTs]).toEqual(["2026-10-15", "2026-10-15T20:10:00+03:00"]);
   });
+  it("группы test и control агрегата - разные ключи; в контрольный ряд идёт только control (ФЕНИКС G2)", () => {
+    const d2 = mkdtempSync(join(tmpdir(), "ft3-")); const p2 = join(d2, "funnel_tests.ndjson");
+    writeFileSync(p2, [
+      JSON.stringify({ ...agg, art: "AGG:boost_plus_exit:control", group: "control", search_views: 500 }),
+      JSON.stringify({ ...agg, art: "AGG:boost_plus_exit:test", group: "test", search_views: 70 }),
+    ].join("\n"));
+    const r2 = readFunnelTests(p2);
+    expect(r2.rows).toHaveLength(2);
+    expect(aggDay(r2, "boost_plus_exit", "agg_median", agg.date)!.search_views).toBe(500);
+  });
+  it("незакрытый день узнаётся и по времени среза, не только по флагу (ФЕНИКС P1)", () => {
+    expect(isOpenDay({ date: "2026-10-15", full: true, ts: "2026-10-15T20:10:00+03:00" })).toBe(true);
+    expect(isOpenDay({ date: "2026-10-15", full: null, ts: "2026-10-15T23:30:00Z" })).toBe(false);   // 02:30 МСК 16.10
+    expect(isOpenDay({ date: "2026-10-14", full: true, ts: "2026-10-15T08:00:00+03:00" })).toBe(false);
+    expect(isOpenDay({ date: "2026-10-14", full: null, ts: null })).toBe(false);
+  });
+  it("ts не время - строка отвергнута", () => expect(parseRow({ ...ok, ts: "вечер" })).toContain("ts"));
   it("full не true / false - строка отвергнута с причиной", () => {
     expect(parseRow({ ...ok, full: "да" })).toContain("full");
   });

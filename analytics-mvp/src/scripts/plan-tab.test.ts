@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { mkdtempSync, writeFileSync, existsSync, readFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE } from "./plan-tab.js";
+import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -76,39 +76,38 @@ describe("decisionWarn - день решения без последнего д�
   it("заказов нет вовсе - предупреждение есть", () => expect(decisionWarn("2026-10-30", "2026-10-29", "", "2026-10-28")).not.toBe(""));
 });
 
-describe("cabinetCheck - сверка «Заказано, шт» с кабинетом", () => {
-  const ours = new Map([["1|2026-10-15", 10], ["2|2026-10-15", 3], ["1|2026-10-16", 5]]);
-  it("считает только товары и дни из выгрузки кабинета", () => {
-    expect(cabinetCheck([{ date: "2026-10-15", sku: "1", units: 10 }], ours, "2026-10-15", "2026-10-28"))
-      .toEqual({ days: ["2026-10-15"], cab: 10, ours: 10, ok: true });
+describe("cabinetCheck - сверка «Заказано, шт» с кабинетом по каждой карточке (ФЕНИКС S1)", () => {
+  const ours = new Map([["1|2026-10-15", 10], ["2|2026-10-15", 3], ["3|2026-10-15", 5]]);
+  const cards = [["1", "2"], ["3"]];
+  const full = [{ date: "2026-10-15", sku: "1", units: 10 }, { date: "2026-10-15", sku: "2", units: 3 }, { date: "2026-10-15", sku: "3", units: 5 }];
+  it("полная выгрузка, всё сходится - в допуске", () => {
+    const r = cabinetCheck(full, ours, "2026-10-15", "2026-10-28", cards)!;
+    expect(r.ok).toBe(true); expect(r.full).toBe(true); expect(r.cards.map((x) => [x.cab, x.ours])).toEqual([[13, 13], [5, 5]]);
   });
-  it("расхождение больше 2% и больше 2 шт - не в допуске", () => {
-    expect(cabinetCheck([{ date: "2026-10-15", sku: "1", units: 14 }], ours, "2026-10-15", "2026-10-28")!.ok).toBe(false);
+  it("+3 и -3 по двум карточкам не гасят друг друга", () => {
+    const r = cabinetCheck([{ date: "2026-10-15", sku: "1", units: 13 }, { date: "2026-10-15", sku: "2", units: 3 }, { date: "2026-10-15", sku: "3", units: 2 }], ours, "2026-10-15", "2026-10-28", cards)!;
+    expect(r.ok).toBe(false); expect(r.cards.map((x) => x.ok)).toEqual([false, false]);
+  });
+  it("неполная выгрузка - не «в допуске», охват виден", () => {
+    const r = cabinetCheck(full.slice(0, 2), ours, "2026-10-15", "2026-10-28", cards)!;
+    expect(r.full).toBe(false); expect(r.ok).toBe(false); expect([r.cards[1]!.have, r.cards[1]!.need]).toEqual([0, 1]);
   });
   it("повтор «дата + товар» - берётся последняя строка, не сумма (Codex P2)", () => {
-    expect(cabinetCheck([{ date: "2026-10-15", sku: "1", units: 3 }, { date: "2026-10-15", sku: "1", units: 10 }], ours, "2026-10-15", "2026-10-28"))
-      .toEqual({ days: ["2026-10-15"], cab: 10, ours: 10, ok: true });
+    const r = cabinetCheck([...full, { date: "2026-10-15", sku: "3", units: 1 }, { date: "2026-10-15", sku: "3", units: 5 }], ours, "2026-10-15", "2026-10-28", cards)!;
+    expect(r.cards[1]!.cab).toBe(5); expect(r.ok).toBe(true);
   });
-  it("вне окна - сверки нет", () => expect(cabinetCheck([{ date: "2026-10-01", sku: "1", units: 9 }], ours, "2026-10-15", "2026-10-28")).toBeNull());
+  it("вне окна - сверки нет", () => expect(cabinetCheck([{ date: "2026-10-01", sku: "1", units: 9 }], ours, "2026-10-15", "2026-10-28", cards)).toBeNull());
 });
 
-describe("эталоны спеки ozon-plan-15-10 v2 (Иван 15.10 «да»), по живым данным, день UTC (поле d)", () => {
-  // Отмены приходят с опозданием и только уменьшают число, поэтому допуск вниз 2% (спека, reconciliation).
-  const R = existsSync("data/orders_daily.ndjson")
-    ? readFileSync("data/orders_daily.ndjson", "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l) as { d: string; status: string; sku: string; units: number })
-    : [];
-  const net = (from: string, to: string, skus?: Set<string>): number =>
-    R.filter((r) => r.d >= from && r.d <= to && r.status !== "cancelled" && (!skus || skus.has(String(r.sku)))).reduce((a, r) => a + (Number(r.units) || 0), 0);
-  it("магазин 01-13.10 без отмен - 137", () => {
-    if (!R.length) return;
-    const v = net("2026-10-01", "2026-10-13"); expect(v).toBeLessThanOrEqual(137); expect(v).toBeGreaterThanOrEqual(Math.floor(137 * 0.98));
-  });
-  it("TRUBIS 160, вся объединённая карточка, 14.09-11.10 без отмен - 49", () => {
-    if (!R.length || !existsSync("data/card_groups.json")) return;
-    const G = (JSON.parse(readFileSync("data/card_groups.json", "utf-8")).groups ?? []) as Array<{ skus: Array<{ sku: string; offer: string }> }>;
-    const g = G.find((x) => x.skus.some((s) => s.offer === "GGT-03-3-3-E-16080"))!;
-    const v = net("2026-09-14", "2026-10-11", new Set(g.skus.map((s) => String(s.sku))));
-    expect(v).toBeLessThanOrEqual(49); expect(v).toBeGreaterThanOrEqual(Math.floor(49 * 0.98));
+describe("эталоны спеки ozon-plan-15-10 v2 (Иван 15.10 «да»), на замороженной выборке 15.10 (ФЕНИКС G1)", () => {
+  // Выборка заморожена: живые данные двигают поздние отмены (TRUBIS 160 за сутки 50 -> 49), тест на них краснел бы без правки кода (E083).
+  const R = readFileSync("src/scripts/__fixtures__/plan-golden-orders.ndjson", "utf-8").split("\n").filter(Boolean)
+    .map((l) => JSON.parse(l) as { d: string; status: string; sku: string; units: number });
+  const card = JSON.parse(readFileSync("src/scripts/__fixtures__/plan-golden-card.json", "utf-8")) as { trubis160_skus: string[] };
+  it("магазин 01-13.10 без отмен, день UTC - 137", () => expect(netUnits(R, "2026-10-01", "2026-10-13")).toBe(137));
+  it("TRUBIS 160, вся объединённая карточка (48 товаров), 14.09-11.10 без отмен - 49", () => {
+    expect(card.trubis160_skus).toHaveLength(48);
+    expect(netUnits(R, "2026-09-14", "2026-10-11", new Set(card.trubis160_skus))).toBe(49);
   });
 });
 

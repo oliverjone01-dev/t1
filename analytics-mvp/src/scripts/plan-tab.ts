@@ -60,17 +60,33 @@ export function decisionWarn(today: string, check: string, odLast: string, w1: s
   return `Заказы по ${odLast ? DM(odLast) : "-"}: за ${DM(w1)} данных ещё нет. Решение по карточкам - только по полным 14 дням, после прихода заказов за ${DM(w1)}.`;
 }
 
-/** Сверка «Заказано, шт» (с отменами) с кабинетом по тем товарам и дням, что есть в выгрузке кабинета.
- *  ours: sku|день -> шт по отправлениям. Допуск - 2% и не меньше 2 шт (спека, reconciliation). */
-export function cabinetCheck(cab: Array<{ date: string; sku: string; units: number }>, ours: Map<string, number>, from: string, to: string):
-  { days: string[]; cab: number; ours: number; ok: boolean } | null {
+/** Определение эталонов спеки (golden_rows): шт без отмен по дню d (UTC) в [from, to], по товарам skus или всему магазину. */
+export function netUnits(rows: Array<{ d: string; status: string; sku: string | number; units: number }>, from: string, to: string, skus?: Set<string>): number {
+  return rows.filter((r) => r.d >= from && r.d <= to && r.status !== "cancelled" && (!skus || skus.has(String(r.sku))))
+    .reduce((a, r) => a + (Number(r.units) || 0), 0);
+}
+
+/** Сверка «Заказано, шт» (с отменами) с кабинетом ПО КАЖДОЙ карточке (решение 29.10 - по карточке, ФЕНИКС S1).
+ *  ours: sku|день -> шт по отправлениям; cardSkus[i] - товары карточки i. Допуск на карточку - 2% и не меньше 1 шт.
+ *  Охват: сколько пар «товар карточки + день» есть в выгрузке; неполная выгрузка - не «в допуске». */
+export interface CabCard { cab: number; ours: number; ok: boolean; have: number; need: number }
+export function cabinetCheck(cab: Array<{ date: string; sku: string; units: number }>, ours: Map<string, number>, from: string, to: string,
+  cardSkus: string[][]): { days: string[]; cards: CabCard[]; ok: boolean; full: boolean } | null {
   // повтор «дата + товар» в выгрузке чата заменяет прежнюю строку (правило файлов чата), иначе двойной счёт (К4)
   const last = new Map<string, { date: string; sku: string; units: number }>();
-  for (const r of cab) { const k = `${r.sku}|${r.date}`; last.delete(k); last.set(k, r); }
-  let c = 0, o = 0; const days = new Set<string>();
-  for (const [k, r] of last) { if (r.date < from || r.date > to) continue; c += r.units; o += ours.get(k) ?? 0; days.add(r.date); }
-  if (!days.size) return null;
-  return { days: [...days].sort(), cab: c, ours: o, ok: Math.abs(c - o) <= Math.max(2, 0.02 * c) };
+  for (const r of cab) { if (r.date < from || r.date > to) continue; const k = `${r.sku}|${r.date}`; last.delete(k); last.set(k, r); }
+  const days = [...new Set([...last.values()].map((r) => r.date))].sort();
+  if (!days.length) return null;
+  const cards = cardSkus.map((skus): CabCard => {
+    let c = 0, o = 0, have = 0;
+    for (const d of days) for (const s of skus) {
+      const r = last.get(`${s}|${d}`); if (!r) continue;
+      have++; c += r.units; o += ours.get(`${s}|${d}`) ?? 0;
+    }
+    return { cab: c, ours: o, ok: Math.abs(c - o) <= Math.max(1, 0.02 * c), have, need: skus.length * days.length };
+  });
+  const full = cards.every((x) => x.have === x.need);
+  return { days, cards, ok: full && cards.every((x) => x.ok), full };
 }
 
 /** Статус карточки к порогу: нет данных / рано (меньше 3 дней) / идём / отстаём. Путь - порог × дни / 14. */
@@ -359,9 +375,19 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   // сверка с кабинетом: съём чата по четвергам и 29.10 (Иван 15.10), другое семейство, чем отправления
   const cabRows = existsSync(dp(CAB_FILE)) ? readNd(dp(CAB_FILE)).map((r) => ({ date: String(r.date).slice(0, 10), sku: String(r.sku), units: Number(r.ordered_units) }))
     .filter((r) => r.date && r.sku && Number.isFinite(r.units)) : [];
-  const cab = cabinetCheck(cabRows, skuDayAll, START, OD_LAST || START);
-  if (cab && !cab.ok) warnings.push(`сверка с кабинетом ${DM(cab.days[0]!)}-${DM(cab.days[cab.days.length - 1]!)}: кабинет ${cab.cab} шт, отправления ${cab.ours} шт`);
-  const cabTxt = cab ? `<li>Сверка с кабинетом («Заказано, шт» с отменами, ${cab.days.length} дн по ${DM(cab.days[cab.days.length - 1]!)}): кабинет ${F(cab.cab)}, отправления ${F(cab.ours)}${cab.ok ? " - в допуске 2%" : " - <b>расхождение больше 2%</b>"}.</li>` : "";
+  const cardSkus = cards.map((_, i) => [...SKU_CARD].filter(([, j]) => j === i).map(([sku]) => sku));
+  const cab = cabinetCheck(cabRows, skuDayAll, START, OD_LAST || START, cardSkus);
+  let cabTxt = "";
+  if (cab) {
+    const span = `${DM(cab.days[0]!)}-${DM(cab.days[cab.days.length - 1]!)}`;
+    const off = cab.cards.map((x, i) => x.ok ? "" : `${cards[i]!.short} кабинет ${x.cab} / отправления ${x.ours}`).filter(Boolean);
+    const have = cab.cards.reduce((a, x) => a + x.have, 0), need = cab.cards.reduce((a, x) => a + x.need, 0);
+    if (!cab.full) warnings.push(`сверка с кабинетом ${span}: выгрузка неполная, ${have} из ${need} пар «товар + день»`);
+    if (off.length) warnings.push(`сверка с кабинетом ${span} не в допуске: ${off.join("; ")}`);
+    cabTxt = `<li>Сверка с кабинетом («Заказано, шт» с отменами, ${span}, охват ${F(have)} из ${F(need)} пар «товар + день»): `
+      + (off.length ? `<b>расхождение по ${off.length} из ${cards.length} карточек</b> - ${esc(off.join("; "))}` : `все ${cards.length} карточек в допуске (2%, не меньше 1 шт)`)
+      + (cab.full ? "" : ", <b>выгрузка неполная</b>") + `.</li>`;
+  }
   const dWarn = decisionWarn(today, P.check, OD_LAST, W1);
   const day = Math.max(0, Math.min(14, Math.round((D0(today) - D0(START)) / 864e5) + 1));
   const warn = warnings.length ? `<div class="pt-warn">Проверка данных: ${warnings.slice(0, 5).map(esc).join("; ")}${warnings.length > 5 ? ` и ещё ${warnings.length - 5}` : ""}</div>` : "";

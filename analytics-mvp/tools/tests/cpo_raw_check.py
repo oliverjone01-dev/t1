@@ -154,6 +154,14 @@ try:
     check("G5: старая строка без дня заменяется по номеру заказа",
           run_both(r6, [{"order": "X-1", "sp": 80.0}, {"order": "Y-1", "sp": 5.0}], [])[0], 25.0)
 
+    # ФЕНИКС iter10 gap 2: строка без SKU - в cpo_orders с полем nosku, в cpo_sku_daily её нет.
+    r7 = os.path.join(tmp, "raw_nosku")
+    os.makedirs(r7)
+    xlsx(os.path.join(r7, "2026-09_cpo_orders.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0], ["04.09.2026", "2", "B-1", None, None, 30.0]])
+    co_sum, sd_sum = run_both(r7, [], [])
+    nos = [json.loads(l).get("nosku", 0) for l in open(jo.OUT_CPO, encoding="utf-8")]
+    check("nosku: заказы 130, товары 100, без SKU 30", (co_sum, sd_sum, sum(nos)), (130.0, 100.0, 30.0))
+
     # Отказы.
     r2 = os.path.join(tmp, "raw_noper")
     os.makedirs(r2)

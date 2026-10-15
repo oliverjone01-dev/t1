@@ -79,6 +79,15 @@ describe("cpoExportCampaign: ошибки выгрузки - плашка, не 
     const r = cpoExportCampaign(dp, cpoOrdersByDay(dp));
     expect([r.missMonths, r.missNote]).toEqual([["2026-08", "2026-09"], "без даты: 1 заказ на 50 ₽"]);
   });
+  it("выгрузка за два месяца, ненайденный заказ в сентябре - прячется только сентябрь (Иван 15.10)", () => {
+    const dp = dir({ ...base, "cpo_sku_daily.ndjson": nd([{ d: "2026-08-01", sp: 100 }, { d: "2026-09-30", sp: 50 }]) });
+    const r = cpoExportCampaign(dp, cpoOrdersByDay(dp));
+    expect([r.err, r.missMonths]).toEqual(["", ["2026-09"]]);
+  });
+  it("строки выгрузки без SKU (nosku) не дают ложной ошибки сумм (ФЕНИКС iter10 gap 2)", () => {
+    const dp = dir({ ...base, "cpo_orders.ndjson": nd([{ order: "0001-0001", d: "2026-09-10", sp: 100 }, { order: "0002-0002", d: "2026-09-12", sp: 70, nosku: 20 }]), "cpo_sku_daily.ndjson": nd([{ d: "2026-09-01", sp: 100 }, { d: "2026-09-30", sp: 50 }]), "ads_daily.ndjson": nd([{ d: "2026-09-10", id: "28753239", sp: 170 }]) });
+    expect(cpoExportCampaign(dp, cpoOrdersByDay(dp)).err).toBe("");
+  });
   it("сумма по заказам не равна сумме по товарам - ошибка выгрузки (N3, Иван 15.10)", () => {
     const dp = dir({ ...base, "cpo_sku_daily.ndjson": nd([{ d: "2026-09-01", sp: 100 }, { d: "2026-09-30", sp: 52 }]) });
     expect(cpoExportCampaign(dp, cpoOrdersByDay(dp)).err).toMatch(/списания по заказам 150 ₽ не равны списаниям по товарам 152 ₽/);

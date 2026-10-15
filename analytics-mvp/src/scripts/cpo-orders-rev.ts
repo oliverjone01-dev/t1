@@ -20,7 +20,7 @@ const readNd = (p: string, bad?: string[]): any[] => {
 export type CpoOrdersDay = { sp: number; rev: number; units: number };
 
 // missBy - ненайденные заказы по месяцу строки выгрузки ("?" - строка без дня, собрана до 14.10); skuSp - сумма cpo_sku_daily.
-export type CpoOrders = { day: Record<string, CpoOrdersDay>; miss: number; missSp: number; missBy: Record<string, { n: number; sp: number }>; spAll: number; skuSp: number; from: string; to: string; bad: string[] };
+export type CpoOrders = { day: Record<string, CpoOrdersDay>; miss: number; missSp: number; missBy: Record<string, { n: number; sp: number }>; spAll: number; skuSp: number; noSkuSp: number; from: string; to: string; bad: string[] };
 
 // Рубли с разрядами, склонение «заказ / заказа / заказов» - для текстов плашек (ФЕНИКС N7).
 export const rub = (v: number) => Math.round(v).toLocaleString("ru-RU").replace(/\u00a0/g, " ");
@@ -31,8 +31,9 @@ export function cpoOrdersByDay(dp: (f: string) => string): CpoOrders {
   const postings: Record<string, any[]> = {};
   for (const r of readNd(dp("orders_daily.ndjson"), bad)) { const o = String(r.order || ""); const k = o.slice(0, o.lastIndexOf("-")); (postings[k] ||= []).push(r); }
   const spBy: Record<string, number> = {}, monOf: Record<string, string> = {};
+  let noSkuSp = 0; // списания строк выгрузки без SKU: в cpo_sku_daily их нет (ФЕНИКС iter10 gap 2)
   for (const r of readNd(dp("cpo_orders.ndjson"), bad)) {
-    const o = String(r.order); spBy[o] = (spBy[o] || 0) + (Number(r.sp) || 0);
+    const o = String(r.order); spBy[o] = (spBy[o] || 0) + (Number(r.sp) || 0); noSkuSp += Number(r.nosku) || 0;
     const m = r.d ? String(r.d).slice(0, 7) : "?"; if (!monOf[o] || (m !== "?" && (monOf[o] === "?" || m < monOf[o]))) monOf[o] = m;
   }
   const day: Record<string, CpoOrdersDay> = {}, missBy: Record<string, { n: number; sp: number }> = {};
@@ -47,7 +48,7 @@ export function cpoOrdersByDay(dp: (f: string) => string): CpoOrders {
   }
   let from = "", to = "", skuSp = 0;
   for (const r of readNd(dp("cpo_sku_daily.ndjson"), bad)) { const d = String(r.d || ""); if (!d) continue; skuSp += Number(r.sp) || 0; if (!from || d < from) from = d; if (d > to) to = d; }
-  return { day, miss, missSp, missBy, spAll, skuSp, from, to, bad };
+  return { day, miss, missSp, missBy, spAll, skuSp, noSkuSp, from, to, bad };
 }
 
 // Чья это выгрузка (ФЕНИКС N5, N8 13.10): только кампании «Оплата за заказ» (camp_meta.instr), ближайшая по расходу API
@@ -83,7 +84,7 @@ export function cpoExportCampaign(dp: (f: string) => string, co: CpoOrders): { i
   if (!Math.round(total) && !co.from) return { id: "", sp: 0, total, err: "", missMonths: [], missNote: "" };
   if (!co.from) return fail(`есть списания выгрузки ${rub(total)} ₽, но покрытие (cpo_sku_daily) пустое - даты выгрузки неизвестны`);
   if (!Math.round(total)) return fail(`покрытие выгрузки есть (${co.from}..${co.to}), а списаний по заказам (cpo_orders) нет - файл пуст или потерян`);
-  if (Math.abs(total - co.skuSp) > 1) return fail(`списания по заказам ${rub(total)} ₽ не равны списаниям по товарам ${rub(co.skuSp)} ₽ - в данных устаревшие строки или строки без SKU, выгрузку пересобрать`);
+  if (Math.abs(total - co.noSkuSp - co.skuSp) > 1) return fail(`списания по заказам ${rub(total)} ₽${co.noSkuSp ? ` (из них без SKU ${rub(co.noSkuSp)} ₽)` : ""} не равны списаниям по товарам ${rub(co.skuSp)} ₽ - в данных устаревшие строки, выгрузку пересобрать`);
   const byId: Record<string, number> = {}, instr: Record<string, string> = {};
   for (const r of readNd(dp("ads_daily.ndjson"))) if (r.d >= co.from && r.d <= co.to) byId[String(r.id)] = (byId[String(r.id)] || 0) + (Number(r.sp) || 0);
   const metas: any[] = [];

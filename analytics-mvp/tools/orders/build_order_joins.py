@@ -51,6 +51,9 @@ def main():
     # cpo_sku_daily, - заказ, пропавший из повторной выгрузки, уходит; заказ на стыке месяцев (31.08 и 01.09) хранит обе
     # части. Старые строки без дня (собраны до 14.10) заменяются по номеру заказа, если он есть в новом сырье.
     cpo = collections.defaultdict(float)  # (заказ, день) -> списание
+    # Списания строк без SKU (их не берёт cpo_sku_daily): поле nosku, чтобы сверка сумм заказов и товаров
+    # (cpoExportCampaign, Иван 15.10) не давала ложную ошибку на законной выгрузке (ФЕНИКС iter10 gap 2).
+    nosku = collections.defaultdict(float)
     try:
         rows, used, _ = read_raw(CPO_RAW)
     except CpoRawError as ex:
@@ -59,6 +62,8 @@ def main():
     for r in rows:
         if r["order"]:
             cpo[(r["order"], r["d"])] += r["sp"]
+            if not r["sku"] or r["sku"] == "0":
+                nosku[(r["order"], r["d"])] += r["sp"]
     for f, w, n, x in used:
         print(f"CPO файл {f}: период {w[0]}..{w[1]}, строк {n}" + (f", заменено поздним файлом {x}" if x else ""))
     # Сырья CPO нет (оно не в git) - прошлый файл не трогаем, иначе он перезапишется пустым.
@@ -79,7 +84,7 @@ def main():
                 kept.append(r)
         except FileNotFoundError:
             pass
-        out = kept + [{"order": o, "d": d, "sp": round(v, 2)} for (o, d), v in cpo.items()]
+        out = kept + [dict({"order": o, "d": d, "sp": round(v, 2)}, **({"nosku": round(nosku[(o, d)], 2)} if nosku.get((o, d)) else {})) for (o, d), v in cpo.items()]
         out.sort(key=lambda r: (str(r["order"]), r.get("d") or ""))
         with open(OUT_CPO, "w", encoding="utf-8") as w:
             for r in out:

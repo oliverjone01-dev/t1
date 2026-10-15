@@ -16,6 +16,9 @@ import { matchLedger, accrualShipSeries, extraTripSeries, type ExtraTrip, type U
 import { splitCpo } from "./cpo-split.js";
 import { cardSpread } from "./cpc-card-spread.js";
 import { coverageStrip, GAPS_JS } from "../coverage.js";
+import { ndLines, ndBad, ndBadNote } from "./nd-lines.js";
+// Битые строки данных - одна строка ::error:: в лог CI в конце сборки (ФЕНИКС iter10 gap 1).
+process.on("exit", () => { if (ndBad.length) console.log(`::error::katya: ${ndBadNote()}`); });
 // Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
 const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(html));
 
@@ -1222,7 +1225,7 @@ function kshell(title: string, activeKey: string, body: string, pageJs: string):
   const snapTo = maxD;
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GENGLASS · ${title}</title><style>${KCSS}${EXTRA_CSS}</style></head><body>
-${banner(activeKey)}
+${banner(activeKey)}${ndBad.length ? `<div style="margin:8px 16px;padding:8px 12px;border:1px solid #FF5A5F;border-radius:8px;color:#FF5A5F;font-weight:600">⚠ ${ndBadNote().replace(/</g, "&lt;")}</div>` : ""}
 <header class="topbar" style="position:relative">
   <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">${title} · живой OZON · данные по ${snapTo}</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено ${BUILD_TS}</div></div></div>
   <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/${IS_OZON ? "ozon-snapshots.yml" : "ym-snapshots.yml"}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
@@ -1294,7 +1297,7 @@ const catFun: Record<string, Fun> = {};
 const subFun: Record<string, Fun & { name: string; cat: string }> = {};
 const catSubs: Record<string, Set<string>> = {};
 let viewRows: any[] = [];
-try { viewRows = readFileSync(dp("sku_views.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { viewRows = []; }
+try { viewRows = ndLines(dp("sku_views.ndjson")).map((l) => JSON.parse(l)); } catch { viewRows = []; }
 // АГРЕГАТНАЯ СТРОКА - ЭТО СВЁРНУТОЕ ОКНО, А НЕ ДЕНЬ. У Маркета 4 504 такие строки помечены датой
 // 06.09 с period_from 31.08, то есть несут в себе всю неделю разом. derive их отбрасывает
 // (`if (v.aggregate) continue`), а воронка по категориям складывала их с дневными и считала
@@ -1354,7 +1357,7 @@ if (ORDERS_FUNNEL) for (const f of facts) {
   (catSubs[cat] ||= new Set()).add(sid);
 }
 let dailyTotals: any[] = [];
-try { dailyTotals = readFileSync(dp("daily_totals.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { dailyTotals = []; }
+try { dailyTotals = ndLines(dp("daily_totals.ndjson")).map((l) => JSON.parse(l)); } catch { dailyTotals = []; }
 const MONEY_FIELDS_OK = !dailyTotals.length || dailyTotals.some((t: any) => "accruals" in t && "rev_canc" in t);
 if (dailyTotals.length) {
   for (const t of dailyTotals) {
@@ -1599,16 +1602,16 @@ let MKT_SHARE = { sec: "", css: "", js: "" };
   // Фаза 1b: дневной ряд рекламы (ads_daily.ndjson) + мета кампаний (line/instr/place/status
   // из снимка - в дневном ряду их нет). Дашборд агрегирует ЛЮБОЙ период из дневного ряда.
   let adsDaily: any[] = [];
-  try { adsDaily = readFileSync(dp("ads_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { adsDaily = []; }
+  try { adsDaily = ndLines(dp("ads_daily.ndjson")).map((l) => JSON.parse(l)); } catch { adsDaily = []; }
   // Дневной ряд per-SKU атрибуции (основная/объединённая), индекс по кампании -> точная разбивка за любой период.
   let adsAttrByCamp: Record<string, any[]> = {};
-  try { for (const l of readFileSync(dp("ads_attr_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); (adsAttrByCamp[String(r.id)] || (adsAttrByCamp[String(r.id)] = [])).push({ d: r.d, sku: String(r.sku), nm: r.nm, sp: r.sp, sold: r.sold, om: r.om, soldM: r.soldM, omM: r.omM }); } } catch { adsAttrByCamp = {}; }
+  try { for (const l of ndLines(dp("ads_attr_daily.ndjson"))) { const r = JSON.parse(l); (adsAttrByCamp[String(r.id)] || (adsAttrByCamp[String(r.id)] = [])).push({ d: r.d, sku: String(r.sku), nm: r.nm, sp: r.sp, sold: r.sold, om: r.om, soldM: r.soldM, omM: r.omM }); } } catch { adsAttrByCamp = {}; }
   // Второй per-SKU источник по кампаниям: ads_sku_daily (накопительный коллектор ad-sku-daily.ts,
   // те же attribution-отчёты, но своё окно). Фолбэк для кампаний, которых нет в ads_attr_daily.
   // Строка {d,cid,sku,sp,om}; единиц (sold) в нём нет. CPO «Оплата за заказ» здесь тоже нет -
   // OZON не отдаёт атрибуцию по SKU для них.
   const adsSkuByCamp: Record<string, any[]> = {};
-  try { for (const l of readFileSync(dp("ads_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); (adsSkuByCamp[String(r.cid)] || (adsSkuByCamp[String(r.cid)] = [])).push({ d: r.d, sku: String(r.sku), sp: r.sp, om: r.om, ca: r.ca }); } } catch { /* нет файла - пропуск */ }
+  try { for (const l of ndLines(dp("ads_sku_daily.ndjson"))) { const r = JSON.parse(l); (adsSkuByCamp[String(r.cid)] || (adsSkuByCamp[String(r.cid)] = [])).push({ d: r.d, sku: String(r.sku), sp: r.sp, om: r.om, ca: r.ca }); } } catch { /* нет файла - пропуск */ }
   const campMeta: Record<string, { off: string; line: string; instr: string; place: string; status: string }> = {};
   const addMeta = (list: any[]) => (list || []).forEach((c: any) => { if (c && c.id && !campMeta[String(c.id)]) campMeta[String(c.id)] = { off: c.off || "", line: c.line || "прочее", instr: c.instr || "", place: c.place || "-", status: c.status || "" }; });
   // База: полная мета ВСЕХ кампаний из снимка (ads_30d.camp_meta) - чтобы хвостовые/закрытые
@@ -1962,7 +1965,7 @@ function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any
   // сборка 13.10: 28753239, 4 323 199 = 4 323 199 за 05.06-30.09).
   // Только среди кампаний «за заказ», допуск 1%, иначе отказ сборки (ФЕНИКС N8, cpoExportCampaign - та же, что у «Отчета»).
   // Ошибка выгрузки сборку не роняет (Иван 14.10, ФЕНИКС G3): выручки «за заказ» нет, красная плашка, ::error:: в лог CI.
-  const { id: cpoCid, sp: cpoCidSp, total: cpoSpAll, err: cpoErr } = cpoExportCampaign(dp, co);
+  const { id: cpoCid, sp: cpoCidSp, total: cpoSpAll, err: cpoErr, missMonths: cpoMissM, missNote: cpoMissNote } = cpoExportCampaign(dp, co);
   if (cpoErr) console.log(`::error::kartochki: ${cpoErr}`);
   const cpoRev = cpoErr ? [] : Object.keys(co.day).sort().map((d) => [d, Math.round(co.day[d]!.rev), co.day[d]!.units]);
   // Окно выгрузки для ДРР (ФЕНИКС N6, N9): с 1-го числа месяца начала выгрузки, только если у кампании выгрузки нет
@@ -1972,7 +1975,7 @@ function writeCardPage(ordSec: string, ordCss: string, moneyJs: string, cpc: any
   if (co.from && cpoCid) {
     const ms = co.from.slice(0, 7) + "-01";
     let pre = 0;
-    try { for (const l of readFileSync(dp("ads_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (String(r.id) === cpoCid && r.d >= ms && r.d < co.from) pre += Number(r.sp) || 0; } } catch { /* нет ряда */ }
+    try { for (const l of ndLines(dp("ads_daily.ndjson"))) { const r = JSON.parse(l); if (String(r.id) === cpoCid && r.d >= ms && r.d < co.from) pre += Number(r.sp) || 0; } } catch { /* нет ряда */ }
     if (!Math.round(pre)) cpoW0 = ms;
   }
   const cpoWin: string[][] = co.from && !cpoErr ? [[cpoW0, co.to]] : [];
@@ -2028,10 +2031,14 @@ function cardSub(){var pd=periodDates(CURP),from=pd.from,to=pd.to,A={};
 // Выручка кампании «Оплата за заказ» (Иван 02.10, 13.10): API отдаёт по ней 0, берём выручку заказов из выгрузки кабинета
 // без отменённых, по дате заказа - тем же расчётом, что «Отчет» (cpo-orders-rev.ts). Расход - из API как был.
 var CPO_REV=${J(cpoRev)};
-var CPO_WIN=${J(cpoWin)},CPO_CID=${J(cpoCid)},CPO_ERR=${J(cpoErr)};
+var CPO_WIN=${J(cpoWin)},CPO_CID=${J(cpoCid)},CPO_ERR=${J(cpoErr)},CPO_MISS=${J(cpoMissM)},CPO_MISS_NOTE=${J(cpoMissNote)};
+// Выгрузка не принята - «н/д» у кампаний «за заказ» с причиной, а не «смотри в кабинете» (ФЕНИКС N7).
+if(CPO_ERR)CPO_NA='<span style="color:var(--ink-3)" title="Выгрузка «Оплата за заказ» не принята: '+CPO_ERR.replace(/"/g,'&quot;').replace(/</g,'&lt;')+'">н/д</span>';
 // ДРР «Оплаты за заказ» (ФЕНИКС G4 13.10): выручка известна только в днях выгрузки (CPO_WIN), поэтому и расход берётся
 // только за эти дни периода; период шире выгрузки - пометка в ячейке. Нет дневного ряда - расход периода и пометка.
-function cpoRevFix(a){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style="color:#FF5A5F;font-weight:600">выручка «Оплата за заказ» не показана: '+CPO_ERR.replace(/</g,'&lt;')+'</span>';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
+function cpoRevFix(a){if(!a||!a.all)return '';if(CPO_ERR)return ' · <span style="color:#FF5A5F;font-weight:600">выручка «Оплата за заказ» не показана: '+CPO_ERR.replace(/</g,'&lt;')+'</span>';
+  // Месяц, где заказы выгрузки ещё не пришли в orders_daily (Иван 15.10): выручки «за заказ» за период нет, жёлтая пометка.
+  if(CPO_MISS.some(function(m){return m>=String(a.dateFrom).slice(0,7)&&m<=String(a.dateTo).slice(0,7);}))return ' · <span style="color:#E5B567">выручка «Оплата за заказ» за период не показана: не все заказы выгрузки пришли из OZON ('+CPO_MISS_NOTE.replace(/</g,'&lt;')+'), появится после сбора заказов</span>';var r=0,u=0,d0='',d1='';for(var i=0;i<CPO_REV.length;i++){var x=CPO_REV[i];if(x[0]<a.dateFrom||x[0]>a.dateTo)continue;r+=x[1];u+=x[2];if(!d0)d0=x[0];d1=x[0];}
   var cov=[],nCov=0,nAll=Math.round((Date.parse(a.dateTo)-Date.parse(a.dateFrom))/864e5)+1;CPO_WIN.forEach(function(w){var f=w[0]>a.dateFrom?w[0]:a.dateFrom,t=w[1]<a.dateTo?w[1]:a.dateTo;if(f<=t){cov.push([f,t]);nCov+=Math.round((Date.parse(t)-Date.parse(f))/864e5)+1;}});
   if(!CPO_WIN.length){cov=[[a.dateFrom,a.dateTo]];nCov=nAll;}
   var inCov=function(d){for(var k=0;k<cov.length;k++)if(d>=cov[k][0]&&d<=cov[k][1])return true;return false;};
@@ -2064,10 +2071,10 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // (pnl_channel_accrual_daily, дата заказа), чтобы водопад не был заморожен. Разный базис, но стык по
   // одному дню; для текущего месяца это тот же базис, что блок по артикулам.
   let pnlDaily: any[] = [];
-  try { pnlDaily = readFileSync(dp("pnl_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { pnlDaily = []; }
+  try { pnlDaily = ndLines(dp("pnl_daily.ndjson")).map((l) => JSON.parse(l)); } catch { pnlDaily = []; }
   {
     const oldMax = pnlDaily.length ? pnlDaily.map((r) => r.d).sort().slice(-1)[0] : "0000-00-00";
-    try { for (const l of readFileSync(dp("pnl_channel_accrual_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.d > oldMax) pnlDaily.push(r); } } catch { /* нет accrual-ряда - остаётся старый */ }
+    try { for (const l of ndLines(dp("pnl_channel_accrual_daily.ndjson"))) { const r = JSON.parse(l); if (r.d > oldMax) pnlDaily.push(r); } } catch { /* нет accrual-ряда - остаётся старый */ }
     pnlDaily.sort((a, b) => (a.d < b.d ? -1 : 1));
   }
   const skuNames: Record<string, string> = {};
@@ -2085,7 +2092,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   }
   const anAdsMap: Record<string, Record<string, number[]>> = {};
   try {
-    for (const l of readFileSync(dp("ads_attr_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("ads_attr_daily.ndjson"))) {
       const r = JSON.parse(l); const sk = String(r.sku); if (!sk) continue;
       const dm = (anAdsMap[sk] ||= {}); const a = dm[r.d] || (dm[r.d] = [0, 0, 0, 0, 0]);
       a[0]! += r.sp || 0; a[1]! += r.sold || 0; a[2]! += r.om || 0; a[3]! += r.soldM || 0; a[4]! += r.omM || 0;
@@ -2105,7 +2112,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // FIN_CUT не зависит от сегодняшней даты: это первый день после последнего месяца, целиком покрытого
   // транзакциями, - иначе 1 октября сентябрь снова пошёл бы из мёртвого источника.
   let txMax = "";
-  try { for (const l of readFileSync(dp("pnl_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const d = String(JSON.parse(l).d); if (d > txMax) txMax = d; } } catch { /* нет транзакций */ }
+  try { for (const l of ndLines(dp("pnl_sku_daily.ndjson"))) { const d = String(JSON.parse(l).d); if (d > txMax) txMax = d; } } catch { /* нет транзакций */ }
   const FIN_CUT = (() => {
     if (!txMax) return "0000-00-00";
     const [y, m, d] = txMax.split("-").map(Number) as [number, number, number];
@@ -2115,7 +2122,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   })();
   const anFin: Record<string, any[]> = {};
   try {
-    for (const l of readFileSync(dp("pnl_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("pnl_sku_daily.ndjson"))) {
       const r = JSON.parse(l); const sk = String(r.sku);
       if (IS_OZON && String(r.d) >= FIN_CUT) continue; // после последнего целого месяца - из отчёта о реализации ниже
       // Индексы ряда: 0 дата, 1 начислено, 2 комиссия, 3 доставка, 4 приём/перевод платежа,
@@ -2138,10 +2145,10 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
     // (доли печатаются). Партнёрская доставка rFBS и прочие ITEM-сборы - из by-day.
     const fee: Record<string, { del: number; oth: number }> = {};
     const addFee = (sk: string, d: string, del: number, oth: number) => { const f = (fee[sk + "|" + d] ||= { del: 0, oth: 0 }); f.del += del; f.oth += oth; };
-    try { for (const l of readFileSync(dp("acq_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (String(r.d) < FIN_CUT) continue; addFee(String(r.sku), String(r.d), (Number(r.del) || 0) + (Number(r.prt) || 0), Number(r.oth) || 0); } } catch { /* нет by-day */ }
+    try { for (const l of ndLines(dp("acq_sku_daily.ndjson"))) { const r = JSON.parse(l); if (String(r.d) < FIN_CUT) continue; addFee(String(r.sku), String(r.d), (Number(r.del) || 0) + (Number(r.prt) || 0), Number(r.oth) || 0); } } catch { /* нет by-day */ }
     let logSd = 0, logOd = 0;
     try {
-      for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+      for (const l of ndLines(dp("orders_daily.ndjson"))) {
         const r = JSON.parse(l); const v = Number(r.delivery) || 0; if (!v) continue;
         if (Array.isArray(r.dl) && r.dl.length) { for (const [d, x] of r.dl) { if (String(d) < FIN_CUT) continue; logSd += Number(x) || 0; addFee(String(r.sku), String(d), Number(x) || 0, 0); } continue; }
         const d = String(r.sd || r.d); if (d < FIN_CUT) continue;
@@ -2152,7 +2159,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
     console.log(`katya: логистика OZON с ${FIN_CUT} - по дате начисления ${Math.round(-logSd)} ₽, по дате заказа (дата начисления не пришла) ${Math.round(-logOd)} ₽`);
     const money: Record<string, { acc: number; com: number }> = {};
     try {
-      for (const l of readFileSync(dp("realization_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+      for (const l of ndLines(dp("realization_daily.ndjson"))) {
         const r = JSON.parse(l); const sk = String(r.sku), d = String(r.d);
         if (!rdFrom || d < rdFrom) rdFrom = d; if (d > rdTo) rdTo = d;
         (anRday[sk] ||= []).push([d, (Number(r.sold) || 0) - (Number(r.ret) || 0), Number(r.tb) || 0]);
@@ -2208,7 +2215,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // берём из accrual-ряда (pnl_account_accrual_daily, by-day), чтобы «Общие расходы» не были заморожены.
   const anAcct: any[] = [];
   try {
-    for (const l of readFileSync(dp("pnl_account_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("pnl_account_daily.ndjson"))) {
       const r = JSON.parse(l); anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]);
     }
   } catch { /* нет файла - блок сборов уровня заказа пустой */ }
@@ -2220,13 +2227,13 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
     try {
       const byD: Record<string, any[]> = {}; for (const r of anAcct) byD[r[0]] = r;
       let fixA = 0; const miss: string[] = [];
-      for (const l of readFileSync(dp("acct_multi_acq_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+      for (const l of ndLines(dp("acct_multi_acq_daily.ndjson"))) {
         const r = JSON.parse(l); const d = String(r.d), v = Number(r.acq) || 0; if (d > oldMaxA || !v) continue;
         const row = byD[d]; if (!row) { miss.push(d); continue; } row[6] = Math.round(row[6] - v); fixA += v;
       }
       console.log(`katya: эквайринг заказов с несколькими артикулами снят с «прочего кабинета» - ${Math.round(-fixA)} ₽` + (miss.length ? `; нет строки кабинета за ${miss.join(", ")}` : ""));
     } catch { /* нет файла - без поправки */ }
-    try { for (const l of readFileSync(dp("pnl_account_accrual_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.d > oldMaxA) anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]); } } catch { /* нет accrual-ряда */ }
+    try { for (const l of ndLines(dp("pnl_account_accrual_daily.ndjson"))) { const r = JSON.parse(l); if (r.d > oldMaxA) anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]); } } catch { /* нет accrual-ряда */ }
     anAcct.sort((a, b) => (a[0] < b[0] ? -1 : 1));
   }
   // Последний день с данными по сборам уровня заказа (для отсечки факт/прогноз). Fallback - maxD.
@@ -2238,7 +2245,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   const anRealSku: Record<string, any[]> = {};
   const anTbYmSet = new Set<string>();
   try {
-    for (const l of readFileSync(dp("realization_monthly.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("realization_monthly.ndjson"))) {
       const r = JSON.parse(l); const sk = String(r.sku); if (!sk || sk === "0") continue;
       (anRealSku[sk] ||= []).push([r.ym, r.sold || 0, r.ret || 0, r.tb == null ? null : Number(r.tb)]);
       if (r.tb != null) anTbYmSet.add(r.ym);
@@ -2263,7 +2270,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   const anFinFix: Record<string, any[]> = {};
   if (IS_OZON) {
     const cutYm = FIN_CUT.slice(0, 7), rep: Record<string, [number, number]> = {}, txm: Record<string, [number, number]> = {};
-    try { for (const l of readFileSync(dp("realization_monthly.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); const sk = String(r.sku), ym = String(r.ym); if (!sk || sk === "0" || ym >= cutYm) continue; const q = (rep[sk + "|" + ym] ||= [0, 0]); q[0] += (Number(r.tb) || 0) + (Number(r.bonus) || 0); q[1] += Number(r.commission) || 0; } } catch { /* нет отчёта - добора нет */ }
+    try { for (const l of ndLines(dp("realization_monthly.ndjson"))) { const r = JSON.parse(l); const sk = String(r.sku), ym = String(r.ym); if (!sk || sk === "0" || ym >= cutYm) continue; const q = (rep[sk + "|" + ym] ||= [0, 0]); q[0] += (Number(r.tb) || 0) + (Number(r.bonus) || 0); q[1] += Number(r.commission) || 0; } } catch { /* нет отчёта - добора нет */ }
     const repYm = new Set(Object.keys(rep).map((k) => k.split("|")[1]!));
     for (const sk in anFin) for (const q of anFin[sk]!) { const ym = String(q[0]).slice(0, 7); if (!repYm.has(ym)) continue; const t = (txm[sk + "|" + ym] ||= [0, 0]); t[0] += Number(q[1]) || 0; t[1] += Number(q[2]) || 0; }
     let fA = 0, fC = 0;
@@ -2286,7 +2293,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // G/F по SKU (выплаты по механикам лояльности к «Реализовано на сумму», около 1%) - для базы налога
   // заказа: оплата покупателя (F по заказу) + G.
   const gfSum: Record<string, [number, number]> = {};
-  try { for (const l of readFileSync(dp("realization_monthly.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.f == null) continue; const q = (gfSum[String(r.sku)] ||= [0, 0]); q[0] += Number(r.g) || 0; q[1] += Number(r.f) || 0; } } catch { /* нет отчёта */ }
+  try { for (const l of ndLines(dp("realization_monthly.ndjson"))) { const r = JSON.parse(l); if (r.f == null) continue; const q = (gfSum[String(r.sku)] ||= [0, 0]); q[0] += Number(r.g) || 0; q[1] += Number(r.f) || 0; } } catch { /* нет отчёта */ }
   let gAll2 = 0, fAll2 = 0; const anGf: Record<string, number> = {};
   for (const k in gfSum) { gAll2 += gfSum[k]![0]; fAll2 += gfSum[k]![1]; if (gfSum[k]![1] >= 50_000) anGf[k] = Math.round(gfSum[k]![0] / gfSum[k]![1] * 1e5) / 1e5; }
   const anGfAll = fAll2 > 0 ? Math.round(gAll2 / fAll2 * 1e5) / 1e5 : 0;
@@ -2305,7 +2312,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // (несобранные кампании) остаётся в блоке «Сборы уровня заказа». Схема строки {d,cid,sku,sp,om}.
   const anAdsSkuMap: Record<string, Record<string, number>> = {};
   try {
-    for (const l of readFileSync(dp("ads_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("ads_sku_daily.ndjson"))) {
       const r = JSON.parse(l); const sk = String(r.sku || ""); if (!sk) continue;
       (anAdsSkuMap[sk] ||= {})[r.d] = (anAdsSkuMap[sk]![r.d] || 0) + (r.sp || 0);
     }
@@ -2316,7 +2323,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // Только для своей вкладки, данные «Денег» не меняет. Инвариант: own + соседи = ряд AN_ADSSKU по SKU и дню.
   let cpcCard: any = null;
   if (IS_OZON) {
-    const nd = (f: string): any[] => { try { return readFileSync(dp(f), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { return []; } };
+    const nd = (f: string): any[] => { try { return ndLines(dp(f)).map((l) => JSON.parse(l)); } catch { return []; } };
     let groups: any[] = [];
     try { groups = JSON.parse(readFileSync(dp("card_groups.json"), "utf-8")).groups || []; } catch { groups = []; }
     const ordAll = nd("orders_daily.ndjson").map((r: any) => ({ order: String(r.order || ""), d: String(r.d || ""), sku: String(r.sku || ""), units: Number(r.units) || 0, revenue: Number(r.revenue) || 0, status: String(r.status || "") }));
@@ -2343,7 +2350,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // нет -> CPO по нему остаётся в «Общих», настройка не меняется (по требованию Ивана).
   const anCpoSku: Record<string, any[]> = {};
   try {
-    for (const l of readFileSync(dp("cpo_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("cpo_sku_daily.ndjson"))) {
       const r = JSON.parse(l); const sk = String(r.sku || ""); if (!sk) continue;
       (anCpoSku[sk] ||= []).push([r.d, Math.round(r.sp || 0)]);
     }
@@ -2357,7 +2364,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   const anPrtSku: Record<string, any[]> = {};   // sku -> [[d, prt<0], ...] услуги партнёров (rFBS) по SKU
   const anPromoSku: Record<string, any[]> = {}; // sku -> [[d, promo<0], ...] продвижение бренда + подписки-%
   try {
-    for (const l of readFileSync(dp("acq_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("acq_sku_daily.ndjson"))) {
       const r = JSON.parse(l); const sk = String(r.sku || ""); if (!sk) continue;
       if (r.acq) (anAcqSku[sk] ||= []).push([r.d, Math.round(r.acq)]);
       if (r.sto) (anStoSku[sk] ||= []).push([r.d, Math.round(r.sto)]);
@@ -2367,9 +2374,9 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   } catch { /* нет файла - эквайринг/хранение/партнёры по заказам останутся 0 */ }
   // Партнёры NON_ITEM (без SKU, realFBS-услуги): кабинетный ряд по дням + per-order где by-day дал ключ.
   const prtDaily: any[] = []; // [[d, prt<0], ...] - остаток партнёров без SKU (разносим по штукам в render)
-  try { for (const l of readFileSync(dp("partner_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.prt) prtDaily.push([r.d, Math.round(r.prt)]); } } catch { /* нет */ }
+  try { for (const l of ndLines(dp("partner_daily.ndjson"))) { const r = JSON.parse(l); if (r.prt) prtDaily.push([r.d, Math.round(r.prt)]); } } catch { /* нет */ }
   const prtByOrderApi: Record<string, number> = {}; // база заказа -> партнёры (per-order где ключ есть)
-  try { for (const l of readFileSync(dp("partner_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.prt) prtByOrderApi[String(r.order)] = Math.round(r.prt); } } catch { /* нет */ }
+  try { for (const l of ndLines(dp("partner_orders.ndjson"))) { const r = JSON.parse(l); if (r.prt) prtByOrderApi[String(r.order)] = Math.round(r.prt); } } catch { /* нет */ }
   // CPO-SKU, которых нет в продажах/финансах периода, тоже должны получить строку - иначе их CPO
   // не попадёт в «Реклама» и не вычтется из «Общих» (потеря разнесения, не задвоение).
   for (const sk of Object.keys(anCpoSku)) if (!anMeta[sk]) anMeta[sk] = { off: offerOf(sk), nm: (skuName[sk] || sk).slice(0, 58), cat: catOf(sk) };
@@ -2382,7 +2389,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   const anDeliv: Record<string, any[]> = {};      // offer -> [[d, ship], ...] (наш расход)
   const anDelivInc: Record<string, any[]> = {};   // offer -> [[d, deliv], ...] (доход: платит клиент)
   try {
-    for (const l of readFileSync(dp("delivery_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("delivery_sku_daily.ndjson"))) {
       const r = JSON.parse(l); const off = String(r.offer || ""); if (!off) continue;
       (anDeliv[off] ||= []).push([r.d, Math.round(r.ship || 0)]);
       (anDelivInc[off] ||= []).push([r.d, Math.round(r.deliv || 0)]);
@@ -2395,7 +2402,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // Город есть только там, где везём мы (ведомость перевозчика, закрытые месяцы); у логистики OZON
   // и услуг партнёров города в данных нет, поэтому по городам раскладывается только наша перевозка.
   const delivCityPl: any[] = [];
-  try { for (const l of readFileSync(dp("delivery_city_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); delivCityPl.push([r.d, r.city, Math.round(r.ship), Math.round(r.deliv), r.n, Array.isArray(r.orders) ? r.orders.map(String) : null]); } } catch { /* нет файла - блок логистики по городам пуст */ }
+  try { for (const l of ndLines(dp("delivery_city_daily.ndjson"))) { const r = JSON.parse(l); delivCityPl.push([r.d, r.city, Math.round(r.ship), Math.round(r.deliv), r.n, Array.isArray(r.orders) ? r.orders.map(String) : null]); } } catch { /* нет файла - блок логистики по городам пуст */ }
   // Возврат выручки ПО ЗАКАЗУ из реестра «Начисления» (order_accruals.returns, знак<0). API финансовый
   // возврат по заказу не отдаёт (returns/list - это заявки, не рефанды; by-day - только сборы), поэтому
   // берём из отчёта - того же источника, что уже нетит возвраты в таблице по артикулам. Вычитаем ТОЛЬКО
@@ -2407,7 +2414,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // Разносим per-order (столбец «Услуги партнёров»), остаток без заказа - строкой «Общие расходы».
   const prtByOrderRep: Record<string, number> = {};
   const prtRepRows: Array<{ order: string; prt: number; ym: string }> = [];
-  try { for (const l of readFileSync(dp("order_accruals.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); if (r.returns) retByOrder[String(r.order)] = Math.round(r.returns); if (r.partner) { prtByOrderRep[String(r.order)] = Math.round(r.partner); prtRepRows.push({ order: String(r.order), prt: Math.round(r.partner), ym: String(r.ym || "") }); } } } catch { /* нет отчёта */ }
+  try { for (const l of ndLines(dp("order_accruals.ndjson"))) { const r = JSON.parse(l); if (r.returns) retByOrder[String(r.order)] = Math.round(r.returns); if (r.partner) { prtByOrderRep[String(r.order)] = Math.round(r.partner); prtRepRows.push({ order: String(r.order), prt: Math.round(r.partner), ym: String(r.ym || "") }); } } } catch { /* нет отчёта */ }
   const retUsed: Record<string, boolean> = {};
   const prtUsedRep: Record<string, boolean> = {};
 
@@ -2418,7 +2425,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // Досбор по номеру заказа: реклама (CPO, ключ - base без суффикса отправки) и доставка (ведомость,
   // ключ - полный номер постинга). Реклама в OZON по заказу = 0 (CPO API не отдаёт).
   const cpoByOrder: Record<string, number> = {};
-  try { for (const l of readFileSync(dp("cpo_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); cpoByOrder[String(r.order)] = Number(r.sp || 0); } } catch { /* нет */ }
+  try { for (const l of ndLines(dp("cpo_orders.ndjson"))) { const r = JSON.parse(l); cpoByOrder[String(r.order)] = Number(r.sp || 0); } } catch { /* нет */ }
   // «Наша доставка» по номеру заказа. Ключ ведомости - как его записали руками («бывш.», без хвоста
   // отправления, два номера в строке); matchLedger сводит его к отправлениям OZON. Правило Ивана
   // 28.09: что не нашлось по номеру, не раскладывается, а выводится списком над таблицей (dlUnmatched).
@@ -2435,7 +2442,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   let dlUnmatched: Unmatched[] = [];
   let shipAcc: ReturnType<typeof accrualShipSeries> = { bySku: new Map(), total: 0, fallback: { fact: 0, ship: 0, order: 0 }, pending: [], pendTotal: 0 };
   try {
-    const nd = (f: string) => readFileSync(dp(f), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
+    const nd = (f: string) => ndLines(dp(f)).map((l) => JSON.parse(l));
     const post = nd("orders_daily.ndjson").map((r: any) => ({ order: String(r.order), d: String(r.d), status: String(r.status || ""), units: Number(r.units || 0), sd: r.sd ? String(r.sd) : null, sku: String(r.sku || "") }));
     const ledCity: Record<string, string> = {};
     try { for (const r of nd("delivery_city_daily.ndjson")) for (const o of r.orders || []) ledCity[wsKey(o)] = String(r.city || ""); } catch { /* нет файла - городов нет */ }
@@ -2505,7 +2512,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // Чистый API, весь период, без ручных отчётов.
   const buyerDelivDaily: any[] = []; // [[d, bd>0], ...] - кабинетный итог (эталон периода)
   try {
-    for (const l of readFileSync(dp("buyer_delivery_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("buyer_delivery_daily.ndjson"))) {
       const r = JSON.parse(l); if (r.bd) buyerDelivDaily.push([r.d, Math.round(r.bd)]);
     }
   } catch { /* нет файла - доставка покупателя по заказам 0 */ }
@@ -2514,7 +2521,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   const bdByOrderApi: Record<string, number> = {};
   const bdDaysByOrder: Record<string, [string, number][]> = {}; // даты операций «доставка от покупателя» по заказу (accrual/by-day)
   const bdKnown: Record<string, boolean> = {}; // все заказы, по которым OZON уже отдал оплату доставки (в т.ч. 0)
-  try { for (const l of readFileSync(dp("buyer_delivery_orders.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); bdKnown[String(r.order)] = true; if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); if (Array.isArray(r.ds) && r.ds.length) bdDaysByOrder[String(r.order)] = r.ds; } } catch { /* нет файла */ }
+  try { for (const l of ndLines(dp("buyer_delivery_orders.ndjson"))) { const r = JSON.parse(l); bdKnown[String(r.order)] = true; if (r.bd) bdByOrderApi[String(r.order)] = Math.round(r.bd); if (Array.isArray(r.ds) && r.ds.length) bdDaysByOrder[String(r.order)] = r.ds; } } catch { /* нет файла */ }
   // «Логистика по городам»: доход с покупателя - из OZON (оплата доставки покупателем по заказу), а не из
   // ведомости (Иван 29.09, вариант А). В ведомости «Стоимость доставки» бывает пустой при оплате в OZON
   // (40230562-0725-1: пусто, OZON 8 100 ₽) - такой 0 читался как «бесплатно». Ведомость остаётся
@@ -2554,7 +2561,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   const feeShare: Record<string, { rev: number; com: number; del: number; oth: number; prt: number }> = {};
   const FEE_K = ["com", "del", "oth", "prt"] as const;
   try {
-    const rowsD = readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
+    const rowsD = ndLines(dp("orders_daily.ndjson")).map((l) => JSON.parse(l));
     const maxOrd = rowsD.reduce((m: string, r: any) => (r.d > m ? r.d : m), "");
     const since = new Date(Date.parse(maxOrd + "T00:00:00Z") - 120 * 86400000).toISOString().slice(0, 10);
     for (const r of rowsD) {
@@ -2575,7 +2582,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   for (const sk in anCpoSku) for (const [d, v] of anCpoSku[sk]!) cpoSkuDay[d + "|" + sk] = (cpoSkuDay[d + "|" + sk] || 0) + Number(v || 0);
   let advByPosting: Record<string, number> = {};
   try {
-    const ps = readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l))
+    const ps = ndLines(dp("orders_daily.ndjson")).map((l) => JSON.parse(l))
       .map((r: any) => ({ order: String(r.order || ""), d: String(r.d || ""), sku: String(r.sku || ""), status: String(r.status || "") }));
     advByPosting = splitCpo(cpoByOrder, ps, cpoSkuDay);
     // Инвариант: по каждому заказу разнесено ровно столько, сколько в отчёте CPO (не больше - иначе задвоение).
@@ -2584,7 +2591,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
     for (const [b, v] of Object.entries(got)) if (v !== Math.round(cpoByOrder[b] || 0)) throw new Error(`CPO ${b}: разнесено ${v}, в отчёте ${Math.round(cpoByOrder[b] || 0)}`);
   } catch (e) { if (String(e).includes("CPO ")) throw e; }
   try {
-    for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of ndLines(dp("orders_daily.ndjson"))) {
       const r = JSON.parse(l); const sk = String(r.sku || ""); const ord = String(r.order || "");
       // Базис блока по заказам: ПО ДАТЕ ЗАКАЗА, «заказано минус отмены (и возвраты)». Исключаем только
       // отменённые (cancelled); доставленные и ещё летящие (delivering/awaiting_deliver) входят как
@@ -2679,7 +2686,7 @@ return function(cur){mCur=cur;var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(c
   // buyer_delivery_orders, Codex PR #447); в старом файле без ds - дата начисления продажи (sd), без неё - заказа.
   const sdByBase: Record<string, string> = {};
   const dincAccMap: Record<string, Record<string, number>> = {}; // только для таблицы «Аналитика по артикулам (за выбранный период)»
-  if (IS_OZON) { try { for (const l of readFileSync(dp("orders_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); const b = orderBase(String(r.order)); if (r.sd && !sdByBase[b]) sdByBase[b] = String(r.sd); } } catch { /* нет файла - по дате заказа */ } }
+  if (IS_OZON) { try { for (const l of ndLines(dp("orders_daily.ndjson"))) { const r = JSON.parse(l); const b = orderBase(String(r.order)); if (r.sd && !sdByBase[b]) sdByBase[b] = String(r.sd); } } catch { /* нет файла - по дате заказа */ } }
   for (const o of anOrders) {
     const sk = String(o.sk || ""); const d = String(o.d || ""); const b = orderBase(String(o.order));
     if (!sk || !d) continue;

@@ -216,6 +216,8 @@ describe("planBlock", () => {
     expect(ok.warnings).toEqual([]);
     const bad = planBlock("2026-10-17", fixture({ cab: [{ date: "2026-10-15", sku: "1", ordered_units: 20 }] }))!;
     expect(bad.warnings.join(" ")).toContain("сверка с кабинетом");
+    expect(bad.html).toContain("выгрузка неполная - сверка не пройдена");
+    expect(bad.html).not.toContain("в допуске (2%");
   });
   it("в данных страницы нет «</script>»", () => {
     expect(planBlock("2026-10-17", fixture())!.js.includes("</script")).toBe(false);

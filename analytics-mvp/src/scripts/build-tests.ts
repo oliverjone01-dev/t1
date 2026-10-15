@@ -2616,7 +2616,7 @@ function priceCard(c: PriceCalc, ti: number): string {
       + `Ожидаемое падение, если Ozon не держит: -(100 - разрыв в базе) × ${cut}% / ${100 - cut}%. Показы: доля группы в показах магазина в поиске за 7 дней (sku_views).`)
     + hist.map((h, i) => fold("cov", i === 0 ? "Что уже известно" : `Что уже известно (${i + 1})`, esc(h))).join("")
     + (t.заметка ? fold("cov", "Как выбраны товары", esc(t.заметка)) : "")
-    + fold("cov", "Откуда данные", `Разрыв - срез кабинета (gap_daily), по ${esc(P_LAST_GAP || "-")}, снимается по будням. Предельная для проверки снижения - снимок цен (prices_daily, поле price), по ${esc(P_LAST_CAP || "-")}. `
+    + fold("cov", "Откуда данные", `Разрыв - срез кабинета (gap_daily), по ${esc(P_LAST_GAP || "-")}, снимается утром и вечером. Предельная для проверки снижения - снимок цен (prices_daily, поле price), по ${esc(P_LAST_CAP || "-")}. `
       + `Показы - ночной синк OZON (sku_views), по ${esc(P_LAST_VIEWS || "-")}. Заказы - orders_daily. Страница собрана ${esc(BUILD_TS)}.`));
   return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(pNo(ti), t.название))} ${chip}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт)}</b></span><span>Замер: <b>${esc(t.замер)}</b></span>`
@@ -3413,7 +3413,7 @@ const partialLine = (() => {
   const sum = (k: "search_views" | "pdp_views" | "hits_to_cart" | "ordered_units"): number => rows.reduce((a, r) => a + r[k], 0);
   const hm = /T(\d{2}:\d{2})/.exec(FT.partialTs)?.[1];
   const txt = `${FT.partialDay.slice(8, 10)}.${FT.partialDay.slice(5, 7)} день не закрыт${hm ? `, срез ${hm} МСК` : ""}:`
-    + ` по ${nbsp(rows.length)} тестовым товарам показы в поиске ${nbsp(sum("search_views"))}, заходы в карточку ${nbsp(sum("pdp_views"))},`
+    + ` по ${nbsp(rows.length)} ${plural(rows.length, "тестовому товару", "тестовым товарам", "тестовым товарам")} показы в поиске ${nbsp(sum("search_views"))}, заходы в карточку ${nbsp(sum("pdp_views"))},`
     + ` корзина ${nbsp(sum("hits_to_cart"))}, заказано ${nbsp(sum("ordered_units"))} шт. В графики и разницы не входит, утром заменится полным днём.`;
   gaps.push(`Незакрытый день воронки: ${txt}`);
   return `<p class="sub">${esc(txt)}</p>`;
@@ -3551,9 +3551,9 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<span style="color:#5d7484;margin-left:8px">тесты по ${esc(T.обновлено || "")} · воронка по ${esc(LAST)} · разрыв по ${esc(P_LAST_GAP || "-")}</span></div></div>`
   + `<div class="wrap"><div class="h1row"><h1>Тесты · A/B по рекламе</h1>`
   // Кнопка и дата обновления (Иван 01.10). Тот же синк, что у «Денег»: ozon-snapshots.yml собирает
-  // свежий день и пересобирает вкладки. Срез кабинета (разрыв) идёт отдельно, с мака, по будням.
+  // свежий день и пересобирает вкладки. Срез кабинета (разрыв) идёт отдельно, с мака, утром и вечером.
   + `<div class="upd"><span>Обновлено <b>${esc(BUILD_TS)}</b></span>`
-  + `<a class="kt-refresh" href="${REFRESH_URL}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow»: синк соберёт свежий день (показы, цены, заказы, реклама), вкладка обновится сама после автосборки, обычно 10-15 мин. Разрыв приходит отдельно со среза кабинета по будням. Нужен вход в GitHub как владелец.">🔄 Обновить данные</a></div></div>`
+  + `<a class="kt-refresh" href="${REFRESH_URL}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow»: синк соберёт свежий день (показы, цены, заказы, реклама), вкладка обновится сама после автосборки, обычно 10-15 мин. Разрыв приходит отдельно со среза кабинета, утром и вечером. Нужен вход в GitHub как владелец.">🔄 Обновить данные</a></div></div>`
   + priceBanner
   + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>` + partialLine
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `

@@ -385,8 +385,9 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     if (!cab.full) warnings.push(`сверка с кабинетом ${span}: выгрузка неполная, ${have} из ${need} пар «товар + день»`);
     if (off.length) warnings.push(`сверка с кабинетом ${span} не в допуске: ${off.join("; ")}`);
     cabTxt = `<li>Сверка с кабинетом («Заказано, шт» с отменами, ${span}, охват ${F(have)} из ${F(need)} пар «товар + день»): `
-      + (off.length ? `<b>расхождение по ${off.length} из ${cards.length} карточек</b> - ${esc(off.join("; "))}` : `все ${cards.length} карточек в допуске (2%, не меньше 1 шт)`)
-      + (cab.full ? "" : ", <b>выгрузка неполная</b>") + `.</li>`;
+      + (!cab.full ? `<b>выгрузка неполная - сверка не пройдена</b>${off.length ? `; расхождения: ${esc(off.join("; "))}` : ""}`
+        : off.length ? `<b>расхождение по ${off.length} из ${cards.length} карточек</b> - ${esc(off.join("; "))}` : `все ${cards.length} карточек в допуске (2%, не меньше 1 шт)`)
+      + `.</li>`;
   }
   const dWarn = decisionWarn(today, P.check, OD_LAST, W1);
   const day = Math.max(0, Math.min(14, Math.round((D0(today) - D0(START)) / 864e5) + 1));

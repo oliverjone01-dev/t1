@@ -68,6 +68,34 @@ export function weekSum(byDay: Map<string, number>, a: string, b: string, last: 
   const end = b < last ? b : last; const days = drange(a, end);
   return [Math.round(days.reduce((s, d) => s + (byDay.get(d) ?? 0), 0)), days.length];
 }
+/** Последний день, за который отчёт по товарам собран у ВСЕХ кампаний с расходом в этот день (ФЕНИКС G1).
+ *  ads_sku_daily доливается по кампаниям несколько ночей: state[cid] - дата сбора, данные по вчера от неё.
+ *  День, где у части кампаний строк ещё нет, - не «расход упал», а «досчитывается». */
+export function adsFullDay(adsDaily: Array<{ d: string; id: string; sp: number }>, state: Record<string, string>, skip: string, from = ""): string {
+  // проверяем только окно блока (с первой недели сравнения): старые дни давно не собираемых кампаний не в счёт
+  const days = [...new Set(adsDaily.map((a) => a.d))].filter((d) => d >= from).sort();
+  let full = "";
+  for (const d of days) {
+    const ok = adsDaily.filter((a) => a.d === d && a.sp > 0 && String(a.id) !== skip)
+      .every((a) => state[String(a.id)] && addDays(state[String(a.id)]!, -1) >= d);
+    if (!ok) break;
+    full = d;
+  }
+  return full;
+}
+/** Сколько заказов магазину нужно к дню n плана (1..14): отрезок пути цели октября «средне», а не прямая (ФЕНИКС G3). */
+export function storeNeed(g: Tri, n: number): number {
+  return goalPath(g, 14 + n, "mid") - goalPath(g, 14, "mid");
+}
+/** Цель магазина на последний день заказов: октябрь - путь цели октября, с ноября - цель ноября ровно по дням (ФЕНИКС G2). */
+export function monthGoal(goal: Plan["goal"], last: string): { month: "oct" | "nov"; from: string; units: number; turn: number; unitsMonth: number; turnMonth: number } | null {
+  if (!last || last < "2026-10-01" || last > "2026-11-30") return null;
+  const d = Number(last.slice(8, 10));
+  if (last < "2026-11-01") return { month: "oct", from: "2026-10-01", units: goalPath(goal.units.oct, d, "mid"), turn: goalPath(goal.turn_mln.oct, d, "mid"),
+    unitsMonth: goal.units.oct.mid, turnMonth: goal.turn_mln.oct.mid };
+  return { month: "nov", from: "2026-11-01", units: goal.units.nov.mid / 30 * d, turn: goal.turn_mln.nov.mid / 30 * d,
+    unitsMonth: goal.units.nov.mid, turnMonth: goal.turn_mln.nov.mid };
+}
 /** Дней плана с данными (0..14). */
 export function daysIn(start: string, last: string): number {
   if (!last) return 0;
@@ -140,21 +168,28 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     add(stU, o.d, u); add(stRev, o.d, Number(o.revenue) || 0);
   }
   // реклама
-  const asd = readNd(dp("ads_sku_daily.ndjson")); let AD_LAST = "";
+  const asd = readNd(dp("ads_sku_daily.ndjson"));
   const campDay = new Map<string, number>();
-  for (const a of asd) { if (a.d > AD_LAST) AD_LAST = a.d; add(campDay, `${a.cid}|${a.d}`, Number(a.sp) || 0); }
-  const cl = new Map<string, number>();
-  for (const a of readNd(dp("ads_daily.ndjson"))) cl.set(`${a.id}|${a.d}`, Number(a.cl) || 0);
+  for (const a of asd) { add(campDay, `${a.cid}|${a.d}`, Number(a.sp) || 0); }
+  const cl = new Map<string, number>(); const adsDaily = readNd(dp("ads_daily.ndjson"));
+  const campDaily = new Map<string, Map<string, number>>(), stSp = new Map<string, number>(), stClk = new Map<string, number>(); let AD_CAMP_LAST = "";
+  for (const a of adsDaily) {
+    cl.set(`${a.id}|${a.d}`, Number(a.cl) || 0); if (a.d > AD_CAMP_LAST) AD_CAMP_LAST = a.d;
+    if (String(a.id) === CPO_ID) continue;
+    const m = campDaily.get(String(a.id)) ?? new Map<string, number>(); add(m, a.d, Number(a.sp) || 0); campDaily.set(String(a.id), m);
+    add(stSp, a.d, Number(a.sp) || 0); add(stClk, a.d, Number(a.cl) || 0);   // магазин: расход и клики из одного источника (ФЕНИКС G5)
+  }
+  const adsState = existsSync(dp("ads_sku_state.json")) ? JSON.parse(readFileSync(dp("ads_sku_state.json"), "utf-8")) as Record<string, string> : {};
+  const ADS_FULL = adsFullDay(adsDaily.map((a) => ({ d: a.d, id: String(a.id), sp: Number(a.sp) || 0 })), adsState, CPO_ID, "2026-10-08");
+  const TO_MIN = new Set(P.to_min.map((k) => String(k.cid)));
   const sp = mk(), spm = mk(), spmin = mk(), clk = mk(), acart = mk();
-  const campSp = new Map<string, Map<string, number>>(), stSp = new Map<string, number>(), stClk = new Map<string, number>();
-  for (const [k, v] of cl) { const [id, d] = k.split("|"); if (id !== CPO_ID) add(stClk, d!, v); }
   for (const a of asd) {
     if (String(a.cid) === CPO_ID) continue;
-    const v = Number(a.sp) || 0; add(stSp, a.d, v);
-    const m = campSp.get(String(a.cid)) ?? new Map<string, number>(); add(m, a.d, v); campSp.set(String(a.cid), m);
+    const v = Number(a.sp) || 0;
     const i = SKU_CARD.get(String(a.sku)); if (i == null) continue;
     const c = cards[i]!; add(sp[i]!, a.d, v); add(acart[i]!, a.d, Number(a.ca) || 0);
-    if (String(a.sku) === c.main_sku) add(spm[i]!, a.d, v);
+    // клик главного - без кампаний, которые 15.10 ушли на минимум: их рубли уже в своей строке (ФЕНИКС G6)
+    if (String(a.sku) === c.main_sku && !TO_MIN.has(String(a.cid))) add(spm[i]!, a.d, v);
     if (c.min_skus.includes(String(a.sku))) add(spmin[i]!, a.d, v);
     const tot = campDay.get(`${a.cid}|${a.d}`) ?? 0;
     if (tot) add(clk[i]!, a.d, (cl.get(`${a.cid}|${a.d}`) ?? 0) * v / tot);
@@ -166,13 +201,13 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     views: ser(fv.views![i]!, SV_LAST, svDays), vsearch: ser(fv.vsearch![i]!, SV_LAST, svDays), pdp: ser(fv.pdp![i]!, SV_LAST, svDays),
     cart: ser(fv.cart![i]!, SV_LAST, svDays), units: ser(fv.units![i]!, SV_LAST, svDays),
     pos: DAYS.map((d) => pos[i]!.get(d) ?? null), orders: ser(od[i]!, OD_LAST),
-    sp: ser(sp[i]!, AD_LAST).map((x) => x == null ? x : Math.round(x)), clk: ser(clk[i]!, AD_LAST).map((x) => x == null ? x : Math.round(x)),
-    acart: ser(acart[i]!, AD_LAST),
+    sp: ser(sp[i]!, ADS_FULL).map((x) => x == null ? x : Math.round(x)), clk: ser(clk[i]!, ADS_FULL).map((x) => x == null ? x : Math.round(x)),
+    acart: ser(acart[i]!, ADS_FULL),
   }));
   const STORE = {
     views: ser(fst.views!, SV_LAST, svDays), vsearch: ser(fst.vsearch!, SV_LAST, svDays), pdp: ser(fst.pdp!, SV_LAST, svDays),
     cart: ser(fst.cart!, SV_LAST, svDays), units: ser(fst.units!, SV_LAST, svDays), pos: DAYS.map(() => null),
-    orders: ser(stU, OD_LAST), sp: ser(stSp, AD_LAST).map((x) => x == null ? x : Math.round(x)), clk: ser(stClk, AD_LAST), acart: DAYS.map(() => null),
+    orders: ser(stU, OD_LAST), sp: ser(stSp, AD_CAMP_LAST).map((x) => x == null ? x : Math.round(x)), clk: ser(stClk, AD_CAMP_LAST), acart: DAYS.map(() => null),
   };
   // инвариант: сумма карточек не больше магазина (одно семейство источника)
   for (const k of ["views", "pdp", "orders"] as const) DAYS.forEach((d, j) => {
@@ -203,7 +238,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const sGot = wsum(STORE.orders, START, W1), sPre = wsum(STORE.orders, "2026-10-01", "2026-10-14");
   rows2.push(`<tr class="crow total" data-i="S"><td><b><span class="tw">▸</span> Весь магазин</b><div class="muted s">цель октября, 15-28.10</div></td>`
     + `<td class="r">${sNeed}</td><td class="r">${F(sGot)}</td><td class="r">${F(Math.max(0, sNeed - (sGot ?? 0)))}</td>`
-    + `<td class="r">${F(sBase, 1)}</td><td class="r">${F(sPre)}</td><td>${chip(cardStatus(sGot, sNeed, nIn))}</td></tr>`
+    + `<td class="r">${F(sBase, 1)}</td><td class="r">${F(sPre)}</td><td>${chip(sGot == null ? "нет данных" : nIn < 3 ? "рано" : sGot >= storeNeed(gU, nIn) ? "идём" : "отстаём")}</td></tr>`
     + `<tr class="cdet" id="pt-cdetS" hidden><td colspan="7"><div id="pt-mcS"></div></td></tr>`);
   const tbl2 = `<div class="tbl-wrap full"><table class="gtbl single"><thead><tr><th>Карточка</th><th class="r">Порог</th><th class="r">С 15.10</th>`
     + `<th class="r">Осталось</th><th class="r" title="2 недели × заказов в неделю за 14.09-11.10">Без эффекта</th>`
@@ -226,7 +261,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const tot: Record<string, Array<number | null>> = {};
   for (const k of FK) tot[k] = DAYS.map((_, j) => SER.every((x) => x[k][j] == null) ? null : SER.reduce((a, x) => a + (x[k][j] ?? 0), 0));
   const tbl3 = `<div class="tbl-wrap"><table class="gtbl"><thead><tr class="grp"><th></th><th colspan="3" class="sep">Показы в поиске</th><th colspan="3" class="sep">Карточка</th>`
-    + `<th colspan="3" class="sep">Корзина</th><th colspan="3" class="sep">Заказы</th><th colspan="2" class="sep">На 1 000 показов</th></tr>`
+    + `<th colspan="3" class="sep">Корзина</th><th colspan="3" class="sep">Заказано (OZON, с отменами)</th><th colspan="2" class="sep">На 1 000 показов</th></tr>`
     + `<tr><th>Карточка</th>${`<th class="r sep">база</th><th class="r">с 15.10</th><th class="r">Δ</th>`.repeat(4)}<th class="r sep">база</th><th class="r">с 15.10</th></tr></thead><tbody>`
     + cards.map((c, i) => funRow(`<b>${esc(c.short)}</b>`, SER[i] as any)).join("") + funRow("<b>Все 10</b>", tot)
     + funRow(`<span class="muted">Весь магазин</span>`, STORE as any) + `</tbody></table></div>`;
@@ -234,10 +269,11 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   // ---------- 4. реклама по неделям чт-ср
   const WEEKS: Array<[string, string, string]> = [["08-14.10 (до плана)", "2026-10-08", "2026-10-14"], ["15-21.10", "2026-10-15", "2026-10-21"], ["22-28.10", "2026-10-22", "2026-10-28"]];
   const SPEND = [
-    { g: "Клик главного товара", rows: cards.map((c, i) => ({ n: c.short, sub: c.main_art, plan: c.click_new, w: WEEKS.map(([, a, b]) => weekSum(spm[i]!, a, b, AD_LAST)) })) },
-    { g: "Минимальный клик 8 ₽ (≈1 500 на товар)", rows: cards.flatMap((c, i) => c.n_min ? [{ n: c.short, sub: `${c.n_min} тов.`, plan: c.n_min * P.min_budget_sku, w: WEEKS.map(([, a, b]) => weekSum(spmin[i]!, a, b, AD_LAST)) }] : []) },
+    { g: "Клик главного товара", note: "Расход на главный товар без 11 кампаний ниже - их рубли считаются там.",
+      rows: cards.map((c, i) => ({ n: c.short, sub: c.main_art, plan: c.click_new, w: WEEKS.map(([, a, b]) => weekSum(spm[i]!, a, b, ADS_FULL)) })) },
+    { g: "Минимальный клик 8 ₽ (≈1 500 на товар)", rows: cards.flatMap((c, i) => c.n_min ? [{ n: c.short, sub: `${c.n_min} тов.`, plan: c.n_min * P.min_budget_sku, w: WEEKS.map(([, a, b]) => weekSum(spmin[i]!, a, b, ADS_FULL)) }] : []) },
     { g: "11 кампаний переводим на минимум", note: "Реклама на неглавных товарах карточек: тратила больше 2 500 ₽ в неделю, заказов почти не давала. С 15.10 ставим минимум - не больше 2 000 ₽ в неделю на кампанию. Здесь проверяем, что расход упал.",
-      rows: P.to_min.map((k) => ({ n: k.cid, sub: String(k.art), plan: P.min_campaign_budget, w: WEEKS.map(([, a, b]) => weekSum(campSp.get(k.cid) ?? new Map(), a, b, AD_LAST)) })) },
+      rows: P.to_min.map((k) => ({ n: k.cid, sub: String(k.art), plan: P.min_campaign_budget, w: WEEKS.map(([, a, b]) => weekSum(campDaily.get(String(k.cid)) ?? new Map(), a, b, AD_CAMP_LAST)) })) },
   ];
   const r5: string[] = [];
   for (const g of SPEND) {
@@ -267,10 +303,11 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     + `<th class="r" title="На сколько цена на сайте ниже нашей (gap_daily). Ниже 10% - похоже, выпал из Эластичного бустинга">Скидка OZON</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
 
   const DATA = {
-    days: DAYS, start: START, w1: W1, sv_last: SV_LAST, od_last: OD_LAST, ad_last: AD_LAST, today,
+    days: DAYS, start: START, w1: W1, sv_last: SV_LAST, od_last: OD_LAST, ad_last: ADS_FULL, ad_camp_last: AD_CAMP_LAST, today, n_in: nIn, mgoal: monthGoal(P.goal, OD_LAST),
     cards: cards.map((c) => ({ short: c.short, art: c.main_art, thr: c.threshold, thrp: c.threshold_price, base2: Math.round(2 * c.u_wk_base * 100) / 100 })),
     ser: SER, store: STORE, store_rev: ser(stRev, OD_LAST), goal: P.goal, base_win: BASE,
-    store_card: { short: "Весь магазин", thr: sNeed, thrp: null, base2: Math.round(sBase * 10) / 10 },
+    store_card: { short: "Весь магазин", thr: sNeed, thrp: null, base2: Math.round(sBase * 10) / 10,
+      path: Array.from({ length: 14 }, (_, k) => Math.round(storeNeed(gU, k + 1) * 10) / 10) },
     spend: SPEND, weeks: WEEKS.map((w) => w[0]), week_start: WEEKS.map((w) => w[1]),
     price_st: pst, price_n: P.price.length, price_first: P.price.filter((p) => p.when === "15.10").length,
   };
@@ -279,7 +316,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const html = `<details class="card tcard" open id="pt-plan"><summary><div class="chead"><span class="ctitle">План с 15.10: как идём к цели</span>`
     + `<span class="chip chip-run">день ${day} из 14 · проверка 29.10</span></div></summary>${warn}
 <div class="pt-gauges" id="pt-gauges"></div>
-<div class="pt-plaque"><span class="pt-pl-l">К выплате</span> октябрь ${F(P.goal.pay_mln.oct.mid, 1)} млн · ноябрь ${F(P.goal.pay_mln.nov.mid, 1)} млн · по «Отчету» раз в месяц</div>
+<div class="pt-plaque"><span class="pt-pl-l">Цель К выплате</span> октябрь ${F(P.goal.pay_mln.oct.mid, 1)} млн · ноябрь ${F(P.goal.pay_mln.nov.mid, 1)} млн, с откатами 29.10 ${F(P.goal.nov_rollback.pay_mln, 1)} · факт по «Отчету» раз в месяц</div>
 <div class="sec">1. Заказы: 10 карточек и весь магазин</div>
 ${tbl2}
 <p class="legend">Нажми на строку - откроется график. <span class="lg c1"></span>с 15.10 <span class="lg c3"></span>порог <span class="lg c3p"></span>порог с ценой <span class="lg cpath"></span>нужный темп <span class="lg cprev"></span>01-14.10</p>
@@ -298,8 +335,11 @@ ${tbl3}
 <li>Заказы - шт без отмен, все товары карточки. Последние 3 дня бледные - досчитываются. День - по данным API (UTC).</li>
 <li>Порог - заказов за 15-28.10; ниже - откат карточки. Магазин - цель октября «средне» на 15-28.10.</li>
 <li>Воронка - ночной синк OZON. База 14.09-11.10.</li>
-<li>Реклама - расход по товарам, неделя чт-ср. Меньше плана - зелёный, до 120% - жёлтый, больше - красный.</li>
-<li>Данные: воронка по ${SV_LAST ? DM(SV_LAST) : "-"}, заказы по ${OD_LAST ? DM(OD_LAST) : "-"}, реклама по ${AD_LAST ? DM(AD_LAST) : "-"}. План - Excel 15.10.</li>
+<li>Реклама - неделя чт-ср. Меньше плана - зелёный, до 120% - жёлтый, больше - красный. По товарам - отчёт кабинета, он доливается несколько ночей: считаем по последний полный день (${ADS_FULL ? DM(ADS_FULL) : "-"}). 11 кампаний - по дням кампаний (${AD_CAMP_LAST ? DM(AD_CAMP_LAST) : "-"}).</li>
+<li>Оборот к цели: цель посчитана от базы 20,4 млн (модель 13.10), а заказы за ту же базу дают больше - факт выглядит примерно на 3,5% лучше цели.</li>
+<li>Отмены приходят с опозданием (за 01-10.10 отменено 12,9%, за последние дни пока 6,5%): заказы за свежие дни потом немного уменьшатся.</li>
+<li>Позиции в поиске нет у GENTRIS, TRUBIS L120, ARFEO: их нет в съёме тестов.</li>
+<li>Данные: воронка по ${SV_LAST ? DM(SV_LAST) : "-"}, заказы по ${OD_LAST ? DM(OD_LAST) : "-"}, реклама по товарам по ${ADS_FULL ? DM(ADS_FULL) : "-"}. План - Excel 15.10.</li>
 </ul></div></details>
 </details>`;
   const css = readFileSync(join(HERE, "plan-tab", "plan-tab.css"), "utf-8");

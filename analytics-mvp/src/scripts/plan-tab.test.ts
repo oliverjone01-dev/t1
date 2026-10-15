@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE } from "./plan-tab.js";
+import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -36,11 +36,32 @@ describe("spendStatus - расход: меньше значит лучше (Ив
   it("нет данных - не ноль", () => expect(spendStatus(null)).toBe("нет данных"));
 });
 
+describe("adsFullDay - отчёт по товарам доливается несколько ночей (ФЕНИКС G1)", () => {
+  const daily = [{ d: "2026-10-12", id: "1", sp: 100 }, { d: "2026-10-12", id: "2", sp: 50 }, { d: "2026-10-13", id: "1", sp: 100 }, { d: "2026-10-13", id: "2", sp: 50 },
+    { d: "2026-10-13", id: "9", sp: 999 }];
+  it("день, где одна кампания ещё не собрана, - не полный", () => expect(adsFullDay(daily, { "1": "2026-10-14", "2": "2026-10-13" }, "9")).toBe("2026-10-12"));
+  it("все собраны - последний день полный; «Оплата за заказ» не в счёт", () => expect(adsFullDay(daily, { "1": "2026-10-14", "2": "2026-10-14" }, "9")).toBe("2026-10-13"));
+  it("кампания без состояния - день не полный", () => expect(adsFullDay(daily, { "1": "2026-10-14" }, "9")).toBe(""));
+  it("дни до окна не мешают: старая несобранная кампания не обнуляет результат", () =>
+    expect(adsFullDay([{ d: "2026-07-01", id: "3", sp: 10 }, ...daily], { "1": "2026-10-14", "2": "2026-10-14" }, "9", "2026-10-08")).toBe("2026-10-13"));
+});
+
+describe("storeNeed / monthGoal - цель магазина по пути, а не по прямой (ФЕНИКС G2, G3)", () => {
+  it("к 17.10 нужно по пути цели: база 3 дня + прирост 1 дня", () => expect(storeNeed(OCT, 3)).toBeCloseTo(300 / 31 * 3 + 55 / 15));
+  it("за 14 дней - 179", () => expect(Math.round(storeNeed(OCT, 14))).toBe(179));
+  const goal = { units: { oct: OCT, nov: { mid: 409, lo: 290, hi: 568 } }, turn_mln: { oct: OCT, nov: OCT }, pay_mln: { oct: OCT, nov: OCT }, nov_rollback: { units: 1, pay_mln: 1 } };
+  it("октябрь - путь октября", () => expect(monthGoal(goal, "2026-10-13")!.units).toBeCloseTo(300 / 31 * 13));
+  it("03.11 - цель ноября за 3 дня, а не октябрь (иначе 1 705%)", () => {
+    const g = monthGoal(goal, "2026-11-03")!; expect(g.month).toBe("nov"); expect(g.from).toBe("2026-11-01"); expect(g.units).toBeCloseTo(409 / 30 * 3);
+  });
+  it("вне октября-ноября - нет цели", () => expect(monthGoal(goal, "2026-12-01")).toBeNull());
+});
+
 describe("weekSum / daysIn", () => {
   const m = new Map([["2026-10-15", 100], ["2026-10-16", 50]]);
   it("неделя после последнего дня источника - null, а не ноль", () => expect(weekSum(m, "2026-10-22", "2026-10-28", "2026-10-16")).toBeNull());
   it("неполная неделя обрезается последним днём и знает число дней", () => expect(weekSum(m, "2026-10-15", "2026-10-21", "2026-10-16")).toEqual([150, 2]));
-  it("день без строки внутри окна - ноль (расхода не было)", () => expect(weekSum(m, "2026-10-15", "2026-10-21", "2026-10-17")).toEqual([150, 3]));
+  it("внутри полного окна день без строки - ноль (кампания не тратила); неполные дни отрезает adsFullDay", () => expect(weekSum(m, "2026-10-15", "2026-10-21", "2026-10-17")).toEqual([150, 3]));
   it("daysIn ограничен 0..14", () => {
     expect(daysIn("2026-10-15", "")).toBe(0); expect(daysIn("2026-10-15", "2026-10-15")).toBe(1); expect(daysIn("2026-10-15", "2026-11-30")).toBe(14);
   });
@@ -72,9 +93,12 @@ function fixture(extra: Record<string, unknown[]> = {}) {
   ]);
   nd("ads_sku_daily.ndjson", [
     { d: "2026-10-15", cid: "5", sku: "1", sp: 3000 }, { d: "2026-10-15", cid: "77", sku: "8", sp: 2500 },
-    { d: "2026-10-15", cid: "28753239", sku: "1", sp: 99999 },
+    { d: "2026-10-15", cid: "28753239", sku: "1", sp: 99999 }, { d: "2026-10-15", cid: "77", sku: "1", sp: 400 },
+    { d: "2026-10-16", cid: "77", sku: "8", sp: 2600 },
   ]);
-  nd("ads_daily.ndjson", [{ d: "2026-10-15", id: "5", cl: 40 }]);
+  nd("ads_daily.ndjson", [{ d: "2026-10-15", id: "5", sp: 3000, cl: 40 }, { d: "2026-10-15", id: "77", sp: 2500, cl: 10 },
+    { d: "2026-10-16", id: "5", sp: 1000, cl: 10 }, { d: "2026-10-16", id: "77", sp: 2600, cl: 10 }]);
+  writeFileSync(join(dir, "ads_sku_state.json"), JSON.stringify({ "5": "2026-10-16", "77": "2026-10-17" }));
   nd("prices_daily.ndjson", [{ d: "2026-10-16", offer: "A-1", price: 1000 }]);
   nd("gap_daily.ndjson", [{ date: "2026-10-16", art: "A-1", gap_pct: 5 }]);
   nd("funnel_tests.ndjson", []);
@@ -95,11 +119,18 @@ describe("planBlock", () => {
     expect(D.store.orders[k]).toBe(5);
     expect(D.ser[0].orders[k + 1]).toBeNull();    // после последнего дня источника - пропуск, не ноль
   });
-  it("расход: «Оплата за заказ» не клик; главный и кампания на минимум считаются отдельно", () => {
+  it("клик главного: без «Оплаты за заказ» и без кампаний на минимум; день, где кампания 5 не собрана, отрезан", () => {
     const D = pd(planBlock("2026-10-17", fixture())!.js);
-    const main = D.spend[0].rows[0].w[1], camp = D.spend[2].rows[0].w[1];
-    expect(main).toEqual([3000, 1]);
-    expect(camp).toEqual([2500, 1]);
+    expect(D.ad_last).toBe("2026-10-15");                 // 16.10 у кампании 5 ещё нет строк по товарам
+    expect(D.spend[0].rows[0].w[1]).toEqual([3000, 1]);    // 400 ₽ кампании 77 на главном не задваиваются
+  });
+  it("11 кампаний - по дням кампаний (ads_daily), полные дни", () => {
+    const D = pd(planBlock("2026-10-17", fixture())!.js);
+    expect(D.spend[2].rows[0].w[1]).toEqual([5100, 2]);
+  });
+  it("CPC магазина: расход и клики из одного источника", () => {
+    const D = pd(planBlock("2026-10-17", fixture())!.js); const j = D.days.indexOf("2026-10-16");
+    expect(D.store.sp[j]).toBe(3600); expect(D.store.clk[j]).toBe(20);
   });
   it("цена не снижена и выпал из бустинга - видно в статусах", () => {
     const D = pd(planBlock("2026-10-17", fixture())!.js);

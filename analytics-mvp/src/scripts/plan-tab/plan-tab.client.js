@@ -27,26 +27,27 @@ function gauge(o){ // o: title, val, plan, l1, l2, hiBad, pre
   var m=pt(100,r-11),m2=pt(100,r+11);s+='<line x1="'+m[0]+'" y1="'+m[1]+'" x2="'+m2[0]+'" y2="'+m2[1]+'" stroke="#e8eef2" stroke-width="2.5"/>';
   if(pct!=null){var n=pt(pct,r-24);s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+n[0]+'" y2="'+n[1]+'" stroke="#e8eef2" stroke-width="3.5" stroke-linecap="round"/>'}
   s+='<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="#e8eef2"/>';
-  s+='<text x="'+cx+'" y="'+(cy+32)+'" text-anchor="middle" class="gv">'+(pct==null?'нет данных':fmt(pct)+'%')+'</text></svg>';
+  s+='<text x="'+cx+'" y="'+(cy+32)+'" text-anchor="middle" class="gv">'+(o.early?'рано':pct==null?'нет данных':fmt(pct)+'%')+'</text></svg>';
   var st=o.pre?{c:C.grey,t:'до плана',i:'○'}:stOf(pct,o.hiBad);
   return '<div class="gauge"><div class="g-t">'+o.title+'</div>'+s+'<div class="g-l1">'+o.l1+'</div><div class="g-l2">'+o.l2+(pct==null?'':' · <span style="color:'+st.c+'">'+st.i+' '+st.t+'</span>')+'</div></div>';
 }
 function sumWin(ser,a,b){var t=0,n=0;for(var j=idx(a);j<=idx(b);j++)if(ser[j]!=null){t+=ser[j];n++}return n?t:null}
 function goalPath(g,d,sc){return g.lo/31*d+(g[sc]-g.lo)*Math.max(0,Math.min(15,d-16))/15}
-var nIn=Math.max(0,Math.min((Date.parse(D.od_last)-Date.parse(D.start))/864e5+1,14));
+var nIn=D.n_in,early=nIn<3;   // первые 2 дня - «рано», как в таблице (ФЕНИКС G4)
 var sumThr=D.cards.reduce(function(a,c){return a+c.thr},0);
 var cardsGot=0,anyGot=false;D.ser.forEach(function(s){var v=sumWin(s.orders,D.start,D.w1);if(v!=null){anyGot=true;cardsGot+=v}});
 var onTrack=0;D.ser.forEach(function(s,i){var v=sumWin(s.orders,D.start,D.w1);if(v!=null&&v>=D.cards[i].thr*nIn/14)onTrack++});
-var odDay=+D.od_last.slice(8,10),oU=sumWin(D.store.orders,'2026-10-01',D.od_last),oT=sumWin(D.store_rev,'2026-10-01',D.od_last);
-var gU=goalPath(D.goal.units.oct,odDay,'mid'),gT=goalPath(D.goal.turn_mln.oct,odDay,'mid');
+// месяц берём из последнего дня заказов: октябрь - путь цели октября, ноябрь - цель ноября ровно по дням (ФЕНИКС G2)
+var MG=D.mgoal||{month:'oct',from:'2026-10-01',units:null,turn:null,unitsMonth:D.goal.units.oct.mid,turnMonth:D.goal.turn_mln.oct.mid},nov=MG.month==='nov';
+var oU=sumWin(D.store.orders,MG.from,D.od_last),oT=sumWin(D.store_rev,MG.from,D.od_last),gU=MG.units,gT=MG.turn;
 // реклама: последняя неделя с данными
 var wkLast=0;D.week_start.forEach(function(w,i){if(w<=D.ad_last)wkLast=i});
 var spF=0,spP=0;D.spend.slice(0,2).forEach(function(g){g.rows.forEach(function(r){if(r.w[wkLast]){spF+=r.w[wkLast][0];spP+=r.plan*r.w[wkLast][1]/7}})});
 $('pt-gauges').innerHTML=[
-  gauge({title:'Заказы 10 карточек',val:anyGot?cardsGot:null,plan:sumThr*nIn/14,l1:anyGot?fmt(cardsGot)+' из '+fmt(sumThr*nIn/14):'с 16.10',l2:'порог '+sumThr}),
-  gauge({title:'Карточки на пути',val:anyGot?onTrack:null,plan:5,l1:anyGot?onTrack+' из 10':'с 17.10',l2:'нужно 5'}),
-  gauge({title:'Заказы магазина',val:oU,plan:gU,l1:fmt(oU)+' из '+fmt(gU),l2:'месяц '+fmt(D.goal.units.oct.mid)}),
-  gauge({title:'Оборот магазина',val:oT/1e6,plan:gT,l1:fmt(oT/1e6,1)+' из '+fmt(gT,1)+' млн',l2:'месяц '+fmt(D.goal.turn_mln.oct.mid,1)+' млн'}),
+  gauge({title:'Заказы 10 карточек',early:anyGot&&early,val:anyGot&&!early?cardsGot:null,plan:sumThr*nIn/14,l1:anyGot?fmt(cardsGot)+' из '+fmt(sumThr*nIn/14):'с 16.10',l2:'порог '+sumThr}),
+  gauge({title:'Карточки на пути',early:anyGot&&early,val:anyGot&&!early?onTrack:null,plan:5,l1:anyGot?onTrack+' из 10':'с 17.10',l2:'нужно 5'}),
+  gauge({title:'Заказы магазина',val:oU,plan:gU,l1:fmt(oU)+' из '+fmt(gU),l2:(nov?'ноябрь ':'октябрь ')+fmt(MG.unitsMonth)}),
+  gauge({title:'Оборот магазина',val:oT/1e6,plan:gT,l1:fmt(oT/1e6,1)+' из '+fmt(gT,1)+' млн',l2:(nov?'ноябрь ':'октябрь ')+fmt(MG.turnMonth,1)+' млн'}),
   gauge({title:'Реклама',val:spF,plan:spP,hiBad:true,pre:D.week_start[wkLast]<D.start,l1:fmt(spF/1e3)+' из '+fmt(spP/1e3)+' тыс. ₽',l2:'нед. '+D.weeks[wkLast].split(' ')[0]})
 ].join('');
 
@@ -103,7 +104,7 @@ D.cards.forEach(function(c,ci){
 });
 
 (function(c){var o=D.store.orders,cum=[],pv=[],a=0,b=0,thr=[],path=[],base=[];
-  for(var k=0;k<K;k++){var v=o[i0+k];if(v==null)cum.push(null);else{a+=v;cum.push(a)}b+=o[prev0+k]||0;pv.push(b);thr.push(c.thr);path.push(c.thr*(k+1)/K);base.push(c.base2*(k+1)/K)}
+  for(var k=0;k<K;k++){var v=o[i0+k];if(v==null)cum.push(null);else{a+=v;cum.push(a)}b+=o[prev0+k]||0;pv.push(b);thr.push(c.thr);path.push(c.path[k]);base.push(c.base2*(k+1)/K)}   // путь цели магазина не прямой (ФЕНИКС G3)
   var nd=cum.findIndex(function(x){return x==null});
   chart($('pt-mcS'),{title:'<div class="mc-h">Весь магазин <span>'+(cum[0]==null?'-':cum.filter(function(x){return x!=null}).pop())+' / '+c.thr+'</span></div>',xs:mxs,
     series:[{v:pv,color:C.grey,w:1.4,name:'01-14.10'},{v:base,color:C.grey,dash:'5 4',w:1.2,name:'без эффекта'},{v:path,color:C.cy,dash:'2 4',w:1.4,name:'нужный темп'},{v:thr,color:C.cy,w:1.6,name:'цель 15-28.10'},{v:cum,color:C.s1,w:2.6,area:true,name:'с 15.10',pale:mpale}],
@@ -170,10 +171,10 @@ function drawPills(){
         if(pre&&pct!=null)st={c:C.grey,t:'',i:''};
         var wd=pct==null?0:Math.min(100,pct/150*100),t=(r.n+' · '+D.weeks[w]+'<br>план '+fmt(r.plan)+' ₽/нед'+(v?'<br>факт '+fmt(v[0])+' ₽ за '+v[1]+' дн · '+fmt(pct)+'%':'<br>ещё нет данных')).replace(/"/g,'&quot;');
         h+='<div class="wk-col" data-t="'+t+'"><div class="pl-bar"><div class="pl-plan" style="left:66.6%"></div>'+(v?(v[0]>0?'<div class="pl-fill" style="width:'+Math.max(wd,3)+'%;background:'+st.c+'"></div>':''):'<span class="pl-empty">нет данных</span>')+'</div>'
-          +(v?'<div class="wk-v">'+fmt(v[0])+' <span style="color:'+(pre?'var(--ink3)':st.c)+'">'+fmt(pct)+'%</span></div>':'')+'</div>'}
+          +(v?'<div class="wk-v">'+fmt(v[0])+(v[1]<7?' <span class="muted">за '+v[1]+' дн</span>':'')+' <span style="color:'+(pre?'var(--ink3)':st.c)+'">'+fmt(pct)+'%</span></div>':'')+'</div>'}
       h+='</div>'});
   });
-  $('pt-pills').innerHTML='<div class="legend">Белая метка - план. Первая неделя - до плана, для сравнения. Меньше плана - зелёный, до 120% - жёлтый, больше - красный.</div>'+h;
+  $('pt-pills').innerHTML='<div class="legend">Белая метка - план с поправкой на число дней. Клик и минимальный клик - по '+dm(D.ad_last)+' (дальше отчёт по товарам досчитывается), 11 кампаний - по '+dm(D.ad_camp_last)+'. Первая неделя - до плана, для сравнения. Меньше плана - зелёный, до 120% - жёлтый, больше - красный.</div>'+h;
   [].forEach.call(document.querySelectorAll('.wk-col[data-t]'),function(el){el.onmousemove=function(e){showTip(e,el.dataset.t)};el.onmouseleave=hideTip});
 }
 drawPills();

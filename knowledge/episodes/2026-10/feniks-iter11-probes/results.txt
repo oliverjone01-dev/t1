@@ -1,0 +1,41 @@
+ФЕНИКС iter11, 15.10: rework gaps 1-5 iter10, ветка claude/practical-ritchie-q09eet @ 978821206 (хеш 00411db3bfde9957)
+Пути в скриптах указывают на scratchpad сессии (.../c4f0dfeb-.../scratchpad/f11), при повторе заменить.
+Песочницы git archive: p11 = 978821206, p10 = a06dcd948, pm = origin/main d5bc74580 (analytics-mvp = 2fd407e17).
+
+X3 хеш: audit_hash.py --rev 978821206 = --rev fc9426655 = --worktree (до записи MEMORY.md) = 00411db3bfde9957 = хешу запроса
+X1 охват: 16 путей ветки (merge-base 2fd407e17); дельта iter11 9 файлов; X2: origin/main d5bc74580 без изменений; fc9426655 = только пробы и трейс
+
+B6 listdiff11.py pm p11: same 50 diff 2 (katya-reklama-kartochki.html - код iter10, katya-report.html); p10 p11: same 51 diff 1 (katya-report.html)
+B1 dash11.py: 8 видов «Отчета» p11 = main после U+2014 -> '-'; U+2014 в ячейках блока 5: main 139, p11 0; весь текст «Отчета» (09, 08): 0
+   an11.py: 8 периодов вкладки p11 = main, ошибок JS 0; окупаемость всего 9,06 / 8,13 / 8,04 / 11,71
+
+Gap 1 (класс N2), фикстуры iter10 дословно (fuzz11.py), pages11.py:
+  PASS fzS: 24/24 страниц = p11 кроме пометки; пометка на 7 страницах, rp-flags «sku_views.ndjson, строка 202139»; ::error::report, ::error::katya
+  PASS fzV: 24/24 = p11; пометка на 5 (в т.ч. «Деньги», вкладка, «Отчет»), «delivery_orders.ndjson, строка 539» (iter10: «Валовая прибыль» +792 742 ₽)
+  PASS fzK: 24/24 = p11; вкладка 8 периодов = p11 (iter10: «867 044» во всех периодах); пометка на 6; видна: 1248x38 px, y=165 (fx11_shot.mjs)
+  PASS fzY (маркер конфликта в середине sku_views): 24/24 = p11, пометка; PASS fzJ: красная плашка «за заказ» + пометка на 5
+  PASS fzT (обрезанный JSON pnl_account_accrual_types): видимый текст «Отчета» не меняется, пометки нет
+  FAIL fzU (строка null в середине delivery_orders): пометки нет нигде, «Деньги», вкладка, «Отчет» потеряли весь файл:
+       «Валовая прибыль» сентябрь 4 735 507 -> 5 528 249, август 3 240 210 -> 3 920 072, «Наша доставка» 0 (nd-lines.ts:13, report-page.ts:103; то же на main)
+Класс по 15 файлам (fzcls11.py: половина одной настоящей записи сентября вырезана; cls11.py, время сборки замаскировано):
+  PASS 14: orders_daily, ads_daily, ads_sku_daily, ads_attr_daily, pnl_daily, pnl_sku_daily, realization_daily, order_accruals,
+           acq_sku_daily, delivery_sku_daily, pnl_account_daily, partner_orders, delivery_orders, sku_views
+  FAIL c_daily_totals: katya.html, katya-tovary.html (шаблоны без kshell) - __DAILY_ORD_REAL[427] 7 -> 0 без пометки (arr11.py)
+  набл. c_history: падение сборки rc_ozon=1 (build-katya.ts:55, сырой читатель), громко; то же на main
+Gap 2 (o2fz11b.py, chk11.mts):
+  PASS N3c дословно (SKU 0): nosku 50, ошибки суммы нет; PASS N3e (SKU пустой), N3f (SKU 0 в том же заказе и дне)
+  PASS F2L 150/100, F3L 20/100 дословно - ошибка суммы; N3g (устаревшая строка 30 ₽ + nosku) - ошибка «180 (из них без SKU 50) не равны 100»
+  FAIL N3d строка с датой и SKU без номера заказа: 100 против 150, ложная ошибка «пересобрать» (build_order_joins.py:63)
+  N4: 6 из 6 имён копий 170, тот же файл - 150, разное содержимое - отказ (как iter10)
+real11.py: R1 сборщик p11 на файле ветки + data/raw/ozon-cpo = закоммиченный cpo_orders.ndjson побайтно, nosku 0
+           R2 строк без SKU 0, без номера заказа 0 (обе папки сырья); R3 4 323 198,65 - 0 = cpo_sku_daily, расхождение 0
+Gap 3: ozon-monthly-report.yaml:27-37 - перечень ошибок и исключение для строк без дня есть; фраза :36-37 «на всех страницах сборки,
+       один читатель на всю сборку» опровергается c_daily_totals, c_history, fzU
+Gap 4 (mut11.py): убиты MA, RC (теперь в nd-lines.ts), MN, MN2, NB, NC, ND; живы MB (с iter10), RP, RF, KS; M0 30/30
+Gap 5: см. B1, report-page.ts U+2014 0, в добавленных строках 0
+Регресс решений iter10 на p11 (fuzz11a.py = fuzz10.py): fzB 0/16; fzE, fzG июнь-август 4/4, сентябрь 0/4, жёлтая пометка с числом и суммой
+Тесты: vt11.sh tsc 39 = main (md5 85d6f256); vitest p11 984/988, main 972/976, те же 4 падения Маркета; cpo_raw_check.py 23 OK, провалов 0
+Свип: card_sweep24 p11 = main = логи автора (25 строк, FAILS 3)
+Маркет (ym11.sh, окружение npm ym:build): p11 и main rc 0, 17 из 18 равны, katya-report.html - только тире в rpN, rpSh, rpRtd
+CI: 0 check runs на 978821206 и fc9426655, открытого PR нет (gap 6 ждёт прогона)
+B5: U+2014 в добавленных строках 0. B7: чисел [ГИПОТЕЗА] на поверхностях нет.

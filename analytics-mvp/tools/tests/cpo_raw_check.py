@@ -110,6 +110,20 @@ try:
     check("G4 «(1)» после оригинала", [u[0] for u in used], ["2026-09_cpo_orders.xlsx", "2026-09_cpo_orders (1).xlsx"])
     check("G4 сумма исправленной выгрузки", total(rows), 170.0)
 
+    # ФЕНИКС N4: любые имена копий одного файла - исправленная копия побеждает; разные файлы одного периода - отказ.
+    for i, cp in enumerate(["2026-09_cpo_orders(1).xlsx", "2026-09_cpo_orders-1.xlsx", "2026-09_cpo_orders 2.xlsx", "2026-09_cpo_orders copy.xlsx", "2026-09_cpo_orders - копия.xlsx"]):
+        rc = os.path.join(tmp, f"raw_cp{i}")
+        os.makedirs(rc)
+        xlsx(os.path.join(rc, "2026-09_cpo_orders.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0], ["04.09.2026", "2", "B-1", 1, "a", 50.0]])
+        xlsx(os.path.join(rc, cp), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0], ["05.09.2026", "3", "C-1", 1, "a", 70.0]])
+        rows, used, _ = read_raw(rc)
+        check(f"N4 копия «{cp}» побеждает", total(rows), 170.0)
+    rn = os.path.join(tmp, "raw_n4")
+    os.makedirs(rn)
+    xlsx(os.path.join(rn, "2026-09_cpo_orders.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0]])
+    xlsx(os.path.join(rn, "sentyabr.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 120.0]])
+    refuses("N4 два разных файла за один период - отказ", rn)
+
     # ФЕНИКС G5: cpo_orders заменяет окно периода, как cpo_sku_daily.
     def run_both(raw_dir, prev_orders, prev_sku):
         dd = tempfile.mkdtemp(dir=tmp)
@@ -139,6 +153,14 @@ try:
           (100.0, 100.0))
     check("G5: старая строка без дня заменяется по номеру заказа",
           run_both(r6, [{"order": "X-1", "sp": 80.0}, {"order": "Y-1", "sp": 5.0}], [])[0], 25.0)
+
+    # ФЕНИКС iter10 gap 2: строка без SKU - в cpo_orders с полем nosku, в cpo_sku_daily её нет.
+    r7 = os.path.join(tmp, "raw_nosku")
+    os.makedirs(r7)
+    xlsx(os.path.join(r7, "2026-09_cpo_orders.xlsx"), "01.09.2026 - 30.09.2026", [["03.09.2026", "1", "A-1", 1, "a", 100.0], ["04.09.2026", "2", "B-1", None, None, 30.0]])
+    co_sum, sd_sum = run_both(r7, [], [])
+    nos = [json.loads(l).get("nosku", 0) for l in open(jo.OUT_CPO, encoding="utf-8")]
+    check("nosku: заказы 130, товары 100, без SKU 30", (co_sum, sd_sum, sum(nos)), (130.0, 100.0, 30.0))
 
     # Отказы.
     r2 = os.path.join(tmp, "raw_noper")

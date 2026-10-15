@@ -16,6 +16,6 @@ for (const rev of ["main", "e063381"]) {
   const found = [b.html, b.css, b.js].map((s: string) => page.includes(s));
   for (const [k, s] of [["HTML", b.html], ["CSS", b.css], ["JS", b.js]] as const) page = page.split(s).join(`<<PLAN_${k}>>`);
   rest[rev] = page.replace(/\d{2}\.\d{2}\.\d{4},? \d{2}:\d{2}(:\d{2})?( МСК)?|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?Z?/g, "<TS>");
-  console.log(rev, file, "today", TODAY, "| блок найден html/css/js:", found.join("/"), "| остаток", rest[rev].length, "| em dash на странице", (page.match(/—/g) ?? []).length);
+  console.log(rev, file, "today", TODAY, "| блок найден html/css/js:", found.join("/"), "| остаток", rest[rev].length, "| em dash на странице", (page.match(/\u2014/g) ?? []).length);
 }
 console.log("остаток страницы вне блока «План» одинаков:", rest["main"] === rest["e063381"]);

@@ -87,6 +87,11 @@ function main() {
     process.exit(1);
   }
   const knownKeyVals = new Set(prev.map((r) => String(r[newKey])));
+  // Сколько строк один ключ (значение поля) занимал в прошлом снимке внутри одного кабинета/месяца,
+  // максимум по всем месяцам. Новый ключ в закрытом месяце не может быть толще, чем тот же инструмент
+  // в любом другом месяце: у promo это ровно одна строка, две строки «показы» за февраль - задвоение,
+  // а не добор (Codex P2 на PR #475).
+  const knownKeyMax = new Map<string, number>();
   // Источника может не быть вовсе. Отчёта по баллам Маркета в Partner API не существует (все 22
   // метода генерации выписаны из OpenAPI-спецификации, вызовы united-bonuses / bonuses /
   // united-marketplace-bonuses отдают 404), поэтому bonuses_monthly.ndjson не появляется, и гейт
@@ -140,16 +145,23 @@ function main() {
   const growByKeys = (mth: string, p: Bucket, c: Bucket): string => {
     for (const [kv, pk] of Object.entries(p.k)) {
       const ck = c.k[kv] || { n: 0, s: 0 };
+      // Старый ключ не имеет права ни пропасть, ни похудеть: добор соседних инструментов может держать
+      // месяц целиком выше порога потери, пока буст из него исчез (Codex P2 на PR #475).
+      if (ck.n < pk.n * (1 - DROP)) return `${mth}/${kv}: строк было ${pk.n}, стало ${ck.n} (старый ключ потерян за добором соседей)`;
+      if (sumK && Math.abs(pk.s) > 1 && Math.abs(ck.s) < Math.abs(pk.s) * (1 - DROP)) return `${mth}/${kv}: сумма ${sumK} была ${Math.round(pk.s)}, стала ${Math.round(ck.s)} (старый ключ похудел за добором соседей)`;
       if (ck.n >= pk.n * (1 + GROW)) return `${mth}/${kv}: строк было ${pk.n}, стало ${ck.n} (закрытый ключ вырос - задвоение)`;
       if (sumK && Math.abs(pk.s) > 1 && Math.abs(ck.s) >= Math.abs(pk.s) * (1 + GROW)) return `${mth}/${kv}: сумма ${sumK} была ${Math.round(pk.s)}, стала ${Math.round(ck.s)} (закрытый ключ вырос - задвоение)`;
     }
     const fresh = Object.keys(c.k).filter((kv) => !(kv in p.k));
     const alien = fresh.filter((kv) => !knownKeyVals.has(kv));
     if (alien.length) return `${mth}: новое значение ${newKey}=${alien.join(", ")}, которого прошлый снимок не знал ни в одном месяце - смена схемы, а не добор`;
+    const fat = fresh.filter((kv) => c.k[kv]!.n > (knownKeyMax.get(kv) || 1));
+    if (fat.length) return `${mth}: новый ключ ${fat.map((kv) => `${kv} (${c.k[kv]!.n} строк при максимуме ${knownKeyMax.get(kv) || 1})`).join(", ")} - задвоение внутри добора`;
     console.log(`facts-gate ${file}: ${mth} - добор ${newKey}=${fresh.join(", ")} в закрытый месяц, по старым ключам роста нет`);
     return "";
   };
   const a = agg(prev), b = agg(cur);
+  if (newKey) for (const bk of Object.values(a)) for (const [kv, x] of Object.entries(bk.k)) knownKeyMax.set(kv, Math.max(knownKeyMax.get(kv) || 0, x.n));
   // Самый свежий месяц базового снимка законно добирается прогон за прогоном (текущий месяц ещё
   // идёт), поэтому потолок роста к нему не применяем - иначе гейт кричал бы каждый день. К закрытым
   // месяцам применяем: там рост означает, что разбор сложился поверх уже накопленного.

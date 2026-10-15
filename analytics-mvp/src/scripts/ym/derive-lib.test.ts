@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { parseOrder, ymDate, decodeReport } from "../../connector/ym-partner.js";
-import { normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, accSaleDay, splitNoStatus, accCutDays, accDocRows, moneyFlowRows, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
+import { addDays, normalizeOrder, buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccNetting, accSaleDay, splitNoStatus, accCutDays, accDocRows, moneyFlowRows, nettingCancelled, nettingNoStatus, cogsLookup, buildAccountDaily, accountGroup, feeGroup, type OrderRow, isServiceItem, applyNettingFees, nettingFeeGroup, isNettingFee } from "./derive-lib.js";
 
 const sample = JSON.parse(readFileSync("fixtures/ym/orders_sample.json", "utf-8"));
 const rows: OrderRow[] = sample.orders.flatMap((o: any) => normalizeOrder(parseOrder(o), sample.campaignId, sample.businessId));
@@ -386,9 +386,25 @@ describe("баллы за скидку = сама скидка, возвращё
   it("по каждому месяцу: начислено баллов = скидка Маркета + Плюс + Спасибо (доставленные заказы)", () => {
     if (!existsSync(snap)) throw new Error(`нет ${snap} - тест обязан падать, а не молча проходить`);
     const rows: any[] = readFileSync(snap, "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
-    const delivered = rows.filter((r) => r.status === "DELIVERED");
-    expect(delivered.length, "в снимке нет доставленных заказов").toBeGreaterThan(100);
-    expect(delivered.filter((r) => r.sub_acc !== undefined).length, "снимок собран до разбора subsidies[]").toBe(delivered.length);
+    const allDelivered = rows.filter((r) => r.status === "DELIVERED");
+    expect(allDelivered.length, "в снимке нет доставленных заказов").toBeGreaterThan(100);
+    expect(allDelivered.filter((r) => r.sub_acc !== undefined).length, "снимок собран до разбора subsidies[]").toBe(allDelivered.length);
+    // Лаг Маркета между статусом и деньгами. Живой факт 14.10.2026: заказ 62826013699 (GGR-11-1)
+    // в снимке 12:20 UTC уже DELIVERED с датой доставки 14.10, а payments[] и subsidies[] у него
+    // пустые - Маркет ещё не провёл платёж. Скидка 15 798 ₽ без баллов ломала тождество месяца,
+    // хотя разбор subsidies[] цел. Такие заказы из тождества исключаются, но узко и под счёт:
+    // только совсем без платежей и субсидий, только с доставкой не старше 2 дней от даты снимка,
+    // и не больше 3 штук. Поломка разбора бьёт по всем строкам месяца, а не по вчерашним, и
+    // тест её по-прежнему увидит; не проведённый за 2 дня платёж - вопрос к Маркету, тест красный.
+    const probe = "data-ym/_probe/orders.json";
+    const snapAt = existsSync(probe) ? String(JSON.parse(readFileSync(probe, "utf-8")).at || "").slice(0, 10) : "";
+    expect(snapAt, "дата снимка в _probe/orders.json не найдена - без неё лаг Маркета не отличить от поломки").toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const noMoney = allDelivered.filter((r) => !r.service && !Object.keys(r.paid_by_type || {}).length && !Object.keys(r.sub_by_type || {}).length);
+    const stale = noMoney.filter((r) => !r.fin || addDays(String(r.fin), 2) < snapAt);
+    expect(stale.map((r) => `${r.order} ${r.sku} доставлен ${r.fin}`), "доставленные без платежей и субсидий старше 2 дней - это не лаг Маркета").toEqual([]);
+    expect(noMoney.length, "слишком много доставленных без денег для лага одного дня").toBeLessThanOrEqual(3);
+    const pending = new Set(noMoney.map((r) => String(r.order)));
+    const delivered = allDelivered.filter((r) => !pending.has(String(r.order)));
     const by: Record<string, { disc: number; acc: number }> = {};
     for (const r of delivered) {
       const m = String(r.created).slice(0, 7);

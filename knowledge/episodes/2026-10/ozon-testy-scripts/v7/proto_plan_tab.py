@@ -178,6 +178,15 @@ r5.append('<tr class="grp"><td colspan="5">11 кампаний на миниму
 for k in P['to_min']:
     r5.append(f'<tr><td>{k["cid"]} <span class="muted s">{html.escape(str(k["art"]))}</span></td><td class="r">{F(P["min_campaign_budget"])}</td>'
               + ''.join(wk_cell(camp_sp[k['cid']], a, b, P['min_campaign_budget'], True) for _, a, b in WEEKS) + '</tr>')
+def wk_val(series_by_day, a, b):
+    if a > AD_LAST: return None
+    return [round(sum(series_by_day[d] for d in drange(a, min(b, AD_LAST)))), (day(min(b, AD_LAST)) - day(a)).days + 1]
+SPEND = [dict(g='Клик главного товара', only_high=False, rows=[dict(n=c['short'], sub=c['main_art'], plan=c['click_new'],
+              w=[wk_val(spm[i], a, b) for _, a, b in WEEKS]) for i, c in enumerate(cards)]),
+         dict(g='Минимальный клик 8 ₽ (≈1 500 на товар)', only_high=False, rows=[dict(n=c['short'], sub=f"{c['n_min']} тов.", plan=c['n_min'] * P['min_budget_sku'],
+              w=[wk_val(spmin[i], a, b) for _, a, b in WEEKS]) for i, c in enumerate(cards) if c['n_min']]),
+         dict(g='11 кампаний на минимум (план 2 000)', only_high=True, rows=[dict(n=k['cid'], sub=str(k['art']), plan=P['min_campaign_budget'],
+              w=[wk_val(camp_sp[k['cid']], a, b) for _, a, b in WEEKS]) for k in P['to_min']])]
 tbl5 = ('<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>Что</th><th class="r">План, ₽/нед</th>'
         + ''.join(f'<th class="r">{w}</th>' for w, _, _ in WEEKS) + '</tr></thead><tbody>' + ''.join(r5) + '</tbody></table></div>')
 
@@ -187,7 +196,7 @@ for r in L('prices_daily.ndjson'):
     if r['d'] >= pr_last.get(r['offer'], ('',))[0]: pr_last[r['offer']] = (r['d'], r['price'])
 for r in L('gap_daily.ndjson'):
     if r['date'] >= gap_last.get(r['art'], ('',))[0]: gap_last[r['art']] = (r['date'], r['gap_pct'])
-r6 = []
+r6 = []; pst = C.Counter()
 for p in sorted(P['price'], key=lambda p: (p['when'], p['art'])):
     d0, now = pr_last.get(p['art'], ('', None)); when = f'2026-{p["when"][3:5]}-{p["when"][0:2]}'
     gd, gp = gap_last.get(p['art'], ('', None))
@@ -195,6 +204,8 @@ for p in sorted(P['price'], key=lambda p: (p['when'], p['art'])):
     elif d0 < when or (d0 == when and TODAY <= when): st = f'<span class="chip chip-off">ждём {p["when"]}</span>'
     elif now <= p['price_new'] * 1.005: st = '<span class="chip chip-done">снижена</span>'
     else: st = '<span class="chip chip-bad">не снижена</span>'
+    pst['ждём' if 'ждём' in st else 'снижена' if '>снижена' in st else 'не снижена']+= 1
+    if gp is not None and gp < 10: pst['eb'] += 1
     eb = '' if gp is None else (f'<span class="chip chip-bad">выпал из Эластичного бустинга?</span>' if gp < 10 else '')
     r6.append(f'<tr><td>{p["when"]}</td><td>{html.escape(p["art"])}<div class="muted s">{html.escape(str(p["name"])[:46])}</div></td>'
               f'<td class="r">{F(now)}<div class="muted s">{DM(d0) if d0 else ""}</div></td><td class="r">{F(p["price_new"])} <span class="muted">{p["step"]}</span></td>'
@@ -226,7 +237,8 @@ tbl3 = ('<div class="tbl-wrap"><table class="gtbl"><thead><tr class="grp"><th></
 DATA = dict(days=DAYS, start=START, w1=W1, sv_last=SV_LAST, od_last=OD_LAST, ad_last=AD_LAST, today=TODAY,
             cards=[dict(short=c['short'], art=c['main_art'], thr=c['threshold'], thrp=c['threshold_price'], base2=round(2 * c['u_wk_base'], 2)) for c in cards],
             ser=SER, store=STORE, store_rev=ser(lambda d: store_rev[d], OD_LAST),
-            goal=P['goal'], base_win=list(BASE))
+            goal=P['goal'], base_win=list(BASE), spend=SPEND, weeks=[w for w, _, _ in WEEKS], week_start=[a for _, a, _ in WEEKS],
+            price_st=dict(pst), price_n=len(P['price']), price_first=sum(p['when'] == '15.10' for p in P['price']))
 
 CSS = open(HERE + '/proto_plan_tab.css').read()
 JS = open(HERE + '/proto_plan_tab.js').read()
@@ -237,13 +249,14 @@ page = f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name
 <details class="card tcard" open><summary><div class="chead"><span class="ctitle">План с 15.10: как идём к цели</span>
 <span class="chip chip-run">день {max(0, (day(TODAY) - day(START)).days + 1)} из 14 до проверки 29.10</span></div></summary>
 <p class="hyp">Цель: больше заказов и прибыли. С 15.10 в 10 карточках главный товар получает клик 20 000 ₽ в неделю, остальные товары карточки - минимальный клик 8 ₽, у 26 артикулов цена вниз (15 с 15.10, 11 с 22.10). 29.10 по каждой карточке: заказов за 15-28.10 не меньше порога - оставляем, меньше - откат.</p>
-<div class="tiles">{tiles_html}</div>
+<div class="gauges" id="gauges"></div>
+<div class="plaques"><div class="plaque"><span class="pl-l">К выплате</span> раз в месяц, по закрытию «Отчета». Цель: октябрь <b>{F(P["goal"]["pay_mln"]["oct"]["mid"], 1)} млн</b>, ноябрь <b>{F(P["goal"]["pay_mln"]["nov"]["mid"], 1)} млн</b> (с откатами 29.10 - {F(P["goal"]["nov_rollback"]["pay_mln"], 1)})</div></div>
 
 <div class="sec">1. Заказы 10 карточек против порога 29.10</div>
 <p class="legend">Заказы - все товары объединённой карточки, шт, без отмен. Последние 3 дня бледные: заказы ещё досчитываются. Порог - столько заказов за 15-28.10, чтобы карточку без эффекта оставить не чаще 15%.</p>
-{tbl2}
-<div class="mult" id="mult"></div>
-<p class="legend"><span class="lg c1"></span>заказы с 15.10 накопительно <span class="lg c3"></span>порог 29.10 <span class="lg c3p"></span>порог с поправкой на цену <span class="lg cpath"></span>нужный темп <span class="lg cbase"></span>было бы без эффекта <span class="lg cprev"></span>01-14.10 (те же 14 дней до старта)</p>
+<div class="flasks" id="flasks"></div>
+<p class="legend">Колба = порог 29.10. <span class="sw sw-fill"></span>заказы с 15.10 (зелёная - идём по графику, жёлтая - отстаём до 30%, красная - больше) <span class="sw sw-ghost"></span>те же 14 дней до старта (01-14.10) <span class="sw sw-need"></span>сколько нужно на сегодня <span class="sw sw-thp"></span>порог с поправкой на цену</p>
+<details class="fold"><summary>Таблица по карточкам</summary>{tbl2}</details>
 
 <div class="sec">2. Воронка 10 карточек, как на тестах</div>
 <p class="legend">Показы, карточка, корзина, заказано - ночной синк OZON по дню OZON (заказано с отменами, как в тестах). Позиция - съём тестов, есть у 7 главных из 10. База - 14.09-11.10, та же, что у порогов. «С 15.10» - среднее в неделю по дням с данными.</p>
@@ -256,11 +269,13 @@ page = f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name
 
 <div class="sec">4. Реклама по неделям чт-ср</div>
 <p class="legend">Расход по товарам из отчёта кабинета (без ставки за заказ). Красным - больше 120% или меньше 50% плана. Последние дни недели дозаливаются несколько ночей.</p>
-{tbl5}
+<div class="mrow-b" id="wksel"></div><div id="pills"></div>
+<details class="fold"><summary>Таблица по неделям</summary>{tbl5}</details>
 
 <div class="sec">5. Цена 26 артикулов</div>
 <p class="legend">Наша цена - ежедневный срез цен (около 08:53 МСК, раньше срока снижения 10:00, поэтому в день старта статус «ждём»). Скидка OZON - на сколько цена на сайте ниже нашей; обвал ниже 10% - товар, похоже, выпал из Эластичного бустинга, цену вернуть.</p>
-{tbl6}
+<div id="pricepills"></div>
+<details class="fold"><summary>Все 26 артикулов</summary>{tbl6}</details>
 
 <details class="fold"><summary><b>Как считаем и что ещё не готово</b></summary><div class="fold-b"><ul class="notes">
 <li>День заказа: сейчас в данных дата из API OZON по UTC без времени. Заказы с 00:00 до 03:00 МСК попадают в прошлый день. В сборщике сохраним время заказа и переведём в МСК - до этого числа по дням могут сдвинуться на 1-2 заказа.</li>

@@ -61,6 +61,15 @@ mx = collections.defaultdict(float)
 for k in bo:
     r = po.get(k)
     if r and r['price'] and r['status'] == 'DELIVERED' and r['created'] >= '2026-09-15': mx[r['sku']] = max(mx[r['sku']], rate(k))
+rk = collections.Counter(); per = collections.defaultdict(set)
+for k in bo:
+    r = po.get(k)
+    if r and r['price'] and r['status'] == 'DELIVERED' and r['created'][:7] in MO: v = round(rate(k) * 10000); rk[v] += 1; per[v].add(r['sku'])
+rep = {v: c for v, c in rk.items() if c >= 3}
+print(f"Повторы точной списанной ставки (до 0,01%): заказов на значениях с 3+ повторами {sum(rep.values())} из {sum(rk.values())}; топ: " + ', '.join(f"{v / 100:.2f}% x{c} ({len(per[v])} SKU)" for v, c in sorted(rep.items(), key=lambda x: -x[1])[:6]) + "; заказов с «1» в сотых (признак +0,01%): " + str(sum(c for v, c in rk.items() if v % 10 == 1)))
+g9 = [k for k in bo if k in po and po[k]['business'] == '74986385' and po[k]['status'] == 'DELIVERED' and po[k]['created'][:7] == '2026-09' and po[k]['price']]
+b9 = sum(bo[k] for k in g9); s9 = sum(max(bo[k] - 0.06 * po[k]['price'] * po[k]['count'], 0) for k in g9)
+print(f"Мебель, доставленные заказы сентября с бустом: {len(g9)}, буст {f0(b9)}; если бы каждое списание выше 6% стало 6%: экономия {f0(s9)} ({pct(s9, b9)}) против {1 - 6 / 8.8:.1%} в дизайне П5; заказов со списанием выше 6%: {sum(1 for k in g9 if rate(k) > 0.06)} из {len(g9)}")
 print("Максимум списанной ставки по SKU с 15.09 (ставка в кабинете не ниже этого): " + ', '.join(f"{s} {v:.0%}" for s, v in sorted(mx.items(), key=lambda x: -x[1])[:8]))
 
 print("\n## 3. Атрибуция: один заказ у нескольких инструментов. Сумма «выручки с инструментом» против всей выручки (revAll) по отчётам Маркета")
@@ -114,6 +123,16 @@ for s, v in bysku.items():
     if len(v) >= 5:
         mr = statistics.mean(x[0] for x in v); mm = statistics.mean(x[1] for x in v)
         for x in v: xs.append(x[0] - mr); ys.append(x[1] - mm)
+bym = collections.defaultdict(list)
+for k in bo:
+    r = po.get(k)
+    if r and r['price'] and r['status'] == 'DELIVERED' and r['created'][:7] in MO: bym[(r['sku'], r['created'][:7])].append((rate(k), r['p_mp'] / r['price']))
+xm = []; ym = []
+for v in bym.values():
+    if len(v) >= 3:
+        mr = statistics.mean(x[0] for x in v); mm = statistics.mean(x[1] for x in v)
+        for x in v: xm.append(x[0] - mr); ym.append(x[1] - mm)
+print(f"внутри SKU и месяца (группы с 3+ заказами, n={len(xm)}): корреляция {statistics.correlation(xm, ym):.3f} - связь между месяцами, не внутри месяца")
 print(f"n={len(xs)} заказов в {sum(1 for v in bysku.values() if len(v) >= 5)} SKU: корреляция отклонений ставки и доли Маркета от средних по SKU {statistics.correlation(xs, ys):.2f}")
 bk = collections.defaultdict(list)
 for i, x in enumerate(xs): bk['ниже средней по SKU на 2+ п.п.' if x < -0.02 else 'выше на 2+ п.п.' if x > 0.02 else 'около средней'].append(ys[i])
@@ -142,8 +161,13 @@ for s, v in SK.items():
     rows.append((s, v['n'], v['rev'], v['boost'] / v['rev'], mg, cat.get(s, {}).get('stock')))
 rows.sort(key=lambda x: -x[3])
 print("SKU | доставлено | выручка | ставка буста | маржа в деньгах | остаток 13.10")
-for s, nn, rv, rt, mg, stk in rows[:10]: print(f"{s} | {nn:.0f} | {f0(rv)} | {rt:.1%} | {f'{mg:.1%}' if mg is not None else 'нет с/с'} | {stk}")
+for s, nn, rv, rt, mg, stk in rows: print(f"{s} | {nn:.0f} | {f0(rv)} | {rt:.1%} | {f'{mg:.1%}' if mg is not None else 'нет с/с'} | {stk}")
+mgs = [mg for s, nn, rv, rt, mg, stk in rows if mg is not None]
+print(f"Маржа по {len(mgs)} SKU с себестоимостью: от {min(mgs):.1%} до {max(mgs):.1%}; ниже 34%: {[(s, f'{mg:.1%}', f'ставка {rt:.1%}') for s, nn, rv, rt, mg, stk in rows if mg is not None and mg < 0.34]}")
 print(f"SKU с выручкой > 150 тыс.: {len(rows)}; ставка > 10% при марже < 40%: {[(s, f'{rt:.0%}', f'{mg:.0%}') for s, nn, rv, rt, mg, stk in rows if rt > 0.10 and mg is not None and mg < 0.40]}")
+sy = [k for k in bo if k in po and k[1] == 'GGM-29-4' and po[k]['status'] == 'DELIVERED' and po[k]['created'][:7] in M]
+syb = sum(bo[k] for k in sy); syr = sum(po[k]['revenue'] for k in sy)
+print(f"GGM-29-4, одна база (доставленные заказы квартала): {len(sy)} заказов, выручка {f0(syr)}, буст {f0(syb)} ({pct(syb, syr)}); при ставке 8% буст {f0(syr * 0.08)}, разница {f0(syb - syr * 0.08)} за квартал, {f0((syb - syr * 0.08) / 3)} в месяц; буст деньгами {f0(sum(bom.get(k, 0) for k in sy))}")
 print("GGM-29-4 в каталоге 13.10:", {k: cat.get('GGM-29-4', {}).get(k) for k in ('name', 'price', 'stock', 'seen')})
 
 print("\n## 8. Товары без остатка: показы 06-12.10 и буст октября у SKU с остатком 0 (catalog 13.10)")
@@ -160,5 +184,16 @@ for m in MO:
     for c in CAB:
         sh = pm.get((m, c, 'shows'))
         if not sh or not sh['spend']: continue
-        rev = sum(r['revenue'] for r in p if r['business'] == c and r['status'] == 'DELIVERED' and r['statusDate'][:7] == m); days = 13 if m == '2026-10' else 30
-        print(f"{m} | {CAB[c]} | показы {f0(sh['spend'])} = {f0(sh['spend'] / days)} в день | 1% доставленного за месяц / 30 = {f0(rev * 0.01 / 30)} в день")
+        if m == '2026-10': lo_, hi_, days = '2026-09-13', '2026-10-12', 13
+        else: lo_, hi_, days = m + '-01', m + '-31', 30
+        rev = sum(r['revenue'] for r in p if r['business'] == c and r['status'] == 'DELIVERED' and lo_ <= r['statusDate'] <= hi_)
+        print(f"{m} | {CAB[c]} | показы {f0(sh['spend'])} = {f0(sh['spend'] / days)} в день (снимок, {days} дн.) | 1% доставленного за {lo_}..{hi_} / 30 = {f0(rev * 0.01 / 30)} в день, не меньше 1 000")
+print("Толкование правила (1% за 30 дней, делённый на 30, как дневной лимит) - наше; текста справки в репо нет")
+
+print("\n## 10. Размещение деньгами, а не баллами (реестр «Размещение товарных предложений»: Удержание = деньги, Списание = баллы), мебель")
+pl = collections.defaultdict(lambda: [0.0, 0.0])
+for r in n:
+    if r['business'] == '74986385' and r['service'] == 'Размещение товарных предложений' and r['type'] in ('Удержание', 'Списание') and r['d'][:7] in MO: pl[r['d'][:7]][0 if r['type'] == 'Удержание' else 1] += abs(r['amount'])
+for m in MO: print(f"  {m}: деньгами {f0(pl[m][0])}, баллами {f0(pl[m][1])}, доля денег {pct(pl[m][0], pl[m][0] + pl[m][1])}")
+g51 = sorted([k for k in po if k[1] == 'GGT-35-5-1-100-180' and po[k]['status'] == 'DELIVERED' and po[k]['created'] >= '2026-10-02'], key=lambda k: po[k]['created'])
+print("  5-1, октябрь, комиссия деньгами по заказам: " + ', '.join(f"{po[k]['created'][5:]} {f0(po[k]['fees'].get('Комиссия за продажу', 0))}" for k in g51))

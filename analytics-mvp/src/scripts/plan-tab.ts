@@ -1,10 +1,10 @@
 // Блок «План с 15.10: как идём к цели» - первый на странице «Тесты» (Иван 15.10, прототип одобрен).
 //
 // ЧТО ЭТО. План «10 карточек + цена» (Excel 15.10): главному товару карточки клик 20 000 ₽/нед,
-// остальным товарам минимальный клик 8 ₽, 11 дорогих кампаний на минимум, у 26 артикулов цена вниз.
+// остальным товарам минимальный клик 8 ₽, 11 дорогих кампаний на минимум, у 25 артикулов (v2, Иван 15.10) цена вниз.
 // 29.10 по каждой карточке: заказов за 15-28.10 не меньше порога - оставляем, меньше - откат.
 // Блок каждый день показывает, как идём: спидометры к плану, заказы карточек и магазина к порогу
-// и цели, воронку «как на тестах», рекламу по неделям чт-ср и цену 26 артикулов.
+// и цели, воронку «как на тестах», рекламу по неделям чт-ср и цену артикулов плана.
 //
 // ОТКУДА ПЛАН. data/plan_2026-10-15.json - заморозка Excel скриптом
 // knowledge/episodes/2026-10/ozon-testy-scripts/v7/freeze_plan.py. Прибыли по артикулам в нём нет
@@ -28,7 +28,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dp as dpDefault } from "../paths.js";
 
-export const PLAN_FILE = "plan_2026-10-15.json";
+export const PLAN_FILE = "plan_2026-10-15_v2.json";   // v2: корректировка Ивана 15.10 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2), скрипт v8/correct_plan_1510.py
 export const CAB_FILE = "cabinet_orders_check.ndjson";   // сверка «Заказано, шт» с кабинетом, съём чата (Иван 15.10)
 const CPO_ID = "28753239";                                     // «Оплата за заказ - все товары»: не клик
 const BASE: [string, string] = ["2026-09-14", "2026-10-11"];   // база порогов и плана (4 недели)
@@ -88,6 +88,23 @@ export function cabinetCheck(cab: Array<{ date: string; sku: string; units: numb
   const full = cards.every((x) => x.have === x.need);
   return { days, cards, ok: full && cards.every((x) => x.ok), full };
 }
+
+/** Цена на день: последняя известная не позже дня. */
+export function priceAt(h: Map<string, number> | undefined, d: string): number | null {
+  if (!h) return null; let best = "", v: number | null = null;
+  for (const [k, x] of h) if (k <= d && k > best) { best = k; v = x; }
+  return v;
+}
+/** Колонки цены: база (14.10) и каждый день после неё, когда цена хоть одного артикула сменилась к прошлому наблюдению. */
+export function priceColumns(hist: Map<string, Map<string, number>>, base: string): string[] {
+  const out = new Set<string>([base]);
+  for (const h of hist.values()) {
+    let prev: number | null = priceAt(h, base);
+    for (const d of [...h.keys()].filter((k) => k > base).sort()) { const v = h.get(d)!; if (prev != null && v !== prev) out.add(d); prev = v; }
+  }
+  return [...out].sort();
+}
+export const PRICE_BASE = "2026-10-14";
 
 /** Статус карточки к порогу: нет данных / рано (меньше 3 дней) / идём / отстаём. Путь - порог × дни / 14. */
 export function cardStatus(got: number | null, need: number, nIn: number): "нет данных" | "рано" | "идём" | "отстаём" {
@@ -338,9 +355,15 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   }
   const tbl5 = `<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>Что</th><th class="r">План, ₽/нед</th>${WEEKS.map(([w]) => `<th class="r">${w}</th>`).join("")}</tr></thead><tbody>${r5.join("")}</tbody></table></div>`;
 
-  // ---------- 5. цена 26 артикулов
+  // ---------- 5. цена артикулов плана
   const prLast = new Map<string, [string, number]>(), gapLast = new Map<string, [string, number]>();
-  for (const r of readNd(dp("prices_daily.ndjson"))) if (r.d >= (prLast.get(r.offer)?.[0] ?? "")) prLast.set(r.offer, [r.d, Number(r.price)]);
+  const prHist = new Map<string, Map<string, number>>();   // артикул -> день -> цена (Иван 15.10: колонка 14.10 и колонка на каждую смену цены)
+  const priceArts = new Set(P.price.map((p) => p.art));
+  for (const r of readNd(dp("prices_daily.ndjson"))) {
+    if (r.d >= (prLast.get(r.offer)?.[0] ?? "")) prLast.set(r.offer, [r.d, Number(r.price)]);
+    if (priceArts.has(r.offer) && Number.isFinite(Number(r.price))) (prHist.get(r.offer) ?? prHist.set(r.offer, new Map()).get(r.offer)!).set(r.d, Number(r.price));
+  }
+  const PCOLS = priceColumns(prHist, PRICE_BASE);
   for (const r of readNd(dp("gap_daily.ndjson"))) if (r.date >= (gapLast.get(r.art)?.[0] ?? "")) gapLast.set(r.art, [r.date, Number(r.gap_pct)]);
   const pst: Record<string, number> = {}; const r6: string[] = [];
   for (const p of [...P.price].sort((a, b) => (a.when + a.art).localeCompare(b.when + b.art))) {
@@ -350,11 +373,12 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     const key = st.startsWith("ждём") ? "ждём" : st === "снижена" ? "снижена" : "не снижена";
     pst[key] = (pst[key] ?? 0) + 1; if (gp != null && gp < 10) pst.eb = (pst.eb ?? 0) + 1;
     r6.push(`<tr><td>${esc(p.when)}</td><td>${esc(p.art)}<div class="muted s">${esc(String(p.name).slice(0, 46))}</div></td>`
+      + PCOLS.map((d) => `<td class="r">${F(priceAt(prHist.get(p.art), d))}</td>`).join("")
       + `<td class="r">${F(now)}<div class="muted s">${d0 ? DM(d0) : ""}</div></td><td class="r">${F(p.price_new)} <span class="muted">${esc(p.step)}</span></td>`
       + `<td><span class="chip ${st === "снижена" ? "chip-done" : st.startsWith("ждём") ? "chip-off" : "chip-bad"}">${esc(st)}</span></td>`
       + `<td class="r">${F(gp)}%<div class="muted s">${gd ? DM(gd) : ""}</div></td><td>${gp != null && gp < 10 ? `<span class="chip chip-bad">выпал из бустинга?</span>` : ""}</td></tr>`);
   }
-  const tbl6 = `<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>С</th><th>Артикул</th><th class="r">Наша цена, ₽</th><th class="r">Целевая, ₽</th><th>Статус</th>`
+  const tbl6 = `<div class="tbl-wrap tall"><table class="gtbl single"><thead><tr><th>С</th><th>Артикул</th>${PCOLS.map((d, k) => `<th class="r"${k ? ` title="цена сменилась ${DM(d)}"` : ""}>${DM(d)}</th>`).join("")}<th class="r">Сейчас, ₽</th><th class="r">Целевая, ₽</th><th>Статус</th>`
     + `<th class="r" title="На сколько цена на сайте ниже нашей (gap_daily). Ниже 10% - похоже, выпал из Эластичного бустинга">Скидка OZON</th><th></th></tr></thead><tbody>${r6.join("")}</tbody></table></div>`;
 
   const DATA = {
@@ -396,20 +420,25 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     + `<span class="chip chip-run">день ${day} из 14 · заказы по ${OD_LAST ? DM(OD_LAST) : "-"} · проверка ${DM(P.check)}</span></div></summary>${dWarn ? `<div class="pt-warn pt-decide">${esc(dWarn)}</div>` : ""}${warn}
 <div class="pt-gauges" id="pt-gauges"></div>
 <div class="pt-plaque"><span class="pt-pl-l">Цель К выплате</span> октябрь ${F(P.goal.pay_mln.oct.mid, 1)} млн · ноябрь ${F(P.goal.pay_mln.nov.mid, 1)} млн, с откатами 29.10 ${F(P.goal.nov_rollback.pay_mln, 1)} · факт по «Отчету» раз в месяц</div>
-<div class="sec">1. Заказы: 10 карточек и весь магазин</div>
+<details class="pt-sec"><summary class="sec">1. Заказы: 10 карточек и весь магазин</summary>
 ${tbl2}
 <p class="legend">Нажми на строку - откроется график. <span class="lg c1"></span>с 15.10 <span class="lg c3"></span>порог <span class="lg c3p"></span>порог с ценой <span class="lg cpath"></span>нужный темп <span class="lg cprev"></span>01-14.10</p>
-<div class="sec">2. Воронка</div>
+</details>
+<details class="pt-sec"><summary class="sec">2. Воронка</summary>
 ${tbl3}
 <div class="pt-dyn"><div class="mrow-b" id="pt-cardsel"></div><div class="mrow-b" id="pt-metsel"></div><div id="pt-dynchart"></div><div id="pt-dyntbl"></div></div>
-<div class="sec">3. Магазин к цели октября</div>
+</details>
+<details class="pt-sec"><summary class="sec">3. Магазин к цели октября</summary>
 <div class="pt-two"><div id="pt-stU"></div><div id="pt-stT"></div></div>
-<div class="sec">4. Реклама по неделям</div>
+</details>
+<details class="pt-sec"><summary class="sec">4. Реклама по неделям</summary>
 <div id="pt-pills"></div>
 <details class="fold"><summary>Таблица</summary>${tbl5}</details>
-<div class="sec">5. Цена 26 артикулов</div>
+</details>
+<details class="pt-sec"><summary class="sec">5. Цена ${P.price.length} артикулов</summary>
 <div id="pt-pricepills"></div>
-<details class="fold"><summary>Все 26 артикулов</summary>${tbl6}</details>
+<details class="fold"><summary>Все ${P.price.length} артикулов</summary>${tbl6}</details>
+</details>
 <details class="fold"><summary>Как считаем</summary><div class="fold-b"><ul class="pt-notes">
 <li>Заказы - шт без отмен, все товары карточки. Последние 3 дня бледные - досчитываются. ${nMsk === nAll && nAll ? "День заказа - по Москве." : nMsk === 0 ? "День заказа пока по UTC: время заказа появится после ночного сбора, дальше - по Москве." : `День заказа по Москве у ${nMsk} из ${nAll} заказов, у остальных пока UTC (до ночного сбора).`}</li>
 <li>Порог - заказов за 15-28.10; ниже - откат карточки. Магазин - цель октября «средне» на 15-28.10.</li>
@@ -419,7 +448,7 @@ ${tbl3}
 <li>Отмены приходят с опозданием (за ${cancTxt}): заказы за свежие дни потом немного уменьшатся.</li>
 ${noPos.length ? `<li>Позиции в поиске нет у ${noPos.map(esc).join(", ")}: их нет в съёме тестов.</li>` : ""}
 ${cabTxt}
-<li>Данные: воронка по ${SV_LAST ? DM(SV_LAST) : "-"}, заказы по ${OD_LAST ? DM(OD_LAST) : "-"}, реклама по товарам по ${ADS_FULL ? DM(ADS_FULL) : "-"}. План - Excel 15.10.</li>
+<li>Данные: воронка по ${SV_LAST ? DM(SV_LAST) : "-"}, заказы по ${OD_LAST ? DM(OD_LAST) : "-"}, реклама по товарам по ${ADS_FULL ? DM(ADS_FULL) : "-"}. План - Excel 15.10 с корректировкой Ивана 15.10 (27 артикулов выведены из минимального клика, TRUBIS 160 в снижении цены с 15.10 вместо GGT-12-2).</li>
 </ul></div></details>
 </details>`;
   const css = readFileSync(join(HERE, "plan-tab", "plan-tab.css"), "utf-8");

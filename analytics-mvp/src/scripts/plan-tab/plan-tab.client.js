@@ -134,7 +134,7 @@ function drawFunnel(){
   btns('pt-cardsel',SETS.map(function(x){return x.n}),'c',drawFunnel);btns('pt-metsel',M.map(function(x){return x[1]}),'m',drawFunnel);
   var st=SETS[cur.c],m=M[cur.m],j1=idx(D.w1),xs=DAYS.slice(0,j1+1).map(dm),v=serOf(st.s,m).slice(0,j1+1);
   var ma=v.map(function(_,j){var t=0,c=0;for(var q=Math.max(0,j-6);q<=j;q++)if(v[q]!=null){t+=v[q];c++}return v[j]==null||c<4?null:t/c});
-  var last=m[0]==='orders'?D.od_last:(['sp','clk','acart','cpc'].indexOf(m[0])>=0?D.ad_last:D.sv_last);
+  var last=m[0]==='orders'?D.od_last:(['sp','clk','acart','cpc'].indexOf(m[0])>=0?(st.s===D.store?D.ad_camp_last:D.ad_last):D.sv_last);   // магазин - по дням кампаний (ФЕНИКС N6)
   var nd=m[2]==='r'&&m[5]!==1?2:0,f=function(x){return fmt(x,nd)};
   chart($('pt-dynchart'),{title:'<div class="ch-h">'+st.n+' · '+m[1]+' <span class="muted">день и среднее 7 дней</span></div>',
     xs:xs,series:[{v:v,color:C.grey,w:1,name:'за день',dash:'2 3'},{v:ma,color:C.s1,w:2.4,area:true,name:'среднее 7 дней'}],vline:idx(D.start),nodata:idx(last)+1,inv:m[0]==='pos',fmtv:f});

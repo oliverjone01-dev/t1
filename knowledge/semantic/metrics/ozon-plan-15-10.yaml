@@ -4,7 +4,7 @@ title: "План с 15.10: заказы 10 карточек и магазина 
 version: 1
 status: approved
 owner: "Иван Раюшкин"
-approved_at: "2026-10-15"   # ответы «да» на 6 вопросов (в т.ч. «по Москве»), «меньше - зеленее», «мерж»
+approved_at: "2026-10-15"   # определения - ответы Ивана «да» на 6 вопросов (в т.ч. «по Москве»), «меньше - зеленее»; эталоны ниже ждут «да» Ивана
 decision: "29.10 по каждой карточке: заказов за 15-28.10 не меньше порога - оставляем, меньше - откат клика и цены"
 good_direction: "up для заказов и оборота, down для расхода рекламы (Иван 15.10: везде меньше - зеленее)"
 entity: "отправление OZON (orders_daily.order), шт = units"
@@ -26,9 +26,9 @@ date_field: created        # in_process_at из API
 mode: period
 timezone: Europe/Moscow     # Иван 15.10 «по Москве»: orders_daily.t (полное in_process_at, добавлено 15.10) + 3 ч; без t - UTC-дата d до ночного перезабора истории
 interval: "[from, to]"
-partial_period: mark       # последние 3 дня бледные; реклама по товарам - до последнего полного дня (adsFullDay)
+partial_period: mark       # последние 3 дня бледные; последний полный день по МСК = последний d выгрузки; реклама по товарам - до последнего полного дня (adsFullDay, покрытие от 95%)
 additive_over_time: true
-accounting_basis: shipment
+accounting_basis: order_date   # по дате заказа (in_process_at), не по отгрузке
 empty_value: "null"        # дня нет в источнике - пропуск; внутри полного окна день без строки рекламы = 0 (кампания не тратила)
 source:
   endpoint: "Seller API postings (orders_daily), Performance API (ads_daily, ads_sku_daily), analytics (sku_views)"
@@ -46,8 +46,8 @@ inference_rules:
   causal_claims: forbidden_without_control   # цена и клик в одних карточках - эффект общий
 golden_rows:
   - input: "orders_daily 01-13.10, весь магазин, без отмен"
-    expected: "137"
-    confirmed_by: "ФЕНИКС 15.10 (пересчёт по сырым данным)"
+    expected: "137 (по дню UTC; по дню МСК пересчитать после ночного сбора с полем t)"
+    confirmed_by: "ФЕНИКС 15.10 (пересчёт по сырым данным); Иван - ждёт"
   - input: "TRUBIS 160 GGT-03-3-3-E-16080, заказы карточки 14.09-11.10 без отмен"
     expected: "49 (12,25 в неделю), порог 31"
     confirmed_by: "Excel 15.10, ФЕНИКС 15.10"

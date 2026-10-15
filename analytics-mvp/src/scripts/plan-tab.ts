@@ -12,7 +12,8 @@
 //
 // ОПРЕДЕЛЕНИЯ (Иван 15.10, ответы «да» на 6 вопросов + «меньше - зеленее» везде у рекламы):
 //  - Заказы: orders_daily, шт без отмен, все товары объединённой карточки (card_groups.json).
-//    День - поле d из API (UTC, без времени): 00-03 МСК уходят в прошлый день. Последние 3 дня бледные.
+//    День - по Москве: t (полное время) + 3 ч, без t - UTC-дата d. Выгрузка идёт до 23:59 UTC последнего дня d,
+//    поэтому полный последний день по Москве = последний d; заказы позже него ждут следующего сбора. Последние 3 дня бледные.
 //  - Магазин: цель октября «средне» 355 заказов / 24,2 млн; путь цели - база ровно по дням
 //    («плохо» = без прироста), прирост равномерно с 17.10 по 31.10. Коридор - «плохо»...«хорошо».
 //  - Воронка: sku_views (ночной синк, день OZON). Магазин - сумма всех товаров того же синка:
@@ -71,13 +72,16 @@ export function weekSum(byDay: Map<string, number>, a: string, b: string, last: 
 /** Последний день, за который отчёт по товарам собран у ВСЕХ кампаний с расходом в этот день (ФЕНИКС G1).
  *  ads_sku_daily доливается по кампаниям несколько ночей: state[cid] - дата сбора, данные по вчера от неё.
  *  День, где у части кампаний строк ещё нет, - не «расход упал», а «досчитывается». */
-export function adsFullDay(adsDaily: Array<{ d: string; id: string; sp: number }>, state: Record<string, string>, skip: string, from = ""): string {
+export function adsFullDay(adsDaily: Array<{ d: string; id: string; sp: number }>, state: Record<string, string>, skip: string, from = "",
+  skuSp?: Map<string, number>): string {
   // проверяем только окно блока (с первой недели сравнения): старые дни давно не собираемых кампаний не в счёт
   const days = [...new Set(adsDaily.map((a) => a.d))].filter((d) => d >= from).sort();
   let full = "";
   for (const d of days) {
     const ok = adsDaily.filter((a) => a.d === d && a.sp > 0 && String(a.id) !== skip)
-      .every((a) => state[String(a.id)] && addDays(state[String(a.id)]!, -1) >= d);
+      .every((a) => state[String(a.id)] && addDays(state[String(a.id)]!, -1) >= d
+        // сбой отчёта ставит дату сбора, но строк нет: день полный, только если по товарам собрано от 95% расхода кампании (ФЕНИКС N2)
+        && (!skuSp || (skuSp.get(`${a.id}|${d}`) ?? 0) >= 0.95 * a.sp));
     if (!ok) break;
     full = d;
   }
@@ -165,9 +169,15 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   }
   // заказы
   const od = mk(); const stU = new Map<string, number>(), stRev = new Map<string, number>(); let OD_LAST = "", nMsk = 0, nAll = 0;
-  for (const o of readNd(dp("orders_daily.ndjson"))) {
+  const ordRows = readNd(dp("orders_daily.ndjson"));
+  const OD_RAW_LAST = ordRows.reduce((m, o) => o.d > m ? o.d : m, "");
+  const canc = new Map<string, [number, number]>();
+  for (const o of ordRows) {
     o.d = orderDay(o); nAll++; if (o.t) nMsk++;
+    // выгрузка кончается в 23:59 UTC последнего дня = 02:59 МСК следующего: тот день по Москве - обрывок, ждёт сбора (ФЕНИКС N1)
+    if (o.d > OD_RAW_LAST) continue;
     if (o.d > OD_LAST) OD_LAST = o.d;
+    const cc = canc.get(o.d) ?? [0, 0]; cc[0] += Number(o.units) || 0; if (o.status === "cancelled") cc[1] += Number(o.units) || 0; canc.set(o.d, cc);
     if (o.status === "cancelled") continue;
     const u = Number(o.units) || 0, i = SKU_CARD.get(String(o.sku));
     if (i != null) add(od[i]!, o.d, u);
@@ -186,7 +196,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     add(stSp, a.d, Number(a.sp) || 0); add(stClk, a.d, Number(a.cl) || 0);   // магазин: расход и клики из одного источника (ФЕНИКС G5)
   }
   const adsState = existsSync(dp("ads_sku_state.json")) ? JSON.parse(readFileSync(dp("ads_sku_state.json"), "utf-8")) as Record<string, string> : {};
-  const ADS_FULL = adsFullDay(adsDaily.map((a) => ({ d: a.d, id: String(a.id), sp: Number(a.sp) || 0 })), adsState, CPO_ID, "2026-10-08");
+  const ADS_FULL = adsFullDay(adsDaily.map((a) => ({ d: a.d, id: String(a.id), sp: Number(a.sp) || 0 })), adsState, CPO_ID, "2026-10-08", campDay);
   const TO_MIN = new Set(P.to_min.map((k) => String(k.cid)));
   const sp = mk(), spm = mk(), spmin = mk(), clk = mk(), acart = mk();
   for (const a of asd) {
@@ -317,6 +327,12 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     spend: SPEND, weeks: WEEKS.map((w) => w[0]), week_start: WEEKS.map((w) => w[1]),
     price_st: pst, price_n: P.price.length, price_first: P.price.filter((p) => p.when === "15.10").length,
   };
+  const cancShare = (a: string, b: string): string => {
+    let u = 0, c = 0; for (const [d, [uu, cc]] of canc) if (d >= a && d <= b) { u += uu; c += cc; }
+    return u ? `${(c / u * 100).toFixed(1).replace(".", ",")}%` : "-";
+  };
+  const cancTxt = OD_LAST ? `${DM(addDays(OD_LAST, -12))}-${DM(addDays(OD_LAST, -3))} отменено ${cancShare(addDays(OD_LAST, -12), addDays(OD_LAST, -3))}, за последние 3 дня пока ${cancShare(addDays(OD_LAST, -2), OD_LAST)}` : "-";
+  const noPos = cards.filter((_, i) => !pos[i]!.size).map((c) => c.short);
   const day = Math.max(0, Math.min(14, Math.round((D0(today) - D0(START)) / 864e5) + 1));
   const warn = warnings.length ? `<div class="pt-warn">Проверка данных: ${warnings.slice(0, 5).map(esc).join("; ")}${warnings.length > 5 ? ` и ещё ${warnings.length - 5}` : ""}</div>` : "";
   const html = `<details class="card tcard" open id="pt-plan"><summary><div class="chead"><span class="ctitle">План с 15.10: как идём к цели</span>`
@@ -338,13 +354,13 @@ ${tbl3}
 <div id="pt-pricepills"></div>
 <details class="fold"><summary>Все 26 артикулов</summary>${tbl6}</details>
 <details class="fold"><summary>Как считаем</summary><div class="fold-b"><ul class="pt-notes">
-<li>Заказы - шт без отмен, все товары карточки. Последние 3 дня бледные - досчитываются. ${nMsk === nAll && nAll ? "День заказа - по Москве." : `День заказа - по Москве там, где есть время заказа (${nMsk} из ${nAll}); остальные - дата UTC до ночного сбора.`}</li>
+<li>Заказы - шт без отмен, все товары карточки. Последние 3 дня бледные - досчитываются. ${nMsk === nAll && nAll ? "День заказа - по Москве." : nMsk === 0 ? "День заказа пока по UTC: время заказа появится после ночного сбора, дальше - по Москве." : `День заказа по Москве у ${nMsk} из ${nAll} заказов, у остальных пока UTC (до ночного сбора).`}</li>
 <li>Порог - заказов за 15-28.10; ниже - откат карточки. Магазин - цель октября «средне» на 15-28.10.</li>
 <li>Воронка - ночной синк OZON. База 14.09-11.10.</li>
 <li>Реклама - неделя чт-ср. Меньше плана - зелёный, до 120% - жёлтый, больше - красный. По товарам - отчёт кабинета, он доливается несколько ночей: считаем по последний полный день (${ADS_FULL ? DM(ADS_FULL) : "-"}). 11 кампаний - по дням кампаний (${AD_CAMP_LAST ? DM(AD_CAMP_LAST) : "-"}).</li>
 <li>Оборот к цели: цель посчитана от базы 20,4 млн (модель 13.10), а заказы за ту же базу дают больше - факт выглядит примерно на 3,5% лучше цели.</li>
-<li>Отмены приходят с опозданием (за 01-10.10 отменено 12,9%, за последние дни пока 6,5%): заказы за свежие дни потом немного уменьшатся.</li>
-<li>Позиции в поиске нет у GENTRIS, TRUBIS L120, ARFEO: их нет в съёме тестов.</li>
+<li>Отмены приходят с опозданием (за ${cancTxt}): заказы за свежие дни потом немного уменьшатся.</li>
+${noPos.length ? `<li>Позиции в поиске нет у ${noPos.map(esc).join(", ")}: их нет в съёме тестов.</li>` : ""}
 <li>Данные: воронка по ${SV_LAST ? DM(SV_LAST) : "-"}, заказы по ${OD_LAST ? DM(OD_LAST) : "-"}, реклама по товарам по ${ADS_FULL ? DM(ADS_FULL) : "-"}. План - Excel 15.10.</li>
 </ul></div></details>
 </details>`;

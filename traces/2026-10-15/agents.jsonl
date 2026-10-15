@@ -10,3 +10,4 @@
 {"ts": "2026-10-15T09:47:46+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/S/base, /home/user/t1/S/base/analytics-mvp/node_modules, /home/user/t1/S/out, /home/user/t1/S/out_base, /home/user/t1/analytics-mvp/node_modules"}
 {"ts": "2026-10-15T09:54:32+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/p3_render.mts"}
 {"ts": "2026-10-15T09:55:38+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/:, /home/user/t1/=, /home/user/t1/=d"}
+{"ts": "2026-10-15T09:59:45+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/0:"}

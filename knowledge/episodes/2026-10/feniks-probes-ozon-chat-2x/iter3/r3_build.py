@@ -3,7 +3,7 @@
 # и сравниваю HTML после вырезания времени сборки. Ожидаю ровно правки диффа: «утром и вечером» (подпись + title),
 # склонение в строке «день не закрыт» (если она есть), строку сверки (кабинета в живых data/ нет - не меняется).
 # python3 -I r3_build.py
-import os, re, shutil, subprocess, tarfile, io, difflib, glob
+import os, re, shutil, subprocess, tarfile, io, difflib, glob, sys
 
 SP = '/tmp/claude-0/-home-user-t1/f57f6776-149c-58f9-8707-d73e74e89ad9/scratchpad/c3/'
 REPO = '/home/user/t1'
@@ -34,19 +34,20 @@ def build(root, tag):
 
 
 res = {}
-for rev in ('51f24d2', '754cf5c'):
+REVS = sys.argv[1:3] or ['51f24d2', '754cf5c']   # python3 -I r3_build.py [база] [голова]
+for rev in REVS:
     rc, out = build(tree(rev), rev)
     files = sorted(glob.glob(out + '**/*.html', recursive=True))
     res[rev] = (rc, out, files)
     print(rev, 'exit', rc, 'html', [f[len(out):] for f in files])
 norm = lambda s: re.sub(r'\d{2}\.\d{2}\.\d{4},? \d{2}:\d{2}(:\d{2})?( МСК)?|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?Z?', '<TS>', s)
-a_out, b_out = res['51f24d2'][1], res['754cf5c'][1]
-for fa in res['51f24d2'][2]:
+a_out, b_out = res[REVS[0]][1], res[REVS[1]][1]
+for fa in res[REVS[0]][2]:
     rel = fa[len(a_out):]
     fb = b_out + rel
     A = norm(open(fa, encoding='utf-8').read()); B = norm(open(fb, encoding='utf-8').read())
     sa = re.split(r'(?<=>)', A); sb = re.split(r'(?<=>)', B)
     d = [l for l in difflib.unified_diff(sa, sb, lineterm='', n=0) if l.startswith(('+', '-')) and not l.startswith(('+++', '---'))]
     print(f'{rel}: длина {len(A)} -> {len(B)}, отличающихся фрагментов {len(d)}; em dash в новой {B.count(chr(0x2014))}')
-    for l in d[:12]:
+    for l in d[:int(os.environ.get('NDIFF', '12'))]:
         print('   ', l[:260])

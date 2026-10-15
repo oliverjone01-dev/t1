@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay } from "./plan-tab.js";
+import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -67,6 +67,47 @@ describe("orderDay - день заказа по Москве", () => {
   it("нет времени - дата как была", () => expect(orderDay({ d: "2026-10-15" })).toBe("2026-10-15"));
 });
 
+describe("decisionWarn - день решения без последнего дня окна (ФЕНИКС N8, Codex P1)", () => {
+  it("29.10, заказы по 27.10 - предупреждение есть", () => {
+    expect(decisionWarn("2026-10-29", "2026-10-29", "2026-10-27", "2026-10-28")).toContain("за 28.10 данных ещё нет");
+  });
+  it("29.10, заказы по 28.10 - предупреждения нет", () => expect(decisionWarn("2026-10-29", "2026-10-29", "2026-10-28", "2026-10-28")).toBe(""));
+  it("до дня решения - предупреждения нет", () => expect(decisionWarn("2026-10-28", "2026-10-29", "2026-10-26", "2026-10-28")).toBe(""));
+  it("заказов нет вовсе - предупреждение есть", () => expect(decisionWarn("2026-10-30", "2026-10-29", "", "2026-10-28")).not.toBe(""));
+});
+
+describe("cabinetCheck - сверка «Заказано, шт» с кабинетом", () => {
+  const ours = new Map([["1|2026-10-15", 10], ["2|2026-10-15", 3], ["1|2026-10-16", 5]]);
+  it("считает только товары и дни из выгрузки кабинета", () => {
+    expect(cabinetCheck([{ date: "2026-10-15", sku: "1", units: 10 }], ours, "2026-10-15", "2026-10-28"))
+      .toEqual({ days: ["2026-10-15"], cab: 10, ours: 10, ok: true });
+  });
+  it("расхождение больше 2% и больше 2 шт - не в допуске", () => {
+    expect(cabinetCheck([{ date: "2026-10-15", sku: "1", units: 14 }], ours, "2026-10-15", "2026-10-28")!.ok).toBe(false);
+  });
+  it("вне окна - сверки нет", () => expect(cabinetCheck([{ date: "2026-10-01", sku: "1", units: 9 }], ours, "2026-10-15", "2026-10-28")).toBeNull());
+});
+
+describe("эталоны спеки ozon-plan-15-10 v2 (Иван 15.10 «да»), по живым данным, день UTC (поле d)", () => {
+  // Отмены приходят с опозданием и только уменьшают число, поэтому допуск вниз 2% (спека, reconciliation).
+  const R = existsSync("data/orders_daily.ndjson")
+    ? readFileSync("data/orders_daily.ndjson", "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l) as { d: string; status: string; sku: string; units: number })
+    : [];
+  const net = (from: string, to: string, skus?: Set<string>): number =>
+    R.filter((r) => r.d >= from && r.d <= to && r.status !== "cancelled" && (!skus || skus.has(String(r.sku)))).reduce((a, r) => a + (Number(r.units) || 0), 0);
+  it("магазин 01-13.10 без отмен - 137", () => {
+    if (!R.length) return;
+    const v = net("2026-10-01", "2026-10-13"); expect(v).toBeLessThanOrEqual(137); expect(v).toBeGreaterThanOrEqual(Math.floor(137 * 0.98));
+  });
+  it("TRUBIS 160, вся объединённая карточка, 14.09-11.10 без отмен - 49", () => {
+    if (!R.length || !existsSync("data/card_groups.json")) return;
+    const G = (JSON.parse(readFileSync("data/card_groups.json", "utf-8")).groups ?? []) as Array<{ skus: Array<{ sku: string; offer: string }> }>;
+    const g = G.find((x) => x.skus.some((s) => s.offer === "GGT-03-3-3-E-16080"))!;
+    const v = net("2026-09-14", "2026-10-11", new Set(g.skus.map((s) => String(s.sku))));
+    expect(v).toBeLessThanOrEqual(49); expect(v).toBeGreaterThanOrEqual(Math.floor(49 * 0.98));
+  });
+});
+
 describe("weekSum / daysIn", () => {
   const m = new Map([["2026-10-15", 100], ["2026-10-16", 50]]);
   it("неделя после последнего дня источника - null, а не ноль", () => expect(weekSum(m, "2026-10-22", "2026-10-28", "2026-10-16")).toBeNull());
@@ -112,6 +153,7 @@ function fixture(extra: Record<string, unknown[]> = {}) {
   nd("prices_daily.ndjson", [{ d: "2026-10-16", offer: "A-1", price: 1000 }]);
   nd("gap_daily.ndjson", [{ date: "2026-10-16", art: "A-1", gap_pct: 5 }]);
   nd("funnel_tests.ndjson", []);
+  if (extra.cab) nd(CAB_FILE, extra.cab);
   return (f: string) => join(dir, f);
 }
 const pd = (js: string) => JSON.parse(js.slice("window.PD=".length, js.indexOf(";\n")));
@@ -158,6 +200,19 @@ describe("planBlock", () => {
     const D = pd(planBlock("2026-10-17", f)!.js);
     expect(D.od_last).toBe("2026-10-16");
     expect(D.ser[0].orders[D.days.indexOf("2026-10-16")]).toBe(1);
+  });
+  it("в чипе видна дата заказов; в день решения без 28.10 - заметное предупреждение (N8)", () => {
+    const b = planBlock("2026-10-29", fixture())!;
+    expect(b.html).toContain("заказы по 16.10");
+    expect(b.html).toContain("pt-decide");
+    expect(planBlock("2026-10-17", fixture())!.html).not.toContain("pt-decide");
+  });
+  it("сверка с кабинетом: в допуске - строка в «Как считаем», без предупреждения; мимо - предупреждение", () => {
+    const ok = planBlock("2026-10-17", fixture({ cab: [{ date: "2026-10-15", sku: "1", ordered_units: 2 }, { date: "2026-10-15", sku: "2", ordered_units: 5 }] }))!;
+    expect(ok.html).toContain("Сверка с кабинетом");
+    expect(ok.warnings).toEqual([]);
+    const bad = planBlock("2026-10-17", fixture({ cab: [{ date: "2026-10-15", sku: "1", ordered_units: 20 }] }))!;
+    expect(bad.warnings.join(" ")).toContain("сверка с кабинетом");
   });
   it("в данных страницы нет «</script>»", () => {
     expect(planBlock("2026-10-17", fixture())!.js.includes("</script")).toBe(false);

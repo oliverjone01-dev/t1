@@ -174,7 +174,7 @@ function drawPills(){
           +(v?'<div class="wk-v">'+fmt(v[0])+(v[1]<7?' <span class="muted">за '+v[1]+' дн</span>':'')+' <span style="color:'+(pre?'var(--ink3)':st.c)+'">'+fmt(pct)+'%</span></div>':'')+'</div>'}
       h+='</div>'});
   });
-  $('pt-pills').innerHTML='<div class="legend">Белая метка - план с поправкой на число дней. Клик и минимальный клик - по '+dm(D.ad_last)+' (дальше отчёт по товарам досчитывается), 11 кампаний - по '+dm(D.ad_camp_last)+'. Первая неделя - до плана, для сравнения. Меньше плана - зелёный, до 120% - жёлтый, больше - красный.</div>'+h;
+  $('pt-pills').innerHTML='<div class="legend">Белая метка - план с поправкой на число дней. Клик и минимальный клик - '+(D.ad_last?'по '+dm(D.ad_last)+' (дальше отчёт по товарам досчитывается)':'отчёт по товарам не собран')+', 11 кампаний - по '+dm(D.ad_camp_last)+'. Первая неделя - до плана, для сравнения. Меньше плана - зелёный, до 120% - жёлтый, больше - красный.</div>'+h;
   [].forEach.call(document.querySelectorAll('.wk-col[data-t]'),function(el){el.onmousemove=function(e){showTip(e,el.dataset.t)};el.onmouseleave=hideTip});
 }
 drawPills();

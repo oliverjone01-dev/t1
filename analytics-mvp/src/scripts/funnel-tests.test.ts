@@ -18,7 +18,7 @@ const agg = {
 
 describe("разбор товарной строки", () => {
   it("принимает строку контракта как есть", () => {
-    expect(parseRow(ok)).toEqual({ ...ok, test_id: "", n: null, n_nonzero: null });
+    expect(parseRow(ok)).toEqual({ ...ok, test_id: "", n: null, n_nonzero: null, full: null, ts: null, snap: null });
   });
 
   it("позиция может быть null: товара нет в выдаче", () => {
@@ -177,6 +177,36 @@ describe("формы записи id теста", () => {
   it("роль reference принимается: июльский эталон вне текущих групп", () => {
     const r = parseRow({ ...ok, role: "reference", art: "GGT-47-3-3-90" });
     expect(typeof r === "string" ? r : r.role).toBe("reference");
+  });
+});
+
+describe("съём утром и вечером (Иван 15.10)", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ft2-"));
+  const path = join(dir, "funnel_tests.ndjson");
+  writeFileSync(path, [
+    JSON.stringify({ ...ok, date: "2026-10-14", search_views: 100, full: false, snap: "вечер", ts: "2026-10-14T20:10:00+03:00" }),
+    JSON.stringify({ ...ok, date: "2026-10-14", search_views: 400, full: true, snap: "утро", ts: "2026-10-15T08:00:00+03:00" }),
+    JSON.stringify({ ...ok, date: "2026-10-15", search_views: 30, full: false, snap: "утро", ts: "2026-10-15T08:00:00+03:00" }),
+    JSON.stringify({ ...ok, date: "2026-10-15", search_views: 90, full: false, snap: "вечер", ts: "2026-10-15T20:10:00+03:00" }),
+    JSON.stringify({ ...ok, date: "2026-10-13", search_views: 380 }),
+    JSON.stringify({ ...ok, date: "2026-10-13", search_views: 390 }),
+  ].join("\n"));
+  const read = readFunnelTests(path);
+  it("повтор даты заменяет строку, а не дописывает вторую (К4)", () => {
+    expect(read.rows.filter((r) => r.date === "2026-10-13")).toHaveLength(1);
+    expect(read.byArt.get(ok.art)!.get("2026-10-13")!.search_views).toBe(390);
+  });
+  it("утро перезаписывает вечерний неполный день полным", () => {
+    expect(read.byArt.get(ok.art)!.get("2026-10-14")!.search_views).toBe(400);
+  });
+  it("незакрытый день не входит в ряд, лежит отдельно с временем среза (E029)", () => {
+    expect(read.byArt.get(ok.art)!.has("2026-10-15")).toBe(false);
+    expect(read.last).toBe("2026-10-14");
+    expect(read.partial.map((r) => r.search_views)).toEqual([90]);
+    expect([read.partialDay, read.partialTs]).toEqual(["2026-10-15", "2026-10-15T20:10:00+03:00"]);
+  });
+  it("full не true / false - строка отвергнута с причиной", () => {
+    expect(parseRow({ ...ok, full: "да" })).toContain("full");
   });
 });
 

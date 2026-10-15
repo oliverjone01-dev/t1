@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal } from "./plan-tab.js";
+import { goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -55,6 +55,12 @@ describe("storeNeed / monthGoal - цель магазина по пути, а н
     const g = monthGoal(goal, "2026-11-03")!; expect(g.month).toBe("nov"); expect(g.from).toBe("2026-11-01"); expect(g.units).toBeCloseTo(409 / 30 * 3);
   });
   it("вне октября-ноября - нет цели", () => expect(monthGoal(goal, "2026-12-01")).toBeNull());
+});
+
+describe("orderDay - день заказа по Москве", () => {
+  it("22:30 UTC - уже следующий день по Москве", () => expect(orderDay({ d: "2026-10-15", t: "2026-10-15T22:30:00Z" })).toBe("2026-10-16"));
+  it("20:59 UTC - тот же день", () => expect(orderDay({ d: "2026-10-15", t: "2026-10-15T20:59:00.000Z" })).toBe("2026-10-15"));
+  it("нет времени - дата как была", () => expect(orderDay({ d: "2026-10-15" })).toBe("2026-10-15"));
 });
 
 describe("weekSum / daysIn", () => {

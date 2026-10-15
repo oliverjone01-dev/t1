@@ -97,7 +97,7 @@ async function main() {
     const paidRaw = fdp.reduce((s, x) => s + (Number(x?.customer_price) || 0) * (Number(x?.quantity) || 1), 0);
     const paid = fdp.length && paidRaw > 0 ? Math.round(paidRaw * 100) / 100 : null;
     rows.push({
-      order: p.posting_number, d: p.date, status: p.status, scheme,
+      order: p.posting_number, d: p.date, t: (p as any).ts || null, status: p.status, scheme,
       sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
       commission: Math.round(b.commission), delivery: Math.round(b.delivery), acquiring: Math.round(b.acquiring),
       storage: Math.round(b.storage), buyer_delivery: Math.round(b.buyerDelivery), ads: Math.round(b.ads),

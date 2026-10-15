@@ -368,7 +368,7 @@ export class OzonSeller {
 
   // Отправления (FBO + FBS) за период с товарами и финданными: по каждому заказу - дата, статус,
   // список товаров {sku, offer, qty, price} и financial_data (если OZON отдал). Для блока «по заказам».
-  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; src: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any }>> {
+  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; ts: string; src: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any }>> {
     const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
     const out: Array<any> = [];
     // src - откуда пришёл заказ: FBO (склад OZON) или FBS (склад продавца). rFBS (доставка силами
@@ -377,6 +377,8 @@ export class OzonSeller {
       posting_number: String(p.posting_number ?? ""),
       status: String(p.status ?? ""),
       date: String(p.in_process_at ?? p.created_at ?? p.shipment_date ?? "").slice(0, 10),
+      // полное время (UTC) - чтобы считать день по Москве; date оставлен как был (UTC-дата), им пользуются другие вкладки
+      ts: String(p.in_process_at ?? p.created_at ?? p.shipment_date ?? ""),
       src,
       products: (p.products ?? []).map((it: any) => ({
         sku: String(it.sku ?? ""), offer: String(it.offer_id ?? ""),

@@ -2,9 +2,9 @@
 id: ozon-plan-15-10
 title: "План с 15.10: заказы 10 карточек и магазина к порогу и цели, реклама и цена к плану"
 version: 1
-status: draft             # approved после ответа Ивана по часовому поясу (G7 аудита 15.10)
+status: approved
 owner: "Иван Раюшкин"
-approved_at: ""            # ответы «да» на 6 вопросов и «меньше - зеленее» - 15.10; часовой пояс - открыт
+approved_at: "2026-10-15"   # ответы «да» на 6 вопросов (в т.ч. «по Москве»), «меньше - зеленее», «мерж»
 decision: "29.10 по каждой карточке: заказов за 15-28.10 не меньше порога - оставляем, меньше - откат клика и цены"
 good_direction: "up для заказов и оборота, down для расхода рекламы (Иван 15.10: везде меньше - зеленее)"
 entity: "отправление OZON (orders_daily.order), шт = units"
@@ -24,7 +24,7 @@ cancellations_returns:
   return_date_basis: order_date
 date_field: created        # in_process_at из API
 mode: period
-timezone: "UTC (поле d = in_process_at[:10]) - ОТКРЫТО: Иван просил МСК; варианты: время в коннекторе или «UTC ок»"
+timezone: Europe/Moscow     # Иван 15.10 «по Москве»: orders_daily.t (полное in_process_at, добавлено 15.10) + 3 ч; без t - UTC-дата d до ночного перезабора истории
 interval: "[from, to]"
 partial_period: mark       # последние 3 дня бледные; реклама по товарам - до последнего полного дня (adsFullDay)
 additive_over_time: true

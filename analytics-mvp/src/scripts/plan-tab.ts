@@ -96,6 +96,11 @@ export function monthGoal(goal: Plan["goal"], last: string): { month: "oct" | "n
   return { month: "nov", from: "2026-11-01", units: goal.units.nov.mid / 30 * d, turn: goal.turn_mln.nov.mid / 30 * d,
     unitsMonth: goal.units.nov.mid, turnMonth: goal.turn_mln.nov.mid };
 }
+/** День заказа по Москве из полного времени UTC (Иван 15.10: «по Москве»). Нет времени - UTC-дата d как была. */
+export function orderDay(o: { d: string; t?: string | null }): string {
+  const t = o.t ? Date.parse(o.t) : NaN;
+  return Number.isFinite(t) ? iso(t + 3 * 3600e3) : o.d;
+}
 /** Дней плана с данными (0..14). */
 export function daysIn(start: string, last: string): number {
   if (!last) return 0;
@@ -159,8 +164,9 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     const i = mainIdx.get(r.art); if (i != null && Number(r.search_position) > 0) pos[i]!.set(r.date, Number(r.search_position));
   }
   // заказы
-  const od = mk(); const stU = new Map<string, number>(), stRev = new Map<string, number>(); let OD_LAST = "";
+  const od = mk(); const stU = new Map<string, number>(), stRev = new Map<string, number>(); let OD_LAST = "", nMsk = 0, nAll = 0;
   for (const o of readNd(dp("orders_daily.ndjson"))) {
+    o.d = orderDay(o); nAll++; if (o.t) nMsk++;
     if (o.d > OD_LAST) OD_LAST = o.d;
     if (o.status === "cancelled") continue;
     const u = Number(o.units) || 0, i = SKU_CARD.get(String(o.sku));
@@ -332,7 +338,7 @@ ${tbl3}
 <div id="pt-pricepills"></div>
 <details class="fold"><summary>Все 26 артикулов</summary>${tbl6}</details>
 <details class="fold"><summary>Как считаем</summary><div class="fold-b"><ul class="pt-notes">
-<li>Заказы - шт без отмен, все товары карточки. Последние 3 дня бледные - досчитываются. День - по данным API (UTC).</li>
+<li>Заказы - шт без отмен, все товары карточки. Последние 3 дня бледные - досчитываются. ${nMsk === nAll && nAll ? "День заказа - по Москве." : `День заказа - по Москве там, где есть время заказа (${nMsk} из ${nAll}); остальные - дата UTC до ночного сбора.`}</li>
 <li>Порог - заказов за 15-28.10; ниже - откат карточки. Магазин - цель октября «средне» на 15-28.10.</li>
 <li>Воронка - ночной синк OZON. База 14.09-11.10.</li>
 <li>Реклама - неделя чт-ср. Меньше плана - зелёный, до 120% - жёлтый, больше - красный. По товарам - отчёт кабинета, он доливается несколько ночей: считаем по последний полный день (${ADS_FULL ? DM(ADS_FULL) : "-"}). 11 кампаний - по дням кампаний (${AD_CAMP_LAST ? DM(AD_CAMP_LAST) : "-"}).</li>

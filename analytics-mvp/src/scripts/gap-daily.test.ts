@@ -155,3 +155,17 @@ describe("гейт плато на живом gap_daily", () => {
     if (G.days[G.days.length - 1] === "2026-09-25") expect(got).toEqual(["GGL-07-XL-2"]);
   });
 });
+
+describe("съём утром и вечером: повтор даты заменяет строку (К4)", () => {
+  it("на дату и товар одна строка, побеждает последняя", () => {
+    const dir = mkdtempSync(join(tmpdir(), "gap2-"));
+    const p = join(dir, "gap_daily.ndjson");
+    writeFileSync(p, [
+      JSON.stringify({ date: "2026-10-15", art: "A-1", gap_pct: 10, src: "prices_raw", snap: "утро" }),
+      JSON.stringify({ date: "2026-10-15", art: "A-1", gap_pct: 12, src: "prices_raw", snap: "вечер" }),
+    ].join("\n"));
+    const r = readGapDaily(p);
+    expect(r.rows).toHaveLength(1);
+    expect(r.rows[0]!.gap_pct).toBe(12);
+  });
+});

@@ -67,6 +67,14 @@ export interface FunnelRow {
   n: number | null;
   /** У скольких значение ненулевое в этот день, по метрикам. Только у агрегатов. */
   n_nonzero: Partial<Record<FunnelKey, number>> | null;
+  /** Съём два раза в день (Иван 15.10): false - день ещё идёт, показы, корзина и заказы неполные.
+   *  Нет поля - строка старого формата, считается полным днём. */
+  full: boolean | null;
+  /** Момент съёма, МСК (ISO с +03:00), и «утро» / «вечер». Необязательны. */
+  ts: string | null;
+  snap: string | null;
+  /** Группа агрегата: test / control. Пусто у товарных строк и у старых агрегатов. */
+  group: string;
 }
 
 export interface FunnelRead {
@@ -81,6 +89,11 @@ export interface FunnelRead {
   bad: Array<{ line: number; why: string }>;
   first: string; last: string;
   exists: boolean;
+  /** Строки незакрытого дня (full: false). В rows, agg и byArt их нет: неполный день, положенный
+   *  в ряд как обычный, рисует провал (E029). Страница показывает их отдельно, с временем среза. */
+  partial: FunnelRow[];
+  /** Дата и момент последнего незакрытого среза. Пусто, если такого нет. */
+  partialDay: string; partialTs: string;
 }
 
 const num = (v: unknown): number => { const n = Number(v); return Number.isFinite(n) ? n : NaN; };
@@ -105,6 +118,16 @@ function parseNonzero(raw: unknown, n: number): Partial<Record<FunnelKey, number
   }
   if (!Object.keys(out).length) return "n_nonzero не содержит ни одной метрики файла";
   return out;
+}
+
+/** День строки ещё идёт: full=false, либо срез (ts) сделан в тот же день по Москве или раньше.
+ *  Флаг продьюсера - не единственная защита: строка с full=true, но временем среза внутри дня, тоже незакрытая. */
+export function isOpenDay(r: Pick<FunnelRow, "date" | "full" | "ts">): boolean {
+  if (r.full === false) return true;
+  if (!r.ts) return false;
+  const t = Date.parse(r.ts);
+  if (!Number.isFinite(t)) return false;
+  return new Date(t + 3 * 3600e3).toISOString().slice(0, 10) <= r.date;
 }
 
 /** Разбор одной строки по контракту. Возвращает строку или причину отказа. */
@@ -142,8 +165,17 @@ export function parseRow(raw: unknown): FunnelRow | string {
   const out: FunnelRow = {
     date, art, role, test_id: testId, search_position: pos,
     search_views: 0, pdp_views: 0, hits_to_cart: 0, ordered_units: 0,
-    n: null, n_nonzero: null,
+    n: null, n_nonzero: null, full: null, ts: null, snap: null, group: String(r.group ?? "").trim(),
   };
+  if (r.full != null) {
+    if (typeof r.full !== "boolean") return `full = «${String(r.full)}» не true / false`;
+    out.full = r.full;
+  }
+  if (r.ts != null) {
+    out.ts = String(r.ts);
+    if (!Number.isFinite(Date.parse(out.ts))) return `ts = «${out.ts}» не время ISO`;
+  }
+  if (r.snap != null) out.snap = String(r.snap);
   for (const k of ["search_views", "pdp_views", "hits_to_cart", "ordered_units"] as const) {
     const v = num(r[k] ?? 0);
     if (!Number.isFinite(v) || v < 0) return `${k} = «${String(r[k])}» не неотрицательное число`;
@@ -163,12 +195,15 @@ export function parseRow(raw: unknown): FunnelRow | string {
 export function readFunnelTests(path: string): FunnelRead {
   const empty: FunnelRead = {
     rows: [], agg: new Map(), byArt: new Map(), roleOf: new Map(), bad: [],
-    first: "", last: "", exists: false,
+    first: "", last: "", exists: false, partial: [], partialDay: "", partialTs: "",
   };
   if (!existsSync(path)) return empty;
   const out: FunnelRead = {
-    ...empty, exists: true, agg: new Map(), byArt: new Map(), roleOf: new Map(), rows: [], bad: [],
+    ...empty, exists: true, agg: new Map(), byArt: new Map(), roleOf: new Map(), rows: [], bad: [], partial: [],
   };
+  // Одна строка на ключ «роль + артикул (или тест) + группа + дата»: съём идёт утром и вечером, повтор
+  // заменяет прежнюю строку, а не дописывает вторую (иначе двойной счёт, К4). Побеждает последняя в файле.
+  const byKey = new Map<string, FunnelRow>();
   const lines = readFileSync(path, "utf-8").split(/\r?\n/);
   lines.forEach((l, i) => {
     if (!l.trim()) return;
@@ -176,8 +211,20 @@ export function readFunnelTests(path: string): FunnelRead {
     try { raw = JSON.parse(l); } catch { out.bad.push({ line: i + 1, why: "не разбирается как JSON" }); return; }
     const r = parseRow(raw);
     if (typeof r === "string") { out.bad.push({ line: i + 1, why: r }); return; }
+    const k = `${r.role}|${r.art}|${r.test_id}|${r.group}|${r.date}`;
+    byKey.delete(k); byKey.set(k, r);
+  });
+  for (const r of byKey.values()) {
+    if (isOpenDay(r)) {
+      out.partial.push(r);
+      if (r.date > out.partialDay || (r.date === out.partialDay && (r.ts ?? "") > out.partialTs)) { out.partialDay = r.date; out.partialTs = r.ts ?? ""; }
+      continue;
+    }
     out.rows.push(r);
     if (AGG_ROLES.has(r.role)) {
+      // агрегаты в файле - по группе контроля; строки группы test в контрольный ряд не кладём (иначе
+      // последняя из двух групп затирала другую, ФЕНИКС G2)
+      if (r.group === "test") continue;
       const byRole = out.agg.get(r.test_id) ?? new Map<FunnelRole, Map<string, FunnelRow>>();
       const byDay = byRole.get(r.role) ?? new Map<string, FunnelRow>();
       byDay.set(r.date, r); byRole.set(r.role, byDay); out.agg.set(r.test_id, byRole);
@@ -188,7 +235,7 @@ export function readFunnelTests(path: string): FunnelRead {
     }
     if (!out.first || r.date < out.first) out.first = r.date;
     if (r.date > out.last) out.last = r.date;
-  });
+  }
   return out;
 }
 

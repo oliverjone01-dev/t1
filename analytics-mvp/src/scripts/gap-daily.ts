@@ -59,12 +59,20 @@ export function readGapDaily(path: string): GapRead {
   const bySrc = new Map<string, number>();
   const days = new Set<string>();
   let withOa = 0, bad = 0;
+  // Съём утром и вечером (Иван 15.10): на дату и товар одна строка, повтор заменяет прежнюю,
+  // иначе день товара считается дважды (К4). Побеждает последняя строка файла.
+  const last = new Map<string, GapRow>();
   for (const l of readFileSync(path, "utf-8").trim().split("\n").filter(Boolean)) {
     let r: GapRow;
     try { r = JSON.parse(l) as GapRow; } catch { bad += 1; continue; }
     const d = String(r.date || "").slice(0, 10);
     const art = String(r.art || "").trim();
     if (!d || !art) { bad += 1; continue; }
+    const k = `${d}|${art}`; last.delete(k); last.set(k, r);
+  }
+  for (const r of last.values()) {
+    const d = String(r.date || "").slice(0, 10);
+    const art = String(r.art || "").trim();
     if (r.oa_used === true) { withOa += 1; continue; }
     // Number(null) это 0, и он проходит проверку на конечность: пустое значение,
     // прочитанное как ноль, стало бы днём с нулевым разрывом, то есть выдумкой.

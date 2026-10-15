@@ -29,6 +29,7 @@ import { fileURLToPath } from "node:url";
 import { dp as dpDefault } from "../paths.js";
 
 export const PLAN_FILE = "plan_2026-10-15.json";
+export const CAB_FILE = "cabinet_orders_check.ndjson";   // сверка «Заказано, шт» с кабинетом, съём чата (Иван 15.10)
 const CPO_ID = "28753239";                                     // «Оплата за заказ - все товары»: не клик
 const BASE: [string, string] = ["2026-09-14", "2026-10-11"];   // база порогов и плана (4 недели)
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -52,6 +53,42 @@ export const DM = (s: string): string => `${s.slice(8, 10)}.${s.slice(5, 7)}`;
 export function goalPath(g: Tri, d: number, sc: keyof Tri): number {
   return g.lo / 31 * d + (g[sc] - g.lo) * Math.max(0, Math.min(15, d - 16)) / 15;
 }
+/** День решения без последнего дня окна (ФЕНИКС N8, Codex P1): сегодня не раньше проверки, а заказы в данных
+ *  ещё не дошли до конца окна. Решать по 13 дням нельзя - текст заметного предупреждения, иначе пусто. */
+export function decisionWarn(today: string, check: string, odLast: string, w1: string): string {
+  if (today < check || (odLast && odLast >= w1)) return "";
+  return `Заказы по ${odLast ? DM(odLast) : "-"}: за ${DM(w1)} данных ещё нет. Решение по карточкам - только по полным 14 дням, после прихода заказов за ${DM(w1)}.`;
+}
+
+/** Определение эталонов спеки (golden_rows): шт без отмен по дню d (UTC) в [from, to], по товарам skus или всему магазину. */
+export function netUnits(rows: Array<{ d: string; status: string; sku: string | number; units: number }>, from: string, to: string, skus?: Set<string>): number {
+  return rows.filter((r) => r.d >= from && r.d <= to && r.status !== "cancelled" && (!skus || skus.has(String(r.sku))))
+    .reduce((a, r) => a + (Number(r.units) || 0), 0);
+}
+
+/** Сверка «Заказано, шт» (с отменами) с кабинетом ПО КАЖДОЙ карточке (решение 29.10 - по карточке, ФЕНИКС S1).
+ *  ours: sku|день -> шт по отправлениям; cardSkus[i] - товары карточки i. Допуск на карточку - 2% и не меньше 1 шт.
+ *  Охват: сколько пар «товар карточки + день» есть в выгрузке; неполная выгрузка - не «в допуске». */
+export interface CabCard { cab: number; ours: number; ok: boolean; have: number; need: number }
+export function cabinetCheck(cab: Array<{ date: string; sku: string; units: number }>, ours: Map<string, number>, from: string, to: string,
+  cardSkus: string[][]): { days: string[]; cards: CabCard[]; ok: boolean; full: boolean } | null {
+  // повтор «дата + товар» в выгрузке чата заменяет прежнюю строку (правило файлов чата), иначе двойной счёт (К4)
+  const last = new Map<string, { date: string; sku: string; units: number }>();
+  for (const r of cab) { if (r.date < from || r.date > to) continue; const k = `${r.sku}|${r.date}`; last.delete(k); last.set(k, r); }
+  const days = [...new Set([...last.values()].map((r) => r.date))].sort();
+  if (!days.length) return null;
+  const cards = cardSkus.map((skus): CabCard => {
+    let c = 0, o = 0, have = 0;
+    for (const d of days) for (const s of skus) {
+      const r = last.get(`${s}|${d}`); if (!r) continue;
+      have++; c += r.units; o += ours.get(`${s}|${d}`) ?? 0;
+    }
+    return { cab: c, ours: o, ok: Math.abs(c - o) <= Math.max(1, 0.02 * c), have, need: skus.length * days.length };
+  });
+  const full = cards.every((x) => x.have === x.need);
+  return { days, cards, ok: full && cards.every((x) => x.ok), full };
+}
+
 /** Статус карточки к порогу: нет данных / рано (меньше 3 дней) / идём / отстаём. Путь - порог × дни / 14. */
 export function cardStatus(got: number | null, need: number, nIn: number): "нет данных" | "рано" | "идём" | "отстаём" {
   if (got == null) return "нет данных";
@@ -168,6 +205,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     const i = mainIdx.get(r.art); if (i != null && Number(r.search_position) > 0) pos[i]!.set(r.date, Number(r.search_position));
   }
   // заказы
+  const skuDayAll = new Map<string, number>();   // с отменами, для сверки с кабинетом
   const od = mk(); const stU = new Map<string, number>(), stRev = new Map<string, number>(); let OD_LAST = "", nMsk = 0, nAll = 0;
   const ordRows = readNd(dp("orders_daily.ndjson"));
   const OD_RAW_LAST = ordRows.reduce((m, o) => o.d > m ? o.d : m, "");
@@ -178,6 +216,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
     if (o.d > OD_RAW_LAST) continue;
     if (o.d > OD_LAST) OD_LAST = o.d;
     const cc = canc.get(o.d) ?? [0, 0]; cc[0] += Number(o.units) || 0; if (o.status === "cancelled") cc[1] += Number(o.units) || 0; canc.set(o.d, cc);
+    add(skuDayAll, `${o.sku}|${o.d}`, Number(o.units) || 0);
     if (o.status === "cancelled") continue;
     const u = Number(o.units) || 0, i = SKU_CARD.get(String(o.sku));
     if (i != null) add(od[i]!, o.d, u);
@@ -333,10 +372,27 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   };
   const cancTxt = OD_LAST ? `${DM(addDays(OD_LAST, -12))}-${DM(addDays(OD_LAST, -3))} отменено ${cancShare(addDays(OD_LAST, -12), addDays(OD_LAST, -3))}, за последние 3 дня пока ${cancShare(addDays(OD_LAST, -2), OD_LAST)}` : "-";
   const noPos = cards.filter((_, i) => !pos[i]!.size).map((c) => c.short);
+  // сверка с кабинетом: съём чата по четвергам и 29.10 (Иван 15.10), другое семейство, чем отправления
+  const cabRows = existsSync(dp(CAB_FILE)) ? readNd(dp(CAB_FILE)).map((r) => ({ date: String(r.date).slice(0, 10), sku: String(r.sku), units: Number(r.ordered_units) }))
+    .filter((r) => r.date && r.sku && Number.isFinite(r.units)) : [];
+  const cardSkus = cards.map((_, i) => [...SKU_CARD].filter(([, j]) => j === i).map(([sku]) => sku));
+  const cab = cabinetCheck(cabRows, skuDayAll, START, OD_LAST || START, cardSkus);
+  let cabTxt = "";
+  if (cab) {
+    const span = `${DM(cab.days[0]!)}-${DM(cab.days[cab.days.length - 1]!)}`;
+    const off = cab.cards.map((x, i) => x.ok ? "" : `${cards[i]!.short} кабинет ${x.cab} / отправления ${x.ours}`).filter(Boolean);
+    const have = cab.cards.reduce((a, x) => a + x.have, 0), need = cab.cards.reduce((a, x) => a + x.need, 0);
+    if (!cab.full) warnings.push(`сверка с кабинетом ${span}: выгрузка неполная, ${have} из ${need} пар «товар + день»`);
+    if (off.length) warnings.push(`сверка с кабинетом ${span} не в допуске: ${off.join("; ")}`);
+    cabTxt = `<li>Сверка с кабинетом («Заказано, шт» с отменами, ${span}, охват ${F(have)} из ${F(need)} пар «товар + день»): `
+      + (off.length ? `<b>расхождение по ${off.length} из ${cards.length} карточек</b> - ${esc(off.join("; "))}` : `все ${cards.length} карточек в допуске (2%, не меньше 1 шт)`)
+      + (cab.full ? "" : ", <b>выгрузка неполная</b>") + `.</li>`;
+  }
+  const dWarn = decisionWarn(today, P.check, OD_LAST, W1);
   const day = Math.max(0, Math.min(14, Math.round((D0(today) - D0(START)) / 864e5) + 1));
   const warn = warnings.length ? `<div class="pt-warn">Проверка данных: ${warnings.slice(0, 5).map(esc).join("; ")}${warnings.length > 5 ? ` и ещё ${warnings.length - 5}` : ""}</div>` : "";
   const html = `<details class="card tcard" open id="pt-plan"><summary><div class="chead"><span class="ctitle">План с 15.10: как идём к цели</span>`
-    + `<span class="chip chip-run">день ${day} из 14 · проверка 29.10</span></div></summary>${warn}
+    + `<span class="chip chip-run">день ${day} из 14 · заказы по ${OD_LAST ? DM(OD_LAST) : "-"} · проверка ${DM(P.check)}</span></div></summary>${dWarn ? `<div class="pt-warn pt-decide">${esc(dWarn)}</div>` : ""}${warn}
 <div class="pt-gauges" id="pt-gauges"></div>
 <div class="pt-plaque"><span class="pt-pl-l">Цель К выплате</span> октябрь ${F(P.goal.pay_mln.oct.mid, 1)} млн · ноябрь ${F(P.goal.pay_mln.nov.mid, 1)} млн, с откатами 29.10 ${F(P.goal.nov_rollback.pay_mln, 1)} · факт по «Отчету» раз в месяц</div>
 <div class="sec">1. Заказы: 10 карточек и весь магазин</div>
@@ -361,6 +417,7 @@ ${tbl3}
 <li>Оборот к цели: цель посчитана от базы 20,4 млн (модель 13.10), а заказы за ту же базу дают больше - факт выглядит примерно на 3,5% лучше цели.</li>
 <li>Отмены приходят с опозданием (за ${cancTxt}): заказы за свежие дни потом немного уменьшатся.</li>
 ${noPos.length ? `<li>Позиции в поиске нет у ${noPos.map(esc).join(", ")}: их нет в съёме тестов.</li>` : ""}
+${cabTxt}
 <li>Данные: воронка по ${SV_LAST ? DM(SV_LAST) : "-"}, заказы по ${OD_LAST ? DM(OD_LAST) : "-"}, реклама по товарам по ${ADS_FULL ? DM(ADS_FULL) : "-"}. План - Excel 15.10.</li>
 </ul></div></details>
 </details>`;

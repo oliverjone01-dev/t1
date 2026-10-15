@@ -29,7 +29,7 @@ import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type Pair
 import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
 import {
-  readFunnelTests, missingDays, aggDay, FUNNEL_TESTS_FILE, FUNNEL_KEYS,
+  readFunnelTests, missingDays, aggDay, FUNNEL_TESTS_FILE, FUNNEL_KEYS, TEST_ROLES as TEST_ROLES_SET,
   type FunnelRow, type FunnelKey, type FunnelRole,
 } from "./funnel-tests.js";
 import { loadEbSeries, ebOn } from "./eb-level.js";
@@ -53,7 +53,7 @@ if (!IS_OZON) {
 }
 
 const C_TEST = "#3987e5", C_CTRL = "#d95926";   // проверены validate_palette.js на подложке #12161f
-const TODAY = new Date().toISOString().slice(0, 10);
+const TODAY = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);   // сегодня по Москве (спека: Europe/Moscow, E008)
 
 type Row = Record<string, number>;
 type PromoDef = { тип?: string; от: string; до: string; имя: string; заметка?: string };
@@ -3401,6 +3401,23 @@ gaps.push("Соинвест считается по цене, которую п�
   + " берётся на день заказа): по витрине 51.6 %, по цене с картой 56.4 %, факт 57.4 %."
   + " Отношение «факт к нашей цене по карте» 0.999. Разницу между предельной ценой и тем, что"
   + " заплатил покупатель, оплачивает Ozon.");
+// Незакрытый день воронки (съём вечером и утром, Иван 15.10): в графики и разницы он не входит,
+// иначе неполный день рисует провал (E029). Показываем его отдельной строкой с временем среза.
+const partialLine = (() => {
+  if (!FT.partialDay) return "";
+  // только тестовые товары (не контроль и не агрегаты), по одной строке на товар (ФЕНИКС B3)
+  const one = new Map<string, FunnelRow>();
+  for (const r of FT.partial) if (r.date === FT.partialDay && TEST_ROLES_SET.has(r.role)) one.set(r.art, r);
+  const rows = [...one.values()];
+  if (!rows.length) return "";
+  const sum = (k: "search_views" | "pdp_views" | "hits_to_cart" | "ordered_units"): number => rows.reduce((a, r) => a + r[k], 0);
+  const hm = /T(\d{2}:\d{2})/.exec(FT.partialTs)?.[1];
+  const txt = `${FT.partialDay.slice(8, 10)}.${FT.partialDay.slice(5, 7)} день не закрыт${hm ? `, срез ${hm} МСК` : ""}:`
+    + ` по ${nbsp(rows.length)} тестовым товарам показы в поиске ${nbsp(sum("search_views"))}, заходы в карточку ${nbsp(sum("pdp_views"))},`
+    + ` корзина ${nbsp(sum("hits_to_cart"))}, заказано ${nbsp(sum("ordered_units"))} шт. В графики и разницы не входит, утром заменится полным днём.`;
+  gaps.push(`Незакрытый день воронки: ${txt}`);
+  return `<p class="sub">${esc(txt)}</p>`;
+})();
 const notes = [...(T.заметки || []), ...gaps].map((n) => `<li>${esc(n)}</li>`).join("");
 const warnBlock = warns.map((w) => `<div class="stop"><b>${esc(w.split(".")[0] ?? "")}.</b>`
   + `${esc(w.slice((w.split(".")[0] ?? "").length + 1))}</div>`).join("");
@@ -3538,7 +3555,7 @@ const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<div class="upd"><span>Обновлено <b>${esc(BUILD_TS)}</b></span>`
   + `<a class="kt-refresh" href="${REFRESH_URL}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow»: синк соберёт свежий день (показы, цены, заказы, реклама), вкладка обновится сама после автосборки, обычно 10-15 мин. Разрыв приходит отдельно со среза кабинета по будням. Нужен вход в GitHub как владелец.">🔄 Обновить данные</a></div></div>`
   + priceBanner
-  + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>`
+  + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>` + partialLine
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта. Сама разница считается не к паре, а к групповому контролю: панель снимка без тестовых товаров и их родни по карточке. Пара осталась подписью и ловушкой для мёртвого и грязного контроля; родство в ней доказано корреляцией остатков, а не карточкой.</p>`
   // «Измеренные тесты» со страницы убраны, «Заметки и предупреждения» свёрнуты (Иван 30.09).

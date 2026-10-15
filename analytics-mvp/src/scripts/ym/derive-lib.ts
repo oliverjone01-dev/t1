@@ -1996,7 +1996,13 @@ export function accDocRows(rows: any[], netting: any[], accTo: string): AccDocRo
     if (r.basis === "orders") continue;
     const x = at(String(r.d || ""), String(r.business || ""), r.contract);
     x.got += n(r.got) + n(r.dgot) + n(r.cgot); x.back += n(r.back) + n(r.dback) + n(r.cback);
-    x.sold += n(r.sold) + n(r.csold); x.ret += n(r.ret) + n(r.cret); x.amount += n(r.amount);
+    x.sold += n(r.sold) + n(r.csold); x.ret += n(r.ret) + n(r.cret);
+    // «Подлежит перечислению» документа - тоже без фильтра статуса: платёж по заказу, который потом
+    // отменят, в отчёте о платежах стоит в месяце платежа, возврат - в месяце возврата. После перезабора
+    // со статусами оплаченные-отменённые ушли из amount (в блоке по артикулам они не продажа, E064), и
+    // строка разошлась с документом ровно на их сальдо: июль, 54641824/26 - 554 601 − 427 082 = 127 519 ₽
+    // (1 338 433,69 на странице против 1 465 952,69 в отчёте Кати). С cgot/cback снова до копейки.
+    x.amount += n(r.amount) + n(r.cgot) + n(r.cback);
   }
   for (const r of netting) {
     if (r.order && String(r.order).trim()) continue;

@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-10-16T07:12:07.978Z",
+  "generated_at": "2026-10-16T12:07:37.625Z",
   "today": "2026-10-16",
   "periods": [
     {
@@ -587,11 +587,11 @@
     "fee_source": {
       "orders_from_netting": 1559,
       "orders_from_commissions": 319,
-      "accruals_from_netting": 62755920,
+      "accruals_from_netting": 62950547,
       "accruals_from_commissions": 0,
       "fees_from_netting": 33458488.37,
       "fees_from_commissions": 0,
-      "rate_netting": 53.3,
+      "rate_netting": 53.2,
       "rate_order": null,
       "by_month": {
         "2026-01": {
@@ -677,26 +677,26 @@
         "2026-09": {
           "orders_netting": 202,
           "orders_order": 41,
-          "accruals_netting": 10459690,
+          "accruals_netting": 10518330,
           "accruals_order": 0,
           "fees_netting": 6332832.52,
           "fees_order": 0,
-          "rate_netting": 60.5,
+          "rate_netting": 60.2,
           "rate_order": null
         },
         "2026-10": {
           "orders_netting": 65,
           "orders_order": 23,
-          "accruals_netting": 2054613,
+          "accruals_netting": 2190600,
           "accruals_order": 0,
           "fees_netting": 1236078.27,
           "fees_order": 0,
-          "rate_netting": 60.2,
+          "rate_netting": 56.4,
           "rate_order": null
         }
       },
       "gaps": [],
-      "accruals_total": 62755920,
+      "accruals_total": 62950547,
       "pct_accruals_from_commissions": 0,
       "months_mostly_commissions": [],
       "gaps_named": [],
@@ -718,16 +718,16 @@
         "orders": 419,
         "rows": 607,
         "revenue": 21017292,
-        "delivered": 261,
-        "payout": 4185822,
+        "delivered": 262,
+        "payout": 4211467,
         "skus": 91
       },
       "74986385": {
         "orders": 1459,
         "rows": 2354,
         "revenue": 80900547,
-        "delivered": 1006,
-        "payout": 25111609,
+        "delivered": 1009,
+        "payout": 25280591,
         "skus": 328
       }
     },

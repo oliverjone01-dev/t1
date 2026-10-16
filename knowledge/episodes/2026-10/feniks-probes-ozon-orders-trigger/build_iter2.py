@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""ФЕНИКС #484 iter2: JSON-отчёт и строка трейса (только scratch/out)."""
+import json
+import shutil
+
+O = "/tmp/claude-0/-home-user-t1/76832855-1f9d-5a4f-aeaa-595f7a6dd8fa/scratchpad/out/"
+cp = {
+    "accuracy_1_figures_tagged": 2, "accuracy_2_sources_verifiable": 2, "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2, "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2, "actionability_7_deadline_buffer": 2, "actionability_8_resources_listed": 1,
+    "actionability_9_metric_concrete": 2, "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2, "insight_12_second_order": 1, "insight_13_alternatives_analyzed": 1,
+    "insight_14_anti_median": 1, "insight_15_cross_domain": 1,
+    "brand_16_voice": 2, "brand_17_anti_slop": 2, "brand_18_no_em_dash": 2, "brand_19_output_routing": 2, "brand_20_tone_audience": 2,
+    "risk_21_downside": 1, "risk_22_p9_hard_rules": 2, "risk_23_crisis_scenarios": 2, "risk_24_dependencies": 1, "risk_25_reversibility": 2,
+}
+scores = {"accuracy": 9.0, "actionability": 9.0, "insight": 6.0, "brand_fit": 10.0, "risk_awareness": 8.0}
+W = {"accuracy": 0.25, "actionability": 0.25, "insight": 0.20, "brand_fit": 0.15, "risk_awareness": 0.15}
+wt = round(sum(scores[k] * W[k] for k in W), 2)
+
+probes = [
+    {"id": "A5b", "result": "PASS", "evidence": "iter2_probes.sh, тело шага «Коммит данных в ветку» из YAML ff3af7e4 под bash -eo pipefail: R1 чужой push после checkout - код 0, свежие заказы в origin (3 коммита); R2 мутант без pull --rebase - код 1, ::error::push данных не удался (было: код 0); R3 грязное дерево (package-lock.json вне git add) + чужой push - autostash, код 0, заказы в origin; R4 конфликт в orders_daily - код 1, rebase не оставлен; R5 без гонки - код 0. actionlint SC2015 на orders-backfill.yml ушёл."},
+    {"id": "T1", "result": "PASS", "evidence": "Повтор шагов начислений pnlsku/acq/pnlacc (orders-backfill.yml:71-97) с подставным npx: коды [0] - 1 вызов без пауз; [1,0] - 2 вызова, пауза 60; [1,1,0] - 3 вызова, паузы 60 и 120, код 0; [1,1,1] - код 1 после пауз 60 и 120. continue-on-error у всех трёх сохранён, итоговая проверка outcome краснит прогон."},
+    {"id": "K7", "result": "PARTIAL", "evidence": "Механика повтора верна (T1), действенность против 429 не измерена: 16.10 повтор прогона 54 через 20 мин упал уже на шаге 8 (REST jobs). Мерить красные прогоны первых 3 дней после мержа."},
+    {"id": "K1", "result": "PASS", "evidence": "ozon-snapshots.yml: on = только workflow_dispatch (yaml.safe_load). Запуски ozon только из шага orders (push утро и вечер, schedule) - по модели K1 iter1 это O3 Z3 в день без отменённых ждущих, дубля нет; стресс S1 восстанавливается, как на a8b1100d (рассуждение по модели, не прогон GitHub)."},
+    {"id": "K2", "result": "PARTIAL", "evidence": "Зависимости от cron ozon: deploy-pages.yml:57-59 workflow_run (теперь все прогоны ozon запущены ботом, см. K8); sync.yml - только ручной, от cron не зависит; deploy-pages.yml:60-65 своё расписание 09:47 UTC осталось, комментарий обновлён; в ozon-snapshots и скриптах проверок event_name нет. Устарели комментарии orders-backfill.yml:10-11 и :23 и latency в knowledge/semantic/metrics: ozon-price-test-gap-shift.yaml:53, ozon-v5-strategy-profit.yaml:45, ozon-monthly-report.yaml:65."},
+    {"id": "K6", "result": "PARTIAL", "evidence": "actionlint 1.7.7 + shellcheck на трёх файлах ff3af7e4: orders-backfill.yml чистый; ozon-snapshots.yml:163 SC2086 и deploy-pages.yml:107, 286, 355 SC2012 (info, строки вне диффа, были и раньше) - утверждение PR «actionlint чистый на трёх файлах» неточно. workflow_hygiene.py: ошибок 0, предупреждений 26, у orders-backfill 8 (70, 80, 90, 102, 108, 113, 129, 149) без # dg-ok, новое || true на 129."},
+    {"id": "K8", "result": "N/A", "evidence": "[НЕ ПРОВЕРЕНО] workflow_run deploy-pages после ozon-snapshots, запущенного dispatch через GITHUB_TOKEN: среди последних 100 прогонов direct-snapshots, harvest, ym-snapshots и ozon-snapshots запущенных ботом 0, прецедента нет; docs.github.com 403. После снятия cron это 100% прогонов ozon. Запасной путь: бот-диспатчи deploy-pages (днём зазор до 2.1 ч, вечером 15.10 до 4 ч) и cron 09:47. Приёмка первой цепочки записана в теле PR."},
+    {"id": "A5c", "result": "PARTIAL", "evidence": "Вне диффа, записано в PR: acq-sku-daily.ts:56 и pnl-accrual-daily.ts:93 catch continue - день пропадает из файла, шаг выходит 0, проверка outcome не видит."},
+    {"id": "A6", "result": "PARTIAL", "evidence": "orders-backfill.yml:37 actions: write на весь workflow, без изменений с iter1."},
+    {"id": "P1", "result": "PASS", "evidence": "Тело PR (updated 07:22:42): 4,5-7,7 ч с источником, «с 30.09 только съём с мака», критерий успеха (~08:30 МСК «План» с фактом за вчера, цепочка orders -> ozon -> deploy-pages в Actions), ответственный за приёмку и за перезапуск, вне PR записан catch continue; длинных тире 0."},
+]
+ledger = [
+    {"gap": "Деплой после бот-диспатча ozon не проверен, теперь это все прогоны ozon", "evidence": "K8: 0 бот-прогонов в последних 100 у каждого из 4 upstream deploy-pages.yml:58; ozon-snapshots.yml:10-13 без cron", "checkpoint": "risk_24_dependencies", "weight": -1},
+    {"gap": "Последствие отказа workflow_run не описано", "evidence": "тело PR: есть приёмка, нет плана Б (dispatch deploy-pages в конце ozon-snapshots по шаблону b24-cron.yml:130-147)", "checkpoint": "risk_21_downside", "weight": -1},
+    {"gap": "Устаревшие комментарии и latency в semantic, неточное «actionlint чистый»", "evidence": "orders-backfill.yml:10-11, :23; ozon-price-test-gap-shift.yaml:53, ozon-v5-strategy-profit.yaml:45, ozon-monthly-report.yaml:65; actionlint: ozon-snapshots.yml:163, deploy-pages.yml:107, 286, 355", "checkpoint": "accuracy_3_no_conflict_with_rag", "weight": -1},
+    {"gap": "Нагрузка на OZON и разметка мягких шагов не записаны", "evidence": "тело PR без числа прогонов в день (orders 1 -> 3, ozon 1 -> 3); workflow_hygiene.py: 8 предупреждений К7 orders-backfill.yml без # dg-ok", "checkpoint": "actionability_8_resources_listed", "weight": -1},
+    {"gap": "Вторичные эффекты: один путь расписания для ozon, действенность повтора не измерена", "evidence": "ozon теперь только через шаг orders-backfill.yml:133-154; мак пропускал 03-04.10 (REST commits); K7", "checkpoint": "insight_12_second_order", "weight": -1},
+    {"gap": "Альтернативы выбраны из списка аудита, не разобраны автором", "evidence": "тело PR: вариант снятия cron без сравнения с проверкой свежести", "checkpoint": "insight_13_alternatives_analyzed", "weight": -1},
+    {"gap": "Типовое решение", "evidence": "рассуждение", "checkpoint": "insight_14_anti_median", "weight": -1},
+    {"gap": "Нет переноса практики", "evidence": "рассуждение", "checkpoint": "insight_15_cross_domain", "weight": -1},
+    {"gap": "Вне диффа: catch continue в начислениях", "evidence": "acq-sku-daily.ts:56, pnl-accrual-daily.ts:93; записано в PR, записи в реестре нет", "checkpoint": "risk_23_crisis_scenarios", "weight": 0},
+]
+gaps = [
+    "K8 (приёмка после мержа): deploy-pages.yml:57-59 workflow_run после ozon-snapshots, запущенного через GITHUB_TOKEN, не проверен; после снятия cron (ozon-snapshots.yml:10-13) так запускаются все прогоны ozon, прецедента нет (0 из 100 у 4 upstream). Не пришёл на первой цепочке - добавить dispatch deploy-pages в конец ozon-snapshots по шаблону b24-cron.yml:130-147.",
+    "K7: повтор шагов начислений (orders-backfill.yml:71-97) механически верен, действенность против 429 не измерена (16.10 повтор через 20 мин упал на другом шаге); посчитать красные прогоны за первые 3 дня.",
+    "Устаревшие комментарии: orders-backfill.yml:10-11 («Час раньше ночного ozon-snapshots») и :23 («до ночного синка OZON (05:53 UTC)»).",
+    "Вне диффа: latency в knowledge/semantic/metrics устарела - ozon-price-test-gap-shift.yaml:53 (~08:53), ozon-v5-strategy-profit.yaml:45 (~14:30-16:30), ozon-monthly-report.yaml:65.",
+    "Тело PR: «actionlint чистый на трёх файлах» неточно - ozon-snapshots.yml:163 SC2086 и deploy-pages.yml:107, 286, 355 SC2012 (info, были до PR); число прогонов в день (orders 3, ozon 3) не записано.",
+    "Гигиена К7: orders-backfill.yml 8 предупреждений без # dg-ok (70, 80, 90, 102, 108, 113, 129, 149), новое || true на 129; actions: write на весь workflow (:37).",
+    "Один путь расписания для ozon: если GitHub пропустит cron orders (:22-23) в день без съёма (как 03-04.10), ozon в этот день не пойдёт; ручная кнопка остаётся (build-tests.ts:2232).",
+    "Вне диффа, записано в PR: acq-sku-daily.ts:56 и pnl-accrual-daily.ts:93 catch continue; нужна запись в реестр и отдельный PR.",
+]
+rep = {
+    "agent": "feniks", "skill": "phoenix-eval", "task_id": "feniks-ozon-orders-trigger-pr484-iter2-20261016",
+    "timestamp": "2026-10-16T07:40:00+00:00",
+    "deliverable_ref": "https://github.com/oliverjone01-dev/t1/pull/484 @ ff3af7e4d4833a2441c0328c62137a5f343a80c2 (код 39ea4f35 поверх a8b1100d, затем отчёт iter1 [skip ci]), audit hash e54801a487a73f3e (пересчитан, совпал; охват - 3 workflow-файла, остальное в knowledge/episodes и traces)",
+    "artifact_class": "gate", "audience": "внутренний: автор PR, координатор, Иван (мерж по слову «мерж»)",
+    "anchor": "8.5 timur-activation (итерация 3, go) - наш артефакт ниже на 0.1: как у ТИМУРА iter3, каждый пункт return закрыт и подтверждён живьём (A5b R1-R5 с мутантом, повтор шагов T1, cron ozon снят), но звено деплоя после бот-диспатча не проверено и теперь покрывает все прогоны ozon (K8), а в PR неточная строка про actionlint и устаревшие комментарии; ниже 8.9 annotate по той же причине - остаток записан, но не весь",
+    "probes": probes, "comprehension_gate": {"applies": False, "passed": True, "defects": []},
+    "checkpoints": cp, "scores": scores, "weighted_total": wt, "verdict": "go",
+    "primary_gap": "Деплой сайта по workflow_run после ozon-snapshots, запущенного ботом, не проверен, а после снятия cron так запускаются все прогоны ozon (K8): приёмка на первой цепочке и план Б записать до мержа.",
+    "gaps": gaps, "evidence_ledger": ledger,
+    "rework_tz": "Для go не требуется. До или сразу после мержа: 1) план Б к приёмке K8 в теле PR (dispatch deploy-pages в конце ozon-snapshots, если workflow_run не пришёл); 2) поправить комментарии orders-backfill.yml:10-11, :23 и строку про actionlint; 3) через 3 дня посчитать красные прогоны orders (K7). Отдельно: # dg-ok у мягких шагов, latency в трёх yaml semantic, реестр для catch continue.",
+    "iteration": 2, "confidence": 0.82, "p9_triggers_fired": [],
+    "escalate_to": "нет; мерж по слову Ивана «мерж»",
+    "sources_of_truth": [
+        "git -C /home/user/t1-wt diff a8b1100d 39ea4f35 -- .github/; show ff3af7e4:.github/workflows/{orders-backfill,ozon-snapshots,deploy-pages}.yml",
+        "iter2_probes.sh: песочница git (R1-R5), подставной npx (T1), actionlint 1.7.7 + shellcheck 0.11.0, workflow_hygiene.py",
+        "gh api pulls/484 (тело 07:22:42), actions/workflows/{direct-snapshots,harvest,ym-snapshots,ozon-snapshots}.yml/runs (бот-прогоны 0)",
+        "grep ozon-snapshots|08:53|05:53 по .github/workflows, analytics-mvp/src, tools, knowledge/semantic",
+        "iter1: feniks-audit-ozon-orders-trigger-20261016.{md,json}, модель concurrency_sim.py",
+    ],
+}
+json.dump(rep, open(O + "feniks-audit-ozon-orders-trigger-iter2-20261016.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+note = ("PR #484 iter2 @ff3af7e4: GO 8.40. A5b закрыт (R1-R5: чужой push - заказы в origin, мутант без pull красный, конфликт красный), "
+        "повтор начислений 3 попытки 60/120 с (T1), cron ozon снят - дубля нет, тело PR обновлено. Остаток: K8 workflow_run после бот-диспатча "
+        "не проверен и теперь на всех прогонах ozon (приёмка после мержа), K7 действенность повтора, устаревшие комментарии :10-11, :23. Охват: 3 workflow-файла.")
+assert len(note) <= 500, len(note)
+tr = {"ts": "2026-10-16T07:40:00+00:00", "event": "audit", "agent": "feniks", "tier": "0",
+      "task_id": "feniks-ozon-orders-trigger-pr484-iter2-20261016", "mode": "red_team", "outcome": "success",
+      "verdict": "go", "feniks_score": wt, "confidence": 0.82,
+      "deliverable_ref": "PR #484 claude/amazing-hawking-0trncq@ff3af7e4 (.github/workflows/orders-backfill.yml, ozon-snapshots.yml, deploy-pages.yml); отчёт knowledge/episodes/2026-10/feniks-audit-ozon-orders-trigger-iter2-20261016.md",
+      "audited_hash": "e54801a487a73f3e", "note": note}
+open(O + "traces-2026-10-16-agents.pr484-iter2.line.jsonl", "w", encoding="utf-8").write(json.dumps(tr, ensure_ascii=False) + "\n")
+shutil.copy("/tmp/claude-0/-home-user-t1/76832855-1f9d-5a4f-aeaa-595f7a6dd8fa/scratchpad/fx484/iter2_probes.sh", O + "feniks-probes-ozon-orders-trigger/iter2_probes.sh")
+shutil.copy(__file__, O + "feniks-probes-ozon-orders-trigger/build_iter2.py")
+print("weighted", wt, "note", len(note))

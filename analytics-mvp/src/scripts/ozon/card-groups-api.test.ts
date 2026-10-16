@@ -48,4 +48,10 @@ describe("карта карточек из Seller API", () => {
     expect(few.map).toBeNull(); expect(few.why).toMatch(/40 товаров из 60/);
     expect(buildCardMap(many(20), null, "d", 44).map).not.toBeNull();
   });
+
+  it("fail-closed: пустой SKU, «0» или один SKU у двух артикулов - карту не пишем (ФЕНИКС G2)", () => {
+    expect(buildCardMap([...many(20), it_("Z-1", 5, ""), it_("Z-2", 5, "77")], null, "d").why).toMatch(/Z-1: пустой SKU/);
+    expect(buildCardMap([...many(20), it_("Z-1", 5, "0"), it_("Z-2", 5, "77")], null, "d").map).toBeNull();
+    expect(buildCardMap([...many(20), it_("Z-1", 5, "01"), it_("Z-2", 5, "77")], null, "d").why).toMatch(/SKU 01 у A0-1 и Z-1/);
+  });
 });

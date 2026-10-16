@@ -68,6 +68,15 @@ export function buildCardMap(items: any[], prev: MapFile | null, today: string, 
   if (requested && n < requested * MIN_MODEL_SHARE) return { map: null, stats, why: `API вернул ${n} товаров из ${requested} запрошенных (< ${MIN_MODEL_SHARE * 100} %)` };
   if (withModel / n < MIN_MODEL_SHARE) return { map: null, stats, why: `model_id прочитан у ${withModel} из ${n} (< ${MIN_MODEL_SHARE * 100} %)` };
   if (apiGroups < MIN_GROUPS) return { map: null, stats, why: `карточек в ответе API ${apiGroups} (< ${MIN_GROUPS})` };
+  // SKU - ключ словарей у cpc-card-spread, build-katya и plan-tab (ФЕНИКС #486 G2): пустой, «0» или
+  // один SKU у двух артикулов - карту не пишем.
+  const bySku = new Map<string, string>(); const badSku: string[] = [];
+  for (const g of groups) for (const x of g.skus) {
+    if (!x.sku || x.sku === "0") { badSku.push(`${x.offer}: пустой SKU`); continue; }
+    const o = bySku.get(x.sku);
+    if (o && o !== x.offer) badSku.push(`SKU ${x.sku} у ${o} и ${x.offer}`); else bySku.set(x.sku, x.offer);
+  }
+  if (badSku.length) return { map: null, stats, why: `битые SKU (${badSku.length}): ${badSku.slice(0, 3).join("; ")}` };
   const skuN = groups.reduce((s, g) => s + g.skus.length, 0);
   return {
     map: { generated_note: `карта объединённых карточек из Seller API (${groups.length} карточек, ${skuN} товаров)`, source: "seller-api-model_info", imported_at: today, groups },

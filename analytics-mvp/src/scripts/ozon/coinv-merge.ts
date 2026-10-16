@@ -51,7 +51,11 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
     const prev = by.get(k);
     const row: StoredRow = { ...(prev ?? { date: s.date, art: s.art }) };
     if (s.sku != null) row.sku = s.sku;
-    if (s.coinv_pct != null) row.coinv_paid_pct = s.coinv_pct;
+    // Срез без SKU: витрину не сняли, на её место встала наша цена, и соинвест 0 ложный (9 новых GGT-03-5-1,
+    // 16.10; Иван: «пиши нет данных»). Такой 0 не пишем - поле остаётся пустым.
+    const noSite = !String(s.sku ?? "").trim() && s.coinv_pct === 0;
+    if (s.coinv_pct != null && !noSite) row.coinv_paid_pct = s.coinv_pct;
+    if (noSite) delete row.coinv_paid_pct;
     if (s.oa != null) row.site_paid = s.oa;
     if (s.seller != null) row.cap = s.seller;
     row.oa_source = sourceOf(s);

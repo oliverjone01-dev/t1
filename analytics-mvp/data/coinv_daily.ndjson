@@ -57685,7 +57685,7 @@
 {"date": "2026-10-10", "art": "GGT-47-3-3-90", "sku": "4865595144", "coinv_paid_pct": 51.16, "site_paid": 27300, "cap": 55900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-10T12:11:49+03:00"}
 {"date": "2026-10-10", "art": "GGT-47-3-5-80", "sku": "4865594883", "coinv_paid_pct": 51.16, "site_paid": 25347, "cap": 51900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-10T12:11:49+03:00"}
 {"date": "2026-10-10", "art": "GGT-47-3-5-90", "sku": "4865594859", "coinv_paid_pct": 57.06, "site_paid": 24001, "cap": 55900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-10T12:11:49+03:00"}
-{"date": "2026-10-10", "art": "GGT-47-5-1-80", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 80431, "cap": 80431, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-10T12:11:49+03:00"}
+{"date": "2026-10-10", "art": "GGT-47-5-1-80", "sku": "", "site_paid": 80431, "cap": 80431, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-10T12:11:49+03:00"}
 {"date": "2026-10-10", "art": "GGT-48-2-2-100-180", "sku": "5444460310", "coinv_paid_pct": 57.07, "site_paid": 34731, "cap": 80900, "oa_source": "snapshot", "in_panel": false, "snap": "утро", "ts": "2026-10-10T12:11:49+03:00"}
 {"date": "2026-10-10", "art": "GGT-48-3-3-100-180", "sku": "5444461826", "coinv_paid_pct": 57.07, "site_paid": 34731, "cap": 80900, "oa_source": "snapshot", "in_panel": false, "snap": "утро", "ts": "2026-10-10T12:11:49+03:00"}
 {"date": "2026-10-10", "art": "GGT-48-5-1-100-180", "sku": "5444471508", "coinv_paid_pct": 57.07, "site_paid": 34731, "cap": 80900, "oa_source": "snapshot", "in_panel": false, "snap": "утро", "ts": "2026-10-10T12:11:49+03:00"}
@@ -58149,7 +58149,7 @@
 {"date": "2026-10-11", "art": "GGT-47-3-3-90", "sku": "4865595144", "coinv_paid_pct": 51.09, "site_paid": 27339, "cap": 55900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-11T12:16:58+03:00"}
 {"date": "2026-10-11", "art": "GGT-47-3-5-80", "sku": "4865594883", "coinv_paid_pct": 51.09, "site_paid": 25384, "cap": 51900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-11T12:16:58+03:00"}
 {"date": "2026-10-11", "art": "GGT-47-3-5-90", "sku": "4865594859", "coinv_paid_pct": 57.81, "site_paid": 23587, "cap": 55900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-11T12:16:58+03:00"}
-{"date": "2026-10-11", "art": "GGT-47-5-1-80", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 80431, "cap": 80431, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-11T12:16:58+03:00"}
+{"date": "2026-10-11", "art": "GGT-47-5-1-80", "sku": "", "site_paid": 80431, "cap": 80431, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-11T12:16:58+03:00"}
 {"date": "2026-10-11", "art": "GGT-48-2-2-100-180", "sku": "5444460310", "coinv_paid_pct": 57.81, "site_paid": 34131, "cap": 80900, "oa_source": "snapshot", "in_panel": false, "snap": "утро", "ts": "2026-10-11T12:16:58+03:00"}
 {"date": "2026-10-11", "art": "GGT-48-3-3-100-180", "sku": "5444461826", "coinv_paid_pct": 57.81, "site_paid": 34131, "cap": 80900, "oa_source": "snapshot", "in_panel": false, "snap": "утро", "ts": "2026-10-11T12:16:58+03:00"}
 {"date": "2026-10-11", "art": "GGT-48-5-1-100-180", "sku": "5444471508", "coinv_paid_pct": 57.81, "site_paid": 34131, "cap": 80900, "oa_source": "snapshot", "in_panel": false, "snap": "утро", "ts": "2026-10-11T12:16:58+03:00"}
@@ -60378,15 +60378,15 @@
 {"date": "2026-10-16", "art": "GGT-03-3-5-O-20090", "sku": "3579703510", "coinv_paid_pct": 59.97, "site_paid": 43990, "cap": 109900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
 {"date": "2026-10-16", "art": "GGT-03-3-5-S-40", "sku": "3821699701", "coinv_paid_pct": 54.24, "site_paid": 17801, "cap": 38900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
 {"date": "2026-10-16", "art": "GGT-03-3-6-L-90-12090", "sku": "3564837580", "coinv_paid_pct": 53.29, "site_paid": 43859, "cap": 93900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-E-12080", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 97900, "cap": 97900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-E-14080", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 102900, "cap": 102900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-E-16080", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 106900, "cap": 106900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-100", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 85900, "cap": 85900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-110", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 87900, "cap": 87900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-120", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 89900, "cap": 89900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-80", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 77900, "cap": 77900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-90", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 81900, "cap": 81900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-O-18090", "sku": "", "coinv_paid_pct": 0.0, "site_paid": 115900, "cap": 115900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-E-12080", "sku": "", "site_paid": 97900, "cap": 97900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-E-14080", "sku": "", "site_paid": 102900, "cap": 102900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-E-16080", "sku": "", "site_paid": 106900, "cap": 106900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-100", "sku": "", "site_paid": 85900, "cap": 85900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-110", "sku": "", "site_paid": 87900, "cap": 87900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-120", "sku": "", "site_paid": 89900, "cap": 89900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-80", "sku": "", "site_paid": 77900, "cap": 77900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-90", "sku": "", "site_paid": 81900, "cap": 81900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-O-18090", "sku": "", "site_paid": 115900, "cap": 115900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
 {"date": "2026-10-16", "art": "GGT-03-5-1-O-20090", "sku": "3579701389", "coinv_paid_pct": 59.97, "site_paid": 43990, "cap": 109900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
 {"date": "2026-10-16", "art": "GGT-12-2", "sku": "3564827469", "coinv_paid_pct": 53.81, "site_paid": 14579, "cap": 31566, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}
 {"date": "2026-10-16", "art": "GGT-12-3", "sku": "3564840043", "coinv_paid_pct": 53.06, "site_paid": 20605, "cap": 43900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-16T07:12:38+03:00"}

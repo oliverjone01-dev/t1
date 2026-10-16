@@ -1,0 +1,203 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-coinv-nodata-20261016",
+  "timestamp": "2026-10-16T17:08:39+03:00",
+  "deliverable_ref": "PR ветка claude/amazing-hawking-0trncq @ b547ff1 (audit_hash 58864faa1b967096, посчитан сам; в запросе хеша не было) поверх merge-base a018638. Охват: все 7 путей хеша (prices-daily.ts, prices-daily.test.ts, coinv-merge.ts, coinv-merge-nosite.test.ts, data/prices_daily.ndjson, data/coinv_daily.ndjson, knowledge/semantic/metrics/ozon-plan-15-10.yaml) плюс вне хеша fix_nodata_1610.py и handoff v16",
+  "iteration": 1,
+  "artifact_class": "dashboard",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 0,
+    "accuracy_4_glossary_terminology": 1,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 1,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 6.0,
+    "actionability": 8.0,
+    "insight": 6.0,
+    "brand_fit": 10.0,
+    "risk_awareness": 7.0
+  },
+  "weighted_total": 7.3,
+  "verdict": "return",
+  "primary_gap": "G1: третья поверхность того же ложного нуля не тронута. gap_daily.ndjson держит gap_pct 0.0 (site_to_seller 1.0, oa_used false, sku пустой) ровно в тех же 11 парах (день, артикул), что чинит PR в coinv_daily: 9 GGT-03-5-1 за 16.10 и GGT-47-5-1-80 за 10-11.10. Из gap_daily строится график «Соинвест» на странице (build-tests.ts:310-330, решение Ивана 29.09), гейт плато (gap-daily.ts:20 «Гейт читает только gap_pct», build-tests.ts:2823) и «скидка OZON» вкладки плана (plan-tab.ts:25, 461, 467). После слияния coinv_daily говорит «нет данных», gap_daily говорит 0 про тот же товар в тот же день; писатель gap-daily.ts:79-86 отсекает только null и пустую строку, следующий срез мака без SKU снова запишет 0",
+  "gaps": [
+    "G1 (главный, B4 FAIL): gap_daily - 11 тех же ложных нулей (те же день и артикул, что в coinv_daily) остаются; это источник графика «Соинвест», гейта плато и «скидки OZON» плана. Влияние на медиану дня 16.10 малое: 48.530 против 48.645 без строк без SKU (прокси по всем строкам), но поверхности расходятся, и писатель gap-daily.ts повторит 0 со следующим срезом",
+    "G2 (M1 FAIL): mergeCoinv стирает реальное значение того же дня. Хранилось {sku 123, coinv_paid_pct 55}, поздний срез того же дня {sku '', coinv_pct 0} - на выходе coinv_paid_pct нет и sku пустой. Ключ слияния date|art без snap (coinv-merge.ts:39), delete безусловный (coinv-merge.ts:58). До PR там был бы ложный 0, теперь «нет данных» вместо известных 55",
+    "G3 (P1 FAIL): слепая зона частичного отката API. При доле price==before 50, 85, 89 % ложные нули пишутся молча (50/85/89 строк coinv 0, before null 0), предупреждение только когда пусты все строки (prices-daily.ts:108). История 27 дней даёт максимум 6.7 % (08.10), так что тревогу можно ставить с 15 %",
+    "G4: утверждение self-check 12 «потребители before/coinv - только сборщик» неверно. prices_daily читают ещё build-tests.ts:286 (r.coinv до 23.09), :2240 (price), plan-tab.ts:453 (price), tools/tests/gen_tests_mock.py:61 (coinv). Все null-safe (проба N1 PASS), но перечень в PR неполный",
+    "G5: подпись поля. С 23.09 prices_daily.coinv - скидка самого продавца от зачёркнутой цены, не соинвест (build-tests.ts:271-276: 28.8 % против соинвеста 61-63 %). Новый комментарий prices-daily.ts:47-49 и warning :108 называют его «соинвест дня», путаница закрепляется в логе",
+    "G6: признак не совпадает с механизмом. Комментарий coinv-merge.ts:54-55: «витрину не сняли, на её место встала наша цена»; правило ловит только пустой SKU. Остаются нули с SKU и site_to_seller 1.0: coinv_daily 2026-10-12 GGT-47-5-1-90 (site_paid = cap = 0 %), gap_daily тот же день плюс 2026-09-20 GGT-03-5-1-O-20090 и GGT-20-5-1-20090. Ложные они или нет - [ГИПОТЕЗА], пробы смысла нет",
+    "G7: приёмка определена только для API-ветки (ближайший prices:daily). Для мака (срез 17.10 утром, handoff v16 п.5) нет критерия: что должно стоять в coinv_daily и gap_daily у 9 GGT-03-5-1, если SKU снова не придёт"
+  ],
+  "rework_tz": "1) gap_daily: то же правило, что в coinv-merge (sku пустой и gap_pct 0 и site_to_seller 1.0 - поля gap_pct нет), в писателе gap-daily.ts или в readGapDaily; правка данных 11 строк тем же скриптом v8 (байт в байт остальное); тест. Если Иван решит gap_daily не трогать - запись в decisions.md и пометка расхождения поверхностей на странице. 2) coinv-merge: срез без SKU с 0 не стирает значение того же дня, пришедшее со SKU (prev.sku непустой и prev.coinv_paid_pct != 0 - оставить prev, sku тоже не затирать пустым); тест на сценарий M1. 3) prices-daily: warning при доле price==before от 0.15 до 0.9 («частичный откат API, соинвест дня под сомнением»); в комментарии к NO_BEFORE_SHARE - основание из истории: 27 дней, максимум 6.7 %, 15-16.10 - 100 %, метка [ДАННЫЕ] вместо [ГИПОТЕЗА]. 4) В описании PR исправить перечень потребителей (build-tests.ts:286 и :2240, plan-tab.ts:453, gen_tests_mock.py:61; все null-safe). 5) Решить с Иваном 3 нуля с SKU и site_to_seller 1.0 (20.09 x2, 12.10): ложные или реальные; если ложные - признак «site == cap», а не «нет SKU». 6) Приёмка мака на 17.10: что ожидаем в обоих файлах у 9 GGT-03-5-1. Повторный аудит: дифф к b547ff1 плюс прогон проб B4, M1, P1",
+  "confidence": 0.8,
+  "p9_triggers_fired": [
+    "денежных утверждений нет; порог NO_BEFORE_SHARE 0.9 помечен автором [ГИПОТЕЗА], проверен по истории 27 дней (максимум 6.7 %)"
+  ],
+  "anchor": "anchor: 6.7 dialogs-registry (return) - наш артефакт выше (7.3), потому что счётчики воспроизведены до строки (937 = 464 + 473, 11 строк coinv_daily, 0 дублей, остальные 11993 строки prices_daily байт в байт) и все 10 потребителей null-safe; общий с якорем маркер - «метка только на одном из трёх экранов»: «нет данных» стоит в coinv_daily, а gap_daily, из которого строятся график «Соинвест» и гейт, держит те же 11 нулей. Против 7.8 cardmap iter2 (тот же автор, тот же день, тот же класс) ниже: там поверхности закрыты, здесь B4 FAIL и потеря значения в слиянии",
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev b547ff1 = 58864faa1b967096; 7 путей хеша, все в охвате; git status --porcelain: только traces/2026-10-16/agents.jsonl (хук SubagentStart); HEAD = b547ff1"
+    },
+    {
+      "id": "T1",
+      "result": "PASS",
+      "evidence": "npx vitest run: Tests 1 failed | 1097 passed (1098), Test Files 1 failed | 66 passed; новые тесты в зелёных"
+    },
+    {
+      "id": "K1",
+      "result": "PASS",
+      "evidence": "card-kin «не наш» подтверждён: тест читает из coinv_daily только date и art (card-kin.test.ts:169-172); последняя дата 16.10, 473 артикула, 60521 строка - одинаково на origin/main и HEAD; ассерт «карта карточек отстала: возраст 23, без карточки 2.7 %»"
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "origin/main prices_daily: GGM-01-2 14.10 price 43900 before 54750, 15.10 и 16.10 price 43900 before 43900 - согласуется с seller-prices-probe; connector ozon-seller.ts:87-89 price = marketing_seller_price, before = API price. Сам файл пробы seller-prices-probe в репо не открыт [НЕ ПРОВЕРЕНО]"
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "доля price==before по дням: 05-14.10 от 3.4 до 6.7 %, 15.10 и 16.10 - 100 % (464/464, 473/473); правило срабатывает только на 15-16.10, остальные 11993 строки prices_daily байт в байт с origin/main"
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "0 дублей (d, offer) в 12930 строках; 937 = 464 + 473 строк обнулено, ненулевых before/coinv/coinv_paid за 15-16.10 на HEAD 0; coinv_daily 60521 строк до и после, изменено 11"
+    },
+    {
+      "id": "B4",
+      "result": "FAIL",
+      "evidence": "scratchpad q.py: gap_daily gap_pct 0 - 14 строк, 11 без SKU = те же (день, артикул), что в фиксе coinv_daily, у всех site_to_seller 1.0, oa_used false; график «Соинвест» из gap_daily (build-tests.ts:310-330), гейт (build-tests.ts:2823, gap-daily.ts:20), скидка OZON плана (plan-tab.ts:461, 467)"
+    },
+    {
+      "id": "B5",
+      "result": "N/A",
+      "evidence": "шаблонов и фразебука нет; замечание: 0.9 продублирован литералом в fix_nodata_1610.py вместо импорта константы"
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "проба 16.10, данные по 16.10; страница пересобирается в CI после prices:daily (ozon-snapshots.yml:264, :359 npm run katya)"
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "нового пути наружу нет; PR убирает ложные числа, а не добавляет; страницы внутренние"
+    },
+    {
+      "id": "N1",
+      "result": "PASS",
+      "evidence": "null/undefined у потребителей: build-tests.ts:242+258 (NaN, isFinite), :284-290 (новая схема читает только coinv_paid, hasCo), :2240-2243 (только price); plan-tab.ts:453-456 (только price); pick-controls.ts:189+215 (== null - пропуск); boost-readiness.ts:217, 237, 276, 298 (v == null || !isFinite); plateau-backtest.ts:12 (coinvOf из boost-readiness); coinv-calibration.ts:53-55, 289-290 (необязательные поля, null/NaN - «нет данных», чтением, без прогона); gen_tests_mock.py:61 (is not None); payout_base_check.py:29-31, 94 (читает только coinv_pct, у 11 строк его не было и до PR). Цепочки ?? coinv_pct ?? coinv: у 11 строк нет ни одного из полей"
+    },
+    {
+      "id": "M1",
+      "result": "FAIL",
+      "evidence": "scratchpad probe.ts: mergeCoinv(stored {2026-10-16, A, sku 123, coinv_paid_pct 55}, slice {2026-10-16, A, sku '', coinv_pct 0}) = {date, art, sku '', oa_source snapshot, in_panel true} - известные 55 стёрты"
+    },
+    {
+      "id": "P1",
+      "result": "FAIL",
+      "evidence": "scratchpad probe.ts: priceRows при доле price==before 50/85/89/90 %: coinv 0 записано 50/85/89/0, before null 0/0/0/100; warning только при всех пустых (prices-daily.ts:108)"
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "G1 gap_daily держит те же 11 ложных нулей",
+      "evidence": "python3 -I scratchpad/q.py: 14 нулей, 11 без SKU, site_to_seller 1.0; медиана 16.10 48.530 против 48.645 без строк без SKU; build-tests.ts:310-330, :2823; gap-daily.ts:20, 79-86; plan-tab.ts:25, 461, 467",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -2
+    },
+    {
+      "gap": "G1 второй порядок: соседний производитель того же числа не проверен",
+      "evidence": "self-check 24 «частично» назвал только coinv-calibration; grep gap_pct в build-tests.ts и boost-readiness.ts:217 (coinvOf берёт gap_pct первым)",
+      "checkpoint": "insight_12_second_order",
+      "weight": -1
+    },
+    {
+      "gap": "G1 зависимость гейта от gap_daily",
+      "evidence": "build-tests.ts:2823 controlByDay(GATE_ROWS, ...); gap-daily.ts:86 in_panel true для каждой строки",
+      "checkpoint": "risk_24_dependencies",
+      "weight": -1
+    },
+    {
+      "gap": "G2 слияние стирает реальное значение того же дня",
+      "evidence": "npx tsx scratchpad/probe.ts, строка P-M1; coinv-merge.ts:39 (ключ date|art), :53 (sku перезаписывается пустым), :58 (delete)",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    },
+    {
+      "gap": "G3 частичный откат API пишет нули молча",
+      "evidence": "npx tsx scratchpad/probe.ts, строки P-P 50/85/89/90 %; история 27 дней максимум 6.7 % (08.10)",
+      "checkpoint": "risk_21_downside",
+      "weight": -1
+    },
+    {
+      "gap": "G4 перечень потребителей в self-check неполный",
+      "evidence": "grep -rln prices_daily: build-tests.ts, plan-tab.ts, tools/tests/gen_tests_mock.py, public/katya-tests.html; build-tests.ts:286, gen_tests_mock.py:61-62",
+      "checkpoint": "accuracy_2_sources_verifiable",
+      "weight": -1
+    },
+    {
+      "gap": "G5 prices_daily.coinv с 23.09 не соинвест, PR называет его соинвестом",
+      "evidence": "build-tests.ts:271-276; prices-daily.ts:47-49, :108",
+      "checkpoint": "accuracy_4_glossary_terminology",
+      "weight": -1
+    },
+    {
+      "gap": "G6 признак «нет SKU» вместо механизма «витрина = наша цена»",
+      "evidence": "coinv-merge.ts:54-55; coinv_daily 2026-10-12 GGT-47-5-1-90 sku 6005103981 site_paid = cap, coinv 0; gap_daily 20.09 x2 и 12.10 site_to_seller 1.0 со SKU [рассуждение о природе нулей]",
+      "checkpoint": "insight_13_alternatives_analyzed",
+      "weight": -1
+    },
+    {
+      "gap": "G7 приёмка мака не определена",
+      "evidence": "handoff v16 п.5 «проверить утром 17.10» без критерия; self-check 7 «частично»",
+      "checkpoint": "actionability_10_milestone",
+      "weight": -1
+    }
+  ],
+  "sources_of_truth": [
+    "origin/main:analytics-mvp/data/prices_daily.ndjson, coinv_daily.ndjson (эталон до правки)",
+    "analytics-mvp/data/gap_daily.ndjson (третья поверхность)",
+    "analytics-mvp/src/scripts/build-tests.ts:242-330, :2235-2243, :2823",
+    "analytics-mvp/src/connector/ozon-seller.ts:72, 87-89",
+    "analytics-mvp/src/scripts/gap-daily.ts:14-38, 79-86",
+    "analytics-mvp/src/scripts/plan-tab.ts:25, 450-467",
+    "scratchpad probe.ts, q.py (read-only)",
+    "knowledge/feniks/calibration-anchors.md (6.7 dialogs-registry), knowledge/episodes/2026-10/feniks-audit-ozon-cardmap-api-iter2-20261016.json (7.8)"
+  ],
+  "audience": "Иван (CMO), автор PR",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "telemetry": {
+    "model": "claude-opus-5-5"
+  }
+}

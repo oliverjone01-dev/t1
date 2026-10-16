@@ -27,7 +27,7 @@ import { OzonSeller } from "../../connector/ozon-seller.js";
 const OUT = "data/prices_daily.ndjson";
 
 export interface PriceRow {
-  d: string; offer: string; price: number; paid: number | null; before: number;
+  d: string; offer: string; price: number; paid: number | null; before: number | null;
   coinv: number | null; coinv_paid: number | null;
 }
 
@@ -44,10 +44,18 @@ export function coinvOf(price: number | null, before: number | null): number | n
 // Чистое (без сети): строки коннектора -> записи дня. Вынесено ради теста.
 // Цена по карте может не прийти: тогда пишем пробел в paid и coinv_paid, а не подменяем их
 // витриной. Подмена дала бы правдоподобное, но заниженное число, и его никто бы не заметил.
+/** С 15.10.2026 OZON отдаёт в поле price цену после акций продавца (= marketing_seller_price), цены до
+ *  акций в ответе нет. Тогда price == before почти у всех, и соинвест выходит ложным 0 (Иван 16.10: «пиши нет
+ *  данных»). Если так у доли товаров не меньше NO_BEFORE_SHARE - before и соинвест дня пишем пустыми. */
+export const NO_BEFORE_SHARE = 0.9;
+
 export function priceRows(
   items: Array<{ offer_id: string; price: number | null; price_paid?: number | null; price_before: number | null }>,
   d: string,
 ): PriceRow[] {
+  const valid = items.filter((it) => String(it.offer_id || "").trim() && it.price && it.price_before);
+  const same = valid.filter((it) => Math.round(it.price!) === Math.round(it.price_before!)).length;
+  const noBefore = valid.length > 0 && same / valid.length >= NO_BEFORE_SHARE;
   const out: PriceRow[] = [];
   for (const it of items) {
     const offer = String(it.offer_id || "").trim();
@@ -57,9 +65,9 @@ export function priceRows(
       d, offer,
       price: Math.round(it.price),
       paid: paid == null ? null : Math.round(paid),
-      before: Math.round(it.price_before),
-      coinv: coinvOf(it.price, it.price_before),
-      coinv_paid: coinvOf(paid, it.price_before),
+      before: noBefore ? null : Math.round(it.price_before),
+      coinv: noBefore ? null : coinvOf(it.price, it.price_before),
+      coinv_paid: noBefore ? null : coinvOf(paid, it.price_before),
     });
   }
   return out;
@@ -97,6 +105,7 @@ async function main() {
   console.log(`  соинвест по цене с картой: медиана ${medOf(rows.map((r) => r.coinv_paid)) ?? "-"} % (посчитан у ${paidN} из ${rows.length})`);
   // Молчащий пробел здесь дороже шумного: без цены по карте соинвест занижен на пять пунктов,
   // и заметить это можно только сверкой с начислениями раз в месяц.
+  if (rows.every((r) => r.before == null)) console.warn("  ::warning:: OZON не отдал цену до акций (price = цена после акций) - соинвест по API за день: нет данных, рабочий ряд - coinv_daily с мака");
   if (!paidN) console.warn("  ::warning:: цена по карте Ozon не пришла ни по одному артикулу - проверьте поле marketing_price в ответе");
 }
 

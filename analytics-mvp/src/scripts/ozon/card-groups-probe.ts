@@ -20,7 +20,10 @@ async function main() {
 
   let items: any[] = [];
   try {
-    items = full ? await seller.attributesAll(1000, 0) : await seller.attributesRaw(100);
+    // Весь каталог - по списку артикулов из прайса: без него метод отвечал 404 (16.10).
+    const offers = full ? (await seller.prices()).map((p) => p.offer_id).filter(Boolean) : [];
+    if (full) console.log(`probe: артикулов в прайсе ${offers.length}`);
+    items = full ? await seller.attributesAll(1000, 0, offers) : await seller.attributesRaw(100);
   } catch (e) {
     console.error("probe attributes FAILED:", (e as Error).message);
     console.error("Если это 404 или «method not found» - эндпоинт другой, и карту придётся брать не отсюда.");

@@ -1,0 +1,16 @@
+import json, sys
+SP = '/tmp/claude-0/-home-user-t1/39ce78b8-29b6-551f-9a34-e54649462146/scratchpad'
+h = open(SP + '/out/katya-tests.html', encoding='utf-8').read()
+i = h.index('window.PD=') + len('window.PD='); j = h.index(';\n', i)
+PD = json.loads(h[i:j])
+json.dump(PD, open(SP + '/pd.json', 'w'), ensure_ascii=False)
+print({k: (v if not isinstance(v, (list, dict)) else type(v).__name__) for k, v in PD.items()})
+D = PD['days']; print(D[0], D[-1], len(D))
+print('cards', PD['cards'])
+print('store_card', PD['store_card'])
+print('price_st', PD['price_st'], PD['price_n'], PD['price_first'])
+o0 = D.index('2026-10-01')
+print('store orders oct', PD['store']['orders'][o0:o0 + 16])
+print('store rev oct', PD['store_rev'][o0:o0 + 16])
+print('store units(sv) oct', PD['store']['units'][o0:o0 + 16])
+for k in ['sv_last', 'od_last', 'ad_last', 'today', 'start', 'w1']: print(k, PD[k])

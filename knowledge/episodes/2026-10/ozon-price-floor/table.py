@@ -1,10 +1,11 @@
 # Таблица «где можно снизить цену» из floor_rows.json (floor.py). Файл xlsx пишется вне репозитория.
+# ВНИМАНИЕ 13.10: тексты листа «Как считали» ниже - версии до вето 12.10 (АДМ от К выплате - реклама, «модель на проверке»); перед новой выгрузкой xlsx их переписать по floor.py.
 # Запуск: python3 -I table.py <путь.xlsx>
 import json,sys
 from openpyxl import Workbook
 from openpyxl.styles import Font,PatternFill,Alignment
 D='/home/user/t1/analytics-mvp/data/'
-rows=json.load(open('/home/user/t1/knowledge/episodes/2026-10/ozon-price-floor/floor_rows.json'))
+rows=json.load(open('/tmp/ozon-floor/floor_rows.json'))
 name={}
 for l in open(D+'sku_views.ndjson'):
     r=json.loads(l); name[r['sku']]=r['name']

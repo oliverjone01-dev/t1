@@ -58,3 +58,30 @@ describe("отчёт: тип кампании", () => {
     expect(isCpoCampaign("")).toBe(false);
   });
 });
+
+describe("отчёт: покрытие «за заказ» (ФЕНИКС N1, Иван 15.10)", () => {
+  const rep = (over: any) => ({
+    ads: [["2026-06-10", 1000, 5000, 1, 0, 0], ["2026-07-10", 1000, 5000, 1, 300, 300]],
+    cpo: [["2026-06-10", 200, 2600], ["2026-07-10", 300, 3900]], gmv: [], adsCat: [],
+    cpoFrom: "2026-06-05", cpoTo: "2026-07-31", cpoErr: "", cpoMissM: [], ...over,
+  });
+  const sum = (R: any, from: string, to: string) =>
+    new Function("MAXD", "fmtRu", "REP", REPORT_JS + ";return rpAdsSum;")("2026-07-31", (n: number) => String(n), R)({ from, to });
+  it("без ошибки месяцы выгрузки покрыты", () => {
+    expect(sum(rep({}), "2026-06-01", "2026-06-30").cpoCov).toBe(true);
+    expect(sum(rep({}), "2026-07-01", "2026-07-31").cpoCov).toBe(true);
+  });
+  it("под ошибкой выгрузки числа выгрузки не показываются, даже если расхода «за заказ» в кабинете нет (N1)", () => {
+    const s = sum(rep({ cpoErr: "«Оплата за заказ»: тест" }), "2026-06-01", "2026-06-30");
+    expect([s.cpoApiSp, s.cpoSp, s.cpoCov]).toEqual([0, 200, false]);
+  });
+  it("ненайденные заказы прячут только свой месяц", () => {
+    const R = rep({ cpoMissM: ["2026-07"] });
+    expect(sum(R, "2026-06-01", "2026-06-30").cpoCov).toBe(true);
+    expect(sum(R, "2026-07-01", "2026-07-31").cpoCov).toBe(false);
+  });
+  it("месяц без расхода «за заказ» ни в кабинете, ни в выгрузке - покрыт и под ошибкой (выручка 0)", () => {
+    const R = rep({ cpoErr: "x", ads: [["2026-05-10", 1000, 5000, 1, 0, 0]] });
+    expect(sum(R, "2026-05-01", "2026-05-31").cpoCov).toBe(true);
+  });
+});

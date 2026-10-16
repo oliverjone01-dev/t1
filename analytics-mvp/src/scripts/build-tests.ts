@@ -21,6 +21,7 @@ import {
   type BoostRow, type CoinvRow, type WaveItem,
 } from "./boost-readiness.js";
 import { KPAGES, navButton } from "./katya-nav.js";
+import { planBlock } from "./plan-tab.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
 import { readGapDaily, GAP_DAILY_FILE } from "./gap-daily.js";
@@ -28,7 +29,7 @@ import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type Pair
 import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
 import {
-  readFunnelTests, missingDays, aggDay, FUNNEL_TESTS_FILE, FUNNEL_KEYS,
+  readFunnelTests, missingDays, aggDay, FUNNEL_TESTS_FILE, FUNNEL_KEYS, TEST_ROLES as TEST_ROLES_SET,
   type FunnelRow, type FunnelKey, type FunnelRole,
 } from "./funnel-tests.js";
 import { loadEbSeries, ebOn } from "./eb-level.js";
@@ -52,7 +53,7 @@ if (!IS_OZON) {
 }
 
 const C_TEST = "#3987e5", C_CTRL = "#d95926";   // проверены validate_palette.js на подложке #12161f
-const TODAY = new Date().toISOString().slice(0, 10);
+const TODAY = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);   // сегодня по Москве (спека: Europe/Moscow, E008)
 
 type Row = Record<string, number>;
 type PromoDef = { тип?: string; от: string; до: string; имя: string; заметка?: string };
@@ -2615,7 +2616,7 @@ function priceCard(c: PriceCalc, ti: number): string {
       + `Ожидаемое падение, если Ozon не держит: -(100 - разрыв в базе) × ${cut}% / ${100 - cut}%. Показы: доля группы в показах магазина в поиске за 7 дней (sku_views).`)
     + hist.map((h, i) => fold("cov", i === 0 ? "Что уже известно" : `Что уже известно (${i + 1})`, esc(h))).join("")
     + (t.заметка ? fold("cov", "Как выбраны товары", esc(t.заметка)) : "")
-    + fold("cov", "Откуда данные", `Разрыв - срез кабинета (gap_daily), по ${esc(P_LAST_GAP || "-")}, снимается по будням. Предельная для проверки снижения - снимок цен (prices_daily, поле price), по ${esc(P_LAST_CAP || "-")}. `
+    + fold("cov", "Откуда данные", `Разрыв - срез кабинета (gap_daily), по ${esc(P_LAST_GAP || "-")}, снимается утром и вечером. Предельная для проверки снижения - снимок цен (prices_daily, поле price), по ${esc(P_LAST_CAP || "-")}. `
       + `Показы - ночной синк OZON (sku_views), по ${esc(P_LAST_VIEWS || "-")}. Заказы - orders_daily. Страница собрана ${esc(BUILD_TS)}.`));
   return `<section class="card" id="${esc(t.id)}"><div class="chead"><div class="ctitle">${esc(numTitle(pNo(ti), t.название))} ${chip}</div></div>`
     + `<div class="meta"><span>Старт: <b>${esc(t.старт)}</b></span><span>Замер: <b>${esc(t.замер)}</b></span>`
@@ -3400,6 +3401,23 @@ gaps.push("Соинвест считается по цене, которую п�
   + " берётся на день заказа): по витрине 51.6 %, по цене с картой 56.4 %, факт 57.4 %."
   + " Отношение «факт к нашей цене по карте» 0.999. Разницу между предельной ценой и тем, что"
   + " заплатил покупатель, оплачивает Ozon.");
+// Незакрытый день воронки (съём вечером и утром, Иван 15.10): в графики и разницы он не входит,
+// иначе неполный день рисует провал (E029). Показываем его отдельной строкой с временем среза.
+const partialLine = (() => {
+  if (!FT.partialDay) return "";
+  // только тестовые товары (не контроль и не агрегаты), по одной строке на товар (ФЕНИКС B3)
+  const one = new Map<string, FunnelRow>();
+  for (const r of FT.partial) if (r.date === FT.partialDay && TEST_ROLES_SET.has(r.role)) one.set(r.art, r);
+  const rows = [...one.values()];
+  if (!rows.length) return "";
+  const sum = (k: "search_views" | "pdp_views" | "hits_to_cart" | "ordered_units"): number => rows.reduce((a, r) => a + r[k], 0);
+  const hm = /T(\d{2}:\d{2})/.exec(FT.partialTs)?.[1];
+  const txt = `${FT.partialDay.slice(8, 10)}.${FT.partialDay.slice(5, 7)} день не закрыт${hm ? `, срез ${hm} МСК` : ""}:`
+    + ` по ${nbsp(rows.length)} ${plural(rows.length, "тестовому товару", "тестовым товарам", "тестовым товарам")} показы в поиске ${nbsp(sum("search_views"))}, заходы в карточку ${nbsp(sum("pdp_views"))},`
+    + ` корзина ${nbsp(sum("hits_to_cart"))}, заказано ${nbsp(sum("ordered_units"))} шт. В графики и разницы не входит, утром заменится полным днём.`;
+  gaps.push(`Незакрытый день воронки: ${txt}`);
+  return `<p class="sub">${esc(txt)}</p>`;
+})();
 const notes = [...(T.заметки || []), ...gaps].map((n) => `<li>${esc(n)}</li>`).join("");
 const warnBlock = warns.map((w) => `<div class="stop"><b>${esc(w.split(".")[0] ?? "")}.</b>`
   + `${esc(w.slice((w.split(".")[0] ?? "").length + 1))}</div>`).join("");
@@ -3523,27 +3541,31 @@ const foldCards = (html: string): string => html
   .replace(/<section class="card"( id="[^"]*")?><div class="chead">([\s\S]*?)<\/div><\/div>/g,
     (_m, id: string | undefined, head: string) => `<section class="card"${id || ""}><details class="tcard"><summary class="chead">${head}</div></summary>`)
   .replace(/<\/section>/g, "</details></section>");
+const PLAN = planBlock(TODAY);
+if (PLAN?.warnings.length) console.warn(`plan-tab: ${PLAN.warnings.length} предупреждений: ${PLAN.warnings.slice(0, 3).join("; ")}`);
 const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">`
   + `<meta name="viewport" content="width=device-width,initial-scale=1">`
-  + `<title>GENGLASS · Тесты</title><style>${CSS}</style></head><body>`
+  + `<title>GENGLASS · Тесты</title><style>${CSS}${PLAN?.css ?? ""}</style></head><body>`
   + `<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">`
   + `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">${nav}`
   + `<span style="color:#5d7484;margin-left:8px">тесты по ${esc(T.обновлено || "")} · воронка по ${esc(LAST)} · разрыв по ${esc(P_LAST_GAP || "-")}</span></div></div>`
   + `<div class="wrap"><div class="h1row"><h1>Тесты · A/B по рекламе</h1>`
   // Кнопка и дата обновления (Иван 01.10). Тот же синк, что у «Денег»: ozon-snapshots.yml собирает
-  // свежий день и пересобирает вкладки. Срез кабинета (разрыв) идёт отдельно, с мака, по будням.
+  // свежий день и пересобирает вкладки. Срез кабинета (разрыв) идёт отдельно, с мака, утром и вечером.
   + `<div class="upd"><span>Обновлено <b>${esc(BUILD_TS)}</b></span>`
-  + `<a class="kt-refresh" href="${REFRESH_URL}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow»: синк соберёт свежий день (показы, цены, заказы, реклама), вкладка обновится сама после автосборки, обычно 10-15 мин. Разрыв приходит отдельно со среза кабинета по будням. Нужен вход в GitHub как владелец.">🔄 Обновить данные</a></div></div>`
+  + `<a class="kt-refresh" href="${REFRESH_URL}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow»: синк соберёт свежий день (показы, цены, заказы, реклама), вкладка обновится сама после автосборки, обычно 10-15 мин. Разрыв приходит отдельно со среза кабинета, утром и вечером. Нужен вход в GitHub как владелец.">🔄 Обновить данные</a></div></div>`
   + priceBanner
-  + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>`
+  + `<p class="sub">Проверяем гипотезы по соинвесту и ставке. Метрики замера: ${esc((T.метрики || []).join(" · "))}.</p>` + partialLine
   + `<p class="legend">Одна строка таблицы - одна пара: слева артикул из теста, справа его контроль. `
   + `<b>Δ поиска</b> - насколько пара сопоставима по трафику до старта. Сама разница считается не к паре, а к групповому контролю: панель снимка без тестовых товаров и их родни по карточке. Пара осталась подписью и ловушкой для мёртвого и грязного контроля; родство в ней доказано корреляцией остатков, а не карточкой.</p>`
   // «Измеренные тесты» со страницы убраны, «Заметки и предупреждения» свёрнуты (Иван 30.09).
   // mblock собирается по-прежнему: reakciya.json не трогаем, блок просто не выводится.
   // Карточки тестов свёрнуты до заголовка с чипом статуса (Иван 30.09: «сами тесты свернуть»).
+  // Первый блок - «План с 15.10: как идём к цели» (Иван 15.10), plan-tab.ts.
+  + (PLAN?.html ?? "")
   + foldCards(cards.replace("<!--BOOST_EXITED-->", () => WAVE.exited).replace("<!--BOOST_TECH-->", () => WAVE.tech) + bidCards + priceCards)
   + `<details class="fold"><summary><b style="font-size:15px">Заметки и предупреждения</b></summary><div class="fold-b">${warnBlock}<div class="notes"><ul>${notes}</ul></div></div></details></div>`
-  + `<script>${JS}</script></body></html>`;
+  + `<script>${JS}</script>${PLAN ? `<script>${PLAN.js}</script>` : ""}</body></html>`;
 
 writeFileSync(op("katya-tests.html"), html);
 console.log(`katya-tests.html: ${Math.round(html.length / 1024)} KB, тестов ${T.тесты.length}, измеренных ${measured.length}, данные по ${LAST}`);

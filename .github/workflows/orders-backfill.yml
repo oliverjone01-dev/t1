@@ -98,7 +98,9 @@ jobs:
         # Цепочка «съём -> заказы -> реклама и просмотры -> сайт» без ожидания расписания GitHub.
         # Коммиты ботом (GITHUB_TOKEN) push-воркфлоу не запускают, поэтому петли нет; dispatch через
         # GITHUB_TOKEN GitHub разрешает. Идёт и при сбое отчёта о реализации: реклама от него не зависит.
-        if: ${{ !cancelled() && github.event_name == 'push' }}
+        # И по расписанию: в группе ozon-data новый запуск заменяет ждущий, и прогон по расписанию
+        # может вытеснить прогон от съёма (Codex P2 #484). Лишний ozon-snapshots тоже заменит ждущий.
+        if: ${{ !cancelled() && github.event_name != 'workflow_dispatch' }}
         run: |
           set -euo pipefail
           ok=0

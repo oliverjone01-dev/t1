@@ -275,8 +275,21 @@ export class OzonSeller {
   // Нужен ради model_info: OZON склеивает несколько SKU в одну карточку, и ключ этой
   // склейки живёт здесь, а не в прайсе и не в остатках. Возвращаем элементы как есть:
   // форму ответа подтверждает card-groups-probe, гадать по памяти тут нельзя.
-  async attributesAll(pageLimit = 1000, maxPages = 0): Promise<any[]> {
+  // 16.10 запрос только с visibility отвечал HTTP 404 «item not found» (card-groups-probe run 1),
+  // поэтому при переданном списке артикулов ходим по нему пачками по 1000 (лимит метода).
+  async attributesAll(pageLimit = 1000, maxPages = 0, offerIds: string[] = []): Promise<any[]> {
     const out: any[] = [];
+    if (offerIds.length) {
+      for (let i = 0; i < offerIds.length; i += 1000) {
+        const data = await this.post<any>("/v4/product/info/attributes", {
+          filter: { offer_id: offerIds.slice(i, i + 1000), visibility: "ALL" },
+          limit: 1000,
+        });
+        const items = data.result ?? data.items ?? [];
+        out.push(...(Array.isArray(items) ? items : []));
+      }
+      return out;
+    }
     let lastId = "";
     let page = 0;
     do {

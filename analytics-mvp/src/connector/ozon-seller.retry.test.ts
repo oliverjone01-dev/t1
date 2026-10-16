@@ -25,8 +25,8 @@ describe("OzonSeller: лог повторов", () => {
     expect(await p).toHaveLength(1);
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(warn).toHaveBeenCalledTimes(2);
-    expect(warn.mock.calls[0][0]).toMatch(/^OZON \/v1\/finance\/accrual\/types: HTTP 429, повтор 1\/8 через \d+\.\d с$/);
-    expect(warn.mock.calls[1][0]).toMatch(/повтор 2\/8/);
+    expect(warn.mock.calls[0]![0]).toMatch(/^OZON \/v1\/finance\/accrual\/types: HTTP 429, повтор 1\/8 через \d+\.\d с$/);
+    expect(warn.mock.calls[1]![0]).toMatch(/повтор 2\/8/);
   });
 
   it("4xx кроме 429 не повторяется и не пишет warn", async () => {

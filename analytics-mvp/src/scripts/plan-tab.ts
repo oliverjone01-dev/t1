@@ -12,7 +12,7 @@
 // Пороги и цели в коде не пересчитываются: план зафиксирован 15.10.
 //
 // ОПРЕДЕЛЕНИЯ (Иван 15.10, ответы «да» на 6 вопросов + «меньше - зеленее» везде у рекламы):
-//  - Заказы: orders_daily, шт без отмен, все товары объединённой карточки (card_groups.json), кроме выводимых
+//  - Заказы: orders_daily, шт без отмен, все товары объединённой карточки (plan_card_groups_1510.json - состав на 15.10), кроме выводимых
 //    (plan.withdrawn, Иван 15.10 «б»): их нет ни в базе порога, ни в окне, ни в воронке и рекламе карточки; в магазине есть.
 //    День - по Москве: t (полное время) + 3 ч, без t - UTC-дата d. Выгрузка идёт до 23:59 UTC последнего дня d,
 //    поэтому полный последний день по Москве = последний d; заказы позже него ждут следующего сбора. Последние 3 дня бледные.
@@ -31,6 +31,9 @@ import { fileURLToPath } from "node:url";
 import { dp as dpDefault } from "../paths.js";
 
 export const PLAN_FILE = "plan_2026-10-15_v4.json";   // v4: v3 + QUATRIS и PROFIX на -10% с 16.10 (Иван 16.10), v8/add_price_1610.py; v3: v2 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2) + выводимые вне карточек, пороги 5 карточек (Иван 15.10 «б»), v8/withdraw_base_1510.py
+/** Состав объединённых карточек плана заморожен на 15.10 (Иван 16.10: новые GGT-03-5-1 в план не считать):
+ *  с 16.10 card_groups.json каждую ночь из API (PR #486), а пороги плана посчитаны на этом составе. */
+export const PLAN_CARDS_FILE = "plan_card_groups_1510.json";
 export const CAB_FILE = "cabinet_orders_check.ndjson";   // сверка «Заказано, шт» с кабинетом, съём чата (Иван 15.10)
 const CPO_ID = "28753239";                                     // «Оплата за заказ - все товары»: не клик
 const BASE: [string, string] = ["2026-09-14", "2026-10-11"];   // база порогов и плана (4 недели)
@@ -242,15 +245,15 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const warnings: string[] = [];
 
   // карточки: все товары объединённой карточки, кроме выводимых (Иван 15.10 «б»: порог посчитан без них)
-  const G = (JSON.parse(readFileSync(dp("card_groups.json"), "utf-8")).groups ?? []) as Array<{ skus: Array<{ sku: string; offer: string }> }>;
+  const G = (JSON.parse(readFileSync(dp(PLAN_CARDS_FILE), "utf-8")).groups ?? []) as Array<{ skus: Array<{ sku: string; offer: string }> }>;
   const off2sku = new Map<string, string>();
   for (const g of G) for (const s of g.skus) off2sku.set(s.offer, String(s.sku));
   const OUT = new Set((P.withdrawn ?? []).map((a) => off2sku.get(a) ?? ""));
-  for (const a of P.withdrawn ?? []) if (!off2sku.has(a)) warnings.push(`выводимого ${a} нет в card_groups.json`);
+  for (const a of P.withdrawn ?? []) if (!off2sku.has(a)) warnings.push(`выводимого ${a} нет в ${PLAN_CARDS_FILE}`);
   const cards = P.cards.map((c) => {
     const ms = off2sku.get(c.main_art);
     const g = G.find((g) => g.skus.some((s) => String(s.sku) === ms));
-    if (!ms || !g) warnings.push(`карточка ${c.short}: главного ${c.main_art} нет в card_groups.json`);
+    if (!ms || !g) warnings.push(`карточка ${c.short}: главного ${c.main_art} нет в ${PLAN_CARDS_FILE}`);
     if (ms && OUT.has(ms)) warnings.push(`карточка ${c.short}: главный ${c.main_art} в списке выводимых`);
     return { ...c, main_sku: ms ?? "", skus: g ? g.skus.map((s) => String(s.sku)).filter((s) => !OUT.has(s)) : [], min_skus: c.min_arts.map((a) => off2sku.get(a) ?? "").filter(Boolean) };
   });

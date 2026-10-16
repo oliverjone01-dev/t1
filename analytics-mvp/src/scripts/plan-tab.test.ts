@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
-import { priceStatus, priceWhen, gaugePeriod, storeGoalDay, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
+import { priceStatus, priceWhen, gaugePeriod, storeGoalDay, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns, PLAN_CARDS_FILE } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -156,6 +156,17 @@ describe("план v2 - корректировка Ивана 15.10", () => {
   });
 });
 
+describe("состав карточек плана заморожен на 15.10 (Иван 16.10: новые GGT-03-5-1 в план не считать)", () => {
+  const fz = JSON.parse(readFileSync(`data/${PLAN_CARDS_FILE}`, "utf-8")) as { imported_at: string; groups: Array<{ skus: Array<{ offer: string }> }> };
+  it("страница плана читает замороженный файл, не ночную карту", () => expect(PLAN_CARDS_FILE).toBe("plan_card_groups_1510.json"));
+  it("в замороженном составе выгрузка 23.09 и нет новых GGT-03-5-1", () => {
+    expect(fz.imported_at).toBe("2026-09-23");
+    const offers = fz.groups.flatMap((g) => g.skus.map((s) => s.offer));
+    expect(offers).toHaveLength(498);
+    expect(offers.filter((o) => o.startsWith("GGT-03-5-1") && o !== "GGT-03-5-1-O-20090")).toEqual([]);
+  });
+});
+
 describe("план v4 - Иван 16.10: QUATRIS и PROFIX на -10% от цены 14.10 с 16.10", () => {
   type Pr = { art: string; when: string; price_now: number; price_new: number };
   type V = { cards: unknown[]; withdrawn: string[]; price: Pr[]; start: string; check: string };
@@ -246,7 +257,7 @@ function fixture(extra: Record<string, unknown[]> = {}) {
     price: [{ art: "A-1", name: "", when: "15.10", price_now: 1000, price_new: 900, step: "-10%" }],
     goal: { units: { oct: OCT, nov: OCT }, turn_mln: { oct: tri, nov: tri }, pay_mln: { oct: tri, nov: tri }, nov_rollback: { units: 1, pay_mln: 1 } },
   }));
-  writeFileSync(join(dir, "card_groups.json"), JSON.stringify({ groups: [{ main: "1", skus: [{ sku: "1", offer: "A-1" }, { sku: "2", offer: "A-2" }] }] }));
+  writeFileSync(join(dir, PLAN_CARDS_FILE), JSON.stringify({ groups: [{ main: "1", skus: [{ sku: "1", offer: "A-1" }, { sku: "2", offer: "A-2" }] }] }));
   nd("sku_views.ndjson", [
     { date: "2026-10-15", sku: "1", views: 100, vsearch: 50, pdp: 10, cart: 2, units: 1 },
     { date: "2026-10-15", sku: "9", views: 900, vsearch: 500, pdp: 90, cart: 8, units: 3 },

@@ -7,8 +7,10 @@ import type { SkuDaily } from "../types.js";
 
 const SELLER_HOST = "https://api-seller.ozon.ru";
 // Методы начислений OZON 16.10 отвечали 429 «rate limit per second» по 2-4 раза подряд: 5 повторов
-// за ~31 с не хватало, прогон orders-backfill падал. Для них дольше: 8 повторов, пауза до 60 с (~4 мин),
-// и пауза между запросами пачек.
+// за ~31 с не хватало, прогон orders-backfill падал. Для них дольше: 8 повторов, пауза до 75 с
+// (потолок 60 с плюс джиттер до 25%), все повторы вместе 4,1-4,9 мин (пробы ФЕНИКСА #485 R2, R3, R8),
+// и пауза 300 мс между пачками: ~+5 с на вызов accrualPostings, ~+16 с на прогон из трёх скриптов.
+// Каждый повтор пишется в лог (путь, попытка, пауза): по нему видно, сколько повторов съел прогон.
 const ACCRUAL_RETRY: RetryOpts = { retries: 8, baseMs: 2000, maxMs: 60000 };
 const ACCRUAL_GAP_MS = 300;
 const pause = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -110,7 +112,13 @@ export class OzonSeller {
         throw new HttpError(res.status, `OZON Seller ${path} -> HTTP ${res.status}: ${await res.text()}`);
       }
       return (await res.json()) as T;
-    }, retry);
+    }, {
+      ...retry,
+      onRetry: (attempt, delayMs, e) => {
+        const st = e instanceof HttpError ? `HTTP ${e.status}` : "сеть";
+        console.warn(`OZON ${path}: ${st}, повтор ${attempt}/${retry?.retries ?? 5} через ${(delayMs / 1000).toFixed(1)} с`);
+      },
+    });
   }
 
   // Дневные строки по SKU за одну дату - основа исторического бэкфилла (S3).

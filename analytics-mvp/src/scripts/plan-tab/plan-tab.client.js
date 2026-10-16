@@ -188,5 +188,5 @@ drawPills();
 var ps=D.price_st,PS=[['снижена','Снижена',C.ok,'✓'],['частично','Снижена частично',C.mid,'!'],['по плану','Срок сегодня или позже',C.none,'○'],['не снижена','Не снижена',C.bad,'✕'],['eb','Выпали из бустинга',C.bad,'▲']];
 $('pt-pricepills').innerHTML=PS.map(function(p){var n=ps[p[0]]||0,wd=n/D.price_n*100;
   return '<div class="pill-row"><div class="pl-n">'+p[3]+' '+p[1]+'</div><div class="pl-bar">'+(n?'<div class="pl-fill" style="width:'+Math.max(wd,4)+'%;background:'+p[2]+'"><span>'+n+'</span></div>':'<span class="pl-empty">0</span>')+'</div><div class="pl-p">'+fmt(wd)+'%</div></div>'}).join('')
-  +'<div class="legend">'+D.price_first+' с 15.10 · '+(D.price_n-D.price_first)+' с 22.10</div>';
+  +'<div class="legend">'+D.price_when.map(function(w){return w[1]+' с '+w[0]}).join(' · ')+'</div>';
 })();

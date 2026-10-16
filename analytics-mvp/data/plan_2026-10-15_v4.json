@@ -1,0 +1,658 @@
+{
+ "source": "OZON-plan-2026-10-15.xlsx (отправлен Ивану 15.10), freeze_plan.py | v2 15.10: -27 артикулов из минимального клика, GGT-12-2 -> TRUBIS 160 с 15.10 (Иван 15.10) | v3 15.10: 27 выводимых вне счёта карточки в базе и окне, пороги по правилу 15% (Иван 15.10, «б») | v4 16.10: +QUATRIS и PROFIX на -10% от цены 15.10 с 16.10, QUATRIS 100 из 15.10 и 22.10 перенесены (Иван 16.10)",
+ "start": "2026-10-15",
+ "check": "2026-10-29",
+ "window": [
+  "2026-10-15",
+  "2026-10-28"
+ ],
+ "main_budget": 20000,
+ "min_budget_sku": 1500,
+ "min_campaign_budget": 2000,
+ "effect_from": "2026-10-17",
+ "base_month_units": 293,
+ "cards": [
+  {
+   "main_art": "GGT-03-3-3-E-16080",
+   "short": "TRUBIS 160",
+   "name": "GENGLASS Стол кухонный овальный белый TRUBIS Wood 160х80 см",
+   "u_wk_base": 12.25,
+   "v_wk_base": 88962,
+   "click_now": 15974,
+   "click_new": 20000,
+   "n_min": 12,
+   "threshold": 31,
+   "threshold_price": 35,
+   "min_arts": [
+    "GGT-03-1-3-E-12080",
+    "GGT-03-1-5-E-14080",
+    "GGT-03-2-1-E-14080",
+    "GGT-03-2-2-E-12080",
+    "GGT-03-2-2-E-14080",
+    "GGT-03-2-3-E-14080",
+    "GGT-03-2-4-E-14080",
+    "GGT-03-2-5-E-14080",
+    "GGT-03-3-1-E-14080",
+    "GGT-03-3-3-E-12080",
+    "GGT-03-3-3-E-14080",
+    "GGT-03-3-5-E-12080"
+   ]
+  },
+  {
+   "main_art": "GGT-35-5-1-100-180",
+   "short": "KONUX",
+   "name": "GENGLASS Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный,",
+   "u_wk_base": 8.75,
+   "v_wk_base": 91974,
+   "click_now": 30076,
+   "click_new": 30076,
+   "n_min": 2,
+   "threshold": 23,
+   "threshold_price": 26,
+   "min_arts": [
+    "GGT-35-1-2-100-180",
+    "GGT-35-2-2-100-180"
+   ]
+  },
+  {
+   "main_art": "GGM-18-2-2",
+   "short": "KUVINO",
+   "name": "GENGLASS Зеркало настенное в прихожую прямоугольное 180x55 см KUVINO L",
+   "u_wk_base": 6.5,
+   "v_wk_base": null,
+   "click_now": 20034,
+   "click_new": 20034,
+   "n_min": 3,
+   "threshold": 18,
+   "threshold_price": 20,
+   "min_arts": [
+    "GGM-16-1-2",
+    "GGM-16-1-3",
+    "GGM-16-2-2"
+   ]
+  },
+  {
+   "main_art": "GGM-02-1-2",
+   "short": "EVELIX",
+   "name": "GENGLASS Зеркало настенное EVELIX L Gold 180x50 см, в полный рост, ова",
+   "u_wk_base": 4.0,
+   "v_wk_base": null,
+   "click_now": 1194,
+   "click_new": 20000,
+   "n_min": 0,
+   "threshold": 12,
+   "threshold_price": 14,
+   "min_arts": []
+  },
+  {
+   "main_art": "GGT-47-2-2-80",
+   "short": "GENTRIS",
+   "name": "Стол обеденный круглый 80 см, GENTRIS, чёрный, кухонный стол для гости",
+   "u_wk_base": 5.25,
+   "v_wk_base": 39361,
+   "click_now": 0,
+   "click_new": 20000,
+   "n_min": 7,
+   "threshold": 15,
+   "threshold_price": null,
+   "min_arts": [
+    "GGT-03-2-2-L-80",
+    "GGT-03-3-3-L-80",
+    "GGT-03-3-3-L-90",
+    "GGT-03-3-5-L-90",
+    "GGT-47-2-2-90",
+    "GGT-47-3-3-90",
+    "GGT-47-3-5-80"
+   ]
+  },
+  {
+   "main_art": "GGL-09-2",
+   "short": "OSOLIS",
+   "name": "GENGLASS Зеркало настенное с подсветкой OSOLIS NF LED 190х70 см, для к",
+   "u_wk_base": 3.0,
+   "v_wk_base": null,
+   "click_now": 2014,
+   "click_new": 20000,
+   "n_min": 3,
+   "threshold": 10,
+   "threshold_price": 11,
+   "min_arts": [
+    "GGL-01-L-2",
+    "GGL-02-L-2",
+    "GGL-08-2"
+   ]
+  },
+  {
+   "main_art": "GGT-03-3-3-L-120",
+   "short": "TRUBIS L120",
+   "name": "GENGLASS Стол кухонный круглый белый TRUBIS Wood L D120 см",
+   "u_wk_base": 3.5,
+   "v_wk_base": 16550,
+   "click_now": 0,
+   "click_new": 20000,
+   "n_min": 6,
+   "threshold": 11,
+   "threshold_price": null,
+   "min_arts": [
+    "GGT-03-2-2-L-100",
+    "GGT-03-2-2-L-110",
+    "GGT-03-3-3-L-100",
+    "GGT-03-3-3-L-110",
+    "GGT-03-3-5-L-100",
+    "GGT-03-3-5-L-110"
+   ]
+  },
+  {
+   "main_art": "GGM-20-2",
+   "short": "OZEVIS",
+   "name": "GENGLASS Зеркало напольное в полный рост овальное OZEVIS Black 165x45 ",
+   "u_wk_base": 3,
+   "v_wk_base": 23264,
+   "click_now": 4412,
+   "click_new": 20000,
+   "n_min": 0,
+   "threshold": 10,
+   "threshold_price": null,
+   "min_arts": []
+  },
+  {
+   "main_art": "GGK-02-2-2-80",
+   "short": "ARFEO",
+   "name": "GENGLASS Консоль в прихожую черная ARFEO 80х35х80 см",
+   "u_wk_base": 1.25,
+   "v_wk_base": null,
+   "click_now": 0,
+   "click_new": 20000,
+   "n_min": 1,
+   "threshold": 5,
+   "threshold_price": 6,
+   "min_arts": [
+    "GGK-02-2-2-120"
+   ]
+  },
+  {
+   "main_art": "GGM-24-1",
+   "short": "ARKIS",
+   "name": "GENGLASS Зеркало настенное в полный рост ARKIS Gold 180х80 см, в прихо",
+   "u_wk_base": 1.25,
+   "v_wk_base": null,
+   "click_now": 2149,
+   "click_new": 20000,
+   "n_min": 0,
+   "threshold": 5,
+   "threshold_price": 6,
+   "min_arts": []
+  }
+ ],
+ "to_min": [
+  {
+   "action": "на минимум 15.10",
+   "cid": "40015169",
+   "art": "GGT-03-3-3-O-20090",
+   "tempo": 27893,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "44989034",
+   "art": "GGT-03-3-3-O-18090",
+   "tempo": 27148,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "44988191",
+   "art": "GGT-03-3-5-E-16080",
+   "tempo": 19458,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "44988572",
+   "art": "GGT-48-5-1-100-180",
+   "tempo": 19362,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "44989441",
+   "art": "GGT-E-16080",
+   "tempo": 14441,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "44920406",
+   "art": "GGT-47-3-5-90",
+   "tempo": 13296,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "44990352",
+   "art": "GGT-O-20090",
+   "tempo": 10159,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "40047060",
+   "art": "GGT-46",
+   "tempo": 6085,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "43629255",
+   "art": "GGM-20",
+   "tempo": 5987,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "43629267",
+   "art": "GGM-23",
+   "tempo": 3864,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  },
+  {
+   "action": "на минимум 15.10",
+   "cid": "44990317",
+   "art": "GGT-O-18090",
+   "tempo": 3208,
+   "budget": "2 000 (8-12 ₽ за клик)"
+  }
+ ],
+ "price": [
+  {
+   "art": "GGT-35-5-1-100-180",
+   "name": "Стол кухонный раздвижной KONUX 100(180)х100х75",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 121898,
+   "step": "-10%",
+   "price_new": 109710,
+   "site_now": 56012,
+   "site_new": 50412
+  },
+  {
+   "art": "GGM-18-2-2",
+   "name": "Зеркало настенное в прихожую прямоугольное 180",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 61314,
+   "step": "-10%",
+   "price_new": 55180,
+   "site_now": 26475,
+   "site_new": 23827
+  },
+  {
+   "art": "GGT-03-3-3-E-16080",
+   "name": "Стол кухонный овальный белый TRUBIS Wood 160х8",
+   "when": "15.10",
+   "when_note": "15.10 (Иван 15.10: вместо GGT-12-2; было 22.10)",
+   "price_now": 96898,
+   "step": "-10%",
+   "price_new": 87210,
+   "site_now": 44738,
+   "site_new": 40265
+  },
+  {
+   "art": "GGM-16-2-3",
+   "name": "Зеркало настенное в прихожую NOLVIS L Black 18",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 61900,
+   "step": "-10%",
+   "price_new": 55710,
+   "site_now": 27434,
+   "site_new": 24691
+  },
+  {
+   "art": "GGT-03-3-3-L-120",
+   "name": "Стол кухонный круглый белый TRUBIS Wood L D120",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 79900,
+   "step": "-5%",
+   "price_new": 75900,
+   "site_now": 43066,
+   "site_new": 40910
+  },
+  {
+   "art": "GGL-09-2",
+   "name": "Зеркало настенное с подсветкой OSOLIS NF LED 1",
+   "when": "22.10",
+   "when_note": "22.10 - решение Ивана: цена уже снижена 08.10, второй шаг по заказам 08-14.10 (с 15.10 клик главного смешает); если тест 4 продлят - 29.10",
+   "price_now": 53961,
+   "step": "-10%",
+   "price_new": 48560,
+   "site_now": 23926,
+   "site_new": 21532
+  },
+  {
+   "art": "GGM-02-1-2",
+   "name": "Зеркало настенное EVELIX L Gold 180x50 см",
+   "when": "22.10",
+   "when_note": "22.10 - решение Ивана: цена уже снижена 08.10, второй шаг по заказам 08-14.10 (с 15.10 клик главного смешает)",
+   "price_now": 38585,
+   "step": "-10%",
+   "price_new": 34730,
+   "site_now": 16549,
+   "site_new": 14896
+  },
+  {
+   "art": "GGT-03-3-5-E-16080",
+   "name": "Стол кухонный мраморный овальный белый TRUBIS",
+   "when": "22.10",
+   "when_note": "22.10 (после теста 4; если тест продлят - 29.10)",
+   "price_now": 96900,
+   "step": "-5%",
+   "price_new": 92060,
+   "site_now": 44739,
+   "site_new": 42504
+  },
+  {
+   "art": "GGM-16-1-2",
+   "name": "Зеркало настенное в прихожую NOLVIS Gold M 135",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 62975,
+   "step": "-10%",
+   "price_new": 56680,
+   "site_now": 33245,
+   "site_new": 29921
+  },
+  {
+   "art": "GGM-02-2-1",
+   "name": "Зеркало настенное в прихожую EVELIX S Black 10",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 28303,
+   "step": "-10%",
+   "price_new": 25470,
+   "site_now": 14992,
+   "site_new": 13491
+  },
+  {
+   "art": "GGM-01-1",
+   "name": "Зеркало напольное в полный рост EVELUM Gold 16",
+   "when": "22.10",
+   "when_note": "22.10 (после теста 4; если тест продлят - 29.10)",
+   "price_now": 43900,
+   "step": "-9%",
+   "price_new": 39950,
+   "site_now": 18728,
+   "site_new": 17043
+  },
+  {
+   "art": "GGK-02-2-2-80",
+   "name": "Консоль в прихожую черная ARFEO 80х35х80 см",
+   "when": "22.10",
+   "when_note": "22.10 - решение Ивана: цена уже снижена 08.10, второй шаг по заказам 08-14.10 (с 15.10 клик главного смешает); если тест 4 продлят - 29.10",
+   "price_now": 48900,
+   "step": "-10%",
+   "price_new": 44010,
+   "site_now": 26401,
+   "site_new": 23761
+  },
+  {
+   "art": "GGT-35-2-3-100-180",
+   "name": "Стол кухонный раздвижной KONUX 100(180)х100х75",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 121898,
+   "step": "-10%",
+   "price_new": 109710,
+   "site_now": 56012,
+   "site_new": 50412
+  },
+  {
+   "art": "GGR-11-1",
+   "name": "Вешалка напольная для одежды ZILOSI Gold 185х4",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 30900,
+   "step": "-10%",
+   "price_new": 27810,
+   "site_now": 16442,
+   "site_new": 14798
+  },
+  {
+   "art": "GGT-35-3-3-100-180",
+   "name": "Стол кухонный раздвижной белый KONUX 100(180)х",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 121898,
+   "step": "-10%",
+   "price_new": 109710,
+   "site_now": 56012,
+   "site_new": 50412
+  },
+  {
+   "art": "GGL-07-XL-2",
+   "name": "Зеркало настенное полукруглое с подсветкой RON",
+   "when": "22.10",
+   "when_note": "22.10 (после теста 4; если тест продлят - 29.10)",
+   "price_now": 73900,
+   "step": "-10%",
+   "price_new": 66510,
+   "site_now": 32509,
+   "site_new": 29258
+  },
+  {
+   "art": "GGM-24-1",
+   "name": "Зеркало настенное в полный рост ARKIS Gold 180",
+   "when": "22.10",
+   "when_note": "22.10 (после теста 4; если тест продлят - 29.10)",
+   "price_now": 72900,
+   "step": "-10%",
+   "price_new": 65610,
+   "site_now": 31959,
+   "site_new": 28763
+  },
+  {
+   "art": "GGT-35-1-3-100-180",
+   "name": "Стол кухонный раздвижной KONUX 100(180)х100х75",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 121899,
+   "step": "-10%",
+   "price_new": 109710,
+   "site_now": 56013,
+   "site_new": 50412
+  },
+  {
+   "art": "GGT-35-2-2-100-180",
+   "name": "Стол кухонный раздвижной черный KONUX 100(180)",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 121898,
+   "step": "-8%",
+   "price_new": 112150,
+   "site_now": 65593,
+   "site_new": 60348
+  },
+  {
+   "art": "GGM-23-3-1",
+   "name": "Зеркало напольное ZELISO White 185x45 см",
+   "when": "22.10",
+   "when_note": "22.10 (после теста 4; если тест продлят - 29.10)",
+   "price_now": 70900,
+   "step": "-10%",
+   "price_new": 63810,
+   "site_now": 31380,
+   "site_new": 28242
+  },
+  {
+   "art": "GGKP-02-1",
+   "name": "Подстолье для столешницы металлическое ARFEO 2",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 47900,
+   "step": "-7%",
+   "price_new": 44550,
+   "site_now": 25626,
+   "site_new": 23834
+  },
+  {
+   "art": "GGM-08-3-M",
+   "name": "Зеркало полукруглое настенное RONTUS M White 1",
+   "when": "15.10",
+   "when_note": "15.10",
+   "price_now": 59900,
+   "step": "-10%",
+   "price_new": 53910,
+   "site_now": 31436,
+   "site_new": 28292
+  },
+  {
+   "art": "GGM-16-1-3-LED",
+   "name": "Зеркало с подсветкой настенное NOLVIS L LED 18",
+   "when": "22.10",
+   "when_note": "22.10 (после теста 4; если тест продлят - 29.10)",
+   "price_now": 87900,
+   "step": "-9%",
+   "price_new": 79990,
+   "site_now": 46183,
+   "site_new": 42027
+  },
+  {
+   "art": "GGT-48-2-2-100-180",
+   "name": "Стол кухонный обеденный раздвижной QUATRIS 100",
+   "when": "16.10",
+   "when_note": "16.10 (Иван 16.10, QUATRIS и PROFIX)",
+   "price_now": 76855,
+   "step": "-10%",
+   "price_new": 69170,
+   "site_now": 34200,
+   "site_new": 30780
+  },
+  {
+   "art": "GGT-48-3-3-100-180",
+   "name": "Стол кухонный раздвижной, круглый, стол обеденный QUATRIS 100/140/180х75 см",
+   "when": "16.10",
+   "when_note": "16.10 (Иван 16.10, QUATRIS и PROFIX)",
+   "price_now": 80900,
+   "step": "-10%",
+   "price_new": 72810,
+   "site_now": 36000,
+   "site_new": 32400
+  },
+  {
+   "art": "GGT-48-5-1-100-180",
+   "name": "Кухонный обеденный стол раскладной QUATRIS 100",
+   "when": "16.10",
+   "when_note": "16.10 (Иван 16.10, QUATRIS и PROFIX)",
+   "price_now": 80091,
+   "step": "-10%",
+   "price_new": 72080,
+   "site_now": 35640,
+   "site_new": 32076
+  },
+  {
+   "art": "GGT-46-2-2-100",
+   "name": "Столы обеденные PROFIX 100",
+   "when": "16.10",
+   "when_note": "16.10 (Иван 16.10, QUATRIS и PROFIX)",
+   "price_now": 94900,
+   "step": "-10%",
+   "price_new": 85410,
+   "site_now": 42230,
+   "site_new": 38007
+  },
+  {
+   "art": "GGT-46-3-3-100",
+   "name": "GENGLASS Стол кухонный обеденный PROFIX, белый, 100 см",
+   "when": "16.10",
+   "when_note": "16.10 (Иван 16.10, QUATRIS и PROFIX)",
+   "price_now": 90155,
+   "step": "-10%",
+   "price_new": 81140,
+   "site_now": 40119,
+   "site_new": 36107
+  },
+  {
+   "art": "GGT-46-5-1-100",
+   "name": "Столы обеденные PROFIX 100",
+   "when": "16.10",
+   "when_note": "16.10 (Иван 16.10, QUATRIS и PROFIX)",
+   "price_now": 94900,
+   "step": "-10%",
+   "price_new": 85410,
+   "site_now": 42230,
+   "site_new": 38007
+  }
+ ],
+ "goal": {
+  "units": {
+   "oct": {
+    "mid": 355.0,
+    "lo": 300.0,
+    "hi": 429.0
+   },
+   "nov": {
+    "mid": 409.0,
+    "lo": 290.0,
+    "hi": 568.0
+   }
+  },
+  "turn_mln": {
+   "oct": {
+    "mid": 24.2,
+    "lo": 20.9,
+    "hi": 28.6
+   },
+   "nov": {
+    "mid": 27.3,
+    "lo": 20.2,
+    "hi": 36.7
+   }
+  },
+  "pay_mln": {
+   "oct": {
+    "mid": 9.8,
+    "lo": 8.2,
+    "hi": 11.9
+   },
+   "nov": {
+    "mid": 11.4,
+    "lo": 7.9,
+    "hi": 16.0
+   }
+  },
+  "nov_rollback": {
+   "units": 377.0,
+   "pay_mln": 10.5
+  }
+ },
+ "withdrawn": [
+  "GGK-02-1-3-80",
+  "GGK-02-1-4-80",
+  "GGK-02-2-3-80",
+  "GGK-02-2-4-80",
+  "GGK-02-2-5-80",
+  "GGK-02-3-3-80",
+  "GGK-02-3-5-80",
+  "GGL-01-M-2",
+  "GGL-01-S-2",
+  "GGL-11",
+  "GGM-02-2-1",
+  "GGM-02-3-1",
+  "GGM-03-2-2",
+  "GGM-08-3-M",
+  "GGM-15-1-1",
+  "GGM-15-1-2-M",
+  "GGM-15-2-2-L",
+  "GGM-15-3-2-M",
+  "GGM-16-1-1",
+  "GGM-16-2-1",
+  "GGM-17-1-1",
+  "GGM-17-2-3",
+  "GGM-24-1-M",
+  "GGM-24-3",
+  "GGT-03-3-1-E-12080",
+  "GGT-03-3-1-L-80",
+  "GGT-03-3-4-E-12080"
+ ]
+}

@@ -1,14 +1,14 @@
 // Блок «План с 15.10: как идём к цели» - первый на странице «Тесты» (Иван 15.10, прототип одобрен).
 //
 // ЧТО ЭТО. План «10 карточек + цена» (Excel 15.10): главному товару карточки клик 20 000 ₽/нед,
-// остальным товарам минимальный клик 8 ₽, 11 дорогих кампаний на минимум, у 25 артикулов (v2, Иван 15.10) цена вниз.
+// остальным товарам минимальный клик 8 ₽, 11 дорогих кампаний на минимум, у 25 артикулов (v2, Иван 15.10) цена вниз, с 16.10 плюс QUATRIS и PROFIX (v4, 29 артикулов).
 // 29.10 по каждой карточке: заказов за 15-28.10 не меньше порога - оставляем, меньше - откат.
 // Блок каждый день показывает, как идём: спидометры к плану, заказы карточек и магазина к порогу
 // и цели, воронку «как на тестах», рекламу по неделям чт-ср и цену артикулов плана.
 //
-// ОТКУДА ПЛАН. data/plan_2026-10-15_v3.json: заморозка Excel (ozon-testy-scripts/v7/freeze_plan.py),
-// корректировка Ивана 15.10 (v8/correct_plan_1510.py) и V3 (v8/withdraw_base_1510.py: 27 выводимых артикулов
-// вне счёта карточки, пороги пересчитаны правилом 15%). Прибыли по артикулам в нём нет (репозиторий публичный).
+// ОТКУДА ПЛАН. data/plan_2026-10-15_v4.json: заморозка Excel (ozon-testy-scripts/v7/freeze_plan.py),
+// корректировка Ивана 15.10 (v8/correct_plan_1510.py), V3 (v8/withdraw_base_1510.py: 27 выводимых артикулов
+// вне счёта карточки, пороги пересчитаны правилом 15%) и V4 (v8/add_price_1610.py: QUATRIS и PROFIX на -10% с 16.10). Прибыли по артикулам в нём нет (репозиторий публичный).
 // Пороги и цели в коде не пересчитываются: план зафиксирован 15.10.
 //
 // ОПРЕДЕЛЕНИЯ (Иван 15.10, ответы «да» на 6 вопросов + «меньше - зеленее» везде у рекламы):
@@ -30,7 +30,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dp as dpDefault } from "../paths.js";
 
-export const PLAN_FILE = "plan_2026-10-15_v3.json";   // v3: v2 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2) + выводимые вне карточек, пороги 5 карточек (Иван 15.10 «б»), v8/withdraw_base_1510.py
+export const PLAN_FILE = "plan_2026-10-15_v4.json";   // v4: v3 + QUATRIS и PROFIX на -10% с 16.10 (Иван 16.10), v8/add_price_1610.py; v3: v2 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2) + выводимые вне карточек, пороги 5 карточек (Иван 15.10 «б»), v8/withdraw_base_1510.py
 export const CAB_FILE = "cabinet_orders_check.ndjson";   // сверка «Заказано, шт» с кабинетом, съём чата (Иван 15.10)
 const CPO_ID = "28753239";                                     // «Оплата за заказ - все товары»: не клик
 const BASE: [string, string] = ["2026-09-14", "2026-10-11"];   // база порогов и плана (4 недели)
@@ -132,6 +132,12 @@ export function priceStatus(now: number | null, priceNow: number, target: number
   return { key: "не снижена", text: "не снижена" };
 }
 
+/** Сколько артикулов плана снижают цену с какой даты, по порядку дат: [["15.10", 14], ["16.10", 6], ...]. */
+export function priceWhen(price: Array<{ when: string }>): Array<[string, number]> {
+  const m = new Map<string, number>(); for (const p of price) m.set(p.when, (m.get(p.when) ?? 0) + 1);
+  const key = (w: string) => w.slice(3, 5) + w.slice(0, 2);
+  return [...m].sort((a, b) => key(a[0]).localeCompare(key(b[0])));
+}
 /** Статус карточки к порогу: нет данных / рано (меньше 3 дней) / идём / отстаём. Путь - порог × дни / 14. */
 export function cardStatus(got: number | null, need: number, nIn: number): "нет данных" | "рано" | "идём" | "отстаём" {
   if (got == null) return "нет данных";
@@ -478,7 +484,7 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
       path: Array.from({ length: 14 }, (_, k) => Math.round(storeNeed(gU, k + 1) * 10) / 10) },
     gauges: GAUGES, cards_win: cardsWin,
     spend: SPEND, weeks: WEEKS.map((w) => w[0]), week_start: WEEKS.map((w) => w[1]),
-    price_st: pst, price_n: P.price.length, price_first: P.price.filter((p) => p.when === "15.10").length,
+    price_st: pst, price_n: P.price.length, price_when: priceWhen(P.price),
   };
   const cancShare = (a: string, b: string): string => {
     let u = 0, c = 0; for (const [d, [uu, cc]] of canc) if (d >= a && d <= b) { u += uu; c += cc; }

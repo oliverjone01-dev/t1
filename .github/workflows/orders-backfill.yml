@@ -9,7 +9,16 @@ name: orders backfill (аналитика по заказам)
 # текущего месяца стояли до 5-го следующего. Сбор полный, от 06.02 до вчера, поэтому доначисления
 # прошлых дней подтягиваются сами. Час раньше ночного ozon-snapshots.yml: тот пересобирает
 # страницы и забирает свежие заказы; группа ozon-data не даёт им идти одновременно.
+# С 16.10.2026 (Иван: «данные собираются 2 раза в день, почему не подтягивание после сбора»)
+# главный запуск - сразу после съёма кабинета с мака: мак коммитит data/reakciya.json в main
+# утром и вечером, этот push запускает сбор заказов, а он по окончании - ozon-snapshots
+# (реклама, просмотры), после которого deploy-pages собирает сайт (workflow_run). Расписание
+# ниже - страховка: GitHub запускает его с опозданием на часы, и если мак не прислал съём; по нему
+# же раз в сутки идёт ozon-snapshots (своего cron у него нет с 16.10).
 on:
+  push:
+    branches: [main]
+    paths: [analytics-mvp/data/reakciya.json]
   schedule:
     - cron: "52 4 * * *" # каждый день ~07:52 МСК, до ночного синка OZON (05:53 UTC)
   workflow_dispatch:
@@ -25,6 +34,7 @@ on:
 
 permissions:
   contents: write
+  actions: write # после сбора по съёму запустить ozon-snapshots
 
 concurrency:
   group: ozon-data
@@ -51,12 +61,40 @@ jobs:
       - run: npm ci || npm install
       - name: Сбор по заказам
         run: npx tsx src/scripts/ozon/orders-daily.ts "${{ github.event.inputs.from || '2026-02-06' }}" "${{ github.event.inputs.to }}"
+      # Шаги начислений ниже ходят в тот же OZON и ловят 429 (16.10: «rate limit per second» в
+      # pnl-sku-accrual). Раньше сбой рвал весь прогон до коммита, и пропадали уже собранные заказы.
+      # Теперь сбой шага не мешает коммиту, а прогон краснеет в последнем шаге. Файлы скрипты пишут
+      # в конце, упавший шаг оставляет прежний файл.
       - name: Миграция финансов по SKU на accrual (параллельный файл)
-        run: npx tsx src/scripts/ozon/pnl-sku-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}"
+        id: pnlsku
+        continue-on-error: true
+        run: |
+          # до 3 попыток: OZON отвечает 429 на секунды, пауза 60 и 120 с (ФЕНИКС #484 K7)
+          for i in 1 2 3; do
+            npx tsx src/scripts/ozon/pnl-sku-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}" && exit 0
+            [ "$i" -lt 3 ] && sleep $((60*i))
+          done
+          exit 1
       - name: Эквайринг/хранение по SKU из accrual/by-day
-        run: npx tsx src/scripts/ozon/acq-sku-daily.ts "${{ github.event.inputs.from || '2026-02-06' }}" "${{ github.event.inputs.to }}"
+        id: acq
+        continue-on-error: true
+        run: |
+          # до 3 попыток: OZON отвечает 429 на секунды, пауза 60 и 120 с (ФЕНИКС #484 K7)
+          for i in 1 2 3; do
+            npx tsx src/scripts/ozon/acq-sku-daily.ts "${{ github.event.inputs.from || '2026-02-06' }}" "${{ github.event.inputs.to }}" && exit 0
+            [ "$i" -lt 3 ] && sleep $((60*i))
+          done
+          exit 1
       - name: Канальный P&L и Общие расходы из accrual (замена мёртвых транзакций)
-        run: npx tsx src/scripts/ozon/pnl-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}"
+        id: pnlacc
+        continue-on-error: true
+        run: |
+          # до 3 попыток: OZON отвечает 429 на секунды, пауза 60 и 120 с (ФЕНИКС #484 K7)
+          for i in 1 2 3; do
+            npx tsx src/scripts/ozon/pnl-accrual-daily.ts 2026-02-06 "${{ github.event.inputs.to }}" && exit 0
+            [ "$i" -lt 3 ] && sleep $((60*i))
+          done
+          exit 1
       - name: Отчёт о реализации по SKU (штуки и база налога F+G-J-K)
         # Иван 25.09.2026: база налога OZON - «Реализовано» отчёта о реализации (F + G за вычетом
         # возвратов). Хвост из двух месяцев перетягивается каждый раз, месяцы без базы - один раз.
@@ -82,9 +120,38 @@ jobs:
           if git diff --cached --quiet; then
             echo "нет изменений в orders_daily.ndjson"
           else
-            git commit -m "data(orders): начисления и калибровка соинвеста ${{ github.event_name == 'schedule' && '(ежедневный сбор)' || format('{0}..{1}', github.event.inputs.from, github.event.inputs.to) }} [skip ci]"
-            for i in 1 2 3 4; do git push origin "HEAD:${{ github.ref_name }}" && break || sleep $((2**i)); done
+            git commit -m "data(orders): начисления и калибровка соинвеста ${{ github.event_name == 'schedule' && '(ежедневный сбор)' || github.event_name == 'push' && '(после съёма с мака)' || format('{0}..{1}', github.event.inputs.from, github.event.inputs.to) }} [skip ci]"
+            # чужой push в main во время сбора (съём с мака, другие сборщики): без rebase все попытки
+            # отказывали, шаг выходил с кодом 0 и заказы молча не доходили (ФЕНИКС #484 A5b)
+            ok=0
+            for i in 1 2 3 4 5; do
+              if git pull --rebase --autostash origin "${{ github.ref_name }}" && git push origin "HEAD:${{ github.ref_name }}"; then ok=1; break; fi
+              git rebase --abort 2>/dev/null || true; sleep $((2**i))
+            done
+            if [ "$ok" != "1" ]; then echo "::error::push данных не удался"; exit 1; fi
           fi
+      - name: Запуск ozon-snapshots после сбора по съёму
+        # Цепочка «съём -> заказы -> реклама и просмотры -> сайт» без ожидания расписания GitHub.
+        # Коммиты ботом (GITHUB_TOKEN) push-воркфлоу не запускают, поэтому петли нет; dispatch через
+        # GITHUB_TOKEN GitHub разрешает. Идёт и при сбое отчёта о реализации: реклама от него не зависит.
+        # И по расписанию: в группе ozon-data новый запуск заменяет ждущий, и прогон по расписанию
+        # может вытеснить прогон от съёма (Codex P2 #484). Своего расписания у ozon-snapshots больше
+        # нет: его запуск по расписанию - этот шаг после прогона orders по расписанию (без дубля, ФЕНИКС K1).
+        if: ${{ !cancelled() && github.event_name != 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          ok=0
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/dispatch.out -w "%{http_code}" -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/ozon-snapshots.yml/dispatches" \
+              -d '{"ref":"main"}' || echo 000)
+            if [ "$code" = "204" ]; then ok=1; break; fi
+            echo "попытка $i: HTTP $code $(cat /tmp/dispatch.out)"; sleep $((5*i))
+          done
+          if [ "$ok" != "1" ]; then echo "::error::ozon-snapshots не запущен после 5 попыток"; exit 1; fi
+          echo "ozon-snapshots запрошен."
       - name: Отчёты о реализации получены целиком
         # Аудит ФЕНИКСА 25.09: сбор отчёта о реализации раньше глотал сбой, CI оставался зелёным, а
         # OZON хранит отчёт за день 32 дня - пропуск становился необратимым. Шаги выше не рвут
@@ -93,5 +160,9 @@ jobs:
         run: |
           if [ "${{ steps.realm.outcome }}" = "failure" ] || [ "${{ steps.reald.outcome }}" = "failure" ]; then
             echo "::error::отчёт о реализации: месячный ${{ steps.realm.outcome }}, за день ${{ steps.reald.outcome }} - перезапусти workflow"
+            exit 1
+          fi
+          if [ "${{ steps.pnlsku.outcome }}" = "failure" ] || [ "${{ steps.acq.outcome }}" = "failure" ] || [ "${{ steps.pnlacc.outcome }}" = "failure" ]; then
+            echo "::error::начисления: по SKU ${{ steps.pnlsku.outcome }}, эквайринг ${{ steps.acq.outcome }}, канальный P&L ${{ steps.pnlacc.outcome }} - заказы закоммичены, перезапусти workflow"
             exit 1
           fi

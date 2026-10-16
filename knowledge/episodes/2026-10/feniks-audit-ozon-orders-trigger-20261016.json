@@ -1,0 +1,258 @@
+{
+ "agent": "feniks",
+ "skill": "phoenix-eval",
+ "task_id": "feniks-ozon-orders-trigger-pr484-20261016",
+ "timestamp": "2026-10-16T07:16:00+00:00",
+ "deliverable_ref": "https://github.com/oliverjone01-dev/t1/pull/484 @ a8b1100d19f44c388f5506367b7766b89beb2cf8 (ветка claude/amazing-hawking-0trncq: cda91883 + 14f92987 + a8b1100d поверх merge-base 4445697; удалённый main ушёл на a195c436, orders-backfill.yml там не менялся), audit hash f49ba0d7eb4d7993 (пересчитан, совпал; для cda91883 32f7ea29b1aff46a тоже совпал)",
+ "artifact_class": "gate",
+ "audience": "внутренний: автор PR, координатор, Иван (мерж)",
+ "anchor": "7.6 timur-activation (итерация 1, return) - наш артефакт ниже на 0.3: как у ТИМУРА iter1, звено на критическом пути держится на непроверенном условии (шаг коммита зелёный при 4 отклонённых push, A5b; «лишний ozon-snapshots заменит ждущий» опровергнуто моделью очереди в 15 из 15 дней, K1); выше 6.7 feniks-return-reestr: ядро цепочки съём -> заказы -> реклама -> сайт работает и подтверждено живыми пробами (dispatch в 5 сценариях, 0 бот-коммитов в 100 push-прогонах, путь Codex закрыт в стресс-сценарии S1)",
+ "probes": [
+  {
+   "id": "A1",
+   "result": "PASS",
+   "evidence": "Кто ещё запускает цепочку: REST commits?path=analytics-mvp/data/reakciya.json - с 30.09 17 коммитов, все srez@genglass.local; 16-29.09 ещё 11 (сессии noreply@anthropic.com, web-flow 667e9d49). Push пользователя с этим файлом даёт лишний полный прогон orders + ozon + deploy, петли нет. «Коммитит только съём с мака» верно с 30.09."
+  },
+  {
+   "id": "A2",
+   "result": "PASS",
+   "evidence": "Петля через бота: REST actions/runs?event=push с 01.10 - 100 прогонов, авторы head-коммита oliverjone01 68, srez 30, anthropic 2; github-actions[bot] и kontur-bot 0. Бот-коммиты data(orders) a02b59de, c1cff238 и «data: прямые снимки» 84925b65 push-прогонов не дали."
+  },
+  {
+   "id": "A3",
+   "result": "PASS",
+   "evidence": "Параметры под push: inputs пустые, orders-daily.ts:23-24 и pnl-sku-accrual-daily.ts:22-23 берут 2026-02-06 и вчера UTC, ref_name = main."
+  },
+  {
+   "id": "A4",
+   "result": "PASS",
+   "evidence": "Фильтр путей: 4 из 4 последних коммитов мака меняют reakciya.json (REST commits/710ec0d8, 3194d446, 6045715f, 2bd36e95: 2 строки), [skip ci] в сообщениях мака нет. Мак перестанет трогать файл - остаётся расписание."
+  },
+  {
+   "id": "A5a",
+   "result": "PASS",
+   "evidence": "Шаг dispatch (строки 107-127) на подставном API, тело шага из YAML a8b1100d, оболочка bash -eo pipefail: 204 - код 0, 1 запрос, путь /repos/oliverjone01-dev/t1/actions/workflows/ozon-snapshots.yml/dispatches, тело {\"ref\":\"main\"}; 500,500,204 - код 0 за 3 запроса; всегда 500 - код 1 после 5; 422 - код 1 после 5; соединение отклонено - код 1 (в логе HTTP 000000 и тело прошлой попытки, косметика как в b24-cron)."
+  },
+  {
+   "id": "A5b",
+   "result": "FAIL",
+   "evidence": "Шаг «Коммит данных в ветку» (строки 95-106) в песочнице: голый origin, клон раннера, чужой push в main после checkout. 4 push отклонены (8 строк rejected), код шага 0, в origin/main остались старые заказы {\"v\":0}. Контроль с git pull --rebase перед push (как ozon-snapshots.yml:363-367): код 0, свежие заказы в origin. actionlint SC2015 на этой строке на базе 4445697, cda91883 и a8b1100d. Цепочка после этого всё равно диспатчит ozon-snapshots, сайт пересобирается без свежих заказов при зелёном прогоне."
+  },
+  {
+   "id": "A5c",
+   "result": "PARTIAL",
+   "evidence": "Итоговый шаг (128-141) читает steps.*.outcome, то есть результат до continue-on-error - верно по семантике; живой прогон невозможен (нет act). Дневные сбои не видит: acq-sku-daily.ts:56 и pnl-accrual-daily.ts:93 catch continue, шаг выходит с кодом 0 и пишет файл без дня."
+  },
+  {
+   "id": "A6",
+   "result": "PARTIAL",
+   "evidence": "permissions actions: write на весь workflow (строка 36): токен с actions:write и contents:write доступен коду из npm ci || npm install через сохранённые креды checkout. Добавка меньше уже выданного contents:write; минимум - отдельный job с actions: write без checkout."
+  },
+  {
+   "id": "A7",
+   "result": "PASS",
+   "evidence": "Запоздалый съём (05.10 09:16 UTC «за 2026-10-03») запустит цепочку в нерасчётное время; окна всех сборщиков до вчера UTC, вреда нет."
+  },
+  {
+   "id": "K1",
+   "result": "PARTIAL",
+   "evidence": "Модель очереди ozon-data (один running, один pending, новый отменяет ждущий) на реальных created_at расписания и длительностях 01-15.10: base O1 Z1, cda91883 O3 Z3, a8b1100d O3 Z4 в каждом из 15 дней, отменённых pending 0. Зазор orders-расписание -> ozon-cron 34-65 мин больше orders + ozon (20-26 мин): лишний ozon-snapshots не заменяет ждущий, а идёт вторым. Стресс S1 (группа занята при съёме, расписание вовремя): cda91883 теряет dispatch до cron, a8b1100d восстанавливает в 05:07. Путь Codex закрыт ценой +1 ozon-snapshots в день."
+  },
+  {
+   "id": "K2",
+   "result": "PASS",
+   "evidence": "Вечерний дельта-гейт: снимки до вчера UTC - pnl-sku.ts:12-16, skus.ts:16-19, pnl.ts:11-15, ads.ts:14-17; validate-snapshot.ts:7, 76-79 сравнивает итоги того же окна, просадки >40% вечером нет."
+  },
+  {
+   "id": "K3",
+   "result": "PASS",
+   "evidence": "Неполный текущий день: «сегодня» берут только prices-daily.ts:35, 79-80 (один снимок в сутки, повтор пропускается) и ad-sku-daily.ts:72-75 (метка состояния); daily-totals, sku-views, ads-daily, ad-attribution-daily, backfill - до вчера UTC."
+  },
+  {
+   "id": "K4",
+   "result": "PASS",
+   "evidence": "Сдвиг момента заморозки «вчера» в рядах только-дописать с 13:22-16:34 на ~07:53-08:20 МСК. Кабинет на маке 16.10 07:12 и Seller API 16.10 ~09:45 за 15.10 по 53 артикулам: показы в поиске 17004 = 17004, в корзину 130 = 130, заказано 2 = 2 (pdp - постоянная разница определений 0.68, такая же за 14.10). Расход рекламы дней, впервые записанных через +9.9 ч и позже, при пересборе 3169cf58 (04.09) не изменился ни в одном из 68 дней. Остаток: реклама в окне 07:53-09:54 МСК не проверена."
+  },
+  {
+   "id": "K5",
+   "result": "PASS",
+   "evidence": "Сообщение коммита под push: идиома a && b || c, actionlint без замечаний к выражению; подстановка даёт «data(orders): начисления и калибровка соинвеста (после съёма с мака) [skip ci]»."
+  },
+  {
+   "id": "K6",
+   "result": "PASS",
+   "evidence": "actionlint 1.7.7 + shellcheck 0.11.0 на 4445697, cda91883, a8b1100d: одно замечание SC2015 (строка push, A5b), новых нет. tools/ci/workflow_hygiene.py: ошибок 0, предупреждений К7 3 -> 4 -> 7 (новые continue-on-error и || echo 000 без # dg-ok)."
+  },
+  {
+   "id": "K7",
+   "result": "PARTIAL",
+   "evidence": "Частота красных прогонов: шаги начислений упали в 4 из 7 последних попыток (прогон 49 шаг 6, 52 шаг 6, 54 попытка 1 шаг 6, 54 попытка 2 шаг 8; REST jobs). a8b1100d сохраняет заказы, но повтора шага нет; при 3 прогонах orders в день по этой частоте ~1.7 красных прогона в день, текст ошибки просит перезапуск руками."
+  },
+  {
+   "id": "K8",
+   "result": "N/A",
+   "evidence": "deploy-pages по workflow_run после ozon-snapshots, запущенного dispatch через GITHUB_TOKEN: прецедента в репо нет (9 воркфлоу диспатчат deploy-pages напрямую, rop-tg-bot - b24-snapshots), docs.github.com недоступен (CONNECT 403). Смягчение: deploy-pages диспатчат боты 20 раз за 31 ч (прогоны 3194-3231), зазор между бот-диспатчами днём до 2.1 ч, ночью до 6.8 ч. [НЕ ПРОВЕРЕНО]"
+  },
+  {
+   "id": "K9",
+   "result": "PASS",
+   "evidence": "Сериализация группы ozon-data: ручные запуски 16.10 06:35 - job orders до 06:38:07, job ozon-snapshots создан 06:38:06 и стартовал 06:38:08, одновременно не шли."
+  }
+ ],
+ "comprehension_gate": {
+  "applies": false,
+  "passed": true,
+  "defects": []
+ },
+ "checkpoints": {
+  "accuracy_1_figures_tagged": 1,
+  "accuracy_2_sources_verifiable": 2,
+  "accuracy_3_no_conflict_with_rag": 1,
+  "accuracy_4_glossary_terminology": 2,
+  "accuracy_5_brand_names_correct": 2,
+  "actionability_6_owner_assigned": 1,
+  "actionability_7_deadline_buffer": 2,
+  "actionability_8_resources_listed": 1,
+  "actionability_9_metric_concrete": 1,
+  "actionability_10_milestone": 2,
+  "insight_11_nontrivial": 2,
+  "insight_12_second_order": 1,
+  "insight_13_alternatives_analyzed": 0,
+  "insight_14_anti_median": 1,
+  "insight_15_cross_domain": 1,
+  "brand_16_voice": 2,
+  "brand_17_anti_slop": 2,
+  "brand_18_no_em_dash": 2,
+  "brand_19_output_routing": 2,
+  "brand_20_tone_audience": 2,
+  "risk_21_downside": 1,
+  "risk_22_p9_hard_rules": 2,
+  "risk_23_crisis_scenarios": 1,
+  "risk_24_dependencies": 1,
+  "risk_25_reversibility": 2
+ },
+ "scores": {
+  "accuracy": 8.0,
+  "actionability": 7.0,
+  "insight": 5.0,
+  "brand_fit": 10.0,
+  "risk_awareness": 7.0
+ },
+ "weighted_total": 7.3,
+ "verdict": "return",
+ "primary_gap": "Цепочка работает, но звено коммита заказов на её критическом пути мёртвое: при чужом push во время сбора 4 push отклоняются, шаг и прогон зелёные, а ozon-snapshots всё равно запускается и пересобирает сайт без свежих заказов (A5b). Исправление Codex даёт лишний ozon-snapshots каждый день вопреки комментарию (K1), красный прогон станет нормой (K7).",
+ "gaps": [
+  "A5b FAIL: шаг «Коммит данных в ветку» (строка 105) теряет заказы молча - 4 отклонённых push, код 0, цепочка дальше пересобирает сайт без них. Нужны git pull --rebase перед push и exit 1 после цикла, как ozon-snapshots.yml:363-367. Утренний прогон: чужой коммит в 4 мин после 04:50 UTC в 1 из 17 дней.",
+  "K1: после 14f92987 ozon-snapshots идёт 4 раза в день вместо 3 в каждом из 15 дней 01-15.10: прогон orders по расписанию диспатчит ozon за 34-65 мин до cron, ждущим тот не бывает. Комментарий строки 112 и ответ на Codex неверны: принять дубль явно с ценой или убрать.",
+  "K7: красный прогон станет нормой - начисления упали в 4 из 7 последних попыток, прогонов orders теперь 3 в день, повтора шага нет, перезапуск руками.",
+  "Тело PR не обновлено под 14f92987 и a8b1100d; «опаздывает на 4-5 часов» против измеренных 4.5-7.7 ч; «коммитит только съём с мака» верно с 30.09.",
+  "K8: deploy-pages по workflow_run после ozon-snapshots, запущенного GITHUB_TOKEN, не проверен (прецедента нет, docs недоступны); нужна приёмка на первой цепочке после мержа.",
+  "Нет критерия успеха и ответственного: время от съёма до деплоя, «План» со вчерашними заказами к 08:30 МСК, кто перезапускает красный прогон.",
+  "Альтернативы не разобраны: прямой dispatch deploy-pages после коммита заказов, workflow_run orders -> ozon без actions: write, начисления только по расписанию, снятие cron ozon.",
+  "Вне диффа (согласен с координатором): acq-sku-daily.ts:56 и pnl-accrual-daily.ts:93 глотают сбой дня и перезаписывают файл без этого дня, шаг выходит 0, проверка a8b1100d этого не видит. Отдельный PR и запись в реестр.",
+  "Гигиена: 7 предупреждений К7 без # dg-ok (3 новых continue-on-error, || echo 000); actions: write на весь workflow, хотя нужен одному шагу (A6).",
+  "Process: self-check 25 пунктов нет; оценка по сокращённому (утверждения запроса и тела PR), как testy-itogi 12.10."
+ ],
+ "evidence_ledger": [
+  {
+   "gap": "Шаг коммита заказов теряет данные молча при чужом push",
+   "evidence": "A5b: probe_race.sh - 4 отказа, код 0, origin без свежих заказов; контроль с pull --rebase сохраняет; строка 105 a8b1100d; окно утреннего прогона: чужой коммит в 4 мин после 04:50 UTC в 1 из 17 дней (11.10 harvest 04:51:20, push_rate.py); в истории 40 прогонов (#15-#54) шаг 0-3 с, отказов push не было (commit_step_hist.py)",
+   "checkpoint": "risk_23_crisis_scenarios",
+   "weight": -1
+  },
+  {
+   "gap": "Комментарий строки 112 и ответ на Codex: «лишний ozon-snapshots заменит ждущий» неверно",
+   "evidence": "K1: concurrency_sim.py на 01-15.10 - a8b1100d O3 Z4 в 15 из 15 дней, отменённых pending 0; зазор 34-65 мин против 20-26 мин",
+   "checkpoint": "accuracy_3_no_conflict_with_rag",
+   "weight": -1
+  },
+  {
+   "gap": "Опоздание расписания занижено, тело PR не под голову",
+   "evidence": "REST runs 01-15.10: orders стартовал через 4.6-7.6 ч после 04:52 UTC, ozon через 4.5-7.7 ч после 05:53; в теле PR «4-5 часов»; тело PR (updated 06:56) не упоминает dispatch по расписанию и мягкие шаги начислений",
+   "checkpoint": "accuracy_1_figures_tagged",
+   "weight": -1
+  },
+  {
+   "gap": "Красный прогон станет нормой без повтора шага",
+   "evidence": "K7: REST jobs прогонов 49, 52, 54 (2 попытки) - 4 падения шагов начислений из 7 попыток; прогонов orders в день 3 (модель K1); строки 138-141 просят перезапуск руками",
+   "checkpoint": "risk_21_downside",
+   "weight": -1
+  },
+  {
+   "gap": "Не названы ответственный за красные прогоны и критерий успеха цепочки",
+   "evidence": "Тело PR и сообщения коммитов: нет времени от съёма до деплоя, нет «План к 08:30», нет кто перезапускает",
+   "checkpoint": "actionability_9_metric_concrete",
+   "weight": -1
+  },
+  {
+   "gap": "Ответственный не назван",
+   "evidence": "строки 135, 139: «перезапусти workflow» без адресата; тело PR",
+   "checkpoint": "actionability_6_owner_assigned",
+   "weight": -1
+  },
+  {
+   "gap": "Нагрузка на OZON и гигиена К7 не учтены",
+   "evidence": "Модель K1: orders 1 -> 3, ozon-snapshots 1 -> 4 прогона в день; workflow_hygiene.py: 7 предупреждений К7 без # dg-ok",
+   "checkpoint": "actionability_8_resources_listed",
+   "weight": -1
+  },
+  {
+   "gap": "Вторичные эффекты разобраны частично",
+   "evidence": "Учтены путь Codex и потеря заказов при 429; не учтены дубль ozon (K1), частота красных (K7), сдвиг момента заморозки рядов (K4), снимок цены дня (prices-daily.ts:19-21: первый прогон суток, теперь ~08:00 МСК)",
+   "checkpoint": "insight_12_second_order",
+   "weight": -1
+  },
+  {
+   "gap": "Альтернативы не разобраны",
+   "evidence": "Тело PR, сообщения коммитов 14f92987 и a8b1100d: нет сравнения с прямым dispatch deploy-pages (b24-cron.yml:130-147), workflow_run orders -> ozon, начислениями только по расписанию, снятием cron ozon",
+   "checkpoint": "insight_13_alternatives_analyzed",
+   "weight": -2
+  },
+  {
+   "gap": "Решение типовое, без переноса практики",
+   "evidence": "dispatch по образцу b24-cron; рассуждение",
+   "checkpoint": "insight_14_anti_median",
+   "weight": -1
+  },
+  {
+   "gap": "Нет отсылки к смежной практике",
+   "evidence": "рассуждение: очередь с одним pending обычно лечат проверкой свежести, а не вторым триггером",
+   "checkpoint": "insight_15_cross_domain",
+   "weight": -1
+  },
+  {
+   "gap": "Звено workflow_run после бот-диспатча не проверено",
+   "evidence": "K8: grep dispatches в .github/workflows - 9 целей deploy-pages, 1 b24-snapshots, прецедента нет; docs.github.com CONNECT 403",
+   "checkpoint": "risk_24_dependencies",
+   "weight": -1
+  },
+  {
+   "gap": "Вне диффа: дневные сбои начислений проглатываются",
+   "evidence": "acq-sku-daily.ts:56 и pnl-accrual-daily.ts:93 catch continue, затем полная перезапись 95-105 и 122-125; шаг 0, проверка строк 138-141 не срабатывает",
+   "checkpoint": "risk_23_crisis_scenarios",
+   "weight": 0
+  },
+  {
+   "gap": "Process: self-check 25 пунктов не приложен",
+   "evidence": "A2A-запрос и тело PR: утверждения без да/нет/частично; оценка по прецеденту feniks-audit-ozon-testy-itogi-20261012.md:11",
+   "checkpoint": "risk_22_p9_hard_rules",
+   "weight": 0
+  }
+ ],
+ "rework_tz": "1) Шаг коммита: в каждой попытке git pull --rebase origin \"${{ github.ref_name }}\" перед push, при отказе git rebase --abort, после цикла exit 1 с ::error:: (образец ozon-snapshots.yml:363-367). Приёмка: probe_race.sh - свежие заказы в origin при чужом push; мутант без pull даёт красный шаг, а не зелёный. 2) Дубль ozon-snapshots: выбрать и записать в PR - (а) принять +1 прогон в день (17-23 мин OZON API, +1 коммит, +1 деплой) и исправить комментарий строки 112; (б) на schedule диспатчить, только если последний успешный ozon-snapshots старше последнего коммита reakciya.json; (в) снять cron ozon-snapshots, раз расписание orders его запускает. Приёмка (б, в): concurrency_sim.py на 01-15.10 - не больше 3 ozon в день, стресс S1 восстанавливает цепочку. 3) Красные прогоны: один повтор каждого шага начислений после паузы 60-120 с или шаги начислений только на schedule и workflow_dispatch. Приёмка: ожидаемое число красных прогонов в день с источником (jobs API, 4 из 7). 4) Тело PR под голову: dispatch и по расписанию, мягкие шаги начислений, опоздание 4.5-7.7 ч, «только мак с 30.09», число прогонов orders и ozon в день. 5) Приёмка после мержа записать в PR: на первом утреннем съёме прогон deploy-pages с event workflow_run от диспатченного ozon-snapshots (или бот-диспатч не позже 30 мин), «План» показывает заказы за вчера к 08:30 МСК. 6) Необязательно: # dg-ok с причиной у мягких шагов, dispatch в отдельный job с permissions actions: write без checkout. Вне PR: acq/pnl-accrual - красный шаг при сбое дня после ретраев, запись в реестр (К7).",
+ "iteration": 1,
+ "confidence": 0.8,
+ "p9_triggers_fired": [],
+ "escalate_to": "нет вето; Иван - только если мерж нужен до доработки (переопределение return - его решение)",
+ "sources_of_truth": [
+  "git -C /home/user/t1-wt show 4445697, cda91883, a8b1100d:.github/workflows/orders-backfill.yml; diff cda91883..a8b1100d",
+  "gh api repos/oliverjone01-dev/t1/pulls/484 (тело, комментарии Codex и ответ), compare 4445697...main",
+  "gh api actions/workflows/361257227 и 300243375 runs (расписание 01-15.10, created_at, длительности), runs/38862081435 jobs (2 попытки), runs?event=push (100 прогонов)",
+  "gh api commits?path=analytics-mvp/data/reakciya.json (вся история), commits/<sha> файлы мака, commits?since=2026-09-30 (524 коммита main)",
+  "gh api contents raw: sku_views.ndjson@a195c436, funnel_tests.ndjson@710ec0d8, sku_offer.json@a195c436, ads_daily.ndjson (104 версии, пересбор 3169cf58)",
+  "analytics-mvp/src/scripts/ozon/*.ts, backfill.ts, validate-snapshot.ts, connector/ozon-seller.ts, util/retry.ts на a8b1100d",
+  "actionlint 1.7.7 (релиз rhysd), shellcheck 0.11.0 (PyPI shellcheck-py), tools/ci/workflow_hygiene.py",
+  "knowledge/errors/registry.jsonl (E046, E051, E060, E029), sessions/handoff/2026-10-15-ozon-testy-plan-tab-v13.md:25 (429 на шаге accrual 15.10)",
+  "docs.github.com недоступен (CONNECT 403): семантика concurrency по ссылке Codex и знаниям, workflow_run после GITHUB_TOKEN-dispatch [НЕ ПРОВЕРЕНО]"
+ ]
+}

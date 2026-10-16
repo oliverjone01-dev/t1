@@ -1,11 +1,17 @@
 // Клиент OZON Seller API (api-seller.ozon.ru). Логика из DOC_02 §2.
 // Все вызовы обёрнуты в retry/backoff (S3): переживают 429 OZON.
 
-import { withRetry, HttpError } from "../util/retry.js";
+import { withRetry, HttpError, type RetryOpts } from "../util/retry.js";
 import { lineOf } from "../util/line.js";
 import type { SkuDaily } from "../types.js";
 
 const SELLER_HOST = "https://api-seller.ozon.ru";
+// Методы начислений OZON 16.10 отвечали 429 «rate limit per second» по 2-4 раза подряд: 5 повторов
+// за ~31 с не хватало, прогон orders-backfill падал. Для них дольше: 8 повторов, пауза до 60 с (~4 мин),
+// и пауза между запросами пачек.
+const ACCRUAL_RETRY: RetryOpts = { retries: 8, baseMs: 2000, maxMs: 60000 };
+const ACCRUAL_GAP_MS = 300;
+const pause = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 // Порядок метрик важен: ответ - массив в этом же порядке (DOC_02 §2.1).
 export const ANALYTICS_METRICS = [
@@ -93,7 +99,7 @@ export class OzonSeller {
     };
   }
 
-  private async post<T>(path: string, body: unknown): Promise<T> {
+  private async post<T>(path: string, body: unknown, retry?: RetryOpts): Promise<T> {
     return withRetry(async () => {
       const res = await fetch(`${SELLER_HOST}${path}`, {
         method: "POST",
@@ -104,7 +110,7 @@ export class OzonSeller {
         throw new HttpError(res.status, `OZON Seller ${path} -> HTTP ${res.status}: ${await res.text()}`);
       }
       return (await res.json()) as T;
-    });
+    }, retry);
   }
 
   // Дневные строки по SKU за одну дату - основа исторического бэкфилла (S3).
@@ -330,7 +336,7 @@ export class OzonSeller {
 
   // Справочник типов начислений (~124 шт): id -> имя. Основа маппинга type_id по категориям.
   async accrualTypes(): Promise<Array<{ id: number; name: string; description: string }>> {
-    const d = await this.post<any>("/v1/finance/accrual/types", {});
+    const d = await this.post<any>("/v1/finance/accrual/types", {}, ACCRUAL_RETRY);
     const arr = d.accrual_types ?? d.result?.accrual_types ?? [];
     return arr.map((t: any) => ({ id: Number(t.id), name: String(t.name ?? ""), description: String(t.description ?? "") }));
   }
@@ -342,7 +348,8 @@ export class OzonSeller {
     for (let i = 0; i < postingNumbers.length; i += 200) {
       const batch = postingNumbers.slice(i, i + 200);
       if (!batch.length) continue;
-      const d = await this.post<any>("/v1/finance/accrual/postings", { posting_numbers: batch });
+      if (i) await pause(ACCRUAL_GAP_MS);
+      const d = await this.post<any>("/v1/finance/accrual/postings", { posting_numbers: batch }, ACCRUAL_RETRY);
       for (const p of (d.posting_accruals ?? d.result?.posting_accruals ?? [])) {
         out.push({ posting_number: String(p.posting_number ?? ""), accruals: p.accruals ?? [] });
       }
@@ -357,7 +364,8 @@ export class OzonSeller {
     let lastId: any = "";
     for (let guard = 0; guard < 500; guard++) {
       const body: any = { date }; if (lastId) body.last_id = lastId;
-      const d = await this.post<any>("/v1/finance/accrual/by-day", body);
+      if (guard) await pause(ACCRUAL_GAP_MS);
+      const d = await this.post<any>("/v1/finance/accrual/by-day", body, ACCRUAL_RETRY);
       const arr = d.accruals ?? d.result?.accruals ?? [];
       for (const a of arr) out.push(a);
       lastId = d.last_id ?? d.result?.last_id ?? "";

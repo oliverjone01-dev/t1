@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-09-16",
   "dateTo": "2026-10-15",
-  "generated_at": "2026-10-16T06:38:39.973Z",
+  "generated_at": "2026-10-16T09:34:06.568Z",
   "totals": {
     "rev": 25282132,
     "units": 359,
@@ -250,7 +250,7 @@
       "aov": 93503,
       "offer": "GGM-20-2",
       "stock": 228,
-      "pidx": 0.73,
+      "pidx": 0.83,
       "pcol": "SUPER",
       "price": 90988,
       "oos": 0
@@ -491,7 +491,7 @@
       "retp": 0,
       "aov": 105900,
       "offer": "GGT-03-2-2-O-18090",
-      "stock": 123,
+      "stock": 122,
       "pidx": 0.87,
       "pcol": "SUPER",
       "price": 104515,
@@ -1724,8 +1724,8 @@
       "aov": 94900,
       "offer": "GGT-46-3-3-100",
       "stock": 19,
-      "pidx": 0.57,
-      "pcol": "SUPER",
+      "pidx": 0,
+      "pcol": "WITHOUT_INDEX",
       "price": 90155,
       "oos": 0
     },
@@ -2017,7 +2017,7 @@
     },
     {
       "sku": "3564834089",
-      "name": "GENGLASS Стол кухонный обеденный круглый TRUBIS Wood L D110 см черный",
+      "name": "GENGLASS Стол кухонный обеденный круглый TRUBIS Wood L 110 см черный",
       "line": "TRUBIS",
       "rev": 77900,
       "units": 1,
@@ -2669,7 +2669,7 @@
       "retp": 0,
       "aov": 43900,
       "offer": "GGM-01-2",
-      "stock": 239,
+      "stock": 238,
       "pidx": 0.74,
       "pcol": "SUPER",
       "price": 43900,

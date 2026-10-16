@@ -8,8 +8,9 @@
 //
 // Защита (fail-closed): если model_id прочитан меньше чем у 90 % товаров или карточек меньше 20,
 // файл не трогаем и выходим с кодом 1 - ночной шаг пишет warning, страница живёт на прежней карте.
-// Артикулы прежней карты, которых нет в API (сняты с продажи), остаются в своей карточке, если
-// такая карточка есть в API: история тестов по ним не теряет родню.
+// Артикулы прежней карты, которых нет в API (сняты с продажи, в прайсе их нет), остаются в своей
+// прежней карточке, даже если всей карточки в API больше нет: история тестов не теряет родню.
+// Артикул, который есть в API, всегда стоит там, где его ставит API.
 //
 // Запуск: npm run cards:api   (без OZON_SELLER_* не стартует)
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -44,9 +45,9 @@ export function buildCardMap(items: any[], prev: MapFile | null, today: string):
   for (const g of prev?.groups ?? []) for (const s of g.skus) prevCard.set(s.offer, { card: str(g.main), sku: str(s.sku) });
   let carried = 0;
   for (const [offer, p] of prevCard) {
-    if (apiOffers.has(offer)) continue;
-    const g = by.get(p.card); if (!g) continue;
-    g.skus.set(offer, p.sku); carried += 1;
+    if (apiOffers.has(offer) || !p.card) continue;
+    const g = by.get(p.card) ?? { declared: 0, skus: new Map<string, string>() };
+    g.skus.set(offer, p.sku); by.set(p.card, g); carried += 1;
   }
   const groups: MapGroup[] = [];
   for (const [id, g] of [...by.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {

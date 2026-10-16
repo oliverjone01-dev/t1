@@ -26,14 +26,17 @@ describe("карта карточек из Seller API", () => {
     expect(buildCardMap([], null, "d").why).toMatch(/ни одного товара/);
   });
 
-  it("артикул прежней карты, которого нет в API, остаётся в своей карточке; сменившие карточку считаются", () => {
+  it("артикулы прежней карты, которых нет в API, остаются в своей карточке, даже если её нет в API; API важнее прежней карты", () => {
     const prev: MapFile = { generated_note: "", source: "cabinet", imported_at: "2026-09-23",
       groups: [{ model: "", main: "1000", declared: 3, skus: [{ sku: "01", offer: "A0-1" }, { sku: "99", offer: "OLD" }] },
                { model: "", main: "7777", declared: 2, skus: [{ sku: "02", offer: "A0-2" }, { sku: "98", offer: "GONE" }] }] };
     const { map, stats } = buildCardMap(many(20), prev, "d");
     const g = map!.groups.find((x) => x.main === "1000")!;
     expect(g.skus.map((s) => s.offer)).toEqual(["A0-1", "A0-2", "OLD"]);
-    expect(map!.groups.some((x) => x.main === "7777")).toBe(false);   // карточки нет в API - GONE не тащим
-    expect(stats).toMatchObject({ carried: 1, moved: 1, added: 38 });
+    // A0-2 по API в 1000 (moved), карточка 7777 в API пропала - в ней остаётся один GONE, одиночка в карту не идёт
+    expect(map!.groups.some((x) => x.main === "7777")).toBe(false);
+    expect(stats).toMatchObject({ carried: 2, moved: 1, added: 38 });
+    const prev2: MapFile = { ...prev, groups: [...prev.groups, { model: "", main: "8888", declared: 2, skus: [{ sku: "1", offer: "X1" }, { sku: "2", offer: "X2" }] }] };
+    expect(buildCardMap(many(20), prev2, "d").map!.groups.find((x) => x.main === "8888")!.skus.map((s) => s.offer)).toEqual(["X1", "X2"]);
   });
 });

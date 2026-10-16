@@ -30,6 +30,7 @@
 - Пример 62710061827 (5-1, 05.10): цена 96 763, покупатель деньгами 40 069 (41%), скидка Маркета 56 694 (59%) баллами продавцу, баллами списано размещение 46 446 (48%) и буст 18 182, деньгами удержано 184 + 2 709 + 126; деньгами продавцу около 37 050 при себестоимости 16 933.
 
 ## 5. Карта файлов
+- Excel для Ивана (16.10, по его просьбе «так не понятно»): `excel.py` -> `ym-reklama-istoriya-20261016.xlsx` в той же папке, 12 листов, перенос таблиц двух output без пересчёта (запуск `python3 -I excel.py <папка> <выход.xlsx>`).
 - `knowledge/episodes/2026-10/ym-reklama-scripts/{boost-primery,istoriya}.py` и `*-output.md` (запуск `python3 -I <скрипт> /home/user/t1/analytics-mvp/data-ym > <output>.md`); прежние `analiz.py`, `mehanika.py` и их output; документы `ym-reklama-analiz-20261014.md`, `ym-reklama-mehanika-20261015.md`, Word `ym-reklama-vyvody-20261015.docx`.
 - Фикс гейта: `.github/workflows/ym-snapshots.yml`, тест в `analytics-mvp/src/scripts/ym/validate-facts.test.ts`, аудиты `feniks-audit-ym-ozon-gate-resnap-20261015{,-iter2}.{md,json}`, пробы `feniks-probes-ym-ozon-gate-resnap/`, self-check `selfcheck-ym-ozon-gate-resnap-20261015.md`.
 - Источники `analytics-mvp/data-ym/` (orders, netting, bonuses_monthly, promo_monthly, sku_views с 31.08, services_monthly, sku_cogs, catalog).

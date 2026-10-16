@@ -3,15 +3,15 @@
   "type_id": 69,
   "name": "SaleCommission",
   "bucket": "commission",
-  "sum": -74175111,
-  "n": 3168
+  "sum": -74364195,
+  "n": 3175
  },
  {
   "type_id": 32,
   "name": "Logistic",
   "bucket": "delivery",
-  "sum": -2710191,
-  "n": 1549
+  "sum": -2717376,
+  "n": 1556
  },
  {
   "type_id": 3,
@@ -24,8 +24,8 @@
   "type_id": 51,
   "name": "PremiumMembership",
   "bucket": "other",
-  "sum": -982138,
-  "n": 1580
+  "sum": -985887,
+  "n": 1587
  },
  {
   "type_id": 64,
@@ -52,8 +52,8 @@
   "type_id": 95,
   "name": "CustomerReviews",
   "bucket": "other",
-  "sum": -283835,
-  "n": 1516
+  "sum": -284960,
+  "n": 1523
  },
  {
   "type_id": 22,
@@ -80,8 +80,8 @@
   "type_id": 101,
   "name": "OversizedExtraHandling",
   "bucket": "other",
-  "sum": -49840,
-  "n": 180
+  "sum": -50120,
+  "n": 181
  },
  {
   "type_id": 68,
@@ -94,8 +94,8 @@
   "type_id": 16,
   "name": "Drop-Off",
   "bucket": "delivery",
-  "sum": -19570,
-  "n": 1204
+  "sum": -19630,
+  "n": 1210
  },
  {
   "type_id": 10,
@@ -115,8 +115,8 @@
   "type_id": 29,
   "name": "LastMileCourier",
   "bucket": "delivery",
-  "sum": -7050,
-  "n": 790
+  "sum": -7071,
+  "n": 792
  },
  {
   "type_id": 14,
@@ -143,8 +143,8 @@
   "type_id": 98,
   "name": "DeliveryToHandoverPlaceByOzon",
   "bucket": "delivery",
-  "sum": -2675,
-  "n": 109
+  "sum": -2725,
+  "n": 111
  },
  {
   "type_id": 45,

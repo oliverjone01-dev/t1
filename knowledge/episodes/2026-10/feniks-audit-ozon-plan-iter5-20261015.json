@@ -1,0 +1,235 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-plan-iter5-20261015",
+  "timestamp": "2026-10-16T09:10:00+03:00",
+  "deliverable_ref": "oliverjone01-dev/t1 PR #482 @ 381f11d5 (ветка claude/amazing-hawking-0trncq, голова PR afc411aa - только handoff и трейсы), audit_hash 3fc874ed10dd7cb7, 5 путей поверх main 9a3a212",
+  "artifact_class": "dashboard",
+  "anchor": "7.9 timur-activation итерация 2 - наш выше на 0.05 и вердикт другой: там live-атака прошла гейт (FAIL класса A), здесь стрелка ни разу не стоит в дуге чужого цвета (0 из 173 состояний страницы, 0 из 33 177 состояний сетки, в iter4 было 62 из 111), а держат ниже 8.0 узкая жёлтая зона первой сборки 16.10 (Codex P2) и тест, который проверяет атрибут, а не картинку. До 8.1 reestr после доработки не дотягиваем: там счётчики воспроизведены независимым прогоном, здесь мутанты G1b и G1c (картинка iter4 при верном атрибуте; атрибут списан со статуса) проходят 81/81. В серии: iter4 #481 7.80, iter2 #480 7.85, iter4 #479 8.5",
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev 381f11d5 = 3fc874ed10dd7cb7 = --rev afc411aa (голова PR, refs/pull/482/head); merge-base с origin/main 9a3a212, путей 5 (plan-tab.ts, plan-tab.test.ts, plan-tab.client.js, decisions.md, ozon-plan-15-10.yaml), все в охвате; e17178ae по содержимому = 9a3a212"
+    },
+    {
+      "id": "R1",
+      "result": "PASS",
+      "evidence": "vitest plan-tab.test.ts на дереве 381f11d5 (git archive в scratch): 81 passed (81)"
+    },
+    {
+      "id": "R1b",
+      "result": "PASS",
+      "evidence": "build-tests.ts + smoke.ts: main 9a3a212 и голова exit 0, «ВСЕ 1 страниц прошли smoke-прогон»"
+    },
+    {
+      "id": "R2",
+      "result": "FAIL",
+      "evidence": "tsc --noEmit: main 15, голова 16; новая TS2304 Cannot find name 'HTMLElement' в plan-tab.test.ts (:371, :381); CI tsc не запускает (grep по .github/workflows пуст)"
+    },
+    {
+      "id": "R3",
+      "result": "PASS",
+      "evidence": "страница «Тесты» вне блока «План» байт-в-байт, остаток 891 384 символа на обоих коммитах"
+    },
+    {
+      "id": "U3",
+      "result": "PASS",
+      "evidence": "E087: страница собрана, клиентский скрипт в jsdom на 61 сборке - 0 ошибок, 0 пустых контейнеров из 20; удалённых идентификаторов в client.js и plan-tab.ts нет (в тесте ушло только W6 из названия, grep = 0)"
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "планы периода своим кодом из plan_2026-10-15_v3.json: карточки 140/14 x 17 = 170, магазин 355 - 300/31 x 14 = 219,5, оборот 24,2 - 20,9/31 x 14 = 14,76; реклама (283 110 + 51 598)/7 x 17 = 812 862; на странице те же"
+    },
+    {
+      "id": "B2",
+      "result": "PASS",
+      "evidence": "три периода: 16.10 (n=1, фикстуры e1), 01.11 закрытый октябрь (метка 100%, k=1), 04.11 ноябрь (период 01.11-30.11, план 300 и 409, справочной строки нет)"
+    },
+    {
+      "id": "B4",
+      "result": "PARTIAL",
+      "evidence": "«Как считаем» на собранной странице 381f11d5 - правило v7, строка v5 «Спидометры - за месяц, с 1-го числа» = 0; но plan-tab.ts:536 зашивает «период 15.10-31.10», «справочно 01-14.10», «цели октября»: на fx_nov 04.11 спидометры 01.11-30.11 без справочной строки, текст - 15.10-31.10"
+    },
+    {
+      "id": "G1",
+      "result": "PARTIAL",
+      "evidence": "приёмка iter4 по букве (g1_summary.py iter4 без правок): семейства iter4 5 из 149, все 5 - артефакт допуска 0,8 моей пробы (стрелка ровно между двумя дугами, побеждает первая в DOM: 4 x карточки ровно в план, магазин 04.11 на 71%); только фикстуры G1 и W6 - 0 из 38 (в iter4 18 из 38)"
+    },
+    {
+      "id": "G2",
+      "result": "PASS",
+      "evidence": "строго без допуска (render9.mts + g1_strict.py, g1_grid.mjs): стрелка внутри нарисованной дуги чужого цвета 0 из 173 состояний страницы и 0 из 33 177 состояний сетки (4 спидометра x 17 дней x плотная сетка факта + границы 70/100/120%)"
+    },
+    {
+      "id": "G3",
+      "result": "FAIL",
+      "evidence": "Codex P2 подтверждён: сборка 16.10 (n=1) - жёлтая зона магазина 3,09-4,42 = 1,33 п., оборота 3,18-4,54 = 1,36 п., рекламы 5,88-7,06 = 1,18 п. меньше отступов 2 x 0,7 - дуга нулевой длины (client.js:28); фикстура e1_y: у 3 из 4 спидометров периода статус жёлтый, стрелка над непокрашенным промежутком (ближе красная 1,25 п. или зелёная 1,38 п.), data-zone = жёлтый; сетка: 108 состояний без дуги цвета статуса, все n=1. Карточки: жёлтая дуга 0,63 ед. из 240"
+    },
+    {
+      "id": "G4",
+      "result": "PASS",
+      "evidence": "симуляция фикса Codex в scratch (отступ min(.7, ширина/4)): дуг нулевой длины 0, состояний без дуги цвета статуса 108 -> 0, жёлтая в день 1 - 1,0-1,5 ед.; стрелка в дуге чужого цвета 0"
+    },
+    {
+      "id": "G5",
+      "result": "PARTIAL",
+      "evidence": "data-zone != data-st на точных границах: 3 из 33 177 (карточки 35 из 50 и 70 из 100 - статус 70% «отстаём», зона красная; реклама 57 378 из 47 815 - 120% «выше плана», зона красная): pc против Z(70)=70 x (mark/100) и td против 70 идут разными путями плавающей точки; на картинке - ничья в промежутке"
+    },
+    {
+      "id": "M8",
+      "result": "PARTIAL",
+      "evidence": "m8_mutants.py, 39 мутантов: убиты 18 (G1a k=1, V5c реклама как заказы, G1d, G1e, G1f, S9v, S11v, V3c, S15, W5d, W5f, V1s, V2s, V3s, V4s, V5s, V7s, V9s), живы 21; приёмка координатора G1a + V5c - убиты; живы G1b (картинка iter4 при верном атрибуте) и G1c (data-zone списан со статуса)"
+    },
+    {
+      "id": "T4",
+      "result": "PARTIAL",
+      "evidence": "тест :361 переименован (правила v6 в названии нет); тесты из DOM :365 и :376 есть, но читают атрибут, а не SVG; приёмка M5 iter4: V5c, S11v, S9v убиты, W5a, S10', P11, P12 живы"
+    },
+    {
+      "id": "T1",
+      "result": "FAIL",
+      "evidence": "priceStatus в диффе не менялся; сборка 16.10 с 03:00 до ~09:30 МСК - 4 ложных «не снижена» (iter2 t1_timeline.sh), срок 22.10"
+    },
+    {
+      "id": "W3",
+      "result": "FAIL",
+      "evidence": "что мерить после 29.10 не решено; «Открыто» только в заменённой записи decisions.md:9; срок 29.10"
+    },
+    {
+      "id": "C3",
+      "result": "PASS",
+      "evidence": "em dash 0 в добавленном тексте 5 путей, в блоке и на странице"
+    },
+    {
+      "id": "C4",
+      "result": "PASS",
+      "evidence": "anti-slop-checker.sh на 15 051 символе диффа и блока - 0 попаданий; контроль с заведомой фразой срабатывает"
+    },
+    {
+      "id": "D1",
+      "result": "PASS",
+      "evidence": "самооценок X/10 в добавленном тексте 0"
+    }
+  ],
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.3,
+    "actionability": 8.0,
+    "insight": 7.0,
+    "brand_fit": 9.5,
+    "risk_awareness": 7.0
+  },
+  "weighted_total": 7.95,
+  "verdict": "go",
+  "primary_gap": "G3 (Codex P2): на первой сборке с фактом периода (1 день данных, 15.10) жёлтая дуга магазина, оборота и рекламы нулевой длины (client.js:28), стрелка при статусе «отстаём» / «выше плана» стоит над непокрашенным промежутком; тест автора этого не видит, потому что сверяет data-zone, посчитанный до отступов, а не нарисованную дугу",
+  "gaps": [
+    "G3 (Codex P2, до первой сборки с фактом периода - на 16.10 06:09 UTC заказы и реклама на main по 14.10): client.js:28 отступ .7 с обоих концов - при ширине зоны < 1,4 п. дуга нулевой длины. 16.10: жёлтая магазина 1,33 п., оборота 1,36, рекламы 1,18; e1_y - 3 из 4 спидометров с жёлтым статусом над промежутком. Фикс Codex min(.7, ширина/4) в симуляции: 108 -> 0 состояний без дуги цвета статуса. Приёмка: g1_grid.mjs ИТОГ «без дуги цвета статуса» = 0",
+    "G1t (вместе с G3): тесты plan-tab.test.ts:365 и :376 сверяют data-zone с data-st; data-zone (client.js:35-36) считается по зонам до отступа и до защиты нулевой длины, а не по нарисованным дугам. Живы G1b (картинка iter4 от 100% плана периода при верном атрибуте) и G1c (data-zone = цвет статуса). Приёмка: тест читает угол стрелки и дуги из SVG (как render9.mts), G1b и G1c убиты",
+    "T4/M5 (до 22.10, с T1): живы 21 из 39 мутантов; из приёмки M5 iter4 живы W5a, S10', P11, P12 (V5c, S11v, S9v убиты)",
+    "T1 (до 22.10): priceStatus по дате сборки; 16.10 с 03:00 до ~09:30 МСК 4 ложных «не снижена»",
+    "W3 (до 29.10): что мерить после откатов 29.10; метка «Открыто» только в заменённой записи decisions.md:9",
+    "B4n (до 01.11, с W3): plan-tab.ts:536 зашивает «период 15.10-31.10», «справочно 01-14.10», «цели октября»; 04.11 спидометры 01.11-30.11 без справочной строки, текст про октябрь. Строить строку из g.from/g.to и наличия ref",
+    "R2: tsc 15 -> 16, новая TS2304 'HTMLElement' в plan-tab.test.ts:371 и :381 (CI tsc не гоняет). Приёмка: tsc 15 = 15",
+    "G5: data-zone != data-st на точных границах 70% и 120% (сетка 3 из 33 177: карточки 35/50 и 70/100, реклама 57 378/47 815) - зона считается от pct и метки, статус от td, разные пути плавающей точки. Считать зону от stPct теми же порогами, что stOf",
+    "S1/V1: спека ozon-plan-15-10.yaml:7 approved_at без отметки о зонах от метки (решение 15.10 G1), правил статуса цены в спеке нет",
+    "Остатки: F1 (мигание у 100% без допуска), Z1 (условная дата 8 артикулов 22.10), iter4 #479 (B1d, V3b, P1). node_modules автора теперь свои - закрыто"
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "G3 Codex P2: жёлтая дуга нулевой длины на первой сборке с фактом периода (1 день данных)",
+      "evidence": "g1_grid.mjs на client.js 381f11d5: n=1 жёлтая магазина 0 ед., оборота 0, рекламы 0, карточек 0,63 ед.; 108 состояний без дуги цвета статуса, все n=1; render9.mts + g1_strict.py на e1_y 16.10: магазин 3,6% промежуток, ближе красная 1,25 п.; оборот 3,9% ближе зелёная 1,38 п.; реклама 6,5% ближе красная 1,29 п.; data-zone жёлтый; client.js:28",
+      "checkpoint": "brand_20",
+      "weight": -0.3
+    },
+    {
+      "gap": "G1t тест сверяет атрибут, а не картинку",
+      "evidence": "m8_mutants.py: G1b и G1c - 81 passed; client.js:35-36 zc по массиву zones до отступа .7 и Math.max; plan-tab.test.ts:365-375, :376-387",
+      "checkpoint": "accuracy_2",
+      "weight": -0.25
+    },
+    {
+      "gap": "T4/M5 остаток",
+      "evidence": "m8_mutants.py: живы G1b G1c P11 P12 S1' S10' V4c W5h V8s V10s W5a W5b W5c P2 P5 P6 P7 P9 S3 S7 S12; приёмка M5 iter4 - живы W5a S10' P11 P12",
+      "checkpoint": "accuracy_2",
+      "weight": -0.25
+    },
+    {
+      "gap": "T1 статус цены по дате сборки",
+      "evidence": "priceStatus вне диффа 9a3a212..381f11d5; t1_timeline.sh (iter2)",
+      "checkpoint": "accuracy_3",
+      "weight": -0.15
+    },
+    {
+      "gap": "W3 план после 29.10, «Открыто» потеряно",
+      "evidence": "decisions.md:9 (заменённая запись) - единственное «Открыто ... W3»; новая запись 15.10 без него",
+      "checkpoint": "risk_21",
+      "weight": -0.15
+    },
+    {
+      "gap": "R2 новая ошибка tsc",
+      "evidence": "r_gate5.sh: tsc main 15, голова 16, comm -13: plan-tab.test.ts TS2304 Cannot find name 'HTMLElement' (:371, :381)",
+      "checkpoint": "actionability_7",
+      "weight": -0.1
+    },
+    {
+      "gap": "B4n «Как считаем» зашита под октябрь",
+      "evidence": "plan-tab.ts:536; render9.mts fx_nov 04.11: how = «период 15.10-31.10...», спидометры «01.11-30.11 · план на 03.11», справочной строки нет",
+      "checkpoint": "accuracy_3",
+      "weight": -0.05
+    },
+    {
+      "gap": "G5 атрибут на точной границе",
+      "evidence": "g1_grid.mjs: data-zone != data-st 3 (карточки n=5 факт 35 план 50; n=10 факт 70 план 100; реклама n=1 факт 57 378 план 47 815)",
+      "checkpoint": "accuracy_2",
+      "weight": -0.05
+    },
+    {
+      "gap": "S1/V1 спека",
+      "evidence": "ozon-plan-15-10.yaml:7 approved_at - последняя отметка v7 без G1; :21 formula_text с зонами от метки",
+      "checkpoint": "accuracy_3",
+      "weight": -0.05
+    },
+    {
+      "gap": "F1, Z1, остатки iter4 #479",
+      "evidence": "f1_period.py (iter4, логика статуса не менялась), plan v3 price[].when_note, ledger iter4 #479",
+      "checkpoint": "risk_24",
+      "weight": -0.2
+    }
+  ],
+  "sources_of_truth": [
+    "knowledge/decisions.md (15.10: «Дуги от плана на дату», спидометры v7)",
+    "knowledge/semantic/metrics/ozon-plan-15-10.yaml v7",
+    "analytics-mvp/data/plan_2026-10-15_v3.json (пороги 140, цели октября и ноября)",
+    "knowledge/episodes/2026-10/feniks-audit-ozon-plan-price-status-iter4-20261015.md (условие G1, B4, приёмка)",
+    "knowledge/errors/registry.jsonl E087"
+  ],
+  "confidence": 0.8
+}

@@ -67,4 +67,13 @@ describe("три цены прайса", () => {
     const rows = priceRows([{ offer_id: "A", price: 50, price_paid: null, price_before: 100 }], "2026-09-23");
     expect(rows[0]).toMatchObject({ paid: null, coinv: 50, coinv_paid: null });
   });
+
+  it("OZON не отдал цену до акций (price == before почти у всех) - before и соинвест дня пустые, не 0 (Иван 16.10)", () => {
+    const items = Array.from({ length: 10 }, (_, k) => ({ offer_id: `A${k}`, price: 1000 + k, price_before: 1000 + k }));
+    const rows = priceRows(items, "2026-10-16");
+    expect(rows).toHaveLength(10);
+    expect(rows.every((r) => r.before === null && r.coinv === null && r.coinv_paid === null && r.price > 0)).toBe(true);
+    const mixed = priceRows([...items.slice(0, 8), { offer_id: "B", price: 500, price_before: 1000 }, { offer_id: "C", price: 600, price_before: 1000 }], "d");
+    expect(mixed.find((r) => r.offer === "B")).toMatchObject({ before: 1000, coinv: 50 });
+  });
 });

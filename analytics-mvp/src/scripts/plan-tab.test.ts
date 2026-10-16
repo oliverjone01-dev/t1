@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JSDOM, VirtualConsole } from "jsdom";
-import { priceStatus, gaugePeriod, storeGoalDay, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
+import { priceStatus, priceWhen, gaugePeriod, storeGoalDay, cardPlanDay, monthEnd, goalPath, cardStatus, spendStatus, weekSum, daysIn, drange, planBlock, PLAN_FILE, adsFullDay, storeNeed, monthGoal, orderDay, decisionWarn, cabinetCheck, CAB_FILE, netUnits, priceAt, priceColumns } from "./plan-tab.js";
 
 const OCT = { mid: 355, lo: 300, hi: 429 };
 
@@ -154,6 +154,30 @@ describe("план v2 - корректировка Ивана 15.10", () => {
     expect(P.price.find((p) => p.art === "GGT-03-3-3-E-16080")).toMatchObject({ when: "15.10", price_new: 87210 });
     expect(P.price).toHaveLength(25);
   });
+});
+
+describe("план v4 - Иван 16.10: QUATRIS и PROFIX на -10% от цены 14.10 с 16.10", () => {
+  type Pr = { art: string; when: string; price_now: number; price_new: number };
+  type V = { cards: unknown[]; withdrawn: string[]; price: Pr[]; start: string; check: string };
+  const v3 = JSON.parse(readFileSync("data/plan_2026-10-15_v3.json", "utf-8")) as V;
+  const v4 = JSON.parse(readFileSync("data/plan_2026-10-15_v4.json", "utf-8")) as V;
+  const ARTS = ["GGT-48-2-2-100-180", "GGT-48-3-3-100-180", "GGT-48-5-1-100-180", "GGT-46-2-2-100", "GGT-46-3-3-100", "GGT-46-5-1-100"];
+  it("страница читает v4", () => expect(PLAN_FILE).toBe("plan_2026-10-15_v4.json"));
+  it("6 артикулов с 16.10, цена 14.10 и -10% до 10 ₽, без дублей", () => {
+    const r = v4.price.filter((p) => p.when === "16.10");
+    expect(r.map((p) => p.art).sort()).toEqual([...ARTS].sort());
+    expect(new Set(v4.price.map((p) => p.art)).size).toBe(v4.price.length);
+    expect(v4.price).toHaveLength(29);
+    expect(v4.price.find((p) => p.art === "GGT-48-2-2-100-180")).toMatchObject({ price_now: 79282, price_new: 71350 });
+    for (const p of r) { expect(p.price_new % 10).toBe(0); expect(Math.abs(p.price_new / p.price_now - 0.9)).toBeLessThan(0.001); }
+  });
+  it("остальное как в v3: карточки, выводимые, окно, прочие строки цены", () => {
+    expect(v4.cards).toEqual(v3.cards); expect(v4.withdrawn).toEqual(v3.withdrawn);
+    expect([v4.start, v4.check]).toEqual([v3.start, v3.check]);
+    expect(v4.price.filter((p) => !ARTS.includes(p.art))).toEqual(v3.price.filter((p) => !ARTS.includes(p.art)));
+  });
+  it("подпись под плашками: число артикулов по датам, по порядку", () =>
+    expect(priceWhen(v4.price)).toEqual([["15.10", 14], ["16.10", 6], ["22.10", 9]]));
 });
 
 describe("план v3 - V3, Иван 15.10 «б»: выводимые вне карточки, пороги правилом 15%", () => {

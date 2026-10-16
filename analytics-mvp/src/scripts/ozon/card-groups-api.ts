@@ -6,7 +6,8 @@
 // /v4/product/info/attributes совпадает с card_id кабинета (4681610246 - зеркала GGM-02/GGM-17,
 // проба card-groups-probe run 2, 16.10). Список товаров - из прайса: без offer_id метод отвечал 404.
 //
-// Защита (fail-closed): если model_id прочитан меньше чем у 90 % товаров или карточек меньше 20,
+// Защита (fail-closed): если API вернул меньше 90 % запрошенных товаров, model_id прочитан меньше чем
+// у 90 % или в самом ответе API (без переноса из прежней карты) карточек меньше 20,
 // файл не трогаем и выходим с кодом 1 - ночной шаг пишет warning, страница живёт на прежней карте.
 // Артикулы прежней карты, которых нет в API (сняты с продажи, в прайсе их нет), остаются в своей
 // прежней карточке, даже если всей карточки в API больше нет: история тестов не теряет родню.
@@ -27,8 +28,8 @@ export interface MapFile { generated_note: string; source: string; imported_at: 
 const str = (v: unknown): string => (v == null ? "" : String(v).trim());
 
 /** Товары API (+ прежняя карта) -> новая карта. Чистая функция, без сети. */
-export function buildCardMap(items: any[], prev: MapFile | null, today: string):
-  { map: MapFile | null; stats: { items: number; withModel: number; groups: number; carried: number; moved: number; added: number }; why: string } {
+export function buildCardMap(items: any[], prev: MapFile | null, today: string, requested = 0):
+  { map: MapFile | null; stats: { items: number; requested: number; withModel: number; apiGroups: number; groups: number; carried: number; moved: number; added: number }; why: string } {
   const by = new Map<string, { declared: number; skus: Map<string, string> }>();
   let withModel = 0;
   for (const it of items ?? []) {
@@ -41,6 +42,9 @@ export function buildCardMap(items: any[], prev: MapFile | null, today: string):
     by.set(id, g);
   }
   const apiOffers = new Set<string>(); for (const g of by.values()) for (const o of g.skus.keys()) apiOffers.add(o);
+  // Порог по карточкам - только по ответу API, до переноса из прежней карты (Codex P1 #486):
+  // иначе обрезанный ответ добирается старой картой и проходит защиту со свежей датой.
+  const apiGroups = [...by.values()].filter((g) => g.skus.size >= 2).length;
   const prevCard = new Map<string, { card: string; sku: string }>();
   for (const g of prev?.groups ?? []) for (const s of g.skus) prevCard.set(s.offer, { card: str(g.main), sku: str(s.sku) });
   let carried = 0;
@@ -59,10 +63,11 @@ export function buildCardMap(items: any[], prev: MapFile | null, today: string):
   let moved = 0, added = 0;
   for (const [o, c] of now) { const p = prevCard.get(o); if (!p) added += 1; else if (p.card !== c) moved += 1; }
   const n = items?.length ?? 0;
-  const stats = { items: n, withModel, groups: groups.length, carried, moved, added };
+  const stats = { items: n, requested, withModel, apiGroups, groups: groups.length, carried, moved, added };
   if (!n) return { map: null, stats, why: "API не вернул ни одного товара" };
+  if (requested && n < requested * MIN_MODEL_SHARE) return { map: null, stats, why: `API вернул ${n} товаров из ${requested} запрошенных (< ${MIN_MODEL_SHARE * 100} %)` };
   if (withModel / n < MIN_MODEL_SHARE) return { map: null, stats, why: `model_id прочитан у ${withModel} из ${n} (< ${MIN_MODEL_SHARE * 100} %)` };
-  if (groups.length < MIN_GROUPS) return { map: null, stats, why: `карточек ${groups.length} (< ${MIN_GROUPS})` };
+  if (apiGroups < MIN_GROUPS) return { map: null, stats, why: `карточек в ответе API ${apiGroups} (< ${MIN_GROUPS})` };
   const skuN = groups.reduce((s, g) => s + g.skus.length, 0);
   return {
     map: { generated_note: `карта объединённых карточек из Seller API (${groups.length} карточек, ${skuN} товаров)`, source: "seller-api-model_info", imported_at: today, groups },
@@ -77,8 +82,8 @@ async function main() {
   const offers = (await seller.prices()).map((p) => p.offer_id).filter(Boolean);
   const items = await seller.attributesAll(1000, 0, offers);
   const prev: MapFile | null = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf-8")) : null;
-  const { map, stats, why } = buildCardMap(items, prev, new Date().toISOString().slice(0, 10));
-  console.log(`cards:api: товаров ${stats.items}, с model_id ${stats.withModel}, карточек ${stats.groups}; новых в карте ${stats.added}, сменили карточку ${stats.moved}, оставлено из прежней карты ${stats.carried}`);
+  const { map, stats, why } = buildCardMap(items, prev, new Date().toISOString().slice(0, 10), offers.length);
+  console.log(`cards:api: товаров ${stats.items} из ${stats.requested}, с model_id ${stats.withModel}, карточек в API ${stats.apiGroups}, в карте ${stats.groups}; новых в карте ${stats.added}, сменили карточку ${stats.moved}, оставлено из прежней карты ${stats.carried}`);
   if (!map) { console.error(`::error::карта карточек не обновлена: ${why}`); process.exit(1); }
   writeFileSync(OUT, JSON.stringify(map, null, 2) + "\n");
   console.log(`cards:api: ${OUT} записан (${map.imported_at})`);

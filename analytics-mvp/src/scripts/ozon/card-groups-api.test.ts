@@ -39,4 +39,13 @@ describe("карта карточек из Seller API", () => {
     const prev2: MapFile = { ...prev, groups: [...prev.groups, { model: "", main: "8888", declared: 2, skus: [{ sku: "1", offer: "X1" }, { sku: "2", offer: "X2" }] }] };
     expect(buildCardMap(many(20), prev2, "d").map!.groups.find((x) => x.main === "8888")!.skus.map((s) => s.offer)).toEqual(["X1", "X2"]);
   });
+
+  it("fail-closed: обрезанный ответ не добирается прежней картой (Codex P1) и меньше 90 % запрошенных - не пишем", () => {
+    const prev = buildCardMap(many(30), null, "2026-09-23").map!;
+    const cut = buildCardMap(many(1), prev, "2026-10-16");
+    expect(cut.map).toBeNull(); expect(cut.why).toMatch(/карточек в ответе API 1/);
+    const few = buildCardMap(many(20), null, "d", 60);
+    expect(few.map).toBeNull(); expect(few.why).toMatch(/40 товаров из 60/);
+    expect(buildCardMap(many(20), null, "d", 44).map).not.toBeNull();
+  });
 });

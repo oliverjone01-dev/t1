@@ -62,7 +62,7 @@ async function main() {
   // 3б. Что запишет ночной cards:api (без записи): сверка с текущей картой data/card_groups.json.
   if (full) {
     const prev = existsSync("data/card_groups.json") ? JSON.parse(readFileSync("data/card_groups.json", "utf-8")) : null;
-    const { map, stats, why } = buildCardMap(items, prev, "probe");
+    const { map, stats, why } = buildCardMap(items, prev, "probe", items.length);
     console.log(`\n=== cards:api (сухой прогон) ===\n${JSON.stringify(stats)} ${why ? "НЕ ЗАПИСАЛ БЫ: " + why : `записал бы ${map!.groups.length} карточек, ${map!.groups.reduce((s, g) => s + g.skus.length, 0)} товаров`}`);
     const pc = new Map<string, string>(); for (const g of prev?.groups ?? []) for (const s of g.skus) pc.set(s.offer, g.main);
     const same = map ? map.groups.flatMap((g) => g.skus.filter((s) => pc.get(s.offer) === g.main)).length : 0;

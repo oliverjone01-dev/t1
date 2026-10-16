@@ -368,17 +368,52 @@ describe("клиент блока в jsdom: скрипт отрабатывае�
       const orders = days.flatMap((d) => [{ d, status: "delivered", sku: "1", units: u, revenue: 1000 * u }, { d, status: "delivered", sku: "9", units: 5, revenue: 5000 }]);
       const b = planBlock("2026-10-19", fixture({ orders }))!;
       const dom = new JSDOM(`<body>${b.html}<script>${b.js}</script></body>`, { runScripts: "dangerously" });
-      const gs = [...dom.window.document.querySelectorAll("#pt-gauges .gauge")] as HTMLElement[];
+      const gs = [...dom.window.document.querySelectorAll("#pt-gauges .gauge")] as InstanceType<typeof dom.window.HTMLElement>[];
       for (const g of gs) if (g.dataset.st) expect([g.textContent!.slice(0, 20), g.dataset.zone]).toEqual([g.textContent!.slice(0, 20), g.dataset.st]);
       expect(gs.filter((g) => g.dataset.st).length).toBeGreaterThanOrEqual(3);
     }
+  });
+  // по нарисованному SVG, а не по data-zone: стрелка стоит в видимой дуге цвета статуса (ФЕНИКС G1t, G3; Codex P2 #482)
+  const drawnOk = (b: { html: string; js: string }) => {
+    const dom = new JSDOM(`<body>${b.html}<script>${b.js}</script></body>`, { runScripts: "dangerously" });
+    const bad: string[] = [], sts: string[] = []; let n = 0;
+    for (const g of [...dom.window.document.querySelectorAll("#pt-gauges .gauge")] as InstanceType<typeof dom.window.HTMLElement>[]) {
+      if (!g.dataset.st || g.dataset.pct === "") continue; n++; sts.push(g.dataset.st);
+      const pc = Math.min(150, Number(g.dataset.pct));
+      const hit = [...g.querySelectorAll("path[data-z0]")].some((p) => {
+        const [m, a] = p.getAttribute("d")!.split(" A"); const end = a!.split(" ").slice(-2).join(" ");
+        return p.getAttribute("stroke") === g.dataset.st && Number(p.getAttribute("data-z0")) <= pc && pc <= Number(p.getAttribute("data-z1")) && m!.slice(1) !== end;
+      });
+      if (!hit) bad.push(g.textContent!.slice(0, 24) + " " + pc.toFixed(2));
+      const under = [...g.querySelectorAll("path[data-z0]")].filter((p) => Number(p.getAttribute("data-z0")) <= pc && pc <= Number(p.getAttribute("data-z1"))).map((p) => p.getAttribute("stroke"));
+      if (!under.includes(g.dataset.zone!)) bad.push("data-zone " + g.textContent!.slice(0, 24));
+    }
+    return { bad, n, sts };
+  };
+  it("стрелка - в нарисованной дуге цвета статуса, сценарии заказов и рекламы", () => {
+    const days = ["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"];
+    for (const u of [0, 1, 2, 5]) {
+      const orders = days.flatMap((d) => [{ d, status: "delivered", sku: "1", units: u, revenue: 1000 * u }, { d, status: "delivered", sku: "9", units: 5, revenue: 5000 }]);
+      const r = drawnOk(planBlock("2026-10-19", fixture({ orders }))!);
+      expect(r.bad).toEqual([]); expect(r.n).toBeGreaterThanOrEqual(3);
+    }
+  });
+  it("первый день периода: узкая жёлтая зона не пропадает (Codex P2 #482)", () => {
+    // 8 заказов за 15.10: карточки 4,7% и магазин 3,6% шкалы - жёлтые, а жёлтая зона уже 1,4 п. (3,84-5,48 и 3,09-4,42)
+    let yellow = 0;
+    for (const u of [0, 7, 8, 9]) {
+      const orders = [{ d: "2026-10-15", status: "delivered", sku: "1", units: u, revenue: 1000 * u }];
+      const r = drawnOk(planBlock("2026-10-16", fixture({ orders }))!);
+      expect(r.bad).toEqual([]); if (r.sts.includes("#E5B567")) yellow++;
+    }
+    expect(yellow).toBe(3);
   });
   it("реклама: перерасход - красная зона, недорасход - зелёная (больше - краснее)", () => {
     const ads = (sp: number) => ["2026-10-15", "2026-10-16", "2026-10-17"].map((d) => ({ d, id: "5", sp, cl: 1 }));
     const zone = (sp: number) => {
       const b = planBlock("2026-10-19", fixture({ adsDaily: ads(sp) }))!;
       const dom = new JSDOM(`<body>${b.html}<script>${b.js}</script></body>`, { runScripts: "dangerously" });
-      const g = [...dom.window.document.querySelectorAll("#pt-gauges .gauge")].pop() as HTMLElement;
+      const g = [...dom.window.document.querySelectorAll("#pt-gauges .gauge")].pop() as InstanceType<typeof dom.window.HTMLElement>;
       return [g.dataset.zone, g.dataset.st];
     };
     const [hi] = zone(100000), [lo] = zone(10);

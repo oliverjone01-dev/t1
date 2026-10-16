@@ -5,6 +5,8 @@
 // НЕ в ночном синке, ничего не пишет в репозиторий.
 import { OzonSeller } from "../../connector/ozon-seller.js";
 import { itemsToCardGroups, modelIdOf, modelCountOf } from "./model-groups.js";
+import { buildCardMap } from "./card-groups-api.js";
+import { readFileSync, existsSync } from "node:fs";
 
 const preview = (v: unknown, n = 300): string => {
   const s = JSON.stringify(v);
@@ -55,6 +57,17 @@ async function main() {
   if (groups.length > 10) console.log(`  ... и ещё ${groups.length - 10}`);
   for (const inc of stats.incomplete.slice(0, 10)) {
     console.log(`  недобор [${inc.model}]: собрано ${inc.have}, OZON обещает ${inc.want}`);
+  }
+
+  // 3б. Что запишет ночной cards:api (без записи): сверка с текущей картой data/card_groups.json.
+  if (full) {
+    const prev = existsSync("data/card_groups.json") ? JSON.parse(readFileSync("data/card_groups.json", "utf-8")) : null;
+    const { map, stats, why } = buildCardMap(items, prev, "probe");
+    console.log(`\n=== cards:api (сухой прогон) ===\n${JSON.stringify(stats)} ${why ? "НЕ ЗАПИСАЛ БЫ: " + why : `записал бы ${map!.groups.length} карточек, ${map!.groups.reduce((s, g) => s + g.skus.length, 0)} товаров`}`);
+    const pc = new Map<string, string>(); for (const g of prev?.groups ?? []) for (const s of g.skus) pc.set(s.offer, g.main);
+    const same = map ? map.groups.flatMap((g) => g.skus.filter((s) => pc.get(s.offer) === g.main)).length : 0;
+    console.log(`совпало с прежней картой: ${same} из ${pc.size} артикулов; карточки прежней карты, которых нет в API: ${[...new Set(pc.values())].filter((c) => !map?.groups.some((g) => g.main === c)).join(", ") || "нет"}`);
+    for (const g of map?.groups ?? []) if (g.skus.some((s) => s.offer.startsWith("GGT-03-5-1"))) console.log(`  GGT-03-5-1 в карточке ${g.main}: ${g.skus.length} товаров, из них GGT-03-5-1: ${g.skus.filter((s) => s.offer.startsWith("GGT-03-5-1")).length}`);
   }
 
   // 4. Подробный дамп одного товара: нужен, если model_info не нашёлся и ключ надо искать глазами.

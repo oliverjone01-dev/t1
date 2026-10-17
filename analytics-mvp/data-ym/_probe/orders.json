@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-16T11:52:55.037Z",
+  "at": "2026-10-17T11:09:29.710Z",
   "dateFormatAccepted": "iso",
   "shape": {
     "id": "number",
@@ -39,11 +39,7 @@
         "date": "string",
         "type": "string",
         "source": "string",
-        "total": "number",
-        "paymentOrder": {
-          "id": "string",
-          "date": "string"
-        }
+        "total": "number"
       }
     ],
     "subsidies": [

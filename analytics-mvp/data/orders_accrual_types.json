@@ -101,8 +101,8 @@
   "type_id": 10,
   "name": "Compensation",
   "bucket": "other",
-  "sum": -13338,
-  "n": 3
+  "sum": -13838,
+  "n": 4
  },
  {
   "type_id": 116,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 1095986,
-  "n": 237
+  "sum": 1137480,
+  "n": 249
  }
 ]

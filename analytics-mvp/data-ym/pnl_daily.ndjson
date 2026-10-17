@@ -270,5 +270,6 @@
 {"d":"2026-10-12","accruals":571972,"commission":-2642,"delivery":-2023,"fees":350541,"payout":221431,"ops":11,"platform":"ym"}
 {"d":"2026-10-13","accruals":282589,"commission":-1318,"delivery":-2048,"fees":173004,"payout":109585,"ops":6,"platform":"ym"}
 {"d":"2026-10-14","accruals":469992,"commission":-24922,"delivery":-8687,"fees":299559,"payout":170433,"ops":11,"platform":"ym"}
-{"d":"2026-10-15","accruals":144384,"commission":-445,"delivery":0,"fees":62126,"payout":82258,"ops":3,"platform":"ym"}
-{"d":"2026-10-16","accruals":312527,"commission":0,"delivery":0,"fees":1,"payout":312526,"ops":7,"platform":"ym"}
+{"d":"2026-10-15","accruals":144384,"commission":-684,"delivery":-1013,"fees":88406,"payout":55978,"ops":3,"platform":"ym"}
+{"d":"2026-10-16","accruals":557584,"commission":0,"delivery":0,"fees":298592,"payout":258992,"ops":12,"platform":"ym"}
+{"d":"2026-10-17","accruals":240795,"commission":0,"delivery":0,"fees":0,"payout":240795,"ops":4,"platform":"ym"}

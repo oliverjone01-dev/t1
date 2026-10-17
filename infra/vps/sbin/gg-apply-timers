@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# gg-apply-timers [--dry-run]  (запускается от root: sudo -n /usr/local/sbin/gg-apply-timers)
+# Пересобирает systemd-таймеры задач из conf/jobs.conf текущего релиза ветки контура.
+# ВАЖНО: этот файл ставится в /usr/local/sbin КОПИЕЙ при bootstrap и НЕ обновляется из git
+# автоматически (он работает от root). jobs.conf для него - только данные: имя и расписание
+# проходят строгую проверку, юниты пишутся из фиксированного шаблона.
+# Обновить сам скрипт: sudo install -m 0755 <релиз>/infra/vps/sbin/gg-apply-timers /usr/local/sbin/
+set -euo pipefail
+[ -r /etc/gg/gg.env ] && . /etc/gg/gg.env
+GG_ROOT=${GG_ROOT:-/srv/gg}
+GG_OPS_BRANCH=${GG_OPS_BRANCH:-main}
+UNIT_DIR=${GG_SYSTEMD_DIR:-/etc/systemd/system}
+dry=0; [ "${1:-}" = --dry-run ] && dry=1
+
+ops="$GG_ROOT/src/$(printf '%s' "$GG_OPS_BRANCH" | sed 's#/#__#g')/current/infra/vps"
+conf=${GG_JOBS_CONF:-$ops/conf/jobs.conf}
+[ -r "$conf" ] || { echo "нет $conf" >&2; exit 1; }
+
+want=()
+while IFS='|' read -r name _br cal _rest; do
+  name=$(printf '%s' "$name" | tr -d '[:space:]')
+  cal=$(printf '%s' "$cal" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  [[ $name =~ ^[a-z0-9][a-z0-9-]{0,40}$ ]] || { echo "плохое имя задачи: '$name'" >&2; exit 1; }
+  [[ $cal =~ ^[A-Za-z0-9*/:.,~\ -]{1,80}$ ]] || { echo "плохое расписание у $name: '$cal'" >&2; exit 1; }
+  if command -v systemd-analyze >/dev/null && ! systemd-analyze calendar "$cal" >/dev/null 2>&1; then
+    echo "systemd не понимает расписание $name: '$cal'" >&2; exit 1
+  fi
+  want+=("$name")
+  unit="$UNIT_DIR/gg-job-$name.timer"
+  body="# сгенерировано gg-apply-timers из jobs.conf - не править руками
+[Unit]
+Description=GENGROUP задача $name
+
+[Timer]
+OnCalendar=$cal
+Persistent=true
+Unit=gg-job@$name.service
+
+[Install]
+WantedBy=timers.target"
+  if [ "$dry" = 1 ]; then echo "--- $unit"; echo "$body"; else printf '%s\n' "$body" >"$unit"; fi
+done < <(sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$conf")
+
+# Удалить таймеры задач, которых больше нет в jobs.conf
+for f in "$UNIT_DIR"/gg-job-*.timer; do
+  [ -e "$f" ] || continue
+  n=$(basename "$f" .timer); n=${n#gg-job-}
+  # без «printf | grep -q»: при pipefail это гонка SIGPIPE, и нужный таймер удалился бы
+  if [[ " ${want[*]} " != *" $n "* ]]; then
+    echo "удаляю таймер $n"
+    [ "$dry" = 1 ] || { systemctl disable --now "gg-job-$n.timer" 2>/dev/null || true; rm -f "$f"; }
+  fi
+done
+
+[ "$dry" = 1 ] && exit 0
+systemctl daemon-reload
+for n in "${want[@]}"; do systemctl enable --now "gg-job-$n.timer" >/dev/null; done
+echo "таймеров задач: ${#want[@]}"

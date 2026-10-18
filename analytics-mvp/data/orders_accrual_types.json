@@ -73,8 +73,8 @@
   "type_id": 93,
   "name": "DefectFineErrors",
   "bucket": "other",
-  "sum": -70035,
-  "n": 20
+  "sum": -70513,
+  "n": 22
  },
  {
   "type_id": 101,
@@ -101,8 +101,8 @@
   "type_id": 10,
   "name": "Compensation",
   "bucket": "other",
-  "sum": -13838,
-  "n": 4
+  "sum": -15849,
+  "n": 5
  },
  {
   "type_id": 116,
@@ -171,7 +171,7 @@
   "type_id": 62,
   "name": "RfbsClientDeliveryCharge",
   "bucket": "buyerDelivery",
-  "sum": 1137480,
-  "n": 249
+  "sum": 1162125,
+  "n": 256
  }
 ]

@@ -1,0 +1,93 @@
+gap_daily rows 13401, coinv_daily rows 61940
+gap: (date, art) with >1 row: 0
+gap: no_site labeled 14; with history 0 []
+   2026-09-20 GGT-03-5-1-O-20090       sku=3579701389   first_nonzero=2026-09-21
+   2026-09-20 GGT-20-5-1-20090         sku=3564833355   first_nonzero=2026-09-21
+   2026-10-10 GGT-47-5-1-80            sku=             first_nonzero=2026-10-12
+   2026-10-11 GGT-47-5-1-80            sku=             first_nonzero=2026-10-12
+   2026-10-12 GGT-47-5-1-90            sku=6005103981   first_nonzero=2026-10-13
+   2026-10-16 GGT-03-5-1-E-12080       sku=6045907076   first_nonzero=2026-10-17
+   2026-10-16 GGT-03-5-1-E-14080       sku=6045906824   first_nonzero=2026-10-17
+   2026-10-16 GGT-03-5-1-E-16080       sku=6045907242   first_nonzero=2026-10-17
+   2026-10-16 GGT-03-5-1-L-100         sku=6045903630   first_nonzero=2026-10-17
+   2026-10-16 GGT-03-5-1-L-110         sku=6045903680   first_nonzero=2026-10-17
+   2026-10-16 GGT-03-5-1-L-120         sku=6045905827   first_nonzero=2026-10-17
+   2026-10-16 GGT-03-5-1-L-80          sku=6045903704   first_nonzero=2026-10-17
+   2026-10-16 GGT-03-5-1-L-90          sku=6045906140   first_nonzero=2026-10-17
+   2026-10-16 GGT-03-5-1-O-18090       sku=6045907105   first_nonzero=2026-10-17
+gap: price==ours WITHOUT label 0; of them with history (= honest zero in series) 0
+gap: 0<gap<=0.01 or sts>=0.9999 with gap>0: 0; negative gap: 0; 0<gap<10: 0
+coinv: no_site labeled 21; with history 0 []
+   2026-10-10 GGT-47-5-1-80            sku=             snap=утро first_paid=2026-10-12
+   2026-10-11 GGT-47-5-1-80            sku=             snap=утро first_paid=2026-10-12
+   2026-10-12 GGT-47-5-1-90            sku=6005103981   snap=утро first_paid=2026-10-13
+   2026-10-16 GGT-03-5-1-E-12080       sku=             snap=утро first_paid=2026-10-18
+   2026-10-16 GGT-03-5-1-E-14080       sku=             snap=утро first_paid=2026-10-18
+   2026-10-16 GGT-03-5-1-E-16080       sku=             snap=утро first_paid=2026-10-18
+   2026-10-16 GGT-03-5-1-L-100         sku=             snap=утро first_paid=2026-10-18
+   2026-10-16 GGT-03-5-1-L-110         sku=             snap=утро first_paid=2026-10-18
+   2026-10-16 GGT-03-5-1-L-120         sku=             snap=утро first_paid=2026-10-18
+   2026-10-16 GGT-03-5-1-L-80          sku=             snap=утро first_paid=2026-10-18
+   2026-10-16 GGT-03-5-1-L-90          sku=             snap=утро first_paid=2026-10-18
+   2026-10-16 GGT-03-5-1-O-18090       sku=             snap=утро first_paid=2026-10-18
+   2026-10-17 GGT-03-5-1-E-12080       sku=6045907076   snap=утро first_paid=2026-10-18
+   2026-10-17 GGT-03-5-1-E-14080       sku=6045906824   snap=утро first_paid=2026-10-18
+   2026-10-17 GGT-03-5-1-E-16080       sku=6045907242   snap=утро first_paid=2026-10-18
+   2026-10-17 GGT-03-5-1-L-100         sku=6045903630   snap=утро first_paid=2026-10-18
+   2026-10-17 GGT-03-5-1-L-110         sku=6045903680   snap=утро first_paid=2026-10-18
+   2026-10-17 GGT-03-5-1-L-120         sku=6045905827   snap=утро first_paid=2026-10-18
+   2026-10-17 GGT-03-5-1-L-80          sku=6045903704   snap=утро first_paid=2026-10-18
+   2026-10-17 GGT-03-5-1-L-90          sku=6045906140   snap=утро first_paid=2026-10-18
+   2026-10-17 GGT-03-5-1-O-18090       sku=6045907105   snap=утро first_paid=2026-10-18
+coinv: coinv_paid_pct == 0 rows 0
+X1 cross-file: same (date, art) 'нет данных' in one file, value in the other: 9
+    (('2026-10-17', 'GGT-03-5-1-E-12080'), 'coinv no_site', 'gap', 47.53)
+    (('2026-10-17', 'GGT-03-5-1-E-14080'), 'coinv no_site', 'gap', 47.63)
+    (('2026-10-17', 'GGT-03-5-1-E-16080'), 'coinv no_site', 'gap', 47.63)
+    (('2026-10-17', 'GGT-03-5-1-L-100'), 'coinv no_site', 'gap', 47.53)
+    (('2026-10-17', 'GGT-03-5-1-L-110'), 'coinv no_site', 'gap', 47.53)
+    (('2026-10-17', 'GGT-03-5-1-L-120'), 'coinv no_site', 'gap', 47.53)
+    (('2026-10-17', 'GGT-03-5-1-L-80'), 'coinv no_site', 'gap', 47.53)
+    (('2026-10-17', 'GGT-03-5-1-L-90'), 'coinv no_site', 'gap', 47.53)
+    (('2026-10-17', 'GGT-03-5-1-O-18090'), 'coinv no_site', 'gap', 47.63)
+test4 start 2026-10-07: 10 arts; plan price arts: 29
+   GGT-03-1-3-E-12080       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-20-2-3-16080         gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-03-3-5-L-90          gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-16-2-3-LED           gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-15-2-2               gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-23-1-1               gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-14
+   GGL-05-XL-slim-2         gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-18-1-1-LED           gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGK-02-3-3-80            gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGK-05-2-3-7040          gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGK-02-2-2-80            gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGKP-02-1                gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGL-07-XL-2              gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGL-09-2                 gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-14
+   GGM-01-1                 gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-14
+   GGM-02-1-2               gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-02-2-1               gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-08-3-M               gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-16-1-2               gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-16-1-3-LED           gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-16-2-3               gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-18-2-2               gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-14
+   GGM-23-3-1               gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGM-24-1                 gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGR-11-1                 gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-03-3-3-E-16080       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-03-3-3-L-120         gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-03-3-5-E-16080       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-35-1-3-100-180       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-35-2-2-100-180       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-35-2-3-100-180       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-35-3-3-100-180       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-06-12
+   GGT-35-5-1-100-180       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-08-12
+   GGT-46-2-2-100           gap_first_nonzero=2026-09-09 coinv_first_paid=2026-09-03
+   GGT-46-3-3-100           gap_first_nonzero=2026-09-09 coinv_first_paid=2026-09-03
+   GGT-46-5-1-100           gap_first_nonzero=2026-09-09 coinv_first_paid=2026-09-03
+   GGT-48-2-2-100-180       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-08-14
+   GGT-48-3-3-100-180       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-08-14
+   GGT-48-5-1-100-180       gap_first_nonzero=2026-09-09 coinv_first_paid=2026-08-14
+R1: arts with >1 distinct SKU in gap_daily: 0

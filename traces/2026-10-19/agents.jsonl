@@ -1,0 +1,2 @@
+{"ts": "2026-10-19T08:31:34+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/files:"}
+{"ts": "2026-10-19T08:32:29+00:00", "event": "gate", "agent": "feniks", "tier": "0", "outcome": "blocked", "note": "bash-scope block запись вне разрешённых зон: /home/user/t1/S/iter1, /home/user/t1/S/main"}

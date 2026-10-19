@@ -23,12 +23,14 @@
 //  - Реклама: ads_sku_daily без «Оплаты за заказ», неделя чт-ср. Это расход: меньше плана - зелёный,
 //    до 120% - жёлтый, больше - красный (Иван 15.10 «везде меньше-зеленее»). Неделя до плана серая.
 //  - Цена: prices_daily.price (наша цена) против целевой; скидка OZON - gap_daily.gap_pct, ниже 10% -
-//    товар, похоже, выпал из Эластичного бустинга.
+//    товар, похоже, выпал из Эластичного бустинга. Строка с меткой no_site (цена сайта равна нашей у карточки
+//    без истории) - «нет данных», не 0; ноль у карточки с историей - честный 0 и чип (Иван 19.10).
 // Пропуск - не ноль: дня нет в источнике - null, график рвётся, а не падает в ноль.
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dp as dpDefault } from "../paths.js";
+import { noSite as gapNoSite, markNoSite } from "./gap-daily.js";
 
 export const PLAN_FILE = "plan_2026-10-15_v4.json";   // v4: v3 + QUATRIS и PROFIX на -10% с 16.10 (Иван 16.10), v8/add_price_1610.py; v3: v2 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2) + выводимые вне карточек, пороги 5 карточек (Иван 15.10 «б»), v8/withdraw_base_1510.py
 /** Состав объединённых карточек плана заморожен на 15.10 (Иван 16.10: новые GGT-03-5-1 в план не считать):
@@ -456,8 +458,10 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   }
   const PCOLS = priceColumns(prHist, PRICE_BASE);
   const gapHist = new Map<string, Map<string, number>>();   // скидка OZON по дням: «было» на 14.10, «стало» - последний срез (Иван 15.10)
-  for (const r of readNd(dp("gap_daily.ndjson"))) {
-    if (!Number.isFinite(Number(r.gap_pct)) || r.gap_pct == null) continue;
+  for (const r of markNoSite(readNd(dp("gap_daily.ndjson")))) {
+    // Та же метка, что в readGapDaily (ФЕНИКС 19.10, G1b): «нет данных» только у карточки без истории разрыва;
+    // ноль у карточки с историей проходит и зажигает чип «выпал из бустинга?» (Иван 19.10).
+    if (!Number.isFinite(Number(r.gap_pct)) || r.gap_pct == null || gapNoSite(r)) continue;
     if (r.date >= (gapLast.get(r.art)?.[0] ?? "")) gapLast.set(r.art, [r.date, Number(r.gap_pct)]);
     if (priceArts.has(r.art)) (gapHist.get(r.art) ?? gapHist.set(r.art, new Map()).get(r.art)!).set(r.date, Number(r.gap_pct));
   }

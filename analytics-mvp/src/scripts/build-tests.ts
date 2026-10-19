@@ -24,7 +24,7 @@ import { KPAGES, navButton } from "./katya-nav.js";
 import { planBlock } from "./plan-tab.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
-import { readGapDaily, GAP_DAILY_FILE } from "./gap-daily.js";
+import { readGapDaily, noSite as gapNoSite, markNoSite, GAP_DAILY_FILE } from "./gap-daily.js";
 import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type PairDef, type SideStat } from "./bid-compare.js";
 import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
@@ -2000,8 +2000,10 @@ const BID_TESTS = ((JSON.parse(readFileSync("tools/tests/tests.json", "utf-8")).
 const gapByArt = new Map<string, Map<string, number>>();
 let LAST_SPEND = "";
 for (const r of readNd(dp("ads_sku_daily.ndjson"))) if (r.d > LAST_SPEND) LAST_SPEND = r.d;
-for (const r of readNd(dp(GAP_DAILY_FILE))) {
-  if (r.oa_used === true || r.gap_pct == null) continue;
+for (const r of markNoSite(readNd(dp(GAP_DAILY_FILE)))) {
+  // Та же метка, что в readGapDaily (ФЕНИКС 19.10, G1b): «нет данных» только у карточки без истории разрыва,
+  // ноль у карточки с историей остаётся нулём (Иван 19.10).
+  if (r.oa_used === true || r.gap_pct == null || gapNoSite(r)) continue;
   const art = String(r.art || "").trim(), d = String(r.date || "").slice(0, 10);
   if (!art || !d) continue;
   (gapByArt.get(art) ?? gapByArt.set(art, new Map()).get(art)!).set(d, Number(r.gap_pct));
@@ -2362,7 +2364,9 @@ function priceCalc(t: PriceTestDef): PriceCalc {
   const v1 = viewShare(P_VIEWS, vSet, t.старт, addDays(t.старт, 7));
   const v2 = viewShare(P_VIEWS, vSet, addDays(t.старт, 7), addDays(t.старт, 14));
   const vStop = viewsStop(P_VIEWS, vSet, t.старт, vBase.share);
-  // Обвал разрыва к нулю после старта - товар выпал из «Эластичного бустинга» (стоп-сигнал).
+  // Обвал разрыва к нулю после старта - товар выпал из «Эластичного бустинга» (стоп-сигнал). Ноль у карточки с
+  // историей приходит из readGapDaily как 0 и срабатывает; «нет данных» (no_site, карточка без истории) в
+  // P_GAP не попадает и даёт 99, то есть стоп не зажигает (Иван 19.10, ФЕНИКС Z1).
   const collapsed = test.filter((a) => [...P_GAP.entries()].some(([d, m]) => d >= t.старт && (m.get(a) ?? 99) < 10));
   const price = test.map((a) => {
     const b = baseCap.get(a) ?? null;

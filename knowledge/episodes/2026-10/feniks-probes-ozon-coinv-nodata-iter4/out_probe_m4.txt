@@ -1,0 +1,30 @@
+PASS M1a coinv 0 + oa==seller mature: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":85900,"oa_source":"snapshot"}
+PASS M1a coinv 0 + oa==seller new: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":85900,"oa_source":"snapshot"}
+PASS M1b sku empty, coinv 0 mature: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":85900,"oa_source":"snapshot"}
+PASS M1b sku empty, coinv 0 new: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":85900,"oa_source":"snapshot"}
+PASS M1c no coinv, oa==seller mature: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":85900,"oa_source":"snapshot"}
+PASS M1c no coinv, oa==seller new: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":85900,"oa_source":"snapshot"}
+PASS M1d coinv 0, no prices mature: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":85900,"oa_source":"snapshot"}
+PASS M1d coinv 0, no prices new: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":85900,"oa_source":"snapshot"}
+PASS M1e oa==seller 84000 (seller changed) mature: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":84000,"oa_source":"snapshot"}
+PASS M1e oa==seller 84000 (seller changed) new: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":84000,"oa_source":"snapshot"}
+PASS M2a new: value over no_site: {"sku":"123","coinv_paid_pct":47.5,"site_paid":45100,"cap":85900,"oa_source":"snapshot"}
+PASS M2b new: zero again keeps label, no value: {"sku":"123","site_paid":85900,"cap":85900,"oa_source":"snapshot","no_site":true}
+PASS M2c mature: legacy no_site + zero slice -> honest 0, label removed: {"sku":"123","coinv_paid_pct":0,"site_paid":85900,"cap":85900,"oa_source":"snapshot"}
+PASS H1 mature zero -> 0, no label: {"sku":"123","coinv_paid_pct":0,"site_paid":85900,"cap":85900,"oa_source":"snapshot"}
+PASS H2 new zero -> no_site: {"sku":"9","site_paid":85900,"cap":85900,"oa_source":"snapshot","no_site":true}
+PASS H3 new, two zero days in one slice -> both no_site: [{"oa_source":"snapshot","no_site":true},{"oa_source":"snapshot","no_site":true}]
+PASS H4 multi-day slice: coinv history from stored only vs gap from whole file (same input): {"coinv_18":{"site_paid":85900,"cap":85900,"oa_source":"snapshot","no_site":true},"gap_18_noSite":false}
+PASS H4s same two days, one slice per day: {"coinv_paid_pct":0,"site_paid":85900,"cap":85900,"oa_source":"snapshot"}
+PASS H5 coinv 0.01 on the first day makes the next zero honest (edge E2 of iter3): {"d16":{"coinv_paid_pct":0.01,"site_paid":85891,"cap":85900,"oa_source":"snapshot"},"d17":{"coinv_paid_pct":0,"site_paid":85900,"cap":85900,"oa_source":"snapshot"}}
+PASS G1 mature lone zero -> 0 in series: [["10-12",47],["10-19",0]]
+PASS G2 new zero -> not in series: []
+PASS G4 M1 mature: evening 0 over morning 47.5 -> 47.5: [["10-12",47],["10-19",47.5]]
+PASS G5 morning 0 (mature), evening 47.5 -> 47.5: [["10-12",47],["10-19",47.5]]
+PASS G6 morning 0, evening 0 (mature) -> 0: [["10-12",47],["10-19",0]]
+PASS G7 mature negative passes (stop fires on <10): [["10-12",47],["10-19",-2]]
+PASS G7n new negative (site above ours, first day): []
+PASS G8 tiny 0.005 on first day = history for the next zero: [["10-17",0]]
+PASS M2g evening value over morning no_site: [["10-19",47.5]]
+PASS Gn noSite count (NEW, TINY d16, M2 none): {"noSite":3,"bad":0}
+PASS B4 live readGapDaily: zeros 0, noSite 14, bad 0: {"rows":13387,"zeros":0,"min":30.21,"noSite":14,"bad":0,"withOa":0}

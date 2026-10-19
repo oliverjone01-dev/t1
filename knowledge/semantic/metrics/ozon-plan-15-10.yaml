@@ -11,7 +11,7 @@ entity: "отправление OZON (orders_daily.order), шт = units"
 key: [order]
 type: cumulative
 formula_text: >
-  Заказы карточки = сумма units по orders_daily без status=cancelled, sku в объединённой карточке (card_groups.json) кроме plan.withdrawn (v4), d в [15.10, 28.10].
+  Заказы карточки = сумма units по orders_daily без status=cancelled, sku в объединённой карточке (plan_card_groups_1510.json - состав на 15.10, Иван 16.10; с 16.10 card_groups.json ночной из API и в план не идёт) кроме plan.withdrawn (v4), d в [15.10, 28.10].
   Порог карточки посчитан по той же базе без выводимых (plan v3, v8/withdraw_base_1510.py).
   Магазин = то же по всем sku. Нужное магазину к дню n = goalPath(14+n) - goalPath(14), goalPath(d) = 300/31*d + (355-300)*clamp(d-16,0,15)/15.
   Реклама: клик главного = ads_sku_daily.sp на главный sku без кампании 28753239 и без 11 кампаний на минимум; минимальный клик = sp на min_arts;

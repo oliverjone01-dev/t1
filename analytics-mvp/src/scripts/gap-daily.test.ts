@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { readGapDaily, GAP_DAILY_FILE } from "./gap-daily.js";
+import { readGapDaily, markNoSite, noSite, GAP_DAILY_FILE, type GapRow } from "./gap-daily.js";
 import { gapSeries, controlByDay, median, pairGapSeries, readiness, BASE_MIN } from "./boost-readiness.js";
 
 const tmp = (lines: object[]): string => {
@@ -75,6 +75,27 @@ describe("живой файл data/gap_daily.ndjson", () => {
     for (const k of ["site", "seller", "min_price", "marketing_seller_price"]) {
       expect(Object.keys(first)).not.toContain(k);
     }
+  });
+
+  it("нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)", () => {
+    const r = readGapDaily("data/" + GAP_DAILY_FILE);
+    if (!r.exists) return;
+    expect(r.noSite).toBeGreaterThanOrEqual(14);
+    expect(r.rows.filter((x) => x.gap_pct === 0)).toEqual([]);
+  });
+
+  it("каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)", () => {
+    if (!existsSync("data/" + GAP_DAILY_FILE)) return;
+    const raw = readFileSync("data/" + GAP_DAILY_FILE, "utf-8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
+    const firstNonZero = new Map<string, string>();
+    for (const r of raw) if (Number(r.gap_pct) > 0 && (firstNonZero.get(r.art) ?? "9999") > r.date) firstNonZero.set(r.art, r.date);
+    const marked = raw.filter((r) => r.no_site === true);
+    expect(marked.length).toBeGreaterThanOrEqual(14);
+    const withHistory = marked.filter((r) => (firstNonZero.get(r.art) ?? "9999") < r.date).map((r) => `${r.date} ${r.art}`);
+    expect(withHistory).toEqual([]);
+    // Чтение файла ставит те же метки, что лежат в нём: правило в коде и в скрипте правки данных одно.
+    const byRead = new Set(markNoSite(raw).filter(noSite).map((r) => `${r.date}|${r.art}`));
+    expect(byRead).toEqual(new Set(marked.map((r) => `${r.date}|${r.art}`)));
   });
 
   it("источники ряда - только наблюдения", () => {
@@ -167,5 +188,122 @@ describe("съём утром и вечером: повтор даты заме�
     const r = readGapDaily(p);
     expect(r.rows).toHaveLength(1);
     expect(r.rows[0]!.gap_pct).toBe(12);
+  });
+});
+
+describe("срез без витрины: «нет данных», а не ноль (Иван 16.10; ФЕНИКС 16.10 G1, M1)", () => {
+  it("SKU пустой и разрыв 0 - строка не идёт в ряд и не считается битой", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-16", art: "NEW", sku: "", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw", oa_used: false },
+      { date: "2026-10-16", art: "OLD", sku: "123", site_to_seller: 0.5, gap_pct: 50, src: "prices_raw", oa_used: false },
+    ]));
+    expect(r.rows.map((x) => x.art)).toEqual(["OLD"]);
+    expect(r.noSite).toBe(1);
+    expect(r.bad).toBe(0);
+  });
+
+  it("метка no_site: строка, которой мак потом дописал SKU, тоже «нет данных»", () => {
+    const r = readGapDaily(tmp([{ date: "2026-10-16", art: "NEW", sku: "123", site_to_seller: null, gap_pct: null, no_site: true, src: "prices_raw" }]));
+    expect(r.rows).toEqual([]);
+    expect(r.noSite).toBe(1);
+    expect(r.bad).toBe(0);
+  });
+
+  it("ноль со SKU при цене сайта, равной нашей, - тоже «нет данных» (Иван 19.10: первый день карточки, не доплата)", () => {
+    const r = readGapDaily(tmp([{ date: "2026-10-12", art: "A", sku: "123", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw" }]));
+    expect(r.rows).toEqual([]);
+    expect(r.noSite).toBe(1);
+  });
+
+  it("маленький, но ненулевой разрыв со SKU остаётся: нет данных только при равенстве цен", () => {
+    const r = readGapDaily(tmp([{ date: "2026-10-12", art: "A", sku: "123", site_to_seller: 0.98, gap_pct: 2.0, src: "prices_raw" }]));
+    expect(r.rows[0]!.gap_pct).toBe(2);
+    expect(r.noSite).toBe(0);
+  });
+
+  it("пусто без SKU - это «нет числа» (bad), а не «нет витрины»", () => {
+    const r = readGapDaily(tmp([{ date: "2026-10-16", art: "A", gap_pct: null, src: "prices_raw" }]));
+    expect(r.bad).toBe(1);
+    expect(r.noSite).toBe(0);
+  });
+
+  it("повтор без витрины не стирает снятое значение того же дня (M1); повтор со значением стирает ложный 0", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-16", art: "A", sku: "123", gap_pct: 47.5, src: "prices_raw", snap: "утро" },
+      { date: "2026-10-16", art: "A", sku: "", gap_pct: 0, src: "prices_raw", snap: "вечер" },
+      { date: "2026-10-16", art: "B", sku: "", gap_pct: 0, src: "prices_raw", snap: "утро" },
+      { date: "2026-10-16", art: "B", sku: "456", gap_pct: 47.6, src: "prices_raw", snap: "вечер" },
+    ]));
+    expect(Object.fromEntries(r.rows.map((x) => [x.art, x.gap_pct]))).toEqual({ A: 47.5, B: 47.6 });
+    expect(r.noSite).toBe(0);
+  });
+});
+
+describe("ноль у карточки с историей остаётся нулём (Иван 19.10 после ФЕНИКСА Z1)", () => {
+  it("прежний день с разрывом есть: ноль идёт в ряд как 0, не как «нет данных»", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-12", art: "GGK-02-3-3-80", sku: "123", site_to_seller: 0.53, gap_pct: 47, src: "prices_raw", oa_used: false },
+      { date: "2026-10-19", art: "GGK-02-3-3-80", sku: "123", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw", oa_used: false },
+    ]));
+    expect(r.rows.map((x) => [x.date, x.gap_pct])).toEqual([["2026-10-12", 47], ["2026-10-19", 0]]);
+    expect(r.noSite).toBe(0);
+  });
+
+  it("история считается по всему файлу, а не по порядку строк", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-19", art: "A", sku: "1", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw" },
+      { date: "2026-10-12", art: "A", sku: "1", site_to_seller: 0.53, gap_pct: 47, src: "prices_raw" },
+    ]));
+    expect(r.rows.find((x) => x.date === "2026-10-19")!.gap_pct).toBe(0);
+    expect(r.noSite).toBe(0);
+  });
+
+  it("более поздний день историей не считается: первый день карточки - «нет данных», даже если назавтра 47 %", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-16", art: "NEW", sku: "", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw" },
+      { date: "2026-10-17", art: "NEW", sku: "9", site_to_seller: 0.53, gap_pct: 47, src: "prices_raw" },
+    ]));
+    expect(r.rows.map((x) => [x.date, x.gap_pct])).toEqual([["2026-10-17", 47]]);
+    expect(r.noSite).toBe(1);
+  });
+
+  it("история - только ненулевой разрыв: два нуля подряд у новой карточки оба «нет данных»", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-10", art: "GGT-47-5-1-80", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw" },
+      { date: "2026-10-11", art: "GGT-47-5-1-80", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw" },
+    ]));
+    expect(r.rows).toEqual([]);
+    expect(r.noSite).toBe(2);
+  });
+
+  it("готовая метка no_site из файла главнее истории", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-12", art: "A", sku: "1", site_to_seller: 0.53, gap_pct: 47, src: "prices_raw" },
+      { date: "2026-10-19", art: "A", sku: "1", site_to_seller: null, gap_pct: null, no_site: true, src: "prices_raw" },
+    ]));
+    expect(r.rows.map((x) => x.date)).toEqual(["2026-10-12"]);
+    expect(r.noSite).toBe(1);
+    expect(r.bad).toBe(0);
+  });
+
+  it("M1 не зависит от истории: вечерний ноль у зрелой карточки не стирает снятое утром значение того же дня", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-12", art: "A", sku: "1", gap_pct: 47, src: "prices_raw" },
+      { date: "2026-10-19", art: "A", sku: "1", gap_pct: 47.5, src: "prices_raw", snap: "утро" },
+      { date: "2026-10-19", art: "A", sku: "", gap_pct: 0, src: "prices_raw", snap: "вечер" },
+    ]));
+    expect(r.rows.find((x) => x.date === "2026-10-19")!.gap_pct).toBe(47.5);
+    expect(r.noSite).toBe(0);
+  });
+
+  it("markNoSite: прямые читатели видят ту же метку и не меняют входные строки", () => {
+    const input: GapRow[] = [
+      { date: "2026-10-16", art: "NEW", gap_pct: 0 },
+      { date: "2026-10-12", art: "OLD", gap_pct: 47 },
+      { date: "2026-10-19", art: "OLD", gap_pct: 0 },
+    ];
+    const out = markNoSite(input);
+    expect(out.map((r) => [r.art, r.date, noSite(r)])).toEqual([["NEW", "2026-10-16", true], ["OLD", "2026-10-12", false], ["OLD", "2026-10-19", false]]);
+    expect(input[0]!.no_site).toBeUndefined();
   });
 });

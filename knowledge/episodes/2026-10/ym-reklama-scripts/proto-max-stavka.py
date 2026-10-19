@@ -20,7 +20,7 @@ try:
             zo.writestr(nm, d)
     sh = pd.read_excel(buf, sheet_name='Сводный отчет', header=3)
     for _, w in sh.iterrows():
-        if isinstance(w.iloc[0], str) and isinstance(w.iloc[20], str): CAMP[w.iloc[0]] = w.iloc[20].split(',')[0].strip()
+        if isinstance(w.iloc[0], str) and isinstance(w.iloc[20], str): CAMP[w.iloc[0]] = w.iloc[20].strip()   # в отчёте у артикула одна кампания, запятая внутри имени
 except Exception as e: print('кабинет не прочитан:', e, file=sys.stderr)
 for r in rows:
     r['camp'] = CAMP.get(r['sku'], ''); r['bid'] = BIDS.get(r['camp'])
@@ -116,6 +116,7 @@ function draw(){{var cab=document.getElementById('cab').value,minu=+document.get
  var rows=R.filter(function(r){{return (!cab||r.cab===cab)&&r.u>=minu;}}).map(calc);
  rows.sort(function(a,b){{var x=a[sortK],y=b[sortK];if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*sortD;}});
  var h='';rows.forEach(function(r){{h+='<tr><td title="'+r.name.replace(/"/g,'')+'">'+r.sku+'</td><td>'+r.cab+'</td><td>'+r.u+'</td><td class="mute">'+r.d0.slice(5).replace('-','.')+' .. '+r.d1.slice(5).replace('-','.')+'</td><td>'+f0(r.price)+(r.cat?' <span class="tag">'+f0(r.cat)+'</span>':'')+'</td>'
+ +'<td class="mute" style="text-align:left">'+(r.camp||(r.cab==='зеркала'?'нет отчёта':'без буста'))+'</td><td>'+(r.bid!=null?f1(r.bid):(r.camp?'<span class="mute">нет на скрине</span>':'-'))+'</td>'
  +'<td class="c2"'+cls(r.pre)+'>'+f0(r.pre)+'</td><td class="k c2"'+cls(r.net)+'>'+f0(r.net)+'</td><td class="c2"'+cls(r.netpct)+'>'+f1(r.netpct)+'</td><td class="c2">'+f1(r.cur)+'</td><td class="k c2"'+cls(r.maxb)+'>'+f1(r.maxb)+'</td><td class="k c2"'+cls(r.wantb)+'>'+f1(r.wantb)+'</td>'
  +'<td>'+f0(r.acc)+'</td><td>'+f0(r.pts)+'</td><td>'+f0(r.payout)+'</td>'
  +'<td>'+f0(r.place_m)+'</td><td>'+f0(r.pay_m)+'</td><td>'+f0(r.dlv_m)+'</td><td>'+f0(r.boost_m)+'</td><td>'+f0(r.oth_m)+'</td>'

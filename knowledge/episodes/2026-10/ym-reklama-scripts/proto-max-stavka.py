@@ -4,9 +4,29 @@
 """
 import json, sys, html
 J = json.load(open(sys.argv[1])); rows = [r for r in J['rows'] if r['u'] >= 1]
+# кампания по артикулу - из сводного отчёта кабинета мебели 16.10 (лист «Сводный отчет», столбец «Названия кампаний»);
+# ставка кампании - со скрина списка кампаний 16.10 (видны 9 из 30). Зеркала: скрина нет.
+BIDS = {'QUATRIS': 12.99, 'GENTRIS': 15, 'KONUX': 19, 'TRUBIS Stone': 11.95, 'Перегородки реечные': 9, 'TRUBIS раздвижной': 9.99,
+        'VIOLUR раздвижной 110,120': 8.45, 'Перегородки ZONIQUE Premium': 5, 'TRUBIS Oval 120': 10}
+CAMP = {}
+try:
+    import pandas as pd, zipfile, re, io, os
+    xp = os.path.join(os.path.dirname(os.path.abspath(sys.argv[1])), 'kabinet-20261016', 'business_boost_consolidated_74986385_16-10-2026.xlsx')
+    z = zipfile.ZipFile(xp); buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w') as zo:
+        for nm in z.namelist():
+            d = z.read(nm)
+            if nm == 'xl/styles.xml': d = re.sub(rb'<family val="\d+"', b'<family val="2"', d)
+            zo.writestr(nm, d)
+    sh = pd.read_excel(buf, sheet_name='Сводный отчет', header=3)
+    for _, w in sh.iterrows():
+        if isinstance(w.iloc[0], str) and isinstance(w.iloc[20], str): CAMP[w.iloc[0]] = w.iloc[20].split(',')[0].strip()
+except Exception as e: print('кабинет не прочитан:', e, file=sys.stderr)
+for r in rows:
+    r['camp'] = CAMP.get(r['sku'], ''); r['bid'] = BIDS.get(r['camp'])
 ck = J['check']
 def esc(s): return html.escape(str(s))
-data = json.dumps([dict(sku=r['sku'], name=r['name'], cab=r['cab'], n=r['n'], u=r['u'], d0=r['d0'], d1=r['d1'], price=r['price'], cat=r['cat'], acc=r['acc'], pts=r['pts_in'],
+data = json.dumps([dict(sku=r['sku'], name=r['name'], cab=r['cab'], n=r['n'], u=r['u'], d0=r['d0'], d1=r['d1'], camp=r['camp'], bid=r['bid'], price=r['price'], cat=r['cat'], acc=r['acc'], pts=r['pts_in'],
                         place_m=r['m']['place'], pay_m=r['m']['pay'], dlv_m=r['m']['dlv'], boost_m=r['m']['boost'], oth_m=r['m']['fine'] + r['m']['other'],
                         place_p=r['p']['place'], boost_p=r['p']['boost'], oth_p=r['p']['dlv'] + r['p']['fine'] + r['p']['other'],
                         cogs=r['cogs'], ship=r['ship'], shipflag=r['shipflag']) for r in rows], ensure_ascii=False)
@@ -49,16 +69,17 @@ h1{{font-size:22px;margin:0 0 4px}} h2{{font-size:17px;margin:28px 0 8px}}
 </div></div>
 
 <div class="card"><table class="t" id="tb"><thead>
-<tr><th class="g" colspan="5">артикул</th><th class="g" colspan="6">итог на 1 шт</th><th class="g" colspan="3">приход на 1 шт</th><th class="g" colspan="5">сборы Маркета деньгами</th><th class="g" colspan="4">наши расходы</th><th class="g" colspan="2">баллами (справочно)</th></tr>
+<tr><th class="g" colspan="5">артикул</th><th class="g" colspan="2">кабинет 16.10</th><th class="g" colspan="6">итог на 1 шт</th><th class="g" colspan="3">приход на 1 шт</th><th class="g" colspan="5">сборы Маркета деньгами</th><th class="g" colspan="4">наши расходы</th><th class="g" colspan="2">баллами (справочно)</th></tr>
 <tr>
 <th data-k="sku">SKU</th><th data-k="cab">кабинет</th><th data-k="u">штук</th><th data-k="d0">заказы<br><span>с .. по</span></th><th data-k="price">цена карточки<br><span>сейчас в каталоге</span></th>
+<th data-k="camp">кампания<br>буста</th><th data-k="bid">ставка<br>кампании<br><span>со скрина</span></th>
 <th data-k="pre">до АДМ<br>и налога<br><span>с 1 шт</span></th><th data-k="net" class="k">чистая<br><span>с 1 шт</span></th><th data-k="netpct">чистая<br><span>% от Начислено</span></th><th data-k="cur">ставка факт<br><span>списано, деньги+баллы</span></th><th data-k="maxb" class="k">МАКС ставка<br><span>в ноль</span></th><th data-k="wantb" class="k">ставка при<br>нужной прибыли</th>
 <th data-k="acc">Начислено<br><span>деньги покупателя</span></th><th data-k="pts">баллы скидки<br><span>Маркет + Плюс</span></th><th data-k="payout">К выплате<br><span>после сборов деньгами</span></th>
 <th data-k="place_m">размещение</th><th data-k="pay_m">платёж</th><th data-k="dlv_m">доставка</th><th data-k="boost_m">буст</th><th data-k="oth_m">прочее</th>
 <th data-k="cogs">С/С</th><th data-k="ship">наша<br>доставка</th><th data-k="adm">АДМ</th><th data-k="tax">налог</th>
 <th data-k="place_p">размещение</th><th data-k="boost_p">буст</th>
 </tr></thead><tbody></tbody></table>
-<p class="mute">Как читать. «До АДМ и налога» = К выплате − С/С − наша доставка (при «буст баллами = да» минус ещё буст баллами). «Чистая» = то же минус АДМ и налог, как на вкладке «Отчет». «МАКС в ноль» = (чистая + буст) / цена карточки: списанная ставка, при которой заказ выходит в ноль. «При нужной прибыли» = (чистая + буст − нужная прибыль) / цена карточки. Списывают уровень конкурента, не потолок кампании, поэтому «факт» ниже ставки в кабинете. Пометка <span class="w">!</span> у нашей доставки: в ведомости перевозчика есть заказы без суммы, расход занижен.</p>
+<p class="mute">Как читать. «До АДМ и налога» = К выплате − С/С − наша доставка (при «буст баллами = да» минус ещё буст баллами). «Чистая» = то же минус АДМ и налог, как на вкладке «Отчет». «МАКС в ноль» = (чистая + буст) / цена карточки: списанная ставка, при которой заказ выходит в ноль. «При нужной прибыли» = (чистая + буст − нужная прибыль) / цена карточки. Списывают уровень конкурента, не потолок кампании, поэтому «факт» ниже ставки в кабинете. «Кампания буста» и «ставка кампании» - кабинет мебели 16.10: кампания из сводного отчёта по бусту, ставка со скрина списка кампаний (видны 9 из 30, остальные «нет на скрине»); по зеркалам отчёта и скрина нет. Ставка задаётся на кампанию, у всех её артикулов одна. Пометка <span class="w">!</span> у нашей доставки: в ведомости перевозчика есть заказы без суммы, расход занижен.</p>
 </div>
 
 <h2>Что в этих цифрах не так, как в прошлом разборе</h2>

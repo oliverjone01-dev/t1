@@ -2,10 +2,11 @@
 правилам, что код:
 - prices_daily: день, где price == before у >= 90% товаров (OZON с 15.10 отдаёт нашу цену в обоих полях) -
   before, coinv, coinv_paid = null (prices-daily.ts NO_BEFORE_SHARE). Правило применяется ко всем дням ряда;
-- coinv_daily: цена сайта равна нашей (coinv_paid_pct == 0 или site_paid == cap) - поле удаляется, метка
-  no_site = true (coinv-merge.ts noSite);
-- gap_daily: gap_pct == 0 или site_to_seller == 1 - gap_pct и site_to_seller = null, метка no_site = true
-  (gap-daily.ts noSite). SKU остаётся.
+- coinv_daily: цена сайта равна нашей (coinv_paid_pct == 0 или site_paid == cap) У КАРТОЧКИ БЕЗ ИСТОРИИ (ни
+  одного прежнего дня с ненулевым соинвестом) - поле удаляется, метка no_site = true (coinv-merge.ts noSite);
+- gap_daily: gap_pct == 0 или site_to_seller == 1 у карточки без истории ненулевого разрыва - gap_pct и
+  site_to_seller = null, метка no_site = true (gap-daily.ts markNoSite). SKU остаётся.
+Ноль у карточки с историей - честный 0 (Иван 19.10), скрипт его не трогает: на 19.10 таких строк 0.
 Повторный запуск ничего не меняет. Остальные строки байт в байт.
 Запуск из корня: python3 -I knowledge/episodes/2026-10/ozon-testy-scripts/v8/fix_nodata_1610.py
 """
@@ -32,7 +33,21 @@ print("дни без цены до акций:", sorted(bad))
 assert all(d >= "2026-10-15" for d in bad), bad
 n1 = rewrite("prices_daily.ndjson", lambda r: {**r, "before": None, "coinv": None, "coinv_paid": None} if r["d"] in bad and r.get("before") is not None else None)
 
+def first_nonzero(f, key):
+    """Первый день с ненулевым значением key по артикулу: история карточки."""
+    out = {}
+    for r in (json.loads(l) for l in open(DD + f, encoding="utf-8") if l.strip()):
+        v = r.get(key)
+        if isinstance(v, (int, float)) and v > 0 and (r["art"] not in out or r["date"] < out[r["art"]]):
+            out[r["art"]] = r["date"]
+    return out
+
+def has_history(first, r):
+    return r["art"] in first and first[r["art"]] < r["date"]
+
+FIRST2 = first_nonzero("coinv_daily.ndjson", "coinv_paid_pct")
 def fix2(r):
+    if has_history(FIRST2, r): return None
     zero = r.get("coinv_paid_pct") == 0
     same = r.get("site_paid") is not None and r.get("cap") is not None and round(r["site_paid"]) == round(r["cap"])
     if not (zero or same) or (not zero and r.get("coinv_paid_pct") is not None): return None
@@ -40,7 +55,9 @@ def fix2(r):
     r = dict(r); r.pop("coinv_paid_pct", None); r["no_site"] = True; return r
 n2 = rewrite("coinv_daily.ndjson", fix2)
 
+FIRST3 = first_nonzero("gap_daily.ndjson", "gap_pct")
 def fix3(r):
+    if has_history(FIRST3, r): return None
     if r.get("gap_pct") != 0 and r.get("site_to_seller") != 1: return None
     return {**r, "site_to_seller": None, "gap_pct": None, "no_site": True}
 n3 = rewrite("gap_daily.ndjson", fix3)

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-12T09:35:05.924Z",
+  "updated": "2026-10-19T08:00:19.492Z",
   "source": "keys.so",
   "db": "msk",
   "targets": [
@@ -8,9 +8,9 @@
       "brand": "GENGLASS",
       "role": "own",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "ad_history": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok",
+        "ad_history": "ok"
       }
     },
     {
@@ -18,8 +18,8 @@
       "brand": null,
       "role": "competitor-peregorodki",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -27,8 +27,8 @@
       "brand": null,
       "role": "competitor-peregorodki",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -36,8 +36,8 @@
       "brand": null,
       "role": "competitor-peregorodki",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -45,8 +45,8 @@
       "brand": null,
       "role": "competitor-peregorodki",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -54,8 +54,8 @@
       "brand": null,
       "role": "competitor-peregorodki",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -63,8 +63,8 @@
       "brand": null,
       "role": "competitor-peregorodki",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -72,8 +72,8 @@
       "brand": null,
       "role": "competitor-peregorodki",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -81,8 +81,8 @@
       "brand": null,
       "role": "competitor-peregorodki",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -90,8 +90,8 @@
       "brand": null,
       "role": "competitor-peregorodki",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -99,8 +99,8 @@
       "brand": null,
       "role": "competitor-peregorodki-discovered",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -108,8 +108,8 @@
       "brand": null,
       "role": "competitor-peregorodki-discovered",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -117,8 +117,8 @@
       "brand": null,
       "role": "competitor-peregorodki-discovered",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -126,8 +126,8 @@
       "brand": null,
       "role": "competitor-peregorodki-discovered",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     },
     {
@@ -135,8 +135,8 @@
       "brand": null,
       "role": "competitor-peregorodki-discovered",
       "reports": {
-        "dashboard": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}",
-        "competitors": "error: HTTP 429 {\"code\":429,\"message\":\"Превышен лимит запросов к API за сутки. Повторите попытку позже или выберите более подходящий тарифный план.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     }
   ]

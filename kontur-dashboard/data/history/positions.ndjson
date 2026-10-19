@@ -91,3 +91,5 @@
 {"ai_answers": 73, "date": "2026-10-07", "project": "gg", "source": "keys.so", "top1": 25, "top10": 475, "top3": 89, "top50": 2335, "visibility": 38}
 {"ai_answers": 55, "date": "2026-10-07", "project": "gm", "source": "keys.so", "top1": 7, "top10": 56, "top3": 13, "top50": 581, "visibility": 2}
 {"ai_answers": 75, "date": "2026-10-15", "project": "gg", "source": "keys.so", "top1": 22, "top10": 490, "top3": 93, "top50": 2416, "visibility": 36}
+{"ai_answers": 71, "date": "2026-10-18", "project": "gg", "source": "keys.so", "top1": 22, "top10": 490, "top3": 93, "top50": 2416, "visibility": 36}
+{"ai_answers": 38, "date": "2026-10-18", "project": "gm", "source": "keys.so", "top1": 7, "top10": 55, "top3": 13, "top50": 580, "visibility": 2}

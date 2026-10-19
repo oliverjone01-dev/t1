@@ -9183,7 +9183,7 @@
 {"date": "2026-10-10", "art": "GGT-46-2-2-100", "sku": "5632740461", "site_to_seller": 0.4724, "gap_pct": 52.76, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-10", "art": "GGT-46-5-1-100", "sku": "5632761878", "site_to_seller": 0.4724, "gap_pct": 52.76, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-10", "art": "GGT-46-3-3-100", "sku": "5632761673", "site_to_seller": 0.4724, "gap_pct": 52.76, "src": "prices_raw", "oa_used": false}
-{"date": "2026-10-10", "art": "GGT-47-5-1-80", "sku": "", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false}
+{"date": "2026-10-10", "art": "GGT-47-5-1-80", "sku": "", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "no_site": true}
 {"date": "2026-10-11", "art": "GGM-15-1-1", "sku": "3492786508", "site_to_seller": 0.5232, "gap_pct": 47.68, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-11", "art": "GGM-15-1-2", "sku": "3492789518", "site_to_seller": 0.5232, "gap_pct": 47.68, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-11", "art": "GGM-01-2", "sku": "3492791592", "site_to_seller": 0.4359, "gap_pct": 56.41, "src": "prices_raw", "oa_used": false}
@@ -9647,7 +9647,7 @@
 {"date": "2026-10-11", "art": "GGT-46-2-2-100", "sku": "5632740461", "site_to_seller": 0.4641, "gap_pct": 53.59, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-11", "art": "GGT-46-5-1-100", "sku": "5632761878", "site_to_seller": 0.4641, "gap_pct": 53.59, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-11", "art": "GGT-46-3-3-100", "sku": "5632761673", "site_to_seller": 0.4641, "gap_pct": 53.59, "src": "prices_raw", "oa_used": false}
-{"date": "2026-10-11", "art": "GGT-47-5-1-80", "sku": "", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false}
+{"date": "2026-10-11", "art": "GGT-47-5-1-80", "sku": "", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "no_site": true}
 {"date": "2026-10-12", "art": "GGM-15-1-1", "sku": "3492786508", "site_to_seller": 0.5278, "gap_pct": 47.22, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-12", "art": "GGM-15-1-2", "sku": "3492789518", "site_to_seller": 0.5278, "gap_pct": 47.22, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-12", "art": "GGM-01-2", "sku": "3492791592", "site_to_seller": 0.4436, "gap_pct": 55.64, "src": "prices_raw", "oa_used": false}
@@ -11971,15 +11971,15 @@
 {"date": "2026-10-16", "art": "GGT-46-3-3-100", "sku": "5632761673", "site_to_seller": 0.4475, "gap_pct": 55.25, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
 {"date": "2026-10-16", "art": "GGT-47-5-1-80", "sku": "5989203179", "site_to_seller": 0.522, "gap_pct": 47.8, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
 {"date": "2026-10-16", "art": "GGT-47-5-1-90", "sku": "6005103981", "site_to_seller": 0.522, "gap_pct": 47.8, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-120", "sku": "6045905827", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-100", "sku": "6045903630", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-110", "sku": "6045903680", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-80", "sku": "6045903704", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-L-90", "sku": "6045906140", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-E-14080", "sku": "6045906824", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-E-16080", "sku": "6045907242", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-E-12080", "sku": "6045907076", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
-{"date": "2026-10-16", "art": "GGT-03-5-1-O-18090", "sku": "6045907105", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00"}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-120", "sku": "6045905827", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00", "no_site": true}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-100", "sku": "6045903630", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00", "no_site": true}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-110", "sku": "6045903680", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00", "no_site": true}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-80", "sku": "6045903704", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00", "no_site": true}
+{"date": "2026-10-16", "art": "GGT-03-5-1-L-90", "sku": "6045906140", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00", "no_site": true}
+{"date": "2026-10-16", "art": "GGT-03-5-1-E-14080", "sku": "6045906824", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00", "no_site": true}
+{"date": "2026-10-16", "art": "GGT-03-5-1-E-16080", "sku": "6045907242", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00", "no_site": true}
+{"date": "2026-10-16", "art": "GGT-03-5-1-E-12080", "sku": "6045907076", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00", "no_site": true}
+{"date": "2026-10-16", "art": "GGT-03-5-1-O-18090", "sku": "6045907105", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-16T20:05:44+03:00", "no_site": true}
 {"date": "2026-10-17", "art": "GGM-15-1-1", "sku": "3492786508", "site_to_seller": 0.5093, "gap_pct": 49.07, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-17T20:11:18+03:00"}
 {"date": "2026-10-17", "art": "GGM-15-1-2", "sku": "3492789518", "site_to_seller": 0.5093, "gap_pct": 49.07, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-17T20:11:18+03:00"}
 {"date": "2026-10-17", "art": "GGM-01-2", "sku": "3492791592", "site_to_seller": 0.4033, "gap_pct": 59.67, "src": "prices_raw", "oa_used": false, "snap": "вечер", "ts": "2026-10-17T20:11:18+03:00"}

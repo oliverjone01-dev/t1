@@ -45,7 +45,7 @@ interval: "база [старт - 7 наблюдаемых дней, старт)
 partial_period: mark
 additive_over_time: false
 accounting_basis: ""
-empty_value: "null: день без снимка не считается и не равен нулю"
+empty_value: "null: день без снимка не считается и не равен нулю; строка без витрины (SKU пустой и разрыв 0, или метка no_site) - тоже null, не 0 (Иван 16.10 «пиши нет данных», PR #487); ноль со SKU остаётся нулём до решения Ивана"
 source:
   endpoint: "срез кабинета (gap_daily.ndjson, src snapshot/prices_raw), снимок цен prices_daily.ndjson (поле price = предельная с 23.09)"
   fields: [gap_pct, price]

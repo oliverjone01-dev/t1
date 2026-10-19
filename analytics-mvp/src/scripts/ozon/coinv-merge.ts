@@ -50,11 +50,21 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
     const k = key(s.date, s.art);
     const prev = by.get(k);
     const row: StoredRow = { ...(prev ?? { date: s.date, art: s.art }) };
-    if (s.sku != null) row.sku = s.sku;
+    // Пустой SKU среза не затирает известный: SKU это свойство товара, он не исчезает между съёмами.
+    const skuKnown = String(row.sku ?? "").trim() !== "";
+    if (s.sku != null && (String(s.sku).trim() || !skuKnown)) row.sku = s.sku;
     // Срез без SKU: витрину не сняли, на её место встала наша цена, и соинвест 0 ложный (9 новых GGT-03-5-1,
     // 16.10; Иван: «пиши нет данных»). Такой 0 не пишем - поле остаётся пустым.
     const noSite = !String(s.sku ?? "").trim() && s.coinv_pct === 0;
+    if (noSite && skuKnown) {
+      // Срез без витрины поверх снятого значения того же дня (утро со SKU, вечер без): значение, цену
+      // сайта и источник не трогаем (ФЕНИКС 16.10, проба M1), обновляем только нашу цену.
+      if (s.seller != null) row.cap = s.seller;
+      updated++; by.set(k, row);
+      continue;
+    }
     if (s.coinv_pct != null && !noSite) row.coinv_paid_pct = s.coinv_pct;
+    // Повторный срез без витрины стирает прежний ложный 0 того же дня (прежняя строка тоже была без SKU).
     if (noSite) delete row.coinv_paid_pct;
     if (s.oa != null) row.site_paid = s.oa;
     if (s.seller != null) row.cap = s.seller;

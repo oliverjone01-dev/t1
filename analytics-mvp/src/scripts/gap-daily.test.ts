@@ -77,6 +77,13 @@ describe("живой файл data/gap_daily.ndjson", () => {
     }
   });
 
+  it("ложные нули без витрины помечены (11 строк 10-11.10 и 16.10, v8/fix_nodata_1610.py) и в ряд не идут", () => {
+    const r = readGapDaily("data/" + GAP_DAILY_FILE);
+    if (!r.exists) return;
+    expect(r.noSite).toBeGreaterThanOrEqual(11);
+    expect(r.rows.filter((x) => x.gap_pct === 0 && x.date >= "2026-10-16")).toEqual([]);
+  });
+
   it("источники ряда - только наблюдения", () => {
     const r = readGapDaily("data/" + GAP_DAILY_FILE);
     if (!r.exists) return;
@@ -167,5 +174,47 @@ describe("съём утром и вечером: повтор даты заме�
     const r = readGapDaily(p);
     expect(r.rows).toHaveLength(1);
     expect(r.rows[0]!.gap_pct).toBe(12);
+  });
+});
+
+describe("срез без витрины: «нет данных», а не ноль (Иван 16.10; ФЕНИКС 16.10 G1, M1)", () => {
+  it("SKU пустой и разрыв 0 - строка не идёт в ряд и не считается битой", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-16", art: "NEW", sku: "", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw", oa_used: false },
+      { date: "2026-10-16", art: "OLD", sku: "123", site_to_seller: 0.5, gap_pct: 50, src: "prices_raw", oa_used: false },
+    ]));
+    expect(r.rows.map((x) => x.art)).toEqual(["OLD"]);
+    expect(r.noSite).toBe(1);
+    expect(r.bad).toBe(0);
+  });
+
+  it("метка no_site: строка, которой мак потом дописал SKU, тоже «нет данных»", () => {
+    const r = readGapDaily(tmp([{ date: "2026-10-16", art: "NEW", sku: "123", site_to_seller: null, gap_pct: null, no_site: true, src: "prices_raw" }]));
+    expect(r.rows).toEqual([]);
+    expect(r.noSite).toBe(1);
+    expect(r.bad).toBe(0);
+  });
+
+  it("ноль со SKU остаётся нулём: витрина снята, решение по таким строкам за Иваном", () => {
+    const r = readGapDaily(tmp([{ date: "2026-10-12", art: "A", sku: "123", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw" }]));
+    expect(r.rows[0]!.gap_pct).toBe(0);
+    expect(r.noSite).toBe(0);
+  });
+
+  it("пусто без SKU - это «нет числа» (bad), а не «нет витрины»", () => {
+    const r = readGapDaily(tmp([{ date: "2026-10-16", art: "A", gap_pct: null, src: "prices_raw" }]));
+    expect(r.bad).toBe(1);
+    expect(r.noSite).toBe(0);
+  });
+
+  it("повтор без витрины не стирает снятое значение того же дня (M1); повтор со значением стирает ложный 0", () => {
+    const r = readGapDaily(tmp([
+      { date: "2026-10-16", art: "A", sku: "123", gap_pct: 47.5, src: "prices_raw", snap: "утро" },
+      { date: "2026-10-16", art: "A", sku: "", gap_pct: 0, src: "prices_raw", snap: "вечер" },
+      { date: "2026-10-16", art: "B", sku: "", gap_pct: 0, src: "prices_raw", snap: "утро" },
+      { date: "2026-10-16", art: "B", sku: "456", gap_pct: 47.6, src: "prices_raw", snap: "вечер" },
+    ]));
+    expect(Object.fromEntries(r.rows.map((x) => [x.art, x.gap_pct]))).toEqual({ A: 47.5, B: 47.6 });
+    expect(r.noSite).toBe(0);
   });
 });

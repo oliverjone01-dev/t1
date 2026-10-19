@@ -36,6 +36,9 @@ export interface GapRow {
   /** Доля предельной цены, которую платит покупатель. Рублёвых цен в файле нет намеренно. */
   site_to_seller?: number;
   gap_pct?: number; src?: string; oa_used?: boolean;
+  /** Витрина не снята: на месте цены сайта стояла наша цена, разрыв 0 ложный. Метка ставится
+   *  скриптом правки данных (v8/fix_nodata_1610.py); живой признак того же - SKU пустой и разрыв 0. */
+  no_site?: boolean;
 }
 
 export interface GapRead {
@@ -49,18 +52,30 @@ export interface GapRead {
   withOa: number;
   /** Строки без gap_pct или с нечисловым значением. */
   bad: number;
+  /** Строки без витрины: «нет данных», а не ноль (см. noSite). */
+  noSite: number;
 }
 
-const EMPTY: GapRead = { exists: false, rows: [], days: [], bySrc: new Map(), withOa: 0, bad: 0 };
+const EMPTY: GapRead = { exists: false, rows: [], days: [], bySrc: new Map(), withOa: 0, bad: 0, noSite: 0 };
+
+/** Срез без витрины. У 9 новых GGT-03-5-1 16.10 (и GGT-47-5-1-80 10-11.10) SKU в срезе мака был пустой, на
+ *  месте цены сайта стояла наша цена, и разрыв вышел 0. Это не «OZON не доплачивает», это «витрину не
+ *  сняли»: на следующий день у тех же товаров 47-53 %. Иван 16.10: «пиши нет данных». Правило то же, что в
+ *  coinv-merge.ts (noSite): SKU пустой и разрыв 0. Строки, которые мак позже дописал SKU, помечены no_site
+ *  скриптом правки. Ноль со SKU остаётся честным нулём - до решения Ивана (3 строки 20.09 и 12.10). */
+const hasGap = (r: GapRow): boolean => r.gap_pct != null && r.gap_pct !== ("" as unknown) && Number.isFinite(Number(r.gap_pct));
+export const noSite = (r: GapRow): boolean =>
+  r.no_site === true || (!String(r.sku ?? "").trim() && hasGap(r) && Number(r.gap_pct) === 0);
 
 export function readGapDaily(path: string): GapRead {
   if (!existsSync(path)) return EMPTY;
   const rows: CoinvRow[] = [];
   const bySrc = new Map<string, number>();
   const days = new Set<string>();
-  let withOa = 0, bad = 0;
+  let withOa = 0, bad = 0, noSiteN = 0;
   // Съём утром и вечером (Иван 15.10): на дату и товар одна строка, повтор заменяет прежнюю,
-  // иначе день товара считается дважды (К4). Побеждает последняя строка файла.
+  // иначе день товара считается дважды (К4). Побеждает последняя строка файла, кроме одного случая:
+  // повтор без витрины (noSite) не стирает снятое значение того же дня (ФЕНИКС 16.10, проба M1).
   const last = new Map<string, GapRow>();
   for (const l of readFileSync(path, "utf-8").trim().split("\n").filter(Boolean)) {
     let r: GapRow;
@@ -68,12 +83,16 @@ export function readGapDaily(path: string): GapRead {
     const d = String(r.date || "").slice(0, 10);
     const art = String(r.art || "").trim();
     if (!d || !art) { bad += 1; continue; }
-    const k = `${d}|${art}`; last.delete(k); last.set(k, r);
+    const k = `${d}|${art}`;
+    const cur = last.get(k);
+    if (cur && noSite(r) && !noSite(cur) && hasGap(cur)) continue;
+    last.delete(k); last.set(k, r);
   }
   for (const r of last.values()) {
     const d = String(r.date || "").slice(0, 10);
     const art = String(r.art || "").trim();
     if (r.oa_used === true) { withOa += 1; continue; }
+    if (noSite(r)) { noSiteN += 1; continue; }
     // Number(null) это 0, и он проходит проверку на конечность: пустое значение,
     // прочитанное как ноль, стало бы днём с нулевым разрывом, то есть выдумкой.
     if (r.gap_pct == null || r.gap_pct === ("" as unknown)) { bad += 1; continue; }
@@ -85,5 +104,5 @@ export function readGapDaily(path: string): GapRead {
     // in_panel здесь всегда true: файл и есть панель дня, других товаров в нём нет.
     rows.push({ date: d, art, observed: true, in_panel: true, gap_pct: v, oa_source: src });
   }
-  return { exists: rows.length > 0, rows, days: [...days].sort(), bySrc, withOa, bad };
+  return { exists: rows.length > 0, rows, days: [...days].sort(), bySrc, withOa, bad, noSite: noSiteN };
 }

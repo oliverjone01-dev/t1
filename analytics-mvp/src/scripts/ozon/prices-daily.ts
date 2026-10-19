@@ -1,12 +1,18 @@
 // Ежедневный снимок цен по артикулам -> data/prices_daily.ndjson (НАКОПИТЕЛЬНО).
 // Строка: {d, offer, price, paid, before, coinv, coinv_paid}.
-//   price      - цена на витрине (marketing_seller_price, акции продавца);
-//   paid       - цена, которую платит покупатель с картой Ozon (marketing_price, все акции);
-//   before     - предельная цена продавца (зачёркнутая);
-//   coinv      - (1 - price / before) * 100, доля Ozon по витрине;
-//   coinv_paid - (1 - paid / before) * 100, доля Ozon по тому, что реально заплатили.
+// СМЫСЛ ПОЛЕЙ МЕНЯЛСЯ ВМЕСТЕ С ОТВЕТОМ OZON (/v5/product/info/prices), по дням ряда:
+//   до 23.09.2026: price - цена на витрине (marketing_seller_price, акции продавца); paid - цена с картой
+//     Ozon (marketing_price, все акции); before - предельная цена продавца (зачёркнутая);
+//     coinv = (1 - price / before) * 100 - доля Ozon по витрине; coinv_paid - то же по цене с картой.
+//   с 23.09.2026: price - НАША предельная цена (сверка 28.09: GGM-02-1-1 30 085 против витрины 11-12 тыс.),
+//     before - зачёркнутая цена, coinv - скидка самого продавца от зачёркнутой (28.8 % против соинвеста
+//     61-63 %), то есть НЕ соинвест; paid и coinv_paid пустые. Потребители с этого дня берут только price:
+//     build-tests.ts (PRICES_SCHEMA_BREAK, P_CAP), plan-tab.ts (цена плана). Соинвест - coinv_daily и
+//     gap_daily со среза мака.
+//   с 15.10.2026: before == price у всех товаров (цены до акций в ответе нет): before, coinv и coinv_paid
+//     пишутся пустыми, см. NO_BEFORE_SHARE.
 //
-// Считать надо по coinv_paid. Сверка с реестром начислений за август (data/payout_orders.ndjson,
+// ИСТОРИЯ (до 23.09). Считать надо по coinv_paid. Сверка с реестром начислений за август (data/payout_orders.ndjson,
 // npm run coinv:calib) показала: соинвест по витрине занижает долю Ozon, потому что скидка по
 // карте Ozon в витринную цену не входит, а платит её тоже Ozon. По витрине выходило 52.5 %,
 // по цене с картой 57.2 %, факт 57.6 %.
@@ -45,17 +51,29 @@ export function coinvOf(price: number | null, before: number | null): number | n
 // Цена по карте может не прийти: тогда пишем пробел в paid и coinv_paid, а не подменяем их
 // витриной. Подмена дала бы правдоподобное, но заниженное число, и его никто бы не заметил.
 /** С 15.10.2026 OZON отдаёт в поле price цену после акций продавца (= marketing_seller_price), цены до
- *  акций в ответе нет. Тогда price == before почти у всех, и соинвест выходит ложным 0 (Иван 16.10: «пиши нет
- *  данных»). Если так у доли товаров не меньше NO_BEFORE_SHARE - before и соинвест дня пишем пустыми. */
+ *  акций в ответе нет. Тогда price == before почти у всех, и coinv (с 23.09 это скидка продавца от
+ *  зачёркнутой, не соинвест) выходит ложным 0 (Иван 16.10: «пиши нет данных»). Если так у доли товаров не
+ *  меньше NO_BEFORE_SHARE - before, coinv и coinv_paid дня пишем пустыми.
+ *  Пороги по истории ряда [ДАННЫЕ, data/prices_daily.ndjson на 19.10]: 19.09-14.10 доля price == before
+ *  от 0 до 6.7 % (максимум 08.10: 31 из 463), 15-19.10 ровно 100 %. Между 6.7 % и 90 % дней не было.
+ *  Доля от SAME_BEFORE_WARN до NO_BEFORE_SHARE пишется как есть, но с warning в лог: так виден частичный
+ *  откат ответа OZON, при котором нули могут быть ложными (ФЕНИКС 16.10, проба P1). */
 export const NO_BEFORE_SHARE = 0.9;
+export const SAME_BEFORE_WARN = 0.15;
+
+/** Доля товаров с парой цен, у которых price == before (до рубля); null - пары цен нет ни у кого. */
+export function sameBeforeShare(items: Array<{ offer_id: string; price: number | null; price_before: number | null }>): number | null {
+  const valid = items.filter((it) => String(it.offer_id || "").trim() && it.price && it.price_before);
+  if (!valid.length) return null;
+  return valid.filter((it) => Math.round(it.price!) === Math.round(it.price_before!)).length / valid.length;
+}
 
 export function priceRows(
   items: Array<{ offer_id: string; price: number | null; price_paid?: number | null; price_before: number | null }>,
   d: string,
 ): PriceRow[] {
-  const valid = items.filter((it) => String(it.offer_id || "").trim() && it.price && it.price_before);
-  const same = valid.filter((it) => Math.round(it.price!) === Math.round(it.price_before!)).length;
-  const noBefore = valid.length > 0 && same / valid.length >= NO_BEFORE_SHARE;
+  const share = sameBeforeShare(items);
+  const noBefore = share != null && share >= NO_BEFORE_SHARE;
   const out: PriceRow[] = [];
   for (const it of items) {
     const offer = String(it.offer_id || "").trim();
@@ -101,11 +119,13 @@ async function main() {
   };
   const paidN = rows.filter((r) => r.coinv_paid != null).length;
   console.log(`prices-daily: ${d} - ${rows.length} артикулов -> ${OUT}`);
-  console.log(`  соинвест по витрине: медиана ${medOf(rows.map((r) => r.coinv)) ?? "-"} %`);
-  console.log(`  соинвест по цене с картой: медиана ${medOf(rows.map((r) => r.coinv_paid)) ?? "-"} % (посчитан у ${paidN} из ${rows.length})`);
+  console.log(`  coinv (с 23.09 скидка продавца от зачёркнутой, не соинвест): медиана ${medOf(rows.map((r) => r.coinv)) ?? "-"} %`);
+  console.log(`  coinv_paid (по цене с картой): медиана ${medOf(rows.map((r) => r.coinv_paid)) ?? "-"} % (посчитан у ${paidN} из ${rows.length})`);
   // Молчащий пробел здесь дороже шумного: без цены по карте соинвест занижен на пять пунктов,
   // и заметить это можно только сверкой с начислениями раз в месяц.
-  if (rows.every((r) => r.before == null)) console.warn("  ::warning:: OZON не отдал цену до акций (price = цена после акций) - соинвест по API за день: нет данных, рабочий ряд - coinv_daily с мака");
+  const share = sameBeforeShare(items);
+  if (rows.every((r) => r.before == null)) console.warn("  ::warning:: OZON не отдал цену до акций (price == before у всех) - before и coinv за день: нет данных; рабочий соинвест - coinv_daily и gap_daily со среза мака");
+  else if (share != null && share >= SAME_BEFORE_WARN) console.warn(`  ::warning:: price == before у ${Math.round(share * 100)} % товаров при норме до 7 % (19.09-14.10): ответ OZON меняется, нули coinv за день могут быть ложными - проверьте /v5/product/info/prices`);
   if (!paidN) console.warn("  ::warning:: цена по карте Ozon не пришла ни по одному артикулу - проверьте поле marketing_price в ответе");
 }
 

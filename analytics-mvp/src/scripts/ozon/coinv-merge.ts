@@ -45,13 +45,50 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
   for (const r of [...stored].sort((a, b) => a.date.localeCompare(b.date))) {
     if (r.in_panel !== undefined) lastPanel.set(r.art, r.in_panel);
   }
+  // История артикула по stored: первый день с ненулевым соинвестом. Нужна правилу «нет данных» ниже.
+  const firstPaid = new Map<string, string>();
+  for (const r of stored) {
+    if (typeof r.coinv_paid_pct !== "number" || r.coinv_paid_pct <= 0) continue;
+    const f = firstPaid.get(r.art);
+    if (f === undefined || r.date < f) firstPaid.set(r.art, r.date);
+  }
   let added = 0, updated = 0, panelCarried = 0;
   for (const s of slice) {
     const k = key(s.date, s.art);
     const prev = by.get(k);
     const row: StoredRow = { ...(prev ?? { date: s.date, art: s.art }) };
-    if (s.sku != null) row.sku = s.sku;
-    if (s.coinv_pct != null) row.coinv_paid_pct = s.coinv_pct;
+    // Пустой SKU среза не затирает известный: SKU это свойство товара, он не исчезает между съёмами.
+    const skuKnown = String(row.sku ?? "").trim() !== "";
+    if (s.sku != null && (String(s.sku).trim() || !skuKnown)) row.sku = s.sku;
+    // Цена на сайте равна нашей (соинвест 0): витрину не сняли или карточка только опубликована. Это «нет данных»,
+    // а не 0, ТОЛЬКО У КАРТОЧКИ БЕЗ ИСТОРИИ - пока у артикула не было в stored ни одного прежнего дня с ненулевым
+    // соинвестом (Иван 16.10 «пиши нет данных», 19.10: со SKU или без, но только у карточки без истории разрыва).
+    // Тогда поле не пишем, ставим метку no_site. У карточки с историей ноль пишется нулём: это стоп-сигнал
+    // теста 4 и чип плана «выпал из бустинга?», список акций его не заменяет (ФЕНИКС 19.10, проба Z2). Правило
+    // то же, что в gap-daily.ts (markNoSite).
+    const sameAsOurs = s.oa != null && s.seller != null && Math.round(s.oa) === Math.round(s.seller);
+    const siteMissing = s.coinv_pct === 0 || sameAsOurs;
+    const prevHas = prev != null && typeof prev.coinv_paid_pct === "number" && prev.coinv_paid_pct > 0;
+    if (siteMissing && prevHas) {
+      // Срез без витрины поверх снятого значения того же дня (утро снято, вечер нет): значение, SKU, цену
+      // сайта и источник не трогаем (ФЕНИКС 16.10, проба M1), обновляем только нашу цену. Это правило дня,
+      // история артикула на него не влияет.
+      if (s.seller != null) row.cap = s.seller;
+      updated++; by.set(k, row);
+      continue;
+    }
+    const hasHistory = (firstPaid.get(s.art) ?? "9999-99-99") < s.date;
+    const noSite = siteMissing && !hasHistory;
+    if (noSite) {
+      // Повторный срез без витрины стирает прежний ложный 0 того же дня.
+      delete row.coinv_paid_pct; row.no_site = true;
+    } else {
+      if (s.coinv_pct != null) row.coinv_paid_pct = s.coinv_pct;
+      // Цена сайта равна нашей у карточки с историей, а соинвеста в срезе нет: разрыв 0 по определению.
+      else if (sameAsOurs) row.coinv_paid_pct = 0;
+      // Срез со снятой витриной (или честный ноль) снимает метку.
+      delete row.no_site;
+    }
     if (s.oa != null) row.site_paid = s.oa;
     if (s.seller != null) row.cap = s.seller;
     row.oa_source = sourceOf(s);

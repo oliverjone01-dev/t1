@@ -2,7 +2,7 @@
   "domain": "ivegroup.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-10-05T09:30:36.595Z",
+  "measured": "2026-10-19T08:02:02.265Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=ivegroup.ru",
   "data": {
     "id": 30485583,
@@ -12,89 +12,89 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 623,
-        "it50": 20429102,
-        "vis": 2460454,
-        "perc": 0.0030495711461032407
+        "cnt": 602,
+        "it50": 20514167,
+        "vis": 2497083,
+        "perc": 0.002934557371985906
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 416,
-        "it50": 50120445,
-        "vis": 3553196,
-        "perc": 0.0008300006115268928
+        "cnt": 409,
+        "it50": 49570275,
+        "vis": 3815679,
+        "perc": 0.0008250912467199344
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 398,
-        "it50": 17480084,
-        "vis": 1103017,
-        "perc": 0.002276876930339694
+        "cnt": 382,
+        "it50": 17470038,
+        "vis": 1089061,
+        "perc": 0.0021866008534154303
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 342,
-        "it50": 3122594,
-        "vis": 607131,
-        "perc": 0.010952432496827959
+        "cnt": 325,
+        "it50": 3138723,
+        "vis": 594945,
+        "perc": 0.010354529533189135
       },
       {
         "did": 140677055,
         "name": "ru.pinterest.com",
-        "cnt": 319,
-        "it50": 6322826,
-        "vis": 874908,
-        "perc": 0.0050452123781359786
+        "cnt": 308,
+        "it50": 6366597,
+        "vis": 870673,
+        "perc": 0.004837749271706691
       },
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 308,
-        "it50": 9707,
-        "vis": 143,
-        "perc": 3.1729679612650665
+        "cnt": 300,
+        "it50": 9621,
+        "vis": 141,
+        "perc": 3.1181789834736517
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 304,
-        "it50": 18421157,
-        "vis": 2212373,
-        "perc": 0.0016502763642913417
+        "cnt": 285,
+        "it50": 18491886,
+        "vis": 2436087,
+        "perc": 0.001541216509770826
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
-        "cnt": 279,
-        "it50": 14613586,
-        "vis": 1413223,
-        "perc": 0.0019091823184261552
+        "cnt": 270,
+        "it50": 14728862,
+        "vis": 1435492,
+        "perc": 0.0018331355131170352
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 261,
-        "it50": 50140485,
-        "vis": 4499531,
-        "perc": 0.0005205374459381476
+        "cnt": 258,
+        "it50": 50185043,
+        "vis": 4187741,
+        "perc": 0.0005140973975054679
       },
       {
         "did": 37692261,
         "name": "m-strana.ru",
-        "cnt": 248,
-        "it50": 1386992,
-        "vis": 17414,
-        "perc": 0.017880420362914855
+        "cnt": 244,
+        "it50": 1388770,
+        "vis": 16933,
+        "perc": 0.01756950394953808
       }
     ],
-    "it1": 22,
-    "it3": 61,
+    "it1": 24,
+    "it3": 58,
     "it5": 86,
-    "it10": 170,
-    "it50": 885,
+    "it10": 172,
+    "it50": 859,
     "childsCount": 0,
     "keys": [
       {
@@ -102,6 +102,12 @@
         "word": "душевая кабина для собак",
         "ws": 39,
         "wsk": 27
+      },
+      {
+        "pos": 1,
+        "word": "интерьерное окно",
+        "ws": 476,
+        "wsk": 13
       },
       {
         "pos": 1,
@@ -129,6 +135,12 @@
       },
       {
         "pos": 1,
+        "word": "окно в перегородке между комнатами",
+        "ws": 24,
+        "wsk": 10
+      },
+      {
+        "pos": 1,
         "word": "окно внутреннее",
         "ws": 32218,
         "wsk": 7
@@ -141,43 +153,31 @@
       },
       {
         "pos": 1,
-        "word": "окно в межкомнатной перегородке",
-        "ws": 57,
-        "wsk": 4
-      },
-      {
-        "pos": 1,
         "word": "ive group",
         "ws": 39,
         "wsk": 4
-      },
-      {
-        "pos": 1,
-        "word": "стеклянная фрамуга",
-        "ws": 363,
-        "wsk": 4
       }
     ],
-    "topkeys": 270001,
+    "topkeys": 275993,
     "pages": [
       {
-        "it50": 91,
+        "it50": 94,
         "url": "/peregorodki/statsionarnye-peregorodki/mezhkomnatnoe-okno"
       },
       {
-        "it50": 64,
-        "url": "/stellazhi"
-      },
-      {
-        "it50": 61,
+        "it50": 62,
         "url": "/2021/03/22/steklyannyi-tambur-v-dom"
       },
       {
-        "it50": 61,
+        "it50": 60,
+        "url": "/stellazhi"
+      },
+      {
+        "it50": 60,
         "url": "/2023/02/12/materialy-peregorodok"
       },
       {
-        "it50": 61,
+        "it50": 57,
         "url": "/2023/02/05/moyka-dlya-sobak"
       },
       {
@@ -185,7 +185,7 @@
         "url": "/2023/10/06/arochnye-steklyannye-dveri"
       },
       {
-        "it50": 36,
+        "it50": 35,
         "url": "/peregorodki/peregorodki-s-dveryami/peregorodka-garmoshka"
       },
       {
@@ -193,17 +193,17 @@
         "url": "/"
       },
       {
-        "it50": 24,
+        "it50": 22,
         "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri"
       },
       {
-        "it50": 23,
+        "it50": 22,
         "url": "/materialy/vidy-stekla"
       }
     ],
-    "pagesinindex": 61,
+    "pagesinindex": 60,
     "vis": 6,
-    "topvis": 358259,
+    "topvis": 362551,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -431,16 +431,16 @@
         "aiCnt": 74
       },
       "2026.10": {
-        "it1": 22,
-        "it3": 61,
+        "it1": 24,
+        "it3": 58,
         "it5": 86,
-        "it10": 170,
-        "it50": 885,
-        "pagesInIndex": 61,
+        "it10": 172,
+        "it50": 859,
+        "pagesInIndex": 60,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 6,
-        "aiCnt": 50
+        "aiCnt": 41
       }
     },
     "linksHistory": {
@@ -571,14 +571,14 @@
         330
       ],
       "2026.10": [
-        718,
-        837,
+        714,
+        860,
         115,
         5,
-        330
+        328
       ]
     },
-    "aiAnswersCnt": 50,
+    "aiAnswersCnt": 41,
     "aiState": 10,
     "dr": 17,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/70e3a912fa6972e638ef77425c8d96f9b5763f6148c246533647387db1cf30c2.png",

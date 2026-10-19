@@ -60,6 +60,7 @@
     "ym:recon:realization": "tsx src/scripts/ym/recon-realization.ts",
     "eb": "tsx src/scripts/ozon/eb-daily.ts",
     "cards": "tsx src/scripts/ozon/cards-extract.ts",
+    "cards:api": "tsx src/scripts/ozon/card-groups-api.ts",
     "promo": "tsx src/scripts/ozon/promo-daily.ts",
     "coinv:merge": "tsx src/scripts/ozon/coinv-merge.ts"
   },

@@ -4,7 +4,7 @@ import { describe, it, expect } from "vitest";
 import { writeFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseRow, readFunnelTests, missingDays, aggDay } from "./funnel-tests.js";
+import { parseRow, readFunnelTests, missingDays, aggDay, isOpenDay } from "./funnel-tests.js";
 
 const ok = {
   date: "2026-09-22", art: "GGT-03-1-3-S-40", role: "test_ad",
@@ -18,7 +18,7 @@ const agg = {
 
 describe("разбор товарной строки", () => {
   it("принимает строку контракта как есть", () => {
-    expect(parseRow(ok)).toEqual({ ...ok, test_id: "", n: null, n_nonzero: null });
+    expect(parseRow(ok)).toEqual({ ...ok, test_id: "", n: null, n_nonzero: null, full: null, ts: null, snap: null, group: "" });
   });
 
   it("позиция может быть null: товара нет в выдаче", () => {
@@ -177,6 +177,53 @@ describe("формы записи id теста", () => {
   it("роль reference принимается: июльский эталон вне текущих групп", () => {
     const r = parseRow({ ...ok, role: "reference", art: "GGT-47-3-3-90" });
     expect(typeof r === "string" ? r : r.role).toBe("reference");
+  });
+});
+
+describe("съём утром и вечером (Иван 15.10)", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ft2-"));
+  const path = join(dir, "funnel_tests.ndjson");
+  writeFileSync(path, [
+    JSON.stringify({ ...ok, date: "2026-10-14", search_views: 100, full: false, snap: "вечер", ts: "2026-10-14T20:10:00+03:00" }),
+    JSON.stringify({ ...ok, date: "2026-10-14", search_views: 400, full: true, snap: "утро", ts: "2026-10-15T08:00:00+03:00" }),
+    JSON.stringify({ ...ok, date: "2026-10-15", search_views: 30, full: false, snap: "утро", ts: "2026-10-15T08:00:00+03:00" }),
+    JSON.stringify({ ...ok, date: "2026-10-15", search_views: 90, full: false, snap: "вечер", ts: "2026-10-15T20:10:00+03:00" }),
+    JSON.stringify({ ...ok, date: "2026-10-13", search_views: 380 }),
+    JSON.stringify({ ...ok, date: "2026-10-13", search_views: 390 }),
+  ].join("\n"));
+  const read = readFunnelTests(path);
+  it("повтор даты заменяет строку, а не дописывает вторую (К4)", () => {
+    expect(read.rows.filter((r) => r.date === "2026-10-13")).toHaveLength(1);
+    expect(read.byArt.get(ok.art)!.get("2026-10-13")!.search_views).toBe(390);
+  });
+  it("утро перезаписывает вечерний неполный день полным", () => {
+    expect(read.byArt.get(ok.art)!.get("2026-10-14")!.search_views).toBe(400);
+  });
+  it("незакрытый день не входит в ряд, лежит отдельно с временем среза (E029)", () => {
+    expect(read.byArt.get(ok.art)!.has("2026-10-15")).toBe(false);
+    expect(read.last).toBe("2026-10-14");
+    expect(read.partial.map((r) => r.search_views)).toEqual([90]);
+    expect([read.partialDay, read.partialTs]).toEqual(["2026-10-15", "2026-10-15T20:10:00+03:00"]);
+  });
+  it("группы test и control агрегата - разные ключи; в контрольный ряд идёт только control (ФЕНИКС G2)", () => {
+    const d2 = mkdtempSync(join(tmpdir(), "ft3-")); const p2 = join(d2, "funnel_tests.ndjson");
+    writeFileSync(p2, [
+      JSON.stringify({ ...agg, art: "AGG:boost_plus_exit:control", group: "control", search_views: 500 }),
+      JSON.stringify({ ...agg, art: "AGG:boost_plus_exit:test", group: "test", search_views: 70 }),
+    ].join("\n"));
+    const r2 = readFunnelTests(p2);
+    expect(r2.rows).toHaveLength(2);
+    expect(aggDay(r2, "boost_plus_exit", "agg_median", agg.date)!.search_views).toBe(500);
+  });
+  it("незакрытый день узнаётся и по времени среза, не только по флагу (ФЕНИКС P1)", () => {
+    expect(isOpenDay({ date: "2026-10-15", full: true, ts: "2026-10-15T20:10:00+03:00" })).toBe(true);
+    expect(isOpenDay({ date: "2026-10-15", full: null, ts: "2026-10-15T23:30:00Z" })).toBe(false);   // 02:30 МСК 16.10
+    expect(isOpenDay({ date: "2026-10-14", full: true, ts: "2026-10-15T08:00:00+03:00" })).toBe(false);
+    expect(isOpenDay({ date: "2026-10-14", full: null, ts: null })).toBe(false);
+  });
+  it("ts не время - строка отвергнута", () => expect(parseRow({ ...ok, ts: "вечер" })).toContain("ts"));
+  it("full не true / false - строка отвергнута с причиной", () => {
+    expect(parseRow({ ...ok, full: "да" })).toContain("full");
   });
 });
 

@@ -1,0 +1,198 @@
+{
+ "agent": "feniks",
+ "skill": "phoenix-eval",
+ "task_id": "feniks-ozon-accrual-retry-pr485-iter1-20261016",
+ "timestamp": "2026-10-16T08:17:44+00:00",
+ "deliverable_ref": "https://github.com/oliverjone01-dev/t1/pull/485 @ 54569adf22a81194658428918a76f9d755f706ce, audit hash 4a8ee262141d9552 (пересчитан, совпал; охват полный - дифф от merge-base 3bf4bd14 один файл analytics-mvp/src/connector/ozon-seller.ts)",
+ "artifact_class": "dashboard",
+ "audience": "внутренний: автор PR, координатор, Иван",
+ "anchor": "6.7 dialogs-registry (return) - наш артефакт выше на 0.35: механика проверена живьём на реальном коде (8 проб R1-R8: 4xx не повторяет, на вызов fail-closed, прочие методы на старой политике), дефекты не в коде, а в описании, приёмке и втором порядке; ниже 7.6 timur-activation iter1, потому что там второй порядок был разобран, а здесь не разобраны ни время прогона при затяжном 429, ни альтернативы",
+ "probes": [
+  {
+   "id": "B1",
+   "result": "PARTIAL",
+   "evidence": "цифры PR вне PR: ~31 с старой политики подтверждено (R5: 35.6 с с джиттером, база 31 с); «около 4 мин» = 4.1-4.9 мин (R8: min 246.6 / p50 272.0 / max 296.0 с на 2000 прогонов); «пауза до 60 с» неверно - джиттер после потолка, R8 max 71193 мс, теоретически до 74999 мс (retry.ts:43-45); «+~6 с к прогону» - это на один вызов accrualPostings, вызывающих за прогон три (orders-daily.ts:36, pnl-sku-accrual-daily.ts:45, pnl-accrual-daily.ts:69), итого ~16 с"
+  },
+  {
+   "id": "B3",
+   "result": "PASS",
+   "evidence": "analytics-mvp/data/orders_daily.ndjson: 3794 строк = 3794 различных ключа order, дублей нет; 3794/200 = 19 пачек, 18 пауз по 300 мс = 5.4 с на вызов"
+  },
+  {
+   "id": "B6",
+   "result": "PARTIAL",
+   "evidence": "тезис PR «заказы за 15.10 до сих пор не в main» устарел: 3da365d0 2026-10-16T08:08:13Z data(orders) от run 56 (main 3bf4bd14 без правки, success, шаг pnlsku 427 с - выжил на повторах шага 60/120 с); приёмка PR «ручной прогон зелёный, orders_daily по 15.10» теперь выполняется и без правки"
+  },
+  {
+   "id": "B7",
+   "result": "PASS",
+   "evidence": "новых путей экспорта дифф не создаёт; дыра catch continue в by-day (acq-sku-daily.ts:56, pnl-accrual-daily.ts:93) вне диффа, отмечена в rework_tz аудита #484"
+  },
+  {
+   "id": "R1",
+   "result": "PASS",
+   "evidence": "probe-retry.ts, мок fetch + запись пауз setTimeout: accrualPostings(450) -> пачки 200/200/50, паузы [300,300] только между пачками"
+  },
+  {
+   "id": "R2",
+   "result": "PASS",
+   "evidence": "429 x8, затем 200: успех на 9-й попытке, паузы 2247/4337/8041/17869/33077/63781/61300/62821 мс, сумма 253.5 с"
+  },
+  {
+   "id": "R3",
+   "result": "PASS",
+   "evidence": "429 навсегда: HttpError 429 после 9 попыток, 263.2 с - на вызов fail-closed; orders-daily.ts:36 без try, шаг «Сбор по заказам» без continue-on-error - прогон красный"
+  },
+  {
+   "id": "R4",
+   "result": "PASS",
+   "evidence": "400/401/403/404/409 -> 1 попытка, 0 пауз; 503 x2 -> повтор, 3 попытки; isRetryable не переопределён, defaultRetryable (retry.ts:21-24) не менялся"
+  },
+  {
+   "id": "R5",
+   "result": "PASS",
+   "evidence": "post без retry (прочие методы): 6 попыток, паузы 1119/2486/4384/8284/19348 мс, 35.6 с - прежние 5/1000/30000"
+  },
+  {
+   "id": "R6",
+   "result": "PARTIAL",
+   "evidence": "by-day: 2 дня, у первого 2 страницы -> вызовы 01/01-L1/02, паузы [300] - только между страницами одного дня, между днями паузы нет; при ~1 странице на день (шаг acq 45-54 с на 252 дня, [ГИПОТЕЗА] по длительности шага) пауза в by-day почти не срабатывает"
+  },
+  {
+   "id": "R7",
+   "result": "FAIL",
+   "evidence": "цикл как в acq/pnlacc (try accrualByDay catch continue) при вечном 429: 3 дня пропущены молча, исключения нет, 264/271/274 с на день; 252 дня x 4.1-4.9 мин = 17-21 ч при лимите job 360 мин по умолчанию (grep timeout-minutes orders-backfill.yml: 0 строк) - job обрывается до шага «Коммит данных», группа ozon-data занята до 6 ч; до правки 252 x 31-39 с = 2.2-2.7 ч и выход 0 с дырами. Поведение catch до правки, время на день правка выросло в 7-8 раз (среднее 272 с против 35 с)"
+  },
+  {
+   "id": "R8",
+   "result": "PASS",
+   "evidence": "Монте-Карло 2000 исчерпаний ACCRUAL_RETRY на коде: 246.6-296.0 с, p50 272.0 с, максимум одной паузы 71193 мс; аналитически 242-302.5 с"
+  },
+  {
+   "id": "T1",
+   "result": "PASS",
+   "evidence": "tsc --noEmit на 54569adf: 41 ошибка, 0 в ozon-seller.ts и retry.ts, экспорт модуля не менялся (post private, новые константы не экспортируются); vitest 1080/1081, падает card-kin.test.ts:174 «карта карточек отстала: возраст 23» - card-kin.ts:25 импортирует только node:fs, дифф один файл, тест не наш; analytics-tests на main 813/815/816 failure (имя упавшего теста в логах не проверено: логи через прокси недоступны); прогон на дереве merge-base не выполнен - мой bash-scope хук заблокировал симлинк node_modules в /tmp"
+  }
+ ],
+ "comprehension_gate": {
+  "applies": false,
+  "passed": true,
+  "defects": []
+ },
+ "checkpoints": {
+  "accuracy_1_figures_tagged": 1,
+  "accuracy_2_sources_verifiable": 2,
+  "accuracy_3_no_conflict_with_rag": 1,
+  "accuracy_4_glossary_terminology": 2,
+  "accuracy_5_brand_names_correct": 2,
+  "actionability_6_owner_assigned": 2,
+  "actionability_7_deadline_buffer": 2,
+  "actionability_8_resources_listed": 2,
+  "actionability_9_metric_concrete": 1,
+  "actionability_10_milestone": 2,
+  "insight_11_nontrivial": 1,
+  "insight_12_second_order": 0,
+  "insight_13_alternatives_analyzed": 0,
+  "insight_14_anti_median": 1,
+  "insight_15_cross_domain": 0,
+  "brand_16_voice": 2,
+  "brand_17_anti_slop": 2,
+  "brand_18_no_em_dash": 2,
+  "brand_19_output_routing": 2,
+  "brand_20_tone_audience": 2,
+  "risk_21_downside": 1,
+  "risk_22_p9_hard_rules": 2,
+  "risk_23_crisis_scenarios": 0,
+  "risk_24_dependencies": 1,
+  "risk_25_reversibility": 2
+ },
+ "scores": {
+  "accuracy": 8.0,
+  "actionability": 9.0,
+  "insight": 2.0,
+  "brand_fit": 10.0,
+  "risk_awareness": 6.0
+ },
+ "weighted_total": 7.05,
+ "verdict": "return",
+ "primary_gap": "Правка делает сбой by-day в 7-8 раз (среднее 272 с против 35 с) дороже по времени (264-274 с на день вместо 31-39 с), а сбой дня в acq/pnlacc по-прежнему глотается молча и без лога повторов: при затяжном 429 на by-day job упирается в 360 мин по умолчанию и не доходит до коммита заказов, а при коротком шторме расход бюджета повторов никто не видит. Приёмка PR не различает, помогла ли правка: run 56 на main без неё зелёный.",
+ "gaps": [
+  "K1 (risk_23, -2): затяжной 429 на by-day после успешного шага заказов - 252 дня x 4.1-4.9 мин = 17-21 ч на acq при лимите job 360 мин (orders-backfill.yml без timeout-minutes); job обрывается до «Коммит данных», группа ozon-data занята до 6 ч. Закрыть timeout-minutes на шагах pnlsku/acq/pnlacc (их continue-on-error пустит коммит) или счётчиком пропущенных дней by-day с выходом 1.",
+  "K2 (risk_21/insight_12, -2): нет телеметрии повторов - ACCRUAL_RETRY без onRetry (retry.ts:16,46 - единственные упоминания в src), сбой by-day дня проглатывается catch continue (acq-sku-daily.ts:56, pnl-accrual-daily.ts:93) без счётчика. Расход 8 повторов и пропуски дней не видны в логе.",
+  "K3 (actionability_9, -1): приёмка «ручной прогон зелёный, orders_daily по 15.10» не различает: run 56 на main без правки success, данные 15.10 в main с 3da365d0 08:08:13Z. Нужна метрика: число повторов accrual в логе прогона и 0 красных по 429 в шаге «Сбор по заказам» за 3 дня.",
+  "K4 (accuracy_3, -1): неточности в комментарии и теле PR - «пауза до 60 с» (фактически до 75 с: джиттер после потолка, R8 max 71.2 с), «около 4 мин» (4.1-4.9 мин), «+~6 с к прогону» (~16 с: три вызывающих accrualPostings).",
+  "K5 (insight_13, -2): альтернативы не рассмотрены - повтор шага «Сбор по заказам» по образцу K7 #484 (правка только yml); кэш accrual/postings между тремя скриптами (57 пачек за прогон вместо 19); by-day собирается дважды (acq и pnlacc, 504 вызова вместо 252); accrualTypes 5 вызовов; Retry-After.",
+  "K6 (insight_12, 0, информативно): пауза 300 мс в by-day стоит между страницами одного дня, не между днями (R6) - при ~1 странице на день самый плотный цикл (252 вызова подряд за ~45 с) не замедляется.",
+  "K7 (процесс, 0): self-check 25 не приложен, в PR раздел «Проверка» из трёх утверждений; оценено по прецеденту feniks-audit-ozon-chat-2x-20261015.md:10."
+ ],
+ "evidence_ledger": [
+  {
+   "gap": "Затяжной 429 на by-day упирает job в 360 мин и срывает коммит заказов",
+   "evidence": "R7: 264/271/274 с на пропущенный день, исключения нет; 252 дня (06.02-15.10); grep -n timeout-minutes .github/workflows/orders-backfill.yml - 0 строк; шаг «Коммит данных» без if (orders-backfill.yml:114) при обрыве job не выполняется",
+   "checkpoint": "risk_23_crisis_scenarios",
+   "weight": -2
+  },
+  {
+   "gap": "Повторы и пропуски дней не видны в логе",
+   "evidence": "grep -rn onRetry analytics-mvp/src (без тестов): только retry.ts:16,46; ACCRUAL_RETRY без onRetry (ozon-seller.ts:12); catch { continue; } acq-sku-daily.ts:56, pnl-accrual-daily.ts:93",
+   "checkpoint": "risk_21_downside",
+   "weight": -1
+  },
+  {
+   "gap": "Второй порядок не разобран (время, молчание by-day)",
+   "evidence": "тело PR (gh api pulls/485): разделы Зачем/Что/Проверка, о времени прогона при сбое и о catch continue ни строки",
+   "checkpoint": "insight_12_second_order",
+   "weight": -2
+  },
+  {
+   "gap": "Приёмка не различает эффект правки",
+   "evidence": "gh api actions/runs/38870370394: completed success 08:08:17Z на 3bf4bd14; commits?path=analytics-mvp/data/orders_daily.ndjson: 3da365d0 08:08:13Z",
+   "checkpoint": "actionability_9_metric_concrete",
+   "weight": -1
+  },
+  {
+   "gap": "Неточности в цифрах комментария и PR",
+   "evidence": "R8 max одной паузы 71193 мс против «до 60 с»; R8 246.6-296.0 с против «около 4 мин»; 3 вызывающих accrualPostings (grep accrualPostings src/scripts/ozon) против «+~6 с к прогону»",
+   "checkpoint": "accuracy_3_no_conflict_with_rag",
+   "weight": -1
+  },
+  {
+   "gap": "Числа PR без меток [ДАННЫЕ]/[ГИПОТЕЗА]",
+   "evidence": "тело PR: «четыре прогона», «около 4 мин», «20 пачек», «~6 с» без меток и ссылок на прогоны кроме номеров",
+   "checkpoint": "accuracy_1_figures_tagged",
+   "weight": -1
+  },
+  {
+   "gap": "Альтернативы не рассмотрены",
+   "evidence": "grep accrualPostings/accrualByDay/accrualTypes в src/scripts/ozon: accrual/postings вызывают orders-daily.ts:36, pnl-sku-accrual-daily.ts:45, pnl-accrual-daily.ts:69 по всем постингам с 06.02 (orders-backfill.yml:63,74,94); by-day - acq-sku-daily.ts:56 и pnl-accrual-daily.ts:93 по 252 дням",
+   "checkpoint": "insight_13_alternatives_analyzed",
+   "weight": -2
+  },
+  {
+   "gap": "Пауза by-day не между днями",
+   "evidence": "R6: вызовы 01, 01/L1, 02 - паузы [300]; ozon-seller.ts:367 if (guard) await pause",
+   "checkpoint": "insight_12_second_order",
+   "weight": 0
+  },
+  {
+   "gap": "Зависимости от вызывающих и повторов шагов не описаны",
+   "evidence": "тело PR: «Остальные методы без изменений», без перечня 5 скриптов и взаимодействия с повторами шагов 60/120 с (orders-backfill.yml:72-97)",
+   "checkpoint": "risk_24_dependencies",
+   "weight": -1
+  }
+ ],
+ "rework_tz": "1) В ACCRUAL_RETRY (или в post) onRetry с console.warn: путь, номер попытки, пауза - чтобы в логе прогона был расход повторов. 2) orders-backfill.yml: timeout-minutes на шагах pnlsku/acq/pnlacc (порядка 30; норма шага 24-427 с) - при затяжном 429 шаг падает, continue-on-error пускает коммит заказов, прогон краснеет в последнем шаге; альтернатива - счётчик пропущенных дней by-day в acq/pnlacc с выходом 1 при >N подряд. 3) Комментарий и тело PR: «пауза до 75 с (60 + джиттер до 25%)» или потолок после джиттера, «4-5 мин», «+~16 с к прогону». 4) Приёмка: число повторов accrual в логе первого прогона после мержа и 0 красных по 429 в шаге «Сбор по заказам» за 3 дня. 5) Одна строка в PR, почему не повтор шага orders-daily по образцу K7 #484 и не кэш accrual/postings между тремя скриптами.",
+ "iteration": 1,
+ "confidence": 0.83,
+ "p9_triggers_fired": [],
+ "escalate_to": "нет; повтор аудита после доработки",
+ "sources_of_truth": [
+  "git -C /home/user/t1-wt diff 3bf4bd14 54569adf (1 файл)",
+  "analytics-mvp/src/util/retry.ts:21-50, analytics-mvp/src/connector/ozon-seller.ts @54569adf",
+  "probe-retry.ts в scratchpad: реальный OzonSeller с моком fetch и записью пауз setTimeout (R1-R8)",
+  "gh api actions/runs/{38731630726,38862081435,38868010652,38870370394}/attempts/N/jobs - длительности шагов",
+  "gh api pulls/485 (тело PR), commits?path=analytics-mvp/data/orders_daily.ndjson",
+  "npx tsc --noEmit, npx vitest run на 54569adf",
+  "python3 -B .claude/skills/data-guard/scripts/audit_hash.py --rev 54569adf = 4a8ee262141d9552"
+ ]
+}

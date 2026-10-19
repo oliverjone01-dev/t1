@@ -231,6 +231,38 @@ describe("знаковые файлы в ym-snapshots.yml сверяются п�
   });
 });
 
+// Гейт «OZON байт-в-байт» сравнивает дерево с md5-слепком, снятым на коммите запуска. Промежуточный
+// коммит при уехавшем main делает `git reset --hard origin/main`, и дерево OZON становится из свежего
+// main: чужой OZON-коммит, пришедший за время сбора, выглядит как наша правка. Живой факт 15.10.2026:
+// прогон 38731492785 прошёл все продьюсеры и упал на 9 файлах data/* из коммита a02b59d, снимок дня
+// не сохранился (реестр E088). Правило: за каждым reset --hard ДО строки гейта идёт пересъём слепка
+// из нового дерева. Проверяем сам yml, а не пересказ шага (ФЕНИКС G4).
+describe("ym-snapshots.yml: после каждого reset --hard до гейта OZON слепок переснимается", () => {
+  const yml = readFileSync("../.github/workflows/ym-snapshots.yml", "utf-8").split("\n");
+  const gateAt = yml.findIndex((l) => l.includes("Гейт: OZON байт-в-байт"));
+  const resets = yml.map((l, i) => (l.includes("git reset --hard") ? i : -1)).filter((i) => i >= 0);
+
+  it("строка гейта и хотя бы один reset до неё в yml есть (иначе тест проверяет пустоту)", () => {
+    expect(gateAt).toBeGreaterThan(0);
+    expect(resets.filter((i) => i < gateAt).length).toBeGreaterThan(0);
+  });
+
+  it("за reset --hard до гейта следуют обе записи слепка раньше следующего push или шага", () => {
+    const bad: string[] = [];
+    for (const r of resets.filter((i) => i < gateAt)) {
+      let end = yml.length;
+      for (let j = r + 1; j < yml.length; j++) {
+        if (/^\s*- name:/.test(yml[j]) || /\bgit push\b/.test(yml[j])) { end = j; break; }
+      }
+      const block = yml.slice(r + 1, end).join("\n");
+      for (const f of ["/tmp/ozon-before/public.md5", "/tmp/ozon-before/data.md5"]) {
+        if (!new RegExp(`>\\s*${f.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}`).test(block)) bad.push(`строка ${r + 1}: после reset --hard нет записи ${f}`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
 // Бэкфилл вглубь против задвоения. Прогон 2026-09-21 с YM_FLOOR=2026-01-01 встал на январе
 // (netting: 201 -> 524 и 335 -> 1061): гейт назвал задвоением первый полный сбор месяца.
 // Послабление обязано быть узким - только потолок роста и только ниже дефолтного пола.

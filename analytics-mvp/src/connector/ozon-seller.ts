@@ -1,11 +1,19 @@
 // Клиент OZON Seller API (api-seller.ozon.ru). Логика из DOC_02 §2.
 // Все вызовы обёрнуты в retry/backoff (S3): переживают 429 OZON.
 
-import { withRetry, HttpError } from "../util/retry.js";
+import { withRetry, HttpError, type RetryOpts } from "../util/retry.js";
 import { lineOf } from "../util/line.js";
 import type { SkuDaily } from "../types.js";
 
 const SELLER_HOST = "https://api-seller.ozon.ru";
+// Методы начислений OZON 16.10 отвечали 429 «rate limit per second» по 2-4 раза подряд: 5 повторов
+// за ~31 с не хватало, прогон orders-backfill падал. Для них дольше: 8 повторов, пауза до 75 с
+// (потолок 60 с плюс джиттер до 25%), все повторы вместе 4,1-4,9 мин (пробы ФЕНИКСА #485 R2, R3, R8),
+// и пауза 300 мс между пачками: ~+5 с на вызов accrualPostings, ~+16 с на прогон из трёх скриптов.
+// Каждый повтор пишется в лог (путь, попытка, пауза): по нему видно, сколько повторов съел прогон.
+const ACCRUAL_RETRY: RetryOpts = { retries: 8, baseMs: 2000, maxMs: 60000 };
+const ACCRUAL_GAP_MS = 300;
+const pause = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 // Порядок метрик важен: ответ - массив в этом же порядке (DOC_02 §2.1).
 export const ANALYTICS_METRICS = [
@@ -93,7 +101,7 @@ export class OzonSeller {
     };
   }
 
-  private async post<T>(path: string, body: unknown): Promise<T> {
+  private async post<T>(path: string, body: unknown, retry?: RetryOpts): Promise<T> {
     return withRetry(async () => {
       const res = await fetch(`${SELLER_HOST}${path}`, {
         method: "POST",
@@ -104,6 +112,12 @@ export class OzonSeller {
         throw new HttpError(res.status, `OZON Seller ${path} -> HTTP ${res.status}: ${await res.text()}`);
       }
       return (await res.json()) as T;
+    }, {
+      ...retry,
+      onRetry: (attempt, delayMs, e) => {
+        const st = e instanceof HttpError ? `HTTP ${e.status}` : "сеть";
+        console.warn(`OZON ${path}: ${st}, повтор ${attempt}/${retry?.retries ?? 5} через ${(delayMs / 1000).toFixed(1)} с`);
+      },
     });
   }
 
@@ -261,8 +275,21 @@ export class OzonSeller {
   // Нужен ради model_info: OZON склеивает несколько SKU в одну карточку, и ключ этой
   // склейки живёт здесь, а не в прайсе и не в остатках. Возвращаем элементы как есть:
   // форму ответа подтверждает card-groups-probe, гадать по памяти тут нельзя.
-  async attributesAll(pageLimit = 1000, maxPages = 0): Promise<any[]> {
+  // 16.10 запрос только с visibility отвечал HTTP 404 «item not found» (card-groups-probe run 1),
+  // поэтому при переданном списке артикулов ходим по нему пачками по 1000 (лимит метода).
+  async attributesAll(pageLimit = 1000, maxPages = 0, offerIds: string[] = []): Promise<any[]> {
     const out: any[] = [];
+    if (offerIds.length) {
+      for (let i = 0; i < offerIds.length; i += 1000) {
+        const data = await this.post<any>("/v4/product/info/attributes", {
+          filter: { offer_id: offerIds.slice(i, i + 1000), visibility: "ALL" },
+          limit: 1000,
+        });
+        const items = data.result ?? data.items ?? [];
+        out.push(...(Array.isArray(items) ? items : []));
+      }
+      return out;
+    }
     let lastId = "";
     let page = 0;
     do {
@@ -330,7 +357,7 @@ export class OzonSeller {
 
   // Справочник типов начислений (~124 шт): id -> имя. Основа маппинга type_id по категориям.
   async accrualTypes(): Promise<Array<{ id: number; name: string; description: string }>> {
-    const d = await this.post<any>("/v1/finance/accrual/types", {});
+    const d = await this.post<any>("/v1/finance/accrual/types", {}, ACCRUAL_RETRY);
     const arr = d.accrual_types ?? d.result?.accrual_types ?? [];
     return arr.map((t: any) => ({ id: Number(t.id), name: String(t.name ?? ""), description: String(t.description ?? "") }));
   }
@@ -342,7 +369,8 @@ export class OzonSeller {
     for (let i = 0; i < postingNumbers.length; i += 200) {
       const batch = postingNumbers.slice(i, i + 200);
       if (!batch.length) continue;
-      const d = await this.post<any>("/v1/finance/accrual/postings", { posting_numbers: batch });
+      if (i) await pause(ACCRUAL_GAP_MS);
+      const d = await this.post<any>("/v1/finance/accrual/postings", { posting_numbers: batch }, ACCRUAL_RETRY);
       for (const p of (d.posting_accruals ?? d.result?.posting_accruals ?? [])) {
         out.push({ posting_number: String(p.posting_number ?? ""), accruals: p.accruals ?? [] });
       }
@@ -357,7 +385,8 @@ export class OzonSeller {
     let lastId: any = "";
     for (let guard = 0; guard < 500; guard++) {
       const body: any = { date }; if (lastId) body.last_id = lastId;
-      const d = await this.post<any>("/v1/finance/accrual/by-day", body);
+      if (guard) await pause(ACCRUAL_GAP_MS);
+      const d = await this.post<any>("/v1/finance/accrual/by-day", body, ACCRUAL_RETRY);
       const arr = d.accruals ?? d.result?.accruals ?? [];
       for (const a of arr) out.push(a);
       lastId = d.last_id ?? d.result?.last_id ?? "";
@@ -368,7 +397,7 @@ export class OzonSeller {
 
   // Отправления (FBO + FBS) за период с товарами и финданными: по каждому заказу - дата, статус,
   // список товаров {sku, offer, qty, price} и financial_data (если OZON отдал). Для блока «по заказам».
-  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; src: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any }>> {
+  async postings(dateFrom: string, dateTo: string): Promise<Array<{ posting_number: string; status: string; date: string; ts: string; src: string; products: Array<{ sku: string; offer: string; qty: number; price: number }>; financial_data: any }>> {
     const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
     const out: Array<any> = [];
     // src - откуда пришёл заказ: FBO (склад OZON) или FBS (склад продавца). rFBS (доставка силами
@@ -377,6 +406,8 @@ export class OzonSeller {
       posting_number: String(p.posting_number ?? ""),
       status: String(p.status ?? ""),
       date: String(p.in_process_at ?? p.created_at ?? p.shipment_date ?? "").slice(0, 10),
+      // полное время (UTC) - чтобы считать день по Москве; date оставлен как был (UTC-дата), им пользуются другие вкладки
+      ts: String(p.in_process_at ?? p.created_at ?? p.shipment_date ?? ""),
       src,
       products: (p.products ?? []).map((it: any) => ({
         sku: String(it.sku ?? ""), offer: String(it.offer_id ?? ""),

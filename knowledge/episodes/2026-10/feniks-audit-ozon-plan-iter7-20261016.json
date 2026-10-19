@@ -1,0 +1,216 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-plan-iter7-20261016",
+  "timestamp": "2026-10-16T09:35:00+03:00",
+  "deliverable_ref": "oliverjone01-dev/t1 PR #482, голова 639f6429, audit_hash 4b4e873721788cdc; дельта к go 8.4 на 28a5fec9f1e28feb (db5ede19): в хешируемых путях только knowledge/decisions.md, одна строка (c21400a9); ad6a06b2 и 639f6429 - трейсы и отчёты iter6",
+  "artifact_class": "dashboard",
+  "anchor": "8.5 timur-activation итерация 3 - наш ниже на 0.1, как в iter6: код не менялся, картинка верна на всех проверенных состояниях, тест берёт положение дуг и стрелки из атрибутов (G1b, G1n), остаются T1, B4n; W3 и Z1 теперь отложены Иваном до 29.10 записью в журнале",
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev 639f6429 = 4b4e873721788cdc (= хешу запроса); git diff --name-only db5ede19 639f6429 без traces/, knowledge/episodes/, knowledge/errors/, sessions/handoff/ = только knowledge/decisions.md; в нём 1 добавленная строка (decisions.md:6), удалённых 0; голова PR = refs/pull/482/head"
+    },
+    {
+      "id": "J1",
+      "result": "PASS",
+      "evidence": "запись 16.10 передаёт слова Ивана дословно в кавычках («1 оставляй как есть», «2 отложи этот вопрос до принятия решения по откладыванию карточек») и совпадает с брифом координатора; пункт (1) описывает код db5ede19 верно (зазор min(.7, ширина/4), жёлтая в день 1 - 1,0-1,5 ед. по g1_grid.mjs iter6), решение 15.10 не отменяет; пункт (2) - W3 и Z1 из handoff Ивану iter5. Соответствие номеров 1/2 вопросам и чтение «откладывания карточек» как решения 29.10 «оставляем / откат» - из брифа, другого источника слов Ивана в репозитории нет (git grep)"
+    },
+    {
+      "id": "J2",
+      "result": "PARTIAL",
+      "evidence": "формат журнала «дата - решение - почему»: явного «Почему» в записи нет (у соседних записей есть); причина читается из текста (решение 15.10 в силе; W3/Z1 зависят от 29.10)"
+    },
+    {
+      "id": "R1",
+      "result": "PASS",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): vitest plan-tab.test.ts на дереве db5ede19 (git archive в scratch): 83 passed (83). Весь пакет 1079/1079 автора не перепроверял (plan-tab импортирует только build-tests.ts)"
+    },
+    {
+      "id": "R1b",
+      "result": "PASS",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): build-tests.ts + smoke.ts на main 9a3a212 и db5ede19 в один день: exit 0, «ВСЕ 1 страниц прошли smoke-прогон»"
+    },
+    {
+      "id": "R2",
+      "result": "PASS",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): tsc --noEmit на db5ede19: 15 ошибок, в plan-tab 0, новых против main 0 (в iter5 было 16)"
+    },
+    {
+      "id": "R3",
+      "result": "PASS",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): страница вне блока «План» байт-в-байт с main, 891 384 символа, em dash 0"
+    },
+    {
+      "id": "U3",
+      "result": "PASS",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): jsdom на 61 сборке (фикстуры iter5): 0 ошибок клиента, 0 пустых контейнеров"
+    },
+    {
+      "id": "G2",
+      "result": "PASS",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): строго без допуска: стрелка в дуге чужого цвета 0 из 173 состояний страницы (render9.mts + g1_strict.py) и 0 из 33 177 состояний сетки (g1_grid.mjs на client.js db5ede19)"
+    },
+    {
+      "id": "G3",
+      "result": "PASS",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): Codex P2 закрыт: дуг нулевой длины 0 (сетка и страница), состояний без дуги цвета статуса 108 -> 0; день 1 жёлтая 1,0-1,5 ед.; e1_y 16.10: стрелки карточек 4,7%, магазина 3,6%, оборота 3,9%, рекламы 6,5% строго внутри жёлтых дуг, data-zone = data-st"
+    },
+    {
+      "id": "G1",
+      "result": "PARTIAL",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): g1_summary.py iter4 по букве: 5 из 173 - те же 5 ничьих моего допуска 0,8, что в iter5 (стрелка ровно между двумя дугами), строгая проба 0"
+    },
+    {
+      "id": "G5",
+      "result": "PARTIAL",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): data-zone != data-st на точных 70% и 120%: 3 из 33 177 (карточки 35/50 и 70/100, реклама 57 378/47 815), без изменений; drawnOk на таком состоянии упал бы: по data-z стрелка только в красной при жёлтом статусе"
+    },
+    {
+      "id": "M9",
+      "result": "PARTIAL",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): m9_mutants.py, 42 мутанта: убиты 20 (G1a 3 теста, G1g зазор iter5 1, G1p, V5c, G1d-G1f, S9v, S11v, V3c ...), живы 22: G1b (дуги от 100% плана периода при верных data-z0/z1), G1n (стрелка по % к плану на дату при верном data-pct), G1c (data-zone = статус, эквивалентен вне G5), и 19 старых"
+    },
+    {
+      "id": "T4",
+      "result": "PARTIAL",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): drawnOk (plan-tab.test.ts:377) читает d только для проверки нулевой длины; положение дуг - data-z0/z1 (client.js:22), стрелки - data-pct (client.js:38), а не x2/y2 линии (client.js:32). Приёмка M5 iter4: V5c, S11v, S9v убиты, W5a, S10', P11, P12 живы"
+    },
+    {
+      "id": "T1",
+      "result": "FAIL",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): priceStatus не менялся (дельта - 2 пути без него), срок 22.10"
+    },
+    {
+      "id": "W3",
+      "result": "PARTIAL",
+      "evidence": "Иван 16.10 отложил W3 и Z1 до решения 29.10 (decisions.md:6): метка в действующей записи есть; до решения страница после 29.10 мерит все 10 карточек по порогу, как в iter4"
+    },
+    {
+      "id": "B4",
+      "result": "PARTIAL",
+      "evidence": "без изменений с iter6 (код db5ede19 = голова по хешируемому коду): plan-tab.ts:536 не менялся: в ноябре текст про 15.10-31.10, срок 01.11"
+    },
+    {
+      "id": "C3",
+      "result": "PASS",
+      "evidence": "em dash 0 в дельте и в блоке; строка decisions.md:6: em dash 0, anti-slop 0"
+    },
+    {
+      "id": "C4",
+      "result": "PASS",
+      "evidence": "anti-slop-checker.sh на 14 395 символах дельты и блока - 0 попаданий, контроль срабатывает; строка decisions.md:6: em dash 0, anti-slop 0"
+    },
+    {
+      "id": "D1",
+      "result": "PASS",
+      "evidence": "самооценок X/10 в дельте 0"
+    }
+  ],
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 1,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 2,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 1,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.5,
+    "actionability": 8.5,
+    "insight": 8.0,
+    "brand_fit": 9.5,
+    "risk_awareness": 7.5
+  },
+  "weighted_total": 8.4,
+  "verdict": "go",
+  "primary_gap": "G1t остаток: drawnOk берёт положение дуг из data-z0/z1 и стрелки из data-pct, а не из геометрии SVG - картинка iter4 (G1b) и стрелка не на своём месте (G1n) проходят 83/83; сама картинка на всех проверенных состояниях верна",
+  "gaps": [
+    "G1t остаток (с T4, до 22.10): plan-tab.test.ts:377 drawnOk читает из d только нулевую длину, положение дуг - data-z0/z1 (client.js:22), стрелки - data-pct (client.js:38) вместо x2/y2 линии (client.js:32). Живы G1b и G1n. Приёмка: угол из d и из x2/y2 (как pctOf в render9.mts), G1b и G1n убиты",
+    "T4/M5 (до 22.10): живы 22 из 42 мутантов; из приёмки M5 iter4 живы W5a, S10', P11, P12",
+    "T1 (до 22.10): priceStatus по дате сборки, ложные «не снижена» утром сборки",
+    "W3/Z1 (29.10): отложены Иваном до решения по карточкам (decisions.md:6); до него страница после 29.10 мерит все 10 карточек по порогу, Z1 - 8 артикулов с датой 22.10",
+    "B4n (до 01.11): plan-tab.ts:536 зашивает «период 15.10-31.10», «справочно 01-14.10», «цели октября»",
+    "G5: client.js:36-37 data-zone на точных 70% и 120% (3 из 33 177) идёт другим путём плавающей точки, чем статус; drawnOk на таком состоянии упал бы",
+    "S1: ozon-plan-15-10.yaml:7 approved_at без отметки о зонах от метки",
+    "Остатки: F1 (мигание у 100%), Z1 (условная дата 22.10), iter4 #479 (B1d, V3b, P1)"
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "G1t тест берёт положение из атрибутов",
+      "evidence": "m9_mutants.py: G1b 83 passed, G1n 83 passed; plan-tab.test.ts:377-391; client.js:22, :32, :38",
+      "checkpoint": "accuracy_2",
+      "weight": -0.15
+    },
+    {
+      "gap": "T4/M5 остаток",
+      "evidence": "m9_mutants.py: живы P11 P12 S1' S10' V4c W5h V8s V10s W5a W5b W5c P2 P5 P6 P7 P9 S3 S7 S12",
+      "checkpoint": "accuracy_2",
+      "weight": -0.25
+    },
+    {
+      "gap": "T1 статус цены по дате сборки",
+      "evidence": "priceStatus вне дельты; t1_timeline.sh (iter2)",
+      "checkpoint": "accuracy_3",
+      "weight": -0.15
+    },
+    {
+      "gap": "W3/Z1 отложены Иваном до 29.10",
+      "evidence": "decisions.md:6 (Иван 16.10, «2 отложи этот вопрос ...»); поведение страницы после 29.10 - iter4 render8 fx_nov",
+      "checkpoint": "risk_21",
+      "weight": -0.15
+    },
+    {
+      "gap": "B4n ноябрь в «Как считаем»",
+      "evidence": "plan-tab.ts:536; render9.mts fx_nov 04.11 (iter5)",
+      "checkpoint": "brand_20",
+      "weight": -0.1
+    },
+    {
+      "gap": "G5 атрибут на точной границе",
+      "evidence": "g1_grid.mjs на db5ede19: data-zone != data-st 3",
+      "checkpoint": "accuracy_2",
+      "weight": -0.05
+    },
+    {
+      "gap": "S1 спека",
+      "evidence": "ozon-plan-15-10.yaml:7, :21",
+      "checkpoint": "accuracy_3",
+      "weight": -0.05
+    },
+    {
+      "gap": "F1, Z1, остатки iter4 #479",
+      "evidence": "f1_period.py (iter4), plan v3 when_note, ledger iter4 #479",
+      "checkpoint": "risk_24",
+      "weight": -0.2
+    }
+  ],
+  "sources_of_truth": [
+    "knowledge/decisions.md:6 (Иван 16.10)",
+    "knowledge/episodes/2026-10/feniks-audit-ozon-plan-iter5-20261015.md (G3, G1t, R2 и их приёмка)",
+    "knowledge/decisions.md (15.10: «Дуги от плана на дату»)",
+    "knowledge/semantic/metrics/ozon-plan-15-10.yaml v7",
+    "analytics-mvp/data/plan_2026-10-15_v3.json"
+  ],
+  "confidence": 0.8
+}

@@ -1,0 +1,139 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-485-iter5-20261016",
+  "timestamp": "2026-10-16T09:27:17+00:00",
+  "deliverable_ref": "https://github.com/oliverjone01-dev/t1/pull/485 @ 6dfa7b2da30468be38aa3516a36c9304129c6d49 (продукт = b246e4c8574d62c6ae81f786b2a1799b0e8b0ae5), audit hash e4bc0cf255f5a6db (audit_hash.py --rev HEAD = хеш из запроса = хеш b246e4c; git diff --name-only b246e4c 6dfa7b2: 5 путей, все в knowledge/episodes/ и traces/; охват полный: 8 путей ветки без traces/, knowledge/episodes/, knowledge/errors/, sessions/handoff/ проверены в iter3-iter5); итерация 5 (поле iteration убрано: схема допускает максимум 3)",
+  "artifact_class": "dashboard",
+  "audience": "внутренний: автор PR, координатор, Иван",
+  "anchor": "8.5 timur-activation iter3 (go) - наш выше на 0.3: каждая цифра продукта воспроизведена вне артефакта (P1 на b246e4c: 0 расхождений, v4 из скрипта байт в байт; W1 на yml, который с 5716b67 не менялся), а зависимость от источника цен (N1) названа и вынесена решением Ивана. Не выше 9.0: инсайт 6.0 (смешение рычагов автор не оценил), K3 открыт, одно утверждение тела PR сильнее данных (GGT-48-2-2)",
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev HEAD (6dfa7b2) = e4bc0cf255f5a6db = хеш из запроса = хеш b246e4c (iter4); git diff --name-only b246e4c HEAD: feniks-audit iter4 md, 2 файла проб iter4, selfcheck iter5, traces/2026-10-16/agents.jsonl - продукт не менялся"
+    },
+    {
+      "id": "P1",
+      "result": "PASS",
+      "evidence": "iter4, probe-price-v4-1410.py b246e4c (файлы из коммита через git show): 6 строк 16.10 от цены 14.10, расхождений 0 (79282 -> 71350, 80900 -> 72810 x2, 94900 -> 85410 x3); 23 прочие строки = v3; 29 уникальных; add_price_1610.py@b246e4c на данных@b246e4c даёт v4 байт в байт. Содержимое продукта с тех пор то же (H1)"
+    },
+    {
+      "id": "W1",
+      "result": "PASS",
+      "evidence": "iter3, probe-final-step.py на 5716b67: S3 exit 0 без сообщения, S2/S5 exit 1 с сообщением; orders-backfill.yml с 5716b67 не менялся (git diff --quiet 37ff0b8 b246e4c -- .github в iter4, b246e4c..HEAD без продукта)"
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "тело PR строка 30 «-3,1 / -1,0 / -5,0» = P1 iter4 (76855/79282, 80091/80900, 90155/94900); строка 32 «14 с 15.10 · 6 с 16.10 · 9 с 22.10» = priceWhen (код не менялся с iter3); таблица PR «79 282 -> 71 350» = v4"
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "поля строк v4 без прибыли и маржи (iter3); продукт после iter4 не менялся (H1)"
+    },
+    {
+      "id": "T1",
+      "result": "PASS",
+      "evidence": "plan-tab.test.ts 87/87 на b246e4c (iter4); полный vitest 1086/1087 на 37ff0b8 (iter3), красный только card-kin; em dash: тело PR 0, self-check 0, дельта 37ff0b8..b246e4c 0"
+    },
+    {
+      "id": "S1",
+      "result": "PASS",
+      "evidence": "knowledge/episodes/2026-10/selfcheck-ozon-485-iter5-20261016.md: 25 строк accuracy_1..risk_25, по каждой да/нет/частично и причина, своей оценки автор не ставит. Нюанс: строка 22 подписана «risk_22_p» и отвечает про вероятность 429, а чекпоинт - P9 hard rules"
+    },
+    {
+      "id": "C1",
+      "result": "PARTIAL",
+      "evidence": "тело PR строка 30: «Это не снижение Ивана по плану» сказано про все 3 строки «частично». Plan v3: GGT-48-2-2 when 15.10 (79282 -> 71350), GGT-48-5-1 when 22.10, GGT-46-3-3 в v3 нет. Сдвиг 2-2 на -3.1 проц. 15.10 совпал с датой плана, так что «не по плану» для 2-2 не доказано; для 5-1 и 46-3-3 подтверждено"
+    }
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 1,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 2,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9.0,
+    "actionability": 10.0,
+    "insight": 6.0,
+    "brand_fit": 10.0,
+    "risk_awareness": 9.0
+  },
+  "weighted_total": 8.8,
+  "verdict": "go",
+  "primary_gap": "Тело PR, строка 30: «Это не снижение Ивана по плану» сказано про все три строки «частично». Но GGT-48-2-2 стоял в плане v3 именно на 15.10 (79282 -> 71350), и его -3.1 проц. 15.10 может быть частичным исполнением плана. Для 5-1 (план 22.10) и 46-3-3 (вне плана) «не по плану» подтверждено. Причина сдвига 15.10 не выяснена (N1, Иван вынес отдельно).",
+  "gaps": [
+    "C1 (accuracy_3, -1): строка 30 тела PR утверждает «не снижение Ивана по плану» и для GGT-48-2-2, у которого в v3 срок 15.10, это не доказано. Моя формулировка iter4 «Иван этого не делал» тоже была сильнее данных: подтверждено только «не плановое снижение» у 5-1 и 46-3-3. Если 15.10 был, например, выход из акций, это действие продавца [ГИПОТЕЗА]. Правка в теле PR, хеш не меняется: «у 5-1 и 46-3-3 сдвиг 15.10 не плановый (срок 22.10 / вне плана); у 2-2 срок плана был 15.10, частичное снижение или сдвиг источника - не выяснено (N1)».",
+    "K3 (risk_21, -1, из iter2): в knowledge/errors/registry.jsonl нет записи по catch continue by-day (acq-sku-daily.ts:56, pnl-accrual-daily.ts:93), по плану после мержа.",
+    "N3 (insight_12, -1): смешение рычагов цены и рекламы в KONUX и TRUBIS L120 названо, величину автор не оценил (self-check 12 «частично», ссылка на мою оценку +0.3-0.8 заказа [ГИПОТЕЗА]).",
+    "Нюансы (0): строка 22 self-check подписана «risk_22_p» и отвечает про вероятность 429, а чекпоинт - P9 hard rules (нарушений нет: бюджетов, ROMI и цифр без источника нет); «~4,5 мин» и «17-21 ч» в комментарии yml без метки, в PR метка есть; site_to_seller одинаковый у разных артикулов (справочно, страница не читает).",
+    "Закрыто после iter3: N2 (Иван после показа рублей выбрал базу 14.10, цели 2-2 и 5-1 совпали с v3); N4 (docstring); N6 (у всех 29 строк одна база 14.10); N1 назван в PR и docstring и вынесен Иваном в отдельную задачу; self-check по 25 пунктам приложен."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Утверждение «не снижение Ивана по плану» распространено на GGT-48-2-2 со сроком плана 15.10",
+      "evidence": "gh api repos/oliverjone01-dev/t1/pulls/485 (тело, строка 30); plan_2026-10-15_v3.json: GGT-48-2-2-100-180 when 15.10 79282 -> 71350, GGT-48-5-1-100-180 when 22.10, GGT-46-3-3-100 нет; prices_daily 2-2: 79282 (14.10) -> 76855 (15.10)",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -1
+    },
+    {
+      "gap": "K3: молчаливый пропуск дней by-day без записи в реестре",
+      "evidence": "grep -c «acq-sku-daily|pnl-accrual-daily|catch continue» knowledge/errors/registry.jsonl = 0 (iter3); self-check 21 «K3 вне PR»",
+      "checkpoint": "risk_21_downside",
+      "weight": -1
+    },
+    {
+      "gap": "Смешение рычагов в двух карточках не оценено автором",
+      "evidence": "selfcheck-ozon-485-iter5-20261016.md строка 12; тело PR строка 31 без величины",
+      "checkpoint": "insight_12_second_order",
+      "weight": -1
+    },
+    {
+      "gap": "Нюансы self-check 22, метки в yml, site_to_seller (вес 0)",
+      "evidence": "selfcheck строка 22; orders-backfill.yml:68-70; probe-prices-regime.py (iter3) gap_daily 13-16.10",
+      "checkpoint": "accuracy_1_figures_tagged",
+      "weight": 0
+    }
+  ],
+  "rework_tz": "Обязательной доработки нет (go). До мержа, хеш не меняется: поправить строку 30 тела PR (C1): у 5-1 и 46-3-3 сдвиг 15.10 не плановый, у 2-2 срок плана был 15.10, частичное снижение или сдвиг источника не выяснено (N1). После мержа: K3 и N1 записями в knowledge/errors/registry.jsonl, запись про v4 (база 14.10) в decisions.md, N1 отдельной задачей (решение Ивана).",
+  "confidence": 0.85,
+  "p9_triggers_fired": [],
+  "escalate_to": "нет; мерж по слову Ивана «мерж» (дано); HITL по цене: решает и выполняет Иван в кабинете",
+  "sources_of_truth": [
+    "git log 37ff0b8..6dfa7b2; git diff --name-only b246e4c 6dfa7b2; audit_hash.py --rev HEAD и --rev b246e4c",
+    "knowledge/episodes/2026-10/feniks-probes-ozon-485-iter4/probe-price-v4-1410.py (P1 на b246e4c), feniks-probes-ozon-485-iter3/probe-final-step.py (W1), probe-prices-regime.py (N1)",
+    "knowledge/episodes/2026-10/selfcheck-ozon-485-iter5-20261016.md (25 пунктов)",
+    "gh api repos/oliverjone01-dev/t1/pulls/485 (head 6dfa7b2d, тело PR)",
+    "analytics-mvp/data/plan_2026-10-15_v3.json и v4.json, prices_daily.ndjson @b246e4c",
+    "отчёты iter2-iter4: knowledge/episodes/2026-10/feniks-audit-ozon-accrual-retry-iter2-20261016.md, feniks-audit-ozon-485-iter3-20261016.md, feniks-audit-ozon-485-iter4-20261016.md; knowledge/feniks/calibration-anchors.md"
+  ]
+}

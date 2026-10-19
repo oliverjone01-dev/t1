@@ -1,0 +1,16 @@
+== base d20a012
+дни без цены до акций: ['2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18', '2026-10-19']
+prices_daily: 2356 строк -> пусто; coinv_daily: 21 строк -> no_site; gap_daily: 14 строк -> no_site
+   coinv_daily: identical to HEAD
+   gap_daily: identical to HEAD
+   prices_daily: identical to HEAD
+   second run:
+prices_daily: 0 строк -> пусто; coinv_daily: 0 строк -> no_site; gap_daily: 0 строк -> no_site
+== base 52476fc
+дни без цены до акций: ['2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18', '2026-10-19']
+prices_daily: 2356 строк -> пусто; coinv_daily: 21 строк -> no_site; gap_daily: 14 строк -> no_site
+   coinv_daily: identical to HEAD
+   gap_daily: identical to HEAD
+   prices_daily: identical to HEAD
+   second run:
+prices_daily: 0 строк -> пусто; coinv_daily: 0 строк -> no_site; gap_daily: 0 строк -> no_site

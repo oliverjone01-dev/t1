@@ -1,0 +1,191 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-accrual-retry-pr485-iter2-20261016",
+  "timestamp": "2026-10-16T08:40:36+00:00",
+  "deliverable_ref": "https://github.com/oliverjone01-dev/t1/pull/485 @ 6426b50fb992c159180c384b91056c0cdc12be01, audit hash 6b2954f516d65c2d (audit_hash.py --rev 6426b50; в запросе iter2 хеш не передан, сверять не с чем; охват полный: git diff --name-only 3bf4bd14 6426b50 без traces/, knowledge/episodes/, knowledge/errors/, sessions/handoff/ = 3 пути: .github/workflows/orders-backfill.yml, analytics-mvp/src/connector/ozon-seller.ts, analytics-mvp/src/connector/ozon-seller.retry.test.ts)",
+  "artifact_class": "dashboard",
+  "audience": "внутренний: автор PR, координатор, Иван",
+  "anchor": "8.1 dialogs-registry после доработки (go) - наш ниже на 0.15: все 5 пунктов Rework TZ закрыты и проверены живьём (O1-O6 на реальном OzonSeller, W1 S2 на двух коммитах, исходник раннера GitHub), но доработка внесла регрессию: ложное «заказы закоммичены» в сценарии run 55 (W1 S3), а в dialogs-registry регресс-проба дала ноль находок; выше 7.9 timur-activation iter2 (return): там live-атака обошла гейт и мутация ушла в API, здесь регрессия только в тексте аннотации, данные не теряются и цвет прогона верный",
+  "probes": [
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "цифры PR и комментария вне артефакта: «до 75 с» = 60000 + jitter < 15000 (retry.ts:43-45); «4,1-4,9 мин» = R8 iter1 (246.6-296.0 с на 2000 прогонов), аналитически 242.0-302.5 с = 4.03-5.04 мин; «+5,4 с на вызов» = B3 (3794 постинга, 19 пачек, 18 x 300 мс); «+16 с» = 3 вызывающих x 5.4 с. Нюанс: «норма 24-427 с» против gh api 9-427 с (см. H1)"
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "iter1: orders_daily.ndjson 3794 строк = 3794 ключа order; путь данных в iter2 не менялся (дифф workflow: только timeout-minutes и строки 171-172)"
+    },
+    {
+      "id": "B6",
+      "result": "PASS",
+      "evidence": "gh api deploy-pages runs: 3238 head 3da365d0 workflow_dispatch success 08:13:47Z-08:17:44Z; тело PR обновлено («сайт пересобран (deploy-pages 3238, 08:17 UTC)»)"
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "список файлов в шаге «Коммит данных в ветку» не изменился (git diff 54569ad 6426b50 -- orders-backfill.yml: только timeout-minutes и финальная проверка); строки лога без ключа: O1-O6 key_leak=false при apiKey SECRET-KEY-PROBE-7f3a"
+    },
+    {
+      "id": "O1",
+      "result": "PASS",
+      "evidence": "probe-onretry.mts: accrualTypes 429 x8, затем 200 - 8 warn «OZON /v1/finance/accrual/types: HTTP 429, повтор 1/8 через 2.5 с» ... «повтор 8/8 через 64.1 с», 273.4 с пауз, результат ok"
+    },
+    {
+      "id": "O2",
+      "result": "PASS",
+      "evidence": "accrualByDay 429 навсегда - 8 warn до «повтор 8/8 через 70.7 с», затем HttpError 429, 269.5 с; финальный отказ onRetry не пишет (retry.ts:41 бросает до :46), в acq/pnlacc его глотает catch continue - в логе последняя строка 8/8 без продолжения"
+    },
+    {
+      "id": "O3",
+      "result": "PASS",
+      "evidence": "прочий метод (post без retry) 429 x2 - «повтор 1/5», «повтор 2/5», 3.2 с: лог для всех методов, N=5 совпадает с дефолтом retry.ts:29"
+    },
+    {
+      "id": "O4",
+      "result": "PASS",
+      "evidence": "fetch отклонён TypeError 1 раз - «OZON /v1/finance/accrual/types: сеть, повтор 1/8 через 2.2 с»"
+    },
+    {
+      "id": "O5",
+      "result": "PARTIAL",
+      "evidence": "200 с битым JSON (SyntaxError) 1 раз - повтор с меткой «сеть»: defaultRetryable (retry.ts:23) повторяет любую ошибку без статуса, метка неточная"
+    },
+    {
+      "id": "O6",
+      "result": "PASS",
+      "evidence": "прочий метод 429 навсегда - 5 warn до «повтор 5/5 через 17.9 с», 36.0 с, HttpError: старая политика прочих методов не тронута"
+    },
+    {
+      "id": "W1",
+      "result": "FAIL",
+      "evidence": "probe-final-step.py (подстановка ${{ steps.X.outcome }} в run финального шага, как делает GitHub): 6426b50 S3 «упал Сбор по заказам, шаги ниже skipped» exit=1 и «::error::начисления: по SKU skipped, эквайринг skipped, канальный P&L skipped - заказы закоммичены, перезапусти workflow», хотя шаг коммита без if (default success()) пропущен; 54569ad S3 exit=0 без сообщения. S2 (acq failure по таймауту) exit=1 на обоих коммитах"
+    },
+    {
+      "id": "G1",
+      "result": "PASS",
+      "evidence": "WebFetch raw actions/runner main: StepsRunner.cs RunStepAsync - таймаут шага даёт «step.ExecutionContext.Result = TaskResult.Failed», Canceled только при отмене job (тогда if: !cancelled() финального шага ложно); ExecutionContext.cs ApplyContinueOnError - «Outcome = Result; Result = TaskResult.Succeeded». Итог: outcome=failure, следующие шаги и коммит идут, K1 iter1 закрыт; гипотеза «может прийти cancelled» опровергнута"
+    },
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "gh api runs/{id}/jobs, 6 зелёных прогонов (47, 48, 50, 51, 53, 56): pnlsku 9-427 с, acq 45-58 с, pnlacc 56-175 с, «Сбор по заказам» 13-83 с; максимум 427 с = 0.24 от 1800 с. Худший законный pnlsku при шторме: 3 x (~50 с + до 302.5 с) + 180 с = около 1238 с < 1800 с [расчёт]. Job: «Сбор по заказам» без таймаута, патология 19 пачек x 302.5 с = около 96 мин + 3 x 30 мин = около 186 мин < 360 мин"
+    },
+    {
+      "id": "T1",
+      "result": "PASS",
+      "evidence": "npx vitest run: 1082/1083, 65 файлов, красный только card-kin.test.ts «здоровье карты карточек» (красный и в iter1 на 54569ad); actionlint 1.7.7: sha256 al.tgz 023070a2...0757 = официальный actionlint_1.7.7_checksums.txt, бинарь = член архива (9f7dedb4...), exit 0 по orders-backfill.yml"
+    }
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 1,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 9.0,
+    "insight": 5.0,
+    "brand_fit": 10.0,
+    "risk_awareness": 8.0
+  },
+  "weighted_total": 7.95,
+  "verdict": "go",
+  "primary_gap": "Регрессия iter2: финальная проверка «!= success» (orders-backfill.yml:172) в сценарии run 55 (упал «Сбор по заказам», шаги начислений skipped, коммит пропущен) печатает «::error::... skipped ... - заказы закоммичены» - ложь про коммит в том самом сбое, ради которого PR. Расширение условия не нужно: по исходнику раннера таймаут шага даёт failure, его ловило и старое «= failure».",
+  "gaps": [
+    "K1 (risk_23, -1): orders-backfill.yml:171-172 «!= success» - при упавшем «Сбор по заказам» (как run 55) шаги pnlsku/acq/pnlacc skipped, коммит пропущен, а финальный шаг (if: !cancelled()) пишет «заказы закоммичены» (W1 S3; на 54569ad exit 0 без сообщения). Таймаут шага по раннеру = TaskResult.Failed, outcome failure (G1), cancelled при живом финальном шаге не бывает. Закрыть: вернуть «= failure» и поправить комментарий 171, либо id на шаге коммита и фраза «заказы закоммичены» только при steps.<id>.outcome == success.",
+    "K2 (actionability_9, -1): правило приёмки «повторы в логе есть и шаг зелёный - правка сработала» засчитывает правке штормы, которые пережила бы старая политика. Старая: 5 повторов, окно 31-38.75 с (retry.ts:29-45, база 1000). Новая делает попытки на 2, 6, 14, 30, 62 с (без джиттера): строки «повтор 1/8..5/8» со следующим успехом возможны и при шторме короче 38.75 с. Различает только «повтор 6/8» и выше со следующим успехом: попытка 6 идёт на 62-77.5 с > 38.75 с.",
+    "K3 (risk_21, -1): by-day при шторме короче 30 мин по-прежнему молча теряет дни (catch continue acq-sku-daily.ts:56, pnl-accrual-daily.ts:93), шаг зелёный; в логе после O2 видна последняя «повтор 8/8» без продолжения, явной строки «день пропущен» нет. В PR «отдельная запись в реестр ошибок», но registry.jsonl (80 строк) без совпадений acq-sku-daily/catch continue; след только в sessions/handoff v15:72.",
+    "K4 (accuracy_1, -1): без меток в PR и комментарии yml: «норма 24-427 с» (gh api 6 зелёных прогонов: 9-427 с; 24 с - моя цифра из Rework TZ iter1, ошибка моя), «~4,5 мин на день, 252 дня = 17-21 ч», «57 пачек за прогон вместо 19».",
+    "K5 (accuracy_3 + insight_12, -1 каждый): комментарий orders-backfill.yml:171 утверждает «шаг, оборванный по timeout-minutes, может прийти не failure, а cancelled» без метки в коде, исходник раннера это опровергает (G1); второй порядок собственной правки (skipped в W1 S3) не разобран.",
+    "K6 (0, нюансы): «4,1-4,9 мин» - эмпирика R8, жёсткие границы 4.03-5.04 мин; «вместо ~31 с» - база без джиттера (31-38.75 с); строка ozon-seller.ts:9 «429 по 2-4 раза подряд: 5 повторов не хватало» противоречит арифметике (5 повторов переживают до 5 отказов подряд, сбой требует 6+), было с 54569ad, мой пропуск в iter1; метка «сеть» на битом JSON (O5); «retry?.retries ?? 5» дублирует дефолт retry.ts:29."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Ложное «заказы закоммичены» при skipped (регрессия iter2)",
+      "evidence": "python3 -I knowledge/episodes/2026-10/feniks-probes-ozon-accrual-retry-iter2/probe-final-step.py: 6426b50 S3 exit=1 с сообщением, 54569ad S3 exit=0; шаг коммита if=None (orders-backfill.yml:120)",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    },
+    {
+      "gap": "Приёмка засчитывает правке штормы короче окна старой политики",
+      "evidence": "расчёт по retry.ts:29-45: старая Σ(1,2,4,8,16) = 31 с + джиттер < 7.75 с; новая кумулятив 2, 6, 14, 30, 62 с; различает только «повтор 6/8+» со следующим успехом",
+      "checkpoint": "actionability_9_metric_concrete",
+      "weight": -1
+    },
+    {
+      "gap": "Молчаливый пропуск дней by-day при шторме < 30 мин, записи в реестре нет",
+      "evidence": "acq-sku-daily.ts:56 и pnl-accrual-daily.ts:93 «catch { continue; }»; grep acq-sku-daily|catch continue knowledge/errors/registry.jsonl = 0 строк; sessions/handoff/2026-10-16-ozon-testy-plan-tab-v15.md:72",
+      "checkpoint": "risk_21_downside",
+      "weight": -1
+    },
+    {
+      "gap": "Цифры без меток, «24 с» неверно",
+      "evidence": "gh api repos/oliverjone01-dev/t1/actions/runs/{38870370394,38731630726,38544918703,38395747444,38134125641,38046276704}/jobs: pnlsku 427/24/52/9/11/13 с; тело PR раздел «Что»",
+      "checkpoint": "accuracy_1_figures_tagged",
+      "weight": -1
+    },
+    {
+      "gap": "Ложная посылка про cancelled в коде; второй порядок своей правки не разобран",
+      "evidence": "WebFetch actions/runner StepsRunner.cs (Result = TaskResult.Failed при таймауте) и ExecutionContext.cs ApplyContinueOnError (Outcome = Result); orders-backfill.yml:171",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -1
+    },
+    {
+      "gap": "Второй порядок собственной правки «!= success» не разобран",
+      "evidence": "W1 S3 (probe-final-step.py); тело PR раздел «Что»: про skipped ни строки",
+      "checkpoint": "insight_12_second_order",
+      "weight": -1
+    },
+    {
+      "gap": "Нюансы точности (вес 0)",
+      "evidence": "retry.ts:43-45 (Σ backoff 242 с, Σ max jitter < 60.5 с); ozon-seller.ts:9; O5; retry.ts:29",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": 0
+    }
+  ],
+  "rework_tz": "Обязательной доработки нет (go). Рекомендую до мержа, одна правка: K1 - вернуть в orders-backfill.yml:172 «= failure» (по раннеру таймаут = failure) и поправить комментарий 171, либо дать шагу коммита id и печатать «заказы закоммичены» только при его success. Правка меняет audit hash 6b2954f516d65c2d: нужен короткий повтор (W1 на новом коммите) или подтверждение Ивана в хуке К11. В тело PR (хеш не меняет): K2 - «правка сработала» только при строке «повтор 6/8» и выше по accrual со следующим успехом; K4 - метки на «норма 9-427 с [ДАННЫЕ: gh api jobs]» и «17-21 ч [расчёт: 252 x 4,1-4,9 мин]». После мержа: K3 - запись в knowledge/errors/registry.jsonl по catch continue by-day (ретро data-guard).",
+  "iteration": 2,
+  "confidence": 0.85,
+  "p9_triggers_fired": [],
+  "escalate_to": "нет; мерж только по слову Ивана «мерж» (HITL)",
+  "sources_of_truth": [
+    "git diff 54569ad 6426b50 (3 пути продукта); git diff --name-only 3bf4bd14 6426b50",
+    "analytics-mvp/src/util/retry.ts:21-50, analytics-mvp/src/connector/ozon-seller.ts:104-122 @6426b50",
+    "knowledge/episodes/2026-10/feniks-probes-ozon-accrual-retry-iter2/probe-onretry.mts (O1-O6) и probe-final-step.py (W1)",
+    "raw.githubusercontent.com/actions/runner/main src/Runner.Worker/StepsRunner.cs и ExecutionContext.cs (WebFetch)",
+    "gh api actions/workflows/{orders-backfill,deploy-pages}.yml/runs и runs/{id}/jobs",
+    "gh api pulls/485 (тело PR, head 6426b50f)",
+    "npx vitest run (1082/1083); actionlint 1.7.7 с проверкой sha256 по официальным checksums",
+    "knowledge/feniks/eval-checklist.md, calibration-anchors.md, red-team-probes.md; iter1 knowledge/episodes/2026-10/feniks-audit-ozon-accrual-retry-20261016.md"
+  ]
+}

@@ -1,0 +1,241 @@
+{
+ "agent": "feniks",
+ "skill": "phoenix-eval",
+ "task_id": "feniks-ym-ozon-gate-resnap-20261015-iter2",
+ "timestamp": "2026-10-16T06:40:45+00:00",
+ "deliverable_ref": "https://github.com/oliverjone01-dev/t1/pull/483 @ bec7a87 (claude/ym-ozon-gate-resnap): .github/workflows/ym-snapshots.yml, analytics-mvp/src/scripts/ym/validate-facts.test.ts, registry E088; audit hash 55caf6912d5fb0bd",
+ "iteration": 2,
+ "artifact_class": "gate",
+ "audience": "Иван (мерж по его слову); автор PR #483 (сессия Маркета)",
+ "anchor": "7.9 timur-activation итерация 2 - наш артефакт ниже на 0.1 по сумме, но выше по классу: там live-атака провела мутацию через гейт (FAIL A1/A2, return по правилу 9), здесь обхода поведения гейта нет ни в одном из 18 сценариев харнесса и 4 проб сабшелла, поэтому go. Сумму держат вспомогательные слои: тест G4 обманывается 7 из 12 мутантов и не запускается на PR только с yml, три утверждения вокруг фикса неточны. До 8.5 той же серии (итерация 3, go) не хватает 0.7: там защита эшелонирована (хук, флаг P0, whitelist), здесь второй эшелон слабый",
+ "comprehension_gate": {
+  "applies": false,
+  "passed": true,
+  "defects": []
+ },
+ "checkpoints": {
+  "accuracy_1_figures_tagged": 1,
+  "accuracy_2_sources_verifiable": 2,
+  "accuracy_3_no_conflict_with_rag": 1,
+  "accuracy_4_glossary_terminology": 2,
+  "accuracy_5_brand_names_correct": 2,
+  "actionability_6_owner_assigned": 2,
+  "actionability_7_deadline_buffer": 1,
+  "actionability_8_resources_listed": 2,
+  "actionability_9_metric_concrete": 1,
+  "actionability_10_milestone": 2,
+  "insight_11_nontrivial": 2,
+  "insight_12_second_order": 1,
+  "insight_13_alternatives_analyzed": 2,
+  "insight_14_anti_median": 2,
+  "insight_15_cross_domain": 0,
+  "brand_16_voice": 2,
+  "brand_17_anti_slop": 2,
+  "brand_18_no_em_dash": 2,
+  "brand_19_output_routing": 1,
+  "brand_20_tone_audience": 2,
+  "risk_21_downside": 1,
+  "risk_22_p9_hard_rules": 2,
+  "risk_23_crisis_scenarios": 1,
+  "risk_24_dependencies": 1,
+  "risk_25_reversibility": 2
+ },
+ "scores": {
+  "accuracy": 8.0,
+  "actionability": 8.0,
+  "insight": 7.0,
+  "brand_fit": 9.0,
+  "risk_awareness": 7.0
+ },
+ "weighted_total": 7.8,
+ "verdict": "go",
+ "primary_gap": "Второй эшелон (структурный тест G4) слабее заявленного: 7 из 12 мутантов yml зелёные, 6 из них возвращают ложное падение E088, а на PR, меняющем только ym-snapshots.yml, тест не запускается (analytics-tests.yml:12-20). Поведение самого фикса верно во всех 18 сценариях харнесса на настоящем YAML.",
+ "gaps": [
+  "N1 (actionability_9, до следующей правки шага): структурный тест validate-facts.test.ts:240-264 обманывается 7 из 12 мутантов yml (остаётся зелёным): закомментированный пересъём M2, echo с '>' в тексте строки M3b, пересъём после done M4 и после `git diff --staged --quiet && exit 0` M5, без `cd analytics-mvp` M6, `>>` вместо `>` M7, `git pull --rebase` в шаге до гейта M8. Харнесс на тех же мутантах: 6 из 7 возвращают ложное падение E088 (M6 - на каждом прогоне с reset, даже при чужом коммите в README). Причины: test:243 ищет только литерал `git reset --hard`, граница блока test:255 не видит exit 0 и done, test:257-259 матчит комментарии и текст строк, путь и рабочая папка не сверяются",
+  "N2 (risk_24): страховка не срабатывает на той правке, от которой страхует. analytics-tests.yml:12-20 запускает vitest только при изменении analytics-mvp/** или самого analytics-tests.yml; PR, меняющий только .github/workflows/ym-snapshots.yml, тест не прогонит, красный всплывёт в следующем чужом PR. То же у тестов --abs (validate-facts.test.ts:213-231). На голове PR CI не шёл: bec7a87 [skip ci], check-runs у 560d287, 0a1007f, bec7a87 пусты, прогонов analytics-tests по ветке 0; 31 зелёный тест подтверждён только локально (автор и мой прогон)",
+  "N3 (risk_21): комментарий yml:146-147 «гейт ниже упадёт сам на неполном слепке и покажет, с какого дерева он снят» неверен. В resnap_fail гейт пишет только «public.md5: no properly formatted checksum lines found», хеша дерева нет ни в гейте, ни в ::warning:: (yml:151); при сбое cd или записи слепок не неполный, а старый, и гейт сравнит с коммитом запуска. Приёмка G3 «гейт падает с сообщением о сбое пересъёма» выполнена частично: причина видна только аннотацией шага промежуточного коммита",
+  "N4 (risk_21, insight_12): self-check, чекпоинт 21 утверждает остаточное окно «OZON-коммит между пересъёмом и гейтом - гейт упадёт как раньше». Такого окна нет: между промежуточным коммитом и гейтом дерево не меняется (git-операции yml только 136/138 и 301/303 после гейта, в npm-скриптах ym:* git нет), late_foreign PASS на bec7a87. Ошибка в безопасную сторону, но она приучает списывать настоящий красный гейт на «гонку»",
+  "N5 (accuracy_3, brand_19, до мержа): заголовок PR #483 «... на свежий main (E078)», в теле «Реестр ошибок E078», доказательство в теле - только макет (нет G3, теста, E088). Мержи в этом репо идут squash с заголовком PR в теме коммита main (#481 -> 9a3a212), так E078 попадёт в историю main. Довод «опубликованы» относится к коммитам; заголовок и тело PR редактируются, хеш аудита это не меняет",
+  "N6 (accuracy_1): E088 root_cause и тело PR: «С 15.10 OZON коммитит в main несколько раз в день» без метки. git log по analytics-mvp/data: 2, 3, 2, 4, 3 коммита за 10-14.10 и 7 за 15.10, то есть несколько раз в день было и раньше. Расписание мака «08:20/08:50 и 21:20/21:50 МСК» с наблюдаемыми коммитами «Реакция ... (авто, мак)» в 20:50 15.10 и 07:50 16.10 МСК не совпало [НЕ ПРОВЕРЕНО: источник расписания не указан]"
+ ],
+ "rework_tz": "",
+ "confidence": 0.86,
+ "escalate_to": "Иван: (1) мерж по его слову; до мержа поправить заголовок и тело PR (N5), хеш аудита это не меняет. (2) Отдельным PR решить, расширять ли paths analytics-tests.yml на .github/workflows/ym-snapshots.yml и переводить ли харнесс в CI (N1, N2). (3) G5 (гейт через git status) по-прежнему его решение.",
+ "probes": [
+  {
+   "id": "A1",
+   "result": "N/A",
+   "evidence": "approval-файлов Protocol 6 в артефакте нет"
+  },
+  {
+   "id": "A2",
+   "result": "N/A",
+   "evidence": "хука записи нет, посредника обходить нечем"
+  },
+  {
+   "id": "A3",
+   "result": "PASS",
+   "evidence": "в добавленных yml:148-151 переменных окружения нет (только $(git rev-parse) и $(wc -l)); путь /tmp/ozon-before зашит, как в yml:89-91 и 274-275"
+  },
+  {
+   "id": "A4",
+   "result": "N/A",
+   "evidence": "string-matching хука в артефакте нет"
+  },
+  {
+   "id": "A5",
+   "result": "PASS",
+   "evidence": "гейт живой: run_all.sh REV_AFTER=bec7a87 - race, retry2, fetchfail, pathequiv, late_foreign PASS; race+own_after_html/_data/_del, retry2+own_after_html, norace+own_before_tracked FAIL; плюс queued_nodiff PASS (iter2_mutants.py, M0)"
+  },
+  {
+   "id": "A6",
+   "result": "N/A",
+   "evidence": "апрувов нет"
+  },
+  {
+   "id": "A7",
+   "result": "N/A",
+   "evidence": "апрувов нет"
+  },
+  {
+   "id": "R1",
+   "result": "PASS",
+   "evidence": "гонка 15.10 на YAML bec7a87: 9a3a212 FAIL на чужих data/*, bec7a87 PASS, на remote x2-ozon, o2-ozon и data-ym y2"
+  },
+  {
+   "id": "R2",
+   "result": "PASS",
+   "evidence": "регресса для правок до reset нет: readme_race+own_before_tracked и _new PASS/PASS, race+own_before_tracked FAIL->PASS (своя правка стёрта reset, на remote x1)"
+  },
+  {
+   "id": "R3",
+   "result": "PASS",
+   "evidence": "retry2 push/fetch/reset 3/2/2 PASS, fetchfail 3/2/1 PASS, retry2+own_after_html FAIL"
+  },
+  {
+   "id": "R4",
+   "result": "PASS",
+   "evidence": "pathequiv: пересъём совпал со слепком yml:86 байт-в-байт (resnap_equals_snap0 = true)"
+  },
+  {
+   "id": "R5",
+   "result": "PASS",
+   "evidence": "git-операции в yml (без комментариев): 136, 138, 301, 303; npm-скрипты ym:* без git; child_process вне *.test.ts в src/scripts/ym нет; late_foreign PASS/PASS"
+  },
+  {
+   "id": "R6",
+   "result": "PASS",
+   "evidence": "resnap_fail на bec7a87: inter_rc=0, push/fetch/reset 2/1/1, remote y2, гейт FAIL; на bc7096b было inter_rc=1, remote y1 (G3 вариант б работает)"
+  },
+  {
+   "id": "R9",
+   "result": "PARTIAL",
+   "evidence": "registry.jsonl: 80 ID, 80 уникальных, последний E088; на origin/main 710ec0d registry.jsonl не менялся (gh compare); yml:143 и тест ссылаются на E088; заголовок и тело PR #483 - E078 (N5)"
+  },
+  {
+   "id": "R10",
+   "result": "PARTIAL",
+   "evidence": "G5 без изменений: race+own_after_new и race+own_after_subdir PASS после фикса (новые файлы и data/raw невидимы), до фикса так же; решение Ивана"
+  },
+  {
+   "id": "P1",
+   "result": "PASS",
+   "evidence": "сбой git reset (шим, exit 128): шаг rc=128, ни пересъёма, ни ::warning::, remote y1; `|| echo` reset не глушит (iter2_q1_probes.py)"
+  },
+  {
+   "id": "P2",
+   "result": "PASS",
+   "evidence": "сбой наложения cp после пересъёма (шим): лог «слепок OZON переснят на ...», затем rc=1; `|| echo` cp не глушит"
+  },
+  {
+   "id": "P3",
+   "result": "PARTIAL",
+   "evidence": "resnap_fail: ::warning:: в шаге промежуточного коммита, push y2, гейт rc=1 «public.md5: no properly formatted checksum lines found»; дерево нигде не показано, вопреки yml:146-147 (N3)"
+  },
+  {
+   "id": "P4",
+   "result": "PASS",
+   "evidence": "внутри `( ... ) ||` bash снимает -e: `( false; echo A ) || echo warn` печатает A без warn. Цепочка пересъёма целиком на &&, `( false && x ) || echo warn` даёт warn; `|| true` глушит только ветку data, как yml:91. Хрупкость на будущее, не дефект"
+  },
+  {
+   "id": "P5",
+   "result": "PASS",
+   "evidence": "G6: в race лог «слепок OZON переснят на <hash>: 2 html, 2 data», hash = голова main после fetch (коммит ozon A)"
+  },
+  {
+   "id": "T1",
+   "result": "PARTIAL",
+   "evidence": "структурный тест как есть против 12 мутантов yml (cwd-подмена): RED M1, M3a, M9, M10, M11; GREEN M2, M3b, M4, M5, M6, M7, M8; M12 (комментарий с git reset --hard) - ложный RED. Харнесс: M2, M4, M7 FAIL на race, M5 FAIL на queued_nodiff, M6 FAIL на pathequiv, M8 FAIL на late_foreign"
+  },
+  {
+   "id": "T2",
+   "result": "PARTIAL",
+   "evidence": "триггер теста: analytics-tests.yml:12-20 paths analytics-mvp/** и analytics-tests.yml; PR только с ym-snapshots.yml тест не запускает; на голове PR CI не шёл ([skip ci])"
+  },
+  {
+   "id": "T3",
+   "result": "PASS",
+   "evidence": "npx vitest run src/scripts/ym/validate-facts.test.ts на bec7a87: 31 passed; мутант автора (пересъём удалён) RED «строка 138: после reset --hard нет записи ...»"
+  },
+  {
+   "id": "C3",
+   "result": "PASS",
+   "evidence": "U+2014 в добавленных строках yml, теста, registry и в self-check: 0"
+  },
+  {
+   "id": "C4",
+   "result": "PASS",
+   "evidence": "anti-slop-checker.sh на добавленных строках и тексте PR: 0 попаданий; позитивный контроль срабатывает"
+  }
+ ],
+ "evidence_ledger": [
+  {
+   "gap": "N1 структурный тест обманывается 7 из 12 мутантов, 6 из них возвращают E088",
+   "evidence": "python3 knowledge/episodes/2026-10/feniks-probes-ym-ozon-gate-resnap/iter2_mutants.py all: TEST M2, M3b, M4, M5, M6, M7, M8 GREEN; HARN M2/M4/M7 race FAIL, M5 queued_nodiff FAIL, M6 pathequiv FAIL, M8 late_foreign FAIL; validate-facts.test.ts:243, 255, 257-259",
+   "checkpoint": "actionability_9",
+   "weight": -1
+  },
+  {
+   "gap": "N2 тест не запускается на PR, меняющем только ym-snapshots.yml; CI на голове PR не шёл",
+   "evidence": "sed -n 12,20p .github/workflows/analytics-tests.yml; gh api repos/oliverjone01-dev/t1/commits/<sha>/check-runs: 560d287, 0a1007f, bec7a87 пусто; actions/workflows/analytics-tests.yml/runs?branch=claude/ym-ozon-gate-resnap: 0",
+   "checkpoint": "risk_24",
+   "weight": -1
+  },
+  {
+   "gap": "N3 yml:146-147 обещает, что гейт покажет дерево слепка; в пути сбоя дерева нет нигде",
+   "evidence": "iter2_q1_probes.py P3: inter rc=0, ::warning:: без хеша; gate rc=1 «public.md5: no properly formatted checksum lines found»; yml:146-147, 151",
+   "checkpoint": "risk_21",
+   "weight": -0.5
+  },
+  {
+   "gap": "N4 self-check заявляет окно гонки после промежуточного push, которого нет",
+   "evidence": "selfcheck-ym-ozon-gate-resnap-20261015.md:21 (чекпоинт 21); git-операции yml 136, 138, 301, 303; package.json ym:* без git; run_all.sh REV_AFTER=bec7a87: late_foreign PASS/PASS",
+   "checkpoint": "risk_21, insight_12",
+   "weight": -1.5
+  },
+  {
+   "gap": "N5 заголовок и тело PR #483 ссылаются на E078 и описывают только макет",
+   "evidence": "gh api repos/oliverjone01-dev/t1/pulls/483: title «... (E078)», body «Реестр ошибок E078»; registry.jsonl E078 = CPO, К9; squash-тема 9a3a212 = заголовок #481",
+   "checkpoint": "accuracy_3, brand_19",
+   "weight": -2
+  },
+  {
+   "gap": "N6 «с 15.10 несколько раз в день» и расписание мака без метки и без подтверждения",
+   "evidence": "git log --since=2026-10-09 9a3a212 -- analytics-mvp/data: 2, 3, 2, 4, 3 за 10-14.10, 7 за 15.10; gh compare 9a3a212...710ec0d: «Реакция» 3194d44 17:50Z, 710ec0d 04:50Z",
+   "checkpoint": "accuracy_1",
+   "weight": -1
+  }
+ ],
+ "sources_of_truth": [
+  ".github/workflows/ym-snapshots.yml@bec7a87",
+  "analytics-mvp/src/scripts/ym/validate-facts.test.ts@bec7a87",
+  ".github/workflows/analytics-tests.yml",
+  "knowledge/errors/registry.jsonl (E078, E088)",
+  "knowledge/episodes/2026-10/selfcheck-ym-ozon-gate-resnap-20261015.md",
+  "knowledge/episodes/2026-10/feniks-probes-ym-ozon-gate-resnap/ (run_all.sh, yml_gate_harness.py, iter2_mutants.py, iter2_q1_probes.py)",
+  "GitHub REST: pulls/483, compare 9a3a212...710ec0d, commits/<sha>/check-runs, actions runs"
+ ],
+ "telemetry": {
+  "model": "claude-opus-5-5"
+ }
+}

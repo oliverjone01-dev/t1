@@ -1,0 +1,104 @@
+===== T1 vitest HEAD ($S/vitest.txt)
+    Test Files  67 passed (67)
+         Tests  1123 passed (1123)
+      Duration  192.84s (transform 2.46s, setup 0ms, collect 7.09s, tests 291.42s, environment 18ms, prepare 5.10s)
+===== T2 tsc HEAD ($S/tsc.txt)
+   src/scripts/build-katya.ts(485,59): error TS2532: Object is possibly 'undefined'.
+   src/scripts/build-katya.ts(1374,5): error TS2532: Object is possibly 'undefined'.
+   src/scripts/build-katya.ts(1374,33): error TS2532: Object is possibly 'undefined'.
+   src/scripts/build-katya.ts(2570,78): error TS2353: Object literal may only specify known properties, and 'comRev' does not exist in type '{ rev: number; com: number; del: number; oth: number; prt: number; }'.
+   src/scripts/build-katya.ts(2574,46): error TS2339: Property 'comRev' does not exist on type '{ rev: number; com: number; del: number; oth: number; prt: number; }'.
+   src/scripts/ozon/acq-sku-daily.ts(114,68): error TS2532: Object is possibly 'undefined'.
+   src/scripts/ozon/acq-sku-daily.ts(114,104): error TS2532: Object is possibly 'undefined'.
+   src/scripts/ozon/acq-sku-daily.ts(114,140): error TS2532: Object is possibly 'undefined'.
+   src/scripts/ozon/acq-sku-daily.ts(114,176): error TS2532: Object is possibly 'undefined'.
+   src/scripts/ozon/acq-sku-daily.ts(114,212): error TS2532: Object is possibly 'undefined'.
+   src/scripts/ozon/pnl-accrual-daily.ts(132,68): error TS2532: Object is possibly 'undefined'.
+   src/scripts/ozon/pnl-accrual-daily.ts(132,104): error TS2532: Object is possibly 'undefined'.
+   src/scripts/ozon/pnl-accrual-reconcile.ts(26,9): error TS2741: Property 'partner' is missing in type '{ commission: number; acquiring: number; storage: number; delivery: number; buyerDelivery: number; ads: number; other: number; }' but required in type 'Record '.
+   src/scripts/ozon/pnl-accrual-reconcile.ts(49,9): error TS2741: Property 'partner' is missing in type '{ commission: number; acquiring: number; storage: number; delivery: number; buyerDelivery: number; ads: number; other: number; }' but required in type 'Record '.
+   src/scripts/ozon/pnl-sku-breakdown.ts(48,78): error TS2538: Type 'unknown' cannot be used as an index type.
+   src/scripts/ozon/pnl-sku-breakdown.ts(48,93): error TS2538: Type 'unknown' cannot be used as an index type.
+   src/scripts/ozon/pnl-sku-breakdown.ts(53,19): error TS2538: Type '{}' cannot be used as an index type.
+   src/scripts/ozon/pnl-sku-breakdown.ts(54,133): error TS2538: Type '{}' cannot be used as an index type.
+   src/scripts/ozon/pnl-sku-daily.ts(56,29): error TS2322: Type '{}' is not assignable to type 'string'.
+   src/scripts/ozon/pnl-sku-daily.ts(56,127): error TS2322: Type 'Row | undefined' is not assignable to type 'Row'.
+   src/scripts/ozon/pnl-sku-daily.ts(57,5): error TS18048: 'r' is possibly 'undefined'.
+   src/scripts/ozon/pnl-sku-daily.ts(58,5): error TS18048: 'r' is possibly 'undefined'.
+   src/scripts/ozon/pnl-sku-daily.ts(59,5): error TS18048: 'r' is possibly 'undefined'.
+   src/scripts/ozon/pnl-sku-daily.ts(60,5): error TS18048: 'r' is possibly 'undefined'.
+   src/scripts/ozon/pnl-sku-daily.ts(64,27): error TS18048: 'r' is possibly 'undefined'.
+   src/scripts/ozon/pnl-sku-daily.ts(65,25): error TS18048: 'r' is possibly 'undefined'.
+   src/scripts/ozon/pnl-sku-daily.ts(66,26): error TS18048: 'r' is possibly 'undefined'.
+   src/scripts/ozon/pnl-sku-daily.ts(67,18): error TS18048: 'r' is possibly 'undefined'.
+   src/scripts/ym/report-page-ym.ts(200,114): error TS2339: Property 'po' does not exist on type 'AccNettingRow'.
+   src/scripts/ym/svod-ui.test.ts(82,25): error TS2304: Cannot find name 'Element'.
+   src/scripts/ym/svod-ui.test.ts(229,27): error TS2304: Cannot find name 'Element'.
+   src/scripts/ym/svod-ui.test.ts(1688,18): error TS2304: Cannot find name 'Element'.
+   src/scripts/ym/svod-ui.test.ts(1802,49): error TS2304: Cannot find name 'HTMLElement'.
+   src/scripts/ym/svod-ui.test.ts(1880,19): error TS2304: Cannot find name 'Element'.
+   src/scripts/ym/svod-ui.test.ts(1931,38): error TS2304: Cannot find name 'HTMLElement'.
+   src/scripts/ym/svod-ui.test.ts(1975,77): error TS2304: Cannot find name 'HTMLElement'.
+   src/scripts/ym/svod-ui.test.ts(2026,77): error TS2304: Cannot find name 'HTMLElement'.
+   src/scripts/ym/svod-ui.test.ts(2106,55): error TS2304: Cannot find name 'HTMLElement'.
+   src/scripts/ym/tovary-ui.test.ts(59,22): error TS2304: Cannot find name 'Element'.
+   src/scripts/ym/validate-facts.test.ts(255,32): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+   src/scripts/ym/validate-facts.test.ts(255,63): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+===== L3 live tests on v0 ($S/lt_v0.txt)
+    ✓ src/scripts/gap-daily.test.ts (28 tests | 23 skipped) 162ms
+         Tests  5 passed | 23 skipped (28)
+===== L3 live tests on vZ ($S/lt_vZ.txt)
+      × живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py) 49ms
+        → expected [ { date: '2026-10-02', …(5) }, …(2) ] to deeply equal []
+    FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)
+   AssertionError: expected [ { date: '2026-10-02', …(5) }, …(2) ] to deeply equal []
+   - Expected
+   + Received
+   - Array []
+   + Array [
+   +   Object {
+   +     "art": "GGM-20-2",
+   +     "date": "2026-10-02",
+   +     "gap_pct": 0,
+   +     "in_panel": true,
+   +     "oa_source": "prices_raw",
+   +     "observed": true,
+   +   },
+   +   Object {
+   +     "art": "GGK-02-3-3-80",
+   +     "date": "2026-10-19",
+   +     "gap_pct": 0,
+   +     "in_panel": true,
+   +     "oa_source": "prices_raw",
+   +     "observed": true,
+   +   },
+   +   Object {
+   +     "art": "GGT-48-2-2-100-180",
+   +     "date": "2026-10-19",
+   +     "gap_pct": 0,
+   +     "in_panel": true,
+   +     "oa_source": "prices_raw",
+   +     "observed": true,
+   +   },
+   + ]
+         Tests  1 failed | 4 passed | 23 skipped (28)
+===== L3 live tests on vU ($S/lt_vU.txt)
+      × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 32ms
+        → expected 0 to be greater than or equal to 14
+    FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+   AssertionError: expected 0 to be greater than or equal to 14
+         Tests  1 failed | 4 passed | 23 skipped (28)
+===== L3 live tests on vW ($S/lt_vW.txt)
+      × живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10) 54ms
+        → expected Set{ …(15) } to deeply equal Set{ …(14) }
+    FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site стоит у карточки без истории: прежнего дня с ненулевым разрывом у артикула нет (Иван 19.10)
+   AssertionError: expected Set{ …(15) } to deeply equal Set{ …(14) }
+   - Expected
+   + Received
+   +   "2026-10-20|GGT-03-5-1-L-130",
+         Tests  1 failed | 4 passed | 23 skipped (28)
+===== K2 systemic day, stop row (0bb36b5) ($S/pb/vMass/out_0bb36b5/katya-tests.html)
+   разрыв обвалился к нулю у GGT-03-1-3-E-12080, GGT-20-2-3-16080, GGT-03-3-5-L-90, GGM-16-2-3-LED, GGM-15-2-2, GGM-23-1-1, GGL-05-XL-slim-2, GGM-18-1-1-LED, GGK-02-3-3-80, GGK-05-2-3-7040 - товар, похоже, выпал из «Эластичного бустинга», вернуть цену.
+===== K2 systemic day, stop row (b0096cf) ($S/pb/vMass/out_b0096cf/katya-tests.html)
+===== P1 one-day glitch 15.10, page 19.10 (0bb36b5) ($S/pb/vP/out_0bb36b5/katya-tests.html)
+   разрыв обвалился к нулю у GGK-02-3-3-80 - товар, похоже, выпал из «Эластичного бустинга», вернуть цену.

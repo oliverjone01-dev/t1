@@ -1,0 +1,151 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-485-iter3-20261016",
+  "timestamp": "2026-10-16T09:13:37+00:00",
+  "deliverable_ref": "https://github.com/oliverjone01-dev/t1/pull/485 @ 37ff0b838ab7144fdd00383203b0a28a0ef5bcd9, audit hash 6ad41fc549edf0e4 (audit_hash.py --rev 37ff0b8; в запросе хеш не передан, сверять не с чем; охват полный: git diff --name-only 3bf4bd14 37ff0b8 без traces/, knowledge/episodes/, knowledge/errors/, sessions/handoff/ = 8 путей: .claude/agent-memory/feniks/MEMORY.md, .github/workflows/orders-backfill.yml, analytics-mvp/data/plan_2026-10-15_v4.json, analytics-mvp/src/connector/ozon-seller.ts и ozon-seller.retry.test.ts (без изменений с 6426b50, аудит iter2), analytics-mvp/src/scripts/plan-tab.ts, plan-tab.test.ts, plan-tab/plan-tab.client.js)",
+  "artifact_class": "dashboard",
+  "audience": "внутренний: автор PR, координатор, Иван",
+  "anchor": "8.5 timur-activation iter3 (go) - наш выше на 0.15: регрессия iter2 закрыта и проверена той же live-пробой на трёх коммитах (W1 S3: exit 0 на 5716b67), каждая цифра новой части воспроизведена вне артефакта (P1: 6 строк и 23 базы без расхождений, v4 из скрипта байт в байт). Выше 8.1 dialogs-registry после доработки на 0.55: там точность и инсайт 7.5, здесь точность 9.0. Не выше: смену режима prices_daily 15.10 автор не увидел, K3 открыт, инсайт 6.0",
+  "probes": [
+    {
+      "id": "W1",
+      "result": "PASS",
+      "evidence": "probe-final-step.py на 54569ad, 6426b50, 5716b67: S3 (упал «Сбор по заказам», шаги ниже skipped) на 5716b67 exit=0 без сообщения, как на 54569ad (на 6426b50 было ложное «заказы закоммичены»); S2 (acq failure по таймауту) и S5 (pnlsku failure) exit=1 с сообщением; S4 cancelled exit=0 (по G1 iter2 таймаут шага = failure, отмена job гасит финальный шаг через !cancelled()); timeout-minutes 30 на pnlsku/acq/pnlacc на месте. K1 iter2 закрыт"
+    },
+    {
+      "id": "B1",
+      "result": "PASS",
+      "evidence": "probe-price-v4.py: 6 строк 16.10 пересчитаны из prices_daily 15.10 и gap_daily 15.10 (site_to_seller), price_now/price_new/site_now совпали у 6 из 6, расхождений 0; база остальных 23 строк = цена 14.10 у 23 из 23 (утверждение автора «у остальных 14.10» подтверждено)"
+    },
+    {
+      "id": "R1",
+      "result": "PASS",
+      "evidence": "add_price_1610.py запущен в копии данных (scratchpad/repro, 5 входных файлов), cmp с analytics-mvp/data/plan_2026-10-15_v4.json: байт в байт; v3 не тронут (ключи v3 = v4, отличаются только price и source)"
+    },
+    {
+      "id": "B3",
+      "result": "PASS",
+      "evidence": "v4.price 29 строк, артикулы уникальны (тест plan-tab.test.ts «без дублей» зелёный; P1: 6 новых + 23 прежних); на 16.10 в prices_daily ровно 3 оффера GGT-48-* и 3 GGT-46-*, выбор «три артикула» без допущения"
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "три поверхности одной подписи сходятся: priceWhen(v4.price) = [15.10:14, 16.10:6, 22.10:9] (тест), тело PR «14 с 15.10 · 6 с 16.10 · 9 с 22.10», 25 - 2 перенесённых + 6 = 29; зашитое «N с 15.10 · M с 22.10» из client.js убрано, price_first больше нигде не читается (grep по src)"
+    },
+    {
+      "id": "B7",
+      "result": "PASS",
+      "evidence": "поля новых строк v4: art, name, when, when_note, price_now, step, price_new, site_now, site_new; прибыли и маржи нет (репозиторий публичный); MEMORY.md в ветке - только две мои строки iter2"
+    },
+    {
+      "id": "P2",
+      "result": "PARTIAL",
+      "evidence": "probe-prices-regime.py: 15.10 в prices_daily смена режима у всех офферов: before == price 464 из 464 (14.10: 19 из 464), coinv > 0 у 0 (14.10: 445), смена цены 14.10 -> 15.10 у 29 офферов, из них 17 вне плана v3 (от -33.5 до +21.6 проц., 11 вверх); 16.10 то же (473 из 473); коллектор prices-daily.ts не менялся с 3b81817 (12.10). База 6 новых строк взята именно с этого дня, в PR и скрипте про смену ни строки"
+    },
+    {
+      "id": "T1",
+      "result": "PASS",
+      "evidence": "npx vitest run: 1086/1087, 65 файлов, plan-tab.test.ts 87 тестов зелёные, красный только card-kin.test.ts «здоровье карты карточек» (красный и в iter1/iter2); em dash в добавленных строках дельты 6426b50..37ff0b8 = 0"
+    }
+  ],
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 1,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 2,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 9.0,
+    "actionability": 10.0,
+    "insight": 6.0,
+    "brand_fit": 10.0,
+    "risk_awareness": 8.0
+  },
+  "weighted_total": 8.65,
+  "verdict": "go",
+  "primary_gap": "База 6 новых строк - срез prices_daily 15.10, а 15.10 в этом источнике смена режима: before == price у 464 из 464 офферов (14.10: 19), coinv > 0 у 0 (14.10: 445), цена сменилась у 29 офферов, 17 из них вне плана v3 (от -33.5 до +21.6 проц.). Коллектор не менялся с 12.10, значит причина на стороне OZON или в действиях продавца 15.10 [ГИПОТЕЗА]. Автор этого не заметил, и для 3 из 6 артикулов итог от базы плана 14.10 получился -10.9, -12.75 и -14.5 проц. вместо -10.",
+  "gaps": [
+    "N1 (accuracy_3 и risk_24, по -1): смена режима prices_daily 15.10 не замечена и не названа. before == price у 464/464 (14.10: 19/464), coinv 445 -> 0, 17 смен цены вне плана, 11 из них вверх (до +21.6 проц.); prices-daily.ts последний коммит 3b81817 12.10. Цены 15.10 = 16.10 у всех 6 артикулов, то есть как «текущая цена» база годится, но 23 строки v3 стоят на 14.10 из другого режима, и статусы «частично/снижена» у них с 15.10 могут отражать сдвиг источника, а не действие Ивана (пример: GGT-48-5-1 в v3 стоял на 22.10, а 15.10 подешевел на 1.0 проц. без плана).",
+    "N2 (risk_21, -1): глубина снижения от базы плана не показана Ивану в рублях. GGT-48-2-2: 79282 -> 69170 (-12.75 проц., на 2180 ₽ ниже прежней цели 71350), GGT-48-5-1: 80900 -> 72080 (-10.9), GGT-46-3-3: 94900 -> 81140 (-14.5). Указание «-10% от цены 15.10» выполнено буквально. Но цена меняется больше чем на 5 проц., это HITL, и Иван должен видеть итог от 14.10. Деньги малы: QUATRIS 6 шт за 30 дней, PROFIX 1 шт [ДАННЫЕ: skus_live_30d.json].",
+    "K3 (risk_21, из iter2, открыт): в knowledge/errors/registry.jsonl 0 совпадений по acq-sku-daily, pnl-accrual-daily, catch continue. По плану запись после мержа, отдельного веса нет: тот же чекпоинт, что N2.",
+    "N3 (insight_12, -1): смешение рычагов цены и рекламы в карточках KONUX и TRUBIS L120 названо, но не оценено. Моя оценка: QUATRIS 6 шт/30 дн = 2.8 шт на окно 14 дней при пороге KONUX 23. Прирост +10-30 проц. [ГИПОТЕЗА эластичности] даст +0.3-0.8 заказа, это 1.2-3.7 проц. порога. PROFIX 1 шт/30 дн при пороге TRUBIS L120 11: +0.05-0.14 (до 1.3 проц.). Решение 29.10 переворачивает только у карточки на самом пороге. Состав групп со слов автора, card_groups.json я не открывал.",
+    "N4 (accuracy_3, 0): docstring add_price_1610.py:5 «с 23.09 там предельная» противоречит prices-daily.ts:3-5 (price = marketing_seller_price, витрина; предельная = before). С 15.10 before == price, на числах не сказалось.",
+    "N5 (0): site_now/site_new считаются через site_to_seller из gap_daily, а этот коэффициент одинаковый у разных артикулов (GGT-48-2-2 и GGT-46-3-3: 0.4606/0.4617/0.445/0.445 за 13-16.10). Похоже на общий коэффициент, а не на замер по артикулу. Помечено «справочно, страница не читает». site_new не округлён до 10 ₽ (38007).",
+    "N6 (0): в одной таблице база 14.10 у 23 строк и 15.10 у 6, подпись шага одна «-10%»; «Скидка OZON 14.10» и сдвиг в п.п. для новых строк считаются от 14.10 (plan-tab.ts:465-466). Строки сортируются по тексту when+art (plan-tab.ts:462), подпись по MMDD (priceWhen): разойдутся, если появится дата другого месяца.",
+    "Процесс (0): self-check в третий раз дан кратким абзацем, не по 25 пунктам. Принят по прецеденту iter1-iter2. В итерации 4 без 25 пунктов будет return без скоринга.",
+    "Закрыто из iter2: K1 (W1 PASS на 5716b67), K2 (тело PR: «повтор 6/8 и выше, затем зелёный шаг»), K4 (метки в PR и [ДАННЫЕ] у 9-427 с в yml; «~4,5 мин» и «17-21 ч» в комментарии yml без метки, в PR метка есть), K5 (комментарий 171-172 согласован с раннером)."
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "Смена режима prices_daily 15.10 не замечена, база 6 строк взята с этого дня",
+      "evidence": "python3 -I knowledge/episodes/2026-10/feniks-probes-ozon-485-iter3/probe-prices-regime.py: 14.10 before==price 19/464, coinv>0 445; 15.10 464/464 и 0; смена цены 14.10 -> 15.10 у 29 (12 в плане v3, 17 вне: -33.5..+21.6 проц.); git log prices-daily.ts: 3b81817 2026-10-12",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -1
+    },
+    {
+      "gap": "Зависимость от семантики источника цен не названа в PR и скрипте",
+      "evidence": "тот же вывод P2; gh api pulls/485 (тело PR, раздел «Что: план v4») и add_price_1610.py:1-10 про 15.10 ни строки",
+      "checkpoint": "risk_24_dependencies",
+      "weight": -1
+    },
+    {
+      "gap": "Итог от 14.10 у 3 артикулов -10.9/-12.75/-14.5 проц. Ивану не показан; K3 открыт",
+      "evidence": "python3 -I knowledge/episodes/2026-10/feniks-probes-ozon-485-iter3/probe-price-v4.py: «от 14.10 к целевой»; v3 GGT-48-2-2 when 15.10 79282 -> 71350; grep -c registry.jsonl = 0",
+      "checkpoint": "risk_21_downside",
+      "weight": -1
+    },
+    {
+      "gap": "Смешение цены и рекламы в двух карточках не оценено",
+      "evidence": "probe-price-v4.py: units 30 дн QUATRIS 3+1+2, PROFIX 1 (2 артикула нет в skus_live_30d); пороги KONUX 23, TRUBIS L120 11 (plan v4 cards); расчёт +10-30 проц. [ГИПОТЕЗА]",
+      "checkpoint": "insight_12_second_order",
+      "weight": -1
+    },
+    {
+      "gap": "Нюансы N4-N6 и процесс self-check (вес 0)",
+      "evidence": "add_price_1610.py:5 против prices-daily.ts:3-5; P2 gap_daily site_to_seller 13-16.10; plan-tab.ts:462-466; бриф iter3",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": 0
+    }
+  ],
+  "rework_tz": "Обязательной доработки нет (go). Рекомендую до мержа, хеш при этом не меняется (только тело PR и сообщение Ивану): 1) строка в PR про 15.10: в prices_daily у всех 464 офферов before = price и coinv = 0, у 17 офферов вне плана цена сменилась (-33.5..+21.6 проц.); вопрос Ивану, связано ли это с его действиями 15.10 (выход из акций и т.п.) [ГИПОТЕЗА]; 2) показать Ивану итог от 14.10 в рублях: GGT-48-2-2 79282 -> 69170 (-12.75 проц., на 2180 ₽ ниже прежней цели 71350), GGT-48-5-1 80900 -> 72080 (-10.9), GGT-46-3-3 94900 -> 81140 (-14.5), и получить «да». Если Иван скажет «от 14.10», правится DAY в add_price_1610.py, меняется хеш, нужен короткий повтор P1. После мержа: K3 и N1 записями в knowledge/errors/registry.jsonl (ретро data-guard: смена режима источника цен 15.10 без пометки), запись про v4 в decisions.md.",
+  "iteration": 3,
+  "confidence": 0.85,
+  "p9_triggers_fired": [],
+  "escalate_to": "нет; HITL: изменение цены больше 5 проц. решает и выполняет Иван в кабинете, мерж только по слову Ивана «мерж»",
+  "sources_of_truth": [
+    "git show 5716b67 и 37ff0b8; git diff --name-only 3bf4bd14 37ff0b8; git diff --quiet 6426b50 37ff0b8 -- analytics-mvp/src/connector",
+    "knowledge/episodes/2026-10/feniks-probes-ozon-485-iter3/probe-final-step.py (W1), probe-price-v4.py (B1, P1), probe-prices-regime.py (P2)",
+    "analytics-mvp/data/prices_daily.ndjson, gap_daily.ndjson, skus_live_30d.json, plan_2026-10-15_v3.json и v4.json @37ff0b8",
+    "analytics-mvp/src/scripts/ozon/prices-daily.ts:2-7 (семантика полей), plan-tab.ts:118-140 и 452-476",
+    "gh api repos/oliverjone01-dev/t1/pulls/485 (head 37ff0b83, тело PR)",
+    "npx vitest run (1086/1087); audit_hash.py --rev 37ff0b8 = 6ad41fc549edf0e4",
+    "knowledge/feniks/calibration-anchors.md; iter2 knowledge/episodes/2026-10/feniks-audit-ozon-accrual-retry-iter2-20261016.md"
+  ]
+}

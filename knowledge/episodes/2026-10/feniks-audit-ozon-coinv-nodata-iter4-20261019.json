@@ -1,0 +1,235 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-coinv-nodata-iter4-20261019",
+  "timestamp": "2026-10-19T15:50:00+03:00",
+  "deliverable_ref": "PR #487, ветка claude/amazing-hawking-0trncq @ b8d7dca (код 0bb36b5; 2782711 = merge origin/main d20a012, только kontur-dashboard; b8d7dca - self-check вне хеша). merge-base с origin/main теперь d20a012 (52476fc в запросе - до merge 2782711). audit_hash 561b4460c86e0504 посчитан сам (--rev HEAD, --rev 0bb36b5, --rev 2782711, --rev b8d7dca, --worktree), совпал с запросом. Охват: все 14 путей хеша. 9 изменены в iter4 и проверены здесь (build-tests.ts, gap-daily.ts и тест, coinv-merge.ts и coinv-merge-nosite.test.ts, prices-daily.ts, plan-tab.ts, decisions.md, ozon-price-test-gap-shift.yaml); 5 по blob равны аудированному iter3 b0096cf (coinv_daily, gap_daily, prices_daily, prices-daily.test.ts, ozon-plan-15-10.yaml). Вне хеша: v8/fix_nodata_1610.py (запущен), self-check «Дополнение iter4», описание PR (REST), handoff v18. За время аудита голова PR ушла на 32ebcdd: только строка traces/2026-10-19/agents.jsonl (REST compare b8d7dca...32ebcdd), путь вне хеша, audited_hash для 32ebcdd тот же.",
+  "artifact_class": "dashboard",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 9.0,
+    "insight": 7.0,
+    "brand_fit": 10.0,
+    "risk_awareness": 8.0
+  },
+  "weighted_total": 8.35,
+  "verdict": "go",
+  "primary_gap": "Честный ноль у зрелой карточки теперь сразу и стоп «вернуть цену», и значение ряда, медиан и гейта, но ложный ноль от него ничем не отличается. Системный день (один срез, где цена сайта равна нашей у всех строк) на коде iter4 зажигает стоп всем 10 товарам теста 4 и чип у всех 29 товаров плана (K2; код iter3 на тех же данных молчит; в prices_daily для такого дня есть правило NO_BEFORE_SHARE, в gap_daily и coinv_daily нет). Один день сбоя у одной карточки держит стоп без даты до конца теста, хотя назавтра разрыв 48,8 (P1).",
+  "gaps": [
+    "K2 (risk_23): системный день без витрины не отличается от снятия доплаты. 473 строки 19.10 с ценой сайта, равной нашей: на 0bb36b5 стоп у всех 10 товаров теста 4 и 29 чипов «выпал из бустинга?», на b0096cf 0 и 0. Массового правила в markNoSite и mergeCoinv нет, в prices_daily для того же класса события есть (NO_BEFORE_SHARE 0.9, prices-daily.ts:63)",
+    "P1 (risk_21): один день нуля у зрелой карточки (GGK-02-3-3-80 только 15.10, дальше 48,82 и 48,55) держит на странице 19.10 «разрыв обвалился к нулю ... вернуть цену»: collapsed = любой день после старта (build-tests.ts:2370), даты в строке нет (:2566). Как снять ложный стоп (метка no_site в файле главнее истории, gap-daily.ts:90), не записано; в self-check только «проверяется вручную по карточке»",
+    "L3 (insight_12): живые тесты gap-daily держат инвариант iter3 и краснеют на законных состояниях iter4. Следующая новая карточка с мака (ноль без метки) роняет «каждая метка no_site...» (Set 15 против 14, gap-daily.test.ts:97-98), честный ноль у зрелой карточки роняет «нулей разрыва в ряду нет» (:80-84) с подсказкой про v8, которая такой ноль не пометит. vitest идёт на каждом пуше мака в main (analytics-tests.yml:16-19), v8 - ручной разовый скрипт",
+    "accuracy_3: стоп-строка страницы, комментарий build-tests.ts:2367 и спека stop (yaml:76) объясняют ноль выходом из «Эластичного бустинга», а gap-daily.ts:76-77 и decisions п.(3) того же PR пишут, что у 50 выходов из ЭБ разрыв ни разу не упал ниже 10; decisions.md 19.10 п.(1) «скидка продавца от зачёркнутой» против п.(4) и prices-daily.ts:8 «не от зачёркнутой», «Почему ... 47-53%» против п.(3) «46-53%»",
+    "accuracy_3 (там же): coinv-merge.ts:67-68 «Правило то же, что в gap-daily.ts» не держится на многодневном срезе: новая карточка 17.10 = 47 и 18.10 = 0 одним срезом - coinv_daily «нет данных», gap_daily 0 (проба R3). По одному срезу в день (как шлёт мак) правило сходится",
+    "accuracy_2 (перенос из iter3, п.3): сверка базы комиссии «135 из 146 заказов» без оговорки, что 146 - не отменённые, по начисленным 87 из 90; описание PR «tsc: ошибки только в ym/*.test.ts» - на деле 41 ошибка в 10 файлах, в ym-тестах 12 (файлов PR среди них нет)",
+    "actionability_7: срок «до ночного прогона 20.10» есть только в handoff v18:9; в описании PR, по которому Иван говорит «мерж», и в self-check п.7 («частично») его нет"
+  ],
+  "rework_tz": "",
+  "escalate_to": "Иван: правило системного дня для gap_daily и coinv_daily (если у 90 % строк дня и больше цена сайта равна нашей, весь день - «нет данных», как NO_BEFORE_SHARE в prices_daily) - да или нет. Решение 19.10 п.(5) не меняется: правило только отделяет сбой среза от снятия доплаты у одной карточки. Срок - до 28.10 (продление теста 4) или сразу при первом нуле у зрелой карточки.",
+  "confidence": 0.8,
+  "p9_triggers_fired": [
+    "денежных утверждений в диффе iter4 нет; цифра п.(4) GGM-01-2 54 750 -> 43 900 = 19,8% сверена с prices_daily 08-14.10 (before 54 750, price 43 900, coinv 19.8)",
+    "диапазон «47-53%» в «Почему» decisions.md против «46-53%» в п.(3) того же решения; данные iter3: 45,76-53,29",
+    "утверждение описания PR «tsc: ошибки только в src/scripts/ym/*.test.ts» опровергается прогоном (41 ошибка, 10 файлов, в ym-тестах 12)"
+  ],
+  "telemetry": {
+    "model": "claude-opus-5-5"
+  },
+  "anchor": "8.1 feniks-return-reestr (dialogs-registry, go после доработки) - наш артефакт выше на 0.25, потому что primary gap iter3 (Z1) закрыт и доказан дифференциальной сборкой страницы: HEAD зажигает стоп и чип на нуле зрелой карточки, код iter3 молчит, контроль 5,0 горит на обоих; данные воспроизведены скриптом v8 на двух снимках main байт в байт, чтение без меток даёт ту же страницу, 1123/1123. Ниже 8.5 timur-activation, потому что live-атака на новое правило нашла три сценария второго порядка, которых нет в self-check: живые тесты краснеют на законных состояниях (L3), системный день зажигает все стопы (K2), однодневный сбой держит стоп без даты (P1). Равно iter2 этого PR (8.35), выше iter3 (8.20) на 0.15.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {
+      "id": "H1",
+      "result": "PASS",
+      "evidence": "audit_hash.py --rev HEAD / 0bb36b5 / 2782711 / b8d7dca / --worktree = 561b4460c86e0504, совпал с запросом; iter3 b0096cf = bebf9f7f8538b932; 14 путей хеша, 5 неизменённых по blob равны b0096cf; merge 2782711 вне kontur-dashboard ничего не трогает; REST: head.sha PR = b8d7dca = HEAD, main = d20a012"
+    },
+    {
+      "id": "T1",
+      "result": "PASS",
+      "evidence": "npx vitest run: Test Files 67 passed, Tests 1123 passed (1123); +13 к iter3 (gap-daily +8, coinv-merge-nosite +5; self-check пишет +12). CI на 2782711: «vitest + smoke» success"
+    },
+    {
+      "id": "T2",
+      "result": "PASS",
+      "evidence": "tsc --noEmit: 41 ошибка в 10 файлах, как в iter3; файлов PR среди них нет"
+    },
+    {
+      "id": "Z1",
+      "result": "PASS",
+      "evidence": "сборка build-tests.ts, ноль на месте (единственная строка дня) у GGK-02-3-3-80 19.10, GGT-48-2-2-100-180 19.10, GGM-20-2 02.10: 0bb36b5 - стоп «разрыв обвалился к нулю у GGK-02-3-3-80», чип «0,0% -53,8 п.п. выпал из бустинга?»; b0096cf - стопа нет, план 56,6% от 18.10; контроль 5,0 горит на обоих; v0 на обоих без стопа и чипа"
+    },
+    {
+      "id": "Z3",
+      "result": "PASS",
+      "evidence": "лишняя вечерняя строка-ноль поверх утренних 48,55 и 56,57: страница 0bb36b5 байт в байт как v0 (правило дня M1), как описано в self-check и PR"
+    },
+    {
+      "id": "U1",
+      "result": "PASS",
+      "evidence": "14 строк no_site без метки и с нулём, как пишет мак (vU): страница 0bb36b5 отличается от v0 только временем сборки (segdiff.py), то есть метка при чтении = метка в файле на всех поверхностях страницы"
+    },
+    {
+      "id": "B4",
+      "result": "PASS",
+      "evidence": "readGapDaily на живом файле: 13 387 строк, нулей 0, минимум 30,21, noSite 14, bad 0; в vZ ноль одинаково на графике (56.6 -> 0.0), в чипе плана, в сводке ставок GGM-20-2 и в стопе; все три читателя gap_daily в коде идут через markNoSite или readGapDaily (git grep)"
+    },
+    {
+      "id": "M1",
+      "result": "PASS",
+      "evidence": "mergeCoinv, 5 вариантов среза без витрины поверх 47,5 того же дня, для зрелой и новой карточки: 10/10 значение, site_paid, SKU сохранены, метки нет; readGapDaily: вечер 0 поверх утра 47,5 у зрелой -> 47,5"
+    },
+    {
+      "id": "M2",
+      "result": "PASS",
+      "evidence": "срез 47,5 поверх no_site новой карточки: значение записано, метка снята; повтор нуля у новой метку держит; у зрелой с устаревшей меткой ноль пишется нулём и метка снимается; readGapDaily: вечер 47,5 поверх утра no_site -> 47,5"
+    },
+    {
+      "id": "R2",
+      "result": "PASS",
+      "evidence": "правило истории: ноль зрелой -> 0 без метки (coinv и gap), ноль новой -> no_site, два нуля подряд у новой -> оба no_site, порядок строк роли не играет, поздний день историей не считается"
+    },
+    {
+      "id": "R3",
+      "result": "PARTIAL",
+      "evidence": "один многодневный срез новой карточки (17.10 = 47, 18.10 = 0): coinv_daily 18.10 no_site (история только из stored), gap_daily 18.10 = 0 (история по всему файлу); по одному срезу в день оба 0"
+    },
+    {
+      "id": "R4",
+      "result": "PARTIAL",
+      "evidence": "первый день с разрывом 0,005 (site_to_seller 0.99995) сам «нет данных», но даёт историю следующему нулю (gap и coinv 0.01); в данных таких строк 0"
+    },
+    {
+      "id": "R1",
+      "result": "PASS",
+      "evidence": "артикулов с двумя SKU в gap_daily 0: перевыпуск карточки под тем же артикулом (ноль первого дня с историей старой карточки) в окне данных не встречался"
+    },
+    {
+      "id": "D1",
+      "result": "PASS",
+      "evidence": "v8/fix_nodata_1610.py (версия iter4) на git archive d20a012 и 52476fc: 2356 / 21 / 14, coinv, gap, prices байт в байт = HEAD; второй прогон 0 / 0 / 0"
+    },
+    {
+      "id": "V1",
+      "result": "PASS",
+      "evidence": "datacheck.py: no_site gap_daily 14, с историей 0; coinv_daily 21, с историей 0; строк с ценой сайта = нашей без метки 0; дублей (день, артикул) в gap_daily 0; у 10 товаров теста 4 и 29 плана история с 09.09 (gap) и с 12.06-03.09 (coinv)"
+    },
+    {
+      "id": "L3",
+      "result": "FAIL",
+      "evidence": "живые тесты gap-daily на копиях данных (код 0bb36b5): v0 5/5; vZ (честный ноль у зрелых) - FAIL «нулей разрыва в ряду нет»; vW (следующая новая карточка с мака, ноль без метки) - FAIL «каждая метка no_site...», Set 15 против 14; vitest гоняется на каждом пуше мака в main (check-runs 23b70ce, f1452ef)"
+    },
+    {
+      "id": "P1",
+      "result": "FAIL",
+      "evidence": "ноль у GGK-02-3-3-80 только 15.10, 16-19.10 48,82 / 48,55: на странице 19.10 стоп «разрыв обвалился к нулю у GGK-02-3-3-80 ... вернуть цену» есть, даты нет"
+    },
+    {
+      "id": "K2",
+      "result": "FAIL",
+      "evidence": "473 строки 19.10 -> цена сайта = наша: 0bb36b5 стоп у 10 из 10 товаров теста 4, чипов 29 (v0 0); b0096cf стоп 0, чипов 0; правила системного дня в markNoSite и mergeCoinv нет"
+    },
+    {
+      "id": "X1",
+      "result": "PARTIAL",
+      "evidence": "17.10 у 9 GGT-03-5-1 coinv_daily «нет данных» (утренний срез), gap_daily 47,53-47,63 (вечерний); данные не менялись в iter4, страница берёт график из gap_daily (build-tests.ts:314-328), расхождение видно только читателям coinv_daily"
+    },
+    {
+      "id": "S1",
+      "result": "PASS",
+      "evidence": "decisions п.(4) GGM-01-2 54 750 -> 43 900 = 19,8%: prices_daily 08-14.10 before 54750, price 43900, coinv 19.8 (ggm012.py)"
+    },
+    {
+      "id": "C3",
+      "result": "PASS",
+      "evidence": "U+2014 в 284 добавленных строках iter4 (код, decisions, спека, v8, self-check): 0"
+    },
+    {
+      "id": "C4",
+      "result": "PASS",
+      "evidence": "19 фраз anti-slop-checker.sh и «выглядит хорошо» в добавленных строках: 0"
+    },
+    {
+      "id": "Y1",
+      "result": "PASS",
+      "evidence": "самопровозглашённых оценок N/10 в добавленных строках 0"
+    }
+  ],
+  "evidence_ledger": [
+    {
+      "gap": "K2: системный день (все строки дня с ценой сайта, равной нашей) зажигает стоп всем 10 товарам теста 4 и 29 чипов плана; массового правила для gap_daily и coinv_daily нет, для prices_daily есть",
+      "evidence": "mkvariant_mass.py + сборка на 0bb36b5 и b0096cf, anmass.py: стоп 10 / 0, чипы 29 / 0 (out_anmass.txt); prices-daily.ts:63 NO_BEFORE_SHARE = 0.9; gap-daily.ts:91-115, coinv-merge.ts:69-81",
+      "checkpoint": "risk_23_crisis_scenarios",
+      "weight": -1
+    },
+    {
+      "gap": "P1: однодневный ложный ноль у зрелой карточки держит стоп «вернуть цену» без даты до конца теста; способ снять ложный стоп не записан",
+      "evidence": "mkvariant_p.py + сборка 0bb36b5 (out_misc.txt, P1); build-tests.ts:2370 (some по всем дням с даты старта), :2566 (текст без даты); gap-daily.ts:90; selfcheck-nodata-iter2.md, раздел iter4",
+      "checkpoint": "risk_21_downside",
+      "weight": -1
+    },
+    {
+      "gap": "L3: живые тесты gap-daily краснеют на законных состояниях iter4 (новая карточка с мака, честный ноль у зрелой); vitest на каждом пуше мака в main, v8 ручной",
+      "evidence": "livetests.sh, mkvariant_w.py: v0 5/5, vZ FAIL, vW FAIL Set 15 против 14 (out_misc.txt); gap-daily.test.ts:80-99; analytics-tests.yml:16-19, 54-55; gh api commits/23b70ce/check-runs: «vitest + smoke»; handoff v18 §5 «при новом правиле верен по данным»",
+      "checkpoint": "insight_12_second_order",
+      "weight": -1
+    },
+    {
+      "gap": "Тексты PR противоречат данным и друг другу: выход из ЭБ как причина обвала (страница, комментарий, спека) против 0 из 50 в том же PR; decisions п.(1) против п.(4) про «от зачёркнутой», 47-53 против 46-53; «правило то же» в coinv-merge.ts не держится на многодневном срезе",
+      "evidence": "build-tests.ts:2367, :2566; ozon-price-test-gap-shift.yaml:76; gap-daily.ts:76-77; showdec.py 0bb36b5 (пп. 1, 3, 4, «Почему»); probe_m4.mts H4 (out_probe_m4.txt); iter3 Z2 acts_exit.py",
+      "checkpoint": "accuracy_3_no_conflict_with_rag",
+      "weight": -1
+    },
+    {
+      "gap": "Перенос из iter3: «135 из 146» без оговорки про начисленные 87 из 90; ложное утверждение описания PR про ошибки tsc",
+      "evidence": "iter3 K1 (commbase.py); decisions.md:6 п.(4); tsc --noEmit: 41 ошибка, 10 файлов, в src/scripts/ym/*.test.ts 12; описание PR (REST), раздел «Проверка»",
+      "checkpoint": "accuracy_2_sources_verifiable",
+      "weight": -1
+    },
+    {
+      "gap": "Срок слияния есть только в handoff, не в описании PR и не в self-check",
+      "evidence": "sessions/handoff/2026-10-19-ozon-testy-plan-tab-v18.md:9; описание PR: «20.10» 0 вхождений; selfcheck-nodata-iter2.md п.7 «частично»",
+      "checkpoint": "actionability_7_deadline_buffer",
+      "weight": -1
+    }
+  ],
+  "sources_of_truth": [
+    "d20a012 и 52476fc: analytics-mvp/data/coinv_daily, gap_daily, prices_daily (снимки main, эталон для скрипта v8)",
+    "b0096cf: analytics-mvp/src (код iter3, go 8.20) для дифференциальной сборки страницы",
+    "analytics-mvp/tools/tests/tests.json тесты_цены price_cut_hold (10 товаров, старт 07.10, замер 21.10); data/plan_2026-10-15_v4.json price (29 товаров)",
+    ".github/workflows/analytics-tests.yml и REST check-runs коммитов мака 23b70ce, f1452ef (когда гоняются живые тесты)",
+    "analytics-mvp/data/prices_daily.ndjson GGM-01-2 08-14.10 (цифра п.(4))",
+    "knowledge/episodes/2026-10/feniks-audit-ozon-coinv-nodata-iter3-20261019.md (iter3, go 8.20, хеш bebf9f7f8538b932) и пробы iter3 (Z2, K1)"
+  ],
+  "audience": "Иван (CMO), автор PR"
+}

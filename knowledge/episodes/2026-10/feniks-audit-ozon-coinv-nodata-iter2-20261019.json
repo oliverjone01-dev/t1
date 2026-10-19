@@ -1,0 +1,109 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-coinv-nodata-iter2-20261019",
+  "timestamp": "2026-10-19T11:52:34+03:00",
+  "deliverable_ref": "PR #487, ветка claude/amazing-hawking-0trncq @ 7ab055d (голова сейчас 5634f91: два коммита сверху только в knowledge/episodes и traces, хеш тот же) поверх merge-base 249cc53. audit_hash 771d7a716511bfb6 посчитан сам (--rev 7ab055d и --rev HEAD), совпал с запросом. Охват: все 12 путей хеша (3 ndjson, gap-daily.ts и тест, coinv-merge.ts и тест, prices-daily.ts и тест, decisions.md, спеки ozon-price-test-gap-shift.yaml и ozon-plan-15-10.yaml). Вне хеша прочитаны fix_nodata_1610.py, self-check iter2, описание PR (REST API).",
+  "iteration": 2,
+  "artifact_class": "dashboard",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 2,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 2,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 1,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 9.0,
+    "insight": 7.0,
+    "brand_fit": 10.0,
+    "risk_awareness": 8.0
+  },
+  "weighted_total": 8.35,
+  "verdict": "go",
+  "primary_gap": "G1b: правило «нет витрины» и защита повтора живут только в readGapDaily, а два из трёх читателей gap_daily читают файл в обход (plan-tab.ts:459-463 «Скидка OZON сейчас», build-tests.ts:2003-2008 тест ставок). Настоящий planBlock на данных HEAD с одной дописанной строкой без витрины показывает «0,0%, -53,8 п.п., выпал из бустинга?», readGapDaily на той же копии держит 56.57. Запись decisions.md 19.10 п.(2) утверждает обратное.",
+  "gaps": [
+    "G1b (своя проба FAIL): readGapDaily не единственный читатель gap_daily. plan-tab.ts:459-463 (gapLast по `>=`, последний срез - «Скидка OZON сейчас») и build-tests.ts:2003-2008 (тест ставок, вкладка «Соинвест») читают сырые строки: правило noSite и защита повтора там не действуют. Проба: настоящий planBlock на живых данных HEAD, в копию gap_daily дописана вечерняя строка GGT-48-2-2-100-180 за 19.10 с SKU '' и 0: «0,0%, -53,8 п.п., выпал из бустинга?»; readGapDaily на той же копии - 56.57. decisions.md 19.10 п.(2) и таблица потребителей PR (plan-tab «14.10, gap_pct == null - пропуск») говорят, что план такую строку не видит. Починка: noSite и правило повтора из gap-daily.ts в обоих местах плюс тест, либо сузить запись decisions.md.",
+    "W1 (FAIL по смыслу): защита M1 в readGapDaily (gap-daily.ts:88) на настоящих данных не срабатывает никогда. Писатель gap_daily (скрипт мака вне репо) заменяет строку дня, а не дописывает: 0 повторов ключа на 13 401 строку, у каждого дня одна метка snap, вечерние коммиты 1a8310e и bd6a454 дают +473/-473. Вечерний срез без витрины стирает утреннее значение у писателя, до читателя. Фраза «повтор без витрины не стирает снятое значение того же дня» в PR и decisions.md верна для coinv_daily (мак сливает через coinv:merge, tools/tests/README.md:330) и неверна для gap_daily; зависимость от писателя мака не записана.",
+    "R1 (остаток вопроса Ивану): повтор кода PR на четырёх срезах мака 16-17.10 - живое правило «SKU пустой» закрывает 1 из 4: 710ec0d (16.10 утро) 0 нулей в ряду, 1a8310e (16.10 вечер) 9, 41c44c9 (17.10 утро) 18, bd6a454 (17.10 вечер) 9. Ноль со SKU при не снятой витрине в gap_daily уже был дважды, а не «если мак начнёт» (self-check, раздел «Что не проверено»). Без решения Ивана следующий запуск нового товара снова даст нули на графике до ручного прогона скрипта v8.",
+    "Факты в вопросе Ивану и в PR: «все 12 строк - первый день товара в файле» верно для 3 из 12 (у 9 GGT-03-5-1 первый день в coinv_daily 16.10, 17.10 второй); в перечне открытого нет coinv_daily 12.10 GGT-47-5-1-90 (coinv_paid_pct 0.0, site_paid == cap, data/coinv_daily.ndjson:58617); «приёмка 17.10 gap_daily - выполнено» умалчивает, что утренний срез 17.10 (41c44c9) нёс те же 9 нулей со SKU; новых тестов 10, а не 9; tsc --noEmit даёт 41 ошибку в 10 файлах, а не 3 (одинаково на main и HEAD, файлов PR среди них нет).",
+    "Живой тест gap-daily.test.ts:80-85 («нулей после 16.10 в ряду нет») противоречит правилу читателя «ноль со SKU остаётся честным нулём» (gap-daily.ts:65): на срезах 1a8310e, 41c44c9, bd6a454 он красный. После слияния analytics-tests на main (push в analytics-mvp/**) покраснеет на первом нуле со SKU, в том числе честном (выход из бустинга - стоп-критерий спеки). Если это намеренный сторож, записать это в decisions.md и в текст теста (что делать: скрипт v8 или вопрос Ивану).",
+    "Сроки: вопрос Ивану без даты; до слияния ночной prices-daily на main пишет нули (ozon-snapshots.yml:264). Если PR не слит до ночного прогона 20.10, нужен повторный merge main, повтор скрипта v8 и новый хеш, то есть узкий повторный аудит (дифф данных плюс хеш); go ниже действует только на 771d7a716511bfb6.",
+    "Остаток iter1, на повестке Ивана: coinv_daily 17.10 держит 9 нулей со SKU (site_paid == cap), gap_daily за тот же день у тех же товаров 47.53-47.63 - два файла расходятся на дату приёмки. На видимые поверхности влияет слабо (build-tests удаляет coinv при наличии gap_daily; медиана 17.10 по coinv_daily 53.200 против 53.240 без них), но правило «цена сайта равна нашей» ждёт решения."
+  ],
+  "rework_tz": "",
+  "confidence": 0.8,
+  "p9_triggers_fired": [
+    "денежных утверждений нет; пороги 0.9 и 0.15 помечены [ДАННЫЕ] как история ряда одного семейства (API), проверены пересчётом 30 дней main: максимум 6.7 % 08.10 (31 из 463), 15-19.10 100 %, дней между 6.7 и 90 % нет"
+  ],
+  "telemetry": {
+    "model": "claude-opus-5-5"
+  },
+  "anchor": "anchor: 8.1 dialogs-registry (go после доработки) - наш артефакт выше на 0.25, потому что данные воспроизведены независимым прогоном скрипта v8 на снимке main байт в байт по трём файлам, P1 проверен на настоящем main() на восьми долях, полный прогон 1108/1108 и сборка страницы на HEAD; ниже 8.5 timur-activation iter3, потому что своя live-проба G1b нашла поверхность (вкладка плана), которая на строке без витрины рисует 0,0% и «выпал из бустинга?», а защита повтора для gap_daily в проде не срабатывает (писатель мака заменяет строку). К iter1 этого PR (7.3) +1.05, типичный шаг итерации 2.",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {"id": "H1", "result": "PASS", "evidence": "audit_hash.py --rev 7ab055d и --rev HEAD (5634f91) = 771d7a716511bfb6, совпал с запросом; 12 путей хеша, все в охвате; 7ab055d..HEAD трогает только selfcheck-nodata-iter2.md и traces/2026-10-19; origin/main ушёл на 58b5ad2 (только seo-geo, файлы PR не тронуты, gh api compare)"},
+    {"id": "T1", "result": "PASS", "evidence": "cd analytics-mvp && npx vitest run: Test Files 67 passed, Tests 1108 passed (1108), 180 с; новых it() в диффе 10"},
+    {"id": "T2", "result": "PASS", "evidence": "tsc --noEmit -p . на git archive 249cc53 и HEAD: 41 ошибка в 10 файлах в обоих, распределение одинаковое, файлов PR нет; claim PR «3 ошибки» не воспроизводится"},
+    {"id": "F1", "result": "PASS", "evidence": "fix_nodata_1610.py на копии данных main 249cc53 (cwd scratch): prices_daily 2356, coinv_daily 11, gap_daily 11, все три файла == HEAD байт в байт (cmp); второй прогон 0/0/0, sha1 не меняется; пар для gap_daily 11"},
+    {"id": "S1", "result": "PASS", "evidence": "HEAD против main построчно: prices_daily 2356 строк 15-19.10 (464 + 473 x 4), меняются только before и coinv; coinv_daily 11 строк, только coinv_paid_pct; gap_daily 11 строк, только gap_pct, site_to_seller, no_site; остальное байт в байт, число строк то же"},
+    {"id": "B2", "result": "PASS", "evidence": "доля price == before по 30 дням main: 19.09-21.09 0 %, 23.09-14.10 от 2.8 до 6.7 % (08.10, 31 из 463), 15-19.10 100 %; дней между 6.7 и 90 % нет; правило 0.9 срабатывает ровно на 15-19.10"},
+    {"id": "B3", "result": "PASS", "evidence": "0 повторов (d, offer) в prices_daily на 14 349 строк; 0 повторов (date, art) в coinv_daily (61 940) и gap_daily (13 401)"},
+    {"id": "B4", "result": "PASS", "evidence": "повтор iter1: readGapDaily на HEAD - rows 13 390, noSite 11, bad 0, нулей в ряду 3, все со SKU (20.09 x2, 12.10); тем же кодом на данных main noSite 2 и 12 нулей. katya-tests.html собрана в scratch (OUT_DIR, DATA_DIR) на HEAD и на данных main: контроль 16.10 47.6 -> 48.3, сдвиг тест-контроль -1 943 -> -1 920 руб и +602 -> +648 руб, prices_raw 12 385 -> 12 376"},
+    {"id": "M1", "result": "PASS", "evidence": "повтор iter1: mergeCoinv, хранилось {sku 123, coinv_paid_pct 55, site_paid 5000}, срез того же дня с sku '', без sku, null, пробелы и coinv 0 -> {sku 123, 55, site_paid 5000, cap 11900}; повторный срез идемпотентен; readGapDaily: утро 47.53 + вечер '' 0 -> 47.53"},
+    {"id": "P1", "result": "PASS", "evidence": "повтор iter1 на настоящем main() (копия prices-daily.ts, отличие 2 строки: заглушка API и путь вывода в scratch): доли 5 и 14 % - записано, warning нет; 15/50/85/89 % - записано как есть (нулей coinv 15/50/85/89) и warning «price == before у N %»; 90 и 100 % - before null у 100 из 100, warning «OZON не отдал цену до акций»"},
+    {"id": "N1", "result": "PASS", "evidence": "строки no_site (gap_pct и site_to_seller null) пропускают readGapDaily, plan-tab.ts:460, build-tests.ts:2004; строки coinv_daily без поля дают NaN и отсекаются Number.isFinite (build-tests.ts:242, 256); страница на HEAD собирается (1006 KB)"},
+    {"id": "B6", "result": "PASS", "evidence": "данные по 19.10 утро (23b70ce, 249cc53); ночной прогон 20.10 на main допишет prices_daily нулями, пока PR не слит"},
+    {"id": "B7", "result": "PASS", "evidence": "нового пути наружу нет; страница пересобирается CI (ozon-snapshots.yml)"},
+    {"id": "G1b", "result": "FAIL", "evidence": "planBlock(19.10) из plan-tab.ts на живых данных HEAD, gap_daily подменён копией с одной строкой {date 2026-10-19, art GGT-48-2-2-100-180, sku '', gap_pct 0}: база «53,8% 56,6% +2,7 п.п.», с строкой «53,8% 0,0% -53,8 п.п. выпал из бустинга?»; readGapDaily на той же копии 56.57; цикл build-tests.ts:2003-2008 на утро 47.53 + вечер '' 0 даёт 0"},
+    {"id": "W1", "result": "FAIL", "evidence": "gap_daily: 0 повторов ключа на 13 401 строку, одна метка snap на день (15-18.10 вечер, 19.10 утро); git diff --numstat 1a8310e^ 1a8310e и bd6a454^ bd6a454: gap_daily +473/-473 (замена дня). Ветка повтора gap-daily.ts:88 на реальном файле не исполняется"},
+    {"id": "R1", "result": "PARTIAL", "evidence": "readGapDaily кода PR на git show <коммит>:gap_daily.ndjson: 710ec0d noSite 11, нулей с 16.10 0; 1a8310e noSite 2, нулей 9; 41c44c9 - 18; bd6a454 - 9. Живое правило закрывает 1 из 4 срезов, остальное держится на разовой метке скрипта v8 и вопросе Ивану"},
+    {"id": "L1", "result": "PARTIAL", "evidence": "условие живого теста gap-daily.test.ts:83-84 на тех же срезах: GREEN на 710ec0d, RED на 1a8310e, 41c44c9, bd6a454; тест красный и на честном нуле со SKU"},
+    {"id": "V1", "result": "FAIL", "evidence": "проверка «все 12 строк - первый день товара в файле»: gap_daily 20.09 x2 и 12.10 - первый день; coinv_daily 17.10 у 9 GGT-03-5-1 - второй (первый 16.10); на следующий день 46.19-52.72 % подтверждено"},
+    {"id": "C3", "result": "PASS", "evidence": "em dash в добавленных строках диффа merge-base..HEAD (src, decisions.md, semantic): 0; в fix_nodata_1610.py и selfcheck-nodata-iter2.md: 0"},
+    {"id": "C4", "result": "PASS", "evidence": "grep запрещённых формул (выглядит хорошо, отлично подойдёт, индивидуальный подход, уникальный актив, выстрелит) по добавленным строкам: 0"},
+    {"id": "D1", "result": "PASS", "evidence": "самопровозглашённых оценок вида N.N/10 в добавленных строках нет; «ФЕНИКС return 7,3» в коммите и PR - ссылка на отчёт iter1"}
+  ],
+  "evidence_ledger": [
+    {"gap": "G1b: plan-tab и тест ставок читают gap_daily в обход readGapDaily; запись decisions.md 19.10 п.(2) про «скидку OZON» плана неверна для живых строк", "evidence": "probe_plan.ts: planBlock на данных HEAD плюс одна строка без витрины - «0,0% -53,8 п.п. выпал из бустинга?», readGapDaily 56.57; plan-tab.ts:459-463, build-tests.ts:2003-2008; спека ozon-price-test-gap-shift.yaml empty_value", "checkpoint": "accuracy_3_no_conflict_with_rag", "weight": -1},
+    {"gap": "Факты для Ивана и PR: первый день, неполный перечень, приёмка 17.10, число тестов и ошибок tsc", "evidence": "firstday.py (3 из 12 первый день); data/coinv_daily.ndjson:58617; git show 41c44c9:analytics-mvp/data/gap_daily.ndjson (9 нулей со SKU 17.10 утро); grep -c '^+ *it(' = 10; tsc 41 ошибка на main и HEAD", "checkpoint": "accuracy_2_sources_verifiable", "weight": -1},
+    {"gap": "Защита повтора для gap_daily в проде не срабатывает: писатель мака заменяет строку", "evidence": "snaps.py: 0 повторов ключа, одна метка snap на день; git diff --numstat 1a8310e^ 1a8310e: +473/-473; gap-daily.ts:88", "checkpoint": "risk_23_crisis_scenarios", "weight": -1},
+    {"gap": "Зависимости не записаны: два прямых читателя gap_daily, семантика писателя мака, analytics-tests на main от живого теста", "evidence": "grep gap_daily src: plan-tab.ts:459, build-tests.ts:2003; analytics-tests.yml:16-20 (push в main по analytics-mvp/**); probe_live.ts: RED на 3 из 4 срезов", "checkpoint": "risk_24_dependencies", "weight": -1},
+    {"gap": "Второй порядок: тот же класс, что G1 iter1 (соседний производитель), теперь соседний читатель того же поля", "evidence": "self-check 24 называет писатель и CI, но не plan-tab:459 и build-tests:2003; память ФЕНИКСА «кто ещё читает это поле»", "checkpoint": "insight_12_second_order", "weight": -1},
+    {"gap": "Срок решения Ивана не задан; окно до ночного прогона 20.10", "evidence": "self-check 7 «частично»; PR «Открыто Ивану» без даты; ozon-snapshots.yml:264 (ночной prices:daily на main)", "checkpoint": "actionability_7_deadline_buffer", "weight": -1}
+  ],
+  "sources_of_truth": [
+    "249cc53:analytics-mvp/data/prices_daily.ndjson, coinv_daily.ndjson, gap_daily.ndjson (эталон main до правки)",
+    "срезы мака 710ec0d, 1a8310e, 41c44c9, bd6a454 (gap_daily и coinv_daily 16-17.10)",
+    "analytics-mvp/src/scripts/plan-tab.ts:452-470, build-tests.ts:236-262, :301-330, :2003-2008, gap-daily.ts:61-107, coinv-merge.ts:49-80, prices-daily.ts:53-129",
+    "analytics-mvp/tools/tests/README.md:330 (мак сливает coinv через npm run coinv:merge)",
+    ".github/workflows/analytics-tests.yml:11-20, ozon-snapshots.yml:264",
+    "knowledge/episodes/2026-10/feniks-audit-ozon-coinv-nodata-20261016.md (Rework TZ iter1)"
+  ],
+  "audience": "Иван (CMO), автор PR"
+}

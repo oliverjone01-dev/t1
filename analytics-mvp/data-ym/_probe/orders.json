@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-14T12:20:55.813Z",
+  "at": "2026-10-18T11:40:35.091Z",
   "dateFormatAccepted": "iso",
   "shape": {
     "id": "number",
@@ -33,22 +33,7 @@
         "bidFee": "number"
       }
     ],
-    "payments": [
-      {
-        "id": "string",
-        "date": "string",
-        "type": "string",
-        "source": "string",
-        "total": "number"
-      }
-    ],
-    "subsidies": [
-      {
-        "operationType": "string",
-        "type": "string",
-        "amount": "number"
-      }
-    ],
+    "payments": [],
     "commissions": [],
     "buyerType": "string",
     "currency": "string"

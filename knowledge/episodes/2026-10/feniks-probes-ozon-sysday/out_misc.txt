@@ -1,0 +1,47 @@
+# H1 audit_hash
+HEAD 33b3496e04e94273
+30abf83 33b3496e04e94273
+5324cf4 33b3496e04e94273
+worktree 33b3496e04e94273
+merge-base ada2e83, origin/main ada2e83
+hash paths:
+analytics-mvp/src/scripts/build-tests.ts
+analytics-mvp/src/scripts/gap-daily.test.ts
+analytics-mvp/src/scripts/gap-daily.ts
+analytics-mvp/src/scripts/ozon/coinv-merge-nosite.test.ts
+analytics-mvp/src/scripts/ozon/coinv-merge.ts
+knowledge/decisions.md
+knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml
+30abf83 paths:
+analytics-mvp/src/scripts/build-tests.ts
+analytics-mvp/src/scripts/gap-daily.test.ts
+analytics-mvp/src/scripts/gap-daily.ts
+analytics-mvp/src/scripts/ozon/coinv-merge-nosite.test.ts
+analytics-mvp/src/scripts/ozon/coinv-merge.ts
+knowledge/decisions.md
+knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml
+# CI: check-runs on PR heads (none = not run)
+30abf83: 0
+5324cf4: 0
+head commit message: Self-check 25 пунктов для ФЕНИКСА: follow-up K2/P1/L3 к #487 [skip ci]
+# coinv_daily: rows in the mac format (fields snap/ts, never written by mergeCoinv)
+rows with snap: 10353 of 61940
++{"date": "2026-10-19", "art": "B-100-150-9003", "sku": "3564836726", "coinv_paid_pct": 52.1, "site_paid": 20548, "cap": 42900, "oa_source": "snapshot", "in_panel": true, "snap": "утро", "ts": "2026-10-19T07:09:15+03:00"}
+# diff hygiene (30abf83 added lines + self-check)
+added lines: 149, U+2014: 0
+anti-slop hits (21 phrases): 0
+self-claimed X.X/10: 0
+# texts: three surfaces of the same stop signal at HEAD
+HEAD:analytics-mvp/src/scripts/plan-tab.ts:26://    товар, похоже, выпал из Эластичного бустинга. Строка с метк�
+HEAD:analytics-mvp/src/scripts/plan-tab.ts:463:    // ноль у карточки с историей проходит и зажигает чип «выпал 
+HEAD:analytics-mvp/src/scripts/plan-tab.ts:480:      + `<td class="r">${g0 == null ? "-" : `${F(g0, 1)}%`}</td><td class="r">${gp == null ? "-" : `${F(gp, 1)}%`
+HEAD:analytics-mvp/src/scripts/plan-tab.ts:484:    + `<th class="r" title="Скидка OZON по последнему срезу и изменение к 14.10
+HEAD:analytics-mvp/tools/tests/tests.json:384:Стоп, вернуть цену: доля показов за день ниже половины базы 3 дня подряд или товар вып
+HEAD:knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml:76:выход из «Эластичного бустинга» разрыв не обваливает
+HEAD:analytics-mvp/src/scripts/build-tests.ts:2574:OZON перестал доплачивать, вернуть цену; если это сбой витрины на один день, строке в gap_daily ставится no_site
+# decisions 19.10 p.(4) still without the accrued 87 of 90 caveat; p.(6) floor 50 under Ivan's header
+HEAD:knowledge/decisions.md:6:01-14.10: 135 из 146 заказов в ±2%, медиана 1,000
+87 из 90 in decisions: 0
+HEAD:knowledge/decisions.md:6:(6) Иван 19.10 после ФЕНИКСА iter4 (go 8,35; K2, вариант «рекомендую»): системный день - если цена сайта равна нашей у 90% строк дня и больше �
+# WARNING text in build-tests hardcodes 90%
+HEAD:analytics-mvp/src/scripts/build-tests.ts:311:for (const d of GAP.systemDays) console.log(`gap_daily: WARNING ${d} - системный день: цена сайта 

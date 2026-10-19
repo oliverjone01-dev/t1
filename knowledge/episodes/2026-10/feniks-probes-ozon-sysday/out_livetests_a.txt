@@ -1,0 +1,4 @@
+== 30abf83 v0 exit=0  Tests 32 passed (32)
+== 30abf83 vZ exit=0  Tests 32 passed (32)
+== 30abf83 vU exit=0  Tests 32 passed (32)
+== 30abf83 vW exit=0  Tests 32 passed (32)

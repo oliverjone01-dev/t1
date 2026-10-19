@@ -1,0 +1,40 @@
+== 30abf83 vMass exit=1  Tests 3 failed | 29 passed (32)
+   × живой файл data/gap_daily.ndjson > ноль в ряду только у карточки с историей: строка без витрины у новой карточки помечена no_site (14 строк на 19.10, v8/fix_nodata_1610.py) 54ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10) 39ms
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один прошлый день не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%] 44ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > ноль в ряду только у карточки с историей: строка без витрины у новой карточки помечена no_site (14 строк на 19.10, v8/fix_nodata_1610.py)
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10)
+AssertionError: expected [ '2026-10-19 GGM-15-1-1', …(472) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один прошлый день не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+== 30abf83 vS90 exit=1  Tests 3 failed | 29 passed (32)
+   × живой файл data/gap_daily.ndjson > ноль в ряду только у карточки с историей: строка без витрины у новой карточки помечена no_site (14 строк на 19.10, v8/fix_nodata_1610.py) 52ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10) 41ms
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один прошлый день не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%] 40ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > ноль в ряду только у карточки с историей: строка без витрины у новой карточки помечена no_site (14 строк на 19.10, v8/fix_nodata_1610.py)
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10)
+AssertionError: expected [ '2026-10-19 GGM-15-1-1', …(425) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один прошлый день не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+== 30abf83 vS89 exit=0  Tests 32 passed (32)
+== 30abf83 vN50 exit=1  Tests 3 failed | 29 passed (32)
+   × живой файл data/gap_daily.ndjson > ноль в ряду только у карточки с историей: строка без витрины у новой карточки помечена no_site (14 строк на 19.10, v8/fix_nodata_1610.py) 53ms
+   × живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10) 34ms
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один прошлый день не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%] 40ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > ноль в ряду только у карточки с историей: строка без витрины у новой карточки помечена no_site (14 строк на 19.10, v8/fix_nodata_1610.py)
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10)
+AssertionError: expected [ '2026-10-19 GGM-01-1', …(49) ] to deeply equal []
+ FAIL  src/scripts/gap-daily.test.ts > системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один прошлый день не задевает [ДАННЫЕ gap_daily 19.10: максимум 1,9%]
+AssertionError: expected [ '2026-10-19' ] to deeply equal []
+== 30abf83 vN49 exit=0  Tests 32 passed (32)
+== 30abf83 vPfix exit=1  Tests 1 failed | 31 passed (32)
+   × живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10) 53ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10)
+AssertionError: expected [ '2026-10-15 GGK-02-3-3-80' ] to deeply equal []
+== 30abf83 vZfix exit=1  Tests 1 failed | 31 passed (32)
+   × живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10) 49ms
+ FAIL  src/scripts/gap-daily.test.ts > живой файл data/gap_daily.ndjson > каждая метка no_site, в файле или при чтении, стоит у карточки без истории (Иван 19.10)
+AssertionError: expected [ '2026-10-19 GGK-02-3-3-80' ] to deeply equal []

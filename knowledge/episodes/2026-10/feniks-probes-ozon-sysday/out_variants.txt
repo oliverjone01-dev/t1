@@ -1,0 +1,14 @@
+v0     rows  13401  as is
+vZ     rows  13401  in place 3
+vU     rows  13401  unlabeled 14
+vW     rows  13402  new card 20.10 unlabeled zero
+vMass  rows  13401  19.10 rows -> zero: 473
+19.10: n 473, ceil(0.9 n) 426, test-4 present 10, plan present 29
+vS90   rows  13401  19.10 zero 426 of 473 = 90.06%, test-4 zero 10, plan zero 29
+vS89   rows  13401  19.10 zero 425 of 473 = 89.85%, test-4 zero 10, plan zero 29
+vKeep  rows  13401  19.10 zero 426 of 473 = 90.06%, kept non-zero GGK-05-2-3-7040 = 50.3
+vN50   rows  12978  19.10 cut to 50 rows all zero, test-4 10, plan 29
+vN49   rows  12977  19.10 cut to 49 rows all zero, test-4 10, plan 29
+vP     rows  13401  glitch ('2026-10-15', 'GGK-02-3-3-80'), later days [('10-16', 48.82), ('10-17', 48.55), ('10-18', 48.55), ('10-19', 48.55)]
+vPfix  rows  13401  vP + no_site: true on the glitch row (documented procedure)
+vZfix  rows  13401  vZ + no_site: true on GGK-02-3-3-80 19.10

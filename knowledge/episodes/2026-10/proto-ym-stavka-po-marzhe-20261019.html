@@ -36,14 +36,14 @@ h1{font-size:22px;margin:0 0 4px} h2{font-size:17px;margin:28px 0 8px}
 </div></div>
 
 <div class="card"><table class="t" id="tb"><thead>
-<tr><th class="g" colspan="4">артикул</th><th class="g" colspan="3">приход на 1 шт</th><th class="g" colspan="5">сборы Маркета деньгами</th><th class="g" colspan="6">наши расходы и прибыль</th><th class="g" colspan="2">баллами (справочно)</th><th class="g" colspan="3">ставка буста</th></tr>
+<tr><th class="g" colspan="4">артикул</th><th class="g" colspan="5">итог на 1 шт</th><th class="g" colspan="3">приход на 1 шт</th><th class="g" colspan="5">сборы Маркета деньгами</th><th class="g" colspan="4">наши расходы</th><th class="g" colspan="2">баллами (справочно)</th></tr>
 <tr>
 <th data-k="sku">SKU</th><th data-k="cab">кабинет</th><th data-k="u">штук</th><th data-k="price">цена карточки<br><span>сейчас в каталоге</span></th>
+<th data-k="net" class="k">чистая<br><span>с 1 шт</span></th><th data-k="netpct">чистая<br><span>% от Начислено</span></th><th data-k="cur">ставка факт<br><span>списано, деньги+баллы</span></th><th data-k="maxb" class="k">МАКС ставка<br><span>в ноль</span></th><th data-k="wantb" class="k">ставка при<br>нужной прибыли</th>
 <th data-k="acc">Начислено<br><span>деньги покупателя</span></th><th data-k="pts">баллы скидки<br><span>Маркет + Плюс</span></th><th data-k="payout">К выплате<br><span>после сборов деньгами</span></th>
 <th data-k="place_m">размещение</th><th data-k="pay_m">платёж</th><th data-k="dlv_m">доставка</th><th data-k="boost_m">буст</th><th data-k="oth_m">прочее</th>
-<th data-k="cogs">С/С</th><th data-k="ship">наша<br>доставка</th><th data-k="adm">АДМ</th><th data-k="tax">налог</th><th data-k="net" class="k">чистая<br><span>с 1 шт</span></th><th data-k="netpct">чистая<br><span>% от Начислено</span></th>
+<th data-k="cogs">С/С</th><th data-k="ship">наша<br>доставка</th><th data-k="adm">АДМ</th><th data-k="tax">налог</th>
 <th data-k="place_p">размещение</th><th data-k="boost_p">буст</th>
-<th data-k="cur">факт<br><span>списано, деньги+баллы</span></th><th data-k="maxb" class="k">МАКС<br><span>в ноль</span></th><th data-k="wantb" class="k">при нужной<br>прибыли</th>
 </tr></thead><tbody></tbody></table>
 <p class="mute">Как читать. «Чистая» = К выплате − С/С − наша доставка − АДМ − налог, как на вкладке «Отчет»; при «буст баллами = да» минус ещё буст баллами. «МАКС в ноль» = (чистая + буст) / цена карточки: списанная ставка, при которой заказ выходит в ноль. «При нужной прибыли» = (чистая + буст − нужная прибыль) / цена карточки. Списывают уровень конкурента, не потолок кампании, поэтому «факт» ниже ставки в кабинете. Пометка <span class="w">!</span> у нашей доставки: в ведомости перевозчика есть заказы без суммы, расход занижен.</p>
 </div>
@@ -82,11 +82,11 @@ function draw(){var cab=document.getElementById('cab').value,minu=+document.getE
  var rows=R.filter(function(r){return (!cab||r.cab===cab)&&r.u>=minu;}).map(calc);
  rows.sort(function(a,b){var x=a[sortK],y=b[sortK];if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*sortD;});
  var h='';rows.forEach(function(r){h+='<tr><td title="'+r.name.replace(/"/g,'')+'">'+r.sku+'</td><td>'+r.cab+'</td><td>'+r.u+'</td><td>'+f0(r.price)+(r.cat?' <span class="tag">'+f0(r.cat)+'</span>':'')+'</td>'
- +'<td>'+f0(r.acc)+'</td><td>'+f0(r.pts)+'</td><td class="c2">'+f0(r.payout)+'</td>'
+ +'<td class="k c2"'+cls(r.net)+'>'+f0(r.net)+'</td><td class="c2"'+cls(r.netpct)+'>'+f1(r.netpct)+'</td><td class="c2">'+f1(r.cur)+'</td><td class="k c2"'+cls(r.maxb)+'>'+f1(r.maxb)+'</td><td class="k c2"'+cls(r.wantb)+'>'+f1(r.wantb)+'</td>'
+ +'<td>'+f0(r.acc)+'</td><td>'+f0(r.pts)+'</td><td>'+f0(r.payout)+'</td>'
  +'<td>'+f0(r.place_m)+'</td><td>'+f0(r.pay_m)+'</td><td>'+f0(r.dlv_m)+'</td><td>'+f0(r.boost_m)+'</td><td>'+f0(r.oth_m)+'</td>'
- +'<td>'+(r.cogs==null?'<span class="w">нет</span>':f0(r.cogs))+'</td><td>'+f0(r.ship)+(r.shipflag?' <span class="w">!</span>':'')+'</td><td>'+f0(r.adm)+'</td><td>'+f0(r.tax)+'</td><td class="k"'+cls(r.net)+'>'+f0(r.net)+'</td><td'+cls(r.netpct)+'>'+f1(r.netpct)+'</td>'
- +'<td>'+f0(r.place_p)+'</td><td>'+f0(r.boost_p)+'</td>'
- +'<td>'+f1(r.cur)+'</td><td class="k c2"'+cls(r.maxb)+'>'+f1(r.maxb)+'</td><td class="k"'+cls(r.wantb)+'>'+f1(r.wantb)+'</td></tr>';});
+ +'<td>'+(r.cogs==null?'<span class="w">нет</span>':f0(r.cogs))+'</td><td>'+f0(r.ship)+(r.shipflag?' <span class="w">!</span>':'')+'</td><td>'+f0(r.adm)+'</td><td>'+f0(r.tax)+'</td>'
+ +'<td>'+f0(r.place_p)+'</td><td>'+f0(r.boost_p)+'</td></tr>';});
  document.querySelector('#tb tbody').innerHTML=h;document.getElementById('cnt').textContent='артикулов: '+rows.length;}
 document.querySelectorAll('#tb th[data-k]').forEach(function(th){th.onclick=function(){var k=th.dataset.k;if(sortK===k)sortD=-sortD;else{sortK=k;sortD=(k==='sku'||k==='cab')?1:-1;}draw();};});
 ['cab','minu','adm','tax','pts','want'].forEach(function(id){document.getElementById(id).oninput=draw;});

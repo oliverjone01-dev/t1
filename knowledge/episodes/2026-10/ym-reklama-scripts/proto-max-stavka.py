@@ -6,7 +6,7 @@ import json, sys, html
 J = json.load(open(sys.argv[1])); rows = [r for r in J['rows'] if r['u'] >= 1]
 ck = J['check']
 def esc(s): return html.escape(str(s))
-data = json.dumps([dict(sku=r['sku'], name=r['name'], cab=r['cab'], n=r['n'], u=r['u'], price=r['price'], cat=r['cat'], acc=r['acc'], pts=r['pts_in'],
+data = json.dumps([dict(sku=r['sku'], name=r['name'], cab=r['cab'], n=r['n'], u=r['u'], d0=r['d0'], d1=r['d1'], price=r['price'], cat=r['cat'], acc=r['acc'], pts=r['pts_in'],
                         place_m=r['m']['place'], pay_m=r['m']['pay'], dlv_m=r['m']['dlv'], boost_m=r['m']['boost'], oth_m=r['m']['fine'] + r['m']['other'],
                         place_p=r['p']['place'], boost_p=r['p']['boost'], oth_p=r['p']['dlv'] + r['p']['fine'] + r['p']['other'],
                         cogs=r['cogs'], ship=r['ship'], shipflag=r['shipflag']) for r in rows], ensure_ascii=False)
@@ -34,7 +34,8 @@ h1{{font-size:22px;margin:0 0 4px}} h2{{font-size:17px;margin:28px 0 8px}}
 .tag{{display:inline-block;padding:1px 6px;border-radius:5px;background:var(--c1);color:var(--mute);font-size:11px}}
 </style></head><body><main>
 <h1>Яндекс Маркет: ставка буста по марже артикула</h1>
-<p class="mute">Прототип блока для вкладки «Маркетинг», в дашборд не встроен. Заказы доставленные и не возвращённые, созданы {J['period'][0]}..{J['period'][1]}; проводки реестра взаиморасчётов по номеру заказа, себестоимость sku_cogs, наша доставка по ведомости перевозчика. На 1 штуку. Все цифры [ДАННЫЕ], ставки [РАСЧЁТ].
+<p><b>Период статистики: заказы, созданные с {J['period'][0]} по {J['period'][1]}</b> (три с половиной месяца, чтобы по артикулу набралось заказов), доставленные и не возвращённые. По каждому артикулу в таблице даты первого и последнего заказа.</p>
+<p class="mute">Прототип блока для вкладки «Маркетинг», в дашборд не встроен. проводки реестра взаиморасчётов по номеру заказа, себестоимость sku_cogs, наша доставка по ведомости перевозчика. На 1 штуку. Все цифры [ДАННЫЕ], ставки [РАСЧЁТ].
 Проверка: деньги по реестру = деньги по API заказов у {ck['ok']} из {ck['total']} заказов до рубля.</p>
 
 <div class="card"><div class="ctl">
@@ -48,16 +49,16 @@ h1{{font-size:22px;margin:0 0 4px}} h2{{font-size:17px;margin:28px 0 8px}}
 </div></div>
 
 <div class="card"><table class="t" id="tb"><thead>
-<tr><th class="g" colspan="4">артикул</th><th class="g" colspan="5">итог на 1 шт</th><th class="g" colspan="3">приход на 1 шт</th><th class="g" colspan="5">сборы Маркета деньгами</th><th class="g" colspan="4">наши расходы</th><th class="g" colspan="2">баллами (справочно)</th></tr>
+<tr><th class="g" colspan="5">артикул</th><th class="g" colspan="6">итог на 1 шт</th><th class="g" colspan="3">приход на 1 шт</th><th class="g" colspan="5">сборы Маркета деньгами</th><th class="g" colspan="4">наши расходы</th><th class="g" colspan="2">баллами (справочно)</th></tr>
 <tr>
-<th data-k="sku">SKU</th><th data-k="cab">кабинет</th><th data-k="u">штук</th><th data-k="price">цена карточки<br><span>сейчас в каталоге</span></th>
-<th data-k="net" class="k">чистая<br><span>с 1 шт</span></th><th data-k="netpct">чистая<br><span>% от Начислено</span></th><th data-k="cur">ставка факт<br><span>списано, деньги+баллы</span></th><th data-k="maxb" class="k">МАКС ставка<br><span>в ноль</span></th><th data-k="wantb" class="k">ставка при<br>нужной прибыли</th>
+<th data-k="sku">SKU</th><th data-k="cab">кабинет</th><th data-k="u">штук</th><th data-k="d0">заказы<br><span>с .. по</span></th><th data-k="price">цена карточки<br><span>сейчас в каталоге</span></th>
+<th data-k="pre">до АДМ<br>и налога<br><span>с 1 шт</span></th><th data-k="net" class="k">чистая<br><span>с 1 шт</span></th><th data-k="netpct">чистая<br><span>% от Начислено</span></th><th data-k="cur">ставка факт<br><span>списано, деньги+баллы</span></th><th data-k="maxb" class="k">МАКС ставка<br><span>в ноль</span></th><th data-k="wantb" class="k">ставка при<br>нужной прибыли</th>
 <th data-k="acc">Начислено<br><span>деньги покупателя</span></th><th data-k="pts">баллы скидки<br><span>Маркет + Плюс</span></th><th data-k="payout">К выплате<br><span>после сборов деньгами</span></th>
 <th data-k="place_m">размещение</th><th data-k="pay_m">платёж</th><th data-k="dlv_m">доставка</th><th data-k="boost_m">буст</th><th data-k="oth_m">прочее</th>
 <th data-k="cogs">С/С</th><th data-k="ship">наша<br>доставка</th><th data-k="adm">АДМ</th><th data-k="tax">налог</th>
 <th data-k="place_p">размещение</th><th data-k="boost_p">буст</th>
 </tr></thead><tbody></tbody></table>
-<p class="mute">Как читать. «Чистая» = К выплате − С/С − наша доставка − АДМ − налог, как на вкладке «Отчет»; при «буст баллами = да» минус ещё буст баллами. «МАКС в ноль» = (чистая + буст) / цена карточки: списанная ставка, при которой заказ выходит в ноль. «При нужной прибыли» = (чистая + буст − нужная прибыль) / цена карточки. Списывают уровень конкурента, не потолок кампании, поэтому «факт» ниже ставки в кабинете. Пометка <span class="w">!</span> у нашей доставки: в ведомости перевозчика есть заказы без суммы, расход занижен.</p>
+<p class="mute">Как читать. «До АДМ и налога» = К выплате − С/С − наша доставка (при «буст баллами = да» минус ещё буст баллами). «Чистая» = то же минус АДМ и налог, как на вкладке «Отчет». «МАКС в ноль» = (чистая + буст) / цена карточки: списанная ставка, при которой заказ выходит в ноль. «При нужной прибыли» = (чистая + буст − нужная прибыль) / цена карточки. Списывают уровень конкурента, не потолок кампании, поэтому «факт» ниже ставки в кабинете. Пометка <span class="w">!</span> у нашей доставки: в ведомости перевозчика есть заказы без суммы, расход занижен.</p>
 </div>
 
 <h2>Что в этих цифрах не так, как в прошлом разборе</h2>
@@ -87,14 +88,14 @@ var f1=function(x){{return x==null?'-':(Math.round(x*10)/10).toLocaleString('ru-
 var sortK='boost',sortD=-1;
 function calc(r){{var adm=+document.getElementById('adm').value/100,tax=+document.getElementById('tax').value/100,pts=document.getElementById('pts').value==='1',want=+document.getElementById('want').value;
  var fees=r.place_m+r.pay_m+r.dlv_m+r.boost_m+r.oth_m,payout=r.acc-fees,a=adm*payout,t=tax*r.acc;
- var net=r.cogs==null?null:payout-r.cogs-r.ship-a-t-(pts?r.boost_p:0);var boost=r.boost_m+(pts?r.boost_p:0);
- return Object.assign({{}},r,{{payout:payout,adm:a,tax:t,net:net,netpct:net==null?null:100*net/r.acc,boost:boost,cur:100*(r.boost_m+r.boost_p)/r.price,maxb:net==null?null:100*(net+boost)/r.price,wantb:net==null?null:100*(net+boost-want)/r.price}});}}
+ var pre=r.cogs==null?null:payout-r.cogs-r.ship-(pts?r.boost_p:0);var net=pre==null?null:pre-a-t;var boost=r.boost_m+(pts?r.boost_p:0);
+ return Object.assign({{}},r,{{payout:payout,adm:a,tax:t,pre:pre,net:net,netpct:net==null?null:100*net/r.acc,boost:boost,cur:100*(r.boost_m+r.boost_p)/r.price,maxb:net==null?null:100*(net+boost)/r.price,wantb:net==null?null:100*(net+boost-want)/r.price}});}}
 function cls(v){{return v==null?'':(v<0?' class="neg"':'');}}
 function draw(){{var cab=document.getElementById('cab').value,minu=+document.getElementById('minu').value;
  var rows=R.filter(function(r){{return (!cab||r.cab===cab)&&r.u>=minu;}}).map(calc);
  rows.sort(function(a,b){{var x=a[sortK],y=b[sortK];if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*sortD;}});
- var h='';rows.forEach(function(r){{h+='<tr><td title="'+r.name.replace(/"/g,'')+'">'+r.sku+'</td><td>'+r.cab+'</td><td>'+r.u+'</td><td>'+f0(r.price)+(r.cat?' <span class="tag">'+f0(r.cat)+'</span>':'')+'</td>'
- +'<td class="k c2"'+cls(r.net)+'>'+f0(r.net)+'</td><td class="c2"'+cls(r.netpct)+'>'+f1(r.netpct)+'</td><td class="c2">'+f1(r.cur)+'</td><td class="k c2"'+cls(r.maxb)+'>'+f1(r.maxb)+'</td><td class="k c2"'+cls(r.wantb)+'>'+f1(r.wantb)+'</td>'
+ var h='';rows.forEach(function(r){{h+='<tr><td title="'+r.name.replace(/"/g,'')+'">'+r.sku+'</td><td>'+r.cab+'</td><td>'+r.u+'</td><td class="mute">'+r.d0.slice(5).replace('-','.')+' .. '+r.d1.slice(5).replace('-','.')+'</td><td>'+f0(r.price)+(r.cat?' <span class="tag">'+f0(r.cat)+'</span>':'')+'</td>'
+ +'<td class="c2"'+cls(r.pre)+'>'+f0(r.pre)+'</td><td class="k c2"'+cls(r.net)+'>'+f0(r.net)+'</td><td class="c2"'+cls(r.netpct)+'>'+f1(r.netpct)+'</td><td class="c2">'+f1(r.cur)+'</td><td class="k c2"'+cls(r.maxb)+'>'+f1(r.maxb)+'</td><td class="k c2"'+cls(r.wantb)+'>'+f1(r.wantb)+'</td>'
  +'<td>'+f0(r.acc)+'</td><td>'+f0(r.pts)+'</td><td>'+f0(r.payout)+'</td>'
  +'<td>'+f0(r.place_m)+'</td><td>'+f0(r.pay_m)+'</td><td>'+f0(r.dlv_m)+'</td><td>'+f0(r.boost_m)+'</td><td>'+f0(r.oth_m)+'</td>'
  +'<td>'+(r.cogs==null?'<span class="w">нет</span>':f0(r.cogs))+'</td><td>'+f0(r.ship)+(r.shipflag?' <span class="w">!</span>':'')+'</td><td>'+f0(r.adm)+'</td><td>'+f0(r.tax)+'</td>'

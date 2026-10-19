@@ -61,11 +61,12 @@ for r in dl:
 ok = len(dl) - len(mism); gap_med = statistics.median(gaps) if gaps else 0
 ship = collections.defaultdict(lambda: [0.0, 0.0, 0, 0])
 for r in pnl: s = ship[r['sku']]; s[0] += r['ship'] or 0; s[1] += r['units'] or 0; s[2] += r['shipn'] or 0; s[3] += r['shipk'] or 0
-S = collections.defaultdict(lambda: collections.defaultdict(float)); names = {}
+S = collections.defaultdict(lambda: collections.defaultdict(float)); names = {}; dates = {}
 for r in dl:
     t = L.get(r['order'])
     if not t: continue
     s = S[r['sku']]; s['n'] += 1; s['u'] += r['count']; s['price'] += r['price'] * r['count']; s['business'] = r['business']; names[r['sku']] = r['name']
+    dates.setdefault(r['sku'], [r['created'], r['created']]); dates[r['sku']][0] = min(dates[r['sku']][0], r['created']); dates[r['sku']][1] = max(dates[r['sku']][1], r['created'])
     for k, v in t.items(): s[k] += v
 rows = []
 for sku, s in S.items():
@@ -77,7 +78,7 @@ for sku, s in S.items():
     net_rep = payout - (cg or 0) - shp - adm - tax
     net_pts = net_rep - p['boost']
     boost_m, boost_p = m['boost'], p['boost']
-    r = dict(sku=sku, name=names.get(sku, ''), cab=CAB.get(s['business'], '?'), n=s['n'], u=u, price=price, cat=cat.get(sku, {}).get('price'),
+    r = dict(sku=sku, name=names.get(sku, ''), cab=CAB.get(s['business'], '?'), n=s['n'], u=u, price=price, d0=dates[sku][0], d1=dates[sku][1], pre=payout - (cg or 0) - shp, cat=cat.get(sku, {}).get('price'),
              acc=acc, pts_in=s['pts_in'] / u, m=m, p=p, fees=fees, payout=payout, cogs=cg, ship=shp, shipflag=sh[3] < sh[2], adm=adm, tax=tax,
              net_rep=net_rep, net_pts=net_pts, boost_m=boost_m, boost_p=boost_p, boost=boost_m + boost_p,
              cur=100 * (boost_m + boost_p) / price, max_rep=100 * (net_rep + boost_m) / price, max_pts=100 * (net_pts + boost_m + boost_p) / price)

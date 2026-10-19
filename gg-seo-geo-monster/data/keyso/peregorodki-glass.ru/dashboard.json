@@ -2,7 +2,7 @@
   "domain": "peregorodki-glass.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-10-05T09:32:20.216Z",
+  "measured": "2026-10-19T08:04:30.735Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=peregorodki-glass.ru",
   "data": {
     "id": 309180640,
@@ -12,97 +12,91 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 164,
-        "it50": 20429102,
-        "vis": 2460454,
-        "perc": 0.0008027763530673057
+        "cnt": 162,
+        "it50": 20514167,
+        "vis": 2497083,
+        "perc": 0.0007896981632254432
       },
       {
         "did": 30700481,
         "name": "gstrong.ru",
-        "cnt": 156,
-        "it50": 3748,
-        "vis": 51,
-        "perc": 4.16221985058698
+        "cnt": 146,
+        "it50": 3540,
+        "vis": 48,
+        "perc": 4.124293785310734
       },
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 136,
-        "it50": 9707,
-        "vis": 143,
-        "perc": 1.4010507880910683
+        "cnt": 138,
+        "it50": 9621,
+        "vis": 141,
+        "perc": 1.4343623323978798
       },
       {
         "did": 278166136,
         "name": "zavod-peregorodok.ru",
-        "cnt": 136,
-        "it50": 1002,
-        "vis": 6,
-        "perc": 13.572854291417165
+        "cnt": 132,
+        "it50": 985,
+        "vis": 8,
+        "perc": 13.401015228426397
       },
       {
         "did": 30670319,
         "name": "oki-doki.ru",
-        "cnt": 132,
-        "it50": 1958,
-        "vis": 58,
-        "perc": 6.741573033707866
-      },
-      {
-        "did": 322813373,
-        "name": "lain-loft.ru",
-        "cnt": 121,
-        "it50": 6679,
-        "vis": 309,
-        "perc": 1.8116484503668213
-      },
-      {
-        "did": 272188389,
-        "name": "fdmebel.ru",
-        "cnt": 118,
-        "it50": 2303,
-        "vis": 132,
-        "perc": 5.123751628310899
+        "cnt": 129,
+        "it50": 1862,
+        "vis": 54,
+        "perc": 6.928034371643394
       },
       {
         "did": 239735018,
         "name": "glgrup.ru",
-        "cnt": 118,
-        "it50": 1649,
+        "cnt": 117,
+        "it50": 1663,
         "vis": 17,
-        "perc": 7.1558520315342635
+        "perc": 7.0354780517137705
+      },
+      {
+        "did": 322813373,
+        "name": "lain-loft.ru",
+        "cnt": 117,
+        "it50": 6641,
+        "vis": 315,
+        "perc": 1.761782864026502
+      },
+      {
+        "did": 272188389,
+        "name": "fdmebel.ru",
+        "cnt": 113,
+        "it50": 2245,
+        "vis": 128,
+        "perc": 5.033407572383074
       },
       {
         "did": 329921063,
         "name": "doors4u.ru",
-        "cnt": 113,
-        "it50": 9611,
-        "vis": 907,
-        "perc": 1.175736135677869
+        "cnt": 112,
+        "it50": 9792,
+        "vis": 827,
+        "perc": 1.1437908496732025
       },
       {
-        "did": 30773214,
-        "name": "zerist.ru",
-        "cnt": 109,
-        "it50": 3953,
-        "vis": 56,
-        "perc": 2.757399443460663
+        "did": 30392765,
+        "name": "peregorodok.net",
+        "cnt": 106,
+        "it50": 1605,
+        "vis": 7,
+        "perc": 6.604361370716511
       }
     ],
     "it1": 0,
     "it3": 0,
     "it5": 0,
-    "it10": 5,
+    "it10": 4,
     "it50": 211,
     "childsCount": 0,
     "keys": [
-      {
-        "pos": 6,
-        "word": "изготовление стеклянной перегородки цена",
-        "ws": 6,
-        "wsk": 1
-      },
       {
         "pos": 6,
         "word": "перегородки офисные стеклянные калькулятор",
@@ -110,16 +104,16 @@
         "wsk": 1
       },
       {
+        "pos": 6,
+        "word": "изготовление стеклянной перегородки цена",
+        "ws": 6,
+        "wsk": 1
+      },
+      {
         "pos": 7,
         "word": "мобильная стена в квартире",
         "ws": 13,
         "wsk": 2
-      },
-      {
-        "pos": 8,
-        "word": "быстросъемные перегородки",
-        "ws": 33,
-        "wsk": 1
       },
       {
         "pos": 8,
@@ -140,12 +134,6 @@
         "wsk": 1
       },
       {
-        "pos": 11,
-        "word": "каркасные стены в квартире",
-        "ws": 133,
-        "wsk": 0
-      },
-      {
         "pos": 12,
         "word": "монтажник стеклянных перегородок",
         "ws": 34,
@@ -156,25 +144,33 @@
         "word": "установка мобильных перегородок",
         "ws": 13,
         "wsk": 2
+      },
+      {
+        "pos": 13,
+        "word": "изготовление стеклянных перегородок",
+        "ws": 289,
+        "wsk": 19
+      },
+      {
+        "pos": 14,
+        "word": "сделать стеклянную перегородку в комнате",
+        "ws": 48,
+        "wsk": 4
       }
     ],
-    "topkeys": 673548,
+    "topkeys": 675786,
     "pages": [
       {
-        "it50": 147,
+        "it50": 140,
         "url": "/"
       },
       {
-        "it50": 14,
-        "url": "/our-works/loft-peregorodki"
-      },
-      {
-        "it50": 13,
+        "it50": 16,
         "url": "/our-works/mobilnyie-peregorodki"
       },
       {
-        "it50": 7,
-        "url": "/our-works/skladnyie-peregorodki"
+        "it50": 13,
+        "url": "/our-works/loft-peregorodki"
       },
       {
         "it50": 7,
@@ -185,6 +181,10 @@
         "url": "/our-works/razdvizhnyie-peregorodki"
       },
       {
+        "it50": 7,
+        "url": "/our-works/skladnyie-peregorodki"
+      },
+      {
         "it50": 6,
         "url": "/our-works/peregorodki-dlya-zonirovaniya-komnat"
       },
@@ -193,15 +193,15 @@
         "url": "/our-works/nedorogie-peregorodki"
       },
       {
-        "it50": 2,
+        "it50": 3,
         "url": "/our-works/peregorodki-v-kvartire"
       },
       {
         "it50": 2,
-        "url": "/calculator"
+        "url": "/articles/kak-professionalno-ustanovit-steklyannuyu-peregorodku"
       }
     ],
-    "pagesinindex": 13,
+    "pagesinindex": 14,
     "vis": 0,
     "topvis": 1000000,
     "adconcs": [],
@@ -434,9 +434,9 @@
         "it1": 0,
         "it3": 0,
         "it5": 0,
-        "it10": 5,
+        "it10": 4,
         "it50": 211,
-        "pagesInIndex": 13,
+        "pagesInIndex": 14,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 0,
@@ -565,7 +565,7 @@
       ],
       "2026.10": [
         1,
-        26,
+        29,
         1,
         2,
         1

@@ -54,9 +54,22 @@ export interface GapRead {
   bad: number;
   /** Строки без витрины у карточек без истории: «нет данных», а не ноль (см. markNoSite). */
   noSite: number;
+  /** Системные дни: цена сайта равна нашей у NO_SITE_DAY_SHARE строк дня и больше - весь день «нет данных»
+   *  (Иван 19.10 по K2 ФЕНИКСА). Читатель должен написать warning, а не молчать. */
+  systemDays: string[];
 }
 
-const EMPTY: GapRead = { exists: false, rows: [], days: [], bySrc: new Map(), withOa: 0, bad: 0, noSite: 0 };
+const EMPTY: GapRead = { exists: false, rows: [], days: [], bySrc: new Map(), withOa: 0, bad: 0, noSite: 0, systemDays: [] };
+
+/** Системный день (K2 ФЕНИКСА iter4, Иван 19.10 «да, 90% дня = нет данных»): если цена сайта равна нашей у
+ *  NO_SITE_DAY_SHARE строк дня и больше, это сбой витрины или съёма, а не 10 карточек теста и 29 карточек плана,
+ *  разом выпавших из доплаты. Тогда все такие строки дня - «нет данных» независимо от истории, стопы и чипы
+ *  молчат, читатель пишет warning. То же правило для снимка цен API (prices-daily.ts NO_BEFORE_SHARE 0,9).
+ *  Нижняя граница NO_SITE_DAY_MIN: правило дня только при полном срезе, иначе срез из одной новой карточки
+ *  стал бы «системным днём». История [ДАННЫЕ, gap_daily и coinv_daily на 19.10]: строк в дне 460-516, доля
+ *  таких строк максимум 1,9 % (16.10, 9 новых GGT-03-5-1 из 473) - ни один прошлый день правило не задевает. */
+export const NO_SITE_DAY_SHARE = 0.9;
+export const NO_SITE_DAY_MIN = 50;
 
 /** Строка, в которой цена на сайте равна нашей: разрыв 0 или site_to_seller 1. Сам по себе это ещё не «нет
  *  данных»: решает история артикула (markNoSite). */
@@ -87,8 +100,14 @@ export const noSite = (r: GapRow): boolean => r.no_site === true;
  *    заменять утренний в писателе на маке (W1, открыто Ивану).
  *  - История считается по всему файлу: был ли у артикула день РАНЬШЕ этой даты с ненулевым разрывом. Порядок
  *    строк в файле роли не играет, более поздний день историей не считается (первый день карточки - «нет
- *    данных», даже если назавтра 47 %). Готовая метка no_site из файла главнее истории. */
-export function markNoSite(input: GapRow[]): GapRow[] {
+ *    данных», даже если назавтра 47 %). Готовая метка no_site из файла главнее истории - этим же снимается
+ *    ложный стоп: если ноль у зрелой карточки оказался сбоем витрины, строке в gap_daily ставится no_site: true
+ *    (скрипт v8/fix_nodata_1610.py этого не делает, он помечает только строки без истории), и стоп гаснет.
+ *  - Системный день (NO_SITE_DAY_SHARE): все строки дня без витрины - «нет данных» независимо от истории. */
+export function markNoSite(input: GapRow[]): GapRow[] { return markNoSiteEx(input).rows; }
+
+/** То же, что markNoSite, плюс список системных дней (см. NO_SITE_DAY_SHARE). */
+export function markNoSiteEx(input: GapRow[]): { rows: GapRow[]; systemDays: string[] } {
   const last = new Map<string, GapRow>();
   for (const r of input) {
     const d = String(r.date || "").slice(0, 10);
@@ -105,14 +124,25 @@ export function markNoSite(input: GapRow[]): GapRow[] {
     const f = firstNonZero.get(art);
     if (f === undefined || d < f) firstNonZero.set(art, d);
   }
+  // Системный день: доля строк без витрины по дню, считается до правила истории.
+  const dayTotal = new Map<string, number>(), dayMissing = new Map<string, number>();
+  for (const r of last.values()) {
+    const d = String(r.date || "").slice(0, 10);
+    dayTotal.set(d, (dayTotal.get(d) ?? 0) + 1);
+    if (siteMissing(r)) dayMissing.set(d, (dayMissing.get(d) ?? 0) + 1);
+  }
+  const systemDays = [...dayTotal.entries()]
+    .filter(([d, n]) => n >= NO_SITE_DAY_MIN && (dayMissing.get(d) ?? 0) / n >= NO_SITE_DAY_SHARE)
+    .map(([d]) => d).sort();
+  const sysDay = new Set(systemDays);
   const out: GapRow[] = [];
   for (const r of last.values()) {
     if (r.no_site === true || !priceEqualsOurs(r)) { out.push(r); continue; }
     const d = String(r.date || "").slice(0, 10), art = String(r.art || "").trim();
     const f = firstNonZero.get(art);
-    out.push(f !== undefined && f < d ? r : { ...r, no_site: true });
+    out.push(f !== undefined && f < d && !sysDay.has(d) ? r : { ...r, no_site: true });
   }
-  return out;
+  return { rows: out, systemDays };
 }
 
 export function readGapDaily(path: string): GapRead {
@@ -130,7 +160,8 @@ export function readGapDaily(path: string): GapRead {
     if (!d || !art) { bad += 1; continue; }
     parsed.push(r);
   }
-  for (const r of markNoSite(parsed)) {
+  const marked = markNoSiteEx(parsed);
+  for (const r of marked.rows) {
     const d = String(r.date || "").slice(0, 10);
     const art = String(r.art || "").trim();
     if (r.oa_used === true) { withOa += 1; continue; }
@@ -147,5 +178,5 @@ export function readGapDaily(path: string): GapRead {
     // Ноль у карточки с историей проходит сюда как есть: честный 0, а не «нет данных».
     rows.push({ date: d, art, observed: true, in_panel: true, gap_pct: v, oa_source: src });
   }
-  return { exists: rows.length > 0, rows, days: [...days].sort(), bySrc, withOa, bad, noSite: noSiteN };
+  return { exists: rows.length > 0, rows, days: [...days].sort(), bySrc, withOa, bad, noSite: noSiteN, systemDays: marked.systemDays };
 }

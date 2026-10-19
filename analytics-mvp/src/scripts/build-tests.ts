@@ -307,6 +307,8 @@ const coinvRows = readNd(dp("coinv_daily.ndjson")) as CoinvRow[];
 // из коэффициента, замороженного на 09.09. Подробнее - gap-daily.ts.
 // coinv_daily остаётся источником колонки «Соинвест» на странице: там он и уместен.
 const GAP = readGapDaily(dp(GAP_DAILY_FILE));
+// Системный день (K2): весь день «нет данных», стопы и чипы молчат, но молча это пройти не должно.
+for (const d of GAP.systemDays) console.log(`gap_daily: WARNING ${d} - системный день: цена сайта равна нашей у 90% строк и больше, весь день «нет данных»; проверить витрину и съём`);
 // ГРАФИК «СОИНВЕСТ» И «ЦЕНА НА ВИТРИНЕ» ЦЕЛИКОМ ИЗ gap_daily (решение Ивана 29.09, вариант 1).
 // coinv_daily кончился 24.09, дальше съём кабинета пишет только gap_daily, и на графике с 25.09
 // стояло «нет данных». Склеивать два файла нельзя: в coinv_daily соинвест от цены с картой Ozon,
@@ -2317,7 +2319,7 @@ interface PriceCalc {
   gBase: number | null; E: number | null; noise: number | null;
   vc: ReturnType<typeof verdictOf>;
   vBase: ReturnType<typeof viewShare>; v1: ReturnType<typeof viewShare>; v2: ReturnType<typeof viewShare>;
-  vStop: string | null; collapsed: string[]; baseCap: Map<string, number | null>;
+  vStop: string | null; collapsed: { art: string; since: string }[]; baseCap: Map<string, number | null>;
   price: Array<{ a: string; st: "ждём" | "нет снимка" | "снижена" | "не снижена" | "аномалия" | "нет цены"; d: string; dPct: number | null }>;
   /** Почему товар не засчитывается на последний день окна (E065): исключён Иваном, реклама за клик, вторая акция. */
   dirty: Map<string, string>;
@@ -2364,10 +2366,16 @@ function priceCalc(t: PriceTestDef): PriceCalc {
   const v1 = viewShare(P_VIEWS, vSet, t.старт, addDays(t.старт, 7));
   const v2 = viewShare(P_VIEWS, vSet, addDays(t.старт, 7), addDays(t.старт, 14));
   const vStop = viewsStop(P_VIEWS, vSet, t.старт, vBase.share);
-  // Обвал разрыва к нулю после старта - товар выпал из «Эластичного бустинга» (стоп-сигнал). Ноль у карточки с
-  // историей приходит из readGapDaily как 0 и срабатывает; «нет данных» (no_site, карточка без истории) в
-  // P_GAP не попадает и даёт 99, то есть стоп не зажигает (Иван 19.10, ФЕНИКС Z1).
-  const collapsed = test.filter((a) => [...P_GAP.entries()].some(([d, m]) => d >= t.старт && (m.get(a) ?? 99) < 10));
+  // Обвал разрыва к нулю после старта - OZON перестал доплачивать за товар (стоп-сигнал: вернуть цену). Ноль у
+  // карточки с историей приходит из readGapDaily как 0 и срабатывает; «нет данных» (no_site, карточка без
+  // истории, системный день) в P_GAP не попадает и даёт 99, то есть стоп не зажигает (Иван 19.10, ФЕНИКС Z1).
+  // Выход из «Эластичного бустинга» разрыв не обваливает (ФЕНИКС Z2: у 50 выходов ни разу ниже 10), поэтому
+  // стоп так не объясняется. Стоп держится с первого дня обвала и показывает эту дату (ФЕНИКС iter4 P1):
+  // один ложный день (сбой витрины) снимается меткой no_site: true у строки в gap_daily, метка главнее истории.
+  const collapsed = test.flatMap((a) => {
+    const since = [...P_GAP.entries()].filter(([d, m]) => d >= t.старт && (m.get(a) ?? 99) < 10).map(([d]) => d).sort()[0];
+    return since ? [{ art: a, since }] : [];
+  });
   const price = test.map((a) => {
     const b = baseCap.get(a) ?? null;
     const after = [...(P_CAP.get(a) ?? new Map()).keys()].filter((d) => d >= t.старт).sort();
@@ -2563,7 +2571,7 @@ function priceCard(c: PriceCalc, ti: number): string {
     : `не просели: ${sgn(r1 * 100, 0)}% и ${sgn(r2 * 100, 0)}%${c.v2.days < 7 ? ` (вторая неполная, ${c.v2.days} дн)` : ""}`;
   const stops = [
     c.vStop ? `доля показов ниже половины базы 3 дня подряд с ${DM(c.vStop)} - вернуть цену` : "",
-    c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map(esc).join(", ")} - товар, похоже, выпал из «Эластичного бустинга», вернуть цену` : "",
+    c.collapsed.length ? `разрыв обвалился к нулю у ${c.collapsed.map((x) => `${esc(x.art)} (с ${DM(x.since)})`).join(", ")} - OZON перестал доплачивать, вернуть цену; если это сбой витрины на один день, строке в gap_daily ставится no_site` : "",
   ].filter(Boolean);
   const verdict = `<div class="verdict"><div class="verdict-h">${c.vc.prelim ? "Промежуточно" : "Итог"} по показателям на ${DM(P_LAST_GAP || TODAY)}</div>`
     + `<div class="verdict-main"><b>${esc(vName)}.</b> ${fewClean

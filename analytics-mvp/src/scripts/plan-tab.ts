@@ -29,6 +29,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dp as dpDefault } from "../paths.js";
+import { noSite as gapNoSite } from "./gap-daily.js";
 
 export const PLAN_FILE = "plan_2026-10-15_v4.json";   // v4: v3 + QUATRIS и PROFIX на -10% с 16.10 (Иван 16.10), v8/add_price_1610.py; v3: v2 (27 арт. из минимального клика, TRUBIS 160 вместо GGT-12-2) + выводимые вне карточек, пороги 5 карточек (Иван 15.10 «б»), v8/withdraw_base_1510.py
 /** Состав объединённых карточек плана заморожен на 15.10 (Иван 16.10: новые GGT-03-5-1 в план не считать):
@@ -457,7 +458,8 @@ export function planBlock(today: string, dp: (f: string) => string = dpDefault):
   const PCOLS = priceColumns(prHist, PRICE_BASE);
   const gapHist = new Map<string, Map<string, number>>();   // скидка OZON по дням: «было» на 14.10, «стало» - последний срез (Иван 15.10)
   for (const r of readNd(dp("gap_daily.ndjson"))) {
-    if (!Number.isFinite(Number(r.gap_pct)) || r.gap_pct == null) continue;
+    // Тот же фильтр, что в readGapDaily: цена на сайте равна нашей - «нет данных», не 0 (ФЕНИКС 19.10, G1b).
+    if (!Number.isFinite(Number(r.gap_pct)) || r.gap_pct == null || gapNoSite(r)) continue;
     if (r.date >= (gapLast.get(r.art)?.[0] ?? "")) gapLast.set(r.art, [r.date, Number(r.gap_pct)]);
     if (priceArts.has(r.art)) (gapHist.get(r.art) ?? gapHist.set(r.art, new Map()).get(r.art)!).set(r.date, Number(r.gap_pct));
   }

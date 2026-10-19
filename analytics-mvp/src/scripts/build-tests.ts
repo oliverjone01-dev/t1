@@ -24,7 +24,7 @@ import { KPAGES, navButton } from "./katya-nav.js";
 import { planBlock } from "./plan-tab.js";
 import { gapFiller, coverage } from "./metric-gap.js";
 import { seLog, detectable, ordersNeeded } from "./mde.js";
-import { readGapDaily, GAP_DAILY_FILE } from "./gap-daily.js";
+import { readGapDaily, noSite as gapNoSite, GAP_DAILY_FILE } from "./gap-daily.js";
 import { sideStat, sideWindow, perWeek, type BidTestDef, type SideDef, type PairDef, type SideStat } from "./bid-compare.js";
 import { runBacktest } from "./plateau-backtest.js";
 import { pickCtlSrc, CTL_SRC_NAME, type CtlSrc } from "./ctl-src.js";
@@ -2001,7 +2001,8 @@ const gapByArt = new Map<string, Map<string, number>>();
 let LAST_SPEND = "";
 for (const r of readNd(dp("ads_sku_daily.ndjson"))) if (r.d > LAST_SPEND) LAST_SPEND = r.d;
 for (const r of readNd(dp(GAP_DAILY_FILE))) {
-  if (r.oa_used === true || r.gap_pct == null) continue;
+  // Тот же фильтр, что в readGapDaily: цена на сайте равна нашей - «нет данных», не 0 (ФЕНИКС 19.10, G1b).
+  if (r.oa_used === true || r.gap_pct == null || gapNoSite(r)) continue;
   const art = String(r.art || "").trim(), d = String(r.date || "").slice(0, 10);
   if (!art || !d) continue;
   (gapByArt.get(art) ?? gapByArt.set(art, new Map()).get(art)!).set(d, Number(r.gap_pct));

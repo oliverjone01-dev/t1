@@ -77,11 +77,11 @@ describe("живой файл data/gap_daily.ndjson", () => {
     }
   });
 
-  it("ложные нули без витрины помечены (11 строк 10-11.10 и 16.10, v8/fix_nodata_1610.py) и в ряд не идут", () => {
+  it("нулей разрыва в ряду нет: 14 строк с ценой сайта, равной нашей, помечены no_site (v8/fix_nodata_1610.py)", () => {
     const r = readGapDaily("data/" + GAP_DAILY_FILE);
     if (!r.exists) return;
-    expect(r.noSite).toBeGreaterThanOrEqual(11);
-    expect(r.rows.filter((x) => x.gap_pct === 0 && x.date >= "2026-10-16")).toEqual([]);
+    expect(r.noSite).toBeGreaterThanOrEqual(14);
+    expect(r.rows.filter((x) => x.gap_pct === 0)).toEqual([]);
   });
 
   it("источники ряда - только наблюдения", () => {
@@ -195,9 +195,15 @@ describe("срез без витрины: «нет данных», а не но�
     expect(r.bad).toBe(0);
   });
 
-  it("ноль со SKU остаётся нулём: витрина снята, решение по таким строкам за Иваном", () => {
+  it("ноль со SKU при цене сайта, равной нашей, - тоже «нет данных» (Иван 19.10: первый день карточки, не доплата)", () => {
     const r = readGapDaily(tmp([{ date: "2026-10-12", art: "A", sku: "123", site_to_seller: 1.0, gap_pct: 0.0, src: "prices_raw" }]));
-    expect(r.rows[0]!.gap_pct).toBe(0);
+    expect(r.rows).toEqual([]);
+    expect(r.noSite).toBe(1);
+  });
+
+  it("маленький, но ненулевой разрыв со SKU остаётся: нет данных только при равенстве цен", () => {
+    const r = readGapDaily(tmp([{ date: "2026-10-12", art: "A", sku: "123", site_to_seller: 0.98, gap_pct: 2.0, src: "prices_raw" }]));
+    expect(r.rows[0]!.gap_pct).toBe(2);
     expect(r.noSite).toBe(0);
   });
 

@@ -53,19 +53,22 @@ export function mergeCoinv(stored: StoredRow[], slice: SliceRow[]): { rows: Stor
     // Пустой SKU среза не затирает известный: SKU это свойство товара, он не исчезает между съёмами.
     const skuKnown = String(row.sku ?? "").trim() !== "";
     if (s.sku != null && (String(s.sku).trim() || !skuKnown)) row.sku = s.sku;
-    // Срез без SKU: витрину не сняли, на её место встала наша цена, и соинвест 0 ложный (9 новых GGT-03-5-1,
-    // 16.10; Иван: «пиши нет данных»). Такой 0 не пишем - поле остаётся пустым.
-    const noSite = !String(s.sku ?? "").trim() && s.coinv_pct === 0;
-    if (noSite && skuKnown) {
-      // Срез без витрины поверх снятого значения того же дня (утро со SKU, вечер без): значение, цену
+    // Цена на сайте равна нашей (соинвест 0): витрину не сняли или карточка только опубликована, OZON ещё не
+    // доплачивает. Это «нет данных», а не 0 (Иван 16.10 «пиши нет данных», 19.10 - и для строк со SKU).
+    // Поле не пишем, ставим метку no_site. Честный выход из доплаты ловится по акциям, не здесь.
+    const sameAsOurs = s.oa != null && s.seller != null && Math.round(s.oa) === Math.round(s.seller);
+    const noSite = s.coinv_pct === 0 || sameAsOurs;
+    const prevHas = prev != null && typeof prev.coinv_paid_pct === "number" && prev.coinv_paid_pct > 0;
+    if (noSite && prevHas) {
+      // Срез без витрины поверх снятого значения того же дня (утро снято, вечер нет): значение, SKU, цену
       // сайта и источник не трогаем (ФЕНИКС 16.10, проба M1), обновляем только нашу цену.
       if (s.seller != null) row.cap = s.seller;
       updated++; by.set(k, row);
       continue;
     }
     if (s.coinv_pct != null && !noSite) row.coinv_paid_pct = s.coinv_pct;
-    // Повторный срез без витрины стирает прежний ложный 0 того же дня (прежняя строка тоже была без SKU).
-    if (noSite) delete row.coinv_paid_pct;
+    // Повторный срез без витрины стирает прежний ложный 0 того же дня; срез со снятой витриной снимает метку.
+    if (noSite) { delete row.coinv_paid_pct; row.no_site = true; } else delete row.no_site;
     if (s.oa != null) row.site_paid = s.oa;
     if (s.seller != null) row.cap = s.seller;
     row.oa_source = sourceOf(s);

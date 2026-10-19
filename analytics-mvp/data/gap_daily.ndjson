@@ -1406,7 +1406,7 @@
 {"date": "2026-09-20", "art": "GGT-03-3-5-S-40", "sku": "3821699701", "site_to_seller": 0.5452, "gap_pct": 45.48, "src": "prices_raw", "oa_used": false}
 {"date": "2026-09-20", "art": "GGT-03-3-6-L-90-12090", "sku": "3564837580", "site_to_seller": 0.5573, "gap_pct": 44.27, "src": "prices_raw", "oa_used": false}
 {"date": "2026-09-20", "art": "GGT-03-3-6-R-120-160-80", "sku": "3579703107", "site_to_seller": 0.5485, "gap_pct": 45.15, "src": "prices_raw", "oa_used": false}
-{"date": "2026-09-20", "art": "GGT-03-5-1-O-20090", "sku": "3579701389", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false}
+{"date": "2026-09-20", "art": "GGT-03-5-1-O-20090", "sku": "3579701389", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "no_site": true}
 {"date": "2026-09-20", "art": "GGT-12-2", "sku": "3564827469", "site_to_seller": 0.5481, "gap_pct": 45.19, "src": "prices_raw", "oa_used": false}
 {"date": "2026-09-20", "art": "GGT-12-3", "sku": "3564840043", "site_to_seller": 0.5479, "gap_pct": 45.21, "src": "prices_raw", "oa_used": false}
 {"date": "2026-09-20", "art": "GGT-20-1-1-110-140-70", "sku": "3579703356", "site_to_seller": 0.5574, "gap_pct": 44.26, "src": "prices_raw", "oa_used": false}
@@ -1441,7 +1441,7 @@
 {"date": "2026-09-20", "art": "GGT-20-3-3-18090", "sku": "3579703753", "site_to_seller": 0.5573, "gap_pct": 44.27, "src": "prices_raw", "oa_used": false}
 {"date": "2026-09-20", "art": "GGT-20-3-3-20090", "sku": "3564845401", "site_to_seller": 0.5573, "gap_pct": 44.27, "src": "prices_raw", "oa_used": false}
 {"date": "2026-09-20", "art": "GGT-20-3-4-18090", "sku": "3579703099", "site_to_seller": 0.5574, "gap_pct": 44.26, "src": "prices_raw", "oa_used": false}
-{"date": "2026-09-20", "art": "GGT-20-5-1-20090", "sku": "3564833355", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false}
+{"date": "2026-09-20", "art": "GGT-20-5-1-20090", "sku": "3564833355", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "no_site": true}
 {"date": "2026-09-20", "art": "GGT-28-1-1-180-90", "sku": "3564837082", "site_to_seller": 0.5573, "gap_pct": 44.27, "src": "prices_raw", "oa_used": false}
 {"date": "2026-09-20", "art": "GGT-28-1-1-200-100", "sku": "3579703232", "site_to_seller": 0.5573, "gap_pct": 44.27, "src": "prices_raw", "oa_used": false}
 {"date": "2026-09-20", "art": "GGT-28-1-2-180-90", "sku": "3564816009", "site_to_seller": 0.5573, "gap_pct": 44.27, "src": "prices_raw", "oa_used": false}
@@ -10112,7 +10112,7 @@
 {"date": "2026-10-12", "art": "GGT-46-5-1-100", "sku": "5632761878", "site_to_seller": 0.4718, "gap_pct": 52.82, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-12", "art": "GGT-46-3-3-100", "sku": "5632761673", "site_to_seller": 0.4718, "gap_pct": 52.82, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-12", "art": "GGT-47-5-1-80", "sku": "5989203179", "site_to_seller": 0.5424, "gap_pct": 45.76, "src": "prices_raw", "oa_used": false}
-{"date": "2026-10-12", "art": "GGT-47-5-1-90", "sku": "6005103981", "site_to_seller": 1.0, "gap_pct": 0.0, "src": "prices_raw", "oa_used": false}
+{"date": "2026-10-12", "art": "GGT-47-5-1-90", "sku": "6005103981", "site_to_seller": null, "gap_pct": null, "src": "prices_raw", "oa_used": false, "no_site": true}
 {"date": "2026-10-13", "art": "GGM-15-1-1", "sku": "3492786508", "site_to_seller": 0.5238, "gap_pct": 47.62, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-13", "art": "GGM-15-1-2", "sku": "3492789518", "site_to_seller": 0.5238, "gap_pct": 47.62, "src": "prices_raw", "oa_used": false}
 {"date": "2026-10-13", "art": "GGM-01-2", "sku": "3492791592", "site_to_seller": 0.4312, "gap_pct": 56.88, "src": "prices_raw", "oa_used": false}

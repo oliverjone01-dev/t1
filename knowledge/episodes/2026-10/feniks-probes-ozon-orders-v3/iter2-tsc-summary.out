@@ -1,0 +1,1 @@
+tsc --noEmit (git archive a95fd4b в scratch): main 9d28d96 errors=41, iter2 a95fd4b errors=41, в ozon-seller*/orders-daily*: 0; набор ошибок main = iter2 (без позиций): новых 0

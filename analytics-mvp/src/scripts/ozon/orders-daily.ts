@@ -27,27 +27,48 @@ export function annotation(level: "error" | "notice", text: string, secrets: str
   return `::${level}::${t}`;
 }
 
-// Инвариант перед записью: заказов не меньше 99% прошлого файла (заказы из кабинета не исчезают,
-// отменённые остаются со статусом; 1% - запас на единичные чистки OZON). Пустая или усохшая выдача
-// после смены контракта эндпоинта (другое имя поля списка, пустая схема) роняет сборку, а не
-// перезаписывает файл (К7). Прежний файл остаётся, прогон краснеет, причина - в аннотации.
+// Инварианты перед записью файла (К7, ФЕНИКС #492 A5b). Итоги по файлу целиком пропускали
+// потерю всей схемы FBO (34 строки = 0,87% при допуске 1%), поэтому проверка идёт по ключам и по
+// схемам: order уникален; каждый заказ прошлого файла есть в новом (заказы из кабинета не исчезают,
+// отменённые остаются со статусом; история 8 переходов - ни одного пропавшего ключа); строки,
+// выручка и заказы с paid по FBO и по FBS-семейству (FBS + rFBS, схема заказа может смениться на
+// rFBS по новым начислениям) не меньше 99% прошлого файла. 1% - [ГИПОТЕЗА] автора на единичные
+// чистки OZON. Нарушение = исключение: прежний файл остаётся, прогон краснеет, причина в ::error::.
 export function checkRowCount(prev: number, next: number): string | null {
   if (prev > 0 && next < prev * 0.99) return `заказов ${next} меньше 99% прошлого файла (${prev}) - файл не перезаписан`;
   return null;
 }
-
-// То же для денег: выручка и число заказов с paid не меньше 99% прошлого файла. Смена формы цены
-// в ответе OZON (20.10: v3 дал revenue 0 и paid null у всех 3905 заказов при верном числе строк)
-// иначе проходит молча и обнуляет деньги на страницах.
 export type Totals = { rows: number; revenue: number; paid: number };
-export function totalsOf(rows: Array<{ revenue?: number; paid?: number | null }>): Totals {
+export type OrderRow = { order?: string; scheme?: string; revenue?: number; paid?: number | null };
+export function totalsOf(rows: OrderRow[]): Totals {
   return { rows: rows.length, revenue: rows.reduce((s, r) => s + (r.revenue || 0), 0), paid: rows.filter((r) => r.paid != null).length };
 }
-export function checkTotals(prev: Totals, next: Totals): string | null {
-  const bad = checkRowCount(prev.rows, next.rows); if (bad) return bad;
-  if (prev.revenue > 0 && next.revenue < prev.revenue * 0.99) return `выручка ${next.revenue} меньше 99% прошлого файла (${prev.revenue}) - файл не перезаписан`;
-  if (prev.paid > 0 && next.paid < prev.paid * 0.99) return `заказов с paid ${next.paid} меньше 99% прошлого файла (${prev.paid}) - файл не перезаписан`;
+export function checkTotals(prev: Totals, next: Totals, label = ""): string | null {
+  const tag = label ? `${label}: ` : "";
+  const bad = checkRowCount(prev.rows, next.rows); if (bad) return tag + bad;
+  if (prev.revenue > 0 && next.revenue < prev.revenue * 0.99) return `${tag}выручка ${next.revenue} меньше 99% прошлого файла (${prev.revenue}) - файл не перезаписан`;
+  if (prev.paid > 0 && next.paid < prev.paid * 0.99) return `${tag}заказов с paid ${next.paid} меньше 99% прошлого файла (${prev.paid}) - файл не перезаписан`;
   return null;
+}
+const family = (r: OrderRow): "FBO" | "FBS" => (r.scheme === "FBO" ? "FBO" : "FBS");
+export function checkRows(prev: OrderRow[], next: OrderRow[]): string | null {
+  const seen = new Set<string>(), dup: string[] = [];
+  for (const r of next) { const k = String(r.order ?? ""); if (seen.has(k)) dup.push(k); seen.add(k); }
+  if (dup.length) return `заказы повторяются (${dup.length}): ${dup.slice(0, 10).join(", ")} - файл не перезаписан`;
+  const missing = prev.map((r) => String(r.order ?? "")).filter((k) => !seen.has(k));
+  if (missing.length) return `из прошлого файла пропали заказы (${missing.length}): ${missing.slice(0, 10).join(", ")} - файл не перезаписан`;
+  for (const f of ["FBO", "FBS"] as const) {
+    const bad = checkTotals(totalsOf(prev.filter((r) => family(r) === f)), totalsOf(next.filter((r) => family(r) === f)), f);
+    if (bad) return bad;
+  }
+  return null;
+}
+
+// Сколько заплатил покупатель по financial_data.products[] (Иван 25.09.2026, п. 1.4): customer_price ×
+// quantity; в v3/v4 customer_price - объект {amount, currency}. Нет financial_data или суммы - null.
+export function paidOf(fdp: any[]): number | null {
+  const raw = fdp.reduce((s, x) => s + moneyOf(x?.customer_price) * (Number(x?.quantity) || 1), 0);
+  return fdp.length && raw > 0 ? Math.round(raw * 100) / 100 : null;
 }
 
 // Форма значения: имена полей и типы, без значений (репозиторий публичный, аннотации открыты).
@@ -141,12 +162,9 @@ async function main() {
     // OZON). Если явных признаков нет - берём источник постинга (FBO/FBS из эндпоинта).
     const scheme = rfbsSet.has(p.posting_number) ? "rFBS" : (logiSet.has(p.posting_number) ? ((p as any).src || "FBS") : ((p as any).src || ""));
     const feesSum = b.commission + b.acquiring + b.storage + b.delivery + b.ads + b.partner + b.other; // buyerDelivery компенсируется, в payout не входит
-    // Сколько заплатил покупатель (Иван 25.09.2026, п. 1.4): financial_data.products[].customer_price ×
-    // quantity. Это «Реализовано на сумму» (F) отчёта о реализации по заказу; база налога = paid + G.
-    // Нет financial_data - null (build-katya тогда оценивает базу долей).
-    const fdp: any[] = (p as any).financial_data?.products ?? [];
-    const paidRaw = fdp.reduce((s, x) => s + moneyOf(x?.customer_price) * (Number(x?.quantity) || 1), 0);
-    const paid = fdp.length && paidRaw > 0 ? Math.round(paidRaw * 100) / 100 : null;
+    // Сколько заплатил покупатель: «Реализовано на сумму» (F) отчёта о реализации по заказу; база
+    // налога = paid + G. Нет financial_data - null (build-katya тогда оценивает базу долей).
+    const paid = paidOf((p as any).financial_data?.products ?? []);
     rows.push({
       order: p.posting_number, d: p.date, t: (p as any).ts || null, status: p.status, scheme,
       sku: top.sku, offer: top.offer, units, revenue: Math.round(revenue),
@@ -156,8 +174,8 @@ async function main() {
       dl: dlvByDate[p.posting_number] ? Object.entries(dlvByDate[p.posting_number]!).map(([d, v]) => [d, Math.round(v)]).filter((x) => x[1]) : null,
     });
   }
-  const prevRows = existsSync(OUT) ? readFileSync(OUT, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
-  const bad = checkTotals(totalsOf(prevRows), totalsOf(rows));
+  const prevRows: OrderRow[] = existsSync(OUT) ? readFileSync(OUT, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
+  const bad = checkRows(prevRows, rows);
   if (bad) throw new Error(bad);
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");
   // само-сверка

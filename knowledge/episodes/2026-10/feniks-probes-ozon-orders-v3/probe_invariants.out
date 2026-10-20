@@ -1,0 +1,14 @@
+OK   a.bad-run-99149e2: ожидание block, факт block | prev {"rows":3881,"revenue":214071012,"paid":3847} next {"rows":3905,"revenue":0,"paid":0} | прогон 39439844466: выручка 0, paid null у всех | выручка 0 меньше 99% прошлого файла (214071012) - файл не перезаписан
+OK   b.good-run-43cd2db: ожидание pass, факт pass | prev {"rows":3881,"revenue":214071012,"paid":3847} next {"rows":3905,"revenue":215858436,"paid":3871} | итоговый сбор v3/v4
+MISS c.fbo-lost: ожидание block, факт pass | prev {"rows":3881,"revenue":214071012,"paid":3847} next {"rows":3871,"revenue":214734385,"paid":3871} | вся схема FBO пропала (v3 FBO вернул пусто / другое имя списка)
+MISS d.fbo-lost-steady: ожидание block, факт pass | prev {"rows":3905,"revenue":215858436,"paid":3871} next {"rows":3871,"revenue":214734385,"paid":3871} | то же в установившемся режиме (prev = вчерашний файл)
+OK   e.fbs-lost: ожидание block, факт block | prev {"rows":3881,"revenue":214071012,"paid":3847} next {"rows":34,"revenue":1124051,"paid":0} | вся FBS пропала | заказов 34 меньше 99% прошлого файла (3881) - файл не перезаписан
+MISS f.all-duplicated: ожидание block, факт pass | prev {"rows":3881,"revenue":214071012,"paid":3847} next {"rows":7810,"revenue":431716872,"paid":7742} | курсор отдал страницы дважды: каждый заказ дважды
+MISS g.dates-shifted: ожидание block, факт pass | prev {"rows":3881,"revenue":214071012,"paid":3847} next {"rows":3905,"revenue":215858436,"paid":3871} | дата заказа съехала на день (in_process_at -> shipment_date / TZ)
+MISS h.prev-file-missing: ожидание block, факт pass | prev {"rows":0,"revenue":0,"paid":0} next {"rows":3905,"revenue":0,"paid":0} | прошлого файла нет (переименован OUT, первый сбор) + выручка 0
+
+запас строк: 3905 - ceil(3881*0.99) = 62 заказов можно потерять молча
+запас выручки: 215858436 - 214071012*0.99 = 3928134 руб (1.82% файла)
+FBO в ветке: 34 заказов, выручка 1124051, paid не null 0
+
+инвариант не сработал там, где должен: 5 из 8

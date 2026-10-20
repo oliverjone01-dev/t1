@@ -13,8 +13,9 @@ const SELLER_HOST = "https://api-seller.ozon.ru";
 // Каждый повтор пишется в лог (путь, попытка, пауза): по нему видно, сколько повторов съел прогон.
 const ACCRUAL_RETRY: RetryOpts = { retries: 8, baseMs: 2000, maxMs: 60000 };
 const ACCRUAL_GAP_MS = 300;
-// Деньги из списков отправлений: v2 отдавал price числом или строкой, v3/v4 могут отдать объект
-// {amount, currency_code} (так читают сторонние клиенты). Одна функция на оба вида.
+// Деньги из списков отправлений: v2 отдавал price числом или строкой, v3/v4 отдают объект
+// {amount: "99.90", currency: "RUB"} (форма снята аннотацией прогона 39441351008). Одна функция
+// на все три вида; нечитаемая форма даёт 0, и её ловят инварианты сборщика по выручке.
 export function moneyOf(v: unknown): number {
   if (v && typeof v === "object") { const o = v as any; return Number(o.amount ?? o.value ?? o.price ?? 0) || 0; }
   return Number(v ?? 0) || 0;
@@ -433,17 +434,23 @@ export class OzonSeller {
   // OZON 19.10.2026 отключил /v2/posting/fbo/list (HTTP 400 {"code":9,"message":"obsolete method
   // cannot be used"}, прогон orders-backfill 39402400842); замена - /v3/posting/fbo/list и
   // /v4/posting/fbs/list: курсор вместо offset, страница до 100, sort_dir вместо dir, ответ
-  // {postings, has_next, cursor}. Цена товара в v3 приходит строкой - Number() её читает.
-  // Курсор, который не сдвинулся при has_next - ошибка, а не бесконечный цикл (fail-closed).
+  // {postings, has_next, cursor}. Цена товара и customer_price в v3/v4 - объект {amount, currency},
+  // читает moneyOf. Fail-closed: ответ без списка отправлений или без has_next (переименованное
+  // поле - прежний контракт молча отдал бы 0 строк или одну страницу) и курсор без сдвига при
+  // has_next - ошибка с формой ответа, а не тихий недобор (ФЕНИКС #492 P1, P2).
   private async listPostings(scheme: "FBO" | "FBS", since: string, to: string, financial: boolean): Promise<any[]> {
     const path = scheme === "FBO" ? "/v3/posting/fbo/list" : "/v4/posting/fbs/list";
     const out: any[] = [];
     let cursor = "";
     for (let page = 0; page < POSTING_PAGE_CAP; page++) {
       const d = await this.post<any>(path, { cursor, filter: { since, to }, limit: POSTING_PAGE, sort_dir: "asc", translit: false, with: { financial_data: financial } });
-      const arr: any[] = d.postings ?? d.result?.postings ?? (Array.isArray(d.result) ? d.result : []);
+      const arr: unknown = d?.postings ?? d?.result?.postings ?? d?.result;
+      const hasNextRaw = d?.has_next ?? d?.result?.has_next;
+      if (!Array.isArray(arr) || typeof hasNextRaw !== "boolean") {
+        throw new Error(`OZON ${path}: ответ без списка отправлений или has_next, ключи: ${Object.keys(d ?? {}).join(",")} / result: ${Object.keys(d?.result ?? {}).join(",")}`);
+      }
       for (const p of arr) if (p?.posting_number) out.push(p);
-      const hasNext = Boolean(d.has_next ?? d.result?.has_next);
+      const hasNext = hasNextRaw;
       const next = String(d.cursor ?? d.result?.cursor ?? "");
       if (!hasNext || !arr.length) return out;
       if (!next || next === cursor) throw new Error(`OZON ${path}: has_next без нового курсора после страницы ${page + 1}`);

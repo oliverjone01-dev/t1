@@ -1,0 +1,14 @@
+
+ RUN  v2.1.9 /tmp/claude-0/-home-user-t1/fff263e1-4e8a-5369-94dd-3200a2b249cf/scratchpad/wt-mut/analytics-mvp
+
+ ✓ src/scripts/ozon/prices-daily.test.ts (12 tests) 10ms
+ ✓ src/connector/ozon-seller.postings.test.ts (5 tests) 9ms
+ ✓ src/scripts/ozon/orders-daily.test.ts (8 tests) 5ms
+ ✓ src/connector/ozon-seller.retry.test.ts (2 tests) 9ms
+ ✓ src/connector/ozon-performance.test.ts (3 tests) 4ms
+
+ Test Files  5 passed (5)
+      Tests  30 passed (30)
+   Start at  15:14:37
+   Duration  793ms (transform 264ms, setup 0ms, collect 498ms, tests 38ms, environment 1ms, prepare 354ms)
+

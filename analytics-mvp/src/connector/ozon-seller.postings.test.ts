@@ -69,3 +69,24 @@ describe("moneyOf: цена числом, строкой или объектом
     expect(moneyOf({ value: 7 })).toBe(7); expect(moneyOf(undefined)).toBe(0); expect(moneyOf("x")).toBe(0);
   });
 });
+
+describe("OzonSeller.postings: контракт v3/v4 fail-closed (ФЕНИКС #492 P1, P2, M1)", () => {
+  it("цена объектом {amount, currency} читается через postings() (мутант M1: Number даёт 0)", async () => {
+    const p = { ...posting("obj"), products: [{ sku: 1, offer_id: "A", quantity: 1, price: { amount: "99.90", currency: "RUB" } }] };
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce(resp(200, { postings: [p], has_next: false, cursor: "" }))
+      .mockResolvedValueOnce(resp(200, { postings: [], has_next: false, cursor: "" })));
+    const out = await new OzonSeller({ clientId: "x", apiKey: "y" } as any).postings("2026-10-01", "2026-10-19");
+    expect(out[0]!.products[0]!.price).toBe(99.9);
+  });
+  it("P1: список под другим ключом (items) - ошибка с ключами ответа, а не 0 отправлений", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(resp(200, { items: [posting("a")], has_next: false, cursor: "" })));
+    await expect(new OzonSeller({ clientId: "x", apiKey: "y" } as any).postings("2026-10-01", "2026-10-19"))
+      .rejects.toThrow(/без списка отправлений или has_next, ключи: items,has_next,cursor/);
+  });
+  it("P2: has_next переименован (hasNext) - ошибка, а не одна страница из N", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(resp(200, { postings: [posting("a")], hasNext: true, cursor: "c" })));
+    await expect(new OzonSeller({ clientId: "x", apiKey: "y" } as any).postings("2026-10-01", "2026-10-19"))
+      .rejects.toThrow(/без списка отправлений или has_next/);
+  });
+});

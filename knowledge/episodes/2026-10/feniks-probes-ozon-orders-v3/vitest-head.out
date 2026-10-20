@@ -1,0 +1,11 @@
+
+ RUN  v2.1.9 /tmp/claude-0/-home-user-t1/fff263e1-4e8a-5369-94dd-3200a2b249cf/scratchpad/wt-head/analytics-mvp
+
+ ✓ src/connector/ozon-seller.postings.test.ts (5 tests) 10ms
+ ✓ src/scripts/ozon/orders-daily.test.ts (8 tests) 5ms
+
+ Test Files  2 passed (2)
+      Tests  13 passed (13)
+   Start at  15:01:17
+   Duration  412ms (transform 177ms, setup 0ms, collect 263ms, tests 15ms, environment 0ms, prepare 117ms)
+

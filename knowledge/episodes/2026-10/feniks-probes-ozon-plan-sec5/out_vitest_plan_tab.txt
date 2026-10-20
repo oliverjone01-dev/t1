@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 /tmp/claude-0/-home-user-t1/1943908c-c4c7-568a-bd65-621494b42509/scratchpad/head/analytics-mvp
+
+ ✓ src/scripts/plan-tab.test.ts (93 tests) 1170ms
+
+ Test Files  1 passed (1)
+      Tests  93 passed (93)
+   Start at  09:58:25
+   Duration  1.96s (transform 170ms, setup 0ms, collect 485ms, tests 1.17s, environment 0ms, prepare 52ms)
+

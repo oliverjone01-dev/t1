@@ -1,0 +1,17 @@
+errors head: 41  base: 41
+в файлах PR (plan-tab.ts, plan-tab.test.ts) и build-tests.ts на голове:
+  0
+наборы ошибок base/head без позиций совпадают:
+  да (41 = 41, все вне PR)
+
+файлы с ошибками (голова):
+     10 src/scripts/ozon/pnl-sku-daily.ts
+      9 src/scripts/ym/svod-ui.test.ts
+      5 src/scripts/ozon/acq-sku-daily.ts
+      5 src/scripts/build-katya.ts
+      4 src/scripts/ozon/pnl-sku-breakdown.ts
+      2 src/scripts/ym/validate-facts.test.ts
+      2 src/scripts/ozon/pnl-accrual-reconcile.ts
+      2 src/scripts/ozon/pnl-accrual-daily.ts
+      1 src/scripts/ym/tovary-ui.test.ts
+      1 src/scripts/ym/report-page-ym.ts

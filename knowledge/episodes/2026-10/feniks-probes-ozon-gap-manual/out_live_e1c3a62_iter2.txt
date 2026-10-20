@@ -1,0 +1,40 @@
+== e1c3a62 v0  Tests 40 passed (40)
+== e1c3a62 v0x  Tests 1 failed | 39 passed (40)
+AssertionError: expected false to be true // Object.is equality
+   × ручные снятия ложных стопов: gap_manual.ndjson рядом с gap_daily (Иван 20.10) > живой файл ручных снятий на месте (сторож: мак или чист�
+== e1c3a62 vAll3  Tests 1 failed | 39 passed (40)
+AssertionError: expected [ '2026-10-18', '2026-10-19' ] to deeply equal []
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включи�
+== e1c3a62 vBad  Tests 1 failed | 39 passed (40)
+   × ручные снятия ложных стопов: gap_manual.ndjson рядом с gap_daily (Иван 20.10) > живой файл ручных снятий на месте (сторож: мак или чист�
+== e1c3a62 vDup  Tests 40 passed (40)
+== e1c3a62 vKeep5  Tests 40 passed (40)
+== e1c3a62 vM12  Tests 40 passed (40)
+== e1c3a62 vM13  Tests 40 passed (40)
+== e1c3a62 vM5  Tests 40 passed (40)
+== e1c3a62 vMass  Tests 40 passed (40)
+== e1c3a62 vMiss  Tests 1 failed | 39 passed (40)
+AssertionError: expected false to be true // Object.is equality
+   × ручные снятия ложных стопов: gap_manual.ndjson рядом с gap_daily (Иван 20.10) > живой файл ручных снятий на месте (сторож: мак или чист�
+== e1c3a62 vNZ  Tests 40 passed (40)
+== e1c3a62 vSnap  Tests 40 passed (40)
+== e1c3a62 vSnapR  Tests 40 passed (40)
+== e1c3a62 vSys12  Tests 1 failed | 39 passed (40)
+AssertionError: expected [ '2026-10-12' ] to deeply equal []
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включи�
+== e1c3a62 vSys13  Tests 1 failed | 39 passed (40)
+AssertionError: expected [ '2026-10-13' ] to deeply equal []
+   × системный день: цена сайта равна нашей у 90% строк дня и больше (K2 ФЕНИКСА iter4, Иван 19.10) > порог ни один день до 19.10 включи�
+== e1c3a62 vW15  Tests 40 passed (40)
+== e1c3a62 vZ19  Tests 40 passed (40)
+== e1c3a62 vZ19m  Tests 40 passed (40)
+== e1c3a62 vZ20  Tests 40 passed (40)
+== e1c3a62 vZ20m  Tests 40 passed (40)
+== e1c3a62 vZ20m1  Tests 40 passed (40)
+== e1c3a62 vZsib  Tests 40 passed (40)
+== e1c3a62 vZsib19  Tests 40 passed (40)
+== e1c3a62 vZsib5  Tests 1 failed | 39 passed (40)
+AssertionError: expected 46 to be less than 2
+   × гейт плато на живом gap_daily > плацебо-группа держится: соседи без рекламы не уходят от базы 35ms
+== e1c3a62 vZsibL  Tests 40 passed (40)
+== e1c3a62 vZsibm  Tests 40 passed (40)

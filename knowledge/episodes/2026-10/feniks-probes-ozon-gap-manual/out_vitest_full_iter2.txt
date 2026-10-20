@@ -1,0 +1,6 @@
+ Test Files  67 passed (67)
+      Tests  1141 passed (1141)
+rev e1c3a62 exit=0 seconds=174
+ ✓ src/scripts/gap-daily.test.ts (40 tests) 394ms
+ ✓ src/scripts/ym/validate-facts.test.ts (31 tests) 31296ms
+ ✓ src/scripts/ozon/coinv-merge-nosite.test.ts (17 tests) 66ms

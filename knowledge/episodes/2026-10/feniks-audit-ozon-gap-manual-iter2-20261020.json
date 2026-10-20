@@ -1,0 +1,113 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-ozon-gap-manual-iter2-20261020",
+  "timestamp": "2026-10-20T12:05:00+03:00",
+  "deliverable_ref": "PR #489, ветка claude/amazing-hawking-0trncq, код-голова e1c3a62 (HEAD 895727e = e1c3a62 + 354fe76 handoff + 895727e self-check, оба [skip ci], пути вне хеша). base = origin/main = 81764e4 (git ls-remote), REST: open, mergeable_state clean. audit_hash 9b6b3bb443bb22db посчитан сам (--rev HEAD, --rev e1c3a62, --worktree), совпал с запросом. Охват: дифф e0aab10a..e1c3a62 (6 путей) прочитан целиком, пробы на полном коде e1c3a62; остальные 3 пути ветки (gap_manual.ndjson, plan-tab.ts, спека gap-shift) с iter1 не менялись, iter1 покрыл все 9 путей (go 8,10 на ad03459c99c3edcb). Вместе - все 9 путей хеша. Пробы: knowledge/episodes/2026-10/feniks-probes-ozon-gap-manual/*_iter2.*",
+  "iteration": 2,
+  "artifact_class": "dashboard",
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 2,
+    "actionability_7_deadline_buffer": 2,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 2,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 1,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 2,
+    "risk_21_downside": 2,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 1,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 2
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 9.0,
+    "insight": 7.0,
+    "brand_fit": 10.0,
+    "risk_awareness": 9.0
+  },
+  "weighted_total": 8.5,
+  "verdict": "go",
+  "primary_gap": "Все 7 gaps iter1 и обе Codex P2 закрыты, доказано дифференциально на трёх коммитах. Главная новая находка - второй порядок новой строки «Снято вручную»: запись и счётчик считаются до дедупа дня (gap-daily.ts:209, manualN и manualRows до markNoSiteEx). На vSnap и vSnapR (две строки GGK-02-3-3-80 за 20.10: ноль и 49,57) страница совпадает с v0, значение 49,57 на месте, а плашка пишет «Снято вручную как сбой витрины: GGK-02-3-3-80 20.10», лог - «применено: 1». В живом gap_daily за 29 дней дублей (день, артикул) 0, так что случай пока гипотетический.",
+  "gaps": [
+    "(новое, проба B3, insight_12) Строка «Снято вручную» и счётчик лога считают запись до дедупа дня: gap-daily.ts:209 пишет manualN/manualRows до markNoSiteEx. vSnap и vSnapR (две строки GGK-02-3-3-80 за 20.10, ноль и 49,57, в обоих порядках): страница = v0, кроме времени сборки и плашки «Снято вручную как сбой витрины: GGK-02-3-3-80 20.10», лог «применено: 1», хотя запись ничего не изменила. В живом gap_daily дублей (день, артикул) 0 за 29 дней. Правка: снятие считать по строке, которая осталась после markNoSiteEx",
+    "(остаток L5, автор признал, risk_23) Фильтр плацебо ловит только gap_pct === 0 (gap-daily.test.ts:155), а стоп теста 4 срабатывает ниже 10 (build-tests.ts:2381). vZsib5 красный 46 на e1c3a62, e0aab10a и 81764e4. Ручная запись не поможет (действует только на строку без витрины), а комментарий теста велит при падении пересматривать порог +8, для этого случая рецепт неверный. За 29 дней у зрелых карточек 0 строк с 0 < разрыв < 10 и 0 нулей (inspect_gm_iter2)",
+    "(остаток R5, автор признал, actionability_9) Запись на ненулевую строку молча ничего не делает: vNZ и vM5 - живые тесты 40/40, «применено: 0», строки на странице нет. На vM5 стоп «GGK-02-3-3-80 (с 20.10, сейчас 5,0%)» по-прежнему советует «аналитик снимет стоп записью о сбое», а запись к 5,0 не применится. Сработала ли запись, не проверяет ни один тест",
+    "(атрибуция, accuracy_1) decisions 20.10 (3а): «маршрут: менеджер сообщает Ивану, аналитик проверяет карточку и добавляет строку коммитом в main через PR, мерж Ивана» записан без пометки, чьё это решение, внутри записи с заголовком «(Иван 20.10)». Пометка «реализовано до решения Ивана» относится к строке видимости, у оговорки Codex своя пометка, у маршрута никакой. Тот же класс, что iter1 gap 6",
+    "(остаток текстов, автор признал, accuracy_3) decisions 19.10 п.(5): имя чипа «OZON не доплачивает?» вписано в датированную запись задним числом коммитом e0aab10 (база 81764e4: «выпал из бустинга» 1, голова 0), примечания «с 20.10» нет",
+    "(вне диффа, справочно, без веса) Плацебо-тест проверяет 3 карточки из 5: у GGL-01-M-2 и GGT-03-3-1-L-80 0 точек, потому что sibsOf(a) включает саму карточку и ветка control не запускается (placebo_why_iter2: points=0 на всех вариантах). Комментарий об этом автор не добавил (признал)"
+  ],
+  "rework_tz": "",
+  "escalate_to": "Иван, три пункта. (1) Слияние: go, до слияния ничего. Остатки 1-5 - следующим PR, ни один не меняет число на живых данных: страница головы на текущих данных = страница e0aab10a = страница базы 81764e4, отличается только время сборки. (2) Строка «Снято вручную как сбой витрины: артикул день (причина)» в плашке сделана до твоего решения (decisions 20.10 (3а), мой вариант «рекомендую» из iter1): оставить или снять. (3) Маршрут ручного снятия (менеджер -> Иван -> аналитик -> PR -> мерж Ивана) записан в decisions без твоего решения: подтвердить или поправить.",
+  "confidence": 0.86,
+  "p9_triggers_fired": [
+    "[ДАННЫЕ] автора воспроизведены вне артефакта: vitest 1141/1141, 67 файлов, на копии git archive e1c3a62 с живыми данными и .github (174 с); CI run 860 success на e1c3a62 (REST, check-run 118534627035); tsc: 41 ошибка в 10 файлах, в файлах PR 0; хеш 9b6b3bb443bb22db тремя способами",
+    "Заявленные «не сделано» подтверждены пробами: vZsib5 46; запись на ненулевую строку холостая (vNZ, vM5); имя чипа в decisions 19.10 п.(5)",
+    "Счётчик до дедупа (класс B3): «применено: 1» и строка «Снято вручную» при неизменённой странице (vSnap, vSnapR)",
+    "Решение в decisions без атрибуции: маршрут в (3а) под заголовком «(Иван 20.10)»",
+    "Ошибка в брифе: для vZ20m ожидалась строка «... GGK-02-3-3-80 19.10», на деле 20.10 (у vZ20m ноль и запись за 20.10); строка 19.10 - у vZ19m. Оба варианта проверены"
+  ],
+  "telemetry": {
+    "model": "claude-opus-5-5"
+  },
+  "anchor": "anchor: 8.5 timur-activation (итерация 3, go после live-атаки) - наш артефакт на уровне якоря (8.50). Не выше: живая атака снова нашла второй порядок вне self-check (счётчик до дедупа, vSnap), четыре признанных остатка не исправлены (плацебо ниже 10, холостая запись, атрибуция маршрута, имя чипа). Не ниже: все 7 gaps iter1 и обе Codex P2 закрыты и доказаны дифференциально на трёх коммитах (e1c3a62 / e0aab10a / 81764e4), ни одного FAIL в пробах, все заявления автора воспроизведены. Против 8.9 annotate ниже на 0.4: там остаток - одна неточная формулировка, здесь новый дефект кода. Серия #489: iter1 8.10 -> iter2 8.50 (+0.40)",
+  "comprehension_gate": {
+    "applies": false,
+    "passed": true,
+    "defects": []
+  },
+  "probes": [
+    {"id": "H1", "result": "PASS", "evidence": "audit_hash --rev HEAD / --rev e1c3a62 / --worktree = 9b6b3bb443bb22db (e0aab10a = ad03459c99c3edcb); HEAD 895727e = remote ветки; main 81764e4 = merge-base; 895727e и 354fe76 с [skip ci] трогают только self-check, handoff и traces; git status: только мои пробы и traces (out_misc_iter2.txt)"},
+    {"id": "T1", "result": "PASS", "evidence": "полный vitest на копии git archive e1c3a62 (живые данные v0, .github рядом): 67 файлов, 1141 passed (gap-daily 40, coinv-merge-nosite 17, validate-facts 31), exit 0, 174 с (out_vitest_full_iter2.txt)"},
+    {"id": "T2", "result": "PASS", "evidence": "tsc --noEmit на копии e1c3a62: 41 ошибка в 10 файлах, база iter1 та же, в файлах PR 0 (out_tsc_iter2.txt)"},
+    {"id": "T3", "result": "PASS", "evidence": "run 860 «Тесты аналитики» на e1c3a62: completed success, event pull_request; check-run vitest + smoke id 118534627035 success; 2 треда Codex resolved (out_misc_iter2.txt)"},
+    {"id": "L5", "result": "PASS", "evidence": "vZsib, vZsib19, vW15: e1c3a62 40/40; e0aab10a и 81764e4 - 51 (expected 51 to be less than 2). placebo_why_iter2: на v0 фильтр выкидывает 0 точек, worst 1.1 (тест не опустел); на vZsib/vZsib19/vW15 выкидывает 1 день у GGM-02-2-1 и GGM-02-3-1, worst 1.1"},
+    {"id": "L6", "result": "PARTIAL", "evidence": "vZsib5 (GGM-02-2-1 = 5,0 на 20.10): 46 на всех трёх коммитах; GGM-02-3-1 worst 46.0 от партнёра 5. Стоп теста 4 - ниже 10 (build-tests.ts:2381), фильтр - ровный 0. Автор признал"},
+    {"id": "R4", "result": "PASS", "evidence": "v0: 40/40; страница e1c3a62 = страница e0aab10a = страница 81764e4, кроме времени сборки (segdiff: 2 блока, оба время); новая строка лога «gap_manual.ndjson на месте, ручных снятий применено: 0»"},
+    {"id": "R5", "result": "PASS", "evidence": "vNZ (запись на 18.10 = 48,55): e1c3a62 - страница = v0 (35 065 ₽, prices_raw 12 832), «применено: 0», плашки нет; e0aab10a - 35 067 ₽ и prices_raw 12 831 (запись прятала значение). Codex P2 закрыт"},
+    {"id": "R5b", "result": "PARTIAL", "evidence": "vM5 (GGK-02-3-3-80 = 5,0 + запись): стоп остаётся, его текст советует запись о сбое, «применено: 0», живые тесты 40/40 - холостая запись молчит; vNZ так же"},
+    {"id": "R6", "result": "PASS", "evidence": "vZ20m: стопов 0, чипов 0, плашка «Снято вручную как сбой витрины: GGK-02-3-3-80 20.10 (сбой витрины), GGT-48-2-2-100-180 20.10 (сбой витрины).»; vZ19m - те же строки с 19.10; vZ20m1 - чип GGT-48 остаётся; e0aab10a vZ20m - плашки нет; база 81764e4 vZ20m - стоп и чип остаются"},
+    {"id": "R7", "result": "PASS", "evidence": "v0x: e1c3a62 красный (expected false to be true, «живой файл ручных снятий на месте»), лог «gap_manual.ndjson НЕ НАЙДЕН»; e0aab10a и 81764e4 - зелёные; страница v0x = v0, кроме времени"},
+    {"id": "R2", "result": "PASS", "evidence": "vMiss и vBad: живой тест красный; vMiss - стоп и чип остаются; vBad - верная запись применена, дата 20.10.2026 пропущена (чип GGT-48 остаётся); vDup - «применено: 1»"},
+    {"id": "W2m", "result": "PASS", "evidence": "окно строки ручного снятия: vM13 (ноль и запись 13.10 = последний день - 7) - плашка «... GGK-02-3-3-80 13.10»; vM12 (12.10, последний - 8) - плашки нет, снятие действует («применено: 1»); vSys13 - плашка, vSys12 - нет"},
+    {"id": "B3", "result": "PARTIAL", "evidence": "vSnap (утро 0, вечер 49,57) и vSnapR (утро 49,57, вечер 0) + запись 20.10: страница = v0, кроме времени и плашки «Снято вручную ... GGK-02-3-3-80 20.10»; лог «применено: 1». Счётчик до дедупа (gap-daily.ts:209). В живом файле дублей 0 (out_inspect_iter2.txt)"},
+    {"id": "D2", "result": "PASS", "evidence": "probe_coinv_gm (d) один срез утро+вечер: e1c3a62 systemDays [] при значениях [40]; e0aab10a и 81764e4 [2026-10-19]; (c) без изменений; новый юнит-тест в coinv-merge-nosite.test.ts (out_coinv_iter2.txt)"},
+    {"id": "K4", "result": "PASS", "evidence": "vKeep5: плашка «стопы и чипы за них не считаются, товары с разрывом за этот день остаются» рядом со стопом «GGK-02-3-3-80 (с 20.10, сейчас 5,0%)» - противоречия нет; на e0aab10a было «за него ... остальные значения дня остаются»"},
+    {"id": "B4", "result": "PARTIAL", "evidence": "старая процедура в gap-daily.ts 0, «весь день» только цитата в decisions, старое имя чипа в src/spec/tools 0; остаток - decisions 19.10 п.(5): имя чипа вписано задним числом (e0aab10, база 1, голова 0)"},
+    {"id": "G7", "result": "PASS", "evidence": "маршрут есть в трёх местах: decisions 20.10 (3а), комментарий gap-daily.ts:32-33, стоп-строка на странице vZ20 «сообщить Ивану, аналитик снимет стоп записью о сбое за этот день»"},
+    {"id": "B7", "result": "PASS", "evidence": "нового пути наружу нет; строка «Снято вручную» показывает ручное решение с причиной, чисел в ней нет"},
+    {"id": "C3", "result": "PASS", "evidence": "U+2014 в 81 строке, добавленной автором в e0aab10a..e1c3a62, и в self-check: 0"},
+    {"id": "C4", "result": "PASS", "evidence": "21 фраза anti-slop и запретные формулы в тех же строках и self-check: 0"},
+    {"id": "D1", "result": "PASS", "evidence": "самопровозглашённых оценок X/10: 0"}
+  ],
+  "evidence_ledger": [
+    {"gap": "Строка «Снято вручную» и счётчик считают запись до дедупа дня", "evidence": "pages_gm.sh + anpages_gm.py + segdiff_iter2.py: vSnap и vSnapR против v0 - 3 блока разницы (плашка и время сборки x2), лог «применено: 1» (out_pages_e1c3a62_iter2.txt, out_pages_cmp_iter2.txt); gap-daily.ts:209 (manualN, manualRows) до markNoSiteEx; дублей (день, артикул) в живом файле 0 (out_inspect_iter2.txt)", "checkpoint": "insight_12_second_order", "weight": -0.5},
+    {"gap": "Плацебо: фильтр ловит ровный 0, стоп - ниже 10; при честном обвале до 1-9 CI красный, а рецепт в комментарии теста неверный", "evidence": "live_gm.sh vZsib5: 46 на e1c3a62, e0aab10a, 81764e4 (out_live_*_iter2.txt); placebo_why_iter2: GGM-02-3-1 worst 46.0 при партнёре 5; gap-daily.test.ts:155 и build-tests.ts:2381 (out_misc_iter2.txt); 0 строк 0 < разрыв < 10 за 29 дней", "checkpoint": "risk_23_crisis_scenarios", "weight": -0.5},
+    {"gap": "Холостая запись на ненулевую строку молчит; стоп на 5,0 советует запись, которая не применится", "evidence": "vNZ и vM5: живые тесты 40/40, «применено: 0», плашки нет; vM5 - стоп-строка с советом (out_pages_e1c3a62_iter2.txt); gap-daily.ts:209 priceEqualsOurs(r)", "checkpoint": "actionability_9_metric_concrete", "weight": -0.5},
+    {"gap": "Маршрут ручного снятия в decisions без атрибуции", "evidence": "git show e1c3a62:knowledge/decisions.md, строка 6, пункт (3а): у маршрута нет пометки автора или «до решения Ивана», в отличие от строки видимости и оговорки Codex", "checkpoint": "accuracy_1_figures_tagged", "weight": -0.5},
+    {"gap": "Имя чипа в decisions 19.10 п.(5) вписано задним числом", "evidence": "git log -S'OZON не доплачивает?' -- knowledge/decisions.md = e0aab10; «выпал из бустинга» в decisions: база 1, голова 0 (out_misc_iter2.txt)", "checkpoint": "accuracy_3_no_conflict_with_rag", "weight": -0.5},
+    {"gap": "Плацебо-тест проверяет 3 из 5 карточек (вне диффа)", "evidence": "placebo_why_iter2: GGL-01-M-2 и GGT-03-3-1-L-80 mode=single (sibs=[self]) points=0 на v0 и всех вариантах (out_placebo_why_iter2.txt); gap-daily.test.ts:139 sibsOf включает саму карточку", "checkpoint": "insight_12_second_order", "weight": 0}
+  ],
+  "sources_of_truth": [
+    "knowledge/decisions.md:6-7 на e1c3a62 (записи 2026-10-20 и 2026-10-19)",
+    "knowledge/episodes/2026-10/feniks-audit-ozon-gap-manual-20261020.md и .json (iter1: 7 gaps, пробы)",
+    "knowledge/episodes/2026-10/ozon-testy-scripts/v8/selfcheck-gap-manual.md, раздел «Дополнение iter2»",
+    "analytics-mvp/data/gap_daily.ndjson (последний коммит c2c0aeb, 13 860 строк, по 20.10) - основа всех вариантов",
+    "GitHub REST: PR #489, actions run 39394762646 (860), check-run 118534627035, ccr/review_threads"
+  ],
+  "audience": "Иван (слияние; строка «Снято вручную» и маршрут - подтвердить), автор ветки (остатки 1-5 следующим PR)"
+}

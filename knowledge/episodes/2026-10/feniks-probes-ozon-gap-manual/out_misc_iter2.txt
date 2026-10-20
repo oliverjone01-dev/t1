@@ -1,0 +1,64 @@
+== H1 hash
+  --rev HEAD: 9b6b3bb443bb22db
+  --rev e1c3a62: 9b6b3bb443bb22db
+  --worktree: 9b6b3bb443bb22db
+  --rev e0aab10a (iter1): ad03459c99c3edcb
+  HEAD=895727e6 remote branch=895727e6 remote main=81764e4b merge-base=81764e4b
+  git status --porcelain lines: 19
+  paths of the branch at e1c3a62 (minus excluded):
+    analytics-mvp/data/gap_manual.ndjson
+    analytics-mvp/src/scripts/build-tests.ts
+    analytics-mvp/src/scripts/gap-daily.test.ts
+    analytics-mvp/src/scripts/gap-daily.ts
+    analytics-mvp/src/scripts/ozon/coinv-merge-nosite.test.ts
+    analytics-mvp/src/scripts/ozon/coinv-merge.ts
+    analytics-mvp/src/scripts/plan-tab.ts
+    knowledge/decisions.md
+    knowledge/semantic/metrics/ozon-price-test-gap-shift.yaml
+  paths changed e0aab10a..e1c3a62 (minus excluded):
+    analytics-mvp/src/scripts/build-tests.ts
+    analytics-mvp/src/scripts/gap-daily.test.ts
+    analytics-mvp/src/scripts/gap-daily.ts
+    analytics-mvp/src/scripts/ozon/coinv-merge-nosite.test.ts
+    analytics-mvp/src/scripts/ozon/coinv-merge.ts
+    knowledge/decisions.md
+  paths changed e1c3a62..HEAD (all):
+    knowledge/episodes/2026-10/ozon-testy-scripts/v8/selfcheck-gap-manual.md
+    sessions/handoff/2026-10-20-ozon-testy-plan-tab-v19.md
+    traces/2026-10-19/agents.jsonl
+    traces/2026-10-20/agents.jsonl
+  895727e: [skip ci] in message 1
+  354fe76: [skip ci] in message 1
+  e1c3a62: [skip ci] in message 0
+== T3 CI
+  run 860 Тесты аналитики (vitest + smoke обеих площадок): completed success, head e1c3a62d, event pull_request
+  check-run vitest + smoke: completed success id 118534627035
+  PR #489 open, head 895727e6, base 81764e4b, mergeable_state clean
+== texts at e1c3a62
+  stale procedure in gap-daily.ts (через markNoSite / строке в gap_daily ставится no_site): 0
+  'весь день' in src/spec/decisions: e1c3a62:knowledge/decisions.md:1 
+  old chip name 'выпал из бустинга' in src/spec/tools: 0 files; in decisions: base 1, head 0
+  commits that introduced 'OZON не доплачивает?' into decisions.md: e0aab10 
+  live test: existsSync guard on manual file:
+    389:    writeFileSync(join(dirname(p), GAP_MANUAL_FILE), manual.map((l) => JSON.stringify(l)).join("\n") + "\n", "utf-8");
+    416:    writeFileSync(join(dirname(p), GAP_MANUAL_FILE), "{не json\n", "utf-8");
+    439:    expect(existsSync("data/" + GAP_MANUAL_FILE)).toBe(true);
+  build log line:
+    314:console.log(`gap_daily: ${GAP_MANUAL_FILE} ${GAP.manualFile ? "на месте" : "НЕ НАЙДЕН"}, ручных снятий применено: ${GAP.manual}`);
+  manual applies only to price == ours:
+    170:    if (r.no_site === true || !priceEqualsOurs(r)) { out.push(r); continue; }
+    209:    if (mr && r.no_site !== true && priceEqualsOurs(r)) { r = { ...r, no_site: true }; manualN += 1; manualRows.push(mr); }
+  test-4 stop line threshold:
+    2381:    const since = [...P_GAP.entries()].filter(([d, m]) => d >= t.старт && (m.get(a) ?? 99) < 10).map(([d]) => d).sort()[0];
+  placebo filter (exact zero):
+    88:    const zeroWithoutHistory = r.rows.filter((x) => x.gap_pct === 0 && !((firstNonZero.get(x.art) ?? "9999") < x.date)).map((x) => `${x.date} ${x.art}`);
+    155:    const zeroDays = new Set(G.rows.filter((r) => r.gap_pct === 0).map((r) => `${r.date}|${r.art}`));
+    353:    expect(out.filter((r) => r.date === "2026-10-19" && r.gap_pct === 0)).toHaveLength(50);
+    360:    expect(out.filter((r) => r.date === "2026-10-19" && r.gap_pct === 0 && !noSite(r))).toHaveLength(3);
+    375:    expect(out.filter((r) => r.date === "2026-10-19" && r.gap_pct === 0 && !noSite(r))).toHaveLength(20);
+== C3 / C4 / D1 on lines added e0aab10a..e1c3a62 and the self-check
+  added lines: 81; U+2014 added 0, self-check 0
+  anti-slop hits (21 phrases): 0
+  self-claimed X/10 in added lines and self-check: 0
+review thread: resolved=True outdated=True analytics-mvp/src/scripts/gap-daily.ts:None
+review thread: resolved=True outdated=False analytics-mvp/src/scripts/gap-daily.test.ts:163
